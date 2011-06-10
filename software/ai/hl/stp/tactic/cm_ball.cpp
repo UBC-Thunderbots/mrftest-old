@@ -167,7 +167,7 @@ namespace {
 		private:
 			Region region;	
 			bool done() const {
-				return (player->position() - region.center_position()).len() < AI::HL::Util::POS_CLOSE;
+				return region.inside(player->position());
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return select_baller(world, players);
@@ -187,7 +187,7 @@ namespace {
 		private:
 			Region region;
 			bool done() const {
-				return (player->position() - region.center_position()).len() < AI::HL::Util::POS_CLOSE;
+				return region.inside(player->position());
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return select_baller(world, players);

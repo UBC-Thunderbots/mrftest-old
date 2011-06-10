@@ -64,7 +64,6 @@ namespace {
 
 	void Goalie::execute() {
 		auto waypoints = Evaluation::evaluate_defense(world);
-		// player->move(waypoints[0], (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 		Action::goalie_move(world, player, waypoints[0]);
 	}
 

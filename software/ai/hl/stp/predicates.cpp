@@ -10,6 +10,7 @@ using namespace AI::HL::W;
 
 namespace Evaluation = AI::HL::STP::Evaluation;
 using AI::HL::STP::Evaluation::EnemyThreat;
+using AI::HL::STP::Region;
 
 namespace {
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/predicates", 3.0, 1.0, 10.0);
@@ -212,5 +213,9 @@ bool AI::HL::STP::Predicates::num_of_enemies_on_our_side_at_least(const World &w
 	}
 	if (cnt >= n) return true;
 	return false;
+}
+
+bool AI::HL::STP::Predicates::ball_inside_region(const World &world, Region region) {
+	return region.inside(world.ball().position());
 }
 

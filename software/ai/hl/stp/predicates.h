@@ -2,6 +2,7 @@
 #define AI_HL_STP_PREDICATES
 
 #include "ai/hl/stp/world.h"
+#include "ai/hl/stp/region.h"
 #include <functional>
 
 namespace AI {
@@ -96,6 +97,11 @@ namespace AI {
 				 * borrowed from cm, true if number of enemies on our side is greater than n
 				 */
 				bool num_of_enemies_on_our_side_at_least(const World &world, const unsigned int n);
+
+				/**
+				 * true if ball is inside region
+				 */
+				bool ball_inside_region(const World &world, Region region);			
 			}
 		}
 	}
