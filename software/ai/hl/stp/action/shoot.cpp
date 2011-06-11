@@ -29,6 +29,8 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	std::pair<Point, double> target = AI::HL::Util::calc_best_shot(world, player);
 
 	if (!player->has_ball()) {
+		// ball is far away
+
 		if (target.second == 0) {
 			// just grab the ball, don't care about orientation
 			chase(world, player);
@@ -55,14 +57,15 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	double ori_diff = angle_diff(ori, player->orientation());
 	double accuracy_diff = ori_diff - (target.second / 2);
 
+#warning this is a hack that needs better fixing. check timestep
 	if (prev_player != player) {
 		prev_player = player;
 		prev_best_angle = 0;
 	}
 
-	if (radians2degrees(accuracy_diff) < -shoot_threshold && accuracy_diff < prev_best_angle) {
-		player->autokick(10.0);
+	if (radians2degrees(accuracy_diff) < -shoot_threshold && accuracy_diff < prev_best_angle && player->chicker_ready()) {
 		prev_best_angle = accuracy_diff;
+		player->kick(10.0);
 		return true;
 	}
 
