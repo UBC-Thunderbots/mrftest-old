@@ -36,7 +36,16 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 		target = AI::HL::Util::calc_best_shot(world, player, reduced_radius);
 	}
 
+	Point unit_vector = Point::of_angle(player->orientation());
+	Point circle_center = player->position() + Robot::MAX_RADIUS * unit_vector;
+
 	if (!player->has_ball()) {
+		double dist = (circle_center - world.ball().position()).len();
+		if (dist < pivot_threshold) {
+			pivot(world, player, target.first);
+			return false;
+		}
+
 		// ball is far away
 
 		if (target.second == 0) {
@@ -54,14 +63,6 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 		pivot(world, player, world.field().enemy_goal());
 		return false;
 	}
-
-	Point unit_vector = Point::of_angle(player->orientation());
-	Point circle_center = player->position() + Robot::MAX_RADIUS * unit_vector;
-
-
-
-
-
 
 	double ori = (target.first - player->position()).orientation();
 	double ori_diff = angle_diff(ori, player->orientation());
