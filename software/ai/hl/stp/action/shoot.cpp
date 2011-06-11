@@ -28,6 +28,12 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	// take into account that the optimal solution may not always be the largest opening
 	std::pair<Point, double> target = AI::HL::Util::calc_best_shot(world, player);
 
+	if (target.second == 0) {
+		// bad news, we are blocked
+		// so try with reduced radius
+		target = AI::HL::Util::calc_best_shot(world, player, reduced_radius);
+	}
+
 	if (!player->has_ball()) {
 		// ball is far away
 
@@ -42,15 +48,9 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	}
 
 	if (target.second == 0) {
-		// bad news, we are blocked
-		// so try with reduced radius
-		target = AI::HL::Util::calc_best_shot(world, player, reduced_radius);
-
-		if (target.second == 0) {
-			// still blocked, just aim
-			pivot(world, player, world.field().enemy_goal());
-			return false;
-		}
+		// still blocked, just aim
+		pivot(world, player, world.field().enemy_goal());
+		return false;
 	}
 
 	double ori = (target.first - player->position()).orientation();
