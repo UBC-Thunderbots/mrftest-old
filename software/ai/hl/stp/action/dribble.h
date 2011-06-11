@@ -8,14 +8,14 @@ namespace AI {
 		namespace STP {
 			namespace Action {
 				/**
-				 * Dribble to a particular location and stop.
-				 */
-				void dribble(const World &world, Player::Ptr player, const Point dest);
-
-				/**
 				 * Dribble and stay at the same position.
 				 */
 				void dribble(const World &world, Player::Ptr player);
+
+				/**
+				 * Dribble to a particular location and stop.
+				 */
+				void dribble(const World &world, Player::Ptr player, const Point dest);
 			}
 		}
 	}

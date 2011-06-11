@@ -31,13 +31,9 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 		if (target.second == 0) {
 			// just grab the ball, don't care about orientation
 			chase(world, player);
-			// LOG_INFO("chase");
 		} else {
-			// orient towards the enemy goal area
-			// LOG_INFO("move catch");
-			player->move(target.first, (world.field().enemy_goal() - player->position()).orientation(), Point());
-			player->type(AI::Flags::MoveType::CATCH);
-			player->prio(AI::Flags::MovePrio::HIGH);
+			// grab ball and orient towards the enemy goal area
+			pivot(world, player, target.first);
 		}
 		return false;
 	}
