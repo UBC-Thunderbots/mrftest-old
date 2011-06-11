@@ -64,11 +64,11 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 		player->autokick(10.0);
 		prev_best_angle = accuracy_diff;
 		return true;
-	} else {
-		pivot(world, player, target.first);
-		prev_best_angle = accuracy_diff;
-		return false;
 	}
+
+	pivot(world, player, target.first);
+	prev_best_angle = accuracy_diff;
+	return false;
 }
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, double tol, double delta) {

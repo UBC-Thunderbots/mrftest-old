@@ -11,6 +11,9 @@ using namespace AI::HL::STP;
 namespace {
 	// The maximum amount of time a play can be running.
 	const double PLAY_TIMEOUT = 30.0;
+
+	BoolParam goalie_lowest("Goalie is lowest index", "STP/STP", true);
+	IntParam goalie_pattern_index("Goalie pattern index", "STP/STP", 0, 0, 4);
 }
 
 PlayExecutor::PlayExecutor(World &w) : world(w) {
@@ -76,14 +79,34 @@ void PlayExecutor::role_assignment() {
 
 	std::fill(curr_assignment, curr_assignment + 5, Player::Ptr());
 
+	Player::Ptr goalie;
+	if (goalie_lowest) {
+		goalie = world.friendly_team().get(0);
+	} else {
+		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
+			Player::Ptr p = world.friendly_team().get(i);
+			if (p->pattern() == goalie_pattern_index) {
+				goalie = p;
+			}
+		}
+	}
+
+	if (!goalie.is()) {
+		LOG_ERROR("No goalie");
+		curr_play.reset();
+		return;
+	}
+
 	assert(curr_tactic[0].is());
-	curr_tactic[0]->set_player(world.friendly_team().get(0));
-	curr_assignment[0] = world.friendly_team().get(0);
+	curr_tactic[0]->set_player(goalie);
+	curr_assignment[0] = goalie;
 
 	// pool of available people
 	std::set<Player::Ptr> players;
-	for (std::size_t i = 1; i < world.friendly_team().size(); ++i) {
-		players.insert(world.friendly_team().get(i));
+	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
+		Player::Ptr p = world.friendly_team().get(i);
+		if (p == goalie) continue;
+		players.insert(p);
 	}
 
 	bool active_assigned = (curr_tactic[0]->active());
