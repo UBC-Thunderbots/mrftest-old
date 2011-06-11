@@ -15,7 +15,11 @@ namespace AI {
 				 * aims at an open angle at the enemy goal,
 				 * and shoots the ball.
 				 *
-				 * If the player does not have the ball, chases after it.
+				 * WARNING:
+				 * ONLY ONE ROBOT should be calling this action at any one time.
+				 *
+				 * If the player does not have the ball,
+				 * chases after it.
 				 *
 				 * \return true if the robot shoots.
 				 */

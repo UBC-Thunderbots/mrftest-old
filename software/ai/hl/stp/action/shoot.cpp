@@ -20,6 +20,7 @@ namespace {
 
 	// previous value of the angle returned by calc_best_shot
 	double prev_best_angle = 0.0;
+	Player::Ptr prev_player;
 }
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
@@ -33,26 +34,19 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 			chase(world, player);
 		} else {
 			// grab ball and orient towards the enemy goal area
-			pivot(world, player, target.first);
+			chase(world, player, target.first);
 		}
 		return false;
 	}
 
-	if (target.second == 0) { // bad news, we are blocked
+	if (target.second == 0) {
+		// bad news, we are blocked
+		// so try with reduced radius
 		target = AI::HL::Util::calc_best_shot(world, player, reduced_radius);
 
-		// still blocked even with reduced radius
 		if (target.second == 0) {
-			Point new_target = world.field().enemy_goal();
-			if (false) {
-				return shoot(world, player, new_target);
-			} else {
-				// just aim at the enemy goal
-				// perhaps aim at the largest gap in the enemy side of the field?
-				player->move(new_target, (world.field().enemy_goal() - player->position()).orientation(), Point());
-				player->type(AI::Flags::MoveType::DRIBBLE);
-				player->prio(AI::Flags::MovePrio::HIGH);
-			}
+			// still blocked, just aim
+			pivot(world, player, world.field().enemy_goal());
 			return false;
 		}
 	}
@@ -60,6 +54,11 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	double ori = (target.first - player->position()).orientation();
 	double ori_diff = angle_diff(ori, player->orientation());
 	double accuracy_diff = ori_diff - (target.second / 2);
+
+	if (prev_player != player) {
+		prev_player = player;
+		prev_best_angle = 0;
+	}
 
 	if (radians2degrees(accuracy_diff) < -shoot_threshold && accuracy_diff < prev_best_angle) {
 		player->autokick(10.0);
