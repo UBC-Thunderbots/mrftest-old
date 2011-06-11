@@ -62,6 +62,8 @@ namespace AI {
 			std::pair<Point, double> RRTNavigator::grab_ball(Player::Ptr player) {
 				const double ux = world.ball().velocity().len(); // velocity of ball
 
+				const double dest_ori = (world.ball().position() - player->position()).orientation();
+
 #warning MAGIC NUMBER
 				const double v = 1.5;
 
@@ -90,15 +92,10 @@ namespace AI {
 				}
 
 				if (std::isnan(t) || std::isinf(t) || t < 0) {
-					Player::Path path;
-					double dest_ori = (world.ball().position() - player->position()).orientation();
 					return std::make_pair(world.ball().position(), dest_ori);
 				}
 
 				Point dest_pos = p1 + world.ball().velocity() * t;
-
-				Player::Path path;
-				double dest_ori = (world.ball().position() - player->position()).orientation();
 
 				return std::make_pair(dest_pos, dest_ori);
 			}

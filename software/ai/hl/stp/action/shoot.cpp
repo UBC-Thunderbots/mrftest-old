@@ -17,6 +17,8 @@ namespace {
 	DoubleParam reduced_radius("reduced radius for calculating best shot", "STP/Action/shoot", 0.8, 0.0, 1.0);
 
 	DoubleParam shoot_threshold("Angle threshold (in degrees) that defines shoot accuracy, smaller is less accurate", "STP/Action/shoot", 20.0, -360.0, 360.0);
+	
+	DoubleParam pivot_threshold("circle radius in front of robot to start pivoting (in meters)", "STP/Action/shoot", 0.1, 0.0, 1.0);
 
 	// previous value of the angle returned by calc_best_shot
 	double prev_best_angle = 0.0;
@@ -52,6 +54,14 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 		pivot(world, player, world.field().enemy_goal());
 		return false;
 	}
+
+	Point unit_vector = Point::of_angle(player->orientation());
+	Point circle_center = player->position() + Robot::MAX_RADIUS * unit_vector;
+
+
+
+
+
 
 	double ori = (target.first - player->position()).orientation();
 	double ori_diff = angle_diff(ori, player->orientation());

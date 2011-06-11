@@ -59,8 +59,6 @@
       <integer name="Grid X size">25</integer>
       <integer name="Grid Y size">25</integer>
       <double name="kickoff: angle to separate players (degrees)">40.0</double>
-      <double name="kickoff: angle to separate players (degrees)">40.0</double>
-      <double name="Lone goalie distance to goal post (m)">0.300</double>
       <double name="Lone goalie distance to goal post (m)">0.300</double>
       <double name="max goalie dist from goal (robot radius)">3.00</double>
       <double name="shrink robot radius">1.100</double>
@@ -79,26 +77,33 @@
       </category>
       <category name="PID3">
         <double name="angle diff">1.00</double>
-        <double name="angle max vel">30.00</double>
-        <double name="angle prop">30.00</double>
-        <double name="angular slowdown when translating">1.010</double>
+        <double name="angle max vel">20.00</double>
+        <double name="angle prop">14.00</double>
+        <double name="angular slowdown when translating">1.500</double>
         <boolean name="flip trans&amp;ang slowdown (CARE)">false</boolean>
-        <boolean name="reduce angular velocity when translating">true</boolean>
+        <boolean name="reduce angular velocity when translating">false</boolean>
         <double name="x to y ratio">0.810</double>
-        <double name="xy diff">1.00</double>
-        <double name="xy max acc">5.00</double>
-        <double name="xy max vel">9.00</double>
-        <double name="xy prop">20.00</double>
+        <double name="xy diff">1.50</double>
+        <double name="xy max acc">4.00</double>
+        <double name="xy max vel">8.00</double>
+        <double name="xy prop">14.00</double>
       </category>
     </category>
     <category name="STP">
       <category name="Action">
+        <category name="block">
+          <double name="block threshold distance in terms of robot radius">3.000</double>
+        </category>
         <category name="Goalie">
           <double name="Lone Goalie: distance to goal post (m)">0.300</double>
         </category>
         <category name="shoot">
+          <double name="Angle threshold (in degrees) that defines shoot accuracy, smaller is less accurate">0.0</double>
           <double name="Decay constant for the ball velocity">0.100</double>
           <double name="reduced radius for calculating best shot">0.800</double>
+        </category>
+        <category name="spin">
+          <double name="change in orientation every time tick for move spin">0.5000</double>
         </category>
       </category>
       <category name="defense">

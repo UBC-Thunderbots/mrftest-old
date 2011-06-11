@@ -28,6 +28,7 @@ namespace {
 	DoubleParam PID_A_DIFF("angle diff", "RC/PID3", 1, 0.0, 20.0);
 	DoubleParam PID_A_THRESH("angle max vel", "RC/PID3", 30, 0.0, 50.0);
 	DoubleParam PID_XY_RATIO("x to y ratio", "RC/PID3", 0.81, 0.0, 2.0);
+	DoubleParam PID_RATIO("pid ratio", "RC/PID3", 1.0, 0.0, 2.0);
 
 	const double PID_YA_RATIO = 0.0; // 0 - 5 to face forwards
 
