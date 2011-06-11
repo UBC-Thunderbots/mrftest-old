@@ -20,6 +20,17 @@ class Point {
 		double y;
 
 		/**
+		 * Creates a unit-magnitude Point for an angle.
+		 *
+		 * \param[in] angle the angle.
+		 *
+		 * \return the Point.
+		 */
+		static Point of_angle(double angle) {
+			return Point(std::cos(angle), std::sin(angle));
+		}
+
+		/**
 		 * Creates the origin.
 		 */
 		Point() : x(0.0), y(0.0) {
