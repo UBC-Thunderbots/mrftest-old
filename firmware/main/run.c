@@ -66,6 +66,31 @@
 #define AUTOKICK_LOCKOUT_TIME 50
 
 /**
+ * \brief The minimum delay, in 5ms ticks, between changing the hard motor enable flag and the soft motor enable flag.
+ *
+ * Motor powerup is staged via two separate controls.
+ * The “hard” enable is a line from a physical pin on the microcontroller.
+ * The “soft” enable is a pair of bit flags sent over the parallel bus to the FPGA, one for the wheels and one for the dribbler.
+ *
+ * When the hard enable flag is cleared, all motor phases are forced high, ignoring the FPGA completely.
+ * When the hard enable flag is set, motor phases receive their polarities from the FPGA.
+ *
+ * When the soft enable flag for a motor is cleared, the FPGA attempts to float all motor phases.
+ * When the soft enable flag for a motor is set, the FPGA outputs commutated PWM at the most-recently-specified duty cycle to the motor phases.
+ *
+ * Because the hard enable flag is not wired to the FPGA, the dead-band generator is unaware of its value.
+ * Therefore, if both hard and soft enable flags are clear, the FPGA's dead-band generator will believe the motor phases are floating, when they are actually held high.
+ * If the hard and soft flags were to be enabled simultaneously, shootthrough would occur on the phase transitioning to low polarity, because the dead-band generator would not delay the transition, believing the phase to have been floating previously.
+ * If the hard and soft flags were to be disabled simultaneously, shootthrough would occur on the phase transitioning from a low polarity, because the hard enable flag being cleared forces that phase (along with all others) to instantly go high.
+ *
+ * To avoid shootthrough in the enabling case, the soft enable flag's rising edge trails the hard enable flag's rising edge, forcing the phases to float for the time difference before driving to their final values when the soft flag rises.
+ * To avoid shootthrough in the disabling case, the hard enable flag's falling edge trails the soft enable flag's falling edge, forcing the phases to float for the time difference before all going high.
+ *
+ * This is the number of ticks of time difference that must be applied in each case.
+ */
+#define MOTOR_HARD_DISABLE_TICK_COUNT 20
+
+/**
  * \brief The type of an XBee transmit header.
  */
 typedef struct {
@@ -160,6 +185,7 @@ void run(void) {
 	static uint8_t page_buffer[256];
 	uint8_t status, i;
 	uint16_t crc;
+	uint8_t motor_hard_disable_tick_counter = MOTOR_HARD_DISABLE_TICK_COUNT;
 #endif
 	uint8_t drive_timeout = 0;
 	const uint8_t robot_number = params.robot_number;
@@ -180,7 +206,6 @@ void run(void) {
 	if (params.flash_contents == FLASH_CONTENTS_FPGA) {
 		/* Read the magic signature from the FPGA over the parallel bus. */
 		if (parbus_read(0) == 0x468D) {
-			LAT_MOTOR_ENABLE = 1;
 			LAT_LED4 = 1;
 			fpga_ok = true;
 		} else {
@@ -686,7 +711,7 @@ void run(void) {
 					ADCON0bits.CHS0 = 1;
 					ADCON0bits.GO = 1;
 					/* Fire autokick if ready. */
-					if (drive_timeout && drive_block.enable_autokick && feedback_block.flags.ball_in_beam && !autokick_lockout_time) {
+					if (drive_block.enable_autokick && feedback_block.flags.ball_in_beam && !autokick_lockout_time) {
 						parbus_write(10, drive_block.autokick_width1 * 32);
 						parbus_write(11, drive_block.autokick_width2 * 32);
 						parbus_write(12, (drive_block.autokick_offset * 32) | (drive_block.autokick_offset_sign ? 0x8000 : 0x0000));
@@ -755,32 +780,70 @@ void run(void) {
 					break;
 			}
 #else
-			/* Control the wheels if and only if so ordered. */
-			if (drive_timeout && drive_block.enable_wheels) {
-				/* Count this iteration against the timeout. */
+			/* Check for timeout. */
+			if (drive_timeout) {
+				/* No timeout yet. */
 				--drive_timeout;
+			} else {
+				/* Wheels, dribbler, charger, and auto-kick should turn off on timeout. */
+				drive_block.enable_wheels = false;
+				drive_block.enable_charger = false;
+				drive_block.enable_dribbler = false;
+				drive_block.enable_autokick = false;
+			}
 
-				/* Run the control loops. */
-				run_wheel(0, drive_block.wheel1);
-				run_wheel(1, drive_block.wheel2);
-				run_wheel(2, drive_block.wheel3);
-				run_wheel(3, drive_block.wheel4);
+			/* Check if any of the motors are enabled (wheels or dribbler). */
+			if (drive_block.enable_wheels || drive_block.enable_dribbler) {
+				/* Wheels or dribbler enabled. */
+				LAT_MOTOR_ENABLE = 1;
 
-				/* Order the motors enabled. */
-				flags_out |= 0x01;
+				/* Check for motor hard-disable timeout. */
+				if (motor_hard_disable_tick_counter == 0) {
+					/* Enough time has passed since hard-enable. We may now soft-enable as well. */
+
+					/* Control the wheels if and only if so ordered. */
+					if (drive_block.enable_wheels) {
+						/* Run the control loops. */
+						run_wheel(0, drive_block.wheel1);
+						run_wheel(1, drive_block.wheel2);
+						run_wheel(2, drive_block.wheel3);
+						run_wheel(3, drive_block.wheel4);
+
+						/* Order the motors enabled. */
+						flags_out |= 0x01;
+					}
+
+					/* Enable the dribbler if and only if so ordered and temperature is acceptable. */
+					if (drive_block.enable_dribbler && feedback_block.dribbler_temperature_raw >= 200 && feedback_block.dribbler_temperature_raw <= 499) {
+						flags_out |= 0x04;
+						parbus_write(5, params.dribble_power);
+					} else {
+						parbus_write(5, 0);
+					}
+				} else {
+					/* The hard-enable only happened very recently. We should wait a bit longer. */
+					--motor_hard_disable_tick_counter;
+				}
+			} else {
+				/* Wheels and dribbler both disabled. */
+
+				/* Clear dribbler power setting. */
+				parbus_write(5, 0);
+
+				/* Check for motor hard-disable timeout. */
+				if (motor_hard_disable_tick_counter == MOTOR_HARD_DISABLE_TICK_COUNT) {
+					/* Enough time has passed since soft-disable. We may now hard-disable as well. */
+					LAT_MOTOR_ENABLE = 0;
+				} else {
+					/* The soft-disable only happened very recently. We should wait a bit longer. */
+					++motor_hard_disable_tick_counter;
+					LAT_MOTOR_ENABLE = 1;
+				}
 			}
 
 			/* Enable the charger if and only if so ordered. */
-			if (drive_timeout && drive_block.enable_charger) {
+			if (drive_block.enable_charger) {
 				flags_out |= 0x02;
-			}
-
-			/* Enable the dribbler if and only if so ordered. */
-			if (drive_timeout && drive_block.enable_dribbler && feedback_block.dribbler_temperature_raw >= 200 && feedback_block.dribbler_temperature_raw <= 499) {
-				flags_out |= 0x04;
-				parbus_write(5, params.dribble_power);
-			} else {
-				parbus_write(5, 0);
 			}
 
 			/* Send the general operational flags. */

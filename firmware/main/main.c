@@ -360,9 +360,17 @@ void main(void) {
 	LAT_LED3 = 0;
 
 	if (params.flash_contents == FLASH_CONTENTS_FPGA) {
+		uint8_t counter;
+
 		/* Wait for FPGA configuration to finish. */
-		while (!PORT_FPGA_INIT_B);
-		while (!PORT_FPGA_DONE && PORT_FPGA_INIT_B);
+		counter = 0;
+		while (!PORT_FPGA_INIT_B && ++counter) {
+			delay10ktcy(23);
+		}
+		counter = 0;
+		while (!PORT_FPGA_DONE && PORT_FPGA_INIT_B && ++counter) {
+			delay10ktcy(23);
+		}
 		if (!PORT_FPGA_DONE) {
 			error_reporting_add(FAULT_FPGA_INVALID_BITSTREAM);
 			LAT_FPGA_PROG_B = 0;
@@ -370,7 +378,10 @@ void main(void) {
 			delay1ktcy(1);
 			LAT_DCM_RESET = 0;
 			delay1ktcy(1);
-			while (!PORT_DCM_LOCKED);
+			counter = 0;
+			while (!PORT_DCM_LOCKED && ++counter) {
+				delay10ktcy(23);
+			}
 			delay1ktcy(1);
 			LAT_FPGA_RESET = 0;
 
@@ -386,7 +397,13 @@ void main(void) {
 			delay100tcy(8);
 
 			/* We can then detect the end of the checksumming operation by waiting for /CS to be deasserted. */
-			while (!PORT_FLASH_CS);
+			counter = 0;
+			while (!PORT_FLASH_CS && ++counter) {
+				delay10ktcy(23);
+			}
+			if (!PORT_FLASH_CS) {
+				LAT_FPGA_PROG_B = 0;
+			}
 		}
 		spi_drive();
 	}
