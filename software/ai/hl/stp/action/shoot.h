@@ -24,6 +24,8 @@ namespace AI {
 				 * \return true if the robot shoots.
 				 */
 				bool shoot(const World &world, Player::Ptr player);
+				
+				bool shoot(const World &world, Player::Ptr player, const Point target);
 
 				/**
 				 * If the player posses the ball,
@@ -35,14 +37,16 @@ namespace AI {
 				 *
 				 * \return true if the robot shoots.
 				 */
-				bool shoot(const World &world, Player::Ptr player, const Point target, double tol = AI::HL::Util::shoot_accuracy, double delta = 1e9);
+				//bool shoot(const World &world, Player::Ptr player, const Point target, double tol = AI::HL::Util::shoot_accuracy, double delta = 1e9);
 
 				/**
 				 * Arm the kicker so that it kicks ball exact speed to stop at target (i.e. t= inf)
 				 * or alternatively reach target at time delta from the current time ( may be moving )
 				 * \return true if the constraints are achievable
 				 */
-				bool arm(const World &world, Player::Ptr player, const Point target, double delta = 1e10);
+				//bool arm(const World &world, Player::Ptr player, const Point target, double delta = 1e10);
+
+				
 			}
 		}
 	}

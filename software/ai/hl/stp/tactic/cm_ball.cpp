@@ -319,7 +319,7 @@ void TActiveDef::execute() {
 		}
 	}
 
-	finished = Action::repel(world, player);
+	finished = Action::shoot(world, player, world.field().enemy_goal());
 }
 
 // might be better to just use our pass and receive pass

@@ -95,6 +95,52 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	return false;
 }
 
+bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target) {
+
+	Point unit_vector = Point::of_angle(player->orientation());
+	Point circle_center = player->position() + Robot::MAX_RADIUS * unit_vector;
+
+	if (!player->has_ball()) {
+		double dist = (circle_center - world.ball().position()).len();
+		if (dist < pivot_threshold) {
+			LOG_INFO("pivoting");
+			pivot(world, player, target);
+			return false;
+		}
+		
+		chase(world, player, target);
+		return false;
+	}
+
+	double ori = (target - player->position()).orientation();
+	double ori_diff = angle_diff(ori, player->orientation());
+	
+#warning this is a hack that needs better fixing. check timestep
+	if (prev_player != player) {
+		prev_player = player;
+		prev_best_angle = 0;
+	}
+
+	LOG_INFO(Glib::ustring::compose("accuracy_diff %1 shoot_thresh %2", radians2degrees(ori_diff), -shoot_threshold));
+
+	if (radians2degrees(ori_diff) < -shoot_threshold /* && accuracy_diff < prev_best_angle */) {
+		prev_best_angle = ori_diff;
+		if (!player->chicker_ready()) {
+			LOG_INFO("chicker not ready");
+			return false;
+		}
+		LOG_INFO("kick");
+		player->kick(10.0);
+		return true;
+	}
+
+	LOG_INFO("aiming");
+	pivot(world, player, target);
+	prev_best_angle = ori_diff;
+	return false;
+}
+
+/*
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, double tol, double delta) {
 	player->move(target, (target - player->position()).orientation(), Point());
 	player->type(AI::Flags::MoveType::CATCH);
@@ -132,4 +178,4 @@ bool AI::HL::STP::Action::arm(const World &world, Player::Ptr player, const Poin
 	player->autokick(speed);
 	return true;
 }
-
+*/
