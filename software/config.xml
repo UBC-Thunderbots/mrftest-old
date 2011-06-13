@@ -102,10 +102,11 @@
           <double name="Angle threshold (in degrees) that defines shoot accuracy, smaller is less accurate">1.0</double>
           <double name="circle radius in front of robot to start pivoting (in meters)">0.100</double>
           <double name="Decay constant for the ball velocity">0.100</double>
+          <double name="kicking speed for making a pass">7.03</double>
           <double name="reduced radius for calculating best shot (robot radius ratio)">0.800</double>
         </category>
         <category name="spin">
-          <double name="change in orientation every time tick for move spin">0.5000</double>
+          <double name="change in orientation every time tick for move spin">0.500</double>
         </category>
       </category>
       <category name="defense">
