@@ -246,9 +246,10 @@ void TShoot::execute() {
 void TSteal::execute() {
 	none = false;
 	const EnemyTeam &enemy = world.enemy_team();
+	Point dirToBall = (world.ball().position() - player->position()).norm();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		if (AI::HL::Util::posses_ball(world, enemy.get(i))) {
-			Action::move_spin(player, world.ball().position());
+			Action::move_spin(player, world.ball().position() + Robot::MAX_RADIUS * dirToBall);
 			return;
 		}
 	}
@@ -309,9 +310,10 @@ void TClear::execute() {
 void TActiveDef::execute() {
 	finished = false;
 	const EnemyTeam &enemy = world.enemy_team();
+	Point dirToBall = (world.ball().position() - player->position()).norm();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		if (AI::HL::Util::posses_ball(world, enemy.get(i))) {
-			Action::move_spin(player, world.ball().position());
+			Action::move_spin(player, world.ball().position() + Robot::MAX_RADIUS * dirToBall);
 			finished = true;
 			return;
 		}

@@ -16,6 +16,7 @@ void AI::HL::STP::Action::block(const World &world, Player::Ptr player, Robot::P
 	Point dirToGoal = (world.field().friendly_goal() - robot->position()).norm();
 	player->move(robot->position() + (block_threshold * Robot::MAX_RADIUS * dirToGoal), (world.ball().position() - player->position()).orientation(), Point());
 	player->type(AI::Flags::MoveType::NORMAL);
+	player->prio(AI::Flags::MovePrio::MEDIUM);
 
 }
 
