@@ -33,7 +33,7 @@ namespace {
 				player->move(pp.first, (pp.second - player->position()).orientation(), Point());
 				player->type(AI::Flags::MoveType::DRIBBLE);
 				player->prio(AI::Flags::MovePrio::HIGH);
-				kicked = Action::shoot(world, player, pp.second);
+				kicked = Action::shoot_pass(world, player, pp.second);
 			}
 			std::string description() const {
 				return "passer-shoot";
@@ -81,7 +81,7 @@ namespace {
 				player->move(pp.first, (pp.second - player->position()).orientation(), Point());
 				player->type(AI::Flags::MoveType::DRIBBLE);
 				player->prio(AI::Flags::MovePrio::HIGH);
-				kicked = Action::shoot(world, player, pp.second);
+				kicked = Action::shoot_pass(world, player, pp.second);
 			}
 			std::string description() const {
 				return "def-passer-shoot";
