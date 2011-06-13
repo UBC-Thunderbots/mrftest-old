@@ -14,7 +14,7 @@ using namespace AI::HL::STP;
 namespace {
 	DoubleParam alpha("Decay constant for the ball velocity", "STP/Action/shoot", 0.1, 0.0, 1.0);
 
-	DoubleParam reduced_radius("reduced radius for calculating best shot", "STP/Action/shoot", 0.8, 0.0, 1.0);
+	DoubleParam reduced_radius("reduced radius for calculating best shot (robot radius ratio)", "STP/Action/shoot", 0.8, 0.0, 1.0);
 
 	DoubleParam shoot_threshold("Angle threshold (in degrees) that defines shoot accuracy, smaller is less accurate", "STP/Action/shoot", 20.0, -360.0, 360.0);
 	
@@ -42,12 +42,13 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	if (!player->has_ball()) {
 		double dist = (circle_center - world.ball().position()).len();
 		if (dist < pivot_threshold) {
+			LOG_INFO("pivoting");
 			pivot(world, player, target.first);
 			return false;
 		}
 
 		// ball is far away
-
+		LOG_INFO("chase");
 		if (target.second == 0) {
 			// just grab the ball, don't care about orientation
 			chase(world, player);
@@ -60,6 +61,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 
 	if (target.second == 0) {
 		// still blocked, just aim
+		LOG_INFO("blocked, pivot");
 		pivot(world, player, world.field().enemy_goal());
 		return false;
 	}
@@ -74,12 +76,20 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 		prev_best_angle = 0;
 	}
 
-	if (radians2degrees(accuracy_diff) < -shoot_threshold && accuracy_diff < prev_best_angle && player->chicker_ready()) {
+	LOG_INFO(Glib::ustring::compose("accuracy_diff %1 shoot_thresh %2", radians2degrees(accuracy_diff), -shoot_threshold));
+
+	if (radians2degrees(accuracy_diff) < -shoot_threshold /* && accuracy_diff < prev_best_angle */) {
 		prev_best_angle = accuracy_diff;
+		if (!player->chicker_ready()) {
+			LOG_INFO("chicker not ready");
+			return false;
+		}
+		LOG_INFO("kick");
 		player->kick(10.0);
 		return true;
 	}
 
+	LOG_INFO("aiming");
 	pivot(world, player, target.first);
 	prev_best_angle = accuracy_diff;
 	return false;

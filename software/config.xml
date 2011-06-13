@@ -42,8 +42,8 @@
         <double name="pivot radius">1.00</double>
       </category>
       <category name="RRT">
-        <double name="Pivot: offset angle (degrees)">78</double>
-        <double name="Pivot: offset distance">0.11</double>
+        <double name="Pivot: offset angle (degrees)">74</double>
+        <double name="Pivot: offset distance">0.13</double>
         <double name="Pivot: orientation offset (degrees)">0</double>
       </category>
       <category name="Util">
@@ -77,16 +77,17 @@
       </category>
       <category name="PID3">
         <double name="angle diff">1.00</double>
-        <double name="angle max vel">20.00</double>
-        <double name="angle prop">14.00</double>
+        <double name="angle max vel">25.00</double>
+        <double name="angle prop">12.00</double>
         <double name="angular slowdown when translating">1.500</double>
         <boolean name="flip trans&amp;ang slowdown (CARE)">false</boolean>
-        <boolean name="reduce angular velocity when translating">false</boolean>
+        <double name="pid ratio">1.000</double>
+        <boolean name="reduce angular velocity when translating">true</boolean>
         <double name="x to y ratio">0.810</double>
         <double name="xy diff">1.50</double>
-        <double name="xy max acc">4.00</double>
-        <double name="xy max vel">8.00</double>
-        <double name="xy prop">14.00</double>
+        <double name="xy max acc">5.00</double>
+        <double name="xy max vel">17.00</double>
+        <double name="xy prop">12.00</double>
       </category>
     </category>
     <category name="STP">
@@ -98,9 +99,10 @@
           <double name="Lone Goalie: distance to goal post (m)">0.300</double>
         </category>
         <category name="shoot">
-          <double name="Angle threshold (in degrees) that defines shoot accuracy, smaller is less accurate">0.0</double>
+          <double name="Angle threshold (in degrees) that defines shoot accuracy, smaller is less accurate">1.0</double>
+          <double name="circle radius in front of robot to start pivoting (in meters)">0.100</double>
           <double name="Decay constant for the ball velocity">0.100</double>
-          <double name="reduced radius for calculating best shot">0.800</double>
+          <double name="reduced radius for calculating best shot (robot radius ratio)">0.800</double>
         </category>
         <category name="spin">
           <double name="change in orientation every time tick for move spin">0.5000</double>
@@ -130,6 +132,10 @@
       </category>
       <category name="predicates">
         <double name="enemy avoidance distance (robot radius)">3.00</double>
+      </category>
+      <category name="STP">
+        <boolean name="Goalie is lowest index">true</boolean>
+        <integer name="Goalie pattern index">0</integer>
       </category>
       <category name="Tactic">
         <double name="stop: angle to separate players (degrees)">20.0</double>

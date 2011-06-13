@@ -8,10 +8,6 @@
 #include <algorithm>
 
 void AI::HL::STP::Action::pivot(const World &world, Player::Ptr player, const Point target) {
-	if (!player->has_ball()) {
-		chase(world, player);
-		return;
-	}
 
 	const double ori = (target - player->position()).orientation();
 
