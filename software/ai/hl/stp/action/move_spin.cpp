@@ -6,7 +6,7 @@
 using namespace AI::HL::STP;
 
 namespace {
-	DoubleParam spin_delta("change in orientation every time tick for move spin", "STP/Action/spin", 0.5, 0.5, 1.0);
+	DoubleParam spin_delta("change in orientation every time tick for move spin", "STP/Action/spin", 1.0, 0.5, 2.0);
 
 }
 

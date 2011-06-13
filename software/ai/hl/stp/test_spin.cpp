@@ -41,8 +41,8 @@ namespace {
 				if (friendly.size() == 0) {
 					return;
 				}
-
-				Action::move_spin(friendly.get(0), world.ball().position());
+				Point dirToBall = (world.ball().position() - robot->position()).norm();
+				Action::move_spin(friendly.get(0), world.ball().position() + Robot::MAX_RADIUS * dirToBall);
 			}
 	};
 
