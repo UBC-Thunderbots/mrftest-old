@@ -126,7 +126,7 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	LOG_INFO(Glib::ustring::compose("accuracy_diff %1 shoot_thresh %2", radians2degrees(ori_diff), shoot_threshold));
 	
 #warning this is a hack that needs better fixing
-	if (radians2degrees(ori_diff) > 4 * shoot_threshold /* && accuracy_diff < prev_best_angle */) {
+	if (radians2degrees(ori_diff) > 8 * shoot_threshold /* && accuracy_diff < prev_best_angle */) {
 		prev_best_angle = ori_diff;
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
