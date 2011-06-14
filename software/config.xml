@@ -42,9 +42,9 @@
         <double name="pivot radius">1.00</double>
       </category>
       <category name="RRT">
-        <double name="Pivot: offset angle (degrees)">86</double>
-        <double name="Pivot: offset distance">0.19</double>
-        <double name="Pivot: orientation offset (degrees)">0</double>
+        <double name="Pivot: offset angle (degrees)">58</double>
+        <double name="Pivot: offset distance">0.15</double>
+        <double name="Pivot: orientation offset (degrees)">14</double>
       </category>
       <category name="Util">
         <double name="Buffer for equal priority friendly robot (meters)">0.100</double>
