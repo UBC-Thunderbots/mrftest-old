@@ -26,7 +26,7 @@ namespace {
 	double prev_best_angle = 0.0;
 	Player::Ptr prev_player;
 
-	bool dest_reached = false;;
+	bool dest_reached = false;
 }
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
@@ -112,9 +112,8 @@ bool AI::HL::STP::Action::shoot_test(const World &world, Player::Ptr player) {
 	}
 
 	if (!player->has_ball()) {
-		dest_reached = false;
 		// move to a position facing the enemy goal
-		Point dest = ball + 2 * Robot::MAX_RADIUS * dirToGoal;
+		Point dest = ball - 2 * Robot::MAX_RADIUS * dirToGoal;
 		player->move(dest, (ball - player->position()).orientation(), Point());
 		player->type(AI::Flags::MoveType::NORMAL);
 
