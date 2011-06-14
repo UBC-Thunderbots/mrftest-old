@@ -121,9 +121,6 @@ namespace AI {
 				Point diff = (world.ball().position() - current_position).rotate(angle);
 
 				dest = world.ball().position() - offset_distance * (diff / diff.len());
-				if (dest.len() > 0.5) {
-					orientation_temp = 0;
-				}
 				dest_orientation = (world.ball().position() - current_position).orientation() + orientation_temp;
 
 				path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));

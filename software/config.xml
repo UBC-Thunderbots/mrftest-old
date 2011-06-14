@@ -42,8 +42,8 @@
         <double name="pivot radius">1.00</double>
       </category>
       <category name="RRT">
-        <double name="Pivot: offset angle (degrees)">74</double>
-        <double name="Pivot: offset distance">0.13</double>
+        <double name="Pivot: offset angle (degrees)">86</double>
+        <double name="Pivot: offset distance">0.19</double>
         <double name="Pivot: orientation offset (degrees)">0</double>
       </category>
       <category name="Util">
