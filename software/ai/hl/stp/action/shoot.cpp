@@ -20,11 +20,13 @@ namespace {
 	
 	DoubleParam pivot_threshold("circle radius in front of robot to start pivoting (in meters)", "STP/Action/shoot", 0.1, 0.0, 1.0);
 	
-	DoubleParam pass_speed("kicking speed for making a pass", "STP/Action/shoot", 5.0, 1.0, 10.0);
+	DoubleParam pass_speed("kicking speed for making a pass", "STP/Action/shoot", 7.0, 1.0, 10.0);
 
 	// previous value of the angle returned by calc_best_shot
 	double prev_best_angle = 0.0;
 	Player::Ptr prev_player;
+
+	bool dest_reached = false;;
 }
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
@@ -97,6 +99,51 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	return false;
 }
 
+bool AI::HL::STP::Action::shoot_test(const World &world, Player::Ptr player) {
+
+	Point ball = world.ball().position();
+	Point dirToGoal = (world.field().enemy_goal() - ball).norm();	
+	
+	double threshold_dist = 2 * Robot::MAX_RADIUS + AI::HL::Util::POS_CLOSE;
+
+	// if too close to the edges then we still have to pivot
+	if (std::fabs(ball.x) > world.field().length()/2 - threshold_dist || std::fabs(ball.y) > world.field().width()/2 - threshold_dist) {
+		return shoot(world, player);
+	}
+
+	if (!player->has_ball()) {
+
+		// move to a position facing the enemy goal
+		Point dest = ball + 2 * Robot::MAX_RADIUS * dirToGoal;
+		player->move(dest, (ball - player->position()).orientation(), Point());
+		player->type(AI::Flags::MoveType::NORMAL);
+
+		if ((player->position() - dest).len() < AI::HL::Util::POS_CLOSE || dest_reached){
+			dest_reached = true;
+			chase(world, player);
+		}
+		return false;
+	}
+
+	double ori = (world.field().enemy_goal() - player->position()).orientation();
+	double ori_diff = angle_diff(ori, player->orientation());
+	
+#warning this is a hack that needs better fixing
+	if (radians2degrees(ori_diff) > 8 * shoot_threshold) {
+		if (!player->chicker_ready()) {
+			LOG_INFO("chicker not ready");
+			return false;
+		}
+		LOG_INFO("kick");
+		player->kick(10.0);
+		return true;
+	}
+
+	LOG_INFO("aiming");
+	pivot(world, player, world.field().enemy_goal());
+	return false;
+}
+
 bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target) {
 
 	Point unit_vector = Point::of_angle(player->orientation());
@@ -117,17 +164,8 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	double ori = (target - player->position()).orientation();
 	double ori_diff = angle_diff(ori, player->orientation());
 	
-#warning this is a hack that needs better fixing. check timestep
-	if (prev_player != player) {
-		prev_player = player;
-		prev_best_angle = 0;
-	}
-
-	LOG_INFO(Glib::ustring::compose("accuracy_diff %1 shoot_thresh %2", radians2degrees(ori_diff), shoot_threshold));
-	
 #warning this is a hack that needs better fixing
-	if (radians2degrees(ori_diff) > 8 * shoot_threshold /* && accuracy_diff < prev_best_angle */) {
-		prev_best_angle = ori_diff;
+	if (radians2degrees(ori_diff) > 8 * shoot_threshold) {
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
 			return false;
@@ -139,7 +177,6 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 
 	LOG_INFO("aiming");
 	pivot(world, player, target);
-	prev_best_angle = ori_diff;
 	return false;
 }
 

@@ -24,6 +24,8 @@ namespace AI {
 				 * \return true if the robot shoots.
 				 */
 				bool shoot(const World &world, Player::Ptr player);
+
+				bool shoot_test(const World &world, Player::Ptr player);
 				
 				/**
 				 * Shoots the ball to a target point with a double param kicking speed for passing
