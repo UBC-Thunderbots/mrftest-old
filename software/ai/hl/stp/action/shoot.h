@@ -30,9 +30,11 @@ namespace AI {
 				/**
 				 * Shoots the ball to a target point with a double param kicking speed for passing
 				 *
+				 * \param[in] pass true if the player is to pass.					
+				 *
 				 * \return true if the robot shoots.
 				 */	
-				bool shoot_pass(const World &world, Player::Ptr player, const Point target);
+				bool shoot_target(const World &world, Player::Ptr player, const Point target, bool pass);
 
 				/**
 				 * If the player posses the ball,

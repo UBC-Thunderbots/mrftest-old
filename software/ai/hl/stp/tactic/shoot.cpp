@@ -63,7 +63,7 @@ namespace {
 	}
 
 	void ShootTarget::execute() {
-		if (AI::HL::STP::Action::shoot(world, player, target.position())) {
+		if (AI::HL::STP::Action::shoot_target(world, player, target.position(), false)) {
 			has_shot = true;
 		}
 	}

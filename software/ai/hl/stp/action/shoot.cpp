@@ -112,23 +112,23 @@ bool AI::HL::STP::Action::shoot_test(const World &world, Player::Ptr player) {
 	}
 
 	if (!player->has_ball()) {
-
+		dest_reached = false;
 		// move to a position facing the enemy goal
 		Point dest = ball + 2 * Robot::MAX_RADIUS * dirToGoal;
 		player->move(dest, (ball - player->position()).orientation(), Point());
 		player->type(AI::Flags::MoveType::NORMAL);
 
-		if ((player->position() - dest).len() < AI::HL::Util::POS_CLOSE || dest_reached){
+		if ((player->position() - dest).len() < AI::HL::Util::POS_CLOSE){
 			dest_reached = true;
-			chase(world, player);
 		}
+		if (dest_reached) chase(world, player);
+
 		return false;
 	}
 
 	double ori = (world.field().enemy_goal() - player->position()).orientation();
 	double ori_diff = angle_diff(ori, player->orientation());
 	
-#warning this is a hack that needs better fixing
 	if (radians2degrees(ori_diff) > 8 * shoot_threshold) {
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
@@ -144,7 +144,7 @@ bool AI::HL::STP::Action::shoot_test(const World &world, Player::Ptr player) {
 	return false;
 }
 
-bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target) {
+bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target, bool pass) {
 
 	Point unit_vector = Point::of_angle(player->orientation());
 	Point circle_center = player->position() + Robot::MAX_RADIUS * unit_vector;
@@ -171,7 +171,8 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 			return false;
 		}
 		LOG_INFO("kick");
-		player->kick(pass_speed);
+		if (pass) player->kick(pass_speed);
+		else player->kick(10.0);
 		return true;
 	}
 

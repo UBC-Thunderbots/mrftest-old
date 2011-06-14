@@ -236,10 +236,10 @@ void TShoot::execute() {
 		Evaluation::obs_line_first(world, target - targ_ball * 0.75, target, OBS_OPPONENTS, rtarget, Robot::MAX_RADIUS);
 
 		Action::dribble(world, player, rtarget);
-		kicked = Action::shoot(world, player, target);
+		kicked = Action::shoot_target(world, player, target, false);
 
 	} else {
-		kicked = Action::shoot(world, player, world.field().enemy_goal());
+		kicked = Action::shoot_target(world, player, world.field().enemy_goal(), false);
 	}
 }
 
@@ -304,7 +304,7 @@ void TClear::execute() {
 	prev_target = target;
 	prev_target_set = true;
 
-	kicked = Action::shoot(world, player, target);
+	kicked = Action::shoot_target(world, player, target, false);
 }
 
 void TActiveDef::execute() {
@@ -351,7 +351,7 @@ void TPass::execute() {
 	}
 
 	Action::dribble(world, player, mytarget);
-	kicked = Action::shoot_pass(world, player, targetp);
+	kicked = Action::shoot_target(world, player, targetp, true);
 }
 
 void TReceivePass::execute() {
