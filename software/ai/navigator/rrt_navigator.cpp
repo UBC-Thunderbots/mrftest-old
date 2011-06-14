@@ -33,6 +33,14 @@ namespace AI {
 			DoubleParam offset_distance("Pivot: offset distance", "Nav/RRT", 0.15, -10.0, 10.0);
 			DoubleParam orientation_offset("Pivot: orientation offset (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
 
+			BoolParam chase_use_orientation("Chase ball uses target location to calculate dest", "Nav/RRT", true);
+
+		class PlayerData : public ObjectStore::Element {
+			public:
+				typedef ::RefPtr<PlayerData> Ptr;
+			//bool valid;
+				unsigned int added_flags;
+		};
 
 			class RRTNavigator : public Navigator {
 				public:
@@ -62,12 +70,13 @@ namespace AI {
 			std::pair<Point, double> RRTNavigator::grab_ball(Player::Ptr player) {
 				const double ux = world.ball().velocity().len(); // velocity of ball
 
-				const double dest_ori = (world.ball().position() - player->position()).orientation();
+				double dest_ori = (world.ball().position() - player->position()).orientation();
 
 #warning MAGIC NUMBER
 				const double v = 1.5;
 
 				const Point p1 = world.ball().position();
+
 				const Point p2 = player->position();
 				const Point u = world.ball().velocity().norm();
 
@@ -96,6 +105,24 @@ namespace AI {
 				}
 
 				Point dest_pos = p1 + world.ball().velocity() * t;
+
+				Point np= world.ball().position();
+
+				if(chase_use_orientation){
+
+					dest_ori  =	(player->destination().first - world.ball().position()).orientation();
+
+					Point dir_ball = player->destination().first - np;
+					Point dir = np - player->position();
+					bool op_ori = dir_ball.dot(dir)<0;
+					if(op_ori){
+						PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags |= AI::Flags::FLAG_AVOID_BALL_TINY;
+#warning magic number here
+						np += 0.15*( np - player->destination().first).norm();
+					}
+					dest_pos = np + world.ball().velocity() * t;
+				}
+
 
 				return std::make_pair(dest_pos, dest_ori);
 			}
@@ -135,6 +162,10 @@ namespace AI {
 				for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 					path.clear();
 					Player::Ptr player = world.friendly_team().get(i);
+					if (!PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)]).is()) {
+						player->object_store()[typeid(*this)] = PlayerData::Ptr(new PlayerData);
+					}
+					PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags=0;
 					Point dest;
 					double dest_orientation = player->destination().second;
 					if (player->type() == AI::Flags::MoveType::CATCH) {
@@ -153,10 +184,10 @@ namespace AI {
 					} else {
 						dest = player->destination().first;
 					}
-
+					unsigned int flags = PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags;
 					// calculate a path
 					path_points.clear();
-					path_points = planner.plan(player, dest);
+					path_points = planner.plan(player, dest, flags);
 
 					double dist = 0.0;
 					working_time = world.monotonic_time();
