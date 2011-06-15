@@ -711,7 +711,7 @@ void run(void) {
 					ADCON0bits.CHS0 = 1;
 					ADCON0bits.GO = 1;
 					/* Fire autokick if ready. */
-					if (drive_block.enable_autokick && feedback_block.flags.ball_in_beam && !autokick_lockout_time) {
+					if (drive_block.enable_autokick && feedback_block.flags.ball_in_beam && !autokick_lockout_time && feedback_block.flags.capacitor_charged) {
 						parbus_write(10, drive_block.autokick_width1 * 32);
 						parbus_write(11, drive_block.autokick_width2 * 32);
 						parbus_write(12, (drive_block.autokick_offset * 32) | (drive_block.autokick_offset_sign ? 0x8000 : 0x0000));
@@ -731,19 +731,22 @@ void run(void) {
 		}
 
 		if (PIR1bits.CCP1IF && fpga_ok) {
-			uint8_t flags_out = 0;
+			uint8_t flags_in, flags_out = 0;
 
 			/* Auto-kick timeout should expire eventually. */
 			if (autokick_lockout_time && !feedback_block.flags.ball_in_beam) {
 				--autokick_lockout_time;
 			}
 
+			/* Read the general flags. */
+			flags_in = parbus_read(1);
+
 			/* It's time to run a control loop iteration.
 			 * Latch the encoder counts. */
 			parbus_write(9, 0);
 
 			/* Check if there's a chicker present; if not, we should report an error. */
-			if (!(parbus_read(1) & 0x02)) {
+			if (!(flags_in & 0x02)) {
 				error_reporting_add(FAULT_CHICKER_NOT_PRESENT);
 			}
 
@@ -851,7 +854,11 @@ void run(void) {
 
 			/* Fill the radio feedback block. */
 			feedback_block.capacitor_voltage_raw = parbus_read(6);
-			feedback_block.flags.capacitor_charged = feedback_block.capacitor_voltage_raw > ((uint16_t) (215.0 / (220000.0 + 2200.0) * 2200.0 / 3.3 * 4095.0));
+			if (flags_in & 0x04) {
+				feedback_block.flags.capacitor_charged = true;
+			} else {
+				feedback_block.flags.capacitor_charged = false;
+			}
 #endif
 
 			/* Clear interrupt flag. */
