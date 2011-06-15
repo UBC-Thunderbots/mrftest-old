@@ -74,7 +74,7 @@ namespace {
 
 				// passer grabs ball
 				if (!players[0]->has_ball()) {
-					Action::chase(world, players[0]);
+					Action::chase(world, players[0], targets[pass_target]);
 				}
 
 				// passee move to target
