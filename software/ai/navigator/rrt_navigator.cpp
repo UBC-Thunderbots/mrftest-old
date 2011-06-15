@@ -34,13 +34,14 @@ namespace AI {
 			DoubleParam orientation_offset("Pivot: orientation offset (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
 
 			BoolParam chase_use_orientation("Chase ball uses target location to calculate dest", "Nav/RRT", true);
+			DoubleParam chase_angle_range("Chase angle range for behind target (degrees)", "Nav/RRT", 30, 0, 90);
 
-		class PlayerData : public ObjectStore::Element {
-			public:
-				typedef ::RefPtr<PlayerData> Ptr;
-			//bool valid;
-				unsigned int added_flags;
-		};
+			class PlayerData : public ObjectStore::Element {
+				public:
+					typedef ::RefPtr<PlayerData> Ptr;
+					//bool valid;
+					unsigned int added_flags;
+			};
 
 			class RRTNavigator : public Navigator {
 				public:
@@ -112,9 +113,10 @@ namespace AI {
 
 					dest_ori  =	(player->destination().first - world.ball().position()).orientation();
 
-					Point dir_ball = player->destination().first - np;
-					Point dir = np - player->position();
-					bool op_ori = dir_ball.dot(dir)<0;
+					Point dir_ball = (player->destination().first - np).norm();
+					Point dir = (np - player->position()).norm();
+					double rad = chase_angle_range*M_PI/180.0;
+					bool op_ori = dir_ball.dot(dir)<cos(rad);
 					if(op_ori){
 						PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags |= AI::Flags::FLAG_AVOID_BALL_TINY;
 #warning magic number here
