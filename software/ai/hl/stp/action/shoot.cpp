@@ -151,6 +151,21 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Po
 	return player->has_ball() && player->chicker_ready();
 }
 
+double AI::HL::STP::Action::shoot_speed(double distance, double delta, double alph) {
+	double a = alph;
+	if(alph<0){
+		a = alpha;
+	}
+	double speed = a * distance / (1 - std::exp(-a * delta));
+	if (speed > 10.0) {
+		speed = 10.0; // can't kick faster than this
+	}
+	if (speed < 0) {
+		speed = 0; // can't kick slower than this
+	}
+	return speed;
+}
+
 bool AI::HL::STP::Action::arm(const World &world, Player::Ptr player, const Point target, double delta) {
 	double dist_max = 10.0 * (1 - std::exp(-alpha * delta)) / alpha;
 	// make the robot kick as close to the target as possible
@@ -162,7 +177,7 @@ bool AI::HL::STP::Action::arm(const World &world, Player::Ptr player, const Poin
 		player->autokick(10.0);
 		return false;
 	}
-	double speed = alpha * distance / (1 - std::exp(-alpha * delta));
+	double speed = shoot_speed(distance);
 	if (speed > 10.0) {
 		speed = 10.0; // can't kick faster than this
 	}

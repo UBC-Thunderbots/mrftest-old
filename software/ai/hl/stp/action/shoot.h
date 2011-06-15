@@ -54,6 +54,14 @@ namespace AI {
 				bool shoot(const World &world, Player::Ptr player, const Point target, double tol = AI::HL::Util::shoot_accuracy, double delta = 1e9);
 
 				/**
+				 * Testing function designed for internal use & use with shoot_distance_test!!!
+				 * \param[in] distance in m to shoot the ball.
+				 * \param[in] a special ttesting param
+				 * \return double the robot kick speed.
+				 */
+				double shoot_speed(double distance, double delta = 1e9, double alph=-1);
+
+				/**
 				 * Arm the kicker so that it kicks ball exact speed to stop at target (i.e. t= inf)
 				 * or alternatively reach target at time delta from the current time ( may be moving )
 				 * \return true if the constraints are achievable
