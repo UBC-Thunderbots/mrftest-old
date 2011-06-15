@@ -183,7 +183,14 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot(const World &world, const 
 		}
 		obstacles.push_back(fpl->position());
 	}
-	return calc_best_shot(world.field(), obstacles, player->position(), radius);
+	std::pair<Point, double> best_shot = calc_best_shot(world.field(), obstacles, player->position(), radius);
+	// if there is no good shot at least make the 
+	// target within the goal area
+	if(best_shot.second <= 0.0){
+		Point temp = Point(world.field().length() / 2.0, 0.0);
+		best_shot.first = temp;
+	}
+	return best_shot;
 }
 
 std::pair<Point, double> AI::HL::Util::calc_best_shot_target(const Point &target_pos, const std::vector<Point> &obstacles, const Point &p, const double radius) {
