@@ -26,7 +26,6 @@ namespace {
 	double prev_best_angle = 0.0;
 	Player::Ptr prev_player;
 
-	bool dest_reached = false;
 }
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
@@ -96,50 +95,6 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	LOG_INFO("aiming");
 	pivot(world, player, target.first);
 	prev_best_angle = accuracy_diff;
-	return false;
-}
-
-bool AI::HL::STP::Action::shoot_test(const World &world, Player::Ptr player) {
-
-	Point ball = world.ball().position();
-	Point dirToGoal = (world.field().enemy_goal() - ball).norm();	
-	
-	double threshold_dist = 2 * Robot::MAX_RADIUS + AI::HL::Util::POS_CLOSE;
-
-	// if too close to the edges then we still have to pivot
-	if (std::fabs(ball.x) > world.field().length()/2 - threshold_dist || std::fabs(ball.y) > world.field().width()/2 - threshold_dist) {
-		return shoot(world, player);
-	}
-
-	if (!player->has_ball()) {
-		// move to a position facing the enemy goal
-		Point dest = ball - 2 * Robot::MAX_RADIUS * dirToGoal;
-		player->move(dest, (ball - player->position()).orientation(), Point());
-		player->type(AI::Flags::MoveType::NORMAL);
-
-		if ((player->position() - dest).len() < AI::HL::Util::POS_CLOSE){
-			dest_reached = true;
-		}
-		if (dest_reached) chase(world, player);
-
-		return false;
-	}
-
-	double ori = (world.field().enemy_goal() - player->position()).orientation();
-	double ori_diff = angle_diff(ori, player->orientation());
-	
-	if (radians2degrees(ori_diff) > 8 * shoot_threshold) {
-		if (!player->chicker_ready()) {
-			LOG_INFO("chicker not ready");
-			return false;
-		}
-		LOG_INFO("kick");
-		player->kick(10.0);
-		return true;
-	}
-
-	LOG_INFO("aiming");
-	pivot(world, player, world.field().enemy_goal());
 	return false;
 }
 
