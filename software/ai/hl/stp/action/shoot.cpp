@@ -28,6 +28,21 @@ namespace {
 
 }
 
+
+bool AI::HL::STP::Action::chase_pivot(const World &world, Player::Ptr player, const Point target) {
+		Point unit_vector = Point::of_angle(player->orientation());
+		Point circle_center = player->position() + Robot::MAX_RADIUS * unit_vector;
+		double dist = (circle_center - world.ball().position()).len();
+		if (dist < pivot_threshold) {
+			LOG_INFO("pivoting");
+			pivot(world, player, target);
+		}else{
+			LOG_INFO("chase");
+			chase(world, player, target);
+		}
+		return player->has_ball();
+}
+
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	// TODO:
 	// take into account that the optimal solution may not always be the largest opening
@@ -39,27 +54,11 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 		target = AI::HL::Util::calc_best_shot(world, player, reduced_radius);
 	}
 
-	Point unit_vector = Point::of_angle(player->orientation());
-	Point circle_center = player->position() + Robot::MAX_RADIUS * unit_vector;
+//	Point unit_vector = Point::of_angle(player->orientation());
+//	Point circle_center = player->position() + Robot::MAX_RADIUS * unit_vector;
 
 	if (!player->has_ball()) {
-		double dist = (circle_center - world.ball().position()).len();
-		if (dist < pivot_threshold) {
-			LOG_INFO("pivoting");
-			pivot(world, player, target.first);
-			return false;
-		}
-
-		// ball is far away
-		LOG_INFO("chase");
-		if (target.second == 0) {
-			// just grab the ball, don't care about orientation
-			chase(world, player);
-		} else {
-			// grab ball and orient towards the enemy goal area
-			chase(world, player, target.first);
-		}
-		return false;
+		return chase_pivot(world, player, target.first);
 	}
 
 	if (target.second == 0) {

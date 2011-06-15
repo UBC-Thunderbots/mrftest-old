@@ -10,6 +10,13 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Action {
+				
+				/**
+				 * Go chase after the ball and pivot towards the direction of target
+				 * \return whether the player has the ball or not
+				 */
+				bool chase_pivot(const World &world, Player::Ptr player, const Point target);
+			
 				/**
 				 * If the player posses the ball,
 				 * aims at an open angle at the enemy goal,
