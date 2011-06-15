@@ -32,10 +32,11 @@ namespace {
 	const double BALL_STOP_BUFFER = 0.5;
 
 	// This buffer is in addition to the robot radius
-	const double BALL_TINY_BUFFER = 0.05;
+	DoubleParam BALL_TINY_BUFFER("Buffer avoid ball tiny (meters)", "Nav/Util", 0.05, -1.0, 1.0);
 
 	// This buffer is in addition to the robot radius
-	const double DEFENSE_AREA_BUFFER = 0.0;
+	DoubleParam DEFENSE_AREA_BUFFER("Buffer avoid defense area (meters)", "Nav/Util", 0.0, -1.0, 1.0);
+
 
 	// this is by how much we should stay away from the playing boundry
 	const double PLAY_AREA_BUFFER = 0.0;

@@ -35,7 +35,7 @@ namespace AI {
 
 			BoolParam chase_use_orientation("Chase ball uses target location to calculate dest", "Nav/RRT", true);
 			DoubleParam chase_angle_range("Chase angle range for behind target (degrees)", "Nav/RRT", 30, 0, 90);
-
+			DoubleParam chase_distance("Buffer behind ball for chase (meters)", "Nav/RRT", 0.25, -1.0, 1.0);
 			class PlayerData : public ObjectStore::Element {
 				public:
 					typedef ::RefPtr<PlayerData> Ptr;
@@ -120,7 +120,7 @@ namespace AI {
 					if(op_ori){
 						PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags |= AI::Flags::FLAG_AVOID_BALL_TINY;
 #warning magic number here
-						np += 0.15*( np - player->destination().first).norm();
+						np += chase_distance*( np - player->destination().first).norm();
 					}
 					dest_pos = np + world.ball().velocity() * t;
 				}
