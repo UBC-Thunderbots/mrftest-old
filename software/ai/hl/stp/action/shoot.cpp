@@ -40,7 +40,7 @@ bool AI::HL::STP::Action::chase_pivot(const World &world, Player::Ptr player, co
 			LOG_INFO("chase");
 			chase(world, player, target);
 		}
-		return player->has_ball();
+		return false;
 }
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
@@ -99,26 +99,17 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 
 bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target, bool pass) {
 
-	Point unit_vector = Point::of_angle(player->orientation());
-	Point circle_center = player->position() + Robot::MAX_RADIUS * unit_vector;
-
 	if (!player->has_ball()) {
-		double dist = (circle_center - world.ball().position()).len();
-		if (dist < pivot_threshold) {
-			LOG_INFO("pivoting");
-			pivot(world, player, target);
-			return false;
-		}
-		
-		chase(world, player, target);
-		return false;
+		return chase_pivot(world, player, target);
 	}
+
+
 
 	double ori = (target - player->position()).orientation();
 	double ori_diff = angle_diff(ori, player->orientation());
 	
 #warning this is a hack that needs better fixing
-	if (radians2degrees(ori_diff) > 8 * shoot_threshold) {
+	if (radians2degrees(ori_diff) < 8 * shoot_threshold) {
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
 			return false;

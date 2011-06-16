@@ -74,24 +74,29 @@ namespace {
 
 				// passer grabs ball
 				if (!players[0]->has_ball()) {
+					//Action::chase_pivot(world,players[0], targets[pass_target]);
 					Action::chase(world, players[0], targets[pass_target]);
 				}
-
-				// passee move to target
-				Action::move(players[1], (world.ball().position() - players[1]->position()).orientation(), targets[pass_target]);
-				// passer shoots
-				bool kicked = false;
-
+		
+					bool kicked = false;
+					
 				if (players[0]->has_ball()) {
 					if (Action::shoot_target(world, players[0], targets[pass_target], true)) { 
 						kicked = true; 
 					}
 				}
+				// passee move to target
+				Action::move(players[1], (world.ball().position() - players[1]->position()).orientation(), targets[pass_target]);
+				// passer shoots
+	
+
+
 
 				// passee grabs ball
-				if (kicked) {
-					Action::chase(world, players[1]);
-				}
+				if (kicked) Action::chase(world, players[1]);
+				
+				//if ((world.ball().position() - targets[pass_target]).len() < Robot::MAX_RADIUS) Action::chase(world, players[1]);
+				
 			}
 	};
 
