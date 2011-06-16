@@ -40,6 +40,11 @@ namespace AI {
 				 * \return true if the robot shoots.
 				 */	
 				bool shoot_target(const World &world, Player::Ptr player, const Point target, bool pass);
+				/**
+				 * Determines whether or not the robot is facing within threshold degrees of the specified target
+				 *
+				 */
+				bool within_thresh(Player::Ptr player, const Point target, double threshold);
 
 				/**
 				 * If the player posses the ball,

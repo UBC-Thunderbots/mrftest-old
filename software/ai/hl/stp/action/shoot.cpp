@@ -18,6 +18,8 @@ namespace {
 
 	DoubleParam shoot_threshold("Angle threshold (in degrees) that defines shoot accuracy, smaller is less accurate", "STP/Action/shoot", 20.0, -360.0, 360.0);
 	
+	DoubleParam pass_threshold("Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate", "STP/Action/shoot", 20.0, 0.0, 180.0);
+	
 	DoubleParam pivot_threshold("circle radius in front of robot to start pivoting (in meters)", "STP/Action/shoot", 0.1, 0.0, 1.0);
 	
 	DoubleParam pass_speed("kicking speed for making a pass", "STP/Action/shoot", 7.0, 1.0, 10.0);
@@ -98,32 +100,28 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 }
 
 bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target, bool pass) {
-
-	if (!player->has_ball()) {
-		return chase_pivot(world, player, target);
-	}
-
-
-
-	double ori = (target - player->position()).orientation();
-	double ori_diff = angle_diff(ori, player->orientation());
-	
-#warning this is a hack that needs better fixing
-	if (radians2degrees(ori_diff) < 8 * shoot_threshold) {
+	chase_pivot(world, player, target);
+	if(within_thresh(player, target, pass_threshold)){
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
 			return false;
 		}
 		LOG_INFO("kick");
-		if (pass) player->kick(pass_speed);
-		else player->kick(10.0);
+		if (pass) player->autokick(pass_speed);
+		else player->autokick(10.0);
 		return true;
 	}
-
-	LOG_INFO("aiming");
-	pivot(world, player, target);
 	return false;
 }
+
+bool AI::HL::STP::Action::within_thresh(Player::Ptr player, const Point target, double threshold){
+	Point pass_dir = (target - player->position()).norm();
+	Point facing_dir(1,0);
+	facing_dir = facing_dir.rotate(player->orientation());
+	double dir_thresh = cos( (pass_threshold*M_PI / 180.0));
+	return facing_dir.dot(pass_dir) > dir_thresh;
+}
+
 
 #warning this is broken
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, double tol, double delta) {
