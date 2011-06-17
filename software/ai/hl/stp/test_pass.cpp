@@ -5,6 +5,7 @@
 #include "geom/util.h"
 #include "util/dprint.h"
 
+#include <ctime>
 #include <cassert>
 #include <gtkmm.h>
 
@@ -13,8 +14,9 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
+
 	IntParam pass_target("passing target points", "STP/test_pass", 0, 0, 14);
-	DoubleParam negligable_velocity("velocity to ignore", "STP/test_pass", 0.1, 0.0, 1.0);
+	DoubleParam negligible_velocity("velocity to ignore", "STP/test_pass", 0.1, 0.0, 1.0);
 	
 	DoubleParam passer_tol_target(" angle tolerance that the passer needs to be with respect to the target", "STP/test_pass", 30.0, 0.0, 180.0);
 	DoubleParam passer_tol_reciever(" angle tolerance that the passer needs to be with respect to the passee", "STP/test_pass", 20.0, 0.0, 180.0);	
@@ -55,6 +57,8 @@ namespace {
 	class TestPass : public HighLevel {
 		public:
 			TestPass(World &world) : world(world), targets(default_targets, default_targets + default_targets_n) {
+				kicked_count = 0;
+				kicked = false;
 			}
 
 		private:
@@ -64,6 +68,10 @@ namespace {
 			
 			// the position of the passing robot before/during the kick
 			Point player_kick_pos;
+
+			bool kicked;
+			
+			int kicked_count;
 			
 			TestPassFactory &factory() const {
 				return factory_instance;
@@ -80,6 +88,15 @@ namespace {
 				}
 
 				std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+				
+				if (kicked) {
+					kicked_count++;
+				} else {
+					kicked_count = 0;
+				}
+				if (kicked_count > 50) {
+					kicked = false;
+				}
 				
 /*
 
@@ -109,28 +126,28 @@ namespace {
 					//Action::chase(world, players[0], targets[pass_target]);
 				}
 		
-				// passee move to target
-				Action::move(players[1], (world.ball().position() - players[1]->position()).orientation(), targets[pass_target]);
-
-				bool kicked = false;
 				// passer shoots					
 				if (players[0]->has_ball()) {
 					if (Action::shoot_target(world, players[0], targets[pass_target], true)) { 
-						kicked = true; 
+						kicked = true;
 					}
 				}
 								
-				bool fast_ball = world.ball().velocity().len() > negligable_velocity;
+				bool fast_ball = world.ball().velocity().len() > negligible_velocity;
 							
-				if(kicked || fast_ball){	
-					Point intercept_pos = closest_lineseg_point(players[1]->position(), world.ball().position(), world.ball().position() + 100*world.ball().velocity());
-					double intercept_ori = (world.ball().position() - intercept_pos).orientation();
-					Action::move(players[1], intercept_ori, intercept_pos);
-					players[1]->type(AI::Flags::MoveType::DRIBBLE);
+				if(kicked && fast_ball){	
+					//Point intercept_pos = closest_lineseg_point(players[1]->position(), world.ball().position(), world.ball().position() + 100*world.ball().velocity());
+					//double intercept_ori = (world.ball().position() - intercept_pos).orientation();
+					//Action::move(players[1], intercept_ori, intercept_pos);
+					Action::chase(world, players[1]);
+				} else {
+					// passee move to target
+					Action::move(players[1], (world.ball().position() - players[1]->position()).orientation(), targets[pass_target]);
 				}
 
 				// passee grabs ball
-				if (kicked) Action::chase(world, players[1]);
+				//if (kicked) Action::chase(world, players[1]);
+				players[1]->type(AI::Flags::MoveType::DRIBBLE);
 				
 			}
 	};

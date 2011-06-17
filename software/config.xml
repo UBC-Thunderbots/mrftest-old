@@ -42,13 +42,16 @@
         <double name="pivot radius">1.00</double>
       </category>
       <category name="RRT">
+        <double name="Buffer behind ball for chase (meters)">0.250</double>
         <double name="Chase angle range for behind target (degrees)">30.0</double>
-        <boolean name="Chase ball uses target location to calculate dest">true</boolean>
+        <boolean name="Chase ball uses target location to calculate dest">false</boolean>
         <double name="Pivot: offset angle (degrees)">58</double>
         <double name="Pivot: offset distance">0.13</double>
         <double name="Pivot: orientation offset (degrees)">14</double>
       </category>
       <category name="Util">
+        <double name="Buffer avoid ball tiny (meters)">0.050</double>
+        <double name="Buffer avoid defense area (meters)">0.000</double>
         <double name="Buffer for equal priority friendly robot (meters)">0.100</double>
         <double name="Buffer for higher priority friendly robot (meters)">0.200</double>
         <double name="Buffer for lower priority friendly robot (meters)">0.100</double>
@@ -88,7 +91,7 @@
         <double name="x to y ratio">0.810</double>
         <double name="xy diff">1.50</double>
         <double name="xy max acc">5.00</double>
-        <double name="xy max vel">17.00</double>
+        <double name="xy max vel">10.00</double>
         <double name="xy prop">12.00</double>
       </category>
     </category>
@@ -101,10 +104,10 @@
           <double name="Lone Goalie: distance to goal post (m)">0.300</double>
         </category>
         <category name="shoot">
-          <double name="Angle threshold (in degrees) that defines shoot accuracy, smaller is less accurate">1.0</double>
+          <double name="Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate">10.0</double>
           <double name="circle radius in front of robot to start pivoting (in meters)">0.100</double>
           <double name="Decay constant for the ball velocity">0.100</double>
-          <double name="kicking speed for making a pass">7.03</double>
+          <double name="kicking speed for making a pass">4.75</double>
           <double name="reduced radius for calculating best shot (robot radius ratio)">0.800</double>
         </category>
         <category name="spin">
@@ -136,6 +139,9 @@
       <category name="predicates">
         <double name="enemy avoidance distance (robot radius)">3.00</double>
       </category>
+      <category name="shoot">
+        <double name="Shoot Accuracy (degrees)">2.0</double>
+      </category>
       <category name="STP">
         <boolean name="Goalie is lowest index">true</boolean>
         <integer name="Goalie pattern index">0</integer>
@@ -144,7 +150,11 @@
         <double name="stop: angle to separate players (degrees)">20.0</double>
       </category>
       <category name="test_pass">
+        <double name=" angle tolerance that the passer needs to be with respect to the passee">20.0</double>
+        <double name=" angle tolerance that the passer needs to be with respect to the target">30.0</double>
+        <double name=" distance tolerance that the passee needs to be with respect to the passer shot">0.050</double>
         <integer name="passing target points">0</integer>
+        <double name="velocity to ignore">0.100</double>
       </category>
       <category name="util">
         <double name="distance for ball possesion (x ball radius)">2.000</double>

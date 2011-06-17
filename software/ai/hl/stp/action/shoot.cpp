@@ -43,6 +43,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
 
 	if (!player->has_ball()) {
+		LOG_INFO("chase pivot wtf");
 		return chase_pivot(world, player, shoot_data.target);
 	}
 
@@ -59,8 +60,8 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 			LOG_INFO("chicker not ready");
 			return false;
 		}
-		LOG_INFO("kick");
-		player->kick(10.0);
+		LOG_INFO("kick 1");
+		player->autokick(10.0);
 		return true;
 	}
 
@@ -70,17 +71,20 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 }
 
 bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target, bool pass) {
-	chase_pivot(world, player, target);
+	if (!player->has_ball()) {
+		return chase_pivot(world, player, target);
+	}
 	if(within_angle_thresh(player, target, pass_threshold)){
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
 			return false;
 		}
-		LOG_INFO("kick");
-		if (pass) player->kick(pass_speed);
-		else player->kick(10.0);
+		LOG_INFO("kick 2");
+		if (pass) player->autokick(pass_speed);
+		else player->autokick(10.0);
 		return true;
 	}
+	pivot(world, player, target);
 	return false;
 }
 
