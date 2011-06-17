@@ -108,8 +108,8 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 			return false;
 		}
 		LOG_INFO("kick");
-		if (pass) player->autokick(pass_speed);
-		else player->autokick(10.0);
+		if (pass) player->kick(pass_speed);
+		else player->kick(10.0);
 		return true;
 	}
 	return false;
