@@ -16,16 +16,16 @@ namespace {
 
 	DoubleParam reduced_radius("reduced radius for calculating best shot (robot radius ratio)", "STP/Action/shoot", 0.8, 0.0, 1.0);
 
-	DoubleParam shoot_threshold("Angle threshold (in degrees) that defines shoot accuracy, smaller is less accurate", "STP/Action/shoot", 20.0, -360.0, 360.0);
+	DoubleParam shoot_accuracy("Shoot Accuracy (degrees)", "STP/Action/shoot", 20.0, 0, 90.0);
 	
-	DoubleParam pass_threshold("Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate", "STP/Action/shoot", 20.0, 0.0, 180.0);
+	DoubleParam pass_threshold("Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate", "STP/Action/shoot", 20.0, 0.0, 90.0);
 	
 	DoubleParam pivot_threshold("circle radius in front of robot to start pivoting (in meters)", "STP/Action/shoot", 0.1, 0.0, 1.0);
 	
 	DoubleParam pass_speed("kicking speed for making a pass", "STP/Action/shoot", 7.0, 1.0, 10.0);
 
 	// previous value of the angle returned by calc_best_shot
-	double prev_best_angle = 0.0;
+	double prev_allowance = 0.0;
 	Player::Ptr prev_player;
 
 }
@@ -73,18 +73,18 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 
 	double ori = (target.first - player->position()).orientation();
 	double ori_diff = angle_diff(ori, player->orientation());
-	double accuracy_diff = ori_diff - (target.second / 2);
+	double allowance = radians2degrees(target.second - 2 * ori_diff);
 
 #warning this is a hack that needs better fixing. check timestep
 	if (prev_player != player) {
 		prev_player = player;
-		prev_best_angle = 0;
+		prev_allowance = 0;
 	}
 
-	LOG_INFO(Glib::ustring::compose("accuracy_diff %1 shoot_thresh %2", radians2degrees(accuracy_diff), -shoot_threshold));
+	LOG_INFO(Glib::ustring::compose("allowance %1 shoot_accuracy %2", allowance, shoot_accuracy));
 
-	if (radians2degrees(accuracy_diff) < -shoot_threshold /* && accuracy_diff < prev_best_angle */) {
-		prev_best_angle = accuracy_diff;
+	if (allowance < shoot_accuracy /* && accuracy_diff < prev_best_angle */) {
+		prev_allowance = allowance;
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
 			return false;
@@ -96,7 +96,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 
 	LOG_INFO("aiming");
 	pivot(world, player, target.first);
-	prev_best_angle = accuracy_diff;
+	prev_allowance = allowance;
 	return false;
 }
 
