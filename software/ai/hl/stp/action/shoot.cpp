@@ -53,7 +53,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 		return false;
 	}
 
-	LOG_INFO(Glib::ustring::compose("allowance %1 shoot_accuracy %2", shoot_data.allowance, Evaluation::shoot_accuracy));
+	LOG_INFO(Glib::ustring::compose("allowance %1 shoot_accuracy %2", shoot_data.accuracy_diff, Evaluation::shoot_accuracy));
 
 	if (shoot_data.can_shoot) {
 		if (!player->chicker_ready()) {
