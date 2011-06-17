@@ -32,7 +32,7 @@ ShootData AI::HL::STP::Evaluation::evaluate_shoot(const AI::HL::W::World &world,
 
 	data.target = shot.first;
 	data.angle = shot.second;
-	data.can_shoot = data.allowance < shoot_accuracy;
+	data.can_shoot = data.allowance > shoot_accuracy;
 	data.blocked = (shot.second == 0);
 	data.ball_on_front = false;
 	data.ball_visible = false;

@@ -193,6 +193,7 @@ void PlayExecutor::tick() {
 }
 
 void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+	draw_shoot(world, ctx);
 	draw_offense(world, ctx);
 	draw_defense(world, ctx);
 	// draw_velocity(ctx); // uncommand to display velocity

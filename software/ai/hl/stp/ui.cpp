@@ -1,14 +1,33 @@
 #include "ai/hl/stp/ui.h"
 #include "ai/hl/util.h"
 #include "ai/hl/stp/evaluation/offense.h"
+#include "ai/hl/stp/evaluation/shoot.h"
 #include <cmath>
 
 using namespace AI::HL::STP;
+namespace Evaluation = AI::HL::STP::Evaluation;
 using AI::HL::STP::Evaluation::grid_x;
 using AI::HL::STP::Evaluation::grid_y;
 
+void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
+	const FriendlyTeam &friendly = world.friendly_team();
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		const Player::CPtr player = friendly.get(i);
+		Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
+
+		// draw yellow circle
+		if (shoot_data.can_shoot) {
+			ctx->set_source_rgba(1.0, 1.0, 1.0, 0.5);
+			ctx->arc(player->position().x, player->position().y, 0.06, 0.0, 2 * M_PI);
+			ctx->fill();
+			ctx->stroke();
+		}
+	}
+}
+
 void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
 	// draw yellow circles for shooting
+	/*
 	const FriendlyTeam &friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		const Player::CPtr player = friendly.get(i);
@@ -32,6 +51,7 @@ void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context>
 		ctx->line_to(best_shot.first.x, best_shot.first.y);
 		ctx->stroke();
 	}
+	*/
 
 	// draw blue circles for offense
 	{

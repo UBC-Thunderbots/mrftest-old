@@ -1,6 +1,7 @@
 #include "ai/hl/hl.h"
 #include "ai/hl/stp/action/shoot.h"
 #include "util/dprint.h"
+#include "ai/hl/stp/ui.h"
 
 #include <cassert>
 #include <gtkmm.h>
@@ -43,6 +44,10 @@ namespace {
 				}
 
 				Action::shoot(world, friendly.get(0));
+			}
+
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+				draw_shoot(world, ctx);
 			}
 	};
 
