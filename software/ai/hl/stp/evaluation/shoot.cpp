@@ -1,5 +1,7 @@
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/util.h"
+#include "geom/util.h"
+#include "geom/angle.h"
 
 using namespace AI::HL::STP;
 using AI::HL::STP::Evaluation::ShootData;
@@ -17,14 +19,16 @@ ShootData AI::HL::STP::Evaluation::evaluate_shoot(const AI::HL::W::World &world,
 	ShootData data;
 
 	std::pair<Point, double> shot = AI::HL::Util::calc_best_shot(world, player);
+	data.reduced_radius = false;
 
 	if (shot.second == 0) {
 		shot = AI::HL::Util::calc_best_shot(world, player, reduced_radius);
+		data.reduced_radius = true;
 	}
 
-	double ori = (target.first - player->position()).orientation();
+	double ori = (shot.first - player->position()).orientation();
 	double ori_diff = angle_diff(ori, player->orientation());
-	data.allowance = radians2degrees(target.second - 2 * ori_diff);
+	data.allowance = radians2degrees(shot.second - 2 * ori_diff);
 
 	data.target = shot.first;
 	data.angle = shot.second;
