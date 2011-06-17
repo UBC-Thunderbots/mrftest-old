@@ -30,16 +30,17 @@ namespace {
 
 }
 
+bool AI::HL::STP::Action::within_pivot_thresh(const World &world, Player::Ptr player, const Point target){
+	Point unit_vector = Point::of_angle(player->orientation());
+	Point circle_center = player->position() + Robot::MAX_RADIUS * unit_vector;
+	double dist = (circle_center - world.ball().position()).len();
+	return dist < pivot_threshold;
+}
 
 bool AI::HL::STP::Action::chase_pivot(const World &world, Player::Ptr player, const Point target) {
-		Point unit_vector = Point::of_angle(player->orientation());
-		Point circle_center = player->position() + Robot::MAX_RADIUS * unit_vector;
-		double dist = (circle_center - world.ball().position()).len();
-		if (dist < pivot_threshold) {
-			LOG_INFO("pivoting");
+		if (within_pivot_thresh(world, player, target)) {
 			pivot(world, player, target);
 		}else{
-			LOG_INFO("chase");
 			chase(world, player, target);
 		}
 		return false;
@@ -101,7 +102,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 
 bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target, bool pass) {
 	chase_pivot(world, player, target);
-	if(within_thresh(player, target, pass_threshold)){
+	if(within_angle_thresh(player, target, pass_threshold)){
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
 			return false;
@@ -114,7 +115,7 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 	return false;
 }
 
-bool AI::HL::STP::Action::within_thresh(Player::Ptr player, const Point target, double threshold){
+bool AI::HL::STP::Action::within_angle_thresh(Player::Ptr player, const Point target, double threshold){
 	Point pass_dir = (target - player->position()).norm();
 	Point facing_dir(1,0);
 	facing_dir = facing_dir.rotate(player->orientation());
