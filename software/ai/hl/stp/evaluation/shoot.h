@@ -18,7 +18,7 @@ namespace AI {
 					bool ball_on_front;
 					bool ball_visible;
 					double angle;
-					double allowance;
+					double accuracy_diff;
 					Point target;
 				};
 

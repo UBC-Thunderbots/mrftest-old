@@ -13,7 +13,7 @@ namespace {
 	DoubleParam reduced_radius("reduced radius for calculating best shot (robot radius ratio)", "STP/Action/shoot", 0.8, 0.0, 1.0);
 }
 
-DoubleParam AI::HL::STP::Evaluation::shoot_accuracy("Shoot Accuracy (degrees)", "STP/shoot", 20.0, 0, 90.0);
+DoubleParam AI::HL::STP::Evaluation::shoot_accuracy("Angle threshold (in degrees) that defines shoot accuracy, smaller is more accurate", "STP/shoot", -180.0, 0, 180.0);
 
 ShootData AI::HL::STP::Evaluation::evaluate_shoot(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player) {
 	ShootData data;
@@ -28,11 +28,11 @@ ShootData AI::HL::STP::Evaluation::evaluate_shoot(const AI::HL::W::World &world,
 
 	double ori = (shot.first - player->position()).orientation();
 	double ori_diff = angle_diff(ori, player->orientation());
-	data.allowance = radians2degrees(shot.second - 2 * ori_diff);
+	data.accuracy_diff = ori_diff - (target.second / 2);
 
 	data.target = shot.first;
 	data.angle = shot.second;
-	data.can_shoot = data.allowance > shoot_accuracy;
+	data.can_shoot = (radians2degrees(accuracy_diff) < -shoot_threshold);
 	data.blocked = (shot.second == 0);
 	data.ball_on_front = false;
 	data.ball_visible = false;
