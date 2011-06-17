@@ -3,14 +3,20 @@
 
 #include "ai/hl/world.h"
 #include "util/cacheable.h"
+#include "util/param.h"
 
 namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
+				extern DoubleParam shoot_accuracy;
+
 				struct ShootData {
 					Point target;
 					double angle;
+					double allowance;
+					bool blocked;
+					bool reduced_radius;
 					bool can_shoot;
 					bool ball_on_front;
 					bool ball_visible;

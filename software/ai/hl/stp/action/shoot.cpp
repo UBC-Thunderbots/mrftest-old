@@ -1,6 +1,7 @@
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/pivot.h"
+#include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
@@ -10,24 +11,16 @@
 #include <cmath>
 
 using namespace AI::HL::STP;
+namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
 	DoubleParam alpha("Decay constant for the ball velocity", "STP/Action/shoot", 0.1, 0.0, 1.0);
 
-	DoubleParam reduced_radius("reduced radius for calculating best shot (robot radius ratio)", "STP/Action/shoot", 0.8, 0.0, 1.0);
-
-	DoubleParam shoot_accuracy("Shoot Accuracy (degrees)", "STP/Action/shoot", 20.0, 0, 90.0);
-	
 	DoubleParam pass_threshold("Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate", "STP/Action/shoot", 20.0, 0.0, 90.0);
-	
+
 	DoubleParam pivot_threshold("circle radius in front of robot to start pivoting (in meters)", "STP/Action/shoot", 0.1, 0.0, 1.0);
-	
+
 	DoubleParam pass_speed("kicking speed for making a pass", "STP/Action/shoot", 7.0, 1.0, 10.0);
-
-	// previous value of the angle returned by calc_best_shot
-	double prev_allowance = 0.0;
-	Player::Ptr prev_player;
-
 }
 
 bool AI::HL::STP::Action::within_pivot_thresh(const World &world, Player::Ptr player, const Point target){
@@ -38,53 +31,30 @@ bool AI::HL::STP::Action::within_pivot_thresh(const World &world, Player::Ptr pl
 }
 
 bool AI::HL::STP::Action::chase_pivot(const World &world, Player::Ptr player, const Point target) {
-		if (within_pivot_thresh(world, player, target)) {
-			pivot(world, player, target);
-		}else{
-			chase(world, player, target);
-		}
-		return false;
+	if (within_pivot_thresh(world, player, target)) {
+		pivot(world, player, target);
+	} else {
+		chase(world, player, target);
+	}
+	return false;
 }
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
-	// TODO:
-	// take into account that the optimal solution may not always be the largest opening
-	std::pair<Point, double> target = AI::HL::Util::calc_best_shot(world, player);
-
-	if (target.second == 0) {
-		// bad news, we are blocked
-		// so try with reduced radius
-		target = AI::HL::Util::calc_best_shot(world, player, reduced_radius);
-	}
-
-//	Point unit_vector = Point::of_angle(player->orientation());
-//	Point circle_center = player->position() + Robot::MAX_RADIUS * unit_vector;
+	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
 
 	if (!player->has_ball()) {
-		return chase_pivot(world, player, target.first);
+		return chase_pivot(world, player, shoot_data.target);
 	}
 
-	if (target.second == 0) {
-		// still blocked, just aim
+	if (shoot_data.blocked) { // still blocked, just aim
 		LOG_INFO("blocked, pivot");
-		pivot(world, player, world.field().enemy_goal());
+		pivot(world, player, shoot_data.target);
 		return false;
 	}
 
-	double ori = (target.first - player->position()).orientation();
-	double ori_diff = angle_diff(ori, player->orientation());
-	double allowance = radians2degrees(target.second - 2 * ori_diff);
+	LOG_INFO(Glib::ustring::compose("allowance %1 shoot_accuracy %2", shoot_data.allowance, Evaluation::shoot_accuracy));
 
-#warning this is a hack that needs better fixing. check timestep
-	if (prev_player != player) {
-		prev_player = player;
-		prev_allowance = 0;
-	}
-
-	LOG_INFO(Glib::ustring::compose("allowance %1 shoot_accuracy %2", allowance, shoot_accuracy));
-
-	if (allowance < shoot_accuracy /* && accuracy_diff < prev_best_angle */) {
-		prev_allowance = allowance;
+	if (shoot_data.can_shoot) {
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
 			return false;
@@ -95,8 +65,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	}
 
 	LOG_INFO("aiming");
-	pivot(world, player, target.first);
-	prev_allowance = allowance;
+	pivot(world, player, shoot_data.target);
 	return false;
 }
 
