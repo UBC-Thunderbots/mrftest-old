@@ -1,7 +1,7 @@
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/evaluation/defense.h"
 #include "ai/hl/stp/action/goalie.h"
-#include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/action/defend.h"
 #include "ai/hl/util.h"
 
 #include <cassert>
@@ -77,7 +77,7 @@ namespace {
 		auto waypoints = Evaluation::evaluate_defense(world);
 		Point dest = waypoints[1];
 		// TODO: medium priority for D = 1, low for D = 2
-		Action::move(world, player, dest);
+		Action::defender_move(world, player, dest);
 	}
 
 	Player::Ptr Secondary::select(const std::set<Player::Ptr> &players) const {
@@ -89,7 +89,7 @@ namespace {
 	void Secondary::execute() {
 		auto waypoints = Evaluation::evaluate_defense(world);
 		Point dest = waypoints[2];
-		Action::move(world, player, dest);
+		Action::defender_move(world, player, dest);
 	}
 }
 

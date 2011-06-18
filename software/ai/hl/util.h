@@ -217,7 +217,7 @@ namespace AI {
 			/**
 			 * Checks if a FRIENDLY PLAYER posses the ball.
 			 */
-			bool posses_ball(const AI::HL::W::World &world, AI::HL::W::Player::Ptr player);
+			bool posses_ball(const AI::HL::W::World &world, AI::HL::W::Player::Ptr player) __attribute__ ((deprecated));
 
 			/**
 			 * Checks if an ENEMY ROBOT posses the ball.
@@ -229,7 +229,7 @@ namespace AI {
 			 *
 			 * \return the player, or a null pointer if no friendly player has the ball.
 			 */
-			AI::HL::W::Player::Ptr calc_baller(AI::HL::W::World &world, const std::vector<AI::HL::W::Player::Ptr> &players);
+			AI::HL::W::Player::Ptr calc_baller(AI::HL::W::World &world, const std::vector<AI::HL::W::Player::Ptr> &players) __attribute__ ((deprecated));
 
 			/**
 			 * Converts a friendly team into a vector of players.
@@ -282,7 +282,7 @@ namespace AI {
 			 * \param[in] passee the player to pass to.
 			 *
 			 */
-			double calc_pass_score(const AI::HL::W::World &world, const AI::HL::W::Player::Ptr passee);
+			double calc_pass_score(const AI::HL::W::World &world, const AI::HL::W::Player::Ptr passee) __attribute__ ((deprecated));
 		}
 	}
 }

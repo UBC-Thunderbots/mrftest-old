@@ -1,5 +1,5 @@
-#ifndef AI_HL_STP_ACTION_SHOOT_H
-#define AI_HL_STP_ACTION_SHOOT_H
+#ifndef AI_HL_STP_ACTION_GOALIE_H
+#define AI_HL_STP_ACTION_GOALIE_H
 
 #include "ai/hl/stp/world.h"
 #include "geom/rect.h"

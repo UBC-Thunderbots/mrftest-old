@@ -184,6 +184,8 @@ software/ai/hl/stp/action/block.cpp -text
 software/ai/hl/stp/action/block.h -text
 software/ai/hl/stp/action/chase.cpp -text
 software/ai/hl/stp/action/chase.h -text
+software/ai/hl/stp/action/defend.cpp -text
+software/ai/hl/stp/action/defend.h -text
 software/ai/hl/stp/action/dribble.cpp -text
 software/ai/hl/stp/action/dribble.h -text
 software/ai/hl/stp/action/goalie.cpp -text
@@ -302,6 +304,7 @@ software/ai/hl/stp/tactic/wait_playtype.cpp -text
 software/ai/hl/stp/tactic/wait_playtype.h -text
 software/ai/hl/stp/test_block.cpp -text
 software/ai/hl/stp/test_chase.cpp -text
+software/ai/hl/stp/test_defend.cpp -text
 software/ai/hl/stp/test_goalie.cpp -text
 software/ai/hl/stp/test_pass.cpp -text
 software/ai/hl/stp/test_pass2.cpp -text
