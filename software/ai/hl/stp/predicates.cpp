@@ -9,8 +9,6 @@
 using namespace AI::HL::STP;
 
 namespace {
-	BoolParam use_possess_ball("Use posses ball (instead of has ball only)", "STP/predicates", true);
-
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/predicates", 3.0, 1.0, 10.0);
 }
 

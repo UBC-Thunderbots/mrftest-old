@@ -9,7 +9,7 @@ using namespace AI::HL::STP;
 namespace {
 	DoubleParam posses_threshold("circle radius in front of robot to consider possesion (meters)", "STP/ball", 0.1, 0.0, 1.0);
 
-	BoolParam smart_possess_ball("Smart possess ball (instead of has ball only)", "STP/predicates", true);
+	BoolParam smart_possess_ball("Smart possess ball (instead of has ball only)", "STP/ball", true);
 }
 
 bool AI::HL::STP::Evaluation::ball_in_pivot_thresh(const World &world, Player::CPtr player) {
