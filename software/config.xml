@@ -54,7 +54,7 @@
         <double name="Buffer avoid defense area (meters)">0.000</double>
         <double name="Buffer for equal priority friendly robot (meters)">0.100</double>
         <double name="Buffer for higher priority friendly robot (meters)">0.200</double>
-        <double name="Buffer for lower priority friendly robot (meters)">0.100</double>
+        <double name="Buffer for lower priority friendly robot (meters)">0.050</double>
         <double name="The amount of distance to maintain from enemy robots">0.100</double>
       </category>
     </category>
@@ -87,7 +87,7 @@
         <double name="angular slowdown when translating">1.500</double>
         <boolean name="flip trans&amp;ang slowdown (CARE)">false</boolean>
         <double name="pid ratio">1.000</double>
-        <boolean name="reduce angular velocity when translating">true</boolean>
+        <boolean name="reduce angular velocity when translating">false</boolean>
         <double name="x to y ratio">0.810</double>
         <double name="xy diff">1.50</double>
         <double name="xy max acc">5.00</double>

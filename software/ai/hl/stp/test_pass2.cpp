@@ -22,6 +22,7 @@ namespace {
 	DoubleParam passer_tol_reciever(" angle tolerance that the passer needs to be with respect to the passee", "STP/test_pass2", 20.0, 0.0, 180.0);	
 	DoubleParam passee_tol(" distance tolerance that the passee needs to be with respect to the passer shot", "STP/test_pass2", 0.05, 0.0, 1.0);
 	
+	DoubleParam passee_hack_dist("Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)", "STP/test_pass2", 0.03, 0.0, 1.0);
 	// make better targets
 
 	const Point default_targets[] = {
@@ -125,6 +126,7 @@ namespace {
 
 */
 
+				
 if(kicked){
 
 Action::move(players[0], players[0]->orientation(), players[0]->position());
@@ -145,33 +147,47 @@ Action::move(players[0], players[0]->orientation(), players[0]->position());
 						}
 				//	}
 				}
+				
+				if(Action::within_angle_thresh(players[0], targets[pass_target], passer_tol_target)){
+									
+					Point pass_dir(100, 0);
+					pass_dir = pass_dir.rotate(players[0]->orientation());
+					
+					Point intercept_pos = closest_lineseg_point(players[1]->position(), players[0]->position(), players[0]->position() + pass_dir);					
+					Point addit = passee_hack_dist*(intercept_pos - players[0]->position()).norm();
+					
+					//double intercept_ori = (world.ball().position() - intercept_pos).orientation();
+					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos + addit);
+					//Action::move(players[1], (world.ball().position() - players[1]->position()).orientation(), targets[pass_target]);
+				}
+				
 								
 				bool fast_ball = world.ball().velocity().len() > negligible_velocity;
-							
-				if(kicked){
+				if(kicked && !fast_ball){
 				
 					Point pass_dir(100, 0);
 					pass_dir = pass_dir.rotate(players[0]->orientation());
 					
 					Point intercept_pos = closest_lineseg_point(players[1]->position(), players[0]->position(), players[0]->position() + pass_dir);
+					Point addit = passee_hack_dist*(intercept_pos - players[0]->position()).norm();
 					//double intercept_ori = (world.ball().position() - intercept_pos).orientation();
-					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos);
+					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos + addit);
 					//Action::chase(world, players[1]);
 				} else if(kicked && fast_ball){
 				
 					Point pass_dir = world.ball().velocity().norm();
 					
 
-					
+
 					Point intercept_pos = closest_lineseg_point(players[1]->position(), world.ball().position(),  world.ball().position() + 100*pass_dir);					
 					pass_dir = (world.ball().position() - players[0]->position()).norm();
 					
-
+					Point addit = passee_hack_dist*(intercept_pos - players[0]->position()).norm();
 					//intercept_pos = closest_lineseg_point(players[1]->position(), players[0]->position(), players[0]->position() + 100*pass_dir);
 					//double intercept_ori = (world.ball().position() - intercept_pos).orientation();
-					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos);
+					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos + addit);
 					//Action::chase(world, players[1]);
-				}else {
+				} else {
 					// passee move to target
 					Action::move(players[1], (world.ball().position() - players[1]->position()).orientation(), targets[pass_target]);
 				}
