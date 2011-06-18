@@ -1,7 +1,7 @@
 #ifndef AI_HL_STP_EVALUATION_SHOOT_H
 #define AI_HL_STP_EVALUATION_SHOOT_H
 
-#include "ai/hl/world.h"
+#include "ai/hl/stp/world.h"
 #include "util/cacheable.h"
 #include "util/param.h"
 

@@ -2,6 +2,7 @@
 #include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/pivot.h"
 #include "ai/hl/stp/evaluation/shoot.h"
+#include "ai/hl/stp/evaluation/ball.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
@@ -11,32 +12,13 @@
 #include <cmath>
 
 using namespace AI::HL::STP;
-namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
 	DoubleParam alpha("Decay constant for the ball velocity", "STP/Action/shoot", 0.1, 0.0, 1.0);
 
 	DoubleParam pass_threshold("Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate", "STP/Action/shoot", 20.0, 0.0, 90.0);
 
-	DoubleParam pivot_threshold("circle radius in front of robot to start pivoting (in meters)", "STP/Action/shoot", 0.1, 0.0, 1.0);
-
 	DoubleParam pass_speed("kicking speed for making a pass", "STP/Action/shoot", 7.0, 1.0, 10.0);
-}
-
-bool AI::HL::STP::Action::within_pivot_thresh(const World &world, Player::Ptr player, const Point target){
-	Point unit_vector = Point::of_angle(player->orientation());
-	Point circle_center = player->position() + Robot::MAX_RADIUS * unit_vector;
-	double dist = (circle_center - world.ball().position()).len();
-	return dist < pivot_threshold;
-}
-
-bool AI::HL::STP::Action::chase_pivot(const World &world, Player::Ptr player, const Point target) {
-	if (within_pivot_thresh(world, player, target)) {
-		pivot(world, player, target);
-	} else {
-		chase(world, player, target);
-	}
-	return false;
 }
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
@@ -44,7 +26,8 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 
 	if (!player->has_ball()) {
 		LOG_INFO("chase pivot wtf");
-		return chase_pivot(world, player, shoot_data.target);
+		chase_pivot(world, player, shoot_data.target);
+		return false;
 	}
 
 	if (shoot_data.blocked) { // still blocked, just aim
@@ -72,7 +55,8 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 
 bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target, bool pass) {
 	if (!player->has_ball()) {
-		return chase_pivot(world, player, target);
+		chase_pivot(world, player, target);
+		return false;
 	}
 	if(within_angle_thresh(player, target, pass_threshold)){
 		if (!player->chicker_ready()) {

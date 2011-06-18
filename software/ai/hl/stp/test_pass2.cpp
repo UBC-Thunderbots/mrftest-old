@@ -1,5 +1,6 @@
 #include "ai/hl/hl.h"
 #include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/action/pivot.h"
 #include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/move.h"
 #include "geom/util.h"
