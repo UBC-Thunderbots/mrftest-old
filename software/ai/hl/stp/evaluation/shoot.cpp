@@ -28,11 +28,11 @@ ShootData AI::HL::STP::Evaluation::evaluate_shoot(const AI::HL::W::World &world,
 
 	double ori = (shot.first - player->position()).orientation();
 	double ori_diff = angle_diff(ori, player->orientation());
-	data.accuracy_diff = ori_diff - (shot.second / 2);
+	data.accuracy_diff = radians2degrees(ori_diff - (shot.second / 2));
 
 	data.target = shot.first;
 	data.angle = shot.second;
-	data.can_shoot = (radians2degrees(data.accuracy_diff) < -shoot_accuracy);
+	data.can_shoot = (data.accuracy_diff < -shoot_accuracy);
 	data.blocked = (shot.second == 0);
 	data.ball_on_front = false;
 	data.ball_visible = false;
