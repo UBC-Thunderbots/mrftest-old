@@ -23,7 +23,7 @@
   <params>
     <category name="Backend">
       <category name="XBee">
-        <double name="Loop Delay">0.000</double>
+        <double name="Loop Delay">0.100</double>
       </category>
     </category>
     <category name="Nav">
@@ -81,18 +81,17 @@
         <double name="max acc">3.00</double>
       </category>
       <category name="PID3">
-        <double name="angle diff">1.00</double>
-        <double name="angle max vel">25.00</double>
-        <double name="angle prop">12.00</double>
+        <double name="anglular differential (-ve)">-1.00</double>
+        <double name="anglular max velocity">15.00</double>
+        <double name="anglular proportional">15.00</double>
         <double name="angular slowdown when translating">1.500</double>
         <boolean name="flip trans&amp;ang slowdown (CARE)">false</boolean>
-        <double name="pid ratio">1.000</double>
         <boolean name="reduce angular velocity when translating">false</boolean>
         <double name="x to y ratio">0.810</double>
-        <double name="xy diff">1.50</double>
-        <double name="xy max acc">5.00</double>
-        <double name="xy max vel">15.00</double>
-        <double name="xy prop">13.00</double>
+        <double name="xy differential (-ve)">-1.00</double>
+        <double name="xy max acceleration">5.00</double>
+        <double name="xy max velocity">12.00</double>
+        <double name="xy proportional">12.00</double>
       </category>
     </category>
     <category name="STP">
@@ -105,7 +104,6 @@
         </category>
         <category name="shoot">
           <double name="Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate">10.0</double>
-          <double name="circle radius in front of robot to start pivoting (in meters)">0.100</double>
           <double name="Decay constant for the ball velocity">0.100</double>
           <double name="kicking speed for making a pass">4.75</double>
           <double name="reduced radius for calculating best shot (robot radius ratio)">0.800</double>
@@ -113,6 +111,10 @@
         <category name="spin">
           <double name="change in orientation every time tick for move spin">0.500</double>
         </category>
+      </category>
+      <category name="ball">
+        <double name="circle radius in front of robot to consider possesion (meters)">0.100</double>
+        <boolean name="Smart possess ball (instead of has ball only)">true</boolean>
       </category>
       <category name="defense">
         <boolean name="goalie hug switch">false</boolean>
@@ -160,6 +162,7 @@
         <double name=" angle tolerance that the passer needs to be with respect to the passee">20.0</double>
         <double name=" angle tolerance that the passer needs to be with respect to the target">30.0</double>
         <double name=" distance tolerance that the passee needs to be with respect to the passer shot">0.050</double>
+        <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.030</double>
         <integer name="passing target points">0</integer>
         <double name="velocity to ignore">0.100</double>
       </category>
