@@ -7,7 +7,10 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-				bool posses_ball(const World &world, Player::CPtr player, const Point target);
+				/**
+				 * The ball is right in front of the player.
+				 */
+				bool possess_ball(const World &world, Player::CPtr player);
 			}
 		}
 	}

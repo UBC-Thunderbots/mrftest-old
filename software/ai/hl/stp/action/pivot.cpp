@@ -9,7 +9,7 @@
 #include <algorithm>
 
 void AI::HL::STP::Action::chase_pivot(const World &world, Player::Ptr player, const Point target) {
-	if (Evaluation::posses_ball(world, player, target)) {
+	if (Evaluation::possess_ball(world, player)) {
 		pivot(world, player, target);
 	} else {
 		chase(world, player, target);

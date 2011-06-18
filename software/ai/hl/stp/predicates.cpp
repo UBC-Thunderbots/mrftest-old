@@ -2,24 +2,30 @@
 #include "ai/hl/util.h"
 #include "geom/angle.h"
 #include "ai/hl/stp/evaluation/enemy.h"
+#include "ai/hl/stp/evaluation/ball.h"
 
 #include <set>
 
 using namespace AI::HL::STP;
-using namespace AI::HL::W;
-
-namespace Evaluation = AI::HL::STP::Evaluation;
-using AI::HL::STP::Evaluation::EnemyThreat;
-using AI::HL::STP::Region;
 
 namespace {
+	BoolParam use_possess_ball("Use posses ball (instead of has ball only)", "STP/predicates", true);
+
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/predicates", 3.0, 1.0, 10.0);
+
+	bool has_ball(const World &world, Player::CPtr player) {
+		if (use_possess_ball) {
+			return Evaluation::possess_ball(world, player);
+		} else {
+			return player->has_ball();
+		}
+	}
 
 	Player::CPtr calc_baller(const World &world) {
 		const FriendlyTeam &friendly = world.friendly_team();
 		std::set<Player::CPtr> players;
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
-			if (friendly.get(i)->has_ball()) {
+			if (has_ball(world, friendly.get(i))) {
 				return friendly.get(i);
 			}
 		}
@@ -49,7 +55,7 @@ bool AI::HL::STP::Predicates::playtype(const World &world, AI::Common::PlayType 
 bool AI::HL::STP::Predicates::our_ball(const World &world) {
 	const FriendlyTeam &friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if (friendly.get(i)->has_ball()) {
+		if (has_ball(world, friendly.get(i))) {
 			return true;
 		}
 	}
@@ -116,7 +122,7 @@ bool AI::HL::STP::Predicates::ball_midfield(const World &world) {
 
 bool AI::HL::STP::Predicates::baller_can_shoot(const World &world) {
 	const Player::CPtr baller = calc_baller(world);
-	if (!baller.is() || !baller->has_ball()) {
+	if (!baller.is() || !has_ball(world, baller)) {
 		return false;
 	}
 	return AI::HL::Util::calc_best_shot(world, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
@@ -125,12 +131,12 @@ bool AI::HL::STP::Predicates::baller_can_shoot(const World &world) {
 bool AI::HL::STP::Predicates::baller_can_pass(const World &world) {
 	const FriendlyTeam &friends = world.friendly_team();
 	const Player::CPtr baller = calc_baller(world);
-	if (!baller.is() || !baller->has_ball()) {
+	if (!baller.is() || !has_ball(world, baller)) {
 		return false;
 	}
 	// don't count in the goalie
 	for (size_t i = 1; i < friends.size(); ++i) {
-		if (friends.get(i)->has_ball()) {
+		if (has_ball(world, friends.get(i))) {
 			continue;
 		}
 		if (AI::HL::Util::calc_best_shot_target(world, friends.get(i)->position(), baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0) {
@@ -149,7 +155,7 @@ bool AI::HL::STP::Predicates::baller_can_pass(const World &world) {
 
 bool AI::HL::STP::Predicates::baller_can_shoot_target(const World &world, const Point &target) {
 	const Player::CPtr baller = calc_baller(world);
-	if (!baller.is() || !baller->has_ball()) {
+	if (!baller.is() || !has_ball(world, baller)) {
 		return false;
 	}
 	return AI::HL::Util::calc_best_shot_target(world, target, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
@@ -157,7 +163,7 @@ bool AI::HL::STP::Predicates::baller_can_shoot_target(const World &world, const 
 
 bool AI::HL::STP::Predicates::baller_under_threat(const World &world) {
 	const Player::CPtr baller = calc_baller(world);
-	if (!baller.is() || !baller->has_ball()) {
+	if (!baller.is() || !has_ball(world, baller)) {
 		return false;
 	}
 	int enemy_cnt = 0;
