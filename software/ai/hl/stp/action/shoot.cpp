@@ -1,6 +1,8 @@
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/pivot.h"
+#include "ai/hl/stp/evaluation/shoot.h"
+#include "ai/hl/stp/evaluation/ball.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
@@ -14,71 +16,72 @@ using namespace AI::HL::STP;
 namespace {
 	DoubleParam alpha("Decay constant for the ball velocity", "STP/Action/shoot", 0.1, 0.0, 1.0);
 
-	DoubleParam reduced_radius("reduced radius for calculating best shot", "STP/Action/shoot", 0.8, 0.0, 1.0);
+	DoubleParam pass_threshold("Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate", "STP/Action/shoot", 20.0, 0.0, 90.0);
 
-	DoubleParam shoot_threshold("Angle threshold (in degrees) that defines shoot accuracy, smaller is less accurate", "STP/Action/shoot", 20.0, -360.0, 360.0);
-
-	DoubleParam close_threshold("When ball is this close, treat is as having the ball", "STP/Action/shoot", 0.1, 0.0, 1.0);
-
-	// previous value of the angle returned by calc_best_shot
-	double prev_best_angle = 0.0;
+	DoubleParam pass_speed("kicking speed for making a pass", "STP/Action/shoot", 7.0, 1.0, 10.0);
 }
 
 bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player) {
-	// TODO:
-	// take into account that the optimal solution may not always be the largest opening
-	std::pair<Point, double> target = AI::HL::Util::calc_best_shot(world, player);
+	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
 
-	const double ball_dist = (player->position() - world.ball().position()).len();
-
-	if (!player->has_ball() && ball_dist < close_threshold) {
-		if (target.second == 0) {
-			// just grab the ball, don't care about orientation
-			chase(world, player);
-		} else {
-			// grab ball and orient towards the enemy goal area
-			chase(world, player, target.first);
-		}
+	if (!player->has_ball()) {
+		LOG_INFO("chase pivot wtf");
+		chase_pivot(world, player, shoot_data.target);
 		return false;
 	}
 
-	LOG_INFO("shooting..");
+	if (shoot_data.blocked) { // still blocked, just aim
+		LOG_INFO("blocked, pivot");
+		pivot(world, player, shoot_data.target);
+		return false;
+	}
 
-	if (target.second == 0) { // bad news, we are blocked
-		target = AI::HL::Util::calc_best_shot(world, player, reduced_radius);
+	LOG_INFO(Glib::ustring::compose("allowance %1 shoot_accuracy %2", shoot_data.accuracy_diff, Evaluation::shoot_accuracy));
 
-		// still blocked even with reduced radius
-		if (target.second == 0) {
-			Point new_target = world.field().enemy_goal();
-			if (false) {
-				return shoot(world, player, new_target);
-			} else {
-				// just aim at the enemy goal
-				// perhaps aim at the largest gap in the enemy side of the field?
-				player->move(new_target, (world.field().enemy_goal() - player->position()).orientation(), Point());
-				player->type(AI::Flags::MoveType::DRIBBLE);
-				player->prio(AI::Flags::MovePrio::HIGH);
-			}
+	if (shoot_data.can_shoot) {
+		if (!player->chicker_ready()) {
+			LOG_INFO("chicker not ready");
 			return false;
 		}
-	}
-
-	double ori = (target.first - player->position()).orientation();
-	double ori_diff = angle_diff(ori, player->orientation());
-	double accuracy_diff = ori_diff - (target.second / 2);
-
-	if (radians2degrees(accuracy_diff) < -shoot_threshold && accuracy_diff < prev_best_angle) {
-		LOG_INFO("autokick");
+		LOG_INFO("kick 1");
 		player->autokick(10.0);
-		prev_best_angle = accuracy_diff;
 		return true;
-	} else {
-		pivot(world, player, target.first);
-		prev_best_angle = accuracy_diff;
-		return false;
 	}
+
+	LOG_INFO("aiming");
+	pivot(world, player, shoot_data.target);
+	return false;
 }
 
+bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target, bool pass) {
+	if (!player->has_ball()) {
+		chase_pivot(world, player, target);
+		return false;
+	}
+	if(within_angle_thresh(player, target, pass_threshold)){
+		if (!player->chicker_ready()) {
+			LOG_INFO("chicker not ready");
+			return false;
+		}
+		LOG_INFO("kick 2");
+		if (pass) player->autokick(pass_speed);
+		else player->autokick(10.0);
+		return true;
+	}
+	pivot(world, player, target);
+	return false;
+}
+
+bool AI::HL::STP::Action::within_angle_thresh(Player::Ptr player, const Point target, double threshold){
+	Point pass_dir = (target - player->position()).norm();
+	Point facing_dir(1,0);
+	facing_dir = facing_dir.rotate(player->orientation());
+	double dir_thresh = cos( (pass_threshold*M_PI / 180.0));
+	return facing_dir.dot(pass_dir) > dir_thresh;
+}
+
+
+#warning this is broken
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, double tol, double delta) {
 	player->move(target, (target - player->position()).orientation(), Point());
 	player->type(AI::Flags::MoveType::CATCH);
@@ -95,6 +98,21 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Po
 	return player->has_ball() && player->chicker_ready();
 }
 
+double AI::HL::STP::Action::shoot_speed(double distance, double delta, double alph) {
+	double a = alph;
+	if(alph<0){
+		a = alpha;
+	}
+	double speed = a * distance / (1 - std::exp(-a * delta));
+	if (speed > 10.0) {
+		speed = 10.0; // can't kick faster than this
+	}
+	if (speed < 0) {
+		speed = 0; // can't kick slower than this
+	}
+	return speed;
+}
+
 bool AI::HL::STP::Action::arm(const World &world, Player::Ptr player, const Point target, double delta) {
 	double dist_max = 10.0 * (1 - std::exp(-alpha * delta)) / alpha;
 	// make the robot kick as close to the target as possible
@@ -103,18 +121,16 @@ bool AI::HL::STP::Action::arm(const World &world, Player::Ptr player, const Poin
 	double distance = (target - world.ball().position()).dot(robot_dir);
 
 	if (distance > dist_max) {
-		LOG_INFO("autokick");
 		player->autokick(10.0);
 		return false;
 	}
-	double speed = alpha * distance / (1 - std::exp(-alpha * delta));
+	double speed = shoot_speed(distance);
 	if (speed > 10.0) {
 		speed = 10.0; // can't kick faster than this
 	}
 	if (speed < 0) {
 		speed = 0; // can't kick slower than this
 	}
-	LOG_INFO("autokick");
 	player->autokick(speed);
 	return true;
 }

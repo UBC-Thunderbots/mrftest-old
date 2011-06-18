@@ -64,7 +64,7 @@ namespace {
 
 
 
-				Action::shoot(world, friendly.get(0));
+				Action::shoot_goal(world, friendly.get(0));
 			}
 	};
 
