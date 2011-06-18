@@ -36,7 +36,7 @@ BEGIN_ASSIGN()
 goalie_role.push_back(defend_duo_goalie(world));
 
 roles[0].push_back(wait_playtype(world, move(world, kicker_position), AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY));
-roles[0].push_back(shoot(world));
+roles[0].push_back(shoot_goal(world));
 
 roles[1].push_back(move(world, ready_positions[0]));
 

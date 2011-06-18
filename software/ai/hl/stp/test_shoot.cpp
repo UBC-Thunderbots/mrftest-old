@@ -43,7 +43,7 @@ namespace {
 					return;
 				}
 
-				Action::shoot(world, friendly.get(0));
+				Action::shoot_goal(world, friendly.get(0));
 			}
 
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {

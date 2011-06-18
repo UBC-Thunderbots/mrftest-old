@@ -11,12 +11,12 @@ namespace AI {
 				/**
 				 * Shoot for the enemy goal.
 				 */
-				Tactic::Ptr shoot(const World &world);
+				Tactic::Ptr shoot_goal(const World &world);
 
 				/**
 				 * Shoot a specified target.
 				 */
-				Tactic::Ptr shoot(const World &world, const Coordinate target);
+				Tactic::Ptr shoot_target(const World &world, const Coordinate target);
 			}
 		}
 	}

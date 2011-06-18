@@ -18,12 +18,11 @@ namespace AI {
 				 * WARNING:
 				 * ONLY ONE ROBOT should be calling this action at any one time.
 				 *
-				 * If the player does not have the ball,
-				 * chases after it.
+				 * If the player does not have the ball, chases after it.
 				 *
 				 * \return true if the robot shoots.
 				 */
-				bool shoot(const World &world, Player::Ptr player);
+				bool shoot_goal(const World &world, Player::Ptr player);
 
 				/**
 				 * Shoots the ball to a target point with a double param kicking speed for passing
@@ -33,20 +32,12 @@ namespace AI {
 				 * \return true if the robot shoots.
 				 */	
 				bool shoot_target(const World &world, Player::Ptr player, const Point target, bool pass);
-				
-				
-				
+
 				/**
 				 * Determines whether or not the robot is facing within threshold degrees of the specified target
 				 *
 				 */
 				bool within_angle_thresh(Player::Ptr player, const Point target, double threshold);
-
-				/**
-				 * Determines whether or not the robot is facing within distance threshold for pivoting
-				 *
-				 */
-				bool within_pivot_thresh(const World &world, Player::Ptr player, const Point target);
 
 				/**
 				 * If the player posses the ball,
@@ -74,7 +65,7 @@ namespace AI {
 				 * \return true if the constraints are achievable
 				 */
 				bool arm(const World &world, Player::Ptr player, const Point target, double delta = 1e10);
-				
+
 			}
 		}
 	}

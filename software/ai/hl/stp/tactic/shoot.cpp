@@ -7,9 +7,9 @@ using namespace AI::HL::W;
 using AI::HL::STP::Coordinate;
 
 namespace {
-	class Shoot : public Tactic {
+	class ShootGoal : public Tactic {
 		public:
-			Shoot(const World &world) : Tactic(world, true), has_shot(false) {
+			ShootGoal(const World &world) : Tactic(world, true), has_shot(false) {
 			}
 
 		private:
@@ -18,7 +18,7 @@ namespace {
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 			std::string description() const {
-				return "shoot";
+				return "shoot-goal";
 			}
 	};
 
@@ -38,17 +38,17 @@ namespace {
 			}
 	};
 
-	bool Shoot::done() const {
+	bool ShootGoal::done() const {
 #warning tactic should control shooting
 		return has_shot;
 	}
 
-	Player::Ptr Shoot::select(const std::set<Player::Ptr> &players) const {
+	Player::Ptr ShootGoal::select(const std::set<Player::Ptr> &players) const {
 		return select_baller(world, players);
 	}
 
-	void Shoot::execute() {
-		if (AI::HL::STP::Action::shoot(world, player)) {
+	void ShootGoal::execute() {
+		if (AI::HL::STP::Action::shoot_goal(world, player)) {
 			has_shot = true;
 		}
 	}
@@ -69,12 +69,12 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::shoot(const World &world) {
-	const Tactic::Ptr p(new Shoot(world));
+Tactic::Ptr AI::HL::STP::Tactic::shoot_goal(const World &world) {
+	const Tactic::Ptr p(new ShootGoal(world));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::shoot(const World &world, const Coordinate target) {
+Tactic::Ptr AI::HL::STP::Tactic::shoot_target(const World &world, const Coordinate target) {
 	const Tactic::Ptr p(new ShootTarget(world, target));
 	return p;
 }

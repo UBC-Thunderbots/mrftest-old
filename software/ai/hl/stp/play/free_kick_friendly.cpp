@@ -24,7 +24,7 @@ goalie_role.push_back(defend_duo_goalie(world));
 // ROLE 1
 // kicker
 roles[0].push_back(chase(world));
-roles[0].push_back(shoot(world));
+roles[0].push_back(shoot_goal(world));
 
 // ROLE 2
 // defend
