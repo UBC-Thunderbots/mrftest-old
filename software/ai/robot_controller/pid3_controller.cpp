@@ -20,15 +20,14 @@ namespace {
 	BoolParam PID_SLOW_ANGULAR("reduce angular velocity when translating", "RC/PID3", true);
 	BoolParam PID_FLIP_SLOWDOWN("flip trans&ang slowdown (CARE)", "RC/PID3", false);
 	DoubleParam PID_SLOWDOWN("angular slowdown when translating", "RC/PID3", 1.01, 0.1, 8.0);
-	DoubleParam PID_PROP("xy prop", "RC/PID3", 20, 0.0, 50.0);
-	DoubleParam PID_DIFF("xy diff", "RC/PID3", 1, -20.0, 20.0);
-	DoubleParam PID_MAX_VEL("xy max vel", "RC/PID3", 9, 0.0, 20.0);
-	DoubleParam PID_MAX_ACC("xy max acc", "RC/PID3", 5, 0.0, 20.0);
-	DoubleParam PID_A_PROP("angle prop", "RC/PID3", 30, 0.0, 50.0);
-	DoubleParam PID_A_DIFF("angle diff", "RC/PID3", 1, 0.0, 20.0);
-	DoubleParam PID_A_THRESH("angle max vel", "RC/PID3", 30, 0.0, 50.0);
+	DoubleParam PID_PROP("xy proportional", "RC/PID3", 20, 0.0, 50.0);
+	DoubleParam PID_DIFF("xy differential (-ve)", "RC/PID3", 1, -20.0, 20.0);
+	DoubleParam PID_MAX_VEL("xy max velocity", "RC/PID3", 9, 0.0, 20.0);
+	DoubleParam PID_MAX_ACC("xy max acceleration", "RC/PID3", 5, 0.0, 20.0);
+	DoubleParam PID_A_PROP("anglular proportional", "RC/PID3", 30, 0.0, 50.0);
+	DoubleParam PID_A_DIFF("anglular differential (-ve)", "RC/PID3", 1, -20.0, 20.0);
+	DoubleParam PID_A_THRESH("anglular max velocity", "RC/PID3", 30, 0.0, 50.0);
 	DoubleParam PID_XY_RATIO("x to y ratio", "RC/PID3", 0.81, 0.0, 2.0);
-	DoubleParam PID_RATIO("pid ratio", "RC/PID3", 1.0, 0.0, 2.0);
 
 	const double PID_YA_RATIO = 0.0; // 0 - 5 to face forwards
 
