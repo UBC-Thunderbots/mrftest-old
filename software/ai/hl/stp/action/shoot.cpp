@@ -25,30 +25,27 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player) {
 	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
 
 	if (!player->has_ball()) {
-		LOG_INFO("chase pivot wtf");
 		chase_pivot(world, player, shoot_data.target);
 		return false;
 	}
 
 	if (shoot_data.blocked) { // still blocked, just aim
-		LOG_INFO("blocked, pivot");
-		pivot(world, player, shoot_data.target);
+		chase_pivot(world, player, shoot_data.target);
 		return false;
 	}
 
-	LOG_INFO(Glib::ustring::compose("allowance %1 shoot_accuracy %2", shoot_data.accuracy_diff, Evaluation::shoot_accuracy));
+	// LOG_INFO(Glib::ustring::compose("allowance %1 shoot_accuracy %2", shoot_data.accuracy_diff, Evaluation::shoot_accuracy));
 
 	if (shoot_data.can_shoot) {
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
 			return false;
 		}
-		LOG_INFO("kick 1");
+		LOG_INFO("autokick");
 		player->autokick(10.0);
 		return true;
 	}
 
-	LOG_INFO("aiming");
 	pivot(world, player, shoot_data.target);
 	return false;
 }

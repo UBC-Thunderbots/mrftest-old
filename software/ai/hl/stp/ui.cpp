@@ -2,6 +2,7 @@
 #include "ai/hl/util.h"
 #include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/evaluation/shoot.h"
+#include "ai/hl/stp/evaluation/ball.h"
 #include <cmath>
 
 using namespace AI::HL::STP;
@@ -16,10 +17,19 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 		Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
 
 		// draw yellow circle
-		if (shoot_data.can_shoot) {
-			ctx->set_source_rgba(1.0, 1.0, 1.0, 0.5);
-			ctx->arc(player->position().x, player->position().y, 0.06, 0.0, 2 * M_PI);
-			ctx->fill();
+		if (!shoot_data.can_shoot) {
+			continue;
+		}
+		ctx->set_source_rgba(1.0, 1.0, 1.0, 0.5);
+		ctx->arc(player->position().x, player->position().y, 0.06, 0.0, 2 * M_PI);
+		ctx->fill();
+		ctx->stroke();
+
+		if (Evaluation::possess_ball(world, player)) {
+			ctx->set_source_rgba(0.5, 1.0, 0.5, 0.5);
+			ctx->set_line_width(0.05);
+			ctx->move_to(player->position().x, player->position().y);
+			ctx->line_to(shoot_data.target.x, shoot_data.target.y);
 			ctx->stroke();
 		}
 	}
@@ -28,30 +38,30 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
 	// draw yellow circles for shooting
 	/*
-	const FriendlyTeam &friendly = world.friendly_team();
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		const Player::CPtr player = friendly.get(i);
-		std::pair<Point, double> best_shot = AI::HL::Util::calc_best_shot(world, player);
-		if (best_shot.second < AI::HL::Util::shoot_accuracy * M_PI / 180) {
-			continue;
-		}
+	   const FriendlyTeam &friendly = world.friendly_team();
+	   for (std::size_t i = 0; i < friendly.size(); ++i) {
+	   const Player::CPtr player = friendly.get(i);
+	   std::pair<Point, double> best_shot = AI::HL::Util::calc_best_shot(world, player);
+	   if (best_shot.second < AI::HL::Util::shoot_accuracy * M_PI / 180) {
+	   continue;
+	   }
 
-		const double radius = best_shot.second * 0.5;
+	   const double radius = best_shot.second * 0.5;
 
-		// draw yellow circle
-		ctx->set_source_rgba(1.0, 1.0, 0.5, 0.2);
-		ctx->arc(player->position().x, player->position().y, radius, 0.0, 2 * M_PI);
-		ctx->fill();
-		ctx->stroke();
+	// draw yellow circle
+	ctx->set_source_rgba(1.0, 1.0, 0.5, 0.2);
+	ctx->arc(player->position().x, player->position().y, radius, 0.0, 2 * M_PI);
+	ctx->fill();
+	ctx->stroke();
 
-		// draw line
-		ctx->set_source_rgba(1.0, 1.0, 0.5, 0.2);
-		ctx->set_line_width(0.01);
-		ctx->move_to(player->position().x, player->position().y);
-		ctx->line_to(best_shot.first.x, best_shot.first.y);
-		ctx->stroke();
+	// draw line
+	ctx->set_source_rgba(1.0, 1.0, 0.5, 0.2);
+	ctx->set_line_width(0.01);
+	ctx->move_to(player->position().x, player->position().y);
+	ctx->line_to(best_shot.first.x, best_shot.first.y);
+	ctx->stroke();
 	}
-	*/
+	 */
 
 	// draw blue circles for offense
 	{
