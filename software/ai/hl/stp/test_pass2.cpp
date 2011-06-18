@@ -148,7 +148,7 @@ Action::move(players[0], players[0]->orientation(), players[0]->position());
 								
 				bool fast_ball = world.ball().velocity().len() > negligible_velocity;
 							
-				if(kicked && fast_ball){
+				if(kicked){
 				
 					Point pass_dir(100, 0);
 					pass_dir = pass_dir.rotate(players[0]->orientation());
@@ -157,7 +157,21 @@ Action::move(players[0], players[0]->orientation(), players[0]->position());
 					//double intercept_ori = (world.ball().position() - intercept_pos).orientation();
 					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos);
 					//Action::chase(world, players[1]);
-				} else {
+				} else if(kicked && fast_ball){
+				
+					Point pass_dir = world.ball().velocity().norm();
+					
+
+					
+					Point intercept_pos = closest_lineseg_point(players[1]->position(), world.ball().position(),  world.ball().position() + 100*pass_dir);					
+					pass_dir = (world.ball().position() - players[0]->position()).norm();
+					
+
+					//intercept_pos = closest_lineseg_point(players[1]->position(), players[0]->position(), players[0]->position() + 100*pass_dir);
+					//double intercept_ori = (world.ball().position() - intercept_pos).orientation();
+					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos);
+					//Action::chase(world, players[1]);
+				}else {
 					// passee move to target
 					Action::move(players[1], (world.ball().position() - players[1]->position()).orientation(), targets[pass_target]);
 				}

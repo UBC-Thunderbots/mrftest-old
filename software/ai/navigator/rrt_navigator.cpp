@@ -32,6 +32,9 @@ namespace AI {
 			DoubleParam offset_angle("Pivot: offset angle (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
 			DoubleParam offset_distance("Pivot: offset distance", "Nav/RRT", 0.15, -10.0, 10.0);
 			DoubleParam orientation_offset("Pivot: orientation offset (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
+			
+		//	DoubleParam ignore_chase_speed("Chase ignore ball velocity", "Nav/RRT", 30.0, 0.0, 1.0);
+			
 
 			BoolParam chase_use_orientation("Chase ball uses target location to calculate dest", "Nav/RRT", true);
 			DoubleParam chase_angle_range("Chase angle range for behind target (degrees)", "Nav/RRT", 30, 0, 90);
@@ -105,7 +108,7 @@ namespace AI {
 					return std::make_pair(world.ball().position(), dest_ori);
 				}
 
-				Point dest_pos = p1 + world.ball().velocity() * t;
+				Point dest_pos = p1 + world.ball().velocity() * 2*t;
 
 				Point np= world.ball().position();
 
@@ -122,7 +125,7 @@ namespace AI {
 #warning magic number here
 						np += chase_distance*( np - player->destination().first).norm();
 					}
-					dest_pos = np + world.ball().velocity() * t;
+					dest_pos = np + world.ball().velocity() * 2*t;
 				}
 
 

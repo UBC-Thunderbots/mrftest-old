@@ -44,7 +44,7 @@
       <category name="RRT">
         <double name="Buffer behind ball for chase (meters)">0.250</double>
         <double name="Chase angle range for behind target (degrees)">30.0</double>
-        <boolean name="Chase ball uses target location to calculate dest">false</boolean>
+        <boolean name="Chase ball uses target location to calculate dest">true</boolean>
         <double name="Pivot: offset angle (degrees)">58</double>
         <double name="Pivot: offset distance">0.13</double>
         <double name="Pivot: orientation offset (degrees)">14</double>
@@ -91,8 +91,8 @@
         <double name="x to y ratio">0.810</double>
         <double name="xy diff">1.50</double>
         <double name="xy max acc">5.00</double>
-        <double name="xy max vel">10.00</double>
-        <double name="xy prop">12.00</double>
+        <double name="xy max vel">15.00</double>
+        <double name="xy prop">13.00</double>
       </category>
     </category>
     <category name="STP">
@@ -140,7 +140,7 @@
         <double name="enemy avoidance distance (robot radius)">3.00</double>
       </category>
       <category name="shoot">
-        <double name="Shoot Accuracy (degrees)">2.0</double>
+        <double name="Angle threshold (in degrees) that defines shoot accuracy, smaller is more accurate">0.0</double>
       </category>
       <category name="STP">
         <boolean name="Goalie is lowest index">true</boolean>
@@ -150,6 +150,13 @@
         <double name="stop: angle to separate players (degrees)">20.0</double>
       </category>
       <category name="test_pass">
+        <double name=" angle tolerance that the passer needs to be with respect to the passee">20.0</double>
+        <double name=" angle tolerance that the passer needs to be with respect to the target">30.0</double>
+        <double name=" distance tolerance that the passee needs to be with respect to the passer shot">0.050</double>
+        <integer name="passing target points">0</integer>
+        <double name="velocity to ignore">0.100</double>
+      </category>
+      <category name="test_pass2">
         <double name=" angle tolerance that the passer needs to be with respect to the passee">20.0</double>
         <double name=" angle tolerance that the passer needs to be with respect to the target">30.0</double>
         <double name=" distance tolerance that the passee needs to be with respect to the passer shot">0.050</double>

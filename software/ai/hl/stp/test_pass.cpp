@@ -87,7 +87,8 @@ namespace {
 					return;
 				}
 
-				std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+	//			std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+		//		std::reverse(players.begin(), players.end());
 				
 				if (kicked) {
 					kicked_count++;
@@ -97,6 +98,10 @@ namespace {
 				if (kicked_count > 50) {
 					kicked = false;
 				}
+				
+				
+				
+				
 				
 /*
 
@@ -120,26 +125,38 @@ namespace {
 
 */
 
-				// passer grabs ball
-				if (!players[0]->has_ball()) {
+if(kicked){
+
+Action::move(players[0], players[0]->orientation(), players[0]->position());
+
+}else if (!players[0]->has_ball()) {
 					Action::chase_pivot(world,players[0], targets[pass_target]);
 					//Action::chase(world, players[0], targets[pass_target]);
 				}
 		
+
+			// passer grabs ball
+				
 				// passer shoots					
 				if (players[0]->has_ball()) {
-					if (Action::shoot_target(world, players[0], targets[pass_target], true)) { 
-						kicked = true;
-					}
+				//	if(!kicked){
+						if (Action::shoot_target(world, players[0], targets[pass_target], true)) { 
+							kicked = true;
+						}
+				//	}
 				}
 								
 				bool fast_ball = world.ball().velocity().len() > negligible_velocity;
 							
-				if(kicked && fast_ball){	
-					//Point intercept_pos = closest_lineseg_point(players[1]->position(), world.ball().position(), world.ball().position() + 100*world.ball().velocity());
+				if(kicked && fast_ball){
+				
+					Point pass_dir(100, 0);
+					pass_dir = pass_dir.rotate(players[0]->orientation());
+					
+					Point intercept_pos = closest_lineseg_point(players[1]->position(), players[0]->position(), players[0]->position() + pass_dir);
 					//double intercept_ori = (world.ball().position() - intercept_pos).orientation();
-					//Action::move(players[1], intercept_ori, intercept_pos);
-					Action::chase(world, players[1]);
+					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos);
+					//Action::chase(world, players[1]);
 				} else {
 					// passee move to target
 					Action::move(players[1], (world.ball().position() - players[1]->position()).orientation(), targets[pass_target]);
