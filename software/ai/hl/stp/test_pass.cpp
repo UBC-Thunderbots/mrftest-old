@@ -1,7 +1,7 @@
 #include "ai/hl/hl.h"
 #include "ai/hl/stp/action/shoot.h"
-#include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/pivot.h"
+#include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/move.h"
 #include "geom/util.h"
 #include "util/dprint.h"
@@ -16,13 +16,14 @@ using namespace AI::HL::W;
 
 namespace {
 
-	IntParam pass_target("passing target points", "STP/test_pass", 0, 0, 14);
-	DoubleParam negligible_velocity("velocity to ignore", "STP/test_pass", 0.1, 0.0, 1.0);
+	IntParam pass_target("passing target points", "STP/test_pass2", 0, 0, 14);
+	DoubleParam negligible_velocity("velocity to ignore", "STP/test_pass2", 0.1, 0.0, 1.0);
 	
-	DoubleParam passer_tol_target(" angle tolerance that the passer needs to be with respect to the target", "STP/test_pass", 30.0, 0.0, 180.0);
-	DoubleParam passer_tol_reciever(" angle tolerance that the passer needs to be with respect to the passee", "STP/test_pass", 20.0, 0.0, 180.0);	
-	DoubleParam passee_tol(" distance tolerance that the passee needs to be with respect to the passer shot", "STP/test_pass", 0.05, 0.0, 1.0);
+	DoubleParam passer_tol_target(" angle tolerance that the passer needs to be with respect to the target", "STP/test_pass2", 30.0, 0.0, 180.0);
+	DoubleParam passer_tol_reciever(" angle tolerance that the passer needs to be with respect to the passee", "STP/test_pass2", 20.0, 0.0, 180.0);
+	DoubleParam passee_tol(" distance tolerance that the passee needs to be with respect to the passer shot", "STP/test_pass2", 0.05, 0.0, 1.0);
 	
+	DoubleParam passee_hack_dist("Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)", "STP/test_pass2", 0.03, 0.0, 1.0);
 	// make better targets
 
 	const Point default_targets[] = {
@@ -47,7 +48,7 @@ namespace {
 
 	class TestPassFactory : public HighLevelFactory {
 		public:
-			TestPassFactory() : HighLevelFactory("Test STP Pass") {
+			TestPassFactory() : HighLevelFactory("Test STP Pass2") {
 			}
 
 			HighLevel::Ptr create_high_level(World &world) const;
@@ -88,9 +89,6 @@ namespace {
 					return;
 				}
 
-	//			std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
-		//		std::reverse(players.begin(), players.end());
-				
 				if (kicked) {
 					kicked_count++;
 				} else {
@@ -100,71 +98,53 @@ namespace {
 					kicked = false;
 				}
 				
-				
-				
-				
-				
-/*
-
-				if(!Action::within_pivot_thresh(world, players[0], targets[pass_target])){
-					Action::chase(world, players[0], targets[pass_target]);
-					Action::move(players[1], (world.ball().position() - players[1]->position()).orientation(), targets[pass_target]);
-					return;
-				}
-
-				if(!Action::within_angle_thresh(players[0], targets[pass_target], passer_tol_target)){
+				if (kicked) {
+					Action::move(players[0], players[0]->orientation(), players[0]->position());
+				} else if (!players[0]->has_ball()) {
 					Action::chase_pivot(world,players[0], targets[pass_target]);
-					Action::move(players[1], (world.ball().position() - players[1]->position()).orientation(), targets[pass_target]);
-				}else{
-					Action::move(players[0], players[1]->position().orientation(), players[1]->position());
-					Point passer_dir(100, 0);
-					passer_dir = passer_dir.rotate(players[0]->orientation());					
-					Point intercept_pos = closest_lineseg_point(players[1]->position(), world.ball().position(), players[0]->position() + passer_dir);
-					Action::move(players[1], (world.ball().position() - players[1]->position()).orientation(), targets[pass_target]);
 				}
 
-
-*/
-
-if(kicked){
-
-Action::move(players[0], players[0]->orientation(), players[0]->position());
-
-}else if (!players[0]->has_ball()) {
-					Action::chase_pivot(world,players[0], targets[pass_target]);
-					//Action::chase(world, players[0], targets[pass_target]);
-				}
-		
-
-			// passer grabs ball
-				
-				// passer shoots					
+				// passer shoots
 				if (players[0]->has_ball()) {
-				//	if(!kicked){
-						if (Action::shoot_target(world, players[0], targets[pass_target], true)) { 
-							kicked = true;
-						}
-				//	}
+					if (Action::shoot_target(world, players[0], targets[pass_target], true)) {
+						kicked = true;
+					}
+				}
+				
+				if(Action::within_angle_thresh(players[0], targets[pass_target], passer_tol_target)){
+
+					Point pass_dir(100, 0);
+					pass_dir = pass_dir.rotate(players[0]->orientation());
+
+					Point intercept_pos = closest_lineseg_point(players[1]->position(), players[0]->position(), players[0]->position() + pass_dir);
+					Point addit = passee_hack_dist*(intercept_pos - players[0]->position()).norm();
+
+					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos + addit);
 				}
 								
 				bool fast_ball = world.ball().velocity().len() > negligible_velocity;
-							
-				if(kicked && fast_ball){
+				if (kicked && !fast_ball) {
 				
 					Point pass_dir(100, 0);
 					pass_dir = pass_dir.rotate(players[0]->orientation());
 					
 					Point intercept_pos = closest_lineseg_point(players[1]->position(), players[0]->position(), players[0]->position() + pass_dir);
-					//double intercept_ori = (world.ball().position() - intercept_pos).orientation();
-					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos);
-					//Action::chase(world, players[1]);
+					Point addit = passee_hack_dist*(intercept_pos - players[0]->position()).norm();
+					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos + addit);
+				} else if(kicked && fast_ball) {
+
+					Point pass_dir = world.ball().velocity().norm();
+
+					Point intercept_pos = closest_lineseg_point(players[1]->position(), world.ball().position(),  world.ball().position() + 100*pass_dir);
+					pass_dir = (world.ball().position() - players[0]->position()).norm();
+
+					Point addit = passee_hack_dist*(intercept_pos - players[0]->position()).norm();
+					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos + addit);
 				} else {
 					// passee move to target
 					Action::move(players[1], (world.ball().position() - players[1]->position()).orientation(), targets[pass_target]);
 				}
 
-				// passee grabs ball
-				//if (kicked) Action::chase(world, players[1]);
 				players[1]->type(AI::Flags::MoveType::DRIBBLE);
 				
 			}
@@ -175,4 +155,3 @@ Action::move(players[0], players[0]->orientation(), players[0]->position());
 		return p;
 	}
 }
-

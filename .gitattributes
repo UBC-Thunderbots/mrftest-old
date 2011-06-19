@@ -307,7 +307,6 @@ software/ai/hl/stp/test_chase.cpp -text
 software/ai/hl/stp/test_defend.cpp -text
 software/ai/hl/stp/test_goalie.cpp -text
 software/ai/hl/stp/test_pass.cpp -text
-software/ai/hl/stp/test_pass2.cpp -text
 software/ai/hl/stp/test_pivot.cpp -text
 software/ai/hl/stp/test_repel.cpp -text
 software/ai/hl/stp/test_shoot.cpp -text
