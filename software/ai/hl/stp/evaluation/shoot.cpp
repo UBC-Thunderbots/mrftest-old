@@ -13,7 +13,7 @@ namespace {
 	DoubleParam reduced_radius("reduced radius for calculating best shot (robot radius ratio)", "STP/Action/shoot", 0.8, 0.0, 1.0);
 }
 
-DoubleParam AI::HL::STP::Evaluation::shoot_accuracy("Angle threshold (in degrees) that defines shoot accuracy, smaller is more accurate", "STP/shoot", 0.0, -180.0, 180.0);
+DoubleParam AI::HL::STP::Evaluation::shoot_accuracy("Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate", "STP/shoot", 0.0, -180.0, 180.0);
 
 ShootData AI::HL::STP::Evaluation::evaluate_shoot(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player) {
 	ShootData data;
