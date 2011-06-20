@@ -239,7 +239,7 @@ void TShoot::execute() {
 		kicked = Action::shoot_target(world, player, target, false);
 
 	} else {
-		kicked = Action::shoot_target(world, player, world.field().enemy_goal(), false);
+		kicked = Action::shoot_goal(world, player);
 	}
 }
 
@@ -319,7 +319,7 @@ void TActiveDef::execute() {
 		}
 	}
 
-	finished = Action::shoot(world, player, world.field().enemy_goal());
+	finished = Action::shoot_goal(world, player);
 }
 
 // might be better to just use our pass and receive pass

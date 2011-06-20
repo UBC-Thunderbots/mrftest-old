@@ -11,37 +11,24 @@ namespace AI {
 		namespace STP {
 			namespace Action {
 				/**
-				 * If the player posses the ball,
-				 * aims at an open angle at the enemy goal,
-				 * and shoots the ball.
-				 *
-				 * WARNING:
-				 * ONLY ONE ROBOT should be calling this action at any one time.
-				 *
-				 * If the player does not have the ball, chases after it.
+				 * Shoots the ball at the largest open angle of the enemy goal.
 				 *
 				 * \return true if the robot shoots.
 				 */
 				bool shoot_goal(const World &world, Player::Ptr player);
 
 				/**
+				 * WARNING: should use shoot_region or shoot_pass
 				 * Shoots the ball to a target point with a double param kicking speed for passing
 				 *
 				 * \param[in] pass true if the player is to pass.					
 				 *
 				 * \return true if the robot shoots.
 				 */	
-				bool shoot_target(const World &world, Player::Ptr player, const Point target, bool pass);
+				bool shoot_target(const World &world, Player::Ptr player, const Point target, bool pass) __attribute__ ((deprecated));
 
 				/**
-				 * Determines whether or not the robot is facing within threshold degrees of the specified target
-				 *
-				 */
-				bool within_angle_thresh(Player::Ptr player, const Point target, double threshold);
-
-				/**
-				 * If the player posses the ball,
-				 * aims at the region centred at target with radius tol and shoots the ball.
+				 * Shoots the ball at the region centred at target with radius tolerance.
 				 *
 				 * If the player does not have the ball, chases after it.
 				 *
@@ -49,7 +36,20 @@ namespace AI {
 				 *
 				 * \return true if the robot shoots.
 				 */
-				bool shoot(const World &world, Player::Ptr player, const Point target, double tol = AI::HL::Util::shoot_accuracy, double delta = 1e9);
+				bool shoot_region(const World &world, Player::Ptr player, const Point target, double tol = AI::HL::Util::shoot_accuracy, double delta = 1e9);
+
+				/**
+				 * Directly shoots to a player.
+				 *
+				 * \return true if the shooter shoots.
+				 */
+				bool shoot_pass(const World& world, Player::Ptr shooter, Player::CPtr receiver);
+
+				/**
+				 * Determines whether or not the robot is facing within threshold degrees of the specified target
+				 *
+				 */
+				bool within_angle_thresh(Player::Ptr player, const Point target, double threshold);
 
 				/**
 				 * Testing function designed for internal use & use with shoot_distance_test!!!
@@ -65,7 +65,6 @@ namespace AI {
 				 * \return true if the constraints are achievable
 				 */
 				bool arm(const World &world, Player::Ptr player, const Point target, double delta = 1e10);
-
 			}
 		}
 	}

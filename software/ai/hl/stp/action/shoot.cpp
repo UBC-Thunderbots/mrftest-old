@@ -69,6 +69,12 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 	return false;
 }
 
+bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr shooter, Player::CPtr receiver) {
+	Point unit_vector = Point::of_angle(receiver->orientation());
+	Point circle_center = receiver->position() + Robot::MAX_RADIUS * unit_vector;
+	return shoot_region(world, shooter, circle_center, Evaluation::pivot_threshold);
+}
+
 bool AI::HL::STP::Action::within_angle_thresh(Player::Ptr player, const Point target, double threshold){
 	Point pass_dir = (target - player->position()).norm();
 	Point facing_dir(1,0);
@@ -77,22 +83,29 @@ bool AI::HL::STP::Action::within_angle_thresh(Player::Ptr player, const Point ta
 	return facing_dir.dot(pass_dir) > dir_thresh;
 }
 
+#warning NEED FIX NEED FIX
+bool AI::HL::STP::Action::shoot_region(const World &world, Player::Ptr player, const Point target, double tol, double delta) {
+	if (!player->has_ball()) {
+		chase_pivot(world, player, target);
+		return false;
+	}
 
-#warning this is broken
-bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, double tol, double delta) {
 	player->move(target, (target - player->position()).orientation(), Point());
 	player->type(AI::Flags::MoveType::CATCH);
 	player->prio(AI::Flags::MovePrio::HIGH);
 
-	Point segA = player->position();
-	Point segB((world.field().total_length() + world.field().total_width()), 0);
-	segB = segB.rotate(player->orientation());
-	double error = lineseg_point_dist(target, segA, segB);
+	Point seg_A = player->position();
+	Point seg_B((world.field().total_length() + world.field().total_width()), 0);
+	seg_B = seg_B.rotate(player->orientation());
+	double error = lineseg_point_dist(target, seg_A, seg_B);
+
 	if (error > tol) {
 		return false;
 	}
-	arm(world, player, target, delta);
-	return player->has_ball() && player->chicker_ready();
+	if (!arm(world, player, target, delta)) {
+		return false;
+	}
+	return player->chicker_ready();
 }
 
 double AI::HL::STP::Action::shoot_speed(double distance, double delta, double alph) {

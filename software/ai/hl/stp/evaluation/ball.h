@@ -2,6 +2,7 @@
 #define AI_HL_STP_EVALUATION_BALL_H
 
 #include "ai/hl/stp/world.h"
+#include "util/param.h"
 
 namespace AI {
 	namespace HL {
@@ -26,6 +27,11 @@ namespace AI {
 				 * Finds an enemy player with the ball.
 				 */
 				Robot::Ptr calc_enemy_baller(const World &world);
+
+				/**
+				 * Distance from the front to be considered ball possession.
+				 */
+				extern DoubleParam pivot_threshold;
 			}
 		}
 	}
