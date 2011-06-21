@@ -8,6 +8,9 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
+	const int NUMBER_OF_TARGETS = 2;
+	Point TARGETS[NUMBER_OF_TARGETS] = { Point(0.0,-1.0), Point(0.0,1.0) }; 
+
 	class KalmanIntersectTestFactory : public HighLevelFactory {
 		public:
 			KalmanIntersectTestFactory() : HighLevelFactory("Hawdy, Kalman Intersect Test") {
@@ -20,7 +23,10 @@ namespace {
 
 	class KalmanIntersectTest : public HighLevel {
 		public:
-			KalmanIntersectTest(World &world) : world(world), isect_robot_dst(0,0) {
+			KalmanIntersectTest(World &world) : world(world), isect_robot_dst(0,0), which_target(0) {
+				run_btn.set_label("run bot");
+				run_btn.signal_clicked().connect( sigc::mem_fun(*this, &KalmanIntersectTest::on_run_btn_clicked ) );
+
 				reset_btn.set_label("Reset");
 				reset_btn.signal_clicked().connect( sigc::mem_fun(*this, &KalmanIntersectTest::on_reset_btn_clicked) );
 				ui_box.add( reset_btn );
@@ -38,6 +44,12 @@ namespace {
 				Point ball_velocity =  world.ball().velocity();
 				// this position should take into account of the velocity of the robot and ball PROPERLY, subject to change
 				isect_robot_dst = new_path_point + ball_velocity * ball_velocity.len();
+				
+				// enable the bot to go to the next dst
+				if( world.friendly_team().size() == 1 ){
+					world.friendly_team().get(0)->move(TARGETS[ which_target ], (world.ball().position()- world.friendly_team().get(0)->position()).orientation(), Point());
+					world.friendly_team().get(0)->autokick(10.0);
+				}
 			}
 
 			Gtk::Widget *ui_controls() {
@@ -66,14 +78,21 @@ namespace {
 			World &world;
 			// may expand this structure to include time stamp
 			Gtk::Button reset_btn;
+			Gtk::Button run_btn;
 			Gtk::VBox ui_box;
 			std::vector<Point> path_points; 
 			Point isect_robot_dst;
 			
+			unsigned int which_target;
 			
 			void on_reset_btn_clicked(){
 				path_points.clear();
 				isect_robot_dst = Point(0,0);
+			}
+
+			void on_run_btn_clicked(){
+				which_target++;
+				which_target = which_target % NUMBER_OF_TARGETS;
 			}
 	};
 
