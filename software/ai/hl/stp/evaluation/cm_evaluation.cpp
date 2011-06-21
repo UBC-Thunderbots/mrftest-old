@@ -220,36 +220,6 @@ namespace {
 	}
 }
 
-Player::CPtr AI::HL::STP::Evaluation::nearest_teammate(const World &world, Point p, double time) {
-	int dist_i = -1;
-	double dist = 0;
-
-	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
-		double d = (p - world.friendly_team().get(i)->position(time)).len();
-		if (dist_i < 0 || d < dist) {
-			dist_i = static_cast<int>(i); 
-			dist = d;
-		}
-	}
-
-	return world.friendly_team().get(dist_i);
-}
-
-const Robot::Ptr AI::HL::STP::Evaluation::nearest_opponent(const World &world, Point p, double time) {
-	int dist_i = -1;
-	double dist = 0;
-
-	for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
-		double d = (p - world.enemy_team().get(i)->position(time)).len();
-		if (dist_i < 0 || d < dist) {
-			dist_i = static_cast<int>(i); 
-			dist = d;
-		}
-	}
-
-	return world.enemy_team().get(dist_i);
-}
-
 /**
  * CMDragons Obstacle Computations
  */

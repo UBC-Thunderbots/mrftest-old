@@ -31,20 +31,7 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-				/**
-				 * HL World evaluation ported from CMDragon world.cc
-				 */
-
-				/**
-				 * Finds the nearest teammate to a point on the field at the given time.
-				 */
-				Player::CPtr nearest_teammate(const World &world, Point p, double time);
-
-				/**
-				 * Finds the nearest opponent to a point on the field at the given time.
-				 */
-				const Robot::Ptr nearest_opponent(const World &world, Point p, double time);
-
+				
 				/**
 				 * Obs methods return an obs_flag set to why a position or other
 				 * shape is not open. Or zero if the position or shape is open
