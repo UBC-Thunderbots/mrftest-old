@@ -1,15 +1,16 @@
 #include "ai/hl/hl.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
+#include "util/param.h"
 
 using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	const double pos_dis_threshold = 0.1;
-	const double pos_vel_threshold = 0.05;
-	const double ori_dis_threshold = 0.175;
-	const double ori_vel_threshold = 0.05;
+	DoubleParam pos_dis_threshold("pos distance threshold", "MB", 0.05, 0, 1.0);
+	DoubleParam pos_vel_threshold("pos velocity threshold", "MB", 0.03, 0, 1.0);
+	DoubleParam ori_dis_threshold("ori distance threshold", "MB", 0.1, 0, 1.0);
+	DoubleParam ori_vel_threshold("ori velocity threshold", "MB", 0.03, 0, 1.0);
 
 	const double PI = M_PI;
 
