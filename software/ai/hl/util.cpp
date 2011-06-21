@@ -33,17 +33,6 @@ const double AI::HL::Util::HAS_BALL_ALLOWANCE = 3.0;
 
 const double AI::HL::Util::HAS_BALL_TIME = 2.0 / 15.0;
 
-// TODO: make the shoot accuracy a function of the amount of open net (and distance?)
-// should this be in stp Evaluation?
-/*
-   double AI::HL::Util::shoot_accuracy(const World &world, const std::vector<Point> &obstacles, const Point &p){
-
-
-
-   }
- */
-
-
 bool AI::HL::Util::point_in_friendly_defense(const Field &field, const Point p) {
 	const double defense_stretch = field.defense_area_stretch();
 	const double defense_radius = field.defense_area_radius();
