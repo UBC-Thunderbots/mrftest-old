@@ -96,10 +96,16 @@ namespace AI {
 			DRIBBLE,
 
 			/**
-			 * Move to intercept the ball as soon as possible, ignoring target location but intercepting with the requested orientation.
+			 * Move to intercept the ball as soon as possible, ignoring target location and requested orientation.
 			 * Ignores the target velocity.
 			 */
 			CATCH,
+			
+			/**
+			 * Move to intercept the ball as soon as possible, ignoring requested orientation but intercepting pointing towards the target location.
+			 * Ignores the target velocity.
+			 */
+			CATCH_PIVOT,
 
 			/**
 			 * Move to the target location and orientation at the same time the ball will get there, but don't worry about stopping at the target after.
