@@ -106,6 +106,18 @@ namespace AI {
 			 * Ignores the target velocity.
 			 */
 			CATCH_PIVOT,
+			
+			/**
+			 * Move to intercept the ball while minimizing robot travel distance, ignoring target location and requested orientation.
+			 * Ignores the target velocity.
+			 */
+			INTERCEPT,
+			
+			/**
+			 * Move to intercept the ball while minimizing robot travel distance, ignoring requested orientation but intercepting pointing towards the target location.
+			 * Ignores the target velocity.
+			 */
+			INTERCEPT_PIVOT,
 
 			/**
 			 * Move to the target location and orientation at the same time the ball will get there, but don't worry about stopping at the target after.
