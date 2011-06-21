@@ -81,15 +81,15 @@
         <double name="max acc">3.00</double>
       </category>
       <category name="PID3">
-        <double name="anglular differential (-ve)">-1.00</double>
+        <double name="anglular differential (-ve)">-0.10</double>
         <double name="anglular max velocity">15.00</double>
         <double name="anglular proportional">15.00</double>
         <double name="angular slowdown when translating">1.500</double>
         <boolean name="flip trans&amp;ang slowdown (CARE)">false</boolean>
         <boolean name="reduce angular velocity when translating">false</boolean>
         <double name="x to y ratio">0.810</double>
-        <double name="xy differential (-ve)">-1.00</double>
-        <double name="xy max acceleration">5.00</double>
+        <double name="xy differential (-ve)">-0.10</double>
+        <double name="xy max acceleration">7.00</double>
         <double name="xy max velocity">12.00</double>
         <double name="xy proportional">12.00</double>
       </category>
@@ -142,7 +142,7 @@
         <double name="enemy avoidance distance (robot radius)">3.00</double>
       </category>
       <category name="shoot">
-        <double name="Angle threshold (in degrees) that defines shoot accuracy, smaller is more accurate">0.0</double>
+        <double name="Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate">0.0</double>
       </category>
       <category name="STP">
         <boolean name="Goalie is lowest index">true</boolean>
@@ -150,13 +150,6 @@
       </category>
       <category name="Tactic">
         <double name="stop: angle to separate players (degrees)">20.0</double>
-      </category>
-      <category name="test_pass">
-        <double name=" angle tolerance that the passer needs to be with respect to the passee">20.0</double>
-        <double name=" angle tolerance that the passer needs to be with respect to the target">30.0</double>
-        <double name=" distance tolerance that the passee needs to be with respect to the passer shot">0.050</double>
-        <integer name="passing target points">0</integer>
-        <double name="velocity to ignore">0.100</double>
       </category>
       <category name="test_pass2">
         <double name=" angle tolerance that the passer needs to be with respect to the passee">20.0</double>
