@@ -11,12 +11,12 @@ namespace AI {
 				/**
 				 * Obtains the nearest friendly player.
 				 */
-				Player::CPtr get_nearest_friendly(const World &world, Point target);
+				Player::CPtr nearest_friendly(const World &world, Point target);
 
 				/**
 				 * Obtains the nearest enemy robot.
 				 */
-				Robot::Ptr get_nearest_enemy(const World &world, Point target);
+				Robot::Ptr nearest_enemy(const World &world, Point target);
 			}
 		}
 	}

@@ -106,7 +106,7 @@ namespace {
 
 				// passer shoots
 				if (players[0]->has_ball()) {
-					if (Action::shoot_target(world, players[0], targets[pass_target], true)) {
+					if (Action::shoot_pass(world, players[0], targets[pass_target])) {
 						kicked = true;
 					}
 				}

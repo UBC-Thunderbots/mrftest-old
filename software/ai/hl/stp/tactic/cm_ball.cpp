@@ -351,7 +351,7 @@ void TPass::execute() {
 	}
 
 	Action::dribble(world, player, mytarget);
-	kicked = Action::shoot_target(world, player, targetp, true);
+	kicked = Action::shoot_pass(world, player, targetp);
 }
 
 void TReceivePass::execute() {

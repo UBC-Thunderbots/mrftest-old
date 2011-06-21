@@ -3,6 +3,7 @@
 #include "ai/hl/stp/action/pivot.h"
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/evaluation/ball.h"
+#include "ai/hl/stp/evaluation/team.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
@@ -70,13 +71,38 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 	return false;
 }
 
-bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr shooter, Player::CPtr receiver) {
-	Point unit_vector = Point::of_angle(receiver->orientation());
-	Point circle_center = receiver->position() + Robot::MAX_RADIUS * unit_vector;
-	return shoot_region(world, shooter, circle_center, Evaluation::pivot_threshold);
+bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target) {
+	if (!player->has_ball()) {
+		chase_pivot(world, player, target);
+		return false;
+	}
+
+	pivot(world, player, target);
+
+	// checker shooter orientation
+	if (!within_angle_thresh(player, target, pass_threshold)) {
+		return false;
+	}
+
+	// check receiver orientation
+	Player::CPtr receiver = Evaluation::nearest_friendly(world, target);
+	if (!within_angle_thresh(receiver, player->position(), pass_threshold)) {
+		return false;
+	}
+
+	if (!player->chicker_ready()) {
+		LOG_INFO("chicker not ready");
+		return false;
+	}
+
+	LOG_INFO("kick");
+	player->autokick(pass_speed);
+
+	return true;
 }
 
-bool AI::HL::STP::Action::within_angle_thresh(Player::Ptr player, const Point target, double threshold){
+#warning REFACTOR
+bool AI::HL::STP::Action::within_angle_thresh(Player::CPtr player, const Point target, double threshold){
 	Point pass_dir = (target - player->position()).norm();
 	Point facing_dir(1,0);
 	facing_dir = facing_dir.rotate(player->orientation());

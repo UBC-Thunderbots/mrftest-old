@@ -43,13 +43,13 @@ namespace AI {
 				 *
 				 * \return true if the shooter shoots.
 				 */
-				bool shoot_pass(const World& world, Player::Ptr shooter, Player::CPtr receiver);
+				bool shoot_pass(const World& world, Player::Ptr shooter, const Point target);
 
 				/**
 				 * Determines whether or not the robot is facing within threshold degrees of the specified target
 				 *
 				 */
-				bool within_angle_thresh(Player::Ptr player, const Point target, double threshold);
+				bool within_angle_thresh(Player::CPtr player, const Point target, double threshold);
 
 				/**
 				 * Testing function designed for internal use & use with shoot_distance_test!!!

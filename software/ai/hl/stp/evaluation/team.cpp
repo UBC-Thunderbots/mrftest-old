@@ -2,7 +2,7 @@
 
 using namespace AI::HL::STP;
 
-Player::CPtr AI::HL::STP::Evaluation::get_nearest_friendly(const World& world, Point target) {
+Player::CPtr AI::HL::STP::Evaluation::nearest_friendly(const World& world, Point target) {
 	int dist_i = -1;
 	double dist = 0;
 
@@ -17,7 +17,7 @@ Player::CPtr AI::HL::STP::Evaluation::get_nearest_friendly(const World& world, P
 	return world.friendly_team().get(dist_i);
 }
 
-Robot::Ptr AI::HL::STP::Evaluation::get_nearest_enemy(const World &world, Point target) {
+Robot::Ptr AI::HL::STP::Evaluation::nearest_enemy(const World &world, Point target) {
 	int dist_i = -1;
 	double dist = 0;
 
