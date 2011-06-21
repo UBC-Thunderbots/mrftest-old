@@ -17,17 +17,20 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-	BoolParam PID_SLOW_ANGULAR("reduce angular velocity when translating", "RC/PID3", true);
-	BoolParam PID_FLIP_SLOWDOWN("flip trans&ang slowdown (CARE)", "RC/PID3", false);
-	DoubleParam PID_SLOWDOWN("angular slowdown when translating", "RC/PID3", 1.01, 0.1, 8.0);
+	BoolParam PID_SLOW_ANGULAR("(CARE) reduce angular velocity when translating", "RC/PID3", true);
+	BoolParam PID_FLIP_SLOWDOWN("(CARE) flip trans&ang slowdown", "RC/PID3", false);
+	DoubleParam PID_SLOWDOWN("(CARE) angular slowdown when translating", "RC/PID3", 1.01, 0.1, 8.0);
 	DoubleParam PID_PROP("xy proportional", "RC/PID3", 20, 0.0, 50.0);
 	DoubleParam PID_DIFF("xy differential (-ve)", "RC/PID3", 1, -20.0, 20.0);
+	DoubleParam PID_INTG("xy integral (%)", "RC/PID3", 0, 0.0, 10000.0);
 	DoubleParam PID_MAX_VEL("xy max velocity", "RC/PID3", 9, 0.0, 20.0);
 	DoubleParam PID_MAX_ACC("xy max acceleration", "RC/PID3", 5, 0.0, 20.0);
-	DoubleParam PID_A_PROP("anglular proportional", "RC/PID3", 30, 0.0, 50.0);
-	DoubleParam PID_A_DIFF("anglular differential (-ve)", "RC/PID3", 1, -20.0, 20.0);
-	DoubleParam PID_A_THRESH("anglular max velocity", "RC/PID3", 30, 0.0, 50.0);
+	DoubleParam PID_A_PROP("angular proportional", "RC/PID3", 30, 0.0, 50.0);
+	DoubleParam PID_A_DIFF("angular differential (-ve)", "RC/PID3", 1, -20.0, 20.0);
+	DoubleParam PID_A_INTG("angular integral (%)", "RC/PID3", 0, 0.0, 10000.0);
+	DoubleParam PID_A_THRESH("angular max velocity", "RC/PID3", 30, 0.0, 50.0);
 	DoubleParam PID_XY_RATIO("x to y ratio", "RC/PID3", 0.81, 0.0, 2.0);
+	DoubleParam PID_DAMP("integral decay (%)", "RC/PID3", 90, 0, 99.0);
 
 	const double PID_YA_RATIO = 0.0; // 0 - 5 to face forwards
 
@@ -45,9 +48,12 @@ namespace {
 			double prev_new_ori;
 			Point prev_linear_velocity;
 			double prev_angular_velocity;
+
+			Point integral_xy;
+			double integral_a;
 	};
 
-	PID3Controller::PID3Controller(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
+	PID3Controller::PID3Controller(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0), integral_a(0.0) {
 	}
 
 	void PID3Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
@@ -83,10 +89,17 @@ namespace {
 		if (prev_new_pos.x != new_position.x || prev_new_pos.y != new_position.y || prev_new_ori != new_orientation) {
 			prev_new_pos = new_position;
 			prev_new_ori = new_orientation;
+			integral_xy = Point(0.0, 0.0);
+			integral_a = 0.0;
+		} else {
+			integral_xy *= PID_DAMP / 100.0;
+			integral_xy += new_dir;
+			integral_a *= PID_DAMP / 100.0;
+			integral_a += new_da;
 		}
 
-		linear_velocity.x = px * PID_PROP + vx * PID_DIFF;
-		linear_velocity.y = (py * PID_PROP + vy * PID_DIFF) * PID_XY_RATIO;
+		linear_velocity.x = px * PID_PROP + vx * PID_DIFF + integral_xy.x * PID_INTG / 100.0;
+		linear_velocity.y = (py * PID_PROP + vy * PID_DIFF + integral_xy.y * PID_INTG / 100.0) * PID_XY_RATIO;
 
 		// threshold the linear velocity
 		if (linear_velocity.len() > PID_MAX_VEL) {
@@ -100,7 +113,7 @@ namespace {
 			linear_velocity = prev_linear_velocity + accel;
 		}
 
-		angular_velocity = pa * PID_A_PROP + va * PID_A_DIFF + linear_velocity.y * PID_YA_RATIO;
+		angular_velocity = pa * PID_A_PROP + va * PID_A_DIFF + linear_velocity.y * PID_YA_RATIO + integral_a * PID_A_INTG / 100.0;
 		angular_velocity = clamp<double>(angular_velocity, -PID_A_THRESH, PID_A_THRESH);
 
 		// threshold even more
