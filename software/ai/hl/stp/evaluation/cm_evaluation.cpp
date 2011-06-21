@@ -128,25 +128,14 @@ namespace {
 
 			double x = offset_along_line(g1, g2, b);
 
-			variance = world.ball().position_covariance(time + t).len();
+			variance = world.ball().position_stdev(time + t).len();
 
-			/*
-			   Matrix m = Matrix(4,1);
-			   m(0,0) = gline_1.x;
-			   m(1,0) = gline_1.y;
-			   m(2,0) = m(3,0) = 0.0;
-			   Matrix temp = c * m;
-			   m.transpose();
-			   temp *= m;
-			   variance = temp(0,0);
-			   //variance = (transpose(m) * c * m).e(0,0);
-			 */
 			if (x < 0.0) {
 				x = 0;
-				variance = variance * exp(pow(x, 2.0) / variance);
+				//variance = variance * exp(pow(x, 2.0) / variance);
 			} else if (x > gline.len()) {
 				x = gline.len();
-				variance = variance * exp(pow(gline.len() - x, 2.0) / variance);
+				//variance = variance * exp(pow(gline.len() - x, 2.0) / variance);
 			}
 
 			target = g1 + gline_1 * x;
@@ -201,18 +190,8 @@ namespace {
 
 		// Compute variance
 		
-		variance = world.ball().position_covariance(time + closest_time).len();
-		Point perp = (target - point).norm();
-		/*	   
-		   Matrix m = Matrix(4,1);
-		   m(0,0) = perp.x;
-		   m(1,0) = perp.y;
-		   m(2,0) = m(3,0) = 0.0;
-		   Matrix temp = c * m;
-		   m.transpose();
-		   temp *= m;
-		   variance = temp(0,0);
-		 */
+		variance = world.ball().position_stdev(time + closest_time).len();
+		
 		if (closest_dist > radius) 
 			variance = variance * exp(pow(closest_dist - radius, 2.0) / variance);
 
@@ -625,12 +604,10 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_point(const World &world, dou
 			velocity = (targets[2] - targets[1]) / FRAME_PERIOD * variance[0] / (variance[0] + variance[1]);
 		else 
 			velocity = Point(0, 0);
-		return true;
 
 	} else if (rv[0]) {
 		target = targets[0];
 		velocity = Point(0, 0);
-		return true;
 
 	} else if (rv[1]) {
 		target = targets[1];
@@ -639,7 +616,6 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_point(const World &world, dou
 			velocity = (targets[2] - targets[1]) / FRAME_PERIOD;
 		else 
 			velocity = Point(0, 0);
-		return true;
 
 	}
 
@@ -732,9 +708,9 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(const World &world, doub
 			velocity = Point(0, 0);
 		return true;
 
-	} else {
-		return false;
-	}
+	} 
+		
+	return false;
 }
 
 bool AI::HL::STP::Evaluation::CMEvaluation::defend_on_line(const World &world, double time, Point p1, Point p2, bool &intercept, Point &target, Point &velocity) {

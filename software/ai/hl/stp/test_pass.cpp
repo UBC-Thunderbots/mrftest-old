@@ -111,26 +111,17 @@ namespace {
 					}
 				}
 				
-				if(Action::within_angle_thresh(players[0], targets[pass_target], passer_tol_target)){
-
-					Point pass_dir(100, 0);
-					pass_dir = pass_dir.rotate(players[0]->orientation());
-
-					Point intercept_pos = closest_lineseg_point(players[1]->position(), players[0]->position(), players[0]->position() + pass_dir);
-					Point addit = passee_hack_dist*(intercept_pos - players[0]->position()).norm();
-
-					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos + addit);
-				}
-								
 				bool fast_ball = world.ball().velocity().len() > negligible_velocity;
-				if (kicked && !fast_ball) {
-				
+				if(Action::within_angle_thresh(players[0], targets[pass_target], passer_tol_target) || (kicked && !fast_ball)){
+
 					Point pass_dir(100, 0);
 					pass_dir = pass_dir.rotate(players[0]->orientation());
-					
+
 					Point intercept_pos = closest_lineseg_point(players[1]->position(), players[0]->position(), players[0]->position() + pass_dir);
 					Point addit = passee_hack_dist*(intercept_pos - players[0]->position()).norm();
+
 					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos + addit);
+				
 				} else if(kicked && fast_ball) {
 
 					Point pass_dir = world.ball().velocity().norm();
