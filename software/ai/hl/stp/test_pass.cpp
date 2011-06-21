@@ -16,14 +16,14 @@ using namespace AI::HL::W;
 
 namespace {
 
-	IntParam pass_target("passing target points", "STP/test_pass2", 0, 0, 14);
-	DoubleParam negligible_velocity("velocity to ignore", "STP/test_pass2", 0.1, 0.0, 1.0);
+	IntParam pass_target("passing target points", "STP/test_pass", 0, 0, 14);
+	DoubleParam negligible_velocity("velocity to ignore", "STP/test_pass", 0.1, 0.0, 1.0);
 	
-	DoubleParam passer_tol_target(" angle tolerance that the passer needs to be with respect to the target", "STP/test_pass2", 30.0, 0.0, 180.0);
-	DoubleParam passer_tol_reciever(" angle tolerance that the passer needs to be with respect to the passee", "STP/test_pass2", 20.0, 0.0, 180.0);
-	DoubleParam passee_tol(" distance tolerance that the passee needs to be with respect to the passer shot", "STP/test_pass2", 0.05, 0.0, 1.0);
+	DoubleParam passer_tol_target(" angle tolerance that the passer needs to be with respect to the target", "STP/test_pass", 30.0, 0.0, 180.0);
+	DoubleParam passer_tol_reciever(" angle tolerance that the passer needs to be with respect to the passee", "STP/test_pass", 20.0, 0.0, 180.0);
+	DoubleParam passee_tol(" distance tolerance that the passee needs to be with respect to the passer shot", "STP/test_pass", 0.05, 0.0, 1.0);
 	
-	DoubleParam passee_hack_dist("Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)", "STP/test_pass2", 0.03, 0.0, 1.0);
+	DoubleParam passee_hack_dist("Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)", "STP/test_pass", 0.03, 0.0, 1.0);
 	// make better targets
 
 	const Point default_targets[] = {
@@ -48,7 +48,7 @@ namespace {
 
 	class TestPassFactory : public HighLevelFactory {
 		public:
-			TestPassFactory() : HighLevelFactory("Test STP Pass2") {
+			TestPassFactory() : HighLevelFactory("Test STP Pass") {
 			}
 
 			HighLevel::Ptr create_high_level(World &world) const;
