@@ -12,12 +12,14 @@ namespace {
 }
 
 void AI::HL::STP::Action::chase(const World &world, Player::Ptr player) {
-	chase(world, player, world.ball().position());
+	player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), Point());
+	player->type(AI::Flags::MoveType::CATCH);
+	player->prio(AI::Flags::MovePrio::HIGH);
 }
 
 void AI::HL::STP::Action::chase(const World &world, Player::Ptr player, Point target) {
 	player->move(target, (target - player->position()).orientation(), Point());
-	player->type(AI::Flags::MoveType::CATCH);
+	player->type(AI::Flags::MoveType::CATCH_PIVOT);
 	player->prio(AI::Flags::MovePrio::HIGH);
 }
 

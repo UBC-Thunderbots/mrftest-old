@@ -108,31 +108,6 @@ bool AI::HL::STP::Action::within_angle_thresh(Player::CPtr player, const Point t
 	double dir_thresh = cos( (pass_threshold*M_PI / 180.0));
 	return facing_dir.dot(pass_dir) > dir_thresh;
 }
-/*
-bool AI::HL::STP::Action::shoot_region(const World &world, Player::Ptr player, const Point target, double radius, double delta) {
-	if (!player->has_ball()) {
-		chase_pivot(world, player, target);
-		return false;
-	}
-
-	pivot(world, player, target);
-
-	const double dist = (player->position() - target).len();
-	const double theta = std::atan(radius / dist);
-
-	double ori = (target - player->position()).orientation();
-	double ori_diff = angle_diff(ori, player->orientation());
-	double accuracy_diff = radians2degrees(ori_diff - (theta / 2));
-
-	if (accuracy_diff > -Evaluation::shoot_accuracy) {
-		return false;
-	}
-	if (!arm(world, player, target, delta)) {
-		return false;
-	}
-	return player->chicker_ready();
-}
-*/
 
 double AI::HL::STP::Action::shoot_speed(double distance, double delta, double alph) {
 	double a = alph;
@@ -148,28 +123,4 @@ double AI::HL::STP::Action::shoot_speed(double distance, double delta, double al
 	}
 	return speed;
 }
-
-/*
-bool AI::HL::STP::Action::arm(const World &world, Player::Ptr player, const Point target, double delta) {
-	double dist_max = 10.0 * (1 - std::exp(-alpha * delta)) / alpha;
-	// make the robot kick as close to the target as possible
-	Point robot_dir(1, 0);
-	robot_dir = robot_dir.rotate(player->orientation());
-	double distance = (target - world.ball().position()).dot(robot_dir);
-
-	if (distance > dist_max) {
-		player->autokick(10.0);
-		return false;
-	}
-	double speed = shoot_speed(distance);
-	if (speed > 10.0) {
-		speed = 10.0; // can't kick faster than this
-	}
-	if (speed < 0) {
-		speed = 0; // can't kick slower than this
-	}
-	player->autokick(speed);
-	return true;
-}
-*/
 
