@@ -132,10 +132,8 @@ namespace {
 
 			if (x < 0.0) {
 				x = 0;
-				//variance = variance * exp(pow(x, 2.0) / variance);
 			} else if (x > gline.len()) {
 				x = gline.len();
-				//variance = variance * exp(pow(gline.len() - x, 2.0) / variance);
 			}
 
 			target = g1 + gline_1 * x;

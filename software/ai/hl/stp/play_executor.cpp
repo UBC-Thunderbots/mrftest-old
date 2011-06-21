@@ -8,6 +8,17 @@
 using AI::HL::STP::PlayExecutor;
 using namespace AI::HL::STP;
 
+namespace AI {
+	namespace HL {
+		namespace STP {
+		 	namespace HACK {
+				Player::Ptr active_player;
+				Player::Ptr last_kicked;
+			}
+		}
+	}
+}
+
 namespace {
 	// The maximum amount of time a play can be running.
 	const double PLAY_TIMEOUT = 30.0;
@@ -117,7 +128,10 @@ void PlayExecutor::role_assignment() {
 		assert(players.find(curr_assignment[i]) != players.end());
 		players.erase(curr_assignment[i]);
 		curr_tactic[i]->set_player(curr_assignment[i]);
-		active_assigned = active_assigned || curr_tactic[i]->active();
+		if (curr_tactic[i]->active()) {
+			active_assigned = true;
+			HACK::active_player = curr_assignment[i];
+		}
 	}
 
 	// can't assign active tactic to anyone
