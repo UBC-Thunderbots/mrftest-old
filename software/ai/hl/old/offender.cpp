@@ -1,5 +1,6 @@
 #include "ai/hl/old/offender.h"
 #include "ai/hl/old/tactics.h"
+#include "ai/hl/old/util.h"
 #include "ai/hl/util.h"
 #include "geom/angle.h"
 #include "geom/util.h"

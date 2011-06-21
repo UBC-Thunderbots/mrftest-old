@@ -1,4 +1,5 @@
 #include "ai/hl/util.h"
+#include "ai/hl/old/util.h"
 #include "ai/hl/old/defender.h"
 #include "ai/hl/old/tactics.h"
 #include "geom/util.h"

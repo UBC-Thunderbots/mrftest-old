@@ -36,6 +36,7 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player) {
 
 	// LOG_INFO(Glib::ustring::compose("allowance %1 shoot_accuracy %2", shoot_data.accuracy_diff, Evaluation::shoot_accuracy));
 
+	pivot(world, player, shoot_data.target);
 	if (shoot_data.can_shoot) {
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
@@ -46,7 +47,6 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player) {
 		return true;
 	}
 
-	pivot(world, player, shoot_data.target);
 	return false;
 }
 
@@ -55,6 +55,8 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 		chase_pivot(world, player, target);
 		return false;
 	}
+
+	pivot(world, player, target);
 	if(within_angle_thresh(player, target, pass_threshold)){
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
@@ -65,7 +67,6 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 		else player->autokick(10.0);
 		return true;
 	}
-	pivot(world, player, target);
 	return false;
 }
 
@@ -83,23 +84,22 @@ bool AI::HL::STP::Action::within_angle_thresh(Player::Ptr player, const Point ta
 	return facing_dir.dot(pass_dir) > dir_thresh;
 }
 
-#warning NEED FIX NEED FIX
-bool AI::HL::STP::Action::shoot_region(const World &world, Player::Ptr player, const Point target, double tol, double delta) {
+bool AI::HL::STP::Action::shoot_region(const World &world, Player::Ptr player, const Point target, double radius, double delta) {
 	if (!player->has_ball()) {
 		chase_pivot(world, player, target);
 		return false;
 	}
 
-	player->move(target, (target - player->position()).orientation(), Point());
-	player->type(AI::Flags::MoveType::CATCH);
-	player->prio(AI::Flags::MovePrio::HIGH);
+	pivot(world, player, target);
 
-	Point seg_A = player->position();
-	Point seg_B((world.field().total_length() + world.field().total_width()), 0);
-	seg_B = seg_B.rotate(player->orientation());
-	double error = lineseg_point_dist(target, seg_A, seg_B);
+	const double dist = (player->position() - target).len();
+	const double theta = std::atan(radius / dist);
 
-	if (error > tol) {
+	double ori = (target - player->position()).orientation();
+	double ori_diff = angle_diff(ori, player->orientation());
+	double accuracy_diff = radians2degrees(ori_diff - (theta / 2));
+
+	if (accuracy_diff > -Evaluation::shoot_accuracy) {
 		return false;
 	}
 	if (!arm(world, player, target, delta)) {

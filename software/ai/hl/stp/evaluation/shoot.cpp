@@ -34,8 +34,6 @@ ShootData AI::HL::STP::Evaluation::evaluate_shoot(const AI::HL::W::World &world,
 	data.angle = shot.second;
 	data.can_shoot = (data.accuracy_diff < -shoot_accuracy);
 	data.blocked = (shot.second == 0);
-	data.ball_on_front = false;
-	data.ball_visible = false;
 
 #warning a fix to other parts of the code for now
 	if (data.blocked) {

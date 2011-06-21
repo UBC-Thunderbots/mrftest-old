@@ -1,5 +1,6 @@
 #include "ai/flags.h"
 #include "ai/hl/util.h"
+#include "ai/hl/old/util.h"
 #include "ai/hl/old/strategy.h"
 #include "ai/hl/old/tactics.h"
 #include "util/param.h"

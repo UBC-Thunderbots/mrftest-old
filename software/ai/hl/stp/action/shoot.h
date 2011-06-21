@@ -28,15 +28,15 @@ namespace AI {
 				bool shoot_target(const World &world, Player::Ptr player, const Point target, bool pass) __attribute__ ((deprecated));
 
 				/**
-				 * Shoots the ball at the region centred at target with radius tolerance.
+				 * Shoots the ball at the region centred at target with radius.
 				 *
 				 * If the player does not have the ball, chases after it.
 				 *
-				 * \param[in] region the location to shoot the ball to.
+				 * \param[in] target the location to shoot the ball to.
 				 *
 				 * \return true if the robot shoots.
 				 */
-				bool shoot_region(const World &world, Player::Ptr player, const Point target, double tol = AI::HL::Util::shoot_accuracy, double delta = 1e9);
+				bool shoot_region(const World &world, Player::Ptr player, const Point target, double radius, double delta = 1e9);
 
 				/**
 				 * Directly shoots to a player.

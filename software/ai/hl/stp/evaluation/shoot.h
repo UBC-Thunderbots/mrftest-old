@@ -15,8 +15,6 @@ namespace AI {
 					bool blocked;
 					bool reduced_radius;
 					bool can_shoot;
-					bool ball_on_front;
-					bool ball_visible;
 					double angle;
 					double accuracy_diff;
 					Point target;
