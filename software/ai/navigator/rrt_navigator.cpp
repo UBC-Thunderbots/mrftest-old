@@ -33,10 +33,6 @@ namespace AI {
 			DoubleParam offset_distance("Pivot: offset distance", "Nav/RRT", 0.15, -10.0, 10.0);
 			DoubleParam orientation_offset("Pivot: orientation offset (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
 			
-		//	DoubleParam ignore_chase_speed("Chase ignore ball velocity", "Nav/RRT", 30.0, 0.0, 1.0);
-			
-
-			BoolParam chase_use_orientation("Chase ball uses target location to calculate dest", "Nav/RRT", true);
 			DoubleParam chase_angle_range("Chase angle range for behind target (degrees)", "Nav/RRT", 30, 0, 90);
 			DoubleParam chase_distance("Buffer behind ball for chase (meters)", "Nav/RRT", 0.25, -1.0, 1.0);
 			class PlayerData : public ObjectStore::Element {
@@ -51,6 +47,9 @@ namespace AI {
 					NavigatorFactory &factory() const;
 					void pivot(Player::Ptr player);
 					std::pair<Point, double> grab_ball(Player::Ptr player);
+					std::pair<Point, double> grab_ball_orientation(Player::Ptr player);
+					std::pair<Point, double> intercept_ball(Player::Ptr player);
+					std::pair<Point, double> intercept_ball_orientation(Player::Ptr player);
 					void tick();
 					static Navigator::Ptr create(World &world);
 
@@ -71,6 +70,70 @@ namespace AI {
 				return factory_instance;
 			}
 
+			std::pair<Point, double> RRTNavigator::intercept_ball(Player::Ptr player) {
+				// TODO: Jason, implement this.
+			}
+			
+			std::pair<Point, double> RRTNavigator::intercept_ball_orientation(Player::Ptr player) {
+				// TODO: Jason, implement this.
+			}
+
+			std::pair<Point, double> RRTNavigator::grab_ball_orientation(Player::Ptr player) {
+				const double ux = world.ball().velocity().len(); // velocity of ball
+
+				double dest_ori = (world.ball().position() - player->position()).orientation();
+
+#warning MAGIC NUMBER
+				const double v = 1.5;
+
+				const Point p1 = world.ball().position();
+
+				const Point p2 = player->position();
+				const Point u = world.ball().velocity().norm();
+
+				const double x = (p2 - p1).dot(u);
+				const double y = std::fabs((p2 - p1).cross(u));
+
+				const Point p = p1 + u * x;
+
+				double a = 1 + (y * y) / (x * x);
+				double b = (2 * y * y * ux) / (x * x);
+				double c = (y * y * ux * ux) / (x * x) - v;
+
+				double vx1 = (-b + std::sqrt(b * b - (4 * a * c))) / (2 * a);
+				double vx2 = (-b - std::sqrt(b * b - (4 * a * c))) / (2 * a);
+
+				double t1 = x / (vx1 + ux);
+				double t2 = x / (vx2 + ux);
+
+				double t = std::min(t1, t2);
+				if (t < 0) {
+					t = std::max(t1, t2);
+				}
+
+				if (std::isnan(t) || std::isinf(t) || t < 0) {
+					return std::make_pair(world.ball().position(), dest_ori);
+				}
+
+				Point np= world.ball().position();
+
+				dest_ori  =	(player->destination().first - world.ball().position()).orientation();
+
+				Point dir_ball = (player->destination().first - np).norm();
+				Point dir = (np - player->position()).norm();
+				double rad = chase_angle_range*M_PI/180.0;
+				bool op_ori = dir_ball.dot(dir)<cos(rad);
+				if(op_ori){
+					PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags |= AI::Flags::FLAG_AVOID_BALL_TINY;
+#warning magic number here
+					np += chase_distance*( np - player->destination().first).norm();
+				}
+				Point dest_pos = np + world.ball().velocity() * 2*t;
+
+
+				return std::make_pair(dest_pos, dest_ori);
+			}
+			
 			std::pair<Point, double> RRTNavigator::grab_ball(Player::Ptr player) {
 				const double ux = world.ball().velocity().len(); // velocity of ball
 
@@ -109,25 +172,6 @@ namespace AI {
 				}
 
 				Point dest_pos = p1 + world.ball().velocity() * 2*t;
-
-				Point np= world.ball().position();
-
-				if(chase_use_orientation){
-
-					dest_ori  =	(player->destination().first - world.ball().position()).orientation();
-
-					Point dir_ball = (player->destination().first - np).norm();
-					Point dir = (np - player->position()).norm();
-					double rad = chase_angle_range*M_PI/180.0;
-					bool op_ori = dir_ball.dot(dir)<cos(rad);
-					if(op_ori){
-						PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags |= AI::Flags::FLAG_AVOID_BALL_TINY;
-#warning magic number here
-						np += chase_distance*( np - player->destination().first).norm();
-					}
-					dest_pos = np + world.ball().velocity() * 2*t;
-				}
-
 
 				return std::make_pair(dest_pos, dest_ori);
 			}
@@ -174,6 +218,18 @@ namespace AI {
 					Point dest;
 					double dest_orientation = player->destination().second;
 					if (player->type() == AI::Flags::MoveType::CATCH) {
+						std::pair<Point, double> grab_ball_dest = grab_ball(player);
+						dest = grab_ball_dest.first;
+						dest_orientation = grab_ball_dest.second;
+					} else if (player->type() == AI::Flags::MoveType::CATCH_PIVOT) {
+						std::pair<Point, double> grab_ball_dest = grab_ball_orientation(player);
+						dest = grab_ball_dest.first;
+						dest_orientation = grab_ball_dest.second;
+					} else if (player->type() == AI::Flags::MoveType::INTERCEPT) {
+						std::pair<Point, double> grab_ball_dest = grab_ball(player);
+						dest = grab_ball_dest.first;
+						dest_orientation = grab_ball_dest.second;
+					} else if (player->type() == AI::Flags::MoveType::INTERCEPT_PIVOT) {
 						std::pair<Point, double> grab_ball_dest = grab_ball(player);
 						dest = grab_ball_dest.first;
 						dest_orientation = grab_ball_dest.second;
