@@ -23,13 +23,23 @@ namespace {
 
 	class KalmanIntersectTest : public HighLevel {
 		public:
-			KalmanIntersectTest(World &world) : world(world), isect_robot_dst(0,0), which_target(0) {
+			KalmanIntersectTest(World &world) : world(world), isect_robot_dst(0,0), which_target(0),
+				to_dribble(false), to_kick(false){
+				dribble_btn.set_label("dribble");
+				dribble_btn.signal_clicked().connect( sigc::mem_fun(*this, &KalmanIntersectTest::on_dribble_btn_clicked ) );
+
+				kick_btn.set_label("kick");
+				kick_btn.signal_clicked().connect( sigc::mem_fun(*this, &KalmanIntersectTest::on_kick_btn_clicked ) );
+
 				run_btn.set_label("run bot");
 				run_btn.signal_clicked().connect( sigc::mem_fun(*this, &KalmanIntersectTest::on_run_btn_clicked ) );
 
 				reset_btn.set_label("Reset");
 				reset_btn.signal_clicked().connect( sigc::mem_fun(*this, &KalmanIntersectTest::on_reset_btn_clicked) );
 				ui_box.add( reset_btn );
+				ui_box.add( run_btn );
+				ui_box.add( kick_btn );
+				ui_box.add( dribble_btn );
 			}
 
 			KalmanIntersectTestFactory &factory() const {
@@ -39,16 +49,26 @@ namespace {
 			void tick() {
 				// sample ball position once per tick
 				Point new_path_point = world.ball().position();
-				path_points.push_back( new_path_point );
+				//path_points.push_back( new_path_point );
 				//std::cout << "(" << new_path_point.x << ", " << new_path_point.y <<")\n";
 				Point ball_velocity =  world.ball().velocity();
 				// this position should take into account of the velocity of the robot and ball PROPERLY, subject to change
 				isect_robot_dst = new_path_point + ball_velocity * ball_velocity.len();
 				
 				// enable the bot to go to the next dst
+
 				if( world.friendly_team().size() == 1 ){
-					world.friendly_team().get(0)->move(TARGETS[ which_target ], (world.ball().position()- world.friendly_team().get(0)->position()).orientation(), Point());
-					world.friendly_team().get(0)->autokick(10.0);
+					Player::Ptr player = world.friendly_team().get(0);
+					player->move(TARGETS[ which_target ], (world.ball().position()- world.friendly_team().get(0)->position()).orientation(), Point());
+					if( to_dribble ){
+						player->type(AI::Flags::MoveType::DRIBBLE);
+					} else {
+						player->type(AI::Flags::MoveType::NORMAL);
+					}
+					if( to_kick ){
+						player->kick(10.0);
+						to_kick = false;
+					}
 				}
 			}
 
@@ -79,11 +99,15 @@ namespace {
 			// may expand this structure to include time stamp
 			Gtk::Button reset_btn;
 			Gtk::Button run_btn;
+			Gtk::Button dribble_btn;
+			Gtk::Button kick_btn;
 			Gtk::VBox ui_box;
 			std::vector<Point> path_points; 
 			Point isect_robot_dst;
 			
 			unsigned int which_target;
+			bool to_dribble;
+			bool to_kick;
 			
 			void on_reset_btn_clicked(){
 				path_points.clear();
@@ -93,6 +117,14 @@ namespace {
 			void on_run_btn_clicked(){
 				which_target++;
 				which_target = which_target % NUMBER_OF_TARGETS;
+			}
+
+			void on_dribble_btn_clicked(){
+				to_dribble = !to_dribble;
+			}
+
+			void on_kick_btn_clicked(){
+				to_kick = true;
 			}
 	};
 
