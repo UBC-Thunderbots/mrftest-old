@@ -31,7 +31,7 @@ class Predictor {
 		 *
 		 * \param[in] ignore_cache \c true to ignore the lookaside, or \c false to use it.
 		 *
-		 * \return the value and its variance.
+		 * \return the value and its standard deviation.
 		 */
 		std::pair<double, double> value(double delta, unsigned int deriv = 0, bool ignore_cache = false) const __attribute__((warn_unused_result));
 

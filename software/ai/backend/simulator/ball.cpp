@@ -51,11 +51,11 @@ Point AI::BE::Simulator::Ball::velocity(double delta) const {
 	return Point(xpred.value(delta, 1).first, ypred.value(delta, 1).first);
 }
 
-Point AI::BE::Simulator::Ball::position_covariance(double delta) const {
+Point AI::BE::Simulator::Ball::position_stdev(double delta) const {
 	return Point(xpred.value(delta).second, ypred.value(delta).second);
 }
 
-Point AI::BE::Simulator::Ball::velocity_covariance(double delta) const {
+Point AI::BE::Simulator::Ball::velocity_stdev(double delta) const {
 	return Point(xpred.value(delta, 1).second, ypred.value(delta, 1).second);
 }
 

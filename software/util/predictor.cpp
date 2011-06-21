@@ -1,5 +1,6 @@
 #include "util/predictor.h"
 #include "util/time.h"
+#include <cmath>
 #include <cstdlib>
 
 Predictor::Predictor(bool angle, double measure_std, double accel_std) : filter(angle, measure_std, accel_std), zero_value(0, 0) {
@@ -14,9 +15,9 @@ std::pair<double, double> Predictor::value(double delta, unsigned int deriv, boo
 		Matrix guess, covariance;
 		filter.predict(timespec_add(double_to_timespec(delta), lock_timestamp), guess, covariance);
 		if (deriv == 0) {
-			return std::make_pair(guess(0, 0), covariance(0, 0));
+			return std::make_pair(guess(0, 0), std::sqrt(covariance(0, 0)));
 		} else if (deriv == 1) {
-			return std::make_pair(guess(1, 0), covariance(1, 1));
+			return std::make_pair(guess(1, 0), std::sqrt(covariance(1, 1)));
 		} else {
 			std::abort();
 		}

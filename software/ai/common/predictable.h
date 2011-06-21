@@ -29,22 +29,22 @@ namespace AI {
 			virtual Point velocity(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 
 			/**
-			 * \brief Gets the covariance of the predicted position of the object.
+			 * \brief Gets the standard deviation of the predicted position of the object.
 			 *
 			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
 			 *
-			 * \return the covariance of the predicted position.
+			 * \return the standard deviation of the predicted position.
 			 */
-			virtual Point position_covariance(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+			virtual Point position_stdev(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 
 			/**
-			 * \brief Gets the covariance of the predicted velocity of the object.
+			 * \brief Gets the standard deviation of the predicted velocity of the object.
 			 *
 			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
 			 *
-			 * \return the covariance of the predicted velocity.
+			 * \return the standard deviation of the predicted velocity.
 			 */
-			virtual Point velocity_covariance(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+			virtual Point velocity_stdev(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 	};
 
 	/**
@@ -71,22 +71,22 @@ namespace AI {
 			virtual double avelocity(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 
 			/**
-			 * \brief Gets the covariance of the predicted orientation of the object.
+			 * \brief Gets the standard deviation of the predicted orientation of the object.
 			 *
 			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
 			 *
-			 * \return the covariance of the predicted orientation.
+			 * \return the standard deviation of the predicted orientation.
 			 */
-			virtual double orientation_covariance(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+			virtual double orientation_stdev(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 
 			/**
-			 * \brief Gets the covariance of the predicted angular velocity of the object.
+			 * \brief Gets the standard deviation of the predicted angular velocity of the object.
 			 *
 			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
 			 *
-			 * \return the covariance of the predicted angular velocity.
+			 * \return the standard deviation of the predicted angular velocity.
 			 */
-			virtual double avelocity_covariance(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+			virtual double avelocity_stdev(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 	};
 }
 

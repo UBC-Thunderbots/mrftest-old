@@ -49,10 +49,10 @@ namespace AI {
 					Point velocity(double delta = 0.0) const { return Robot::velocity(delta); }
 					double orientation(double delta = 0.0) const { return Robot::orientation(delta); }
 					double avelocity(double delta = 0.0) const { return Robot::avelocity(delta); }
-					Point position_covariance(double delta = 0.0) const { return Robot::position_covariance(delta); }
-					Point velocity_covariance(double delta = 0.0) const { return Robot::velocity_covariance(delta); }
-					double orientation_covariance(double delta = 0.0) const { return Robot::orientation_covariance(delta); }
-					double avelocity_covariance(double delta = 0.0) const { return Robot::avelocity_covariance(delta); }
+					Point position_stdev(double delta = 0.0) const { return Robot::position_stdev(delta); }
+					Point velocity_stdev(double delta = 0.0) const { return Robot::velocity_stdev(delta); }
+					double orientation_stdev(double delta = 0.0) const { return Robot::orientation_stdev(delta); }
+					double avelocity_stdev(double delta = 0.0) const { return Robot::avelocity_stdev(delta); }
 					unsigned int pattern() const { return Robot::pattern(); }
 					ObjectStore &object_store() const { return Robot::object_store(); }
 					bool has_ball() const;
