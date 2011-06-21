@@ -58,7 +58,7 @@ namespace {
 			}
 		}
 
-		if (AI::HL::STP::Action::shoot_target(world, player, target, false)) {
+		if (AI::HL::STP::Action::shoot_target(world, player, target)) {
 			has_shot = true;
 		}
 	}

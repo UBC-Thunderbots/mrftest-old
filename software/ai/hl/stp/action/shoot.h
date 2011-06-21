@@ -25,7 +25,7 @@ namespace AI {
 				 *
 				 * \return true if the robot shoots.
 				 */	
-				bool shoot_target(const World &world, Player::Ptr player, const Point target, bool pass) __attribute__ ((deprecated));
+				bool shoot_target(const World &world, Player::Ptr player, const Point target) __attribute__ ((deprecated));
 
 				/**
 				 * Shoots the ball at the region centred at target with radius.

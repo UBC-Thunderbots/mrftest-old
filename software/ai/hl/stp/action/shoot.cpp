@@ -51,7 +51,7 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player) {
 	return false;
 }
 
-bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target, bool pass) {
+bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target) {
 	if (!player->has_ball()) {
 		chase_pivot(world, player, target);
 		return false;
@@ -64,8 +64,7 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 			return false;
 		}
 		LOG_INFO("kick 2");
-		if (pass) player->autokick(pass_speed);
-		else player->autokick(10.0);
+		player->autokick(10.0);
 		return true;
 	}
 	return false;

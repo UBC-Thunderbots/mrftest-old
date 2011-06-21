@@ -236,7 +236,7 @@ void TShoot::execute() {
 		Evaluation::obs_line_first(world, target - targ_ball * 0.75, target, OBS_OPPONENTS, rtarget, Robot::MAX_RADIUS);
 
 		Action::dribble(world, player, rtarget);
-		kicked = Action::shoot_target(world, player, target, false);
+		kicked = Action::shoot_target(world, player, target);
 
 	} else {
 		kicked = Action::shoot_goal(world, player);
@@ -304,7 +304,7 @@ void TClear::execute() {
 	prev_target = target;
 	prev_target_set = true;
 
-	kicked = Action::shoot_target(world, player, target, false);
+	kicked = Action::shoot_target(world, player, target);
 }
 
 void TActiveDef::execute() {
