@@ -26,6 +26,12 @@
         <double name="Loop Delay">0.100</double>
       </category>
     </category>
+    <category name="MB">
+      <double name="ori distance threshold">0.100</double>
+      <double name="ori velocity threshold">0.030</double>
+      <double name="pos distance threshold">0.050</double>
+      <double name="pos velocity threshold">0.030</double>
+    </category>
     <category name="Nav">
       <category name="Pivot">
         <double name="offset angle">80</double>
@@ -81,15 +87,18 @@
         <double name="max acc">3.00</double>
       </category>
       <category name="PID3">
-        <double name="anglular differential (-ve)">-0.10</double>
-        <double name="anglular max velocity">15.00</double>
-        <double name="anglular proportional">15.00</double>
-        <double name="angular slowdown when translating">1.500</double>
-        <boolean name="flip trans&amp;ang slowdown (CARE)">false</boolean>
-        <boolean name="reduce angular velocity when translating">false</boolean>
+        <double name="angular differential (-ve)">-0.10</double>
+        <double name="angular integral (%)">0</double>
+        <double name="angular max velocity">12.00</double>
+        <double name="angular proportional">12.00</double>
+        <double name="(CARE) angular slowdown when translating">1.010</double>
+        <boolean name="(CARE) flip trans&amp;ang slowdown">false</boolean>
+        <boolean name="(CARE) reduce angular velocity when translating">false</boolean>
+        <double name="integral decay (%)">90.0</double>
         <double name="x to y ratio">0.810</double>
         <double name="xy differential (-ve)">-0.10</double>
-        <double name="xy max acceleration">7.00</double>
+        <double name="xy integral (%)">0</double>
+        <double name="xy max acceleration">6.00</double>
         <double name="xy max velocity">12.00</double>
         <double name="xy proportional">12.00</double>
       </category>

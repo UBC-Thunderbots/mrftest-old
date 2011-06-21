@@ -9,8 +9,8 @@ using namespace AI::HL::W;
 
 namespace {
 	const int NUMBER_OF_TARGETS = 2;
-	Point TARGETS[NUMBER_OF_TARGETS] = { Point(0.0,-1.0), Point(0.0,1.0) }; 
-
+	Point TARGETS[NUMBER_OF_TARGETS] = { Point(0.0,-2.0), Point(0.0,2.0) }; 
+	double TARGETS_ORIENT[NUMBER_OF_TARGETS] = {0.5*M_PI,-0.5*M_PI};
 	class KalmanIntersectTestFactory : public HighLevelFactory {
 		public:
 			KalmanIntersectTestFactory() : HighLevelFactory("Hawdy, Kalman Intersect Test") {
@@ -59,7 +59,7 @@ namespace {
 
 				if( world.friendly_team().size() == 1 ){
 					Player::Ptr player = world.friendly_team().get(0);
-					player->move(TARGETS[ which_target ], (world.ball().position()- world.friendly_team().get(0)->position()).orientation(), Point());
+					player->move(TARGETS[ which_target ], TARGETS_ORIENT[ which_target ], Point());
 					if( to_dribble ){
 						player->type(AI::Flags::MoveType::DRIBBLE);
 					} else {
