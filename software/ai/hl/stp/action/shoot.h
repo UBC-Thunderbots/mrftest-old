@@ -64,7 +64,7 @@ namespace AI {
 				 * or alternatively reach target at time delta from the current time ( may be moving )
 				 * \return true if the constraints are achievable
 				 */
-				bool arm(const World &world, Player::Ptr player, const Point target, double delta = 1e10);
+				// bool arm(const World &world, Player::Ptr player, const Point target, double delta = 1e10);
 			}
 		}
 	}

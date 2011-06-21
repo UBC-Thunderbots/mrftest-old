@@ -109,7 +109,7 @@ bool AI::HL::STP::Action::within_angle_thresh(Player::CPtr player, const Point t
 	double dir_thresh = cos( (pass_threshold*M_PI / 180.0));
 	return facing_dir.dot(pass_dir) > dir_thresh;
 }
-
+/*
 bool AI::HL::STP::Action::shoot_region(const World &world, Player::Ptr player, const Point target, double radius, double delta) {
 	if (!player->has_ball()) {
 		chase_pivot(world, player, target);
@@ -133,6 +133,7 @@ bool AI::HL::STP::Action::shoot_region(const World &world, Player::Ptr player, c
 	}
 	return player->chicker_ready();
 }
+*/
 
 double AI::HL::STP::Action::shoot_speed(double distance, double delta, double alph) {
 	double a = alph;
@@ -149,6 +150,7 @@ double AI::HL::STP::Action::shoot_speed(double distance, double delta, double al
 	return speed;
 }
 
+/*
 bool AI::HL::STP::Action::arm(const World &world, Player::Ptr player, const Point target, double delta) {
 	double dist_max = 10.0 * (1 - std::exp(-alpha * delta)) / alpha;
 	// make the robot kick as close to the target as possible
@@ -170,4 +172,5 @@ bool AI::HL::STP::Action::arm(const World &world, Player::Ptr player, const Poin
 	player->autokick(speed);
 	return true;
 }
+*/
 
