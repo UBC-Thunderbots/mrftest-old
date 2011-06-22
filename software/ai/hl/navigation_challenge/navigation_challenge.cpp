@@ -7,15 +7,17 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	DoubleParam pos_dis_threshold("pos distance threshold", "NC", 0.05, 0, 1.0);
+	DoubleParam pos_dis_threshold("pos distance threshold", "NC", 0.2, 0, 1.0);
+	DoubleParam x_diff("distance in the x direction to set the navigation points", "NC", 0.3, 0, 1.0);
+	DoubleParam y_diff("distance in the y direction to set the navigation points", "NC", 0.5, 0, 1.0);
 
 	const std::pair<Point, double> default_tasks[] = {
-		std::make_pair(Point(2.7, 0.5), 0),
-		std::make_pair(Point(2.8, 0), 0),
-		std::make_pair(Point(2.7, -0.5), 0),
+		std::make_pair(Point(-2.7, 0.5), 0),
+		std::make_pair(Point(-3.0, 0), 0),
 		std::make_pair(Point(-2.7, -0.5), 0),
-		std::make_pair(Point(-2.7, 0), 0),
-		std::make_pair(Point(-2.7, 0.5), 0)
+		std::make_pair(Point(2.7, -0.5), 0),
+		std::make_pair(Point(3.0, 0), 0),
+		std::make_pair(Point(2.7, 0.5), 0)
 	};
 
 	const int default_tasks_n = G_N_ELEMENTS(default_tasks);
@@ -58,12 +60,12 @@ namespace {
 					}
 
 					// set points relative to enemy robots
-					tasks[0] = std::make_pair(Point(leftmost.x, leftmost.y + 0.5), 0);
-					tasks[1] = std::make_pair(Point(leftmost.x - 0.3, leftmost.y), 0);
-					tasks[2] = std::make_pair(Point(leftmost.x, leftmost.y - 0.5), 0);
-					tasks[3] = std::make_pair(Point(rightmost.x, rightmost.y - 0.5), 0);
-					tasks[4] = std::make_pair(Point(rightmost.x + 0.3, rightmost.y), 0);
-					tasks[5] = std::make_pair(Point(rightmost.x, rightmost.y + 0.5), 0);
+					tasks[0] = std::make_pair(Point(leftmost.x, leftmost.y + y_diff), 0);
+					tasks[1] = std::make_pair(Point(leftmost.x - x_diff, leftmost.y), 0);
+					tasks[2] = std::make_pair(Point(leftmost.x, leftmost.y - y_diff), 0);
+					tasks[3] = std::make_pair(Point(rightmost.x, rightmost.y - y_diff), 0);
+					tasks[4] = std::make_pair(Point(rightmost.x + x_diff, rightmost.y), 0);
+					tasks[5] = std::make_pair(Point(rightmost.x, rightmost.y + y_diff), 0);
 				}
 
 				time_steps++;
