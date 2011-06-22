@@ -130,10 +130,8 @@ namespace {
 				
 				} else if(kicked && fast_ball) {
 
-					Point pass_dir = world.ball().velocity().norm();
-
-					Point intercept_pos = closest_lineseg_point(players[1]->position(), world.ball().position(),  world.ball().position() + 100*pass_dir);
-					pass_dir = (world.ball().position() - players[0]->position()).norm();
+					Point intercept_pos = closest_lineseg_point(players[1]->position(), world.ball().position(),  world.ball().position() + 100 * world.ball().velocity().norm());
+					Point pass_dir = (world.ball().position() - players[0]->position()).norm();
 
 					Point addit = passee_hack_dist*(intercept_pos - players[0]->position()).norm();
 					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos + addit);

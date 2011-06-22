@@ -100,27 +100,22 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	return true;
 }
 
-#warning REFACTOR
+#warning REFACTOR, this should also be somewhere in evaluation
 bool AI::HL::STP::Action::within_angle_thresh(Player::CPtr player, const Point target, double threshold){
 	Point pass_dir = (target - player->position()).norm();
-	Point facing_dir(1,0);
-	facing_dir = facing_dir.rotate(player->orientation());
-	double dir_thresh = cos( (pass_threshold*M_PI / 180.0));
+	Point facing_dir = Point(1,0).rotate(player->orientation());
+	double dir_thresh = cos( (threshold*M_PI / 180.0));
 	return facing_dir.dot(pass_dir) > dir_thresh;
 }
 
 double AI::HL::STP::Action::shoot_speed(double distance, double delta, double alph) {
 	double a = alph;
-	if(alph<0){
-		a = alpha;
-	}
+	if(alph<0) a = alpha;
+	
 	double speed = a * distance / (1 - std::exp(-a * delta));
-	if (speed > 10.0) {
-		speed = 10.0; // can't kick faster than this
-	}
-	if (speed < 0) {
-		speed = 0; // can't kick slower than this
-	}
+	if (speed > 10.0) speed = 10.0; // can't kick faster than this
+	if (speed < 0) speed = 0; // can't kick slower than this, this value in reality should be somwhere > 4
+	
 	return speed;
 }
 
