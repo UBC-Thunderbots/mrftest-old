@@ -122,7 +122,7 @@
         </category>
       </category>
       <category name="ball">
-        <double name="circle radius in front of robot to consider possesion (meters)">0.100</double>
+        <double name="circle radius in front of robot to enable pivot (meters)">0.100</double>
         <boolean name="Smart possess ball (instead of has ball only)">true</boolean>
       </category>
       <category name="defense">
@@ -165,6 +165,7 @@
         <double name=" angle tolerance that the passer needs to be with respect to the target">30.0</double>
         <double name=" distance tolerance that the passee needs to be with respect to the passer shot">0.050</double>
         <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.030</double>
+        <boolean name="lower numbered bot is passer">false</boolean>
         <integer name="passing target points">0</integer>
         <double name="velocity to ignore">0.100</double>
       </category>

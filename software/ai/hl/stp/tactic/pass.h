@@ -8,6 +8,17 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Tactic {
+
+				/**
+				 * Passer shoots towards the target region
+				 */
+				Tactic::Ptr passer_shoot_target(const World &world, Point target);
+
+				/**
+				 * Passee moves to intercept the moving ball, in the target region
+				 */
+				Tactic::Ptr passee_move_target(const World &world, Point target);
+
 				/**
 				 * Passer positioning and shoot for offensive purposes
 				 * (objective is pass to passee and have it shoot at enemy goal).

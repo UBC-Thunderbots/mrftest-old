@@ -39,7 +39,77 @@ namespace {
 				return "passer-shoot";
 			}
 	};
+	
+	class PasserShootTarget : public Tactic, public sigc::trackable {
+		private:
+			void on_player_removed(std::size_t index) {
+				if( world.friendly_team().get(index) == Player::CPtr(passer)){
+					passer.reset();
+				}
+			}
 
+		public:
+			PasserShootTarget(const World &world, Point target) : Tactic(world, true), kicked(false), target(target) {
+					world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &PasserShootTarget::on_player_removed));
+			}
+
+		private:
+			bool kicked;
+			Point target;
+			mutable Player::Ptr passer;
+
+			bool done() const {
+				return kicked;
+			}
+
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+				if(passer.is()){
+					return passer;
+				}
+				passer = select_baller(world, players);
+				return passer;
+			}
+
+			void execute() {
+			}
+
+			std::string description() const {
+				return "passer-shoot-target";
+			}
+	};
+
+	class PasseeMoveTarget : public Tactic, public sigc::trackable {
+
+		public:
+			PasseeMoveTarget(const World &world, Point target) : Tactic(world), target(target) {
+				world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &PasseeMoveTarget::on_player_removing));
+			}
+
+		private:
+			mutable Player::Ptr passee;
+			Point target;
+
+			void on_player_removing(std::size_t index) {
+				if( world.friendly_team().get(index) == Player::CPtr(passee)){
+					passee.reset();
+				}
+			}
+
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+				if(passee.is()){
+					return passee;
+				}
+				passee = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(target)) ;
+				return passee;
+			}
+			void execute() {
+				// Action specific to this tactic
+			}
+			std::string description() const {
+				return "passee-target";
+			}
+	};
+	
 	class PasseeMove : public Tactic {
 		public:
 			PasseeMove(const World &world) : Tactic(world) {
@@ -108,6 +178,18 @@ namespace {
 			}
 	};
 }
+
+
+Tactic::Ptr AI::HL::STP::Tactic::passer_shoot_target(const World &world, Point target) {
+	const Tactic::Ptr p(new PasserShootTarget(world, target));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::passee_move_target(const World &world, Point target) {
+	const Tactic::Ptr p(new PasseeMoveTarget(world, target));
+	return p;
+}
+
 
 Tactic::Ptr AI::HL::STP::Tactic::passer_shoot(const World &world) {
 	const Tactic::Ptr p(new PasserShoot(world));
