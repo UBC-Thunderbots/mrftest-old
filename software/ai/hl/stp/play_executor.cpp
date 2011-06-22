@@ -4,7 +4,6 @@
 #include "util/dprint.h"
 #include "ai/hl/stp/ui.h"
 #include <cassert>
-#include <registerable.h>
 
 using AI::HL::STP::PlayExecutor;
 using namespace AI::HL::STP;
