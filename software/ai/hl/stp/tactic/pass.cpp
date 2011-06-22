@@ -69,7 +69,7 @@ namespace {
 			}
 
 			bool done() const {
-				return kicked;
+				return kicked && world.ball().velocity().len() > negligible_velocity;;
 			}
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
@@ -81,6 +81,9 @@ namespace {
 			}
 
 			void execute() {
+					if (Action::shoot_pass(world, player, target)) {
+						kicked = true;
+					}
 			}
 
 			std::string description() const {
@@ -124,32 +127,41 @@ namespace {
 					}
 
 					bool fast_ball = world.ball().velocity().len() > negligible_velocity;
-					if(!passer.is()){
+					if(!passer.is()){ //no active passer
 						if(fast_ball) {
-							Point intercept_pos = closest_lineseg_point(player->position(), world.ball().position(),  world.ball().position() + 100 * world.ball().velocity().norm());
+								Point intercept_pos = closest_lineseg_point(player->position(), world.ball().position(),  world.ball().position() + 100 * world.ball().velocity().norm());
 
-							// if ball is moving away from robot not closer then we chase
-							// if the ball is moving towards us then we want to intercept
-							bool need_chase = false;
-							Point player_dir = intercept_pos - player->position();
-							if(player_dir.len() > 0.1){
-								need_chase = player_dir.dot(world.ball().velocity()) > 0;
-							}
+								// if ball is moving away from robot not closer then we chase
+								// if the ball is moving towards us then we want to intercept
+								bool need_chase = false;
+								Point player_dir = intercept_pos - player->position();
+								if(player_dir.len() > 0.1){
+									need_chase = player_dir.dot(world.ball().velocity()) > 0;
+								}
 
-							Point addit = passee_hack_dist*(intercept_pos - passee->position()).norm();
-							if(need_chase){
-								Action::chase(world, passee);
-							}else{
-								Action::move(player, (-world.ball().velocity()).orientation(), intercept_pos + addit);
-							}
+								Point addit = passee_hack_dist*(intercept_pos - passee->position()).norm();
+								if(need_chase){
+									Action::chase(world, passee);
+								}else{
+									Action::move(player, (-world.ball().velocity()).orientation(), intercept_pos + addit);
+								}
 
-					} else {
+						} else {
 							Action::chase(world, passee);
+						}
+					} else { //there is an active passer
+						if(Action::within_angle_thresh(passer, target, passer_tol_target) ){
+							Point pass_dir(100, 0);
+							pass_dir = pass_dir.rotate(passer->orientation());
+							Point intercept_pos = closest_lineseg_point(player->position(), passer->position(), passer->position() + pass_dir);
+							Point addit = passee_hack_dist*(intercept_pos - passer->position()).norm();
+							Action::move(player, (passer->position() - intercept_pos).orientation(), intercept_pos + addit);
+						}else{
+							Action::move(player, (world.ball().position() - player->position()).orientation(), target);
+						}
 					}
-
-				}
-
 			}
+
 			std::string description() const {
 				return "passee-target";
 			}
