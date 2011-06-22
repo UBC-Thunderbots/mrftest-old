@@ -117,7 +117,7 @@ namespace AI {
 
 				Point np= world.ball().position();
 
-				dest_ori  =	(player->destination().first - world.ball().position()).orientation();
+				dest_ori = (player->destination().first - world.ball().position()).orientation();
 
 				Point dir_ball = (player->destination().first - np).norm();
 				Point dir = (np - player->position()).norm();
@@ -226,11 +226,11 @@ namespace AI {
 						dest = grab_ball_dest.first;
 						dest_orientation = grab_ball_dest.second;
 					} else if (player->type() == AI::Flags::MoveType::INTERCEPT) {
-						std::pair<Point, double> grab_ball_dest = grab_ball(player);
+						std::pair<Point, double> grab_ball_dest = intercept_ball(player);
 						dest = grab_ball_dest.first;
 						dest_orientation = grab_ball_dest.second;
 					} else if (player->type() == AI::Flags::MoveType::INTERCEPT_PIVOT) {
-						std::pair<Point, double> grab_ball_dest = grab_ball(player);
+						std::pair<Point, double> grab_ball_dest = intercept_ball_orientation(player);
 						dest = grab_ball_dest.first;
 						dest_orientation = grab_ball_dest.second;
 					} else if (player->type() == AI::Flags::MoveType::PIVOT) {
