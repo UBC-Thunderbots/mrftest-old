@@ -9,6 +9,11 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
+
+		 	namespace HACK {
+				extern Player::Ptr active_player;
+				extern Player::Ptr last_kicked;
+			}
 			/**
 			 * A play executor.
 			 * See STP paper section 5.3.

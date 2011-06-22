@@ -8,16 +8,10 @@
 using AI::HL::STP::PlayExecutor;
 using namespace AI::HL::STP;
 
-namespace AI {
-	namespace HL {
-		namespace STP {
-		 	namespace HACK {
-				Player::Ptr active_player;
-				Player::Ptr last_kicked;
-			}
-		}
-	}
-}
+
+Player::Ptr AI::HL::STP::HACK::active_player;
+Player::Ptr AI::HL::STP::HACK::last_kicked;
+
 
 namespace {
 	// The maximum amount of time a play can be running.
