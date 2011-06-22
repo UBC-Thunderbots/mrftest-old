@@ -34,7 +34,8 @@ namespace {
 
 	class NCHL : public HighLevel {
 		public:
-			NCHL(World &world) : world(world), tasks(default_tasks, default_tasks + default_tasks_n), time_steps(0), done(0) {
+			NCHL(World &world) : world(world), tasks(default_tasks, default_tasks + default_tasks_n), time_steps(0) {
+				std::vector<std::size_t> done;
 			}
 
 			NCHLFactory &factory() const {
@@ -46,6 +47,16 @@ namespace {
 
 				if (friendly.size() == 0)
 					return;
+					
+				if (done.size() != friendly.size()) {
+					done.clear();
+					int taskIndex = 0;
+					for (unsigned int i = 0; i < friendly.size(); ++i) {
+						done.push_back(taskIndex);
+						if (taskIndex == 0) taskIndex = 3;
+						else taskIndex = 0;
+					}
+				}
 
 				if (world.enemy_team().size() >= 2) {
 					Point leftmost(0, 0);
@@ -69,26 +80,27 @@ namespace {
 				}
 
 				time_steps++;
+				
+				for (unsigned int robotIndex = 0; robotIndex < friendly.size(); ++robotIndex) {
+					Player::Ptr runner = friendly.get(robotIndex);
 
-				Player::Ptr runner = friendly.get(0);
+					const Point diff_pos = runner->position() - tasks[done[robotIndex]].first;
 
-				const Point diff_pos = runner->position() - tasks[done].first;
-
-				if (diff_pos.len() < pos_dis_threshold) {
-					if (done == 0) {
-						time_steps = 0;
+					if (diff_pos.len() < pos_dis_threshold) {
+						if (done[robotIndex] == 0) {
+							time_steps = 0;
+						}
+						++done[robotIndex];
 					}
-					++done;
-				}
 
-				if (done >= tasks.size()) {
-					LOG_INFO(Glib::ustring::compose("time steps taken: %1", time_steps));
-					time_steps = 0;
-					done = 0;
-					return;
+					if (done[robotIndex] >= tasks.size()) {
+						LOG_INFO(Glib::ustring::compose("time steps taken: %1", time_steps));
+						time_steps = 0;
+						done[robotIndex] = 0;
+						return;
+					}
+					runner->move(tasks[done[robotIndex]].first, tasks[done[robotIndex]].second, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 				}
-
-				runner->move(tasks[done].first, tasks[done].second, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 			}
 
 			Gtk::Widget *ui_controls() {
@@ -99,7 +111,7 @@ namespace {
 			World &world;
 			std::vector<std::pair<Point, double> > tasks;
 			int time_steps;
-			std::size_t done;
+			std::vector<std::size_t> done;
 	};
 
 	HighLevel::Ptr NCHLFactory::create_high_level(World &world) const {
