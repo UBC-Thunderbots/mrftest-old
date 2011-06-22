@@ -4,6 +4,7 @@
 #include "util/dprint.h"
 #include "ai/hl/stp/ui.h"
 #include <cassert>
+#include <registerable.h>
 
 using AI::HL::STP::PlayExecutor;
 using namespace AI::HL::STP;
@@ -25,9 +26,29 @@ namespace {
 
 	BoolParam goalie_lowest("Goalie is lowest index", "STP/STP", true);
 	IntParam goalie_pattern_index("Goalie pattern index", "STP/STP", 0, 0, 4);
+
+	void on_robot_removing(std::size_t i, World &w) {
+		Player::Ptr plr = w.friendly_team().get(i);
+		if (plr == HACK::active_player) {
+			HACK::active_player.reset(); 
+		}
+		if (plr == HACK::last_kicked) {
+			HACK::last_kicked.reset();
+		}
+	}
+
+	void connect_player_remove_handler(World &w) {
+		static bool connected = false;
+		if (!connected) {
+			w.friendly_team().signal_robot_removing().connect(sigc::bind(&on_robot_removing, sigc::ref(w)));
+			connected = true;
+		}
+	}
+
 }
 
 PlayExecutor::PlayExecutor(World &w) : world(w) {
+	connect_player_remove_handler(w);
 	// initialize all plays
 	const Play::PlayFactory::Map &m = Play::PlayFactory::all();
 	assert(m.size() != 0);
