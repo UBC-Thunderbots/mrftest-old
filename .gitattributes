@@ -242,7 +242,6 @@ software/ai/hl/stp/play/just_shoot.cpp -text
 software/ai/hl/stp/play/kickoff_enemy.cpp -text
 software/ai/hl/stp/play/kickoff_friendly.cpp -text
 software/ai/hl/stp/play/lone_2_player.cpp -text
-software/ai/hl/stp/play/movement_benchmark.cpp -text
 software/ai/hl/stp/play/offensive_block.cpp -text
 software/ai/hl/stp/play/our_corner_play.cpp -text
 software/ai/hl/stp/play/pass_defensive.cpp -text
@@ -284,8 +283,6 @@ software/ai/hl/stp/tactic/move_stop.cpp -text
 software/ai/hl/stp/tactic/move_stop.h -text
 software/ai/hl/stp/tactic/move_wait_playtype.cpp -text
 software/ai/hl/stp/tactic/move_wait_playtype.h -text
-software/ai/hl/stp/tactic/movement_benchmark.cpp -text
-software/ai/hl/stp/tactic/movement_benchmark.h -text
 software/ai/hl/stp/tactic/offend.cpp -text
 software/ai/hl/stp/tactic/offend.h -text
 software/ai/hl/stp/tactic/pass.cpp -text
