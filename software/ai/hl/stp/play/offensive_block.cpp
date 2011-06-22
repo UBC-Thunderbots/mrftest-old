@@ -1,6 +1,7 @@
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/stp/tactic/cm_ball.h"
 
 using AI::HL::STP::Enemy;
 namespace Predicates = AI::HL::STP::Predicates;
@@ -30,7 +31,8 @@ roles[0].push_back(defend_duo_defender(world));
 
 // ROLE 2
 // chase the ball!
-roles[1].push_back(chase(world));
+//roles[1].push_back(chase(world));
+roles[1].push_back(tactive_def(world));
 
 // ROLE 3 (optional)
 // offensive support through blocking possible passees of enemy baller

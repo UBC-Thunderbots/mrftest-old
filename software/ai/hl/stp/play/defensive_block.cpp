@@ -2,6 +2,7 @@
 #include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/block.h"
+#include "ai/hl/stp/tactic/cm_ball.h"
 #include "ai/hl/stp/play/simple_play.h"
 
 using AI::HL::STP::Enemy;
@@ -32,7 +33,8 @@ roles[0].push_back(defend_duo_defender(world));
 
 // ROLE 2
 // chase the ball!
-roles[1].push_back(chase(world));
+//roles[1].push_back(chase(world));
+roles[1].push_back(tactive_def(world));
 
 // ROLE 3 (optional)
 // defend

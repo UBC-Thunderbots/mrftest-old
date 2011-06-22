@@ -68,7 +68,6 @@ namespace {
 			return;
 		}
 
-		// TODO: check if blocking enemy robot from passing works or not
 		AI::HL::STP::Action::block_pass(world, player, enemy->evaluate());
 	}
 }
