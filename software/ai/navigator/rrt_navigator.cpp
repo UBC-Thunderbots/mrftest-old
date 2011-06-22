@@ -236,6 +236,12 @@ namespace AI {
 					} else if (player->type() == AI::Flags::MoveType::PIVOT) {
 						pivot(player);
 						continue;
+					} else if (player->type() == AI::Flags::MoveType::RAM_BALL){
+						Point cur_position = player->position(), dest_position = player->destination().first;
+						timespec ts = get_next_ts(world.monotonic_time(), cur_position, dest_position, player->target_velocity());
+						path.push_back(std::make_pair(std::make_pair(dest_position, dest_orientation), ts));
+						player->path(path);
+						continue;
 					} else if (valid_path(player->position(), player->destination().first, world, player)) {
 						// if we're not trying to catch the ball and there are no obstacles in our way then go
 						// to the exact location, skipping all of the tree creation

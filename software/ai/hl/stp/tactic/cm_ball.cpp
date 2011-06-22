@@ -310,10 +310,11 @@ void TClear::execute() {
 void TActiveDef::execute() {
 	finished = false;
 	const EnemyTeam &enemy = world.enemy_team();
-	Point dirToBall = (world.ball().position() - player->position()).norm();
+	
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		if (AI::HL::Util::posses_ball(world, enemy.get(i))) {
-			Action::move_spin(player, world.ball().position() + Robot::MAX_RADIUS * dirToBall);
+			Point dirToBall = (world.ball().position() - enemy.get(i)->position()).norm();
+			Action::move_spin(player, world.ball().position() + 0.75 * Robot::MAX_RADIUS * dirToBall);
 			return;
 		}
 	}

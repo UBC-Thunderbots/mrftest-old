@@ -17,6 +17,6 @@ void AI::HL::STP::Action::move_spin(Player::Ptr player, const Point dest) {
 	} else {
 		player->move(dest, angle_mod(player->orientation() + spin_delta), Point());
 	}
-	player->type(AI::Flags::MoveType::NORMAL);
+	player->type(AI::Flags::MoveType::RAM_BALL);
 }
 

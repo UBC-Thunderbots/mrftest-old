@@ -50,7 +50,6 @@
       <category name="RRT">
         <double name="Buffer behind ball for chase (meters)">0.250</double>
         <double name="Chase angle range for behind target (degrees)">30.0</double>
-        <boolean name="Chase ball uses target location to calculate dest">true</boolean>
         <double name="Pivot: offset angle (degrees)">58</double>
         <double name="Pivot: offset distance">0.13</double>
         <double name="Pivot: orientation offset (degrees)">14</double>
@@ -63,6 +62,11 @@
         <double name="Buffer for lower priority friendly robot (meters)">0.050</double>
         <double name="The amount of distance to maintain from enemy robots">0.100</double>
       </category>
+    </category>
+    <category name="NC">
+      <double name="distance in the x direction to set the navigation points">0.300</double>
+      <double name="distance in the y direction to set the navigation points">0.500</double>
+      <double name="pos distance threshold">0.200</double>
     </category>
     <category name="oldAI">
       <boolean name="goalie dive for the ball">true</boolean>
@@ -118,7 +122,7 @@
           <double name="reduced radius for calculating best shot (robot radius ratio)">0.800</double>
         </category>
         <category name="spin">
-          <double name="change in orientation every time tick for move spin">0.500</double>
+          <double name="change in orientation every time tick for move spin">1.500</double>
         </category>
       </category>
       <category name="ball">
@@ -160,14 +164,16 @@
       <category name="Tactic">
         <double name="stop: angle to separate players (degrees)">20.0</double>
       </category>
-      <category name="test_pass2">
+      <category name="test_pass">
         <double name=" angle tolerance that the passer needs to be with respect to the passee">20.0</double>
         <double name=" angle tolerance that the passer needs to be with respect to the target">30.0</double>
         <double name=" distance tolerance that the passee needs to be with respect to the passer shot">0.050</double>
         <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.030</double>
-        <boolean name="lower numbered bot is passer">false</boolean>
         <integer name="passing target points">0</integer>
         <double name="velocity to ignore">0.100</double>
+      </category>
+      <category name="test_pass2">
+        <boolean name="lower numbered bot is passer">false</boolean>
       </category>
       <category name="util">
         <double name="distance for ball possesion (x ball radius)">2.000</double>
