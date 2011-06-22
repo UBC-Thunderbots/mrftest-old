@@ -6,16 +6,7 @@ namespace {
 }
 
 double angle_mod(double a) {
-	// Bring the angle to [−2π, 2π].
-	a = std::fmod(a, PI2);
-	// Bring the angle to [0, 2π].
-	if (a < 0) {
-		a += PI2;
-	}
-	// Bring the angle to [−π, π].
-	if (a > M_PI) {
-		a -= PI2;
-	}
+	a -= PI2 * std::round(a / PI2);
 	return a;
 }
 

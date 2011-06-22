@@ -1,4 +1,5 @@
 #include "util/kalman/kalman.h"
+#include "geom/angle.h"
 #include "util/time.h"
 #include <cmath>
 
@@ -84,7 +85,7 @@ void Kalman::update(double measurement, timespec measurement_time) {
 	// %how much does the guess differ from the measurement
 	double residual = measurement - (h * state_priori)(0, 0);
 	if (is_angle) {
-		residual -= 2 * M_PI * std::round(residual / 2 / M_PI);
+		residual = angle_mod(residual);
 	}
 
 	// %The kalman update calculations
@@ -92,7 +93,7 @@ void Kalman::update(double measurement, timespec measurement_time) {
 	state_estimate = state_priori + kalman_gain * residual;
 
 	if (is_angle) {
-		state_estimate(0, 0) -= 2 * M_PI * std::round(state_estimate(0, 0) / 2 / M_PI);
+		state_estimate(0, 0) = angle_mod(state_estimate(0, 0));
 	}
 	p = (Matrix(2, 2, Matrix::InitFlag::IDENTITY) - kalman_gain * h) * p_priori;
 

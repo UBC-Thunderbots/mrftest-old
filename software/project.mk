@@ -14,12 +14,12 @@ EXECUTABLES_EXCLUDE_WORLD := cppunit
 #
 SOURCES_ai := ai geom log/shared proto uicomponents util xbee
 SOURCES_cppunit := cppunit
-SOURCES_experiment := experiment util xbee
+SOURCES_experiment := experiment geom util xbee
 SOURCES_fw := fw geom util xbee
 SOURCES_log := ai/common log geom proto uicomponents util
 SOURCES_simulator := ai/common/playtype.cpp geom simulator util
 SOURCES_test := geom test uicomponents util xbee
-SOURCES_xbeeconfig := util xbee xbeeconfig.cpp
+SOURCES_xbeeconfig := geom util xbee xbeeconfig.cpp
 
 #
 # All the pkg-config packages used.
