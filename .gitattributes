@@ -160,6 +160,7 @@ software/ai/hl/hl.cpp -text
 software/ai/hl/hl.h -text
 software/ai/hl/kalman_intersect_test/kalman_intersect_test.cpp -text
 software/ai/hl/movement_benchmark/movement_benchmark_hl.cpp -text
+software/ai/hl/navigation_challenge/navigation_challenge.cpp -text
 software/ai/hl/old/basic_play_strategy.cpp -text
 software/ai/hl/old/defender.cpp -text
 software/ai/hl/old/defender.h -text
