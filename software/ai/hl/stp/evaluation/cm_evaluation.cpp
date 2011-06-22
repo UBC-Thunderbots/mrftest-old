@@ -187,7 +187,6 @@ namespace {
 		}
 
 		// Compute variance
-		
 		variance = world.ball().position_stdev(time + closest_time).len();
 		
 		if (closest_dist > radius) 
@@ -202,6 +201,7 @@ namespace {
  */
 unsigned int AI::HL::STP::Evaluation::obs_position(const World &world, Point p, unsigned int obs_flags, double pradius, double time) {
 	unsigned int rv = 0;
+	const Field &f = world.field();
 
 	// Teammates
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
@@ -236,7 +236,7 @@ unsigned int AI::HL::STP::Evaluation::obs_position(const World &world, Point p, 
 	// Walls
 	if (obs_flags & OBS_WALLS) {
 		double radius = pradius;
-		if (std::fabs(p.x) + radius > world.field().length() / 2 || std::fabs(p.y) + radius > world.field().width() / 2) {
+		if (std::fabs(p.x) + radius > f.length() / 2 || std::fabs(p.y) + radius > f.width() / 2) {
 			rv |= OBS_BALL;
 		}
 	}
@@ -244,14 +244,14 @@ unsigned int AI::HL::STP::Evaluation::obs_position(const World &world, Point p, 
 	// Defense Zones
 	if (obs_flags & OBS_OUR_DZONE) {
 		double radius = pradius;
-		if (p.x <= -world.field().length() / 2 + world.field().defense_area_radius() + radius && std::fabs(p.y) <= world.field().defense_area_stretch() / 2 + radius) {
+		if (p.x <= -f.length() / 2 + f.defense_area_radius() + radius && std::fabs(p.y) <= f.defense_area_stretch() / 2 + radius) {
 			rv |= OBS_OUR_DZONE;
 		}
 	}
 
 	if (obs_flags & OBS_THEIR_DZONE) {
 		double radius = pradius;
-		if (p.x >= world.field().length() / 2 - world.field().defense_area_radius() - radius && std::fabs(p.y) <= world.field().defense_area_stretch() / 2 + radius) {
+		if (p.x >= f.length() / 2 - f.defense_area_radius() - radius && std::fabs(p.y) <= f.defense_area_stretch() / 2 + radius) {
 			rv |= OBS_THEIR_DZONE;
 		}
 	}
@@ -299,7 +299,7 @@ unsigned int AI::HL::STP::Evaluation::obs_line(const World &world, Point p1, Poi
 
 unsigned int AI::HL::STP::Evaluation::obs_line_first(const World &world, Point p1, Point p2, unsigned int obs_flags, Point &first, double pradius, double time) {
 	unsigned int rv = 0;
-
+	const Field &f = world.field();
 	first = p2;
 
 	// Teammates
@@ -378,19 +378,19 @@ unsigned int AI::HL::STP::Evaluation::obs_line_first(const World &world, Point p
 
 		Point i;
 
-		i = intersection(p1, p2, Point(world.field().length() / 2 - world.field().defense_area_radius() - pradius, world.field().defense_area_stretch() / 2 + pradius), Point(world.field().length() / 2 - world.field().defense_area_radius() - pradius, -world.field().defense_area_stretch() / 2 - pradius));
+		i = intersection(p1, p2, Point(f.length() / 2 - f.defense_area_radius() - pradius, f.defense_area_stretch() / 2 + pradius), Point(f.length() / 2 - f.defense_area_radius() - pradius, -f.defense_area_stretch() / 2 - pradius));
 		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
 			first = i;
 			rv = OBS_THEIR_DZONE;
 		}
 
-		i = intersection(p1, p2, Point(world.field().length() / 2 - world.field().defense_area_radius() - pradius, world.field().defense_area_stretch() / 2 + pradius), Point(world.field().length() / 2, world.field().defense_area_stretch() / 2 + pradius));
+		i = intersection(p1, p2, Point(f.length() / 2 - f.defense_area_radius() - pradius, f.defense_area_stretch() / 2 + pradius), Point(f.length() / 2, f.defense_area_stretch() / 2 + pradius));
 		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
 			first = i;
 			rv = OBS_THEIR_DZONE;
 		}
 
-		i = intersection(p1, p2, Point(world.field().length() / 2 - world.field().defense_area_radius() - pradius, -world.field().defense_area_stretch() / 2 - pradius), Point(world.field().length() / 2, -world.field().defense_area_stretch() / 2 - pradius));
+		i = intersection(p1, p2, Point(f.length() / 2 - f.defense_area_radius() - pradius, -f.defense_area_stretch() / 2 - pradius), Point(f.length() / 2, -f.defense_area_stretch() / 2 - pradius));
 		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
 			first = i;
 			rv = OBS_THEIR_DZONE;
@@ -402,9 +402,10 @@ unsigned int AI::HL::STP::Evaluation::obs_line_first(const World &world, Point p
 
 bool AI::HL::STP::Evaluation::obs_blocks_shot(const World &world, Point p, double time) {
 	Point ball = world.ball().position(time);
+	const Field &f = world.field();
 
-	double a = (Point(world.field().length() / 2, -world.field().goal_width() / 2) - ball).perp().dot(p - ball);
-	double b = (Point(world.field().length() / 2, world.field().goal_width() / 2) - ball).perp().dot(p - ball);
+	double a = (Point(f.length() / 2, -f.goal_width() / 2) - ball).perp().dot(p - ball);
+	double b = (Point(f.length() / 2, f.goal_width() / 2) - ball).perp().dot(p - ball);
 
 	return (a * b) < 0;
 }
@@ -614,7 +615,6 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_point(const World &world, dou
 			velocity = (targets[2] - targets[1]) / FRAME_PERIOD;
 		else 
 			velocity = Point(0, 0);
-
 	}
 
 	return true;
@@ -690,12 +690,10 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(const World &world, doub
 			velocity = (targets[2] - targets[1]) / FRAME_PERIOD * variance[0] / (variance[0] + variance[1]);
 		else 
 			velocity = Point(0, 0);
-		return true;
 
 	} else if (rv[0]) {
 		target = targets[0];
 		velocity = Point(0, 0);
-		return true;
 	
 	} else if (rv[1]) {
 		target = targets[1];
@@ -704,10 +702,10 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(const World &world, doub
 			velocity = (targets[2] - targets[1]) / FRAME_PERIOD;
 		else 
 			velocity = Point(0, 0);
-		return true;
-
-	} 
 		
+	} 
+
+	if (rv[0] || rv[1]) return true;		
 	return false;
 }
 
