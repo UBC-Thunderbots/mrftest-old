@@ -8,9 +8,6 @@ using namespace AI::HL::W;
 
 namespace {
 	DoubleParam pos_dis_threshold("pos distance threshold", "NC", 0.05, 0, 1.0);
-//	DoubleParam pos_vel_threshold("pos velocity threshold", "NC", 1.0, 0, 10.0);
-//	DoubleParam ori_dis_threshold("ori distance threshold", "NC", 0.1, 0, 1.0);
-//	DoubleParam ori_vel_threshold("ori velocity threshold", "NC", 0.03, 0, 1.0);
 
 	const std::pair<Point, double> default_tasks[] = {
 		std::make_pair(Point(2.7, 0.5), 0),
@@ -45,8 +42,29 @@ namespace {
 			void tick() {
 				FriendlyTeam &friendly = world.friendly_team();
 
-				if(friendly.size() == 0)
+				if (friendly.size() == 0)
 					return;
+
+				if (world.enemy_team().size() >= 2) {
+					Point leftmost(0, 0);
+					Point rightmost(0, 0);
+					for (unsigned int i = 0; i < world.enemy_team().size(); ++i) {
+						Point location = world.enemy_team().get(i)->position();
+						if (location.x < leftmost.x) {
+							leftmost = location;
+						} else if (location.x > rightmost.x) {
+							rightmost = location;
+						}
+					}
+
+					// set points relative to enemy robots
+					tasks[0] = std::make_pair(Point(leftmost.x, leftmost.y + 0.5), 0);
+					tasks[1] = std::make_pair(Point(leftmost.x - 0.3, leftmost.y), 0);
+					tasks[2] = std::make_pair(Point(leftmost.x, leftmost.y - 0.5), 0);
+					tasks[3] = std::make_pair(Point(rightmost.x, rightmost.y - 0.5), 0);
+					tasks[4] = std::make_pair(Point(rightmost.x + 0.3, rightmost.y), 0);
+					tasks[5] = std::make_pair(Point(rightmost.x, rightmost.y + 0.5), 0);
+				}
 
 				time_steps++;
 
