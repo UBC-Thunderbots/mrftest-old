@@ -99,7 +99,8 @@ namespace {
 						done[robotIndex] = 0;
 						return;
 					}
-					runner->move(tasks[done[robotIndex]].first, tasks[done[robotIndex]].second, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
+					double dest_ori = (tasks[done[robotIndex]].first - runner->position()).orientation();
+					runner->move(tasks[done[robotIndex]].first, dest_ori, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 				}
 			}
 
