@@ -7,6 +7,7 @@
 #include "ai/hl/util.h"
 #include "ai/hl/stp/play_executor.h"
 #include "geom/util.h"
+#include "ai/hl/stp/evaluation/ball.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -121,46 +122,45 @@ namespace {
 			}
 
 			void execute() {
-					// Action specific to this tactic
-					Player::Ptr passer;
+				// Action specific to this tactic
+				Player::Ptr passer;
 
-					if(passee != AI::HL::STP::HACK::active_player){
-						passer =  AI::HL::STP::HACK::active_player;
-					}
+				if(passee != AI::HL::STP::HACK::active_player){
+					passer =  AI::HL::STP::HACK::active_player;
+				}
 
-					bool fast_ball = world.ball().velocity().len() > negligible_velocity;
-					if(!passer.is()){ //no active passer
-						if(fast_ball) {
+				bool fast_ball = world.ball().velocity().len() > negligible_velocity;
+				if(!passer.is()){ //no active passer
+					if(fast_ball) {
 
+						// if ball is moving away from robot not closer then we chase
+						// if the ball is moving towards us then we want to intercept
+						bool	need_chase = ( world.ball().position() - player->position() ).dot(world.ball().velocity()) > 0;
 
-								// if ball is moving away from robot not closer then we chase
-								// if the ball is moving towards us then we want to intercept
-								bool	need_chase = ( world.ball().position() - player->position() ).dot(world.ball().velocity()) > 0;
-
-								if(need_chase){
-									Action::chase(world, passee);
-									valid = false;//this should be a fail condition
-								}else{
-									Point intercept_pos = closest_lineseg_point(player->position(), world.ball().position(),  world.ball().position() + 100 * world.ball().velocity().norm());
-									Point addit = passee_hack_dist*(intercept_pos - passee->position()).norm();
-									Action::move(player, (-world.ball().velocity()).orientation(), intercept_pos + addit);
-								}
-
-						} else {
+						if(need_chase){
 							Action::chase(world, passee);
-							valid = false;
-						}
-					} else { //there is an active passer
-						if(Action::within_angle_thresh(passer, target, passer_tol_target) ){
-							Point pass_dir(100, 0);
-							pass_dir = pass_dir.rotate(passer->orientation());
-							Point intercept_pos = closest_lineseg_point(player->position(), passer->position(), passer->position() + pass_dir);
-							Point addit = passee_hack_dist*(intercept_pos - passer->position()).norm();
-							Action::move(player, (passer->position() - intercept_pos).orientation(), intercept_pos + addit);
+							valid = false;//this should be a fail condition
 						}else{
-							Action::move(player, (world.ball().position() - player->position()).orientation(), target);
+							Point intercept_pos = closest_lineseg_point(player->position(), world.ball().position(),  world.ball().position() + 100 * world.ball().velocity().norm());
+							Point addit = passee_hack_dist*(intercept_pos - passee->position()).norm();
+							Action::move(player, (-world.ball().velocity()).orientation(), intercept_pos + addit);
 						}
+
+					} else {
+						Action::chase(world, passee);
+						valid = false;
 					}
+				} else { //there is an active passer
+					if(Action::within_angle_thresh(passer, target, passer_tol_target) ){
+						Point pass_dir(100, 0);
+						pass_dir = pass_dir.rotate(passer->orientation());
+						Point intercept_pos = closest_lineseg_point(player->position(), passer->position(), passer->position() + pass_dir);
+						Point addit = passee_hack_dist*(intercept_pos - passer->position()).norm();
+						Action::move(player, (passer->position() - intercept_pos).orientation(), intercept_pos + addit);
+					}else{
+						Action::move(player, (world.ball().position() - player->position()).orientation(), target);
+					}
+				}
 			}
 
 			std::string description() const {
@@ -182,6 +182,19 @@ namespace {
 			void execute() {
 				Point dest = Evaluation::calc_pass_positions(world).second;
 				Action::move(player, (world.ball().position() - player->position()).orientation(), dest);
+
+				const Player::CPtr passer = Evaluation::calc_friendly_baller(world);
+				
+				if(Action::within_angle_thresh(passer, dest, passer_tol_target) ){
+					Point pass_dir(100, 0);
+					pass_dir = pass_dir.rotate(passer->orientation());
+					Point intercept_pos = closest_lineseg_point(player->position(), passer->position(), passer->position() + pass_dir);
+					Point addit = passee_hack_dist*(intercept_pos - passer->position()).norm();
+					Action::move(player, (passer->position() - intercept_pos).orientation(), intercept_pos + addit);
+				} else {
+					Action::move(player, (world.ball().position() - player->position()).orientation(), dest);
+				}				
+
 			}
 			std::string description() const {
 				return "passee-move";
@@ -230,6 +243,18 @@ namespace {
 			void execute() {
 				Point dest = Evaluation::calc_def_pass_positions(world).second;
 				Action::move(player, (world.ball().position() - player->position()).orientation(), dest);
+		
+				const Player::CPtr passer = Evaluation::calc_friendly_baller(world);
+				
+				if(Action::within_angle_thresh(passer, dest, passer_tol_target) ){
+					Point pass_dir(100, 0);
+					pass_dir = pass_dir.rotate(passer->orientation());
+					Point intercept_pos = closest_lineseg_point(player->position(), passer->position(), passer->position() + pass_dir);
+					Point addit = passee_hack_dist*(intercept_pos - passer->position()).norm();
+					Action::move(player, (passer->position() - intercept_pos).orientation(), intercept_pos + addit);
+				} else {
+					Action::move(player, (world.ball().position() - player->position()).orientation(), dest);
+				}
 			}
 			std::string description() const {
 				return "def-passee-move";

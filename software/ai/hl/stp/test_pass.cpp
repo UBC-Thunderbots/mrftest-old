@@ -26,7 +26,7 @@ namespace {
 	DoubleParam passee_hack_dist("Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)", "STP/test_pass", 0.03, 0.0, 1.0);
 	// make better targets
 
-	BoolParam lower_number_passer("lower numbered bot is passer", "STP/test_pass2", true);
+	BoolParam lower_number_passer("lower numbered bot is passer", "STP/test_pass", true);
 
 	const Point default_targets[] = {
 		Point(1.2, 0),
