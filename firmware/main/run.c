@@ -706,7 +706,7 @@ void run(void) {
 					/* Channel 2 -> break beam.
 					 * Record result. */
 					feedback_block.break_beam_raw = (ADRESH << 8) | ADRESL;
-					feedback_block.flags.ball_in_beam = feedback_block.break_beam_raw >= 300;
+					feedback_block.flags.ball_in_beam = feedback_block.break_beam_raw >= 512;
 					/* Start a conversion on channel 3. */
 					ADCON0bits.CHS0 = 1;
 					ADCON0bits.GO = 1;
