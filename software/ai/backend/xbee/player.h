@@ -110,8 +110,6 @@ namespace AI {
 					 * \param[in] bot the XBee robot being driven.
 					 */
 					Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot);
-
-					void on_feedback();
 			};
 		}
 	}
