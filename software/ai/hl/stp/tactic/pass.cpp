@@ -94,16 +94,17 @@ namespace {
 
 	class PasseeMoveTarget : public Tactic, public sigc::trackable {
 		public:
-		PasseeMoveTarget(const World &world, Point target, bool active=false) : Tactic(world, active), target(target) {
+			PasseeMoveTarget(const World &world, Point target, bool active) : Tactic(world, active), target(target), valid(true) {
 				world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &PasseeMoveTarget::on_player_removing));
 			}
 			
 		virtual bool done() const {
-			return player->has_ball();
+			return player->has_ball() || !valid;
 		}
 		private:
 			mutable Player::Ptr passee;
 			Point target;
+			bool valid;
 
 			void on_player_removing(std::size_t index) {
 				if( world.friendly_team().get(index) == Player::CPtr(passee)){
@@ -130,25 +131,24 @@ namespace {
 					bool fast_ball = world.ball().velocity().len() > negligible_velocity;
 					if(!passer.is()){ //no active passer
 						if(fast_ball) {
-								Point intercept_pos = closest_lineseg_point(player->position(), world.ball().position(),  world.ball().position() + 100 * world.ball().velocity().norm());
+
 
 								// if ball is moving away from robot not closer then we chase
 								// if the ball is moving towards us then we want to intercept
-								bool need_chase = false;
-								Point player_dir = intercept_pos - player->position();
-								if(player_dir.len() > 0.1){
-									need_chase = player_dir.dot(world.ball().velocity()) > 0;
-								}
+								bool	need_chase = ( world.ball().position() - player->position() ).dot(world.ball().velocity()) > 0;
 
-								Point addit = passee_hack_dist*(intercept_pos - passee->position()).norm();
 								if(need_chase){
 									Action::chase(world, passee);
+									valid = false;//this should be a fail condition
 								}else{
+									Point intercept_pos = closest_lineseg_point(player->position(), world.ball().position(),  world.ball().position() + 100 * world.ball().velocity().norm());
+									Point addit = passee_hack_dist*(intercept_pos - passee->position()).norm();
 									Action::move(player, (-world.ball().velocity()).orientation(), intercept_pos + addit);
 								}
 
 						} else {
 							Action::chase(world, passee);
+							valid = false;
 						}
 					} else { //there is an active passer
 						if(Action::within_angle_thresh(passer, target, passer_tol_target) ){
@@ -243,8 +243,8 @@ Tactic::Ptr AI::HL::STP::Tactic::passer_shoot_target(const World &world, Point t
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passee_move_target(const World &world, Point target) {
-	const Tactic::Ptr p(new PasseeMoveTarget(world, target));
+Tactic::Ptr AI::HL::STP::Tactic::passee_move_target(const World &world, Point target, bool active) {
+	const Tactic::Ptr p(new PasseeMoveTarget(world, target, active));
 	return p;
 }
 

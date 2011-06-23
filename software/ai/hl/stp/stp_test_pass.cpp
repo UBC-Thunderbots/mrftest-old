@@ -6,6 +6,8 @@
 #include <cassert>
 #include <gtkmm.h>
 
+#include <iostream>
+
 using namespace AI::HL;
 using namespace AI::HL::STP;
 using namespace AI::HL::W;
@@ -23,8 +25,20 @@ namespace {
 
 	class STPTestPass : public PlayExecutor, public HighLevel {
 		public:
-			STPTestPass(World &world) : PlayExecutor(world) {
+		STPTestPass(World &world) : PlayExecutor(world), pos(0) {
 				text_view.set_editable(false);
+				const Play::PlayFactory::Map &m = Play::PlayFactory::all();
+				assert(m.size() != 0);
+				for (Play::PlayFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
+					if(i->second->name() == "PassTest" ){
+						plays.push_back(i->second->create(world));
+					}
+				}
+				for (Play::PlayFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
+					if(i->second->name() == "RecieveTest"){
+						plays.push_back(i->second->create(world));
+					}
+				}
 			}
 
 			STPTestPassFactory &factory() const {
@@ -34,9 +48,9 @@ namespace {
 			void calc_play() {
 				curr_play.reset();
 				//need to set cur play here
-
-
-
+				pos++;
+				pos = pos % plays.size();
+				curr_play = plays[pos];
 				//need to set cur play above
 				assert(curr_play.is());
 				curr_role_step = 0;
@@ -90,6 +104,12 @@ namespace {
 			}
 
 		protected:
+
+			int pos;
+			/**
+			* List of all the available plays
+			*/
+			std::vector<Play::Play::Ptr> plays;
 
 			void tick_ui() {
 				std::ostringstream text;

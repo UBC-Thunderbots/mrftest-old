@@ -17,7 +17,7 @@ namespace AI {
 				/**
 				 * Passee moves to intercept the moving ball, in the target region
 				 */
-				Tactic::Ptr passee_move_target(const World &world, Point target);
+				Tactic::Ptr passee_move_target(const World &world, Point target, bool acitve = false);
 
 				/**
 				 * Passer positioning and shoot for offensive purposes
