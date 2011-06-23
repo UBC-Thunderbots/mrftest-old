@@ -92,6 +92,7 @@ namespace {
 				}
 
 				execute_tactics();
+				tick_ui();
 			}
 
 			Gtk::Widget *ui_controls() {
