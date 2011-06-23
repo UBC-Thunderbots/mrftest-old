@@ -8,6 +8,8 @@
 #include "ai/hl/stp/play_executor.h"
 #include "geom/util.h"
 #include "ai/hl/stp/evaluation/ball.h"
+#include "ai/hl/stp/evaluation/team.h"
+#include "util/dprint.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -182,8 +184,8 @@ namespace {
 			void execute() {
 				Point dest = Evaluation::calc_pass_positions(world).second;
 				Action::move(player, (world.ball().position() - player->position()).orientation(), dest);
-
-				const Player::CPtr passer = Evaluation::calc_friendly_baller(world);
+				
+				Player::CPtr passer = Evaluation::nearest_friendly(world, world.ball().position());
 				
 				if(Action::within_angle_thresh(passer, dest, passer_tol_target) ){
 					Point pass_dir(100, 0);
@@ -194,7 +196,7 @@ namespace {
 				} else {
 					Action::move(player, (world.ball().position() - player->position()).orientation(), dest);
 				}				
-
+				player->type(AI::Flags::MoveType::DRIBBLE);
 			}
 			std::string description() const {
 				return "passee-move";
@@ -244,7 +246,7 @@ namespace {
 				Point dest = Evaluation::calc_def_pass_positions(world).second;
 				Action::move(player, (world.ball().position() - player->position()).orientation(), dest);
 		
-				const Player::CPtr passer = Evaluation::calc_friendly_baller(world);
+				Player::CPtr passer = Evaluation::nearest_friendly(world, world.ball().position());
 				
 				if(Action::within_angle_thresh(passer, dest, passer_tol_target) ){
 					Point pass_dir(100, 0);
@@ -255,6 +257,7 @@ namespace {
 				} else {
 					Action::move(player, (world.ball().position() - player->position()).orientation(), dest);
 				}
+				player->type(AI::Flags::MoveType::DRIBBLE);
 			}
 			std::string description() const {
 				return "def-passee-move";

@@ -31,7 +31,6 @@ bool AI::HL::STP::Evaluation::possess_ball(const World &world, Player::CPtr play
 
 Player::CPtr AI::HL::STP::Evaluation::calc_friendly_baller(const World &world) {
 	const FriendlyTeam &friendly = world.friendly_team();
-	std::set<Player::CPtr> players;
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		if (possess_ball(world, friendly.get(i))) {
 			return friendly.get(i);
@@ -42,7 +41,6 @@ Player::CPtr AI::HL::STP::Evaluation::calc_friendly_baller(const World &world) {
 
 Robot::Ptr AI::HL::STP::Evaluation::calc_enemy_baller(const World &world) {
 	const EnemyTeam &enemy = world.enemy_team();
-	std::set<Robot::Ptr> enemies;
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		if (AI::HL::Util::posses_ball(world, enemy.get(i))) {
 			return enemy.get(i);
