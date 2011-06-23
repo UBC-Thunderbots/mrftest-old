@@ -83,6 +83,7 @@ namespace {
 			void execute() {
 					if (Action::shoot_pass(world, player, target)) {
 						kicked = true;
+						AI::HL::STP::HACK::last_kicked = player;
 					}
 			}
 
