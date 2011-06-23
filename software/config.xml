@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE thunderbots [
-<!ELEMENT thunderbots (params , joysticks)>
+<!ELEMENT thunderbots (params , joysticks , robots)>
 <!ELEMENT params (category)*>
 <!ELEMENT category (category | boolean | integer | double)*>
 <!ELEMENT boolean (#PCDATA)>
@@ -11,6 +11,9 @@
 <!ELEMENT axes (mapping)*>
 <!ELEMENT buttons (mapping)*>
 <!ELEMENT mapping EMPTY>
+<!ELEMENT robots (robot)*>
+<!ELEMENT robot (kicker)>
+<!ELEMENT kicker EMPTY>
 <!ATTLIST category name CDATA #REQUIRED>
 <!ATTLIST boolean name CDATA #REQUIRED>
 <!ATTLIST integer name CDATA #REQUIRED>
@@ -18,6 +21,8 @@
 <!ATTLIST joystick name CDATA #REQUIRED>
 <!ATTLIST mapping logical CDATA #REQUIRED>
 <!ATTLIST mapping physical CDATA #REQUIRED>
+<!ATTLIST robot id CDATA #REQUIRED>
+<!ATTLIST kicker directional CDATA #REQUIRED>
 ]>
 <thunderbots>
   <params>
@@ -212,4 +217,15 @@
       </buttons>
     </joystick>
   </joysticks>
+  <robots>
+    <robot id="0">
+	  <kicker directional="false"/>
+	</robot>
+	<robot id="2">
+	  <kicker directional="false"/>
+	</robot>
+	<robot id="3">
+	  <kicker directional="true"/>
+	</robot>
+  </robots>
 </thunderbots>

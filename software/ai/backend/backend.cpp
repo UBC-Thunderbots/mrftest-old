@@ -51,28 +51,44 @@ void AI::BE::Player::prio(AI::Flags::MovePrio prio) {
 	move_prio_ = prio;
 }
 
-void AI::BE::Player::kick(double power) {
-	if (!std::isfinite(power)) {
-		LOG_ERROR("NaN or ±inf power");
+void AI::BE::Player::kick(double speed, double angle) {
+	if (!std::isfinite(speed)) {
+		LOG_ERROR("NaN or ±inf speed");
 		return;
 	}
-	if (power < 0) {
-		LOG_ERROR("Out-of-range power");
-		power = 0;
+	if (speed < 0) {
+		LOG_ERROR("Out-of-range speed");
+		speed = 0;
 	}
-	kick_impl(power);
+	if (!std::isfinite(angle)) {
+		LOG_ERROR("NaN or ±inf speed");
+		return;
+	}
+	if (!kicker_directional() && std::abs(angle) > 1e-9) {
+		LOG_ERROR("Angled kick requested on nondirectional kicker");
+		return;
+	}
+	kick_impl(speed, angle);
 }
 
-void AI::BE::Player::autokick(double power) {
-	if (!std::isfinite(power)) {
-		LOG_ERROR("NaN or ±inf power");
+void AI::BE::Player::autokick(double speed, double angle) {
+	if (!std::isfinite(speed)) {
+		LOG_ERROR("NaN or ±inf speed");
 		return;
 	}
-	if (power < 0) {
-		LOG_ERROR("Out-of-range power");
-		power = 0;
+	if (speed < 0) {
+		LOG_ERROR("Out-of-range speed");
+		speed = 0;
 	}
-	autokick_impl(power);
+	if (!std::isfinite(angle)) {
+		LOG_ERROR("NaN or ±inf speed");
+		return;
+	}
+	if (!kicker_directional() && std::abs(angle) > 1e-9) {
+		LOG_ERROR("Angled kick requested on nondirectional kicker");
+		return;
+	}
+	autokick_impl(speed, angle);
 }
 
 void AI::BE::Player::path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) {

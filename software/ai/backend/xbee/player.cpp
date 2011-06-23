@@ -1,11 +1,13 @@
 #include "ai/backend/xbee/player.h"
 #include "geom/angle.h"
 #include "util/algorithm.h"
+#include "util/config.h"
 #include "util/dprint.h"
+#include "util/string.h"
 #include "util/time.h"
 #include <algorithm>
 #include <cmath>
-#include <iostream>
+#include <sstream>
 
 using namespace AI::BE::XBee;
 
@@ -14,7 +16,7 @@ namespace {
 
 	const int BATTERY_HYSTERESIS_MAGNITUDE = 15;
 
-	unsigned int calc_kick(double speed) {
+	unsigned int calc_kick_straight(double speed) {
 		static const double SPEEDS[] = { 7.14, 8.89, 10.3 };
 		static const unsigned int POWERS[] = { 2016, 3024, 4032 };
 
@@ -39,6 +41,38 @@ namespace {
 		double power = (speed - speed_below) * slope + power_below;
 		return static_cast<unsigned int>(clamp(power, 0.0, 4064.0));
 	}
+
+	unsigned int calc_kick_directional_power(double speed) {
+		return static_cast<unsigned int>(clamp(78.6 * speed * speed - 84.4 * speed, 0.0, 4064.0));
+	}
+
+	int calc_kick_directional_offset(double angle) {
+		return static_cast<int>(clamp(37.0 * angle, -4064.0, 4064.0));
+	}
+
+	bool kicker_directional_impl(unsigned int pattern) {
+		const xmlpp::Element *robots_elt = Config::robots();
+		const xmlpp::Node::NodeList &robot_elts = robots_elt->get_children();
+		for (auto i = robot_elts.begin(), iend = robot_elts.end(); i != iend; ++i) {
+			const xmlpp::Element *robot_elt = dynamic_cast<const xmlpp::Element *>(*i);
+			if (robot_elt && robot_elt->get_name() == "robot") {
+				std::wistringstream iss(ustring2wstring(robot_elt->get_attribute_value("id")));
+				unsigned int id;
+				if (iss >> id) {
+					if (id == pattern) {
+						const xmlpp::Node::NodeList &child_elts = robot_elt->get_children();
+						for (auto j = child_elts.begin(), jend = child_elts.end(); j != jend; ++j) {
+							const xmlpp::Element *child_elt = dynamic_cast<const xmlpp::Element *>(*j);
+							if (child_elt && child_elt->get_name() == "kicker") {
+								return child_elt->get_attribute_value("directional") == "true";
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
 }
 
 const std::pair<Point, double> &Player::destination() const {
@@ -57,19 +91,31 @@ bool Player::chicker_ready() const {
 	return bot->alive && bot->capacitor_charged;
 }
 
-void Player::kick_impl(double speed) {
+bool Player::kicker_directional() const {
+	return kicker_directional_;
+}
+
+void Player::kick_impl(double speed, double angle) {
 	if (bot->alive) {
 		if (bot->capacitor_charged) {
-			bot->kick(calc_kick(speed), calc_kick(speed), 0);
+			if (kicker_directional()) {
+				bot->kick(calc_kick_directional_power(speed), calc_kick_directional_power(speed), calc_kick_directional_offset(angle));
+			} else {
+				bot->kick(calc_kick_straight(speed), calc_kick_straight(speed), 0);
+			}
 		} else {
 			LOG_ERROR(Glib::ustring::compose("Bot %1 chick when not ready", pattern()));
 		}
 	}
 }
 
-void Player::autokick_impl(double speed) {
+void Player::autokick_impl(double speed, double angle) {
 	if (bot->alive) {
-		bot->autokick(calc_kick(speed), calc_kick(speed), 0);
+		if (kicker_directional()) {
+			bot->autokick(calc_kick_directional_power(speed), calc_kick_directional_power(speed), calc_kick_directional_offset(angle));
+		} else {
+			bot->autokick(calc_kick_straight(speed), calc_kick_straight(speed), 0);
+		}
 		autokick_invoked = true;
 	}
 }
@@ -79,7 +125,7 @@ Player::Ptr Player::create(AI::BE::Backend &backend, unsigned int pattern, XBeeR
 	return p;
 }
 
-Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_invoked(false) {
+Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_invoked(false), kicker_directional_(kicker_directional_impl(pattern)) {
 	timespec now;
 	timespec_now(now);
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);

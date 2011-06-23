@@ -24,6 +24,13 @@ namespace AI {
 				 * \return \c true if ready, or \c false if not.
 				 */
 				virtual bool chicker_ready() const = 0;
+
+				/**
+				 * \brief Checks if this robot's kicker is able to kick on an angle.
+				 *
+				 * \return \c true if the kicker can kick on an angle, or \c false if the kicker can only kick straight.
+				 */
+				virtual bool kicker_directional() const = 0;
 		};
 	}
 }

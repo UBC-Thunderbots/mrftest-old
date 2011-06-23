@@ -98,8 +98,9 @@ namespace AI {
 					ObjectStore &object_store() const { return Robot::object_store(); }
 					bool has_ball() const;
 					bool chicker_ready() const;
-					void kick_impl(double power);
-					void autokick_impl(double power);
+					bool kicker_directional() const;
+					void kick_impl(double speed, double angle);
+					void autokick_impl(double speed, double angle);
 					bool has_destination() const;
 					const std::pair<Point, double> &destination() const;
 					Point target_velocity() const;

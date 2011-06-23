@@ -68,13 +68,17 @@ bool AI::BE::Simulator::Player::chicker_ready() const {
 	return true;
 }
 
-void AI::BE::Simulator::Player::kick_impl(double power) {
-	kick_ = true;
-	chick_power_ = power;
+bool AI::BE::Simulator::Player::kicker_directional() const {
+	return false;
 }
 
-void AI::BE::Simulator::Player::autokick_impl(double power) {
-	kick_impl(power);
+void AI::BE::Simulator::Player::kick_impl(double speed, double) {
+	kick_ = true;
+	chick_power_ = speed;
+}
+
+void AI::BE::Simulator::Player::autokick_impl(double speed, double angle) {
+	kick_impl(speed, angle);
 }
 
 bool AI::BE::Simulator::Player::has_destination() const {

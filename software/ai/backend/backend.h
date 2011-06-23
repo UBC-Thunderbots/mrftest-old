@@ -92,6 +92,7 @@ namespace AI {
 				double avelocity(double delta) const = 0;
 				unsigned int pattern() const = 0;
 				ObjectStore &object_store() const = 0;
+				bool kicker_directional() const = 0;
 				void move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) __attribute__((deprecated));
 				void move(Point dest, double ori, Point vel);
 				unsigned int flags() const { return flags_; }
@@ -100,8 +101,8 @@ namespace AI {
 				void type(AI::Flags::MoveType type);
 				AI::Flags::MovePrio prio() const { return move_prio_; }
 				void prio(AI::Flags::MovePrio prio);
-				void kick(double power);
-				void autokick(double power);
+				void kick(double speed, double angle);
+				void autokick(double speed, double angle);
 				const std::pair<Point, double> &destination() const = 0;
 				void path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p);
 				void pre_tick();
@@ -114,8 +115,8 @@ namespace AI {
 				AI::Flags::MoveType move_type_;
 				AI::Flags::MovePrio move_prio_;
 
-				virtual void kick_impl(double power) = 0;
-				virtual void autokick_impl(double power) = 0;
+				virtual void kick_impl(double speed, double angle) = 0;
+				virtual void autokick_impl(double speed, double angle) = 0;
 				virtual void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) = 0;
 		};
 

@@ -57,8 +57,9 @@ namespace AI {
 					ObjectStore &object_store() const { return Robot::object_store(); }
 					bool has_ball() const;
 					bool chicker_ready() const;
-					void kick_impl(double speed);
-					void autokick_impl(double speed);
+					bool kicker_directional() const;
+					void kick_impl(double speed, double angle);
+					void autokick_impl(double speed, double angle);
 					bool has_destination() const { return true; }
 					const std::pair<Point, double> &destination() const;
 					Point target_velocity() const;
@@ -95,6 +96,7 @@ namespace AI {
 					int wheel_speeds_[4];
 					std::vector<std::pair<std::pair<Point, double>, timespec> > path_;
 					bool autokick_invoked;
+					bool kicker_directional_;
 
 					/**
 					 * Constructs a new Player object.

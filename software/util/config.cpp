@@ -117,3 +117,13 @@ xmlpp::Element *Config::joysticks() {
 	return dynamic_cast<xmlpp::Element *>(*joysticks_elts.begin());
 }
 
+xmlpp::Element *Config::robots() {
+	xmlpp::Document *doc = parser().get_document();
+	xmlpp::Element *root_elt = doc->get_root_node();
+	const xmlpp::Node::NodeList &robots_elts = root_elt->get_children("robots");
+	if (robots_elts.size() != 1) {
+		throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose("Malformed config.xml (expected exactly one robots element, found %1)", robots_elts.size())));
+	}
+	return dynamic_cast<xmlpp::Element *>(*robots_elts.begin());
+}
+
