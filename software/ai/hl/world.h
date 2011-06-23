@@ -135,7 +135,7 @@ namespace AI {
 					 *
 					 * \param[in] speed the speed of the kick, in m/s.
 					 *
-					 * \param[in] angle the angle to kick at, in radians, with positive being to the right of the robot's orientation.
+					 * \param[in] angle the angle to kick at, in radians, with positive being to the left of the robot's orientation.
 					 */
 					virtual void kick(double speed, double angle = 0) = 0;
 
@@ -146,7 +146,7 @@ namespace AI {
 					 *
 					 * \param[in] speed the speed of the kick, in m/s.
 					 *
-					 * \param[in] angle the angle to kick at, in radians, with positive being to the right of the robot's orientation.
+					 * \param[in] angle the angle to kick at, in radians, with positive being to the left of the robot's orientation.
 					 */
 					virtual void autokick(double speed, double angle = 0) = 0;
 			};
