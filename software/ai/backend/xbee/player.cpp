@@ -47,7 +47,7 @@ namespace {
 	}
 
 	int calc_kick_directional_offset(double angle) {
-		return static_cast<int>(clamp(37.0 * angle, -4064.0, 4064.0));
+		return static_cast<int>(clamp(37.0 * radians2degrees(angle), -4064.0, 4064.0));
 	}
 
 	bool kicker_directional_impl(unsigned int pattern) {
