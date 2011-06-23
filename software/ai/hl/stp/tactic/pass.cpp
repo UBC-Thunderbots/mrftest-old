@@ -187,7 +187,7 @@ namespace {
 				
 				Player::CPtr passer = Evaluation::nearest_friendly(world, world.ball().position());
 				
-				if(Action::within_angle_thresh(passer, dest, passer_tol_target) ){
+				if(Action::within_angle_thresh(passer, dest, passer_tol_target) && passer->has_ball()){
 					Point pass_dir(100, 0);
 					pass_dir = pass_dir.rotate(passer->orientation());
 					Point intercept_pos = closest_lineseg_point(player->position(), passer->position(), passer->position() + pass_dir);
@@ -248,7 +248,7 @@ namespace {
 		
 				Player::CPtr passer = Evaluation::nearest_friendly(world, world.ball().position());
 				
-				if(Action::within_angle_thresh(passer, dest, passer_tol_target) ){
+				if(Action::within_angle_thresh(passer, dest, passer_tol_target) && passer->has_ball()){
 					Point pass_dir(100, 0);
 					pass_dir = pass_dir.rotate(passer->orientation());
 					Point intercept_pos = closest_lineseg_point(player->position(), passer->position(), passer->position() + pass_dir);

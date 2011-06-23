@@ -6,7 +6,7 @@
 using AI::HL::STP::Coordinate;
 
 BEGIN_PLAY(CMONaive)
-INVARIANT(false)//INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2))
+INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2) && baller_can_shoot(world))
 APPLICABLE(offensive(world) && !ball_in_their_corner(world))
 DONE(goal(world))
 FAIL(defensive(world) || ball_in_their_corner(world))
@@ -21,11 +21,11 @@ roles[0].push_back(shoot_goal(world));
 
 // ROLE 2 (optional)
 // cm defend point 1
-roles[1].push_back(tdefend_point(world, Coordinate(world, Point(-1.4, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.7));
+roles[1].push_back(tdefend_point(world, Coordinate(world, Point(-1.4, 0.5), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.7));
 
 // ROLE 3 (optional)
 // cm defend point 2
-roles[2].push_back(tdefend_point(world, Coordinate(world, Point(-1.4, -0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.7));
+roles[2].push_back(tdefend_point(world, Coordinate(world, Point(-1.4, -0.5), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.7));
 
 // ROLE 4 (optional)
 // cm defend lane
