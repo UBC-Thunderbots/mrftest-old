@@ -10,12 +10,14 @@
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/team.h"
 #include "util/dprint.h"
+#include "ai/hl/stp/predicates.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 using AI::HL::STP::Coordinate;
 namespace Evaluation = AI::HL::STP::Evaluation;
 namespace Action = AI::HL::STP::Action;
+namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
 
@@ -26,7 +28,6 @@ namespace {
 	
 	DoubleParam passee_hack_dist("Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)", "STP/Tatic/pass", 0.03, 0.0, 1.0);
 
-
 	class PasserShoot : public Tactic {
 		public:
 			PasserShoot(const World &world) : Tactic(world, true), kicked(false) {
@@ -35,7 +36,8 @@ namespace {
 		private:
 			bool kicked;
 			bool done() const {
-				return kicked;
+				Player::CPtr passee = Evaluation::nearest_friendly(world, Evaluation::calc_pass_positions(world).second);
+				return kicked && (passee->has_ball() || Predicates::their_ball(world));
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return select_baller(world, players);
@@ -187,12 +189,33 @@ namespace {
 				
 				Player::CPtr passer = Evaluation::nearest_friendly(world, world.ball().position());
 				
+				bool fast_ball = world.ball().velocity().len() > negligible_velocity;
 				if(Action::within_angle_thresh(passer, dest, passer_tol_target) && passer->has_ball()){
 					Point pass_dir(100, 0);
 					pass_dir = pass_dir.rotate(passer->orientation());
 					Point intercept_pos = closest_lineseg_point(player->position(), passer->position(), passer->position() + pass_dir);
 					Point addit = passee_hack_dist*(intercept_pos - passer->position()).norm();
 					Action::move(player, (passer->position() - intercept_pos).orientation(), intercept_pos + addit);
+				
+				} else if (!passer->has_ball()) { 
+					if(fast_ball) {
+
+						// if ball is moving away from robot not closer then we chase
+						// if the ball is moving towards us then we want to intercept
+						bool need_chase = (world.ball().position() - player->position()).dot(world.ball().velocity()) > 0;
+
+						if(need_chase){
+							Action::chase(world, player);
+						}else{
+							Point intercept_pos = closest_lineseg_point(player->position(), world.ball().position(), world.ball().position() + 100 * world.ball().velocity().norm());
+							Point add = passee_hack_dist*(intercept_pos - player->position()).norm();
+							Action::move(player, (-world.ball().velocity()).orientation(), intercept_pos + add);
+						}
+
+					} else {
+						Action::chase(world, player);
+					}
+
 				} else {
 					Action::move(player, (world.ball().position() - player->position()).orientation(), dest);
 				}				
@@ -211,7 +234,8 @@ namespace {
 		private:
 			bool kicked;
 			bool done() const {
-				return kicked;
+				Player::CPtr passee = Evaluation::nearest_friendly(world, Evaluation::calc_pass_positions(world).second);
+				return kicked && (passee->has_ball() || Predicates::their_ball(world));
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return select_baller(world, players);
@@ -247,13 +271,33 @@ namespace {
 				Action::move(player, (world.ball().position() - player->position()).orientation(), dest);
 		
 				Player::CPtr passer = Evaluation::nearest_friendly(world, world.ball().position());
-				
+
+				bool fast_ball = world.ball().velocity().len() > negligible_velocity;				
 				if(Action::within_angle_thresh(passer, dest, passer_tol_target) && passer->has_ball()){
 					Point pass_dir(100, 0);
 					pass_dir = pass_dir.rotate(passer->orientation());
 					Point intercept_pos = closest_lineseg_point(player->position(), passer->position(), passer->position() + pass_dir);
 					Point addit = passee_hack_dist*(intercept_pos - passer->position()).norm();
 					Action::move(player, (passer->position() - intercept_pos).orientation(), intercept_pos + addit);
+				} else if (!passer->has_ball()) { 
+					if(fast_ball) {
+
+						// if ball is moving away from robot not closer then we chase
+						// if the ball is moving towards us then we want to intercept
+						bool need_chase = (world.ball().position() - player->position()).dot(world.ball().velocity()) > 0;
+
+						if(need_chase){
+							Action::chase(world, player);
+						}else{
+							Point intercept_pos = closest_lineseg_point(player->position(), world.ball().position(), world.ball().position() + 100 * world.ball().velocity().norm());
+							Point add = passee_hack_dist*(intercept_pos - player->position()).norm();
+							Action::move(player, (-world.ball().velocity()).orientation(), intercept_pos + add);
+						}
+
+					} else {
+						Action::chase(world, player);
+					}
+
 				} else {
 					Action::move(player, (world.ball().position() - player->position()).orientation(), dest);
 				}
