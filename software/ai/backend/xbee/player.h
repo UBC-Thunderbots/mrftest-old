@@ -111,11 +111,6 @@ namespace AI {
 					 */
 					Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot);
 
-					/**
-					 * Process that makes sure that the dribble motor is not stalled for too long.
-					 */
-					void dribbler_safety();
-
 					void on_feedback();
 			};
 		}
