@@ -46,6 +46,13 @@ namespace AI {
 				bool shoot_pass(const World& world, Player::Ptr shooter, const Point target);
 
 				/**
+				 * Directly shoots to a player.
+				 *
+				 * \return true if the shooter shoots.
+				 */
+				bool shoot_pass(const World& world, Player::Ptr shooter, const Point target, double angle_tol);
+
+				/**
 				 * Determines whether or not the robot is facing within threshold degrees of the specified target
 				 *
 				 */

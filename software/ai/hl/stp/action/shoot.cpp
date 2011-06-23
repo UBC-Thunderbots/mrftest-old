@@ -71,6 +71,10 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 }
 
 bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target) {
+	return shoot_pass(world, player, target, pass_threshold);
+}
+
+bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target, double angle_tol) {
 	if (!player->has_ball()) {
 		chase_pivot(world, player, target);
 		return false;
@@ -79,7 +83,7 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	pivot(world, player, target);
 
 	// checker shooter orientation
-	if (!within_angle_thresh(player, target, pass_threshold)) {
+	if (!within_angle_thresh(player, target, angle_tol)) {
 		return false;
 	}
 

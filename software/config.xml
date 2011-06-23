@@ -183,11 +183,9 @@
         <double name=" angle tolerance that the passer needs to be with respect to the target">30.0</double>
         <double name=" distance tolerance that the passee needs to be with respect to the passer shot">0.050</double>
         <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.030</double>
+        <boolean name="lower numbered bot is passer">true</boolean>
         <integer name="passing target points">0</integer>
         <double name="velocity to ignore">0.100</double>
-      </category>
-      <category name="test_pass2">
-        <boolean name="lower numbered bot is passer">false</boolean>
       </category>
       <category name="util">
         <double name="distance for ball possesion (x ball radius)">2.000</double>
