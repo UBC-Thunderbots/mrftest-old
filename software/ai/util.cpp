@@ -31,6 +31,8 @@ bool AI::Util::grab_ball_dest(Point ball_pos, Point ball_vel, Point player_pos, 
 		t = std::max(t1, t2);
 	}
 
+	dest = ball_pos;
+
 	if (std::isnan(t) || std::isinf(t) || t < 0) {
 		return false;
 	}
