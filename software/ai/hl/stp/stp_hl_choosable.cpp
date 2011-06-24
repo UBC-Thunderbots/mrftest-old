@@ -89,9 +89,9 @@ namespace {
 				assert(curr_play.is());
 
 				if (!curr_play->invariant() || curr_play->done() || curr_play->fail()) {
-					LOG_INFO("play not valid");
-					curr_play.reset();
-					return;
+					LOG_WARN("play not valid");
+					//curr_play.reset();
+					//return;
 				}
 
 				// auto itr = m.find(combo.get_active_text().c_str());
@@ -131,10 +131,12 @@ namespace {
 					curr_play.reset();
 				}
 
+				/*
 				if (curr_play.is() && (!curr_play->invariant() || curr_play->done() || curr_play->fail())) {
 					LOG_INFO("play done/no longer valid");
 					curr_play.reset();
 				}
+				*/
 
 				std::ostringstream text;
 
@@ -144,6 +146,14 @@ namespace {
 				} else {
 					text << "Stop";
 				}
+
+				if (curr_play.is()) {
+					text << std::endl << "step: " << curr_role_step;
+					if (!curr_play->invariant() || curr_play->done() || curr_play->fail()) {
+						text << std::endl << "warning: play invalid!";
+					}
+				}
+
 				text_status.get_buffer()->set_text(text.str());
 			}
 

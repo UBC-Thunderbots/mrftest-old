@@ -235,7 +235,7 @@ void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 	}
 	curr_play->draw_overlay(ctx);
 	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-		const auto &role = curr_roles[i];
+		const std::vector<Tactic::Tactic::Ptr> &role = curr_roles[i];
 		for (std::size_t t = 0; t < role.size(); ++t) {
 			role[t]->draw_overlay(ctx);
 		}
