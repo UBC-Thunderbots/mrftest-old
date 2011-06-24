@@ -26,6 +26,11 @@
 ]>
 <thunderbots>
   <params>
+    <category name="AI">
+      <category name="Param">
+        <double name="Average Player Velocity">1.5</double>
+      </category>
+    </category>
     <category name="Backend">
       <category name="XBee">
         <double name="Loop Delay">0.100</double>
@@ -65,6 +70,7 @@
         <double name="Buffer for equal priority friendly robot (meters)">0.100</double>
         <double name="Buffer for higher priority friendly robot (meters)">0.200</double>
         <double name="Buffer for lower priority friendly robot (meters)">0.050</double>
+        <boolean name="enforce that robots stay on own half ">false</boolean>
         <double name="The amount of distance to maintain from enemy robots">0.100</double>
       </category>
     </category>
@@ -121,9 +127,9 @@
           <double name="Lone Goalie: distance to goal post (m)">0.300</double>
         </category>
         <category name="shoot">
-          <double name="Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate">10.0</double>
+          <double name="Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate">17.1</double>
           <double name="Decay constant for the ball velocity">0.100</double>
-          <double name="kicking speed for making a pass">4.75</double>
+          <double name="kicking speed for making a pass">5.37</double>
           <double name="reduced radius for calculating best shot (robot radius ratio)">0.800</double>
         </category>
         <category name="spin">
@@ -163,10 +169,13 @@
         <double name="Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate">0.0</double>
       </category>
       <category name="STP">
-        <boolean name="Goalie is lowest index">true</boolean>
-        <integer name="Goalie pattern index">0</integer>
+        <boolean name="Goalie is lowest index">false</boolean>
+        <integer name="Goalie pattern index">4</integer>
       </category>
       <category name="Tactic">
+        <category name="pass">
+          <double name="velocity to ignore">0.100</double>
+        </category>
         <double name="stop: angle to separate players (degrees)">20.0</double>
       </category>
       <category name="Tatic">
@@ -174,8 +183,7 @@
           <double name=" angle tolerance that the passer needs to be with respect to the passee">20.0</double>
           <double name=" angle tolerance that the passer needs to be with respect to the target">30.0</double>
           <double name=" distance tolerance that the passee needs to be with respect to the passer shot">0.050</double>
-          <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.030</double>
-          <double name="velocity to ignore">0.100</double>
+          <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.039</double>
         </category>
       </category>
       <category name="test_pass">
