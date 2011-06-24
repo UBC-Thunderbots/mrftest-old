@@ -25,6 +25,12 @@ namespace {
 
 	class STPHLChoosable : public PlayExecutor, public HighLevel {
 		public:
+			Gtk::VBox vbox;
+			Gtk::Button stop_button;
+			Gtk::Button start_button;
+			Gtk::TextView text_status;
+			Gtk::ComboBoxText combo;
+
 			STPHLChoosable(World &world) : PlayExecutor(world) {
 				combo.append_text(CHOOSE_PLAY_TEXT);
 				const Play::PlayFactory::Map &m = Play::PlayFactory::all();
@@ -33,13 +39,42 @@ namespace {
 				}
 				combo.set_active_text(CHOOSE_PLAY_TEXT);
 				vbox.add(combo);
-				// TODO: add reset
-				// vbox.add(reset_button);
-				reset_button.set_label("reset");
+				vbox.add(start_button);
+				vbox.add(stop_button);
+				vbox.add(text_status);
+				text_status.set_editable(false);
+				start_button.set_label("start");
+				stop_button.set_label("stop");
+
+				start_button.signal_clicked().connect(sigc::bind(&STPHLChoosable::start, sigc::ref(*this)));
+				stop_button.signal_clicked().connect(sigc::bind(&STPHLChoosable::stop, sigc::ref(*this)));
 			}
 
 			STPHLChoosableFactory &factory() const {
 				return factory_instance;
+			}
+
+			void start() {
+				LOG_INFO("start");
+
+				// check if curr is valid
+				if (curr_play.is()) {
+					return;
+				}
+				// check what play is in use
+				if (combo.get_active_text() == CHOOSE_PLAY_TEXT) {
+					curr_play.reset();
+					return;
+				}
+				calc_play();
+			}
+
+			void stop() {
+				LOG_INFO("stop");
+
+				if (curr_play.is()) {
+					curr_play.reset();
+				}
 			}
 
 			void calc_play() {
@@ -52,6 +87,12 @@ namespace {
 					curr_play = i->second->create(world);
 				}
 				assert(curr_play.is());
+
+				if (!curr_play->invariant() || curr_play->done() || curr_play->fail()) {
+					curr_play.reset();
+					return;
+				}
+
 				// auto itr = m.find(combo.get_active_text().c_str());
 				// assert(itr != m.end());
 				// curr_play = m[combo.get_active_text()]->create(world);
@@ -78,13 +119,11 @@ namespace {
 				// override halt completely
 				if (world.friendly_team().size() == 0 || world.playtype() == AI::Common::PlayType::HALT) {
 					curr_play.reset();
-					return;
 				}
 
 				// check what play is in use
 				if (combo.get_active_text() == CHOOSE_PLAY_TEXT) {
 					curr_play.reset();
-					return;
 				}
 
 				if (curr_play.is() && combo.get_active_text() != Glib::ustring(curr_play->factory().name())) {
@@ -95,16 +134,15 @@ namespace {
 					curr_play.reset();
 				}
 
-				// check if curr is valid
-				if (!curr_play.is()) {
-					calc_play();
-					if (!curr_play.is()) {
-						LOG_WARN("calc play failed");
-						return;
-					}
-				}
+				std::ostringstream text;
 
-				execute_tactics();
+				if (curr_play.is()) {
+					text << "Running";
+					execute_tactics();
+				} else {
+					text << "Stop";
+				}
+				text_status.get_buffer()->set_text(text.str());
 			}
 
 			Gtk::Widget *ui_controls() {
@@ -114,11 +152,6 @@ namespace {
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 				PlayExecutor::draw_overlay(ctx);
 			}
-
-		protected:
-			Gtk::VBox vbox;
-			Gtk::Button reset_button;
-			Gtk::ComboBoxText combo;
 	};
 
 	HighLevel::Ptr STPHLChoosableFactory::create_high_level(World &world) const {
