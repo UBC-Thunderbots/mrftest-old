@@ -21,7 +21,7 @@ namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
 
-	DoubleParam negligible_velocity("velocity to ignore", "STP/Tatic/pass", 0.1, 0.0, 1.0);
+	DoubleParam negligible_velocity("velocity to ignore", "STP/Tactic/pass", 0.1, 0.0, 1.0);
 	DoubleParam passer_tol_target(" angle tolerance that the passer needs to be with respect to the target", "STP/Tatic/pass", 30.0, 0.0, 180.0);
 	DoubleParam passer_tol_reciever(" angle tolerance that the passer needs to be with respect to the passee", "STP/Tatic/pass", 20.0, 0.0, 180.0);
 	DoubleParam passee_tol(" distance tolerance that the passee needs to be with respect to the passer shot", "STP/Tatic/pass", 0.05, 0.0, 1.0);

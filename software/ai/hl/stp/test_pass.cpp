@@ -29,7 +29,7 @@ namespace {
 	BoolParam lower_number_passer("lower numbered bot is passer", "STP/test_pass", true);
 
 	const Point default_targets[] = {
-		Point(1.2, 0),
+		Point(-1.2, 0),
 		Point(1.5, 0),
 		Point(1.2, 0.3),
 		Point(1.2, -0.3),
