@@ -116,9 +116,7 @@ namespace {
 				double score;
 				if (pass) score = scoring_function(world, passee_pos, enemy_pos, pos, dont_block, true);
 				else score = scoring_function(world, passee_pos, enemy_pos, pos, dont_block);
-				if (score < -1e50) {
-					continue;
-				}
+				
 				if (score > best_score) {
 					best_score = score;
 					best_pos = pos;
@@ -200,7 +198,7 @@ Point AI::HL::STP::Evaluation::passer_position(const World &world, Point passee_
 	for (size_t i = 0; i < enemy.size(); ++i) {
 		enemy_pos.push_back(enemy.get(i)->position());
 	}
-
+	
 	std::vector<Point> dont_block;
 	dont_block.push_back(world.ball().position());
 	if (!defense) dont_block.push_back(passee_position(world));
