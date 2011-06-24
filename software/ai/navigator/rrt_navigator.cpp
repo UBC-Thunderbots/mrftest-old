@@ -1,6 +1,7 @@
 #include "ai/navigator/navigator.h"
 #include "ai/navigator/rrt_planner.h"
 #include "ai/navigator/util.h"
+#include "ai/param.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
 #include "util/param.h"
@@ -83,8 +84,7 @@ namespace AI {
 
 				double dest_ori = (world.ball().position() - player->position()).orientation();
 
-#warning MAGIC NUMBER
-				const double v = 1.5;
+				const double v = AI::player_average_velocity;
 
 				const Point p1 = world.ball().position();
 
@@ -139,8 +139,7 @@ namespace AI {
 
 				double dest_ori = (world.ball().position() - player->position()).orientation();
 
-#warning MAGIC NUMBER
-				const double v = 1.5;
+				const double v = AI::player_average_velocity;
 
 				const Point p1 = world.ball().position();
 

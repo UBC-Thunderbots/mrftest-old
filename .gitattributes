@@ -352,6 +352,8 @@ software/ai/navigator/util.cpp -text
 software/ai/navigator/util.h -text
 software/ai/navigator/world.cpp -text
 software/ai/navigator/world.h -text
+software/ai/param.cpp -text
+software/ai/param.h -text
 software/ai/param_panel.cpp -text
 software/ai/param_panel.h -text
 software/ai/robot_controller/circle_controller.cpp -text

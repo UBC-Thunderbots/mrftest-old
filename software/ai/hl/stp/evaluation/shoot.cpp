@@ -4,8 +4,6 @@
 #include "geom/angle.h"
 
 using namespace AI::HL::STP;
-using AI::HL::STP::Evaluation::ShootData;
-using AI::HL::STP::Evaluation::evaluate_shoot;
 
 // ShootData EvaluateShoot::compute(AI::HL::W::World &world, AI::HL::W::Player::Ptr player) const {
 
@@ -15,7 +13,7 @@ namespace {
 
 DoubleParam AI::HL::STP::Evaluation::shoot_accuracy("Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate", "STP/shoot", 0.0, -180.0, 180.0);
 
-ShootData AI::HL::STP::Evaluation::evaluate_shoot(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player) {
+Evaluation::ShootData Evaluation::evaluate_shoot(const World &world, Player::CPtr player) {
 	ShootData data;
 
 	std::pair<Point, double> shot = AI::HL::Util::calc_best_shot(world, player);
