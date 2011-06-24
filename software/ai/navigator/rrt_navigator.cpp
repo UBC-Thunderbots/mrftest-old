@@ -186,13 +186,18 @@ namespace AI {
 				double to_ball_orientation = (world.ball().position() - current_position).orientation();
 				double orientation_temp = degrees2radians(orientation_offset);
 
-				double angle = offset_angle;
-				if (angle_mod(to_ball_orientation - player->destination().second) > 0) {
+				double angle = degrees2radians(offset_angle);
+				
+				double difference = angle_mod(to_ball_orientation - player->destination().second);
+				
+				if (fabs(difference) < angle) {
+					angle = fabs(difference);
+				}
+				
+				if (difference > 0) {
 					angle = -angle;
 					orientation_temp = -orientation_temp;
 				}
-
-				angle = degrees2radians(angle);
 
 				Point diff = (world.ball().position() - current_position).rotate(angle);
 
