@@ -2,6 +2,7 @@
 #include "ai/navigator/rrt_planner.h"
 #include "ai/navigator/util.h"
 #include "ai/param.h"
+#include "ai/util.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
 #include "util/param.h"
@@ -80,40 +81,13 @@ namespace AI {
 			}
 
 			std::pair<Point, double> RRTNavigator::grab_ball_orientation(Player::Ptr player) {
-				const double ux = world.ball().velocity().len(); // velocity of ball
+				double dest_pos;
 
-				double dest_ori = (world.ball().position() - player->position()).orientation();
-
-				const double v = AI::player_average_velocity;
-
-				const Point p1 = world.ball().position();
-
-				const Point p2 = player->position();
-				const Point u = world.ball().velocity().norm();
-
-				const double x = (p2 - p1).dot(u);
-				const double y = std::fabs((p2 - p1).cross(u));
-
-				const Point p = p1 + u * x;
-
-				double a = 1 + (y * y) / (x * x);
-				double b = (2 * y * y * ux) / (x * x);
-				double c = (y * y * ux * ux) / (x * x) - v;
-
-				double vx1 = (-b + std::sqrt(b * b - (4 * a * c))) / (2 * a);
-				double vx2 = (-b - std::sqrt(b * b - (4 * a * c))) / (2 * a);
-
-				double t1 = x / (vx1 + ux);
-				double t2 = x / (vx2 + ux);
-
-				double t = std::min(t1, t2);
-				if (t < 0) {
-					t = std::max(t1, t2);
-				}
-
-				if (std::isnan(t) || std::isinf(t) || t < 0) {
+				if (!AI::Util::grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest_pos)) {
 					return std::make_pair(world.ball().position(), dest_ori);
 				}
+
+				double dest_ori = (world.ball().position() - player->position()).orientation();
 
 				Point np= world.ball().position();
 
@@ -130,47 +104,17 @@ namespace AI {
 				}
 				Point dest_pos = np + world.ball().velocity() * 2*t;
 
-
 				return std::make_pair(dest_pos, dest_ori);
 			}
 			
 			std::pair<Point, double> RRTNavigator::grab_ball(Player::Ptr player) {
-				const double ux = world.ball().velocity().len(); // velocity of ball
-
 				double dest_ori = (world.ball().position() - player->position()).orientation();
 
-				const double v = AI::player_average_velocity;
+				double dest_pos;
 
-				const Point p1 = world.ball().position();
-
-				const Point p2 = player->position();
-				const Point u = world.ball().velocity().norm();
-
-				const double x = (p2 - p1).dot(u);
-				const double y = std::fabs((p2 - p1).cross(u));
-
-				const Point p = p1 + u * x;
-
-				double a = 1 + (y * y) / (x * x);
-				double b = (2 * y * y * ux) / (x * x);
-				double c = (y * y * ux * ux) / (x * x) - v;
-
-				double vx1 = (-b + std::sqrt(b * b - (4 * a * c))) / (2 * a);
-				double vx2 = (-b - std::sqrt(b * b - (4 * a * c))) / (2 * a);
-
-				double t1 = x / (vx1 + ux);
-				double t2 = x / (vx2 + ux);
-
-				double t = std::min(t1, t2);
-				if (t < 0) {
-					t = std::max(t1, t2);
-				}
-
-				if (std::isnan(t) || std::isinf(t) || t < 0) {
+				if (!AI::Util::grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest_pos)) {
 					return std::make_pair(world.ball().position(), dest_ori);
 				}
-
-				Point dest_pos = p1 + world.ball().velocity() * 2*t;
 
 				return std::make_pair(dest_pos, dest_ori);
 			}
