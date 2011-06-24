@@ -95,12 +95,12 @@ namespace AI {
 				Point dir = (np - player->position()).norm();
 				double rad = chase_angle_range*M_PI/180.0;
 				bool op_ori = dir_ball.dot(dir)<cos(rad);
-				if(op_ori){
+				if (op_ori) {
 					PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags |= AI::Flags::FLAG_AVOID_BALL_TINY;
 #warning magic number here
 					np += chase_distance*( np - player->destination().first).norm();
 				}
-				dest_pos += np;
+				dest_pos += np - world.ball().position();
 
 				return std::make_pair(dest_pos, dest_ori);
 			}
@@ -130,10 +130,6 @@ namespace AI {
 				double angle = degrees2radians(offset_angle);
 				
 				double difference = angle_mod(to_ball_orientation - player->destination().second);
-				
-				if (fabs(difference) < angle) {
-					angle = fabs(difference);
-				}
 				
 				if (difference > 0) {
 					angle = -angle;
