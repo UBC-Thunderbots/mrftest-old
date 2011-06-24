@@ -90,20 +90,21 @@ namespace {
 	}
 
 	bool calc_position_best(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos, bool pass = false) {
-		// divide up into grids
+		// divide up into a hexagonal grid
 		const double x1 = -world.field().length() / 2, x2 = -x1;
 		const double y1 = -world.field().width() / 2, y2 = -y1;
 
-		const double dx = (x2 - x1) / (grid_x + 1);
-		const double dy = (y2 - y1) / (grid_y + 1);
+		// for the spacing to be uniform, we need dy = sqrt(3/4)*dx
+		const double dx = (x2 - x1) / (2*grid_x);
+		const double dy = (y2 - y1) / (2*grid_y);
 		double best_score = -1e50;
 
 		best_pos = Point();
 
-		for (int i = 0; i < grid_x; ++i) {
-			for (int j = 0; j < grid_y; ++j) {
-				const double x = x1 + dx * (i + 1);
-				const double y = y1 + dy * (j + 1);
+		for (int i = 1; i < 2*grid_y; i += 2) {
+			for (int j = i%2+1; j < 2*grid_x; j += 2) {
+				const double x = x1 + dx * j;
+				const double y = y1 + dy * i;
 				const Point pos = Point(x, y);
 
 				// TEMPORARY HACK!!
@@ -113,9 +114,7 @@ namespace {
 					continue;
 				}
 
-				double score;
-				if (pass) score = scoring_function(world, passee_pos, enemy_pos, pos, dont_block, true);
-				else score = scoring_function(world, passee_pos, enemy_pos, pos, dont_block);
+				double score = scoring_function(world, passee_pos, enemy_pos, pos, dont_block, pass);
 				
 				if (score > best_score) {
 					best_score = score;
@@ -123,7 +122,6 @@ namespace {
 				}
 			}
 		}
-
 		return best_score > -1e40;
 	}
 }
