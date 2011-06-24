@@ -336,12 +336,14 @@ void main(void) {
 			Sleep();
 		}
 	}
+	ClrWdt();
 	if (!configure_xbee_stage2(0)) {
 		LAT_FPGA_PROG_B = 0;
 		for (;;) {
 			Sleep();
 		}
 	}
+	ClrWdt();
 	LAT_LED2 = 0;
 	LAT_LED3 = 1;
 	if (!configure_xbee_stage1(1)) {
@@ -350,12 +352,14 @@ void main(void) {
 			Sleep();
 		}
 	}
+	ClrWdt();
 	if (!configure_xbee_stage2(1)) {
 		LAT_FPGA_PROG_B = 0;
 		for (;;) {
 			Sleep();
 		}
 	}
+	ClrWdt();
 	LAT_LED1 = 1;
 	LAT_LED3 = 0;
 
@@ -366,10 +370,12 @@ void main(void) {
 		counter = 0;
 		while (!PORT_FPGA_INIT_B && ++counter) {
 			delay10ktcy(23);
+			ClrWdt();
 		}
 		counter = 0;
 		while (!PORT_FPGA_DONE && PORT_FPGA_INIT_B && ++counter) {
 			delay10ktcy(23);
+			ClrWdt();
 		}
 		if (!PORT_FPGA_DONE) {
 			error_reporting_add(FAULT_FPGA_INVALID_BITSTREAM);
@@ -381,6 +387,7 @@ void main(void) {
 			counter = 0;
 			while (!PORT_DCM_LOCKED && ++counter) {
 				delay10ktcy(23);
+				ClrWdt();
 			}
 			delay1ktcy(1);
 			LAT_FPGA_RESET = 0;
@@ -400,6 +407,7 @@ void main(void) {
 			counter = 0;
 			while (!PORT_FLASH_CS && ++counter) {
 				delay10ktcy(23);
+				ClrWdt();
 			}
 			if (!PORT_FLASH_CS) {
 				LAT_FPGA_PROG_B = 0;

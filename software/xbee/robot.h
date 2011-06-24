@@ -102,6 +102,11 @@ class XBeeRobot : public ByRef {
 		sigc::signal<void, const void *, std::size_t> signal_experiment_data;
 
 		/**
+		 * \brief Emitted when the autokick mechanism causes the robot to kick.
+		 */
+		sigc::signal<void> signal_autokick_fired;
+
+		/**
 		 * \brief Erases the SPI flash chip on the robot.
 		 *
 		 * \return an asynchronous operation whose progress can be monitored.

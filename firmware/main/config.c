@@ -12,9 +12,9 @@
  *                                                ||/------ Reset on stack overflow/underflow
  *                                                |||/----- Unused
  *                                                ||||///-- Divide by 2 on PLL input, oscillator is 8MHz.
- *                                                |||||||/- Watchdog timer disabled
+ *                                                |||||||/- Watchdog timer enabled
  *                                                |||||||| */
-static __code const char __at(__CONFIG1L) c1l = 0b10101100;
+static __code const char __at(__CONFIG1L) c1l = 0b10101101;
 
 /*
  *                                                /////---- Unused
@@ -33,9 +33,9 @@ static __code const char __at(__CONFIG2L) c2l = 0b01000111;
 
 /*
  *                                                ////----- Unused
- *                                                ||||////- Watchdog postscaler 1:1
+ *                                                ||||////- Watchdog postscaler 1:512 (period of ~2s)
  *                                                |||||||| */
-static __code const char __at(__CONFIG2H) c2h = 0b11110000;
+static __code const char __at(__CONFIG2H) c2h = 0b11111001;
 
 /*
  *                                                /-------- Ignored

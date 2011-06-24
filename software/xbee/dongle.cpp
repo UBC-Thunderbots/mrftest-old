@@ -428,8 +428,10 @@ void XBeeDongle::on_interrupt_in(AsyncOperation<void>::Ptr, LibUSBInterruptInTra
 		unsigned int robot = transfer->data()[0] >> 4;
 		Pipe pipe = static_cast<Pipe>(transfer->data()[0] & 0x0F);
 		signal_message_received.emit(robot, pipe, transfer->data() + 1, transfer->size() - 1);
-		if (pipe == Pipe::PIPE_EXPERIMENT_DATA) {
+		if (pipe == Pipe::PIPE_EXPERIMENT_DATA && transfer->size() == 1 + 1 + 32) {
 			this->robot(robot)->signal_experiment_data.emit(transfer->data() + 1, transfer->size() - 1);
+		} else if (pipe == Pipe::PIPE_AUTOKICK_INDICATOR && transfer->size() == 1) {
+			this->robot(robot)->signal_autokick_fired.emit();
 		}
 	}
 }

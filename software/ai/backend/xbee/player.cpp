@@ -125,10 +125,11 @@ Player::Ptr Player::create(AI::BE::Backend &backend, unsigned int pattern, XBeeR
 	return p;
 }
 
-Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_invoked(false), kicker_directional_(kicker_directional_impl(pattern)) {
+Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_invoked(false), kicker_directional_(kicker_directional_impl(pattern)), autokick_fired_(false) {
 	timespec now;
 	timespec_now(now);
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
+	bot->signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
 }
 
 void Player::drive(const int(&w)[4]) {
@@ -138,7 +139,14 @@ void Player::drive(const int(&w)[4]) {
 	controlled = true;
 }
 
+void Player::on_autokick_fired() {
+	autokick_fired_ = true;
+}
+
 void Player::tick(bool halt) {
+	// Clear the autokick flag so it doesn't stick at true forever.
+	autokick_fired_ = false;
+
 	// Check for emergency conditions.
 	if (!bot->alive) {
 		halt = true;

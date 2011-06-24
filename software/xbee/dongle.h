@@ -116,9 +116,14 @@ class XBeeDongle : public NonCopyable {
 			PIPE_TEST_MODE,
 
 			/**
+			 * \brief A message pipe that carries indications that the autokick mechanism has triggered.
+			 */
+			PIPE_AUTOKICK_INDICATOR,
+
+			/**
 			 * \brief A message pipe that carries data from a scripted experiment.
 			 */
-			PIPE_EXPERIMENT_DATA,
+			PIPE_EXPERIMENT_DATA = PIPE_AUTOKICK_INDICATOR,
 		};
 
 		/**

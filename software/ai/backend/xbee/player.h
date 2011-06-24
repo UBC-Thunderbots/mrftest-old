@@ -60,6 +60,7 @@ namespace AI {
 					bool kicker_directional() const;
 					void kick_impl(double speed, double angle);
 					void autokick_impl(double speed, double angle);
+					bool autokick_fired() const { return autokick_fired_; }
 					bool has_destination() const { return true; }
 					const std::pair<Point, double> &destination() const;
 					Point target_velocity() const;
@@ -97,6 +98,7 @@ namespace AI {
 					std::vector<std::pair<std::pair<Point, double>, timespec> > path_;
 					bool autokick_invoked;
 					bool kicker_directional_;
+					bool autokick_fired_;
 
 					/**
 					 * Constructs a new Player object.
@@ -110,6 +112,8 @@ namespace AI {
 					 * \param[in] bot the XBee robot being driven.
 					 */
 					Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot);
+
+					void on_autokick_fired();
 			};
 		}
 	}

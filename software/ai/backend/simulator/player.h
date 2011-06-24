@@ -101,6 +101,7 @@ namespace AI {
 					bool kicker_directional() const;
 					void kick_impl(double speed, double angle);
 					void autokick_impl(double speed, double angle);
+					bool autokick_fired() const;
 					bool has_destination() const;
 					const std::pair<Point, double> &destination() const;
 					Point target_velocity() const;
@@ -161,6 +162,16 @@ namespace AI {
 					 * The signal connections for mouse activity other than press.
 					 */
 					sigc::connection mouse_connections[3];
+
+					/**
+					 * \brief Whether or not the AI elected to autokick in the last time tick.
+					 */
+					bool autokick_fired_;
+
+					/**
+					 * \brief Whether or not the AI elected to autokick in the current time tick.
+					 */
+					bool autokick_pre_fired_;
 
 					/**
 					 * Disconnects the mouse activity signals other than press.

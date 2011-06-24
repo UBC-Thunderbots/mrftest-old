@@ -186,6 +186,12 @@ void run(void) {
 	uint8_t status, i;
 	uint16_t crc;
 	uint8_t motor_hard_disable_tick_counter = MOTOR_HARD_DISABLE_TICK_COUNT;
+	static struct {
+		uint8_t micropacket_length;
+		uint8_t pipe;
+		uint8_t sequence;
+	} autokick_indicator_micropacket = { sizeof(autokick_indicator_micropacket), PIPE_AUTOKICK_INDICATOR, 0 };
+	BOOL autokick_indicator_micropacket_pending = false;
 #endif
 	uint8_t drive_timeout = 0;
 	const uint8_t robot_number = params.robot_number;
@@ -256,6 +262,9 @@ void run(void) {
 
 	/* Run forever handling events. */
 	for (;;) {
+		/* Kick the watchdog. */
+		ClrWdt();
+
 		if (xbee_txpacket_dequeue() == &txpkt) {
 			/* An inbound finished being sent. */
 			if (inbound_state == INBOUND_STATE_SENDING) {
@@ -346,6 +355,14 @@ void run(void) {
 								txiovs[txpkt.num_iovs].ptr = &firmware_response;
 								++txpkt.num_iovs;
 								firmware_response_pending = false;
+							}
+							if (autokick_indicator_micropacket_pending) {
+								/* An autokick indicator micropacket is pending.
+								 * Add it to the packet. */
+								txiovs[txpkt.num_iovs].len = autokick_indicator_micropacket.micropacket_length;
+								txiovs[txpkt.num_iovs].ptr = &autokick_indicator_micropacket;
+								++txpkt.num_iovs;
+								autokick_indicator_micropacket_pending = false;
 							}
 #endif
 							/* Assign a frame number. */
@@ -716,6 +733,11 @@ void run(void) {
 						parbus_write(11, drive_block.autokick_width2 * 32);
 						parbus_write(12, (drive_block.autokick_offset * 32) | (drive_block.autokick_offset_sign ? 0x8000 : 0x0000));
 						autokick_lockout_time = AUTOKICK_LOCKOUT_TIME;
+						if (!autokick_indicator_micropacket_pending) {
+							autokick_indicator_micropacket.sequence = sequence[PIPE_AUTOKICK_INDICATOR];
+							sequence[PIPE_AUTOKICK_INDICATOR] = (sequence[PIPE_AUTOKICK_INDICATOR] + 1) & 63;
+							autokick_indicator_micropacket_pending = true;
+						}
 					}
 				} else {
 					/* Channel 3 -> miscellaneous device connector.

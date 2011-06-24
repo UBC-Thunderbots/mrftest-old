@@ -6,8 +6,9 @@ namespace {
 	}
 }
 
-KickerPanel::KickerPanel(XBeeRobot::Ptr robot) : Gtk::Table(5, 2), robot(robot), charge("Charge"), pulse_width1_label("Pulse width 1:"), pulse_width2_label("Pulse width 2:"), pulse_offset_label("Offset:"), kick("Kick"), autokick("Autokick") {
+KickerPanel::KickerPanel(XBeeRobot::Ptr robot) : Gtk::Table(6, 2), robot(robot), charge("Charge"), pulse_width1_label("Pulse width 1:"), pulse_width2_label("Pulse width 2:"), pulse_offset_label("Offset:"), kick("Kick"), autokick("Autokick"), autokick_count_label("Autokick Count:"), autokick_count_value_label("0"), autokick_count(0) {
 	robot->alive.signal_changed().connect(sigc::mem_fun(this, &KickerPanel::on_alive_changed));
+	robot->signal_autokick_fired.connect(sigc::mem_fun(this, &KickerPanel::on_autokick_fired));
 
 	charge.signal_toggled().connect(sigc::mem_fun(this, &KickerPanel::on_charge_changed));
 	attach(charge, 0, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -35,6 +36,9 @@ KickerPanel::KickerPanel(XBeeRobot::Ptr robot) : Gtk::Table(5, 2), robot(robot),
 	autokick.signal_toggled().connect(sigc::mem_fun(this, &KickerPanel::on_autokick_changed));
 	fire_hbox.pack_start(autokick, Gtk::PACK_EXPAND_WIDGET);
 	attach(fire_hbox, 0, 2, 4, 5, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+
+	attach(autokick_count_label, 0, 1, 5, 6, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(autokick_count_value_label, 1, 2, 5, 6, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	on_alive_changed();
 }
@@ -72,5 +76,10 @@ void KickerPanel::on_autokick_changed() {
 	} else {
 		robot->autokick(0, 0, 0);
 	}
+}
+
+void KickerPanel::on_autokick_fired() {
+	++autokick_count;
+	autokick_count_value_label.set_text(Glib::ustring::format(autokick_count));
 }
 

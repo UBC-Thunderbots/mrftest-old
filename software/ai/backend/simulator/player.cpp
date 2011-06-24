@@ -13,6 +13,8 @@ void AI::BE::Simulator::Player::pre_tick(const ::Simulator::Proto::S2APlayerInfo
 	AI::BE::Simulator::Robot::pre_tick(state.robot_info, ts);
 	has_ball_ = state.has_ball;
 	kick_ = false;
+	autokick_fired_ = autokick_pre_fired_;
+	autokick_pre_fired_ = false;
 }
 
 void AI::BE::Simulator::Player::encode_orders(::Simulator::Proto::A2SPlayerInfo &orders) {
@@ -79,6 +81,11 @@ void AI::BE::Simulator::Player::kick_impl(double speed, double) {
 
 void AI::BE::Simulator::Player::autokick_impl(double speed, double angle) {
 	kick_impl(speed, angle);
+	autokick_pre_fired_ = true;
+}
+
+bool AI::BE::Simulator::Player::autokick_fired() const {
+	return autokick_fired_;
 }
 
 bool AI::BE::Simulator::Player::has_destination() const {
@@ -113,7 +120,7 @@ const int(&AI::BE::Simulator::Player::wheel_speeds() const)[4] {
 	return wheel_speeds_;
 }
 
-AI::BE::Simulator::Player::Player(Backend &be, unsigned int pattern) : AI::BE::Simulator::Robot(pattern), be(be), has_ball_(false), kick_(false), chick_power_(0.0) {
+AI::BE::Simulator::Player::Player(Backend &be, unsigned int pattern) : AI::BE::Simulator::Robot(pattern), be(be), has_ball_(false), kick_(false), chick_power_(0.0), autokick_fired_(false), autokick_pre_fired_(false) {
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 	be.signal_mouse_pressed.connect(sigc::mem_fun(this, &Player::mouse_pressed));
 }
