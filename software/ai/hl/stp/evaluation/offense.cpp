@@ -1,6 +1,5 @@
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/evaluation/offense.h"
-#include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/util.h"
 #include "geom/angle.h"
 #include "geom/util.h"
@@ -23,7 +22,7 @@ namespace {
 
 	DoubleParam ball_dist_weight("ball distance weight", "STP/offense", 1.0, 0.0, 2.0);
 
-	double scoring_function(const World &world, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
+	double scoring_function(const World &world, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block, bool pass = false) {
 		// can't be too close to enemy
 		double closest_enemy = world.field().width();
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
@@ -37,6 +36,11 @@ namespace {
 		// Hmm.. not sure if having negative number is a good idea.
 		std::pair<Point, double> bestshot = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dest);
 		double score = bestshot.second;
+
+		if (pass) {
+			Point passee_pos = AI::HL::STP::Evaluation::passee_position(world);
+			score = AI::HL::Util::calc_best_shot_target(passee_pos, enemy_pos, dest).second;
+		}
 
 		// TODO: check the line below here
 		// scoring factors:
@@ -88,7 +92,7 @@ namespace {
 		return score;
 	}
 
-	bool calc_position_best(const World &world, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
+	bool calc_position_best(const World &world, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos, bool pass = false) {
 		// divide up into grids
 		const double x1 = -world.field().length() / 2, x2 = -x1;
 		const double y1 = -world.field().width() / 2, y2 = -y1;
@@ -112,7 +116,8 @@ namespace {
 					continue;
 				}
 
-				const double score = scoring_function(world, enemy_pos, pos, dont_block);
+				double score = scoring_function(world, enemy_pos, pos, dont_block);
+				if (pass) score = scoring_function(world, enemy_pos, pos, dont_block, true);
 				if (score < -1e50) {
 					continue;
 				}
@@ -170,6 +175,40 @@ std::array<Point, 2> AI::HL::STP::Evaluation::offense_positions(const World &wor
 
 	dont_block.push_back(best[0]);
 	calc_position_best(world, enemy_pos, dont_block, best[1]);
+
+	return best;
+}
+
+Point AI::HL::STP::Evaluation::passee_position(const World &world) {
+
+	const EnemyTeam &enemy = world.enemy_team();
+	std::vector<Point> enemy_pos;
+	for (size_t i = 0; i < enemy.size(); ++i) {
+		enemy_pos.push_back(enemy.get(i)->position());
+	}
+
+	std::vector<Point> dont_block;
+	dont_block.push_back(world.ball().position());
+
+	Point best;
+	calc_position_best(world, enemy_pos, dont_block, best);
+
+	return best;
+}
+
+Point AI::HL::STP::Evaluation::passer_position(const World &world, bool defense) {
+	const EnemyTeam &enemy = world.enemy_team();
+	std::vector<Point> enemy_pos;
+	for (size_t i = 0; i < enemy.size(); ++i) {
+		enemy_pos.push_back(enemy.get(i)->position());
+	}
+
+	std::vector<Point> dont_block;
+	dont_block.push_back(world.ball().position());
+	if (!defense) dont_block.push_back(passee_position(world));
+
+	Point best;
+	calc_position_best(world, enemy_pos, dont_block, best, true);
 
 	return best;
 }

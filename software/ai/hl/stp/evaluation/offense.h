@@ -39,6 +39,10 @@ namespace AI {
 				 */
 				std::array<Point, 2> offense_positions(const World &world);
 
+				Point passee_position(const World &world);
+
+				Point passer_position(const World &world, bool defense = false); 
+
 				/**
 				 * Grid size in x-direction.
 				 */

@@ -1,5 +1,5 @@
 #include "ai/hl/stp/tactic/pass.h"
-#include "ai/hl/stp/evaluation/pass.h"
+#include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/action/chase.h"
@@ -22,10 +22,10 @@ namespace {
 
 	class PasserShoot : public Tactic {
 		public:
-			PasserShoot(const World &world, bool defensive) : Tactic(world, true), kicked(false), dynamic(true), defensive(defensive) {
+			PasserShoot(const World &world, bool defensive) : Tactic(world, true), dynamic(true), defensive(defensive) {
 			}
 
-			PasserShoot(const World &world, Coordinate target, bool defensive) : Tactic(world, true), kicked(false), dynamic(false), defensive(defensive), target(target) {
+			PasserShoot(const World &world, Coordinate target, bool defensive) : Tactic(world, true), dynamic(false), defensive(defensive), target(target) {
 			}
 
 		private:
@@ -36,7 +36,9 @@ namespace {
 
 			bool done() const {
 #warning TODO allow more time
-				return kicked;
+				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();				
+				return kicked && (player->position() - world.ball().position()).len() > (player->position() - dest).len()/2;
+				//return kicked;
 			}
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
@@ -44,12 +46,14 @@ namespace {
 			}
 
 			void execute() {
-				Point dest = dynamic ? Evaluation::calc_pass_positions(world).second : target.position();
+				kicked = false;
+				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();
 
 				Player::CPtr passee = Evaluation::nearest_friendly(world, dest);
 
 #warning TODO find a good location for passer
-
+				Point target = Evaluation::passer_position(world, defensive);
+				Action::move(world, player, target);
 				kicked = Action::shoot_pass(world, player, dest);
 			}
 
@@ -73,13 +77,13 @@ namespace {
 			Coordinate target;
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				Point dest = dynamic ? Evaluation::calc_pass_positions(world).second : target.position();
+				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();
 
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
 			}
 
 			void execute() {
-				Point dest = dynamic ? Evaluation::calc_pass_positions(world).second : target.position();
+				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();
 
 				Player::CPtr passer = Evaluation::nearest_friendly(world, world.ball().position());
 

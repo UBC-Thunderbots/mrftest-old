@@ -221,8 +221,6 @@ software/ai/hl/stp/evaluation/enemy.cpp -text
 software/ai/hl/stp/evaluation/enemy.h -text
 software/ai/hl/stp/evaluation/offense.cpp -text
 software/ai/hl/stp/evaluation/offense.h -text
-software/ai/hl/stp/evaluation/pass.cpp -text
-software/ai/hl/stp/evaluation/pass.h -text
 software/ai/hl/stp/evaluation/shoot.cpp -text
 software/ai/hl/stp/evaluation/shoot.h -text
 software/ai/hl/stp/evaluation/team.cpp -text
