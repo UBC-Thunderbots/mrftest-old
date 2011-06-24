@@ -35,7 +35,6 @@ namespace {
 
 		double score;
 		if (pass) {
-			Point passee_pos = AI::HL::STP::Evaluation::passee_position(world);
 			score = AI::HL::Util::calc_best_shot_target(passee_pos, enemy_pos, dest).second;
 		} else {
 			// Hmm.. not sure if having negative number is a good idea.
@@ -145,7 +144,7 @@ double AI::HL::STP::Evaluation::offense_score(const World &world, const Point de
 	std::vector<Point> dont_block;
 	dont_block.push_back(world.ball().position());
 
-	return scoring_function(world, Point(), enemy_pos, dest, dont_block, false);
+	return scoring_function(world, Point(), enemy_pos, dest, dont_block);
 }
 
 std::array<Point, 2> AI::HL::STP::Evaluation::offense_positions(const World &world) {
@@ -173,10 +172,10 @@ std::array<Point, 2> AI::HL::STP::Evaluation::offense_positions(const World &wor
 
 	std::array<Point, 2> best;
 
-	calc_position_best(world, Point(), enemy_pos, dont_block, best[0], false);
+	calc_position_best(world, Point(), enemy_pos, dont_block, best[0]);
 
 	dont_block.push_back(best[0]);
-	calc_position_best(world, Point(), enemy_pos, dont_block, best[1], false);
+	calc_position_best(world, Point(), enemy_pos, dont_block, best[1]);
 
 	return best;
 }
@@ -193,7 +192,7 @@ Point AI::HL::STP::Evaluation::passee_position(const World &world) {
 	dont_block.push_back(world.ball().position());
 
 	Point best;
-	calc_position_best(world, Point(), enemy_pos, dont_block, best, false);
+	calc_position_best(world, Point(), enemy_pos, dont_block, best);
 
 	return best;
 }
