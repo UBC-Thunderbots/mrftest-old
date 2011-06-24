@@ -1,5 +1,6 @@
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/util.h"
+#include "ai/util.h"
 
 #include <set>
 
@@ -47,5 +48,11 @@ Robot::Ptr AI::HL::STP::Evaluation::calc_enemy_baller(const World &world) {
 		}
 	}
 	return Robot::Ptr();
+}
+
+Point AI::HL::STP::Evaluation::grab_ball(const World &world, Player::Ptr player){
+	Point dest;
+	AI::Util::grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest);
+	return dest;
 }
 

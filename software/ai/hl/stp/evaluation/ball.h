@@ -29,6 +29,11 @@ namespace AI {
 				Robot::Ptr calc_enemy_baller(const World &world);
 
 				/**
+				 * Finds grab ball position
+				 */
+				Point grab_ball(const World &world, Player::Ptr player);
+
+				/**
 				 * Distance from the front to be considered ball possession.
 				 */
 				extern DoubleParam pivot_threshold;

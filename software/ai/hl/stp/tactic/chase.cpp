@@ -2,10 +2,13 @@
 #include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/dribble.h"
 #include "ai/hl/stp/tactic/util.h"
+#include "ai/hl/stp/evaluation/ball.h"
+#include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 namespace Action = AI::HL::STP::Action;
+namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
 	class Chase : public Tactic {
@@ -28,7 +31,16 @@ namespace {
 	}
 
 	Player::Ptr Chase::select(const std::set<Player::Ptr> &players) const {
-		return select_baller(world, players);
+		Player::Ptr best;
+		double min_dist = 1e99;
+		for (auto it = players.begin(); it != players.end(); ++it) {
+			Point dest = Evaluation::grab_ball(world, *it);
+			if (!best.is() || min_dist > (dest - (*it)->position()).len()) {
+				min_dist = (dest - (*it)->position()).len();
+				best = *it;
+			}
+ 		}
+		return best;
 	}
 
 	void Chase::execute() {
