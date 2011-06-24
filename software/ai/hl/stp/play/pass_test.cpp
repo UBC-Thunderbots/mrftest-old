@@ -98,7 +98,7 @@ roles[1].push_back(defend_duo_defender(world));
 
 // ROLE 3
 // defend
-roles[2].push_back(defend_duo_defender(world));
+roles[2].push_back(offend(world));
 
 // ROLE 4
 // offensive support through blocking closest enemy to ball
