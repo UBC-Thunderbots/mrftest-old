@@ -20,14 +20,29 @@ using AI::HL::STP::Coordinate;
 
 namespace {
 
+	DoubleParam passer_tol_target("when passer within this angle tol passee responds to passer direction", "STP/Tactic/pass", 30.0, 0.0, 180.0);
+	DoubleParam negligible_velocity("velocity to ignore", "STP/Tactic/pass", 0.1, 0.0, 1.0);
+	DoubleParam passee_hack_dist("Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)", "STP/Tactic/pass", 0.0, 0.0, 1.0);
+//	double passer_tol_target = 30.0; 
+//	double negligible_velocity = 0.1;
+//	double passee_hack_dist = 0.0;
+	
+	struct kick_info{
+		Point kicker_location;
+		double kicker_orientation;
+		Point kicker_target;
+		bool kicked;
+	} ;
+
 	class PasserShoot : public Tactic {
 		public:
-			PasserShoot(const World &world, bool defensive) : Tactic(world, true), dynamic(true), defensive(defensive) {
+			PasserShoot(const World &world, bool defensive) : Tactic(world, true), dynamic(true), defensive(defensive), kicked(false) {
 			}
 
-			PasserShoot(const World &world, Coordinate target, bool defensive) : Tactic(world, true), dynamic(false), defensive(defensive), target(target) {
+			PasserShoot(const World &world, Coordinate target, bool defensive) : Tactic(world, true), dynamic(false), defensive(defensive), target(target), kicked(false) {
 			}
-
+			static kick_info passer_info;
+			
 		private:
 			bool dynamic;
 			bool kicked;
@@ -38,7 +53,6 @@ namespace {
 #warning TODO allow more time
 				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();				
 				return kicked && (player->position() - world.ball().position()).len() > (player->position() - dest).len()/2;
-				//return kicked;
 			}
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
@@ -46,14 +60,17 @@ namespace {
 			}
 
 			void execute() {
-				kicked = false;
+				kicked = kicked || player->autokick_fired();
+				if(!player->autokick_fired() && !kicked){
+					PasserShoot::passer_info.kicker_location = player->position();
+					PasserShoot::passer_info.kicker_orientation = player->orientation();
+					PasserShoot::passer_info.kicker_target = target.position();
+					PasserShoot::passer_info.kicked = false;
+				} else {
+					PasserShoot::passer_info.kicked = true;
+				}
 				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();
-
 				Player::CPtr passee = Evaluation::nearest_friendly(world, dest);
-
-#warning TODO find a good location for passer
-				Point target = Evaluation::passer_position(world, dest, defensive);
-				Action::move(world, player, target);
 				kicked = Action::shoot_pass(world, player, dest);
 			}
 
@@ -62,6 +79,8 @@ namespace {
 				return "passer-shoot";
 			}
 	};
+	
+	kick_info PasserShoot::passer_info;
 
 	class PasseeMove : public Tactic {
 		public:
@@ -84,14 +103,71 @@ namespace {
 
 			void execute() {
 				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();
-
 				Player::CPtr passer = Evaluation::nearest_friendly(world, world.ball().position());
+				kick_info passer_info = PasserShoot::passer_info;
+				bool fast_ball = world.ball().velocity().len() > negligible_velocity;
+				if((Action::within_angle_thresh(passer_info.kicker_location, passer_info.kicker_orientation, passer_info.kicker_target, passer_tol_target) && !passer_info.kicked) || (passer_info.kicked && !fast_ball)){
+					Point pass_dir(100, 0);
+					pass_dir = pass_dir.rotate(passer_info.kicker_orientation);
 
-				Action::move(world, player, dest);
+					Point intercept_pos = closest_lineseg_point(player->position(), passer_info.kicker_location, passer_info.kicker_location + pass_dir);
+					Point addit = passee_hack_dist*(intercept_pos - player->position()).norm();
+					Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos + addit);
+				} else if(passer_info.kicked && fast_ball){
+					Point intercept_pos = closest_lineseg_point(player->position(), world.ball().position(),  world.ball().position() + 100 * (world.ball().velocity().norm()));
+					Point pass_dir = (world.ball().position() - passer_info.kicker_location).norm();
+					Point addit = passee_hack_dist*(intercept_pos - player->position()).norm();
+					Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos + addit);
+				}else{
+					Action::move(player, (world.ball().position() - player->position()).orientation(), passer_info.kicker_target);
+				}
 			}
 
 			std::string description() const {
 				return "passee-target";
+			}
+	};
+	
+	
+class PasseeRecieve : public Tactic {
+		public:
+			PasseeRecieve(const World &world, bool defensive) : Tactic(world, true), dynamic(true), defensive(defensive), target(target) {
+			}
+
+			PasseeRecieve(const World &world, Coordinate target, bool defensive) : Tactic(world, true), dynamic(false), defensive(defensive), target(target) {
+			}
+
+		private:
+			bool dynamic;
+			bool defensive;
+			Coordinate target;
+
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
+			}
+
+			void execute() {
+				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();
+				kick_info passer_info = PasserShoot::passer_info;
+				bool fast_ball = world.ball().velocity().len() > negligible_velocity;
+				if(!fast_ball){
+					Point pass_dir(100, 0);
+					pass_dir = pass_dir.rotate(passer_info.kicker_orientation);
+
+					Point intercept_pos = closest_lineseg_point(player->position(), passer_info.kicker_location, passer_info.kicker_location + pass_dir);
+					Point addit = passee_hack_dist*(intercept_pos - player->position()).norm();
+					Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos + addit);
+				} else {
+					Point intercept_pos = closest_lineseg_point(player->position(), world.ball().position(),  world.ball().position() + 100 * (world.ball().velocity().norm()));
+					Point pass_dir = (world.ball().position() - passer_info.kicker_location).norm();
+					Point addit = passee_hack_dist*(intercept_pos - player->position()).norm();
+					Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos + addit);
+				}
+			}
+
+			std::string description() const {
+				return "passee-target-recieve";
 			}
 	};
 }

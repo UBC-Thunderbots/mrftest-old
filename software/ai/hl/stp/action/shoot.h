@@ -57,7 +57,13 @@ namespace AI {
 				 *
 				 */
 				bool within_angle_thresh(Player::CPtr player, const Point target, double threshold);
-
+				
+				/**
+				 * Determines whether robot is facing within threshold degrees of the specified target
+				 *
+				 */
+				bool within_angle_thresh(const Point position, double orientation, const Point target, double threshold);
+				
 				/**
 				 * Testing function designed for internal use & use with shoot_distance_test!!!
 				 * \param[in] distance in m to shoot the ball.

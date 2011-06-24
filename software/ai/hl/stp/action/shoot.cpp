@@ -112,6 +112,13 @@ bool AI::HL::STP::Action::within_angle_thresh(Player::CPtr player, const Point t
 	return facing_dir.dot(pass_dir) > dir_thresh;
 }
 
+bool AI::HL::STP::Action::within_angle_thresh(const Point position, const double orientation, const Point target, double threshold){
+	Point pass_dir = (target - position).norm();
+	Point facing_dir = Point(1,0).rotate(orientation);
+	double dir_thresh = cos( (threshold*M_PI / 180.0));
+	return facing_dir.dot(pass_dir) > dir_thresh;
+}
+
 double AI::HL::STP::Action::shoot_speed(double distance, double delta, double alph) {
 	double a = alph;
 	if(alph<0) a = alpha;

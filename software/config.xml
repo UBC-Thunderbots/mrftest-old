@@ -155,10 +155,6 @@
         <integer name="grid x size">25</integer>
         <integer name="grid y size">25</integer>
       </category>
-      <category name="pass">
-        <double name="ball goal distance weight">1.000</double>
-        <double name="enemy avoidance distance (robot radius)">4.00</double>
-      </category>
       <category name="play">
         <double name="kickoff: angle to separate players (degrees)">40.0</double>
       </category>
@@ -170,21 +166,10 @@
       </category>
       <category name="STP">
         <boolean name="Goalie is lowest index">false</boolean>
-        <integer name="Goalie pattern index">4</integer>
+        <integer name="Goalie pattern index">1</integer>
       </category>
       <category name="Tactic">
-        <category name="pass">
-          <double name="velocity to ignore">0.100</double>
-        </category>
         <double name="stop: angle to separate players (degrees)">20.0</double>
-      </category>
-      <category name="Tatic">
-        <category name="pass">
-          <double name=" angle tolerance that the passer needs to be with respect to the passee">20.0</double>
-          <double name=" angle tolerance that the passer needs to be with respect to the target">30.0</double>
-          <double name=" distance tolerance that the passee needs to be with respect to the passer shot">0.050</double>
-          <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.039</double>
-        </category>
       </category>
       <category name="test_pass">
         <double name=" angle tolerance that the passer needs to be with respect to the passee">20.0</double>
