@@ -81,17 +81,15 @@ namespace AI {
 			}
 
 			std::pair<Point, double> RRTNavigator::grab_ball_orientation(Player::Ptr player) {
-				double dest_pos;
+				Point dest_pos;
+
+				double dest_ori = (world.ball().position() - player->position()).orientation();
 
 				if (!AI::Util::grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest_pos)) {
 					return std::make_pair(world.ball().position(), dest_ori);
 				}
 
-				double dest_ori = (world.ball().position() - player->position()).orientation();
-
-				Point np= world.ball().position();
-
-				dest_ori = (player->destination().first - world.ball().position()).orientation();
+				Point np = world.ball().position();
 
 				Point dir_ball = (player->destination().first - np).norm();
 				Point dir = (np - player->position()).norm();
@@ -102,7 +100,7 @@ namespace AI {
 #warning magic number here
 					np += chase_distance*( np - player->destination().first).norm();
 				}
-				Point dest_pos = np + world.ball().velocity() * 2*t;
+				dest_pos += np;
 
 				return std::make_pair(dest_pos, dest_ori);
 			}
@@ -110,7 +108,7 @@ namespace AI {
 			std::pair<Point, double> RRTNavigator::grab_ball(Player::Ptr player) {
 				double dest_ori = (world.ball().position() - player->position()).orientation();
 
-				double dest_pos;
+				Point dest_pos;
 
 				if (!AI::Util::grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest_pos)) {
 					return std::make_pair(world.ball().position(), dest_ori);
