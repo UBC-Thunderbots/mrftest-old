@@ -12,23 +12,23 @@ namespace AI {
 				/**
 				 * Passer shoots towards the target region
 				 */
-				Tactic::Ptr passer_shoot_target(const World &world, Point target);
+				Tactic::Ptr passer_shoot_target(const World &world, Coordinate target);
 
 				/**
 				 * Passee moves to intercept the moving ball, in the target region
 				 */
-				Tactic::Ptr passee_move_target(const World &world, Point target, bool acitve = false);
+				Tactic::Ptr passee_move_target(const World &world, Coordinate target);
 
 				/**
 				 * Passer positioning and shoot for offensive purposes
 				 * (objective is pass to passee and have it shoot at enemy goal).
 				 */
-				Tactic::Ptr passer_shoot(const World &world);
+				Tactic::Ptr passer_shoot_dynamic(const World &world);
 
 				/**
 				 * Passee positioning for offensive.
 				 */
-				Tactic::Ptr passee_move(const World &world);
+				Tactic::Ptr passee_move_dynamic(const World &world);
 
 				/**
 				 * Passer positioning and shoot for defensive purposes

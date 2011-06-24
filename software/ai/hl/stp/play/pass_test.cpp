@@ -1,16 +1,12 @@
-#include "ai/hl/stp/tactic/block.h"
+#include "ai/hl/stp/tactic/chase.h"
+#include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/stp/tactic/pass.h"
 #include "ai/hl/stp/play/simple_play.h"
 
-using AI::HL::STP::Enemy;
 namespace Predicates = AI::HL::STP::Predicates;
 
-/**
- * 
- *
- *
- */
+namespace {
 
 	const Point targets[] = {
 		Point(-1.2, 0),
@@ -30,18 +26,18 @@ namespace Predicates = AI::HL::STP::Predicates;
 		Point(-2.5, 0.6)
 	};
 
-const int num_targets = G_N_ELEMENTS(targets);
+	const int num_targets = G_N_ELEMENTS(targets);
 
-double dist_ball(const AI::HL::W::World &world, Point target){
-	double dist =0;
+	double dist_ball(const AI::HL::W::World &world, Point target){
+		double dist =0;
 		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 			//	AI::HL::W::Player::Ptr p = world.friendly_team().get(i);
 			Point temp = world.friendly_team().get(i)->position();
 			dist += (target - temp).len();
 		}
 		return dist;
+	}
 }
-
 
 BEGIN_PLAY(PassTest)
 INVARIANT(true)
@@ -53,12 +49,12 @@ BEGIN_ASSIGN()
 Point target = targets[0];
 double dist = dist_ball(world, target);
 
-	for(unsigned int i=0; i < num_targets; i++){
-		Point temp = targets[i];
-		if( dist_ball(world, temp) > dist){
-			target = temp;
-		}
+for(unsigned int i=0; i < num_targets; i++){
+	Point temp = targets[i];
+	if( dist_ball(world, temp) > dist){
+		target = temp;
 	}
+}
 
 // GOALIE
 goalie_role.push_back(defend_duo_goalie(world));
@@ -77,7 +73,7 @@ roles[2].push_back(defend_duo_defender(world));
 
 // ROLE 4
 // offensive support through blocking closest enemy to ball
-roles[3].push_back(block(world, Enemy::closest_ball(world, 0)));
+roles[3].push_back(offend(world));
 
 
 /////////////////////////////////////
@@ -90,7 +86,7 @@ goalie_role.push_back(defend_duo_goalie(world));
 
 // ROLE 1
 // passer
-roles[0].push_back(passee_move_target(world, target, true));
+roles[0].push_back(chase(world));
 
 // ROLE 2
 // passee
@@ -102,7 +98,7 @@ roles[2].push_back(offend(world));
 
 // ROLE 4
 // offensive support through blocking closest enemy to ball
-roles[3].push_back(block(world, Enemy::closest_ball(world, 0)));
+roles[3].push_back(offend_secondary(world));
 
 END_ASSIGN()
 END_PLAY()

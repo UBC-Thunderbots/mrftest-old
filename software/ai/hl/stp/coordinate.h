@@ -54,6 +54,8 @@ namespace AI {
 						BALL,
 					};
 
+					Coordinate();
+
 					/**
 					 * Implicit conversion.
 					 */
