@@ -52,7 +52,7 @@ namespace {
 				Player::CPtr passee = Evaluation::nearest_friendly(world, dest);
 
 #warning TODO find a good location for passer
-				Point target = Evaluation::passer_position(world, defensive);
+				Point target = Evaluation::passer_position(world, dest, defensive);
 				Action::move(world, player, target);
 				kicked = Action::shoot_pass(world, player, dest);
 			}

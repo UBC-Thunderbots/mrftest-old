@@ -16,7 +16,7 @@ using AI::HL::STP::Evaluation::grid_x;
 using AI::HL::STP::Evaluation::grid_y;
 
 namespace {
-	const double DEG_2_RAD = 1.0 / 180.0 * M_PI;
+	//const double DEG_2_RAD = 1.0 / 180.0 * M_PI;
 
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/offense", 4.0, 1.0, 10.0);
 
@@ -71,9 +71,6 @@ namespace {
 				return -1e99;
 			}
 		}
-
-		// 10 degrees of shooting is 10 Points
-		score *= 10.0 / (10.0 * DEG_2_RAD);
 
 		// want to be as near to enemy goal or ball as possible
 		const double ball_dist = (dest - world.ball().position()).len() + ball_dist_weight;
@@ -197,7 +194,7 @@ Point AI::HL::STP::Evaluation::passee_position(const World &world) {
 	return best;
 }
 
-Point AI::HL::STP::Evaluation::passer_position(const World &world, bool defense) {
+Point AI::HL::STP::Evaluation::passer_position(const World &world, Point passee_pos, bool defense) {
 	const EnemyTeam &enemy = world.enemy_team();
 	std::vector<Point> enemy_pos;
 	for (size_t i = 0; i < enemy.size(); ++i) {
@@ -207,7 +204,7 @@ Point AI::HL::STP::Evaluation::passer_position(const World &world, bool defense)
 	std::vector<Point> dont_block;
 	dont_block.push_back(world.ball().position());
 	if (!defense) dont_block.push_back(passee_position(world));
-	Point passee_pos = Evaluation::passee_position(world);
+	
 	Point best;
 	calc_position_best(world, passee_pos, enemy_pos, dont_block, best, true);
 

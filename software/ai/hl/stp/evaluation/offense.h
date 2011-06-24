@@ -41,7 +41,7 @@ namespace AI {
 
 				Point passee_position(const World &world);
 
-				Point passer_position(const World &world, bool defense = false); 
+				Point passer_position(const World &world, Point passee_pos, bool defense = false); 
 
 				/**
 				 * Grid size in x-direction.
