@@ -182,6 +182,11 @@ Tactic::Ptr AI::HL::STP::Tactic::passee_move_target(const World &world, Coordina
 	return p;
 }
 
+Tactic::Ptr AI::HL::STP::Tactic::passee_recieve_target(const World &world, Coordinate target) {
+	const Tactic::Ptr p(new PasseeRecieve(world, target, false));
+	return p;
+}
+
 Tactic::Ptr AI::HL::STP::Tactic::passer_shoot_dynamic(const World &world) {
 	const Tactic::Ptr p(new PasserShoot(world, false));
 	return p;

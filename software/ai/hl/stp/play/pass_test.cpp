@@ -10,20 +10,35 @@ namespace {
 
 	const Point targets[] = {
 		Point(-1.2, 0),
-		Point(-1.5, 0),
+		Point(-1, 0),
 		Point(-1.2, 0.3),
 		Point(-1.2, -0.3),
 		Point(-1.2, 0),
 		Point(-1.2, -0.3),
 		Point(-1.2, 0),
 		Point(-0.5, 0),
-		Point(-2.5, 0),
+		Point(-1.0, 0),
 		Point(-0.5, 1.2),
 		Point(-1, -0.6),
 		Point(-2, 0.6),
 		Point(-1, -0.6),
 		Point(-0.5, 0),
-		Point(-2.5, 0.6)
+		Point(-1.3, 0.6),
+		Point(-1.2, 0),
+		Point(-1, 0),
+		Point(-1.2, 0.3),
+		Point(-1.2, -0.3),
+		Point(-1.2, 0),
+		Point(-1.2, -0.3),
+		Point(-1.2, 0),
+		Point(-0.5, 0),
+		Point(-1.0, 0),
+		Point(-0.5, 1.2),
+		Point(-1, -0.6),
+		Point(-2, 0.6),
+		Point(-1, -0.6),
+		Point(-0.5, 0),
+		Point(-1.3, 0.6)
 	};
 
 	const int num_targets = G_N_ELEMENTS(targets);
@@ -86,7 +101,7 @@ goalie_role.push_back(defend_duo_goalie(world));
 
 // ROLE 1
 // passer
-roles[0].push_back(passee_move_target(world, target));
+roles[0].push_back(passee_recieve_target(world, target));
 
 // ROLE 2
 // passee

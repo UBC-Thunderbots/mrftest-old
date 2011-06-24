@@ -20,6 +20,12 @@ namespace AI {
 				Tactic::Ptr passee_move_target(const World &world, Coordinate target);
 
 				/**
+				 * Passee moves to intercept the moving ball, in the target region
+				 * This one is an active tactic
+				 */
+				Tactic::Ptr passee_recieve_target(const World &world, Coordinate target);
+
+				/**
 				 * Passer positioning and shoot for offensive purposes
 				 * (objective is pass to passee and have it shoot at enemy goal).
 				 */
