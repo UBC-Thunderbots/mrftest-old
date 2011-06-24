@@ -88,10 +88,10 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	}
 
 	// check receiver orientation
-	Player::CPtr receiver = Evaluation::nearest_friendly(world, target);
-	if (!within_angle_thresh(receiver, player->position(), pass_threshold)) {
-		return false;
-	}
+//	Player::CPtr receiver = Evaluation::nearest_friendly(world, target);
+//	if (!within_angle_thresh(receiver, player->position(), pass_threshold)) {
+//		return false;
+//	}
 
 	if (!player->chicker_ready()) {
 		LOG_INFO("chicker not ready");
