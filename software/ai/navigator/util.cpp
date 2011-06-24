@@ -12,6 +12,8 @@ using namespace AI::Nav::W;
 namespace {
 	const double EPS = 1e-9;
 
+	BoolParam OWN_HALF_OVERRIDE( "enforce that robots stay on own half ", "Nav/Util", false);
+
 	// small value to ensure non-equivilance with floating point math
 	// but too small to make a difference in the actual game
 	const double SMALL_BUFFER = 0.0001;
@@ -271,10 +273,16 @@ namespace {
 		}
 
 		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), friendly_kick(0.0), extra_flags(0) {
+			if(OWN_HALF_OVERRIDE){
+				extra_flags = extra_flags | FLAG_STAY_OWN_HALF;
+			}
 			set_violation_amount(cur, dst, world, player);
 		}
 
 		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int added_flags) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), friendly_kick(0.0), extra_flags(added_flags) {
+			if(OWN_HALF_OVERRIDE){
+				extra_flags = extra_flags | FLAG_STAY_OWN_HALF;
+			}
 			set_violation_amount(cur, dst, world, player);
 		}
 
