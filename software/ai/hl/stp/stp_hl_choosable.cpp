@@ -89,6 +89,7 @@ namespace {
 				assert(curr_play.is());
 
 				if (!curr_play->invariant() || curr_play->done() || curr_play->fail()) {
+					LOG_INFO("play not valid");
 					curr_play.reset();
 					return;
 				}
@@ -131,6 +132,7 @@ namespace {
 				}
 
 				if (curr_play.is() && (!curr_play->invariant() || curr_play->done() || curr_play->fail())) {
+					LOG_INFO("play done/no longer valid");
 					curr_play.reset();
 				}
 
