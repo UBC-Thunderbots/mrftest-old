@@ -36,6 +36,7 @@ namespace {
 		public:
 			NCHL(World &world) : world(world), tasks(default_tasks, default_tasks + default_tasks_n), time_steps(0) {
 				std::vector<std::size_t> done;
+				obstacleIndex = 0;
 			}
 
 			NCHLFactory &factory() const {
@@ -48,10 +49,10 @@ namespace {
 				if (friendly.size() == 0)
 					return;
 					
-				if (done.size() != friendly.size()) {
+				if (done.size() < 3 && friendly.size() != done.size()) {
 					done.clear();
 					int taskIndex = 0;
-					for (unsigned int i = 0; i < friendly.size(); ++i) {
+					for (unsigned int i = 0; i < friendly.size() && i < 3; ++i) {
 						done.push_back(taskIndex);
 						if (taskIndex == 0) taskIndex = 3;
 						else taskIndex = 0;
@@ -81,7 +82,8 @@ namespace {
 
 				time_steps++;
 				
-				for (unsigned int robotIndex = 0; robotIndex < friendly.size(); ++robotIndex) {
+				// Set up to three players
+				for (unsigned int robotIndex = 0; robotIndex < friendly.size() && robotIndex < 3; ++robotIndex) {
 					Player::Ptr runner = friendly.get(robotIndex);
 
 					const Point diff_pos = runner->position() - tasks[done[robotIndex]].first;
@@ -102,6 +104,23 @@ namespace {
 					double dest_ori = (tasks[done[robotIndex]].first - runner->position()).orientation();
 					runner->move(tasks[done[robotIndex]].first, dest_ori, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 				}
+				
+				// Set moving obstacles
+				if (friendly.size() >= 4) {
+					Player::Ptr runner = friendly.get(3);
+					Point des;
+					if (obstacleIndex == 0) {
+						des = Point(0,1);
+					} else {
+						des = Point(0,-1);
+					}
+					const Point diff_pos = runner->position() - des;
+					if (diff_pos.len() < pos_dis_threshold) {
+						obstacleIndex++;
+						if (obstacleIndex > 1) obstacleIndex = 0;
+					}
+					runner->move(des, 0, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
+				}
 			}
 
 			Gtk::Widget *ui_controls() {
@@ -113,6 +132,7 @@ namespace {
 			std::vector<std::pair<Point, double> > tasks;
 			int time_steps;
 			std::vector<std::size_t> done;
+			int obstacleIndex;
 	};
 
 	HighLevel::Ptr NCHLFactory::create_high_level(World &world) const {
