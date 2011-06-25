@@ -176,7 +176,7 @@ void PlayExecutor::execute_tactics() {
 
 			// when the play runs out of tactics, they are done!
 			if (curr_role_step >= max_role_step) {
-				LOG_INFO("Play done");
+				LOG_INFO("All tactics done");
 				curr_play.reset();
 				return;
 			}

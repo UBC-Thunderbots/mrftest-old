@@ -76,11 +76,13 @@ goalie_role.push_back(defend_duo_goalie(world));
 
 // ROLE 1
 // passer
-roles[0].push_back(passer_shoot_target(world, target));
+//roles[0].push_back(passer_shoot_target(world, target));
+roles[0].push_back(passer_shoot_dynamic(world));
 
 // ROLE 2
 // passee
-roles[1].push_back(passee_move_target(world, target));
+//roles[1].push_back(passee_move_target(world, target));
+roles[1].push_back(passee_move_dynamic(world));
 
 // ROLE 3
 // defend

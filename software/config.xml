@@ -129,7 +129,7 @@
         <category name="shoot">
           <double name="Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate">17.1</double>
           <double name="Decay constant for the ball velocity">0.100</double>
-          <double name="kicking speed for making a pass">5.37</double>
+          <double name="kicking speed for making a pass">4.75</double>
           <double name="reduced radius for calculating best shot (robot radius ratio)">0.800</double>
         </category>
         <category name="spin">
@@ -169,6 +169,11 @@
         <integer name="Goalie pattern index">1</integer>
       </category>
       <category name="Tactic">
+        <category name="pass">
+          <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.000</double>
+          <double name="velocity to ignore">0.100</double>
+          <double name="when passer within this angle tol passee responds to passer direction">30.0</double>
+        </category>
         <double name="stop: angle to separate players (degrees)">20.0</double>
       </category>
       <category name="test_pass">
