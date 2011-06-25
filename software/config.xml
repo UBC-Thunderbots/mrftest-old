@@ -165,7 +165,7 @@
         <double name="Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate">0.0</double>
       </category>
       <category name="STP">
-        <boolean name="Goalie is lowest index">false</boolean>
+        <boolean name="Goalie is lowest index">true</boolean>
         <integer name="Goalie pattern index">4</integer>
       </category>
       <category name="Tactic">
