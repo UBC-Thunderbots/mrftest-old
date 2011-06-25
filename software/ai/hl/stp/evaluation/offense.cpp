@@ -33,13 +33,12 @@ namespace {
 			closest_enemy = std::min(closest_enemy, dist);
 		}
 
-		double score;
+		double score = -1e99;
 		if (pass) {
 			score = AI::HL::Util::calc_best_shot_target(passee_pos, enemy_pos, dest).second;
 		} else {
 			// Hmm.. not sure if having negative number is a good idea.
-			std::pair<Point, double> bestshot = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dest);
-			score = bestshot.second;
+			score = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dest).second;
 		}
 
 		// TODO: check the line below here
@@ -122,7 +121,7 @@ namespace {
 				}
 			}
 		}
-		return best_score > -1e40;
+		return best_score > 0;
 	}
 }
 
