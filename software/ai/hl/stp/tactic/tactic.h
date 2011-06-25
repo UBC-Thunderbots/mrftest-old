@@ -38,6 +38,12 @@ namespace AI {
 						virtual bool done() const;
 
 						/**
+						 * A tactic can fail if something really bad happens.
+						 * Only usable by active tactic.
+						 */
+						virtual bool fail() const;
+
+						/**
 						 * Checks if the current tactic is an active tactic.
 						 */
 						bool active() const {

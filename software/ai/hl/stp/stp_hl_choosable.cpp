@@ -148,18 +148,8 @@ namespace {
 				}
 
 				if (curr_play.is()) {
-					text << "step: " << curr_role_step;
-					text << "\n";
-					for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-						text << curr_assignment[i]->pattern() << ": ";
-						if (curr_tactic[i]->active()) {
-							text << "*";
-						} else {
-							text << " ";
-						}
-						text << curr_tactic[i]->description();
-						text << "\n";
-					}				}
+					text << info();
+				}
 
 				text_status.get_buffer()->set_text(text.str());
 			}

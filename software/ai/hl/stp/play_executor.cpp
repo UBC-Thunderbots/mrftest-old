@@ -117,7 +117,7 @@ void PlayExecutor::role_assignment() {
 	}
 
 	if (!goalie.is()) {
-		LOG_ERROR("No goalie");
+		LOG_ERROR("No goalie with the desired pattern");
 		curr_play.reset();
 		return;
 	}
@@ -170,13 +170,19 @@ void PlayExecutor::execute_tactics() {
 			return;
 		}
 
+		if (curr_active->fail()) {
+			LOG_INFO("Active tactic has failed");
+			curr_play.reset();
+			return;
+		}
+
 		// it is possible to skip steps
 		if (curr_active->done()) {
 			++curr_role_step;
 
 			// when the play runs out of tactics, they are done!
 			if (curr_role_step >= max_role_step) {
-				LOG_INFO("All tactics done");
+				LOG_INFO("All tactics are done");
 				curr_play.reset();
 				return;
 			}
@@ -194,6 +200,24 @@ void PlayExecutor::execute_tactics() {
 		}
 		curr_tactic[i]->execute();
 	}
+
+	if (curr_active->fail()) {
+		LOG_INFO("Active tactic has failed");
+		curr_play.reset();
+		return;
+	}
+
+	// an active tactic may be done
+	if (curr_active->done()) {
+		++curr_role_step;
+
+		// when the play runs out of tactics, they are done!
+		if (curr_role_step >= max_role_step) {
+			LOG_INFO("All tactics are done");
+			curr_play.reset();
+			return;
+		}
+	}
 }
 
 void PlayExecutor::tick() {
@@ -204,20 +228,54 @@ void PlayExecutor::tick() {
 	}
 
 	// check if curr play wants to continue
-	if (curr_play.is() && (!curr_play->invariant() || curr_play->done() || curr_play->fail())) {
-		curr_play.reset();
+	if (curr_play.is()) {
+		bool done = false;
+		if (!curr_play->invariant()) {
+			LOG_INFO("play invariant no longer holds");
+		}
+		if (curr_play->done()) {
+			LOG_INFO("play done is true");
+		}
+		if (curr_play->fail()) {
+			LOG_INFO("play failed");
+		}
+		if (done) {
+			curr_play.reset();
+		}
 	}
 
 	// check if curr is valid
 	if (!curr_play.is()) {
 		calc_play();
 		if (!curr_play.is()) {
-			LOG_WARN("calc play failed");
+			LOG_ERROR("calc play failed");
 			return;
 		}
 	}
 
 	execute_tactics();
+}
+
+std::string PlayExecutor::info() const {
+	std::ostringstream text;
+	if (curr_play.is()) {
+		text << "play: " << curr_play->factory().name();
+		text << std::endl;
+		text << "step: " << curr_role_step;
+		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
+			text << std::endl;
+			text << curr_assignment[i]->pattern() << ": ";
+			if (curr_tactic[i]->active()) {
+				text << "*";
+			} else {
+				text << " ";
+			}
+			text << curr_tactic[i]->description();
+		}
+	} else {
+		text << "No Play";
+	}
+	return text.str();
 }
 
 void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {

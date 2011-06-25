@@ -30,12 +30,12 @@ namespace {
 //	double negligible_velocity = 0.1;
 //	double passee_hack_dist = 0.0;
 	
-	struct kick_info{
+	struct kick_info {
 		Point kicker_location;
 		double kicker_orientation;
 		Point kicker_target;
 		bool kicked;
-	} ;
+	};
 
 	class PasserShoot : public Tactic {
 		public:
@@ -194,7 +194,7 @@ namespace {
 				bool fast_ball = world.ball().velocity().len() > fast_velocity;				
 				bool can_intercept = ( (player->position() - world.ball().position()).dot(world.ball().velocity()) > 0);
 				
-				if(world.ball().velocity().len() < negligable_velocity){
+				if(world.ball().velocity().len() < negligible_velocity){
 					Action::chase(world, player);
 					player->type(AI::Flags::MoveType::DRIBBLE);
 					return;

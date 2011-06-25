@@ -35,26 +35,7 @@ namespace {
 
 			void tick() {
 				PlayExecutor::tick();
-				std::ostringstream text;
-				if (curr_play.is()) {
-					text << "play: " << curr_play->factory().name();
-					text << "\n";
-					text << "step: " << curr_role_step;
-					text << "\n";
-					for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-						text << curr_assignment[i]->pattern() << ": ";
-						if (curr_tactic[i]->active()) {
-							text << "*";
-						} else {
-							text << " ";
-						}
-						text << curr_tactic[i]->description();
-						text << "\n";
-					}
-				} else {
-					text << "No Play";
-				}
-				text_view.get_buffer()->set_text(text.str());
+				text_view.get_buffer()->set_text(info());
 			}
 
 			Gtk::Widget *ui_controls() {

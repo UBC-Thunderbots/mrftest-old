@@ -5,6 +5,7 @@
 #include "ai/hl/stp/play/play.h"
 
 #include <gtkmm.h>
+#include <string>
 
 namespace AI {
 	namespace HL {
@@ -26,6 +27,11 @@ namespace AI {
 					 * Runs every time step.
 					 */
 					void tick();
+
+					/**
+					 * Get a text string about the executor.
+					 */
+					std::string info() const;
 
 				protected:
 					World &world;

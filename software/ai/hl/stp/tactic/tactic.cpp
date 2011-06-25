@@ -14,6 +14,10 @@ bool Tactic::done() const {
 	assert(0);
 }
 
+bool Tactic::fail() const {
+	return false;
+}
+
 void Tactic::set_player(Player::Ptr p) {
 	if (player != p) {
 		player = p;
