@@ -9,14 +9,15 @@ using AI::HL::STP::Coordinate;
 namespace {
 	class ShootGoal : public Tactic {
 		public:
-			ShootGoal(const World &world) : Tactic(world, true), has_shot(false) {
+			ShootGoal(const World &world) : Tactic(world, true), shot_attempted(false) {
 			}
 
 		private:
-			bool has_shot;
+			bool shot_attempted;
 			bool done() const;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
+			void player_changed();
 			std::string description() const {
 				return "shoot-goal";
 			}
@@ -24,47 +25,62 @@ namespace {
 
 	class ShootTarget : public Tactic {
 		public:
-			ShootTarget(const World &world, const Coordinate target) : Tactic(world, true), target(target), has_shot(false) {
+			ShootTarget(const World &world, const Coordinate target) : Tactic(world, true), target(target), shot_attempted(false) {
 			}
 
 		private:
 			Coordinate target;
-			bool has_shot;
+			bool shot_attempted;
 			bool done() const;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
+			void player_changed();
 			std::string description() const {
 				return "shoot-target";
 			}
 	};
 
 	bool ShootGoal::done() const {
-#warning tactic should control shooting
-		return has_shot;
+		return player.is() && player->autokick_fired();
 	}
 
 	Player::Ptr ShootGoal::select(const std::set<Player::Ptr> &players) const {
+		// if a player attempted to shoot, use the player
+		if (shot_attempted && players.count(player)) {
+			return player;
+		}
 		return select_baller(world, players);
+	}
+
+	void ShootGoal::player_changed() {
+		shot_attempted = false;
 	}
 
 	void ShootGoal::execute() {
 		if (AI::HL::STP::Action::shoot_goal(world, player)) {
-			has_shot = true;
+			shot_attempted = true;
 		}
 	}
 
 	bool ShootTarget::done() const {
-#warning tactic should control shooting
-		return has_shot;
+		return player.is() && player->autokick_fired();
 	}
 
 	Player::Ptr ShootTarget::select(const std::set<Player::Ptr> &players) const {
+		// if a player attempted to shoot, use the player
+		if (shot_attempted && players.count(player)) {
+			return player;
+		}
 		return select_baller(world, players);
+	}
+
+	void ShootTarget::player_changed() {
+		shot_attempted = false;
 	}
 
 	void ShootTarget::execute() {
 		if (AI::HL::STP::Action::shoot_target(world, player, target.position())) {
-			has_shot = true;
+			shot_attempted = true;
 		}
 	}
 }

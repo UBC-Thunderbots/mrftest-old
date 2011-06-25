@@ -13,7 +13,7 @@ namespace AI {
 				/**
 				 * Shoots the ball at the largest open angle of the enemy goal.
 				 *
-				 * \return true if the robot shoots.
+				 * \return true if the player autokick is fired.
 				 */
 				bool shoot_goal(const World &world, Player::Ptr player);
 
@@ -23,7 +23,7 @@ namespace AI {
 				 *
 				 * \param[in] pass true if the player is to pass.					
 				 *
-				 * \return true if the robot shoots.
+				 * \return true if the player autokick is fired.
 				 */	
 				bool shoot_target(const World &world, Player::Ptr player, const Point target) __attribute__ ((deprecated));
 
@@ -34,21 +34,21 @@ namespace AI {
 				 *
 				 * \param[in] target the location to shoot the ball to.
 				 *
-				 * \return true if the robot shoots.
+				 * \return true if the player autokick is fired.
 				 */
 				bool shoot_region(const World &world, Player::Ptr player, const Point target, double radius, double delta = 1e9);
 
 				/**
 				 * Directly shoots to a player.
 				 *
-				 * \return true if the shooter shoots.
+				 * \return true if the player autokick is fired.
 				 */
 				bool shoot_pass(const World& world, Player::Ptr shooter, const Point target);
 
 				/**
 				 * Directly shoots to a player.
 				 *
-				 * \return true if the shooter shoots.
+				 * \return true if the player autokick is fired.
 				 */
 				bool shoot_pass(const World& world, Player::Ptr shooter, const Point target, double angle_tol);
 
