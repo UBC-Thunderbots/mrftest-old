@@ -41,9 +41,10 @@ namespace {
 			std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 
 			Robot::Ptr enemy_goalie = *std::min_element(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().enemy_goal()));
-
+			const Field &f = world.field();
 			// a hysteresis
-			const double target_y = world.field().goal_width() * 3 / 4;
+			double goal_post_diff = (f.enemy_goal_boundary().first - f.enemy_goal_boundary().second).len();
+			const double target_y = goal_post_diff * 3 / 4;
 
 			if (shoot_up && enemy_goalie->position().y + Robot::MAX_RADIUS > target_y) {
 				shoot_up = false;
@@ -52,9 +53,9 @@ namespace {
 			}
 
 			if (shoot_up) {
-				target = Point(world.field().length() / 2, target_y);
+				target = Point(f.length() / 2, target_y);
 			} else {
-				target = Point(world.field().length() / 2, -target_y);
+				target = Point(f.length() / 2, -target_y);
 			}
 		}
 

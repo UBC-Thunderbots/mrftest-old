@@ -121,45 +121,6 @@ namespace {
 			}
 	};
 
-	class TPass : public Tactic {
-		public:
-			TPass(const World &world, const Coordinate _target) : Tactic(world, true), target(_target) {}
-
-		private:
-			Coordinate target;
-			bool kicked;
-			bool done() const {
-				return kicked;
-			}
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return select_baller(world, players);
-			}
-
-			void execute();
-
-			std::string description() const {
-				return "tpass";
-			}
-	};
-
-	class TReceivePass : public Tactic {
-		public:
-			TReceivePass(const World &world, const Coordinate _target) : Tactic(world), target(_target) {}
-
-		private:
-			Coordinate target;
-			
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(target.position()));
-			}
-
-			void execute();
-
-			std::string description() const {
-				return "treceive_pass";
-			}
-	};
-
 	class TDribbleToRegion : public Tactic {
 		public:
 			TDribbleToRegion(const World &world, Region _region) : Tactic(world, true), region(_region) {}
@@ -322,42 +283,6 @@ void TActiveDef::execute() {
 	finished = Action::shoot_goal(world, player);
 }
 
-// might be better to just use our pass and receive pass
-// these two tactics are implemented but not used in cm '02 =/
-
-void TPass::execute() {
-	kicked = false;
-	Point p[2], targetp = target.position(), ball;
-	double angle_tolerance;
-
-	ball = world.ball().position();
-
-	targetp += (ball - targetp).norm(0.070);
-
-	p[0] = targetp + (targetp - ball).perp().norm(PASS_TARGET_WIDTH);
-	p[1] = targetp + (targetp - ball).perp().norm(PASS_TARGET_WIDTH);
-
-	Evaluation::CMEvaluation::aim(world, LATENCY_DELAY, world.ball().position(), p[0], p[1], OBS_EVERYTHING_BUT_US, targetp, angle_tolerance);
-
-	// Set the drive target as 1m from the target, with some exceptions when close.
-	Point mytarget;
-
-	if ((targetp - ball).len() > 1.100) {
-		mytarget = ball + (targetp - ball).norm(1.000);
-	} else if ((targetp - ball).len() < 0.100) {
-		mytarget = targetp;
-	} else {
-		mytarget = targetp + (ball - targetp).norm(0.100);
-	}
-
-	Action::dribble(world, player, mytarget);
-	kicked = Action::shoot_pass(world, player, targetp);
-}
-
-void TReceivePass::execute() {
-	Action::move(world, player, target.position());
-}
-
 void TDribbleToRegion::execute() {
 	Action::dribble(world, player, region.center_position());
 }
@@ -383,16 +308,6 @@ Tactic::Ptr AI::HL::STP::Tactic::tclear(const World &world) {
 
 Tactic::Ptr AI::HL::STP::Tactic::tactive_def(const World &world) {
 	Tactic::Ptr p(new TActiveDef(world));
-	return p;
-}
-
-Tactic::Ptr AI::HL::STP::Tactic::tpass(const World &world, const Coordinate _target) {
-	Tactic::Ptr p(new TPass(world, _target));
-	return p;
-}
-
-Tactic::Ptr AI::HL::STP::Tactic::treceive_pass(const World &world, const Coordinate _target) {
-	Tactic::Ptr p(new TReceivePass(world, _target));
 	return p;
 }
 

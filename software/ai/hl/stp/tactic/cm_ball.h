@@ -30,16 +30,6 @@ namespace AI {
 				Tactic::Ptr tactive_def(const World &world);
 
 				/**
-				 * Pass
-				 */
-				Tactic::Ptr tpass(const World &world, const Coordinate _target);
-
-				/**
-				 * Receive Pass
-				 */
-				Tactic::Ptr treceive_pass(const World &world, const Coordinate _target);
-
-				/**
 				 * Dribble to Region
 				 */
 				Tactic::Ptr tdribble_to_region(const World &world, Region _region);
