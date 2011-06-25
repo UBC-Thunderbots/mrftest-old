@@ -34,7 +34,7 @@ namespace {
 						adj_plateau_time(0.0, 0.0, 4.0, 0.2, 1.0, 1.0), hsb_plateau_time(adj_plateau_time), lbl_plateau_time("T plateau"), to_be_plateau_time(0.0),
 						adj_terminal_velocity(0.0, 0.0, 1.0, 0.1, 0.2, 0.2), hsb_terminal_velocity(adj_terminal_velocity), lbl_terminal_velocity("V terminal"), to_be_terminal_velocity(0.0),
 						adj_direction(0.0, 0.0, 2*M_PI, 0.1*M_PI, 0.5*M_PI, 1.0), hsb_direction(adj_direction), lbl_direction("Direction"), to_be_direction(0.0),
-						adj_rotate_speed(0.0, -0.5*M_PI, 0.5*M_PI, 0.05*M_PI, 0.1*M_PI, 0.0), hsb_rotate_speed(adj_rotate_speed), lbl_rotate_speed("Rotation"), to_be_rotate_speed(0.0) {
+						adj_rotate_speed(0.0, -20*M_PI, 20*M_PI, 0.05*M_PI, 0.1*M_PI, 0.0), hsb_rotate_speed(adj_rotate_speed), lbl_rotate_speed("Rotation"), to_be_rotate_speed(0.0) {
 
 				// disable parameter setting
 				set_param_tgl.set_label("Test drive param");

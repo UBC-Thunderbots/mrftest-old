@@ -166,12 +166,15 @@
       </category>
       <category name="STP">
         <boolean name="Goalie is lowest index">false</boolean>
-        <integer name="Goalie pattern index">1</integer>
+        <integer name="Goalie pattern index">4</integer>
       </category>
       <category name="Tactic">
         <category name="pass">
           <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.056</double>
-          <double name="velocity to ignore">0.100</double>
+          <double name=" the radius (meters) in which passee must be with repect to target before valid ">2.000</double>
+          <double name=" the radius (meters) in which passer must be with repect to ball before valid ">1.000</double>
+          <double name="velocity of pass threshold">1.000</double>
+          <double name="velocity to ignore">0.200</double>
           <double name="when passer within this angle tol passee responds to passer direction">30.0</double>
         </category>
         <double name="stop: angle to separate players (degrees)">20.0</double>
