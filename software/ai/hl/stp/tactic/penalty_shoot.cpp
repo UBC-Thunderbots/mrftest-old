@@ -31,6 +31,7 @@ namespace {
 	}
 
 	void PenaltyShoot::execute() {
+		/*
 		// shoot center of goal if there is no enemy
 		Point target = world.field().enemy_goal();
 
@@ -62,6 +63,8 @@ namespace {
 		if (AI::HL::STP::Action::shoot_target(world, player, target)) {
 			has_shot = true;
 		}
+		*/
+		has_shot = AI::HL::STP::Action::shoot_goal(world, player);
 	}
 }
 

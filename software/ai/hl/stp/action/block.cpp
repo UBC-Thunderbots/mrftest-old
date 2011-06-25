@@ -13,6 +13,7 @@ namespace {
 }
 // TODO: Think of how to block/defend against chipping (if possible)
 void AI::HL::STP::Action::block(const World &world, Player::Ptr player, Robot::Ptr robot) {
+
 	Point dirToGoal = (world.field().friendly_goal() - robot->position()).norm();
 	player->move(robot->position() + (block_threshold * Robot::MAX_RADIUS * dirToGoal), (world.ball().position() - player->position()).orientation(), Point());
 	player->type(AI::Flags::MoveType::NORMAL);
@@ -21,6 +22,15 @@ void AI::HL::STP::Action::block(const World &world, Player::Ptr player, Robot::P
 }
 
 void AI::HL::STP::Action::block_pass(const World &world, Player::Ptr player, Robot::Ptr robot) {
+
+	std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+	Robot::Ptr enemy_goalie = *std::min_element(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().enemy_goal()));
+
+	// don't block from ball if the enemy is the goalie!!
+	if (robot == enemy_goalie) {
+		return block(world, player, robot); 
+	}
+
 	Point dirToBall = (world.ball().position() - robot->position()).norm();
 	player->move(robot->position() + (block_threshold * Robot::MAX_RADIUS * dirToBall), (world.ball().position() - player->position()).orientation(), Point());
 	player->type(AI::Flags::MoveType::NORMAL);
