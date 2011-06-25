@@ -102,7 +102,7 @@
         <double name="max acc">3.00</double>
       </category>
       <category name="PID3">
-        <double name="angular differential (-ve)">-0.10</double>
+        <double name="angular differential (-ve)">-0.22</double>
         <double name="angular integral (%)">0</double>
         <double name="angular max velocity">12.00</double>
         <double name="angular proportional">12.00</double>
@@ -111,10 +111,10 @@
         <boolean name="(CARE) reduce angular velocity when translating">false</boolean>
         <double name="integral decay (%)">90.0</double>
         <double name="x to y ratio">0.810</double>
-        <double name="xy differential (-ve)">-0.10</double>
-        <double name="xy integral (%)">0</double>
+        <double name="xy differential (-ve)">-0.00</double>
+        <double name="xy integral (%)">40</double>
         <double name="xy max acceleration">6.00</double>
-        <double name="xy max velocity">12.00</double>
+        <double name="xy max velocity">15.08</double>
         <double name="xy proportional">12.00</double>
       </category>
     </category>
@@ -170,7 +170,7 @@
       </category>
       <category name="Tactic">
         <category name="pass">
-          <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.000</double>
+          <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.056</double>
           <double name="velocity to ignore">0.100</double>
           <double name="when passer within this angle tol passee responds to passer direction">30.0</double>
         </category>

@@ -75,32 +75,26 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 }
 
 bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target, double angle_tol) {
-	if (!player->has_ball()) {
-		chase_pivot(world, player, target);
-		return false;
-	}
 
-	pivot(world, player, target);
-
+	chase_pivot(world, player, target);
 	// checker shooter orientation
 	if (!within_angle_thresh(player, target, angle_tol)) {
 		return false;
 	}
-
+	player->autokick(pass_speed);
+	
 	// check receiver orientation
 //	Player::CPtr receiver = Evaluation::nearest_friendly(world, target);
 //	if (!within_angle_thresh(receiver, player->position(), pass_threshold)) {
 //		return false;
 //	}
 
-	if (!player->chicker_ready()) {
+	if (player->has_ball() && within_angle_thresh(player, target, angle_tol) && !player->chicker_ready()) {
 		LOG_INFO("chicker not ready");
 		return false;
 	}
-
-	LOG_INFO("kick");
-	player->autokick(pass_speed);
-
+	
+	// only partly accurate whether an autokick or not
 	return true;
 }
 
