@@ -232,12 +232,15 @@ void PlayExecutor::tick() {
 		bool done = false;
 		if (!curr_play->invariant()) {
 			LOG_INFO("play invariant no longer holds");
+			done = true;
 		}
 		if (curr_play->done()) {
 			LOG_INFO("play done is true");
+			done = true;
 		}
 		if (curr_play->fail()) {
 			LOG_INFO("play failed");
+			done = true;
 		}
 		if (done) {
 			curr_play.reset();
