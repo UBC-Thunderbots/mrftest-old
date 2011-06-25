@@ -13,8 +13,8 @@
 params_t params;
 uint16_t firmware_crc;
 
-__code static params_t __at(0x1F000) rom_params = { FLASH_CONTENTS_FPGA, { 0x0E, 0x0F }, 15, 80, 0 };
-__code static uint16_t __at(0x1F000 + sizeof(rom_params)) rom_params_crc = 0x4201;
+__code static params_t __at(0x1F000) rom_params = { FLASH_CONTENTS_FPGA, { 0x0B, 0x0C }, 15, 80, 0 };
+__code static uint16_t __at(0x1F000 + sizeof(rom_params)) rom_params_crc = 0x4198;
 
 BOOL params_load(void) {
 	memcpypgm2ram(&params, &rom_params, sizeof(params));
