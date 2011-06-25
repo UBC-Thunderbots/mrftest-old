@@ -25,11 +25,12 @@ namespace {
 
 	class ShootTarget : public Tactic {
 		public:
-			ShootTarget(const World &world, const Coordinate target) : Tactic(world, true), target(target), shot_attempted(false) {
+			ShootTarget(const World &world, const Coordinate target, double velocity) : Tactic(world, true), target(target), velocity(velocity), shot_attempted(false) {
 			}
 
 		private:
 			Coordinate target;
+			double velocity;
 			bool shot_attempted;
 			bool done() const;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
@@ -79,7 +80,7 @@ namespace {
 	}
 
 	void ShootTarget::execute() {
-		if (AI::HL::STP::Action::shoot_target(world, player, target.position())) {
+		if (AI::HL::STP::Action::shoot_target(world, player, target.position(), velocity)) {
 			shot_attempted = true;
 		}
 	}
@@ -90,8 +91,8 @@ Tactic::Ptr AI::HL::STP::Tactic::shoot_goal(const World &world) {
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::shoot_target(const World &world, const Coordinate target) {
-	const Tactic::Ptr p(new ShootTarget(world, target));
+Tactic::Ptr AI::HL::STP::Tactic::shoot_target(const World &world, const Coordinate target, double velocity) {
+	const Tactic::Ptr p(new ShootTarget(world, target, velocity));
 	return p;
 }
 

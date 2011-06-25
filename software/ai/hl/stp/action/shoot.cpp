@@ -46,7 +46,7 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player) {
 	return false;
 }
 
-bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target) {
+bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target, double velocity) {
 	chase_pivot(world, player, target);
 
 #warning not pass threshold
@@ -56,7 +56,7 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 			return false;
 		}
 		LOG_INFO("kick 2");
-		player->autokick(10.0);
+		player->autokick(velocity);
 		return true;
 	}
 	return false;

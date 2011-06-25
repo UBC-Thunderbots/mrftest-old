@@ -26,7 +26,7 @@ goalie_role.push_back(defend_duo_goalie(world));
 
 // ROLE 1
 // shoot towards the midfield
-roles[0].push_back(shoot_target(world, Point(-world.ball().position().x, -world.ball().position().y)));
+roles[0].push_back(shoot_target(world, Point(-world.ball().position().x, -world.ball().position().y), 5.0));
 
 // ROLE 2
 // defend
