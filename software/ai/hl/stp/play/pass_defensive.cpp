@@ -1,6 +1,7 @@
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/pass.h"
 #include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/stp/tactic/offend.h"
 
 using AI::HL::STP::Enemy;
 namespace Predicates = AI::HL::STP::Predicates;
@@ -25,10 +26,12 @@ goalie_role.push_back(defend_duo_goalie(world));
 // ROLE 1
 // passer
 roles[0].push_back(def_passer_shoot(world));
+roles[0].push_back(passee_receive(world));
 
 // ROLE 2
 // passee
 roles[1].push_back(def_passee_move(world));
+roles[2].push_back(offend(world));
 
 // ROLE 3
 // defend

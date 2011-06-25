@@ -238,7 +238,7 @@ Tactic::Ptr AI::HL::STP::Tactic::passee_move_target(const World &world, Coordina
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passee_recieve_target(const World &world, Coordinate target) {
+Tactic::Ptr AI::HL::STP::Tactic::passee_receive_target(const World &world, Coordinate target) {
 	const Tactic::Ptr p(new PasseeRecieve(world, false));
 	return p;
 }
@@ -250,6 +250,11 @@ Tactic::Ptr AI::HL::STP::Tactic::passer_shoot_dynamic(const World &world) {
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_move_dynamic(const World &world) {
 	const Tactic::Ptr p(new PasseeMove(world, false));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::passee_receive(const World &world) {
+	const Tactic::Ptr p(new PasseeRecieve(world, false));
 	return p;
 }
 
