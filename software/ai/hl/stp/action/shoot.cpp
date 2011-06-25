@@ -25,19 +25,14 @@ namespace {
 bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player) {
 	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
 
-	if (!player->has_ball()) {
-		chase_pivot(world, player, shoot_data.target);
-		return false;
-	}
+	chase_pivot(world, player, shoot_data.target);
 
 	if (shoot_data.blocked) { // still blocked, just aim
-		chase_pivot(world, player, shoot_data.target);
 		return false;
 	}
 
 	// LOG_INFO(Glib::ustring::compose("allowance %1 shoot_accuracy %2", shoot_data.accuracy_diff, Evaluation::shoot_accuracy));
 
-	pivot(world, player, shoot_data.target);
 	if (shoot_data.can_shoot) {
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
@@ -52,13 +47,10 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player) {
 }
 
 bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target) {
-	if (!player->has_ball()) {
-		chase_pivot(world, player, target);
-		return false;
-	}
+	chase_pivot(world, player, target);
 
-	pivot(world, player, target);
-	if(within_angle_thresh(player, target, pass_threshold)){
+#warning not pass threshold
+	if(within_angle_thresh(player, target, pass_threshold)) {
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
 			return false;
