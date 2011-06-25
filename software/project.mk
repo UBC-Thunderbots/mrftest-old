@@ -1,7 +1,7 @@
 #
 # The executables to compile.
 #
-EXECUTABLES := ai cppunit experiment fw log simulator test xbeeconfig
+EXECUTABLES := ai cppunit crc16 experiment fw log simulator test xbeeconfig
 
 #
 # The subset of the above that should not be built by the world target.
@@ -14,6 +14,7 @@ EXECUTABLES_EXCLUDE_WORLD := cppunit
 #
 SOURCES_ai := ai geom log/shared proto uicomponents util xbee
 SOURCES_cppunit := cppunit
+SOURCES_crc16 := crc16.cpp geom util
 SOURCES_experiment := experiment geom util xbee
 SOURCES_fw := fw geom util xbee
 SOURCES_log := ai/common log geom proto uicomponents util

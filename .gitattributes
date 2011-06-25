@@ -381,6 +381,7 @@ software/cppunit/util/bitcodec/simple.cpp -text
 software/cppunit/util/bitcodec/simple.def -text
 software/cppunit/util/bitcodec_primitives/decode.cpp -text
 software/cppunit/util/bitcodec_primitives/encode.cpp -text
+software/crc16.cpp -text
 software/experiment/main.cpp -text
 software/fw/ihex.cpp -text
 software/fw/ihex.h -text
