@@ -34,7 +34,8 @@ namespace {
 						adj_plateau_time(0.0, 0.0, 4.0, 0.2, 1.0, 1.0), hsb_plateau_time(adj_plateau_time), lbl_plateau_time("T plateau"), to_be_plateau_time(0.0),
 						adj_terminal_velocity(0.0, 0.0, 1.0, 0.1, 0.2, 0.2), hsb_terminal_velocity(adj_terminal_velocity), lbl_terminal_velocity("V terminal"), to_be_terminal_velocity(0.0),
 						adj_direction(0.0, 0.0, 2*M_PI, 0.1*M_PI, 0.5*M_PI, 1.0), hsb_direction(adj_direction), lbl_direction("Direction"), to_be_direction(0.0),
-						adj_rotate_speed(0.0, -20*M_PI, 20*M_PI, 0.05*M_PI, 0.1*M_PI, 0.0), hsb_rotate_speed(adj_rotate_speed), lbl_rotate_speed("Rotation"), to_be_rotate_speed(0.0) {
+						adj_rotate_speed(0.0, -20*M_PI, 20*M_PI, 0.05*M_PI, 0.1*M_PI, 0.0), hsb_rotate_speed(adj_rotate_speed), lbl_rotate_speed("Rotation"), to_be_rotate_speed(0.0),
+						to_be_velocity(0.0,0.0) {
 
 				// disable parameter setting
 				set_param_tgl.set_label("Test drive param");
@@ -43,6 +44,10 @@ namespace {
 				ui_box.add( set_param_tgl );
 
 				// param bar
+				adj_ramp_time.signal_value_changed().connect( sigc::mem_fun(*this, &KalmanController::on_adj_ramp_time_changed) );
+				adj_plateau_time.signal_value_changed().connect( sigc::mem_fun(*this, &KalmanController::on_adj_plateau_time_changed) );
+				adj_terminal_velocity.signal_value_changed().connect( sigc::mem_fun(*this, &KalmanController::on_adj_terminal_velocity_changed) );
+				adj_direction.signal_value_changed().connect( sigc::mem_fun(*this, &KalmanController::on_adj_direction_changed) );
 				adj_rotate_speed.signal_value_changed().connect( sigc::mem_fun(*this, &KalmanController::on_adj_rotate_speed_changed) );
 
 				hsb_ramp_time.set_can_focus(false);
@@ -81,7 +86,7 @@ namespace {
 				int wheel_speeds[4];
 
 				if( state != State::Idle ){
-					if( state == State::Drive_in_acc ){
+					/*if( state == State::Drive_in_acc ){
 						if( frame_count > ramp_frame ){
 							current_tick_velocity += velocity_inc;
 							state = State::Drive_in_progress;
@@ -109,17 +114,18 @@ namespace {
 							current_tick_velocity -= velocity_inc;
 							frame_count++;
 						}
-					}
-					if( state == State::Rotate ){
+					}*/
+					/*if( state == State::Rotate ){
 						current_tick_rotate_velocity = to_be_rotate_speed;
-					}
+					}*/
 
-					std::vector<int> tmp1 = vel2wheels(current_tick_velocity);
-					std::vector<int> tmp2 = rot2wheels(current_tick_rotate_velocity);
-					wheel_speeds[0] = tmp1[0] + tmp2[0];
-					wheel_speeds[1] = tmp1[1] + tmp2[1];
-					wheel_speeds[2] = tmp1[2] + tmp2[2];
-					wheel_speeds[3] = tmp1[3] + tmp2[3];
+					//std::vector<int> tmp1 = vel2wheels(current_tick_velocity);
+					//std::vector<int> tmp2 = rot2wheels(current_tick_rotate_velocity);
+					//wheel_speeds[0] = tmp1[0] + tmp2[0];
+					//wheel_speeds[1] = tmp1[1] + tmp2[1];
+					//wheel_speeds[2] = tmp1[2] + tmp2[2];
+					//wheel_speeds[3] = tmp1[3] + tmp2[3];
+					convert_to_wheels( to_be_velocity , to_be_rotate_speed, wheel_speeds );
 					std::cout << "("  << wheel_speeds[0] << ", " << wheel_speeds[1] << ", " << wheel_speeds[2] << ", " << wheel_speeds[3] << ")" << std::endl;
 
 				} else {
@@ -187,6 +193,7 @@ namespace {
 			double to_be_ramp_time;
 			double to_be_plateau_time;
 			double to_be_terminal_velocity;
+			Point to_be_velocity;
 			double to_be_direction;
 			double to_be_rotate_speed;
 
@@ -256,7 +263,7 @@ namespace {
 			}
 			
 			void on_test_drive_rotate_btn_clicked(){
-				if( state == State::Idle ){
+				if( state != State::Rotate ){
 					state = State::Rotate;
 					test_drive_rotate_btn.set_label("Stop");
 				} else if( state == Rotate ){
@@ -273,9 +280,13 @@ namespace {
 			}
 			void on_adj_terminal_velocity_changed(){
 				to_be_terminal_velocity = hsb_terminal_velocity.get_value();
+				to_be_velocity = Point::of_angle(to_be_direction)*to_be_terminal_velocity;
+				std::cout << to_be_velocity.x << " " << to_be_velocity.y << std::endl;
 			}
 			void on_adj_direction_changed(){
 				to_be_direction = hsb_direction.get_value();
+				to_be_velocity = Point::of_angle(to_be_direction)*to_be_terminal_velocity;
+				std::cout << to_be_velocity.x << " " << to_be_velocity.y << std::endl;
 			}
 			void on_adj_rotate_speed_changed(){
 				to_be_rotate_speed = hsb_rotate_speed.get_value();
