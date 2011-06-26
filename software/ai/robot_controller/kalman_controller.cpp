@@ -35,13 +35,11 @@ namespace {
 						adj_terminal_velocity(0.0, 0.0, 1.0, 0.1, 0.2, 0.2), hsb_terminal_velocity(adj_terminal_velocity), lbl_terminal_velocity("V terminal"), to_be_terminal_velocity(0.0),
 						adj_direction(0.0, 0.0, 2*M_PI, 0.1*M_PI, 0.5*M_PI, 1.0), hsb_direction(adj_direction), lbl_direction("Direction"), to_be_direction(0.0),
 						adj_rotate_speed(0.0, -20*M_PI, 20*M_PI, 0.05*M_PI, 0.1*M_PI, 0.0), hsb_rotate_speed(adj_rotate_speed), lbl_rotate_speed("Rotation"), to_be_rotate_speed(0.0),
-						to_be_velocity(0.0,0.0) {
+						adj_pivot_radius(0.0, 0.5, 10.0, 0.1, 1.0, 0.0), hsb_pivot_radius(adj_pivot_radius), lbl_pivot_radius("Pivot Radius"), to_be_pivot_radius(10.0),
+						to_be_velocity(0.0,0.0), enable_pivot_radius(false) {
 
-				// disable parameter setting
-				set_param_tgl.set_label("Test drive param");
-				set_param_tgl.set_active(false);
-				set_param_tgl.signal_toggled().connect( sigc::mem_fun(*this, &KalmanController::on_set_param_toggled) );
-				ui_box.add( set_param_tgl );
+		
+				enable_pivot_radius_tgl.signal_toggled().connect( sigc::mem_fun(*this, &KalmanController::on_enable_pivot_radius_toggled) );
 
 				// param bar
 				adj_ramp_time.signal_value_changed().connect( sigc::mem_fun(*this, &KalmanController::on_adj_ramp_time_changed) );
@@ -49,11 +47,7 @@ namespace {
 				adj_terminal_velocity.signal_value_changed().connect( sigc::mem_fun(*this, &KalmanController::on_adj_terminal_velocity_changed) );
 				adj_direction.signal_value_changed().connect( sigc::mem_fun(*this, &KalmanController::on_adj_direction_changed) );
 				adj_rotate_speed.signal_value_changed().connect( sigc::mem_fun(*this, &KalmanController::on_adj_rotate_speed_changed) );
-
-				hsb_ramp_time.set_can_focus(false);
-				hsb_plateau_time.set_can_focus(false);
-				hsb_terminal_velocity.set_can_focus(false);
-				hsb_direction.set_can_focus(false);
+				adj_pivot_radius.signal_value_changed().connect( sigc::mem_fun(*this, &KalmanController::on_adj_pivot_radius_changed) );
 				//hsb_ramp_time.set_label("T ramp");
 				//hsb_plateau_time.set_label("T plateau");
 				//hsb_terminal_velocity.set_label("v terminal");
@@ -68,14 +62,17 @@ namespace {
 				ui_box.add(hsb_plateau_time);
 				ui_box.add(lbl_rotate_speed);
 				ui_box.add(hsb_rotate_speed);
+				ui_box.add(lbl_pivot_radius);
+				ui_box.add(hsb_pivot_radius);
+
+
+				enable_pivot_radius_tgl.set_label("Enable pivot");
+				ui_box.add(enable_pivot_radius_tgl);
 
 				// setup test drive button
 				test_drive_btn.set_label("Drive me.");
 				test_drive_btn.signal_clicked().connect( sigc::mem_fun(*this, &KalmanController::on_test_drive_btn_clicked) );
 				ui_box.add( test_drive_btn );
-				test_drive_rotate_btn.set_label("Drive");
-				test_drive_rotate_btn.signal_clicked().connect( sigc::mem_fun(*this, &KalmanController::on_test_drive_rotate_btn_clicked) );
-				ui_box.add( test_drive_rotate_btn);
 
 				pop.add(ui_box);
 				pop.show_all();
@@ -86,48 +83,8 @@ namespace {
 				int wheel_speeds[4];
 
 				if( state != State::Idle ){
-					/*if( state == State::Drive_in_acc ){
-						if( frame_count > ramp_frame ){
-							current_tick_velocity += velocity_inc;
-							state = State::Drive_in_progress;
-							frame_count = 0;
-						} else {
-							current_tick_velocity += velocity_inc;
-							frame_count++;
-						}
-					}
-					if( state == State::Drive_in_progress ){
-						if( frame_count > plateau_frame ){
-							state = State::Drive_in_dacc;
-							frame_count = 0;
-						} else {
-							frame_count++;
-						}
-					}
-					if( state == State::Drive_in_dacc ){
-						if( frame_count > ramp_frame ){
-							current_tick_velocity = Point(0,0);
-							state = State::Idle;
-							frame_count = 0;
-							test_drive_btn.set_label("Drive me.");
-						} else {
-							current_tick_velocity -= velocity_inc;
-							frame_count++;
-						}
-					}*/
-					/*if( state == State::Rotate ){
-						current_tick_rotate_velocity = to_be_rotate_speed;
-					}*/
-
-					//std::vector<int> tmp1 = vel2wheels(current_tick_velocity);
-					//std::vector<int> tmp2 = rot2wheels(current_tick_rotate_velocity);
-					//wheel_speeds[0] = tmp1[0] + tmp2[0];
-					//wheel_speeds[1] = tmp1[1] + tmp2[1];
-					//wheel_speeds[2] = tmp1[2] + tmp2[2];
-					//wheel_speeds[3] = tmp1[3] + tmp2[3];
 					convert_to_wheels( to_be_velocity , to_be_rotate_speed, wheel_speeds );
 					std::cout << "("  << wheel_speeds[0] << ", " << wheel_speeds[1] << ", " << wheel_speeds[2] << ", " << wheel_speeds[3] << ")" << std::endl;
-
 				} else {
 					wheel_speeds = { 0, 0, 0, 0 };
 				}
@@ -140,27 +97,17 @@ namespace {
 	
 			enum State {	
 				Idle,
-				Setting_drving_param,
-				Drive_in_progress,
-				Drive_in_acc,
-				Drive_in_dacc,
-				Rotate
+				Run,
+				Pivot
 			};
 
-			/*String State_tag[4] = {
-				"Idle",
-				"Setting driving param".
-				"Driving in progress",
-				"Driving in acc",
-				"Driving in dacc"
-			};*/
 
 		private:
 			Gtk::Window pop;
 			Gtk::VBox ui_box;		
 
 			Gtk::Button reset_btn;			
-			Gtk::CheckButton enable_ball_overlay_tgl;
+			Gtk::CheckButton enable_pivot_radius_tgl;
 
 			Gtk::ToggleButton set_param_tgl;
 			Gtk::Label lbl_ramp_time;
@@ -168,20 +115,25 @@ namespace {
 			Gtk::Label lbl_terminal_velocity;
 			Gtk::Label lbl_direction;
 			Gtk::Label lbl_rotate_speed;
+			Gtk::Label lbl_pivot_radius;
+
 			Gtk::Adjustment adj_ramp_time;
 			Gtk::Adjustment adj_plateau_time;
 			Gtk::Adjustment adj_terminal_velocity;
 			Gtk::Adjustment adj_direction;
 			Gtk::Adjustment adj_rotate_speed;
+			Gtk::Adjustment adj_pivot_radius;
+
 			Gtk::HScale hsb_ramp_time;
 			Gtk::HScale hsb_plateau_time;
 			Gtk::HScale hsb_terminal_velocity;
 			Gtk::HScale hsb_direction;
 			Gtk::HScale hsb_rotate_speed;
-			Gtk::Button test_drive_btn;
-			Gtk::Button test_drive_rotate_btn;
+			Gtk::HScale hsb_pivot_radius;
 
-			
+			Gtk::Button test_drive_btn;
+
+			bool enable_pivot_radius;
 			unsigned int frame_count;
 			unsigned int ramp_frame;
 			unsigned int plateau_frame;
@@ -196,80 +148,33 @@ namespace {
 			Point to_be_velocity;
 			double to_be_direction;
 			double to_be_rotate_speed;
+			double to_be_pivot_radius;
 
 			State state;	
 
-			std::vector<int> vel2wheels( Point vel ){
-				//std::cout << vel << std::endl;
-				std::vector<int> wheels;
-				double bot_orient = player->orientation();
-				double vel_orient = vel.orientation();
-				double del_orient = vel_orient - bot_orient;
-				double wheel_angle_rel[4] = {	WHEEL_ORIENT[0] - del_orient, 
-								WHEEL_ORIENT[1] - del_orient,
-								WHEEL_ORIENT[2] - del_orient,
-								WHEEL_ORIENT[3] - del_orient};
-				double vel_len = vel.len();
-				for( int i = 0; i<4; i++ ){
-					wheels.push_back( 10*std::round(std::sin(wheel_angle_rel[i])*vel_len) );
-					//std::cout << wheels[i] << " " ;
-				}
-				return wheels;
-			}
-
-			std::vector<int> rot2wheels( double rot ){
-				std::vector<int> wheels;
-				int wheel_speed = int( rot/0.2 );// magic constant to be taken away here
-				for( int i = 0; i < 4 ; i++ ){
-					wheels.push_back(wheel_speed);
-				}
-				return wheels;
-			}
-
-			void on_set_param_toggled(){
-				if( !set_param_tgl.get_active() ) {
-
-					frame_count = 0;
-					ramp_frame = hsb_ramp_time.get_value() *60;
-					plateau_frame = hsb_plateau_time.get_value() * 60;
-					terminal_speed = hsb_terminal_velocity.get_value();
-					velocity_inc = Point::of_angle(hsb_direction.get_value()) * terminal_speed;
-
-					hsb_ramp_time.set_can_focus(false);
-					hsb_plateau_time.set_can_focus(false);
-					hsb_terminal_velocity.set_can_focus(false);
-					hsb_direction.set_can_focus(false);
-
-					set_param_tgl.set_label("Param Set");
+			void on_enable_pivot_radius_toggled(){
+				if( enable_pivot_radius_tgl.get_active() ){
+					enable_pivot_radius = true;
+					to_be_rotate_speed = to_be_terminal_velocity / to_be_pivot_radius;
 				} else {
-					set_param_tgl.set_label("Param In Progress");
-
-					hsb_ramp_time.set_can_focus(true);
-					hsb_plateau_time.set_can_focus(true);
-					hsb_terminal_velocity.set_can_focus(true);
-					hsb_direction.set_can_focus(true);
+					enable_pivot_radius = false;
 				}
 			}
 
 			void on_test_drive_btn_clicked(){
 				if( state == State::Idle ){
-					state = State::Drive_in_acc;
-					test_drive_btn.set_label("Stop Drive!");					
-				} else if ( state == State::Drive_in_progress || state == State::Drive_in_acc ){
-					state = State::Drive_in_dacc;
-					test_drive_btn.set_label("Stopping.");
+					if( enable_pivot_radius ){
+						state = State::Pivot;
+						to_be_velocity = Point::of_angle( player->orientation() ) * to_be_terminal_velocity;
+						test_drive_btn.set_label("Stop Pivot");
+					} else {	
+						state = State::Run;
+					}
+				} else {
+					state = State::Idle;
+					test_drive_btn.set_label("Drive");
 				}
 				
-			}
-			
-			void on_test_drive_rotate_btn_clicked(){
-				if( state != State::Rotate ){
-					state = State::Rotate;
-					test_drive_rotate_btn.set_label("Stop");
-				} else if( state == Rotate ){
-					state = State::Idle;
-					test_drive_rotate_btn.set_label("Drive");
-				}
 			}
 
 			void on_adj_ramp_time_changed(){
@@ -280,17 +185,28 @@ namespace {
 			}
 			void on_adj_terminal_velocity_changed(){
 				to_be_terminal_velocity = hsb_terminal_velocity.get_value();
-				to_be_velocity = Point::of_angle(to_be_direction)*to_be_terminal_velocity;
-				std::cout << to_be_velocity.x << " " << to_be_velocity.y << std::endl;
+				if( !enable_pivot_radius ){
+					to_be_velocity = Point::of_angle(to_be_direction)*to_be_terminal_velocity;
+					std::cout << to_be_velocity.x << " " << to_be_velocity.y << std::endl;
+				}
 			}
 			void on_adj_direction_changed(){
 				to_be_direction = hsb_direction.get_value();
-				to_be_velocity = Point::of_angle(to_be_direction)*to_be_terminal_velocity;
-				std::cout << to_be_velocity.x << " " << to_be_velocity.y << std::endl;
+				if( !enable_pivot_radius ){
+					to_be_velocity = Point::of_angle(to_be_direction)*to_be_terminal_velocity;
+					std::cout << to_be_velocity.x << " " << to_be_velocity.y << std::endl;
+				}
 			}
 			void on_adj_rotate_speed_changed(){
 				to_be_rotate_speed = hsb_rotate_speed.get_value();
 			}
+			void on_adj_pivot_radius_changed(){
+				to_be_pivot_radius = hsb_pivot_radius.get_value();
+				if( enable_pivot_radius ){
+					to_be_rotate_speed = to_be_terminal_velocity / to_be_pivot_radius;
+				}
+			}
+			
 	};
 
 	typedef KalmanController::State State;
