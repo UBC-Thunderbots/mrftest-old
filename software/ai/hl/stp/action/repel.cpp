@@ -25,7 +25,7 @@ bool AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
 		player->move(des, diff.orientation(), diff.norm() * FAST);
 		player->type(AI::Flags::MoveType::RAM_BALL); 
 		player->prio(AI::Flags::MovePrio::HIGH);
-		return true;
+		return false;
 	}
 	/*
 	// just shoot as long as it's not in backwards direction

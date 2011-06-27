@@ -13,6 +13,7 @@ namespace {
 			}
 
 		private:
+			bool finished;
 			bool done() const;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
@@ -22,6 +23,7 @@ namespace {
 	};
 
 	bool Repel::done() const {
+		/*
 #warning TODO
 		// the ball is in some safe state:
 		// far away from goalie
@@ -30,6 +32,8 @@ namespace {
 			return true;
 		}
 		return false;
+		*/
+		return player.is() && player->autokick_fired();
 	}
 
 	Player::Ptr Repel::select(const std::set<Player::Ptr> &players) const {
@@ -37,7 +41,8 @@ namespace {
 	}
 
 	void Repel::execute() {
-		AI::HL::STP::Action::repel(world, player);
+		finished = false;
+		finished = AI::HL::STP::Action::repel(world, player);
 	}
 }
 

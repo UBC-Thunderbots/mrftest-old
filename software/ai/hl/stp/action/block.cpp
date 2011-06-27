@@ -14,8 +14,17 @@ namespace {
 
 void AI::HL::STP::Action::block_goal(const World &world, Player::Ptr player, Robot::Ptr robot) {
 
+	std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+	Robot::Ptr enemy_goalie = *std::min_element(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().enemy_goal()));
+
 	Point dirToGoal = (world.field().friendly_goal() - robot->position()).norm();
-	player->move(robot->position() + (block_threshold * Robot::MAX_RADIUS * dirToGoal), (world.ball().position() - player->position()).orientation(), Point());
+	// don't block from ball if the enemy is the goalie!!
+	if (robot == enemy_goalie) {
+		player->move(robot->position() + (2 * block_threshold * Robot::MAX_RADIUS * dirToGoal), (world.ball().position() - player->position()).orientation(), Point());
+	} else {
+		player->move(robot->position() + (block_threshold * Robot::MAX_RADIUS * dirToGoal), (world.ball().position() - player->position()).orientation(), Point());
+	}
+	
 	player->type(AI::Flags::MoveType::NORMAL);
 	player->prio(AI::Flags::MovePrio::MEDIUM);
 
