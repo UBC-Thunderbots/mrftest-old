@@ -40,6 +40,7 @@ roles[0].push_back(wait_playtype(world, move(world, kicker_position), AI::Common
 roles[0].push_back(repel(world));
 //roles[0].push_back(shoot_goal(world));
 
+
 roles[1].push_back(move(world, ready_positions[0]));
 
 roles[2].push_back(move(world, ready_positions[1]));

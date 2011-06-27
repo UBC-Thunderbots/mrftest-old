@@ -5,6 +5,7 @@
 #include "geom/util.h"
 #include "util/dprint.h"
 #include "util/param.h"
+#include "ai/hl/stp/evaluation/shoot.h"
 
 using namespace AI::HL::STP;
 
@@ -13,16 +14,17 @@ namespace {
 }
 
 bool AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
+	
 	//bool kicked = false;
 	const Point diff = world.ball().position() - player->position();
 
 	// set to RAM_BALL instead of using chase
 	if (!player->has_ball()) {
-		Point des = world.ball().position();
-		if (des.x < -world.field().length() / 2 + 0.2) { // avoid going inside the goal
-			des.x = -world.field().length() / 2 + 0.2;
+		Point dest = world.ball().position();
+		if (dest.x < world.field().friendly_goal().x + Robot::MAX_RADIUS) { // avoid going inside the goal
+			dest.x = world.field().friendly_goal().x + Robot::MAX_RADIUS;
 		}
-		player->move(des, diff.orientation(), diff.norm() * FAST);
+		player->move(dest, diff.orientation(), diff.norm() * FAST);
 		player->type(AI::Flags::MoveType::RAM_BALL); 
 		player->prio(AI::Flags::MovePrio::HIGH);
 		return false;
@@ -40,6 +42,11 @@ bool AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
 	return kicked;	
 	*/
 	// all enemies are obstacles
+	
+	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
+	if (!shoot_data.blocked) { // still blocked, just aim
+		return shoot_goal(world, player);
+	}
 	
 	std::vector<Point> obstacles;
 	const EnemyTeam &enemy = world.enemy_team();
