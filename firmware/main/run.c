@@ -385,7 +385,6 @@ void run(void) {
 					/* It's a discovery and synchronization packet.
 					 * Clear our sequence numbers. */
 					memset(sequence, 0, sizeof(sequence));
-					LAT_LED4 = !LAT_LED4;
 				} else {
 					/* It's a packet containing a single message message. */
 					if (rxpacket->buf[5] <= PIPE_MAX && ((1 << rxpacket->buf[5]) & PIPE_OUT_MASK & PIPE_MESSAGE_MASK)) {
@@ -794,6 +793,10 @@ void run(void) {
 				case EXPERIMENT_STATE_HALT:
 					/* Turn off the motors. */
 					parbus_write(0, 0);
+					parbus_write(1, 0);
+					parbus_write(2, 0);
+					parbus_write(3, 0);
+					parbus_write(4, 0);
 					LAT_MOTOR_ENABLE = 0;
 					break;
 
