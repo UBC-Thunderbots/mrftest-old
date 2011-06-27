@@ -28,7 +28,7 @@ namespace {
 			bool received[256];
 
 			void on_experiment_data(const void *vp, std::size_t len) {
-				if (len == 33) {
+				if (len == 9) {
 					const uint8_t *p = static_cast<const uint8_t *>(vp);
 					if (p[0] + len - 1 <= G_N_ELEMENTS(received)) {
 						std::copy(p + 1, p + len, data + p[0]);

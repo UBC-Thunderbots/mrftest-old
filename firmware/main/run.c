@@ -165,7 +165,7 @@ void run(void) {
 		uint8_t pipe;
 		uint8_t sequence;
 		uint8_t block_index;
-	} experiment_header = { sizeof(experiment_header) + 32, PIPE_EXPERIMENT_DATA, 0, 0 };
+	} experiment_header = { sizeof(experiment_header) + 8, PIPE_EXPERIMENT_DATA, 0, 0 };
 	uint8_t index = 0;
 	enum {
 		EXPERIMENT_STATE_PRE,
@@ -340,12 +340,12 @@ void run(void) {
 								txiovs[txpkt.num_iovs].len = sizeof(experiment_header);
 								txiovs[txpkt.num_iovs].ptr = &experiment_header;
 								++txpkt.num_iovs;
-								txiovs[txpkt.num_iovs].len = 32;
+								txiovs[txpkt.num_iovs].len = 8;
 								txiovs[txpkt.num_iovs].ptr = experiment_data + index;
 								++txpkt.num_iovs;
 
 								/* Advance the counter. */
-								index += 32;
+								index += 8;
 							}
 #else
 							if (firmware_response_pending) {
@@ -380,6 +380,7 @@ void run(void) {
 					/* It's a discovery and synchronization packet.
 					 * Clear our sequence numbers. */
 					memset(sequence, 0, sizeof(sequence));
+					LAT_LED4 = !LAT_LED4;
 				} else {
 					/* It's a packet containing a single message message. */
 					if (rxpacket->buf[5] <= PIPE_MAX && ((1 << rxpacket->buf[5]) & PIPE_OUT_MASK & PIPE_MESSAGE_MASK)) {
@@ -733,11 +734,13 @@ void run(void) {
 						parbus_write(11, drive_block.autokick_width2 * 32);
 						parbus_write(12, (drive_block.autokick_offset * 32) | (drive_block.autokick_offset_sign ? 0x8000 : 0x0000));
 						autokick_lockout_time = AUTOKICK_LOCKOUT_TIME;
+#if !EXPERIMENT_MODE
 						if (!autokick_indicator_micropacket_pending) {
 							autokick_indicator_micropacket.sequence = sequence[PIPE_AUTOKICK_INDICATOR];
 							sequence[PIPE_AUTOKICK_INDICATOR] = (sequence[PIPE_AUTOKICK_INDICATOR] + 1) & 63;
 							autokick_indicator_micropacket_pending = true;
 						}
+#endif
 					}
 				} else {
 					/* Channel 3 -> miscellaneous device connector.
@@ -778,6 +781,7 @@ void run(void) {
 					/* Run motor 0 at power 25. */
 					parbus_write(0, 0x01);
 					parbus_write(1, 25);
+					LAT_MOTOR_ENABLE = 1;
 
 					/* Tick. */
 					if (!++index) {
@@ -789,6 +793,7 @@ void run(void) {
 					/* Run motor 0 at power 75. */
 					parbus_write(0, 0x01);
 					parbus_write(1, 75);
+					LAT_MOTOR_ENABLE = 1;
 
 					/* Record data. */
 					experiment_data[index] = (uint8_t) parbus_read(2);
@@ -802,6 +807,7 @@ void run(void) {
 				case EXPERIMENT_STATE_DONE:
 					/* Turn off the motors. */
 					parbus_write(0, 0);
+					LAT_MOTOR_ENABLE = 0;
 					break;
 			}
 #else
