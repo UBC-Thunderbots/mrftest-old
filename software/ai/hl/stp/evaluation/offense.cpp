@@ -189,7 +189,7 @@ Point AI::HL::STP::Evaluation::passee_position(const World &world) {
 	return best;
 }
 
-Point AI::HL::STP::Evaluation::passer_position(const World &world, Point passee_pos, bool defense) {
+Point AI::HL::STP::Evaluation::passer_position(const World &world, Point passee_pos) {
 	const EnemyTeam &enemy = world.enemy_team();
 	std::vector<Point> enemy_pos;
 	for (size_t i = 0; i < enemy.size(); ++i) {
@@ -198,7 +198,6 @@ Point AI::HL::STP::Evaluation::passer_position(const World &world, Point passee_
 	
 	std::vector<Point> dont_block;
 	dont_block.push_back(world.ball().position());
-	if (!defense) dont_block.push_back(passee_position(world));
 	
 	Point best;
 	calc_position_best(world, passee_pos, enemy_pos, dont_block, best, true);

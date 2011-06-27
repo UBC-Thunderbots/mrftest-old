@@ -43,7 +43,7 @@ namespace {
 					return;
 				}
 
-				Action::block(world, friendly.get(0), enemy.get(0));
+				Action::block_goal(world, friendly.get(0), enemy.get(0));
 			}
 	};
 

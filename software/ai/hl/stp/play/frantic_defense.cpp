@@ -32,15 +32,15 @@ roles[0].push_back(tactive_def(world));
 
 // ROLE 2
 // block the enemy baller
-roles[1].push_back(block(world, Enemy::closest_ball(world, 0)));
+roles[1].push_back(block_goal(world, Enemy::closest_ball(world, 0)));
 
 // ROLE 3 (optional)
 // block enemy closest to our goal
-roles[2].push_back(block(world, Enemy::closest_friendly_goal(world, 0)));
+roles[2].push_back(block_goal(world, Enemy::closest_friendly_goal(world, 0)));
 
 // ROLE 4 (optional)
 // block enemy closest to our goal
-roles[3].push_back(block(world, Enemy::closest_friendly_goal(world, 1)));
+roles[3].push_back(block_goal(world, Enemy::closest_friendly_goal(world, 1)));
 END_ASSIGN()
 END_PLAY()
 

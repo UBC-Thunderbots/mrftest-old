@@ -33,7 +33,6 @@ roles[0].push_back(defend_duo_defender(world));
 
 // ROLE 2
 // chase the ball!
-//roles[1].push_back(chase(world));
 roles[1].push_back(tactive_def(world));
 
 // ROLE 3 (optional)
@@ -44,7 +43,7 @@ roles[2].push_back(defend_duo_extra(world));
 // offend
 // roles[3].push_back(offend(world));
 // block instead of offend (hence the name of the play?)
-roles[3].push_back(block_pass(world, Enemy::closest_pass(world, Enemy::closest_ball(world, 0)->evaluate(), 0)));
+roles[3].push_back(block_ball(world, Enemy::closest_pass(world, Enemy::closest_ball(world, 0)->evaluate(), 0)));
 END_ASSIGN()
 END_PLAY()
 

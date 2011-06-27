@@ -11,12 +11,12 @@ namespace AI {
 				/**
 				 * Blocks against an enemy from view of our goal.
 				 */
-				Tactic::Ptr block(const World &world, Enemy::Ptr enemy);
+				Tactic::Ptr block_goal(const World &world, Enemy::Ptr enemy);
 
 				/**
-				 * Blocks against an enemy from passing.
+				 * Blocks against an enemy from the ball / passing.
 				 */
-				Tactic::Ptr block_pass(const World &world, Enemy::Ptr enemy);
+				Tactic::Ptr block_ball(const World &world, Enemy::Ptr enemy);
 			}
 		}
 	}

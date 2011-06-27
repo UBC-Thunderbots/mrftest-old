@@ -9,9 +9,9 @@ using AI::HL::STP::Enemy;
 namespace Action = AI::HL::STP::Action;
 
 namespace {
-	class Block : public Tactic {
+	class BlockGoal : public Tactic {
 		public:
-			Block(const World &world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
+			BlockGoal(const World &world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
 			}
 
 		private:
@@ -23,26 +23,26 @@ namespace {
 			}
 	};
 
-	Player::Ptr Block::select(const std::set<Player::Ptr> &players) const {
+	Player::Ptr BlockGoal::select(const std::set<Player::Ptr> &players) const {
 		if (!enemy->evaluate().is()) {
 			return *(players.begin());
 		}
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(enemy->evaluate()->position()));
 	}
 
-	void Block::execute() {
+	void BlockGoal::execute() {
 		if (!enemy->evaluate().is()) {
 #warning take into account of enemy velocity etc
 			Action::stop(world, player);
 			return;
 		}
 
-		AI::HL::STP::Action::block(world, player, enemy->evaluate());
+		AI::HL::STP::Action::block_goal(world, player, enemy->evaluate());
 	}
 
-	class BlockPass : public Tactic {
+	class BlockBall : public Tactic {
 		public:
-			BlockPass(const World &world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
+			BlockBall(const World &world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
 			}
 
 		private:
@@ -54,31 +54,31 @@ namespace {
 			}
 	};
 
-	Player::Ptr BlockPass::select(const std::set<Player::Ptr> &players) const {
+	Player::Ptr BlockBall::select(const std::set<Player::Ptr> &players) const {
 		if (!enemy->evaluate().is()) {
 			return *(players.begin());
 		}
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(enemy->evaluate()->position()));
 	}
 
-	void BlockPass::execute() {
+	void BlockBall::execute() {
 		if (!enemy->evaluate().is()) {
 #warning take into account of enemy velocity etc
 			Action::stop(world, player);
 			return;
 		}
 
-		AI::HL::STP::Action::block_pass(world, player, enemy->evaluate());
+		AI::HL::STP::Action::block_ball(world, player, enemy->evaluate());
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::block(const World &world, Enemy::Ptr enemy) {
-	const Tactic::Ptr p(new Block(world, enemy));
+Tactic::Ptr AI::HL::STP::Tactic::block_goal(const World &world, Enemy::Ptr enemy) {
+	const Tactic::Ptr p(new BlockGoal(world, enemy));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::block_pass(const World &world, Enemy::Ptr enemy) {
-	const Tactic::Ptr p(new BlockPass(world, enemy));
+Tactic::Ptr AI::HL::STP::Tactic::block_ball(const World &world, Enemy::Ptr enemy) {
+	const Tactic::Ptr p(new BlockBall(world, enemy));
 	return p;
 }
 

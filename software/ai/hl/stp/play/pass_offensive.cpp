@@ -39,7 +39,7 @@ roles[2].push_back(defend_duo_defender(world));
 
 // ROLE 4
 // offensive support through blocking closest enemy to ball
-roles[3].push_back(block(world, Enemy::closest_ball(world, 0)));
+roles[3].push_back(block_ball(world, Enemy::closest_ball(world, 0)));
 END_ASSIGN()
 END_PLAY()
 

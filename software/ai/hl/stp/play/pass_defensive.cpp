@@ -25,13 +25,13 @@ goalie_role.push_back(defend_duo_goalie(world));
 
 // ROLE 1
 // passer
-roles[0].push_back(def_passer_shoot(world));
+roles[0].push_back(passer_shoot_dynamic(world));
 roles[0].push_back(passee_receive(world));
 
 // ROLE 2
 // passee
-roles[1].push_back(def_passee_move(world));
-roles[2].push_back(offend(world));
+roles[1].push_back(passee_move_dynamic(world));
+roles[1].push_back(defend_duo_extra(world));
 
 // ROLE 3
 // defend
@@ -39,7 +39,7 @@ roles[2].push_back(defend_duo_defender(world));
 
 // ROLE 4
 // offensive support through blocking enemy from the ball
-roles[3].push_back(block(world, Enemy::closest_ball(world, 0)));
+roles[3].push_back(block_goal(world, Enemy::closest_ball(world, 0)));
 END_ASSIGN()
 END_PLAY()
 

@@ -28,15 +28,15 @@ roles[0].push_back(shoot_goal(world));
 
 // ROLE 2 (optional)
 // block 1
-roles[1].push_back(block_pass(world, Enemy::closest_ball(world, 0)));
+roles[1].push_back(block_ball(world, Enemy::closest_ball(world, 0)));
 
 // ROLE 3 (optional)
 // block 2
-roles[2].push_back(block_pass(world, Enemy::closest_ball(world, 1)));
+roles[2].push_back(block_ball(world, Enemy::closest_ball(world, 1)));
 
 // ROLE 4 (optional)
 // block 3
-roles[3].push_back(block_pass(world, Enemy::closest_ball(world, 2)));
+roles[3].push_back(block_ball(world, Enemy::closest_ball(world, 2)));
 END_ASSIGN()
 END_PLAY()
 

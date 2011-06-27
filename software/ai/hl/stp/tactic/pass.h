@@ -42,16 +42,6 @@ namespace AI {
 				 */
 				Tactic::Ptr passee_receive(const World &world);
 
-				/**
-				 * Passer positioning and shoot for defensive purposes
-				 * (objective is to keep ball in team possesion).
-				 */
-				Tactic::Ptr def_passer_shoot(const World &world);
-
-				/**
-				 * Passee positioning for defensive.
-				 */
-				Tactic::Ptr def_passee_move(const World &world);
 			}
 		}
 	}

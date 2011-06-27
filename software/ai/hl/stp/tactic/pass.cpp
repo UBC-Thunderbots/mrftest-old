@@ -39,19 +39,18 @@ namespace {
 
 	class PasserShoot : public Tactic {
 		public:
-			PasserShoot(const World &world, bool defensive) : Tactic(world, true), dynamic(true), defensive(defensive), kicked(false) {
+			PasserShoot(const World &world) : Tactic(world, true), dynamic(true), kicked(false) {
 				Point dest = Evaluation::passee_position(world);
 				loc = dest;		
 			}
 
-			PasserShoot(const World &world, Coordinate target, bool defensive) : Tactic(world, true), dynamic(false), defensive(defensive), target(target), kicked(false) {
+			PasserShoot(const World &world, Coordinate target) : Tactic(world, true), dynamic(false), target(target), kicked(false) {
 			}
 			static kick_info passer_info;
 			
 		private:
 			bool dynamic;
 			bool kicked;
-			bool defensive;
 			Coordinate target;
 			Point loc;
 
@@ -106,16 +105,15 @@ namespace {
 
 	class PasseeMove : public Tactic {
 		public:
-			PasseeMove(const World &world, bool defensive) : Tactic(world, false), dynamic(true), defensive(defensive), target(target) {
+			PasseeMove(const World &world) : Tactic(world, false), dynamic(true), target(target) {
 				connect_remove_player_handler(world);
 			}
 
-			PasseeMove(const World &world, Coordinate target, bool defensive) : Tactic(world, false), dynamic(false), defensive(defensive), target(target) {
+			PasseeMove(const World &world, Coordinate target) : Tactic(world, false), dynamic(false), target(target) {
 			}
 
 		private:
 			bool dynamic;
-			bool defensive;
 			Coordinate target;
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
@@ -165,14 +163,12 @@ namespace {
 	
 	class PasseeRecieve : public Tactic {
 		public:
-			PasseeRecieve(const World &world, bool defensive) : Tactic(world, true), defensive(defensive) {
+			PasseeRecieve(const World &world) : Tactic(world, true) {
 				#warning find a good mechanism for passing 
 			}
 
 		private:
-			bool dynamic;
-			bool defensive;
-
+			
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				// hard to calculate who is best to recieve the pass
 				// so use whoever last was assigned if they are still around
@@ -229,42 +225,33 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passer_shoot_target(const World &world, Coordinate target) {
-	const Tactic::Ptr p(new PasserShoot(world, target, false));
+	const Tactic::Ptr p(new PasserShoot(world, target));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_move_target(const World &world, Coordinate target) {
-	const Tactic::Ptr p(new PasseeMove(world, target, false));
+	const Tactic::Ptr p(new PasseeMove(world, target));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_receive_target(const World &world, Coordinate target) {
-	const Tactic::Ptr p(new PasseeRecieve(world, false));
+	const Tactic::Ptr p(new PasseeRecieve(world));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passer_shoot_dynamic(const World &world) {
-	const Tactic::Ptr p(new PasserShoot(world, false));
+	const Tactic::Ptr p(new PasserShoot(world));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_move_dynamic(const World &world) {
-	const Tactic::Ptr p(new PasseeMove(world, false));
+	const Tactic::Ptr p(new PasseeMove(world));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_receive(const World &world) {
-	const Tactic::Ptr p(new PasseeRecieve(world, false));
+	const Tactic::Ptr p(new PasseeRecieve(world));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::def_passer_shoot(const World &world) {
-	const Tactic::Ptr p(new PasserShoot(world, true));
-	return p;
-}
-
-Tactic::Ptr AI::HL::STP::Tactic::def_passee_move(const World &world) {
-	const Tactic::Ptr p(new PasseeMove(world, true));
-	return p;
-}
 
