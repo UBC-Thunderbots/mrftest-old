@@ -13,7 +13,7 @@ using AI::HL::STP::Coordinate;
  * - Handle Friendly Free Kick
  */
 BEGIN_PLAY(FreeKickFriendly)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 3) && !Predicates::baller_can_pass(world))
+INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 3) && Predicates::baller_can_shoot(world))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
@@ -35,7 +35,7 @@ roles[2].push_back(offend(world));
 
 // ROLE 4
 // offend
-roles[3].push_back(offend(world));
+roles[3].push_back(offend_secondary(world));
 END_ASSIGN()
 END_PLAY()
 
