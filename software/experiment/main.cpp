@@ -30,7 +30,7 @@ namespace {
 			bool received[256];
 
 			void start_operation() {
-				std::cout << "Waiting for robot to appear... " << std::flush;
+				std::cerr << "Waiting for robot to appear... " << std::flush;
 				alive_changed_connection = robot->alive.signal_changed().connect(sigc::mem_fun(this, &RobotExperimentReceiver::on_alive_changed));
 				on_alive_changed();
 			}
@@ -39,7 +39,7 @@ namespace {
 				if (robot->alive) {
 					alive_changed_connection.disconnect();
 					alive_changed_connection = robot->alive.signal_changed().connect(sigc::mem_fun(this, &RobotExperimentReceiver::on_alive_changed2));
-					std::cout << "OK\n";
+					std::cerr << "OK\n";
 					std::cerr << "Issuing control code... " << std::flush;
 					robot->start_experiment(control_code);
 					std::cerr << "OK\n";
@@ -48,7 +48,7 @@ namespace {
 
 			void on_alive_changed2() {
 				if (!robot->alive) {
-					std::cout << "Robot unexpectedly died\n";
+					std::cerr << "Robot unexpectedly died\n";
 					main_loop->quit();
 				}
 			}
