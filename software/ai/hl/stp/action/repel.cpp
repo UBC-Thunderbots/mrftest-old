@@ -1,4 +1,5 @@
 #include "ai/hl/stp/action/repel.h"
+#include "ai/hl/stp/action/shoot.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
@@ -12,7 +13,7 @@ namespace {
 }
 
 bool AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
-	bool kicked = false;
+	//bool kicked = false;
 	const Point diff = world.ball().position() - player->position();
 
 	// set to RAM_BALL instead of using chase
@@ -22,11 +23,11 @@ bool AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
 			des.x = -world.field().length() / 2 + 0.2;
 		}
 		player->move(des, diff.orientation(), diff.norm() * FAST);
-		player->type(AI::Flags::MoveType::RAM_BALL); // RAM_BALL not implemented =/
+		player->type(AI::Flags::MoveType::RAM_BALL); 
 		player->prio(AI::Flags::MovePrio::HIGH);
 		return true;
 	}
-
+	/*
 	// just shoot as long as it's not in backwards direction
 	if (player->orientation() < M_PI / 2 && player->orientation() > -M_PI / 2) {
 		player->autokick(10.0);
@@ -37,24 +38,24 @@ bool AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
 	player->prio(AI::Flags::MovePrio::HIGH);
 		
 	return kicked;	
-
+	*/
 	// all enemies are obstacles
-	/*
-	   std::vector<Point> obstacles;
-	   EnemyTeam &enemy = world.enemy_team();
-	   for (std::size_t i = 0; i < enemy.size(); ++i) {
-	   obstacles.push_back(enemy.get(i)->position());
-	   }
+	
+	std::vector<Point> obstacles;
+	const EnemyTeam &enemy = world.enemy_team();
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
+		obstacles.push_back(enemy.get(i)->position());
+	}
 
-	   const Field &f = world.field();
+	const Field &f = world.field();
 
-	   // vertical line at the enemy goal area
-	   // basically u want the ball to be somewhere there
-	   const Point p1(f.length() / 2.0, -f.width() / 2.0);
-	   const Point p2(f.length() / 2.0, f.width() / 2.0);
-	   std::pair<Point, double> target = angle_sweep_circles(player->position(), p1, p2, obstacles, Robot::MAX_RADIUS);
+	// vertical line at the enemy goal area
+	// basically u want the ball to be somewhere there
+	const Point p1(f.length() / 2.0, -f.width() / 2.0);
+	const Point p2(f.length() / 2.0, f.width() / 2.0);
+	std::pair<Point, double> target = angle_sweep_circles(player->position(), p1, p2, obstacles, Robot::MAX_RADIUS);
 
-	   AI::HL::STP::Action::shoot(world, player, flags, target.first);
-	 */
+	return shoot_target(world, player, target.first);
+	 
 }
 
