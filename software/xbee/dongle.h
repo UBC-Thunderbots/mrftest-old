@@ -123,7 +123,12 @@ class XBeeDongle : public NonCopyable {
 			/**
 			 * \brief A message pipe that carries data from a scripted experiment.
 			 */
-			PIPE_EXPERIMENT_DATA = PIPE_AUTOKICK_INDICATOR,
+			PIPE_EXPERIMENT_DATA,
+
+			/**
+			 * \brief A message pipe that carries a control code to start a scripted experiment.
+			 */
+			PIPE_EXPERIMENT_CONTROL,
 		};
 
 		/**

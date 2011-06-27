@@ -168,10 +168,12 @@ void run(void) {
 	} experiment_header = { sizeof(experiment_header) + 8, PIPE_EXPERIMENT_DATA, 0, 0 };
 	uint8_t index = 0;
 	enum {
+		EXPERIMENT_STATE_HALT,
 		EXPERIMENT_STATE_PRE,
 		EXPERIMENT_STATE_RUNNING,
 		EXPERIMENT_STATE_DONE,
-	} experiment_state = EXPERIMENT_STATE_PRE;
+	} experiment_state = EXPERIMENT_STATE_HALT;
+	uint8_t experiment_control_code = 0;
 #else
 	static firmware_response_t firmware_response;
 	BOOL firmware_response_pending = false;
@@ -346,6 +348,9 @@ void run(void) {
 
 								/* Advance the counter. */
 								index += 8;
+								if (!index) {
+									experiment_state = EXPERIMENT_STATE_HALT;
+								}
 							}
 #else
 							if (firmware_response_pending) {
@@ -410,7 +415,16 @@ void run(void) {
 								} else {
 									error_reporting_add(FAULT_OUT_MICROPACKET_BAD_LENGTH);
 								}
-#if !EXPERIMENT_MODE
+#if EXPERIMENT_MODE
+							} else if (rxpacket->buf[5] == PIPE_EXPERIMENT_CONTROL) {
+								if (rxpacket->len == 7 + 1) {
+									/* Start an experiment. */
+									experiment_control_code = rxpacket->buf[7];
+									experiment_state = EXPERIMENT_STATE_PRE;
+								} else {
+									error_reporting_add(FAULT_OUT_MICROPACKET_BAD_LENGTH);
+								}
+#else
 							} else if (rxpacket->buf[5] == PIPE_FIRMWARE_OUT) {
 								/* The packet contains a firmware request. */
 								firmware_response_pending = false;
@@ -777,10 +791,16 @@ void run(void) {
 
 #if EXPERIMENT_MODE
 			switch (experiment_state) {
+				case EXPERIMENT_STATE_HALT:
+					/* Turn off the motors. */
+					parbus_write(0, 0);
+					LAT_MOTOR_ENABLE = 0;
+					break;
+
 				case EXPERIMENT_STATE_PRE:
-					/* Run motor 0 at power 25. */
+					/* Run motor HIGH_NYBBLE(CONTROL_CODE) at power 25. */
 					parbus_write(0, 0x01);
-					parbus_write(1, 25);
+					parbus_write(1 + (experiment_control_code >> 4), 25);
 					LAT_MOTOR_ENABLE = 1;
 
 					/* Tick. */
@@ -790,13 +810,13 @@ void run(void) {
 					break;
 
 				case EXPERIMENT_STATE_RUNNING:
-					/* Run motor 0 at power 75. */
+					/* Run motor HIGH_NYBBLE(CONTROL_CODE) at power 75. */
 					parbus_write(0, 0x01);
-					parbus_write(1, 75);
+					parbus_write(1 + (experiment_control_code >> 4), 75);
 					LAT_MOTOR_ENABLE = 1;
 
 					/* Record data. */
-					experiment_data[index] = (uint8_t) parbus_read(2);
+					experiment_data[index] = (uint8_t) parbus_read(2 + (experiment_control_code & 0x0F));
 
 					/* Tick. */
 					if (!++index) {

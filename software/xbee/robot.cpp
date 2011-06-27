@@ -729,3 +729,11 @@ void XBeeRobot::on_feedback(const uint8_t *data, std::size_t length) {
 #warning deal with faults
 }
 
+void XBeeRobot::start_experiment(uint8_t control_code) {
+	uint8_t buffer[2];
+	buffer[0] = static_cast<uint8_t>((index << 4) | XBeeDongle::PIPE_EXPERIMENT_CONTROL);
+	buffer[1] = control_code;
+
+	dongle.send_message(buffer, sizeof(buffer))->signal_done.connect(&discard_result);
+}
+

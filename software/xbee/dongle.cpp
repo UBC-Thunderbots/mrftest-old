@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstring>
 #include <stdexcept>
+#include <unistd.h>
 #include <unordered_map>
 
 namespace std {
@@ -302,9 +303,11 @@ XBeeDongle::XBeeDongle(bool force_reinit) : estop_state(EStopState::UNINITIALIZE
 	}
 	if (force_reinit) {
 		device.set_configuration(0);
+		sleep(1);
 	}
 	if (device.get_configuration() != 1) {
 		device.set_configuration(1);
+		sleep(1);
 	}
 	device.claim_interface(0);
 	device.claim_interface(1);
@@ -428,9 +431,9 @@ void XBeeDongle::on_interrupt_in(AsyncOperation<void>::Ptr, LibUSBInterruptInTra
 		unsigned int robot = transfer->data()[0] >> 4;
 		Pipe pipe = static_cast<Pipe>(transfer->data()[0] & 0x0F);
 		signal_message_received.emit(robot, pipe, transfer->data() + 1, transfer->size() - 1);
-		if (pipe == Pipe::PIPE_EXPERIMENT_DATA && transfer->size() == 1 + 1 + 8) {
+		if (pipe == Pipe::PIPE_EXPERIMENT_DATA) {
 			this->robot(robot)->signal_experiment_data.emit(transfer->data() + 1, transfer->size() - 1);
-		} else if (pipe == Pipe::PIPE_AUTOKICK_INDICATOR && transfer->size() == 1) {
+		} else if (pipe == Pipe::PIPE_AUTOKICK_INDICATOR) {
 			this->robot(robot)->signal_autokick_fired.emit();
 		}
 	}

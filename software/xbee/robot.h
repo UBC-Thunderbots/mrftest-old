@@ -244,6 +244,13 @@ class XBeeRobot : public ByRef {
 		 */
 		void test_mode(unsigned int mode);
 
+		/**
+		 * \brief Starts a scripted experiment.
+		 *
+		 * \param[in] control_code the control code for configuring the experiment.
+		 */
+		void start_experiment(uint8_t control_code);
+
 	private:
 		friend class XBeeDongle;
 
