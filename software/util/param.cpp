@@ -78,13 +78,13 @@ class ParamTreeInternalNode : public ParamTreeNode {
 		void initialize() {
 			// Sort all of my children by name.
 			std::sort(children.begin(), children.end(), ParamTreeNodeNameComparator());
-			std::for_each(children.begin(), children.end(), std::mem_fun(&ParamTreeNode::casefold_collate_key_clear));
+			std::for_each(children.begin(), children.end(), std::mem_fun(&ParamTreeNode::collate_key_clear));
 
 			// Link my children with respect to sibling and parent relationships.
 			for (std::size_t i = 0; i < children.size(); ++i) {
 				children[i]->link(i, i < children.size() - 1 ? children[i + 1] : 0, i ? children[i - 1] : 0, this);
 				children[i]->initialize();
-				children[i]->casefold_collate_key_clear();
+				children[i]->collate_key_clear();
 			}
 		}
 
@@ -97,7 +97,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 				assert(elt->get_attribute_value("name") == name());
 			}
 
-			// Make a mapping from an XML child element's name's case-folded collation key to the node.
+			// Make a mapping from an XML child element's name's collation key to the node.
 			std::unordered_map<std::string, const xmlpp::Element *> child_elts_byname;
 			const xmlpp::Node::NodeList &child_elts = elt->get_children();
 			for (auto i = child_elts.begin(), iend = child_elts.end(); i != iend; ++i) {
@@ -106,14 +106,14 @@ class ParamTreeInternalNode : public ParamTreeNode {
 				if (child_elt) {
 					const xmlpp::Attribute *name_attr = child_elt->get_attribute("name");
 					if (name_attr) {
-						child_elts_byname[name_attr->get_value().casefold_collate_key()] = child_elt;
+						child_elts_byname[name_attr->get_value().collate_key()] = child_elt;
 					}
 				}
 			}
 
 			// Go through the child nodes in the parameter tree and apply values to them.
 			for (auto i = children.begin(), iend = children.end(); i != iend; ++i) {
-				auto iter = child_elts_byname.find((*i)->name().casefold_collate_key());
+				auto iter = child_elts_byname.find((*i)->name().collate_key());
 				if (iter != child_elts_byname.end()) {
 					(*i)->load(iter->second);
 				}
@@ -257,18 +257,18 @@ Glib::ustring ParamTreeNode::path() const {
 }
 
 bool ParamTreeNode::operator<(const ParamTreeNode &other) const {
-	return casefold_collate_key() < other.casefold_collate_key();
+	return collate_key() < other.collate_key();
 }
 
-const std::string &ParamTreeNode::casefold_collate_key() const {
-	if (casefold_collate_key_.empty()) {
-		casefold_collate_key_ = name().casefold_collate_key();
+const std::string &ParamTreeNode::collate_key() const {
+	if (collate_key_.empty()) {
+		collate_key_ = name().collate_key();
 	}
-	return casefold_collate_key_;
+	return collate_key_;
 }
 
-void ParamTreeNode::casefold_collate_key_clear() const {
-	casefold_collate_key_.clear();
+void ParamTreeNode::collate_key_clear() const {
+	collate_key_.clear();
 }
 
 void ParamTreeNode::link(std::size_t index, ParamTreeNode *next, ParamTreeNode *prev, ParamTreeNode *parent) {

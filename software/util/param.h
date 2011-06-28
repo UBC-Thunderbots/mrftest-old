@@ -175,7 +175,7 @@ class ParamTreeNode : public NonCopyable {
 		virtual void save(xmlpp::Element *elt) const = 0;
 
 		/**
-		 * Compares two nodes using a case-insensitive comparison of their names.
+		 * Compares two nodes using a case-sensitive comparison of their names.
 		 *
 		 * \param[in] other the other object to compare to.
 		 *
@@ -184,16 +184,16 @@ class ParamTreeNode : public NonCopyable {
 		bool operator<(const ParamTreeNode &other) const;
 
 		/**
-		 * Fetches a case-folded collation key for this node's name.
+		 * Fetches a collation key for this node's name.
 		 *
 		 * \return the collation key.
 		 */
-		const std::string &casefold_collate_key() const;
+		const std::string &collate_key() const;
 
 		/**
-		 * Clears the cached case-folded collation key for this node's name.
+		 * Clears the cached collation key for this node's name.
 		 */
-		void casefold_collate_key_clear() const;
+		void collate_key_clear() const;
 
 		/**
 		 * Links the node into the tree.
@@ -235,9 +235,9 @@ class ParamTreeNode : public NonCopyable {
 		ParamTreeNode *parent_;
 
 		/**
-		 * The case-folded collation key of this node's name.
+		 * The collation key of this node's name.
 		 */
-		mutable std::string casefold_collate_key_;
+		mutable std::string collate_key_;
 };
 
 /**
