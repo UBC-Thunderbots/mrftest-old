@@ -11,6 +11,6 @@ Play::Play(const World &world) : world(world) {
 void Play::draw_overlay(Cairo::RefPtr<Cairo::Context>) const {
 }
 
-PlayFactory::PlayFactory(const char *name) : Registerable<PlayFactory>(name) {
+PlayFactory::PlayFactory(const char *name) : Registerable<PlayFactory>(name), enable(name, "STP/Play", true) {
 }
 

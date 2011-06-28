@@ -54,7 +54,7 @@ void PlayExecutor::calc_play() {
 	// find a valid play
 	std::random_shuffle(plays.begin(), plays.end());
 	for (std::size_t i = 0; i < plays.size(); ++i) {
-		if (plays[i]->invariant() && plays[i]->applicable()) {
+		if (plays[i]->invariant() && plays[i]->applicable() && plays[i]->factory().enable) {
 			curr_play = plays[i];
 			LOG_INFO(curr_play->factory().name());
 			assert(!curr_play->done());

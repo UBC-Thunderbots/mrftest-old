@@ -5,6 +5,7 @@
 #include "ai/hl/stp/tactic/tactic.h"
 #include "util/byref.h"
 #include "util/registerable.h"
+#include "util/param.h"
 
 namespace AI {
 	namespace HL {
@@ -115,6 +116,8 @@ namespace AI {
 						 * \param[in] name a human-readable name for this Play.
 						 */
 						PlayFactory(const char *name);
+
+						BoolParam enable;
 				};
 
 				/**
