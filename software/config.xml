@@ -155,9 +155,6 @@
         <integer name="grid x size">25</integer>
         <integer name="grid y size">25</integer>
       </category>
-      <category name="play">
-        <double name="kickoff: angle to separate players (degrees)">40.0</double>
-      </category>
       <category name="predicates">
         <double name="enemy avoidance distance (robot radius)">3.00</double>
       </category>

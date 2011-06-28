@@ -17,8 +17,8 @@ namespace {
 	// The maximum amount of time a play can be running.
 	const double PLAY_TIMEOUT = 30.0;
 
-	BoolParam goalie_lowest("Goalie is lowest index", "STP/STP", true);
-	IntParam goalie_pattern_index("Goalie pattern index", "STP/STP", 0, 0, 4);
+	BoolParam goalie_lowest("Goalie is lowest index", "STP/Goalie", true);
+	IntParam goalie_pattern_index("Goalie pattern index", "STP/Goalie", 0, 0, 11);
 
 	void on_robot_removing(std::size_t i, World &w) {
 		Player::Ptr plr = w.friendly_team().get(i);

@@ -46,10 +46,11 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player) {
 	return false;
 }
 
+#warning TODO why need a velocity when we know the exact location??
 bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target, double velocity) {
 	chase_pivot(world, player, target);
 
-#warning not pass threshold
+#warning TODO not pass threshold
 	if(within_angle_thresh(player, target, pass_threshold)) {
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
@@ -90,7 +91,7 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	return true;
 }
 
-#warning REFACTOR, this should also be somewhere in evaluation
+#warning TODO REFACTOR, this should also be somewhere in evaluation
 bool AI::HL::STP::Action::within_angle_thresh(Player::CPtr player, const Point target, double threshold){
 	Point pass_dir = (target - player->position()).norm();
 	Point facing_dir = Point(1,0).rotate(player->orientation());
@@ -98,7 +99,8 @@ bool AI::HL::STP::Action::within_angle_thresh(Player::CPtr player, const Point t
 	return facing_dir.dot(pass_dir) > dir_thresh;
 }
 
-bool AI::HL::STP::Action::within_angle_thresh(const Point position, const double orientation, const Point target, double threshold){
+#warning TODO this is a duplicate of the above
+bool AI::HL::STP::Action::within_angle_thresh(const Point position, const double orientation, const Point target, double threshold) {
 	Point pass_dir = (target - position).norm();
 	Point facing_dir = Point(1,0).rotate(orientation);
 	double dir_thresh = cos( (threshold*M_PI / 180.0));
