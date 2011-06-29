@@ -126,7 +126,7 @@ namespace {
 	}
 
 	PassPlayFactory p1(Point(0, 0));
-	PassPlayFactory p1(Point(1.2, 1.5));
-	PassPlayFactory p1(Point(1.2, -1.5));
+	PassPlayFactory p2(Point(1.2, 1.5));
+	PassPlayFactory p3(Point(1.2, -1.5));
 }
 

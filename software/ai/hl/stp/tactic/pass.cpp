@@ -62,7 +62,7 @@ namespace {
 			}
 			
 			bool fail() const {
-				return player.is() && AI::HL::Util::calc_best_shot_target(world, target.position(), player, 0.5, true).second > 0;
+				return player.is() && AI::HL::Util::calc_best_shot_target(world, target.position(), player, 0.5, true).second == 0;
 			}
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {

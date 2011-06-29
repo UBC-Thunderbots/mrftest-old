@@ -161,8 +161,8 @@
       </category>
       <category name="offense">
         <double name="enemy avoidance distance (robot radius)">6.00</double>
-        <integer name="grid x size">40</integer>
-        <integer name="grid y size">40</integer>
+        <integer name="grid x size">20</integer>
+        <integer name="grid y size">20</integer>
         <double name="Scoring weight for angle from ball to goal at robot (-ve)">2.0</double>
         <double name="Scoring weight for angle to goal (POWER, careful)">2.0</double>
         <double name="Scoring weight for ball progress (+ve)">0.5</double>
@@ -193,9 +193,10 @@
         <boolean name="OffensiveBlock">true</boolean>
         <boolean name="OurCornerPlay">true</boolean>
         <boolean name="PassDefensive">true</boolean>
-        <boolean name="PassFixxed1">true</boolean>
-        <boolean name="PassFixxed2">true</boolean>
         <boolean name="PassOffensive">true</boolean>
+        <boolean name="Pass Play 0 0">true</boolean>
+        <boolean name="Pass Play 1.2 -1.5">true</boolean>
+        <boolean name="Pass Play 1.2 1.5">true</boolean>
         <boolean name="PassTest">true</boolean>
         <boolean name="PenaltyEnemy">true</boolean>
         <boolean name="PenaltyFriendly">true</boolean>
