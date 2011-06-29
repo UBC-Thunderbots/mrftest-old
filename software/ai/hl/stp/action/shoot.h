@@ -62,13 +62,13 @@ namespace AI {
 				 * Determines whether or not the robot is facing within threshold degrees of the specified target
 				 *
 				 */
-				bool within_angle_thresh(Player::CPtr player, const Point target, double threshold);
+				bool within_angle_thresh(Player::CPtr player, const Point target, double threshold = 5.0);
 				
 				/**
 				 * Determines whether robot is facing within threshold degrees of the specified target
 				 *
 				 */
-				bool within_angle_thresh(const Point position, double orientation, const Point target, double threshold);
+				bool within_angle_thresh(const Point position, double orientation, const Point target, double threshold = 5.0);
 				
 				/**
 				 * Testing function designed for internal use & use with shoot_distance_test!!!

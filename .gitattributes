@@ -243,6 +243,7 @@ software/ai/hl/stp/play/just_block_shoot.cpp -text
 software/ai/hl/stp/play/just_goalie.cpp -text
 software/ai/hl/stp/play/just_repel.cpp -text
 software/ai/hl/stp/play/just_shoot.cpp -text
+software/ai/hl/stp/play/just_spin.cpp -text
 software/ai/hl/stp/play/kickoff_enemy.cpp -text
 software/ai/hl/stp/play/kickoff_friendly.cpp -text
 software/ai/hl/stp/play/lone_2_player.cpp -text
