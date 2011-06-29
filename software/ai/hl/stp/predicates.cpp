@@ -4,6 +4,7 @@
 #include "ai/hl/stp/evaluation/enemy.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/shoot.h"
+#include "ai/hl/stp/param.h"
 
 #include <set>
 
@@ -11,7 +12,6 @@ using namespace AI::HL::STP;
 
 namespace {
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/predicates", 3.0, 1.0, 10.0);
-	DoubleParam min_shoot_region("minimum region available for baller_can_shoot to be true (radians)", "STP/predicates", M_PI / 18, 0, M_PI);
 }
 
 bool AI::HL::STP::Predicates::goal(const World &) {

@@ -225,6 +225,8 @@ software/ai/hl/stp/evaluation/shoot.cpp -text
 software/ai/hl/stp/evaluation/shoot.h -text
 software/ai/hl/stp/evaluation/team.cpp -text
 software/ai/hl/stp/evaluation/team.h -text
+software/ai/hl/stp/param.cpp -text
+software/ai/hl/stp/param.h -text
 software/ai/hl/stp/play/cm_d_basic_2block.cpp -text
 software/ai/hl/stp/play/cm_d_basic_corner.cpp -text
 software/ai/hl/stp/play/cm_d_naive.cpp -text
