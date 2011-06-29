@@ -33,7 +33,7 @@ int main(void) {
 	// Compute output.
 	bool halls[3];
 	for (unsigned int i = 0; i < 3; ++i) {
-		halls[i] = halls_string[i] == L'1';
+		halls[2 - i] = halls_string[i] == L'1';
 	}
 	bool swapped[3];
 	for (unsigned int i = 0; i < 3; ++i) {
