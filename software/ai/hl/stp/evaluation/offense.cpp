@@ -24,9 +24,11 @@ namespace {
 
 	DoubleParam weight_goal("Scoring weight for angle to goal", "STP/offense", 1.0, 0.0, 99.0);
 
-	DoubleParam weight_ball("Scoring weight for angle from ball to goal at robot", "STP/offense", 1.0, 0.0, 99.0);
+	DoubleParam weight_ball_angle("Scoring weight for angle from ball to goal at robot (-ve)", "STP/offense", 1.0, 0.0, 99.0);
 
 	DoubleParam weight_progress("Scoring weight for ball progress", "STP/offense", 1.0, 0.0, 99.0);
+
+	DoubleParam weight_ball_dist("Scoring weight for distance to ball (-ve)", "STP/offense", 1.0, 0.0, 99.0);
 
 	double scoring_function(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block, bool pass = false) {
 		// can't be too close to enemy
@@ -86,9 +88,11 @@ namespace {
 		// TODO: take into account of the angle needed to rotate and shoot
 		double d1 = (world.ball().position() - dest).orientation();
 		double d2 = (world.field().enemy_goal() - dest).orientation();
-		const double score_ball = angle_diff(d1, d2);
+		const double score_ball_angle = angle_diff(d1, d2);
 
-		return weight_goal * score_goal - weight_ball * score_ball + weight_progress * score_progress;
+		const double score_ball_dist = (world.ball().position() - dest).len();
+
+		return weight_goal * score_goal - weight_ball_angle * score_ball_angle + weight_progress * score_progress - weight_ball_dist * score_ball_dist;
 	}
 
 	bool calc_position_best(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos, bool pass = false) {
