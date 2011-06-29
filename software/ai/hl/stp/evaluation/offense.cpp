@@ -22,6 +22,10 @@ namespace {
 
 	DoubleParam ball_dist_weight("ball distance weight", "STP/offense", 1.0, 0.0, 2.0);
 
+	DoubleParam weight_goal("Scoring weight for angle to goal", "STP/offense", 1.0, 0.0, 99.0);
+
+	DoubleParam weight_ball("Scoring weight for angle from ball to goal at robot", "STP/offense", 1.0, 0.0, 99.0);
+
 	double scoring_function(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block, bool pass = false) {
 		// can't be too close to enemy
 		double closest_enemy = world.field().width();
@@ -33,12 +37,12 @@ namespace {
 			closest_enemy = std::min(closest_enemy, dist);
 		}
 
-		double score = -1e99;
+		double score_goal = -1e99;
 		if (pass) {
-			score = AI::HL::Util::calc_best_shot_target(passee_pos, enemy_pos, dest).second;
+			score_goal = AI::HL::Util::calc_best_shot_target(passee_pos, enemy_pos, dest).second;
 		} else {
 			// Hmm.. not sure if having negative number is a good idea.
-			score = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dest).second;
+			score_goal = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dest).second;
 		}
 
 		// TODO: check the line below here
@@ -75,17 +79,12 @@ namespace {
 		const double ball_dist = (dest - world.ball().position()).len() + ball_dist_weight;
 		// const double goal_dist = (dest - bestshot.first).len();
 
-		// divide by largest distance?
-		// const double bigdist = std::max(ball_dist, goal_dist);
-		// score /= bigdist;
-
-		score /= ball_dist;
-
-		// score *= closest_enemy;
-
 		// TODO: take into account of the angle needed to rotate and shoot
+		double d1 = (world.ball().position() - dest).orientation();
+		double d2 = (world.field().enemy_goal() - dest).orientation();
+		const double score_ball = angle_diff(d1, d2);
 
-		return score;
+		return weight_goal * score_goal + weight_ball * score_ball;
 	}
 
 	bool calc_position_best(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos, bool pass = false) {
