@@ -397,6 +397,7 @@ software/geom/rect.cpp -text
 software/geom/rect.h -text
 software/geom/util.cpp -text
 software/geom/util.h -text
+software/hall2phase/main.cpp -text
 software/log/analyzer.cpp -text
 software/log/analyzer.h -text
 software/log/launcher.cpp -text
