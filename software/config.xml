@@ -60,6 +60,9 @@
       <category name="RRT">
         <double name="Buffer behind ball for chase (meters)">0.250</double>
         <double name="Chase angle range for behind target (degrees)">30.0</double>
+        <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
+        <double name="Distance to extend the tree on each step (m)">0.100</double>
+        <integer name="Number of iterations to go through before we give best partial path">200</integer>
         <double name="Pivot: offset angle (degrees)">58</double>
         <double name="Pivot: offset distance">0.13</double>
         <double name="Pivot: orientation offset (degrees)">14</double>
@@ -153,8 +156,8 @@
         <double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>
       </category>
       <category name="Goalie">
-        <boolean name="Goalie is lowest index">true</boolean>
-        <integer name="Goalie pattern index">0</integer>
+        <boolean name="Goalie is lowest index">false</boolean>
+        <integer name="Goalie pattern index">8</integer>
       </category>
       <category name="Kickoff">
         <double name="kickoff: angle to separate players (degrees)">40.0</double>
@@ -171,6 +174,9 @@
         <double name="Scoring weight for everything">20</double>
         <double name="Scoring weight for nearest enemy (+ve)">1.0</double>
       </category>
+      <category name="Pass">
+        <double name="Minimum distance for pass play">1.000</double>
+      </category>
       <category name="Play">
         <boolean name="CMDBasic2Block">true</boolean>
         <boolean name="CMDBasicCorner">true</boolean>
@@ -184,7 +190,7 @@
         <boolean name="FreeKickFriendlyRepel">true</boolean>
         <boolean name="FriendlyCornerPlay1">true</boolean>
         <boolean name="GrabBall">true</boolean>
-        <boolean name="JustBlockShoot">true</boolean>
+        <boolean name="JustBlockShoot">false</boolean>
         <boolean name="JustGoalie">true</boolean>
         <boolean name="JustRepel">true</boolean>
         <boolean name="JustShoot">true</boolean>
@@ -206,6 +212,7 @@
       </category>
       <category name="predicates">
         <double name="enemy avoidance distance (robot radius)">3.00</double>
+        <double name="minimum region available for baller_can_shoot to be true (radians)">0.100</double>
       </category>
       <category name="shoot">
         <double name="Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate">0.0</double>
@@ -213,7 +220,7 @@
       <category name="Tactic">
         <category name="pass">
           <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.056</double>
-          <double name=" the radius (meters) in which passee must be with repect to target before valid ">2.000</double>
+          <double name=" the radius (meters) in which passee must be with repect to target before valid ">2.500</double>
           <double name=" the radius (meters) in which passer must be with repect to ball before valid ">1.000</double>
           <double name="velocity of pass threshold">1.000</double>
           <double name="velocity to ignore">0.200</double>
