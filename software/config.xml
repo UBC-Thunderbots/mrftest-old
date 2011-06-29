@@ -153,20 +153,23 @@
         <double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>
       </category>
       <category name="Goalie">
-        <boolean name="Goalie is lowest index">false</boolean>
-        <integer name="Goalie pattern index">3</integer>
+        <boolean name="Goalie is lowest index">true</boolean>
+        <integer name="Goalie pattern index">4</integer>
       </category>
       <category name="Kickoff">
         <double name="kickoff: angle to separate players (degrees)">40.0</double>
       </category>
       <category name="offense">
-        <double name="ball distance weight">1.000</double>
-        <double name="enemy avoidance distance (robot radius)">4.00</double>
-        <integer name="grid x size">25</integer>
-        <integer name="grid y size">25</integer>
-        <double name="Scoring weight for angle from ball to goal at robot">2.0</double>
-        <double name="Scoring weight for angle to goal">10.0</double>
-        <double name="Scoring weight for ball progress">1.0</double>
+        <double name="enemy avoidance distance (robot radius)">6.00</double>
+        <integer name="grid x size">40</integer>
+        <integer name="grid y size">40</integer>
+        <double name="Scoring weight for angle from ball to goal at robot (-ve)">2.0</double>
+        <double name="Scoring weight for angle to goal (POWER, careful)">2.0</double>
+        <double name="Scoring weight for ball progress (+ve)">0.5</double>
+        <double name="Scoring weight for distance to ball (-ve)">1.0</double>
+        <double name="Scoring weight for distance to enemy goal (-ve)">1.0</double>
+        <double name="Scoring weight for everything">50</double>
+        <double name="Scoring weight for nearest enemy (+ve)">1.0</double>
       </category>
       <category name="Play">
         <boolean name="CMDBasic2Block">true</boolean>
@@ -178,6 +181,7 @@
         <boolean name="FreeKickEnemy">true</boolean>
         <boolean name="FreeKickFriendly">true</boolean>
         <boolean name="FreeKickFriendlyPass">true</boolean>
+        <boolean name="FreeKickFriendlyRepel">true</boolean>
         <boolean name="GrabBall">true</boolean>
         <boolean name="JustBlockShoot">true</boolean>
         <boolean name="JustGoalie">true</boolean>
@@ -189,6 +193,8 @@
         <boolean name="OffensiveBlock">true</boolean>
         <boolean name="OurCornerPlay">true</boolean>
         <boolean name="PassDefensive">true</boolean>
+        <boolean name="PassFixxed1">true</boolean>
+        <boolean name="PassFixxed2">true</boolean>
         <boolean name="PassOffensive">true</boolean>
         <boolean name="PassTest">true</boolean>
         <boolean name="PenaltyEnemy">true</boolean>

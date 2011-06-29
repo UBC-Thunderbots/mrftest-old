@@ -103,7 +103,7 @@ namespace {
 		// how "heavy" do u want the goal angle to be
 		double raw_score = pow(score_goal_angle, weight_goal_angle);
 		
-		// the further the enemy, the closer to 1
+		// want further from enemy
 		raw_score *= (1 + weight_enemy * score_enemy);
 		
 		// the nearer the distance, the closer to 1
@@ -112,11 +112,11 @@ namespace {
 		// the smaller the angle, the closer to 1
 		raw_score /= (1 + weight_ball_angle * score_ball_angle);
 
-		// the nearer we get to enemy, the closer to 1
+		// want more progress
 		raw_score *= (1 + weight_progress * score_progress);
 
-		// the further to enemy goal, the closer to 1
-		raw_score /= (1 + weight_goal_dist * score_goal_dist);
+		// want more distance from enemy goal
+		raw_score *= (1 + weight_goal_dist * score_goal_dist);
 
 		return weight_total * raw_score;
 	}
