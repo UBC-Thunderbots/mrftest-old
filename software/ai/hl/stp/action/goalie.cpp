@@ -27,10 +27,6 @@ void AI::HL::STP::Action::lone_goalie(const World &world, Player::Ptr player) {
 		target.x = world.field().friendly_goal().x + Robot::MAX_RADIUS;
 	}
 	
-	//player->move(target, (world.ball().position() - player->position()).orientation(), Point());
-	//player->type(AI::Flags::MoveType::NORMAL);
-	//player->prio(AI::Flags::MovePrio::MEDIUM);
-
 	goalie_move(world, player, target);
 }
 
