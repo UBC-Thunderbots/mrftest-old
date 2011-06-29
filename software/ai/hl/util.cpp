@@ -189,19 +189,21 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot_target(const Point &target
 	return angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
 }
 
-std::pair<Point, double> AI::HL::Util::calc_best_shot_target(const World &world, const Point &target_pos, const Player::CPtr player, const double radius) {
+std::pair<Point, double> AI::HL::Util::calc_best_shot_target(const World &world, const Point &target_pos, const Player::CPtr player, const double radius, bool pass) {
 	std::vector<Point> obstacles;
 	const EnemyTeam &enemy = world.enemy_team();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		obstacles.push_back(enemy.get(i)->position());
 	}
-	const FriendlyTeam &friendly = world.friendly_team();
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		const Player::CPtr fpl = friendly.get(i);
-		if (fpl == player) {
-			continue;
+	if (!pass){
+		const FriendlyTeam &friendly = world.friendly_team();
+		for (std::size_t i = 0; i < friendly.size(); ++i) {
+			const Player::CPtr fpl = friendly.get(i);
+			if (fpl == player) {
+				continue;
+			}
+			obstacles.push_back(fpl->position());
 		}
-		obstacles.push_back(fpl->position());
 	}
 	return calc_best_shot_target(target_pos, obstacles, player->position(), radius);
 }

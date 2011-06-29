@@ -107,7 +107,7 @@ bool AI::HL::STP::Predicates::baller_can_pass(const World &world) {
 		if (Evaluation::possess_ball(world, friends.get(i))) {
 			continue;
 		}
-		if (AI::HL::Util::calc_best_shot_target(world, friends.get(i)->position(), baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0) {
+		if (AI::HL::Util::calc_best_shot_target(world, friends.get(i)->position(), baller, true).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0) {
 			const Point ray = world.ball().position() - friends.get(i)->position();
 			// if the passee is not facing the ball, forget it?
 			if (angle_diff(ray.orientation(), friends.get(i)->orientation()) > AI::HL::Util::ORI_PASS_CLOSE) {

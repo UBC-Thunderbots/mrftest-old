@@ -206,7 +206,7 @@ namespace AI {
 			 * \return the point as and the score (angle),
 			 * where the score will be 0 if the point is invalid,
 			 */
-			std::pair<Point, double> calc_best_shot_target(const AI::HL::W::World &world, const Point &target_pos, AI::HL::W::Player::CPtr player, double radius = 1.0);
+			std::pair<Point, double> calc_best_shot_target(const AI::HL::W::World &world, const Point &target_pos, AI::HL::W::Player::CPtr player, double radius = 1.0, bool pass = false);
 
 			/**
 			 * Checks if the robot is in a position close enough to the ball to start

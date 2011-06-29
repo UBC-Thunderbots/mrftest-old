@@ -30,6 +30,8 @@ namespace AI {
 				 */
 
 				ShootData evaluate_shoot(const World &world, Player::CPtr player);
+
+				ShootData evaluate_shoot_target(const World &world, Player::CPtr player, const Point target);
 			}
 		}
 	}

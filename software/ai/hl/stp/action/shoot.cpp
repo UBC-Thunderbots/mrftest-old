@@ -55,17 +55,16 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player) {
 	return false;
 }
 
-#warning TODO why need a velocity when we know the exact location??
 bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target, double velocity) {
+	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot_target(world, player, target);
 	chase_pivot(world, player, target);
 
-#warning TODO not pass threshold
-	if(within_angle_thresh(player, target, pass_threshold)) {
+	if(shoot_data.can_shoot/*within_angle_thresh(player, target, pass_threshold)*/) {
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
 			return false;
 		}
-		LOG_INFO("kick 2");
+		LOG_INFO("autokick");
 		autokick(player, target, velocity);
 		return true;
 	}
