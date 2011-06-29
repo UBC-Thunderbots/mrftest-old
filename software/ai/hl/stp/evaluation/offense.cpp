@@ -84,7 +84,7 @@ namespace {
 		double d2 = (world.field().enemy_goal() - dest).orientation();
 		const double score_ball = angle_diff(d1, d2);
 
-		return weight_goal * score_goal + weight_ball * score_ball;
+		return weight_goal * score_goal - weight_ball * score_ball;
 	}
 
 	bool calc_position_best(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos, bool pass = false) {

@@ -123,6 +123,9 @@
         <category name="block">
           <double name="block threshold distance in terms of robot radius">3.000</double>
         </category>
+        <category name="defend">
+          <double name="Distance the defender should repel the ball in robot radius">4.000</double>
+        </category>
         <category name="Goalie">
           <double name="Lone Goalie: distance to goal post (m)">0.300</double>
         </category>
@@ -149,21 +152,54 @@
         <double name="speed goalie should ignore direction of ball">0.050</double>
         <double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>
       </category>
+      <category name="Goalie">
+        <boolean name="Goalie is lowest index">false</boolean>
+        <integer name="Goalie pattern index">3</integer>
+      </category>
+      <category name="Kickoff">
+        <double name="kickoff: angle to separate players (degrees)">40.0</double>
+      </category>
       <category name="offense">
         <double name="ball distance weight">1.000</double>
         <double name="enemy avoidance distance (robot radius)">4.00</double>
         <integer name="grid x size">25</integer>
         <integer name="grid y size">25</integer>
+        <double name="Scoring weight for angle from ball to goal at robot">1.0</double>
+        <double name="Scoring weight for angle to goal">1.0</double>
+      </category>
+      <category name="Play">
+        <boolean name="CMDBasic2Block">true</boolean>
+        <boolean name="CMDBasicCorner">true</boolean>
+        <boolean name="CMDNaive">true</boolean>
+        <boolean name="CMONaive">true</boolean>
+        <boolean name="DefensiveBlock">true</boolean>
+        <boolean name="FranticDefense">true</boolean>
+        <boolean name="FreeKickEnemy">true</boolean>
+        <boolean name="FreeKickFriendly">true</boolean>
+        <boolean name="FreeKickFriendlyPass">true</boolean>
+        <boolean name="GrabBall">true</boolean>
+        <boolean name="JustBlockShoot">true</boolean>
+        <boolean name="JustGoalie">true</boolean>
+        <boolean name="JustRepel">true</boolean>
+        <boolean name="JustShoot">true</boolean>
+        <boolean name="KickoffEnemy">true</boolean>
+        <boolean name="KickoffFriendly">true</boolean>
+        <boolean name="Lone2Player">true</boolean>
+        <boolean name="OffensiveBlock">true</boolean>
+        <boolean name="OurCornerPlay">true</boolean>
+        <boolean name="PassDefensive">true</boolean>
+        <boolean name="PassOffensive">true</boolean>
+        <boolean name="PassTest">true</boolean>
+        <boolean name="PenaltyEnemy">true</boolean>
+        <boolean name="PenaltyFriendly">true</boolean>
+        <boolean name="Stop">true</boolean>
+        <boolean name="TheirCornerPlay">true</boolean>
       </category>
       <category name="predicates">
         <double name="enemy avoidance distance (robot radius)">3.00</double>
       </category>
       <category name="shoot">
         <double name="Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate">0.0</double>
-      </category>
-      <category name="STP">
-        <boolean name="Goalie is lowest index">true</boolean>
-        <integer name="Goalie pattern index">4</integer>
       </category>
       <category name="Tactic">
         <category name="pass">
