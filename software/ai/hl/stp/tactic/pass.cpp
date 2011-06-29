@@ -60,6 +60,10 @@ namespace {
 				//return kicked && (player->position() - world.ball().position()).len() > (player->position() - dest).len()/4;
 				return kicked || player->autokick_fired();
 			}
+			
+			bool fail() const {
+				return player.is() && AI::HL::Util::calc_best_shot_target(world, target.position(), player, 1.0, true).second > 0;
+			}
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return select_baller(world, players);

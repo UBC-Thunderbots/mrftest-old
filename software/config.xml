@@ -114,7 +114,7 @@
         <double name="xy differential (-ve)">-0.00</double>
         <double name="xy integral (%)">40</double>
         <double name="xy max acceleration">6.00</double>
-        <double name="xy max velocity">15.08</double>
+        <double name="xy max velocity">12.00</double>
         <double name="xy proportional">12.00</double>
       </category>
     </category>
@@ -154,7 +154,7 @@
       </category>
       <category name="Goalie">
         <boolean name="Goalie is lowest index">true</boolean>
-        <integer name="Goalie pattern index">4</integer>
+        <integer name="Goalie pattern index">0</integer>
       </category>
       <category name="Kickoff">
         <double name="kickoff: angle to separate players (degrees)">40.0</double>
@@ -168,7 +168,7 @@
         <double name="Scoring weight for ball progress (+ve)">0.5</double>
         <double name="Scoring weight for distance to ball (-ve)">1.0</double>
         <double name="Scoring weight for distance to enemy goal (-ve)">1.0</double>
-        <double name="Scoring weight for everything">50</double>
+        <double name="Scoring weight for everything">20</double>
         <double name="Scoring weight for nearest enemy (+ve)">1.0</double>
       </category>
       <category name="Play">

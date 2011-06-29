@@ -195,7 +195,7 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot_target(const World &world,
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		obstacles.push_back(enemy.get(i)->position());
 	}
-	if (!pass){
+	if (!pass) {
 		const FriendlyTeam &friendly = world.friendly_team();
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
 			const Player::CPtr fpl = friendly.get(i);

@@ -10,10 +10,10 @@ namespace {
 
 const Point target(1.2, 1.5);
 BEGIN_PLAY(PassFixxed1)
-INVARIANT(true)
-APPLICABLE(Predicates::baller_can_shoot_target(world, target))
+INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3))
+APPLICABLE(Predicates::baller_can_shoot_target(world, target, true))
 DONE(false)
-FAIL(Predicates::their_ball(world))
+FAIL(false)
 BEGIN_ASSIGN()
 
 Point reciever_target(world.field().length()/2.0, 0);

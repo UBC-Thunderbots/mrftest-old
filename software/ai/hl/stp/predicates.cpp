@@ -121,12 +121,12 @@ bool AI::HL::STP::Predicates::baller_can_pass(const World &world) {
 	return false;
 }
 
-bool AI::HL::STP::Predicates::baller_can_shoot_target(const World &world, const Point &target) {
+bool AI::HL::STP::Predicates::baller_can_shoot_target(const World &world, const Point &target, bool pass) {
 	const Player::CPtr baller = Evaluation::calc_friendly_baller(world);
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
-	return AI::HL::Util::calc_best_shot_target(world, target, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
+	return AI::HL::Util::calc_best_shot_target(world, target, baller, 1.0, pass).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
 }
 
 bool AI::HL::STP::Predicates::baller_under_threat(const World &world) {
