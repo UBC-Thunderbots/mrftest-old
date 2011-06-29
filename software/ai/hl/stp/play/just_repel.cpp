@@ -7,7 +7,7 @@ using AI::HL::STP::Enemy;
 BEGIN_PLAY(JustRepel)
 INVARIANT(playtype(world, PlayType::PLAY)
 	&& our_team_size_at_least(world, 2)
-	&& !baller_can_shoot(world) && !baller_can_pass(world))
+	&& !baller_can_shoot(world) && !baller_can_pass(world) && !fight_ball(world))
 APPLICABLE(our_ball(world))
 DONE(none_ball(world))
 FAIL(false)

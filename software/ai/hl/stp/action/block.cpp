@@ -58,8 +58,8 @@ void AI::HL::STP::Action::block_ball(const World &world, Player::Ptr player, Rob
 
 	// don't block from ball if we are blocking our baller!!
 	if (within_angle_thresh(baller, target)) target = robot->position() + (2 * block_threshold * Robot::MAX_RADIUS * dirToBall);
-	player->move(target, (world.ball().position() - player->position()).orientation(), Point());
-	
+
+	player->move(target, (world.ball().position() - player->position()).orientation(), Point());	
 	player->type(AI::Flags::MoveType::NORMAL);
 	player->prio(AI::Flags::MovePrio::MEDIUM);
 
