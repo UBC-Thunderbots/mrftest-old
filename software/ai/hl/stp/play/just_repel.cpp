@@ -10,8 +10,8 @@ INVARIANT(playtype(world, PlayType::PLAY)
 	&& ((!baller_can_shoot(world) && !baller_can_pass(world))
 	|| fight_ball(world)))
 APPLICABLE(our_ball(world))
-DONE(goal(world))
-FAIL(their_ball(world))
+DONE(none_ball(world))
+FAIL(false)
 BEGIN_ASSIGN()
 // GOALIE
 goalie_role.push_back(goalie_dynamic(world, 1));
