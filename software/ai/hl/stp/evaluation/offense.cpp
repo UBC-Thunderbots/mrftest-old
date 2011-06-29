@@ -20,15 +20,17 @@ namespace {
 
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/offense", 4.0, 1.0, 10.0);
 
-	DoubleParam ball_dist_weight("ball distance weight", "STP/offense", 1.0, 0.0, 2.0);
+	DoubleParam weight_total("Scoring weight for everything", "STP/offense", 1.0, 0.0, 99999999.0);
 
 	DoubleParam weight_goal("Scoring weight for angle to goal", "STP/offense", 1.0, 0.0, 99.0);
 
-	DoubleParam weight_ball_angle("Scoring weight for angle from ball to goal at robot (-ve)", "STP/offense", 1.0, 0.0, 99.0);
-
 	DoubleParam weight_progress("Scoring weight for ball progress", "STP/offense", 1.0, 0.0, 99.0);
 
+	DoubleParam weight_ball_angle("Scoring weight for angle from ball to goal at robot (-ve)", "STP/offense", 1.0, 0.0, 99.0);
+
 	DoubleParam weight_ball_dist("Scoring weight for distance to ball (-ve)", "STP/offense", 1.0, 0.0, 99.0);
+
+	DoubleParam weight_enemy("Scoring weight for nearest enemy", "STP/offense", 1.0, 0.0, 99.0);
 
 	double scoring_function(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block, bool pass = false) {
 		// can't be too close to enemy
@@ -40,6 +42,7 @@ namespace {
 			}
 			closest_enemy = std::min(closest_enemy, dist);
 		}
+		const double score_enemy = closest_enemy;
 
 		double score_progress = (dest - world.ball().position()).x;
 
@@ -56,8 +59,8 @@ namespace {
 		// density of enemy, passing distance, distance to the goal, angle of shooting, angle of receiving
 		// distance toward the closest enemy, travel distance, behind of in front of the enemy
 
-		// TODO: fix this
-		if (!AI::HL::Util::path_check(world.ball().position(), dest, enemy_pos, Robot::MAX_RADIUS + Ball::RADIUS * 3)) {
+#warning using deprecated method
+		if (!AI::HL::Util::path_check(world.ball().position(), dest, enemy_pos, Robot::MAX_RADIUS + Ball::RADIUS * 2)) {
 			return -1e99;
 		}
 
@@ -82,17 +85,33 @@ namespace {
 		}
 
 		// want to be as near to enemy goal or ball as possible
-		const double ball_dist = (dest - world.ball().position()).len() + ball_dist_weight;
+		// const double ball_dist = (dest - world.ball().position()).len();
 		// const double goal_dist = (dest - bestshot.first).len();
 
-		// TODO: take into account of the angle needed to rotate and shoot
 		double d1 = (world.ball().position() - dest).orientation();
 		double d2 = (world.field().enemy_goal() - dest).orientation();
 		const double score_ball_angle = angle_diff(d1, d2);
 
 		const double score_ball_dist = (world.ball().position() - dest).len();
 
-		return weight_goal * score_goal - weight_ball_angle * score_ball_angle + weight_progress * score_progress - weight_ball_dist * score_ball_dist;
+		// const double raw_score = weight_goal * score_goal - weight_ball_angle * score_ball_angle - weight_ball_dist * score_ball_dist + weight_enemy * score_enemy;
+
+		// how "heavy" do u want the goal angle to be
+		double raw_score = pow(score_goal, weight_goal);
+		
+		// the further the enemy, the closer to 1
+		raw_score *= (1 + weight_enemy * score_enemy);
+		
+		// the nearer the distance, the closer to 1
+		raw_score /= (1 + weight_ball_dist * score_ball_dist);
+		
+		// the smaller the angle, the closer to 1
+		raw_score /= (1 + weight_ball_angle * score_ball_angle);
+
+		// the nearer we get to enemy, the closer to 1
+		raw_score *= (1 + weight_progress * score_progress);
+
+		return weight_total * raw_score;
 	}
 
 	bool calc_position_best(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos, bool pass = false) {
