@@ -17,7 +17,7 @@ using AI::HL::STP::Coordinate;
  */
 BEGIN_PLAY(OurCornerPlay)
 INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3))
-APPLICABLE(Predicates::our_ball(world) && Predicates::ball_in_our_corner(world) && !Predicates::baller_can_shoot(world) && !Predicates::baller_can_pass(world))
+APPLICABLE(false && Predicates::our_ball(world) && Predicates::ball_in_our_corner(world) && !Predicates::baller_can_shoot(world) && !Predicates::baller_can_pass(world))
 DONE(!Predicates::ball_in_our_corner(world))
 FAIL(Predicates::their_ball(world))
 BEGIN_ASSIGN()
