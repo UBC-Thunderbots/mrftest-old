@@ -11,6 +11,7 @@ using namespace AI::HL::STP;
 
 namespace {
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/predicates", 3.0, 1.0, 10.0);
+	DoubleParam min_shoot_region("minimum region available for baller_can_shoot to be true (radians)", "STP/predicates", M_PI / 18, 0, M_PI);
 }
 
 bool AI::HL::STP::Predicates::goal(const World &) {
@@ -94,7 +95,7 @@ bool AI::HL::STP::Predicates::baller_can_shoot(const World &world) {
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
-	return Evaluation::evaluate_shoot(world, baller).can_shoot;
+	return Evaluation::evaluate_shoot(world, baller).angle >= min_shoot_region;
 }
 
 bool AI::HL::STP::Predicates::baller_can_pass(const World &world) {
