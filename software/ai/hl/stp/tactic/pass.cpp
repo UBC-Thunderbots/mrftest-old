@@ -25,7 +25,7 @@ namespace {
 	DoubleParam negligible_velocity("velocity to ignore", "STP/Tactic/pass", 0.05, 0.0, 1.0);
 	DoubleParam passee_hack_dist("Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)", "STP/Tactic/pass", 0.0, 0.0, 1.0);
 	DoubleParam ball_region_param(" the radius (meters) in which passer must be with repect to ball before valid ", "STP/Tactic/pass", 1.0, 0.0, 5.0);
-	DoubleParam target_region_param(" the radius (meters) in which passee must be with repect to target before valid ", "STP/Tactic/pass", 2.0, 0.0, 5.0);
+	DoubleParam target_region_param(" the radius (meters) in which passee must be with repect to target before valid ", "STP/Tactic/pass", 0.5, 0.0, 5.0);
 //	double passer_tol_target = 30.0; 
 //	double negligible_velocity = 0.1;
 //	double passee_hack_dist = 0.0;
