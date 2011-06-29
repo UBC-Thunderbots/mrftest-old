@@ -22,6 +22,8 @@ namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
 
+	DoubleParam min_dist("Minimum distance for pass play", "STP/Pass", 1.0, 0.0, 5.0);
+
 	class PassPlay : public Play {
 		public:
 			PassPlay(const World& world, const PlayFactory& factory, const Point target) : Play(world), _factory(factory), target(target) {
@@ -40,7 +42,8 @@ namespace {
 			}
 
 			bool applicable() const {
-				return Predicates::baller_can_shoot_target(world, target, true);
+				return Predicates::baller_can_shoot_target(world, target, true)
+					&& (world.ball().position() - target).len() > min_dist;
 			}
 
 			bool fail() const {

@@ -130,7 +130,7 @@
           <double name="Lone Goalie: distance to goal post (m)">0.300</double>
         </category>
         <category name="shoot">
-          <double name="Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate">17.1</double>
+          <double name="Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate">5.0</double>
           <double name="Decay constant for the ball velocity">0.100</double>
           <double name="kicking speed for making a pass">4.75</double>
           <double name="reduced radius for calculating best shot (robot radius ratio)">0.800</double>
@@ -182,6 +182,7 @@
         <boolean name="FreeKickFriendly">true</boolean>
         <boolean name="FreeKickFriendlyPass">true</boolean>
         <boolean name="FreeKickFriendlyRepel">true</boolean>
+        <boolean name="FriendlyCornerPlay1">true</boolean>
         <boolean name="GrabBall">true</boolean>
         <boolean name="JustBlockShoot">true</boolean>
         <boolean name="JustGoalie">true</boolean>
