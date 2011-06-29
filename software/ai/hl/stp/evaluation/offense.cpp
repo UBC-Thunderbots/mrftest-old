@@ -22,15 +22,17 @@ namespace {
 
 	DoubleParam weight_total("Scoring weight for everything", "STP/offense", 1.0, 0.0, 99999999.0);
 
-	DoubleParam weight_goal("Scoring weight for angle to goal", "STP/offense", 1.0, 0.0, 99.0);
+	DoubleParam weight_goal_angle("Scoring weight for angle to goal (POWER, careful)", "STP/offense", 1.0, 0.0, 99.0);
 
-	DoubleParam weight_progress("Scoring weight for ball progress", "STP/offense", 1.0, 0.0, 99.0);
+	DoubleParam weight_progress("Scoring weight for ball progress (+ve)", "STP/offense", 1.0, 0.0, 99.0);
 
 	DoubleParam weight_ball_angle("Scoring weight for angle from ball to goal at robot (-ve)", "STP/offense", 1.0, 0.0, 99.0);
 
 	DoubleParam weight_ball_dist("Scoring weight for distance to ball (-ve)", "STP/offense", 1.0, 0.0, 99.0);
 
-	DoubleParam weight_enemy("Scoring weight for nearest enemy", "STP/offense", 1.0, 0.0, 99.0);
+	DoubleParam weight_enemy("Scoring weight for nearest enemy (+ve)", "STP/offense", 1.0, 0.0, 99.0);
+
+	DoubleParam weight_goal_dist("Scoring weight for distance to enemy goal (-ve)", "STP/offense", 1.0, 0.0, 99.0);
 
 	double scoring_function(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block, bool pass = false) {
 		// can't be too close to enemy
@@ -46,12 +48,12 @@ namespace {
 
 		double score_progress = (dest - world.ball().position()).x;
 
-		double score_goal = -1e99;
+		double score_goal_angle = -1e99;
 		if (pass) {
-			score_goal = AI::HL::Util::calc_best_shot_target(passee_pos, enemy_pos, dest).second;
+			score_goal_angle = AI::HL::Util::calc_best_shot_target(passee_pos, enemy_pos, dest).second;
 		} else {
 			// Hmm.. not sure if having negative number is a good idea.
-			score_goal = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dest).second;
+			score_goal_angle = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dest).second;
 		}
 
 		// TODO: check the line below here
@@ -94,10 +96,12 @@ namespace {
 
 		const double score_ball_dist = (world.ball().position() - dest).len();
 
+		const double score_goal_dist = (world.field().enemy_goal() - dest).len();
+
 		// const double raw_score = weight_goal * score_goal - weight_ball_angle * score_ball_angle - weight_ball_dist * score_ball_dist + weight_enemy * score_enemy;
 
 		// how "heavy" do u want the goal angle to be
-		double raw_score = pow(score_goal, weight_goal);
+		double raw_score = pow(score_goal_angle, weight_goal_angle);
 		
 		// the further the enemy, the closer to 1
 		raw_score *= (1 + weight_enemy * score_enemy);
@@ -110,6 +114,9 @@ namespace {
 
 		// the nearer we get to enemy, the closer to 1
 		raw_score *= (1 + weight_progress * score_progress);
+
+		// the further to enemy goal, the closer to 1
+		raw_score /= (1 + weight_goal_dist * score_goal_dist);
 
 		return weight_total * raw_score;
 	}
