@@ -3,6 +3,7 @@
 #include "geom/angle.h"
 #include "ai/hl/stp/evaluation/enemy.h"
 #include "ai/hl/stp/evaluation/ball.h"
+#include "ai/hl/stp/evaluation/shoot.h"
 
 #include <set>
 
@@ -93,7 +94,7 @@ bool AI::HL::STP::Predicates::baller_can_shoot(const World &world) {
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
-	return AI::HL::Util::calc_best_shot(world, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
+	return Evaluation::evaluate_shoot(world, baller).can_shoot;
 }
 
 bool AI::HL::STP::Predicates::baller_can_pass(const World &world) {
@@ -107,7 +108,8 @@ bool AI::HL::STP::Predicates::baller_can_pass(const World &world) {
 		if (Evaluation::possess_ball(world, friends.get(i))) {
 			continue;
 		}
-		if (AI::HL::Util::calc_best_shot_target(world, friends.get(i)->position(), baller, true).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0) {
+		const Point target = friends.get(i)->position();
+		if (Evaluation::can_shoot_target(world, baller, target, true)) {
 			const Point ray = world.ball().position() - friends.get(i)->position();
 			// if the passee is not facing the ball, forget it?
 			if (angle_diff(ray.orientation(), friends.get(i)->orientation()) > AI::HL::Util::ORI_PASS_CLOSE) {
@@ -126,7 +128,7 @@ bool AI::HL::STP::Predicates::baller_can_shoot_target(const World &world, const 
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
-	return AI::HL::Util::calc_best_shot_target(world, target, baller, 1.0, pass).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
+	return Evaluation::can_shoot_target(world, baller, target, true);
 }
 
 bool AI::HL::STP::Predicates::baller_under_threat(const World &world) {

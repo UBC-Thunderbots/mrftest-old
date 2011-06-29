@@ -32,6 +32,12 @@ namespace AI {
 				ShootData evaluate_shoot(const World &world, Player::CPtr player);
 
 				ShootData evaluate_shoot_target(const World &world, Player::CPtr player, const Point target);
+				
+				/**
+				 * Checks if a player can shoot to this location.
+				 * A pass will ignore friendly robots for the purpose of obstacle avoidance.
+				 */
+				bool can_shoot_target(const World &world, Player::CPtr player, const Point target, bool pass = false);
 			}
 		}
 	}

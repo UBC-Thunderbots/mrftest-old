@@ -62,7 +62,7 @@ namespace {
 			}
 			
 			bool fail() const {
-				return player.is() && AI::HL::Util::calc_best_shot_target(world, target.position(), player, 1.0, true).second > 0;
+				return player.is() && AI::HL::Util::calc_best_shot_target(world, target.position(), player, 0.5, true).second > 0;
 			}
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
@@ -72,7 +72,7 @@ namespace {
 			void execute() {
 				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();
 				kicked = kicked || player->autokick_fired();
-				if(!player->autokick_fired() && !kicked){
+				if (!player->autokick_fired() && !kicked) {
 					PasserShoot::passer_info.kicker_location = player->position();
 					PasserShoot::passer_info.kicker_orientation = player->orientation();
 					PasserShoot::passer_info.kicker_target = dest;

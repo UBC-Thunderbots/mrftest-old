@@ -77,3 +77,7 @@ Evaluation::ShootData Evaluation::evaluate_shoot_target(const World &world, Play
 	return data;
 }
 
+bool Evaluation::can_shoot_target(const World &world, Player::CPtr player, const Point target, bool pass) {
+	AI::HL::Util::calc_best_shot_target(world, target, player, pass).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
+}
+
