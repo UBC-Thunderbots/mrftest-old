@@ -95,7 +95,7 @@ bool AI::HL::STP::Predicates::baller_can_shoot(const World &world) {
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
-	return Evaluation::evaluate_shoot(world, baller).angle >= min_shoot_region;
+	return Evaluation::evaluate_shoot(world, baller).angle >= degrees2radians(min_shoot_region);
 }
 
 bool AI::HL::STP::Predicates::baller_can_pass(const World &world) {

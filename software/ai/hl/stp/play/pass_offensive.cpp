@@ -15,13 +15,13 @@ namespace Predicates = AI::HL::STP::Predicates;
  * - shoot the ball to enemy goal while passing the ball between the passer and passee
  */
 BEGIN_PLAY(PassOffensive)
-INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 4) && Predicates::their_team_size_at_least(world, 1) && !Predicates::baller_can_shoot(world) && !Predicates::fight_ball(world))
+INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::their_team_size_at_least(world, 1) && !Predicates::baller_can_shoot(world) && !Predicates::fight_ball(world))
 APPLICABLE(Predicates::our_ball(world) && (Predicates::ball_midfield(world) || Predicates::ball_in_their_corner(world)) && Predicates::ball_on_their_side(world))
 DONE(Predicates::baller_can_shoot(world))
 FAIL(Predicates::their_ball(world))
 BEGIN_ASSIGN()
 // GOALIE
-goalie_role.push_back(defend_duo_goalie(world));
+goalie_role.push_back(goalie_dynamic(world, 2));
 
 // ROLE 1
 // passer / receiver

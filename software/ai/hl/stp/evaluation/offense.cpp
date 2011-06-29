@@ -1,11 +1,13 @@
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/evaluation/offense.h"
+#include "ai/hl/stp/param.h"
 #include "ai/hl/util.h"
 #include "geom/angle.h"
 #include "geom/util.h"
 #include "util/dprint.h"
 
-using namespace AI::HL::W;
+using namespace AI::HL::STP;
+
 // using AI::HL::STP::Evaluation::OffenseData;
 // using AI::HL::STP::Evaluation::EvaluateOffense;
 
@@ -54,6 +56,10 @@ namespace {
 		} else {
 			// Hmm.. not sure if having negative number is a good idea.
 			score_goal_angle = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dest).second;
+		}
+
+		if (score_goal_angle < degrees2radians(min_shoot_region)) {
+			return -1e99;
 		}
 
 		// TODO: check the line below here
