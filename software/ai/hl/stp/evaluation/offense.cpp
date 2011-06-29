@@ -26,6 +26,8 @@ namespace {
 
 	DoubleParam weight_ball("Scoring weight for angle from ball to goal at robot", "STP/offense", 1.0, 0.0, 99.0);
 
+	DoubleParam weight_progress("Scoring weight for ball progress", "STP/offense", 1.0, 0.0, 99.0);
+
 	double scoring_function(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block, bool pass = false) {
 		// can't be too close to enemy
 		double closest_enemy = world.field().width();
@@ -36,6 +38,8 @@ namespace {
 			}
 			closest_enemy = std::min(closest_enemy, dist);
 		}
+
+		double score_progress = (dest - world.ball().position()).x;
 
 		double score_goal = -1e99;
 		if (pass) {
@@ -84,7 +88,7 @@ namespace {
 		double d2 = (world.field().enemy_goal() - dest).orientation();
 		const double score_ball = angle_diff(d1, d2);
 
-		return weight_goal * score_goal - weight_ball * score_ball;
+		return weight_goal * score_goal - weight_ball * score_ball + weight_progress * score_progress;
 	}
 
 	bool calc_position_best(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos, bool pass = false) {
