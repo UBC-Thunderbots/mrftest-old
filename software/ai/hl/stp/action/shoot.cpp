@@ -22,6 +22,15 @@ namespace {
 	DoubleParam pass_speed("kicking speed for making a pass", "STP/Action/shoot", 7.0, 1.0, 10.0);
 }
 
+void AI::HL::STP::Action::autokick(Player::Ptr player, const Point target, double velocity) {
+	if (player->kicker_directional()) {
+		double angle = angle_diff(player->orientation(), (target - player->position()).orientation());
+		player->autokick(velocity, angle);
+	} else {
+		player->autokick(velocity);
+	}
+}
+
 bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player) {
 	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
 
@@ -39,7 +48,7 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player) {
 			return false;
 		}
 		LOG_INFO("autokick");
-		player->autokick(10.0);
+		autokick(player, shoot_data.target, 10.0);
 		return true;
 	}
 
@@ -57,7 +66,7 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 			return false;
 		}
 		LOG_INFO("kick 2");
-		player->autokick(velocity);
+		autokick(player, target, velocity);
 		return true;
 	}
 	return false;
@@ -74,7 +83,7 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	if (!within_angle_thresh(player, target, angle_tol)) {
 		return false;
 	}
-	player->autokick(pass_speed);
+	autokick(player, target, pass_speed);
 	
 	// check receiver orientation
 //	Player::CPtr receiver = Evaluation::nearest_friendly(world, target);
