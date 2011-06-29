@@ -14,7 +14,7 @@ using AI::HL::STP::Enemy;
  */
 BEGIN_PLAY(JustBlockShoot)
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2) && their_team_size_at_least(world,1))
-APPLICABLE(our_ball(world) && !num_of_enemies_on_our_side_at_least(world, 1))
+APPLICABLE(our_ball(world) && !num_of_enemies_on_our_side_at_least(world, 2))
 DONE(goal(world))
 FAIL(their_ball(world))
 BEGIN_ASSIGN()
@@ -23,12 +23,11 @@ goalie_role.push_back(defend_solo_goalie(world));
 
 // ROLE 1
 // shoot
-roles[0].push_back(chase(world));
 roles[0].push_back(shoot_goal(world));
 
 // ROLE 2 (optional)
 // block 1
-roles[1].push_back(block_ball(world, Enemy::closest_ball(world, 0)));
+roles[1].push_back(block_goal(world, Enemy::closest_ball(world, 0)));
 
 // ROLE 3 (optional)
 // block 2

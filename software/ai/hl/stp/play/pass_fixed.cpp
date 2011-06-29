@@ -38,7 +38,7 @@ namespace {
 			}
 
 			bool done() const {
-				return false;
+				return Predicates::baller_can_shoot(world);
 			}
 
 			bool applicable() const {
@@ -47,7 +47,7 @@ namespace {
 			}
 
 			bool fail() const {
-				return false;
+				return Predicates::their_ball(world);
 			}
 
 			void assign(std::vector<Tactic::Tactic::Ptr> &goalie_role, std::vector<Tactic::Tactic::Ptr>(&roles)[4]) {
