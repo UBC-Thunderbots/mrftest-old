@@ -49,7 +49,7 @@ namespace {
 
 			void assign(std::vector<Tactic::Tactic::Ptr> &goalie_role, std::vector<Tactic::Tactic::Ptr>(&roles)[4]) {
 				// GOALIE
-				goalie_role.push_back(defend_duo_goalie(world));
+				goalie_role.push_back(goalie_dynamic(world, 2));
 				// ROLE 1
 				// passer
 				roles[0].push_back(passer_shoot_target(world, target));
@@ -68,7 +68,7 @@ namespace {
 				/////////////////////////////////////
 
 				// GOALIE
-				goalie_role.push_back(defend_duo_goalie(world));
+				goalie_role.push_back(goalie_dynamic(world, 1));
 				// ROLE 1
 				// passer
 				roles[0].push_back(passee_receive_target(world, target));

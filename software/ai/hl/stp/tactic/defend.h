@@ -25,6 +25,13 @@ namespace AI {
 				 * A tactic for extra player.
 				 */
 				Tactic::Ptr defend_duo_extra(const World &world);
+
+				/**
+				 * A goalie tactic that can switch between lone and duo goalie.
+				 *
+				 * \input[in] defender_role the role index (starting from 0) that the defender_duo_defender is.
+				 */
+				Tactic::Ptr goalie_dynamic(const World &world, const size_t defender_role);
 			}
 		}
 	}
