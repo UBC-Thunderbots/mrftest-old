@@ -5,13 +5,19 @@
 namespace Predicates = AI::HL::STP::Predicates;
 
 BEGIN_PLAY(FreeKickFriendlyPass)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 4) && !Predicates::baller_can_shoot(world))
-APPLICABLE(true)
+INVARIANT(
+		(Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY)
+		 || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)
+		 || Predicates::playtype(world, AI::Common::PlayType::PLAY))
+		&& Predicates::our_team_size_at_least(world, 3)
+		&& !Predicates::baller_can_shoot(world))
+APPLICABLE((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY)
+			|| Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)))
 DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
 // GOALIE
-goalie_role.push_back(defend_duo_goalie(world));
+goalie_role.push_back(goalie_dynamic(world, 2));
 
 // ROLE 1
 // passer
