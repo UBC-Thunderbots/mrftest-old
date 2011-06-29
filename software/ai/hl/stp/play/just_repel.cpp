@@ -5,13 +5,16 @@
 using AI::HL::STP::Enemy;
 
 BEGIN_PLAY(JustRepel)
-INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3) && !baller_can_shoot(world) && !baller_can_pass(world))
-APPLICABLE(our_ball(world) && ball_midfield(world))
+INVARIANT(playtype(world, PlayType::PLAY)
+	&& our_team_size_at_least(world, 2)
+	&& ((!baller_can_shoot(world) && !baller_can_pass(world))
+	|| fight_ball(world)))
+APPLICABLE(our_ball(world))
 DONE(goal(world))
 FAIL(their_ball(world))
 BEGIN_ASSIGN()
 // GOALIE
-goalie_role.push_back(defend_duo_goalie(world));
+goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // repel

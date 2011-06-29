@@ -128,7 +128,7 @@ bool AI::HL::STP::Predicates::baller_can_shoot_target(const World &world, const 
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
-	return Evaluation::can_shoot_target(world, baller, target, true);
+	return Evaluation::can_shoot_target(world, baller, target, pass);
 }
 
 bool AI::HL::STP::Predicates::baller_under_threat(const World &world) {
@@ -193,5 +193,9 @@ bool AI::HL::STP::Predicates::num_of_enemies_on_our_side_at_least(const World &w
 
 bool AI::HL::STP::Predicates::ball_inside_region(const World &world, Region region) {
 	return region.inside(world.ball().position());
+}
+
+bool AI::HL::STP::Predicates::fight_ball(const World &world) {
+	return our_ball(world) && their_ball(world);
 }
 

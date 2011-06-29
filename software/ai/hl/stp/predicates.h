@@ -101,7 +101,12 @@ namespace AI {
 				/**
 				 * true if ball is inside region
 				 */
-				bool ball_inside_region(const World &world, Region region);			
+				bool ball_inside_region(const World &world, Region region);
+
+				/**
+				 * true if our_ball and their_ball (so we have to fight the ball)
+				 */
+				bool fight_ball(const World &world);				
 			}
 		}
 	}
