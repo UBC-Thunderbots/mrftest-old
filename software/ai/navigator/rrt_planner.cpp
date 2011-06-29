@@ -2,6 +2,7 @@
 #include "ai/navigator/rrt_planner.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
+#include "util/param.h"
 
 using namespace AI::Nav;
 using namespace AI::Nav::W;
@@ -10,20 +11,16 @@ using namespace AI::Flags;
 
 
 namespace {
-	// fraction of the maximum speed that the robot will try to dribble at
-	const double DRIBBLE_SPEED = 1.0;
-	const double THRESHOLD = 0.08;
-	const double STEP_DISTANCE = 0.1;
+	IntParam iteration_limit("Number of iterations to go through before we give best partial path", "Nav/RRT", 200, 10, 2000);
+	DoubleParam threshold("Distance to destination when we stop looking for a path (m)", "Nav/RRT", 0.08, 0, 1.0);
+	DoubleParam step_distance("Distance to extend the tree on each step (m)", "Nav/RRT", 0.1, 0, 1.0);
+
 	// probability that we will take a step towards the goal
 	const double GOAL_PROB = 0.2;
 	const double WAYPOINT_PROB = 0.5;
 	const double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
 	const bool POST_PROCESS = true;
 	const double EPS = 1e-9;
-
-	// number of iterations to go through for each robot until we give up and
-	// just return the best partial path we've found
-	const int ITERATION_LIMIT = 200;
 
 	bool is_empty_state(Point to_check) {
 		return (to_check - RRTPlanner::empty_state()).lensq() < EPS;
@@ -87,7 +84,7 @@ Glib::NodeTree<Point> *RRTPlanner::nearest(Glib::NodeTree<Point> *rrt_tree, Poin
 
 // extend by STEP_DISTANCE towards the target from the start
 Point RRTPlanner::extend(Player::Ptr player, Glib::NodeTree<Point> *start, Point target) {
-	Point extend_point = start->data() + ((target - start->data()).norm() * STEP_DISTANCE);
+	Point extend_point = start->data() + ((target - start->data()).norm() * step_distance);
 
 	if (!valid_path(start->data(), extend_point, world, player, Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags)) {
 		return empty_state();
@@ -119,7 +116,7 @@ std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool pos
 	int iteration_counter = 0;
 
 	// should loop until distance between the last node added and goal is less than threshold
-	while (distance(last_added, goal) > THRESHOLD && iteration_counter < ITERATION_LIMIT) {
+	while (distance(last_added, goal) > threshold && iteration_counter < iteration_limit) {
 		target = choose_target(goal, player);
 		nearest_node = nearest(&rrt_tree, target);
 		extended = extend(player, nearest_node, target);
@@ -131,7 +128,7 @@ std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool pos
 		iteration_counter++;
 	}
 
-	bool found_path = (iteration_counter != ITERATION_LIMIT);
+	bool found_path = (iteration_counter != iteration_limit);
 
 	if (!found_path) {
 		// LOG_WARN("Reached limit, path not found");

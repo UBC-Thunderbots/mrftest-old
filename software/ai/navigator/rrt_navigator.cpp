@@ -6,7 +6,6 @@
 #include "geom/angle.h"
 #include "util/dprint.h"
 #include "util/param.h"
-#include <iostream>
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
@@ -20,16 +19,6 @@ namespace AI {
 		namespace RRT {
 			// fraction of the maximum speed that the robot will try to dribble at
 			const double DRIBBLE_SPEED = 1.0;
-			const double THRESHOLD = 0.08;
-			const double STEP_DISTANCE = 0.1;
-			// probability that we will take a step towards the goal
-			const double GOAL_PROB = 0.2;
-			const double WAYPOINT_PROB = 0.5;
-			const double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
-			// number of iterations to go through for each robot until we give up and
-			// just return the best partial path we've found
-			const int ITERATION_LIMIT = 200;
-			const int NUM_WAYPOINTS = 50;
 
 			DoubleParam offset_angle("Pivot: offset angle (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
 			DoubleParam offset_distance("Pivot: offset distance", "Nav/RRT", 0.15, -10.0, 10.0);
