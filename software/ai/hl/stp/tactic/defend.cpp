@@ -27,7 +27,11 @@ namespace {
 				assert(0);
 			}
 			std::string description() const {
-				return "goalie2";
+				if (world.friendly_team().size() > defender_role + 1) {
+					return "goalie duo";
+				} else {
+					return "goalie lone";
+				}
 			}
 	};
 

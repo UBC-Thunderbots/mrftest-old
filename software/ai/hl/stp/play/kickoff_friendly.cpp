@@ -29,23 +29,28 @@ namespace {
  * - Pass the ball to a friendly player without double touching the ball
  */
 BEGIN_PLAY(KickoffFriendly)
-INVARIANT(Predicates::our_team_size_at_least(world, 3) && (Predicates::playtype(world, AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY)))
+INVARIANT(Predicates::our_team_size_at_least(world, 2) && (Predicates::playtype(world, AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY)))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
-goalie_role.push_back(defend_duo_goalie(world));
 
+// GOALIE
+goalie_role.push_back(goalie_dynamic(world, 1));
+
+// ROLE 1
 roles[0].push_back(wait_playtype(world, move(world, kicker_position), AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY));
 roles[0].push_back(repel(world));
-//roles[0].push_back(shoot_goal(world));
 
+// ROLE 2
+roles[1].push_back(defend_duo_defender(world));
 
-roles[1].push_back(move(world, ready_positions[0]));
+// ROLE 3
+roles[2].push_back(move(world, ready_positions[0]));
 
-roles[2].push_back(move(world, ready_positions[1]));
+// ROLE 4
+roles[3].push_back(move(world, ready_positions[1]));
 
-roles[3].push_back(defend_duo_defender(world));
 END_ASSIGN()
 END_PLAY()
 

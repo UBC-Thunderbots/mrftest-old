@@ -11,13 +11,13 @@ namespace Predicates = AI::HL::STP::Predicates;
  * - Handle Enemy Free Kick
  */
 BEGIN_PLAY(FreeKickEnemy)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY)) && Predicates::our_team_size_at_least(world, 2))
+INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY)))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
 // GOALIE
-goalie_role.push_back(wait_playtype(world, defend_duo_goalie(world), AI::Common::PlayType::PLAY));
+goalie_role.push_back(wait_playtype(world, goalie_dynamic(world, 0), AI::Common::PlayType::PLAY));
 
 // ROLE 1
 // defend
