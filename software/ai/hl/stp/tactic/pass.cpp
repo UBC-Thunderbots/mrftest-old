@@ -140,7 +140,12 @@ namespace {
 				match_passer_ori = match_passer_ori && (passer_info.kicker_location - world.ball().position()).len() < ball_region_param;
 				match_passer_ori = match_passer_ori && (world.ball().position() - passer_info.kicker_location).dot(passer_info.kicker_target - passer_info.kicker_location) > 0;
 				match_passer_ori = match_passer_ori || (passer_info.kicked && !fast_ball);
-				
+	
+				if( (passer_info.kicker_target - player->position()).len() > target_region_param){
+					Action::move(player, (world.ball().position() - player->position()).orientation(), passer_info.kicker_target);
+					return;
+				}
+			
 				if ( match_passer_ori ) {
 					Point pass_dir(100, 0);
 					pass_dir = pass_dir.rotate(passer_info.kicker_orientation);
