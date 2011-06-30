@@ -11,15 +11,11 @@
 #include "util/dprint.h"
 #include <algorithm>
 #include <cmath>
-
+#include "ai/hl/stp/param.h"
 using namespace AI::HL::STP;
 
 namespace {
-	DoubleParam alpha("Decay constant for the ball velocity", "STP/Action/shoot", 0.1, 0.0, 1.0);
 
-	DoubleParam pass_threshold("Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate", "STP/Action/shoot", 20.0, 0.0, 90.0);
-
-	DoubleParam pass_speed("kicking speed for making a pass", "STP/Action/shoot", 7.0, 1.0, 10.0);
 }
 
 void AI::HL::STP::Action::autokick(Player::Ptr player, const Point target, double velocity) {
