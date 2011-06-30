@@ -140,14 +140,13 @@ namespace {
 				kick_info passer_info = PasserShoot::passer_info;
 				bool fast_ball = world.ball().velocity().len() > fast_velocity;
 				#warning looks abit ugly.. 
-				#warning as if the shit written above isn't butt ugly
-				// to adjust for passer orientation make sure passer is within a radius of ball, the ball is in front of robot
-				// and robot is within some angle threshold of the target
-				// the other condition is if the ball was just kicked, use the information about passer when ball was just kicked ( and passer information is more reliable than ball velocity information)
 
-				// This is the distance that the reciever of pass must be within with respect to the pass target
 
-				/////////////////////start new stuff
+				///////////////////////////////////////////////////////////////////////////////////////////////////////
+				// calculate the largest circle centered at the passers target                                       //
+				// that is inscribed by the two rays that represents the passers allowed error                       //
+				// passee finds the most appropiate location within this circle to adapt to the passers orientation  //
+				///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 				// target normalized to position of passer
 				Point passer_target = passer_info.kicker_target - passer_info.kicker_location;
@@ -205,35 +204,6 @@ namespace {
 						passee_goto = passee_goto + add_dist_hack;
 						Action::move(player, (world.ball().position() - player->position()).orientation(), passee_goto);
 					}
-
-				////////////////////end new stuff
-
-
-
-				// bool match_passer_ori = (Action::within_angle_thresh(passer_info.kicker_location, passer_info.kicker_orientation, passer_info.kicker_target, passer_tol_target) && !passer_info.kicked);
-				// match_passer_ori = match_passer_ori && (passer_info.kicker_location - world.ball().position()).len() < ball_region_param;
-				// match_passer_ori = match_passer_ori && (world.ball().position() - passer_info.kicker_location).dot(passer_info.kicker_target - passer_info.kicker_location) > 0;
-				// match_passer_ori = match_passer_ori || (passer_info.kicked && !fast_ball);
-	
-				// if( (passer_info.kicker_target - player->position()).len() > target_region_buffer){
-				// 	Action::move(player, (world.ball().position() - player->position()).orientation(), passer_info.kicker_target);
-				// 	return;
-				// }
-			
-				// if ( match_passer_ori ) {
-				// 	Point pass_dir(100, 0);
-				// 	pass_dir = pass_dir.rotate(passer_info.kicker_orientation);
-				// 	Point intercept_pos = closest_lineseg_point(player->position(), passer_info.kicker_location, passer_info.kicker_location + pass_dir);
-				// 	Point addit = passee_hack_dist*(intercept_pos - player->position()).norm();
-				// 	Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos + addit);
-				// } else if (passer_info.kicked && fast_ball) {
-				// 	Point intercept_pos = closest_lineseg_point(player->position(), world.ball().position(),  world.ball().position() + 100 * (world.ball().velocity().norm()));
-				// 	Point pass_dir = (world.ball().position() - passer_info.kicker_location).norm();
-				// 	Point addit = passee_hack_dist*(intercept_pos - player->position()).norm();
-				// 	Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos + addit);
-				// } else {
-				// 	Action::move(player, (world.ball().position() - player->position()).orientation(), passer_info.kicker_target);
-				// }
 				player->type(AI::Flags::MoveType::DRIBBLE);
 			}
 
