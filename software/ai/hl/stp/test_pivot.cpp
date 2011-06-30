@@ -11,6 +11,8 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
+	int time;
+
 	class TestPivotFactory : public HighLevelFactory {
 		public:
 			TestPivotFactory() : HighLevelFactory("Test STP Pivot") {
@@ -24,6 +26,7 @@ namespace {
 	class TestPivot : public HighLevel {
 		public:
 			TestPivot(World &world) : world(world), target_enemy(false) {
+				time = 0;
 			}
 
 		private:
@@ -58,7 +61,10 @@ namespace {
 				if (diff_ori < 0.1) {
 					// angle completed, switch goals.
 					target_enemy = !target_enemy;
+					LOG_INFO(Glib::ustring::compose("time steps taken: %1", time));
+					time = 0;
 				}
+				time++;
 
 				Action::pivot(world, player, target);
 			}
