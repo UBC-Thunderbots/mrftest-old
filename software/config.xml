@@ -166,13 +166,14 @@
         <double name="enemy avoidance distance (robot radius)">3.00</double>
         <integer name="grid x size">40</integer>
         <integer name="grid y size">40</integer>
-        <double name="Scoring weight for angle from ball to goal at robot (-ve)">0.1</double>
+        <double name="Scoring weight for angle from ball to goal at robot (-ve)">2.0</double>
         <double name="Scoring weight for angle to goal (POWER, careful)">2.0</double>
-        <double name="Scoring weight for ball progress (+ve)">0.1</double>
-        <double name="Scoring weight for distance to ball (-ve)">0.1</double>
-        <double name="Scoring weight for distance to enemy goal (-ve)">0.1</double>
-        <double name="Scoring weight for everything">200</double>
-        <double name="Scoring weight for nearest enemy (+ve)">0.1</double>
+        <double name="Scoring weight for ball progress (+ve)">0.0</double>
+        <double name="Scoring weight for distance to ball (-ve)">2.0</double>
+        <double name="Scoring weight for distance to enemy goal (-ve)">0.0</double>
+        <double name="Scoring weight for everything">2000</double>
+        <double name="Scoring weight for nearest enemy (+ve)">0.0</double>
+        <double name="Width for passing (robot radius)">4.00</double>
       </category>
       <category name="param">
         <double name="minimum region available for baller_can_shoot to be true (degrees)">5.7</double>

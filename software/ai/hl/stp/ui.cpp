@@ -108,13 +108,13 @@ void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context>
 	// draw green circles for best offense
 	{
 		std::array<Point, 2> positions = Evaluation::offense_positions(world);
-		ctx->set_source_rgba(0.5, 1.0, 0.5, 0.7);
-		ctx->arc(positions[0].x, positions[0].y, 0.2, 0.0, 2 * M_PI);
+		ctx->set_source_rgba(0.6, 1.0, 0.6, 0.8);
+		ctx->arc(positions[0].x, positions[0].y, 0.1, 0.0, 2 * M_PI);
 		ctx->fill();
 		ctx->stroke();
 
-		ctx->set_source_rgba(0.5, 1.0, 0.5, 0.7);
-		ctx->arc(positions[1].x, positions[1].y, 0.2, 0.0, 2 * M_PI);
+		ctx->set_source_rgba(0.6, 1.0, 0.6, 0.7);
+		ctx->arc(positions[1].x, positions[1].y, 0.1, 0.0, 2 * M_PI);
 		ctx->fill();
 		ctx->stroke();
 	}
