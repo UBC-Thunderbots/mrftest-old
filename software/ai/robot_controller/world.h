@@ -1,6 +1,7 @@
 #ifndef AI_ROBOT_CONTROLLER_WORLD_H
 #define AI_ROBOT_CONTROLLER_WORLD_H
 
+#include "ai/flags.h"
 #include "ai/common/player.h"
 #include "geom/point.h"
 #include "util/byref.h"
@@ -35,6 +36,27 @@ namespace AI {
 					 * The type of a complete path.
 					 */
 					typedef std::vector<PathPoint> Path;
+
+					/**
+					 * Returns the movement flags requested by the Strategy.
+					 *
+					 * \return the flags.
+					 */
+					virtual unsigned int flags() const = 0;
+
+					/**
+					 * Returns the movement type requested by the Strategy.
+					 *
+					 * \return the type.
+					 */
+					virtual AI::Flags::MoveType type() const = 0;
+
+					/**
+					 * Returns the movement priority requested by the Strategy.
+					 *
+					 * \return the priority.
+					 */
+					virtual AI::Flags::MovePrio prio() const = 0;
 
 					/**
 					 * Returns the path requested by the navigator.
