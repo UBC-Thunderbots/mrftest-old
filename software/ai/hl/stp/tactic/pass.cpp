@@ -62,7 +62,8 @@ namespace {
 			}
 			
 			bool fail() const {
-				return player.is() && AI::HL::Util::calc_best_shot_target(world, target.position(), player, 0.5, true).second == 0;
+				// should fail when cannot pass to target, or a shot on net is available
+				return (player.is() && AI::HL::Util::calc_best_shot_target(world, target.position(), player, 0.5, true).second == 0 ) || AI::HL::STP::Predicates::baller_can_shoot(world);
 			}
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
@@ -191,7 +192,7 @@ namespace {
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
 			}
 			bool done() const {
-				return player.is() && Evaluation::possess_ball(world, player);
+				return player.is() && player->has_ball();
 			}
 			void execute() {
 				
