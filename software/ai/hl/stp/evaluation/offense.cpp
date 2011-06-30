@@ -20,6 +20,8 @@ using AI::HL::STP::Evaluation::grid_y;
 namespace {
 	//const double DEG_2_RAD = 1.0 / 180.0 * M_PI;
 
+	// BoolParam use_area_metric("use area metric", "STP/offense", true);
+
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/offense", 4.0, 1.0, 10.0);
 
 	DoubleParam weight_total("Scoring weight for everything", "STP/offense", 1.0, 0.0, 99999999.0);
@@ -37,6 +39,7 @@ namespace {
 	DoubleParam weight_goal_dist("Scoring weight for distance to enemy goal (-ve)", "STP/offense", 1.0, 0.0, 99.0);
 
 	double scoring_function(const World &world, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
+
 		// can't be too close to enemy
 		double closest_enemy = world.field().width();
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
@@ -47,6 +50,17 @@ namespace {
 			closest_enemy = std::min(closest_enemy, dist);
 		}
 		const double score_enemy = closest_enemy;
+
+		double closest_friendly = 1e99;
+		const FriendlyTeam &friendly = world.friendly_team();
+		for (size_t i = 0; i < friendly.size(); ++i) {
+			double dist = (friendly.get(i)->position() - dest).len();
+			closest_friendly = std::min(closest_friendly, dist);
+		}
+
+		if (closest_friendly > closest_enemy + Robot::MAX_RADIUS) {
+			return -1e99;
+		}
 
 		double score_progress = (dest - world.ball().position()).x;
 
@@ -102,13 +116,13 @@ namespace {
 
 		// how "heavy" do u want the goal angle to be
 		double raw_score = pow(score_goal_angle, weight_goal_angle);
-		
+
 		// want further from enemy
 		raw_score *= (1 + weight_enemy * score_enemy);
-		
+
 		// the nearer the distance, the closer to 1
 		raw_score /= (1 + weight_ball_dist * score_ball_dist);
-		
+
 		// the smaller the angle, the closer to 1
 		raw_score /= (1 + weight_ball_angle * score_ball_angle);
 
@@ -133,6 +147,17 @@ namespace {
 
 		best_pos = Point();
 
+		std::vector<std::vector<double> > scores;
+
+		/*
+		   if (use_area_metric) {
+		   scores.resize(2*grid_y+1);
+		   for (int i = 0; i < 2*grid_y+1; ++i) {
+		   scores[i].resize(2*grid_x+1, 0);
+		   }
+		   }
+		 */
+
 		for (int i = 1; i <= 2*grid_y+1; i += 2) {
 			for (int j = i%2+1; j <= 2*grid_x+1; j += 2) {
 				const double x = x1 + dx * j;
@@ -147,28 +172,41 @@ namespace {
 				}
 
 				double score = scoring_function(world, enemy_pos, pos, dont_block);
-				
+
 				if (score > best_score) {
 					best_score = score;
 					best_pos = pos;
 				}
+
+				/*
+				   if (use_area_metric) {
+				   scores[i][j] = score;
+				   }
+				 */
 			}
 		}
+
+		/*
+		   if (use_area_metric) {
+
+		   }
+		 */
+
 		return best_score > 0;
 	}
-	
+
 	// TODO: explore updating the offensive function only ONCE
 	/*
-	std::vector<std::vector<double> > scores;
+	   std::vector<std::vector<double> > scores;
 
-	void update() {
-		scores.clear();
-		scores.resize(2*grid_y+1);
-		for (int i = 0; i < 2*grid_y+1; ++i) {
-			scores[i].resize(2*grid_x+1, 0);
-		}
-	}
-	*/
+	   void update() {
+	   scores.clear();
+	   scores.resize(2*grid_y+1);
+	   for (int i = 0; i < 2*grid_y+1; ++i) {
+	   scores[i].resize(2*grid_x+1, 0);
+	   }
+	   }
+	 */
 }
 
 double AI::HL::STP::Evaluation::offense_score(const World &world, const Point dest) {
