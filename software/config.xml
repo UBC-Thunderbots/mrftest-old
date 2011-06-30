@@ -105,20 +105,20 @@
         <double name="max acc">3.00</double>
       </category>
       <category name="PID3">
-        <double name="angular differential (-ve)">-0.22</double>
+        <double name="angular differential (-ve)">-1.50</double>
         <double name="angular integral (%)">0</double>
-        <double name="angular max velocity">12.00</double>
-        <double name="angular proportional">12.00</double>
+        <double name="angular max velocity">15.00</double>
+        <double name="angular proportional">15.00</double>
         <double name="(CARE) angular slowdown when translating">1.010</double>
         <boolean name="(CARE) flip trans&amp;ang slowdown">false</boolean>
         <boolean name="(CARE) reduce angular velocity when translating">false</boolean>
-        <double name="integral decay (%)">90.0</double>
+        <double name="integral decay (%)">50.0</double>
         <double name="x to y ratio">0.810</double>
-        <double name="xy differential (-ve)">-0.00</double>
-        <double name="xy integral (%)">40</double>
-        <double name="xy max acceleration">6.00</double>
-        <double name="xy max velocity">12.00</double>
-        <double name="xy proportional">12.00</double>
+        <double name="xy differential (-ve)">-0.10</double>
+        <double name="xy integral (%)">0</double>
+        <double name="xy max acceleration">5.00</double>
+        <double name="xy max velocity">10.00</double>
+        <double name="xy proportional">20.00</double>
       </category>
     </category>
     <category name="STP">
@@ -157,7 +157,7 @@
       </category>
       <category name="Goalie">
         <boolean name="Goalie is lowest index">false</boolean>
-        <integer name="Goalie pattern index">8</integer>
+        <integer name="Goalie pattern index">6</integer>
       </category>
       <category name="Kickoff">
         <double name="kickoff: angle to separate players (degrees)">40.0</double>
@@ -168,12 +168,11 @@
         <integer name="grid y size">40</integer>
         <double name="Scoring weight for angle from ball to goal at robot (-ve)">2.0</double>
         <double name="Scoring weight for angle to goal (POWER, careful)">2.0</double>
-        <double name="Scoring weight for ball progress (+ve)">0.0</double>
-        <double name="Scoring weight for distance to ball (-ve)">2.0</double>
-        <double name="Scoring weight for distance to enemy goal (-ve)">0.0</double>
-        <double name="Scoring weight for everything">2000</double>
-        <double name="Scoring weight for nearest enemy (+ve)">0.0</double>
-        <double name="Width for passing (robot radius)">4.00</double>
+        <double name="Scoring weight for ball progress (+ve)">0.5</double>
+        <double name="Scoring weight for distance to ball (-ve)">1.0</double>
+        <double name="Scoring weight for distance to enemy goal (-ve)">1.0</double>
+        <double name="Scoring weight for everything">20</double>
+        <double name="Scoring weight for nearest enemy (+ve)">1.0</double>
       </category>
       <category name="param">
         <double name="minimum region available for baller_can_shoot to be true (degrees)">5.7</double>
@@ -223,8 +222,8 @@
       </category>
       <category name="Tactic">
         <category name="pass">
-          <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.056</double>
-          <double name=" the radius (meters) in which passee must be with repect to target before valid ">2.500</double>
+          <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.113</double>
+          <double name=" the radius (meters) in which passee must be with repect to target before valid ">2.635</double>
           <double name=" the radius (meters) in which passer must be with repect to ball before valid ">1.000</double>
           <double name="velocity of pass threshold">1.000</double>
           <double name="velocity to ignore">0.200</double>
