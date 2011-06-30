@@ -6,6 +6,7 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
+
 			extern DoubleParam min_shoot_region;
 
 			namespace Action{
@@ -14,8 +15,9 @@ namespace AI {
 				extern	DoubleParam alpha;
 				extern DoubleParam pass_threshold;
 				extern DoubleParam pass_speed;
+				extern DoubleParam recieve_threshold;
+				extern DoubleParam target_region_param;
 			}
-
 
 		}
 	}

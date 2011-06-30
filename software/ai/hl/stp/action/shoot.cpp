@@ -78,21 +78,30 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	if (!within_angle_thresh(player, target, angle_tol)) {
 		return false;
 	}
-	autokick(player, target, pass_speed);
-	
-	// check receiver orientation
-//	Player::CPtr receiver = Evaluation::nearest_friendly(world, target);
-//	if (!within_angle_thresh(receiver, player->position(), pass_threshold)) {
-//		return false;
-//	}
 
 	if (player->has_ball() && within_angle_thresh(player, target, angle_tol) && !player->chicker_ready()) {
 		LOG_INFO("chicker not ready");
 		return false;
 	}
+
+	// check receiver is within passing range & angle
+	double distance_tol = (target-player->position()).len()*sin(angle_tol*M_PI/180.0) + AI::HL::STP::Action::target_region_param;
+	bool ok=false;
+
+	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
+		Player::CPtr p = player;
+		if(world.friendly_team().get(i) != p){
+			bool curr_ok =  (target - world.friendly_team().get(i)->position()).len() < distance_tol && within_angle_thresh(world.friendly_team().get(i), player->position(), recieve_threshold);
+			ok = ok || curr_ok;
+		}
+	}
 	
-	// only partly accurate whether an autokick or not
-	return true;
+	if(ok){
+		autokick(player, target, pass_speed);
+		return true;
+	}
+	// the return value is not necessarly acurate
+	return false;
 }
 
 #warning TODO REFACTOR, this should also be somewhere in evaluation

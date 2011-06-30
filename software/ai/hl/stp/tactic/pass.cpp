@@ -27,11 +27,6 @@ namespace {
 	DoubleParam passee_hack_dist("Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)", "STP/Tactic/pass", 0.0, 0.0, 1.0);
 	DoubleParam passee_hack_appl("dist from target when passee hack is applicable (meters)", "STP/Tactic/pass", 0.1, 0.001, 1.0);
 	DoubleParam ball_region_param(" the radius (meters) in which passer must be with repect to ball before valid ", "STP/Tactic/pass", 1.0, 0.0, 5.0);
-	DoubleParam target_region_param(" the buffer (meters) in which passee must be with repect to target region before valid ", "STP/Tactic/pass", 0.0, 0.0, 5.0);
-//	double passer_tol_target = 30.0; 
-//	double negligible_velocity = 0.1;
-//	double passee_hack_dist = 0.0;
-
 	BoolParam passer_depends_baller_can_shoot(" shot on net avaiable means that Passer should fail ", "STP/Tactic/pass", true);
 	BoolParam passer_depends_calc_best_shot_target(" pass blocked means that Passer should fail ", "STP/Tactic/pass", true);
 
