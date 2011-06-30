@@ -171,7 +171,7 @@
         <double name="Scoring weight for ball progress (+ve)">0.5</double>
         <double name="Scoring weight for distance to ball (-ve)">1.0</double>
         <double name="Scoring weight for distance to enemy goal (-ve)">1.0</double>
-        <double name="Scoring weight for everything">50</double>
+        <double name="Scoring weight for everything">200</double>
         <double name="Scoring weight for nearest enemy (+ve)">1.0</double>
       </category>
       <category name="param">
@@ -197,6 +197,7 @@
         <boolean name="JustGoalie">true</boolean>
         <boolean name="JustRepel">true</boolean>
         <boolean name="JustShoot">true</boolean>
+        <boolean name="JustSpin">true</boolean>
         <boolean name="KickoffEnemy">true</boolean>
         <boolean name="KickoffFriendly">true</boolean>
         <boolean name="Lone2Player">true</boolean>

@@ -12,7 +12,7 @@ DONE(offensive(world))
 FAIL(ball_in_our_corner(world))
 BEGIN_ASSIGN()
 // GOALIE
-goalie_role.push_back(defend_solo_goalie(world));
+goalie_role.push_back(lone_goalie(world));
 
 // ROLE 1
 // cm active def

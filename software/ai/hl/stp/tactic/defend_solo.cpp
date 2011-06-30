@@ -7,12 +7,9 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
 namespace {
-	class SoloGoalie : public Tactic {
+	class LoneGoalie : public Tactic {
 		public:
-			SoloGoalie(const World &world) : Tactic(world) {
-			}
-
-			SoloGoalie(const World &world, bool active) : Tactic(world, active) {
+			LoneGoalie(const World &world, bool active) : Tactic(world, active) {
 			}
 
 		private:
@@ -26,22 +23,22 @@ namespace {
 			}
 	};
 
-	bool SoloGoalie::done() const {
+	bool LoneGoalie::done() const {
 		return false;
 	}
 
-	void SoloGoalie::execute() {
+	void LoneGoalie::execute() {
 		AI::HL::STP::Action::lone_goalie(world, player);
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::defend_solo_goalie(const World &world) {
-	const Tactic::Ptr p(new SoloGoalie(world));
+Tactic::Ptr AI::HL::STP::Tactic::lone_goalie(const World &world) {
+	const Tactic::Ptr p(new LoneGoalie(world, false));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::active_solo_goalie(const World &world) {
-	const Tactic::Ptr p(new SoloGoalie(world, true));
+Tactic::Ptr AI::HL::STP::Tactic::lone_goalie_active(const World &world) {
+	const Tactic::Ptr p(new LoneGoalie(world, true));
 	return p;
 }
 

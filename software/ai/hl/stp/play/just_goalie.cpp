@@ -15,7 +15,7 @@ APPLICABLE(true)
 DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
-goalie_role.push_back(active_solo_goalie(world));
+goalie_role.push_back(lone_goalie(world));
 END_ASSIGN()
 END_PLAY()
 

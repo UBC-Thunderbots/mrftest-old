@@ -95,7 +95,7 @@ void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context>
 					continue;
 				}
 
-				const double radius = score * 0.01;
+				const double radius = std::min(score * 0.01, 0.1);
 
 				ctx->set_source_rgba(0.5, 0.5, 1.0, 0.2);
 				ctx->arc(x, y, radius, 0.0, 2 * M_PI);

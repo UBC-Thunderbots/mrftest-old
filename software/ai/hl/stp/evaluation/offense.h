@@ -45,11 +45,6 @@ namespace AI {
 				Point passee_position(const World &world);
 
 				/**
-				 * returns a passer position based on the passee position
-				 */
-				Point passer_position(const World &world, Point passee_pos); 
-
-				/**
 				 * Grid size in x-direction.
 				 */
 				extern IntParam grid_x;

@@ -36,7 +36,7 @@ namespace {
 
 	DoubleParam weight_goal_dist("Scoring weight for distance to enemy goal (-ve)", "STP/offense", 1.0, 0.0, 99.0);
 
-	double scoring_function(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block, bool pass = false) {
+	double scoring_function(const World &world, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
 		// can't be too close to enemy
 		double closest_enemy = world.field().width();
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
@@ -50,13 +50,7 @@ namespace {
 
 		double score_progress = (dest - world.ball().position()).x;
 
-		double score_goal_angle = -1e99;
-		if (pass) {
-			score_goal_angle = AI::HL::Util::calc_best_shot_target(passee_pos, enemy_pos, dest).second;
-		} else {
-			// Hmm.. not sure if having negative number is a good idea.
-			score_goal_angle = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dest).second;
-		}
+		double score_goal_angle = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dest).second;
 
 		if (score_goal_angle < degrees2radians(min_shoot_region)) {
 			return -1e99;
@@ -127,7 +121,7 @@ namespace {
 		return weight_total * raw_score;
 	}
 
-	bool calc_position_best(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos, bool pass = false) {
+	bool calc_position_best(const World &world, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
 		// divide up into a hexagonal grid
 		const double x1 = -world.field().length() / 2, x2 = -x1;
 		const double y1 = -world.field().width() / 2, y2 = -y1;
@@ -152,7 +146,7 @@ namespace {
 					continue;
 				}
 
-				double score = scoring_function(world, passee_pos, enemy_pos, pos, dont_block, pass);
+				double score = scoring_function(world, enemy_pos, pos, dont_block);
 				
 				if (score > best_score) {
 					best_score = score;
@@ -162,6 +156,19 @@ namespace {
 		}
 		return best_score > 0;
 	}
+	
+	// TODO: explore updating the offensive function only ONCE
+	/*
+	std::vector<std::vector<double> > scores;
+
+	void update() {
+		scores.clear();
+		scores.resize(2*grid_y+1);
+		for (int i = 0; i < 2*grid_y+1; ++i) {
+			scores[i].resize(2*grid_x+1, 0);
+		}
+	}
+	*/
 }
 
 double AI::HL::STP::Evaluation::offense_score(const World &world, const Point dest) {
@@ -175,7 +182,7 @@ double AI::HL::STP::Evaluation::offense_score(const World &world, const Point de
 	std::vector<Point> dont_block;
 	dont_block.push_back(world.ball().position());
 
-	return scoring_function(world, Point(), enemy_pos, dest, dont_block);
+	return scoring_function(world, enemy_pos, dest, dont_block);
 }
 
 std::array<Point, 2> AI::HL::STP::Evaluation::offense_positions(const World &world) {
@@ -203,10 +210,10 @@ std::array<Point, 2> AI::HL::STP::Evaluation::offense_positions(const World &wor
 
 	std::array<Point, 2> best;
 
-	calc_position_best(world, Point(), enemy_pos, dont_block, best[0]);
+	calc_position_best(world, enemy_pos, dont_block, best[0]);
 
 	dont_block.push_back(best[0]);
-	calc_position_best(world, Point(), enemy_pos, dont_block, best[1]);
+	calc_position_best(world, enemy_pos, dont_block, best[1]);
 
 	return best;
 }
@@ -223,23 +230,7 @@ Point AI::HL::STP::Evaluation::passee_position(const World &world) {
 	dont_block.push_back(world.ball().position());
 
 	Point best;
-	calc_position_best(world, Point(), enemy_pos, dont_block, best);
-
-	return best;
-}
-
-Point AI::HL::STP::Evaluation::passer_position(const World &world, Point passee_pos) {
-	const EnemyTeam &enemy = world.enemy_team();
-	std::vector<Point> enemy_pos;
-	for (size_t i = 0; i < enemy.size(); ++i) {
-		enemy_pos.push_back(enemy.get(i)->position());
-	}
-	
-	std::vector<Point> dont_block;
-	dont_block.push_back(world.ball().position());
-	
-	Point best;
-	calc_position_best(world, passee_pos, enemy_pos, dont_block, best, true);
+	calc_position_best(world, enemy_pos, dont_block, best);
 
 	return best;
 }

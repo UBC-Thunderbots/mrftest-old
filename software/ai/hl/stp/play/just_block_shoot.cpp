@@ -19,7 +19,7 @@ DONE(goal(world))
 FAIL(their_ball(world))
 BEGIN_ASSIGN()
 // GOALIE
-goalie_role.push_back(defend_solo_goalie(world));
+goalie_role.push_back(lone_goalie(world));
 
 // ROLE 1
 // shoot
