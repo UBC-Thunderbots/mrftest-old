@@ -31,9 +31,11 @@ void AI::HL::STP::draw_enemy_pass(const World &world, Cairo::RefPtr<Cairo::Conte
 		Robot::Ptr robot = threats[i].robot;
 		Robot::Ptr passee = threats[i].passee;
 		if (threats[i].can_shoot_goal) {
+			auto shot = Evaluation::calc_enemy_best_shot_goal(world, enemy.get(i));
 			ctx->set_source_rgba(1.0, 0.5, 0.5, 0.5);
-			ctx->arc(robot->position().x, robot->position().y, Robot::MAX_RADIUS + 0.01, 0.0, 2 * M_PI);
-			ctx->fill();
+			ctx->set_line_width(0.02);
+			ctx->move_to(robot->position().x, robot->position().y);
+			ctx->line_to(shot.first.x, shot.first.y);
 			ctx->stroke();
 		}
 		if (threats[i].passes_goal > 2) {
@@ -43,8 +45,8 @@ void AI::HL::STP::draw_enemy_pass(const World &world, Cairo::RefPtr<Cairo::Conte
 			ctx->stroke();
 		}
 		if (threats[i].passes_goal <= 2 && passee.is()) {
-			ctx->set_source_rgba(0.5, 0.5, 0.5, 0.5);
-			ctx->set_line_width(0.02);
+			ctx->set_source_rgba(1.0, 0.5, 0.5, 0.5);
+			ctx->set_line_width(0.01);
 			ctx->move_to(robot->position().x, robot->position().y);
 			ctx->line_to(passee->position().x, passee->position().y);
 			ctx->stroke();
@@ -191,11 +193,13 @@ void AI::HL::STP::draw_defense(const World &world, Cairo::RefPtr<Cairo::Context>
 	ctx->stroke();
 
 	// draw own goal?
-	ctx->set_line_width(0.02);
+	/*
+	ctx->set_line_width(0.01);
 	ctx->set_source_rgba(1.0, 0.5, 0.5, 1.0);
 	ctx->move_to(goal1.x, goal1.y);
 	ctx->line_to(goal2.x, goal2.y);
 	ctx->stroke();
+	*/
 }
 
 void AI::HL::STP::draw_velocity(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
