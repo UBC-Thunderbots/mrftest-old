@@ -21,14 +21,21 @@ namespace AI {
 					/**
 					 * Is this robot capable of shooting the target?
 					 */
-					bool can_shoot;
+					bool can_shoot_goal;
 
 					/**
-					 * How many passes to reach the player.
+					 * How many passes to REACH this player.
 					 * 0 - posses the ball
 					 * 1 - need one pass
+					 * 5 - dont bother
 					 */
-					int passes;
+					int passes_reach;
+
+					/**
+					 * How many passes to SHOOT on net.
+					 * 5 - impossible
+					 */
+					int passes_goal;
 
 					/**
 					 * For convenience.
@@ -43,14 +50,34 @@ namespace AI {
 				std::vector<Threat> calc_enemy_threat(const World& world);
 
 				/**
-				 * Calculates how good an enemy is at shooting our goal.
+				 * Checks if it's possible for this enemy to shoot to the goal.
 				 */
-				std::pair<Point, double> calc_enemy_best_shot(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius);
+				bool enemy_can_shoot_goal(const World& world, const Robot::Ptr enemy);
+
+				/**
+				 * Checks if enemy can receive the ball.
+				 */
+				bool enemy_can_receive(const World &world, const Robot::Ptr enemy);
+
+				/**
+				 * Checks if a pass is possible.
+				 */
+				bool enemy_can_pass(const World &world, const Robot::Ptr passer, const Robot::Ptr passee);
 
 				/**
 				 * Calculates how good an enemy is at shooting our goal.
 				 */
-				std::pair<Point, double> calc_enemy_best_shot(const World &world, const Robot::Ptr enemy, const double radius = 1.0);
+				std::pair<Point, double> calc_enemy_best_shot_goal(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius = 1.0);
+
+				/**
+				 * Calculates how good an enemy is at shooting our goal.
+				 */
+				std::pair<Point, double> calc_enemy_best_shot_goal(const World &world, const Robot::Ptr enemy, const double radius = 1.0);
+
+				/**
+				 * Calculates how good it is to shoot to a particular target location.
+				 */
+				std::pair<Point, double> calc_enemy_best_shot_target(const World &world, const Point &target_pos, const Robot::Ptr enemy, const double radius = 1.0);
 
 				/**
 				 * # of passes it takes for the enemy to shoot to our goal
@@ -59,6 +86,9 @@ namespace AI {
 				 */
 				int calc_enemy_pass(const World &world, Robot::Ptr robot);
 
+				/**
+				 * BAD STUFF
+				 */
 				std::vector<Robot::Ptr> get_passees(const World& world, Robot::Ptr robot);
 			}
 		}
