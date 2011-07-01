@@ -14,7 +14,7 @@ namespace {
 
 	const double PI = M_PI;
 
-	const std::pair<Point, double> default_tasks[] = {
+	const std::pair<Point, double> tasks_default[] = {
 		std::make_pair(Point(1.2, 0), 0),
 		std::make_pair(Point(1.5, 0), -PI / 2),
 		std::make_pair(Point(1.2, 0.3), 0),
@@ -32,7 +32,22 @@ namespace {
 		std::make_pair(Point(2.5, 0.6), -PI / 2)
 	};
 
-	const int default_tasks_n = G_N_ELEMENTS(default_tasks);
+	const std::pair<Point, double> tasks_square[] = {
+		std::make_pair(Point(2.0, 0.6), 0),
+		std::make_pair(Point(2.0, -0.6), 0),
+		std::make_pair(Point(0.5, -0.6), 0),
+		std::make_pair(Point(0.5, 0.6), 0),
+		std::make_pair(Point(2.0, 0.6), 0),
+		std::make_pair(Point(2.0, -0.6), 0),
+		std::make_pair(Point(0.5, -0.6), 0),
+		std::make_pair(Point(0.5, 0.6), 0),
+		std::make_pair(Point(2.0, 0.6), 0),
+	};
+
+
+	const int tasks_default_n = G_N_ELEMENTS(tasks_default);
+
+	const int tasks_square_n = G_N_ELEMENTS(tasks_square);
 
 	class MBHLFactory : public HighLevelFactory {
 		public:
@@ -46,7 +61,30 @@ namespace {
 
 	class MBHL : public HighLevel {
 		public:
-			MBHL(World &world) : world(world), tasks(default_tasks, default_tasks + default_tasks_n), time_steps(0), done(0) {
+			Gtk::VBox vbox;
+			Gtk::Button button_normal;
+			Gtk::Button button_square;
+
+			void start_normal() {
+				done = 0;
+				tasks.assign(tasks_default, tasks_default + tasks_default_n);
+			}
+
+			void start_square() {
+				done = 0;
+				tasks.assign(tasks_square, tasks_square + tasks_square_n);
+			}
+
+			MBHL(World &world) : world(world), time_steps(0) {
+				done = 999;
+
+				vbox.add(button_normal);
+				vbox.add(button_square);
+				button_normal.set_label("normal");
+				button_square.set_label("square");
+
+				button_normal.signal_clicked().connect(sigc::bind(&MBHL::start_normal, sigc::ref(*this)));
+				button_square.signal_clicked().connect(sigc::bind(&MBHL::start_square, sigc::ref(*this)));
 			}
 
 			MBHLFactory &factory() const {
@@ -54,9 +92,14 @@ namespace {
 			}
 
 			void tick() {
+				if (done > tasks.size()) {
+					return;
+				}
+
 				FriendlyTeam &friendly = world.friendly_team();
-				if (friendly.size() != 1) {
-					LOG_INFO("error: must have at exactly one robot on the field!");
+				if (friendly.size() < 1) {
+					// LOG_INFO("error: must have at exactly one robot on the field!");
+					LOG_INFO("error: must have at least one robot on the field!");
 					return;
 				}
 				time_steps++;
@@ -73,10 +116,9 @@ namespace {
 					++done;
 				}
 
-				if (done >= tasks.size()) {
+				if (done == tasks.size()) {
 					LOG_INFO(Glib::ustring::compose("time steps taken: %1", time_steps));
-					time_steps = 0;
-					done = 0;
+					++done;
 					return;
 				}
 
@@ -84,7 +126,7 @@ namespace {
 			}
 
 			Gtk::Widget *ui_controls() {
-				return 0;
+				return &vbox;
 			}
 
 		private:

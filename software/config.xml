@@ -64,7 +64,7 @@
         <double name="Distance to extend the tree on each step (m)">0.100</double>
         <integer name="Number of iterations to go through before we give best partial path">200</integer>
         <double name="Pivot: offset angle (degrees)">58</double>
-        <double name="Pivot: offset distance">0.13</double>
+        <double name="Pivot: offset distance">0.11</double>
         <double name="Pivot: orientation offset (degrees)">14</double>
       </category>
       <category name="Util">
@@ -105,20 +105,22 @@
         <double name="max acc">3.00</double>
       </category>
       <category name="PID3">
-        <double name="angular differential (-ve)">-1.50</double>
-        <double name="angular integral (%)">0</double>
-        <double name="angular max velocity">15.00</double>
-        <double name="angular proportional">15.00</double>
+        <double name="angular -differential">1.0</double>
+        <double name="angular +integral">0.00</double>
+        <double name="angular max velocity">12.00</double>
+        <double name="angular +proportional">12.00</double>
         <double name="(CARE) angular slowdown when translating">1.010</double>
         <boolean name="(CARE) flip trans&amp;ang slowdown">false</boolean>
         <boolean name="(CARE) reduce angular velocity when translating">false</boolean>
+        <boolean name="do reset when target changes">false</boolean>
         <double name="integral decay (%)">50.0</double>
         <double name="x to y ratio">0.810</double>
-        <double name="xy differential (-ve)">-0.10</double>
-        <double name="xy integral (%)">0</double>
+        <double name="xy -differential">1.0</double>
+        <double name="xy +integral">0.00</double>
         <double name="xy max acceleration">5.00</double>
-        <double name="xy max velocity">10.00</double>
-        <double name="xy proportional">20.00</double>
+        <double name="xy max velocity">12.00</double>
+        <double name="xy +proportional">12.00</double>
+        <double name="YA ratio">0.00</double>
       </category>
     </category>
     <category name="STP">
@@ -134,6 +136,7 @@
         </category>
         <category name="shoot">
           <double name="Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate">5.0</double>
+          <double name="Angle threshold (in degrees) that the reciever must be with respect to passer when shot, smaller is more accurate">80.0</double>
           <double name="Decay constant for the ball velocity">0.100</double>
           <double name="kicking speed for making a pass">4.75</double>
           <double name="reduced radius for calculating best shot (robot radius ratio)">0.800</double>
@@ -156,7 +159,7 @@
         <double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>
       </category>
       <category name="Goalie">
-        <boolean name="Goalie is lowest index">false</boolean>
+        <boolean name="Goalie is lowest index">true</boolean>
         <integer name="Goalie pattern index">6</integer>
       </category>
       <category name="Kickoff">
@@ -173,6 +176,7 @@
         <double name="Scoring weight for distance to enemy goal (-ve)">1.0</double>
         <double name="Scoring weight for everything">20</double>
         <double name="Scoring weight for nearest enemy (+ve)">1.0</double>
+        <double name="Width for passing (robot radius)">2.00</double>
       </category>
       <category name="param">
         <double name="minimum region available for baller_can_shoot to be true (degrees)">5.7</double>
@@ -222,8 +226,11 @@
       </category>
       <category name="Tactic">
         <category name="pass">
+          <double name="dist from target when passee hack is applicable (meters)">0.100</double>
           <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.113</double>
-          <double name=" the radius (meters) in which passee must be with repect to target before valid ">2.635</double>
+          <boolean name=" pass blocked means that Passer should fail ">true</boolean>
+          <boolean name=" shot on net avaiable means that Passer should fail ">true</boolean>
+          <double name=" the buffer (meters) in which passee must be with repect to target region before valid ">0.000</double>
           <double name=" the radius (meters) in which passer must be with repect to ball before valid ">1.000</double>
           <double name="velocity of pass threshold">1.000</double>
           <double name="velocity to ignore">0.200</double>
