@@ -5,7 +5,7 @@
 using AI::HL::STP::Enemy;
 
 BEGIN_PLAY(JustSpin)
-INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3) && !baller_can_shoot(world) && !baller_can_pass(world) && fight_ball(world))
+INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3) && !baller_can_shoot(world) && fight_ball(world))
 APPLICABLE(true)
 DONE(none_ball(world))
 FAIL(false)
