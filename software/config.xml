@@ -197,7 +197,7 @@
         <boolean name="FreeKickFriendlyRepel">true</boolean>
         <boolean name="FriendlyCornerPlay1">true</boolean>
         <boolean name="GrabBall">true</boolean>
-        <boolean name="JustBlockShoot">false</boolean>
+        <boolean name="JustBlockShoot">true</boolean>
         <boolean name="JustGoalie">true</boolean>
         <boolean name="JustRepel">true</boolean>
         <boolean name="JustShoot">true</boolean>

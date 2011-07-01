@@ -280,7 +280,7 @@ void TActiveDef::execute() {
 		}
 	}
 
-	finished = Action::shoot_goal(world, player);
+	finished = Action::repel(world, player);
 }
 
 void TDribbleToRegion::execute() {
