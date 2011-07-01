@@ -436,10 +436,10 @@ void main(void) {
 	 *          |||||/--- 8-bit data width
 	 *          ||||||//- Master mode 2 (separate read and write strobes) */
 	PMMODEH = 0b00000010;
-	/*          //------- Ignored
-	 *          ||////--- No wait cycles, entire bus operation occurs in one cycle
-	 *          ||||||//- Ignored */
-	PMMODEL = 0b00000000;
+	/*          //------- Data remains asserted for 1Tcy before asserting strobe
+	 *          ||////--- Strobe is asserted for 12Tcy = 1 / (1MHz)
+	 *          ||||||//- Data remains asserted for 1Tcy after deasserting strobe */
+	PMMODEL = 0b00110000;
 	/*       /-------- PMA15 disabled, functions as port I/O
 	 *       |/------- PMA14 disabled, functions as port I/O
 	 *       ||/------ PMA13 disabled, functions as port I/O
