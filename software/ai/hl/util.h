@@ -222,7 +222,7 @@ namespace AI {
 			/**
 			 * Checks if an ENEMY ROBOT posses the ball.
 			 */
-			bool posses_ball(const AI::HL::W::World &world, AI::HL::W::Robot::Ptr robot);
+			bool posses_ball(const AI::HL::W::World &world, AI::HL::W::Robot::Ptr robot) __attribute__ ((deprecated));
 
 			/**
 			 * Finds the player having the ball.

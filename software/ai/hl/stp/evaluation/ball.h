@@ -19,6 +19,11 @@ namespace AI {
 				bool possess_ball(const World &world, Player::CPtr player);
 
 				/**
+				 * Ball is right in front of the robot.
+				 */
+				bool possess_ball(const World &world, Robot::Ptr robot);
+
+				/**
 				 * Finds a friendly player with the ball.
 				 */
 				Player::CPtr calc_friendly_baller(const World &world);

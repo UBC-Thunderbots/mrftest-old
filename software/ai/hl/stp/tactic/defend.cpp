@@ -28,9 +28,9 @@ namespace {
 			}
 			std::string description() const {
 				if (world.friendly_team().size() > defender_role + 1) {
-					return "goalie duo";
+					return "goalie-dynamic duo";
 				} else {
-					return "goalie lone";
+					return "goalie-dynamic lone";
 				}
 			}
 	};

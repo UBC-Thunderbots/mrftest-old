@@ -35,7 +35,7 @@ bool AI::HL::STP::Predicates::our_ball(const World &world) {
 bool AI::HL::STP::Predicates::their_ball(const World &world) {
 	const EnemyTeam &enemy = world.enemy_team();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		if (AI::HL::Util::posses_ball(world, enemy.get(i))) {
+		if (Evaluation::possess_ball(world, enemy.get(i))) {
 			return true;
 		}
 	}
@@ -150,7 +150,7 @@ bool AI::HL::STP::Predicates::baller_under_threat(const World &world) {
 
 bool AI::HL::STP::Predicates::enemy_baller_can_shoot(const World &world) {
 	const Robot::Ptr baller = Evaluation::calc_enemy_baller(world);
-	if (!baller.is() || !AI::HL::Util::posses_ball(world, baller)) {
+	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
 	return Evaluation::calc_enemy_pass(world, baller) == 0;
@@ -158,7 +158,7 @@ bool AI::HL::STP::Predicates::enemy_baller_can_shoot(const World &world) {
 
 bool AI::HL::STP::Predicates::enemy_baller_can_pass(const World &world) {
 	const Robot::Ptr baller = Evaluation::calc_enemy_baller(world);
-	if (!baller.is() || !AI::HL::Util::posses_ball(world, baller)) {
+	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
 	return Evaluation::calc_enemy_pass(world, baller) > 0;
@@ -166,7 +166,7 @@ bool AI::HL::STP::Predicates::enemy_baller_can_pass(const World &world) {
 
 bool AI::HL::STP::Predicates::enemy_baller_can_pass_shoot(const World &world) {
 	const Robot::Ptr baller = Evaluation::calc_enemy_baller(world);
-	if (!baller.is() || !AI::HL::Util::posses_ball(world, baller)) {
+	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
 	return Evaluation::calc_enemy_pass(world, baller) > 0 && Evaluation::calc_enemy_pass(world, baller) < 3;

@@ -6,7 +6,8 @@ namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::Enemy;
 
 BEGIN_PLAY(GrabBall)
-INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 2))
+INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY)
+	&& Predicates::our_team_size_at_least(world, 2))
 APPLICABLE(Predicates::none_ball(world))
 DONE(Predicates::our_ball(world))
 FAIL(Predicates::their_ball(world))
@@ -31,6 +32,7 @@ roles[2].push_back(block_ball(world, Enemy::closest_ball(world, 0)));
 // ROLE 4 (optional)
 // block 2
 roles[3].push_back(block_ball(world, Enemy::closest_ball(world, 1)));
+
 END_ASSIGN()
 END_PLAY()
 

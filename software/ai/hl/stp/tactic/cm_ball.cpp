@@ -7,6 +7,7 @@
 #include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/repel.h"
 #include "ai/hl/stp/evaluation/cm_evaluation.h"
+#include "ai/hl/stp/evaluation/ball.h"
 #include "geom/angle.h"
 #include "geom/util.h"
 #include "ai/hl/stp/tactic/util.h"
@@ -209,7 +210,7 @@ void TSteal::execute() {
 	const EnemyTeam &enemy = world.enemy_team();
 	Point dirToBall = (world.ball().position() - player->position()).norm();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		if (AI::HL::Util::posses_ball(world, enemy.get(i))) {
+		if (Evaluation::possess_ball(world, enemy.get(i))) {
 			Action::move_spin(player, world.ball().position() + Robot::MAX_RADIUS * dirToBall);
 			return;
 		}
@@ -273,7 +274,7 @@ void TActiveDef::execute() {
 	const EnemyTeam &enemy = world.enemy_team();
 	
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		if (AI::HL::Util::posses_ball(world, enemy.get(i))) {
+		if (Evaluation::possess_ball(world, enemy.get(i))) {
 			Point dirToBall = (world.ball().position() - enemy.get(i)->position()).norm();
 			Action::move_spin(player, world.ball().position() + 0.75 * Robot::MAX_RADIUS * dirToBall);
 			return;

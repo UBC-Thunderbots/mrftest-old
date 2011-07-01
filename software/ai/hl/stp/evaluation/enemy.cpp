@@ -1,13 +1,13 @@
 #include "ai/hl/stp/evaluation/enemy.h"
+#include "ai/hl/stp/evaluation/ball.h"
 #include "geom/util.h"
 #include "ai/hl/util.h"
 #include "geom/angle.h"
 
 #include <algorithm>
 
-using namespace AI::HL::W;
-using namespace AI::HL::Util;
 using namespace AI::HL::STP;
+namespace Util = AI::HL::Util;
 
 namespace {
 	DoubleParam enemy_shoot_accuracy("Enemy shoot accuracy (degrees)", "STP/enemy", 1.0, 0.0, 90.0);
@@ -21,12 +21,12 @@ bool AI::HL::STP::Evaluation::enemy_can_shoot_goal(const World& world, Robot::Pt
 
 bool AI::HL::STP::Evaluation::enemy_can_receive(const World &world, const Robot::Ptr enemy) {
 	const Ball &ball = world.ball();
-	if ((ball.position() - enemy->position()).lensq() < POS_CLOSE) {
+	if ((ball.position() - enemy->position()).lensq() < Util::POS_CLOSE) {
 		return true;
 	}
 	// if the enemy is not facing the ball, forget it
 	const Point ray = ball.position() - enemy->position();
-	if (angle_diff(ray.orientation(), enemy->orientation()) > ORI_PASS_CLOSE) {
+	if (angle_diff(ray.orientation(), enemy->orientation()) > Util::ORI_PASS_CLOSE) {
 		return false;
 	}
 
@@ -48,7 +48,7 @@ bool AI::HL::STP::Evaluation::enemy_can_receive(const World &world, const Robot:
 	const EnemyTeam &enemies = world.enemy_team();
 	for (std::size_t i = 0; i < enemies.size(); ++i) {
 		const Robot::Ptr rob = enemies.get(i);
-		if (posses_ball(world, rob) || rob == enemy) {
+		if (possess_ball(world, rob) || rob == enemy) {
 			continue;
 		}
 		const Point rp = rob->position() - enemy->position();
@@ -228,7 +228,7 @@ std::vector<Evaluation::Threat> AI::HL::STP::Evaluation::calc_enemy_threat(const
 			closest_dist = dist;
 		}
 
-		if (posses_ball(world, enemy.get(i))) {
+		if (possess_ball(world, enemy.get(i))) {
 			threats[i].passes_reach = 0;
 		}
 		if (threats[i].can_shoot_goal) {
