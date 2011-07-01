@@ -1,5 +1,7 @@
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/util.h"
+#include "ai/hl/util.h"
+#include "ai/hl/stp/param.h"
 
 #include <set>
 
@@ -63,5 +65,33 @@ Point AI::HL::STP::Evaluation::grab_ball(const World &world, Player::Ptr player)
 	Point dest;
 	AI::Util::grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest);
 	return dest;
+}
+
+bool AI::HL::STP::Evaluation::can_pass(const World& world, Player::CPtr passer, Player::CPtr passee) {
+	
+#warning use better method
+	std::vector<Point> enemy_pos;
+	const EnemyTeam& enemy = world.enemy_team();
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
+		enemy_pos.push_back(enemy.get(i)->position());
+	}
+	const FriendlyTeam& friendly = world.friendly_team();
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		if (friendly.get(i) == passer) continue;
+		if (friendly.get(i) == passee) continue;
+		enemy_pos.push_back(friendly.get(i)->position());
+	}
+	return AI::HL::Util::path_check(passer->position(), passee->position(), enemy_pos, Robot::MAX_RADIUS * pass_width);
+}
+
+bool AI::HL::STP::Evaluation::can_pass(const World& world, const Point p1, const Point p2) {
+
+#warning use better method
+	std::vector<Point> enemy_pos;
+	const EnemyTeam& enemy = world.enemy_team();
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
+		enemy_pos.push_back(enemy.get(i)->position());
+	}
+	return AI::HL::Util::path_check(p1, p2, enemy_pos, Robot::MAX_RADIUS * pass_width);
 }
 

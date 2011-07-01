@@ -4,6 +4,7 @@
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/param.h"
 #include "ai/hl/util.h"
 #include "ai/hl/stp/play_executor.h"
 #include "geom/util.h"
@@ -18,6 +19,8 @@ using namespace AI::HL::W;
 namespace Action = AI::HL::STP::Action;
 namespace Evaluation = AI::HL::STP::Evaluation;
 using AI::HL::STP::Coordinate;
+
+using AI::HL::STP::min_pass_dist;
 
 namespace {
 
@@ -40,8 +43,6 @@ namespace {
 	class PasserShoot : public Tactic {
 		public:
 			PasserShoot(const World &world) : Tactic(world, true), dynamic(true), kicked(false) {
-				Point dest = Evaluation::passee_position(world);
-				loc = dest;
 				passer_info.kicked = false;
 			}
 
@@ -54,12 +55,13 @@ namespace {
 			bool dynamic;
 			bool kicked;
 			Coordinate target;
-			Point loc;
 
 			bool done() const {
 #warning TODO allow more time
 				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();				
 				//return kicked && (player->position() - world.ball().position()).len() > (player->position() - dest).len()/4;
+
+#warning HEY I think i found the bug as to why pass may fail, this should be an AND
 				return kicked || player->autokick_fired();
 			}
 			
@@ -270,6 +272,85 @@ namespace {
 				return "passee-recieve";
 			}
 	};
+
+	class PasserRandom : public Tactic {
+		public:
+			PasserRandom(const World &world) : Tactic(world, true), kicked(false) {
+			}
+
+		private:
+			bool kicked;
+			Player::CPtr target;
+
+			bool done() const {
+				return kicked && player->autokick_fired();
+			}
+
+			bool okay_pass(const Player::CPtr other) const {
+				if (other->position().x < player->position().x) return false;
+
+				if ((other->position() - player->position()).len() < min_pass_dist) return false;
+
+				if (!Evaluation::can_pass(world, player, other)) return false;
+
+				return true;
+			}
+
+			Player::CPtr find_target() const {
+				if (!player.is()) {
+					return Player::CPtr();
+				}
+				const FriendlyTeam& friendly = world.friendly_team();
+				for (std::size_t i = 0; i < friendly.size(); ++i) {
+					Player::CPtr player_const = player;
+					if (friendly.get(i) == player_const) continue;
+
+					if (!okay_pass(friendly.get(i))) continue;
+
+					return friendly.get(i);
+				}
+
+				return Player::CPtr();
+			}
+
+			bool fail() const {
+				if (!player.is()) return false;
+
+#warning MAYBE a better terminating condition
+				// if there exist ANY target then we're fine
+				Player::CPtr t = find_target();
+				if (!t.is()) return true;
+
+				// should fail when cannot pass to target, or a shot on net is available
+				return (player.is() && passer_depends_baller_can_shoot && AI::HL::STP::Predicates::baller_can_shoot(world));
+			}
+
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+				return select_baller(world, players);
+			}
+
+			void execute() {
+				if (target.is() && !okay_pass(target)) {
+					target.reset();
+				}
+
+				if (!target.is()) {
+					target = find_target();
+				}
+
+				if (!target.is()) {
+					// do nothing
+					return;
+				}
+
+				kicked = kicked || Action::shoot_pass(world, player, target);
+			}
+
+			std::string description() const {
+				return "passer-random";
+			}
+	};
+
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passer_shoot_target(const World &world, Coordinate target) {
@@ -302,4 +383,8 @@ Tactic::Ptr AI::HL::STP::Tactic::passee_receive(const World &world) {
 	return p;
 }
 
+Tactic::Ptr AI::HL::STP::Tactic::passer_random(const World &world) {
+	const Tactic::Ptr p(new PasserRandom(world));
+	return p;
+}
 

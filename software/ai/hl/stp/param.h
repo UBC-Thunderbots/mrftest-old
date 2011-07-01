@@ -7,6 +7,10 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 
+			extern DoubleParam min_pass_dist;
+
+			extern DoubleParam pass_width;
+
 			extern DoubleParam min_shoot_region;
 
 			namespace Action{

@@ -1,4 +1,5 @@
 #include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/stp/tactic/defend_solo.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
 

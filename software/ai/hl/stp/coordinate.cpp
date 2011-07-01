@@ -23,7 +23,7 @@ Point Coordinate::position() const {
 
 	switch (y_type) {
 		case YType::BALL:
-			if (std::fabs(world->ball().position().y) < world->field().centre_circle_radius()) {
+			if (world->ball().position().y < 0) {
 				p.y *= -1;
 				flip_y = true;
 			}
@@ -57,11 +57,7 @@ Point Coordinate::position() const {
 	switch (o_type) {
 		case OriginType::BALL:
 			p.x += world->ball().position().x;
-			if (flip_y) {
-				p.y -= world->ball().position().y;
-			} else {
-				p.y += world->ball().position().y;
-			}
+			p.y += world->ball().position().y;
 			break;
 
 		case OriginType::ABSOLUTE:

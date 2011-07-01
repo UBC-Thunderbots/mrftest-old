@@ -9,6 +9,16 @@ namespace AI {
 		namespace STP {
 			namespace Evaluation {
 				/**
+				 * Can pass.
+				 */
+				bool can_pass(const World& world, Player::CPtr passer, Player::CPtr passee);
+
+				/**
+				 * Can pass from p1 to p2?
+				 */
+				bool can_pass(const World& world, const Point p1, const Point p2);
+
+				/**
 				 * Ball is within pivot threshold.
 				 */
 				bool ball_in_pivot_thresh(const World &world, Player::CPtr player);

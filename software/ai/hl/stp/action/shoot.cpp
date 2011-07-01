@@ -67,6 +67,11 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 	return false;
 }
 
+bool AI::HL::STP::Action::shoot_pass(const World& world, Player::Ptr shooter, Player::CPtr target) {
+#warning broken
+	return shoot_pass(world, shooter, target->position());
+}
+
 bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target) {
 	return shoot_pass(world, player, target, pass_threshold);
 }
@@ -95,7 +100,7 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 			ok = ok || curr_ok;
 		}
 	}
-	
+
 	if(ok){
 		autokick(player, target, pass_speed);
 		return true;
@@ -119,11 +124,11 @@ bool AI::HL::STP::Action::within_angle_thresh(const Point position, const double
 double AI::HL::STP::Action::shoot_speed(double distance, double delta, double alph) {
 	double a = alph;
 	if(alph<0) a = alpha;
-	
+
 	double speed = a * distance / (1 - std::exp(-a * delta));
 	if (speed > 10.0) speed = 10.0; // can't kick faster than this
 	if (speed < 0) speed = 0; // can't kick slower than this, this value in reality should be somwhere > 4
-	
+
 	return speed;
 }
 

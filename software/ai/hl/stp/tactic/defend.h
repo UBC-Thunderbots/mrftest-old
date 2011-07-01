@@ -2,7 +2,6 @@
 #define AI_HL_STP_TACTIC_DEFEND_H
 
 #include "ai/hl/stp/tactic/tactic.h"
-#include "ai/hl/stp/tactic/defend_solo.h"
 
 namespace AI {
 	namespace HL {

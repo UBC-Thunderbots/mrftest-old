@@ -1,6 +1,7 @@
 #include "ai/hl/stp/tactic/penalty_shoot.h"
 #include "ai/hl/stp/tactic/wait_playtype.h"
 #include "ai/hl/stp/tactic/move.h"
+#include "ai/hl/stp/tactic/defend_solo.h"
 #include "ai/hl/stp/play/simple_play.h"
 
 using namespace AI::HL::W;
@@ -24,7 +25,9 @@ APPLICABLE(true)
 DONE(Predicates::goal(world))
 FAIL(false)
 BEGIN_ASSIGN()
+
 // GOALIE
+#warning LONE GOALIE
 goalie_role.push_back(lone_goalie(world));
 
 // ROLE 1

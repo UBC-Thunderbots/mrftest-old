@@ -1,19 +1,19 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/chase.h"
+#include "ai/hl/stp/tactic/defend_solo.h"
 
 using AI::HL::STP::Enemy;
-/**
- * Condition:
- * - no enemies on our side of the field and we have ball control
- * - at least 2 players
- *
- * Objective:
- * - defend goal (goalie)
- * - one baller shoots, the other 3 players blocks the enemies
- */
+
+#warning DELETE THIS PLAY
+#warning create something like shoot defensive
+
 BEGIN_PLAY(JustBlockShoot)
-INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2) && their_team_size_at_least(world, 1) && baller_can_shoot(world))
+
+#warning LONE GOALIE
+INVARIANT(false)
+// INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2) && their_team_size_at_least(world, 1) && baller_can_shoot(world))
+
 APPLICABLE(our_ball(world) && !num_of_enemies_on_our_side_at_least(world, 2))
 DONE(goal(world))
 FAIL(their_ball(world))

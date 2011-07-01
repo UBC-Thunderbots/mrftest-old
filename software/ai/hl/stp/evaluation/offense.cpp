@@ -24,8 +24,6 @@ namespace {
 
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/offense", 4.0, 1.0, 10.0);
 
-	DoubleParam pass_width("Width for passing (robot radius)", "STP/offense", 2.0, 0.0, 9);
-
 	DoubleParam weight_total("Scoring weight for everything", "STP/offense", 1.0, 0.0, 99999999.0);
 
 	DoubleParam weight_goal_angle("Scoring weight for angle to goal (POWER, careful)", "STP/offense", 1.0, 0.0, 99.0);

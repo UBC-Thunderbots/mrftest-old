@@ -10,7 +10,8 @@ namespace AI {
 				/**
 				 * Used for single goalie with NO defenders.
 				 */
-				Tactic::Ptr lone_goalie(const World &world);
+				Tactic::Ptr lone_goalie(const World &world) __attribute__ ((deprecated));
+
 
 				/**
 				 * Used for single goalie with NO defenders and is an active tactic.

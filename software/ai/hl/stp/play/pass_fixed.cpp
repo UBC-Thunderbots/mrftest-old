@@ -1,6 +1,7 @@
 #include "ai/hl/util.h"
 #include "ai/hl/world.h"
 #include "ai/hl/stp/predicates.h"
+#include "ai/hl/stp/param.h"
 #include "ai/hl/stp/play/play.h"
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/offend.h"
@@ -20,9 +21,9 @@ using namespace AI::HL::STP::Predicates;
 using namespace AI::HL::STP::Tactic;
 namespace Predicates = AI::HL::STP::Predicates;
 
-namespace {
+using AI::HL::STP::min_pass_dist;
 
-	DoubleParam min_dist("Minimum distance for pass play", "STP/Pass", 1.0, 0.0, 5.0);
+namespace {
 
 	class PassPlay : public Play {
 		public:
@@ -43,7 +44,7 @@ namespace {
 
 			bool applicable() const {
 				return Predicates::our_ball(world) && Predicates::baller_can_shoot_target(world, target, true)
-					&& (world.ball().position() - target).len() > min_dist && !Predicates::baller_can_shoot(world);
+					&& (world.ball().position() - target).len() > min_pass_dist && !Predicates::baller_can_shoot(world);
 			}
 
 			bool fail() const {

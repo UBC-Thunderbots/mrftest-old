@@ -2,15 +2,22 @@
 #include "ai/hl/stp/tactic/cm_defense.h"
 #include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/stp/tactic/cm_ball.h"
+#include "ai/hl/stp/tactic/defend_solo.h"
 
 using AI::HL::STP::Coordinate;
 
 BEGIN_PLAY(CMDNaive)
-INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2) && num_of_enemies_on_our_side_at_least(world, 1))
+
+#warning LONE GOALIE
+INVARIANT(false)
+
+//INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2) && num_of_enemies_on_our_side_at_least(world, 1))
 APPLICABLE(defensive(world) && !ball_in_our_corner(world))
 DONE(offensive(world))
 FAIL(ball_in_our_corner(world))
 BEGIN_ASSIGN()
+
+
 // GOALIE
 goalie_role.push_back(lone_goalie(world));
 

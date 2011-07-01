@@ -146,6 +146,7 @@
         </category>
       </category>
       <category name="ball">
+        <double name="circle radius in front of enemy robot to consider possesion (meters)">0.100</double>
         <double name="circle radius in front of robot to enable pivot (meters)">0.100</double>
         <boolean name="Smart possess ball (instead of has ball only)">true</boolean>
       </category>
@@ -156,7 +157,7 @@
       </category>
       <category name="enemy">
         <double name="Enemy pass width (robot radius)">3.00</double>
-        <double name="Enemy shoot accuracy (degrees)">9.0</double>
+        <double name="Enemy shoot accuracy (degrees)">7.0</double>
       </category>
       <category name="evaluation">
         <double name="speed goalie should ignore direction of ball">0.050</double>
@@ -174,8 +175,8 @@
         <integer name="grid x size">40</integer>
         <integer name="grid y size">40</integer>
         <double name="Scoring weight for angle from ball to goal at robot (-ve)">2.0</double>
-        <double name="Scoring weight for angle to goal (POWER, careful)">2.0</double>
-        <double name="Scoring weight for ball progress (+ve)">0.5</double>
+        <double name="Scoring weight for angle to goal (POWER, careful)">2.5</double>
+        <double name="Scoring weight for ball progress (+ve)">1.0</double>
         <double name="Scoring weight for distance to ball (-ve)">1.0</double>
         <double name="Scoring weight for distance to enemy goal (-ve)">1.0</double>
         <double name="Scoring weight for everything">500</double>
@@ -191,9 +192,9 @@
       <category name="Play">
         <category name="Enable">
           <boolean name="CMDBasic2Block">true</boolean>
-          <boolean name="CMDBasicCorner">true</boolean>
-          <boolean name="CMDNaive">true</boolean>
-          <boolean name="CMONaive">true</boolean>
+          <boolean name="CMDBasicCorner">false</boolean>
+          <boolean name="CMDNaive">false</boolean>
+          <boolean name="CMONaive">false</boolean>
           <boolean name="DefensiveBlock">true</boolean>
           <boolean name="FranticDefense">true</boolean>
           <boolean name="FreeKickEnemy">true</boolean>
