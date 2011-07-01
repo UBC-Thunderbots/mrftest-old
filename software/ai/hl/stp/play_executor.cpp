@@ -51,32 +51,42 @@ PlayExecutor::PlayExecutor(World &w) : world(w) {
 }
 
 void PlayExecutor::calc_play() {
+
+	curr_play.reset();
+
 	// find a valid play
 	std::random_shuffle(plays.begin(), plays.end());
 	for (std::size_t i = 0; i < plays.size(); ++i) {
 		if (plays[i]->invariant() && plays[i]->applicable() && plays[i]->factory().enable) {
-			curr_play = plays[i];
-			LOG_INFO(curr_play->factory().name());
-			assert(!curr_play->done());
-			curr_role_step = 0;
-			for (std::size_t j = 0; j < 5; ++j) {
-				curr_roles[j].clear();
-				// default to idle tactic
-				curr_tactic[j] = Tactic::idle(world);
+			if (!curr_play.is() || plays[i]->factory().priority > curr_play->factory().priority) {
+				curr_play = plays[i];
 			}
-			// assign the players
-			{
-				std::vector<Tactic::Tactic::Ptr> goalie_role;
-				std::vector<Tactic::Tactic::Ptr> normal_roles[4];
-				curr_play->assign(goalie_role, normal_roles);
-				swap(goalie_role, curr_roles[0]);
-				for (std::size_t j = 1; j < 5; ++j) {
-					swap(normal_roles[j - 1], curr_roles[j]);
-				}
-			}
-			return;
 		}
 	}
+
+	if (!curr_play.is()) {
+		return;
+	}
+
+	LOG_INFO(curr_play->factory().name());
+	assert(!curr_play->done());
+	curr_role_step = 0;
+	for (std::size_t j = 0; j < 5; ++j) {
+		curr_roles[j].clear();
+		// default to idle tactic
+		curr_tactic[j] = Tactic::idle(world);
+	}
+	// assign the players
+	{
+		std::vector<Tactic::Tactic::Ptr> goalie_role;
+		std::vector<Tactic::Tactic::Ptr> normal_roles[4];
+		curr_play->assign(goalie_role, normal_roles);
+		swap(goalie_role, curr_roles[0]);
+		for (std::size_t j = 1; j < 5; ++j) {
+			swap(normal_roles[j - 1], curr_roles[j]);
+		}
+	}
+	return;
 }
 
 void PlayExecutor::role_assignment() {
@@ -240,6 +250,10 @@ void PlayExecutor::tick() {
 		}
 		if (curr_play->fail()) {
 			LOG_INFO("play failed");
+			done = true;
+		}
+#warning a HACK
+		if (curr_play->factory().priority == 0) {
 			done = true;
 		}
 		if (done) {

@@ -118,6 +118,8 @@ namespace AI {
 						PlayFactory(const char *name);
 
 						BoolParam enable;
+
+						IntParam priority;
 				};
 
 				/**

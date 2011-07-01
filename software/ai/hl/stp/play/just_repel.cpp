@@ -2,16 +2,16 @@
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/repel.h"
 
+namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::Enemy;
 
 BEGIN_PLAY(JustRepel)
-INVARIANT(playtype(world, PlayType::PLAY)
-	&& our_team_size_at_least(world, 2)
-	&& !baller_can_shoot(world) && !baller_can_pass(world) && !their_ball(world))
-APPLICABLE(our_ball(world))
-DONE(none_ball(world))
+INVARIANT(our_team_size_at_least(world, 2))
+APPLICABLE(Predicates::none_ball(world))
+DONE(our_ball(world))
 FAIL(false)
 BEGIN_ASSIGN()
+
 // GOALIE
 goalie_role.push_back(goalie_dynamic(world, 1));
 

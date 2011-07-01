@@ -6,14 +6,15 @@ namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::Enemy;
 
 BEGIN_PLAY(GrabBall)
-INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3))
+INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 2))
 APPLICABLE(Predicates::none_ball(world))
 DONE(Predicates::our_ball(world))
 FAIL(Predicates::their_ball(world))
+
 BEGIN_ASSIGN()
 // GOALIE
 // defend the goal
-goalie_role.push_back(defend_duo_goalie(world));
+goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // chase the ball!
