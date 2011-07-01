@@ -299,6 +299,7 @@ void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 	draw_shoot(world, ctx);
 	draw_offense(world, ctx);
 	draw_defense(world, ctx);
+	draw_enemy_pass(world, ctx);
 	// draw_velocity(ctx); // uncommand to display velocity
 	if (world.playtype() == AI::Common::PlayType::STOP) {
 		ctx->set_source_rgb(1.0, 0.5, 0.5);

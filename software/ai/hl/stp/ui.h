@@ -12,6 +12,8 @@ namespace AI {
 			 */
 			void draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> ctx);
 
+			void draw_enemy_pass(const World &world, Cairo::RefPtr<Cairo::Context> ctx);
+
 			/**
 			 * draw blue circles to indicate good offensive position.
 			 * draw yellow halo around robots to indicate how well they can shoot the enemy goal.

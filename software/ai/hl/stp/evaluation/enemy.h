@@ -24,7 +24,7 @@ namespace AI {
 					bool can_shoot_goal;
 
 					/**
-					 * How many passes to REACH this player.
+					 * How many passes for the BALL to REACH this player.
 					 * 0 - posses the ball
 					 * 1 - need one pass
 					 * 5 - dont bother
@@ -32,7 +32,8 @@ namespace AI {
 					int passes_reach;
 
 					/**
-					 * How many passes to SHOOT on net.
+					 * How many passes to SHOOT on net,
+					 * if this player HAS the BALL.
 					 * 5 - impossible
 					 */
 					int passes_goal;
@@ -42,6 +43,16 @@ namespace AI {
 					 * A pointer to the robot.
 					 */
 					Robot::Ptr robot;
+
+					/**
+					 * If this robot needs to shoot at someone before shooting goal.
+					 */
+					Robot::Ptr passee;
+
+					/**
+					 * If this robot needs to receive the ball from someone.
+					 */
+					Robot::Ptr passer;
 				};
 
 				/**
@@ -55,6 +66,7 @@ namespace AI {
 				bool enemy_can_shoot_goal(const World& world, const Robot::Ptr enemy);
 
 				/**
+				 * BAD CODE INSIDE
 				 * Checks if enemy can receive the ball.
 				 */
 				bool enemy_can_receive(const World &world, const Robot::Ptr enemy);
@@ -78,6 +90,11 @@ namespace AI {
 				 * Calculates how good it is to shoot to a particular target location.
 				 */
 				std::pair<Point, double> calc_enemy_best_shot_target(const World &world, const Point &target_pos, const Robot::Ptr enemy, const double radius = 1.0);
+
+				/**
+				 * Enemy version.
+				 */
+				std::pair<Point, double> calc_enemy_best_shot_target(const Point &target_pos, const std::vector<Point> &obstacles, const Point &p, const double radius = 1.0);
 
 				/**
 				 * # of passes it takes for the enemy to shoot to our goal

@@ -3,12 +3,41 @@
 #include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/evaluation/ball.h"
+#include "ai/hl/stp/evaluation/enemy.h"
 #include <cmath>
 
 using namespace AI::HL::STP;
 namespace Evaluation = AI::HL::STP::Evaluation;
 using AI::HL::STP::Evaluation::grid_x;
 using AI::HL::STP::Evaluation::grid_y;
+
+void AI::HL::STP::draw_enemy_pass(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
+	auto threats = Evaluation::calc_enemy_threat(world);
+	const EnemyTeam& enemy = world.enemy_team();
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
+		Robot::Ptr robot = threats[i].robot;
+		Robot::Ptr passee = threats[i].passee;
+		if (threats[i].can_shoot_goal) {
+			ctx->set_source_rgba(1.0, 0.5, 0.5, 0.5);
+			ctx->arc(robot->position().x, robot->position().y, Robot::MAX_RADIUS + 0.01, 0.0, 2 * M_PI);
+			ctx->fill();
+			ctx->stroke();
+		}
+		if (threats[i].passes_goal == 5) {
+			ctx->set_source_rgba(0.2, 0.2, 0.2, 0.5);
+			ctx->arc(robot->position().x, robot->position().y, Robot::MAX_RADIUS + 0.01, 0.0, 2 * M_PI);
+			ctx->fill();
+			ctx->stroke();
+		}
+		if (passee.is()) {
+			ctx->set_source_rgba(0.5, 1.0, 0.5, 0.2);
+			ctx->set_line_width(0.01);
+			ctx->move_to(robot->position().x, robot->position().y);
+			ctx->move_to(passee->position().x, passee->position().y);
+			ctx->stroke();
+		}
+	}
+}
 
 void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
 	const FriendlyTeam &friendly = world.friendly_team();

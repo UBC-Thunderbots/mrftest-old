@@ -154,6 +154,10 @@
         <double name="max goalie dist from goal (robot radius)">3.00</double>
         <double name="shrink robot radius">1.100</double>
       </category>
+      <category name="enemy">
+        <double name="Enemy pass accuracy">0.1</double>
+        <double name="Enemy shoot accuracy (degrees)">10.0</double>
+      </category>
       <category name="evaluation">
         <double name="speed goalie should ignore direction of ball">0.050</double>
         <double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>

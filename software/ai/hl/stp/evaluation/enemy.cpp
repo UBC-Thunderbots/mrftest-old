@@ -10,7 +10,7 @@ using namespace AI::HL::Util;
 using namespace AI::HL::STP;
 
 namespace {
-	DoubleParam enemy_shoot_accuracy("Enemy shoot accuracy (degrees)", "STP/enemy", 3.0, 0.0, 90.0);
+	DoubleParam enemy_shoot_accuracy("Enemy shoot accuracy (degrees)", "STP/enemy", 1.0, 0.0, 90.0);
 
 	DoubleParam enemy_pass_accuracy("Enemy pass accuracy", "STP/enemy", 0.05, 0.0, 90.0);
 }
@@ -95,13 +95,46 @@ std::pair<Point, double> AI::HL::STP::Evaluation::calc_enemy_best_shot_target(co
 		obstacles.push_back(erob->position());
 	}
 
-	return AI::HL::Util::calc_best_shot_target(target_pos, obstacles, enemy->position(), radius);
+	return calc_enemy_best_shot_target(target_pos, obstacles, enemy->position(), radius);
+}
+
+std::pair<Point, double> AI::HL::STP::Evaluation::calc_enemy_best_shot_target(const Point &target_pos, const std::vector<Point> &obstacles, const Point &p, const double radius) {
+
+#warning due to an old HACK, angle_sweep_circle only works on positive side, so this is a hack because of a hack
+
+	std::vector<Point> obs_rev = obstacles;
+	for (std::size_t i = 0; i < obs_rev.size(); ++i) {
+		obs_rev[i].x *= -1;
+	}
+
+	Point target_pos_rev = target_pos;
+	target_pos_rev.x *= -1;
+
+	Point p_rev = p;
+	p_rev.x *= -1;
+
+	auto ret = AI::HL::Util::calc_best_shot_target(target_pos_rev, obs_rev, p_rev, radius);
+	ret.first.x *= -1;
+
+	return ret;
 }
 
 std::pair<Point, double> Evaluation::calc_enemy_best_shot_goal(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
-	const Point p1 = Point(-f.length() / 2.0, -f.goal_width() / 2.0);
-	const Point p2 = Point(-f.length() / 2.0, f.goal_width() / 2.0);
-	return angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
+
+#warning due to an old HACK, angle_sweep_circle only works on positive side, so this is a hack because of a hack
+
+	std::vector<Point> obs_rev = obstacles;
+	for (std::size_t i = 0; i < obs_rev.size(); ++i) {
+		obs_rev[i].x *= -1;
+	}
+
+	const Point p1 = Point(f.length() / 2.0, -f.goal_width() / 2.0);
+	const Point p2 = Point(f.length() / 2.0, f.goal_width() / 2.0);
+
+	auto ret = angle_sweep_circles(Point(-p.x, p.y), p1, p2, obs_rev, radius * Robot::MAX_RADIUS);
+	ret.first.x *= -1;
+
+	return ret;
 }
 
 std::pair<Point, double> Evaluation::calc_enemy_best_shot_goal(const World &world, const Robot::Ptr enemy, const double radius) {
@@ -150,36 +183,36 @@ int AI::HL::STP::Evaluation::calc_enemy_pass(const World &world, const Robot::Pt
 	return 5;
 
 	/*
-	const EnemyTeam& enemy = world.enemy_team();
+	   const EnemyTeam& enemy = world.enemy_team();
 
 	// can shoot directly
 	if (enemy_can_shoot_goal(world, robot)) {
-		return 0;
+	return 0;
 	}
 
 	int passes = 5;
 
 	for (size_t i = 0; i < enemy.size(); ++i) {
-		Robot::Ptr passee = enemy.get(i);
-		if (passee == robot) continue;
-		if (!enemy_can_pass(world, robot, passee)) continue;
-		if (enemy_can_shoot_goal(world, passee)) {
-			passes = std::min(passes, 1);
-			continue;
-		}
+	Robot::Ptr passee = enemy.get(i);
+	if (passee == robot) continue;
+	if (!enemy_can_pass(world, robot, passee)) continue;
+	if (enemy_can_shoot_goal(world, passee)) {
+	passes = std::min(passes, 1);
+	continue;
+	}
 
-		for (std::size_t j = 0; j < enemy.size(); ++j) {
-			Robot::Ptr next_passee = enemy.get(j);
-			if (next_passee == robot) continue;
-			if (next_passee == passee) continue;
-			if (!enemy_can_pass(world, passee, next_passee)) continue;
-			if (!enemy_can_shoot_goal(world, next_passee)) continue;
-			passes = std::min(passes, 2);
-		}
+	for (std::size_t j = 0; j < enemy.size(); ++j) {
+	Robot::Ptr next_passee = enemy.get(j);
+	if (next_passee == robot) continue;
+	if (next_passee == passee) continue;
+	if (!enemy_can_pass(world, passee, next_passee)) continue;
+	if (!enemy_can_shoot_goal(world, next_passee)) continue;
+	passes = std::min(passes, 2);
+	}
 	}
 
 	return passes;
-	*/
+	 */
 }
 
 std::vector<Evaluation::Threat> AI::HL::STP::Evaluation::calc_enemy_threat(const World &world) {
@@ -194,6 +227,7 @@ std::vector<Evaluation::Threat> AI::HL::STP::Evaluation::calc_enemy_threat(const
 		threats[i].can_shoot_goal = enemy_can_shoot_goal(world, enemy.get(i));
 		threats[i].passes_reach = 5;
 		threats[i].passes_goal = 5;
+		threats[i].robot = enemy.get(i);
 
 		double dist = (enemy.get(i)->position() - world.ball().position()).len();
 		if (!closest_robot.is() || dist < closest_dist) {
@@ -216,15 +250,24 @@ std::vector<Evaluation::Threat> AI::HL::STP::Evaluation::calc_enemy_threat(const
 		}
 	}
 
-	for (size_t i = 0; i < enemy.size(); ++i) {
-		for (size_t j = 0; j < enemy.size(); ++j) {
-			if (i == j) continue;
-			if (!enemy_can_pass(world, enemy.get(i), enemy.get(j))) continue;
+	for (size_t k = 0; k < enemy.size(); ++k) {
+		for (size_t i = 0; i < enemy.size(); ++i) {
+			for (size_t j = 0; j < enemy.size(); ++j) {
+				if (i == j) continue;
+				if (!enemy_can_pass(world, enemy.get(i), enemy.get(j))) continue;
 
-			// if can pass from i to j
+				// if can pass from i to j
 
-			threats[j].passes_reach = std::min(threats[j].passes_reach, threats[i].passes_reach + 1);
-			threats[i].passes_goal = std::min(threats[i].passes_reach, threats[j].passes_reach + 1);
+				if (threats[j].passes_reach > threats[i].passes_reach + 1) {
+					threats[j].passes_reach = threats[i].passes_reach + 1;
+					threats[j].passer = enemy.get(i);
+				}
+
+				if (threats[i].passes_goal > threats[j].passes_goal + 1) {
+					threats[i].passes_goal = threats[j].passes_goal + 1;
+					threats[i].passee = enemy.get(j);
+				}
+			}
 		}
 	}
 
