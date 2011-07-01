@@ -143,6 +143,7 @@ namespace {
 		const double y1 = -world.field().width() / 2, y2 = -y1;
 
 		// for the spacing to be uniform, we need dy = sqrt(3/4)*dx
+		// grid_x and grid_y should be adjusted accordingly to get a desired aspect ratio!
 		const double dx = (x2 - x1) / (grid_x + 1) / 2;
 		const double dy = (y2 - y1) / (grid_y + 1) / 2;
 		double best_score = -1e50;
@@ -161,7 +162,7 @@ namespace {
 		 */
 
 		for (int i = 1; i <= 2*grid_y+1; i += 2) {
-			for (int j = (i/2)%2+1; j <= 2*grid_x+1; j += 2) {
+			for (int j = (i/2+1)%2+1; j <= 2*grid_x+1; j += 2) {
 				const double x = x1 + dx * j;
 				const double y = y1 + dy * i;
 				const Point pos = Point(x, y);
