@@ -43,7 +43,7 @@ namespace {
 
 			bool applicable() const {
 				return Predicates::our_ball(world) && Predicates::baller_can_shoot_target(world, target, true)
-					&& (world.ball().position() - target).len() > min_dist;
+					&& (world.ball().position() - target).len() > min_dist && !Predicates::baller_can_shoot(world);
 			}
 
 			bool fail() const {
