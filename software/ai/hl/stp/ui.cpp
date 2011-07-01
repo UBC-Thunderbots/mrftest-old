@@ -14,6 +14,19 @@ using AI::HL::STP::Evaluation::grid_y;
 void AI::HL::STP::draw_enemy_pass(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
 	auto threats = Evaluation::calc_enemy_threat(world);
 	const EnemyTeam& enemy = world.enemy_team();
+	/*
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
+		for (std::size_t j = i + 1; j < enemy.size(); ++j) {
+			if (Evaluation::enemy_can_pass(world, enemy.get(i), enemy.get(j))) {
+				ctx->set_source_rgba(0.5, 0.5, 0.5, 0.5);
+				ctx->set_line_width(0.02);
+				ctx->move_to(enemy.get(i)->position().x, enemy.get(i)->position().y);
+				ctx->line_to(enemy.get(j)->position().x, enemy.get(j)->position().y);
+				ctx->stroke();
+			}
+		}
+	}
+	*/
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		Robot::Ptr robot = threats[i].robot;
 		Robot::Ptr passee = threats[i].passee;
@@ -23,17 +36,17 @@ void AI::HL::STP::draw_enemy_pass(const World &world, Cairo::RefPtr<Cairo::Conte
 			ctx->fill();
 			ctx->stroke();
 		}
-		if (threats[i].passes_goal == 5) {
+		if (threats[i].passes_goal > 2) {
 			ctx->set_source_rgba(0.2, 0.2, 0.2, 0.5);
 			ctx->arc(robot->position().x, robot->position().y, Robot::MAX_RADIUS + 0.01, 0.0, 2 * M_PI);
 			ctx->fill();
 			ctx->stroke();
 		}
-		if (passee.is()) {
-			ctx->set_source_rgba(0.5, 1.0, 0.5, 0.2);
-			ctx->set_line_width(0.01);
+		if (threats[i].passes_goal <= 2 && passee.is()) {
+			ctx->set_source_rgba(0.5, 0.5, 0.5, 0.5);
+			ctx->set_line_width(0.02);
 			ctx->move_to(robot->position().x, robot->position().y);
-			ctx->move_to(passee->position().x, passee->position().y);
+			ctx->line_to(passee->position().x, passee->position().y);
 			ctx->stroke();
 		}
 	}

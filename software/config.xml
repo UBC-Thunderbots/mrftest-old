@@ -155,8 +155,8 @@
         <double name="shrink robot radius">1.100</double>
       </category>
       <category name="enemy">
-        <double name="Enemy pass accuracy">0.1</double>
-        <double name="Enemy shoot accuracy (degrees)">10.0</double>
+        <double name="Enemy pass width (robot radius)">3.00</double>
+        <double name="Enemy shoot accuracy (degrees)">12.0</double>
       </category>
       <category name="evaluation">
         <double name="speed goalie should ignore direction of ball">0.050</double>
@@ -178,7 +178,7 @@
         <double name="Scoring weight for ball progress (+ve)">0.5</double>
         <double name="Scoring weight for distance to ball (-ve)">1.0</double>
         <double name="Scoring weight for distance to enemy goal (-ve)">1.0</double>
-        <double name="Scoring weight for everything">20</double>
+        <double name="Scoring weight for everything">500</double>
         <double name="Scoring weight for nearest enemy (+ve)">1.0</double>
         <double name="Width for passing (robot radius)">2.00</double>
       </category>

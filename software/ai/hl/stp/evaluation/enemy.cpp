@@ -12,7 +12,7 @@ using namespace AI::HL::STP;
 namespace {
 	DoubleParam enemy_shoot_accuracy("Enemy shoot accuracy (degrees)", "STP/enemy", 1.0, 0.0, 90.0);
 
-	DoubleParam enemy_pass_accuracy("Enemy pass accuracy", "STP/enemy", 0.05, 0.0, 90.0);
+	DoubleParam enemy_pass_width("Enemy pass width (robot radius)", "STP/enemy", 2, 0, 9);
 }
 
 bool AI::HL::STP::Evaluation::enemy_can_shoot_goal(const World& world, Robot::Ptr enemy) {
@@ -41,7 +41,7 @@ bool AI::HL::STP::Evaluation::enemy_can_receive(const World &world, const Robot:
 		if (proj <= 0) {
 			continue;
 		}
-		if (proj < distance && perp < enemy_pass_accuracy + Robot::MAX_RADIUS + Ball::RADIUS) {
+		if (proj < distance && perp < enemy_pass_width * Robot::MAX_RADIUS + Robot::MAX_RADIUS + Ball::RADIUS) {
 			return false;
 		}
 	}
@@ -57,7 +57,7 @@ bool AI::HL::STP::Evaluation::enemy_can_receive(const World &world, const Robot:
 		if (proj <= 0) {
 			continue;
 		}
-		if (proj < distance && perp < enemy_shoot_accuracy + Robot::MAX_RADIUS + Ball::RADIUS) {
+		if (proj < distance && perp < enemy_pass_width * Robot::MAX_RADIUS + Robot::MAX_RADIUS + Ball::RADIUS) {
 			return false;
 		}
 	}
@@ -65,19 +65,12 @@ bool AI::HL::STP::Evaluation::enemy_can_receive(const World &world, const Robot:
 }
 
 bool AI::HL::STP::Evaluation::enemy_can_pass(const World &world, const Robot::Ptr passer, const Robot::Ptr passee) {
-
-	// assuming a good enemy team
-	double minangle = 5;
-	double maxdist = world.field().length() / 2;
-
-	if (!enemy_can_receive(world, passee)) {
-		return false;
+	std::vector<Point> obstacles;
+	const FriendlyTeam &friendly = world.friendly_team();
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		obstacles.push_back(friendly.get(i)->position());
 	}
-
-	const double dist = (passee->position() - world.ball().position()).len();
-	const double angle = calc_enemy_best_shot_target(world, passee->position(), passer).second;
-
-	return angle >= minangle && dist < maxdist;
+	return AI::HL::Util::path_check(passer->position(), passee->position(), obstacles, Robot::MAX_RADIUS * enemy_pass_width);
 }
 
 std::pair<Point, double> AI::HL::STP::Evaluation::calc_enemy_best_shot_target(const World &world, const Point &target_pos, const Robot::Ptr enemy, const double radius) {
