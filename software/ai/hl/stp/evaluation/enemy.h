@@ -1,8 +1,7 @@
 #ifndef AI_HL_STP_EVALUATION_ENEMY_H
 #define AI_HL_STP_EVALUATION_ENEMY_H
 
-#include "ai/hl/world.h"
-#include "util/cacheable.h"
+#include "ai/hl/stp/world.h"
 
 #include <vector>
 
@@ -10,44 +9,57 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-				struct EnemyThreat {
+				/**
+				 * How dangerous an enemy is
+				 */
+				struct Threat {
 					/**
-					 * dist of enemy robot to ball.
+					 * How much it can see the goal.
 					 */
-					double ball_dist;
+					double goal_angle;
 
 					/**
-					 * dist of enemy robot to our goal.
+					 * Is this robot capable of shooting the target?
 					 */
-					double our_goal_dist;
+					bool can_shoot;
 
 					/**
-					 * dist of enemy robot to our baller.
-					 */
-					double our_baller_dist;
-
-					/**
-					 * blocked by our players or other enemies for passing
-					 */
-					bool blocked;
-
-					/**
-					 * Other enemies that the enemy can pass to sorted by distance.
-					 */
-					std::vector<AI::HL::W::Robot::Ptr> passees;
-
-					/**
-					 * # of passes it takes for the enemy to shoot to our goal
-					 * 0 means the enemy has a clear shot to our goal!
-					 * ignore (set to 5 if # of passes > 2)
+					 * How many passes to reach the player.
+					 * 0 - posses the ball
+					 * 1 - need one pass
 					 */
 					int passes;
+
+					/**
+					 * For convenience.
+					 * A pointer to the robot.
+					 */
+					Robot::Ptr robot;
 				};
 
 				/**
-				 * Evaluate how dangerous an enemy is
+				 * Evaluates each robot and calculates how dangerous they are.
 				 */
-				EnemyThreat eval_enemy(const AI::HL::W::World &world, const AI::HL::W::Robot::Ptr robot);
+				std::vector<Threat> calc_enemy_threat(const World& world);
+
+				/**
+				 * Calculates how good an enemy is at shooting our goal.
+				 */
+				std::pair<Point, double> calc_enemy_best_shot(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius);
+
+				/**
+				 * Calculates how good an enemy is at shooting our goal.
+				 */
+				std::pair<Point, double> calc_enemy_best_shot(const World &world, const Robot::Ptr enemy, const double radius = 1.0);
+
+				/**
+				 * # of passes it takes for the enemy to shoot to our goal
+				 * 0 means the enemy has a clear shot to our goal!
+				 * ignore (set to 5 if # of passes > 2)
+				 */
+				int calc_enemy_pass(const World &world, Robot::Ptr robot);
+
+				std::vector<Robot::Ptr> get_passees(const World& world, Robot::Ptr robot);
 			}
 		}
 	}

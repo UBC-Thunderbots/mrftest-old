@@ -33,10 +33,9 @@ namespace AI {
 					static Enemy::Ptr closest_ball(const World &world, unsigned int i);
 
 					/**
-					 * Order by distance to friendly goal.
+					 * Closest to enemy having the ball, by passing.
 					 */
-					static Enemy::Ptr closest_pass(const World &world, const Robot::Ptr r, unsigned int i);
-
+					static Enemy::Ptr closest_pass(const World &world, unsigned int i);
 				protected:
 					Enemy();
 			};

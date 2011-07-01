@@ -8,32 +8,34 @@
 using namespace AI::HL::W;
 using namespace AI::HL::Util;
 using namespace AI::HL::STP;
-using AI::HL::STP::Evaluation::EnemyThreat;
 
 namespace {
-	std::pair<Point, double> calc_enemy_best_shot(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
-		const Point p1 = Point(-f.length() / 2.0, -f.goal_width() / 2.0);
-		const Point p2 = Point(-f.length() / 2.0, f.goal_width() / 2.0);
-		return angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
-	}
+}
 
-	std::pair<Point, double> calc_enemy_best_shot(const World &world, const Robot::Ptr enemy, const double radius = 1.0) {
-		std::vector<Point> obstacles;
-		const FriendlyTeam &friendly = world.friendly_team();
-		for (std::size_t i = 0; i < friendly.size(); ++i) {
-			obstacles.push_back(friendly.get(i)->position());
-		}
-		const EnemyTeam &enemies = world.enemy_team();
-		for (std::size_t i = 0; i < enemies.size(); ++i) {
-			const Robot::Ptr erob = enemies.get(i);
-			if (erob == enemy) {
-				continue;
-			}
-			obstacles.push_back(erob->position());
-		}
-		return calc_enemy_best_shot(world.field(), obstacles, enemy->position(), radius);
-	}
+std::pair<Point, double> Evaluation::calc_enemy_best_shot(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
+	const Point p1 = Point(-f.length() / 2.0, -f.goal_width() / 2.0);
+	const Point p2 = Point(-f.length() / 2.0, f.goal_width() / 2.0);
+	return angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
+}
 
+std::pair<Point, double> Evaluation::calc_enemy_best_shot(const World &world, const Robot::Ptr enemy, const double radius) {
+	std::vector<Point> obstacles;
+	const FriendlyTeam &friendly = world.friendly_team();
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		obstacles.push_back(friendly.get(i)->position());
+	}
+	const EnemyTeam &enemies = world.enemy_team();
+	for (std::size_t i = 0; i < enemies.size(); ++i) {
+		const Robot::Ptr erob = enemies.get(i);
+		if (erob == enemy) {
+			continue;
+		}
+		obstacles.push_back(erob->position());
+	}
+	return calc_enemy_best_shot(world.field(), obstacles, enemy->position(), radius);
+}
+
+namespace {
 	std::pair<Point, double> calc_enemy_best_shot_target(const World &world, const Point &target_pos, const Robot::Ptr enemy, const double radius = 1.0) {
 		std::vector<Point> obstacles;
 		const FriendlyTeam &friendly = world.friendly_team();
@@ -96,74 +98,91 @@ namespace {
 		}
 		return true;
 	}
-
-	bool available_enemy_pass(const World &world, const Robot::Ptr passer, const Robot::Ptr passee) {
-		// assuming a good enemy team
-		double minangle = 5;
-		double maxdist = world.field().length() / 2;
-
-		if (!enemy_can_receive(world, passee)) {
-			return false;
-		}
-
-		const double dist = (passee->position() - world.ball().position()).len();
-		const double angle = calc_enemy_best_shot_target(world, passee->position(), passer).second;
-
-		return angle >= minangle && dist < maxdist;
-	}
 }
 
-EnemyThreat AI::HL::STP::Evaluation::eval_enemy(const World &world, const Robot::Ptr robot) {
-	// TODO: Check for Errors
-	EnemyThreat enemy_threat;
+bool available_enemy_pass(const World &world, const Robot::Ptr passer, const Robot::Ptr passee) {
+	// assuming a good enemy team
+	double minangle = 5;
+	double maxdist = world.field().length() / 2;
 
-	if (!robot.is()) {
-		return enemy_threat;
+	if (!enemy_can_receive(world, passee)) {
+		return false;
 	}
 
-	// use these somehow
-	enemy_threat.ball_dist = (robot->position() - world.ball().position()).len();
-	enemy_threat.our_goal_dist = (robot->position() - world.field().friendly_goal()).len();
-	enemy_threat.our_baller_dist = -1;
-	const FriendlyTeam &friendly = world.friendly_team();
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if (friendly.get(i)->has_ball()) {
-			enemy_threat.our_baller_dist = (robot->position() - friendly.get(i)->position()).len();
-		}
-	}
+	const double dist = (passee->position() - world.ball().position()).len();
+	const double angle = calc_enemy_best_shot_target(world, passee->position(), passer).second;
 
-	enemy_threat.blocked = enemy_can_receive(world, robot);
+	return angle >= minangle && dist < maxdist;
+}
 
-	std::vector<AI::HL::W::Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
-
-	std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(robot->position()));
+std::vector<Robot::Ptr> get_passees(const World& world, Robot::Ptr robot) {
+	const EnemyTeam& enemy = world.enemy_team();
 
 	// don't count this robot
-	for (std::size_t i = 1; i < enemies.size(); ++i) {
+	std::vector<Robot::Ptr> passees;
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
+		if (robot == enemy.get(i)) continue;
+		if (available_enemy_pass(world, robot, enemy.get(i))) {
+			passees.push_back(enemy.get(i));
+		}
+	}
+	return passees;
+}
+
+int AI::HL::STP::Evaluation::calc_enemy_pass(const World &world, const Robot::Ptr robot) {
+
+	bool blocked = enemy_can_receive(world, robot);
+
+	std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+
+	// don't count this robot
+	std::vector<Robot::Ptr> passees;
+	for (std::size_t i = 0; i < enemies.size(); ++i) {
+		if (robot == enemies[i]) continue;
 		if (available_enemy_pass(world, robot, enemies[i])) {
-			enemy_threat.passees.push_back(enemies[i]);
+			passees.push_back(enemies[i]);
 		}
 	}
 
-	enemy_threat.passes = -1;
-	if (enemy_threat.blocked || enemy_threat.passees.size() == 0) {
-		enemy_threat.passes = 5;
+	int passes = -1;
+
+	if (blocked || passees.size() == 0) {
+		passes = 5;
 	} else if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), robot, Robot::MAX_RADIUS).second > shoot_accuracy) {
-		enemy_threat.passes = 0;
+		passes = 0;
 	}
-	for (std::size_t i = 0; i < enemy_threat.passees.size(); ++i) {
-		if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), enemy_threat.passees[i], Robot::MAX_RADIUS).second > shoot_accuracy) {
-			enemy_threat.passes = 1;
+	for (std::size_t i = 0; i < passees.size(); ++i) {
+		if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), passees[i], Robot::MAX_RADIUS).second > shoot_accuracy) {
+			passes = 1;
 		} else {
-			EnemyThreat next = eval_enemy(world, enemy_threat.passees[i]);
-			for (std::size_t j = 0; j < next.passees.size(); ++j) {
-				if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), next.passees[j], Robot::MAX_RADIUS).second > shoot_accuracy) {
-					enemy_threat.passes = 2;
+			std::vector<Robot::Ptr> next_passees;
+			// don't count that robot
+			for (std::size_t i = 0; i < enemies.size(); ++i) {
+				if (enemies[i] == passees[i]) continue;
+				if (available_enemy_pass(world, robot, enemies[i])) {
+					next_passees.push_back(enemies[i]);
+				}
+			}
+
+			for (std::size_t j = 0; j < next_passees.size(); ++j) {
+				if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), next_passees[j], Robot::MAX_RADIUS).second > shoot_accuracy) {
+					passes = 2;
 				}
 			}
 		}
 	}
 
-	return enemy_threat;
+	return passes;
+}
+
+std::vector<Evaluation::Threat> AI::HL::STP::Evaluation::calc_enemy_threat(const World &world) {
+	const EnemyTeam& enemy = world.enemy_team();
+
+	std::vector<Evaluation::Threat> threats(enemy.size());
+	for (size_t i = 0; i < enemy.size(); ++i) {
+		threats[i].goal_angle = calc_enemy_best_shot(world, enemy.get(i)).second;
+	}
+
+	return threats;
 }
 

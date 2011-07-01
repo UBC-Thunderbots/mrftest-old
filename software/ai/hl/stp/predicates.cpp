@@ -153,7 +153,7 @@ bool AI::HL::STP::Predicates::enemy_baller_can_shoot(const World &world) {
 	if (!baller.is() || !AI::HL::Util::posses_ball(world, baller)) {
 		return false;
 	}
-	return Evaluation::eval_enemy(world, baller).passes == 0;
+	return Evaluation::calc_enemy_pass(world, baller) == 0;
 }
 
 bool AI::HL::STP::Predicates::enemy_baller_can_pass(const World &world) {
@@ -161,7 +161,7 @@ bool AI::HL::STP::Predicates::enemy_baller_can_pass(const World &world) {
 	if (!baller.is() || !AI::HL::Util::posses_ball(world, baller)) {
 		return false;
 	}
-	return Evaluation::eval_enemy(world, baller).passees.size() > 0;
+	return Evaluation::calc_enemy_pass(world, baller) > 0;
 }
 
 bool AI::HL::STP::Predicates::enemy_baller_can_pass_shoot(const World &world) {
@@ -169,7 +169,7 @@ bool AI::HL::STP::Predicates::enemy_baller_can_pass_shoot(const World &world) {
 	if (!baller.is() || !AI::HL::Util::posses_ball(world, baller)) {
 		return false;
 	}
-	return Evaluation::eval_enemy(world, baller).passes > 0 && Evaluation::eval_enemy(world, baller).passes < 3;
+	return Evaluation::calc_enemy_pass(world, baller) > 0 && Evaluation::calc_enemy_pass(world, baller) < 3;
 }
 
 bool AI::HL::STP::Predicates::offensive(const World &world) {

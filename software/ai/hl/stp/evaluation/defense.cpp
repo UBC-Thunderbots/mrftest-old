@@ -99,20 +99,25 @@ namespace {
 		// next two defenders block nearest enemy sights to goal if needed
 		// enemies with ball possession are ignored (they should be handled above)
 		for (size_t i = 0; i < enemies.size() && waypoint_defenders.size() < MAX_DEFENDERS; ++i) {
-			if (!AI::HL::Util::ball_close(world, enemies[i])) {
-				bool blowup = false;
-				Point D = calc_block_cone(goal_side, goal_opp, enemies[i]->position(), radius);
-				if (D.x < Robot::MAX_RADIUS - field.length() / 2 + field.defense_area_stretch()) {
-					blowup = true;
-				}
-				if (std::fabs(D.y) > field.width() / 4) {
-					blowup = true;
-				}
-				if (blowup) {
-					D = (field.friendly_goal() + enemies[i]->position()) / 2;
-				}
-				waypoint_defenders.push_back(D);
+			if (AI::HL::Util::ball_close(world, enemies[i])) {
+				continue;
 			}
+
+			// TODO: check if enemy can shoot the ball from here
+			// if so, block it
+
+			bool blowup = false;
+			Point D = calc_block_cone(goal_side, goal_opp, enemies[i]->position(), radius);
+			if (D.x < Robot::MAX_RADIUS - field.length() / 2 + field.defense_area_stretch()) {
+				blowup = true;
+			}
+			if (std::fabs(D.y) > field.width() / 4) {
+				blowup = true;
+			}
+			if (blowup) {
+				D = (field.friendly_goal() + enemies[i]->position()) / 2;
+			}
+			waypoint_defenders.push_back(D);
 		}
 
 		// there are too few enemies, this is strange

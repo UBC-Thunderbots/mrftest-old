@@ -7,7 +7,6 @@ using namespace AI::HL::W;
 using AI::HL::STP::Enemy;
 
 namespace Evaluation = AI::HL::STP::Evaluation;
-using AI::HL::STP::Evaluation::EnemyThreat;
 
 namespace {
 	class Fixed : public Enemy {
@@ -70,26 +69,30 @@ namespace {
 
 	class ClosestPass : public Enemy {
 		public:
-			ClosestPass(const World &w, const Robot::Ptr r, unsigned int i) : world(w), robot(r), index(i) {
+			ClosestPass(const World &w, unsigned int i) : world(w), index(i) {
 			}
 
 		private:
 			const World &world;
-			const Robot::Ptr robot;
 			unsigned int index;
 			Robot::Ptr evaluate() const {
-				std::vector<Robot::Ptr> enemies = Evaluation::eval_enemy(world, robot).passees;
-				if (enemies.size() <= index) {
+				return Robot::Ptr();
+				// TODO: redo this
+				/*
+				std::vector<Robot::Ptr> passees = Evaluation::get_passees(world, robot);
+
+				if (passees.size() <= index) {
 					if (world.enemy_team().size() > index) {
-						enemies = AI::HL::Util::get_robots(world.enemy_team());
-						std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
-						return enemies[index];
+						passees = AI::HL::Util::get_robots(world.enemy_team());
+						std::sort(passees.begin(), passees.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
+						return passees[index];
 					} else {
 						return Robot::Ptr();
 					}
 				}
 
-				return enemies[index];
+				return passees[index];
+				*/
 			}
 	};
 };
@@ -101,8 +104,8 @@ Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_goal(const World &world, unsigne
 
 /*
    Enemy::Ptr AI::HL::STP::Enemy::robot(Robot::Ptr r) {
-    Enemy::Ptr p(new Fixed(r));
-    return p;
+   Enemy::Ptr p(new Fixed(r));
+   return p;
    }
  */
 
@@ -111,10 +114,11 @@ Enemy::Ptr AI::HL::STP::Enemy::closest_ball(const World &world, unsigned int i) 
 	return p;
 }
 
-Enemy::Ptr AI::HL::STP::Enemy::closest_pass(const World &world, const Robot::Ptr r, unsigned int i) {
-	Enemy::Ptr p(new ClosestPass(world, r, i));
+Enemy::Ptr AI::HL::STP::Enemy::closest_pass(const World &world, unsigned int i) {
+	Enemy::Ptr p(new ClosestPass(world, i));
 	return p;
 }
+
 
 Enemy::Enemy() {
 }
