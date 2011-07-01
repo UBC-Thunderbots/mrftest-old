@@ -72,13 +72,13 @@ void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context>
 		const double y1 = -world.field().width() / 2;
 		const double y2 = world.field().width() / 2;
 
-		const double dx = (x2 - x1) / (grid_x + 1);
-		const double dy = (y2 - y1) / (grid_y + 1);
+		const double dx = (x2 - x1) / (grid_x + 1) / 2;
+		const double dy = (y2 - y1) / (grid_y + 1) / 2;
 
-		for (int i = 0; i < grid_x; ++i) {
-			for (int j = 0; j < grid_y; ++j) {
-				const double x = x1 + dx * (i + 1);
-				const double y = y1 + dy * (j + 1);
+		for (int i = 1; i <= 2*grid_y+1; i += 2) {
+			for (int j = (i/2+1)%2+1; j <= 2*grid_x+1; j += 2) {
+				const double x = x1 + dx * j;
+				const double y = y1 + dy * i;
 				const Point pos = Point(x, y);
 
 				const double score = Evaluation::offense_score(world, pos);

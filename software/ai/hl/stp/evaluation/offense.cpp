@@ -161,7 +161,7 @@ namespace {
 		 */
 
 		for (int i = 1; i <= 2*grid_y+1; i += 2) {
-			for (int j = i%2+1; j <= 2*grid_x+1; j += 2) {
+			for (int j = (i/2)%2+1; j <= 2*grid_x+1; j += 2) {
 				const double x = x1 + dx * j;
 				const double y = y1 + dy * i;
 				const Point pos = Point(x, y);
