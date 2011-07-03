@@ -55,10 +55,11 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player) {
 }
 
 bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target, double velocity) {
-	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot_target(world, player, target);
+	// Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot_target(world, player, target);
 	chase_pivot(world, player, target);
 
-	if(shoot_data.can_shoot/*within_angle_thresh(player, target, pass_threshold)*/) {
+	//if (shoot_data.can_shoot) {
+	if (Evaluation::player_within_angle_thresh(player, target, pass_threshold)) {
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
 			return false;

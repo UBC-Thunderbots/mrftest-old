@@ -18,6 +18,7 @@ bool AI::HL::STP::Evaluation::enemy_can_shoot_goal(const World& world, Robot::Pt
 	return calc_enemy_best_shot_goal(world, enemy).second > degrees2radians(enemy_shoot_accuracy);
 }
 
+/*
 std::pair<Point, double> AI::HL::STP::Evaluation::calc_enemy_best_shot_target(const World &world, const Point &target_pos, const Robot::Ptr enemy, const double radius) {
 	std::vector<Point> obstacles;
 	const FriendlyTeam &friendly = world.friendly_team();
@@ -35,7 +36,9 @@ std::pair<Point, double> AI::HL::STP::Evaluation::calc_enemy_best_shot_target(co
 
 	return calc_enemy_best_shot_target(target_pos, obstacles, enemy->position(), radius);
 }
+*/
 
+/*
 std::pair<Point, double> AI::HL::STP::Evaluation::calc_enemy_best_shot_target(const Point &target_pos, const std::vector<Point> &obstacles, const Point &p, const double radius) {
 
 #warning due to an old HACK, angle_sweep_circle only works on positive side, so this is a hack because of a hack
@@ -56,6 +59,7 @@ std::pair<Point, double> AI::HL::STP::Evaluation::calc_enemy_best_shot_target(co
 
 	return ret;
 }
+*/
 
 std::pair<Point, double> Evaluation::calc_enemy_best_shot_goal(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
 

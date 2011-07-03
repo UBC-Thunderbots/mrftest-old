@@ -78,12 +78,12 @@ namespace AI {
 				/**
 				 * Calculates how good it is to shoot to a particular target location.
 				 */
-				std::pair<Point, double> calc_enemy_best_shot_target(const World &world, const Point &target_pos, const Robot::Ptr enemy, const double radius = 1.0);
+				// std::pair<Point, double> calc_enemy_best_shot_target(const World &world, const Point &target_pos, const Robot::Ptr enemy, const double radius = 1.0);
 
 				/**
 				 * Enemy version.
 				 */
-				std::pair<Point, double> calc_enemy_best_shot_target(const Point &target_pos, const std::vector<Point> &obstacles, const Point &p, const double radius = 1.0);
+				//std::pair<Point, double> calc_enemy_best_shot_target(const Point &target_pos, const std::vector<Point> &obstacles, const Point &p, const double radius = 1.0);
 
 				/**
 				 * # of passes it takes for the enemy to shoot to our goal
