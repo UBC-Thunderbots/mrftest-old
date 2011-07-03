@@ -35,7 +35,9 @@ namespace {
 			}
 
 			bool invariant() const {
-				return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && !Predicates::fight_ball(world);
+				return Predicates::playtype(world, AI::Common::PlayType::PLAY)
+					&& Predicates::our_team_size_at_least(world, 3)
+					&& !Predicates::fight_ball(world);
 			}
 
 			bool done() const {
@@ -43,8 +45,10 @@ namespace {
 			}
 
 			bool applicable() const {
-				return Predicates::our_ball(world) && Predicates::baller_can_shoot_target(world, target, true)
-					&& (world.ball().position() - target).len() > min_pass_dist && !Predicates::baller_can_shoot(world);
+				return Predicates::our_ball(world) 
+					&& Predicates::baller_can_pass_target(world, target)
+					&& (world.ball().position() - target).len() > min_pass_dist
+					&& !Predicates::baller_can_shoot(world);
 			}
 
 			bool fail() const {

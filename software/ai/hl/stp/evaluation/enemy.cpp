@@ -1,4 +1,5 @@
 #include "ai/hl/stp/evaluation/enemy.h"
+#include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "geom/util.h"
 #include "ai/hl/util.h"
@@ -11,66 +12,10 @@ namespace Util = AI::HL::Util;
 
 namespace {
 	DoubleParam enemy_shoot_accuracy("Enemy shoot accuracy (degrees)", "STP/enemy", 1.0, 0.0, 90.0);
-
-	DoubleParam enemy_pass_width("Enemy pass width (robot radius)", "STP/enemy", 2, 0, 9);
 }
 
 bool AI::HL::STP::Evaluation::enemy_can_shoot_goal(const World& world, Robot::Ptr enemy) {
 	return calc_enemy_best_shot_goal(world, enemy).second > degrees2radians(enemy_shoot_accuracy);
-}
-
-bool AI::HL::STP::Evaluation::enemy_can_receive(const World &world, const Robot::Ptr enemy) {
-	const Ball &ball = world.ball();
-	if ((ball.position() - enemy->position()).lensq() < Util::POS_CLOSE) {
-		return true;
-	}
-	// if the enemy is not facing the ball, forget it
-	const Point ray = ball.position() - enemy->position();
-	if (angle_diff(ray.orientation(), enemy->orientation()) > Util::ORI_PASS_CLOSE) {
-		return false;
-	}
-
-	const Point direction = ray.norm();
-	const double distance = (ball.position() - enemy->position()).len();
-	const FriendlyTeam &friendly = world.friendly_team();
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		const Player::CPtr plr = friendly.get(i);
-		const Point pp = plr->position() - enemy->position();
-		const double proj = pp.dot(direction);
-		const double perp = sqrt(pp.dot(pp) - proj * proj);
-		if (proj <= 0) {
-			continue;
-		}
-		if (proj < distance && perp < enemy_pass_width * Robot::MAX_RADIUS + Robot::MAX_RADIUS + Ball::RADIUS) {
-			return false;
-		}
-	}
-	const EnemyTeam &enemies = world.enemy_team();
-	for (std::size_t i = 0; i < enemies.size(); ++i) {
-		const Robot::Ptr rob = enemies.get(i);
-		if (possess_ball(world, rob) || rob == enemy) {
-			continue;
-		}
-		const Point rp = rob->position() - enemy->position();
-		const double proj = rp.dot(direction);
-		const double perp = sqrt(rp.dot(rp) - proj * proj);
-		if (proj <= 0) {
-			continue;
-		}
-		if (proj < distance && perp < enemy_pass_width * Robot::MAX_RADIUS + Robot::MAX_RADIUS + Ball::RADIUS) {
-			return false;
-		}
-	}
-	return true;
-}
-
-bool AI::HL::STP::Evaluation::enemy_can_pass(const World &world, const Robot::Ptr passer, const Robot::Ptr passee) {
-	std::vector<Point> obstacles;
-	const FriendlyTeam &friendly = world.friendly_team();
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		obstacles.push_back(friendly.get(i)->position());
-	}
-	return AI::HL::Util::path_check(passer->position(), passee->position(), obstacles, Robot::MAX_RADIUS * enemy_pass_width);
 }
 
 std::pair<Point, double> AI::HL::STP::Evaluation::calc_enemy_best_shot_target(const World &world, const Point &target_pos, const Robot::Ptr enemy, const double radius) {
@@ -243,6 +188,7 @@ std::vector<Evaluation::Threat> AI::HL::STP::Evaluation::calc_enemy_threat(const
 		}
 	}
 
+	// all-pairs shortest paths
 	for (size_t k = 0; k < enemy.size(); ++k) {
 		for (size_t i = 0; i < enemy.size(); ++i) {
 			for (size_t j = 0; j < enemy.size(); ++j) {

@@ -9,8 +9,6 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-				extern DoubleParam shoot_accuracy;
-
 				struct ShootData {
 					bool blocked;
 					bool reduced_radius;
@@ -19,15 +17,6 @@ namespace AI {
 					double accuracy_diff;
 					Point target;
 				};
-
-				/*
-				   class EvaluateShoot : public Cacheable<ShootData, CacheableNonKeyArgs<AI::HL::W::World &>, CacheableKeyArgs<AI::HL::W::Player::Ptr>> {
-				   protected:
-				   ShootData compute(AI::HL::W::World &world, AI::HL::W::Player::Ptr player) const;
-				   };
-
-				   extern EvaluateShoot evaluate_shoot;
-				 */
 
 				ShootData evaluate_shoot(const World &world, Player::CPtr player);
 

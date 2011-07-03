@@ -1,18 +1,19 @@
 #include "ai/hl/stp/tactic/pass.h"
-#include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/param.h"
-#include "ai/hl/util.h"
 #include "ai/hl/stp/play_executor.h"
-#include "geom/util.h"
+#include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/evaluation/ball.h"
+#include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/stp/evaluation/team.h"
-#include "util/dprint.h"
 #include "ai/hl/stp/predicates.h"
 #include "ai/hl/stp/param.h"
+#include "ai/hl/util.h"
+#include "geom/util.h"
+#include "util/dprint.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -61,13 +62,18 @@ namespace {
 				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();				
 				//return kicked && (player->position() - world.ball().position()).len() > (player->position() - dest).len()/4;
 
-#warning HEY I think i found the bug as to why pass may fail, this should be an AND
+#warning WTH how this works
 				return kicked || player->autokick_fired();
 			}
 			
 			bool fail() const {
-				// should fail when cannot pass to target, or a shot on net is available
-				return (player.is() && passer_depends_calc_best_shot_target && AI::HL::Util::calc_best_shot_target(world, target.position(), player, 0.5, true).second == 0 ) || ( passer_depends_baller_can_shoot && AI::HL::STP::Predicates::baller_can_shoot(world) );
+				return player.is()
+					// should fail when cannot pass to target,
+					&& (!passer_depends_calc_best_shot_target
+							|| Evaluation::can_pass(world, player->position(), target))
+					// or a shot on net is available
+					&& (!passer_depends_baller_can_shoot
+							|| AI::HL::STP::Predicates::baller_can_shoot(world));
 			}
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
@@ -94,16 +100,16 @@ namespace {
 				return "passer-shoot";
 			}
 	};
-	
+
 	kick_info PasserShoot::passer_info;	
 	Player::Ptr last_passee;
-	
+
 	void on_robot_removing(std::size_t i, const World &w) {
 		if(w.friendly_team().get(i) == Player::CPtr(last_passee)){
 			last_passee.reset();
 		}
 	}
-	
+
 	void connect_remove_player_handler(const World &w){
 		static bool connected = false;	
 		if(!connected){
@@ -136,7 +142,7 @@ namespace {
 				Player::CPtr passer = Evaluation::nearest_friendly(world, world.ball().position());
 				kick_info passer_info = PasserShoot::passer_info;
 				bool fast_ball = world.ball().velocity().len() > fast_velocity;
-				#warning looks abit ugly.. 
+#warning looks abit ugly.. 
 
 
 				///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,39 +174,39 @@ namespace {
 				std::vector<Point> Passer_ray_target_region_intersect = line_circle_intersect(passer_info.kicker_target, target_radius, passer_info.kicker_location, passer_info.kicker_location + passer_dir);
 
 				if( Passer_ray_target_region_intersect.size() == 0 ){//passer is not within passing tolerance
-						double distA = closest_lineseg_point(circle_outside_ray_intersectA, passer_info.kicker_location , passer_info.kicker_location + passer_dir).len();
-						double distB =  closest_lineseg_point(circle_outside_ray_intersectB, passer_info.kicker_location , passer_info.kicker_location + passer_dir).len();
-						Point passee_goto= circle_outside_ray_intersectA;
-						if( distB < distA){
-							passee_goto= circle_outside_ray_intersectB;
-						}
-
-						// Additional distance to add to location in the case that we are dealing with an improperly
-						// tuned controller
-						Point add_dist_hack(0,0);
-						// if the passee is currently outside of it's target by certain amount add hack distance 
-						if((passee_goto - player->position()).len() > passee_hack_appl){
-							add_dist_hack = passee_hack_dist*(passee_goto - player->position()).norm();
-						}
-						passee_goto = passee_goto + add_dist_hack;
-						Action::move(player, (world.ball().position() - player->position()).orientation(), passee_goto);
-				} else { //passer is within passer tolerance
-						Point passee_goto(0.0,0.0);
-						for(unsigned int i = 0; i < Passer_ray_target_region_intersect.size(); i++){
-							passee_goto+=Passer_ray_target_region_intersect[i];
-						}
-						passee_goto/=Passer_ray_target_region_intersect.size();
-
-						// Additional distance to add to location in the case that we are dealing with an improperly
-						// tuned controller
-						Point add_dist_hack(0,0);
-						// if the passee is currently outside of it's target by certain amount add hack distance 
-						if((passee_goto - player->position()).len() > passee_hack_appl){
-							add_dist_hack = passee_hack_dist*(passee_goto - player->position()).norm();
-						}
-						passee_goto = passee_goto + add_dist_hack;
-						Action::move(player, (world.ball().position() - player->position()).orientation(), passee_goto);
+					double distA = closest_lineseg_point(circle_outside_ray_intersectA, passer_info.kicker_location , passer_info.kicker_location + passer_dir).len();
+					double distB =  closest_lineseg_point(circle_outside_ray_intersectB, passer_info.kicker_location , passer_info.kicker_location + passer_dir).len();
+					Point passee_goto= circle_outside_ray_intersectA;
+					if( distB < distA){
+						passee_goto= circle_outside_ray_intersectB;
 					}
+
+					// Additional distance to add to location in the case that we are dealing with an improperly
+					// tuned controller
+					Point add_dist_hack(0,0);
+					// if the passee is currently outside of it's target by certain amount add hack distance 
+					if((passee_goto - player->position()).len() > passee_hack_appl){
+						add_dist_hack = passee_hack_dist*(passee_goto - player->position()).norm();
+					}
+					passee_goto = passee_goto + add_dist_hack;
+					Action::move(player, (world.ball().position() - player->position()).orientation(), passee_goto);
+				} else { //passer is within passer tolerance
+					Point passee_goto(0.0,0.0);
+					for(unsigned int i = 0; i < Passer_ray_target_region_intersect.size(); i++){
+						passee_goto+=Passer_ray_target_region_intersect[i];
+					}
+					passee_goto/=Passer_ray_target_region_intersect.size();
+
+					// Additional distance to add to location in the case that we are dealing with an improperly
+					// tuned controller
+					Point add_dist_hack(0,0);
+					// if the passee is currently outside of it's target by certain amount add hack distance 
+					if((passee_goto - player->position()).len() > passee_hack_appl){
+						add_dist_hack = passee_hack_dist*(passee_goto - player->position()).norm();
+					}
+					passee_goto = passee_goto + add_dist_hack;
+					Action::move(player, (world.ball().position() - player->position()).orientation(), passee_goto);
+				}
 				player->type(AI::Flags::MoveType::DRIBBLE);
 			}
 
@@ -208,17 +214,17 @@ namespace {
 				return "passee-move";
 			}
 	};
-	
 
-	
+
+
 	class PasseeRecieve : public Tactic {
 		public:
 			PasseeRecieve(const World &world) : Tactic(world, true) {
-				#warning find a good mechanism for passing 
+#warning find a good mechanism for passing 
 			}
 
 		private:
-			
+
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				// hard to calculate who is best to recieve the pass
 				// so use whoever last was assigned if they are still around
@@ -235,20 +241,20 @@ namespace {
 				return player.is() && player->has_ball();
 			}
 			void execute() {
-				
+
 				const kick_info &passer_info = PasserShoot::passer_info;
-				
+
 				bool fast_ball = world.ball().velocity().len() > fast_velocity;				
-				
+
 				// ball heading towards us
 				bool can_intercept = ((player->position() - world.ball().position()).dot(world.ball().velocity()) > 0);
-				
+
 				if(world.ball().velocity().len() < negligible_velocity) {
 					Action::chase(world, player);
 					player->type(AI::Flags::MoveType::DRIBBLE);
 					return;
 				}
-				
+
 				if (!fast_ball) {
 					Point pass_dir(100, 0);
 					pass_dir = pass_dir.rotate(passer_info.kicker_orientation);
@@ -256,7 +262,7 @@ namespace {
 					Point addit = passee_hack_dist*(intercept_pos - player->position()).norm();
 					Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos + addit);
 				} else if (can_intercept && fast_ball) {
-					
+
 					Point intercept_pos = closest_lineseg_point(player->position(), world.ball().position(),  world.ball().position() + 100 * (world.ball().velocity().norm()));
 					Point pass_dir = (world.ball().position() - passer_info.kicker_location).norm();
 					Point addit = passee_hack_dist*(intercept_pos - player->position()).norm();
@@ -275,75 +281,52 @@ namespace {
 
 	class PasserRandom : public Tactic {
 		public:
-			PasserRandom(const World &world) : Tactic(world, true), kicked(false) {
+			PasserRandom(const World &world) : Tactic(world, true), kick_attempted(false) {
 			}
 
 		private:
-			bool kicked;
+			bool kick_attempted;
 			Player::CPtr target;
 
 			bool done() const {
-				return kicked && player->autokick_fired();
-			}
-
-			bool okay_pass(const Player::CPtr other) const {
-				if (other->position().x < player->position().x) return false;
-
-				if ((other->position() - player->position()).len() < min_pass_dist) return false;
-
-				if (!Evaluation::can_pass(world, player, other)) return false;
-
-				return true;
-			}
-
-			Player::CPtr find_target() const {
-				if (!player.is()) {
-					return Player::CPtr();
-				}
-				const FriendlyTeam& friendly = world.friendly_team();
-				for (std::size_t i = 0; i < friendly.size(); ++i) {
-					Player::CPtr player_const = player;
-					if (friendly.get(i) == player_const) continue;
-
-					if (!okay_pass(friendly.get(i))) continue;
-
-					return friendly.get(i);
-				}
-
-				return Player::CPtr();
+				return player.is() && kick_attempted && player->autokick_fired();
 			}
 
 			bool fail() const {
-				if (!player.is()) return false;
+				if (!Evaluation::find_random_passee(world).is()) {
+					return true;
+				}
 
-#warning MAYBE a better terminating condition
-				// if there exist ANY target then we're fine
-				Player::CPtr t = find_target();
-				if (!t.is()) return true;
+				if (AI::HL::STP::Predicates::baller_can_shoot(world)) {
+					return true;
+				}
 
-				// should fail when cannot pass to target, or a shot on net is available
-				return (player.is() && passer_depends_baller_can_shoot && AI::HL::STP::Predicates::baller_can_shoot(world));
+				return false;
 			}
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+				// if a player attempted to shoot, keep the player
+				if (kick_attempted && players.count(player)) {
+					return player;
+				}
 				return select_baller(world, players);
 			}
 
 			void execute() {
-				if (target.is() && !okay_pass(target)) {
+				if (target.is() && !Evaluation::passee_suitable(world, target)) {
 					target.reset();
 				}
 
 				if (!target.is()) {
-					target = find_target();
+					target = Evaluation::find_random_passee(world);
 				}
 
 				if (!target.is()) {
-					// do nothing
+					// should fail
 					return;
 				}
 
-				kicked = kicked || Action::shoot_pass(world, player, target);
+				kick_attempted = kick_attempted || Action::shoot_pass(world, player, target);
 			}
 
 			std::string description() const {

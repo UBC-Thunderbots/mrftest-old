@@ -3,6 +3,7 @@
 #include "ai/hl/stp/action/pivot.h"
 #include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/evaluation/player.h"
 #include "geom/util.h"
 #include "util/dprint.h"
 
@@ -118,7 +119,7 @@ namespace {
 				}
 				
 				bool fast_ball = world.ball().velocity().len() > negligible_velocity;
-				if(Action::within_angle_thresh(players[0], targets[pass_target], passer_tol_target) || (kicked && !fast_ball)){
+				if(Evaluation::player_within_angle_thresh(players[0], targets[pass_target], passer_tol_target) || (kicked && !fast_ball)){
 
 					Point pass_dir(100, 0);
 					pass_dir = pass_dir.rotate(players[0]->orientation());

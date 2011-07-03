@@ -4,12 +4,29 @@
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/enemy.h"
+#include "ai/hl/stp/evaluation/pass.h"
+#include "ai/hl/stp/predicates.h"
 #include <cmath>
 
 using namespace AI::HL::STP;
-namespace Evaluation = AI::HL::STP::Evaluation;
 using AI::HL::STP::Evaluation::grid_x;
 using AI::HL::STP::Evaluation::grid_y;
+
+void AI::HL::STP::draw_friendly_pass(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
+	const FriendlyTeam& friendly = world.friendly_team();
+
+	if (Predicates::our_ball(world)) {
+		for (std::size_t i = 0; i < friendly.size(); ++i) {
+			if (Evaluation::passee_suitable(world, friendly.get(i))) {
+				ctx->set_source_rgba(0.5, 1.0, 0.5, 0.5);
+				ctx->set_line_width(0.01);
+				ctx->move_to(friendly.get(i)->position().x, friendly.get(i)->position().y);
+				ctx->line_to(world.ball().position().x, world.ball().position().y);
+				ctx->stroke();
+			}
+		}
+	}
+}
 
 void AI::HL::STP::draw_enemy_pass(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
 	auto threats = Evaluation::calc_enemy_threat(world);
@@ -71,7 +88,7 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 
 		if (Evaluation::possess_ball(world, player)) {
 			ctx->set_source_rgba(0.5, 1.0, 0.5, 0.5);
-			ctx->set_line_width(0.05);
+			ctx->set_line_width(0.03);
 			ctx->move_to(player->position().x, player->position().y);
 			ctx->line_to(shoot_data.target.x, shoot_data.target.y);
 			ctx->stroke();
@@ -194,12 +211,12 @@ void AI::HL::STP::draw_defense(const World &world, Cairo::RefPtr<Cairo::Context>
 
 	// draw own goal?
 	/*
-	ctx->set_line_width(0.01);
-	ctx->set_source_rgba(1.0, 0.5, 0.5, 1.0);
-	ctx->move_to(goal1.x, goal1.y);
-	ctx->line_to(goal2.x, goal2.y);
-	ctx->stroke();
-	*/
+	   ctx->set_line_width(0.01);
+	   ctx->set_source_rgba(1.0, 0.5, 0.5, 1.0);
+	   ctx->move_to(goal1.x, goal1.y);
+	   ctx->line_to(goal2.x, goal2.y);
+	   ctx->stroke();
+	 */
 }
 
 void AI::HL::STP::draw_velocity(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {

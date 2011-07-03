@@ -172,8 +172,8 @@
       </category>
       <category name="offense">
         <double name="enemy avoidance distance (robot radius)">3.00</double>
-        <integer name="grid x size">40</integer>
-        <integer name="grid y size">40</integer>
+        <integer name="grid x size">20</integer>
+        <integer name="grid y size">20</integer>
         <double name="Scoring weight for angle from ball to goal at robot (-ve)">2.0</double>
         <double name="Scoring weight for angle to goal (POWER, careful)">2.5</double>
         <double name="Scoring weight for ball progress (+ve)">1.0</double>
@@ -187,7 +187,7 @@
         <double name="minimum region available for baller_can_shoot to be true (degrees)">5.7</double>
       </category>
       <category name="Pass">
-        <double name="Minimum distance for pass play">1.000</double>
+        <double name="Minimum distance for pass play">0.500</double>
       </category>
       <category name="Play">
         <category name="Enable">

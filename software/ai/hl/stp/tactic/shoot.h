@@ -16,7 +16,7 @@ namespace AI {
 				/**
 				 * Shoot a specified target.
 				 */
-				Tactic::Ptr shoot_target(const World &world, const Coordinate target, double velocity = 10.0);
+				Tactic::Ptr shoot_target(const World &world, const Coordinate target);
 			}
 		}
 	}

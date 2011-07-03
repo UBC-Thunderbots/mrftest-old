@@ -4,6 +4,8 @@
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/team.h"
+#include "ai/hl/stp/evaluation/pass.h"
+#include "ai/hl/stp/evaluation/player.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
@@ -12,6 +14,7 @@
 #include <algorithm>
 #include <cmath>
 #include "ai/hl/stp/param.h"
+
 using namespace AI::HL::STP;
 
 namespace {
@@ -80,11 +83,11 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 
 	chase_pivot(world, player, target);
 	// checker shooter orientation
-	if (!within_angle_thresh(player, target, angle_tol)) {
+	if (!Evaluation::player_within_angle_thresh(player, target, angle_tol)) {
 		return false;
 	}
 
-	if (player->has_ball() && within_angle_thresh(player, target, angle_tol) && !player->chicker_ready()) {
+	if (player->has_ball() && Evaluation::player_within_angle_thresh(player, target, angle_tol) && !player->chicker_ready()) {
 		LOG_INFO("chicker not ready");
 		return false;
 	}
@@ -96,7 +99,7 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
 		Player::CPtr p = player;
 		if(world.friendly_team().get(i) != p){
-			bool curr_ok =  (target - world.friendly_team().get(i)->position()).len() < distance_tol && within_angle_thresh(world.friendly_team().get(i), player->position(), recieve_threshold);
+			bool curr_ok =  (target - world.friendly_team().get(i)->position()).len() < distance_tol && Evaluation::passee_facing_passer(world.friendly_team().get(i), player);
 			ok = ok || curr_ok;
 		}
 	}
@@ -107,18 +110,6 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	}
 	// the return value is not necessarly acurate
 	return false;
-}
-
-#warning TODO REFACTOR, this should also be somewhere in evaluation
-bool AI::HL::STP::Action::within_angle_thresh(Player::CPtr player, const Point target, double threshold){
-	return within_angle_thresh(player->position(), player->orientation(), target, threshold);
-}
-
-bool AI::HL::STP::Action::within_angle_thresh(const Point position, const double orientation, const Point target, double threshold) {
-	Point pass_dir = (target - position).norm();
-	Point facing_dir = Point(1,0).rotate(orientation);
-	double dir_thresh = cos((threshold*M_PI / 180.0));
-	return facing_dir.dot(pass_dir) > dir_thresh;
 }
 
 double AI::HL::STP::Action::shoot_speed(double distance, double delta, double alph) {

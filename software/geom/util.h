@@ -15,6 +15,31 @@
  */
 
 /**
+ * The distance between an INFINITE line (A, B) and point P.
+ */
+double line_pt_dist(const Point A, const Point B, const Point P);
+
+/**
+ * The distance between a FINITE line segment (A, B) and point p.
+ */
+double seg_pt_dist(const Point a, const Point b, const Point p);
+
+/**
+ * Projection of (a -> p) to vector (a -> b), SIGNED - positive in front
+ */
+double proj_dist(const Point a, const Point b, const Point p);
+
+/**
+ * Point in triangle
+ */
+bool point_in_triangle(const Point p1, const Point p2, const Point p3, const Point c);
+
+/**
+ * Checks if triangle-circle intersect.
+ */
+bool triangle_circle_intersect(const Point p1, const Point p2, const Point p3, const Point c, const double radius);
+
+/**
  * Computes a minimum-total-distance bipartite matching between sets of points.
  *
  * \param[in] v1 the first set of points.

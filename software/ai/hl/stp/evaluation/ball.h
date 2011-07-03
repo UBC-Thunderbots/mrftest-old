@@ -9,16 +9,6 @@ namespace AI {
 		namespace STP {
 			namespace Evaluation {
 				/**
-				 * Can pass.
-				 */
-				bool can_pass(const World& world, Player::CPtr passer, Player::CPtr passee);
-
-				/**
-				 * Can pass from p1 to p2?
-				 */
-				bool can_pass(const World& world, const Point p1, const Point p2);
-
-				/**
 				 * Ball is within pivot threshold.
 				 */
 				bool ball_in_pivot_thresh(const World &world, Player::CPtr player);
@@ -44,9 +34,11 @@ namespace AI {
 				Robot::Ptr calc_enemy_baller(const World &world);
 
 				/**
-				 * Finds grab ball position
+				 * Computes the best location to grab the ball,
+				 * minimizing the time required.
+				 * This is a wrapper to the function in ai/util.h
 				 */
-				Point grab_ball(const World &world, Player::Ptr player);
+				Point calc_fastest_grab_ball_dest(const World &world, Player::Ptr player);
 
 				/**
 				 * Distance from the front to be considered ball possession.

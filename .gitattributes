@@ -223,6 +223,10 @@ software/ai/hl/stp/evaluation/evaluation.cpp -text
 software/ai/hl/stp/evaluation/evaluation.h -text
 software/ai/hl/stp/evaluation/offense.cpp -text
 software/ai/hl/stp/evaluation/offense.h -text
+software/ai/hl/stp/evaluation/pass.cpp -text
+software/ai/hl/stp/evaluation/pass.h -text
+software/ai/hl/stp/evaluation/player.cpp -text
+software/ai/hl/stp/evaluation/player.h -text
 software/ai/hl/stp/evaluation/shoot.cpp -text
 software/ai/hl/stp/evaluation/shoot.h -text
 software/ai/hl/stp/evaluation/team.cpp -text
@@ -371,6 +375,7 @@ software/ai/robot_controller/lazy_controller.cpp -text
 software/ai/robot_controller/max_controller.cpp -text
 software/ai/robot_controller/path_controller.cpp -text
 software/ai/robot_controller/pid3_controller.cpp -text
+software/ai/robot_controller/pid_simulator_controller.cpp -text
 software/ai/robot_controller/point_velocity_controller.cpp -text
 software/ai/robot_controller/robot_controller.cpp -text
 software/ai/robot_controller/robot_controller.h -text

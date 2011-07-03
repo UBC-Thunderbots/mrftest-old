@@ -6,7 +6,8 @@
 namespace AI {
 	namespace Util {
 		/**
-		 * Computes where to chase the ball given the location of a player.
+		 * Computes the best location to grab the ball,
+		 * minimizing the time required.
 		 *
 		 * \param[in] ball_pos ball position
 		 *
@@ -18,7 +19,7 @@ namespace AI {
 		 *
 		 * \return true if the output is valid.
 		 */
-		bool grab_ball_dest(Point ball_pos, Point ball_vel, Point player_pos, Point& dest);
+		bool calc_fastest_grab_ball_dest(Point ball_pos, Point ball_vel, Point player_pos, Point& dest);
 	}
 }
 

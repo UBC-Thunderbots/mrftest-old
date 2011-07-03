@@ -66,17 +66,6 @@ namespace AI {
 				bool enemy_can_shoot_goal(const World& world, const Robot::Ptr enemy);
 
 				/**
-				 * BAD CODE INSIDE
-				 * Checks if enemy can receive the ball.
-				 */
-				bool enemy_can_receive(const World &world, const Robot::Ptr enemy);
-
-				/**
-				 * Checks if a pass is possible.
-				 */
-				bool enemy_can_pass(const World &world, const Robot::Ptr passer, const Robot::Ptr passee);
-
-				/**
 				 * Calculates how good an enemy is at shooting our goal.
 				 */
 				std::pair<Point, double> calc_enemy_best_shot_goal(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius = 1.0);

@@ -1,8 +1,10 @@
 #include "ai/hl/stp/action/block.h"
 #include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/evaluation/player.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
+#include "geom/angle.h"
 #include "util/dprint.h"
 #include "util/param.h"
 
@@ -10,6 +12,8 @@ using namespace AI::HL::STP;
 
 namespace {
 	DoubleParam block_threshold("block threshold distance in terms of robot radius", "STP/Action/block", 3.0, 2.0, 8.0);
+
+	DoubleParam block_angle("baller projects a cone of this angle, blocker will avoid this cone (degrees)", "STP/Action/block", 5.0, 0, 90);
 
 }
 
@@ -29,8 +33,10 @@ void AI::HL::STP::Action::block_goal(const World &world, Player::Ptr player, Rob
 
 	Point target = robot->position() + (block_dist * block_threshold * Robot::MAX_RADIUS * dirToGoal);
 
+#warning TODO CHECK ??
+
 	// don't block from ball if we are blocking our baller!!
-	if (within_angle_thresh(baller, target)) {
+	if (Evaluation::player_within_angle_thresh(baller, target, 2 * degrees2radians(block_angle))) {
 		block_dist *= 2;	
 		Point target = robot->position() + (block_dist * block_threshold * Robot::MAX_RADIUS * dirToGoal);
 	}
@@ -56,8 +62,10 @@ void AI::HL::STP::Action::block_ball(const World &world, Player::Ptr player, Rob
 	std::vector<Player::CPtr> friendly = AI::HL::Util::get_players(world.friendly_team());
 	Player::CPtr baller = *std::min_element(friendly.begin(), friendly.end(), AI::HL::Util::CmpDist<Player::CPtr>(world.ball().position()));
 
+#warning TODO CHECK ??
+
 	// don't block from ball if we are blocking our baller!!
-	if (within_angle_thresh(baller, target)) target = robot->position() + (2 * block_threshold * Robot::MAX_RADIUS * dirToBall);
+	if (Evaluation::player_within_angle_thresh(baller, target, 2 * degrees2radians(block_angle))) target = robot->position() + (2 * block_threshold * Robot::MAX_RADIUS * dirToBall);
 
 	player->move(target, (world.ball().position() - player->position()).orientation(), Point());	
 	player->type(AI::Flags::MoveType::NORMAL);

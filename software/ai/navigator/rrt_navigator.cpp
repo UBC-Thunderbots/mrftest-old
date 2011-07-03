@@ -74,7 +74,7 @@ namespace AI {
 
 				double dest_ori = (world.ball().position() - player->position()).orientation();
 
-				if (!AI::Util::grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest_pos)) {
+				if (!AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest_pos)) {
 					return std::make_pair(world.ball().position(), dest_ori);
 				}
 
@@ -99,7 +99,7 @@ namespace AI {
 
 				Point dest_pos;
 
-				if (!AI::Util::grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest_pos)) {
+				if (!AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest_pos)) {
 					return std::make_pair(world.ball().position(), dest_ori);
 				}
 

@@ -1,4 +1,5 @@
 #include "ai/hl/stp/evaluation/shoot.h"
+#include "ai/hl/stp/param.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
 #include "geom/angle.h"
@@ -10,8 +11,6 @@ using namespace AI::HL::STP;
 namespace {
 	DoubleParam reduced_radius("reduced radius for calculating best shot (robot radius ratio)", "STP/Action/shoot", 0.8, 0.0, 1.0);
 }
-
-DoubleParam AI::HL::STP::Evaluation::shoot_accuracy("Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate", "STP/shoot", 0.0, -180.0, 180.0);
 
 Evaluation::ShootData Evaluation::evaluate_shoot(const World &world, Player::CPtr player) {
 	ShootData data;

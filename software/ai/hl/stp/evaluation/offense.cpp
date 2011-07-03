@@ -1,4 +1,5 @@
 #include "ai/hl/stp/evaluation/shoot.h"
+#include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/param.h"
 #include "ai/hl/util.h"
@@ -75,8 +76,7 @@ namespace {
 		// density of enemy, passing distance, distance to the goal, angle of shooting, angle of receiving
 		// distance toward the closest enemy, travel distance, behind of in front of the enemy
 
-#warning using deprecated method
-		if (!AI::HL::Util::path_check(world.ball().position(), dest, enemy_pos, Robot::MAX_RADIUS * pass_width)) {
+		if (!Evaluation::can_pass(world, world.ball().position(), dest)) {
 			return -1e99;
 		}
 

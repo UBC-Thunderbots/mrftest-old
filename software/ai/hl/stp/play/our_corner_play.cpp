@@ -16,8 +16,12 @@ using AI::HL::STP::Coordinate;
  * - shoot the ball to enemy goal while passing the ball between the passer and passee
  */
 BEGIN_PLAY(OurCornerPlay)
-INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3))
-APPLICABLE(Predicates::our_ball(world) && Predicates::ball_in_our_corner(world) && !Predicates::baller_can_shoot(world) && !Predicates::baller_can_pass(world))
+INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY)
+	&& Predicates::our_team_size_at_least(world, 3))
+APPLICABLE(Predicates::our_ball(world)
+		&& Predicates::ball_in_our_corner(world)
+		&& !Predicates::baller_can_shoot(world)
+		&& !Predicates::baller_can_pass(world))
 DONE(!Predicates::ball_in_our_corner(world))
 FAIL(Predicates::their_ball(world))
 BEGIN_ASSIGN()
@@ -26,7 +30,7 @@ goalie_role.push_back(defend_duo_goalie(world));
 
 // ROLE 1
 // shoot towards the midfield
-roles[0].push_back(shoot_target(world, Point(-world.ball().position().x, -world.ball().position().y), 5.0));
+roles[0].push_back(shoot_target(world, Point(-world.ball().position().x, -world.ball().position().y)));
 
 // ROLE 2
 // defend

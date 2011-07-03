@@ -57,7 +57,7 @@ namespace AI {
 			/**
 			 * The shooting accuracy of the robot, in terms of angle.
 			 */
-			extern DoubleParam shoot_accuracy;
+			extern DoubleParam shoot_accuracy __attribute__ ((deprecated));
 
 			/**
 			 * Time the team can get ready for special plays.
@@ -65,12 +65,12 @@ namespace AI {
 			 * the refree will force start.
 			 * Reduce this number to prevent such occurence.
 			 */
-			extern DoubleParam get_ready_time;
+			extern DoubleParam get_ready_time __attribute__ ((deprecated));
 
 			/**
 			 * If dribble for more than this time, shoot already.
 			 */
-			extern DoubleParam dribble_timeout;
+			extern DoubleParam dribble_timeout __attribute__ ((deprecated));
 
 			/**
 			 * Somewhat close.
@@ -97,19 +97,19 @@ namespace AI {
 			 * If the robot is less than this angle away from the ball,
 			 * then it is capable of receiving the ball.
 			 */
-			extern const double ORI_PASS_CLOSE;
+			extern const double ORI_PASS_CLOSE __attribute__ ((deprecated));
 
 			/**
 			 * Let t be time elpased since robot has ball.
 			 * If t < this number, then robot is considered to posses the ball.
 			 */
-			extern const double HAS_BALL_ALLOWANCE;
+			extern const double HAS_BALL_ALLOWANCE __attribute__ ((deprecated));
 
 			/**
 			 * Let t be time elpased since robot senses the ball.
 			 * If t >= this number, then robot is considered to have the ball with very high probability.
 			 */
-			extern const double HAS_BALL_TIME;
+			extern const double HAS_BALL_TIME __attribute__ ((deprecated));
 
 			/**
 			 * Checks if a point lies inside the friendly defense area.
@@ -152,7 +152,7 @@ namespace AI {
 			 * \return \c false if some robots is blocking line of sight of ball from \p passee, if \p passee is not facing the ball, or if some condition is invalid;
 			 * or \c true if \p passee can receive the ball.
 			 */
-			bool can_receive(AI::HL::W::World &world, AI::HL::W::Player::Ptr passee);
+			bool can_receive(AI::HL::W::World &world, AI::HL::W::Player::Ptr passee) __attribute__ ((deprecated));
 
 			/**
 			 * Finds the length of the largest continuous interval (angle-wise) of the enemy goal that can be seen from a point.
@@ -182,37 +182,10 @@ namespace AI {
 			std::pair<Point, double> calc_best_shot(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player, double radius = 1.0);
 
 			/**
-			 * Finds the length of the largest continuous interval (angle-wise) of a target player (passee) that can be seen from a point.
-			 * Having a vector of points enables one to add imaginary threats.
-			 * This version accepts vector of obstacles, so that you can add imaginary robots.
-			 *
-			 * \param[in] f field is needed to calculate length etc
-			 *
-			 * \param[in] radius the multiplier to the radius of the robot,
-			 * you can decrease the radius to make it easier to shoot.
-			 *
-			 * \return the point and the score (angle),
-			 * where the score will be 0 if the point is invalid.
-			 */
-			std::pair<Point, double> calc_best_shot_target(const Point &target_pos, const std::vector<Point> &obstacles, const Point &p, double radius = 1.0);
-
-			/**
-			 * Finds the length of the largest continuous interval (angle-wise) of a target player (passee) that can be seen from a point.
-			 * To add imaginary threats, please use the other version.
-			 *
-			 * \param[in] radius the multiplier to the radius of the robot,
-			 * you can decrease the radius to make it easier to shoot.
-			 *
-			 * \return the point as and the score (angle),
-			 * where the score will be 0 if the point is invalid,
-			 */
-			std::pair<Point, double> calc_best_shot_target(const AI::HL::W::World &world, const Point &target_pos, AI::HL::W::Player::CPtr player, double radius = 1.0, bool pass = false);
-
-			/**
 			 * Checks if the robot is in a position close enough to the ball to start
 			 * So close that no other robot can be in the way of this ball.
 			 */
-			bool ball_close(const AI::HL::W::World &world, AI::HL::W::Robot::Ptr robot);
+			bool ball_close(const AI::HL::W::World &world, AI::HL::W::Robot::Ptr robot) __attribute__ ((deprecated));
 
 			/**
 			 * Checks if a FRIENDLY PLAYER posses the ball.
@@ -241,7 +214,7 @@ namespace AI {
 			/**
 			 * Converts a friendly team into a vector of players.
 			 */
-			std::vector<AI::HL::W::Player::Ptr> get_players_exclude(AI::HL::W::FriendlyTeam &friendly, std::vector<AI::HL::W::Player::Ptr> &others);
+			std::vector<AI::HL::W::Player::Ptr> get_players_exclude(AI::HL::W::FriendlyTeam &friendly, std::vector<AI::HL::W::Player::Ptr> &others) __attribute__ ((deprecated));
 
 			/**
 			 * Converts an enemy team into a vector of robots.
