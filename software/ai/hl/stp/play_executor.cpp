@@ -209,7 +209,15 @@ void PlayExecutor::execute_tactics() {
 		if (!curr_assignment[i].is()) {
 			continue;
 		}
-		curr_assignment[i]->flags(Flags::calc_flags(world.playtype()));
+		unsigned int default_flags = Flags::FLAG_AVOID_FRIENDLY_DEFENSE;
+		switch (world.playtype()) {
+			case AI::Common::PlayType::STOP:
+				default_flags |= Flags::FLAG_AVOID_BALL_STOP;
+				break;
+			default:
+				break;
+		}
+		curr_assignment[i]->flags(default_flags);
 	}
 
 	// execute!

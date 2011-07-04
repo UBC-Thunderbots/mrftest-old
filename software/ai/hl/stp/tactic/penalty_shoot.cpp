@@ -65,6 +65,9 @@ namespace {
 		}
 		*/
 		has_shot = AI::HL::STP::Action::shoot_goal(world, player);
+
+		// unset any flags
+		player->flags(0);
 	}
 }
 
