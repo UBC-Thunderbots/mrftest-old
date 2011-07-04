@@ -28,7 +28,10 @@ namespace AI {
 
 				extern DoubleParam target_region_param;
 			}
-
+			
+			namespace Tactic {
+				extern BoolParam random_penalty_goalie;
+			}
 		}
 	}
 }

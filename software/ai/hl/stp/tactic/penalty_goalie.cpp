@@ -1,6 +1,7 @@
 #include "ai/hl/stp/tactic/penalty_goalie.h"
 #include "ai/hl/stp/action/goalie.h"
 #include "ai/hl/util.h"
+#include "ai/hl/stp/param.h"
 
 #include <cassert>
 
@@ -8,6 +9,8 @@ using namespace AI::HL::W;
 using namespace AI::HL::STP::Tactic;
 
 namespace {
+	Point old_des;
+	
 	class PenaltyGoalie : public Tactic {
 		public:
 			PenaltyGoalie(const World &world);
@@ -25,6 +28,7 @@ namespace {
 	};
 
 	PenaltyGoalie::PenaltyGoalie(const World &world) : Tactic(world, true) {
+		old_des = Point(world.field().friendly_goal().x, -0.8 * Robot::MAX_RADIUS);
 	}
 
 	bool PenaltyGoalie::done() const {
@@ -33,25 +37,36 @@ namespace {
 	}
 
 	void PenaltyGoalie::execute() {
-		const Point p1(-0.5 * world.field().length(), -0.8 * Robot::MAX_RADIUS);
-		const Point p2(-0.5 * world.field().length(), 0.8 * Robot::MAX_RADIUS);
-		if ((player->position() - p1).len() < AI::HL::Util::POS_CLOSE) {
-			goto_target1 = false;
-		} else if ((player->position() - p2).len() < AI::HL::Util::POS_CLOSE) {
-			goto_target1 = true;
-		}
-
-		Point target;
-		if (goto_target1) {
-			target = p1;
+		if (random_penalty_goalie) {
+			if ((player->position() - old_des).len() < AI::HL::Util::POS_CLOSE) {
+				double ran = (static_cast<double> (std::rand()) / static_cast<double> (RAND_MAX));
+				old_des = Point(world.field().friendly_goal().x, ran * 0.2 - (1 - ran) * 0.2);
+			}
+			// just orient towards the "front"
+			player->move(old_des, 0, Point());
+			player->type(AI::Flags::MoveType::NORMAL);
+			player->prio(AI::Flags::MovePrio::HIGH);
 		} else {
-			target = p2;
-		}
+			const Point p1(world.field().friendly_goal().x, -0.2);
+			const Point p2(world.field().friendly_goal().x, 0.2);
+			if ((player->position() - p1).len() < AI::HL::Util::POS_CLOSE) {
+				goto_target1 = false;
+			} else if ((player->position() - p2).len() < AI::HL::Util::POS_CLOSE) {
+				goto_target1 = true;
+			}
 
-		// just orient towards the "front"
-		player->move(target, 0, Point());
-		player->type(AI::Flags::MoveType::NORMAL);
-		player->prio(AI::Flags::MovePrio::HIGH);
+			Point target;
+			if (goto_target1) {
+				target = p1;
+			} else {
+				target = p2;
+			}
+
+			// just orient towards the "front"
+			player->move(target, 0, Point());
+			player->type(AI::Flags::MoveType::NORMAL);
+			player->prio(AI::Flags::MovePrio::HIGH);
+		}
 	}
 }
 

@@ -122,10 +122,29 @@
         <double name="xy +proportional">12.00</double>
         <double name="YA ratio">0.00</double>
       </category>
+      <category name="PIDSim">
+        <double name="angular -differential">0.0</double>
+        <double name="angular +integral">0.00</double>
+        <double name="angular max velocity">1.00</double>
+        <double name="angular +proportional">1.00</double>
+        <double name="(CARE) angular slowdown when translating">1.010</double>
+        <boolean name="(CARE) flip trans&amp;ang slowdown">false</boolean>
+        <boolean name="(CARE) reduce angular velocity when translating">false</boolean>
+        <boolean name="do reset when target changes">false</boolean>
+        <double name="integral decay (%)">0.0</double>
+        <double name="x to y ratio">1.000</double>
+        <double name="xy -differential">0.0</double>
+        <double name="xy +integral">0.00</double>
+        <double name="xy max acceleration">1.00</double>
+        <double name="xy max velocity">1.00</double>
+        <double name="xy +proportional">0.10</double>
+        <double name="YA ratio">0.00</double>
+      </category>
     </category>
     <category name="STP">
       <category name="Action">
         <category name="block">
+          <double name="baller projects a cone of this angle, blocker will avoid this cone (degrees)">5.0</double>
           <double name="block threshold distance in terms of robot radius">3.000</double>
         </category>
         <category name="defend">
@@ -136,7 +155,7 @@
         </category>
         <category name="shoot">
           <double name="Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate">5.0</double>
-          <double name="Angle threshold (in degrees) that the reciever must be with respect to passer when shot, smaller is more accurate">80.0</double>
+          <double name="Angle threshold (in degrees) that the passee must be with respect to passer when shot, smaller is more accurate">80.0</double>
           <double name="Decay constant for the ball velocity">0.100</double>
           <double name="kicking speed for making a pass">4.75</double>
           <double name="reduced radius for calculating best shot (robot radius ratio)">0.800</double>
@@ -156,7 +175,7 @@
         <double name="shrink robot radius">1.100</double>
       </category>
       <category name="enemy">
-        <double name="Enemy pass width (robot radius)">3.00</double>
+        <double name="Enemy pass checking width (robot radius)">2.00</double>
         <double name="Enemy shoot accuracy (degrees)">7.0</double>
       </category>
       <category name="evaluation">
@@ -172,6 +191,7 @@
       </category>
       <category name="offense">
         <double name="enemy avoidance distance (robot radius)">3.00</double>
+        <double name="Friendly pass checking width (robot radius)">2.00</double>
         <integer name="grid x size">20</integer>
         <integer name="grid y size">20</integer>
         <double name="Scoring weight for angle from ball to goal at robot (-ve)">2.0</double>
@@ -181,7 +201,6 @@
         <double name="Scoring weight for distance to enemy goal (-ve)">1.0</double>
         <double name="Scoring weight for everything">500</double>
         <double name="Scoring weight for nearest enemy (+ve)">1.0</double>
-        <double name="Width for passing (robot radius)">2.00</double>
       </category>
       <category name="param">
         <double name="minimum region available for baller_can_shoot to be true (degrees)">5.7</double>
@@ -202,7 +221,8 @@
           <boolean name="FreeKickFriendlyPass">true</boolean>
           <boolean name="FreeKickFriendlyRepel">true</boolean>
           <boolean name="FriendlyCornerPlay1">true</boolean>
-          <boolean name="GrabBall">true</boolean>
+          <boolean name="GrabBallDefensive">true</boolean>
+          <boolean name="GrabBallOffensive">true</boolean>
           <boolean name="JustBlockShoot">true</boolean>
           <boolean name="JustGoalie">true</boolean>
           <boolean name="JustRepel">true</boolean>
@@ -218,6 +238,7 @@
           <boolean name="Pass Play 0 0">true</boolean>
           <boolean name="Pass Play 1.2 -1.5">true</boolean>
           <boolean name="Pass Play 1.2 1.5">true</boolean>
+          <boolean name="PassRandom">true</boolean>
           <boolean name="PassTest">true</boolean>
           <boolean name="PenaltyEnemy">true</boolean>
           <boolean name="PenaltyFriendly">true</boolean>
@@ -236,7 +257,8 @@
           <integer name="FreeKickFriendlyPass">5</integer>
           <integer name="FreeKickFriendlyRepel">5</integer>
           <integer name="FriendlyCornerPlay1">5</integer>
-          <integer name="GrabBall">5</integer>
+          <integer name="GrabBallDefensive">5</integer>
+          <integer name="GrabBallOffensive">5</integer>
           <integer name="JustBlockShoot">5</integer>
           <integer name="JustGoalie">5</integer>
           <integer name="JustRepel">0</integer>
@@ -252,6 +274,7 @@
           <integer name="Pass Play 0 0">5</integer>
           <integer name="Pass Play 1.2 -1.5">5</integer>
           <integer name="Pass Play 1.2 1.5">5</integer>
+          <integer name="PassRandom">5</integer>
           <integer name="PassTest">5</integer>
           <integer name="PenaltyEnemy">5</integer>
           <integer name="PenaltyFriendly">5</integer>
@@ -264,6 +287,7 @@
       </category>
       <category name="shoot">
         <double name="Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate">0.0</double>
+        <double name="Shoot accuracy (for various purposes)">5.0</double>
       </category>
       <category name="Tactic">
         <category name="pass">
@@ -276,6 +300,9 @@
           <double name="velocity of pass threshold">1.000</double>
           <double name="velocity to ignore">0.200</double>
           <double name="when passer within this angle tol passee responds to passer direction">30.0</double>
+        </category>
+        <category name="penalty_goalie">
+          <boolean name="Whether the penalty goalie should choose random points">true</boolean>
         </category>
         <double name="stop: angle to separate players (degrees)">20.0</double>
       </category>
