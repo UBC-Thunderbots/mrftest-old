@@ -203,6 +203,15 @@ void PlayExecutor::execute_tactics() {
 		break;
 	}
 
+	// set flags, do it before any execution
+	curr_assignment[0]->flags(0);
+	for (std::size_t i = 1; i < 5; ++i) {
+		if (!curr_assignment[i].is()) {
+			continue;
+		}
+		curr_assignment[i]->flags(Flags::calc_flags(world.playtype()));
+	}
+
 	// execute!
 	for (std::size_t i = 0; i < 5; ++i) {
 		if (!curr_assignment[i].is()) {
