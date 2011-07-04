@@ -5,7 +5,7 @@
 namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::Enemy;
 
-BEGIN_PLAY(GrabBall)
+BEGIN_PLAY(GrabBallOffensive)
 INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY)
 	&& Predicates::our_team_size_at_least(world, 2))
 APPLICABLE(Predicates::none_ball(world))
