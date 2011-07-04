@@ -11,18 +11,21 @@ namespace AI {
 
 			extern DoubleParam min_shoot_region;
 
-			extern DoubleParam receive_angle_threshold;
+			extern DoubleParam passee_angle_threshold;
 
 			extern DoubleParam shoot_accuracy;
 
 			extern DoubleParam shoot_width;
 
-			namespace Action{
+			namespace Action {
 				//	these are pass specific
 				// needs comments
 				extern	DoubleParam alpha;
-				extern DoubleParam pass_threshold;
+
 				extern DoubleParam pass_speed;
+
+				extern DoubleParam passer_angle_threshold;
+
 				extern DoubleParam target_region_param;
 			}
 

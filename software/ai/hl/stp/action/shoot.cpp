@@ -59,7 +59,7 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 	chase_pivot(world, player, target);
 
 	//if (shoot_data.can_shoot) {
-	if (Evaluation::player_within_angle_thresh(player, target, pass_threshold)) {
+	if (Evaluation::player_within_angle_thresh(player, target, passer_angle_threshold)) {
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
 			return false;
@@ -77,7 +77,7 @@ bool AI::HL::STP::Action::shoot_pass(const World& world, Player::Ptr shooter, Pl
 }
 
 bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target) {
-	return shoot_pass(world, player, target, pass_threshold);
+	return shoot_pass(world, player, target, passer_angle_threshold);
 }
 
 bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target, double angle_tol) {
@@ -94,22 +94,23 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	}
 
 	// check receiver is within passing range & angle
-	double distance_tol = (target-player->position()).len()*sin(angle_tol*M_PI/180.0) + AI::HL::STP::Action::target_region_param;
+	double distance_tol = (target-player->position()).len()*sin(degrees2radians(angle_tol)) + AI::HL::STP::Action::target_region_param;
 	bool ok=false;
 
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
 		Player::CPtr p = player;
-		if(world.friendly_team().get(i) != p){
-			bool curr_ok =  (target - world.friendly_team().get(i)->position()).len() < distance_tol && Evaluation::passee_facing_passer(world.friendly_team().get(i), player);
+		if(world.friendly_team().get(i) != p) {
+			bool curr_ok =  (target - world.friendly_team().get(i)->position()).len() < distance_tol
+				&& Evaluation::passee_facing_passer(player, world.friendly_team().get(i));
 			ok = ok || curr_ok;
 		}
 	}
 
-	if(ok){
+	if(ok) {
 		autokick(player, target, pass_speed);
 		return true;
 	}
-	// the return value is not necessarly acurate
+
 	return false;
 }
 

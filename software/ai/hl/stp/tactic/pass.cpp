@@ -13,6 +13,7 @@
 #include "ai/hl/stp/param.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
+#include "geom/angle.h"
 #include "util/dprint.h"
 
 using namespace AI::HL::STP::Tactic;
@@ -153,7 +154,7 @@ namespace {
 
 				// target normalized to position of passer
 				Point passer_target = passer_info.kicker_target - passer_info.kicker_location;
-				double pass_thresh = AI::HL::STP::Action::pass_threshold * M_PI/180.0;
+				double pass_thresh = degrees2radians(AI::HL::STP::Action::passer_angle_threshold);
 
 				// the intersection point of largest circle inscribed by 2 rays
 				// (the rays are the max and min angle that is acceptable for passer

@@ -75,8 +75,13 @@ std::pair<Point, double> Evaluation::calc_enemy_best_shot_goal(const Field &f, c
 
 	auto ret = angle_sweep_circles(Point(-p.x, p.y), p1, p2, obs_rev, radius * Robot::MAX_RADIUS);
 	ret.first.x *= -1;
-
 	return ret;
+
+	/*
+	const Point p1 = Point(-f.length() / 2.0, f.goal_width() / 2.0);
+	const Point p2 = Point(-f.length() / 2.0, -f.goal_width() / 2.0);
+	return angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
+	*/
 }
 
 std::pair<Point, double> Evaluation::calc_enemy_best_shot_goal(const World &world, const Robot::Ptr enemy, const double radius) {
