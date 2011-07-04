@@ -353,12 +353,16 @@ LibUSBTransfer::~LibUSBTransfer() {
 }
 
 void LibUSBTransfer::callback() {
-	if (transfer->status == LIBUSB_TRANSFER_STALL && stall_count < stall_max) {
+	if ((transfer->status == LIBUSB_TRANSFER_STALL || transfer->status == LIBUSB_TRANSFER_ERROR) && stall_count < stall_max) {
 		++stall_count;
-		LOG_ERROR(Glib::ustring::compose("Ignored stall %1 of %2 on %3 endpoint %4", stall_count, stall_max, ((transfer->endpoint & LIBUSB_ENDPOINT_DIR_MASK) == LIBUSB_ENDPOINT_IN) ? "IN" : "OUT", static_cast<unsigned int>(transfer->endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK)));
+		if (transfer->status == LIBUSB_TRANSFER_STALL) {
+			LOG_ERROR(Glib::ustring::compose("Ignored stall %1 of %2 on %3 endpoint %4", stall_count, stall_max, ((transfer->endpoint & LIBUSB_ENDPOINT_DIR_MASK) == LIBUSB_ENDPOINT_IN) ? "IN" : "OUT", static_cast<unsigned int>(transfer->endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK)));
+		} else {
+			LOG_ERROR(Glib::ustring::compose("Ignored transfer error %1 of %2 on %3 endpoint %4", stall_count, stall_max, ((transfer->endpoint & LIBUSB_ENDPOINT_DIR_MASK) == LIBUSB_ENDPOINT_IN) ? "IN" : "OUT", static_cast<unsigned int>(transfer->endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK)));
+		}
 		check_fn("libusb_submit_transfer", libusb_submit_transfer(transfer));
 		return;
-	} else if (transfer->status != LIBUSB_TRANSFER_STALL) {
+	} else if (transfer->status != LIBUSB_TRANSFER_STALL && transfer->status != LIBUSB_TRANSFER_ERROR) {
 		stall_count = 0;
 	}
 	done_ = true;
