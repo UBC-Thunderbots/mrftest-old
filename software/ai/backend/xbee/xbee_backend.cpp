@@ -628,7 +628,7 @@ namespace {
 				unsigned int camera_mask = 3;
 				if (params.count("cameras")) {
 					const Glib::ustring &cameras_string = params.find("cameras")->second;
-					if (cameras_string.size() != 1 || !std::isdigit(cameras_string[0], std::locale())) {
+					if (cameras_string.size() != 1 || !std::isdigit<wchar_t>(cameras_string[0], std::locale())) {
 						throw std::runtime_error("cameras parameter must be a single decimal digit.");
 					}
 					std::wistringstream iss(ustring2wstring(cameras_string));
