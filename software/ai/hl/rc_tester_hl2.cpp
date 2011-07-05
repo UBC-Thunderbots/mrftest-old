@@ -66,9 +66,9 @@ namespace {
 
 			Player::Ptr first = friendly.get(0);
 
-			const double px = first->position().x + controls[0].get_value();
-			const double py = first->position().y + controls[1].get_value();
-			const double pz = first->orientation() + controls[2].get_value();
+			const double px = controls[0].get_value();
+			const double py = controls[1].get_value();
+			const double pz = controls[2].get_value();
 
 			for (std::size_t i = 0; i < friendly.size(); ++i) {
 				Player::Ptr runner = friendly.get(i);
