@@ -114,7 +114,8 @@ namespace {
 
 		// threshold the linear acceleration
 		Point accel = linear_velocity - prev_linear_velocity;
-		if (accel.len() > PID_MAX_ACC) {
+
+		if (accel.len() > PID_MAX_ACC * TIMESTEPS_PER_SECOND) {
 			accel *= PID_MAX_ACC / accel.len();
 			linear_velocity = prev_linear_velocity + accel;
 		}

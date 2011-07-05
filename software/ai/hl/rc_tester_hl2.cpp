@@ -34,6 +34,9 @@ namespace {
 				controls[i].set_digits(2);
 			}
 
+			controls[0].get_adjustment()->configure(0, -3, 3, 0.1, 100, 0);
+			controls[1].get_adjustment()->configure(0, -2, 2, 0.1, 100, 0);
+
 			vbox.add(offsets_x);
 			vbox.add(offsets_y);
 
