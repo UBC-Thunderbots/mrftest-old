@@ -49,8 +49,9 @@ namespace AI {
 
 				/**
 				 * Stay at position and wait for pass.
+				 * number: first passee is 0, second is 1 etc
 				 */
-				Tactic::Ptr passee_simple(const World &world);
+				Tactic::Ptr passee_simple(const World &world, unsigned number);
 			}
 		}
 	}

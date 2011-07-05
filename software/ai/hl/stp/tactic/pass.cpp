@@ -337,10 +337,11 @@ namespace {
 
 	class PasseeSimple : public Tactic {
 		public:
-			PasseeSimple(const World &world) : Tactic(world, false) {
+			PasseeSimple(const World &world, unsigned number) : Tactic(world, false), number(number) {
 			}
 
 		private:
+			const unsigned number;
 			bool kick_attempted;
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
@@ -358,7 +359,14 @@ namespace {
 			}
 
 			void execute() {
-				Action::move(world, player, player->position());
+				if (Evaluation::passee_suitable(world, player)) {
+					Action::move(world, player, player->position());
+				} else {
+					// move to a suitable position
+					auto dest = AI::HL::STP::Evaluation::offense_positions(world);
+					Action::move(world, player, dest[number]);
+					player->prio(AI::Flags::MovePrio::LOW);
+				}
 			}
 
 			std::string description() const {
@@ -403,8 +411,8 @@ Tactic::Ptr AI::HL::STP::Tactic::passer_simple(const World &world) {
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passee_simple(const World &world) {
-	const Tactic::Ptr p(new PasseeSimple(world));
+Tactic::Ptr AI::HL::STP::Tactic::passee_simple(const World &world, unsigned number) {
+	const Tactic::Ptr p(new PasseeSimple(world, number));
 	return p;
 }
 
