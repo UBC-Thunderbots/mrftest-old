@@ -85,28 +85,42 @@ bool Evaluation::passee_suitable(const World& world, Player::CPtr passee) {
 		return false;
 	}
 
+	/*
 	if (!Evaluation::passee_facing_ball(world, passee)) {
 		return false;
 	}
+	*/
 
 	return true;
 }
 
-Player::CPtr Evaluation::find_random_passee(const World& world) {
+namespace {
+	// hysterysis for select_passee
+	Player::CPtr previous_passee;
+}
+
+Player::CPtr Evaluation::select_passee(const World& world) {
 	const FriendlyTeam& friendly = world.friendly_team();
 	std::vector<Player::CPtr> candidates;
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		if (possess_ball(world, friendly.get(i))) {
 			continue;
 		}
-		if (passee_suitable(world, friendly.get(i))) {
-			candidates.push_back(friendly.get(i));
+		if (!passee_suitable(world, friendly.get(i))) {
+			continue;
 		}
+
+		if (friendly.get(i) == previous_passee) {
+			return friendly.get(i);
+		}
+
+		candidates.push_back(friendly.get(i));
 	}
 	if (candidates.size() == 0) {
 		return Player::CPtr();
 	}
 	random_shuffle(candidates.begin(), candidates.end());
+	previous_passee = candidates.front();
 	return candidates.front();
 }
 

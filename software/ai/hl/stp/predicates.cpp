@@ -113,7 +113,7 @@ bool Predicates::baller_can_pass(const World &world) {
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
-	return Evaluation::find_random_passee(world).is();
+	return Evaluation::select_passee(world).is();
 }
 
 bool Predicates::baller_under_threat(const World &world) {

@@ -14,11 +14,11 @@ Player::Ptr AI::HL::STP::HACK::last_kicked;
 
 
 namespace {
-	// The maximum amount of time a play can be running.
-	const double PLAY_TIMEOUT = 30.0;
 
 	BoolParam goalie_lowest("Goalie is lowest index", "STP/Goalie", true);
 	IntParam goalie_pattern_index("Goalie pattern index", "STP/Goalie", 0, 0, 11);
+
+	BoolParam high_priority_always("If higher priority play exists, switch", "STP/PlayExecutor", true);
 
 	void on_robot_removing(std::size_t i, World &w) {
 		Player::Ptr plr = w.friendly_team().get(i);
@@ -57,10 +57,11 @@ void PlayExecutor::calc_play() {
 	// find a valid play
 	std::random_shuffle(plays.begin(), plays.end());
 	for (std::size_t i = 0; i < plays.size(); ++i) {
-		if (plays[i]->invariant() && plays[i]->applicable() && plays[i]->factory().enable) {
-			if (!curr_play.is() || plays[i]->factory().priority > curr_play->factory().priority) {
-				curr_play = plays[i];
-			}
+		if (!plays[i]->factory().enable) continue;
+		if (!plays[i]->invariant()) continue;
+		if (!plays[i]->applicable()) continue;
+		if (!curr_play.is() || plays[i]->factory().priority > curr_play->factory().priority) {
+			curr_play = plays[i];
 		}
 	}
 
@@ -269,10 +270,19 @@ void PlayExecutor::tick() {
 			LOG_INFO("play failed");
 			done = true;
 		}
-#warning a HACK
-		if (curr_play->factory().priority == 0) {
-			done = true;
+		if (high_priority_always && curr_play->can_give_up_safely()) {
+			for (std::size_t i = 0; i < plays.size(); ++i) {
+				if (!plays[i]->factory().enable) continue;
+				if (!plays[i]->invariant()) continue;
+				if (!plays[i]->applicable()) continue;
+				if (plays[i]->factory().priority > curr_play->factory().priority) {
+					LOG_INFO("higher priority play exist");
+					done = true;
+					break;
+				}
+			}
 		}
+
 		if (done) {
 			curr_play.reset();
 		}

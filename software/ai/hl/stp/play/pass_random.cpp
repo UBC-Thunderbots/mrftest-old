@@ -22,11 +22,11 @@ FAIL(Predicates::their_ball(world))
 BEGIN_ASSIGN()
 
 // STEP 1
-goalie_role.push_back(goalie_dynamic(world, 2));
-roles[0].push_back(passer_random(world));
-roles[1].push_back(offend(world));
-roles[2].push_back(defend_duo_defender(world));
-roles[3].push_back(offend_secondary(world));
+goalie_role.push_back(goalie_dynamic(world, 1));
+roles[0].push_back(defend_duo_defender(world));
+roles[1].push_back(passer_simple(world));
+roles[2].push_back(passee_simple(world));
+roles[3].push_back(passee_simple(world));
 
 // STEP 2
 goalie_role.push_back(goalie_dynamic(world, 1));

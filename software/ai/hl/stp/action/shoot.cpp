@@ -72,8 +72,30 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 }
 
 bool AI::HL::STP::Action::shoot_pass(const World& world, Player::Ptr shooter, Player::CPtr target) {
-#warning broken
+
 	return shoot_pass(world, shooter, target->position());
+
+	/*
+	chase_pivot(world, player, target->position());
+
+	// checker shooter orientation
+	if (!Evaluation::player_within_angle_thresh(player, target->position(), passer_angle_tol)) {
+		return false;
+	}
+
+	if (player->has_ball() && !player->chicker_ready()) {
+		LOG_INFO("chicker not ready");
+		return false;
+	}
+
+	// check if passee is facing passer
+	if (Evaluation::passee_facing_passer(shooter, target)) {
+		autokick(player, target, pass_speed);
+		return true;
+	}
+
+	return false;
+	*/
 }
 
 bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target) {
@@ -83,19 +105,20 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target, double angle_tol) {
 
 	chase_pivot(world, player, target);
+
 	// checker shooter orientation
 	if (!Evaluation::player_within_angle_thresh(player, target, angle_tol)) {
 		return false;
 	}
 
-	if (player->has_ball() && Evaluation::player_within_angle_thresh(player, target, angle_tol) && !player->chicker_ready()) {
+	if (player->has_ball() && !player->chicker_ready()) {
 		LOG_INFO("chicker not ready");
 		return false;
 	}
 
 	// check receiver is within passing range & angle
 	double distance_tol = (target-player->position()).len()*sin(degrees2radians(angle_tol)) + AI::HL::STP::Action::target_region_param;
-	bool ok=false;
+	bool ok = false;
 
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
 		Player::CPtr p = player;
@@ -106,7 +129,7 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 		}
 	}
 
-	if(ok) {
+	if (ok) {
 		autokick(player, target, pass_speed);
 		return true;
 	}

@@ -41,9 +41,12 @@ namespace AI {
 				bool passee_suitable(const World& world, Player::CPtr passee);
 				
 				/**
-				 * Obtains a random player who can be passee.
+				 * Obtains a player who can be a passee.
+				 * WARNING:
+				 * This function has built-in hysterysis.
+				 * Calls will return the previously chosen player if possible.
 				 */
-				Player::CPtr find_random_passee(const World& world);
+				Player::CPtr select_passee(const World& world);
 			}
 		}
 	}

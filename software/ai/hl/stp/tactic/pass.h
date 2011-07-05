@@ -45,7 +45,12 @@ namespace AI {
 				/**
 				 * Just toss the ball to someone in front.
 				 */
-				Tactic::Ptr passer_random(const World &world);
+				Tactic::Ptr passer_simple(const World &world);
+
+				/**
+				 * Stay at position and wait for pass.
+				 */
+				Tactic::Ptr passee_simple(const World &world);
 			}
 		}
 	}

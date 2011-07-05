@@ -57,6 +57,11 @@ namespace AI {
 						virtual bool fail() const = 0;
 
 						/**
+						 * True if this play can give up safely right now.
+						 */
+						virtual bool can_give_up_safely() const;
+
+						/**
 						 * Provide lists of tactics.
 						 * Called when this play is initially activated.
 						 *

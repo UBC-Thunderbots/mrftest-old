@@ -280,9 +280,9 @@ namespace {
 			}
 	};
 
-	class PasserRandom : public Tactic {
+	class PasserSimple : public Tactic {
 		public:
-			PasserRandom(const World &world) : Tactic(world, true), kick_attempted(false) {
+			PasserSimple(const World &world) : Tactic(world, true), kick_attempted(false) {
 			}
 
 		private:
@@ -294,7 +294,7 @@ namespace {
 			}
 
 			bool fail() const {
-				if (!Evaluation::find_random_passee(world).is()) {
+				if (!Evaluation::select_passee(world).is()) {
 					return true;
 				}
 
@@ -319,7 +319,7 @@ namespace {
 				}
 
 				if (!target.is()) {
-					target = Evaluation::find_random_passee(world);
+					target = Evaluation::select_passee(world);
 				}
 
 				if (!target.is()) {
@@ -331,7 +331,38 @@ namespace {
 			}
 
 			std::string description() const {
-				return "passer-random";
+				return "passer-simple";
+			}
+	};
+
+	class PasseeSimple : public Tactic {
+		public:
+			PasseeSimple(const World &world) : Tactic(world, false) {
+			}
+
+		private:
+			bool kick_attempted;
+
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+				// hysterysis.
+				if (player.is() && players.count(player) && Evaluation::passee_suitable(world, player)) {
+					return player;
+				}
+				for (auto it = players.begin(); it != players.end(); ++it) {
+					if (Evaluation::passee_suitable(world, *it)) {
+						return *it;
+					}
+				}
+				// return a random player..
+				return *players.begin();
+			}
+
+			void execute() {
+				Action::move(world, player, player->position());
+			}
+
+			std::string description() const {
+				return "passee-simple";
 			}
 	};
 
@@ -367,8 +398,13 @@ Tactic::Ptr AI::HL::STP::Tactic::passee_receive(const World &world) {
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passer_random(const World &world) {
-	const Tactic::Ptr p(new PasserRandom(world));
+Tactic::Ptr AI::HL::STP::Tactic::passer_simple(const World &world) {
+	const Tactic::Ptr p(new PasserSimple(world));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::passee_simple(const World &world) {
+	const Tactic::Ptr p(new PasseeSimple(world));
 	return p;
 }
 
