@@ -12,6 +12,34 @@ using namespace AI::HL::STP;
 using AI::HL::STP::Evaluation::grid_x;
 using AI::HL::STP::Evaluation::grid_y;
 
+void AI::HL::STP::draw_player_status(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
+	const FriendlyTeam& friendly = world.friendly_team();
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		if (friendly.get(i)->chicker_ready()) {
+			continue;
+		}
+		Point c = friendly.get(i)->position();
+		const double R = Robot::MAX_RADIUS / std::sqrt(2.0);
+		ctx->set_source_rgba(1.0, 0.0, 0.0, 0.8);
+		ctx->set_line_width(0.02);
+		ctx->move_to(c.x - R, c.y - R);
+		ctx->line_to(c.x + R, c.y + R);
+		ctx->move_to(c.x - R, c.y + R);
+		ctx->line_to(c.x + R, c.y - R);
+		ctx->stroke();
+	}
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		Player::CPtr player = friendly.get(i);
+		if (!player->has_ball()) {
+			continue;
+		}
+		ctx->set_source_rgba(1.0, 0.0, 0.0, 1.0);
+		ctx->set_line_width(0.02);
+		ctx->arc(player->position().x, player->position().y, Robot::MAX_RADIUS * 0.75, 0.0, 2 * M_PI);
+		ctx->stroke();
+	}
+}
+
 void AI::HL::STP::draw_friendly_pass(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
 	const FriendlyTeam& friendly = world.friendly_team();
 
@@ -32,18 +60,18 @@ void AI::HL::STP::draw_enemy_pass(const World &world, Cairo::RefPtr<Cairo::Conte
 	auto threats = Evaluation::calc_enemy_threat(world);
 	const EnemyTeam& enemy = world.enemy_team();
 	/*
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		for (std::size_t j = i + 1; j < enemy.size(); ++j) {
-			if (Evaluation::enemy_can_pass(world, enemy.get(i), enemy.get(j))) {
-				ctx->set_source_rgba(0.5, 0.5, 0.5, 0.5);
-				ctx->set_line_width(0.02);
-				ctx->move_to(enemy.get(i)->position().x, enemy.get(i)->position().y);
-				ctx->line_to(enemy.get(j)->position().x, enemy.get(j)->position().y);
-				ctx->stroke();
-			}
-		}
-	}
-	*/
+	   for (std::size_t i = 0; i < enemy.size(); ++i) {
+	   for (std::size_t j = i + 1; j < enemy.size(); ++j) {
+	   if (Evaluation::enemy_can_pass(world, enemy.get(i), enemy.get(j))) {
+	   ctx->set_source_rgba(0.5, 0.5, 0.5, 0.5);
+	   ctx->set_line_width(0.02);
+	   ctx->move_to(enemy.get(i)->position().x, enemy.get(i)->position().y);
+	   ctx->line_to(enemy.get(j)->position().x, enemy.get(j)->position().y);
+	   ctx->stroke();
+	   }
+	   }
+	   }
+	 */
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		Robot::Ptr robot = threats[i].robot;
 		Robot::Ptr passee = threats[i].passee;
@@ -81,18 +109,23 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 		if (!shoot_data.can_shoot) {
 			continue;
 		}
-		ctx->set_source_rgba(1.0, 1.0, 1.0, 0.5);
-		ctx->arc(player->position().x, player->position().y, 0.06, 0.0, 2 * M_PI);
-		ctx->fill();
-		ctx->stroke();
 
+		/*
+		ctx->set_source_rgba(0.0, 1.0, 1.0, 0.8);
+		ctx->arc(player->position().x, player->position().y, Robot::MAX_RADIUS, 0.0, 2 * M_PI);
+		ctx->set_line_width(0.05);
+		ctx->stroke();
+		*/
+
+		ctx->set_source_rgba(0.0, 1.0, 1.0, 0.4);
 		if (Evaluation::possess_ball(world, player)) {
-			ctx->set_source_rgba(0.5, 1.0, 0.5, 0.5);
-			ctx->set_line_width(0.03);
-			ctx->move_to(player->position().x, player->position().y);
-			ctx->line_to(shoot_data.target.x, shoot_data.target.y);
-			ctx->stroke();
+			ctx->set_line_width(Robot::MAX_RADIUS);
+		} else {
+			ctx->set_line_width(0.02);
 		}
+		ctx->move_to(player->position().x, player->position().y);
+		ctx->line_to(shoot_data.target.x, shoot_data.target.y);
+		ctx->stroke();
 	}
 }
 
@@ -142,7 +175,7 @@ void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context>
 				const double y = y1 + dy * i;
 				const Point pos = Point(x, y);
 
-				const double score = Evaluation::offense_score(world, pos);
+				const double score = Evaluation::offense_score(i, j);
 
 				/*
 				   {

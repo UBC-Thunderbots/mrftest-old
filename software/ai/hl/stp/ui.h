@@ -29,6 +29,8 @@ namespace AI {
 			void draw_defense(const World &world, Cairo::RefPtr<Cairo::Context> ctx);
 
 			void draw_velocity(const World &world, Cairo::RefPtr<Cairo::Context> ctx);
+
+			void draw_player_status(const World &world, Cairo::RefPtr<Cairo::Context> ctx);
 		}
 	}
 }
