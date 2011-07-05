@@ -36,12 +36,12 @@ roles[0].push_back(shoot_target(world, Point(-world.ball().position().x, -world.
 // defend
 roles[1].push_back(defend_duo_defender(world));
 
-// ROLE 3
-// block
+// ROLE 3 (optional)
+// move to where the ball will be shot to
 roles[2].push_back(move(world, Coordinate(world, Point(-world.ball().position().x, -world.ball().position().y), Coordinate::YType::ABSOLUTE, Coordinate::OriginType::ABSOLUTE)));
 
 // ROLE 4 (optional)
-// move to where the ball will be shot to
+// block
 roles[3].push_back(block_ball(world, Enemy::closest_ball(world, 0)));
 
 END_ASSIGN()

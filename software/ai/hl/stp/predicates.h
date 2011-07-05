@@ -46,6 +46,10 @@ namespace AI {
 
 				bool ball_midfield(const World &world);
 
+				bool ball_near_friendly_goal(const World &world);
+				
+				bool ball_near_enemy_goal(const World &world);
+
 				/**
 				 * player with the ball can shoot at their goal
 				 */

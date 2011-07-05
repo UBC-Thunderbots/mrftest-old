@@ -91,6 +91,14 @@ bool Predicates::ball_midfield(const World &world) {
 	return std::fabs(world.ball().position().x) < world.field().length() / 4;
 }
 
+bool Predicates::ball_near_friendly_goal(const World &world){
+	return ball_on_our_side(world) && !ball_in_our_corner(world) && !ball_midfield(world);
+}
+
+bool Predicates::ball_near_enemy_goal(const World &world){
+	return ball_on_their_side(world) && !ball_in_their_corner(world) && !ball_midfield(world);
+}
+
 bool Predicates::baller_can_shoot(const World &world) {
 	const Player::CPtr baller = Evaluation::calc_friendly_baller(world);
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
@@ -137,7 +145,7 @@ bool Predicates::enemy_baller_can_shoot(const World &world) {
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
-	return Evaluation::calc_enemy_pass(world, baller) == 0;
+	return Evaluation::enemy_can_shoot_goal(world, baller);
 }
 
 bool Predicates::enemy_baller_can_pass(const World &world) {
