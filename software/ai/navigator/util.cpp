@@ -151,7 +151,7 @@ namespace {
 
 	double get_play_area_boundary_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		const Field &f = world.field();
-		Point sw_corner(f.length() / 2, f.width() / 2);
+		Point sw_corner(-f.length() / 2, -f.width() / 2);
 		Rect bounds(sw_corner, f.length(), f.width());
 		bounds.expand(-distance_keepout::play_area(player));
 		double violation = 0.0;
@@ -166,7 +166,7 @@ namespace {
 
 	double get_total_bounds_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		const Field &f = world.field();
-		Point sw_corner(f.total_length() / 2, f.total_width() / 2);
+		Point sw_corner(-f.total_length() / 2, -f.total_width() / 2);
 		Rect bounds(sw_corner, f.total_length(), f.total_width());
 		bounds.expand(-distance_keepout::total_bounds_area(player));
 		double violation = 0.0;
@@ -180,7 +180,6 @@ namespace {
 	}
 
 	double get_friendly_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
-		// double player_rad = player->MAX_RADIUS;
 		double violate = 0.0;
 		// avoid enemy robots
 		for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
