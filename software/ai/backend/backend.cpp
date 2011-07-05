@@ -6,6 +6,21 @@
 using AI::BE::Backend;
 using AI::BE::BackendFactory;
 
+AI::BE::Robot::Robot() : avoid_distance_(AI::Flags::AvoidDistance::MEDIUM) {
+}
+
+void AI::BE::Robot::avoid_distance(AI::Flags::AvoidDistance dist) {
+	avoid_distance_ = dist;
+}
+
+AI::Flags::AvoidDistance AI::BE::Robot::avoid_distance() const {
+	return avoid_distance_;
+}
+
+void AI::BE::Robot::pre_tick() {
+	avoid_distance_ = AI::Flags::AvoidDistance::MEDIUM;
+}
+
 AI::BE::Player::Player() : moved(false), destination_(Point(), 0.0), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
 }
 
@@ -109,6 +124,7 @@ Backend::Backend() : defending_end_(FieldEnd::WEST), friendly_colour_(AI::Common
 }
 
 void AI::BE::Player::pre_tick() {
+	AI::BE::Robot::pre_tick();
 	moved = false;
 	flags_ = 0;
 	move_type_ = AI::Flags::MoveType::NORMAL;

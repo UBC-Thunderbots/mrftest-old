@@ -157,6 +157,28 @@ namespace AI {
 			 */
 			LOW,
 		};
+
+		/**
+		 * \brief Avoidance distances indicating by how far players should avoid an enemy.
+		 */
+		enum class AvoidDistance {
+			/**
+			 * \brief The players can come quite close to the enemy.
+			 */
+			SHORT,
+
+			/**
+			 * \brief The players can come within a moderate distance of the enemy.
+			 *
+			 * This is the default value.
+			 */
+			MEDIUM,
+
+			/**
+			 * \brief The players must stay a long way away from the enemy.
+			 */
+			LONG,
+		};
 	}
 }
 

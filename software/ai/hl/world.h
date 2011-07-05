@@ -24,7 +24,19 @@ namespace AI {
 			/**
 			 * A robot, as seen by a Strategy.
 			 */
-			typedef AI::Common::Robot Robot;
+			class Robot : public AI::Common::Robot {
+				public:
+					/**
+					 * \brief Sets the avoidance distance for this robot.
+					 *
+					 * If this function is not called, the avoidance distance is reset to medium.
+					 *
+					 * This function has no effect on friendly robots.
+					 *
+					 * \param[in] dist the avoidance distance.
+					 */
+					virtual void avoid_distance(AI::Flags::AvoidDistance dist) = 0;
+			};
 
 			/**
 			 * A player, as seen by a Strategy.

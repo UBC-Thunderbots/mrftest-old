@@ -45,6 +45,7 @@ namespace AI {
 					 * \param[in] ts the timestamp at which the robot was in this position.
 					 */
 					void pre_tick(const ::Simulator::Proto::S2ARobotInfo &state, const timespec &ts) {
+						AI::BE::Robot::pre_tick();
 						xpred.add_datum(state.x, ts);
 						xpred.lock_time(ts);
 						ypred.add_datum(state.y, ts);

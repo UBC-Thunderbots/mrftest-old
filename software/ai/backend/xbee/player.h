@@ -43,8 +43,8 @@ namespace AI {
 
 					Visualizable::Colour visualizer_colour() const;
 					Glib::ustring visualizer_label() const;
-					bool highlight() const { return Robot::highlight(); }
-					Visualizable::Colour highlight_colour() const { return Robot::highlight_colour(); }
+					bool highlight() const;
+					Visualizable::Colour highlight_colour() const;
 					Point position(double delta = 0.0) const { return Robot::position(delta); }
 					Point velocity(double delta = 0.0) const { return Robot::velocity(delta); }
 					double orientation(double delta = 0.0) const { return Robot::orientation(delta); }
@@ -71,6 +71,9 @@ namespace AI {
 					const int(&wheel_speeds() const)[4] {
 						return wheel_speeds_;
 					}
+					void avoid_distance(AI::Flags::AvoidDistance dist) { Robot::avoid_distance(dist); }
+					AI::Flags::AvoidDistance avoid_distance() const { return Robot::avoid_distance(); }
+					void pre_tick() { AI::BE::Player::pre_tick(); }
 
 
 
@@ -112,6 +115,11 @@ namespace AI {
 					 * \param[in] bot the XBee robot being driven.
 					 */
 					Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot);
+
+					/**
+					 * \brief Destroys a Player object.
+					 */
+					~Player();
 
 					void on_autokick_fired();
 			};

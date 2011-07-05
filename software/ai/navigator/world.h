@@ -25,7 +25,15 @@ namespace AI {
 			/**
 			 * A robot, as seen by a Navigator.
 			 */
-			typedef AI::Common::Robot Robot;
+			class Robot : public AI::Common::Robot {
+				public:
+					/**
+					 * \brief Returns the avoidance distance for this robot.
+					 *
+					 * \return the avoidance distance.
+					 */
+					virtual AI::Flags::AvoidDistance avoid_distance() const = 0;
+			};
 
 			/**
 			 * A player, as seen by a Navigator.

@@ -60,12 +60,21 @@ namespace AI {
 				double orientation(double delta) const = 0;
 				Point velocity(double delta) const = 0;
 				double avelocity(double delta) const = 0;
+				void avoid_distance(AI::Flags::AvoidDistance dist);
+				AI::Flags::AvoidDistance avoid_distance() const;
+				virtual void pre_tick();
+
+			protected:
+				Robot();
+
+			private:
+				AI::Flags::AvoidDistance avoid_distance_;
 		};
 
 		/**
 		 * A player, as exposed by the backend.
 		 */
-		class Player : public AI::BF::W::Player, public AI::HL::W::Player, public AI::Nav::W::Player, public AI::RC::W::Player, public Visualizable::Robot {
+		class Player : public AI::BE::Robot, public AI::BF::W::Player, public AI::HL::W::Player, public AI::Nav::W::Player, public AI::RC::W::Player {
 			public:
 				/**
 				 * A pointer to a Player.

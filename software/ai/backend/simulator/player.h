@@ -110,6 +110,8 @@ namespace AI {
 					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const;
 					void drive(const int(&w)[4]);
 					const int(&wheel_speeds() const)[4];
+					void avoid_distance(AI::Flags::AvoidDistance dist) { Robot::avoid_distance(dist); }
+					AI::Flags::AvoidDistance avoid_distance() const { return Robot::avoid_distance(); }
 
 				protected:
 					/**

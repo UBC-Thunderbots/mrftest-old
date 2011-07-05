@@ -97,6 +97,7 @@ namespace {
 			unsigned int score() const;
 			std::size_t size() const;
 			Robot::Ptr get(std::size_t i) const { return members[i]; }
+			AI::BE::XBee::Robot::Ptr get(std::size_t i) { return members[i]; }
 			AI::BE::XBee::Robot::Ptr create_member(unsigned int pattern);
 
 		private:
@@ -237,6 +238,9 @@ namespace {
 				enemy.lock_time(now);
 				for (std::size_t i = 0; i < friendly.size(); ++i) {
 					friendly.get_xbee_player(i)->pre_tick();
+				}
+				for (std::size_t i = 0; i < enemy.size(); ++i) {
+					enemy.get(i)->pre_tick();
 				}
 
 				// Run the AI.

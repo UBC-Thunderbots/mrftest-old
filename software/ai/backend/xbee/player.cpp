@@ -132,6 +132,13 @@ Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bo
 	bot->signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
 }
 
+Player::~Player() {
+	bot->drive_scram();
+	bot->dribble(false);
+	bot->autokick(0, 0, 0);
+	bot->enable_charger(false);
+}
+
 void Player::drive(const int(&w)[4]) {
 	for (unsigned int i = 0; i < 4; ++i) {
 		wheel_speeds_[i] = w[i];
@@ -207,5 +214,13 @@ Visualizable::Colour Player::visualizer_colour() const {
 
 Glib::ustring Player::visualizer_label() const {
 	return Glib::ustring::format(pattern());
+}
+
+bool Player::highlight() const {
+	return has_ball();
+}
+
+Visualizable::Colour Player::highlight_colour() const {
+	return Visualizable::Colour(1.0, 0.5, 0.0);
 }
 
