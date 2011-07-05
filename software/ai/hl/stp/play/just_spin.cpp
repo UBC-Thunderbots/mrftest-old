@@ -5,13 +5,13 @@
 using AI::HL::STP::Enemy;
 
 BEGIN_PLAY(JustSpin)
-INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3) && !baller_can_shoot(world) && fight_ball(world))
+INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2) && !baller_can_shoot(world) && fight_ball(world))
 APPLICABLE(true)
 DONE(none_ball(world))
 FAIL(false)
 BEGIN_ASSIGN()
 // GOALIE
-goalie_role.push_back(defend_duo_goalie(world));
+goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // shoot
