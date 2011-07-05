@@ -36,6 +36,10 @@ namespace {
 
 	BoolParam DO_RESET("do reset when target changes", "RC/PID3", false);
 
+	DoubleParam PID_PROFILE1("profile 1  multiplier", "RC/PID3", 0.1, 0, 99.0);
+	DoubleParam PID_PROFILE2("profile 2  multiplier", "RC/PID3", 1.5, 0, 99.0);
+	DoubleParam PID_PROFILE3("profile 3  multiplier", "RC/PID3", 2.0, 0, 99.0);
+
 	class PID3Controller : public OldRobotController {
 		public:
 			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
@@ -135,6 +139,23 @@ namespace {
 				}
 				angular_velocity *= slowdown;
 			}
+		}
+
+		switch (player->flags()) {
+			case 0:
+				break;
+			case 1:
+				linear_velocity *= PID_PROFILE1;
+				angular_velocity *= PID_PROFILE1;
+				break;
+			case 2:
+				linear_velocity *= PID_PROFILE2;
+				angular_velocity *= PID_PROFILE2;
+				break;
+			case 3:
+				linear_velocity *= PID_PROFILE3;
+				angular_velocity *= PID_PROFILE3;
+				break;
 		}
 
 		prev_linear_velocity = linear_velocity;
