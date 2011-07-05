@@ -68,13 +68,21 @@
         <double name="Pivot: orientation offset (degrees)">14</double>
       </category>
       <category name="Util">
+        <double name="Additionaly offense area buffer for friendly kick (rule=0.2) ">0.000</double>
+        <double name="Amount behind ball during Penalty kick (rule=0.4) ">0.400</double>
+        <double name="amount of time (s) to avoid enemy's future position">0.000</double>
+        <double name="amount of time (s) to avoid friendly's future position">0.000</double>
         <double name="Buffer avoid ball tiny (meters)">0.050</double>
         <double name="Buffer avoid defense area (meters)">0.000</double>
         <double name="Buffer for equal priority friendly robot (meters)">0.100</double>
         <double name="Buffer for higher priority friendly robot (meters)">0.200</double>
         <double name="Buffer for lower priority friendly robot (meters)">0.050</double>
+        <double name="Buffer for staying away from play area boundary ">0.000</double>
+        <double name="Buffer for staying away from referee area boundary ">0.000</double>
+        <double name="Buffer for staying on own half ">0.000</double>
         <boolean name="enforce that robots stay on own half ">false</boolean>
         <double name="The amount of distance to maintain from enemy robots">0.100</double>
+        <double name="The amount robots should stay away from goal post">0.0000</double>
       </category>
     </category>
     <category name="NC">
@@ -114,6 +122,9 @@
         <boolean name="(CARE) reduce angular velocity when translating">false</boolean>
         <boolean name="do reset when target changes">false</boolean>
         <double name="integral decay (%)">50.0</double>
+        <double name="profile 1  multiplier">0.1</double>
+        <double name="profile 2  multiplier">1.5</double>
+        <double name="profile 3  multiplier">2.0</double>
         <double name="x to y ratio">0.810</double>
         <double name="xy -differential">1.0</double>
         <double name="xy +integral">0.00</double>
@@ -263,7 +274,7 @@
           <integer name="JustGoalie">5</integer>
           <integer name="JustRepel">0</integer>
           <integer name="JustShoot">10</integer>
-          <integer name="JustSpin">5</integer>
+          <integer name="JustSpin">10</integer>
           <integer name="KickoffEnemy">5</integer>
           <integer name="KickoffFriendly">5</integer>
           <integer name="Lone2Player">5</integer>
