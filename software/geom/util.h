@@ -145,7 +145,7 @@ double lineseg_point_dist(const Point &centre, const Point &segA, const Point &s
  *
  * \param[in] segB the other end of the line segment.
  *
- * \return the distance between line seg and point.
+ * \return the Point on line segment closest to centre point.
  */
 Point closest_lineseg_point(const Point &p, const Point &segA, const Point &segB);
 

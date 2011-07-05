@@ -220,8 +220,16 @@ void PlayExecutor::execute_tactics() {
 		unsigned int default_flags = Flags::FLAG_AVOID_FRIENDLY_DEFENSE;
 		switch (world.playtype()) {
 			case AI::Common::PlayType::STOP:
+			case AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY:
+			case AI::Common::PlayType::PREPARE_KICKOFF_ENEMY:
+			case AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY:
+			case AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
 				default_flags |= Flags::FLAG_AVOID_BALL_STOP;
 				break;
+			case AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY:
+			case AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY:
+				default_flags |= Flags::FLAG_AVOID_BALL_STOP;
+				default_flags |= Flags::FLAG_FRIENDLY_KICK;
 			default:
 				break;
 		}
