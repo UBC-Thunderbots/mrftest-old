@@ -6,6 +6,7 @@
 #include "util/byref.h"
 #include "util/noncopyable.h"
 #include "util/param.h"
+#include "util/timestep.h"
 #include <cmath>
 #include <glibmm.h>
 #include <iostream>
@@ -116,7 +117,7 @@ namespace {
 		Point accel = linear_velocity - prev_linear_velocity;
 
 		if (accel.len() > PID_MAX_ACC * TIMESTEPS_PER_SECOND) {
-			accel *= PID_MAX_ACC / accel.len();
+			accel *= PID_MAX_ACC  * TIMESTEPS_PER_SECOND / accel.len();
 			linear_velocity = prev_linear_velocity + accel;
 		}
 
