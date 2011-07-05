@@ -20,6 +20,7 @@ namespace {
 	struct RCTester : public HighLevel {
 		World &world;
 		Gtk::VBox vbox;
+		Gtk::Button reset_button;
 		Gtk::HScale controls[3];
 
 		RCTester(World& world) : world(world) {
@@ -29,6 +30,15 @@ namespace {
 				// min, max, step, intervals
 				controls[i].get_adjustment()->configure(0, -5, 5, 0.1, 100, 0);
 				controls[i].set_digits(2);
+			}
+			vbox.add(reset_button);
+			reset_button.set_label("reset");
+			reset_button.signal_clicked().connect(sigc::bind(&RCTester::reset, sigc::ref(*this)));
+		}
+
+		void reset() {
+			for (int i = 0; i < 3; ++i) {
+				controls[i].set_value(0);
 			}
 		}
 
