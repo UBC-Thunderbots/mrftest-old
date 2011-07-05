@@ -91,6 +91,21 @@
 #define MOTOR_HARD_DISABLE_TICK_COUNT 20
 
 /**
+ * \brief The capacitor voltage above which the "charged" LED should light.
+ */
+#define CAPACITOR_LED_THRESHOLD ((unsigned int) (30.0 / (220000.0 + 2200.0) * 2200.0 / 3.3 * 4096.0))
+
+/**
+ * \brief The capacitor voltage above which the safe discharge pulse generator should fire if the charger is disabled.
+ */
+#define CAPACITOR_SAFE_DISCHARGE_THRESHOLD ((unsigned int) (25.0 / (220000.0 + 2200.0) * 2200.0 / 3.3 * 4096.0))
+
+/**
+ * \brief The width, in microseconds, of the pulse to use to safely discharge the capacitors.
+ */
+#define CAPACITOR_SAFE_DISCHARGE_PULSE_WIDTH 100
+
+/**
  * \brief The type of an XBee transmit header.
  */
 typedef struct {
@@ -738,6 +753,11 @@ void run(void) {
 					 * Record result. */
 					feedback_block.break_beam_raw = (ADRESH << 8) | ADRESL;
 					feedback_block.flags.ball_in_beam = feedback_block.break_beam_raw >= 512;
+					if (feedback_block.flags.ball_in_beam) {
+						LAT_LED1 = 0;
+					} else {
+						LAT_LED1 = 1;
+					}
 					/* Start a conversion on channel 3. */
 					ADCON0bits.CHS0 = 1;
 					ADCON0bits.GO = 1;
@@ -895,16 +915,33 @@ void run(void) {
 				}
 			}
 
-			/* Enable the charger if and only if so ordered. */
+			/* Receive current capacitor voltage. */
+			feedback_block.capacitor_voltage_raw = parbus_read(6);
+
+			/* If voltage is high, light an LED. */
+			if (feedback_block.capacitor_voltage_raw > CAPACITOR_LED_THRESHOLD) {
+				LAT_LED2 = 1;
+			} else {
+				LAT_LED2 = 0;
+			}
+
 			if (drive_block.enable_charger) {
+				/* Host requests charger to be enabled. */
 				flags_out |= 0x02;
+			} else {
+				/* Host requests charger to be disabled. */
+				if (feedback_block.capacitor_voltage_raw > CAPACITOR_SAFE_DISCHARGE_THRESHOLD) {
+					/* Capacitor voltage is high enough we should issue a tiny pulse to discharge it. */
+					parbus_write(10, CAPACITOR_SAFE_DISCHARGE_PULSE_WIDTH);
+					parbus_write(11, CAPACITOR_SAFE_DISCHARGE_PULSE_WIDTH);
+					parbus_write(12, 0);
+				}
 			}
 
 			/* Send the general operational flags. */
 			parbus_write(0, flags_out);
 
 			/* Fill the radio feedback block. */
-			feedback_block.capacitor_voltage_raw = parbus_read(6);
 			if (flags_in & 0x04) {
 				feedback_block.flags.capacitor_charged = true;
 			} else {
