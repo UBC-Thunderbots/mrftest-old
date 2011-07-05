@@ -212,17 +212,6 @@ void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context>
 		ctx->fill();
 		ctx->stroke();
 	}
-
-	const Field &field = world.field();
-	const Point goal1 = Point(field.length() / 2, field.goal_width() / 2);
-	const Point goal2 = Point(field.length() / 2, -field.goal_width() / 2);
-
-	// draw enemy goal?
-	ctx->set_line_width(0.02);
-	ctx->set_source_rgba(1.0, 0.5, 0.5, 1.0);
-	ctx->move_to(goal1.x, goal1.y);
-	ctx->line_to(goal2.x, goal2.y);
-	ctx->stroke();
 }
 
 void AI::HL::STP::draw_defense(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {

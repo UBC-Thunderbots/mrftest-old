@@ -1,6 +1,7 @@
 #include "ai/hl/hl.h"
 #include "ai/hl/stp/play_executor.h"
 #include "ai/hl/stp/tactic/idle.h"
+#include "ai/hl/stp/evaluation/offense.h"
 #include "util/dprint.h"
 
 #include <cassert>
@@ -117,6 +118,8 @@ namespace {
 			}
 
 			void tick() {
+				Evaluation::tick_offense(world);
+
 				// override halt completely
 				if (world.friendly_team().size() == 0 || world.playtype() == AI::Common::PlayType::HALT) {
 					curr_play.reset();

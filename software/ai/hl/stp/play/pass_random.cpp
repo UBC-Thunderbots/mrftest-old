@@ -11,10 +11,7 @@ namespace Predicates = AI::HL::STP::Predicates;
  */
 BEGIN_PLAY(PassRandom)
 INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY)
-		&& Predicates::our_team_size_at_least(world, 3)
-		&& Predicates::their_team_size_at_least(world, 1)
-		&& !Predicates::baller_can_shoot(world)
-		&& !Predicates::fight_ball(world))
+		&& Predicates::our_team_size_at_least(world, 3))
 APPLICABLE(Predicates::our_ball(world)
 		&& Predicates::baller_can_pass(world))
 DONE(false)
