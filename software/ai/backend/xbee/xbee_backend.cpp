@@ -10,12 +10,14 @@
 #include "util/codec.h"
 #include "util/dprint.h"
 #include "util/exception.h"
+#include "util/string.h"
 #include "util/sockaddrs.h"
 #include "util/timestep.h"
 #include "xbee/dongle.h"
 #include "xbee/robot.h"
 #include <cassert>
 #include <cstring>
+#include <locale>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -113,7 +115,7 @@ namespace {
 		public:
 			AI::BE::XBee::RefBox refbox;
 
-			XBeeBackend(XBeeDongle &dongle) : Backend(), clock(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND), ball_(*this), friendly(*this, dongle), enemy(*this), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
+			XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask) : Backend(), camera_mask(camera_mask), clock(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND), ball_(*this), friendly(*this, dongle), enemy(*this), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
 				refbox.command.signal_changed().connect(sigc::mem_fun(this, &XBeeBackend::update_playtype));
 				friendly_colour().signal_changed().connect(sigc::mem_fun(this, &XBeeBackend::on_friendly_colour_changed));
 				playtype_override().signal_changed().connect(sigc::mem_fun(this, &XBeeBackend::update_playtype));
@@ -214,6 +216,7 @@ namespace {
 			}
 
 		private:
+			unsigned int camera_mask;
 			TimerFDClockSource clock;
 			AI::BE::XBee::Field field_;
 			AI::BE::XBee::Ball ball_;
@@ -290,6 +293,11 @@ namespace {
 					// Check for a sensible camera ID number.
 					if (det.camera_id() >= 2) {
 						LOG_WARN(Glib::ustring::compose("Received SSL-Vision packet for unknown camera %1.", det.camera_id()));
+						return true;
+					}
+
+					// Check for an accepted camera ID number.
+					if (!(camera_mask & (1U << det.camera_id()))) {
 						return true;
 					}
 
@@ -617,12 +625,18 @@ namespace {
 			}
 
 			void create_backend(const std::multimap<Glib::ustring, Glib::ustring> &params, std::function<void(Backend &)> cb) const {
-				if (!params.empty()) {
-					throw std::runtime_error("The XBee backend does not accept any parameters.");
+				unsigned int camera_mask = 3;
+				if (params.count("cameras")) {
+					const Glib::ustring &cameras_string = params.find("cameras")->second;
+					if (cameras_string.size() != 1 || !std::isdigit(cameras_string[0], std::locale())) {
+						throw std::runtime_error("cameras parameter must be a single decimal digit.");
+					}
+					std::wistringstream iss(ustring2wstring(cameras_string));
+					iss >> camera_mask;
 				}
 				XBeeDongle dongle;
 				dongle.enable();
-				XBeeBackend be(dongle);
+				XBeeBackend be(dongle, camera_mask);
 				cb(be);
 			}
 	};
