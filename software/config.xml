@@ -83,6 +83,8 @@
         <boolean name="enforce that robots stay on own half ">false</boolean>
         <double name="The amount of distance to maintain from enemy robots">0.100</double>
         <double name="The amount robots should stay away from goal post">0.0000</double>
+        <boolean name="use enemy's future position">false</boolean>
+        <boolean name="use friendly's future position">false</boolean>
       </category>
     </category>
     <category name="NC">
@@ -245,12 +247,12 @@
           <boolean name="OffensiveBlock">true</boolean>
           <boolean name="OurCornerPlay">true</boolean>
           <boolean name="PassDefensive">true</boolean>
+          <boolean name="PassDynamic">true</boolean>
           <boolean name="PassOffensive">true</boolean>
           <boolean name="Pass Play 0 0">true</boolean>
           <boolean name="Pass Play 1.2 -1.5">true</boolean>
           <boolean name="Pass Play 1.2 1.5">true</boolean>
           <boolean name="PassRandom">true</boolean>
-          <boolean name="PassTest">true</boolean>
           <boolean name="PenaltyEnemy">true</boolean>
           <boolean name="PenaltyFriendly">true</boolean>
           <boolean name="Stop">true</boolean>
@@ -262,7 +264,7 @@
           <integer name="CMDNaive">5</integer>
           <integer name="CMONaive">5</integer>
           <integer name="DefensiveBlock">5</integer>
-          <integer name="FranticDefense">5</integer>
+          <integer name="FranticDefense">10</integer>
           <integer name="FreeKickEnemy">5</integer>
           <integer name="FreeKickFriendly">5</integer>
           <integer name="FreeKickFriendlyPass">5</integer>
@@ -281,12 +283,12 @@
           <integer name="OffensiveBlock">5</integer>
           <integer name="OurCornerPlay">5</integer>
           <integer name="PassDefensive">5</integer>
+          <integer name="PassDynamic">5</integer>
           <integer name="PassOffensive">5</integer>
           <integer name="Pass Play 0 0">5</integer>
           <integer name="Pass Play 1.2 -1.5">5</integer>
           <integer name="Pass Play 1.2 1.5">5</integer>
           <integer name="PassRandom">5</integer>
-          <integer name="PassTest">5</integer>
           <integer name="PenaltyEnemy">5</integer>
           <integer name="PenaltyFriendly">5</integer>
           <integer name="Stop">5</integer>

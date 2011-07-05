@@ -23,11 +23,11 @@ void AI::HL::STP::Action::block_goal(const World &world, Player::Ptr player, Rob
 
 	Point dirToGoal = (world.field().friendly_goal() - robot->position()).norm();
 	Point target = robot->position() + (block_threshold * Robot::MAX_RADIUS * dirToGoal);
-	Player::CPtr baller = Evaluation::calc_friendly_baller(world);
 	
 	// #warning CHECK ??
 	/*
 	// don't block from ball if we are blocking our baller!!
+	Player::CPtr baller = Evaluation::calc_friendly_baller(world);
 	if (baller.is() && Evaluation::player_within_angle_thresh(baller, target, 2 * degrees2radians(block_angle))) {	
 		Point target = robot->position() + (2 * block_threshold * Robot::MAX_RADIUS * dirToGoal);
 	}
@@ -39,11 +39,11 @@ void AI::HL::STP::Action::block_ball(const World &world, Player::Ptr player, Rob
 
 	Point dirToBall = (world.ball().position() - robot->position()).norm();
 	Point target = robot->position() + (block_threshold * Robot::MAX_RADIUS * dirToBall);
-	Player::CPtr baller = Evaluation::calc_friendly_baller(world);
 	
 	// #warning CHECK ??
 	/*
 	// don't block from ball if we are blocking our baller!!
+	Player::CPtr baller = Evaluation::calc_friendly_baller(world);
 	if (baller.is() && Evaluation::player_within_angle_thresh(baller, target, 2 * degrees2radians(block_angle))){ 
 		target = robot->position() + (2 * block_threshold * Robot::MAX_RADIUS * dirToBall);
 	}
