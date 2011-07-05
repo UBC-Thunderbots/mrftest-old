@@ -18,9 +18,9 @@ namespace AI {
 			extern DoubleParam shoot_width;
 
 			namespace Action {
-				//	these are pass specific
+				// these are pass specific
 				// needs comments
-				extern	DoubleParam alpha;
+				extern DoubleParam alpha;
 
 				extern DoubleParam pass_speed;
 

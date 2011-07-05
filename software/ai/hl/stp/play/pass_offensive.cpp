@@ -23,14 +23,14 @@ FAIL(Predicates::their_ball(world))
 BEGIN_ASSIGN()
 
 // STEP 1
-goalie_role.push_back(goalie_dynamic(world, 2));
+goalie_role.push_back(goalie_dynamic(world, 1));
 roles[0].push_back(passer_shoot_dynamic(world));
 roles[1].push_back(passee_move_dynamic(world));
 roles[2].push_back(defend_duo_defender(world));
-roles[3].push_back(block_goal(world, Enemy::closest_ball(world, 0)));
+roles[3].push_back(block_ball(world, Enemy::closest_ball(world, 0)));
 
 // STEP 2
-goalie_role.push_back(goalie_dynamic(world, 2));
+goalie_role.push_back(goalie_dynamic(world, 1));
 roles[0].push_back(passee_receive(world));
 roles[1].push_back(offend(world));
 roles[2].push_back(defend_duo_defender(world));

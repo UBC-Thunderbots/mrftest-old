@@ -161,7 +161,7 @@
           <double name="reduced radius for calculating best shot (robot radius ratio)">0.800</double>
         </category>
         <category name="spin">
-          <double name="change in orientation every time tick for move spin">1.500</double>
+          <double name="change in orientation every time tick for move spin">2.000</double>
         </category>
       </category>
       <category name="ball">
@@ -281,6 +281,9 @@
           <integer name="Stop">5</integer>
           <integer name="TheirCornerPlay">5</integer>
         </category>
+      </category>
+      <category name="PlayExecutor">
+        <boolean name="If higher priority play exists, switch">true</boolean>
       </category>
       <category name="predicates">
         <double name="enemy avoidance distance (robot radius)">3.00</double>
