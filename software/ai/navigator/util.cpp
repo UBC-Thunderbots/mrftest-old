@@ -18,10 +18,11 @@ namespace {
 	// but too small to make a difference in the actual game
 	const double SMALL_BUFFER = 0.0001;
 
+	BoolParam USE_ENEMY_MOVEMENT_FACTOR( "use enemy's future position", "Nav/Util", false);
+	BoolParam USE_FRIENDLY_MOVEMENT_FACTOR( "use friendly's future position", "Nav/Util", false);
+
 	DoubleParam ENEMY_MOVEMENT_FACTOR( "amount of time (s) to avoid enemy's future position", "Nav/Util", 0.0, 0.0, 2.0);
-
 	DoubleParam FRIENDLY_MOVEMENT_FACTOR( "amount of time (s) to avoid friendly's future position", "Nav/Util", 0.0, 0.0, 2.0);
-
 	DoubleParam GOAL_POST_BUFFER( "The amount robots should stay away from goal post" , "Nav/Util", 0.0, -0.2, 0.2);
 
 	// zero lets them brush
@@ -139,7 +140,10 @@ namespace {
 		// avoid enemy robots
 		for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
 			AI::Nav::W::Robot::Ptr rob = world.enemy_team().get(i);
-			double dist = seg_seg_distance(rob->position(), rob->position() + ENEMY_MOVEMENT_FACTOR*rob->velocity() , cur, dst);
+			double dist = lineseg_point_dist(rob->position(), cur, dst);
+			if (USE_ENEMY_MOVEMENT_FACTOR){
+				dist = seg_seg_distance(rob->position(), rob->position() + ENEMY_MOVEMENT_FACTOR*rob->velocity() , cur, dst);
+			}
 			violate = std::max(violate, circle_radius - dist);
 		}
 		return violate;
@@ -185,7 +189,10 @@ namespace {
 				continue;
 			}
 			double circle_radius = distance_keepout::friendly(player, rob->prio());
-			double dist = seg_seg_distance(rob->position(), rob->position() + FRIENDLY_MOVEMENT_FACTOR*rob->velocity() , cur, dst);
+			double dist = lineseg_point_dist(rob->position(), cur, dst);
+			if (USE_FRIENDLY_MOVEMENT_FACTOR) {
+				dist = seg_seg_distance(rob->position(), rob->position() + FRIENDLY_MOVEMENT_FACTOR*rob->velocity() , cur, dst);
+			}
 			violate = std::max(violate, circle_radius - dist);
 		}
 		return violate;
