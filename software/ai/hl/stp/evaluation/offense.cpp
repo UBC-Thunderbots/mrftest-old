@@ -39,6 +39,13 @@ namespace {
 
 	DoubleParam weight_goal_dist("Scoring weight for distance to enemy goal (-ve)", "STP/offense", 1.0, 0.0, 99.0);
 
+	// TODO: explore updating the offensive function only ONCE
+	std::vector<std::vector<double> > score1;
+	std::vector<std::vector<double> > score2;
+	std::vector<std::vector<bool> > good;
+
+	std::array<Point, 2> best_positions;
+
 	double scoring_function(const World &world, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
 
 		// can't be too close to enemy
@@ -135,7 +142,7 @@ namespace {
 		return weight_total * raw_score;
 	}
 
-	bool calc_position_best(const World &world, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
+	bool calc_position_best(const World &world, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos, int idx) {
 		// divide up into a hexagonal grid
 		const double x1 = -world.field().length() / 2, x2 = -x1;
 		const double y1 = -world.field().width() / 2, y2 = -y1;
@@ -148,19 +155,9 @@ namespace {
 
 		best_pos = Point();
 
-		std::vector<std::vector<double> > scores;
-
-		/*
-		   if (use_area_metric) {
-		   scores.resize(2*grid_y+1);
-		   for (int i = 0; i < 2*grid_y+1; ++i) {
-		   scores[i].resize(2*grid_x+1, 0);
-		   }
-		   }
-		 */
-
 		for (int i = 1; i <= 2*grid_y+1; i += 2) {
 			for (int j = (i/2+1)%2+1; j <= 2*grid_x+1; j += 2) {
+
 				const double x = x1 + dx * j;
 				const double y = y1 + dy * i;
 				const Point pos = Point(x, y);
@@ -169,108 +166,94 @@ namespace {
 				// ensures that we do not get too close to the enemy defense area.
 				const double goal_dist = (pos - world.field().enemy_goal()).len();
 				if (goal_dist < world.field().goal_width()) {
+					good[i][j] = false;
+					continue;
+				}
+
+				if (!good[i][j]) {
+					if (idx) {
+						score1[i][j] = -1e99;
+					} else {
+						score2[i][j] = -1e99;
+					}
 					continue;
 				}
 
 				double score = scoring_function(world, enemy_pos, pos, dont_block);
 
+				if (score < 0) {
+					good[i][j] = false;
+				}
+
+				if (idx) {
+					score1[i][j] = score;
+				} else {
+					score2[i][j] = score;
+				}
+
 				if (score > best_score) {
 					best_score = score;
 					best_pos = pos;
 				}
-
-				/*
-				   if (use_area_metric) {
-				   scores[i][j] = score;
-				   }
-				 */
 			}
 		}
-
-		/*
-		   if (use_area_metric) {
-
-		   }
-		 */
 
 		return best_score > 0;
 	}
 
-	// TODO: explore updating the offensive function only ONCE
-	/*
-	   std::vector<std::vector<double> > scores;
+	void update(const World& world) {
+		score1.clear();
+		score2.clear();
+		good.clear();
+		score1.resize(2*grid_y+2);
+		score2.resize(2*grid_y+2);
+		good.resize(2*grid_y+2);
+		for (int i = 0; i < 2*grid_y+2; ++i) {
+			score1[i].resize(2*grid_x+2, -1e99);
+			score2[i].resize(2*grid_x+2, -1e99);
+			good[i].resize(2*grid_x+2, true);
+		}
 
-	   void update() {
-	   scores.clear();
-	   scores.resize(2*grid_y+1);
-	   for (int i = 0; i < 2*grid_y+1; ++i) {
-	   scores[i].resize(2*grid_x+1, 0);
-	   }
-	   }
-	 */
+		const EnemyTeam &enemy = world.enemy_team();
+		std::vector<Point> enemy_pos;
+		for (size_t i = 0; i < enemy.size(); ++i) {
+			enemy_pos.push_back(enemy.get(i)->position());
+		}
+
+		// don't block ball, and the others
+		std::vector<Point> dont_block;
+		dont_block.push_back(world.ball().position());
+		/*
+		   const FriendlyTeam &friendly = world.friendly_team();
+		   for (size_t i = 0; i < friendly.size(); ++i) {
+		   if (players.find(friendly.get(i)) == players.end()) {
+		   dont_block.push_back(friendly.get(i)->position());
+		   }
+		   }
+		 */
+
+		calc_position_best(world, enemy_pos, dont_block, best_positions[0], 0);
+
+		dont_block.push_back(best_positions[0]);
+		calc_position_best(world, enemy_pos, dont_block, best_positions[1], 1);
+	}
 }
 
-double AI::HL::STP::Evaluation::offense_score(const World &world, const Point dest) {
-	const EnemyTeam &enemy = world.enemy_team();
+double AI::HL::STP::Evaluation::offense_score(int i, int j) {
+	if (score1.size() <= i) return -1e99;
+	if (score1[0].size() <= j) return -1e99;
+	return score1[i][j];
+}
 
-	std::vector<Point> enemy_pos;
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		enemy_pos.push_back(enemy.get(i)->position());
-	}
-
-	std::vector<Point> dont_block;
-	dont_block.push_back(world.ball().position());
-
-	return scoring_function(world, enemy_pos, dest, dont_block);
+void AI::HL::STP::Evaluation::tick_offense(const World& world) {
+	update(world);
 }
 
 std::array<Point, 2> AI::HL::STP::Evaluation::offense_positions(const World &world) {
-	// just for caching..
-	const EnemyTeam &enemy = world.enemy_team();
-	std::vector<Point> enemy_pos;
-	for (size_t i = 0; i < enemy.size(); ++i) {
-		enemy_pos.push_back(enemy.get(i)->position());
-	}
-
-	// TODO: optimize using the matrix below
-	// std::vector<std::vector<bool>> grid(GRID_X, std::vector<bool>(GRID_Y, true));
-
-	// don't block ball, and the others
-	std::vector<Point> dont_block;
-	dont_block.push_back(world.ball().position());
-	/*
-	   const FriendlyTeam &friendly = world.friendly_team();
-	   for (size_t i = 0; i < friendly.size(); ++i) {
-	   if (players.find(friendly.get(i)) == players.end()) {
-	   dont_block.push_back(friendly.get(i)->position());
-	   }
-	   }
-	 */
-
-	std::array<Point, 2> best;
-
-	calc_position_best(world, enemy_pos, dont_block, best[0]);
-
-	dont_block.push_back(best[0]);
-	calc_position_best(world, enemy_pos, dont_block, best[1]);
-
-	return best;
+	return best_positions;
 }
 
 Point AI::HL::STP::Evaluation::passee_position(const World &world) {
-
-	const EnemyTeam &enemy = world.enemy_team();
-	std::vector<Point> enemy_pos;
-	for (size_t i = 0; i < enemy.size(); ++i) {
-		enemy_pos.push_back(enemy.get(i)->position());
-	}
-
-	std::vector<Point> dont_block;
-	dont_block.push_back(world.ball().position());
-
-	Point best;
-	calc_position_best(world, enemy_pos, dont_block, best);
-
-	return best;
+	return best_positions[0];
 }
 

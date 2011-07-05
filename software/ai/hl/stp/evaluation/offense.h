@@ -20,7 +20,7 @@ namespace AI {
 				 *
 				 * \return a score for the location. This score has no range limit.
 				 */
-				double offense_score(const World &world, const Point pos);
+				double offense_score(int i, int j);
 
 				/**
 				 * Calculates strategic positions to place offensive players.
@@ -53,6 +53,11 @@ namespace AI {
 				 * Grid size in y-direction.
 				 */
 				extern IntParam grid_y;
+
+				/**
+				 * call this every tick!
+				 */
+				void tick_offense(const World& world);
 			}
 		}
 	}

@@ -1,5 +1,6 @@
 #include "ai/hl/stp/play_executor.h"
 #include "ai/hl/stp/tactic/idle.h"
+#include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
 #include "ai/hl/stp/ui.h"
@@ -65,7 +66,7 @@ void PlayExecutor::calc_play() {
 			continue;
 		}
 
-		LOG_DEBUG(Glib::ustring::compose("Play candidate: %1", plays[i]->factory().name()));
+		LOG_INFO(Glib::ustring::compose("Play candidate: %1", plays[i]->factory().name()));
 
 		if (!curr_play.is() || plays[i]->factory().priority > curr_play->factory().priority) {
 			curr_play = plays[i];
@@ -264,6 +265,8 @@ void PlayExecutor::execute_tactics() {
 }
 
 void PlayExecutor::tick() {
+	Evaluation::tick_offense(world);
+
 	// override halt completely
 	if (world.friendly_team().size() == 0 || world.playtype() == AI::Common::PlayType::HALT) {
 		curr_play.reset();
@@ -343,6 +346,7 @@ void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 	draw_defense(world, ctx);
 	draw_enemy_pass(world, ctx);
 	draw_friendly_pass(world, ctx);
+	draw_player_status(world, ctx);
 	// draw_velocity(ctx); // uncommand to display velocity
 	if (world.playtype() == AI::Common::PlayType::STOP) {
 		ctx->set_source_rgb(1.0, 0.5, 0.5);
