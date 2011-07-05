@@ -25,6 +25,7 @@ namespace {
 				player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), Point());
 				player->type(AI::Flags::MoveType::RAM_BALL);
 				player->prio(AI::Flags::MovePrio::HIGH);
+				player->flags(0);
 			}
 			std::string description() const {
 				return "ram";

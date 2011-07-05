@@ -60,6 +60,7 @@ namespace {
 		if (AI::HL::STP::Action::shoot_goal(world, player)) {
 			kick_attempted = true;
 		}
+		player->flags(0);
 	}
 
 	bool ShootTarget::done() const {
@@ -83,6 +84,7 @@ namespace {
 		if (AI::HL::STP::Action::shoot_target(world, player, target.position(), 5.0)) {
 			kick_attempted = true;
 		}
+		player->flags(0);
 	}
 }
 

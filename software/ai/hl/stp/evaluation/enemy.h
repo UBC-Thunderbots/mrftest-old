@@ -76,16 +76,6 @@ namespace AI {
 				std::pair<Point, double> calc_enemy_best_shot_goal(const World &world, const Robot::Ptr enemy, const double radius = 1.0);
 
 				/**
-				 * Calculates how good it is to shoot to a particular target location.
-				 */
-				// std::pair<Point, double> calc_enemy_best_shot_target(const World &world, const Point &target_pos, const Robot::Ptr enemy, const double radius = 1.0);
-
-				/**
-				 * Enemy version.
-				 */
-				//std::pair<Point, double> calc_enemy_best_shot_target(const Point &target_pos, const std::vector<Point> &obstacles, const Point &p, const double radius = 1.0);
-
-				/**
 				 * # of passes it takes for the enemy to shoot to our goal
 				 * 0 means the enemy has a clear shot to our goal!
 				 * ignore (set to 5 if # of passes > 2)
@@ -96,6 +86,11 @@ namespace AI {
 				 * BAD STUFF
 				 */
 				std::vector<Robot::Ptr> get_passees(const World& world, Robot::Ptr robot);
+
+				/**
+				 * Given obstacle position, calculates the min amount of passing
+				 */
+				std::vector<int> calc_min_enemy_pass(const std::vector<Point> obstacles, const std::vector<Point> enemies);
 			}
 		}
 	}

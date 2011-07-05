@@ -203,6 +203,8 @@ void TShoot::execute() {
 	} else {
 		kicked = Action::shoot_goal(world, player);
 	}
+
+	player->flags(0);
 }
 
 void TSteal::execute() {
@@ -216,6 +218,8 @@ void TSteal::execute() {
 		}
 	}
 	none = true;
+
+	player->flags(0);
 }
 
 void TClear::execute() {
@@ -282,6 +286,8 @@ void TActiveDef::execute() {
 	}
 
 	finished = Action::repel(world, player);
+
+	player->flags(0);
 }
 
 void TDribbleToRegion::execute() {

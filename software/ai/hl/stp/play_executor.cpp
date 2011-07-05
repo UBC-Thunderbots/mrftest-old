@@ -60,6 +60,13 @@ void PlayExecutor::calc_play() {
 		if (!plays[i]->factory().enable) continue;
 		if (!plays[i]->invariant()) continue;
 		if (!plays[i]->applicable()) continue;
+		if (plays[i]->done()) {
+			LOG_ERROR(Glib::ustring::compose("Play applicable but done: %1", plays[i]->factory().name()));
+			continue;
+		}
+
+		LOG_DEBUG(Glib::ustring::compose("Play candidate: %1", plays[i]->factory().name()));
+
 		if (!curr_play.is() || plays[i]->factory().priority > curr_play->factory().priority) {
 			curr_play = plays[i];
 		}
@@ -69,8 +76,8 @@ void PlayExecutor::calc_play() {
 		return;
 	}
 
-	LOG_INFO(curr_play->factory().name());
-	assert(!curr_play->done());
+	LOG_INFO(Glib::ustring::compose("Play chosen: %1", curr_play->factory().name()));
+
 	curr_role_step = 0;
 	for (std::size_t j = 0; j < 5; ++j) {
 		curr_roles[j].clear();

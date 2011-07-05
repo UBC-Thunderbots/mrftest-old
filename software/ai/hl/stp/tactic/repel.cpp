@@ -43,6 +43,7 @@ namespace {
 	void Repel::execute() {
 		finished = false;
 		finished = AI::HL::STP::Action::repel(world, player);
+		player->flags(0);
 	}
 }
 

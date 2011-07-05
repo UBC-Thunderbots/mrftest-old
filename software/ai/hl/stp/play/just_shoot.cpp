@@ -25,11 +25,11 @@ roles[1].push_back(defend_duo_defender(world));
 
 // ROLE 3 (optional)
 // block
-roles[2].push_back(block_ball(world, Enemy::closest_ball(world, 0)));
+roles[2].push_back(offend(world));
 
 // ROLE 4 (optional)
 // offensive support
-roles[3].push_back(offend(world));
+roles[3].push_back(block_ball(world, Enemy::closest_ball(world, 0)));
 
 END_ASSIGN()
 END_PLAY()
