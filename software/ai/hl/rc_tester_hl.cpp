@@ -40,14 +40,16 @@ namespace {
 				return;
 			}
 
-			Player::Ptr runner = friendly.get(0);
+			for (std::size_t i = 0; i < friendly.size(); ++i) {
+				Player::Ptr runner = friendly.get(i);
 
-			const double px = runner->position().x + controls[0].get_value();
-			const double py = runner->position().y + controls[1].get_value();
-			const double pz = runner->orientation() + controls[2].get_value();
+				const double px = runner->position().x + controls[0].get_value();
+				const double py = runner->position().y + controls[1].get_value();
+				const double pz = runner->orientation() + controls[2].get_value();
 
-			runner->move(Point(px, py), pz, Point());
-			runner->type(AI::Flags::MoveType::NORMAL);
+				runner->move(Point(px, py), pz, Point());
+				runner->type(AI::Flags::MoveType::NORMAL);
+			}
 		}
 
 		Gtk::Widget *ui_controls() {
