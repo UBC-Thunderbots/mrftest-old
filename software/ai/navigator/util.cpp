@@ -18,6 +18,8 @@ namespace {
 	// but too small to make a difference in the actual game
 	const double SMALL_BUFFER = 0.0001;
 
+	DoubleParam GOAL_POST_BUFFER( "The amount robots should stay away from goal post" , "Nav/Util", 0.0, -0.2, 0.2);
+
 	// zero lets them brush
 	// positive enforces amount meters away
 	// negative lets them bump
@@ -39,15 +41,17 @@ namespace {
 	// This buffer is in addition to the robot radius
 	DoubleParam DEFENSE_AREA_BUFFER("Buffer avoid defense area (meters)", "Nav/Util", 0.0, -1.0, 1.0);
 
-
 	// this is by how much we should stay away from the playing boundry
-	const double PLAY_AREA_BUFFER = 0.0;
+	DoubleParam PLAY_AREA_BUFFER("Buffer for staying away from play area boundary ", "Nav/Util", 0.0, 0.0, 1.0);
+	DoubleParam OWN_HALF_BUFFER("Buffer for staying on own half ", "Nav/Util", 0.0, 0.0, 1.0);
+	DoubleParam TOTAL_BOUNDS_BUFFER("Buffer for staying away from referee area boundary ", "Nav/Util", 0.0, -1.0, 1.0);
 
-	const double OWN_HALF_BUFFER = 0.0;
+	DoubleParam PENALTY_KICK_BUFFER("Amount behind ball during Penalty kick (rule=0.4) ", "Nav/Util", 0.4, 0.0, 1.0);
 
-	const double PENALTY_KICK_BUFFER = 0.4;
+	//	const double PENALTY_KICK_BUFFER = 0.4;
+	DoubleParam FRIENDLY_KICK_BUFFER("Additionaly offense area buffer for friendly kick (rule=0.2) ", "Nav/Util", 0., 0.0, 1.0);
 
-	const double FRIENDLY_KICK_BUFFER = 0.2;
+	//	const double FRIENDLY_KICK_BUFFER = 0.2;
 
 	const double RAM_BALL_ALLOWANCE = 0.05;
 
@@ -58,12 +62,20 @@ namespace {
 		static double play_area(AI::Nav::W::Player::Ptr player) {
 			return (player->MAX_RADIUS) + PLAY_AREA_BUFFER;
 		}
+		static double total_bounds_area(AI::Nav::W::Player::Ptr player) {
+			return (player->MAX_RADIUS) + PLAY_AREA_BUFFER;
+		}
 		static double enemy(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 			if (world.enemy_team().size() <= 0) {
 				return 0.0;
 			}
 			return player->MAX_RADIUS + world.enemy_team().get(0)->MAX_RADIUS + ENEMY_BUFFER;
 		}
+
+		static double goal_post(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+			return Ball::RADIUS + player->MAX_RADIUS + GOAL_POST_BUFFER;
+		}
+
 		static double friendly(AI::Nav::W::Player::Ptr player, MovePrio obs_prio = MovePrio::MEDIUM) {
 			MovePrio player_prio = player->prio();
 			double buffer = FRIENDLY_BUFFER;
@@ -101,6 +113,22 @@ namespace {
 		}
 	};
 
+	double get_goal_post_tresspass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+
+		double violate = 0.0;
+		double circle_radius = distance_keepout::goal_post(world, player);
+		Point A(world.field().length()/2.0, world.field().goal_width()/2.0);
+		Point B(world.field().length()/2.0, -world.field().goal_width()/2.0);
+		Point C(-world.field().length()/2.0, world.field().goal_width()/2.0);
+		Point D(-world.field().length()/2.0, -world.field().goal_width()/2.0);
+		Point pts[4] = {A,B,C,D};
+		for(unsigned int i=0; i<4; i++){
+			double dist = lineseg_point_dist(pts[i], cur, dst);
+			violate = std::max(violate, circle_radius - dist);
+		}
+		return violate;
+	}
+
 	double get_enemy_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		double violate = 0.0;
 		double circle_radius = distance_keepout::enemy(world, player);
@@ -118,6 +146,21 @@ namespace {
 		Point sw_corner(f.length() / 2, f.width() / 2);
 		Rect bounds(sw_corner, f.length(), f.width());
 		bounds.expand(-distance_keepout::play_area(player));
+		double violation = 0.0;
+		if (!bounds.point_inside(cur)) {
+			violation = std::max(violation, bounds.dist_to_boundary(cur));
+		}
+		if (!bounds.point_inside(dst)) {
+			violation = std::max(violation, bounds.dist_to_boundary(dst));
+		}
+		return violation;
+	}
+
+	double get_total_bounds_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+		const Field &f = world.field();
+		Point sw_corner(f.total_length() / 2, f.total_width() / 2);
+		Rect bounds(sw_corner, f.total_length(), f.total_width());
+		bounds.expand(-distance_keepout::total_bounds_area(player));
 		double violation = 0.0;
 		if (!bounds.point_inside(cur)) {
 			violation = std::max(violation, bounds.dist_to_boundary(cur));
@@ -232,13 +275,15 @@ namespace {
 	}
 
 	struct violation {
-		double enemy, friendly, play_area, ball_stop, ball_tiny, friendly_defense, enemy_defense, own_half, penalty_kick_friendly, penalty_kick_enemy, friendly_kick;
+		double enemy, friendly, play_area, ball_stop, ball_tiny, friendly_defense, enemy_defense, own_half, penalty_kick_friendly, penalty_kick_enemy, friendly_kick, goal_post, total_bounds;
 
 		unsigned int extra_flags;
 
 		void set_violation_amount(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 			friendly = get_friendly_trespass(cur, dst, world, player);
 			enemy = get_enemy_trespass(cur, dst, world, player);
+			goal_post = get_goal_post_tresspass(cur, dst, world, player);
+			total_bounds = get_total_bounds_trespass(cur, dst, world, player);
 			unsigned int flags = player->flags() | extra_flags;
 			if (flags & FLAG_CLIP_PLAY_AREA) {
 				play_area = get_play_area_boundary_trespass(cur, dst, world, player);
@@ -269,17 +314,17 @@ namespace {
 			}
 		}
 
-		violation() : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), friendly_kick(0.0), extra_flags(0) {
+		violation() : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), friendly_kick(0.0), goal_post(0.0), total_bounds(0.0), extra_flags(0) {
 		}
 
-		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), friendly_kick(0.0), extra_flags(0) {
+		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), friendly_kick(0.0), goal_post(0.0), total_bounds(0.0), extra_flags(0) {
 			if(OWN_HALF_OVERRIDE){
 				extra_flags = extra_flags | FLAG_STAY_OWN_HALF;
 			}
 			set_violation_amount(cur, dst, world, player);
 		}
 
-		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int added_flags) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), friendly_kick(0.0), extra_flags(added_flags) {
+		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int added_flags) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), friendly_kick(0.0), goal_post(0.0), total_bounds(0.0), extra_flags(added_flags) {
 			if(OWN_HALF_OVERRIDE){
 				extra_flags = extra_flags | FLAG_STAY_OWN_HALF;
 			}
@@ -298,10 +343,13 @@ namespace {
 
 		bool no_more_violating_than(violation b) {
 			return enemy < b.enemy + EPS && friendly < b.friendly + EPS &&
-			       play_area < b.play_area + EPS && ball_stop < b.ball_stop + EPS &&
-			       ball_tiny < b.ball_tiny + EPS && friendly_defense < b.friendly_defense + EPS &&
-			       enemy_defense < b.enemy_defense + EPS && own_half < b.own_half + EPS &&
-			       penalty_kick_enemy < b.penalty_kick_enemy + EPS && penalty_kick_friendly < b.penalty_kick_friendly + EPS;
+			play_area < b.play_area + EPS && ball_stop < b.ball_stop + EPS &&
+			ball_tiny < b.ball_tiny + EPS && friendly_defense < b.friendly_defense + EPS &&
+			enemy_defense < b.enemy_defense + EPS && own_half < b.own_half + EPS &&
+			penalty_kick_enemy < b.penalty_kick_enemy + EPS &&
+			penalty_kick_friendly < b.penalty_kick_friendly + EPS &&
+			goal_post < b.goal_post + EPS &&
+			total_bounds < b.total_bounds + EPS;
 		}
 
 		bool violation_free() {
@@ -309,7 +357,8 @@ namespace {
 			       play_area < EPS && ball_stop < EPS &&
 			       ball_tiny < EPS && friendly_defense < EPS &&
 			       enemy_defense < EPS && own_half < EPS &&
-			       penalty_kick_enemy < EPS && penalty_kick_friendly < EPS;
+			       penalty_kick_enemy < EPS && penalty_kick_friendly < EPS &&
+						 goal_post < EPS && total_bounds < EPS;
 		}
 	};
 
