@@ -17,7 +17,6 @@ goalie_role.push_back(defend_duo_goalie(world));
 
 // ROLE 1
 // cm active def
-// roles[0].push_back(chase(world));
 roles[0].push_back(tactive_def(world));
 
 // ROLE 2
