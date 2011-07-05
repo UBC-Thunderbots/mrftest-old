@@ -106,6 +106,16 @@
 #define CAPACITOR_SAFE_DISCHARGE_PULSE_WIDTH 100
 
 /**
+ * \brief The voltage level to send to the dribbler motor when the ball is not in the beam.
+ */
+#define DRIBBLE_POWER_NO_BALL 180
+
+/**
+ * \brief The voltage level to send to the dribbler motor when the ball is in the beam.
+ */
+#define DRIBBLE_POWER_WITH_BALL 80
+
+/**
  * \brief The type of an XBee transmit header.
  */
 typedef struct {
@@ -890,7 +900,7 @@ void run(void) {
 					/* Enable the dribbler if and only if so ordered and temperature is acceptable. */
 					if (drive_block.enable_dribbler && feedback_block.dribbler_temperature_raw >= 200 && feedback_block.dribbler_temperature_raw <= 499) {
 						flags_out |= 0x04;
-						parbus_write(5, params.dribble_power);
+						parbus_write(5, feedback_block.flags.ball_in_beam ? DRIBBLE_POWER_WITH_BALL : DRIBBLE_POWER_NO_BALL);
 					} else {
 						parbus_write(5, 0);
 					}
