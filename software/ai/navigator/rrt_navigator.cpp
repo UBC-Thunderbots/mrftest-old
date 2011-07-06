@@ -26,6 +26,7 @@ namespace AI {
 			
 			DoubleParam chase_angle_range("Chase angle range for behind target (degrees)", "Nav/RRT", 30, 0, 90);
 			DoubleParam chase_distance("Buffer behind ball for chase (meters)", "Nav/RRT", 0.25, -1.0, 1.0);
+			DoubleParam ball_velocity_threshold("Ball velocity threshold (used to switch between chase and chase+pivot)", "Nav/RRT", 0.5, 0.0, 20.0);
 			class PlayerData : public ObjectStore::Element {
 				public:
 					typedef ::RefPtr<PlayerData> Ptr;
@@ -154,7 +155,16 @@ namespace AI {
 						dest = grab_ball_dest.first;
 						dest_orientation = grab_ball_dest.second;
 					} else if (player->type() == AI::Flags::MoveType::CATCH_PIVOT) {
-						std::pair<Point, double> grab_ball_dest = grab_ball_orientation(player);
+						std::pair<Point, double> grab_ball_dest;
+						
+						// Check the ball velocity. If it is travelling too fast, use grab_ball instead of grab_ball_orientation.
+						// Based on field testing, we determined that grab_ball_orientation is not effective on moving balls.
+						if (world.ball().velocity().len() > ball_velocity_threshold) {
+							grab_ball_dest = grab_ball(player);
+						} else {
+							grab_ball_dest = grab_ball_orientation(player);
+						}
+						
 						dest = grab_ball_dest.first;
 						dest_orientation = grab_ball_dest.second;
 					} else if (player->type() == AI::Flags::MoveType::INTERCEPT) {
