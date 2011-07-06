@@ -1,4 +1,5 @@
 #include "test/feedback.h"
+#include "util/algorithm.h"
 #include <iomanip>
 
 TesterFeedbackPanel::TesterFeedbackPanel(XBeeDongle &dongle, XBeeRobot::Ptr robot) : Gtk::Table(6, 2), dongle(dongle), robot(robot), battery_voltage_label("Battery:"), capacitor_voltage_label("Capacitor:"), dribbler_temperature_label("Dribbler:"), break_beam_reading_label("Break Beam:"), alive("Alive"), estop("EStop Run"), ball_in_beam("Ball in Beam"), ball_on_dribbler("Ball on Dribbler"), capacitor_charged("Capacitor Charged") {
@@ -55,7 +56,7 @@ void TesterFeedbackPanel::on_has_feedback_changed() {
 
 void TesterFeedbackPanel::on_battery_voltage_changed() {
 	if (robot->alive && robot->has_feedback) {
-		battery_voltage.set_fraction(robot->battery_voltage / 18.0);
+		battery_voltage.set_fraction(clamp(robot->battery_voltage / 18.0, 0.0, 1.0));
 		battery_voltage.set_text(Glib::ustring::compose("%1V", Glib::ustring::format(std::fixed, std::setprecision(2), robot->battery_voltage)));
 	} else {
 		battery_voltage.set_fraction(0);
@@ -65,7 +66,7 @@ void TesterFeedbackPanel::on_battery_voltage_changed() {
 
 void TesterFeedbackPanel::on_capacitor_voltage_changed() {
 	if (robot->alive && robot->has_feedback) {
-		capacitor_voltage.set_fraction(robot->capacitor_voltage / 250.0);
+		capacitor_voltage.set_fraction(clamp(robot->capacitor_voltage / 250.0, 0.0, 1.0));
 		capacitor_voltage.set_text(Glib::ustring::compose("%1V", Glib::ustring::format(std::fixed, std::setprecision(0), robot->capacitor_voltage)));
 	} else {
 		capacitor_voltage.set_fraction(0);
@@ -75,7 +76,7 @@ void TesterFeedbackPanel::on_capacitor_voltage_changed() {
 
 void TesterFeedbackPanel::on_dribbler_temperature_changed() {
 	if (robot->alive && robot->has_feedback && robot->dribbler_temperature < 200) {
-		dribbler_temperature.set_fraction(robot->dribbler_temperature / 125.0);
+		dribbler_temperature.set_fraction(clamp(robot->dribbler_temperature / 125.0, 0.0, 1.0));
 		dribbler_temperature.set_text(Glib::ustring::compose("%1°C", Glib::ustring::format(std::fixed, std::setprecision(1), robot->dribbler_temperature)));
 	} else {
 		dribbler_temperature.set_fraction(0);
