@@ -33,7 +33,7 @@ namespace {
 	DoubleParam PID_XY_RATIO("x to y ratio", "RC/PID3", 0.81, 0.0, 2.0);
 	DoubleParam PID_DAMP("integral decay (%)", "RC/PID3", 90, 0, 99.0);
 
-	DoubleParam PID_YA_RATIO("YA ratio", "RC/PID3", 0, 0, 10.0);
+	DoubleParam PID_YA_RATIO("YA ratio", "RC/PID3", 0, -10.0, 10.0);
 
 	BoolParam DO_RESET("do reset when target changes", "RC/PID3", false);
 
