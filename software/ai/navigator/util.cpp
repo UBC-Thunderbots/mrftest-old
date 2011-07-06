@@ -29,7 +29,9 @@ namespace {
 	// positive enforces amount meters away
 	// negative lets them bump
 	// const double ENEMY_BUFFER = 0.1;
+	DoubleParam ENEMY_BUFFER_SHORT("The amount of distance to maintain from enemy robots", "Nav/Util", -0.05, -1.0, 1.0);
 	DoubleParam ENEMY_BUFFER("The amount of distance to maintain from enemy robots", "Nav/Util", 0.1, -1.0, 1.0);
+	DoubleParam ENEMY_BUFFER_LONG("The amount of distance to maintain from enemy robots", "Nav/Util", 0.2, -1.0, 1.0);
 	// zero lets them brush
 	// positive enforces amount meters away
 	// negative lets them bump
@@ -74,7 +76,21 @@ namespace {
 			if (world.enemy_team().size() <= 0) {
 				return 0.0;
 			}
-			return player->MAX_RADIUS + world.enemy_team().get(0)->MAX_RADIUS + ENEMY_BUFFER;
+			double buffer = 0.0;
+
+			switch(player->avoid_distance()){
+			case AvoidDistance::SHORT :
+				buffer = ENEMY_BUFFER_SHORT;
+					break;
+			case AvoidDistance::MEDIUM :
+				buffer = ENEMY_BUFFER;
+					break;
+			case AvoidDistance::LONG :
+				buffer = ENEMY_BUFFER_LONG;
+					break;
+			}
+
+			return player->MAX_RADIUS + world.enemy_team().get(0)->MAX_RADIUS + buffer;
 		}
 
 		static double goal_post(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
