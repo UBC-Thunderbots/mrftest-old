@@ -376,7 +376,7 @@ namespace {
 				unsigned int num_children;
 			};
 
-			static const ControlInfo CONTROLS[11];
+			static const ControlInfo CONTROLS[12];
 
 			AI::AIPackage &ai;
 			Visualizer &vis;
@@ -408,14 +408,15 @@ namespace {
 			}
 	};
 
-	const VisualizerControls::ControlInfo VisualizerControls::CONTROLS[11] = {
+	const VisualizerControls::ControlInfo VisualizerControls::CONTROLS[12] = {
 		{ "Field", &Visualizer::show_field, 0, 0 },
 		{ "Ball", &Visualizer::show_ball, 0, 1 },
 		{ "Velocity", &Visualizer::show_ball_v, 0, 0 },
-		{ "Robots", &Visualizer::show_robots, 0, 3 },
+		{ "Robots", &Visualizer::show_robots, 0, 4 },
 		{ "Velocity", &Visualizer::show_robots_v, 0, 0 },
 		{ "Destination", &Visualizer::show_robots_dest, 0, 0 },
 		{ "Path", &Visualizer::show_robots_path, 0, 0 },
+		{ "Graphs", &Visualizer::show_robots_graphs, 0, 0 },
 		{ "AI Overlays", &Visualizer::show_overlay, 0, 3 },
 		{ "High-Level", 0, &AI::AIPackage::show_hl_overlay, 0 },
 		{ "Navigator", 0, &AI::AIPackage::show_nav_overlay, 0 },

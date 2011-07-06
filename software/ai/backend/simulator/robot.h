@@ -72,6 +72,9 @@ namespace AI {
 					const std::pair<Point, double> &destination() const { throw std::logic_error("This robot has no destination"); }
 					bool has_path() const { return false; }
 					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const { throw std::logic_error("This robot has no path"); }
+					unsigned int num_bar_graphs() const { return 0; }
+					double bar_graph_value(unsigned int) const { return 0.0; }
+					Visualizable::Colour bar_graph_colour(unsigned int) const { return Visualizable::Colour(0.0, 0.0, 0.0); }
 
 				protected:
 					/**

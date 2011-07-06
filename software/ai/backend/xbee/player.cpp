@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cmath>
 #include <sstream>
+#include <stdexcept>
 
 using namespace AI::BE::XBee;
 
@@ -81,6 +82,39 @@ const std::pair<Point, double> &Player::destination() const {
 
 Point Player::target_velocity() const {
 	return target_velocity_;
+}
+
+unsigned int Player::num_bar_graphs() const {
+	return 2;
+}
+
+double Player::bar_graph_value(unsigned int index) const {
+	switch (index) {
+		case 0:
+			return clamp((bot->battery_voltage - 13.0) / (16.5 - 13.0), 0.0, 1.0);
+
+		case 1:
+			return clamp(bot->capacitor_voltage / 230.0, 0.0, 1.0);
+
+		default:
+			throw std::logic_error("invalid bar graph index");
+	}
+}
+
+Visualizable::Colour Player::bar_graph_colour(unsigned int index) const {
+	switch (index) {
+		case 0:
+			{
+				double value = bar_graph_value(index);
+				return Visualizable::Colour(1.0 - value, value, 0.0);
+			}
+
+		case 1:
+			return Visualizable::Colour(bot->capacitor_charged ? 0.0 : 1.0, bot->capacitor_charged ? 1.0 : 0.0, 0.0);
+
+		default:
+			throw std::logic_error("invalid bar graph index");
+	}
 }
 
 bool Player::has_ball() const {

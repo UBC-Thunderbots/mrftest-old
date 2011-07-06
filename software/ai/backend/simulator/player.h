@@ -108,6 +108,9 @@ namespace AI {
 					void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p);
 					bool has_path() const;
 					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const;
+					unsigned int num_bar_graphs() const { return Robot::num_bar_graphs(); }
+					double bar_graph_value(unsigned int index) const { return Robot::bar_graph_value(index); }
+					Visualizable::Colour bar_graph_colour(unsigned int index) const { return Robot::bar_graph_colour(index); }
 					void drive(const int(&w)[4]);
 					const int(&wheel_speeds() const)[4];
 					void avoid_distance(AI::Flags::AvoidDistance dist) { Robot::avoid_distance(dist); }

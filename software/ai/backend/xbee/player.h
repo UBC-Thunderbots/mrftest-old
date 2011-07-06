@@ -67,6 +67,9 @@ namespace AI {
 					void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) { path_ = p; }
 					bool has_path() const { return true; }
 					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const { return path_; }
+					unsigned int num_bar_graphs() const;
+					double bar_graph_value(unsigned int) const;
+					Visualizable::Colour bar_graph_colour(unsigned int) const;
 					void drive(const int(&w)[4]);
 					const int(&wheel_speeds() const)[4] {
 						return wheel_speeds_;

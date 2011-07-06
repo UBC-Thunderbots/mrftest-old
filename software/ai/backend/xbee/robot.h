@@ -84,6 +84,9 @@ namespace AI {
 					const std::pair<Point, double> &destination() const;
 					bool has_path() const;
 					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const;
+					unsigned int num_bar_graphs() const;
+					double bar_graph_value(unsigned int index) const;
+					Visualizable::Colour bar_graph_colour(unsigned int index) const;
 
 				protected:
 					AI::BE::Backend &backend;

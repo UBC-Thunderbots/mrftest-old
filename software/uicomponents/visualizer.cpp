@@ -1,7 +1,7 @@
 #include "uicomponents/visualizer.h"
 #include <cmath>
 
-Visualizer::Visualizer(Visualizable::World &data) : show_field(true), show_ball(true), show_ball_v(true), show_robots(true), show_robots_v(false), show_robots_dest(true), show_robots_path(true), show_overlay(true), data(data) {
+Visualizer::Visualizer(Visualizable::World &data) : show_field(true), show_ball(true), show_ball_v(true), show_robots(true), show_robots_v(false), show_robots_dest(true), show_robots_path(true), show_robots_graphs(true), show_overlay(true), data(data) {
 	set_size_request(600, 600);
 	add_events(Gdk::POINTER_MOTION_MASK);
 	add_events(Gdk::BUTTON_PRESS_MASK);
@@ -175,6 +175,36 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 				for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator j = path.begin(), jend = path.end(); j != jend; ++j) {
 					ctx->arc(j->first.first.x, j->first.first.y, 0.01, 0, 2 * M_PI);
 					ctx->fill();
+				}
+			}
+
+			if (show_robots_graphs) {
+				unsigned int count = bot->num_bar_graphs();
+				if (count) {
+					const double BAR_HEIGHT = 0.1;
+					const double BAR_WIDTH = 0.4;
+					double tlx = bot->position().x - BAR_WIDTH / 2.0;
+					double tly = bot->position().y - BAR_HEIGHT * (count + 1) - 0.09;
+					ctx->set_source_rgb(0.0, 0.0, 0.0);
+					ctx->begin_new_path();
+					ctx->move_to(tlx, tly);
+					ctx->line_to(tlx + BAR_WIDTH, tly);
+					ctx->line_to(tlx + BAR_WIDTH, tly + BAR_HEIGHT * count);
+					ctx->line_to(tlx, tly + BAR_HEIGHT * count);
+					ctx->fill();
+
+					for (unsigned int i = 0; i < count; ++i) {
+						double value = bot->bar_graph_value(i);
+						const Visualizable::Colour &graphclr = bot->bar_graph_colour(i);
+						double bar_tly = tly + BAR_HEIGHT * i;
+						ctx->set_source_rgb(graphclr.red, graphclr.green, graphclr.blue);
+						ctx->begin_new_path();
+						ctx->move_to(tlx + BAR_WIDTH * 0.15, bar_tly + BAR_HEIGHT * 0.15);
+						ctx->line_to(tlx + BAR_WIDTH * (0.15 + 0.7 * value), bar_tly + BAR_HEIGHT * 0.15);
+						ctx->line_to(tlx + BAR_WIDTH * (0.15 + 0.7 * value), bar_tly + BAR_HEIGHT * 0.85);
+						ctx->line_to(tlx + BAR_WIDTH * 0.15, bar_tly + BAR_HEIGHT * 0.85);
+						ctx->fill();
+					}
 				}
 			}
 

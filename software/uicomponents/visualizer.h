@@ -244,6 +244,31 @@ namespace Visualizable {
 			 * \return the path the robot should follow.
 			 */
 			virtual const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const = 0;
+
+			/**
+			 * \brief Returns the number of bar graphs the robot can display.
+			 *
+			 * \return the number of bar graphs to display.
+			 */
+			virtual unsigned int num_bar_graphs() const = 0;
+
+			/**
+			 * \brief Returns the percentage to show in a particular bar graph.
+			 *
+			 * \param[in] index the index of the graph.
+			 *
+			 * \return the fractional value to display, between 0 and 1.
+			 */
+			virtual double bar_graph_value(unsigned int index) const = 0;
+
+			/**
+			 * \brief Returns the colour of a bar graph's internals.
+			 *
+			 * \param[in] index the index of the graph.
+			 *
+			 * \return the colour.
+			 */
+			virtual Colour bar_graph_colour(unsigned int index) const = 0;
 	};
 
 	/**
@@ -366,6 +391,11 @@ class Visualizer : public Gtk::DrawingArea {
 		 * Whether or not to draw the robots' navigator-assigned paths.
 		 */
 		bool show_robots_path;
+
+		/**
+		 * \brief Whether or not to draw the robots' bar graphs.
+		 */
+		bool show_robots_graphs;
 
 		/**
 		 * Whether or not to draw the AI overlay.
