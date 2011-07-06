@@ -109,6 +109,10 @@ namespace {
 
 	Point grab_ball_dest(const World& world, Player::CPtr player) {
 		Player::CPtr baller = Evaluation::calc_friendly_baller(world);
+		if (!baller.is()) {
+			return world.ball().position();
+		}
+
 		Point ball_vel = Action::pass_speed * Point::of_angle(baller->orientation());
 		Point dest;
 		if (AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, player->position(), dest)) {
