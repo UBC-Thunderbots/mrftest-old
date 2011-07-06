@@ -139,12 +139,8 @@ namespace {
 			}
 
 			void execute() {
-				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();
-				Player::CPtr passer = Evaluation::nearest_friendly(world, world.ball().position());
 				kick_info passer_info = PasserShoot::passer_info;
 				bool fast_ball = world.ball().velocity().len() > fast_velocity;
-#warning looks abit ugly.. 
-
 
 				///////////////////////////////////////////////////////////////////////////////////////////////////////
 				// calculate the largest circle centered at the passers target                                       //
@@ -162,7 +158,6 @@ namespace {
 				Point circle_outside_ray_intersectA = closest_lineseg_point(passer_info.kicker_target, passer_info.kicker_location,  passer_info.kicker_location + passer_target.rotate(pass_thresh) );
 				Point circle_outside_ray_intersectB = closest_lineseg_point(passer_info.kicker_target, passer_info.kicker_location,  passer_info.kicker_location + passer_target.rotate(-pass_thresh) );
 				double target_radius = (circle_outside_ray_intersectA - passer_info.kicker_target).len();
-
 
 				//
 				// if the passee is outside the acceptable region for recieving a pass then make it go to an
