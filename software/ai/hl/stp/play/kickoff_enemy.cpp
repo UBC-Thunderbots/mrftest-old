@@ -1,10 +1,12 @@
 #include "ai/hl/stp/tactic/move.h"
+#include "ai/hl/stp/tactic/shadow_kickoff.h"
 #include "ai/hl/stp/tactic/wait_playtype.h"
 #include "ai/hl/stp/play/simple_play.h"
 
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
+using AI::HL::STP::Enemy;
 namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
@@ -49,11 +51,12 @@ roles[1].push_back(move(world, shoot));
 
 // ROLE 3
 // move to offender position 2
-roles[2].push_back(move(world, shoot.rotate(delta_angle)));
+roles[2].push_back(shadow_kickoff(world, Enemy::closest_ball(world, 1), shoot.rotate(delta_angle)));
 
 // ROLE 4
 // move to offender position 3
-roles[3].push_back(move(world, shoot.rotate(-delta_angle)));
+roles[3].push_back(shadow_kickoff(world, Enemy::closest_ball(world, 2), shoot.rotate(-delta_angle)));
+
 END_ASSIGN()
 END_PLAY()
 

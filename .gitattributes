@@ -321,6 +321,8 @@ software/ai/hl/stp/tactic/ram.cpp -text
 software/ai/hl/stp/tactic/ram.h -text
 software/ai/hl/stp/tactic/repel.cpp -text
 software/ai/hl/stp/tactic/repel.h -text
+software/ai/hl/stp/tactic/shadow_kickoff.cpp -text
+software/ai/hl/stp/tactic/shadow_kickoff.h -text
 software/ai/hl/stp/tactic/shoot.cpp -text
 software/ai/hl/stp/tactic/shoot.h -text
 software/ai/hl/stp/tactic/tactic.cpp -text
