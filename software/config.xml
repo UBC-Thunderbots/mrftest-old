@@ -58,13 +58,14 @@
         <double name="pivot radius">1.00</double>
       </category>
       <category name="RRT">
+        <double name="Ball velocity threshold (used to switch between chase and chase+pivot)">0.50</double>
         <double name="Buffer behind ball for chase (meters)">0.350</double>
         <double name="Chase angle range for behind target (degrees)">30.0</double>
         <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
         <double name="Distance to extend the tree on each step (m)">0.100</double>
         <integer name="Number of iterations to go through before we give best partial path">200</integer>
         <double name="Pivot: offset angle (degrees)">38</double>
-        <double name="Pivot: offset distance">0.10</double>
+        <double name="Pivot: offset distance">0.14</double>
         <double name="Pivot: orientation offset (degrees)">14</double>
       </category>
       <category name="Util">
@@ -82,7 +83,9 @@
         <double name="Buffer for staying on own half ">0.000</double>
         <boolean name="enforce that robots stay on own half ">false</boolean>
         <double name="The amount centre of robot must stay out of net">0.0500</double>
-        <double name="The amount of distance to maintain from enemy robots">0.200</double>
+        <double name="The amount of distance to maintain from enemy robots of high priority">0.200</double>
+        <double name="The amount of distance to maintain from enemy robots that we are willing to bump">-0.050</double>
+        <double name="The amount of distance to maintain from enemy robots usually">0.100</double>
         <double name="The amount robots should stay away from goal post">0.0000</double>
         <boolean name="use enemy's future position">false</boolean>
         <boolean name="use friendly's future position">false</boolean>
@@ -119,7 +122,7 @@
         <double name="angular -differential">1.0</double>
         <double name="angular +integral">0.00</double>
         <double name="angular max velocity">15.00</double>
-        <double name="angular +proportional">15.00</double>
+        <double name="angular +proportional">20.00</double>
         <double name="(CARE) angular slowdown when translating">1.010</double>
         <boolean name="(CARE) flip trans&amp;ang slowdown">false</boolean>
         <boolean name="(CARE) reduce angular velocity when translating">false</boolean>
@@ -131,7 +134,7 @@
         <double name="x to y ratio">1.000</double>
         <double name="xy -differential">1.5</double>
         <double name="xy +integral">0.00</double>
-        <double name="xy max acceleration">0.15</double>
+        <double name="xy max acceleration">0.12</double>
         <double name="xy max velocity">15.00</double>
         <double name="xy +proportional">20.00</double>
         <double name="YA ratio">0.08</double>
@@ -156,6 +159,11 @@
       </category>
     </category>
     <category name="STP">
+      <category name="action">
+        <category name="repel">
+          <double name="enemy avoidance distance (robot radius)">6.00</double>
+        </category>
+      </category>
       <category name="Action">
         <category name="block">
           <double name="baller projects a cone of this angle, blocker will avoid this cone (degrees)">5.0</double>
@@ -201,7 +209,7 @@
       </category>
       <category name="Goalie">
         <boolean name="Goalie is lowest index">true</boolean>
-        <integer name="Goalie pattern index">5</integer>
+        <integer name="Goalie pattern index">3</integer>
       </category>
       <category name="Kickoff">
         <double name="kickoff: angle to separate players (degrees)">40.0</double>
@@ -226,10 +234,13 @@
         <double name="Minimum distance for pass play">0.500</double>
       </category>
       <category name="PassRay">
-        <double name="Max ray shoot rotation (degrees)">120.0</double>
+        <double name="Max ray shoot rotation (degrees)">140.0</double>
         <integer name="Ray # of intervals">60</integer>
         <double name="Ray pass threat multiplier">1.2</double>
         <double name="Small ray shoot rotation (degrees)">10.0</double>
+      </category>
+      <category name="PassSimple">
+        <double name="Ball pass velocity (HACK)">2.0</double>
       </category>
       <category name="Play">
         <category name="Enable">
@@ -242,6 +253,7 @@
           <boolean name="FreeKickEnemy">true</boolean>
           <boolean name="FreeKickFriendly">true</boolean>
           <boolean name="FreeKickFriendlyPass">true</boolean>
+          <boolean name="FreeKickFriendlyRay">true</boolean>
           <boolean name="FreeKickFriendlyRepel">true</boolean>
           <boolean name="FriendlyCornerPlay1">true</boolean>
           <boolean name="GrabBallDefensive">true</boolean>
@@ -279,6 +291,7 @@
           <integer name="FreeKickEnemy">5</integer>
           <integer name="FreeKickFriendly">10</integer>
           <integer name="FreeKickFriendlyPass">5</integer>
+          <integer name="FreeKickFriendlyRay">5</integer>
           <integer name="FreeKickFriendlyRepel">0</integer>
           <integer name="FriendlyCornerPlay1">5</integer>
           <integer name="GrabBallDefensive">5</integer>
@@ -322,7 +335,7 @@
           <double name="dist from target when passee hack is applicable (meters)">0.100</double>
           <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.113</double>
           <boolean name=" pass blocked means that Passer should fail ">true</boolean>
-          <boolean name=" shot on net avaiable means that Passer should fail ">true</boolean>
+          <boolean name=" shot on net avaiable means that Passer should fail ">false</boolean>
           <double name=" the buffer (meters) in which passee must be with repect to target region before valid ">0.000</double>
           <double name=" the radius (meters) in which passer must be with repect to ball before valid ">1.000</double>
           <double name="velocity of pass threshold">1.000</double>

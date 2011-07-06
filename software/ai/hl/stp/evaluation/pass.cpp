@@ -25,8 +25,8 @@ namespace {
 
 #warning TOOD: refactor
 	bool ray_on_friendly_goal(const World& world, const Point c, const Point d) {
-		Point a = world.field().friendly_goal_boundary().first;
-		Point b = world.field().friendly_goal_boundary().second;
+		Point a = world.field().friendly_goal() - Point(0, -10);
+		Point b = world.field().friendly_goal() + Point(0, 10);
 
 		if (unique_line_intersect(a, b, c, d)) {
 			Point inter = line_intersect(a, b, c, d);

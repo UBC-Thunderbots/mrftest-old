@@ -65,7 +65,11 @@ namespace {
 					return;
 				}
 
-				kick_attempted = kick_attempted || Action::shoot_pass(world, player, target);
+				if (Action::shoot_pass(world, player, target)) {
+					kick_attempted = true;
+				}
+
+				player->flags(0);
 			}
 
 			std::string description() const {

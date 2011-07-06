@@ -32,7 +32,7 @@ namespace {
 		// HYSTERISIS
 		double ori_fix;
 
-		PasserRay(const World &world) : Tactic(world, true) {
+		PasserRay(const World &world) : Tactic(world, true), kick_attempted(false) {
 		}
 
 		bool done() const {
@@ -63,7 +63,10 @@ namespace {
 			double ori = Evaluation::best_shoot_ray(world, player).second;
 
 			Point target = player->position() + 10 * Point::of_angle(ori);
-			kick_attempted = kick_attempted || Action::shoot_pass(world, player, target);
+			if (Action::shoot_pass(world, player, target)) {
+				kick_attempted = true;
+			}
+			player->flags(0);
 		}
 
 		std::string description() const {
