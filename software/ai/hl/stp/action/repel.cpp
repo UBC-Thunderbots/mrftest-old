@@ -107,7 +107,7 @@ bool AI::HL::STP::Action::corner_repel(const World &world, Player::Ptr player) {
 	std::pair<Point, double> centre_line = angle_sweep_circles(player->position(), p3, p4, obstacles, Robot::MAX_RADIUS);
 	
 	if (centre_circle.second > centre_line.second) return shoot_target(world, player, centre_circle.first);
-	return shoot_target(world, player, centre_line.first);
+	return shoot_target(world, player, centre_line.first, 6.0); // hack speed
 	 
 }
 

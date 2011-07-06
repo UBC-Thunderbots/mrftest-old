@@ -6,8 +6,8 @@ namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::Enemy;
 
 BEGIN_PLAY(JustRepel)
-INVARIANT(our_team_size_at_least(world, 2))
-APPLICABLE(!Predicates::their_ball(world))
+INVARIANT(!playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) && !playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY) && our_team_size_at_least(world, 2))
+APPLICABLE(!their_ball(world))
 DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
