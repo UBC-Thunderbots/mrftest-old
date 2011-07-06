@@ -64,6 +64,7 @@ namespace {
 			Gtk::VBox vbox;
 			Gtk::Button button_normal;
 			Gtk::Button button_square;
+			Gtk::HScale rchoose;
 
 			void start_normal() {
 				done = 0;
@@ -85,6 +86,11 @@ namespace {
 
 				button_normal.signal_clicked().connect(sigc::bind(&MBHL::start_normal, sigc::ref(*this)));
 				button_square.signal_clicked().connect(sigc::bind(&MBHL::start_square, sigc::ref(*this)));
+
+				rchoose.get_adjustment()->configure(0, 0, 10, 1, 10, 0);
+				rchoose.set_digits(1);
+
+				vbox.add(rchoose);
 			}
 
 			MBHLFactory &factory() const {
@@ -104,7 +110,13 @@ namespace {
 				}
 				time_steps++;
 
-				Player::Ptr runner = friendly.get(0);
+				int index = (int)rchoose.get_value();
+
+				if (index < 0 || index >= friendly.size()) {
+					return;
+				}
+
+				Player::Ptr runner = friendly.get(index);
 
 				const Point diff_pos = runner->position() - tasks[done].first;
 				const double diff_ori = angle_diff(runner->orientation(), tasks[done].second);

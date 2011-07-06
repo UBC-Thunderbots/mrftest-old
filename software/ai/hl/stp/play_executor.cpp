@@ -71,7 +71,7 @@ void PlayExecutor::calc_play() {
 			continue;
 		}
 
-		LOG_INFO(Glib::ustring::compose("Play candidate: %1", plays[i]->factory().name()));
+		LOG_DEBUG(Glib::ustring::compose("Play candidate: %1", plays[i]->factory().name()));
 
 		if (!curr_play.is() || plays[i]->factory().priority > curr_play->factory().priority) {
 			curr_play = plays[i];
@@ -195,7 +195,7 @@ void PlayExecutor::execute_tactics() {
 		}
 
 		if (curr_active->fail()) {
-			LOG_INFO("Active tactic has failed");
+			LOG_INFO(Glib::ustring::compose("%1: active tactic failed", curr_play->factory().name()));
 			curr_play.reset();
 			return;
 		}
@@ -206,7 +206,7 @@ void PlayExecutor::execute_tactics() {
 
 			// when the play runs out of tactics, they are done!
 			if (curr_role_step >= max_role_step) {
-				LOG_INFO("All tactics are done");
+				LOG_INFO(Glib::ustring::compose("%1: all tactics done", curr_play->factory().name()));
 				curr_play.reset();
 				return;
 			}
@@ -254,7 +254,7 @@ void PlayExecutor::execute_tactics() {
 	}
 
 	if (curr_active->fail()) {
-		LOG_INFO("Active tactic has failed");
+		LOG_INFO(Glib::ustring::compose("%1: active tactic failed", curr_play->factory().name()));
 		curr_play.reset();
 		return;
 	}
@@ -265,7 +265,7 @@ void PlayExecutor::execute_tactics() {
 
 		// when the play runs out of tactics, they are done!
 		if (curr_role_step >= max_role_step) {
-			LOG_INFO("All tactics are done");
+			LOG_INFO(Glib::ustring::compose("%1: all tactics done", curr_play->factory().name()));
 			curr_play.reset();
 			return;
 		}
@@ -310,6 +310,7 @@ void PlayExecutor::tick() {
 		}
 
 		if (done) {
+			LOG_INFO(Glib::ustring::compose("%1: play tactic failed", curr_play->factory().name()));
 			curr_play.reset();
 		}
 	}

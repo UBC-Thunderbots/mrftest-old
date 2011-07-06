@@ -76,7 +76,7 @@ namespace AI {
 				double dest_ori = (world.ball().position() - player->position()).orientation();
 
 				if (!AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest_pos)) {
-					LOG_INFO( "grab fail" );
+					LOG_DEBUG( "grab fail" );
 					return std::make_pair(world.ball().position(), dest_ori);
 				}
 

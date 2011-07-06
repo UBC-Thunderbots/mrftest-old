@@ -1,6 +1,7 @@
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/tactic/util.h"
+#include "ai/hl/stp/param.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -80,8 +81,7 @@ namespace {
 	}
 
 	void ShootTarget::execute() {
-#warning WTH MAGIC NUMBER
-		if (AI::HL::STP::Action::shoot_target(world, player, target.position(), 5.0)) {
+		if (AI::HL::STP::Action::shoot_target(world, player, target.position(), AI::HL::STP::Action::pass_speed)) {
 			kick_attempted = true;
 		}
 		player->flags(0);
