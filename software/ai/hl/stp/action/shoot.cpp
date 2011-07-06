@@ -147,7 +147,7 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 
 	return false;
 }
-
+/*
 double AI::HL::STP::Action::shoot_speed(double distance, double delta, double alph) {
 	double a = alph;
 	if(alph<0) a = alpha;
@@ -158,4 +158,4 @@ double AI::HL::STP::Action::shoot_speed(double distance, double delta, double al
 
 	return speed;
 }
-
+*/
