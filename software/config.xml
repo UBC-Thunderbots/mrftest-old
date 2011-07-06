@@ -58,13 +58,13 @@
         <double name="pivot radius">1.00</double>
       </category>
       <category name="RRT">
-        <double name="Buffer behind ball for chase (meters)">0.250</double>
+        <double name="Buffer behind ball for chase (meters)">0.350</double>
         <double name="Chase angle range for behind target (degrees)">30.0</double>
         <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
         <double name="Distance to extend the tree on each step (m)">0.100</double>
         <integer name="Number of iterations to go through before we give best partial path">200</integer>
-        <double name="Pivot: offset angle (degrees)">58</double>
-        <double name="Pivot: offset distance">0.11</double>
+        <double name="Pivot: offset angle (degrees)">38</double>
+        <double name="Pivot: offset distance">0.10</double>
         <double name="Pivot: orientation offset (degrees)">14</double>
       </category>
       <category name="Util">
@@ -72,17 +72,17 @@
         <double name="Amount behind ball during Penalty kick (rule=0.4) ">0.400</double>
         <double name="amount of time (s) to avoid enemy's future position">0.000</double>
         <double name="amount of time (s) to avoid friendly's future position">0.000</double>
-        <double name="Buffer avoid ball tiny (meters)">0.050</double>
+        <double name="Buffer avoid ball tiny (meters)">0.070</double>
         <double name="Buffer avoid defense area (meters)">0.000</double>
-        <double name="Buffer for equal priority friendly robot (meters)">0.100</double>
+        <double name="Buffer for equal priority friendly robot (meters)">0.196</double>
         <double name="Buffer for higher priority friendly robot (meters)">0.200</double>
         <double name="Buffer for lower priority friendly robot (meters)">0.050</double>
         <double name="Buffer for staying away from play area boundary ">0.000</double>
         <double name="Buffer for staying away from referee area boundary ">0.000</double>
         <double name="Buffer for staying on own half ">0.000</double>
         <boolean name="enforce that robots stay on own half ">false</boolean>
-        <double name="The amount centre of robot must stay out of net">0.0000</double>
-        <double name="The amount of distance to maintain from enemy robots">0.100</double>
+        <double name="The amount centre of robot must stay out of net">0.0500</double>
+        <double name="The amount of distance to maintain from enemy robots">0.200</double>
         <double name="The amount robots should stay away from goal post">0.0000</double>
         <boolean name="use enemy's future position">false</boolean>
         <boolean name="use friendly's future position">false</boolean>
@@ -118,8 +118,8 @@
       <category name="PID3">
         <double name="angular -differential">1.0</double>
         <double name="angular +integral">0.00</double>
-        <double name="angular max velocity">12.00</double>
-        <double name="angular +proportional">12.00</double>
+        <double name="angular max velocity">15.00</double>
+        <double name="angular +proportional">15.00</double>
         <double name="(CARE) angular slowdown when translating">1.010</double>
         <boolean name="(CARE) flip trans&amp;ang slowdown">false</boolean>
         <boolean name="(CARE) reduce angular velocity when translating">false</boolean>
@@ -128,13 +128,13 @@
         <double name="profile 1  multiplier">0.1</double>
         <double name="profile 2  multiplier">1.5</double>
         <double name="profile 3  multiplier">2.0</double>
-        <double name="x to y ratio">0.810</double>
-        <double name="xy -differential">1.0</double>
+        <double name="x to y ratio">1.000</double>
+        <double name="xy -differential">1.5</double>
         <double name="xy +integral">0.00</double>
-        <double name="xy max acceleration">5.00</double>
-        <double name="xy max velocity">12.00</double>
-        <double name="xy +proportional">12.00</double>
-        <double name="YA ratio">0.00</double>
+        <double name="xy max acceleration">0.15</double>
+        <double name="xy max velocity">15.00</double>
+        <double name="xy +proportional">20.00</double>
+        <double name="YA ratio">0.08</double>
       </category>
       <category name="PIDSim">
         <double name="angular -differential">0.0</double>
@@ -200,8 +200,8 @@
         <double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>
       </category>
       <category name="Goalie">
-        <boolean name="Goalie is lowest index">true</boolean>
-        <integer name="Goalie pattern index">6</integer>
+        <boolean name="Goalie is lowest index">false</boolean>
+        <integer name="Goalie pattern index">5</integer>
       </category>
       <category name="Kickoff">
         <double name="kickoff: angle to separate players (degrees)">40.0</double>
