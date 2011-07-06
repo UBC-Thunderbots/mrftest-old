@@ -201,6 +201,8 @@ software/ai/hl/stp/action/move_spin.cpp -text
 software/ai/hl/stp/action/move_spin.h -text
 software/ai/hl/stp/action/pivot.cpp -text
 software/ai/hl/stp/action/pivot.h -text
+software/ai/hl/stp/action/ram.cpp -text
+software/ai/hl/stp/action/ram.h -text
 software/ai/hl/stp/action/repel.cpp -text
 software/ai/hl/stp/action/repel.h -text
 software/ai/hl/stp/action/shoot.cpp -text

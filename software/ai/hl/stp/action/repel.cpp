@@ -1,5 +1,6 @@
 #include "ai/hl/stp/action/repel.h"
 #include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/action/ram.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
@@ -27,9 +28,7 @@ bool AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
 		if (dest.x < f.friendly_goal().x + Robot::MAX_RADIUS) { // avoid going inside the goal
 			dest.x = f.friendly_goal().x + Robot::MAX_RADIUS;
 		}
-		player->move(dest, diff.orientation(), diff.norm() * FAST);
-		player->type(AI::Flags::MoveType::RAM_BALL); 
-		player->prio(AI::Flags::MovePrio::HIGH);
+		ram(world, player, dest, diff.norm() * FAST);
 		return false;
 	}
 	/*
@@ -77,9 +76,7 @@ bool AI::HL::STP::Action::corner_repel(const World &world, Player::Ptr player) {
 		if (dest.x < f.friendly_goal().x + Robot::MAX_RADIUS) { // avoid going inside the goal
 			dest.x = f.friendly_goal().x + Robot::MAX_RADIUS;
 		}
-		player->move(dest, diff.orientation(), diff.norm() * FAST);
-		player->type(AI::Flags::MoveType::RAM_BALL); 
-		player->prio(AI::Flags::MovePrio::HIGH);
+		ram(world, player, dest, diff.norm() * FAST);
 		return false;
 	}
 	
@@ -101,7 +98,7 @@ bool AI::HL::STP::Action::corner_repel(const World &world, Player::Ptr player) {
 	const Point p3(0.0, -f.width() / 2.0), p4(0.0, f.width() / 2.0);
 	std::pair<Point, double> centre_line = angle_sweep_circles(player->position(), p3, p4, obstacles, Robot::MAX_RADIUS);
 	
-	if (centre_circle.second > shoot_accuracy) return shoot_target(world, player, centre_circle.first);
+	if (centre_circle.second > shoot_accuracy) return shoot_target(world, player, centre_circle.first, corner_repel_speed);
 	return shoot_target(world, player, centre_line.first, corner_repel_speed); 
 	 
 }

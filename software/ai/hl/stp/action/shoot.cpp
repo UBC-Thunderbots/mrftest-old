@@ -1,6 +1,7 @@
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/pivot.h"
+#include "ai/hl/stp/action/ram.h"
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/team.h"
@@ -18,7 +19,7 @@
 using namespace AI::HL::STP;
 
 namespace {
-
+	const double FAST = 100.0;
 }
 
 void AI::HL::STP::Action::autokick(Player::Ptr player, const Point target, double velocity) {
@@ -46,8 +47,8 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player) {
 			LOG_INFO("chicker not ready");
 			// angle is right but chicker not ready, ram the ball and get closer to target, only use in normal play
 			if (world.playtype() == AI::Common::PlayType::PLAY){
-				player->move(shoot_data.target, (world.ball().position() - player->position()).orientation(), Point());
-				player->type(AI::Flags::MoveType::RAM_BALL);
+				const Point diff = world.ball().position() - player->position();
+				ram(world, player, shoot_data.target, diff * FAST);
 			}
 			return false;
 		}
@@ -70,8 +71,8 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 			LOG_INFO("chicker not ready");
 			// angle is right but chicker not ready, ram the ball and get closer to target, only use in normal play
 			if (world.playtype() == AI::Common::PlayType::PLAY){
-				player->move(target, (world.ball().position() - player->position()).orientation(), Point());
-				player->type(AI::Flags::MoveType::RAM_BALL);
+				const Point diff = world.ball().position() - player->position();
+				ram(world, player, target, diff * FAST);
 			}
 			return false;
 		}
