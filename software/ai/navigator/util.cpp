@@ -29,9 +29,9 @@ namespace {
 	// positive enforces amount meters away
 	// negative lets them bump
 	// const double ENEMY_BUFFER = 0.1;
-	DoubleParam ENEMY_BUFFER_SHORT("The amount of distance to maintain from enemy robots", "Nav/Util", -0.05, -1.0, 1.0);
-	DoubleParam ENEMY_BUFFER("The amount of distance to maintain from enemy robots", "Nav/Util", 0.1, -1.0, 1.0);
-	DoubleParam ENEMY_BUFFER_LONG("The amount of distance to maintain from enemy robots", "Nav/Util", 0.2, -1.0, 1.0);
+	DoubleParam ENEMY_BUFFER_SHORT("The amount of distance to maintain from enemy robots that we are willing to bump", "Nav/Util", -0.05, -1.0, 1.0);
+	DoubleParam ENEMY_BUFFER("The amount of distance to maintain from enemy robots usually", "Nav/Util", 0.1, -1.0, 1.0);
+	DoubleParam ENEMY_BUFFER_LONG("The amount of distance to maintain from enemy robots of high priority", "Nav/Util", 0.2, -1.0, 1.0);
 	// zero lets them brush
 	// positive enforces amount meters away
 	// negative lets them bump
