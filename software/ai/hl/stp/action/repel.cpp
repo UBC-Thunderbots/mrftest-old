@@ -8,6 +8,7 @@
 #include "util/param.h"
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/param.h"
+#include "ai/hl/stp/predicates.h"
 
 using namespace AI::HL::STP;
 
@@ -68,7 +69,13 @@ bool AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
 bool AI::HL::STP::Action::corner_repel(const World &world, Player::Ptr player) {
 	
 	const Field &f = world.field();
+	const Point ball = world.ball().position();
 	const Point diff = world.ball().position() - player->position();
+
+	// if ball not in corner then just repel
+	if (Predicates::ball_in_our_corner(world) || Predicates::ball_in_their_corner(world)){
+		return repel(world, player);
+	}	
 
 	// set to RAM_BALL instead of using chase
 	if (!player->has_ball()) {
