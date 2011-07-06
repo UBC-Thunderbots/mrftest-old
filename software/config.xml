@@ -81,6 +81,7 @@
         <double name="Buffer for staying away from referee area boundary ">0.000</double>
         <double name="Buffer for staying on own half ">0.000</double>
         <boolean name="enforce that robots stay on own half ">false</boolean>
+        <double name="The amount centre of robot must stay out of net">0.0000</double>
         <double name="The amount of distance to maintain from enemy robots">0.100</double>
         <double name="The amount robots should stay away from goal post">0.0000</double>
         <boolean name="use enemy's future position">false</boolean>
@@ -182,6 +183,9 @@
         <double name="circle radius in front of robot to enable pivot (meters)">0.100</double>
         <boolean name="Smart possess ball (instead of has ball only)">true</boolean>
       </category>
+      <category name="Chase">
+        <boolean name="Chase always face toward enemy goal">true</boolean>
+      </category>
       <category name="defense">
         <boolean name="goalie hug switch">false</boolean>
         <double name="max goalie dist from goal (robot radius)">3.00</double>
@@ -252,7 +256,7 @@
           <boolean name="Pass Play 0 0">true</boolean>
           <boolean name="Pass Play 1.2 -1.5">true</boolean>
           <boolean name="Pass Play 1.2 1.5">true</boolean>
-          <boolean name="PassRandom">true</boolean>
+          <boolean name="PassSimple">true</boolean>
           <boolean name="PenaltyEnemy">true</boolean>
           <boolean name="PenaltyFriendly">true</boolean>
           <boolean name="Stop">true</boolean>
@@ -266,9 +270,9 @@
           <integer name="DefensiveBlock">5</integer>
           <integer name="FranticDefense">10</integer>
           <integer name="FreeKickEnemy">5</integer>
-          <integer name="FreeKickFriendly">5</integer>
+          <integer name="FreeKickFriendly">10</integer>
           <integer name="FreeKickFriendlyPass">5</integer>
-          <integer name="FreeKickFriendlyRepel">5</integer>
+          <integer name="FreeKickFriendlyRepel">0</integer>
           <integer name="FriendlyCornerPlay1">5</integer>
           <integer name="GrabBallDefensive">5</integer>
           <integer name="GrabBallOffensive">5</integer>
@@ -288,7 +292,7 @@
           <integer name="Pass Play 0 0">5</integer>
           <integer name="Pass Play 1.2 -1.5">5</integer>
           <integer name="Pass Play 1.2 1.5">5</integer>
-          <integer name="PassRandom">5</integer>
+          <integer name="PassSimple">5</integer>
           <integer name="PenaltyEnemy">5</integer>
           <integer name="PenaltyFriendly">5</integer>
           <integer name="Stop">5</integer>

@@ -45,10 +45,44 @@ namespace {
 		finished = AI::HL::STP::Action::repel(world, player);
 		player->flags(0);
 	}
+	
+	class CornerRepel : public Tactic {
+		public:
+			CornerRepel(const World &world) : Tactic(world, true) {
+			}
+
+		private:
+			bool finished;
+			bool done() const;
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			void execute();
+			std::string description() const {
+				return "corner_repel";
+			}
+	};
+
+	bool CornerRepel::done() const {
+		return player.is() && player->autokick_fired();
+	}
+
+	Player::Ptr CornerRepel::select(const std::set<Player::Ptr> &players) const {
+		return select_baller(world, players);
+	}
+
+	void CornerRepel::execute() {
+		finished = false;
+		finished = AI::HL::STP::Action::corner_repel(world, player);
+		player->flags(0);
+	}
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::repel(const World &world) {
 	const Tactic::Ptr p(new Repel(world));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::corner_repel(const World &world) {
+	const Tactic::Ptr p(new CornerRepel(world));
 	return p;
 }
 

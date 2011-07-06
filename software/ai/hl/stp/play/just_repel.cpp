@@ -7,7 +7,7 @@ using AI::HL::STP::Enemy;
 
 BEGIN_PLAY(JustRepel)
 INVARIANT(our_team_size_at_least(world, 2))
-APPLICABLE(Predicates::none_ball(world))
+APPLICABLE(!Predicates::their_ball(world))
 DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()

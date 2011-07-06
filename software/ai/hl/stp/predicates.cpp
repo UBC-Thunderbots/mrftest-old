@@ -192,3 +192,23 @@ bool Predicates::fight_ball(const World &world) {
 	return our_ball(world) && their_ball(world);
 }
 
+bool Predicates::ball_inside_robot(const World &world){
+	const Field &f = world.field();
+	const Point ball = world.ball().position();
+	
+	const FriendlyTeam &friendly = world.friendly_team();
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		if ((friendly.get(i)->position() - ball).len() < AI::HL::Util::POS_CLOSE){
+			return true; 
+		}
+	}
+	
+	const EnemyTeam &enemies = world.enemy_team();
+	for (std::size_t i = 0; i < enemies.size(); ++i) {
+		if ((enemies.get(i)->position() - ball).len() < AI::HL::Util::POS_CLOSE) {
+			return true;
+		}
+	}
+	return false;
+}
+

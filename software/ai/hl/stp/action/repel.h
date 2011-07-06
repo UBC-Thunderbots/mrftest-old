@@ -15,6 +15,11 @@ namespace AI {
 				 * \return true if kicked
 				 */
 				bool repel(const World &world, Player::Ptr player);
+				
+				/**
+				 * repel in the corner
+				 */
+				bool corner_repel(const World &world, Player::Ptr player);
 			}
 		}
 	}

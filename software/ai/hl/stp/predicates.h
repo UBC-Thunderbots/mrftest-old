@@ -108,9 +108,14 @@ namespace AI {
 				bool ball_inside_region(const World &world, Region region);
 
 				/**
-				 * true if our_ball and their_ball (so we have to fight the ball)
+				 * true if our_ball and their_ball (so we have to fight for the ball)
 				 */
 				bool fight_ball(const World &world);				
+				
+				/**
+				 * true if the ball is inside some robot
+				 */
+				bool ball_inside_robot(const World &world);
 			}
 		}
 	}

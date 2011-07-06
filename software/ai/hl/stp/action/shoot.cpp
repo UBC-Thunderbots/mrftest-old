@@ -44,6 +44,11 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player) {
 	if (shoot_data.can_shoot) {
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
+			// angle is right but chicker not ready, ram the ball and get closer to target, only use in normal play
+			if (world.playtype() == AI::Common::PlayType::PLAY){
+				player->move(shoot_data.target, (world.ball().position() - player->position()).orientation(), Point());
+				player->type(AI::Flags::MoveType::RAM_BALL);
+			}
 			return false;
 		}
 		LOG_INFO("autokick");
@@ -60,8 +65,14 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 
 	//if (shoot_data.can_shoot) {
 	if (Evaluation::player_within_angle_thresh(player, target, passer_angle_threshold)) {
+		// angle is right but chicker not ready, ram the ball and get closer to target
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
+			// angle is right but chicker not ready, ram the ball and get closer to target, only use in normal play
+			if (world.playtype() == AI::Common::PlayType::PLAY){
+				player->move(target, (world.ball().position() - player->position()).orientation(), Point());
+				player->type(AI::Flags::MoveType::RAM_BALL);
+			}
 			return false;
 		}
 		LOG_INFO("autokick");
