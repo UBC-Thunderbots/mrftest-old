@@ -39,7 +39,7 @@ namespace {
 
 }
 
-DoubleParam Evaluation::max_pass_ray_angle("Max ray shoot rotation (degrees)", "STP/PassRay", 50, 0, 180);
+DoubleParam Evaluation::max_pass_ray_angle("Max ray shoot rotation (degrees)", "STP/PassRay", 75, 0, 180);
 
 IntParam Evaluation::ray_intervals("Ray # of intervals", "STP/PassRay", 30, 0, 80);
 
