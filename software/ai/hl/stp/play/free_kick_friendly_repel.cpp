@@ -1,16 +1,25 @@
-#include "ai/hl/stp/tactic/pass.h"
 #include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/stp/tactic/pass.h"
 #include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/stp/tactic/repel.h"
 #include "ai/hl/stp/tactic/move.h"
+#include "ai/common/playtype.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
 
 BEGIN_PLAY(FreeKickFriendlyRepel)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2))
-APPLICABLE(true)
+INVARIANT(
+		(Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY)
+		 || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY))
+		&& Predicates::our_team_size_at_least(world, 2))
+
+APPLICABLE(
+		(Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY)
+			|| Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)))
+
 DONE(false)
 FAIL(false)
+
 BEGIN_ASSIGN()
 // GOALIE
 goalie_role.push_back(goalie_dynamic(world, 1));

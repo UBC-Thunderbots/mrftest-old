@@ -18,6 +18,12 @@ namespace AI {
 				 * number: first passee is 0, second is 1 etc
 				 */
 				Tactic::Ptr passee_simple(const World &world, unsigned number);
+
+				/**
+				 * Look at where the ball is heading,
+				 * and catch it.
+				 */
+				Tactic::Ptr follow_baller(const World &world);
 			}
 		}
 	}

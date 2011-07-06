@@ -68,10 +68,11 @@ namespace {
 			}
 			
 			bool fail() const {
+				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();				
 				return player.is()
 					// should fail when cannot pass to target,
 					&&  ((passer_depends_calc_best_shot_target
-							&& !Evaluation::can_pass(world, player->position(), target.position()))
+							&& !Evaluation::can_pass(world, player->position(), dest))
 					// or a shot on net is available
 					|| (passer_depends_baller_can_shoot
 							&& !AI::HL::STP::Predicates::baller_can_shoot(world)));

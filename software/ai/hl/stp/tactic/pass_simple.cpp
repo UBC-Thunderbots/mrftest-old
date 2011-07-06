@@ -10,6 +10,7 @@
 #include "ai/hl/stp/predicates.h"
 #include "ai/hl/stp/param.h"
 #include "ai/hl/util.h"
+#include "ai/util.h"
 #include "geom/util.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
@@ -72,7 +73,6 @@ namespace {
 
 	struct PasseeSimple : public Tactic {
 		const unsigned number;
-		bool kick_attempted;
 
 		PasseeSimple(const World &world, unsigned number) : Tactic(world, false), number(number) {
 		}
@@ -107,6 +107,49 @@ namespace {
 		}
 	};
 
+	Point grab_ball_dest(const World& world, Player::CPtr player) {
+		Player::CPtr baller = Evaluation::calc_friendly_baller(world);
+		Point ball_vel = Action::pass_speed * Point::of_angle(baller->orientation());
+		Point dest;
+		if (AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, player->position(), dest)) {
+			return dest;
+		}
+		return world.ball().position();
+	}
+
+	struct FollowBaller : public Tactic {
+
+		FollowBaller(const World &world) : Tactic(world, false) {
+		}
+
+		Player::Ptr select(const std::set<Player::Ptr> &players) const {
+			Player::Ptr best;
+			double min_dist = 1e99;
+			for (auto it = players.begin(); it != players.end(); ++it) {
+				Point dest = grab_ball_dest(world, *it);
+				if (!best.is() || min_dist > (dest - (*it)->position()).len()) {
+					min_dist = (dest - (*it)->position()).len();
+					best = *it;
+				}
+			}
+			return best;
+		}
+
+		void execute() {
+			if (Evaluation::passee_suitable(world, player)) {
+				Action::move(world, player, player->position());
+			} else {
+				Point dest = grab_ball_dest(world, player);
+				Action::move(world, player, dest);
+				player->prio(AI::Flags::MovePrio::LOW);
+			}
+		}
+
+		std::string description() const {
+			return "follow-passer";
+		}
+	};
+
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passer_simple(const World &world) {
@@ -116,6 +159,11 @@ Tactic::Ptr AI::HL::STP::Tactic::passer_simple(const World &world) {
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_simple(const World &world, unsigned number) {
 	const Tactic::Ptr p(new PasseeSimple(world, number));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::follow_baller(const World &world) {
+	const Tactic::Ptr p(new FollowBaller(world));
 	return p;
 }
 

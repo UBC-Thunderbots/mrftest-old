@@ -244,6 +244,7 @@ software/ai/hl/stp/play/frantic_defense.cpp -text
 software/ai/hl/stp/play/free_kick_enemy.cpp -text
 software/ai/hl/stp/play/free_kick_friendly.cpp -text
 software/ai/hl/stp/play/free_kick_friendly_pass.cpp -text
+software/ai/hl/stp/play/free_kick_friendly_ray.cpp -text
 software/ai/hl/stp/play/free_kick_friendly_repel.cpp -text
 software/ai/hl/stp/play/friendly_corner_1.cpp -text
 software/ai/hl/stp/play/grab_ball_defensive.cpp -text
