@@ -1,6 +1,6 @@
+#include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/pass.h"
-#include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/offend.h"
 
 using AI::HL::STP::Enemy;

@@ -41,17 +41,6 @@ namespace AI {
 				 * This one is an active tactic
 				 */
 				Tactic::Ptr passee_receive(const World &world);
-
-				/**
-				 * Just toss the ball to someone in front.
-				 */
-				Tactic::Ptr passer_simple(const World &world);
-
-				/**
-				 * Stay at position and wait for pass.
-				 * number: first passee is 0, second is 1 etc
-				 */
-				Tactic::Ptr passee_simple(const World &world, unsigned number);
 			}
 		}
 	}

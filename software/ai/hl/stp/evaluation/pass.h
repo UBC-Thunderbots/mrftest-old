@@ -47,6 +47,21 @@ namespace AI {
 				 * Calls will return the previously chosen player if possible.
 				 */
 				Player::CPtr select_passee(const World& world);
+
+				/**
+				 * Checks if this direction is valid for shooting
+				 * for indirect pass.
+				 */
+				bool can_shoot_ray(const World& world, Player::CPtr player, double orientation);
+
+				/**
+				 * Calculates the best shooting angle.
+				 */
+				std::pair<bool, double> best_shoot_ray(const World& world, const Player::CPtr player);
+
+				extern IntParam ray_intervals;
+
+				extern DoubleParam max_pass_ray_angle;
 			}
 		}
 	}

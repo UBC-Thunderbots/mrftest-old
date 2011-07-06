@@ -261,6 +261,7 @@ software/ai/hl/stp/play/our_corner_play.cpp -text
 software/ai/hl/stp/play/pass_defensive.cpp -text
 software/ai/hl/stp/play/pass_fixed.cpp -text
 software/ai/hl/stp/play/pass_offensive.cpp -text
+software/ai/hl/stp/play/pass_ray.cpp -text
 software/ai/hl/stp/play/pass_simple.cpp -text
 software/ai/hl/stp/play/pass_test.cpp -text
 software/ai/hl/stp/play/penalty_enemy.cpp -text
@@ -305,6 +306,10 @@ software/ai/hl/stp/tactic/offend.cpp -text
 software/ai/hl/stp/tactic/offend.h -text
 software/ai/hl/stp/tactic/pass.cpp -text
 software/ai/hl/stp/tactic/pass.h -text
+software/ai/hl/stp/tactic/pass_ray.cpp -text
+software/ai/hl/stp/tactic/pass_ray.h -text
+software/ai/hl/stp/tactic/pass_simple.cpp -text
+software/ai/hl/stp/tactic/pass_simple.h -text
 software/ai/hl/stp/tactic/penalty_goalie.cpp -text
 software/ai/hl/stp/tactic/penalty_goalie.h -text
 software/ai/hl/stp/tactic/penalty_shoot.cpp -text

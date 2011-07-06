@@ -192,6 +192,18 @@ bool Predicates::fight_ball(const World &world) {
 	return our_ball(world) && their_ball(world);
 }
 
+bool Predicates::can_shoot_ray(const World& world) {
+	const FriendlyTeam& friendly = world.friendly_team();
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		const Player::CPtr player = friendly.get(i);
+		if (!Evaluation::possess_ball(world, player)) continue;
+		if (Evaluation::best_shoot_ray(world, player).first) {
+			return true;
+		}
+	}
+	return false;
+}
+
 bool Predicates::ball_inside_robot(const World &world){
 	const Field &f = world.field();
 	const Point ball = world.ball().position();

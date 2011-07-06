@@ -274,101 +274,6 @@ namespace {
 				return "passee-recieve";
 			}
 	};
-
-	class PasserSimple : public Tactic {
-		public:
-			PasserSimple(const World &world) : Tactic(world, true), kick_attempted(false) {
-			}
-
-		private:
-			bool kick_attempted;
-			Player::CPtr target;
-
-			bool done() const {
-				return player.is() && kick_attempted && player->autokick_fired();
-			}
-
-			bool fail() const {
-				if (!Evaluation::select_passee(world).is()) {
-					return true;
-				}
-
-				if (AI::HL::STP::Predicates::baller_can_shoot(world)) {
-					return true;
-				}
-
-				return false;
-			}
-
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				// if a player attempted to shoot, keep the player
-				if (kick_attempted && players.count(player)) {
-					return player;
-				}
-				return select_baller(world, players);
-			}
-
-			void execute() {
-				if (target.is() && !Evaluation::passee_suitable(world, target)) {
-					target.reset();
-				}
-
-				if (!target.is()) {
-					target = Evaluation::select_passee(world);
-				}
-
-				if (!target.is()) {
-					// should fail
-					return;
-				}
-
-				kick_attempted = kick_attempted || Action::shoot_pass(world, player, target);
-			}
-
-			std::string description() const {
-				return "passer-simple";
-			}
-	};
-
-	class PasseeSimple : public Tactic {
-		public:
-			PasseeSimple(const World &world, unsigned number) : Tactic(world, false), number(number) {
-			}
-
-		private:
-			const unsigned number;
-			bool kick_attempted;
-
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				// hysterysis.
-				if (player.is() && players.count(player) && Evaluation::passee_suitable(world, player)) {
-					return player;
-				}
-				for (auto it = players.begin(); it != players.end(); ++it) {
-					if (Evaluation::passee_suitable(world, *it)) {
-						return *it;
-					}
-				}
-				// return a random player..
-				return *players.begin();
-			}
-
-			void execute() {
-				if (Evaluation::passee_suitable(world, player)) {
-					Action::move(world, player, player->position());
-				} else {
-					// move to a suitable position
-					auto dest = AI::HL::STP::Evaluation::offense_positions(world);
-					Action::move(world, player, dest[number]);
-					player->prio(AI::Flags::MovePrio::LOW);
-				}
-			}
-
-			std::string description() const {
-				return "passee-simple";
-			}
-	};
-
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passer_shoot_target(const World &world, Coordinate target) {
@@ -398,16 +303,6 @@ Tactic::Ptr AI::HL::STP::Tactic::passee_move_dynamic(const World &world) {
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_receive(const World &world) {
 	const Tactic::Ptr p(new PasseeRecieve(world));
-	return p;
-}
-
-Tactic::Ptr AI::HL::STP::Tactic::passer_simple(const World &world) {
-	const Tactic::Ptr p(new PasserSimple(world));
-	return p;
-}
-
-Tactic::Ptr AI::HL::STP::Tactic::passee_simple(const World &world, unsigned number) {
-	const Tactic::Ptr p(new PasseeSimple(world, number));
 	return p;
 }
 

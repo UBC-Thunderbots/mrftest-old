@@ -88,6 +88,10 @@ namespace AI {
 					void role_assignment();
 
 					void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
+
+					void on_player_added(std::size_t);
+
+					void on_player_removed();
 			};
 		};
 	}

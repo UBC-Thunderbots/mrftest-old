@@ -6,6 +6,7 @@
 #include "ai/hl/stp/evaluation/enemy.h"
 #include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/stp/predicates.h"
+#include "geom/angle.h"
 #include <cmath>
 
 using namespace AI::HL::STP;
@@ -14,6 +15,7 @@ using AI::HL::STP::Evaluation::grid_y;
 
 void AI::HL::STP::draw_player_status(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
 	const FriendlyTeam& friendly = world.friendly_team();
+	/*
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		if (friendly.get(i)->chicker_ready()) {
 			continue;
@@ -28,6 +30,7 @@ void AI::HL::STP::draw_player_status(const World &world, Cairo::RefPtr<Cairo::Co
 		ctx->line_to(c.x + R, c.y - R);
 		ctx->stroke();
 	}
+	*/
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		Player::CPtr player = friendly.get(i);
 		if (!player->has_ball()) {
@@ -126,6 +129,31 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 		ctx->move_to(player->position().x, player->position().y);
 		ctx->line_to(shoot_data.target.x, shoot_data.target.y);
 		ctx->stroke();
+
+	}
+
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		const Player::CPtr player = friendly.get(i);
+		if (!Evaluation::possess_ball(world, player)) continue;
+
+		// draw rays for ray shooting
+		const double angle_span = 2 * degrees2radians(Evaluation::max_pass_ray_angle);
+		const double angle_step = angle_span / Evaluation::ray_intervals;
+		const double angle_min = player->orientation() - angle_span / 2;
+
+		for (int i = 0; i < Evaluation::ray_intervals; ++i) {
+		const double angle = angle_min + angle_step * i;
+
+			const Point p1 = player->position();
+			const Point p2 = p1 + 3 * Point::of_angle(angle);
+			if (Evaluation::can_shoot_ray(world, player, angle)) {
+				ctx->set_source_rgba(1.0, 0.0, 1.0, 0.4);
+				ctx->set_line_width(0.02);
+				ctx->move_to(p1.x, p1.y);
+				ctx->line_to(p2.x, p2.y);
+				ctx->stroke();
+			}
+		}
 	}
 }
 

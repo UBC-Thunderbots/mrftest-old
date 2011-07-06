@@ -4,6 +4,7 @@
 #include "ai/hl/util.h"
 #include "ai/hl/stp/param.h"
 #include "geom/angle.h"
+#include "geom/util.h"
 
 using namespace AI::HL::STP;
 
@@ -21,9 +22,109 @@ namespace {
 		// OLD method is TRIED and TESTED
 		return AI::HL::Util::path_check(p1, p2, obstacles, Robot::MAX_RADIUS * tol);
 	}
+
+#warning TOOD: refactor
+	bool ray_on_friendly_goal(const World& world, const Point c, const Point d) {
+		Point a = world.field().friendly_goal_boundary().first;
+		Point b = world.field().friendly_goal_boundary().second;
+
+		if (unique_line_intersect(a, b, c, d)) {
+			Point inter = line_intersect(a, b, c, d);
+			return inter.y <= std::max(a.y, b.y) && inter.y >= std::min(a.y, b.y);
+		}
+		return false;
+	}
+
+	DoubleParam pass_ray_threat_mult("Ray pass threat multiplier", "STP/PassRay", 2, 1, 99);
+
 }
 
-bool AI::HL::STP::Evaluation::enemy_can_pass(const World &world, const Robot::Ptr passer, const Robot::Ptr passee) {
+DoubleParam Evaluation::max_pass_ray_angle("Max ray shoot rotation (degrees)", "STP/PassRay", 50, 0, 180);
+
+IntParam Evaluation::ray_intervals("Ray # of intervals", "STP/PassRay", 30, 0, 80);
+
+bool Evaluation::can_shoot_ray(const World& world, Player::CPtr player, double orientation) {
+	const Point p1 = player->position();
+	const Point p2 = p1 + 10 * Point::of_angle(orientation);
+
+	double diff = angle_diff(player->orientation(), orientation);
+	if (diff > degrees2radians(max_pass_ray_angle)) {
+		return false;
+	}
+
+	// check if the ray heads towards our net
+	if (ray_on_friendly_goal(world, p1, p2)) {
+		return false;
+	}
+
+	const FriendlyTeam &friendly = world.friendly_team();
+	const EnemyTeam &enemy = world.enemy_team();
+
+	double closest_enemy = 1e99;
+	double closest_friendly = 1e99;
+
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		Player::CPtr fptr = friendly.get(i);
+		if (fptr == player) continue;
+		double dist = seg_pt_dist(p1, p2, fptr->position());
+		closest_friendly = std::min(closest_friendly, dist);
+	}
+
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
+		Robot::Ptr robot = enemy.get(i);
+		double dist = seg_pt_dist(p1, p2, robot->position());
+		closest_enemy = std::min(closest_enemy, dist);
+	}
+
+	return closest_friendly * pass_ray_threat_mult <= closest_enemy;
+}
+
+std::pair<bool, double> Evaluation::best_shoot_ray(const World& world, const Player::CPtr player) {
+	if (!Evaluation::possess_ball(world, player)) {
+		return std::make_pair(false, 0);
+	}
+
+	double best_diff = 1e99;
+	double best_angle;
+
+	// draw rays for ray shooting
+
+	const double angle_span = 2 * degrees2radians(max_pass_ray_angle);
+	const double angle_step = angle_span / Evaluation::ray_intervals;
+	const double angle_min = player->orientation() - angle_span / 2;
+
+	for (int i = 0; i < Evaluation::ray_intervals; ++i) {
+		const double angle = angle_min + angle_step * i;
+
+		const Point p1 = player->position();
+		const Point p2 = p1 + 3 * Point::of_angle(angle);
+
+		double diff = angle_diff(player->orientation(), angle);
+
+		if (diff > best_diff) {
+			continue;
+		}
+
+		// ok
+		if (!Evaluation::can_shoot_ray(world, player, angle)) {
+			continue;
+		}
+
+		if (diff < best_diff) {
+			best_diff = diff;
+			best_angle = angle;
+		}
+	}
+
+	// cant find good angle
+	if (best_diff > 1e50) {
+		return std::make_pair(false, 0);
+	}
+
+	return std::make_pair(true, best_angle);
+}
+
+bool Evaluation::enemy_can_pass(const World &world, const Robot::Ptr passer, const Robot::Ptr passee) {
 	std::vector<Point> obstacles;
 	const FriendlyTeam &friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
@@ -86,10 +187,10 @@ bool Evaluation::passee_suitable(const World& world, Player::CPtr passee) {
 	}
 
 	/*
-	if (!Evaluation::passee_facing_ball(world, passee)) {
-		return false;
-	}
-	*/
+	   if (!Evaluation::passee_facing_ball(world, passee)) {
+	   return false;
+	   }
+	 */
 
 	return true;
 }

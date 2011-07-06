@@ -4,7 +4,9 @@
 #include "ai/hl/util.h"
 #include "util/dprint.h"
 #include "ai/hl/stp/ui.h"
+
 #include <cassert>
+#include <glibmm.h>
 
 using AI::HL::STP::PlayExecutor;
 using namespace AI::HL::STP;
@@ -49,6 +51,9 @@ PlayExecutor::PlayExecutor(World &w) : world(w) {
 	for (Play::PlayFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 		plays.push_back(i->second->create(world));
 	}
+
+	world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &PlayExecutor::on_player_added));
+	world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &PlayExecutor::on_player_removed));
 }
 
 void PlayExecutor::calc_play() {
@@ -362,5 +367,14 @@ void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 			role[t]->draw_overlay(ctx);
 		}
 	}
+}
+
+void PlayExecutor::on_player_added(std::size_t) {
+	LOG_INFO("Player added");
+}
+
+void PlayExecutor::on_player_removed() {
+	LOG_INFO("Player removed, reset play");
+	curr_play.reset();
 }
 

@@ -111,6 +111,8 @@ namespace AI {
 				 * true if our_ball and their_ball (so we have to fight for the ball)
 				 */
 				bool fight_ball(const World &world);				
+
+				bool can_shoot_ray(const World& world);
 				
 				/**
 				 * true if the ball is inside some robot
