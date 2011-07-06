@@ -200,7 +200,7 @@
         <double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>
       </category>
       <category name="Goalie">
-        <boolean name="Goalie is lowest index">false</boolean>
+        <boolean name="Goalie is lowest index">true</boolean>
         <integer name="Goalie pattern index">5</integer>
       </category>
       <category name="Kickoff">
@@ -226,9 +226,9 @@
         <double name="Minimum distance for pass play">0.500</double>
       </category>
       <category name="PassRay">
-        <double name="Max ray shoot rotation (degrees)">50.0</double>
-        <integer name="Ray # of intervals">30</integer>
-        <double name="Ray pass threat multiplier">2.0</double>
+        <double name="Max ray shoot rotation (degrees)">120.0</double>
+        <integer name="Ray # of intervals">60</integer>
+        <double name="Ray pass threat multiplier">1.2</double>
         <double name="Small ray shoot rotation (degrees)">10.0</double>
       </category>
       <category name="Play">

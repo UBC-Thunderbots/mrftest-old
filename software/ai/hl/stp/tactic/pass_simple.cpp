@@ -25,6 +25,8 @@ using AI::HL::STP::min_pass_dist;
 
 namespace {
 
+	DoubleParam ball_pass_velocity("Ball pass velocity (HACK)", "STP/PassSimple",  2.0, 0, 99);
+
 	struct PasserSimple : public Tactic {
 			bool kick_attempted;
 
@@ -113,7 +115,7 @@ namespace {
 			return world.ball().position();
 		}
 
-		Point ball_vel = Action::pass_speed * Point::of_angle(baller->orientation());
+		Point ball_vel = ball_pass_velocity * Point::of_angle(baller->orientation());
 		Point dest;
 		if (AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, player->position(), dest)) {
 			return dest;
