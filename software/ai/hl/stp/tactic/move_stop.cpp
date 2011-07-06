@@ -46,9 +46,7 @@ namespace {
 	void MoveStop::execute() {
 		std::vector<Point> positions = stop_locations(world);
 
-		unsigned int flags = AI::Flags::FLAG_AVOID_BALL_STOP | AI::Flags::calc_flags(world.playtype());
 		Action::move(world, player, positions[player_index]);
-		player->flags(flags);
 	}
 }
 
