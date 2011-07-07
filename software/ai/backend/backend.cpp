@@ -9,7 +9,7 @@ using AI::BE::BackendFactory;
 AI::BE::Robot::Robot() : avoid_distance_(AI::Flags::AvoidDistance::MEDIUM) {
 }
 
-void AI::BE::Robot::avoid_distance(AI::Flags::AvoidDistance dist) {
+void AI::BE::Robot::avoid_distance(AI::Flags::AvoidDistance dist) const {
 	avoid_distance_ = dist;
 }
 

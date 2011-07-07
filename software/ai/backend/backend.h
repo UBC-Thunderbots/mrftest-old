@@ -60,7 +60,7 @@ namespace AI {
 				double orientation(double delta) const = 0;
 				Point velocity(double delta) const = 0;
 				double avelocity(double delta) const = 0;
-				void avoid_distance(AI::Flags::AvoidDistance dist);
+				void avoid_distance(AI::Flags::AvoidDistance dist) const;
 				AI::Flags::AvoidDistance avoid_distance() const;
 				virtual void pre_tick();
 
@@ -68,7 +68,7 @@ namespace AI {
 				Robot();
 
 			private:
-				AI::Flags::AvoidDistance avoid_distance_;
+				mutable AI::Flags::AvoidDistance avoid_distance_;
 		};
 
 		/**

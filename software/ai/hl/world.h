@@ -35,7 +35,7 @@ namespace AI {
 					 *
 					 * \param[in] dist the avoidance distance.
 					 */
-					virtual void avoid_distance(AI::Flags::AvoidDistance dist) = 0;
+					virtual void avoid_distance(AI::Flags::AvoidDistance dist) const = 0;
 			};
 
 			/**

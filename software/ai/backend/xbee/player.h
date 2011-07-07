@@ -74,7 +74,7 @@ namespace AI {
 					const int(&wheel_speeds() const)[4] {
 						return wheel_speeds_;
 					}
-					void avoid_distance(AI::Flags::AvoidDistance dist) { Robot::avoid_distance(dist); }
+					void avoid_distance(AI::Flags::AvoidDistance dist) const { Robot::avoid_distance(dist); }
 					AI::Flags::AvoidDistance avoid_distance() const { return Robot::avoid_distance(); }
 					void pre_tick() { AI::BE::Player::pre_tick(); }
 
