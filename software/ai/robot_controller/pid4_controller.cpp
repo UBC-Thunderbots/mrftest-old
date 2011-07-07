@@ -18,36 +18,36 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-	BoolParam PID_SLOW_ANGULAR("(CARE) reduce angular velocity when translating", "RC/PID3", true);
-	BoolParam PID_FLIP_SLOWDOWN("(CARE) flip trans&ang slowdown", "RC/PID3", false);
-	DoubleParam PID_SLOWDOWN("(CARE) angular slowdown when translating", "RC/PID3", 1.01, 0.1, 8.0);
-	DoubleParam PID_PROP("xy +proportional", "RC/PID3", 20, 0.0, 100.0);
-	DoubleParam PID_DIFF("xy -differential", "RC/PID3", 1, -100.0, 100.0);
-	DoubleParam PID_INTG("xy +integral", "RC/PID3", 0, 0.0, 10.0);
-	DoubleParam PID_MAX_VEL("xy max velocity", "RC/PID3", 9, 0.0, 100.0);
-	DoubleParam PID_MAX_ACC("xy max acceleration", "RC/PID3", 5, 0.0, 1000.0);
-	DoubleParam PID_A_PROP("angular +proportional", "RC/PID3", 30, 0.0, 100.0);
-	DoubleParam PID_A_DIFF("angular -differential", "RC/PID3", 1, -100.0, 100.0);
-	DoubleParam PID_A_INTG("angular +integral", "RC/PID3", 0.0, 0.0, 10.0);
-	DoubleParam PID_A_MAX_VEL("angular max velocity", "RC/PID3", 30, 0.0, 100.0);
-	DoubleParam PID_A_MAX_ACC("angular max accel", "RC/PID3", 30, 0.0, 100.0);
-	DoubleParam PID_XY_RATIO("x to y ratio", "RC/PID3", 0.81, 0.0, 2.0);
-	DoubleParam PID_DAMP("decay", "RC/PID3", 0.99, 0, 1.0);
+	BoolParam PID_SLOW_ANGULAR("(CARE) reduce angular velocity when translating", "RC/PID4", true);
+	BoolParam PID_FLIP_SLOWDOWN("(CARE) flip trans&ang slowdown", "RC/PID4", false);
+	DoubleParam PID_SLOWDOWN("(CARE) angular slowdown when translating", "RC/PID4", 1.01, 0.1, 8.0);
+	DoubleParam PID_PROP("xy +proportional", "RC/PID4", 20, 0.0, 100.0);
+	DoubleParam PID_DIFF("xy -differential", "RC/PID4", 1, -100.0, 100.0);
+	DoubleParam PID_INTG("xy +integral", "RC/PID4", 0, 0.0, 10.0);
+	DoubleParam PID_MAX_VEL("xy max velocity", "RC/PID4", 9, 0.0, 100.0);
+	DoubleParam PID_MAX_ACC("xy max acceleration", "RC/PID4", 5, 0.0, 1000.0);
+	DoubleParam PID_A_PROP("angular +proportional", "RC/PID4", 30, 0.0, 100.0);
+	DoubleParam PID_A_DIFF("angular -differential", "RC/PID4", 1, -100.0, 100.0);
+	DoubleParam PID_A_INTG("angular +integral", "RC/PID4", 0.0, 0.0, 10.0);
+	DoubleParam PID_A_MAX_VEL("angular max velocity", "RC/PID4", 30, 0.0, 100.0);
+	DoubleParam PID_A_MAX_ACC("angular max accel", "RC/PID4", 30, 0.0, 100.0);
+	DoubleParam PID_XY_RATIO("x to y ratio", "RC/PID4", 0.81, 0.0, 2.0);
+	DoubleParam PID_DAMP("decay", "RC/PID4", 0.99, 0, 1.0);
 
-	DoubleParam PID_YA_RATIO("YA ratio", "RC/PID3", 0, -10.0, 10.0);
+	DoubleParam PID_YA_RATIO("YA ratio", "RC/PID4", 0, -10.0, 10.0);
 
-	BoolParam DO_RESET("do reset when target changes", "RC/PID3", false);
+	BoolParam DO_RESET("do reset when target changes", "RC/PID4", false);
 
-	DoubleParam PID_PROFILE1("profile 1  multiplier", "RC/PID3", 0.1, 0, 99.0);
-	DoubleParam PID_PROFILE2("profile 2  multiplier", "RC/PID3", 1.5, 0, 99.0);
-	DoubleParam PID_PROFILE3("profile 3  multiplier", "RC/PID3", 2.0, 0, 99.0);
+	DoubleParam PID_PROFILE1("profile 1  multiplier", "RC/PID4", 0.1, 0, 99.0);
+	DoubleParam PID_PROFILE2("profile 2  multiplier", "RC/PID4", 1.5, 0, 99.0);
+	DoubleParam PID_PROFILE3("profile 3  multiplier", "RC/PID4", 2.0, 0, 99.0);
 
-	class PID3Controller : public OldRobotController {
+	class PID4Controller : public OldRobotController {
 		public:
 			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 			void clear();
 			RobotControllerFactory &get_factory() const;
-			PID3Controller(World &world, Player::Ptr plr);
+			PID4Controller(World &world, Player::Ptr plr);
 
 		protected:
 			bool initialized;
@@ -61,10 +61,10 @@ namespace {
 			double integral_a;
 	};
 
-	PID3Controller::PID3Controller(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0), integral_a(0.0) {
+	PID4Controller::PID4Controller(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0), integral_a(0.0) {
 	}
 
-	void PID3Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
+	void PID4Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
 		const Point &current_position = player->position();
 		const double current_orientation = player->orientation();
 
@@ -142,14 +142,14 @@ namespace {
 			if (PID_FLIP_SLOWDOWN) {
 				double slowdown = (PID_SLOWDOWN * PID_A_MAX_VEL - std::fabs(angular_velocity)) / (PID_SLOWDOWN * PID_A_MAX_VEL);
 				if (std::fabs(slowdown) > 1.1) {
-					std::cerr << "PID3: spin up" << std::endl;
+					std::cerr << "PID4: spin up" << std::endl;
 					slowdown = 1;
 				}
 				linear_velocity *= slowdown;
 			} else {
 				double slowdown = (PID_SLOWDOWN * PID_MAX_VEL - linear_velocity.len()) / (PID_SLOWDOWN * PID_MAX_VEL);
 				if (std::fabs(slowdown) > 1.1) {
-					std::cerr << "PID3: spin up" << std::endl;
+					std::cerr << "PID4: spin up" << std::endl;
 					slowdown = 1;
 				}
 				angular_velocity *= slowdown;
@@ -177,23 +177,23 @@ namespace {
 		prev_angular_velocity = angular_velocity;
 	}
 
-	void PID3Controller::clear() {
+	void PID4Controller::clear() {
 	}
 
-	class PID3ControllerFactory : public RobotControllerFactory {
+	class PID4ControllerFactory : public RobotControllerFactory {
 		public:
-			PID3ControllerFactory() : RobotControllerFactory("PID 3") {
+			PID4ControllerFactory() : RobotControllerFactory("PID 4") {
 			}
 
 			RobotController::Ptr create_controller(World &world, Player::Ptr plr) const {
-				RobotController::Ptr p(new PID3Controller(world, plr));
+				RobotController::Ptr p(new PID4Controller(world, plr));
 				return p;
 			}
 	};
 
-	PID3ControllerFactory factory;
+	PID4ControllerFactory factory;
 
-	RobotControllerFactory &PID3Controller::get_factory() const {
+	RobotControllerFactory &PID4Controller::get_factory() const {
 		return factory;
 	}
 }

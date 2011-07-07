@@ -12,9 +12,9 @@ DoubleParam AI::HL::STP::Action::alpha("Decay constant for the ball velocity", "
 
 DoubleParam AI::HL::STP::Action::passer_angle_threshold("Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate", "STP/Action/shoot", 5, 0.0, 90.0);
 
-DoubleParam AI::HL::STP::passee_angle_threshold("Angle threshold (in degrees) that the passee must be with respect to passer when shot, smaller is more accurate", "STP/Action/shoot", 80.0, 0.0, 90.0);
+DoubleParam AI::HL::STP::passee_angle_threshold("Angle threshold (in degrees) that the passee must be with respect to passer when shot, smaller is more accurate", "STP/Pass", 80.0, 0.0, 90.0);
 
-DoubleParam AI::HL::STP::Action::pass_speed("kicking speed for making a pass", "STP/Action/shoot", 7.0, 1.0, 10.0);
+DoubleParam AI::HL::STP::Action::pass_speed("kicking speed for making a pass", "STP/Pass", 4.75, 1.0, 10.0);
 
 DoubleParam AI::HL::STP::Action::target_region_param(" the buffer (meters) in which passee must be with repect to target region before valid ", "STP/Tactic/pass", 0.0, 0.0, 5.0);
 

@@ -1,10 +1,17 @@
 #include "ai/robot_controller/robot_controller.h"
+#include "util/param.h"
 
 using AI::RC::RobotController;
 using AI::RC::OldRobotController;
 using AI::RC::OldRobotController2;
 using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
+
+namespace {
+	BoolParam wheel_prop("Threshold Proportionally", "RC/RC", true);
+
+	DoubleParam wheel_limit("Limit wheel speed", "RC/RC", 100, 0, 2048);
+}
 
 void RobotController::convert_to_wheels(const Point &vel, double avel, int(&wheel_speeds)[4]) {
 	static const double WHEEL_MATRIX[4][3] = {
@@ -20,6 +27,21 @@ void RobotController::convert_to_wheels(const Point &vel, double avel, int(&whee
 			output[row] += WHEEL_MATRIX[row][col] * input[col];
 		}
 	}
+
+	if (wheel_prop) {
+		double max_speed = 0;
+		for (unsigned int row = 0; row < 4; ++row) {
+			max_speed = std::max(max_speed, std::fabs(wheel_speeds[row]));
+		}
+
+		if (max_speed > wheel_limit) {
+			double ratio = wheel_limit / max_speed;
+			for (unsigned int row = 0; row < 4; ++row) {
+				wheel_speeds[row] *= ratio;
+			}
+		}
+	}
+
 	for (unsigned int row = 0; row < 4; ++row) {
 		wheel_speeds[row] = static_cast<int>(output[row]);
 	}

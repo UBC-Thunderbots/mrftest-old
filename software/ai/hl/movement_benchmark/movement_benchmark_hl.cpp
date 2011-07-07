@@ -112,11 +112,16 @@ namespace {
 
 				int index = (int)rchoose.get_value();
 
-				if (index < 0 || index >= friendly.size()) {
+				Player::Ptr runner;
+				
+				for (std::size_t i = 0; i < friendly.size(); ++i) {
+					if (friendly.get(i)->pattern() == index) {
+						runner = friendly.get(i);
+					}
+				}
+				if (!runner.is()) {
 					return;
 				}
-
-				Player::Ptr runner = friendly.get(index);
 
 				const Point diff_pos = runner->position() - tasks[done].first;
 				const double diff_ori = angle_diff(runner->orientation(), tasks[done].second);
