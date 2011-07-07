@@ -57,6 +57,7 @@ namespace AI {
 					RRTNavigator(World &world);
 					RRTPlanner planner;
 					bool is_ccw;
+					std::pair<Point, double> grab_ball_orientation(Player::Ptr player, Point target);
 			};
 
 			class RRTNavigatorFactory : public NavigatorFactory {
@@ -79,7 +80,7 @@ namespace AI {
 				// TODO: Jason, implement this.
 			}
 
-			std::pair<Point, double> RRTNavigator::grab_ball_orientation(Player::Ptr player) {
+			std::pair<Point, double> RRTNavigator::grab_ball_orientation(Player::Ptr player, Point target){
 				Point dest_pos;
 
 				double dest_ori = (world.ball().position() - player->position()).orientation();
@@ -91,7 +92,7 @@ namespace AI {
 
 				Point np = world.ball().position();
 
-				Point dir_ball = (player->destination().first - np).norm();
+				Point dir_ball = (target - np).norm();
 				Point dir = (np - player->position()).norm();
 				double rad = chase_angle_range*M_PI/180.0;
 				bool op_ori = dir_ball.dot(dir)<cos(rad);
@@ -103,6 +104,10 @@ namespace AI {
 				dest_pos += np - world.ball().position();
 
 				return std::make_pair(dest_pos, dest_ori);
+			}
+
+			std::pair<Point, double> RRTNavigator::grab_ball_orientation(Player::Ptr player) {
+				return grab_ball_orientation(player, player->destination().first);
 			}
 			
 			std::pair<Point, double> RRTNavigator::grab_ball(Player::Ptr player) {
