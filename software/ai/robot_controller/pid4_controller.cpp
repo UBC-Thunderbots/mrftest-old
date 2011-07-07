@@ -18,6 +18,7 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
+
 	BoolParam PID_SLOW_ANGULAR("(CARE) reduce angular velocity when translating", "RC/PID4", true);
 	BoolParam PID_FLIP_SLOWDOWN("(CARE) flip trans&ang slowdown", "RC/PID4", false);
 	DoubleParam PID_SLOWDOWN("(CARE) angular slowdown when translating", "RC/PID4", 1.01, 0.1, 8.0);
@@ -42,9 +43,49 @@ namespace {
 	DoubleParam PID_PROFILE2("profile 2  multiplier", "RC/PID4", 1.5, 0, 99.0);
 	DoubleParam PID_PROFILE3("profile 3  multiplier", "RC/PID4", 2.0, 0, 99.0);
 
-	class PID4Controller : public OldRobotController {
+	BoolParam wheel_prop("Threshold Proportionally", "RC/PID4", true);
+
+	DoubleParam wheel_limit("Limit wheel speed", "RC/PID4", 100, 0, 2048);
+
+	void pid_convert_to_wheels(const Point &vel, double avel, int(&wheel_speeds)[4]) {
+		static const double WHEEL_MATRIX[4][3] = {
+			{ -42.5995, 27.6645, 4.3175 },
+			{ -35.9169, -35.9169, 4.3175 },
+			{ 35.9169, -35.9169, 4.3175 },
+			{ 42.5995, 27.6645, 4.3175 }
+		};
+		const double input[3] = { vel.x, vel.y, avel };
+		double output[4] = { 0, 0, 0, 0 };
+		for (unsigned int row = 0; row < 4; ++row) {
+			for (unsigned int col = 0; col < 3; ++col) {
+				output[row] += WHEEL_MATRIX[row][col] * input[col];
+			}
+		}
+
+		if (wheel_prop) {
+			double max_speed = 0;
+			for (unsigned int row = 0; row < 4; ++row) {
+				max_speed = std::max(max_speed, std::fabs(wheel_speeds[row]));
+			}
+
+			if (max_speed > wheel_limit) {
+				double ratio = wheel_limit / max_speed;
+				for (unsigned int row = 0; row < 4; ++row) {
+					wheel_speeds[row] *= ratio;
+				}
+			}
+		}
+
+		for (unsigned int row = 0; row < 4; ++row) {
+			wheel_speeds[row] = static_cast<int>(output[row]);
+		}
+	}
+
+	class PID4Controller : public RobotController {
 		public:
+			void tick();
 			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
+			void move(const Point &new_position, double new_orientation, int(&wheel_speeds)[4]);
 			void clear();
 			RobotControllerFactory &get_factory() const;
 			PID4Controller(World &world, Player::Ptr plr);
@@ -61,7 +102,25 @@ namespace {
 			double integral_a;
 	};
 
-	PID4Controller::PID4Controller(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0), integral_a(0.0) {
+	PID4Controller::PID4Controller(World &world, Player::Ptr plr) : RobotController(world, plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0), integral_a(0.0) {
+	}
+
+	void PID4Controller::tick() {
+		const AI::RC::W::Player::Path &path = player->path();
+		if (path.empty()) {
+			clear();
+		} else {
+			int wheels[4];
+			move(path[0].first.first, path[0].first.second, wheels);
+			player->drive(wheels);
+		}
+	}
+
+	void PID4Controller::move(const Point &new_position, double new_orientation, int(&wheel_speeds)[4]) {
+		Point vel;
+		double avel;
+		move(new_position, new_orientation, vel, avel);
+		pid_convert_to_wheels(vel, avel, wheel_speeds);
 	}
 
 	void PID4Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
