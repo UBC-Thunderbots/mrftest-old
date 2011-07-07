@@ -1883,8 +1883,12 @@ namespace {
 		{ AI::Flags::MoveType::NORMAL, "Normal" },
 		{ AI::Flags::MoveType::DRIBBLE, "Dribble" },
 		{ AI::Flags::MoveType::CATCH, "Catch ball" },
+		{ AI::Flags::MoveType::CATCH_PIVOT, "Catch pivot" },
+		{ AI::Flags::MoveType::INTERCEPT, "Intercept" },
+		{ AI::Flags::MoveType::INTERCEPT_PIVOT, "Intercept pivot" },
 		{ AI::Flags::MoveType::RAM_BALL, "Ram ball" },
 		{ AI::Flags::MoveType::HALT, "Halt" },
+		{ AI::Flags::MoveType::PIVOT, "Pivot" },
 	};
 
 	/**
