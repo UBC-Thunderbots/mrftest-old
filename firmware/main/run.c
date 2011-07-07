@@ -151,12 +151,18 @@ typedef enum {
 	INBOUND_STATE_AWAITING_POLL,
 } inbound_state_t;
 
-static void run_wheel(uint8_t index, int16_t setpoint) {
+static void run_wheel(uint8_t index, int16_t setpoint, wheel_controller_ctx_t *ctx, BOOL enable_controllers) {
 	int16_t power;
 	uint16_t encoded;
 
 	/* Read the feedback value and run the control loop. */
-	power = wheel_controller_iter(setpoint, parbus_read(2 + index));
+	if (enable_controllers) {
+		power = wheel_controller_iter(setpoint, parbus_read(2 + index), ctx);
+	} else {
+		parbus_read(2 + index);
+		wheel_controller_clear(ctx);
+		power = setpoint;
+	}
 
 	/* Encode the power level into 9-bit sign-magnitude form. */
 	encoded = 0;
@@ -219,6 +225,7 @@ void run(void) {
 		uint8_t sequence;
 	} autokick_indicator_micropacket = { sizeof(autokick_indicator_micropacket), PIPE_AUTOKICK_INDICATOR, 0 };
 	BOOL autokick_indicator_micropacket_pending = false;
+	static wheel_controller_ctx_t wheel_controller_ctxs[4];
 #endif
 	uint8_t drive_timeout = 0;
 	const uint8_t robot_number = params.robot_number;
@@ -235,6 +242,10 @@ void run(void) {
 	txiovs[2].len = sizeof(txpkt_feedback_shadow);
 	txiovs[2].ptr = &txpkt_feedback_shadow;
 	txpkt.iovs = txiovs;
+	wheel_controller_clear(&wheel_controller_ctxs[0]);
+	wheel_controller_clear(&wheel_controller_ctxs[1]);
+	wheel_controller_clear(&wheel_controller_ctxs[2]);
+	wheel_controller_clear(&wheel_controller_ctxs[3]);
 
 	if (params.flash_contents == FLASH_CONTENTS_FPGA) {
 		/* Read the magic signature from the FPGA over the parallel bus. */
@@ -800,6 +811,7 @@ void run(void) {
 
 		if (PIR1bits.CCP1IF && fpga_ok) {
 			uint8_t flags_in, flags_out = 0;
+			BOOL wheels_controlled = false;
 
 			/* Auto-kick timeout should expire eventually. */
 			if (autokick_lockout_time && !feedback_block.flags.ball_in_beam) {
@@ -888,10 +900,11 @@ void run(void) {
 					/* Control the wheels if and only if so ordered. */
 					if (drive_block.enable_wheels) {
 						/* Run the control loops. */
-						run_wheel(0, drive_block.wheel1);
-						run_wheel(1, drive_block.wheel2);
-						run_wheel(2, drive_block.wheel3);
-						run_wheel(3, drive_block.wheel4);
+						run_wheel(0, drive_block.wheel1, &wheel_controller_ctxs[0], drive_block.enable_controllers);
+						run_wheel(1, drive_block.wheel2, &wheel_controller_ctxs[1], drive_block.enable_controllers);
+						run_wheel(2, drive_block.wheel3, &wheel_controller_ctxs[2], drive_block.enable_controllers);
+						run_wheel(3, drive_block.wheel4, &wheel_controller_ctxs[3], drive_block.enable_controllers);
+						wheels_controlled = true;
 
 						/* Order the motors enabled. */
 						flags_out |= 0x01;
@@ -956,6 +969,14 @@ void run(void) {
 				feedback_block.flags.capacitor_charged = true;
 			} else {
 				feedback_block.flags.capacitor_charged = false;
+			}
+
+			/* Clear controllers if not used this tick. */
+			if (!wheels_controlled) {
+				wheel_controller_clear(&wheel_controller_ctxs[0]);
+				wheel_controller_clear(&wheel_controller_ctxs[1]);
+				wheel_controller_clear(&wheel_controller_ctxs[2]);
+				wheel_controller_clear(&wheel_controller_ctxs[3]);
 			}
 #endif
 

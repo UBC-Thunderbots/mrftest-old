@@ -2,19 +2,19 @@
 #include "util/algorithm.h"
 
 namespace {
-	void on_update_scram(Gtk::HScale(&)[4], XBeeRobot::Ptr robot) {
+	void on_update_scram(Gtk::HScale(&)[4], XBeeRobot::Ptr robot, bool) {
 		robot->drive_scram();
 	}
 
-	void on_update_permotor_controlled(Gtk::HScale(&controls)[4], XBeeRobot::Ptr robot) {
+	void on_update_permotor_controlled(Gtk::HScale(&controls)[4], XBeeRobot::Ptr robot, bool controlled) {
 		int wheels[G_N_ELEMENTS(controls)];
 		for (unsigned int i = 0; i < G_N_ELEMENTS(controls); ++i) {
 			wheels[i] = clamp(static_cast<int>(controls[i].get_value()), -1023, 1023);
 		}
-		robot->drive(wheels);
+		robot->drive(wheels, controlled);
 	}
 
-	void on_update_matrix(Gtk::HScale(&controls)[4], XBeeRobot::Ptr robot) {
+	void on_update_matrix(Gtk::HScale(&controls)[4], XBeeRobot::Ptr robot, bool controlled) {
 		static const double matrix[4][3] = {
 			{ -42.5995, 27.6645, 4.3175 },
 			{ -35.9169, -35.9169, 4.3175 },
@@ -35,7 +35,7 @@ namespace {
 		for (unsigned int i = 0; i < G_N_ELEMENTS(w); ++i) {
 			w[i] = clamp(static_cast<int>(output[i]), -1023, 1023);
 		}
-		robot->drive(w);
+		robot->drive(w, controlled);
 	}
 
 	const struct {
@@ -45,15 +45,15 @@ namespace {
 		double step;
 		double page;
 		int digits;
-		void (*on_update)(Gtk::HScale(&)[4], XBeeRobot::Ptr);
+		void (*on_update)(Gtk::HScale(&)[4], XBeeRobot::Ptr, bool);
 	} MODES[] = {
 		{ "Scram", 0x0, 1, 0.1, 0.5, 0, &on_update_scram },
-		{ "Per-motor Controlled", 0xF, 1023, 1, 25, 0, &on_update_permotor_controlled },
-		{ "Matrix Controlled", 0x7, 20, 0.1, 3, 1, &on_update_matrix },
+		{ "Per-motor", 0xF, 1023, 1, 25, 0, &on_update_permotor_controlled },
+		{ "Matrix", 0x7, 20, 0.1, 3, 1, &on_update_matrix },
 	};
 }
 
-DrivePanel::DrivePanel(XBeeRobot::Ptr robot) : robot(robot) {
+DrivePanel::DrivePanel(XBeeRobot::Ptr robot) : robot(robot), controllers_checkbox("Controllers") {
 	for (unsigned int i = 0; i < G_N_ELEMENTS(MODES); ++i) {
 		mode_chooser.append_text(MODES[i].name);
 	}
@@ -64,6 +64,9 @@ DrivePanel::DrivePanel(XBeeRobot::Ptr robot) : robot(robot) {
 		controls[i].get_adjustment()->signal_value_changed().connect(sigc::mem_fun(this, &DrivePanel::on_update));
 		pack_start(controls[i], Gtk::PACK_SHRINK);
 	}
+	controllers_checkbox.set_active();
+	controllers_checkbox.signal_toggled().connect(sigc::mem_fun(this, &DrivePanel::on_update));
+	pack_start(controllers_checkbox, Gtk::PACK_SHRINK);
 	on_mode_changed();
 }
 
@@ -100,7 +103,7 @@ void DrivePanel::on_mode_changed() {
 void DrivePanel::on_update() {
 	int row = mode_chooser.get_active_row_number();
 	if (row >= 0) {
-		MODES[row].on_update(controls, robot);
+		MODES[row].on_update(controls, robot, controllers_checkbox.get_active());
 	}
 }
 

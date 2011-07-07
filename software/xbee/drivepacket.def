@@ -15,6 +15,9 @@ BITCODEC_DATA_BOOL(enable_autokick, 3, false)
 // True -> when autokicking, right solenoid fires autokick_offset time after left solenoid. False -> left solenoid fires autokick_offset time after right solenoid.
 BITCODEC_DATA_BOOL(autokick_offset_sign, 4, false)
 
+// True -> run wheels with controllers. False -> run wheels open-loop.
+BITCODEC_DATA_BOOL(enable_controllers, 5, false)
+
 // Target speeds of the wheels, in quarters of a degree per five milliseconds.
 BITCODEC_DATA_S(int16_t, uint16_t, wheel1, 8, 11, 0)
 BITCODEC_DATA_S(int16_t, uint16_t, wheel2, 19, 11, 0)

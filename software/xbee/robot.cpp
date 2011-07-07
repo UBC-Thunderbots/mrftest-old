@@ -618,7 +618,7 @@ AsyncOperation<XBeeRobot::BuildSignatures>::Ptr XBeeRobot::firmware_read_build_s
 	return FirmwareReadBuildSignaturesOperation::create(dongle, index);
 }
 
-void XBeeRobot::drive(const int(&wheels)[4]) {
+void XBeeRobot::drive(const int(&wheels)[4], bool controlled) {
 	static int16_t(XBeePackets::Drive::*const ELTS[4]) = {
 		&XBeePackets::Drive::wheel1,
 		&XBeePackets::Drive::wheel2,
@@ -628,6 +628,7 @@ void XBeeRobot::drive(const int(&wheels)[4]) {
 	static_assert(G_N_ELEMENTS(wheels) == G_N_ELEMENTS(ELTS), "Number of wheels is wrong!");
 
 	drive_block.enable_wheels = true;
+	drive_block.enable_controllers = controlled;
 	for (std::size_t i = 0; i < G_N_ELEMENTS(wheels); ++i) {
 		assert(-1023 <= wheels[i] && wheels[i] <= 1023);
 		drive_block.*ELTS[i] = static_cast<int16_t>(wheels[i]);

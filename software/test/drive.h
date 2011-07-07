@@ -37,6 +37,7 @@ class DrivePanel : public Gtk::VBox {
 		XBeeRobot::Ptr robot;
 		Gtk::ComboBoxText mode_chooser;
 		Gtk::HScale controls[4];
+		Gtk::CheckButton controllers_checkbox;
 
 		void on_mode_changed();
 		void on_update();

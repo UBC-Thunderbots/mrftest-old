@@ -191,8 +191,10 @@ class XBeeRobot : public ByRef {
 		 * \brief Sets the speeds of the robot's wheels.
 		 *
 		 * \param[in] wheels the speeds of the wheels, in quarters of a degree per five milliseconds, in the range ±1023.
+		 *
+		 * \param[in] controlled \c true to run the provided setpoints through the wheel controllers, or \c false to run open-loop.
 		 */
-		void drive(const int(&wheels)[4]);
+		void drive(const int(&wheels)[4], bool controlled = true);
 
 		/**
 		 * \brief Halts the robot's wheels.
