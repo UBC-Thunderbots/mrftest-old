@@ -115,7 +115,7 @@ namespace AI {
 			}
 
 			void RRTNavigator::pivot(Player::Ptr player) {
-				if( !use_new_pivot ) {
+				if( !use_new_pivot || !player->has_ball() ) {
 					Player::Path path;
 					Point dest;
 					double dest_orientation;
@@ -144,28 +144,20 @@ namespace AI {
 				} else {
 					Player::Path path;
 
-					if( !player->has_ball() ){
-						LOG_DEBUG("player pivoting without ball");
-						LOG_INFO("player pivoting without ball");
+					double diff = angle_mod(( Point(0.0,0.0) - player->destination().first + world.ball().position()).orientation() - player->orientation());
+
+					if( std::abs(diff) > 0.03*M_PI ){
+						Point zero_pos( new_pivot_radius, 0.0 );
+						Point polar_pos = zero_pos - zero_pos.rotate( new_pivot_travel_angle * (is_ccw?1:-1) );
+						Point rel_pos = polar_pos.rotate( player->orientation() - (new_pivot_offset_angle + 0.5*M_PI) * (is_ccw?-1:1) );
+						Point dest_pos = player->position() + rel_pos;
+						double rel_orient = new_pivot_travel_angle * (is_ccw?1:-1);
+						double dest_orient = player->orientation() + rel_orient;
+					
+						path.push_back(std::make_pair(std::make_pair(dest_pos, dest_orient), world.monotonic_time()));
+						player->path(path);
+					} else {
 					}
-					
-					// pivot cw or ccw
-					double diff = angle_mod(player->destination().second - player->orientation());
-
-					if( diff > new_pivot_hyster_angle ){
-						is_ccw = true;
-					} else if( diff < - new_pivot_hyster_angle ){
-						is_ccw = false;
-					}// otherwise is_ccw stays the same
-
-					Point cur_rel_pos = player->position() - world.ball().position();
-					Point new_rel_pos = (cur_rel_pos.norm() * new_pivot_radius).rotate(new_pivot_travel_angle*M_PI*(is_ccw?1:-1));
-					Point dest_pos = world.ball().position() + new_rel_pos;
-					double dis_orient = new_pivot_travel_angle*M_PI*(is_ccw?1:-1);
-					double dest_orient = (-cur_rel_pos).orientation() +  dis_orient;
-					
-					path.push_back(std::make_pair(std::make_pair(dest_pos, dest_orient), world.monotonic_time()));
-					player->path(path);
 				}
 			}
 
