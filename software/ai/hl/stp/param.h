@@ -1,7 +1,8 @@
 #ifndef AI_HL_STP_PARAM_H
 #define AI_HL_STP_PARAM_H
 
-#include "util/param.h"
+//#include "util/param.h"
+#include "ai/param.h"
 
 namespace AI {
 	namespace HL {
@@ -11,7 +12,7 @@ namespace AI {
 
 			extern DoubleParam min_shoot_region;
 
-			extern DoubleParam passee_angle_threshold;
+			extern Temp_AngleParam passee_angle_threshold;
 
 			extern DoubleParam shoot_accuracy;
 
@@ -24,7 +25,7 @@ namespace AI {
 
 				extern DoubleParam pass_speed;
 
-				extern DoubleParam passer_angle_threshold;
+				extern Temp_AngleParam passer_angle_threshold;
 
 				extern DoubleParam target_region_param;
 			}

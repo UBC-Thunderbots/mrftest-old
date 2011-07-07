@@ -131,7 +131,7 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	}
 
 	// check receiver is within passing range & angle
-	double distance_tol = (target-player->position()).len()*sin(degrees2radians(angle_tol)) + AI::HL::STP::Action::target_region_param;
+	double distance_tol = (target-player->position()).len()*sin(angle_tol) + AI::HL::STP::Action::target_region_param;
 	bool ok = false;
 
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
