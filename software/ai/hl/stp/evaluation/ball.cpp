@@ -53,30 +53,6 @@ Player::CPtr Evaluation::calc_friendly_baller(const World &world) {
 	return Player::CPtr();
 }
 
-/*
-Player::CPtr Evaluation::select_friendly_baller(const World &world) {
-	Player::CPtr candidate;
-	const FriendlyTeam &friendly = world.friendly_team();
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if (friendly.get(i)->has_ball()) {
-			candidate = friendly.get(i);
-			if (candidate == baller) {
-				return baller;
-			}
-		}
-	}
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if (possess_ball(world, friendly.get(i))) {
-			if (candidate == baller) {
-				return baller;
-			}
-		}
-	}
-	baller = candidate;
-	return baller;
-}
-*/
-
 Robot::Ptr Evaluation::calc_enemy_baller(const World &world) {
 	const EnemyTeam &enemy = world.enemy_team();
 	Robot::Ptr robot;
