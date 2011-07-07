@@ -172,13 +172,13 @@
       </category>
       <category name="PID5">
         <double name="angular -differential">0.0</double>
-        <double name="angular +proportional">30.0</double>
-        <double name="Limit wheel accel">5</double>
-        <double name="Limit wheel speed">100</double>
+        <double name="angular +proportional">20.0</double>
+        <double name="Limit wheel accel">100</double>
+        <double name="Limit wheel speed">1000</double>
         <double name="x to y ratio">0.810</double>
         <double name="xy -differential">0.0</double>
-        <double name="xy +proportional">25.0</double>
-        <double name="YA ratio">0.18</double>
+        <double name="xy +proportional">20.0</double>
+        <double name="YA ratio">0.08</double>
       </category>
       <category name="PIDSim">
         <double name="angular -differential">0.0</double>
@@ -266,14 +266,14 @@
       <category name="param">
         <double name="minimum region available for baller_can_shoot to be true (degrees)">5.7</double>
       </category>
-      <category name="pass">
-        <double name="Enemy pass checking width (robot radius)">1.00</double>
-        <double name="Friendly pass checking width (robot radius)">1.00</double>
-      </category>
       <category name="Pass">
         <double name="Average ball pass velocity (HACK)">2.0</double>
         <double name="kicking speed for making a pass">4.75</double>
         <double name="Minimum distance for pass play">0.400</double>
+      </category>
+      <category name="pass">
+        <double name="Enemy pass checking width (robot radius)">1.00</double>
+        <double name="Friendly pass checking width (robot radius)">1.00</double>
       </category>
       <category name="PassRay">
         <double name="Max ray shoot rotation (degrees)">140.0</double>
@@ -368,12 +368,12 @@
       <category name="predicates">
         <double name="enemy avoidance distance (robot radius)">3.00</double>
       </category>
+      <category name="Shoot">
+        <double name="reduced radius for calculating best shot (robot radius ratio)">0.250</double>
+      </category>
       <category name="shoot">
         <double name="Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate">0.0</double>
         <double name="Shoot accuracy (for various purposes)">5.0</double>
-      </category>
-      <category name="Shoot">
-        <double name="reduced radius for calculating best shot (robot radius ratio)">0.250</double>
       </category>
       <category name="Tactic">
         <category name="pass">
