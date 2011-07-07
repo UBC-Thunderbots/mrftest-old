@@ -1,4 +1,5 @@
 #include "ai/ai.h"
+#include "ai/setup.h"
 #include "util/cacheable.h"
 #include "util/dprint.h"
 #include "util/objectstore.h"
@@ -28,6 +29,12 @@ AIPackage::AIPackage(Backend &backend) : backend(backend), high_level(AI::HL::Hi
 	backend.signal_draw_overlay().connect(sigc::mem_fun(this, &AIPackage::draw_overlay));
 	backend.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &AIPackage::player_added));
 	robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &AIPackage::robot_controller_factory_changed));
+	high_level.signal_changed().connect(sigc::mem_fun(this, &AIPackage::save_setup));
+	navigator.signal_changed().connect(sigc::mem_fun(this, &AIPackage::save_setup));
+	robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &AIPackage::save_setup));
+	backend.ball_filter().signal_changed().connect(sigc::mem_fun(this, &AIPackage::save_setup));
+	backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &AIPackage::save_setup));
+	backend.friendly_colour().signal_changed().connect(sigc::mem_fun(this, &AIPackage::save_setup));
 }
 
 void AIPackage::tick() {
@@ -105,5 +112,16 @@ void AIPackage::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
 			}
 		}
 	}
+}
+
+void AIPackage::save_setup() const {
+	AI::Setup setup;
+	setup.high_level_name = high_level.get().is() ? high_level->factory().name() : "";
+	setup.navigator_name = navigator.get().is() ? navigator->factory().name() : "";
+	setup.robot_controller_name = robot_controller_factory ? robot_controller_factory->name() : "";
+	setup.ball_filter_name = backend.ball_filter() ? backend.ball_filter()->name() : "";
+	setup.defending_end = backend.defending_end();
+	setup.friendly_colour = backend.friendly_colour();
+	setup.save();
 }
 

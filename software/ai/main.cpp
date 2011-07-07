@@ -1,5 +1,6 @@
 #include "ai/ai.h"
 #include "ai/logger.h"
+#include "ai/setup.h"
 #include "ai/window.h"
 #include "ai/backend/backend.h"
 #include "uicomponents/abstract_list_model.h"
@@ -22,51 +23,53 @@ using namespace std::placeholders;
 
 namespace {
 	struct WithBackendClosure {
-		const Glib::ustring &high_level_name;
-		const Glib::ustring &robot_controller_name;
-		const Glib::ustring &ball_filter_name;
+		AI::Setup setup;
 		bool minimize;
-		AI::BE::Backend::FieldEnd defending_end;
-		AI::Common::Team::Colour friendly_colour;
 
-		WithBackendClosure(const Glib::ustring &high_level_name, const Glib::ustring &robot_controller_name, const Glib::ustring &ball_filter_name, bool minimize, AI::BE::Backend::FieldEnd defending_end, AI::Common::Team::Colour friendly_colour) : high_level_name(high_level_name), robot_controller_name(robot_controller_name), ball_filter_name(ball_filter_name), minimize(minimize), defending_end(defending_end), friendly_colour(friendly_colour) {
+		WithBackendClosure(const AI::Setup &setup, bool minimize) : setup(setup), minimize(minimize) {
 		}
 	};
 
 	void main_impl_with_backend(AI::BE::Backend &backend, const WithBackendClosure &wbc) {
-		backend.defending_end() = wbc.defending_end;
-		backend.friendly_colour() = wbc.friendly_colour;
+		backend.defending_end() = wbc.setup.defending_end;
+		backend.friendly_colour() = wbc.setup.friendly_colour;
 
-		if (!wbc.ball_filter_name.empty()) {
+		if (!wbc.setup.ball_filter_name.empty()) {
 			typedef AI::BF::BallFilter::Map Map;
 			const Map &m = AI::BF::BallFilter::all();
-			const Map::const_iterator &i = m.find(wbc.ball_filter_name.collate_key());
-			if (i == m.end()) {
-				throw std::runtime_error(Glib::ustring::compose("There is no ball filter '%1'.", wbc.ball_filter_name));
+			const Map::const_iterator &i = m.find(wbc.setup.ball_filter_name.collate_key());
+			if (i != m.end()) {
+				backend.ball_filter() = i->second;
 			}
-			backend.ball_filter() = i->second;
 		}
 
 		AI::AIPackage ai(backend);
 
-		if (!wbc.high_level_name.empty()) {
+		if (!wbc.setup.high_level_name.empty()) {
 			typedef AI::HL::HighLevelFactory::Map Map;
 			const Map &m = AI::HL::HighLevelFactory::all();
-			const Map::const_iterator &i = m.find(wbc.high_level_name.collate_key());
-			if (i == m.end()) {
-				throw std::runtime_error(Glib::ustring::compose("There is no high level '%1'.", wbc.high_level_name));
+			const Map::const_iterator &i = m.find(wbc.setup.high_level_name.collate_key());
+			if (i != m.end()) {
+				ai.high_level = i->second->create_high_level(backend);
 			}
-			ai.high_level = i->second->create_high_level(backend);
 		}
 
-		if (!wbc.robot_controller_name.empty()) {
+		if (!wbc.setup.navigator_name.empty()) {
+			typedef AI::Nav::NavigatorFactory::Map Map;
+			const Map &m = AI::Nav::NavigatorFactory::all();
+			const Map::const_iterator &i = m.find(wbc.setup.navigator_name.collate_key());
+			if (i != m.end()) {
+				ai.navigator = i->second->create_navigator(backend);
+			}
+		}
+
+		if (!wbc.setup.robot_controller_name.empty()) {
 			typedef AI::RC::RobotControllerFactory::Map Map;
 			const Map &m = AI::RC::RobotControllerFactory::all();
-			const Map::const_iterator &i = m.find(wbc.robot_controller_name.collate_key());
-			if (i == m.end()) {
-				throw std::runtime_error(Glib::ustring::compose("There is no robot controller '%1'.", wbc.robot_controller_name));
+			const Map::const_iterator &i = m.find(wbc.setup.robot_controller_name.collate_key());
+			if (i != m.end()) {
+				ai.robot_controller_factory = i->second;
 			}
-			ai.robot_controller_factory = i->second;
 		}
 
 		AI::Logger logger(ai);
@@ -120,6 +123,7 @@ namespace {
 		srand48(static_cast<long>(std::time(0)));
 
 		// Parse the command-line arguments.
+		AI::Setup setup;
 		Glib::OptionContext option_context;
 		option_context.set_summary("Runs the Thunderbots control process.");
 
@@ -135,16 +139,30 @@ namespace {
 		Glib::OptionEntry blue_entry;
 		blue_entry.set_long_name("blue");
 		blue_entry.set_short_name('b');
-		blue_entry.set_description("Controls blue robots (default is yellow)");
+		blue_entry.set_description("Controls blue robots (default is same as last time)");
 		bool blue = false;
 		option_group.add_entry(blue_entry, blue);
+
+		Glib::OptionEntry yellow_entry;
+		yellow_entry.set_long_name("yellow");
+		yellow_entry.set_short_name('y');
+		yellow_entry.set_description("Controls yellow robots (default is same as last time)");
+		bool yellow = false;
+		option_group.add_entry(yellow_entry, yellow);
 
 		Glib::OptionEntry east_entry;
 		east_entry.set_long_name("east");
 		east_entry.set_short_name('e');
-		east_entry.set_description("Defends east goal (default is west)");
+		east_entry.set_description("Defends east goal (default is same as last time)");
 		bool east = false;
 		option_group.add_entry(east_entry, east);
+
+		Glib::OptionEntry west_entry;
+		west_entry.set_long_name("west");
+		west_entry.set_short_name('w');
+		west_entry.set_description("Defends west goal (default is same as last time)");
+		bool west = false;
+		option_group.add_entry(west_entry, west);
 
 		Glib::OptionEntry backend_entry;
 		backend_entry.set_long_name("backend");
@@ -157,22 +175,25 @@ namespace {
 		high_level_entry.set_long_name("hl");
 		high_level_entry.set_description("Selects which high level should be selected at startup");
 		high_level_entry.set_arg_description("HIGHLEVEL");
-		Glib::ustring high_level_name;
-		option_group.add_entry(high_level_entry, high_level_name);
+		option_group.add_entry(high_level_entry, setup.high_level_name);
+
+		Glib::OptionEntry navigator_entry;
+		navigator_entry.set_long_name("nav");
+		navigator_entry.set_description("Selects which navigator should be selected at startup");
+		navigator_entry.set_arg_description("NAVIGATOR");
+		option_group.add_entry(navigator_entry, setup.navigator_name);
 
 		Glib::OptionEntry robot_controller_entry;
 		robot_controller_entry.set_long_name("controller");
 		robot_controller_entry.set_description("Selects which robot controller should be selected at startup");
 		robot_controller_entry.set_arg_description("CONTROLLER");
-		Glib::ustring robot_controller_name;
-		option_group.add_entry(robot_controller_entry, robot_controller_name);
+		option_group.add_entry(robot_controller_entry, setup.robot_controller_name);
 
 		Glib::OptionEntry ball_filter_entry;
 		ball_filter_entry.set_long_name("ball-filter");
 		ball_filter_entry.set_description("Selects which ball filter should be selected at startup");
 		ball_filter_entry.set_arg_description("FILTER");
-		Glib::ustring ball_filter_name;
-		option_group.add_entry(ball_filter_entry, ball_filter_name);
+		option_group.add_entry(ball_filter_entry, setup.ball_filter_name);
 
 		Glib::OptionEntry minimize_entry;
 		minimize_entry.set_long_name("minimize");
@@ -205,6 +226,15 @@ namespace {
 				std::cerr << '\n';
 			}
 			{
+				std::cerr << "The following navigators are available:\n";
+				typedef AI::Nav::NavigatorFactory::Map Map;
+				const Map &m = AI::Nav::NavigatorFactory::all();
+				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
+					std::cerr << i->second->name() << '\n';
+				}
+				std::cerr << '\n';
+			}
+			{
 				std::cerr << "The following robot controllers are available:\n";
 				typedef AI::RC::RobotControllerFactory::Map Map;
 				const Map &m = AI::RC::RobotControllerFactory::all();
@@ -225,7 +255,7 @@ namespace {
 			return 0;
 		}
 
-		if (argc != 1) {
+		if (argc != 1 || (east && west) || (yellow && blue)) {
 			std::cerr << option_context.get_help();
 			return 1;
 		}
@@ -241,7 +271,18 @@ namespace {
 		Annunciator::activate_siren();
 
 		// Create the backend.
-		WithBackendClosure wbc(high_level_name, robot_controller_name, ball_filter_name, minimize, east ? AI::BE::Backend::FieldEnd::EAST : AI::BE::Backend::FieldEnd::WEST, blue ? AI::Common::Team::Colour::BLUE : AI::Common::Team::Colour::YELLOW);
+		if (east) {
+			setup.defending_end = AI::BE::Backend::FieldEnd::EAST;
+		} else if (west) {
+			setup.defending_end = AI::BE::Backend::FieldEnd::WEST;
+		}
+		if (yellow) {
+			setup.friendly_colour = AI::Common::Team::Colour::YELLOW;
+		} else if (blue) {
+			setup.friendly_colour = AI::Common::Team::Colour::BLUE;
+		}
+		setup.save();
+		WithBackendClosure wbc(setup, minimize);
 		if (!backend_name_and_params.size()) {
 			backend_name_and_params = choose_backend();
 			if (!backend_name_and_params.size()) {
@@ -289,9 +330,9 @@ int main(int argc, char **argv) {
 	try {
 		return main_impl(argc, argv);
 	} catch (const Glib::Exception &exp) {
-		std::cerr << exp.what() << '\n';
+		std::cerr << typeid(exp).name() << ": " << exp.what() << '\n';
 	} catch (const std::exception &exp) {
-		std::cerr << exp.what() << '\n';
+		std::cerr << typeid(exp).name() << ": " << exp.what() << '\n';
 	} catch (...) {
 		std::cerr << "Unknown error!\n";
 	}

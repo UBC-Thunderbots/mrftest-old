@@ -401,6 +401,8 @@ software/ai/robot_controller/tunable_controller.h -text
 software/ai/robot_controller/tunable_pid2_controller.cpp -text
 software/ai/robot_controller/tunable_pid_controller.cpp -text
 software/ai/robot_controller/world.h -text
+software/ai/setup.cpp -text
+software/ai/setup.h -text
 software/ai/util.cpp -text
 software/ai/util.h -text
 software/ai/window.cpp -text
