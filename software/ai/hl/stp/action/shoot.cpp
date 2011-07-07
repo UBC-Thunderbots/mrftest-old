@@ -88,28 +88,6 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 bool AI::HL::STP::Action::shoot_pass(const World& world, Player::Ptr shooter, Player::CPtr target) {
 
 	return shoot_pass(world, shooter, target->position());
-
-	/*
-	   chase_pivot(world, player, target->position());
-
-	// checker shooter orientation
-	if (!Evaluation::player_within_angle_thresh(player, target->position(), passer_angle_tol)) {
-	return false;
-	}
-
-	if (player->has_ball() && !player->chicker_ready()) {
-	LOG_INFO("chicker not ready");
-	return false;
-	}
-
-	// check if passee is facing passer
-	if (Evaluation::passee_facing_passer(shooter, target)) {
-	autokick(player, target, pass_speed);
-	return true;
-	}
-
-	return false;
-	 */
 }
 
 bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target) {
@@ -150,15 +128,3 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 
 	return false;
 }
-/*
-   double AI::HL::STP::Action::shoot_speed(double distance, double delta, double alph) {
-   double a = alph;
-   if(alph<0) a = alpha;
-
-   double speed = a * distance / (1 - std::exp(-a * delta));
-   if (speed > 10.0) speed = 10.0; // can't kick faster than this
-   if (speed < 0) speed = 0; // can't kick slower than this, this value in reality should be somwhere > 4
-
-   return speed;
-   }
- */
