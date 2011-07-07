@@ -28,6 +28,7 @@
   <params>
     <category name="AI">
       <category name="Param">
+        <double name="Angle in degrees that reciever can be offset">1.5</double>
         <double name="Average Player Velocity">6.0</double>
       </category>
     </category>
@@ -58,11 +59,16 @@
         <double name="pivot radius">1.00</double>
       </category>
       <category name="RRT">
-        <double name="Ball velocity threshold (used to switch between chase and chase+pivot)">0.50</double>
+        <double name="Ball velocity threshold (used to switch between chase and chase+pivot)">7.50</double>
         <double name="Buffer behind ball for chase (meters)">0.350</double>
         <double name="Chase angle range for behind target (degrees)">30.0</double>
         <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
         <double name="Distance to extend the tree on each step (m)">0.100</double>
+        <boolean name="New Pivot: enable">false</boolean>
+        <double name="New Pivot: Hysterisis angle, one side, (n*M_PI)">0.2000</double>
+        <double name="New Pivot: offset angle (n*M_PI)">0.1000</double>
+        <double name="New Pivot: travel angle, need proper unit, (n*M_PI)">0.2000</double>
+        <double name="New Pivot: travel radius">0.0900</double>
         <integer name="Number of iterations to go through before we give best partial path">200</integer>
         <double name="Pivot: offset angle (degrees)">38</double>
         <double name="Pivot: offset distance">0.11</double>
@@ -202,6 +208,7 @@
         </category>
         <category name="shoot">
           <double name="Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate">9.0</double>
+          <double name="Angle threshold (in degrees) that the passee must be with respect to passer when shot, smaller is more accurate">80.0</double>
           <double name="Decay constant for the ball velocity">0.100</double>
         </category>
         <category name="spin">
@@ -252,7 +259,6 @@
         <double name="minimum region available for baller_can_shoot to be true (degrees)">5.7</double>
       </category>
       <category name="Pass">
-        <double name="Angle threshold (in degrees) that the passee must be with respect to passer when shot, smaller is more accurate">80.0</double>
         <double name="Average ball pass velocity (HACK)">2.0</double>
         <double name="kicking speed for making a pass">4.75</double>
         <double name="Minimum distance for pass play">0.400</double>
