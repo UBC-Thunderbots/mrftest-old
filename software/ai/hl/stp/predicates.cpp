@@ -80,11 +80,11 @@ bool Predicates::ball_on_their_side(const World &world) {
 }
 
 bool Predicates::ball_in_our_corner(const World &world) {
-	return world.ball().position().x <= -world.field().length() / 4 && std::fabs(world.ball().position().y) > world.field().centre_circle_radius();
+	return world.ball().position().x <= -world.field().length() / 4 && std::fabs(world.ball().position().y) > world.field().goal_width()/2 + world.field().defense_area_radius();
 }
 
 bool Predicates::ball_in_their_corner(const World &world) {
-	return world.ball().position().x >= world.field().length() / 4 && std::fabs(world.ball().position().y) > world.field().centre_circle_radius();
+	return world.ball().position().x >= world.field().length() / 4 && std::fabs(world.ball().position().y) > world.field().goal_width()/2 + world.field().defense_area_radius();
 }
 
 bool Predicates::ball_midfield(const World &world) {
