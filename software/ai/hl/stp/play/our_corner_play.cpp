@@ -41,8 +41,8 @@ roles[1].push_back(defend_duo_defender(world));
 roles[2].push_back(move(world, Coordinate(world, Point(-world.ball().position().x, -world.ball().position().y), Coordinate::YType::ABSOLUTE, Coordinate::OriginType::ABSOLUTE)));
 
 // ROLE 4 (optional)
-// block
-roles[3].push_back(block_ball(world, Enemy::closest_ball(world, 0)));
+// defend extra
+roles[3].push_back(defend_duo_extra(world));
 
 END_ASSIGN()
 END_PLAY()

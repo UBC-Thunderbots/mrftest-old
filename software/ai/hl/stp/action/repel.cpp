@@ -14,7 +14,7 @@ using namespace AI::HL::STP;
 
 namespace {
 	const double FAST = 100.0;
-	DoubleParam corner_repel_speed("enemy avoidance distance (robot radius)", "STP/Action/repel", 6.0, 1.0, 10.0);
+	DoubleParam corner_repel_speed("speed that repel will be kicking at in a corner", "STP/Action/repel", 6.0, 1.0, 10.0);
 }
 
 bool AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
