@@ -19,18 +19,18 @@ using namespace AI::RC::W;
 
 namespace {
 
-	DoubleParam pid_xy_prop("xy +proportional", "RC/PID5", 25, 0.0, 100.0);
-	DoubleParam pid_xy_diff("xy -differential", "RC/PID5", 0, -100.0, 100.0);
+	DoubleParam pid_xy_prop("xy +proportional", "RC/PID5", 25, 0.0, 1000.0);
+	DoubleParam pid_xy_diff("xy -differential", "RC/PID5", 0, -100.0, 1000.0);
 
-	DoubleParam pid_a_prop("angular +proportional", "RC/PID5", 30, 0.0, 100.0);
-	DoubleParam pid_a_diff("angular -differential", "RC/PID5", 0, -100.0, 100.0);
+	DoubleParam pid_a_prop("angular +proportional", "RC/PID5", 30, 0.0, 1000.0);
+	DoubleParam pid_a_diff("angular -differential", "RC/PID5", 0, -100.0, 1000.0);
 
 	DoubleParam pid_xy_ratio("x to y ratio", "RC/PID5", 0.81, 0.0, 2.0);
 
 	DoubleParam pid_ya_ratio("YA ratio", "RC/PID5", 0.18, -10.0, 10.0);
 
-	DoubleParam wheel_max_speed("Limit wheel speed", "RC/PID5", 100, 0, 2048);
-	DoubleParam wheel_max_accel("Limit wheel accel", "RC/PID5", 5, 0, 2048);
+	DoubleParam wheel_max_speed("Limit wheel speed", "RC/PID5", 100, 0, 8888);
+	DoubleParam wheel_max_accel("Limit wheel accel", "RC/PID5", 5, 0, 8888);
 
 	class PID5Controller : public RobotController {
 		public:
