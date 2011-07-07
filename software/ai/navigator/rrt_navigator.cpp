@@ -27,6 +27,14 @@ namespace AI {
 			DoubleParam chase_angle_range("Chase angle range for behind target (degrees)", "Nav/RRT", 30, 0, 90);
 			DoubleParam chase_distance("Buffer behind ball for chase (meters)", "Nav/RRT", 0.25, -1.0, 1.0);
 			DoubleParam ball_velocity_threshold("Ball velocity threshold (used to switch between chase and chase+pivot)", "Nav/RRT", 0.5, 0.0, 20.0);
+
+			BoolParam use_new_pivot("New Pivot: enable", "Nav/RRT", true);
+			DoubleParam new_pivot_radius("New Pivot: travel radius", "Nav/RRT",0.09, 0.01, 0.5);
+			DoubleParam new_pivot_offset_angle("New Pivot: offset angle (n*M_PI)", "Nav/RRT",0.1, 0, 0.5 );
+			DoubleParam new_pivot_travel_angle("New Pivot: travel angle, need proper unit, (n*M_PI)", "Nav/RRT",0.2, 0.01, 0.5 );
+			DoubleParam new_pivot_hyster_angle("New Pivot: Hysterisis angle, one side, (n*M_PI)", "Nav/RRT",0.2, 0.01, 0.2 );
+
+
 			class PlayerData : public ObjectStore::Element {
 				public:
 					typedef ::RefPtr<PlayerData> Ptr;
@@ -48,6 +56,7 @@ namespace AI {
 				private:
 					RRTNavigator(World &world);
 					RRTPlanner planner;
+					bool is_ccw;
 			};
 
 			class RRTNavigatorFactory : public NavigatorFactory {
@@ -109,31 +118,59 @@ namespace AI {
 			}
 
 			void RRTNavigator::pivot(Player::Ptr player) {
-				Player::Path path;
-				Point dest;
-				double dest_orientation;
+				if( !use_new_pivot ) {
+					Player::Path path;
+					Point dest;
+					double dest_orientation;
 
-				// try to pivot around the ball to catch it
-				Point current_position = player->position();
-				double to_ball_orientation = (world.ball().position() - current_position).orientation();
-				double orientation_temp = degrees2radians(orientation_offset);
+					// try to pivot around the ball to catch it
+					Point current_position = player->position();
+					double to_ball_orientation = (world.ball().position() - current_position).orientation();
+					double orientation_temp = degrees2radians(orientation_offset);
 
-				double angle = degrees2radians(offset_angle);
-				
-				double difference = angle_mod(to_ball_orientation - player->destination().second);
-				
-				if (difference > 0) {
-					angle = -angle;
-					orientation_temp = -orientation_temp;
+					double angle = degrees2radians(offset_angle);
+					
+					double difference = angle_mod(to_ball_orientation - player->destination().second);
+					
+					if (difference > 0) {
+						angle = -angle;
+						orientation_temp = -orientation_temp;
+					}
+
+					Point diff = (world.ball().position() - current_position).rotate(angle);
+
+					dest = world.ball().position() - offset_distance * (diff / diff.len());
+					dest_orientation = (world.ball().position() - current_position).orientation() + orientation_temp;
+
+					path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));
+					player->path(path);
+				} else {
+					Player::Path path;
+
+					if( !player->has_ball() ){
+						LOG_DEBUG("player pivoting without ball");
+						LOG_INFO("player pivoting without ball");
+					}
+					
+					// pivot cw or ccw
+					double diff = angle_mod(player->destination().second - player->orientation());
+
+					if( diff > new_pivot_hyster_angle ){
+						is_ccw = true;
+					} else if( diff < - new_pivot_hyster_angle ){
+						is_ccw = false;
+					}// otherwise is_ccw stays the same
+
+					Point zero_pos( new_pivot_radius, 0.0 );
+					Point polar_pos = zero_pos - zero_pos.rotate( new_pivot_travel_angle * (is_ccw?1:-1) );
+					Point rel_pos = polar_pos.rotate( player->orientation() - (new_pivot_offset_angle + 0.5*M_PI) * (is_ccw?-1:1) );
+					Point dest_pos = player->position() + rel_pos;
+					double rel_orient = new_pivot_travel_angle * (is_ccw?1:-1);
+					double dest_orient = player->orientation() + rel_orient;
+					
+					path.push_back(std::make_pair(std::make_pair(dest_pos, dest_orient), world.monotonic_time()));
+					player->path(path);
 				}
-
-				Point diff = (world.ball().position() - current_position).rotate(angle);
-
-				dest = world.ball().position() - offset_distance * (diff / diff.len());
-				dest_orientation = (world.ball().position() - current_position).orientation() + orientation_temp;
-
-				path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));
-				player->path(path);
 			}
 
 			void RRTNavigator::tick() {
