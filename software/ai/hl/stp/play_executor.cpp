@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include <glibmm.h>
+#include <queue>
 
 using AI::HL::STP::PlayExecutor;
 using namespace AI::HL::STP;
