@@ -92,6 +92,11 @@ bool collinear(const Point &a, const Point &b, const Point &c);
 std::pair<Point, double> angle_sweep_circles(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius);
 
 /**
+ * Gets all angle
+ */
+std::vector<std::pair<Point, double> > angle_sweep_circles_all(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius);
+
+/**
  * Checks whether a line segment intersects a rectangle.
  *
  * \param[in] seg the endpoints of the line segment.

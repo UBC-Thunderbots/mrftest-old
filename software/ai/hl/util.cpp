@@ -157,6 +157,12 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot(const Field &f, const std:
 	return angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
 }
 
+std::vector<std::pair<Point, double> > AI::HL::Util::calc_best_shot_all(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
+	const Point p1 = Point(f.length() / 2.0, -f.goal_width() / 2.0);
+	const Point p2 = Point(f.length() / 2.0, f.goal_width() / 2.0);
+	return all_angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
+}
+
 std::pair<Point, double> AI::HL::Util::calc_best_shot(const World &world, const Player::CPtr player, const double radius) {
 	std::vector<Point> obstacles;
 	const EnemyTeam &enemy = world.enemy_team();
@@ -181,6 +187,25 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot(const World &world, const 
 	}
 	return best_shot;
 }
+
+std::vector<std::pair<Point, double> > AI::HL::Util::calc_best_shot_all(const World &world, const Player::CPtr player, const double radius) {
+	std::vector<Point> obstacles;
+	const EnemyTeam &enemy = world.enemy_team();
+	const FriendlyTeam &friendly = world.friendly_team();
+	obstacles.reserve(enemy.size() + friendly.size());
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
+		obstacles.push_back(enemy.get(i)->position());
+	}
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		const Player::CPtr fpl = friendly.get(i);
+		if (fpl == player) {
+			continue;
+		}
+		obstacles.push_back(fpl->position());
+	}
+	return best_shot = calc_best_shot_all(world.field(), obstacles, player->position(), radius);
+}
+
 
 /*
 bool AI::HL::Util::can_shoot_circle(const Point begin, const Point center, const double radius, const std::vector<Point>& obstacles) {

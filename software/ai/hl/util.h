@@ -169,6 +169,8 @@ namespace AI {
 			 */
 			std::pair<Point, double> calc_best_shot(const AI::HL::W::Field &f, const std::vector<Point> &obstacles, const Point &p, double radius = 1.0);
 
+			std::vector<std::pair<Point, double> > calc_best_shot_all(const AI::HL::W::Field &f, const std::vector<Point> &obstacles, const Point &p, double radius = 1.0);
+
 			/**
 			 * Finds the length of the largest continuous interval (angle-wise) of the enemy goal that can be seen from a point.
 			 * To add imaginary threats, please use the other version.
@@ -180,6 +182,8 @@ namespace AI {
 			 * where the score will be 0 if the point is invalid,
 			 */
 			std::pair<Point, double> calc_best_shot(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player, double radius = 1.0);
+
+			std::vector<std::pair<Point, double> > calc_best_shot_all(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player, double radius = 1.0);
 
 			/**
 			 * Checks if the robot is in a position close enough to the ball to start
