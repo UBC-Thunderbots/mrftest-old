@@ -1,11 +1,14 @@
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/tactic/util.h"
+#include "ai/hl/stp/evaluation/ball.h"
+#include "ai/hl/stp/evaluation/player.h"
 #include "ai/hl/stp/param.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 using AI::HL::STP::Coordinate;
+namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
 	class ShootGoal : public Tactic {
@@ -72,6 +75,10 @@ namespace {
 
 	Player::Ptr ShootTarget::select(const std::set<Player::Ptr> &players) const {
 		// if a player attempted to shoot, keep the player
+		Player::CPtr player_c = player;
+		if (players.count(player) && Evaluation::possess_ball(world, player_c)) {
+			return player;
+		}
 		if (kick_attempted && players.count(player)) {
 			return player;
 		}

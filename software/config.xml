@@ -139,7 +139,7 @@
         <double name="profile 2  multiplier">1.5</double>
         <double name="profile 3  multiplier">2.0</double>
         <double name="x to y ratio">1.000</double>
-        <double name="xy -differential">1.5</double>
+        <double name="xy -differential">0.2</double>
         <double name="xy +integral">0.00</double>
         <double name="xy max acceleration">0</double>
         <double name="xy max velocity">15.0</double>
@@ -163,7 +163,7 @@
         <double name="profile 3  multiplier">2.0</double>
         <boolean name="Threshold Proportionally">true</boolean>
         <double name="x to y ratio">0.810</double>
-        <double name="xy -differential">0.0</double>
+        <double name="xy -differential">0.2</double>
         <double name="xy +integral">0.00</double>
         <double name="xy max acceleration">5</double>
         <double name="xy max velocity">12.0</double>
@@ -176,7 +176,7 @@
         <double name="Limit wheel accel">100</double>
         <double name="Limit wheel speed">1000</double>
         <double name="x to y ratio">0.810</double>
-        <double name="xy -differential">0.0</double>
+        <double name="xy -differential">0.2</double>
         <double name="xy +proportional">20.0</double>
         <double name="YA ratio">0.08</double>
       </category>

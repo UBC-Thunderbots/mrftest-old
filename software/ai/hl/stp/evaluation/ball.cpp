@@ -1,6 +1,7 @@
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/util.h"
 #include "ai/hl/util.h"
+#include "ai/hl/stp/baller.h"
 #include "ai/hl/stp/param.h"
 
 #include <set>
@@ -12,8 +13,6 @@ namespace {
 	BoolParam smart_possess_ball("Smart possess ball (instead of has ball only)", "STP/ball", true);
 
 	DoubleParam enemy_pivot_threshold("circle radius in front of enemy robot to consider possesion (meters)", "STP/ball", 0.1, 0.0, 1.0);
-
-	// Player::CPtr baller;
 }
 
 DoubleParam Evaluation::pivot_threshold("circle radius in front of robot to enable pivot (meters)", "STP/ball", 0.1, 0.0, 1.0);
@@ -44,11 +43,12 @@ bool Evaluation::possess_ball(const World &world, Robot::Ptr robot) {
 }
 
 Player::CPtr Evaluation::calc_friendly_baller(const World &world) {
-	const FriendlyTeam &friendly = world.friendly_team();
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if (possess_ball(world, friendly.get(i))) {
-			return friendly.get(i);
-		}
+	Player::CPtr player = select_friendly_baller(world);
+	if (!player.is()) {
+		return player;
+	}
+	if (possess_ball(world, player)) {
+		return player;
 	}
 	return Player::CPtr();
 }
@@ -72,7 +72,7 @@ Robot::Ptr Evaluation::calc_enemy_baller(const World &world) {
 	return robot;
 }
 
-Point Evaluation::calc_fastest_grab_ball_dest(const World &world, Player::Ptr player){
+Point Evaluation::calc_fastest_grab_ball_dest(const World &world, Player::CPtr player){
 	Point dest;
 	AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest);
 	return dest;

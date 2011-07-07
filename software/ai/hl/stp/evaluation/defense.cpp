@@ -98,9 +98,9 @@ namespace {
 		// next two defenders block nearest enemy sights to goal if needed
 		// enemies with ball possession are ignored (they should be handled above)
 		for (size_t i = 0; i < enemies.size() && waypoint_defenders.size() < MAX_DEFENDERS; ++i) {
-			if (AI::HL::Util::ball_close(world, enemies[i])) {
-				continue;
-			}
+			//if (AI::HL::Util::ball_close(world, enemies[i])) {
+				//continue;
+			//}
 
 			// TODO: check if enemy can shoot the ball from here
 			// if so, block it

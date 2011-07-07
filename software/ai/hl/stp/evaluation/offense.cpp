@@ -24,6 +24,8 @@ namespace {
 
 	// BoolParam use_area_metric("use area metric", "STP/offense", true);
 
+	DoubleParam increased_radius("Offensive friendly avoidance increase radius (robot radius)", "STP/offense", 1.1, 0, 10);
+
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/offense", 4.0, 1.0, 10.0);
 
 	DoubleParam weight_total("Scoring weight for everything", "STP/offense", 1.0, 0.0, 99999999.0);
@@ -101,7 +103,7 @@ namespace {
 		// basically, ensures that this position does not block the list of positions
 		// inside dont_block from view of goal.
 		for (size_t i = 0; i < dont_block.size(); ++i) {
-			std::pair<Point, double> shootershot = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dont_block[i]);
+			std::pair<Point, double> shootershot = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dont_block[i], increased_radius);
 			const Point diff1 = (shootershot.first - dont_block[i]);
 			const Point diff2 = (dest - dont_block[i]);
 			const double anglediff = angle_diff(diff1.orientation(), diff2.orientation());

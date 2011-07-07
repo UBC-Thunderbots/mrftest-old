@@ -38,7 +38,7 @@ namespace AI {
 				 * minimizing the time required.
 				 * This is a wrapper to the function in ai/util.h
 				 */
-				Point calc_fastest_grab_ball_dest(const World &world, Player::Ptr player);
+				Point calc_fastest_grab_ball_dest(const World &world, Player::CPtr player);
 
 
 				/**
