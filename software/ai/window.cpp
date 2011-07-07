@@ -107,7 +107,9 @@ namespace {
 				const Map &m = AI::HL::HighLevelFactory::all();
 				const Map::const_iterator &i = m.find(selected.collate_key());
 				if (i != m.end()) {
-					ai.high_level = i->second->create_high_level(ai.backend);
+					if (!ai.high_level.get().is() || &ai.high_level->factory() != i->second) {
+						ai.high_level = i->second->create_high_level(ai.backend);
+					}
 				} else {
 					ai.high_level = AI::HL::HighLevel::Ptr();
 				}
@@ -167,7 +169,9 @@ namespace {
 				const Map &m = AI::Nav::NavigatorFactory::all();
 				const Map::const_iterator &i = m.find(selected.collate_key());
 				if (i != m.end()) {
-					ai.navigator = i->second->create_navigator(ai.backend);
+					if (!ai.navigator.get().is() || &ai.navigator->factory() != i->second) {
+						ai.navigator = i->second->create_navigator(ai.backend);
+					}
 				} else {
 					ai.navigator = AI::Nav::Navigator::Ptr();
 				}
