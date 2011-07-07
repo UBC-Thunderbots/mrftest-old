@@ -42,10 +42,37 @@ namespace {
 			Action::move(world, player, default_loc.position());
 		}
 	}
+	
+	class ShadowBall : public Tactic {
+		public:
+			ShadowBall(const World &world) : Tactic(world) {
+			}
+
+		private:
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			void execute();
+			std::string description() const {
+				return "shadow kickoff";
+			}
+	};
+
+	Player::Ptr ShadowBall::select(const std::set<Player::Ptr> &players) const {
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(world.ball().position().x, -world.ball().position().y)));
+	}
+
+	void ShadowBall::execute() {
+		Action::move(world, player, Point(world.ball().position().x, -world.ball().position().y));
+	}
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::shadow_kickoff(const World &world, Enemy::Ptr enemy, const Coordinate default_loc) {
 	const Tactic::Ptr p(new ShadowKickoff(world, enemy, default_loc));
 	return p;
 }
+
+Tactic::Ptr AI::HL::STP::Tactic::shadow_ball(const World &world) {
+	const Tactic::Ptr p(new ShadowBall(world));
+	return p;
+}
+
 

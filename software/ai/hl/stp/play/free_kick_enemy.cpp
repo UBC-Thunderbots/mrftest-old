@@ -1,6 +1,6 @@
 #include "ai/hl/stp/tactic/wait_playtype.h"
 #include "ai/hl/stp/play/simple_play.h"
-#include "ai/hl/stp/tactic/move.h"
+#include "ai/hl/stp/tactic/shadow_kickoff.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
 
@@ -33,7 +33,7 @@ roles[2].push_back(offend(world));
 
 // ROLE 4
 // move to other half of the field to position for cataching the ball after chipping shots
-roles[3].push_back(move(world, Point(world.ball().position().x, -world.ball().position().y)));
+roles[3].push_back(shadow_ball(world));
 
 END_ASSIGN()
 END_PLAY()
