@@ -190,11 +190,11 @@ bool Evaluation::can_pass(const World& world, const Point p1, const Point p2) {
 }
 
 bool Evaluation::passee_facing_ball(const World& world, Player::CPtr passee) {
-	return player_within_angle_thresh(passee, world.ball().position(), degrees2radians(passee_angle_threshold));
+	return player_within_angle_thresh(passee, world.ball().position(), passee_angle_threshold);
 }
 
 bool Evaluation::passee_facing_passer(Player::CPtr passer, Player::CPtr passee) {
-	return player_within_angle_thresh(passee, passer->position(), degrees2radians(passee_angle_threshold));
+	return player_within_angle_thresh(passee, passer->position(), passee_angle_threshold);
 }
 
 bool Evaluation::passee_suitable(const World& world, Player::CPtr passee) {
