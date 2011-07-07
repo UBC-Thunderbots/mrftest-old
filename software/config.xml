@@ -100,7 +100,7 @@
         <double name="Buffer for staying on own half ">0.000</double>
         <boolean name="enforce that robots stay on own half ">false</boolean>
         <double name="The amount centre of robot must stay out of net">0.0623</double>
-        <double name="The amount of distance to maintain from enemy robots of high priority">1.000</double>
+        <double name="The amount of distance to maintain from enemy robots of high priority">0.600</double>
         <double name="The amount of distance to maintain from enemy robots that we are willing to bump">-0.050</double>
         <double name="The amount of distance to maintain from enemy robots usually">0.100</double>
         <double name="The amount robots should stay away from goal post">0.0000</double>

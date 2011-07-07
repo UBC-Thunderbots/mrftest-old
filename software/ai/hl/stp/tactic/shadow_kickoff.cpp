@@ -1,6 +1,7 @@
 #include "ai/hl/stp/tactic/shadow_kickoff.h"
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/util.h"
+#include "geom/util.h"
 #include <algorithm>
 
 using namespace AI::HL::STP::Tactic;
@@ -37,7 +38,9 @@ namespace {
 
 	void ShadowKickoff::execute() {
 		if (enemy->evaluate().is()) {
-			Action::move(world, player, Point(-0.2, enemy->evaluate()->position().y));
+			// calculate position to block the side enemies from shooting
+			Point block_position = line_intersect(enemy->evaluate()->position(), world.field().friendly_goal(), Point(-0.2, 2), Point(-0.2, -2));
+			Action::move(world, player, block_position);
 		} else {
 			Action::move(world, player, default_loc.position());
 		}
