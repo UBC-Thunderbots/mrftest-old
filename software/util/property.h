@@ -80,6 +80,15 @@ template<typename T> class Property : public NonCopyable {
 		 *
 		 * \return the value.
 		 */
+		T get() const {
+			return value;
+		}
+
+		/**
+		 * \brief Returns the value of the Property.
+		 *
+		 * \return the value.
+		 */
 		operator T() const {
 			return value;
 		}
