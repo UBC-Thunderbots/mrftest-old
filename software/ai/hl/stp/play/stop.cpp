@@ -20,7 +20,7 @@ APPLICABLE(true)
 DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
-goalie_role.push_back(move(world, Point(-world.field().length() + Robot::MAX_RADIUS, 0.0)));
+goalie_role.push_back(move(world, Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, 0.0)));
 
 // doesn't matter what the playtype we are waiting for is here, we just need an active tactic
 roles[0].push_back(wait_playtype(world, move_stop(world, 0), AI::Common::PlayType::PLAY));
