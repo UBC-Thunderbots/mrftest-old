@@ -6,6 +6,7 @@
 #include "ai/hl/stp/tactic/move_stop.h"
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/defend_solo.h"
+#include "ai/hl/stp/tactic/penalty_goalie.h"
 #include "ai/hl/stp/evaluation/defense.h"
 #include "util/dprint.h"
 #include "ai/hl/stp/ui.h"
@@ -29,6 +30,8 @@ namespace {
 	BoolParam enable6("enable robot 6", "MixedTeamDefense", true);
 	BoolParam enable7("enable robot 7", "MixedTeamDefense", true);
 	BoolParam enable8("enable robot 8", "MixedTeamDefense", true);
+	
+	const double RESTRICTED_ZONE_LENGTH = 0.85;
 
 	class MixedTeamDefenseFactory : public HighLevelFactory {
 		public:
@@ -82,19 +85,36 @@ namespace {
 
 			switch (world.playtype()) {
 				case AI::Common::PlayType::STOP:
-					 stop(players);
-				break;
+					stop(players);
+					break;
 				case AI::Common::PlayType::PREPARE_PENALTY_ENEMY:
 				case AI::Common::PlayType::EXECUTE_PENALTY_ENEMY:
 					penalty(players);
-				break;
+					break;
 				default:
-				play(players);
-				break;
+					play(players);
+					break;
 			}
 		}
 
 		void penalty(std::vector<Player::Ptr>& players) {
+			if (players.size() == 1) {
+				auto goalie = Tactic::penalty_goalie(world);
+				goalie->set_player(players[0]);
+				goalie->execute();
+				return;
+			}
+
+			auto goalie = Tactic::penalty_goalie(world);
+			goalie->set_player(players[0]);
+			goalie->execute();
+
+			Action::move(world, players[1], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS));
+
+			if (players.size() == 3) {
+				Action::move(world, players[2], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 2 * Robot::MAX_RADIUS));
+			}
+		
 		}
 
 		void stop(std::vector<Player::Ptr>& players) {
@@ -133,7 +153,7 @@ namespace {
 			defend1->execute();
 
 			if (players.size() == 3) {
-				auto defend2 = Tactic::defend_duo_defender(world);
+				auto defend2 = Tactic::defend_duo_extra1(world);
 				defend2->set_player(players[2]);
 				defend2->execute();
 			}
