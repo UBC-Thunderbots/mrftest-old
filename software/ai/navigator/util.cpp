@@ -72,7 +72,7 @@ namespace {
 		static double total_bounds_area(AI::Nav::W::Player::Ptr player) {
 			return (player->MAX_RADIUS) + PLAY_AREA_BUFFER;
 		}
-		static double enemy(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+		static double enemy(AI::Nav::W::World &world, AI::Nav::W::Robot::Ptr player) {
 			if (world.enemy_team().size() <= 0) {
 				return 0.0;
 			}
@@ -90,7 +90,7 @@ namespace {
 					break;
 			}
 
-			return player->MAX_RADIUS + world.enemy_team().get(0)->MAX_RADIUS + buffer;
+			return 2 * player->MAX_RADIUS + buffer;
 		}
 
 		static double goal_post(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
@@ -161,10 +161,10 @@ namespace {
 
 	double get_enemy_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		double violate = 0.0;
-		double circle_radius = distance_keepout::enemy(world, player);
 		// avoid enemy robots
 		for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
 			AI::Nav::W::Robot::Ptr rob = world.enemy_team().get(i);
+			double circle_radius = distance_keepout::enemy(world, rob);
 			double dist = lineseg_point_dist(rob->position(), cur, dst);
 			if (USE_ENEMY_MOVEMENT_FACTOR){
 				dist = seg_seg_distance(rob->position(), rob->position() + ENEMY_MOVEMENT_FACTOR*rob->velocity() , cur, dst);
