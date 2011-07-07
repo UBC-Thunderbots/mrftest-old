@@ -47,7 +47,7 @@ namespace AI {
 		/**
 		 * A robot, as exposed by the backend.
 		 */
-		class Robot : public AI::HL::W::Robot, public Visualizable::Robot {
+		class Robot : public AI::HL::W::Robot, public AI::Nav::W::Robot, public Visualizable::Robot {
 			public:
 				/**
 				 * A pointer to a Robot.
@@ -270,7 +270,8 @@ namespace AI {
 				mutable sigc::signal<void> signal_robot_removed_;
 
 				AI::BF::W::Robot::Ptr get_ball_filter_robot(std::size_t i) const {
-					return get(i);
+					AI::HL::W::Robot::Ptr bot = get(i);
+					return bot;
 				}
 
 				AI::HL::W::Robot::Ptr get_hl_robot(std::size_t i) const {
