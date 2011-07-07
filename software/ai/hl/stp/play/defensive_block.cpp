@@ -36,7 +36,7 @@ roles[0].push_back(defend_duo_defender(world));
 roles[1].push_back(tactive_def(world));
 
 // ROLE 3 (optional)
-// defend
+// defend extra
 roles[2].push_back(defend_duo_extra(world));
 
 // ROLE 4 (optional)

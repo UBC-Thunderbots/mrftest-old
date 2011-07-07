@@ -31,10 +31,13 @@ roles[0].push_back(tactive_def(world));
 // duo defender
 roles[1].push_back(defend_duo_defender(world));
 
-// ROLE 3 & 4 (optional)
-// block enemies closest to our goal
-roles[2].push_back(block_goal(world, Enemy::closest_friendly_goal(world, 0)));
-roles[3].push_back(block_goal(world, Enemy::closest_friendly_goal(world, 1)));
+// ROLE 3 (optional)
+// defend extra
+roles[2].push_back(defend_duo_extra(world));
+
+// ROLE 4 (optional)
+// block
+roles[3].push_back(block_goal(world, Enemy::closest_friendly_goal(world, 0)));
 
 END_ASSIGN()
 END_PLAY()
