@@ -37,7 +37,7 @@ namespace {
 
 	void ShadowKickoff::execute() {
 		if (enemy->evaluate().is()) {
-			Action::move(world, player, enemy->evaluate()->position() + Point(-0.3, 0));
+			Action::move(world, player, Point(-0.2, enemy->evaluate()->position().y));
 		} else {
 			Action::move(world, player, default_loc.position());
 		}
