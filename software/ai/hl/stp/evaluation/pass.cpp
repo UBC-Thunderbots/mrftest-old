@@ -6,6 +6,7 @@
 #include "ai/hl/stp/param.h"
 #include "geom/angle.h"
 #include "geom/util.h"
+#include "util/dprint.h"
 
 using namespace AI::HL::STP;
 
@@ -197,6 +198,11 @@ bool Evaluation::passee_facing_passer(Player::CPtr passer, Player::CPtr passee) 
 }
 
 bool Evaluation::passee_suitable(const World& world, Player::CPtr passee) {
+
+	if (!passee.is()) {
+		LOG_ERROR("Passee is null");
+		return false;
+	}
 
 	// can't pass backwards
 	if (passee->position().x < world.ball().position().x) {
