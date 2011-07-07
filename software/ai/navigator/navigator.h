@@ -82,6 +82,10 @@ namespace AI {
 				 * \param[in] world the World in which to navigate.
 				 */
 				Navigator(AI::Nav::W::World &world);
+
+				// hack should move this variable somewhere else later, koko
+				// save state for new_pivot
+				bool is_last_ccw;
 		};
 
 		/**

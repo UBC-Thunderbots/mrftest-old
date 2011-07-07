@@ -29,7 +29,7 @@ namespace AI {
 			DoubleParam ball_velocity_threshold("Ball velocity threshold (used to switch between chase and chase+pivot)", "Nav/RRT", 0.5, 0.0, 20.0);
 
 			BoolParam use_new_pivot("New Pivot: enable", "Nav/RRT", true);
-			DoubleParam new_pivot_radius("New Pivot: travel radius", "Nav/RRT",0.09, 0.01, 0.5);
+			DoubleParam new_pivot_radius("New Pivot: travel radius", "Nav/RRT",0.3, 0.01, 0.5);
 			DoubleParam new_pivot_offset_angle("New Pivot: offset angle (n*M_PI)", "Nav/RRT",0.1, 0, 0.5 );
 			DoubleParam new_pivot_travel_angle("New Pivot: travel angle, need proper unit, (n*M_PI)", "Nav/RRT",0.2, 0.01, 0.5 );
 			DoubleParam new_pivot_hyster_angle("New Pivot: Hysterisis angle, one side, (n*M_PI)", "Nav/RRT",0.2, 0.01, 0.2 );
@@ -161,12 +161,11 @@ namespace AI {
 						is_ccw = false;
 					}// otherwise is_ccw stays the same
 
-					Point zero_pos( new_pivot_radius, 0.0 );
-					Point polar_pos = zero_pos - zero_pos.rotate( new_pivot_travel_angle * (is_ccw?1:-1) );
-					Point rel_pos = polar_pos.rotate( player->orientation() - (new_pivot_offset_angle + 0.5*M_PI) * (is_ccw?-1:1) );
-					Point dest_pos = player->position() + rel_pos;
-					double rel_orient = new_pivot_travel_angle * (is_ccw?1:-1);
-					double dest_orient = player->orientation() + rel_orient;
+					Point cur_rel_pos = player->position() - world.ball().position();
+					Point new_rel_pos = (cur_rel_pos.norm() * new_pivot_radius).rotate(new_pivot_travel_angle*M_PI*(is_ccw?1:-1));
+					Point dest_pos = world.ball().position() + new_rel_pos;
+					double dis_orient = new_pivot_travel_angle*M_PI*(is_ccw?1:-1);
+					double dest_orient = (-cur_rel_pos).orientation() +  dis_orient;
 					
 					path.push_back(std::make_pair(std::make_pair(dest_pos, dest_orient), world.monotonic_time()));
 					player->path(path);
