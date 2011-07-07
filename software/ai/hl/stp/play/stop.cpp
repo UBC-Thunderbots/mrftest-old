@@ -7,6 +7,11 @@
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::W;
 namespace Predicates = AI::HL::STP::Predicates;
+
+namespace {
+	DoubleParam goalie_stop_dist("goalie stop dist", "STP/Stop", 0.09, 0.0, 1.0);
+}
+
 /**
  * Condition:
  * - It is the stop play
@@ -20,7 +25,7 @@ APPLICABLE(true)
 DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
-goalie_role.push_back(move(world, Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, 0.0)));
+goalie_role.push_back(move(world, Point(world.field().friendly_goal().x + goalie_stop_dist, 0.0)));
 
 // doesn't matter what the playtype we are waiting for is here, we just need an active tactic
 roles[0].push_back(wait_playtype(world, move_stop(world, 0), AI::Common::PlayType::PLAY));
