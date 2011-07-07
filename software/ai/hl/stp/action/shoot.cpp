@@ -34,14 +34,6 @@ void AI::HL::STP::Action::autokick(Player::Ptr player, const Point target, doubl
 bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, bool force) {
 	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
 
-	chase_pivot(world, player, shoot_data.target);
-
-	if (shoot_data.blocked) { // still blocked, just aim
-		return false;
-	}
-
-	// LOG_INFO(Glib::ustring::compose("allowance %1 shoot_accuracy %2", shoot_data.accuracy_diff, Evaluation::shoot_accuracy));
-
 	if (shoot_data.can_shoot) {
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
@@ -53,8 +45,11 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, boo
 			return false;
 		}
 		LOG_INFO("autokick");
+		chase(world, player, shoot_data.target);
 		autokick(player, shoot_data.target, 10.0);
 		return true;
+	} else {
+		chase_pivot(world, player, shoot_data.target);
 	}
 
 	return false;
