@@ -44,7 +44,7 @@ namespace {
 			}
 			// just orient towards the "front"
 			player->move(old_des, 0, Point());
-			player->type(AI::Flags::MoveType::NORMAL);
+			player->type(AI::Flags::MoveType::RAM_BALL);
 			player->prio(AI::Flags::MovePrio::HIGH);
 		} else {
 			const Point p1(world.field().friendly_goal().x  + Robot::MAX_RADIUS, -0.2);
@@ -64,7 +64,7 @@ namespace {
 
 			// just orient towards the "front"
 			player->move(target, 0, Point());
-			player->type(AI::Flags::MoveType::NORMAL);
+			player->type(AI::Flags::MoveType::RAM_BALL);
 			player->prio(AI::Flags::MovePrio::HIGH);
 		}
 	}
