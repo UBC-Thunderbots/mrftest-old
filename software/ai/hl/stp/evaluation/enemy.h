@@ -2,6 +2,7 @@
 #define AI_HL_STP_EVALUATION_ENEMY_H
 
 #include "ai/hl/stp/world.h"
+#include "util/param.h"
 
 #include <vector>
 
@@ -91,6 +92,8 @@ namespace AI {
 				 * Given obstacle position, calculates the min amount of passing
 				 */
 				std::vector<int> calc_min_enemy_pass(const std::vector<Point> obstacles, const std::vector<Point> enemies);
+
+				extern DoubleParam enemy_shoot_accuracy;
 			}
 		}
 	}

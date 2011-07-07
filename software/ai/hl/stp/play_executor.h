@@ -91,7 +91,7 @@ namespace AI {
 
 					void on_player_added(std::size_t);
 
-					void on_player_removed();
+					void on_player_removing(std::size_t);
 			};
 		};
 	}

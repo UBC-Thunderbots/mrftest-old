@@ -53,7 +53,7 @@ PlayExecutor::PlayExecutor(World &w) : world(w) {
 	}
 
 	world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &PlayExecutor::on_player_added));
-	world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &PlayExecutor::on_player_removed));
+	world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &PlayExecutor::on_player_removing));
 }
 
 void PlayExecutor::calc_play() {
@@ -384,8 +384,14 @@ void PlayExecutor::on_player_added(std::size_t) {
 	LOG_INFO("Player added");
 }
 
-void PlayExecutor::on_player_removed() {
-	LOG_INFO("Player removed, reset play");
+void PlayExecutor::on_player_removing(std::size_t) {
+	LOG_INFO("Player removing, reset play");
+
 	curr_play.reset();
+	curr_active.reset();
+	for (std::size_t i = 0; i < 5; ++i) {
+		curr_assignment[i].reset();
+		curr_roles[i].clear();
+	}
 }
 

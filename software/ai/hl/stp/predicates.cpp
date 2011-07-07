@@ -4,6 +4,7 @@
 #include "ai/hl/stp/evaluation/enemy.h"
 #include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/stp/evaluation/ball.h"
+#include "ai/hl/stp/evaluation/defense.h"
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/param.h"
 
@@ -218,6 +219,16 @@ bool Predicates::ball_inside_robot(const World &world){
 	const EnemyTeam &enemies = world.enemy_team();
 	for (std::size_t i = 0; i < enemies.size(); ++i) {
 		if ((enemies.get(i)->position() - ball).len() < AI::HL::Util::POS_CLOSE) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Predicates::enemy_break_defense_duo(const World& world) {
+	const EnemyTeam &enemies = world.enemy_team();
+	for (std::size_t i = 0; i < enemies.size(); ++i) {
+		if (Evaluation::enemy_break_defense_duo(world, enemies.get(i))) {
 			return true;
 		}
 	}

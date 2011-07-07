@@ -98,16 +98,14 @@ namespace {
 		}
 
 		void penalty(std::vector<Player::Ptr>& players) {
-			if (players.size() == 1) {
-				auto goalie = Tactic::penalty_goalie(world);
-				goalie->set_player(players[0]);
-				goalie->execute();
-				return;
-			}
 
 			auto goalie = Tactic::penalty_goalie(world);
 			goalie->set_player(players[0]);
 			goalie->execute();
+
+			if (players.size() == 1) {
+				return;
+			}
 
 			Action::move(world, players[1], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS));
 

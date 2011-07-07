@@ -118,6 +118,8 @@ namespace AI {
 				 * true if the ball is inside some robot
 				 */
 				bool ball_inside_robot(const World &world);
+
+				bool enemy_break_defense_duo(const World& world);
 			}
 		}
 	}

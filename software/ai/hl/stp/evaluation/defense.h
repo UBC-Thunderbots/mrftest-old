@@ -22,6 +22,11 @@ namespace AI {
 				 * 3 - defender-extra2
 				 */
 				const std::array<Point, MAX_DEFENDERS + 1> evaluate_defense(const World &world);
+
+				/**
+				 * Checks if an enemy breaks our defense duo.
+				 */
+				bool enemy_break_defense_duo(const World& world, const Robot::Ptr enemy);
 			}
 		}
 	}

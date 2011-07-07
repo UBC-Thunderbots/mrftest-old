@@ -5,6 +5,7 @@
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/enemy.h"
 #include "ai/hl/stp/evaluation/pass.h"
+#include "ai/hl/stp/baller.h"
 #include "ai/hl/stp/predicates.h"
 #include "geom/angle.h"
 #include <cmath>
@@ -132,29 +133,51 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 
 	}
 
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		const Player::CPtr player = friendly.get(i);
-		if (!Evaluation::possess_ball(world, player)) continue;
+	Player::CPtr baller = select_friendly_baller(world);
+	if (baller.is()) {
 
-		// draw rays for ray shooting
-		const double angle_span = 2 * degrees2radians(Evaluation::max_pass_ray_angle);
-		const double angle_step = angle_span / Evaluation::ray_intervals;
-		const double angle_min = player->orientation() - angle_span / 2;
+		auto shot = Evaluation::best_shoot_ray(world, baller);
 
-		for (int i = 0; i < Evaluation::ray_intervals; ++i) {
-		const double angle = angle_min + angle_step * i;
+		if (shot.first) {
+			const double angle = shot.first;
+			const Point p1 = baller->position();
+			const Point p2 = p1 + 5 * Point::of_angle(angle);
+			if (Evaluation::can_shoot_ray(world, baller, angle)) {
 
-			const Point p1 = player->position();
-			const Point p2 = p1 + 3 * Point::of_angle(angle);
-			if (Evaluation::can_shoot_ray(world, player, angle)) {
-				ctx->set_source_rgba(1.0, 0.0, 1.0, 0.4);
-				ctx->set_line_width(0.02);
+				ctx->set_source_rgba(0.0, 1.0, 1.0, 0.4);
+				ctx->set_line_width(Robot::MAX_RADIUS);
 				ctx->move_to(p1.x, p1.y);
 				ctx->line_to(p2.x, p2.y);
 				ctx->stroke();
 			}
 		}
 	}
+
+	/*
+	   for (std::size_t i = 0; i < friendly.size(); ++i) {
+	   const Player::CPtr player = friendly.get(i);
+	   if (!Evaluation::possess_ball(world, player)) continue;
+
+// draw rays for ray shooting
+const double angle_span = 2 * degrees2radians(Evaluation::max_pass_ray_angle);
+const double angle_step = angle_span / Evaluation::ray_intervals;
+const double angle_min = player->orientation() - angle_span / 2;
+
+for (int i = 0; i < Evaluation::ray_intervals; ++i) {
+const double angle = angle_min + angle_step * i;
+
+const Point p1 = player->position();
+const Point p2 = p1 + 3 * Point::of_angle(angle);
+if (Evaluation::can_shoot_ray(world, player, angle)) {
+ctx->set_source_rgba(1.0, 0.0, 1.0, 0.4);
+ctx->set_line_width(0.02);
+ctx->move_to(p1.x, p1.y);
+ctx->line_to(p2.x, p2.y);
+ctx->stroke();
+}
+}
+}
+	 */
 }
 
 void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {

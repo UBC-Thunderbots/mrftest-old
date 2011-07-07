@@ -10,9 +10,7 @@
 using namespace AI::HL::STP;
 namespace Util = AI::HL::Util;
 
-namespace {
-	DoubleParam enemy_shoot_accuracy("Enemy shoot accuracy (degrees)", "STP/enemy", 1.0, 0.0, 90.0);
-}
+DoubleParam AI::HL::STP::Evaluation::enemy_shoot_accuracy("Enemy shoot accuracy (degrees)", "STP/enemy", 1.0, 0.0, 90.0);
 
 bool AI::HL::STP::Evaluation::enemy_can_shoot_goal(const World& world, Robot::Ptr enemy) {
 	return calc_enemy_best_shot_goal(world, enemy).second > degrees2radians(enemy_shoot_accuracy);
