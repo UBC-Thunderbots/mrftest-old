@@ -121,22 +121,45 @@
       <category name="PID3">
         <double name="angular -differential">1.0</double>
         <double name="angular +integral">0.00</double>
-        <double name="angular max velocity">15.00</double>
-        <double name="angular +proportional">15.00</double>
+        <double name="angular max accel">30.0</double>
+        <double name="angular max velocity">15.0</double>
+        <double name="angular +proportional">15.0</double>
         <double name="(CARE) angular slowdown when translating">1.010</double>
         <boolean name="(CARE) flip trans&amp;ang slowdown">false</boolean>
         <boolean name="(CARE) reduce angular velocity when translating">false</boolean>
+        <double name="decay">0.990</double>
         <boolean name="do reset when target changes">false</boolean>
-        <double name="integral decay (%)">50.0</double>
         <double name="profile 1  multiplier">0.1</double>
         <double name="profile 2  multiplier">1.5</double>
         <double name="profile 3  multiplier">2.0</double>
         <double name="x to y ratio">1.000</double>
         <double name="xy -differential">1.5</double>
         <double name="xy +integral">0.00</double>
-        <double name="xy max acceleration">0.12</double>
-        <double name="xy max velocity">15.00</double>
-        <double name="xy +proportional">15.00</double>
+        <double name="xy max acceleration">0</double>
+        <double name="xy max velocity">15.0</double>
+        <double name="xy +proportional">15.0</double>
+        <double name="YA ratio">0.08</double>
+      </category>
+      <category name="PID4">
+        <double name="angular -differential">0.0</double>
+        <double name="angular +integral">0.00</double>
+        <double name="angular max accel">1.0</double>
+        <double name="angular max velocity">60.0</double>
+        <double name="angular +proportional">20.0</double>
+        <double name="(CARE) angular slowdown when translating">1.010</double>
+        <boolean name="(CARE) flip trans&amp;ang slowdown">false</boolean>
+        <boolean name="(CARE) reduce angular velocity when translating">false</boolean>
+        <double name="decay">0.990</double>
+        <boolean name="do reset when target changes">false</boolean>
+        <double name="profile 1  multiplier">0.1</double>
+        <double name="profile 2  multiplier">1.5</double>
+        <double name="profile 3  multiplier">2.0</double>
+        <double name="x to y ratio">0.810</double>
+        <double name="xy -differential">0.0</double>
+        <double name="xy +integral">0.00</double>
+        <double name="xy max acceleration">5</double>
+        <double name="xy max velocity">12.0</double>
+        <double name="xy +proportional">20.0</double>
         <double name="YA ratio">0.08</double>
       </category>
       <category name="PIDSim">
@@ -157,6 +180,10 @@
         <double name="xy +proportional">0.10</double>
         <double name="YA ratio">0.00</double>
       </category>
+      <category name="RC">
+        <double name="Limit wheel speed">100</double>
+        <boolean name="Threshold Proportionally">true</boolean>
+      </category>
     </category>
     <category name="STP">
       <category name="Action">
@@ -175,10 +202,7 @@
         </category>
         <category name="shoot">
           <double name="Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate">9.0</double>
-          <double name="Angle threshold (in degrees) that the passee must be with respect to passer when shot, smaller is more accurate">80.0</double>
           <double name="Decay constant for the ball velocity">0.100</double>
-          <double name="kicking speed for making a pass">4.75</double>
-          <double name="reduced radius for calculating best shot (robot radius ratio)">0.250</double>
         </category>
         <category name="spin">
           <double name="change in orientation every time tick for move spin">5.000</double>
@@ -198,7 +222,6 @@
         <double name="shrink robot radius">1.100</double>
       </category>
       <category name="enemy">
-        <double name="Enemy pass checking width (robot radius)">2.00</double>
         <double name="Enemy shoot accuracy (degrees)">7.0</double>
       </category>
       <category name="evaluation">
@@ -214,11 +237,11 @@
       </category>
       <category name="offense">
         <double name="enemy avoidance distance (robot radius)">3.00</double>
-        <double name="Friendly pass checking width (robot radius)">1.50</double>
         <integer name="grid x size">20</integer>
         <integer name="grid y size">20</integer>
         <double name="Scoring weight for angle from ball to goal at robot (-ve)">2.0</double>
         <double name="Scoring weight for angle to goal (POWER, careful)">2.5</double>
+        <double name="Scoring weight for baller angle (-ve)">20</double>
         <double name="Scoring weight for ball progress (+ve)">1.0</double>
         <double name="Scoring weight for distance to ball (-ve)">1.0</double>
         <double name="Scoring weight for distance to enemy goal (-ve)">1.0</double>
@@ -229,16 +252,21 @@
         <double name="minimum region available for baller_can_shoot to be true (degrees)">5.7</double>
       </category>
       <category name="Pass">
+        <double name="Angle threshold (in degrees) that the passee must be with respect to passer when shot, smaller is more accurate">80.0</double>
+        <double name="Average ball pass velocity (HACK)">2.0</double>
+        <double name="kicking speed for making a pass">4.75</double>
         <double name="Minimum distance for pass play">0.400</double>
+      </category>
+      <category name="pass">
+        <double name="Enemy pass checking width (robot radius)">1.00</double>
+        <double name="Friendly pass checking width (robot radius)">1.00</double>
       </category>
       <category name="PassRay">
         <double name="Max ray shoot rotation (degrees)">140.0</double>
         <integer name="Ray # of intervals">60</integer>
         <double name="Ray pass threat multiplier">1.0</double>
+        <boolean name="Ray pass use calc fastest">true</boolean>
         <double name="Small ray shoot rotation (degrees)">20.0</double>
-      </category>
-      <category name="PassSimple">
-        <double name="Ball pass velocity (HACK)">2.0</double>
       </category>
       <category name="Play">
         <category name="Enable">
@@ -276,6 +304,7 @@
           <boolean name="PassSimple">false</boolean>
           <boolean name="PenaltyEnemy">true</boolean>
           <boolean name="PenaltyFriendly">true</boolean>
+          <boolean name="ShootGoal">true</boolean>
           <boolean name="Stop">true</boolean>
           <boolean name="TheirCornerPlay">true</boolean>
         </category>
@@ -314,6 +343,7 @@
           <integer name="PassSimple">5</integer>
           <integer name="PenaltyEnemy">5</integer>
           <integer name="PenaltyFriendly">5</integer>
+          <integer name="ShootGoal">5</integer>
           <integer name="Stop">5</integer>
           <integer name="TheirCornerPlay">5</integer>
         </category>
@@ -323,6 +353,9 @@
       </category>
       <category name="predicates">
         <double name="enemy avoidance distance (robot radius)">3.00</double>
+      </category>
+      <category name="Shoot">
+        <double name="reduced radius for calculating best shot (robot radius ratio)">0.800</double>
       </category>
       <category name="shoot">
         <double name="Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate">0.0</double>

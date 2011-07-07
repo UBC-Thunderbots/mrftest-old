@@ -88,7 +88,7 @@ namespace {
 				button_square.signal_clicked().connect(sigc::bind(&MBHL::start_square, sigc::ref(*this)));
 
 				rchoose.get_adjustment()->configure(0, 0, 10, 1, 10, 0);
-				rchoose.set_digits(1);
+				rchoose.set_digits(0);
 
 				vbox.add(rchoose);
 			}
