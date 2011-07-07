@@ -171,13 +171,13 @@
         <double name="YA ratio">0.08</double>
       </category>
       <category name="PID5">
-        <double name="angular -differential">0.0</double>
-        <double name="angular +proportional">20.0</double>
+        <double name="angular -differential">0</double>
+        <double name="angular +proportional">20</double>
         <double name="Limit wheel accel">100</double>
         <double name="Limit wheel speed">1000</double>
         <double name="x to y ratio">0.810</double>
-        <double name="xy -differential">0.2</double>
-        <double name="xy +proportional">20.0</double>
+        <double name="xy -differential">0</double>
+        <double name="xy +proportional">20</double>
         <double name="YA ratio">0.08</double>
       </category>
       <category name="PIDSim">
@@ -234,13 +234,13 @@
       <category name="defense">
         <boolean name="goalie hug switch">false</boolean>
         <double name="max goalie dist from goal (robot radius)">3.00</double>
-        <double name="shrink robot radius">1.100</double>
+        <double name="shrink robot radius">1.000</double>
       </category>
       <category name="enemy">
         <double name="Enemy shoot accuracy (degrees)">7.0</double>
       </category>
       <category name="evaluation">
-        <double name="speed goalie should ignore direction of ball">0.050</double>
+        <double name="speed goalie should ignore direction of ball">1.000</double>
         <double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>
       </category>
       <category name="Goalie">
@@ -315,7 +315,7 @@
           <boolean name="Pass Play 1.2 -1.5">true</boolean>
           <boolean name="Pass Play 1.2 1.5">true</boolean>
           <boolean name="PassRay">true</boolean>
-          <boolean name="PassSimple">false</boolean>
+          <boolean name="PassSimple">true</boolean>
           <boolean name="PenaltyEnemy">true</boolean>
           <boolean name="PenaltyFriendly">true</boolean>
           <boolean name="ShootGoal">true</boolean>
@@ -369,11 +369,14 @@
         <double name="enemy avoidance distance (robot radius)">3.00</double>
       </category>
       <category name="Shoot">
-        <double name="reduced radius for calculating best shot (robot radius ratio)">0.250</double>
+        <double name="reduced radius for calculating best shot (robot radius ratio)">0.300</double>
       </category>
       <category name="shoot">
         <double name="Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate">0.0</double>
         <double name="Shoot accuracy (for various purposes)">5.0</double>
+      </category>
+      <category name="Stop">
+        <double name="goalie stop dist">0.18</double>
       </category>
       <category name="Tactic">
         <category name="pass">
