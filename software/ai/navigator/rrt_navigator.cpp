@@ -111,7 +111,7 @@ namespace AI {
 			}
 			
 			std::pair<Point, double> RRTNavigator::grab_ball(Player::Ptr player) {
-				return grab_ball_orientation(player, -world.ball().velocity() + world.ball().position());
+				return grab_ball_orientation(player, -2 * world.ball().velocity().norm() + world.ball().position());
 			}
 
 			void RRTNavigator::pivot(Player::Ptr player) {
