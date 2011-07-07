@@ -47,7 +47,7 @@ bool AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
 	// all enemies are obstacles
 	
 	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
-	if (!shoot_data.blocked) { // still blocked, just aim
+	if (!shoot_data.blocked) { 
 		return shoot_goal(world, player);
 	}
 	
@@ -88,7 +88,7 @@ bool AI::HL::STP::Action::corner_repel(const World &world, Player::Ptr player) {
 	}
 	
 	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
-	if (!shoot_data.blocked) { // still blocked, just aim
+	if (!shoot_data.blocked) { 
 		return shoot_goal(world, player);
 	}
 	

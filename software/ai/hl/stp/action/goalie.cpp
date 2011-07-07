@@ -1,5 +1,6 @@
 #include "ai/hl/stp/action/goalie.h"
 #include "ai/hl/stp/action/repel.h"
+#include "ai/hl/stp/action/ram.h"
 #include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
@@ -13,6 +14,7 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 using AI::HL::STP::Evaluation::BallThreat;
 
 namespace {
+	const double FAST = 100.0;
 	DoubleParam lone_goalie_dist("Lone Goalie: distance to goal post (m)", "STP/Action/Goalie", 0.30, 0.05, 1.0);
 }
 
@@ -36,19 +38,18 @@ void AI::HL::STP::Action::goalie_move(const World &world, Player::Ptr player, Po
 		repel(world, player);
 		return;
 	}
-
+	
+	const Point diff = world.ball().position() - player->position();
 	// check if ball is heading towards our goal
 	if (Evaluation::ball_on_net(world)) {
 		// goalie block position
 		Point goal_pos = Evaluation::goalie_shot_block(world);
-
-		player->move(goal_pos, (world.ball().position() - player->position()).orientation(), Point());
-		player->type(AI::Flags::MoveType::RAM_BALL);
-		player->prio(AI::Flags::MovePrio::HIGH);
+		if (goal_pos.x < world.field().friendly_goal().x + Robot::MAX_RADIUS) { // avoid going inside the goal
+			goal_pos.x = world.field().friendly_goal().x + Robot::MAX_RADIUS;
+		}
+		ram(world, player, goal_pos, diff.norm() * FAST);
 	} else {
-		player->move(dest, (world.ball().position() - player->position()).orientation(), Point());
-		player->type(AI::Flags::MoveType::NORMAL);
-		player->prio(AI::Flags::MovePrio::MEDIUM);
+		ram(world, player, dest, diff.norm() * FAST);
 	}
 }
 

@@ -29,7 +29,7 @@ namespace {
 		bool kick_attempted;
 		Player::CPtr target;
 
-		// HYSTERISIS
+		// HYSTERESIS
 		double ori_fix;
 
 		PasserRay(const World &world) : Tactic(world, true), kick_attempted(false) {
