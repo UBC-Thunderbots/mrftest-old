@@ -2,6 +2,7 @@
 #include "geom/angle.h"
 #include "util/dprint.h"
 #include "util/param.h"
+#include "ai/flags.h"
 
 using namespace AI::HL;
 using namespace AI::HL::W;
@@ -61,13 +62,17 @@ namespace {
 
 				if (world.enemy_team().size() >= 2) {
 					Point leftmost(0, 0);
+					int leftmostIndex = 0;
 					Point rightmost(0, 0);
+					int rightmostIndex = 0;
 					for (unsigned int i = 0; i < world.enemy_team().size(); ++i) {
 						Point location = world.enemy_team().get(i)->position();
 						if (location.x < leftmost.x) {
 							leftmost = location;
+							leftmostIndex = i;
 						} else if (location.x > rightmost.x) {
 							rightmost = location;
+							rightmostIndex = i;
 						}
 					}
 
@@ -78,6 +83,15 @@ namespace {
 					tasks[3] = std::make_pair(Point(rightmost.x, rightmost.y - y_diff), 0);
 					tasks[4] = std::make_pair(Point(rightmost.x + x_diff, rightmost.y), 0);
 					tasks[5] = std::make_pair(Point(rightmost.x, rightmost.y + y_diff), 0);
+					
+					// set avoidance distance based on whether the robot is moving
+					for (unsigned int i = 0; i < world.enemy_team().size(); ++i) {
+						if (i == leftmostIndex || i == rightmostIndex) {
+							world.enemy_team().get(i)->avoid_distance(AI::Flags::AvoidDistance::MEDIUM);
+						} else {
+							world.enemy_team().get(i)->avoid_distance(AI::Flags::AvoidDistance::LONG);
+						}
+					}
 				}
 
 				time_steps++;
