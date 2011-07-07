@@ -1,6 +1,7 @@
 #include "ai/hl/stp/action/repel.h"
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/action/ram.h"
+#include "ai/hl/stp/enemy.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
@@ -52,11 +53,14 @@ bool AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
 	}
 	
 	std::vector<Point> obstacles;
-	const EnemyTeam &enemy = world.enemy_team();
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		obstacles.push_back(enemy.get(i)->position());
+	std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+	if (enemies.size() > 0){
+		std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().enemy_goal()));
+		for (std::size_t i = 1; i < enemies.size(); ++i) { // don't include the enemy goalie
+			obstacles.push_back(enemies[i]->position());
+		}
 	}
-
+	
 	// vertical line at the enemy goal area
 	// basically u want the ball to be somewhere there
 	const Point p1(f.length() / 2.0, -f.width() / 2.0), p2(f.length() / 2.0, f.width() / 2.0);
@@ -93,11 +97,13 @@ bool AI::HL::STP::Action::corner_repel(const World &world, Player::Ptr player) {
 	}
 	
 	std::vector<Point> obstacles;
-	const EnemyTeam &enemy = world.enemy_team();
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		obstacles.push_back(enemy.get(i)->position());
+	std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+	if (enemies.size() > 0){
+		std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().enemy_goal()));
+		for (std::size_t i = 1; i < enemies.size(); ++i) { // don't include the enemy goalie
+			obstacles.push_back(enemies[i]->position());
+		}
 	}
-
 	// check circle in the middle and the centre line and find the best open spot to shoot at
 	const Point p1(0.0, -f.centre_circle_radius()), p2(0.0, f.centre_circle_radius());
 	std::pair<Point, double> centre_circle = angle_sweep_circles(player->position(), p1, p2, obstacles, Robot::MAX_RADIUS);
