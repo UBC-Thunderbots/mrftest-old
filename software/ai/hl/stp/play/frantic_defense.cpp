@@ -33,11 +33,12 @@ roles[1].push_back(defend_duo_defender(world));
 
 // ROLE 3 (optional)
 // defend extra
-roles[2].push_back(defend_duo_extra(world));
+roles[2].push_back(defend_duo_extra1(world));
 
 // ROLE 4 (optional)
 // block
-roles[3].push_back(block_goal(world, Enemy::closest_friendly_goal(world, 0)));
+roles[2].push_back(defend_duo_extra2(world));
+// roles[3].push_back(block_goal(world, Enemy::closest_friendly_goal(world, 0)));
 
 END_ASSIGN()
 END_PLAY()

@@ -10,11 +10,13 @@ using AI::HL::STP::Coordinate;
 namespace {
 	class ShootGoal : public Tactic {
 		public:
-			ShootGoal(const World &world) : Tactic(world, true), kick_attempted(false) {
+			ShootGoal(const World &world, bool force) : Tactic(world, true), kick_attempted(false), force(force) {
 			}
 
 		private:
 			bool kick_attempted;
+			bool force;
+
 			bool done() const;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
@@ -58,7 +60,7 @@ namespace {
 	}
 
 	void ShootGoal::execute() {
-		if (AI::HL::STP::Action::shoot_goal(world, player)) {
+		if (AI::HL::STP::Action::shoot_goal(world, player, force)) {
 			kick_attempted = true;
 		}
 		player->flags(0);
@@ -88,8 +90,8 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::shoot_goal(const World &world) {
-	const Tactic::Ptr p(new ShootGoal(world));
+Tactic::Ptr AI::HL::STP::Tactic::shoot_goal(const World &world, bool force) {
+	const Tactic::Ptr p(new ShootGoal(world, force));
 	return p;
 }
 

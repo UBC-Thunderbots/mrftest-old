@@ -40,6 +40,7 @@ namespace AI {
 				 */
 				Point calc_fastest_grab_ball_dest(const World &world, Player::Ptr player);
 
+
 				/**
 				 * Distance from the front to be considered ball possession.
 				 */

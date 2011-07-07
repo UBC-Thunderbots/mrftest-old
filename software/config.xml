@@ -297,7 +297,7 @@
           <integer name="JustBlockShoot">5</integer>
           <integer name="JustGoalie">5</integer>
           <integer name="JustRepel">0</integer>
-          <integer name="JustShoot">10</integer>
+          <integer name="JustShoot">5</integer>
           <integer name="JustSpin">10</integer>
           <integer name="KickoffEnemy">5</integer>
           <integer name="KickoffFriendly">5</integer>

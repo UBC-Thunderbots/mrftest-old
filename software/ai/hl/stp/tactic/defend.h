@@ -23,7 +23,12 @@ namespace AI {
 				 * Used for goalie + AT LEAST 1 defender.
 				 * A tactic for extra player.
 				 */
-				Tactic::Ptr defend_duo_extra(const World &world);
+				Tactic::Ptr defend_duo_extra1(const World &world);
+
+				/**
+				 * A tactic for extra player.
+				 */
+				Tactic::Ptr defend_duo_extra2(const World &world);
 
 				/**
 				 * A goalie tactic that can switch between lone and duo goalie.

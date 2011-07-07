@@ -25,8 +25,6 @@ using AI::HL::STP::min_pass_dist;
 
 namespace {
 
-	DoubleParam ball_pass_velocity("Ball pass velocity (HACK)", "STP/PassSimple",  2.0, 0, 99);
-
 	struct PasserSimple : public Tactic {
 			bool kick_attempted;
 
@@ -45,6 +43,9 @@ namespace {
 			}
 
 			bool fail() const {
+				if (!target.is()) {
+					return false;
+				}
 				if (!Evaluation::passee_suitable(world, target)) {
 					return true;
 				}
@@ -61,6 +62,7 @@ namespace {
 
 			void execute() {
 				if (!target.is()) {
+					LOG_ERROR("no target");
 					// should fail
 					return;
 				}
@@ -113,20 +115,6 @@ namespace {
 		}
 	};
 
-	Point grab_ball_dest(const World& world, Player::CPtr player) {
-		Player::CPtr baller = Evaluation::calc_friendly_baller(world);
-		if (!baller.is()) {
-			return world.ball().position();
-		}
-
-		Point ball_vel = ball_pass_velocity * Point::of_angle(baller->orientation());
-		Point dest;
-		if (AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, player->position(), dest)) {
-			return dest;
-		}
-		return world.ball().position();
-	}
-
 	struct FollowBaller : public Tactic {
 
 		FollowBaller(const World &world) : Tactic(world, false) {
@@ -136,7 +124,7 @@ namespace {
 			Player::Ptr best;
 			double min_dist = 1e99;
 			for (auto it = players.begin(); it != players.end(); ++it) {
-				Point dest = grab_ball_dest(world, *it);
+				Point dest = Evaluation::calc_fastest_grab_ball_dest_if_baller_shoots(world, (*it)->position());
 				if (!best.is() || min_dist > (dest - (*it)->position()).len()) {
 					min_dist = (dest - (*it)->position()).len();
 					best = *it;
@@ -149,14 +137,13 @@ namespace {
 			if (Evaluation::passee_suitable(world, player)) {
 				Action::move(world, player, player->position());
 			} else {
-				Point dest = grab_ball_dest(world, player);
+				Point dest = Evaluation::calc_fastest_grab_ball_dest_if_baller_shoots(world, player->position());
 				Action::move(world, player, dest);
-				player->prio(AI::Flags::MovePrio::LOW);
 			}
 		}
 
 		std::string description() const {
-			return "follow-passer";
+			return "follow-baller";
 		}
 	};
 

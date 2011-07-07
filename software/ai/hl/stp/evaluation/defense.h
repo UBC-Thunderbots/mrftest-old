@@ -5,14 +5,23 @@
 
 #include <array>
 
+namespace {
+	const int MAX_DEFENDERS = 3;
+}
+
 namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
+
 				/**
-				 * Computes locations to place 1 goalie and EXACTLY 1 OR 2 defenders.
+				 * Locations:
+				 * 0 - goalie
+				 * 1 - defender
+				 * 2 - defender-extra1
+				 * 3 - defender-extra2
 				 */
-				const std::array<Point, 3> evaluate_defense(const World &world);
+				const std::array<Point, MAX_DEFENDERS + 1> evaluate_defense(const World &world);
 			}
 		}
 	}

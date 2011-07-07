@@ -334,7 +334,12 @@ std::string PlayExecutor::info() const {
 		text << "play: " << curr_play->factory().name();
 		text << std::endl;
 		text << "step: " << curr_role_step;
-		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
+		std::size_t imax = std::min((std::size_t)5, world.friendly_team().size());
+		for (std::size_t i = 0; i < imax; ++i) {
+			if (!curr_assignment[i].is()) {
+				LOG_ERROR("curr-assignment empty");
+				continue;
+			}
 			text << std::endl;
 			text << curr_assignment[i]->pattern() << ": ";
 			if (curr_tactic[i]->active()) {
@@ -367,7 +372,8 @@ void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 		return;
 	}
 	curr_play->draw_overlay(ctx);
-	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
+	std::size_t imax = std::min((std::size_t)5, world.friendly_team().size());
+	for (std::size_t i = 0; i < imax; ++i) {
 		const std::vector<Tactic::Tactic::Ptr> &role = curr_roles[i];
 		for (std::size_t t = 0; t < role.size(); ++t) {
 			role[t]->draw_overlay(ctx);

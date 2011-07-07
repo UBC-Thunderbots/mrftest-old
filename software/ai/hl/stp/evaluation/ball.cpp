@@ -79,12 +79,21 @@ Player::CPtr Evaluation::select_friendly_baller(const World &world) {
 
 Robot::Ptr Evaluation::calc_enemy_baller(const World &world) {
 	const EnemyTeam &enemy = world.enemy_team();
+	Robot::Ptr robot;
+	double best_dist = 1e99;
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		if (possess_ball(world, enemy.get(i))) {
 			return enemy.get(i);
 		}
+		Point dest;
+		AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), enemy.get(i)->position(), dest);
+		double dist = (enemy.get(i)->position() - dest).len();
+		if (!robot.is() || dist < best_dist) {
+			best_dist = dist;
+			robot = enemy.get(i);
+		}
 	}
-	return Robot::Ptr();
+	return robot;
 }
 
 Point Evaluation::calc_fastest_grab_ball_dest(const World &world, Player::Ptr player){

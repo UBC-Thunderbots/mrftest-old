@@ -1,4 +1,5 @@
 #include "ai/hl/stp/evaluation/shoot.h"
+#include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/param.h"
@@ -38,6 +39,8 @@ namespace {
 	DoubleParam weight_enemy("Scoring weight for nearest enemy (+ve)", "STP/offense", 1.0, 0.0, 99.0);
 
 	DoubleParam weight_goal_dist("Scoring weight for distance to enemy goal (-ve)", "STP/offense", 1.0, 0.0, 99.0);
+
+	DoubleParam weight_ori_diff("Scoring weight for baller angle (-ve)", "STP/offense", 20.0, 0.0, 999.0);
 
 	// TODO: explore updating the offensive function only ONCE
 	std::vector<std::vector<double> > score1;
@@ -138,6 +141,19 @@ namespace {
 
 		// want more distance from enemy goal
 		raw_score *= (1 + weight_goal_dist * score_goal_dist);
+
+		// if a baller exists,
+		// calculate the deviation from the direction
+		Player::CPtr baller = Evaluation::calc_friendly_baller(world);
+
+		if (baller.is()) {
+			double ori_ball = (dest - baller->position()).orientation();
+			double ori_player = baller->orientation();
+			double score_diff = angle_diff(ori_ball, ori_player);
+
+			// reduce score by rotation
+			raw_score /= (1 + weight_ori_diff * score_diff);
+		}
 
 		return weight_total * raw_score;
 	}

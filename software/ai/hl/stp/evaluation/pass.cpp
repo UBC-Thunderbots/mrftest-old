@@ -2,6 +2,7 @@
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/player.h"
 #include "ai/hl/util.h"
+#include "ai/util.h"
 #include "ai/hl/stp/param.h"
 #include "geom/angle.h"
 #include "geom/util.h"
@@ -10,9 +11,9 @@ using namespace AI::HL::STP;
 
 namespace {
 
-	DoubleParam friendly_pass_width("Friendly pass checking width (robot radius)", "STP/offense", 2, 0, 9);
+	DoubleParam friendly_pass_width("Friendly pass checking width (robot radius)", "STP/pass", 1, 0, 9);
 
-	DoubleParam enemy_pass_width("Enemy pass checking width (robot radius)", "STP/enemy", 2, 0, 9);
+	DoubleParam enemy_pass_width("Enemy pass checking width (robot radius)", "STP/pass", 1, 0, 9);
 
 	bool can_pass_check(const Point p1, const Point p2, const std::vector<Point>& obstacles, double tol) {
 
@@ -37,7 +38,12 @@ namespace {
 
 	DoubleParam pass_ray_threat_mult("Ray pass threat multiplier", "STP/PassRay", 2, 1, 99);
 
+	BoolParam pass_ray_use_calc_fastest("Ray pass use calc fastest", "STP/PassRay", true);
+
 }
+
+
+DoubleParam Evaluation::ball_pass_velocity("Average ball pass velocity (HACK)", "STP/Pass",  2.0, 0, 99);
 
 DoubleParam Evaluation::max_pass_ray_angle("Max ray shoot rotation (degrees)", "STP/PassRay", 75, 0, 180);
 
@@ -63,16 +69,37 @@ bool Evaluation::can_shoot_ray(const World& world, Player::CPtr player, double o
 	double closest_enemy = 1e99;
 	double closest_friendly = 1e99;
 
+	Point ball_vel = Point::of_angle(orientation) * ball_pass_velocity;
+
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		Player::CPtr fptr = friendly.get(i);
 		if (fptr == player) continue;
-		double dist = seg_pt_dist(p1, p2, fptr->position());
+
+		double dist;
+
+		if (pass_ray_use_calc_fastest) {
+			Point dest;
+			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, fptr->position(), dest);
+			dist = (dest - fptr->position()).len();
+		} else {
+			dist = seg_pt_dist(p1, p2, fptr->position());
+		}
+
 		closest_friendly = std::min(closest_friendly, dist);
 	}
 
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		Robot::Ptr robot = enemy.get(i);
-		double dist = seg_pt_dist(p1, p2, robot->position());
+
+		double dist;
+		if (pass_ray_use_calc_fastest) {
+			Point dest;
+			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, robot->position(), dest);
+			dist = (dest - robot->position()).len();
+		} else {
+			dist = seg_pt_dist(p1, p2, robot->position());
+		}
+
 		closest_enemy = std::min(closest_enemy, dist);
 	}
 
@@ -223,5 +250,17 @@ Player::CPtr Evaluation::select_passee(const World& world) {
 	random_shuffle(candidates.begin(), candidates.end());
 	previous_passee = candidates.front();
 	return candidates.front();
+}
+
+Point Evaluation::calc_fastest_grab_ball_dest_if_baller_shoots(const World &world, const Point player_pos) {
+	Player::CPtr baller = Evaluation::calc_friendly_baller(world);
+	if (!baller.is()) {
+		return world.ball().position();
+	}
+
+	Point ball_vel = ball_pass_velocity * Point::of_angle(baller->orientation());
+	Point dest;
+	AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, player_pos, dest);
+	return dest;
 }
 

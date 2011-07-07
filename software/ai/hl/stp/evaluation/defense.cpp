@@ -17,7 +17,6 @@ namespace {
 
 	DoubleParam robot_shrink("shrink robot radius", "STP/defense", 1.1, 0.1, 2.0);
 
-	const unsigned int MAX_DEFENDERS = 2;
 
 	/**
 	 * ssshh... global state
@@ -125,7 +124,7 @@ namespace {
 			waypoint_defenders.push_back((field.friendly_goal() + ball_pos) / 2);
 		}
 
-		std::array<Point, 3> waypoints;
+		std::array<Point, MAX_DEFENDERS + 1> waypoints;
 		waypoints[0] = waypoint_goalie;
 		for (std::size_t i = 0; i < MAX_DEFENDERS; ++i) {
 			waypoints[i + 1] = waypoint_defenders[i];
@@ -134,8 +133,7 @@ namespace {
 	}
 }
 
-
-const std::array<Point, 3> AI::HL::STP::Evaluation::evaluate_defense(const World &world) {
+const std::array<Point, MAX_DEFENDERS + 1> AI::HL::STP::Evaluation::evaluate_defense(const World &world) {
 	return compute(world);
 }
 

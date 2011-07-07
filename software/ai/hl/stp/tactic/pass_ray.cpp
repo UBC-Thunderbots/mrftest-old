@@ -23,7 +23,7 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
 
-	DoubleParam small_pass_ray_angle("Small ray shoot rotation (degrees)", "STP/PassRay", 10, 0, 180);
+	DoubleParam small_pass_ray_angle("Small ray shoot rotation (degrees)", "STP/PassRay", 20, 0, 180);
 
 	struct PasserRay : public Tactic {
 		bool kick_attempted;
@@ -63,7 +63,7 @@ namespace {
 			double ori = Evaluation::best_shoot_ray(world, player).second;
 
 			Point target = player->position() + 10 * Point::of_angle(ori);
-			if (Action::shoot_pass(world, player, target)) {
+			if (Action::shoot_target(world, player, target, Action::pass_speed)) {
 				kick_attempted = true;
 			}
 			player->flags(0);

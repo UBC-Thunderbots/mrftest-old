@@ -11,7 +11,7 @@ namespace AI {
 				/**
 				 * Shoot for the enemy goal.
 				 */
-				Tactic::Ptr shoot_goal(const World &world);
+				Tactic::Ptr shoot_goal(const World &world, bool force = false);
 
 				/**
 				 * Shoot a specified target.

@@ -53,31 +53,13 @@ namespace {
 			}
 	};
 
-	/**
-	 * Primary defender.
-	 */
-	class Primary : public Tactic {
+	class Defender : public Tactic {
 		public:
-			Primary(const World &world) : Tactic(world) {
+			Defender(const World &world, unsigned i) : Tactic(world), index(i) {
 			}
 
 		private:
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
-			void execute();
-			std::string description() const {
-				return "defender (helps goalie)";
-			}
-	};
-
-	/**
-	 * Secondary defender.
-	 */
-	class Secondary : public Tactic {
-		public:
-			Secondary(const World &world) : Tactic(world) {
-			}
-
-		private:
+			unsigned index;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 			std::string description() const {
@@ -101,28 +83,15 @@ namespace {
 		Action::goalie_move(world, player, waypoints[0]);
 	}
 
-	Player::Ptr Primary::select(const std::set<Player::Ptr> &players) const {
+	Player::Ptr Defender::select(const std::set<Player::Ptr> &players) const {
 		auto waypoints = Evaluation::evaluate_defense(world);
-		Point dest = waypoints[1];
+		Point dest = waypoints[index];
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
 	}
 
-	void Primary::execute() {
+	void Defender::execute() {
 		auto waypoints = Evaluation::evaluate_defense(world);
-		Point dest = waypoints[1];
-		// TODO: medium priority for D = 1, low for D = 2
-		Action::defender_move(world, player, dest);
-	}
-
-	Player::Ptr Secondary::select(const std::set<Player::Ptr> &players) const {
-		auto waypoints = Evaluation::evaluate_defense(world);
-		Point dest = waypoints[2];
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
-	}
-
-	void Secondary::execute() {
-		auto waypoints = Evaluation::evaluate_defense(world);
-		Point dest = waypoints[2];
+		Point dest = waypoints[index];
 		Action::defender_move(world, player, dest);
 	}
 }
@@ -138,12 +107,17 @@ Tactic::Ptr AI::HL::STP::Tactic::defend_duo_goalie(const AI::HL::W::World &world
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::defend_duo_defender(const AI::HL::W::World &world) {
-	const Tactic::Ptr p(new Primary(world));
+	const Tactic::Ptr p(new Defender(world, 1));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::defend_duo_extra(const AI::HL::W::World &world) {
-	const Tactic::Ptr p(new Secondary(world));
+Tactic::Ptr AI::HL::STP::Tactic::defend_duo_extra1(const AI::HL::W::World &world) {
+	const Tactic::Ptr p(new Defender(world, 2));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::defend_duo_extra2(const AI::HL::W::World &world) {
+	const Tactic::Ptr p(new Defender(world, 3));
 	return p;
 }
 

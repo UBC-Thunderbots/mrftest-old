@@ -34,11 +34,12 @@ roles[1].push_back(defend_duo_defender(world));
 
 // ROLE 3
 // defend 2
-roles[2].push_back(defend_duo_extra(world));
+roles[2].push_back(defend_duo_extra1(world));
 
 // ROLE 4
 // position to centre
 roles[3].push_back(move(world, Point(0, 0)));
+
 END_ASSIGN()
 END_PLAY()
 

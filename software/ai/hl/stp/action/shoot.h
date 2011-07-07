@@ -21,7 +21,7 @@ namespace AI {
 				 *
 				 * \return true if the player autokick is fired.
 				 */
-				bool shoot_goal(const World &world, Player::Ptr player);
+				bool shoot_goal(const World &world, Player::Ptr player, bool force = false);
 
 				/**
 				 * WARNING: should use shoot_region or shoot_pass
@@ -31,7 +31,7 @@ namespace AI {
 				 *
 				 * \return true if the player autokick is fired.
 				 */	
-				bool shoot_target(const World &world, Player::Ptr player, const Point target, double velocity = 10.0) __attribute__ ((deprecated));
+				bool shoot_target(const World &world, Player::Ptr player, const Point target, double velocity = 10.0);
 
 				/**
 				 * Shoots the ball at the region centred at target with radius.

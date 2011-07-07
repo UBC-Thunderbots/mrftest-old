@@ -3,11 +3,11 @@
 
 using AI::HL::STP::Enemy;
 
-BEGIN_PLAY(JustShoot)
+BEGIN_PLAY(ShootGoal)
 INVARIANT(playtype(world, PlayType::PLAY)
-		&& our_team_size_at_least(world, 2))
-APPLICABLE(our_ball(world)
-	&& ball_x_greater_than(world, 0.4))
+		&& our_team_size_at_least(world, 2)
+		&& baller_can_shoot(world))
+APPLICABLE(our_ball(world))
 DONE(goal(world))
 FAIL(their_ball(world))
 BEGIN_ASSIGN()
@@ -17,7 +17,7 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // shoot
-roles[0].push_back(shoot_goal(world, true));
+roles[0].push_back(shoot_goal(world));
 
 // ROLE 2
 // defend
@@ -28,7 +28,8 @@ roles[1].push_back(defend_duo_defender(world));
 roles[2].push_back(offend(world));
 
 // ROLE 4 (optional)
-roles[3].push_back(defend_duo_extra1(world));
+// offensive support
+roles[2].push_back(offend_secondary(world));
 
 END_ASSIGN()
 END_PLAY()
