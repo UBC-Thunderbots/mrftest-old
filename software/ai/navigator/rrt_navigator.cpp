@@ -111,15 +111,7 @@ namespace AI {
 			}
 			
 			std::pair<Point, double> RRTNavigator::grab_ball(Player::Ptr player) {
-				double dest_ori = (world.ball().position() - player->position()).orientation();
-
-				Point dest_pos;
-
-				if (!AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest_pos)) {
-					return std::make_pair(world.ball().position(), dest_ori);
-				}
-
-				return std::make_pair(dest_pos, dest_ori);
+				return grab_ball_orientation(player, -world.ball().velocity() + world.ball().position());
 			}
 
 			void RRTNavigator::pivot(Player::Ptr player) {
