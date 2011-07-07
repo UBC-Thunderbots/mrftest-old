@@ -252,6 +252,9 @@ namespace AI {
 					// threshold already
 					if (path_points.size() == 0) {
 						path.push_back(std::make_pair(std::make_pair(player->position(), dest_orientation), working_time));
+					} else if (valid_path(path_points[path_points.size() - 1], dest, world, player)){
+						// go exactly to the destination point if we are able
+						path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), working_time));
 					}
 
 					player->path(path);
