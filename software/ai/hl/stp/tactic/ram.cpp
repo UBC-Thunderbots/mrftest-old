@@ -1,8 +1,10 @@
 #include "ai/hl/stp/tactic/ram.h"
+#include "ai/hl/stp/action/ram.h"
 #include "ai/hl/util.h"
 #include "ai/hl/stp/tactic/util.h"
 
 using namespace AI::HL::STP::Tactic;
+using namespace AI::HL::STP::Action;
 using namespace AI::HL::W;
 
 namespace {
@@ -22,9 +24,7 @@ namespace {
 
 			void execute() {
 				// should probably use move spin action instead (or tsteal tactic in cm_ball which uses it)
-				player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), Point());
-				player->type(AI::Flags::MoveType::RAM_BALL);
-				player->prio(AI::Flags::MovePrio::HIGH);
+				ram(world, player, world.ball().position(), Point());
 				player->flags(0);
 			}
 			std::string description() const {

@@ -42,7 +42,7 @@ roles[2].push_back(move(world, Coordinate(world, Point(-world.ball().position().
 
 // ROLE 4 (optional)
 // defend extra
-roles[3].push_back(defend_duo_extra(world));
+roles[3].push_back(defend_duo_extra1(world));
 
 END_ASSIGN()
 END_PLAY()

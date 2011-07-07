@@ -206,7 +206,6 @@ bool Predicates::can_shoot_ray(const World& world) {
 }
 
 bool Predicates::ball_inside_robot(const World &world){
-	const Field &f = world.field();
 	const Point ball = world.ball().position();
 	
 	const FriendlyTeam &friendly = world.friendly_team();
