@@ -47,7 +47,7 @@ namespace AI {
 		/**
 		 * A robot, as exposed by the backend.
 		 */
-		class Robot : public AI::Common::Robot, public Visualizable::Robot {
+		class Robot : public AI::HL::W::Robot, public Visualizable::Robot {
 			public:
 				/**
 				 * A pointer to a Robot.

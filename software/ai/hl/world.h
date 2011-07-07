@@ -27,6 +27,11 @@ namespace AI {
 			class Robot : public AI::Common::Robot {
 				public:
 					/**
+					 * \brief A pointer to a const Robot.
+					 */
+					typedef RefPtr<const Robot> Ptr;
+
+					/**
 					 * \brief Sets the avoidance distance for this robot.
 					 *
 					 * If this function is not called, the avoidance distance is reset to medium.
