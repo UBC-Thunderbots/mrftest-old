@@ -65,7 +65,7 @@ namespace {
 		if (wheel_prop) {
 			double max_speed = 0;
 			for (unsigned int row = 0; row < 4; ++row) {
-				max_speed = std::max(max_speed, std::fabs(wheel_speeds[row]));
+				max_speed = std::max(max_speed, std::fabs(output[row]));
 			}
 
 			if (max_speed > wheel_limit) {

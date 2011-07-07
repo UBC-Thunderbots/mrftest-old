@@ -70,13 +70,13 @@ namespace {
 
 		double max_speed = 0;
 		for (unsigned int row = 0; row < 4; ++row) {
-			max_speed = std::max(max_speed, std::fabs(wheel_speeds[row]));
+			max_speed = std::max(max_speed, std::fabs(output[row]));
 		}
 
 		if (max_speed > wheel_max_speed) {
 			double ratio = wheel_max_speed / max_speed;
 			for (unsigned int row = 0; row < 4; ++row) {
-				wheel_speeds[row] *= ratio;
+				output[row] *= ratio;
 			}
 		}
 
@@ -84,7 +84,7 @@ namespace {
 
 		double max_accel = 0;
 		for (unsigned int row = 0; row < 4; ++row) {
-			accel[row] = wheel_speeds[row] - prev_speed[row];
+			accel[row] = output[row] - prev_speed[row];
 			max_accel = std::max(max_accel, std::fabs(accel[row]));
 		}
 
@@ -92,7 +92,7 @@ namespace {
 			for (unsigned int i = 0; i < 4; ++i) {
 				accel[i] /= max_accel;
 				accel[i] *= wheel_max_accel;
-				wheel_speeds[i] = prev_speed[i] + accel[i];
+				output[i] = prev_speed[i] + accel[i];
 			}
 		}
 

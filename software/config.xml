@@ -157,9 +157,11 @@
         <boolean name="(CARE) reduce angular velocity when translating">false</boolean>
         <double name="decay">0.990</double>
         <boolean name="do reset when target changes">false</boolean>
+        <double name="Limit wheel speed">80</double>
         <double name="profile 1  multiplier">0.1</double>
         <double name="profile 2  multiplier">1.5</double>
         <double name="profile 3  multiplier">2.0</double>
+        <boolean name="Threshold Proportionally">true</boolean>
         <double name="x to y ratio">0.810</double>
         <double name="xy -differential">0.0</double>
         <double name="xy +integral">0.00</double>
@@ -167,6 +169,16 @@
         <double name="xy max velocity">12.0</double>
         <double name="xy +proportional">20.0</double>
         <double name="YA ratio">0.08</double>
+      </category>
+      <category name="PID5">
+        <double name="angular -differential">0.0</double>
+        <double name="angular +proportional">30.0</double>
+        <double name="Limit wheel accel">5</double>
+        <double name="Limit wheel speed">100</double>
+        <double name="x to y ratio">0.810</double>
+        <double name="xy -differential">0.0</double>
+        <double name="xy +proportional">25.0</double>
+        <double name="YA ratio">0.18</double>
       </category>
       <category name="PIDSim">
         <double name="angular -differential">0.0</double>
@@ -185,10 +197,6 @@
         <double name="xy max velocity">1.00</double>
         <double name="xy +proportional">0.10</double>
         <double name="YA ratio">0.00</double>
-      </category>
-      <category name="RC">
-        <double name="Limit wheel speed">100</double>
-        <boolean name="Threshold Proportionally">true</boolean>
       </category>
     </category>
     <category name="STP">
