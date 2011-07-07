@@ -78,10 +78,10 @@ namespace {
 
 					// set points relative to enemy robots
 					tasks[0] = std::make_pair(Point(leftmost.x, leftmost.y + y_diff), 0);
-					tasks[1] = std::make_pair(Point(leftmost.x - x_diff, leftmost.y), 0);
+					tasks[1] = std::make_pair(Point(leftmost.x - x_diff, leftmost.y - 0.1), 0);
 					tasks[2] = std::make_pair(Point(leftmost.x, leftmost.y - y_diff), 0);
 					tasks[3] = std::make_pair(Point(rightmost.x, rightmost.y - y_diff), 0);
-					tasks[4] = std::make_pair(Point(rightmost.x + x_diff, rightmost.y), 0);
+					tasks[4] = std::make_pair(Point(rightmost.x + x_diff, rightmost.y + 0.1), 0);
 					tasks[5] = std::make_pair(Point(rightmost.x, rightmost.y + y_diff), 0);
 					
 					// set avoidance distance based on whether the robot is moving
