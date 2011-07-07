@@ -2,6 +2,7 @@
 #include "ai/hl/util.h"
 #include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/evaluation/enemy.h"
+#include "ai/hl/stp/evaluation/ball.h"
 
 using namespace AI::HL::W;
 using AI::HL::STP::Enemy;
@@ -9,6 +10,9 @@ using AI::HL::STP::Enemy;
 namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
+
+	BoolParam use_grab_ball_pos("enemy closest use grab ball position", "STP/Enemy", true);
+
 	class Fixed : public Enemy {
 		public:
 			Fixed(Robot::Ptr r) : robot(r) {
@@ -57,11 +61,7 @@ namespace {
 					return Robot::Ptr();
 				}
 
-				std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
-
-				// sort enemies by distance to ball
-				// TODO: cache this
-				std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
+				auto enemies = Evaluation::enemies_by_grab_ball_dist(world);
 
 				return enemies[index];
 			}
@@ -79,20 +79,20 @@ namespace {
 				return Robot::Ptr();
 				// TODO: redo this
 				/*
-				std::vector<Robot::Ptr> passees = Evaluation::get_passees(world, robot);
+				   std::vector<Robot::Ptr> passees = Evaluation::get_passees(world, robot);
 
-				if (passees.size() <= index) {
-					if (world.enemy_team().size() > index) {
-						passees = AI::HL::Util::get_robots(world.enemy_team());
-						std::sort(passees.begin(), passees.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
-						return passees[index];
-					} else {
-						return Robot::Ptr();
-					}
-				}
+				   if (passees.size() <= index) {
+				   if (world.enemy_team().size() > index) {
+				   passees = AI::HL::Util::get_robots(world.enemy_team());
+				   std::sort(passees.begin(), passees.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
+				   return passees[index];
+				   } else {
+				   return Robot::Ptr();
+				   }
+				   }
 
-				return passees[index];
-				*/
+				   return passees[index];
+				 */
 			}
 	};
 };
@@ -101,13 +101,6 @@ Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_goal(const World &world, unsigne
 	Enemy::Ptr p(new ClosestFriendlyGoal(world, i));
 	return p;
 }
-
-/*
-   Enemy::Ptr AI::HL::STP::Enemy::robot(Robot::Ptr r) {
-   Enemy::Ptr p(new Fixed(r));
-   return p;
-   }
- */
 
 Enemy::Ptr AI::HL::STP::Enemy::closest_ball(const World &world, unsigned int i) {
 	Enemy::Ptr p(new ClosestBall(world, i));

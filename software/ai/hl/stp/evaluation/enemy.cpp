@@ -163,8 +163,7 @@ int AI::HL::STP::Evaluation::calc_enemy_pass(const World &world, const Robot::Pt
 std::vector<Evaluation::Threat> AI::HL::STP::Evaluation::calc_enemy_threat(const World &world) {
 	const EnemyTeam& enemy = world.enemy_team();
 
-	double closest_dist = 1e99;
-	Robot::Ptr closest_robot;
+	Robot::Ptr enemy_baller = calc_enemy_baller(world);
 
 	std::vector<Evaluation::Threat> threats(enemy.size());
 	for (size_t i = 0; i < enemy.size(); ++i) {
@@ -174,10 +173,8 @@ std::vector<Evaluation::Threat> AI::HL::STP::Evaluation::calc_enemy_threat(const
 		threats[i].passes_goal = 5;
 		threats[i].robot = enemy.get(i);
 
-		double dist = (enemy.get(i)->position() - world.ball().position()).len();
-		if (!closest_robot.is() || dist < closest_dist) {
-			closest_robot = enemy.get(i);
-			closest_dist = dist;
+		if (enemy.get(i) == enemy_baller) {
+			threats[i].passes_reach = 0;
 		}
 
 		if (possess_ball(world, enemy.get(i))) {
@@ -185,13 +182,6 @@ std::vector<Evaluation::Threat> AI::HL::STP::Evaluation::calc_enemy_threat(const
 		}
 		if (threats[i].can_shoot_goal) {
 			threats[i].passes_goal = 0;
-		}
-	}
-
-	// the robot holding the ball, or closest to it, needs 0 pass
-	for (size_t i = 0; i < enemy.size(); ++i) {
-		if (enemy.get(i) == closest_robot) {
-			threats[i].passes_reach = 0;
 		}
 	}
 

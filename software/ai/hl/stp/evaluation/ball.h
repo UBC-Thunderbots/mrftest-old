@@ -9,6 +9,17 @@ namespace AI {
 		namespace STP {
 			namespace Evaluation {
 				/**
+				 * Finds a friendly player with the ball.
+				 * Wrapper to stp's baller.
+				 */
+				Player::CPtr calc_friendly_baller(const World &world);
+
+				/**
+				 * Finds an enemy player with the ball.
+				 */
+				Robot::Ptr calc_enemy_baller(const World &world);
+
+				/**
 				 * Ball is within pivot threshold.
 				 */
 				bool ball_in_pivot_thresh(const World &world, Player::CPtr player);
@@ -24,21 +35,13 @@ namespace AI {
 				bool possess_ball(const World &world, Robot::Ptr robot);
 
 				/**
-				 * Finds a friendly player with the ball.
-				 */
-				Player::CPtr calc_friendly_baller(const World &world);
-
-				/**
-				 * Finds an enemy player with the ball.
-				 */
-				Robot::Ptr calc_enemy_baller(const World &world);
-
-				/**
 				 * Computes the best location to grab the ball,
 				 * minimizing the time required.
 				 * This is a wrapper to the function in ai/util.h
 				 */
 				Point calc_fastest_grab_ball_dest(const World &world, Player::CPtr player);
+
+				std::vector<Robot::Ptr> enemies_by_grab_ball_dist(const World& world);
 
 
 				/**

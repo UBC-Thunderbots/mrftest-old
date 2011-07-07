@@ -78,3 +78,28 @@ Point Evaluation::calc_fastest_grab_ball_dest(const World &world, Player::CPtr p
 	return dest;
 }
 
+std::vector<Robot::Ptr> Evaluation::enemies_by_grab_ball_dist(const World& world) {
+
+	std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+	std::vector<double> score;
+
+	for (unsigned i = 0; i < enemies.size(); ++i) {
+		Point dest;
+		AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), enemies[i]->position(), dest);
+		double dist = (enemies[i]->position() - dest).len();
+		score.push_back(dist);
+	}
+
+	// BUBBLE SORT ROTFLOL
+	for (unsigned i = 0; i < enemies.size(); ++i) {
+		for (unsigned j = i + 1; j < enemies.size(); ++j) {
+			if (score[i] > score[j]) {
+				std::swap(enemies[i], enemies[j]);
+				std::swap(score[i], score[j]);
+			}
+		}
+	}
+
+	return enemies;
+}
+

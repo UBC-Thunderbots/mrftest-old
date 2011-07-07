@@ -1,5 +1,6 @@
 #include "ai/hl/stp/evaluation/defense.h"
 #include "ai/hl/stp/evaluation/enemy.h"
+#include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
 #include "util/algorithm.h"
@@ -13,6 +14,9 @@ using namespace AI::HL::W;
 using namespace AI::HL::STP::Evaluation;
 
 namespace {
+
+	BoolParam defense_follow_enemy_baller("defense protect against baller", "STP/defense", true);
+
 	BoolParam goalie_hug_switch("goalie hug switch", "STP/defense", true);
 
 	DoubleParam max_goalie_dist("max goalie dist from goal (robot radius)", "STP/defense", 3.0, 0.0, 10.0);
@@ -54,7 +58,15 @@ namespace {
 		// the side that goalie is going to guard is goal_side
 		// the opposite side is goal_opp
 		// a defender will guard goal_opp
-		const Point ball_pos = world.ball().position();
+
+		Point ball_pos = world.ball().position();
+		if (defense_follow_enemy_baller) {
+			Robot::Ptr robot = calc_enemy_baller(world);
+			if (robot.is()) {
+				ball_pos = robot->position();
+			}
+		}
+
 		const Point goal_side = goalie_top ? Point(-field.length() / 2, field.goal_width() / 2) : Point(-field.length() / 2, -field.goal_width() / 2);
 		const Point goal_opp = goalie_top ? Point(-field.length() / 2, -field.goal_width() / 2) : Point(-field.length() / 2, field.goal_width() / 2);
 
@@ -93,10 +105,10 @@ namespace {
 			waypoint_defenders.push_back(D1);
 		}
 
-		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+		std::vector<Robot::Ptr> enemies = enemies_by_grab_ball_dist(world);
 
 		// sort enemies by distance to own goal
-		std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(field.friendly_goal()));
+		// std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(field.friendly_goal()));
 
 		std::vector<Robot::Ptr> threat;
 
@@ -124,9 +136,11 @@ namespace {
 		// next two defenders block nearest enemy sights to goal if needed
 		// enemies with ball possession are ignored (they should be handled above)
 		for (size_t i = 0; i < threat.size() && waypoint_defenders.size() < MAX_DEFENDERS; ++i) {
-			//if (AI::HL::Util::ball_close(world, threat[i])) {
-			//continue;
-			//}
+
+#warning A HACK FOR NOW, may intefere with baller abovee
+			if (AI::HL::Util::ball_close(world, threat[i])) {
+				continue;
+			}
 
 			// TODO: check if enemy can shoot the ball from here
 			// if so, block it
