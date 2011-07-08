@@ -28,12 +28,19 @@ namespace {
 	}
 
 	bool ray_on_friendly_defense(const World& world, const Point a, const Point b) {
+		if ((b - a).x > 0) {
+			return false;
+		}
 		auto inter = line_circle_intersect(world.field().friendly_goal(), goal_avoid_radius, a, b);
 		return inter.size() > 0;
 	}
 
 #warning TOOD: refactor
 	bool ray_on_friendly_goal(const World& world, const Point c, const Point d) {
+		if ((d - c).x > 0) {
+			return false;
+		}
+
 		Point a = world.field().friendly_goal() - Point(0, -10);
 		Point b = world.field().friendly_goal() + Point(0, 10);
 

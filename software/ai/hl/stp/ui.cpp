@@ -143,7 +143,7 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 		auto shot = Evaluation::best_shoot_ray(world, baller);
 
 		if (shot.first) {
-			const double angle = shot.first;
+			const double angle = shot.second;
 			const Point p1 = baller->position();
 			const Point p2 = p1 + 5 * Point::of_angle(angle);
 			if (Evaluation::can_shoot_ray(world, baller, angle)) {
