@@ -19,6 +19,8 @@ namespace AI {
 					Point target;
 				};
 
+				ShootData evaluate_shoot(const World &world, Player::CPtr player, bool use_reduced_radius = true);
+
 				/**
 				 * The current score of the the robot, in it's current position and orientation
 				 *a positive score indicates a scoring oppurtunity
@@ -29,8 +31,6 @@ namespace AI {
 				//				double get_shoot_target(const World &world, Player::Ptr player);
 
 				Point get_best_shoot_target(const World &world, Player::Ptr player);
-
-				ShootData evaluate_shoot(const World &world, Player::CPtr player);
 
 				// ShootData evaluate_shoot_target(const World &world, Player::CPtr player, const Point target);
 				

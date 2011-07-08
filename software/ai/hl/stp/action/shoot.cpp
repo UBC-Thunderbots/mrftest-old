@@ -31,8 +31,8 @@ void AI::HL::STP::Action::autokick(Player::Ptr player, const Point target, doubl
 	}
 }
 
-bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, bool force) {
-	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
+bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, bool force, bool use_reduced_radius) {
+	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player, use_reduced_radius);
 
 	if (shoot_data.can_shoot) {
 		if (!player->chicker_ready()) {

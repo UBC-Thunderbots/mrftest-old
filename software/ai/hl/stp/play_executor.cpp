@@ -395,6 +395,8 @@ void PlayExecutor::on_player_added(std::size_t) {
 void PlayExecutor::on_player_removing(std::size_t) {
 	LOG_INFO("Player removing, reset play");
 
+	_goalie.reset();
+
 	curr_play.reset();
 	curr_active.reset();
 	for (std::size_t i = 0; i < 5; ++i) {
