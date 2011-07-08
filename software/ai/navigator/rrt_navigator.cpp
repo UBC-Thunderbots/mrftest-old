@@ -109,7 +109,23 @@ namespace AI {
 			}
 
 			std::pair<Point, double> RRTNavigator::grab_ball_orientation(Player::Ptr player) {
-				return grab_ball_orientation(player, player->destination().first);
+
+				if(world.ball().velocity().len() < ball_velocity_threshold){
+					return grab_ball_orientation(player, player->destination().first);
+				}
+				Point A = world.ball().velocity().norm();
+				Point B = (player->destination().first - world.ball().position()).norm();
+				if( A.dot(B) > cos(AI::player_recieve_threshold) ){
+					return grab_ball_orientation(player, player->destination().first);
+				}
+
+				double ball_component = (A.dot(B) < 0) ? -1.0 : 1.0;
+				A = ball_component*A;
+
+				double rotate_amnt = (A.cross(B-A) < 0) ? (AI::player_recieve_threshold) : (AI::player_recieve_threshold);
+
+				Point target_dir = A.rotate(rotate_amnt);
+				return grab_ball_orientation(player, world.ball().position() + target_dir);
 			}
 			
 			std::pair<Point, double> RRTNavigator::grab_ball(Player::Ptr player) {
