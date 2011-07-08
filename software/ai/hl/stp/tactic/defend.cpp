@@ -98,6 +98,7 @@ namespace {
 	Player::Ptr Defender::select(const std::set<Player::Ptr> &players) const {
 		auto waypoints = Evaluation::evaluate_defense(world);
 		Point dest = waypoints[index];
+		if (tdefend && index > 0 && index < 3) dest = Evaluation::evaluate_tdefense(world, player, index);
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
 	}
 

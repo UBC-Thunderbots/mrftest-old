@@ -4,6 +4,7 @@
 #include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/hl/stp/action/goalie.h"
 #include "ai/hl/stp/action/defend.h"
+#include "ai/hl/stp/action/repel.h"
 #include "ai/hl/util.h"
 
 #include <cassert>
@@ -65,6 +66,18 @@ namespace {
 
 	void TDefender::execute() {
 		Point target = Evaluation::evaluate_tdefense(world, player, index);
+		if (Evaluation::ball_on_net(world)){ // ball is coming towards net
+			if (index == 2) { 
+				// 2nd defender should not go after the ball unless the ball is far enough from our goal
+				// and on our side of the field
+				Point diff = world.ball().position() - world.field().friendly_goal();
+				if (diff.len() > 3 * (index+1) * Robot::MAX_RADIUS && world.ball().position().x < -world.field().centre_circle_radius()){
+					Action::repel(world, player);
+				}
+			} else { // 1st defender is free to go any time
+				Action::repel(world, player);
+			}
+		}
 		Action::defender_move(world, player, target);
 	}
 }
