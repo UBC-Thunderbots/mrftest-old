@@ -9,7 +9,7 @@ using namespace AI::HL::W;
 namespace {
 	class Repel : public Tactic {
 		public:
-			Repel(const World &world) : Tactic(world, true) {
+			Repel(const World &world) : Tactic(world, true), finished(false) {
 			}
 
 		private:
