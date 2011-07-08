@@ -1,11 +1,18 @@
 #include "ai/hl/stp/tactic/tactic.h"
-
+#include "util/param.h"
+#include "util/dprint.h"
 #include <cassert>
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
+
+BoolParam enable_tactic_logging("Enable Tactic Log", "AI", true);
+
 Tactic::Tactic(const World &world, bool active) : world(world), active_(active) {
+	if(enable_tactic_logging){
+		LOG_DEBUG(description());
+	}
 }
 
 bool Tactic::done() const {
