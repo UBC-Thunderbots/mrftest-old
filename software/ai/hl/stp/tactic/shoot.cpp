@@ -13,8 +13,8 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
 
-	BoolParam new_shoot("Jason's shoot code", "AI/Hl/Tactic/shoot", false);
-	DoubleParam shoot_thresh("Above this shoot score shoot", "AI/Hl/Tactic/shoot", 5.0, 0.0, 90.0 );
+	BoolParam new_shoot("Jason's shoot code", "AI/STP/Tactic/shoot", true);
+	DoubleParam shoot_thresh("Above this shoot score shoot", "AI/STP/Tactic/shoot", 5.0, 0.0, 90.0 );
 
 	class ShootGoal : public Tactic {
 		public:
