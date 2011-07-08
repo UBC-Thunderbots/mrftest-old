@@ -1,6 +1,7 @@
 #include "ai/hl/hl.h"
 #include "ai/hl/stp/action/chase.h"
 #include "util/dprint.h"
+#include "ai/hl/stp/stp.h"
 
 #include <cassert>
 #include <gtkmm.h>
@@ -37,6 +38,7 @@ namespace {
 			}
 
 			void tick() {
+				tick_eval(world);
 				FriendlyTeam &friendly = world.friendly_team();
 				if (friendly.size() == 0) {
 					return;

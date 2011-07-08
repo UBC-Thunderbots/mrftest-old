@@ -1,4 +1,5 @@
 #include "ai/hl/hl.h"
+#include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/action/block.h"
 #include "util/dprint.h"
 
@@ -37,6 +38,7 @@ namespace {
 			}
 
 			void tick() {
+				tick_eval(world);
 				FriendlyTeam &friendly = world.friendly_team();
 				const EnemyTeam &enemy = world.enemy_team();
 				if (friendly.size() == 0 || enemy.size() == 0) {

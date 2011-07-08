@@ -21,6 +21,8 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			Player::CPtr _goalie;
+
+			size_t team_size = 0;
 		}
 	}
 }
@@ -169,8 +171,13 @@ void PlayExecutor::role_assignment() {
 		players.insert(p);
 	}
 
+	team_size = 1 + players.size();
+
 	bool active_assigned = (curr_tactic[0]->active());
-	for (std::size_t i = 1; i < 5 && players.size() > 0; ++i) {
+	for (std::size_t i = 1; i < 5; ++i) {
+		if (players.size() == 0) {
+			break;
+		}
 		curr_assignment[i] = curr_tactic[i]->select(players);
 		// assignment cannot be empty
 		assert(curr_assignment[i].is());
@@ -344,10 +351,10 @@ std::string PlayExecutor::info() const {
 		text << "play: " << curr_play->factory().name();
 		text << std::endl;
 		text << "step: " << curr_role_step;
-		std::size_t imax = std::min((std::size_t)5, world.friendly_team().size());
-		for (std::size_t i = 0; i < imax; ++i) {
+		//  std::size_t imax = std::min((std::size_t)5, world.friendly_team().size());
+		for (std::size_t i = 0; i < 5; ++i) {
 			if (!curr_assignment[i].is()) {
-				LOG_ERROR("curr-assignment empty");
+				// LOG_ERROR("curr-assignment empty");
 				continue;
 			}
 			text << std::endl;
@@ -378,8 +385,10 @@ void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 		return;
 	}
 	curr_play->draw_overlay(ctx);
-	std::size_t imax = std::min((std::size_t)5, world.friendly_team().size());
-	for (std::size_t i = 0; i < imax; ++i) {
+	for (std::size_t i = 0; i < 5; ++i) {
+		if (!curr_assignment[i].is()) {
+			continue;
+		}
 		const std::vector<Tactic::Tactic::Ptr> &role = curr_roles[i];
 		for (std::size_t t = 0; t < role.size(); ++t) {
 			role[t]->draw_overlay(ctx);
@@ -398,12 +407,11 @@ void PlayExecutor::on_player_removing(std::size_t) {
 	_goalie.reset();
 
 	curr_play.reset();
-	/*
 	curr_active.reset();
 	for (std::size_t i = 0; i < 5; ++i) {
 		curr_assignment[i].reset();
 		curr_roles[i].clear();
+		curr_tactic[i].reset();
 	}
-	*/
 }
 

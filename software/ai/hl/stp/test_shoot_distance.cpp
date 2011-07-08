@@ -1,6 +1,7 @@
 #include "ai/hl/hl.h"
 #include "ai/hl/stp/action/shoot.h"
 #include "util/dprint.h"
+#include "ai/hl/stp/stp.h"
 
 #include <cassert>
 #include <gtkmm.h>
@@ -37,6 +38,8 @@ namespace {
 			}
 
 			void tick() {
+				tick_eval(world);
+
 #warning Finish Coding Shoot Distance Tuning Test
 				//Assert that there are only 1 team members on the team
 				FriendlyTeam &friendly = world.friendly_team();

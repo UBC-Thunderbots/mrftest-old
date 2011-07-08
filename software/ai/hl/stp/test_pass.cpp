@@ -5,6 +5,7 @@
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/evaluation/player.h"
 #include "geom/util.h"
+#include "ai/hl/stp/stp.h"
 #include "util/dprint.h"
 
 #include <ctime>
@@ -87,6 +88,8 @@ namespace {
 			}
 
 			void tick() {
+				tick_eval(world);
+
 				std::vector<AI::HL::W::Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 				if (players.size() != 2) {
 					return;

@@ -2,6 +2,8 @@
 #include "ai/hl/stp/action/pivot.h"
 #include "util/dprint.h"
 #include "geom/angle.h"
+#include "ai/hl/stp/stp.h"
+
 #include <sstream>
 #include <cassert>
 #include <gtkmm.h>
@@ -42,6 +44,8 @@ namespace {
 			}
 
 			void tick() {
+				tick_eval(world);
+
 				FriendlyTeam &friendly = world.friendly_team();
 				if (friendly.size() == 0) {
 					return;

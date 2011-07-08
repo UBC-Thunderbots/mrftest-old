@@ -2,6 +2,8 @@
 #include "ai/hl/stp/tactic/tdefend.h"
 #include "util/dprint.h"
 #include "ai/hl/stp/ui.h"
+#include "ai/hl/stp/stp.h"
+#include "ai/hl/stp/stp.h"
 
 #include <cassert>
 #include <gtkmm.h>
@@ -38,6 +40,8 @@ namespace {
 			}
 
 			void tick() {
+				tick_eval(world);
+
 				FriendlyTeam &friendly = world.friendly_team();
 				if (friendly.size() < 3) {
 					return;
