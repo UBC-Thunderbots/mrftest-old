@@ -120,6 +120,8 @@ namespace AI {
 				bool ball_inside_robot(const World &world);
 
 				bool enemy_break_defense_duo(const World& world);
+				
+				bool ball_towards_enemy(const World& world);
 			}
 		}
 	}

@@ -4,6 +4,7 @@
 #include "ai/hl/stp/evaluation/enemy.h"
 #include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/stp/evaluation/ball.h"
+#include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/hl/stp/evaluation/defense.h"
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/param.h"
@@ -232,6 +233,17 @@ bool Predicates::enemy_break_defense_duo(const World& world) {
 			return true;
 		}
 	}
+	return false;
+}
+
+bool Predicates::ball_towards_enemy(const World& world){
+	const EnemyTeam &enemies = world.enemy_team();
+	for (std::size_t i = 0; i < enemies.size(); ++i) {
+		if (Evaluation::evaluate_ball_threat(world).activate_steal) {
+			return true;
+		}
+	}
+
 	return false;
 }
 

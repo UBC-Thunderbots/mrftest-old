@@ -48,7 +48,7 @@ void AI::HL::STP::Action::goalie_move(const World &world, Player::Ptr player, Po
 	// check if ball is heading towards our goal
 	if (Evaluation::ball_on_net(world)) {
 		// goalie block position
-		Point goal_pos = Evaluation::goalie_shot_block(world);
+		Point goal_pos = Evaluation::goalie_shot_block(world, player);
 		if (goal_pos.x < world.field().friendly_goal().x + Robot::MAX_RADIUS) { // avoid going inside the goal
 			goal_pos.x = world.field().friendly_goal().x + Robot::MAX_RADIUS;
 		}
