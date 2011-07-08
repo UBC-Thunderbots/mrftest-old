@@ -27,9 +27,18 @@
 <thunderbots>
   <params>
     <category name="AI">
+      <boolean name="Enable Tactic Log">true</boolean>
       <category name="Param">
         <double name="Angle in degrees that reciever can be offset">1.5</double>
         <double name="Average Player Velocity">6.0</double>
+      </category>
+      <category name="STP">
+        <category name="Tactic">
+          <category name="shoot">
+            <double name="Above this shoot score shoot">5.0</double>
+            <boolean name="Jason's shoot code">true</boolean>
+          </category>
+        </category>
       </category>
     </category>
     <category name="Backend">
@@ -85,7 +94,7 @@
         <double name="New Pivot [PID]: linear">1.00</double>
         <double name="New Pivot: travel angle, need proper unit, (n*M_PI)">0.200</double>
         <double name="New Pivot: travel radius">0.0900</double>
-        <integer name="Number of iterations to go through before we give best partial path">200</integer>
+        <integer name="Number of iterations to go through before we give best partial path">100</integer>
         <double name="Pivot: offset angle (degrees)">38</double>
         <double name="Pivot: offset distance">0.11</double>
         <double name="Pivot: orientation offset (degrees)">14</double>
@@ -188,11 +197,11 @@
       </category>
       <category name="PID5">
         <double name="angular -differential">-1.1</double>
-        <double name="angular +proportional">20.0</double>
+        <double name="angular +proportional">10.0</double>
         <double name="Limit wheel accel">450</double>
-        <double name="Limit wheel speed">1100</double>
+        <double name="Limit wheel speed">1000</double>
         <double name="x to y ratio">0.830</double>
-        <double name="xy -differential">-0.5</double>
+        <double name="xy -differential">-0.1</double>
         <double name="xy +proportional">14.0</double>
         <double name="YA ratio">0.08</double>
       </category>
@@ -260,11 +269,11 @@
       <category name="draw">
         <boolean name="draw ray">false</boolean>
       </category>
-      <category name="enemy">
-        <double name="Enemy shoot accuracy (degrees)">7.0</double>
-      </category>
       <category name="Enemy">
         <boolean name="enemy closest use grab ball position">true</boolean>
+      </category>
+      <category name="enemy">
+        <double name="Enemy shoot accuracy (degrees)">7.0</double>
       </category>
       <category name="evaluation">
         <double name="speed goalie should ignore direction of ball">1.000</double>
@@ -278,41 +287,44 @@
         <double name="kickoff: angle to separate players (degrees)">40.0</double>
       </category>
       <category name="offense">
+        <double name="Dont block increase multiplier">2.00</double>
         <double name="enemy avoidance distance (robot radius)">2.50</double>
         <integer name="grid x size">20</integer>
         <integer name="grid y size">20</integer>
-        <double name="Offensive friendly avoidance increase radius (robot radius)">1.10</double>
+        <double name="Offensive friendly avoidance increase radius (robot radius)">2.00</double>
         <double name="Scoring weight for angle from ball to goal at robot (-ve)">2.0</double>
         <double name="Scoring weight for angle to goal (POWER, careful)">2.5</double>
         <double name="Scoring weight for baller angle (-ve)">20</double>
         <double name="Scoring weight for ball progress (+ve)">1.0</double>
         <double name="Scoring weight for distance to ball (-ve)">1.0</double>
         <double name="Scoring weight for distance to enemy goal (-ve)">1.0</double>
-        <double name="Scoring weight for everything">500</double>
+        <double name="Scoring weight for everything">2000</double>
         <double name="Scoring weight for nearest enemy (+ve)">1.0</double>
+        <boolean name="Triangle check">true</boolean>
       </category>
       <category name="param">
         <double name="minimum region available for baller_can_shoot to be true (degrees)">5.7</double>
-      </category>
-      <category name="pass">
-        <double name="Avoid goal radius when passing (m)">0.90</double>
-        <double name="Enemy pass checking width (robot radius)">1.00</double>
-        <double name="Friendly pass checking width (robot radius)">1.00</double>
       </category>
       <category name="Pass">
         <double name="Average ball pass velocity (HACK)">2.0</double>
         <double name="kicking speed for making a pass">4.75</double>
         <double name="Minimum distance for pass play">0.400</double>
       </category>
+      <category name="pass">
+        <double name="Avoid goal radius when passing (m)">0.90</double>
+        <double name="Enemy pass checking width (robot radius)">1.00</double>
+        <double name="Friendly pass checking width (robot radius)">1.00</double>
+      </category>
       <category name="PassRay">
-        <double name="Max ray shoot rotation (degrees)">140.0</double>
-        <integer name="Ray # of intervals">60</integer>
+        <double name="Max ray shoot rotation (degrees)">120.0</double>
+        <integer name="Ray # of intervals">30</integer>
         <double name="Ray pass threat multiplier">1.0</double>
         <boolean name="Ray pass use calc fastest">true</boolean>
         <double name="Small ray shoot rotation (degrees)">20.0</double>
       </category>
       <category name="Play">
         <category name="Enable">
+          <boolean name="BallTowardsEnemy">false</boolean>
           <boolean name="CMDBasic2Block">true</boolean>
           <boolean name="CMDBasicCorner">false</boolean>
           <boolean name="CMDNaive">false</boolean>
@@ -352,6 +364,7 @@
           <boolean name="TheirCornerPlay">true</boolean>
         </category>
         <category name="Priority 0=low, 10=hi, 5=default">
+          <integer name="BallTowardsEnemy">5</integer>
           <integer name="CMDBasic2Block">5</integer>
           <integer name="CMDBasicCorner">5</integer>
           <integer name="CMDNaive">5</integer>
@@ -397,13 +410,13 @@
       <category name="predicates">
         <double name="enemy avoidance distance (robot radius)">3.00</double>
       </category>
-      <category name="shoot">
-        <double name="Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate">0.0</double>
-        <double name="Shoot accuracy (for various purposes)">5.0</double>
-      </category>
       <category name="Shoot">
         <double name="big reduced radius for calculating best shot (robot radius ratio)">0.800</double>
         <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
+      </category>
+      <category name="shoot">
+        <double name="Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate">0.0</double>
+        <double name="Shoot accuracy (for various purposes)">5.0</double>
       </category>
       <category name="Stop">
         <double name="goalie stop dist">0.180</double>
@@ -478,11 +491,35 @@
     <robot id="0">
 	  <kicker directional="false"/>
 	</robot>
+    <robot id="1">
+	  <kicker directional="true"/>
+	</robot>
 	<robot id="2">
 	  <kicker directional="false"/>
 	</robot>
 	<robot id="3">
-	  <kicker directional="true"/>
+	  <kicker directional="false"/>
+	</robot>
+	<robot id="4">
+	  <kicker directional="false"/>
+	</robot>
+	<robot id="5">
+	  <kicker directional="false"/>
+	</robot>
+	<robot id="6">
+	  <kicker directional="false"/>
+	</robot>
+	<robot id="7">
+	  <kicker directional="false"/>
+	</robot>
+	<robot id="8">
+	  <kicker directional="false"/>
+	</robot>
+	<robot id="9">
+	  <kicker directional="false"/>
+	</robot>
+	<robot id="10">
+	  <kicker directional="false"/>
 	</robot>
   </robots>
 </thunderbots>
