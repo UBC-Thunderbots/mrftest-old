@@ -125,6 +125,10 @@ namespace AI {
 			 */
 			PlayType invert(PlayType pt);
 		}
+
+		inline bool operator<(PlayType a, PlayType b) {
+			return static_cast<unsigned int>(a) < static_cast<unsigned int>(b);
+		}
 	}
 }
 
