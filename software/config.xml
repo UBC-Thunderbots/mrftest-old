@@ -75,6 +75,7 @@
         <double name="Chase angle range for behind target (degrees)">30.0</double>
         <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
         <double name="Distance to extend the tree on each step (m)">0.100</double>
+        <boolean name="New chase: enable">false</boolean>
         <boolean name="New Pivot: enable">false</boolean>
         <double name="New Pivot: Hysterisis angle, one side, (n*M_PI)">0.2000</double>
         <double name="New Pivot: offset angle (n*M_PI)">0.1000</double>
@@ -182,13 +183,13 @@
         <double name="YA ratio">0.08</double>
       </category>
       <category name="PID5">
-        <double name="angular -differential">0</double>
-        <double name="angular +proportional">20</double>
-        <double name="Limit wheel accel">100</double>
-        <double name="Limit wheel speed">1000</double>
-        <double name="x to y ratio">0.810</double>
-        <double name="xy -differential">0</double>
-        <double name="xy +proportional">20</double>
+        <double name="angular -differential">-1.1</double>
+        <double name="angular +proportional">20.0</double>
+        <double name="Limit wheel accel">450</double>
+        <double name="Limit wheel speed">1100</double>
+        <double name="x to y ratio">0.830</double>
+        <double name="xy -differential">-0.5</double>
+        <double name="xy +proportional">14.0</double>
         <double name="YA ratio">0.08</double>
       </category>
       <category name="PIDSim">
@@ -236,6 +237,7 @@
         </category>
       </category>
       <category name="ball">
+        <boolean name="Calc baller always return">true</boolean>
         <double name="circle radius in front of enemy robot to consider possesion (meters)">0.100</double>
         <double name="circle radius in front of robot to enable pivot (meters)">0.100</double>
         <boolean name="Smart possess ball (instead of has ball only)">true</boolean>
@@ -244,12 +246,18 @@
         <boolean name="Chase always face toward enemy goal">false</boolean>
       </category>
       <category name="defense">
+        <double name="ball2side ratio">0.70</double>
+        <boolean name="defense protect against baller">true</boolean>
         <boolean name="goalie hug switch">false</boolean>
         <double name="max goalie dist from goal (robot radius)">3.00</double>
+        <boolean name="open net enemy is dangerous">true</boolean>
         <double name="shrink robot radius">1.000</double>
       </category>
       <category name="enemy">
         <double name="Enemy shoot accuracy (degrees)">7.0</double>
+      </category>
+      <category name="Enemy">
+        <boolean name="enemy closest use grab ball position">true</boolean>
       </category>
       <category name="evaluation">
         <double name="speed goalie should ignore direction of ball">1.000</double>
@@ -386,7 +394,8 @@
         <double name="Shoot accuracy (for various purposes)">5.0</double>
       </category>
       <category name="Shoot">
-        <double name="reduced radius for calculating best shot (robot radius ratio)">0.300</double>
+        <double name="big reduced radius for calculating best shot (robot radius ratio)">0.800</double>
+        <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
       </category>
       <category name="Stop">
         <double name="goalie stop dist">0.180</double>
