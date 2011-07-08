@@ -12,6 +12,8 @@ using namespace AI::HL::STP;
 
 namespace {
 
+	DoubleParam goal_avoid_radius("Avoid goal radius when passing (m)", "STP/pass", 0.9, 0, 10);
+
 	DoubleParam friendly_pass_width("Friendly pass checking width (robot radius)", "STP/pass", 1, 0, 9);
 
 	DoubleParam enemy_pass_width("Enemy pass checking width (robot radius)", "STP/pass", 1, 0, 9);
@@ -23,6 +25,11 @@ namespace {
 
 		// OLD method is TRIED and TESTED
 		return AI::HL::Util::path_check(p1, p2, obstacles, Robot::MAX_RADIUS * tol);
+	}
+
+	bool ray_on_friendly_defense(const World& world, const Point a, const Point b) {
+		auto inter = line_circle_intersect(world.field().friendly_goal(), goal_avoid_radius, a, b);
+		return inter.size() > 0;
 	}
 
 #warning TOOD: refactor
@@ -61,6 +68,10 @@ bool Evaluation::can_shoot_ray(const World& world, Player::CPtr player, double o
 
 	// check if the ray heads towards our net
 	if (ray_on_friendly_goal(world, p1, p2)) {
+		return false;
+	}
+
+	if (ray_on_friendly_defense(world, p1, p2)) {
 		return false;
 	}
 
