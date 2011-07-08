@@ -179,6 +179,26 @@ namespace {
 		}
 		return waypoints;
 	}
+	
+	Point tdefender_block_ball(const World &world, const unsigned index){
+		Point dirToGoal, target;
+		dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
+		target = world.field().friendly_goal() - (4 * (index+1) * Robot::MAX_RADIUS * dirToGoal);
+		Point t = target;
+		if (world.ball().position().y < 0.0){	
+			if (index == 2) target = Point(t.x, t.y + 2 * Robot::MAX_RADIUS);
+			else target = Point(t.x, t.y - 2 * Robot::MAX_RADIUS);	
+		} else {
+			if (index == 2) target = Point(t.x, t.y - 2 * Robot::MAX_RADIUS);
+			else target = Point(t.x, t.y + 2 * Robot::MAX_RADIUS);		
+		}
+		return target;
+	}
+	Point tdefender_block_enemy(const World &world, Point r, const unsigned index){
+		Point dirToGoal;
+		dirToGoal = (world.field().friendly_goal() - r).norm();
+		return world.field().friendly_goal() - (4 * (index+1) * Robot::MAX_RADIUS * dirToGoal);
+	}
 }
 
 void AI::HL::STP::Evaluation::tick_defense(const World& world) {
@@ -195,5 +215,25 @@ bool AI::HL::STP::Evaluation::enemy_break_defense_duo(const World& world, const 
 	obstacles.push_back(waypoints[1]);
 
 	return calc_enemy_best_shot_goal(world.field(), obstacles, enemy->position()).second > degrees2radians(enemy_shoot_accuracy);
+}
+
+Point AI::HL::STP::Evaluation::tdefense(const World &world, Player::Ptr player, const unsigned index){
+	Point target;
+	if (world.enemy_team().size() > index-1){
+		std::vector<Robot::Ptr> enemies = Evaluation::enemies_by_grab_ball_dist(world);
+		Point r = enemies[index-1]->position();
+		if (r.x < -world.field().centre_circle_radius()){	
+			target = tdefender_block_enemy(world, r, index);
+		} else {
+			target = tdefender_block_ball(world, index);
+		}
+	} else {
+		target = tdefender_block_ball(world, index);
+	}
+	
+	if (target.x < world.field().friendly_goal().x + Robot::MAX_RADIUS) { // avoid going inside the goal
+		target.x = world.field().friendly_goal().x + Robot::MAX_RADIUS;
+	}
+	return target;
 }
 

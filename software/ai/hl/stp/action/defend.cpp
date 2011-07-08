@@ -1,5 +1,6 @@
 #include "ai/hl/stp/action/defend.h"
 #include "ai/hl/stp/action/repel.h"
+#include "ai/hl/stp/enemy.h"
 #include "ai/flags.h"
 #include "util/param.h"
 
@@ -16,7 +17,7 @@ void AI::HL::STP::Action::defender_move(const World &world, Player::Ptr player, 
 	if ((world.ball().position() - player->position()).len() < repel_dist * Robot::MAX_RADIUS) {
 		repel(world, player);
 		return;
-	}
+	}	
 	player->move(dest, (world.ball().position() - player->position()).orientation(), Point());
 	player->type(AI::Flags::MoveType::NORMAL);
 }

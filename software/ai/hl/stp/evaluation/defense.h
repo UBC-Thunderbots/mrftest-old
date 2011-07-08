@@ -29,6 +29,11 @@ namespace AI {
 				 * Checks if an enemy breaks our defense duo.
 				 */
 				bool enemy_break_defense_duo(const World& world, const Robot::Ptr enemy);
+				
+				/**
+				 * return dest of Terence defender - index.
+				 */
+				Point tdefense(const World &world, Player::Ptr player, const unsigned index);
 			}
 		}
 	}

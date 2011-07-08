@@ -331,6 +331,8 @@ software/ai/hl/stp/tactic/shoot.cpp -text
 software/ai/hl/stp/tactic/shoot.h -text
 software/ai/hl/stp/tactic/tactic.cpp -text
 software/ai/hl/stp/tactic/tactic.h -text
+software/ai/hl/stp/tactic/tdefend.cpp -text
+software/ai/hl/stp/tactic/tdefend.h -text
 software/ai/hl/stp/tactic/util.cpp -text
 software/ai/hl/stp/tactic/util.h -text
 software/ai/hl/stp/tactic/wait_playtype.cpp -text
@@ -345,6 +347,7 @@ software/ai/hl/stp/test_repel.cpp -text
 software/ai/hl/stp/test_shoot.cpp -text
 software/ai/hl/stp/test_shoot_distance.cpp -text
 software/ai/hl/stp/test_spin.cpp -text
+software/ai/hl/stp/test_tdefend.cpp -text
 software/ai/hl/stp/ui.cpp -text
 software/ai/hl/stp/ui.h -text
 software/ai/hl/stp/world.h -text

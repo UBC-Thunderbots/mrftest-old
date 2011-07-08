@@ -55,7 +55,7 @@ namespace {
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 			std::string description() const {
-				return "shadow kickoff";
+				return "shadow ball";
 			}
 	};
 
