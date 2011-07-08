@@ -15,6 +15,72 @@ namespace {
 	BoolParam smart_possess_ball("Smart possess ball (instead of has ball only)", "STP/ball", true);
 
 	DoubleParam enemy_pivot_threshold("circle radius in front of enemy robot to consider possesion (meters)", "STP/ball", 0.1, 0.0, 1.0);
+
+	Player::CPtr baller;
+
+	std::vector<Robot::Ptr> enemies;
+
+	void update_enemies_by_grab_ball_dist(const World& world) {
+		enemies = AI::HL::Util::get_robots(world.enemy_team());
+		std::vector<double> score;
+
+		for (unsigned i = 0; i < enemies.size(); ++i) {
+			Point dest;
+			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), enemies[i]->position(), dest);
+			double dist = (enemies[i]->position() - dest).len();
+			score.push_back(dist);
+		}
+
+		// BUBBLE SORT ROTFLOL
+		for (unsigned i = 0; i < enemies.size(); ++i) {
+			for (unsigned j = i + 1; j < enemies.size(); ++j) {
+				if (score[i] > score[j]) {
+					std::swap(enemies[i], enemies[j]);
+					std::swap(score[i], score[j]);
+				}
+			}
+		}
+	}
+
+	void update_baller(const World& world) {
+		const FriendlyTeam &friendly = world.friendly_team();
+		// use has ball
+		for (std::size_t i = 0; i < friendly.size(); ++i) {
+			if (get_goalie() == friendly.get(i)) {
+				continue;
+			}
+			if (friendly.get(i)->has_ball()) {
+				baller = friendly.get(i);
+				return;
+			}
+		}
+		// use possess ball
+		for (std::size_t i = 0; i < friendly.size(); ++i) {
+			if (Evaluation::possess_ball(world, friendly.get(i))) {
+				baller = friendly.get(i);
+				return;
+			}
+		}
+
+		if (!calc_baller_always_return) {
+			baller = Player::CPtr();
+			return;
+		}
+
+		Player::CPtr best;
+
+		double min_dist = 1e99;
+		for (std::size_t i = 0; i < friendly.size(); ++i) {
+			Player::CPtr player = friendly.get(i);
+			Point dest = Evaluation::calc_fastest_grab_ball_dest(world, player);
+			if (!best.is() || min_dist > (dest - player->position()).len()) {
+				min_dist = (dest - player->position()).len();
+				best = player;
+			}
+		}
+
+		baller = best;
+	}
 }
 
 DoubleParam Evaluation::pivot_threshold("circle radius in front of robot to enable pivot (meters)", "STP/ball", 0.1, 0.0, 1.0);
@@ -45,40 +111,7 @@ bool Evaluation::possess_ball(const World &world, Robot::Ptr robot) {
 }
 
 Player::CPtr Evaluation::calc_friendly_baller(const World &world) {
-	const FriendlyTeam &friendly = world.friendly_team();
-	// use has ball
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if (get_goalie() == friendly.get(i)) {
-			continue;
-		}
-		if (friendly.get(i)->has_ball()) {
-			return friendly.get(i);
-		}
-	}
-	// use possess ball
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if (Evaluation::possess_ball(world, friendly.get(i))) {
-			return friendly.get(i);
-		}
-	}
-
-	if (!calc_baller_always_return) {
-		return Player::CPtr();
-	}
-
-	Player::CPtr best;
-
-	double min_dist = 1e99;
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		Player::CPtr player = friendly.get(i);
-		Point dest = Evaluation::calc_fastest_grab_ball_dest(world, player);
-		if (!best.is() || min_dist > (dest - player->position()).len()) {
-			min_dist = (dest - player->position()).len();
-			best = player;
-		}
-	}
-
-	return best;
+	return baller;
 }
 
 Robot::Ptr Evaluation::calc_enemy_baller(const World &world) {
@@ -107,27 +140,11 @@ Point Evaluation::calc_fastest_grab_ball_dest(const World &world, Player::CPtr p
 }
 
 std::vector<Robot::Ptr> Evaluation::enemies_by_grab_ball_dist(const World& world) {
-
-	std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
-	std::vector<double> score;
-
-	for (unsigned i = 0; i < enemies.size(); ++i) {
-		Point dest;
-		AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), enemies[i]->position(), dest);
-		double dist = (enemies[i]->position() - dest).len();
-		score.push_back(dist);
-	}
-
-	// BUBBLE SORT ROTFLOL
-	for (unsigned i = 0; i < enemies.size(); ++i) {
-		for (unsigned j = i + 1; j < enemies.size(); ++j) {
-			if (score[i] > score[j]) {
-				std::swap(enemies[i], enemies[j]);
-				std::swap(score[i], score[j]);
-			}
-		}
-	}
-
 	return enemies;
+}
+
+void AI::HL::STP::Evaluation::tick_ball(const World& world) {
+	update_baller(world);
+	update_enemies_by_grab_ball_dist(world);
 }
 

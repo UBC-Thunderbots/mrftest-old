@@ -106,8 +106,7 @@ bool Predicates::baller_can_shoot(const World &world) {
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
-	// return Evaluation::evaluate_shoot(world, baller).angle >= degrees2radians(min_shoot_region);
-	return Evaluation::evaluate_shoot(world, baller).can_shoot;
+	return Evaluation::evaluate_shoot(world, baller).angle >= degrees2radians(min_shoot_region);
 }
 
 bool Predicates::baller_can_pass_target(const World &world, const Point target) {

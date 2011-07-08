@@ -1,6 +1,7 @@
 #include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/ui.h"
 #include "ai/hl/stp/evaluation/offense.h"
+#include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/defense.h"
 
 using namespace AI::HL::STP;
@@ -16,6 +17,7 @@ namespace AI {
 void AI::HL::STP::tick_eval(const World& world) {
 	Evaluation::tick_offense(world);
 	Evaluation::tick_defense(world);
+	Evaluation::tick_ball(world);
 }
 
 void AI::HL::STP::draw_ui(const World& world, Cairo::RefPtr<Cairo::Context> ctx) {

@@ -8,6 +8,8 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
+				void tick_ball(const World& world);
+
 				/**
 				 * Finds a friendly player with the ball.
 				 * Wrapper to stp's baller.
