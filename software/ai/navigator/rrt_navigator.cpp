@@ -55,6 +55,7 @@ namespace AI {
 					std::pair<Point, double> grab_ball_orientation(Player::Ptr player);
 					std::pair<Point, double> intercept_ball(Player::Ptr player);
 					std::pair<Point, double> intercept_ball_orientation(Player::Ptr player);
+					
 					void tick();
 					static Navigator::Ptr create(World &world);
 					void draw_overlay( Cairo::RefPtr<Cairo::Context> ctx );
@@ -191,7 +192,8 @@ namespace AI {
 
 					path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));
 					player->path(path);
-				} else { // new pivot is byron's pivot and koko's code for compensating for 
+				} else { // new pivot is byron's pivot and koko's code for compensating for
+						Player::Path path;
 					if( !player->has_ball() ){
 						Point dest;
 						double dest_orientation;
@@ -218,7 +220,6 @@ namespace AI {
 
 						player->path(path);
 					} else {
-						Player::Path path;
 						double diff = angle_mod(( world.ball().position() - player->destination().first ).orientation() - player->orientation());
 						std::stringstream ss;
 						ss << diff;
