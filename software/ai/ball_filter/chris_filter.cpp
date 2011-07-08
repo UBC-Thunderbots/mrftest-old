@@ -12,6 +12,7 @@ using namespace AI::BF::W;
 namespace {
 
 	DoubleParam decay_rate("circle decay rate", "Ball/Chris", 0.2063, 0.0, 1.0);
+	DoubleParam circle_radius("circle radius", "Ball/Chris", 0.67, 0.0, 10.0);
 
 	class Circle {
 		public:
@@ -52,7 +53,7 @@ namespace {
 					// Compute the new certainty and delete the existing circles.
 					double recip_certainty = 1.0 - decay_rate;
 					for (std::list<Circle>::iterator i = circles.begin(); i != circles.end(); ) {
-						if ((best_obs->second - i->centre).len() < RADIUS) {
+						if ((best_obs->second - i->centre).len() < circle_radius) {
 							recip_certainty *= 1.0 - i->certainty;
 							i = circles.erase(i);
 						} else {
@@ -76,7 +77,6 @@ namespace {
 			}
 
 		private:
-			static const double RADIUS;
 			static const double DELETE_THRESHOLD; // stores < 50 circles
 			std::list<Circle> circles;
 			Point last_point;
@@ -93,7 +93,6 @@ namespace {
 			}
 	};
 
-	const double ChrisFilter::RADIUS = 10.0 / TIMESTEPS_PER_SECOND;
 	const double ChrisFilter::DELETE_THRESHOLD = 0.02; // stores < 50 circles
 
 	ChrisFilter instance;
