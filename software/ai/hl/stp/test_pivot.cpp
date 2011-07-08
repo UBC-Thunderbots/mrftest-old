@@ -2,7 +2,7 @@
 #include "ai/hl/stp/action/pivot.h"
 #include "util/dprint.h"
 #include "geom/angle.h"
-
+#include <sstream>
 #include <cassert>
 #include <gtkmm.h>
 
@@ -51,22 +51,25 @@ namespace {
 
 				Point target;
 
-				if (target_enemy) {
-					target = world.field().enemy_goal();
+				/*if (target_enemy) {
+					target = world.field().e;
 				} else {
 					target = world.field().friendly_goal();
 				}
 
 				const double diff_ori = angle_diff(player->orientation(), (target - player->position()).orientation());
+				std::stringstream ss;
+				ss << diff_ori;
+				LOG_INFO( ss.str() );
 				if (diff_ori < 0.1) {
 					// angle completed, switch goals.
 					target_enemy = !target_enemy;
 					LOG_INFO(Glib::ustring::compose("time steps taken: %1", time));
 					time = 0;
 				}
-				time++;
+				time++;*/
 
-				Action::pivot(world, player, target);
+				Action::pivot(world, player, Point(0.0,0.0));//aim at center of field
 			}
 	};
 
