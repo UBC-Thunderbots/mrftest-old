@@ -703,7 +703,7 @@ XBeeRobot::Ptr XBeeRobot::create(XBeeDongle &dongle, unsigned int index) {
 	return p;
 }
 
-XBeeRobot::XBeeRobot(XBeeDongle &dongle, unsigned int index) : index(index), alive(false), has_feedback(false), ball_in_beam(false), ball_on_dribbler(false), capacitor_charged(false), battery_voltage(0), capacitor_voltage(0), dribbler_temperature(0), break_beam_reading(0), dongle(dongle) {
+XBeeRobot::XBeeRobot(XBeeDongle &dongle, unsigned int index) : index(index), alive(false), has_feedback(false), ball_in_beam(false), capacitor_charged(false), battery_voltage(0), capacitor_voltage(0), dribbler_temperature(0), break_beam_reading(0), dongle(dongle), encoder_1_stuck_message(Glib::ustring::compose("Bot %1 encoder 1 not commutating", index), Annunciator::Message::TriggerMode::LEVEL), encoder_2_stuck_message(Glib::ustring::compose("Bot %1 encoder 2 not commutating", index), Annunciator::Message::TriggerMode::LEVEL), encoder_3_stuck_message(Glib::ustring::compose("Bot %1 encoder 3 not commutating", index), Annunciator::Message::TriggerMode::LEVEL), encoder_4_stuck_message(Glib::ustring::compose("Bot %1 encoder 4 not commutating", index), Annunciator::Message::TriggerMode::LEVEL), hall_stuck_message(Glib::ustring::compose("Bot %1 hall sensor stuck", index), Annunciator::Message::TriggerMode::LEVEL) {
 }
 
 void XBeeRobot::flush_drive(bool force) {
@@ -717,8 +717,12 @@ void XBeeRobot::on_feedback(const uint8_t *data, std::size_t length) {
 	assert(length == 9);
 	has_feedback = !!(data[0] & 0x01);
 	ball_in_beam = !!(data[0] & 0x02);
-	ball_on_dribbler = !!(data[0] & 0x04);
-	capacitor_charged = !!(data[0] & 0x08);
+	capacitor_charged = !!(data[0] & 0x04);
+	encoder_1_stuck_message.active(!!(data[0] & 0x08));
+	encoder_2_stuck_message.active(!!(data[0] & 0x10));
+	encoder_3_stuck_message.active(!!(data[0] & 0x20));
+	encoder_4_stuck_message.active(!!(data[0] & 0x40));
+	hall_stuck_message.active(!!(data[0] & 0x80));
 	uint16_t ui16 = static_cast<uint16_t>(data[1] | (data[2] << 8));
 	battery_voltage = (ui16 + 0.5) / 1024.0 * 3.3 / 330.0 * (1500.0 + 330.0);
 	ui16 = static_cast<uint16_t>(data[3] | (data[4] << 8));

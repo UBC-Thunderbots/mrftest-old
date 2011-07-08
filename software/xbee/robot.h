@@ -1,6 +1,7 @@
 #ifndef XBEE_ROBOT_H
 #define XBEE_ROBOT_H
 
+#include "util/annunciator.h"
 #include "util/async_operation.h"
 #include "util/bit_array.h"
 #include "util/byref.h"
@@ -65,11 +66,6 @@ class XBeeRobot : public ByRef {
 		 * \brief Whether or not the ball is interrupting the robot's laser beam.
 		 */
 		Property<bool> ball_in_beam;
-
-		/**
-		 * \brief Whether or not the ball is loading the robot's dribbler motor.
-		 */
-		Property<bool> ball_on_dribbler;
 
 		/**
 		 * \brief Whether or not the robot's capacitor is charged enough to kick the ball.
@@ -258,6 +254,8 @@ class XBeeRobot : public ByRef {
 
 		XBeeDongle &dongle;
 		XBeePackets::Drive drive_block, last_drive_block;
+		Annunciator::Message encoder_1_stuck_message, encoder_2_stuck_message, encoder_3_stuck_message, encoder_4_stuck_message;
+		Annunciator::Message hall_stuck_message;
 
 		static Ptr create(XBeeDongle &dongle, unsigned int index);
 		XBeeRobot(XBeeDongle &dongle, unsigned int index);

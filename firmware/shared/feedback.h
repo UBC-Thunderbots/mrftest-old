@@ -25,14 +25,34 @@ typedef struct {
 	unsigned ball_in_beam : 1;
 
 	/**
-	 * \brief Zero if the ball is not loading the dribbler motor, or one if it is.
-	 */
-	unsigned ball_on_dribbler : 1;
-
-	/**
 	 * \brief Zero if the capacitor is not fully charged, or one if it is.
 	 */
 	unsigned capacitor_charged : 1;
+
+	/**
+	 * \brief Zero if encoder #1 is working properly, or one if it has failed to commutate.
+	 */
+	unsigned encoder_1_stuck : 1;
+
+	/**
+	 * \brief Zero if encoder #2 is working properly, or one if it has failed to commutate.
+	 */
+	unsigned encoder_2_stuck : 1;
+
+	/**
+	 * \brief Zero if encoder #3 is working properly, or one if it has failed to commutate.
+	 */
+	unsigned encoder_3_stuck : 1;
+
+	/**
+	 * \brief Zero if encoder #4 is working properly, or one if it has failed to commutate.
+	 */
+	unsigned encoder_4_stuck : 1;
+
+	/**
+	 * \brief Zero if a motor's hall sensors are in an invalid state (suggesting a line is stuck), or one if they are not.
+	 */
+	unsigned hall_stuck : 1;
 } feedback_flags_t;
 
 /**
