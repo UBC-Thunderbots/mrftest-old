@@ -34,6 +34,12 @@ void AI::HL::STP::Action::autokick(Player::Ptr player, const Point target, doubl
 bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, bool force, bool use_reduced_radius) {
 	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player, use_reduced_radius);
 
+	Player::CPtr pc = player;
+	if (!Evaluation::possess_ball(world, pc)) {
+		chase_pivot(world, player, shoot_data.target);
+		return false;
+	}
+
 	if (shoot_data.can_shoot) {
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
