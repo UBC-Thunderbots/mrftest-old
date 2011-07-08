@@ -80,13 +80,11 @@ namespace {
 
 			void tick() {
 
-				int wheel_speeds[4];
+				int wheel_speeds[4] = { 0,0,0,0};
 
 				if( state != State::Idle ){
 					convert_to_wheels( to_be_velocity , to_be_rotate_speed, wheel_speeds );
 					std::cout << to_be_pivot_radius << "\t" << to_be_terminal_velocity << "\t(" << to_be_velocity.x << ", " << to_be_velocity.y << ") " << to_be_rotate_speed <<" ("  << wheel_speeds[0] << ", " << wheel_speeds[1] << ", " << wheel_speeds[2] << ", " << wheel_speeds[3] << ")" << std::endl;
-				} else {
-					wheel_speeds = { 0, 0, 0, 0 };
 				}
 				player->drive(wheel_speeds);
 
