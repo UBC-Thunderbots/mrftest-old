@@ -91,10 +91,10 @@ unsigned int Player::num_bar_graphs() const {
 double Player::bar_graph_value(unsigned int index) const {
 	switch (index) {
 		case 0:
-			return clamp((bot->battery_voltage - 13.0) / (16.5 - 13.0), 0.0, 1.0);
+			return bot->alive ? clamp((bot->battery_voltage - 13.0) / (16.5 - 13.0), 0.0, 1.0) : 0.0;
 
 		case 1:
-			return clamp(bot->capacitor_voltage / 230.0, 0.0, 1.0);
+			return bot->alive ? clamp(bot->capacitor_voltage / 230.0, 0.0, 1.0) : 0.0;
 
 		default:
 			throw std::logic_error("invalid bar graph index");
@@ -115,6 +115,10 @@ Visualizable::Colour Player::bar_graph_colour(unsigned int index) const {
 		default:
 			throw std::logic_error("invalid bar graph index");
 	}
+}
+
+bool Player::alive() const {
+	return bot->alive;
 }
 
 bool Player::has_ball() const {

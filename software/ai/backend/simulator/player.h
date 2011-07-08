@@ -96,6 +96,7 @@ namespace AI {
 					double avelocity_stdev(double delta = 0.0) const { return Robot::avelocity_stdev(delta); }
 					unsigned int pattern() const { return Robot::pattern(); }
 					ObjectStore &object_store() const { return Robot::object_store(); }
+					bool alive() const;
 					bool has_ball() const;
 					bool chicker_ready() const;
 					bool kicker_directional() const;

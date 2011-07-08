@@ -12,6 +12,13 @@ namespace AI {
 		class Player : public virtual ByRef {
 			public:
 				/**
+				 * \brief Returns whether or not the player is alive.
+				 *
+				 * \return \c true if the player is alive, or \c false if the radio cannot communicate with the player.
+				 */
+				virtual bool alive() const = 0;
+
+				/**
 				 * Returns whether or not this player has the ball.
 				 *
 				 * \return \c true if this player has the ball, or \c false if not.
