@@ -65,9 +65,13 @@ namespace {
 	}
 
 	void TDefender::execute() {
+		Point diff = world.ball().position() - world.field().friendly_goal();
+		if (diff.len() <= 0.9 && index == 1){
+			Action::repel(world, player);
+			return;
+		}
 		Point target = Evaluation::evaluate_tdefense(world, player, index);
 		if (Evaluation::ball_on_net(world)){ // ball is coming towards net
-			Point diff = world.ball().position() - world.field().friendly_goal();
 			if (index == 2) { 
 				// 2nd defender should not go after the ball unless the ball is far enough from our goal
 				// and on our side of the field
@@ -78,7 +82,6 @@ namespace {
 			} else if (diff.len() < 4 * (index+2) * Robot::MAX_RADIUS && diff.len() > 4 * (index) * Robot::MAX_RADIUS){ 
 				// 1st defender defense 
 				Action::repel(world, player);
-				player->flags(0); // unset flags for 1st defender
 				return;
 			}
 		}

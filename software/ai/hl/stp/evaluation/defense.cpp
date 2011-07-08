@@ -230,7 +230,7 @@ Point AI::HL::STP::Evaluation::evaluate_tdefense(const World &world, Player::Ptr
 	if (world.enemy_team().size() > index-1){
 		std::vector<Robot::Ptr> enemies = Evaluation::enemies_by_grab_ball_dist(world);
 		Point r = enemies[index-1]->position();
-		if (r.x < -world.field().centre_circle_radius()){	
+		if (r.x < world.field().centre_circle_radius()){	
 			target = tdefender_block_enemy(world, r, index);
 		} else {
 			target = tdefender_block_ball(world, index);

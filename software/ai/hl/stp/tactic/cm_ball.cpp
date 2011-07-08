@@ -62,7 +62,7 @@ namespace {
 
 	class TSteal : public Tactic {
 		public:
-			TSteal(const World &world) : Tactic(world, true) {}
+			TSteal(const World &world) : Tactic(world, true), none(false) {}
 
 		private:
 			bool none;
@@ -104,7 +104,7 @@ namespace {
 
 	class TActiveDef : public Tactic {
 		public:
-			TActiveDef(const World &world) : Tactic(world, true) {}
+			TActiveDef(const World &world) : Tactic(world, true), finished(false) {}
 
 		private:
 			bool finished;
