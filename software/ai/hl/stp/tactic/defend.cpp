@@ -1,7 +1,10 @@
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/evaluation/defense.h"
+#include "ai/hl/stp/evaluation/ball.h"
+#include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/hl/stp/action/goalie.h"
 #include "ai/hl/stp/action/defend.h"
+#include "ai/hl/stp/action/repel.h"
 #include "ai/hl/util.h"
 
 #include <cassert>
@@ -105,7 +108,25 @@ namespace {
 	void Defender::execute() {
 		auto waypoints = Evaluation::evaluate_defense(world);
 		Point dest = waypoints[index];
-		if (tdefend && index > 0 && index < 3) dest = Evaluation::evaluate_tdefense(world, player, index);
+		if (tdefend && index > 0 && index < 3) {
+			dest = Evaluation::evaluate_tdefense(world, player, index);
+			if (Evaluation::ball_on_net(world)){ // ball is coming towards net
+				Point diff = world.ball().position() - world.field().friendly_goal();
+				if (index == 2) { 
+					// 2nd defender should not go after the ball unless the ball is far enough from our goal
+					// and on our side of the field
+					if (diff.len() > 4 * (index+1) * Robot::MAX_RADIUS && world.ball().position().x < -world.field().centre_circle_radius()){
+						Action::repel(world, player);
+						return;
+					}
+				} else if (diff.len() < 4 * (index+2) * Robot::MAX_RADIUS && diff.len() > 4 * (index) * Robot::MAX_RADIUS){ 
+					// 1st defender defense 
+					Action::repel(world, player);
+					player->flags(0); // unset flags for 1st defender
+					return;
+				}
+			}
+		}
 		Action::defender_move(world, player, dest);
 	}
 }

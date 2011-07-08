@@ -78,11 +78,11 @@ namespace {
 			} else if (diff.len() < 4 * (index+2) * Robot::MAX_RADIUS && diff.len() > 4 * (index) * Robot::MAX_RADIUS){ 
 				// 1st defender defense 
 				Action::repel(world, player);
+				player->flags(0); // unset flags for 1st defender
 				return;
 			}
 		}
 		Action::defender_move(world, player, target);
-		if (index == 1) player->flags(0); // unset flags for 1st defender
 	}
 }
 
