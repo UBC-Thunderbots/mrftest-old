@@ -34,7 +34,7 @@ namespace AI {
 			DoubleParam new_pivot_offset_angle("New Pivot: offset angle (n*M_PI)", "Nav/RRT",0.1, 0, 0.5 );
 			DoubleParam new_pivot_travel_angle("New Pivot: travel angle, need proper unit, (n*M_PI)", "Nav/RRT",0.2, 0.01, 0.5 );
 			DoubleParam new_pivot_hyster_angle("New Pivot: Hysterisis angle, one side, (n*M_PI)", "Nav/RRT",0.2, 0.01, 0.2 );
-			
+			BoolParam use_byronic("Byronic", "Nav/RRT", false);
 			BoolParam use_new_chase("New chase: enable", "Nav/RRT", false);
 
 			class PlayerData : public ObjectStore::Element {
@@ -230,7 +230,7 @@ namespace AI {
 						
 						// Check the ball velocity. If it is travelling too fast, use grab_ball instead of grab_ball_orientation.
 						// Based on field testing, we determined that grab_ball_orientation is not effective on moving balls.
-						if (world.ball().velocity().len() > ball_velocity_threshold) {
+						if (world.ball().velocity().len() > ball_velocity_threshold && use_byronic) {
 							grab_ball_dest = grab_ball(player);
 						} else {
 							grab_ball_dest = grab_ball_orientation(player);
