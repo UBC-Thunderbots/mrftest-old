@@ -1,6 +1,7 @@
 #include "ai/ball_filter/ball_filter.h"
 #include "geom/point.h"
 #include "util/timestep.h"
+#include "ai/param.h"
 #include <memory>
 #include <utility>
 #include <vector>
@@ -9,6 +10,9 @@ using AI::BF::BallFilter;
 using namespace AI::BF::W;
 
 namespace {
+
+	DoubleParam decay_rate("circle decay rate", "Ball/Chris", 0.2063, 0.0, 1.0);
+
 	class Circle {
 		public:
 			Point centre;
@@ -46,7 +50,7 @@ namespace {
 					// If no circles contain the ball, we will instead create a new circle containing the ball with a default level of certainty.
 
 					// Compute the new certainty and delete the existing circles.
-					double recip_certainty = 1.0 - DECAY_RATE;
+					double recip_certainty = 1.0 - decay_rate;
 					for (std::list<Circle>::iterator i = circles.begin(); i != circles.end(); ) {
 						if ((best_obs->second - i->centre).len() < RADIUS) {
 							recip_certainty *= 1.0 - i->certainty;
@@ -73,14 +77,13 @@ namespace {
 
 		private:
 			static const double RADIUS;
-			static const double DECAY_RATE; // half-life = 3 frames
 			static const double DELETE_THRESHOLD; // stores < 50 circles
 			std::list<Circle> circles;
 			Point last_point;
 
 			void decay(bool delete_if_below_threshold) {
 				for (std::list<Circle>::iterator i = circles.begin(); i != circles.end(); ) {
-					i->certainty *= 1.0 - DECAY_RATE;
+					i->certainty *= 1.0 - decay_rate;
 					if (delete_if_below_threshold && i->certainty < DELETE_THRESHOLD) {
 						i = circles.erase(i);
 					} else {
@@ -91,7 +94,6 @@ namespace {
 	};
 
 	const double ChrisFilter::RADIUS = 10.0 / TIMESTEPS_PER_SECOND;
-	const double ChrisFilter::DECAY_RATE = 0.2063; // half-life = 3 frames
 	const double ChrisFilter::DELETE_THRESHOLD = 0.02; // stores < 50 circles
 
 	ChrisFilter instance;
