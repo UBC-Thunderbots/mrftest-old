@@ -7,6 +7,7 @@
 #include "util/dprint.h"
 //#include "util/param.h"
 #include "ai/hl/stp/param.h"
+#include <sstream>
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
@@ -30,9 +31,12 @@ namespace AI {
 			DoubleParam ball_velocity_threshold("Ball velocity threshold (used to switch between chase and chase+pivot)", "Nav/RRT", 0.5, 0.0, 20.0);
 
 			BoolParam use_new_pivot("New Pivot: enable", "Nav/RRT", false);
+			DoubleParam new_pivot_linear_sfactor("New Pivot [PID]: linear", "Nav/RRT", 1.0, 0.01, 50.0 );
+			DoubleParam new_pivot_angular_sfactor("New Pivot [PID]: angular", "Nav/RRT", 1.0, 0.01, 50.0);
 			DoubleParam new_pivot_radius("New Pivot: travel radius", "Nav/RRT",0.3, 0.01, 0.5);
+			BoolParam new_pivot_go_backward("New Pivot: go backward", "Nav/RRT", false);
 			DoubleParam new_pivot_offset_angle("New Pivot: offset angle (n*M_PI)", "Nav/RRT",0.1, 0, 0.5 );
-			DoubleParam new_pivot_travel_angle("New Pivot: travel angle, need proper unit, (n*M_PI)", "Nav/RRT",0.2, 0.01, 0.5 );
+			DoubleParam new_pivot_travel_angle("New Pivot: travel angle, need proper unit, (n*M_PI)", "Nav/RRT",0.2, -0.5, 0.5 );
 			DoubleParam new_pivot_hyster_angle("New Pivot: Hysterisis angle, one side, (n*M_PI)", "Nav/RRT",0.2, 0.01, 0.2 );
 			BoolParam use_byronic("Byronic", "Nav/RRT", false);
 			BoolParam use_new_chase("New chase: enable", "Nav/RRT", false);
@@ -40,7 +44,6 @@ namespace AI {
 			class PlayerData : public ObjectStore::Element {
 				public:
 					typedef ::RefPtr<PlayerData> Ptr;
-					//bool valid;
 					unsigned int added_flags;
 			};
 
@@ -54,6 +57,7 @@ namespace AI {
 					std::pair<Point, double> intercept_ball_orientation(Player::Ptr player);
 					void tick();
 					static Navigator::Ptr create(World &world);
+					void draw_overlay( Cairo::RefPtr<Cairo::Context> ctx );
 
 				private:
 					RRTNavigator(World &world);
@@ -161,7 +165,7 @@ namespace AI {
 			}
 
 			void RRTNavigator::pivot(Player::Ptr player) {
-				if( !use_new_pivot || !player->has_ball() ) {
+				if( !use_new_pivot ) {
 					Player::Path path;
 					Point dest;
 					double dest_orientation;
@@ -189,21 +193,58 @@ namespace AI {
 					player->path(path);
 				} else {
 					Player::Path path;
-
-					double diff = angle_mod(( Point(0.0,0.0) - player->destination().first + world.ball().position()).orientation() - player->orientation());
-
-					if( std::abs(diff) > 0.03*M_PI ){
-						Point zero_pos( new_pivot_radius, 0.0 );
-						Point polar_pos = zero_pos - zero_pos.rotate( new_pivot_travel_angle * (is_ccw?1:-1) );
-						Point rel_pos = polar_pos.rotate( player->orientation() - (new_pivot_offset_angle + 0.5*M_PI) * (is_ccw?-1:1) );
-						Point dest_pos = player->position() + rel_pos;
-						double rel_orient = new_pivot_travel_angle * (is_ccw?1:-1);
-						double dest_orient = player->orientation() + rel_orient;
-					
-						path.push_back(std::make_pair(std::make_pair(dest_pos, dest_orient), world.monotonic_time()));
-						player->path(path);
+					double diff = angle_mod(( world.ball().position() - player->destination().first ).orientation() - player->orientation());
+					std::stringstream ss;
+					ss << diff;
+					LOG_INFO( ss.str() );	
+					Point zero_pos( new_pivot_radius, 0.0 );
+					Point polar_pos;
+					Point rel_pos;
+					Point dest_pos;
+					double rel_orient;
+					double dest_orient;
+				
+						
+					if( diff > new_pivot_hyster_angle*M_PI && diff <= M_PI ){
+						rel_orient = new_pivot_travel_angle *M_PI;
+						rel_orient *= new_pivot_angular_sfactor;
+						polar_pos = zero_pos - zero_pos.rotate( rel_orient );
+						rel_pos = polar_pos.rotate( player->orientation() + (0.5*M_PI)* (new_pivot_go_backward?-1:1));
+						rel_pos *= new_pivot_linear_sfactor;
+						dest_pos = player->position() + rel_pos;
+						dest_orient = player->orientation() + rel_orient;
+					} else if( diff < - new_pivot_hyster_angle*M_PI && diff >= -M_PI ){
+						rel_orient = - new_pivot_travel_angle *M_PI;
+						rel_orient *= new_pivot_angular_sfactor;
+						polar_pos = zero_pos - zero_pos.rotate( rel_orient );
+						rel_pos = polar_pos.rotate( player->orientation() - (0.5*M_PI) *(new_pivot_go_backward?-1:1) );
+						rel_pos *= new_pivot_linear_sfactor;
+						dest_pos = player->position() + rel_pos;
+						dest_orient = player->orientation() + rel_orient;
 					} else {
+						rel_orient = diff;
+						rel_orient *= new_pivot_angular_sfactor;
+						polar_pos = zero_pos - zero_pos.rotate( rel_orient );
+						rel_pos = polar_pos.rotate( player->orientation() + (0.5*M_PI) );
+						rel_pos *= new_pivot_linear_sfactor;
+						dest_pos = player->position() + rel_pos;
+						dest_orient = ( world.ball().position() - player->destination().first ).orientation();
 					}
+
+					path.push_back( std::make_pair( std::make_pair(dest_pos, dest_orient), world.monotonic_time() ));
+					player->path(path);
+				}
+			}
+
+
+			void RRTNavigator::draw_overlay( Cairo::RefPtr<Cairo::Context> ctx ){
+				ctx->set_source_rgb(1.0,1.0,1.0);
+				for( std::size_t i = 0; i < world.friendly_team().size(); ++i ){
+					Player::Ptr player = world.friendly_team().get(i);
+					ctx->begin_new_path();
+					ctx->set_line_width(1);
+					ctx->move_to( world.ball().position().x,  world.ball().position().y );
+					ctx->line_to( player->destination().first.x, player->destination().first.y );
 				}
 			}
 
