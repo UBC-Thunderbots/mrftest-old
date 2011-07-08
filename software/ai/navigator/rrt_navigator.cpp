@@ -5,7 +5,8 @@
 #include "ai/util.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
-#include "util/param.h"
+//#include "util/param.h"
+#include "ai/hl/stp/param.h"
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;

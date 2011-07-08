@@ -58,6 +58,7 @@ namespace AI {
 				 */
 				bool shoot_pass(const World& world, Player::Ptr shooter, const Point target, double angle_tol);
 
+
 				/**
 				 * Shoot to a player.
 				 *

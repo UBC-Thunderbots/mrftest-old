@@ -5,6 +5,7 @@
 #include "util/cacheable.h"
 #include "util/param.h"
 
+
 namespace AI {
 	namespace HL {
 		namespace STP {
@@ -17,6 +18,17 @@ namespace AI {
 					double accuracy_diff;
 					Point target;
 				};
+
+				/**
+				 * The current score of the the robot, in it's current position and orientation
+				 *a positive score indicates a scoring oppurtunity
+				 * the return value represents the maximum angle error acceptable while still representing a goal scored
+				 */
+				double get_shoot_score(const World &world, Player::Ptr player);
+
+				//				double get_shoot_target(const World &world, Player::Ptr player);
+
+				Point get_best_shoot_target(const World &world, Player::Ptr player);
 
 				ShootData evaluate_shoot(const World &world, Player::CPtr player);
 
