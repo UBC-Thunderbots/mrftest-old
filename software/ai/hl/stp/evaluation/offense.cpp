@@ -75,6 +75,11 @@ namespace {
 			return -1e99;
 		}
 
+		// if dest is in this triangle it can block an incoming shot to the enemy goal
+		if (point_in_triangle(world.ball().position(), world.field().enemy_goal_boundary().first, world.field().enemy_goal_boundary().second, dest)){
+			return -1e99;
+		}
+
 		double score_progress = (dest - world.ball().position()).x;
 
 		double score_goal_angle = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dest).second;

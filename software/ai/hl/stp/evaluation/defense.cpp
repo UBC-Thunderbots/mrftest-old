@@ -27,7 +27,6 @@ namespace {
 
 	BoolParam open_net_dangerous("open net enemy is dangerous", "STP/defense", true);
 
-
 	/**
 	 * ssshh... global state
 	 * DO NOT TOUCH THIS unless you know what you are doing.
@@ -194,6 +193,7 @@ namespace {
 		}
 		return target;
 	}
+	
 	Point tdefender_block_enemy(const World &world, Point r, const unsigned index){
 		Point dirToGoal;
 		dirToGoal = (world.field().friendly_goal() - r).norm();
