@@ -191,48 +191,74 @@ namespace AI {
 
 					path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));
 					player->path(path);
-				} else {
-					Player::Path path;
-					double diff = angle_mod(( world.ball().position() - player->destination().first ).orientation() - player->orientation());
-					std::stringstream ss;
-					ss << diff;
-					LOG_INFO( ss.str() );	
-					Point zero_pos( new_pivot_radius, 0.0 );
-					Point polar_pos;
-					Point rel_pos;
-					Point dest_pos;
-					double rel_orient;
-					double dest_orient;
-				
-						
-					if( diff > new_pivot_hyster_angle*M_PI && diff <= M_PI ){
-						rel_orient = new_pivot_travel_angle *M_PI;
-						rel_orient *= new_pivot_angular_sfactor;
-						polar_pos = zero_pos - zero_pos.rotate( rel_orient );
-						rel_pos = polar_pos.rotate( player->orientation() + (0.5*M_PI)* (new_pivot_go_backward?-1:1));
-						rel_pos *= new_pivot_linear_sfactor;
-						dest_pos = player->position() + rel_pos;
-						dest_orient = player->orientation() + rel_orient;
-					} else if( diff < - new_pivot_hyster_angle*M_PI && diff >= -M_PI ){
-						rel_orient = - new_pivot_travel_angle *M_PI;
-						rel_orient *= new_pivot_angular_sfactor;
-						polar_pos = zero_pos - zero_pos.rotate( rel_orient );
-						rel_pos = polar_pos.rotate( player->orientation() - (0.5*M_PI) *(new_pivot_go_backward?-1:1) );
-						rel_pos *= new_pivot_linear_sfactor;
-						dest_pos = player->position() + rel_pos;
-						dest_orient = player->orientation() + rel_orient;
-					} else {
-						rel_orient = diff;
-						rel_orient *= new_pivot_angular_sfactor;
-						polar_pos = zero_pos - zero_pos.rotate( rel_orient );
-						rel_pos = polar_pos.rotate( player->orientation() + (0.5*M_PI) );
-						rel_pos *= new_pivot_linear_sfactor;
-						dest_pos = player->position() + rel_pos;
-						dest_orient = ( world.ball().position() - player->destination().first ).orientation();
-					}
+				} else { // new pivot is byron's pivot and koko's code for compensating for 
+					if( !player->has_ball() ){
+						Point dest;
+						double dest_orientation;
+						// try to pivot around the ball to catch it
+						Point current_position = player->position();
+						double to_ball_orientation = (world.ball().position() - current_position).orientation();
+						double orientation_temp = degrees2radians(orientation_offset);
 
-					path.push_back( std::make_pair( std::make_pair(dest_pos, dest_orient), world.monotonic_time() ));
-					player->path(path);
+						double angle = degrees2radians(offset_angle);
+						
+						double difference = angle_mod(to_ball_orientation - player->destination().second);
+						
+						if (difference > 0) {
+							angle = -angle;
+							orientation_temp = -orientation_temp;
+						}
+
+						Point diff = (world.ball().position() - current_position).rotate(angle);
+
+						dest = world.ball().position() - offset_distance * (diff / diff.len());
+						dest_orientation = (world.ball().position() - current_position).orientation() + orientation_temp;
+
+						path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));
+
+						player->path(path);
+					} else {
+						Player::Path path;
+						double diff = angle_mod(( world.ball().position() - player->destination().first ).orientation() - player->orientation());
+						std::stringstream ss;
+						ss << diff;
+						LOG_INFO( ss.str() );	
+						Point zero_pos( new_pivot_radius, 0.0 );
+						Point polar_pos;
+						Point rel_pos;
+						Point dest_pos;
+						double rel_orient;
+						double dest_orient;
+					
+						if( diff > new_pivot_hyster_angle*M_PI && diff <= M_PI ){
+							rel_orient = new_pivot_travel_angle *M_PI;
+							rel_orient *= new_pivot_angular_sfactor;
+							polar_pos = zero_pos - zero_pos.rotate( rel_orient );
+							rel_pos = polar_pos.rotate( player->orientation() + (0.5*M_PI)* (new_pivot_go_backward?-1:1));
+							rel_pos *= new_pivot_linear_sfactor;
+							dest_pos = player->position() + rel_pos;
+							dest_orient = player->orientation() + rel_orient;
+						} else if( diff < - new_pivot_hyster_angle*M_PI && diff >= -M_PI ){
+							rel_orient = - new_pivot_travel_angle *M_PI;
+							rel_orient *= new_pivot_angular_sfactor;
+							polar_pos = zero_pos - zero_pos.rotate( rel_orient );
+							rel_pos = polar_pos.rotate( player->orientation() - (0.5*M_PI) *(new_pivot_go_backward?-1:1) );
+							rel_pos *= new_pivot_linear_sfactor;
+							dest_pos = player->position() + rel_pos;
+							dest_orient = player->orientation() + rel_orient;
+						} else {
+							rel_orient = diff;
+							rel_orient *= new_pivot_angular_sfactor;
+							polar_pos = zero_pos - zero_pos.rotate( rel_orient );
+							rel_pos = polar_pos.rotate( player->orientation() + (0.5*M_PI) );
+							rel_pos *= new_pivot_linear_sfactor;
+							dest_pos = player->position() + rel_pos;
+							dest_orient = ( world.ball().position() - player->destination().first ).orientation();
+						}
+
+						path.push_back( std::make_pair( std::make_pair(dest_pos, dest_orient), world.monotonic_time() ));
+						player->path(path);
+					}
 				}
 			}
 
