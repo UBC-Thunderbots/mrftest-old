@@ -9,8 +9,12 @@ Predictor::Predictor(bool angle, double measure_std, double accel_std) : filter(
 }
 
 std::pair<double, double> Predictor::value(double delta, unsigned int deriv, bool ignore_cache) const {
-	if (-1e-9 < delta && delta < 1e-9 && deriv == 0 && !ignore_cache) {
-		return zero_value;
+	if (-1e-9 < delta && delta < 1e-9 && !ignore_cache) {
+		if (deriv == 0) {
+			return zero_value;
+		} else if (deriv == 1) {
+			return zero_first_deriv;
+		}
 	} else {
 		Matrix guess, covariance;
 		filter.predict(timespec_add(double_to_timespec(delta), lock_timestamp), guess, covariance);
@@ -27,6 +31,7 @@ std::pair<double, double> Predictor::value(double delta, unsigned int deriv, boo
 void Predictor::lock_time(const timespec &ts) {
 	lock_timestamp = ts;
 	zero_value = value(0, 0, true);
+	zero_first_deriv = value(0, 1, true);
 }
 
 void Predictor::add_datum(double value, const timespec &ts) {

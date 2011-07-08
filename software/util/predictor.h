@@ -62,7 +62,7 @@ class Predictor {
 	private:
 		timespec lock_timestamp;
 		Kalman filter;
-		std::pair<double, double> zero_value;
+		std::pair<double, double> zero_value, zero_first_deriv;
 };
 
 #endif
