@@ -234,7 +234,7 @@ void Player::tick(bool halt) {
 	bot->enable_charger(!halt);
 
 	// Calculations.
-	if (bot->ball_on_dribbler) {
+	if (has_ball()) {
 		dribble_distance_ += (position() - last_dribble_position).len();
 	} else {
 		dribble_distance_ = 0.0;
