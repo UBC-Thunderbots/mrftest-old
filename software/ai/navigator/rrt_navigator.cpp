@@ -144,10 +144,7 @@ namespace AI {
 						return std::make_pair(dest_pos, dest_ori); 	
 					} else {
 						double dest_ori = (world.ball().position() - player->position()).orientation();
-						Point vec = world.ball().velocity();
-						if (vec.len() > 0.5) {
-							vec = 0.5 * vec / vec.len();
-						}
+						Point vec = world.ball().velocity().norm();
 						if (vec.len() < ball_velocity_threshold) {
 							PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags |= AI::Flags::FLAG_AVOID_BALL_TINY;
 						}
