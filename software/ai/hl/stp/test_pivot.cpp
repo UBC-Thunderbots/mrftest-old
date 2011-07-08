@@ -2,9 +2,7 @@
 #include "ai/hl/stp/action/pivot.h"
 #include "util/dprint.h"
 #include "geom/angle.h"
-#include "ai/hl/stp/stp.h"
 
-#include <sstream>
 #include <cassert>
 #include <gtkmm.h>
 
@@ -44,8 +42,6 @@ namespace {
 			}
 
 			void tick() {
-				tick_eval(world);
-
 				FriendlyTeam &friendly = world.friendly_team();
 				if (friendly.size() == 0) {
 					return;
@@ -55,25 +51,22 @@ namespace {
 
 				Point target;
 
-				/*if (target_enemy) {
-					target = world.field().e;
+				if (target_enemy) {
+					target = world.field().enemy_goal();
 				} else {
 					target = world.field().friendly_goal();
 				}
 
 				const double diff_ori = angle_diff(player->orientation(), (target - player->position()).orientation());
-				std::stringstream ss;
-				ss << diff_ori;
-				LOG_INFO( ss.str() );
 				if (diff_ori < 0.1) {
 					// angle completed, switch goals.
 					target_enemy = !target_enemy;
 					LOG_INFO(Glib::ustring::compose("time steps taken: %1", time));
 					time = 0;
 				}
-				time++;*/
+				time++;
 
-				Action::pivot(world, player, Point(0.0,0.0));//aim at center of field
+				Action::pivot(world, player, target);
 			}
 	};
 
