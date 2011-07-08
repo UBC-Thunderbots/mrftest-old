@@ -29,12 +29,13 @@ namespace AI {
 			DoubleParam chase_distance("Buffer behind ball for chase (meters)", "Nav/RRT", 0.25, -1.0, 1.0);
 			DoubleParam ball_velocity_threshold("Ball velocity threshold (used to switch between chase and chase+pivot)", "Nav/RRT", 0.5, 0.0, 20.0);
 
-			BoolParam use_new_pivot("New Pivot: enable", "Nav/RRT", true);
+			BoolParam use_new_pivot("New Pivot: enable", "Nav/RRT", false);
 			DoubleParam new_pivot_radius("New Pivot: travel radius", "Nav/RRT",0.3, 0.01, 0.5);
 			DoubleParam new_pivot_offset_angle("New Pivot: offset angle (n*M_PI)", "Nav/RRT",0.1, 0, 0.5 );
 			DoubleParam new_pivot_travel_angle("New Pivot: travel angle, need proper unit, (n*M_PI)", "Nav/RRT",0.2, 0.01, 0.5 );
 			DoubleParam new_pivot_hyster_angle("New Pivot: Hysterisis angle, one side, (n*M_PI)", "Nav/RRT",0.2, 0.01, 0.2 );
-
+			
+			BoolParam use_new_chase("New chase: enable", "Nav/RRT", false);
 
 			class PlayerData : public ObjectStore::Element {
 				public:
@@ -112,7 +113,38 @@ namespace AI {
 			}
 			
 			std::pair<Point, double> RRTNavigator::grab_ball(Player::Ptr player) {
-				return grab_ball_orientation(player, -2 * world.ball().velocity().norm() + world.ball().position());
+				if (use_new_chase) {
+				
+					// check the angle difference between player and ball velocity:
+					double angle1 = (player->position() - world.ball().position()).orientation();
+					double angle2 = world.ball().velocity().orientation();
+					
+					if (angle_diff(angle1,angle2) < 2.4) {
+						double dest_ori = (world.ball().position() - player->position()).orientation();
+						Point dest_pos;
+						if (!AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest_pos)) { 
+							return std::make_pair(world.ball().position(), dest_ori); 
+						}
+						return std::make_pair(dest_pos, dest_ori); 	
+					} else {
+						double dest_ori = (world.ball().position() - player->position()).orientation();
+						Point vec = world.ball().velocity();
+						if (vec.len() > 0.5) {
+							vec = 0.5 * vec / vec.len();
+						}
+						if (vec.len() < ball_velocity_threshold) {
+							PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags |= AI::Flags::FLAG_AVOID_BALL_TINY;
+						}
+						return std::make_pair(world.ball().position() + vec, dest_ori);
+					}
+				} else {
+					double dest_ori = (world.ball().position() - player->position()).orientation();
+					Point dest_pos;
+					if (!AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest_pos)) { 
+						return std::make_pair(world.ball().position(), dest_ori); 
+					}
+					return std::make_pair(dest_pos, dest_ori); 
+				}
 			}
 
 			void RRTNavigator::pivot(Player::Ptr player) {
