@@ -97,7 +97,7 @@
         <double name="amount of time (s) to avoid friendly's future position">0.000</double>
         <double name="Buffer avoid ball tiny (meters)">0.070</double>
         <double name="Buffer avoid defense area (meters)">0.000</double>
-        <double name="Buffer for equal priority friendly robot (meters)">0.196</double>
+        <double name="Buffer for equal priority friendly robot (meters)">0.100</double>
         <double name="Buffer for higher priority friendly robot (meters)">0.200</double>
         <double name="Buffer for lower priority friendly robot (meters)">0.050</double>
         <double name="Buffer for staying away from play area boundary ">0.000</double>
@@ -251,7 +251,7 @@
       </category>
       <category name="defense">
         <double name="ball2side ratio">0.70</double>
-        <boolean name="defense protect against baller">true</boolean>
+        <boolean name="defense protect against baller">false</boolean>
         <boolean name="goalie hug switch">false</boolean>
         <double name="max goalie dist from goal (robot radius)">3.00</double>
         <boolean name="open net enemy is dangerous">true</boolean>
@@ -321,7 +321,7 @@
           <boolean name="FranticDefense">true</boolean>
           <boolean name="FreeKickEnemy">true</boolean>
           <boolean name="FreeKickFriendly">true</boolean>
-          <boolean name="FreeKickFriendlyPass">true</boolean>
+          <boolean name="FreeKickFriendlyPass">false</boolean>
           <boolean name="FreeKickFriendlyRay">true</boolean>
           <boolean name="FreeKickFriendlyRepel">true</boolean>
           <boolean name="FriendlyCornerPlay1">true</boolean>
@@ -386,7 +386,7 @@
           <integer name="PassSimple">5</integer>
           <integer name="PenaltyEnemy">5</integer>
           <integer name="PenaltyFriendly">5</integer>
-          <integer name="ShootGoal">5</integer>
+          <integer name="ShootGoal">10</integer>
           <integer name="Stop">5</integer>
           <integer name="TheirCornerPlay">5</integer>
         </category>
