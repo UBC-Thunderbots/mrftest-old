@@ -30,7 +30,7 @@ namespace AI {
 
 				//				double get_shoot_target(const World &world, Player::Ptr player);
 
-				Point get_best_shoot_target(const World &world, Player::Ptr player);
+				//			Point get_best_shoot_target(const World &world, Player::Ptr player);
 
 				// ShootData evaluate_shoot_target(const World &world, Player::CPtr player, const Point target);
 				

@@ -3,6 +3,7 @@
 #include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/player.h"
+#include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/param.h"
 
 using namespace AI::HL::STP::Tactic;
@@ -11,14 +12,29 @@ using AI::HL::STP::Coordinate;
 namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
+
+	BoolParam new_shoot("Jason's shoot code", "AI/Hl/Tactic/shoot", false);
+	DoubleParam shoot_thresh("Above this shoot score shoot", "AI/Hl/Tactic/shoot", 5.0, 0.0, 90.0 );
+
 	class ShootGoal : public Tactic {
 		public:
-			ShootGoal(const World &world, bool force) : Tactic(world, true), kick_attempted(false), force(force) {
+		ShootGoal(const World &world, bool force) : Tactic(world, true), kick_attempted(false), force(force), shoot_score(0.0) {
+				//					world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &ShootGoal::on_player_removed));
 			}
 
 		private:
 			bool kick_attempted;
 			bool force;
+			double shoot_score;
+		//			mutable Player::Ptr shooter;
+
+			// void on_player_removed(std::size_t index) {
+			// 	if(passer.is() && world.friendly_team().get(index) == Player::CPtr(passer)){
+			// 		passer.reset();
+			// 	}
+			// }
+
+
 
 			bool done() const;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
@@ -47,7 +63,7 @@ namespace {
 	};
 
 	bool ShootGoal::done() const {
-		return player.is() && kick_attempted && player->autokick_fired();
+		return player.is() /* && kick_attempted*/ && player->autokick_fired();
 	}
 
 	Player::Ptr ShootGoal::select(const std::set<Player::Ptr> &players) const {
@@ -66,11 +82,16 @@ namespace {
 		if (AI::HL::STP::Action::shoot_goal(world, player, force)) {
 			kick_attempted = true;
 		}
+		double cur_shoot_score = AI::HL::STP::Evaluation::get_shoot_score(world, player);
+		if(new_shoot && ( cur_shoot_score < shoot_score + 1E-9 && shoot_score > 0 || cur_shoot_score > shoot_thresh)){
+			player->autokick(10.0);
+		}
+		shoot_score = cur_shoot_score;
 		player->flags(0);
 	}
 
 	bool ShootTarget::done() const {
-		return player.is() && kick_attempted && player->autokick_fired();
+		return player.is()/* && kick_attempted */ && player->autokick_fired();
 	}
 
 	Player::Ptr ShootTarget::select(const std::set<Player::Ptr> &players) const {
