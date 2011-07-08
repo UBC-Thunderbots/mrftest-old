@@ -1,7 +1,7 @@
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/util.h"
 #include "ai/hl/util.h"
-#include "ai/hl/stp/baller.h"
+#include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/param.h"
 
 #include <set>
@@ -9,6 +9,8 @@
 using namespace AI::HL::STP;
 
 namespace {
+
+	BoolParam calc_baller_always_return("Calc baller always return", "STP/ball", true);
 
 	BoolParam smart_possess_ball("Smart possess ball (instead of has ball only)", "STP/ball", true);
 
@@ -43,14 +45,40 @@ bool Evaluation::possess_ball(const World &world, Robot::Ptr robot) {
 }
 
 Player::CPtr Evaluation::calc_friendly_baller(const World &world) {
-	Player::CPtr player = select_friendly_baller(world);
-	if (!player.is()) {
-		return player;
+	const FriendlyTeam &friendly = world.friendly_team();
+	// use has ball
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		if (get_goalie() == friendly.get(i)) {
+			continue;
+		}
+		if (friendly.get(i)->has_ball()) {
+			return friendly.get(i);
+		}
 	}
-	if (possess_ball(world, player)) {
-		return player;
+	// use possess ball
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		if (Evaluation::possess_ball(world, friendly.get(i))) {
+			return friendly.get(i);
+		}
 	}
-	return Player::CPtr();
+
+	if (!calc_baller_always_return) {
+		return Player::CPtr();
+	}
+
+	Player::CPtr best;
+
+	double min_dist = 1e99;
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		Player::CPtr player = friendly.get(i);
+		Point dest = Evaluation::calc_fastest_grab_ball_dest(world, player);
+		if (!best.is() || min_dist > (dest - player->position()).len()) {
+			min_dist = (dest - player->position()).len();
+			best = player;
+		}
+	}
+
+	return best;
 }
 
 Robot::Ptr Evaluation::calc_enemy_baller(const World &world) {

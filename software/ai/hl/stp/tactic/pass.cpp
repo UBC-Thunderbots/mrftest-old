@@ -79,7 +79,7 @@ namespace {
 			}
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return select_baller(world, players);
+				return select_baller(world, players, player);
 			}
 
 			void execute() {

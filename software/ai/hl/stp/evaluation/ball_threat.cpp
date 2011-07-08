@@ -1,6 +1,7 @@
 #include "ai/hl/stp/evaluation/ball_threat.h"
 #include "geom/util.h"
 #include "ai/hl/util.h"
+#include "ai/hl/stp/stp.h"
 
 #include <algorithm>
 
@@ -59,7 +60,7 @@ Point AI::HL::STP::Evaluation::goalie_shot_block(const AI::HL::W::World &world) 
 		return Point(0, 0);
 	}
 
-	Point goalie_pos = world.friendly_team().get(0)->position();
+	Point goalie_pos = get_goalie()->position();
 
 	Point a = world.field().friendly_goal_boundary().first;
 	Point b = world.field().friendly_goal_boundary().second;

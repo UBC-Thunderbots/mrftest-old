@@ -6,7 +6,6 @@
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/enemy.h"
 #include "ai/hl/stp/evaluation/pass.h"
-#include "ai/hl/stp/baller.h"
 #include "ai/hl/stp/predicates.h"
 #include "geom/angle.h"
 #include <cmath>
@@ -134,7 +133,7 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 
 	}
 
-	Player::CPtr baller = select_friendly_baller(world);
+	Player::CPtr baller = Evaluation::calc_friendly_baller(world);
 	if (baller.is()) {
 
 		auto shot = Evaluation::best_shoot_ray(world, baller);
@@ -308,7 +307,7 @@ void AI::HL::STP::draw_velocity(const World &world, Cairo::RefPtr<Cairo::Context
 }
 
 void AI::HL::STP::draw_baller(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
-	Player::CPtr baller = select_friendly_baller(world);
+	Player::CPtr baller = Evaluation::calc_friendly_baller(world);
 	if (baller.is() && !Evaluation::possess_ball(world, baller)) {
 		Point dest = Evaluation::calc_fastest_grab_ball_dest(world, baller);
 		// black line

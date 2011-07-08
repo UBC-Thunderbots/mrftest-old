@@ -1,6 +1,7 @@
 #include "ai/hl/stp/evaluation/defense.h"
 #include "ai/hl/stp/evaluation/enemy.h"
 #include "ai/hl/stp/evaluation/ball.h"
+#include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
 #include "util/algorithm.h"
@@ -94,6 +95,11 @@ namespace {
 		// first defender will block the remaining cone from the ball
 		if (second_needed) {
 			Point D1 = calc_block_cone_defender(goal_side, goal_opp, ball_pos, waypoint_goalie, radius);
+
+			if (ball_on_net(world)) {
+				D1 = calc_block_cone(goal_side, goal_opp, ball_pos, radius);
+			}
+
 			bool blowup = false;
 			if (D1.x < Robot::MAX_RADIUS - field.length() / 2 + field.defense_area_stretch()) {
 				blowup = true;

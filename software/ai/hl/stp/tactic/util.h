@@ -8,10 +8,11 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
-				 * Selects a player that has the ball if possible.
-				 * Otherwise, picks a player closest to the ball.
+				 * Selects a baller for active tactics.
+				 * 
+				 * use a hysterisis
 				 */
-				Player::Ptr select_baller(const World &world, const std::set<Player::Ptr> &players);
+				Player::Ptr select_baller(const World &world, const std::set<Player::Ptr> &players, Player::Ptr previous);
 			}
 		}
 	}

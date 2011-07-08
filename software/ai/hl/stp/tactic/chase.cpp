@@ -31,16 +31,7 @@ namespace {
 	}
 
 	Player::Ptr Chase::select(const std::set<Player::Ptr> &players) const {
-		Player::Ptr best;
-		double min_dist = 1e99;
-		for (auto it = players.begin(); it != players.end(); ++it) {
-			Point dest = Evaluation::calc_fastest_grab_ball_dest(world, *it);
-			if (!best.is() || min_dist > (dest - (*it)->position()).len()) {
-				min_dist = (dest - (*it)->position()).len();
-				best = *it;
-			}
- 		}
-		return best;
+		return select_baller(world, players, player);
 	}
 
 	void Chase::execute() {

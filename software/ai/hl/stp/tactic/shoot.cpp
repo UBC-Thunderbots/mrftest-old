@@ -55,7 +55,7 @@ namespace {
 		if (kick_attempted && players.count(player)) {
 			return player;
 		}
-		return select_baller(world, players);
+		return select_baller(world, players, player);
 	}
 
 	void ShootGoal::player_changed() {
@@ -82,7 +82,7 @@ namespace {
 		if (kick_attempted && players.count(player)) {
 			return player;
 		}
-		return select_baller(world, players);
+		return select_baller(world, players, player);
 	}
 
 	void ShootTarget::player_changed() {

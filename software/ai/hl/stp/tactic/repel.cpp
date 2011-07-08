@@ -37,7 +37,7 @@ namespace {
 	}
 
 	Player::Ptr Repel::select(const std::set<Player::Ptr> &players) const {
-		return select_baller(world, players);
+		return select_baller(world, players, player);
 	}
 
 	void Repel::execute() {
@@ -66,7 +66,7 @@ namespace {
 	}
 
 	Player::Ptr CornerRepel::select(const std::set<Player::Ptr> &players) const {
-		return select_baller(world, players);
+		return select_baller(world, players, player);
 	}
 
 	void CornerRepel::execute() {

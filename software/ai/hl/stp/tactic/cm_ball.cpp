@@ -50,7 +50,7 @@ namespace {
 				return kicked;
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return select_baller(world, players);
+				return select_baller(world, players, player);
 			}
 
 			void execute();
@@ -70,7 +70,7 @@ namespace {
 				return none;
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return select_baller(world, players);
+				return select_baller(world, players, player);
 			}
 
 			void execute();
@@ -92,7 +92,7 @@ namespace {
 				return kicked;
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return select_baller(world, players);
+				return select_baller(world, players, player);
 			}
 
 			void execute();
@@ -112,7 +112,7 @@ namespace {
 				return finished;
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return select_baller(world, players);
+				return select_baller(world, players, player);
 			}
 
 			void execute();
@@ -132,7 +132,7 @@ namespace {
 				return region.inside(player->position());
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return select_baller(world, players);
+				return select_baller(world, players, player);
 			}
 
 			void execute();
@@ -152,7 +152,7 @@ namespace {
 				return region.inside(player->position());
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return select_baller(world, players);
+				return select_baller(world, players, player);
 			}
 
 			void execute();
