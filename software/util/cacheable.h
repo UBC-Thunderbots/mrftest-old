@@ -119,7 +119,7 @@ template<typename R, typename NK, typename K> class Cacheable;
  * //          Function return type ---\\\\\\                      ||||||||||||||||||                    ||||||  ||||||
  * class MyFunction : public Cacheable<double, CacheableNonKeyArgs<AI::HL::W::World &>, CacheableKeyArgs<double, double>> {
  *     protected:
- *         double compute(AI::HL::W::World &w, double x, double y) const;
+ *         double compute(AI::HL::W::World &w, double x, double y);
  * };
  *
  * extern MyFunction my_function;
