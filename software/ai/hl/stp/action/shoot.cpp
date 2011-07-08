@@ -123,3 +123,4 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 
 	return false;
 }
+
