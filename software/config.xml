@@ -71,15 +71,19 @@
       </category>
       <category name="RRT">
         <double name="Ball velocity threshold (used to switch between chase and chase+pivot)">7.50</double>
-        <double name="Buffer behind ball for chase (meters)">0.350</double>
+        <double name="Buffer behind ball for chase (meters)">0.250</double>
+        <boolean name="Byronic">false</boolean>
         <double name="Chase angle range for behind target (degrees)">30.0</double>
         <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
         <double name="Distance to extend the tree on each step (m)">0.100</double>
         <boolean name="New chase: enable">false</boolean>
         <boolean name="New Pivot: enable">false</boolean>
+        <boolean name="New Pivot: go backward">false</boolean>
         <double name="New Pivot: Hysterisis angle, one side, (n*M_PI)">0.2000</double>
         <double name="New Pivot: offset angle (n*M_PI)">0.1000</double>
-        <double name="New Pivot: travel angle, need proper unit, (n*M_PI)">0.2000</double>
+        <double name="New Pivot [PID]: angular">1.00</double>
+        <double name="New Pivot [PID]: linear">1.00</double>
+        <double name="New Pivot: travel angle, need proper unit, (n*M_PI)">0.200</double>
         <double name="New Pivot: travel radius">0.0900</double>
         <integer name="Number of iterations to go through before we give best partial path">200</integer>
         <double name="Pivot: offset angle (degrees)">38</double>
@@ -253,6 +257,9 @@
         <boolean name="open net enemy is dangerous">true</boolean>
         <double name="shrink robot radius">1.000</double>
       </category>
+      <category name="draw">
+        <boolean name="draw ray">false</boolean>
+      </category>
       <category name="enemy">
         <double name="Enemy shoot accuracy (degrees)">7.0</double>
       </category>
@@ -288,6 +295,7 @@
         <double name="minimum region available for baller_can_shoot to be true (degrees)">5.7</double>
       </category>
       <category name="pass">
+        <double name="Avoid goal radius when passing (m)">0.90</double>
         <double name="Enemy pass checking width (robot radius)">1.00</double>
         <double name="Friendly pass checking width (robot radius)">1.00</double>
       </category>
@@ -401,6 +409,9 @@
         <double name="goalie stop dist">0.180</double>
       </category>
       <category name="Tactic">
+        <category name="defend">
+          <boolean name="Whether or not Terence Defense should take the place of normal defense">false</boolean>
+        </category>
         <category name="pass">
           <double name="dist from target when passee hack is applicable (meters)">0.100</double>
           <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.113</double>

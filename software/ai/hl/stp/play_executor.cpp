@@ -398,10 +398,12 @@ void PlayExecutor::on_player_removing(std::size_t) {
 	_goalie.reset();
 
 	curr_play.reset();
+	/*
 	curr_active.reset();
 	for (std::size_t i = 0; i < 5; ++i) {
 		curr_assignment[i].reset();
 		curr_roles[i].clear();
 	}
+	*/
 }
 
