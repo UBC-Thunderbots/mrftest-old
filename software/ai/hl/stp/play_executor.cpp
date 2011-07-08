@@ -1,6 +1,8 @@
+#include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/play_executor.h"
 #include "ai/hl/stp/tactic/idle.h"
 #include "ai/hl/stp/evaluation/offense.h"
+#include "ai/hl/stp/evaluation/defense.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
 #include "ai/hl/stp/ui.h"
@@ -15,6 +17,13 @@ using namespace AI::HL::STP;
 Player::Ptr AI::HL::STP::HACK::active_player;
 Player::Ptr AI::HL::STP::HACK::last_kicked;
 
+namespace AI {
+	namespace HL {
+		namespace STP {
+			Player::CPtr _goalie;
+		}
+	}
+}
 
 namespace {
 
@@ -146,6 +155,8 @@ void PlayExecutor::role_assignment() {
 		return;
 	}
 
+	AI::HL::STP::_goalie = goalie;
+
 	assert(curr_tactic[0].is());
 	curr_tactic[0]->set_player(goalie);
 	curr_assignment[0] = goalie;
@@ -273,7 +284,7 @@ void PlayExecutor::execute_tactics() {
 }
 
 void PlayExecutor::tick() {
-	Evaluation::tick_offense(world);
+	tick_eval(world);
 
 	// override halt completely
 	if (world.friendly_team().size() == 0 || world.playtype() == AI::Common::PlayType::HALT) {
@@ -355,12 +366,8 @@ std::string PlayExecutor::info() const {
 }
 
 void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
-	draw_shoot(world, ctx);
-	draw_offense(world, ctx);
-	draw_defense(world, ctx);
-	draw_enemy_pass(world, ctx);
-	draw_friendly_pass(world, ctx);
-	draw_player_status(world, ctx);
+	draw_ui(world, ctx);
+
 	// draw_velocity(ctx); // uncommand to display velocity
 	if (world.playtype() == AI::Common::PlayType::STOP) {
 		ctx->set_source_rgb(1.0, 0.5, 0.5);
@@ -378,6 +385,7 @@ void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 			role[t]->draw_overlay(ctx);
 		}
 	}
+
 }
 
 void PlayExecutor::on_player_added(std::size_t) {

@@ -1,5 +1,6 @@
 #include "ai/hl/stp/ui.h"
 #include "ai/hl/util.h"
+#include "ai/util.h"
 #include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/evaluation/ball.h"
@@ -302,6 +303,30 @@ void AI::HL::STP::draw_velocity(const World &world, Cairo::RefPtr<Cairo::Context
 		// std::cout << vel_direction << "  " << vel_mag <<std::endl;
 		ctx->set_source_rgba(0.0, 0.0, 0.0, 0.2);
 		ctx->arc(player->position().x, player->position().y, vel_mag, vel_direction, vel_direction + 1.0);
+		ctx->stroke();
+	}
+}
+
+void AI::HL::STP::draw_baller(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
+	Player::CPtr baller = select_friendly_baller(world);
+	if (baller.is() && !Evaluation::possess_ball(world, baller)) {
+		Point dest = Evaluation::calc_fastest_grab_ball_dest(world, baller);
+		// black line
+		ctx->set_source_rgba(0.0, 0.0, 0.0, 0.2);
+		ctx->set_line_width(0.01);
+		ctx->move_to(baller->position().x, baller->position().y);
+		ctx->line_to(dest.x, dest.y);
+		ctx->stroke();
+	}
+	Robot::Ptr robot = Evaluation::calc_enemy_baller(world);
+	if (robot.is() && !Evaluation::possess_ball(world, robot)) {
+		// black line
+		Point dest;
+		AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), robot->position(), dest);
+		ctx->set_source_rgba(0.0, 0.0, 0.0, 0.2);
+		ctx->set_line_width(0.01);
+		ctx->move_to(robot->position().x, robot->position().y);
+		ctx->line_to(dest.x, dest.y);
 		ctx->stroke();
 	}
 }

@@ -41,6 +41,8 @@ namespace {
 	   bool goalie_top;
 	   };
 	 */
+	
+	std::array<Point, MAX_DEFENDERS + 1> waypoints;
 
 	std::array<Point, MAX_DEFENDERS + 1> compute(const World &world) {
 		const Field &field = world.field();
@@ -173,13 +175,15 @@ namespace {
 	}
 }
 
+void AI::HL::STP::Evaluation::tick_defense(const World& world) {
+	waypoints = compute(world);
+}
+
 const std::array<Point, MAX_DEFENDERS + 1> AI::HL::STP::Evaluation::evaluate_defense(const World &world) {
-	return compute(world);
+	return waypoints;
 }
 
 bool AI::HL::STP::Evaluation::enemy_break_defense_duo(const World& world, const Robot::Ptr enemy) {
-	auto waypoints = evaluate_defense(world);
-
 	std::vector<Point> obstacles;
 	obstacles.push_back(waypoints[0]);
 	obstacles.push_back(waypoints[1]);

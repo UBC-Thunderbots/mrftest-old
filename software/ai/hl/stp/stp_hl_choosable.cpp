@@ -1,7 +1,9 @@
 #include "ai/hl/hl.h"
+#include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/play_executor.h"
 #include "ai/hl/stp/tactic/idle.h"
 #include "ai/hl/stp/evaluation/offense.h"
+#include "ai/hl/stp/evaluation/defense.h"
 #include "util/dprint.h"
 
 #include <cassert>
@@ -118,7 +120,7 @@ namespace {
 			}
 
 			void tick() {
-				Evaluation::tick_offense(world);
+				tick_eval(world);
 
 				// override halt completely
 				if (world.friendly_team().size() == 0 || world.playtype() == AI::Common::PlayType::HALT) {
@@ -162,7 +164,7 @@ namespace {
 			}
 
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
-				PlayExecutor::draw_overlay(ctx);
+				draw_ui(world, ctx);
 			}
 	};
 

@@ -1,4 +1,5 @@
 #include "ai/hl/stp/baller.h"
+#include "ai/hl/stp/stp.h"
 #include "ai/util.h"
 #include "ai/hl/util.h"
 #include "ai/hl/stp/evaluation/ball.h"
@@ -11,10 +12,15 @@ namespace {
 	Player::CPtr baller;
 }
 
+// TODO: FIX SHOULD USE SELECT
+
 Player::CPtr AI::HL::STP::select_friendly_baller(const World &world) {
 	Player::CPtr best;
 	const FriendlyTeam &friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		if (get_goalie() == friendly.get(i)) {
+			continue;
+		}
 		if (friendly.get(i)->has_ball()) {
 			best = friendly.get(i);
 			if (best == baller) {

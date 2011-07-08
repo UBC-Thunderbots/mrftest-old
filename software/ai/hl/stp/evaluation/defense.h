@@ -14,6 +14,8 @@ namespace AI {
 		namespace STP {
 			namespace Evaluation {
 
+				void tick_defense(const World& world);
+
 				/**
 				 * Locations:
 				 * 0 - goalie
