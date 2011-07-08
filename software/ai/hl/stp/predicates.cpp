@@ -17,15 +17,19 @@ namespace {
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/predicates", 3.0, 1.0, 10.0);
 }
 
-bool Predicates::goal(const World &) {
+bool Predicates::Goal::compute(const World &) {
 	return false;
 }
 
-bool Predicates::playtype(const World &world, AI::Common::PlayType playtype) {
+Predicates::Goal Predicates::goal;
+
+bool Predicates::Playtype::compute(const World &world, AI::Common::PlayType playtype) {
 	return world.playtype() == playtype;
 }
 
-bool Predicates::our_ball(const World &world) {
+Predicates::Playtype Predicates::playtype;
+
+bool Predicates::OurBall::compute(const World &world) {
 	const FriendlyTeam &friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		if (Evaluation::possess_ball(world, friendly.get(i))) {
@@ -35,7 +39,9 @@ bool Predicates::our_ball(const World &world) {
 	return false;
 }
 
-bool Predicates::their_ball(const World &world) {
+Predicates::OurBall Predicates::our_ball;
+
+bool Predicates::TheirBall::compute(const World &world) {
 	const EnemyTeam &enemy = world.enemy_team();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		if (Evaluation::possess_ball(world, enemy.get(i))) {
@@ -45,63 +51,93 @@ bool Predicates::their_ball(const World &world) {
 	return false;
 }
 
-bool Predicates::none_ball(const World &world) {
+Predicates::TheirBall Predicates::their_ball;
+
+bool Predicates::NoneBall::compute(const World &world) {
 	return !our_ball(world) && !their_ball(world);
 }
 
-bool Predicates::our_team_size_at_least(const World &world, const unsigned int n) {
+Predicates::NoneBall Predicates::none_ball;
+
+bool Predicates::OurTeamSizeAtLeast::compute(const World &world, const unsigned int n) {
 	return world.friendly_team().size() >= n;
 }
 
-bool Predicates::our_team_size_exactly(const World &world, const unsigned int n) {
+Predicates::OurTeamSizeAtLeast Predicates::our_team_size_at_least;
+
+bool Predicates::OurTeamSizeExactly::compute(const World &world, const unsigned int n) {
 	return world.friendly_team().size() == n;
 }
 
-bool Predicates::their_team_size_at_least(const World &world, const unsigned int n) {
+Predicates::OurTeamSizeExactly Predicates::our_team_size_exactly;
+
+bool Predicates::TheirTeamSizeAtLeast::compute(const World &world, const unsigned int n) {
 	return world.enemy_team().size() >= n;
 }
 
-bool Predicates::their_team_size_at_most(const World &world, const unsigned int n) {
+Predicates::TheirTeamSizeAtLeast Predicates::their_team_size_at_least;
+
+bool Predicates::TheirTeamSizeAtMost::compute(const World &world, const unsigned int n) {
 	return world.enemy_team().size() <= n;
 }
 
-bool Predicates::ball_x_less_than(const World &world, const double x) {
+Predicates::TheirTeamSizeAtMost Predicates::their_team_size_at_most;
+
+bool Predicates::BallXLessThan::compute(const World &world, const double x) {
 	return world.ball().position().x < x;
 }
 
-bool Predicates::ball_x_greater_than(const World &world, const double x) {
+Predicates::BallXLessThan Predicates::ball_x_less_than;
+
+bool Predicates::BallXGreaterThan::compute(const World &world, const double x) {
 	return world.ball().position().x > x;
 }
 
-bool Predicates::ball_on_our_side(const World &world) {
+Predicates::BallXGreaterThan Predicates::ball_x_greater_than;
+
+bool Predicates::BallOnOurSide::compute(const World &world) {
 	return world.ball().position().x <= 0;
 }
 
-bool Predicates::ball_on_their_side(const World &world) {
+Predicates::BallOnOurSide Predicates::ball_on_our_side;
+
+bool Predicates::BallOnTheirSide::compute(const World &world) {
 	return world.ball().position().x > 0;
 }
 
-bool Predicates::ball_in_our_corner(const World &world) {
+Predicates::BallOnTheirSide Predicates::ball_on_their_side;
+
+bool Predicates::BallInOurCorner::compute(const World &world) {
 	return world.ball().position().x <= -world.field().length() / 4 && std::fabs(world.ball().position().y) > world.field().goal_width()/2 + world.field().defense_area_radius();
 }
 
-bool Predicates::ball_in_their_corner(const World &world) {
+Predicates::BallInOurCorner Predicates::ball_in_our_corner;
+
+bool Predicates::BallInTheirCorner::compute(const World &world) {
 	return world.ball().position().x >= world.field().length() / 4 && std::fabs(world.ball().position().y) > world.field().goal_width()/2 + world.field().defense_area_radius();
 }
 
-bool Predicates::ball_midfield(const World &world) {
+Predicates::BallInTheirCorner Predicates::ball_in_their_corner;
+
+bool Predicates::BallMidfield::compute(const World &world) {
 	return std::fabs(world.ball().position().x) < world.field().length() / 4;
 }
 
-bool Predicates::ball_near_friendly_goal(const World &world){
+Predicates::BallMidfield Predicates::ball_midfield;
+
+bool Predicates::BallNearFriendlyGoal::compute(const World &world) {
 	return ball_on_our_side(world) && !ball_in_our_corner(world) && !ball_midfield(world);
 }
 
-bool Predicates::ball_near_enemy_goal(const World &world){
+Predicates::BallNearFriendlyGoal Predicates::ball_near_friendly_goal;
+
+bool Predicates::BallNearEnemyGoal::compute(const World &world) {
 	return ball_on_their_side(world) && !ball_in_their_corner(world) && !ball_midfield(world);
 }
 
-bool Predicates::baller_can_shoot(const World &world) {
+Predicates::BallNearEnemyGoal Predicates::ball_near_enemy_goal;
+
+bool Predicates::BallerCanShoot::compute(const World &world) {
 	const Player::CPtr baller = Evaluation::calc_friendly_baller(world);
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
@@ -109,7 +145,9 @@ bool Predicates::baller_can_shoot(const World &world) {
 	return Evaluation::evaluate_shoot(world, baller).angle >= degrees2radians(min_shoot_region);
 }
 
-bool Predicates::baller_can_pass_target(const World &world, const Point target) {
+Predicates::BallerCanShoot Predicates::baller_can_shoot;
+
+bool Predicates::BallerCanPassTarget::compute(const World &world, const Point target) {
 	const Player::CPtr baller = Evaluation::calc_friendly_baller(world);
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
@@ -118,7 +156,9 @@ bool Predicates::baller_can_pass_target(const World &world, const Point target) 
 	return Evaluation::can_pass(world, baller->position(), target);
 }
 
-bool Predicates::baller_can_pass(const World &world) {
+Predicates::BallerCanPassTarget Predicates::baller_can_pass_target;
+
+bool Predicates::BallerCanPass::compute(const World &world) {
 	const Player::CPtr baller = Evaluation::calc_friendly_baller(world);
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
@@ -126,7 +166,9 @@ bool Predicates::baller_can_pass(const World &world) {
 	return Evaluation::select_passee(world).is();
 }
 
-bool Predicates::baller_under_threat(const World &world) {
+Predicates::BallerCanPass Predicates::baller_can_pass;
+
+bool Predicates::BallerUnderThreat::compute(const World &world) {
 	const Player::CPtr baller = Evaluation::calc_friendly_baller(world);
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
@@ -142,7 +184,9 @@ bool Predicates::baller_under_threat(const World &world) {
 	return enemy_cnt >= 2;
 }
 
-bool Predicates::enemy_baller_can_shoot(const World &world) {
+Predicates::BallerUnderThreat Predicates::baller_under_threat;
+
+bool Predicates::EnemyBallerCanShoot::compute(const World &world) {
 	const Robot::Ptr baller = Evaluation::calc_enemy_baller(world);
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
@@ -150,7 +194,9 @@ bool Predicates::enemy_baller_can_shoot(const World &world) {
 	return Evaluation::enemy_can_shoot_goal(world, baller);
 }
 
-bool Predicates::enemy_baller_can_pass(const World &world) {
+Predicates::EnemyBallerCanShoot Predicates::enemy_baller_can_shoot;
+
+bool Predicates::EnemyBallerCanPass::compute(const World &world) {
 	const Robot::Ptr baller = Evaluation::calc_enemy_baller(world);
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
@@ -158,7 +204,9 @@ bool Predicates::enemy_baller_can_pass(const World &world) {
 	return Evaluation::calc_enemy_pass(world, baller) > 0;
 }
 
-bool Predicates::enemy_baller_can_pass_shoot(const World &world) {
+Predicates::EnemyBallerCanPass Predicates::enemy_baller_can_pass;
+
+bool Predicates::EnemyBallerCanPassShoot::compute(const World &world) {
 	const Robot::Ptr baller = Evaluation::calc_enemy_baller(world);
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
@@ -166,15 +214,21 @@ bool Predicates::enemy_baller_can_pass_shoot(const World &world) {
 	return Evaluation::calc_enemy_pass(world, baller) > 0 && Evaluation::calc_enemy_pass(world, baller) < 3;
 }
 
-bool Predicates::offensive(const World &world) {
+Predicates::EnemyBallerCanPassShoot Predicates::enemy_baller_can_pass_shoot;
+
+bool Predicates::Offensive::compute(const World &world) {
 	return our_ball(world) || ball_on_their_side(world);
 }
 
-bool Predicates::defensive(const World &world) {
+Predicates::Offensive Predicates::offensive;
+
+bool Predicates::Defensive::compute(const World &world) {
 	return (their_ball(world) || ball_on_our_side(world)) && !offensive(world);
 }
 
-bool Predicates::num_of_enemies_on_our_side_at_least(const World &world, const unsigned int n) {
+Predicates::Defensive Predicates::defensive;
+
+bool Predicates::NumOfEnemiesOnOurSideAtLeast::compute(const World &world, const unsigned int n) {
 	unsigned int cnt = 0;
 	const EnemyTeam &enemies = world.enemy_team();
 	for (std::size_t i = 0; i < enemies.size(); ++i) {
@@ -186,15 +240,21 @@ bool Predicates::num_of_enemies_on_our_side_at_least(const World &world, const u
 	return false;
 }
 
-bool Predicates::ball_inside_region(const World &world, Region region) {
+Predicates::NumOfEnemiesOnOurSideAtLeast Predicates::num_of_enemies_on_our_side_at_least;
+
+bool Predicates::BallInsideRegion::compute(const World &world, Region region) {
 	return region.inside(world.ball().position());
 }
 
-bool Predicates::fight_ball(const World &world) {
+Predicates::BallInsideRegion Predicates::ball_inside_region;
+
+bool Predicates::FightBall::compute(const World &world) {
 	return our_ball(world) && their_ball(world);
 }
 
-bool Predicates::can_shoot_ray(const World& world) {
+Predicates::FightBall Predicates::fight_ball;
+
+bool Predicates::CanShootRay::compute(const World& world) {
 	const FriendlyTeam& friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		const Player::CPtr player = friendly.get(i);
@@ -206,7 +266,9 @@ bool Predicates::can_shoot_ray(const World& world) {
 	return false;
 }
 
-bool Predicates::ball_inside_robot(const World &world){
+Predicates::CanShootRay Predicates::can_shoot_ray;
+
+bool Predicates::BallInsideRobot::compute(const World &world) {
 	const Point ball = world.ball().position();
 	
 	const FriendlyTeam &friendly = world.friendly_team();
@@ -225,7 +287,9 @@ bool Predicates::ball_inside_robot(const World &world){
 	return false;
 }
 
-bool Predicates::enemy_break_defense_duo(const World& world) {
+Predicates::BallInsideRobot Predicates::ball_inside_robot;
+
+bool Predicates::EnemyBreakDefenseDuo::compute(const World& world) {
 	const EnemyTeam &enemies = world.enemy_team();
 	for (std::size_t i = 0; i < enemies.size(); ++i) {
 		if (Evaluation::enemy_break_defense_duo(world, enemies.get(i))) {
@@ -235,7 +299,9 @@ bool Predicates::enemy_break_defense_duo(const World& world) {
 	return false;
 }
 
-bool Predicates::ball_towards_enemy(const World& world){
+Predicates::EnemyBreakDefenseDuo Predicates::enemy_break_defense_duo;
+
+bool Predicates::BallTowardsEnemy::compute(const World& world) {
 	const EnemyTeam &enemies = world.enemy_team();
 	for (std::size_t i = 0; i < enemies.size(); ++i) {
 		if (Evaluation::evaluate_ball_threat(world).activate_steal) {
@@ -246,8 +312,11 @@ bool Predicates::ball_towards_enemy(const World& world){
 	return false;
 }
 
-bool Predicates::ball_on_enemy_net(const World& world){
-	if (Evaluation::ball_on_enemy_net(world)) return true;
-	return false;
+Predicates::BallTowardsEnemy Predicates::ball_towards_enemy;
+
+bool Predicates::BallOnEnemyNet::compute(const World& world) {
+	return Evaluation::ball_on_enemy_net(world);
 }
+
+Predicates::BallOnEnemyNet Predicates::ball_on_enemy_net;
 

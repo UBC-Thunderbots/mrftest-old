@@ -1,8 +1,9 @@
 #ifndef AI_HL_STP_PREDICATES
 #define AI_HL_STP_PREDICATES
 
-#include "ai/hl/stp/world.h"
 #include "ai/hl/stp/region.h"
+#include "ai/hl/stp/world.h"
+#include "util/cacheable.h"
 #include <functional>
 
 namespace AI {
@@ -14,116 +15,291 @@ namespace AI {
 			 * A play is more READABLE if its conditions are written as functions.
 			 */
 			namespace Predicates {
-				bool goal(const World &);
+				class Goal : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
 
-				bool playtype(const World &world, AI::Common::PlayType playtype);
+				extern Goal goal;
 
-				bool our_ball(const World &world);
+				class Playtype : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<AI::Common::PlayType>> {
+					protected:
+						bool compute(const World &world, AI::Common::PlayType playtype);
+				};
 
-				bool their_ball(const World &world);
+				extern Playtype playtype;
 
-				bool none_ball(const World &world);
+				class OurBall : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
 
-				bool our_team_size_at_least(const World &world, const unsigned int n);
+				extern OurBall our_ball;
 
-				bool our_team_size_exactly(const World &world, const unsigned int n);
+				class TheirBall : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
 
-				bool their_team_size_at_least(const World &world, const unsigned int n);
+				extern TheirBall their_ball;
 
-				bool their_team_size_at_most(const World &world, const unsigned int n);
+				class NoneBall : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
 
-				bool ball_x_less_than(const World &world, const double x);
+				extern NoneBall none_ball;
 
-				bool ball_x_greater_than(const World &world, const double x);
+				class OurTeamSizeAtLeast : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<unsigned int>> {
+					protected:
+						bool compute(const World &world, unsigned int n);
+				};
 
-				bool ball_on_our_side(const World &world);
+				extern OurTeamSizeAtLeast our_team_size_at_least;
 
-				bool ball_on_their_side(const World &world);
+				class OurTeamSizeExactly : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<unsigned int>> {
+					protected:
+						bool compute(const World &world, unsigned int n);
+				};
 
-				bool ball_in_our_corner(const World &world);
+				extern OurTeamSizeExactly our_team_size_exactly;
 
-				bool ball_in_their_corner(const World &world);
+				class TheirTeamSizeAtMost : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<unsigned int>> {
+					protected:
+						bool compute(const World &world, unsigned int n);
+				};
 
-				bool ball_midfield(const World &world);
+				extern TheirTeamSizeAtMost their_team_size_at_most;
 
-				bool ball_near_friendly_goal(const World &world);
+				class TheirTeamSizeAtLeast : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<unsigned int>> {
+					protected:
+						bool compute(const World &world, unsigned int n);
+				};
+
+				extern TheirTeamSizeAtLeast their_team_size_at_least;
+
+				class BallXLessThan : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<double>> {
+					protected:
+						bool compute(const World &world, double x);
+				};
+
+				extern BallXLessThan ball_x_less_than;
+
+				class BallXGreaterThan : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<double>> {
+					protected:
+						bool compute(const World &world, double x);
+				};
+
+				extern BallXGreaterThan ball_x_greater_than;
+
+				class BallOnOurSide : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern BallOnOurSide ball_on_our_side;
+
+				class BallOnTheirSide : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern BallOnTheirSide ball_on_their_side;
+
+				class BallInOurCorner : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern BallInOurCorner ball_in_our_corner;
+
+				class BallInTheirCorner : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern BallInTheirCorner ball_in_their_corner;
+
+				class BallMidfield : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern BallMidfield ball_midfield;
+
+				class BallNearFriendlyGoal : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern BallNearFriendlyGoal ball_near_friendly_goal;
 				
-				bool ball_near_enemy_goal(const World &world);
+				class BallNearEnemyGoal : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern BallNearEnemyGoal ball_near_enemy_goal;
 
 				/**
 				 * player with the ball can shoot at their goal
 				 */
-				bool baller_can_shoot(const World &world);
+				class BallerCanShoot : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern BallerCanShoot baller_can_shoot;
 
 				/**
 				 * player with the ball can pass
 				 */
-				bool baller_can_pass(const World &world);
+				class BallerCanPass : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern BallerCanPass baller_can_pass;
 
 				/**
 				 * player with the ball can shoot at a target point
 				 */
-				bool baller_can_pass_target(const World &world, const Point target);
+				class BallerCanPassTarget : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<Point>> {
+					protected:
+						bool compute(const World &world, Point target);
+				};
+
+				extern BallerCanPassTarget baller_can_pass_target;
 
 				/**
 				 * player with the ball is under threat (surrounded by enemies)
 				 */
-				bool baller_under_threat(const World &world);
+				class BallerUnderThreat : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern BallerUnderThreat baller_under_threat;
 
 				/**
 				 * enemy with the ball can shoot at our goal
 				 */
-				bool enemy_baller_can_shoot(const World &world);
+				class EnemyBallerCanShoot : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern EnemyBallerCanShoot enemy_baller_can_shoot;
 
 				/**
 				 * enemy with the ball can pass to another enemy
 				 */
-				bool enemy_baller_can_pass(const World &world);
+				class EnemyBallerCanPass : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern EnemyBallerCanPass enemy_baller_can_pass;
 
 				/**
 				 * # of passes from the enemy with ball is > 0 (no clear shot)
 				 * and < 3 (irrelevant to be any higher)
 				 * to be able to get a clear shoot at our goal
 				 */
-				bool enemy_baller_can_pass_shoot(const World &world);
+				class EnemyBallerCanPassShoot : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern EnemyBallerCanPassShoot enemy_baller_can_pass_shoot;
 
 				/**
 				 * borrowed from cm, true if our ball or ball on their side
 				 */
-				bool offensive(const World &world);
+				class Offensive : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern Offensive offensive;
 
 				/**
 				 * borrowed from cm, true if their ball or ball on our side
 				 */
-				bool defensive(const World &world);
+				class Defensive : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern Defensive defensive;
 
 				/**
 				 * borrowed from cm, true if number of enemies on our side is greater than n
 				 */
-				bool num_of_enemies_on_our_side_at_least(const World &world, const unsigned int n);
+				class NumOfEnemiesOnOurSideAtLeast : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<unsigned int>> {
+					protected:
+						bool compute(const World &world, unsigned int n);
+				};
+
+				extern NumOfEnemiesOnOurSideAtLeast num_of_enemies_on_our_side_at_least;
 
 				/**
 				 * true if ball is inside region
 				 */
-				bool ball_inside_region(const World &world, Region region);
+				class BallInsideRegion : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<Region>> {
+					protected:
+						bool compute(const World &world, Region region);
+				};
+
+				extern BallInsideRegion ball_inside_region;
 
 				/**
 				 * true if our_ball and their_ball (so we have to fight for the ball)
 				 */
-				bool fight_ball(const World &world);				
+				class FightBall : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
 
-				bool can_shoot_ray(const World& world);
+				extern FightBall fight_ball;
+
+				class CanShootRay : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern CanShootRay can_shoot_ray;
 				
 				/**
 				 * true if the ball is inside some robot
 				 */
-				bool ball_inside_robot(const World &world);
+				class BallInsideRobot : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
 
-				bool enemy_break_defense_duo(const World& world);
+				extern BallInsideRobot ball_inside_robot;
+
+				class EnemyBreakDefenseDuo : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern EnemyBreakDefenseDuo enemy_break_defense_duo;
 				
-				bool ball_towards_enemy(const World& world);
-				
-				bool ball_on_enemy_net(const World& world);
+				class BallTowardsEnemy : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern BallTowardsEnemy ball_towards_enemy;
+
+				class BallOnEnemyNet : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern BallOnEnemyNet ball_on_enemy_net;
 			}
 		}
 	}
