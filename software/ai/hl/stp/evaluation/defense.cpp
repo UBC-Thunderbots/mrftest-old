@@ -217,7 +217,7 @@ bool AI::HL::STP::Evaluation::enemy_break_defense_duo(const World& world, const 
 	return calc_enemy_best_shot_goal(world.field(), obstacles, enemy->position()).second > degrees2radians(enemy_shoot_accuracy);
 }
 
-Point AI::HL::STP::Evaluation::tdefense(const World &world, Player::Ptr player, const unsigned index){
+Point AI::HL::STP::Evaluation::evaluate_tdefense(const World &world, Player::Ptr player, const unsigned index){
 	Point target;
 	if (world.enemy_team().size() > index-1){
 		std::vector<Robot::Ptr> enemies = Evaluation::enemies_by_grab_ball_dist(world);

@@ -12,6 +12,9 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace Action = AI::HL::STP::Action;
 
 namespace {
+
+	BoolParam tdefend("Whether or not Terence Defense should take the place of normal defense", "STP/Tactic/defend",  false);
+
 	/**
 	 * Goalie in a team of N robots.
 	 */
@@ -68,7 +71,11 @@ namespace {
 	};
 
 	void Goalie2::execute() {
-		if (world.friendly_team().size() > defender_role + 1) {
+		if (tdefend){
+			Point dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
+			Point dest = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
+			Action::goalie_move(world, player, dest);
+		} else if (world.friendly_team().size() > defender_role + 1) {
 			// has defender
 			auto waypoints = Evaluation::evaluate_defense(world);
 			Action::goalie_move(world, player, waypoints[0]);
@@ -80,7 +87,12 @@ namespace {
 
 	void Goalie::execute() {
 		auto waypoints = Evaluation::evaluate_defense(world);
-		Action::goalie_move(world, player, waypoints[0]);
+		Point dest = waypoints[0];
+		if (tdefend) {
+			Point dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
+			dest = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
+		}
+		Action::goalie_move(world, player, dest);
 	}
 
 	Player::Ptr Defender::select(const std::set<Player::Ptr> &players) const {
@@ -92,6 +104,7 @@ namespace {
 	void Defender::execute() {
 		auto waypoints = Evaluation::evaluate_defense(world);
 		Point dest = waypoints[index];
+		if (tdefend && index > 0 && index < 3) dest = Evaluation::evaluate_tdefense(world, player, index);
 		Action::defender_move(world, player, dest);
 	}
 }

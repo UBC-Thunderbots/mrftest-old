@@ -4,7 +4,6 @@
 #include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/hl/stp/action/goalie.h"
 #include "ai/hl/stp/action/defend.h"
-#include "ai/hl/stp/enemy.h"
 #include "ai/hl/util.h"
 
 #include <cassert>
@@ -13,7 +12,6 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 namespace Evaluation = AI::HL::STP::Evaluation;
 namespace Action = AI::HL::STP::Action;
-using AI::HL::STP::Enemy;
 
 namespace {
 	/**
@@ -57,19 +55,16 @@ namespace {
 		Point dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
 		Point target = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
 		
-		if (target.x < world.field().friendly_goal().x + Robot::MAX_RADIUS) { // avoid going inside the goal
-			target.x = world.field().friendly_goal().x + Robot::MAX_RADIUS;
-		}
 		Action::goalie_move(world, player, target);	
 	}
 
 	Player::Ptr TDefender::select(const std::set<Player::Ptr> &players) const {
-		Point target = Evaluation::tdefense(world, player, index);
+		Point target = Evaluation::evaluate_tdefense(world, player, index);
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(target));
 	}
 
 	void TDefender::execute() {
-		Point target = Evaluation::tdefense(world, player, index);
+		Point target = Evaluation::evaluate_tdefense(world, player, index);
 		Action::defender_move(world, player, target);
 	}
 }

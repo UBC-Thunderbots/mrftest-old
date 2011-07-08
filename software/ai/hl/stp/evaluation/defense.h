@@ -33,7 +33,7 @@ namespace AI {
 				/**
 				 * return dest of Terence defender - index.
 				 */
-				Point tdefense(const World &world, Player::Ptr player, const unsigned index);
+				Point evaluate_tdefense(const World &world, Player::Ptr player, const unsigned index);
 			}
 		}
 	}

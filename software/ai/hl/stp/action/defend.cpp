@@ -1,6 +1,5 @@
 #include "ai/hl/stp/action/defend.h"
 #include "ai/hl/stp/action/repel.h"
-#include "ai/hl/stp/enemy.h"
 #include "ai/flags.h"
 #include "util/param.h"
 
