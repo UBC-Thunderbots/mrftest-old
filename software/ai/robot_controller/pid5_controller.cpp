@@ -19,11 +19,11 @@ using namespace AI::RC::W;
 
 namespace {
 
-	DoubleParam pid_xy_prop("xy +proportional", "RC/PID5", 25.0, 0.0, 1000.0);
-	DoubleParam pid_xy_diff("xy -differential", "RC/PID5", 0.0, -100.0, 1000.0);
+	DoubleParam pid_xy_prop("xy +proportional", "RC/PID5", 25.0, 0.0, 100.0);
+	DoubleParam pid_xy_diff("xy -differential", "RC/PID5", 0.0, -100.0, 10.0);
 
-	DoubleParam pid_a_prop("angular +proportional", "RC/PID5", 30.0, 0.0, 8888);
-	DoubleParam pid_a_diff("angular -differential", "RC/PID5", 0.2, -8888, 8888);
+	DoubleParam pid_a_prop("angular +proportional", "RC/PID5", 30.0, 0.0, 100);
+	DoubleParam pid_a_diff("angular -differential", "RC/PID5", 0.2, -100, 100);
 
 	DoubleParam pid_xy_ratio("x to y ratio", "RC/PID5", 0.81, 0.0, 2.0);
 
