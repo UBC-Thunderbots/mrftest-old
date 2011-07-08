@@ -247,3 +247,14 @@ bool Predicates::ball_towards_enemy(const World& world){
 	return false;
 }
 
+bool Predicates::ball_on_enemy_net(const World& world){
+	const EnemyTeam &enemies = world.enemy_team();
+	for (std::size_t i = 0; i < enemies.size(); ++i) {
+		if (Evaluation::ball_on_enemy_net(world)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+

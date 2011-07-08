@@ -38,6 +38,11 @@ namespace AI {
 				 * Assesses whether a ball is heading towards our net
 				 */
 				bool ball_on_net(const AI::HL::W::World &world);
+				
+				/**
+				 * Assesses whether a ball is heading towards their net
+				 */
+				bool ball_on_enemy_net(const AI::HL::W::World &world);
 
 				/**
 				 * Get where the goalie should go to block the shot

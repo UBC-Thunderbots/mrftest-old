@@ -69,6 +69,22 @@ bool AI::HL::STP::Evaluation::ball_on_net(const AI::HL::W::World &world) {
 	return false;
 }
 
+bool AI::HL::STP::Evaluation::ball_on_enemy_net(const AI::HL::W::World &world) {
+	if (world.ball().velocity().lensq() < negligible_velocity || world.ball().velocity().x < 0) {
+		return false;
+	}
+
+	Point a = world.field().enemy_goal_boundary().first;
+	Point b = world.field().enemy_goal_boundary().second;
+	Point c = world.ball().position();
+	Point d = world.ball().position() + world.ball().velocity();
+
+	if (unique_line_intersect(a, b, c, d)) {
+		Point inter = line_intersect(a, b, c, d);
+		return inter.y <= std::max(a.y, b.y) && inter.y >= std::min(a.y, b.y);
+	}
+	return false;
+}
 
 Point AI::HL::STP::Evaluation::goalie_shot_block(const AI::HL::W::World &world, const AI::HL::W::Player::Ptr player) {
 	if (world.friendly_team().size() <= 0 || !ball_on_net(world)) {

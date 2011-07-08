@@ -122,6 +122,8 @@ namespace AI {
 				bool enemy_break_defense_duo(const World& world);
 				
 				bool ball_towards_enemy(const World& world);
+				
+				bool ball_on_enemy_net(const World& world);
 			}
 		}
 	}

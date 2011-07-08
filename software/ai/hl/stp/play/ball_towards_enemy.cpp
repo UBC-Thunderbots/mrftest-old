@@ -5,9 +5,9 @@ using AI::HL::STP::Enemy;
 
 BEGIN_PLAY(BallTowardsEnemy)
 INVARIANT(playtype(world, PlayType::PLAY)
-		&& our_team_size_at_least(world, 2) && ball_towards_enemy(world))
+		&& our_team_size_at_least(world, 2) )
 APPLICABLE(none_ball(world) 
-		&& ball_x_greater_than(world, -world.field().centre_circle_radius()))
+		&& ball_x_greater_than(world, -world.field().centre_circle_radius()) && ball_on_enemy_net(world))
 DONE(goal(world))
 FAIL(their_ball(world))
 BEGIN_ASSIGN()
