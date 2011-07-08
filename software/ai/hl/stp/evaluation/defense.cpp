@@ -144,6 +144,14 @@ namespace {
 		// enemies with ball possession are ignored (they should be handled above)
 		for (size_t i = 0; i < threat.size() && waypoint_defenders.size() < MAX_DEFENDERS; ++i) {
 
+// HACK
+			if (defense_follow_enemy_baller) {
+				Robot::Ptr robot = calc_enemy_baller(world);
+				if (robot.is() && threat[i] == robot) {
+					continue;
+				}
+			}
+
 #warning A HACK FOR NOW, may intefere with baller abovee
 			if (AI::HL::Util::ball_close(world, threat[i])) {
 				continue;
@@ -178,7 +186,7 @@ namespace {
 		}
 		return waypoints;
 	}
-	
+
 	Point tdefender_block_ball(const World &world, const unsigned index){
 		Point dirToGoal, target;
 		dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
@@ -230,7 +238,7 @@ Point AI::HL::STP::Evaluation::evaluate_tdefense(const World &world, Player::Ptr
 	} else {
 		target = tdefender_block_ball(world, index);
 	}
-	
+
 	if (target.x < world.field().friendly_goal().x + Robot::MAX_RADIUS) { // avoid going inside the goal
 		target.x = world.field().friendly_goal().x + Robot::MAX_RADIUS;
 	}
