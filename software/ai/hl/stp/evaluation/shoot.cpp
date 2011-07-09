@@ -3,7 +3,6 @@
 #include "ai/hl/util.h"
 #include "geom/util.h"
 #include "geom/angle.h"
-//#include "geom/angle.h"
 using namespace AI::HL::STP;
 
 namespace {
@@ -13,24 +12,13 @@ namespace {
 }
 
 double Evaluation::get_shoot_score(const World &world, Player::Ptr player) {
-	//			std::vector<std::pair<Point, double> > calc_best_shot_all(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player, double radius = 1.0);
 	std::vector<std::pair<Point, double> > openings = AI::HL::Util::calc_best_shot_all(world, player);
 
-	double ans = 0.0;
-
-	Point player_dir(1, 0);
-	player_dir = player_dir.rotate(player->orientation());
-
-	//	Point post_low = player_dir.rotate(;
-	//	Point post_high(world.field().length()/2.0, -world.field().goal_width()/2.0);
-
-
-	std::pair<Point, double> best = *(openings.begin());
 	for(std::vector<std::pair<Point, double> >::iterator it = openings.begin(); it!= openings.end(); it++){
-		double centre_ang = (it->first - player->position()).orientation();
+		double centre_ang = player->orientation();
 		double ang_1 = (it->first - player->position()).orientation() + it->second/2.0;
 		double ang_2 = (it->first - player->position()).orientation() - it->second/2.0;
-		if( angle_diff(ang_1, centre_ang) + angle_diff(ang_2, centre_ang) > it->second){
+		if (angle_diff(ang_1, centre_ang) + angle_diff(ang_2, centre_ang) > it->second + 1e-6) {
 			continue;
 		}
 		return std::min(angle_diff(ang_1, centre_ang), angle_diff(ang_2, centre_ang));
