@@ -12,11 +12,12 @@ namespace {
 
 void AI::HL::STP::Action::move_spin(Player::Ptr player, const Point dest) {
 	// spin faster when you are close to the destination point
-	if ((player->position() - dest).len() < AI::HL::Util::POS_CLOSE) {
+	if ((player->position() - dest).len() < AI::HL::Util::POS_CLOSE + Robot::MAX_RADIUS) {
 		player->move(dest, angle_mod(player->orientation() + 2 * spin_delta), Point());
 	} else {
 		player->move(dest, angle_mod(player->orientation() + spin_delta), Point());
 	}
 	player->type(AI::Flags::MoveType::RAM_BALL);
+	player->prio(AI::Flags::MovePrio::HIGH);
 }
 

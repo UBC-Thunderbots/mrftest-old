@@ -15,6 +15,9 @@ using namespace AI::HL::STP;
 
 namespace {
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/predicates", 3.0, 1.0, 10.0);
+	DoubleParam fight_thresh("dist thresh to start fight ball with enemy (robot radius)", "STP/predicates", 2.0, 0.1, 4.0);
+	
+	BoolParam new_fight("new fight", "STP/predicates", true);
 }
 
 bool Predicates::Goal::compute(const World &) {
@@ -249,7 +252,14 @@ bool Predicates::BallInsideRegion::compute(const World &world, Region region) {
 Predicates::BallInsideRegion Predicates::ball_inside_region;
 
 bool Predicates::FightBall::compute(const World &world) {
-	return our_ball(world) && their_ball(world);
+	if (!new_fight) {
+		return our_ball(world) && their_ball(world);
+	} else {
+		const Player::CPtr friendly_baller = Evaluation::calc_friendly_baller(world);
+		const Robot::Ptr enemy_baller = Evaluation::calc_enemy_baller(world);
+		return (friendly_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS
+			&& (enemy_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS;
+	}
 }
 
 Predicates::FightBall Predicates::fight_ball;
