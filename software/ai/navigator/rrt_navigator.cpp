@@ -38,6 +38,7 @@ namespace AI {
 			DoubleParam new_pivot_offset_angle("New Pivot: offset angle (n*M_PI)", "Nav/RRT",0.1, 0, 0.5 );
 			DoubleParam new_pivot_travel_angle("New Pivot: travel angle, need proper unit, (n*M_PI)", "Nav/RRT",0.2, -0.5, 0.5 );
 			DoubleParam new_pivot_hyster_angle("New Pivot: Hysterisis angle, one side, (n*M_PI)", "Nav/RRT",0.2, 0.01, 0.2 );
+			DoubleParam new_pivot_thresh_angle("New Pivot: Threshold angle, one side, (n*M_PI)", "Nav/RRT",0.2, 0.01, 0.2 );
 			BoolParam use_byronic("Byronic", "Nav/RRT", false);
 			BoolParam use_new_chase("New chase: enable", "Nav/RRT", false);
 
@@ -192,9 +193,10 @@ namespace AI {
 
 					path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));
 					player->path(path);
-				} else { // new pivot is byron's pivot and koko's code for compensating for
-						Player::Path path;
+				} else { // new pivot is byron's pivot and koko's code is designed for turning with the bal
+					Player::Path path;
 					if( !player->has_ball() ){
+					// use the byron pivot to catch to the ball
 						Point dest;
 						double dest_orientation;
 						// try to pivot around the ball to catch it
@@ -220,34 +222,36 @@ namespace AI {
 
 						player->path(path);
 					} else {
-						double diff = angle_mod(( world.ball().position() - player->destination().first ).orientation() - player->orientation());
+						double diff = angle_mod(( world.ball().position() - player->destination().first ).orientation() - (player->orientation()+(is_ccw?1:-1)*new_pivot_offset_angle));
 						std::stringstream ss;
 						ss << diff;
-						LOG_INFO( ss.str() );	
+						//LOG_INFO( ss.str() );	
+						LOG_INFO("NEWpiovt!");
 						Point zero_pos( new_pivot_radius, 0.0 );
 						Point polar_pos;
 						Point rel_pos;
 						Point dest_pos;
 						double rel_orient;
 						double dest_orient;
-					
-						if( diff > new_pivot_hyster_angle*M_PI && diff <= M_PI ){
-							rel_orient = new_pivot_travel_angle *M_PI;
+						
+						// decide on ccw or cw
+						if( diff > new_pivot_hyster_angle * M_PI ){
+							is_ccw = true;
+						} else if( diff < - new_pivot_hyster_angle * M_PI ){
+							is_ccw = false;
+						}
+
+						// decide on how to get there fast
+						if( std::abs( diff ) > new_pivot_thresh_angle*M_PI ){
+							rel_orient = new_pivot_travel_angle *M_PI * (is_ccw?1:-1);
 							rel_orient *= new_pivot_angular_sfactor;
 							polar_pos = zero_pos - zero_pos.rotate( rel_orient );
-							rel_pos = polar_pos.rotate( player->orientation() + (0.5*M_PI)* (new_pivot_go_backward?-1:1));
-							rel_pos *= new_pivot_linear_sfactor;
-							dest_pos = player->position() + rel_pos;
-							dest_orient = player->orientation() + rel_orient;
-						} else if( diff < - new_pivot_hyster_angle*M_PI && diff >= -M_PI ){
-							rel_orient = - new_pivot_travel_angle *M_PI;
-							rel_orient *= new_pivot_angular_sfactor;
-							polar_pos = zero_pos - zero_pos.rotate( rel_orient );
-							rel_pos = polar_pos.rotate( player->orientation() - (0.5*M_PI) *(new_pivot_go_backward?-1:1) );
+							rel_pos = polar_pos.rotate( player->orientation() + (0.5*M_PI)*(is_ccw?1:-1)*(new_pivot_go_backward?-1:1));
 							rel_pos *= new_pivot_linear_sfactor;
 							dest_pos = player->position() + rel_pos;
 							dest_orient = player->orientation() + rel_orient;
 						} else {
+						// decide on how to be precise
 							rel_orient = diff;
 							rel_orient *= new_pivot_angular_sfactor;
 							polar_pos = zero_pos - zero_pos.rotate( rel_orient );
