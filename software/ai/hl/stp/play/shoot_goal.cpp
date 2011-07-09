@@ -5,9 +5,9 @@ using AI::HL::STP::Enemy;
 
 BEGIN_PLAY(ShootGoal)
 INVARIANT(playtype(world, PlayType::PLAY)
-		&& our_team_size_at_least(world, 2)
+		&& our_team_size_at_least(world, 2))
+APPLICABLE(our_ball(world)
 		&& baller_can_shoot(world))
-APPLICABLE(our_ball(world))
 DONE(goal(world))
 FAIL(their_ball(world))
 BEGIN_ASSIGN()
@@ -17,7 +17,7 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // shoot
-roles[0].push_back(shoot_goal(world));
+roles[0].push_back(shoot_goal(world, true));
 
 // ROLE 2
 // defend
