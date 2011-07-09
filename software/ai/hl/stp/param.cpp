@@ -1,5 +1,7 @@
 #include "ai/hl/stp/param.h"
 
+DoubleParam AI::HL::STP::goal_avoid_radius("Avoid goal radius when passing (m)", "STP/pass", 0.9, 0, 10);
+
 DoubleParam AI::HL::STP::shoot_accuracy("Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate", "STP/shoot", 0.0, -180.0, 180.0);
 
 DoubleParam AI::HL::STP::shoot_width("Shoot accuracy (for various purposes)", "STP/shoot", 5, 0.0, 180.0);

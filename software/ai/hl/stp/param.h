@@ -18,6 +18,8 @@ namespace AI {
 
 			extern DoubleParam shoot_width;
 
+			extern DoubleParam goal_avoid_radius;
+
 			namespace Action {
 				// these are pass specific
 				// needs comments

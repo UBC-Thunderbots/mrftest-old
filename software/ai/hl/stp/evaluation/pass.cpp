@@ -12,8 +12,6 @@ using namespace AI::HL::STP;
 
 namespace {
 
-	DoubleParam goal_avoid_radius("Avoid goal radius when passing (m)", "STP/pass", 0.9, 0, 10);
-
 	DoubleParam friendly_pass_width("Friendly pass checking width (robot radius)", "STP/pass", 1, 0, 9);
 
 	DoubleParam enemy_pass_width("Enemy pass checking width (robot radius)", "STP/pass", 1, 0, 9);

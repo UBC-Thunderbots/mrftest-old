@@ -87,6 +87,18 @@ namespace {
 			return -1e99;
 		}
 
+		// dont shoot own goal
+		{
+			const Point a = world.ball().position();
+			const Point b = dest;
+			if ((b - a).x < 0) {
+				auto inter = line_circle_intersect(world.field().friendly_goal(), goal_avoid_radius, a, b);
+				if (inter.size() > 0) {
+					return false;
+				}
+			}
+		}
+
 		// TODO: check the line below here
 		// scoring factors:
 		// density of enemy, passing distance, distance to the goal, angle of shooting, angle of receiving
