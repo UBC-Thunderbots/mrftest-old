@@ -26,8 +26,7 @@ namespace AI {
 				 *a positive score indicates a scoring oppurtunity
 				 * the return value represents the maximum angle error acceptable while still representing a goal scored
 				 */
-				double get_shoot_score(const World &world, Player::Ptr player);
-
+				double get_shoot_score(const World &world, Player::Ptr player , bool use_reduced_radius = true);
 				//				double get_shoot_target(const World &world, Player::Ptr player);
 
 				//			Point get_best_shoot_target(const World &world, Player::Ptr player);

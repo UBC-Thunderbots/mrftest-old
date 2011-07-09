@@ -11,8 +11,18 @@ namespace {
 	DoubleParam reduced_radius_big("big reduced radius for calculating best shot (robot radius ratio)", "STP/Shoot", 0.8, 0.0, 1.1);
 }
 
-double Evaluation::get_shoot_score(const World &world, Player::Ptr player) {
-	std::vector<std::pair<Point, double> > openings = AI::HL::Util::calc_best_shot_all(world, player);
+double Evaluation::get_shoot_score(const World &world, Player::Ptr player, bool use_reduced_radius) {
+
+
+	double radius;
+	if (use_reduced_radius) {
+		radius = reduced_radius_small;
+	} else {
+		radius = reduced_radius_big;
+	}
+
+
+	std::vector<std::pair<Point, double> > openings = AI::HL::Util::calc_best_shot_all(world, player, radius);
 
 	for(std::vector<std::pair<Point, double> >::iterator it = openings.begin(); it!= openings.end(); it++){
 		double centre_ang = player->orientation();
