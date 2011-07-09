@@ -6,6 +6,7 @@
 #include "ai/hl/stp/action/defend.h"
 #include "ai/hl/stp/action/repel.h"
 #include "ai/hl/util.h"
+#include "geom/util.h"
 
 #include <cassert>
 
@@ -84,6 +85,7 @@ namespace {
 				Action::repel(world, player);
 				return;
 			}
+			target = calc_block_cone(world.field().friendly_goal_boundary().first, world.field().friendly_goal_boundary().second, world.ball().position(), Robot::MAX_RADIUS);
 		}
 		Action::defender_move(world, player, target);
 	}

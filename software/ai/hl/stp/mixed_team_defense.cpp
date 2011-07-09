@@ -8,7 +8,6 @@
 #include "ai/hl/stp/tactic/defend_solo.h"
 #include "ai/hl/stp/tactic/penalty_goalie.h"
 #include "ai/hl/stp/evaluation/defense.h"
-#include "ai/hl/stp/evaluation/defense.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/ball_threat.h"
 #include "util/dprint.h"
@@ -16,29 +15,17 @@
 #include "util/param.h"
 #include "ai/hl/stp/stp.h"
 #include "geom/util.h"
-#include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/play_executor.h"
 #include "ai/hl/stp/tactic/idle.h"
 #include "ai/hl/stp/evaluation/offense.h"
-#include "ai/hl/stp/evaluation/defense.h"
-#include "ai/hl/util.h"
-#include "util/dprint.h"
-#include "ai/hl/stp/ui.h"
 #include "ai/hl/util.h"
 
 #include <cassert>
 #include <glibmm.h>
 
-
-#include <cassert>
-#include <gtkmm.h>
-
 using AI::HL::STP::PlayExecutor;
-using namespace AI::HL::STP;
 
 namespace Flags = AI::Flags;
-
-
 
 using namespace AI::HL;
 using namespace AI::HL::STP;
