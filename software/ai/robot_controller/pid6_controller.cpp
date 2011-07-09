@@ -19,7 +19,7 @@ using namespace AI::RC::W;
 
 namespace {
 
-	DoubleParam wheel_max_speed("Limit wheel speed (quarter degree per 5 ms)", "RC/PID6", 200.0, 0, 1023);
+	DoubleParam wheel_max_speed("Limit wheel speed (quarter degree per 5 ms)", "RC/PID6", 330.0, 0, 1023);
 	DoubleParam wheel_max_accel("Limit wheel accel (quarter degree per 5 ms squared)", "RC/PID6", 45, 0, 1023);
 
 	class PID6Controller : public RobotController {
