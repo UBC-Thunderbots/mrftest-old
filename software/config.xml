@@ -46,6 +46,12 @@
         <double name="Loop Delay">0.100</double>
       </category>
     </category>
+    <category name="Ball">
+      <category name="Chris">
+        <double name="circle decay rate">0.206</double>
+        <double name="circle radius">0.67</double>
+      </category>
+    </category>
     <category name="MB">
       <double name="ori distance threshold">0.100</double>
       <double name="ori velocity threshold">0.030</double>
@@ -53,6 +59,8 @@
       <double name="pos velocity threshold">0.030</double>
     </category>
     <category name="MixedTeamDefense">
+      <double name="disty">1.50</double>
+      <boolean name="draw">true</boolean>
       <boolean name="enable robot 0">true</boolean>
       <boolean name="enable robot 1">true</boolean>
       <boolean name="enable robot 2">true</boolean>
@@ -62,6 +70,8 @@
       <boolean name="enable robot 6">true</boolean>
       <boolean name="enable robot 7">true</boolean>
       <boolean name="enable robot 8">true</boolean>
+      <boolean name="enable robot 9">true</boolean>
+      <boolean name="use simon">true</boolean>
     </category>
     <category name="Nav">
       <category name="Pivot">
@@ -80,9 +90,9 @@
       </category>
       <category name="RRT">
         <double name="Ball velocity threshold (used to switch between chase and chase+pivot)">7.50</double>
-        <double name="Buffer behind ball for chase (meters)">0.250</double>
+        <double name="Buffer behind ball for chase (meters)">0.350</double>
         <boolean name="Byronic">false</boolean>
-        <double name="Chase angle range for behind target (degrees)">30.0</double>
+        <double name="Chase angle range for behind target (degrees)">15.0</double>
         <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
         <double name="Distance to extend the tree on each step (m)">0.100</double>
         <boolean name="New chase: enable">false</boolean>
@@ -92,9 +102,10 @@
         <double name="New Pivot: offset angle (n*M_PI)">0.1000</double>
         <double name="New Pivot [PID]: angular">1.00</double>
         <double name="New Pivot [PID]: linear">1.00</double>
+        <double name="New Pivot: Threshold angle, one side, (n*M_PI)">0.2000</double>
         <double name="New Pivot: travel angle, need proper unit, (n*M_PI)">0.200</double>
         <double name="New Pivot: travel radius">0.0900</double>
-        <integer name="Number of iterations to go through before we give best partial path">100</integer>
+        <integer name="Number of iterations to go through before we give best partial path">200</integer>
         <double name="Pivot: offset angle (degrees)">38</double>
         <double name="Pivot: offset distance">0.11</double>
         <double name="Pivot: orientation offset (degrees)">14</double>
@@ -104,7 +115,7 @@
         <double name="Amount behind ball during Penalty kick (rule=0.4) ">0.400</double>
         <double name="amount of time (s) to avoid enemy's future position">0.000</double>
         <double name="amount of time (s) to avoid friendly's future position">0.000</double>
-        <double name="Buffer avoid ball tiny (meters)">0.070</double>
+        <double name="Buffer avoid ball tiny (meters)">0.100</double>
         <double name="Buffer avoid defense area (meters)">0.000</double>
         <double name="Buffer for equal priority friendly robot (meters)">0.100</double>
         <double name="Buffer for higher priority friendly robot (meters)">0.200</double>
@@ -205,6 +216,10 @@
         <double name="xy +proportional">14.0</double>
         <double name="YA ratio">0.08</double>
       </category>
+      <category name="PID6">
+        <double name="Limit wheel accel (quarter degree per 5 ms squared)">45</double>
+        <double name="Limit wheel speed (quarter degree per 5 ms)">330</double>
+      </category>
       <category name="PIDSim">
         <double name="angular -differential">0.0</double>
         <double name="angular +integral">0.00</double>
@@ -264,7 +279,7 @@
         <boolean name="goalie hug switch">false</boolean>
         <double name="max goalie dist from goal (robot radius)">3.00</double>
         <boolean name="open net enemy is dangerous">true</boolean>
-        <double name="shrink robot radius">1.000</double>
+        <double name="shrink robot radius">0.900</double>
       </category>
       <category name="draw">
         <boolean name="draw ray">false</boolean>
@@ -339,7 +354,6 @@
           <boolean name="FriendlyCornerPlay1">true</boolean>
           <boolean name="GrabBallDefensive">true</boolean>
           <boolean name="GrabBallOffensive">true</boolean>
-          <boolean name="JustBlockShoot">true</boolean>
           <boolean name="JustGoalie">true</boolean>
           <boolean name="JustRepel">true</boolean>
           <boolean name="JustShoot">true</boolean>
@@ -379,10 +393,9 @@
           <integer name="FriendlyCornerPlay1">5</integer>
           <integer name="GrabBallDefensive">5</integer>
           <integer name="GrabBallOffensive">5</integer>
-          <integer name="JustBlockShoot">5</integer>
           <integer name="JustGoalie">5</integer>
           <integer name="JustRepel">0</integer>
-          <integer name="JustShoot">5</integer>
+          <integer name="JustShoot">8</integer>
           <integer name="JustSpin">10</integer>
           <integer name="KickoffEnemy">5</integer>
           <integer name="KickoffFriendly">5</integer>
@@ -411,12 +424,12 @@
         <double name="enemy avoidance distance (robot radius)">3.00</double>
       </category>
       <category name="Shoot">
-        <double name="big reduced radius for calculating best shot (robot radius ratio)">0.800</double>
-        <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
+        <double name="big reduced radius for calculating best shot (robot radius ratio)">0.600</double>
+        <double name="small reduced radius for calculating best shot (robot radius ratio)">0.200</double>
       </category>
       <category name="shoot">
         <double name="Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate">0.0</double>
-        <double name="Shoot accuracy (for various purposes)">5.0</double>
+        <double name="Shoot accuracy (for various purposes)">3.0</double>
       </category>
       <category name="Stop">
         <double name="goalie stop dist">0.180</double>

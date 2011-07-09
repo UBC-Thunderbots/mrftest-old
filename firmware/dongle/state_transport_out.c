@@ -13,9 +13,9 @@
 /**
  * \brief The number of timer 1 rollovers (~44ms each) before an application crash is assumed and the robots are scrammed.
  *
- * Approximately 1 second.
+ * Approximately 2 seconds.
  */
-#define SCRAM_TIMEOUT_LIMIT 23
+#define SCRAM_TIMEOUT_LIMIT 46
 
 __data uint8_t state_transport_out_drive[16][DRIVE_PACKET_BYTES];
 

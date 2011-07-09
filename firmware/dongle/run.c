@@ -16,7 +16,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#define POLL_TIMEOUT 25
+#define POLL_TIMEOUT 100
 #define COMM_FAILURE_LIMIT 50
 
 #define XBEE_API_ID_TX16 0x01
