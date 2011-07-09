@@ -203,8 +203,6 @@ void TShoot::execute() {
 	} else {
 		kicked = Action::shoot_goal(world, player);
 	}
-
-	player->flags(0);
 }
 
 void TSteal::execute() {
@@ -218,8 +216,6 @@ void TSteal::execute() {
 		}
 	}
 	none = true;
-
-	player->flags(0);
 }
 
 void TClear::execute() {
@@ -281,14 +277,11 @@ void TActiveDef::execute() {
 		if (Evaluation::possess_ball(world, enemy.get(i))) {
 			Point dirToBall = (world.ball().position() - enemy.get(i)->position()).norm();
 			Action::move_spin(player, world.ball().position() + 0.75 * Robot::MAX_RADIUS * dirToBall);
-			player->flags(0);
 			return;
 		}
 	}
 
 	finished = Action::repel(world, player);
-
-	player->flags(0);
 }
 
 void TDribbleToRegion::execute() {

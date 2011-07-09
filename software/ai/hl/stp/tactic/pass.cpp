@@ -95,7 +95,6 @@ namespace {
 				}
 				//Player::CPtr passee = Evaluation::nearest_friendly(world, dest);
 				Action::shoot_pass(world, player, dest);
-				player->flags(0);
 			}
 
 			std::string description() const {

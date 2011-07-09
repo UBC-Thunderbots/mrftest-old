@@ -66,7 +66,6 @@ namespace {
 			if (Action::shoot_target(world, player, target, Action::pass_speed)) {
 				kick_attempted = true;
 			}
-			player->flags(0);
 		}
 
 		std::string description() const {

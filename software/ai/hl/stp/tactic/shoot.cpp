@@ -87,7 +87,6 @@ namespace {
 			player->autokick(10.0);
 		}
 		shoot_score = cur_shoot_score;
-		player->flags(0);
 	}
 
 	bool ShootTarget::done() const {
@@ -114,7 +113,6 @@ namespace {
 		if (AI::HL::STP::Action::shoot_target(world, player, target.position(), AI::HL::STP::Action::pass_speed)) {
 			kick_attempted = true;
 		}
-		player->flags(0);
 	}
 }
 

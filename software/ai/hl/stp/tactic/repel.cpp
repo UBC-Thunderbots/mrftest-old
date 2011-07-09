@@ -43,7 +43,6 @@ namespace {
 	void Repel::execute() {
 		finished = false;
 		finished = AI::HL::STP::Action::repel(world, player);
-		player->flags(0);
 	}
 	
 	class CornerRepel : public Tactic {
@@ -72,7 +71,6 @@ namespace {
 	void CornerRepel::execute() {
 		finished = false;
 		finished = AI::HL::STP::Action::corner_repel(world, player);
-		player->flags(0);
 	}
 }
 

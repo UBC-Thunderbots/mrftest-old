@@ -25,7 +25,6 @@ namespace {
 			void execute() {
 				// should probably use move spin action instead (or tsteal tactic in cm_ball which uses it)
 				ram(world, player, world.ball().position(), Point());
-				player->flags(0);
 			}
 			std::string description() const {
 				return "ram";
