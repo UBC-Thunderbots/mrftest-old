@@ -28,10 +28,9 @@ double Evaluation::get_shoot_score(const World &world, Player::Ptr player) {
 	std::pair<Point, double> best = *(openings.begin());
 	for(std::vector<std::pair<Point, double> >::iterator it = openings.begin(); it!= openings.end(); it++){
 		double centre_ang = (it->first - player->position()).orientation();
-		double ang_1 = (it->first - player->position()).orientation();
-		double ang_2 = (it->first - player->position()).orientation();
-		double both = angle_diff(ang_1, ang_2);
-		if( angle_diff(ang_1, centre_ang) + angle_diff(ang_2, centre_ang) > both){
+		double ang_1 = (it->first - player->position()).orientation() + it->second/2.0;
+		double ang_2 = (it->first - player->position()).orientation() - it->second/2.0;
+		if( angle_diff(ang_1, centre_ang) + angle_diff(ang_2, centre_ang) > it->second){
 			continue;
 		}
 		return std::min(angle_diff(ang_1, centre_ang), angle_diff(ang_2, centre_ang));
