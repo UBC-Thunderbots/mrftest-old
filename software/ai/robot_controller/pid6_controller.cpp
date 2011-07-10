@@ -21,6 +21,7 @@ namespace {
 
 	DoubleParam wheel_max_speed("Limit wheel speed (quarter degree per 5 ms)", "RC/PID6", 330.0, 0, 1023);
 	DoubleParam wheel_max_accel("Limit wheel accel (quarter degree per 5 ms squared)", "RC/PID6", 45, 0, 1023);
+	DoubleParam motor_to_field("Ratio of motor distance to field distance", "RC/PID6", 0.00633, 0.001, 1);
 
 	class PID6Controller : public RobotController {
 		public:
@@ -61,7 +62,7 @@ namespace {
 		};
 
     double max_acc = 200.0/TIMESTEPS_PER_SECOND*wheel_max_accel;
-		double distance_to_velocity = 2*max_acc / wheel_max_speed;
+		double distance_to_velocity = 2*max_acc / wheel_max_speed / motor_to_field;
 
 		Point position_error = (new_position - player->position()).rotate(-player->orientation());
 		double angular_error = angle_mod(new_orientation-player->orientation());
