@@ -96,15 +96,15 @@
         <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
         <double name="Distance to extend the tree on each step (m)">0.100</double>
         <boolean name="New chase: enable">false</boolean>
-        <boolean name="New Pivot: enable">false</boolean>
+        <boolean name="New Pivot: enable">true</boolean>
         <boolean name="New Pivot: go backward">false</boolean>
         <double name="New Pivot: Hysterisis angle, one side, (n*M_PI)">0.2000</double>
         <double name="New Pivot: offset angle (n*M_PI)">0.1000</double>
-        <double name="New Pivot [PID]: angular">1.00</double>
-        <double name="New Pivot [PID]: linear">1.00</double>
+        <double name="New Pivot [PID]: angular">2.00</double>
+        <double name="New Pivot [PID]: linear">2.00</double>
         <double name="New Pivot: Threshold angle, one side, (n*M_PI)">0.2000</double>
         <double name="New Pivot: travel angle, need proper unit, (n*M_PI)">0.200</double>
-        <double name="New Pivot: travel radius">0.0900</double>
+        <double name="New Pivot: travel radius">0.2000</double>
         <integer name="Number of iterations to go through before we give best partial path">200</integer>
         <double name="Pivot: offset angle (degrees)">38</double>
         <double name="Pivot: offset distance">0.11</double>
@@ -219,6 +219,7 @@
       <category name="PID6">
         <double name="Limit wheel accel (quarter degree per 5 ms squared)">45</double>
         <double name="Limit wheel speed (quarter degree per 5 ms)">330</double>
+        <double name="Ratio of motor distance to field distance">0.450</double>
       </category>
       <category name="PIDSim">
         <double name="angular -differential">0.0</double>
@@ -304,8 +305,8 @@
       <category name="offense">
         <double name="Dont block increase multiplier">2.00</double>
         <double name="enemy avoidance distance (robot radius)">2.50</double>
-        <integer name="grid x size">20</integer>
-        <integer name="grid y size">20</integer>
+        <integer name="grid x size">10</integer>
+        <integer name="grid y size">10</integer>
         <double name="Offensive friendly avoidance increase radius (robot radius)">2.00</double>
         <double name="Scoring weight for angle from ball to goal at robot (-ve)">2.0</double>
         <double name="Scoring weight for angle to goal (POWER, careful)">2.5</double>
@@ -421,11 +422,13 @@
         <boolean name="If higher priority play exists, switch">true</boolean>
       </category>
       <category name="predicates">
+        <double name="dist thresh to start fight ball with enemy (robot radius)">2.000</double>
         <double name="enemy avoidance distance (robot radius)">3.00</double>
+        <boolean name="new fight">true</boolean>
       </category>
       <category name="Shoot">
         <double name="big reduced radius for calculating best shot (robot radius ratio)">0.600</double>
-        <double name="small reduced radius for calculating best shot (robot radius ratio)">0.200</double>
+        <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
       </category>
       <category name="shoot">
         <double name="Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate">0.0</double>
