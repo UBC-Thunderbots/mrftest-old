@@ -36,8 +36,10 @@ namespace AI {
 
 					/**
 					 * Constructs a new RefBox.
+					 *
+					 * \param[in] multicast_interface the index of the interface on which to join the multicast group, or zero to use the kernel's default choice.
 					 */
-					RefBox();
+					RefBox(unsigned int multicast_interface);
 
 				private:
 					const FileDescriptor::Ptr fd;

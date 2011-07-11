@@ -6,9 +6,11 @@
 #include "uicomponents/abstract_list_model.h"
 #include "util/clocksource_timerfd.h"
 #include "util/config.h"
+#include "util/exception.h"
 #include "util/param.h"
 #include "util/timestep.h"
 #include <algorithm>
+#include <cerrno>
 #include <cstdlib>
 #include <ctime>
 #include <functional>
@@ -18,6 +20,10 @@
 #include <stdexcept>
 #include <stdint.h>
 #include <vector>
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 
 using namespace std::placeholders;
 
@@ -164,12 +170,33 @@ namespace {
 		bool west = false;
 		option_group.add_entry(west_entry, west);
 
+		Glib::OptionEntry load_entry;
+		load_entry.set_long_name("load");
+		load_entry.set_description("Loads a simulator state file at startup");
+		load_entry.set_arg_description("FILENAME");
+		std::string load_filename;
+		option_group.add_entry_filename(load_entry, load_filename);
+
+		Glib::OptionEntry camera_mask_entry;
+		camera_mask_entry.set_long_name("cameras");
+		camera_mask_entry.set_description("Accepts vision packets only from camera indices set in a bitmask");
+		camera_mask_entry.set_arg_description("MASK");
+		int camera_mask = 3;
+		option_group.add_entry(camera_mask_entry, camera_mask);
+
+		Glib::OptionEntry multicast_interface_entry;
+		multicast_interface_entry.set_long_name("interface");
+		multicast_interface_entry.set_description("Overrides the kernel's default choice of network interface on which to receive multicast packets");
+		multicast_interface_entry.set_arg_description("IFNAME");
+		Glib::ustring multicast_interface_name;
+		option_group.add_entry(multicast_interface_entry, multicast_interface_name);
+
 		Glib::OptionEntry backend_entry;
 		backend_entry.set_long_name("backend");
 		backend_entry.set_description("Selects which backend should be used");
-		backend_entry.set_arg_description("BACKEND[/PARAM=VALUE[,...]]");
-		Glib::ustring backend_name_and_params;
-		option_group.add_entry(backend_entry, backend_name_and_params);
+		backend_entry.set_arg_description("BACKEND");
+		Glib::ustring backend_name;
+		option_group.add_entry(backend_entry, backend_name);
 
 		Glib::OptionEntry high_level_entry;
 		high_level_entry.set_long_name("hl");
@@ -281,37 +308,26 @@ namespace {
 		} else if (blue) {
 			setup.friendly_colour = AI::Common::Team::Colour::BLUE;
 		}
+		unsigned int multicast_interface_index = 0;
+		if (!multicast_interface_name.empty()) {
+			FileDescriptor::Ptr fd = FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, 0);
+			ifreq ifr;
+			const std::string &as_locale = Glib::locale_from_utf8(multicast_interface_name);
+			if (as_locale.size() > sizeof(ifr.ifr_name)) {
+				throw std::runtime_error("Interface name too long");
+			}
+			std::copy(as_locale.begin(), as_locale.end(), ifr.ifr_name);
+			if (ioctl(fd->fd(), SIOCGIFINDEX, &ifr) < 0) {
+				throw SystemError("ioctl(SIOCGIFINDEX)", errno);
+			}
+			multicast_interface_index = ifr.ifr_ifindex;
+		}
 		setup.save();
 		WithBackendClosure wbc(setup, minimize);
-		if (!backend_name_and_params.size()) {
-			backend_name_and_params = choose_backend();
-			if (!backend_name_and_params.size()) {
+		if (!backend_name.size()) {
+			backend_name = choose_backend();
+			if (!backend_name.size()) {
 				return 0;
-			}
-		}
-		Glib::ustring backend_name;
-		std::multimap<Glib::ustring, Glib::ustring> backend_params;
-		{
-			Glib::ustring::size_type slash_index = backend_name_and_params.find('/');
-			if (slash_index == Glib::ustring::npos) {
-				backend_name = backend_name_and_params;
-			} else {
-				backend_name = backend_name_and_params.substr(0, slash_index);
-				Glib::ustring::size_type start_param_name = slash_index + 1;
-				while (start_param_name < backend_name_and_params.size()) {
-					Glib::ustring::size_type equals = backend_name_and_params.find('=', start_param_name);
-					if (equals == Glib::ustring::npos) {
-						throw std::runtime_error("Invalid parameter format, must be comma-separated sequence of KEY=VALUE");
-					}
-					const Glib::ustring &param_name = backend_name_and_params.substr(start_param_name, equals - start_param_name);
-					Glib::ustring::size_type comma = backend_name_and_params.find(',', equals);
-					if (comma == Glib::ustring::npos) {
-						comma = backend_name_and_params.size();
-					}
-					const Glib::ustring &param_value = backend_name_and_params.substr(equals + 1, comma - (equals + 1));
-					backend_params.insert(std::make_pair(param_name, param_value));
-					start_param_name = comma + 1;
-				}
 			}
 		}
 		typedef AI::BE::BackendFactory::Map Map;
@@ -320,7 +336,7 @@ namespace {
 		if (be == bem.end()) {
 			throw std::runtime_error(Glib::ustring::compose("There is no backend '%1'.", backend_name));
 		}
-		be->second->create_backend(backend_params, std::bind(&main_impl_with_backend, _1, wbc));
+		be->second->create_backend(load_filename, camera_mask, multicast_interface_index, std::bind(&main_impl_with_backend, _1, wbc));
 
 		return 0;
 	}

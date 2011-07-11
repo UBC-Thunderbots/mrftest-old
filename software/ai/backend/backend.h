@@ -531,11 +531,15 @@ namespace AI {
 				/**
 				 * Creates a new instance of the corresponding Backend and invokes a function with it.
 				 *
-				 * \param[in] params the command-line parameter values to initialize the backend with.
+				 * \param[in] load_filename the filename of a simulator state file to restore.
+				 *
+				 * \param[in] camera_mask a bitmask of cameras whose data should be accepted.
+				 *
+				 * \param[in] multicast_interface the index of the interface on which to join multicast groups, or zero to use the kernel's default choice.
 				 *
 				 * \param[in] cb a function to invoke passing the constructed Backend.
 				 */
-				virtual void create_backend(const std::multimap<Glib::ustring, Glib::ustring> &params, std::function<void(Backend &)> cb) const = 0;
+				virtual void create_backend(const std::string &load_filename, unsigned int camera_mask, unsigned int multicast_interface, std::function<void(Backend &)> cb) const = 0;
 
 			protected:
 				/**

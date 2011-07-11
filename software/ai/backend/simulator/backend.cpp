@@ -392,15 +392,7 @@ void AI::BE::Simulator::Backend::on_state_file_save_clicked() {
 AI::BE::Simulator::BackendFactory::BackendFactory() : AI::BE::BackendFactory("Simulator") {
 }
 
-void AI::BE::Simulator::BackendFactory::create_backend(const std::multimap<Glib::ustring, Glib::ustring> &params, std::function<void(AI::BE::Backend &)> cb) const {
-	std::string load_filename;
-	for (std::multimap<Glib::ustring, Glib::ustring>::const_iterator i = params.begin(), iend = params.end(); i != iend; ++i) {
-		if (i->first == "load") {
-			load_filename = Glib::filename_from_utf8(i->second);
-		} else {
-			throw std::runtime_error(Glib::ustring::compose("Unrecognized backend parameter %1 (recognized parameters are \"load\")", i->first));
-		}
-	}
+void AI::BE::Simulator::BackendFactory::create_backend(const std::string &load_filename, unsigned int, unsigned int, std::function<void(AI::BE::Backend &)> cb) const {
 	Backend be(load_filename);
 	cb(be);
 }

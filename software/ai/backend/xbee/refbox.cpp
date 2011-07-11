@@ -12,7 +12,7 @@
 using namespace AI::BE::XBee;
 
 namespace {
-	FileDescriptor::Ptr create_socket() {
+	FileDescriptor::Ptr create_socket(unsigned int multicast_interface) {
 		const FileDescriptor::Ptr fd(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP));
 
 		fd->set_blocking(false);
@@ -34,7 +34,7 @@ namespace {
 		ip_mreqn mcreq;
 		mcreq.imr_multiaddr.s_addr = inet_addr("224.5.23.1");
 		mcreq.imr_address.s_addr = get_inaddr_any();
-		mcreq.imr_ifindex = 0;
+		mcreq.imr_ifindex = multicast_interface;
 		if (setsockopt(fd->fd(), IPPROTO_IP, IP_ADD_MEMBERSHIP, &mcreq, sizeof(mcreq)) < 0) {
 			LOG_WARN("Cannot join multicast group 224.5.23.1 for refbox data.");
 		}
@@ -43,7 +43,7 @@ namespace {
 	}
 }
 
-RefBox::RefBox() : command('H'), goals_blue(0), goals_yellow(0), fd(create_socket()) {
+RefBox::RefBox(unsigned int multicast_interface) : command('H'), goals_blue(0), goals_yellow(0), fd(create_socket(multicast_interface)) {
 	Glib::signal_io().connect(sigc::mem_fun(this, &RefBox::on_readable), fd->fd(), Glib::IO_IN);
 }
 

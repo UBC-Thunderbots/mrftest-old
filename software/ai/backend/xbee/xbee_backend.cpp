@@ -115,7 +115,11 @@ namespace {
 		public:
 			AI::BE::XBee::RefBox refbox;
 
-			XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask) : Backend(), camera_mask(camera_mask), clock(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND), ball_(*this), friendly(*this, dongle), enemy(*this), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
+			XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, unsigned int multicast_interface) : Backend(), refbox(multicast_interface), camera_mask(camera_mask), clock(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND), ball_(*this), friendly(*this, dongle), enemy(*this), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
+				if (!(1 <= camera_mask && camera_mask <= 3)) {
+					throw std::runtime_error("Invalid camera bitmask (must be 1–3)");
+				}
+
 				refbox.command.signal_changed().connect(sigc::mem_fun(this, &XBeeBackend::update_playtype));
 				friendly_colour().signal_changed().connect(sigc::mem_fun(this, &XBeeBackend::on_friendly_colour_changed));
 				playtype_override().signal_changed().connect(sigc::mem_fun(this, &XBeeBackend::update_playtype));
@@ -138,7 +142,7 @@ namespace {
 				ip_mreqn mcreq;
 				mcreq.imr_multiaddr.s_addr = inet_addr("224.5.23.2");
 				mcreq.imr_address.s_addr = get_inaddr_any();
-				mcreq.imr_ifindex = 0;
+				mcreq.imr_ifindex = multicast_interface;
 				if (setsockopt(vision_socket->fd(), IPPROTO_IP, IP_ADD_MEMBERSHIP, &mcreq, sizeof(mcreq)) < 0) {
 					LOG_INFO("Cannot join multicast group 224.5.23.2 for vision data.");
 				}
@@ -624,19 +628,10 @@ namespace {
 			XBeeBackendFactory() : BackendFactory("xbee") {
 			}
 
-			void create_backend(const std::multimap<Glib::ustring, Glib::ustring> &params, std::function<void(Backend &)> cb) const {
-				unsigned int camera_mask = 3;
-				if (params.count("cameras")) {
-					const Glib::ustring &cameras_string = params.find("cameras")->second;
-					if (cameras_string.size() != 1 || !std::isdigit<wchar_t>(cameras_string[0], std::locale())) {
-						throw std::runtime_error("cameras parameter must be a single decimal digit.");
-					}
-					std::wistringstream iss(ustring2wstring(cameras_string));
-					iss >> camera_mask;
-				}
+			void create_backend(const std::string &, unsigned int camera_mask, unsigned int multicast_interface, std::function<void(Backend &)> cb) const {
 				XBeeDongle dongle;
 				dongle.enable();
-				XBeeBackend be(dongle, camera_mask);
+				XBeeBackend be(dongle, camera_mask, multicast_interface);
 				cb(be);
 			}
 	};
