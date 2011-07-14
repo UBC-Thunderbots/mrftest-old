@@ -13,6 +13,10 @@ namespace AI {
 				 */
 				void ram(const World &world, Player::Ptr player, const Point dest, const Point vel);
 
+				/**
+				 * ram defaulting to ram the ball
+				 */
+				void ram(const World &world, Player::Ptr player);
 			}
 		}
 	}

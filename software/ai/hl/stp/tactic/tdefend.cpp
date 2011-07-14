@@ -5,6 +5,7 @@
 #include "ai/hl/stp/action/goalie.h"
 #include "ai/hl/stp/action/defend.h"
 #include "ai/hl/stp/action/repel.h"
+#include "ai/hl/stp/action/ram.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
 
@@ -68,7 +69,7 @@ namespace {
 	void TDefender::execute() {
 		Point diff = world.ball().position() - world.field().friendly_goal();
 		if (diff.len() <= 0.9 && index == 1){
-			Action::repel(world, player);
+			Action::ram(world, player);
 			return;
 		}
 		Point target = Evaluation::evaluate_tdefense(world, player, index);
@@ -77,12 +78,12 @@ namespace {
 				// 2nd defender should not go after the ball unless the ball is far enough from our goal
 				// and on our side of the field
 				if (diff.len() > 4 * (index+1) * Robot::MAX_RADIUS && world.ball().position().x < -world.field().centre_circle_radius()){
-					Action::repel(world, player);
+					Action::ram(world, player);
 					return;
 				}
 			} else if (diff.len() < 4 * (index+2) * Robot::MAX_RADIUS && diff.len() > 4 * (index) * Robot::MAX_RADIUS){ 
 				// 1st defender defense 
-				Action::repel(world, player);
+				Action::ram(world, player);
 				return;
 			}
 			target = calc_block_cone(world.field().friendly_goal_boundary().first, world.field().friendly_goal_boundary().second, world.ball().position(), Robot::MAX_RADIUS);

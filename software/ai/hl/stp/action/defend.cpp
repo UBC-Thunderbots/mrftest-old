@@ -15,7 +15,7 @@ void AI::HL::STP::Action::defender_move(const World &world, Player::Ptr player, 
 	
 	// if the ball is too close we repel
 	if ((world.ball().position() - player->position()).len() < repel_dist * Robot::MAX_RADIUS) {
-		repel(world, player);
+		corner_repel(world, player);
 		return;
 	}	
 	player->move(dest, (world.ball().position() - player->position()).orientation(), Point());
