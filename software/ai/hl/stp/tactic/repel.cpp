@@ -47,7 +47,7 @@ namespace {
 	
 	class CornerRepel : public Tactic {
 		public:
-			CornerRepel(const World &world) : Tactic(world, true) {
+			CornerRepel(const World &world) : Tactic(world, true), finished(false) {
 			}
 
 		private:

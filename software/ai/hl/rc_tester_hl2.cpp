@@ -62,7 +62,6 @@ namespace {
 		void tick() {
 			FriendlyTeam &friendly = world.friendly_team();
 			if (friendly.size() < 1) {
-				// LOG_INFO("error: must have at exactly one robot on the field!");
 				LOG_INFO("error: must have at least one robot on the field!");
 				return;
 			}

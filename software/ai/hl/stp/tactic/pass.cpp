@@ -60,8 +60,8 @@ namespace {
 
 			bool done() const {
 #warning TODO allow more time
-				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();				
-				//return kicked && (player->position() - world.ball().position()).len() > (player->position() - dest).len()/4;
+				// Point dest = dynamic ? Evaluation::passee_position(world) : target.position();				
+				// return kicked && (player->position() - world.ball().position()).len() > (player->position() - dest).len()/4;
 
 #warning WTH how this works
 				return kicked || player->autokick_fired();
@@ -93,7 +93,7 @@ namespace {
 				} else {
 					PasserShoot::passer_info.kicked = true;
 				}
-				//Player::CPtr passee = Evaluation::nearest_friendly(world, dest);
+				
 				Action::shoot_pass(world, player, dest);
 			}
 
@@ -141,8 +141,7 @@ namespace {
 
 			void execute() {
 				kick_info passer_info = PasserShoot::passer_info;
-				bool fast_ball = world.ball().velocity().len() > fast_velocity;
-
+				
 				///////////////////////////////////////////////////////////////////////////////////////////////////////
 				// calculate the largest circle centered at the passers target                                       //
 				// that is inscribed by the two rays that represents the passers allowed error                       //

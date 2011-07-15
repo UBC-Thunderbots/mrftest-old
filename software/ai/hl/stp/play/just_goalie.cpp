@@ -1,5 +1,6 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/defend_solo.h"
+#include "ai/hl/stp/tactic/idle.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
 
@@ -17,6 +18,7 @@ DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
 goalie_role.push_back(lone_goalie_active(world));
+roles[0].push_back(idle(world)); // just to get rid of warning
 END_ASSIGN()
 END_PLAY()
 

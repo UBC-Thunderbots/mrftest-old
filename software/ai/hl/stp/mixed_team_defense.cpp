@@ -42,7 +42,7 @@ namespace {
 	BoolParam enable6("enable robot 6", "MixedTeamDefense", true);
 	BoolParam enable7("enable robot 7", "MixedTeamDefense", true);
 	BoolParam enable8("enable robot 8", "MixedTeamDefense", true);
-BoolParam enable9("enable robot 9", "MixedTeamDefense", true);
+	BoolParam enable9("enable robot 9", "MixedTeamDefense", true);
 	BoolParam use_simon("use simon", "MixedTeamDefense", true);
 	BoolParam do_draw("draw", "MixedTeamDefense", true);
 
@@ -161,15 +161,6 @@ BoolParam enable9("enable robot 9", "MixedTeamDefense", true);
 				Action::move(world, players[2], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 2 * Robot::MAX_RADIUS));
 			}
 
-			/*
-			   if (players.size() > 0) {
-			   Action::move(world, players[0], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS));
-			   }
-
-			   if (players.size() > 1) {
-			   Action::move(world, players[1], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 2 * Robot::MAX_RADIUS));
-			   }
-			 */
 		}
 
 		void stop(std::vector<Player::Ptr>& players) {
@@ -187,24 +178,6 @@ BoolParam enable9("enable robot 9", "MixedTeamDefense", true);
 			   stop2->execute();
 			   }
 
-			/*
-			if (players.size() > 0) {
-				auto stop1 = Tactic::move_stop(world, 0);
-				stop1->set_player(players[0]);
-				stop1->execute();
-			}
-
-			if (players.size() > 1) {
-				auto stop2 = Tactic::move_stop(world, 1);
-				stop2->set_player(players[1]);
-				stop2->execute();
-			}
-*/
-		}
-
-		void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
-			if (do_draw)
-			draw_ui(world, ctx);
 		}
 
 		void play(std::vector<Player::Ptr>& players) {
@@ -258,6 +231,11 @@ BoolParam enable9("enable robot 9", "MixedTeamDefense", true);
 				}
 			}
 
+		}
+		
+		void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+			if (do_draw)
+			draw_ui(world, ctx);
 		}
 	};
 
