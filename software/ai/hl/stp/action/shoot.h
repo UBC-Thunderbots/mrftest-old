@@ -21,7 +21,7 @@ namespace AI {
 				 *
 				 * \return true if the player autokick is fired.
 				 */
-				bool shoot_goal(const World &world, Player::Ptr player, bool force = false, bool use_reduced_radius = true);
+				bool shoot_goal(const World &world, Player::Ptr player, bool use_reduced_radius = true);
 
 				/**
 				 * WARNING: should use shoot_region or shoot_pass

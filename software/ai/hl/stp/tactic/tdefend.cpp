@@ -62,7 +62,7 @@ namespace {
 	}
 
 	Player::Ptr TDefender::select(const std::set<Player::Ptr> &players) const {
-		Point target = Evaluation::evaluate_tdefense(world, player, index);
+		Point target = Evaluation::evaluate_tdefense(world, index);
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(target));
 	}
 
@@ -72,7 +72,7 @@ namespace {
 			Action::ram(world, player);
 			return;
 		}
-		Point target = Evaluation::evaluate_tdefense(world, player, index);
+		Point target = Evaluation::evaluate_tdefense(world, index);
 		if (Evaluation::ball_on_net(world)){ // ball is coming towards net
 			if (index == 2) { 
 				// 2nd defender should not go after the ball unless the ball is far enough from our goal

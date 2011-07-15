@@ -110,7 +110,7 @@ bool Evaluation::possess_ball(const World &world, Robot::Ptr robot) {
 	return dist < enemy_pivot_threshold;
 }
 
-Player::CPtr Evaluation::calc_friendly_baller(const World &world) {
+Player::CPtr Evaluation::calc_friendly_baller() {
 	return baller;
 }
 
@@ -139,7 +139,7 @@ Point Evaluation::calc_fastest_grab_ball_dest(const World &world, Player::CPtr p
 	return dest;
 }
 
-std::vector<Robot::Ptr> Evaluation::enemies_by_grab_ball_dist(const World& world) {
+std::vector<Robot::Ptr> Evaluation::enemies_by_grab_ball_dist() {
 	return enemies;
 }
 

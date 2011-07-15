@@ -10,13 +10,13 @@
 
 void AI::HL::STP::Action::chase_pivot(const World &world, Player::Ptr player, const Point target) {
 	if (Evaluation::ball_in_pivot_thresh(world, player)) {
-		pivot(world, player, target);
+		pivot(player, target);
 	} else {
-		chase(world, player, target);
+		chase(player, target);
 	}
 }
 
-void AI::HL::STP::Action::pivot(const World &world, Player::Ptr player, const Point target) {
+void AI::HL::STP::Action::pivot(Player::Ptr player, const Point target) {
 
 	const double ori = (target - player->position()).orientation();
 

@@ -23,7 +23,7 @@ namespace AI {
 				 * 2 - defender-extra1
 				 * 3 - defender-extra2
 				 */
-				const std::array<Point, MAX_DEFENDERS + 1> evaluate_defense(const World &world);
+				const std::array<Point, MAX_DEFENDERS + 1> evaluate_defense();
 
 				/**
 				 * Checks if an enemy breaks our defense duo.
@@ -33,7 +33,7 @@ namespace AI {
 				/**
 				 * return dest of Terence defender - index.
 				 */
-				Point evaluate_tdefense(const World &world, Player::Ptr player, const unsigned index);
+				Point evaluate_tdefense(const World &world, const unsigned index);
 			}
 		}
 	}

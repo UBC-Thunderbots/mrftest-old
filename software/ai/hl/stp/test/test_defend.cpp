@@ -48,7 +48,7 @@ namespace {
 					return;
 				}
 
-				auto waypoints = Evaluation::evaluate_defense(world);
+				auto waypoints = Evaluation::evaluate_defense();
 				Action::goalie_move(world, friendly.get(0), waypoints[0]);
 				Action::defender_move(world, friendly.get(1), waypoints[1]);
 			}

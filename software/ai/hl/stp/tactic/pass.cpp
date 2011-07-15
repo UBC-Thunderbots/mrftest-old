@@ -68,7 +68,7 @@ namespace {
 			}
 			
 			bool fail() const {
-				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();				
+				Point dest = dynamic ? Evaluation::passee_position() : target.position();				
 				return player.is()
 					// should fail when cannot pass to target,
 					&&  ((passer_depends_calc_best_shot_target
@@ -83,7 +83,7 @@ namespace {
 			}
 
 			void execute() {
-				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();
+				Point dest = dynamic ? Evaluation::passee_position() : target.position();
 				kicked = kicked || player->autokick_fired();
 				if (!player->autokick_fired() && !kicked) {
 					PasserShoot::passer_info.kicker_location = player->position();
@@ -134,7 +134,7 @@ namespace {
 			Coordinate target;
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				Point dest = dynamic ? Evaluation::passee_position(world) : target.position();
+				Point dest = dynamic ? Evaluation::passee_position() : target.position();
 				last_passee = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
 				return last_passee;
 			}

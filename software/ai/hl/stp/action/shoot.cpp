@@ -31,7 +31,7 @@ void AI::HL::STP::Action::autokick(Player::Ptr player, const Point target, doubl
 	}
 }
 
-bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, bool force, bool use_reduced_radius) {
+bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, bool use_reduced_radius) {
 	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player, use_reduced_radius);
 
 	Player::CPtr pc = player;
@@ -51,7 +51,7 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, boo
 			return false;
 		}
 		LOG_INFO("autokick");
-		chase(world, player, shoot_data.target);
+		chase(player, shoot_data.target);
 		autokick(player, shoot_data.target, 10.0);
 		return true;
 	} else {

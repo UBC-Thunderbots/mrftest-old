@@ -112,7 +112,7 @@ namespace {
 			waypoint_defenders.push_back(D1);
 		}
 
-		std::vector<Robot::Ptr> enemies = enemies_by_grab_ball_dist(world);
+		std::vector<Robot::Ptr> enemies = enemies_by_grab_ball_dist();
 
 		// sort enemies by distance to own goal
 		// std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(field.friendly_goal()));
@@ -152,7 +152,7 @@ namespace {
 				}
 			}
 
-#warning A HACK FOR NOW, may intefere with baller abovee
+#warning A HACK FOR NOW, may intefere with baller above
 			if (AI::HL::Util::ball_close(world, threat[i])) {
 				continue;
 			}
@@ -213,7 +213,7 @@ void AI::HL::STP::Evaluation::tick_defense(const World& world) {
 	waypoints = compute(world);
 }
 
-const std::array<Point, MAX_DEFENDERS + 1> AI::HL::STP::Evaluation::evaluate_defense(const World &world) {
+const std::array<Point, MAX_DEFENDERS + 1> AI::HL::STP::Evaluation::evaluate_defense() {
 	return waypoints;
 }
 
@@ -225,10 +225,10 @@ bool AI::HL::STP::Evaluation::enemy_break_defense_duo(const World& world, const 
 	return calc_enemy_best_shot_goal(world.field(), obstacles, enemy->position()).second > degrees2radians(enemy_shoot_accuracy);
 }
 
-Point AI::HL::STP::Evaluation::evaluate_tdefense(const World &world, Player::Ptr player, const unsigned index){
+Point AI::HL::STP::Evaluation::evaluate_tdefense(const World &world, const unsigned index){
 	Point target;
 	if (world.enemy_team().size() > index-1){
-		std::vector<Robot::Ptr> enemies = Evaluation::enemies_by_grab_ball_dist(world);
+		std::vector<Robot::Ptr> enemies = Evaluation::enemies_by_grab_ball_dist();
 		Point r = enemies[index-1]->position();
 		if (r.x < world.field().centre_circle_radius()){	
 			target = tdefender_block_enemy(world, r, index);

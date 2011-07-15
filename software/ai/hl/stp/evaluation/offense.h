@@ -37,12 +37,12 @@ namespace AI {
 				 *   note that the calculation of the secondary offender depends on the primary offender
 				 * - if no valid position is found for a particular
 				 */
-				std::array<Point, 2> offense_positions(const World &world);
+				std::array<Point, 2> offense_positions();
 
 				/**
 				 * returns a passee position for passing
 				 */				
-				Point passee_position(const World &world);
+				Point passee_position();
 
 				/**
 				 * Grid size in x-direction.

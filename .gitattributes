@@ -345,7 +345,6 @@ software/ai/hl/stp/test/test_pass.cpp -text
 software/ai/hl/stp/test/test_pivot.cpp -text
 software/ai/hl/stp/test/test_repel.cpp -text
 software/ai/hl/stp/test/test_shoot.cpp -text
-software/ai/hl/stp/test/test_shoot_distance.cpp -text
 software/ai/hl/stp/test/test_spin.cpp -text
 software/ai/hl/stp/test/test_tdefend.cpp -text
 software/ai/hl/stp/ui.cpp -text

@@ -275,7 +275,7 @@ Player::CPtr Evaluation::select_passee(const World& world) {
 }
 
 Point Evaluation::calc_fastest_grab_ball_dest_if_baller_shoots(const World &world, const Point player_pos) {
-	Player::CPtr baller = Evaluation::calc_friendly_baller(world);
+	Player::CPtr baller = Evaluation::calc_friendly_baller();
 	if (!baller.is()) {
 		return world.ball().position();
 	}

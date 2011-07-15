@@ -14,7 +14,7 @@ namespace AI {
 				 * Finds a friendly player with the ball.
 				 * Wrapper to stp's baller.
 				 */
-				Player::CPtr calc_friendly_baller(const World &world);
+				Player::CPtr calc_friendly_baller();
 
 				/**
 				 * Finds an enemy player with the ball.
@@ -43,8 +43,7 @@ namespace AI {
 				 */
 				Point calc_fastest_grab_ball_dest(const World &world, Player::CPtr player);
 
-				std::vector<Robot::Ptr> enemies_by_grab_ball_dist(const World& world);
-
+				std::vector<Robot::Ptr> enemies_by_grab_ball_dist();
 
 				/**
 				 * Distance from the front to be considered ball possession.

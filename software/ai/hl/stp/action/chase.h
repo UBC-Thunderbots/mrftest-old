@@ -19,7 +19,7 @@ namespace AI {
 				 * Chases after the ball as fast as possible.
 				 * Orient towards Point target.
 				 */
-				void chase(const World &world, Player::Ptr player, Point target);
+				void chase(Player::Ptr player, Point target);
 			}
 		}
 	}

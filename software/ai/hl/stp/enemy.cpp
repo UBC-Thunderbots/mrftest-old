@@ -61,7 +61,7 @@ namespace {
 					return Robot::Ptr();
 				}
 
-				auto enemies = Evaluation::enemies_by_grab_ball_dist(world);
+				auto enemies = Evaluation::enemies_by_grab_ball_dist();
 
 				return enemies[index];
 			}

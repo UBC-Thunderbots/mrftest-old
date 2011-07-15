@@ -104,7 +104,7 @@ namespace {
 				Action::move(world, player, player->position());
 			} else {
 				// move to a suitable position
-				auto dest = AI::HL::STP::Evaluation::offense_positions(world);
+				auto dest = AI::HL::STP::Evaluation::offense_positions();
 				Action::move(world, player, dest[number]);
 				player->prio(AI::Flags::MovePrio::LOW);
 			}

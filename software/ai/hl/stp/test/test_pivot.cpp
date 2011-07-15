@@ -66,7 +66,7 @@ namespace {
 				}
 				time++;
 
-				Action::pivot(world, player, target);
+				Action::pivot(player, target);
 			}
 	};
 

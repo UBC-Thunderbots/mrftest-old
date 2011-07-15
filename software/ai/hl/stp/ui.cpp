@@ -20,22 +20,7 @@ namespace {
 
 void AI::HL::STP::draw_player_status(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
 	const FriendlyTeam& friendly = world.friendly_team();
-	/*
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if (friendly.get(i)->chicker_ready()) {
-			continue;
-		}
-		Point c = friendly.get(i)->position();
-		const double R = Robot::MAX_RADIUS / std::sqrt(2.0);
-		ctx->set_source_rgba(1.0, 0.0, 0.0, 0.8);
-		ctx->set_line_width(0.02);
-		ctx->move_to(c.x - R, c.y - R);
-		ctx->line_to(c.x + R, c.y + R);
-		ctx->move_to(c.x - R, c.y + R);
-		ctx->line_to(c.x + R, c.y - R);
-		ctx->stroke();
-	}
-	*/
+	
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		Player::CPtr player = friendly.get(i);
 		if (!player->has_ball()) {
@@ -67,19 +52,7 @@ void AI::HL::STP::draw_friendly_pass(const World &world, Cairo::RefPtr<Cairo::Co
 void AI::HL::STP::draw_enemy_pass(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
 	auto threats = Evaluation::calc_enemy_threat(world);
 	const EnemyTeam& enemy = world.enemy_team();
-	/*
-	   for (std::size_t i = 0; i < enemy.size(); ++i) {
-	   for (std::size_t j = i + 1; j < enemy.size(); ++j) {
-	   if (Evaluation::enemy_can_pass(world, enemy.get(i), enemy.get(j))) {
-	   ctx->set_source_rgba(0.5, 0.5, 0.5, 0.5);
-	   ctx->set_line_width(0.02);
-	   ctx->move_to(enemy.get(i)->position().x, enemy.get(i)->position().y);
-	   ctx->line_to(enemy.get(j)->position().x, enemy.get(j)->position().y);
-	   ctx->stroke();
-	   }
-	   }
-	   }
-	 */
+	
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		Robot::Ptr robot = threats[i].robot;
 		Robot::Ptr passee = threats[i].passee;
@@ -118,13 +91,6 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 			continue;
 		}
 
-		/*
-		ctx->set_source_rgba(0.0, 1.0, 1.0, 0.8);
-		ctx->arc(player->position().x, player->position().y, Robot::MAX_RADIUS, 0.0, 2 * M_PI);
-		ctx->set_line_width(0.05);
-		ctx->stroke();
-		*/
-
 		ctx->set_source_rgba(0.0, 1.0, 1.0, 0.4);
 		if (Evaluation::possess_ball(world, player)) {
 			ctx->set_line_width(Robot::MAX_RADIUS);
@@ -137,7 +103,7 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 
 	}
 
-	Player::CPtr baller = Evaluation::calc_friendly_baller(world);
+	Player::CPtr baller = Evaluation::calc_friendly_baller();
 	if (baller.is()) {
 
 		auto shot = Evaluation::best_shoot_ray(world, baller);
@@ -185,32 +151,6 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 }
 
 void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
-	// draw yellow circles for shooting
-	/*
-	   const FriendlyTeam &friendly = world.friendly_team();
-	   for (std::size_t i = 0; i < friendly.size(); ++i) {
-	   const Player::CPtr player = friendly.get(i);
-	   std::pair<Point, double> best_shot = AI::HL::Util::calc_best_shot(world, player);
-	   if (best_shot.second < AI::HL::Util::shoot_accuracy * M_PI / 180) {
-	   continue;
-	   }
-
-	   const double radius = best_shot.second * 0.5;
-
-	// draw yellow circle
-	ctx->set_source_rgba(1.0, 1.0, 0.5, 0.2);
-	ctx->arc(player->position().x, player->position().y, radius, 0.0, 2 * M_PI);
-	ctx->fill();
-	ctx->stroke();
-
-	// draw line
-	ctx->set_source_rgba(1.0, 1.0, 0.5, 0.2);
-	ctx->set_line_width(0.01);
-	ctx->move_to(player->position().x, player->position().y);
-	ctx->line_to(best_shot.first.x, best_shot.first.y);
-	ctx->stroke();
-	}
-	 */
 
 	// draw blue circles for offense
 	{
@@ -256,7 +196,7 @@ void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context>
 
 	// draw green circles for best offense
 	{
-		std::array<Point, 2> positions = Evaluation::offense_positions(world);
+		std::array<Point, 2> positions = Evaluation::offense_positions();
 		ctx->set_source_rgba(0.6, 1.0, 0.6, 0.8);
 		ctx->arc(positions[0].x, positions[0].y, 0.1, 0.0, 2 * M_PI);
 		ctx->fill();
@@ -311,7 +251,7 @@ void AI::HL::STP::draw_velocity(const World &world, Cairo::RefPtr<Cairo::Context
 }
 
 void AI::HL::STP::draw_baller(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
-	Player::CPtr baller = Evaluation::calc_friendly_baller(world);
+	Player::CPtr baller = Evaluation::calc_friendly_baller();
 	if (baller.is() && !Evaluation::possess_ball(world, baller)) {
 		Point dest = Evaluation::calc_fastest_grab_ball_dest(world, baller);
 		// black line

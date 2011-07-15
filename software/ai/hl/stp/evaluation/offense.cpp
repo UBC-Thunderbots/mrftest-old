@@ -176,7 +176,7 @@ namespace {
 
 		// if a baller exists,
 		// calculate the deviation from the direction
-		Player::CPtr baller = Evaluation::calc_friendly_baller(world);
+		Player::CPtr baller = Evaluation::calc_friendly_baller();
 
 		if (baller.is()) {
 			double ori_ball = (dest - baller->position()).orientation();
@@ -297,11 +297,11 @@ void AI::HL::STP::Evaluation::tick_offense(const World& world) {
 	update(world);
 }
 
-std::array<Point, 2> AI::HL::STP::Evaluation::offense_positions(const World &world) {
+std::array<Point, 2> AI::HL::STP::Evaluation::offense_positions() {
 	return best_positions;
 }
 
-Point AI::HL::STP::Evaluation::passee_position(const World &world) {
+Point AI::HL::STP::Evaluation::passee_position() {
 	return best_positions[0];
 }
 

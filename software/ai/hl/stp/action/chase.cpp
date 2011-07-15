@@ -31,7 +31,7 @@ void AI::HL::STP::Action::chase(const World &world, Player::Ptr player) {
 	player->prio(AI::Flags::MovePrio::HIGH);
 }
 
-void AI::HL::STP::Action::chase(const World &world, Player::Ptr player, Point target) {
+void AI::HL::STP::Action::chase(Player::Ptr player, Point target) {
 	player->move(target, (target - player->position()).orientation(), Point());
 	player->type(AI::Flags::MoveType::CATCH_PIVOT);
 	player->prio(AI::Flags::MovePrio::HIGH);

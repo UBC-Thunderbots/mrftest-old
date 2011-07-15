@@ -80,7 +80,7 @@ namespace {
 			Action::goalie_move(world, player, dest);
 		} else if (world.friendly_team().size() > defender_role + 1) {
 			// has defender
-			auto waypoints = Evaluation::evaluate_defense(world);
+			auto waypoints = Evaluation::evaluate_defense();
 			Action::goalie_move(world, player, waypoints[0]);
 		} else {
 			// solo
@@ -89,7 +89,7 @@ namespace {
 	}
 
 	void Goalie::execute() {
-		auto waypoints = Evaluation::evaluate_defense(world);
+		auto waypoints = Evaluation::evaluate_defense();
 		Point dest = waypoints[0];
 		if (tdefend) {
 			Point dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
@@ -99,14 +99,14 @@ namespace {
 	}
 
 	Player::Ptr Defender::select(const std::set<Player::Ptr> &players) const {
-		auto waypoints = Evaluation::evaluate_defense(world);
+		auto waypoints = Evaluation::evaluate_defense();
 		Point dest = waypoints[index];
-		if (tdefend && index > 0 && index < 3) dest = Evaluation::evaluate_tdefense(world, player, index);
+		if (tdefend && index > 0 && index < 3) dest = Evaluation::evaluate_tdefense(world, index);
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
 	}
 
 	void Defender::execute() {
-		auto waypoints = Evaluation::evaluate_defense(world);
+		auto waypoints = Evaluation::evaluate_defense();
 		Point dest = waypoints[index];
 		if (tdefend && index > 0 && index < 3) {
 			Point diff = world.ball().position() - world.field().friendly_goal();
@@ -114,7 +114,7 @@ namespace {
 				Action::repel(world, player);
 				return;
 			}
-			dest = Evaluation::evaluate_tdefense(world, player, index);
+			dest = Evaluation::evaluate_tdefense(world, index);
 			if (Evaluation::ball_on_net(world)){ // ball is coming towards net
 				if (index == 2) { 
 					// 2nd defender should not go after the ball unless the ball is far enough from our goal

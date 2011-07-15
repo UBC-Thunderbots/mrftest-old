@@ -35,23 +35,23 @@ namespace {
 	};
 
 	Player::Ptr Primary::select(const std::set<Player::Ptr> &players) const {
-		auto dest = AI::HL::STP::Evaluation::offense_positions(world);
+		auto dest = AI::HL::STP::Evaluation::offense_positions();
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest[0]));
 	}
 
 	void Primary::execute() {
-		auto dest = AI::HL::STP::Evaluation::offense_positions(world);
+		auto dest = AI::HL::STP::Evaluation::offense_positions();
 		Action::move(world, player, dest[0]);
 		player->prio(AI::Flags::MovePrio::LOW);
 	}
 
 	Player::Ptr Secondary::select(const std::set<Player::Ptr> &players) const {
-		auto dest = AI::HL::STP::Evaluation::offense_positions(world);
+		auto dest = AI::HL::STP::Evaluation::offense_positions();
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest[1]));
 	}
 
 	void Secondary::execute() {
-		auto dest = AI::HL::STP::Evaluation::offense_positions(world);
+		auto dest = AI::HL::STP::Evaluation::offense_positions();
 		Action::move(world, player, dest[1]);
 		player->prio(AI::Flags::MovePrio::LOW);
 	}

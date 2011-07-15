@@ -41,11 +41,8 @@ namespace {
 			return;
 		}
 
-		// TODO: flags
-		// Action::chase(world, player, 0);
-
 		// orient towards the enemy goal?
-		Action::chase(world, player, world.field().enemy_goal());
+		Action::chase(player, world.field().enemy_goal());
 	}
 
 	void Chase::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {

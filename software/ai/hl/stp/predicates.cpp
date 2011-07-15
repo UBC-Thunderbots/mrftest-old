@@ -141,7 +141,7 @@ bool Predicates::BallNearEnemyGoal::compute(const World &world) {
 Predicates::BallNearEnemyGoal Predicates::ball_near_enemy_goal;
 
 bool Predicates::BallerCanShoot::compute(const World &world) {
-	const Player::CPtr baller = Evaluation::calc_friendly_baller(world);
+	const Player::CPtr baller = Evaluation::calc_friendly_baller();
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
@@ -151,7 +151,7 @@ bool Predicates::BallerCanShoot::compute(const World &world) {
 Predicates::BallerCanShoot Predicates::baller_can_shoot;
 
 bool Predicates::BallerCanPassTarget::compute(const World &world, const Point target) {
-	const Player::CPtr baller = Evaluation::calc_friendly_baller(world);
+	const Player::CPtr baller = Evaluation::calc_friendly_baller();
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
@@ -162,7 +162,7 @@ bool Predicates::BallerCanPassTarget::compute(const World &world, const Point ta
 Predicates::BallerCanPassTarget Predicates::baller_can_pass_target;
 
 bool Predicates::BallerCanPass::compute(const World &world) {
-	const Player::CPtr baller = Evaluation::calc_friendly_baller(world);
+	const Player::CPtr baller = Evaluation::calc_friendly_baller();
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
@@ -172,7 +172,7 @@ bool Predicates::BallerCanPass::compute(const World &world) {
 Predicates::BallerCanPass Predicates::baller_can_pass;
 
 bool Predicates::BallerUnderThreat::compute(const World &world) {
-	const Player::CPtr baller = Evaluation::calc_friendly_baller(world);
+	const Player::CPtr baller = Evaluation::calc_friendly_baller();
 	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
@@ -255,7 +255,7 @@ bool Predicates::FightBall::compute(const World &world) {
 	if (!new_fight) {
 		return our_ball(world) && their_ball(world);
 	} else {
-		const Player::CPtr friendly_baller = Evaluation::calc_friendly_baller(world);
+		const Player::CPtr friendly_baller = Evaluation::calc_friendly_baller();
 		const Robot::Ptr enemy_baller = Evaluation::calc_enemy_baller(world);
 		return (friendly_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS
 			&& (enemy_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS;
