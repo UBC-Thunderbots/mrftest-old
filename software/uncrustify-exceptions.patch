@@ -714,3 +714,16 @@ Index: geom/point.h
  
  /**
   * Scales a vector by a scalar.
+Index: ai/navigator/rrt_navigator.cpp
+===================================================================
+--- ai/navigator/rrt_navigator.cpp	(revision 6496)
++++ ai/navigator/rrt_navigator.cpp	(working copy)
+@@ -44,7 +44,7 @@
+ 
+ 			class PlayerData : public ObjectStore::Element {
+ 				public:
+-					typedef ::RefPtr<PlayerData> Ptr;
++					typedef::RefPtr<PlayerData> Ptr;
+ 					unsigned int added_flags;
+ 			};
+ 

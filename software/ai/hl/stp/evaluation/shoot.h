@@ -23,7 +23,7 @@ namespace AI {
 
 				/**
 				 * The current score of the the robot, in it's current position and orientation
-				 **a positive score indicates a scoring oppurtunity
+				 * a positive score indicates a scoring oppurtunity
 				 * the return value represents the maximum angle error acceptable while still representing a goal scored
 				 */
 				double get_shoot_score(const World &world, Player::Ptr player, bool use_reduced_radius = true);
