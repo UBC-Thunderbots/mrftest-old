@@ -66,8 +66,6 @@ namespace {
 				return;
 			}
 
-			Player::Ptr first = friendly.get(0);
-
 			const double px = controls[0].get_value();
 			const double py = controls[1].get_value();
 			const double pz = controls[2].get_value();
@@ -75,8 +73,8 @@ namespace {
 			for (std::size_t i = 0; i < friendly.size(); ++i) {
 				Player::Ptr runner = friendly.get(i);
 
-				const double ix = px + offsets_x.get_value() * i;
-				const double iy = py + offsets_y.get_value() * i;
+				const double ix = px + offsets_x.get_value() * static_cast<double>(i);
+				const double iy = py + offsets_y.get_value() * static_cast<double>(i);
 
 				runner->move(Point(ix, iy), pz, Point());
 				runner->type(AI::Flags::MoveType::NORMAL);
