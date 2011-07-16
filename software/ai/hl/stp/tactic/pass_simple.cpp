@@ -24,59 +24,58 @@ using AI::HL::STP::Coordinate;
 using AI::HL::STP::min_pass_dist;
 
 namespace {
-
 	struct PasserSimple : public Tactic {
-			bool kick_attempted;
+		bool kick_attempted;
 
-			// HYSTERISIS
-			Player::CPtr target;
+		// HYSTERISIS
+		Player::CPtr target;
 
-			PasserSimple(const World &world) : Tactic(world, true), kick_attempted(false) {
-			}
+		PasserSimple(const World &world) : Tactic(world, true), kick_attempted(false) {
+		}
 
-			bool done() const {
-				return player.is() && kick_attempted && player->autokick_fired();
-			}
+		bool done() const {
+			return player.is() && kick_attempted && player->autokick_fired();
+		}
 
-			void player_changed() {
-				target = Evaluation::select_passee(world);
-			}
+		void player_changed() {
+			target = Evaluation::select_passee(world);
+		}
 
-			bool fail() const {
-				if (!target.is()) {
-					return false;
-				}
-				if (!Evaluation::passee_suitable(world, target)) {
-					return true;
-				}
+		bool fail() const {
+			if (!target.is()) {
 				return false;
 			}
+			if (!Evaluation::passee_suitable(world, target)) {
+				return true;
+			}
+			return false;
+		}
 
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				// if a player attempted to shoot, keep the player
-				if (kick_attempted && players.count(player)) {
-					return player;
-				}
-				return select_baller(world, players, player);
+		Player::Ptr select(const std::set<Player::Ptr> &players) const {
+			// if a player attempted to shoot, keep the player
+			if (kick_attempted && players.count(player)) {
+				return player;
+			}
+			return select_baller(world, players, player);
+		}
+
+		void execute() {
+			if (!target.is()) {
+				LOG_ERROR("no target");
+				// should fail
+				return;
 			}
 
-			void execute() {
-				if (!target.is()) {
-					LOG_ERROR("no target");
-					// should fail
-					return;
-				}
-
-				if (Action::shoot_pass(world, player, target)) {
-					kick_attempted = true;
-				}
-
-				player->flags(0);
+			if (Action::shoot_pass(world, player, target)) {
+				kick_attempted = true;
 			}
 
-			std::string description() const {
-				return "passer-simple";
-			}
+			player->flags(0);
+		}
+
+		std::string description() const {
+			return "passer-simple";
+		}
 	};
 
 	struct PasseeSimple : public Tactic {
@@ -116,7 +115,6 @@ namespace {
 	};
 
 	struct FollowBaller : public Tactic {
-
 		FollowBaller(const World &world) : Tactic(world, false) {
 		}
 
@@ -146,7 +144,6 @@ namespace {
 			return "follow-baller";
 		}
 	};
-
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passer_simple(const World &world) {

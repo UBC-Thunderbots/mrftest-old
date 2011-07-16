@@ -45,7 +45,7 @@ namespace {
 			Action::move(world, player, default_loc.position());
 		}
 	}
-	
+
 	class ShadowBall : public Tactic {
 		public:
 			ShadowBall(const World &world) : Tactic(world) {
@@ -77,5 +77,4 @@ Tactic::Ptr AI::HL::STP::Tactic::shadow_ball(const World &world) {
 	const Tactic::Ptr p(new ShadowBall(world));
 	return p;
 }
-
 

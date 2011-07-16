@@ -9,6 +9,7 @@ void AI::HL::STP::Action::ram(const World &world, Player::Ptr player, const Poin
 	player->prio(AI::Flags::MovePrio::HIGH);
 }
 
-void AI::HL::STP::Action::ram(const World &world, Player::Ptr player){
+void AI::HL::STP::Action::ram(const World &world, Player::Ptr player) {
 	ram(world, player, world.ball().position(), Point());
 }
+

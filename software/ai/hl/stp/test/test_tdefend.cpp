@@ -56,9 +56,8 @@ namespace {
 				auto defend2 = Tactic::tdefender2(world);
 				defend2->set_player(friendly.get(2));
 				defend2->execute();
-				
 			}
-			
+
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 				draw_defense(world, ctx);
 			}

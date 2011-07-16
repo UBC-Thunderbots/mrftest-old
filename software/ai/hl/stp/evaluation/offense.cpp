@@ -20,7 +20,7 @@ using AI::HL::STP::Evaluation::grid_x;
 using AI::HL::STP::Evaluation::grid_y;
 
 namespace {
-	//const double DEG_2_RAD = 1.0 / 180.0 * M_PI;
+	// const double DEG_2_RAD = 1.0 / 180.0 * M_PI;
 
 	// BoolParam use_area_metric("use area metric", "STP/offense", true);
 
@@ -56,7 +56,6 @@ namespace {
 	std::array<Point, 2> best_positions;
 
 	double scoring_function(const World &world, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
-
 		// can't be too close to enemy
 		double closest_enemy = world.field().width();
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
@@ -203,9 +202,8 @@ namespace {
 
 		best_pos = Point();
 
-		for (int i = 1; i <= 2*grid_y+1; i += 2) {
-			for (int j = (i/2+1)%2+1; j <= 2*grid_x+1; j += 2) {
-
+		for (int i = 1; i <= 2 * grid_y + 1; i += 2) {
+			for (int j = (i / 2 + 1) % 2 + 1; j <= 2 * grid_x + 1; j += 2) {
 				const double x = x1 + dx * j;
 				const double y = y1 + dy * i;
 				const Point pos = Point(x, y);
@@ -249,17 +247,17 @@ namespace {
 		return best_score > 0;
 	}
 
-	void update(const World& world) {
+	void update(const World &world) {
 		score1.clear();
 		score2.clear();
 		good.clear();
-		score1.resize(2*grid_y+2);
-		score2.resize(2*grid_y+2);
-		good.resize(2*grid_y+2);
-		for (int i = 0; i < 2*grid_y+2; ++i) {
-			score1[i].resize(2*grid_x+2, -1e99);
-			score2[i].resize(2*grid_x+2, -1e99);
-			good[i].resize(2*grid_x+2, true);
+		score1.resize(2 * grid_y + 2);
+		score2.resize(2 * grid_y + 2);
+		good.resize(2 * grid_y + 2);
+		for (int i = 0; i < 2 * grid_y + 2; ++i) {
+			score1[i].resize(2 * grid_x + 2, -1e99);
+			score2[i].resize(2 * grid_x + 2, -1e99);
+			good[i].resize(2 * grid_x + 2, true);
 		}
 
 		const EnemyTeam &enemy = world.enemy_team();
@@ -288,12 +286,16 @@ namespace {
 }
 
 double AI::HL::STP::Evaluation::offense_score(int i, int j) {
-	if (score1.size() <= i) return -1e99;
-	if (score1[0].size() <= j) return -1e99;
+	if (score1.size() <= i) {
+		return -1e99;
+	}
+	if (score1[0].size() <= j) {
+		return -1e99;
+	}
 	return score1[i][j];
 }
 
-void AI::HL::STP::Evaluation::tick_offense(const World& world) {
+void AI::HL::STP::Evaluation::tick_offense(const World &world) {
 	update(world);
 }
 

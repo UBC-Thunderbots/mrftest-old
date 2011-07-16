@@ -16,7 +16,7 @@ using namespace AI::HL::STP;
 namespace {
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/predicates", 3.0, 1.0, 10.0);
 	DoubleParam fight_thresh("dist thresh to start fight ball with enemy (robot radius)", "STP/predicates", 2.0, 0.1, 4.0);
-	
+
 	BoolParam new_fight("new fight", "STP/predicates", true);
 }
 
@@ -111,13 +111,13 @@ bool Predicates::BallOnTheirSide::compute(const World &world) {
 Predicates::BallOnTheirSide Predicates::ball_on_their_side;
 
 bool Predicates::BallInOurCorner::compute(const World &world) {
-	return world.ball().position().x <= -world.field().length() / 4 && std::fabs(world.ball().position().y) > world.field().goal_width()/2 + world.field().defense_area_radius();
+	return world.ball().position().x <= -world.field().length() / 4 && std::fabs(world.ball().position().y) > world.field().goal_width() / 2 + world.field().defense_area_radius();
 }
 
 Predicates::BallInOurCorner Predicates::ball_in_our_corner;
 
 bool Predicates::BallInTheirCorner::compute(const World &world) {
-	return world.ball().position().x >= world.field().length() / 4 && std::fabs(world.ball().position().y) > world.field().goal_width()/2 + world.field().defense_area_radius();
+	return world.ball().position().x >= world.field().length() / 4 && std::fabs(world.ball().position().y) > world.field().goal_width() / 2 + world.field().defense_area_radius();
 }
 
 Predicates::BallInTheirCorner Predicates::ball_in_their_corner;
@@ -239,7 +239,9 @@ bool Predicates::NumOfEnemiesOnOurSideAtLeast::compute(const World &world, const
 			cnt++;
 		}
 	}
-	if (cnt >= n) return true;
+	if (cnt >= n) {
+		return true;
+	}
 	return false;
 }
 
@@ -258,17 +260,19 @@ bool Predicates::FightBall::compute(const World &world) {
 		const Player::CPtr friendly_baller = Evaluation::calc_friendly_baller();
 		const Robot::Ptr enemy_baller = Evaluation::calc_enemy_baller(world);
 		return (friendly_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS
-			&& (enemy_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS;
+		       && (enemy_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS;
 	}
 }
 
 Predicates::FightBall Predicates::fight_ball;
 
-bool Predicates::CanShootRay::compute(const World& world) {
-	const FriendlyTeam& friendly = world.friendly_team();
+bool Predicates::CanShootRay::compute(const World &world) {
+	const FriendlyTeam &friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		const Player::CPtr player = friendly.get(i);
-		if (!Evaluation::possess_ball(world, player)) continue;
+		if (!Evaluation::possess_ball(world, player)) {
+			continue;
+		}
 		if (Evaluation::best_shoot_ray(world, player).first) {
 			return true;
 		}
@@ -280,14 +284,14 @@ Predicates::CanShootRay Predicates::can_shoot_ray;
 
 bool Predicates::BallInsideRobot::compute(const World &world) {
 	const Point ball = world.ball().position();
-	
+
 	const FriendlyTeam &friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if ((friendly.get(i)->position() - ball).len() < AI::HL::Util::POS_CLOSE){
-			return true; 
+		if ((friendly.get(i)->position() - ball).len() < AI::HL::Util::POS_CLOSE) {
+			return true;
 		}
 	}
-	
+
 	const EnemyTeam &enemies = world.enemy_team();
 	for (std::size_t i = 0; i < enemies.size(); ++i) {
 		if ((enemies.get(i)->position() - ball).len() < AI::HL::Util::POS_CLOSE) {
@@ -299,7 +303,7 @@ bool Predicates::BallInsideRobot::compute(const World &world) {
 
 Predicates::BallInsideRobot Predicates::ball_inside_robot;
 
-bool Predicates::EnemyBreakDefenseDuo::compute(const World& world) {
+bool Predicates::EnemyBreakDefenseDuo::compute(const World &world) {
 	const EnemyTeam &enemies = world.enemy_team();
 	for (std::size_t i = 0; i < enemies.size(); ++i) {
 		if (Evaluation::enemy_break_defense_duo(world, enemies.get(i))) {
@@ -311,7 +315,7 @@ bool Predicates::EnemyBreakDefenseDuo::compute(const World& world) {
 
 Predicates::EnemyBreakDefenseDuo Predicates::enemy_break_defense_duo;
 
-bool Predicates::BallTowardsEnemy::compute(const World& world) {
+bool Predicates::BallTowardsEnemy::compute(const World &world) {
 	const EnemyTeam &enemies = world.enemy_team();
 	for (std::size_t i = 0; i < enemies.size(); ++i) {
 		if (Evaluation::evaluate_ball_threat(world).activate_steal) {
@@ -324,7 +328,7 @@ bool Predicates::BallTowardsEnemy::compute(const World& world) {
 
 Predicates::BallTowardsEnemy Predicates::ball_towards_enemy;
 
-bool Predicates::BallOnEnemyNet::compute(const World& world) {
+bool Predicates::BallOnEnemyNet::compute(const World &world) {
 	return Evaluation::ball_on_enemy_net(world);
 }
 

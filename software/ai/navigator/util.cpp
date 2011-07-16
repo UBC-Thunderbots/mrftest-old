@@ -12,18 +12,18 @@ using namespace AI::Nav::W;
 namespace {
 	const double EPS = 1e-9;
 
-	BoolParam OWN_HALF_OVERRIDE( "enforce that robots stay on own half ", "Nav/Util", false);
+	BoolParam OWN_HALF_OVERRIDE("enforce that robots stay on own half ", "Nav/Util", false);
 
 	// small value to ensure non-equivilance with floating point math
 	// but too small to make a difference in the actual game
 	const double SMALL_BUFFER = 0.0001;
 
-	BoolParam USE_ENEMY_MOVEMENT_FACTOR( "use enemy's future position", "Nav/Util", false);
-	BoolParam USE_FRIENDLY_MOVEMENT_FACTOR( "use friendly's future position", "Nav/Util", false);
+	BoolParam USE_ENEMY_MOVEMENT_FACTOR("use enemy's future position", "Nav/Util", false);
+	BoolParam USE_FRIENDLY_MOVEMENT_FACTOR("use friendly's future position", "Nav/Util", false);
 
-	DoubleParam ENEMY_MOVEMENT_FACTOR( "amount of time (s) to avoid enemy's future position", "Nav/Util", 0.0, 0.0, 2.0);
-	DoubleParam FRIENDLY_MOVEMENT_FACTOR( "amount of time (s) to avoid friendly's future position", "Nav/Util", 0.0, 0.0, 2.0);
-	DoubleParam GOAL_POST_BUFFER( "The amount robots should stay away from goal post" , "Nav/Util", 0.0, -0.2, 0.2);
+	DoubleParam ENEMY_MOVEMENT_FACTOR("amount of time (s) to avoid enemy's future position", "Nav/Util", 0.0, 0.0, 2.0);
+	DoubleParam FRIENDLY_MOVEMENT_FACTOR("amount of time (s) to avoid friendly's future position", "Nav/Util", 0.0, 0.0, 2.0);
+	DoubleParam GOAL_POST_BUFFER("The amount robots should stay away from goal post", "Nav/Util", 0.0, -0.2, 0.2);
 	DoubleParam ROBOT_NET_ALLOWANCE("The amount centre of robot must stay out of net", "Nav/Util", 0.0, -0.1, 0.2);
 	// zero lets them brush
 	// positive enforces amount meters away
@@ -55,10 +55,10 @@ namespace {
 
 	DoubleParam PENALTY_KICK_BUFFER("Amount behind ball during Penalty kick (rule=0.4) ", "Nav/Util", 0.4, 0.0, 1.0);
 
-	//	const double PENALTY_KICK_BUFFER = 0.4;
+	// const double PENALTY_KICK_BUFFER = 0.4;
 	DoubleParam FRIENDLY_KICK_BUFFER("Additionaly offense area buffer for friendly kick (rule=0.2) ", "Nav/Util", 0., 0.0, 1.0);
 
-	//	const double FRIENDLY_KICK_BUFFER = 0.2;
+	// const double FRIENDLY_KICK_BUFFER = 0.2;
 
 	const double RAM_BALL_ALLOWANCE = 0.05;
 
@@ -78,22 +78,24 @@ namespace {
 			}
 			double buffer = 0.0;
 
-			switch(player->avoid_distance()){
-			case AvoidDistance::SHORT :
-				buffer = ENEMY_BUFFER_SHORT;
+			switch (player->avoid_distance()) {
+				case AvoidDistance::SHORT:
+					buffer = ENEMY_BUFFER_SHORT;
 					break;
-			case AvoidDistance::MEDIUM :
-				buffer = ENEMY_BUFFER;
+
+				case AvoidDistance::MEDIUM:
+					buffer = ENEMY_BUFFER;
 					break;
-			case AvoidDistance::LONG :
-				buffer = ENEMY_BUFFER_LONG;
+
+				case AvoidDistance::LONG:
+					buffer = ENEMY_BUFFER_LONG;
 					break;
 			}
 
 			return 2 * player->MAX_RADIUS + buffer;
 		}
 
-		static double goal_post(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+		static double goal_post(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 			return Ball::RADIUS + player->MAX_RADIUS + GOAL_POST_BUFFER;
 		}
 
@@ -134,25 +136,25 @@ namespace {
 		}
 	};
 
-	double get_net_tresspass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+	double get_net_tresspass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		double violate = 0.0;
-		double circle_radius = world.field().total_length()/2.0 - world.field().length()/2.0;
-		Point A(-world.field().total_length()/2.0, world.field().goal_width()/2.0);
-		Point B(-world.field().total_length()/2.0, -world.field().goal_width()/2.0);
+		double circle_radius = world.field().total_length() / 2.0 - world.field().length() / 2.0;
+		Point A(-world.field().total_length() / 2.0, world.field().goal_width() / 2.0);
+		Point B(-world.field().total_length() / 2.0, -world.field().goal_width() / 2.0);
 		double dist = seg_seg_distance(A, B, cur, dst);
 		violate = std::max(violate, circle_radius - dist);
 		return violate;
 	}
 
-	double get_goal_post_tresspass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+	double get_goal_post_tresspass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		double violate = 0.0;
 		double circle_radius = distance_keepout::goal_post(world, player);
-		Point A(world.field().length()/2.0, world.field().goal_width()/2.0);
-		Point B(world.field().length()/2.0, -world.field().goal_width()/2.0);
-		Point C(-world.field().length()/2.0, world.field().goal_width()/2.0);
-		Point D(-world.field().length()/2.0, -world.field().goal_width()/2.0);
-		Point pts[4] = {A,B,C,D};
-		for(unsigned int i=0; i<4; i++){
+		Point A(world.field().length() / 2.0, world.field().goal_width() / 2.0);
+		Point B(world.field().length() / 2.0, -world.field().goal_width() / 2.0);
+		Point C(-world.field().length() / 2.0, world.field().goal_width() / 2.0);
+		Point D(-world.field().length() / 2.0, -world.field().goal_width() / 2.0);
+		Point pts[4] = { A, B, C, D };
+		for (unsigned int i = 0; i < 4; i++) {
 			double dist = lineseg_point_dist(pts[i], cur, dst);
 			violate = std::max(violate, circle_radius - dist);
 		}
@@ -166,8 +168,8 @@ namespace {
 			AI::Nav::W::Robot::Ptr rob = world.enemy_team().get(i);
 			double circle_radius = distance_keepout::enemy(world, rob);
 			double dist = lineseg_point_dist(rob->position(), cur, dst);
-			if (USE_ENEMY_MOVEMENT_FACTOR){
-				dist = seg_seg_distance(rob->position(), rob->position() + ENEMY_MOVEMENT_FACTOR*rob->velocity() , cur, dst);
+			if (USE_ENEMY_MOVEMENT_FACTOR) {
+				dist = seg_seg_distance(rob->position(), rob->position() + ENEMY_MOVEMENT_FACTOR * rob->velocity(), cur, dst);
 			}
 			violate = std::max(violate, circle_radius - dist);
 		}
@@ -215,7 +217,7 @@ namespace {
 			double circle_radius = distance_keepout::friendly(player, rob->prio());
 			double dist = lineseg_point_dist(rob->position(), cur, dst);
 			if (USE_FRIENDLY_MOVEMENT_FACTOR) {
-				dist = seg_seg_distance(rob->position(), rob->position() + FRIENDLY_MOVEMENT_FACTOR*rob->velocity() , cur, dst);
+				dist = seg_seg_distance(rob->position(), rob->position() + FRIENDLY_MOVEMENT_FACTOR * rob->velocity(), cur, dst);
 			}
 			violate = std::max(violate, circle_radius - dist);
 		}
@@ -352,14 +354,14 @@ namespace {
 		}
 
 		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), friendly_kick(0.0), goal_post(0.0), total_bounds(0.0), extra_flags(0), net_allowance(0.0) {
-			if(OWN_HALF_OVERRIDE){
+			if (OWN_HALF_OVERRIDE) {
 				extra_flags = extra_flags | FLAG_STAY_OWN_HALF;
 			}
 			set_violation_amount(cur, dst, world, player);
 		}
 
 		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int added_flags) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), friendly_kick(0.0), goal_post(0.0), total_bounds(0.0), extra_flags(added_flags), net_allowance(0.0) {
-			if(OWN_HALF_OVERRIDE){
+			if (OWN_HALF_OVERRIDE) {
 				extra_flags = extra_flags | FLAG_STAY_OWN_HALF;
 			}
 			set_violation_amount(cur, dst, world, player);
@@ -377,14 +379,14 @@ namespace {
 
 		bool no_more_violating_than(violation b) {
 			return enemy < b.enemy + EPS && friendly < b.friendly + EPS &&
-			play_area < b.play_area + EPS && ball_stop < b.ball_stop + EPS &&
-			ball_tiny < b.ball_tiny + EPS && friendly_defense < b.friendly_defense + EPS &&
-			enemy_defense < b.enemy_defense + EPS && own_half < b.own_half + EPS &&
-			penalty_kick_enemy < b.penalty_kick_enemy + EPS &&
-			penalty_kick_friendly < b.penalty_kick_friendly + EPS &&
-			goal_post < b.goal_post + EPS &&
-			total_bounds < b.total_bounds + EPS &&
-			net_allowance < b.net_allowance + EPS;
+			       play_area < b.play_area + EPS && ball_stop < b.ball_stop + EPS &&
+			       ball_tiny < b.ball_tiny + EPS && friendly_defense < b.friendly_defense + EPS &&
+			       enemy_defense < b.enemy_defense + EPS && own_half < b.own_half + EPS &&
+			       penalty_kick_enemy < b.penalty_kick_enemy + EPS &&
+			       penalty_kick_friendly < b.penalty_kick_friendly + EPS &&
+			       goal_post < b.goal_post + EPS &&
+			       total_bounds < b.total_bounds + EPS &&
+			       net_allowance < b.net_allowance + EPS;
 		}
 
 		bool violation_free() {
@@ -393,8 +395,8 @@ namespace {
 			       ball_tiny < EPS && friendly_defense < EPS &&
 			       enemy_defense < EPS && own_half < EPS &&
 			       penalty_kick_enemy < EPS && penalty_kick_friendly < EPS &&
-						 goal_post < EPS && total_bounds < EPS &&
-						 net_allowance < EPS;
+			       goal_post < EPS && total_bounds < EPS &&
+			       net_allowance < EPS;
 		}
 	};
 

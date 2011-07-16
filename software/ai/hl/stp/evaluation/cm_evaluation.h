@@ -31,7 +31,6 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-				
 				/**
 				 * Obs methods return an obs_flag set to why a position or other
 				 * shape is not open. Or zero if the position or shape is open

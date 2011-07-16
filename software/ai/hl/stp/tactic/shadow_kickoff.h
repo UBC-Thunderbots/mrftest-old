@@ -13,7 +13,7 @@ namespace AI {
 				 * Shadow a specific enemy robot on the enemy kickoff.
 				 */
 				Tactic::Ptr shadow_kickoff(const World &world, Enemy::Ptr enemy, const Coordinate default_loc);
-				
+
 				/**
 				 * Shadow the ball (in freekicks).
 				 */
@@ -24,3 +24,4 @@ namespace AI {
 }
 
 #endif
+

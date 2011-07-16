@@ -28,7 +28,6 @@ namespace AI {
 }
 
 namespace {
-
 	BoolParam goalie_lowest("Goalie is lowest index", "STP/Goalie", true);
 	IntParam goalie_pattern_index("Goalie pattern index", "STP/Goalie", 0, 0, 11);
 
@@ -37,7 +36,7 @@ namespace {
 	void on_robot_removing(std::size_t i, World &w) {
 		Player::Ptr plr = w.friendly_team().get(i);
 		if (plr == HACK::active_player) {
-			HACK::active_player.reset(); 
+			HACK::active_player.reset();
 		}
 		if (plr == HACK::last_kicked) {
 			HACK::last_kicked.reset();
@@ -51,7 +50,6 @@ namespace {
 			connected = true;
 		}
 	}
-
 }
 
 PlayExecutor::PlayExecutor(World &w) : world(w) {
@@ -68,15 +66,20 @@ PlayExecutor::PlayExecutor(World &w) : world(w) {
 }
 
 void PlayExecutor::calc_play() {
-
 	curr_play.reset();
 
 	// find a valid play
 	std::random_shuffle(plays.begin(), plays.end());
 	for (std::size_t i = 0; i < plays.size(); ++i) {
-		if (!plays[i]->factory().enable) continue;
-		if (!plays[i]->invariant()) continue;
-		if (!plays[i]->applicable()) continue;
+		if (!plays[i]->factory().enable) {
+			continue;
+		}
+		if (!plays[i]->invariant()) {
+			continue;
+		}
+		if (!plays[i]->applicable()) {
+			continue;
+		}
 		if (plays[i]->done()) {
 			LOG_ERROR(Glib::ustring::compose("Play applicable but done: %1", plays[i]->factory().name()));
 			continue;
@@ -111,7 +114,6 @@ void PlayExecutor::calc_play() {
 			swap(normal_roles[j - 1], curr_roles[j]);
 		}
 	}
-	return;
 }
 
 void PlayExecutor::role_assignment() {
@@ -167,7 +169,9 @@ void PlayExecutor::role_assignment() {
 	std::set<Player::Ptr> players;
 	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 		Player::Ptr p = world.friendly_team().get(i);
-		if (p == goalie) continue;
+		if (p == goalie) {
+			continue;
+		}
 		players.insert(p);
 	}
 
@@ -248,15 +252,18 @@ void PlayExecutor::execute_tactics() {
 			case AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
 				default_flags |= Flags::FLAG_AVOID_BALL_STOP;
 				break;
+
 			case AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY:
 			case AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY:
 				default_flags |= Flags::FLAG_FRIENDLY_KICK;
 				break;
+
 			case AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY:
 			case AI::Common::PlayType::PREPARE_KICKOFF_ENEMY:
 				default_flags |= Flags::FLAG_AVOID_BALL_STOP;
 				default_flags |= Flags::FLAG_STAY_OWN_HALF;
 				break;
+
 			default:
 				break;
 		}
@@ -316,9 +323,15 @@ void PlayExecutor::tick() {
 		}
 		if (high_priority_always && curr_play->can_give_up_safely()) {
 			for (std::size_t i = 0; i < plays.size(); ++i) {
-				if (!plays[i]->factory().enable) continue;
-				if (!plays[i]->invariant()) continue;
-				if (!plays[i]->applicable()) continue;
+				if (!plays[i]->factory().enable) {
+					continue;
+				}
+				if (!plays[i]->invariant()) {
+					continue;
+				}
+				if (!plays[i]->applicable()) {
+					continue;
+				}
 				if (plays[i]->factory().priority > curr_play->factory().priority) {
 					LOG_INFO("higher priority play exist");
 					done = true;
@@ -351,7 +364,7 @@ std::string PlayExecutor::info() const {
 		text << "play: " << curr_play->factory().name();
 		text << std::endl;
 		text << "step: " << curr_role_step;
-		//  std::size_t imax = std::min((std::size_t)5, world.friendly_team().size());
+		// std::size_t imax = std::min((std::size_t)5, world.friendly_team().size());
 		for (std::size_t i = 0; i < 5; ++i) {
 			if (!curr_assignment[i].is()) {
 				// LOG_ERROR("curr-assignment empty");
@@ -394,7 +407,6 @@ void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 			role[t]->draw_overlay(ctx);
 		}
 	}
-
 }
 
 void PlayExecutor::on_player_added(std::size_t) {

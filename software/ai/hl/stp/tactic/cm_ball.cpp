@@ -127,7 +127,7 @@ namespace {
 			TDribbleToRegion(const World &world, Region _region) : Tactic(world, true), region(_region) {}
 
 		private:
-			Region region;	
+			Region region;
 			bool done() const {
 				return region.inside(player->position());
 			}
@@ -199,7 +199,6 @@ void TShoot::execute() {
 
 		Action::dribble(world, player, rtarget);
 		kicked = Action::shoot_target(world, player, target);
-
 	} else {
 		kicked = Action::shoot_goal(world, player);
 	}
@@ -272,7 +271,7 @@ void TClear::execute() {
 void TActiveDef::execute() {
 	finished = false;
 	const EnemyTeam &enemy = world.enemy_team();
-	
+
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		if (Evaluation::possess_ball(world, enemy.get(i))) {
 			Point dirToBall = (world.ball().position() - enemy.get(i)->position()).norm();

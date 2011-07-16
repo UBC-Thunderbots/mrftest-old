@@ -36,6 +36,7 @@ namespace AI {
 					 * Closest to enemy having the ball, by passing.
 					 */
 					static Enemy::Ptr closest_pass(const World &world, unsigned int i);
+
 				protected:
 					Enemy();
 			};

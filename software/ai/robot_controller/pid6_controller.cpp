@@ -18,7 +18,6 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-
 	DoubleParam wheel_max_speed("Limit wheel speed (quarter degree per 5 ms)", "RC/PID6", 330.0, 0, 1023);
 	DoubleParam wheel_max_accel("Limit wheel accel (quarter degree per 5 ms squared)", "RC/PID6", 45, 0, 1023);
 	DoubleParam motor_to_field("Ratio of motor distance to field distance", "RC/PID6", 0.00633, 0.001, 1);
@@ -36,7 +35,6 @@ namespace {
 	};
 
 	PID6Controller::PID6Controller(World &world, Player::Ptr plr) : RobotController(world, plr) {
-
 		for (unsigned i = 0; i < 4; ++i) {
 			prev_speed[i] = 0;
 		}
@@ -61,54 +59,52 @@ namespace {
 			{ 42.5995, 27.6645, 4.3175 }
 		};
 
-    double max_acc = 200.0/TIMESTEPS_PER_SECOND*wheel_max_accel;
-		double distance_to_velocity = 2*max_acc / wheel_max_speed / motor_to_field;
+		double max_acc = 200.0 / TIMESTEPS_PER_SECOND * wheel_max_accel;
+		double distance_to_velocity = 2 * max_acc / wheel_max_speed / motor_to_field;
 
 		Point position_error = (new_position - player->position()).rotate(-player->orientation());
-		double angular_error = angle_mod(new_orientation-player->orientation());
+		double angular_error = angle_mod(new_orientation - player->orientation());
 
 		const double position_delta[3] = { position_error.x, position_error.y, angular_error };
 		double wheel_target_vel[4] = { 0, 0, 0, 0 };
-		double vel_error[4] = {0,0,0,0};
+		double vel_error[4] = { 0, 0, 0, 0 };
 
 		for (unsigned int row = 0; row < 4; ++row) {
 			for (unsigned int col = 0; col < 3; ++col) {
-				wheel_target_vel[row] +=  WHEEL_MATRIX[row][col] * position_delta[col];
+				wheel_target_vel[row] += WHEEL_MATRIX[row][col] * position_delta[col];
 			}
-				wheel_target_vel[row] = distance_to_velocity * wheel_target_vel[row];
-				vel_error[row] = wheel_target_vel[row] - prev_speed[row];
+			wheel_target_vel[row] = distance_to_velocity * wheel_target_vel[row];
+			vel_error[row] = wheel_target_vel[row] - prev_speed[row];
 		}
-	
+
 		double max_diff = 0;
-		for(unsigned int i = 0 ;i<4 ;i++) {
-			max_diff = std::max(max_diff,std::fabs(vel_error[i]));
-		}	
+		for (unsigned int i = 0; i < 4; i++) {
+			max_diff = std::max(max_diff, std::fabs(vel_error[i]));
+		}
 
 		double ratio = wheel_max_accel / max_diff;
-		for(unsigned int i =0 ;i<4;i++) {
-			if(max_diff > wheel_max_accel) {
-					vel_error[i] = ratio * vel_error[i];
+		for (unsigned int i = 0; i < 4; i++) {
+			if (max_diff > wheel_max_accel) {
+				vel_error[i] = ratio * vel_error[i];
 			}
 			wheel_target_vel[i] += vel_error[i];
 		}
 
 		max_diff = 0;
-		for(unsigned int i = 0 ;i<4 ;i++) {
-			max_diff = std::max(max_diff,std::fabs(wheel_target_vel[i]));
-		}	
+		for (unsigned int i = 0; i < 4; i++) {
+			max_diff = std::max(max_diff, std::fabs(wheel_target_vel[i]));
+		}
 
-	 	ratio = wheel_max_speed / max_diff;
-		for(unsigned int i =0 ;i<4;i++) {
-			if(max_diff > wheel_max_speed) {
-			wheel_speeds[i] = ratio * wheel_target_vel[i];
+		ratio = wheel_max_speed / max_diff;
+		for (unsigned int i = 0; i < 4; i++) {
+			if (max_diff > wheel_max_speed) {
+				wheel_speeds[i] = ratio * wheel_target_vel[i];
 			} else {
 				wheel_speeds[i] = wheel_target_vel[i];
 			}
 		}
-
-
 	}
-	
+
 
 	void PID6Controller::clear() {
 	}

@@ -24,10 +24,9 @@ namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::min_pass_dist;
 
 namespace {
-
 	class PassPlay : public Play {
 		public:
-			PassPlay(const World& world, const PlayFactory& factory, const Point target) : Play(world), _factory(factory), target(target) {
+			PassPlay(const World &world, const PlayFactory &factory, const Point target) : Play(world), _factory(factory), target(target) {
 			}
 
 			const PlayFactory &factory() const {
@@ -36,7 +35,7 @@ namespace {
 
 			bool invariant() const {
 				return Predicates::playtype(world, AI::Common::PlayType::PLAY)
-					&& Predicates::our_team_size_at_least(world, 3);
+				       && Predicates::our_team_size_at_least(world, 3);
 			}
 
 			bool done() const {
@@ -44,9 +43,9 @@ namespace {
 			}
 
 			bool applicable() const {
-				return Predicates::our_ball(world) 
-					&& Predicates::baller_can_pass_target(world, target)
-					&& (world.ball().position() - target).len() > min_pass_dist;
+				return Predicates::our_ball(world)
+				       && Predicates::baller_can_pass_target(world, target)
+				       && (world.ball().position() - target).len() > min_pass_dist;
 			}
 
 			bool fail() const {
@@ -69,9 +68,9 @@ namespace {
 				// offensive support through blocking closest enemy to ball
 				roles[3].push_back(offend(world));
 
-				/////////////////////////////////////
-				// 2nd set of tactics 
-				/////////////////////////////////////
+				// ///////////////////////////////////
+				// 2nd set of tactics
+				// ///////////////////////////////////
 
 				// GOALIE
 				goalie_role.push_back(goalie_dynamic(world, 1));
@@ -89,7 +88,7 @@ namespace {
 				roles[3].push_back(offend_secondary(world));
 			}
 
-			const PlayFactory& _factory;
+			const PlayFactory &_factory;
 			Point target;
 	};
 
@@ -114,7 +113,7 @@ namespace {
 			~PassPlayFactory();
 
 		protected:
-			PlayFactory* instance;
+			PlayFactory *instance;
 			std::string name;
 	};
 

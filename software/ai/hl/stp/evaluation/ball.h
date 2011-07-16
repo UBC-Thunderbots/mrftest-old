@@ -8,7 +8,7 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-				void tick_ball(const World& world);
+				void tick_ball(const World &world);
 
 				/**
 				 * Finds a friendly player with the ball.

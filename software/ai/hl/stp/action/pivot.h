@@ -7,12 +7,11 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Action {
-				
 				/**
 				 * Go chase after the ball and pivot towards the direction of target
 				 */
 				void chase_pivot(const World &world, Player::Ptr player, const Point target);
-				
+
 				/**
 				 * SpinAtBall in STP paper.
 				 *
@@ -20,7 +19,6 @@ namespace AI {
 				 * Rotates the player toward the target while holding the ball.
 				 */
 				void pivot(Player::Ptr player, const Point target);
-
 			}
 		}
 	}

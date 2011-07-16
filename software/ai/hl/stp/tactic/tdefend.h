@@ -7,11 +7,10 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Tactic {
-			
 				/**
 				 * Layered defense by Terence. Must have one of tgoalie or tdefender1
-				 */			
-			
+				 */
+
 				/**
 				 * A tactic for Terence goalie. Guards defense area (and some portion of the inner layer).
 				 */
@@ -26,7 +25,6 @@ namespace AI {
 				 * A tactic for Terence defender 2. Guards inner layer, outer layer, and our side of the field.
 				 */
 				Tactic::Ptr tdefender2(const World &world);
-
 			}
 		}
 	}

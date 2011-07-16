@@ -48,12 +48,12 @@ namespace {
 	void Chase::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
 #warning this breaks pass
 		/*
-		ctx->set_source_rgb(1.0, 1.0, 1.0);
-		ctx->move_to(player->position().x, player->position().y);
-		ctx->line_to(world.ball().position().x, world.ball().position().y);
-		ctx->set_line_width(0.01);
-		ctx->stroke();
-		*/
+		   ctx->set_source_rgb(1.0, 1.0, 1.0);
+		   ctx->move_to(player->position().x, player->position().y);
+		   ctx->line_to(world.ball().position().x, world.ball().position().y);
+		   ctx->set_line_width(0.01);
+		   ctx->stroke();
+		 */
 	}
 }
 

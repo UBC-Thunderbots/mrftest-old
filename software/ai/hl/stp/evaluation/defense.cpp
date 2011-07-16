@@ -15,7 +15,6 @@ using namespace AI::HL::W;
 using namespace AI::HL::STP::Evaluation;
 
 namespace {
-
 	BoolParam defense_follow_enemy_baller("defense protect against baller", "STP/defense", true);
 
 	BoolParam goalie_hug_switch("goalie hug switch", "STP/defense", true);
@@ -41,7 +40,7 @@ namespace {
 	   bool goalie_top;
 	   };
 	 */
-	
+
 	std::array<Point, MAX_DEFENDERS + 1> waypoints;
 
 	std::array<Point, MAX_DEFENDERS + 1> compute(const World &world) {
@@ -120,7 +119,6 @@ namespace {
 		std::vector<Robot::Ptr> threat;
 
 		if (open_net_dangerous && second_needed) {
-
 			std::vector<Point> obstacles;
 			obstacles.push_back(waypoint_goalie);
 			obstacles.push_back(waypoint_defenders[0]);
@@ -135,7 +133,6 @@ namespace {
 					threat.push_back(enemies[i]);
 				}
 			}
-
 		} else {
 			threat = enemies;
 		}
@@ -143,7 +140,6 @@ namespace {
 		// next two defenders block nearest enemy sights to goal if needed
 		// enemies with ball possession are ignored (they should be handled above)
 		for (size_t i = 0; i < threat.size() && waypoint_defenders.size() < MAX_DEFENDERS; ++i) {
-
 // HACK
 			if (defense_follow_enemy_baller) {
 				Robot::Ptr robot = calc_enemy_baller(world);
@@ -187,29 +183,35 @@ namespace {
 		return waypoints;
 	}
 
-	Point tdefender_block_ball(const World &world, const unsigned index){
+	Point tdefender_block_ball(const World &world, const unsigned index) {
 		Point dirToGoal, target;
 		dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
-		target = world.field().friendly_goal() - (4 * (index+1) * Robot::MAX_RADIUS * dirToGoal);
+		target = world.field().friendly_goal() - (4 * (index + 1) * Robot::MAX_RADIUS * dirToGoal);
 		Point t = target;
-		if (world.ball().position().y < 0.0){	
-			if (index == 2) target = Point(t.x, t.y + 2 * Robot::MAX_RADIUS);
-			else target = Point(t.x, t.y - 2 * Robot::MAX_RADIUS);	
+		if (world.ball().position().y < 0.0) {
+			if (index == 2) {
+				target = Point(t.x, t.y + 2 * Robot::MAX_RADIUS);
+			} else {
+				target = Point(t.x, t.y - 2 * Robot::MAX_RADIUS);
+			}
 		} else {
-			if (index == 2) target = Point(t.x, t.y - 2 * Robot::MAX_RADIUS);
-			else target = Point(t.x, t.y + 2 * Robot::MAX_RADIUS);		
+			if (index == 2) {
+				target = Point(t.x, t.y - 2 * Robot::MAX_RADIUS);
+			} else {
+				target = Point(t.x, t.y + 2 * Robot::MAX_RADIUS);
+			}
 		}
 		return target;
 	}
-	
-	Point tdefender_block_enemy(const World &world, Point r, const unsigned index){
+
+	Point tdefender_block_enemy(const World &world, Point r, const unsigned index) {
 		Point dirToGoal;
 		dirToGoal = (world.field().friendly_goal() - r).norm();
-		return world.field().friendly_goal() - (4 * (index+1) * Robot::MAX_RADIUS * dirToGoal);
+		return world.field().friendly_goal() - (4 * (index + 1) * Robot::MAX_RADIUS * dirToGoal);
 	}
 }
 
-void AI::HL::STP::Evaluation::tick_defense(const World& world) {
+void AI::HL::STP::Evaluation::tick_defense(const World &world) {
 	waypoints = compute(world);
 }
 
@@ -217,7 +219,7 @@ const std::array<Point, MAX_DEFENDERS + 1> AI::HL::STP::Evaluation::evaluate_def
 	return waypoints;
 }
 
-bool AI::HL::STP::Evaluation::enemy_break_defense_duo(const World& world, const Robot::Ptr enemy) {
+bool AI::HL::STP::Evaluation::enemy_break_defense_duo(const World &world, const Robot::Ptr enemy) {
 	std::vector<Point> obstacles;
 	obstacles.push_back(waypoints[0]);
 	obstacles.push_back(waypoints[1]);
@@ -225,12 +227,12 @@ bool AI::HL::STP::Evaluation::enemy_break_defense_duo(const World& world, const 
 	return calc_enemy_best_shot_goal(world.field(), obstacles, enemy->position()).second > degrees2radians(enemy_shoot_accuracy);
 }
 
-Point AI::HL::STP::Evaluation::evaluate_tdefense(const World &world, const unsigned index){
+Point AI::HL::STP::Evaluation::evaluate_tdefense(const World &world, const unsigned index) {
 	Point target;
-	if (world.enemy_team().size() > index-1){
+	if (world.enemy_team().size() > index - 1) {
 		std::vector<Robot::Ptr> enemies = Evaluation::enemies_by_grab_ball_dist();
-		Point r = enemies[index-1]->position();
-		if (r.x < world.field().centre_circle_radius()){	
+		Point r = enemies[index - 1]->position();
+		if (r.x < world.field().centre_circle_radius()) {
 			target = tdefender_block_enemy(world, r, index);
 		} else {
 			target = tdefender_block_ball(world, index);

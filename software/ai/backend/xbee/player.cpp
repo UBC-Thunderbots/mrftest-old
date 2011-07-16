@@ -104,10 +104,10 @@ double Player::bar_graph_value(unsigned int index) const {
 Visualizable::Colour Player::bar_graph_colour(unsigned int index) const {
 	switch (index) {
 		case 0:
-			{
-				double value = bar_graph_value(index);
-				return Visualizable::Colour(1.0 - value, value, 0.0);
-			}
+		{
+			double value = bar_graph_value(index);
+			return Visualizable::Colour(1.0 - value, value, 0.0);
+		}
 
 		case 1:
 			return Visualizable::Colour(bot->capacitor_charged ? 0.0 : 1.0, bot->capacitor_charged ? 1.0 : 0.0, 0.0);

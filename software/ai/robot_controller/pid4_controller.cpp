@@ -18,7 +18,6 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-
 	BoolParam PID_SLOW_ANGULAR("(CARE) reduce angular velocity when translating", "RC/PID4", true);
 	BoolParam PID_FLIP_SLOWDOWN("(CARE) flip trans&ang slowdown", "RC/PID4", false);
 	DoubleParam PID_SLOWDOWN("(CARE) angular slowdown when translating", "RC/PID4", 1.01, 0.1, 8.0);
@@ -181,7 +180,7 @@ namespace {
 		Point accel = linear_velocity - prev_linear_velocity;
 
 		if (accel.len() > PID_MAX_ACC * TIMESTEPS_PER_SECOND) {
-			accel *= PID_MAX_ACC  * TIMESTEPS_PER_SECOND / accel.len();
+			accel *= PID_MAX_ACC * TIMESTEPS_PER_SECOND / accel.len();
 			linear_velocity = prev_linear_velocity + accel;
 		}
 
@@ -218,14 +217,17 @@ namespace {
 		switch (player->flags()) {
 			case 0:
 				break;
+
 			case 1:
 				linear_velocity *= PID_PROFILE1;
 				angular_velocity *= PID_PROFILE1;
 				break;
+
 			case 2:
 				linear_velocity *= PID_PROFILE2;
 				angular_velocity *= PID_PROFILE2;
 				break;
+
 			case 3:
 				linear_velocity *= PID_PROFILE3;
 				angular_velocity *= PID_PROFILE3;

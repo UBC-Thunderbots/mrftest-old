@@ -32,38 +32,38 @@ namespace {
 
 	void PenaltyShoot::execute() {
 		/*
-		// shoot center of goal if there is no enemy
-		Point target = world.field().enemy_goal();
+		   // shoot center of goal if there is no enemy
+		   Point target = world.field().enemy_goal();
 
-		// otherwise, find a side to shoot
-		if (world.enemy_team().size() > 0) {
-			// since all other robots not participating in penalty shoot must be far away from the goal post
-			// hence the enemy goalie is the robot closest to enemy goal post
-			std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+		   // otherwise, find a side to shoot
+		   if (world.enemy_team().size() > 0) {
+		    // since all other robots not participating in penalty shoot must be far away from the goal post
+		    // hence the enemy goalie is the robot closest to enemy goal post
+		    std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 
-			Robot::Ptr enemy_goalie = *std::min_element(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().enemy_goal()));
-			const Field &f = world.field();
-			// a hysteresis
-			double goal_post_diff = (f.enemy_goal_boundary().first - f.enemy_goal_boundary().second).len();
-			const double target_y = goal_post_diff * 3 / 4;
+		    Robot::Ptr enemy_goalie = *std::min_element(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().enemy_goal()));
+		    const Field &f = world.field();
+		    // a hysteresis
+		    double goal_post_diff = (f.enemy_goal_boundary().first - f.enemy_goal_boundary().second).len();
+		    const double target_y = goal_post_diff * 3 / 4;
 
-			if (shoot_up && enemy_goalie->position().y + Robot::MAX_RADIUS > target_y) {
-				shoot_up = false;
-			} else if (!shoot_up && enemy_goalie->position().y - Robot::MAX_RADIUS < -target_y) {
-				shoot_up = true;
-			}
+		    if (shoot_up && enemy_goalie->position().y + Robot::MAX_RADIUS > target_y) {
+		        shoot_up = false;
+		    } else if (!shoot_up && enemy_goalie->position().y - Robot::MAX_RADIUS < -target_y) {
+		        shoot_up = true;
+		    }
 
-			if (shoot_up) {
-				target = Point(f.length() / 2, target_y);
-			} else {
-				target = Point(f.length() / 2, -target_y);
-			}
-		}
+		    if (shoot_up) {
+		        target = Point(f.length() / 2, target_y);
+		    } else {
+		        target = Point(f.length() / 2, -target_y);
+		    }
+		   }
 
-		if (AI::HL::STP::Action::shoot_target(world, player, target)) {
-			has_shot = true;
-		}
-		*/
+		   if (AI::HL::STP::Action::shoot_target(world, player, target)) {
+		    has_shot = true;
+		   }
+		 */
 		has_shot = AI::HL::STP::Action::shoot_goal(world, player, false);
 
 		// unset any flags

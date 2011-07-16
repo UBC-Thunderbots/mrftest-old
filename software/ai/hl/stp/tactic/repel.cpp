@@ -34,7 +34,7 @@ namespace {
 		finished = false;
 		finished = AI::HL::STP::Action::repel(world, player);
 	}
-	
+
 	class CornerRepel : public Tactic {
 		public:
 			CornerRepel(const World &world) : Tactic(world, true), finished(false) {

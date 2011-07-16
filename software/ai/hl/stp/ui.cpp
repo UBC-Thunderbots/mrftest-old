@@ -19,8 +19,8 @@ namespace {
 }
 
 void AI::HL::STP::draw_player_status(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
-	const FriendlyTeam& friendly = world.friendly_team();
-	
+	const FriendlyTeam &friendly = world.friendly_team();
+
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		Player::CPtr player = friendly.get(i);
 		if (!player->has_ball()) {
@@ -34,7 +34,7 @@ void AI::HL::STP::draw_player_status(const World &world, Cairo::RefPtr<Cairo::Co
 }
 
 void AI::HL::STP::draw_friendly_pass(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
-	const FriendlyTeam& friendly = world.friendly_team();
+	const FriendlyTeam &friendly = world.friendly_team();
 
 	if (Predicates::our_ball(world)) {
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
@@ -51,8 +51,8 @@ void AI::HL::STP::draw_friendly_pass(const World &world, Cairo::RefPtr<Cairo::Co
 
 void AI::HL::STP::draw_enemy_pass(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
 	auto threats = Evaluation::calc_enemy_threat(world);
-	const EnemyTeam& enemy = world.enemy_team();
-	
+	const EnemyTeam &enemy = world.enemy_team();
+
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		Robot::Ptr robot = threats[i].robot;
 		Robot::Ptr passee = threats[i].passee;
@@ -100,12 +100,10 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 		ctx->move_to(player->position().x, player->position().y);
 		ctx->line_to(shoot_data.target.x, shoot_data.target.y);
 		ctx->stroke();
-
 	}
 
 	Player::CPtr baller = Evaluation::calc_friendly_baller();
 	if (baller.is()) {
-
 		auto shot = Evaluation::best_shoot_ray(world, baller);
 
 		if (shot.first) {
@@ -113,7 +111,6 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 			const Point p1 = baller->position();
 			const Point p2 = p1 + 5 * Point::of_angle(angle);
 			if (Evaluation::can_shoot_ray(world, baller, angle)) {
-
 				ctx->set_source_rgba(0.0, 1.0, 1.0, 0.4);
 				ctx->set_line_width(Robot::MAX_RADIUS);
 				ctx->move_to(p1.x, p1.y);
@@ -126,7 +123,9 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 	if (draw_ray) {
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
 			const Player::CPtr player = friendly.get(i);
-			if (!Evaluation::possess_ball(world, player)) continue;
+			if (!Evaluation::possess_ball(world, player)) {
+				continue;
+			}
 
 			// draw rays for ray shooting
 			const double angle_span = 2 * degrees2radians(Evaluation::max_pass_ray_angle);
@@ -151,10 +150,8 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 }
 
 void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
-
 	// draw blue circles for offense
 	{
-
 		// divide up into grids
 		const double x1 = -world.field().length() / 2;
 		const double x2 = world.field().length() / 2;
@@ -164,8 +161,8 @@ void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context>
 		const double dx = (x2 - x1) / (grid_x + 1) / 2;
 		const double dy = (y2 - y1) / (grid_y + 1) / 2;
 
-		for (int i = 1; i <= 2*grid_y+1; i += 2) {
-			for (int j = (i/2+1)%2+1; j <= 2*grid_x+1; j += 2) {
+		for (int i = 1; i <= 2 * grid_y + 1; i += 2) {
+			for (int j = (i / 2 + 1) % 2 + 1; j <= 2 * grid_x + 1; j += 2) {
 				const double x = x1 + dx * j;
 				const double y = y1 + dy * i;
 				const Point pos = Point(x, y);

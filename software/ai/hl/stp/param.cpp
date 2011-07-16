@@ -20,4 +20,5 @@ DoubleParam AI::HL::STP::Action::pass_speed("kicking speed for making a pass", "
 
 DoubleParam AI::HL::STP::Action::target_region_param(" the buffer (meters) in which passee must be with repect to target region before valid ", "STP/Tactic/pass", 0.0, 0.0, 5.0);
 
-BoolParam AI::HL::STP::Tactic::random_penalty_goalie("Whether the penalty goalie should choose random points", "STP/Tactic/penalty_goalie",  false);
+BoolParam AI::HL::STP::Tactic::random_penalty_goalie("Whether the penalty goalie should choose random points", "STP/Tactic/penalty_goalie", false);
+

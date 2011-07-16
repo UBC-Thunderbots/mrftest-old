@@ -10,7 +10,7 @@ using namespace AI::HL::W;
 BoolParam enable_tactic_logging("Enable Tactic Log", "AI", true);
 
 Tactic::Tactic(const World &world, bool active) : world(world), active_(active) {
-	if(enable_tactic_logging){
+	if (enable_tactic_logging) {
 		LOG_DEBUG(description());
 	}
 }

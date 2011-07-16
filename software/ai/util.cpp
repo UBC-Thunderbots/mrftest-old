@@ -1,7 +1,7 @@
 #include "ai/util.h"
 #include "ai/param.h"
 
-bool AI::Util::calc_fastest_grab_ball_dest(Point ball_pos, Point ball_vel, Point player_pos, Point& dest) {
+bool AI::Util::calc_fastest_grab_ball_dest(Point ball_pos, Point ball_vel, Point player_pos, Point &dest) {
 	const double ux = ball_vel.len(); // velocity of ball
 
 	const double v = AI::player_average_velocity;
@@ -37,7 +37,7 @@ bool AI::Util::calc_fastest_grab_ball_dest(Point ball_pos, Point ball_vel, Point
 		return false;
 	}
 
-	dest = p1 + ball_vel * 2*t;
+	dest = p1 + ball_vel * 2 * t;
 
 	return true;
 }

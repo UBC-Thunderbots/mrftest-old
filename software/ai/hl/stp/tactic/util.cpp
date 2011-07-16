@@ -22,7 +22,9 @@ Player::Ptr AI::HL::STP::Tactic::select_baller(const World &world, const std::se
 	for (auto it = players.begin(); it != players.end(); ++it) {
 		Player::Ptr p = *it;
 		Player::CPtr p_c = p;
-		if (!Evaluation::possess_ball(world, p_c)) continue;
+		if (!Evaluation::possess_ball(world, p_c)) {
+			continue;
+		}
 		if (p == previous) {
 			return p;
 		}

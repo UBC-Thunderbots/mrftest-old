@@ -10,7 +10,6 @@ using AI::BF::BallFilter;
 using namespace AI::BF::W;
 
 namespace {
-
 	DoubleParam decay_rate("circle decay rate", "Ball/Chris", 0.2063, 0.0, 1.0);
 	DoubleParam circle_radius("circle radius", "Ball/Chris", 0.67, 0.0, 10.0);
 

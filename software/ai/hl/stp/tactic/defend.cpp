@@ -15,8 +15,7 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace Action = AI::HL::STP::Action;
 
 namespace {
-
-	BoolParam tdefend("Whether or not Terence Defense should take the place of normal defense", "STP/Tactic/defend",  false);
+	BoolParam tdefend("Whether or not Terence Defense should take the place of normal defense", "STP/Tactic/defend", false);
 
 	/**
 	 * Goalie in a team of N robots.
@@ -74,7 +73,7 @@ namespace {
 	};
 
 	void Goalie2::execute() {
-		if (tdefend){
+		if (tdefend) {
 			Point dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
 			Point dest = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
 			Action::goalie_move(world, player, dest);
@@ -101,7 +100,9 @@ namespace {
 	Player::Ptr Defender::select(const std::set<Player::Ptr> &players) const {
 		auto waypoints = Evaluation::evaluate_defense();
 		Point dest = waypoints[index];
-		if (tdefend && index > 0 && index < 3) dest = Evaluation::evaluate_tdefense(world, index);
+		if (tdefend && index > 0 && index < 3) {
+			dest = Evaluation::evaluate_tdefense(world, index);
+		}
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
 	}
 
@@ -110,25 +111,24 @@ namespace {
 		Point dest = waypoints[index];
 		if (tdefend && index > 0 && index < 3) {
 			Point diff = world.ball().position() - world.field().friendly_goal();
-			if (diff.len() <= 0.9 && index == 1){
+			if (diff.len() <= 0.9 && index == 1) {
 				Action::repel(world, player);
 				return;
 			}
 			dest = Evaluation::evaluate_tdefense(world, index);
-			if (Evaluation::ball_on_net(world)){ // ball is coming towards net
-				if (index == 2) { 
+			if (Evaluation::ball_on_net(world)) { // ball is coming towards net
+				if (index == 2) {
 					// 2nd defender should not go after the ball unless the ball is far enough from our goal
 					// and on our side of the field
-					if (diff.len() > 4 * (index+1) * Robot::MAX_RADIUS && world.ball().position().x < -world.field().centre_circle_radius()){
+					if (diff.len() > 4 * (index + 1) * Robot::MAX_RADIUS && world.ball().position().x < -world.field().centre_circle_radius()) {
 						Action::repel(world, player);
 						return;
 					}
-				} else if (diff.len() < 4 * (index+2) * Robot::MAX_RADIUS && diff.len() > 4 * (index) * Robot::MAX_RADIUS){ 
-					// 1st defender defense 
+				} else if (diff.len() < 4 * (index + 2) * Robot::MAX_RADIUS && diff.len() > 4 * (index) * Robot::MAX_RADIUS) {
+					// 1st defender defense
 					Action::repel(world, player);
 					return;
 				}
-				
 			}
 		}
 		Action::defender_move(world, player, dest);

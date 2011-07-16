@@ -10,7 +10,6 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Action {
-
 				/**
 				 * Auto kick at the exact angle if the robot has a multidirectional kicker.
 				 */
@@ -27,10 +26,10 @@ namespace AI {
 				 * WARNING: should use shoot_region or shoot_pass
 				 * Shoots the ball to a target point with a double param kicking speed for passing
 				 *
-				 * \param[in] pass true if the player is to pass.					
+				 * \param[in] pass true if the player is to pass.
 				 *
 				 * \return true if the player autokick is fired.
-				 */	
+				 */
 				bool shoot_target(const World &world, Player::Ptr player, const Point target, double velocity = 10.0);
 
 				/**
@@ -49,14 +48,14 @@ namespace AI {
 				 *
 				 * \return true if the player autokick is fired.
 				 */
-				bool shoot_pass(const World& world, Player::Ptr shooter, const Point target);
+				bool shoot_pass(const World &world, Player::Ptr shooter, const Point target);
 
 				/**
 				 * Directly shoots to a player.
 				 *
 				 * \return true if the player autokick is fired.
 				 */
-				bool shoot_pass(const World& world, Player::Ptr shooter, const Point target, double angle_tol);
+				bool shoot_pass(const World &world, Player::Ptr shooter, const Point target, double angle_tol);
 
 
 				/**
@@ -64,7 +63,7 @@ namespace AI {
 				 *
 				 * \return true if the player autokick is fired.
 				 */
-				bool shoot_pass(const World& world, Player::Ptr shooter, Player::CPtr target);
+				bool shoot_pass(const World &world, Player::Ptr shooter, Player::CPtr target);
 
 				/**
 				 * Testing function designed for internal use & use with shoot_distance_test!!!
@@ -72,7 +71,7 @@ namespace AI {
 				 * \param[in] a special ttesting param
 				 * \return double the robot kick speed.
 				 */
-				double shoot_speed(double distance, double delta = 1e9, double alph=-1);
+				double shoot_speed(double distance, double delta = 1e9, double alph = -1);
 
 				/**
 				 * Arm the kicker so that it kicks ball exact speed to stop at target (i.e. t= inf)

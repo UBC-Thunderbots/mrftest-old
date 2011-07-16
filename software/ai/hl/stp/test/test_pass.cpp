@@ -17,14 +17,13 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-
 	IntParam pass_target("passing target points", "STP/test_pass", 0, 0, 14);
 	DoubleParam negligible_velocity("velocity to ignore", "STP/test_pass", 0.1, 0.0, 1.0);
-	
+
 	DoubleParam passer_tol_target(" angle tolerance that the passer needs to be with respect to the target", "STP/test_pass", 30.0, 0.0, 180.0);
 	DoubleParam passer_tol_reciever(" angle tolerance that the passer needs to be with respect to the passee", "STP/test_pass", 20.0, 0.0, 180.0);
 	DoubleParam passee_tol(" distance tolerance that the passee needs to be with respect to the passer shot", "STP/test_pass", 0.05, 0.0, 1.0);
-	
+
 	DoubleParam passee_hack_dist("Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)", "STP/test_pass", 0.03, 0.0, 1.0);
 	// make better targets
 
@@ -71,14 +70,14 @@ namespace {
 			World &world;
 
 			std::vector<Point> targets;
-			
+
 			// the position of the passing robot before/during the kick
 			Point player_kick_pos;
 
 			bool kicked;
-			
+
 			int kicked_count;
-			
+
 			TestPassFactory &factory() const {
 				return factory_instance;
 			}
@@ -95,7 +94,7 @@ namespace {
 					return;
 				}
 
-				if (!lower_number_passer){
+				if (!lower_number_passer) {
 					std::reverse(players.begin(), players.end());
 				}
 
@@ -107,11 +106,11 @@ namespace {
 				if (kicked_count > 50) {
 					kicked = false;
 				}
-				
+
 				if (kicked) {
 					Action::move(players[0], players[0]->orientation(), players[0]->position());
 				} else if (!players[0]->has_ball()) {
-					Action::chase_pivot(world,players[0], targets[pass_target]);
+					Action::chase_pivot(world, players[0], targets[pass_target]);
 				}
 
 				// passer shoots
@@ -120,24 +119,21 @@ namespace {
 						kicked = true;
 					}
 				}
-				
-				bool fast_ball = world.ball().velocity().len() > negligible_velocity;
-				if(Evaluation::player_within_angle_thresh(players[0], targets[pass_target], passer_tol_target) || (kicked && !fast_ball)){
 
+				bool fast_ball = world.ball().velocity().len() > negligible_velocity;
+				if (Evaluation::player_within_angle_thresh(players[0], targets[pass_target], passer_tol_target) || (kicked && !fast_ball)) {
 					Point pass_dir(100, 0);
 					pass_dir = pass_dir.rotate(players[0]->orientation());
 
 					Point intercept_pos = closest_lineseg_point(players[1]->position(), players[0]->position(), players[0]->position() + pass_dir);
-					Point addit = passee_hack_dist*(intercept_pos - players[0]->position()).norm();
+					Point addit = passee_hack_dist * (intercept_pos - players[0]->position()).norm();
 
 					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos + addit);
-				
-				} else if(kicked && fast_ball) {
-
-					Point intercept_pos = closest_lineseg_point(players[1]->position(), world.ball().position(),  world.ball().position() + 100 * (world.ball().velocity().norm()));
+				} else if (kicked && fast_ball) {
+					Point intercept_pos = closest_lineseg_point(players[1]->position(), world.ball().position(), world.ball().position() + 100 * (world.ball().velocity().norm()));
 					Point pass_dir = (world.ball().position() - players[0]->position()).norm();
 
-					Point addit = passee_hack_dist*(intercept_pos - players[1]->position()).norm();
+					Point addit = passee_hack_dist * (intercept_pos - players[1]->position()).norm();
 					Action::move(players[1], (players[0]->position() - intercept_pos).orientation(), intercept_pos + addit);
 				} else {
 					// passee move to target
@@ -145,7 +141,6 @@ namespace {
 				}
 
 				players[1]->type(AI::Flags::MoveType::DRIBBLE);
-				
 			}
 	};
 
@@ -154,3 +149,4 @@ namespace {
 		return p;
 	}
 }
+

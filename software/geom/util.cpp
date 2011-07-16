@@ -25,12 +25,11 @@ double line_pt_dist(const Point A, const Point B, const Point P) {
 }
 
 double proj_dist(const Point A, const Point B, const Point P) {
-  return (B - A).dot(P - A) / (B - A).len();
+	return (B - A).dot(P - A) / (B - A).len();
 }
 
 double seg_pt_dist(const Point a, const Point b, const Point p) {
-  return proj_dist(a, b, p) > 0 && proj_dist(b, a, p) > 0 ?
-    std::fabs(line_pt_dist(a, b, p)) : std::min((a - p).len(), (b - p).len());
+	return proj_dist(a, b, p) > 0 && proj_dist(b, a, p) > 0 ? std::fabs(line_pt_dist(a, b, p)) : std::min((a - p).len(), (b - p).len());
 }
 
 std::vector<std::size_t> dist_matching(const std::vector<Point> &v1, const std::vector<Point> &v2) {
@@ -59,22 +58,20 @@ std::vector<std::size_t> dist_matching(const std::vector<Point> &v1, const std::
 }
 
 bool point_in_triangle(const Point p1, const Point p2, const Point p3, const Point p) {
-	const Point P[3] = {p1, p2, p3};
+	const Point P[3] = { p1, p2, p3 };
 	double angle = 0;
 	for (int i = 0, j = 2; i < 3; j = i++) {
-		if ((p - P[i]).len() < EPS) return true; // SPECIAL CASE
-		double a = atan2((P[i] - p).cross(P[j] - p),
-				(P[i] - p).dot(P[j] - p));
+		if ((p - P[i]).len() < EPS) {
+			return true; // SPECIAL CASE
+		}
+		double a = atan2((P[i] - p).cross(P[j] - p), (P[i] - p).dot(P[j] - p));
 		angle += a;
 	}
 	return std::fabs(angle) > 6;
 }
 
 bool triangle_circle_intersect(const Point p1, const Point p2, const Point p3, const Point c, const double radius) {
-	return point_in_triangle(p1, p2, p3, c)
-		|| seg_pt_dist(p1, p2, c) < radius
-		|| seg_pt_dist(p2, p3, c) < radius
-		|| seg_pt_dist(p3, p1, c) < radius;
+	return point_in_triangle(p1, p2, p3, c) || seg_pt_dist(p1, p2, c) < radius || seg_pt_dist(p2, p3, c) < radius || seg_pt_dist(p3, p1, c) < radius;
 }
 
 std::vector<std::pair<Point, double> > angle_sweep_circles_all(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius) {
@@ -165,23 +162,23 @@ std::pair<Point, double> angle_sweep_circles(const Point &src, const Point &p1, 
 
 		/*
 		   if (range1 < -M_PI) {
-		// [-PI, range2]
-		events.push_back(std::make_pair(-M_PI, -1));
-		events.push_back(std::make_pair(range2, 1));
-		// [range1, PI]
-		events.push_back(std::make_pair(range1 + 2 * M_PI, -1));
-		events.push_back(std::make_pair(M_PI, 1));
-		} else if (range2 > M_PI) {
-		// [range1, PI]
-		events.push_back(std::make_pair(range1, -1));
-		events.push_back(std::make_pair(M_PI, 1));
-		// [-PI, range2]
-		events.push_back(std::make_pair(-M_PI, -1));
-		events.push_back(std::make_pair(range2 - 2 * M_PI, 1));
-		} else {
-		events.push_back(std::make_pair(range1, -1));
-		events.push_back(std::make_pair(range2, 1));
-		}
+		   // [-PI, range2]
+		   events.push_back(std::make_pair(-M_PI, -1));
+		   events.push_back(std::make_pair(range2, 1));
+		   // [range1, PI]
+		   events.push_back(std::make_pair(range1 + 2 * M_PI, -1));
+		   events.push_back(std::make_pair(M_PI, 1));
+		   } else if (range2 > M_PI) {
+		   // [range1, PI]
+		   events.push_back(std::make_pair(range1, -1));
+		   events.push_back(std::make_pair(M_PI, 1));
+		   // [-PI, range2]
+		   events.push_back(std::make_pair(-M_PI, -1));
+		   events.push_back(std::make_pair(range2 - 2 * M_PI, 1));
+		   } else {
+		   events.push_back(std::make_pair(range1, -1));
+		   events.push_back(std::make_pair(range2, 1));
+		   }
 		 */
 
 #warning hack should work
@@ -501,10 +498,7 @@ bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Po
 		return mx_len < (a1 - a2).len() + (b1 - b2).len() + EPS;
 	}
 
-	return sign((a2 - a1).cross(b1 - a1))
-		* sign((a2 - a1).cross(b2 - a1)) <= 0 &&
-		sign((b2 - b1).cross(a1 - b1))
-		* sign((b2 - b1).cross(a2 - b1)) <= 0;
+	return sign((a2 - a1).cross(b1 - a1)) * sign((a2 - a1).cross(b2 - a1)) <= 0 && sign((b2 - b1).cross(a1 - b1)) * sign((b2 - b1).cross(a2 - b1)) <= 0;
 }
 
 bool line_seg_intersect_rectangle(const Point seg[2], const Point recA[4]) {
@@ -560,15 +554,15 @@ Point calc_block_cone(const Point &a, const Point &b, const double &radius) {
 Point calc_block_cone(const Point &a, const Point &b, const Point &p, const double &radius) {
 	/*
 	   Point R = p + calc_block_cone(a - p, b - p, radius);
-#warning: THIS MAGIC THRESHOLD should be fixed after competition
-#warning TODO: Fix this magic number
-const double MIN_X = std::min(-2.5, (p.x + 3.025) / 2.0 - 3.025);
-if (R.x < MIN_X){
-R = (R - p) * ((MIN_X - p.x) / (R.x - p.x)) + p;
-}
-return R;
+	   #warning: THIS MAGIC THRESHOLD should be fixed after competition
+	   #warning TODO: Fix this magic number
+	   const double MIN_X = std::min(-2.5, (p.x + 3.025) / 2.0 - 3.025);
+	   if (R.x < MIN_X){
+	   R = (R - p) * ((MIN_X - p.x) / (R.x - p.x)) + p;
+	   }
+	   return R;
 	 */
-return p + calc_block_cone(a - p, b - p, radius);
+	return p + calc_block_cone(a - p, b - p, radius);
 }
 
 // ported code

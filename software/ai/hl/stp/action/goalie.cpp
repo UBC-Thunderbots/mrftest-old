@@ -17,7 +17,6 @@ namespace {
 	const double FAST = 100.0;
 	DoubleParam lone_goalie_dist("Lone Goalie: distance to goal post (m)", "STP/Action/Goalie", 0.30, 0.05, 1.0);
 	DoubleParam goalie_repel_dist("Distance the defender should repel the ball in robot radius", "STP/Action/Goalie", 4.0, 1.0, 6.0);
-
 }
 
 void AI::HL::STP::Action::lone_goalie(const World &world, Player::Ptr player) {
@@ -30,20 +29,19 @@ void AI::HL::STP::Action::lone_goalie(const World &world, Player::Ptr player) {
 	if (target.x < world.field().friendly_goal().x + Robot::MAX_RADIUS) { // avoid going inside the goal
 		target.x = world.field().friendly_goal().x + Robot::MAX_RADIUS;
 	}
-	
+
 	goalie_move(world, player, target);
 }
 
 void AI::HL::STP::Action::goalie_move(const World &world, Player::Ptr player, Point dest) {
-	
 	player->autokick(10.0); // goalie autokick always on!!
-	
+
 	// if ball is inside the defense area or just too close, repel!!!!
 	if ((AI::HL::Util::point_in_friendly_defense(world.field(), world.ball().position()) || (world.ball().position() - player->position()).len() < goalie_repel_dist * Robot::MAX_RADIUS) && world.playtype() != AI::Common::PlayType::STOP) {
 		repel(world, player);
 		return;
 	}
-	
+
 	const Point diff = world.ball().position() - player->position();
 	// check if ball is heading towards our goal
 	if (Evaluation::ball_on_net(world)) {

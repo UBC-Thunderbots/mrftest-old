@@ -47,16 +47,20 @@ namespace {
 			void tick() {
 				FriendlyTeam &friendly = world.friendly_team();
 
-				if (friendly.size() == 0)
+				if (friendly.size() == 0) {
 					return;
-					
+				}
+
 				if (done.size() < 3 && friendly.size() != done.size()) {
 					done.clear();
 					int taskIndex = 0;
 					for (unsigned int i = 0; i < friendly.size() && i < 3; ++i) {
 						done.push_back(taskIndex);
-						if (taskIndex == 0) taskIndex = 3;
-						else taskIndex = 0;
+						if (taskIndex == 0) {
+							taskIndex = 3;
+						} else {
+							taskIndex = 0;
+						}
 					}
 				}
 
@@ -83,7 +87,7 @@ namespace {
 					tasks[3] = std::make_pair(Point(rightmost.x, rightmost.y - y_diff), 0);
 					tasks[4] = std::make_pair(Point(rightmost.x + x_diff, rightmost.y + 0.1), 0);
 					tasks[5] = std::make_pair(Point(rightmost.x, rightmost.y + y_diff), 0);
-					
+
 					// set avoidance distance based on whether the robot is moving
 					for (unsigned int i = 0; i < world.enemy_team().size(); ++i) {
 						if (i == leftmostIndex || i == rightmostIndex) {
@@ -95,7 +99,7 @@ namespace {
 				}
 
 				time_steps++;
-				
+
 				// Set up to three players
 				for (unsigned int robotIndex = 0; robotIndex < friendly.size() && robotIndex < 3; ++robotIndex) {
 					Player::Ptr runner = friendly.get(robotIndex);
@@ -118,20 +122,22 @@ namespace {
 					double dest_ori = (tasks[done[robotIndex]].first - runner->position()).orientation();
 					runner->move(tasks[done[robotIndex]].first, dest_ori, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 				}
-				
+
 				// Set moving obstacles
 				if (friendly.size() >= 4) {
 					Player::Ptr runner = friendly.get(3);
 					Point des;
 					if (obstacleIndex == 0) {
-						des = Point(0,1);
+						des = Point(0, 1);
 					} else {
-						des = Point(0,-1);
+						des = Point(0, -1);
 					}
 					const Point diff_pos = runner->position() - des;
 					if (diff_pos.len() < pos_dis_threshold) {
 						obstacleIndex++;
-						if (obstacleIndex > 1) obstacleIndex = 0;
+						if (obstacleIndex > 1) {
+							obstacleIndex = 0;
+						}
 					}
 					runner->move(des, 0, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 				}

@@ -32,7 +32,6 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-
 	BoolParam enable0("enable robot 0", "MixedTeamDefense", true);
 	BoolParam enable1("enable robot 1", "MixedTeamDefense", true);
 	BoolParam enable2("enable robot 2", "MixedTeamDefense", true);
@@ -61,7 +60,6 @@ namespace {
 	MixedTeamDefenseFactory factory_instance;
 
 	struct MixedTeamDefense : public HighLevel {
-
 		World &world;
 
 		MixedTeamDefense(World &world) : world(world) {
@@ -95,7 +93,9 @@ namespace {
 			};
 
 			for (std::size_t i = 0; i < friendly.size(); ++i) {
-				if (!enabled[friendly.get(i)->pattern()]) continue;
+				if (!enabled[friendly.get(i)->pattern()]) {
+					continue;
+				}
 				players.push_back(friendly.get(i));
 			}
 
@@ -110,15 +110,18 @@ namespace {
 				case AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
 					default_flags |= Flags::FLAG_AVOID_BALL_STOP;
 					break;
+
 				case AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY:
 				case AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY:
 					default_flags |= Flags::FLAG_FRIENDLY_KICK;
 					break;
+
 				case AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY:
 				case AI::Common::PlayType::PREPARE_KICKOFF_ENEMY:
 					default_flags |= Flags::FLAG_AVOID_BALL_STOP;
 					default_flags |= Flags::FLAG_STAY_OWN_HALF;
 					break;
+
 				default:
 					break;
 			}
@@ -135,18 +138,19 @@ namespace {
 				case AI::Common::PlayType::STOP:
 					stop(players);
 					break;
+
 				case AI::Common::PlayType::PREPARE_PENALTY_ENEMY:
 				case AI::Common::PlayType::EXECUTE_PENALTY_ENEMY:
 					penalty(players);
 					break;
+
 				default:
 					play(players);
 					break;
 			}
 		}
 
-		void penalty(std::vector<Player::Ptr>& players) {
-
+		void penalty(std::vector<Player::Ptr> &players) {
 			auto goalie = Tactic::penalty_goalie(world);
 			goalie->set_player(players[0]);
 			goalie->execute();
@@ -160,27 +164,25 @@ namespace {
 			if (players.size() == 3) {
 				Action::move(world, players[2], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 2 * Robot::MAX_RADIUS));
 			}
-
 		}
 
-		void stop(std::vector<Player::Ptr>& players) {
-			   Action::move(world, players[0], Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, 0));
+		void stop(std::vector<Player::Ptr> &players) {
+			Action::move(world, players[0], Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, 0));
 
-			   if (players.size() > 1) {
-			   auto stop1 = Tactic::move_stop(world, 1);
-			   stop1->set_player(players[1]);
-			   stop1->execute();
-			   }
+			if (players.size() > 1) {
+				auto stop1 = Tactic::move_stop(world, 1);
+				stop1->set_player(players[1]);
+				stop1->execute();
+			}
 
-			   if (players.size() > 2) {
-			   auto stop2 = Tactic::move_stop(world, 2);
-			   stop2->set_player(players[2]);
-			   stop2->execute();
-			   }
-
+			if (players.size() > 2) {
+				auto stop2 = Tactic::move_stop(world, 2);
+				stop2->set_player(players[2]);
+				stop2->execute();
+			}
 		}
 
-		void play(std::vector<Player::Ptr>& players) {
+		void play(std::vector<Player::Ptr> &players) {
 			auto waypoints = Evaluation::evaluate_defense();
 			if (players.size() == 1) {
 				auto goalie = Tactic::lone_goalie(world);
@@ -191,7 +193,6 @@ namespace {
 
 
 			if (use_simon) {
-
 				auto goalie = Tactic::defend_duo_goalie(world);
 				goalie->set_player(players[0]);
 				goalie->execute();
@@ -212,12 +213,11 @@ namespace {
 				}
 
 				return;
-
 			} else {
 				if (players.size() > 0) {
 					auto goalie = Tactic::lone_goalie(world);
 					goalie->set_player(players[0]);
-					goalie->execute();				
+					goalie->execute();
 				}
 				if (players.size() > 1) {
 					auto defend1 = Tactic::tdefender1(world);
@@ -227,15 +227,15 @@ namespace {
 				if (players.size() > 2) {
 					auto defend2 = Tactic::tdefender2(world);
 					defend2->set_player(players[2]);
-					defend2->execute();				
+					defend2->execute();
 				}
 			}
-
 		}
-		
+
 		void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
-			if (do_draw)
-			draw_ui(world, ctx);
+			if (do_draw) {
+				draw_ui(world, ctx);
+			}
 		}
 	};
 

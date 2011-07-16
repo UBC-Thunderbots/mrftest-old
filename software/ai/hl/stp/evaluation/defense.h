@@ -13,8 +13,7 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-
-				void tick_defense(const World& world);
+				void tick_defense(const World &world);
 
 				/**
 				 * Locations:
@@ -28,8 +27,8 @@ namespace AI {
 				/**
 				 * Checks if an enemy breaks our defense duo.
 				 */
-				bool enemy_break_defense_duo(const World& world, const Robot::Ptr enemy);
-				
+				bool enemy_break_defense_duo(const World &world, const Robot::Ptr enemy);
+
 				/**
 				 * return dest of Terence defender - index.
 				 */

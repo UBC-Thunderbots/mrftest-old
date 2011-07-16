@@ -44,7 +44,7 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, boo
 		if (!player->chicker_ready()) {
 			LOG_INFO("chicker not ready");
 			// angle is right but chicker not ready, ram the ball and get closer to target, only use in normal play
-			if (world.playtype() == AI::Common::PlayType::PLAY){
+			if (world.playtype() == AI::Common::PlayType::PLAY) {
 				const Point diff = world.ball().position() - player->position();
 				ram(world, player, shoot_data.target, diff * FAST);
 			}
@@ -65,7 +65,7 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 	// Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot_target(world, player, target);
 	chase_pivot(world, player, target);
 
-	//if (shoot_data.can_shoot) {
+	// if (shoot_data.can_shoot) {
 	if (!Evaluation::player_within_angle_thresh(player, target, passer_angle_threshold)) {
 		return false;
 	}
@@ -86,8 +86,7 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 	return true;
 }
 
-bool AI::HL::STP::Action::shoot_pass(const World& world, Player::Ptr shooter, Player::CPtr target) {
-
+bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr shooter, Player::CPtr target) {
 	return shoot_pass(world, shooter, target->position());
 }
 
@@ -96,7 +95,6 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 }
 
 bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target, double angle_tol) {
-
 	chase_pivot(world, player, target);
 
 	// checker shooter orientation
@@ -110,14 +108,14 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	}
 
 	// check receiver is within passing range & angle
-	double distance_tol = (target-player->position()).len()*sin(angle_tol) + AI::HL::STP::Action::target_region_param;
+	double distance_tol = (target - player->position()).len() * sin(angle_tol) + AI::HL::STP::Action::target_region_param;
 	bool ok = false;
 
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
 		Player::CPtr p = player;
-		if(world.friendly_team().get(i) != p) {
-			bool curr_ok =  (target - world.friendly_team().get(i)->position()).len() < distance_tol
-				&& Evaluation::passee_facing_passer(player, world.friendly_team().get(i));
+		if (world.friendly_team().get(i) != p) {
+			bool curr_ok = (target - world.friendly_team().get(i)->position()).len() < distance_tol
+			               && Evaluation::passee_facing_passer(player, world.friendly_team().get(i));
 			ok = ok || curr_ok;
 		}
 	}

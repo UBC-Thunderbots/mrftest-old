@@ -59,12 +59,12 @@ namespace AI {
 				/**
 				 * Evaluates each robot and calculates how dangerous they are.
 				 */
-				std::vector<Threat> calc_enemy_threat(const World& world);
+				std::vector<Threat> calc_enemy_threat(const World &world);
 
 				/**
 				 * Checks if it's possible for this enemy to shoot to the goal.
 				 */
-				bool enemy_can_shoot_goal(const World& world, const Robot::Ptr enemy);
+				bool enemy_can_shoot_goal(const World &world, const Robot::Ptr enemy);
 
 				/**
 				 * Calculates how good an enemy is at shooting our goal.
@@ -86,7 +86,7 @@ namespace AI {
 				/**
 				 * BAD STUFF
 				 */
-				std::vector<Robot::Ptr> get_passees(const World& world, Robot::Ptr robot);
+				std::vector<Robot::Ptr> get_passees(const World &world, Robot::Ptr robot);
 
 				/**
 				 * Given obstacle position, calculates the min amount of passing

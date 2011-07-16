@@ -113,7 +113,7 @@ namespace {
 				int index = (int)rchoose.get_value();
 
 				Player::Ptr runner;
-				
+
 				for (std::size_t i = 0; i < friendly.size(); ++i) {
 					if (friendly.get(i)->pattern() == index) {
 						runner = friendly.get(i);

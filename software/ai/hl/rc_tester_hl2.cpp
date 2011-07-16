@@ -7,7 +7,6 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-
 	struct RCTesterFactory : public HighLevelFactory {
 		RCTesterFactory() : HighLevelFactory("RC Tester 2") {
 		}
@@ -25,7 +24,7 @@ namespace {
 		Gtk::HScale offsets_y;
 		Gtk::Button reset_button;
 
-		RCTester(World& world) : world(world) {
+		RCTester(World &world) : world(world) {
 			for (int i = 0; i < 3; ++i) {
 				vbox.add(controls[i]);
 				// params are
@@ -91,9 +90,8 @@ namespace {
 	};
 
 	HighLevel::Ptr RCTesterFactory::create_high_level(World &world) const {
-		HighLevel:: Ptr p(new RCTester(world));
+		HighLevel::Ptr p(new RCTester(world));
 		return p;
 	}
-
 }
 

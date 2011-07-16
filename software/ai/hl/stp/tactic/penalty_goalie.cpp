@@ -10,7 +10,7 @@ using namespace AI::HL::STP::Tactic;
 
 namespace {
 	Point old_des;
-	
+
 	class PenaltyGoalie : public Tactic {
 		public:
 			PenaltyGoalie(const World &world);
@@ -39,7 +39,7 @@ namespace {
 	void PenaltyGoalie::execute() {
 		if (random_penalty_goalie) {
 			if ((player->position() - old_des).len() < AI::HL::Util::POS_CLOSE) {
-				double ran = (static_cast<double> (std::rand()) / static_cast<double> (RAND_MAX));
+				double ran = static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX);
 				old_des = Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, ran * 0.2 - (1 - ran) * 0.2);
 			}
 			// just orient towards the "front"
@@ -47,8 +47,8 @@ namespace {
 			player->type(AI::Flags::MoveType::RAM_BALL);
 			player->prio(AI::Flags::MovePrio::HIGH);
 		} else {
-			const Point p1(world.field().friendly_goal().x  + Robot::MAX_RADIUS, -0.2);
-			const Point p2(world.field().friendly_goal().x  + Robot::MAX_RADIUS, 0.2);
+			const Point p1(world.field().friendly_goal().x + Robot::MAX_RADIUS, -0.2);
+			const Point p2(world.field().friendly_goal().x + Robot::MAX_RADIUS, 0.2);
 			if ((player->position() - p1).len() < AI::HL::Util::POS_CLOSE) {
 				goto_target1 = false;
 			} else if ((player->position() - p2).len() < AI::HL::Util::POS_CLOSE) {

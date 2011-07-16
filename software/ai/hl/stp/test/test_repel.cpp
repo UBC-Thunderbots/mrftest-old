@@ -45,7 +45,7 @@ namespace {
 				if (friendly.size() == 0) {
 					return;
 				}
-				
+
 				Action::repel(world, friendly.get(0));
 			}
 	};

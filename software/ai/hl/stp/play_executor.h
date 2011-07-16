@@ -10,8 +10,7 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
-
-		 	namespace HACK {
+			namespace HACK {
 				extern Player::Ptr active_player;
 				extern Player::Ptr last_kicked;
 			}

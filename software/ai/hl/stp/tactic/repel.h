@@ -12,7 +12,7 @@ namespace AI {
 				 * Active tactic.
 				 */
 				Tactic::Ptr repel(const AI::HL::W::World &world);
-				
+
 				/**
 				 * Special repel to be used in corner kicks
 				 * Active tactic.

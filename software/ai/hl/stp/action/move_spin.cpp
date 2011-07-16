@@ -7,7 +7,6 @@ using namespace AI::HL::STP;
 
 namespace {
 	DoubleParam spin_delta("change in orientation every time tick for move spin", "STP/Action/spin", 3.0, 1.0, 5.0);
-
 }
 
 void AI::HL::STP::Action::move_spin(Player::Ptr player, const Point dest) {

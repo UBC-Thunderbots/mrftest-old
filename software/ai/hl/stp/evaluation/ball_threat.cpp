@@ -27,9 +27,8 @@ BallThreat AI::HL::STP::Evaluation::evaluate_ball_threat(const World &world) {
 		ball_threat.threat = ball_threat.enemies[0];
 
 		ball_threat.threat_distance = (ball_threat.threat->position() - world.ball().position()).len();
-		
+
 		for (std::size_t i = 0; i < ball_threat.enemies.size(); ++i) {
-		
 			Point pos = world.ball().position(), vel = world.ball().velocity();
 			Point a = ball_threat.enemies[i]->position();
 			Point b = a + ball_threat.enemies[i]->velocity();
@@ -45,8 +44,7 @@ BallThreat AI::HL::STP::Evaluation::evaluate_ball_threat(const World &world) {
 		// steal mechanism activation when ball is close enough
 		if ((ball_threat.threat->position() - world.ball().position()).len() * Robot::MAX_RADIUS < steal_threshold) {
 			ball_threat.activate_steal = true;
-		} 
-		
+		}
 	}
 
 	return ball_threat;

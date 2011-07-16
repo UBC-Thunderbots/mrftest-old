@@ -9,7 +9,7 @@ namespace AI {
 			namespace Tactic {
 				/**
 				 * Selects a baller for active tactics.
-				 * 
+				 *
 				 * use a hysterisis
 				 */
 				Player::Ptr select_baller(const World &world, const std::set<Player::Ptr> &players, Player::Ptr previous);

@@ -93,8 +93,8 @@ namespace {
 
 				if (!curr_play->invariant() || curr_play->done() || curr_play->fail()) {
 					LOG_WARN("play not valid");
-					//curr_play.reset();
-					//return;
+					// curr_play.reset();
+					// return;
 				}
 
 				// auto itr = m.find(combo.get_active_text().c_str());
@@ -137,11 +137,11 @@ namespace {
 				}
 
 				/*
-				if (curr_play.is() && (!curr_play->invariant() || curr_play->done() || curr_play->fail())) {
-					LOG_INFO("play done/no longer valid");
-					curr_play.reset();
-				}
-				*/
+				   if (curr_play.is() && (!curr_play->invariant() || curr_play->done() || curr_play->fail())) {
+				    LOG_INFO("play done/no longer valid");
+				    curr_play.reset();
+				   }
+				 */
 
 				std::ostringstream text;
 

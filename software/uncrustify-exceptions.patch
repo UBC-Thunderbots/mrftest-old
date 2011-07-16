@@ -22,28 +22,6 @@ Index: simulator/simulator.cpp
  			// In fast mode, we tick immediately.
  			tick();
  			break;
-Index: geom/point.h
-===================================================================
---- geom/point.h	(revision 5868)
-+++ geom/point.h	(working copy)
-@@ -239,7 +239,7 @@
- 	 *
- 	 * \return the scaled vector.
- 	 */
--	Point operator*(double s, const Point &p) __attribute__((warn_unused_result));
-+	Point operator *(double s, const Point &p) __attribute__((warn_unused_result));
- 	Point operator*(double s, const Point &p) {
- 		return Point(p.x * s, p.y * s);
- 	}
-@@ -253,7 +253,7 @@
- 	 *
- 	 * \return the scaled vector.
- 	 */
--	Point operator*(const Point &p, double s) __attribute__((warn_unused_result));
-+	Point operator *(const Point &p, double s) __attribute__((warn_unused_result));
- 	Point operator*(const Point &p, double s) {
- 		return Point(p.x * s, p.y * s);
- 	}
 Index: ai/backend/simulator/ball.h
 ===================================================================
 --- ai/backend/simulator/ball.h	(revision 5868)
@@ -157,9 +135,9 @@ Index: ai/backend/simulator/robot.h
  					 */
 -					void pre_tick(const ::Simulator::Proto::S2ARobotInfo &state, const timespec &ts) {
 +					void pre_tick(const::Simulator::Proto::S2ARobotInfo &state, const timespec &ts) {
+ 						AI::BE::Robot::pre_tick();
  						xpred.add_datum(state.x, ts);
  						xpred.lock_time(ts);
- 						ypred.add_datum(state.y, ts);
 Index: ai/backend/simulator/team.h
 ===================================================================
 --- ai/backend/simulator/team.h	(revision 5868)
@@ -357,21 +335,6 @@ Index: ai/hl/stp/tactic/tactic.cpp
 -void Tactic::draw_overlay(Cairo::RefPtr<Cairo::Context>) const {
 +void Tactic::draw_overlay(Cairo::RefPtr<Cairo::Context> ) const {
  	// do nothing..
- }
- 
-Index: ai/hl/util.cpp
-===================================================================
---- ai/hl/util.cpp	(revision 5868)
-+++ ai/hl/util.cpp	(working copy)
-@@ -188,8 +188,8 @@
- 
- std::pair<Point, double> AI::HL::Util::calc_best_shot_target(const Point &target_pos, const std::vector<Point> &obstacles, const Point &p, const double radius) {
- 	Point dirToBall = (p - target_pos).norm();
--	const Point p1 = target_pos + (Robot::MAX_RADIUS * dirToBall).rotate(M_PI / 2);
--	const Point p2 = target_pos - (Robot::MAX_RADIUS * dirToBall).rotate(M_PI / 2);
-+	const Point p1 = target_pos + (Robot::MAX_RADIUS *dirToBall).rotate(M_PI / 2);
-+	const Point p2 = target_pos - (Robot::MAX_RADIUS *dirToBall).rotate(M_PI / 2);
- 	return angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
  }
  
 Index: ai/logger.h
@@ -729,34 +692,25 @@ Index: util/byref.h
  			moveref.obj = 0;
  		}
  
-Index: util/kalman/kalman.cpp
+Index: geom/point.h
 ===================================================================
---- util/kalman/kalman.cpp	(revision 5868)
-+++ util/kalman/kalman.cpp	(working copy)
-@@ -62,7 +62,7 @@
- 	}
- 	predict_step(timespec_to_double(timespec_sub(prediction_time, current_time)), current_control, state_predict, p_predict);
- 	if (is_angle) {
--		state_predict(0, 0) -= 2 * M_PI * std::round(state_predict(0, 0) / 2 / M_PI);
-+		state_predict(0, 0) -= 2 *M_PI *std::round(state_predict(0, 0) / 2 / M_PI);
- 	}
- }
+--- geom/point.h	(revision 6494)
++++ geom/point.h	(working copy)
+@@ -202,7 +202,7 @@
+  *
+  * \return the scaled vector.
+  */
+-Point operator*(double s, const Point &p) __attribute__((warn_unused_result));
++Point operator *(double s, const Point &p) __attribute__((warn_unused_result));
  
-@@ -84,7 +84,7 @@
- 	// %how much does the guess differ from the measurement
- 	double residual = measurement - (h * state_priori)(0, 0);
- 	if (is_angle) {
--		residual -= 2 * M_PI * std::round(residual / 2 / M_PI);
-+		residual -= 2 *M_PI *std::round(residual / 2 / M_PI);
- 	}
+ /**
+  * Multiplies a vector by a scalar.
+@@ -213,7 +213,7 @@
+  *
+  * \return the scaled vector.
+  */
+-Point operator*(const Point &p, double s) __attribute__((warn_unused_result));
++Point operator *(const Point &p, double s) __attribute__((warn_unused_result));
  
- 	// %The kalman update calculations
-@@ -92,7 +92,7 @@
- 	state_estimate = state_priori + kalman_gain * residual;
- 
- 	if (is_angle) {
--		state_estimate(0, 0) -= 2 * M_PI * std::round(state_estimate(0, 0) / 2 / M_PI);
-+		state_estimate(0, 0) -= 2 *M_PI *std::round(state_estimate(0, 0) / 2 / M_PI);
- 	}
- 	p = (Matrix(2, 2, Matrix::InitFlag::IDENTITY) - kalman_gain * h) * p_priori;
- 
+ /**
+  * Scales a vector by a scalar.

@@ -9,7 +9,6 @@
 using namespace AI::HL::STP;
 
 namespace {
-
 	BoolParam chase_target_enemy("Chase always face toward enemy goal", "STP/Chase", false);
 }
 

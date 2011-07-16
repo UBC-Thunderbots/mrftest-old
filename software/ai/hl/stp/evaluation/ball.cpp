@@ -9,7 +9,6 @@
 using namespace AI::HL::STP;
 
 namespace {
-
 	BoolParam calc_baller_always_return("Calc baller always return", "STP/ball", true);
 
 	BoolParam smart_possess_ball("Smart possess ball (instead of has ball only)", "STP/ball", true);
@@ -20,7 +19,7 @@ namespace {
 
 	std::vector<Robot::Ptr> enemies;
 
-	void update_enemies_by_grab_ball_dist(const World& world) {
+	void update_enemies_by_grab_ball_dist(const World &world) {
 		enemies = AI::HL::Util::get_robots(world.enemy_team());
 		std::vector<double> score;
 
@@ -42,7 +41,7 @@ namespace {
 		}
 	}
 
-	void update_baller(const World& world) {
+	void update_baller(const World &world) {
 		const FriendlyTeam &friendly = world.friendly_team();
 		// use has ball
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
@@ -133,7 +132,7 @@ Robot::Ptr Evaluation::calc_enemy_baller(const World &world) {
 	return robot;
 }
 
-Point Evaluation::calc_fastest_grab_ball_dest(const World &world, Player::CPtr player){
+Point Evaluation::calc_fastest_grab_ball_dest(const World &world, Player::CPtr player) {
 	Point dest;
 	AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest);
 	return dest;
@@ -143,7 +142,7 @@ std::vector<Robot::Ptr> Evaluation::enemies_by_grab_ball_dist() {
 	return enemies;
 }
 
-void AI::HL::STP::Evaluation::tick_ball(const World& world) {
+void AI::HL::STP::Evaluation::tick_ball(const World &world) {
 	update_baller(world);
 	update_enemies_by_grab_ball_dist(world);
 }

@@ -8,7 +8,6 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Tactic {
-
 				/**
 				 * Passer shoots towards the target region
 				 */

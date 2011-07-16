@@ -1,13 +1,12 @@
 #ifndef AI_HL_STP_PARAM_H
 #define AI_HL_STP_PARAM_H
 
-//#include "util/param.h"
+// #include "util/param.h"
 #include "ai/param.h"
 
 namespace AI {
 	namespace HL {
 		namespace STP {
-
 			extern DoubleParam min_pass_dist;
 
 			extern DoubleParam min_shoot_region;
@@ -31,7 +30,7 @@ namespace AI {
 
 				extern DoubleParam target_region_param;
 			}
-			
+
 			namespace Tactic {
 				extern BoolParam random_penalty_goalie;
 			}

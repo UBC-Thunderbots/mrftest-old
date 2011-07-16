@@ -18,7 +18,6 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-
 	DoubleParam pid_xy_prop("xy +proportional", "RC/PID5", 25.0, 0.0, 100.0);
 	DoubleParam pid_xy_diff("xy -differential", "RC/PID5", 0.0, -100.0, 10.0);
 
@@ -47,7 +46,6 @@ namespace {
 	};
 
 	PID5Controller::PID5Controller(World &world, Player::Ptr plr) : RobotController(world, plr) {
-
 		for (unsigned i = 0; i < 4; ++i) {
 			prev_speed[i] = 0;
 		}

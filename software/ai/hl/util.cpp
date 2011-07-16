@@ -179,9 +179,9 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot(const World &world, const 
 		obstacles.push_back(fpl->position());
 	}
 	std::pair<Point, double> best_shot = calc_best_shot(world.field(), obstacles, player->position(), radius);
-	// if there is no good shot at least make the 
+	// if there is no good shot at least make the
 	// target within the goal area
-	if(best_shot.second <= 0.0){
+	if (best_shot.second <= 0.0) {
 		Point temp = Point(world.field().length() / 2.0, 0.0);
 		best_shot.first = temp;
 	}
@@ -208,17 +208,17 @@ std::vector<std::pair<Point, double> > AI::HL::Util::calc_best_shot_all(const Wo
 
 
 /*
-bool AI::HL::Util::can_shoot_circle(const Point begin, const Point center, const double radius, const std::vector<Point>& obstacles) {
-	const Point dirToBall = (p - target_pos).norm();
-	const Point p1 = target_pos + (Robot::MAX_RADIUS * radius * dir_to_ball).rotate(M_PI / 2);
-	const Point p2 = target_pos - (Robot::MAX_RADIUS * radius * dir_to_ball).rotate(M_PI / 2);
-	if (triangle_circle_intersect(begin, p1, p2, obstacles[i], radius)) {
-		return false;
-	}
+   bool AI::HL::Util::can_shoot_circle(const Point begin, const Point center, const double radius, const std::vector<Point>& obstacles) {
+    const Point dirToBall = (p - target_pos).norm();
+    const Point p1 = target_pos + (Robot::MAX_RADIUS * radius * dir_to_ball).rotate(M_PI / 2);
+    const Point p2 = target_pos - (Robot::MAX_RADIUS * radius * dir_to_ball).rotate(M_PI / 2);
+    if (triangle_circle_intersect(begin, p1, p2, obstacles[i], radius)) {
+        return false;
+    }
 
-	return true;
-}
-*/
+    return true;
+   }
+ */
 
 bool AI::HL::Util::ball_close(const World &world, Robot::Ptr robot) {
 	const Point dist = world.ball().position() - robot->position();
