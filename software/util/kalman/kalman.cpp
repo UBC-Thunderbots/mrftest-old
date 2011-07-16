@@ -63,7 +63,7 @@ void Kalman::predict(timespec prediction_time, Matrix &state_predict, Matrix &p_
 	}
 	predict_step(timespec_to_double(timespec_sub(prediction_time, current_time)), current_control, state_predict, p_predict);
 	if (is_angle) {
-		state_predict(0, 0) -= 2 * M_PI * std::round(state_predict(0, 0) / 2 / M_PI);
+		state_predict(0, 0) = angle_mod(state_predict(0, 0));
 	}
 }
 
