@@ -285,7 +285,7 @@ namespace {
 	}
 }
 
-double AI::HL::STP::Evaluation::offense_score(int i, int j) {
+double AI::HL::STP::Evaluation::offense_score(unsigned int i, unsigned int j) {
 	if (score1.size() <= i) {
 		return -1e99;
 	}

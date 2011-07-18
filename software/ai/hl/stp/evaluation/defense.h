@@ -6,7 +6,7 @@
 #include <array>
 
 namespace {
-	const int MAX_DEFENDERS = 3;
+	const unsigned int MAX_DEFENDERS = 3;
 }
 
 namespace AI {

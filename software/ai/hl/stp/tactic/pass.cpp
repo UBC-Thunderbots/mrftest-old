@@ -43,11 +43,13 @@ namespace {
 
 	class PasserShoot : public Tactic {
 		public:
-			PasserShoot(const World &world) : Tactic(world, true), dynamic(true), kicked(false) {
+			PasserShoot(const World &world) : Tactic(world, true), dynamic(true), target(Point(0,0)) {
+				kicked = false;
 				passer_info.kicked = false;
 			}
 
-			PasserShoot(const World &world, Coordinate target) : Tactic(world, true), dynamic(false), target(target), kicked(false) {
+			PasserShoot(const World &world, Coordinate target) : Tactic(world, true), dynamic(false), target(target) {
+				kicked = false;
 				passer_info.kicked = false;
 			}
 			static kick_info passer_info;
@@ -58,11 +60,7 @@ namespace {
 			Coordinate target;
 
 			bool done() const {
-#warning TODO allow more time
-				// Point dest = dynamic ? Evaluation::passee_position(world) : target.position();
-				// return kicked && (player->position() - world.ball().position()).len() > (player->position() - dest).len()/4;
-
-#warning WTH how this works
+#warning TODO allow more time, WTH how this works
 				return kicked || player->autokick_fired();
 			}
 
@@ -190,7 +188,7 @@ namespace {
 					for (unsigned int i = 0; i < Passer_ray_target_region_intersect.size(); i++) {
 						passee_goto += Passer_ray_target_region_intersect[i];
 					}
-					passee_goto /= Passer_ray_target_region_intersect.size();
+					passee_goto /= static_cast<unsigned int>(Passer_ray_target_region_intersect.size());
 
 					// Additional distance to add to location in the case that we are dealing with an improperly
 					// tuned controller

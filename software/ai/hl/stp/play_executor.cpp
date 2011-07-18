@@ -147,7 +147,7 @@ void PlayExecutor::role_assignment() {
 	} else {
 		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 			Player::Ptr p = world.friendly_team().get(i);
-			if (p->pattern() == goalie_pattern_index) {
+			if (p->pattern() == static_cast<unsigned int>(goalie_pattern_index)) {
 				goalie = p;
 			}
 		}

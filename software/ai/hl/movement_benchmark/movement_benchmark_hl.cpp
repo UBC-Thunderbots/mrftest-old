@@ -110,7 +110,7 @@ namespace {
 				}
 				time_steps++;
 
-				int index = (int)rchoose.get_value();
+				unsigned int index = static_cast<unsigned int>(rchoose.get_value());
 
 				Player::Ptr runner;
 

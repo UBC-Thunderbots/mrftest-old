@@ -128,7 +128,7 @@ std::pair<bool, double> Evaluation::best_shoot_ray(const World &world, const Pla
 	}
 
 	double best_diff = 1e99;
-	double best_angle;
+	double best_angle = 0.0;
 
 	// draw rays for ray shooting
 

@@ -83,7 +83,7 @@ namespace {
 			kick_attempted = true;
 		}
 		double cur_shoot_score = AI::HL::STP::Evaluation::get_shoot_score(world, player);
-		if (new_shoot && (cur_shoot_score < shoot_score + 1E-9 && shoot_score > 0 || cur_shoot_score > degrees2radians(shoot_thresh))) {
+		if (new_shoot && ((cur_shoot_score < shoot_score + 1E-9 && shoot_score > 0) || cur_shoot_score > degrees2radians(shoot_thresh))) {
 			player->autokick(10.0);
 		}
 		shoot_score = cur_shoot_score;

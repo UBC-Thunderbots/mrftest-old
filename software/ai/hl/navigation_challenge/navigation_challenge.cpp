@@ -66,9 +66,9 @@ namespace {
 
 				if (world.enemy_team().size() >= 2) {
 					Point leftmost(0, 0);
-					int leftmostIndex = 0;
+					unsigned int leftmostIndex = 0;
 					Point rightmost(0, 0);
-					int rightmostIndex = 0;
+					unsigned int rightmostIndex = 0;
 					for (unsigned int i = 0; i < world.enemy_team().size(); ++i) {
 						Point location = world.enemy_team().get(i)->position();
 						if (location.x < leftmost.x) {

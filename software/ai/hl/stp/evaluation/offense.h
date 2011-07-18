@@ -20,7 +20,7 @@ namespace AI {
 				 *
 				 * \return a score for the location. This score has no range limit.
 				 */
-				double offense_score(int i, int j);
+				double offense_score(unsigned int i, unsigned int j);
 
 				/**
 				 * Calculates strategic positions to place offensive players.
