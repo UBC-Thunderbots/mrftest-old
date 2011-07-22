@@ -34,7 +34,7 @@ namespace AI {
 	 */
 	extern DoubleParam player_average_velocity;
 
-	extern Temp_AngleParam player_recieve_threshold;
+	extern Temp_AngleParam player_receive_threshold;
 }
 
 #endif

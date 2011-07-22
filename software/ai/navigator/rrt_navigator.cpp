@@ -106,7 +106,6 @@ namespace AI {
 				bool op_ori = dir_ball.dot(dir) < cos(rad);
 				if (op_ori) {
 					PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags |= AI::Flags::FLAG_AVOID_BALL_TINY;
-#warning magic number here
 					np += chase_distance * (np - player->destination().first).norm();
 				}
 				dest_pos += np - world.ball().position();
@@ -120,14 +119,14 @@ namespace AI {
 				}
 				Point A = world.ball().velocity().norm();
 				Point B = (player->destination().first - world.ball().position()).norm();
-				if (A.dot(B) > cos(AI::player_recieve_threshold)) {
+				if (A.dot(B) > cos(AI::player_receive_threshold)) {
 					return grab_ball_orientation(player, player->destination().first);
 				}
 
 				double ball_component = (A.dot(B) < 0) ? -1.0 : 1.0;
 				A = ball_component * A;
 
-				double rotate_amnt = (A.cross(B - A) < 0) ? (AI::player_recieve_threshold) : (AI::player_recieve_threshold);
+				double rotate_amnt = (A.cross(B - A) < 0) ? (AI::player_receive_threshold) : (AI::player_receive_threshold);
 
 				Point target_dir = A.rotate(rotate_amnt);
 				return grab_ball_orientation(player, world.ball().position() + target_dir);
