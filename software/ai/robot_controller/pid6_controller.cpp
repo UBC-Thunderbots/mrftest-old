@@ -98,9 +98,9 @@ namespace {
 		ratio = wheel_max_speed / max_diff;
 		for (unsigned int i = 0; i < 4; i++) {
 			if (max_diff > wheel_max_speed) {
-				wheel_speeds[i] = ratio * wheel_target_vel[i];
+				wheel_speeds[i] = static_cast<int>(ratio * wheel_target_vel[i]);
 			} else {
-				wheel_speeds[i] = wheel_target_vel[i];
+				wheel_speeds[i] = static_cast<int>(wheel_target_vel[i]);
 			}
 		}
 	}
