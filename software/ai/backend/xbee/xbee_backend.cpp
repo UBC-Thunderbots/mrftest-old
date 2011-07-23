@@ -10,7 +10,6 @@
 #include "util/codec.h"
 #include "util/dprint.h"
 #include "util/exception.h"
-#include "util/string.h"
 #include "util/sockaddrs.h"
 #include "util/timestep.h"
 #include "xbee/dongle.h"
