@@ -14,6 +14,8 @@ std::pair<double, double> Predictor::value(double delta, unsigned int deriv, boo
 			return zero_value;
 		} else if (deriv == 1) {
 			return zero_first_deriv;
+		} else {
+			std::abort();
 		}
 	} else {
 		Matrix guess, covariance;
