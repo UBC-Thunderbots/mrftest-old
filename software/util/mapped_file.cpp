@@ -3,6 +3,7 @@
 #include "util/fd.h"
 #include "util/misc.h"
 #include <fcntl.h>
+#include <limits>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -14,7 +15,10 @@ MappedFile::MappedFile(const std::string &filename) {
 	if (fstat(fd->fd(), &st) < 0) {
 		throw SystemError("fstat", errno);
 	}
-	size_ = st.st_size;
+	if (static_cast<uintmax_t>(st.st_size) > std::numeric_limits<std::size_t>::max()) {
+		throw std::runtime_error("File too large to map into virtual address space");
+	}
+	size_ = static_cast<std::size_t>(st.st_size);
 	if (size_) {
 		data_ = mmap(0, size_, PROT_READ, MAP_SHARED | MAP_FILE, fd->fd(), 0);
 		if (data_ == get_map_failed()) {
