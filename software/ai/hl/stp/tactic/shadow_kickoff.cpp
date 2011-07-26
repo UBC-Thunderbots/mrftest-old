@@ -64,7 +64,11 @@ namespace {
 	}
 
 	void ShadowBall::execute() {
-		Action::move(world, player, Point(world.ball().position().x, -world.ball().position().y));
+		if (world.ball().position().y > 0) {
+			Action::move(world, player, Point(world.ball().position().x, -world.ball().position().y + 2 * Robot::MAX_RADIUS));
+		} else {
+			Action::move(world, player, Point(world.ball().position().x, -world.ball().position().y - 2 * Robot::MAX_RADIUS));
+		}
 	}
 }
 

@@ -68,10 +68,10 @@ namespace {
 	}
 
 	void TDefender::execute() {
-		Point diff = world.ball().position() - world.field().friendly_goal();
 		Point target = Evaluation::evaluate_tdefense(world, index);
 		if (Evaluation::ball_on_net(world)) { // ball is coming towards net
-			target = calc_block_cone(world.field().friendly_goal_boundary().first, world.field().friendly_goal_boundary().second, world.ball().position(), Robot::MAX_RADIUS);
+			auto waypoints = Evaluation::evaluate_defense();
+			target = waypoints[index];
 		}
 		Action::defender_move(world, player, target);
 	}
