@@ -55,10 +55,11 @@ namespace {
 	};
 
 	void TGoalie::execute() {
-		Point dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
-		Point target = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
+		//Point dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
+		//Point target = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
 
-		Action::goalie_move(world, player, target);
+		//Action::goalie_move(world, player, target);
+		Action::lone_goalie(world, player);
 	}
 
 	Player::Ptr TDefender::select(const std::set<Player::Ptr> &players) const {
@@ -68,24 +69,8 @@ namespace {
 
 	void TDefender::execute() {
 		Point diff = world.ball().position() - world.field().friendly_goal();
-		if (diff.len() <= 0.9 && index == 1) {
-			Action::ram(world, player);
-			return;
-		}
 		Point target = Evaluation::evaluate_tdefense(world, index);
 		if (Evaluation::ball_on_net(world)) { // ball is coming towards net
-			if (index == 2) {
-				// 2nd defender should not go after the ball unless the ball is far enough from our goal
-				// and on our side of the field
-				if (diff.len() > 4 * (index + 1) * Robot::MAX_RADIUS && world.ball().position().x < -world.field().centre_circle_radius()) {
-					Action::ram(world, player);
-					return;
-				}
-			} else if (diff.len() < 4 * (index + 2) * Robot::MAX_RADIUS && diff.len() > 4 * (index) * Robot::MAX_RADIUS) {
-				// 1st defender defense
-				Action::ram(world, player);
-				return;
-			}
 			target = calc_block_cone(world.field().friendly_goal_boundary().first, world.field().friendly_goal_boundary().second, world.ball().position(), Robot::MAX_RADIUS);
 		}
 		Action::defender_move(world, player, target);

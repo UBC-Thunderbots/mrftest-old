@@ -91,8 +91,8 @@ namespace {
 		auto waypoints = Evaluation::evaluate_defense();
 		Point dest = waypoints[0];
 		if (tdefend) {
-			Point dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
-			dest = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
+			AI::HL::STP::Action::lone_goalie(world, player);
+			return;
 		}
 		Action::goalie_move(world, player, dest);
 	}
@@ -109,27 +109,9 @@ namespace {
 	void Defender::execute() {
 		auto waypoints = Evaluation::evaluate_defense();
 		Point dest = waypoints[index];
-		if (tdefend && index > 0 && index < 3) {
+		if (tdefend && index > 0 && index < 3 && !Evaluation::ball_on_net(world)) {
 			Point diff = world.ball().position() - world.field().friendly_goal();
-			if (diff.len() <= 0.9 && index == 1) {
-				Action::repel(world, player);
-				return;
-			}
 			dest = Evaluation::evaluate_tdefense(world, index);
-			if (Evaluation::ball_on_net(world)) { // ball is coming towards net
-				if (index == 2) {
-					// 2nd defender should not go after the ball unless the ball is far enough from our goal
-					// and on our side of the field
-					if (diff.len() > 4 * (index + 1) * Robot::MAX_RADIUS && world.ball().position().x < -world.field().centre_circle_radius()) {
-						Action::repel(world, player);
-						return;
-					}
-				} else if (diff.len() < 4 * (index + 2) * Robot::MAX_RADIUS && diff.len() > 4 * (index) * Robot::MAX_RADIUS) {
-					// 1st defender defense
-					Action::repel(world, player);
-					return;
-				}
-			}
 		}
 		Action::defender_move(world, player, dest);
 	}
