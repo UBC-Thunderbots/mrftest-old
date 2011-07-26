@@ -45,8 +45,6 @@ namespace {
 	BoolParam use_simon("use simon", "MixedTeamDefense", true);
 	BoolParam do_draw("draw", "MixedTeamDefense", true);
 
-	DoubleParam disty("disty", "MixedTeamDefense", 1.5, 0, 10);
-
 	const double RESTRICTED_ZONE_LENGTH = 0.85;
 
 	class MixedTeamDefenseFactory : public HighLevelFactory {
@@ -197,14 +195,9 @@ namespace {
 				goalie->set_player(players[0]);
 				goalie->execute();
 
-				Point diff = world.ball().position() - world.field().friendly_goal();
-				if (diff.len() <= disty) {
-					Action::repel(world, players[1]);
-				} else {
-					auto defend1 = Tactic::defend_duo_defender(world);
-					defend1->set_player(players[1]);
-					defend1->execute();
-				}
+				auto defend1 = Tactic::defend_duo_defender(world);
+				defend1->set_player(players[1]);
+				defend1->execute();
 
 				if (players.size() > 2) {
 					auto defend2 = Tactic::defend_duo_extra1(world);
