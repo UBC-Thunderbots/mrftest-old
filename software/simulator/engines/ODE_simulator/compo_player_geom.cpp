@@ -6,7 +6,7 @@
 
 namespace {
 	double orientationFromMatrix(const dReal *t) {
-		return atan2(-t[1], t[0]);
+		return std::atan2(-t[1], t[0]);
 	}
 
 	void rotate_vec(dVector3 &vec, const dReal *r) {
@@ -261,7 +261,7 @@ void CompoPlayerGeom::handleCollisionWithGround(dGeomID o1, dGeomID o2, dJointGr
 }
 
 double orientationFromMatrix(const dReal *t) {
-	return atan2(-t[1], t[0]);
+	return std::atan2(-t[1], t[0]);
 }
 
 /**
