@@ -180,6 +180,9 @@ namespace AI {
 					double centre_circle_radius_;
 					double defense_area_radius_;
 					double defense_area_stretch_;
+
+					bool operator==(const Field &other) const;
+					bool operator!=(const Field &other) const;
 			};
 		}
 	}
