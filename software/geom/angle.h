@@ -1,9 +1,6 @@
 #ifndef GEOM_ANGLE_H
 #define GEOM_ANGLE_H
 
-#include "geom/point.h"
-#include <cmath>
-
 /**
  * Limits an angle to [−π, π].
  *

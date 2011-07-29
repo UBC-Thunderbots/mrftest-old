@@ -1,5 +1,6 @@
 #include "compo_player_geom.h"
 #include "geom/angle.h"
+#include "geom/point.h"
 #include <cmath>
 #include <iostream>
 
