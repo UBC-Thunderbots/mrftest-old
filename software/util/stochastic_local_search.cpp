@@ -4,8 +4,6 @@
 #include <cstdlib>
 #include <limits>
 
-#warning the header file util/stochastic_local_search.h needs Doxygen comments on its functions.
-
 StochasticLocalSearch::StochasticLocalSearch(const std::vector<double> &start, const std::vector<double> &min, const std::vector<double> &max) {
 	bestCost = std::numeric_limits<double>::max();
 	param_cur = start;
