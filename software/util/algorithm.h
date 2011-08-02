@@ -73,7 +73,7 @@ namespace {
 	 *
 	 * \return the nearest value to \p value that lies in the range ±\p limit.
 	 */
-	template<typename T> clamp_symmetric(const T &value, const T &limit) {
+	template<typename T> T clamp_symmetric(const T &value, const T &limit) {
 		return clamp(value, std::min(-limit, limit), std::max(-limit, limit));
 	}
 
