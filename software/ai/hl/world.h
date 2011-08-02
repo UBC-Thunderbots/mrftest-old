@@ -126,7 +126,7 @@ namespace AI {
 					 *
 					 * \deprecated in favour of the individual functions for setting different values.
 					 */
-					void move(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
+					void move(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) __attribute__((deprecated));
 
 					/**
 					 * Sets the current destination and movement type for this player.
