@@ -15,109 +15,109 @@ namespace xmlpp {
 }
 
 /**
- * A node in the tree of parameters.
+ * \brief A node in the tree of parameters.
  */
 class ParamTreeNode : public NonCopyable {
 	public:
 		/**
-		 * Returns the root node of the tree.
+		 * \brief Returns the root node of the tree.
 		 *
 		 * \return the root node.
 		 */
 		static ParamTreeNode *root();
 
 		/**
-		 * Sets all parameters to their default values.
+		 * \brief Sets all parameters to their default values.
 		 */
 		static void default_all();
 
 		/**
-		 * Loads all parameters from the configuration file's DOM tree.
+		 * \brief Loads all parameters from the configuration file's DOM tree.
 		 */
 		static void load_all();
 
 		/**
-		 * Saves all parameters to the configuration file's DOM tree.
+		 * \brief Saves all parameters to the configuration file's DOM tree.
 		 */
 		static void save_all();
 
 		/**
-		 * Constructs a new \c ParamTreeNode that is not yet linked into the tree.
+		 * \brief Constructs a new \c ParamTreeNode that is not yet linked into the tree.
 		 *
 		 * \param[in] name the name of the node.
 		 */
 		ParamTreeNode(const Glib::ustring &name);
 
 		/**
-		 * Destroys a ParamTreeNode.
+		 * \brief Destroys a ParamTreeNode.
 		 */
 		virtual ~ParamTreeNode();
 
 		/**
-		 * Returns the name of the node.
+		 * \brief Returns the name of the node.
 		 *
 		 * \return the name.
 		 */
 		const Glib::ustring &name() const;
 
 		/**
-		 * Returns the index of the node within its parent.
+		 * \brief Returns the index of the node within its parent.
 		 *
 		 * \return the index.
 		 */
 		std::size_t index() const;
 
 		/**
-		 * Returns the next sibling of the node.
+		 * \brief Returns the next sibling of the node.
 		 *
 		 * \return the next sibling, or null if there is no next sibling.
 		 */
 		const ParamTreeNode *next_sibling() const;
 
 		/**
-		 * Returns the next sibling of the node.
+		 * \brief Returns the next sibling of the node.
 		 *
 		 * \return the next sibling, or null if there is no next sibling.
 		 */
 		ParamTreeNode *next_sibling();
 
 		/**
-		 * Returns the previous sibling of the node.
+		 * \brief Returns the previous sibling of the node.
 		 *
 		 * \return the previous sibling, or null if there is no previous sibling.
 		 */
 		const ParamTreeNode *prev_sibling() const;
 
 		/**
-		 * Returns the previous sibling of the node.
+		 * \brief Returns the previous sibling of the node.
 		 *
 		 * \return the previous sibling, or null if there is no previous sibling.
 		 */
 		ParamTreeNode *prev_sibling();
 
 		/**
-		 * Returns the parent of the node.
+		 * \brief Returns the parent of the node.
 		 *
 		 * \return the parent, or null if there is no parent.
 		 */
 		const ParamTreeNode *parent() const;
 
 		/**
-		 * Returns the parent of the node.
+		 * \brief Returns the parent of the node.
 		 *
 		 * \return the parent, or null if there is no parent.
 		 */
 		ParamTreeNode *parent();
 
 		/**
-		 * Returns the number of children.
+		 * \brief Returns the number of children.
 		 *
 		 * \return the number of children.
 		 */
 		virtual std::size_t num_children() const = 0;
 
 		/**
-		 * Returns a child of the node.
+		 * \brief Returns a child of the node.
 		 *
 		 * \param[in] index the index of the child to retrieve.
 		 *
@@ -126,7 +126,7 @@ class ParamTreeNode : public NonCopyable {
 		virtual const ParamTreeNode *child(std::size_t index) const = 0;
 
 		/**
-		 * Returns a child of the node.
+		 * \brief Returns a child of the node.
 		 *
 		 * \param[in] index the index of the child to retrieve.
 		 *
@@ -135,7 +135,7 @@ class ParamTreeNode : public NonCopyable {
 		virtual ParamTreeNode *child(std::size_t index) = 0;
 
 		/**
-		 * Finds or creates an internal node that is a descendent of this node.
+		 * \brief Finds or creates an internal node that is a descendent of this node.
 		 *
 		 * \param[in] path the path to the node.
 		 *
@@ -144,38 +144,38 @@ class ParamTreeNode : public NonCopyable {
 		virtual ParamTreeInternalNode *internal_node(const char *path) = 0;
 
 		/**
-		 * Returns a string consisting of slash-separated components constituting the full path to the node.
+		 * \brief Returns a string consisting of slash-separated components constituting the full path to the node.
 		 *
 		 * \return the path.
 		 */
 		Glib::ustring path() const;
 
 		/**
-		 * Initializes the structure of this node and any child nodes.
+		 * \brief Initializes the structure of this node and any child nodes.
 		 */
 		virtual void initialize() = 0;
 
 		/**
-		 * Sets the values of the parameters to their defaults.
+		 * \brief Sets the values of the parameters to their defaults.
 		 */
 		virtual void set_default() = 0;
 
 		/**
-		 * Loads the values of parameters from an XML tree.
+		 * \brief Loads the values of parameters from an XML tree.
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
 		virtual void load(const xmlpp::Element *elt) = 0;
 
 		/**
-		 * Stores the values of parameters into an XML tree.
+		 * \brief Stores the values of parameters into an XML tree.
 		 *
 		 * \param[out] elt the element to save to.
 		 */
 		virtual void save(xmlpp::Element *elt) const = 0;
 
 		/**
-		 * Compares two nodes using a case-sensitive comparison of their names.
+		 * \brief Compares two nodes using a case-sensitive comparison of their names.
 		 *
 		 * \param[in] other the other object to compare to.
 		 *
@@ -184,19 +184,19 @@ class ParamTreeNode : public NonCopyable {
 		bool operator<(const ParamTreeNode &other) const;
 
 		/**
-		 * Fetches a collation key for this node's name.
+		 * \brief Fetches a collation key for this node's name.
 		 *
 		 * \return the collation key.
 		 */
 		const std::string &collate_key() const;
 
 		/**
-		 * Clears the cached collation key for this node's name.
+		 * \brief Clears the cached collation key for this node's name.
 		 */
 		void collate_key_clear() const;
 
 		/**
-		 * Links the node into the tree.
+		 * \brief Links the node into the tree.
 		 *
 		 * \param[in] index the position of this node within its list of siblings.
 		 *
@@ -210,43 +210,43 @@ class ParamTreeNode : public NonCopyable {
 
 	private:
 		/**
-		 * The name of the parameter.
+		 * \brief The name of the parameter.
 		 */
 		const Glib::ustring name_;
 
 		/**
-		 * The position of this node within its list of siblings.
+		 * \brief The position of this node within its list of siblings.
 		 */
 		std::size_t index_;
 
 		/**
-		 * The next sibling node in the tree.
+		 * \brief The next sibling node in the tree.
 		 */
 		ParamTreeNode *next;
 
 		/**
-		 * The previous sibling node in the tree.
+		 * \brief The previous sibling node in the tree.
 		 */
 		ParamTreeNode *prev;
 
 		/**
-		 * The node's parent.
+		 * \brief The node's parent.
 		 */
 		ParamTreeNode *parent_;
 
 		/**
-		 * The collation key of this node's name.
+		 * \brief The collation key of this node's name.
 		 */
 		mutable std::string collate_key_;
 };
 
 /**
- * A generic parameter that can be edited and whose value can be stored in the configuration file.
+ * \brief A generic parameter that can be edited and whose value can be stored in the configuration file.
  */
 class Param : public ParamTreeNode {
 	public:
 		/**
-		 * Finds or creates an internal node that is a descendent of this node.
+		 * \brief Finds or creates an internal node that is a descendent of this node.
 		 *
 		 * \param[in] path the path to the node.
 		 *
@@ -255,7 +255,7 @@ class Param : public ParamTreeNode {
 		ParamTreeInternalNode *internal_node(const char *path);
 
 		/**
-		 * Returns a signal fired when the value of the parameter changes.
+		 * \brief Returns a signal fired when the value of the parameter changes.
 		 *
 		 * \return the signal.
 		 */
@@ -263,8 +263,9 @@ class Param : public ParamTreeNode {
 
 	protected:
 		/**
-		 * Constructs a new parameter.
-		 * Should only happen at startup time.
+		 * \brief Constructs a new parameter.
+		 *
+		 * Should only happen at application startup.
 		 *
 		 * \param[in] name the name of the parameter.
 		 *
@@ -273,27 +274,27 @@ class Param : public ParamTreeNode {
 		Param(const char *name, const char *location);
 
 		/**
-		 * Returns the name of the parameter.
+		 * \brief Returns the name of the parameter.
 		 *
 		 * \return the name.
 		 */
 		const Glib::ustring &name() const;
 
 		/**
-		 * Initializes the structure of this node and any child nodes.
+		 * \brief Initializes the structure of this node and any child nodes.
 		 */
 		void initialize();
 
 	private:
 		/**
-		 * Returns the number of children.
+		 * \brief Returns the number of children.
 		 *
 		 * \return the number of children.
 		 */
 		std::size_t num_children() const;
 
 		/**
-		 * Returns a child of the node.
+		 * \brief Returns a child of the node.
 		 *
 		 * \param[in] index the index of the child to retrieve.
 		 *
@@ -302,7 +303,7 @@ class Param : public ParamTreeNode {
 		const ParamTreeNode *child(std::size_t index) const;
 
 		/**
-		 * Returns a child of the node.
+		 * \brief Returns a child of the node.
 		 *
 		 * \param[in] index the index of the child to retrieve.
 		 *
@@ -312,13 +313,14 @@ class Param : public ParamTreeNode {
 };
 
 /**
- * A boolean parameter that can be edited by means of a checkbox.
+ * \brief A boolean parameter that can be edited by means of a checkbox.
  */
 class BoolParam : public Param {
 	public:
 		/**
-		 * Constructs a new boolean parameter.
-		 * Should only happen at startup time.
+		 * \brief Constructs a new boolean parameter.
+		 *
+		 * Should only happen at application startup.
 		 *
 		 * \param[in] name the name of the parameter.
 		 *
@@ -329,25 +331,16 @@ class BoolParam : public Param {
 		BoolParam(const char *name, const char *location, bool def);
 
 		/**
-		 * Returns the property implementing the parameter.
+		 * \brief Returns the value of the parameter.
 		 *
-		 * \return the property implementing the parameter.
+		 * \return the value of the parameter.
 		 */
-		Property<bool> &prop() {
+		bool get() const {
 			return value_;
 		}
 
 		/**
-		 * Returns the property implementing the parameter.
-		 *
-		 * \return the property implementing the parameter.
-		 */
-		const Property<bool> &prop() const {
-			return value_;
-		}
-
-		/**
-		 * Returns the value of the parameter.
+		 * \brief Returns the value of the parameter.
 		 *
 		 * \return the value of the parameter.
 		 */
@@ -356,7 +349,25 @@ class BoolParam : public Param {
 		}
 
 		/**
-		 * Returns a signal fired when the value of the parameter changes.
+		 * \brief Returns the property implementing the parameter.
+		 *
+		 * \return the property implementing the parameter.
+		 */
+		Property<bool> &prop() {
+			return value_;
+		}
+
+		/**
+		 * \brief Returns the property implementing the parameter.
+		 *
+		 * \return the property implementing the parameter.
+		 */
+		const Property<bool> &prop() const {
+			return value_;
+		}
+
+		/**
+		 * \brief Returns a signal fired when the value of the parameter changes.
 		 *
 		 * \return the signal.
 		 */
@@ -369,19 +380,19 @@ class BoolParam : public Param {
 		const bool default_;
 
 		/**
-		 * Sets the values of the parameters to their defaults.
+		 * \brief Sets the values of the parameters to their defaults.
 		 */
 		void set_default();
 
 		/**
-		 * Loads the values of parameters from an XML tree.
+		 * \brief Loads the values of parameters from an XML tree.
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
 		void load(const xmlpp::Element *elt);
 
 		/**
-		 * Stores the values of parameters into an XML tree.
+		 * \brief Stores the values of parameters into an XML tree.
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
@@ -389,12 +400,12 @@ class BoolParam : public Param {
 };
 
 /**
- * A parameter whose value is numeric and is backed by a Gtk::Adjustment.
+ * \brief A parameter whose value is numeric and is backed by a Gtk::Adjustment.
  */
 class NumericParam : public Param {
 	public:
 		/**
-		 * Returns a signal fired when the value of the parameter changes.
+		 * \brief Returns a signal fired when the value of the parameter changes.
 		 *
 		 * \return the signal.
 		 */
@@ -403,7 +414,7 @@ class NumericParam : public Param {
 		}
 
 		/**
-		 * Returns the Gtk::Adjustment backing the parameter.
+		 * \brief Returns the Gtk::Adjustment backing the parameter.
 		 *
 		 * \return the Gtk::Adjustment.
 		 */
@@ -412,7 +423,7 @@ class NumericParam : public Param {
 		}
 
 		/**
-		 * Returns the proper number of digits to display after the decimal point when rendering or editing this parameter.
+		 * \brief Returns the proper number of digits to display after the decimal point when rendering or editing this parameter.
 		 *
 		 * \return the number of decimal places.
 		 */
@@ -420,7 +431,7 @@ class NumericParam : public Param {
 
 	protected:
 		/**
-		 * Constructs a new NumericParam.
+		 * \brief Constructs a new NumericParam.
 		 *
 		 * \param[in] name the name of the parameter.
 		 *
@@ -437,7 +448,7 @@ class NumericParam : public Param {
 		NumericParam(const char *name, const char *location, double def, double min, double max, bool integer);
 
 		/**
-		 * Destroys a NumericParam.
+		 * \brief Destroys a NumericParam.
 		 */
 		~NumericParam();
 
@@ -448,24 +459,25 @@ class NumericParam : public Param {
 		mutable sigc::signal<void> signal_changed_reflector;
 
 		/**
-		 * Sets the values of the parameters to their defaults.
+		 * \brief Sets the values of the parameters to their defaults.
 		 */
 		void set_default();
 
 		/**
-		 * Constructs the backing Gtk::Adjustment.
+		 * \brief Constructs the backing Gtk::Adjustment.
 		 */
 		void initialize();
 };
 
 /**
- * An integer parameter that can be edited by means of a scale slider.
+ * \brief An integer parameter that can be edited by means of a scale slider.
  */
 class IntParam : public NumericParam {
 	public:
 		/**
-		 * Constructs a new integer parameter.
-		 * Should only happen at startup time.
+		 * \brief Constructs a new integer parameter.
+		 *
+		 * Should only happen at application startup.
 		 *
 		 * \param[in] name the name of the parameter.
 		 *
@@ -480,24 +492,33 @@ class IntParam : public NumericParam {
 		IntParam(const char *name, const char *location, int def, int min, int max);
 
 		/**
-		 * Returns the value of the parameter.
+		 * \brief Returns the value of the parameter.
+		 *
+		 * \return the value of the parameter.
+		 */
+		int get() const {
+			return static_cast<int>(adjustment()->get_value());
+		}
+
+		/**
+		 * \brief Returns the value of the parameter.
 		 *
 		 * \return the value of the parameter.
 		 */
 		operator int() const {
-			return static_cast<int>(adjustment()->get_value());
+			return get();
 		}
 
 	private:
 		/**
-		 * Loads the values of parameters from an XML tree.
+		 * \brief Loads the values of parameters from an XML tree.
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
 		void load(const xmlpp::Element *elt);
 
 		/**
-		 * Stores the values of parameters into an XML tree.
+		 * \brief Stores the values of parameters into an XML tree.
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
@@ -505,13 +526,14 @@ class IntParam : public NumericParam {
 };
 
 /**
- * A floating-point parameter that can be edited by means of a text field.
+ * \brief A floating-point parameter that can be edited by means of a text field.
  */
 class DoubleParam : public NumericParam {
 	public:
 		/**
-		 * Constructs a new double parameter.
-		 * Should only happen at startup time.
+		 * \brief Constructs a new double parameter.
+		 *
+		 * Should only happen at application startup.
 		 *
 		 * \param[in] name the name of the parameter.
 		 *
@@ -526,24 +548,33 @@ class DoubleParam : public NumericParam {
 		DoubleParam(const char *name, const char *location, double def, double min, double max);
 
 		/**
-		 * Returns the value of the parameter.
+		 * \brief Returns the value of the parameter.
+		 *
+		 * \return the value of the parameter.
+		 */
+		double get() const {
+			return adjustment()->get_value();
+		}
+
+		/**
+		 * \brief Returns the value of the parameter.
 		 *
 		 * \return the value of the parameter.
 		 */
 		operator double() const {
-			return adjustment()->get_value();
+			return get();
 		}
 
 	private:
 		/**
-		 * Loads the values of parameters from an XML tree.
+		 * \brief Loads the values of parameters from an XML tree.
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
 		void load(const xmlpp::Element *elt);
 
 		/**
-		 * Stores the values of parameters into an XML tree.
+		 * \brief Stores the values of parameters into an XML tree.
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
