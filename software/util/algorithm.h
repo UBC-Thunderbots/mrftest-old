@@ -7,7 +7,7 @@
 
 namespace {
 	/**
-	 * Checks if an element exists within an iterator range.
+	 * \brief Checks if an element exists within an iterator range.
 	 *
 	 * \tparam Titer the type of the iterators.
 	 *
@@ -26,7 +26,7 @@ namespace {
 	}
 
 	/**
-	 * Checks if an element exists within an iterator range that satisfies a predicate.
+	 * \brief Checks if an element exists within an iterator range that satisfies a predicate.
 	 *
 	 * \tparam Titer the type of the iterators.
 	 *
@@ -46,7 +46,7 @@ namespace {
 	}
 
 	/**
-	 * Clamps a value to fall within a given range.
+	 * \brief Clamps a value to fall within a given range.
 	 *
 	 * \tparam T the type of value to clamp.
 	 *
@@ -63,7 +63,7 @@ namespace {
 	}
 
 	/**
-	 * A comparator that orders small nonnegative integers based on the ordering of objects in a vector at corresponding positions.
+	 * \brief A comparator that orders small nonnegative integers based on the ordering of objects in a vector at corresponding positions.
 	 *
 	 * \tparam T the type of elements in the lookup table.
 	 *
@@ -72,7 +72,7 @@ namespace {
 	template<typename T, typename Comp = std::less<T> > class IndexComparator {
 		public:
 			/**
-			 * Constructs a new IndexComparator.
+			 * \brief Constructs a new IndexComparator.
 			 *
 			 * \param[in] tbl the lookup table to use, which is not copied and must remain valid until the IndexComparator has been destroyed.
 			 *
@@ -82,7 +82,7 @@ namespace {
 			}
 
 			/**
-			 * Executes a comparison.
+			 * \brief Executes a comparison.
 			 *
 			 * \pre 0 ≤ \p x, \p y < \c tbl.size().
 			 *
