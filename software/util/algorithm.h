@@ -63,6 +63,21 @@ namespace {
 	}
 
 	/**
+	 * \brief Clamps a value to fall within a given range.
+	 *
+	 * \tparam T the type of value to clamp.
+	 *
+	 * \param[in] value the value to clamp.
+	 *
+	 * \param[in] limit the maximum legal magnitude.
+	 *
+	 * \return the nearest value to \p value that lies in the range ±\p limit.
+	 */
+	template<typename T> clamp_symmetric(const T &value, const T &limit) {
+		return clamp(value, std::min(-limit, limit), std::max(-limit, limit));
+	}
+
+	/**
 	 * \brief A comparator that orders small nonnegative integers based on the ordering of objects in a vector at corresponding positions.
 	 *
 	 * \tparam T the type of elements in the lookup table.
