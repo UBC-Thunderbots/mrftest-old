@@ -13,7 +13,7 @@ namespace {
 }
 
 #warning hardware depending parameters should move somewhere else
-DoubleParam AI::HL::Util::shoot_accuracy("Shooting Accuracy General (degrees)", "STP/util", 10.0, 0.0, 80.0);
+DegreeParam AI::HL::Util::shoot_accuracy("Shooting Accuracy General (degrees)", "STP/util", 10.0, 0.0, 80.0);
 
 DoubleParam AI::HL::Util::dribble_timeout("if dribble > this time, force shoot (sec)", "STP/util", 2.0, 0.0, 20.0);
 
@@ -27,7 +27,7 @@ const double AI::HL::Util::VEL_CLOSE = 1e-2;
 
 const double AI::HL::Util::VEL_EPS = 1e-12;
 
-const double AI::HL::Util::ORI_PASS_CLOSE = 45.0 / 180.0 * M_PI;
+const Angle AI::HL::Util::ORI_PASS_CLOSE = Angle::of_degrees(45.0);
 
 const double AI::HL::Util::HAS_BALL_ALLOWANCE = 3.0;
 
@@ -113,7 +113,7 @@ bool AI::HL::Util::can_receive(World &world, const Player::Ptr passee) {
 	}
 	// if the passee is not facing the ball, forget it
 	const Point ray = ball.position() - passee->position();
-	if (angle_diff(ray.orientation(), passee->orientation()) > ORI_PASS_CLOSE) {
+	if (ray.orientation().angle_diff(passee->orientation()) > ORI_PASS_CLOSE) {
 		return false;
 	}
 
@@ -128,7 +128,7 @@ bool AI::HL::Util::can_receive(World &world, const Player::Ptr passee) {
 		if (proj <= 0) {
 			continue;
 		}
-		if (proj < distance && perp < shoot_accuracy + Robot::MAX_RADIUS + Ball::RADIUS) {
+		if (proj < distance && perp < shoot_accuracy.get().to_degrees() + Robot::MAX_RADIUS + Ball::RADIUS) {
 			return false;
 		}
 	}
@@ -144,26 +144,26 @@ bool AI::HL::Util::can_receive(World &world, const Player::Ptr passee) {
 		if (proj <= 0) {
 			continue;
 		}
-		if (proj < distance && perp < shoot_accuracy + Robot::MAX_RADIUS + Ball::RADIUS) {
+		if (proj < distance && perp < shoot_accuracy.get().to_degrees() + Robot::MAX_RADIUS + Ball::RADIUS) {
 			return false;
 		}
 	}
 	return true;
 }
 
-std::pair<Point, double> AI::HL::Util::calc_best_shot(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
+std::pair<Point, Angle> AI::HL::Util::calc_best_shot(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
 	const Point p1 = Point(f.length() / 2.0, -f.goal_width() / 2.0);
 	const Point p2 = Point(f.length() / 2.0, f.goal_width() / 2.0);
 	return angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
 }
 
-std::vector<std::pair<Point, double> > AI::HL::Util::calc_best_shot_all(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
+std::vector<std::pair<Point, Angle> > AI::HL::Util::calc_best_shot_all(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
 	const Point p1 = Point(f.length() / 2.0, -f.goal_width() / 2.0);
 	const Point p2 = Point(f.length() / 2.0, f.goal_width() / 2.0);
 	return angle_sweep_circles_all(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
 }
 
-std::pair<Point, double> AI::HL::Util::calc_best_shot(const World &world, const Player::CPtr player, const double radius) {
+std::pair<Point, Angle> AI::HL::Util::calc_best_shot(const World &world, const Player::CPtr player, const double radius) {
 	std::vector<Point> obstacles;
 	const EnemyTeam &enemy = world.enemy_team();
 	const FriendlyTeam &friendly = world.friendly_team();
@@ -178,17 +178,17 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot(const World &world, const 
 		}
 		obstacles.push_back(fpl->position());
 	}
-	std::pair<Point, double> best_shot = calc_best_shot(world.field(), obstacles, player->position(), radius);
+	std::pair<Point, Angle> best_shot = calc_best_shot(world.field(), obstacles, player->position(), radius);
 	// if there is no good shot at least make the
 	// target within the goal area
-	if (best_shot.second <= 0.0) {
+	if (best_shot.second <= Angle::ZERO) {
 		Point temp = Point(world.field().length() / 2.0, 0.0);
 		best_shot.first = temp;
 	}
 	return best_shot;
 }
 
-std::vector<std::pair<Point, double> > AI::HL::Util::calc_best_shot_all(const World &world, const Player::CPtr player, const double radius) {
+std::vector<std::pair<Point, Angle> > AI::HL::Util::calc_best_shot_all(const World &world, const Player::CPtr player, const double radius) {
 	std::vector<Point> obstacles;
 	const EnemyTeam &enemy = world.enemy_team();
 	const FriendlyTeam &friendly = world.friendly_team();

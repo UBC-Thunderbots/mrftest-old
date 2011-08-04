@@ -1,6 +1,7 @@
 #ifndef AI_COMMON_PREDICTABLE_H
 #define AI_COMMON_PREDICTABLE_H
 
+#include "geom/angle.h"
 #include "geom/point.h"
 #include "util/time.h"
 
@@ -59,7 +60,7 @@ namespace AI {
 			 *
 			 * \return the predicted orientation.
 			 */
-			virtual double orientation(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+			virtual Angle orientation(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 
 			/**
 			 * \brief Gets the predicted angular velocity of the object.
@@ -68,7 +69,7 @@ namespace AI {
 			 *
 			 * \return the predicted angular velocity.
 			 */
-			virtual double avelocity(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+			virtual Angle avelocity(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 
 			/**
 			 * \brief Gets the standard deviation of the predicted orientation of the object.
@@ -77,7 +78,7 @@ namespace AI {
 			 *
 			 * \return the standard deviation of the predicted orientation.
 			 */
-			virtual double orientation_stdev(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+			virtual Angle orientation_stdev(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 
 			/**
 			 * \brief Gets the standard deviation of the predicted angular velocity of the object.
@@ -86,7 +87,7 @@ namespace AI {
 			 *
 			 * \return the standard deviation of the predicted angular velocity.
 			 */
-			virtual double avelocity_stdev(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+			virtual Angle avelocity_stdev(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 	};
 }
 

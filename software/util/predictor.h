@@ -7,20 +7,19 @@
 
 /**
  * Accumulates data points over time and predicts past, current, and future values and derivatives.
+ *
+ * \tparam T the type of quantity to predict over.
  */
-class Predictor {
+template<typename T> class Predictor {
 	public:
 		/**
 		 * Constructs a new Predictor.
-		 *
-		 * \param[in] angle \c true to construct a Predictor suitable for operating on angles
-		 * (for example, including anti-windup code), or \c false to construct a Predictor suitable for operating on linear quantities.
 		 *
 		 * \param[in] measure_std the expected standard deviation of the measurement noise.
 		 *
 		 * \param[in] accel_std the standard deviation of noise equivalent to unknown object acceleration.
 		 */
-		Predictor(bool angle, double measure_std, double accel_std);
+		Predictor(T measure_std, T accel_std);
 
 		/**
 		 * Gets the predicted value some length of time into the future (or past).
@@ -33,7 +32,7 @@ class Predictor {
 		 *
 		 * \return the value and its standard deviation.
 		 */
-		std::pair<double, double> value(double delta, unsigned int deriv = 0, bool ignore_cache = false) const __attribute__((warn_unused_result));
+		std::pair<T, T> value(double delta, unsigned int deriv = 0, bool ignore_cache = false) const __attribute__((warn_unused_result));
 
 		/**
 		 * Locks in a timestamp to consider as the current time.
@@ -49,7 +48,7 @@ class Predictor {
 		 *
 		 * \param[in] ts the timestamp at which the value was sampled.
 		 */
-		void add_datum(double value, const timespec &ts);
+		void add_datum(T value, const timespec &ts);
 
 		/**
 		 * Clears the accumulated history of the predictor.
@@ -62,7 +61,7 @@ class Predictor {
 	private:
 		timespec lock_timestamp;
 		Kalman filter;
-		std::pair<double, double> zero_value, zero_first_deriv;
+		std::pair<T, T> zero_value, zero_first_deriv;
 };
 
 #endif

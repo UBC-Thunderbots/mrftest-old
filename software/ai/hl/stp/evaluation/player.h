@@ -12,13 +12,13 @@ namespace AI {
 				 * Determines whether or not the player at position
 				 * is facing within threshold degrees of the specified target
 				 */
-				bool player_within_angle_thresh(Player::CPtr player, const Point target, double threshold);
+				bool player_within_angle_thresh(Player::CPtr player, const Point target, Angle threshold);
 
 				/**
 				 * Determines whether or not the player at position
 				 * is facing within threshold degrees of the specified target
 				 */
-				bool player_within_angle_thresh(const Point position, const double orientation, const Point target, double threshold);
+				bool player_within_angle_thresh(const Point position, const Angle orientation, const Point target, Angle threshold);
 			}
 		}
 	}

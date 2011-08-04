@@ -27,7 +27,7 @@ namespace {
 	DoubleParam PID_A_PROP("angular +proportional", "RC/PIDSim", 1, 0.0, 50.0);
 	DoubleParam PID_A_DIFF("angular -differential", "RC/PIDSim", 0, -50.0, 50.0);
 	DoubleParam PID_A_INTG("angular +integral", "RC/PIDSim", 0, 0.0, 10.0);
-	DoubleParam PID_A_THRESH("angular max velocity", "RC/PIDSim", 1, 0.0, 50.0);
+	RadianParam PID_A_THRESH("angular max velocity (radians)", "RC/PIDSim", 1, 0.0, 50.0);
 	DoubleParam PID_XY_RATIO("x to y ratio", "RC/PIDSim", 1, 0.0, 2.0);
 	DoubleParam PID_DAMP("integral decay (%)", "RC/PIDSim", 0, 0, 99.0);
 
@@ -37,7 +37,7 @@ namespace {
 
 	class PIDSimController : public OldRobotController {
 		public:
-			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
+			void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity);
 			void clear();
 			RobotControllerFactory &get_factory() const;
 			PIDSimController(World &world, Player::Ptr plr);
@@ -46,27 +46,27 @@ namespace {
 			bool initialized;
 			// errors in x, y, d
 			Point prev_new_pos;
-			double prev_new_ori;
+			Angle prev_new_ori;
 			Point prev_linear_velocity;
-			double prev_angular_velocity;
+			Angle prev_angular_velocity;
 
 			Point integral_xy;
-			double integral_a;
+			Angle integral_a;
 	};
 
-	PIDSimController::PIDSimController(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0), integral_a(0.0) {
+	PIDSimController::PIDSimController(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(Angle::ZERO), integral_a(Angle::ZERO) {
 	}
 
-	void PIDSimController::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
+	void PIDSimController::move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity) {
 		const Point &current_position = player->position();
-		const double current_orientation = player->orientation();
+		const Angle current_orientation = player->orientation();
 
 		// relative new direction and angle
-		double new_da = angle_mod(new_orientation - current_orientation);
+		Angle new_da = (new_orientation - current_orientation).angle_mod();
 		const Point &new_dir = (new_position - current_position).rotate(-current_orientation);
 
-		if (new_da > M_PI) {
-			new_da -= 2 * M_PI;
+		if (new_da > Angle::HALF) {
+			new_da -= Angle::FULL;
 		}
 
 		if (!initialized) {
@@ -77,11 +77,11 @@ namespace {
 
 		const double px = new_dir.x;
 		const double py = new_dir.y;
-		const double pa = new_da;
+		const Angle pa = new_da;
 		Point vel = (player->velocity()).rotate(-current_orientation);
 		double vx = -vel.x;
 		double vy = -vel.y;
-		double va = -player->avelocity();
+		Angle va = -player->avelocity();
 
 		// const double cx = accum_pos.x;
 		// const double cy = accum_pos.y;
@@ -91,7 +91,7 @@ namespace {
 			prev_new_pos = new_position;
 			prev_new_ori = new_orientation;
 			integral_xy = Point(0.0, 0.0);
-			integral_a = 0.0;
+			integral_a = Angle::ZERO;
 		} else {
 			integral_xy *= PID_DAMP / 100.0;
 			integral_xy += new_dir;
@@ -114,13 +114,13 @@ namespace {
 			linear_velocity = prev_linear_velocity + accel;
 		}
 
-		angular_velocity = pa * PID_A_PROP + va * PID_A_DIFF + linear_velocity.y * PID_YA_RATIO + integral_a * PID_A_INTG;
-		angular_velocity = clamp<double>(angular_velocity, -PID_A_THRESH, PID_A_THRESH);
+		angular_velocity = pa * PID_A_PROP + va * PID_A_DIFF + Angle::of_radians(linear_velocity.y * PID_YA_RATIO) + integral_a * PID_A_INTG;
+		angular_velocity = clamp(angular_velocity, -PID_A_THRESH.get(), PID_A_THRESH.get());
 
 		// threshold even more
 		if (PID_SLOW_ANGULAR) {
 			if (PID_FLIP_SLOWDOWN) {
-				double slowdown = (PID_SLOWDOWN * PID_A_THRESH - std::fabs(angular_velocity)) / (PID_SLOWDOWN * PID_A_THRESH);
+				double slowdown = (PID_SLOWDOWN * PID_A_THRESH - angular_velocity.abs()) / (PID_SLOWDOWN * PID_A_THRESH);
 				if (std::fabs(slowdown) > 1.1) {
 					std::cerr << "PIDSim: spin up" << std::endl;
 					slowdown = 1;

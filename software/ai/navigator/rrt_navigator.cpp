@@ -22,11 +22,11 @@ namespace AI {
 			// fraction of the maximum speed that the robot will try to dribble at
 			const double DRIBBLE_SPEED = 1.0;
 
-			DoubleParam offset_angle("Pivot: offset angle (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
+			DegreeParam offset_angle("Pivot: offset angle (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
 			DoubleParam offset_distance("Pivot: offset distance", "Nav/RRT", 0.15, -10.0, 10.0);
-			DoubleParam orientation_offset("Pivot: orientation offset (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
+			DegreeParam orientation_offset("Pivot: orientation offset (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
 
-			DoubleParam chase_angle_range("Chase angle range for behind target (degrees)", "Nav/RRT", 30, 0, 90);
+			DegreeParam chase_angle_range("Chase angle range for behind target (degrees)", "Nav/RRT", 30, 0.0, 90.0);
 			DoubleParam chase_distance("Buffer behind ball for chase (meters)", "Nav/RRT", 0.25, -1.0, 1.0);
 			DoubleParam ball_velocity_threshold("Ball velocity threshold (used to switch between chase and chase+pivot)", "Nav/RRT", 0.5, 0.0, 20.0);
 
@@ -35,7 +35,7 @@ namespace AI {
 			DoubleParam new_pivot_angular_sfactor("New Pivot [PID]: angular", "Nav/RRT", 1.0, 0.01, 50.0);
 			DoubleParam new_pivot_radius("New Pivot: travel radius", "Nav/RRT", 0.3, 0.01, 0.5);
 			BoolParam new_pivot_go_backward("New Pivot: go backward", "Nav/RRT", false);
-			DoubleParam new_pivot_offset_angle("New Pivot: offset angle (n*M_PI)", "Nav/RRT", 0.1, 0, 0.5);
+			RadianParam new_pivot_offset_angle("New Pivot: offset angle (radians)", "Nav/RRT", 0.1, 0, 0.5);
 			DoubleParam new_pivot_travel_angle("New Pivot: travel angle, need proper unit, (n*M_PI)", "Nav/RRT", 0.2, -0.5, 0.5);
 			DoubleParam new_pivot_hyster_angle("New Pivot: Hysterisis angle, one side, (n*M_PI)", "Nav/RRT", 0.2, 0.01, 0.2);
 			DoubleParam new_pivot_thresh_angle("New Pivot: Threshold angle, one side, (n*M_PI)", "Nav/RRT", 0.2, 0.01, 0.2);
@@ -52,10 +52,10 @@ namespace AI {
 				public:
 					NavigatorFactory &factory() const;
 					void pivot(Player::Ptr player);
-					std::pair<Point, double> grab_ball(Player::Ptr player);
-					std::pair<Point, double> grab_ball_orientation(Player::Ptr player);
-					std::pair<Point, double> intercept_ball(Player::Ptr player);
-					std::pair<Point, double> intercept_ball_orientation(Player::Ptr player);
+					std::pair<Point, Angle> grab_ball(Player::Ptr player);
+					std::pair<Point, Angle> grab_ball_orientation(Player::Ptr player);
+					std::pair<Point, Angle> intercept_ball(Player::Ptr player);
+					std::pair<Point, Angle> intercept_ball_orientation(Player::Ptr player);
 
 					void tick();
 					static Navigator::Ptr create(World &world);
@@ -65,7 +65,7 @@ namespace AI {
 					RRTNavigator(World &world);
 					RRTPlanner planner;
 					bool is_ccw;
-					std::pair<Point, double> grab_ball_orientation(Player::Ptr player, Point target);
+					std::pair<Point, Angle> grab_ball_orientation(Player::Ptr player, Point target);
 			};
 
 			class RRTNavigatorFactory : public NavigatorFactory {
@@ -80,18 +80,18 @@ namespace AI {
 				return factory_instance;
 			}
 
-			std::pair<Point, double> RRTNavigator::intercept_ball(Player::Ptr player) {
+			std::pair<Point, Angle> RRTNavigator::intercept_ball(Player::Ptr player) {
 				// TODO: Jason, implement this.
 			}
 
-			std::pair<Point, double> RRTNavigator::intercept_ball_orientation(Player::Ptr player) {
+			std::pair<Point, Angle> RRTNavigator::intercept_ball_orientation(Player::Ptr player) {
 				// TODO: Jason, implement this.
 			}
 
-			std::pair<Point, double> RRTNavigator::grab_ball_orientation(Player::Ptr player, Point target) {
+			std::pair<Point, Angle> RRTNavigator::grab_ball_orientation(Player::Ptr player, Point target) {
 				Point dest_pos;
 
-				double dest_ori = (world.ball().position() - player->position()).orientation();
+				Angle dest_ori = (world.ball().position() - player->position()).orientation();
 
 				if (!AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest_pos)) {
 					LOG_DEBUG("grab fail");
@@ -102,8 +102,7 @@ namespace AI {
 
 				Point dir_ball = (target - np).norm();
 				Point dir = (np - player->position()).norm();
-				double rad = chase_angle_range * M_PI / 180.0;
-				bool op_ori = dir_ball.dot(dir) < cos(rad);
+				bool op_ori = dir_ball.dot(dir) < chase_angle_range.get().cos();
 				if (op_ori) {
 					PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags |= AI::Flags::FLAG_AVOID_BALL_TINY;
 					np += chase_distance * (np - player->destination().first).norm();
@@ -113,40 +112,40 @@ namespace AI {
 				return std::make_pair(dest_pos, dest_ori);
 			}
 
-			std::pair<Point, double> RRTNavigator::grab_ball_orientation(Player::Ptr player) {
+			std::pair<Point, Angle> RRTNavigator::grab_ball_orientation(Player::Ptr player) {
 				if (world.ball().velocity().len() < ball_velocity_threshold) {
 					return grab_ball_orientation(player, player->destination().first);
 				}
 				Point A = world.ball().velocity().norm();
 				Point B = (player->destination().first - world.ball().position()).norm();
-				if (A.dot(B) > cos(AI::player_receive_threshold)) {
+				if (A.dot(B) > AI::player_receive_threshold.get().cos()) {
 					return grab_ball_orientation(player, player->destination().first);
 				}
 
 				double ball_component = (A.dot(B) < 0) ? -1.0 : 1.0;
 				A = ball_component * A;
 
-				double rotate_amnt = (A.cross(B - A) < 0) ? (AI::player_receive_threshold) : (AI::player_receive_threshold);
+				Angle rotate_amnt = (A.cross(B - A) < 0) ? (AI::player_receive_threshold) : (AI::player_receive_threshold);
 
 				Point target_dir = A.rotate(rotate_amnt);
 				return grab_ball_orientation(player, world.ball().position() + target_dir);
 			}
 
-			std::pair<Point, double> RRTNavigator::grab_ball(Player::Ptr player) {
+			std::pair<Point, Angle> RRTNavigator::grab_ball(Player::Ptr player) {
 				if (use_new_chase) {
 					// check the angle difference between player and ball velocity:
-					double angle1 = (player->position() - world.ball().position()).orientation();
-					double angle2 = world.ball().velocity().orientation();
+					Angle angle1 = (player->position() - world.ball().position()).orientation();
+					Angle angle2 = world.ball().velocity().orientation();
 
-					if (angle_diff(angle1, angle2) < 2.4) {
-						double dest_ori = (world.ball().position() - player->position()).orientation();
+					if (angle1.angle_diff(angle2) < Angle::of_radians(2.4)) {
+						Angle dest_ori = (world.ball().position() - player->position()).orientation();
 						Point dest_pos;
 						if (!AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest_pos)) {
 							return std::make_pair(world.ball().position(), dest_ori);
 						}
 						return std::make_pair(dest_pos, dest_ori);
 					} else {
-						double dest_ori = (world.ball().position() - player->position()).orientation();
+						Angle dest_ori = (world.ball().position() - player->position()).orientation();
 						Point vec = world.ball().velocity().norm();
 						if (vec.len() < ball_velocity_threshold) {
 							PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags |= AI::Flags::FLAG_AVOID_BALL_TINY;
@@ -154,7 +153,7 @@ namespace AI {
 						return std::make_pair(world.ball().position() + vec, dest_ori);
 					}
 				} else {
-					double dest_ori = (world.ball().position() - player->position()).orientation();
+					Angle dest_ori = (world.ball().position() - player->position()).orientation();
 					Point dest_pos;
 					if (!AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest_pos)) {
 						return std::make_pair(world.ball().position(), dest_ori);
@@ -167,18 +166,18 @@ namespace AI {
 				if (!use_new_pivot) {
 					Player::Path path;
 					Point dest;
-					double dest_orientation;
+					Angle dest_orientation;
 
 					// try to pivot around the ball to catch it
 					Point current_position = player->position();
-					double to_ball_orientation = (world.ball().position() - current_position).orientation();
-					double orientation_temp = degrees2radians(orientation_offset);
+					Angle to_ball_orientation = (world.ball().position() - current_position).orientation();
+					Angle orientation_temp = orientation_offset;
 
-					double angle = degrees2radians(offset_angle);
+					Angle angle = offset_angle;
 
-					double difference = angle_mod(to_ball_orientation - player->destination().second);
+					Angle difference = (to_ball_orientation - player->destination().second).angle_mod();
 
-					if (difference > 0) {
+					if (difference > Angle::ZERO) {
 						angle = -angle;
 						orientation_temp = -orientation_temp;
 					}
@@ -195,17 +194,17 @@ namespace AI {
 					if (!player->has_ball()) {
 						// use the byron pivot to catch to the ball
 						Point dest;
-						double dest_orientation;
+						Angle dest_orientation;
 						// try to pivot around the ball to catch it
 						Point current_position = player->position();
-						double to_ball_orientation = (world.ball().position() - current_position).orientation();
-						double orientation_temp = degrees2radians(orientation_offset);
+						Angle to_ball_orientation = (world.ball().position() - current_position).orientation();
+						Angle orientation_temp = orientation_offset;
 
-						double angle = degrees2radians(offset_angle);
+						Angle angle = offset_angle;
 
-						double difference = angle_mod(to_ball_orientation - player->destination().second);
+						Angle difference = (to_ball_orientation - player->destination().second).angle_mod();
 
-						if (difference > 0) {
+						if (difference > Angle::ZERO) {
 							angle = -angle;
 							orientation_temp = -orientation_temp;
 						}
@@ -219,7 +218,7 @@ namespace AI {
 
 						player->path(path);
 					} else {
-						double diff = angle_mod((world.ball().position() - player->destination().first).orientation() - (player->orientation() + (is_ccw ? 1 : -1) * new_pivot_offset_angle));
+						Angle diff = ((world.ball().position() - player->destination().first).orientation() - (player->orientation() + (is_ccw ? 1 : -1) * new_pivot_offset_angle)).angle_mod();
 						std::stringstream ss;
 						ss << diff;
 						// LOG_INFO( ss.str() );
@@ -228,22 +227,22 @@ namespace AI {
 						Point polar_pos;
 						Point rel_pos;
 						Point dest_pos;
-						double rel_orient;
-						double dest_orient;
+						Angle rel_orient;
+						Angle dest_orient;
 
 						// decide on ccw or cw
-						if (diff > new_pivot_hyster_angle * M_PI) {
+						if (diff > new_pivot_hyster_angle * Angle::HALF) {
 							is_ccw = true;
-						} else if (diff < -new_pivot_hyster_angle * M_PI) {
+						} else if (diff < -new_pivot_hyster_angle * Angle::HALF) {
 							is_ccw = false;
 						}
 
 						// decide on how to get there fast
-						if (std::abs(diff) > new_pivot_thresh_angle * M_PI) {
-							rel_orient = new_pivot_travel_angle * M_PI * (is_ccw ? 1 : -1);
+						if (diff.abs() > new_pivot_thresh_angle * Angle::HALF) {
+							rel_orient = new_pivot_travel_angle * Angle::HALF * (is_ccw ? 1 : -1);
 							rel_orient *= new_pivot_angular_sfactor;
 							polar_pos = zero_pos - zero_pos.rotate(rel_orient);
-							rel_pos = polar_pos.rotate(player->orientation() + (0.5 * M_PI) * (is_ccw ? 1 : -1) * (new_pivot_go_backward ? -1 : 1));
+							rel_pos = polar_pos.rotate(player->orientation() + Angle::QUARTER * (is_ccw ? 1 : -1) * (new_pivot_go_backward ? -1 : 1));
 							rel_pos *= new_pivot_linear_sfactor;
 							dest_pos = player->position() + rel_pos;
 							dest_orient = player->orientation() + rel_orient;
@@ -252,7 +251,7 @@ namespace AI {
 							rel_orient = diff;
 							rel_orient *= new_pivot_angular_sfactor;
 							polar_pos = zero_pos - zero_pos.rotate(rel_orient);
-							rel_pos = polar_pos.rotate(player->orientation() + (0.5 * M_PI));
+							rel_pos = polar_pos.rotate(player->orientation() + Angle::QUARTER);
 							rel_pos *= new_pivot_linear_sfactor;
 							dest_pos = player->position() + rel_pos;
 							dest_orient = (world.ball().position() - player->destination().first).orientation();
@@ -289,13 +288,13 @@ namespace AI {
 					}
 					PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags = 0;
 					Point dest;
-					double dest_orientation = player->destination().second;
+					Angle dest_orientation = player->destination().second;
 					if (player->type() == AI::Flags::MoveType::CATCH) {
-						std::pair<Point, double> grab_ball_dest = grab_ball(player);
+						std::pair<Point, Angle> grab_ball_dest = grab_ball(player);
 						dest = grab_ball_dest.first;
 						dest_orientation = grab_ball_dest.second;
 					} else if (player->type() == AI::Flags::MoveType::CATCH_PIVOT) {
-						std::pair<Point, double> grab_ball_dest;
+						std::pair<Point, Angle> grab_ball_dest;
 
 						// Check the ball velocity. If it is travelling too fast, use grab_ball instead of grab_ball_orientation.
 						// Based on field testing, we determined that grab_ball_orientation is not effective on moving balls.
@@ -308,11 +307,11 @@ namespace AI {
 						dest = grab_ball_dest.first;
 						dest_orientation = grab_ball_dest.second;
 					} else if (player->type() == AI::Flags::MoveType::INTERCEPT) {
-						std::pair<Point, double> grab_ball_dest = intercept_ball(player);
+						std::pair<Point, Angle> grab_ball_dest = intercept_ball(player);
 						dest = grab_ball_dest.first;
 						dest_orientation = grab_ball_dest.second;
 					} else if (player->type() == AI::Flags::MoveType::INTERCEPT_PIVOT) {
-						std::pair<Point, double> grab_ball_dest = intercept_ball_orientation(player);
+						std::pair<Point, Angle> grab_ball_dest = intercept_ball_orientation(player);
 						dest = grab_ball_dest.first;
 						dest_orientation = grab_ball_dest.second;
 					} else if (player->type() == AI::Flags::MoveType::PIVOT) {

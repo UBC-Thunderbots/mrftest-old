@@ -134,7 +134,7 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 
 			ctx->set_source_rgb(clr.red, clr.green, clr.blue);
 			ctx->begin_new_path();
-			ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation() + M_PI_4, bot->orientation() - M_PI_4);
+			ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation().to_radians() + M_PI_4, bot->orientation().to_radians() - M_PI_4);
 			ctx->fill();
 
 			if (show_robots_v) {
@@ -148,7 +148,7 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 			if (show_robots_dest && bot->has_destination()) {
 				ctx->set_source_rgb(clr.red, clr.green, clr.blue);
 				ctx->begin_new_path();
-				ctx->arc(bot->destination().first.x, bot->destination().first.y, 0.09, bot->destination().second + M_PI_4, bot->destination().second - M_PI_4);
+				ctx->arc(bot->destination().first.x, bot->destination().first.y, 0.09, bot->destination().second.to_radians() + M_PI_4, bot->destination().second.to_radians() - M_PI_4);
 				ctx->stroke();
 
 				ctx->set_source_rgb(0.0, 0.0, 0.0);
@@ -165,14 +165,14 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 				ctx->set_source_rgb(1.0, 0.0, 1.0);
 				ctx->begin_new_path();
 				ctx->move_to(bot->position().x, bot->position().y);
-				const std::vector<std::pair<std::pair<Point, double>, timespec> > &path = bot->path();
-				for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator j = path.begin(), jend = path.end(); j != jend; ++j) {
+				const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path = bot->path();
+				for (auto j = path.begin(), jend = path.end(); j != jend; ++j) {
 					ctx->line_to(j->first.first.x, j->first.first.y);
 				}
 				ctx->stroke();
 
 				ctx->set_source_rgb(0, 0, 0);
-				for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator j = path.begin(), jend = path.end(); j != jend; ++j) {
+				for (auto j = path.begin(), jend = path.end(); j != jend; ++j) {
 					ctx->arc(j->first.first.x, j->first.first.y, 0.01, 0, 2 * M_PI);
 					ctx->fill();
 				}
@@ -221,7 +221,7 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 				const Visualizable::Colour &hlclr = bot->highlight_colour();
 				ctx->set_source_rgb(hlclr.red, hlclr.green, hlclr.blue);
 				ctx->begin_new_path();
-				ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation() + M_PI_4, bot->orientation() - M_PI_4);
+				ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation().to_radians() + M_PI_4, bot->orientation().to_radians() - M_PI_4);
 				ctx->stroke();
 			}
 		}

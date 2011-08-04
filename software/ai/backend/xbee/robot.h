@@ -74,16 +74,16 @@ namespace AI {
 					Point velocity(double delta = 0.0) const;
 					Point position_stdev(double delta = 0.0) const;
 					Point velocity_stdev(double delta = 0.0) const;
-					double orientation(double delta = 0.0) const;
-					double avelocity(double delta = 0.0) const;
-					double orientation_stdev(double delta = 0.0) const;
-					double avelocity_stdev(double delta = 0.0) const;
+					Angle orientation(double delta = 0.0) const;
+					Angle avelocity(double delta = 0.0) const;
+					Angle orientation_stdev(double delta = 0.0) const;
+					Angle avelocity_stdev(double delta = 0.0) const;
 					unsigned int pattern() const;
 					ObjectStore &object_store() const;
 					bool has_destination() const;
-					const std::pair<Point, double> &destination() const;
+					const std::pair<Point, Angle> &destination() const;
 					bool has_path() const;
-					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const;
+					const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path() const;
 					unsigned int num_bar_graphs() const;
 					double bar_graph_value(unsigned int index) const;
 					Visualizable::Colour bar_graph_colour(unsigned int index) const;
@@ -96,7 +96,8 @@ namespace AI {
 
 				private:
 					const unsigned int pattern_;
-					Predictor xpred, ypred, tpred;
+					Predictor<double> xpred, ypred;
+					Predictor<Angle> tpred;
 					mutable ObjectStore object_store_;
 
 					void on_defending_end_changed();

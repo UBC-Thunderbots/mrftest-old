@@ -2,6 +2,7 @@
 #include "ai/robot_controller/tunable_controller.h"
 #include "geom/angle.h"
 #include "geom/point.h"
+#include "util/algorithm.h"
 #include "util/byref.h"
 #include "util/noncopyable.h"
 #include "util/param.h"
@@ -50,7 +51,7 @@ namespace {
 
 	class TunablePID2Controller : public OldRobotController, public TunableController {
 		public:
-			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
+			void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity);
 			void clear();
 			RobotControllerFactory &get_factory() const;
 			TunablePID2Controller(World &world, Player::Ptr plr);
@@ -70,14 +71,14 @@ namespace {
 			std::vector<double> param;
 			// errors in x, y, d
 			std::vector<Point> error_pos;
-			std::vector<double> error_ori;
+			std::vector<Angle> error_ori;
 			Point prev_new_pos;
-			double prev_new_ori;
+			Angle prev_new_ori;
 			Point prev_linear_velocity;
-			double prev_angular_velocity;
+			Angle prev_angular_velocity;
 	};
 
-	TunablePID2Controller::TunablePID2Controller(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
+	TunablePID2Controller::TunablePID2Controller(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(Angle::ZERO) {
 		param = param_default;
 	}
 
@@ -85,16 +86,16 @@ namespace {
 		return std::vector<std::string>(PARAM_NAMES, PARAM_NAMES + P);
 	}
 
-	void TunablePID2Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
+	void TunablePID2Controller::move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity) {
 		const Point &current_position = player->position();
-		const double current_orientation = player->orientation();
+		const Angle current_orientation = player->orientation();
 
 		// relative new direction and angle
-		double new_da = angle_mod(new_orientation - current_orientation);
+		Angle new_da = (new_orientation - current_orientation).angle_mod();
 		const Point &new_dir = (new_position - current_position).rotate(-current_orientation);
 
-		if (new_da > M_PI) {
-			new_da -= 2 * M_PI;
+		if (new_da > Angle::HALF) {
+			new_da -= Angle::FULL;
 		}
 
 		if (!initialized) {
@@ -131,11 +132,11 @@ namespace {
 
 		const double px = new_dir.x;
 		const double py = new_dir.y;
-		const double pa = new_da;
+		const Angle pa = new_da;
 		Point vel = (player->velocity()).rotate(-current_orientation);
 		double vx = -vel.x;
 		double vy = -vel.y;
-		double va = -player->avelocity();
+		Angle va = -player->avelocity();
 
 		// const double cx = accum_pos.x;
 		// const double cy = accum_pos.y;
@@ -161,14 +162,10 @@ namespace {
 			linear_velocity = prev_linear_velocity + accel;
 		}
 
-		angular_velocity = pa * param[PARAM_A_PROP] + va * param[PARAM_A_DIFF] + linear_velocity.y * param[PARAM_YA_RATIO];
+		angular_velocity = pa * param[PARAM_A_PROP] + va * param[PARAM_A_DIFF] + Angle::of_radians(linear_velocity.y * param[PARAM_YA_RATIO]);
 
 		// threshold the angular velocity
-		if (angular_velocity > param[PARAM_A_THRESH]) {
-			angular_velocity = param[PARAM_A_THRESH];
-		} else if (angular_velocity < -param[PARAM_A_THRESH]) {
-			angular_velocity = -param[PARAM_A_THRESH];
-		}
+		angular_velocity = clamp_symmetric(angular_velocity, Angle::of_radians(param[PARAM_A_THRESH]));
 
 		// threshold even more
 		/*

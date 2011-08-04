@@ -50,28 +50,28 @@ namespace AI {
 						xpred.lock_time(ts);
 						ypred.add_datum(state.y, ts);
 						ypred.lock_time(ts);
-						tpred.add_datum(state.orientation, ts);
+						tpred.add_datum(Angle::of_radians(state.orientation), ts);
 						tpred.lock_time(ts);
 					}
 
 					ObjectStore &object_store() const { return object_store_; }
 					unsigned int pattern() const { return pattern_; }
 					Point position(double delta = 0.0) const { return Point(xpred.value(delta).first, ypred.value(delta).first); }
-					double orientation(double delta = 0.0) const { return tpred.value(delta).first; }
+					Angle orientation(double delta = 0.0) const { return tpred.value(delta).first; }
 					Point velocity(double delta = 0.0) const { return Point(xpred.value(delta, 1).first, ypred.value(delta, 1).first); }
-					double avelocity(double delta = 0.0) const { return tpred.value(delta, 1).first; }
+					Angle avelocity(double delta = 0.0) const { return tpred.value(delta, 1).first; }
 					Point position_stdev(double delta = 0.0) const { return Point(xpred.value(delta).second, ypred.value(delta).second); }
-					double orientation_stdev(double delta = 0.0) const { return tpred.value(delta).second; }
+					Angle orientation_stdev(double delta = 0.0) const { return tpred.value(delta).second; }
 					Point velocity_stdev(double delta = 0.0) const { return Point(xpred.value(delta, 1).second, ypred.value(delta, 1).second); }
-					double avelocity_stdev(double delta = 0.0) const { return tpred.value(delta, 1).second; }
+					Angle avelocity_stdev(double delta = 0.0) const { return tpred.value(delta, 1).second; }
 					Visualizable::Colour visualizer_colour() const { return Visualizable::Colour(1.0, 0.0, 0.0); }
 					Glib::ustring visualizer_label() const { return Glib::ustring::format(pattern_); }
 					bool highlight() const { return false; }
 					Visualizable::Colour highlight_colour() const { return Visualizable::Colour(0.0, 0.0, 0.0); }
 					bool has_destination() const { return false; }
-					const std::pair<Point, double> &destination() const { throw std::logic_error("This robot has no destination"); }
+					const std::pair<Point, Angle> &destination() const { throw std::logic_error("This robot has no destination"); }
 					bool has_path() const { return false; }
-					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const { throw std::logic_error("This robot has no path"); }
+					const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path() const { throw std::logic_error("This robot has no path"); }
 					unsigned int num_bar_graphs() const { return 0; }
 					double bar_graph_value(unsigned int) const { return 0.0; }
 					Visualizable::Colour bar_graph_colour(unsigned int) const { return Visualizable::Colour(0.0, 0.0, 0.0); }
@@ -82,7 +82,7 @@ namespace AI {
 					 *
 					 * \param[in] pattern the pattern index of the robot.
 					 */
-					Robot(unsigned int pattern) : pattern_(pattern), xpred(false, 1.3e-3, 2), ypred(false, 1.3e-3, 2), tpred(true, 1.3e-3, 2) {
+					Robot(unsigned int pattern) : pattern_(pattern), xpred(1.3e-3, 2), ypred(1.3e-3, 2), tpred(Angle::of_radians(1.3e-3), Angle::of_radians(2)) {
 					}
 
 					/**
@@ -100,17 +100,17 @@ namespace AI {
 					/**
 					 * A predictor that provides the X coordinate of predictable quantities.
 					 */
-					Predictor xpred;
+					Predictor<double> xpred;
 
 					/**
 					 * A predictor that provides the Y coordinate of predictable quantities.
 					 */
-					Predictor ypred;
+					Predictor<double> ypred;
 
 					/**
 					 * A predictor that provides predictable quantities around orientation.
 					 */
-					Predictor tpred;
+					Predictor<Angle> tpred;
 
 					/**
 					 * The object store that holds private data for the rest of the stack that is specific to this robot.

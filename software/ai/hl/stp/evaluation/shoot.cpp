@@ -11,7 +11,7 @@ namespace {
 	DoubleParam reduced_radius_big("big reduced radius for calculating best shot (robot radius ratio)", "STP/Shoot", 0.8, 0.0, 1.1);
 }
 
-double Evaluation::get_shoot_score(const World &world, Player::Ptr player, bool use_reduced_radius) {
+Angle Evaluation::get_shoot_score(const World &world, Player::Ptr player, bool use_reduced_radius) {
 	double radius;
 	if (use_reduced_radius) {
 		radius = reduced_radius_small;
@@ -20,18 +20,18 @@ double Evaluation::get_shoot_score(const World &world, Player::Ptr player, bool 
 	}
 
 
-	std::vector<std::pair<Point, double> > openings = AI::HL::Util::calc_best_shot_all(world, player, radius);
+	std::vector<std::pair<Point, Angle> > openings = AI::HL::Util::calc_best_shot_all(world, player, radius);
 
-	for (std::vector<std::pair<Point, double> >::iterator it = openings.begin(); it != openings.end(); it++) {
-		double centre_ang = player->orientation();
-		double ang_1 = (it->first - player->position()).orientation() + it->second / 2.0;
-		double ang_2 = (it->first - player->position()).orientation() - it->second / 2.0;
-		if (angle_diff(ang_1, centre_ang) + angle_diff(ang_2, centre_ang) > it->second + 1e-6) {
+	for (std::vector<std::pair<Point, Angle> >::iterator it = openings.begin(); it != openings.end(); it++) {
+		Angle centre_ang = player->orientation();
+		Angle ang_1 = (it->first - player->position()).orientation() + it->second / 2.0;
+		Angle ang_2 = (it->first - player->position()).orientation() - it->second / 2.0;
+		if (ang_1.angle_diff(centre_ang) + ang_2.angle_diff(centre_ang) > it->second + Angle::of_radians(1e-6)) {
 			continue;
 		}
-		return std::min(angle_diff(ang_1, centre_ang), angle_diff(ang_2, centre_ang));
+		return std::min(ang_1.angle_diff(centre_ang), ang_2.angle_diff(centre_ang));
 	}
-	return 0.0;
+	return Angle::ZERO;
 }
 
 /*
@@ -84,18 +84,18 @@ Evaluation::ShootData Evaluation::evaluate_shoot(const World &world, Player::CPt
 
 	data.reduced_radius = true;
 
-	double ori = (shot.first - player->position()).orientation();
-	double ori_diff = angle_diff(ori, player->orientation());
+	Angle ori = (shot.first - player->position()).orientation();
+	Angle ori_diff = ori.angle_diff(player->orientation());
 	data.accuracy_diff = ori_diff - (shot.second / 2);
 
 	if (player->kicker_directional()) {
-		data.accuracy_diff -= degrees2radians(45);
+		data.accuracy_diff -= Angle::of_degrees(45);
 	}
 
 	data.target = shot.first;
 	data.angle = shot.second;
-	data.can_shoot = (data.accuracy_diff < -degrees2radians(shoot_accuracy));
-	data.blocked = (shot.second == 0);
+	data.can_shoot = data.accuracy_diff < -shoot_accuracy;
+	data.blocked = shot.second == Angle::ZERO;
 
 #warning a fix to other parts of the code for now
 	if (data.blocked) {

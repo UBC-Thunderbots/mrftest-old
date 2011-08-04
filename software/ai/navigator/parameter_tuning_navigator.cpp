@@ -13,8 +13,8 @@ using namespace AI::Nav::W;
 namespace {
 	const double pos_dis_threshold = 0.1;
 	const double pos_vel_threshold = 0.05;
-	const double ori_dis_threshold = 0.175;
-	const double ori_vel_threshold = 0.05;
+	const Angle ori_dis_threshold = Angle::of_radians(0.175);
+	const Angle ori_vel_threshold = Angle::of_radians(0.05);
 
 	/**
 	 * Parameter Tuning
@@ -67,22 +67,22 @@ namespace {
 	int limit = 1000;
 	int best = limit;
 
-	const std::pair<Point, double> tasks[] = {
-		std::make_pair(Point(1.2, 0), 0),
-		std::make_pair(Point(1.5, 0), -PI / 2),
-		std::make_pair(Point(1.2, 0.3), 0),
-		std::make_pair(Point(1.2, -0.3), PI),
-		std::make_pair(Point(1.2, 0), 0),
-		std::make_pair(Point(1.2, -0.3), PI),
-		std::make_pair(Point(1.2, 0), 0),
-		std::make_pair(Point(0.5, 0), PI),
-		std::make_pair(Point(2.5, 0), 0),
-		std::make_pair(Point(0.5, 1.2), PI),
-		std::make_pair(Point(1, -0.6), 0),
-		std::make_pair(Point(2, 0.6), PI / 2),
-		std::make_pair(Point(1, -0.6), -PI / 2),
-		std::make_pair(Point(0.5, 0), 0),
-		std::make_pair(Point(2.5, 0.6), -PI / 2)
+	const std::pair<Point, Angle> tasks[] = {
+		std::make_pair(Point(1.2, 0), Angle::of_radians(0)),
+		std::make_pair(Point(1.5, 0), Angle::of_radians(-PI / 2)),
+		std::make_pair(Point(1.2, 0.3), Angle::of_radians(0)),
+		std::make_pair(Point(1.2, -0.3), Angle::of_radians(PI)),
+		std::make_pair(Point(1.2, 0), Angle::of_radians(0)),
+		std::make_pair(Point(1.2, -0.3), Angle::of_radians(PI)),
+		std::make_pair(Point(1.2, 0), Angle::of_radians(0)),
+		std::make_pair(Point(0.5, 0), Angle::of_radians(PI)),
+		std::make_pair(Point(2.5, 0), Angle::of_radians(0)),
+		std::make_pair(Point(0.5, 1.2), Angle::of_radians(PI)),
+		std::make_pair(Point(1, -0.6), Angle::of_radians(0)),
+		std::make_pair(Point(2, 0.6), Angle::of_radians(PI / 2)),
+		std::make_pair(Point(1, -0.6), Angle::of_radians(-PI / 2)),
+		std::make_pair(Point(0.5, 0), Angle::of_radians(0)),
+		std::make_pair(Point(2.5, 0.6), Angle::of_radians(-PI / 2))
 	};
 
 
@@ -106,7 +106,7 @@ namespace {
 		Point currentPosition = player->position();
 		if ((currentPosition - tasks[taskIndex].first).len() < pos_dis_threshold
 		    && player->velocity().len() < pos_vel_threshold
-		    && angle_diff(tasks[taskIndex].second, player->orientation()) < ori_dis_threshold
+		    && tasks[taskIndex].second.angle_diff(player->orientation()) < ori_dis_threshold
 		    && player->avelocity() < ori_vel_threshold) {
 			taskIndex++;
 			if (taskIndex == 1) {

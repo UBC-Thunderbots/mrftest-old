@@ -17,7 +17,7 @@ namespace AI {
 					/**
 					 * How much it can see the goal.
 					 */
-					double goal_angle;
+					Angle goal_angle;
 
 					/**
 					 * Is this robot capable of shooting the target?
@@ -69,12 +69,12 @@ namespace AI {
 				/**
 				 * Calculates how good an enemy is at shooting our goal.
 				 */
-				std::pair<Point, double> calc_enemy_best_shot_goal(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius = 1.0);
+				std::pair<Point, Angle> calc_enemy_best_shot_goal(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius = 1.0);
 
 				/**
 				 * Calculates how good an enemy is at shooting our goal.
 				 */
-				std::pair<Point, double> calc_enemy_best_shot_goal(const World &world, const Robot::Ptr enemy, const double radius = 1.0);
+				std::pair<Point, Angle> calc_enemy_best_shot_goal(const World &world, const Robot::Ptr enemy, const double radius = 1.0);
 
 				/**
 				 * # of passes it takes for the enemy to shoot to our goal
@@ -93,7 +93,7 @@ namespace AI {
 				 */
 				std::vector<int> calc_min_enemy_pass(const std::vector<Point> obstacles, const std::vector<Point> enemies);
 
-				extern DoubleParam enemy_shoot_accuracy;
+				extern DegreeParam enemy_shoot_accuracy;
 			}
 		}
 	}

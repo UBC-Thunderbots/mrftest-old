@@ -19,7 +19,7 @@ using namespace AI::RC::W;
 namespace {
 	class MaxController : public OldRobotController {
 		public:
-			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
+			void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity);
 			void clear();
 			RobotControllerFactory &get_factory() const;
 			MaxController(World &world, Player::Ptr plr);
@@ -28,9 +28,9 @@ namespace {
 	MaxController::MaxController(World &world, Player::Ptr plr) : OldRobotController(world, plr) {
 	}
 
-	void MaxController::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
-		const double current_orientation = player->orientation();
-		angular_velocity = angle_mod(new_orientation - current_orientation);
+	void MaxController::move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity) {
+		const Angle current_orientation = player->orientation();
+		angular_velocity = (new_orientation - current_orientation).angle_mod();
 		linear_velocity = (new_position - player->position()).rotate(-current_orientation);
 		if (linear_velocity.len() != 0) {
 			linear_velocity = linear_velocity / linear_velocity.len() * 9001; // It's over NINE THOUSAAAAAND!!!

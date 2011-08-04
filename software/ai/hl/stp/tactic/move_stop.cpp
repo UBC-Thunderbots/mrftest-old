@@ -16,9 +16,9 @@ namespace {
 	const double AVOIDANCE_DIST = 0.50 + Robot::MAX_RADIUS + Ball::RADIUS + 0.005;
 
 	// in ball avoidance, angle between center of 2 robots, as seen from the ball
-	const double AVOIDANCE_ANGLE = 2.0 * asin(Robot::MAX_RADIUS / AVOIDANCE_DIST);
+	const Angle AVOIDANCE_ANGLE = 2.0 * Angle::of_radians(std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST));
 
-	DoubleParam separation_angle("stop: angle to separate players (degrees)", "STP/Tactic", 20, 0, 90);
+	DegreeParam separation_angle("stop: angle to separate players (degrees)", "STP/Tactic", 20, 0, 90);
 
 	const unsigned int NUM_PLAYERS = 4;
 
@@ -80,7 +80,7 @@ std::vector<Point> StopLocations::compute(const World &world) {
 	}
 
 	// calculate angle between robots
-	const double delta_angle = AVOIDANCE_ANGLE + separation_angle * M_PI / 180.0;
+	const Angle delta_angle = AVOIDANCE_ANGLE + separation_angle;
 
 	const Point shoot = (start - ball_pos);
 
@@ -88,7 +88,7 @@ std::vector<Point> StopLocations::compute(const World &world) {
 	// we only want one of angle = 0, so start at w = 1
 	int w = 1;
 	for (std::size_t i = 0; i < NUM_PLAYERS; ++i) {
-		double angle = delta_angle * (w / 2) * ((w % 2) ? 1 : -1);
+		Angle angle = delta_angle * (w / 2) * ((w % 2) ? 1 : -1);
 		Point p = ball_pos + shoot.rotate(angle);
 		++w;
 

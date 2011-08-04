@@ -25,7 +25,7 @@ using AI::HL::STP::Coordinate;
 using AI::HL::STP::min_pass_dist;
 
 namespace {
-	DoubleParam passer_tol_target("when passer within this angle tol passee responds to passer direction", "STP/Tactic/pass", 30.0, 0.0, 180.0);
+	DegreeParam passer_tol_target("when passer within this angle tol passee responds to passer direction (degrees)", "STP/Tactic/pass", 30.0, 0.0, 180.0);
 	DoubleParam fast_velocity("velocity of pass threshold", "STP/Tactic/pass", 1.0, 0.0, 1.0);
 	DoubleParam negligible_velocity("velocity to ignore", "STP/Tactic/pass", 0.05, 0.0, 1.0);
 	DoubleParam passee_hack_dist("Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)", "STP/Tactic/pass", 0.0, 0.0, 1.0);
@@ -36,7 +36,7 @@ namespace {
 
 	struct kick_info {
 		Point kicker_location;
-		double kicker_orientation;
+		Angle kicker_orientation;
 		Point kicker_target;
 		bool kicked;
 	};
@@ -147,7 +147,7 @@ namespace {
 
 				// target normalized to position of passer
 				Point passer_target = passer_info.kicker_target - passer_info.kicker_location;
-				double pass_thresh = AI::HL::STP::Action::passer_angle_threshold;
+				Angle pass_thresh = AI::HL::STP::Action::passer_angle_threshold;
 
 				// the intersection point of largest circle inscribed by 2 rays
 				// (the rays are the max and min angle that is acceptable for passer

@@ -60,7 +60,8 @@ namespace {
 		Player::Path path;
 
 		Point currentPosition, currentVelocity, destinationPosition, targetPosition, turnCentre, diff;
-		double currentOrientation, destinationOrientation, turnRadius;
+		Angle currentOrientation, destinationOrientation;
+		double turnRadius;
 
 		for (std::size_t i = 0; i < fteam.size(); i++) {
 			path.clear();
@@ -80,9 +81,9 @@ namespace {
 			// targetPosition = Point(0, 0); // try to reach centre of field
 
 			if (diff.cross(currentVelocity) > 0) {
-				turnCentre = currentPosition + turnRadius * currentVelocity.rotate(M_PI / 2.0);
+				turnCentre = currentPosition + turnRadius * currentVelocity.rotate(Angle::QUARTER);
 			} else {
-				turnCentre = currentPosition + turnRadius * currentVelocity.rotate(-M_PI / 2.0);
+				turnCentre = currentPosition + turnRadius * currentVelocity.rotate(-Angle::QUARTER);
 			}
 
 			if ((world.ball().position() - turnCentre).len() > turnRadius + pivot_radius) {

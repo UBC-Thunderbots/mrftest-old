@@ -57,7 +57,7 @@ namespace AI {
 			/**
 			 * The shooting accuracy of the robot, in terms of angle.
 			 */
-			extern DoubleParam shoot_accuracy __attribute__((deprecated));
+			extern DegreeParam shoot_accuracy __attribute__((deprecated));
 
 			/**
 			 * Time the team can get ready for special plays.
@@ -97,7 +97,7 @@ namespace AI {
 			 * If the robot is less than this angle away from the ball,
 			 * then it is capable of receiving the ball.
 			 */
-			extern const double ORI_PASS_CLOSE __attribute__((deprecated));
+			extern const Angle ORI_PASS_CLOSE __attribute__((deprecated));
 
 			/**
 			 * Let t be time elpased since robot has ball.
@@ -167,9 +167,9 @@ namespace AI {
 			 * \return the point and the score (angle),
 			 * where the score will be 0 if the point is invalid.
 			 */
-			std::pair<Point, double> calc_best_shot(const AI::HL::W::Field &f, const std::vector<Point> &obstacles, const Point &p, double radius = 1.0);
+			std::pair<Point, Angle> calc_best_shot(const AI::HL::W::Field &f, const std::vector<Point> &obstacles, const Point &p, double radius = 1.0);
 
-			std::vector<std::pair<Point, double> > calc_best_shot_all(const AI::HL::W::Field &f, const std::vector<Point> &obstacles, const Point &p, double radius = 1.0);
+			std::vector<std::pair<Point, Angle> > calc_best_shot_all(const AI::HL::W::Field &f, const std::vector<Point> &obstacles, const Point &p, double radius = 1.0);
 
 			/**
 			 * Finds the length of the largest continuous interval (angle-wise) of the enemy goal that can be seen from a point.
@@ -181,9 +181,9 @@ namespace AI {
 			 * \return the point as and the score (angle),
 			 * where the score will be 0 if the point is invalid,
 			 */
-			std::pair<Point, double> calc_best_shot(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player, double radius = 1.0);
+			std::pair<Point, Angle> calc_best_shot(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player, double radius = 1.0);
 
-			std::vector<std::pair<Point, double> > calc_best_shot_all(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player, double radius = 1.0);
+			std::vector<std::pair<Point, Angle> > calc_best_shot_all(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player, double radius = 1.0);
 
 			/**
 			 * Checks if the robot is in a position close enough to the ball to start

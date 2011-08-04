@@ -87,7 +87,7 @@ void TDefendLine::execute() {
 	Point ball = world.ball().position();
 
 	Point target, velocity;
-	double angle;
+	Angle angle;
 
 	Point v[2] = { p1.position(), p2.position() };
 
@@ -118,7 +118,7 @@ void TDefendPoint::execute() {
 	Point centerv = center.position();
 
 	Point target, velocity;
-	double angle;
+	Angle angle;
 
 	// Position
 	if (!Evaluation::CMEvaluation::defend_point(world, LATENCY_DELAY, centerv, distmin, distmax, DEFENSE_OFF_BALL, intercepting, target, velocity)) {
@@ -140,7 +140,7 @@ void TDefendLane::execute() {
 	intercepting = true;
 
 	Point target, velocity;
-	double angle;
+	Angle angle;
 
 	Point v0 = p1.position();
 	Point v1 = p2.position();

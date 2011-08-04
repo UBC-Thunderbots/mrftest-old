@@ -63,7 +63,7 @@ void Kalman::predict(timespec prediction_time, Matrix &state_predict, Matrix &p_
 	}
 	predict_step(timespec_to_double(timespec_sub(prediction_time, current_time)), current_control, state_predict, p_predict);
 	if (is_angle) {
-		state_predict(0, 0) = angle_mod(state_predict(0, 0));
+		state_predict(0, 0) = Angle::of_radians(state_predict(0, 0)).angle_mod().to_radians();
 	}
 }
 
@@ -85,7 +85,7 @@ void Kalman::update(double measurement, timespec measurement_time) {
 	// %how much does the guess differ from the measurement
 	double residual = measurement - (h * state_priori)(0, 0);
 	if (is_angle) {
-		residual = angle_mod(residual);
+		residual = Angle::of_radians(residual).angle_mod().to_radians();
 	}
 
 	// %The kalman update calculations
@@ -93,7 +93,7 @@ void Kalman::update(double measurement, timespec measurement_time) {
 	state_estimate = state_priori + kalman_gain * residual;
 
 	if (is_angle) {
-		state_estimate(0, 0) = angle_mod(state_estimate(0, 0));
+		state_estimate(0, 0) = Angle::of_radians(state_estimate(0, 0)).angle_mod().to_radians();
 	}
 	p = (Matrix(2, 2, Matrix::InitFlag::IDENTITY) - kalman_gain * h) * p_priori;
 

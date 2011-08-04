@@ -107,7 +107,7 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 		auto shot = Evaluation::best_shoot_ray(world, baller);
 
 		if (shot.first) {
-			const double angle = shot.second;
+			const Angle angle = shot.second;
 			const Point p1 = baller->position();
 			const Point p2 = p1 + 5 * Point::of_angle(angle);
 			if (Evaluation::can_shoot_ray(world, baller, angle)) {
@@ -128,12 +128,12 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 			}
 
 			// draw rays for ray shooting
-			const double angle_span = 2 * degrees2radians(Evaluation::max_pass_ray_angle);
-			const double angle_step = angle_span / Evaluation::ray_intervals;
-			const double angle_min = player->orientation() - angle_span / 2;
+			const Angle angle_span = 2 * Evaluation::max_pass_ray_angle;
+			const Angle angle_step = angle_span / Evaluation::ray_intervals;
+			const Angle angle_min = player->orientation() - angle_span / 2;
 
 			for (int i = 0; i < Evaluation::ray_intervals; ++i) {
-				const double angle = angle_min + angle_step * i;
+				const Angle angle = angle_min + angle_step * i;
 
 				const Point p1 = player->position();
 				const Point p2 = p1 + 3 * Point::of_angle(angle);

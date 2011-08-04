@@ -14,18 +14,18 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
 	BoolParam new_shoot("Jason's shoot code", "AI/STP/Tactic/shoot", true);
-	DoubleParam shoot_thresh("Above this shoot score shoot", "AI/STP/Tactic/shoot", 5.0, 0.0, 90.0);
+	DegreeParam shoot_thresh("Above this shoot score shoot (degrees)", "AI/STP/Tactic/shoot", 5.0, 0.0, 90.0);
 
 	class ShootGoal : public Tactic {
 		public:
-			ShootGoal(const World &world, bool force) : Tactic(world, true), kick_attempted(false), force(force), shoot_score(0.0) {
+			ShootGoal(const World &world, bool force) : Tactic(world, true), kick_attempted(false), force(force), shoot_score(Angle::ZERO) {
 				// world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &ShootGoal::on_player_removed));
 			}
 
 		private:
 			bool kick_attempted;
 			bool force;
-			double shoot_score;
+			Angle shoot_score;
 			// mutable Player::Ptr shooter;
 
 			// void on_player_removed(std::size_t index) {
@@ -82,8 +82,8 @@ namespace {
 		if (AI::HL::STP::Action::shoot_goal(world, player, force)) {
 			kick_attempted = true;
 		}
-		double cur_shoot_score = AI::HL::STP::Evaluation::get_shoot_score(world, player);
-		if (new_shoot && ((cur_shoot_score < shoot_score + 1E-9 && shoot_score > 0) || cur_shoot_score > degrees2radians(shoot_thresh))) {
+		Angle cur_shoot_score = AI::HL::STP::Evaluation::get_shoot_score(world, player);
+		if (new_shoot && ((cur_shoot_score < shoot_score + Angle::of_radians(1e-9) && shoot_score > Angle::ZERO) || cur_shoot_score > shoot_thresh)) {
 			player->autokick(10.0);
 		}
 		shoot_score = cur_shoot_score;

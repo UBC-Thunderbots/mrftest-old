@@ -14,8 +14,8 @@
 #warning this class needs Doxygen comments in its header file
 
 namespace {
-	dReal orientationFromMatrix(const dReal *t) {
-		return std::atan2(-t[1], t[0]);
+	Angle orientationFromMatrix(const dReal *t) {
+		return Point(t[0], -t[1]).orientation();
 	}
 
 	bool isTipped(const dBodyID body) {
@@ -87,7 +87,7 @@ namespace {
 	/**
 	 * Angles in radians that the wheels are located off the forward direction
 	 */
-	const dReal ANGLES[4] = { static_cast<dReal>(0.959931), static_cast<dReal>(2.35619), static_cast<dReal>(3.9269908), static_cast<dReal>(5.32325) };
+	const Angle ANGLES[4] = { Angle::of_radians(0.959931), Angle::of_radians(2.35619), Angle::of_radians(3.9269908), Angle::of_radians(5.32325) };
 
 	int click = 0;
 }
@@ -112,7 +112,7 @@ PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, dReal 
 
 	for (int index = 0; index < 4; index++) {
 		wheel_position[index] = Point(1, 0).rotate(ANGLES[index]) * ROBOT_RADIUS;
-		force_direction[index] = Point(wheel_position[index].rotate(M_PI / 2).norm());
+		force_direction[index] = Point(wheel_position[index].rotate(Angle::QUARTER).norm());
 	}
 }
 
@@ -131,7 +131,7 @@ Point PlayerODE::position() const {
 }
 
 // Accessor method to get the robots orientation
-double PlayerODE::orientation() const {
+Angle PlayerODE::orientation() const {
 	return orientationFromMatrix(dBodyGetRotation(body));
 }
 
@@ -314,10 +314,10 @@ void PlayerODE::velocity(const Point &vel) {
 	dBodySetLinearVel(body, static_cast<dReal>(vel.x), static_cast<dReal>(vel.y), 0.0);
 }
 
-void PlayerODE::orientation(double orient) {
+void PlayerODE::orientation(Angle orient) {
 	posSet = true;
 	dMatrix3 RotationMatrix;
-	dRFromAxisAndAngle(RotationMatrix, 0.0, 0.0, 1.0, static_cast<dReal>(orient));
+	dRFromAxisAndAngle(RotationMatrix, 0.0, 0.0, 1.0, static_cast<dReal>(orient.to_radians()));
 	dBodySetRotation(body, RotationMatrix);
 }
 

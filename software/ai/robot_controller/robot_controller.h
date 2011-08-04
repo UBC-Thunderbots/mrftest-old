@@ -40,7 +40,7 @@ namespace AI {
 				 * \param[out] wheel_speeds the wheel speeds,
 				 * in quarters of a degree of motor shaft rotation per five milliseconds.
 				 */
-				static void convert_to_wheels(const Point &vel, double avel, int(&wheel_speeds)[4]);
+				static void convert_to_wheels(const Point &vel, Angle avel, int(&wheel_speeds)[4]);
 
 				/**
 				 * Reads the requested path from the Player using W::Player::path,
@@ -103,7 +103,7 @@ namespace AI {
 				 * \param[out] wheel_speeds the speeds of the four wheels to send to the robot,
 				 * in quarters of a degree of motor shaft rotation per five milliseconds.
 				 */
-				virtual void move(const Point &new_position, double new_orientation, int(&wheel_speeds)[4]) = 0;
+				virtual void move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]) = 0;
 
 				/**
 				 * Tells the controller to clear its internal state because the robot under control is scrammed.
@@ -156,7 +156,7 @@ namespace AI {
 				 *
 				 * \param[out] angular_velocity the angular velocity to rotate at, with positive being counter-clockwise.
 				 */
-				virtual void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) = 0;
+				virtual void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity) = 0;
 
 			protected:
 				/**
@@ -174,7 +174,7 @@ namespace AI {
 				~OldRobotController();
 
 			private:
-				void move(const Point &new_position, double new_orientation, int(&wheel_speeds)[4]);
+				void move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]);
 		};
 
 		/**

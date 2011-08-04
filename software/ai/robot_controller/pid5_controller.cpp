@@ -34,10 +34,10 @@ namespace {
 	class PID5Controller : public RobotController {
 		public:
 			void tick();
-			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
-			void move(const Point &new_position, double new_orientation, int(&wheel_speeds)[4]);
+			void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity);
+			void move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]);
 			void clear();
-			void convert(const Point &vel, double avel, int(&wheel_speeds)[4]);
+			void convert(const Point &vel, Angle avel, int(&wheel_speeds)[4]);
 			RobotControllerFactory &get_factory() const;
 			PID5Controller(World &world, Player::Ptr plr);
 
@@ -51,14 +51,14 @@ namespace {
 		}
 	}
 
-	void PID5Controller::convert(const Point &vel, double avel, int(&wheel_speeds)[4]) {
+	void PID5Controller::convert(const Point &vel, Angle avel, int(&wheel_speeds)[4]) {
 		static const double WHEEL_MATRIX[4][3] = {
 			{ -42.5995, 27.6645, 4.3175 },
 			{ -35.9169, -35.9169, 4.3175 },
 			{ 35.9169, -35.9169, 4.3175 },
 			{ 42.5995, 27.6645, 4.3175 }
 		};
-		const double input[3] = { vel.x, vel.y, avel };
+		const double input[3] = { vel.x, vel.y, avel.to_radians() };
 		double output[4] = { 0, 0, 0, 0 };
 		for (unsigned int row = 0; row < 4; ++row) {
 			for (unsigned int col = 0; col < 3; ++col) {
@@ -110,37 +110,37 @@ namespace {
 		}
 	}
 
-	void PID5Controller::move(const Point &new_position, double new_orientation, int(&wheel_speeds)[4]) {
+	void PID5Controller::move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]) {
 		Point vel;
-		double avel;
+		Angle avel;
 		move(new_position, new_orientation, vel, avel);
 		convert(vel, avel, wheel_speeds);
 	}
 
-	void PID5Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
+	void PID5Controller::move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity) {
 		const Point &current_position = player->position();
-		const double current_orientation = player->orientation();
+		const Angle current_orientation = player->orientation();
 
 		// relative new direction and angle
-		double new_da = angle_mod(new_orientation - current_orientation);
+		Angle new_da = (new_orientation - current_orientation).angle_mod();
 		const Point &new_dir = (new_position - current_position).rotate(-current_orientation);
 
-		if (new_da > M_PI) {
-			new_da -= 2 * M_PI;
+		if (new_da > Angle::HALF) {
+			new_da -= Angle::FULL;
 		}
 
 		const double px = new_dir.x;
 		const double py = new_dir.y;
-		const double pa = new_da;
+		const Angle pa = new_da;
 		Point vel = (player->velocity()).rotate(-current_orientation);
 		double vx = -vel.x;
 		double vy = -vel.y;
-		double va = -player->avelocity();
+		Angle va = -player->avelocity();
 
 		linear_velocity.x = px * pid_xy_prop + vx * pid_xy_diff;
 		linear_velocity.y = (py * pid_xy_prop + vy * pid_xy_diff) * pid_xy_ratio;
 
-		angular_velocity = pa * pid_a_prop + va * pid_a_diff + linear_velocity.y * pid_ya_ratio;
+		angular_velocity = pa * pid_a_prop + va * pid_a_diff + Angle::of_radians(linear_velocity.y * pid_ya_ratio);
 	}
 
 	void PID5Controller::clear() {

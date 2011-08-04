@@ -47,8 +47,8 @@ namespace {
 		return static_cast<unsigned int>(clamp(78.6 * speed * speed - 84.4 * speed, 0.0, 4064.0));
 	}
 
-	int calc_kick_directional_offset(double angle) {
-		return static_cast<int>(clamp(37.0 * radians2degrees(angle), -4064.0, 4064.0));
+	int calc_kick_directional_offset(Angle angle) {
+		return static_cast<int>(clamp(37.0 * angle.to_degrees(), -4064.0, 4064.0));
 	}
 
 	bool kicker_directional_impl(unsigned int pattern) {
@@ -76,7 +76,7 @@ namespace {
 	}
 }
 
-const std::pair<Point, double> &Player::destination() const {
+const std::pair<Point, Angle> &Player::destination() const {
 	return destination_;
 }
 
@@ -133,7 +133,7 @@ bool Player::kicker_directional() const {
 	return kicker_directional_;
 }
 
-void Player::kick_impl(double speed, double angle) {
+void Player::kick_impl(double speed, Angle angle) {
 	if (bot->alive) {
 		if (bot->capacitor_charged) {
 			if (kicker_directional()) {
@@ -147,7 +147,7 @@ void Player::kick_impl(double speed, double angle) {
 	}
 }
 
-void Player::autokick_impl(double speed, double angle) {
+void Player::autokick_impl(double speed, Angle angle) {
 	if (bot->alive) {
 		if (kicker_directional()) {
 			bot->autokick(calc_kick_directional_power(speed), calc_kick_directional_power(speed), calc_kick_directional_offset(angle));

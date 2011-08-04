@@ -70,7 +70,7 @@ class PlayerODE : public Simulator::Player {
 
 		Point position() const;
 
-		double orientation() const;
+		Angle orientation() const;
 
 		bool has_ball() const;
 
@@ -103,7 +103,7 @@ class PlayerODE : public Simulator::Player {
 
 		void velocity(const Point &vel);
 
-		void orientation(double orient);
+		void orientation(Angle orient);
 
 		void avelocity(double avel);
 

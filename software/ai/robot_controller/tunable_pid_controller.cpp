@@ -13,7 +13,7 @@ using namespace AI::RC::W;
 namespace {
 	class TunablePIDController : public AI::RC::OldRobotController, public AI::RC::TunableController {
 		public:
-			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
+			void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity);
 
 			void clear();
 
@@ -54,10 +54,10 @@ namespace {
 
 			// errors in x, y, d
 			std::vector<Point> error_pos;
-			std::vector<double> error_ori;
+			std::vector<Angle> error_ori;
 
 			Point prev_new_pos;
-			double prev_new_ori;
+			Angle prev_new_ori;
 	};
 
 	// std::ofstream dout("pid.csv");
@@ -198,16 +198,16 @@ const std::vector<std::string> TunablePIDController::get_params_name() const {
 	return ret;
 }
 
-void TunablePIDController::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
+void TunablePIDController::move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity) {
 	const Point &current_position = player->position();
-	const double current_orientation = player->orientation();
+	const Angle current_orientation = player->orientation();
 
 	// relative new direction and angle
-	double new_da = angle_mod(new_orientation - current_orientation);
+	Angle new_da = (new_orientation - current_orientation).angle_mod();
 	const Point &new_dir = (new_position - current_position).rotate(-current_orientation);
 
-	if (new_da > M_PI) {
-		new_da -= 2 * M_PI;
+	if (new_da > Angle::HALF) {
+		new_da -= Angle::FULL;
 	}
 
 	if (!initialized) {
@@ -230,7 +230,7 @@ void TunablePIDController::move(const Point &new_position, double new_orientatio
 	error_ori[0] = new_da;
 
 	Point accum_pos(0, 0);
-	double accum_ori(0);
+	Angle accum_ori = Angle::ZERO;
 	for (int t = 9; t >= 0; --t) {
 		accum_pos *= DAMP;
 		accum_ori *= DAMP;
@@ -240,11 +240,11 @@ void TunablePIDController::move(const Point &new_position, double new_orientatio
 
 	const double px = error_pos[0].x;
 	const double py = error_pos[0].y;
-	const double pa = error_ori[0];
+	const Angle pa = error_ori[0];
 	Point vel = (player->velocity()).rotate(-current_orientation);
 	double vx = -vel.x;
 	double vy = -vel.y;
-	double va = -player->avelocity();
+	Angle va = -player->avelocity();
 
 	const double cx = accum_pos.x;
 	const double cy = accum_pos.y;

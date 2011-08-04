@@ -7,14 +7,14 @@ using AI::RC::OldRobotController2;
 using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
-void RobotController::convert_to_wheels(const Point &vel, double avel, int(&wheel_speeds)[4]) {
+void RobotController::convert_to_wheels(const Point &vel, Angle avel, int(&wheel_speeds)[4]) {
 	static const double WHEEL_MATRIX[4][3] = {
 		{ -42.5995, 27.6645, 4.3175 },
 		{ -35.9169, -35.9169, 4.3175 },
 		{ 35.9169, -35.9169, 4.3175 },
 		{ 42.5995, 27.6645, 4.3175 }
 	};
-	const double input[3] = { vel.x, vel.y, avel };
+	const double input[3] = { vel.x, vel.y, avel.to_radians() };
 	double output[4] = { 0, 0, 0, 0 };
 	for (unsigned int row = 0; row < 4; ++row) {
 		for (unsigned int col = 0; col < 3; ++col) {
@@ -50,9 +50,9 @@ void OldRobotController2::tick() {
 	}
 }
 
-void OldRobotController::move(const Point &new_position, double new_orientation, int(&wheel_speeds)[4]) {
+void OldRobotController::move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]) {
 	Point vel;
-	double avel;
+	Angle avel;
 	move(new_position, new_orientation, vel, avel);
 	convert_to_wheels(vel, avel, wheel_speeds);
 }

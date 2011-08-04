@@ -67,7 +67,7 @@ namespace {
 
 			const double px = controls[0].get_value();
 			const double py = controls[1].get_value();
-			const double pz = controls[2].get_value();
+			const Angle pz = Angle::of_radians(controls[2].get_value());
 
 			for (std::size_t i = 0; i < friendly.size(); ++i) {
 				Player::Ptr runner = friendly.get(i);

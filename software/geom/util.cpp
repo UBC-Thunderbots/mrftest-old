@@ -74,12 +74,12 @@ bool triangle_circle_intersect(const Point p1, const Point p2, const Point p3, c
 	return point_in_triangle(p1, p2, p3, c) || seg_pt_dist(p1, p2, c) < radius || seg_pt_dist(p2, p3, c) < radius || seg_pt_dist(p3, p1, c) < radius;
 }
 
-std::vector<std::pair<Point, double> > angle_sweep_circles_all(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius) {
-	std::vector<std::pair<Point, double> > ret;
+std::vector<std::pair<Point, Angle> > angle_sweep_circles_all(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius) {
+	std::vector<std::pair<Point, Angle> > ret;
 
 	// default value to return if nothing is valid
 	Point bestshot = (p1 + p2) * 0.5;
-	const double offangle = (p1 - src).orientation();
+	const Angle offangle = (p1 - src).orientation();
 	if (collinear(src, p1, p2)) {
 		// std::cerr << "geom: collinear " << src << " " << p1 << " " << p2 << std::endl;
 		// std::cerr << (p1 - src) << " " << (p2 - src) << std::endl;
@@ -87,10 +87,10 @@ std::vector<std::pair<Point, double> > angle_sweep_circles_all(const Point &src,
 		return ret;
 	}
 
-	std::vector<std::pair<double, int> > events;
+	std::vector<std::pair<Angle, int> > events;
 	events.reserve(2 * obstacles.size() + 2);
-	events.push_back(std::make_pair(0, 1)); // p1 becomes angle 0
-	events.push_back(std::make_pair(angle_mod((p2 - src).orientation() - offangle), -1));
+	events.push_back(std::make_pair(Angle::ZERO, 1)); // p1 becomes angle 0
+	events.push_back(std::make_pair(((p2 - src).orientation() - offangle).angle_mod(), -1));
 	for (std::size_t i = 0; i < obstacles.size(); ++i) {
 		Point diff = obstacles[i] - src;
 		// warning: temporarily reduced
@@ -98,22 +98,22 @@ std::vector<std::pair<Point, double> > angle_sweep_circles_all(const Point &src,
 			// std::cerr << "geom: inside" << std::endl;
 			return ret;
 		}
-		const double cent = angle_mod(diff.orientation() - offangle);
-		const double span = asin(radius / diff.len());
-		const double range1 = cent - span;
-		const double range2 = cent + span;
+		const Angle cent = (diff.orientation() - offangle).angle_mod();
+		const Angle span = Angle::asin(radius / diff.len());
+		const Angle range1 = cent - span;
+		const Angle range2 = cent + span;
 
 #warning hack should work
-		if (range1 < -M_PI || range2 > M_PI) {
+		if (range1 < -Angle::HALF || range2 > Angle::HALF) {
 			continue;
 		}
 		events.push_back(std::make_pair(range1, -1));
 		events.push_back(std::make_pair(range2, 1));
 	}
 	// do angle sweep for largest angle
-	sort(events.begin(), events.end());
-	double sum = 0;
-	double start = events[0].first;
+	std::sort(events.begin(), events.end());
+	Angle sum = Angle::ZERO;
+	Angle start = events[0].first;
 	int cnt = 0;
 	for (std::size_t i = 0; i + 1 < events.size(); ++i) {
 		cnt += events[i].second;
@@ -121,44 +121,44 @@ std::vector<std::pair<Point, double> > angle_sweep_circles_all(const Point &src,
 		if (cnt > 0) {
 			sum += events[i + 1].first - events[i].first;
 		} else {
-			const double mid = start + sum / 2 + offangle;
-			const Point ray = Point(cos(mid), sin(mid)) * 10.0;
+			const Angle mid = start + sum / 2 + offangle;
+			const Point ray = Point::of_angle(mid) * 10.0;
 			const Point inter = line_intersect(src, src + ray, p1, p2);
 
 			ret.push_back(std::make_pair(inter, sum));
 
-			sum = 0;
+			sum = Angle::ZERO;
 			start = events[i + 1].first;
 		}
 	}
 	return ret;
 }
 
-std::pair<Point, double> angle_sweep_circles(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius) {
+std::pair<Point, Angle> angle_sweep_circles(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius) {
 	// default value to return if nothing is valid
 	Point bestshot = (p1 + p2) * 0.5;
-	const double offangle = (p1 - src).orientation();
+	const Angle offangle = (p1 - src).orientation();
 	if (collinear(src, p1, p2)) {
 		// std::cerr << "geom: collinear " << src << " " << p1 << " " << p2 << std::endl;
 		// std::cerr << (p1 - src) << " " << (p2 - src) << std::endl;
 		// std::cerr << (p1 - src).cross(p2 - src) << std::endl;
-		return std::make_pair(bestshot, 0);
+		return std::make_pair(bestshot, Angle::ZERO);
 	}
-	std::vector<std::pair<double, int> > events;
+	std::vector<std::pair<Angle, int> > events;
 	events.reserve(2 * obstacles.size() + 2);
-	events.push_back(std::make_pair(0, 1)); // p1 becomes angle 0
-	events.push_back(std::make_pair(angle_mod((p2 - src).orientation() - offangle), -1));
+	events.push_back(std::make_pair(Angle::ZERO, 1)); // p1 becomes angle 0
+	events.push_back(std::make_pair(((p2 - src).orientation() - offangle).angle_mod(), -1));
 	for (std::size_t i = 0; i < obstacles.size(); ++i) {
 		Point diff = obstacles[i] - src;
 		// warning: temporarily reduced
 		if (diff.len() < radius) {
 			// std::cerr << "geom: inside" << std::endl;
-			return std::make_pair(bestshot, 0);
+			return std::make_pair(bestshot, Angle::ZERO);
 		}
-		const double cent = angle_mod(diff.orientation() - offangle);
-		const double span = asin(radius / diff.len());
-		const double range1 = cent - span;
-		const double range2 = cent + span;
+		const Angle cent = (diff.orientation() - offangle).angle_mod();
+		const Angle span = Angle::asin(radius / diff.len());
+		const Angle range1 = cent - span;
+		const Angle range2 = cent + span;
 
 		/*
 		   if (range1 < -M_PI) {
@@ -182,17 +182,17 @@ std::pair<Point, double> angle_sweep_circles(const Point &src, const Point &p1, 
 		 */
 
 #warning hack should work
-		if (range1 < -M_PI || range2 > M_PI) {
+		if (range1 < -Angle::HALF || range2 > Angle::HALF) {
 			continue;
 		}
 		events.push_back(std::make_pair(range1, -1));
 		events.push_back(std::make_pair(range2, 1));
 	}
 	// do angle sweep for largest angle
-	sort(events.begin(), events.end());
-	double best = 0;
-	double sum = 0;
-	double start = events[0].first;
+	std::sort(events.begin(), events.end());
+	Angle best = Angle::ZERO;
+	Angle sum = Angle::ZERO;
+	Angle start = events[0].first;
 	int cnt = 0;
 	for (std::size_t i = 0; i + 1 < events.size(); ++i) {
 		cnt += events[i].second;
@@ -203,13 +203,13 @@ std::pair<Point, double> angle_sweep_circles(const Point &src, const Point &p1, 
 				best = sum;
 				// shoot ray from point p
 				// intersect with line p1-p2
-				const double mid = start + sum / 2 + offangle;
-				const Point ray = Point(cos(mid), sin(mid)) * 10.0;
+				const Angle mid = start + sum / 2 + offangle;
+				const Point ray = Point::of_angle(mid) * 10.0;
 				const Point inter = line_intersect(src, src + ray, p1, p2);
 				bestshot = inter;
 			}
 		} else {
-			sum = 0;
+			sum = Angle::ZERO;
 			start = events[i + 1].first;
 		}
 	}
@@ -228,7 +228,7 @@ std::vector<Point> seg_buffer_boundaries(const Point &a, const Point &b, double 
 	double total_travelled = 0.0;
 	double step_len = total_dist / num_points;
 	Point add1(0.0, 0.0);
-	Point add2 = buffer * ((a - b)).rotate(M_PI / 2).norm();
+	Point add2 = buffer * ((a - b)).rotate(Angle::QUARTER).norm();
 	Point seg_direction = (b - a).norm();
 	bool swapped = false;
 
@@ -250,7 +250,7 @@ std::vector<Point> seg_buffer_boundaries(const Point &a, const Point &b, double 
 
 		if (total_travelled + EPS >= line_seg && total_travelled < line_seg + semi_circle) {
 			double l_travel = std::min(travel_left, line_seg + semi_circle - total_travelled);
-			double rads = l_travel / buffer;
+			Angle rads = Angle::of_radians(l_travel / buffer);
 			add2 = add2.rotate(rads);
 			travel_left -= l_travel;
 			total_travelled += l_travel;
@@ -276,7 +276,7 @@ std::vector<Point> seg_buffer_boundaries(const Point &a, const Point &b, double 
 		}
 
 		if (total_travelled + EPS >= 2 * line_seg) {
-			double rads = travel_left / buffer;
+			Angle rads = Angle::of_radians(travel_left / buffer);
 			add2 = add2.rotate(rads);
 			total_travelled += travel_left;
 		}
@@ -285,7 +285,7 @@ std::vector<Point> seg_buffer_boundaries(const Point &a, const Point &b, double 
 }
 
 std::vector<Point> circle_boundaries(const Point &centre, double radius, int num_points) {
-	double rotate_amount = 2 * M_PI / num_points;
+	Angle rotate_amount = Angle::FULL / num_points;
 	std::vector<Point> ans;
 	Point bound(radius, 0.0);
 	for (int i = 0; i < num_points; i++) {
@@ -535,7 +535,7 @@ Point reflect(const Point &v, const Point &n) {
 Point reflect(const Point &a, const Point &b, const Point &p) {
 	// Make a as origin.
 	// Rotate by 90 degrees, does not matter which direction?
-	Point n = (b - a).rotate(M_PI / 2.0);
+	Point n = (b - a).rotate(Angle::QUARTER);
 	return a + reflect(p - a, n);
 }
 
@@ -646,8 +646,8 @@ Point intersection(Point a1, Point a2, Point b1, Point b2) {
 	return Point(b2r.x - b2r.y * (br.x / br.y), 0.0).rotate(a.orientation()) + a1;
 }
 
-double vertex_angle(Point a, Point b, Point c) {
-	return angle_mod((a - b).orientation() - (c - b).orientation());
+Angle vertex_angle(Point a, Point b, Point c) {
+	return ((a - b).orientation() - (c - b).orientation()).angle_mod();
 }
 
 double closest_point_time(Point x1, Point v1, Point x2, Point v2) {

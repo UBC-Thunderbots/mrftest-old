@@ -25,7 +25,7 @@ namespace {
 	class PID6Controller : public RobotController {
 		public:
 			void tick();
-			void move(const Point &new_position, double new_orientation, int(&wheel_speeds)[4]);
+			void move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]);
 			void clear();
 			RobotControllerFactory &get_factory() const;
 			PID6Controller(World &world, Player::Ptr plr);
@@ -51,7 +51,7 @@ namespace {
 		}
 	}
 
-	void PID6Controller::move(const Point &new_position, double new_orientation, int(&wheel_speeds)[4]) {
+	void PID6Controller::move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]) {
 		static const double WHEEL_MATRIX[4][3] = {
 			{ -42.5995, 27.6645, 4.3175 },
 			{ -35.9169, -35.9169, 4.3175 },
@@ -63,9 +63,9 @@ namespace {
 		double distance_to_velocity = 2 * max_acc / wheel_max_speed / motor_to_field;
 
 		Point position_error = (new_position - player->position()).rotate(-player->orientation());
-		double angular_error = angle_mod(new_orientation - player->orientation());
+		Angle angular_error = (new_orientation - player->orientation()).angle_mod();
 
-		const double position_delta[3] = { position_error.x, position_error.y, angular_error };
+		const double position_delta[3] = { position_error.x, position_error.y, angular_error.to_radians() };
 		double wheel_target_vel[4] = { 0, 0, 0, 0 };
 		double vel_error[4] = { 0, 0, 0, 0 };
 

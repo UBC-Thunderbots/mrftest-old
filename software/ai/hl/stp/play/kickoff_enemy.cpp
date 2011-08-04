@@ -14,9 +14,9 @@ namespace {
 	const double AVOIDANCE_DIST = 0.50 + Ball::RADIUS + Robot::MAX_RADIUS + 0.005;
 
 	// in ball avoidance, angle between center of 2 robots, as seen from the ball
-	const double AVOIDANCE_ANGLE = 2.0 * asin(Robot::MAX_RADIUS / AVOIDANCE_DIST);
+	const Angle AVOIDANCE_ANGLE = 2.0 * Angle::of_radians(std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST));
 
-	DoubleParam separation_angle("kickoff: angle to separate players (degrees)", "STP/Kickoff", 20, 0, 80);
+	DegreeParam separation_angle("kickoff: angle to separate players (degrees)", "STP/Kickoff", 20, 0, 80);
 }
 
 /**
@@ -40,7 +40,7 @@ goalie_role.push_back(wait_playtype(world, defend_duo_goalie(world), AI::Common:
 roles[0].push_back(defend_duo_defender(world));
 
 // calculate angle between robots
-const double delta_angle = AVOIDANCE_ANGLE + separation_angle * M_PI / 180.0;
+const Angle delta_angle = AVOIDANCE_ANGLE + separation_angle;
 
 // a ray that shoots from the center to friendly goal.
 const Point shoot = Point(-1, 0) * AVOIDANCE_DIST;

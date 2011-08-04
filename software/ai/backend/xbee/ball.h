@@ -49,7 +49,7 @@ namespace AI {
 
 				private:
 					AI::BE::Backend &backend;
-					Predictor xpred, ypred;
+					Predictor<double> xpred, ypred;
 
 					void on_defending_end_changed();
 			};

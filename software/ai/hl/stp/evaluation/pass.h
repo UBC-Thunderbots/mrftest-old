@@ -52,19 +52,19 @@ namespace AI {
 				 * Checks if this direction is valid for shooting
 				 * for indirect pass.
 				 */
-				bool can_shoot_ray(const World &world, Player::CPtr player, double orientation);
+				bool can_shoot_ray(const World &world, Player::CPtr player, Angle orientation);
 
 				/**
 				 * Calculates the best shooting angle.
 				 */
-				std::pair<bool, double> best_shoot_ray(const World &world, const Player::CPtr player);
+				std::pair<bool, Angle> best_shoot_ray(const World &world, const Player::CPtr player);
 
 				Point calc_fastest_grab_ball_dest_if_baller_shoots(const World &world, const Point player_pos);
 
 
 				extern IntParam ray_intervals;
 
-				extern DoubleParam max_pass_ray_angle;
+				extern DegreeParam max_pass_ray_angle;
 
 				extern DoubleParam ball_pass_velocity;
 			}

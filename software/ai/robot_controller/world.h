@@ -30,7 +30,7 @@ namespace AI {
 					/**
 					 * The type of a single point in a path.
 					 */
-					typedef std::pair<std::pair<Point, double>, timespec> PathPoint;
+					typedef std::pair<std::pair<Point, Angle>, timespec> PathPoint;
 
 					/**
 					 * The type of a complete path.

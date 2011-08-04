@@ -81,7 +81,7 @@ namespace {
 			const Point ball2side = goal_side - ball_pos;
 			const Point touch_vec = -ball2side.norm(); // side to ball
 			const double touch_dist = std::min(-ball2side.x * ball2side_ratio, max_goalie_dist * Robot::MAX_RADIUS);
-			const Point perp = (goalie_top) ? touch_vec.rotate(-M_PI / 2) : touch_vec.rotate(M_PI / 2);
+			const Point perp = (goalie_top) ? touch_vec.rotate(-Angle::QUARTER) : touch_vec.rotate(Angle::QUARTER);
 			waypoint_goalie = goal_side + touch_vec * touch_dist + perp * radius;
 
 			// prevent the goalie from entering the goal area
@@ -124,12 +124,12 @@ namespace {
 			obstacles.push_back(waypoint_defenders[0]);
 
 			for (size_t i = 0; i < enemies.size(); ++i) {
-				if (calc_enemy_best_shot_goal(world.field(), obstacles, enemies[i]->position()).second > degrees2radians(enemy_shoot_accuracy)) {
+				if (calc_enemy_best_shot_goal(world.field(), obstacles, enemies[i]->position()).second > enemy_shoot_accuracy) {
 					threat.push_back(enemies[i]);
 				}
 			}
 			for (size_t i = 0; i < enemies.size(); ++i) {
-				if (!calc_enemy_best_shot_goal(world.field(), obstacles, enemies[i]->position()).second > degrees2radians(enemy_shoot_accuracy)) {
+				if (!(calc_enemy_best_shot_goal(world.field(), obstacles, enemies[i]->position()).second > enemy_shoot_accuracy)) {
 					threat.push_back(enemies[i]);
 				}
 			}
@@ -224,7 +224,7 @@ bool AI::HL::STP::Evaluation::enemy_break_defense_duo(const World &world, const 
 	obstacles.push_back(waypoints[0]);
 	obstacles.push_back(waypoints[1]);
 
-	return calc_enemy_best_shot_goal(world.field(), obstacles, enemy->position()).second > degrees2radians(enemy_shoot_accuracy);
+	return calc_enemy_best_shot_goal(world.field(), obstacles, enemy->position()).second > enemy_shoot_accuracy;
 }
 
 Point AI::HL::STP::Evaluation::evaluate_tdefense(const World &world, const unsigned index) {

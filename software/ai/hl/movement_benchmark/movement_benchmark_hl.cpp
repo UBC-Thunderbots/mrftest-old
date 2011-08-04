@@ -9,39 +9,39 @@ using namespace AI::HL::W;
 namespace {
 	DoubleParam pos_dis_threshold("pos distance threshold", "MB", 0.05, 0, 1.0);
 	DoubleParam pos_vel_threshold("pos velocity threshold", "MB", 0.03, 0, 1.0);
-	DoubleParam ori_dis_threshold("ori distance threshold", "MB", 0.1, 0, 1.0);
-	DoubleParam ori_vel_threshold("ori velocity threshold", "MB", 0.03, 0, 1.0);
+	RadianParam ori_dis_threshold("ori distance threshold (radians)", "MB", 0.1, 0, 1.0);
+	RadianParam ori_vel_threshold("ori velocity threshold (radians)", "MB", 0.03, 0, 1.0);
 
 	const double PI = M_PI;
 
-	const std::pair<Point, double> tasks_default[] = {
-		std::make_pair(Point(1.2, 0), 0),
-		std::make_pair(Point(1.5, 0), -PI / 2),
-		std::make_pair(Point(1.2, 0.3), 0),
-		std::make_pair(Point(1.2, -0.3), PI),
-		std::make_pair(Point(1.2, 0), 0),
-		std::make_pair(Point(1.2, -0.3), PI),
-		std::make_pair(Point(1.2, 0), 0),
-		std::make_pair(Point(0.5, 0), PI),
-		std::make_pair(Point(2.5, 0), 0),
-		std::make_pair(Point(0.5, 1.2), PI),
-		std::make_pair(Point(1, -0.6), 0),
-		std::make_pair(Point(2, 0.6), PI / 2),
-		std::make_pair(Point(1, -0.6), -PI / 2),
-		std::make_pair(Point(0.5, 0), 0),
-		std::make_pair(Point(2.5, 0.6), -PI / 2)
+	const std::pair<Point, Angle> tasks_default[] = {
+		std::make_pair(Point(1.2, 0), Angle::of_radians(0)),
+		std::make_pair(Point(1.5, 0), Angle::of_radians(-PI / 2)),
+		std::make_pair(Point(1.2, 0.3), Angle::of_radians(0)),
+		std::make_pair(Point(1.2, -0.3), Angle::of_radians(PI)),
+		std::make_pair(Point(1.2, 0), Angle::of_radians(0)),
+		std::make_pair(Point(1.2, -0.3), Angle::of_radians(PI)),
+		std::make_pair(Point(1.2, 0), Angle::of_radians(0)),
+		std::make_pair(Point(0.5, 0), Angle::of_radians(PI)),
+		std::make_pair(Point(2.5, 0), Angle::of_radians(0)),
+		std::make_pair(Point(0.5, 1.2), Angle::of_radians(PI)),
+		std::make_pair(Point(1, -0.6), Angle::of_radians(0)),
+		std::make_pair(Point(2, 0.6), Angle::of_radians(PI / 2)),
+		std::make_pair(Point(1, -0.6), Angle::of_radians(-PI / 2)),
+		std::make_pair(Point(0.5, 0), Angle::of_radians(0)),
+		std::make_pair(Point(2.5, 0.6), Angle::of_radians(-PI / 2))
 	};
 
-	const std::pair<Point, double> tasks_square[] = {
-		std::make_pair(Point(2.0, 0.6), 0),
-		std::make_pair(Point(2.0, -0.6), 0),
-		std::make_pair(Point(0.5, -0.6), 0),
-		std::make_pair(Point(0.5, 0.6), 0),
-		std::make_pair(Point(2.0, 0.6), 0),
-		std::make_pair(Point(2.0, -0.6), 0),
-		std::make_pair(Point(0.5, -0.6), 0),
-		std::make_pair(Point(0.5, 0.6), 0),
-		std::make_pair(Point(2.0, 0.6), 0),
+	const std::pair<Point, Angle> tasks_square[] = {
+		std::make_pair(Point(2.0, 0.6), Angle::ZERO),
+		std::make_pair(Point(2.0, -0.6), Angle::ZERO),
+		std::make_pair(Point(0.5, -0.6), Angle::ZERO),
+		std::make_pair(Point(0.5, 0.6), Angle::ZERO),
+		std::make_pair(Point(2.0, 0.6), Angle::ZERO),
+		std::make_pair(Point(2.0, -0.6), Angle::ZERO),
+		std::make_pair(Point(0.5, -0.6), Angle::ZERO),
+		std::make_pair(Point(0.5, 0.6), Angle::ZERO),
+		std::make_pair(Point(2.0, 0.6), Angle::ZERO),
 	};
 
 
@@ -124,7 +124,7 @@ namespace {
 				}
 
 				const Point diff_pos = runner->position() - tasks[done].first;
-				const double diff_ori = angle_diff(runner->orientation(), tasks[done].second);
+				const Angle diff_ori = runner->orientation().angle_diff(tasks[done].second);
 
 				if (diff_pos.len() < pos_dis_threshold && runner->velocity().len() < pos_vel_threshold && diff_ori < ori_dis_threshold && runner->avelocity() < ori_vel_threshold) {
 					if (done == 0) {
@@ -148,7 +148,7 @@ namespace {
 
 		private:
 			World &world;
-			std::vector<std::pair<Point, double> > tasks;
+			std::vector<std::pair<Point, Angle> > tasks;
 			int time_steps;
 			std::size_t done;
 	};

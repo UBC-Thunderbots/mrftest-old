@@ -55,16 +55,16 @@ namespace {
 
 DoubleParam Evaluation::ball_pass_velocity("Average ball pass velocity (HACK)", "STP/Pass", 2.0, 0, 99);
 
-DoubleParam Evaluation::max_pass_ray_angle("Max ray shoot rotation (degrees)", "STP/PassRay", 75, 0, 180);
+DegreeParam Evaluation::max_pass_ray_angle("Max ray shoot rotation (degrees)", "STP/PassRay", 75, 0, 180);
 
 IntParam Evaluation::ray_intervals("Ray # of intervals", "STP/PassRay", 30, 0, 80);
 
-bool Evaluation::can_shoot_ray(const World &world, Player::CPtr player, double orientation) {
+bool Evaluation::can_shoot_ray(const World &world, Player::CPtr player, Angle orientation) {
 	const Point p1 = player->position();
 	const Point p2 = p1 + 10 * Point::of_angle(orientation);
 
-	double diff = angle_diff(player->orientation(), orientation);
-	if (diff > degrees2radians(max_pass_ray_angle)) {
+	Angle diff = player->orientation().angle_diff(orientation);
+	if (diff > max_pass_ray_angle) {
 		return false;
 	}
 
@@ -122,27 +122,27 @@ bool Evaluation::can_shoot_ray(const World &world, Player::CPtr player, double o
 	return closest_friendly * pass_ray_threat_mult <= closest_enemy;
 }
 
-std::pair<bool, double> Evaluation::best_shoot_ray(const World &world, const Player::CPtr player) {
+std::pair<bool, Angle> Evaluation::best_shoot_ray(const World &world, const Player::CPtr player) {
 	if (!Evaluation::possess_ball(world, player)) {
-		return std::make_pair(false, 0);
+		return std::make_pair(false, Angle::ZERO);
 	}
 
-	double best_diff = 1e99;
-	double best_angle = 0.0;
+	Angle best_diff = Angle::of_radians(1e99);
+	Angle best_angle = Angle::ZERO;
 
 	// draw rays for ray shooting
 
-	const double angle_span = 2 * degrees2radians(max_pass_ray_angle);
-	const double angle_step = angle_span / Evaluation::ray_intervals;
-	const double angle_min = player->orientation() - angle_span / 2;
+	const Angle angle_span = 2 * max_pass_ray_angle;
+	const Angle angle_step = angle_span / Evaluation::ray_intervals;
+	const Angle angle_min = player->orientation() - angle_span / 2;
 
 	for (int i = 0; i < Evaluation::ray_intervals; ++i) {
-		const double angle = angle_min + angle_step * i;
+		const Angle angle = angle_min + angle_step * i;
 
 		const Point p1 = player->position();
 		const Point p2 = p1 + 3 * Point::of_angle(angle);
 
-		double diff = angle_diff(player->orientation(), angle);
+		Angle diff = player->orientation().angle_diff(angle);
 
 		if (diff > best_diff) {
 			continue;
@@ -160,8 +160,8 @@ std::pair<bool, double> Evaluation::best_shoot_ray(const World &world, const Pla
 	}
 
 	// cant find good angle
-	if (best_diff > 1e50) {
-		return std::make_pair(false, 0);
+	if (best_diff > Angle::of_radians(1e50)) {
+		return std::make_pair(false, Angle::ZERO);
 	}
 
 	return std::make_pair(true, best_angle);

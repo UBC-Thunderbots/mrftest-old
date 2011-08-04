@@ -41,11 +41,11 @@ namespace {
 				}
 
 				Point new_position = path[0].first.first;
-				double new_orientation = path[0].first.second;
+				Angle new_orientation = path[0].first.second;
 
 				const Point &current_position = player->position();
-				const double current_orientation = player->orientation();
-				double angular_velocity = param[4] * angle_mod(new_orientation - current_orientation);
+				const Angle current_orientation = player->orientation();
+				Angle angular_velocity = param[4] * (new_orientation - current_orientation).angle_mod();
 
 				double distance_factor = (new_position - current_position).len() / param[1];
 				if (distance_factor > 1) {

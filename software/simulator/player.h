@@ -41,16 +41,16 @@ namespace Simulator {
 			/**
 			 * Returns the player's orientation.
 			 *
-			 * \return the orientation of the player, in radians from field east.
+			 * \return the orientation of the player, from field east.
 			 */
-			virtual double orientation() const = 0;
+			virtual Angle orientation() const = 0;
 
 			/**
 			 * Reorients the player.
 			 *
-			 * \param[in] ori the new orientation, in radians from field east.
+			 * \param[in] ori the new orientation, from field east.
 			 */
-			virtual void orientation(double ori) = 0;
+			virtual void orientation(Angle ori) = 0;
 
 			/**
 			 * Checks whether the player has the ball.

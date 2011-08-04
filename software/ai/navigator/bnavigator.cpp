@@ -63,7 +63,7 @@ namespace {
 		// unsigned int flags;
 		Player::Path path;
 		Point currentPos, destinationPos, stepPos, closest;
-		double currentOri, destinationOri, stepOri;
+		Angle currentOri, destinationOri, stepOri;
 		timespec ts_next;
 
 		for (std::size_t i = 0; i < fteam.size(); i++) {

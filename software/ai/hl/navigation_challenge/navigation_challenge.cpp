@@ -119,7 +119,7 @@ namespace {
 						done[robotIndex] = 0;
 						return;
 					}
-					double dest_ori = (tasks[done[robotIndex]].first - runner->position()).orientation();
+					Angle dest_ori = (tasks[done[robotIndex]].first - runner->position()).orientation();
 					runner->move(tasks[done[robotIndex]].first, dest_ori, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 				}
 
@@ -139,7 +139,7 @@ namespace {
 							obstacleIndex = 0;
 						}
 					}
-					runner->move(des, 0, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
+					runner->move(des, Angle::ZERO, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 				}
 			}
 

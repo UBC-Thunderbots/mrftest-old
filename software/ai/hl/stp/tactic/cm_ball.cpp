@@ -23,11 +23,11 @@ namespace {
 	// TShoot
 	// The amount we'd prefer to shoot at our previous angle.  If an another
 	// at least this much bigger appears we'll switch to that.
-	const double SHOOT_AIM_PREF_AMOUNT = 0.01745; // 1 degree
+	const Angle SHOOT_AIM_PREF_AMOUNT = Angle::of_degrees(1); // 1 degree
 	// 0.1221  7 deg
 
 	// We make sure the angle tolerance is always this big.
-	const double SHOOT_MIN_ANGLE_TOLERANCE = 0.1745; // Pi / 16
+	const Angle SHOOT_MIN_ANGLE_TOLERANCE = Angle::HALF / 18;
 
 	// Dribbles to open shot when nothing's open.
 	const bool SHOOT_DRIBBLE_IF_NO_SHOT = true;
@@ -170,7 +170,7 @@ void TShoot::execute() {
 	Point ball = world.ball().position();
 
 	Point target;
-	double angle_tolerance;
+	Angle angle_tolerance;
 
 	if (!prev_target_set) {
 		prev_target = (ball - (player->position() - ball));
@@ -222,7 +222,7 @@ void TClear::execute() {
 	Point ball = world.ball().position();
 
 	Point target;
-	double angle_tolerance;
+	Angle angle_tolerance;
 
 	bool aimed = false;
 
@@ -245,16 +245,16 @@ void TClear::execute() {
 	target = (target - ball).norm(std::min(world.field().length() / 2 - ball.x, 1.000)) + ball;
 
 	// If the target tolerances include the goal then just aim there.
-	double a = (target - ball).orientation();
-	double a_to_goal = (world.field().enemy_goal() - ball).orientation();
+	Angle a = (target - ball).orientation();
+	Angle a_to_goal = (world.field().enemy_goal() - ball).orientation();
 
-	if (std::fabs(angle_mod(a - a_to_goal)) < 0.8 * angle_tolerance) {
+	if ((a - a_to_goal).angle_mod().abs() < 0.8 * angle_tolerance) {
 		if (a > a_to_goal) {
 			target = world.field().enemy_goal();
-			angle_tolerance -= std::fabs(angle_mod(a - a_to_goal));
+			angle_tolerance -= (a - a_to_goal).angle_mod();
 		} else if (a < a_to_goal) {
 			target = world.field().enemy_goal();
-			angle_tolerance -= std::fabs(angle_mod(a - a_to_goal));
+			angle_tolerance -= (a - a_to_goal).angle_mod();
 		}
 	}
 

@@ -1,6 +1,7 @@
 #ifndef UICOMPONENTS_VISUALIZER_H
 #define UICOMPONENTS_VISUALIZER_H
 
+#include "geom/angle.h"
 #include "geom/point.h"
 #include "util/byref.h"
 #include <gtkmm.h>
@@ -178,7 +179,7 @@ namespace Visualizable {
 			 *
 			 * \return the orientation of the Robot.
 			 */
-			virtual double orientation(double delta = 0.0) const = 0;
+			virtual Angle orientation(double delta = 0.0) const = 0;
 
 			/**
 			 * Returns the velocity of the robot.
@@ -229,7 +230,7 @@ namespace Visualizable {
 			 *
 			 * \return the destination position and orientation.
 			 */
-			virtual const std::pair<Point, double> &destination() const = 0;
+			virtual const std::pair<Point, Angle> &destination() const = 0;
 
 			/**
 			 * Returns whether or not the robot has a path.
@@ -243,7 +244,7 @@ namespace Visualizable {
 			 *
 			 * \return the path the robot should follow.
 			 */
-			virtual const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const = 0;
+			virtual const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path() const = 0;
 
 			/**
 			 * \brief Returns the number of bar graphs the robot can display.

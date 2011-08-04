@@ -10,7 +10,7 @@ using namespace AI::Nav::W;
 namespace {
 	const double STEP_DISTANCE = 1.0; // Affects obstacle avoidance speed.
 	const double CHECK_DISTANCE = 1.0; // Affects obstacle avoidance region.
-	const double ROTATE_STEP = M_PI / 32.0; // Affects obstacle avoidance accuracy.
+	const Angle ROTATE_STEP = Angle::HALF / 32.0; // Affects obstacle avoidance accuracy.
 	const double OVERSHOOT_FACTOR = 4.0; // Affects obstacle avoidance overshoot angle.
 
 	/**
@@ -61,7 +61,7 @@ namespace {
 		Player::Path path;
 
 		Point currentPosition, destinationPosition;
-		double currentOrientation, destinationOrientation;
+		Angle currentOrientation, destinationOrientation;
 
 		for (std::size_t i = 0; i < fteam.size(); i++) {
 			path.clear();
@@ -80,8 +80,8 @@ namespace {
 				Point add(0, 0);
 				if (vec.lensq() > 0.01) {
 					vec = CHECK_DISTANCE * vec.norm();
-					double rotate = ROTATE_STEP;
-					for (int i = 0; (i * rotate) < M_PI / 2; i++) {
+					Angle rotate = ROTATE_STEP;
+					for (int i = 0; (i * rotate) < Angle::QUARTER; i++) {
 						Point left = vec.rotate(i * rotate);
 						Point right = vec.rotate(-i * rotate);
 						if (valid_path(currentPosition, currentPosition + right, world, player)) {

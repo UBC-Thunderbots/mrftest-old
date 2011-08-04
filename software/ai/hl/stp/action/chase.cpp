@@ -21,7 +21,7 @@ void AI::HL::STP::Action::chase(const World &world, Player::Ptr player) {
 	}
 
 	if (chase_target_enemy) {
-		player->move(target, 0, Point());
+		player->move(target, Angle::ZERO, Point());
 		player->type(AI::Flags::MoveType::CATCH_PIVOT);
 	} else {
 		player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), Point());

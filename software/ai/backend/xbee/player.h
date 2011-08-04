@@ -47,27 +47,27 @@ namespace AI {
 					Visualizable::Colour highlight_colour() const;
 					Point position(double delta = 0.0) const { return Robot::position(delta); }
 					Point velocity(double delta = 0.0) const { return Robot::velocity(delta); }
-					double orientation(double delta = 0.0) const { return Robot::orientation(delta); }
-					double avelocity(double delta = 0.0) const { return Robot::avelocity(delta); }
+					Angle orientation(double delta = 0.0) const { return Robot::orientation(delta); }
+					Angle avelocity(double delta = 0.0) const { return Robot::avelocity(delta); }
 					Point position_stdev(double delta = 0.0) const { return Robot::position_stdev(delta); }
 					Point velocity_stdev(double delta = 0.0) const { return Robot::velocity_stdev(delta); }
-					double orientation_stdev(double delta = 0.0) const { return Robot::orientation_stdev(delta); }
-					double avelocity_stdev(double delta = 0.0) const { return Robot::avelocity_stdev(delta); }
+					Angle orientation_stdev(double delta = 0.0) const { return Robot::orientation_stdev(delta); }
+					Angle avelocity_stdev(double delta = 0.0) const { return Robot::avelocity_stdev(delta); }
 					unsigned int pattern() const { return Robot::pattern(); }
 					ObjectStore &object_store() const { return Robot::object_store(); }
 					bool alive() const;
 					bool has_ball() const;
 					bool chicker_ready() const;
 					bool kicker_directional() const;
-					void kick_impl(double speed, double angle);
-					void autokick_impl(double speed, double angle);
+					void kick_impl(double speed, Angle angle);
+					void autokick_impl(double speed, Angle angle);
 					bool autokick_fired() const { return autokick_fired_; }
 					bool has_destination() const { return true; }
-					const std::pair<Point, double> &destination() const;
+					const std::pair<Point, Angle> &destination() const;
 					Point target_velocity() const;
-					void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) { path_ = p; }
+					void path_impl(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p) { path_ = p; }
 					bool has_path() const { return true; }
-					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const { return path_; }
+					const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path() const { return path_; }
 					unsigned int num_bar_graphs() const;
 					double bar_graph_value(unsigned int) const;
 					Visualizable::Colour bar_graph_colour(unsigned int) const;
@@ -102,7 +102,7 @@ namespace AI {
 					int battery_warning_hysteresis;
 					Annunciator::Message battery_warning_message;
 					int wheel_speeds_[4];
-					std::vector<std::pair<std::pair<Point, double>, timespec> > path_;
+					std::vector<std::pair<std::pair<Point, Angle>, timespec> > path_;
 					bool autokick_invoked;
 					bool kicker_directional_;
 					bool autokick_fired_;

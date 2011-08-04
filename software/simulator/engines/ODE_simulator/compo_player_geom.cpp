@@ -5,8 +5,8 @@
 #include <iostream>
 
 namespace {
-	double orientationFromMatrix(const dReal *t) {
-		return std::atan2(-t[1], t[0]);
+	Angle orientationFromMatrix(const dReal *t) {
+		return Point(t[0], -t[1]).orientation();
 	}
 
 	void rotate_vec(dVector3 &vec, const dReal *r) {

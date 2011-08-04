@@ -362,16 +362,16 @@ void AI::Logger::on_tick() {
 			encode_u8(&payload[0], static_cast<uint8_t>(p->pattern()));
 			encode_u32(&payload[1], encode_micros(p->position(0.0).x));
 			encode_u32(&payload[5], encode_micros(p->position(0.0).y));
-			encode_u32(&payload[9], encode_micros(p->orientation(0.0)));
+			encode_u32(&payload[9], encode_micros(p->orientation(0.0).to_radians()));
 			encode_u32(&payload[13], encode_micros(p->velocity(0.0).x));
 			encode_u32(&payload[17], encode_micros(p->velocity(0.0).y));
-			encode_u32(&payload[21], encode_micros(p->avelocity(0.0)));
+			encode_u32(&payload[21], encode_micros(p->avelocity(0.0).to_radians()));
 			encode_u32(&payload[25], encode_micros(0.0));
 			encode_u32(&payload[29], encode_micros(0.0));
 			encode_u32(&payload[33], encode_micros(0.0));
 			encode_u32(&payload[37], encode_micros(p->destination().first.x));
 			encode_u32(&payload[41], encode_micros(p->destination().first.y));
-			encode_u32(&payload[45], encode_micros(p->destination().second));
+			encode_u32(&payload[45], encode_micros(p->destination().second.to_radians()));
 			encode_u64(&payload[49], p->flags());
 			encode_u8(&payload[57], static_cast<uint8_t>(p->type()));
 			encode_u8(&payload[58], static_cast<uint8_t>(p->prio()));
@@ -382,13 +382,13 @@ void AI::Logger::on_tick() {
 			encode_u16(&payload[65], static_cast<int16_t>(wheel_speeds[3]));
 			write_packet(fd, Log::T_FRIENDLY_ROBOT, payload, sizeof(payload));
 		}
-		const std::vector<std::pair<std::pair<Point, double>, timespec> > &path = AI::RC::W::Player::Ptr::cast_static(p)->path();
-		for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator i = path.begin(), iend = path.end(); i != iend; ++i) {
+		const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path = AI::RC::W::Player::Ptr::cast_static(p)->path();
+		for (auto i = path.begin(), iend = path.end(); i != iend; ++i) {
 			uint8_t payload[25];
 			encode_u8(&payload[0], static_cast<uint8_t>(p->pattern()));
 			encode_u32(&payload[1], encode_micros(i->first.first.x));
 			encode_u32(&payload[5], encode_micros(i->first.first.y));
-			encode_u32(&payload[9], encode_micros(i->first.second));
+			encode_u32(&payload[9], encode_micros(i->first.second.to_radians()));
 			encode_u64(&payload[13], i->second.tv_sec);
 			encode_u32(&payload[21], static_cast<uint32_t>(i->second.tv_nsec));
 			write_packet(fd, Log::T_PATH_ELEMENT, payload, sizeof(payload));
@@ -400,10 +400,10 @@ void AI::Logger::on_tick() {
 		encode_u8(&payload[0], static_cast<uint8_t>(p->pattern()));
 		encode_u32(&payload[1], encode_micros(p->position(0.0).x));
 		encode_u32(&payload[5], encode_micros(p->position(0.0).y));
-		encode_u32(&payload[9], encode_micros(p->orientation(0.0)));
+		encode_u32(&payload[9], encode_micros(p->orientation(0.0).to_radians()));
 		encode_u32(&payload[13], encode_micros(p->velocity(0.0).x));
 		encode_u32(&payload[17], encode_micros(p->velocity(0.0).y));
-		encode_u32(&payload[21], encode_micros(p->avelocity(0.0)));
+		encode_u32(&payload[21], encode_micros(p->avelocity(0.0).to_radians()));
 		encode_u32(&payload[25], encode_micros(0.0));
 		encode_u32(&payload[29], encode_micros(0.0));
 		encode_u32(&payload[33], encode_micros(0.0));

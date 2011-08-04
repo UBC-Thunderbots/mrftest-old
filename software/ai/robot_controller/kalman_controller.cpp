@@ -28,7 +28,7 @@ namespace {
 
 	class KalmanController : public RobotController {
 		public:
-			KalmanController(World &world, Player::Ptr player) : RobotController(world, player), velocity_inc(0.0, 0.0), state(State::IDLE), adj_ramp_time(0.0, 0.0, 2.0, 0.1, 0.5, 1.0), hsb_ramp_time(adj_ramp_time), lbl_ramp_time("T ramp"), to_be_ramp_time(0.0), adj_plateau_time(0.0, 0.0, 4.0, 0.2, 1.0, 1.0), hsb_plateau_time(adj_plateau_time), lbl_plateau_time("T plateau"), to_be_plateau_time(0.0), adj_terminal_velocity(0.0, 0.0, 10.0, 0.1, 0.2, 0.2), hsb_terminal_velocity(adj_terminal_velocity), lbl_terminal_velocity("V terminal"), to_be_terminal_velocity(0.0), adj_direction(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI, 1.0), hsb_direction(adj_direction), lbl_direction("Direction"), to_be_direction(0.0), adj_rotate_speed(0.0, -20 * M_PI, 20 * M_PI, 0.05 * M_PI, 0.1 * M_PI, 0.0), hsb_rotate_speed(adj_rotate_speed), lbl_rotate_speed("Rotation"), to_be_rotate_speed(0.0), adj_pivot_radius(0.1, 0.1, 10.0, 0.1, 1.0, 0.0), hsb_pivot_radius(adj_pivot_radius), lbl_pivot_radius("Pivot Radius"), to_be_pivot_radius(0.1), to_be_velocity(0.0, 0.0), enable_pivot_radius(true) {
+			KalmanController(World &world, Player::Ptr player) : RobotController(world, player), velocity_inc(0.0, 0.0), state(State::IDLE), adj_ramp_time(0.0, 0.0, 2.0, 0.1, 0.5, 1.0), hsb_ramp_time(adj_ramp_time), lbl_ramp_time("T ramp"), to_be_ramp_time(0.0), adj_plateau_time(0.0, 0.0, 4.0, 0.2, 1.0, 1.0), hsb_plateau_time(adj_plateau_time), lbl_plateau_time("T plateau"), to_be_plateau_time(0.0), adj_terminal_velocity(0.0, 0.0, 10.0, 0.1, 0.2, 0.2), hsb_terminal_velocity(adj_terminal_velocity), lbl_terminal_velocity("V terminal"), to_be_terminal_velocity(0.0), adj_direction(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI, 1.0), hsb_direction(adj_direction), lbl_direction("Direction"), to_be_direction(Angle::ZERO), adj_rotate_speed(0.0, -20 * M_PI, 20 * M_PI, 0.05 * M_PI, 0.1 * M_PI, 0.0), hsb_rotate_speed(adj_rotate_speed), lbl_rotate_speed("Rotation"), to_be_rotate_speed(Angle::ZERO), adj_pivot_radius(0.1, 0.1, 10.0, 0.1, 1.0, 0.0), hsb_pivot_radius(adj_pivot_radius), lbl_pivot_radius("Pivot Radius"), to_be_pivot_radius(0.1), to_be_velocity(0.0, 0.0), enable_pivot_radius(true) {
 				enable_pivot_radius_tgl.signal_toggled().connect(sigc::mem_fun(*this, &KalmanController::on_enable_pivot_radius_toggled));
 
 				// param bar
@@ -131,8 +131,8 @@ namespace {
 			double to_be_plateau_time;
 			double to_be_terminal_velocity;
 			Point to_be_velocity;
-			double to_be_direction;
-			double to_be_rotate_speed;
+			Angle to_be_direction;
+			Angle to_be_rotate_speed;
 			double to_be_pivot_radius;
 
 			State state;
@@ -140,7 +140,7 @@ namespace {
 			void on_enable_pivot_radius_toggled() {
 				if (enable_pivot_radius_tgl.get_active()) {
 					enable_pivot_radius = true;
-					to_be_rotate_speed = to_be_terminal_velocity / to_be_pivot_radius;
+					to_be_rotate_speed = Angle::of_radians(to_be_terminal_velocity / to_be_pivot_radius);
 				} else {
 					enable_pivot_radius = false;
 				}
@@ -151,7 +151,7 @@ namespace {
 					if (enable_pivot_radius) {
 						state = State::PIVOT;
 						to_be_velocity = Point::of_angle(player->orientation()) * to_be_terminal_velocity;
-						to_be_rotate_speed = to_be_terminal_velocity / to_be_pivot_radius;
+						to_be_rotate_speed = Angle::of_radians(to_be_terminal_velocity / to_be_pivot_radius);
 						test_drive_btn.set_label("Stop Pivot");
 					} else {
 						state = State::RUN;
@@ -176,23 +176,23 @@ namespace {
 					std::cout << to_be_velocity.x << " " << to_be_velocity.y << std::endl;
 				} else {
 					to_be_velocity = Point::of_angle(player->orientation()) * to_be_terminal_velocity;
-					to_be_rotate_speed = to_be_terminal_velocity / to_be_pivot_radius;
+					to_be_rotate_speed = Angle::of_radians(to_be_terminal_velocity / to_be_pivot_radius);
 				}
 			}
 			void on_adj_direction_changed() {
-				to_be_direction = hsb_direction.get_value();
+				to_be_direction = Angle::of_radians(hsb_direction.get_value());
 				if (!enable_pivot_radius) {
 					to_be_velocity = Point::of_angle(to_be_direction) * to_be_terminal_velocity;
 					std::cout << to_be_velocity.x << " " << to_be_velocity.y << std::endl;
 				}
 			}
 			void on_adj_rotate_speed_changed() {
-				to_be_rotate_speed = hsb_rotate_speed.get_value();
+				to_be_rotate_speed = Angle::of_radians(hsb_rotate_speed.get_value());
 			}
 			void on_adj_pivot_radius_changed() {
 				to_be_pivot_radius = hsb_pivot_radius.get_value();
 				if (enable_pivot_radius) {
-					to_be_rotate_speed = to_be_terminal_velocity / to_be_pivot_radius;
+					to_be_rotate_speed = Angle::of_radians(to_be_terminal_velocity / to_be_pivot_radius);
 				}
 			}
 	};

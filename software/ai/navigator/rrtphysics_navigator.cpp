@@ -64,7 +64,7 @@ namespace {
 			pathPoints.clear();
 			pathPoints = planner.plan(player, player->destination().first);
 
-			double destOrientation = player->destination().second;
+			Angle destOrientation = player->destination().second;
 			for (std::size_t j = 0; j < pathPoints.size(); ++j) {
 				// the last point will just use whatever the last orientation was
 				if (j + 1 != pathPoints.size()) {

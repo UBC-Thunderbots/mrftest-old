@@ -9,11 +9,11 @@ namespace AI {
 		namespace STP {
 			extern DoubleParam min_pass_dist;
 
-			extern DoubleParam min_shoot_region;
+			extern DegreeParam min_shoot_region;
 
-			extern Temp_AngleParam passee_angle_threshold;
+			extern DegreeParam passee_angle_threshold;
 
-			extern DoubleParam shoot_accuracy;
+			extern RadianParam shoot_accuracy;
 
 			extern DoubleParam shoot_width;
 
@@ -26,7 +26,7 @@ namespace AI {
 
 				extern DoubleParam pass_speed;
 
-				extern Temp_AngleParam passer_angle_threshold;
+				extern DegreeParam passer_angle_threshold;
 
 				extern DoubleParam target_region_param;
 			}

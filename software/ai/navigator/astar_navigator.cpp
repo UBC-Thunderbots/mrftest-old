@@ -19,7 +19,7 @@ namespace {
 
 	// the degrees where we consider the angle to
 	// be virtually the same
-	const double ANGLE_TOL = 7.0;
+	const Angle ANGLE_TOL = Angle::of_degrees(7.0);
 
 	class PathPoint : public ByRef {
 		public:
@@ -152,8 +152,8 @@ namespace {
 				if (player->type() == AI::Flags::MoveType::CATCH) {
 					Point diff = world.ball().position() - player->position();
 					diff = diff.rotate(-player->orientation());
-					double ang = std::max(radians2degrees(diff.orientation()), radians2degrees(angle_diff(player->orientation(), player->destination().second)));
-					if (ang < 0) {
+					Angle ang = std::max(diff.orientation(), player->orientation().angle_diff(player->destination().second));
+					if (ang < Angle::ZERO) {
 						ang = -ang;
 					}
 					if (ang < ANGLE_TOL) {

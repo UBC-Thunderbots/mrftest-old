@@ -13,12 +13,12 @@ void AI::HL::STP::Action::move(const World &world, Player::Ptr player, const Poi
 	player->type(AI::Flags::MoveType::NORMAL);
 }
 
-void AI::HL::STP::Action::move(Player::Ptr player, const double orientation, const Point dest) {
+void AI::HL::STP::Action::move(Player::Ptr player, const Angle orientation, const Point dest) {
 	player->move(dest, orientation, Point());
 	player->type(AI::Flags::MoveType::NORMAL);
 }
 
-void AI::HL::STP::Action::move(Player::Ptr player, const double orientation, const Point dest, const Point vel) {
+void AI::HL::STP::Action::move(Player::Ptr player, const Angle orientation, const Point dest, const Point vel) {
 	player->move(dest, orientation, vel);
 	player->type(AI::Flags::MoveType::NORMAL);
 }

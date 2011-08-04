@@ -10,10 +10,10 @@
 using namespace AI::HL::STP;
 namespace Util = AI::HL::Util;
 
-DoubleParam AI::HL::STP::Evaluation::enemy_shoot_accuracy("Enemy shoot accuracy (degrees)", "STP/enemy", 1.0, 0.0, 90.0);
+DegreeParam AI::HL::STP::Evaluation::enemy_shoot_accuracy("Enemy shoot accuracy (degrees)", "STP/enemy", 1.0, 0.0, 90.0);
 
 bool AI::HL::STP::Evaluation::enemy_can_shoot_goal(const World &world, Robot::Ptr enemy) {
-	return calc_enemy_best_shot_goal(world, enemy).second > degrees2radians(enemy_shoot_accuracy);
+	return calc_enemy_best_shot_goal(world, enemy).second > enemy_shoot_accuracy;
 }
 
 /*
@@ -59,7 +59,7 @@ bool AI::HL::STP::Evaluation::enemy_can_shoot_goal(const World &world, Robot::Pt
    }
  */
 
-std::pair<Point, double> Evaluation::calc_enemy_best_shot_goal(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
+std::pair<Point, Angle> Evaluation::calc_enemy_best_shot_goal(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
 #warning due to an old HACK, angle_sweep_circle only works on positive side, so this is a hack because of a hack
 
 	std::vector<Point> obs_rev = obstacles;
@@ -81,7 +81,7 @@ std::pair<Point, double> Evaluation::calc_enemy_best_shot_goal(const Field &f, c
 	 */
 }
 
-std::pair<Point, double> Evaluation::calc_enemy_best_shot_goal(const World &world, const Robot::Ptr enemy, const double radius) {
+std::pair<Point, Angle> Evaluation::calc_enemy_best_shot_goal(const World &world, const Robot::Ptr enemy, const double radius) {
 	std::vector<Point> obstacles;
 	const FriendlyTeam &friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {

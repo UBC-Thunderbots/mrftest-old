@@ -11,7 +11,7 @@ using namespace AI::RC::W;
 namespace {
 	class FuzzyController : public OldRobotController, public AI::RC::TunableController {
 		public:
-			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
+			void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity);
 
 			void clear();
 
@@ -77,10 +77,10 @@ FuzzyController::FuzzyController(AI::RC::W::World &world, AI::RC::W::Player::Ptr
 	param = param_default;
 }
 
-void FuzzyController::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
+void FuzzyController::move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity) {
 	const Point &current_position = player->position();
-	const double current_orientation = player->orientation();
-	angular_velocity = param[4] * angle_mod(new_orientation - current_orientation);
+	const Angle current_orientation = player->orientation();
+	angular_velocity = param[4] * (new_orientation - current_orientation).angle_mod();
 
 	double distance_factor = (new_position - current_position).len() / param[1];
 	if (distance_factor > 1) {

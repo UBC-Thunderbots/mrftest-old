@@ -78,12 +78,12 @@ bool AI::BE::Simulator::Player::kicker_directional() const {
 	return false;
 }
 
-void AI::BE::Simulator::Player::kick_impl(double speed, double) {
+void AI::BE::Simulator::Player::kick_impl(double speed, Angle) {
 	kick_ = true;
 	chick_power_ = speed;
 }
 
-void AI::BE::Simulator::Player::autokick_impl(double speed, double angle) {
+void AI::BE::Simulator::Player::autokick_impl(double speed, Angle angle) {
 	kick_impl(speed, angle);
 	autokick_pre_fired_ = true;
 }
@@ -96,7 +96,7 @@ bool AI::BE::Simulator::Player::has_destination() const {
 	return true;
 }
 
-const std::pair<Point, double> &AI::BE::Simulator::Player::destination() const {
+const std::pair<Point, Angle> &AI::BE::Simulator::Player::destination() const {
 	return destination_;
 }
 
@@ -104,7 +104,7 @@ Point AI::BE::Simulator::Player::target_velocity() const {
 	return target_velocity_;
 }
 
-void AI::BE::Simulator::Player::path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) {
+void AI::BE::Simulator::Player::path_impl(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p) {
 	path_ = p;
 }
 
@@ -112,7 +112,7 @@ bool AI::BE::Simulator::Player::has_path() const {
 	return true;
 }
 
-const std::vector<std::pair<std::pair<Point, double>, timespec> > &AI::BE::Simulator::Player::path() const {
+const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &AI::BE::Simulator::Player::path() const {
 	return path_;
 }
 

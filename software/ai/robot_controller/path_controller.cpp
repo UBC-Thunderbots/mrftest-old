@@ -44,7 +44,7 @@ namespace {
 				}
 
 				Point new_position = path[path.size() - 1].first.first;
-				double new_orientation = path[path.size() - 1].first.second;
+				Angle new_orientation = path[path.size() - 1].first.second;
 
 				for (Player::Path::const_reverse_iterator i = path.rbegin(), iend = path.rend(); i != iend; ++i) {
 					if ((path[0].first.first - player->position()).len() > ACCURACY_TRADEOFF) {
@@ -54,8 +54,8 @@ namespace {
 				}
 
 				const Point &current_position = player->position();
-				const double current_orientation = player->orientation();
-				double angular_velocity = param[4] * angle_mod(new_orientation - current_orientation);
+				const Angle current_orientation = player->orientation();
+				Angle angular_velocity = param[4] * (new_orientation - current_orientation).angle_mod();
 
 				double distance_factor = (new_position - current_position).len() / param[1];
 				if (distance_factor > 1) {

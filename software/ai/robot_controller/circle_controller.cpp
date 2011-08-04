@@ -23,7 +23,7 @@ namespace {
 	// 0 max distance for linear control (outside of this range is just fast )
 	// 1 amount to scale linear speed factor by
 	// 2 amount to scale both factors by
-	const double ANGLE_TOL = 0.05;
+	const Angle ANGLE_TOL = Angle::of_radians(0.05);
 	const double DIST_TOL = 0.05;
 
 	DoubleParam proportion("amount to scale controller velocities by", "RC/Circle", 2.0, 0.1, 10.0);
@@ -53,13 +53,13 @@ namespace {
 					return;
 				}
 
-				double orientation_diff = angle_mod(path[0].first.second - player->orientation());
+				Angle orientation_diff = (path[0].first.second - player->orientation()).angle_mod();
 				Point location_diff = (path[0].first.first - player->position());
 				// std::cout<<location_diff<<std::endl;
 				Point centre_of_line = (path[0].first.first + player->position()) / 2.0;
 
 				Point robot_vel = location_diff;
-				double robot_ang_vel = orientation_diff;
+				Angle robot_ang_vel = orientation_diff;
 
 				bool angle_change = orientation_diff > ANGLE_TOL || orientation_diff < -ANGLE_TOL;
 				if (location_diff.len() > DIST_TOL && angle_change) {
@@ -68,22 +68,22 @@ namespace {
 					double distance_to_cover = location_diff.len();
 
 					double dir = 1.0;
-					if (orientation_diff < 0) {
+					if (orientation_diff < Angle::ZERO) {
 						dir = -1.0;
 					}
-					double distance_from_line = 0.5 * location_diff.len() / tan(orientation_diff / 2.0);
+					double distance_from_line = 0.5 * location_diff.len() / (orientation_diff / 2.0).tan();
 
 					// std::cout<<distance_from_line<< ' '<< location_diff<<' '<<orientation_diff<< std::endl;
 					// vector taking the centre of the line seg (dest - cur_location)
 					// to the centre of the pivot point
-					Point line_to_centre = dir * distance_from_line * ((location_diff.norm()).rotate(M_PI / 2.0));
+					Point line_to_centre = dir * distance_from_line * location_diff.norm().rotate(Angle::QUARTER);
 					Point pivot_centre = centre_of_line + line_to_centre;
 					double pivot_radius = (pivot_centre - player->position()).len();
 
-					distance_to_cover = orientation_diff * pivot_radius;
+					distance_to_cover = orientation_diff.to_radians() * pivot_radius;
 
 					// std::cout<<distance_to_cover<<' ';
-					direction = ((player->position() - pivot_centre).rotate(dir * M_PI / 2.0)).norm();
+					direction = ((player->position() - pivot_centre).rotate(dir * Angle::QUARTER)).norm();
 					// std::cout<<direction<<std::endl;
 
 					robot_vel = distance_to_cover * direction;

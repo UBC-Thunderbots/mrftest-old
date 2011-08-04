@@ -57,9 +57,9 @@ namespace AI {
 				ObjectStore &object_store() const = 0;
 				unsigned int pattern() const = 0;
 				Point position(double delta) const = 0;
-				double orientation(double delta) const = 0;
+				Angle orientation(double delta) const = 0;
 				Point velocity(double delta) const = 0;
-				double avelocity(double delta) const = 0;
+				Angle avelocity(double delta) const = 0;
 				void avoid_distance(AI::Flags::AvoidDistance dist) const;
 				AI::Flags::AvoidDistance avoid_distance() const;
 				virtual void pre_tick();
@@ -97,36 +97,36 @@ namespace AI {
 
 				Point position(double delta) const = 0;
 				Point velocity(double delta) const = 0;
-				double orientation(double delta) const = 0;
-				double avelocity(double delta) const = 0;
+				Angle orientation(double delta) const = 0;
+				Angle avelocity(double delta) const = 0;
 				unsigned int pattern() const = 0;
 				ObjectStore &object_store() const = 0;
 				bool kicker_directional() const = 0;
-				void move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) __attribute__((deprecated));
-				void move(Point dest, double ori, Point vel);
+				void move(Point dest, Angle ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) __attribute__((deprecated));
+				void move(Point dest, Angle ori, Point vel);
 				unsigned int flags() const { return flags_; }
 				void flags(unsigned int flags);
 				AI::Flags::MoveType type() const { return move_type_; }
 				void type(AI::Flags::MoveType type);
 				AI::Flags::MovePrio prio() const { return move_prio_; }
 				void prio(AI::Flags::MovePrio prio);
-				void kick(double speed, double angle);
-				void autokick(double speed, double angle);
-				const std::pair<Point, double> &destination() const = 0;
-				void path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p);
+				void kick(double speed, Angle angle);
+				void autokick(double speed, Angle angle);
+				const std::pair<Point, Angle> &destination() const = 0;
+				void path(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p);
 				void pre_tick();
 
 			protected:
 				bool moved;
-				std::pair<Point, double> destination_;
+				std::pair<Point, Angle> destination_;
 				Point target_velocity_;
 				unsigned int flags_;
 				AI::Flags::MoveType move_type_;
 				AI::Flags::MovePrio move_prio_;
 
-				virtual void kick_impl(double speed, double angle) = 0;
-				virtual void autokick_impl(double speed, double angle) = 0;
-				virtual void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) = 0;
+				virtual void kick_impl(double speed, Angle angle) = 0;
+				virtual void autokick_impl(double speed, Angle angle) = 0;
+				virtual void path_impl(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p) = 0;
 		};
 
 		/**

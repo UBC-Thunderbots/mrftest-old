@@ -24,14 +24,14 @@ namespace AI {
 				 * Move to a particular location and stop.
 				 * Orient the player towards a particular direction.
 				 */
-				void move(Player::Ptr player, const double orientation, const Point dest);
+				void move(Player::Ptr player, const Angle orientation, const Point dest);
 
 				/**
 				 * Move to a particular location,
 				 * orient the player towards a particular direction,
 				 * and ending in desired velocity.
 				 */
-				void move(Player::Ptr player, const double orientation, const Point dest, const Point vel);
+				void move(Player::Ptr player, const Angle orientation, const Point dest, const Point vel);
 			}
 		}
 	}

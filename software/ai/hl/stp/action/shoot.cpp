@@ -24,7 +24,7 @@ namespace {
 
 void AI::HL::STP::Action::autokick(Player::Ptr player, const Point target, double velocity) {
 	if (player->kicker_directional()) {
-		double angle = angle_diff(player->orientation(), (target - player->position()).orientation());
+		Angle angle = player->orientation().angle_diff((target - player->position()).orientation());
 		player->autokick(velocity, angle);
 	} else {
 		player->autokick(velocity);
@@ -94,7 +94,7 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	return shoot_pass(world, player, target, passer_angle_threshold);
 }
 
-bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target, double angle_tol) {
+bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target, Angle angle_tol) {
 	chase_pivot(world, player, target);
 
 	// checker shooter orientation
@@ -108,7 +108,7 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	}
 
 	// check receiver is within passing range & angle
-	double distance_tol = (target - player->position()).len() * sin(angle_tol) + AI::HL::STP::Action::target_region_param;
+	double distance_tol = (target - player->position()).len() * angle_tol.sin() + AI::HL::STP::Action::target_region_param;
 	bool ok = false;
 
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {

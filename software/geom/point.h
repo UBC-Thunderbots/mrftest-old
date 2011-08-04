@@ -1,6 +1,7 @@
 #ifndef GEOM_POINT_H
 #define GEOM_POINT_H
 
+#include "geom/angle.h"
 #include <cmath>
 #include <ostream>
 
@@ -26,7 +27,7 @@ class Point {
 		 *
 		 * \return the Point.
 		 */
-		static Point of_angle(double angle);
+		static Point of_angle(Angle angle);
 
 		/**
 		 * Creates the origin.
@@ -89,11 +90,11 @@ class Point {
 		/**
 		 * Rotates this Point by an angle.
 		 *
-		 * \param[in] rot the angle in radians to rotate the vector.
+		 * \param[in] rot the angle to rotate the vector.
 		 *
 		 * \return the Point rotated by rot.
 		 */
-		Point rotate(double rot) const __attribute__((warn_unused_result));
+		Point rotate(Angle rot) const __attribute__((warn_unused_result));
 
 		/**
 		 * Projects this vector onto another vector.
@@ -137,7 +138,7 @@ class Point {
 		 * \return the direction of this vector, in the range [-π, π], with 0 being the positive <var>x</var> direction, π/2 being up, etc.
 		 * (in actuality, this is <code>std::atan2(y, x)</code>).
 		 */
-		double orientation() const __attribute__((warn_unused_result));
+		Angle orientation() const __attribute__((warn_unused_result));
 };
 
 /**
@@ -271,8 +272,12 @@ std::ostream &operator<<(std::ostream &os, const Point &p);
  */
 bool operator<(const Point &p, const Point &q);
 
-inline Point Point::of_angle(double angle) {
-	return Point(std::cos(angle), std::sin(angle));
+
+
+
+
+inline Point Point::of_angle(Angle angle) {
+	return Point(angle.cos(), angle.sin());
 }
 
 inline Point::Point() : x(0.0), y(0.0) {
@@ -314,9 +319,9 @@ inline Point Point::perp() const {
 	return Point(-y, x);
 }
 
-inline Point Point::rotate(double rot) const {
-	double s = std::sin(rot);
-	double c = std::cos(rot);
+inline Point Point::rotate(Angle rot) const {
+	double s = rot.sin();
+	double c = rot.cos();
 	return Point(x * c - y * s, x * s + y * c);
 }
 
@@ -338,8 +343,8 @@ inline Point &Point::operator=(const Point &q) {
 	return *this;
 }
 
-inline double Point::orientation() const {
-	return std::atan2(y, x);
+inline Angle Point::orientation() const {
+	return Angle::of_radians(std::atan2(y, x));
 }
 
 inline Point operator+(const Point &p, const Point &q) {

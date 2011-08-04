@@ -54,7 +54,7 @@ namespace {
 		Player::Path path;
 
 		Point currentPosition, destinationPosition;
-		double currentOrientation, destinationOrientation;
+		Angle currentOrientation, destinationOrientation;
 
 		for (std::size_t i = 0; i < fteam.size(); i++) {
 			path.clear();

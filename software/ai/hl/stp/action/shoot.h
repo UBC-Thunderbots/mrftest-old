@@ -55,7 +55,7 @@ namespace AI {
 				 *
 				 * \return true if the player autokick is fired.
 				 */
-				bool shoot_pass(const World &world, Player::Ptr shooter, const Point target, double angle_tol);
+				bool shoot_pass(const World &world, Player::Ptr shooter, const Point target, Angle angle_tol);
 
 
 				/**

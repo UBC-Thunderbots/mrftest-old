@@ -88,27 +88,27 @@ namespace AI {
 					Visualizable::Colour highlight_colour() const { return Robot::highlight_colour(); }
 					Point position(double delta = 0.0) const { return Robot::position(delta); }
 					Point velocity(double delta = 0.0) const { return Robot::velocity(delta); }
-					double orientation(double delta = 0.0) const { return Robot::orientation(delta); }
-					double avelocity(double delta = 0.0) const { return Robot::avelocity(delta); }
+					Angle orientation(double delta = 0.0) const { return Robot::orientation(delta); }
+					Angle avelocity(double delta = 0.0) const { return Robot::avelocity(delta); }
 					Point position_stdev(double delta = 0.0) const { return Robot::position_stdev(delta); }
 					Point velocity_stdev(double delta = 0.0) const { return Robot::velocity_stdev(delta); }
-					double orientation_stdev(double delta = 0.0) const { return Robot::orientation_stdev(delta); }
-					double avelocity_stdev(double delta = 0.0) const { return Robot::avelocity_stdev(delta); }
+					Angle orientation_stdev(double delta = 0.0) const { return Robot::orientation_stdev(delta); }
+					Angle avelocity_stdev(double delta = 0.0) const { return Robot::avelocity_stdev(delta); }
 					unsigned int pattern() const { return Robot::pattern(); }
 					ObjectStore &object_store() const { return Robot::object_store(); }
 					bool alive() const;
 					bool has_ball() const;
 					bool chicker_ready() const;
 					bool kicker_directional() const;
-					void kick_impl(double speed, double angle);
-					void autokick_impl(double speed, double angle);
+					void kick_impl(double speed, Angle angle);
+					void autokick_impl(double speed, Angle angle);
 					bool autokick_fired() const;
 					bool has_destination() const;
-					const std::pair<Point, double> &destination() const;
+					const std::pair<Point, Angle> &destination() const;
 					Point target_velocity() const;
-					void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p);
+					void path_impl(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p);
 					bool has_path() const;
-					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const;
+					const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path() const;
 					unsigned int num_bar_graphs() const { return Robot::num_bar_graphs(); }
 					double bar_graph_value(unsigned int index) const { return Robot::bar_graph_value(index); }
 					Visualizable::Colour bar_graph_colour(unsigned int index) const { return Robot::bar_graph_colour(index); }
@@ -146,7 +146,7 @@ namespace AI {
 					/**
 					 * The path of positions, orientations, and deadline timestamps most recently specified by the navigator.
 					 */
-					std::vector<std::pair<std::pair<Point, double>, timespec> > path_;
+					std::vector<std::pair<std::pair<Point, Angle>, timespec> > path_;
 
 					/**
 					 * Whether the AI elected to kick in the current time tick.

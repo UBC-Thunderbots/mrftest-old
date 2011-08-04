@@ -21,27 +21,27 @@ void AI::BE::Robot::pre_tick() {
 	avoid_distance_ = AI::Flags::AvoidDistance::MEDIUM;
 }
 
-AI::BE::Player::Player() : moved(false), destination_(Point(), 0.0), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
+AI::BE::Player::Player() : moved(false), destination_(Point(), Angle::ZERO), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
 }
 
-void AI::BE::Player::move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
+void AI::BE::Player::move(Point dest, Angle ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
 	move(dest, ori, vel);
 	this->flags(flags);
 	this->type(type);
 	this->prio(prio);
 }
 
-void AI::BE::Player::move(Point dest, double ori, Point vel) {
+void AI::BE::Player::move(Point dest, Angle ori, Point vel) {
 	if (!std::isfinite(dest.x) || !std::isfinite(dest.y)) {
-		LOG_ERROR("NaN or ±inf destination");
+		LOG_ERROR("NaN or ±∞ destination");
 		dest = position(0);
 	}
-	if (!std::isfinite(ori)) {
-		LOG_ERROR("NaN or ±inf orientation");
+	if (!ori.isfinite()) {
+		LOG_ERROR("NaN or ±∞ orientation");
 		ori = orientation(0);
 	}
 	if (!std::isfinite(vel.x) || !std::isfinite(vel.y)) {
-		LOG_ERROR("NaN or ±inf velocity");
+		LOG_ERROR("NaN or ±∞ velocity");
 		vel.x = vel.y = 0;
 	}
 	moved = true;
@@ -66,54 +66,54 @@ void AI::BE::Player::prio(AI::Flags::MovePrio prio) {
 	move_prio_ = prio;
 }
 
-void AI::BE::Player::kick(double speed, double angle) {
+void AI::BE::Player::kick(double speed, Angle angle) {
 	if (!std::isfinite(speed)) {
-		LOG_ERROR("NaN or ±inf speed");
+		LOG_ERROR("NaN or ±∞ speed");
 		return;
 	}
 	if (speed < 0) {
 		LOG_ERROR("Out-of-range speed");
 		speed = 0;
 	}
-	if (!std::isfinite(angle)) {
-		LOG_ERROR("NaN or ±inf speed");
+	if (!angle.isfinite()) {
+		LOG_ERROR("NaN or ±∞ speed");
 		return;
 	}
-	if (!kicker_directional() && std::abs(angle) > 1e-9) {
+	if (!kicker_directional() && angle.abs() > Angle::of_radians(1e-9)) {
 		LOG_ERROR("Angled kick requested on nondirectional kicker");
 		return;
 	}
 	kick_impl(speed, angle);
 }
 
-void AI::BE::Player::autokick(double speed, double angle) {
+void AI::BE::Player::autokick(double speed, Angle angle) {
 	if (!std::isfinite(speed)) {
-		LOG_ERROR("NaN or ±inf speed");
+		LOG_ERROR("NaN or ±∞ speed");
 		return;
 	}
 	if (speed < 0) {
 		LOG_ERROR("Out-of-range speed");
 		speed = 0;
 	}
-	if (!std::isfinite(angle)) {
-		LOG_ERROR("NaN or ±inf speed");
+	if (!angle.isfinite()) {
+		LOG_ERROR("NaN or ±∞ speed");
 		return;
 	}
-	if (!kicker_directional() && std::abs(angle) > 1e-9) {
+	if (!kicker_directional() && angle.abs() > Angle::of_radians(1e-9)) {
 		LOG_ERROR("Angled kick requested on nondirectional kicker");
 		return;
 	}
 	autokick_impl(speed, angle);
 }
 
-void AI::BE::Player::path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) {
-	for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator i = p.begin(), iend = p.end(); i != iend; ++i) {
+void AI::BE::Player::path(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p) {
+	for (auto i = p.begin(), iend = p.end(); i != iend; ++i) {
 		if (!std::isfinite(i->first.first.x) || !std::isfinite(i->first.first.y)) {
-			LOG_ERROR("NaN or ±inf position in path element");
+			LOG_ERROR("NaN or ±∞ position in path element");
 			return;
 		}
-		if (!std::isfinite(i->first.second)) {
-			LOG_ERROR("NaN or ±inf orientation in path element");
+		if (!i->first.second.isfinite()) {
+			LOG_ERROR("NaN or ±∞ orientation in path element");
 			return;
 		}
 	}

@@ -76,12 +76,12 @@ namespace AI {
 					 * aim() should be guaranteed not to return false if obs_flags is 0.
 					 *
 					 */
-					bool aim(const World &world, double time, Point target, Point r2, Point r1, unsigned int obs_flags, Point pref_target_point, double pref_amount, Point &target_point, double &target_tolerance);
+					bool aim(const World &world, double time, Point target, Point r2, Point r1, unsigned int obs_flags, Point pref_target_point, Angle pref_amount, Point &target_point, Angle &target_tolerance);
 
 					/**
 					 * aim() but with pref_target_point set to center of the two aiming vectors and obs_flags set to 0
 					 */
-					bool aim(const World &world, double time, Point target, Point r2, Point r1, unsigned int obs_flags, Point &target_point, double &target_tolerance);
+					bool aim(const World &world, double time, Point target, Point r2, Point r1, unsigned int obs_flags, Point &target_point, Angle &target_tolerance);
 
 					/**
 					 * defend_line()
@@ -112,7 +112,7 @@ namespace AI {
 					 * trying to intercept the ball.
 					 *
 					 */
-					bool defend_line(const World &world, double time, Point g1, Point g2, double distmin, double distmax, double dist_off_ball, bool &intercept, unsigned int obs_flags, Point pref_point, double pref_amount, Point &target, Point &velocity);
+					bool defend_line(const World &world, double time, Point g1, Point g2, double distmin, double distmax, double dist_off_ball, bool &intercept, unsigned int obs_flags, Point pref_point, Angle pref_amount, Point &target, Point &velocity);
 
 					bool defend_line(const World &world, double time, Point g1, Point g2, double distmin, double distmax, double dist_off_ball, bool &intercept, Point &target, Point &velocity);
 
@@ -135,12 +135,12 @@ namespace AI {
 	}
 }
 
-inline bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time, Point target, Point r2, Point r1, unsigned int obs_flags, Point &target_point, double &target_tolerance) {
-	return aim(world, time, target, r2, r1, obs_flags, ((r2 + r1) / 2.0), 0.0, target_point, target_tolerance);
+inline bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time, Point target, Point r2, Point r1, unsigned int obs_flags, Point &target_point, Angle &target_tolerance) {
+	return aim(world, time, target, r2, r1, obs_flags, ((r2 + r1) / 2.0), Angle::ZERO, target_point, target_tolerance);
 }
 
 inline bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(const World &world, double time, Point g1, Point g2, double distmin, double distmax, double dist_off_ball, bool &intercept, Point &target, Point &velocity) {
-	return defend_line(world, time, g1, g2, distmin, distmax, dist_off_ball, intercept, 0, Point(), 0.0, target, velocity);
+	return defend_line(world, time, g1, g2, distmin, distmax, dist_off_ball, intercept, 0, Point(), Angle::ZERO, target, velocity);
 }
 
 #endif

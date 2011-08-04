@@ -77,12 +77,12 @@ namespace AI {
 					/**
 					 * A predictor that provides the X coordinate of predictable quantities.
 					 */
-					Predictor xpred;
+					Predictor<double> xpred;
 
 					/**
 					 * A predictor that provides the Y coordinate of predictable quantities.
 					 */
-					Predictor ypred;
+					Predictor<double> ypred;
 
 					/**
 					 * The connections for mouse activity signals.

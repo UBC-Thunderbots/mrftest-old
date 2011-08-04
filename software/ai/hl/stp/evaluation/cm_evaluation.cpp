@@ -58,8 +58,8 @@ namespace {
 		y = (p1 - p2).len();
 		// c1 = std::fabs(cosine(ball-p1,p2-p1));
 		// c2 = std::fabs(cosine(ball-p2,p1-p2));
-		c1 = std::fabs(std::sin(vertex_angle(ball, p1, p2)));
-		c2 = std::fabs(std::sin(vertex_angle(ball, p2, p1)));
+		c1 = std::fabs(vertex_angle(ball, p1, p2).sin());
+		c2 = std::fabs(vertex_angle(ball, p2, p1).sin());
 		o1 = clamp(radius / c1, 0.0, y / 2);
 		o2 = clamp(radius / c2, 0.0, y / 2);
 
@@ -100,7 +100,7 @@ namespace {
 
 		Point gline = (g2 - g1);
 		Point gline_1 = gline.norm();
-		Point gperp = gline_1.rotate(M_PI_2);
+		Point gperp = gline_1.rotate(Angle::QUARTER);
 		Point ball = world.ball().position(time);
 
 		int side = (ball - g1).dot(gperp) >= 0.0 ? 1 : -1;
@@ -436,38 +436,38 @@ namespace {
 		return (p.x + radius > bbox_min.x) && (p.y + radius > bbox_min.y) && (p.x - radius < bbox_max.x) && (p.y - radius < bbox_max.y);
 	}
 
-	double diff_angle_pos(double a1, double a2) {
-		double d = angle_mod(a1 - a2);
-		if (d < 0.0) {
-			d += 2 * M_PI;
+	Angle diff_angle_pos(Angle a1, Angle a2) {
+		Angle d = (a1 - a2).angle_mod();
+		if (d < Angle::ZERO) {
+			d += Angle::FULL;
 		}
 		return d;
 	}
 }
 
-bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time, Point target, Point p2, Point p1, unsigned int obs_flags, Point pref_target_point, double pref_amount, Point &target_point, double &target_tolerance) {
-	std::vector<std::pair<double, int> > a;
+bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time, Point target, Point p2, Point p1, unsigned int obs_flags, Point pref_target_point, Angle pref_amount, Point &target_point, Angle &target_tolerance) {
+	std::vector<std::pair<Angle, int> > a;
 	int count = 0;
 
 	Point r1 = p1 - target;
 	Point r2 = p2 - target;
 
 	// Swap sides of endpoints if the target cone is oblique.
-	if (diff_angle_pos(r2.orientation(), r1.orientation()) > M_PI) {
+	if (diff_angle_pos(r2.orientation(), r1.orientation()) > Angle::HALF) {
 		Point t = r1;
 		r1 = r2;
 		r2 = t;
 	}
 
-	double a_zero = r1.orientation();
-	double a_end = diff_angle_pos(r2.orientation(), a_zero);
+	Angle a_zero = r1.orientation();
+	Angle a_end = diff_angle_pos(r2.orientation(), a_zero);
 
-	double pref_target_angle = diff_angle_pos((pref_target_point - target).orientation(), a_zero);
-	if (pref_target_angle - a_end > 2 * M_PI - pref_target_angle) {
-		pref_target_angle -= 2 * M_PI;
+	Angle pref_target_angle = diff_angle_pos((pref_target_point - target).orientation(), a_zero);
+	if (pref_target_angle - a_end > Angle::FULL - pref_target_angle) {
+		pref_target_angle -= Angle::FULL;
 	}
 
-	a.push_back(std::make_pair(0.0, 0));
+	a.push_back(std::make_pair(Angle::ZERO, 0));
 	a.push_back(std::make_pair(a_end, 0));
 
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
@@ -478,18 +478,18 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 		double width = Robot::MAX_RADIUS;
 		Point obs = world.friendly_team().get(i)->position(time) - target;
 
-		Point obs_perp = obs.rotate(M_PI_2).norm() * width;
+		Point obs_perp = obs.rotate(Angle::QUARTER).norm() * width;
 
-		double a0 = diff_angle_pos(obs.orientation(), a_zero);
-		double a1 = diff_angle_pos((obs - obs_perp).orientation(), a_zero);
-		double a2 = diff_angle_pos((obs + obs_perp).orientation(), a_zero);
+		Angle a0 = diff_angle_pos(obs.orientation(), a_zero);
+		Angle a1 = diff_angle_pos((obs - obs_perp).orientation(), a_zero);
+		Angle a2 = diff_angle_pos((obs + obs_perp).orientation(), a_zero);
 
 		double maxdist;
 
 		if (a0 < a_end) {
 			maxdist = (a0 / a_end) * (r2.len() - r1.len()) + r1.len();
 		} else {
-			if (a0 < (a_end + 2 * M_PI) / 2.0) {
+			if (a0 < (a_end + Angle::FULL) / 2.0) {
 				maxdist = r2.len();
 			} else {
 				maxdist = r1.len();
@@ -525,18 +525,18 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 		}
 
 		Point obs = world.enemy_team().get(i)->position(time) - target;
-		Point obs_perp = obs.rotate(M_PI_2).norm() * width;
+		Point obs_perp = obs.rotate(Angle::QUARTER).norm() * width;
 
-		double a0 = diff_angle_pos(obs.orientation(), a_zero);
-		double a1 = diff_angle_pos((obs - obs_perp).orientation(), a_zero);
-		double a2 = diff_angle_pos((obs + obs_perp).orientation(), a_zero);
+		Angle a0 = diff_angle_pos(obs.orientation(), a_zero);
+		Angle a1 = diff_angle_pos((obs - obs_perp).orientation(), a_zero);
+		Angle a2 = diff_angle_pos((obs + obs_perp).orientation(), a_zero);
 
 		double maxdist;
 
 		if (a0 < a_end) {
 			maxdist = (a0 / a_end) * (r2.len() - r1.len()) + r1.len();
 		} else {
-			if (a0 < (a_end + 2 * M_PI) / 2.0) {
+			if (a0 < (a_end + Angle::FULL) / 2.0) {
 				maxdist = r2.len();
 			} else {
 				maxdist = r1.len();
@@ -569,15 +569,15 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 
 	// Walk through the angle array finding the largest clear cone, and
 	// the closest clear cone to the preferred angle.
-	double best_ang = 0.0, best_tol = 0.0;
-	double closest_ang = M_2_PI, closest_tol = 0.0, closest_ang_diff = M_2_PI;
+	Angle best_ang = Angle::ZERO, best_tol = Angle::ZERO;
+	Angle closest_ang = Angle::QUARTER, closest_tol = Angle::ZERO, closest_ang_diff = Angle::QUARTER;
 	bool found_one = false;
 
 	for (std::size_t i = 1; i < a.size(); i++) {
 		if (!count) {
-			double tol = (a[i].first - a[i - 1].first) / 2.0;
-			double ang = (a[i].first + a[i - 1].first) / 2.0;
-			double ang_diff = std::max(0.0, std::fabs(angle_mod(ang - pref_target_angle)) - tol);
+			Angle tol = (a[i].first - a[i - 1].first) / 2.0;
+			Angle ang = (a[i].first + a[i - 1].first) / 2.0;
+			Angle ang_diff = std::max(Angle::ZERO, (ang - pref_target_angle).angle_mod().abs() - tol);
 
 			if (!found_one || tol > best_tol) {
 				best_tol = tol;
@@ -601,7 +601,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 	// preferred or the largest depending on pref_amount and their
 	// angular difference.
 
-	double target_angle;
+	Angle target_angle;
 	bool rv;
 
 	if (found_one) {
@@ -616,7 +616,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 		rv = true;
 	} else {
 		target_angle = pref_target_angle + a_zero;
-		target_tolerance = 0.0;
+		target_tolerance = Angle::ZERO;
 		rv = false;
 	}
 
@@ -674,7 +674,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_point(const World &world, dou
 	return true;
 }
 
-bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(const World &world, double time, Point g1, Point g2, double distmin, double distmax, double dist_off_ball, bool &intercept, unsigned int obs_flags, Point pref_point, double pref_amount, Point &target, Point &velocity) {
+bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(const World &world, double time, Point g1, Point g2, double distmin, double distmax, double dist_off_ball, bool &intercept, unsigned int obs_flags, Point pref_point, Angle pref_amount, Point &target, Point &velocity) {
 	Point ball = world.ball().position(time);
 	Point g = (g1 + g2) / 2.0;
 
@@ -693,10 +693,10 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(const World &world, doub
 	// The ratio is the cosine of the difference of the ball's angle to
 	// the center point and a perpendicular to the line.
 	//
-	double ang = angle_mod((ball - g + gperp.norm(distmin)).orientation() - gperp.orientation());
+	Angle ang = ((ball - g + gperp.norm(distmin)).orientation() - gperp.orientation()).angle_mod();
 	double balldist = std::fabs(offset_to_line(g1, g2, ball));
 
-	double dist = distmin + std::fabs(std::cos(ang)) * (distmax - distmin);
+	double dist = distmin + std::fabs(ang.cos()) * (distmax - distmin);
 
 	if (dist > balldist - dist_off_ball) {
 		dist = balldist - dist_off_ball;
@@ -725,7 +725,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(const World &world, doub
 		rv[2] = defend_line_static(world, time + FRAME_PERIOD, g1, g2, dist, targets[2], variance[2]);
 	} else {
 		Point p;
-		double tol;
+		Angle tol;
 
 		rv[1] = rv[2] = false;
 

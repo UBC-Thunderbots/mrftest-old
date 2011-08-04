@@ -58,7 +58,7 @@ namespace AI {
 					/**
 					 * The type of a single point in a path.
 					 */
-					typedef std::pair<std::pair<Point, double>, timespec> PathPoint;
+					typedef std::pair<std::pair<Point, Angle>, timespec> PathPoint;
 
 					/**
 					 * The type of a complete path.
@@ -90,7 +90,7 @@ namespace AI {
 					 *
 					 * \return the destination position and orientation.
 					 */
-					virtual const std::pair<Point, double> &destination() const = 0;
+					virtual const std::pair<Point, Angle> &destination() const = 0;
 
 					/**
 					 * Returns the target velocity requested by the Strategy.

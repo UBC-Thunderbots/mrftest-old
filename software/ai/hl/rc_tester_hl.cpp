@@ -53,7 +53,7 @@ namespace {
 
 				const double px = runner->position().x + controls[0].get_value();
 				const double py = runner->position().y + controls[1].get_value();
-				const double pz = runner->orientation() + controls[2].get_value();
+				const Angle pz = runner->orientation() + Angle::of_radians(controls[2].get_value());
 
 				runner->move(Point(px, py), pz, Point());
 				runner->type(AI::Flags::MoveType::NORMAL);

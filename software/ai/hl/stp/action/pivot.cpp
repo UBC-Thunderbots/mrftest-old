@@ -17,7 +17,7 @@ void AI::HL::STP::Action::chase_pivot(const World &world, Player::Ptr player, co
 }
 
 void AI::HL::STP::Action::pivot(Player::Ptr player, const Point target) {
-	const double ori = (target - player->position()).orientation();
+	const Angle ori = (target - player->position()).orientation();
 
 	player->move(player->position(), ori, target);
 	player->type(AI::Flags::MoveType::PIVOT);

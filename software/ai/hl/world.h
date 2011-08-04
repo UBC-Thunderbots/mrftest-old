@@ -67,7 +67,7 @@ namespace AI {
 					 *
 					 * \param[in] vel the velocity the robot should be moving when it arrives at the target point.
 					 */
-					virtual void move(Point dest, double ori, Point vel) = 0;
+					virtual void move(Point dest, Angle ori, Point vel) = 0;
 
 					/**
 					 * Returns the movement flags for this player.
@@ -126,7 +126,7 @@ namespace AI {
 					 *
 					 * \deprecated in favour of the individual functions for setting different values.
 					 */
-					void move(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) __attribute__((deprecated));
+					void move(Point dest, Angle ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) __attribute__((deprecated));
 
 					/**
 					 * Sets the current destination and movement type for this player.
@@ -145,7 +145,7 @@ namespace AI {
 					 *
 					 * \deprecated in favour of the individual functions for setting different values.
 					 */
-					virtual void move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) __attribute__((deprecated)) = 0;
+					virtual void move(Point dest, Angle ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) __attribute__((deprecated)) = 0;
 
 					/**
 					 * Causes the player to kick the ball.
@@ -154,7 +154,7 @@ namespace AI {
 					 *
 					 * \param[in] angle the angle to kick at, in radians, with positive being to the left of the robot's orientation.
 					 */
-					virtual void kick(double speed, double angle = 0) = 0;
+					virtual void kick(double speed, Angle angle = 0) = 0;
 
 					/**
 					 * Causes the player to automatically kick the ball as soon as it is picked up by the sensor.
@@ -165,7 +165,7 @@ namespace AI {
 					 *
 					 * \param[in] angle the angle to kick at, in radians, with positive being to the left of the robot's orientation.
 					 */
-					virtual void autokick(double speed, double angle = 0) = 0;
+					virtual void autokick(double speed, Angle angle = 0) = 0;
 			};
 
 			/**

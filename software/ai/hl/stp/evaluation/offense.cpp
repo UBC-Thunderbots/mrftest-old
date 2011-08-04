@@ -80,9 +80,9 @@ namespace {
 
 		double score_progress = (dest - world.ball().position()).x;
 
-		double score_goal_angle = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dest).second;
+		Angle score_goal_angle = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dest).second;
 
-		if (score_goal_angle < degrees2radians(min_shoot_region)) {
+		if (score_goal_angle < min_shoot_region) {
 			return -1e99;
 		}
 
@@ -120,20 +120,20 @@ namespace {
 		{
 			if (use_empty_dont_block) {
 				for (size_t i = 0; i < dont_block.size(); ++i) {
-					std::pair<Point, double> shootershot = AI::HL::Util::calc_best_shot(world.field(), std::vector<Point>(), dont_block[i], increased_radius);
+					std::pair<Point, Angle> shootershot = AI::HL::Util::calc_best_shot(world.field(), std::vector<Point>(), dont_block[i], increased_radius);
 					const Point diff1 = (shootershot.first - dont_block[i]);
 					const Point diff2 = (dest - dont_block[i]);
-					const double anglediff = angle_diff(diff1.orientation(), diff2.orientation());
+					const Angle anglediff = diff1.orientation().angle_diff(diff2.orientation());
 					if (anglediff * 2 < shootershot.second * dont_block_factor) {
 						return -1e99;
 					}
 				}
 			} else {
 				for (size_t i = 0; i < dont_block.size(); ++i) {
-					std::pair<Point, double> shootershot = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dont_block[i], increased_radius);
+					std::pair<Point, Angle> shootershot = AI::HL::Util::calc_best_shot(world.field(), enemy_pos, dont_block[i], increased_radius);
 					const Point diff1 = (shootershot.first - dont_block[i]);
 					const Point diff2 = (dest - dont_block[i]);
-					const double anglediff = angle_diff(diff1.orientation(), diff2.orientation());
+					const Angle anglediff = diff1.orientation().angle_diff(diff2.orientation());
 					if (anglediff * 2 < shootershot.second * dont_block_factor) {
 						return -1e99;
 					}
@@ -145,9 +145,9 @@ namespace {
 		// const double ball_dist = (dest - world.ball().position()).len();
 		// const double goal_dist = (dest - bestshot.first).len();
 
-		double d1 = (world.ball().position() - dest).orientation();
-		double d2 = (world.field().enemy_goal() - dest).orientation();
-		const double score_ball_angle = angle_diff(d1, d2);
+		Angle d1 = (world.ball().position() - dest).orientation();
+		Angle d2 = (world.field().enemy_goal() - dest).orientation();
+		const Angle score_ball_angle = d1.angle_diff(d2);
 
 		const double score_ball_dist = (world.ball().position() - dest).len();
 
@@ -156,7 +156,7 @@ namespace {
 		// const double raw_score = weight_goal * score_goal - weight_ball_angle * score_ball_angle - weight_ball_dist * score_ball_dist + weight_enemy * score_enemy;
 
 		// how "heavy" do u want the goal angle to be
-		double raw_score = pow(score_goal_angle, weight_goal_angle);
+		double raw_score = pow(score_goal_angle.to_radians(), weight_goal_angle);
 
 		// want further from enemy
 		raw_score *= (1 + weight_enemy * score_enemy);
@@ -165,7 +165,7 @@ namespace {
 		raw_score /= (1 + weight_ball_dist * score_ball_dist);
 
 		// the smaller the angle, the closer to 1
-		raw_score /= (1 + weight_ball_angle * score_ball_angle);
+		raw_score /= (1 + weight_ball_angle * score_ball_angle.to_radians());
 
 		// want more progress
 		raw_score *= (1 + weight_progress * score_progress);
@@ -178,9 +178,9 @@ namespace {
 		Player::CPtr baller = Evaluation::calc_friendly_baller();
 
 		if (baller.is()) {
-			double ori_ball = (dest - baller->position()).orientation();
-			double ori_player = baller->orientation();
-			double score_diff = angle_diff(ori_ball, ori_player);
+			Angle ori_ball = (dest - baller->position()).orientation();
+			Angle ori_player = baller->orientation();
+			double score_diff = ori_ball.angle_diff(ori_player).to_radians();
 
 			// reduce score by rotation
 			raw_score /= (1 + weight_ori_diff * score_diff);

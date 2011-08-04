@@ -89,12 +89,12 @@ bool collinear(const Point &a, const Point &b, const Point &c);
  * \return the best direction to shoot and the size of the angle centred around that direction that is completely free of obstacles,
  * or <code>(<var>p</var>, 0)</code> for some unspecified <var>p</var> if there is no free path.
  */
-std::pair<Point, double> angle_sweep_circles(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius);
+std::pair<Point, Angle> angle_sweep_circles(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius);
 
 /**
  * Gets all angle
  */
-std::vector<std::pair<Point, double> > angle_sweep_circles_all(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius);
+std::vector<std::pair<Point, Angle> > angle_sweep_circles_all(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius);
 
 /**
  * Checks whether a line segment intersects a rectangle.
@@ -408,7 +408,7 @@ Point intersection(Point a1, Point a2, Point b1, Point b2);
 /**
  * gives counterclockwise angle from <a-b> to <c-b>
  */
-double vertex_angle(Point a, Point b, Point c);
+Angle vertex_angle(Point a, Point b, Point c);
 
 /**
  * returns time of closest point of approach of two points

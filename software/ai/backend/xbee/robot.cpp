@@ -18,7 +18,7 @@ void Robot::update(const SSL_DetectionRobot &packet, const timespec &ts) {
 		bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
 		xpred.add_datum(neg ? -packet.x() / 1000.0 : packet.x() / 1000.0, timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
 		ypred.add_datum(neg ? -packet.y() / 1000.0 : packet.y() / 1000.0, timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
-		tpred.add_datum(angle_mod(packet.orientation() + (neg ? M_PI : 0.0)), timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
+		tpred.add_datum((Angle::of_radians(packet.orientation()) + (neg ? Angle::HALF : Angle::ZERO)).angle_mod(), timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
 	} else {
 		LOG_WARN("Vision packet has robot with no orientation.");
 	}
@@ -62,19 +62,19 @@ Point Robot::velocity_stdev(double delta) const {
 	return Point(xpred.value(delta, 1).second, ypred.value(delta, 1).second);
 }
 
-double Robot::orientation(double delta) const {
+Angle Robot::orientation(double delta) const {
 	return tpred.value(delta).first;
 }
 
-double Robot::avelocity(double delta) const {
+Angle Robot::avelocity(double delta) const {
 	return tpred.value(delta, 1).first;
 }
 
-double Robot::orientation_stdev(double delta) const {
+Angle Robot::orientation_stdev(double delta) const {
 	return tpred.value(delta).second;
 }
 
-double Robot::avelocity_stdev(double delta) const {
+Angle Robot::avelocity_stdev(double delta) const {
 	return tpred.value(delta, 1).second;
 }
 
@@ -90,7 +90,7 @@ bool Robot::has_destination() const {
 	return false;
 }
 
-const std::pair<Point, double> &Robot::destination() const {
+const std::pair<Point, Angle> &Robot::destination() const {
 	throw std::logic_error("This robot has no destination");
 }
 
@@ -98,7 +98,7 @@ bool Robot::has_path() const {
 	return false;
 }
 
-const std::vector<std::pair<std::pair<Point, double>, timespec> > &Robot::path() const {
+const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &Robot::path() const {
 	throw std::logic_error("This robot has no path");
 }
 
@@ -114,7 +114,7 @@ Visualizable::Colour Robot::bar_graph_colour(unsigned int) const {
 	throw std::logic_error("This robot has no graphs");
 }
 
-Robot::Robot(AI::BE::Backend &backend, unsigned int pattern) : seen_this_frame(false), vision_failures(0), backend(backend), pattern_(pattern), xpred(false, 1.3e-3, 2), ypred(false, 1.3e-3, 2), tpred(true, 1.3e-3, 2) {
+Robot::Robot(AI::BE::Backend &backend, unsigned int pattern) : seen_this_frame(false), vision_failures(0), backend(backend), pattern_(pattern), xpred(1.3e-3, 2), ypred(1.3e-3, 2), tpred(Angle::of_radians(1.3e-3), Angle::of_radians(2)) {
 	backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &Robot::on_defending_end_changed));
 }
 

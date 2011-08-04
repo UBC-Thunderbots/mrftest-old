@@ -57,8 +57,8 @@ namespace {
 					target = world.field().friendly_goal();
 				}
 
-				const double diff_ori = angle_diff(player->orientation(), (target - player->position()).orientation());
-				if (diff_ori < 0.1) {
+				const Angle diff_ori = player->orientation().angle_diff((target - player->position()).orientation());
+				if (diff_ori < Angle::of_radians(0.1)) {
 					// angle completed, switch goals.
 					target_enemy = !target_enemy;
 					LOG_INFO(Glib::ustring::compose("time steps taken: %1", time));

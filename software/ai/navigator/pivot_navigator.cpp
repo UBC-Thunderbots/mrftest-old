@@ -50,9 +50,9 @@ namespace {
 		return PivotNavigator::create(world);
 	}
 
-	DoubleParam offset_angle("offset angle", "Nav/Pivot", 80.0, -1000.0, 1000.0);
+	DegreeParam offset_angle("offset angle (degrees)", "Nav/Pivot", 80.0, -1000.0, 1000.0);
 	DoubleParam offset_distance("offset distance", "Nav/Pivot", 0.1, -1000.0, 10.0);
-	DoubleParam orientation_offset("orientation offset", "Nav/Pivot", 30.0, -1000.0, 1000.0);
+	DegreeParam orientation_offset("orientation offset (degrees)", "Nav/Pivot", 30.0, -1000.0, 1000.0);
 
 	void PivotNavigator::tick() {
 		FriendlyTeam &fteam = world.friendly_team();
@@ -61,7 +61,7 @@ namespace {
 		Player::Path path;
 
 		Point currentPosition, destinationPosition;
-		double currentOrientation, destinationOrientation;
+		Angle currentOrientation, destinationOrientation;
 
 		for (std::size_t i = 0; i < fteam.size(); i++) {
 			path.clear();
@@ -76,9 +76,9 @@ namespace {
 
 			Point diff = (world.ball().position() - currentPosition);
 
-			if ((diff.len() < 0.3 && diff.len() > 0.1) && player->velocity().len() < 0.3 && angle_diff((world.ball().position() - currentPosition).orientation(), player->orientation()) < 1.2) {
-				destinationPosition = player->position() + Point(offset_distance * std::cos(player->orientation() - offset_angle * M_PI / 180.0), offset_distance * std::sin(player->orientation() - offset_angle * M_PI / 180.0));
-				destinationOrientation = player->orientation() + orientation_offset * M_PI / 180.0;
+			if ((diff.len() < 0.3 && diff.len() > 0.1) && player->velocity().len() < 0.3 && (world.ball().position() - currentPosition).orientation().angle_diff(player->orientation()) < Angle::of_radians(1.2)) {
+				destinationPosition = player->position() + offset_distance * Point::of_angle(player->orientation() - offset_angle);
+				destinationOrientation = player->orientation() + orientation_offset;
 				path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
 			} else {
 				destinationPosition = world.ball().position() - 0.2 * diff.norm();
