@@ -5,8 +5,6 @@
 #include <cassert>
 #include <cstring>
 
-#warning Doxygen
-
 namespace {
 	enum TBotsFirmwareRequest {
 		FIRMWARE_REQUEST_CHIP_ERASE = 0,
