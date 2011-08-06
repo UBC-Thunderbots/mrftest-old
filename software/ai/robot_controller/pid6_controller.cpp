@@ -18,9 +18,9 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-	DoubleParam wheel_max_speed("Limit wheel speed (quarter degree per 5 ms)", "RC/PID6", 330.0, 0, 1023);
-	DoubleParam wheel_max_accel("Limit wheel accel (quarter degree per 5 ms squared)", "RC/PID6", 45, 0, 1023);
-	DoubleParam motor_to_field("Ratio of motor distance to field distance", "RC/PID6", 0.00633, 0.001, 1);
+	DoubleParam firmware_loop_rate("Tick rate of firmware control loop in s^-1","RC/PID6",200.0,0.0,48.0e6);
+	DoubleParam wheel_max_speed("Limit wheel speed (quarter degree per firmware tick)", "RC/PID6", 330.0, 0, 1023);
+	DoubleParam wheel_max_accel("Limit wheel accel (quarter degree per firmware tick squared)", "RC/PID6", 45, 0, 1023);
 
 	class PID6Controller : public RobotController {
 		public:
@@ -59,10 +59,14 @@ namespace {
 			{ 42.5995, 27.6645, 4.3175 }
 		};
 
-		double max_acc = 200.0 / TIMESTEPS_PER_SECOND * wheel_max_accel;
-		double distance_to_velocity = 2 * max_acc / wheel_max_speed / motor_to_field;
+		double max_acc = firmware_loop_rate / TIMESTEPS_PER_SECOND * wheel_max_accel;
+		double distance_to_velocity = 2 * max_acc / wheel_max_speed;
 
 		Point position_error = (new_position - player->position()).rotate(-player->orientation());
+
+#warning use path time here
+		double time_deadline = 1.0/TIMESTEPS_PER_SECOND; 
+
 		Angle angular_error = (new_orientation - player->orientation()).angle_mod();
 
 		const double position_delta[3] = { position_error.x, position_error.y, angular_error.to_radians() };
@@ -71,7 +75,7 @@ namespace {
 
 		for (unsigned int row = 0; row < 4; ++row) {
 			for (unsigned int col = 0; col < 3; ++col) {
-				wheel_target_vel[row] += WHEEL_MATRIX[row][col] * position_delta[col];
+				wheel_target_vel[row] += WHEEL_MATRIX[row][col] * position_delta[col]/time_deadline;
 			}
 			wheel_target_vel[row] = distance_to_velocity * wheel_target_vel[row];
 			vel_error[row] = wheel_target_vel[row] - prev_speed[row];
