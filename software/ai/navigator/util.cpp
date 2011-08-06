@@ -542,3 +542,7 @@ timespec AI::Nav::Util::get_next_ts(timespec now, Point &p1, Point &p2, Point ta
 	return timespec_add(now, double_to_timespec(velocity * distance));
 }
 
+timespec AI::Nav::Util::estimate_action_duration(std::pair<Point, Angle> start, std::pair<Point, Angle> dst) {
+	double dist = (start.first - dst.first).len();
+	return double_to_timespec(dist / Player::MAX_LINEAR_VELOCITY);
+}

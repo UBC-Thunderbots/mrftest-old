@@ -76,14 +76,14 @@ namespace AI {
 					static const double MAX_LINEAR_ACCELERATION;
 
 					/**
-					 * The maximum angular velocity of the robot, in radians per second.
+					 * The maximum angular velocity of the robot per second.
 					 */
-					static const double MAX_ANGULAR_VELOCITY;
+					static const Angle MAX_ANGULAR_VELOCITY;
 
 					/**
-					 * The maximum angular acceleration of the robot, in radians per second squared.
+					 * The maximum angular acceleration of the robot per second squared.
 					 */
-					static const double MAX_ANGULAR_ACCELERATION;
+					static const Angle MAX_ANGULAR_ACCELERATION;
 
 					/**
 					 * Returns the destination position and orientation requested by the Strategy.

@@ -13,6 +13,11 @@ namespace AI {
 	namespace Nav {
 		namespace Util {
 			/**
+			 * Estimates the time taken changing from the start point and orientation to the end point and orientation.
+			 */
+			timespec estimate_action_duration(std::pair<Point, Angle> start, std::pair<Point, Angle> dst);
+
+			/**
 			 * Finds where to go and when to get there in order to intercept the moving ball along the route to dst
 			 */
 			std::pair<Point, timespec> get_ramball_location(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
