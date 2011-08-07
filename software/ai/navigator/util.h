@@ -13,9 +13,9 @@ namespace AI {
 	namespace Nav {
 		namespace Util {
 			/**
-			 * Estimates the time taken changing from the start point and orientation to the end point and orientation.
+			 * Estimates the time taken by a robot moving through each point in sequence.
 			 */
-			timespec estimate_action_duration(std::pair<Point, Angle> start, std::pair<Point, Angle> dst);
+			double estimate_action_duration(std::vector<std::pair<Point, Angle> > path_points);
 
 			/**
 			 * Finds where to go and when to get there in order to intercept the moving ball along the route to dst

@@ -542,7 +542,11 @@ timespec AI::Nav::Util::get_next_ts(timespec now, Point &p1, Point &p2, Point ta
 	return timespec_add(now, double_to_timespec(velocity * distance));
 }
 
-timespec AI::Nav::Util::estimate_action_duration(std::pair<Point, Angle> start, std::pair<Point, Angle> dst) {
-	double dist = (start.first - dst.first).len();
-	return double_to_timespec(dist / Player::MAX_LINEAR_VELOCITY);
+double AI::Nav::Util::estimate_action_duration(std::vector<std::pair<Point, Angle> > path_points) {
+	double total_time = 0;
+	for (int i = 0; i < path_points.size() - 1; ++i) {
+		double dist = (path_points[i].first - path_points[i + 1].first).len();
+		total_time += dist / Player::MAX_LINEAR_VELOCITY;
+	}
+	return total_time;
 }
