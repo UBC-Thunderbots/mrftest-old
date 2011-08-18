@@ -21,11 +21,12 @@ namespace {
 	DoubleParam firmware_loop_rate("Tick rate of firmware control loop in s^-1","RC/PID6",200.0,0.0,48.0e6);
 	DoubleParam wheel_max_speed("Limit wheel speed (quarter degree per firmware tick)", "RC/PID6", 330.0, 0, 1023);
 	DoubleParam wheel_max_accel("Limit wheel accel (quarter degree per firmware tick squared)", "RC/PID6", 45, 0, 1023);
+	DoubleParam aggressiveness("Aggressiveness of the controller","RC/PID6",0.8,0,1.0);
 
 	class PID6Controller : public RobotController {
 		public:
 			void tick();
-			void move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]);
+			void move(const Point &new_position, Angle new_orientation, timespec time_of_arrival, int(&wheel_speeds)[4]);
 			void clear();
 			RobotControllerFactory &get_factory() const;
 			PID6Controller(World &world, Player::Ptr plr);
@@ -46,12 +47,12 @@ namespace {
 			clear();
 		} else {
 			int wheels[4];
-			move(path[0].first.first, path[0].first.second, wheels);
+			move(path[0].first.first, path[0].first.second, path[0].second,wheels);
 			player->drive(wheels);
 		}
 	}
 
-	void PID6Controller::move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]) {
+	void PID6Controller::move(const Point &new_position, Angle new_orientation, timespec time_of_arrival, int(&wheel_speeds)[4]) {
 		static const double WHEEL_MATRIX[4][3] = {
 			{ -42.5995, 27.6645, 4.3175 },
 			{ -35.9169, -35.9169, 4.3175 },
@@ -60,12 +61,13 @@ namespace {
 		};
 
 		double max_acc = firmware_loop_rate / TIMESTEPS_PER_SECOND * wheel_max_accel;
-		double distance_to_velocity = 2 * max_acc / wheel_max_speed;
+		double distance_to_velocity = 2 * max_acc / wheel_max_speed * aggressiveness;
 
 		Point position_error = (new_position - player->position()).rotate(-player->orientation());
 
-#warning use path time here
-		double time_deadline = 1.0/TIMESTEPS_PER_SECOND; 
+		double time_deadline = timespec_to_double(timespec_sub(time_of_arrival,world.monotonic_time()));
+		
+		time_deadline = (time_deadline < 1.0/TIMESTEPS_PER_SECOND)?1.0/TIMESTEPS_PER_SECOND:time_deadline; 
 
 		Angle angular_error = (new_orientation - player->orientation()).angle_mod();
 
