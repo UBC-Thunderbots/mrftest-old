@@ -200,6 +200,20 @@ std::vector<Point> line_circle_intersect(const Point &centre, double radius, con
  */
 std::vector<Point> line_rect_intersect(const Rect &r, const Point &segA, const Point &segB);
 
+/**
+ * Find where a vector intersect a rectangle
+ * return the center of the rectangle if there is no intersection
+ *
+ * \param[in] r the rectangle.
+ *
+ * \param[in] segA one point on the line.
+ *
+ * \param[in] segB another point on the line.
+ *
+ * \return the points of intersection.
+ */
+Point vector_rect_intersect(const Rect &r, const Point &segA, const Point &segB);
+
 
 /**
  * Clips a point to a rectangle boundary.

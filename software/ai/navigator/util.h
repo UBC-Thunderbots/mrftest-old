@@ -88,6 +88,12 @@ namespace AI {
 			 * \param[in] target_velocity the desired velocity we want when we get there
 			 */
 			timespec get_next_ts(timespec now, Point &p1, Point &p2, Point target_velocity);
+
+			/**
+			 * Calculate the best position to intersect the ball
+			 *
+			 */
+			bool find_best_intersecting_point( AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player );
 		}
 	}
 }

@@ -357,11 +357,28 @@ std::vector<Point> line_circle_intersect(const Point &centre, double radius, con
 std::vector<Point> line_rect_intersect(const Rect &r, const Point &segA, const Point &segB) {
 	std::vector<Point> ans;
 	for (int i = 0; i < 4; i++) {
-		int j = i + 1;
+		int j = i + 1;	
 		const Point &a = r[i];
 		const Point &b = r[j];
 		if (seg_crosses_seg(a, b, segA, segB) && unique_line_intersect(a, b, segA, segB)) {
 			ans.push_back(line_intersect(a, b, segA, segB));
+		}
+	}
+	return ans;
+}
+
+Point vector_rect_intersect(const Rect &r, const Point &segA, const Point &segB) {
+	Point ans = r.centre();
+	for (int i = 0; i < 4; i++) {
+		int j = i + 1;
+		const Point &a = r[i];
+		const Point &b = r[j];
+		if (seg_crosses_seg(a, b, segA, segB) && unique_line_intersect(a, b, segA, segB)) {
+			Point intersect = line_intersect(a, b, segA, segB);
+			if( (r[i]-r[j]).len() == (r[j] - intersect).len() + (r[i] - intersect).len()){
+			// this means that the intersection is in between the two end points, the last if statement is bit of a repetition though
+				ans = intersect;
+			}
 		}
 	}
 	return ans;

@@ -1,10 +1,13 @@
 #include "ai/navigator/util.h"
+#include "ai/navigator/rrt_planner.h"
+#include "ai/navigator/world.h"
 #include "ai/flags.h"
 #include "util/time.h"
 #include <algorithm>
 #include <cmath>
 #include <vector>
 #include "util/param.h"
+#include "geom/rect.h"
 
 using namespace AI::Flags;
 using namespace AI::Nav::W;
@@ -544,9 +547,53 @@ timespec AI::Nav::Util::get_next_ts(timespec now, Point &p1, Point &p2, Point ta
 
 double AI::Nav::Util::estimate_action_duration(std::vector<std::pair<Point, Angle> > path_points) {
 	double total_time = 0;
-	for (int i = 0; i < path_points.size() - 1; ++i) {
+	for ( unsigned int i = 0; i < path_points.size() - 1; ++i) {
 		double dist = (path_points[i].first - path_points[i + 1].first).len();
 		total_time += dist / Player::MAX_LINEAR_VELOCITY;
 	}
 	return total_time;
+}
+
+bool AI::Nav::Util::find_best_intersecting_point( AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player ){
+	// need to confirm that the player has proper flag
+	
+	// find the end points that define the position that we can be in
+	const Field &field = world.field();
+	const Ball &ball = world.ball();
+	Rect field_rec( Point ( -field.length(), -field.width()) , field.total_length(), field.total_width() );
+	Point segA = ball.position();
+	Point segB = vector_rect_intersect( field_rec, segA, segA + ball.velocity().norm() );
+	
+	// Go through some points to see which one is possible/ (later) more optimal
+	int ten = 10; 							// ten is an okay number
+	Point interval = (segA-segB)* (1.0/ten);
+	double interval_time = interval.len()/ball.velocity().len(); 		// assume no decay
+	Point dest;
+	//timespec min_time = timespec(10000); 					// well just make this value big first
+	std::vector<Point> path_points;
+	AI::Nav::RRTPlanner planner(world);
+	unsigned int flags = 0; // PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)]->added_flags;
+#warning flags and timespec are not account for properly
+	for( int i = 0; i <= ten; i++ ){		
+		path_points = planner.plan( player, segA + interval*i, flags );
+		std::vector<std::pair<Point, Angle> > path_points_with_angle;
+		path_points_with_angle.push_back( std::make_pair(path_points[0], player->orientation() ) );		// first orientation is player's current orientation
+		for ( unsigned int j = 1; j < path_points.size(); j++ ){
+			Angle path_orientation = (path_points[j] - path_points[j-1]).orientation();	// every later orientation is the path segment's orientation
+			path_points_with_angle.push_back( std::make_pair(path_points[j], path_orientation) );
+		}
+		if( AI::Nav::Util::estimate_action_duration( path_points_with_angle ) < interval_time*i ){
+			dest = segA + interval * i;
+			AI::Nav::W::Player::Path path;
+			timespec working_time = world.monotonic_time();
+			for ( unsigned int j = 0; j < path_points_with_angle.size(); j++ ){
+				path.push_back(std::make_pair(path_points_with_angle[j], working_time));	// not going for proper timestamp, yet
+			}
+			player->path(path);
+			return true;
+		}
+		
+	}
+	// guess we have't quite find a possible intersecting point
+	return false;
 }
