@@ -2,10 +2,12 @@
 <!DOCTYPE thunderbots [
 <!ELEMENT thunderbots (params , joysticks , robots)>
 <!ELEMENT params (category)*>
-<!ELEMENT category (category | boolean | integer | double)*>
+<!ELEMENT category (category | boolean | integer | double | degrees | radians)*>
 <!ELEMENT boolean (#PCDATA)>
 <!ELEMENT integer (#PCDATA)>
 <!ELEMENT double (#PCDATA)>
+<!ELEMENT degrees (#PCDATA)>
+<!ELEMENT radians (#PCDATA)>
 <!ELEMENT joysticks (joystick)*>
 <!ELEMENT joystick (axes , buttons)>
 <!ELEMENT axes (mapping)*>
@@ -18,6 +20,8 @@
 <!ATTLIST boolean name CDATA #REQUIRED>
 <!ATTLIST integer name CDATA #REQUIRED>
 <!ATTLIST double name CDATA #REQUIRED>
+<!ATTLIST degrees name CDATA #REQUIRED>
+<!ATTLIST radians name CDATA #REQUIRED>
 <!ATTLIST joystick name CDATA #REQUIRED>
 <!ATTLIST mapping logical CDATA #REQUIRED>
 <!ATTLIST mapping physical CDATA #REQUIRED>
@@ -29,13 +33,13 @@
     <category name="AI">
       <boolean name="Enable Tactic Log">true</boolean>
       <category name="Param">
-        <double name="Angle in degrees that receiver can be offset">1.5</double>
+        <degrees name="Angle that receiver can be offset (degrees)">1.5</degrees>
         <double name="Average Player Velocity">6.0</double>
       </category>
       <category name="STP">
         <category name="Tactic">
           <category name="shoot">
-            <double name="Above this shoot score shoot">5.0</double>
+            <degrees name="Above this shoot score shoot (degrees)">5.0</degrees>
             <boolean name="Jason's shoot code">true</boolean>
           </category>
         </category>
@@ -43,7 +47,7 @@
     </category>
     <category name="Backend">
       <category name="XBee">
-        <double name="Loop Delay">0.100</double>
+        <double name="Loop Delay">0.080</double>
       </category>
     </category>
     <category name="Ball">
@@ -53,8 +57,8 @@
       </category>
     </category>
     <category name="MB">
-      <double name="ori distance threshold">0.100</double>
-      <double name="ori velocity threshold">0.030</double>
+      <radians name="ori distance threshold (radians)">0.100</radians>
+      <radians name="ori velocity threshold (radians)">0.030</radians>
       <double name="pos distance threshold">0.050</double>
       <double name="pos velocity threshold">0.030</double>
     </category>
@@ -74,14 +78,14 @@
     </category>
     <category name="Nav">
       <category name="Pivot">
-        <double name="offset angle">80</double>
+        <degrees name="offset angle (degrees)">80</degrees>
         <double name="offset distance">0</double>
-        <double name="orientation offset">30</double>
+        <degrees name="orientation offset (degrees)">30</degrees>
       </category>
       <category name="Pivot2">
-        <double name="offset angle (degrees)">30</double>
+        <degrees name="offset angle (degrees)">30</degrees>
         <double name="offset distance">0.15</double>
-        <double name="orientation offset (degrees)">30</double>
+        <degrees name="orientation offset (degrees)">30</degrees>
       </category>
       <category name="PivotAram">
         <double name="max acceleration">10</double>
@@ -91,23 +95,23 @@
         <double name="Ball velocity threshold (used to switch between chase and chase+pivot)">7.50</double>
         <double name="Buffer behind ball for chase (meters)">0.350</double>
         <boolean name="Byronic">false</boolean>
-        <double name="Chase angle range for behind target (degrees)">15.0</double>
+        <degrees name="Chase angle range for behind target (degrees)">30.0</degrees>
         <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
         <double name="Distance to extend the tree on each step (m)">0.100</double>
         <boolean name="New chase: enable">false</boolean>
         <boolean name="New Pivot: enable">true</boolean>
         <boolean name="New Pivot: go backward">false</boolean>
         <double name="New Pivot: Hysterisis angle, one side, (n*M_PI)">0.2000</double>
-        <double name="New Pivot: offset angle (n*M_PI)">0.1000</double>
+        <radians name="New Pivot: offset angle (radians)">0.1000</radians>
         <double name="New Pivot [PID]: angular">2.00</double>
         <double name="New Pivot [PID]: linear">2.00</double>
         <double name="New Pivot: Threshold angle, one side, (n*M_PI)">0.2000</double>
         <double name="New Pivot: travel angle, need proper unit, (n*M_PI)">0.200</double>
         <double name="New Pivot: travel radius">0.2000</double>
         <integer name="Number of iterations to go through before we give best partial path">200</integer>
-        <double name="Pivot: offset angle (degrees)">38</double>
+        <degrees name="Pivot: offset angle (degrees)">30</degrees>
         <double name="Pivot: offset distance">0.11</double>
-        <double name="Pivot: orientation offset (degrees)">14</double>
+        <degrees name="Pivot: orientation offset (degrees)">30</degrees>
       </category>
       <category name="Util">
         <double name="Additionaly offense area buffer for friendly kick (rule=0.2) ">0.000</double>
@@ -162,7 +166,7 @@
       <category name="PIDSim">
         <double name="angular -differential">0.0</double>
         <double name="angular +integral">0.00</double>
-        <double name="angular max velocity">1.00</double>
+        <radians name="angular max velocity (radians)">1.00</radians>
         <double name="angular +proportional">1.00</double>
         <double name="(CARE) angular slowdown when translating">1.010</double>
         <boolean name="(CARE) flip trans&amp;ang slowdown">false</boolean>
@@ -195,12 +199,12 @@
           <double name="speed that repel will be kicking at in a corner">6.00</double>
         </category>
         <category name="shoot">
-          <double name="Angle threshold (in degrees) that defines passing accuracy, smaller is more accurate">9.0</double>
-          <double name="Angle threshold (in degrees) that the passee must be with respect to passer when shot, smaller is more accurate">80.0</double>
+          <degrees name="Angle threshold that defines passing accuracy, smaller is more accurate (degrees)">5.0</degrees>
+          <degrees name="Angle threshold that the passee must be with respect to passer when shot, smaller is more accurate (degrees)">80.0</degrees>
           <double name="Decay constant for the ball velocity">0.100</double>
         </category>
         <category name="spin">
-          <double name="change in orientation every time tick for move spin">5.000</double>
+          <radians name="change in orientation every time tick for move spin (radians)">3.000</radians>
         </category>
       </category>
       <category name="ball">
@@ -224,10 +228,8 @@
         <boolean name="draw ray">false</boolean>
       </category>
       <category name="enemy">
-        <double name="Enemy shoot accuracy (degrees)">7.0</double>
-      </category>
-      <category name="Enemy">
         <boolean name="enemy closest use grab ball position">true</boolean>
+        <degrees name="Enemy shoot accuracy (degrees)">1.0</degrees>
       </category>
       <category name="evaluation">
         <double name="speed goalie should ignore direction of ball">1.000</double>
@@ -238,7 +240,7 @@
         <integer name="Goalie pattern index">3</integer>
       </category>
       <category name="Kickoff">
-        <double name="kickoff: angle to separate players (degrees)">10.0</double>
+        <degrees name="kickoff: angle to separate players (degrees)">20.0</degrees>
       </category>
       <category name="offense">
         <double name="Dont block increase multiplier">2.00</double>
@@ -257,24 +259,24 @@
         <boolean name="Triangle check">true</boolean>
       </category>
       <category name="param">
-        <double name="minimum region available for baller_can_shoot to be true (degrees)">5.7</double>
+        <degrees name="minimum region available for baller_can_shoot to be true (degrees)">5.7</degrees>
+      </category>
+      <category name="Pass">
+        <double name="Average ball pass velocity (HACK)">2.0</double>
       </category>
       <category name="pass">
         <double name="Avoid goal radius when passing (m)">0.90</double>
         <double name="Enemy pass checking width (robot radius)">1.00</double>
         <double name="Friendly pass checking width (robot radius)">1.00</double>
-      </category>
-      <category name="Pass">
-        <double name="Average ball pass velocity (HACK)">2.0</double>
         <double name="kicking speed for making a pass">4.75</double>
-        <double name="Minimum distance for pass play">0.400</double>
+        <double name="Minimum distance for pass play">0.500</double>
       </category>
       <category name="PassRay">
-        <double name="Max ray shoot rotation (degrees)">120.0</double>
+        <degrees name="Max ray shoot rotation (degrees)">75.0</degrees>
         <integer name="Ray # of intervals">30</integer>
         <double name="Ray pass threat multiplier">1.0</double>
         <boolean name="Ray pass use calc fastest">true</boolean>
-        <double name="Small ray shoot rotation (degrees)">20.0</double>
+        <degrees name="Small ray shoot rotation (degrees)">20.0</degrees>
       </category>
       <category name="Play">
         <category name="Enable">
@@ -364,13 +366,13 @@
         <double name="enemy avoidance distance (robot radius)">3.00</double>
         <boolean name="new fight">true</boolean>
       </category>
-      <category name="shoot">
-        <double name="Angle threshold (in degrees) that defines shoot accuracy, bigger is more accurate">0.0</double>
-        <double name="Shoot accuracy (for various purposes)">3.0</double>
-      </category>
       <category name="Shoot">
         <double name="big reduced radius for calculating best shot (robot radius ratio)">0.600</double>
         <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
+      </category>
+      <category name="shoot">
+        <radians name="Angle threshold that defines shoot accuracy, bigger is more accurate (radians)">0.0</radians>
+        <double name="Shoot accuracy (for various purposes)">3.0</double>
       </category>
       <category name="Stop">
         <double name="goalie stop dist">0.180</double>
@@ -388,16 +390,16 @@
           <double name=" the radius (meters) in which passer must be with repect to ball before valid ">1.000</double>
           <double name="velocity of pass threshold">1.000</double>
           <double name="velocity to ignore">0.200</double>
-          <double name="when passer within this angle tol passee responds to passer direction">30.0</double>
+          <degrees name="when passer within this angle tol passee responds to passer direction (degrees)">30.0</degrees>
         </category>
         <category name="penalty_goalie">
           <boolean name="Whether the penalty goalie should choose random points">true</boolean>
         </category>
-        <double name="stop: angle to separate players (degrees)">20.0</double>
+        <degrees name="stop: angle to separate players (degrees)">20.0</degrees>
       </category>
       <category name="test_pass">
-        <double name=" angle tolerance that the passer needs to be with respect to the passee">20.0</double>
-        <double name=" angle tolerance that the passer needs to be with respect to the target">30.0</double>
+        <degrees name=" angle tolerance that the passer needs to be with respect to the passee (degrees)">20.0</degrees>
+        <degrees name=" angle tolerance that the passer needs to be with respect to the target (degrees)">30.0</degrees>
         <double name=" distance tolerance that the passee needs to be with respect to the passer shot">0.050</double>
         <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.030</double>
         <boolean name="lower numbered bot is passer">true</boolean>
@@ -408,7 +410,7 @@
         <double name="distance for ball possesion (x ball radius)">2.000</double>
         <double name="if dribble &gt; this time, force shoot (sec)">2.00</double>
         <boolean name="posses ball is has ball">true</boolean>
-        <double name="Shooting Accuracy General (degrees)">10.0</double>
+        <degrees name="Shooting Accuracy General (degrees)">10.0</degrees>
         <double name="time we can prepare during special plays (sec)">3</double>
       </category>
     </category>
