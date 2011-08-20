@@ -13,7 +13,7 @@ EXECUTABLES_EXCLUDE_WORLD := cppunit
 # Directories will be searched recursively for source files.
 #
 SOURCES_ai := ai geom log/shared proto uicomponents util xbee
-SOURCES_cppunit := cppunit
+SOURCES_cppunit := cppunit geom util
 SOURCES_crc16 := crc16.cpp geom util
 SOURCES_experiment := experiment geom util xbee
 SOURCES_fw := fw geom util xbee
