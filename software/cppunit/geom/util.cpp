@@ -1,9 +1,9 @@
 #include "geom/util.h"
 #include "geom/angle.h"
 #include "geom/point.h"
-#include <time.h>
-#include <stdlib.h>
 #include <cmath>
+#include <cstdlib>
+#include <ctime>
 #include <cppunit/TestFixture.h>
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -93,14 +93,14 @@ void GeomUtilTest::test_dist_matching(){
 	// not used anywhere
 }
 void GeomUtilTest::test_collinear(){
-	srand( time(NULL) );
-	for( int i = 0; i < 10; i++ ){
-		Point v = Point::of_angle(Angle::of_degrees(rand()%360)); // should be random number here
-		Point pointA((rand()%100)/100, (rand()%100)/100);
-		Point pointB = pointA + v*(rand()%100)/100;
-		Point pointC = pointA - v*(rand()%100)/100;
-		bool val = collinear( pointA, pointB, pointC );
-		CPPUNIT_ASSERT_EQUAL( true, val );
+	std::srand(static_cast<unsigned int>(std::time(0)));
+	for (unsigned int i = 0; i < 10; ++i) {
+		Point v = Point::of_angle(Angle::of_degrees(std::rand() % 360)); // should be random number here
+		Point pointA((std::rand() % 100) / 100, (std::rand() % 100) / 100);
+		Point pointB = pointA + v * (std::rand() % 100) / 100;
+		Point pointC = pointA - v * (std::rand() % 100) / 100;
+		bool val = collinear(pointA, pointB, pointC);
+		CPPUNIT_ASSERT(val);
 	}
 }
 
