@@ -96,9 +96,9 @@ void GeomUtilTest::test_collinear(){
 	std::srand(static_cast<unsigned int>(std::time(0)));
 	for (unsigned int i = 0; i < 10; ++i) {
 		Point v = Point::of_angle(Angle::of_degrees(std::rand() % 360)); // should be random number here
-		Point pointA((std::rand() % 100) / 100, (std::rand() % 100) / 100);
-		Point pointB = pointA + v * (std::rand() % 100) / 100;
-		Point pointC = pointA - v * (std::rand() % 100) / 100;
+		Point pointA((std::rand() % 100) / 100.0, (std::rand() % 100) / 100.0);
+		Point pointB = pointA + v * (std::rand() % 100) / 100.0;
+		Point pointC = pointA - v * (std::rand() % 100) / 100.0;
 		bool val = collinear(pointA, pointB, pointC);
 		CPPUNIT_ASSERT(val);
 	}
