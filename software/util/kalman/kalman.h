@@ -64,19 +64,20 @@ class Kalman {
 			double value;
 		};
 
-		void predict_step(double timestep, double control, Matrix &state_predict, Matrix &p_predict) const;
 		timespec last_measurement_time;
 		double last_control;
 		double sigma_m;
 		double sigma_a;
 		std::deque<ControlInput> inputs;
-		Matrix gen_f_mat(double timestep) const;
-		Matrix gen_q_mat(double timestep) const;
-		Matrix gen_g_mat(double timestep) const;
 		Matrix h;
 		Matrix p;
 		Matrix state_estimate;
 		bool is_angle;
+
+		void predict_step(double timestep, double control, Matrix &state_predict, Matrix &p_predict) const;
+		Matrix gen_f_mat(double timestep) const;
+		Matrix gen_q_mat(double timestep) const;
+		Matrix gen_g_mat(double timestep) const;
 };
 
 #endif
