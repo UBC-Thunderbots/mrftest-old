@@ -1,7 +1,7 @@
 #include "util/annunciator.h"
-#include "util/dprint.h"
 #include "util/misc.h"
 #include <cassert>
+#include <iostream>
 #include <unordered_map>
 
 namespace {
@@ -49,7 +49,7 @@ void Annunciator::Message::active(bool actv) {
 				signal_message_activated.emit();
 				displayed_ = true;
 			}
-			LOG_ERROR(text);
+			std::cout << "[ANNUNCIATOR] " << text << '\n';
 		} else {
 			one_second_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &Annunciator::Message::on_one_second), 1);
 		}
@@ -64,7 +64,7 @@ void Annunciator::Message::fire() {
 		one_second_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &Annunciator::Message::on_one_second), 1);
 	}
 
-	LOG_ERROR(text);
+	std::cout << "[ANNUNCIATOR] " << text << '\n';
 
 	for (std::size_t i = 0; i < displayed.size(); ++i) {
 		if (displayed[i] == this) {
