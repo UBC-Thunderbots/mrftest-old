@@ -4,12 +4,56 @@
 #include "util/matrix.h"
 #include <deque>
 
+/**
+ * \brief Implements the basic mathematics of a Kalman filter.
+ */
 class Kalman {
 	public:
+		/**
+		 * \brief Constructs a new Kalman filter.
+		 *
+		 * \param[in] angle \c true for angular semantics (which imply 2π=0), or \c false for linear semantics.
+		 *
+		 * \param[in] measure_std the standard deviation of measurements fed to update(double, timespec).
+		 */
 		Kalman(bool angle, double measure_std, double accel_std);
+
+		/**
+		 * \brief Predicts values at a given time.
+		 *
+		 * \param[in] prediction_time the time at which values should be extracted.
+		 *
+		 * \param[out] state_predict the matrix of predicted values.
+		 *
+		 * \param[out] p_predict the matrix of predicted covariances.
+		 */
 		void predict(timespec prediction_time, Matrix &state_predict, Matrix &p_predict) const;
+
+		/**
+		 * \brief Adds a measurement to the filter.
+		 *
+		 * \param[in] measurement the measured value.
+		 *
+		 * \param[in] measurement_time the time at which the measurement was taken.
+		 */
 		void update(double measurement, timespec measurement_time);
+
+		/**
+		 * \brief Adds a system control input to the filter.
+		 *
+		 * \param[in] input the control input, which must be a second derivative of the system's value.
+		 *
+		 * \param[in] input_time the time at which the control input was delivered to the system.
+		 */
 		void add_control(double input, timespec input_time);
+
+		/**
+		 * \brief Finds the most recent control input in force at a particular time.
+		 *
+		 * \param[in] control_time the time to query.
+		 *
+		 * \return the most recent control input appearing at or before \p control_time.
+		 */
 		double get_control(timespec control_time) const;
 
 	private:
