@@ -3,6 +3,9 @@
 #include "util/time.h"
 #include <cmath>
 
+Kalman::ControlInput::ControlInput(timespec t, double v) : time(t), value(v) {
+}
+
 Kalman::Kalman(bool angle, double measure_std, double accel_std) : last_control(0.0), sigma_m(measure_std), sigma_a(accel_std), h(1, 2), p(2, 2, Matrix::InitFlag::IDENTITY), state_estimate(2, 1, Matrix::InitFlag::ZEROES), is_angle(angle) {
 	last_measurement_time.tv_sec = 0;
 	last_measurement_time.tv_nsec = 0;

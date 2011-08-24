@@ -4,12 +4,6 @@
 #include "util/matrix.h"
 #include <deque>
 
-struct ControlInput {
-	ControlInput(timespec t, double v) : time(t), value(v) {}
-	timespec time;
-	double value;
-};
-
 class Kalman {
 	public:
 		Kalman(bool angle, double measure_std, double accel_std);
@@ -20,6 +14,13 @@ class Kalman {
 		double get_control(timespec control_time) const;
 
 	private:
+		struct ControlInput {
+			ControlInput(timespec t, double v);
+
+			timespec time;
+			double value;
+		};
+
 		void predict_step(double timestep, double control, Matrix &state_predict, Matrix &p_predict) const;
 		timespec last_measurement_time;
 		double last_control;
