@@ -70,14 +70,6 @@ void Kalman::predict(timespec prediction_time, Matrix &state_predict, Matrix &p_
 	}
 }
 
-// get an estimate of the state at prediction_time
-Matrix Kalman::predict(timespec prediction_time) const {
-	Matrix state_predict;
-	Matrix p_predict;
-	predict(prediction_time, state_predict, p_predict);
-	return state_predict;
-}
-
 // this should generate an updated state, as well as clean up all the inputs since the last measurement
 // until this current one
 void Kalman::update(double measurement, timespec measurement_time) {
