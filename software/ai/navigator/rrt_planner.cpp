@@ -177,6 +177,15 @@ std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool pos
 		}
 	}
 
+	// just use the current player position as the destination if we are within the
+	// threshold already
+	if (final_points.size() == 0) {
+		final_points.push_back(player->position());
+	} else if (valid_path(final_points[final_points.size() - 1], player->destination().first, world, player) && player->type() == AI::Flags::MoveType::NORMAL) {
+		// go exactly to the destination point if we are able
+		final_points.push_back(player->destination().first);
+	}
+
 	return final_points;
 }
 

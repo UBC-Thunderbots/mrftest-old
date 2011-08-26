@@ -81,7 +81,9 @@ namespace AI {
 			}
 
 			std::pair<Point, Angle> RRTNavigator::intercept_ball(Player::Ptr player) {
-				// TODO: Jason, implement this.
+				if (!find_best_intersecting_point(world, player)) {
+					LOG_INFO("No intersecting point found!");
+				}
 			}
 
 			std::pair<Point, Angle> RRTNavigator::intercept_ball_orientation(Player::Ptr player) {
@@ -307,9 +309,8 @@ namespace AI {
 						dest = grab_ball_dest.first;
 						dest_orientation = grab_ball_dest.second;
 					} else if (player->type() == AI::Flags::MoveType::INTERCEPT) {
-						std::pair<Point, Angle> grab_ball_dest = intercept_ball(player);
-						dest = grab_ball_dest.first;
-						dest_orientation = grab_ball_dest.second;
+						intercept_ball(player);
+						continue;
 					} else if (player->type() == AI::Flags::MoveType::INTERCEPT_PIVOT) {
 						std::pair<Point, Angle> grab_ball_dest = intercept_ball_orientation(player);
 						dest = grab_ball_dest.first;
@@ -360,15 +361,6 @@ namespace AI {
 						}
 
 						path.push_back(std::make_pair(std::make_pair(path_points[j], dest_orientation), working_time));
-					}
-
-					// just use the current player position as the destination if we are within the
-					// threshold already
-					if (path_points.size() == 0) {
-						path.push_back(std::make_pair(std::make_pair(player->position(), dest_orientation), working_time));
-					} else if (valid_path(path_points[path_points.size() - 1], dest, world, player)) {
-						// go exactly to the destination point if we are able
-						path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), working_time));
 					}
 
 					player->path(path);
