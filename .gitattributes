@@ -356,6 +356,7 @@ software/ai/navigator/rrt_planner.cpp -text
 software/ai/navigator/rrt_planner.h -text
 software/ai/navigator/rrtphysics_navigator.cpp -text
 software/ai/navigator/simple_navigator.cpp -text
+software/ai/navigator/test_catch_ball.cpp -text
 software/ai/navigator/util.cpp -text
 software/ai/navigator/util.h -text
 software/ai/navigator/world.cpp -text
