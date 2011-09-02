@@ -139,6 +139,13 @@ class Point {
 		 * (in actuality, this is <code>std::atan2(y, x)</code>).
 		 */
 		Angle orientation() const __attribute__((warn_unused_result));
+
+		/**
+		 * \brief Checks whether this Point contains NaN in either coordinate.
+		 *
+		 * \return \c true if either coordinate is NaN, or \c false if not.
+		 */
+		bool isnan() const;
 };
 
 /**
@@ -345,6 +352,10 @@ inline Point &Point::operator=(const Point &q) {
 
 inline Angle Point::orientation() const {
 	return Angle::of_radians(std::atan2(y, x));
+}
+
+inline bool Point::isnan() const {
+	return std::isnan(x) || std::isnan(y);
 }
 
 inline Point operator+(const Point &p, const Point &q) {
