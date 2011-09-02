@@ -23,7 +23,7 @@ namespace {
 
 	class KalmanIntersectTest : public HighLevel {
 		public:
-			KalmanIntersectTest(World &world) : world(world), isect_robot_dst(0, 0), to_run(false), to_dribble(false), to_kick(false), lbl_xposition("XPosition"), adj_xposition(0.0, -4.0, 4.0, 0.1, 1.0), hsb_xposition(adj_xposition), xposition(0.0), lbl_yposition("YPosition"), adj_yposition(0.0, -2.0, 2.0, 0.1, 0.5), hsb_yposition(adj_yposition), yposition(0.0), lbl_oposition("OPosition"), adj_oposition(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_oposition(adj_oposition), oposition(Angle::ZERO), lbl_kick_power("KPower"), adj_kick_power(0.0, 0.0, 10.0, 0.5, 1.0), hsb_kick_power(adj_kick_power) {
+			KalmanIntersectTest(World &world) : world(world), lbl_xposition("XPosition"), adj_xposition(0.0, -4.0, 4.0, 0.1, 1.0), hsb_xposition(adj_xposition), lbl_yposition("YPosition"), adj_yposition(0.0, -2.0, 2.0, 0.1, 0.5), hsb_yposition(adj_yposition), lbl_oposition("OPosition"), adj_oposition(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_oposition(adj_oposition), lbl_kick_power("KPower"), adj_kick_power(0.0, 0.0, 10.0, 0.5, 1.0), hsb_kick_power(adj_kick_power), isect_robot_dst(0, 0), xposition(0.0), yposition(0.0), oposition(Angle::ZERO), to_run(false), to_dribble(false), to_kick(false) {
 				adj_xposition.signal_value_changed().connect(sigc::mem_fun(*this, &KalmanIntersectTest::on_xposition_value_changed));
 				ui_box.add(lbl_xposition);
 				ui_box.add(hsb_xposition);
