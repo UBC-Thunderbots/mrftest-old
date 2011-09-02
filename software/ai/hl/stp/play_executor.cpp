@@ -255,7 +255,7 @@ void PlayExecutor::execute_tactics() {
 
 			case AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY:
 			case AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY:
-				default_flags |= Flags::FLAG_FRIENDLY_KICK;
+				default_flags |= Flags::FLAG_AVOID_ENEMY_DEFENSE;
 				break;
 
 			case AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY:
