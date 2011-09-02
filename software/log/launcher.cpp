@@ -1,30 +1,59 @@
 #include "log/launcher.h"
+#include "log/loader.h"
 #include "log/analyzer.h"
+#include "util/algorithm.h"
 #include "util/exception.h"
-#include <algorithm>
+#include "util/fd.h"
+#include "util/mapped_file.h"
+#include "util/string.h"
+#include <bzlib.h>
+#include <cassert>
 #include <cerrno>
+#include <cstdio>
+#include <fcntl.h>
+#include <functional>
+#include <iterator>
+#include <limits>
+#include <locale>
+#include <sstream>
 #include <string>
 #include <unistd.h>
 #include <vector>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 namespace {
-	void populate(Gtk::ListViewText &log_list) {
-		log_list.clear_items();
+	std::string get_logs_dir() {
 		const std::string &parent_dir = Glib::get_user_data_dir();
 		const std::string &tbots_dir = Glib::build_filename(parent_dir, "thunderbots");
-		const std::string &logs_dir = Glib::build_filename(tbots_dir, "logs");
-		Glib::Dir dir(logs_dir);
-		std::vector<std::string> logs(dir.begin(), dir.end());
-		std::sort(logs.begin(), logs.end());
-		std::for_each(logs.begin(), logs.end(), sigc::compose(sigc::mem_fun(log_list, &Gtk::ListViewText::append_text), &Glib::filename_to_utf8));
+		return Glib::build_filename(tbots_dir, "logs");
+	}
+
+	std::string filename_to_pathname(const std::string &filename) {
+		return Glib::build_filename(get_logs_dir(), filename);
+	}
+
+	bool is_ok_filename(const std::string &filename) {
+		return !filename.empty() && filename[0] != '.' && LogLoader::is_current_version(filename_to_pathname(filename));
+	}
+
+	void get_filenames(std::vector<std::string> &files) {
+		Glib::Dir dir(get_logs_dir());
+		files.clear();
+		std::remove_copy_if(dir.begin(), dir.end(), std::back_inserter(files), std::not1(std::ptr_fun(&is_ok_filename)));
+		std::sort(files.begin(), files.end());
 	}
 }
 
-LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyzer_button("Analyzer"), rename_button("Rename"), delete_button("Delete") {
+LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyzer_button("Analyzer"), rename_button("Rename"), delete_button("Delete"), exit_pending(false) {
 	set_title("Thunderbots Log Tools");
 	set_size_request(400, 400);
 
-	populate(log_list);
+	populate();
+
+	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox);
 
 	Gtk::HBox *hbox = Gtk::manage(new Gtk::HBox);
 
@@ -39,7 +68,11 @@ LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyz
 	vbb->pack_start(delete_button);
 	hbox->pack_start(*vbb, Gtk::PACK_SHRINK);
 
-	add(*hbox);
+	vbox->pack_start(*hbox, Gtk::PACK_EXPAND_WIDGET);
+
+	vbox->pack_start(compress_progress_bar, Gtk::PACK_SHRINK);
+
+	add(*vbox);
 
 	log_list.get_selection()->signal_changed().connect(sigc::mem_fun(this, &LogLauncher::on_log_list_selection_changed));
 	on_log_list_selection_changed();
@@ -48,17 +81,193 @@ LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyz
 	delete_button.signal_clicked().connect(sigc::mem_fun(this, &LogLauncher::on_delete_clicked));
 
 	show_all();
+
+	compress_lock_fd = FileDescriptor::create_open(filename_to_pathname(".lock").c_str(), O_RDWR | O_CREAT, 0666);
+	if (lockf(compress_lock_fd->fd(), F_TLOCK, 0) < 0) {
+		if (errno == EAGAIN || errno == EACCES) {
+			// File is already locked. Just do nothing.
+			next_file_to_compress = files_to_compress.end();
+		} else {
+			throw SystemError("lockf", errno);
+		}
+	} else {
+		// Delete old dotfiles in the logs directory.
+		{
+			Glib::Dir dir(get_logs_dir());
+			std::vector<std::string> to_delete;
+			for (auto i = dir.begin(), iend = dir.end(); i != iend; ++i) {
+				const std::string &fn = *i;
+				if (!fn.empty() && fn[0] == '.' && fn != ".lock") {
+					to_delete.push_back(fn);
+				}
+			}
+			for (auto i = to_delete.begin(), iend = to_delete.end(); i != iend; ++i) {
+				std::remove(filename_to_pathname(*i).c_str());
+			}
+		}
+
+		// Check which files need compressing.
+		for (auto i = files.begin(), iend = files.end(); i != iend; ++i) {
+			if (LogLoader::needs_compressing(filename_to_pathname(*i))) {
+				files_to_compress.push_back(*i);
+			}
+		}
+
+		if (!files_to_compress.empty()) {
+			// Start compressing them.
+			next_file_to_compress = files_to_compress.begin();
+			rename_button.set_sensitive(false);
+			delete_button.set_sensitive(false);
+			compress_dispatcher.connect(sigc::mem_fun(this, &LogLauncher::start_compressing));
+			start_compressing();
+		} else {
+			// Drop the lockfile so another process can grab it if desired.
+			compress_lock_fd.reset();
+			next_file_to_compress = files_to_compress.end();
+		}
+	}
+}
+
+void LogLauncher::populate() {
+	assert(compress_threads.empty());
+
+	log_list.clear_items();
+	files.clear();
+	files_to_compress.clear();
+	compress_progress_bar.set_text(Glib::ustring());
+	compress_progress_bar.set_fraction(0);
+
+	get_filenames(files);
+	for (auto i = files.begin(), iend = files.end(); i != iend; ++i) {
+		log_list.append_text(Glib::filename_display_basename(filename_to_pathname(*i)));
+	}
+}
+
+void LogLauncher::start_compressing() {
+	// Join and erase any threads that are finished.
+	{
+		std::lock_guard<std::mutex> lock(compress_threads_done_mutex);
+		for (auto i = compress_threads_done.begin(), iend = compress_threads_done.end(); i != iend; ++i) {
+			for (auto j = compress_threads.begin(), jend = compress_threads.end(); j != jend; ++j) {
+				if (j->get_id() == *i) {
+					j->join();
+					compress_threads.erase(j);
+					break;
+				}
+			}
+		}
+		compress_threads_done.clear();
+	}
+
+	// Update progress bar to show # of files completely finished (excludes those left to compress *and* those currently compressing).
+	std::size_t files_done = std::distance(static_cast<const std::vector<std::string> &>(files_to_compress).begin(), next_file_to_compress) - compress_threads.size();
+	compress_progress_bar.set_text(Glib::ustring::compose("Compressed %1 / %2", files_done, files_to_compress.size()));
+	compress_progress_bar.set_fraction(static_cast<double>(files_done) / static_cast<double>(files_to_compress.size()));
+
+	// Fork more threads as long as we're supposed to.
+	while (!exit_pending && next_file_to_compress != files_to_compress.end() && (compress_threads.empty() || compress_threads.size() < std::thread::hardware_concurrency())) {
+		compress_threads.push_back(std::thread(std::bind(std::mem_fun(&LogLauncher::compress_thread_proc), this, *next_file_to_compress)));
+		++next_file_to_compress;
+	}
+
+	// Check if we're done compressing everything.
+	if (compress_threads.empty()) {
+		if (exit_pending) {
+			hide();
+		} else if (next_file_to_compress == files_to_compress.end()) {
+			// Done compressing all files.
+			compress_progress_bar.set_text(Glib::ustring());
+			compress_progress_bar.set_fraction(0);
+			rename_button.set_sensitive();
+			delete_button.set_sensitive();
+			compress_lock_fd.reset();
+		}
+	}
+}
+
+void LogLauncher::compress_thread_proc(const std::string &filename) {
+	// Open the temporary file.
+	std::string temp_filename;
+	{
+		std::wostringstream oss;
+		oss.imbue(std::locale("C"));
+		oss << L".loglauncher.tmp.";
+		oss << std::this_thread::get_id();
+		temp_filename = Glib::filename_from_utf8(wstring2ustring(oss.str()));
+	}
+	const std::string &temp_pathname = filename_to_pathname(temp_filename);
+	FileDescriptor::Ptr dst_fd = FileDescriptor::create_open(temp_pathname.c_str(), O_RDWR | O_CREAT | O_EXCL, 0666);
+
+	{
+		// Open the source file and memory map it.
+		const MappedFile src_mapping(filename_to_pathname(filename));
+
+		// BZip2 compression states:
+		// "To guarantee that the compressed data will fit in its buffer, allocate an output buffer of size 1% larger than the uncompressed data, plus six hundred extra bytes."
+		// We do this by truncating the file and then mapping it.
+		if (ftruncate(dst_fd->fd(), src_mapping.size() + (src_mapping.size() + 99) / 100 + 600) < 0) {
+			throw SystemError("ftruncate", errno);
+		}
+
+		// Memory map the destination file and do a buffer-to-buffer compress.
+		{
+			MappedFile dst_mapping(dst_fd, PROT_READ | PROT_WRITE);
+			if (dst_mapping.size() > std::numeric_limits<unsigned int>::max()) {
+				throw std::runtime_error("Log file too big.");
+			}
+			unsigned int dlen = static_cast<int>(dst_mapping.size());
+			if (BZ2_bzBuffToBuffCompress(static_cast<char *>(dst_mapping.data()), &dlen, const_cast<char *>(static_cast<const char *>(src_mapping.data())), static_cast<unsigned int>(src_mapping.size()), 9, 0, 0) != BZ_OK) {
+				throw std::runtime_error("BZip2 error compressing log file.");
+			}
+			dst_mapping.sync();
+
+			// Now shorten the destination file to the amount of space actually used.
+			if (ftruncate(dst_fd->fd(), dlen) < 0) {
+				throw SystemError("ftruncate", errno);
+			}
+		}
+	}
+
+	// Sync the temporary file to disk and rename it over top of the original.
+	if (fdatasync(dst_fd->fd()) < 0) {
+		throw SystemError("fdatasync", errno);
+	}
+	if (std::rename(temp_pathname.c_str(), filename_to_pathname(filename).c_str()) < 0) {
+		throw SystemError("rename", errno);
+	}
+
+	// Notify the manager that we're done.
+	std::lock_guard<std::mutex> lock(compress_threads_done_mutex);
+	compress_threads_done.push_back(std::this_thread::get_id());
+	compress_dispatcher.emit();
+}
+
+bool LogLauncher::on_delete_event(GdkEventAny *) {
+	if (compress_threads.empty()) {
+		exit_pending = true;
+		return false;
+	} else {
+		log_list.set_sensitive(false);
+		analyzer_button.set_sensitive(false);
+		rename_button.set_sensitive(false);
+		delete_button.set_sensitive(false);
+		exit_pending = true;
+		return true;
+	}
 }
 
 void LogLauncher::on_log_list_selection_changed() {
 	int num = log_list.get_selection()->count_selected_rows();
-	analyzer_button.set_sensitive(num == 1);
-	rename_button.set_sensitive(num == 1);
-	delete_button.set_sensitive(num >= 1);
+	analyzer_button.set_sensitive(num >= 1 && !exit_pending);
+	rename_button.set_sensitive(num == 1 && !exit_pending && next_file_to_compress == files_to_compress.end());
+	delete_button.set_sensitive(num >= 1 && !exit_pending && next_file_to_compress == files_to_compress.end());
 }
 
 void LogLauncher::on_analyzer_clicked() {
-	new LogAnalyzer(*this, Glib::filename_from_utf8(log_list.get_text(log_list.get_selected()[0])));
+	const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
+	for (auto i = selected.begin(), iend = selected.end(); i != iend; ++i) {
+		new LogAnalyzer(*this, filename_to_pathname(files[(*i)[0]]));
+	}
 }
 
 void LogLauncher::on_rename_clicked() {
@@ -77,26 +286,20 @@ void LogLauncher::on_rename_clicked() {
 	dlg.set_default_response(Gtk::RESPONSE_OK);
 	int resp = dlg.run();
 	if (resp == Gtk::RESPONSE_OK) {
-		const std::string &old_name = Glib::filename_from_utf8(log_list.get_text(log_list.get_selected()[0]));
+		const std::string &old_name = files[log_list.get_selected()[0]];
 		const std::string &new_name = Glib::filename_from_utf8(new_name_entry.get_text());
 		if (new_name != old_name) {
-			const std::string &parent_dir = Glib::get_user_data_dir();
-			const std::string &tbots_dir = Glib::build_filename(parent_dir, "thunderbots");
-			const std::string &logs_dir = Glib::build_filename(tbots_dir, "logs");
-			const std::string &old_path = Glib::build_filename(logs_dir, old_name);
-			const std::string &new_path = Glib::build_filename(logs_dir, new_name);
+			const std::string &old_path = filename_to_pathname(old_name);
+			const std::string &new_path = filename_to_pathname(new_name);
 			try {
-				if (link(old_path.c_str(), new_path.c_str()) < 0) {
-					throw SystemError("link", errno);
-				}
-				if (unlink(old_path.c_str()) < 0) {
-					throw SystemError("unlink", errno);
+				if (std::rename(old_path.c_str(), new_path.c_str()) < 0) {
+					throw SystemError("rename", errno);
 				}
 			} catch (const SystemError &exp) {
 				Gtk::MessageDialog md(*this, exp.what(), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
 				md.run();
 			}
-			populate(log_list);
+			populate();
 		}
 	}
 }
@@ -106,22 +309,19 @@ void LogLauncher::on_delete_clicked() {
 	Gtk::MessageDialog md(*this, Glib::ustring::compose("Are you sure you wish to delete %1 %2 log%3?", num == 1 ? "this" : "these", num, num == 1 ? "" : "s"), false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true);
 	int resp = md.run();
 	if (resp == Gtk::RESPONSE_YES) {
-		const std::string &parent_dir = Glib::get_user_data_dir();
-		const std::string &tbots_dir = Glib::build_filename(parent_dir, "thunderbots");
-		const std::string &logs_dir = Glib::build_filename(tbots_dir, "logs");
 		const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
 		for (Gtk::TreeSelection::ListHandle_Path::const_iterator i = selected.begin(), iend = selected.end(); i != iend; ++i) {
-			const std::string &filename = Glib::build_filename(logs_dir, Glib::filename_from_utf8(log_list.get_text((*i)[0])));
+			const std::string &pathname = filename_to_pathname(files[(*i)[0]]);
 			try {
-				if (unlink(filename.c_str()) < 0) {
-					throw SystemError("unlink", errno);
+				if (std::remove(pathname.c_str()) < 0) {
+					throw SystemError("remove", errno);
 				}
 			} catch (const SystemError &exp) {
 				Gtk::MessageDialog md2(*this, exp.what(), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
 				md2.run();
 			}
 		}
-		populate(log_list);
+		populate();
 	}
 }
 

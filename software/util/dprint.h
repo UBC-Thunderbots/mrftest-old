@@ -1,20 +1,15 @@
 #ifndef UTIL_DPRINT_H
 #define UTIL_DPRINT_H
 
+#include "proto/log_record.pb.h"
 #include <glibmm.h>
-#include <stdint.h>
 
 /**
  * A signal emitted every time a message is logged.
  */
-extern sigc::signal<void, unsigned int, const Glib::ustring &> signal_message_logged;
+extern sigc::signal<void, Log::DebugMessageLevel, const Glib::ustring &> signal_message_logged;
 
-void log_impl(const char *file, unsigned int line, const char *function, const Glib::ustring &msg, unsigned int level);
-
-#define LOG_LEVEL_DEBUG 0
-#define LOG_LEVEL_INFO 1
-#define LOG_LEVEL_WARN 2
-#define LOG_LEVEL_ERROR 3
+void log_impl(const char *file, unsigned int line, const char *function, const Glib::ustring &msg, Log::DebugMessageLevel level);
 
 /**
  * Outputs a message at the debug log level.
@@ -22,7 +17,7 @@ void log_impl(const char *file, unsigned int line, const char *function, const G
  *
  * \param msg the message.
  */
-#define LOG_DEBUG(msg) log_impl(__FILE__, __LINE__, __func__, msg, LOG_LEVEL_DEBUG)
+#define LOG_DEBUG(msg) log_impl(__FILE__, __LINE__, __func__, msg, Log::DEBUG_MESSAGE_LEVEL_DEBUG)
 
 /**
  * Outputs a message at the informational log level.
@@ -30,7 +25,7 @@ void log_impl(const char *file, unsigned int line, const char *function, const G
  *
  * \param msg the message.
  */
-#define LOG_INFO(msg) log_impl(__FILE__, __LINE__, __func__, msg, LOG_LEVEL_INFO)
+#define LOG_INFO(msg) log_impl(__FILE__, __LINE__, __func__, msg, Log::DEBUG_MESSAGE_LEVEL_INFO)
 
 /**
  * Outputs a message at the warning log level.
@@ -38,7 +33,7 @@ void log_impl(const char *file, unsigned int line, const char *function, const G
  *
  * \param msg the message.
  */
-#define LOG_WARN(msg) log_impl(__FILE__, __LINE__, __func__, msg, LOG_LEVEL_WARN)
+#define LOG_WARN(msg) log_impl(__FILE__, __LINE__, __func__, msg, Log::DEBUG_MESSAGE_LEVEL_WARN)
 
 /**
  * Outputs a message at the error log level.
@@ -46,7 +41,7 @@ void log_impl(const char *file, unsigned int line, const char *function, const G
  *
  * \param msg the message.
  */
-#define LOG_ERROR(msg) log_impl(__FILE__, __LINE__, __func__, msg, LOG_LEVEL_ERROR)
+#define LOG_ERROR(msg) log_impl(__FILE__, __LINE__, __func__, msg, Log::DEBUG_MESSAGE_LEVEL_ERROR)
 
 #endif
 

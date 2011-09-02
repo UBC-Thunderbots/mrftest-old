@@ -94,7 +94,7 @@ proto/%.pb.cc proto/%.pb.h : proto/%.proto
 obj/proto/%.pb.o : proto/%.pb.cc $(PROTOBUF_HS)
 	echo "  CXX	$@"
 	mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -o$@ -c -Wno-extra $<
+	$(CXX) $(CXXFLAGS) -o$@ -c -Wno-extra -Wno-conversion $<
 
 #
 # Include all the dependency files.

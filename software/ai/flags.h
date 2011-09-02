@@ -5,6 +5,14 @@
 
 namespace AI {
 	namespace Flags {
+		// === IMPORTANT ===
+		// When adding a flag, remember to add its decoding to log/analyzer.cpp in MOVE_FLAG_MAPPING!
+		// Never reuse a numerical value or game logs will become ambiguous.
+		// Never remove a flag or the log analyzer will fail to compile.
+		// If a flag should not be used, mark it with __attribute__((deprecated)).
+		// The only exception to the above is if a log version change occurs and old flags can be compacted.
+		// === IMPORTANT ===
+
 		/**
 		 * Flags indicating how robots comply with game rules.
 		 * Flags are set by the Strategy and examined by the Navigator to determine which potential paths are legal.
@@ -49,20 +57,6 @@ namespace AI {
 			 * Stay more than 40cm outside the penalty mark line as required for non-goalies in penalty kick rules.
 			 */
 			FLAG_PENALTY_KICK_ENEMY = 0x0080,
-
-			/**
-			 * When we are kicking, need to stay 20 cm away from enemy defense area
-			 *
-			 * Rules:
-			 * "If, at the time the ball enters play,
-			 * a member of the kicker's team occupies the area closer than
-			 * 200 mm to the opponent's defense area
-			 * an indirect free kick is awarded to the opposing team,
-			 * the kick to be taken from the location of
-			 *	the ball when the infringement occurred"
-			 *
-			 */
-			FLAG_FRIENDLY_KICK = 0x0100,
 		};
 
 		/**

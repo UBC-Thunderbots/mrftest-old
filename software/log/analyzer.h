@@ -12,9 +12,9 @@ class LogAnalyzer : public Gtk::Window {
 		 *
 		 * \param[in] parent the parent window.
 		 *
-		 * \param[in] filename the name of the log file to analyze.
+		 * \param[in] pathname the path to the log file to analyze.
 		 */
-		LogAnalyzer(Gtk::Window &parent, const std::string &filename);
+		LogAnalyzer(Gtk::Window &parent, const std::string &pathname);
 
 	private:
 		class Impl;
@@ -22,10 +22,8 @@ class LogAnalyzer : public Gtk::Window {
 		std::unique_ptr<Impl> impl;
 		Gtk::VBox vbox;
 		Gtk::HPaned hpaned;
-		Gtk::VPaned vpaned;
-		bool panes_fixed;
+		bool pane_fixed;
 		Gtk::TreeView packets_list_view;
-		Gtk::TextView packet_raw_entry;
 		Gtk::TreeView packet_decoded_tree;
 		Gtk::Button to_tsv_button;
 

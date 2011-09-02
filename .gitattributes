@@ -391,6 +391,10 @@ software/ai/util.h -text
 software/ai/window.cpp -text
 software/ai/window.h -text
 software/config.xml -text
+software/convertlog/main.cpp -text
+software/convertlog/v1v2/convert.cpp -text
+software/convertlog/v1v2/convert.h -text
+software/convertlog/v1v2/tags.h -text
 software/cppunit/geom/util.cpp -text
 software/cppunit/main.cpp -text
 software/cppunit/util/bitcodec/complicated.cpp -text
@@ -416,9 +420,15 @@ software/log/analyzer.cpp -text
 software/log/analyzer.h -text
 software/log/launcher.cpp -text
 software/log/launcher.h -text
+software/log/loader.cpp -text
+software/log/loader.h -text
 software/log/main.cpp -text
-software/log/shared/tags.h -text
+software/log/shared/enums.cpp -text
+software/log/shared/enums.h -text
+software/log/shared/magic.cpp -text
+software/log/shared/magic.h -text
 software/project.mk -text
+software/proto/log_record.proto -text
 software/proto/messages_robocup_ssl_detection.proto -text
 software/proto/messages_robocup_ssl_geometry.proto -text
 software/proto/messages_robocup_ssl_wrapper.proto -text
@@ -478,6 +488,8 @@ software/util/bit_array.h -text
 software/util/bitcodec.h -text
 software/util/bitcodec_primitives.h -text
 software/util/byref.h -text
+software/util/bzip2.cpp -text
+software/util/bzip2.h -text
 software/util/cacheable.cpp -text
 software/util/cacheable.h -text
 software/util/chdir.cpp -text

@@ -235,27 +235,38 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 	// Decide what to do based on the type code.
 	switch (packet.type) {
 		case ::Simulator::Proto::S2APacketType::TICK:
-			// Record the current monotonic time.
-			monotonic_time_ = packet.world_state.stamp;
+			{
+				// Record the current in-world monotonic time.
+				monotonic_time_ = packet.world_state.stamp;
 
-			// Update the objects with the newly-received data and lock in their predictors.
-			ball_.pre_tick(packet.world_state.ball, monotonic_time_);
-			friendly_.pre_tick(packet.world_state.friendly, packet.world_state.friendly_score, monotonic_time_);
-			enemy_.pre_tick(packet.world_state.enemy, packet.world_state.enemy_score, monotonic_time_);
+				// Record the current physical monotonic time.
+				timespec before;
+				timespec_now(before);
 
-			// Run the AI.
-			signal_tick().emit();
+				// Update the objects with the newly-received data and lock in their predictors.
+				ball_.pre_tick(packet.world_state.ball, monotonic_time_);
+				friendly_.pre_tick(packet.world_state.friendly, packet.world_state.friendly_score, monotonic_time_);
+				enemy_.pre_tick(packet.world_state.enemy, packet.world_state.enemy_score, monotonic_time_);
 
-			// Push results back to the simulator.
-			send_orders();
+				// Run the AI.
+				signal_tick().emit();
 
-			// Notify anyone interested in the finish of a tick.
-			signal_post_tick().emit();
+				// Push results back to the simulator.
+				send_orders();
 
-			// Update sensitivities of player add/remove buttons.
-			secondary_controls.players_add.set_sensitive(friendly_.size() < ::Simulator::Proto::MAX_PLAYERS_PER_TEAM);
-			secondary_controls.players_remove.set_sensitive(friendly_.size() > 0);
-			secondary_controls.state_file_load_button.set_sensitive(!secondary_controls.state_file_name.empty());
+				// Compute time taken.
+				timespec after;
+				timespec_now(after);
+				unsigned int compute_time = timespec_to_nanos(timespec_sub(after, before));
+
+				// Notify anyone interested in the finish of a tick.
+				signal_post_tick().emit(compute_time);
+
+				// Update sensitivities of player add/remove buttons.
+				secondary_controls.players_add.set_sensitive(friendly_.size() < ::Simulator::Proto::MAX_PLAYERS_PER_TEAM);
+				secondary_controls.players_remove.set_sensitive(friendly_.size() > 0);
+				secondary_controls.state_file_load_button.set_sensitive(!secondary_controls.state_file_name.empty());
+			}
 			return true;
 
 		case ::Simulator::Proto::S2APacketType::SPEED_MODE:

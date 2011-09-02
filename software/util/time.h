@@ -1,7 +1,9 @@
 #ifndef UTIL_TIME_H
 #define UTIL_TIME_H
 
+#include "util/string.h"
 #include <ctime>
+#include <glibmm.h>
 
 /**
  * Gets the current time into a timespec.
@@ -150,6 +152,51 @@ namespace {
 	 */
 	unsigned int timespec_to_millis(const timespec &ts) {
 		return static_cast<unsigned int>(ts.tv_sec * 1000U + ts.tv_nsec / 1000000U);
+	}
+
+	/**
+	 * \brief Converts a timespec to an integer count of nanoseconds.
+	 *
+	 * \param[in] ts the timespec to convert.
+	 *
+	 * \return the number of nanoseconds represented by \p ts.
+	 */
+	unsigned int timespec_to_nanos(const timespec &ts) {
+		return static_cast<unsigned int>(ts.tv_sec * 1000000000U + ts.tv_nsec);
+	}
+
+	/**
+	 * \brief Converts a timespec to a human-readable string representation.
+	 *
+	 * \param[in] ts the timespec to convert.
+	 *
+	 * \return the string representation.
+	 */
+	Glib::ustring timespec_to_string(const timespec &ts) {
+		if (ts.tv_sec >= 0) {
+			return Glib::ustring::compose("%1.%2", ts.tv_sec, todecu(ts.tv_nsec, 9));
+		} else if (ts.tv_nsec == 0) {
+			return Glib::ustring::compose("-%1.000000000", -ts.tv_sec);
+		} else {
+			return Glib::ustring::compose("-%1.%2", -(ts.tv_sec + 1), todecu(1000000000 - ts.tv_nsec, 9));
+		}
+	}
+
+	/**
+	 * \brief Converts a timespec to a machine-readable string representation suitable for e.g. writing to CSV files.
+	 *
+	 * \param[in] ts the timespec to convert.
+	 *
+	 * \return the string representation.
+	 */
+	Glib::ustring timespec_to_string_machine(const timespec &ts) {
+		if (ts.tv_sec >= 0) {
+			return Glib::ustring::compose("%1.%2", todecu(ts.tv_sec, 0), todecu(ts.tv_nsec, 9));
+		} else if (ts.tv_nsec == 0) {
+			return Glib::ustring::compose("-%1.000000000", todecu(-ts.tv_sec, 0));
+		} else {
+			return Glib::ustring::compose("-%1.%2", todecu(-(ts.tv_sec + 1), 0), todecu(1000000000 - ts.tv_nsec, 9));
+		}
 	}
 }
 

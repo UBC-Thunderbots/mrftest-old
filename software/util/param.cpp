@@ -1,4 +1,5 @@
 #include "util/param.h"
+#include "proto/log_record.pb.h"
 #include "util/algorithm.h"
 #include "util/config.h"
 #include "util/string.h"
@@ -289,10 +290,6 @@ Param::Param(const char *name, const char *location) : ParamTreeNode(name) {
 	parent->add_child(this);
 }
 
-const Glib::ustring &Param::name() const {
-	return ParamTreeNode::name();
-}
-
 void Param::initialize() {
 }
 
@@ -309,6 +306,10 @@ ParamTreeNode *Param::child(std::size_t) {
 }
 
 BoolParam::BoolParam(const char *name, const char *location, bool def) : Param(name, location), value_(def), default_(def) {
+}
+
+void BoolParam::encode_value_to_log(Log::Parameter &param) const {
+	param.set_bool_value(get());
 }
 
 void BoolParam::set_default() {
@@ -367,6 +368,10 @@ void NumericParam::initialize() {
 IntParam::IntParam(const char *name, const char *location, int def, int min, int max) : NumericParam(name, location, def, min, max, true) {
 }
 
+void IntParam::encode_value_to_log(Log::Parameter &param) const {
+	param.set_int_value(get());
+}
+
 void IntParam::load(const xmlpp::Element *elt) {
 	if (elt->get_name() == "integer") {
 		const xmlpp::TextNode *text_node = elt->get_child_text();
@@ -385,6 +390,10 @@ void IntParam::save(xmlpp::Element *elt) const {
 }
 
 DoubleParam::DoubleParam(const char *name, const char *location, double def, double min, double max) : NumericParam(name, location, def, min, max, false) {
+}
+
+void DoubleParam::encode_value_to_log(Log::Parameter &param) const {
+	param.set_double_value(get());
 }
 
 void DoubleParam::load(const xmlpp::Element *elt) {
@@ -410,6 +419,10 @@ void DoubleParam::save(xmlpp::Element *elt) const {
 RadianParam::RadianParam(const char *name, const char *location, double def, double min, double max) : NumericParam(name, location, def, min, max, false) {
 }
 
+void RadianParam::encode_value_to_log(Log::Parameter &param) const {
+	param.set_radian_value(get().to_radians());
+}
+
 void RadianParam::load(const xmlpp::Element *elt) {
 	if (elt->get_name() == "radians") {
 		const xmlpp::TextNode *text_node = elt->get_child_text();
@@ -431,6 +444,10 @@ void RadianParam::save(xmlpp::Element *elt) const {
 }
 
 DegreeParam::DegreeParam(const char *name, const char *location, double def, double min, double max) : NumericParam(name, location, def, min, max, false) {
+}
+
+void DegreeParam::encode_value_to_log(Log::Parameter &param) const {
+	param.set_degree_value(get().to_degrees());
 }
 
 void DegreeParam::load(const xmlpp::Element *elt) {

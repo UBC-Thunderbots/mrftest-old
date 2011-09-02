@@ -1,7 +1,7 @@
-#ifndef LOG_SHARED_TAGS_H
-#define LOG_SHARED_TAGS_H
+#ifndef CONVERTLOG_V1V2_TAGS_H
+#define CONVERTLOG_V1V2_TAGS_H
 
-namespace Log {
+namespace ConvertLogV1V2 {
 	/**
 	 * The possible packet tag bytes in a log file.
 	 */

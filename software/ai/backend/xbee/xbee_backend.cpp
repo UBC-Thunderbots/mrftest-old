@@ -147,7 +147,7 @@ namespace {
 				}
 				Glib::signal_io().connect(sigc::mem_fun(this, &XBeeBackend::on_vision_readable), vision_socket->fd(), Glib::IO_IN);
 
-				refbox.signal_packet.connect(signal_refbox().make_slot());
+				refbox.signal_packet.connect(sigc::mem_fun(this, &XBeeBackend::on_refbox_packet));
 				refbox.goals_yellow.signal_changed().connect(signal_score_changed().make_slot());
 				refbox.goals_blue.signal_changed().connect(signal_score_changed().make_slot());
 
@@ -258,7 +258,9 @@ namespace {
 				}
 
 				// Notify anyone interested in the finish of a tick.
-				signal_post_tick().emit();
+				timespec after;
+				timespec_now(after);
+				signal_post_tick().emit(timespec_to_nanos(timespec_sub(after, now)));
 			}
 
 			bool on_vision_readable(Glib::IOCondition) {
@@ -272,15 +274,17 @@ namespace {
 					return true;
 				}
 
-				// Pass it to any attached listeners.
-				signal_vision().emit(buffer, len);
-
 				// Decode it.
 				SSL_WrapperPacket packet;
 				if (!packet.ParseFromArray(buffer, static_cast<int>(len))) {
 					LOG_WARN("Received malformed SSL-Vision packet.");
 					return true;
 				}
+
+				// Pass it to any attached listeners.
+				timespec now;
+				timespec_now(now);
+				signal_vision().emit(now, packet);
 
 				// If it contains geometry data, update the field shape.
 				if (packet.has_geometry()) {
@@ -348,6 +352,12 @@ namespace {
 				update_playtype();
 
 				return true;
+			}
+
+			void on_refbox_packet(const void *data, std::size_t length) {
+				timespec now;
+				timespec_now(now);
+				signal_refbox().emit(now, data, length);
 			}
 
 			void update_playtype() {

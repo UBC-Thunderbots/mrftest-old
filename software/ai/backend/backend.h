@@ -453,7 +453,7 @@ namespace AI {
 				 *
 				 * \return the post-tick signal.
 				 */
-				sigc::signal<void> &signal_post_tick() const {
+				sigc::signal<void, unsigned int> &signal_post_tick() const {
 					return signal_post_tick_;
 				}
 
@@ -462,7 +462,7 @@ namespace AI {
 				 *
 				 * \return the vision signal.
 				 */
-				sigc::signal<void, const void *, std::size_t> &signal_vision() const {
+				sigc::signal<void, timespec, const SSL_WrapperPacket &> &signal_vision() const {
 					return signal_vision_;
 				}
 
@@ -471,7 +471,7 @@ namespace AI {
 				 *
 				 * \return the referee box signal.
 				 */
-				sigc::signal<void, const void *, std::size_t> &signal_refbox() const {
+				sigc::signal<void, timespec, const void *, std::size_t> &signal_refbox() const {
 					return signal_refbox_;
 				}
 
@@ -514,9 +514,9 @@ namespace AI {
 				Property<AI::Common::PlayType> playtype_, playtype_override_;
 				Property<AI::BF::BallFilter *> ball_filter_;
 				mutable sigc::signal<void> signal_tick_;
-				mutable sigc::signal<void> signal_post_tick_;
-				mutable sigc::signal<void, const void *, std::size_t> signal_vision_;
-				mutable sigc::signal<void, const void *, std::size_t> signal_refbox_;
+				mutable sigc::signal<void, unsigned int> signal_post_tick_;
+				mutable sigc::signal<void, timespec, const SSL_WrapperPacket &> signal_vision_;
+				mutable sigc::signal<void, timespec, const void *, std::size_t> signal_refbox_;
 				mutable sigc::signal<void> signal_score_changed_;
 				mutable sigc::signal<void, Cairo::RefPtr<Cairo::Context> > signal_draw_overlay_;
 

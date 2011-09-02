@@ -11,6 +11,10 @@
 
 class ParamTreeInternalNode;
 
+namespace Log {
+	class Parameter;
+}
+
 namespace xmlpp {
 	class Element;
 }
@@ -262,6 +266,13 @@ class Param : public ParamTreeNode {
 		 */
 		virtual sigc::signal<void> &signal_changed() const = 0;
 
+		/**
+		 * \brief Writes the current value of the parameter into a log structure.
+		 *
+		 * \param[in, out] param the structure to write into.
+		 */
+		virtual void encode_value_to_log(Log::Parameter &param) const = 0;
+
 	protected:
 		/**
 		 * \brief Constructs a new parameter.
@@ -273,13 +284,6 @@ class Param : public ParamTreeNode {
 		 * \param[in] location the location in the parameter tree of the parameter.
 		 */
 		Param(const char *name, const char *location);
-
-		/**
-		 * \brief Returns the name of the parameter.
-		 *
-		 * \return the name.
-		 */
-		const Glib::ustring &name() const;
 
 		/**
 		 * \brief Initializes the structure of this node and any child nodes.
@@ -375,6 +379,13 @@ class BoolParam : public Param {
 		sigc::signal<void> &signal_changed() const {
 			return value_.signal_changed();
 		}
+
+		/**
+		 * \brief Writes the current value of the parameter into a log structure.
+		 *
+		 * \param[in, out] param the structure to write into.
+		 */
+		void encode_value_to_log(Log::Parameter &param) const;
 
 	private:
 		Property<bool> value_;
@@ -510,6 +521,13 @@ class IntParam : public NumericParam {
 			return get();
 		}
 
+		/**
+		 * \brief Writes the current value of the parameter into a log structure.
+		 *
+		 * \param[in, out] param the structure to write into.
+		 */
+		void encode_value_to_log(Log::Parameter &param) const;
+
 	private:
 		/**
 		 * \brief Loads the values of parameters from an XML tree.
@@ -565,6 +583,13 @@ class DoubleParam : public NumericParam {
 		operator double() const {
 			return get();
 		}
+
+		/**
+		 * \brief Writes the current value of the parameter into a log structure.
+		 *
+		 * \param[in, out] param the structure to write into.
+		 */
+		void encode_value_to_log(Log::Parameter &param) const;
 
 	private:
 		/**
@@ -622,6 +647,13 @@ class RadianParam : public NumericParam {
 			return get();
 		}
 
+		/**
+		 * \brief Writes the current value of the parameter into a log structure.
+		 *
+		 * \param[in, out] param the structure to write into.
+		 */
+		void encode_value_to_log(Log::Parameter &param) const;
+
 	private:
 		/**
 		 * \brief Loads the values of parameters from an XML tree.
@@ -677,6 +709,13 @@ class DegreeParam : public NumericParam {
 		operator Angle() const {
 			return get();
 		}
+
+		/**
+		 * \brief Writes the current value of the parameter into a log structure.
+		 *
+		 * \param[in, out] param the structure to write into.
+		 */
+		void encode_value_to_log(Log::Parameter &param) const;
 
 	private:
 		/**

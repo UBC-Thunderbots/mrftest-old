@@ -9,9 +9,9 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-sigc::signal<void, unsigned int, const Glib::ustring &> signal_message_logged;
+sigc::signal<void, Log::DebugMessageLevel, const Glib::ustring &> signal_message_logged;
 
-void log_impl(const char *file, unsigned int line, const char *function, const Glib::ustring &msg, unsigned int level) {
+void log_impl(const char *file, unsigned int line, const char *function, const Glib::ustring &msg, Log::DebugMessageLevel level) {
 	std::time_t stamp;
 	std::time(&stamp);
 	std::wostringstream timestring;
@@ -19,15 +19,15 @@ void log_impl(const char *file, unsigned int line, const char *function, const G
 	std::use_facet<std::time_put<wchar_t> >(std::locale()).put(timestring, timestring, L' ', std::localtime(&stamp), TIME_PATTERN, TIME_PATTERN + std::wcslen(TIME_PATTERN));
 	const char *level_name;
 	switch (level) {
-		case LOG_LEVEL_INFO:
+		case Log::DEBUG_MESSAGE_LEVEL_INFO:
 			level_name = "INFO";
 			break;
 
-		case LOG_LEVEL_WARN:
+		case Log::DEBUG_MESSAGE_LEVEL_WARN:
 			level_name = "WARN";
 			break;
 
-		case LOG_LEVEL_ERROR:
+		case Log::DEBUG_MESSAGE_LEVEL_ERROR:
 			level_name = "ERROR";
 			break;
 

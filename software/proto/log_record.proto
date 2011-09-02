@@ -1,0 +1,258 @@
+package Log;
+import "messages_robocup_ssl_wrapper.proto";
+
+// The log file is a sequence of these (preceded by a header).
+// Each Record is packed into a lightweight envelope structure.
+// Each Record has *exactly* one of the fields present.
+message Record {
+	// The real-world time of the start of the log.
+	// Exactly one such record is present, and must be the first record in the log.
+	optional UNIXTimeSpec startup_time = 16;
+
+	// Miscellaneous data about the configuration of the system.
+	// The second record in the log must be of this type.
+	// Subsequent records may be included if configuration changes during play.
+	optional Config config = 17;
+
+	// Indicates the reason for the AI process's termination.
+	// This should always be present, but might be omitted in the case of some crashes.
+	// If present, it must be the last record in the log.
+	optional Shutdown shutdown = 18;
+
+	// Indicates the values of one or more tunable parameters.
+	// The third record in the log must be of this type and contain values for all parameters.
+	// Subsequent records may be included if a parameter changes during play, in which case only the changed parameter is present.
+	repeated Parameter parameters = 19;
+
+	// Stores field geometry.
+	// This record appears at the point at which field geometry is known.
+	// More than one record may be included if field geometry changes during play.
+	optional Field field = 20;
+
+	// Stores the scores of the two teams.
+	// The fourth record in the log must be of this type.
+	// Subsequent records may be included if scores change during play.
+	optional Scores scores = 21;
+
+	// Stores all the data about a single AI tick.
+	optional Tick tick = 1;
+
+	// Stores a packet received from SSL-Vision.
+	optional Vision vision = 2;
+
+	// Stores a packet received from the referee box.
+	optional Refbox refbox = 3;
+
+	// Stores a message output to the debugging stream.
+	optional DebugMessage debug_message = 4;
+
+	// Stores an activation or deactivation of an annunciator panel message.
+	optional AnnunciatorMessage annunciator_message = 5;
+}
+
+message Config {
+	optional string ball_filter = 1;
+	optional string coach = 2;
+	optional string strategy = 3;
+	required string backend = 4;
+	optional string high_level = 5;
+	optional string robot_controller = 6;
+	required Colour friendly_colour = 7;
+	required uint32 nominal_ticks_per_second = 8;
+}
+
+message Shutdown {
+	message Normal {
+	}
+	optional Normal normal = 1;
+
+	message Signal {
+		required uint32 signal = 1;
+	}
+	optional Signal signal = 2;
+
+	message Exception {
+		required string message = 1;
+	}
+	optional Exception exception = 3;
+}
+
+message Parameter {
+	// The name of the parameter.
+	required string name = 1;
+
+	// Exactly one of these must be present, containing the new value of the parameter.
+	optional bool bool_value = 2;
+	optional int64 int_value = 3;
+	optional double double_value = 4;
+	optional double radian_value = 5;
+	optional double degree_value = 6;
+}
+
+message Field {
+	// These numbers are in µm.
+	required uint32 length = 1;
+	required uint32 total_length = 2;
+	required uint32 width = 3;
+	required uint32 total_width = 4;
+	required uint32 goal_width = 5;
+	required uint32 centre_circle_radius = 6;
+	required uint32 defense_area_radius = 7;
+	required uint32 defense_area_stretch = 8;
+}
+
+message Scores {
+	required uint32 friendly = 1;
+	required uint32 enemy = 2;
+}
+
+message Tick {
+	// The play type in force when the tick occurs.
+	required PlayType play_type = 1;
+
+	// The monotonic time at which computation starts for the tick.
+	required MonotonicTimeSpec start_time = 3;
+
+	// The amount of computation time taken, in ns.
+	required fixed32 compute_time = 4;
+
+	message Ball {
+		required Vector2 position = 1;
+		required Vector2 velocity = 2;
+	}
+	required Ball ball = 5;
+
+	message FriendlyRobot {
+		required uint32 pattern = 1;
+		required Vector3 position = 2;
+		required Vector3 velocity = 3;
+
+		required Vector3 target = 4;
+		required fixed64 movement_flags = 5;
+		required MoveType movement_type = 6;
+		required MovePrio movement_priority = 7;
+
+		message PathElement {
+			required Vector3 point = 1;
+			required MonotonicTimeSpec timestamp = 2;
+		}
+		repeated PathElement path = 8;
+
+		// There must be exactly four of these, measured in quarters of a degree per five milliseconds.
+		repeated sint32 wheel_setpoints = 9;
+	}
+	repeated FriendlyRobot friendly_robots = 6;
+
+	message EnemyRobot {
+		required uint32 pattern = 1;
+		required Vector3 position = 2;
+		required Vector3 velocity = 3;
+	}
+	repeated EnemyRobot enemy_robots = 7;
+}
+
+message Vision {
+	required MonotonicTimeSpec timestamp = 1;
+	required SSL_WrapperPacket data = 2;
+}
+
+message Refbox {
+	required MonotonicTimeSpec timestamp = 1;
+	required bytes data = 2;
+}
+
+message DebugMessage {
+	required DebugMessageLevel level = 1;
+	required string text = 2;
+}
+
+message AnnunciatorMessage {
+	required AnnunciatorAction action = 1;
+	required string text = 2;
+}
+
+message UNIXTimeSpec {
+	required int64 seconds = 1;
+	required sfixed32 nanoseconds = 2;
+}
+
+message MonotonicTimeSpec {
+	required int64 seconds = 1;
+	required sfixed32 nanoseconds = 2;
+}
+
+message Vector2 {
+	// These are measured in µm.
+	required sint32 x = 1;
+	required sint32 y = 2;
+}
+
+message Vector3 {
+	// These are measured in µm.
+	required sint32 x = 1;
+	required sint32 y = 2;
+
+	// This is measured in µrad.
+	required sint32 t = 3;
+}
+
+// Identifies a team colour.
+enum Colour {
+	COLOUR_YELLOW = 0;
+	COLOUR_BLUE = 1;
+}
+
+// Identifies a state of play.
+enum PlayType {
+	PLAY_TYPE_HALT = 0;
+	PLAY_TYPE_STOP = 1;
+	PLAY_TYPE_PLAY = 2;
+	PLAY_TYPE_PREPARE_KICKOFF_FRIENDLY = 3;
+	PLAY_TYPE_EXECUTE_KICKOFF_FRIENDLY = 4;
+	PLAY_TYPE_PREPARE_KICKOFF_ENEMY = 5;
+	PLAY_TYPE_EXECUTE_KICKOFF_ENEMY = 6;
+	PLAY_TYPE_PREPARE_PENALTY_FRIENDLY = 7;
+	PLAY_TYPE_EXECUTE_PENALTY_FRIENDLY = 8;
+	PLAY_TYPE_PREPARE_PENALTY_ENEMY = 9;
+	PLAY_TYPE_EXECUTE_PENALTY_ENEMY = 10;
+	PLAY_TYPE_EXECUTE_DIRECT_FREE_KICK_FRIENDLY = 11;
+	PLAY_TYPE_EXECUTE_INDIRECT_FREE_KICK_FRIENDLY = 12;
+	PLAY_TYPE_EXECUTE_DIRECT_FREE_KICK_ENEMY = 13;
+	PLAY_TYPE_EXECUTE_INDIRECT_FREE_KICK_ENEMY = 14;
+	PLAY_TYPE_NONE = 15;
+}
+
+// Identifies a particular type of movement.
+enum MoveType {
+	MOVE_TYPE_NORMAL = 0;
+	MOVE_TYPE_DRIBBLE = 1;
+	MOVE_TYPE_CATCH = 2;
+	MOVE_TYPE_CATCH_PIVOT = 3;
+	MOVE_TYPE_INTERCEPT = 4;
+	MOVE_TYPE_INTERCEPT_PIVOT = 5;
+	MOVE_TYPE_RAM_BALL = 6;
+	MOVE_TYPE_HALT = 7;
+	MOVE_TYPE_PIVOT = 8;
+}
+
+// Identifies a movement priority.
+enum MovePrio {
+	MOVE_PRIO_HIGH = 0;
+	MOVE_PRIO_MEDIUM = 1;
+	MOVE_PRIO_LOW = 2;
+}
+
+// Identifies a severity level of a debug message.
+enum DebugMessageLevel {
+	DEBUG_MESSAGE_LEVEL_DEBUG = 0;
+	DEBUG_MESSAGE_LEVEL_INFO = 1;
+	DEBUG_MESSAGE_LEVEL_WARN = 2;
+	DEBUG_MESSAGE_LEVEL_ERROR = 3;
+}
+
+// Identifies the event occurring with respect to an annunciator message.
+enum AnnunciatorAction {
+	ANNUNCIATOR_ACTION_ASSERT = 0;
+	ANNUNCIATOR_ACTION_DEASSERT = 1;
+	ANNUNCIATOR_ACTION_EDGE = 2;
+}
