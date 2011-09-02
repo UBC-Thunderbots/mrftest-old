@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <iostream>
 #include <cppunit/TestFixture.h>
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -139,6 +140,28 @@ void GeomUtilTest::test_line_rect_intersect(){
 }
 
 void GeomUtilTest::test_vector_rect_intersect(){
+	Rect rect( Point(1.0,1.0), Point(-1.0,-1.0) );
+	Point pr1 = Point( ((rand()%200)-100) /100, 1.0 );
+	Point pr2 = Point( ((rand()%200)-100) /100, -1.0 );
+	Point pr3 = Point( 1.0, ((rand()%200)-100) /100 );
+	Point pr4 = Point( -1.0, ((rand()%200)-100) /100 );
+	Point pb( ((rand()%200)-100) /100, ((rand()%200)-100) /100 );
+	Point pe1 = (pr1-pb).norm() + pr1;
+	Point pe2 = (pr2-pb).norm() + pr2;
+	Point pe3 = (pr3-pb).norm() + pr3;
+	Point pe4 = (pr4-pb).norm() + pr4;
+	if( (vector_rect_intersect( rect, pb, pr1 ) - pe1).len() < 0.001 ){
+		std::cout << "bouncing off north bank failed" << std::endl;
+	}
+	if( (vector_rect_intersect( rect, pb, pr2 ) - pe2).len() < 0.001 ){
+		std::cout << "bouncing off south bank failed" << std::endl;
+	}
+	if( (vector_rect_intersect( rect, pb, pr3 ) - pe3).len() < 0.001 ){
+		std::cout << "bouncing off west bank failed" << std::endl;
+	}
+	if( (vector_rect_intersect( rect, pb, pr4 ) - pe4).len() < 0.001 ){
+		std::cout << "bouncing off east bank failed" << std::endl;
+	}
 }
 
 void GeomUtilTest::test_clip_point(){
