@@ -95,7 +95,7 @@ namespace {
 			return 2 * player->MAX_RADIUS + buffer;
 		}
 
-		static double goal_post(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+		static double goal_post(AI::Nav::W::Player::Ptr player) {
 			return Ball::RADIUS + player->MAX_RADIUS + GOAL_POST_BUFFER;
 		}
 
@@ -132,7 +132,7 @@ namespace {
 		}
 	};
 
-	double get_net_tresspass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+	double get_net_tresspass(Point cur, Point dst, AI::Nav::W::World &world) {
 		double violate = 0.0;
 		double circle_radius = world.field().total_length() / 2.0 - world.field().length() / 2.0;
 		Point A(-world.field().total_length() / 2.0, world.field().goal_width() / 2.0);
@@ -144,7 +144,7 @@ namespace {
 
 	double get_goal_post_tresspass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		double violate = 0.0;
-		double circle_radius = distance_keepout::goal_post(world, player);
+		double circle_radius = distance_keepout::goal_post(player);
 		Point A(world.field().length() / 2.0, world.field().goal_width() / 2.0);
 		Point B(world.field().length() / 2.0, -world.field().goal_width() / 2.0);
 		Point C(-world.field().length() / 2.0, world.field().goal_width() / 2.0);
@@ -157,7 +157,7 @@ namespace {
 		return violate;
 	}
 
-	double get_enemy_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+	double get_enemy_trespass(Point cur, Point dst, AI::Nav::W::World &world) {
 		double violate = 0.0;
 		// avoid enemy robots
 		for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
@@ -303,10 +303,10 @@ namespace {
 
 		void set_violation_amount(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 			friendly = get_friendly_trespass(cur, dst, world, player);
-			enemy = get_enemy_trespass(cur, dst, world, player);
+			enemy = get_enemy_trespass(cur, dst, world);
 			goal_post = get_goal_post_tresspass(cur, dst, world, player);
 			total_bounds = get_total_bounds_trespass(cur, dst, world, player);
-			net_allowance = get_net_tresspass(cur, dst, world, player);
+			net_allowance = get_net_tresspass(cur, dst, world);
 			unsigned int flags = player->flags() | extra_flags;
 
 			if (flags & FLAG_CLIP_PLAY_AREA) {
@@ -335,17 +335,17 @@ namespace {
 			}
 		}
 
-		violation() : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), extra_flags(0), net_allowance(0.0) {
+		violation() : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(0) {
 		}
 
-		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), extra_flags(0), net_allowance(0.0) {
+		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(0) {
 			if (OWN_HALF_OVERRIDE) {
 				extra_flags = extra_flags | FLAG_STAY_OWN_HALF;
 			}
 			set_violation_amount(cur, dst, world, player);
 		}
 
-		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int added_flags) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), extra_flags(added_flags), net_allowance(0.0) {
+		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int added_flags) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(added_flags) {
 			if (OWN_HALF_OVERRIDE) {
 				extra_flags = extra_flags | FLAG_STAY_OWN_HALF;
 			}
