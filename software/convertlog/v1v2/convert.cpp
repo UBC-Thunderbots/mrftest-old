@@ -459,14 +459,13 @@ namespace {
 						Log::Record record;
 						Log::Field &field = *record.mutable_field();
 						field.set_length(decode_u32(&payload[0]));
-						field.set_length(decode_u32(&payload[4]));
-						field.set_total_length(decode_u32(&payload[8]));
-						field.set_width(decode_u32(&payload[12]));
-						field.set_total_width(decode_u32(&payload[16]));
-						field.set_goal_width(decode_u32(&payload[20]));
-						field.set_centre_circle_radius(decode_u32(&payload[24]));
-						field.set_defense_area_radius(decode_u32(&payload[28]));
-						field.set_defense_area_stretch(decode_u32(&payload[32]));
+						field.set_total_length(decode_u32(&payload[4]));
+						field.set_width(decode_u32(&payload[8]));
+						field.set_total_width(decode_u32(&payload[12]));
+						field.set_goal_width(decode_u32(&payload[16]));
+						field.set_centre_circle_radius(decode_u32(&payload[20]));
+						field.set_defense_area_radius(decode_u32(&payload[24]));
+						field.set_defense_area_stretch(decode_u32(&payload[28]));
 						write_record(record, dest);
 					}
 					break;
