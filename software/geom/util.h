@@ -291,6 +291,23 @@ double seg_seg_distance(const Point &a, const Point &b, const Point &c, const Po
  */
 bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2);
 
+
+/**
+ * Checks whether two line segments intersect.
+ *
+ * \param[in] a1 end of the vector.
+ *
+ * \param[in] a2 one point on the direction that the vector extends into.
+ *
+ * \param[in] b1 one end of the second segment.
+ *
+ * \param[in] b2 the other end of the second segment.
+ *
+ * \return \c true if the segments intersect, or \c false if not.
+ */
+bool vector_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2);
+
+
 /**
  * Reflects a ray incident on origin given the normal of the reflecting plane.
  *

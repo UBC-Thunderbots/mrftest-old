@@ -367,21 +367,18 @@ std::vector<Point> line_rect_intersect(const Rect &r, const Point &segA, const P
 	return ans;
 }
 
-Point vector_rect_intersect(const Rect &r, const Point &segA, const Point &segB) {
-	Point ans = r.centre();
+Point vector_rect_intersect(const Rect &r, const Point &vecA, const Point &vecB) {
+#warning lets use the proper invalid point stuff at some point
 	for (int i = 0; i < 4; i++) {
 		int j = i + 1;
 		const Point &a = r[i];
 		const Point &b = r[j];
-		if (seg_crosses_seg(a, b, segA, segB) && unique_line_intersect(a, b, segA, segB)) {
-			Point intersect = line_intersect(a, b, segA, segB);
-			if( (r[i]-r[j]).len() == (r[j] - intersect).len() + (r[i] - intersect).len()){
-			// this means that the intersection is in between the two end points, the last if statement is bit of a repetition though
-				ans = intersect;
-			}
+		if ( vector_crosses_seg(vecA, vecB, a, b ) ) {
+			Point intersect = line_intersect(a, b, vecA, vecB);
+			return intersect;
 		}
 	}
-	return ans;
+	return r.centre();	// return the center of the rectangle, if no valid answer is found
 }
 
 
@@ -517,6 +514,25 @@ bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Po
 
 	return sign((a2 - a1).cross(b1 - a1)) * sign((a2 - a1).cross(b2 - a1)) <= 0 && sign((b2 - b1).cross(a1 - b1)) * sign((b2 - b1).cross(a2 - b1)) <= 0;
 }
+
+
+bool vector_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2) {
+	if( (a1-a2).cross(b1-b2) != 0.0 ){
+		Point i0 = line_intersect( a1, a2, b1, b2 );
+		if( ( (b1-i0).len() - (b1-b2).len() ) > 0.001 || ( (b2-i0).len() - (b1-b2).len() ) > 0.001  || ((i0-a2).len() - (a1-a2).len()) > 0.001 ){
+			return false;
+		} else {
+			return true;
+		}
+	} else {
+		if( collinear( a1, a2, b1 ) ){
+			return true;
+		} else {
+			return false;
+		}
+	}
+}
+
 
 bool line_seg_intersect_rectangle(const Point seg[2], const Point recA[4]) {
 	bool intersect = point_in_rectangle(seg[0], recA) || point_in_rectangle(seg[1], recA);
