@@ -36,7 +36,10 @@ namespace {
 					Point diff = (des - friendly.get(0)->position()).rotate(offset_angle);
 					Point dest = des - radius * (diff / diff.len());
 
-					runner->move(dest, (des - runner->position()).orientation().angle_mod(), 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
+					runner->flags(0);
+					runner->type(AI::Flags::MoveType::NORMAL);
+					runner->prio(AI::Flags::MovePrio::HIGH);
+					runner->move(dest, (des - runner->position()).orientation().angle_mod(), Point());
 				}
 			}
 

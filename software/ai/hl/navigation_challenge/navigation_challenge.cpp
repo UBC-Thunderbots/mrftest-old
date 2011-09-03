@@ -120,7 +120,11 @@ namespace {
 						return;
 					}
 					Angle dest_ori = (tasks[done[robotIndex]].first - runner->position()).orientation();
-					runner->move(tasks[done[robotIndex]].first, dest_ori, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
+
+					runner->flags(0);
+					runner->type(AI::Flags::MoveType::NORMAL);
+					runner->prio(AI::Flags::MovePrio::HIGH);
+					runner->move(tasks[done[robotIndex]].first, dest_ori, Point());
 				}
 
 				// Set moving obstacles
@@ -139,7 +143,11 @@ namespace {
 							obstacleIndex = 0;
 						}
 					}
-					runner->move(des, Angle::ZERO, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
+
+					runner->flags(0);
+					runner->type(AI::Flags::MoveType::NORMAL);
+					runner->prio(AI::Flags::MovePrio::HIGH);
+					runner->move(des, Angle::ZERO, Point());
 				}
 			}
 

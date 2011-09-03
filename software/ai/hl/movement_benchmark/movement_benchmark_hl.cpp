@@ -139,7 +139,10 @@ namespace {
 					return;
 				}
 
-				runner->move(tasks[done].first, tasks[done].second, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
+				runner->flags(0);
+				runner->type(AI::Flags::MoveType::NORMAL);
+				runner->prio(AI::Flags::MovePrio::HIGH);
+				runner->move(tasks[done].first, tasks[done].second, Point());
 			}
 
 			Gtk::Widget *ui_controls() {
