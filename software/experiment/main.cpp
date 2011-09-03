@@ -4,6 +4,8 @@
 #include "util/noncopyable.h"
 #include "util/string.h"
 #include "xbee/dongle.h"
+#include <cstdlib>
+#include <ctime>
 #include <glibmm.h>
 #include <iostream>
 #include <locale>
@@ -75,6 +77,10 @@ namespace {
 	int main_impl(int argc, char **argv) {
 		// Set the current locale from environment variables.
 		std::locale::global(std::locale(""));
+
+		// Seed the PRNGs.
+		std::srand(static_cast<unsigned int>(std::time(0)));
+		srand48(static_cast<long>(std::time(0)));
 
 		// Handle command-line arguments.
 		if (argc != 3) {

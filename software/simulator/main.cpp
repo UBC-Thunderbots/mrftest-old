@@ -1,6 +1,8 @@
 #include "simulator/simulator.h"
 #include "util/clocksource_timerfd.h"
 #include "util/timestep.h"
+#include <cstdlib>
+#include <ctime>
 #include <exception>
 #include <glibmm.h>
 #include <iostream>
@@ -44,7 +46,12 @@ namespace {
 	 * \return the application's exit code.
 	 */
 	int main_impl(int argc, char **argv) {
+		// Set the current locale from environment variables.
 		std::locale::global(std::locale(""));
+
+		// Seed the PRNGs.
+		std::srand(static_cast<unsigned int>(std::time(0)));
+		srand48(static_cast<long>(std::time(0)));
 
 		Glib::OptionContext option_context;
 		option_context.set_summary("Runs the Thunderbots simulator.");
