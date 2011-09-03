@@ -54,7 +54,7 @@ namespace AI {
 					void pivot(Player::Ptr player);
 					std::pair<Point, Angle> grab_ball(Player::Ptr player);
 					std::pair<Point, Angle> grab_ball_orientation(Player::Ptr player);
-					std::pair<Point, Angle> intercept_ball(Player::Ptr player);
+					void intercept_ball(Player::Ptr player);
 					std::pair<Point, Angle> intercept_ball_orientation(Player::Ptr player);
 
 					void tick();
@@ -80,7 +80,7 @@ namespace AI {
 				return factory_instance;
 			}
 
-			std::pair<Point, Angle> RRTNavigator::intercept_ball(Player::Ptr player) {
+			void RRTNavigator::intercept_ball(Player::Ptr player) {
 				if (!find_best_intersecting_point(world, player)) {
 					LOG_INFO("No intersecting point found!");
 				}
