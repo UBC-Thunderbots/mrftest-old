@@ -10,8 +10,8 @@
 using namespace AI::BE::XBee;
 
 namespace {
-	DoubleParam linear_decay_constant("Robot Linear Decay Constant", "Backend/XBee", 0.0, 99.0, 100.0);
-	DoubleParam angular_decay_constant("Robot Angular Decay Constant", "Backend/XBee", 0.0, 99.0, 100.0);
+	DoubleParam linear_decay_constant("Robot Linear Decay Constant", "Backend/XBee", 99.0, 0.0, 100.0);
+	DoubleParam angular_decay_constant("Robot Angular Decay Constant", "Backend/XBee", 99.0, 0.0, 100.0);
 }
 
 Robot::Ptr Robot::create(AI::BE::Backend &backend, unsigned int pattern) {

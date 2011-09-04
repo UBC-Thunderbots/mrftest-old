@@ -4,7 +4,7 @@
 using namespace AI::BE::XBee;
 
 namespace {
-	DoubleParam BALL_DECAY_CONSTANT("Ball Decay Constant", "Backend/XBee", 0.0, 99.0, 100.0);
+	DoubleParam BALL_DECAY_CONSTANT("Ball Decay Constant", "Backend/XBee", 99.0, 0.0, 100.0);
 }
 
 Ball::Ball(AI::BE::Backend &backend) : backend(backend), xpred(1.3e-3, 2, BALL_DECAY_CONSTANT), ypred(1.3e-3, 2, BALL_DECAY_CONSTANT) {
