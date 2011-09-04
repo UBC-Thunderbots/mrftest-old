@@ -1,4 +1,5 @@
 #include "ai/backend/xbee/refbox.h"
+#include "ai/backend/xbee/refbox_packet.h"
 #include "util/codec.h"
 #include "util/dprint.h"
 #include "util/exception.h"
@@ -10,6 +11,8 @@
 #include <sys/types.h>
 
 using namespace AI::BE::XBee;
+
+static_assert(RefboxPacket::BUFFER_SIZE == 6, "Bitcodec builds wrong refbox packet size.");
 
 namespace {
 	FileDescriptor::Ptr create_socket(unsigned int multicast_interface) {
@@ -56,14 +59,15 @@ bool RefBox::on_readable(Glib::IOCondition) {
 		return true;
 	}
 	signal_packet.emit(packet, len);
-	if (len != 6) {
-		LOG_WARN(Glib::ustring::compose("Refbox packet was %1 bytes, expected 6.", len));
+	if (static_cast<std::size_t>(len) != RefboxPacket::BUFFER_SIZE) {
+		LOG_WARN(Glib::ustring::compose("Refbox packet was %1 bytes, expected %2.", len, RefboxPacket::BUFFER_SIZE));
 		return true;
 	}
 
-	command = packet[0];
-	goals_blue = packet[2];
-	goals_yellow = packet[3];
+	RefboxPacket decoded(packet);
+	command = decoded.command;
+	goals_blue = decoded.goals_blue;
+	goals_yellow = decoded.goals_yellow;
 
 	return true;
 }
