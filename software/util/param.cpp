@@ -347,7 +347,7 @@ unsigned int NumericParam::fractional_digits() const {
 
 NumericParam::NumericParam(const char *name, const char *location, double def, double min, double max, bool integer) : Param(name, location), def(def), min(min), max(max), integer(integer), adjustment_(0) {
 	if (!(min <= def && def <= max)) {
-		throw std::invalid_argument("Parameter default value out of valid range.");
+		throw std::invalid_argument(Glib::locale_from_utf8(Glib::ustring::compose("Parameter default value for %1/%2 out of valid range.", location, name)));
 	}
 }
 
