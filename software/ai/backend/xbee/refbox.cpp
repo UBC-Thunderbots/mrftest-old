@@ -62,8 +62,8 @@ bool RefBox::on_readable(Glib::IOCondition) {
 	}
 
 	command = packet[0];
-	goals_blue = packet[1];
-	goals_yellow = packet[2];
+	goals_blue = packet[2];
+	goals_yellow = packet[3];
 
 	return true;
 }
