@@ -160,7 +160,7 @@ namespace {
 				return false;
 			}
 
-			const std::vector<std::pair<std::pair<Point, Angle>, timespec>> &path() const {
+			const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path() const {
 				std::abort();
 			}
 
@@ -211,13 +211,13 @@ namespace {
 				return true;
 			}
 
-			const std::vector<std::pair<std::pair<Point, Angle>, timespec>> &path() const {
+			const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path() const {
 				return path_;
 			}
 
 		private:
 			std::pair<Point, Angle> destination_;
-			std::vector<std::pair<std::pair<Point, Angle>, timespec>> path_;
+			std::vector<std::pair<std::pair<Point, Angle>, timespec> > path_;
 
 			Player(unsigned int pattern, const Log::Vector3 &position, const Log::Vector3 &velocity, const Log::Vector3 &target, const google::protobuf::RepeatedPtrField<Log::Tick::FriendlyRobot::PathElement> &path) : Robot(pattern, position, velocity), destination_(Point(decode_micros(target.x()), decode_micros(target.y())), Angle::of_radians(decode_micros(target.t()))) {
 				for (auto i = path.begin(), iend = path.end(); i != iend; ++i) {
@@ -372,7 +372,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 		void mouse_moved(Point) {
 		}
 
-		void draw_overlay(Cairo::RefPtr<Cairo::Context>) const {
+		void draw_overlay(Cairo::RefPtr<Cairo::Context> ) const {
 		}
 
 	private:

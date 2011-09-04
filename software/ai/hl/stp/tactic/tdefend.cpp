@@ -55,10 +55,10 @@ namespace {
 	};
 
 	void TGoalie::execute() {
-		//Point dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
-		//Point target = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
+		// Point dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
+		// Point target = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
 
-		//Action::goalie_move(world, player, target);
+		// Action::goalie_move(world, player, target);
 		Action::lone_goalie(world, player);
 	}
 

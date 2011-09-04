@@ -48,7 +48,6 @@ class StochasticLocalSearch {
 		std::vector<double> param_max;
 
 	public:
-
 		/**
 		 * Creates a stochastic local search with some starting parameter values.
 		 *

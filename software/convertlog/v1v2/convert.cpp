@@ -170,35 +170,35 @@ namespace {
 						break;
 
 					case ConvertLogV1V2::T_BOOL_PARAM:
+					{
 						// Add this parameter value to the parameters record.
-						{
-							Log::Parameter &param = *boot_parameters_record.add_parameters();
-							param.set_name(std::string(payload + 1, payload + payload_length));
-							param.set_bool_value(!!payload[0]);
-						}
+						Log::Parameter &param = *boot_parameters_record.add_parameters();
+						param.set_name(std::string(payload + 1, payload + payload_length));
+						param.set_bool_value(!!payload[0]);
 						break;
+					}
 
 					case ConvertLogV1V2::T_INT_PARAM:
+					{
 						// Add this parameter value to the parameters record.
-						{
-							Log::Parameter &param = *boot_parameters_record.add_parameters();
-							param.set_name(std::string(payload + 8, payload + payload_length));
-							param.set_int_value(static_cast<int64_t>(decode_u64(payload)));
-						}
+						Log::Parameter &param = *boot_parameters_record.add_parameters();
+						param.set_name(std::string(payload + 8, payload + payload_length));
+						param.set_int_value(static_cast<int64_t>(decode_u64(payload)));
 						break;
+					}
 
 					case ConvertLogV1V2::T_DOUBLE_PARAM_OLD:
+					{
 						// Add this parameter value to the parameters record.
-						{
-							Log::Parameter &param = *boot_parameters_record.add_parameters();
-							param.set_name(std::string(payload + 20, payload + payload_length));
-							std::istringstream iss(std::string(payload, payload + 20));
-							iss.imbue(std::locale("C"));
-							double v;
-							iss >> v;
-							param.set_double_value(v);
-						}
+						Log::Parameter &param = *boot_parameters_record.add_parameters();
+						param.set_name(std::string(payload + 20, payload + payload_length));
+						std::istringstream iss(std::string(payload, payload + 20));
+						iss.imbue(std::locale("C"));
+						double v;
+						iss >> v;
+						param.set_double_value(v);
 						break;
+					}
 
 					case ConvertLogV1V2::T_BALL_FILTER:
 						// Add this information to the configuration record.
@@ -236,13 +236,13 @@ namespace {
 						break;
 
 					case ConvertLogV1V2::T_DOUBLE_PARAM:
+					{
 						// Add this parameter value to the parameters record.
-						{
-							Log::Parameter &param = *boot_parameters_record.add_parameters();
-							param.set_name(std::string(payload + 8, payload + payload_length));
-							param.set_double_value(decode_double(payload));
-						}
+						Log::Parameter &param = *boot_parameters_record.add_parameters();
+						param.set_name(std::string(payload + 8, payload + payload_length));
+						param.set_double_value(decode_double(payload));
 						break;
+					}
 
 					case ConvertLogV1V2::T_HIGH_LEVEL:
 						// Add this information to the configuration record.
@@ -324,169 +324,168 @@ namespace {
 					throw std::runtime_error("Unexpected duplicate T_START.");
 
 				case ConvertLogV1V2::T_END:
+				{
 					// Decode the reason for termination and turn it into a proper record.
-					{
-						Log::Record record;
-						Log::Shutdown &shutdown = *record.mutable_shutdown();
-						ConvertLogV1V2::EndMajorReason reason = static_cast<ConvertLogV1V2::EndMajorReason>(payload[0]);
-						bool found_reason = false;
-						switch (reason) {
-							case ConvertLogV1V2::ER_NORMAL:
-								shutdown.mutable_normal();
-								found_reason = true;
-								break;
+					Log::Record record;
+					Log::Shutdown &shutdown = *record.mutable_shutdown();
+					ConvertLogV1V2::EndMajorReason reason = static_cast<ConvertLogV1V2::EndMajorReason>(payload[0]);
+					bool found_reason = false;
+					switch (reason) {
+						case ConvertLogV1V2::ER_NORMAL:
+							shutdown.mutable_normal();
+							found_reason = true;
+							break;
 
-							case ConvertLogV1V2::ER_SIGNAL:
-								shutdown.mutable_signal()->set_signal(payload[1]);
-								found_reason = true;
-								break;
+						case ConvertLogV1V2::ER_SIGNAL:
+							shutdown.mutable_signal()->set_signal(payload[1]);
+							found_reason = true;
+							break;
 
-							case ConvertLogV1V2::ER_EXCEPTION:
-								shutdown.mutable_exception()->set_message(reinterpret_cast<const char *>(&payload[1]), payload_length - 1);
-								found_reason = true;
-								break;
-						}
-						if (!found_reason) {
-							throw std::runtime_error("T_END with unknown major reason code.");
-						}
-						write_record(record, dest);
-						ended = true;
+						case ConvertLogV1V2::ER_EXCEPTION:
+							shutdown.mutable_exception()->set_message(reinterpret_cast<const char *>(&payload[1]), payload_length - 1);
+							found_reason = true;
+							break;
 					}
+					if (!found_reason) {
+						throw std::runtime_error("T_END with unknown major reason code.");
+					}
+					write_record(record, dest);
+					ended = true;
 					break;
+				}
 
 				case ConvertLogV1V2::T_DEBUG:
+				{
 					// Copy over the packet.
-					{
-						Log::Record record;
-						switch (payload[0]) {
-							case 0:
-								record.mutable_debug_message()->set_level(Log::DEBUG_MESSAGE_LEVEL_DEBUG);
-								break;
+					Log::Record record;
+					switch (payload[0]) {
+						case 0:
+							record.mutable_debug_message()->set_level(Log::DEBUG_MESSAGE_LEVEL_DEBUG);
+							break;
 
-							case 1:
-								record.mutable_debug_message()->set_level(Log::DEBUG_MESSAGE_LEVEL_INFO);
-								break;
+						case 1:
+							record.mutable_debug_message()->set_level(Log::DEBUG_MESSAGE_LEVEL_INFO);
+							break;
 
-							case 2:
-								record.mutable_debug_message()->set_level(Log::DEBUG_MESSAGE_LEVEL_WARN);
-								break;
+						case 2:
+							record.mutable_debug_message()->set_level(Log::DEBUG_MESSAGE_LEVEL_WARN);
+							break;
 
-							case 3:
-								record.mutable_debug_message()->set_level(Log::DEBUG_MESSAGE_LEVEL_ERROR);
-								break;
+						case 3:
+							record.mutable_debug_message()->set_level(Log::DEBUG_MESSAGE_LEVEL_ERROR);
+							break;
 
-							default:
-								throw std::runtime_error("Unrecognized log level.");
-						}
-						record.mutable_debug_message()->set_text(reinterpret_cast<const char *>(&payload[1]), payload_length - 1);
-						write_record(record, dest);
+						default:
+							throw std::runtime_error("Unrecognized log level.");
 					}
+					record.mutable_debug_message()->set_text(reinterpret_cast<const char *>(&payload[1]), payload_length - 1);
+					write_record(record, dest);
 					break;
+				}
 
 				case ConvertLogV1V2::T_ANNUNCIATOR:
+				{
 					// Copy over the packet.
-					{
-						Log::Record record;
-						record.mutable_annunciator_message()->set_action(payload[0] ? Log::ANNUNCIATOR_ACTION_ASSERT : Log::ANNUNCIATOR_ACTION_DEASSERT);
-						record.mutable_annunciator_message()->set_text(reinterpret_cast<const char *>(&payload[1]), payload_length - 1);
-						write_record(record, dest);
-					}
+					Log::Record record;
+					record.mutable_annunciator_message()->set_action(payload[0] ? Log::ANNUNCIATOR_ACTION_ASSERT : Log::ANNUNCIATOR_ACTION_DEASSERT);
+					record.mutable_annunciator_message()->set_text(reinterpret_cast<const char *>(&payload[1]), payload_length - 1);
+					write_record(record, dest);
 					break;
+				}
 
 				case ConvertLogV1V2::T_BOOL_PARAM:
+				{
 					// Copy over the packet.
-					{
-						Log::Record record;
-						Log::Parameter &param = *record.add_parameters();
-						param.set_name(reinterpret_cast<const char *>(&payload[1]), payload_length - 1);
-						param.set_bool_value(!!payload[0]);
-						write_record(record, dest);
-					}
+					Log::Record record;
+					Log::Parameter &param = *record.add_parameters();
+					param.set_name(reinterpret_cast<const char *>(&payload[1]), payload_length - 1);
+					param.set_bool_value(!!payload[0]);
+					write_record(record, dest);
 					break;
+				}
 
 				case ConvertLogV1V2::T_INT_PARAM:
+				{
 					// Copy over the packet.
-					{
-						Log::Record record;
-						Log::Parameter &param = *record.add_parameters();
-						param.set_name(reinterpret_cast<const char *>(&payload[8]), payload_length - 8);
-						param.set_int_value(static_cast<int64_t>(decode_u64(&payload[0])));
-						write_record(record, dest);
-					}
+					Log::Record record;
+					Log::Parameter &param = *record.add_parameters();
+					param.set_name(reinterpret_cast<const char *>(&payload[8]), payload_length - 8);
+					param.set_int_value(static_cast<int64_t>(decode_u64(&payload[0])));
+					write_record(record, dest);
 					break;
+				}
 
 				case ConvertLogV1V2::T_DOUBLE_PARAM_OLD:
+				{
 					// Copy over the packet.
-					{
-						Log::Record record;
-						Log::Parameter &param = *record.add_parameters();
-						param.set_name(std::string(payload + 8, payload + payload_length));
-						std::istringstream iss(std::string(payload, payload + 20));
-						iss.imbue(std::locale("C"));
-						double v;
-						iss >> v;
-						param.set_double_value(v);
-						write_record(record, dest);
-					}
+					Log::Record record;
+					Log::Parameter &param = *record.add_parameters();
+					param.set_name(std::string(payload + 8, payload + payload_length));
+					std::istringstream iss(std::string(payload, payload + 20));
+					iss.imbue(std::locale("C"));
+					double v;
+					iss >> v;
+					param.set_double_value(v);
+					write_record(record, dest);
 					break;
+				}
 
 				case ConvertLogV1V2::T_VISION:
+				{
 					// Decode and then copy the packet.
-					{
-						SSL_WrapperPacket wrapper;
-						wrapper.ParseFromArray(payload, static_cast<int>(payload_length));
-						Log::Record record;
-						record.mutable_vision()->mutable_timestamp()->set_seconds(most_recent_monotonic.tv_sec);
-						record.mutable_vision()->mutable_timestamp()->set_nanoseconds(static_cast<uint32_t>(most_recent_monotonic.tv_nsec));
-						record.mutable_vision()->mutable_data()->CopyFrom(wrapper);
-						write_record(record, dest);
-					}
+					SSL_WrapperPacket wrapper;
+					wrapper.ParseFromArray(payload, static_cast<int>(payload_length));
+					Log::Record record;
+					record.mutable_vision()->mutable_timestamp()->set_seconds(most_recent_monotonic.tv_sec);
+					record.mutable_vision()->mutable_timestamp()->set_nanoseconds(static_cast<uint32_t>(most_recent_monotonic.tv_nsec));
+					record.mutable_vision()->mutable_data()->CopyFrom(wrapper);
+					write_record(record, dest);
 					break;
+				}
 
 				case ConvertLogV1V2::T_REFBOX:
+				{
 					// Copy the packet.
-					{
-						Log::Record record;
-						record.mutable_refbox()->mutable_timestamp()->set_seconds(most_recent_monotonic.tv_sec);
-						record.mutable_refbox()->mutable_timestamp()->set_nanoseconds(static_cast<uint32_t>(most_recent_monotonic.tv_nsec));
-						record.mutable_refbox()->set_data(payload, payload_length);
-						write_record(record, dest);
-					}
+					Log::Record record;
+					record.mutable_refbox()->mutable_timestamp()->set_seconds(most_recent_monotonic.tv_sec);
+					record.mutable_refbox()->mutable_timestamp()->set_nanoseconds(static_cast<uint32_t>(most_recent_monotonic.tv_nsec));
+					record.mutable_refbox()->set_data(payload, payload_length);
+					write_record(record, dest);
+
 					// The old XBee backend had a bug which generated bad T_SCORES packets.
 					// Generate a proper scores packet from here instead.
-					{
-						Log::Record record;
-						switch (config.friendly_colour()) {
-							case Log::COLOUR_YELLOW:
-								record.mutable_scores()->set_friendly(payload[3]);
-								record.mutable_scores()->set_enemy(payload[2]);
-								break;
+					record.Clear();
+					switch (config.friendly_colour()) {
+						case Log::COLOUR_YELLOW:
+							record.mutable_scores()->set_friendly(payload[3]);
+							record.mutable_scores()->set_enemy(payload[2]);
+							break;
 
-							case Log::COLOUR_BLUE:
-								record.mutable_scores()->set_friendly(payload[2]);
-								record.mutable_scores()->set_enemy(payload[3]);
-								break;
-						}
-						write_record(record, dest);
+						case Log::COLOUR_BLUE:
+							record.mutable_scores()->set_friendly(payload[2]);
+							record.mutable_scores()->set_enemy(payload[3]);
+							break;
 					}
+					write_record(record, dest);
 					break;
+				}
 
 				case ConvertLogV1V2::T_FIELD:
+				{
 					// Copy the packet.
-					{
-						Log::Record record;
-						Log::Field &field = *record.mutable_field();
-						field.set_length(decode_u32(&payload[0]));
-						field.set_total_length(decode_u32(&payload[4]));
-						field.set_width(decode_u32(&payload[8]));
-						field.set_total_width(decode_u32(&payload[12]));
-						field.set_goal_width(decode_u32(&payload[16]));
-						field.set_centre_circle_radius(decode_u32(&payload[20]));
-						field.set_defense_area_radius(decode_u32(&payload[24]));
-						field.set_defense_area_stretch(decode_u32(&payload[28]));
-						write_record(record, dest);
-					}
+					Log::Record record;
+					Log::Field &field = *record.mutable_field();
+					field.set_length(decode_u32(&payload[0]));
+					field.set_total_length(decode_u32(&payload[4]));
+					field.set_width(decode_u32(&payload[8]));
+					field.set_total_width(decode_u32(&payload[12]));
+					field.set_goal_width(decode_u32(&payload[16]));
+					field.set_centre_circle_radius(decode_u32(&payload[20]));
+					field.set_defense_area_radius(decode_u32(&payload[24]));
+					field.set_defense_area_stretch(decode_u32(&payload[28]));
+					write_record(record, dest);
 					break;
+				}
 
 				case ConvertLogV1V2::T_BALL_FILTER:
 					// Modify and rewrite the configuration record.
@@ -523,109 +522,109 @@ namespace {
 					break;
 
 				case ConvertLogV1V2::T_FRIENDLY_ROBOT:
+				{
 					// Add to the current tick record.
-					{
-						Log::Tick::FriendlyRobot &bot = *tick_record.mutable_tick()->add_friendly_robots();
-						bot.set_pattern(payload[0]);
-						bot.mutable_position()->set_x(static_cast<int32_t>(decode_u32(&payload[1])));
-						bot.mutable_position()->set_y(static_cast<int32_t>(decode_u32(&payload[5])));
-						bot.mutable_position()->set_t(static_cast<int32_t>(decode_u32(&payload[9])));
-						bot.mutable_velocity()->set_x(static_cast<int32_t>(decode_u32(&payload[13])));
-						bot.mutable_velocity()->set_y(static_cast<int32_t>(decode_u32(&payload[17])));
-						bot.mutable_velocity()->set_t(static_cast<int32_t>(decode_u32(&payload[21])));
-						bot.mutable_target()->set_x(static_cast<int32_t>(decode_u32(&payload[37])));
-						bot.mutable_target()->set_y(static_cast<int32_t>(decode_u32(&payload[41])));
-						bot.mutable_target()->set_t(static_cast<int32_t>(decode_u32(&payload[45])));
-						uint64_t movement_flags = decode_u64(&payload[49]);
-						// Workaround bug where two flags were present both meaning FLAG_AVOID_ENEMY_DEFENSE.
-						if (movement_flags & 0x100) {
-							movement_flags |= 0x10;
-							movement_flags &= ~0x100;
-						}
-						bot.set_movement_flags(movement_flags);
-						bot.set_movement_type(Log::Util::MoveType::to_protobuf(static_cast<AI::Flags::MoveType>(payload[57])));
-						bot.set_movement_priority(Log::Util::MovePrio::to_protobuf(static_cast<AI::Flags::MovePrio>(payload[58])));
-						for (unsigned int i = 0; i < 4; ++i) {
-							bot.add_wheel_setpoints(static_cast<int16_t>(decode_u16(&payload[59 + i * 2])));
-						}
+					Log::Tick::FriendlyRobot &bot = *tick_record.mutable_tick()->add_friendly_robots();
+					bot.set_pattern(payload[0]);
+					bot.mutable_position()->set_x(static_cast<int32_t>(decode_u32(&payload[1])));
+					bot.mutable_position()->set_y(static_cast<int32_t>(decode_u32(&payload[5])));
+					bot.mutable_position()->set_t(static_cast<int32_t>(decode_u32(&payload[9])));
+					bot.mutable_velocity()->set_x(static_cast<int32_t>(decode_u32(&payload[13])));
+					bot.mutable_velocity()->set_y(static_cast<int32_t>(decode_u32(&payload[17])));
+					bot.mutable_velocity()->set_t(static_cast<int32_t>(decode_u32(&payload[21])));
+					bot.mutable_target()->set_x(static_cast<int32_t>(decode_u32(&payload[37])));
+					bot.mutable_target()->set_y(static_cast<int32_t>(decode_u32(&payload[41])));
+					bot.mutable_target()->set_t(static_cast<int32_t>(decode_u32(&payload[45])));
+					uint64_t movement_flags = decode_u64(&payload[49]);
+					// Workaround bug where two flags were present both meaning FLAG_AVOID_ENEMY_DEFENSE.
+					if (movement_flags & 0x100) {
+						movement_flags |= 0x10;
+						movement_flags &= ~0x100;
+					}
+					bot.set_movement_flags(movement_flags);
+					bot.set_movement_type(Log::Util::MoveType::to_protobuf(static_cast<AI::Flags::MoveType>(payload[57])));
+					bot.set_movement_priority(Log::Util::MovePrio::to_protobuf(static_cast<AI::Flags::MovePrio>(payload[58])));
+					for (unsigned int i = 0; i < 4; ++i) {
+						bot.add_wheel_setpoints(static_cast<int16_t>(decode_u16(&payload[59 + i * 2])));
 					}
 					break;
+				}
 
 				case ConvertLogV1V2::T_PATH_ELEMENT:
+				{
 					// Add the path element to the FriendlyRobot message.
-					{
-						Log::Tick::FriendlyRobot *bot = 0;
-						for (int i = 0; !bot && i < tick_record.mutable_tick()->friendly_robots_size(); ++i) {
-							if (tick_record.tick().friendly_robots(i).pattern() == payload[0]) {
-								bot = tick_record.mutable_tick()->mutable_friendly_robots(i);
-							}
+					Log::Tick::FriendlyRobot *bot = 0;
+					for (int i = 0; !bot && i < tick_record.mutable_tick()->friendly_robots_size(); ++i) {
+						if (tick_record.tick().friendly_robots(i).pattern() == payload[0]) {
+							bot = tick_record.mutable_tick()->mutable_friendly_robots(i);
 						}
-						if (!bot) {
-							throw std::runtime_error("T_PATH_ELEMENT without corresponding T_FRIENDLY_ROBOT.");
-						}
-						Log::Tick::FriendlyRobot::PathElement &elt = *bot->add_path();
-						elt.mutable_point()->set_x(static_cast<int32_t>(decode_u32(&payload[1])));
-						elt.mutable_point()->set_y(static_cast<int32_t>(decode_u32(&payload[5])));
-						elt.mutable_point()->set_t(static_cast<int32_t>(decode_u32(&payload[9])));
-						elt.mutable_timestamp()->set_seconds(decode_u64(&payload[13]));
-						elt.mutable_timestamp()->set_nanoseconds(decode_u32(&payload[21]));
 					}
+					if (!bot) {
+						throw std::runtime_error("T_PATH_ELEMENT without corresponding T_FRIENDLY_ROBOT.");
+					}
+					Log::Tick::FriendlyRobot::PathElement &elt = *bot->add_path();
+					elt.mutable_point()->set_x(static_cast<int32_t>(decode_u32(&payload[1])));
+					elt.mutable_point()->set_y(static_cast<int32_t>(decode_u32(&payload[5])));
+					elt.mutable_point()->set_t(static_cast<int32_t>(decode_u32(&payload[9])));
+					elt.mutable_timestamp()->set_seconds(decode_u64(&payload[13]));
+					elt.mutable_timestamp()->set_nanoseconds(decode_u32(&payload[21]));
 					break;
+				}
 
 				case ConvertLogV1V2::T_ENEMY_ROBOT:
+				{
 					// Add to the current tick record.
-					{
-						Log::Tick::EnemyRobot &bot = *tick_record.mutable_tick()->add_enemy_robots();
-						bot.set_pattern(payload[0]);
-						bot.mutable_position()->set_x(static_cast<int32_t>(decode_u32(&payload[1])));
-						bot.mutable_position()->set_y(static_cast<int32_t>(decode_u32(&payload[5])));
-						bot.mutable_position()->set_t(static_cast<int32_t>(decode_u32(&payload[9])));
-						bot.mutable_velocity()->set_x(static_cast<int32_t>(decode_u32(&payload[13])));
-						bot.mutable_velocity()->set_y(static_cast<int32_t>(decode_u32(&payload[17])));
-						bot.mutable_velocity()->set_t(static_cast<int32_t>(decode_u32(&payload[21])));
-					}
+					Log::Tick::EnemyRobot &bot = *tick_record.mutable_tick()->add_enemy_robots();
+					bot.set_pattern(payload[0]);
+					bot.mutable_position()->set_x(static_cast<int32_t>(decode_u32(&payload[1])));
+					bot.mutable_position()->set_y(static_cast<int32_t>(decode_u32(&payload[5])));
+					bot.mutable_position()->set_t(static_cast<int32_t>(decode_u32(&payload[9])));
+					bot.mutable_velocity()->set_x(static_cast<int32_t>(decode_u32(&payload[13])));
+					bot.mutable_velocity()->set_y(static_cast<int32_t>(decode_u32(&payload[17])));
+					bot.mutable_velocity()->set_t(static_cast<int32_t>(decode_u32(&payload[21])));
 					break;
+				}
 
 				case ConvertLogV1V2::T_BALL:
+				{
 					// Add to the current tick record.
-					{
-						Log::Tick::Ball &ball = *tick_record.mutable_tick()->mutable_ball();
-						ball.mutable_position()->set_x(static_cast<int32_t>(decode_u32(&payload[0])));
-						ball.mutable_position()->set_y(static_cast<int32_t>(decode_u32(&payload[4])));
-						ball.mutable_velocity()->set_x(static_cast<int32_t>(decode_u32(&payload[8])));
-						ball.mutable_velocity()->set_y(static_cast<int32_t>(decode_u32(&payload[12])));
-					}
+					Log::Tick::Ball &ball = *tick_record.mutable_tick()->mutable_ball();
+					ball.mutable_position()->set_x(static_cast<int32_t>(decode_u32(&payload[0])));
+					ball.mutable_position()->set_y(static_cast<int32_t>(decode_u32(&payload[4])));
+					ball.mutable_velocity()->set_x(static_cast<int32_t>(decode_u32(&payload[8])));
+					ball.mutable_velocity()->set_y(static_cast<int32_t>(decode_u32(&payload[12])));
 					break;
+				}
 
 				case ConvertLogV1V2::T_AI_TICK:
+				{
 					// Finish and write out the tick record, then clear it in preparation for the next tick.
-					{
-						Log::Tick &tick = *tick_record.mutable_tick();
-						tick.set_play_type(Log::Util::PlayType::to_protobuf(play_type));
-						most_recent_monotonic.tv_sec = decode_u64(&payload[12]);
-						most_recent_monotonic.tv_nsec = decode_u32(&payload[20]);
-						tick.mutable_start_time()->set_seconds(most_recent_monotonic.tv_sec);
-						tick.mutable_start_time()->set_nanoseconds(static_cast<uint32_t>(most_recent_monotonic.tv_nsec));
-						tick.set_compute_time(0);
-						write_record(tick_record, dest);
-						tick_record.Clear();
-					}
+					Log::Tick &tick = *tick_record.mutable_tick();
+					tick.set_play_type(Log::Util::PlayType::to_protobuf(play_type));
+					most_recent_monotonic.tv_sec = decode_u64(&payload[12]);
+					most_recent_monotonic.tv_nsec = decode_u32(&payload[20]);
+					tick.mutable_start_time()->set_seconds(most_recent_monotonic.tv_sec);
+					tick.mutable_start_time()->set_nanoseconds(static_cast<uint32_t>(most_recent_monotonic.tv_nsec));
+					tick.set_compute_time(0);
+					write_record(tick_record, dest);
+					tick_record.Clear();
 					break;
+				}
 
 				case ConvertLogV1V2::T_BACKEND:
 					// This should never appear a second time.
 					throw std::runtime_error("Unexpected T_BACKEND.");
 
 				case ConvertLogV1V2::T_DOUBLE_PARAM:
+				{
 					// Copy over the packet.
-					{
-						Log::Record record;
-						Log::Parameter &param = *record.add_parameters();
-						param.set_name(reinterpret_cast<const char *>(&payload[8]), payload_length - 8);
-						param.set_double_value(decode_double(&payload[0]));
-						write_record(record, dest);
-					}
+					Log::Record record;
+					Log::Parameter &param = *record.add_parameters();
+					param.set_name(reinterpret_cast<const char *>(&payload[8]), payload_length - 8);
+					param.set_double_value(decode_double(&payload[0]));
+					write_record(record, dest);
 					break;
+				}
 
 				case ConvertLogV1V2::T_HIGH_LEVEL:
 					// Modify and rewrite the configuration record.

@@ -178,7 +178,7 @@ namespace {
 				if (wrapper.has_detection()) {
 					const SSL_DetectionFrame &frame = wrapper.detection();
 					int count;
-					const SSL_DetectionRobot &(SSL_DetectionFrame::*fp)(int) const;
+					const SSL_DetectionRobot & (SSL_DetectionFrame::*fp)(int) const;
 					if (friendly_colour == Log::COLOUR_YELLOW) {
 						count = frame.robots_yellow_size();
 						fp = &SSL_DetectionFrame::robots_yellow;
@@ -385,16 +385,16 @@ namespace {
 				return data;
 
 			case google::protobuf::FieldDescriptor::TYPE_BYTES:
-				{
-					Glib::ustring ustr;
-					for (auto i = data.begin(), iend = data.end(); i != iend; ++i) {
-						if (!ustr.empty()) {
-							ustr.append(" ");
-						}
-						ustr.append(ustr.format(std::hex, std::setw(2), std::setfill(L'0'), std::uppercase, static_cast<unsigned int>(static_cast<uint8_t>(*i))));
+			{
+				Glib::ustring ustr;
+				for (auto i = data.begin(), iend = data.end(); i != iend; ++i) {
+					if (!ustr.empty()) {
+						ustr.append(" ");
 					}
-					return ustr;
+					ustr.append(ustr.format(std::hex, std::setw(2), std::setfill(L'0'), std::uppercase, static_cast<unsigned int>(static_cast<uint8_t>(*i))));
 				}
+				return ustr;
+			}
 
 			case google::protobuf::FieldDescriptor::TYPE_DOUBLE:
 			case google::protobuf::FieldDescriptor::TYPE_FLOAT:
@@ -465,7 +465,7 @@ namespace {
 			cols.append_kv(ts, row, "Goals Yellow", Glib::ustring::format(static_cast<unsigned int>(static_cast<uint8_t>(data[3]))));
 			cols.append_kv(ts, row, "Seconds Left", Glib::ustring::format(decode_u16(&data.data()[4])));
 		}
-		
+
 		switch (fd.cpp_type()) {
 			case google::protobuf::FieldDescriptor::CPPTYPE_INT32:
 				row[cols.value] = Glib::ustring::format(refl.GetInt32(message, &fd));

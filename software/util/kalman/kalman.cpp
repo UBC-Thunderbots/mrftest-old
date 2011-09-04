@@ -6,7 +6,7 @@
 Kalman::ControlInput::ControlInput(timespec t, double v) : time(t), value(v) {
 }
 
-Kalman::Kalman(bool angle, double measure_std, double accel_std,double decay_time_constant) : last_control(0.0), sigma_m(measure_std), sigma_a(accel_std), time_constant(decay_time_constant), h(1, 2), p(2, 2, Matrix::InitFlag::IDENTITY), state_estimate(2, 1, Matrix::InitFlag::ZEROES), is_angle(angle) {
+Kalman::Kalman(bool angle, double measure_std, double accel_std, double decay_time_constant) : last_control(0.0), sigma_m(measure_std), sigma_a(accel_std), time_constant(decay_time_constant), h(1, 2), p(2, 2, Matrix::InitFlag::IDENTITY), state_estimate(2, 1, Matrix::InitFlag::ZEROES), is_angle(angle) {
 	last_measurement_time.tv_sec = 0;
 	last_measurement_time.tv_nsec = 0;
 	// %the state measurement operator
@@ -21,7 +21,7 @@ Matrix Kalman::gen_g_mat(double timestep) const {
 	// G=[timestep.^2/2; 1-decay_constant];
 	Matrix G(2, 1);
 	G(0, 0) = timestep / 2;
-	G(1, 0) = 1-std::exp(-timestep/time_constant);
+	G(1, 0) = 1 - std::exp(-timestep / time_constant);
 	return G;
 }
 
@@ -43,9 +43,9 @@ Matrix Kalman::gen_f_mat(double timestep) const {
 	// F=[1 timestep;0 decay_constant];
 	Matrix f(2, 2);
 	f(0, 0) = 1.0;
-	f(0, 1) = timestep/2;
+	f(0, 1) = timestep / 2;
 	f(1, 0) = 0.0;
-	f(1, 1) = std::exp(-timestep/time_constant);
+	f(1, 1) = std::exp(-timestep / time_constant);
 	return f;
 }
 

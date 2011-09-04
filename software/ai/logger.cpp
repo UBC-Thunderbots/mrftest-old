@@ -345,7 +345,7 @@ void AI::Logger::on_tick(unsigned int compute_time) {
 		player.set_movement_flags(p->flags());
 		player.set_movement_type(Log::Util::MoveType::to_protobuf(p->type()));
 		player.set_movement_priority(Log::Util::MovePrio::to_protobuf(p->prio()));
-		const std::vector<std::pair<std::pair<Point, Angle>, timespec>> &path = AI::RC::W::Player::Ptr::cast_static(p)->path();
+		const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path = AI::RC::W::Player::Ptr::cast_static(p)->path();
 		for (auto j = path.begin(), jend = path.end(); j != jend; ++j) {
 			Log::Tick::FriendlyRobot::PathElement &path_element = *player.add_path();
 			path_element.mutable_point()->set_x(encode_micros(j->first.first.x));

@@ -357,7 +357,7 @@ std::vector<Point> line_circle_intersect(const Point &centre, double radius, con
 std::vector<Point> line_rect_intersect(const Rect &r, const Point &segA, const Point &segB) {
 	std::vector<Point> ans;
 	for (int i = 0; i < 4; i++) {
-		int j = i + 1;	
+		int j = i + 1;
 		const Point &a = r[i];
 		const Point &b = r[j];
 		if (seg_crosses_seg(a, b, segA, segB) && unique_line_intersect(a, b, segA, segB)) {
@@ -373,12 +373,12 @@ Point vector_rect_intersect(const Rect &r, const Point &vecA, const Point &vecB)
 		int j = i + 1;
 		const Point &a = r[i];
 		const Point &b = r[j];
-		if ( vector_crosses_seg(vecA, vecB, a, b ) ) {
+		if (vector_crosses_seg(vecA, vecB, a, b)) {
 			Point intersect = line_intersect(a, b, vecA, vecB);
 			return intersect;
 		}
 	}
-	return r.centre();	// return the center of the rectangle, if no valid answer is found
+	return r.centre();  // return the center of the rectangle, if no valid answer is found
 }
 
 
@@ -517,15 +517,15 @@ bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Po
 
 
 bool vector_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2) {
-	if( (a1-a2).cross(b1-b2) != 0.0 ){
-		Point i0 = line_intersect( a1, a2, b1, b2 );
-		if( ( (b1-i0).len() - (b1-b2).len() ) > 0.001 || ( (b2-i0).len() - (b1-b2).len() ) > 0.001  || ((i0-a2).len() - (a1-a2).len()) > 0.001 ){
+	if ((a1 - a2).cross(b1 - b2) != 0.0) {
+		Point i0 = line_intersect(a1, a2, b1, b2);
+		if (((b1 - i0).len() - (b1 - b2).len()) > 0.001 || ((b2 - i0).len() - (b1 - b2).len()) > 0.001 || ((i0 - a2).len() - (a1 - a2).len()) > 0.001) {
 			return false;
 		} else {
 			return true;
 		}
 	} else {
-		if( collinear( a1, a2, b1 ) ){
+		if (collinear(a1, a2, b1)) {
 			return true;
 		} else {
 			return false;

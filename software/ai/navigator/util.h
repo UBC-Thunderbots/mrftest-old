@@ -93,7 +93,7 @@ namespace AI {
 			 * Calculate the best position to intersect the ball
 			 *
 			 */
-			bool find_best_intersecting_point( AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player );
+			bool find_best_intersecting_point(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
 		}
 	}
 }

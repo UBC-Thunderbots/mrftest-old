@@ -99,9 +99,9 @@ Index: ai/backend/simulator/backend.cpp
  	switch (packet.type) {
 -		case ::Simulator::Proto::S2APacketType::TICK:
 +		case::Simulator::Proto::S2APacketType::TICK:
+ 		{
  			// Record the current monotonic time.
  			monotonic_time_ = packet.world_state.stamp;
- 
 @@ -258,18 +258,18 @@
  			secondary_controls.state_file_load_button.set_sensitive(!secondary_controls.state_file_name.empty());
  			return true;
@@ -229,11 +229,11 @@ Index: ai/navigator/pivot_navigator_aram.cpp
  			// targetPosition = Point(0, 0); // try to reach centre of field
  
  			if (diff.cross(currentVelocity) > 0) {
--				turnCentre = currentPosition + turnRadius * currentVelocity.rotate(M_PI / 2.0);
-+				turnCentre = currentPosition + turnRadius *currentVelocity.rotate(M_PI / 2.0);
+-				turnCentre = currentPosition + turnRadius * currentVelocity.rotate(Angle::QUARTER);
++				turnCentre = currentPosition + turnRadius *currentVelocity.rotate(Angle::QUARTER);
  			} else {
--				turnCentre = currentPosition + turnRadius * currentVelocity.rotate(-M_PI / 2.0);
-+				turnCentre = currentPosition + turnRadius *currentVelocity.rotate(-M_PI / 2.0);
+-				turnCentre = currentPosition + turnRadius * currentVelocity.rotate(-Angle::QUARTER);
++				turnCentre = currentPosition + turnRadius *currentVelocity.rotate(-Angle::QUARTER);
  			}
  
  			if ((world.ball().position() - turnCentre).len() > turnRadius + pivot_radius) {
@@ -315,11 +315,11 @@ Index: ai/navigator/pivot_navigator2.cpp
 +++ ai/navigator/pivot_navigator2.cpp	(working copy)
 @@ -71,7 +71,7 @@
  
- 			Point diff = (world.ball().position() - currentPosition).rotate(offset_angle * M_PI / 180.0);
+ 			Point diff = (world.ball().position() - currentPosition).rotate(offset_angle);
  
 -			destinationPosition = world.ball().position() - offset_distance * diff.norm();
 +			destinationPosition = world.ball().position() - offset_distance *diff.norm();
- 			destinationOrientation = (world.ball().position() - currentPosition).orientation() + orientation_offset * M_PI / 180.0;
+ 			destinationOrientation = (world.ball().position() - currentPosition).orientation() + orientation_offset;
  
  			path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
 Index: ai/hl/hl.cpp

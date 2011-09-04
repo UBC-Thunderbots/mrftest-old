@@ -7,7 +7,7 @@ namespace {
 	DoubleParam BALL_DECAY_CONSTANT("Ball Decay Constant", "Backend/XBee", 0.0, 99.0, 100.0);
 }
 
-Ball::Ball(AI::BE::Backend &backend) : backend(backend), xpred(1.3e-3, 2,BALL_DECAY_CONSTANT), ypred(1.3e-3, 2,BALL_DECAY_CONSTANT) {
+Ball::Ball(AI::BE::Backend &backend) : backend(backend), xpred(1.3e-3, 2, BALL_DECAY_CONSTANT), ypred(1.3e-3, 2, BALL_DECAY_CONSTANT) {
 	backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &Ball::on_defending_end_changed));
 }
 

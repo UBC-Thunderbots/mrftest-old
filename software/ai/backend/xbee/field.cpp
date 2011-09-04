@@ -24,7 +24,7 @@ void Field::update(const SSL_GeometryFieldSize &packet) {
 }
 
 bool Field::operator==(const Field &other) const {
-	static const double (Field::* const DOUBLE_FIELDS[]) = {
+	static const double(Field::*const DOUBLE_FIELDS[]) = {
 		&Field::length_,
 		&Field::total_length_,
 		&Field::width_,

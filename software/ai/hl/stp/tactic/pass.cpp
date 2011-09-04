@@ -43,7 +43,7 @@ namespace {
 
 	class PasserShoot : public Tactic {
 		public:
-			PasserShoot(const World &world) : Tactic(world, true), dynamic(true), target(Point(0,0)) {
+			PasserShoot(const World &world) : Tactic(world, true), dynamic(true), target(Point(0, 0)) {
 				kicked = false;
 				passer_info.kicked = false;
 			}

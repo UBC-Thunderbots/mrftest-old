@@ -9,7 +9,6 @@ using AI::HL::STP::Enemy;
 namespace Action = AI::HL::STP::Action;
 
 namespace {
-
 	// should take into account of enemy velocity etc
 
 	class BlockGoal : public Tactic {
@@ -35,7 +34,6 @@ namespace {
 
 	void BlockGoal::execute() {
 		if (!enemy->evaluate().is()) {
-	
 			Action::stop(world, player);
 			return;
 		}
