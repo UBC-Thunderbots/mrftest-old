@@ -8,7 +8,7 @@
 class LogAnalyzer : public Gtk::Window {
 	public:
 		/**
-		 * Creates a new LogAnalyzer.
+		 * \brief Creates a new LogAnalyzer.
 		 *
 		 * \param[in] parent the parent window.
 		 *
