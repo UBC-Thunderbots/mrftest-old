@@ -2,11 +2,17 @@
 #include "ai/backend/xbee/xbee_backend.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
+#include "util/param.h"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
 
 using namespace AI::BE::XBee;
+
+namespace {
+	DoubleParam LINEAR_DECAY_CONSTANT("Robot Linear Decay Constant","Backend/XBee",0.0,99.0,100.0);
+	DoubleParam ANGULAR_DECAY_CONSTANT("Robot Angular Decay Constant","Backend/XBee",0.0,99.0,100.0);
+}
 
 Robot::Ptr Robot::create(AI::BE::Backend &backend, unsigned int pattern) {
 	Ptr p(new Robot(backend, pattern));
@@ -114,7 +120,7 @@ Visualizable::Colour Robot::bar_graph_colour(unsigned int) const {
 	throw std::logic_error("This robot has no graphs");
 }
 
-Robot::Robot(AI::BE::Backend &backend, unsigned int pattern) : seen_this_frame(false), vision_failures(0), backend(backend), pattern_(pattern), xpred(1.3e-3, 2), ypred(1.3e-3, 2), tpred(Angle::of_radians(1.3e-3), Angle::of_radians(2)) {
+Robot::Robot(AI::BE::Backend &backend, unsigned int pattern) : seen_this_frame(false), vision_failures(0), backend(backend), pattern_(pattern), xpred(1.3e-3, 2, LINEAR_DECAY_CONSTANT), ypred(1.3e-3, 2, LINEAR_DECAY_CONSTANT), tpred(Angle::of_radians(1.3e-3), Angle::of_radians(2), ANGULAR_DECAY_CONSTANT) {
 	backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &Robot::on_defending_end_changed));
 }
 

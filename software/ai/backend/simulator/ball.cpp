@@ -1,9 +1,14 @@
 #include "ai/backend/simulator/ball.h"
 #include "ai/backend/simulator/backend.h"
+#include "util/param.h"
 #include <cmath>
 #include <cstring>
 
-AI::BE::Simulator::Ball::Ball(Backend &be) : be(be), xpred(1.3e-3, 2), ypred(1.3e-3, 2) {
+namespace {
+	DoubleParam BALL_DECAY_CONSTANT("Ball Decay Constant", "Backend/Simulator", 0.0, 99.0, 100.0);
+}
+
+AI::BE::Simulator::Ball::Ball(Backend &be) : be(be), xpred(1.3e-3, 2, BALL_DECAY_CONSTANT), ypred(1.3e-3, 2, BALL_DECAY_CONSTANT) {
 	be.signal_mouse_pressed.connect(sigc::mem_fun(this, &Ball::mouse_pressed));
 }
 

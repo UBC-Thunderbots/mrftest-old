@@ -15,8 +15,12 @@ class Kalman {
 		 * \param[in] angle \c true for angular semantics (which imply 2π=0), or \c false for linear semantics.
 		 *
 		 * \param[in] measure_std the standard deviation of measurements fed to update(double, timespec).
+     *
+     * \param[in] accel_std expected standard deviation of the random acceleration imposed on the object (jostling)
+     *
+     * \param[in] decay_time_constant rate of velocity decay (robot or ball)
 		 */
-		Kalman(bool angle, double measure_std, double accel_std);
+		Kalman(bool angle, double measure_std, double accel_std, double decay_time_constant);
 
 		/**
 		 * \brief Predicts values at a given time.
@@ -68,6 +72,7 @@ class Kalman {
 		double last_control;
 		double sigma_m;
 		double sigma_a;
+		double time_constant;
 		std::deque<ControlInput> inputs;
 		Matrix h;
 		Matrix p;

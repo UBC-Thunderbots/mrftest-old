@@ -82,8 +82,7 @@ namespace AI {
 					 *
 					 * \param[in] pattern the pattern index of the robot.
 					 */
-					Robot(unsigned int pattern) : pattern_(pattern), xpred(1.3e-3, 2), ypred(1.3e-3, 2), tpred(Angle::of_radians(1.3e-3), Angle::of_radians(2)) {
-					}
+					Robot(unsigned int pattern);
 
 					/**
 					 * Destroys a Robot.

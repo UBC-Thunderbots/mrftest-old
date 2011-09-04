@@ -19,7 +19,7 @@ template<typename T> class Predictor {
 		 *
 		 * \param[in] accel_std the standard deviation of noise equivalent to unknown object acceleration.
 		 */
-		Predictor(T measure_std, T accel_std);
+		Predictor(T measure_std, T accel_std, double decay_time_constant);
 
 		/**
 		 * Gets the predicted value some length of time into the future (or past).

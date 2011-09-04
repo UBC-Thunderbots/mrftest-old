@@ -6,7 +6,7 @@
 Kalman::ControlInput::ControlInput(timespec t, double v) : time(t), value(v) {
 }
 
-Kalman::Kalman(bool angle, double measure_std, double accel_std) : last_control(0.0), sigma_m(measure_std), sigma_a(accel_std), h(1, 2), p(2, 2, Matrix::InitFlag::IDENTITY), state_estimate(2, 1, Matrix::InitFlag::ZEROES), is_angle(angle) {
+Kalman::Kalman(bool angle, double measure_std, double accel_std,double decay_time_constant) : last_control(0.0), sigma_m(measure_std), sigma_a(accel_std), time_constant(decay_time_constant), h(1, 2), p(2, 2, Matrix::InitFlag::IDENTITY), state_estimate(2, 1, Matrix::InitFlag::ZEROES), is_angle(angle) {
 	last_measurement_time.tv_sec = 0;
 	last_measurement_time.tv_nsec = 0;
 	// %the state measurement operator
@@ -18,28 +18,34 @@ Kalman::Kalman(bool angle, double measure_std, double accel_std) : last_control(
 Matrix Kalman::gen_g_mat(double timestep) const {
 	// %the acceleration to state vector (given an acceleration, what is the state
 	// %update)
-	// G=[timestep.^2/2; timestep];
+	// G=[timestep.^2/2; 1-decay_constant];
 	Matrix G(2, 1);
-	G(0, 0) = timestep * timestep / 2;
-	G(1, 0) = timestep;
+	G(0, 0) = timestep / 2;
+	G(1, 0) = 1-std::exp(-timestep/time_constant);
 	return G;
 }
 
 Matrix Kalman::gen_q_mat(double timestep) const {
-	const Matrix &g = gen_g_mat(timestep);
+	// %the acceleration to state vector (given an acceleration, what is the state
+	// %update)
+	// G=[timestep.^2/2; timestep];
+	Matrix G(2, 1);
+	G(0, 0) = timestep * timestep / 2;
+	G(1, 0) = timestep;
+
 	// %The amount of uncertainty gained per step
-	const Matrix &q = g * ~g * sigma_a * sigma_a;
+	const Matrix &q = G * ~G * sigma_a * sigma_a;
 	return q;
 }
 
 Matrix Kalman::gen_f_mat(double timestep) const {
 	// %the state update matrix (get next state given current one
-	// F=[1 timestep;0 1];
+	// F=[1 timestep;0 decay_constant];
 	Matrix f(2, 2);
 	f(0, 0) = 1.0;
-	f(0, 1) = timestep;
+	f(0, 1) = timestep/2;
 	f(1, 0) = 0.0;
-	f(1, 1) = 1.0;
+	f(1, 1) = std::exp(-timestep/time_constant);
 	return f;
 }
 
