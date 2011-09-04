@@ -24,13 +24,6 @@ void AI::BE::Robot::pre_tick() {
 AI::BE::Player::Player() : moved(false), destination_(Point(), Angle::ZERO), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
 }
 
-void AI::BE::Player::move(Point dest, Angle ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
-	move(dest, ori, vel);
-	this->flags(flags);
-	this->type(type);
-	this->prio(prio);
-}
-
 void AI::BE::Player::move(Point dest, Angle ori, Point vel) {
 	if (!std::isfinite(dest.x) || !std::isfinite(dest.y)) {
 		LOG_ERROR("NaN or ±∞ destination");

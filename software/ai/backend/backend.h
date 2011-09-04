@@ -102,7 +102,6 @@ namespace AI {
 				unsigned int pattern() const = 0;
 				ObjectStore &object_store() const = 0;
 				bool kicker_directional() const = 0;
-				void move(Point dest, Angle ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) __attribute__((deprecated));
 				void move(Point dest, Angle ori, Point vel);
 				unsigned int flags() const { return flags_; }
 				void flags(unsigned int flags);

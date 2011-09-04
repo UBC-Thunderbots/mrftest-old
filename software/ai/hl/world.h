@@ -112,42 +112,6 @@ namespace AI {
 					virtual void prio(AI::Flags::MovePrio prio) = 0;
 
 					/**
-					 * Sets the current destination and movement type for this player.
-					 *
-					 * \param[in] dest the destination position to move to.
-					 *
-					 * \param[in] ori the target orientation to assume.
-					 *
-					 * \param[in] flags the flags governing the movement.
-					 *
-					 * \param[in] type the type of movement to perform.
-					 *
-					 * \param[in] prio the priority of the movement.
-					 *
-					 * \deprecated in favour of the individual functions for setting different values.
-					 */
-					void move(Point dest, Angle ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) __attribute__((deprecated));
-
-					/**
-					 * Sets the current destination and movement type for this player.
-					 *
-					 * \param[in] dest the destination position to move to.
-					 *
-					 * \param[in] ori the target orientation to assume.
-					 *
-					 * \param[in] vel the velocity the robot should be moving when it arrives at the target point.
-					 *
-					 * \param[in] flags the flags governing the movement.
-					 *
-					 * \param[in] type the type of movement to perform.
-					 *
-					 * \param[in] prio the priority of the movement.
-					 *
-					 * \deprecated in favour of the individual functions for setting different values.
-					 */
-					virtual void move(Point dest, Angle ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) __attribute__((deprecated)) = 0;
-
-					/**
 					 * Causes the player to kick the ball.
 					 *
 					 * \param[in] speed the speed of the kick, in m/s.
@@ -298,6 +262,8 @@ namespace AI {
 		}
 	}
 }
+
+inline AI::HL::W::World::World() = default;
 
 #endif
 
