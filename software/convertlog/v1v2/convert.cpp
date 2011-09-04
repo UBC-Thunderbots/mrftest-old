@@ -155,11 +155,10 @@ namespace {
 		// - Configuration-related record (component selection and colour choice).
 		// - Play type change records.
 		// - Score records.
-		// As long as only the above appear, we collect them all into a single Config record, a single Parameter list record, and a single Scores record.
+		// As long as only the above appear, we collect them all into a single Config record and a single Parameter list record.
 		// When a packet not in the above list appears, this marks the start of the log proper so we start outputting record in the usual sequential way.
 		{
-			Log::Record boot_parameters_record, boot_scores_record;
-			Log::Scores &boot_scores = *boot_scores_record.mutable_scores();
+			Log::Record boot_parameters_record;
 			while (sleft) {
 				ConvertLogV1V2::Tag tag = static_cast<ConvertLogV1V2::Tag>(sptr[0]);
 				std::size_t payload_length = decode_u16(&sptr[1]);
@@ -227,9 +226,8 @@ namespace {
 						break;
 
 					case ConvertLogV1V2::T_SCORES:
-						// Add this information to the scores record.
-						boot_scores.set_friendly(payload[0]);
-						boot_scores.set_enemy(payload[1]);
+						// The old XBee backend had a bug which generated bad T_SCORES packets.
+						// Ignore them and reconstruct from refbox packets if present.
 						break;
 
 					case ConvertLogV1V2::T_BACKEND:
@@ -279,6 +277,9 @@ namespace {
 			}
 			write_record(config_record, dest);
 			write_record(boot_parameters_record, dest);
+			Log::Record boot_scores_record;
+			boot_scores_record.mutable_scores()->set_friendly(0);
+			boot_scores_record.mutable_scores()->set_enemy(0);
 			write_record(boot_scores_record, dest);
 		}
 
@@ -451,6 +452,23 @@ namespace {
 						record.mutable_refbox()->set_data(payload, payload_length);
 						write_record(record, dest);
 					}
+					// The old XBee backend had a bug which generated bad T_SCORES packets.
+					// Generate a proper scores packet from here instead.
+					{
+						Log::Record record;
+						switch (config.friendly_colour()) {
+							case Log::COLOUR_YELLOW:
+								record.mutable_scores()->set_friendly(payload[3]);
+								record.mutable_scores()->set_enemy(payload[2]);
+								break;
+
+							case Log::COLOUR_BLUE:
+								record.mutable_scores()->set_friendly(payload[2]);
+								record.mutable_scores()->set_enemy(payload[3]);
+								break;
+						}
+						write_record(record, dest);
+					}
 					break;
 
 				case ConvertLogV1V2::T_FIELD:
@@ -500,13 +518,8 @@ namespace {
 					break;
 
 				case ConvertLogV1V2::T_SCORES:
-					// Copy the packet.
-					{
-						Log::Record record;
-						record.mutable_scores()->set_friendly(payload[0]);
-						record.mutable_scores()->set_enemy(payload[1]);
-						write_record(record, dest);
-					}
+					// The old XBee backend had a bug which generated bad T_SCORES packets.
+					// Ignore them and reconstruct from refbox packets if present.
 					break;
 
 				case ConvertLogV1V2::T_FRIENDLY_ROBOT:
