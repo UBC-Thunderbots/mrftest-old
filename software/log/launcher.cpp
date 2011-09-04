@@ -1,6 +1,7 @@
 #include "log/launcher.h"
-#include "log/loader.h"
 #include "log/analyzer.h"
+#include "log/loader.h"
+#include "log/player.h"
 #include "util/algorithm.h"
 #include "util/exception.h"
 #include "util/fd.h"
@@ -47,7 +48,7 @@ namespace {
 	}
 }
 
-LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyzer_button("Analyzer"), rename_button("Rename"), delete_button("Delete"), exit_pending(false) {
+LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyzer_button("Analyzer"), player_button("Player"), rename_button("Rename"), delete_button("Delete"), exit_pending(false) {
 	set_title("Thunderbots Log Tools");
 	set_size_request(400, 400);
 
@@ -64,6 +65,7 @@ LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyz
 
 	Gtk::VButtonBox *vbb = Gtk::manage(new Gtk::VButtonBox(Gtk::BUTTONBOX_SPREAD));
 	vbb->pack_start(analyzer_button);
+	vbb->pack_start(player_button);
 	vbb->pack_start(rename_button);
 	vbb->pack_start(delete_button);
 	hbox->pack_start(*vbb, Gtk::PACK_SHRINK);
@@ -77,6 +79,7 @@ LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyz
 	log_list.get_selection()->signal_changed().connect(sigc::mem_fun(this, &LogLauncher::on_log_list_selection_changed));
 	on_log_list_selection_changed();
 	analyzer_button.signal_clicked().connect(sigc::mem_fun(this, &LogLauncher::on_analyzer_clicked));
+	player_button.signal_clicked().connect(sigc::mem_fun(this, &LogLauncher::on_player_clicked));
 	rename_button.signal_clicked().connect(sigc::mem_fun(this, &LogLauncher::on_rename_clicked));
 	delete_button.signal_clicked().connect(sigc::mem_fun(this, &LogLauncher::on_delete_clicked));
 
@@ -249,6 +252,7 @@ bool LogLauncher::on_delete_event(GdkEventAny *) {
 	} else {
 		log_list.set_sensitive(false);
 		analyzer_button.set_sensitive(false);
+		player_button.set_sensitive(false);
 		rename_button.set_sensitive(false);
 		delete_button.set_sensitive(false);
 		exit_pending = true;
@@ -259,6 +263,7 @@ bool LogLauncher::on_delete_event(GdkEventAny *) {
 void LogLauncher::on_log_list_selection_changed() {
 	int num = log_list.get_selection()->count_selected_rows();
 	analyzer_button.set_sensitive(num >= 1 && !exit_pending);
+	player_button.set_sensitive(num >= 1 && !exit_pending);
 	rename_button.set_sensitive(num == 1 && !exit_pending && next_file_to_compress == files_to_compress.end());
 	delete_button.set_sensitive(num >= 1 && !exit_pending && next_file_to_compress == files_to_compress.end());
 }
@@ -267,6 +272,13 @@ void LogLauncher::on_analyzer_clicked() {
 	const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
 	for (auto i = selected.begin(), iend = selected.end(); i != iend; ++i) {
 		new LogAnalyzer(*this, filename_to_pathname(files[(*i)[0]]));
+	}
+}
+
+void LogLauncher::on_player_clicked() {
+	const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
+	for (auto i = selected.begin(), iend = selected.end(); i != iend; ++i) {
+		new LogPlayer(*this, filename_to_pathname(files[(*i)[0]]));
 	}
 }
 

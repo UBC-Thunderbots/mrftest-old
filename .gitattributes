@@ -424,6 +424,8 @@ software/log/launcher.h -text
 software/log/loader.cpp -text
 software/log/loader.h -text
 software/log/main.cpp -text
+software/log/player.cpp -text
+software/log/player.h -text
 software/log/shared/enums.cpp -text
 software/log/shared/enums.h -text
 software/log/shared/magic.cpp -text

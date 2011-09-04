@@ -21,6 +21,7 @@ class LogLauncher : public Gtk::Window {
 	private:
 		Gtk::ListViewText log_list;
 		Gtk::Button analyzer_button;
+		Gtk::Button player_button;
 		Gtk::Button rename_button;
 		Gtk::Button delete_button;
 		std::vector<std::string> files;
@@ -40,6 +41,7 @@ class LogLauncher : public Gtk::Window {
 		bool on_delete_event(GdkEventAny *);
 		void on_log_list_selection_changed();
 		void on_analyzer_clicked();
+		void on_player_clicked();
 		void on_rename_clicked();
 		void on_delete_clicked();
 };
