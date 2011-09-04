@@ -101,7 +101,8 @@ namespace {
 
 	Glib::ustring choose_backend() {
 		Gtk::Dialog dlg("Thunderbots AI", true);
-		dlg.get_vbox()->pack_start(*Gtk::manage(new Gtk::Label("Select a backend:")), Gtk::PACK_SHRINK);
+		Gtk::Label label("Select a backend:");
+		dlg.get_vbox()->pack_start(label, Gtk::PACK_SHRINK);
 		Gtk::ComboBoxText combo;
 		typedef AI::BE::BackendFactory::Map Map;
 		const Map &m = AI::BE::BackendFactory::all();

@@ -1,7 +1,5 @@
 #include "ai/window.h"
-#include "ai/param_panel.h"
 #include "uicomponents/abstract_list_model.h"
-#include "uicomponents/annunciator.h"
 #include "util/algorithm.h"
 #include <cassert>
 #include <cstdlib>
@@ -12,22 +10,22 @@ using AI::Window;
 namespace {
 	class BasicControls : public Gtk::Frame {
 		public:
-			BasicControls(AI::AIPackage &ai) : Gtk::Frame("Basics"), ai(ai) {
-				Gtk::Table *table = Gtk::manage(new Gtk::Table(1 + ai.backend.main_ui_controls_table_rows(), 3));
-
-				table->attach(*Gtk::manage(new Gtk::Label("Play type:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+			BasicControls(AI::AIPackage &ai) : Gtk::Frame("Basics"), ai(ai), table(1 + ai.backend.main_ui_controls_table_rows(), 3), playtype_label("Play type:") {
+				table.attach(playtype_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				playtype_entry.set_editable(false);
-				table->attach(playtype_entry, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				table.attach(playtype_entry, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				ai.backend.playtype().signal_changed().connect(sigc::mem_fun(this, &BasicControls::on_playtype_changed));
 				on_playtype_changed();
 
-				ai.backend.main_ui_controls_attach(*table, 1);
+				ai.backend.main_ui_controls_attach(table, 1);
 
-				add(*table);
+				add(table);
 			}
 
 		private:
 			AI::AIPackage &ai;
+			Gtk::Table table;
+			Gtk::Label playtype_label;
 			Gtk::Entry playtype_entry;
 
 			void on_playtype_changed() {
@@ -260,8 +258,8 @@ namespace {
 
 	class SecondaryBasicControls : public Gtk::Table {
 		public:
-			SecondaryBasicControls(AI::AIPackage &ai) : Gtk::Table(3 + ai.backend.secondary_ui_controls_table_rows(), 3), ai(ai) {
-				attach(*Gtk::manage(new Gtk::Label("Play type override:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+			SecondaryBasicControls(AI::AIPackage &ai) : Gtk::Table(3 + ai.backend.secondary_ui_controls_table_rows(), 3), ai(ai), playtype_override_label("Play type override:"), defending_end_label("Defending:"), friendly_colour_label("Colour:"), flip_end_button("X"), flip_friendly_colour_button("X") {
+				attach(playtype_override_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				playtype_override_chooser.append_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayType::NONE));
 				for (unsigned int i = 0; i < static_cast<unsigned int>(AI::Common::PlayType::NONE); ++i) {
 					playtype_override_chooser.append_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayTypeInfo::of_int(i)));
@@ -272,21 +270,19 @@ namespace {
 				ai.backend.playtype_override().signal_changed().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_playtype_override_changed));
 				on_playtype_override_changed();
 
-				attach(*Gtk::manage(new Gtk::Label("Defending:")), 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				attach(defending_end_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				defending_end_entry.set_editable(false);
 				attach(defending_end_entry, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				Gtk::Button *flip_end_button = Gtk::manage(new Gtk::Button("X"));
-				attach(*flip_end_button, 2, 3, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				flip_end_button->signal_clicked().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_flip_end_clicked));
+				attach(flip_end_button, 2, 3, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				flip_end_button.signal_clicked().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_flip_end_clicked));
 				ai.backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_defending_end_changed));
 				on_defending_end_changed();
 
-				attach(*Gtk::manage(new Gtk::Label("Colour:")), 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				attach(friendly_colour_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				friendly_colour_entry.set_editable(false);
 				attach(friendly_colour_entry, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				Gtk::Button *flip_friendly_colour_button = Gtk::manage(new Gtk::Button("X"));
-				attach(*flip_friendly_colour_button, 2, 3, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				flip_friendly_colour_button->signal_clicked().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_flip_friendly_colour_clicked));
+				attach(flip_friendly_colour_button, 2, 3, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				flip_friendly_colour_button.signal_clicked().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_flip_friendly_colour_clicked));
 				ai.backend.friendly_colour().signal_changed().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_friendly_colour_changed));
 				on_friendly_colour_changed();
 
@@ -295,8 +291,10 @@ namespace {
 
 		private:
 			AI::AIPackage &ai;
+			Gtk::Label playtype_override_label, defending_end_label, friendly_colour_label;
 			Gtk::ComboBoxText playtype_override_chooser;
 			Gtk::Entry defending_end_entry, friendly_colour_entry;
+			Gtk::Button flip_end_button, flip_friendly_colour_button;
 
 			void on_playtype_override_chooser_changed() {
 				int row = playtype_override_chooser.get_active_row_number();
@@ -347,24 +345,25 @@ namespace {
 
 	class VisualizerControls : public Gtk::Table {
 		public:
-			VisualizerControls(AI::AIPackage &ai, Visualizer &vis) : Gtk::Table(G_N_ELEMENTS(CONTROLS), 2), ai(ai), vis(vis), buttons(G_N_ELEMENTS(CONTROLS), 0) {
+			VisualizerControls(AI::AIPackage &ai, Visualizer &vis) : Gtk::Table(G_N_ELEMENTS(CONTROLS), 2), ai(ai), vis(vis) {
 				unsigned int children_left = 0;
 				for (unsigned int i = 0; i < G_N_ELEMENTS(CONTROLS); ++i) {
-					buttons[i] = Gtk::manage(new Gtk::CheckButton(CONTROLS[i].title));
+					buttons[i].set_label(CONTROLS[i].title);
 					if (CONTROLS[i].vis_flag) {
-						buttons[i]->set_active(vis.*(CONTROLS[i].vis_flag));
+						buttons[i].set_active(vis.*(CONTROLS[i].vis_flag));
 					} else if (CONTROLS[i].ai_flag) {
-						buttons[i]->set_active(ai.*(CONTROLS[i].ai_flag));
+						buttons[i].set_active(ai.*(CONTROLS[i].ai_flag));
 					} else {
 						std::abort();
 					}
-					buttons[i]->signal_toggled().connect(sigc::mem_fun(this, &VisualizerControls::on_toggled));
+					buttons[i].signal_toggled().connect(sigc::mem_fun(this, &VisualizerControls::on_toggled));
 					if (children_left) {
-						attach(*Gtk::manage(new Gtk::Label("    ")), 0, 1, i, i + 1, Gtk::FILL | Gtk::SHRINK, Gtk::FILL | Gtk::SHRINK);
-						attach(*buttons[i], 1, 2, i, i + 1, Gtk::FILL | Gtk::EXPAND, Gtk::FILL | Gtk::SHRINK);
+						spacers[i].set_text("    ");
+						attach(spacers[i], 0, 1, i, i + 1, Gtk::FILL | Gtk::SHRINK, Gtk::FILL | Gtk::SHRINK);
+						attach(buttons[i], 1, 2, i, i + 1, Gtk::FILL | Gtk::EXPAND, Gtk::FILL | Gtk::SHRINK);
 						--children_left;
 					} else {
-						attach(*buttons[i], 0, 2, i, i + 1, Gtk::FILL | Gtk::EXPAND, Gtk::FILL | Gtk::SHRINK);
+						attach(buttons[i], 0, 2, i, i + 1, Gtk::FILL | Gtk::EXPAND, Gtk::FILL | Gtk::SHRINK);
 						children_left = CONTROLS[i].num_children;
 					}
 				}
@@ -384,7 +383,8 @@ namespace {
 
 			AI::AIPackage &ai;
 			Visualizer &vis;
-			std::vector<Gtk::CheckButton *> buttons;
+			Gtk::Label spacers[G_N_ELEMENTS(CONTROLS)];
+			Gtk::CheckButton buttons[G_N_ELEMENTS(CONTROLS)];
 
 			void on_toggled() {
 				// Update enables.
@@ -392,21 +392,21 @@ namespace {
 				bool enable = false;
 				for (unsigned int i = 0; i < G_N_ELEMENTS(CONTROLS); ++i) {
 					if (num_children) {
-						buttons[i]->set_sensitive(enable);
+						buttons[i].set_sensitive(enable);
 						--num_children;
 					} else {
 						num_children = CONTROLS[i].num_children;
-						enable = buttons[i]->get_active();
+						enable = buttons[i].get_active();
 					}
 				}
 
 				// Update visualizer flags.
 				for (unsigned int i = 0; i < G_N_ELEMENTS(CONTROLS); ++i) {
 					if (CONTROLS[i].vis_flag) {
-						vis.*(CONTROLS[i].vis_flag) = buttons[i]->get_active();
+						vis.*(CONTROLS[i].vis_flag) = buttons[i].get_active();
 					}
 					if (CONTROLS[i].ai_flag) {
-						ai.*(CONTROLS[i].ai_flag) = buttons[i]->get_active();
+						ai.*(CONTROLS[i].ai_flag) = buttons[i].get_active();
 					}
 				}
 			}
@@ -441,52 +441,40 @@ namespace {
 	};
 }
 
-Window::Window(AIPackage &ai) {
-	Visualizer *visualizer = Gtk::manage(new Visualizer(ai.backend));
-
+Window::Window(AIPackage &ai) : visualizer(ai.backend) {
 	set_title("AI");
 
-	Gtk::VBox *outer_vbox = Gtk::manage(new Gtk::VBox);
+	main_vbox.pack_start(*Gtk::manage(new BasicControls(ai)), Gtk::PACK_SHRINK);
+	main_vbox.pack_start(*Gtk::manage(new BallFilterControls(ai)), Gtk::PACK_SHRINK);
+	main_vbox.pack_start(*Gtk::manage(new HighLevelControls(ai)), Gtk::PACK_EXPAND_WIDGET);
+	main_vbox.pack_start(*Gtk::manage(new NavigatorControls(ai)), Gtk::PACK_EXPAND_WIDGET);
+	main_vbox.pack_start(*Gtk::manage(new RobotControllerControls(ai)), Gtk::PACK_EXPAND_WIDGET);
+	notebook.append_page(main_vbox, "Main");
 
-	Gtk::HPaned *hpaned = Gtk::manage(new Gtk::HPaned);
+	secondary_basics_frame.set_label("Basics");
+	secondary_basics_frame.add(*Gtk::manage(new SecondaryBasicControls(ai)));
+	secondary_vbox.pack_start(secondary_basics_frame, Gtk::PACK_SHRINK);
+	secondary_visualizer_controls_frame.set_label("Visualizer");
+	secondary_visualizer_controls_frame.add(*Gtk::manage(new VisualizerControls(ai, visualizer)));
+	secondary_vbox.pack_start(secondary_visualizer_controls_frame, Gtk::PACK_SHRINK);
+	notebook.append_page(secondary_vbox, "Secondary");
 
-	Gtk::Notebook *notebook = Gtk::manage(new Gtk::Notebook);
+	notebook.append_page(param_panel, "Params");
 
-	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox);
-	vbox->pack_start(*Gtk::manage(new BasicControls(ai)), Gtk::PACK_SHRINK);
-	vbox->pack_start(*Gtk::manage(new BallFilterControls(ai)), Gtk::PACK_SHRINK);
-	vbox->pack_start(*Gtk::manage(new HighLevelControls(ai)), Gtk::PACK_EXPAND_WIDGET);
-	vbox->pack_start(*Gtk::manage(new NavigatorControls(ai)), Gtk::PACK_EXPAND_WIDGET);
-	vbox->pack_start(*Gtk::manage(new RobotControllerControls(ai)), Gtk::PACK_EXPAND_WIDGET);
-	notebook->append_page(*vbox, "Main");
+	notebook_frame.set_shadow_type(Gtk::SHADOW_IN);
+	notebook_frame.add(notebook);
+	hpaned.pack1(notebook_frame, false, false);
 
-	vbox = Gtk::manage(new Gtk::VBox);
-	Gtk::Frame *frame = Gtk::manage(new Gtk::Frame("Basics"));
-	frame->add(*Gtk::manage(new SecondaryBasicControls(ai)));
-	vbox->pack_start(*frame, Gtk::PACK_SHRINK);
-	frame = Gtk::manage(new Gtk::Frame("Visualizer"));
-	frame->add(*Gtk::manage(new VisualizerControls(ai, *visualizer)));
-	vbox->pack_start(*frame, Gtk::PACK_SHRINK);
-	notebook->append_page(*vbox, "Secondary");
+	vpaned.pack1(visualizer, true, true);
+	vpaned.pack2(annunciator, false, true);
 
-	notebook->append_page(*Gtk::manage(new ParamPanel), "Params");
+	hpaned.pack2(vpaned, true, true);
 
-	frame = Gtk::manage(new Gtk::Frame);
-	frame->set_shadow_type(Gtk::SHADOW_IN);
-	frame->add(*notebook);
-	hpaned->pack1(*frame, false, false);
+	outer_vbox.pack_start(hpaned, Gtk::PACK_EXPAND_WIDGET);
 
-	Gtk::VPaned *vpaned = Gtk::manage(new Gtk::VPaned);
-	vpaned->pack1(*visualizer, true, true);
-	vpaned->pack2(*Gtk::manage(new GUIAnnunciator), false, true);
+	outer_vbox.pack_start(*Gtk::manage(new VisualizerCoordinatesBar(visualizer)), Gtk::PACK_SHRINK);
 
-	hpaned->pack2(*vpaned, true, true);
-
-	outer_vbox->pack_start(*hpaned, Gtk::PACK_EXPAND_WIDGET);
-
-	outer_vbox->pack_start(*Gtk::manage(new VisualizerCoordinatesBar(*visualizer)), Gtk::PACK_SHRINK);
-
-	add(*outer_vbox);
+	add(outer_vbox);
 
 	show_all();
 }

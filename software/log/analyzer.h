@@ -23,7 +23,11 @@ class LogAnalyzer : public Gtk::Window {
 		Gtk::VBox vbox;
 		Gtk::HPaned hpaned;
 		bool pane_fixed;
+		Gtk::Frame packets_list_frame;
+		Gtk::ScrolledWindow packets_list_scroller;
 		Gtk::TreeView packets_list_view;
+		Gtk::Frame packet_decoded_frame;
+		Gtk::ScrolledWindow packet_decoded_scroller;
 		Gtk::TreeView packet_decoded_tree;
 		Gtk::Button to_tsv_button;
 

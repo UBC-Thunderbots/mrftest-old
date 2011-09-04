@@ -294,22 +294,17 @@ namespace {
 	}
 }
 
-ParamPanel::ParamPanel() {
+ParamPanel::ParamPanel() : hbb(Gtk::BUTTONBOX_SPREAD), load_button(Gtk::Stock::REVERT_TO_SAVED), clear_button(Gtk::Stock::CLEAR), save_button(Gtk::Stock::SAVE) {
 	ParamTreeView *tv = Gtk::manage(new ParamTreeView);
-	Gtk::ScrolledWindow *sw = Gtk::manage(new Gtk::ScrolledWindow);
-	sw->add(*tv);
-	pack_start(*sw, Gtk::PACK_EXPAND_WIDGET);
+	scroller.add(*tv);
+	pack_start(scroller, Gtk::PACK_EXPAND_WIDGET);
 
-	Gtk::HButtonBox *hbb = Gtk::manage(new Gtk::HButtonBox(Gtk::BUTTONBOX_SPREAD));
-	Gtk::Button *button = Gtk::manage(new Gtk::Button(Gtk::Stock::REVERT_TO_SAVED));
-	button->signal_clicked().connect(&on_load_params_clicked);
-	hbb->pack_start(*button);
-	button = Gtk::manage(new Gtk::Button(Gtk::Stock::CLEAR));
-	button->signal_clicked().connect(&on_default_params_clicked);
-	hbb->pack_start(*button);
-	button = Gtk::manage(new Gtk::Button(Gtk::Stock::SAVE));
-	button->signal_clicked().connect(&on_save_params_clicked);
-	hbb->pack_start(*button);
-	pack_start(*hbb, Gtk::PACK_SHRINK);
+	load_button.signal_clicked().connect(&on_load_params_clicked);
+	hbb.pack_start(load_button);
+	clear_button.signal_clicked().connect(&on_default_params_clicked);
+	hbb.pack_start(clear_button);
+	save_button.signal_clicked().connect(&on_save_params_clicked);
+	hbb.pack_start(save_button);
+	pack_start(hbb, Gtk::PACK_SHRINK);
 }
 

@@ -91,15 +91,13 @@ namespace {
 	}
 }
 
-GUIAnnunciator::GUIAnnunciator() {
-	Gtk::TreeView *view = Gtk::manage(new Gtk::TreeView(MessagesALM::instance()));
-	view->get_selection()->set_mode(Gtk::SELECTION_SINGLE);
-	view->append_column("Age", MessagesALM::instance()->age_column);
-	Gtk::CellRendererText *message_renderer = Gtk::manage(new Gtk::CellRendererText);
-	int message_colnum = view->append_column("Message", *message_renderer) - 1;
-	Gtk::TreeViewColumn *message_column = view->get_column(message_colnum);
-	message_column->set_cell_data_func(*message_renderer, &message_cell_data_func);
-	add(*view);
+GUIAnnunciator::GUIAnnunciator() : view(MessagesALM::instance()) {
+	view.get_selection()->set_mode(Gtk::SELECTION_SINGLE);
+	view.append_column("Age", MessagesALM::instance()->age_column);
+	int message_colnum = view.append_column("Message", message_renderer) - 1;
+	Gtk::TreeViewColumn *message_column = view.get_column(message_colnum);
+	message_column->set_cell_data_func(message_renderer, &message_cell_data_func);
+	add(view);
 	set_shadow_type(Gtk::SHADOW_IN);
 	set_size_request(-1, 100);
 }

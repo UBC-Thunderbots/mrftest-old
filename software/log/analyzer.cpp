@@ -134,7 +134,8 @@ namespace {
 			dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
 			dlg.set_default_response(Gtk::RESPONSE_OK);
 			Gtk::HBox hb;
-			hb.pack_start(*Gtk::manage(new Gtk::Label("Player index:")), Gtk::PACK_SHRINK);
+			Gtk::Label label("Player index:");
+			hb.pack_start(label, Gtk::PACK_SHRINK);
 			Gtk::SpinButton spin;
 			spin.get_adjustment()->configure(0, 0, 15, 1, 5, 0);
 			spin.set_digits(0);
@@ -688,23 +689,19 @@ LogAnalyzer::LogAnalyzer(Gtk::Window &parent, const std::string &pathname) : imp
 	packets_list_view.append_column("Packet Type", impl->alm->type_column);
 	packets_list_view.get_selection()->set_mode(Gtk::SELECTION_SINGLE);
 	packets_list_view.get_selection()->signal_changed().connect(sigc::mem_fun(this, &LogAnalyzer::on_packets_list_view_selection_changed));
-	Gtk::ScrolledWindow *scroller = Gtk::manage(new Gtk::ScrolledWindow);
-	scroller->add(packets_list_view);
-	Gtk::Frame *frame = Gtk::manage(new Gtk::Frame);
-	frame->set_shadow_type(Gtk::SHADOW_IN);
-	frame->add(*scroller);
-	hpaned.pack1(*frame, Gtk::EXPAND | Gtk::FILL);
+	packets_list_scroller.add(packets_list_view);
+	packets_list_frame.set_shadow_type(Gtk::SHADOW_IN);
+	packets_list_frame.add(packets_list_scroller);
+	hpaned.pack1(packets_list_frame, Gtk::EXPAND | Gtk::FILL);
 
 	packet_decoded_tree.append_column("Field", impl->packet_decoded_tree_columns.key);
 	packet_decoded_tree.get_column(0)->set_resizable();
 	packet_decoded_tree.append_column("Value", impl->packet_decoded_tree_columns.value);
 	packet_decoded_tree.get_column(1)->set_resizable();
-	scroller = Gtk::manage(new Gtk::ScrolledWindow);
-	scroller->add(packet_decoded_tree);
-	frame = Gtk::manage(new Gtk::Frame);
-	frame->set_shadow_type(Gtk::SHADOW_IN);
-	frame->add(*scroller);
-	hpaned.pack2(*frame, Gtk::EXPAND | Gtk::FILL);
+	packet_decoded_scroller.add(packet_decoded_tree);
+	packet_decoded_frame.set_shadow_type(Gtk::SHADOW_IN);
+	packet_decoded_frame.add(packet_decoded_scroller);
+	hpaned.pack2(packet_decoded_frame, Gtk::EXPAND | Gtk::FILL);
 
 	to_tsv_button.signal_clicked().connect(sigc::mem_fun(this, &LogAnalyzer::on_to_tsv_clicked));
 

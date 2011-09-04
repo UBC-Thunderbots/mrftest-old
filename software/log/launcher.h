@@ -19,7 +19,11 @@ class LogLauncher : public Gtk::Window {
 		LogLauncher();
 
 	private:
+		Gtk::VBox vbox;
+		Gtk::HBox hbox;
+		Gtk::ScrolledWindow scroller;
 		Gtk::ListViewText log_list;
+		Gtk::VButtonBox vbb;
 		Gtk::Button analyzer_button;
 		Gtk::Button player_button;
 		Gtk::Button rename_button;

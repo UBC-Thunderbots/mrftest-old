@@ -54,27 +54,21 @@ LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyz
 
 	populate();
 
-	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox);
-
-	Gtk::HBox *hbox = Gtk::manage(new Gtk::HBox);
-
-	Gtk::ScrolledWindow *scroller = Gtk::manage(new Gtk::ScrolledWindow);
 	log_list.set_column_title(0, "Log File");
-	scroller->add(log_list);
-	hbox->pack_start(*scroller, Gtk::PACK_EXPAND_WIDGET);
+	scroller.add(log_list);
+	hbox.pack_start(scroller, Gtk::PACK_EXPAND_WIDGET);
 
-	Gtk::VButtonBox *vbb = Gtk::manage(new Gtk::VButtonBox(Gtk::BUTTONBOX_SPREAD));
-	vbb->pack_start(analyzer_button);
-	vbb->pack_start(player_button);
-	vbb->pack_start(rename_button);
-	vbb->pack_start(delete_button);
-	hbox->pack_start(*vbb, Gtk::PACK_SHRINK);
+	vbb.pack_start(analyzer_button);
+	vbb.pack_start(player_button);
+	vbb.pack_start(rename_button);
+	vbb.pack_start(delete_button);
+	hbox.pack_start(vbb, Gtk::PACK_SHRINK);
 
-	vbox->pack_start(*hbox, Gtk::PACK_EXPAND_WIDGET);
+	vbox.pack_start(hbox, Gtk::PACK_EXPAND_WIDGET);
 
-	vbox->pack_start(compress_progress_bar, Gtk::PACK_SHRINK);
+	vbox.pack_start(compress_progress_bar, Gtk::PACK_SHRINK);
 
-	add(*vbox);
+	add(vbox);
 
 	log_list.get_selection()->signal_changed().connect(sigc::mem_fun(this, &LogLauncher::on_log_list_selection_changed));
 	on_log_list_selection_changed();
@@ -284,15 +278,16 @@ void LogLauncher::on_player_clicked() {
 
 void LogLauncher::on_rename_clicked() {
 	Gtk::Dialog dlg("Thunderbots Log Tools - Rename Log", *this, true);
-	Gtk::HBox *hbox = Gtk::manage(new Gtk::HBox);
-	hbox->pack_start(*Gtk::manage(new Gtk::Label("Enter new name for log:")), Gtk::PACK_SHRINK);
+	Gtk::HBox hbox;
+	Gtk::Label label("Enter new name for log:");
+	hbox.pack_start(label, Gtk::PACK_SHRINK);
 	Gtk::Entry new_name_entry;
 	new_name_entry.set_activates_default();
 	new_name_entry.set_width_chars(30);
 	new_name_entry.set_text(log_list.get_text(log_list.get_selected()[0]));
-	hbox->pack_start(new_name_entry, Gtk::PACK_EXPAND_WIDGET);
-	hbox->show_all();
-	dlg.get_vbox()->pack_start(*hbox, Gtk::PACK_SHRINK);
+	hbox.pack_start(new_name_entry, Gtk::PACK_EXPAND_WIDGET);
+	hbox.show_all();
+	dlg.get_vbox()->pack_start(hbox, Gtk::PACK_SHRINK);
 	dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
 	dlg.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 	dlg.set_default_response(Gtk::RESPONSE_OK);
