@@ -157,7 +157,7 @@ void GeomUtilTest::test_line_rect_intersect() {
 
 void GeomUtilTest::test_vector_rect_intersect() {
 	dbgout << "========= Enter vector_rect_intersect Test =========" << std::endl;
-	Rect rect({1.0, 1.0}, {-1.0, -1.0});
+	Rect rect({ 1.0, 1.0 }, { -1.0, -1.0 });
 	Point pr1(((std::rand() % 200) - 100) / 100.0, 1.0);
 	Point pr2(((std::rand() % 200) - 100) / 100.0, -1.0);
 	Point pr3(1.0, ((std::rand() % 200) - 100) / 100.0);

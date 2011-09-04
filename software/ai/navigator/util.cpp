@@ -541,7 +541,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 	// find the end points that define the position that we can be in
 	const Field &field = world.field();
 	const Ball &ball = world.ball();
-	Rect field_rec({-field.length(), -field.width()}, field.total_length(), field.total_width());
+	Rect field_rec({ -field.length(), -field.width() }, field.total_length(), field.total_width());
 	Point segA = ball.position();
 	Point segB = vector_rect_intersect(field_rec, segA, segA + ball.velocity().norm());
 
