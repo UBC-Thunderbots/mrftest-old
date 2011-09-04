@@ -18,6 +18,8 @@ template<typename T> class Predictor {
 		 * \param[in] measure_std the expected standard deviation of the measurement noise.
 		 *
 		 * \param[in] accel_std the standard deviation of noise equivalent to unknown object acceleration.
+		 *
+		 * \param[in] decay_time_constant rate of velocity decay.
 		 */
 		Predictor(T measure_std, T accel_std, double decay_time_constant);
 
