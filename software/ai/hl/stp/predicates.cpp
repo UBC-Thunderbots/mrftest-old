@@ -259,6 +259,11 @@ bool Predicates::FightBall::compute(const World &world) {
 	} else {
 		const Player::CPtr friendly_baller = Evaluation::calc_friendly_baller();
 		const Robot::Ptr enemy_baller = Evaluation::calc_enemy_baller(world);
+#warning This code generates a segfault
+//these pointers potentially evaluates to something invalid
+//calc_friendly_baller just returns a local variable that is potentially not updated if a robot is removed
+//also if there are not enemies then enemy_baller will explode
+
 		return (friendly_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS
 		       && (enemy_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS;
 	}
