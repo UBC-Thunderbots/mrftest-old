@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <cmath>
 #include <vector>
+#include <gtkmm.h>
+#include <iostream>
 #include "util/param.h"
 #include "geom/rect.h"
 
@@ -529,26 +531,39 @@ timespec AI::Nav::Util::get_next_ts(timespec now, Point &p1, Point &p2, Point ta
 double AI::Nav::Util::estimate_action_duration(std::vector<std::pair<Point, Angle> > path_points) {
 	double total_time = 0;
 	for (unsigned int i = 0; i < path_points.size() - 1; ++i) {
+		//std::cout << "hello" << std::endl;
 		double dist = (path_points[i].first - path_points[i + 1].first).len();
 		total_time += dist / Player::MAX_LINEAR_VELOCITY;
 	}
 	return total_time;
 }
 
-bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, Cairo::RefPtr<Cairo::Context> ctx ) {
 	// need to confirm that the player has proper flag
 
 	// find the end points that define the position that we can be in
 	const Field &field = world.field();
 	const Ball &ball = world.ball();
-	Rect field_rec({ -field.length(), -field.width() }, field.total_length(), field.total_width());
+	Rect field_rec({ field.length()/2, field.width()/2 }, { -field.length()/2, -field.width()/2 });
 	Point segA = ball.position();
 	Point segB = vector_rect_intersect(field_rec, segA, segA + ball.velocity().norm());
+	/*std::cout << "size of the field" << field_rec.ne_corner() << field_rec.sw_corner()  << std::endl;
+	std::cout << "where is the ball" << segA << std::endl;
+	std::cout << "ball velocity" <<  ball.velocity() <<  std::endl;
+	std::cout << "where is the wall" << segB << std::endl;*/
+	if( ctx != Cairo::RefPtr<Cairo::Context>() ){
+		ctx->arc(segB.x, segB.y, 0.2, 0.0, M_PI*2 );
+		ctx->set_source_rgb(0.8,0.0,0.0);
+		ctx->fill_preserve();
+		ctx->stroke();
+	}
 
 	// Go through some points to see which one is possible/ (later) more optimal
 	int ten = 10;                           // ten is an okay number
-	Point interval = (segA - segB) * (1.0 / ten);
+	Point interval = (-segA + segB) * (1.0 / ten);
+	//std::cout << "interval size" << interval << std::endl;
 	double interval_time = interval.len() / ball.velocity().len();        // assume no decay
+	//std::cout << "interval time" << interval_time << std::endl;
 	Point dest;
 	// timespec min_time = timespec(10000);                     // well just make this value big first
 	std::vector<Point> path_points;
@@ -558,22 +573,39 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 	for (int i = 0; i <= ten; i++) {
 		path_points = planner.plan(player, segA + interval * i, flags);
 		std::vector<std::pair<Point, Angle> > path_points_with_angle;
+		path_points_with_angle.push_back(std::make_pair( player->position(), player->orientation() ) );
 		path_points_with_angle.push_back(std::make_pair(path_points[0], player->orientation()));    // first orientation is player's current orientation
 		for (unsigned int j = 1; j < path_points.size(); j++) {
 			Angle path_orientation = (path_points[j] - path_points[j - 1]).orientation(); // every later orientation is the path segment's orientation
 			path_points_with_angle.push_back(std::make_pair(path_points[j], path_orientation));
 		}
-		if (AI::Nav::Util::estimate_action_duration(path_points_with_angle) < interval_time * i) {
+		//std::cout << "bot time " << AI::Nav::Util::estimate_action_duration(path_points_with_angle) << " ball time " << interval_time * i << std::endl; 
+		if (AI::Nav::Util::estimate_action_duration(path_points_with_angle) < interval_time * i || i == ten ) {
+			std::cout << "found \n";
 			dest = segA + interval * i;
+			if( ctx != Cairo::RefPtr<Cairo::Context>() ){
+				Point p( path_points[path_points.size()-1] );
+				ctx->arc(p.x, p.y, 0.05, 0.0, M_PI*2 );
+				ctx->set_source_rgb(0.2,0.2,0.0);
+				ctx->fill_preserve();
+				ctx->stroke();
+				Point p2( dest );
+				ctx->arc(p2.x, p2.y, 0.05, 0.0, M_PI*2 );
+				ctx->set_source_rgb(0.2,0.5,0.0);
+				ctx->fill_preserve();
+				ctx->stroke();
+			}
 			AI::Nav::W::Player::Path path;
 			timespec working_time = world.monotonic_time();
-			for (unsigned int j = 0; j < path_points_with_angle.size(); j++) {
+			// ignore first point since it is bot's position
+			for (unsigned int j = 1; j < path_points_with_angle.size(); j++) {
 				path.push_back(std::make_pair(path_points_with_angle[j], working_time));    // not going for proper timestamp, yet
 			}
 			player->path(path);
 			return true;
 		}
 	}
+	
 	// guess we have't quite find a possible intersecting point
 	return false;
 }

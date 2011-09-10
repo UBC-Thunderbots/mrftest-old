@@ -8,6 +8,7 @@
 // #include "util/param.h"
 #include "ai/hl/stp/param.h"
 #include <sstream>
+#include <gtkmm.h>
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
@@ -270,11 +271,15 @@ namespace AI {
 				ctx->set_source_rgb(1.0, 1.0, 1.0);
 				for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 					Player::Ptr player = world.friendly_team().get(i);
+					if( player->type() == AI::Flags::MoveType::INTERCEPT ){
+						find_best_intersecting_point( world, player, ctx );
+					}
 					ctx->begin_new_path();
 					ctx->set_line_width(1);
 					ctx->move_to(world.ball().position().x, world.ball().position().y);
 					ctx->line_to(player->destination().first.x, player->destination().first.y);
 				}
+				
 			}
 
 			void RRTNavigator::tick() {

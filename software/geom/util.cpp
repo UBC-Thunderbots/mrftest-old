@@ -373,7 +373,7 @@ Point vector_rect_intersect(const Rect &r, const Point &vecA, const Point &vecB)
 		int j = i + 1;
 		const Point &a = r[i];
 		const Point &b = r[j];
-		if (vector_crosses_seg(vecA, vecB, a, b)) {
+		if ( unique_line_intersect(a, b, vecA, vecB ) && vector_crosses_seg(vecA, vecB, a, b ) ) {
 			Point intersect = line_intersect(a, b, vecA, vecB);
 			return intersect;
 		}

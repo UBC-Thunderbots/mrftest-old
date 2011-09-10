@@ -8,6 +8,7 @@
 #include "util/time.h"
 #include <utility>
 #include <vector>
+#include <gtkmm.h>
 
 namespace AI {
 	namespace Nav {
@@ -93,7 +94,7 @@ namespace AI {
 			 * Calculate the best position to intersect the ball
 			 *
 			 */
-			bool find_best_intersecting_point(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+			bool find_best_intersecting_point(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, Cairo::RefPtr<Cairo::Context> ctx = Cairo::RefPtr<Cairo::Context>());
 		}
 	}
 }
