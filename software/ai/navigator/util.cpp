@@ -568,7 +568,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 	// timespec min_time = timespec(10000);                     // well just make this value big first
 	std::vector<Point> path_points;
 	AI::Nav::RRTPlanner planner(world);
-	unsigned int flags = 0; // PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)]->added_flags;
+	unsigned int flags = AI::Flags::FLAG_AVOID_BALL_TINY; // PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)]->added_flags;
 #warning flags and timespec are not account for properly
 	for (int i = 0; i <= ten; i++) {
 		path_points = planner.plan(player, segA + interval * i, flags);
