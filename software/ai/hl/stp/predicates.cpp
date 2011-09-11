@@ -261,7 +261,7 @@ bool Predicates::FightBall::compute(const World &world) {
 		const Robot::Ptr enemy_baller = Evaluation::calc_enemy_baller(world);
 
 		return (friendly_baller.is() && enemy_baller.is())
-			   && (friendly_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS
+		       && (friendly_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS
 		       && (enemy_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS;
 	}
 }

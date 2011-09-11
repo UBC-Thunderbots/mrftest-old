@@ -368,14 +368,14 @@ std::vector<Point> line_rect_intersect(const Rect &r, const Point &segA, const P
 	return ans;
 }
 
-bool point_in_seg( const Point &p, const Point &segA, const Point &segB ){
-	if( collinear( p, segA, segB ) ){
-		if( (p.x<= segA.x && p.x >= segB.x) || (p.x <= segB.x && p.x >= segA.x ) ){
-			//if( (p.y<= segA.y && p.y >= segB.y) || (p.y <= segB.y && p.y >= segA.y ) ){
-				return true;
+bool point_in_seg(const Point &p, const Point &segA, const Point &segB) {
+	if (collinear(p, segA, segB)) {
+		if ((p.x <= segA.x && p.x >= segB.x) || (p.x <= segB.x && p.x >= segA.x)) {
+			// if( (p.y<= segA.y && p.y >= segB.y) || (p.y <= segB.y && p.y >= segA.y ) ){
+			return true;
 			/*} else {
-				return false;
-			}*/
+			    return false;
+			   }*/
 		} else {
 			return false;
 		}
@@ -385,9 +385,9 @@ bool point_in_seg( const Point &p, const Point &segA, const Point &segB ){
 	}
 }
 
-bool point_in_vec( const Point &p, const Point &vecA, const Point &vecB ){// vecA is the beginning of the vector
-	if( collinear( p, vecA, vecB ) ){
-		if( ( (p.x - vecA.x)*(vecB.x - vecA.x) > EPS ) && ( (p.y - vecA.y)*(vecB.y - vecA.y) > EPS )  ){
+bool point_in_vec(const Point &p, const Point &vecA, const Point &vecB) { // vecA is the beginning of the vector
+	if (collinear(p, vecA, vecB)) {
+		if (((p.x - vecA.x) * (vecB.x - vecA.x) > EPS) && ((p.y - vecA.y) * (vecB.y - vecA.y) > EPS)) {
 			return true;
 		} else {
 			return false;
@@ -403,21 +403,21 @@ bool point_in_vec( const Point &p, const Point &vecA, const Point &vecB ){// vec
 Point vector_rect_intersect(const Rect &r, const Point &vecA, const Point &vecB) {
 #warning lets use the proper invalid point stuff at some point
 	/*std::cout << vecA << vecB << r.ne_corner() << r.sw_corner();
-	for (unsigned int i = 0; i < 4; i++) {
-		unsigned int j = (i + 1)%4;
-		const Point &a = r[i];
-		const Point &b = r[j];
-		if ( vector_crosses_seg(vecA, vecB, a, b ) ) {
-			Point intersect = line_intersect(a, b, vecA, vecB);
-			std::cout << std::endl;
-			return intersect;
-		}
-	}
-	std::cout << "fail \n";
-	return r.centre();  // return the center of the rectangle, if no valid answer is found*/
-	std::vector<Point> points = line_rect_intersect( r, vecA, (vecB - vecA)*100 + vecA);
-	for( unsigned int i = 0; i < points.size(); i++ ){
-		if( point_in_vec( points[i], vecA, vecB )){
+	   for (unsigned int i = 0; i < 4; i++) {
+	    unsigned int j = (i + 1)%4;
+	    const Point &a = r[i];
+	    const Point &b = r[j];
+	    if ( vector_crosses_seg(vecA, vecB, a, b ) ) {
+	        Point intersect = line_intersect(a, b, vecA, vecB);
+	        std::cout << std::endl;
+	        return intersect;
+	    }
+	   }
+	   std::cout << "fail \n";
+	   return r.centre();  // return the center of the rectangle, if no valid answer is found*/
+	std::vector<Point> points = line_rect_intersect(r, vecA, (vecB - vecA) * 100 + vecA);
+	for (unsigned int i = 0; i < points.size(); i++) {
+		if (point_in_vec(points[i], vecA, vecB)) {
 			return points[i];
 		}
 	}
@@ -522,12 +522,12 @@ std::vector<Point> lineseg_circle_intersect(const Point &centre, double radius, 
 }
 
 bool unique_line_intersect(const Point &a, const Point &b, const Point &c, const Point &d) {
-	return (std::abs((d - c).cross(b - a)) > EPS);
+	return std::abs((d - c).cross(b - a)) > EPS;
 }
 
 // ported code
 Point line_intersect(const Point &a, const Point &b, const Point &c, const Point &d) {
-	assert( std::abs((d - c).cross(b - a)) > EPS);
+	assert(std::abs((d - c).cross(b - a)) > EPS);
 	return a + (a - c).cross(d - c) / (d - c).cross(b - a) * (b - a);
 }
 
@@ -559,9 +559,9 @@ bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Po
 }
 
 bool vector_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2) {
-	if ( std::abs((a1 - a2).cross(b1 - b2)) > EPS ) {
+	if (std::abs((a1 - a2).cross(b1 - b2)) > EPS) {
 		Point i0 = line_intersect(a1, a2, b1, b2);
-		if ( point_in_vec( i0, a1, a2 ) && point_in_seg( i0, b1, b2 ) ) {
+		if (point_in_vec(i0, a1, a2) && point_in_seg(i0, b1, b2)) {
 			return true;
 		} else {
 			return false;
