@@ -368,7 +368,7 @@ bool operator!=(Angle x, Angle y);
  *
  * \return \p s.
  */
-std::ostream &operator<<(std::ostream &s, Angle a);
+template<typename CharT, typename Traits> std::basic_ostream<CharT, Traits> &operator<<(std::basic_ostream<CharT, Traits> &s, Angle a);
 
 
 
@@ -508,7 +508,7 @@ inline bool operator!=(Angle x, Angle y) {
 	return x.to_radians() != y.to_radians();
 }
 
-inline std::ostream &operator<<(std::ostream &s, Angle a) {
+template<typename CharT, typename Traits> inline std::basic_ostream<CharT, Traits> &operator<<(std::basic_ostream<CharT, Traits> &s, Angle a) {
 	s << a.to_radians() << 'R';
 	return s;
 }

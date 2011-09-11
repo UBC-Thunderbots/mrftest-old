@@ -3,11 +3,11 @@
 #include "geom/point.h"
 #include "util/algorithm.h"
 #include "util/byref.h"
+#include "util/dprint.h"
 #include "util/noncopyable.h"
 #include "util/param.h"
 #include <cmath>
 #include <glibmm.h>
-#include <iostream>
 #include <vector>
 
 using AI::RC::RobotController;
@@ -122,14 +122,14 @@ namespace {
 			if (PID_FLIP_SLOWDOWN) {
 				double slowdown = (PID_SLOWDOWN * PID_A_THRESH - angular_velocity.abs()) / (PID_SLOWDOWN * PID_A_THRESH);
 				if (std::fabs(slowdown) > 1.1) {
-					std::cerr << "PIDSim: spin up" << std::endl;
+					LOG_ERROR("spin up");
 					slowdown = 1;
 				}
 				linear_velocity *= slowdown;
 			} else {
 				double slowdown = (PID_SLOWDOWN * PID_MAX_VEL - linear_velocity.len()) / (PID_SLOWDOWN * PID_MAX_VEL);
 				if (std::fabs(slowdown) > 1.1) {
-					std::cerr << "PIDSim: spin up" << std::endl;
+					LOG_ERROR("spin up");
 					slowdown = 1;
 				}
 				angular_velocity *= slowdown;

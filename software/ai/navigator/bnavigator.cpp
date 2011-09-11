@@ -1,8 +1,7 @@
 #include "ai/navigator/navigator.h"
-#include "util/time.h"
-#include "geom/util.h"
 #include "ai/navigator/util.h"
-#include <iostream>
+#include "geom/util.h"
+#include "util/time.h"
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;

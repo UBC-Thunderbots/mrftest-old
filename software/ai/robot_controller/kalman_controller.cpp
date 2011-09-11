@@ -13,7 +13,6 @@
 #include "util/noncopyable.h"
 #include "util/dprint.h"
 #include "util/param.h"
-#include <iostream>
 #include <cmath>
 #include <glibmm.h>
 #include <gtkmm.h>
@@ -73,7 +72,7 @@ namespace {
 
 				if (state != State::IDLE) {
 					convert_to_wheels(to_be_velocity, to_be_rotate_speed, wheel_speeds);
-					std::cout << to_be_pivot_radius << "\t" << to_be_terminal_velocity << "\t(" << to_be_velocity.x << ", " << to_be_velocity.y << ") " << to_be_rotate_speed << " (" << wheel_speeds[0] << ", " << wheel_speeds[1] << ", " << wheel_speeds[2] << ", " << wheel_speeds[3] << ")" << std::endl;
+					LOG_INFO(Glib::ustring::compose("%1\t%2\t%3 %4 (%5, %6, %7, %8)", to_be_pivot_radius, to_be_terminal_velocity, to_be_velocity, to_be_rotate_speed, wheel_speeds[0], wheel_speeds[1], wheel_speeds[2], wheel_speeds[3]));
 				}
 				player->drive(wheel_speeds);
 
@@ -173,7 +172,7 @@ namespace {
 				to_be_terminal_velocity = hsb_terminal_velocity.get_value();
 				if (!enable_pivot_radius) {
 					to_be_velocity = Point::of_angle(to_be_direction) * to_be_terminal_velocity;
-					std::cout << to_be_velocity.x << " " << to_be_velocity.y << std::endl;
+					LOG_INFO(Glib::ustring::format(to_be_velocity));
 				} else {
 					to_be_velocity = Point::of_angle(player->orientation()) * to_be_terminal_velocity;
 					to_be_rotate_speed = Angle::of_radians(to_be_terminal_velocity / to_be_pivot_radius);
@@ -183,7 +182,7 @@ namespace {
 				to_be_direction = Angle::of_radians(hsb_direction.get_value());
 				if (!enable_pivot_radius) {
 					to_be_velocity = Point::of_angle(to_be_direction) * to_be_terminal_velocity;
-					std::cout << to_be_velocity.x << " " << to_be_velocity.y << std::endl;
+					LOG_INFO(Glib::ustring::format(to_be_velocity));
 				}
 			}
 			void on_adj_rotate_speed_changed() {

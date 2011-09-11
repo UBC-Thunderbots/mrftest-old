@@ -1,11 +1,9 @@
 #include "ai/hl/hl.h"
 #include "ai/hl/stp/world.h"
 #include "util/dprint.h"
-
 #include <cassert>
+#include <cmath>
 #include <gtkmm.h>
-#include <math.h>
-#include <iostream>
 
 using namespace AI::HL;
 using namespace AI::HL::STP;

@@ -3,7 +3,6 @@
 #include "util/dprint.h"
 #include <algorithm>
 #include <cassert>
-#include <cstddef>
 #include <math>
 #include <iostream>
 
@@ -388,7 +387,7 @@ bool point_in_seg( const Point &p, const Point &segA, const Point &segB ){
 
 bool point_in_vec( const Point &p, const Point &vecA, const Point &vecB ){// vecA is the beginning of the vector
 	if( collinear( p, vecA, vecB ) ){
-		if( ( (p.x - vecA.x)*(vecB.x - vecA.x) > 1e-9 ) && ( (p.y - vecA.y)*(vecB.y - vecA.y) > 1e-9 )  ){
+		if( ( (p.x - vecA.x)*(vecB.x - vecA.x) > EPS ) && ( (p.y - vecA.y)*(vecB.y - vecA.y) > EPS )  ){
 			return true;
 		} else {
 			return false;
@@ -523,12 +522,12 @@ std::vector<Point> lineseg_circle_intersect(const Point &centre, double radius, 
 }
 
 bool unique_line_intersect(const Point &a, const Point &b, const Point &c, const Point &d) {
-	return (std::abs((d - c).cross(b - a)) > 1e-9);
+	return (std::abs((d - c).cross(b - a)) > EPS);
 }
 
 // ported code
 Point line_intersect(const Point &a, const Point &b, const Point &c, const Point &d) {
-	assert( std::abs((d - c).cross(b - a)) > 1e-9);
+	assert( std::abs((d - c).cross(b - a)) > EPS);
 	return a + (a - c).cross(d - c) / (d - c).cross(b - a) * (b - a);
 }
 
@@ -560,7 +559,7 @@ bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Po
 }
 
 bool vector_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2) {
-	if ( std::abs((a1 - a2).cross(b1 - b2)) > 1e-9 ) {
+	if ( std::abs((a1 - a2).cross(b1 - b2)) > EPS ) {
 		Point i0 = line_intersect(a1, a2, b1, b2);
 		if ( point_in_vec( i0, a1, a2 ) && point_in_seg( i0, b1, b2 ) ) {
 			return true;

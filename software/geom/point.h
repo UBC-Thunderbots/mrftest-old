@@ -265,7 +265,7 @@ Point &operator/=(Point &p, double s);
  *
  * \return \p os.
  */
-std::ostream &operator<<(std::ostream &os, const Point &p);
+template<typename CharT, typename Traits> std::basic_ostream<CharT, Traits> &operator<<(std::basic_ostream<CharT, Traits> &s, Point p);
 
 /**
  * Orders two vectors suitably for sorting.
@@ -406,9 +406,9 @@ inline Point &operator/=(Point &p, double s) {
 	return p;
 }
 
-inline std::ostream &operator<<(std::ostream &os, const Point &p) {
-	os << '(' << p.x << ',' << p.y << ')';
-	return os;
+template<typename CharT, typename Traits> inline std::basic_ostream<CharT, Traits> &operator<<(std::basic_ostream<CharT, Traits> &s, Point p) {
+	s << '(' << p.x << ',' << p.y << ')';
+	return s;
 }
 
 inline bool operator<(const Point &p, const Point &q) {

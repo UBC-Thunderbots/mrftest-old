@@ -5,8 +5,6 @@
 #include "util/dprint.h"
 #include <cmath>
 #include <gtkmm.h>
-#include <iostream>
-#include <sstream>
 
 using AI::HL::HighLevelFactory;
 using AI::HL::HighLevel;

@@ -1,14 +1,13 @@
 #ifndef AI_NAVIGATOR_UTIL_H
 #define AI_NAVIGATOR_UTIL_H
 
-#include "ai/flags.h"
 #include "ai/navigator/world.h"
 #include "geom/point.h"
 #include "geom/util.h"
 #include "util/time.h"
 #include <utility>
 #include <vector>
-#include <gtkmm.h>
+#include <cairomm/cairomm.h>
 
 namespace AI {
 	namespace Nav {

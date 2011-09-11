@@ -9,7 +9,6 @@
 #include "util/timestep.h"
 #include <cmath>
 #include <glibmm.h>
-#include <iostream>
 #include <vector>
 
 using AI::RC::RobotController;

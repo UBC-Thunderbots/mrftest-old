@@ -1,15 +1,11 @@
 #include "ai/navigator/util.h"
-#include "ai/navigator/rrt_planner.h"
-#include "ai/navigator/world.h"
 #include "ai/flags.h"
-#include "util/time.h"
+#include "ai/navigator/rrt_planner.h"
+#include "geom/rect.h"
+#include "util/dprint.h"
+#include "util/param.h"
 #include <algorithm>
 #include <cmath>
-#include <vector>
-#include <gtkmm.h>
-#include <iostream>
-#include "util/param.h"
-#include "geom/rect.h"
 
 using namespace AI::Flags;
 using namespace AI::Nav::W;
@@ -581,7 +577,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 		}
 		//std::cout << "bot time " << AI::Nav::Util::estimate_action_duration(path_points_with_angle) << " ball time " << interval_time * i << std::endl; 
 		if (AI::Nav::Util::estimate_action_duration(path_points_with_angle) < interval_time * i || i == ten ) {
-			std::cout << "found \n";
+			LOG_INFO("found");
 			dest = segA + interval * i;
 			if( ctx != Cairo::RefPtr<Cairo::Context>() ){
 				Point p( path_points[path_points.size()-1] );

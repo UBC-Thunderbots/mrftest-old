@@ -3,6 +3,7 @@
 
 #include "geom/point.h"
 #include "geom/rect.h"
+#include <cstddef>
 #include <vector>
 
 /*
@@ -48,7 +49,7 @@ bool triangle_circle_intersect(const Point p1, const Point p2, const Point p3, c
  *
  * \return the order of the matching, such that element <var>i</var> of input \p v1 is matched with element \c order[<var>i</var>] of \p v2.
  */
-std::vector<size_t> dist_matching(const std::vector<Point> &v1, const std::vector<Point> &v2);
+std::vector<std::size_t> dist_matching(const std::vector<Point> &v1, const std::vector<Point> &v2);
 
 /**
  * Checks if 3 points are collinear.

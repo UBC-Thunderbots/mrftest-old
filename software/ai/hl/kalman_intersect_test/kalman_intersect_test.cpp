@@ -1,7 +1,6 @@
 #include "ai/hl/hl.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
-#include <iostream>
 #include <gtkmm.h>
 
 using namespace AI::HL;
