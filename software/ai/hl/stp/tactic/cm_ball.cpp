@@ -55,7 +55,7 @@ namespace {
 
 			void execute();
 
-			std::string description() const {
+			Glib::ustring description() const {
 				return "tshoot";
 			}
 	};
@@ -75,7 +75,7 @@ namespace {
 
 			void execute();
 
-			std::string description() const {
+			Glib::ustring description() const {
 				return "tsteal";
 			}
 	};
@@ -97,7 +97,7 @@ namespace {
 
 			void execute();
 
-			std::string description() const {
+			Glib::ustring description() const {
 				return "tclear";
 			}
 	};
@@ -117,7 +117,7 @@ namespace {
 
 			void execute();
 
-			std::string description() const {
+			Glib::ustring description() const {
 				return "tactive_def";
 			}
 	};
@@ -137,7 +137,7 @@ namespace {
 
 			void execute();
 
-			std::string description() const {
+			Glib::ustring description() const {
 				return "tdribble_to_region";
 			}
 	};
@@ -157,7 +157,7 @@ namespace {
 
 			void execute();
 
-			std::string description() const {
+			Glib::ustring description() const {
 				return "tspin_to_region";
 			}
 	};

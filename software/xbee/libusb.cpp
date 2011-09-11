@@ -5,9 +5,9 @@
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
+#include <glibmm.h>
 #include <limits>
 #include <poll.h>
-#include <sstream>
 
 #warning needs Doxygen
 
@@ -74,15 +74,11 @@ namespace {
 			default:
 				throw ErrorMessageError();
 		}
-		std::ostringstream oss;
-		oss << call << ": " << msg;
-		throw LibUSBError(oss.str());
+		throw LibUSBError(Glib::locale_from_utf8(Glib::ustring::compose("%1: %2", call, msg)));
 	}
 
-	std::string make_transfer_error_message(unsigned int endpoint, const std::string &msg) {
-		std::ostringstream oss;
-		oss << msg << " on " << ((endpoint & 0x80) ? "IN" : "OUT") << " endpoint " << (endpoint & 0x7F);
-		return oss.str();
+	Glib::ustring make_transfer_error_message(unsigned int endpoint, const Glib::ustring &msg) {
+		return Glib::ustring::compose("%1 on %2 endpoint %3", msg, (endpoint & 0x80) ? "IN" : "OUT", endpoint & 0x7F);
 	}
 }
 

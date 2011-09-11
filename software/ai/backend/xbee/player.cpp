@@ -7,6 +7,7 @@
 #include "util/time.h"
 #include <algorithm>
 #include <cmath>
+#include <locale>
 #include <sstream>
 #include <stdexcept>
 
@@ -58,6 +59,7 @@ namespace {
 			const xmlpp::Element *robot_elt = dynamic_cast<const xmlpp::Element *>(*i);
 			if (robot_elt && robot_elt->get_name() == "robot") {
 				std::wistringstream iss(ustring2wstring(robot_elt->get_attribute_value("id")));
+				iss.imbue(std::locale("C"));
 				unsigned int id;
 				if (iss >> id) {
 					if (id == pattern) {

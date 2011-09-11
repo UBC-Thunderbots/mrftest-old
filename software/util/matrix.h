@@ -119,13 +119,6 @@ class Matrix {
 		void swap(Matrix &b);
 
 		/**
-		 * Returns a string representation of this matrix.
-		 *
-		 * \return a string representation of this matrix.
-		 */
-		std::string str() const;
-
-		/**
 		 * Accesses an element of the matrix.
 		 *
 		 * \param[in] row the row of the element to return.

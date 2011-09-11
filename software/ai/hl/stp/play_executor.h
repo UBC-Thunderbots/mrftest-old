@@ -30,7 +30,7 @@ namespace AI {
 					/**
 					 * Get a text string about the executor.
 					 */
-					std::string info() const;
+					Glib::ustring info() const;
 
 				protected:
 					World &world;

@@ -151,6 +151,7 @@ void TesterParamsPanel::on_test_mode_edited() {
 
 void TesterParamsPanel::on_set_test_mode() {
 	std::wistringstream iss(ustring2wstring(test_mode.get_text()));
+	iss.imbue(std::locale("C"));
 	unsigned int mode;
 	iss >> std::hex >> mode;
 	robot->test_mode(mode);

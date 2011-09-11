@@ -32,7 +32,7 @@ void Tactic::set_player(Player::Ptr p) {
 	}
 }
 
-std::string Tactic::description() const {
+Glib::ustring Tactic::description() const {
 	return "no description";
 }
 

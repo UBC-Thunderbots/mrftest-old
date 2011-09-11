@@ -20,7 +20,7 @@ namespace {
 			Enemy::Ptr enemy;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
-			std::string description() const {
+			Glib::ustring description() const {
 				return "block-goal";
 			}
 	};
@@ -49,7 +49,7 @@ namespace {
 			Enemy::Ptr enemy;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
-			std::string description() const {
+			Glib::ustring description() const {
 				return "block-ball";
 			}
 	};

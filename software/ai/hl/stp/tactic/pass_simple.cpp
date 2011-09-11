@@ -73,7 +73,7 @@ namespace {
 			player->flags(0);
 		}
 
-		std::string description() const {
+		Glib::ustring description() const {
 			return "passer-simple";
 		}
 	};
@@ -109,7 +109,7 @@ namespace {
 			}
 		}
 
-		std::string description() const {
+		Glib::ustring description() const {
 			return "passee-simple";
 		}
 	};
@@ -140,7 +140,7 @@ namespace {
 			}
 		}
 
-		std::string description() const {
+		Glib::ustring description() const {
 			return "follow-baller";
 		}
 	};

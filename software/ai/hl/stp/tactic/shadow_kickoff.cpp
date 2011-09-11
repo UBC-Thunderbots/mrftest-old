@@ -21,7 +21,7 @@ namespace {
 			const Coordinate default_loc;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
-			std::string description() const {
+			Glib::ustring description() const {
 				return "shadow kickoff";
 			}
 	};
@@ -54,7 +54,7 @@ namespace {
 		private:
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
-			std::string description() const {
+			Glib::ustring description() const {
 				return "shadow ball";
 			}
 	};

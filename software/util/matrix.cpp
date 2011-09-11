@@ -1,6 +1,5 @@
 #include "util/matrix.h"
 #include <cassert>
-#include <sstream>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_matrix.h>
@@ -88,12 +87,6 @@ void Matrix::invert() {
 		gsl_permutation_free(perm);
 		swap(temp);
 	}
-}
-
-std::string Matrix::str() const {
-	std::ostringstream oss;
-	oss << *this;
-	return oss.str();
 }
 
 Matrix &operator+=(Matrix &a, const Matrix &b) {

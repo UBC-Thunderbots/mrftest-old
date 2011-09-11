@@ -16,7 +16,7 @@ namespace {
 		private:
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
-			std::string description() const {
+			Glib::ustring description() const {
 				return "offender";
 			}
 	};
@@ -29,7 +29,7 @@ namespace {
 		private:
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
-			std::string description() const {
+			Glib::ustring description() const {
 				return "offender (secondary)";
 			}
 	};

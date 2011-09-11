@@ -4,6 +4,7 @@
 #include <exception>
 #include <glibmm.h>
 #include <iostream>
+#include <locale>
 #include <sstream>
 
 namespace {
@@ -12,11 +13,13 @@ namespace {
 		if (str.size() == 5 && std::isxdigit(str[0]) && std::isxdigit(str[1]) && str[2] == ':' && std::isxdigit(str[3]) && std::isxdigit(str[4])) {
 			{
 				std::wistringstream iss(ustring2wstring(str.substr(0, 2)));
+				iss.imbue(std::locale("C"));
 				iss.flags(std::wistringstream::hex);
 				iss >> channel0;
 			}
 			{
 				std::wistringstream iss(ustring2wstring(str.substr(3)));
+				iss.imbue(std::locale("C"));
 				iss.flags(std::wistringstream::hex);
 				iss >> channel1;
 			}

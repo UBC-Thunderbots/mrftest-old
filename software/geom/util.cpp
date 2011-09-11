@@ -3,8 +3,7 @@
 #include "util/dprint.h"
 #include <algorithm>
 #include <cassert>
-#include <math>
-#include <iostream>
+#include <cmath>
 
 namespace {
 	const double EPS = 1e-9;
@@ -380,7 +379,7 @@ bool point_in_seg(const Point &p, const Point &segA, const Point &segB) {
 			return false;
 		}
 	} else {
-		std::cout << "not collinear";
+		LOG_ERROR("not collinear");
 		return false;
 	}
 }
@@ -393,7 +392,7 @@ bool point_in_vec(const Point &p, const Point &vecA, const Point &vecB) { // vec
 			return false;
 		}
 	} else {
-		std::cout << "not collinear";
+		LOG_ERROR("not collinear");
 		return false;
 	}
 }

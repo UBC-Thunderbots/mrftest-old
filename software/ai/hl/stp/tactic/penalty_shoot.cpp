@@ -17,7 +17,7 @@ namespace {
 			bool done() const;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
-			std::string description() const {
+			Glib::ustring description() const {
 				return "penalty-shoot";
 			}
 	};

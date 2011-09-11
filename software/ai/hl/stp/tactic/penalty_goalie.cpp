@@ -22,7 +22,7 @@ namespace {
 			Player::Ptr select(const std::set<Player::Ptr> &) const {
 				assert(0);
 			}
-			std::string description() const {
+			Glib::ustring description() const {
 				return "penalty-goalie";
 			}
 	};

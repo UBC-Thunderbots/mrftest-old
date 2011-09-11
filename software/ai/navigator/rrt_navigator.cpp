@@ -7,7 +7,6 @@
 #include "util/dprint.h"
 // #include "util/param.h"
 #include "ai/hl/stp/param.h"
-#include <sstream>
 #include <gtkmm.h>
 
 using AI::Nav::Navigator;
@@ -222,9 +221,7 @@ namespace AI {
 						player->path(path);
 					} else {
 						Angle diff = ((world.ball().position() - player->destination().first).orientation() - (player->orientation() + (is_ccw ? 1 : -1) * new_pivot_offset_angle)).angle_mod();
-						std::stringstream ss;
-						ss << diff;
-						// LOG_INFO( ss.str() );
+						// LOG_INFO( diff );
 						LOG_INFO("NEWpiovt!");
 						Point zero_pos(new_pivot_radius, 0.0);
 						Point polar_pos;

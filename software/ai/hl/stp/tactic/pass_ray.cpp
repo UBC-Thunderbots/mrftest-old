@@ -67,7 +67,7 @@ namespace {
 			}
 		}
 
-		std::string description() const {
+		Glib::ustring description() const {
 			return "passer-ray";
 		}
 	};

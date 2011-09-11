@@ -11,7 +11,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <iostream>
 namespace {
 	bool check_magic(google::protobuf::io::ZeroCopyInputStream &zcis) {
 		google::protobuf::io::CodedInputStream cis(&zcis);

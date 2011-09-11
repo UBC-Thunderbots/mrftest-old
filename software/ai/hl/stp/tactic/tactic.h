@@ -4,10 +4,9 @@
 #include "ai/hl/stp/world.h"
 #include "util/byref.h"
 #include "util/registerable.h"
-
+#include <cairomm/cairomm.h>
+#include <glibmm.h>
 #include <set>
-#include <string>
-#include <gtkmm.h>
 
 namespace AI {
 	namespace HL {
@@ -75,7 +74,7 @@ namespace AI {
 						/**
 						 * An optional string description of this tactic.
 						 */
-						virtual std::string description() const;
+						virtual Glib::ustring description() const;
 
 						/**
 						 * An optional function to draw extra stuff on the overlay.

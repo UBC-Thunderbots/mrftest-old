@@ -34,7 +34,7 @@ namespace {
 
 			void execute();
 
-			std::string description() const {
+			Glib::ustring description() const {
 				return "tdefend_line";
 			}
 	};
@@ -56,7 +56,7 @@ namespace {
 
 			void execute();
 
-			std::string description() const {
+			Glib::ustring description() const {
 				return "tdefend_point";
 			}
 	};
@@ -75,7 +75,7 @@ namespace {
 
 			void execute();
 
-			std::string description() const {
+			Glib::ustring description() const {
 				return "tdefend_lane";
 			}
 	};

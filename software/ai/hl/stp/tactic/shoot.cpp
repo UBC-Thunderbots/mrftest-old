@@ -40,7 +40,7 @@ namespace {
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 			void player_changed();
-			std::string description() const {
+			Glib::ustring description() const {
 				return "shoot-goal";
 			}
 	};
@@ -57,7 +57,7 @@ namespace {
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 			void player_changed();
-			std::string description() const {
+			Glib::ustring description() const {
 				return "shoot-target";
 			}
 	};

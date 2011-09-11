@@ -94,7 +94,7 @@ namespace {
 				Action::shoot_pass(world, player, dest);
 			}
 
-			std::string description() const {
+			Glib::ustring description() const {
 #warning TODO give more information
 				return "passer-shoot";
 			}
@@ -203,7 +203,7 @@ namespace {
 				player->type(AI::Flags::MoveType::DRIBBLE);
 			}
 
-			std::string description() const {
+			Glib::ustring description() const {
 				return "passee-move";
 			}
 	};
@@ -264,7 +264,7 @@ namespace {
 				player->type(AI::Flags::MoveType::DRIBBLE);
 			}
 
-			std::string description() const {
+			Glib::ustring description() const {
 				return "passee-recieve";
 			}
 	};

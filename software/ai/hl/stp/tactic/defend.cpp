@@ -31,7 +31,7 @@ namespace {
 			Player::Ptr select(const std::set<Player::Ptr> &) const {
 				assert(0);
 			}
-			std::string description() const {
+			Glib::ustring description() const {
 				if (world.friendly_team().size() > defender_role + 1) {
 					return "goalie-dynamic duo";
 				} else {
@@ -53,7 +53,7 @@ namespace {
 			Player::Ptr select(const std::set<Player::Ptr> &) const {
 				assert(0);
 			}
-			std::string description() const {
+			Glib::ustring description() const {
 				return "goalie (helped by defender)";
 			}
 	};
@@ -67,7 +67,7 @@ namespace {
 			unsigned index;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
-			std::string description() const {
+			Glib::ustring description() const {
 				return "extra defender";
 			}
 	};

@@ -12,8 +12,9 @@
 #include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/stp/tactic/pass.h"
-
+#include <memory>
 #include <sstream>
+#include <string>
 
 using namespace AI::HL::W;
 using namespace AI::HL::STP::Play;
@@ -88,6 +89,7 @@ namespace {
 				roles[3].push_back(offend_secondary(world));
 			}
 
+		private:
 			const PlayFactory &_factory;
 			Point target;
 	};
@@ -96,10 +98,13 @@ namespace {
 		public:
 			PassPlayFactoryImpl(const char *name, const Point target) : PlayFactory(name), target(target) {
 			}
+
 			Play::Ptr create(const World &world) const {
 				const Play::Ptr p(new PassPlay(world, *this, target));
 				return p;
 			}
+
+		private:
 			Point target;
 	};
 
@@ -110,24 +115,16 @@ namespace {
 		public:
 			PassPlayFactory(const Point target);
 
-			~PassPlayFactory();
-
 		protected:
-			PlayFactory *instance;
 			std::string name;
+			std::unique_ptr<PlayFactory> instance;
 	};
 
 	PassPlayFactory::PassPlayFactory(const Point target) {
 		std::ostringstream ssn;
-		ssn << "Pass Play " << target.x << " " << target.y;
+		ssn << "Pass Play " << target;
 		name = ssn.str();
-		instance = new PassPlayFactoryImpl(name.c_str(), target);
-	}
-
-	PassPlayFactory::~PassPlayFactory() {
-		if (!instance) {
-			delete instance;
-		}
+		instance.reset(new PassPlayFactoryImpl(name.c_str(), target));
 	}
 
 	PassPlayFactory p1(Point(0, 0));

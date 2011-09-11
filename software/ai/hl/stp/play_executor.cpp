@@ -1,12 +1,11 @@
-#include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/play_executor.h"
-#include "ai/hl/stp/tactic/idle.h"
-#include "ai/hl/stp/evaluation/offense.h"
-#include "ai/hl/stp/evaluation/defense.h"
 #include "ai/hl/util.h"
-#include "util/dprint.h"
+#include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/ui.h"
-
+#include "ai/hl/stp/evaluation/defense.h"
+#include "ai/hl/stp/evaluation/offense.h"
+#include "ai/hl/stp/tactic/idle.h"
+#include "util/dprint.h"
 #include <cassert>
 #include <glibmm.h>
 
@@ -358,31 +357,22 @@ void PlayExecutor::tick() {
 	execute_tactics();
 }
 
-std::string PlayExecutor::info() const {
-	std::ostringstream text;
+Glib::ustring PlayExecutor::info() const {
+	Glib::ustring text;
 	if (curr_play.is()) {
-		text << "play: " << curr_play->factory().name();
-		text << std::endl;
-		text << "step: " << curr_role_step;
+		text += Glib::ustring::compose("play: %1\nstep: %2", curr_play->factory().name(), curr_role_step);
 		// std::size_t imax = std::min((std::size_t)5, world.friendly_team().size());
 		for (std::size_t i = 0; i < 5; ++i) {
 			if (!curr_assignment[i].is()) {
 				// LOG_ERROR("curr-assignment empty");
 				continue;
 			}
-			text << std::endl;
-			text << curr_assignment[i]->pattern() << ": ";
-			if (curr_tactic[i]->active()) {
-				text << "*";
-			} else {
-				text << " ";
-			}
-			text << curr_tactic[i]->description();
+			text += Glib::ustring::compose("\n%1: %2%3", curr_assignment[i]->pattern(), curr_tactic[i]->active() ? '*' : ' ', curr_tactic[i]->description());
 		}
 	} else {
-		text << "No Play";
+		text = "No Play";
 	}
-	return text.str();
+	return text;
 }
 
 void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
