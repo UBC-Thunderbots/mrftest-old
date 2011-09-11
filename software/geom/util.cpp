@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstddef>
 #include <math>
+#include <iostream>
 
 namespace {
 	const double EPS = 1e-9;
@@ -368,18 +369,60 @@ std::vector<Point> line_rect_intersect(const Rect &r, const Point &segA, const P
 	return ans;
 }
 
+bool point_in_seg( const Point &p, const Point &segA, const Point &segB ){
+	if( collinear( p, segA, segB ) ){
+		if( (p.x<= segA.x && p.x >= segB.x) || (p.x <= segB.x && p.x >= segA.x ) ){
+			//if( (p.y<= segA.y && p.y >= segB.y) || (p.y <= segB.y && p.y >= segA.y ) ){
+				return true;
+			/*} else {
+				return false;
+			}*/
+		} else {
+			return false;
+		}
+	} else {
+		std::cout << "not collinear";
+		return false;
+	}
+}
+
+bool point_in_vec( const Point &p, const Point &vecA, const Point &vecB ){// vecA is the beginning of the vector
+	if( collinear( p, vecA, vecB ) ){
+		if( ( (p.x - vecA.x)*(vecB.x - vecA.x) > 1e-9 ) && ( (p.y - vecA.y)*(vecB.y - vecA.y) > 1e-9 )  ){
+			return true;
+		} else {
+			return false;
+		}
+	} else {
+		std::cout << "not collinear";
+		return false;
+	}
+}
+
+
+
 Point vector_rect_intersect(const Rect &r, const Point &vecA, const Point &vecB) {
 #warning lets use the proper invalid point stuff at some point
-	for (int i = 0; i < 4; i++) {
-		int j = i + 1;
+	/*std::cout << vecA << vecB << r.ne_corner() << r.sw_corner();
+	for (unsigned int i = 0; i < 4; i++) {
+		unsigned int j = (i + 1)%4;
 		const Point &a = r[i];
 		const Point &b = r[j];
 		if ( vector_crosses_seg(vecA, vecB, a, b ) ) {
 			Point intersect = line_intersect(a, b, vecA, vecB);
+			std::cout << std::endl;
 			return intersect;
 		}
 	}
-	return r.centre();  // return the center of the rectangle, if no valid answer is found
+	std::cout << "fail \n";
+	return r.centre();  // return the center of the rectangle, if no valid answer is found*/
+	std::vector<Point> points = line_rect_intersect( r, vecA, (vecB - vecA)*100 + vecA);
+	for( unsigned int i = 0; i < points.size(); i++ ){
+		if( point_in_vec( points[i], vecA, vecB )){
+			return points[i];
+		}
+	}
+	return Point();
 }
 
 
@@ -515,36 +558,6 @@ bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Po
 
 	return sign((a2 - a1).cross(b1 - a1)) * sign((a2 - a1).cross(b2 - a1)) <= 0 && sign((b2 - b1).cross(a1 - b1)) * sign((b2 - b1).cross(a2 - b1)) <= 0;
 }
-
-bool point_in_seg( const Point &p, const Point &segA, const Point &segB ){
-	if( collinear( p, segA, segB ) ){
-		if( (p.x<= segA.x && p.x >= segB.x) || (p.x <= segB.x && p.x >= segA.x ) ){
-			if( (p.y<= segA.y && p.y >= segB.y) || (p.y <= segB.y && p.y >= segA.y ) ){
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			return false;
-		}
-	} else {
-		return false;
-	}
-}
-
-bool point_in_vec( const Point &p, const Point &vecA, const Point &vecB ){// vecA is the beginning of the vector
-	if( collinear( p, vecA, vecB ) ){
-		if( (sign(p.x - vecA.x) == sign(vecB.x - vecA.x) ) && (sign(p.y - vecA.y) == sign(vecB.y - vecA.y) )  ){
-			return true;
-		} else {
-			return false;
-		}
-	} else {
-		return false;
-	}
-}
-
-
 
 bool vector_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2) {
 	if ( std::abs((a1 - a2).cross(b1 - b2)) > 1e-9 ) {
