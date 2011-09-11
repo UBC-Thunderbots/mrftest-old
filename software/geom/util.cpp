@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <math>
 
 namespace {
 	const double EPS = 1e-9;
@@ -373,7 +374,7 @@ Point vector_rect_intersect(const Rect &r, const Point &vecA, const Point &vecB)
 		int j = i + 1;
 		const Point &a = r[i];
 		const Point &b = r[j];
-		if ( unique_line_intersect(a, b, vecA, vecB ) && vector_crosses_seg(vecA, vecB, a, b ) ) {
+		if ( vector_crosses_seg(vecA, vecB, a, b ) ) {
 			Point intersect = line_intersect(a, b, vecA, vecB);
 			return intersect;
 		}
@@ -479,12 +480,12 @@ std::vector<Point> lineseg_circle_intersect(const Point &centre, double radius, 
 }
 
 bool unique_line_intersect(const Point &a, const Point &b, const Point &c, const Point &d) {
-	return sign((d - c).cross(b - a)) != 0;
+	return (std::abs((d - c).cross(b - a)) > 1e-9);
 }
 
 // ported code
 Point line_intersect(const Point &a, const Point &b, const Point &c, const Point &d) {
-	assert(sign((d - c).cross(b - a)) != 0);
+	assert( std::abs((d - c).cross(b - a)) > 1e-9);
 	return a + (a - c).cross(d - c) / (d - c).cross(b - a) * (b - a);
 }
 
@@ -515,14 +516,43 @@ bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Po
 	return sign((a2 - a1).cross(b1 - a1)) * sign((a2 - a1).cross(b2 - a1)) <= 0 && sign((b2 - b1).cross(a1 - b1)) * sign((b2 - b1).cross(a2 - b1)) <= 0;
 }
 
+bool point_in_seg( const Point &p, const Point &segA, const Point &segB ){
+	if( collinear( p, segA, segB ) ){
+		if( (p.x<= segA.x && p.x >= segB.x) || (p.x <= segB.x && p.x >= segA.x ) ){
+			if( (p.y<= segA.y && p.y >= segB.y) || (p.y <= segB.y && p.y >= segA.y ) ){
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	} else {
+		return false;
+	}
+}
+
+bool point_in_vec( const Point &p, const Point &vecA, const Point &vecB ){// vecA is the beginning of the vector
+	if( collinear( p, vecA, vecB ) ){
+		if( (sign(p.x - vecA.x) == sign(vecB.x - vecA.x) ) && (sign(p.y - vecA.y) == sign(vecB.y - vecA.y) )  ){
+			return true;
+		} else {
+			return false;
+		}
+	} else {
+		return false;
+	}
+}
+
+
 
 bool vector_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2) {
-	if ((a1 - a2).cross(b1 - b2) != 0.0) {
+	if ( std::abs((a1 - a2).cross(b1 - b2)) > 1e-9 ) {
 		Point i0 = line_intersect(a1, a2, b1, b2);
-		if (((b1 - i0).len() - (b1 - b2).len()) > 0.001 || ((b2 - i0).len() - (b1 - b2).len()) > 0.001 || ((i0 - a2).len() - (a1 - a2).len()) > 0.001) {
-			return false;
-		} else {
+		if ( point_in_vec( i0, a1, a2 ) && point_in_seg( i0, b1, b2 ) ) {
 			return true;
+		} else {
+			return false;
 		}
 	} else {
 		if (collinear(a1, a2, b1)) {
