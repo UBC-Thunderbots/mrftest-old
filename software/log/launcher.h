@@ -28,6 +28,8 @@ class LogLauncher : public Gtk::Window {
 		Gtk::Button player_button;
 		Gtk::Button rename_button;
 		Gtk::Button delete_button;
+		Gtk::Button export_button;
+		Gtk::Button import_button;
 		std::vector<std::string> files;
 		std::vector<std::string> files_to_compress;
 		std::vector<std::string>::const_iterator next_file_to_compress;
@@ -48,6 +50,8 @@ class LogLauncher : public Gtk::Window {
 		void on_player_clicked();
 		void on_rename_clicked();
 		void on_delete_clicked();
+		void on_export_clicked();
+		void on_import_clicked();
 };
 
 #endif

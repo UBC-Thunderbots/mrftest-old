@@ -48,7 +48,7 @@ namespace {
 	}
 }
 
-LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyzer_button("Analyzer"), player_button("Player"), rename_button("Rename"), delete_button("Delete"), exit_pending(false) {
+LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyzer_button("Analyzer"), player_button("Player"), rename_button("Rename"), delete_button("Delete"), export_button("Export"), import_button("Import"), exit_pending(false) {
 	set_title("Thunderbots Log Tools");
 	set_size_request(400, 400);
 
@@ -62,6 +62,8 @@ LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyz
 	vbb.pack_start(player_button);
 	vbb.pack_start(rename_button);
 	vbb.pack_start(delete_button);
+	vbb.pack_start(export_button);
+	vbb.pack_start(import_button);
 	hbox.pack_start(vbb, Gtk::PACK_SHRINK);
 
 	vbox.pack_start(hbox, Gtk::PACK_EXPAND_WIDGET);
@@ -76,6 +78,8 @@ LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyz
 	player_button.signal_clicked().connect(sigc::mem_fun(this, &LogLauncher::on_player_clicked));
 	rename_button.signal_clicked().connect(sigc::mem_fun(this, &LogLauncher::on_rename_clicked));
 	delete_button.signal_clicked().connect(sigc::mem_fun(this, &LogLauncher::on_delete_clicked));
+	export_button.signal_clicked().connect(sigc::mem_fun(this, &LogLauncher::on_export_clicked));
+	import_button.signal_clicked().connect(sigc::mem_fun(this, &LogLauncher::on_import_clicked));
 
 	show_all();
 
@@ -249,6 +253,8 @@ bool LogLauncher::on_delete_event(GdkEventAny *) {
 		player_button.set_sensitive(false);
 		rename_button.set_sensitive(false);
 		delete_button.set_sensitive(false);
+		export_button.set_sensitive(false);
+		import_button.set_sensitive(false);
 		exit_pending = true;
 		return true;
 	}
@@ -260,6 +266,7 @@ void LogLauncher::on_log_list_selection_changed() {
 	player_button.set_sensitive(num >= 1 && !exit_pending);
 	rename_button.set_sensitive(num == 1 && !exit_pending && next_file_to_compress == files_to_compress.end());
 	delete_button.set_sensitive(num >= 1 && !exit_pending && next_file_to_compress == files_to_compress.end());
+	export_button.set_sensitive(num == 1 && !exit_pending);
 }
 
 void LogLauncher::on_analyzer_clicked() {
@@ -326,6 +333,45 @@ void LogLauncher::on_delete_clicked() {
 			} catch (const SystemError &exp) {
 				Gtk::MessageDialog md2(*this, exp.what(), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
 				md2.run();
+			}
+		}
+		populate();
+	}
+}
+
+void LogLauncher::on_export_clicked() {
+	const std::string &original_name = files[log_list.get_selected()[0]];
+	Gtk::FileChooserDialog fcd(*this, "Export Log", Gtk::FILE_CHOOSER_ACTION_SAVE);
+	fcd.set_do_overwrite_confirmation();
+	fcd.set_current_name(Glib::filename_display_basename(original_name));
+	fcd.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+	fcd.add_button(Gtk::Stock::SAVE, Gtk::RESPONSE_OK);
+	if (fcd.run() == Gtk::RESPONSE_OK) {
+		Gio::File::create_for_path(filename_to_pathname(original_name))->copy(fcd.get_file(), Gio::FILE_COPY_OVERWRITE);
+	}
+}
+
+void LogLauncher::on_import_clicked() {
+	Gtk::FileChooserDialog fcd(*this, "Import Log", Gtk::FILE_CHOOSER_ACTION_OPEN);
+	fcd.set_select_multiple();
+	fcd.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+	fcd.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
+	if (fcd.run() == Gtk::RESPONSE_OK) {
+		const auto &files = fcd.get_files();
+		for (auto i = files.begin(), iend = files.end(); i != iend; ++i) {
+			Glib::RefPtr<Gio::File> source = *i;
+			Glib::RefPtr<Gio::File> dest = Gio::File::create_for_path(filename_to_pathname(source->get_basename()));
+			try {
+				source->copy(dest, Gio::FILE_COPY_NONE);
+			} catch (const Gio::Error &err) {
+				if (err.code() == Gio::Error::EXISTS) {
+					Gtk::MessageDialog md(*this, Glib::ustring::compose("A log file named “%1” already exists. Replace it?", dest->query_info(G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME)->get_attribute_string(G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME)), false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true);
+					if (md.run() == Gtk::RESPONSE_YES) {
+						source->copy(dest, Gio::FILE_COPY_OVERWRITE);
+					}
+				} else {
+					throw;
+				}
 			}
 		}
 		populate();
