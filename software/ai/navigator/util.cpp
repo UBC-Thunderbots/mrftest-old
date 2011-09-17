@@ -543,10 +543,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 	Rect field_rec({ field.length() / 2, field.width() / 2 }, { -field.length() / 2, -field.width() / 2 });
 	Point segA = ball.position();
 	Point segB = vector_rect_intersect(field_rec, segA, segA + ball.velocity().norm());
-	/*std::cout << "size of the field" << field_rec.ne_corner() << field_rec.sw_corner()  << std::endl;
-	   std::cout << "where is the ball" << segA << std::endl;
-	   std::cout << "ball velocity" <<  ball.velocity() <<  std::endl;
-	   std::cout << "where is the wall" << segB << std::endl;*/
+
 	if (ctx != Cairo::RefPtr<Cairo::Context>()) {
 		ctx->arc(segB.x, segB.y, 0.2, 0.0, M_PI * 2);
 		ctx->set_source_rgb(0.8, 0.0, 0.0);
@@ -555,27 +552,36 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 	}
 
 	// Go through some points to see which one is possible/ (later) more optimal
-	int ten = 10;                           // ten is an okay number
+	// ten is an okay number
+	int ten = 10;
 	Point interval = (-segA + segB) * (1.0 / ten);
-	// std::cout << "interval size" << interval << std::endl;
-	double interval_time = interval.len() / ball.velocity().len();        // assume no decay
-	// std::cout << "interval time" << interval_time << std::endl;
+	// assume no decay
+	double interval_time = interval.len() / ball.velocity().len();
 	Point dest;
 	// timespec min_time = timespec(10000);                     // well just make this value big first
 	std::vector<Point> path_points;
 	AI::Nav::RRTPlanner planner(world);
-	unsigned int flags = AI::Flags::FLAG_AVOID_BALL_TINY; // PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)]->added_flags;
-#warning flags and timespec are not account for properly
+	unsigned int flags = AI::Flags::FLAG_AVOID_BALL_TINY;
+
+#warning flags and timespec are not accounted for properly
 	for (int i = 0; i <= ten; i++) {
 		path_points = planner.plan(player, segA + interval * i, flags);
 		std::vector<std::pair<Point, Angle> > path_points_with_angle;
-		path_points_with_angle.push_back(std::make_pair(player->position(), player->orientation()));
-		path_points_with_angle.push_back(std::make_pair(path_points[0], player->orientation()));    // first orientation is player's current orientation
-		for (unsigned int j = 1; j < path_points.size(); j++) {
-			Angle path_orientation = (path_points[j] - path_points[j - 1]).orientation(); // every later orientation is the path segment's orientation
+		// planner does not include current location in list of points so add it here to be used when estimating times
+		path_points_with_angle.push_back(std::make_pair(player->position(), (path_points[0] - player->position()).orientation()));
+
+		for (unsigned int j = 0; j < path_points.size(); ++j) {
+			Angle path_orientation;
+			if (j + 1 == path_points.size()) {
+				// if this is the last point then the orientation should be the destination orientation
+				path_orientation = player->destination().second;
+			} else {
+				path_orientation = (path_points[j + 1] - path_points[j]).orientation();
+			}
+
 			path_points_with_angle.push_back(std::make_pair(path_points[j], path_orientation));
 		}
-		// std::cout << "bot time " << AI::Nav::Util::estimate_action_duration(path_points_with_angle) << " ball time " << interval_time * i << std::endl;
+
 		if (AI::Nav::Util::estimate_action_duration(path_points_with_angle) < interval_time * i || i == ten) {
 			LOG_INFO("found");
 			dest = segA + interval * i;
