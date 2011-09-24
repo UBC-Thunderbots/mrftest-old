@@ -46,24 +46,20 @@ namespace AI {
 					 */
 					void pre_tick(const ::Simulator::Proto::S2ARobotInfo &state, const timespec &ts) {
 						AI::BE::Robot::pre_tick();
-						xpred.add_datum(state.x, ts);
-						xpred.lock_time(ts);
-						ypred.add_datum(state.y, ts);
-						ypred.lock_time(ts);
-						tpred.add_datum(Angle::of_radians(state.orientation), ts);
-						tpred.lock_time(ts);
+						pred.add_measurement(Point(state.x, state.y), Angle::of_radians(state.orientation), ts);
+						pred.lock_time(ts);
 					}
 
 					ObjectStore &object_store() const { return object_store_; }
 					unsigned int pattern() const { return pattern_; }
-					Point position(double delta = 0.0) const { return Point(xpred.value(delta).first, ypred.value(delta).first); }
-					Angle orientation(double delta = 0.0) const { return tpred.value(delta).first; }
-					Point velocity(double delta = 0.0) const { return Point(xpred.value(delta, 1).first, ypred.value(delta, 1).first); }
-					Angle avelocity(double delta = 0.0) const { return tpred.value(delta, 1).first; }
-					Point position_stdev(double delta = 0.0) const { return Point(xpred.value(delta).second, ypred.value(delta).second); }
-					Angle orientation_stdev(double delta = 0.0) const { return tpred.value(delta).second; }
-					Point velocity_stdev(double delta = 0.0) const { return Point(xpred.value(delta, 1).second, ypred.value(delta, 1).second); }
-					Angle avelocity_stdev(double delta = 0.0) const { return tpred.value(delta, 1).second; }
+					Point position(double delta = 0.0) const { return pred.value(delta).first.first; }
+					Angle orientation(double delta = 0.0) const { return pred.value(delta).first.second; }
+					Point velocity(double delta = 0.0) const { return pred.value(delta, 1).first.first; }
+					Angle avelocity(double delta = 0.0) const { return pred.value(delta, 1).first.second; }
+					Point position_stdev(double delta = 0.0) const { return pred.value(delta).second.first; }
+					Angle orientation_stdev(double delta = 0.0) const { return pred.value(delta).second.second; }
+					Point velocity_stdev(double delta = 0.0) const { return pred.value(delta, 1).second.first; }
+					Angle avelocity_stdev(double delta = 0.0) const { return pred.value(delta, 1).second.second; }
 					Visualizable::Colour visualizer_colour() const { return Visualizable::Colour(1.0, 0.0, 0.0); }
 					Glib::ustring visualizer_label() const { return Glib::ustring::format(pattern_); }
 					bool highlight() const { return false; }
@@ -97,19 +93,9 @@ namespace AI {
 					const unsigned int pattern_;
 
 					/**
-					 * A predictor that provides the X coordinate of predictable quantities.
+					 * Predicts robot movement.
 					 */
-					Predictor<double> xpred;
-
-					/**
-					 * A predictor that provides the Y coordinate of predictable quantities.
-					 */
-					Predictor<double> ypred;
-
-					/**
-					 * A predictor that provides predictable quantities around orientation.
-					 */
-					Predictor<Angle> tpred;
+					Predictor3 pred;
 
 					/**
 					 * The object store that holds private data for the rest of the stack that is specific to this robot.

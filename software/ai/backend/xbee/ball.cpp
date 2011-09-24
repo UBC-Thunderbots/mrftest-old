@@ -7,35 +7,33 @@ namespace {
 	DoubleParam BALL_DECAY_CONSTANT("Ball Decay Constant", "Backend/XBee", 99.0, 0.0, 100.0);
 }
 
-Ball::Ball(AI::BE::Backend &backend) : backend(backend), xpred(1.3e-3, 2, BALL_DECAY_CONSTANT), ypred(1.3e-3, 2, BALL_DECAY_CONSTANT) {
+Ball::Ball(AI::BE::Backend &backend) : backend(backend), pred(1.3e-3, 2, BALL_DECAY_CONSTANT) {
 	backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &Ball::on_defending_end_changed));
 }
 
-void Ball::update(const Point &pos, const timespec &ts) {
+void Ball::update(Point pos, timespec ts) {
 	bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
-	xpred.add_datum(neg ? -pos.x : pos.x, timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
-	ypred.add_datum(neg ? -pos.y : pos.y, timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
+	pred.add_measurement(neg ? -pos : pos, timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
 }
 
-void Ball::lock_time(const timespec &now) {
-	xpred.lock_time(now);
-	ypred.lock_time(now);
+void Ball::lock_time(timespec now) {
+	pred.lock_time(now);
 }
 
 Point Ball::position(double delta) const {
-	return Point(xpred.value(delta).first, ypred.value(delta).first);
+	return pred.value(delta).first;
 }
 
 Point Ball::velocity(double delta) const {
-	return Point(xpred.value(delta, 1).first, ypred.value(delta, 1).first);
+	return pred.value(delta, 1).first;
 }
 
 Point Ball::position_stdev(double delta) const {
-	return Point(xpred.value(delta).second, ypred.value(delta).second);
+	return pred.value(delta).second;
 }
 
 Point Ball::velocity_stdev(double delta) const {
-	return Point(xpred.value(delta, 1).second, ypred.value(delta, 1).second);
+	return pred.value(delta, 1).second;
 }
 
 bool Ball::highlight() const {
@@ -47,7 +45,6 @@ Visualizable::Colour Ball::highlight_colour() const {
 }
 
 void Ball::on_defending_end_changed() {
-	xpred.clear();
-	ypred.clear();
+	pred.clear();
 }
 

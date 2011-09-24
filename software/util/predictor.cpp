@@ -57,13 +57,13 @@ template<typename T> std::pair<T, T> Predictor<T>::value(double delta, unsigned 
 	}
 }
 
-template<typename T> void Predictor<T>::lock_time(const timespec &ts) {
+template<typename T> void Predictor<T>::lock_time(timespec ts) {
 	lock_timestamp = ts;
 	zero_value = value(0, 0, true);
 	zero_first_deriv = value(0, 1, true);
 }
 
-template<typename T> void Predictor<T>::add_datum(T value, const timespec &ts) {
+template<typename T> void Predictor<T>::add_measurement(T value, timespec ts) {
 	filter.update(value_to_double(value), ts);
 }
 
@@ -73,4 +73,60 @@ template<typename T> void Predictor<T>::clear() {
 // Instantiate templates.
 template class Predictor<double>;
 template class Predictor<Angle>;
+
+
+
+Predictor2::Predictor2(double measure_std, double accel_std, double decay_time_constant) : x(measure_std, accel_std, decay_time_constant), y(measure_std, accel_std, decay_time_constant) {
+}
+
+std::pair<Point, Point> Predictor2::value(double delta, unsigned int deriv, bool ignore_cache) const {
+	const std::pair<double, double> &vx = x.value(delta, deriv, ignore_cache);
+	const std::pair<double, double> &vy = y.value(delta, deriv, ignore_cache);
+	return std::make_pair(Point(vx.first, vy.first), Point(vx.second, vy.second));
+}
+
+void Predictor2::lock_time(timespec ts) {
+	x.lock_time(ts);
+	y.lock_time(ts);
+}
+
+void Predictor2::add_measurement(Point value, timespec ts) {
+	x.add_measurement(value.x, ts);
+	y.add_measurement(value.y, ts);
+}
+
+void Predictor2::clear() {
+	x.clear();
+	y.clear();
+}
+
+
+
+Predictor3::Predictor3(double measure_std_linear, double accel_std_linear, double decay_time_constant_linear, Angle measure_std_angular, Angle accel_std_angular, double decay_time_constant_angular) : x(measure_std_linear, accel_std_linear, decay_time_constant_linear), y(measure_std_linear, accel_std_linear, decay_time_constant_linear), t(measure_std_angular, accel_std_angular, decay_time_constant_angular) {
+}
+
+std::pair<std::pair<Point, Angle>, std::pair<Point, Angle> > Predictor3::value(double delta, unsigned int deriv, bool ignore_cache) const {
+	const std::pair<double, double> &vx = x.value(delta, deriv, ignore_cache);
+	const std::pair<double, double> &vy = y.value(delta, deriv, ignore_cache);
+	const std::pair<Angle, Angle> &vt = t.value(delta, deriv, ignore_cache);
+	return std::make_pair(std::make_pair(Point(vx.first, vy.first), vt.first), std::make_pair(Point(vx.second, vy.second), vt.second));
+}
+
+void Predictor3::lock_time(timespec ts) {
+	x.lock_time(ts);
+	y.lock_time(ts);
+	t.lock_time(ts);
+}
+
+void Predictor3::add_measurement(Point position, Angle orientation, timespec ts) {
+	x.add_measurement(position.x, ts);
+	y.add_measurement(position.y, ts);
+	t.add_measurement(orientation, ts);
+}
+
+void Predictor3::clear() {
+	x.clear();
+	y.clear();
+	t.clear();
+}
 

@@ -31,14 +31,14 @@ namespace AI {
 					 *
 					 * \param[in] ts the time at which the ball was in the given position.
 					 */
-					void update(const Point &pos, const timespec &ts);
+					void update(Point pos, timespec ts);
 
 					/**
 					 * Locks the current time for the predictors.
 					 *
 					 * \param[in] now the current time.
 					 */
-					void lock_time(const timespec &now);
+					void lock_time(timespec now);
 
 					Point position(double delta = 0.0) const;
 					Point velocity(double delta = 0.0) const;
@@ -49,7 +49,7 @@ namespace AI {
 
 				private:
 					AI::BE::Backend &backend;
-					Predictor<double> xpred, ypred;
+					Predictor2 pred;
 
 					void on_defending_end_changed();
 			};

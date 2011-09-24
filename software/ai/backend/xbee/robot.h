@@ -57,14 +57,14 @@ namespace AI {
 					 *
 					 * \param[in] ts the time at which the robot was in the given position.
 					 */
-					void update(const SSL_DetectionRobot &packet, const timespec &ts);
+					void update(const SSL_DetectionRobot &packet, timespec ts);
 
 					/**
 					 * Locks the current time for the predictors.
 					 *
 					 * \param[in] now the current time.
 					 */
-					void lock_time(const timespec &now);
+					void lock_time(timespec now);
 
 					Visualizable::Colour visualizer_colour() const;
 					Glib::ustring visualizer_label() const;
@@ -96,8 +96,7 @@ namespace AI {
 
 				private:
 					const unsigned int pattern_;
-					Predictor<double> xpred, ypred;
-					Predictor<Angle> tpred;
+					Predictor3 pred;
 					mutable ObjectStore object_store_;
 
 					void on_defending_end_changed();

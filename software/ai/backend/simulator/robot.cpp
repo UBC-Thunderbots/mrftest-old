@@ -8,6 +8,6 @@ namespace {
 	DoubleParam angular_decay_constant("Robot Angular Decay Constant", "Backend/Simulator", 99.0, 0.0, 100.0);
 }
 
-Robot::Robot(unsigned int pattern) : pattern_(pattern), xpred(1.3e-3, 2, linear_decay_constant), ypred(1.3e-3, 2, linear_decay_constant), tpred(Angle::of_radians(1.3e-3), Angle::of_radians(2), angular_decay_constant) {
+Robot::Robot(unsigned int pattern) : pattern_(pattern), pred(1.3e-3, 2, linear_decay_constant, Angle::of_radians(1.3e-3), Angle::of_radians(2), angular_decay_constant) {
 }
 

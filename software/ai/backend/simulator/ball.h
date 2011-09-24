@@ -75,14 +75,9 @@ namespace AI {
 					Backend &be;
 
 					/**
-					 * A predictor that provides the X coordinate of predictable quantities.
+					 * Predicts ball movement.
 					 */
-					Predictor<double> xpred;
-
-					/**
-					 * A predictor that provides the Y coordinate of predictable quantities.
-					 */
-					Predictor<double> ypred;
+					Predictor2 pred;
 
 					/**
 					 * The connections for mouse activity signals.

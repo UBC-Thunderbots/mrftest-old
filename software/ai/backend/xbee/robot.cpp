@@ -19,21 +19,19 @@ Robot::Ptr Robot::create(AI::BE::Backend &backend, unsigned int pattern) {
 	return p;
 }
 
-void Robot::update(const SSL_DetectionRobot &packet, const timespec &ts) {
+void Robot::update(const SSL_DetectionRobot &packet, timespec ts) {
 	if (packet.has_orientation()) {
 		bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
-		xpred.add_datum(neg ? -packet.x() / 1000.0 : packet.x() / 1000.0, timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
-		ypred.add_datum(neg ? -packet.y() / 1000.0 : packet.y() / 1000.0, timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
-		tpred.add_datum((Angle::of_radians(packet.orientation()) + (neg ? Angle::HALF : Angle::ZERO)).angle_mod(), timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
+		Point pos(neg ? -packet.x() / 1000.0 : packet.x() / 1000.0, neg ? -packet.y() / 1000.0 : packet.y() / 1000.0);
+		Angle ori = (Angle::of_radians(packet.orientation()) + (neg ? Angle::HALF : Angle::ZERO)).angle_mod();
+		pred.add_measurement(pos, ori, timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
 	} else {
 		LOG_WARN("Vision packet has robot with no orientation.");
 	}
 }
 
-void Robot::lock_time(const timespec &now) {
-	xpred.lock_time(now);
-	ypred.lock_time(now);
-	tpred.lock_time(now);
+void Robot::lock_time(timespec now) {
+	pred.lock_time(now);
 }
 
 Visualizable::Colour Robot::visualizer_colour() const {
@@ -53,35 +51,35 @@ Visualizable::Colour Robot::highlight_colour() const {
 }
 
 Point Robot::position(double delta) const {
-	return Point(xpred.value(delta).first, ypred.value(delta).first);
+	return pred.value(delta).first.first;
 }
 
 Point Robot::velocity(double delta) const {
-	return Point(xpred.value(delta, 1).first, ypred.value(delta, 1).first);
+	return pred.value(delta, 1).first.first;
 }
 
 Point Robot::position_stdev(double delta) const {
-	return Point(xpred.value(delta).second, ypred.value(delta).second);
+	return pred.value(delta).second.first;
 }
 
 Point Robot::velocity_stdev(double delta) const {
-	return Point(xpred.value(delta, 1).second, ypred.value(delta, 1).second);
+	return pred.value(delta, 1).second.first;
 }
 
 Angle Robot::orientation(double delta) const {
-	return tpred.value(delta).first;
+	return pred.value(delta).first.second;
 }
 
 Angle Robot::avelocity(double delta) const {
-	return tpred.value(delta, 1).first;
+	return pred.value(delta, 1).first.second;
 }
 
 Angle Robot::orientation_stdev(double delta) const {
-	return tpred.value(delta).second;
+	return pred.value(delta).second.second;
 }
 
 Angle Robot::avelocity_stdev(double delta) const {
-	return tpred.value(delta, 1).second;
+	return pred.value(delta, 1).second.second;
 }
 
 unsigned int Robot::pattern() const {
@@ -120,15 +118,13 @@ Visualizable::Colour Robot::bar_graph_colour(unsigned int) const {
 	throw std::logic_error("This robot has no graphs");
 }
 
-Robot::Robot(AI::BE::Backend &backend, unsigned int pattern) : seen_this_frame(false), vision_failures(0), backend(backend), pattern_(pattern), xpred(1.3e-3, 2, linear_decay_constant), ypred(1.3e-3, 2, linear_decay_constant), tpred(Angle::of_radians(1.3e-3), Angle::of_radians(2), angular_decay_constant) {
+Robot::Robot(AI::BE::Backend &backend, unsigned int pattern) : seen_this_frame(false), vision_failures(0), backend(backend), pattern_(pattern), pred(1.3e-3, 2, linear_decay_constant, Angle::of_radians(1.3e-3), Angle::of_radians(2), angular_decay_constant) {
 	backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &Robot::on_defending_end_changed));
 }
 
 Robot::~Robot() = default;
 
 void Robot::on_defending_end_changed() {
-	xpred.clear();
-	ypred.clear();
-	tpred.clear();
+	pred.clear();
 }
 

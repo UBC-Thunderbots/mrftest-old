@@ -8,15 +8,13 @@ namespace {
 	DoubleParam ball_decay_constant("Ball Decay Constant", "Backend/Simulator", 99.0, 0.0, 100.0);
 }
 
-AI::BE::Simulator::Ball::Ball(Backend &be) : be(be), xpred(1.3e-3, 2, ball_decay_constant), ypred(1.3e-3, 2, ball_decay_constant) {
+AI::BE::Simulator::Ball::Ball(Backend &be) : be(be), pred(1.3e-3, 2, ball_decay_constant) {
 	be.signal_mouse_pressed.connect(sigc::mem_fun(this, &Ball::mouse_pressed));
 }
 
 void AI::BE::Simulator::Ball::pre_tick(const ::Simulator::Proto::S2ABallInfo &state, const timespec &ts) {
-	xpred.add_datum(state.x, ts);
-	xpred.lock_time(ts);
-	ypred.add_datum(state.y, ts);
-	ypred.lock_time(ts);
+	pred.add_measurement(Point(state.x, state.y), ts);
+	pred.lock_time(ts);
 }
 
 void AI::BE::Simulator::Ball::mouse_pressed(Point p, unsigned int btn) {
@@ -49,19 +47,19 @@ void AI::BE::Simulator::Ball::mouse_moved(Point p) {
 }
 
 Point AI::BE::Simulator::Ball::position(double delta) const {
-	return Point(xpred.value(delta).first, ypred.value(delta).first);
+	return pred.value(delta).first;
 }
 
 Point AI::BE::Simulator::Ball::velocity(double delta) const {
-	return Point(xpred.value(delta, 1).first, ypred.value(delta, 1).first);
+	return pred.value(delta, 1).first;
 }
 
 Point AI::BE::Simulator::Ball::position_stdev(double delta) const {
-	return Point(xpred.value(delta).second, ypred.value(delta).second);
+	return pred.value(delta).second;
 }
 
 Point AI::BE::Simulator::Ball::velocity_stdev(double delta) const {
-	return Point(xpred.value(delta, 1).second, ypred.value(delta, 1).second);
+	return pred.value(delta, 1).second;
 }
 
 bool AI::BE::Simulator::Ball::highlight() const {
