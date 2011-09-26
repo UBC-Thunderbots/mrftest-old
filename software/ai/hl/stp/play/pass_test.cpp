@@ -7,7 +7,7 @@
 namespace Predicates = AI::HL::STP::Predicates;
 
 BEGIN_PLAY(PassDynamic)
-INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY)
+INVARIANT(false && Predicates::playtype(world, AI::Common::PlayType::PLAY)
 		&& Predicates::our_team_size_at_least(world, 3))
 APPLICABLE(false
 	&&	Predicates::our_ball(world))
