@@ -82,12 +82,10 @@ namespace {
 
 			void calc_play() {
 				curr_play.reset();
-				const Play::PlayFactory::Map &m = Play::PlayFactory::all();
-				for (Play::PlayFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					if (Glib::ustring(i->second->name()) != combo.get_active_text()) {
-						continue;
+				for (auto i = plays.cbegin(), iend = plays.cend(); i != iend; ++i) {
+					if ((*i)->factory().name() == combo.get_active_text()) {
+						curr_play = *i;
 					}
-					curr_play = i->second->create(world);
 				}
 				assert(curr_play.is());
 
@@ -97,9 +95,6 @@ namespace {
 					// return;
 				}
 
-				// auto itr = m.find(combo.get_active_text().c_str());
-				// assert(itr != m.end());
-				// curr_play = m[combo.get_active_text()]->create(world);
 				// assign the players
 				curr_role_step = 0;
 				for (std::size_t j = 0; j < 5; ++j) {
