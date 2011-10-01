@@ -378,7 +378,6 @@ Glib::ustring PlayExecutor::info() const {
 void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 	draw_ui(world, ctx);
 
-	// draw_velocity(ctx); // uncommand to display velocity
 	if (world.playtype() == AI::Common::PlayType::STOP) {
 		ctx->set_source_rgb(1.0, 0.5, 0.5);
 		ctx->arc(world.ball().position().x, world.ball().position().y, 0.5, 0.0, 2 * M_PI);
