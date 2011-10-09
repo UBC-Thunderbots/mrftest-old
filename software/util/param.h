@@ -6,8 +6,8 @@
 #include "util/property.h"
 #include <cstddef>
 #include <string>
-#include <libxml++/libxml++.h>
 #include <gtkmm/adjustment.h>
+#include <libxml++/libxml++.h>
 
 class ParamTreeInternalNode;
 

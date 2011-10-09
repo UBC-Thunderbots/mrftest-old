@@ -1,6 +1,6 @@
 #include "ai/navigator/plan.h"
-#include <glibmm.h>
 #include "util/objectstore.h"
+#include <glibmm/nodetree.h>
 
 namespace AI {
 	namespace Nav {

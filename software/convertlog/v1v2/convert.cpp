@@ -15,12 +15,13 @@
 #include <cerrno>
 #include <cstdio>
 #include <fcntl.h>
-#include <glibmm.h>
 #include <iostream>
 #include <locale>
 #include <sstream>
 #include <string>
 #include <unistd.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <sys/stat.h>

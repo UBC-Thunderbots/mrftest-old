@@ -8,7 +8,6 @@
 #include "util/param.h"
 #include <algorithm>
 #include <cmath>
-#include <glibmm.h>
 #include <map>
 
 using AI::RC::RobotController;

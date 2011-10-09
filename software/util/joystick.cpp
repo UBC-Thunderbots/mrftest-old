@@ -6,6 +6,9 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <string>
+#include <glibmm/convert.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/main.h>
 #include <linux/joystick.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>

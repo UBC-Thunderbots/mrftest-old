@@ -2,8 +2,8 @@
 #define AI_COMMON_PLAYTYPE_H
 
 #include <functional>
-#include <glibmm.h>
 #include <vector>
+#include <glibmm/ustring.h>
 
 namespace AI {
 	namespace Common {

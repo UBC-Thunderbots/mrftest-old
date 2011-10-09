@@ -1,7 +1,7 @@
 #ifndef UTIL_CLOCKSOURCE_H
 #define UTIL_CLOCKSOURCE_H
 
-#include <sigc++/sigc++.h>
+#include <sigc++/signal.h>
 
 /**
  * A source of timer ticks. A clock source is initially stopped.

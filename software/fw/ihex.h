@@ -1,7 +1,6 @@
 #ifndef FW_IHEX_H
 #define FW_IHEX_H
 
-#include <glibmm.h>
 #include <stdexcept>
 #include <string>
 #include <vector>

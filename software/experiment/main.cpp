@@ -6,13 +6,16 @@
 #include "xbee/dongle.h"
 #include <cstdlib>
 #include <ctime>
-#include <glibmm.h>
 #include <iostream>
 #include <locale>
 #include <memory>
 #include <sstream>
 #include <stdint.h>
 #include <string>
+#include <glibmm/exception.h>
+#include <glibmm/main.h>
+#include <glibmm/refptr.h>
+#include <glibmm/ustring.h>
 
 namespace {
 	class RobotExperimentReceiver : public NonCopyable, public sigc::trackable {

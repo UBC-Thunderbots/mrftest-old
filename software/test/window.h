@@ -8,6 +8,7 @@
 #include "xbee/dongle.h"
 #include "xbee/robot.h"
 #include <vector>
+#include <glibmm/refptr.h>
 #include <gtkmm/box.h>
 #include <gtkmm/combobox.h>
 #include <gtkmm/frame.h>

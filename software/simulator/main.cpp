@@ -4,9 +4,15 @@
 #include <cstdlib>
 #include <ctime>
 #include <exception>
-#include <glibmm.h>
 #include <iostream>
 #include <locale>
+#include <glibmm/exception.h>
+#include <glibmm/main.h>
+#include <glibmm/optioncontext.h>
+#include <glibmm/optionentry.h>
+#include <glibmm/optiongroup.h>
+#include <glibmm/refptr.h>
+#include <glibmm/ustring.h>
 
 namespace {
 	/**

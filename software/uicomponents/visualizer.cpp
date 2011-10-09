@@ -1,5 +1,7 @@
 #include "uicomponents/visualizer.h"
 #include <cmath>
+#include <glibmm/refptr.h>
+#include <gtkmm/window.h>
 
 Visualizer::Visualizer(Visualizable::World &data) : show_field(true), show_ball(true), show_ball_v(true), show_robots(true), show_robots_v(false), show_robots_dest(true), show_robots_path(true), show_robots_graphs(true), show_overlay(true), data(data) {
 	set_size_request(600, 600);

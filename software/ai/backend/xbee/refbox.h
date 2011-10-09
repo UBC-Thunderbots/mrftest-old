@@ -4,7 +4,7 @@
 #include "util/fd.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
-#include <glibmm.h>
+#include <glibmm/main.h>
 
 namespace AI {
 	namespace BE {

@@ -13,11 +13,13 @@
 #include <cstring>
 #include <ctime>
 #include <fcntl.h>
-#include <glibmm.h>
 #include <limits>
 #include <locale>
 #include <sstream>
 #include <stdint.h>
+#include <glibmm/convert.h>
+#include <glibmm/miscutils.h>
+#include <glibmm/ustring.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <sys/stat.h>
 #include <sys/types.h>

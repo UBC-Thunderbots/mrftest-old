@@ -7,6 +7,8 @@
 #include <functional>
 #include <unordered_set>
 #include <vector>
+#include <glibmm/object.h>
+#include <glibmm/refptr.h>
 #include <gtkmm/comboboxentrytext.h>
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/stock.h>

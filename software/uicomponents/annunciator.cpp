@@ -1,6 +1,8 @@
 #include "uicomponents/annunciator.h"
 #include "uicomponents/abstract_list_model.h"
 #include "util/annunciator.h"
+#include <glibmm/object.h>
+#include <glibmm/refptr.h>
 
 namespace {
 	class MessagesALM : public Glib::Object, public AbstractListModel, public NonCopyable {

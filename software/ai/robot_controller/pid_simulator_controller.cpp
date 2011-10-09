@@ -7,7 +7,6 @@
 #include "util/noncopyable.h"
 #include "util/param.h"
 #include <cmath>
-#include <glibmm.h>
 #include <vector>
 
 using AI::RC::RobotController;

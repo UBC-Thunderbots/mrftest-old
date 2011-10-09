@@ -3,7 +3,6 @@
 #include "geom/angle.h"
 #include "util/byref.h"
 #include "util/time.h"
-#include <glibmm.h>
 #include <set>
 #include <utility>
 #include <vector>

@@ -6,7 +6,6 @@
 #include "util/dprint.h"
 #include "util/param.h"
 #include <cmath>
-#include <glibmm.h>
 #include <map>
 
 using AI::RC::RobotController;

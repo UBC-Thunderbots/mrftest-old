@@ -2,7 +2,6 @@
 #define AI_BACKEND_SIMULATOR_FIELD_H
 
 #include "ai/backend/backend.h"
-#include <glibmm.h>
 
 namespace AI {
 	namespace BE {
@@ -12,10 +11,7 @@ namespace AI {
 			 */
 			class Field : public AI::BE::Field {
 				public:
-					Field() {
-						Glib::signal_idle().connect_once(signal_changed.make_slot());
-					}
-
+					Field();
 					bool valid() const { return true; }
 					double length() const { return 6.05; }
 					double total_length() const { return 7.40; }

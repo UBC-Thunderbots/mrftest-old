@@ -12,10 +12,9 @@
 #include "util/property.h"
 #include "util/registerable.h"
 #include <functional>
-#include <glibmm.h>
 #include <map>
 #include <gtkmm/table.h>
-#include <sigc++/sigc++.h>
+#include <sigc++/signal.h>
 
 namespace Gtk {
 	class Widget;

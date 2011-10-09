@@ -13,7 +13,7 @@
 #include <string>
 #include <unordered_map>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
-#include <sigc++/sigc++.h>
+#include <sigc++/trackable.h>
 
 extern "C" {
 	void ai_logger_signal_handler_thunk(int sig);

@@ -3,6 +3,7 @@
 
 #include "ai/hl/stp/world.h"
 #include <cairomm/context.h>
+#include <cairomm/refptr.h>
 
 namespace AI {
 	namespace HL {

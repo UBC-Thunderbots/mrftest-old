@@ -2,7 +2,8 @@
 #define UTIL_DPRINT_H
 
 #include "proto/log_record.pb.h"
-#include <glibmm.h>
+#include <glibmm/ustring.h>
+#include <sigc++/signal.h>
 
 /**
  * A signal emitted every time a message is logged.

@@ -4,10 +4,11 @@
 #include "util/byref.h"
 #include "util/fd.h"
 #include "util/property.h"
-#include <glibmm.h>
 #include <string>
 #include <vector>
-#include <sigc++/sigc++.h>
+#include <glibmm/ustring.h>
+#include <sigc++/signal.h>
+#include <sigc++/trackable.h>
 
 /**
  * \brief Provides access to a joystick attached to the computer.

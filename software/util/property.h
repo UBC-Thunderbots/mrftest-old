@@ -2,7 +2,7 @@
 #define UTIL_PROPERTY_H
 
 #include "util/noncopyable.h"
-#include <sigc++/sigc++.h>
+#include <sigc++/signal.h>
 
 /**
  * \brief A variable holding a value of some type, with the ability to notify listeners when the value changes.

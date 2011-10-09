@@ -2,10 +2,14 @@
 #include "xbee/dongle.h"
 #include <cctype>
 #include <exception>
-#include <glibmm.h>
 #include <iostream>
 #include <locale>
 #include <sstream>
+#include <glibmm/exception.h>
+#include <glibmm/optioncontext.h>
+#include <glibmm/optionentry.h>
+#include <glibmm/optiongroup.h>
+#include <glibmm/ustring.h>
 
 namespace {
 	void parse_channels(const Glib::ustring &str, unsigned int &channel0, unsigned int &channel1) {

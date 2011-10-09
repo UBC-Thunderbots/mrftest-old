@@ -4,7 +4,6 @@
 #include "ai/flags.h"
 #include "ai/common/world.h"
 #include "util/property.h"
-#include <sigc++/sigc++.h>
 
 namespace AI {
 	namespace HL {

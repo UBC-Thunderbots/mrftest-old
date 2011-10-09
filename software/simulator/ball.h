@@ -5,7 +5,6 @@
 #include "uicomponents/visualizer.h"
 #include "util/byref.h"
 #include "util/fd.h"
-#include <glibmm.h>
 
 namespace Simulator {
 	/**

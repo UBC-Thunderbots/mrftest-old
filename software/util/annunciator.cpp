@@ -3,6 +3,8 @@
 #include <cassert>
 #include <iostream>
 #include <unordered_map>
+#include <glibmm/main.h>
+#include <glibmm/spawn.h>
 
 namespace {
 	const unsigned int MAX_AGE = 20;

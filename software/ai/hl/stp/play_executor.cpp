@@ -2,12 +2,10 @@
 #include "ai/hl/util.h"
 #include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/ui.h"
-#include "ai/hl/stp/evaluation/defense.h"
-#include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/tactic/idle.h"
 #include "util/dprint.h"
 #include <cassert>
-#include <glibmm.h>
+#include <glibmm/ustring.h>
 
 using AI::HL::STP::PlayExecutor;
 using namespace AI::HL::STP;

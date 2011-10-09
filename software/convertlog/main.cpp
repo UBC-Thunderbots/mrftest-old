@@ -1,10 +1,13 @@
 #include "convertlog/v1v2/convert.h"
 #include <cstdlib>
 #include <ctime>
-#include <glibmm.h>
 #include <iostream>
 #include <locale>
 #include <stdexcept>
+#include <glibmm/exception.h>
+#include <glibmm/optioncontext.h>
+#include <glibmm/optionentry.h>
+#include <glibmm/optiongroup.h>
 
 namespace {
 	int main_impl(int argc, char **argv) {

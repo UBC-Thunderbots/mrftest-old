@@ -1,8 +1,8 @@
 #ifndef TEST_MAPPING_H
 #define TEST_MAPPING_H
 
-#include <glibmm.h>
 #include <string>
+#include <glibmm/ustring.h>
 #include <libxml++/libxml++.h>
 
 /**

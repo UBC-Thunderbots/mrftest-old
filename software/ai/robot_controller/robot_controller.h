@@ -5,7 +5,8 @@
 #include "geom/point.h"
 #include "util/byref.h"
 #include "util/registerable.h"
-#include <cairomm/cairomm.h>
+#include <cairomm/context.h>
+#include <cairomm/refptr.h>
 
 namespace Gtk {
 	class Widget;

@@ -10,7 +10,6 @@
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/coordinate.h"
 #include "ai/hl/stp/region.h"
-#include <glibmm.h>
 
 using AI::Common::PlayType;
 using namespace AI::HL::STP::Predicates;

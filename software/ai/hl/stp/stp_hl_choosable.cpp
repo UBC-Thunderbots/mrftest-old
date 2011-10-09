@@ -5,11 +5,10 @@
 #include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/evaluation/defense.h"
 #include "util/dprint.h"
-
 #include <cassert>
-#include <gtkmm/comboboxtext.h>
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>
+#include <gtkmm/comboboxtext.h>
 #include <gtkmm/textview.h>
 
 using namespace AI::HL;

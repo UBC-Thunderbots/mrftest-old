@@ -7,7 +7,8 @@
 #include "util/time.h"
 #include <utility>
 #include <vector>
-#include <cairomm/cairomm.h>
+#include <cairomm/context.h>
+#include <cairomm/refptr.h>
 
 namespace AI {
 	namespace Nav {

@@ -1,9 +1,9 @@
 #include "ai/hl/hl.h"
+#include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/action/pivot.h"
-#include "util/dprint.h"
-#include "geom/angle.h"
 #include "ai/hl/stp/test/test.h"
-#include <cassert>
+#include "geom/angle.h"
+#include "util/dprint.h"
 
 using namespace AI::HL;
 using namespace AI::HL::STP;

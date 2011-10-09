@@ -9,7 +9,10 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <glibmm/object.h>
+#include <glibmm/refptr.h>
 #include <gtkmm/main.h>
+#include <gtkmm/treemodelcolumn.h>
 
 class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractListModel {
 	public:

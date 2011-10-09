@@ -6,13 +6,12 @@
 #include "util/noncopyable.h"
 #include <cassert>
 #include <cstddef>
-#include <glibmm.h>
+#include <glib.h>
 #include <libusb.h>
 #include <list>
 #include <stdexcept>
 #include <stdint.h>
 #include <string>
-#include <sigc++/sigc++.h>
 
 /**
  * \brief An error that occurs in a LibUSB library function.

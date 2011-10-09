@@ -2,10 +2,10 @@
 #include "util/exception.h"
 #include <cstdlib>
 #include <fcntl.h>
-#include <glibmm.h>
 #include <string>
 #include <unistd.h>
 #include <vector>
+#include <glibmm/miscutils.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 

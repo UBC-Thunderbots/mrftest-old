@@ -5,9 +5,11 @@
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
-#include <glibmm.h>
 #include <limits>
 #include <poll.h>
+#include <glibmm/convert.h>
+#include <glibmm/main.h>
+#include <glibmm/ustring.h>
 
 #warning needs Doxygen
 

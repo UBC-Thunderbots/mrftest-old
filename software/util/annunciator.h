@@ -3,8 +3,11 @@
 
 #include "util/noncopyable.h"
 #include <cstddef>
-#include <glibmm.h>
 #include <vector>
+#include <glibmm/ustring.h>
+#include <sigc++/connection.h>
+#include <sigc++/signal.h>
+#include <sigc++/trackable.h>
 
 namespace Annunciator {
 	/**

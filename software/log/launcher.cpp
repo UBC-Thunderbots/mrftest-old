@@ -25,6 +25,7 @@
 #include <gtkmm/filechooserdialog.h>
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/stock.h>
+#include <gtkmm/treeselection.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 

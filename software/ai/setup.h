@@ -1,6 +1,6 @@
 #include "ai/backend/backend.h"
 #include "ai/common/team.h"
-#include <glibmm.h>
+#include <glibmm/ustring.h>
 
 namespace AI {
 	/**

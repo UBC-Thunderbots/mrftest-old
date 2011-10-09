@@ -3,7 +3,7 @@
 
 #include "util/string.h"
 #include <ctime>
-#include <glibmm.h>
+#include <glibmm/ustring.h>
 
 /**
  * Gets the current time into a timespec.

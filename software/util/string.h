@@ -1,9 +1,9 @@
 #ifndef UTIL_STRING_H
 #define UTIL_STRING_H
 
-#include <glibmm.h>
 #include <stdint.h>
 #include <string>
+#include <glibmm/ustring.h>
 
 /**
  * \brief Converts an unsigned integer of any type to a fixed-width decimal string.

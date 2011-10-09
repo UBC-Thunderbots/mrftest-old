@@ -8,7 +8,6 @@
 #include "util/param.h"
 #include <cassert>
 #include <cmath>
-#include <glibmm.h>
 #include <vector>
 
 using AI::RC::RobotController;

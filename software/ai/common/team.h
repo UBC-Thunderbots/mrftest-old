@@ -2,7 +2,7 @@
 #define AI_COMMON_TEAM_H
 
 #include <cstddef>
-#include <sigc++/sigc++.h>
+#include <sigc++/signal.h>
 
 namespace AI {
 	namespace Common {

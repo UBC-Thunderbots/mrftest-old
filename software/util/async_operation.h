@@ -2,7 +2,7 @@
 #define UTIL_ASYNC_OPERATION_H
 
 #include "util/byref.h"
-#include <sigc++/sigc++.h>
+#include <sigc++/signal.h>
 
 /**
  * \brief An asynchronous operation which is currently in progress.

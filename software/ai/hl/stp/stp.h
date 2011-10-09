@@ -2,9 +2,8 @@
 #define AI_HL_STP_H
 
 #include "ai/hl/stp/world.h"
-
 #include <cairomm/context.h>
-#include <string>
+#include <cairomm/refptr.h>
 
 namespace AI {
 	namespace HL {

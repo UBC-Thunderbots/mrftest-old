@@ -8,7 +8,6 @@
 #include "util/param.h"
 #include "util/timestep.h"
 #include <cmath>
-#include <glibmm.h>
 #include <vector>
 
 using AI::RC::RobotController;

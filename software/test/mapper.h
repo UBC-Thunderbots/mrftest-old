@@ -4,6 +4,7 @@
 #include "test/mapping.h"
 #include "util/joystick.h"
 #include <vector>
+#include <glibmm/refptr.h>
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>
 #include <gtkmm/buttonbox.h>

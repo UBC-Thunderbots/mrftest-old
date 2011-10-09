@@ -1,12 +1,14 @@
 #include "util/config.h"
 #include "util/exception.h"
+#include <algorithm>
 #include <fstream>
 #include <functional>
-#include <glibmm.h>
 #include <libgen.h>
 #include <stdexcept>
 #include <unistd.h>
 #include <vector>
+#include <glibmm/convert.h>
+#include <glibmm/ustring.h>
 
 using namespace std::placeholders;
 

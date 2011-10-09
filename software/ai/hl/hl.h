@@ -5,6 +5,7 @@
 #include "util/byref.h"
 #include "util/registerable.h"
 #include <cairomm/context.h>
+#include <cairomm/refptr.h>
 
 namespace Gtk {
 	//forward declare the widget pointer

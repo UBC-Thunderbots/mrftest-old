@@ -2,6 +2,7 @@
 #define UICOMPONENTS_ABSTRACT_LIST_MODEL_H
 
 #include <cstddef>
+#include <glibmm/value.h>
 #include <gtkmm/treemodel.h>
 
 /**

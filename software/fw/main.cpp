@@ -5,10 +5,15 @@
 #include "xbee/dongle.h"
 #include <cstdlib>
 #include <ctime>
-#include <glibmm.h>
 #include <iostream>
 #include <locale>
 #include <string>
+#include <glibmm/exception.h>
+#include <glibmm/main.h>
+#include <glibmm/optioncontext.h>
+#include <glibmm/optionentry.h>
+#include <glibmm/optiongroup.h>
+#include <glibmm/refptr.h>
 
 namespace {
 	const std::size_t CRC_BLOCK_SIZE = 16384;

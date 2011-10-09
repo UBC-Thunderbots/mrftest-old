@@ -4,7 +4,7 @@
 #include "simulator/sockproto/proto.h"
 #include "util/byref.h"
 #include "util/fd.h"
-#include <glibmm.h>
+#include <glibmm/main.h>
 
 namespace Simulator {
 	/**

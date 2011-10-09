@@ -1,15 +1,12 @@
 #include "ai/hl/hl.h"
-#include "ai/hl/stp/action/shoot.h"
-#include "ai/hl/stp/action/pivot.h"
+#include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/action/pivot.h"
+#include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/evaluation/player.h"
-#include "geom/util.h"
-#include "ai/hl/stp/stp.h"
-#include "util/dprint.h"
 #include "ai/hl/stp/test/test.h"
-#include <ctime>
-#include <cassert>
+#include "geom/util.h"
 
 using namespace AI::HL;
 using namespace AI::HL::STP;

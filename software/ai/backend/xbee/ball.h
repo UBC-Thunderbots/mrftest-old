@@ -7,7 +7,7 @@
 #include "util/predictor.h"
 #include "util/time.h"
 #include <cstdlib>
-#include <sigc++/sigc++.h>
+#include <sigc++/trackable.h>
 
 namespace AI {
 	namespace BE {

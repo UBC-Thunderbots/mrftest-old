@@ -4,9 +4,10 @@
 #include "ai/hl/stp/world.h"
 #include "util/byref.h"
 #include "util/registerable.h"
-#include <cairomm/cairomm.h>
-#include <glibmm.h>
 #include <set>
+#include <cairomm/context.h>
+#include <cairomm/refptr.h>
+#include <glibmm/ustring.h>
 
 namespace AI {
 	namespace HL {

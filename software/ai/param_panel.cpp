@@ -6,6 +6,9 @@
 #include <cerrno>
 #include <cstdlib>
 #include <iomanip>
+#include <glibmm/object.h>
+#include <glibmm/refptr.h>
+#include <gtkmm/adjustment.h>
 #include <gtkmm/cellrendererspin.h>
 #include <gtkmm/cellrenderertext.h>
 #include <gtkmm/cellrenderertoggle.h>

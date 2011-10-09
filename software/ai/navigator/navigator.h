@@ -7,7 +7,8 @@
 #include "util/registerable.h"
 #include <map>
 #include <utility>
-#include <cairomm/cairomm.h>
+#include <cairomm/context.h>
+#include <cairomm/refptr.h>
 
 namespace Gtk {
 	class Widget;

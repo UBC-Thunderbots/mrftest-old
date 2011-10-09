@@ -14,8 +14,8 @@
 #include "util/dprint.h"
 #include "util/param.h"
 #include <cmath>
-#include <glibmm.h>
 #include <map>
+#include <glibmm/ustring.h>
 #include <gtkmm/adjustment.h>
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>

@@ -6,6 +6,9 @@
 #include <stdexcept>
 #include <unistd.h>
 #include <unordered_map>
+#include <glibmm/convert.h>
+#include <glibmm/main.h>
+#include <glibmm/ustring.h>
 
 namespace std {
 	template<> class hash<XBeeDongle::CommonFault> {

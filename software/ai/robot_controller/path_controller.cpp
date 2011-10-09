@@ -5,7 +5,6 @@
 #include "util/byref.h"
 #include "util/noncopyable.h"
 #include <cmath>
-#include <glibmm.h>
 #include <map>
 
 using AI::RC::RobotController;

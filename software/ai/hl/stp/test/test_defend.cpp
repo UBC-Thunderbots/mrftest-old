@@ -1,12 +1,10 @@
 #include "ai/hl/hl.h"
+#include "ai/hl/stp/stp.h"
+#include "ai/hl/stp/ui.h"
 #include "ai/hl/stp/action/goalie.h"
 #include "ai/hl/stp/action/defend.h"
 #include "ai/hl/stp/evaluation/defense.h"
-#include "util/dprint.h"
-#include "ai/hl/stp/ui.h"
-#include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/test/test.h"
-#include <cassert>
 
 using namespace AI::HL;
 using namespace AI::HL::STP;

@@ -18,11 +18,17 @@
 #include <locale>
 #include <string>
 #include <vector>
+#include <glibmm/object.h>
+#include <glibmm/refptr.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
 #include <gtkmm/filechooserdialog.h>
+#include <gtkmm/filefilter.h>
+#include <gtkmm/radiobutton.h>
+#include <gtkmm/radiobuttongroup.h>
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/stock.h>
+#include <gtkmm/treemodelcolumn.h>
 #include <gtkmm/treestore.h>
 
 using namespace std::placeholders;
