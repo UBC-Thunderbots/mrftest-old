@@ -1,9 +1,15 @@
 #ifndef LOG_ANALYZER_H
 #define LOG_ANALYZER_H
 
-#include <gtkmm.h>
 #include <memory>
 #include <string>
+#include <gtkmm/box.h>
+#include <gtkmm/button.h>
+#include <gtkmm/frame.h>
+#include <gtkmm/paned.h>
+#include <gtkmm/scrolledwindow.h>
+#include <gtkmm/treeview.h>
+#include <gtkmm/window.h>
 
 class LogAnalyzer : public Gtk::Window {
 	public:

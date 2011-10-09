@@ -1,7 +1,10 @@
 #ifndef AI_PARAM_PANEL_H
 #define AI_PARAM_PANEL_H
 
-#include <gtkmm.h>
+#include <gtkmm/box.h>
+#include <gtkmm/button.h>
+#include <gtkmm/buttonbox.h>
+#include <gtkmm/scrolledwindow.h>
 
 class ParamPanel : public Gtk::VBox {
 	public:

@@ -3,7 +3,7 @@
 
 #include "ai/hl/stp/world.h"
 
-#include <gtkmm.h>
+#include <cairomm/context.h>
 #include <string>
 
 namespace AI {

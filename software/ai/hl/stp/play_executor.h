@@ -3,8 +3,6 @@
 
 #include "ai/hl/stp/world.h"
 #include "ai/hl/stp/play/play.h"
-
-#include <gtkmm.h>
 #include <string>
 
 namespace AI {

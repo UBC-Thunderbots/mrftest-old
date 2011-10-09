@@ -14,12 +14,16 @@
 #include <cstdlib>
 #include <ctime>
 #include <functional>
-#include <gtkmm.h>
 #include <iostream>
 #include <locale>
 #include <stdexcept>
 #include <stdint.h>
 #include <vector>
+#include <gtkmm/comboboxtext.h>
+#include <gtkmm/dialog.h>
+#include <gtkmm/label.h>
+#include <gtkmm/main.h>
+#include <gtkmm/stock.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>

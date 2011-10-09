@@ -15,8 +15,15 @@
 #include "util/param.h"
 #include <cmath>
 #include <glibmm.h>
-#include <gtkmm.h>
 #include <map>
+#include <gtkmm/adjustment.h>
+#include <gtkmm/box.h>
+#include <gtkmm/button.h>
+#include <gtkmm/checkbutton.h>
+#include <gtkmm/label.h>
+#include <gtkmm/scale.h>
+#include <gtkmm/togglebutton.h>
+#include <gtkmm/window.h>
 
 using AI::RC::RobotController;
 using AI::RC::RobotControllerFactory;

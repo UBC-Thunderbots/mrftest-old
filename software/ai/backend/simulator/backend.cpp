@@ -3,6 +3,9 @@
 #include "util/misc.h"
 #include <cstring>
 #include <fcntl.h>
+#include <gtkmm/filechooserdialog.h>
+#include <gtkmm/stock.h>
+#include <gtkmm/window.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 

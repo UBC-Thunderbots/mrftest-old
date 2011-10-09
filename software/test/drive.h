@@ -2,7 +2,10 @@
 #define TEST_DRIVE_H
 
 #include "xbee/robot.h"
-#include <gtkmm.h>
+#include <gtkmm/box.h>
+#include <gtkmm/checkbutton.h>
+#include <gtkmm/comboboxtext.h>
+#include <gtkmm/scale.h>
 
 /**
  * \brief A panel that lets the user manually control the wheels.

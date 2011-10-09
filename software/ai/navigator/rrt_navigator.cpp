@@ -7,7 +7,6 @@
 #include "util/dprint.h"
 // #include "util/param.h"
 #include "ai/hl/stp/param.h"
-#include <gtkmm.h>
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;

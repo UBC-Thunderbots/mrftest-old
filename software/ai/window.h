@@ -5,7 +5,11 @@
 #include "ai/param_panel.h"
 #include "uicomponents/annunciator.h"
 #include "uicomponents/visualizer.h"
-#include <gtkmm.h>
+#include <gtkmm/box.h>
+#include <gtkmm/frame.h>
+#include <gtkmm/notebook.h>
+#include <gtkmm/paned.h>
+#include <gtkmm/window.h>
 
 namespace AI {
 	/**

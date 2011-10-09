@@ -4,7 +4,9 @@
 #include "ai/hl/stp/evaluation/offense.h"
 #include "util/dprint.h"
 #include <cmath>
-#include <gtkmm.h>
+#include <gtkmm/box.h>
+#include <gtkmm/button.h>
+#include <gtkmm/textview.h>
 
 using AI::HL::HighLevelFactory;
 using AI::HL::HighLevel;

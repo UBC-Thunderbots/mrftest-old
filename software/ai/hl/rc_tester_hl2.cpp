@@ -2,6 +2,9 @@
 #include "geom/angle.h"
 #include "util/dprint.h"
 #include "util/param.h"
+#include <gtkmm/box.h>
+#include <gtkmm/button.h>
+#include <gtkmm/scale.h>
 
 using namespace AI::HL;
 using namespace AI::HL::W;

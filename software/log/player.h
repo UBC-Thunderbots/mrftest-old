@@ -2,9 +2,9 @@
 #define LOG_PLAYER_H
 
 #include "uicomponents/visualizer.h"
-#include <gtkmm.h>
 #include <memory>
 #include <string>
+#include <gtkmm/window.h>
 
 class LogPlayer : public Gtk::Window {
 	public:

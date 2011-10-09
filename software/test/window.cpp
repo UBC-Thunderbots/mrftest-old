@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <gtkmm/main.h>
 
 class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractListModel {
 	public:

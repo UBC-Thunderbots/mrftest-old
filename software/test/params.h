@@ -2,7 +2,14 @@
 #define TEST_PARAMS_H
 
 #include "xbee/robot.h"
-#include <gtkmm.h>
+#include <gtkmm/box.h>
+#include <gtkmm/button.h>
+#include <gtkmm/buttonbox.h>
+#include <gtkmm/comboboxtext.h>
+#include <gtkmm/entry.h>
+#include <gtkmm/label.h>
+#include <gtkmm/scale.h>
+#include <gtkmm/table.h>
 
 /**
  * \brief A panel that allows the user to edit the operational parameters of a robot.

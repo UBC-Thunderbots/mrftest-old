@@ -4,7 +4,7 @@
 #include "geom/angle.h"
 #include "geom/point.h"
 #include "util/byref.h"
-#include <gtkmm.h>
+#include <gtkmm/drawingarea.h>
 
 namespace Visualizable {
 	/**

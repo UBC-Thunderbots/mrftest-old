@@ -1,6 +1,7 @@
 #include "uicomponents/abstract_list_model.h"
 #include <cassert>
 #include <stdint.h>
+#include <gtkmm/treepath.h>
 
 namespace {
 	void *to_ptr(std::size_t sz) {

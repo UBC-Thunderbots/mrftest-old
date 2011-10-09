@@ -2,8 +2,13 @@
 #define TEST_KICKER_H
 
 #include "xbee/robot.h"
-#include <gtkmm.h>
-
+#include <gtkmm/box.h>
+#include <gtkmm/button.h>
+#include <gtkmm/checkbutton.h>
+#include <gtkmm/label.h>
+#include <gtkmm/scale.h>
+#include <gtkmm/table.h>
+#include <gtkmm/togglebutton.h>
 /**
  * \brief A panel that lets the user manually control the kicking subsystem.
  */

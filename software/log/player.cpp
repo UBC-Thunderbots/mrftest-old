@@ -10,6 +10,15 @@
 #include <cstdlib>
 #include <iterator>
 #include <vector>
+#include <gtkmm/adjustment.h>
+#include <gtkmm/box.h>
+#include <gtkmm/frame.h>
+#include <gtkmm/label.h>
+#include <gtkmm/scale.h>
+#include <gtkmm/stock.h>
+#include <gtkmm/table.h>
+#include <gtkmm/toolbar.h>
+#include <gtkmm/toolbutton.h>
 
 namespace {
 	timespec timespec_of_log(const Log::MonotonicTimeSpec &ts) {

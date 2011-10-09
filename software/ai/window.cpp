@@ -4,6 +4,13 @@
 #include <cassert>
 #include <cstdlib>
 #include <vector>
+#include <gtkmm/box.h>
+#include <gtkmm/comboboxtext.h>
+#include <gtkmm/entry.h>
+#include <gtkmm/frame.h>
+#include <gtkmm/label.h>
+#include <gtkmm/statusbar.h>
+#include <gtkmm/table.h>
 
 using AI::Window;
 

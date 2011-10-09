@@ -1,7 +1,11 @@
 #include "ai/hl/hl.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
-#include <gtkmm.h>
+#include <gtkmm/adjustment.h>
+#include <gtkmm/box.h>
+#include <gtkmm/button.h>
+#include <gtkmm/label.h>
+#include <gtkmm/scrollbar.h>
 
 using namespace AI::HL;
 using namespace AI::HL::W;

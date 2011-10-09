@@ -15,10 +15,16 @@
 #include "util/sockaddrs.h"
 #include <cerrno>
 #include <cstring>
-#include <gtkmm.h>
 #include <stdexcept>
 #include <string>
 #include <unistd.h>
+#include <gtkmm/box.h>
+#include <gtkmm/buttonbox.h>
+#include <gtkmm/comboboxtext.h>
+#include <gtkmm/entry.h>
+#include <gtkmm/label.h>
+#include <gtkmm/radiobutton.h>
+#include <gtkmm/radiobuttongroup.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>

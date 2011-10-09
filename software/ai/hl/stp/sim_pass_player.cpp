@@ -3,7 +3,9 @@
 #include "util/dprint.h"
 #include <cassert>
 #include <cmath>
-#include <gtkmm.h>
+#include <gtkmm/adjustment.h>
+#include <gtkmm/box.h>
+#include <gtkmm/scrollbar.h>
 
 using namespace AI::HL;
 using namespace AI::HL::STP;

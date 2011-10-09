@@ -3,7 +3,11 @@
 
 #include "xbee/dongle.h"
 #include "xbee/robot.h"
-#include <gtkmm.h>
+#include <gtkmm/box.h>
+#include <gtkmm/checkbutton.h>
+#include <gtkmm/label.h>
+#include <gtkmm/progressbar.h>
+#include <gtkmm/table.h>
 
 /**
  * \brief A panel that lets the user view various pieces of information about a robot.

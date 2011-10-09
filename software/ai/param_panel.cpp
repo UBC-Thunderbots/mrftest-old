@@ -6,6 +6,18 @@
 #include <cerrno>
 #include <cstdlib>
 #include <iomanip>
+#include <gtkmm/cellrendererspin.h>
+#include <gtkmm/cellrenderertext.h>
+#include <gtkmm/cellrenderertoggle.h>
+#include <gtkmm/messagedialog.h>
+#include <gtkmm/scrolledwindow.h>
+#include <gtkmm/stock.h>
+#include <gtkmm/treeiter.h>
+#include <gtkmm/treemodel.h>
+#include <gtkmm/treemodelcolumn.h>
+#include <gtkmm/treepath.h>
+#include <gtkmm/treeview.h>
+#include <gtkmm/treeviewcolumn.h>
 
 namespace {
 	bool emit_numeric_row_changed = false;

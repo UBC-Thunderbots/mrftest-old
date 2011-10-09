@@ -7,8 +7,12 @@
 #include "test/params.h"
 #include "xbee/dongle.h"
 #include "xbee/robot.h"
-#include <gtkmm.h>
 #include <vector>
+#include <gtkmm/box.h>
+#include <gtkmm/combobox.h>
+#include <gtkmm/frame.h>
+#include <gtkmm/togglebutton.h>
+#include <gtkmm/window.h>
 
 /**
  * \brief A window that allows the user to control one robot for testing.

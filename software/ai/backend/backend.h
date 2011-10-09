@@ -14,6 +14,7 @@
 #include <functional>
 #include <glibmm.h>
 #include <map>
+#include <gtkmm/table.h>
 #include <sigc++/sigc++.h>
 
 namespace Gtk {

@@ -1,4 +1,5 @@
 #include "test/kicker.h"
+#include <gtkmm/adjustment.h>
 
 namespace {
 	Glib::ustring format_kick_pulse_value(double d) {

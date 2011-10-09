@@ -2,11 +2,17 @@
 #define LOG_LAUNCHER_H
 
 #include "util/fd.h"
-#include <gtkmm.h>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
+#include <gtkmm/box.h>
+#include <gtkmm/button.h>
+#include <gtkmm/buttonbox.h>
+#include <gtkmm/listviewtext.h>
+#include <gtkmm/progressbar.h>
+#include <gtkmm/scrolledwindow.h>
+#include <gtkmm/window.h>
 
 /**
  * A window from which the user can select recorded logs and launch tools on them.

@@ -5,8 +5,10 @@
 #include "test/window.h"
 #include "uicomponents/annunciator.h"
 #include "xbee/dongle.h"
-#include <gtkmm.h>
 #include <memory>
+#include <gtkmm/box.h>
+#include <gtkmm/table.h>
+#include <gtkmm/togglebutton.h>
 
 /**
  * \brief A launcher window from which testers for individual robots can be launched.

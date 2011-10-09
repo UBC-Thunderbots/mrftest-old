@@ -2,7 +2,7 @@
 #define UICOMPONENTS_ABSTRACT_LIST_MODEL_H
 
 #include <cstddef>
-#include <gtkmm.h>
+#include <gtkmm/treemodel.h>
 
 /**
  * An abstract implementation of \c Gtk::TreeModel for list-type models.

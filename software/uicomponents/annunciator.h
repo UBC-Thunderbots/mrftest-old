@@ -1,7 +1,9 @@
 #ifndef UICOMPONENTS_ANNUNCIATOR_H
 #define UICOMPONENTS_ANNUNCIATOR_H
 
-#include <gtkmm.h>
+#include <gtkmm/cellrenderertext.h>
+#include <gtkmm/scrolledwindow.h>
+#include <gtkmm/treeview.h>
 
 /**
  * A graphical panel that displays annunciator messages.

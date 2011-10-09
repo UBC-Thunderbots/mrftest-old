@@ -1,10 +1,10 @@
 #include "log/launcher.h"
 #include <cstdlib>
 #include <ctime>
-#include <gtkmm.h>
 #include <iostream>
 #include <locale>
 #include <stdexcept>
+#include <gtkmm/main.h>
 
 namespace {
 	int main_impl(int argc, char **argv) {

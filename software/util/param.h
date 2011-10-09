@@ -5,9 +5,9 @@
 #include "util/noncopyable.h"
 #include "util/property.h"
 #include <cstddef>
-#include <gtkmm.h>
 #include <string>
 #include <libxml++/libxml++.h>
+#include <gtkmm/adjustment.h>
 
 class ParamTreeInternalNode;
 

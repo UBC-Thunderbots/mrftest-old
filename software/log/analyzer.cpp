@@ -20,6 +20,10 @@
 #include <vector>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
+#include <gtkmm/filechooserdialog.h>
+#include <gtkmm/spinbutton.h>
+#include <gtkmm/stock.h>
+#include <gtkmm/treestore.h>
 
 using namespace std::placeholders;
 

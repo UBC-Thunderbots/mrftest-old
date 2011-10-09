@@ -3,8 +3,21 @@
 
 #include "test/mapping.h"
 #include "util/joystick.h"
-#include <gtkmm.h>
 #include <vector>
+#include <gtkmm/box.h>
+#include <gtkmm/button.h>
+#include <gtkmm/buttonbox.h>
+#include <gtkmm/checkbutton.h>
+#include <gtkmm/combobox.h>
+#include <gtkmm/frame.h>
+#include <gtkmm/label.h>
+#include <gtkmm/paned.h>
+#include <gtkmm/progressbar.h>
+#include <gtkmm/scrolledwindow.h>
+#include <gtkmm/spinbutton.h>
+#include <gtkmm/table.h>
+#include <gtkmm/treeview.h>
+#include <gtkmm/window.h>
 
 /**
  * \brief A window that allows the user to set up joystick mappings.

@@ -3,8 +3,8 @@
 #include "util/dprint.h"
 #include "ai/hl/stp/ui.h"
 #include "ai/hl/stp/stp.h"
+#include "ai/hl/stp/test/test.h"
 #include <cassert>
-#include <gtkmm.h>
 
 using namespace AI::HL;
 using namespace AI::HL::STP;

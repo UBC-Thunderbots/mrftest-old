@@ -1,8 +1,8 @@
 #ifndef AI_HL_STP_UI_H
 #define AI_HL_STP_UI_H
 
-#include <gtkmm.h>
 #include "ai/hl/stp/world.h"
+#include <cairomm/context.h>
 
 namespace AI {
 	namespace HL {

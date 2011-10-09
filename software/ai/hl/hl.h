@@ -4,7 +4,12 @@
 #include "ai/hl/world.h"
 #include "util/byref.h"
 #include "util/registerable.h"
-#include <gtkmm.h>
+#include <cairomm/context.h>
+
+namespace Gtk {
+	//forward declare the widget pointer
+	class Widget;
+}
 
 namespace AI {
 	namespace HL {

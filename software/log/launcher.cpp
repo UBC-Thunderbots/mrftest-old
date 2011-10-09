@@ -22,6 +22,9 @@
 #include <vector>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <gtkmm/filechooserdialog.h>
+#include <gtkmm/messagedialog.h>
+#include <gtkmm/stock.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
