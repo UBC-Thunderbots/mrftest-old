@@ -6,6 +6,7 @@
 #include "util/param.h"
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 
 using namespace AI::Flags;
 using namespace AI::Nav::W;
@@ -565,7 +566,13 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 
 #warning flags and timespec are not accounted for properly
 	for (int i = 0; i <= ten; i++) {
-		path_points = planner.plan(player, segA + interval * i, flags);
+		Point ball_future_pos = segA + (interval * i);
+		Point dir_from_target = (ball_future_pos - player->destination().first).norm();
+		double distance_away = 0.1;
+		// get a point that is behind the ball's future position in the direction of the target
+		Point move_to_point = ball_future_pos + (dir_from_target * distance_away);
+
+		path_points = planner.plan(player, move_to_point, flags);
 		std::vector<std::pair<Point, Angle> > path_points_with_angle;
 		// planner does not include current location in list of points so add it here to be used when estimating times
 		path_points_with_angle.push_back(std::make_pair(player->position(), (path_points[0] - player->position()).orientation()));
@@ -584,7 +591,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 
 		if (AI::Nav::Util::estimate_action_duration(path_points_with_angle) < interval_time * i || i == ten) {
 			LOG_INFO("found");
-			dest = segA + interval * i;
+			dest = ball_future_pos;
 			if (ctx != Cairo::RefPtr<Cairo::Context>()) {
 				Point p(path_points[path_points.size() - 1]);
 				ctx->arc(p.x, p.y, 0.05, 0.0, M_PI * 2);
@@ -603,6 +610,8 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 			for (unsigned int j = 1; j < path_points_with_angle.size(); j++) {
 				path.push_back(std::make_pair(path_points_with_angle[j], working_time));    // not going for proper timestamp, yet
 			}
+			// add last point to be the actual point where the ball should be since we generate a path to a point just behind it
+			path.push_back(std::make_pair(std::make_pair(ball_future_pos, player->destination().second), working_time));
 			player->path(path);
 			return true;
 		}

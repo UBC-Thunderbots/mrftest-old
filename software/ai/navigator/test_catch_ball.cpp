@@ -40,7 +40,7 @@ namespace {
 				Player::Ptr player = friendly.get(0);
 				Angle to_goal = (Point(world.field().length(), 0) - player->position()).orientation();
 				player->type(AI::Flags::MoveType::INTERCEPT);
-				player->move(world.ball().position(), to_goal, Point());
+				player->move(world.field().enemy_goal(), to_goal, Point());
 			}
 	};
 

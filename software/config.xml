@@ -31,7 +31,6 @@
 <thunderbots>
   <params>
     <category name="AI">
-      <boolean name="Enable Tactic Log">true</boolean>
       <category name="Param">
         <degrees name="Angle that receiver can be offset (degrees)">1.5</degrees>
         <double name="Average Player Velocity">6.0</double>
@@ -46,8 +45,16 @@
       </category>
     </category>
     <category name="Backend">
+      <category name="Simulator">
+        <double name="Ball Decay Constant">99.0</double>
+        <double name="Robot Angular Decay Constant">99.0</double>
+        <double name="Robot Linear Decay Constant">99.0</double>
+      </category>
       <category name="XBee">
+        <double name="Ball Decay Constant">99.0</double>
         <double name="Loop Delay">0.080</double>
+        <double name="Robot Angular Decay Constant">99.0</double>
+        <double name="Robot Linear Decay Constant">99.0</double>
       </category>
     </category>
     <category name="Ball">
@@ -114,11 +121,11 @@
         <degrees name="Pivot: orientation offset (degrees)">30</degrees>
       </category>
       <category name="Util">
-        <double name="Additionaly offense area buffer for friendly kick (rule=0.2) ">0.000</double>
+        <double name="Additional offense area buffer for friendly kick (rule=0.2) ">0.200</double>
         <double name="Amount behind ball during Penalty kick (rule=0.4) ">0.400</double>
         <double name="amount of time (s) to avoid enemy's future position">0.000</double>
         <double name="amount of time (s) to avoid friendly's future position">0.000</double>
-        <double name="Buffer avoid ball tiny (meters)">0.100</double>
+        <double name="Buffer avoid ball tiny (meters)">0.050</double>
         <double name="Buffer avoid defense area (meters)">0.000</double>
         <double name="Buffer for equal priority friendly robot (meters)">0.100</double>
         <double name="Buffer for higher priority friendly robot (meters)">0.200</double>
@@ -159,9 +166,10 @@
         <double name="YA ratio">0.08</double>
       </category>
       <category name="PID6">
-        <double name="Limit wheel accel (quarter degree per 5 ms squared)">45</double>
-        <double name="Limit wheel speed (quarter degree per 5 ms)">330</double>
-        <double name="Ratio of motor distance to field distance">0.450</double>
+        <double name="Aggressiveness of the controller">0.800</double>
+        <double name="Limit wheel accel (quarter degree per firmware tick squared)">45</double>
+        <double name="Limit wheel speed (quarter degree per firmware tick)">330</double>
+        <double name="Tick rate of firmware control loop in s^-1">200</double>
       </category>
       <category name="PIDSim">
         <double name="angular -differential">0.0</double>
@@ -261,15 +269,15 @@
       <category name="param">
         <degrees name="minimum region available for baller_can_shoot to be true (degrees)">5.7</degrees>
       </category>
-      <category name="Pass">
-        <double name="Average ball pass velocity (HACK)">2.0</double>
-      </category>
       <category name="pass">
         <double name="Avoid goal radius when passing (m)">0.90</double>
         <double name="Enemy pass checking width (robot radius)">1.00</double>
         <double name="Friendly pass checking width (robot radius)">1.00</double>
         <double name="kicking speed for making a pass">4.75</double>
         <double name="Minimum distance for pass play">0.500</double>
+      </category>
+      <category name="Pass">
+        <double name="Average ball pass velocity (HACK)">2.0</double>
       </category>
       <category name="PassRay">
         <degrees name="Max ray shoot rotation (degrees)">75.0</degrees>
@@ -307,9 +315,9 @@
           <boolean name="PassDefensive">true</boolean>
           <boolean name="PassDynamic">true</boolean>
           <boolean name="PassOffensive">true</boolean>
-          <boolean name="Pass Play 0 0">true</boolean>
-          <boolean name="Pass Play 1.2 -1.5">true</boolean>
-          <boolean name="Pass Play 1.2 1.5">true</boolean>
+          <boolean name="Pass Play (0,0)">true</boolean>
+          <boolean name="Pass Play (1.2,-1.5)">true</boolean>
+          <boolean name="Pass Play (1.2,1.5)">true</boolean>
           <boolean name="PassRay">true</boolean>
           <boolean name="PassSimple">true</boolean>
           <boolean name="PenaltyEnemy">true</boolean>
@@ -346,9 +354,9 @@
           <integer name="PassDefensive">5</integer>
           <integer name="PassDynamic">5</integer>
           <integer name="PassOffensive">5</integer>
-          <integer name="Pass Play 0 0">5</integer>
-          <integer name="Pass Play 1.2 -1.5">5</integer>
-          <integer name="Pass Play 1.2 1.5">5</integer>
+          <integer name="Pass Play (0,0)">5</integer>
+          <integer name="Pass Play (1.2,-1.5)">5</integer>
+          <integer name="Pass Play (1.2,1.5)">5</integer>
           <integer name="PassRay">5</integer>
           <integer name="PassSimple">5</integer>
           <integer name="PenaltyEnemy">5</integer>
@@ -366,13 +374,13 @@
         <double name="enemy avoidance distance (robot radius)">3.00</double>
         <boolean name="new fight">true</boolean>
       </category>
-      <category name="Shoot">
-        <double name="big reduced radius for calculating best shot (robot radius ratio)">0.600</double>
-        <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
-      </category>
       <category name="shoot">
         <radians name="Angle threshold that defines shoot accuracy, bigger is more accurate (radians)">0.0</radians>
         <double name="Shoot accuracy (for various purposes)">3.0</double>
+      </category>
+      <category name="Shoot">
+        <double name="big reduced radius for calculating best shot (robot radius ratio)">0.600</double>
+        <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
       </category>
       <category name="Stop">
         <double name="goalie stop dist">0.180</double>
