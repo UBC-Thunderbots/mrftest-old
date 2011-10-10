@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <iterator>
 #include <vector>
+#include <gdk/gdkkeysyms.h>
 #include <gtkmm/adjustment.h>
 #include <gtkmm/box.h>
 #include <gtkmm/frame.h>
@@ -17,8 +18,13 @@
 #include <gtkmm/scale.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/table.h>
+#include <gtkmm/toggletoolbutton.h>
 #include <gtkmm/toolbar.h>
 #include <gtkmm/toolbutton.h>
+#include <sigc++/bind.h>
+#include <sigc++/bind_return.h>
+#include <sigc++/hide.h>
+#include <sigc++/functors/mem_fun.h>
 
 namespace {
 	timespec timespec_of_log(const Log::MonotonicTimeSpec &ts) {
@@ -238,7 +244,7 @@ namespace {
 
 class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 	public:
-		Impl(const std::string &pathname) : records(LogLoader::load(pathname)), top_info_table(10, 2, false), ball_filter_label("Ball Filter:"), strategy_label("Strategy:"), backend_label("Backend:"), high_level_label("HL:"), robot_controller_label("Controller:"), friendly_colour_label("Colour:"), ticks_per_second_label("Tick Rate:"), play_type_label("Play Type:"), friendly_score_label("Points Us:"), enemy_score_label("Points Them:"), visualizer(*this), start_button(Gtk::Stock::MEDIA_PREVIOUS), play_button(Gtk::Stock::MEDIA_PLAY), end_button(Gtk::Stock::MEDIA_NEXT) {
+		Impl(Gtk::Window &parent, const std::string &pathname) : records(LogLoader::load(pathname)), top_info_table(10, 2, false), ball_filter_label("Ball Filter:"), strategy_label("Strategy:"), backend_label("Backend:"), high_level_label("HL:"), robot_controller_label("Controller:"), friendly_colour_label("Colour:"), ticks_per_second_label("Tick Rate:"), play_type_label("Play Type:"), friendly_score_label("Points Us:"), enemy_score_label("Points Them:"), visualizer(*this), full_screen_button(Gtk::Stock::FULLSCREEN), start_button(Gtk::Stock::MEDIA_PREVIOUS), play_button(Gtk::Stock::MEDIA_PLAY), end_button(Gtk::Stock::MEDIA_NEXT) {
 			find_ticks_per_second();
 			scan_records();
 			field_.update(field_records_by_tick[0]->field());
@@ -310,14 +316,17 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 
 			lower_hbox.pack_start(time_slider, Gtk::PACK_EXPAND_WIDGET);
 
+			full_screen_button.set_tooltip_text("Toggle Full-Screen Mode");
 			start_button.set_tooltip_text("Seek to Start of Log");
 			play_button.set_tooltip_text("Play Log");
 			end_button.set_tooltip_text("Seek to End of Log");
+			full_screen_button.signal_toggled().connect(sigc::mem_fun(this, &Impl::toggle_full_screen));
 			start_button.signal_clicked().connect(sigc::mem_fun(this, &Impl::seek_to_start));
 			play_button.signal_clicked().connect(sigc::mem_fun(this, &Impl::play_or_stop));
 			end_button.signal_clicked().connect(sigc::mem_fun(this, &Impl::seek_to_end));
 			media_toolbar.set_toolbar_style(Gtk::TOOLBAR_ICONS);
 			media_toolbar.set_show_arrow(false);
+			media_toolbar.append(full_screen_button);
 			media_toolbar.append(start_button);
 			media_toolbar.append(play_button);
 			media_toolbar.append(end_button);
@@ -340,6 +349,12 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 
 			pack_start(upper_hbox, Gtk::PACK_EXPAND_WIDGET);
 			pack_start(lower_hbox, Gtk::PACK_SHRINK);
+
+			full_screen_window.set_title(Glib::ustring::compose("Thunderbots Log Tools - Player - %1", Glib::filename_display_basename(pathname)));
+			full_screen_window.set_transient_for(parent);
+			full_screen_window.set_modal();
+			full_screen_window.signal_delete_event().connect(sigc::bind_return(sigc::hide(sigc::bind(sigc::mem_fun(full_screen_button, &Gtk::ToggleToolButton::set_active), false)), true));
+			full_screen_window.signal_key_press_event().connect(sigc::mem_fun(this, &Impl::check_for_full_screen_escape));
 
 			update_with_tick();
 		}
@@ -370,6 +385,9 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 		}
 
 		void mouse_pressed(Point, unsigned int) {
+			if (full_screen_button.get_active()) {
+				play_or_stop();
+			}
 		}
 
 		void mouse_released(Point, unsigned int) {
@@ -410,11 +428,14 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 		Gtk::HBox lower_hbox;
 		Gtk::HScale time_slider;
 		Gtk::Toolbar media_toolbar;
+		Gtk::ToggleToolButton full_screen_button;
 		Gtk::ToolButton start_button, play_button, end_button;
 		Gtk::Frame timestamp_frame;
 		Gtk::Label timestamp_label;
 		Gtk::Frame packet_frame;
 		Gtk::Label packet_label;
+
+		Gtk::Window full_screen_window;
 
 		void find_ticks_per_second() {
 			if (records.size() < 2 || !records[1].has_config()) {
@@ -451,12 +472,21 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			}
 		}
 
-		void seek_to_start() {
-			time_slider.set_value(0);
+		void toggle_full_screen() {
+			if (full_screen_button.get_active()) {
+				upper_hbox.remove(visualizer);
+				full_screen_window.add(visualizer);
+				full_screen_window.fullscreen();
+				full_screen_window.show_all();
+			} else {
+				full_screen_window.remove();
+				upper_hbox.pack_start(visualizer, Gtk::PACK_EXPAND_WIDGET);
+				full_screen_window.hide();
+			}
 		}
 
-		void seek_to_end() {
-			time_slider.set_value(static_cast<double>(tick_records.size() - 1));
+		void seek_to_start() {
+			time_slider.set_value(0);
 		}
 
 		void play_or_stop() {
@@ -465,6 +495,10 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			} else {
 				play();
 			}
+		}
+
+		void seek_to_end() {
+			time_slider.set_value(static_cast<double>(tick_records.size() - 1));
 		}
 
 		void play() {
@@ -478,6 +512,15 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			play_timer_connection.disconnect();
 			play_button.set_stock_id(Gtk::Stock::MEDIA_PLAY);
 			play_button.set_tooltip_text("Play Log");
+		}
+
+		bool check_for_full_screen_escape(GdkEventKey *evt) {
+			if (evt->keyval == GDK_KEY_Escape) {
+				full_screen_button.set_active(false);
+				return true;
+			} else {
+				return false;
+			}
 		}
 
 		bool step_time() {
@@ -542,7 +585,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 		}
 };
 
-LogPlayer::LogPlayer(Gtk::Window &parent, const std::string &pathname) : impl(new Impl(pathname)) {
+LogPlayer::LogPlayer(Gtk::Window &parent, const std::string &pathname) : impl(new Impl(*this, pathname)) {
 	set_title(Glib::ustring::compose("Thunderbots Log Tools - Player - %1", Glib::filename_display_basename(pathname)));
 	set_transient_for(parent);
 	set_modal(false);
