@@ -75,6 +75,7 @@ namespace AI {
 			Log::Record config_record;
 
 			void write_record(const Log::Record &record);
+			void flush();
 			void add_params_to_record(Log::Record &record, const ParamTreeNode *node);
 			void attach_param_change_handler(ParamTreeNode *node);
 			void signal_handler(int sig);

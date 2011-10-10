@@ -149,6 +149,7 @@ void AI::Logger::end_with_exception(const Glib::ustring &msg) {
 	Log::Record record;
 	record.mutable_shutdown()->mutable_exception()->set_message(msg);
 	write_record(record);
+	flush();
 	ended = true;
 }
 
@@ -164,6 +165,11 @@ void AI::Logger::write_record(const Log::Record &record) {
 	if (cos.HadError()) {
 		throw std::runtime_error("Failed to serialize log record.");
 	}
+}
+
+void AI::Logger::flush() {
+	fos.Flush();
+	fsync(fd->fd());
 }
 
 void AI::Logger::add_params_to_record(Log::Record &record, const ParamTreeNode *node) {
@@ -193,6 +199,7 @@ void AI::Logger::signal_handler(int sig) {
 	Log::Record record;
 	record.mutable_shutdown()->mutable_signal()->set_signal(sig);
 	write_record(record);
+	flush();
 	ended = true;
 }
 
