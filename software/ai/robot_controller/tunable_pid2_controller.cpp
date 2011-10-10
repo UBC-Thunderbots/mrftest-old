@@ -77,8 +77,7 @@ namespace {
 			Angle prev_angular_velocity;
 	};
 
-	TunablePID2Controller::TunablePID2Controller(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(Angle::ZERO) {
-		param = param_default;
+	TunablePID2Controller::TunablePID2Controller(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), param(param_default), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(Angle::ZERO) {
 	}
 
 	const std::vector<std::string> TunablePID2Controller::get_params_name() const {
