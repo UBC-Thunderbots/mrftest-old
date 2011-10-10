@@ -32,22 +32,14 @@
 using namespace std::placeholders;
 
 namespace {
-	struct WithBackendClosure {
-		AI::Setup setup;
-		bool minimize;
+	void main_impl_with_backend(AI::BE::Backend &backend, const AI::Setup &setup, bool minimize) {
+		backend.defending_end() = setup.defending_end;
+		backend.friendly_colour() = setup.friendly_colour;
 
-		WithBackendClosure(const AI::Setup &setup, bool minimize) : setup(setup), minimize(minimize) {
-		}
-	};
-
-	void main_impl_with_backend(AI::BE::Backend &backend, const WithBackendClosure &wbc) {
-		backend.defending_end() = wbc.setup.defending_end;
-		backend.friendly_colour() = wbc.setup.friendly_colour;
-
-		if (!wbc.setup.ball_filter_name.empty()) {
+		if (!setup.ball_filter_name.empty()) {
 			typedef AI::BF::BallFilter::Map Map;
 			const Map &m = AI::BF::BallFilter::all();
-			const Map::const_iterator &i = m.find(wbc.setup.ball_filter_name.collate_key());
+			const Map::const_iterator &i = m.find(setup.ball_filter_name.collate_key());
 			if (i != m.end()) {
 				backend.ball_filter() = i->second;
 			}
@@ -55,28 +47,28 @@ namespace {
 
 		AI::AIPackage ai(backend);
 
-		if (!wbc.setup.high_level_name.empty()) {
+		if (!setup.high_level_name.empty()) {
 			typedef AI::HL::HighLevelFactory::Map Map;
 			const Map &m = AI::HL::HighLevelFactory::all();
-			const Map::const_iterator &i = m.find(wbc.setup.high_level_name.collate_key());
+			const Map::const_iterator &i = m.find(setup.high_level_name.collate_key());
 			if (i != m.end()) {
 				ai.high_level = i->second->create_high_level(backend);
 			}
 		}
 
-		if (!wbc.setup.navigator_name.empty()) {
+		if (!setup.navigator_name.empty()) {
 			typedef AI::Nav::NavigatorFactory::Map Map;
 			const Map &m = AI::Nav::NavigatorFactory::all();
-			const Map::const_iterator &i = m.find(wbc.setup.navigator_name.collate_key());
+			const Map::const_iterator &i = m.find(setup.navigator_name.collate_key());
 			if (i != m.end()) {
 				ai.navigator = i->second->create_navigator(backend);
 			}
 		}
 
-		if (!wbc.setup.robot_controller_name.empty()) {
+		if (!setup.robot_controller_name.empty()) {
 			typedef AI::RC::RobotControllerFactory::Map Map;
 			const Map &m = AI::RC::RobotControllerFactory::all();
-			const Map::const_iterator &i = m.find(wbc.setup.robot_controller_name.collate_key());
+			const Map::const_iterator &i = m.find(setup.robot_controller_name.collate_key());
 			if (i != m.end()) {
 				ai.robot_controller_factory = i->second;
 			}
@@ -86,7 +78,7 @@ namespace {
 		try {
 			AI::Window win(ai);
 
-			if (wbc.minimize) {
+			if (minimize) {
 				win.iconify();
 			}
 
@@ -328,7 +320,6 @@ namespace {
 			multicast_interface_index = ifr.ifr_ifindex;
 		}
 		setup.save();
-		WithBackendClosure wbc(setup, minimize);
 		if (!backend_name.size()) {
 			backend_name = choose_backend();
 			if (!backend_name.size()) {
@@ -341,7 +332,7 @@ namespace {
 		if (be == bem.end()) {
 			throw std::runtime_error(Glib::ustring::compose("There is no backend '%1'.", backend_name));
 		}
-		be->second->create_backend(load_filename, camera_mask, multicast_interface_index, std::bind(&main_impl_with_backend, _1, wbc));
+		be->second->create_backend(load_filename, camera_mask, multicast_interface_index, std::bind(&main_impl_with_backend, _1, setup, minimize));
 
 		return 0;
 	}
