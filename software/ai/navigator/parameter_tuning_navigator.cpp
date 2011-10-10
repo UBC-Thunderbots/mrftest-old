@@ -28,7 +28,7 @@ namespace {
 
 		private:
 			ParameterTuningNavigator(World &world);
-			StochasticLocalSearch *sls;
+			StochasticLocalSearch sls;
 	};
 
 	class ParameterTuningNavigatorFactory : public NavigatorFactory {
@@ -48,9 +48,7 @@ namespace {
 		return p;
 	}
 
-	ParameterTuningNavigator::ParameterTuningNavigator(World &world) : Navigator(world) {
-		TunableController *tc = TunableController::get_instance();
-		sls = new StochasticLocalSearch(tc->get_params_default(), tc->get_params_min(), tc->get_params_max());
+	ParameterTuningNavigator::ParameterTuningNavigator(World &world) : Navigator(world), sls(TunableController::get_instance()->get_params_default(), TunableController::get_instance()->get_params_min(), TunableController::get_instance()->get_params_max()) {
 	}
 
 	ParameterTuningNavigatorFactory::ParameterTuningNavigatorFactory() : NavigatorFactory("TEST: Parameter Tuning") {
@@ -124,18 +122,18 @@ namespace {
 			std::cout << "Time steps taken: " << time;
 			if (time < best) {
 				best = time;
-				sls->set_cost(time);
+				sls.set_cost(time);
 			} else {
-				sls->set_cost(limit);
+				sls.set_cost(limit);
 			}
-			sls->hill_climb();
+			sls.hill_climb();
 			std::cout << " Best parameters: ";
-			params = sls->get_best_params();
+			params = sls.get_best_params();
 			for (uint i = 0; i < params.size(); i++) {
 				std::cout << params[i] << " ";
 			}
 			std::cout << std::endl;
-			tc->set_params(sls->get_params());
+			tc->set_params(sls.get_params());
 			time = 0;
 		}
 
