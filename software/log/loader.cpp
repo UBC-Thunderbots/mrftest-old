@@ -35,7 +35,6 @@ namespace {
 			}
 			google::protobuf::io::CodedInputStream::Limit limit = cis.PushLimit(static_cast<int>(record_size));
 			if (!record.ParseFromCodedStream(&cis)) {
-				return records;
 				throw std::runtime_error("I/O error or log file corrupt.");
 			}
 			cis.PopLimit(limit);
