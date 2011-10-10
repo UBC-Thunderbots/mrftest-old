@@ -81,8 +81,6 @@ namespace {
 				}
 				return temp;
 			}
-
-			friend Vector4 operator*(const double &, const Vector4 &);
 	};
 
 	Vector4 operator*(const double &scale, const Vector4 &vec) {
@@ -123,8 +121,6 @@ namespace {
 				}
 				return temp;
 			}
-
-			friend Vector3 operator*(const double &, const Vector3 &);
 	};
 
 	Vector3 operator*(const double &scale, const Vector3 &vec) {
@@ -165,7 +161,7 @@ namespace {
 		}
 	}
 
-	static double distance_to_velocity(const double &distance) {
+	double distance_to_velocity(const double &distance) {
 		double max_acc = firmware_loop_rate / TIMESTEPS_PER_SECOND * wheel_max_accel;
 		double dist_to_vel = 2 * max_acc / wheel_max_speed * aggressiveness;
 

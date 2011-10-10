@@ -66,3 +66,6 @@ Gtk::Widget *RobotControllerFactory::ui_controls() {
 	return 0;
 }
 
+RobotControllerFactory::RobotControllerFactory(const char *name) : Registerable<RobotControllerFactory>(name) {
+}
+

@@ -43,10 +43,7 @@ namespace {
 			double prev_speed[4];
 	};
 
-	PID5Controller::PID5Controller(World &world, Player::Ptr plr) : RobotController(world, plr) {
-		for (unsigned i = 0; i < 4; ++i) {
-			prev_speed[i] = 0;
-		}
+	PID5Controller::PID5Controller(World &world, Player::Ptr plr) : RobotController(world, plr), prev_speed{0, 0, 0, 0} {
 	}
 
 	void PID5Controller::convert(const Point &vel, Angle avel, int(&wheel_speeds)[4]) {

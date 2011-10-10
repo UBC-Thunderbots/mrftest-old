@@ -177,8 +177,7 @@ const std::vector<double> TunablePIDController::param_min(arr_min, arr_min + P);
 const std::vector<double> TunablePIDController::param_max(arr_max, arr_max + P);
 const std::vector<double> TunablePIDController::param_default(arr_def, arr_def + P);
 
-TunablePIDController::TunablePIDController(World &world, AI::RC::W::Player::Ptr plr) : OldRobotController(world, plr), initialized(false), error_pos(10), error_ori(10) {
-	param = param_default;
+TunablePIDController::TunablePIDController(World &world, AI::RC::W::Player::Ptr plr) : OldRobotController(world, plr), initialized(false), param(param_default), error_pos(10), error_ori(10) {
 }
 
 const std::vector<std::string> TunablePIDController::get_params_name() const {
