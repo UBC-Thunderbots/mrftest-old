@@ -5,12 +5,9 @@
 #include <cassert>
 #include <cerrno>
 #include <cstring>
-#include <functional>
 #include <iostream>
 #include <limits>
 #include <unistd.h>
-
-using namespace std::placeholders;
 
 namespace {
 	bool pattern_equals(const Simulator::Team::PlayerInfo &pi, unsigned int pattern) {
@@ -48,7 +45,7 @@ sigc::signal<void> &Simulator::Team::signal_ready() const {
 void Simulator::Team::send_tick(const timespec &ts) {
 	// Actually remove any robots we were asked to remove in the past time period.
 	for (std::vector<unsigned int>::const_iterator i = to_remove.begin(), iend = to_remove.end(); i != iend; ++i) {
-		std::vector<PlayerInfo>::iterator j = std::find_if(players.begin(), players.end(), std::bind(&pattern_equals, _1, *i));
+		std::vector<PlayerInfo>::iterator j = std::find_if(players.begin(), players.end(), [&i](PlayerInfo p) { return p.pattern == *i; });
 		if (j == players.end()) {
 			std::cout << "AI asked to remove nonexistent robot pattern " << *i << '\n';
 			close_connection();
@@ -62,7 +59,7 @@ void Simulator::Team::send_tick(const timespec &ts) {
 
 	// Actually add any robots we were asked to add in the past time period.
 	for (std::vector<unsigned int>::const_iterator i = to_add.begin(), iend = to_add.end(); i != iend; ++i) {
-		if (std::find_if(players.begin(), players.end(), std::bind(&pattern_equals, _1, *i)) != players.end()) {
+		if (std::find_if(players.begin(), players.end(), [&i](PlayerInfo p) { return p.pattern == *i; }) != players.end()) {
 			std::cout << "AI asked to add robot pattern " << *i << " twice\n";
 			close_connection();
 			return;
@@ -136,9 +133,7 @@ void Simulator::Team::load_state(FileDescriptor::Ptr fd) {
 	to_remove.clear();
 
 	// Remove all robots from the team.
-	for (std::vector<PlayerInfo>::const_iterator i = players.begin(), iend = players.end(); i != iend; ++i) {
-		sim.engine->remove_player(i->player);
-	}
+	std::for_each(players.begin(), players.end(), [&sim](PlayerInfo p) { sim.engine->remove_player(p.player); });
 	players.clear();
 
 	// Read the size of the team.
@@ -210,11 +205,11 @@ void Simulator::Team::close_connection() {
 	Glib::signal_idle().connect_once(signal_ready().make_slot());
 
 	// Stop all our robots from kicking, chipping, or moving.
-	for (std::size_t i = 0; i < players.size(); ++i) {
-		players[i].player->orders.kick = false;
-		players[i].player->orders.chip = false;
-		players[i].player->orders.chick_power = 0.0;
-		std::fill(&players[i].player->orders.wheel_speeds[0], &players[i].player->orders.wheel_speeds[4], 0);
+	for (auto i = players.begin(), iend = players.end(); i != iend; ++i) {
+		i->player->orders.kick = false;
+		i->player->orders.chip = false;
+		i->player->orders.chick_power = 0.0;
+		std::fill(&i->player->orders.wheel_speeds[0], &i->player->orders.wheel_speeds[4], 0);
 	}
 }
 
@@ -231,7 +226,7 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet, FileDescriptor::
 			// Stash the robots' orders into their Player objects for the engine to examine.
 			for (std::size_t i = 0; i < G_N_ELEMENTS(packet.players); ++i) {
 				if (packet.players[i].pattern != std::numeric_limits<unsigned int>::max()) {
-					std::vector<PlayerInfo>::iterator j = std::find_if(players.begin(), players.end(), std::bind(&pattern_equals, _1, packet.players[i].pattern));
+					std::vector<PlayerInfo>::iterator j = std::find_if(players.begin(), players.end(), [&packet, i](PlayerInfo p) { return p.pattern == packet.players[i].pattern; });
 					if (j == players.end()) {
 						std::cout << "AI sent orders to nonexistent robot pattern " << packet.players[i].pattern << '\n';
 						close_connection();
@@ -286,7 +281,7 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet, FileDescriptor::
 
 		case Proto::A2SPacketType::DRAG_PLAYER:
 		{
-			std::vector<PlayerInfo>::iterator i = std::find_if(players.begin(), players.end(), std::bind(&pattern_equals, _1, packet.drag.pattern));
+			std::vector<PlayerInfo>::iterator i = std::find_if(players.begin(), players.end(), [&packet](PlayerInfo p) { return p.pattern == packet.drag.pattern; });
 			if (i == players.end()) {
 				std::cout << "AI dragged nonexistent robot pattern " << packet.drag.pattern << '\n';
 				close_connection();

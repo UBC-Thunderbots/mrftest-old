@@ -15,12 +15,6 @@
 #include <sys/types.h>
 
 namespace {
-	struct CompareJoystickPtr {
-		bool operator()(Joystick::Ptr p1, Joystick::Ptr p2) const {
-			return p1->node < p2->node;
-		}
-	};
-
 	FileDescriptor::Ptr open_joystick(const std::string &node) {
 		const std::string &path = "/dev/input/" + node;
 		FileDescriptor::Ptr fd = FileDescriptor::create_open(path.c_str(), O_RDONLY | O_NONBLOCK, 0);
@@ -79,7 +73,7 @@ const std::vector<Joystick::Ptr> &Joystick::all() {
 				sticks.push_back(p);
 			}
 		}
-		std::sort(sticks.begin(), sticks.end(), CompareJoystickPtr());
+		std::sort(sticks.begin(), sticks.end(), [](Joystick::Ptr p1, Joystick::Ptr p2) { return p1->node < p2->node; });
 		initialized = true;
 	}
 	return sticks;

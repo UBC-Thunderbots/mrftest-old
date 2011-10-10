@@ -2,12 +2,9 @@
 #include "util/algorithm.h"
 #include "util/string.h"
 #include <cstddef>
-#include <functional>
 #include <iomanip>
 #include <locale>
 #include <sstream>
-
-using namespace std::placeholders;
 
 namespace {
 	Glib::ustring format_channel(unsigned int ch) {
@@ -142,11 +139,7 @@ void TesterParamsPanel::on_reboot_done(AsyncOperation<void>::Ptr op) {
 
 void TesterParamsPanel::on_test_mode_edited() {
 	const Glib::ustring &text = test_mode.get_text();
-	bool ok = text.size() == 4;
-	for (auto i = text.begin(), iend = text.end(); i != iend; ++i) {
-		ok = ok && std::isxdigit(*i);
-	}
-	set_test_mode.set_sensitive(ok);
+	set_test_mode.set_sensitive(text.size() == 4 && std::all_of(text.begin(), text.end(), [](char ch) { return std::isxdigit(ch); }));
 }
 
 void TesterParamsPanel::on_set_test_mode() {

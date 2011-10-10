@@ -1,6 +1,5 @@
 #include "util/cacheable.h"
 #include <algorithm>
-#include <functional>
 #include <vector>
 
 namespace {
@@ -19,6 +18,6 @@ CacheableBase::~CacheableBase() {
 }
 
 void CacheableBase::flush_all() {
-	std::for_each(vec().begin(), vec().end(), std::mem_fun(&CacheableBase::flush));
+	std::for_each(vec().begin(), vec().end(), [](CacheableBase *c) { c->flush(); });
 }
 

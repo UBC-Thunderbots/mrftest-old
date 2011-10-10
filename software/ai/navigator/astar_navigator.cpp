@@ -51,18 +51,6 @@ namespace {
 	// bad to be here
 	PathPoint::Ptr start, end;
 
-	bool cmp_f(PathPoint::Ptr a, PathPoint::Ptr b) {
-		return a->g + (a->xy - end->xy).len() < b->g + (b->xy - end->xy).len();
-	}
-
-	bool cmp_e(PathPoint::Ptr a, PathPoint::Ptr b) {
-		return (a->xy - end->xy).len() < (b->xy - end->xy).len();
-	}
-
-	bool cmp_p(Player::Ptr a, Player::Ptr b) {
-		return a->prio() < b->prio();
-	}
-
 	/**
 	 * Basic navigator just to play around with
 	 */
@@ -108,7 +96,8 @@ namespace {
 	}
 
 	void AstarNavigator::tick() {
-		std::set<PathPoint::Ptr, bool (*)(PathPoint::Ptr, PathPoint::Ptr)> open_set(&cmp_f);
+		auto cmp_f = [](PathPoint::Ptr a, PathPoint::Ptr b) { return a->g + (a->xy - end->xy).len() < b->g + (b->xy - end->xy).len(); };
+		std::set<PathPoint::Ptr, decltype(cmp_f)> open_set(cmp_f);
 
 		FriendlyTeam &fteam = world.friendly_team();
 		Player::Ptr player;
@@ -120,7 +109,7 @@ namespace {
 		for (std::size_t i = 0; i < fteam.size(); i++) {
 			players.push_back(fteam.get(i));
 		}
-		std::sort(players.begin(), players.end(), cmp_p);
+		std::sort(players.begin(), players.end(), [](Player::Ptr a, Player::Ptr b) { return a->prio() < b->prio(); });
 
 		for (std::size_t i = 0; i < fteam.size(); i++) {
 			player = players[i];
@@ -220,7 +209,7 @@ namespace {
 				}
 			}
 			if (!ans) {
-				sort(search_space.begin(), search_space.end(), cmp_e);
+				std::sort(search_space.begin(), search_space.end(), [](PathPoint::Ptr a, PathPoint::Ptr b) { return (a->xy - end->xy).len() < (b->xy - end->xy).len(); });
 				for (std::vector<PathPoint::Ptr>::const_iterator it1 = search_space.begin(); it1 != search_space.end(); it1++) {
 					PathPoint::Ptr cur = *it1;
 					std::vector<PathPoint::Ptr> p = cur->getParents();

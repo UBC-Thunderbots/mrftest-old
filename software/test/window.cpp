@@ -5,7 +5,6 @@
 #include "util/joystick.h"
 #include <cmath>
 #include <cstdlib>
-#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -150,7 +149,7 @@ void TesterWindow::on_dribble_toggled() {
 }
 
 void TesterWindow::on_joystick_chooser_changed() {
-	std::for_each(joystick_signal_connections.begin(), joystick_signal_connections.end(), std::mem_fun_ref(&sigc::connection::disconnect));
+	std::for_each(joystick_signal_connections.begin(), joystick_signal_connections.end(), [](sigc::connection &conn) { conn.disconnect(); });
 	joystick_signal_connections.clear();
 	Joystick::Ptr stick = mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
 	if (stick.is()) {

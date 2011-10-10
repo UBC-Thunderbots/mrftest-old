@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <cctype>
 #include <fstream>
-#include <functional>
 #include <stdexcept>
 #include <stdint.h>
 #include <string>
@@ -10,7 +9,7 @@
 namespace {
 	void stripws(std::string &s) {
 		// Find the first non-whitespace character.
-		std::string::iterator i = std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(&std::isspace)));
+		std::string::iterator i = std::find_if(s.begin(), s.end(), [](char ch) { return !std::isspace(ch); });
 
 		// Erase everything up to and not including the first non-whitespace character.
 		s.erase(s.begin(), i);
@@ -40,11 +39,7 @@ namespace {
 	}
 
 	void check_checksum(const std::vector<uint8_t> &data) {
-		uint8_t checksum = 0;
-		for (std::vector<uint8_t>::const_iterator i = data.begin(), iend = data.end(); i != iend; ++i) {
-			checksum = static_cast<uint8_t>(checksum + *i);
-		}
-		if (checksum != 0) {
+		if (std::accumulate(data.begin(), data.end(), static_cast<uint8_t>(0)) != 0) {
 			throw MalformedHexFileError();
 		}
 	}

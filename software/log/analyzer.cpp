@@ -31,8 +31,6 @@
 #include <gtkmm/treemodelcolumn.h>
 #include <gtkmm/treestore.h>
 
-using namespace std::placeholders;
-
 namespace {
 	/**
 	 * \brief A mapping from transmitted byte to descriptive text of referee box command.
@@ -622,8 +620,7 @@ namespace {
 	}
 
 	void build_decoded_tree_toplevel(const google::protobuf::Message &message, Glib::RefPtr<Gtk::TreeStore> ts, PacketDecodedTreeColumns &cols) {
-		Gtk::TreeRow (PacketDecodedTreeColumns::*fp)(Glib::RefPtr<Gtk::TreeStore>, const Glib::ustring &, const Glib::ustring &) const = &PacketDecodedTreeColumns::append_kv;
-		build_decoded_tree_message(message, ts, cols, std::bind(std::mem_fn(fp), std::cref(cols), ts, _1, _2));
+		build_decoded_tree_message(message, ts, cols, [&cols, ts](const Glib::ustring &k, const Glib::ustring &v) { return cols.append_kv(ts, k, v); });
 	}
 
 	void build_decoded_tree_nontoplevel(const google::protobuf::Message &message, Glib::RefPtr<Gtk::TreeStore> ts, PacketDecodedTreeColumns &cols, Gtk::TreeRow parent) {
@@ -644,8 +641,7 @@ namespace {
 			return;
 		}
 
-		Gtk::TreeRow (PacketDecodedTreeColumns::*fp)(Glib::RefPtr<Gtk::TreeStore>, const Gtk::TreeRow &, const Glib::ustring &, const Glib::ustring &) const = &PacketDecodedTreeColumns::append_kv;
-		build_decoded_tree_message(message, ts, cols, std::bind(std::mem_fn(fp), std::cref(cols), ts, parent, _1, _2));
+		build_decoded_tree_message(message, ts, cols, [&cols, ts, parent](const Glib::ustring &k, const Glib::ustring &v) { return cols.append_kv(ts, parent, k, v); });
 	}
 
 	void build_decoded_tree(const Log::Record &record, Glib::RefPtr<Gtk::TreeStore> ts, PacketDecodedTreeColumns &cols) {

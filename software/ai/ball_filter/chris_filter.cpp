@@ -26,14 +26,6 @@ namespace {
 		return (c1.centre - c2.centre).len() < 0.001;
 	}
 
-	bool sort_by_certainty(const Circle &c1, const Circle &c2) {
-		if (c1.certainty != c2.certainty) {
-			return c1.certainty < c2.certainty;
-		} else {
-			return c1.centre < c2.centre;
-		}
-	}
-
 	class ChrisFilter : public BallFilter {
 		public:
 			ChrisFilter() : BallFilter("Chris's Filter") {
@@ -72,7 +64,13 @@ namespace {
 				}
 
 				// Use the circle with the highest certainty.
-				return std::max_element(circles.begin(), circles.end(), &sort_by_certainty)->centre;
+				return std::max_element(circles.begin(), circles.end(), [](const Circle &c1, const Circle &c2) {
+					if (c1.certainty != c2.certainty) {
+						return c1.certainty < c2.certainty;
+					} else {
+						return c1.centre < c2.centre;
+					}
+				})->centre;
 			}
 
 		private:

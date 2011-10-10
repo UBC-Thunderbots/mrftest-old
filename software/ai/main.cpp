@@ -29,8 +29,6 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-using namespace std::placeholders;
-
 namespace {
 	void main_impl_with_backend(AI::BE::Backend &backend, const AI::Setup &setup, bool minimize) {
 		backend.defending_end() = setup.defending_end;
@@ -332,7 +330,7 @@ namespace {
 		if (be == bem.end()) {
 			throw std::runtime_error(Glib::ustring::compose("There is no backend '%1'.", backend_name));
 		}
-		be->second->create_backend(load_filename, camera_mask, multicast_interface_index, std::bind(&main_impl_with_backend, _1, setup, minimize));
+		be->second->create_backend(load_filename, camera_mask, multicast_interface_index, [setup, minimize](AI::BE::Backend &be) { main_impl_with_backend(be, setup, minimize); });
 
 		return 0;
 	}

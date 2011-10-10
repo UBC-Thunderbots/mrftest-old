@@ -1,7 +1,6 @@
 #include "test/launcher.h"
 #include <algorithm>
 #include <cstddef>
-#include <functional>
 
 using namespace std::placeholders;
 
@@ -32,7 +31,7 @@ void TesterLauncher::on_robot_toggled(unsigned int index) {
 
 void TesterLauncher::on_mapper_toggled() {
 	if (mapper_toggle.get_active()) {
-		std::for_each(robot_toggles, robot_toggles + G_N_ELEMENTS(robot_toggles), std::bind(std::mem_fn(&Gtk::ToggleButton::set_active), _1, false));
+		std::for_each(robot_toggles, robot_toggles + G_N_ELEMENTS(robot_toggles), [](Gtk::ToggleButton &btn) { btn.set_active(false); });
 		mapper_window.reset(new MapperWindow);
 		mapper_window->signal_delete_event().connect(sigc::bind_return(sigc::hide(sigc::bind(sigc::mem_fun(&mapper_toggle, &Gtk::ToggleButton::set_active), false)), false));
 	} else {

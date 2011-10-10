@@ -7,7 +7,6 @@
 #include <cassert>
 #include <cmath>
 #include <cstring>
-#include <functional>
 #include <iomanip>
 #include <stdexcept>
 #include <string>
@@ -17,13 +16,6 @@
 #include <libxml++/libxml++.h>
 
 namespace {
-	class ParamTreeNodeNameComparator {
-		public:
-			bool operator()(const ParamTreeNode *const p1, const ParamTreeNode *const p2) {
-				return *p1 < *p2;
-			}
-	};
-
 	double compute_step(double min, double max) {
 		return (max - min) / 1000;
 	}
@@ -78,8 +70,8 @@ class ParamTreeInternalNode : public ParamTreeNode {
 
 		void initialize() {
 			// Sort all of my children by name.
-			std::sort(children.begin(), children.end(), ParamTreeNodeNameComparator());
-			std::for_each(children.begin(), children.end(), std::mem_fun(&ParamTreeNode::collate_key_clear));
+			std::sort(children.begin(), children.end(), [](const ParamTreeNode *n1, const ParamTreeNode *n2) { return *n1 < *n2; });
+			std::for_each(children.begin(), children.end(), [](ParamTreeNode *n) { n->collate_key_clear(); });
 
 			// Link my children with respect to sibling and parent relationships.
 			for (std::size_t i = 0; i < children.size(); ++i) {
@@ -147,7 +139,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 		}
 
 		void set_default() {
-			std::for_each(children.begin(), children.end(), std::mem_fun(&ParamTreeNode::set_default));
+			std::for_each(children.begin(), children.end(), [](ParamTreeNode *n) { n->set_default(); });
 		}
 
 	private:

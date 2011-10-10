@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
-#include <functional>
 #include <unordered_set>
 #include <vector>
 #include <glibmm/object.h>
@@ -65,7 +64,7 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 			xmlpp::Element *joysticks_elt = Config::joysticks();
 			{
 				const xmlpp::Node::NodeList &to_remove = joysticks_elt->get_children();
-				std::for_each(to_remove.begin(), to_remove.end(), std::bind(std::mem_fn(&xmlpp::Node::remove_child), joysticks_elt, _1));
+				std::for_each(to_remove.begin(), to_remove.end(), [joysticks_elt](xmlpp::Node *n) { joysticks_elt->remove_child(n); });
 			}
 			for (auto i = mappings.begin(), iend = mappings.end(); i != iend; ++i) {
 				i->save(joysticks_elt->add_child("joystick"));
@@ -256,7 +255,7 @@ MapperWindow::MapperWindow() : mappings(MappingsListModel::create()), preview_de
 
 MapperWindow::~MapperWindow() {
 	preview_device_connection.disconnect();
-	std::for_each(conns.begin(), conns.end(), std::mem_fn(&sigc::connection::disconnect));
+	std::for_each(conns.begin(), conns.end(), [](sigc::connection &conn) { conn.disconnect(); });
 }
 
 void MapperWindow::on_add_clicked() {

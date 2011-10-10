@@ -12,7 +12,6 @@
 #include <cerrno>
 #include <cstdio>
 #include <fcntl.h>
-#include <functional>
 #include <iterator>
 #include <limits>
 #include <locale>
@@ -40,14 +39,10 @@ namespace {
 		return Glib::build_filename(get_logs_dir(), filename);
 	}
 
-	bool is_ok_filename(const std::string &filename) {
-		return !filename.empty() && filename[0] != '.' && LogLoader::is_current_version(filename_to_pathname(filename));
-	}
-
 	void get_filenames(std::vector<std::string> &files) {
 		Glib::Dir dir(get_logs_dir());
 		files.clear();
-		std::remove_copy_if(dir.begin(), dir.end(), std::back_inserter(files), std::not1(std::ptr_fun(&is_ok_filename)));
+		std::copy_if(dir.begin(), dir.end(), std::back_inserter(files), [](const std::string &s) { return !s.empty() && s[0] != '.' && LogLoader::is_current_version(filename_to_pathname(s)); });
 		std::sort(files.begin(), files.end());
 	}
 }
@@ -100,15 +95,8 @@ LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyz
 		{
 			Glib::Dir dir(get_logs_dir());
 			std::vector<std::string> to_delete;
-			for (auto i = dir.begin(), iend = dir.end(); i != iend; ++i) {
-				const std::string &fn = *i;
-				if (!fn.empty() && fn[0] == '.' && fn != ".lock") {
-					to_delete.push_back(fn);
-				}
-			}
-			for (auto i = to_delete.begin(), iend = to_delete.end(); i != iend; ++i) {
-				std::remove(filename_to_pathname(*i).c_str());
-			}
+			std::copy_if(dir.begin(), dir.end(), std::back_inserter(to_delete), [](const std::string &fn) { return !fn.empty() && fn[0] == '.' && fn != ".lock"; });
+			std::for_each(to_delete.begin(), to_delete.end(), [](const std::string &fn) { std::remove(filename_to_pathname(fn).c_str()); });
 		}
 
 		// Check which files need compressing.

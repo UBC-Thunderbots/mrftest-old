@@ -2,7 +2,6 @@
 #include "util/exception.h"
 #include <algorithm>
 #include <fstream>
-#include <functional>
 #include <libgen.h>
 #include <stdexcept>
 #include <unistd.h>
@@ -71,7 +70,7 @@ namespace {
 				}
 			}
 		}
-		std::for_each(to_remove.begin(), to_remove.end(), std::bind(std::mem_fn(&xmlpp::Element::remove_child), e, _1));
+		std::for_each(to_remove.begin(), to_remove.end(), [e](xmlpp::Node *n) { e->remove_child(n); });
 	}
 }
 
