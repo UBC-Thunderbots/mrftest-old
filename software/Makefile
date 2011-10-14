@@ -67,6 +67,12 @@ $(addprefix bin/,$(EXECUTABLES)) : bin/% : $$(addprefix obj/,$$(subst .cc,.o,$$(
 #
 # Rule to make a .d file and a .o file from a .cpp file.
 #
+# As advised on <http://make.paulandlesley.org/autodep.html>, the .d file is not included in the list of targets.
+# This is acceptable, because:
+# (1) when the .d and .o files do not exist, they will be built because the nonexistent .o file is out of date,
+# (2) when a dependency is updated, both the .d and .o files will be rebuilt because the old .o file is out of date, and
+# (3) it's impossible to alter the set of dependencies without modifying the .cpp file or one of its includes, which makes the .o file out of date
+#
 # Protobuf interferes with normal automatic dependency calculation, because the
 # C++ header files corresponding to protobuf files do not exist when the
 # dependency-calculating rule is invoked, thus causing the C++ compiler to throw
@@ -74,10 +80,11 @@ $(addprefix bin/,$(EXECUTABLES)) : bin/% : $$(addprefix obj/,$$(subst .cc,.o,$$(
 # solve this, just make all ".d" files depend on the protobuf ".h" files, to
 # force protoc to be run before dependency calculation begins.
 #
-obj/%.d obj/%.o : %.cpp $(PROTOBUF_HS)
+obj/%.o : %.cpp $(PROTOBUF_HS)
+	$(RM) $(@:.o=.d)
 	echo "  CXX   obj/$(<:.cpp=.o)"
 	mkdir -p $(dir obj/$(<:.cpp=.o))
-	$(CXX) $(CXXFLAGS) -o obj/$(<:.cpp=.o) -c -MT '$(@:.d=.o) $@' -MMD $< || { $(RM) obj/$(<:.cpp=.d); false; }
+	$(CXX) $(CXXFLAGS) -o $@ -c -MT '$@' -MMD -MP $<
 
 #
 # Rule to make a .pb.cc and a .pb.h file from a .proto file.
@@ -101,32 +108,14 @@ obj/proto/%.pb.o : proto/%.pb.cc $(PROTOBUF_HS)
 #
 ALL_D_FILES=$(addprefix obj/,$(subst ./,,$(subst .cpp,.d,$(shell find . -name .svn -prune -o -name '*.cpp' -print))))
 ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(MAKECMDGOALS),cleanbin)
-ifneq ($(MAKECMDGOALS),cleandep)
-ifneq ($(MAKECMDGOALS),cleandoc)
-ifneq ($(MAKECMDGOALS),cleanobj)
-ifneq ($(MAKECMDGOALS),cleanpb)
-ifneq ($(MAKECMDGOALS),cleantags)
 ifneq ($(MAKECMDGOALS),tags)
 ifneq ($(MAKECMDGOALS),doc)
 ifneq ($(MAKECMDGOALS),uncrustify)
-include $(ALL_D_FILES)
+-include $(ALL_D_FILES)
 endif
 endif
 endif
 endif
-endif
-endif
-endif
-endif
-endif
-endif
-
-#
-# Rule to make only the dependency files.
-#
-.PHONY : dep
-dep : $(ALL_D_FILES)
 
 #
 # Rule to clean and format source with uncrustify.
@@ -137,31 +126,9 @@ uncrustify :
 	patch --no-backup-if-mismatch -i uncrustify-exceptions.patch -p0 -R -u
 
 #
-# Rules to clean.
+# Rule to clean generated files.
 #
 .PHONY : clean
-clean : cleanbin cleandoc cleanobj cleanpb cleantags
-
-.PHONY : cleanbin
-cleanbin :
-	$(RM) -rf bin
-
-.PHONY : cleandep
-cleandep :
-	find obj -name '*.d' -delete
-
-.PHONY : cleandoc
-cleandoc :
-	$(RM) -rf html
-
-.PHONY : cleanobj
-cleanobj :
-	$(RM) -rf obj
-
-.PHONY : cleanpb
-cleanpb :
-	$(RM) -f $(PROTOBUF_CCS) $(PROTOBUF_HS)
-
-.PHONY : cleantags
-cleantags :
-	$(RM) -f tags
+clean :
+	$(RM) -rf bin html obj
+	$(RM) -f $(PROTOBUF_CCS) $(PROTOBUF_HS) tags
