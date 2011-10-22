@@ -5,7 +5,6 @@
 #include "ai/util.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
-// #include "util/param.h"
 #include "ai/hl/stp/param.h"
 
 using AI::Nav::Navigator;
@@ -22,7 +21,6 @@ namespace AI {
 			const double DRIBBLE_SPEED = 1.0;
 
 			DegreeParam offset_angle("Pivot: offset angle (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
-			DoubleParam offset_distance("Pivot: offset distance", "Nav/RRT", 0.15, -10.0, 10.0);
 			DegreeParam orientation_offset("Pivot: orientation offset (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
 
 			DegreeParam chase_angle_range("Chase angle range for behind target (degrees)", "Nav/RRT", 30, 0.0, 90.0);
@@ -164,6 +162,8 @@ namespace AI {
 			}
 
 			void RRTNavigator::pivot(Player::Ptr player) {
+				double offset_distance = (player->destination().first - world.ball().position()).len();
+
 				if (!use_new_pivot) {
 					Player::Path path;
 					Point dest;
@@ -185,7 +185,7 @@ namespace AI {
 
 					Point diff = (world.ball().position() - current_position).rotate(angle);
 
-					dest = world.ball().position() - offset_distance * (diff / diff.len());
+					dest = world.ball().position() - offset_distance * diff.norm();
 					dest_orientation = (world.ball().position() - current_position).orientation() + orientation_temp;
 
 					path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));
