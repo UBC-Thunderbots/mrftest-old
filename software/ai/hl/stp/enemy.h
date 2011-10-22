@@ -24,11 +24,25 @@ namespace AI {
 
 					/**
 					 * Order by distance to friendly goal.
+					 *
+					 * \param[in] world the World in which STP operates
+					 *
+					 * \param[in] i the index of the enemy ordered by distance to friendly goal
+					 * where 0 is closest and 1 is second closest etc.
+					 *
+					 * \return the (i+1)th closest enemy to the friendly goal
 					 */
 					static Enemy::Ptr closest_friendly_goal(const World &world, unsigned int i);
 
 					/**
 					 * Order by distance to ball.
+					 *
+					 * \param[in] world the World in which STP operates
+					 *
+					 * \param[in] i the index of the enemy ordered by distance to ball
+					 * where 0 is closest and 1 is second closest etc.
+					 *
+					 * \return the (i+1)th closest enemy to the ball
 					 */
 					static Enemy::Ptr closest_ball(const World &world, unsigned int i);
 
