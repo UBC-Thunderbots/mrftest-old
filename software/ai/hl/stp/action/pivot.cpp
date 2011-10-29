@@ -16,10 +16,10 @@ void AI::HL::STP::Action::chase_pivot(const World &world, Player::Ptr player, co
 	}
 }
 
-void AI::HL::STP::Action::pivot(const World &world, Player::Ptr player, const Point target, const double offset_dist) {
+void AI::HL::STP::Action::pivot(const World &world, Player::Ptr player, const Point target, const double radius) {
 	const Angle ori = (target - player->position()).orientation();
 	// set the destination point to be just behind the ball in the correct direction at the offset distance
-	Point dest = -(target - world.ball().position()).norm() * offset_dist + world.ball().position();
+	Point dest = -(target - world.ball().position()).norm() * radius + world.ball().position();
 
 	player->move(dest, ori, Point());
 	player->type(AI::Flags::MoveType::PIVOT);

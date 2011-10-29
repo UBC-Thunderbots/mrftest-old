@@ -13,12 +13,13 @@ namespace AI {
 				void chase_pivot(const World &world, Player::Ptr player, const Point target);
 
 				/**
-				 * SpinAtBall in STP paper.
+				 * Pivot around the ball until the player is oriented in the direction of the target.
 				 *
-				 * If the player does not have the ball, chase it.
-				 * Rotates the player toward the target while holding the ball.
+				 *  \param[in] target Used to determine the direction the player should be facing when player finishes pivoting.
+				 *
+				 *  \param[in] radius The distance player stays from the ball while pivoting.
 				 */
-				void pivot(const World &world, Player::Ptr player, const Point target, const double offset_dist = 0);
+				void pivot(const World &world, Player::Ptr player, const Point target, const double radius = 0);
 			}
 		}
 	}
