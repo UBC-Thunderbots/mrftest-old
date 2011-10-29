@@ -117,7 +117,6 @@
         <double name="New Pivot: travel radius">0.2000</double>
         <integer name="Number of iterations to go through before we give best partial path">200</integer>
         <degrees name="Pivot: offset angle (degrees)">30</degrees>
-        <double name="Pivot: offset distance">0.11</double>
         <degrees name="Pivot: orientation offset (degrees)">30</degrees>
       </category>
       <category name="Util">
@@ -125,7 +124,7 @@
         <double name="Amount behind ball during Penalty kick (rule=0.4) ">0.400</double>
         <double name="amount of time (s) to avoid enemy's future position">0.000</double>
         <double name="amount of time (s) to avoid friendly's future position">0.000</double>
-        <double name="Buffer avoid ball tiny (meters)">0.050</double>
+        <double name="Buffer avoid ball tiny (meters)">0.070</double>
         <double name="Buffer avoid defense area (meters)">0.000</double>
         <double name="Buffer for equal priority friendly robot (meters)">0.100</double>
         <double name="Buffer for higher priority friendly robot (meters)">0.200</double>

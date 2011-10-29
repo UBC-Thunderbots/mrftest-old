@@ -6,7 +6,6 @@
 #include "util/param.h"
 #include <algorithm>
 #include <cmath>
-#include <iostream>
 
 using namespace AI::Flags;
 using namespace AI::Nav::W;
@@ -62,6 +61,8 @@ namespace {
 	const double RAM_BALL_ALLOWANCE = 0.05;
 
 	const double BALL_STOP = 0.05;
+	// distance from the ball's future position before we start heading towards the ball
+	const double CATCH_BALL_THRESHOLD = 0.1;
 
 	// this structure determines how far away to stay from a prohibited point or line-segment
 	struct distance_keepout {
@@ -591,25 +592,30 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 
 		if (AI::Nav::Util::estimate_action_duration(path_points_with_angle) < interval_time * i || i == ten) {
 			LOG_INFO("found");
-			dest = ball_future_pos;
 			if (ctx != Cairo::RefPtr<Cairo::Context>()) {
 				Point p(path_points[path_points.size() - 1]);
 				ctx->arc(p.x, p.y, 0.05, 0.0, M_PI * 2);
 				ctx->set_source_rgb(0.2, 0.2, 0.0);
 				ctx->fill_preserve();
 				ctx->stroke();
-				Point p2(dest);
+				Point p2(ball_future_pos);
 				ctx->arc(p2.x, p2.y, 0.05, 0.0, M_PI * 2);
 				ctx->set_source_rgb(0.2, 0.5, 0.0);
 				ctx->fill_preserve();
 				ctx->stroke();
 			}
+
 			AI::Nav::W::Player::Path path;
 			timespec working_time = world.monotonic_time();
-			// ignore first point since it is bot's position
-			for (unsigned int j = 1; j < path_points_with_angle.size(); j++) {
-				path.push_back(std::make_pair(path_points_with_angle[j], working_time));    // not going for proper timestamp, yet
+
+			// if we're within a certain threshold then skip this and just move towards the ball's future position
+			if (line_pt_dist(move_to_point, ball_future_pos, player->position()) > CATCH_BALL_THRESHOLD) {
+				// ignore first point since it is bot's position
+				for (unsigned int j = 1; j < path_points_with_angle.size(); j++) {
+					path.push_back(std::make_pair(path_points_with_angle[j], working_time));    // not going for proper timestamp, yet
+				}
 			}
+
 			// add last point to be the actual point where the ball should be since we generate a path to a point just behind it
 			path.push_back(std::make_pair(std::make_pair(ball_future_pos, player->destination().second), working_time));
 			player->path(path);
