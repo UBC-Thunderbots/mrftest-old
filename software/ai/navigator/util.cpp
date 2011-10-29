@@ -529,7 +529,6 @@ timespec AI::Nav::Util::get_next_ts(timespec now, Point &p1, Point &p2, Point ta
 double AI::Nav::Util::estimate_action_duration(std::vector<std::pair<Point, Angle> > path_points) {
 	double total_time = 0;
 	for (unsigned int i = 0; i < path_points.size() - 1; ++i) {
-		// std::cout << "hello" << std::endl;
 		double dist = (path_points[i].first - path_points[i + 1].first).len();
 		total_time += dist / Player::MAX_LINEAR_VELOCITY;
 	}
@@ -554,9 +553,8 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 	}
 
 	// Go through some points to see which one is possible/ (later) more optimal
-	// ten is an okay number
-	int ten = 10;
-	Point interval = (-segA + segB) * (1.0 / ten);
+	int points_to_check = 20;
+	Point interval = (-segA + segB) * (1.0 / points_to_check);
 	// assume no decay
 	double interval_time = interval.len() / ball.velocity().len();
 	Point dest;
@@ -566,7 +564,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 	unsigned int flags = AI::Flags::FLAG_AVOID_BALL_TINY;
 
 #warning flags and timespec are not accounted for properly
-	for (int i = 0; i <= ten; i++) {
+	for (int i = 0; i <= points_to_check; i++) {
 		Point ball_future_pos = segA + (interval * i);
 		Point dir_from_target = (ball_future_pos - player->destination().first).norm();
 		double distance_away = 0.1;
@@ -590,7 +588,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 			path_points_with_angle.push_back(std::make_pair(path_points[j], path_orientation));
 		}
 
-		if (AI::Nav::Util::estimate_action_duration(path_points_with_angle) < interval_time * i || i == ten) {
+		if (AI::Nav::Util::estimate_action_duration(path_points_with_angle) < interval_time * i || i == points_to_check) {
 			LOG_INFO("found");
 			if (ctx != Cairo::RefPtr<Cairo::Context>()) {
 				Point p(path_points[path_points.size() - 1]);
@@ -623,7 +621,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 		}
 	}
 
-	// guess we have't quite find a possible intersecting point
+	// guess we have't found a possible intersecting point
 	return false;
 }
 
