@@ -63,6 +63,10 @@ namespace {
 	const double BALL_STOP = 0.05;
 	// distance from the ball's future position before we start heading towards the ball
 	const double CATCH_BALL_THRESHOLD = 0.1;
+	// distance behind the ball's future position that we should aim for when catching the ball
+	const double CATCH_BALL_DISTANCE_AWAY = 0.1;
+	// if the ball velocity is below this value then act as if it isn't moving
+	const double CATCH_BALL_VELOCITY_THRESH = 0.05;
 
 	// this structure determines how far away to stay from a prohibited point or line-segment
 	struct distance_keepout {
@@ -567,9 +571,9 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 	for (int i = 0; i <= points_to_check; i++) {
 		Point ball_future_pos = segA + (interval * i);
 		Point dir_from_target = (ball_future_pos - player->destination().first).norm();
-		double distance_away = 0.1;
+
 		// get a point that is behind the ball's future position in the direction of the target
-		Point move_to_point = ball_future_pos + (dir_from_target * distance_away);
+		Point move_to_point = ball_future_pos + (dir_from_target * CATCH_BALL_DISTANCE_AWAY);
 
 		path_points = planner.plan(player, move_to_point, flags);
 		std::vector<std::pair<Point, Angle> > path_points_with_angle;
@@ -588,8 +592,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 			path_points_with_angle.push_back(std::make_pair(path_points[j], path_orientation));
 		}
 
-		if (AI::Nav::Util::estimate_action_duration(path_points_with_angle) < interval_time * i || i == points_to_check) {
-			LOG_INFO("found");
+		if (AI::Nav::Util::estimate_action_duration(path_points_with_angle) < (interval_time * i) || (i == points_to_check) || ball.velocity().len() < CATCH_BALL_VELOCITY_THRESH) {
 			if (ctx != Cairo::RefPtr<Cairo::Context>()) {
 				Point p(path_points[path_points.size() - 1]);
 				ctx->arc(p.x, p.y, 0.05, 0.0, M_PI * 2);
