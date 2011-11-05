@@ -12,6 +12,8 @@
 #include <stdexcept>
 #include <stdint.h>
 #include <string>
+#include <unordered_map>
+#include <sigc++/connection.h>
 
 /**
  * \brief An error that occurs in a LibUSB library function.
@@ -67,12 +69,19 @@ class LibUSBContext : public NonCopyable {
 	private:
 		friend class LibUSBDeviceList;
 
-		static std::list<LibUSBContext *> instances;
 		libusb_context *context;
-		std::list<LibUSBContext *>::iterator instances_iter;
-		bool *destroyed_flag;
 
-		static int poll_func(GPollFD *ufds, unsigned int nfds, int timeout);
+		std::unordered_map<int, sigc::connection> fd_connections;
+
+		static void pollfd_add_trampoline(int fd, short events, void *user_data);
+
+		static void pollfd_remove_trampoline(int fd, void *user_data);
+
+		void add_pollfd(int fd, short events);
+
+		void remove_pollfd(int fd);
+
+		void handle_usb_fds();
 };
 
 /**

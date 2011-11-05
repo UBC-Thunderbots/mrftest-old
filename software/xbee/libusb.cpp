@@ -99,104 +99,66 @@ LibUSBTransferStallError::LibUSBTransferStallError(unsigned int endpoint) : LibU
 LibUSBTransferCancelledError::LibUSBTransferCancelledError(unsigned int endpoint) : LibUSBTransferError(endpoint, "Transfer cancelled") {
 }
 
-LibUSBContext::LibUSBContext() : destroyed_flag(0) {
+
+
+LibUSBContext::LibUSBContext() {
 	check_fn("libusb_init", libusb_init(&context));
-	instances.push_front(this);
-	instances_iter = instances.begin();
-	assert(*instances_iter == this);
-	Glib::MainContext::get_default()->set_poll_func(&LibUSBContext::poll_func);
+	const libusb_pollfd **pfds = libusb_get_pollfds(context);
+	if (!pfds) {
+		check_fn("libusb_get_pollfds", LIBUSB_ERROR_OTHER);
+	}
+	for (const libusb_pollfd **i = pfds; *i; ++i) {
+		add_pollfd((*i)->fd, (*i)->events);
+	}
+	std::free(pfds);
+	libusb_set_pollfd_notifiers(context, &LibUSBContext::pollfd_add_trampoline, &LibUSBContext::pollfd_remove_trampoline, this);
 }
 
 LibUSBContext::~LibUSBContext() {
 	libusb_exit(context);
-	instances.erase(instances_iter);
-	if (destroyed_flag) {
-		*destroyed_flag = true;
+	context = 0;
+	for (auto i = fd_connections.begin(), iend = fd_connections.end(); i != iend; ++i) {
+		i->second.disconnect();
 	}
 }
 
-std::list<LibUSBContext *> LibUSBContext::instances;
-
-int LibUSBContext::poll_func(GPollFD *ufds, unsigned int nfds, int timeout) {
-	struct ContextInfo {
-		LibUSBContext *context;
-		const libusb_pollfd **fds;
-		std::size_t nfds;
-		bool destroyed;
-	};
-
-	ContextInfo context_infos[instances.size()];
-	std::size_t total_usb_fds = 0;
-	{
-		std::size_t wptr = 0;
-		for (std::list<LibUSBContext *>::const_iterator i = instances.begin(), iend = instances.end(); i != iend; ++i) {
-			LibUSBContext *ctx = *i;
-			context_infos[wptr].context = ctx;
-			context_infos[wptr].fds = libusb_get_pollfds(ctx->context);
-			for (context_infos[wptr].nfds = 0; context_infos[wptr].fds[context_infos[wptr].nfds]; ++context_infos[wptr].nfds) {
-			}
-			context_infos[wptr].destroyed = false;
-			ctx->destroyed_flag = &context_infos[wptr].destroyed;
-			total_usb_fds += context_infos[wptr].nfds;
-			timeval tv;
-			if (check_fn("libusb_get_next_timeout", libusb_get_next_timeout(ctx->context, &tv)) == 1) {
-				unsigned long long millis = tv.tv_sec * 1000ULL + tv.tv_usec / 1000ULL;
-				if (millis > std::numeric_limits<unsigned int>::max()) {
-					millis = std::numeric_limits<unsigned int>::max();
-				}
-				if (timeout < 0 || millis < static_cast<unsigned int>(timeout)) {
-					timeout = static_cast<int>(millis);
-				}
-			}
-			++wptr;
-		}
-	}
-
-	pollfd pfds[total_usb_fds + nfds];
-	{
-		std::size_t wptr = 0;
-		for (std::size_t i = 0; i < G_N_ELEMENTS(context_infos); ++i) {
-			for (std::size_t j = 0; j < context_infos[i].nfds; ++j) {
-				pfds[wptr].fd = context_infos[i].fds[j]->fd;
-				pfds[wptr].events = context_infos[i].fds[j]->events;
-				++wptr;
-			}
-		}
-		for (std::size_t i = 0; i < nfds; ++i) {
-			pfds[wptr].fd = ufds[i].fd;
-			pfds[wptr].events = ufds[i].events;
-			++wptr;
-		}
-	}
-
-	{
-		int rc;
-		while ((rc = poll(pfds, G_N_ELEMENTS(pfds), timeout)) < 0 && errno == EINTR) {
-		}
-		if (rc < 0) {
-			throw SystemError("poll", errno);
-		}
-	}
-
-	for (std::size_t i = 0; i < G_N_ELEMENTS(context_infos); ++i) {
-		if (!context_infos[i].destroyed) {
-			struct timeval zero = {
-				0, 0
-			};
-			check_fn("libusb_handle_events_timeout", libusb_handle_events_timeout(context_infos[i].context->context, &zero));
-		}
-	}
-
-	int rc = 0;
-	for (std::size_t i = 0; i < nfds; ++i) {
-		ufds[i].revents = pfds[total_usb_fds + i].revents;
-		if (pfds[total_usb_fds + i].revents) {
-			++rc;
-		}
-	}
-
-	return rc;
+void LibUSBContext::pollfd_add_trampoline(int fd, short events, void *user_data) {
+	static_cast<LibUSBContext *>(user_data)->add_pollfd(fd, events);
 }
+
+void LibUSBContext::pollfd_remove_trampoline(int fd, void *user_data) {
+	static_cast<LibUSBContext *>(user_data)->remove_pollfd(fd);
+}
+
+void LibUSBContext::add_pollfd(int fd, short events) {
+	auto old = fd_connections.find(fd);
+	if (old != fd_connections.end()) {
+		old->second.disconnect();
+	}
+	Glib::IOCondition cond = static_cast<Glib::IOCondition>(0);
+	if (events & POLLIN) {
+		cond |= Glib::IO_IN;
+	}
+	if (events & POLLOUT) {
+		cond |= Glib::IO_OUT;
+	}
+	fd_connections[fd] = Glib::signal_io().connect(sigc::bind_return(sigc::hide(sigc::mem_fun(this, &LibUSBContext::handle_usb_fds)), true), fd, cond);
+}
+
+void LibUSBContext::remove_pollfd(int fd) {
+	auto i = fd_connections.find(fd);
+	if (i != fd_connections.end()) {
+		i->second.disconnect();
+		fd_connections.erase(i);
+	}
+}
+
+void LibUSBContext::handle_usb_fds() {
+	timeval tv = { 0, 0 };
+	check_fn("libusb_handle_events_timeout", libusb_handle_events_timeout(context, &tv));
+}
+
+
 
 LibUSBDevice::LibUSBDevice(const LibUSBDevice &copyref) : device(libusb_ref_device(copyref.device)) {
 	check_fn("libusb_get_device_descriptor", libusb_get_device_descriptor(device, &device_descriptor));
@@ -218,6 +180,8 @@ LibUSBDevice::LibUSBDevice(libusb_device *device) : device(libusb_ref_device(dev
 	check_fn("libusb_get_device_descriptor", libusb_get_device_descriptor(device, &device_descriptor));
 }
 
+
+
 LibUSBDeviceList::LibUSBDeviceList(LibUSBContext &context) {
 	ssize_t ssz;
 	check_fn("libusb_get_device_list", ssz = libusb_get_device_list(context.context, &devices));
@@ -232,6 +196,8 @@ LibUSBDevice LibUSBDeviceList::operator[](const std::size_t i) const {
 	assert(i < size());
 	return LibUSBDevice(devices[i]);
 }
+
+
 
 LibUSBDeviceHandle::LibUSBDeviceHandle(const LibUSBDevice &device) {
 	check_fn("libusb_open", libusb_open(device.device, &handle));
@@ -300,6 +266,8 @@ std::size_t LibUSBDeviceHandle::interrupt_in(unsigned char endpoint, void *data,
 	assert(transferred >= 0);
 	return transferred;
 }
+
+
 
 void LibUSBTransfer::result() const {
 	assert(done_);
@@ -373,6 +341,8 @@ void LibUSBTransfer::callback() {
 	}
 }
 
+
+
 LibUSBInterruptInTransfer::Ptr LibUSBInterruptInTransfer::create(LibUSBDeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout, unsigned int stall_max) {
 	Ptr p(new LibUSBInterruptInTransfer(dev, endpoint, len, exact_len, timeout, stall_max));
 	return p;
@@ -386,6 +356,8 @@ LibUSBInterruptInTransfer::LibUSBInterruptInTransfer(LibUSBDeviceHandle &dev, un
 		transfer->flags |= LIBUSB_TRANSFER_SHORT_NOT_OK;
 	}
 }
+
+
 
 LibUSBInterruptOutTransfer::Ptr LibUSBInterruptOutTransfer::create(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max) {
 	Ptr p(new LibUSBInterruptOutTransfer(dev, endpoint, data, len, timeout, stall_max));
