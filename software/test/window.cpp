@@ -90,7 +90,7 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 		}
 };
 
-TesterWindow::TesterWindow(XBeeDongle &dongle, XBeeRobot::Ptr robot) : mapped_joysticks(MappedJoysticksModel::create()), robot(robot), feedback_frame("Feedback"), feedback_panel(dongle, robot), drive_frame("Drive"), drive_panel(robot), dribble_button("Dribble"), kicker_frame("Kicker"), kicker_panel(robot), params_frame("Parameters"), params_panel(robot), joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks)) {
+TesterWindow::TesterWindow(XBeeDongle &dongle, XBeeRobot::Ptr robot) : mapped_joysticks(MappedJoysticksModel::create()), robot(robot), feedback_frame("Feedback"), feedback_panel(dongle, robot), drive_frame("Drive"), drive_panel(robot), dribble_button("Dribble"), kicker_frame("Kicker"), kicker_panel(robot), params_frame("Parameters"), params_panel(robot), joystick_frame("Joystick"), joystick_sensitivity_high_button(joystick_sensitivity_group, "High Sensitivity"), joystick_sensitivity_low_button(joystick_sensitivity_group, "Low Sensitivity"), joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks)) {
 	set_title(Glib::ustring::compose("Tester (%1)", robot->index));
 
 	feedback_frame.add(feedback_panel);
@@ -114,11 +114,16 @@ TesterWindow::TesterWindow(XBeeDongle &dongle, XBeeRobot::Ptr robot) : mapped_jo
 
 	outer_vbox.pack_start(hbox, Gtk::PACK_SHRINK);
 
+	joystick_sensitivity_hbox.pack_start(joystick_sensitivity_high_button, Gtk::PACK_SHRINK);
+	joystick_sensitivity_hbox.pack_start(joystick_sensitivity_low_button, Gtk::PACK_SHRINK);
+	joystick_vbox.pack_start(joystick_sensitivity_hbox, Gtk::PACK_SHRINK);
 	joystick_chooser.pack_start(mapped_joysticks->node_column);
 	joystick_chooser.pack_start(mapped_joysticks->name_column);
 	joystick_chooser.set_active(0);
 	joystick_chooser.signal_changed().connect(sigc::mem_fun(this, &TesterWindow::on_joystick_chooser_changed));
-	outer_vbox.pack_start(joystick_chooser, Gtk::PACK_SHRINK);
+	joystick_vbox.pack_start(joystick_chooser, Gtk::PACK_SHRINK);
+	joystick_frame.add(joystick_vbox);
+	outer_vbox.pack_start(joystick_frame, Gtk::PACK_SHRINK);
 
 	add(outer_vbox);
 
@@ -182,6 +187,13 @@ void TesterWindow::on_joystick_drive_axis_changed() {
 			drive_axes[i] = std::pow(-stick->axes()[m.axis(i)], 3);
 		} else {
 			drive_axes[i] = 0;
+		}
+	}
+	if (joystick_sensitivity_low_button.get_active()) {
+		double scale[4];
+		drive_panel.get_low_sensitivity_scale_factors(scale);
+		for (unsigned int i = 0; i < G_N_ELEMENTS(drive_axes); ++i) {
+			drive_axes[i] *= scale[i];
 		}
 	}
 	drive_panel.set_values(drive_axes);

@@ -63,6 +63,11 @@ class TesterWindow : public Gtk::Window {
 		Gtk::Frame params_frame;
 		TesterParamsPanel params_panel;
 
+		Gtk::Frame joystick_frame;
+		Gtk::HBox joystick_sensitivity_hbox;
+		Gtk::RadioButtonGroup joystick_sensitivity_group;
+		Gtk::RadioButton joystick_sensitivity_high_button, joystick_sensitivity_low_button;
+		Gtk::VBox joystick_vbox;
 		Gtk::ComboBox joystick_chooser;
 
 		std::vector<sigc::connection> joystick_signal_connections;

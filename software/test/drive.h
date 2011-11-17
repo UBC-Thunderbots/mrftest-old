@@ -36,6 +36,13 @@ class DrivePanel : public Gtk::VBox {
 		 */
 		void set_values(const double(&values)[4]);
 
+		/**
+		 * \brief Retrieves the scale factors to apply to the four axes when operating with a joystick in low-sensitivity mode.
+		 *
+		 * \param[out] scale the scale factors.
+		 */
+		void get_low_sensitivity_scale_factors(double (&scale)[4]);
+
 	private:
 		XBeeRobot::Ptr robot;
 		Gtk::ComboBoxText mode_chooser;

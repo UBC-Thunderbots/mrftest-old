@@ -6,12 +6,20 @@ namespace {
 		robot->drive_scram();
 	}
 
-	void on_update_permotor_controlled(Gtk::HScale(&controls)[4], XBeeRobot::Ptr robot, bool controlled) {
+	void get_low_sensitivity_scale_factors_scram(double (&scale)[4]) {
+		scale[0] = scale[1] = scale[2] = scale[3] = 0;
+	}
+
+	void on_update_permotor(Gtk::HScale(&controls)[4], XBeeRobot::Ptr robot, bool controlled) {
 		int wheels[G_N_ELEMENTS(controls)];
 		for (unsigned int i = 0; i < G_N_ELEMENTS(controls); ++i) {
 			wheels[i] = clamp(static_cast<int>(controls[i].get_value()), -1023, 1023);
 		}
 		robot->drive(wheels, controlled);
+	}
+
+	void get_low_sensitivity_scale_factors_permotor(double (&scale)[4]) {
+		scale[0] = scale[1] = scale[2] = scale[3] = 0.1;
 	}
 
 	void on_update_matrix(Gtk::HScale(&controls)[4], XBeeRobot::Ptr robot, bool controlled) {
@@ -38,6 +46,13 @@ namespace {
 		robot->drive(w, controlled);
 	}
 
+	void get_low_sensitivity_scale_factors_matrix(double (&scale)[4]) {
+		scale[0] = 0.2;
+		scale[1] = 0.2;
+		scale[2] = 0.5;
+		scale[3] = 0;
+	}
+
 	const struct {
 		const char *name;
 		unsigned int sensitive_mask;
@@ -46,10 +61,11 @@ namespace {
 		double page;
 		int digits;
 		void (*on_update)(Gtk::HScale(&)[4], XBeeRobot::Ptr, bool);
+		void (*get_low_sensitivity_scale_factors)(double (&)[4]);
 	} MODES[] = {
-		{ "Scram", 0x0, 1, 0.1, 0.5, 0, &on_update_scram },
-		{ "Per-motor", 0xF, 1023, 1, 25, 0, &on_update_permotor_controlled },
-		{ "Matrix", 0x7, 20, 0.1, 3, 1, &on_update_matrix },
+		{ "Scram", 0x0, 1, 0.1, 0.5, 0, &on_update_scram, &get_low_sensitivity_scale_factors_scram },
+		{ "Per-motor", 0xF, 1023, 1, 25, 0, &on_update_permotor, &get_low_sensitivity_scale_factors_permotor },
+		{ "Matrix", 0x7, 20, 0.1, 3, 1, &on_update_matrix, &get_low_sensitivity_scale_factors_matrix },
 	};
 }
 
@@ -85,6 +101,13 @@ void DrivePanel::set_values(const double(&values)[4]) {
 		if (controls[i].get_sensitive()) {
 			controls[i].get_adjustment()->set_value(values[i] * controls[i].get_adjustment()->get_upper());
 		}
+	}
+}
+
+void DrivePanel::get_low_sensitivity_scale_factors(double (&scale)[4]) {
+	int row = mode_chooser.get_active_row_number();
+	if (row >= 0) {
+		MODES[row].get_low_sensitivity_scale_factors(scale);
 	}
 }
 
