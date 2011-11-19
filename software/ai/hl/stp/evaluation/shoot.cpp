@@ -19,7 +19,6 @@ Angle Evaluation::get_shoot_score(const World &world, Player::Ptr player, bool u
 		radius = reduced_radius_big;
 	}
 
-
 	std::vector<std::pair<Point, Angle> > openings = AI::HL::Util::calc_best_shot_all(world, player, radius);
 
 	for (std::vector<std::pair<Point, Angle> >::iterator it = openings.begin(); it != openings.end(); it++) {

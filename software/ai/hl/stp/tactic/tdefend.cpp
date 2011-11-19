@@ -15,6 +15,7 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 namespace Evaluation = AI::HL::STP::Evaluation;
 namespace Action = AI::HL::STP::Action;
+using AI::HL::STP::Coordinate;
 
 namespace {
 	/**
@@ -75,6 +76,48 @@ namespace {
 		}
 		Action::defender_move(world, player, target);
 	}
+	
+	class TDefendLine : public Tactic {
+		public:
+			TDefendLine(const World &world, Coordinate p1_, Coordinate p2_, double dist_min_, double dist_max_) : Tactic(world), p1(p1_), p2(p2_), dist_min(dist_min_), dist_max(dist_max_) {
+			}
+
+		private:
+			Coordinate p1, p2;
+			double dist_min, dist_max;
+
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>((p1.position() + p2.position()) / 2));
+			}
+
+			void execute();
+
+			Glib::ustring description() const {
+				return "tdefend_line";
+			}
+	};
+
+}
+
+void TDefendLine::execute() {
+
+	Point ball = world.ball().position();
+
+	Point target, velocity;
+	Angle angle;
+
+	Point v[2] = { p1.position(), p2.position() };
+	
+	velocity = Point(0, 0);
+
+	//Point mypos = player->position();
+
+	target = Evaluation::evaluate_tdefense_line(world, v[0], v[1], dist_min, dist_max);
+
+	// Angle
+	angle = (ball - target).orientation();
+
+	player->move(target, angle, velocity);
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::tgoalie(const World &world, const size_t defender_role) {
@@ -89,6 +132,11 @@ Tactic::Ptr AI::HL::STP::Tactic::tdefender1(const AI::HL::W::World &world) {
 
 Tactic::Ptr AI::HL::STP::Tactic::tdefender2(const AI::HL::W::World &world) {
 	const Tactic::Ptr p(new TDefender(world, 2));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::tdefend_line(const World &world, Coordinate p1_, Coordinate p2_, double dist_min_, double dist_max_) {
+	Tactic::Ptr p(new TDefendLine(world, p1_, p2_, dist_min_, dist_max_));
 	return p;
 }
 

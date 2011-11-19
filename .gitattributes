@@ -221,10 +221,9 @@ software/ai/hl/stp/mixed_team_defense.cpp -text
 software/ai/hl/stp/param.cpp -text
 software/ai/hl/stp/param.h -text
 software/ai/hl/stp/play/ball_towards_enemy.cpp -text
-software/ai/hl/stp/play/cm_d_basic_2block.cpp -text
-software/ai/hl/stp/play/cm_d_basic_corner.cpp -text
-software/ai/hl/stp/play/cm_d_naive.cpp -text
-software/ai/hl/stp/play/cm_o_naive.cpp -text
+software/ai/hl/stp/play/defense_basic_2block.cpp -text
+software/ai/hl/stp/play/defense_basic_corner.cpp -text
+software/ai/hl/stp/play/defense_naive.cpp -text
 software/ai/hl/stp/play/defensive_block.cpp -text
 software/ai/hl/stp/play/frantic_defense.cpp -text
 software/ai/hl/stp/play/free_kick_enemy.cpp -text
@@ -243,6 +242,7 @@ software/ai/hl/stp/play/kickoff_enemy.cpp -text
 software/ai/hl/stp/play/kickoff_friendly.cpp -text
 software/ai/hl/stp/play/lone_2_player.cpp -text
 software/ai/hl/stp/play/offensive_block.cpp -text
+software/ai/hl/stp/play/offensive_naive.cpp -text
 software/ai/hl/stp/play/our_corner_play.cpp -text
 software/ai/hl/stp/play/pass_defensive.cpp -text
 software/ai/hl/stp/play/pass_fixed.cpp -text
@@ -277,8 +277,6 @@ software/ai/hl/stp/tactic/chase.cpp -text
 software/ai/hl/stp/tactic/chase.h -text
 software/ai/hl/stp/tactic/cm_ball.cpp -text
 software/ai/hl/stp/tactic/cm_ball.h -text
-software/ai/hl/stp/tactic/cm_defense.cpp -text
-software/ai/hl/stp/tactic/cm_defense.h -text
 software/ai/hl/stp/tactic/defend.cpp -text
 software/ai/hl/stp/tactic/defend.h -text
 software/ai/hl/stp/tactic/defend_solo.cpp -text

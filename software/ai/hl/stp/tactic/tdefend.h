@@ -2,6 +2,7 @@
 #define AI_HL_STP_TACTIC_TDEFEND_H
 
 #include "ai/hl/stp/tactic/tactic.h"
+#include "ai/hl/stp/coordinate.h"
 
 namespace AI {
 	namespace HL {
@@ -25,6 +26,13 @@ namespace AI {
 				 * A tactic for Terence defender 2. Guards inner layer, outer layer, and our side of the field.
 				 */
 				Tactic::Ptr tdefender2(const World &world);
+				
+				/**
+				 * Defend a line
+				 * If p1_ == p2_ it'll be equivalent as defending a point
+				 */
+				Tactic::Ptr tdefend_line(const World &world, Coordinate p1_, Coordinate p2_, double dist_min_, double dist_max_);
+
 			}
 		}
 	}

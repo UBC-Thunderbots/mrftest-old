@@ -247,3 +247,11 @@ Point AI::HL::STP::Evaluation::evaluate_tdefense(const World &world, const unsig
 	return target;
 }
 
+Point AI::HL::STP::Evaluation::evaluate_tdefense_line(const World &world, const Point p1, const Point p2, const double dist_min, const double dist_max){
+
+	Point ball = world.ball().position(), target = (p1+p2)/2;
+	double diff = (ball - target).len();
+	if (diff > dist_max || diff < dist_min) return ball;
+	return target;
+}
+

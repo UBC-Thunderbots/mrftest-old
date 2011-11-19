@@ -1,8 +1,8 @@
 #include "ai/hl/stp/play/simple_play.h"
-#include "ai/hl/stp/tactic/cm_defense.h"
 #include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/stp/tactic/cm_ball.h"
 #include "ai/hl/stp/tactic/defend_solo.h"
+#include "ai/hl/stp/tactic/tdefend.h"
 
 using AI::HL::STP::Coordinate;
 
@@ -26,15 +26,13 @@ roles[0].push_back(shoot_goal(world));
 roles[1].push_back(defend_duo_defender(world));
 
 // ROLE 3 (optional)
-// cm defend point 1
-roles[2].push_back(tdefend_point(world, Coordinate(world, Point(-1.4, 0.5), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.7));
+// defend line 1
+roles[2].push_back(tdefend_line(world, Coordinate(world, Point(-1.1, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-0.7, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.2));
 
 // ROLE 4 (optional)
-// cm defend point 2
-roles[3].push_back(tdefend_point(world, Coordinate(world, Point(-1.4, -0.5), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.7));
+// defend line 2
+roles[3].push_back(tdefend_line(world, Coordinate(world, Point(-1.1, 0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-0.7, -0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.2));
 
-// cm defend lane
-// roles[3].push_back(tdefend_lane(world, Coordinate(world, Point(0, -0.2), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(1.175, -0.2), Coordinate::YType::BALL, Coordinate::OriginType::BALL)));
 END_ASSIGN()
 END_PLAY()
 

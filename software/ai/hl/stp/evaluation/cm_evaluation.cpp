@@ -79,7 +79,7 @@ namespace {
 		} else {
 			target = p1;
 		}
-		variance = y * y / 16; // (y/4)^2
+		variance = y * y / 16; 
 
 		return true;
 	}

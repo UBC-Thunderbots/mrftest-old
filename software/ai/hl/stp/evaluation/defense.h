@@ -33,6 +33,11 @@ namespace AI {
 				 * return dest of Terence defender - index.
 				 */
 				Point evaluate_tdefense(const World &world, const unsigned index);
+				
+				/**
+				 * return dest of Terence defender line.
+				 */
+				Point evaluate_tdefense_line(const World &world, const Point p1, const Point p2, const double dist_min, const double dist_max);
 			}
 		}
 	}
