@@ -10,9 +10,12 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
-				 * Move to a dynamic location.
+				 * Move to correct stopping location for the specified player index.
+				 *
+				 * \param[in] player_index goes from 0 to 3 and is used for calculating a robot's relative
+				 * position around the ball.
 				 */
-				Tactic::Ptr move_stop(const World &world, int playerIndex);
+				Tactic::Ptr move_stop(const World &world, int player_index);
 
 				class StopLocations : public Cacheable<std::vector<Point>, CacheableNonKeyArgs<const AI::HL::W::World &>, CacheableKeyArgs<> > {
 					protected:
