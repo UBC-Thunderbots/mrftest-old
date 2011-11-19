@@ -9,7 +9,9 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
-				 * Move to a dynamic location.
+				 * Move to a location specified by dest.
+				 *
+				 * \param[in] dest the location to move to.
 				 */
 				Tactic::Ptr move(const World &world, const Coordinate dest);
 			}
