@@ -1,6 +1,6 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/chase.h"
-#include "ai/hl/stp/tactic/cm_ball.h"
+#include "ai/hl/stp/tactic/ball.h"
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/tdefend.h"
 

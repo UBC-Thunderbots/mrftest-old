@@ -1,5 +1,5 @@
-#ifndef AI_HL_STP_TACTIC_CM_BALL_H
-#define AI_HL_STP_TACTIC_CM_BALL_H
+#ifndef AI_HL_STP_TACTIC_BALL_H
+#define AI_HL_STP_TACTIC_BALL_H
 
 #include "ai/hl/stp/tactic/tactic.h"
 #include "ai/hl/stp/coordinate.h"
@@ -9,20 +9,11 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Tactic {
-				/**
-				 * Shoot
-				 */
-				Tactic::Ptr tshoot(const World &world);
 
 				/**
 				 * Steal
 				 */
 				Tactic::Ptr tsteal(const World &world);
-
-				/**
-				 * Clear
-				 */
-				Tactic::Ptr tclear(const World &world);
 
 				/**
 				 * Active Defense

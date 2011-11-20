@@ -2,7 +2,7 @@
 #include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/block.h"
-#include "ai/hl/stp/tactic/cm_ball.h"
+#include "ai/hl/stp/tactic/ball.h"
 #include "ai/hl/stp/play/simple_play.h"
 
 using AI::HL::STP::Enemy;

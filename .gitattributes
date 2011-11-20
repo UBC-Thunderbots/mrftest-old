@@ -199,8 +199,6 @@ software/ai/hl/stp/evaluation/ball.cpp -text
 software/ai/hl/stp/evaluation/ball.h -text
 software/ai/hl/stp/evaluation/ball_threat.cpp -text
 software/ai/hl/stp/evaluation/ball_threat.h -text
-software/ai/hl/stp/evaluation/cm_evaluation.cpp -text
-software/ai/hl/stp/evaluation/cm_evaluation.h -text
 software/ai/hl/stp/evaluation/defense.cpp -text
 software/ai/hl/stp/evaluation/defense.h -text
 software/ai/hl/stp/evaluation/enemy.cpp -text
@@ -271,12 +269,12 @@ software/ai/hl/stp/stp.cpp -text
 software/ai/hl/stp/stp.h -text
 software/ai/hl/stp/stp_hl.cpp -text
 software/ai/hl/stp/stp_hl_choosable.cpp -text
+software/ai/hl/stp/tactic/ball.cpp -text
+software/ai/hl/stp/tactic/ball.h -text
 software/ai/hl/stp/tactic/block.cpp -text
 software/ai/hl/stp/tactic/block.h -text
 software/ai/hl/stp/tactic/chase.cpp -text
 software/ai/hl/stp/tactic/chase.h -text
-software/ai/hl/stp/tactic/cm_ball.cpp -text
-software/ai/hl/stp/tactic/cm_ball.h -text
 software/ai/hl/stp/tactic/defend.cpp -text
 software/ai/hl/stp/tactic/defend.h -text
 software/ai/hl/stp/tactic/defend_solo.cpp -text
