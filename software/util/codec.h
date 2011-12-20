@@ -7,7 +7,25 @@
 #include <vector>
 
 /**
- * \brief Encodes a floating-point number is IEEE754 double-precision format.
+ * \brief Encodes a floating-point number in IEEE754 single-precision format.
+ *
+ * \param[in] x the value to encode.
+ *
+ * \return the encoded form.
+ */
+uint32_t encode_float_to_u32(float x);
+
+/**
+ * \brief Decodes a floating-point number from IEEE754 single-precision format.
+ *
+ * \param[in] x the value to decode.
+ *
+ * \return the floating-point number.
+ */
+float decode_u32_to_float(uint32_t x);
+
+/**
+ * \brief Encodes a floating-point number in IEEE754 double-precision format.
  *
  * \param[in] x the value to encode.
  *
