@@ -4,7 +4,6 @@
 #include <cmath>
 #include <cstddef>
 #include <stdint.h>
-#include <vector>
 
 /**
  * \brief Encodes a floating-point number in IEEE754 single-precision format.
