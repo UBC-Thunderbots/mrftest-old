@@ -1,7 +1,7 @@
 #include "util/codec.h"
 
 namespace {
- 	/**
+	/**
 	 * Packs a sign bit, a biased exponent, and a significand into a 32-bit integer in IEEE754 single-precision format.
 	 *
 	 * \param[in] sign the sign bit, \c true for negative or \c false for positive.
