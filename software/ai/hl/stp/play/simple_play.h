@@ -10,10 +10,13 @@
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/coordinate.h"
 #include "ai/hl/stp/region.h"
+#include "ai/hl/stp/world.h"
 
 using AI::Common::PlayType;
 using namespace AI::HL::STP::Predicates;
 using namespace AI::HL::STP::Tactic;
+
+using AI::HL::STP::TEAM_MAX_SIZE;
 
 #define BEGIN_PLAY(cls) \
 	namespace { \
@@ -49,7 +52,7 @@ using namespace AI::HL::STP::Tactic;
 	}
 
 #define BEGIN_ASSIGN() \
-	void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
+	void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[TEAM_MAX_SIZE-1]) {
 
 #define END_ASSIGN() \
 	}

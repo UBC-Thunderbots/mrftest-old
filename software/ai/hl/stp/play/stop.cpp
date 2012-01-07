@@ -35,6 +35,9 @@ roles[1].push_back(move_stop(world, 1));
 roles[2].push_back(move_stop(world, 2));
 
 roles[3].push_back(move_stop(world, 3));
+
+roles[4].push_back(move_stop(world, 4));
+
 END_ASSIGN()
 END_PLAY()
 

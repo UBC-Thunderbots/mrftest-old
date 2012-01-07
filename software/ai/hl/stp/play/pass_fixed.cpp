@@ -8,6 +8,7 @@
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/coordinate.h"
 #include "ai/hl/stp/region.h"
+#include "ai/hl/stp/world.h"
 #include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/tactic/util.h"
@@ -23,6 +24,7 @@ using namespace AI::HL::STP::Tactic;
 namespace Predicates = AI::HL::STP::Predicates;
 
 using AI::HL::STP::min_pass_dist;
+using AI::HL::STP::TEAM_MAX_SIZE;
 
 namespace {
 	class PassPlay : public Play {
@@ -53,7 +55,7 @@ namespace {
 				return Predicates::their_ball(world);
 			}
 
-			void assign(std::vector<Tactic::Tactic::Ptr> &goalie_role, std::vector<Tactic::Tactic::Ptr>(&roles)[4]) {
+			void assign(std::vector<Tactic::Tactic::Ptr> &goalie_role, std::vector<Tactic::Tactic::Ptr>(&roles)[TEAM_MAX_SIZE-1]) {
 				// GOALIE
 				goalie_role.push_back(goalie_dynamic(world, 2));
 				// ROLE 1

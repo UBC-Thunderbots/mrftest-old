@@ -20,7 +20,7 @@ namespace {
 
 	DegreeParam separation_angle("stop: angle to separate players (degrees)", "STP/Tactic", 20, 0, 90);
 
-	const unsigned int NUM_PLAYERS = 4;
+	const unsigned int NUM_PLAYERS = 5;
 
 	class MoveStop : public Tactic {
 		public:

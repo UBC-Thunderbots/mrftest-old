@@ -79,7 +79,7 @@ namespace AI {
 						 * \param [in] roles an array of roles in order of priority,
 						 * the first entry is the most important etc.
 						 */
-						virtual void assign(std::vector<Tactic::Tactic::Ptr> &goalie_role, std::vector<Tactic::Tactic::Ptr>(&roles)[4]) = 0;
+						virtual void assign(std::vector<Tactic::Tactic::Ptr> &goalie_role, std::vector<Tactic::Tactic::Ptr>(&roles)[STP::TEAM_MAX_SIZE-1]) = 0;
 
 						/**
 						 * A reference to this play's factory.

@@ -7,6 +7,11 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			using namespace AI::HL::W;
+			
+			/**
+			 * The max number of players we can assign roles
+			 */
+			const unsigned int TEAM_MAX_SIZE = 6; 
 		}
 	}
 }

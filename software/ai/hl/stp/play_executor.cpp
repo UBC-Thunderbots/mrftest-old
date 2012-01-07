@@ -96,7 +96,7 @@ void PlayExecutor::calc_play() {
 	LOG_INFO(Glib::ustring::compose("Play chosen: %1", curr_play->factory().name()));
 
 	curr_role_step = 0;
-	for (std::size_t j = 0; j < 5; ++j) {
+	for (std::size_t j = 0; j < TEAM_MAX_SIZE; ++j) {
 		curr_roles[j].clear();
 		// default to idle tactic
 		curr_tactic[j] = Tactic::idle(world);
@@ -104,10 +104,10 @@ void PlayExecutor::calc_play() {
 	// assign the players
 	{
 		std::vector<Tactic::Tactic::Ptr> goalie_role;
-		std::vector<Tactic::Tactic::Ptr> normal_roles[4];
+		std::vector<Tactic::Tactic::Ptr> normal_roles[TEAM_MAX_SIZE-1]; // minus goalie
 		curr_play->assign(goalie_role, normal_roles);
 		swap(goalie_role, curr_roles[0]);
-		for (std::size_t j = 1; j < 5; ++j) {
+		for (std::size_t j = 1; j < TEAM_MAX_SIZE; ++j) {
 			swap(normal_roles[j - 1], curr_roles[j]);
 		}
 	}
@@ -117,7 +117,7 @@ void PlayExecutor::role_assignment() {
 	// this must be reset every tick
 	curr_active.reset();
 
-	for (std::size_t i = 0; i < 5; ++i) {
+	for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
 		if (curr_role_step < curr_roles[i].size()) {
 			curr_tactic[i] = curr_roles[i][curr_role_step];
 		} else {
@@ -136,7 +136,7 @@ void PlayExecutor::role_assignment() {
 	// we cannot have less than 1 active tactic.
 	assert(curr_active.is());
 
-	std::fill(curr_assignment, curr_assignment + 5, Player::Ptr());
+	std::fill(curr_assignment, curr_assignment + TEAM_MAX_SIZE, Player::Ptr());
 
 	Player::Ptr goalie;
 	if (goalie_lowest) {
@@ -175,7 +175,7 @@ void PlayExecutor::role_assignment() {
 	team_size = 1 + players.size();
 
 	bool active_assigned = (curr_tactic[0]->active());
-	for (std::size_t i = 1; i < 5; ++i) {
+	for (std::size_t i = 1; i < TEAM_MAX_SIZE; ++i) {
 		if (players.size() == 0) {
 			break;
 		}
@@ -201,7 +201,7 @@ void PlayExecutor::role_assignment() {
 
 void PlayExecutor::execute_tactics() {
 	std::size_t max_role_step = 0;
-	for (std::size_t i = 0; i < 5; ++i) {
+	for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
 		max_role_step = std::max(max_role_step, curr_roles[i].size());
 	}
 
@@ -238,7 +238,7 @@ void PlayExecutor::execute_tactics() {
 
 	// set flags, do it before any execution
 	curr_assignment[0]->flags(0);
-	for (std::size_t i = 1; i < 5; ++i) {
+	for (std::size_t i = 1; i < TEAM_MAX_SIZE; ++i) {
 		if (!curr_assignment[i].is()) {
 			continue;
 		}
@@ -268,7 +268,7 @@ void PlayExecutor::execute_tactics() {
 	}
 
 	// execute!
-	for (std::size_t i = 0; i < 5; ++i) {
+	for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
 		if (!curr_assignment[i].is()) {
 			continue;
 		}
@@ -360,7 +360,7 @@ Glib::ustring PlayExecutor::info() const {
 	if (curr_play.is()) {
 		text += Glib::ustring::compose("play: %1\nstep: %2", curr_play->factory().name(), curr_role_step);
 		// std::size_t imax = std::min((std::size_t)5, world.friendly_team().size());
-		for (std::size_t i = 0; i < 5; ++i) {
+		for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
 			if (!curr_assignment[i].is()) {
 				// LOG_ERROR("curr-assignment empty");
 				continue;
@@ -385,7 +385,7 @@ void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 		return;
 	}
 	curr_play->draw_overlay(ctx);
-	for (std::size_t i = 0; i < 5; ++i) {
+	for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
 		if (!curr_assignment[i].is()) {
 			continue;
 		}
@@ -407,7 +407,7 @@ void PlayExecutor::on_player_removing(std::size_t) {
 
 	curr_play.reset();
 	curr_active.reset();
-	for (std::size_t i = 0; i < 5; ++i) {
+	for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
 		curr_assignment[i].reset();
 		curr_roles[i].clear();
 		curr_tactic[i].reset();

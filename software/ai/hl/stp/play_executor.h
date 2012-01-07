@@ -16,6 +16,7 @@ namespace AI {
 			 * A play executor.
 			 * See STP paper section 5.3.
 			 */
+			 
 			class PlayExecutor {
 				public:
 					PlayExecutor(World &w);
@@ -37,7 +38,7 @@ namespace AI {
 					 * The play in use currently.
 					 */
 					Play::Play::Ptr curr_play;
-
+					
 					/**
 					 * indicates which step in the role we are using.
 					 */
@@ -47,12 +48,12 @@ namespace AI {
 					 * A role is a sequence of tactics.
 					 * The first role is for goalie.
 					 */
-					std::vector<Tactic::Tactic::Ptr> curr_roles[5];
+					std::vector<Tactic::Tactic::Ptr> curr_roles[TEAM_MAX_SIZE];
 
 					/**
 					 * The tactic in use
 					 */
-					Tactic::Tactic::Ptr curr_tactic[5];
+					Tactic::Tactic::Ptr curr_tactic[TEAM_MAX_SIZE];
 
 					/**
 					 * Active tactic in use.
@@ -60,7 +61,7 @@ namespace AI {
 					Tactic::Tactic::Ptr curr_active;
 
 					// current player assignment
-					AI::HL::W::Player::Ptr curr_assignment[5];
+					AI::HL::W::Player::Ptr curr_assignment[TEAM_MAX_SIZE];
 
 					/**
 					 * List of all the available plays

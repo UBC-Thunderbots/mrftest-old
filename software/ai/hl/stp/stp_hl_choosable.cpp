@@ -99,17 +99,17 @@ namespace {
 
 				// assign the players
 				curr_role_step = 0;
-				for (std::size_t j = 0; j < 5; ++j) {
+				for (std::size_t j = 0; j < TEAM_MAX_SIZE; ++j) {
 					curr_roles[j].clear();
 					// default to idle tactic
 					curr_tactic[j] = Tactic::idle(world);
 				}
 				{
 					std::vector<Tactic::Tactic::Ptr> goalie_role;
-					std::vector<Tactic::Tactic::Ptr> normal_roles[4];
+					std::vector<Tactic::Tactic::Ptr> normal_roles[TEAM_MAX_SIZE-1];
 					curr_play->assign(goalie_role, normal_roles);
 					swap(goalie_role, curr_roles[0]);
-					for (std::size_t j = 1; j < 5; ++j) {
+					for (std::size_t j = 1; j < TEAM_MAX_SIZE; ++j) {
 						swap(normal_roles[j - 1], curr_roles[j]);
 					}
 				}
