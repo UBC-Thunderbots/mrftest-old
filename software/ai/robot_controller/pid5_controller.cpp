@@ -9,6 +9,14 @@
 #include "util/timestep.h"
 #include <cmath>
 #include <vector>
+#include <iomanip>
+#include <sstream>
+#include <gtkmm/expander.h>
+#include <gtkmm/table.h>
+#include <gtkmm/label.h>
+#include <gtkmm/entry.h>
+#include <glibmm/refptr.h>
+#include <glibmm/ustring.h>
 
 using AI::RC::RobotController;
 using AI::RC::OldRobotController;
@@ -28,23 +36,39 @@ namespace {
 
 	DoubleParam wheel_max_speed("Limit wheel speed", "RC/PID5", 100.0, 0, 8888);
 	DoubleParam wheel_max_accel("Limit wheel accel", "RC/PID5", 5.0, 0, 8888);
+	
+	class PID5ControllerFactory;
 
 	class PID5Controller : public RobotController {
 		public:
+			PID5Controller(World &world, Player::Ptr plr, Gtk::Entry &std_entry);
+
+			~PID5Controller();
+
 			void tick();
 			void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity);
 			void move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]);
 			void clear();
 			void convert(const Point &vel, Angle avel, int(&wheel_speeds)[4]);
+			void update_k_monitor();
+
 			RobotControllerFactory &get_factory() const;
-			PID5Controller(World &world, Player::Ptr plr);
+
+		private:
+			Gtk::Entry &std_entry;
 
 		protected:
 			double prev_speed[4];
 	};
 
-	PID5Controller::PID5Controller(World &world, Player::Ptr plr) : RobotController(world, plr), prev_speed{0, 0, 0, 0} {
+	PID5Controller::PID5Controller(World &world, Player::Ptr plr, Gtk::Entry &std_entry) : RobotController(world, plr), std_entry(std_entry), prev_speed{0, 0, 0, 0} {
+		std_entry.set_sensitive(true);
 	}
+	
+	PID5Controller::~PID5Controller(){
+		std_entry.set_sensitive(false);
+	}
+
 
 	void PID5Controller::convert(const Point &vel, Angle avel, int(&wheel_speeds)[4]) {
 		static const double WHEEL_MATRIX[4][3] = {
@@ -103,6 +127,9 @@ namespace {
 			move(path[0].first.first, path[0].first.second, wheels);
 			player->drive(wheels);
 		}
+		
+		
+		update_k_monitor();
 	}
 
 	void PID5Controller::move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]) {
@@ -141,14 +168,64 @@ namespace {
 	void PID5Controller::clear() {
 	}
 
+	void PID5Controller::update_k_monitor() {
+		Point p_stdev = player->position_stdev();
+		Angle o_stdev = player->orientation_stdev();
+		Glib::ustring text = Glib::ustring::format( std::scientific, std::setprecision(2), p_stdev, o_stdev);
+		std_entry.set_text(text);
+	}
+
 	class PID5ControllerFactory : public RobotControllerFactory {
 		public:
 			PID5ControllerFactory() : RobotControllerFactory("PID 5") {
 			}
 
 			RobotController::Ptr create_controller(World &world, Player::Ptr plr) const {
-				RobotController::Ptr p(new PID5Controller(world, plr));
+				RobotController::Ptr p(new PID5Controller(world, plr, get_std(plr->pattern())));
 				return p;
+			}
+
+			Gtk::Widget *ui_controls() {
+				return &get_widget();
+			}
+	
+		private:
+			
+			Gtk::Widget &get_widget(){
+				static Gtk::Expander expander("Kalman Monitor");
+				expander.add( get_table() );
+				return expander;
+			}
+	
+			Gtk::Table &get_table() const {
+				static Gtk::Table t(16, 2);
+				static bool initialized = false;
+				if (!initialized) {
+					for (unsigned int i = 0; i < 16; ++i) {
+						t.attach(get_label(i), 0, 1, i, i + 1);
+						t.attach(get_std(i), 1, 2, i, i + 1);
+					}
+					initialized = true;
+				}
+				return t;
+			}
+
+			Gtk::Label &get_label(unsigned int idx) const {
+				static Gtk::Label labels[16];
+				static bool initialized = false;
+				if (!initialized) {
+					for (unsigned int i = 0; i < 16; ++i) {
+						labels[i].set_text(todecu(i));
+					}
+					initialized = true;
+				}
+				return labels[idx];
+			}
+
+			Gtk::Entry &get_std(unsigned int idx) const {
+				static Gtk::Entry entries[16];
+				entries[idx].set_sensitive(false);
+				return entries[idx];
 			}
 	};
 
