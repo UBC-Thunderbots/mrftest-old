@@ -48,17 +48,18 @@ namespace AI {
 			class RRTNavigator : public Navigator {
 				public:
 					NavigatorFactory &factory() const;
+					void tick();
+					static Navigator::Ptr create(World &world);
+					void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
+
+				private:
 					void pivot(Player::Ptr player);
 					std::pair<Point, Angle> grab_ball(Player::Ptr player);
 					std::pair<Point, Angle> grab_ball_orientation(Player::Ptr player);
 					void intercept_ball(Player::Ptr player);
 					std::pair<Point, Angle> intercept_ball_orientation(Player::Ptr player);
 
-					void tick();
-					static Navigator::Ptr create(World &world);
-					void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
 
-				private:
 					RRTNavigator(World &world);
 					RRTPlanner planner;
 					bool is_ccw;
