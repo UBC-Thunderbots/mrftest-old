@@ -2,6 +2,7 @@
 #include "ai/hl/stp/tactic/shadow_kickoff.h"
 #include "ai/hl/stp/tactic/wait_playtype.h"
 #include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/stp/tactic/defend.h"
 
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
@@ -56,6 +57,10 @@ roles[2].push_back(shadow_kickoff(world, Enemy::closest_ball(world, 1), shoot.ro
 // ROLE 4
 // move to offender position 3
 roles[3].push_back(shadow_kickoff(world, Enemy::closest_ball(world, 2), shoot.rotate(-delta_angle)));
+
+// ROLE 5
+// defend
+roles[4].push_back(defend_duo_extra1(world));
 
 END_ASSIGN()
 END_PLAY()

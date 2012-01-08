@@ -29,10 +29,15 @@ roles[0].push_back(defend_duo_defender(world));
 roles[1].push_back(defend_duo_extra1(world));
 
 // ROLE 3
+// offend
 roles[2].push_back(offend(world));
 
 // ROLE 4
-// move to other half of the field to position for cataching the ball after chipping shots
+// offend
+roles[4].push_back(offend(world));
+
+// ROLE 5
+// move to other half of the field to position for catching the ball after chipping shots
 roles[3].push_back(shadow_ball(world));
 
 END_ASSIGN()
