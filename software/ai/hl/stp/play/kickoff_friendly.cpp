@@ -18,7 +18,7 @@ namespace {
 
 	// hard coded positions for the kicker, and 2 offenders
 	Point kicker_position = Point(-0.5 - Ball::RADIUS - Robot::MAX_RADIUS, 0);
-	Point ready_positions[2] = { Point(-AVOIDANCE_DIST, -SEPARATION_DIST), Point(-AVOIDANCE_DIST, SEPARATION_DIST) };
+	Point ready_positions[3] = { Point(-AVOIDANCE_DIST, -SEPARATION_DIST), Point(-AVOIDANCE_DIST, SEPARATION_DIST), Point(AVOIDANCE_DIST, SEPARATION_DIST) };
 }
 
 /**
@@ -50,6 +50,9 @@ roles[2].push_back(move(world, ready_positions[0]));
 
 // ROLE 4
 roles[3].push_back(move(world, ready_positions[1]));
+
+// ROLE 5
+roles[4].push_back(defend_duo_extra1(world));
 
 END_ASSIGN()
 END_PLAY()
