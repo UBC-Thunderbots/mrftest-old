@@ -44,6 +44,10 @@ roles[2].push_back(block_ball(world, Enemy::closest_friendly_goal(world, 0)));
 // offensive support through blocking possible passees of enemy baller
 roles[3].push_back(block_ball(world, Enemy::closest_friendly_goal(world, 1)));
 
+// ROLE 5 (optional)
+// defend duo extra
+roles[4].push_back(defend_duo_extra1(world));
+
 END_ASSIGN()
 END_PLAY()
 
