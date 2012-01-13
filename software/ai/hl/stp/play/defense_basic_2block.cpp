@@ -28,6 +28,10 @@ roles[1].push_back(defend_duo_defender(world));
 roles[2].push_back(block_goal(world, Enemy::closest_friendly_goal(world, 0)));
 roles[3].push_back(block_goal(world, Enemy::closest_friendly_goal(world, 1)));
 
+// ROLE 5 (optional)
+// offend
+roles[4].push_back(offend(world));
+
 END_ASSIGN()
 END_PLAY()
 
