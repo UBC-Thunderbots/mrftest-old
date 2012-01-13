@@ -81,6 +81,7 @@ namespace AI {
 			void RRTNavigator::intercept_ball(Player::Ptr player) {
 				if (!find_best_intersecting_point(world, player)) {
 					LOG_INFO("No intersecting point found!");
+					make_stationary(world, player);
 				}
 			}
 
@@ -309,13 +310,18 @@ namespace AI {
 
 						dest = grab_ball_dest.first;
 						dest_orientation = grab_ball_dest.second;
-					} else if (player->type() == AI::Flags::MoveType::INTERCEPT) {
+					} else if (player->type() == AI::Flags::MoveType::INTERCEPT) {// worked on by matt and koko
 						intercept_ball(player);
 						continue;
 					} else if (player->type() == AI::Flags::MoveType::INTERCEPT_PIVOT) {
 						std::pair<Point, Angle> grab_ball_dest = intercept_ball_orientation(player);
-						dest = grab_ball_dest.first;
-						dest_orientation = grab_ball_dest.second;
+						if( !isnan(grab_ball_dest.first.x) ){
+							dest = grab_ball_dest.first;
+							dest_orientation = grab_ball_dest.second;
+						} else {
+							dest = player->position();
+							dest_orientation = player->orientation();
+						}
 					} else if (player->type() == AI::Flags::MoveType::PIVOT) {
 						pivot(player);
 						continue;

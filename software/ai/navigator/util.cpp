@@ -549,6 +549,11 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 	Point segA = ball.position();
 	Point segB = vector_rect_intersect(field_rec, segA, segA + ball.velocity().norm());
 
+	// if the intersection is off the field or not found for some reason, return failure
+	if ( segB.x == 0.0 && segB.y == 0.0 ){
+		return false;
+	}
+
 	if (ctx != Cairo::RefPtr<Cairo::Context>()) {
 		ctx->arc(segB.x, segB.y, 0.2, 0.0, M_PI * 2);
 		ctx->set_source_rgb(0.8, 0.0, 0.0);
@@ -556,10 +561,10 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 		ctx->stroke();
 	}
 
-	// Go through some points to see which one is possible/ (later) more optimal
+	// set up the resolution that we should check at
 	int points_to_check = 20;
 	Point interval = (-segA + segB) * (1.0 / points_to_check);
-	// assume no decay
+	// set up how much the ball travels in each interval that we check, assume no decay
 	double interval_time = interval.len() / ball.velocity().len();
 	Point dest;
 	// timespec min_time = timespec(10000);                     // well just make this value big first
@@ -569,17 +574,19 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 
 #warning flags and timespec are not accounted for properly
 	for (int i = 0; i <= points_to_check; i++) {
+		// where the ball would roll to at a later time
 		Point ball_future_pos = segA + (interval * i);
 		Point dir_from_target = (ball_future_pos - player->destination().first).norm();
 
-		// get a point that is behind the ball's future position in the direction of the target
+		// get a point that is behind the ball's future position in the direction of the target, this is where the bot should go to
 		Point move_to_point = ball_future_pos + (dir_from_target * CATCH_BALL_DISTANCE_AWAY);
 
+		// now plan out the path
 		path_points = planner.plan(player, move_to_point, flags);
 		std::vector<std::pair<Point, Angle> > path_points_with_angle;
-		// planner does not include current location in list of points so add it here to be used when estimating times
-		path_points_with_angle.push_back(std::make_pair(player->position(), (path_points[0] - player->position()).orientation()));
 
+		// add the angle since planner doesn't include them
+		path_points_with_angle.push_back(std::make_pair(player->position(), (path_points[0] - player->position()).orientation()));
 		for (unsigned int j = 0; j < path_points.size(); ++j) {
 			Angle path_orientation;
 			if (j + 1 == path_points.size()) {
@@ -592,7 +599,9 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 			path_points_with_angle.push_back(std::make_pair(path_points[j], path_orientation));
 		}
 
+		// check if the robot can make it
 		if (AI::Nav::Util::estimate_action_duration(path_points_with_angle) < (interval_time * i) || (i == points_to_check) || ball.velocity().len() < CATCH_BALL_VELOCITY_THRESH) {
+			// graph it out
 			if (ctx != Cairo::RefPtr<Cairo::Context>()) {
 				Point p(path_points[path_points.size() - 1]);
 				ctx->arc(p.x, p.y, 0.05, 0.0, M_PI * 2);
@@ -606,6 +615,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 				ctx->stroke();
 			}
 
+			// prepare for assigning the path to the robot
 			AI::Nav::W::Player::Path path;
 			timespec working_time = world.monotonic_time();
 
@@ -628,3 +638,9 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 	return false;
 }
 
+
+void AI::Nav::Util::make_stationary( AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player ){
+	AI::Nav::W::Player::Path path;
+	path.push_back(std::make_pair( std::make_pair(player->position(), player->orientation()), world.monotonic_time() ) ) ;
+	player->path(path);
+}

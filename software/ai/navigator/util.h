@@ -92,9 +92,22 @@ namespace AI {
 
 			/**
 			 * Calculate the best position to intersect the ball
+			 * 
+			 * \param[in] the world, passed into rrt_planner in the code
 			 *
+			 * \param[in] the robot that performing the intersection
+			 *
+			 * \parem[in] canvas to draw in 
 			 */
 			bool find_best_intersecting_point(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, Cairo::RefPtr<Cairo::Context> ctx = Cairo::RefPtr<Cairo::Context>());
+
+
+			/**
+			 * assign the player to go to its current position, robot may still move depend on how the robot controller deal with it
+			 *
+			 * \param[in] player in interest
+			 */
+			void make_stationary( AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player );
 		}
 	}
 }
