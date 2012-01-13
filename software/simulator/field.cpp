@@ -12,7 +12,7 @@ const double Simulator::Field::GOAL_WIDTH = 0.70;
 
 const double Simulator::Field::CENTRE_CIRCLE_RADIUS = 0.50;
 
-const double Simulator::Field::DEFENSE_AREA_RADIUS = 0.50;
+const double Simulator::Field::DEFENSE_AREA_RADIUS = 0.80;
 
 const double Simulator::Field::DEFENSE_AREA_STRETCH = 0.35;
 

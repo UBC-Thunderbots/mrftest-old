@@ -12,6 +12,11 @@ namespace AI {
 			 * The max number of players we can assign roles
 			 */
 			const unsigned int TEAM_MAX_SIZE = 6; 
+			
+			/**
+			 * The max speed the ball can be kicked
+			 */
+			const double BALL_MAX_SPEED = 6.0; 
 		}
 	}
 }

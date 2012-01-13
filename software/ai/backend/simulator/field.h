@@ -19,7 +19,7 @@ namespace AI {
 					double total_width() const { return 5.40; }
 					double goal_width() const { return 0.70; }
 					double centre_circle_radius() const { return 0.50; }
-					double defense_area_radius() const { return 0.50; }
+					double defense_area_radius() const { return 0.80; }
 					double defense_area_stretch() const { return 0.35; }
 			};
 		}

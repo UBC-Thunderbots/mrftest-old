@@ -3,6 +3,7 @@
 #include "util/dprint.h"
 #include <stdexcept>
 
+using AI::HL::STP::BALL_MAX_SPEED;
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 

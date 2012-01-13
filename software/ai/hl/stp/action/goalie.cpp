@@ -21,7 +21,7 @@ namespace {
 
 void AI::HL::STP::Action::lone_goalie(const World &world, Player::Ptr player) {
 	// Patrol
-	const Point default_pos = Point(-0.45 * world.field().length(), 0);
+	//const Point default_pos = Point(-0.45 * world.field().length(), 0);
 	const Point centre_of_goal = world.field().friendly_goal();
 	Point target = world.ball().position() - centre_of_goal;
 	target = target * (lone_goalie_dist / target.len());
@@ -34,7 +34,7 @@ void AI::HL::STP::Action::lone_goalie(const World &world, Player::Ptr player) {
 }
 
 void AI::HL::STP::Action::goalie_move(const World &world, Player::Ptr player, Point dest) {
-	player->autokick(10.0); // goalie autokick always on!!
+	player->autokick(BALL_MAX_SPEED); // goalie autokick always on!!
 
 	// if ball is inside the defense area or just too close, repel!!!!
 	if ((AI::HL::Util::point_in_friendly_defense(world.field(), world.ball().position()) || (world.ball().position() - player->position()).len() < goalie_repel_dist * Robot::MAX_RADIUS) && world.playtype() != AI::Common::PlayType::STOP) {

@@ -7,6 +7,7 @@
 #include "ai/hl/stp/param.h"
 #include "geom/angle.h"
 
+using AI::HL::STP::BALL_MAX_SPEED;
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 using AI::HL::STP::Coordinate;
@@ -84,7 +85,7 @@ namespace {
 		}
 		Angle cur_shoot_score = AI::HL::STP::Evaluation::get_shoot_score(world, player);
 		if (new_shoot && ((cur_shoot_score < shoot_score + Angle::of_radians(1e-9) && shoot_score > Angle::ZERO) || cur_shoot_score > shoot_thresh)) {
-			player->autokick(10.0);
+			player->autokick(BALL_MAX_SPEED);
 		}
 		shoot_score = cur_shoot_score;
 	}

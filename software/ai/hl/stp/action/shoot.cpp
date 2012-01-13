@@ -52,7 +52,7 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, boo
 		}
 		LOG_INFO("autokick");
 		chase(player, shoot_data.target);
-		autokick(player, shoot_data.target, 10.0);
+		autokick(player, shoot_data.target, BALL_MAX_SPEED);
 		return true;
 	} else {
 		chase_pivot(world, player, shoot_data.target);
