@@ -24,11 +24,15 @@ roles[0].push_back(shoot_goal(world, true));
 roles[1].push_back(defend_duo_defender(world));
 
 // ROLE 3 (optional)
-// block
-roles[2].push_back(offend(world));
+roles[2].push_back(defend_duo_extra1(world));
 
 // ROLE 4 (optional)
-roles[3].push_back(defend_duo_extra1(world));
+// offend
+roles[3].push_back(offend(world));
+
+// ROLE 5 (optional)
+// offend
+roles[4].push_back(offend(world));
 
 END_ASSIGN()
 END_PLAY()

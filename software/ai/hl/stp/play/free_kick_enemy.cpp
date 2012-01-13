@@ -34,11 +34,11 @@ roles[2].push_back(offend(world));
 
 // ROLE 4
 // offend
-roles[4].push_back(offend(world));
+roles[3].push_back(offend_secondary(world));
 
 // ROLE 5
 // move to other half of the field to position for catching the ball after chipping shots
-roles[3].push_back(shadow_ball(world));
+roles[4].push_back(shadow_ball(world));
 
 END_ASSIGN()
 END_PLAY()
