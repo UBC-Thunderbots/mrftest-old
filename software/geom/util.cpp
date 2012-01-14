@@ -739,3 +739,15 @@ double closest_point_time(Point x1, Point v1, Point x2, Point v2) {
 	return t;
 }
 
+bool point_in_front_vector( Point offset, Point dir, Point p ){
+	// dir2 is the opposite direction of dir
+	Angle dir2 = (-dir + offset).orientation();
+	// rotate 
+	Point p2 = (p - offset).rotate( dir2 );
+	if( p2.x > 0.0 ){
+		return true;
+	} else {
+		return false;
+	}
+}
+

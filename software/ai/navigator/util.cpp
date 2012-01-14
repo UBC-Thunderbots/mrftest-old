@@ -542,20 +542,60 @@ double AI::Nav::Util::estimate_action_duration(std::vector<std::pair<Point, Angl
 bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, Cairo::RefPtr<Cairo::Context> ctx) {
 	// need to confirm that the player has proper flag
 
-	// find the end points that define the position that we can be in
+	// need to confirm that the ball is moving at all
+
+	// extract data from the player
 	const Field &field = world.field();
+	const Point targetPos = player->destination().first;
+	const Angle targetAng = ( field.enemy_goal()-player->position() ).orientation();
+	const Point robotPos = player->position();
+
+	// extract information from the ball
 	const Ball &ball = world.ball();
-	Rect field_rec({ field.length() / 2, field.width() / 2 }, { -field.length() / 2, -field.width() / 2 });
-	Point segA = ball.position();
-	Point segB = vector_rect_intersect(field_rec, segA, segA + ball.velocity().norm());
+	const Rect field_rec({ field.length() / 2, field.width() / 2 }, { -field.length() / 2, -field.width() / 2 });
+	const Point ballPos = ball.position();
+	const Point ballVel = ball.velocity();
+	const Point ballNorm = ballVel.norm();
+	const Point ballBoundedPos = vector_rect_intersect( field_rec, ballPos, ballPos + ballNorm );
+	const Angle targetBallOffsetAngle = vertex_angle( ballPos+ballVel, ballPos, targetPos ).angle_mod();
+
+
+	// find out whether robot is behind the ball or in front of the ball
+	if( !point_in_front_vector( ballPos, ballVel+ballPos, robotPos ) ){
+		Point destPos;
+		Angle destAng;
+		const double AVOID_DIST = 0.2;
+		const double DELTA_TIME = 1.0;
+		// check for the side that has a clear path, TODO
+
+		// if the robot is in behind the ball, then move up to it from the far side to the target
+		if( targetBallOffsetAngle.to_degrees() > 0.0 ){
+			destPos = ballPos + ballNorm.rotate(Angle::QUARTER)*AVOID_DIST + ballVel * DELTA_TIME;
+		} else {
+			destPos = ballPos + ballNorm.rotate(Angle::THREE_QUARTER)*AVOID_DIST + ballVel * DELTA_TIME;
+		}
+
+		// make the robot face against the ball direction
+		destAng = -ballVel.orientation();
+
+		
+
+		// assign this destination to the player
+		AI::Nav::W::Player::Path path;
+		path.push_back( std::make_pair( std::make_pair( destPos, destAng ), world.monotonic_time() ) );
+		player->path( path );
+		
+		return true;
+	}
 
 	// if the intersection is off the field or not found for some reason, return failure
-	if ( segB.x == 0.0 && segB.y == 0.0 ){
+	if ( ballBoundedPos.x == 0.0 && ballBoundedPos.y == 0.0 ){
 		return false;
 	}
 
+	// draw where ball goes out of field
 	if (ctx != Cairo::RefPtr<Cairo::Context>()) {
-		ctx->arc(segB.x, segB.y, 0.2, 0.0, M_PI * 2);
+		ctx->arc(ballBoundedPos.x, ballBoundedPos.y, 0.05, 0.0, M_PI * 2);
 		ctx->set_source_rgb(0.8, 0.0, 0.0);
 		ctx->fill_preserve();
 		ctx->stroke();
@@ -563,7 +603,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 
 	// set up the resolution that we should check at
 	int points_to_check = 20;
-	Point interval = (-segA + segB) * (1.0 / points_to_check);
+	Point interval = (-ballPos + ballBoundedPos) * (1.0 / points_to_check);
 	// set up how much the ball travels in each interval that we check, assume no decay
 	double interval_time = interval.len() / ball.velocity().len();
 	Point dest;
@@ -575,7 +615,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 #warning flags and timespec are not accounted for properly
 	for (int i = 0; i <= points_to_check; i++) {
 		// where the ball would roll to at a later time
-		Point ball_future_pos = segA + (interval * i);
+		Point ball_future_pos = ballPos + (interval * i);
 		Point dir_from_target = (ball_future_pos - player->destination().first).norm();
 
 		// get a point that is behind the ball's future position in the direction of the target, this is where the bot should go to

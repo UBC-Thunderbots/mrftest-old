@@ -449,7 +449,17 @@ Angle vertex_angle(Point a, Point b, Point c);
 double closest_point_time(Point x1, Point v1, Point x2, Point v2);
 
 
-
+/**
+ * found out if a point is in the vector's direction or against it
+ * if the point normal to the vector, return false
+ *
+ * param[in] offset is the position of the origin of the vector
+ *
+ * param[in] dir is the direction of the vector
+ *
+ * param[in] p is the point is question
+ */
+bool point_in_front_vector( Point offset, Point dir, Point p );
 
 #endif
 
