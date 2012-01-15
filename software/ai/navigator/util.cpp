@@ -6,6 +6,7 @@
 #include "util/param.h"
 #include <algorithm>
 #include <cmath>
+#include <string>
 
 using namespace AI::Flags;
 using namespace AI::Nav::W;
@@ -558,14 +559,35 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 	const Point ballNorm = ballVel.norm();
 	const Point ballBoundedPos = vector_rect_intersect( field_rec, ballPos, ballPos + ballNorm );
 	const Angle targetBallOffsetAngle = vertex_angle( ballPos+ballVel, ballPos, targetPos ).angle_mod();
+	const bool robotBehindBall =  !point_in_front_vector( ballPos, ballVel, robotPos );
 
+	// display some info about the strategy
+	if (ctx != Cairo::RefPtr<Cairo::Context>()) {
+		// draw where ball goes out of field
+		ctx->arc(ballBoundedPos.x, ballBoundedPos.y, 0.05, 0.0, M_PI * 2);
+		ctx->set_source_rgb(0.8, 0.0, 0.0);
+		ctx->fill_preserve();
+		ctx->stroke();
+
+		// whether the robot is in front or behind the ball
+		ctx->set_font_size( 0.1 );
+		std::string str;
+		if( robotBehindBall ){ 
+			str = "B";
+		} else {
+			str = "F";
+		}
+		ctx->move_to( robotPos.x + 0.1, robotPos.y + 0.1 );
+		ctx->show_text( str );
+	}
 
 	// find out whether robot is behind the ball or in front of the ball
-	if( !point_in_front_vector( ballPos, ballVel+ballPos, robotPos ) ){
+	if( robotBehindBall ){
 		Point destPos;
 		Angle destAng;
 		const double AVOID_DIST = 0.2;
 		const double DELTA_TIME = 1.0;
+		timespec working_time = timespec_add(world.monotonic_time(), double_to_timespec(1.0));
 		// check for the side that has a clear path, TODO
 
 		// if the robot is in behind the ball, then move up to it from the far side to the target
@@ -578,27 +600,18 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 		// make the robot face against the ball direction
 		destAng = -ballVel.orientation();
 
-		
-
 		// assign this destination to the player
 		AI::Nav::W::Player::Path path;
-		path.push_back( std::make_pair( std::make_pair( destPos, destAng ), world.monotonic_time() ) );
+		path.push_back( std::make_pair( std::make_pair( destPos, destAng ), working_time) );
 		player->path( path );
 		
 		return true;
 	}
+	
 
 	// if the intersection is off the field or not found for some reason, return failure
 	if ( ballBoundedPos.x == 0.0 && ballBoundedPos.y == 0.0 ){
 		return false;
-	}
-
-	// draw where ball goes out of field
-	if (ctx != Cairo::RefPtr<Cairo::Context>()) {
-		ctx->arc(ballBoundedPos.x, ballBoundedPos.y, 0.05, 0.0, M_PI * 2);
-		ctx->set_source_rgb(0.8, 0.0, 0.0);
-		ctx->fill_preserve();
-		ctx->stroke();
 	}
 
 	// set up the resolution that we should check at
@@ -642,7 +655,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 		// check if the robot can make it
 		if (AI::Nav::Util::estimate_action_duration(path_points_with_angle) < (interval_time * i) || (i == points_to_check) || ball.velocity().len() < CATCH_BALL_VELOCITY_THRESH) {
 			// graph it out
-			if (ctx != Cairo::RefPtr<Cairo::Context>()) {
+			/*if (ctx != Cairo::RefPtr<Cairo::Context>()) {
 				Point p(path_points[path_points.size() - 1]);
 				ctx->arc(p.x, p.y, 0.05, 0.0, M_PI * 2);
 				ctx->set_source_rgb(0.2, 0.2, 0.0);
@@ -653,7 +666,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 				ctx->set_source_rgb(0.2, 0.5, 0.0);
 				ctx->fill_preserve();
 				ctx->stroke();
-			}
+			}*/
 
 			// prepare for assigning the path to the robot
 			AI::Nav::W::Player::Path path;
