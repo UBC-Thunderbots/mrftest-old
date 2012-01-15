@@ -639,7 +639,8 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 		std::vector<std::pair<Point, Angle> > path_points_with_angle;
 
 		// add the angle since planner doesn't include them
-		path_points_with_angle.push_back(std::make_pair(player->position(), (path_points[0] - player->position()).orientation()));
+		// this version makes the robot face it's immediate desitnation
+		/*path_points_with_angle.push_back(std::make_pair(player->position(), (path_points[0] - player->position()).orientation()));
 		for (unsigned int j = 0; j < path_points.size(); ++j) {
 			Angle path_orientation;
 			if (j + 1 == path_points.size()) {
@@ -650,6 +651,12 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 			}
 
 			path_points_with_angle.push_back(std::make_pair(path_points[j], path_orientation));
+		}*/
+		// this version makes the robot face the final direction the whole time
+		Angle path_orientation2 = vertex_angle( targetPos, move_to_point, ballPos )/2 - ballVel.orientation();
+		path_points_with_angle.push_back(std::make_pair(player->position(), path_orientation2));
+		for( unsigned int j = 0; j < path_points.size(); ++j ){
+			path_points_with_angle.push_back(std::make_pair(path_points[j], path_orientation2));
 		}
 
 		// check if the robot can make it
