@@ -76,7 +76,7 @@ bool AI::HL::STP::Action::corner_repel(const World &world, Player::Ptr player) {
 
 	// set to RAM_BALL instead of using chase
 	if (!player->has_ball()) {
-		Point dest = world.ball().position();
+		Point dest = ball;
 		if (dest.x < f.friendly_goal().x + Robot::MAX_RADIUS) { // avoid going inside the goal
 			dest.x = f.friendly_goal().x + Robot::MAX_RADIUS;
 		}

@@ -177,7 +177,7 @@ namespace {
 		}
 
 		void play(std::vector<Player::Ptr> &players) {
-			auto waypoints = Evaluation::evaluate_defense();
+			//auto waypoints = Evaluation::evaluate_defense();
 			if (players.size() == 1) {
 				auto goalie = Tactic::lone_goalie(world);
 				goalie->set_player(players[0]);

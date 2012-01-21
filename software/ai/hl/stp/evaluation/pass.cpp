@@ -139,8 +139,8 @@ std::pair<bool, Angle> Evaluation::best_shoot_ray(const World &world, const Play
 	for (int i = 0; i < Evaluation::ray_intervals; ++i) {
 		const Angle angle = angle_min + angle_step * i;
 
-		const Point p1 = player->position();
-		const Point p2 = p1 + 3 * Point::of_angle(angle);
+		//const Point p1 = player->position();
+		//const Point p2 = p1 + 3 * Point::of_angle(angle);
 
 		Angle diff = player->orientation().angle_diff(angle);
 
