@@ -102,8 +102,17 @@ double BallODE::getRadius() {
 Point BallODE::position() const {
 	Point p;
 	const dReal *t = dBodyGetPosition(body);
-	p.x = t[0];
-	p.y = t[1];
+	if (fabs(t[0]) > Simulator::Field::TOTAL_LENGTH/2 || fabs(t[1]) > Simulator::Field::TOTAL_WIDTH/2){
+		p.x = 0.0;
+		p.y = 0.0;
+		dBodySetPosition(body, static_cast<dReal>(p.x), static_cast<dReal>(p.y), t[2]);
+		dBodySetLinearVel(body, static_cast<dReal>(0.0), static_cast<dReal>(0.0), 0.0);
+		dBodySetAngularVel(body, 0.0, 0.0, 0.0);
+		std::cout << "ball reset" << std::endl;
+	} else {
+		p.x = t[0];
+		p.y = t[1];
+	}
 	// std::cout<<"ball"<<t[2]<<std::endl;
 	return p;
 }
