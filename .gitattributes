@@ -23,7 +23,7 @@ firmware/SuperSimpleBoostConverter/config.c -text
 firmware/SuperSimpleBoostConverter/config.h -text
 firmware/bitcodec/bitcodec -text
 firmware/bitcodec/bitcodec.py -text
-firmware/dongle/18f65j50.lkr -text
+firmware/dongle/18f67j50.lkr -text
 firmware/dongle/Doxyfile -text
 firmware/dongle/Makefile -text
 firmware/dongle/channels.c -text

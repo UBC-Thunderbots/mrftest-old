@@ -1,7 +1,7 @@
 #include "channels.h"
 #include <pic18fregs.h>
 
-__code __at(0x7800) uint8_t channels[2] = { 0x15, 0x17 };
+__code __at(0x1F800) uint8_t channels[2] = { 0x15, 0x17 };
 
 void channels_change(uint8_t channel0, uint8_t channel1) {
 	uint8_t old_intcon;

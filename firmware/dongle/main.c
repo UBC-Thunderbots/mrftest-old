@@ -290,12 +290,6 @@ static BOOL configure_xbee(uint8_t xbee) {
 	CRITSEC_LEAVE(cs);
 	dongle_status_dirty();
 
-	/* Reset the modem. */
-	if (!at_command(xbee, 0x81, "FR", 0, 0, 0, 0)) {
-		err = FAULT_XBEE0_RESET_FAILED + xbee;
-		goto out;
-	}
-
 	/* Enable RTS flow control on pin DIO6. */
 	buffer[0] = 1;
 	if (!at_command(xbee, 0x82, "D6", buffer, 1, 0, 0)) {
@@ -411,8 +405,13 @@ void main(void) {
 		while (!should_run);
 
 		/* Bring up the hardware. */
+		LAT_XBEE0_RESET = 0;
+		LAT_XBEE1_RESET = 0;
 		LAT_XBEE0_SLEEP = 0;
 		LAT_XBEE1_SLEEP = 0;
+		delay10tcy(2);
+		LAT_XBEE0_RESET = 1;
+		LAT_XBEE1_RESET = 1;
 		serial_init();
 		xbee_txpacket_init();
 		xbee_rxpacket_init();

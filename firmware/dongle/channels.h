@@ -6,7 +6,7 @@
 /**
  * \brief The channels the XBees should communicate on.
  */
-__code __at(0x7800) extern uint8_t channels[2];
+__code __at(0x1F800) extern uint8_t channels[2];
 
 /**
  * \brief Saves a new choice of channels.
