@@ -176,7 +176,7 @@ Player::~Player() {
 	bot->drive_scram();
 	bot->dribble(false);
 	bot->autokick(0, 0, 0);
-	bot->enable_charger(false);
+	bot->set_charger_state(XBeeRobot::ChargerState::DISCHARGE);
 }
 
 void Player::drive(const int(&w)[4]) {
@@ -237,7 +237,7 @@ void Player::tick(bool halt) {
 	bot->dribble(!halt);
 
 	// Kicker should always charge except in halt.
-	bot->enable_charger(!halt);
+	bot->set_charger_state(halt ? XBeeRobot::ChargerState::DISCHARGE : XBeeRobot::ChargerState::CHARGE);
 
 	// Calculations.
 	if (has_ball()) {

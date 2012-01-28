@@ -7,12 +7,18 @@ namespace {
 	}
 }
 
-KickerPanel::KickerPanel(XBeeRobot::Ptr robot) : Gtk::Table(6, 2), robot(robot), charge("Charge"), pulse_width1_label("Pulse width 1:"), pulse_width2_label("Pulse width 2:"), pulse_offset_label("Offset:"), kick("Kick"), autokick("Autokick"), autokick_count_label("Autokick Count:"), autokick_count_value_label("0"), autokick_count(0) {
+KickerPanel::KickerPanel(XBeeRobot::Ptr robot) : Gtk::Table(6, 2), robot(robot), discharge_button(charge_group, "Discharge"), float_button(charge_group, "Float"), charge_button(charge_group, "Charge"), pulse_width1_label("Pulse width 1:"), pulse_width2_label("Pulse width 2:"), pulse_offset_label("Offset:"), kick("Kick"), autokick("Autokick"), autokick_count_label("Autokick Count:"), autokick_count_value_label("0"), autokick_count(0) {
 	robot->alive.signal_changed().connect(sigc::mem_fun(this, &KickerPanel::on_alive_changed));
 	robot->signal_autokick_fired.connect(sigc::mem_fun(this, &KickerPanel::on_autokick_fired));
 
-	charge.signal_toggled().connect(sigc::mem_fun(this, &KickerPanel::on_charge_changed));
-	attach(charge, 0, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	discharge_button.set_active();
+	discharge_button.signal_toggled().connect(sigc::mem_fun(this, &KickerPanel::on_charge_changed));
+	float_button.signal_toggled().connect(sigc::mem_fun(this, &KickerPanel::on_charge_changed));
+	charge_button.signal_toggled().connect(sigc::mem_fun(this, &KickerPanel::on_charge_changed));
+	charge_box.pack_start(discharge_button, Gtk::PACK_EXPAND_WIDGET);
+	charge_box.pack_start(float_button, Gtk::PACK_EXPAND_WIDGET);
+	charge_box.pack_start(charge_button, Gtk::PACK_EXPAND_WIDGET);
+	attach(charge_box, 0, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	pulse_width1.get_adjustment()->configure(0, 0, 4064, 32, 256, 0);
 	pulse_width1.set_digits(0);
@@ -45,7 +51,7 @@ KickerPanel::KickerPanel(XBeeRobot::Ptr robot) : Gtk::Table(6, 2), robot(robot),
 }
 
 void KickerPanel::scram() {
-	charge.set_active(false);
+	discharge_button.set_active();
 	autokick.set_active(false);
 }
 
@@ -61,7 +67,13 @@ void KickerPanel::on_alive_changed() {
 }
 
 void KickerPanel::on_charge_changed() {
-	robot->enable_charger(charge.get_active());
+	if (float_button.get_active()) {
+		robot->set_charger_state(XBeeRobot::ChargerState::FLOAT);
+	} else if (charge_button.get_active()) {
+		robot->set_charger_state(XBeeRobot::ChargerState::CHARGE);
+	} else {
+		robot->set_charger_state(XBeeRobot::ChargerState::DISCHARGE);
+	}
 }
 
 void KickerPanel::on_kick() {

@@ -645,8 +645,9 @@ void XBeeRobot::dribble(bool active) {
 	flush_drive();
 }
 
-void XBeeRobot::enable_charger(bool active) {
-	drive_block.enable_charger = active;
+void XBeeRobot::set_charger_state(ChargerState state) {
+	drive_block.enable_charger = state == ChargerState::CHARGE;
+	drive_block.float_capacitor_voltage = state != ChargerState::DISCHARGE;
 	flush_drive();
 }
 

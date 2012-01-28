@@ -4,9 +4,10 @@
 #include "xbee/robot.h"
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>
-#include <gtkmm/checkbutton.h>
 #include <gtkmm/label.h>
 #include <gtkmm/scale.h>
+#include <gtkmm/radiobutton.h>
+#include <gtkmm/radiobuttongroup.h>
 #include <gtkmm/table.h>
 #include <gtkmm/togglebutton.h>
 /**
@@ -33,7 +34,9 @@ class KickerPanel : public Gtk::Table {
 
 	private:
 		XBeeRobot::Ptr robot;
-		Gtk::CheckButton charge;
+		Gtk::HBox charge_box;
+		Gtk::RadioButtonGroup charge_group;
+		Gtk::RadioButton discharge_button, float_button, charge_button;
 		Gtk::Label pulse_width1_label;
 		Gtk::HScale pulse_width1;
 		Gtk::Label pulse_width2_label;

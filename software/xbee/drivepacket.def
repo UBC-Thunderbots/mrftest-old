@@ -18,6 +18,9 @@ BITCODEC_DATA_BOOL(autokick_offset_sign, 4, false)
 // True -> run wheels with controllers. False -> run wheels open-loop.
 BITCODEC_DATA_BOOL(enable_controllers, 5, false)
 
+// True -> do not safely discharge capacitor. False -> safely discharge capacitor if charger disabled.
+BITCODEC_DATA_BOOL(float_capacitor_voltage, 6, false)
+
 // Target speeds of the wheels, in quarters of a degree per five milliseconds.
 BITCODEC_DATA_S(int16_t, uint16_t, wheel1, 8, 11, 0)
 BITCODEC_DATA_S(int16_t, uint16_t, wheel2, 19, 11, 0)

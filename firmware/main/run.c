@@ -912,6 +912,7 @@ void run(void) {
 				drive_block.enable_charger = false;
 				drive_block.enable_dribbler = false;
 				drive_block.enable_autokick = false;
+				drive_block.float_capacitor_voltage = false;
 			}
 
 			/* Check if any of the motors are enabled (wheels or dribbler). */
@@ -977,8 +978,8 @@ void run(void) {
 			if (drive_block.enable_charger) {
 				/* Host requests charger to be enabled. */
 				flags_out |= 0x02;
-			} else {
-				/* Host requests charger to be disabled. */
+			} else if (!drive_block.float_capacitor_voltage) {
+				/* Host requests charger to be disabled and capacitor to be discharged. */
 				if (feedback_block.capacitor_voltage_raw > CAPACITOR_SAFE_DISCHARGE_THRESHOLD) {
 					/* Capacitor voltage is high enough we should issue a tiny pulse to discharge it. */
 					parbus_write(10, CAPACITOR_SAFE_DISCHARGE_PULSE_WIDTH);

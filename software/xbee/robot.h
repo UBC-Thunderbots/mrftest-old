@@ -48,6 +48,26 @@ class XBeeRobot : public ByRef {
 		};
 
 		/**
+		 * \brief The possible states of the charger.
+		 */
+		enum class ChargerState {
+			/**
+			 * \brief Safely discharges the capacitor down to battery level.
+			 */
+			DISCHARGE,
+
+			/**
+			 * \brief Neither charges nor discharges the capacitors.
+			 */
+			FLOAT,
+
+			/**
+			 * \brief Charges the capacitor to full voltage.
+			 */
+			CHARGE,
+		};
+
+		/**
 		 * \brief The index of the robot, from 0 to 15.
 		 */
 		const unsigned int index;
@@ -205,11 +225,11 @@ class XBeeRobot : public ByRef {
 		void dribble(bool active = true);
 
 		/**
-		 * \brief Turns the capacitor charger on or off.
+		 * \brief Sets the state of the capacitor charger.
 		 *
-		 * \param[in] active \c true to turn the charger on, or \c false to turn it off.
+		 * \param[in] state the state to set the charger to.
 		 */
-		void enable_charger(bool active = true);
+		void set_charger_state(ChargerState state);
 
 		/**
 		 * \brief Executes a kick.
