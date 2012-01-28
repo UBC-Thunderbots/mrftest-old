@@ -113,6 +113,11 @@ namespace {
 					// remove all the contact points that we created in this step
 					dJointGroupEmpty(contactgroup);
 				}
+				// reset ball if it goes out of bounds
+				if (fabs(the_ball->position().x) > Simulator::Field::TOTAL_LENGTH/2 || fabs(the_ball->position().y) > Simulator::Field::TOTAL_WIDTH/2){
+					the_ball->position(Point(0,0));
+					the_ball->velocity(Point(0,0));				
+				}
 			}
 			void setWorld(dWorldID world) {
 				eworld = world;
