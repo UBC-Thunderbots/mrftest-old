@@ -231,7 +231,6 @@ void run(void) {
 	BOOL fpga_ok;
 	uint8_t autokick_lockout_time = 0;
 	uint8_t battery_fail_count = 0;
-	uint8_t liveness_blinkenlight_counter = 0;
 	uint8_t traffic_blinkenlight_counter = 0;
 
 	/* Clear state. */
@@ -322,7 +321,7 @@ void run(void) {
 				/* It's a receive data packet from XBee #0 with data from the dongle. */
 				if (!traffic_blinkenlight_counter) {
 					traffic_blinkenlight_counter = 40;
-					LAT_LED3 = 1;
+					LAT_LED4 = 0;
 				}
 				if (rxpacket->buf[4] & 0x02) {
 					/* It's a broadcast packet and therefore contains a poll code and a list of state transport micropackets for multiple robots. */
@@ -814,10 +813,13 @@ void run(void) {
 		}
 
 		if (PIR1bits.CCP1IF) {
-			/* Turn off the traffic blinkenlight. */
+			/* Turn on the traffic blinkenlight. */
 			if (traffic_blinkenlight_counter) {
 				if (!--traffic_blinkenlight_counter) {
-					LAT_LED3 = 0;
+					if (!LAT_LED4) {
+						LAT_LED4 = 1;
+						traffic_blinkenlight_counter = 40;
+					}
 				}
 			}
 		}
@@ -826,12 +828,6 @@ void run(void) {
 			uint8_t flags_in, flags_out = 0;
 			BOOL wheels_controlled = false;
 			int16_t encoder_readings[4];
-
-			/* Show a blinkenlight. */
-			if (++liveness_blinkenlight_counter == 40) {
-				liveness_blinkenlight_counter = 0;
-				LAT_LED4 = !LAT_LED4;
-			}
 
 			/* Auto-kick timeout should expire eventually. */
 			if (autokick_lockout_time && !feedback_block.flags.ball_in_beam) {
