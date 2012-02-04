@@ -547,80 +547,79 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 
 	// extract data from the player
 	const Field &field = world.field();
-	const Point targetPos = player->destination().first;
-	const Angle targetAng = ( field.enemy_goal()-player->position() ).orientation();
-	const Point robotPos = player->position();
+	const Point target_pos = player->destination().first;
+	const Angle target_ang = (field.enemy_goal()-player->position()).orientation();
+	const Point robot_pos = player->position();
 
 	// extract information from the ball
 	const Ball &ball = world.ball();
 	const Rect field_rec({ field.length() / 2, field.width() / 2 }, { -field.length() / 2, -field.width() / 2 });
-	const Point ballPos = ball.position();
-	const Point ballVel = ball.velocity();
-	const Point ballNorm = ballVel.norm();
-	const Point ballBoundedPos = vector_rect_intersect( field_rec, ballPos, ballPos + ballNorm );
-	const Angle targetBallOffsetAngle = vertex_angle( ballPos+ballVel, ballPos, targetPos ).angle_mod();
-	const bool robotBehindBall =  !point_in_front_vector( ballPos, ballVel, robotPos );
+	const Point ball_pos = ball.position();
+	const Point ball_vel = ball.velocity();
+	const Point ball_norm = ball_vel.norm();
+	const Point ball_bounded_pos = vector_rect_intersect(field_rec, ball_pos, ball_pos + ball_norm);
+	const Angle target_ball_offset_angle = vertex_angle(ball_pos + ball_vel, ball_pos, target_pos).angle_mod();
+	const bool robot_behind_ball =  !point_in_front_vector(ball_pos, ball_vel, robot_pos);
 
 	// display some info about the strategy
 	if (ctx != Cairo::RefPtr<Cairo::Context>()) {
 		// draw where ball goes out of field
-		ctx->arc(ballBoundedPos.x, ballBoundedPos.y, 0.05, 0.0, M_PI * 2);
+		ctx->arc(ball_bounded_pos.x, ball_bounded_pos.y, 0.05, 0.0, M_PI * 2);
 		ctx->set_source_rgb(0.8, 0.0, 0.0);
 		ctx->fill_preserve();
 		ctx->stroke();
 
 		// whether the robot is in front or behind the ball
-		ctx->set_font_size( 0.1 );
+		ctx->set_font_size(0.1);
 		std::string str;
-		if( robotBehindBall ){ 
+		if (robot_behind_ball) {
 			str = "B";
 		} else {
 			str = "F";
 		}
-		ctx->move_to( robotPos.x + 0.1, robotPos.y + 0.1 );
-		ctx->show_text( str );
+		ctx->move_to(robot_pos.x + 0.1, robot_pos.y + 0.1);
+		ctx->show_text(str);
 	}
 
 	// find out whether robot is behind the ball or in front of the ball
-	if( robotBehindBall ){
-		Point destPos;
-		Angle destAng;
+	if (robot_behind_ball) {
+		Point dest_pos;
+		Angle dest_ang;
 		const double AVOID_DIST = 0.2;
 		const double DELTA_TIME = 1.0;
 		timespec working_time = timespec_add(world.monotonic_time(), double_to_timespec(1.0));
 		// check for the side that has a clear path, TODO
 
 		// if the robot is in behind the ball, then move up to it from the far side to the target
-		if( targetBallOffsetAngle.to_degrees() > 0.0 ){
-			destPos = ballPos + ballNorm.rotate(Angle::QUARTER)*AVOID_DIST + ballVel * DELTA_TIME;
+		if (target_ball_offset_angle.to_degrees() > 0.0) {
+			dest_pos = ball_pos + ball_norm.rotate(Angle::QUARTER) * AVOID_DIST + ball_vel * DELTA_TIME;
 		} else {
-			destPos = ballPos + ballNorm.rotate(Angle::THREE_QUARTER)*AVOID_DIST + ballVel * DELTA_TIME;
+			dest_pos = ball_pos + ball_norm.rotate(Angle::THREE_QUARTER) * AVOID_DIST + ball_vel * DELTA_TIME;
 		}
 
 		// make the robot face against the ball direction
-		destAng = -ballVel.orientation();
+		dest_ang = -ball_vel.orientation();
 
 		// assign this destination to the player
 		AI::Nav::W::Player::Path path;
-		path.push_back( std::make_pair( std::make_pair( destPos, destAng ), working_time) );
-		player->path( path );
+		path.push_back(std::make_pair(std::make_pair(dest_pos, dest_ang), working_time));
+		player->path(path);
 		
 		return true;
 	}
-	
 
 	// if the intersection is off the field or not found for some reason, return failure
-	if ( ballBoundedPos.x == 0.0 && ballBoundedPos.y == 0.0 ){
+	if (ball_bounded_pos.x == 0.0 && ball_bounded_pos.y == 0.0) {
 		return false;
 	}
 
 	// set up the resolution that we should check at
 	int points_to_check = 20;
-	Point interval = (-ballPos + ballBoundedPos) * (1.0 / points_to_check);
+	Point interval = (-ball_pos + ball_bounded_pos) * (1.0 / points_to_check);
 	// set up how much the ball travels in each interval that we check, assume no decay
 	double interval_time = interval.len() / ball.velocity().len();
-	Point dest;
-	// timespec min_time = timespec(10000);                     // well just make this value big first
+	// we'll just make this value big first
+	// timespec min_time = timespec(10000);
 	std::vector<Point> path_points;
 	AI::Nav::RRTPlanner planner(world);
 	unsigned int flags = AI::Flags::FLAG_AVOID_BALL_TINY;
@@ -628,53 +627,25 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 #warning flags and timespec are not accounted for properly
 	for (int i = 0; i <= points_to_check; i++) {
 		// where the ball would roll to at a later time
-		Point ball_future_pos = ballPos + (interval * i);
+		Point ball_future_pos = ball_pos + (interval * i);
 		Point dir_from_target = (ball_future_pos - player->destination().first).norm();
 
-		// get a point that is behind the ball's future position in the direction of the target, this is where the bot should go to
+		// get a point that is behind the ball's future position in the direction of the target, this is where the robot should go to
 		Point move_to_point = ball_future_pos + (dir_from_target * CATCH_BALL_DISTANCE_AWAY);
 
 		// now plan out the path
 		path_points = planner.plan(player, move_to_point, flags);
 		std::vector<std::pair<Point, Angle> > path_points_with_angle;
 
-		// add the angle since planner doesn't include them
-		// this version makes the robot face it's immediate desitnation
-		/*path_points_with_angle.push_back(std::make_pair(player->position(), (path_points[0] - player->position()).orientation()));
-		for (unsigned int j = 0; j < path_points.size(); ++j) {
-			Angle path_orientation;
-			if (j + 1 == path_points.size()) {
-				// if this is the last point then the orientation should be the destination orientation
-				path_orientation = player->destination().second;
-			} else {
-				path_orientation = (path_points[j + 1] - path_points[j]).orientation();
-			}
-
-			path_points_with_angle.push_back(std::make_pair(path_points[j], path_orientation));
-		}*/
-		// this version makes the robot face the final direction the whole time
-		Angle path_orientation2 = vertex_angle( targetPos, move_to_point, ballPos )/2 - ballVel.orientation();
-		path_points_with_angle.push_back(std::make_pair(player->position(), path_orientation2));
+		// face the final direction the whole time
+		Angle path_orientation = vertex_angle(target_pos, move_to_point, ball_pos) / 2 - ball_vel.orientation();
+		path_points_with_angle.push_back(std::make_pair(player->position(), path_orientation));
 		for( unsigned int j = 0; j < path_points.size(); ++j ){
-			path_points_with_angle.push_back(std::make_pair(path_points[j], path_orientation2));
+			path_points_with_angle.push_back(std::make_pair(path_points[j], path_orientation));
 		}
 
 		// check if the robot can make it
 		if (AI::Nav::Util::estimate_action_duration(path_points_with_angle) < (interval_time * i) || (i == points_to_check) || ball.velocity().len() < CATCH_BALL_VELOCITY_THRESH) {
-			// graph it out
-			/*if (ctx != Cairo::RefPtr<Cairo::Context>()) {
-				Point p(path_points[path_points.size() - 1]);
-				ctx->arc(p.x, p.y, 0.05, 0.0, M_PI * 2);
-				ctx->set_source_rgb(0.2, 0.2, 0.0);
-				ctx->fill_preserve();
-				ctx->stroke();
-				Point p2(ball_future_pos);
-				ctx->arc(p2.x, p2.y, 0.05, 0.0, M_PI * 2);
-				ctx->set_source_rgb(0.2, 0.5, 0.0);
-				ctx->fill_preserve();
-				ctx->stroke();
-			}*/
-
 			// prepare for assigning the path to the robot
 			AI::Nav::W::Player::Path path;
 			timespec working_time = world.monotonic_time();
@@ -683,7 +654,8 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 			if (line_pt_dist(move_to_point, ball_future_pos, player->position()) > CATCH_BALL_THRESHOLD) {
 				// ignore first point since it is bot's position
 				for (unsigned int j = 1; j < path_points_with_angle.size(); j++) {
-					path.push_back(std::make_pair(path_points_with_angle[j], working_time));    // not going for proper timestamp, yet
+					// not going for proper timestamp, yet
+					path.push_back(std::make_pair(path_points_with_angle[j], working_time));
 				}
 			}
 
