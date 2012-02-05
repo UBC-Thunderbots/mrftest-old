@@ -34,7 +34,7 @@ namespace {
 	}
 
 	Navigator::Ptr SimpleNavigator::create(World &world) {
-		const Navigator::Ptr p(new SimpleNavigator(world));
+		Navigator::Ptr p(new SimpleNavigator(world));
 		return p;
 	}
 

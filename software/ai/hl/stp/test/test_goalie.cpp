@@ -8,16 +8,6 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	class TestLoneGoalieFactory : public HighLevelFactory {
-		public:
-			TestLoneGoalieFactory() : HighLevelFactory("Test STP Lone Goalie") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	TestLoneGoalieFactory factory_instance;
-
 	class TestLoneGoalie : public HighLevel {
 		public:
 			TestLoneGoalie(World &world) : world(world) {
@@ -26,9 +16,7 @@ namespace {
 		private:
 			World &world;
 
-			TestLoneGoalieFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			Gtk::Widget *ui_controls() {
 				return 0;
@@ -44,10 +32,7 @@ namespace {
 				Action::lone_goalie(world, friendly.get(0));
 			}
 	};
-
-	HighLevel::Ptr TestLoneGoalieFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new TestLoneGoalie(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(TestLoneGoalie)
 

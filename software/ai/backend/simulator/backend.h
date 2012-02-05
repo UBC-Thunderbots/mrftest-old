@@ -196,7 +196,7 @@ namespace AI {
 			 *
 			 * \return the connected socket.
 			 */
-			FileDescriptor::Ptr connect_to_simulator();
+			FileDescriptor connect_to_simulator();
 
 			/**
 			 * A backend that talks to the simulator process over a UNIX-domain socket.
@@ -237,7 +237,7 @@ namespace AI {
 					 *
 					 * \param[in] ancillary_fd the ancillary file descriptor to send with the message.
 					 */
-					void send_packet(const ::Simulator::Proto::A2SPacket &packet, FileDescriptor::Ptr ancillary_fd = FileDescriptor::Ptr());
+					void send_packet(const ::Simulator::Proto::A2SPacket &packet, const FileDescriptor &ancillary_fd = FileDescriptor());
 
 					AI::BE::BackendFactory &factory() const;
 					const AI::BE::Simulator::Field &field() const;
@@ -261,7 +261,7 @@ namespace AI {
 					/**
 					 * The UNIX-domain socket connected to the server.
 					 */
-					FileDescriptor::Ptr sock;
+					FileDescriptor sock;
 
 					/**
 					 * The field geometry.

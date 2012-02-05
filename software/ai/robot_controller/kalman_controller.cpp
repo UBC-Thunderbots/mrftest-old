@@ -9,7 +9,6 @@
 #include "ai/robot_controller/robot_controller.h"
 #include "geom/angle.h"
 #include "geom/point.h"
-#include "util/byref.h"
 #include "util/noncopyable.h"
 #include "util/dprint.h"
 #include "util/param.h"
@@ -204,19 +203,6 @@ namespace {
 	};
 
 	typedef KalmanController::State State;
-
-
-	class KalmanControllerFactory : public RobotControllerFactory {
-		public:
-			KalmanControllerFactory() : RobotControllerFactory("Kalman Test") {
-			}
-
-			RobotController::Ptr create_controller(World &world, Player::Ptr player) const {
-				RobotController::Ptr p(new KalmanController(world, player));
-				return p;
-			}
-	};
-
-	KalmanControllerFactory factory;
 }
 
+ROBOT_CONTROLLER_REGISTER(KalmanController)

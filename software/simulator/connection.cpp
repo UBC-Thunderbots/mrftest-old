@@ -5,24 +5,24 @@
 #include "util/misc.h"
 #include <cstring>
 #include <iostream>
+#include <utility>
 #include <sys/socket.h>
 #include <sys/types.h>
 
-Simulator::Connection::Ptr Simulator::Connection::create(FileDescriptor::Ptr sock) {
-	Ptr p(new Connection(sock));
-	return p;
+Simulator::Connection::Connection(FileDescriptor &&sck) : sock(std::move(sck)) {
+	Glib::signal_io().connect(sigc::mem_fun(this, &Connection::on_readable), sock.fd(), Glib::IO_IN);
 }
 
 sigc::signal<void> &Simulator::Connection::signal_closed() const {
 	return signal_closed_;
 }
 
-sigc::signal<void, const Simulator::Proto::A2SPacket &, FileDescriptor::Ptr> &Simulator::Connection::signal_packet() const {
+sigc::signal<void, const Simulator::Proto::A2SPacket &, std::shared_ptr<FileDescriptor> > &Simulator::Connection::signal_packet() const {
 	return signal_packet_;
 }
 
 void Simulator::Connection::send(const Proto::S2APacket &packet) {
-	if (::send(sock->fd(), &packet, sizeof(packet), MSG_NOSIGNAL) < 0) {
+	if (::send(sock.fd(), &packet, sizeof(packet), MSG_NOSIGNAL) < 0) {
 		try {
 			throw SystemError("send", errno);
 		} catch (const SystemError &exp) {
@@ -32,16 +32,12 @@ void Simulator::Connection::send(const Proto::S2APacket &packet) {
 	}
 }
 
-Simulator::Connection::Connection(FileDescriptor::Ptr sock) : sock(sock) {
-	Glib::signal_io().connect(sigc::mem_fun(this, &Connection::on_readable), sock->fd(), Glib::IO_IN);
-}
-
 bool Simulator::Connection::on_readable(Glib::IOCondition) {
 	Proto::A2SPacket packet;
 	iovec iov = { iov_base: &packet, iov_len: sizeof(packet), };
 	char ancillary[cmsg_space(sizeof(int))];
 	msghdr mh = { msg_name: 0, msg_namelen: 0, msg_iov: &iov, msg_iovlen: 1, msg_control: ancillary, msg_controllen: sizeof(ancillary), msg_flags: 0, };
-	ssize_t rc = recvmsg(sock->fd(), &mh, MSG_DONTWAIT);
+	ssize_t rc = recvmsg(sock.fd(), &mh, MSG_DONTWAIT);
 	if (rc < 0) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
 			return true;
@@ -64,7 +60,7 @@ bool Simulator::Connection::on_readable(Glib::IOCondition) {
 		return false;
 	} else {
 		// Extract any ancillary file descriptors.
-		FileDescriptor::Ptr fd;
+		std::shared_ptr<FileDescriptor> fd;
 		{
 			for (cmsghdr *cmsgh = cmsg_firsthdr(&mh); cmsgh; cmsgh = cmsg_nxthdr(&mh, cmsgh)) {
 				if (cmsgh->cmsg_level == SOL_SOCKET && cmsgh->cmsg_type == SCM_RIGHTS) {
@@ -75,13 +71,12 @@ bool Simulator::Connection::on_readable(Glib::IOCondition) {
 					}
 					int ifd;
 					std::memcpy(&ifd, cmsg_data(cmsgh), sizeof(ifd));
-					fd = FileDescriptor::create_from_fd(ifd);
+					fd = std::make_shared<FileDescriptor>(FileDescriptor::create_from_fd(ifd));
 				}
 			}
 		}
 
 		// Might drop the last reference inside a signal_packet() handler; keep the object alive until we return.
-		Ptr guard(this);
 		signal_packet().emit(packet, fd);
 		return true;
 	}

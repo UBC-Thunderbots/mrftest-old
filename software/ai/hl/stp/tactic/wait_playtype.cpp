@@ -1,6 +1,7 @@
 #include "ai/hl/stp/tactic/wait_playtype.h"
 #include "ai/hl/util.h"
 #include <cassert>
+#include <utility>
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -8,8 +9,8 @@ using namespace AI::HL::W;
 namespace {
 	class WaitPlaytype : public Tactic {
 		public:
-			WaitPlaytype(const World &world, const Tactic::Ptr tactic, const AI::Common::PlayType playtype) : Tactic(world, true), tactic(tactic), playtype(playtype) {
-				assert(tactic.is());
+			WaitPlaytype(const World &world, Tactic::Ptr &&tactic, const AI::Common::PlayType playtype) : Tactic(world, true), tactic(std::move(tactic)), playtype(playtype) {
+				assert(this->tactic);
 			}
 
 		private:
@@ -41,8 +42,8 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::wait_playtype(const World &world, const Tactic::Ptr tactic, const AI::Common::PlayType playtype) {
-	const Tactic::Ptr p(new WaitPlaytype(world, tactic, playtype));
+Tactic::Ptr AI::HL::STP::Tactic::wait_playtype(const World &world, Tactic::Ptr &&tactic, const AI::Common::PlayType playtype) {
+	Tactic::Ptr p(new WaitPlaytype(world, std::move(tactic), playtype));
 	return p;
 }
 

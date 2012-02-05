@@ -71,7 +71,7 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::penalty_goalie(const World &world) {
-	const Tactic::Ptr p(new PenaltyGoalie(world));
+	Tactic::Ptr p(new PenaltyGoalie(world));
 	return p;
 }
 

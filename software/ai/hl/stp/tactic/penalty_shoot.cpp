@@ -72,7 +72,7 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::penalty_shoot(const World &world) {
-	const Tactic::Ptr p(new PenaltyShoot(world));
+	Tactic::Ptr p(new PenaltyShoot(world));
 	return p;
 }
 

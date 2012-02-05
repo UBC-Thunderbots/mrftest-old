@@ -33,7 +33,7 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 				if (row == 0) {
 					v.set(col == static_cast<unsigned int>(node_column.index()) ? "<None>" : "");
 				} else {
-					v.set(col == static_cast<unsigned int>(node_column.index()) ? Glib::filename_to_utf8(sticks[row - 1]->node) : sticks[row - 1]->name);
+					v.set(col == static_cast<unsigned int>(node_column.index()) ? Glib::filename_to_utf8(sticks[row - 1]->node()) : sticks[row - 1]->name());
 				}
 				value.init(node_column.type());
 				value = v;
@@ -46,16 +46,16 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 			std::abort();
 		}
 
-		Joystick::Ptr get_device(std::size_t index) {
-			return index > 0 ? sticks[index - 1] : Joystick::Ptr();
+		const Joystick *get_device(std::size_t index) {
+			return index > 0 ? sticks[index - 1] : 0;
 		}
 
-		const JoystickMapping &get_mapping(Joystick::Ptr stick) {
-			return mappings.find(stick->name.collate_key())->second;
+		const JoystickMapping &get_mapping(const Joystick &stick) {
+			return mappings.find(stick.name().collate_key())->second;
 		}
 
 	private:
-		std::vector<Joystick::Ptr> sticks;
+		std::vector<const Joystick *> sticks;
 
 		std::unordered_map<std::string, JoystickMapping> mappings;
 
@@ -81,17 +81,17 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 				}
 			}
 
-			for (auto i = Joystick::all().begin(), iend = Joystick::all().end(); i != iend; ++i) {
-				Joystick::Ptr stick = *i;
-				if (mappings.count(stick->name.collate_key())) {
-					sticks.push_back(stick);
+			for (std::size_t i = 0; i < Joystick::count(); ++i) {
+				const Joystick &stick = Joystick::get(i);
+				if (mappings.count(stick.name().collate_key())) {
+					sticks.push_back(&stick);
 				}
 			}
 		}
 };
 
-TesterWindow::TesterWindow(XBeeDongle &dongle, XBeeRobot::Ptr robot) : mapped_joysticks(MappedJoysticksModel::create()), robot(robot), feedback_frame("Feedback"), feedback_panel(dongle, robot), drive_frame("Drive"), drive_panel(robot), dribble_button("Dribble"), kicker_frame("Kicker"), kicker_panel(robot), params_frame("Parameters"), params_panel(robot), joystick_frame("Joystick"), joystick_sensitivity_high_button(joystick_sensitivity_group, "High Sensitivity"), joystick_sensitivity_low_button(joystick_sensitivity_group, "Low Sensitivity"), joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks)) {
-	set_title(Glib::ustring::compose("Tester (%1)", robot->index));
+TesterWindow::TesterWindow(XBeeDongle &dongle, XBeeRobot &robot) : mapped_joysticks(MappedJoysticksModel::create()), robot(robot), feedback_frame("Feedback"), feedback_panel(dongle, robot), drive_frame("Drive"), drive_panel(robot), dribble_button("Dribble"), kicker_frame("Kicker"), kicker_panel(robot), params_frame("Parameters"), params_panel(robot), joystick_frame("Joystick"), joystick_sensitivity_high_button(joystick_sensitivity_group, "High Sensitivity"), joystick_sensitivity_low_button(joystick_sensitivity_group, "Low Sensitivity"), joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks)) {
+	set_title(Glib::ustring::compose("Tester (%1)", robot.index));
 
 	feedback_frame.add(feedback_panel);
 	vbox1.pack_start(feedback_frame, Gtk::PACK_SHRINK);
@@ -150,41 +150,42 @@ int TesterWindow::key_snoop(Widget *, GdkEventKey *event) {
 }
 
 void TesterWindow::on_dribble_toggled() {
-	robot->dribble(dribble_button.get_active());
+	robot.dribble(dribble_button.get_active());
 }
 
 void TesterWindow::on_joystick_chooser_changed() {
 	std::for_each(joystick_signal_connections.begin(), joystick_signal_connections.end(), [](sigc::connection &conn) { conn.disconnect(); });
 	joystick_signal_connections.clear();
-	Joystick::Ptr stick = mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
-	if (stick.is()) {
+	const Joystick *pstick = mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
+	if (pstick) {
+		const Joystick &stick = *pstick;
 		const JoystickMapping &m = mapped_joysticks->get_mapping(stick);
 		for (unsigned int i = 0; i < JoystickMapping::N_AXES; ++i) {
 			if (m.has_axis(i)) {
-				joystick_signal_connections.push_back(stick->axes()[m.axis(i)].signal_changed().connect(sigc::mem_fun(this, &TesterWindow::on_joystick_drive_axis_changed)));
+				joystick_signal_connections.push_back(stick.axes()[m.axis(i)].signal_changed().connect(sigc::mem_fun(this, &TesterWindow::on_joystick_drive_axis_changed)));
 			}
 		}
 		if (m.has_button(JoystickMapping::BUTTON_DRIBBLE)) {
-			joystick_signal_connections.push_back(stick->buttons()[m.button(JoystickMapping::BUTTON_DRIBBLE)].signal_changed().connect(sigc::mem_fun(this, &TesterWindow::on_joystick_dribble_changed)));
+			joystick_signal_connections.push_back(stick.buttons()[m.button(JoystickMapping::BUTTON_DRIBBLE)].signal_changed().connect(sigc::mem_fun(this, &TesterWindow::on_joystick_dribble_changed)));
 		}
 		if (m.has_button(JoystickMapping::BUTTON_KICK)) {
-			joystick_signal_connections.push_back(stick->buttons()[m.button(JoystickMapping::BUTTON_KICK)].signal_changed().connect(sigc::mem_fun(this, &TesterWindow::on_joystick_kick_changed)));
+			joystick_signal_connections.push_back(stick.buttons()[m.button(JoystickMapping::BUTTON_KICK)].signal_changed().connect(sigc::mem_fun(this, &TesterWindow::on_joystick_kick_changed)));
 		}
 		if (m.has_button(JoystickMapping::BUTTON_SCRAM)) {
-			joystick_signal_connections.push_back(stick->buttons()[m.button(JoystickMapping::BUTTON_SCRAM)].signal_changed().connect(sigc::mem_fun(this, &TesterWindow::on_joystick_scram_changed)));
+			joystick_signal_connections.push_back(stick.buttons()[m.button(JoystickMapping::BUTTON_SCRAM)].signal_changed().connect(sigc::mem_fun(this, &TesterWindow::on_joystick_scram_changed)));
 		}
 		on_joystick_drive_axis_changed();
 	}
 }
 
 void TesterWindow::on_joystick_drive_axis_changed() {
-	Joystick::Ptr stick = mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
+	const Joystick &stick = *mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
 	const JoystickMapping &m = mapped_joysticks->get_mapping(stick);
 	double drive_axes[4];
 	static_assert(JoystickMapping::N_AXES >= G_N_ELEMENTS(drive_axes), "Not enough joystick axes for drive wheels");
 	for (unsigned int i = 0; i < G_N_ELEMENTS(drive_axes); ++i) {
 		if (m.has_axis(i)) {
-			drive_axes[i] = std::pow(-stick->axes()[m.axis(i)], 3);
+			drive_axes[i] = std::pow(-stick.axes()[m.axis(i)], 3);
 		} else {
 			drive_axes[i] = 0;
 		}
@@ -200,25 +201,25 @@ void TesterWindow::on_joystick_drive_axis_changed() {
 }
 
 void TesterWindow::on_joystick_dribble_changed() {
-	Joystick::Ptr stick = mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
+	const Joystick &stick = *mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
 	const JoystickMapping &m = mapped_joysticks->get_mapping(stick);
-	if (m.has_button(JoystickMapping::BUTTON_DRIBBLE) && stick->buttons()[m.button(JoystickMapping::BUTTON_DRIBBLE)]) {
+	if (m.has_button(JoystickMapping::BUTTON_DRIBBLE) && stick.buttons()[m.button(JoystickMapping::BUTTON_DRIBBLE)]) {
 		dribble_button.set_active(!dribble_button.get_active());
 	}
 }
 
 void TesterWindow::on_joystick_kick_changed() {
-	Joystick::Ptr stick = mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
+	const Joystick &stick = *mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
 	const JoystickMapping &m = mapped_joysticks->get_mapping(stick);
-	if (m.has_button(JoystickMapping::BUTTON_KICK) && stick->buttons()[m.button(JoystickMapping::BUTTON_KICK)]) {
+	if (m.has_button(JoystickMapping::BUTTON_KICK) && stick.buttons()[m.button(JoystickMapping::BUTTON_KICK)]) {
 		kicker_panel.fire();
 	}
 }
 
 void TesterWindow::on_joystick_scram_changed() {
-	Joystick::Ptr stick = mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
+	const Joystick &stick = *mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
 	const JoystickMapping &m = mapped_joysticks->get_mapping(stick);
-	if (m.has_button(JoystickMapping::BUTTON_SCRAM) && stick->buttons()[m.button(JoystickMapping::BUTTON_SCRAM)]) {
+	if (m.has_button(JoystickMapping::BUTTON_SCRAM) && stick.buttons()[m.button(JoystickMapping::BUTTON_SCRAM)]) {
 		scram();
 	}
 }

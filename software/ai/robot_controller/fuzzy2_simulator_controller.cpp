@@ -2,7 +2,6 @@
 #include "ai/robot_controller/tunable_controller.h"
 #include "geom/angle.h"
 #include "geom/point.h"
-#include "util/byref.h"
 #include "util/noncopyable.h"
 #include "util/dprint.h"
 #include "util/param.h"
@@ -27,9 +26,9 @@ namespace {
 	const std::vector<double> param_max(arr_max, arr_max + P);
 	const std::vector<double> param_default(arr_def, arr_def + P);
 
-	class Fuzzy2Controller : public RobotController, public TunableController {
+	class Fuzzy2SimulatorController : public RobotController, public TunableController {
 		public:
-			Fuzzy2Controller(World &world, Player::Ptr player) : RobotController(world, player), param(param_default) {
+			Fuzzy2SimulatorController(World &world, Player::Ptr player) : RobotController(world, player), param(param_default) {
 			}
 
 			void tick() {
@@ -116,18 +115,7 @@ namespace {
 			std::vector<double> param;
 			Point prev_linear_velocity;
 	};
-
-	class Fuzzy2ControllerFactory : public RobotControllerFactory {
-		public:
-			Fuzzy2ControllerFactory() : RobotControllerFactory("Simulator Fuzzy") {
-			}
-
-			RobotController::Ptr create_controller(World &world, Player::Ptr player) const {
-				RobotController::Ptr p(new Fuzzy2Controller(world, player));
-				return p;
-			}
-	};
-
-	Fuzzy2ControllerFactory factory;
 }
+
+ROBOT_CONTROLLER_REGISTER(Fuzzy2SimulatorController)
 

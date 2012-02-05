@@ -9,16 +9,6 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	class TestSpinFactory : public HighLevelFactory {
-		public:
-			TestSpinFactory() : HighLevelFactory("Test STP Spin") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	TestSpinFactory factory_instance;
-
 	class TestSpin : public HighLevel {
 		public:
 			TestSpin(World &world) : world(world) {
@@ -27,9 +17,7 @@ namespace {
 		private:
 			World &world;
 
-			TestSpinFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			Gtk::Widget *ui_controls() {
 				return 0;
@@ -46,10 +34,7 @@ namespace {
 				Action::move_spin(friendly.get(0), world.ball().position() + Robot::MAX_RADIUS * dirToBall);
 			}
 	};
-
-	HighLevel::Ptr TestSpinFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new TestSpin(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(TestSpin)
 

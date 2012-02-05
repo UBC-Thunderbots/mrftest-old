@@ -11,16 +11,6 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	class TestDefendFactory : public HighLevelFactory {
-		public:
-			TestDefendFactory() : HighLevelFactory("Test STP Defend") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	TestDefendFactory factory_instance;
-
 	class TestDefend : public HighLevel {
 		public:
 			TestDefend(World &world) : world(world) {
@@ -29,9 +19,7 @@ namespace {
 		private:
 			World &world;
 
-			TestDefendFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			Gtk::Widget *ui_controls() {
 				return 0;
@@ -54,10 +42,7 @@ namespace {
 				draw_defense(world, ctx);
 			}
 	};
-
-	HighLevel::Ptr TestDefendFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new TestDefend(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(TestDefend)
 

@@ -199,11 +199,11 @@ LibUSBDevice LibUSBDeviceList::operator[](const std::size_t i) const {
 
 
 
-LibUSBDeviceHandle::LibUSBDeviceHandle(const LibUSBDevice &device) {
+LibUSBDeviceHandle::LibUSBDeviceHandle(const LibUSBDevice &device) : context(device.context) {
 	check_fn("libusb_open", libusb_open(device.device, &handle));
 }
 
-LibUSBDeviceHandle::LibUSBDeviceHandle(LibUSBContext &context, unsigned int vendor_id, unsigned int product_id) {
+LibUSBDeviceHandle::LibUSBDeviceHandle(LibUSBContext &context, unsigned int vendor_id, unsigned int product_id) : context(context.context), submitted_transfer_count(0) {
 	LibUSBDeviceList lst(context);
 	for (std::size_t i = 0; i < lst.size(); ++i) {
 		const LibUSBDevice &device = lst[i];
@@ -211,7 +211,7 @@ LibUSBDeviceHandle::LibUSBDeviceHandle(LibUSBContext &context, unsigned int vend
 			for (std::size_t j = i + 1; j < lst.size(); ++j) {
 				const LibUSBDevice &device = lst[j];
 				if (device.vendor_id() == vendor_id && device.product_id() == product_id) {
-					throw std::runtime_error("Two dongles attached");
+					throw std::runtime_error("Multiple matching USB devices attached");
 				}
 			}
 
@@ -220,10 +220,13 @@ LibUSBDeviceHandle::LibUSBDeviceHandle(LibUSBContext &context, unsigned int vend
 		}
 	}
 
-	throw std::runtime_error("No dongle attached");
+	throw std::runtime_error("No matching USB devices attached");
 }
 
 LibUSBDeviceHandle::~LibUSBDeviceHandle() {
+	while (submitted_transfer_count) {
+		check_fn("libusb_handle_events", libusb_handle_events(context));
+	}
 	libusb_close(handle);
 }
 
@@ -269,6 +272,48 @@ std::size_t LibUSBDeviceHandle::interrupt_in(unsigned char endpoint, void *data,
 
 
 
+class TransferMetadata : public NonCopyable {
+	public:
+		static TransferMetadata *get(libusb_transfer *transfer) {
+			return static_cast<TransferMetadata *>(transfer->user_data);
+		}
+
+		TransferMetadata(LibUSBTransfer &transfer, LibUSBDeviceHandle &device) : transfer_(&transfer), device_(device) {
+		}
+
+		LibUSBTransfer *transfer() const {
+			return transfer_;
+		}
+
+		LibUSBDeviceHandle &device() const {
+			return device_;
+		}
+
+		void disown() {
+			transfer_ = 0;
+		}
+
+	private:
+		LibUSBTransfer *transfer_;
+		LibUSBDeviceHandle &device_;
+};
+
+LibUSBTransfer::~LibUSBTransfer() {
+	if (submitted_) {
+		// The transfer is submitted.
+		// Initiate transfer cancellation.
+		// Instead of waiting for cancellation to complete, "disown" the transfer object.
+		// It will be freed by the trampoline.
+		libusb_cancel_transfer(transfer);
+		TransferMetadata::get(transfer)->disown();
+	} else {
+		// The transfer is not submitted and therefore can safely be freed.
+		delete TransferMetadata::get(transfer);
+		delete [] transfer->buffer;
+		libusb_free_transfer(transfer);
+	}
+}
+
 void LibUSBTransfer::result() const {
 	assert(done_);
 	switch (transfer->status) {
@@ -303,22 +348,39 @@ void LibUSBTransfer::submit() {
 	check_fn("libusb_submit_transfer", libusb_submit_transfer(transfer));
 	submitted_ = true;
 	done_ = false;
-	submitted_self_ref.reset(this);
+	++device.submitted_transfer_count;
 }
 
-void LibUSBTransfer::trampoline(libusb_transfer *transfer) {
-	LibUSBTransfer *ptr = static_cast<LibUSBTransfer *>(transfer->user_data);
-	Glib::signal_idle().connect_once(sigc::mem_fun(ptr, &LibUSBTransfer::callback));
+void LibUSBTransfer::handle_completed_transfer_trampoline(libusb_transfer *transfer) {
+	TransferMetadata *md = TransferMetadata::get(transfer);
+	--md->device().submitted_transfer_count;
+	if (md->transfer()) {
+		md->transfer()->handle_completed_transfer();
+	} else {
+		// This happens if the LibUSBTransfer object has been destroyed but the transfer was submitted at the time.
+		// The disowned libusb_transfer needs to be allowed to finish cancelling before being freed.
+		delete md;
+		delete [] transfer->buffer;
+		libusb_free_transfer(transfer);
+	}
 }
 
-LibUSBTransfer::LibUSBTransfer(unsigned int stall_max) : transfer(libusb_alloc_transfer(0)), submitted_(false), done_(false), repeats_(false), stall_count(0), stall_max(stall_max) {
+LibUSBTransfer::LibUSBTransfer(LibUSBDeviceHandle &dev, unsigned int stall_max) : device(dev), transfer(libusb_alloc_transfer(0)), submitted_(false), done_(false), stall_count(0), stall_max(stall_max) {
+	if (!transfer) {
+		throw std::bad_alloc();
+	}
+	try {
+		transfer->user_data = new TransferMetadata(*this, dev);
+	} catch (...) {
+		libusb_free_transfer(transfer);
+		throw;
+	}
+	transfer->flags = 0;
 }
 
-LibUSBTransfer::~LibUSBTransfer() {
-	libusb_free_transfer(transfer);
-}
-
-void LibUSBTransfer::callback() {
+void LibUSBTransfer::handle_completed_transfer() {
+	done_ = true;
+	submitted_ = false;
 	if ((transfer->status == LIBUSB_TRANSFER_STALL || transfer->status == LIBUSB_TRANSFER_ERROR) && stall_count < stall_max) {
 		++stall_count;
 		if (transfer->status == LIBUSB_TRANSFER_STALL) {
@@ -326,32 +388,19 @@ void LibUSBTransfer::callback() {
 		} else {
 			LOG_ERROR(Glib::ustring::compose("Ignored transfer error %1 of %2 on %3 endpoint %4", stall_count, stall_max, ((transfer->endpoint & LIBUSB_ENDPOINT_DIR_MASK) == LIBUSB_ENDPOINT_IN) ? "IN" : "OUT", static_cast<unsigned int>(transfer->endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK)));
 		}
-		check_fn("libusb_submit_transfer", libusb_submit_transfer(transfer));
+		submit();
 		return;
 	} else if (transfer->status != LIBUSB_TRANSFER_STALL && transfer->status != LIBUSB_TRANSFER_ERROR) {
 		stall_count = 0;
 	}
-	done_ = true;
-	submitted_ = false;
-	Ptr pthis(this);
-	submitted_self_ref.reset();
-	signal_done.emit(pthis);
-	if (repeats_) {
-		submit();
-	}
+	signal_done.emit(*this);
 }
 
 
 
-LibUSBInterruptInTransfer::Ptr LibUSBInterruptInTransfer::create(LibUSBDeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout, unsigned int stall_max) {
-	Ptr p(new LibUSBInterruptInTransfer(dev, endpoint, len, exact_len, timeout, stall_max));
-	return p;
-}
-
-LibUSBInterruptInTransfer::LibUSBInterruptInTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout, unsigned int stall_max) : LibUSBTransfer(stall_max) {
+LibUSBInterruptInTransfer::LibUSBInterruptInTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout, unsigned int stall_max) : LibUSBTransfer(dev, stall_max) {
 	assert((endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK) == endpoint);
-	libusb_fill_interrupt_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_IN, static_cast<unsigned char *>(std::malloc(len)), static_cast<int>(len), &LibUSBTransfer::trampoline, this, timeout);
-	transfer->flags |= LIBUSB_TRANSFER_FREE_BUFFER;
+	libusb_fill_interrupt_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_IN, new unsigned char[len], static_cast<int>(len), &LibUSBTransfer::handle_completed_transfer_trampoline, transfer->user_data, timeout);
 	if (exact_len) {
 		transfer->flags |= LIBUSB_TRANSFER_SHORT_NOT_OK;
 	}
@@ -359,15 +408,9 @@ LibUSBInterruptInTransfer::LibUSBInterruptInTransfer(LibUSBDeviceHandle &dev, un
 
 
 
-LibUSBInterruptOutTransfer::Ptr LibUSBInterruptOutTransfer::create(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max) {
-	Ptr p(new LibUSBInterruptOutTransfer(dev, endpoint, data, len, timeout, stall_max));
-	return p;
-}
-
-LibUSBInterruptOutTransfer::LibUSBInterruptOutTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max) : LibUSBTransfer(stall_max) {
+LibUSBInterruptOutTransfer::LibUSBInterruptOutTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max) : LibUSBTransfer(dev, stall_max) {
 	assert((endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK) == endpoint);
-	libusb_fill_interrupt_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_OUT, static_cast<unsigned char *>(std::malloc(len)), static_cast<int>(len), &LibUSBTransfer::trampoline, this, timeout);
+	libusb_fill_interrupt_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_OUT, new unsigned char[len], static_cast<int>(len), &LibUSBTransfer::handle_completed_transfer_trampoline, transfer->user_data, timeout);
 	std::memcpy(transfer->buffer, data, len);
-	transfer->flags |= LIBUSB_TRANSFER_FREE_BUFFER;
 }
 

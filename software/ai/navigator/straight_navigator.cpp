@@ -97,7 +97,7 @@ namespace {
 	}
 
 	Navigator::Ptr StraightNavigator::create(World &world) {
-		const Navigator::Ptr p(new StraightNavigator(world));
+		Navigator::Ptr p(new StraightNavigator(world));
 		return p;
 	}
 

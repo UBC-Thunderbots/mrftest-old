@@ -33,12 +33,12 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::lone_goalie(const World &world) {
-	const Tactic::Ptr p(new LoneGoalie(world, false));
+	Tactic::Ptr p(new LoneGoalie(world, false));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::lone_goalie_active(const World &world) {
-	const Tactic::Ptr p(new LoneGoalie(world, true));
+	Tactic::Ptr p(new LoneGoalie(world, true));
 	return p;
 }
 

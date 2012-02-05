@@ -25,7 +25,7 @@
 #include <sys/types.h>
 
 namespace {
-	FileDescriptor::Ptr create_file() {
+	FileDescriptor create_file() {
 		const std::string &parent_dir = Glib::get_user_data_dir();
 		const std::string &tbots_dir = Glib::build_filename(parent_dir, "thunderbots");
 		mkdir(tbots_dir.c_str(), 0777);
@@ -66,7 +66,7 @@ void ai_logger_signal_handler_thunk(int sig) {
 	raise(sig);
 }
 
-AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), fos(fd->fd()), ended(false), sigstack_registration(sigstack, sizeof(sigstack)), SIGHUP_registration(SIGHUP, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGINT_registration(SIGINT, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGQUIT_registration(SIGQUIT, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGILL_registration(SIGILL, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGTRAP_registration(SIGTRAP, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGABRT_registration(SIGABRT, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGBUS_registration(SIGBUS, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGFPE_registration(SIGFPE, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGSEGV_registration(SIGSEGV, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGPIPE_registration(SIGPIPE, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGTERM_registration(SIGTERM, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGSTKFLT_registration(SIGSTKFLT, &ai_logger_signal_handler_thunk, SA_RESETHAND) {
+AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), fos(fd.fd()), ended(false), sigstack_registration(sigstack, sizeof(sigstack)), SIGHUP_registration(SIGHUP, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGINT_registration(SIGINT, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGQUIT_registration(SIGQUIT, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGILL_registration(SIGILL, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGTRAP_registration(SIGTRAP, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGABRT_registration(SIGABRT, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGBUS_registration(SIGBUS, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGFPE_registration(SIGFPE, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGSEGV_registration(SIGSEGV, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGPIPE_registration(SIGPIPE, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGTERM_registration(SIGTERM, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGSTKFLT_registration(SIGSTKFLT, &ai_logger_signal_handler_thunk, SA_RESETHAND) {
 	// Write the magic string.
 	{
 		google::protobuf::io::CodedOutputStream cos(&fos);
@@ -91,7 +91,7 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), fos(fd-
 		config_record.mutable_config()->set_ball_filter(ai.backend.ball_filter()->name());
 	}
 	config_record.mutable_config()->set_backend(ai.backend.factory().name());
-	if (ai.high_level.get().is()) {
+	if (ai.high_level.get()) {
 		config_record.mutable_config()->set_high_level(ai.high_level->factory().name());
 	}
 	if (ai.robot_controller_factory.get()) {
@@ -169,7 +169,7 @@ void AI::Logger::write_record(const Log::Record &record) {
 
 void AI::Logger::flush() {
 	fos.Flush();
-	fsync(fd->fd());
+	fsync(fd.fd());
 }
 
 void AI::Logger::add_params_to_record(Log::Record &record, const ParamTreeNode *node) {
@@ -298,9 +298,8 @@ void AI::Logger::on_ball_filter_changed() {
 }
 
 void AI::Logger::on_high_level_changed() {
-	AI::HL::HighLevel::Ptr high_level = ai.high_level;
-	if (high_level.is()) {
-		config_record.mutable_config()->set_high_level(high_level->factory().name());
+	if (ai.high_level.get()) {
+		config_record.mutable_config()->set_high_level(ai.high_level->factory().name());
 	} else {
 		config_record.mutable_config()->clear_high_level();
 	}
@@ -354,7 +353,7 @@ void AI::Logger::on_tick(unsigned int compute_time) {
 		player.set_movement_flags(p->flags());
 		player.set_movement_type(Log::Util::MoveType::to_protobuf(p->type()));
 		player.set_movement_priority(Log::Util::MovePrio::to_protobuf(p->prio()));
-		const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path = AI::RC::W::Player::Ptr::cast_static(p)->path();
+		const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path = p->path();
 		for (auto j = path.begin(), jend = path.end(); j != jend; ++j) {
 			Log::Tick::FriendlyRobot::PathElement &path_element = *player.add_path();
 			path_element.mutable_point()->set_x(encode_micros(j->first.first.x));

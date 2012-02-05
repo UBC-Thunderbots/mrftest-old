@@ -2,13 +2,13 @@
 #define XBEE_LIBUSB_H
 
 #include "util/async_operation.h"
-#include "util/byref.h"
 #include "util/noncopyable.h"
 #include <cassert>
 #include <cstddef>
 #include <glib.h>
 #include <libusb.h>
 #include <list>
+#include <memory>
 #include <stdexcept>
 #include <stdint.h>
 #include <string>
@@ -68,19 +68,15 @@ class LibUSBContext : public NonCopyable {
 
 	private:
 		friend class LibUSBDeviceList;
+		friend class LibUSBDeviceHandle;
 
 		libusb_context *context;
-
 		std::unordered_map<int, sigc::connection> fd_connections;
 
 		static void pollfd_add_trampoline(int fd, short events, void *user_data);
-
 		static void pollfd_remove_trampoline(int fd, void *user_data);
-
 		void add_pollfd(int fd, short events);
-
 		void remove_pollfd(int fd);
-
 		void handle_usb_fds();
 };
 
@@ -107,6 +103,7 @@ class LibUSBDevice {
 		friend class LibUSBDeviceList;
 		friend class LibUSBDeviceHandle;
 
+		libusb_context *context;
 		libusb_device *device;
 		libusb_device_descriptor device_descriptor;
 
@@ -129,6 +126,7 @@ class LibUSBDeviceList : public NonCopyable {
 		LibUSBDevice operator[](const std::size_t i) const;
 
 	private:
+		libusb_context *context;
 		std::size_t size_;
 		libusb_device **devices;
 };
@@ -161,7 +159,9 @@ class LibUSBDeviceHandle : public NonCopyable {
 		friend class LibUSBInterruptOutTransfer;
 		friend class LibUSBInterruptInTransfer;
 
+		libusb_context *context;
 		libusb_device_handle *handle;
+		unsigned int submitted_transfer_count;
 };
 
 /**
@@ -169,30 +169,21 @@ class LibUSBDeviceHandle : public NonCopyable {
  */
 class LibUSBTransfer : public AsyncOperation<void> {
 	public:
-		typedef RefPtr<LibUSBTransfer> Ptr;
-
-		bool repeats() const {
-			return repeats_;
-		}
-
-		void repeat(bool rep) {
-			repeats_ = rep;
-		}
+		virtual ~LibUSBTransfer();
 
 		void result() const;
 
 		void submit();
 
 	protected:
-		libusb_transfer *const transfer;
-		bool submitted_, done_, repeats_;
-		Ptr submitted_self_ref;
+		LibUSBDeviceHandle &device;
+		libusb_transfer *transfer;
+		bool submitted_, done_;
 		unsigned int stall_count, stall_max;
 
-		static void trampoline(libusb_transfer *transfer);
-		LibUSBTransfer(unsigned int stall_max);
-		~LibUSBTransfer();
-		void callback();
+		static void handle_completed_transfer_trampoline(libusb_transfer *transfer);
+		LibUSBTransfer(LibUSBDeviceHandle &dev, unsigned int stall_max);
+		void handle_completed_transfer();
 };
 
 /**
@@ -200,9 +191,7 @@ class LibUSBTransfer : public AsyncOperation<void> {
  */
 class LibUSBInterruptInTransfer : public LibUSBTransfer {
 	public:
-		typedef RefPtr<LibUSBInterruptInTransfer> Ptr;
-
-		static Ptr create(LibUSBDeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout, unsigned int stall_max);
+		LibUSBInterruptInTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout, unsigned int stall_max);
 
 		const uint8_t *data() const {
 			assert(done_);
@@ -213,9 +202,6 @@ class LibUSBInterruptInTransfer : public LibUSBTransfer {
 			assert(done_);
 			return transfer->actual_length;
 		}
-
-	private:
-		LibUSBInterruptInTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout, unsigned int stall_max);
 };
 
 /**
@@ -223,11 +209,6 @@ class LibUSBInterruptInTransfer : public LibUSBTransfer {
  */
 class LibUSBInterruptOutTransfer : public LibUSBTransfer {
 	public:
-		typedef RefPtr<LibUSBInterruptOutTransfer> Ptr;
-
-		static Ptr create(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max);
-
-	private:
 		LibUSBInterruptOutTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max);
 };
 

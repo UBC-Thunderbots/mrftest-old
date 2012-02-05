@@ -28,7 +28,7 @@ namespace {
 	 *
 	 * \return the engine, or a null pointer if the chosen engine does not exist.
 	 */
-	SimulatorEngine::Ptr create_engine(const Glib::ustring &name) {
+	std::unique_ptr<SimulatorEngine> create_engine(const Glib::ustring &name) {
 		const SimulatorEngineFactory::Map &m = SimulatorEngineFactory::all();
 		SimulatorEngineFactory::Map::const_iterator i = m.find(name.collate_key());
 		if (i != m.end()) {
@@ -38,7 +38,7 @@ namespace {
 			for (SimulatorEngineFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 				std::cerr << i->second->name() << '\n';
 			}
-			return SimulatorEngine::Ptr();
+			return std::unique_ptr<SimulatorEngine>();
 		}
 	}
 
@@ -81,9 +81,9 @@ namespace {
 
 		Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
 
-		SimulatorEngine::Ptr engine(create_engine(engine_name));
-		if (engine.is()) {
-			Simulator::Simulator sim(engine);
+		std::unique_ptr<SimulatorEngine> engine(create_engine(engine_name));
+		if (engine) {
+			Simulator::Simulator sim(*engine.get());
 			main_loop->run();
 		}
 		return 0;

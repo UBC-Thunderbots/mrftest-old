@@ -42,7 +42,7 @@ namespace AI {
 					RefBox(unsigned int multicast_interface);
 
 				private:
-					const FileDescriptor::Ptr fd;
+					const FileDescriptor fd;
 
 					bool on_readable(Glib::IOCondition);
 			};

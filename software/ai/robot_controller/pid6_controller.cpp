@@ -3,7 +3,6 @@
 #include "geom/angle.h"
 #include "geom/point.h"
 #include "util/algorithm.h"
-#include "util/byref.h"
 #include "util/noncopyable.h"
 #include "util/param.h"
 #include "util/timestep.h"
@@ -137,7 +136,6 @@ namespace {
 			void tick();
 			void move(const Point &new_position, Angle new_orientation, timespec time_of_arrival, int(&wheel_speeds)[4]);
 			void clear();
-			RobotControllerFactory &get_factory() const;
 			PID6Controller(World &world, Player::Ptr plr);
 
 		protected:
@@ -189,24 +187,9 @@ namespace {
 
 	void PID6Controller::clear() {
 	}
-
-	class PID6ControllerFactory : public RobotControllerFactory {
-		public:
-			PID6ControllerFactory() : RobotControllerFactory("PID 6") {
-			}
-
-			RobotController::Ptr create_controller(World &world, Player::Ptr plr) const {
-				RobotController::Ptr p(new PID6Controller(world, plr));
-				return p;
-			}
-	};
-
-	PID6ControllerFactory factory;
-
-	RobotControllerFactory &PID6Controller::get_factory() const {
-		return factory;
-	}
 }
+
+ROBOT_CONTROLLER_REGISTER(PID6Controller)
 
 const double Vector3::WHEEL_MATRIX[4][3] = {
 	{ -42.5995, 27.6645, 4.3175 },

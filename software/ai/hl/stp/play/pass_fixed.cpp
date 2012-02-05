@@ -101,8 +101,8 @@ namespace {
 			PassPlayFactoryImpl(const char *name, const Point target) : PlayFactory(name), target(target) {
 			}
 
-			Play::Ptr create(const World &world) const {
-				const Play::Ptr p(new PassPlay(world, *this, target));
+			std::unique_ptr<Play> create(const World &world) const {
+				std::unique_ptr<Play> p(new PassPlay(world, *this, target));
 				return p;
 			}
 

@@ -2,6 +2,7 @@
 #define UTIL_PROPERTY_H
 
 #include "util/noncopyable.h"
+#include <utility>
 #include <sigc++/signal.h>
 
 /**
@@ -17,6 +18,14 @@ template<typename T> class Property : public NonCopyable {
 		 * \param[in] value the value with which to initialize the Property.
 		 */
 		Property(const T &value) : value(value) {
+		}
+
+		/**
+		 * \brief Move-constructs a new Property.
+		 *
+		 * \param[in] value the value with which to initialize the Property.
+		 */
+		Property(T &&value) : value(std::move(value)) {
 		}
 
 		/**
@@ -76,11 +85,25 @@ template<typename T> class Property : public NonCopyable {
 		}
 
 		/**
+		 * \brief Move-assigns a new value to the Property.
+		 *
+		 * \param[in] val the new value to assign.
+		 */
+		Property &operator=(T &&val) {
+			if (value != val) {
+				signal_changing().emit();
+				value = std::move(val);
+				signal_changed().emit();
+			}
+			return *this;
+		}
+
+		/**
 		 * \brief Returns the value of the Property.
 		 *
 		 * \return the value.
 		 */
-		T get() const {
+		const T &get() const {
 			return value;
 		}
 

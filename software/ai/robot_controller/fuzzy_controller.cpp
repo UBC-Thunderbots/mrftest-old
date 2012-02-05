@@ -15,8 +15,6 @@ namespace {
 
 			void clear();
 
-			RobotControllerFactory &get_factory() const;
-
 			FuzzyController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
 
 			void set_params(const std::vector<double> &params) {
@@ -44,19 +42,6 @@ namespace {
 
 			std::vector<double> param;
 	};
-
-	class FuzzyControllerFactory : public RobotControllerFactory {
-		public:
-			FuzzyControllerFactory() : RobotControllerFactory("Fuzzy RC") {
-			}
-
-			RobotController::Ptr create_controller(World &world, Player::Ptr player) const {
-				RobotController::Ptr p(new FuzzyController(world, player));
-				return p;
-			}
-	};
-
-	FuzzyControllerFactory factory;
 
 	const int P = 5;
 	const double arr_min[P] = { 3.0, 0.0, 0.0, 3.0, 3.0 };
@@ -114,7 +99,5 @@ void FuzzyController::move(const Point &new_position, Angle new_orientation, Poi
 void FuzzyController::clear() {
 }
 
-RobotControllerFactory &FuzzyController::get_factory() const {
-	return factory;
-}
+ROBOT_CONTROLLER_REGISTER(FuzzyController)
 

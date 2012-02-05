@@ -5,16 +5,6 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	class TestCatchBallFactory : public HighLevelFactory {
-		public:
-			TestCatchBallFactory() : HighLevelFactory("Test Catch Ball") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	TestCatchBallFactory factory_instance;
-
 	class TestCatchBall : public HighLevel {
 		public:
 			TestCatchBall(World &world) : world(world) {
@@ -23,9 +13,7 @@ namespace {
 		private:
 			World &world;
 
-			TestCatchBallFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			Gtk::Widget *ui_controls() {
 				return 0;
@@ -43,10 +31,7 @@ namespace {
 				player->move(world.field().enemy_goal(), to_goal, Point());
 			}
 	};
-
-	HighLevel::Ptr TestCatchBallFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new TestCatchBall(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(TestCatchBall)
 

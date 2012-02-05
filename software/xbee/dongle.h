@@ -11,10 +11,13 @@
 #include "util/noncopyable.h"
 #include "util/property.h"
 #include "xbee/libusb.h"
-#include "xbee/robot.h"
 #include <cassert>
 #include <cstddef>
+#include <memory>
 #include <utility>
+#include <vector>
+
+class XBeeRobot;
 
 /**
  * \brief The dongle.
@@ -310,6 +313,11 @@ class XBeeDongle : public NonCopyable {
 		};
 
 		/**
+		 * \brief An operation to send a message.
+		 */
+		class SendMessageOperation;
+
+		/**
 		 * \brief Emitted when a dongle status update is received.
 		 */
 		sigc::signal<void> signal_dongle_status_updated;
@@ -345,6 +353,11 @@ class XBeeDongle : public NonCopyable {
 		XBeeDongle(bool force_reinit = false);
 
 		/**
+		 * \brief Destroys an XBeeDongle.
+		 */
+		~XBeeDongle();
+
+		/**
 		 * \brief Enables the radios.
 		 */
 		void enable();
@@ -368,24 +381,15 @@ class XBeeDongle : public NonCopyable {
 		void set_channels(unsigned int channel0, unsigned int channel1);
 
 		/**
-		 * \brief Queues a message for transmission.
-		 *
-		 * \param[in] data the data to send, which must include the header.
-		 *
-		 * \param[in] len the length of the data, including the header.
-		 */
-		AsyncOperation<void>::Ptr send_message(const void *data, std::size_t len);
-
-		/**
 		 * \brief Fetches an individual robot proxy.
 		 *
 		 * \param[in] i the robot number.
 		 *
 		 * \return the robot proxy object that allows communication with the robot.
 		 */
-		XBeeRobot::Ptr robot(unsigned int i) {
+		XBeeRobot &robot(unsigned int i) {
 			assert(i <= 15);
-			return robots[i];
+			return *robots[i].get();
 		}
 
 	private:
@@ -393,22 +397,52 @@ class XBeeDongle : public NonCopyable {
 
 		LibUSBContext context;
 		LibUSBDeviceHandle device;
-		sigc::connection dongle_status_connection;
-		XBeeRobot::Ptr robots[16];
+		LibUSBInterruptInTransfer local_error_queue_transfer, debug_transfer, dongle_status_transfer, state_transport_in_transfer, interrupt_in_transfer;
+		LibUSBInterruptOutTransfer stamp_transfer;
+		std::vector<std::unique_ptr<LibUSBInterruptOutTransfer>> drive_transfers;
+		std::vector<std::unique_ptr<XBeeRobot>> robots;
 		unsigned int dirty_drive_mask;
 		sigc::connection flush_drive_connection;
 		sigc::connection stamp_connection;
 		bool enabled;
 
-		void on_dongle_status(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer);
+		void on_dongle_status(AsyncOperation<void> &);
 		void parse_dongle_status(const uint8_t *data);
-		void on_local_error_queue(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer);
-		void on_state_transport_in(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer);
-		void on_interrupt_in(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer);
-		void on_debug(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer);
+		void on_local_error_queue(AsyncOperation<void> &);
+		void on_state_transport_in(AsyncOperation<void> &);
+		void on_interrupt_in(AsyncOperation<void> &);
+		void on_debug(AsyncOperation<void> &);
 		void on_stamp();
 		void dirty_drive(unsigned int index);
+		void submit_drive_transfer(const void *buffer, std::size_t length);
 		void flush_drive();
+		void check_drive_transfer_result(AsyncOperation<void> &, std::size_t index);
+};
+
+
+
+class XBeeDongle::SendMessageOperation : public AsyncOperation<void> {
+	public:
+		/**
+		 * \brief Queues a message for transmission.
+		 *
+		 * \param[in] dongle the dongle on which to send the message.
+		 *
+		 * \param[in] data the data to send, which must include the header (the data is copied into an internal buffer).
+		 *
+		 * \param[in] len the length of the data, including the header.
+		 */
+		SendMessageOperation(XBeeDongle &dongle, const void *data, std::size_t len);
+
+		/**
+		 * \brief Checks for the success of the operation.
+		 *
+		 * If the operation failed, this function throws the relevant exception.
+		 */
+		void result() const;
+
+	private:
+		LibUSBInterruptOutTransfer transfer;
 };
 
 #endif

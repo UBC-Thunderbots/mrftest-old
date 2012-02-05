@@ -3,7 +3,6 @@
 #include "geom/angle.h"
 #include "geom/point.h"
 #include "util/algorithm.h"
-#include "util/byref.h"
 #include "util/noncopyable.h"
 #include "util/param.h"
 #include "util/timestep.h"
@@ -51,8 +50,6 @@ namespace {
 			void clear();
 			void convert(const Point &vel, Angle avel, int(&wheel_speeds)[4]);
 			void update_k_monitor();
-
-			RobotControllerFactory &get_factory() const;
 
 		private:
 			Gtk::Entry &std_entry;
@@ -180,8 +177,8 @@ namespace {
 			PID5ControllerFactory() : RobotControllerFactory("PID 5") {
 			}
 
-			RobotController::Ptr create_controller(World &world, Player::Ptr plr) const {
-				RobotController::Ptr p(new PID5Controller(world, plr, get_std(plr->pattern())));
+			std::unique_ptr<RobotController> create_controller(World &world, Player::Ptr plr) const {
+				std::unique_ptr<RobotController> p(new PID5Controller(world, plr, get_std(plr->pattern())));
 				return p;
 			}
 
@@ -228,11 +225,7 @@ namespace {
 				return entries[idx];
 			}
 	};
-
-	PID5ControllerFactory factory;
-
-	RobotControllerFactory &PID5Controller::get_factory() const {
-		return factory;
-	}
 }
+
+PID5ControllerFactory PID5ControllerFactory_instance;
 

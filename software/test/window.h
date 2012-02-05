@@ -27,7 +27,7 @@ class TesterWindow : public Gtk::Window {
 		 *
 		 * \param[in] robot the robot to talk to.
 		 */
-		TesterWindow(XBeeDongle &dongle, XBeeRobot::Ptr robot);
+		TesterWindow(XBeeDongle &dongle, XBeeRobot &robot);
 
 		/**
 		 * \brief Destroys a TesterWindow.
@@ -39,7 +39,7 @@ class TesterWindow : public Gtk::Window {
 
 		Glib::RefPtr<MappedJoysticksModel> mapped_joysticks;
 
-		XBeeRobot::Ptr robot;
+		XBeeRobot &robot;
 
 		Gtk::VBox outer_vbox;
 

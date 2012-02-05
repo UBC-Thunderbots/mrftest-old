@@ -55,7 +55,7 @@ namespace AI {
 
 		private:
 			const AI::AIPackage &ai;
-			FileDescriptor::Ptr fd;
+			const FileDescriptor fd;
 			google::protobuf::io::FileOutputStream fos;
 			bool ended;
 			unsigned char sigstack[65536];

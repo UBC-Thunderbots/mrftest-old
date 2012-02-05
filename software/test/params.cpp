@@ -12,7 +12,7 @@ namespace {
 	}
 }
 
-TesterParamsPanel::TesterParamsPanel(XBeeRobot::Ptr robot) : Gtk::Table(6, 2), robot(robot), channel0label("Out Channel:"), channel1label("In Channel:"), index_label("Index:"), dribble_power_label("Dribble Power:"), commit("Commit"), reboot("Reboot"), test_mode_label("Test mode (hex):"), set_test_mode("Set Test Mode"), build_signatures_hbox(false, 10), build_signatures_label("Build Sigs:"), freeze(false) {
+TesterParamsPanel::TesterParamsPanel(XBeeRobot &robot) : Gtk::Table(6, 2), robot(robot), channel0label("Out Channel:"), channel1label("In Channel:"), index_label("Index:"), dribble_power_label("Dribble Power:"), commit("Commit"), reboot("Reboot"), test_mode_label("Test mode (hex):"), set_test_mode("Set Test Mode"), build_signatures_hbox(false, 10), build_signatures_label("Build Sigs:"), freeze(false) {
 	for (std::size_t i = 0; i < 2; ++i) {
 		for (unsigned int ch = 0x0B; ch <= 0x1A; ++ch) {
 			channels[i].append_text(format_channel(ch));
@@ -57,7 +57,7 @@ TesterParamsPanel::TesterParamsPanel(XBeeRobot::Ptr robot) : Gtk::Table(6, 2), r
 	attach(build_signatures_label, 0, 1, 5, 6, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(build_signatures_hbox, 1, 2, 5, 6, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
-	robot->alive.signal_changed().connect(sigc::mem_fun(this, &TesterParamsPanel::on_alive_changed));
+	robot.alive.signal_changed().connect(sigc::mem_fun(this, &TesterParamsPanel::on_alive_changed));
 	on_alive_changed();
 }
 
@@ -71,22 +71,24 @@ void TesterParamsPanel::activate_controls(bool act) {
 
 void TesterParamsPanel::on_alive_changed() {
 	activate_controls(false);
-	if (robot->alive) {
-		robot->firmware_read_build_signatures()->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_read_build_signatures_done));
+	if (robot.alive) {
+		read_build_signatures_op.reset(new XBeeRobot::FirmwareReadBuildSignaturesOperation(robot));
+		read_build_signatures_op->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_read_build_signatures_done));
 	}
 }
 
-void TesterParamsPanel::on_read_build_signatures_done(AsyncOperation<XBeeRobot::BuildSignatures>::Ptr op) {
-	const XBeeRobot::BuildSignatures &sigs = op->result();
+void TesterParamsPanel::on_read_build_signatures_done(AsyncOperation<XBeeRobot::BuildSignatures> &op) {
+	const XBeeRobot::BuildSignatures &sigs = op.result();
 	firmware_signature_label.set_text(Glib::ustring::compose("PIC Firmware: 0x%1", tohex(sigs.firmware_signature, 4)));
 	flash_signature_label.set_text(Glib::ustring::compose("SPI Flash: 0x%1", tohex(sigs.flash_signature, 4)));
-	if (robot->alive) {
-		robot->firmware_read_operational_parameters()->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_read_done));
+	if (robot.alive) {
+		read_opparams_op.reset(new XBeeRobot::FirmwareReadOperationalParametersOperation(robot));
+		read_opparams_op->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_read_done));
 	}
 }
 
-void TesterParamsPanel::on_read_done(AsyncOperation<XBeeRobot::OperationalParameters>::Ptr op) {
-	const XBeeRobot::OperationalParameters &params = op->result();
+void TesterParamsPanel::on_read_done(AsyncOperation<XBeeRobot::OperationalParameters> &op) {
+	const XBeeRobot::OperationalParameters &params = op.result();
 	freeze = true;
 	flash_contents = params.flash_contents;
 	for (std::size_t i = 0; i < 2; ++i) {
@@ -108,32 +110,35 @@ void TesterParamsPanel::on_change() {
 		}
 		params.robot_number = static_cast<uint8_t>(index.get_active_row_number());
 		params.dribble_power = static_cast<uint8_t>(dribble_power.get_value());
-		robot->firmware_set_operational_parameters(params)->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_change_done));
+		write_opparams_op.reset(new XBeeRobot::FirmwareWriteOperationalParametersOperation(robot, params));
+		write_opparams_op->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_change_done));
 	}
 }
 
-void TesterParamsPanel::on_change_done(AsyncOperation<void>::Ptr op) {
-	op->result();
+void TesterParamsPanel::on_change_done(AsyncOperation<void> &op) {
+	op.result();
 	activate_controls();
 }
 
 void TesterParamsPanel::on_commit() {
 	activate_controls(false);
-	robot->firmware_commit_operational_parameters()->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_commit_done));
+	commit_opparams_op.reset(new XBeeRobot::FirmwareCommitOperationalParametersOperation(robot));
+	commit_opparams_op->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_commit_done));
 }
 
-void TesterParamsPanel::on_commit_done(AsyncOperation<void>::Ptr op) {
-	op->result();
+void TesterParamsPanel::on_commit_done(AsyncOperation<void> &op) {
+	op.result();
 	activate_controls();
 }
 
 void TesterParamsPanel::on_reboot() {
 	activate_controls(false);
-	robot->firmware_reboot()->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_reboot_done));
+	reboot_op.reset(new XBeeRobot::RebootOperation(robot));
+	reboot_op->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_reboot_done));
 }
 
-void TesterParamsPanel::on_reboot_done(AsyncOperation<void>::Ptr op) {
-	op->result();
+void TesterParamsPanel::on_reboot_done(AsyncOperation<void> &op) {
+	op.result();
 	activate_controls();
 }
 
@@ -147,6 +152,6 @@ void TesterParamsPanel::on_set_test_mode() {
 	iss.imbue(std::locale("C"));
 	unsigned int mode;
 	iss >> std::hex >> mode;
-	robot->test_mode(mode);
+	robot.test_mode(mode);
 }
 

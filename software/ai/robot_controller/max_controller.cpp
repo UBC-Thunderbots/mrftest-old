@@ -3,7 +3,6 @@
 #include "geom/angle.h"
 #include "geom/point.h"
 #include "util/algorithm.h"
-#include "util/byref.h"
 #include "util/noncopyable.h"
 #include "util/param.h"
 #include <cmath>
@@ -37,22 +36,7 @@ namespace {
 
 	void MaxController::clear() {
 	}
-
-	class MaxControllerFactory : public RobotControllerFactory {
-		public:
-			MaxControllerFactory() : RobotControllerFactory("MAX") {
-			}
-
-			RobotController::Ptr create_controller(World &world, Player::Ptr plr) const {
-				RobotController::Ptr p(new MaxController(world, plr));
-				return p;
-			}
-	};
-
-	MaxControllerFactory factory;
-
-	RobotControllerFactory &MaxController::get_factory() const {
-		return factory;
-	}
 }
+
+ROBOT_CONTROLLER_REGISTER(MaxController)
 

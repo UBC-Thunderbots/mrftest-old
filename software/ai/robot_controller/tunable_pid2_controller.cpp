@@ -3,7 +3,6 @@
 #include "geom/angle.h"
 #include "geom/point.h"
 #include "util/algorithm.h"
-#include "util/byref.h"
 #include "util/noncopyable.h"
 #include "util/param.h"
 #include <cassert>
@@ -52,7 +51,6 @@ namespace {
 		public:
 			void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity);
 			void clear();
-			RobotControllerFactory &get_factory() const;
 			TunablePID2Controller(World &world, Player::Ptr plr);
 			void set_params(const std::vector<double> &params) {
 				this->param = params;
@@ -194,22 +192,7 @@ namespace {
 	void TunablePID2Controller::clear() {
 #warning WRITE CODE HERE
 	}
-
-	class TunablePID2ControllerFactory : public RobotControllerFactory {
-		public:
-			TunablePID2ControllerFactory() : RobotControllerFactory("PID 2 Tunable") {
-			}
-
-			RobotController::Ptr create_controller(World &world, Player::Ptr plr) const {
-				RobotController::Ptr p(new TunablePID2Controller(world, plr));
-				return p;
-			}
-	};
-
-	TunablePID2ControllerFactory factory;
-
-	RobotControllerFactory &TunablePID2Controller::get_factory() const {
-		return factory;
-	}
 }
+
+ROBOT_CONTROLLER_REGISTER(TunablePID2Controller)
 

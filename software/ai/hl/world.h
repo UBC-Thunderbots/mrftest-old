@@ -3,6 +3,7 @@
 
 #include "ai/flags.h"
 #include "ai/common/world.h"
+#include "util/box_ptr.h"
 #include "util/property.h"
 
 namespace AI {
@@ -28,7 +29,7 @@ namespace AI {
 					/**
 					 * \brief A pointer to a const Robot.
 					 */
-					typedef RefPtr<const Robot> Ptr;
+					typedef BoxPtr<const Robot> Ptr;
 
 					/**
 					 * \brief Sets the avoidance distance for this robot.
@@ -50,12 +51,12 @@ namespace AI {
 					/**
 					 * A pointer to a Player.
 					 */
-					typedef RefPtr<Player> Ptr;
+					typedef BoxPtr<Player> Ptr;
 
 					/**
 					 * A pointer to a const Player.
 					 */
-					typedef RefPtr<const Player> CPtr;
+					typedef BoxPtr<const Player> CPtr;
 
 					/**
 					 * Sets the destination for this player.

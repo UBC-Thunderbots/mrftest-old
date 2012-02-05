@@ -4,24 +4,20 @@
 #include "util/annunciator.h"
 #include "util/async_operation.h"
 #include "util/bit_array.h"
-#include "util/byref.h"
+#include "util/noncopyable.h"
 #include "util/property.h"
+#include "xbee/dongle.h"
 #include "xbee/drivepacket.h"
 #include <cstddef>
+#include <functional>
+#include <memory>
 #include <stdint.h>
-
-class XBeeDongle;
 
 /**
  * \brief A single robot addressable through a dongle.
  */
-class XBeeRobot : public ByRef {
+class XBeeRobot : public NonCopyable {
 	public:
-		/**
-		 * \brief A pointer to an XBeeRobot.
-		 */
-		typedef RefPtr<XBeeRobot> Ptr;
-
 		/**
 		 * \brief The components of the operational parameters block stored on board a robot.
 		 */
@@ -123,85 +119,53 @@ class XBeeRobot : public ByRef {
 		sigc::signal<void> signal_autokick_fired;
 
 		/**
-		 * \brief Erases the SPI flash chip on the robot.
-		 *
-		 * \return an asynchronous operation whose progress can be monitored.
+		 * \brief An operation to erase the SPI flash chip on the robot.
 		 */
-		AsyncOperation<void>::Ptr firmware_spi_chip_erase();
+		class FirmwareSPIChipEraseOperation;
 
 		/**
-		 * \brief Copies a block of data into the holding buffer on board the robot in preparation for writing it to the SPI flash chip.
+		 * \brief An operation to copy a block of data into the holding buffer on board the robot.
 		 *
-		 * \param[in] offset the offset within the holding buffer at which the data should be written.
-		 *
-		 * \param[in] data the data to write.
-		 *
-		 * \param[in] length the number of bytes to write.
-		 *
-		 * \return an asynchronous operation whose progress can be monitored.
+		 * Data must be copied to the holding buffer in blocks before it can be written to the flash chip.
 		 */
-		AsyncOperation<void>::Ptr firmware_spi_fill_page_buffer(unsigned int offset, const void *data, std::size_t length);
+		class FirmwareSPIFillPageBufferOperation;
 
 		/**
-		 * \brief Writes the contents of the robot's on-board holding buffer to the SPI flash chip.
-		 *
-		 * \param[in] page the page number on the SPI flash chip at which the buffer should be written.
-		 *
-		 * \param[in] crc a CRC-16 of the entire contents of the holding buffer, which must match for the operation to succeed.
-		 *
-		 * \return an asynchronous operation whose progress can be monitored.
+		 * \brief An operation to commit the contents of the on-board holding buffer to the SPI flash chip.
 		 */
-		AsyncOperation<void>::Ptr firmware_spi_page_program(unsigned int page, uint16_t crc);
+		class FirmwareSPIPageProgramOperation;
 
 		/**
-		 * \brief Computes the CRC-16 of a block of data in the robot's SPI flash chip.
-		 *
-		 * \param[in] address the address of the first byte to checksum.
-		 *
-		 * \param[in] length the number of bytes to checksum.
-		 *
-		 * \return an asynchronous operation whose progress can be monitored and from which the CRC-16 can be fetched.
+		 * \brief An operation to compute the CRC-16 of a block of data in the robot's SPI flash chip.
 		 */
-		AsyncOperation<uint16_t>::Ptr firmware_spi_block_crc(unsigned int address, std::size_t length);
+		class FirmwareSPIBlockCRCOperation;
 
 		/**
-		 * \brief Reads the on-board operational parameters from the robot.
-		 *
-		 * \return an asynchronous operation whose progress can be monitored and from which the operational parameters block can be fetched.
+		 * \brief An operation to read the on-board operational parameters from the robot.
 		 */
-		AsyncOperation<OperationalParameters>::Ptr firmware_read_operational_parameters();
+		class FirmwareReadOperationalParametersOperation;
 
 		/**
-		 * \brief Writes the on-board operational parameters on the robot.
+		 * \brief An operation to write the on-board operational parameters on the robot.
 		 *
 		 * The new parameters are stored in RAM but are not committed to non-volatile storage.
-		 *
-		 * \param[in] params the new parameters to apply.
-		 *
-		 * \return an asynchronous operation whose progress can be monitored.
 		 */
-		AsyncOperation<void>::Ptr firmware_set_operational_parameters(const OperationalParameters &params);
+		class FirmwareWriteOperationalParametersOperation;
 
 		/**
-		 * \brief Copies the on-board operational parameters on the robot from RAM to non-volatile storage.
-		 *
-		 * \return an asynchronous operation whose progress can be monitored.
+		 * \brief An operation to copy the on-board operational parameters on the robot from RAM to non-volatile storage.
 		 */
-		AsyncOperation<void>::Ptr firmware_commit_operational_parameters();
+		class FirmwareCommitOperationalParametersOperation;
 
 		/**
-		 * \brief Reboots the robot.
-		 *
-		 * \return an asynchronous operation whose progress can be monitored.
+		 * \brief An operation to reboot the robot.
 		 */
-		AsyncOperation<void>::Ptr firmware_reboot();
+		class RebootOperation;
 
 		/**
-		 * \brief Reads the build signatures of the PIC firmware and FPGA bitstream from the robot.
-		 *
-		 * \return an asynchronous operation whose progress can be monitored and from which the build signatures can be fetched.
+		 * \brief An operation to read the build signatures of the PIC firmware and FPGA bitstream from the robot.
 		 */
-		AsyncOperation<BuildSignatures>::Ptr firmware_read_build_signatures();
+		class FirmwareReadBuildSignaturesOperation;
 
 		/**
 		 * \brief Sets the speeds of the robot's wheels.
@@ -276,11 +240,287 @@ class XBeeRobot : public ByRef {
 		XBeePackets::Drive drive_block, last_drive_block;
 		Annunciator::Message encoder_1_stuck_message, encoder_2_stuck_message, encoder_3_stuck_message, encoder_4_stuck_message;
 		Annunciator::Message hall_stuck_message;
+		std::unique_ptr<XBeeDongle::SendMessageOperation> kick_send_message_op, test_mode_send_message_op, start_experiment_send_message_op;
 
-		static Ptr create(XBeeDongle &dongle, unsigned int index);
 		XBeeRobot(XBeeDongle &dongle, unsigned int index);
 		void flush_drive(bool force = false);
 		void on_feedback(const uint8_t *data, std::size_t length);
+		void check_kick_message_result(AsyncOperation<void> &);
+		void check_test_mode_message_result(AsyncOperation<void> &);
+		void check_start_experiment_message_result(AsyncOperation<void> &);
+};
+
+
+
+class XBeeRobot::FirmwareSPIChipEraseOperation : public AsyncOperation<void>, public sigc::trackable {
+	public:
+		/**
+		 * \brief Starts the chip erase operation.
+		 *
+		 * \param[in] robot the robot to send the command to.
+		 */
+		FirmwareSPIChipEraseOperation(XBeeRobot &robot);
+
+		/**
+		 * \brief Checks for the success of the operation.
+		 *
+		 * If the operation failed, this function throws the relevant exception.
+		 */
+		void result() const;
+
+	private:
+		XBeeRobot &robot;
+		uint8_t buffer[2];
+		XBeeDongle::SendMessageOperation send_message_op;
+		sigc::connection receive_message_conn;
+
+		void send_message_op_done(AsyncOperation<void> &op);
+		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
+};
+
+class XBeeRobot::FirmwareSPIFillPageBufferOperation : public AsyncOperation<void>, public sigc::trackable {
+	public:
+		/**
+		 * \brief Starts the buffer-fill operation.
+		 *
+		 * \param[in] robot the robot to send the command to.
+		 *
+		 * \param[in] offset the offset within the holding buffer at which the data should be written.
+		 *
+		 * \param[in] data the data to write (the data is copied into an internal buffer).
+		 *
+		 * \param[in] length the number of bytes to write.
+		 *
+		 * \pre \p length ≤ 61
+		 */
+		FirmwareSPIFillPageBufferOperation(XBeeRobot &robot, unsigned int offset, const void *data, std::size_t length);
+
+		/**
+		 * \brief Checks for the success of the operation.
+		 *
+		 * If the operation failed, this function throws the relevant exception.
+		 */
+		void result() const;
+
+	private:
+		XBeeRobot &robot;
+		uint8_t buffer[64];
+		XBeeDongle::SendMessageOperation send_message_op;
+
+		uint8_t *prepare_buffer(unsigned int offset, const void *data, std::size_t length);
+		void send_message_op_done(AsyncOperation<void> &);
+};
+
+class XBeeRobot::FirmwareSPIPageProgramOperation : public AsyncOperation<void>, public sigc::trackable {
+	public:
+		/**
+		 * \brief Starts the page program operation.
+		 *
+		 * \param[in] robot the robot to send the command to.
+		 *
+		 * \param[in] page the page number on the SPI flash chip at which the buffer should be written.
+		 *
+		 * \param[in] crc a CRC-16 of the entire contents of the holding buffer, which must match for the operation to succeed.
+		 */
+		FirmwareSPIPageProgramOperation(XBeeRobot &robot, unsigned int page, uint16_t crc);
+
+		/**
+		 * \brief Checks for the success of the operation.
+		 *
+		 * If the operation failed, this function throws the relevant exception.
+		 */
+		void result() const;
+
+	private:
+		XBeeRobot &robot;
+		uint8_t buffer[6];
+		XBeeDongle::SendMessageOperation send_message_op;
+		sigc::connection receive_message_conn;
+
+		void send_message_op_done(AsyncOperation<void> &op);
+		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
+};
+
+class XBeeRobot::FirmwareSPIBlockCRCOperation : public AsyncOperation<uint16_t>, public sigc::trackable {
+	public:
+		/**
+		 * \brief Starts the CRC operation.
+		 *
+		 * \param[in] robot the robot to send the command to.
+		 *
+		 * \param[in] address the address of the first byte to checksum.
+		 *
+		 * \param[in] length the number of bytes to checksum.
+		 */
+		FirmwareSPIBlockCRCOperation(XBeeRobot &robot, unsigned int address, std::size_t length);
+
+		/**
+		 * \brief Checks for the success of the operation and returns the computed CRC.
+		 *
+		 * If the operation failed, this function throws the relevant exception.
+		 *
+		 * \return the CRC of the block.
+		 */
+		uint16_t result() const;
+
+	private:
+		XBeeRobot &robot;
+		unsigned int address;
+		std::size_t length;
+		uint8_t buffer[7];
+		XBeeDongle::SendMessageOperation send_message_op;
+		sigc::connection receive_message_conn;
+		uint16_t crc;
+
+		void send_message_op_done(AsyncOperation<void> &op);
+		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
+};
+
+class XBeeRobot::FirmwareReadOperationalParametersOperation : public AsyncOperation<OperationalParameters>, public sigc::trackable {
+	public:
+		/**
+		 * \brief Starts the parameter read operation.
+		 *
+		 * \param[in] robot the robot to send the command to.
+		 *
+		 * \return an asynchronous operation whose progress can be monitored and from which the operational parameters block can be fetched.
+		 */
+		FirmwareReadOperationalParametersOperation(XBeeRobot &robot);
+
+		/**
+		 * \brief Checks for the success of the operation and returns the operational parameters.
+		 *
+		 * If the operation failed, this function throws the relevant exception.
+		 *
+		 * \return the operational parameters.
+		 */
+		OperationalParameters result() const;
+
+	private:
+		XBeeRobot &robot;
+		uint8_t buffer[2];
+		XBeeDongle::SendMessageOperation send_message_op;
+		sigc::connection receive_message_conn;
+		OperationalParameters params;
+
+		void send_message_op_done(AsyncOperation<void> &op);
+		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
+};
+
+class XBeeRobot::FirmwareWriteOperationalParametersOperation : public AsyncOperation<void>, public sigc::trackable {
+	public:
+		/**
+		 * \brief Starts the operation.
+		 *
+		 * \param[in] robot the robot to send the command to.
+		 *
+		 * \param[in] params the new parameters to apply (the data is copied into an internal buffer).
+		 *
+		 * \return an asynchronous operation whose progress can be monitored.
+		 */
+		FirmwareWriteOperationalParametersOperation(XBeeRobot &robot, const OperationalParameters &params);
+
+		/**
+		 * \brief Checks for the success of the operation.
+		 *
+		 * If the operation failed, this function throws the relevant exception.
+		 */
+		void result() const;
+
+	private:
+		XBeeRobot &robot;
+		uint8_t buffer[8];
+		XBeeDongle::SendMessageOperation send_message_op;
+		sigc::connection receive_message_conn;
+
+		uint8_t *prepare_buffer(unsigned int offset, const void *data, std::size_t length);
+		void send_message_op_done(AsyncOperation<void> &);
+		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
+};
+
+class XBeeRobot::FirmwareCommitOperationalParametersOperation : public AsyncOperation<void>, public sigc::trackable {
+	public:
+		/**
+		 * \brief Starts the operation.
+		 *
+		 * \param[in] robot the robot to send the command to.
+		 *
+		 * \return an asynchronous operation whose progress can be monitored.
+		 */
+		FirmwareCommitOperationalParametersOperation(XBeeRobot &robot);
+
+		/**
+		 * \brief Checks for the success of the operation.
+		 *
+		 * If the operation failed, this function throws the relevant exception.
+		 */
+		void result() const;
+
+	private:
+		XBeeRobot &robot;
+		uint8_t buffer[2];
+		XBeeDongle::SendMessageOperation send_message_op;
+		sigc::connection receive_message_conn;
+
+		uint8_t *prepare_buffer(unsigned int offset, const void *data, std::size_t length);
+		void send_message_op_done(AsyncOperation<void> &);
+		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
+};
+
+class XBeeRobot::RebootOperation : public AsyncOperation<void>, public sigc::trackable {
+	public:
+		/**
+		 * \brief Starts the operation.
+		 *
+		 * \param[in] robot the robot to send the command to.
+		 */
+		RebootOperation(XBeeRobot &robot);
+
+		/**
+		 * \brief Checks for the success of the operation.
+		 *
+		 * If the operation failed, this function throws the relevant exception.
+		 */
+		void result() const;
+
+	private:
+		XBeeRobot &robot;
+		uint8_t buffer[2];
+		XBeeDongle::SendMessageOperation send_message_op;
+		sigc::connection receive_message_conn;
+
+		uint8_t *prepare_buffer(unsigned int offset, const void *data, std::size_t length);
+		void send_message_op_done(AsyncOperation<void> &);
+		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
+};
+
+class XBeeRobot::FirmwareReadBuildSignaturesOperation : public AsyncOperation<BuildSignatures>, public sigc::trackable {
+	public:
+		/**
+		 * \brief Starts the operation.
+		 *
+		 * \param[in] robot the robot to send the command to.
+		 */
+		FirmwareReadBuildSignaturesOperation(XBeeRobot &robot);
+
+		/**
+		 * \brief Checks for the success of the operation and returns the build signatures.
+		 *
+		 * If the operation failed, this function throws the relevant exception.
+		 *
+		 * \return the build signatures.
+		 */
+		BuildSignatures result() const;
+
+	private:
+		XBeeRobot &robot;
+		uint8_t buffer[2];
+		XBeeDongle::SendMessageOperation send_message_op;
+		sigc::connection receive_message_conn;
+		BuildSignatures sigs;
+
+		void send_message_op_done(AsyncOperation<void> &op);
+		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
 };
 
 #endif

@@ -18,7 +18,6 @@ class PlayerODE : public Simulator::Player {
 		double y_len;
 		dReal momentInertia;
 
-		typedef RefPtr<PlayerODE> Ptr;
 		CompoPlayerGeom p_geom;
 
 	private:
@@ -107,9 +106,9 @@ class PlayerODE : public Simulator::Player {
 
 		void avelocity(double avel);
 
-		void load_state(FileDescriptor::Ptr fd);
+		void load_state(const FileDescriptor &fd);
 
-		void save_state(FileDescriptor::Ptr fd) const;
+		void save_state(const FileDescriptor &fd) const;
 };
 
 #endif

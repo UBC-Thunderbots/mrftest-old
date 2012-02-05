@@ -650,8 +650,8 @@ void ConvertLogV1V2::run() {
 	const std::string &tbots_dir = Glib::build_filename(parent_dir, "thunderbots");
 	const std::string &logs_dir = Glib::build_filename(tbots_dir, "logs");
 	const std::string &temp_file = Glib::build_filename(logs_dir, ".convertlog.v1v2.tmp");
-	FileDescriptor::Ptr lock_fd = FileDescriptor::create_open(Glib::build_filename(logs_dir, ".lock").c_str(), O_RDWR | O_CREAT, 0666);
-	if (lockf(lock_fd->fd(), F_TLOCK, 0) < 0) {
+	FileDescriptor lock_fd = FileDescriptor::create_open(Glib::build_filename(logs_dir, ".lock").c_str(), O_RDWR | O_CREAT, 0666);
+	if (lockf(lock_fd.fd(), F_TLOCK, 0) < 0) {
 		if (errno == EAGAIN || errno == EACCES) {
 			std::cout << "Directory locked; try again later.\n";
 			return;
@@ -674,12 +674,12 @@ void ConvertLogV1V2::run() {
 				try {
 					ScopedFileDeleter sfd(temp_file);
 					{
-						FileDescriptor::Ptr fd = FileDescriptor::create_open(temp_file.c_str(), O_WRONLY | O_CREAT, 0666);
+						FileDescriptor fd = FileDescriptor::create_open(temp_file.c_str(), O_WRONLY | O_CREAT, 0666);
 						{
-							google::protobuf::io::FileOutputStream fos(fd->fd());
+							google::protobuf::io::FileOutputStream fos(fd.fd());
 							convert(real_file_mapped, fos);
 						}
-						if (fdatasync(fd->fd()) < 0) {
+						if (fdatasync(fd.fd()) < 0) {
 							throw SystemError("fdatasync", errno);
 						}
 					}

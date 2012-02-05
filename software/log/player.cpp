@@ -4,6 +4,7 @@
 #include "log/shared/enums.h"
 #include "proto/log_record.pb.h"
 #include "util/algorithm.h"
+#include "util/box_array.h"
 #include "util/noncopyable.h"
 #include "util/string.h"
 #include "util/time.h"
@@ -128,11 +129,19 @@ namespace {
 
 	class Robot : public Visualizable::Robot {
 		public:
-			typedef RefPtr<Robot> Ptr;
+			typedef BoxPtr<Robot> Ptr;
 
-			static Ptr create(const Log::Tick::EnemyRobot &bot) {
-				Ptr p(new Robot(bot.pattern(), bot.position(), bot.velocity()));
-				return p;
+			void update(const Log::Tick::EnemyRobot &bot) {
+				update(bot.pattern(), bot.position(), bot.velocity());
+			}
+
+			void update(unsigned int pattern, const Log::Vector3 &position, const Log::Vector3 &velocity) {
+				pattern_ = pattern;
+				position_.x = decode_micros(position.x());
+				position_.y = decode_micros(position.y());
+				velocity_.x = decode_micros(velocity.x());
+				velocity_.y = decode_micros(velocity.y());
+				orientation_ = Angle::of_radians(decode_micros(position.t()));
 			}
 
 			Point position(double) const {
@@ -152,7 +161,7 @@ namespace {
 			}
 
 			Glib::ustring visualizer_label() const {
-				return Glib::ustring::format(pattern);
+				return Glib::ustring::format(pattern_);
 			}
 
 			bool highlight() const {
@@ -191,23 +200,29 @@ namespace {
 				std::abort();
 			}
 
-		protected:
-			Robot(unsigned int pattern, const Log::Vector3 &position, const Log::Vector3 &velocity) : pattern(pattern), position_(decode_micros(position.x()), decode_micros(position.y())), velocity_(decode_micros(velocity.x()), decode_micros(velocity.y())), orientation_(Angle::of_radians(decode_micros(position.t()))) {
-			}
-
 		private:
-			unsigned int pattern;
+			unsigned int pattern_;
 			Point position_, velocity_;
 			Angle orientation_;
 	};
 
 	class Player : public Robot {
 		public:
-			typedef RefPtr<Player> Ptr;
+			typedef BoxPtr<Player> Ptr;
 
-			static Ptr create(const Log::Tick::FriendlyRobot &bot) {
-				Ptr p(new Player(bot.pattern(), bot.position(), bot.velocity(), bot.target(), bot.path()));
-				return p;
+			void update(const Log::Tick::FriendlyRobot &bot) {
+				Robot::update(bot.pattern(), bot.position(), bot.velocity());
+				destination_.first.x = decode_micros(bot.target().x());
+				destination_.first.y = decode_micros(bot.target().y());
+				destination_.second = Angle::of_radians(decode_micros(bot.target().t()));
+				path_.clear();
+				for (auto i = bot.path().begin(), iend = bot.path().end(); i != iend; ++i) {
+					double x = decode_micros(i->point().x());
+					double y = decode_micros(i->point().y());
+					Angle t = Angle::of_radians(decode_micros(i->point().t()));
+					timespec ts = timespec_of_log(i->timestamp());
+					path_.push_back(std::make_pair(std::make_pair(Point(x, y), t), ts));
+				}
 			}
 
 			Visualizable::Colour visualizer_colour() const {
@@ -233,18 +248,19 @@ namespace {
 		private:
 			std::pair<Point, Angle> destination_;
 			std::vector<std::pair<std::pair<Point, Angle>, timespec> > path_;
-
-			Player(unsigned int pattern, const Log::Vector3 &position, const Log::Vector3 &velocity, const Log::Vector3 &target, const google::protobuf::RepeatedPtrField<Log::Tick::FriendlyRobot::PathElement> &path) : Robot(pattern, position, velocity), destination_(Point(decode_micros(target.x()), decode_micros(target.y())), Angle::of_radians(decode_micros(target.t()))) {
-				for (auto i = path.begin(), iend = path.end(); i != iend; ++i) {
-					path_.push_back(std::make_pair(std::make_pair(Point(decode_micros(i->point().x()), decode_micros(i->point().y())), Angle::of_radians(decode_micros(i->point().t()))), timespec_of_log(i->timestamp())));
-				}
-			}
 	};
 }
 
 class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 	public:
 		Impl(Gtk::Window &parent, const std::string &pathname) : records(LogLoader::load(pathname)), top_info_table(10, 2, false), ball_filter_label("Ball Filter:"), strategy_label("Strategy:"), backend_label("Backend:"), high_level_label("HL:"), robot_controller_label("Controller:"), friendly_colour_label("Colour:"), ticks_per_second_label("Tick Rate:"), play_type_label("Play Type:"), friendly_score_label("Points Us:"), enemy_score_label("Points Them:"), visualizer(*this), full_screen_button(Gtk::Stock::FULLSCREEN), start_button(Gtk::Stock::MEDIA_PREVIOUS), play_button(Gtk::Stock::MEDIA_PLAY), end_button(Gtk::Stock::MEDIA_NEXT) {
+			for (std::size_t i = 0; i < players_.SIZE; ++i) {
+				player_ptrs[i] = players_[i];
+			}
+			for (std::size_t i = 0; i < robots_.SIZE; ++i) {
+				robot_ptrs[i] = robots_[i];
+			}
+
 			find_ticks_per_second();
 			scan_records();
 			field_.update(field_records_by_tick[0]->field());
@@ -368,15 +384,15 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 		}
 
 		std::size_t visualizable_num_robots() const {
-			return players_.size() + robots_.size();
+			return G_N_ELEMENTS(player_ptrs) + G_N_ELEMENTS(robot_ptrs);
 		}
 
 		Visualizable::Robot::Ptr visualizable_robot(std::size_t index) const {
 			assert(index < visualizable_num_robots());
-			if (index < players_.size()) {
-				return players_[index];
+			if (index < G_N_ELEMENTS(player_ptrs)) {
+				return player_ptrs[index];
 			} else {
-				return robots_[index - players_.size()];
+				return robot_ptrs[index - G_N_ELEMENTS(player_ptrs)];
 			}
 		}
 
@@ -412,8 +428,10 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 		timespec game_start_monotonic;
 		Field field_;
 		Ball ball_;
-		std::vector<Player::Ptr> players_;
-		std::vector<Robot::Ptr> robots_;
+		BoxArray<Player, 16> players_;
+		BoxArray<Robot, 16> robots_;
+		Player::Ptr player_ptrs[16];
+		Robot::Ptr robot_ptrs[16];
 		sigc::connection play_timer_connection;
 		mutable sigc::signal<void> signal_tick_;
 
@@ -553,14 +571,40 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 
 			ball_.update(tick.ball());
 
-			players_.clear();
-			for (int i = 0; i < tick.friendly_robots_size(); ++i) {
-				players_.push_back(Player::create(tick.friendly_robots(i)));
+			{
+				bool seen[players_.SIZE];
+				std::fill(seen, seen + G_N_ELEMENTS(seen), false);
+				for (int i = 0; i < tick.friendly_robots_size(); ++i) {
+					const Log::Tick::FriendlyRobot &bot = tick.friendly_robots(i);
+					if (!players_[bot.pattern()]) {
+						players_.create(bot.pattern());
+					}
+					players_[bot.pattern()]->update(bot);
+					seen[bot.pattern()] = true;
+				}
+				for (std::size_t i = 0; i < G_N_ELEMENTS(seen); ++i) {
+					if (!seen[i]) {
+						players_.destroy(i);
+					}
+				}
 			}
 
-			robots_.clear();
-			for (int i = 0; i < tick.enemy_robots_size(); ++i) {
-				robots_.push_back(Robot::create(tick.enemy_robots(i)));
+			{
+				bool seen[robots_.SIZE];
+				std::fill(seen, seen + G_N_ELEMENTS(seen), false);
+				for (int i = 0; i < tick.enemy_robots_size(); ++i) {
+					const Log::Tick::EnemyRobot &bot = tick.enemy_robots(i);
+					if (!robots_[bot.pattern()]) {
+						robots_.create(bot.pattern());
+					}
+					robots_[bot.pattern()]->update(bot);
+					seen[bot.pattern()] = true;
+				}
+				for (std::size_t i = 0; i < G_N_ELEMENTS(seen); ++i) {
+					if (!seen[i]) {
+						robots_.destroy(i);
+					}
+				}
 			}
 
 			ball_filter_value.set_text(config.has_ball_filter() ? config.ball_filter() : "<None>");

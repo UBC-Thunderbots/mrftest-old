@@ -4,6 +4,7 @@
 #include "xbee/testmodepacket.h"
 #include <cassert>
 #include <cstring>
+#include <memory>
 
 namespace {
 	enum TBotsFirmwareRequest {
@@ -29,513 +30,8 @@ namespace {
 		throw std::runtime_error("Invalid flash contents byte");
 	}
 
-	class FirmwareSPIChipEraseOperation : public AsyncOperation<void>, public sigc::trackable {
-		public:
-			static Ptr create(XBeeDongle &dongle, unsigned int robot) {
-				Ptr p(new FirmwareSPIChipEraseOperation(dongle, robot));
-				return p;
-			}
-
-			void result() const {
-				if (failed_operation.is()) {
-					failed_operation->result();
-				}
-			}
-
-		private:
-			XBeeDongle &dongle;
-			const unsigned int robot;
-			AsyncOperation<void>::Ptr failed_operation;
-			sigc::connection send_connection, receive_connection;
-			Ptr self_ref;
-
-			FirmwareSPIChipEraseOperation(XBeeDongle &dongle, unsigned int robot) : dongle(dongle), robot(robot), self_ref(this) {
-				const uint8_t data[] = { static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT), FIRMWARE_REQUEST_CHIP_ERASE };
-				send_connection = dongle.send_message(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareSPIChipEraseOperation::on_send_message_done));
-				receive_connection = dongle.signal_message_received.connect(sigc::mem_fun(this, &FirmwareSPIChipEraseOperation::on_message_received));
-			}
-
-			void on_send_message_done(AsyncOperation<void>::Ptr op) {
-				if (!op->succeeded()) {
-					receive_connection.disconnect();
-					failed_operation = op;
-					Ptr pthis(this);
-					self_ref.reset();
-					signal_done.emit(pthis);
-				}
-			}
-
-			void on_message_received(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
-				if (robot == this->robot && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
-					if (len == 1 && static_cast<const uint8_t *>(data)[0] == FIRMWARE_REQUEST_CHIP_ERASE) {
-						send_connection.disconnect();
-						receive_connection.disconnect();
-						Ptr pthis(this);
-						self_ref.reset();
-						signal_done.emit(pthis);
-					} else {
-#warning TODO something sensible
-					}
-				}
-			}
-	};
-
-	class FirmwareSPIFillPageBufferOperation : public AsyncOperation<void>, public sigc::trackable {
-		public:
-			static Ptr create(XBeeDongle &dongle, unsigned int robot, unsigned int offset, const void *data, std::size_t length) {
-				Ptr p(new FirmwareSPIFillPageBufferOperation(dongle, robot, offset, data, length));
-				return p;
-			}
-
-			void result() const {
-				if (failed_operation.is()) {
-					failed_operation->result();
-				}
-			}
-
-		private:
-			XBeeDongle &dongle;
-			const unsigned int robot;
-			AsyncOperation<void>::Ptr failed_operation;
-			Ptr self_ref;
-
-			FirmwareSPIFillPageBufferOperation(XBeeDongle &dongle, unsigned int robot, unsigned int offset, const void *data, std::size_t length) : dongle(dongle), robot(robot), self_ref(this) {
-				uint8_t buffer[length + 3];
-				assert(sizeof(buffer) <= 64);
-				assert(offset + length <= 256);
-				buffer[0] = static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
-				buffer[1] = FIRMWARE_REQUEST_FILL_PAGE_BUFFER;
-				buffer[2] = static_cast<uint8_t>(offset);
-				std::memcpy(buffer + 3, data, length);
-				dongle.send_message(buffer, sizeof(buffer))->signal_done.connect(sigc::mem_fun(this, &FirmwareSPIFillPageBufferOperation::on_send_message_done));
-			}
-
-			void on_send_message_done(AsyncOperation<void>::Ptr op) {
-				if (!op->succeeded()) {
-					failed_operation = op;
-				}
-				Ptr pthis(this);
-				self_ref.reset();
-				signal_done.emit(pthis);
-			}
-	};
-
-	class FirmwareSPIPageProgramOperation : public AsyncOperation<void>, public sigc::trackable {
-		public:
-			static Ptr create(XBeeDongle &dongle, unsigned int robot, unsigned int page, uint16_t crc) {
-				Ptr p(new FirmwareSPIPageProgramOperation(dongle, robot, page, crc));
-				return p;
-			}
-
-			void result() const {
-				if (failed_operation.is()) {
-					failed_operation->result();
-				}
-			}
-
-		private:
-			const unsigned int robot;
-			AsyncOperation<void>::Ptr failed_operation;
-			sigc::connection send_connection, receive_connection;
-			Ptr self_ref;
-
-			FirmwareSPIPageProgramOperation(XBeeDongle &dongle, unsigned int robot, unsigned int page, uint16_t crc) : robot(robot), self_ref(this) {
-				uint8_t buffer[6];
-				buffer[0] = static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
-				buffer[1] = FIRMWARE_REQUEST_PAGE_PROGRAM;
-				buffer[2] = static_cast<uint8_t>(page);
-				buffer[3] = static_cast<uint8_t>(page >> 8);
-				buffer[4] = static_cast<uint8_t>(crc);
-				buffer[5] = static_cast<uint8_t>(crc >> 8);
-				send_connection = dongle.send_message(buffer, sizeof(buffer))->signal_done.connect(sigc::mem_fun(this, &FirmwareSPIPageProgramOperation::on_send_message_done));
-				receive_connection = dongle.signal_message_received.connect(sigc::mem_fun(this, &FirmwareSPIPageProgramOperation::on_message_received));
-			}
-
-			void on_send_message_done(AsyncOperation<void>::Ptr op) {
-				if (!op->succeeded()) {
-					receive_connection.disconnect();
-					failed_operation = op;
-					Ptr pthis(this);
-					self_ref.reset();
-					signal_done.emit(pthis);
-				}
-			}
-
-			void on_message_received(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
-				if (robot == this->robot && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
-					if (len == 1 && static_cast<const uint8_t *>(data)[0] == FIRMWARE_REQUEST_PAGE_PROGRAM) {
-						send_connection.disconnect();
-						receive_connection.disconnect();
-						Ptr pthis(this);
-						self_ref.reset();
-						signal_done.emit(pthis);
-					} else {
-#warning TODO something sensible
-					}
-				}
-			}
-	};
-
-	class FirmwareSPIBlockCRCOperation : public AsyncOperation<uint16_t>, public sigc::trackable {
-		public:
-			static Ptr create(XBeeDongle &dongle, unsigned int robot, unsigned int address, std::size_t length) {
-				Ptr p(new FirmwareSPIBlockCRCOperation(dongle, robot, address, length));
-				return p;
-			}
-
-			uint16_t result() const {
-				if (failed_operation.is()) {
-					failed_operation->result();
-				}
-				return crc;
-			}
-
-		private:
-			XBeeDongle &dongle;
-			const unsigned int robot;
-			const unsigned int address;
-			const std::size_t length;
-			AsyncOperation<void>::Ptr failed_operation;
-			sigc::connection send_connection, receive_connection;
-			Ptr self_ref;
-			uint16_t crc;
-
-			FirmwareSPIBlockCRCOperation(XBeeDongle &dongle, unsigned int robot, unsigned int address, std::size_t length) : dongle(dongle), robot(robot), address(address), length(length), self_ref(this) {
-				assert(1 <= length && length <= 65536);
-				uint8_t data[7];
-				data[0] = static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
-				data[1] = FIRMWARE_REQUEST_CRC_BLOCK;
-				data[2] = static_cast<uint8_t>(address);
-				data[3] = static_cast<uint8_t>(address >> 8);
-				data[4] = static_cast<uint8_t>(address >> 16);
-				data[5] = static_cast<uint8_t>(length);
-				data[6] = static_cast<uint8_t>(length >> 8);
-				send_connection = dongle.send_message(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareSPIBlockCRCOperation::on_send_message_done));
-				receive_connection = dongle.signal_message_received.connect(sigc::mem_fun(this, &FirmwareSPIBlockCRCOperation::on_message_received));
-			}
-
-			void on_send_message_done(AsyncOperation<void>::Ptr op) {
-				if (!op->succeeded()) {
-					receive_connection.disconnect();
-					failed_operation = op;
-					Ptr pthis(this);
-					self_ref.reset();
-					signal_done.emit(pthis);
-				}
-			}
-
-			void on_message_received(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
-				if (robot == this->robot && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
-					const uint8_t *pch = static_cast<const uint8_t *>(data);
-					if (len == 8 && pch[0] == FIRMWARE_REQUEST_CRC_BLOCK && static_cast<uint32_t>(pch[1] | (pch[2] << 8) | (pch[3] << 16)) == address && static_cast<uint16_t>(pch[4] | (pch[5] << 8)) == (length & 0xFFFF)) {
-						crc = static_cast<uint16_t>(pch[6] | (pch[7] << 8));
-						send_connection.disconnect();
-						receive_connection.disconnect();
-						Ptr pthis(this);
-						self_ref.reset();
-						signal_done.emit(pthis);
-					} else {
-#warning TODO something sensible
-					}
-				}
-			}
-	};
-
-	class FirmwareReadOperationalParametersOperation : public AsyncOperation<XBeeRobot::OperationalParameters>, public sigc::trackable {
-		public:
-			static Ptr create(XBeeDongle &dongle, unsigned int robot) {
-				Ptr p(new FirmwareReadOperationalParametersOperation(dongle, robot));
-				return p;
-			}
-
-			XBeeRobot::OperationalParameters result() const {
-				if (failed_operation.is()) {
-					failed_operation->result();
-				}
-				return params;
-			}
-
-		private:
-			XBeeDongle &dongle;
-			const unsigned int robot;
-			AsyncOperation<void>::Ptr failed_operation;
-			sigc::connection send_connection, receive_connection;
-			Ptr self_ref;
-			XBeeRobot::OperationalParameters params;
-
-			FirmwareReadOperationalParametersOperation(XBeeDongle &dongle, unsigned int robot) : dongle(dongle), robot(robot), self_ref(this) {
-				uint8_t data[2];
-				data[0] = static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
-				data[1] = FIRMWARE_REQUEST_READ_PARAMS;
-				send_connection = dongle.send_message(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareReadOperationalParametersOperation::on_send_message_done));
-				receive_connection = dongle.signal_message_received.connect(sigc::mem_fun(this, &FirmwareReadOperationalParametersOperation::on_message_received));
-			}
-
-			void on_send_message_done(AsyncOperation<void>::Ptr op) {
-				if (!op->succeeded()) {
-					receive_connection.disconnect();
-					failed_operation = op;
-					Ptr pthis(this);
-					self_ref.reset();
-					signal_done.emit(pthis);
-				}
-			}
-
-			void on_message_received(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
-				if (robot == this->robot && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
-					const uint8_t *pch = static_cast<const uint8_t *>(data);
-					if (len == 7 && pch[0] == FIRMWARE_REQUEST_READ_PARAMS) {
-#warning sanity checks
-						params.flash_contents = flash_contents_of_int(pch[1]);
-						params.xbee_channels[0] = pch[2];
-						params.xbee_channels[1] = pch[3];
-						params.robot_number = pch[4];
-						params.dribble_power = pch[5];
-						send_connection.disconnect();
-						receive_connection.disconnect();
-						Ptr pthis(this);
-						self_ref.reset();
-						signal_done.emit(pthis);
-					} else {
-#warning TODO something sensible
-					}
-				}
-			}
-	};
-
-	class FirmwareSetOperationalParametersOperation : public AsyncOperation<void>, public sigc::trackable {
-		public:
-			static Ptr create(XBeeDongle &dongle, unsigned int robot, const XBeeRobot::OperationalParameters &params) {
-				Ptr p(new FirmwareSetOperationalParametersOperation(dongle, robot, params));
-				return p;
-			}
-
-			void result() const {
-				if (failed_operation.is()) {
-					failed_operation->result();
-				}
-			}
-
-		private:
-			XBeeDongle &dongle;
-			const unsigned int robot;
-			AsyncOperation<void>::Ptr failed_operation;
-			sigc::connection send_connection, receive_connection;
-			Ptr self_ref;
-			XBeeRobot::OperationalParameters params;
-
-			FirmwareSetOperationalParametersOperation(XBeeDongle &dongle, unsigned int robot, const XBeeRobot::OperationalParameters &params) : dongle(dongle), robot(robot), self_ref(this) {
-				uint8_t data[8];
-#warning sanity checks
-				data[0] = static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
-				data[1] = FIRMWARE_REQUEST_SET_PARAMS;
-				data[2] = static_cast<uint8_t>(params.flash_contents);
-				data[3] = params.xbee_channels[0];
-				data[4] = params.xbee_channels[1];
-				data[5] = params.robot_number;
-				data[6] = params.dribble_power;
-				data[7] = 0;
-				send_connection = dongle.send_message(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareSetOperationalParametersOperation::on_send_message_done));
-				receive_connection = dongle.signal_message_received.connect(sigc::mem_fun(this, &FirmwareSetOperationalParametersOperation::on_message_received));
-			}
-
-			void on_send_message_done(AsyncOperation<void>::Ptr op) {
-				if (!op->succeeded()) {
-					receive_connection.disconnect();
-					failed_operation = op;
-					Ptr pthis(this);
-					self_ref.reset();
-					signal_done.emit(pthis);
-				}
-			}
-
-			void on_message_received(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
-				if (robot == this->robot && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
-					const uint8_t *pch = static_cast<const uint8_t *>(data);
-					if (len == 1 && pch[0] == FIRMWARE_REQUEST_SET_PARAMS) {
-						send_connection.disconnect();
-						receive_connection.disconnect();
-						Ptr pthis(this);
-						self_ref.reset();
-						signal_done.emit(pthis);
-					} else {
-#warning TODO something sensible
-					}
-				}
-			}
-	};
-
-	class FirmwareCommitOperationalParametersOperation : public AsyncOperation<void>, public sigc::trackable {
-		public:
-			static Ptr create(XBeeDongle &dongle, unsigned int robot) {
-				Ptr p(new FirmwareCommitOperationalParametersOperation(dongle, robot));
-				return p;
-			}
-
-			void result() const {
-				if (failed_operation.is()) {
-					failed_operation->result();
-				}
-			}
-
-		private:
-			XBeeDongle &dongle;
-			const unsigned int robot;
-			AsyncOperation<void>::Ptr failed_operation;
-			sigc::connection send_connection, receive_connection;
-			Ptr self_ref;
-			XBeeRobot::OperationalParameters params;
-
-			FirmwareCommitOperationalParametersOperation(XBeeDongle &dongle, unsigned int robot) : dongle(dongle), robot(robot), self_ref(this) {
-				uint8_t data[2];
-				data[0] = static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
-				data[1] = FIRMWARE_REQUEST_COMMIT_PARAMS;
-				send_connection = dongle.send_message(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareCommitOperationalParametersOperation::on_send_message_done));
-				receive_connection = dongle.signal_message_received.connect(sigc::mem_fun(this, &FirmwareCommitOperationalParametersOperation::on_message_received));
-			}
-
-			void on_send_message_done(AsyncOperation<void>::Ptr op) {
-				if (!op->succeeded()) {
-					receive_connection.disconnect();
-					failed_operation = op;
-					Ptr pthis(this);
-					self_ref.reset();
-					signal_done.emit(pthis);
-				}
-			}
-
-			void on_message_received(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
-				if (robot == this->robot && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
-					const uint8_t *pch = static_cast<const uint8_t *>(data);
-					if (len == 1 && pch[0] == FIRMWARE_REQUEST_COMMIT_PARAMS) {
-						send_connection.disconnect();
-						receive_connection.disconnect();
-						Ptr pthis(this);
-						self_ref.reset();
-						signal_done.emit(pthis);
-					} else {
-#warning TODO something sensible
-					}
-				}
-			}
-	};
-
-	class FirmwareRebootOperation : public AsyncOperation<void>, public sigc::trackable {
-		public:
-			static Ptr create(XBeeDongle &dongle, unsigned int robot) {
-				Ptr p(new FirmwareRebootOperation(dongle, robot));
-				return p;
-			}
-
-			void result() const {
-				if (failed_operation.is()) {
-					failed_operation->result();
-				}
-			}
-
-		private:
-			XBeeDongle &dongle;
-			const unsigned int robot;
-			AsyncOperation<void>::Ptr failed_operation;
-			sigc::connection send_connection, receive_connection;
-			Ptr self_ref;
-			XBeeRobot::OperationalParameters params;
-
-			FirmwareRebootOperation(XBeeDongle &dongle, unsigned int robot) : dongle(dongle), robot(robot), self_ref(this) {
-				uint8_t data[2];
-				data[0] = static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
-				data[1] = FIRMWARE_REQUEST_REBOOT;
-				send_connection = dongle.send_message(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareRebootOperation::on_send_message_done));
-				receive_connection = dongle.signal_message_received.connect(sigc::mem_fun(this, &FirmwareRebootOperation::on_message_received));
-			}
-
-			void on_send_message_done(AsyncOperation<void>::Ptr op) {
-				if (!op->succeeded()) {
-					receive_connection.disconnect();
-					failed_operation = op;
-					Ptr pthis(this);
-					self_ref.reset();
-					signal_done.emit(pthis);
-				}
-			}
-
-			void on_message_received(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
-				if (robot == this->robot && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
-					const uint8_t *pch = static_cast<const uint8_t *>(data);
-					if (len == 1 && pch[0] == FIRMWARE_REQUEST_REBOOT) {
-						send_connection.disconnect();
-						receive_connection.disconnect();
-						Ptr pthis(this);
-						self_ref.reset();
-						signal_done.emit(pthis);
-					} else {
-#warning TODO something sensible
-					}
-				}
-			}
-	};
-
-	class FirmwareReadBuildSignaturesOperation : public AsyncOperation<XBeeRobot::BuildSignatures>, public sigc::trackable {
-		public:
-			static Ptr create(XBeeDongle &dongle, unsigned int robot) {
-				Ptr p(new FirmwareReadBuildSignaturesOperation(dongle, robot));
-				return p;
-			}
-
-			XBeeRobot::BuildSignatures result() const {
-				if (failed_operation.is()) {
-					failed_operation->result();
-				}
-				return sigs;
-			}
-
-		private:
-			XBeeDongle &dongle;
-			const unsigned int robot;
-			AsyncOperation<void>::Ptr failed_operation;
-			sigc::connection send_connection, receive_connection;
-			Ptr self_ref;
-			XBeeRobot::BuildSignatures sigs;
-
-			FirmwareReadBuildSignaturesOperation(XBeeDongle &dongle, unsigned int robot) : dongle(dongle), robot(robot), self_ref(this) {
-				uint8_t data[2];
-				data[0] = static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
-				data[1] = FIRMWARE_REQUEST_READ_BUILD_SIGNATURES;
-				send_connection = dongle.send_message(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareReadBuildSignaturesOperation::on_send_message_done));
-				receive_connection = dongle.signal_message_received.connect(sigc::mem_fun(this, &FirmwareReadBuildSignaturesOperation::on_message_received));
-			}
-
-			void on_send_message_done(AsyncOperation<void>::Ptr op) {
-				if (!op->succeeded()) {
-					receive_connection.disconnect();
-					failed_operation = op;
-					Ptr pthis(this);
-					self_ref.reset();
-					signal_done.emit(pthis);
-				}
-			}
-
-			void on_message_received(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
-				if (robot == this->robot && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
-					const uint8_t *pch = static_cast<const uint8_t *>(data);
-					if (len == 5 && pch[0] == FIRMWARE_REQUEST_READ_BUILD_SIGNATURES) {
-#warning sanity checks
-						sigs.firmware_signature = static_cast<uint16_t>(pch[1] | (pch[2] << 8));
-						sigs.flash_signature = static_cast<uint16_t>(pch[3] | (pch[4] << 8));
-						send_connection.disconnect();
-						receive_connection.disconnect();
-						Ptr pthis(this);
-						self_ref.reset();
-						signal_done.emit(pthis);
-					} else {
-#warning TODO something sensible
-					}
-				}
-			}
-	};
-
-	void discard_result(AsyncOperation<void>::Ptr op) {
-		op->result();
+	void discard_result(AsyncOperation<void> &op) {
+		op.result();
 	}
 
 	void encode_kick_parameters(unsigned int &pulse_width1, unsigned int &pulse_width2, unsigned int &slice_width, bool &ignore_slice1, bool &ignore_slice2, int offset) {
@@ -580,40 +76,259 @@ namespace {
 	}
 }
 
-AsyncOperation<void>::Ptr XBeeRobot::firmware_spi_chip_erase() {
-	return FirmwareSPIChipEraseOperation::create(dongle, index);
+XBeeRobot::FirmwareSPIChipEraseOperation::FirmwareSPIChipEraseOperation(XBeeRobot &robot) : robot(robot), buffer{static_cast<uint8_t>((robot.index << 4) | XBeeDongle::PIPE_FIRMWARE_OUT), FIRMWARE_REQUEST_CHIP_ERASE}, send_message_op(robot.dongle, buffer, sizeof(buffer)) {
+	send_message_op.signal_done.connect(sigc::mem_fun(this, &FirmwareSPIChipEraseOperation::send_message_op_done));
 }
 
-AsyncOperation<void>::Ptr XBeeRobot::firmware_spi_fill_page_buffer(unsigned int offset, const void *data, std::size_t length) {
-	return FirmwareSPIFillPageBufferOperation::create(dongle, index, offset, data, length);
+void XBeeRobot::FirmwareSPIChipEraseOperation::result() const {
+	send_message_op.result();
 }
 
-AsyncOperation<void>::Ptr XBeeRobot::firmware_spi_page_program(unsigned int page, uint16_t crc) {
-	return FirmwareSPIPageProgramOperation::create(dongle, index, page, crc);
+void XBeeRobot::FirmwareSPIChipEraseOperation::send_message_op_done(AsyncOperation<void> &op) {
+	if (op.succeeded()) {
+		receive_message_conn = robot.dongle.signal_message_received.connect(sigc::mem_fun(this, &FirmwareSPIChipEraseOperation::check_received_message));
+	} else {
+		signal_done.emit(*this);
+	}
 }
 
-AsyncOperation<uint16_t>::Ptr XBeeRobot::firmware_spi_block_crc(unsigned int address, std::size_t length) {
-	return FirmwareSPIBlockCRCOperation::create(dongle, index, address, length);
+void XBeeRobot::FirmwareSPIChipEraseOperation::check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
+	if (robot == this->robot.index && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
+		if (len == 1 && static_cast<const uint8_t *>(data)[0] == FIRMWARE_REQUEST_CHIP_ERASE) {
+			receive_message_conn.disconnect();
+			signal_done.emit(*this);
+		} else {
+#warning TODO something sensible
+		}
+	}
 }
 
-AsyncOperation<XBeeRobot::OperationalParameters>::Ptr XBeeRobot::firmware_read_operational_parameters() {
-	return FirmwareReadOperationalParametersOperation::create(dongle, index);
+XBeeRobot::FirmwareSPIFillPageBufferOperation::FirmwareSPIFillPageBufferOperation(XBeeRobot &robot, unsigned int offset, const void *data, std::size_t length) : robot(robot), send_message_op(robot.dongle, prepare_buffer(offset, data, length), length + 3) {
+	send_message_op.signal_done.connect(sigc::mem_fun(this, &FirmwareSPIFillPageBufferOperation::send_message_op_done));
 }
 
-AsyncOperation<void>::Ptr XBeeRobot::firmware_set_operational_parameters(const OperationalParameters &params) {
-	return FirmwareSetOperationalParametersOperation::create(dongle, index, params);
+void XBeeRobot::FirmwareSPIFillPageBufferOperation::result() const {
+	send_message_op.result();
 }
 
-AsyncOperation<void>::Ptr XBeeRobot::firmware_commit_operational_parameters() {
-	return FirmwareCommitOperationalParametersOperation::create(dongle, index);
+void XBeeRobot::FirmwareSPIFillPageBufferOperation::send_message_op_done(AsyncOperation<void> &) {
+	signal_done.emit(*this);
 }
 
-AsyncOperation<void>::Ptr XBeeRobot::firmware_reboot() {
-	return FirmwareRebootOperation::create(dongle, index);
+uint8_t *XBeeRobot::FirmwareSPIFillPageBufferOperation::prepare_buffer(unsigned int offset, const void *data, std::size_t length) {
+	assert(length + 3 <= sizeof(buffer));
+	assert(offset + length <= 256);
+	buffer[0] = static_cast<uint8_t>((robot.index << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
+	buffer[1] = FIRMWARE_REQUEST_FILL_PAGE_BUFFER;
+	buffer[2] = static_cast<uint8_t>(offset);
+	std::memcpy(buffer + 3, data, length);
+	return buffer;
 }
 
-AsyncOperation<XBeeRobot::BuildSignatures>::Ptr XBeeRobot::firmware_read_build_signatures() {
-	return FirmwareReadBuildSignaturesOperation::create(dongle, index);
+XBeeRobot::FirmwareSPIPageProgramOperation::FirmwareSPIPageProgramOperation(XBeeRobot &robot, unsigned int page, uint16_t crc) : robot(robot), buffer{static_cast<uint8_t>((robot.index << 4) | XBeeDongle::PIPE_FIRMWARE_OUT), FIRMWARE_REQUEST_PAGE_PROGRAM, static_cast<uint8_t>(page), static_cast<uint8_t>(page >> 8), static_cast<uint8_t>(crc), static_cast<uint8_t>(crc >> 8)}, send_message_op(robot.dongle, buffer, sizeof(buffer)) {
+	send_message_op.signal_done.connect(sigc::mem_fun(this, &XBeeRobot::FirmwareSPIPageProgramOperation::send_message_op_done));
+}
+
+void XBeeRobot::FirmwareSPIPageProgramOperation::result() const {
+	send_message_op.result();
+}
+
+void XBeeRobot::FirmwareSPIPageProgramOperation::send_message_op_done(AsyncOperation<void> &op) {
+	if (op.succeeded()) {
+		receive_message_conn = robot.dongle.signal_message_received.connect(sigc::mem_fun(this, &FirmwareSPIPageProgramOperation::check_received_message));
+	} else {
+		signal_done.emit(*this);
+	}
+}
+
+void XBeeRobot::FirmwareSPIPageProgramOperation::check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
+	if (robot == this->robot.index && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
+		if (len == 1 && static_cast<const uint8_t *>(data)[0] == FIRMWARE_REQUEST_PAGE_PROGRAM) {
+			receive_message_conn.disconnect();
+			signal_done.emit(*this);
+		} else {
+#warning TODO something sensible
+		}
+	}
+}
+
+XBeeRobot::FirmwareSPIBlockCRCOperation::FirmwareSPIBlockCRCOperation(XBeeRobot &robot, unsigned int address, std::size_t length) : robot(robot), address(address), length(length), buffer{static_cast<uint8_t>((robot.index << 4) | XBeeDongle::PIPE_FIRMWARE_OUT), FIRMWARE_REQUEST_CRC_BLOCK, static_cast<uint8_t>(address), static_cast<uint8_t>(address >> 8), static_cast<uint8_t>(address >> 16), static_cast<uint8_t>(length), static_cast<uint8_t>(length >> 8)}, send_message_op(robot.dongle, buffer, sizeof(buffer)) {
+	assert(1 <= length && length <= 65536);
+	send_message_op.signal_done.connect(sigc::mem_fun(this, &XBeeRobot::FirmwareSPIBlockCRCOperation::send_message_op_done));
+}
+
+uint16_t XBeeRobot::FirmwareSPIBlockCRCOperation::result() const {
+	send_message_op.result();
+	return crc;
+}
+
+void XBeeRobot::FirmwareSPIBlockCRCOperation::send_message_op_done(AsyncOperation<void> &op) {
+	if (op.succeeded()) {
+		receive_message_conn = robot.dongle.signal_message_received.connect(sigc::mem_fun(this, &FirmwareSPIBlockCRCOperation::check_received_message));
+	} else {
+		signal_done.emit(*this);
+	}
+}
+
+void XBeeRobot::FirmwareSPIBlockCRCOperation::check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
+	const uint8_t *pch = static_cast<const uint8_t *>(data);
+	if (robot == this->robot.index && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
+		if (len == 8 && pch[0] == FIRMWARE_REQUEST_CRC_BLOCK && static_cast<uint32_t>(pch[1] | (pch[2] << 8) | (pch[3] << 16)) == address && static_cast<uint16_t>(pch[4] | (pch[5] << 8)) == (length & 0xFFFF)) {
+			crc = static_cast<uint16_t>(pch[6] | (pch[7] << 8));
+			receive_message_conn.disconnect();
+			signal_done.emit(*this);
+		} else {
+#warning TODO something sensible
+		}
+	}
+}
+
+XBeeRobot::FirmwareReadOperationalParametersOperation::FirmwareReadOperationalParametersOperation(XBeeRobot &robot) : robot(robot), buffer{static_cast<uint8_t>((robot.index << 4) | XBeeDongle::PIPE_FIRMWARE_OUT), FIRMWARE_REQUEST_READ_PARAMS}, send_message_op(robot.dongle, buffer, sizeof(buffer)) {
+	send_message_op.signal_done.connect(sigc::mem_fun(this, &XBeeRobot::FirmwareReadOperationalParametersOperation::send_message_op_done));
+}
+
+XBeeRobot::OperationalParameters XBeeRobot::FirmwareReadOperationalParametersOperation::result() const {
+	send_message_op.result();
+	return params;
+}
+
+void XBeeRobot::FirmwareReadOperationalParametersOperation::send_message_op_done(AsyncOperation<void> &op) {
+	if (op.succeeded()) {
+		receive_message_conn = robot.dongle.signal_message_received.connect(sigc::mem_fun(this, &FirmwareReadOperationalParametersOperation::check_received_message));
+	} else {
+		signal_done.emit(*this);
+	}
+}
+
+void XBeeRobot::FirmwareReadOperationalParametersOperation::check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
+	const uint8_t *pch = static_cast<const uint8_t *>(data);
+	if (robot == this->robot.index && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
+		if (len == 7 && pch[0] == FIRMWARE_REQUEST_READ_PARAMS) {
+#warning sanity checks
+			params.flash_contents = flash_contents_of_int(pch[1]);
+			params.xbee_channels[0] = pch[2];
+			params.xbee_channels[1] = pch[3];
+			params.robot_number = pch[4];
+			params.dribble_power = pch[5];
+			receive_message_conn.disconnect();
+			signal_done.emit(*this);
+		} else {
+#warning TODO something sensible
+		}
+	}
+}
+
+XBeeRobot::FirmwareWriteOperationalParametersOperation::FirmwareWriteOperationalParametersOperation(XBeeRobot &robot, const OperationalParameters &params) : robot(robot), buffer{static_cast<uint8_t>((robot.index << 4) | XBeeDongle::PIPE_FIRMWARE_OUT), FIRMWARE_REQUEST_SET_PARAMS, static_cast<uint8_t>(params.flash_contents), params.xbee_channels[0], params.xbee_channels[1], params.robot_number, params.dribble_power, 0}, send_message_op(robot.dongle, buffer, sizeof(buffer)) {
+	send_message_op.signal_done.connect(sigc::mem_fun(this, &XBeeRobot::FirmwareWriteOperationalParametersOperation::send_message_op_done));
+}
+
+void XBeeRobot::FirmwareWriteOperationalParametersOperation::result() const {
+	send_message_op.result();
+}
+
+void XBeeRobot::FirmwareWriteOperationalParametersOperation::send_message_op_done(AsyncOperation<void> &op) {
+	if (op.succeeded()) {
+		receive_message_conn = robot.dongle.signal_message_received.connect(sigc::mem_fun(this, &FirmwareWriteOperationalParametersOperation::check_received_message));
+	} else {
+		signal_done.emit(*this);
+	}
+}
+
+void XBeeRobot::FirmwareWriteOperationalParametersOperation::check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
+	if (robot == this->robot.index && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
+		if (len == 1 && static_cast<const uint8_t *>(data)[0] == FIRMWARE_REQUEST_SET_PARAMS) {
+			receive_message_conn.disconnect();
+			signal_done.emit(*this);
+		} else {
+#warning TODO something sensible
+		}
+	}
+}
+
+XBeeRobot::FirmwareCommitOperationalParametersOperation::FirmwareCommitOperationalParametersOperation(XBeeRobot &robot) : robot(robot), buffer{static_cast<uint8_t>((robot.index << 4) | XBeeDongle::PIPE_FIRMWARE_OUT), FIRMWARE_REQUEST_COMMIT_PARAMS}, send_message_op(robot.dongle, buffer, sizeof(buffer)) {
+	send_message_op.signal_done.connect(sigc::mem_fun(this, &XBeeRobot::FirmwareCommitOperationalParametersOperation::send_message_op_done));
+}
+
+void XBeeRobot::FirmwareCommitOperationalParametersOperation::result() const {
+	send_message_op.result();
+}
+
+void XBeeRobot::FirmwareCommitOperationalParametersOperation::send_message_op_done(AsyncOperation<void> &op) {
+	if (op.succeeded()) {
+		receive_message_conn = robot.dongle.signal_message_received.connect(sigc::mem_fun(this, &FirmwareCommitOperationalParametersOperation::check_received_message));
+	} else {
+		signal_done.emit(*this);
+	}
+}
+
+void XBeeRobot::FirmwareCommitOperationalParametersOperation::check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
+	if (robot == this->robot.index && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
+		if (len == 1 && static_cast<const uint8_t *>(data)[0] == FIRMWARE_REQUEST_COMMIT_PARAMS) {
+			receive_message_conn.disconnect();
+			signal_done.emit(*this);
+		} else {
+#warning TODO something sensible
+		}
+	}
+}
+
+XBeeRobot::RebootOperation::RebootOperation(XBeeRobot &robot) : robot(robot), buffer{static_cast<uint8_t>((robot.index << 4) | XBeeDongle::PIPE_FIRMWARE_OUT), FIRMWARE_REQUEST_REBOOT}, send_message_op(robot.dongle, buffer, sizeof(buffer)) {
+	send_message_op.signal_done.connect(sigc::mem_fun(this, &XBeeRobot::RebootOperation::send_message_op_done));
+}
+
+void XBeeRobot::RebootOperation::result() const {
+	send_message_op.result();
+}
+
+void XBeeRobot::RebootOperation::send_message_op_done(AsyncOperation<void> &op) {
+	if (op.succeeded()) {
+		receive_message_conn = robot.dongle.signal_message_received.connect(sigc::mem_fun(this, &RebootOperation::check_received_message));
+	} else {
+		signal_done.emit(*this);
+	}
+}
+
+void XBeeRobot::RebootOperation::check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
+	if (robot == this->robot.index && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
+		if (len == 1 && static_cast<const uint8_t *>(data)[0] == FIRMWARE_REQUEST_REBOOT) {
+			receive_message_conn.disconnect();
+			signal_done.emit(*this);
+		} else {
+#warning TODO something sensible
+		}
+	}
+}
+
+XBeeRobot::FirmwareReadBuildSignaturesOperation::FirmwareReadBuildSignaturesOperation(XBeeRobot &robot) : robot(robot), buffer{static_cast<uint8_t>((robot.index << 4) | XBeeDongle::PIPE_FIRMWARE_OUT), FIRMWARE_REQUEST_READ_BUILD_SIGNATURES}, send_message_op(robot.dongle, buffer, sizeof(buffer)) {
+	send_message_op.signal_done.connect(sigc::mem_fun(this, &XBeeRobot::FirmwareReadBuildSignaturesOperation::send_message_op_done));
+}
+
+XBeeRobot::BuildSignatures XBeeRobot::FirmwareReadBuildSignaturesOperation::result() const {
+	send_message_op.result();
+	return sigs;
+}
+
+void XBeeRobot::FirmwareReadBuildSignaturesOperation::send_message_op_done(AsyncOperation<void> &op) {
+	if (op.succeeded()) {
+		receive_message_conn = robot.dongle.signal_message_received.connect(sigc::mem_fun(this, &FirmwareReadBuildSignaturesOperation::check_received_message));
+	} else {
+		signal_done.emit(*this);
+	}
+}
+
+void XBeeRobot::FirmwareReadBuildSignaturesOperation::check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
+	const uint8_t *pch = static_cast<const uint8_t *>(data);
+	if (robot == this->robot.index && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
+		if (len == 5 && pch[0] == FIRMWARE_REQUEST_READ_BUILD_SIGNATURES) {
+#warning sanity checks
+			sigs.firmware_signature = static_cast<uint16_t>(pch[1] | (pch[2] << 8));
+			sigs.flash_signature = static_cast<uint16_t>(pch[3] | (pch[4] << 8));
+			receive_message_conn.disconnect();
+			signal_done.emit(*this);
+		} else {
+#warning TODO something sensible
+		}
+	}
 }
 
 void XBeeRobot::drive(const int(&wheels)[4], bool controlled) {
@@ -680,7 +395,8 @@ void XBeeRobot::kick(unsigned int pulse_width1, unsigned int pulse_width2, int o
 	buffer[0] = static_cast<uint8_t>((index << 4) | XBeeDongle::PIPE_KICK);
 	packet.encode(buffer + 1);
 
-	dongle.send_message(buffer, sizeof(buffer))->signal_done.connect(&discard_result);
+	kick_send_message_op.reset(new XBeeDongle::SendMessageOperation(dongle, buffer, sizeof(buffer)));
+	kick_send_message_op->signal_done.connect(sigc::mem_fun(this, &XBeeRobot::check_kick_message_result));
 }
 
 void XBeeRobot::test_mode(unsigned int mode) {
@@ -694,12 +410,17 @@ void XBeeRobot::test_mode(unsigned int mode) {
 	buffer[0] = static_cast<uint8_t>((index << 4) | XBeeDongle::PIPE_TEST_MODE);
 	packet.encode(buffer + 1);
 
-	dongle.send_message(buffer, sizeof(buffer))->signal_done.connect(&discard_result);
+	test_mode_send_message_op.reset(new XBeeDongle::SendMessageOperation(dongle, buffer, sizeof(buffer)));
+	test_mode_send_message_op->signal_done.connect(sigc::mem_fun(this, &XBeeRobot::check_test_mode_message_result));
 }
 
-XBeeRobot::Ptr XBeeRobot::create(XBeeDongle &dongle, unsigned int index) {
-	Ptr p(new XBeeRobot(dongle, index));
-	return p;
+void XBeeRobot::start_experiment(uint8_t control_code) {
+	uint8_t buffer[2];
+	buffer[0] = static_cast<uint8_t>((index << 4) | XBeeDongle::PIPE_EXPERIMENT_CONTROL);
+	buffer[1] = control_code;
+
+	start_experiment_send_message_op.reset(new XBeeDongle::SendMessageOperation(dongle, buffer, sizeof(buffer)));
+	start_experiment_send_message_op->signal_done.connect(sigc::mem_fun(this, &XBeeRobot::check_start_experiment_message_result));
 }
 
 XBeeRobot::XBeeRobot(XBeeDongle &dongle, unsigned int index) : index(index), alive(false), has_feedback(false), ball_in_beam(false), capacitor_charged(false), battery_voltage(0), capacitor_voltage(0), dribbler_temperature(0), break_beam_reading(0), dongle(dongle), encoder_1_stuck_message(Glib::ustring::compose("Bot %1 encoder 1 not commutating", index), Annunciator::Message::TriggerMode::LEVEL), encoder_2_stuck_message(Glib::ustring::compose("Bot %1 encoder 2 not commutating", index), Annunciator::Message::TriggerMode::LEVEL), encoder_3_stuck_message(Glib::ustring::compose("Bot %1 encoder 3 not commutating", index), Annunciator::Message::TriggerMode::LEVEL), encoder_4_stuck_message(Glib::ustring::compose("Bot %1 encoder 4 not commutating", index), Annunciator::Message::TriggerMode::LEVEL), hall_stuck_message(Glib::ustring::compose("Bot %1 hall sensor stuck", index), Annunciator::Message::TriggerMode::LEVEL) {
@@ -733,11 +454,18 @@ void XBeeRobot::on_feedback(const uint8_t *data, std::size_t length) {
 #warning deal with faults
 }
 
-void XBeeRobot::start_experiment(uint8_t control_code) {
-	uint8_t buffer[2];
-	buffer[0] = static_cast<uint8_t>((index << 4) | XBeeDongle::PIPE_EXPERIMENT_CONTROL);
-	buffer[1] = control_code;
+void XBeeRobot::check_kick_message_result(AsyncOperation<void> &) {
+	kick_send_message_op->result();
+	kick_send_message_op.reset();
+}
 
-	dongle.send_message(buffer, sizeof(buffer))->signal_done.connect(&discard_result);
+void XBeeRobot::check_test_mode_message_result(AsyncOperation<void> &) {
+	test_mode_send_message_op->result();
+	test_mode_send_message_op.reset();
+}
+
+void XBeeRobot::check_start_experiment_message_result(AsyncOperation<void> &) {
+	start_experiment_send_message_op->result();
+	start_experiment_send_message_op.reset();
 }
 

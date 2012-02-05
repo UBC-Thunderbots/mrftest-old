@@ -22,7 +22,7 @@ class ScopedCHDir : public NonCopyable {
 		~ScopedCHDir();
 
 	private:
-		FileDescriptor::Ptr old_dir;
+		FileDescriptor old_dir;
 };
 
 #endif

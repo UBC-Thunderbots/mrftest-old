@@ -2,7 +2,7 @@
 #define AI_COMMON_ROBOT_H
 
 #include "ai/common/predictable.h"
-#include "util/byref.h"
+#include "util/box_ptr.h"
 #include "util/objectstore.h"
 
 namespace AI {
@@ -10,12 +10,12 @@ namespace AI {
 		/**
 		 * The common functions available on a robot in all layers.
 		 */
-		class Robot : public OrientationPredictable, public virtual ByRef {
+		class Robot : public OrientationPredictable {
 			public:
 				/**
 				 * A pointer to a Robot.
 				 */
-				typedef RefPtr<const Robot> Ptr;
+				typedef BoxPtr<const Robot> Ptr;
 
 				/**
 				 * The largest possible radius of a robot, in metres.

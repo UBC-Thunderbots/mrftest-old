@@ -12,16 +12,6 @@ using namespace AI::HL::W;
 namespace {
 	int time;
 
-	class TestPivotFactory : public HighLevelFactory {
-		public:
-			TestPivotFactory() : HighLevelFactory("Test STP Pivot") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	TestPivotFactory factory_instance;
-
 	class TestPivot : public HighLevel {
 		public:
 			TestPivot(World &world) : world(world), target_enemy(false) {
@@ -32,9 +22,7 @@ namespace {
 			World &world;
 			bool target_enemy;
 
-			TestPivotFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			Gtk::Widget *ui_controls() {
 				return 0;
@@ -68,10 +56,7 @@ namespace {
 				Action::pivot(world, player, target);
 			}
 	};
-
-	HighLevel::Ptr TestPivotFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new TestPivot(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(TestPivot)
 

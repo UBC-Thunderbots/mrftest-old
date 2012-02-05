@@ -9,16 +9,6 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	class TestShootFactory : public HighLevelFactory {
-		public:
-			TestShootFactory() : HighLevelFactory("Test STP Shoot") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	TestShootFactory factory_instance;
-
 	class TestShoot : public HighLevel {
 		public:
 			TestShoot(World &world) : world(world) {
@@ -27,9 +17,7 @@ namespace {
 		private:
 			World &world;
 
-			TestShootFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			Gtk::Widget *ui_controls() {
 				return 0;
@@ -50,10 +38,7 @@ namespace {
 				draw_shoot(world, ctx);
 			}
 	};
-
-	HighLevel::Ptr TestShootFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new TestShoot(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(TestShoot)
 

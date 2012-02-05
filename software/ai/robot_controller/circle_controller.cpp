@@ -2,7 +2,6 @@
 #include "ai/robot_controller/tunable_controller.h"
 #include "geom/angle.h"
 #include "geom/point.h"
-#include "util/byref.h"
 #include "util/noncopyable.h"
 #include "util/dprint.h"
 #include "util/param.h"
@@ -130,18 +129,6 @@ namespace {
 		protected:
 			std::vector<double> param;
 	};
-
-	class CircleControllerFactory : public RobotControllerFactory {
-		public:
-			CircleControllerFactory() : RobotControllerFactory("circle controller") {
-			}
-
-			RobotController::Ptr create_controller(World &world, Player::Ptr player) const {
-				RobotController::Ptr p(new CircleController(world, player));
-				return p;
-			}
-	};
-
-	CircleControllerFactory factory;
 }
 
+ROBOT_CONTROLLER_REGISTER(CircleController)

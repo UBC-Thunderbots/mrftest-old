@@ -40,7 +40,7 @@ namespace {
 	}
 
 	Navigator::Ptr LazyNavigator::create(World &world) {
-		const Navigator::Ptr p(new LazyNavigator(world));
+		Navigator::Ptr p(new LazyNavigator(world));
 		return p;
 	}
 

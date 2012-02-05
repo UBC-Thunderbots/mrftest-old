@@ -23,16 +23,6 @@ namespace {
 
 	const int default_tasks_n = G_N_ELEMENTS(default_tasks);
 
-	class NCHLFactory : public HighLevelFactory {
-		public:
-			NCHLFactory() : HighLevelFactory("Navigation Challenge") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	NCHLFactory factory_instance;
-
 	class NCHL : public HighLevel {
 		public:
 			NCHL(World &world) : world(world), tasks(default_tasks, default_tasks + default_tasks_n), time_steps(0) {
@@ -40,9 +30,7 @@ namespace {
 				obstacleIndex = 0;
 			}
 
-			NCHLFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			void tick() {
 				FriendlyTeam &friendly = world.friendly_team();
@@ -162,10 +150,7 @@ namespace {
 			std::vector<std::size_t> done;
 			int obstacleIndex;
 	};
-
-	HighLevel::Ptr NCHLFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new NCHL(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(NCHL)
 

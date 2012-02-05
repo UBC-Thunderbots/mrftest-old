@@ -6,6 +6,7 @@
 #include "geom/angle.h"
 #include "util/dprint.h"
 #include "ai/hl/stp/param.h"
+#include <memory>
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
@@ -41,7 +42,7 @@ namespace AI {
 
 			class PlayerData : public ObjectStore::Element {
 				public:
-					typedef ::RefPtr<PlayerData> Ptr;
+					typedef std::shared_ptr<PlayerData> Ptr;
 					unsigned int added_flags;
 			};
 
@@ -105,7 +106,7 @@ namespace AI {
 				Point dir = (np - player->position()).norm();
 				bool op_ori = dir_ball.dot(dir) < chase_angle_range.get().cos();
 				if (op_ori) {
-					PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags |= AI::Flags::FLAG_AVOID_BALL_TINY;
+					std::dynamic_pointer_cast<PlayerData>(player->object_store()[typeid(*this)])->added_flags |= AI::Flags::FLAG_AVOID_BALL_TINY;
 					np += chase_distance * (np - player->destination().first).norm();
 				}
 				dest_pos += np - world.ball().position();
@@ -149,7 +150,7 @@ namespace AI {
 						Angle dest_ori = (world.ball().position() - player->position()).orientation();
 						Point vec = world.ball().velocity().norm();
 						if (vec.len() < ball_velocity_threshold) {
-							PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags |= AI::Flags::FLAG_AVOID_BALL_TINY;
+							std::dynamic_pointer_cast<PlayerData>(player->object_store()[typeid(*this)])->added_flags |= AI::Flags::FLAG_AVOID_BALL_TINY;
 						}
 						return std::make_pair(world.ball().position() + vec, dest_ori);
 					}
@@ -287,10 +288,10 @@ namespace AI {
 				for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 					path.clear();
 					Player::Ptr player = world.friendly_team().get(i);
-					if (!PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)]).is()) {
-						player->object_store()[typeid(*this)] = PlayerData::Ptr(new PlayerData);
+					if (!std::dynamic_pointer_cast<PlayerData>(player->object_store()[typeid(*this)])) {
+						player->object_store()[typeid(*this)] = std::make_shared<PlayerData>();
 					}
-					PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags = 0;
+					std::dynamic_pointer_cast<PlayerData>(player->object_store()[typeid(*this)])->added_flags = 0;
 					Point dest;
 					Angle dest_orientation = player->destination().second;
 					if (player->type() == AI::Flags::MoveType::CATCH) {
@@ -340,7 +341,7 @@ namespace AI {
 					} else {
 						dest = player->destination().first;
 					}
-					unsigned int flags = PlayerData::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags;
+					unsigned int flags = std::dynamic_pointer_cast<PlayerData>(player->object_store()[typeid(*this)])->added_flags;
 					// calculate a path
 					path_points.clear();
 					path_points = planner.plan(player, dest, flags);
@@ -375,7 +376,7 @@ namespace AI {
 			}
 
 			Navigator::Ptr RRTNavigator::create(World &world) {
-				const Navigator::Ptr p(new RRTNavigator(world));
+				Navigator::Ptr p(new RRTNavigator(world));
 				return p;
 			}
 

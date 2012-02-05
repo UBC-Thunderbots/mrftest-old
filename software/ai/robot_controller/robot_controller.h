@@ -3,8 +3,9 @@
 
 #include "ai/robot_controller/world.h"
 #include "geom/point.h"
-#include "util/byref.h"
+#include "util/noncopyable.h"
 #include "util/registerable.h"
+#include <memory>
 #include <cairomm/context.h>
 #include <cairomm/refptr.h>
 
@@ -19,18 +20,15 @@ namespace AI {
 		class RobotControllerFactory;
 
 		/**
-		 * Translates world-coordinate movement requests into robot wheel rotation speeds.
+		 * \brief Translates world-coordinate movement requests into robot wheel rotation speeds.
+		 *
+		 * Implementations of this class must also contain a public constructor with the same signature as the RobotController constructor itself.
 		 */
-		class RobotController : public ByRef {
+		class RobotController : public NonCopyable {
 			public:
 				/**
-				 * A pointer to a RobotController.
-				 */
-				typedef RefPtr<RobotController> Ptr;
-
-				/**
-				 * Multiplies a robot-relative velocity tuple by the wheel matrix,
-				 * producing a set of wheel rotation speeds.
+				 * \brief Multiplies a robot-relative velocity tuple by the wheel matrix, producing a set of wheel rotation speeds.
+				 *
 				 * A robot controller implementation may call this function.
 				 * It may also complete ignore it and compute wheel speeds in a different way.
 				 *
@@ -44,8 +42,12 @@ namespace AI {
 				static void convert_to_wheels(const Point &vel, Angle avel, int(&wheel_speeds)[4]);
 
 				/**
-				 * Reads the requested path from the Player using W::Player::path,
-				 * then orders new wheel speeds using W::Player::drive.
+				 * \brief Destroys the RobotController.
+				 */
+				virtual ~RobotController();
+
+				/**
+				 * \brief Reads the requested path from the Player using W::Player::path, then orders new wheel speeds using W::Player::drive.
 				 */
 				virtual void tick() = 0;
 
@@ -61,38 +63,34 @@ namespace AI {
 
 			protected:
 				/**
-				 * The world in which the controller runs.
+				 * \brief The world in which the controller runs.
 				 */
 				AI::RC::W::World &world;
 
 				/**
-				 * The player to control.
+				 * \brief The player to control.
 				 */
 				const AI::RC::W::Player::Ptr player;
 
 				/**
-				 * Constructs a new RobotController.
+				 * \brief Constructs a new RobotController.
 				 *
 				 * \param[in] world the world in which the controller will run.
 				 *
 				 * \param[in] player the player to control.
 				 */
 				RobotController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
-
-				/**
-				 * Destroys a RobotController.
-				 */
-				~RobotController();
 		};
 
 		/**
-		 * A compatibility layer for using old controllers that accept only a point as input.
+		 * \brief A compatibility layer for using old controllers that accept only a point as input.
+		 *
 		 * Not intended for new code.
 		 */
 		class OldRobotController2 : public RobotController {
 			public:
 				/**
-				 * Tells the robot controlled by this controller to move to the specified target location and orientation.
+				 * \brief Tells the robot controlled by this controller to move to the specified target location and orientation.
 				 *
 				 * It is expected that this function will update internal state.
 				 * This function will be called exactly once per timer tick, except for those ticks in which clear() is called instead.
@@ -107,19 +105,15 @@ namespace AI {
 				virtual void move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]) = 0;
 
 				/**
-				 * Tells the controller to clear its internal state because the robot under control is scrammed.
+				 * \brief Tells the controller to clear its internal state because the robot under control is scrammed.
+				 *
 				 * The controller should clear any integrators and similar structures in order to prevent unexpected jumps when driving resumes.
 				 */
 				virtual void clear() = 0;
 
-				/**
-				 * \return the factory that created this controller.
-				 */
-				virtual RobotControllerFactory &get_factory() const = 0;
-
 			protected:
 				/**
-				 * Constructs a new OldRobotController2.
+				 * \brief Constructs a new OldRobotController2.
 				 *
 				 * \param[in] world the world in which the controller will run.
 				 *
@@ -127,23 +121,19 @@ namespace AI {
 				 */
 				OldRobotController2(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
 
-				/**
-				 * Destroys an OldRobotController2.
-				 */
-				~OldRobotController2();
-
 			private:
 				void tick();
 		};
 
 		/**
-		 * A compatibility layer for using very old controllers that produce output as linear and angular velocities rather than calculating wheel speeds directly.
+		 * \brief A compatibility layer for using very old controllers that produce output as linear and angular velocities rather than calculating wheel speeds directly.
+		 *
 		 * Not intended for new code.
 		 */
 		class OldRobotController : public OldRobotController2 {
 			public:
 				/**
-				 * Tells the robot controlled by this controller to move to the specified target location and orientation.
+				 * \brief Tells the robot controlled by this controller to move to the specified target location and orientation.
 				 *
 				 * It is expected that this function will update internal state.
 				 * This function will be called exactly once per timer tick, except for those ticks in which clear() is called instead.
@@ -161,7 +151,7 @@ namespace AI {
 
 			protected:
 				/**
-				 * Constructs a new OldRobotController.
+				 * \brief Constructs a new OldRobotController.
 				 *
 				 * \param[in] world the world in which the controller will run.
 				 *
@@ -169,22 +159,17 @@ namespace AI {
 				 */
 				OldRobotController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
 
-				/**
-				 * Destroys an OldRobotController.
-				 */
-				~OldRobotController();
-
 			private:
 				void move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]);
 		};
 
 		/**
-		 * A factory to construct \ref RobotController "RobotControllers".
+		 * \brief A factory to construct \ref RobotController "RobotControllers".
 		 */
 		class RobotControllerFactory : public Registerable<RobotControllerFactory> {
 			public:
 				/**
-				 * Constructs a new RobotController.
+				 * \brief Constructs a new RobotController.
 				 *
 				 * \param[in] world the world in which the controller will run.
 				 *
@@ -192,10 +177,10 @@ namespace AI {
 				 *
 				 * \return the new controller.
 				 */
-				virtual RobotController::Ptr create_controller(AI::RC::W::World &world, AI::RC::W::Player::Ptr plr) const = 0;
+				virtual std::unique_ptr<RobotController> create_controller(AI::RC::W::World &world, AI::RC::W::Player::Ptr plr) const = 0;
 
 				/**
-				 * Returns the GTK widget for this RobotControllerFactory, which will be integrated into the AI's user interface.
+				 * \brief Returns the GTK widget for this RobotControllerFactory, which will be integrated into the AI's user interface.
 				 *
 				 * \return a GUI widget containing the controls for this RobotControllerFactory,
 				 * or a null pointer if no GUI widgets are needed for this RobotControllerFactory.
@@ -206,7 +191,8 @@ namespace AI {
 
 			protected:
 				/**
-				 * Constructs a RobotControllerFactory.
+				 * \brief Constructs a RobotControllerFactory.
+				 *
 				 * This is intended to be called from a subclass constructor.
 				 * The subclass should be created by a global variable coming into scope at application startup.
 				 *
@@ -216,6 +202,30 @@ namespace AI {
 		};
 	}
 }
+
+/**
+ * \brief Registers a RobotController implementation.
+ *
+ * \param[in] cls the class of the controller to register.
+ */
+#define ROBOT_CONTROLLER_REGISTER(cls) \
+	namespace { \
+		class cls##ControllerFactory : public RobotControllerFactory { \
+			public: \
+				cls##ControllerFactory(); \
+				std::unique_ptr<RobotController> create_controller(World &, Player::Ptr) const; \
+		}; \
+	} \
+	\
+	cls##ControllerFactory::cls##ControllerFactory() : RobotControllerFactory(#cls) { \
+	} \
+	\
+	std::unique_ptr<RobotController> cls##ControllerFactory::create_controller(World &w, Player::Ptr p) const { \
+		std::unique_ptr<RobotController> ptr(new cls(w, p)); \
+		return ptr; \
+	} \
+	\
+	cls##ControllerFactory cls##ControllerFactory_instance;
 
 #endif
 

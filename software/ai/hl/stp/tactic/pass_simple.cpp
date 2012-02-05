@@ -34,7 +34,7 @@ namespace {
 		}
 
 		bool done() const {
-			return player.is() && kick_attempted && player->autokick_fired();
+			return player && kick_attempted && player->autokick_fired();
 		}
 
 		void player_changed() {
@@ -42,7 +42,7 @@ namespace {
 		}
 
 		bool fail() const {
-			if (!target.is()) {
+			if (!target) {
 				return false;
 			}
 			if (!Evaluation::passee_suitable(world, target)) {
@@ -60,7 +60,7 @@ namespace {
 		}
 
 		void execute() {
-			if (!target.is()) {
+			if (!target) {
 				LOG_ERROR("no target");
 				// should fail
 				return;
@@ -86,7 +86,7 @@ namespace {
 
 		Player::Ptr select(const std::set<Player::Ptr> &players) const {
 			// hysterysis.
-			if (player.is() && players.count(player) && Evaluation::passee_suitable(world, player)) {
+			if (player && players.count(player) && Evaluation::passee_suitable(world, player)) {
 				return player;
 			}
 			for (auto it = players.begin(); it != players.end(); ++it) {
@@ -123,7 +123,7 @@ namespace {
 			double min_dist = 1e99;
 			for (auto it = players.begin(); it != players.end(); ++it) {
 				Point dest = Evaluation::calc_fastest_grab_ball_dest_if_baller_shoots(world, (*it)->position());
-				if (!best.is() || min_dist > (dest - (*it)->position()).len()) {
+				if (!best || min_dist > (dest - (*it)->position()).len()) {
 					min_dist = (dest - (*it)->position()).len();
 					best = *it;
 				}
@@ -147,17 +147,17 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passer_simple(const World &world) {
-	const Tactic::Ptr p(new PasserSimple(world));
+	Tactic::Ptr p(new PasserSimple(world));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_simple(const World &world, unsigned number) {
-	const Tactic::Ptr p(new PasseeSimple(world, number));
+	Tactic::Ptr p(new PasseeSimple(world, number));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::follow_baller(const World &world) {
-	const Tactic::Ptr p(new FollowBaller(world));
+	Tactic::Ptr p(new FollowBaller(world));
 	return p;
 }
 

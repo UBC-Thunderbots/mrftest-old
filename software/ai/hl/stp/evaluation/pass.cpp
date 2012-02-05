@@ -216,7 +216,7 @@ bool Evaluation::passee_facing_passer(Player::CPtr passer, Player::CPtr passee) 
 }
 
 bool Evaluation::passee_suitable(const World &world, Player::CPtr passee) {
-	if (!passee.is()) {
+	if (!passee) {
 		LOG_ERROR("Passee is null");
 		return false;
 	}
@@ -277,7 +277,7 @@ Player::CPtr Evaluation::select_passee(const World &world) {
 
 Point Evaluation::calc_fastest_grab_ball_dest_if_baller_shoots(const World &world, const Point player_pos) {
 	Player::CPtr baller = Evaluation::calc_friendly_baller();
-	if (!baller.is()) {
+	if (!baller) {
 		return world.ball().position();
 	}
 

@@ -17,7 +17,7 @@ class DrivePanel : public Gtk::VBox {
 		 *
 		 * \param[in] robot the robot to control.
 		 */
-		DrivePanel(XBeeRobot::Ptr robot);
+		DrivePanel(XBeeRobot &robot);
 
 		/**
 		 * \brief Sets all speed selectors to their zero positions.
@@ -44,7 +44,7 @@ class DrivePanel : public Gtk::VBox {
 		void get_low_sensitivity_scale_factors(double (&scale)[4]);
 
 	private:
-		XBeeRobot::Ptr robot;
+		XBeeRobot &robot;
 		Gtk::ComboBoxText mode_chooser;
 		Gtk::HScale controls[4];
 		Gtk::CheckButton controllers_checkbox;

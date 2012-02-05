@@ -10,7 +10,6 @@
  */
 class BallODE : public Simulator::Ball {
 	public:
-		typedef RefPtr<BallODE> Ptr;
 		dWorldID world;
 		dBodyID body;
 		dGeomID ballGeom;
@@ -36,8 +35,8 @@ class BallODE : public Simulator::Ball {
 
 		bool in_goal();
 
-		void load_state(FileDescriptor::Ptr fd);
-		void save_state(FileDescriptor::Ptr fd) const;
+		void load_state(const FileDescriptor &fd);
+		void save_state(const FileDescriptor &fd) const;
 
 	private:
 		Point the_position, the_velocity;

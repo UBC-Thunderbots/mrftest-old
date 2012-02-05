@@ -3,6 +3,8 @@
 #include "util/dprint.h"
 #include <cmath>
 
+#warning const-correctness is broken in AI::BE::Robot::Ptr.
+
 using AI::BE::Backend;
 using AI::BE::BackendFactory;
 

@@ -7,9 +7,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-MappedFile::MappedFile(FileDescriptor::Ptr fd, int prot, int flags) {
+MappedFile::MappedFile(const FileDescriptor &fd, int prot, int flags) {
 	struct stat st;
-	if (fstat(fd->fd(), &st) < 0) {
+	if (fstat(fd.fd(), &st) < 0) {
 		throw SystemError("fstat", errno);
 	}
 	if (static_cast<uintmax_t>(st.st_size) > std::numeric_limits<std::size_t>::max()) {
@@ -17,7 +17,7 @@ MappedFile::MappedFile(FileDescriptor::Ptr fd, int prot, int flags) {
 	}
 	size_ = static_cast<std::size_t>(st.st_size);
 	if (size_) {
-		data_ = mmap(0, size_, prot, flags, fd->fd(), 0);
+		data_ = mmap(0, size_, prot, flags, fd.fd(), 0);
 		if (data_ == get_map_failed()) {
 			throw SystemError("mmap", errno);
 		}
@@ -27,9 +27,9 @@ MappedFile::MappedFile(FileDescriptor::Ptr fd, int prot, int flags) {
 }
 
 MappedFile::MappedFile(const std::string &filename, int prot, int flags) {
-	FileDescriptor::Ptr fd = FileDescriptor::create_open(filename.c_str(), O_RDONLY, 0);
+	FileDescriptor fd = FileDescriptor::create_open(filename.c_str(), O_RDONLY, 0);
 	struct stat st;
-	if (fstat(fd->fd(), &st) < 0) {
+	if (fstat(fd.fd(), &st) < 0) {
 		throw SystemError("fstat", errno);
 	}
 	if (static_cast<uintmax_t>(st.st_size) > std::numeric_limits<std::size_t>::max()) {
@@ -37,7 +37,7 @@ MappedFile::MappedFile(const std::string &filename, int prot, int flags) {
 	}
 	size_ = static_cast<std::size_t>(st.st_size);
 	if (size_) {
-		data_ = mmap(0, size_, prot, flags, fd->fd(), 0);
+		data_ = mmap(0, size_, prot, flags, fd.fd(), 0);
 		if (data_ == get_map_failed()) {
 			throw SystemError("mmap", errno);
 		}

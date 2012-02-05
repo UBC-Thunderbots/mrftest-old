@@ -39,7 +39,7 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::move_wait_playtype(const World &world, Coordinate dest, AI::Common::PlayType playtype) {
-	const Tactic::Ptr p(new MoveWaitPlaytype(world, dest, playtype));
+	Tactic::Ptr p(new MoveWaitPlaytype(world, dest, playtype));
 	return p;
 }
 

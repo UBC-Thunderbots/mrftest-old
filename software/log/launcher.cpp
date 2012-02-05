@@ -83,7 +83,7 @@ LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyz
 	show_all();
 
 	compress_lock_fd = FileDescriptor::create_open(filename_to_pathname(".lock").c_str(), O_RDWR | O_CREAT, 0666);
-	if (lockf(compress_lock_fd->fd(), F_TLOCK, 0) < 0) {
+	if (lockf(compress_lock_fd.fd(), F_TLOCK, 0) < 0) {
 		if (errno == EAGAIN || errno == EACCES) {
 			// File is already locked. Just do nothing.
 			next_file_to_compress = files_to_compress.end();
@@ -115,7 +115,7 @@ LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyz
 			start_compressing();
 		} else {
 			// Drop the lockfile so another process can grab it if desired.
-			compress_lock_fd.reset();
+			compress_lock_fd.close();
 			next_file_to_compress = files_to_compress.end();
 		}
 	}
@@ -173,7 +173,7 @@ void LogLauncher::start_compressing() {
 			compress_progress_bar.set_fraction(0);
 			rename_button.set_sensitive();
 			delete_button.set_sensitive();
-			compress_lock_fd.reset();
+			compress_lock_fd.close();
 		}
 	}
 }
@@ -189,7 +189,7 @@ void LogLauncher::compress_thread_proc(const std::string &filename) {
 		temp_filename = Glib::filename_from_utf8(wstring2ustring(oss.str()));
 	}
 	const std::string &temp_pathname = filename_to_pathname(temp_filename);
-	FileDescriptor::Ptr dst_fd = FileDescriptor::create_open(temp_pathname.c_str(), O_RDWR | O_CREAT | O_EXCL, 0666);
+	FileDescriptor dst_fd = FileDescriptor::create_open(temp_pathname.c_str(), O_RDWR | O_CREAT | O_EXCL, 0666);
 
 	{
 		// Open the source file and memory map it.
@@ -198,7 +198,7 @@ void LogLauncher::compress_thread_proc(const std::string &filename) {
 		// BZip2 compression states:
 		// "To guarantee that the compressed data will fit in its buffer, allocate an output buffer of size 1% larger than the uncompressed data, plus six hundred extra bytes."
 		// We do this by truncating the file and then mapping it.
-		if (ftruncate(dst_fd->fd(), src_mapping.size() + (src_mapping.size() + 99) / 100 + 600) < 0) {
+		if (ftruncate(dst_fd.fd(), src_mapping.size() + (src_mapping.size() + 99) / 100 + 600) < 0) {
 			throw SystemError("ftruncate", errno);
 		}
 
@@ -215,14 +215,14 @@ void LogLauncher::compress_thread_proc(const std::string &filename) {
 			dst_mapping.sync();
 
 			// Now shorten the destination file to the amount of space actually used.
-			if (ftruncate(dst_fd->fd(), dlen) < 0) {
+			if (ftruncate(dst_fd.fd(), dlen) < 0) {
 				throw SystemError("ftruncate", errno);
 			}
 		}
 	}
 
 	// Sync the temporary file to disk and rename it over top of the original.
-	if (fdatasync(dst_fd->fd()) < 0) {
+	if (fdatasync(dst_fd.fd()) < 0) {
 		throw SystemError("fdatasync", errno);
 	}
 	if (std::rename(temp_pathname.c_str(), filename_to_pathname(filename).c_str()) < 0) {

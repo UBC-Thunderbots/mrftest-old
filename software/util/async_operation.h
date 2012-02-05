@@ -1,7 +1,8 @@
 #ifndef UTIL_ASYNC_OPERATION_H
 #define UTIL_ASYNC_OPERATION_H
 
-#include "util/byref.h"
+#include "util/noncopyable.h"
+#include <memory>
 #include <sigc++/signal.h>
 
 /**
@@ -9,19 +10,19 @@
  *
  * \tparam T the return type of the operation.
  */
-template<typename T> class AsyncOperation : public ByRef {
+template<typename T> class AsyncOperation : public NonCopyable {
 	public:
-		/**
-		 * \brief A pointer to an AsyncOperation.
-		 */
-		typedef RefPtr<AsyncOperation> Ptr;
-
 		/**
 		 * \brief Invoked when the operation completes, whether successfully or not.
 		 *
 		 * The callback functions are passed the operation itself.
 		 */
-		sigc::signal<void, Ptr> signal_done;
+		sigc::signal<void, AsyncOperation<T> &> signal_done;
+
+		/**
+		 * \brief Destroys the object.
+		 */
+		virtual ~AsyncOperation();
 
 		/**
 		 * \brief Checks for the success of the operation and returns the return value.
@@ -48,6 +49,10 @@ template<typename T> class AsyncOperation : public ByRef {
 			}
 		}
 };
+
+
+
+template<typename T> inline AsyncOperation<T>::~AsyncOperation() = default;
 
 #endif
 

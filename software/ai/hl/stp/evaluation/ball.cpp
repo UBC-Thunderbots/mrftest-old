@@ -72,7 +72,7 @@ namespace {
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
 			Player::CPtr player = friendly.get(i);
 			Point dest = Evaluation::calc_fastest_grab_ball_dest(world, player);
-			if (!best.is() || min_dist > (dest - player->position()).len()) {
+			if (!best || min_dist > (dest - player->position()).len()) {
 				min_dist = (dest - player->position()).len();
 				best = player;
 			}
@@ -124,7 +124,7 @@ Robot::Ptr Evaluation::calc_enemy_baller(const World &world) {
 		Point dest;
 		AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), enemy.get(i)->position(), dest);
 		double dist = (enemy.get(i)->position() - dest).len();
-		if (!robot.is() || dist < best_dist) {
+		if (!robot || dist < best_dist) {
 			best_dist = dist;
 			robot = enemy.get(i);
 		}

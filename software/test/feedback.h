@@ -21,11 +21,11 @@ class TesterFeedbackPanel : public Gtk::Table {
 		 *
 		 * \param[in] robot the robot whose information should be displayed.
 		 */
-		TesterFeedbackPanel(XBeeDongle &dongle, XBeeRobot::Ptr robot);
+		TesterFeedbackPanel(XBeeDongle &dongle, XBeeRobot &robot);
 
 	private:
 		XBeeDongle &dongle;
-		XBeeRobot::Ptr robot;
+		XBeeRobot &robot;
 		Gtk::Label battery_voltage_label, capacitor_voltage_label, dribbler_temperature_label, break_beam_reading_label;
 		Gtk::ProgressBar battery_voltage, capacitor_voltage, dribbler_temperature, break_beam_reading;
 		Gtk::HBox cb_hbox1, cb_hbox2;

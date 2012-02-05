@@ -85,7 +85,7 @@ namespace {
 	}
 
 	Navigator::Ptr RRTPhysicsNavigator::create(World &world) {
-		const Navigator::Ptr p(new RRTPhysicsNavigator(world));
+		Navigator::Ptr p(new RRTPhysicsNavigator(world));
 		return p;
 	}
 

@@ -112,11 +112,11 @@ namespace {
 				const Map &m = AI::HL::HighLevelFactory::all();
 				const Map::const_iterator &i = m.find(selected.collate_key());
 				if (i != m.end()) {
-					if (!ai.high_level.get().is() || &ai.high_level->factory() != i->second) {
+					if (!ai.high_level.get() || &ai.high_level->factory() != i->second) {
 						ai.high_level = i->second->create_high_level(ai.backend);
 					}
 				} else {
-					ai.high_level = AI::HL::HighLevel::Ptr();
+					ai.high_level = std::unique_ptr<AI::HL::HighLevel>();
 				}
 			}
 
@@ -128,13 +128,12 @@ namespace {
 			}
 
 			void on_high_level_changed() {
-				AI::HL::HighLevel::Ptr high_level = ai.high_level;
-				if (high_level.is()) {
-					high_level_chooser.set_active_text(high_level->factory().name());
+				if (ai.high_level.get()) {
+					high_level_chooser.set_active_text(ai.high_level->factory().name());
 				} else {
 					high_level_chooser.set_active_text("<Choose High Level>");
 				}
-				custom_controls = high_level.is() ? high_level->ui_controls() : 0;
+				custom_controls = ai.high_level.get() ? ai.high_level->ui_controls() : 0;
 				if (custom_controls) {
 					table.attach(*custom_controls, 0, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 					custom_controls->show_all();
@@ -174,7 +173,7 @@ namespace {
 				const Map &m = AI::Nav::NavigatorFactory::all();
 				const Map::const_iterator &i = m.find(selected.collate_key());
 				if (i != m.end()) {
-					if (!ai.navigator.get().is() || &ai.navigator->factory() != i->second) {
+					if (!ai.navigator.get() || &ai.navigator->factory() != i->second) {
 						ai.navigator = i->second->create_navigator(ai.backend);
 					}
 				} else {
@@ -190,13 +189,12 @@ namespace {
 			}
 
 			void on_navigator_changed() {
-				AI::Nav::Navigator::Ptr navigator = ai.navigator;
-				if (navigator.is()) {
-					navigator_chooser.set_active_text(navigator->factory().name());
+				if (ai.navigator.get()) {
+					navigator_chooser.set_active_text(ai.navigator->factory().name());
 				} else {
 					navigator_chooser.set_active_text("<Choose Navigator>");
 				}
-				custom_controls = navigator.is() ? navigator->ui_controls() : 0;
+				custom_controls = ai.navigator.get() ? ai.navigator->ui_controls() : 0;
 				if (custom_controls) {
 					table.attach(*custom_controls, 0, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 					custom_controls->show_all();

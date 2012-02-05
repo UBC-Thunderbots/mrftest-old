@@ -2,29 +2,30 @@
 #define SIMULATOR_CONNECTION_H
 
 #include "simulator/sockproto/proto.h"
-#include "util/byref.h"
 #include "util/fd.h"
+#include "util/noncopyable.h"
+#include <memory>
 #include <glibmm/main.h>
+#include <sigc++/trackable.h>
+#include <sigc++/signal.h>
 
 namespace Simulator {
 	/**
 	 * A connection to an AI.
 	 */
-	class Connection : public ByRef, public sigc::trackable {
+	class Connection : public NonCopyable, public sigc::trackable {
 		public:
 			/**
-			 * A pointer to a Connection.
+			 * \brief A pointer to a Connection.
 			 */
-			typedef RefPtr<Connection> Ptr;
+			typedef std::unique_ptr<Connection> Ptr;
 
 			/**
 			 * Constructs a new Connection.
 			 *
 			 * \param[in] sock the socket connected to the AI, which should have already been authenticated.
-			 *
-			 * \return the Connection.
 			 */
-			static Ptr create(FileDescriptor::Ptr sock);
+			Connection(FileDescriptor &&sock);
 
 			/**
 			 * Returns the signal emitted when the socket is closed.
@@ -38,7 +39,7 @@ namespace Simulator {
 			 *
 			 * \return the packet receive signal.
 			 */
-			sigc::signal<void, const Proto::A2SPacket &, FileDescriptor::Ptr> &signal_packet() const;
+			sigc::signal<void, const Proto::A2SPacket &, std::shared_ptr<FileDescriptor> > &signal_packet() const;
 
 			/**
 			 * Sends a packet to the AI.
@@ -51,7 +52,7 @@ namespace Simulator {
 			/**
 			 * The socket connected to the AI process.
 			 */
-			const FileDescriptor::Ptr sock;
+			FileDescriptor sock;
 
 			/**
 			 * The signal emitted when the AI process closes its end of the socket.
@@ -61,16 +62,7 @@ namespace Simulator {
 			/**
 			 * The signal emitted when the AI process sends a packet to the simulator.
 			 */
-			mutable sigc::signal<void, const Proto::A2SPacket &, FileDescriptor::Ptr> signal_packet_;
-
-			/**
-			 * Constructs a new Connection.
-			 *
-			 * \param[in] sock the socket connected to the AI, which should have already been authenticated.
-			 *
-			 * \return the Connection.
-			 */
-			Connection(FileDescriptor::Ptr sock);
+			mutable sigc::signal<void, const Proto::A2SPacket &, std::shared_ptr<FileDescriptor> > signal_packet_;
 
 			/**
 			 * Invoked when the socket has data waiting.

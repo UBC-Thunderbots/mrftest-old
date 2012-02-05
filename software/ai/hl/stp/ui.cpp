@@ -70,7 +70,7 @@ void AI::HL::STP::draw_enemy_pass(const World &world, Cairo::RefPtr<Cairo::Conte
 			ctx->fill();
 			ctx->stroke();
 		}
-		if (threats[i].passes_goal <= 2 && passee.is()) {
+		if (threats[i].passes_goal <= 2 && passee) {
 			ctx->set_source_rgba(1.0, 0.5, 0.5, 0.5);
 			ctx->set_line_width(0.01);
 			ctx->move_to(robot->position().x, robot->position().y);
@@ -103,7 +103,7 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 	}
 
 	Player::CPtr baller = Evaluation::calc_friendly_baller();
-	if (baller.is()) {
+	if (baller) {
 		auto shot = Evaluation::best_shoot_ray(world, baller);
 
 		if (shot.first) {
@@ -249,7 +249,7 @@ void AI::HL::STP::draw_velocity(const World &world, Cairo::RefPtr<Cairo::Context
 
 void AI::HL::STP::draw_baller(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
 	Player::CPtr baller = Evaluation::calc_friendly_baller();
-	if (baller.is() && !Evaluation::possess_ball(world, baller)) {
+	if (baller && !Evaluation::possess_ball(world, baller)) {
 		Point dest = Evaluation::calc_fastest_grab_ball_dest(world, baller);
 		// black line
 		ctx->set_source_rgba(0.0, 0.0, 0.0, 0.2);
@@ -259,7 +259,7 @@ void AI::HL::STP::draw_baller(const World &world, Cairo::RefPtr<Cairo::Context> 
 		ctx->stroke();
 	}
 	Robot::Ptr robot = Evaluation::calc_enemy_baller(world);
-	if (robot.is() && !Evaluation::possess_ball(world, robot)) {
+	if (robot && !Evaluation::possess_ball(world, robot)) {
 		// black line
 		Point dest;
 		AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), robot->position(), dest);

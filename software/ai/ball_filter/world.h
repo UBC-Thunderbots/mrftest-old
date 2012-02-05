@@ -2,7 +2,7 @@
 #define AI_BALL_FILTER_WORLD_H
 
 #include "ai/common/world.h"
-#include "util/byref.h"
+#include "util/box_ptr.h"
 
 namespace AI {
 	namespace BF {
@@ -32,7 +32,7 @@ namespace AI {
 					/**
 					 * A pointer to a Player.
 					 */
-					typedef RefPtr<const Player> Ptr;
+					typedef BoxPtr<const Player> Ptr;
 			};
 
 			/**

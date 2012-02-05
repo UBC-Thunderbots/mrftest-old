@@ -2,7 +2,6 @@
 #include "ai/robot_controller/tunable_controller.h"
 #include "geom/angle.h"
 #include "geom/point.h"
-#include "util/byref.h"
 #include "util/noncopyable.h"
 #include <cmath>
 #include <map>
@@ -114,18 +113,6 @@ namespace {
 		protected:
 			std::vector<double> param;
 	};
-
-	class PathControllerFactory : public RobotControllerFactory {
-		public:
-			PathControllerFactory() : RobotControllerFactory("Path Follower") {
-			}
-
-			RobotController::Ptr create_controller(World &world, Player::Ptr player) const {
-				RobotController::Ptr p(new PathController(world, player));
-				return p;
-			}
-	};
-
-	PathControllerFactory factory;
 }
 
+ROBOT_CONTROLLER_REGISTER(PathController)

@@ -20,7 +20,7 @@ class KickerPanel : public Gtk::Table {
 		 *
 		 * \param[in] robot the robot to control.
 		 */
-		KickerPanel(XBeeRobot::Ptr robot);
+		KickerPanel(XBeeRobot &robot);
 
 		/**
 		 * \brief Shuts down the charger.
@@ -33,7 +33,7 @@ class KickerPanel : public Gtk::Table {
 		void fire();
 
 	private:
-		XBeeRobot::Ptr robot;
+		XBeeRobot &robot;
 		Gtk::HBox charge_box;
 		Gtk::RadioButtonGroup charge_group;
 		Gtk::RadioButton discharge_button, float_button, charge_button;

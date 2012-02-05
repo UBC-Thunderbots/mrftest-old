@@ -26,14 +26,14 @@ namespace {
 	};
 
 	Player::Ptr BlockGoal::select(const std::set<Player::Ptr> &players) const {
-		if (!enemy->evaluate().is()) {
+		if (!enemy->evaluate()) {
 			return *(players.begin());
 		}
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(enemy->evaluate()->position()));
 	}
 
 	void BlockGoal::execute() {
-		if (!enemy->evaluate().is()) {
+		if (!enemy->evaluate()) {
 			Action::stop(world, player);
 			return;
 		}
@@ -55,14 +55,14 @@ namespace {
 	};
 
 	Player::Ptr BlockBall::select(const std::set<Player::Ptr> &players) const {
-		if (!enemy->evaluate().is()) {
+		if (!enemy->evaluate()) {
 			return *(players.begin());
 		}
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(enemy->evaluate()->position()));
 	}
 
 	void BlockBall::execute() {
-		if (!enemy->evaluate().is()) {
+		if (!enemy->evaluate()) {
 			Action::stop(world, player);
 			return;
 		}
@@ -72,12 +72,12 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::block_goal(const World &world, Enemy::Ptr enemy) {
-	const Tactic::Ptr p(new BlockGoal(world, enemy));
+	Tactic::Ptr p(new BlockGoal(world, enemy));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::block_ball(const World &world, Enemy::Ptr enemy) {
-	const Tactic::Ptr p(new BlockBall(world, enemy));
+	Tactic::Ptr p(new BlockBall(world, enemy));
 	return p;
 }
 

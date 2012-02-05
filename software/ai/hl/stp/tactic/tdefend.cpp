@@ -121,17 +121,17 @@ void TDefendLine::execute() {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::tgoalie(const World &world, const size_t defender_role) {
-	const Tactic::Ptr p(new TGoalie(world, defender_role));
+	Tactic::Ptr p(new TGoalie(world, defender_role));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::tdefender1(const AI::HL::W::World &world) {
-	const Tactic::Ptr p(new TDefender(world, 1));
+	Tactic::Ptr p(new TDefender(world, 1));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::tdefender2(const AI::HL::W::World &world) {
-	const Tactic::Ptr p(new TDefender(world, 2));
+	Tactic::Ptr p(new TDefender(world, 2));
 	return p;
 }
 

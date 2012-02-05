@@ -1,42 +1,42 @@
 #ifndef UTIL_OBJECTSTORE_H
 #define UTIL_OBJECTSTORE_H
 
-#include "util/byref.h"
 #include "util/noncopyable.h"
 #include <map>
+#include <memory>
 #include <typeinfo>
 
 /**
- * An ObjectStore allows multiple clients to store arbitrary objects attached to another object,
+ * \brief An ObjectStore allows multiple clients to store arbitrary objects attached to another object,
  * without the holder knowing a priori the details of the stored objects,
  * and without multiple clients overwriting each others' stored objects.
  */
 class ObjectStore : public NonCopyable {
 	public:
 		/**
-		 * The type of an element in an ObjectStore.
+		 * \brief The type of an element in an ObjectStore.
 		 * Clients should subclass this class to add their own data.
 		 */
-		class Element : public ByRef {
+		class Element : public NonCopyable {
 			public:
 				/**
-				 * A pointer to an Element.
+				 * \brief A pointer to an Element.
 				 */
-				typedef RefPtr<Element> Ptr;
+				typedef std::shared_ptr<Element> Ptr;
 
 				/**
-				 * Constructs a new Element.
+				 * \brief Destroys an Element.
 				 */
-				Element();
+				virtual ~Element();
 		};
 
 		/**
-		 * Constructs a new ObjectStore containing no objects.
+		 * \brief Constructs a new ObjectStore containing no objects.
 		 */
 		ObjectStore();
 
 		/**
-		 * Fetches an object from the ObjectStore, creating it if it does not yet exist.
+		 * \brief Fetches an object from the ObjectStore, creating it if it does not yet exist.
 		 *
 		 * \param[in] tid the key identifying the specific client (generally <code>typeid(*this)</code> in the client).
 		 *
@@ -45,7 +45,7 @@ class ObjectStore : public NonCopyable {
 		Element::Ptr &operator[](const std::type_info &tid);
 
 		/**
-		 * Removes all elements from the ObjectStore.
+		 * \brief Removes all elements from the ObjectStore.
 		 */
 		void clear();
 

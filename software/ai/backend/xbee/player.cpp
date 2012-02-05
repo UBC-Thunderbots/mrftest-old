@@ -78,6 +78,20 @@ namespace {
 	}
 }
 
+Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot &bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_invoked(false), kicker_directional_(kicker_directional_impl(pattern)), autokick_fired_(false) {
+	timespec now;
+	timespec_now(now);
+	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
+	bot.signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
+}
+
+Player::~Player() {
+	bot.drive_scram();
+	bot.dribble(false);
+	bot.autokick(0, 0, 0);
+	bot.set_charger_state(XBeeRobot::ChargerState::DISCHARGE);
+}
+
 const std::pair<Point, Angle> &Player::destination() const {
 	return destination_;
 }
@@ -93,10 +107,10 @@ unsigned int Player::num_bar_graphs() const {
 double Player::bar_graph_value(unsigned int index) const {
 	switch (index) {
 		case 0:
-			return bot->alive ? clamp((bot->battery_voltage - 13.0) / (16.5 - 13.0), 0.0, 1.0) : 0.0;
+			return bot.alive ? clamp((bot.battery_voltage - 13.0) / (16.5 - 13.0), 0.0, 1.0) : 0.0;
 
 		case 1:
-			return bot->alive ? clamp(bot->capacitor_voltage / 230.0, 0.0, 1.0) : 0.0;
+			return bot.alive ? clamp(bot.capacitor_voltage / 230.0, 0.0, 1.0) : 0.0;
 
 		default:
 			throw std::logic_error("invalid bar graph index");
@@ -112,7 +126,7 @@ Visualizable::Colour Player::bar_graph_colour(unsigned int index) const {
 		}
 
 		case 1:
-			return Visualizable::Colour(bot->capacitor_charged ? 0.0 : 1.0, bot->capacitor_charged ? 1.0 : 0.0, 0.0);
+			return Visualizable::Colour(bot.capacitor_charged ? 0.0 : 1.0, bot.capacitor_charged ? 1.0 : 0.0, 0.0);
 
 		default:
 			throw std::logic_error("invalid bar graph index");
@@ -120,15 +134,15 @@ Visualizable::Colour Player::bar_graph_colour(unsigned int index) const {
 }
 
 bool Player::alive() const {
-	return bot->alive;
+	return bot.alive;
 }
 
 bool Player::has_ball() const {
-	return bot->ball_in_beam;
+	return bot.ball_in_beam;
 }
 
 bool Player::chicker_ready() const {
-	return bot->alive && bot->capacitor_charged;
+	return bot.alive && bot.capacitor_charged;
 }
 
 bool Player::kicker_directional() const {
@@ -136,12 +150,12 @@ bool Player::kicker_directional() const {
 }
 
 void Player::kick_impl(double speed, Angle angle) {
-	if (bot->alive) {
-		if (bot->capacitor_charged) {
+	if (bot.alive) {
+		if (bot.capacitor_charged) {
 			if (kicker_directional()) {
-				bot->kick(calc_kick_directional_power(speed), calc_kick_directional_power(speed), calc_kick_directional_offset(angle));
+				bot.kick(calc_kick_directional_power(speed), calc_kick_directional_power(speed), calc_kick_directional_offset(angle));
 			} else {
-				bot->kick(calc_kick_straight(speed), calc_kick_straight(speed), 0);
+				bot.kick(calc_kick_straight(speed), calc_kick_straight(speed), 0);
 			}
 		} else {
 			LOG_ERROR(Glib::ustring::compose("Bot %1 chick when not ready", pattern()));
@@ -150,33 +164,14 @@ void Player::kick_impl(double speed, Angle angle) {
 }
 
 void Player::autokick_impl(double speed, Angle angle) {
-	if (bot->alive) {
+	if (bot.alive) {
 		if (kicker_directional()) {
-			bot->autokick(calc_kick_directional_power(speed), calc_kick_directional_power(speed), calc_kick_directional_offset(angle));
+			bot.autokick(calc_kick_directional_power(speed), calc_kick_directional_power(speed), calc_kick_directional_offset(angle));
 		} else {
-			bot->autokick(calc_kick_straight(speed), calc_kick_straight(speed), 0);
+			bot.autokick(calc_kick_straight(speed), calc_kick_straight(speed), 0);
 		}
 		autokick_invoked = true;
 	}
-}
-
-Player::Ptr Player::create(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) {
-	Ptr p(new Player(backend, pattern, bot));
-	return p;
-}
-
-Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_invoked(false), kicker_directional_(kicker_directional_impl(pattern)), autokick_fired_(false) {
-	timespec now;
-	timespec_now(now);
-	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
-	bot->signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
-}
-
-Player::~Player() {
-	bot->drive_scram();
-	bot->dribble(false);
-	bot->autokick(0, 0, 0);
-	bot->set_charger_state(XBeeRobot::ChargerState::DISCHARGE);
 }
 
 void Player::drive(const int(&w)[4]) {
@@ -195,14 +190,14 @@ void Player::tick(bool halt) {
 	autokick_fired_ = false;
 
 	// Check for emergency conditions.
-	if (!bot->alive) {
+	if (!bot.alive) {
 		halt = true;
 	}
 
 	// Check for low battery condition.
-	if (bot->alive && bot->has_feedback) {
+	if (bot.alive && bot.has_feedback) {
 		// Apply some hysteresis.
-		if (bot->battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
+		if (bot.battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
 			if (battery_warning_hysteresis == BATTERY_HYSTERESIS_MAGNITUDE) {
 				battery_warning_message.active(true);
 			} else {
@@ -221,23 +216,23 @@ void Player::tick(bool halt) {
 
 	// Inhibit auto-kick if halted or if the AI didn't renew its interest.
 	if (halt || !autokick_invoked) {
-		bot->autokick(0, 0, 0);
+		bot.autokick(0, 0, 0);
 	}
 	autokick_invoked = false;
 
 	// Drivetrain control path.
 	if (!halt && moved && controlled) {
-		bot->drive(wheel_speeds_);
+		bot.drive(wheel_speeds_);
 	} else {
-		bot->drive_scram();
+		bot.drive_scram();
 	}
 	controlled = false;
 
 	// Dribbler should always run except in halt.
-	bot->dribble(!halt);
+	bot.dribble(!halt);
 
 	// Kicker should always charge except in halt.
-	bot->set_charger_state(halt ? XBeeRobot::ChargerState::DISCHARGE : XBeeRobot::ChargerState::CHARGE);
+	bot.set_charger_state(halt ? XBeeRobot::ChargerState::DISCHARGE : XBeeRobot::ChargerState::CHARGE);
 
 	// Calculations.
 	if (has_ball()) {

@@ -33,7 +33,7 @@ namespace {
 	}
 
 	Navigator::Ptr FollowBallNavigator::create(World &world) {
-		const Navigator::Ptr p(new FollowBallNavigator(world));
+		Navigator::Ptr p(new FollowBallNavigator(world));
 		return p;
 	}
 

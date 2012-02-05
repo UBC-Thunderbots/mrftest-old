@@ -52,16 +52,6 @@ namespace {
 
 	const int tasks_square_n = G_N_ELEMENTS(tasks_square);
 
-	class MBHLFactory : public HighLevelFactory {
-		public:
-			MBHLFactory() : HighLevelFactory("Movement Benchmark") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	MBHLFactory factory_instance;
-
 	class MBHL : public HighLevel {
 		public:
 			Gtk::VBox vbox;
@@ -96,9 +86,7 @@ namespace {
 				vbox.add(rchoose);
 			}
 
-			MBHLFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			void tick() {
 				if (done > tasks.size()) {
@@ -122,7 +110,7 @@ namespace {
 						runner = friendly.get(i);
 					}
 				}
-				if (!runner.is()) {
+				if (!runner) {
 					return;
 				}
 
@@ -158,10 +146,7 @@ namespace {
 			int time_steps;
 			std::size_t done;
 	};
-
-	HighLevel::Ptr MBHLFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new MBHL(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(MBHL)
 

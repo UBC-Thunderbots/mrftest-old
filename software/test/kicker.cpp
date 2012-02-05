@@ -7,9 +7,9 @@ namespace {
 	}
 }
 
-KickerPanel::KickerPanel(XBeeRobot::Ptr robot) : Gtk::Table(6, 2), robot(robot), discharge_button(charge_group, "Discharge"), float_button(charge_group, "Float"), charge_button(charge_group, "Charge"), pulse_width1_label("Pulse width 1:"), pulse_width2_label("Pulse width 2:"), pulse_offset_label("Offset:"), kick("Kick"), autokick("Autokick"), autokick_count_label("Autokick Count:"), autokick_count_value_label("0"), autokick_count(0) {
-	robot->alive.signal_changed().connect(sigc::mem_fun(this, &KickerPanel::on_alive_changed));
-	robot->signal_autokick_fired.connect(sigc::mem_fun(this, &KickerPanel::on_autokick_fired));
+KickerPanel::KickerPanel(XBeeRobot &robot) : Gtk::Table(6, 2), robot(robot), discharge_button(charge_group, "Discharge"), float_button(charge_group, "Float"), charge_button(charge_group, "Charge"), pulse_width1_label("Pulse width 1:"), pulse_width2_label("Pulse width 2:"), pulse_offset_label("Offset:"), kick("Kick"), autokick("Autokick"), autokick_count_label("Autokick Count:"), autokick_count_value_label("0"), autokick_count(0) {
+	robot.alive.signal_changed().connect(sigc::mem_fun(this, &KickerPanel::on_alive_changed));
+	robot.signal_autokick_fired.connect(sigc::mem_fun(this, &KickerPanel::on_autokick_fired));
 
 	discharge_button.set_active();
 	discharge_button.signal_toggled().connect(sigc::mem_fun(this, &KickerPanel::on_charge_changed));
@@ -59,20 +59,20 @@ void KickerPanel::fire() {
 	unsigned int pw1 = static_cast<unsigned int>(pulse_width1.get_value());
 	unsigned int pw2 = static_cast<unsigned int>(pulse_width2.get_value());
 	int offset = static_cast<int>(pulse_offset.get_value());
-	robot->kick(pw1, pw2, offset);
+	robot.kick(pw1, pw2, offset);
 }
 
 void KickerPanel::on_alive_changed() {
-	kick.set_sensitive(robot->alive);
+	kick.set_sensitive(robot.alive);
 }
 
 void KickerPanel::on_charge_changed() {
 	if (float_button.get_active()) {
-		robot->set_charger_state(XBeeRobot::ChargerState::FLOAT);
+		robot.set_charger_state(XBeeRobot::ChargerState::FLOAT);
 	} else if (charge_button.get_active()) {
-		robot->set_charger_state(XBeeRobot::ChargerState::CHARGE);
+		robot.set_charger_state(XBeeRobot::ChargerState::CHARGE);
 	} else {
-		robot->set_charger_state(XBeeRobot::ChargerState::DISCHARGE);
+		robot.set_charger_state(XBeeRobot::ChargerState::DISCHARGE);
 	}
 }
 
@@ -85,9 +85,9 @@ void KickerPanel::on_autokick_changed() {
 		unsigned int pw1 = static_cast<unsigned int>(pulse_width1.get_value());
 		unsigned int pw2 = static_cast<unsigned int>(pulse_width2.get_value());
 		int offset = static_cast<int>(pulse_offset.get_value());
-		robot->autokick(pw1, pw2, offset);
+		robot.autokick(pw1, pw2, offset);
 	} else {
-		robot->autokick(0, 0, 0);
+		robot.autokick(0, 0, 0);
 	}
 }
 

@@ -2,27 +2,27 @@
 #include "util/algorithm.h"
 
 namespace {
-	void on_update_scram(Gtk::HScale(&)[4], XBeeRobot::Ptr robot, bool) {
-		robot->drive_scram();
+	void on_update_scram(Gtk::HScale(&)[4], XBeeRobot &robot, bool) {
+		robot.drive_scram();
 	}
 
 	void get_low_sensitivity_scale_factors_scram(double (&scale)[4]) {
 		scale[0] = scale[1] = scale[2] = scale[3] = 0;
 	}
 
-	void on_update_permotor(Gtk::HScale(&controls)[4], XBeeRobot::Ptr robot, bool controlled) {
+	void on_update_permotor(Gtk::HScale(&controls)[4], XBeeRobot &robot, bool controlled) {
 		int wheels[G_N_ELEMENTS(controls)];
 		for (unsigned int i = 0; i < G_N_ELEMENTS(controls); ++i) {
 			wheels[i] = clamp(static_cast<int>(controls[i].get_value()), -1023, 1023);
 		}
-		robot->drive(wheels, controlled);
+		robot.drive(wheels, controlled);
 	}
 
 	void get_low_sensitivity_scale_factors_permotor(double (&scale)[4]) {
 		scale[0] = scale[1] = scale[2] = scale[3] = 0.1;
 	}
 
-	void on_update_matrix(Gtk::HScale(&controls)[4], XBeeRobot::Ptr robot, bool controlled) {
+	void on_update_matrix(Gtk::HScale(&controls)[4], XBeeRobot &robot, bool controlled) {
 		static const double matrix[4][3] = {
 			{ -42.5995, 27.6645, 4.3175 },
 			{ -35.9169, -35.9169, 4.3175 },
@@ -43,7 +43,7 @@ namespace {
 		for (unsigned int i = 0; i < G_N_ELEMENTS(w); ++i) {
 			w[i] = clamp(static_cast<int>(output[i]), -1023, 1023);
 		}
-		robot->drive(w, controlled);
+		robot.drive(w, controlled);
 	}
 
 	void get_low_sensitivity_scale_factors_matrix(double (&scale)[4]) {
@@ -60,7 +60,7 @@ namespace {
 		double step;
 		double page;
 		int digits;
-		void (*on_update)(Gtk::HScale(&)[4], XBeeRobot::Ptr, bool);
+		void (*on_update)(Gtk::HScale(&)[4], XBeeRobot &, bool);
 		void (*get_low_sensitivity_scale_factors)(double (&)[4]);
 	} MODES[] = {
 		{ "Scram", 0x0, 1, 0.1, 0.5, 0, &on_update_scram, &get_low_sensitivity_scale_factors_scram },
@@ -69,7 +69,7 @@ namespace {
 	};
 }
 
-DrivePanel::DrivePanel(XBeeRobot::Ptr robot) : robot(robot), controllers_checkbox("Controllers") {
+DrivePanel::DrivePanel(XBeeRobot &robot) : robot(robot), controllers_checkbox("Controllers") {
 	for (unsigned int i = 0; i < G_N_ELEMENTS(MODES); ++i) {
 		mode_chooser.append_text(MODES[i].name);
 	}

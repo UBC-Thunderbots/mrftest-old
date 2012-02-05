@@ -3,21 +3,17 @@
 
 #include "geom/point.h"
 #include "simulator/sockproto/proto.h"
-#include "util/byref.h"
 #include "util/fd.h"
+#include "util/noncopyable.h"
+#include <memory>
 
 namespace Simulator {
 	/**
 	 * A player, as seen by a simulation engine.
 	 * An individual engine is expected to subclass this class and return instances of the subclass from its SimulatorEngine::add_player() method.
 	 */
-	class Player : public ByRef {
+	class Player : public NonCopyable {
 		public:
-			/**
-			 * A pointer to a Player.
-			 */
-			typedef RefPtr<Player> Ptr;
-
 			/**
 			 * The most recent set of orders issued by the AI to the player.
 			 * The engine should examine these orders when running a time tick.
@@ -64,14 +60,14 @@ namespace Simulator {
 			 *
 			 * \param[in] fd the file to load from.
 			 */
-			virtual void load_state(FileDescriptor::Ptr fd) = 0;
+			virtual void load_state(const FileDescriptor &fd) = 0;
 
 			/**
 			 * Saves the player's state to a file.
 			 *
 			 * \param[in] fd the file to save to.
 			 */
-			virtual void save_state(FileDescriptor::Ptr fd) const = 0;
+			virtual void save_state(const FileDescriptor &fd) const = 0;
 	};
 }
 

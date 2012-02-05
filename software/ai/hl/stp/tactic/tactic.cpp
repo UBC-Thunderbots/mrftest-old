@@ -7,6 +7,8 @@ using AI::HL::STP::BALL_MAX_SPEED;
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
+Tactic::~Tactic() = default;
+
 bool Tactic::done() const {
 	// if this fails, then you probably have an active tactic that you forgot to implement done()
 	// check to make sure that the signature of done() is correct, with the const at the back.

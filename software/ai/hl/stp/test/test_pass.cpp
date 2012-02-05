@@ -45,16 +45,6 @@ namespace {
 
 	const int default_targets_n = G_N_ELEMENTS(default_targets);
 
-	class TestPassFactory : public HighLevelFactory {
-		public:
-			TestPassFactory() : HighLevelFactory("Test STP Pass") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	TestPassFactory factory_instance;
-
 	class TestPass : public HighLevel {
 		public:
 			TestPass(World &world) : world(world), targets(default_targets, default_targets + default_targets_n) {
@@ -74,9 +64,7 @@ namespace {
 
 			int kicked_count;
 
-			TestPassFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			Gtk::Widget *ui_controls() {
 				return 0;
@@ -139,10 +127,7 @@ namespace {
 				players[1]->type(AI::Flags::MoveType::DRIBBLE);
 			}
 	};
-
-	HighLevel::Ptr TestPassFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new TestPass(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(TestPass)
 

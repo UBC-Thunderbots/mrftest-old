@@ -31,7 +31,7 @@ Player::Ptr AI::HL::STP::Tactic::select_baller(const World &world, const std::se
 		best = p;
 	}
 
-	if (best.is()) {
+	if (best) {
 		return best;
 	}
 
@@ -39,7 +39,7 @@ Player::Ptr AI::HL::STP::Tactic::select_baller(const World &world, const std::se
 	for (auto it = players.begin(); it != players.end(); ++it) {
 		Player::Ptr player = *it;
 		Point dest = Evaluation::calc_fastest_grab_ball_dest(world, player);
-		if (!best.is() || min_dist > (dest - player->position()).len()) {
+		if (!best || min_dist > (dest - player->position()).len()) {
 			min_dist = (dest - player->position()).len();
 			best = player;
 		}

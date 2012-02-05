@@ -20,7 +20,7 @@ class MappedFile : public NonCopyable {
 		 *
 		 * \param[in] flags the mapping flags to use.
 		 */
-		MappedFile(FileDescriptor::Ptr fd, int prot = PROT_READ, int flags = MAP_SHARED | MAP_FILE);
+		MappedFile(const FileDescriptor &fd, int prot = PROT_READ, int flags = MAP_SHARED | MAP_FILE);
 
 		/**
 		 * \brief Maps in a file.

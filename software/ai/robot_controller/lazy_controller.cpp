@@ -1,7 +1,6 @@
 #include "ai/robot_controller/robot_controller.h"
 #include "geom/angle.h"
 #include "geom/point.h"
-#include "util/byref.h"
 #include "util/noncopyable.h"
 #include "util/dprint.h"
 #include "util/param.h"
@@ -23,18 +22,7 @@ namespace {
 				player->drive(wheel_speeds);
 			}
 	};
-
-	class LazyControllerFactory : public RobotControllerFactory {
-		public:
-			LazyControllerFactory() : RobotControllerFactory("Lazy") {
-			}
-
-			RobotController::Ptr create_controller(World &world, Player::Ptr player) const {
-				RobotController::Ptr p(new LazyController(world, player));
-				return p;
-			}
-	};
-
-	LazyControllerFactory factory;
 }
+
+ROBOT_CONTROLLER_REGISTER(LazyController)
 

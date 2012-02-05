@@ -64,7 +64,7 @@ namespace {
 	};
 
 	bool ShootGoal::done() const {
-		return player.is() /* && kick_attempted*/ && player->autokick_fired();
+		return player /* && kick_attempted*/ && player->autokick_fired();
 	}
 
 	Player::Ptr ShootGoal::select(const std::set<Player::Ptr> &players) const {
@@ -91,7 +91,7 @@ namespace {
 	}
 
 	bool ShootTarget::done() const {
-		return player.is() /* && kick_attempted */ && player->autokick_fired();
+		return player /* && kick_attempted */ && player->autokick_fired();
 	}
 
 	Player::Ptr ShootTarget::select(const std::set<Player::Ptr> &players) const {
@@ -118,12 +118,12 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::shoot_goal(const World &world, bool force) {
-	const Tactic::Ptr p(new ShootGoal(world, force));
+	Tactic::Ptr p(new ShootGoal(world, force));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::shoot_target(const World &world, const Coordinate target) {
-	const Tactic::Ptr p(new ShootTarget(world, target));
+	Tactic::Ptr p(new ShootTarget(world, target));
 	return p;
 }
 

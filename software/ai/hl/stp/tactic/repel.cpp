@@ -23,7 +23,7 @@ namespace {
 	};
 
 	bool Repel::done() const {
-		return player.is() && player->autokick_fired();
+		return player && player->autokick_fired();
 	}
 
 	Player::Ptr Repel::select(const std::set<Player::Ptr> &players) const {
@@ -51,7 +51,7 @@ namespace {
 	};
 
 	bool CornerRepel::done() const {
-		return player.is() && player->autokick_fired();
+		return player && player->autokick_fired();
 	}
 
 	Player::Ptr CornerRepel::select(const std::set<Player::Ptr> &players) const {
@@ -65,12 +65,12 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::repel(const World &world) {
-	const Tactic::Ptr p(new Repel(world));
+	Tactic::Ptr p(new Repel(world));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::corner_repel(const World &world) {
-	const Tactic::Ptr p(new CornerRepel(world));
+	Tactic::Ptr p(new CornerRepel(world));
 	return p;
 }
 

@@ -47,8 +47,8 @@ namespace {
 bool LogLoader::is_current_version(const std::string &filename) {
 	// First check for uncompressed data.
 	{
-		FileDescriptor::Ptr fd = FileDescriptor::create_open(filename.c_str(), O_RDONLY, 0);
-		google::protobuf::io::FileInputStream fis(fd->fd());
+		FileDescriptor fd = FileDescriptor::create_open(filename.c_str(), O_RDONLY, 0);
+		google::protobuf::io::FileInputStream fis(fd.fd());
 		if (check_magic(fis)) {
 			return true;
 		}
@@ -56,8 +56,8 @@ bool LogLoader::is_current_version(const std::string &filename) {
 
 	// Second check for BZip2 compressed data.
 	{
-		FileDescriptor::Ptr fd = FileDescriptor::create_open(filename.c_str(), O_RDONLY, 0);
-		google::protobuf::io::FileInputStream fis(fd->fd());
+		FileDescriptor fd = FileDescriptor::create_open(filename.c_str(), O_RDONLY, 0);
+		google::protobuf::io::FileInputStream fis(fd.fd());
 		BZip2::InputStream bzis(&fis);
 		if (check_magic(bzis)) {
 			return true;
@@ -69,16 +69,16 @@ bool LogLoader::is_current_version(const std::string &filename) {
 
 bool LogLoader::needs_compressing(const std::string &filename) {
 	// Just check for the uncompressed magic.
-	FileDescriptor::Ptr fd = FileDescriptor::create_open(filename.c_str(), O_RDONLY, 0);
-	google::protobuf::io::FileInputStream fis(fd->fd());
+	FileDescriptor fd = FileDescriptor::create_open(filename.c_str(), O_RDONLY, 0);
+	google::protobuf::io::FileInputStream fis(fd.fd());
 	return check_magic(fis);
 }
 
 std::vector<Log::Record> LogLoader::load(const std::string &filename) {
 	// First try uncompressed data.
 	{
-		FileDescriptor::Ptr fd = FileDescriptor::create_open(filename.c_str(), O_RDONLY, 0);
-		google::protobuf::io::FileInputStream fis(fd->fd());
+		FileDescriptor fd = FileDescriptor::create_open(filename.c_str(), O_RDONLY, 0);
+		google::protobuf::io::FileInputStream fis(fd.fd());
 		if (check_magic(fis)) {
 			return ::load(fis);
 		}
@@ -86,8 +86,8 @@ std::vector<Log::Record> LogLoader::load(const std::string &filename) {
 
 	// Second try BZip2 compressed data.
 	{
-		FileDescriptor::Ptr fd = FileDescriptor::create_open(filename.c_str(), O_RDONLY, 0);
-		google::protobuf::io::FileInputStream fis(fd->fd());
+		FileDescriptor fd = FileDescriptor::create_open(filename.c_str(), O_RDONLY, 0);
+		google::protobuf::io::FileInputStream fis(fd.fd());
 		BZip2::InputStream bzis(&fis);
 		if (check_magic(bzis)) {
 			return ::load(bzis);

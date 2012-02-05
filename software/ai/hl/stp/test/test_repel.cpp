@@ -9,16 +9,6 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	class TestRepelFactory : public HighLevelFactory {
-		public:
-			TestRepelFactory() : HighLevelFactory("Test STP Repel") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	TestRepelFactory factory_instance;
-
 	class TestRepel : public HighLevel {
 		public:
 			TestRepel(World &world) : world(world) {
@@ -27,9 +17,7 @@ namespace {
 		private:
 			World &world;
 
-			TestRepelFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			Gtk::Widget *ui_controls() {
 				return 0;
@@ -46,10 +34,7 @@ namespace {
 				Action::repel(world, friendly.get(0));
 			}
 	};
-
-	HighLevel::Ptr TestRepelFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new TestRepel(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(TestRepel)
 

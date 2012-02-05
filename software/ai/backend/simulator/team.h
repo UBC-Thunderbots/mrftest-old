@@ -5,8 +5,12 @@
 #include "ai/backend/simulator/player.h"
 #include "ai/backend/simulator/robot.h"
 #include "simulator/sockproto/proto.h"
+#include "util/box_array.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
+#include <algorithm>
+#include <cassert>
+#include <iterator>
 #include <limits>
 
 namespace AI {
@@ -15,80 +19,79 @@ namespace AI {
 			class Backend;
 
 			/**
-			 * A general simulator-based team, whether friendly or enemy.
+			 * \brief A general simulator-based team, whether friendly or enemy.
 			 *
 			 * \tparam T the type of robot held in this team.
 			 */
 			template<typename T> class GenericTeam : public NonCopyable {
 				public:
 					/**
-					 * The property holding the team's score.
+					 * \brief The property holding the team's score.
 					 */
 					Property<unsigned int> score_prop;
 
 					/**
-					 * Constructs a new GenericTeam.
+					 * \brief Constructs a new GenericTeam.
 					 */
 					GenericTeam() : score_prop(0) {
 					}
 
 					/**
-					 * Destroys a GenericTeam.
+					 * \brief Creates a robot.
+					 *
+					 * \param[in] be the backend to attach the robot to.
+					 *
+					 * \param[in] pattern the pattern index of the robot.
 					 */
-					~GenericTeam() {
+					void create(Backend &be, unsigned int pattern) {
+						assert(pattern < members.SIZE);
+						members.create(pattern, std::ref(be), pattern);
+						populate_pointers();
+						emit_membership_changed();
 					}
 
 					/**
-					 * Adds a new robot to the team.
+					 * \brief Destroys a robot.
 					 *
-					 * \param[in] bot the robot to add.
+					 * \param[in] pattern the pattern index to destroy.
 					 */
-					void add(typename T::Ptr bot) {
-						members.push_back(bot);
-						emit_robot_added(members.size() - 1);
+					void destroy(unsigned int pattern) {
+						assert(pattern < members.SIZE);
+						members.destroy(pattern);
+						populate_pointers();
+						emit_membership_changed();
 					}
 
 					/**
-					 * Removes a robot from the team.
-					 *
-					 * \param[in] i the index of the robot to remove.
+					 * \brief Emits the membership-changed signal.
 					 */
-					void remove(std::size_t i) {
-						emit_robot_removing(i);
-						members[i]->object_store().clear();
-						members.erase(members.begin() + i);
-						emit_robot_removed();
-					}
+					virtual void emit_membership_changed() const = 0;
 
 					unsigned int score() const { return score_prop; }
-					std::size_t size() const { return members.size(); }
-					typename T::Ptr get(std::size_t i) { return members[i]; }
-					typename T::CPtr get(std::size_t i) const { return members[i]; }
+					std::size_t size() const { return member_ptrs.size(); }
+					typename T::Ptr get(std::size_t i) { return member_ptrs[i]; }
+					typename T::CPtr get(std::size_t i) const { return member_ptrs[i]; }
 
 				private:
 					/**
-					 * The members of the team.
+					 * \brief The members of the team.
 					 */
-					std::vector<typename T::Ptr> members;
+					BoxArray<T, 16> members;
+
+					std::vector<BoxPtr<T>> member_ptrs;
 
 					/**
-					 * Emits the robot added signal.
-					 *
-					 * \param[in] i the index of the new robot.
+					 * \brief Rebuilds the member_ptrs array.
 					 */
-					virtual void emit_robot_added(std::size_t i) const = 0;
-
-					/**
-					 * Emits the robot removing signal.
-					 *
-					 * \param[in] i the index of the about-to-be-deleted robot.
-					 */
-					virtual void emit_robot_removing(std::size_t i) const = 0;
-
-					/**
-					 * Emits the robot removed signal.
-					 */
-					virtual void emit_robot_removed() const = 0;
+					void populate_pointers() {
+						member_ptrs.clear();
+						for (std::size_t i = 0; i < members.SIZE; ++i) {
+							const BoxPtr<T> &p = members[i];
+							if (p) {
+								member_ptrs.push_back(p);
+							}
+						}
+					}
 			};
 
 			/**
@@ -102,12 +105,6 @@ namespace AI {
 					 * \param[in] be the backend under which the team lives.
 					 */
 					FriendlyTeam(Backend &be) : be(be) {
-					}
-
-					/**
-					 * Destroys a FriendlyTeam.
-					 */
-					~FriendlyTeam() {
 					}
 
 					/**
@@ -150,7 +147,7 @@ namespace AI {
 								}
 							}
 							if (!found) {
-								remove(i--);
+								destroy(get(i)->pattern());
 							}
 						}
 
@@ -164,7 +161,7 @@ namespace AI {
 									}
 								}
 								if (!found) {
-									add(AI::BE::Simulator::Player::create(be, state[i].robot_info.pattern));
+									create(be, state[i].robot_info.pattern);
 								}
 							}
 						}
@@ -201,13 +198,11 @@ namespace AI {
 					std::size_t size() const { return GenericTeam<Player>::size(); }
 					AI::BE::Player::Ptr get(std::size_t i) { return get_impl(i); }
 					AI::BE::Player::CPtr get(std::size_t i) const { return get_impl(i); }
-					void emit_robot_added(std::size_t i) const { signal_robot_added().emit(i); }
-					void emit_robot_removing(std::size_t i) const { signal_robot_removing().emit(i); }
-					void emit_robot_removed() const { signal_robot_removed().emit(); }
+					void emit_membership_changed() const { signal_membership_changed().emit(); }
 
 				private:
 					/**
-					 * The backend under which the team lives.
+					 * \brief The backend under which the team lives.
 					 */
 					Backend &be;
 			};
@@ -219,14 +214,10 @@ namespace AI {
 				public:
 					/**
 					 * Constructs a new EnemyTeam.
+					 *
+					 * \param[in] be the backend under which the team lives.
 					 */
-					EnemyTeam() {
-					}
-
-					/**
-					 * Destroys a EnemyTeam.
-					 */
-					~EnemyTeam() {
+					EnemyTeam(Backend &be) : be(be) {
 					}
 
 					/**
@@ -269,7 +260,7 @@ namespace AI {
 								}
 							}
 							if (!found) {
-								remove(i--);
+								destroy(get(i)->pattern());
 							}
 						}
 
@@ -283,7 +274,7 @@ namespace AI {
 									}
 								}
 								if (!found) {
-									add(AI::BE::Simulator::Robot::create(state[i].pattern));
+									create(be, state[i].pattern);
 								}
 							}
 						}
@@ -303,10 +294,15 @@ namespace AI {
 
 					unsigned int score() const { return GenericTeam<Robot>::score(); }
 					std::size_t size() const { return GenericTeam<Robot>::size(); }
-					AI::BE::Robot::Ptr get(std::size_t i) const { return get_impl(i); }
-					void emit_robot_added(std::size_t i) const { signal_robot_added().emit(i); }
-					void emit_robot_removing(std::size_t i) const { signal_robot_removing().emit(i); }
-					void emit_robot_removed() const { signal_robot_removed().emit(); }
+					AI::BE::Robot::Ptr get(std::size_t i) { return get_impl(i); }
+					AI::BE::Robot::CPtr get(std::size_t i) const { return get_impl(i); }
+					void emit_membership_changed() const { signal_membership_changed().emit(); }
+
+				private:
+					/**
+					 * \brief The backend under which the team lives.
+					 */
+					Backend &be;
 			};
 		}
 	}

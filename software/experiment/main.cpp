@@ -4,6 +4,7 @@
 #include "util/noncopyable.h"
 #include "util/string.h"
 #include "xbee/dongle.h"
+#include "xbee/robot.h"
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
@@ -20,15 +21,15 @@
 namespace {
 	class RobotExperimentReceiver : public NonCopyable, public sigc::trackable {
 		public:
-			RobotExperimentReceiver(uint8_t control_code, XBeeRobot::Ptr robot, Glib::RefPtr<Glib::MainLoop> main_loop) : control_code(control_code), robot(robot), main_loop(main_loop) {
+			RobotExperimentReceiver(uint8_t control_code, XBeeRobot &robot, Glib::RefPtr<Glib::MainLoop> main_loop) : control_code(control_code), robot(robot), main_loop(main_loop) {
 				std::fill(received, received + G_N_ELEMENTS(received), false);
-				robot->signal_experiment_data.connect(sigc::mem_fun(this, &RobotExperimentReceiver::on_experiment_data));
+				robot.signal_experiment_data.connect(sigc::mem_fun(this, &RobotExperimentReceiver::on_experiment_data));
 				Glib::signal_idle().connect_once(sigc::mem_fun(this, &RobotExperimentReceiver::start_operation));
 			}
 
 		private:
 			uint8_t control_code;
-			XBeeRobot::Ptr robot;
+			XBeeRobot &robot;
 			Glib::RefPtr<Glib::MainLoop> main_loop;
 			sigc::connection alive_changed_connection;
 			uint8_t data[256];
@@ -36,23 +37,23 @@ namespace {
 
 			void start_operation() {
 				std::cerr << "Waiting for robot to appear... " << std::flush;
-				alive_changed_connection = robot->alive.signal_changed().connect(sigc::mem_fun(this, &RobotExperimentReceiver::on_alive_changed));
+				alive_changed_connection = robot.alive.signal_changed().connect(sigc::mem_fun(this, &RobotExperimentReceiver::on_alive_changed));
 				on_alive_changed();
 			}
 
 			void on_alive_changed() {
-				if (robot->alive) {
+				if (robot.alive) {
 					alive_changed_connection.disconnect();
-					alive_changed_connection = robot->alive.signal_changed().connect(sigc::mem_fun(this, &RobotExperimentReceiver::on_alive_changed2));
+					alive_changed_connection = robot.alive.signal_changed().connect(sigc::mem_fun(this, &RobotExperimentReceiver::on_alive_changed2));
 					std::cerr << "OK\n";
 					std::cerr << "Issuing control code... " << std::flush;
-					robot->start_experiment(control_code);
+					robot.start_experiment(control_code);
 					std::cerr << "OK\n";
 				}
 			}
 
 			void on_alive_changed2() {
-				if (!robot->alive) {
+				if (!robot.alive) {
 					std::cerr << "Robot unexpectedly died\n";
 					main_loop->quit();
 				}

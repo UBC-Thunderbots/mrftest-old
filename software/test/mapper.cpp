@@ -152,17 +152,17 @@ class MapperWindow::PreviewDevicesModel : public Glib::Object, public AbstractLi
 				alm_row_deleted(sz);
 			}
 			if (!model.empty()) {
-				for (auto i = Joystick::all().begin(), iend = Joystick::all().end(); i != iend; ++i) {
-					if ((*i)->name == model) {
-						devices.push_back(*i);
+				for (std::size_t i = 0; i < Joystick::count(); ++i) {
+					if (Joystick::get(i).name() == model) {
+						devices.push_back(&Joystick::get(i));
 						alm_row_inserted(devices.size());
 					}
 				}
 			}
 		}
 
-		Joystick::Ptr get_device(std::size_t index) const {
-			return index > 0 ? devices[index - 1] : Joystick::Ptr();
+		const Joystick *get_device(std::size_t index) const {
+			return index > 0 ? devices[index - 1] : 0;
 		}
 
 		std::size_t alm_rows() const {
@@ -174,7 +174,7 @@ class MapperWindow::PreviewDevicesModel : public Glib::Object, public AbstractLi
 				Glib::Value<Glib::ustring> v;
 				v.init(name_column.type());
 				if (row > 0) {
-					v.set(Glib::filename_to_utf8(devices[row - 1]->node));
+					v.set(Glib::filename_to_utf8(devices[row - 1]->node()));
 				} else {
 					v.set("<No Preview Device>");
 				}
@@ -189,7 +189,7 @@ class MapperWindow::PreviewDevicesModel : public Glib::Object, public AbstractLi
 		}
 
 	private:
-		std::vector<Joystick::Ptr> devices;
+		std::vector<const Joystick *> devices;
 
 		PreviewDevicesModel() : Glib::ObjectBase(typeid(PreviewDevicesModel)) {
 			alm_column_record.add(name_column);
@@ -261,13 +261,12 @@ MapperWindow::~MapperWindow() {
 void MapperWindow::on_add_clicked() {
 	Gtk::MessageDialog md(*this, "Which joystick do you want to map?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_OK_CANCEL);
 	Gtk::ComboBoxEntryText cbet;
-	const std::vector<Joystick::Ptr> &joysticks = Joystick::all();
 	std::unordered_set<std::string> names_used;
-	for (auto i = joysticks.begin(), iend = joysticks.end(); i != iend; ++i) {
-		Joystick::Ptr js = *i;
-		const std::string &ck = js->name.collate_key();
-		if (!mappings->has_mapping(js->name) && !names_used.count(ck)) {
-			cbet.append_text(js->name);
+	for (std::size_t i = 0; i < Joystick::count(); ++i) {
+		const Joystick &js = Joystick::get(i);
+		const std::string &ck = js.name().collate_key();
+		if (!mappings->has_mapping(js.name()) && !names_used.count(ck)) {
+			cbet.append_text(js.name());
 			names_used.insert(ck);
 		}
 	}
@@ -364,15 +363,15 @@ void MapperWindow::on_button_changed(unsigned int i) {
 
 void MapperWindow::on_preview_device_changed() {
 	preview_device_connection.disconnect();
-	Joystick::Ptr device = preview_devices->get_device(preview_device_chooser.get_active_row_number());
-	if (device.is()) {
-		preview_device_connection = device->signal_changed.connect(sigc::mem_fun(this, &MapperWindow::update_preview));
+	const Joystick *device = preview_devices->get_device(preview_device_chooser.get_active_row_number());
+	if (device) {
+		preview_device_connection = device->signal_changed().connect(sigc::mem_fun(this, &MapperWindow::update_preview));
 	}
 }
 
 void MapperWindow::update_preview() {
-	Joystick::Ptr device = preview_devices->get_device(preview_device_chooser.get_active_row_number());
-	if (device.is() && has_selected_row(name_chooser)) {
+	const Joystick *device = preview_devices->get_device(preview_device_chooser.get_active_row_number());
+	if (device && has_selected_row(name_chooser)) {
 		const JoystickMapping &m = mappings->mappings[get_selected_row(name_chooser)];
 		for (unsigned int i = 0; i < JoystickMapping::N_AXES; ++i) {
 			if (m.has_axis(i) && m.axis(i) < device->axes().size()) {

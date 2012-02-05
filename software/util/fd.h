@@ -1,30 +1,26 @@
 #ifndef UTIL_FD_H
 #define UTIL_FD_H
 
-#include "util/byref.h"
+#include "util/noncopyable.h"
+#include <algorithm>
 #include <sys/types.h>
 
 /**
- * A file descriptor that is safely closed on destruction.
+ * \brief A file descriptor that is safely closed on destruction.
  */
-class FileDescriptor : public ByRef {
+class FileDescriptor : public NonCopyable {
 	public:
 		/**
-		 * A pointer to a FileDescriptor.
-		 */
-		typedef RefPtr<FileDescriptor> Ptr;
-
-		/**
-		 * Constructs a new FileDescriptor with a descriptor.
+		 * \brief Constructs a new FileDescriptor with a descriptor.
 		 *
 		 * \param[in] fd the existing file descriptor, of which ownership is taken.
 		 *
 		 * \return a new FileDescriptor owning \p fd.
 		 */
-		static Ptr create_from_fd(int fd);
+		static FileDescriptor create_from_fd(int fd);
 
 		/**
-		 * Constructs a new FileDescriptor by calling \c open(2).
+		 * \brief Constructs a new FileDescriptor by calling \c open(2).
 		 *
 		 * \param[in] file the name of the file to open or create.
 		 *
@@ -34,10 +30,10 @@ class FileDescriptor : public ByRef {
 		 *
 		 * \return the new FileDescriptor.
 		 */
-		static Ptr create_open(const char *file, int flags, mode_t mode);
+		static FileDescriptor create_open(const char *file, int flags, mode_t mode);
 
 		/**
-		 * Constructs a new FileDescriptor by calling \c socket(2).
+		 * \brief Constructs a new FileDescriptor by calling \c socket(2).
 		 *
 		 * \param[in] pf the protocol family to create a socket in.
 		 *
@@ -47,37 +43,71 @@ class FileDescriptor : public ByRef {
 		 *
 		 * \return the new FileDescriptor.
 		 */
-		static Ptr create_socket(int pf, int type, int proto);
+		static FileDescriptor create_socket(int pf, int type, int proto);
 
 		/**
-		 * Constructs a FileDescriptor that refers to a unique file that has not been opened by any other process,
-		 * and that does not have any name on disk.
+		 * \brief Constructs a FileDescriptor that refers to a unique file that has not been opened by any other process, and that does not have any name on disk.
 		 *
 		 * \param[in] pattern the pattern for the filename, which must be suitable for \c mkstemp().
 		 *
 		 * \return the new descriptor.
 		 */
-		static Ptr create_temp(const char *pattern);
+		static FileDescriptor create_temp(const char *pattern);
 
 		/**
-		 * Destroys a FileDescriptor.
+		 * \brief Constructs a FileDescriptor with no associated descriptor.
+		 */
+		FileDescriptor();
+
+		/**
+		 * \brief Move-constructs a FileDescriptor.
+		 *
+		 * \param[in] moveref the descriptor to move from.
+		 */
+		FileDescriptor(FileDescriptor &&moveref);
+
+		/**
+		 * \brief Destroys a FileDescriptor.
 		 */
 		~FileDescriptor();
 
 		/**
-		 * Closes the descriptor.
+		 * \brief Move-assigns one FileDescriptor to another.
+		 *
+		 * \param[in] moveref the descriptor to assign to this descriptor.
+		 *
+		 * \return this descriptor.
+		 */
+		FileDescriptor &operator=(FileDescriptor &&moveref);
+
+		/**
+		 * \brief Exchanges the contents of two FileDescriptor objects.
+		 *
+		 * \param[in,out] other the other descriptor to swap with.
+		 */
+		void swap(FileDescriptor &other);
+
+		/**
+		 * \brief Closes the descriptor.
 		 */
 		void close();
 
 		/**
-		 * Gets the actual file descriptor.
+		 * \brief Gets the actual file descriptor.
 		 *
 		 * \return the descriptor.
 		 */
 		int fd() const;
 
 		/**
-		 * Sets whether the descriptor is blocking.
+		 * \brief Checks whether the file descriptor is valid.
+		 *
+		 * \return \c true if the descriptor is valid, or \c false if it has been closed or has not been initialize.d
+		 */
+		bool is() const;
+
+		/**
+		 * \brief Sets whether the descriptor is blocking.
 		 *
 		 * \param[in] block \c true to set the descriptor to blocking mode, or \c false to set the descriptor to non-blocking mode.
 		 */
@@ -91,6 +121,10 @@ class FileDescriptor : public ByRef {
 		FileDescriptor(int pf, int type, int proto);
 		FileDescriptor(const char *pattern);
 };
+
+namespace std {
+	void swap(FileDescriptor &x, FileDescriptor &y);
+}
 
 #endif
 

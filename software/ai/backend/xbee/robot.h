@@ -5,6 +5,7 @@
 #include "geom/point.h"
 #include "proto/messages_robocup_ssl_detection.pb.h"
 #include "uicomponents/visualizer.h"
+#include "util/box_ptr.h"
 #include "util/predictor.h"
 #include <cstdlib>
 #include <sigc++/trackable.h>
@@ -13,45 +14,45 @@ namespace AI {
 	namespace BE {
 		namespace XBee {
 			/**
-			 * A robot, which may or may not be drivable.
+			 * \brief A robot, which may or may not be drivable.
 			 */
 			class Robot : public AI::BE::Robot, public sigc::trackable {
 				public:
 					/**
-					 * A pointer to a Robot.
+					 * \brief A pointer to a Robot.
 					 */
-					typedef RefPtr<Robot> Ptr;
+					typedef BoxPtr<Robot> Ptr;
 
 					/**
-					 * A pointer to a const Robot.
+					 * \brief A pointer to a const Robot.
 					 */
-					typedef RefPtr<const Robot> CPtr;
+					typedef BoxPtr<Robot> CPtr;
 
 					/**
-					 * Whether or not the robot was seen in one of the most recent camera frames.
+					 * \brief Whether or not the robot was seen in one of the most recent camera frames.
+					 *
 					 * Used internally in the backend.
 					 */
 					bool seen_this_frame;
 
 					/**
-					 * How many times this robot was not visible on any camera.
+					 * \brief How many times this robot was not visible on any camera.
+					 *
 					 * Used internally in the backend.
 					 */
 					unsigned int vision_failures;
 
 					/**
-					 * Constructs a new Robot.
+					 * \brief Constructs a new Robot.
 					 *
 					 * \param[in] backend the backend the robot is part of.
 					 *
 					 * \param[in] pattern the index of the robot's lid pattern.
-					 *
-					 * \return the new Robot.
 					 */
-					static Ptr create(AI::BE::Backend &backend, unsigned int pattern);
+					Robot(AI::BE::Backend &backend, unsigned int pattern);
 
 					/**
-					 * Updates the robot with a new SSL-Vision packet.
+					 * \brief Updates the robot with a new SSL-Vision packet.
 					 *
 					 * \param[in] packet the new packet.
 					 *
@@ -60,7 +61,7 @@ namespace AI {
 					void update(const SSL_DetectionRobot &packet, timespec ts);
 
 					/**
-					 * Locks the current time for the predictors.
+					 * \brief Locks the current time for the predictors.
 					 *
 					 * \param[in] now the current time.
 					 */
@@ -90,9 +91,6 @@ namespace AI {
 
 				protected:
 					AI::BE::Backend &backend;
-
-					Robot(AI::BE::Backend &backend, unsigned int pattern);
-					~Robot();
 
 				private:
 					const unsigned int pattern_;

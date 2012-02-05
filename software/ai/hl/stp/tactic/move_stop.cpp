@@ -51,7 +51,7 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::move_stop(const World &world, int player_index) {
-	const Tactic::Ptr p(new MoveStop(world, player_index));
+	Tactic::Ptr p(new MoveStop(world, player_index));
 	return p;
 }
 

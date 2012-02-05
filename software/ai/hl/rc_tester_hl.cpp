@@ -10,15 +10,6 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	struct RCTesterFactory : public HighLevelFactory {
-		RCTesterFactory() : HighLevelFactory("RC Tester") {
-		}
-
-		HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	RCTesterFactory factory_instance;
-
 	struct RCTester : public HighLevel {
 		World &world;
 		Gtk::VBox vbox;
@@ -67,14 +58,9 @@ namespace {
 			return &vbox;
 		}
 
-		RCTesterFactory &factory() const {
-			return factory_instance;
-		}
+		HighLevelFactory &factory() const;
 	};
-
-	HighLevel::Ptr RCTesterFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new RCTester(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(RCTester)
 

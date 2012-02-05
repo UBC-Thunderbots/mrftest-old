@@ -8,16 +8,6 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	class TestChaseFactory : public HighLevelFactory {
-		public:
-			TestChaseFactory() : HighLevelFactory("Test STP Chase") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	TestChaseFactory factory_instance;
-
 	class TestChase : public HighLevel {
 		public:
 			TestChase(World &world) : world(world) {
@@ -26,9 +16,7 @@ namespace {
 		private:
 			World &world;
 
-			TestChaseFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			Gtk::Widget *ui_controls() {
 				return 0;
@@ -44,10 +32,7 @@ namespace {
 				Action::chase(world, friendly.get(0));
 			}
 	};
-
-	HighLevel::Ptr TestChaseFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new TestChase(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(TestChase)
 

@@ -16,16 +16,6 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	class STPHLChoosableFactory : public HighLevelFactory {
-		public:
-			STPHLChoosableFactory() : HighLevelFactory("STP-Selector") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	STPHLChoosableFactory factory_instance;
-
 	const Glib::ustring CHOOSE_PLAY_TEXT = "<Choose Play>";
 
 	class STPHLChoosable : public PlayExecutor, public HighLevel {
@@ -55,20 +45,18 @@ namespace {
 				stop_button.signal_clicked().connect(sigc::bind(&STPHLChoosable::stop, sigc::ref(*this)));
 			}
 
-			STPHLChoosableFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			void start() {
 				LOG_INFO("start");
 
 				// check if curr is valid
-				if (curr_play.is()) {
+				if (curr_play) {
 					return;
 				}
 				// check what play is in use
 				if (combo.get_active_text() == CHOOSE_PLAY_TEXT) {
-					curr_play.reset();
+					curr_play = 0;
 					return;
 				}
 				calc_play();
@@ -77,32 +65,32 @@ namespace {
 			void stop() {
 				LOG_INFO("stop");
 
-				if (curr_play.is()) {
-					curr_play.reset();
+				if (curr_play) {
+					curr_play = 0;
 				}
 			}
 
 			void calc_play() {
-				curr_play.reset();
+				curr_play = 0;
 				for (auto i = plays.cbegin(), iend = plays.cend(); i != iend; ++i) {
 					if ((*i)->factory().name() == combo.get_active_text()) {
-						curr_play = *i;
+						curr_play = i->get();
 					}
 				}
-				assert(curr_play.is());
+				assert(curr_play);
 
 				if (!curr_play->invariant() || curr_play->done() || curr_play->fail()) {
 					LOG_WARN("play not valid");
-					// curr_play.reset();
+					// curr_play = 0;
 					// return;
 				}
 
 				// assign the players
 				curr_role_step = 0;
 				for (std::size_t j = 0; j < TEAM_MAX_SIZE; ++j) {
-					curr_roles[j].clear();
 					// default to idle tactic
-					curr_tactic[j] = Tactic::idle(world);
+					curr_tactic[j] = idle_tactics[j].get();
+					curr_roles[j].clear();
 				}
 				{
 					std::vector<Tactic::Tactic::Ptr> goalie_role;
@@ -121,35 +109,35 @@ namespace {
 
 				// override halt completely
 				if (world.friendly_team().size() == 0 || world.playtype() == AI::Common::PlayType::HALT) {
-					curr_play.reset();
+					curr_play = 0;
 				}
 
 				// check what play is in use
 				if (combo.get_active_text() == CHOOSE_PLAY_TEXT) {
-					curr_play.reset();
+					curr_play = 0;
 				}
 
-				if (curr_play.is() && combo.get_active_text() != Glib::ustring(curr_play->factory().name())) {
-					curr_play.reset();
+				if (curr_play && combo.get_active_text() != Glib::ustring(curr_play->factory().name())) {
+					curr_play = 0;
 				}
 
 				/*
-				   if (curr_play.is() && (!curr_play->invariant() || curr_play->done() || curr_play->fail())) {
+				   if (curr_play && (!curr_play->invariant() || curr_play->done() || curr_play->fail())) {
 				    LOG_INFO("play done/no longer valid");
-				    curr_play.reset();
+				    curr_play = 0;
 				   }
 				 */
 
 				std::ostringstream text;
 
-				if (curr_play.is()) {
+				if (curr_play) {
 					text << "Running";
 					execute_tactics();
 				} else {
 					text << "Stop";
 				}
 
-				if (curr_play.is()) {
+				if (curr_play) {
 					text << info();
 				}
 
@@ -164,10 +152,7 @@ namespace {
 				draw_ui(world, ctx);
 			}
 	};
-
-	HighLevel::Ptr STPHLChoosableFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new STPHLChoosable(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(STPHLChoosable)
 

@@ -15,13 +15,13 @@ using namespace AI::BE::XBee;
 static_assert(RefboxPacket::BUFFER_SIZE == 6, "Bitcodec builds wrong refbox packet size.");
 
 namespace {
-	FileDescriptor::Ptr create_socket(unsigned int multicast_interface) {
-		const FileDescriptor::Ptr fd(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP));
+	FileDescriptor create_socket(unsigned int multicast_interface) {
+		FileDescriptor fd(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP));
 
-		fd->set_blocking(false);
+		fd.set_blocking(false);
 
 		const int one = 1;
-		if (setsockopt(fd->fd(), SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
+		if (setsockopt(fd.fd(), SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
 			throw SystemError("setsockopt(SO_REUSEADDR)", errno);
 		}
 
@@ -30,7 +30,7 @@ namespace {
 		sa.in.sin_addr.s_addr = get_inaddr_any();
 		encode_u16(&sa.in.sin_port, 10001);
 		std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
-		if (bind(fd->fd(), &sa.sa, sizeof(sa.in)) < 0) {
+		if (bind(fd.fd(), &sa.sa, sizeof(sa.in)) < 0) {
 			throw SystemError("bind(:10001)", errno);
 		}
 
@@ -38,7 +38,7 @@ namespace {
 		mcreq.imr_multiaddr.s_addr = inet_addr("224.5.23.1");
 		mcreq.imr_address.s_addr = get_inaddr_any();
 		mcreq.imr_ifindex = multicast_interface;
-		if (setsockopt(fd->fd(), IPPROTO_IP, IP_ADD_MEMBERSHIP, &mcreq, sizeof(mcreq)) < 0) {
+		if (setsockopt(fd.fd(), IPPROTO_IP, IP_ADD_MEMBERSHIP, &mcreq, sizeof(mcreq)) < 0) {
 			LOG_WARN("Cannot join multicast group 224.5.23.1 for refbox data.");
 		}
 
@@ -47,12 +47,12 @@ namespace {
 }
 
 RefBox::RefBox(unsigned int multicast_interface) : command('H'), goals_blue(0), goals_yellow(0), fd(create_socket(multicast_interface)) {
-	Glib::signal_io().connect(sigc::mem_fun(this, &RefBox::on_readable), fd->fd(), Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(this, &RefBox::on_readable), fd.fd(), Glib::IO_IN);
 }
 
 bool RefBox::on_readable(Glib::IOCondition) {
 	unsigned char packet[65536];
-	ssize_t len = recv(fd->fd(), &packet, sizeof(packet), 0);
+	ssize_t len = recv(fd.fd(), &packet, sizeof(packet), 0);
 	if (len < 0) {
 		int err = errno;
 		LOG_WARN(Glib::ustring::compose("Cannot receive from refbox socket: %1.", std::strerror(err)));

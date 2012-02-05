@@ -177,7 +177,7 @@ namespace {
 		// calculate the deviation from the direction
 		Player::CPtr baller = Evaluation::calc_friendly_baller();
 
-		if (baller.is()) {
+		if (baller) {
 			Angle ori_ball = (dest - baller->position()).orientation();
 			Angle ori_player = baller->orientation();
 			double score_diff = ori_ball.angle_diff(ori_player).to_radians();

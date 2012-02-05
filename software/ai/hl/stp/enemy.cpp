@@ -97,21 +97,16 @@ namespace {
 };
 
 Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_goal(const World &world, unsigned int i) {
-	Enemy::Ptr p(new ClosestFriendlyGoal(world, i));
-	return p;
+	return std::make_shared<ClosestFriendlyGoal>(world, i);
 }
 
 Enemy::Ptr AI::HL::STP::Enemy::closest_ball(const World &world, unsigned int i) {
-	Enemy::Ptr p(new ClosestBall(world, i));
-	return p;
+	return std::make_shared<ClosestBall>(world, i);
 }
 
 Enemy::Ptr AI::HL::STP::Enemy::closest_pass(const World &world, unsigned int i) {
-	Enemy::Ptr p(new ClosestPass(world, i));
-	return p;
+	return std::make_shared<ClosestPass>(world, i);
 }
 
-
-Enemy::Enemy() {
-}
+Enemy::Enemy() = default;
 

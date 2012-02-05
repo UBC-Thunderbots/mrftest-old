@@ -2,28 +2,34 @@
 #define AI_HL_STP_ENEMY_H
 
 #include "ai/hl/stp/world.h"
+#include "util/noncopyable.h"
+#include <memory>
 
 namespace AI {
 	namespace HL {
 		namespace STP {
 			/**
-			 * Describes an enemy.
+			 * \brief Describes an enemy.
+			 *
 			 * Allows tactics to dynamically target enemies.
 			 * E.g. you want to block the closest enemy.
 			 */
-			class Enemy : public ByRef {
+			class Enemy : public NonCopyable {
 				public:
-					typedef RefPtr<Enemy> Ptr;
+					/**
+					 * \brief A pointer to an Enemy.
+					 */
+					typedef std::shared_ptr<Enemy> Ptr;
 
 					/**
-					 * Returns the enemy robot associated with this role.
-					 * If the robot does not exist,
-					 * then a null pointer is returned.
+					 * \brief Returns the enemy robot associated with this role.
+					 *
+					 * \return the enemy robot, or null if such a robot does not exist.
 					 */
 					virtual Robot::Ptr evaluate() const = 0;
 
 					/**
-					 * Order by distance to friendly goal.
+					 * \brief Order by distance to friendly goal.
 					 *
 					 * \param[in] world the World in which STP operates
 					 *
@@ -35,7 +41,7 @@ namespace AI {
 					static Enemy::Ptr closest_friendly_goal(const World &world, unsigned int i);
 
 					/**
-					 * Order by distance to ball.
+					 * \brief Order by distance to ball.
 					 *
 					 * \param[in] world the World in which STP operates
 					 *
@@ -47,7 +53,7 @@ namespace AI {
 					static Enemy::Ptr closest_ball(const World &world, unsigned int i);
 
 					/**
-					 * Closest to enemy having the ball, by passing.
+					 * \brief Closest to enemy having the ball, by passing.
 					 */
 					static Enemy::Ptr closest_pass(const World &world, unsigned int i);
 

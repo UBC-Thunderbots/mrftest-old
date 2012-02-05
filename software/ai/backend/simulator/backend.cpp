@@ -80,27 +80,27 @@ void AI::BE::Simulator::SecondaryUIControls::attach(Gtk::Table &t, unsigned int 
 	t.attach(state_file_hbox, 1, 3, row + 3, row + 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 }
 
-FileDescriptor::Ptr AI::BE::Simulator::connect_to_simulator() {
+FileDescriptor AI::BE::Simulator::connect_to_simulator() {
 	// Change to the cache directory where the simulator creates its socket.
 	const std::string &cache_dir = Glib::get_user_cache_dir();
 	ScopedCHDir dir_changer(cache_dir.c_str());
 
 	// Create a new socket.
-	FileDescriptor::Ptr sock = FileDescriptor::create_socket(AF_UNIX, SOCK_SEQPACKET, 0);
-	sock->set_blocking(true);
+	FileDescriptor sock = FileDescriptor::create_socket(AF_UNIX, SOCK_SEQPACKET, 0);
+	sock.set_blocking(true);
 
 	// Connect to the simulator's socket.
 	SockAddrs sa;
 	sa.un.sun_family = AF_UNIX;
 	std::strcpy(sa.un.sun_path, SIMULATOR_SOCKET_FILENAME);
-	if (connect(sock->fd(), &sa.sa, sizeof(sa.un)) < 0) {
+	if (connect(sock.fd(), &sa.sa, sizeof(sa.un)) < 0) {
 		throw SystemError("connect", errno);
 	}
 
 	// Check the peer's credentials.
 	ucred creds;
 	socklen_t creds_len = sizeof(creds);
-	if (getsockopt(sock->fd(), SOL_SOCKET, SO_PEERCRED, &creds, &creds_len) < 0) {
+	if (getsockopt(sock.fd(), SOL_SOCKET, SO_PEERCRED, &creds, &creds_len) < 0) {
 		throw SystemError("getsockopt", errno);
 	}
 	if (creds.uid != getuid() && creds.uid != 0) {
@@ -111,7 +111,7 @@ FileDescriptor::Ptr AI::BE::Simulator::connect_to_simulator() {
 	return sock;
 }
 
-AI::BE::Simulator::Backend::Backend(const std::string &load_filename) : sock(connect_to_simulator()), ball_(*this), friendly_(*this), simulator_playtype(AI::Common::PlayType::HALT), secondary_controls(load_filename) {
+AI::BE::Simulator::Backend::Backend(const std::string &load_filename) : sock(connect_to_simulator()), ball_(*this), friendly_(*this), enemy_(*this), simulator_playtype(AI::Common::PlayType::HALT), secondary_controls(load_filename) {
 	monotonic_time_.tv_sec = 0;
 	monotonic_time_.tv_nsec = 0;
 	main_controls.playtype_combo.signal_changed().connect(sigc::mem_fun(this, &Backend::on_sim_playtype_changed));
@@ -122,7 +122,7 @@ AI::BE::Simulator::Backend::Backend(const std::string &load_filename) : sock(con
 	secondary_controls.players_remove.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_players_remove_clicked));
 	secondary_controls.state_file_load_button.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_state_file_load_clicked));
 	secondary_controls.state_file_save_button.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_state_file_save_clicked));
-	Glib::signal_io().connect(sigc::mem_fun(this, &Backend::on_packet), sock->fd(), Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(this, &Backend::on_packet), sock.fd(), Glib::IO_IN);
 	friendly_.score_prop.signal_changed().connect(signal_score_changed().make_slot());
 	enemy_.score_prop.signal_changed().connect(signal_score_changed().make_slot());
 	playtype_override().signal_changed().connect(sigc::mem_fun(this, &Backend::update_playtype));
@@ -132,7 +132,7 @@ AI::BE::Simulator::Backend::Backend(const std::string &load_filename) : sock(con
 	}
 }
 
-void AI::BE::Simulator::Backend::send_packet(const ::Simulator::Proto::A2SPacket &packet, FileDescriptor::Ptr ancillary_fd) {
+void AI::BE::Simulator::Backend::send_packet(const ::Simulator::Proto::A2SPacket &packet, const FileDescriptor &ancillary_fd) {
 	iovec iov = { iov_base: const_cast< ::Simulator::Proto::A2SPacket *>(&packet), iov_len: sizeof(packet), };
 	msghdr msgh = { msg_name: 0, msg_namelen: 0, msg_iov: &iov, msg_iovlen: 1, msg_control: 0, msg_controllen: 0, msg_flags: 0, };
 	char cmsgbuf[cmsg_space(sizeof(int))];
@@ -142,10 +142,10 @@ void AI::BE::Simulator::Backend::send_packet(const ::Simulator::Proto::A2SPacket
 		cmsg_firsthdr(&msgh)->cmsg_len = cmsg_len(sizeof(int));
 		cmsg_firsthdr(&msgh)->cmsg_level = SOL_SOCKET;
 		cmsg_firsthdr(&msgh)->cmsg_type = SCM_RIGHTS;
-		int fd = ancillary_fd->fd();
+		int fd = ancillary_fd.fd();
 		std::memcpy(cmsg_data(cmsg_firsthdr(&msgh)), &fd, sizeof(fd));
 	}
-	if (sendmsg(sock->fd(), &msgh, MSG_NOSIGNAL) < 0) {
+	if (sendmsg(sock.fd(), &msgh, MSG_NOSIGNAL) < 0) {
 		throw SystemError("sendmsg", errno);
 	}
 }
@@ -223,7 +223,7 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 	::Simulator::Proto::S2APacket packet;
 	iovec iov = { iov_base: &packet, iov_len: sizeof(packet), };
 	msghdr mh = { msg_name: 0, msg_namelen: 0, msg_iov: &iov, msg_iovlen: 1, msg_control: 0, msg_controllen: 0, msg_flags: 0 };
-	ssize_t rc = recvmsg(sock->fd(), &mh, MSG_DONTWAIT);
+	ssize_t rc = recvmsg(sock.fd(), &mh, MSG_DONTWAIT);
 	if (rc < 0) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
 			return true;
@@ -388,7 +388,7 @@ bool AI::BE::Simulator::Backend::pattern_exists(unsigned int pattern) {
 }
 
 void AI::BE::Simulator::Backend::on_state_file_load_clicked() {
-	FileDescriptor::Ptr fd = FileDescriptor::create_open(secondary_controls.state_file_name.c_str(), O_RDONLY, 0);
+	FileDescriptor fd = FileDescriptor::create_open(secondary_controls.state_file_name.c_str(), O_RDONLY, 0);
 	::Simulator::Proto::A2SPacket packet;
 	std::memset(&packet, 0, sizeof(packet));
 	packet.type = ::Simulator::Proto::A2SPacketType::LOAD_STATE;
@@ -396,7 +396,7 @@ void AI::BE::Simulator::Backend::on_state_file_load_clicked() {
 }
 
 void AI::BE::Simulator::Backend::on_state_file_save_clicked() {
-	FileDescriptor::Ptr fd = FileDescriptor::create_open(secondary_controls.state_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	FileDescriptor fd = FileDescriptor::create_open(secondary_controls.state_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	::Simulator::Proto::A2SPacket packet;
 	std::memset(&packet, 0, sizeof(packet));
 	packet.type = ::Simulator::Proto::A2SPacketType::SAVE_STATE;

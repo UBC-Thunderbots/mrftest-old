@@ -18,8 +18,7 @@ namespace {
 }
 
 Role::Ptr AI::HL::STP::Role::player(Player::Ptr p) {
-	Role::Ptr r(new Fixed(p));
-	return r;
+	return std::make_shared<Fixed>(p);
 }
 
 Role::Role() = default;

@@ -14,15 +14,6 @@ namespace {
 	const int NUMBER_OF_TARGETS = 2;
 	Point TARGETS[NUMBER_OF_TARGETS] = { Point(0.0, -2.0), Point(0.0, 2.0) };
 	Angle TARGETS_ORIENT[NUMBER_OF_TARGETS] = { Angle::of_radians(0.5 * M_PI), Angle::of_radians(-0.5 * M_PI) };
-	class KalmanIntersectTestFactory : public HighLevelFactory {
-		public:
-			KalmanIntersectTestFactory() : HighLevelFactory("Hawdy, Kalman Intersect Test") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	KalmanIntersectTestFactory factory_instance;
 
 	class KalmanIntersectTest : public HighLevel {
 		public:
@@ -57,9 +48,7 @@ namespace {
 				ui_box.add(dribble_btn);
 			}
 
-			KalmanIntersectTestFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			void tick() {
 				// sample ball position once per tick
@@ -174,10 +163,7 @@ namespace {
 				to_kick = true;
 			}
 	};
-
-	HighLevel::Ptr KalmanIntersectTestFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new KalmanIntersectTest(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(KalmanIntersectTest)
 

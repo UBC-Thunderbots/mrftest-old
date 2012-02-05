@@ -3,40 +3,46 @@
 
 #include "ai/hl/stp/world.h"
 #include "ai/hl/stp/tactic/tactic.h"
+#include "util/noncopyable.h"
+#include <utility>
 
 namespace AI {
 	namespace HL {
 		namespace STP {
 			/**
-			 * This class allows various ways to refer to own players.
+			 * \brief This class allows various ways to refer to own players.
+			 *
 			 * By player, tactic, or role.
 			 */
-			class Role : public ByRef {
+			class Role : public NonCopyable {
 				public:
-					typedef RefPtr<Role> Ptr;
+					/**
+					 * \brief A pointer to a Role.
+					 */
+					typedef std::shared_ptr<Role> Ptr;
 
 					/**
-					 * Gets the player associated with this role.
+					 * \brief Gets the player associated with this role.
 					 */
 					virtual Player::Ptr evaluate() const = 0;
 
 					/**
-					 * A specific player.
+					 * \brief A specific player.
 					 */
 					static Role::Ptr player(Player::Ptr player);
 
 					/**
-					 * A specific tactic.
+					 * \brief A specific tactic.
 					 */
-					static Role::Ptr tactic(AI::HL::STP::Tactic::Tactic::Ptr tactic);
+					static Role::Ptr tactic(const AI::HL::STP::Tactic::Tactic::Ptr &tactic);
 
 					/**
-					 * Ordered by priority.
+					 * \brief Ordered by priority.
 					 */
 					static Role::Ptr role(unsigned int i);
 
 					/**
-					 * The goalie.
+					 * \brief The goalie.
 					 */
 					static Role::Ptr goalie(World &world);
 

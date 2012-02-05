@@ -5,6 +5,7 @@
 #include "util/noncopyable.h"
 #include "util/property.h"
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <gtkmm/adjustment.h>
 #include <libxml++/libxml++.h>
@@ -431,7 +432,7 @@ class NumericParam : public Param {
 		 * \return the Gtk::Adjustment.
 		 */
 		Gtk::Adjustment *adjustment() const {
-			return adjustment_;
+			return adjustment_.get();
 		}
 
 		/**
@@ -459,15 +460,10 @@ class NumericParam : public Param {
 		 */
 		NumericParam(const char *name, const char *location, double def, double min, double max, bool integer);
 
-		/**
-		 * \brief Destroys a NumericParam.
-		 */
-		~NumericParam();
-
 	private:
 		const double def, min, max;
 		const bool integer;
-		Gtk::Adjustment *adjustment_;
+		std::unique_ptr<Gtk::Adjustment> adjustment_;
 		mutable sigc::signal<void> signal_changed_reflector;
 
 		/**

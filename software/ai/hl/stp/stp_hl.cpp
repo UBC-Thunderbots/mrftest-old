@@ -13,16 +13,6 @@ using AI::HL::HighLevel;
 using namespace AI::HL::STP;
 
 namespace {
-	class STPHLFactory : public HighLevelFactory {
-		public:
-			STPHLFactory() : HighLevelFactory("STP") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	STPHLFactory factory_instance;
-
 	class STPHL : public PlayExecutor, public HighLevel {
 		public:
 			Gtk::VBox vbox;
@@ -38,12 +28,10 @@ namespace {
 			}
 
 			void reset() {
-				curr_play.reset();
+				curr_play = 0;
 			}
 
-			STPHLFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			void tick() {
 				PlayExecutor::tick();
@@ -58,10 +46,7 @@ namespace {
 				PlayExecutor::draw_overlay(ctx);
 			}
 	};
-
-	HighLevel::Ptr STPHLFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new STPHL(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(STPHL)
 

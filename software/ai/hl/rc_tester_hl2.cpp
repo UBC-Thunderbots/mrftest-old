@@ -10,16 +10,7 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	struct RCTesterFactory : public HighLevelFactory {
-		RCTesterFactory() : HighLevelFactory("RC Tester 2") {
-		}
-
-		HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	RCTesterFactory factory_instance;
-
-	struct RCTester : public HighLevel {
+	struct RCTester2 : public HighLevel {
 		World &world;
 		Gtk::VBox vbox;
 		Gtk::HScale controls[3];
@@ -27,7 +18,7 @@ namespace {
 		Gtk::HScale offsets_y;
 		Gtk::Button reset_button;
 
-		RCTester(World &world) : world(world) {
+		RCTester2(World &world) : world(world) {
 			for (int i = 0; i < 3; ++i) {
 				vbox.add(controls[i]);
 				// params are
@@ -50,7 +41,7 @@ namespace {
 
 			vbox.add(reset_button);
 			reset_button.set_label("reset");
-			reset_button.signal_clicked().connect(sigc::bind(&RCTester::reset, sigc::ref(*this)));
+			reset_button.signal_clicked().connect(sigc::bind(&RCTester2::reset, sigc::ref(*this)));
 		}
 
 		void reset() {
@@ -87,14 +78,9 @@ namespace {
 			return &vbox;
 		}
 
-		RCTesterFactory &factory() const {
-			return factory_instance;
-		}
+		HighLevelFactory &factory() const;
 	};
-
-	HighLevel::Ptr RCTesterFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new RCTester(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(RCTester2)
 

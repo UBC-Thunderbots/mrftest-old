@@ -3,7 +3,7 @@
 
 #include "ai/common/world.h"
 #include "ai/flags.h"
-#include "util/byref.h"
+#include "util/box_ptr.h"
 #include <utility>
 #include <vector>
 
@@ -30,7 +30,7 @@ namespace AI {
 					/**
 					 * \brief A pointer to a const Robot.
 					 */
-					typedef RefPtr<const Robot> Ptr;
+					typedef BoxPtr<const Robot> Ptr;
 
 					/**
 					 * \brief Returns the avoidance distance for this robot.
@@ -48,12 +48,12 @@ namespace AI {
 					/**
 					 * A pointer to a Player.
 					 */
-					typedef RefPtr<Player> Ptr;
+					typedef BoxPtr<Player> Ptr;
 
 					/**
 					 * A pointer to a const Player.
 					 */
-					typedef RefPtr<const Player> CPtr;
+					typedef BoxPtr<const Player> CPtr;
 
 					/**
 					 * The type of a single point in a path.

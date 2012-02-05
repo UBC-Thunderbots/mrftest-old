@@ -4,7 +4,9 @@
 #include "simulator/ball.h"
 #include "simulator/player.h"
 #include "util/fd.h"
+#include "util/noncopyable.h"
 #include "util/registerable.h"
+#include <memory>
 
 namespace Gtk {
 	class Widget;
@@ -15,13 +17,8 @@ class SimulatorEngineFactory;
  * A simulation engine.
  * Individual simulation engines should extend this class to provide actual simulation services.
  */
-class SimulatorEngine : public ByRef {
+class SimulatorEngine : public NonCopyable {
 	public:
-		/**
-		 * A pointer to a SimulatorEngine.
-		 */
-		typedef RefPtr<SimulatorEngine> Ptr;
-
 		/**
 		 * Runs a time tick.
 		 * The engine should update the positions of all its players and the ball.
@@ -33,7 +30,7 @@ class SimulatorEngine : public ByRef {
 		 *
 		 * \return the SimulatorBall object.
 		 */
-		virtual Simulator::Ball::Ptr get_ball() = 0;
+		virtual Simulator::Ball &get_ball() = 0;
 
 		/**
 		 * Creates a new SimulatorPlayer.
@@ -41,28 +38,28 @@ class SimulatorEngine : public ByRef {
 		 *
 		 * \return the new SimulatorPlayer object.
 		 */
-		virtual Simulator::Player::Ptr add_player() = 0;
+		virtual Simulator::Player *add_player() = 0;
 
 		/**
 		 * Removes from the simulation an existing SimulatorPlayer.
 		 *
 		 * \param[in] player the SimulatorPlayer to remove.
 		 */
-		virtual void remove_player(Simulator::Player::Ptr player) = 0;
+		virtual void remove_player(Simulator::Player *player) = 0;
 
 		/**
 		 * Loads a simulation engine state from a file.
 		 *
 		 * \param[in] fd the file to load from.
 		 */
-		virtual void load_state(FileDescriptor::Ptr fd) = 0;
+		virtual void load_state(const FileDescriptor &fd) = 0;
 
 		/**
 		 * Saves the current state of the simulation engine into a file.
 		 *
 		 * \param[in] fd the file to store into.
 		 */
-		virtual void save_state(FileDescriptor::Ptr fd) const = 0;
+		virtual void save_state(const FileDescriptor &fd) const = 0;
 
 		/**
 		 * Retrieves the factory object that created the engine.
@@ -84,7 +81,7 @@ class SimulatorEngineFactory : public Registerable<SimulatorEngineFactory> {
 		 *
 		 * \return the new engine.
 		 */
-		virtual SimulatorEngine::Ptr create_engine() = 0;
+		virtual std::unique_ptr<SimulatorEngine> create_engine() = 0;
 
 	protected:
 		/**

@@ -4,7 +4,7 @@
 #include <sys/timerfd.h>
 
 namespace {
-	FileDescriptor::Ptr create_timerfd(int clockid) {
+	FileDescriptor create_timerfd(int clockid) {
 		int fd = timerfd_create(clockid, 0);
 		if (fd < 0) {
 			throw SystemError("timerfd_create", errno);
@@ -14,23 +14,23 @@ namespace {
 }
 
 TimerFDClockSource::TimerFDClockSource(uint64_t interval) : tfd(create_timerfd(CLOCK_MONOTONIC)), nanoseconds(interval), overflow_message("Timer overflow!", Annunciator::Message::TriggerMode::EDGE) {
-	tfd->set_blocking(false);
+	tfd.set_blocking(false);
 	itimerspec tspec;
 	tspec.it_interval.tv_sec = static_cast<time_t>(nanoseconds / UINT64_C(1000000000));
 	tspec.it_interval.tv_nsec = static_cast<long>(nanoseconds % UINT64_C(1000000000));
 	tspec.it_value.tv_sec = 1;
 	tspec.it_value.tv_nsec = 0;
-	if (timerfd_settime(tfd->fd(), 0, &tspec, 0) < 0) {
+	if (timerfd_settime(tfd.fd(), 0, &tspec, 0) < 0) {
 		throw SystemError("timer_starttime", errno);
 	}
 
-	Glib::signal_io().connect(sigc::mem_fun(this, &TimerFDClockSource::on_readable), tfd->fd(), Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(this, &TimerFDClockSource::on_readable), tfd.fd(), Glib::IO_IN);
 }
 
 bool TimerFDClockSource::on_readable(Glib::IOCondition) {
 	uint64_t ticks;
 
-	if (read(tfd->fd(), &ticks, sizeof(ticks)) != sizeof(ticks)) {
+	if (read(tfd.fd(), &ticks, sizeof(ticks)) != sizeof(ticks)) {
 		throw SystemError("read(timerfd)", errno);
 	}
 

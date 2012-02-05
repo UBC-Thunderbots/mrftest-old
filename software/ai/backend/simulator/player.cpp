@@ -3,9 +3,9 @@
 #include <algorithm>
 #include <cstring>
 
-AI::BE::Simulator::Player::Ptr AI::BE::Simulator::Player::create(Backend &be, unsigned int pattern) {
-	Ptr p(new Player(be, pattern));
-	return p;
+AI::BE::Simulator::Player::Player(Backend &be, unsigned int pattern) : AI::BE::Simulator::Robot(be, pattern), be(be), has_ball_(false), kick_(false), chick_power_(0.0), autokick_fired_(false), autokick_pre_fired_(false) {
+	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
+	be.signal_mouse_pressed.connect(sigc::mem_fun(this, &Player::mouse_pressed));
 }
 
 void AI::BE::Simulator::Player::pre_tick(const ::Simulator::Proto::S2APlayerInfo &state, const timespec &ts) {
@@ -123,13 +123,6 @@ void AI::BE::Simulator::Player::drive(const int(&w)[4]) {
 const int(&AI::BE::Simulator::Player::wheel_speeds() const)[4] {
 	return wheel_speeds_;
 }
-
-AI::BE::Simulator::Player::Player(Backend &be, unsigned int pattern) : AI::BE::Simulator::Robot(pattern), be(be), has_ball_(false), kick_(false), chick_power_(0.0), autokick_fired_(false), autokick_pre_fired_(false) {
-	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
-	be.signal_mouse_pressed.connect(sigc::mem_fun(this, &Player::mouse_pressed));
-}
-
-AI::BE::Simulator::Player::~Player() = default;
 
 void AI::BE::Simulator::Player::disconnect_mouse() {
 	for (std::size_t i = 0; i < G_N_ELEMENTS(mouse_connections); ++i) {

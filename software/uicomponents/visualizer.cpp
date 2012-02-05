@@ -129,102 +129,104 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 		// Draw the players including text, and their velocities, destinations, and paths.
 		for (unsigned int i = 0; i < data.visualizable_num_robots(); ++i) {
 			Visualizable::Robot::Ptr bot = data.visualizable_robot(i);
-			const Visualizable::Colour &clr = bot->visualizer_colour();
-			const std::string &str = bot->visualizer_label();
-			Cairo::TextExtents extents;
-			ctx->get_text_extents(str, extents);
+			if (bot) {
+				const Visualizable::Colour &clr = bot->visualizer_colour();
+				const std::string &str = bot->visualizer_label();
+				Cairo::TextExtents extents;
+				ctx->get_text_extents(str, extents);
 
-			ctx->set_source_rgb(clr.red, clr.green, clr.blue);
-			ctx->begin_new_path();
-			ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation().to_radians() + M_PI_4, bot->orientation().to_radians() - M_PI_4);
-			ctx->fill();
-
-			if (show_robots_v) {
-				ctx->begin_new_path();
-				ctx->move_to(bot->position().x, bot->position().y);
-				const Point &tgt(bot->position() + bot->velocity());
-				ctx->line_to(tgt.x, tgt.y);
-				ctx->stroke();
-			}
-
-			if (show_robots_dest && bot->has_destination()) {
 				ctx->set_source_rgb(clr.red, clr.green, clr.blue);
 				ctx->begin_new_path();
-				ctx->arc(bot->destination().first.x, bot->destination().first.y, 0.09, bot->destination().second.to_radians() + M_PI_4, bot->destination().second.to_radians() - M_PI_4);
-				ctx->stroke();
+				ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation().to_radians() + M_PI_4, bot->orientation().to_radians() - M_PI_4);
+				ctx->fill();
+
+				if (show_robots_v) {
+					ctx->begin_new_path();
+					ctx->move_to(bot->position().x, bot->position().y);
+					const Point &tgt(bot->position() + bot->velocity());
+					ctx->line_to(tgt.x, tgt.y);
+					ctx->stroke();
+				}
+
+				if (show_robots_dest && bot->has_destination()) {
+					ctx->set_source_rgb(clr.red, clr.green, clr.blue);
+					ctx->begin_new_path();
+					ctx->arc(bot->destination().first.x, bot->destination().first.y, 0.09, bot->destination().second.to_radians() + M_PI_4, bot->destination().second.to_radians() - M_PI_4);
+					ctx->stroke();
+
+					ctx->set_source_rgb(0.0, 0.0, 0.0);
+					const double x = bot->destination().first.x - extents.x_bearing - extents.width / 2.0;
+					const double y = bot->destination().first.y + extents.y_bearing + extents.height / 2.0;
+					ctx->move_to(x, y);
+					ctx->save();
+					ctx->scale(1, -1);
+					ctx->show_text(str);
+					ctx->restore();
+				}
+
+				if (show_robots_path && bot->has_path()) {
+					ctx->set_source_rgb(1.0, 0.0, 1.0);
+					ctx->begin_new_path();
+					ctx->move_to(bot->position().x, bot->position().y);
+					const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path = bot->path();
+					for (auto j = path.begin(), jend = path.end(); j != jend; ++j) {
+						ctx->line_to(j->first.first.x, j->first.first.y);
+					}
+					ctx->stroke();
+
+					ctx->set_source_rgb(0, 0, 0);
+					for (auto j = path.begin(), jend = path.end(); j != jend; ++j) {
+						ctx->arc(j->first.first.x, j->first.first.y, 0.01, 0, 2 * M_PI);
+						ctx->fill();
+					}
+				}
+
+				if (show_robots_graphs) {
+					unsigned int count = bot->num_bar_graphs();
+					if (count) {
+						const double BAR_HEIGHT = 0.1;
+						const double BAR_WIDTH = 0.4;
+						double tlx = bot->position().x - BAR_WIDTH / 2.0;
+						double tly = bot->position().y - BAR_HEIGHT * (count + 1) - 0.09;
+						ctx->set_source_rgb(0.0, 0.0, 0.0);
+						ctx->begin_new_path();
+						ctx->move_to(tlx, tly);
+						ctx->line_to(tlx + BAR_WIDTH, tly);
+						ctx->line_to(tlx + BAR_WIDTH, tly + BAR_HEIGHT * count);
+						ctx->line_to(tlx, tly + BAR_HEIGHT * count);
+						ctx->fill();
+
+						for (unsigned int i = 0; i < count; ++i) {
+							double value = bot->bar_graph_value(i);
+							const Visualizable::Colour &graphclr = bot->bar_graph_colour(i);
+							double bar_tly = tly + BAR_HEIGHT * i;
+							ctx->set_source_rgb(graphclr.red, graphclr.green, graphclr.blue);
+							ctx->begin_new_path();
+							ctx->move_to(tlx + BAR_WIDTH * 0.15, bar_tly + BAR_HEIGHT * 0.15);
+							ctx->line_to(tlx + BAR_WIDTH * (0.15 + 0.7 * value), bar_tly + BAR_HEIGHT * 0.15);
+							ctx->line_to(tlx + BAR_WIDTH * (0.15 + 0.7 * value), bar_tly + BAR_HEIGHT * 0.85);
+							ctx->line_to(tlx + BAR_WIDTH * 0.15, bar_tly + BAR_HEIGHT * 0.85);
+							ctx->fill();
+						}
+					}
+				}
 
 				ctx->set_source_rgb(0.0, 0.0, 0.0);
-				const double x = bot->destination().first.x - extents.x_bearing - extents.width / 2.0;
-				const double y = bot->destination().first.y + extents.y_bearing + extents.height / 2.0;
+				const double x = bot->position().x - extents.x_bearing - extents.width / 2.0;
+				const double y = bot->position().y + extents.y_bearing + extents.height / 2.0;
 				ctx->move_to(x, y);
 				ctx->save();
 				ctx->scale(1, -1);
 				ctx->show_text(str);
 				ctx->restore();
-			}
 
-			if (show_robots_path && bot->has_path()) {
-				ctx->set_source_rgb(1.0, 0.0, 1.0);
-				ctx->begin_new_path();
-				ctx->move_to(bot->position().x, bot->position().y);
-				const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path = bot->path();
-				for (auto j = path.begin(), jend = path.end(); j != jend; ++j) {
-					ctx->line_to(j->first.first.x, j->first.first.y);
-				}
-				ctx->stroke();
-
-				ctx->set_source_rgb(0, 0, 0);
-				for (auto j = path.begin(), jend = path.end(); j != jend; ++j) {
-					ctx->arc(j->first.first.x, j->first.first.y, 0.01, 0, 2 * M_PI);
-					ctx->fill();
-				}
-			}
-
-			if (show_robots_graphs) {
-				unsigned int count = bot->num_bar_graphs();
-				if (count) {
-					const double BAR_HEIGHT = 0.1;
-					const double BAR_WIDTH = 0.4;
-					double tlx = bot->position().x - BAR_WIDTH / 2.0;
-					double tly = bot->position().y - BAR_HEIGHT * (count + 1) - 0.09;
-					ctx->set_source_rgb(0.0, 0.0, 0.0);
+				if (bot->highlight()) {
+					const Visualizable::Colour &hlclr = bot->highlight_colour();
+					ctx->set_source_rgb(hlclr.red, hlclr.green, hlclr.blue);
 					ctx->begin_new_path();
-					ctx->move_to(tlx, tly);
-					ctx->line_to(tlx + BAR_WIDTH, tly);
-					ctx->line_to(tlx + BAR_WIDTH, tly + BAR_HEIGHT * count);
-					ctx->line_to(tlx, tly + BAR_HEIGHT * count);
-					ctx->fill();
-
-					for (unsigned int i = 0; i < count; ++i) {
-						double value = bot->bar_graph_value(i);
-						const Visualizable::Colour &graphclr = bot->bar_graph_colour(i);
-						double bar_tly = tly + BAR_HEIGHT * i;
-						ctx->set_source_rgb(graphclr.red, graphclr.green, graphclr.blue);
-						ctx->begin_new_path();
-						ctx->move_to(tlx + BAR_WIDTH * 0.15, bar_tly + BAR_HEIGHT * 0.15);
-						ctx->line_to(tlx + BAR_WIDTH * (0.15 + 0.7 * value), bar_tly + BAR_HEIGHT * 0.15);
-						ctx->line_to(tlx + BAR_WIDTH * (0.15 + 0.7 * value), bar_tly + BAR_HEIGHT * 0.85);
-						ctx->line_to(tlx + BAR_WIDTH * 0.15, bar_tly + BAR_HEIGHT * 0.85);
-						ctx->fill();
-					}
+					ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation().to_radians() + M_PI_4, bot->orientation().to_radians() - M_PI_4);
+					ctx->stroke();
 				}
-			}
-
-			ctx->set_source_rgb(0.0, 0.0, 0.0);
-			const double x = bot->position().x - extents.x_bearing - extents.width / 2.0;
-			const double y = bot->position().y + extents.y_bearing + extents.height / 2.0;
-			ctx->move_to(x, y);
-			ctx->save();
-			ctx->scale(1, -1);
-			ctx->show_text(str);
-			ctx->restore();
-
-			if (bot->highlight()) {
-				const Visualizable::Colour &hlclr = bot->highlight_colour();
-				ctx->set_source_rgb(hlclr.red, hlclr.green, hlclr.blue);
-				ctx->begin_new_path();
-				ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation().to_radians() + M_PI_4, bot->orientation().to_radians() - M_PI_4);
-				ctx->stroke();
 			}
 		}
 	}

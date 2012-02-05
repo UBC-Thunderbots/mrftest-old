@@ -3,13 +3,15 @@
 
 #include "ai/backend/backend.h"
 #include "simulator/sockproto/proto.h"
-#include "util/byref.h"
+#include "util/box_ptr.h"
 #include "util/predictor.h"
 #include <stdexcept>
 
 namespace AI {
 	namespace BE {
 		namespace Simulator {
+			class Backend;
+
 			/**
 			 * A robot that exists within the simulator, which may be friendly or enemy.
 			 */
@@ -18,24 +20,21 @@ namespace AI {
 					/**
 					 * A pointer to a Robot.
 					 */
-					typedef RefPtr<Robot> Ptr;
+					typedef BoxPtr<Robot> Ptr;
 
 					/**
 					 * A pointer to a const Robot.
 					 */
-					typedef RefPtr<const Robot> CPtr;
+					typedef BoxPtr<const Robot> CPtr;
 
 					/**
 					 * Constructs a new Robot.
 					 *
-					 * \param[in] pattern the pattern index of the robot.
+					 * \param[in] be the backend under which the robot lives.
 					 *
-					 * \return the new Robot.
+					 * \param[in] pattern the pattern index of the robot.
 					 */
-					static Ptr create(unsigned int pattern) {
-						Ptr p(new Robot(pattern));
-						return p;
-					}
+					Robot(Backend &, unsigned int pattern);
 
 					/**
 					 * Updates the state of the player and locks in its predictors.
@@ -71,20 +70,6 @@ namespace AI {
 					unsigned int num_bar_graphs() const { return 0; }
 					double bar_graph_value(unsigned int) const { return 0.0; }
 					Visualizable::Colour bar_graph_colour(unsigned int) const { return Visualizable::Colour(0.0, 0.0, 0.0); }
-
-				protected:
-					/**
-					 * Constructs a new Robot.
-					 *
-					 * \param[in] pattern the pattern index of the robot.
-					 */
-					Robot(unsigned int pattern);
-
-					/**
-					 * Destroys a Robot.
-					 */
-					~Robot() {
-					}
 
 				private:
 					/**

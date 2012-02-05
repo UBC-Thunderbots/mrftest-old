@@ -2,10 +2,11 @@
 #define AI_HL_HL_H
 
 #include "ai/hl/world.h"
-#include "util/byref.h"
+#include "util/noncopyable.h"
 #include "util/registerable.h"
 #include <cairomm/context.h>
 #include <cairomm/refptr.h>
+#include <memory>
 
 namespace Gtk {
 	//forward declare the widget pointer
@@ -17,17 +18,18 @@ namespace AI {
 		class HighLevelFactory;
 
 		/**
-		 * A complete AI structure.
+		 * \brief A complete AI structure.
 		 */
-		class HighLevel : public ByRef {
+		class HighLevel : public NonCopyable {
 			public:
 				/**
-				 * A pointer to a HighLevel.
+				 * \brief Destroys the HighLevel.
 				 */
-				typedef RefPtr<HighLevel> Ptr;
+				virtual ~HighLevel();
 
 				/**
-				 * Finds the HighLevelFactory that constructed this HighLevel.
+				 * \brief Finds the HighLevelFactory that constructed this HighLevel.
+				 *
 				 * Subclasses must override this function to return a reference to the global instance of their corresponding HighLevelFactory.
 				 *
 				 * \return a reference to the HighLevelFactory instance.
@@ -35,12 +37,12 @@ namespace AI {
 				virtual HighLevelFactory &factory() const = 0;
 
 				/**
-				 * Runs one time tick on this high-level.
+				 * \brief Runs one time tick on this high-level.
 				 */
 				virtual void tick() = 0;
 
 				/**
-				 * Returns the user interface controls for this high-level.
+				 * \brief Returns the user interface controls for this high-level.
 				 *
 				 * \return the high-level's UI controls.
 				 */
@@ -58,22 +60,22 @@ namespace AI {
 		};
 
 		/**
-		 * A factory used to construct a particular type of HighLevel.
+		 * \brief A factory used to construct a particular type of HighLevel.
 		 */
 		class HighLevelFactory : public Registerable<HighLevelFactory> {
 			public:
 				/**
-				 * Constructs the corresponding HighLevel.
+				 * \brief Constructs the corresponding HighLevel.
 				 *
 				 * \param[in] world the world in which the HighLevel will operate.
 				 *
 				 * \return the new HighLevel.
 				 */
-				virtual HighLevel::Ptr create_high_level(AI::HL::W::World &world) const = 0;
+				virtual std::unique_ptr<HighLevel> create_high_level(AI::HL::W::World &world) const = 0;
 
 			protected:
 				/**
-				 * Constructs a new HighLevelFactory.
+				 * \brief Constructs a new HighLevelFactory.
 				 *
 				 * \param[in] name a human-readable name for this HighLevel.
 				 */
@@ -82,6 +84,29 @@ namespace AI {
 		};
 	}
 }
+
+#define HIGH_LEVEL_REGISTER(cls) \
+	namespace { \
+		class cls##HighLevelFactory : public AI::HL::HighLevelFactory { \
+			public: \
+				cls##HighLevelFactory(); \
+				std::unique_ptr<HighLevel> create_high_level(AI::HL::W::World &) const; \
+		}; \
+	} \
+	\
+	cls##HighLevelFactory::cls##HighLevelFactory() : HighLevelFactory(#cls) { \
+	} \
+	\
+	std::unique_ptr<HighLevel> cls##HighLevelFactory::create_high_level(AI::HL::W::World &world) const { \
+		std::unique_ptr<HighLevel> p(new cls(world)); \
+		return p; \
+	} \
+	\
+	cls##HighLevelFactory cls##HighLevelFactory_instance; \
+	\
+	HighLevelFactory &cls::factory() const { \
+		return cls##HighLevelFactory_instance; \
+	}
 
 #endif
 

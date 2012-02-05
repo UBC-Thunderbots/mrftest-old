@@ -4,7 +4,7 @@
 #include "ai/flags.h"
 #include "ai/common/player.h"
 #include "geom/point.h"
-#include "util/byref.h"
+#include "util/box_ptr.h"
 #include "util/time.h"
 #include <utility>
 #include <vector>
@@ -20,12 +20,12 @@ namespace AI {
 					/**
 					 * A pointer to a Player.
 					 */
-					typedef RefPtr<Player> Ptr;
+					typedef BoxPtr<Player> Ptr;
 
 					/**
 					 * A pointer to a const Player.
 					 */
-					typedef RefPtr<const Player> CPtr;
+					typedef BoxPtr<const Player> CPtr;
 
 					/**
 					 * The type of a single point in a path.

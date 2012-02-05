@@ -3,6 +3,7 @@
 
 #include "ai/backend/xbee/robot.h"
 #include "util/annunciator.h"
+#include "util/box_ptr.h"
 #include "xbee/robot.h"
 #include <ctime>
 #include <utility>
@@ -12,30 +13,40 @@ namespace AI {
 	namespace BE {
 		namespace XBee {
 			/**
-			 * A player is a robot that can be driven.
+			 * \brief A player is a robot that can be driven.
 			 */
 			class Player : public Robot, public AI::BE::Player {
 				public:
 					/**
-					 * A pointer to a Player.
+					 * \brief A pointer to a Player.
 					 */
-					typedef RefPtr<Player> Ptr;
+					typedef BoxPtr<Player> Ptr;
 
 					/**
-					 * Constructs a new Player object.
+					 * \brief A pointer to a const Player.
+					 */
+					typedef BoxPtr<const Player> CPtr;
+
+					/**
+					 * \brief Constructs a new Player object.
 					 *
 					 * \param[in] backend the backend the player is part of.
+					 *
+					 * \param[in] name the robot's name.
 					 *
 					 * \param[in] pattern the index of the vision pattern associated with the player.
 					 *
 					 * \param[in] bot the XBee robot being driven.
-					 *
-					 * \return the new Player.
 					 */
-					static Ptr create(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot);
+					Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot &bot);
 
 					/**
-					 * Drives one tick of time through the RobotController and to the XBee.
+					 * \brief Destroys a Player object.
+					 */
+					~Player();
+
+					/**
+					 * \brief Drives one tick of time through the RobotController and to the XBee.
 					 *
 					 * \param[in] halt \c true if the current play type is halt, or \c false if not.
 					 */
@@ -86,7 +97,7 @@ namespace AI {
 
 
 					/**
-					 * Gets the distance the player has travelled while dribbling the ball.
+					 * \brief Gets the distance the player has travelled while dribbling the ball.
 					 *
 					 * \return the distance in metres.
 					 */
@@ -95,7 +106,7 @@ namespace AI {
 					}
 
 				private:
-					XBeeRobot::Ptr bot;
+					XBeeRobot &bot;
 					bool controlled;
 					double dribble_distance_;
 					Point last_dribble_position;
@@ -106,24 +117,6 @@ namespace AI {
 					bool autokick_invoked;
 					bool kicker_directional_;
 					bool autokick_fired_;
-
-					/**
-					 * Constructs a new Player object.
-					 *
-					 * \param[in] backend the backend the player is part of.
-					 *
-					 * \param[in] name the robot's name.
-					 *
-					 * \param[in] pattern the index of the vision pattern associated with the player.
-					 *
-					 * \param[in] bot the XBee robot being driven.
-					 */
-					Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot);
-
-					/**
-					 * \brief Destroys a Player object.
-					 */
-					~Player();
 
 					void on_autokick_fired();
 			};

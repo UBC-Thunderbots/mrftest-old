@@ -44,7 +44,7 @@ class LogLauncher : public Gtk::Window {
 		std::vector<std::thread::id> compress_threads_done;
 		std::mutex compress_threads_done_mutex;
 		Glib::Dispatcher compress_dispatcher;
-		FileDescriptor::Ptr compress_lock_fd;
+		FileDescriptor compress_lock_fd;
 		bool exit_pending;
 
 		void populate();

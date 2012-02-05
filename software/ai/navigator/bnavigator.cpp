@@ -36,7 +36,7 @@ namespace {
 	}
 
 	Navigator::Ptr BNavigator::create(World &world) {
-		const Navigator::Ptr p(new BNavigator(world));
+		Navigator::Ptr p(new BNavigator(world));
 		return p;
 	}
 

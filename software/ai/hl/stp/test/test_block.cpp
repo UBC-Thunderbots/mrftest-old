@@ -8,16 +8,6 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	class TestBlockFactory : public HighLevelFactory {
-		public:
-			TestBlockFactory() : HighLevelFactory("Test STP Block") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	TestBlockFactory factory_instance;
-
 	class TestBlock : public HighLevel {
 		public:
 			TestBlock(World &world) : world(world) {
@@ -26,9 +16,7 @@ namespace {
 		private:
 			World &world;
 
-			TestBlockFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			Gtk::Widget *ui_controls() {
 				return 0;
@@ -45,10 +33,7 @@ namespace {
 				Action::block_goal(world, friendly.get(0), enemy.get(0));
 			}
 	};
-
-	HighLevel::Ptr TestBlockFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new TestBlock(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(TestBlock)
 

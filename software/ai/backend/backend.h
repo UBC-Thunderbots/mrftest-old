@@ -8,6 +8,7 @@
 #include "ai/robot_controller/world.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "uicomponents/visualizer.h"
+#include "util/box_ptr.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
 #include "util/registerable.h"
@@ -23,12 +24,12 @@ namespace Gtk {
 namespace AI {
 	namespace BE {
 		/**
-		 * The field, as exposed by the backend.
+		 * \brief The field, as exposed by the backend.
 		 */
 		class Field : public AI::BF::W::Field, public AI::HL::W::Field, public AI::Nav::W::Field, public Visualizable::Field {
 			public:
 				/**
-				 * Checks if the field data is valid yet.
+				 * \brief Checks if the field data is valid yet.
 				 *
 				 * \return \c true if the data in the Field is valid, or \c false if not.
 				 */
@@ -36,7 +37,7 @@ namespace AI {
 		};
 
 		/**
-		 * The ball, as exposed by the backend.
+		 * \brief The ball, as exposed by the backend.
 		 */
 		class Ball : public AI::BF::W::Ball, public AI::HL::W::Ball, public AI::Nav::W::Ball, public Visualizable::Ball {
 			public:
@@ -45,14 +46,19 @@ namespace AI {
 		};
 
 		/**
-		 * A robot, as exposed by the backend.
+		 * \brief A robot, as exposed by the backend.
 		 */
 		class Robot : public AI::HL::W::Robot, public AI::Nav::W::Robot, public Visualizable::Robot {
 			public:
 				/**
-				 * A pointer to a Robot.
+				 * \brief A pointer to a Robot.
 				 */
-				typedef RefPtr<const Robot> Ptr;
+				typedef BoxPtr<const Robot> Ptr;
+
+				/**
+				 * \brief A pointer to a const Robot.
+				 */
+				typedef BoxPtr<const Robot> CPtr;
 
 				ObjectStore &object_store() const = 0;
 				unsigned int pattern() const = 0;
@@ -72,24 +78,24 @@ namespace AI {
 		};
 
 		/**
-		 * A player, as exposed by the backend.
+		 * \brief A player, as exposed by the backend.
 		 */
 		class Player : public AI::BE::Robot, public AI::BF::W::Player, public AI::HL::W::Player, public AI::Nav::W::Player, public AI::RC::W::Player {
 			public:
 				/**
-				 * A pointer to a Player.
+				 * \brief A pointer to a Player.
 				 */
-				typedef RefPtr<Player> Ptr;
+				typedef BoxPtr<Player> Ptr;
 
 				/**
-				 * A pointer to a const Player.
+				 * \brief A pointer to a const Player.
 				 */
-				typedef RefPtr<const Player> CPtr;
+				typedef BoxPtr<const Player> CPtr;
 
 				Player();
 
 				/**
-				 * Returns the speeds of the four wheels as requested by the RobotController.
+				 * \brief Returns the speeds of the four wheels as requested by the RobotController.
 				 *
 				 * \return the wheel speeds.
 				 */
@@ -112,6 +118,7 @@ namespace AI {
 				void kick(double speed, Angle angle);
 				void autokick(double speed, Angle angle);
 				const std::pair<Point, Angle> &destination() const = 0;
+				using AI::RC::W::Player::path;
 				void path(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p);
 				void pre_tick();
 
@@ -129,19 +136,19 @@ namespace AI {
 		};
 
 		/**
-		 * The friendly team.
+		 * \brief The friendly team.
 		 */
 		class FriendlyTeam : public AI::BF::W::FriendlyTeam, public AI::HL::W::FriendlyTeam, public AI::Nav::W::FriendlyTeam {
 			public:
 				/**
-				 * Returns the size of the team.
+				 * \brief Returns the size of the team.
 				 *
 				 * \return the size of the team.
 				 */
 				virtual std::size_t size() const = 0;
 
 				/**
-				 * Returns a player from the team.
+				 * \brief Returns a player from the team.
 				 *
 				 * \param[in] i the index of the player.
 				 *
@@ -150,7 +157,7 @@ namespace AI {
 				virtual Player::Ptr get(std::size_t i) = 0;
 
 				/**
-				 * Returns a player from the team.
+				 * \brief Returns a player from the team.
 				 *
 				 * \param[in] i the index of the player.
 				 *
@@ -159,38 +166,18 @@ namespace AI {
 				virtual Player::CPtr get(std::size_t i) const = 0;
 
 				/**
-				 * Returns the signal that is fired when a robot is added to the team.
+				 * \brief Returns the signal that is fired after a team's membership has changed.
 				 *
-				 * \return the signal that is fired when a robot is added to the team.
+				 * \return the signal that is fired after a team's membership has changed.
 				 */
-				sigc::signal<void, std::size_t> &signal_robot_added() const {
-					return signal_robot_added_;
-				}
-
-				/**
-				 * Returns the signal that is fired when a robot is about to be removed from the team.
-				 *
-				 * \return the signal that is fired when a robot is about to be removed from the team.
-				 */
-				sigc::signal<void, std::size_t> &signal_robot_removing() const {
-					return signal_robot_removing_;
-				}
-
-				/**
-				 * Returns the signal that is fired when a robot has been removed from the team.
-				 *
-				 * \return the signal that is fired when a robot has been removed from the team.
-				 */
-				sigc::signal<void> &signal_robot_removed() const {
-					return signal_robot_removed_;
+				sigc::signal<void> &signal_membership_changed() const {
+					return signal_membership_changed_;
 				}
 
 				unsigned int score() const = 0;
 
 			private:
-				mutable sigc::signal<void, std::size_t> signal_robot_added_;
-				mutable sigc::signal<void, std::size_t> signal_robot_removing_;
-				mutable sigc::signal<void> signal_robot_removed_;
+				mutable sigc::signal<void> signal_membership_changed_;
 
 				AI::BF::W::Player::Ptr get_ball_filter_player(std::size_t i) const {
 					return get(i);
@@ -214,59 +201,48 @@ namespace AI {
 		};
 
 		/**
-		 * The enemy team.
+		 * \brief The enemy team.
 		 */
 		class EnemyTeam : public AI::BF::W::EnemyTeam, public AI::HL::W::EnemyTeam, public AI::Nav::W::EnemyTeam {
 			public:
 				/**
-				 * Returns the size of the team.
+				 * \brief Returns the size of the team.
 				 *
 				 * \return the size of the team.
 				 */
 				virtual std::size_t size() const = 0;
 
 				/**
-				 * Returns a robot from the team.
+				 * \brief Returns a robot from the team.
 				 *
 				 * \param[in] i the index of the robot.
 				 *
 				 * \return the robot.
 				 */
-				virtual Robot::Ptr get(std::size_t i) const = 0;
+				virtual Robot::Ptr get(std::size_t i) = 0;
 
 				/**
-				 * Returns the signal that is fired when a robot is added to the team.
+				 * \brief Returns a robot from the team.
 				 *
-				 * \return the signal that is fired when a robot is added to the team.
+				 * \param[in] i the index of the robot.
+				 *
+				 * \return the robot.
 				 */
-				sigc::signal<void, std::size_t> &signal_robot_added() const {
-					return signal_robot_added_;
-				}
+				virtual Robot::CPtr get(std::size_t i) const = 0;
 
 				/**
-				 * Returns the signal that is fired when a robot is about to be removed from the team.
+				 * \brief Returns the signal that is fired after a team's membership has changed.
 				 *
-				 * \return the signal that is fired when a robot is about to be removed from the team.
+				 * \return the signal that is fired after a team's membership has changed.
 				 */
-				sigc::signal<void, std::size_t> &signal_robot_removing() const {
-					return signal_robot_removing_;
-				}
-
-				/**
-				 * Returns the signal that is fired when a robot has been removed from the team.
-				 *
-				 * \return the signal that is fired when a robot has been removed from the team.
-				 */
-				sigc::signal<void> &signal_robot_removed() const {
-					return signal_robot_removed_;
+				sigc::signal<void> &signal_membership_changed() const {
+					return signal_membership_changed_;
 				}
 
 				unsigned int score() const = 0;
 
 			private:
-				mutable sigc::signal<void, std::size_t> signal_robot_added_;
-				mutable sigc::signal<void, std::size_t> signal_robot_removing_;
-				mutable sigc::signal<void> signal_robot_removed_;
+				mutable sigc::signal<void> signal_membership_changed_;
 
 				AI::BF::W::Robot::Ptr get_ball_filter_robot(std::size_t i) const {
 					AI::HL::W::Robot::Ptr bot = get(i);
@@ -285,13 +261,14 @@ namespace AI {
 		class BackendFactory;
 
 		/**
-		 * A provider that can expose the contents of the world to the AI.
+		 * \brief A provider that can expose the contents of the world to the AI.
+		 *
 		 * A backend must get the state of the world, expose it to the AI, accept commands from the AI, and deliver those commands into the world.
 		 */
 		class Backend : public AI::BF::W::World, public AI::HL::W::World, public AI::Nav::W::World, public AI::RC::W::World, public Visualizable::World, public NonCopyable {
 			public:
 				/**
-				 * The possible values indicating which end of the field the team is defending.
+				 * \brief The possible values indicating which end of the field the team is defending.
 				 */
 				enum class FieldEnd {
 					WEST,
@@ -299,49 +276,50 @@ namespace AI {
 				};
 
 				/**
-				 * Returns the factory that created this Backend.
+				 * \brief Returns the factory that created this Backend.
 				 *
 				 * \return the factory.
 				 */
 				virtual BackendFactory &factory() const = 0;
 
 				/**
-				 * Returns the field.
+				 * \brief Returns the field.
 				 *
 				 * \return the field.
 				 */
 				virtual const Field &field() const = 0;
 
 				/**
-				 * Returns the ball.
+				 * \brief Returns the ball.
 				 *
 				 * \return the ball.
 				 */
 				virtual const Ball &ball() const = 0;
 
 				/**
-				 * Returns the friendly team.
+				 * \brief Returns the friendly team.
 				 *
 				 * \return the friendly team.
 				 */
 				virtual FriendlyTeam &friendly_team() = 0;
 
 				/**
-				 * Returns the friendly team.
+				 * \brief Returns the friendly team.
 				 *
 				 * \return the friendly team.
 				 */
 				virtual const FriendlyTeam &friendly_team() const = 0;
 
 				/**
-				 * Returns the enemy team.
+				 * \brief Returns the enemy team.
 				 *
 				 * \return the enemy team.
 				 */
 				virtual const EnemyTeam &enemy_team() const = 0;
 
 				/**
-				 * Returns the current monotonic time.
+				 * \brief Returns the current monotonic time.
+				 *
 				 * Monotonic time is a way of representing "game time", which always moves forward.
 				 * Monotonic time is consistent within the game world, and may or may not be linked to real time.
 				 * A navigator should \em always use this function to retrieve monotonic time, not one of the functions in util/time.h!
@@ -352,14 +330,14 @@ namespace AI {
 				virtual timespec monotonic_time() const = 0;
 
 				/**
-				 * Returns the number of table rows the backend's main tab UI controls will consume.
+				 * \brief Returns the number of table rows the backend's main tab UI controls will consume.
 				 *
 				 * \return the number of rows.
 				 */
 				virtual unsigned int main_ui_controls_table_rows() const = 0;
 
 				/**
-				 * Attaches the backend's main tab UI controls to a table.
+				 * \brief Attaches the backend's main tab UI controls to a table.
 				 *
 				 * \param[in] t the table to attach to,
 				 * which will have three columns,
@@ -373,14 +351,14 @@ namespace AI {
 				virtual void main_ui_controls_attach(Gtk::Table &t, unsigned int row) = 0;
 
 				/**
-				 * Returns the number of table rows the backend's secondary tab UI controls will consume.
+				 * \brief Returns the number of table rows the backend's secondary tab UI controls will consume.
 				 *
 				 * \return the number of rows.
 				 */
 				virtual unsigned int secondary_ui_controls_table_rows() const = 0;
 
 				/**
-				 * Attaches the backend's secondary tab UI controls to a table.
+				 * \brief Attaches the backend's secondary tab UI controls to a table.
 				 *
 				 * \param[in] t the table to attach to,
 				 * which will have three columns,
@@ -394,7 +372,7 @@ namespace AI {
 				virtual void secondary_ui_controls_attach(Gtk::Table &t, unsigned int row) = 0;
 
 				/**
-				 * Returns or allows setting the end of the field the friendly team is defending.
+				 * \brief Returns or allows setting the end of the field the friendly team is defending.
 				 *
 				 * \return the current defending end.
 				 */
@@ -403,7 +381,7 @@ namespace AI {
 				}
 
 				/**
-				 * Returns or allows setting the colour of the friendly team.
+				 * \brief Returns or allows setting the colour of the friendly team.
 				 *
 				 * \return the colour.
 				 */
@@ -412,7 +390,7 @@ namespace AI {
 				}
 
 				/**
-				 * Returns the current play type.
+				 * \brief Returns the current play type.
 				 *
 				 * \return the current play type.
 				 */
@@ -421,7 +399,7 @@ namespace AI {
 				}
 
 				/**
-				 * Returns or allows setting the play type override.
+				 * \brief Returns or allows setting the play type override.
 				 *
 				 * \return the play type override.
 				 */
@@ -430,7 +408,7 @@ namespace AI {
 				}
 
 				/**
-				 * Returns or allows setting the ball filter being used.
+				 * \brief Returns or allows setting the ball filter being used.
 				 *
 				 * \return the ball filter being used.
 				 */
@@ -439,7 +417,7 @@ namespace AI {
 				}
 
 				/**
-				 * Returns a signal that fires once per AI tick.
+				 * \brief Returns a signal that fires once per AI tick.
 				 *
 				 * \return the timer signal.
 				 */
@@ -448,7 +426,7 @@ namespace AI {
 				}
 
 				/**
-				 * Returns a signal that fires at the very end of the AI's work each tick.
+				 * \brief Returns a signal that fires at the very end of the AI's work each tick.
 				 *
 				 * \return the post-tick signal.
 				 */
@@ -457,7 +435,7 @@ namespace AI {
 				}
 
 				/**
-				 * Returns a signal that fires when an SSL-Vision packet is received.
+				 * \brief Returns a signal that fires when an SSL-Vision packet is received.
 				 *
 				 * \return the vision signal.
 				 */
@@ -466,7 +444,7 @@ namespace AI {
 				}
 
 				/**
-				 * Returns a signal that fires when a referee box packet is received.
+				 * \brief Returns a signal that fires when a referee box packet is received.
 				 *
 				 * \return the referee box signal.
 				 */
@@ -475,7 +453,7 @@ namespace AI {
 				}
 
 				/**
-				 * Returns a signal that fires when the friendly or enemy team's score changes.
+				 * \brief Returns a signal that fires when the friendly or enemy team's score changes.
 				 *
 				 * \return the change signal.
 				 */
@@ -484,7 +462,7 @@ namespace AI {
 				}
 
 				/**
-				 * Returns a signal that fires when the visualizer needs an overlay to be drawn.
+				 * \brief Returns a signal that fires when the visualizer needs an overlay to be drawn.
 				 *
 				 * \return the signal.
 				 */
@@ -494,12 +472,12 @@ namespace AI {
 
 			protected:
 				/**
-				 * Constructs a new Backend.
+				 * \brief Constructs a new Backend.
 				 */
 				Backend();
 
 				/**
-				 * Allows setting the current play type.
+				 * \brief Allows setting the current play type.
 				 *
 				 * \return the current play type.
 				 */
@@ -523,12 +501,12 @@ namespace AI {
 		};
 
 		/**
-		 * A factory for creating \ref Backend "Backends".
+		 * \brief A factory for creating \ref Backend "Backends".
 		 */
 		class BackendFactory : public Registerable<BackendFactory> {
 			public:
 				/**
-				 * Creates a new instance of the corresponding Backend and invokes a function with it.
+				 * \brief Creates a new instance of the corresponding Backend and invokes a function with it.
 				 *
 				 * \param[in] load_filename the filename of a simulator state file to restore.
 				 *
@@ -542,7 +520,7 @@ namespace AI {
 
 			protected:
 				/**
-				 * Constructs a new BackendFactory.
+				 * \brief Constructs a new BackendFactory.
 				 *
 				 * \param[in] name a human-readable name for this Backend.
 				 */

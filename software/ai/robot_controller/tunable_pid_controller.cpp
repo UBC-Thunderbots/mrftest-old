@@ -17,8 +17,6 @@ namespace {
 
 			void clear();
 
-			RobotControllerFactory &get_factory() const;
-
 			TunablePIDController(AI::RC::W::World &world, AI::RC::W::Player::Ptr plr);
 
 			void set_params(const std::vector<double> &params) {
@@ -72,19 +70,6 @@ namespace {
 	// no integral needed
 	// params = 5
 	// param := [prop x, diff x, y/x ratio, prop r, diff r]
-
-	class TunablePIDControllerFactory : public RobotControllerFactory {
-		public:
-			TunablePIDControllerFactory() : RobotControllerFactory("PID 1 Tunable") {
-			}
-
-			RobotController::Ptr create_controller(World &world, Player::Ptr plr) const {
-				RobotController::Ptr p(new TunablePIDController(world, plr));
-				return p;
-			}
-	};
-
-	TunablePIDControllerFactory factory;
 
 	const double DAMP = 0.5;
 
@@ -277,7 +262,5 @@ void TunablePIDController::clear() {
 #warning WRITE CODE HERE
 }
 
-RobotControllerFactory &TunablePIDController::get_factory() const {
-	return factory;
-}
+ROBOT_CONTROLLER_REGISTER(TunablePIDController)
 

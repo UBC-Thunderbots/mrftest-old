@@ -2,7 +2,6 @@
 #include "geom/angle.h"
 #include "geom/point.h"
 #include "util/algorithm.h"
-#include "util/byref.h"
 #include "util/dprint.h"
 #include "util/noncopyable.h"
 #include "util/param.h"
@@ -38,7 +37,6 @@ namespace {
 		public:
 			void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity);
 			void clear();
-			RobotControllerFactory &get_factory() const;
 			PIDSimController(World &world, Player::Ptr plr);
 
 		protected:
@@ -141,22 +139,7 @@ namespace {
 
 	void PIDSimController::clear() {
 	}
-
-	class PIDSimControllerFactory : public RobotControllerFactory {
-		public:
-			PIDSimControllerFactory() : RobotControllerFactory("PID Sim") {
-			}
-
-			RobotController::Ptr create_controller(World &world, Player::Ptr plr) const {
-				RobotController::Ptr p(new PIDSimController(world, plr));
-				return p;
-			}
-	};
-
-	PIDSimControllerFactory factory;
-
-	RobotControllerFactory &PIDSimController::get_factory() const {
-		return factory;
-	}
 }
+
+ROBOT_CONTROLLER_REGISTER(PIDSimController)
 

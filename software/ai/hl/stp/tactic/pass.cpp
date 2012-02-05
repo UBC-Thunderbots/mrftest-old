@@ -66,7 +66,7 @@ namespace {
 
 			bool fail() const {
 				Point dest = dynamic ? Evaluation::passee_position() : target.position();
-				return player.is()
+				return player
 				       // should fail when cannot pass to target,
 				       && ((passer_depends_calc_best_shot_target
 				            && !Evaluation::can_pass(world, player->position(), dest))
@@ -103,24 +103,9 @@ namespace {
 	kick_info PasserShoot::passer_info;
 	Player::Ptr last_passee;
 
-	void on_robot_removing(std::size_t i, const World &w) {
-		if (w.friendly_team().get(i) == Player::CPtr(last_passee)) {
-			last_passee.reset();
-		}
-	}
-
-	void connect_remove_player_handler(const World &w) {
-		static bool connected = false;
-		if (!connected) {
-			w.friendly_team().signal_robot_removing().connect(sigc::bind(&on_robot_removing, sigc::ref(w)));
-			connected = true;
-		}
-	}
-
 	class PasseeMove : public Tactic {
 		public:
 			PasseeMove(const World &world) : Tactic(world, false), dynamic(true), target(target) {
-				connect_remove_player_handler(world);
 			}
 
 			PasseeMove(const World &world, Coordinate target) : Tactic(world, false), dynamic(false), target(target) {
@@ -222,7 +207,7 @@ namespace {
 				// so use whoever last was assigned if they are still around
 				// closeness to "intended target" is a terrible way to choose
 				// so only do so if absolutely necessary
-				if (last_passee.is() && players.find(last_passee) != players.end()) {
+				if (last_passee && players.find(last_passee) != players.end()) {
 					return last_passee;
 				}
 				// otherwise we don't really have a choice but to use the one closest to the "intended target"
@@ -230,7 +215,7 @@ namespace {
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
 			}
 			bool done() const {
-				return player.is() && player->has_ball();
+				return player && player->has_ball();
 			}
 			void execute() {
 				const kick_info &passer_info = PasserShoot::passer_info;
@@ -271,32 +256,32 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passer_shoot_target(const World &world, Coordinate target) {
-	const Tactic::Ptr p(new PasserShoot(world, target));
+	Tactic::Ptr p(new PasserShoot(world, target));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_move_target(const World &world, Coordinate target) {
-	const Tactic::Ptr p(new PasseeMove(world, target));
+	Tactic::Ptr p(new PasseeMove(world, target));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_receive_target(const World &world, Coordinate target) {
-	const Tactic::Ptr p(new PasseeRecieve(world));
+	Tactic::Ptr p(new PasseeRecieve(world));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passer_shoot_dynamic(const World &world) {
-	const Tactic::Ptr p(new PasserShoot(world));
+	Tactic::Ptr p(new PasserShoot(world));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_move_dynamic(const World &world) {
-	const Tactic::Ptr p(new PasseeMove(world));
+	Tactic::Ptr p(new PasseeMove(world));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_receive(const World &world) {
-	const Tactic::Ptr p(new PasseeRecieve(world));
+	Tactic::Ptr p(new PasseeRecieve(world));
 	return p;
 }
 

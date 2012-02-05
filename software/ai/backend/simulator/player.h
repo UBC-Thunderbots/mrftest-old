@@ -4,6 +4,7 @@
 #include "ai/backend/backend.h"
 #include "ai/backend/simulator/robot.h"
 #include "simulator/sockproto/proto.h"
+#include "util/box_ptr.h"
 
 namespace AI {
 	namespace BE {
@@ -18,12 +19,12 @@ namespace AI {
 					/**
 					 * A pointer to a Player.
 					 */
-					typedef RefPtr<Player> Ptr;
+					typedef BoxPtr<Player> Ptr;
 
 					/**
 					 * A pointer to a const Player.
 					 */
-					typedef RefPtr<Player> CPtr;
+					typedef BoxPtr<Player> CPtr;
 
 					/**
 					 * Constructs a new Player.
@@ -31,10 +32,8 @@ namespace AI {
 					 * \param[in] be the backend under which the player lives.
 					 *
 					 * \param[in] pattern the pattern index of the robot.
-					 *
-					 * \return the new Player.
 					 */
-					static Ptr create(Backend &be, unsigned int pattern);
+					Player(Backend &be, unsigned int pattern);
 
 					/**
 					 * Updates the state of the player and locks in its predictors.
@@ -116,21 +115,6 @@ namespace AI {
 					const int(&wheel_speeds() const)[4];
 					void avoid_distance(AI::Flags::AvoidDistance dist) const { Robot::avoid_distance(dist); }
 					AI::Flags::AvoidDistance avoid_distance() const { return Robot::avoid_distance(); }
-
-				protected:
-					/**
-					 * Constructs a new Player.
-					 *
-					 * \param[in] be the backend under which the player lives.
-					 *
-					 * \param[in] pattern the pattern index of the robot.
-					 */
-					Player(Backend &be, unsigned int pattern);
-
-					/**
-					 * Destroys the Player.
-					 */
-					~Player();
 
 				private:
 					/**

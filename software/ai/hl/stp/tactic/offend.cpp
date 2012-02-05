@@ -58,12 +58,12 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::offend(const World &world) {
-	const Tactic::Ptr p(new Primary(world));
+	Tactic::Ptr p(new Primary(world));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::offend_secondary(const World &world) {
-	const Tactic::Ptr p(new Secondary(world));
+	Tactic::Ptr p(new Secondary(world));
 	return p;
 }
 

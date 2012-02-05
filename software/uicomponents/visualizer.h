@@ -3,7 +3,7 @@
 
 #include "geom/angle.h"
 #include "geom/point.h"
-#include "util/byref.h"
+#include "util/box_ptr.h"
 #include <gtkmm/drawingarea.h>
 
 namespace Visualizable {
@@ -156,12 +156,12 @@ namespace Visualizable {
 	/**
 	 * A Robot that can be drawn by the Visualizer.
 	 */
-	class Robot : public virtual ByRef {
+	class Robot {
 		public:
 			/**
 			 * A pointer to a Robot.
 			 */
-			typedef RefPtr<const Robot> Ptr;
+			typedef BoxPtr<const Robot> Ptr;
 
 			/**
 			 * Returns the position of the robot.

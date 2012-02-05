@@ -3,12 +3,12 @@
 #include "geom/angle.h"
 #include "util/dprint.h"
 #include "util/param.h"
+#include <memory>
 
 using namespace AI::Nav;
 using namespace AI::Nav::W;
 using namespace AI::Nav::Util;
 using namespace AI::Flags;
-
 
 namespace {
 	IntParam iteration_limit("Number of iterations to go through before we give best partial path", "Nav/RRT", 200, 10, 2000);
@@ -49,7 +49,7 @@ Point RRTPlanner::choose_target(Point goal, Player::Ptr player) {
 	size_t i = std::rand() % Waypoints::NUM_WAYPOINTS;
 
 	if (p > 0 && p <= WAYPOINT_PROB) {
-		return Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->points[i];
+		return std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])->points[i];
 	} else if (p > WAYPOINT_PROB && p < (WAYPOINT_PROB + RAND_PROB)) {
 		return random_point();
 	} else {
@@ -86,7 +86,7 @@ Glib::NodeTree<Point> *RRTPlanner::nearest(Glib::NodeTree<Point> *rrt_tree, Poin
 Point RRTPlanner::extend(Player::Ptr player, Glib::NodeTree<Point> *start, Point target) {
 	Point extend_point = start->data() + ((target - start->data()).norm() * step_distance);
 
-	if (!valid_path(start->data(), extend_point, world, player, Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags)) {
+	if (!valid_path(start->data(), extend_point, world, player, std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])->added_flags)) {
 		return empty_state();
 	}
 
@@ -100,11 +100,11 @@ std::vector<Point> RRTPlanner::plan(Player::Ptr player, Point goal, unsigned int
 std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool post_process, unsigned int added_flags) {
 	Point initial = player->position();
 
-	if (!Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]).is()) {
-		player->object_store()[typeid(*this)] = Waypoints::Ptr(new Waypoints);
+	if (!std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])) {
+		player->object_store()[typeid(*this)] = std::make_shared<Waypoints>();
 	}
 
-	Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags = added_flags;
+	std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])->added_flags = added_flags;
 
 	Point nearest_point, extended, target;
 	Glib::NodeTree<Point> *nearest_node;
@@ -152,7 +152,7 @@ std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool pos
 		// if we found a plan then add the path's points to the waypoint cache
 		// with random replacement
 		if (found_path) {
-			Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->points[std::rand() % Waypoints::NUM_WAYPOINTS] = iterator->data();
+			std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])->points[std::rand() % Waypoints::NUM_WAYPOINTS] = iterator->data();
 		}
 	}
 
@@ -169,7 +169,7 @@ std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool pos
 	std::vector<Point> final_points;
 
 	for (std::size_t i = 0; i < path_points.size(); ++i) {
-		if (!valid_path(path_points[sub_path_index], path_points[i], world, player, Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags)) {
+		if (!valid_path(path_points[sub_path_index], path_points[i], world, player, std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])->added_flags)) {
 			sub_path_index = i - 1;
 			final_points.push_back(path_points[i - 1]);
 		} else if (i == path_points.size() - 1) {

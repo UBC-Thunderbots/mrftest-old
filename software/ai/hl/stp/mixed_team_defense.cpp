@@ -43,25 +43,13 @@ namespace {
 
 	const double RESTRICTED_ZONE_LENGTH = 0.85;
 
-	class MixedTeamDefenseFactory : public HighLevelFactory {
-		public:
-			MixedTeamDefenseFactory() : HighLevelFactory("Mixed Team Defense") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	MixedTeamDefenseFactory factory_instance;
-
 	struct MixedTeamDefense : public HighLevel {
 		World &world;
 
 		MixedTeamDefense(World &world) : world(world) {
 		}
 
-		MixedTeamDefenseFactory &factory() const {
-			return factory_instance;
-		}
+		HighLevelFactory &factory() const;
 
 		Gtk::Widget *ui_controls() {
 			return 0;
@@ -227,10 +215,7 @@ namespace {
 			}
 		}
 	};
-
-	HighLevel::Ptr MixedTeamDefenseFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new MixedTeamDefense(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(MixedTeamDefense)
 

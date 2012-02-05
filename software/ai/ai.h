@@ -22,7 +22,7 @@ namespace AI {
 			/**
 			 * The HighLevel in use.
 			 */
-			Property<AI::HL::HighLevel::Ptr> high_level;
+			Property<std::unique_ptr<AI::HL::HighLevel> > high_level;
 
 			/**
 			 * The Navigator navigating the robots.
@@ -58,7 +58,7 @@ namespace AI {
 
 		private:
 			void tick();
-			void player_added(std::size_t idx);
+			void attach_robot_controllers();
 			void robot_controller_factory_changed();
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
 			void save_setup() const;

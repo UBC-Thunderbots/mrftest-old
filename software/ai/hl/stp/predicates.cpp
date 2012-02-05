@@ -142,7 +142,7 @@ Predicates::BallNearEnemyGoal Predicates::ball_near_enemy_goal;
 
 bool Predicates::BallerCanShoot::compute(const World &world) {
 	const Player::CPtr baller = Evaluation::calc_friendly_baller();
-	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
+	if (!baller || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
 	return Evaluation::evaluate_shoot(world, baller).angle >= min_shoot_region;
@@ -152,7 +152,7 @@ Predicates::BallerCanShoot Predicates::baller_can_shoot;
 
 bool Predicates::BallerCanPassTarget::compute(const World &world, const Point target) {
 	const Player::CPtr baller = Evaluation::calc_friendly_baller();
-	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
+	if (!baller || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
 #warning something is wierd
@@ -163,17 +163,17 @@ Predicates::BallerCanPassTarget Predicates::baller_can_pass_target;
 
 bool Predicates::BallerCanPass::compute(const World &world) {
 	const Player::CPtr baller = Evaluation::calc_friendly_baller();
-	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
+	if (!baller || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
-	return Evaluation::select_passee(world).is();
+	return Evaluation::select_passee(world);
 }
 
 Predicates::BallerCanPass Predicates::baller_can_pass;
 
 bool Predicates::BallerUnderThreat::compute(const World &world) {
 	const Player::CPtr baller = Evaluation::calc_friendly_baller();
-	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
+	if (!baller || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
 	int enemy_cnt = 0;
@@ -191,7 +191,7 @@ Predicates::BallerUnderThreat Predicates::baller_under_threat;
 
 bool Predicates::EnemyBallerCanShoot::compute(const World &world) {
 	const Robot::Ptr baller = Evaluation::calc_enemy_baller(world);
-	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
+	if (!baller || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
 	return Evaluation::enemy_can_shoot_goal(world, baller);
@@ -201,7 +201,7 @@ Predicates::EnemyBallerCanShoot Predicates::enemy_baller_can_shoot;
 
 bool Predicates::EnemyBallerCanPass::compute(const World &world) {
 	const Robot::Ptr baller = Evaluation::calc_enemy_baller(world);
-	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
+	if (!baller || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
 	return Evaluation::calc_enemy_pass(world, baller) > 0;
@@ -211,7 +211,7 @@ Predicates::EnemyBallerCanPass Predicates::enemy_baller_can_pass;
 
 bool Predicates::EnemyBallerCanPassShoot::compute(const World &world) {
 	const Robot::Ptr baller = Evaluation::calc_enemy_baller(world);
-	if (!baller.is() || !Evaluation::possess_ball(world, baller)) {
+	if (!baller || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
 	return Evaluation::calc_enemy_pass(world, baller) > 0 && Evaluation::calc_enemy_pass(world, baller) < 3;
@@ -260,7 +260,7 @@ bool Predicates::FightBall::compute(const World &world) {
 		const Player::CPtr friendly_baller = Evaluation::calc_friendly_baller();
 		const Robot::Ptr enemy_baller = Evaluation::calc_enemy_baller(world);
 
-		return (friendly_baller.is() && enemy_baller.is())
+		return (friendly_baller && enemy_baller)
 		       && (friendly_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS
 		       && (enemy_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS;
 	}

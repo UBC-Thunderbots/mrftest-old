@@ -1,6 +1,8 @@
 #include "xbee/dongle.h"
+#include "xbee/robot.h"
 #include "util/annunciator.h"
 #include "util/dprint.h"
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <stdexcept>
@@ -44,10 +46,6 @@ namespace std {
 
 namespace {
 	const unsigned int STALL_LIMIT = 100;
-
-	void discard_result(AsyncOperation<void>::Ptr op) {
-		op->result();
-	}
 
 	enum TBotsControlRequest {
 		TBOTS_CONTROL_REQUEST_GET_XBEE_FW_VERSION = 0x00,
@@ -300,9 +298,19 @@ namespace {
 	}
 }
 
-XBeeDongle::XBeeDongle(bool force_reinit) : estop_state(EStopState::UNINITIALIZED), xbees_state(XBeesState::PREINIT), context(), device(context, 0x04D8, 0x7839), dirty_drive_mask(0), enabled(false) {
-	for (unsigned int i = 0; i < G_N_ELEMENTS(robots); ++i) {
-		robots[i] = XBeeRobot::create(*this, i);
+XBeeDongle::SendMessageOperation::SendMessageOperation(XBeeDongle &dongle, const void *data, std::size_t length) : transfer(dongle.device, EP_MESSAGE, data, length, 0, STALL_LIMIT) {
+	transfer.signal_done.connect(signal_done.make_slot());
+	transfer.submit();
+}
+
+void XBeeDongle::SendMessageOperation::result() const {
+	transfer.result();
+}
+
+XBeeDongle::XBeeDongle(bool force_reinit) : estop_state(EStopState::UNINITIALIZED), xbees_state(XBeesState::PREINIT), context(), device(context, 0x04D8, 0x7839), local_error_queue_transfer(device, EP_LOCAL_ERROR_QUEUE, 64, false, 0, STALL_LIMIT), debug_transfer(device, EP_DEBUG, 4096, false, 0, STALL_LIMIT), dongle_status_transfer(device, EP_DONGLE_STATUS, 4, true, 0, STALL_LIMIT), state_transport_in_transfer(device, EP_STATE_TRANSPORT, 64, false, 0, STALL_LIMIT), interrupt_in_transfer(device, EP_MESSAGE, 64, false, 0, STALL_LIMIT), stamp_transfer(device, EP_STATE_TRANSPORT, 0, 0, 0, STALL_LIMIT), dirty_drive_mask(0), enabled(false) {
+	for (unsigned int i = 0; i < 16; ++i) {
+		std::unique_ptr<XBeeRobot> p(new XBeeRobot(*this, i));
+		robots.push_back(std::move(p));
 	}
 	if (force_reinit) {
 		device.set_configuration(0);
@@ -315,16 +323,14 @@ XBeeDongle::XBeeDongle(bool force_reinit) : estop_state(EStopState::UNINITIALIZE
 	device.claim_interface(0);
 	device.claim_interface(1);
 
-	LibUSBInterruptInTransfer::Ptr local_error_queue_transfer = LibUSBInterruptInTransfer::create(device, EP_LOCAL_ERROR_QUEUE, 64, false, 0, STALL_LIMIT);
-	local_error_queue_transfer->signal_done.connect(sigc::bind(sigc::mem_fun(this, &XBeeDongle::on_local_error_queue), local_error_queue_transfer));
-	local_error_queue_transfer->repeat(true);
-	local_error_queue_transfer->submit();
+	local_error_queue_transfer.signal_done.connect(sigc::mem_fun(this, &XBeeDongle::on_local_error_queue));
+	local_error_queue_transfer.submit();
 
-	LibUSBInterruptInTransfer::Ptr debug_transfer = LibUSBInterruptInTransfer::create(device, EP_DEBUG, 4096, false, 0, STALL_LIMIT);
-	debug_transfer->signal_done.connect(sigc::bind(sigc::mem_fun(this, &XBeeDongle::on_debug), debug_transfer));
-	debug_transfer->repeat(true);
-	debug_transfer->submit();
+	debug_transfer.signal_done.connect(sigc::mem_fun(this, &XBeeDongle::on_debug));
+	debug_transfer.submit();
 }
+
+XBeeDongle::~XBeeDongle() = default;
 
 void XBeeDongle::enable() {
 	assert(!enabled);
@@ -339,20 +345,14 @@ void XBeeDongle::enable() {
 	} while (xbees_state != XBeesState::RUNNING);
 	enabled = true;
 
-	LibUSBInterruptInTransfer::Ptr dongle_status_transfer = LibUSBInterruptInTransfer::create(device, EP_DONGLE_STATUS, 4, true, 0, STALL_LIMIT);
-	dongle_status_transfer->signal_done.connect(sigc::bind(sigc::mem_fun(this, &XBeeDongle::on_dongle_status), dongle_status_transfer));
-	dongle_status_transfer->repeat(true);
-	dongle_status_transfer->submit();
+	dongle_status_transfer.signal_done.connect(sigc::mem_fun(this, &XBeeDongle::on_dongle_status));
+	dongle_status_transfer.submit();
 
-	LibUSBInterruptInTransfer::Ptr transfer = LibUSBInterruptInTransfer::create(device, EP_STATE_TRANSPORT, 64, false, 0, STALL_LIMIT);
-	transfer->signal_done.connect(sigc::bind(sigc::mem_fun(this, &XBeeDongle::on_state_transport_in), transfer));
-	transfer->repeat(true);
-	transfer->submit();
+	state_transport_in_transfer.signal_done.connect(sigc::mem_fun(this, &XBeeDongle::on_state_transport_in));
+	state_transport_in_transfer.submit();
 
-	transfer = LibUSBInterruptInTransfer::create(device, EP_MESSAGE, 64, false, 0, STALL_LIMIT);
-	transfer->signal_done.connect(sigc::bind(sigc::mem_fun(this, &XBeeDongle::on_interrupt_in), transfer));
-	transfer->repeat(true);
-	transfer->submit();
+	interrupt_in_transfer.signal_done.connect(sigc::mem_fun(this, &XBeeDongle::on_interrupt_in));
+	interrupt_in_transfer.submit();
 
 	stamp_connection = Glib::signal_timeout().connect(sigc::bind_return(sigc::mem_fun(this, &XBeeDongle::on_stamp), true), 300);
 }
@@ -373,15 +373,10 @@ void XBeeDongle::set_channels(unsigned int channel0, unsigned int channel1) {
 	device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, TBOTS_CONTROL_REQUEST_SET_XBEE_CHANNELS, static_cast<uint16_t>(channel0 | (channel1 << 8)), 0x0000, 0);
 }
 
-AsyncOperation<void>::Ptr XBeeDongle::send_message(const void *data, std::size_t length) {
-	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_MESSAGE, data, length, 0, STALL_LIMIT);
-	transfer->submit();
-	return transfer;
-}
-
-void XBeeDongle::on_dongle_status(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer) {
-	transfer->result();
-	parse_dongle_status(transfer->data());
+void XBeeDongle::on_dongle_status(AsyncOperation<void> &) {
+	dongle_status_transfer.result();
+	parse_dongle_status(dongle_status_transfer.data());
+	dongle_status_transfer.submit();
 }
 
 void XBeeDongle::parse_dongle_status(const uint8_t *data) {
@@ -393,17 +388,16 @@ void XBeeDongle::parse_dongle_status(const uint8_t *data) {
 		throw std::runtime_error("XBee 1 failed");
 	}
 	uint16_t mask = static_cast<uint16_t>(data[2] | (data[3] << 8));
-	for (unsigned int i = 0; i < G_N_ELEMENTS(robots); ++i) {
-		XBeeRobot::Ptr bot = robot(i);
-		bot->alive = !!(mask & (1 << i));
+	for (unsigned int i = 0; i < robots.size(); ++i) {
+		robot(i).alive = !!(mask & (1 << i));
 	}
 	signal_dongle_status_updated.emit();
 }
 
-void XBeeDongle::on_local_error_queue(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer) {
-	transfer->result();
-	for (std::size_t i = 0; i < transfer->size(); ++i) {
-		uint8_t code = transfer->data()[i];
+void XBeeDongle::on_local_error_queue(AsyncOperation<void> &) {
+	local_error_queue_transfer.result();
+	for (std::size_t i = 0; i < local_error_queue_transfer.size(); ++i) {
+		uint8_t code = local_error_queue_transfer.data()[i];
 		Annunciator::Message *msg;
 		if (CommonFaultMessage::instances().count(static_cast<CommonFault>(code))) {
 			msg = CommonFaultMessage::instances().find(static_cast<CommonFault>(code))->second;
@@ -414,50 +408,52 @@ void XBeeDongle::on_local_error_queue(AsyncOperation<void>::Ptr, LibUSBInterrupt
 		}
 		msg->fire();
 	}
+	local_error_queue_transfer.submit();
 }
 
-void XBeeDongle::on_state_transport_in(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer) {
-	transfer->result();
-	for (std::size_t i = 0; i < transfer->size(); i += transfer->data()[i]) {
-		assert(i + transfer->data()[i] <= transfer->size());
-		unsigned int index = transfer->data()[i + 1] >> 4;
+void XBeeDongle::on_state_transport_in(AsyncOperation<void> &) {
+	state_transport_in_transfer.result();
+	for (std::size_t i = 0; i < state_transport_in_transfer.size(); i += state_transport_in_transfer.data()[i]) {
+		assert(i + state_transport_in_transfer.data()[i] <= state_transport_in_transfer.size());
+		unsigned int index = state_transport_in_transfer.data()[i + 1] >> 4;
 		assert(index <= 15);
-		unsigned int pipe = transfer->data()[i + 1] & 0x0F;
+		unsigned int pipe = state_transport_in_transfer.data()[i + 1] & 0x0F;
 		assert(pipe == PIPE_FEEDBACK);
-		robot(index)->on_feedback(transfer->data() + i + 2, transfer->data()[i] - 2);
+		robot(index).on_feedback(state_transport_in_transfer.data() + i + 2, state_transport_in_transfer.data()[i] - 2);
 	}
+	state_transport_in_transfer.submit();
 }
 
-void XBeeDongle::on_interrupt_in(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer) {
-	transfer->result();
-	if (transfer->size()) {
-		unsigned int robot = transfer->data()[0] >> 4;
-		Pipe pipe = static_cast<Pipe>(transfer->data()[0] & 0x0F);
-		signal_message_received.emit(robot, pipe, transfer->data() + 1, transfer->size() - 1);
+void XBeeDongle::on_interrupt_in(AsyncOperation<void> &) {
+	interrupt_in_transfer.result();
+	if (interrupt_in_transfer.size()) {
+		unsigned int robot = interrupt_in_transfer.data()[0] >> 4;
+		Pipe pipe = static_cast<Pipe>(interrupt_in_transfer.data()[0] & 0x0F);
+		signal_message_received.emit(robot, pipe, interrupt_in_transfer.data() + 1, interrupt_in_transfer.size() - 1);
 		if (pipe == Pipe::PIPE_EXPERIMENT_DATA) {
-			this->robot(robot)->signal_experiment_data.emit(transfer->data() + 1, transfer->size() - 1);
+			this->robot(robot).signal_experiment_data.emit(interrupt_in_transfer.data() + 1, interrupt_in_transfer.size() - 1);
 		} else if (pipe == Pipe::PIPE_AUTOKICK_INDICATOR) {
-			this->robot(robot)->signal_autokick_fired.emit();
+			this->robot(robot).signal_autokick_fired.emit();
 		}
 	}
+	interrupt_in_transfer.submit();
 }
 
-void XBeeDongle::on_debug(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer) {
+void XBeeDongle::on_debug(AsyncOperation<void> &) {
 	try {
-		transfer->result();
-		if (transfer->size()) {
-			std::string str(reinterpret_cast<const char *>(transfer->data()), transfer->size());
+		debug_transfer.result();
+		if (debug_transfer.size()) {
+			std::string str(reinterpret_cast<const char *>(debug_transfer.data()), debug_transfer.size());
 			LOG_INFO(Glib::locale_to_utf8(str));
 		}
+		debug_transfer.submit();
 	} catch (const LibUSBTransferError &err) {
 		LOG_ERROR(Glib::ustring::compose("Ignoring %1", err.what()));
 	}
 }
 
 void XBeeDongle::on_stamp() {
-	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_STATE_TRANSPORT, 0, 0, 0, STALL_LIMIT);
-	transfer->signal_done.connect(&discard_result);
-	transfer->submit();
+	stamp_transfer.submit();
 }
 
 void XBeeDongle::dirty_drive(unsigned int index) {
@@ -468,8 +464,18 @@ void XBeeDongle::dirty_drive(unsigned int index) {
 	}
 }
 
+void XBeeDongle::submit_drive_transfer(const void *buffer, std::size_t length) {
+	std::size_t index = std::find(drive_transfers.begin(), drive_transfers.end(), std::unique_ptr<LibUSBInterruptOutTransfer>()) - drive_transfers.begin();
+	if (index == drive_transfers.size()) {
+		drive_transfers.push_back(std::unique_ptr<LibUSBInterruptOutTransfer>());
+	}
+	drive_transfers[index].reset(new LibUSBInterruptOutTransfer(device, EP_STATE_TRANSPORT, buffer, length, 0, STALL_LIMIT));
+	drive_transfers[index]->signal_done.connect(sigc::bind(sigc::mem_fun(this, &XBeeDongle::check_drive_transfer_result), index));
+	drive_transfers[index]->submit();
+}
+
 void XBeeDongle::flush_drive() {
-	static const std::size_t packet_size = robot(0)->drive_block.BUFFER_SIZE + 2;
+	static const std::size_t packet_size = XBeePackets::Drive::BUFFER_SIZE + 2;
 	uint8_t buffer[64 / packet_size][packet_size];
 	std::size_t wptr = 0;
 
@@ -478,25 +484,27 @@ void XBeeDongle::flush_drive() {
 			dirty_drive_mask &= ~(1 << i);
 			buffer[wptr][0] = static_cast<uint8_t>(sizeof(buffer[0]));
 			buffer[wptr][1] = static_cast<uint8_t>(i << 4) | PIPE_DRIVE;
-			robot(i)->drive_block.encode(&buffer[wptr][2]);
+			robot(i).drive_block.encode(&buffer[wptr][2]);
 			++wptr;
 
 			if (wptr == sizeof(buffer) / sizeof(*buffer)) {
-				LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_STATE_TRANSPORT, buffer, wptr * packet_size, 0, STALL_LIMIT);
-				transfer->signal_done.connect(&discard_result);
-				transfer->submit();
+				submit_drive_transfer(buffer, wptr * packet_size);
 				wptr = 0;
 			}
 		}
 	}
 
 	if (wptr) {
-		LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_STATE_TRANSPORT, buffer, wptr * packet_size, 0, STALL_LIMIT);
-		transfer->signal_done.connect(&discard_result);
-		transfer->submit();
+		submit_drive_transfer(buffer, wptr * packet_size);
+		wptr = 0;
 	}
 
 	stamp_connection.disconnect();
 	stamp_connection = Glib::signal_timeout().connect(sigc::bind_return(sigc::mem_fun(this, &XBeeDongle::on_stamp), true), 300);
+}
+
+void XBeeDongle::check_drive_transfer_result(AsyncOperation<void> &, std::size_t index) {
+	drive_transfers[index]->result();
+	drive_transfers[index].reset();
 }
 

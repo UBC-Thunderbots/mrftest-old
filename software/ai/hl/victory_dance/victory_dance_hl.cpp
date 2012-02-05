@@ -6,24 +6,12 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	class VDHLFactory : public HighLevelFactory {
-		public:
-			VDHLFactory() : HighLevelFactory("Victory Dance") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	VDHLFactory factory_instance;
-
 	class VDHL : public HighLevel {
 		public:
 			VDHL(World &world) : world(world) {
 			}
 
-			VDHLFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			void tick() {
 				FriendlyTeam &friendly = world.friendly_team();
@@ -50,10 +38,7 @@ namespace {
 		private:
 			World &world;
 	};
-
-	HighLevel::Ptr VDHLFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new VDHL(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(VDHL)
 

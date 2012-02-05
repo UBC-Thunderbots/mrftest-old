@@ -2,7 +2,7 @@
 #include "util/algorithm.h"
 #include <iomanip>
 
-TesterFeedbackPanel::TesterFeedbackPanel(XBeeDongle &dongle, XBeeRobot::Ptr robot) : Gtk::Table(6, 2), dongle(dongle), robot(robot), battery_voltage_label("Battery:"), capacitor_voltage_label("Capacitor:"), dribbler_temperature_label("Dribbler:"), break_beam_reading_label("Break Beam:"), alive("Alive"), estop("EStop Run"), ball_in_beam("Ball in Beam"), capacitor_charged("Capacitor Charged") {
+TesterFeedbackPanel::TesterFeedbackPanel(XBeeDongle &dongle, XBeeRobot &robot) : Gtk::Table(6, 2), dongle(dongle), robot(robot), battery_voltage_label("Battery:"), capacitor_voltage_label("Capacitor:"), dribbler_temperature_label("Dribbler:"), break_beam_reading_label("Break Beam:"), alive("Alive"), estop("EStop Run"), ball_in_beam("Ball in Beam"), capacitor_charged("Capacitor Charged") {
 	attach(battery_voltage_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(battery_voltage, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(capacitor_voltage_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -23,15 +23,15 @@ TesterFeedbackPanel::TesterFeedbackPanel(XBeeDongle &dongle, XBeeRobot::Ptr robo
 	cb_hbox2.pack_start(capacitor_charged, Gtk::PACK_EXPAND_WIDGET);
 	attach(cb_hbox2, 0, 2, 5, 6, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
-	robot->has_feedback.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_has_feedback_changed));
-	robot->battery_voltage.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_battery_voltage_changed));
-	robot->capacitor_voltage.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_capacitor_voltage_changed));
-	robot->dribbler_temperature.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_dribbler_temperature_changed));
-	robot->break_beam_reading.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_break_beam_reading_changed));
-	robot->alive.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_alive_changed));
+	robot.has_feedback.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_has_feedback_changed));
+	robot.battery_voltage.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_battery_voltage_changed));
+	robot.capacitor_voltage.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_capacitor_voltage_changed));
+	robot.dribbler_temperature.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_dribbler_temperature_changed));
+	robot.break_beam_reading.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_break_beam_reading_changed));
+	robot.alive.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_alive_changed));
 	dongle.estop_state.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_estop_changed));
-	robot->ball_in_beam.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_ball_in_beam_changed));
-	robot->capacitor_charged.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_capacitor_charged_changed));
+	robot.ball_in_beam.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_ball_in_beam_changed));
+	robot.capacitor_charged.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_capacitor_charged_changed));
 
 	on_battery_voltage_changed();
 	on_capacitor_voltage_changed();
@@ -51,9 +51,9 @@ void TesterFeedbackPanel::on_has_feedback_changed() {
 }
 
 void TesterFeedbackPanel::on_battery_voltage_changed() {
-	if (robot->alive && robot->has_feedback) {
-		battery_voltage.set_fraction(clamp(robot->battery_voltage / 18.0, 0.0, 1.0));
-		battery_voltage.set_text(Glib::ustring::compose("%1V", Glib::ustring::format(std::fixed, std::setprecision(2), robot->battery_voltage)));
+	if (robot.alive && robot.has_feedback) {
+		battery_voltage.set_fraction(clamp(robot.battery_voltage / 18.0, 0.0, 1.0));
+		battery_voltage.set_text(Glib::ustring::compose("%1V", Glib::ustring::format(std::fixed, std::setprecision(2), robot.battery_voltage)));
 	} else {
 		battery_voltage.set_fraction(0);
 		battery_voltage.set_text("No Data");
@@ -61,9 +61,9 @@ void TesterFeedbackPanel::on_battery_voltage_changed() {
 }
 
 void TesterFeedbackPanel::on_capacitor_voltage_changed() {
-	if (robot->alive && robot->has_feedback) {
-		capacitor_voltage.set_fraction(clamp(robot->capacitor_voltage / 250.0, 0.0, 1.0));
-		capacitor_voltage.set_text(Glib::ustring::compose("%1V", Glib::ustring::format(std::fixed, std::setprecision(0), robot->capacitor_voltage)));
+	if (robot.alive && robot.has_feedback) {
+		capacitor_voltage.set_fraction(clamp(robot.capacitor_voltage / 250.0, 0.0, 1.0));
+		capacitor_voltage.set_text(Glib::ustring::compose("%1V", Glib::ustring::format(std::fixed, std::setprecision(0), robot.capacitor_voltage)));
 	} else {
 		capacitor_voltage.set_fraction(0);
 		capacitor_voltage.set_text("No Data");
@@ -71,9 +71,9 @@ void TesterFeedbackPanel::on_capacitor_voltage_changed() {
 }
 
 void TesterFeedbackPanel::on_dribbler_temperature_changed() {
-	if (robot->alive && robot->has_feedback && robot->dribbler_temperature < 200) {
-		dribbler_temperature.set_fraction(clamp(robot->dribbler_temperature / 125.0, 0.0, 1.0));
-		dribbler_temperature.set_text(Glib::ustring::compose("%1°C", Glib::ustring::format(std::fixed, std::setprecision(1), robot->dribbler_temperature)));
+	if (robot.alive && robot.has_feedback && robot.dribbler_temperature < 200) {
+		dribbler_temperature.set_fraction(clamp(robot.dribbler_temperature / 125.0, 0.0, 1.0));
+		dribbler_temperature.set_text(Glib::ustring::compose("%1°C", Glib::ustring::format(std::fixed, std::setprecision(1), robot.dribbler_temperature)));
 	} else {
 		dribbler_temperature.set_fraction(0);
 		dribbler_temperature.set_text("No Data");
@@ -81,9 +81,9 @@ void TesterFeedbackPanel::on_dribbler_temperature_changed() {
 }
 
 void TesterFeedbackPanel::on_break_beam_reading_changed() {
-	if (robot->alive && robot->has_feedback) {
-		break_beam_reading.set_fraction(robot->break_beam_reading / 1023.0);
-		break_beam_reading.set_text(Glib::ustring::format(robot->break_beam_reading));
+	if (robot.alive && robot.has_feedback) {
+		break_beam_reading.set_fraction(robot.break_beam_reading / 1023.0);
+		break_beam_reading.set_text(Glib::ustring::format(robot.break_beam_reading));
 	} else {
 		break_beam_reading.set_fraction(0);
 		break_beam_reading.set_text("No Data");
@@ -91,7 +91,7 @@ void TesterFeedbackPanel::on_break_beam_reading_changed() {
 }
 
 void TesterFeedbackPanel::on_alive_changed() {
-	alive.set_active(robot->alive);
+	alive.set_active(robot.alive);
 	on_battery_voltage_changed();
 	on_capacitor_voltage_changed();
 	on_dribbler_temperature_changed();
@@ -103,10 +103,10 @@ void TesterFeedbackPanel::on_estop_changed() {
 }
 
 void TesterFeedbackPanel::on_ball_in_beam_changed() {
-	ball_in_beam.set_active(robot->alive && robot->has_feedback && robot->ball_in_beam);
+	ball_in_beam.set_active(robot.alive && robot.has_feedback && robot.ball_in_beam);
 }
 
 void TesterFeedbackPanel::on_capacitor_charged_changed() {
-	capacitor_charged.set_active(robot->alive && robot->has_feedback && robot->capacitor_charged);
+	capacitor_charged.set_active(robot.alive && robot.has_feedback && robot.capacitor_charged);
 }
 

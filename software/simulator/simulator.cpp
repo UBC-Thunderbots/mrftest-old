@@ -11,6 +11,7 @@
 #include <limits>
 #include <string>
 #include <unistd.h>
+#include <utility>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
@@ -26,7 +27,7 @@ namespace {
 	 *
 	 * \return the listening socket.
 	 */
-	FileDescriptor::Ptr create_listen_socket() {
+	FileDescriptor create_listen_socket() {
 		// Change to the cache directory where we will create the socket.
 		const std::string &cache_dir = Glib::get_user_cache_dir();
 		ScopedCHDir dir_changer(cache_dir.c_str());
@@ -37,26 +38,26 @@ namespace {
 		}
 
 		// Create a new socket.
-		FileDescriptor::Ptr sock = FileDescriptor::create_socket(AF_UNIX, SOCK_SEQPACKET, 0);
-		sock->set_blocking(false);
+		FileDescriptor sock = FileDescriptor::create_socket(AF_UNIX, SOCK_SEQPACKET, 0);
+		sock.set_blocking(false);
 
 		// Bind the new socket to the appropriate filename.
 		SockAddrs sa;
 		sa.un.sun_family = AF_UNIX;
 		std::strcpy(sa.un.sun_path, SIMULATOR_SOCKET_FILENAME);
-		if (bind(sock->fd(), &sa.sa, sizeof(sa.un)) < 0) {
+		if (bind(sock.fd(), &sa.sa, sizeof(sa.un)) < 0) {
 			throw SystemError("bind(" SIMULATOR_SOCKET_FILENAME ")", errno);
 		}
 
 		// Listen for incoming connections.
-		if (listen(sock->fd(), 8) < 0) {
+		if (listen(sock.fd(), 8) < 0) {
 			throw SystemError("listen", errno);
 		}
 		return sock;
 	}
 }
 
-Simulator::Simulator::Simulator(SimulatorEngine::Ptr engine) : engine(engine), listen_socket(create_listen_socket()), team1(*this, &team2, false), team2(*this, &team1, true), speed_mode_(::Simulator::Proto::SpeedMode::NORMAL), tick_scheduled(false), playtype(AI::Common::PlayType::HALT), frame_count(0), spinner_index(0) {
+Simulator::Simulator::Simulator(SimulatorEngine &engine) : engine(engine), listen_socket(create_listen_socket()), team1(*this, &team2, false), team2(*this, &team1, true), speed_mode_(::Simulator::Proto::SpeedMode::NORMAL), tick_scheduled(false), playtype(AI::Common::PlayType::HALT), frame_count(0), spinner_index(0) {
 	next_tick_game_monotonic_time.tv_sec = 0;
 	next_tick_game_monotonic_time.tv_nsec = 0;
 	next_tick_phys_monotonic_time.tv_sec = 0;
@@ -65,7 +66,7 @@ Simulator::Simulator::Simulator(SimulatorEngine::Ptr engine) : engine(engine), l
 	last_fps_report_time.tv_nsec = 0;
 	team1.signal_ready().connect(sigc::mem_fun(this, &Simulator::Simulator::check_tick));
 	team2.signal_ready().connect(sigc::mem_fun(this, &Simulator::Simulator::check_tick));
-	Glib::signal_io().connect(sigc::mem_fun(this, &Simulator::Simulator::on_ai_connecting), listen_socket->fd(), Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(this, &Simulator::Simulator::on_ai_connecting), listen_socket.fd(), Glib::IO_IN);
 	std::cout << "Simulator up and running\n";
 }
 
@@ -94,14 +95,14 @@ void Simulator::Simulator::set_play_type(AI::Common::PlayType pt) {
 }
 
 void Simulator::Simulator::encode_ball_state(Proto::S2ABallInfo &state, bool invert) {
-	Point pos = engine->get_ball()->position();
+	Point pos = engine.get_ball().position();
 	state.x = pos.x * (invert ? -1.0 : 1.0);
 	state.y = pos.y * (invert ? -1.0 : 1.0);
 }
 
 bool Simulator::Simulator::on_ai_connecting(Glib::IOCondition) {
 	// Accept an incoming connection.
-	int raw_fd = accept(listen_socket->fd(), 0, 0);
+	int raw_fd = accept(listen_socket.fd(), 0, 0);
 	if (raw_fd < 0) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
 			return true;
@@ -109,13 +110,13 @@ bool Simulator::Simulator::on_ai_connecting(Glib::IOCondition) {
 			throw SystemError("accept", errno);
 		}
 	}
-	FileDescriptor::Ptr sock = FileDescriptor::create_from_fd(raw_fd);
+	FileDescriptor sock = FileDescriptor::create_from_fd(raw_fd);
 	raw_fd = -1;
 
 	// Check the peer's credentials.
 	ucred creds;
 	socklen_t creds_len = sizeof(creds);
-	if (getsockopt(sock->fd(), SOL_SOCKET, SO_PEERCRED, &creds, &creds_len) < 0) {
+	if (getsockopt(sock.fd(), SOL_SOCKET, SO_PEERCRED, &creds, &creds_len) < 0) {
 		throw SystemError("getsockopt", errno);
 	}
 	if (creds.uid != getuid() && creds.uid != 0) {
@@ -124,7 +125,7 @@ bool Simulator::Simulator::on_ai_connecting(Glib::IOCondition) {
 
 	// Make the socket blocking (individual operations can then be made non-blocking with MSG_DONTWAIT).
 	try {
-		sock->set_blocking(true);
+		sock.set_blocking(true);
 	} catch (const SystemError &exp) {
 		std::cout << "Error on pending socket: " << exp.what() << '\n';
 		return true;
@@ -141,7 +142,8 @@ bool Simulator::Simulator::on_ai_connecting(Glib::IOCondition) {
 	}
 	if (team) {
 		// Get the socket ready to receive regular AI data.
-		team->add_connection(Connection::create(sock));
+		Connection::Ptr p(new Connection(std::move(sock)));
+		team->add_connection(std::move(p));
 
 		// Print a message.
 		std::cout << "AI connected\n";
@@ -151,15 +153,16 @@ bool Simulator::Simulator::on_ai_connecting(Glib::IOCondition) {
 	return true;
 }
 
-void Simulator::Simulator::queue_load_state(FileDescriptor::Ptr fd) {
+void Simulator::Simulator::queue_load_state(std::shared_ptr<FileDescriptor> fd) {
 	load_state_pending_fd = fd;
 }
 
-void Simulator::Simulator::save_state(FileDescriptor::Ptr fd) const {
-	engine->get_ball()->save_state(fd);
+void Simulator::Simulator::save_state(std::shared_ptr<FileDescriptor> pfd) const {
+	const FileDescriptor &fd = *pfd.get();
+	engine.get_ball().save_state(fd);
 	team1.save_state(fd);
 	team2.save_state(fd);
-	engine->save_state(fd);
+	engine.save_state(fd);
 }
 
 void Simulator::Simulator::check_tick() {
@@ -208,16 +211,19 @@ void Simulator::Simulator::tick() {
 	}
 
 	// If a state file has been queued for loading, load it now.
-	if (load_state_pending_fd.is()) {
-		engine->get_ball()->load_state(load_state_pending_fd);
-		team1.load_state(load_state_pending_fd);
-		team2.load_state(load_state_pending_fd);
-		engine->load_state(load_state_pending_fd);
+	if (load_state_pending_fd) {
+		{
+			const FileDescriptor &fd = *load_state_pending_fd.get();
+			engine.get_ball().load_state(fd);
+			team1.load_state(fd);
+			team2.load_state(fd);
+			engine.load_state(fd);
+		}
 		load_state_pending_fd.reset();
 	}
 
 	// Tick the engine.
-	engine->tick();
+	engine.tick();
 
 	// Update clients with the new world state.
 	team1.send_tick(next_tick_game_monotonic_time);

@@ -3,9 +3,10 @@
 
 #include "ai/hl/stp/world.h"
 #include "ai/hl/stp/tactic/tactic.h"
-#include "util/byref.h"
+#include "util/noncopyable.h"
 #include "util/registerable.h"
 #include "util/param.h"
+#include <memory>
 
 namespace AI {
 	namespace HL {
@@ -14,7 +15,8 @@ namespace AI {
 				class PlayFactory;
 
 				/**
-				 * A play is a level in the STP paradigm.
+				 * \brief A play is a level in the STP paradigm.
+				 *
 				 * The purpose of a play is to produce roles.
 				 * A role is a sequence of tactic.
 				 *
@@ -24,45 +26,49 @@ namespace AI {
 				 *
 				 * Please see the instructions in the assign() function.
 				 */
-				class Play : public ByRef {
+				class Play : public NonCopyable {
 					public:
-						typedef RefPtr<Play> Ptr;
+						/**
+						 * \brief Destroys the Play.
+						 */
+						virtual ~Play();
 
 						/**
-						 * A condition that must hold ALL THE TIME,
-						 * for this play to be considered and run.
+						 * \brief A condition that must hold ALL THE TIME, for this play to be considered and run.
 						 *
-						 * This is the ideal place to put conditions about playtype and minimum jteam size.
+						 * This is the ideal place to put conditions about playtype and minimum team size.
 						 */
 						virtual bool invariant() const = 0;
 
 						/**
-						 * For a play to be considered applicable() and invariant() must be true.
-						 * This is only used once;
-						 * after a play runs,
-						 * applicable() is no longer called.
+						 * \brief For a play to be considered applicable() and invariant() must be true.
+						 *
+						 * This is only used once; after a play runs, applicable() is no longer called.
 						 */
 						virtual bool applicable() const = 0;
 
 						/**
-						 * Checks if this play has succeeded.
+						 * \brief Checks if this play has succeeded.
+						 *
 						 * A subclass must implement this function.
 						 */
 						virtual bool done() const = 0;
 
 						/**
-						 * Checks if this play has failed.
+						 * \brief Checks if this play has failed.
+						 *
 						 * A subclass must implement this function.
 						 */
 						virtual bool fail() const = 0;
 
 						/**
-						 * True if this play can give up safely right now.
+						 * \brief \c true if this play can give up safely right now.
 						 */
 						virtual bool can_give_up_safely() const;
 
 						/**
-						 * Provide lists of tactics.
+						 * \brief Provide lists of tactics.
+						 *
 						 * Called when this play is initially activated.
 						 *
 						 * A subclass must implement this function.
@@ -82,40 +88,42 @@ namespace AI {
 						virtual void assign(std::vector<Tactic::Tactic::Ptr> &goalie_role, std::vector<Tactic::Tactic::Ptr>(&roles)[STP::TEAM_MAX_SIZE-1]) = 0;
 
 						/**
-						 * A reference to this play's factory.
+						 * \brief A reference to this play's factory.
 						 */
 						virtual const PlayFactory &factory() const = 0;
 
 						/**
-						 * A play can stuff on the screen if it wants to.
+						 * \brief A play can stuff on the screen if it wants to.
 						 */
 						virtual void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
 
 					protected:
 						/**
-						 * The World in which the Play lives.
+						 * \brief The World in which the Play lives.
 						 */
 						const World &world;
 
 						/**
-						 * The constructor.
+						 * \brief The constructor.
 						 */
 						Play(const World &world);
 				};
 
 				/**
-				 * A PlayFactory is used to construct a particular type of Play.
+				 * \brief A PlayFactory is used to construct a particular type of Play.
+				 *
 				 * The factory permits STP to discover all available types of Plays.
 				 */
 				class PlayFactory : public Registerable<PlayFactory> {
 					public:
 						/**
-						 * Constructs a new instance of the Play corresponding to this PlayManager.
+						 * \brief Constructs a new instance of the Play corresponding to this PlayFactory.
 						 */
-						virtual Play::Ptr create(const World &world) const = 0;
+						virtual std::unique_ptr<Play> create(const World &world) const = 0;
 
 						/**
-						 * Constructs a new PlayFactory.
+						 * \brief Constructs a new PlayFactory.
+						 *
 						 * Subclasses should call this constructor from their own constructors.
 						 *
 						 * \param[in] name a human-readable name for this Play.
@@ -128,7 +136,8 @@ namespace AI {
 				};
 
 				/**
-				 * An easy way to create a factory:
+				 * \brief An easy way to create a factory.
+				 *
 				 * For example:
 				 * PlayFactoryImpl<GrabBall> factory_instance("Grab Ball");
 				 */
@@ -136,8 +145,9 @@ namespace AI {
 					public:
 						PlayFactoryImpl(const char *name) : PlayFactory(name) {
 						}
-						Play::Ptr create(const World &world) const {
-							const Play::Ptr p(new P(world));
+
+						std::unique_ptr<Play> create(const World &world) const {
+							std::unique_ptr<Play> p(new P(world));
 							return p;
 						}
 				};

@@ -14,9 +14,8 @@ namespace {
 	DoubleParam angular_decay_constant("Robot Angular Decay Constant", "Backend/XBee", 99.0, 0.0, 100.0);
 }
 
-Robot::Ptr Robot::create(AI::BE::Backend &backend, unsigned int pattern) {
-	Ptr p(new Robot(backend, pattern));
-	return p;
+Robot::Robot(AI::BE::Backend &backend, unsigned int pattern) : seen_this_frame(false), vision_failures(0), backend(backend), pattern_(pattern), pred(1.3e-3, 2, linear_decay_constant, Angle::of_radians(1.3e-3), Angle::of_radians(2), angular_decay_constant) {
+	backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &Robot::on_defending_end_changed));
 }
 
 void Robot::update(const SSL_DetectionRobot &packet, timespec ts) {
@@ -117,12 +116,6 @@ double Robot::bar_graph_value(unsigned int) const {
 Visualizable::Colour Robot::bar_graph_colour(unsigned int) const {
 	throw std::logic_error("This robot has no graphs");
 }
-
-Robot::Robot(AI::BE::Backend &backend, unsigned int pattern) : seen_this_frame(false), vision_failures(0), backend(backend), pattern_(pattern), pred(1.3e-3, 2, linear_decay_constant, Angle::of_radians(1.3e-3), Angle::of_radians(2), angular_decay_constant) {
-	backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &Robot::on_defending_end_changed));
-}
-
-Robot::~Robot() = default;
 
 void Robot::on_defending_end_changed() {
 	pred.clear();

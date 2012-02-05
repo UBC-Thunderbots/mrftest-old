@@ -44,7 +44,7 @@ namespace {
 	}
 
 	Navigator::Ptr ParameterTuningNavigator::create(World &world) {
-		const Navigator::Ptr p(new ParameterTuningNavigator(world));
+		Navigator::Ptr p(new ParameterTuningNavigator(world));
 		return p;
 	}
 

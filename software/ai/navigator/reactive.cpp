@@ -42,7 +42,7 @@ namespace {
 	}
 
 	Navigator::Ptr ReactiveNavigator::create(World &world) {
-		const Navigator::Ptr p(new ReactiveNavigator(world));
+		Navigator::Ptr p(new ReactiveNavigator(world));
 		return p;
 	}
 

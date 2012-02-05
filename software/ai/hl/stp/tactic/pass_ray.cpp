@@ -35,7 +35,7 @@ namespace {
 		}
 
 		bool done() const {
-			return player.is() && kick_attempted && player->autokick_fired();
+			return player && kick_attempted && player->autokick_fired();
 		}
 
 		void player_changed() {
@@ -74,7 +74,7 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passer_ray(const World &world) {
-	const Tactic::Ptr p(new PasserRay(world));
+	Tactic::Ptr p(new PasserRay(world));
 	return p;
 }
 

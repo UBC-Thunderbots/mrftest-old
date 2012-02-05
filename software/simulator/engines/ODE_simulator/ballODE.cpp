@@ -145,10 +145,10 @@ bool BallODE::in_goal() {
 	return false;
 }
 
-void BallODE::load_state(FileDescriptor::Ptr fd) {
+void BallODE::load_state(const FileDescriptor &fd) {
 	dReal values[3 + 3 + 3];
 	uint8_t buffer[sizeof(values) / sizeof(*values) * 8];
-	ssize_t rc = read(fd->fd(), buffer, sizeof(buffer));
+	ssize_t rc = read(fd.fd(), buffer, sizeof(buffer));
 	if (rc < 0) {
 		throw SystemError("read", errno);
 	} else if (rc != sizeof(buffer)) {
@@ -162,7 +162,7 @@ void BallODE::load_state(FileDescriptor::Ptr fd) {
 	dBodySetAngularVel(body, values[6], values[7], values[8]);
 }
 
-void BallODE::save_state(FileDescriptor::Ptr fd) const {
+void BallODE::save_state(const FileDescriptor &fd) const {
 	double values[3 + 3 + 3];
 	const dReal *reals = dBodyGetPosition(body);
 	values[0] = reals[0];
@@ -182,7 +182,7 @@ void BallODE::save_state(FileDescriptor::Ptr fd) const {
 		encode_double(&buffer[i * 8], values[i]);
 	}
 
-	if (write(fd->fd(), buffer, sizeof(buffer)) != sizeof(buffer)) {
+	if (write(fd.fd(), buffer, sizeof(buffer)) != sizeof(buffer)) {
 		throw SystemError("write", errno);
 	}
 }

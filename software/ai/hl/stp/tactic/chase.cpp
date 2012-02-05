@@ -62,7 +62,7 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::chase(const World &world) {
-	const Tactic::Ptr p(new Chase(world));
+	Tactic::Ptr p(new Chase(world));
 	return p;
 }
 

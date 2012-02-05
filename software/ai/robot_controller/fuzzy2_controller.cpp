@@ -2,7 +2,6 @@
 #include "ai/robot_controller/tunable_controller.h"
 #include "geom/angle.h"
 #include "geom/point.h"
-#include "util/byref.h"
 #include "util/noncopyable.h"
 #include "util/dprint.h"
 #include "util/param.h"
@@ -126,18 +125,6 @@ namespace {
 			std::vector<double> param;
 			Point prev_linear_velocity;
 	};
-
-	class Fuzzy2ControllerFactory : public RobotControllerFactory {
-		public:
-			Fuzzy2ControllerFactory() : RobotControllerFactory("Fuzzy Version 2") {
-			}
-
-			RobotController::Ptr create_controller(World &world, Player::Ptr player) const {
-				RobotController::Ptr p(new Fuzzy2Controller(world, player));
-				return p;
-			}
-	};
-
-	Fuzzy2ControllerFactory factory;
 }
 
+ROBOT_CONTROLLER_REGISTER(Fuzzy2Controller)

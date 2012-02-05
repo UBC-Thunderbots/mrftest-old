@@ -118,27 +118,27 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::goalie_dynamic(const World &world, const size_t defender_role) {
-	const Tactic::Ptr p(new Goalie2(world, defender_role));
+	Tactic::Ptr p(new Goalie2(world, defender_role));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::defend_duo_goalie(const AI::HL::W::World &world) {
-	const Tactic::Ptr p(new Goalie(world));
+	Tactic::Ptr p(new Goalie(world));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::defend_duo_defender(const AI::HL::W::World &world) {
-	const Tactic::Ptr p(new Defender(world, 1));
+	Tactic::Ptr p(new Defender(world, 1));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::defend_duo_extra1(const AI::HL::W::World &world) {
-	const Tactic::Ptr p(new Defender(world, 2));
+	Tactic::Ptr p(new Defender(world, 2));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::defend_duo_extra2(const AI::HL::W::World &world) {
-	const Tactic::Ptr p(new Defender(world, 3));
+	Tactic::Ptr p(new Defender(world, 3));
 	return p;
 }
 

@@ -6,8 +6,7 @@ namespace {
 	}
 }
 
-ObjectStore::Element::Element() {
-}
+ObjectStore::Element::~Element() = default;
 
 ObjectStore::ObjectStore() : data(&compare_typeinfos) {
 }

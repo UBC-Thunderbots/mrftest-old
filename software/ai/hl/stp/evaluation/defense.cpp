@@ -63,7 +63,7 @@ namespace {
 		Point ball_pos = world.ball().position();
 		if (defense_follow_enemy_baller) {
 			Robot::Ptr robot = calc_enemy_baller(world);
-			if (robot.is()) {
+			if (robot) {
 				ball_pos = robot->position();
 			}
 		}
@@ -143,7 +143,7 @@ namespace {
 // HACK
 			if (defense_follow_enemy_baller) {
 				Robot::Ptr robot = calc_enemy_baller(world);
-				if (robot.is() && threat[i] == robot) {
+				if (robot && threat[i] == robot) {
 					continue;
 				}
 			}

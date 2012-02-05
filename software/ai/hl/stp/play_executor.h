@@ -35,9 +35,14 @@ namespace AI {
 					World &world;
 
 					/**
+					 * \brief Idle tactics to use when other tactics have not yet been selected.
+					 */
+					Tactic::Tactic::Ptr idle_tactics[TEAM_MAX_SIZE];
+
+					/**
 					 * The play in use currently.
 					 */
-					Play::Play::Ptr curr_play;
+					Play::Play *curr_play;
 					
 					/**
 					 * indicates which step in the role we are using.
@@ -53,12 +58,12 @@ namespace AI {
 					/**
 					 * The tactic in use
 					 */
-					Tactic::Tactic::Ptr curr_tactic[TEAM_MAX_SIZE];
+					Tactic::Tactic *curr_tactic[TEAM_MAX_SIZE];
 
 					/**
 					 * Active tactic in use.
 					 */
-					Tactic::Tactic::Ptr curr_active;
+					Tactic::Tactic *curr_active;
 
 					// current player assignment
 					AI::HL::W::Player::Ptr curr_assignment[TEAM_MAX_SIZE];
@@ -66,7 +71,7 @@ namespace AI {
 					/**
 					 * List of all the available plays
 					 */
-					std::vector<Play::Play::Ptr> plays;
+					std::vector<std::unique_ptr<Play::Play>> plays;
 
 					/**
 					 * Calculates a NEW play to be used.
@@ -87,9 +92,7 @@ namespace AI {
 
 					void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
 
-					void on_player_added(std::size_t);
-
-					void on_player_removing(std::size_t);
+					void clear_assignments();
 			};
 		};
 	}

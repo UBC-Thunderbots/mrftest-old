@@ -12,16 +12,6 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	class SimPassPlayerFactory : public HighLevelFactory {
-		public:
-			SimPassPlayerFactory() : HighLevelFactory("Simple Pass") {
-			}
-
-			HighLevel::Ptr create_high_level(World &world) const;
-	};
-
-	SimPassPlayerFactory factory_instance;
-
 	class SimPassPlayer : public HighLevel {
 		public:
 			SimPassPlayer(World &world) : world(world), adj_xposition(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_xposition(adj_xposition), xpos(0.0), adj_yposition(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_yposition(adj_yposition), ypos(0.0), adj_orientation(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_orientation(adj_orientation), orient(Angle::ZERO) {
@@ -36,9 +26,7 @@ namespace {
 		private:
 			World &world;
 
-			SimPassPlayerFactory &factory() const {
-				return factory_instance;
-			}
+			HighLevelFactory &factory() const;
 
 			Gtk::Widget *ui_controls() {
 				return &ui_box;
@@ -93,10 +81,7 @@ namespace {
 				ctx->arc(to_draw.x, to_draw.y, 0.09, to_draw_orient.to_radians() - 0.2 * M_PI, to_draw_orient.to_radians() + 0.2 * M_PI);
 			}
 	};
-
-	HighLevel::Ptr SimPassPlayerFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new SimPassPlayer(world));
-		return p;
-	}
 }
+
+HIGH_LEVEL_REGISTER(SimPassPlayer)
 

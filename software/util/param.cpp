@@ -145,25 +145,19 @@ class ParamTreeInternalNode : public ParamTreeNode {
 	private:
 		class Allocator : public NonCopyable {
 			public:
-				~Allocator() {
-					for (auto i = nodes.begin(), iend = nodes.end(); i != iend; ++i) {
-						delete *i;
-					}
-				}
-
 				static Allocator &instance() {
 					static Allocator obj;
 					return obj;
 				}
 
 				ParamTreeInternalNode *alloc(const Glib::ustring &name) {
-					nodes.resize(nodes.size() + 1, 0);
-					nodes[nodes.size() - 1] = new ParamTreeInternalNode(name);
-					return nodes[nodes.size() - 1];
+					std::unique_ptr<ParamTreeInternalNode> p(new ParamTreeInternalNode(name));
+					nodes.push_back(std::move(p));
+					return nodes[nodes.size() - 1].get();
 				}
 
 			private:
-				std::vector<ParamTreeInternalNode *> nodes;
+				std::vector<std::unique_ptr<ParamTreeInternalNode>> nodes;
 		};
 
 		std::vector<ParamTreeNode *> children;
@@ -343,17 +337,13 @@ NumericParam::NumericParam(const char *name, const char *location, double def, d
 	}
 }
 
-NumericParam::~NumericParam() {
-	delete adjustment_;
-}
-
 void NumericParam::set_default() {
 	adjustment()->set_value(def);
 }
 
 void NumericParam::initialize() {
 	Param::initialize();
-	adjustment_ = new Gtk::Adjustment(def, min, max, integer ? 1 : compute_step(min, max), integer ? 10 : compute_page(min, max), 0);
+	adjustment_.reset(new Gtk::Adjustment(def, min, max, integer ? 1 : compute_step(min, max), integer ? 10 : compute_page(min, max), 0));
 	adjustment_->signal_value_changed().connect(signal_changed_reflector.make_slot());
 }
 

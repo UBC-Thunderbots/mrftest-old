@@ -3,21 +3,17 @@
 
 #include "geom/point.h"
 #include "uicomponents/visualizer.h"
-#include "util/byref.h"
 #include "util/fd.h"
+#include "util/noncopyable.h"
+#include <memory>
 
 namespace Simulator {
 	/**
 	 * The ball, as seen by a simulation engine.
 	 * An individual engine is expected to subclass this class and return an instance of the subclass from its SimulatorEngine::get_ball() method.
 	 */
-	class Ball : public ByRef {
+	class Ball : public NonCopyable {
 		public:
-			/**
-			 * A pointer to a Ball.
-			 */
-			typedef RefPtr<Ball> Ptr;
-
 			/**
 			 * Returns the position of the ball.
 			 *
@@ -51,14 +47,14 @@ namespace Simulator {
 			 *
 			 * \param[in] fd the file to load from.
 			 */
-			virtual void load_state(FileDescriptor::Ptr fd) = 0;
+			virtual void load_state(const FileDescriptor &fd) = 0;
 
 			/**
 			 * Saves the ball's state to a file.
 			 *
 			 * \param[in] fd the file to save to.
 			 */
-			virtual void save_state(FileDescriptor::Ptr fd) const = 0;
+			virtual void save_state(const FileDescriptor &fd) const = 0;
 
 		protected:
 			/**

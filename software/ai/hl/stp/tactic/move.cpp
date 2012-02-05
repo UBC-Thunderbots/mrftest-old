@@ -33,7 +33,7 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::move(const World &world, const Coordinate dest) {
-	const Tactic::Ptr p(new Move(world, dest));
+	Tactic::Ptr p(new Move(world, dest));
 	return p;
 }
 

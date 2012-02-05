@@ -5,6 +5,7 @@
 #include "simulator/player.h"
 #include "simulator/engines/engine.h"
 #include "util/noncopyable.h"
+#include <memory>
 #include <vector>
 
 namespace Simulator {
@@ -22,7 +23,7 @@ namespace Simulator {
 				/**
 				 * The player object provided by the engine.
 				 */
-				Player::Ptr player;
+				Player *player;
 
 				/**
 				 * The player's lid pattern, used to identify it over the socket.
@@ -53,7 +54,7 @@ namespace Simulator {
 			 *
 			 * \param[in] conn the connection to attach.
 			 */
-			void add_connection(Connection::Ptr conn);
+			void add_connection(Connection::Ptr &&conn);
 
 			/**
 			 * Checks whether the team is ready for the simulator to tick.
@@ -91,14 +92,14 @@ namespace Simulator {
 			 *
 			 * \param[in] fd the file to load from.
 			 */
-			void load_state(FileDescriptor::Ptr fd);
+			void load_state(const FileDescriptor &fd);
 
 			/**
 			 * Saves the current state of the team into a file.
 			 *
 			 * \param[in] fd the file to store into.
 			 */
-			void save_state(FileDescriptor::Ptr fd) const;
+			void save_state(const FileDescriptor &fd) const;
 
 		private:
 			/**
@@ -158,7 +159,7 @@ namespace Simulator {
 			 *
 			 * \param[in] ancillary_fd a file descriptor which may have been sent with the packet.
 			 */
-			void on_packet(const Proto::A2SPacket &packet, FileDescriptor::Ptr ancillary_fd);
+			void on_packet(const Proto::A2SPacket &packet, std::shared_ptr<FileDescriptor> ancillary_fd);
 	};
 }
 

@@ -2,14 +2,13 @@
 #define AI_COMMON_PLAYER_H
 
 #include "ai/common/robot.h"
-#include "util/byref.h"
 
 namespace AI {
 	namespace Common {
 		/**
 		 * The common functions available on a player in all layers, not including those in Robot.
 		 */
-		class Player : public virtual ByRef {
+		class Player {
 			public:
 				/**
 				 * \brief Returns whether or not the player is alive.

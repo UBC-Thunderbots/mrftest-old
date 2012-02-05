@@ -1,5 +1,6 @@
 #include "ai/navigator/plan.h"
 #include "util/objectstore.h"
+#include <memory>
 #include <glibmm/nodetree.h>
 
 namespace AI {
@@ -12,7 +13,7 @@ namespace AI {
 
 		class Waypoints : public ObjectStore::Element {
 			public:
-				typedef ::RefPtr<Waypoints> Ptr;
+				typedef std::shared_ptr<Waypoints> Ptr;
 				static const std::size_t NUM_WAYPOINTS = 50;
 				Point points[NUM_WAYPOINTS];
 				unsigned int added_flags;

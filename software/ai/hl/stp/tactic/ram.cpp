@@ -33,7 +33,7 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::ram(const World &world) {
-	const Tactic::Ptr p(new Ram(world));
+	Tactic::Ptr p(new Ram(world));
 	return p;
 }
 

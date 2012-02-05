@@ -28,7 +28,7 @@ namespace {
 
 	Player::Ptr ShadowKickoff::select(const std::set<Player::Ptr> &players) const {
 		Point location_eval;
-		if (enemy->evaluate().is()) {
+		if (enemy->evaluate()) {
 			location_eval = enemy->evaluate()->position();
 		} else {
 			location_eval = default_loc.position();
@@ -37,7 +37,7 @@ namespace {
 	}
 
 	void ShadowKickoff::execute() {
-		if (enemy->evaluate().is()) {
+		if (enemy->evaluate()) {
 			// calculate position to block the side enemies from shooting
 			Point block_position = line_intersect(enemy->evaluate()->position(), world.field().friendly_goal(), Point(-0.2, 2), Point(-0.2, -2));
 			Action::move(world, player, block_position);
@@ -73,12 +73,12 @@ namespace {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::shadow_kickoff(const World &world, Enemy::Ptr enemy, const Coordinate default_loc) {
-	const Tactic::Ptr p(new ShadowKickoff(world, enemy, default_loc));
+	Tactic::Ptr p(new ShadowKickoff(world, enemy, default_loc));
 	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::shadow_ball(const World &world) {
-	const Tactic::Ptr p(new ShadowBall(world));
+	Tactic::Ptr p(new ShadowBall(world));
 	return p;
 }
 

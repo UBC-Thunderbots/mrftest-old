@@ -8,6 +8,7 @@
 #include <iostream>
 #include <limits>
 #include <unistd.h>
+#include <utility>
 
 namespace {
 	bool pattern_equals(const Simulator::Team::PlayerInfo &pi, unsigned int pattern) {
@@ -19,15 +20,15 @@ Simulator::Team::Team(Simulator &sim, const Team *other, bool invert) : sim(sim)
 }
 
 bool Simulator::Team::has_connection() const {
-	return connection.is();
+	return !!connection;
 }
 
-void Simulator::Team::add_connection(Connection::Ptr conn) {
-	assert(!connection.is());
-	assert(conn.is());
+void Simulator::Team::add_connection(Connection::Ptr &&conn) {
+	assert(!connection);
+	assert(conn);
 	conn->signal_closed().connect(sigc::mem_fun(this, &Team::close_connection));
 	conn->signal_packet().connect(sigc::mem_fun(this, &Team::on_packet));
-	connection = conn;
+	connection = std::move(conn);
 	ready_ = true;
 	Glib::signal_idle().connect_once(sigc::mem_fun(this, &Team::send_speed_mode));
 	Glib::signal_idle().connect_once(sigc::mem_fun(this, &Team::send_play_type));
@@ -51,9 +52,9 @@ void Simulator::Team::send_tick(const timespec &ts) {
 			close_connection();
 			return;
 		}
-		Player::Ptr plr = j->player;
+		Player *plr = j->player;
 		players.erase(j);
-		sim.engine->remove_player(plr);
+		sim.engine.remove_player(plr);
 	}
 	to_remove.clear();
 
@@ -64,12 +65,12 @@ void Simulator::Team::send_tick(const timespec &ts) {
 			close_connection();
 			return;
 		}
-		PlayerInfo pi = { player: sim.engine->add_player(), pattern: *i, };
+		PlayerInfo pi = { player: sim.engine.add_player(), pattern: *i, };
 		players.push_back(pi);
 	}
 	to_add.clear();
 
-	if (connection.is()) {
+	if (connection) {
 		// Send the state of the world over the socket.
 		Proto::S2APacket packet;
 		std::memset(&packet, 0, sizeof(packet));
@@ -108,7 +109,7 @@ void Simulator::Team::send_tick(const timespec &ts) {
 }
 
 void Simulator::Team::send_speed_mode() {
-	if (connection.is()) {
+	if (connection) {
 		Proto::S2APacket packet;
 		std::memset(&packet, 0, sizeof(packet));
 		packet.type = Proto::S2APacketType::SPEED_MODE;
@@ -118,7 +119,7 @@ void Simulator::Team::send_speed_mode() {
 }
 
 void Simulator::Team::send_play_type() {
-	if (connection.is()) {
+	if (connection) {
 		Proto::S2APacket packet;
 		std::memset(&packet, 0, sizeof(packet));
 		packet.type = Proto::S2APacketType::PLAY_TYPE;
@@ -127,19 +128,19 @@ void Simulator::Team::send_play_type() {
 	}
 }
 
-void Simulator::Team::load_state(FileDescriptor::Ptr fd) {
+void Simulator::Team::load_state(const FileDescriptor &fd) {
 	// Any prior requests to add or remove players are no longer relevant.
 	to_add.clear();
 	to_remove.clear();
 
 	// Remove all robots from the team.
-	std::for_each(players.begin(), players.end(), [&sim](PlayerInfo p) { sim.engine->remove_player(p.player); });
+	std::for_each(players.begin(), players.end(), [&sim](PlayerInfo p) { sim.engine.remove_player(p.player); });
 	players.clear();
 
 	// Read the size of the team.
 	uint8_t size;
 	{
-		ssize_t rc = read(fd->fd(), &size, sizeof(size));
+		ssize_t rc = read(fd.fd(), &size, sizeof(size));
 		if (rc < 0) {
 			throw SystemError("read", errno);
 		} else if (!rc) {
@@ -155,7 +156,7 @@ void Simulator::Team::load_state(FileDescriptor::Ptr fd) {
 		uint32_t pattern;
 		{
 			uint8_t buffer[sizeof(pattern)];
-			ssize_t rc = read(fd->fd(), buffer, sizeof(buffer));
+			ssize_t rc = read(fd.fd(), buffer, sizeof(buffer));
 			if (rc < 0) {
 				throw SystemError("read", errno);
 			} else if (rc != sizeof(buffer)) {
@@ -165,7 +166,7 @@ void Simulator::Team::load_state(FileDescriptor::Ptr fd) {
 		}
 
 		// Create information structure.
-		PlayerInfo pi = { player: sim.engine->add_player(), pattern: static_cast<unsigned int>(pattern), };
+		PlayerInfo pi = { player: sim.engine.add_player(), pattern: static_cast<unsigned int>(pattern), };
 
 		// Reload player state for engine.
 		pi.player->load_state(fd);
@@ -175,10 +176,10 @@ void Simulator::Team::load_state(FileDescriptor::Ptr fd) {
 	}
 }
 
-void Simulator::Team::save_state(FileDescriptor::Ptr fd) const {
+void Simulator::Team::save_state(const FileDescriptor &fd) const {
 	// Write the size of the team.
 	uint8_t size = static_cast<uint8_t>(players.size());
-	if (write(fd->fd(), &size, sizeof(size)) != sizeof(size)) {
+	if (write(fd.fd(), &size, sizeof(size)) != sizeof(size)) {
 		throw SystemError("write", errno);
 	}
 
@@ -187,7 +188,7 @@ void Simulator::Team::save_state(FileDescriptor::Ptr fd) const {
 		// Write the lid pattern.
 		uint8_t buffer[sizeof(uint32_t)];
 		encode_u32(buffer, static_cast<uint32_t>(i->pattern));
-		if (write(fd->fd(), buffer, sizeof(buffer)) != sizeof(buffer)) {
+		if (write(fd.fd(), buffer, sizeof(buffer)) != sizeof(buffer)) {
 			throw SystemError("write", errno);
 		}
 
@@ -213,7 +214,7 @@ void Simulator::Team::close_connection() {
 	}
 }
 
-void Simulator::Team::on_packet(const Proto::A2SPacket &packet, FileDescriptor::Ptr ancillary_fd) {
+void Simulator::Team::on_packet(const Proto::A2SPacket &packet, std::shared_ptr<FileDescriptor> ancillary_fd) {
 	switch (packet.type) {
 		case Proto::A2SPacketType::PLAYERS:
 			// This should only be received if we're waiting for it after an S2A_PACKET_TICK.
@@ -275,7 +276,7 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet, FileDescriptor::
 		case Proto::A2SPacketType::DRAG_BALL:
 		{
 			Point p(packet.drag.x, packet.drag.y);
-			sim.engine->get_ball()->position(invert ? -p : p);
+			sim.engine.get_ball().position(invert ? -p : p);
 		}
 			return;
 
@@ -294,7 +295,7 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet, FileDescriptor::
 
 		case Proto::A2SPacketType::LOAD_STATE:
 		{
-			if (!ancillary_fd.is()) {
+			if (!ancillary_fd) {
 				std::cout << "AI sent A2S_PACKET_LOAD_STATE without ancillary file descriptor.\n";
 				close_connection();
 				return;
@@ -305,7 +306,7 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet, FileDescriptor::
 
 		case Proto::A2SPacketType::SAVE_STATE:
 		{
-			if (!ancillary_fd.is()) {
+			if (!ancillary_fd) {
 				std::cout << "AI sent A2S_PACKET_SAVE_STATE without ancillary file descriptor.\n";
 				close_connection();
 				return;

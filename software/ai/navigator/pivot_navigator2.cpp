@@ -36,7 +36,7 @@ namespace {
 	}
 
 	Navigator::Ptr PivotNavigator2::create(World &world) {
-		const Navigator::Ptr p(new PivotNavigator2(world));
+		Navigator::Ptr p(new PivotNavigator2(world));
 		return p;
 	}
 

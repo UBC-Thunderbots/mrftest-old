@@ -8,6 +8,7 @@
 #include "util/timestep.h"
 #include <cerrno>
 #include <iostream>
+#include <memory>
 #include <unistd.h>
 
 namespace {
@@ -34,9 +35,8 @@ namespace {
 	 */
 	class SimEngine : public SimulatorEngine {
 		private:
-			BallODE::Ptr the_ball;
-			std::vector<PlayerODE::Ptr> the_players;
-			PlayerODE::Ptr emptyPlayer;
+			std::unique_ptr<BallODE> the_ball;
+			std::vector<std::unique_ptr<PlayerODE>> the_players;
 
 		public:
 			dReal timeStep;
@@ -80,8 +80,7 @@ namespace {
 				dWorldSetContactSurfaceLayer(eworld, static_cast<dReal>(0.1));
 				contactgroup = dJointGroupCreate(0);
 
-				BallODE::Ptr b(new BallODE(eworld, space));
-				the_ball = b;
+				the_ball.reset(new BallODE(eworld, space));
 
 				// dWorldSetLinearDamping (eworld, 0.02);
 				dWorldSetCFM(eworld, CFM);
@@ -122,12 +121,12 @@ namespace {
 			void setWorld(dWorldID world) {
 				eworld = world;
 			}
-			Simulator::Ball::Ptr get_ball() {
-				return the_ball;
+			Simulator::Ball &get_ball() {
+				return *the_ball.get();
 			}
 
-			Simulator::Player::Ptr add_player() {
-				PlayerODE::Ptr p(new PlayerODE(eworld, space, the_ball->ballGeom, UPDATES_PER_TICK));
+			Simulator::Player *add_player() {
+				std::unique_ptr<PlayerODE> p(new PlayerODE(eworld, space, the_ball->ballGeom, UPDATES_PER_TICK));
 				Point cur = p->position();
 
 				Point balpos = the_ball->position();
@@ -146,22 +145,23 @@ namespace {
 
 				p->position(cur);
 				p->velocity(Point());
-				the_players.push_back(p);
-				return p;
+				Simulator::Player *ret = p.get();
+				the_players.push_back(std::move(p));
+				return ret;
 			}
 
-			PlayerODE::Ptr get_player_from_shape(dGeomID shape) {
+			PlayerODE *get_player_from_shape(dGeomID shape) {
 				for (std::size_t i = 0; i < the_players.size(); i++) {
 					if (the_players[i]->robot_contains_shape(shape)) {
-						return the_players[i];
+						return the_players[i].get();
 					}
 				}
-				return emptyPlayer;
+				return 0;
 			}
 
-			void remove_player(Simulator::Player::Ptr p) {
+			void remove_player(Simulator::Player *p) {
 				for (std::size_t i = 0; i < the_players.size(); i++) {
-					if (Simulator::Player::Ptr::cast_static(the_players[i]) == p) {
+					if (the_players[i].get() == p) {
 						the_players.erase(the_players.begin() + i);
 						return;
 					}
@@ -170,9 +170,9 @@ namespace {
 
 #define SAVED_STATE_SIGNATURE "ODE Simulator"
 
-			void load_state(FileDescriptor::Ptr fd) {
+			void load_state(const FileDescriptor &fd) {
 				char signature[sizeof(SAVED_STATE_SIGNATURE) - 1];
-				ssize_t rc = read(fd->fd(), signature, sizeof(signature));
+				ssize_t rc = read(fd.fd(), signature, sizeof(signature));
 				if (rc < 0) {
 					throw SystemError("read", errno);
 				} else if (rc != sizeof(signature)) {
@@ -182,8 +182,8 @@ namespace {
 				}
 			}
 
-			void save_state(FileDescriptor::Ptr fd) const {
-				if (write(fd->fd(), SAVED_STATE_SIGNATURE, sizeof(SAVED_STATE_SIGNATURE) - 1) != sizeof(SAVED_STATE_SIGNATURE) - 1) {
+			void save_state(const FileDescriptor &fd) const {
+				if (write(fd.fd(), SAVED_STATE_SIGNATURE, sizeof(SAVED_STATE_SIGNATURE) - 1) != sizeof(SAVED_STATE_SIGNATURE) - 1) {
 					throw SystemError("write", errno);
 				}
 			}
@@ -197,11 +197,11 @@ namespace {
 			void handleBallCollisionWithGround(dGeomID o1, dGeomID o2) {
 				dReal frict = MU * 12;
 				int i = 0;
-				PlayerODE::Ptr robot = emptyPlayer;
+				PlayerODE *robot = 0;
 
 				for (std::size_t i = 0; i < the_players.size(); i++) {
 					if (the_players[i]->has_ball()) {
-						robot = the_players[i];
+						robot = the_players[i].get();
 					}
 				}
 
@@ -234,10 +234,10 @@ namespace {
 
 				dContact contact[num_contact];        // up to 3 contacts per box
 
-				PlayerODE::Ptr robot1 = get_player_from_shape(o1);
-				PlayerODE::Ptr robot2 = get_player_from_shape(o2);
+				PlayerODE *robot1 = get_player_from_shape(o1);
+				PlayerODE *robot2 = get_player_from_shape(o2);
 
-				if ((robot1 != emptyPlayer || robot2 != emptyPlayer)) {
+				if ((robot1 || robot2)) {
 					std::cout << "  hello world!!!  " << std::endl;
 					// handleRobotBallCollision(o1, o2);
 				} else {
@@ -290,16 +290,16 @@ namespace {
 				groundCollision = (g1 ^ g2);
 				notGroundCollision = !groundCollision;
 
-				PlayerODE::Ptr robot1 = get_player_from_shape(o1);
-				PlayerODE::Ptr robot2 = get_player_from_shape(o2);
+				PlayerODE *robot1 = get_player_from_shape(o1);
+				PlayerODE *robot2 = get_player_from_shape(o2);
 
-				if (robot1 != emptyPlayer) {
+				if (robot1) {
 					robot1->p_geom.handle_collision(o1, o2, contactgroup);
-				} else if (robot2 != emptyPlayer) {
+				} else if (robot2) {
 					robot2->p_geom.handle_collision(o1, o2, contactgroup);
 				}
 
-				if (robot1 != emptyPlayer || robot2 != emptyPlayer) {
+				if (robot1 || robot2) {
 					return;
 				}
 
@@ -340,8 +340,8 @@ namespace {
 			SimEngineFactory() : SimulatorEngineFactory("Open Dynamics Engine Simulator") {
 			}
 
-			SimulatorEngine::Ptr create_engine() {
-				SimulatorEngine::Ptr p(new SimEngine);
+			std::unique_ptr<SimulatorEngine> create_engine() {
+				std::unique_ptr<SimulatorEngine> p(new SimEngine);
 				return p;
 			}
 	};

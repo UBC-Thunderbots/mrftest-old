@@ -2,8 +2,9 @@
 #define AI_HL_STP_TACTIC_TACTIC_H
 
 #include "ai/hl/stp/world.h"
-#include "util/byref.h"
+#include "util/noncopyable.h"
 #include "util/registerable.h"
+#include <memory>
 #include <set>
 #include <cairomm/context.h>
 #include <cairomm/refptr.h>
@@ -28,12 +29,17 @@ namespace AI {
 				 * To prevent rapid fluctuation of parameters,
 				 * hysteresis (thresholding) is recommended.
 				 */
-				class Tactic : public ByRef {
+				class Tactic : public NonCopyable {
 					public:
 						/**
 						 * \brief A pointer to a Tactic.
 						 */
-						typedef RefPtr<Tactic> Ptr;
+						typedef std::unique_ptr<Tactic> Ptr;
+
+						/**
+						 * \brief Destroys the Tactic.
+						 */
+						virtual ~Tactic();
 
 						/**
 						 * \brief An active tactic must override this and provide a condition when this tactic is completed.

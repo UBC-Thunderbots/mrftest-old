@@ -493,7 +493,9 @@ software/util/async_operation.h -text
 software/util/bit_array.h -text
 software/util/bitcodec.h -text
 software/util/bitcodec_primitives.h -text
-software/util/byref.h -text
+software/util/box_array.cpp -text
+software/util/box_array.h -text
+software/util/box_ptr.h -text
 software/util/bzip2.cpp -text
 software/util/bzip2.h -text
 software/util/cacheable.cpp -text

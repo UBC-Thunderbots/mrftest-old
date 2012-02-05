@@ -1,8 +1,8 @@
 #include "ai/navigator/navigator.h"
 #include "ai/navigator/util.h"
 #include "geom/angle.h"
-#include "util/byref.h"
 #include "util/time.h"
+#include <memory>
 #include <set>
 #include <utility>
 #include <vector>
@@ -20,9 +20,9 @@ namespace {
 	// be virtually the same
 	const Angle ANGLE_TOL = Angle::of_degrees(7.0);
 
-	class PathPoint : public ByRef {
+	class PathPoint {
 		public:
-			typedef ::RefPtr<PathPoint> Ptr;
+			typedef std::shared_ptr<PathPoint> Ptr;
 			Point xy;
 			// double orientation;
 			PathPoint::Ptr parent;
@@ -39,7 +39,7 @@ namespace {
 			std::vector<PathPoint::Ptr> getParents() {
 				std::vector<PathPoint::Ptr> p;
 				PathPoint::Ptr cur = parent;
-				while (cur.is()) {
+				while (cur) {
 					p.push_back(cur);
 					cur = cur->parent;
 				}
@@ -85,7 +85,7 @@ namespace {
 	}
 
 	Navigator::Ptr AstarNavigator::create(World &world) {
-		const Navigator::Ptr p(new AstarNavigator(world));
+		Navigator::Ptr p(new AstarNavigator(world));
 		return p;
 	}
 	Navigator::Ptr AstarNavigatorFactory::create_navigator(World &world) const {
@@ -113,8 +113,8 @@ namespace {
 
 		for (std::size_t i = 0; i < fteam.size(); i++) {
 			player = players[i];
-			PathPoint::Ptr player_start(new PathPoint(player->position()));
-			PathPoint::Ptr player_end(new PathPoint(player->destination().first));
+			PathPoint::Ptr player_start = std::make_shared<PathPoint>(player->position());
+			PathPoint::Ptr player_end = std::make_shared<PathPoint>(player->destination().first);
 			std::vector<PathPoint::Ptr> add_on;
 			unsigned int added_flags = 0;
 
@@ -127,9 +127,9 @@ namespace {
 				Point p(target_minus, 0);
 				p = p.rotate(player->destination().second);
 				Point ball_catch = world.ball().position();
-				PathPoint::Ptr p_end(new PathPoint(ball_catch - p));
+				PathPoint::Ptr p_end = std::make_shared<PathPoint>(ball_catch - p);
 				end = p_end;
-				PathPoint::Ptr p_add(new PathPoint(world.ball().position()));
+				PathPoint::Ptr p_add = std::make_shared<PathPoint>(world.ball().position());
 				add_on.push_back(p_add);
 			}
 
@@ -170,7 +170,7 @@ namespace {
 			search_space.push_back(start);
 			search_space.push_back(end);
 			for (std::vector<Point>::const_iterator it = p.begin(); it != p.end(); it++) {
-				PathPoint::Ptr temp(new PathPoint(*it));
+				PathPoint::Ptr temp = std::make_shared<PathPoint>(*it);
 				search_space.push_back(temp);
 			}
 

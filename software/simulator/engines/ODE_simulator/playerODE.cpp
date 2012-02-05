@@ -325,10 +325,10 @@ void PlayerODE::avelocity(double avel) {
 	dBodySetAngularVel(body, 0.0, 0.0, static_cast<dReal>(avel));
 }
 
-void PlayerODE::load_state(FileDescriptor::Ptr fd) {
+void PlayerODE::load_state(const FileDescriptor &fd) {
 	dReal values[3 + 3 + 3 + 12];
 	uint8_t buffer[sizeof(values) / sizeof(*values) * 8];
-	ssize_t rc = read(fd->fd(), buffer, sizeof(buffer));
+	ssize_t rc = read(fd.fd(), buffer, sizeof(buffer));
 	if (rc < 0) {
 		throw SystemError("read", errno);
 	} else if (rc != sizeof(buffer)) {
@@ -345,7 +345,7 @@ void PlayerODE::load_state(FileDescriptor::Ptr fd) {
 	dBodySetRotation(body, &values[9]);
 }
 
-void PlayerODE::save_state(FileDescriptor::Ptr fd) const {
+void PlayerODE::save_state(const FileDescriptor &fd) const {
 	double values[3 + 3 + 3 + 12];
 	const dReal *reals = dBodyGetPosition(body);
 	values[0] = reals[0];
@@ -367,7 +367,7 @@ void PlayerODE::save_state(FileDescriptor::Ptr fd) const {
 		encode_double(&buffer[i * 8], values[i]);
 	}
 
-	if (write(fd->fd(), buffer, sizeof(buffer)) != sizeof(buffer)) {
+	if (write(fd.fd(), buffer, sizeof(buffer)) != sizeof(buffer)) {
 		throw SystemError("write", errno);
 	}
 }

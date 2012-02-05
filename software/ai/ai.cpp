@@ -3,31 +3,32 @@
 #include "util/cacheable.h"
 #include "util/dprint.h"
 #include "util/objectstore.h"
+#include <memory>
 
 using AI::AIPackage;
 using AI::BE::Backend;
 
 namespace {
 	/**
-	 * The private per-player state maintained by the AIPackage.
+	 * \brief The private per-player state maintained by the AIPackage.
 	 */
 	struct PrivateState : public ObjectStore::Element {
 		/**
-		 * A pointer to a PrivateState.
+		 * \brief A pointer to a PrivateState.
 		 */
-		typedef RefPtr<PrivateState> Ptr;
+		typedef std::shared_ptr<PrivateState> Ptr;
 
 		/**
-		 * The robot controller driving the player.
+		 * \brief The robot controller driving the player.
 		 */
-		AI::RC::RobotController::Ptr robot_controller;
+		std::unique_ptr<AI::RC::RobotController> robot_controller;
 	};
 }
 
-AIPackage::AIPackage(Backend &backend) : backend(backend), high_level(AI::HL::HighLevel::Ptr()), navigator(AI::Nav::Navigator::Ptr()), robot_controller_factory(0), show_hl_overlay(true), show_nav_overlay(true), show_rc_overlay(true) {
+AIPackage::AIPackage(Backend &backend) : backend(backend), high_level(std::unique_ptr<AI::HL::HighLevel>()), navigator(AI::Nav::Navigator::Ptr()), robot_controller_factory(0), show_hl_overlay(true), show_nav_overlay(true), show_rc_overlay(true) {
 	backend.signal_tick().connect(sigc::mem_fun(this, &AIPackage::tick));
 	backend.signal_draw_overlay().connect(sigc::mem_fun(this, &AIPackage::draw_overlay));
-	backend.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &AIPackage::player_added));
+	backend.friendly_team().signal_membership_changed().connect(sigc::mem_fun(this, &AIPackage::attach_robot_controllers));
 	robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &AIPackage::robot_controller_factory_changed));
 	high_level.signal_changed().connect(sigc::mem_fun(this, &AIPackage::save_setup));
 	navigator.signal_changed().connect(sigc::mem_fun(this, &AIPackage::save_setup));
@@ -42,45 +43,44 @@ void AIPackage::tick() {
 	CacheableBase::flush_all();
 
 	// If we have a HighLevel installed, tick it.
-	AI::HL::HighLevel::Ptr hl = high_level;
-	if (hl.is()) {
-		hl->tick();
+	if (high_level.get()) {
+		high_level->tick();
 
 		// If we have a Navigator installed, tick it.
-		AI::Nav::Navigator::Ptr nav = navigator;
-		if (nav.is()) {
-			nav->tick();
+		if (navigator.get()) {
+			navigator->tick();
 		}
 	}
 
 	// Tick all the RobotControllers.
 	for (std::size_t i = 0; i < backend.friendly_team().size(); ++i) {
 		AI::BE::Player::Ptr plr = backend.friendly_team().get(i);
-		PrivateState::Ptr state = PrivateState::Ptr::cast_dynamic(plr->object_store()[typeid(*this)]);
-		AI::RC::RobotController::Ptr rc = state->robot_controller;
-		if (rc.is()) {
-			rc->tick();
+		PrivateState::Ptr state = std::dynamic_pointer_cast<PrivateState>(plr->object_store()[typeid(*this)]);
+		if (state->robot_controller) {
+			state->robot_controller->tick();
 		}
 	}
 }
 
-void AIPackage::player_added(std::size_t idx) {
-	AI::BE::Player::Ptr plr = backend.friendly_team().get(idx);
-	PrivateState::Ptr state(new PrivateState);
-	if (robot_controller_factory) {
-		state->robot_controller = robot_controller_factory->create_controller(backend, plr);
+void AIPackage::attach_robot_controllers() {
+	for (std::size_t i = 0; i < backend.friendly_team().size(); ++i) {
+		AI::BE::Player::Ptr plr = backend.friendly_team().get(i);
+		PrivateState::Ptr state = std::dynamic_pointer_cast<PrivateState>(plr->object_store()[typeid(*this)]);
+		if (!state) {
+			state = std::make_shared<PrivateState>();
+			if (robot_controller_factory) {
+				state->robot_controller = robot_controller_factory->create_controller(backend, plr);
+			}
+			plr->object_store()[typeid(*this)] = state;
+		}
 	}
-	plr->object_store()[typeid(*this)] = state;
 }
 
 void AIPackage::robot_controller_factory_changed() {
 	LOG_DEBUG(Glib::ustring::compose("Changing robot controller to %1.", robot_controller_factory ? robot_controller_factory->name() : "<None>"));
 	for (std::size_t i = 0; i < backend.friendly_team().size(); ++i) {
 		AI::BE::Player::Ptr plr = backend.friendly_team().get(i);
-		PrivateState::Ptr state = PrivateState::Ptr::cast_dynamic(plr->object_store()[typeid(*this)]);
-		if (state->robot_controller.is() && state->robot_controller->refs() != 1) {
-			LOG_WARN("Leak detected of robot_controller.");
-		}
+		PrivateState::Ptr state = std::dynamic_pointer_cast<PrivateState>(plr->object_store()[typeid(*this)]);
 		state->robot_controller.reset();
 
 		if (robot_controller_factory) {
@@ -91,24 +91,21 @@ void AIPackage::robot_controller_factory_changed() {
 
 void AIPackage::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
 	if (show_hl_overlay) {
-		AI::HL::HighLevel::Ptr hl = high_level;
-		if (hl.is()) {
-			hl->draw_overlay(ctx);
+		if (high_level.get()) {
+			high_level->draw_overlay(ctx);
 		}
 	}
 	if (show_nav_overlay) {
-		AI::Nav::Navigator::Ptr nav = navigator;
-		if (nav.is()) {
-			nav->draw_overlay(ctx);
+		if (navigator.get()) {
+			navigator->draw_overlay(ctx);
 		}
 	}
 	if (show_rc_overlay) {
 		for (std::size_t i = 0; i < backend.friendly_team().size(); ++i) {
 			AI::BE::Player::Ptr plr = backend.friendly_team().get(i);
-			PrivateState::Ptr state = PrivateState::Ptr::cast_dynamic(plr->object_store()[typeid(*this)]);
-			AI::RC::RobotController::Ptr rc = state->robot_controller;
-			if (rc.is()) {
-				rc->draw_overlay(ctx);
+			PrivateState::Ptr state = std::dynamic_pointer_cast<PrivateState>(plr->object_store()[typeid(*this)]);
+			if (state->robot_controller) {
+				state->robot_controller->draw_overlay(ctx);
 			}
 		}
 	}
@@ -116,8 +113,8 @@ void AIPackage::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
 
 void AIPackage::save_setup() const {
 	AI::Setup setup;
-	setup.high_level_name = high_level.get().is() ? high_level->factory().name() : "";
-	setup.navigator_name = navigator.get().is() ? navigator->factory().name() : "";
+	setup.high_level_name = high_level.get() ? high_level->factory().name() : "";
+	setup.navigator_name = navigator.get() ? navigator->factory().name() : "";
 	setup.robot_controller_name = robot_controller_factory ? robot_controller_factory->name() : "";
 	setup.ball_filter_name = backend.ball_filter() ? backend.ball_filter()->name() : "";
 	setup.defending_end = backend.defending_end();
