@@ -15,9 +15,9 @@ namespace AI {
 }
 
 void AI::HL::STP::tick_eval(const World &world) {
+	Evaluation::tick_ball(world);
 	Evaluation::tick_offense(world);
 	Evaluation::tick_defense(world);
-	Evaluation::tick_ball(world);
 }
 
 void AI::HL::STP::draw_ui(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
