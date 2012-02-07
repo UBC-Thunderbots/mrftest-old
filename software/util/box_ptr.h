@@ -14,7 +14,7 @@ namespace std {
 	 *
 	 * \tparam T the type of object pointed to.
 	 */
-	template<typename T> class less<BoxPtr<T> > {
+	template<typename T> class less<BoxPtr<T>> {
 		public:
 			/**
 			 * \brief Compares two pointers.
@@ -25,9 +25,7 @@ namespace std {
 			 *
 			 * \return \c true if \p x should precede \p y in an ordered container, or \c false if not.
 			 */
-			bool operator()(const BoxPtr<T> &x, const BoxPtr<T> &y) const {
-				return cmp(x.ptr, y.ptr);
-			}
+			bool operator()(const BoxPtr<T> &x, const BoxPtr<T> &y) const;
 
 		private:
 			const std::less<T *> cmp;
@@ -66,13 +64,12 @@ template<typename T> class BoxPtr {
 		/**
 		 * \brief Constructs a new, null pointer.
 		 */
-		inline BoxPtr();
-		~BoxPtr() { ptr = reinterpret_cast<T*>(1); valid = reinterpret_cast<bool*>(2); }
+		BoxPtr();
 
 		/**
 		 * \brief Copies an existing pointer.
 		 */
-		template<typename U> inline BoxPtr(const BoxPtr<U> &copyref);
+		template<typename U> BoxPtr(const BoxPtr<U> &copyref);
 
 		/**
 		 * \brief Assigns a pointer to this pointer.
@@ -81,41 +78,45 @@ template<typename T> class BoxPtr {
 		 *
 		 * \return this pointer.
 		 */
-		inline BoxPtr<T> &operator=(const BoxPtr<T> &assgref);
+		BoxPtr<T> &operator=(const BoxPtr<T> &assgref);
 
 		/**
 		 * \brief Dereferences the pointer.
 		 *
 		 * \return the underlying pointer.
 		 */
-		inline T *operator->() const;
+		T *operator->() const;
 
 		/**
 		 * \brief Sets the pointer to null.
 		 */
-		inline void reset();
+		void reset();
 
 		/**
 		 * \brief Checks whether the pointer points to a valid object.
 		 *
 		 * \return \c true if the pointer points to a valid object, or \c false if the pointer is null or points to an invalid object.
 		 */
-		inline operator bool() const;
+		explicit operator bool() const;
 
 	private:
 		T *ptr;
 		const bool *valid;
 
-		inline BoxPtr(T *p, const bool *valid);
+		BoxPtr(T *p, const bool *valid);
 
 		template<typename U> friend class BoxPtr;
 		template<typename U, std::size_t N> friend class BoxArray;
-		friend class std::less<BoxPtr<T> >;
+		friend class std::less<BoxPtr<T>>;
 		friend bool operator==<>(const BoxPtr<T> &, const BoxPtr<T> &);
 		friend bool operator!=<>(const BoxPtr<T> &, const BoxPtr<T> &);
 };
 
 
+
+template<typename T> bool std::less<BoxPtr<T>>::operator()(const BoxPtr<T> &x, const BoxPtr<T> &y) const {
+	return cmp(x.ptr, y.ptr);
+}
 
 template<typename T> bool operator==(const BoxPtr<T> &x, const BoxPtr<T> &y) {
 	return x.ptr == y.ptr;

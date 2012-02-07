@@ -166,7 +166,7 @@ bool Predicates::BallerCanPass::compute(const World &world) {
 	if (!baller || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
-	return Evaluation::select_passee(world);
+	return !!Evaluation::select_passee(world);
 }
 
 Predicates::BallerCanPass Predicates::baller_can_pass;

@@ -29,12 +29,12 @@ template<typename T, std::size_t N> class BoxArray : public NonCopyable {
 		/**
 		 * \brief Constructs a new BoxArray with no objects in the boxes.
 		 */
-		inline BoxArray();
+		BoxArray();
 
 		/**
 		 * \brief Destroys a BoxArray.
 		 */
-		inline ~BoxArray();
+		~BoxArray();
 
 		/**
 		 * \brief Fetches a pointer to the object at a particular location.
@@ -43,7 +43,7 @@ template<typename T, std::size_t N> class BoxArray : public NonCopyable {
 		 *
 		 * \return a pointer to the element.
 		 */
-		inline BoxPtr<T> operator[](std::size_t i) const;
+		BoxPtr<T> operator[](std::size_t i) const;
 
 		/**
 		 * \brief Fills a box at a particular location with a newly-constructed element.
@@ -56,7 +56,7 @@ template<typename T, std::size_t N> class BoxArray : public NonCopyable {
 		 *
 		 * \param[in] args the parameters to pass to the object's constructor.
 		 */
-		template<typename ... Args> inline void create(std::size_t i, Args ... args);
+		template<typename ... Args> void create(std::size_t i, Args ... args);
 
 		/**
 		 * \brief Empties the box at a particular location.
@@ -65,7 +65,7 @@ template<typename T, std::size_t N> class BoxArray : public NonCopyable {
 		 *
 		 * \param[in] i the index of the element to destroy.
 		 */
-		inline void destroy(std::size_t i);
+		void destroy(std::size_t i);
 
 	private:
 		bool valid[N];
@@ -76,7 +76,7 @@ template<typename T, std::size_t N> class BoxArray : public NonCopyable {
 
 template<typename T, std::size_t N> BoxArray<T, N>::BoxArray() {
 	std::fill(valid, valid + N, false);
-	buffer = reinterpret_cast<T *>(BoxArrayUtils::allocate_aligned_memory(N * sizeof(T)));
+	buffer = static_cast<T *>(BoxArrayUtils::allocate_aligned_memory(N * sizeof(T)));
 	std::memset(buffer, 0, N * sizeof(T));
 }
 
