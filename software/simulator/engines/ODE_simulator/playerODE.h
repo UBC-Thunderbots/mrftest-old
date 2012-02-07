@@ -14,8 +14,6 @@
  */
 class PlayerODE : public Simulator::Player {
 	public:
-		double x_len;
-		double y_len;
 		dReal momentInertia;
 
 		CompoPlayerGeom p_geom;
@@ -41,8 +39,6 @@ class PlayerODE : public Simulator::Player {
 		 * Whether we are moving the robot.
 		 */
 		bool posSet;
-
-		bool player_has_ball;
 
 		/**
 		 * I don't know why we keep track of the ball ID, oh right the retarded
@@ -80,7 +76,7 @@ class PlayerODE : public Simulator::Player {
 	public:
 		void pre_tic(dReal TimeStep);
 
-		bool has_kick_set() {
+		bool has_kick_set() const {
 			return orders.kick;
 		}
 
@@ -88,7 +84,7 @@ class PlayerODE : public Simulator::Player {
 		bool execute_kick();
 
 	public:
-		bool has_chip_set() {
+		bool has_chip_set() const {
 			return orders.chip;
 		}
 

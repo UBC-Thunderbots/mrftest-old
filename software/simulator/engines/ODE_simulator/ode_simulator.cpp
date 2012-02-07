@@ -47,7 +47,7 @@ namespace {
 			dJointGroupID contactgroup;
 			// int stepSize;
 
-			bool isWall(dGeomID geom) {
+			bool isWall(dGeomID geom) const {
 				for (int i = 0; i < 4; i++) {
 					if (geom == wall[i]) { return true; }
 				}
@@ -197,13 +197,6 @@ namespace {
 			void handleBallCollisionWithGround(dGeomID o1, dGeomID o2) {
 				dReal frict = MU * 12;
 				int i = 0;
-				PlayerODE *robot = 0;
-
-				for (std::size_t i = 0; i < the_players.size(); i++) {
-					if (the_players[i]->has_ball()) {
-						robot = the_players[i].get();
-					}
-				}
 
 				dBodyID b1 = dGeomGetBody(o1);
 				dBodyID b2 = dGeomGetBody(o2);
@@ -227,7 +220,6 @@ namespace {
 			// if a shape interescts with the ball set the contact parameters
 
 			void handleBallCollision(dGeomID o1, dGeomID o2) {
-				unsigned int i = 0;
 				dBodyID b1 = dGeomGetBody(o1);
 				dBodyID b2 = dGeomGetBody(o2);
 				const unsigned int num_contact = 7;
@@ -242,7 +234,7 @@ namespace {
 					// handleRobotBallCollision(o1, o2);
 				} else {
 					if (unsigned int numc = dCollide(o1, o2, num_contact, &contact[0].geom, sizeof(dContact))) {
-						for (i = 0; i < numc; i++) {
+						for (unsigned int i = 0; i < numc; i++) {
 							contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
 							contact[i].surface.mu = MU;
 							contact[i].surface.soft_cfm = CFM;
@@ -260,13 +252,12 @@ namespace {
 			// robot collisions with the wall are disabled for stability
 
 			void handleWallCollision(dGeomID o1, dGeomID o2) {
-				int i = 0;
 				dBodyID b1 = dGeomGetBody(o1);
 				dBodyID b2 = dGeomGetBody(o2);
 
 				dContact contact[3];      // up to 3 contacts per box
 				if (int numc = dCollide(o1, o2, 3, &contact[0].geom, sizeof(dContact))) {
-					for (i = 0; i < numc; i++) {
+					for (int i = 0; i < numc; i++) {
 						contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce | dContactApprox1;
 						contact[i].surface.mu = 2.0;
 						contact[i].surface.soft_cfm = CFM;

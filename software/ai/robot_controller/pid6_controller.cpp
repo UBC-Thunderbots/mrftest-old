@@ -20,7 +20,7 @@ namespace {
 		public:
 			double direction[4];
 
-			void get(int *vector) {
+			void get(int *vector) const {
 				for (int i = 0; i < 4; i++) {
 					vector[i] = static_cast<int>(direction[i]);
 				}

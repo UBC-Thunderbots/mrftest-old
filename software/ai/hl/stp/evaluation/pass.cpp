@@ -267,7 +267,7 @@ Player::CPtr Evaluation::select_passee(const World &world) {
 
 		candidates.push_back(friendly.get(i));
 	}
-	if (candidates.size() == 0) {
+	if (candidates.empty()) {
 		return Player::CPtr();
 	}
 	random_shuffle(candidates.begin(), candidates.end());

@@ -43,7 +43,7 @@ Point Rect::se_corner() const {
 	return min_corner + Point(diag.x, 0);
 }
 
-bool Rect::point_inside(Point p) {
+bool Rect::point_inside(Point p) const {
 	return p.x >= min_corner.x && p.y >= min_corner.y && p.x <= min_corner.x + diag.x && p.y <= min_corner.y + diag.y;
 }
 

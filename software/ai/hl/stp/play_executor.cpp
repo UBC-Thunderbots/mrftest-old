@@ -162,7 +162,7 @@ void PlayExecutor::role_assignment() {
 
 	bool active_assigned = (curr_tactic[0]->active());
 	for (std::size_t i = 1; i < TEAM_MAX_SIZE; ++i) {
-		if (players.size() == 0) {
+		if (players.empty()) {
 			break;
 		}
 		curr_assignment[i] = curr_tactic[i]->select(players);

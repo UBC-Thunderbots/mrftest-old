@@ -107,7 +107,7 @@ class Rect {
 		 *
 		 * \return bool whether the point is inside the boundry of the rectangle
 		 */
-		bool point_inside(Point p);
+		bool point_inside(Point p) const;
 
 		/**
 		 * Tries to move all of the edges of the rectangle outwards/inwards towards the centre by "amount"

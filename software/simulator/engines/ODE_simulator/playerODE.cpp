@@ -95,7 +95,7 @@ namespace {
 /**
  * Constructor method for the robot model contained in the simulator
  */
-PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, dReal ups_per_tick) : p_geom(eworld, dspace) {
+PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, dReal ups_per_tick) : p_geom(eworld, dspace), posSet(false) {
 	orders.kick = false;
 	orders.chip = false;
 	std::fill(&orders.wheel_speeds[0], &orders.wheel_speeds[4], 0);

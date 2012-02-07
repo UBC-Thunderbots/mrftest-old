@@ -83,7 +83,7 @@ namespace {
 
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 				ctx->set_source_rgb(1, 0.5, 0.5);
-				if (path_points.size() != 0) {
+				if (!path_points.empty()) {
 					ctx->move_to(path_points.begin()->x, path_points.begin()->y);
 				}
 				for (std::vector<Point>::iterator iter = path_points.begin(); iter < path_points.end(); ++iter) {

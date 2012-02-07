@@ -27,7 +27,7 @@ namespace {
 			}
 	};
 
-	PenaltyGoalie::PenaltyGoalie(const World &world) : Tactic(world, true) {
+	PenaltyGoalie::PenaltyGoalie(const World &world) : Tactic(world, true), goto_target1(false) {
 		old_des = Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, -0.8 * Robot::MAX_RADIUS);
 	}
 

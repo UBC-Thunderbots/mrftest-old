@@ -66,7 +66,7 @@ Glib::NodeTree<Point> *RRTPlanner::nearest(Glib::NodeTree<Point> *rrt_tree, Poin
 	node_queue.push_back(rrt_tree);
 
 	// iterate through all the nodes in the tree, finding which is closest to the target
-	while (node_queue.size() > 0) {
+	while (!node_queue.empty()) {
 		curr_node = node_queue.back();
 		node_queue.pop_back();
 
@@ -179,7 +179,7 @@ std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool pos
 
 	// just use the current player position as the destination if we are within the
 	// threshold already
-	if (final_points.size() == 0) {
+	if (final_points.empty()) {
 		final_points.push_back(player->position());
 	} else if (valid_path(final_points[final_points.size() - 1], player->destination().first, world, player) && player->type() == AI::Flags::MoveType::NORMAL) {
 		// go exactly to the destination point if we are able

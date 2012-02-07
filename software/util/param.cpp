@@ -75,7 +75,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 
 			// Link my children with respect to sibling and parent relationships.
 			for (std::size_t i = 0; i < children.size(); ++i) {
-				children[i]->link(i, i < children.size() - 1 ? children[i + 1] : 0, i ? children[i - 1] : 0, this);
+				children[i]->link(i, i < (children.size() - 1) ? children[i + 1] : 0, i ? children[i - 1] : 0, this);
 				children[i]->initialize();
 				children[i]->collate_key_clear();
 			}

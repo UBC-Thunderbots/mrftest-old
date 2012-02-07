@@ -21,7 +21,7 @@ Angle Evaluation::get_shoot_score(const World &world, Player::Ptr player, bool u
 
 	std::vector<std::pair<Point, Angle> > openings = AI::HL::Util::calc_best_shot_all(world, player, radius);
 
-	for (std::vector<std::pair<Point, Angle> >::iterator it = openings.begin(); it != openings.end(); it++) {
+	for (std::vector<std::pair<Point, Angle> >::iterator it = openings.begin(); it != openings.end(); ++it) {
 		Angle centre_ang = player->orientation();
 		Angle ang_1 = (it->first - player->position()).orientation() + it->second / 2.0;
 		Angle ang_2 = (it->first - player->position()).orientation() - it->second / 2.0;

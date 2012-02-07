@@ -18,14 +18,12 @@ Coordinate::Coordinate(const World &world, const Point &pos, YType y_type, Origi
 
 Point Coordinate::position() const {
 	Point p = pos;
-	bool flip_y = false;
 	double center = 0.0;
 
 	switch (y_type) {
 		case YType::BALL:
 			if (world->ball().position().y < 0) {
 				p.y *= -1;
-				flip_y = true;
 			}
 			break;
 
@@ -35,7 +33,6 @@ Point Coordinate::position() const {
 			}
 			if (center < 0.0) {
 				p.y *= -1;
-				flip_y = true;
 			}
 			break;
 
@@ -45,7 +42,6 @@ Point Coordinate::position() const {
 			}
 			if (center < 0.0) {
 				p.y *= -1;
-				flip_y = true;
 			}
 			break;
 

@@ -152,7 +152,7 @@ namespace {
 				}
 
 				path.push_back(std::make_pair(std::make_pair(end->xy, player->destination().second), world.monotonic_time()));
-				for (std::vector<PathPoint::Ptr>::iterator it = add_on.begin(); it != add_on.end(); it++) {
+				for (std::vector<PathPoint::Ptr>::iterator it = add_on.begin(); it != add_on.end(); ++it) {
 					path.push_back(std::make_pair(std::make_pair((*it)->xy, player->destination().second), world.monotonic_time()));
 				}
 
@@ -164,12 +164,12 @@ namespace {
 			open_set.clear();
 			std::vector<Point> p = get_obstacle_boundaries(world, player, added_flags);
 			std::vector<Point> end_near = get_destination_alternatives(end->xy, world, player);
-			for (std::vector<Point>::iterator it = end_near.begin(); it != end_near.end(); it++) {
+			for (std::vector<Point>::iterator it = end_near.begin(); it != end_near.end(); ++it) {
 				p.push_back(*it);
 			}
 			search_space.push_back(start);
 			search_space.push_back(end);
-			for (std::vector<Point>::const_iterator it = p.begin(); it != p.end(); it++) {
+			for (std::vector<Point>::const_iterator it = p.begin(); it != p.end(); ++it) {
 				PathPoint::Ptr temp = std::make_shared<PathPoint>(*it);
 				search_space.push_back(temp);
 			}
@@ -181,14 +181,14 @@ namespace {
 				open_set.erase(open_set.begin());
 				if (cur == end) {
 					std::vector<PathPoint::Ptr> p = cur->getParents();
-					for (std::vector<PathPoint::Ptr>::iterator it = p.begin(); it != p.end(); it++) {
+					for (std::vector<PathPoint::Ptr>::iterator it = p.begin(); it != p.end(); ++it) {
 						if (*it != start) {
 							path.push_back(std::make_pair(std::make_pair((*it)->xy, player->destination().second), world.monotonic_time()));
 						}
 					}
 					path.push_back(std::make_pair(std::make_pair(cur->xy, player->destination().second), world.monotonic_time()));
 
-					for (std::vector<PathPoint::Ptr>::iterator it = add_on.begin(); it != add_on.end(); it++) {
+					for (std::vector<PathPoint::Ptr>::iterator it = add_on.begin(); it != add_on.end(); ++it) {
 						path.push_back(std::make_pair(std::make_pair((*it)->xy, player->destination().second), world.monotonic_time()));
 					}
 
@@ -197,7 +197,7 @@ namespace {
 					break;
 				}
 				cur->closed = true;
-				for (std::vector<PathPoint::Ptr>::const_iterator it = search_space.begin(); it != search_space.end(); it++) {
+				for (std::vector<PathPoint::Ptr>::const_iterator it = search_space.begin(); it != search_space.end(); ++it) {
 					if (!(*it)->closed && valid_path(cur->xy, (*it)->xy, world, player, added_flags)) {
 						double g = cur->g + (cur->xy - (*it)->xy).len();
 						open_set.insert(*it);
@@ -210,13 +210,13 @@ namespace {
 			}
 			if (!ans) {
 				std::sort(search_space.begin(), search_space.end(), [](PathPoint::Ptr a, PathPoint::Ptr b) { return (a->xy - end->xy).len() < (b->xy - end->xy).len(); });
-				for (std::vector<PathPoint::Ptr>::const_iterator it1 = search_space.begin(); it1 != search_space.end(); it1++) {
+				for (std::vector<PathPoint::Ptr>::const_iterator it1 = search_space.begin(); it1 != search_space.end(); ++it1) {
 					PathPoint::Ptr cur = *it1;
 					std::vector<PathPoint::Ptr> p = cur->getParents();
 					if (p.size() <= 0) {
 						continue;
 					}
-					for (std::vector<PathPoint::Ptr>::const_iterator it = p.begin(); it != p.end(); it++) {
+					for (std::vector<PathPoint::Ptr>::const_iterator it = p.begin(); it != p.end(); ++it) {
 						if (*it != start) {
 							path.push_back(std::make_pair(std::make_pair((*it)->xy, player->destination().second), world.monotonic_time()));
 						}

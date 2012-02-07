@@ -64,7 +64,7 @@ namespace {
 	const double RPM_PER_VOLT = 2900;
 }
 
-CompoPlayerGeom::CompoPlayerGeom(dWorldID eworld, dSpaceID dspace) : PlayerGeom(eworld, dspace) {
+CompoPlayerGeom::CompoPlayerGeom(dWorldID eworld, dSpaceID dspace) : PlayerGeom(eworld, dspace), has_ball_now(false) {
 	double x_pos = 0.0;
 	double y_pos = 0.0;
 	double y_len = 0.1;
@@ -176,7 +176,6 @@ bool hasContactWithFace(dVector3 pos, dGeomID geom) {
  *
  */
 void CompoPlayerGeom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup) {
-	int i = 0;
 	dBodyID b1 = dGeomGetBody(o1);
 	dBodyID b2 = dGeomGetBody(o2);
 	dContact contact[3];      // up to 3 contacts per box
@@ -190,7 +189,7 @@ void CompoPlayerGeom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointGro
 	// std::cout<<dGeomGetPosition (dribblerBar)[2]<<' ' <<dGeomGetPosition (ballGeom)[2]<<std::endl;
 
 	if (int numc = dCollide(o1, o2, 3, &contact[0].geom, sizeof(dContact))) {
-		for (i = 0; i < numc; i++) {
+		for (int i = 0; i < numc; i++) {
 			bool robotDribbler = dribblerBar == o1 || dribblerBar == o2;
 			bool robotCollided = dBodyGetPosition(dGeomGetBody(ballGeom))[2] > DRIBBLER_HEIGHT && hasContactPenetration(contact[i].geom.pos, robotGeom);
 			bool face_contact = hasContactWithFace(contact[i].geom.pos, robotGeom);
@@ -309,13 +308,12 @@ void CompoPlayerGeom::dribble(double) {
  * if a shape interescts with the wall set the contact parameters
  */
 void CompoPlayerGeom::handleWallCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup) {
-	int i = 0;
 	dBodyID b1 = dGeomGetBody(o1);
 	dBodyID b2 = dGeomGetBody(o2);
 
 	dContact contact[3];      // up to 3 contacts per box
 	if (int numc = dCollide(o1, o2, 3, &contact[0].geom, sizeof(dContact))) {
-		for (i = 0; i < numc; i++) {
+		for (int i = 0; i < numc; i++) {
 			contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce | dContactApprox1;
 			contact[i].surface.mu = 2.0;
 			contact[i].surface.soft_cfm = CFM;

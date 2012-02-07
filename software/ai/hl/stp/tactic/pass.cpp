@@ -151,7 +151,7 @@ namespace {
 				// vector of Points where passer ray intersects circle described above
 				std::vector<Point> Passer_ray_target_region_intersect = line_circle_intersect(passer_info.kicker_target, target_radius, passer_info.kicker_location, passer_info.kicker_location + passer_dir);
 
-				if (Passer_ray_target_region_intersect.size() == 0) { // passer is not within passing tolerance
+				if (Passer_ray_target_region_intersect.empty()) { // passer is not within passing tolerance
 					double distA = closest_lineseg_point(circle_outside_ray_intersectA, passer_info.kicker_location, passer_info.kicker_location + passer_dir).len();
 					double distB = closest_lineseg_point(circle_outside_ray_intersectB, passer_info.kicker_location, passer_info.kicker_location + passer_dir).len();
 					Point passee_goto = circle_outside_ray_intersectA;

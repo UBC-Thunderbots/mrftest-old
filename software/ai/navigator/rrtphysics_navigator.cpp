@@ -76,7 +76,7 @@ namespace {
 
 			// just use the current player position as the destination if we are within the
 			// threshold already
-			if (pathPoints.size() == 0) {
+			if (pathPoints.empty()) {
 				path.push_back(std::make_pair(std::make_pair(player->position(), destOrientation), finalTime));
 			}
 

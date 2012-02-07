@@ -95,10 +95,6 @@ double BallODE::get_height() const {
     }
  */
 
-double BallODE::getRadius() {
-	return dradius;
-}
-
 Point BallODE::position() const {
 	Point p;
 	const dReal *t = dBodyGetPosition(body);

@@ -81,7 +81,7 @@ namespace {
 				players.push_back(friendly.get(i));
 			}
 
-			if (players.size() == 0) {
+			if (players.empty()) {
 				return;
 			}
 

@@ -28,8 +28,6 @@ class BallODE : public Simulator::Ball {
 		Point acceleration() const;
 		double get_height() const;
 
-		double getRadius();
-
 		void position(const Point &pos);
 		void velocity(const Point &vel);
 
@@ -40,7 +38,6 @@ class BallODE : public Simulator::Ball {
 
 	private:
 		Point the_position, the_velocity;
-		double dradius;
 };
 
 #endif
