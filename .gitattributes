@@ -397,6 +397,7 @@ software/convertlog/main.cpp -text
 software/convertlog/v1v2/convert.cpp -text
 software/convertlog/v1v2/convert.h -text
 software/convertlog/v1v2/tags.h -text
+software/cppcheck.suppress -text
 software/cppunit/geom/angle.cpp -text
 software/cppunit/geom/util.cpp -text
 software/cppunit/main.cpp -text
