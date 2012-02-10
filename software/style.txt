@@ -112,6 +112,8 @@ An attempt should be made to ensure that classes follow basic const-correctness 
 
 When writing constructors, non-static member variables shall as much as possible be initialized through the use of initializer lists, not through assignment statements in the constructor body. It is permitted to omit the initializer list entry for an object member whose default constructor is desired, but remember that primitive members are NOT zero-filled unless explicitly mentioned in the initializer list. If extensive code is needed to compute the initial value of a member, consider whether that code should be moved to a file-scope global function which can itself be invoked in the initializer list.
 
+All constructors shall be marked with the “explicit” keyword. In the case of a one-argument constructor, this prevents it from being used as an implicit type conversion; in the case of other constructors, it acts as a safeguard in case arguments are later added or removed. This rule shall be ignored for constructors that actually SHOULD be used as implicit conversions; by default, however, add the keyword.
+
 When a function returns an object, you need to keep the object around for the duration of the scope that invoked the function but no longer, and you do not need to perform any non-const operations on the object, use a const reference to the return value:
 
 	void caller() {
