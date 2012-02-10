@@ -18,7 +18,6 @@
 #include <cassert>
 #include <cstring>
 #include <locale>
-#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <sys/socket.h>
@@ -336,19 +335,25 @@ XBeeBackend::XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, unsigned 
 
 	clock.signal_tick.connect(sigc::mem_fun(this, &XBeeBackend::tick));
 
+	addrinfo hints;
+	std::memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_protocol = IPPROTO_UDP;
+	hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
+	AddrInfoSet ai(0, "10002", &hints);
+
 	vision_socket.set_blocking(false);
+
 	const int one = 1;
 	if (setsockopt(vision_socket.fd(), SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
 		throw SystemError("setsockopt(SO_REUSEADDR)", errno);
 	}
-	SockAddrs sa;
-	sa.in.sin_family = AF_INET;
-	sa.in.sin_addr.s_addr = get_inaddr_any();
-	encode_u16(&sa.in.sin_port, 10002);
-	std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
-	if (bind(vision_socket.fd(), &sa.sa, sizeof(sa.in)) < 0) {
+
+	if (bind(vision_socket.fd(), ai.first()->ai_addr, ai.first()->ai_addrlen) < 0) {
 		throw SystemError("bind(:10002)", errno);
 	}
+
 	ip_mreqn mcreq;
 	mcreq.imr_multiaddr.s_addr = inet_addr("224.5.23.2");
 	mcreq.imr_address.s_addr = get_inaddr_any();
@@ -356,6 +361,7 @@ XBeeBackend::XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, unsigned 
 	if (setsockopt(vision_socket.fd(), IPPROTO_IP, IP_ADD_MEMBERSHIP, &mcreq, sizeof(mcreq)) < 0) {
 		LOG_INFO("Cannot join multicast group 224.5.23.2 for vision data.");
 	}
+
 	Glib::signal_io().connect(sigc::mem_fun(this, &XBeeBackend::on_vision_readable), vision_socket.fd(), Glib::IO_IN);
 
 	refbox.signal_packet.connect(sigc::mem_fun(this, &XBeeBackend::on_refbox_packet));

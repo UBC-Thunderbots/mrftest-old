@@ -1,33 +1,47 @@
 #ifndef UTIL_SOCKADDRS_H
 #define UTIL_SOCKADDRS_H
 
+#include "util/noncopyable.h"
+#include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 
 /**
- * Allows easy access to different types of network socket address structures without the need for casts.
+ * \brief Stores a set of address information structures returned from a \code getaddrinfo query.
  */
-union SockAddrs {
-	/**
-	 * The generic address structure, for use with functions like \c bind() and \c connect().
-	 */
-	sockaddr sa;
+class AddrInfoSet : public NonCopyable {
+	public:
+		/**
+		 * \brief Invokes \code getaddrinfo and stores the result.
+		 *
+		 * \param[in] node the node name to look up.
+		 *
+		 * \param[in] service the service name to look up.
+		 *
+		 * \param[in] hints the hints structure to use.
+		 */
+		AddrInfoSet(const char *node, const char *service, const addrinfo *hints);
 
-	/**
-	 * The IPv4 address structure.
-	 */
-	sockaddr_in in;
+		/**
+		 * \brief Invokes \code freeaddrinfo.
+		 */
+		~AddrInfoSet();
 
-	/**
-	 * The UNIX-domain address structure.
-	 */
-	sockaddr_un un;
+		/**
+		 * \brief Returns the first \c addrinfo structure.
+		 *
+		 * \return the first structure.
+		 */
+		const addrinfo *first() const;
+
+	private:
+		addrinfo *info;
 };
 
 /**
- * Returns INADDR_ANY properly translated to network byte order, avoiding the "old style cast" warning issued by using the constant directly.
+ * \brief Returns INADDR_ANY properly translated to network byte order, avoiding the "old style cast" warning issued by using the constant directly.
  *
  * \return \c htonl(INADDR_ANY).
  */

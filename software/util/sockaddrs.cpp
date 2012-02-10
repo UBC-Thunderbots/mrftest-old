@@ -2,10 +2,24 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
 #include "util/sockaddrs.h"
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
+#include "util/exception.h"
 #include <sys/types.h>
+
+AddrInfoSet::AddrInfoSet(const char *node, const char *service, const addrinfo *hints) {
+	info = 0;
+	int rc = getaddrinfo(node, service, hints, &info);
+	if (rc != 0) {
+		throw EAIError("getaddrinfo", rc);
+	}
+}
+
+AddrInfoSet::~AddrInfoSet() {
+	freeaddrinfo(info);
+}
+
+const addrinfo *AddrInfoSet::first() const {
+	return info;
+}
 
 in_addr_t get_inaddr_any() {
 	return htonl(INADDR_ANY);

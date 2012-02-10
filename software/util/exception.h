@@ -45,5 +45,25 @@ class FileNotFoundError : public SystemError {
 		FileNotFoundError();
 };
 
+/**
+ * \brief An exception that corresponds to a \code getaddrinfo or \code getnameinfo failure code.
+ */
+class EAIError : public std::runtime_error {
+	public:
+		/**
+		 * The error code.
+		 */
+		const int error_code;
+
+		/**
+		 * Constructs a new SystemError for a specific error code.
+		 *
+		 * \param[in] call the system call that failed.
+		 *
+		 * \param[in] err the error code.
+		 */
+		EAIError(const char *call, int err);
+};
+
 #endif
 

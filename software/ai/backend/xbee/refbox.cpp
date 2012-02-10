@@ -5,8 +5,8 @@
 #include "util/exception.h"
 #include "util/sockaddrs.h"
 #include <cstring>
-#include <arpa/inet.h>
 #include <netinet/in.h>
+#include <netinet/ip.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 
@@ -16,7 +16,15 @@ static_assert(RefboxPacket::BUFFER_SIZE == 6, "Bitcodec builds wrong refbox pack
 
 namespace {
 	FileDescriptor create_socket(unsigned int multicast_interface) {
-		FileDescriptor fd(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP));
+		addrinfo hints;
+		std::memset(&hints, 0, sizeof(hints));
+		hints.ai_family = AF_INET;
+		hints.ai_socktype = SOCK_DGRAM;
+		hints.ai_protocol = 0;
+		hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
+		AddrInfoSet ai(0, "10001", &hints);
+
+		FileDescriptor fd(FileDescriptor::create_socket(ai.first()->ai_family, ai.first()->ai_socktype, ai.first()->ai_protocol));
 
 		fd.set_blocking(false);
 
@@ -25,12 +33,7 @@ namespace {
 			throw SystemError("setsockopt(SO_REUSEADDR)", errno);
 		}
 
-		SockAddrs sa;
-		sa.in.sin_family = AF_INET;
-		sa.in.sin_addr.s_addr = get_inaddr_any();
-		encode_u16(&sa.in.sin_port, 10001);
-		std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
-		if (bind(fd.fd(), &sa.sa, sizeof(sa.in)) < 0) {
+		if (bind(fd.fd(), ai.first()->ai_addr, ai.first()->ai_addrlen) < 0) {
 			throw SystemError("bind(:10001)", errno);
 		}
 
