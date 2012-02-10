@@ -17,7 +17,7 @@ namespace AI {
 				/**
 				 * Constructs a new TunableController.
 				 */
-				TunableController();
+				explicit TunableController();
 
 				/**
 				 * Destroys a TunableController.

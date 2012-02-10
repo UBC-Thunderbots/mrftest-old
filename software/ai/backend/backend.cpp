@@ -23,9 +23,6 @@ void AI::BE::Robot::pre_tick() {
 	avoid_distance_ = AI::Flags::AvoidDistance::MEDIUM;
 }
 
-AI::BE::Player::Player() : moved(false), destination_(Point(), Angle::ZERO), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
-}
-
 void AI::BE::Player::move(Point dest, Angle ori, Point vel) {
 	if (!std::isfinite(dest.x) || !std::isfinite(dest.y)) {
 		LOG_ERROR("NaN or ±∞ destination");
@@ -115,7 +112,7 @@ void AI::BE::Player::path(const std::vector<std::pair<std::pair<Point, Angle>, t
 	path_impl(p);
 }
 
-Backend::Backend() : defending_end_(FieldEnd::WEST), friendly_colour_(AI::Common::Team::Colour::YELLOW), playtype_(AI::Common::PlayType::HALT), playtype_override_(AI::Common::PlayType::NONE), ball_filter_(0) {
+AI::BE::Player::Player() : moved(false), destination_(Point(), Angle::ZERO), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
 }
 
 void AI::BE::Player::pre_tick() {
@@ -124,6 +121,9 @@ void AI::BE::Player::pre_tick() {
 	flags_ = 0;
 	move_type_ = AI::Flags::MoveType::NORMAL;
 	move_prio_ = AI::Flags::MovePrio::MEDIUM;
+}
+
+Backend::Backend() : defending_end_(FieldEnd::WEST), friendly_colour_(AI::Common::Team::Colour::YELLOW), playtype_(AI::Common::PlayType::HALT), playtype_override_(AI::Common::PlayType::NONE), ball_filter_(0) {
 }
 
 void Backend::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {

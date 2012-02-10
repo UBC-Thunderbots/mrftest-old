@@ -51,7 +51,7 @@ namespace {
 		public:
 			void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity);
 			void clear();
-			TunablePID2Controller(World &world, Player::Ptr plr);
+			explicit TunablePID2Controller(World &world, Player::Ptr plr);
 			void set_params(const std::vector<double> &params) {
 				this->param = params;
 			}

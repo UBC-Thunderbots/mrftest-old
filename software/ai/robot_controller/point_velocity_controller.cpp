@@ -29,7 +29,7 @@ namespace {
 
 	class PointVelocityController : public RobotController, public TunableController {
 		public:
-			PointVelocityController(World &world, Player::Ptr player) : RobotController(world, player), param(param_default) {
+			explicit PointVelocityController(World &world, Player::Ptr player) : RobotController(world, player), param(param_default) {
 			}
 
 			void tick() {

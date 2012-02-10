@@ -32,7 +32,7 @@ namespace {
 
 	class PathController : public RobotController, public TunableController {
 		public:
-			PathController(World &world, Player::Ptr player) : RobotController(world, player), param(param_default) {
+			explicit PathController(World &world, Player::Ptr player) : RobotController(world, player), param(param_default) {
 			}
 
 			void tick() {

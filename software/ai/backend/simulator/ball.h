@@ -20,7 +20,7 @@ namespace AI {
 					 *
 					 * \param[in] be the backend containing the ball.
 					 */
-					Ball(Backend &be);
+					explicit Ball(Backend &be);
 
 					/**
 					 * Pushes a new position datum into the ball and locks the predictors.

@@ -92,10 +92,10 @@ namespace {
 			double angular_direction;
 			static const double WHEEL_MATRIX[4][3];
 
-			Vector3() : cartesian_direction(0, 0), angular_direction(0.0) {
+			explicit Vector3() : cartesian_direction(0, 0), angular_direction(0.0) {
 			}
 
-			Vector3(const Point &cart, const double &angle) : cartesian_direction(cart), angular_direction(angle) {}
+			explicit Vector3(const Point &cart, const double &angle) : cartesian_direction(cart), angular_direction(angle) {}
 
 			Vector3 operator*(double scale_value) const {
 				return Vector3(cartesian_direction * scale_value, angular_direction * scale_value);
@@ -136,7 +136,7 @@ namespace {
 			void tick();
 			void move(const Point &new_position, Angle new_orientation, timespec time_of_arrival, int(&wheel_speeds)[4]);
 			void clear();
-			PID6Controller(World &world, Player::Ptr plr);
+			explicit PID6Controller(World &world, Player::Ptr plr);
 
 		protected:
 			Vector4 prev_speed;

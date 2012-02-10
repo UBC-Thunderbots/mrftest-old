@@ -79,7 +79,7 @@ namespace AI {
 				 *
 				 * \param[in] player the player to control.
 				 */
-				RobotController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
+				explicit RobotController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
 		};
 
 		/**
@@ -119,7 +119,7 @@ namespace AI {
 				 *
 				 * \param[in] player the player to control.
 				 */
-				OldRobotController2(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
+				explicit OldRobotController2(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
 
 			private:
 				void tick();
@@ -157,7 +157,7 @@ namespace AI {
 				 *
 				 * \param[in] player the player to control.
 				 */
-				OldRobotController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
+				explicit OldRobotController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
 
 			private:
 				void move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]);
@@ -198,7 +198,7 @@ namespace AI {
 				 *
 				 * \param[in] name a human-readable name for the factory.
 				 */
-				RobotControllerFactory(const char *name);
+				explicit RobotControllerFactory(const char *name);
 		};
 	}
 }
@@ -212,7 +212,7 @@ namespace AI {
 	namespace { \
 		class cls##ControllerFactory : public RobotControllerFactory { \
 			public: \
-				cls##ControllerFactory(); \
+				explicit cls##ControllerFactory(); \
 				std::unique_ptr<RobotController> create_controller(World &, Player::Ptr) const; \
 		}; \
 	} \

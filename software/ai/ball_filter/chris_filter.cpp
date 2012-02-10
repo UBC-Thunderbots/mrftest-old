@@ -18,7 +18,7 @@ namespace {
 			Point centre;
 			double certainty;
 
-			Circle(const Point &centre, double certainty) : centre(centre), certainty(certainty) {
+			explicit Circle(const Point &centre, double certainty) : centre(centre), certainty(certainty) {
 			}
 	};
 
@@ -28,7 +28,7 @@ namespace {
 
 	class ChrisFilter : public BallFilter {
 		public:
-			ChrisFilter() : BallFilter("Chris's Filter") {
+			explicit ChrisFilter() : BallFilter("Chris's Filter") {
 				circles.push_back(Circle(Point(), DELETE_THRESHOLD));
 			}
 

@@ -17,7 +17,7 @@ namespace {
 
 			void clear();
 
-			TunablePIDController(AI::RC::W::World &world, AI::RC::W::Player::Ptr plr);
+			explicit TunablePIDController(AI::RC::W::World &world, AI::RC::W::Player::Ptr plr);
 
 			void set_params(const std::vector<double> &params) {
 				this->param = params;

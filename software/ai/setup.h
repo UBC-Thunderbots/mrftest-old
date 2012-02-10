@@ -41,7 +41,7 @@ namespace AI {
 			/**
 			 * \brief Loads the cached setup data, if available.
 			 */
-			Setup();
+			explicit Setup();
 
 			/**
 			 * \brief Saves the specified setup data into the cache file.

@@ -65,7 +65,7 @@ namespace {
 				}
 			}
 
-			ParamTreeModel() : Glib::ObjectBase(typeid(this)) {
+			explicit ParamTreeModel() : Glib::ObjectBase(typeid(this)) {
 				column_record.add(name_column);
 				column_record.add(has_bool_column);
 				column_record.add(bool_column);
@@ -248,7 +248,7 @@ namespace {
 
 	class ParamTreeView : public Gtk::TreeView {
 		public:
-			ParamTreeView() : model(ParamTreeModel::create()), name_column("Name"), value_column("Value") {
+			explicit ParamTreeView() : model(ParamTreeModel::create()), name_column("Name"), value_column("Value") {
 				set_model(model);
 
 				name_column.pack_start(name_renderer);

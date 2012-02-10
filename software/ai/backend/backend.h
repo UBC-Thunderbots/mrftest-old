@@ -71,7 +71,7 @@ namespace AI {
 				virtual void pre_tick();
 
 			protected:
-				Robot();
+				explicit Robot();
 
 			private:
 				mutable AI::Flags::AvoidDistance avoid_distance_;
@@ -91,8 +91,6 @@ namespace AI {
 				 * \brief A pointer to a const Player.
 				 */
 				typedef BoxPtr<const Player> CPtr;
-
-				Player();
 
 				/**
 				 * \brief Returns the speeds of the four wheels as requested by the RobotController.
@@ -130,6 +128,7 @@ namespace AI {
 				AI::Flags::MoveType move_type_;
 				AI::Flags::MovePrio move_prio_;
 
+				explicit Player();
 				virtual void kick_impl(double speed, Angle angle) = 0;
 				virtual void autokick_impl(double speed, Angle angle) = 0;
 				virtual void path_impl(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p) = 0;
@@ -474,7 +473,7 @@ namespace AI {
 				/**
 				 * \brief Constructs a new Backend.
 				 */
-				Backend();
+				explicit Backend();
 
 				/**
 				 * \brief Allows setting the current play type.
@@ -524,7 +523,7 @@ namespace AI {
 				 *
 				 * \param[in] name a human-readable name for this Backend.
 				 */
-				BackendFactory(const char *name);
+				explicit BackendFactory(const char *name);
 		};
 	}
 }

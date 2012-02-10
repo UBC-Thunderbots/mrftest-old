@@ -33,7 +33,7 @@ namespace AI {
 					/**
 					 * \brief Constructs a new GenericTeam.
 					 */
-					GenericTeam() : score_prop(0) {
+					explicit GenericTeam() : score_prop(0) {
 					}
 
 					/**
@@ -104,7 +104,7 @@ namespace AI {
 					 *
 					 * \param[in] be the backend under which the team lives.
 					 */
-					FriendlyTeam(Backend &be) : be(be) {
+					explicit FriendlyTeam(Backend &be) : be(be) {
 					}
 
 					/**
@@ -217,7 +217,7 @@ namespace AI {
 					 *
 					 * \param[in] be the backend under which the team lives.
 					 */
-					EnemyTeam(Backend &be) : be(be) {
+					explicit EnemyTeam(Backend &be) : be(be) {
 					}
 
 					/**

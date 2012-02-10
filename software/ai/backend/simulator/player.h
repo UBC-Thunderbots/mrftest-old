@@ -33,7 +33,7 @@ namespace AI {
 					 *
 					 * \param[in] pattern the pattern index of the robot.
 					 */
-					Player(Backend &be, unsigned int pattern);
+					explicit Player(Backend &be, unsigned int pattern);
 
 					/**
 					 * Updates the state of the player and locks in its predictors.

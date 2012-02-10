@@ -17,7 +17,7 @@ using AI::Window;
 namespace {
 	class BasicControls : public Gtk::Frame {
 		public:
-			BasicControls(AI::AIPackage &ai) : Gtk::Frame("Basics"), ai(ai), table(1 + ai.backend.main_ui_controls_table_rows(), 3), playtype_label("Play type:") {
+			explicit BasicControls(AI::AIPackage &ai) : Gtk::Frame("Basics"), ai(ai), table(1 + ai.backend.main_ui_controls_table_rows(), 3), playtype_label("Play type:") {
 				table.attach(playtype_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				playtype_entry.set_editable(false);
 				table.attach(playtype_entry, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -42,7 +42,7 @@ namespace {
 
 	class BallFilterControls : public Gtk::Frame {
 		public:
-			BallFilterControls(AI::AIPackage &ai) : Gtk::Frame("Ball Filter"), ai(ai) {
+			explicit BallFilterControls(AI::AIPackage &ai) : Gtk::Frame("Ball Filter"), ai(ai) {
 				ball_filter_chooser.append_text("<Select Ball Filter>");
 				typedef AI::BF::BallFilter::Map Map;
 				const Map &m = AI::BF::BallFilter::all();
@@ -83,7 +83,7 @@ namespace {
 
 	class HighLevelControls : public Gtk::Frame {
 		public:
-			HighLevelControls(AI::AIPackage &ai) : Gtk::Frame("High Level"), ai(ai), table(2, 2), custom_controls(0) {
+			explicit HighLevelControls(AI::AIPackage &ai) : Gtk::Frame("High Level"), ai(ai), table(2, 2), custom_controls(0) {
 				high_level_chooser.append_text("<Choose High Level>");
 				typedef AI::HL::HighLevelFactory::Map Map;
 				const Map &m = AI::HL::HighLevelFactory::all();
@@ -143,7 +143,7 @@ namespace {
 
 	class NavigatorControls : public Gtk::Frame {
 		public:
-			NavigatorControls(AI::AIPackage &ai) : Gtk::Frame("Navigator"), ai(ai), table(3, 2), custom_controls(0) {
+			explicit NavigatorControls(AI::AIPackage &ai) : Gtk::Frame("Navigator"), ai(ai), table(3, 2), custom_controls(0) {
 				navigator_chooser.append_text("<Choose Navigator>");
 				typedef AI::Nav::NavigatorFactory::Map Map;
 				const Map &m = AI::Nav::NavigatorFactory::all();
@@ -204,7 +204,7 @@ namespace {
 
 	class RobotControllerControls : public Gtk::Frame {
 		public:
-			RobotControllerControls(AI::AIPackage &ai) : Gtk::Frame("Robot Controller"), ai(ai), table(3, 2), custom_controls(0) {
+			explicit RobotControllerControls(AI::AIPackage &ai) : Gtk::Frame("Robot Controller"), ai(ai), table(3, 2), custom_controls(0) {
 				rc_chooser.append_text("<Choose Robot Controller>");
 				typedef AI::RC::RobotControllerFactory::Map Map;
 				const Map &m = AI::RC::RobotControllerFactory::all();
@@ -263,7 +263,7 @@ namespace {
 
 	class SecondaryBasicControls : public Gtk::Table {
 		public:
-			SecondaryBasicControls(AI::AIPackage &ai) : Gtk::Table(3 + ai.backend.secondary_ui_controls_table_rows(), 3), ai(ai), playtype_override_label("Play type override:"), defending_end_label("Defending:"), friendly_colour_label("Colour:"), flip_end_button("X"), flip_friendly_colour_button("X") {
+			explicit SecondaryBasicControls(AI::AIPackage &ai) : Gtk::Table(3 + ai.backend.secondary_ui_controls_table_rows(), 3), ai(ai), playtype_override_label("Play type override:"), defending_end_label("Defending:"), friendly_colour_label("Colour:"), flip_end_button("X"), flip_friendly_colour_button("X") {
 				attach(playtype_override_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				playtype_override_chooser.append_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayType::NONE));
 				for (unsigned int i = 0; i < static_cast<unsigned int>(AI::Common::PlayType::NONE); ++i) {
@@ -350,7 +350,7 @@ namespace {
 
 	class VisualizerControls : public Gtk::Table {
 		public:
-			VisualizerControls(AI::AIPackage &ai, Visualizer &vis) : Gtk::Table(G_N_ELEMENTS(CONTROLS), 2), ai(ai), vis(vis) {
+			explicit VisualizerControls(AI::AIPackage &ai, Visualizer &vis) : Gtk::Table(G_N_ELEMENTS(CONTROLS), 2), ai(ai), vis(vis) {
 				unsigned int children_left = 0;
 				for (unsigned int i = 0; i < G_N_ELEMENTS(CONTROLS); ++i) {
 					buttons[i].set_label(CONTROLS[i].title);
@@ -434,7 +434,7 @@ namespace {
 
 	class VisualizerCoordinatesBar : public Gtk::Statusbar {
 		public:
-			VisualizerCoordinatesBar(Visualizer &vis) {
+			explicit VisualizerCoordinatesBar(Visualizer &vis) {
 				vis.signal_mouse_moved().connect(sigc::mem_fun(this, &VisualizerCoordinatesBar::on_move));
 			}
 

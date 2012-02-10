@@ -41,7 +41,7 @@ namespace {
 
 	class CircleController : public RobotController, public TunableController {
 		public:
-			CircleController(World &world, Player::Ptr player) : RobotController(world, player), param(param_default) {
+			explicit CircleController(World &world, Player::Ptr player) : RobotController(world, player), param(param_default) {
 			}
 
 			void tick() {

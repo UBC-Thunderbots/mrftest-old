@@ -49,7 +49,7 @@ namespace AI {
 					 *
 					 * \param[in] pattern the index of the robot's lid pattern.
 					 */
-					Robot(AI::BE::Backend &backend, unsigned int pattern);
+					explicit Robot(AI::BE::Backend &backend, unsigned int pattern);
 
 					/**
 					 * \brief Updates the robot with a new SSL-Vision packet.

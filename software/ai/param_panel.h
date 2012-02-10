@@ -8,7 +8,7 @@
 
 class ParamPanel : public Gtk::VBox {
 	public:
-		ParamPanel();
+		explicit ParamPanel();
 
 	private:
 		Gtk::ScrolledWindow scroller;

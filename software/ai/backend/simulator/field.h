@@ -11,7 +11,7 @@ namespace AI {
 			 */
 			class Field : public AI::BE::Field {
 				public:
-					Field();
+					explicit Field();
 					bool valid() const { return true; }
 					double length() const { return 6.05; }
 					double total_length() const { return 7.40; }

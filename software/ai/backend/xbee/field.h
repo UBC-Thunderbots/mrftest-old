@@ -17,7 +17,7 @@ namespace AI {
 					/**
 					 * Constructs a new Field.
 					 */
-					Field();
+					explicit Field();
 
 					/**
 					 * Updates the Field object with new geometry data from SSL-Vision or the simulator.

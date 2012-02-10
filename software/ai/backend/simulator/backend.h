@@ -51,7 +51,7 @@ namespace AI {
 					 * Constructs a new MainUIControls.
 					 * The controls are not added to a window yet.
 					 */
-					MainUIControls();
+					explicit MainUIControls();
 
 					/**
 					 * Returns the number of rows of controls.
@@ -166,7 +166,7 @@ namespace AI {
 					 *
 					 * \param[in] load_filename the initial state file name.
 					 */
-					SecondaryUIControls(const std::string &load_filename);
+					explicit SecondaryUIControls(const std::string &load_filename);
 
 					/**
 					 * Returns the number of rows of controls.
@@ -228,7 +228,7 @@ namespace AI {
 					 *
 					 * \param[in] load_filename the name of a state file to load.
 					 */
-					Backend(const std::string &load_filename);
+					explicit Backend(const std::string &load_filename);
 
 					/**
 					 * Sends a packet to the simulator.
@@ -372,7 +372,7 @@ namespace AI {
 					/**
 					 * Constructs a new BackendFactory.
 					 */
-					BackendFactory();
+					explicit BackendFactory();
 
 					void create_backend(const std::string &load_filename, unsigned int, unsigned int, std::function<void(AI::BE::Backend &)> cb) const;
 			};

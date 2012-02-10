@@ -38,7 +38,7 @@ namespace AI {
 					 *
 					 * \param[in] bot the XBee robot being driven.
 					 */
-					Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot &bot);
+					explicit Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot &bot);
 
 					/**
 					 * \brief Destroys a Player object.

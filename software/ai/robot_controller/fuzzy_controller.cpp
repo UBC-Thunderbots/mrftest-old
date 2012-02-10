@@ -15,7 +15,7 @@ namespace {
 
 			void clear();
 
-			FuzzyController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
+			explicit FuzzyController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
 
 			void set_params(const std::vector<double> &params) {
 				this->param = params;

@@ -37,7 +37,7 @@ namespace {
 		public:
 			void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity);
 			void clear();
-			PIDSimController(World &world, Player::Ptr plr);
+			explicit PIDSimController(World &world, Player::Ptr plr);
 
 		protected:
 			bool initialized;

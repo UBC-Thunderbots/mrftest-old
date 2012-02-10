@@ -28,7 +28,7 @@ namespace {
 
 	class Fuzzy2SimulatorController : public RobotController, public TunableController {
 		public:
-			Fuzzy2SimulatorController(World &world, Player::Ptr player) : RobotController(world, player), param(param_default) {
+			explicit Fuzzy2SimulatorController(World &world, Player::Ptr player) : RobotController(world, player), param(param_default) {
 			}
 
 			void tick() {

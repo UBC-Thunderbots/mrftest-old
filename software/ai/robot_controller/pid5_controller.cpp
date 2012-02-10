@@ -40,7 +40,7 @@ namespace {
 
 	class PID5Controller : public RobotController {
 		public:
-			PID5Controller(World &world, Player::Ptr plr, Gtk::Entry &std_entry);
+			explicit PID5Controller(World &world, Player::Ptr plr, Gtk::Entry &std_entry);
 
 			~PID5Controller();
 
@@ -174,7 +174,7 @@ namespace {
 
 	class PID5ControllerFactory : public RobotControllerFactory {
 		public:
-			PID5ControllerFactory() : RobotControllerFactory("PID 5") {
+			explicit PID5ControllerFactory() : RobotControllerFactory("PID 5") {
 			}
 
 			std::unique_ptr<RobotController> create_controller(World &world, Player::Ptr plr) const {

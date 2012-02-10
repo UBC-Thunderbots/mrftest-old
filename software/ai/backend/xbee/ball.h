@@ -22,7 +22,7 @@ namespace AI {
 					 *
 					 * \param[in] backend the backend the ball is part of.
 					 */
-					Ball(AI::BE::Backend &backend);
+					explicit Ball(AI::BE::Backend &backend);
 
 					/**
 					 * Updates the position of the ball using new data.

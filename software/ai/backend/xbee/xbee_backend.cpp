@@ -59,7 +59,7 @@ namespace {
 			 *
 			 * \param[in] backend the backend to which the team is attached.
 			 */
-			GenericTeam(XBeeBackend &backend);
+			explicit GenericTeam(XBeeBackend &backend);
 
 			/**
 			 * \brief Returns the number of existent robots in the team.
@@ -130,7 +130,7 @@ namespace {
 	 */
 	class XBeeFriendlyTeam : public GenericTeam<AI::BE::XBee::Player, AI::BE::Player, AI::BE::FriendlyTeam> {
 		public:
-			XBeeFriendlyTeam(XBeeBackend &backend, XBeeDongle &dongle);
+			explicit XBeeFriendlyTeam(XBeeBackend &backend, XBeeDongle &dongle);
 			unsigned int score() const;
 
 		protected:
@@ -145,7 +145,7 @@ namespace {
 	 */
 	class XBeeEnemyTeam : public GenericTeam<AI::BE::XBee::Robot, AI::BE::Robot, AI::BE::EnemyTeam> {
 		public:
-			XBeeEnemyTeam(XBeeBackend &backend);
+			explicit XBeeEnemyTeam(XBeeBackend &backend);
 			unsigned int score() const;
 
 		protected:
@@ -159,7 +159,7 @@ namespace {
 		public:
 			AI::BE::XBee::RefBox refbox;
 
-			XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, unsigned int multicast_interface);
+			explicit XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, unsigned int multicast_interface);
 			BackendFactory &factory() const;
 			const Field &field() const;
 			const Ball &ball() const;
@@ -202,7 +202,7 @@ namespace {
 
 	class XBeeBackendFactory : public BackendFactory {
 		public:
-			XBeeBackendFactory();
+			explicit XBeeBackendFactory();
 			void create_backend(const std::string &, unsigned int camera_mask, unsigned int multicast_interface, std::function<void(Backend &)> cb) const;
 	};
 }
