@@ -408,6 +408,33 @@ namespace {
 			}
 		}
 	}
+
+	// Get a path that goes beside the ball
+	AI::Nav::W::Player::Path get_path_near_ball(const AI::Nav::W::World &world, const Angle &target_ball_offset_angle) {
+		Point dest_pos;
+		Angle dest_ang;
+		const Point ball_vel = world.ball().velocity();
+		const Point ball_norm = world.ball().velocity().norm();
+		const double AVOID_DIST = 0.2;
+		const double DELTA_TIME = 1.0;
+		timespec working_time = timespec_add(world.monotonic_time(), double_to_timespec(1.0));
+		// check for the side that has a clear path, TODO
+
+		// if the robot is in behind the ball, then move up to it from the far side to the target
+		if (target_ball_offset_angle.to_degrees() > 0.0) {
+			dest_pos = world.ball().position() + ball_norm.rotate(Angle::QUARTER) * AVOID_DIST + ball_vel * DELTA_TIME;
+		} else {
+			dest_pos = world.ball().position() + ball_norm.rotate(Angle::THREE_QUARTER) * AVOID_DIST + ball_vel * DELTA_TIME;
+		}
+
+		// make the robot face against the ball direction
+		dest_ang = -ball_vel.orientation();
+
+		// assign this destination to the player
+		AI::Nav::W::Player::Path path;
+		path.push_back(std::make_pair(std::make_pair(dest_pos, dest_ang), working_time));
+		return path;
+	}
 };
 
 std::vector<Point> AI::Nav::Util::get_destination_alternatives(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
@@ -583,28 +610,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 
 	// find out whether robot is behind the ball or in front of the ball
 	if (robot_behind_ball) {
-		Point dest_pos;
-		Angle dest_ang;
-		const double AVOID_DIST = 0.2;
-		const double DELTA_TIME = 1.0;
-		timespec working_time = timespec_add(world.monotonic_time(), double_to_timespec(1.0));
-		// check for the side that has a clear path, TODO
-
-		// if the robot is in behind the ball, then move up to it from the far side to the target
-		if (target_ball_offset_angle.to_degrees() > 0.0) {
-			dest_pos = ball_pos + ball_norm.rotate(Angle::QUARTER) * AVOID_DIST + ball_vel * DELTA_TIME;
-		} else {
-			dest_pos = ball_pos + ball_norm.rotate(Angle::THREE_QUARTER) * AVOID_DIST + ball_vel * DELTA_TIME;
-		}
-
-		// make the robot face against the ball direction
-		dest_ang = -ball_vel.orientation();
-
-		// assign this destination to the player
-		AI::Nav::W::Player::Path path;
-		path.push_back(std::make_pair(std::make_pair(dest_pos, dest_ang), working_time));
-		player->path(path);
-		
+		player->path(get_path_near_ball(world, target_ball_offset_angle));
 		return true;
 	}
 
@@ -638,7 +644,7 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 		std::vector<std::pair<Point, Angle> > path_points_with_angle;
 
 		// face the final direction the whole time
-		Angle path_orientation = vertex_angle(target_pos, move_to_point, ball_pos) / 2 - ball_vel.orientation();
+		Angle path_orientation = (dir_from_target * -1).orientation();
 		path_points_with_angle.push_back(std::make_pair(player->position(), path_orientation));
 		for( unsigned int j = 0; j < path_points.size(); ++j ){
 			path_points_with_angle.push_back(std::make_pair(path_points[j], path_orientation));
@@ -669,7 +675,6 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 	// guess we have't found a possible intersecting point
 	return false;
 }
-
 
 void AI::Nav::Util::make_stationary( AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player ){
 	AI::Nav::W::Player::Path path;
