@@ -63,7 +63,11 @@ std::vector<Point> StopLocations::compute(const World &world) {
 
 	std::vector<Point> positions;
 
-	if (AI::HL::Util::point_in_friendly_defense(world.field(), ball_pos)) {
+	bool in_defense = AI::HL::Util::point_in_friendly_defense(world.field(), ball_pos);
+
+	Point def = AI::HL::Util::crop_point_to_field(world.field(), (ball_pos + goal_pos) * 0.5);
+
+	if (in_defense) {
 		// if the goal is inside the circle,
 		// then shoot the ray from the enemy goal
 
@@ -76,7 +80,10 @@ std::vector<Point> StopLocations::compute(const World &world) {
 		Point ray = (goal_pos - ball_pos).norm();
 		start = ball_pos + ray * AVOIDANCE_DIST;
 
-		positions.push_back(AI::HL::Util::crop_point_to_field(world.field(), (ball_pos + goal_pos) * 0.5));
+		Point def1 = def;
+		def1.y += Robot::MAX_RADIUS * 1.25;
+
+		positions.push_back(def1);
 	}
 
 	// calculate angle between robots
@@ -87,12 +94,19 @@ std::vector<Point> StopLocations::compute(const World &world) {
 	// the parity determines left or right
 	// we only want one of angle = 0, so start at w = 1
 	int w = 1;
-	for (std::size_t i = 0; i < NUM_PLAYERS; ++i) {
+	for (std::size_t i = 0; i < NUM_PLAYERS-2; ++i) {
 		Angle angle = delta_angle * (w / 2) * ((w % 2) ? 1 : -1);
 		Point p = ball_pos + shoot.rotate(angle);
 		++w;
 
 		positions.push_back(AI::HL::Util::crop_point_to_field(world.field(), p));
+	}
+	
+	// if we have a 6th player position it beside the defender
+	if (!in_defense){
+		Point def2 = def;
+		def2.y -= Robot::MAX_RADIUS * 1.25;
+		positions.push_back(def2);
 	}
 
 	return positions;

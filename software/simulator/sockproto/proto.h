@@ -14,7 +14,7 @@ namespace Simulator {
 		/**
 		 * The maximum number of players per team.
 		 */
-		const unsigned int MAX_PLAYERS_PER_TEAM = 10;
+		const unsigned int MAX_PLAYERS_PER_TEAM = 12;
 
 		/**
 		 * A collection of orders for a single player.

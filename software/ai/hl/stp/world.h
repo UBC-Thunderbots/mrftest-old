@@ -16,7 +16,7 @@ namespace AI {
 			/**
 			 * The max speed the ball can be kicked
 			 */
-			const double BALL_MAX_SPEED = 6.0; 
+			const double BALL_MAX_SPEED = 8.0; 
 		}
 	}
 }

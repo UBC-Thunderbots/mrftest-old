@@ -165,7 +165,7 @@ void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context>
 			for (int j = (i / 2 + 1) % 2 + 1; j <= 2 * grid_x + 1; j += 2) {
 				const double x = x1 + dx * j;
 				const double y = y1 + dy * i;
-				const Point pos = Point(x, y);
+				//const Point pos = Point(x, y);
 
 				const double score = Evaluation::offense_score(i, j);
 
