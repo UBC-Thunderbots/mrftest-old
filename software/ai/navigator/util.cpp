@@ -614,8 +614,8 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 		return true;
 	}
 
-	// if the intersection is off the field or not found for some reason, return failure
-	if (ball_bounded_pos.x == 0.0 && ball_bounded_pos.y == 0.0) {
+	// if the intersection is off the field or not found for some reason and the ball is not moving very slow, return failure
+	if ((ball.velocity().len() > CATCH_BALL_VELOCITY_THRESH) && ball_bounded_pos.x == 0.0 && ball_bounded_pos.y == 0.0) {
 		return false;
 	}
 
@@ -676,8 +676,8 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 	return false;
 }
 
-void AI::Nav::Util::make_stationary( AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player ){
+void AI::Nav::Util::make_stationary(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 	AI::Nav::W::Player::Path path;
-	path.push_back(std::make_pair( std::make_pair(player->position(), player->orientation()), world.monotonic_time() ) ) ;
+	path.push_back(std::make_pair(std::make_pair(player->position(), player->orientation()), world.monotonic_time()));
 	player->path(path);
 }
