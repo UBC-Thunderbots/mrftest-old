@@ -11,8 +11,6 @@
 #include <iostream>
 #include <unistd.h>
 
-#warning this class needs Doxygen comments in its header file
-
 namespace {
 	Angle orientationFromMatrix(const dReal *t) {
 		return Point(t[0], -t[1]).orientation();

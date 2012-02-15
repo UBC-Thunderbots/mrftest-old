@@ -7,7 +7,6 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#warning this class needs Doxygen comments in its header file
 /*
 
    ballODE.h has the following:

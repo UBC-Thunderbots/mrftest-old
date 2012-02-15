@@ -98,7 +98,6 @@ void Simulator::Team::send_tick(const timespec &ts) {
 			}
 		}
 		packet.world_state.stamp = ts;
-#warning implement scores
 		packet.world_state.friendly_score = 0;
 		packet.world_state.enemy_score = 0;
 		connection->send(packet);
