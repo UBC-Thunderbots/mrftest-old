@@ -26,7 +26,7 @@ namespace AI {
 
 					/**
 					 * How many passes for the BALL to REACH this player.
-					 * 0 - posses the ball
+					 * 0 - possess the ball
 					 * 1 - need one pass
 					 * 5 - dont bother
 					 */

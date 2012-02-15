@@ -8,8 +8,8 @@
 using namespace AI::HL::W;
 
 namespace {
-	BoolParam posses_ball_is_has_ball("posses ball is has ball", "STP/util", true);
-	DoubleParam ball_close_factor("distance for ball possesion (x ball radius)", "STP/util", 2.0, 1.0, 3.0);
+	BoolParam possess_ball_is_has_ball("possess ball is has ball", "STP/util", true);
+	DoubleParam ball_close_factor("distance for ball possession (x ball radius)", "STP/util", 2.0, 1.0, 3.0);
 }
 
 #warning hardware depending parameters should move somewhere else
@@ -135,7 +135,7 @@ bool AI::HL::Util::can_receive(World &world, const Player::Ptr passee) {
 	FriendlyTeam &friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		const Player::Ptr plr = friendly.get(i);
-		if (posses_ball(world, plr) || plr == passee) {
+		if (possess_ball(world, plr) || plr == passee) {
 			continue;
 		}
 		const Point rp = plr->position() - passee->position();
@@ -225,23 +225,23 @@ bool AI::HL::Util::ball_close(const World &world, Robot::Ptr robot) {
 	return dist.len() < (Robot::MAX_RADIUS + Ball::RADIUS * ball_close_factor);
 }
 
-bool AI::HL::Util::posses_ball(const World &world, Player::Ptr player) {
+bool AI::HL::Util::possess_ball(const World &world, Player::Ptr player) {
 	if (player->has_ball()) {
 		return true;
 	}
-	if (posses_ball_is_has_ball) {
+	if (possess_ball_is_has_ball) {
 		return false;
 	}
 	return ball_close(world, player);
 }
 
-bool AI::HL::Util::posses_ball(const World &world, Robot::Ptr robot) {
+bool AI::HL::Util::possess_ball(const World &world, Robot::Ptr robot) {
 	return ball_close(world, robot);
 }
 
 Player::Ptr AI::HL::Util::calc_baller(World &world, const std::vector<Player::Ptr> &players) {
 	for (std::size_t i = 0; i < players.size(); ++i) {
-		if (posses_ball(world, players[i])) {
+		if (possess_ball(world, players[i])) {
 			return players[i];
 		}
 	}

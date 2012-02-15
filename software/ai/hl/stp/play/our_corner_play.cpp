@@ -8,7 +8,7 @@ using AI::HL::STP::Coordinate;
 
 /**
  * Condition:
- * - ball under team possesion
+ * - ball under team possession
  * - ball in one of our corners
  * - have at least 3 players (one goalie, one defender, one shooter)
  *

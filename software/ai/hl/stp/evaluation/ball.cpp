@@ -13,7 +13,7 @@ namespace {
 
 	BoolParam smart_possess_ball("Smart possess ball (instead of has ball only)", "STP/ball", true);
 
-	DoubleParam enemy_pivot_threshold("circle radius in front of enemy robot to consider possesion (meters)", "STP/ball", 0.1, 0.0, 1.0);
+	DoubleParam enemy_pivot_threshold("circle radius in front of enemy robot to consider possession (meters)", "STP/ball", 0.1, 0.0, 1.0);
 
 	Player::CPtr baller;
 

@@ -11,7 +11,7 @@ namespace AI {
 		 * Contains a bunch of useful utility functions.
 		 * In general, functions that go here are those that
 		 * - can be used accross different roles/strategies/tactic.
-		 * - will unify definition (such as ball possesion).
+		 * - will unify definition (such as ball possession).
 		 */
 		namespace Util {
 			/**
@@ -101,7 +101,7 @@ namespace AI {
 
 			/**
 			 * Let t be time elpased since robot has ball.
-			 * If t < this number, then robot is considered to posses the ball.
+			 * If t < this number, then robot is considered to possess the ball.
 			 */
 			extern const double HAS_BALL_ALLOWANCE __attribute__((deprecated));
 
@@ -192,14 +192,14 @@ namespace AI {
 			bool ball_close(const AI::HL::W::World &world, AI::HL::W::Robot::Ptr robot) __attribute__((deprecated));
 
 			/**
-			 * Checks if a FRIENDLY PLAYER posses the ball.
+			 * Checks if a FRIENDLY PLAYER possess the ball.
 			 */
-			bool posses_ball(const AI::HL::W::World &world, AI::HL::W::Player::Ptr player) __attribute__((deprecated));
+			bool possess_ball(const AI::HL::W::World &world, AI::HL::W::Player::Ptr player) __attribute__((deprecated));
 
 			/**
-			 * Checks if an ENEMY ROBOT posses the ball.
+			 * Checks if an ENEMY ROBOT possess the ball.
 			 */
-			bool posses_ball(const AI::HL::W::World &world, AI::HL::W::Robot::Ptr robot) __attribute__((deprecated));
+			bool possess_ball(const AI::HL::W::World &world, AI::HL::W::Robot::Ptr robot) __attribute__((deprecated));
 
 			/**
 			 * Finds the player having the ball.
