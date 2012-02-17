@@ -157,6 +157,10 @@ namespace AI {
 			/**
 			 * Checks if the passee can get the ball now.
 			 *
+			 * \param[in] world the world in which the HighLevel operates.
+			 *
+			 * \param[in] passee the robot being considered to receive the ball
+			 *
 			 * \return \c false if some robots is blocking line of sight of ball from \p passee, if \p passee is not facing the ball, or if some condition is invalid;
 			 * or \c true if \p passee can receive the ball.
 			 */
