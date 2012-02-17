@@ -125,6 +125,10 @@ namespace AI {
 			/**
 			 * Checks if the path from begin to end is blocked by some obstacles.
 			 *
+			 * \param[in] begin the starting location of the path that is being checked
+			 *
+			 * \param[in] end the end location of the path that is being checked
+			 *
 			 * \param[in] obstacles a vector of obstacles that blocks the path.
 			 *
 			 * \param[in] thresh the amount of allowance for the path
@@ -136,6 +140,10 @@ namespace AI {
 
 			/**
 			 * Checks if the path from begin to end is blocked by some robots.
+			 *
+			 * \param[in] begin the starting location of the path that is being checked
+			 *
+			 * \param[in] end the end location of the path that is being checked
 			 *
 			 * \param[in] robots a vector of robots/players that blocks the path.
 			 *
