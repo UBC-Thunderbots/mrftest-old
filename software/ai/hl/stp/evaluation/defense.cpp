@@ -149,7 +149,8 @@ namespace {
 			}
 
 #warning A HACK FOR NOW, may intefere with baller above
-			if (AI::HL::Util::ball_close(world, threat[i])) {
+			double ball_diff = (ball_pos - threat[i]->position()).len();
+			if (ball_diff < Robot::MAX_RADIUS + Ball::RADIUS) {
 				continue;
 			}
 

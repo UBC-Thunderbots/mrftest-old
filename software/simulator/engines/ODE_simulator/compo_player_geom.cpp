@@ -111,10 +111,12 @@ void CompoPlayerGeom::handle_collision(dGeomID o1, dGeomID o2, dJointGroupID con
 	if (has_geom(o1) && has_geom(o2)) {
 		return;
 	}
+	/*
 	dGeomID robotGeom = o1;
 	if (has_geom(o1)) {
 		robotGeom = o2;
 	}
+	*/
 	if (dGeomGetBody(o1) == 0 || dGeomGetBody(o2) == 0) {
 		if (dGeomGetClass(o1) == dPlaneClass || dGeomGetClass(o2) == dPlaneClass) {
 			handleCollisionWithGround(o1, o2, contactgroup);

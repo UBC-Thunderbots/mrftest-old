@@ -13,11 +13,11 @@ namespace {
 }
 
 #warning hardware depending parameters should move somewhere else
-DegreeParam AI::HL::Util::shoot_accuracy("Shooting Accuracy General (degrees)", "STP/util", 10.0, 0.0, 80.0);
+//DegreeParam AI::HL::Util::shoot_accuracy("Shooting Accuracy General (degrees)", "STP/util", 10.0, 0.0, 80.0);
 
-DoubleParam AI::HL::Util::dribble_timeout("if dribble > this time, force shoot (sec)", "STP/util", 2.0, 0.0, 20.0);
+//DoubleParam AI::HL::Util::dribble_timeout("if dribble > this time, force shoot (sec)", "STP/util", 2.0, 0.0, 20.0);
 
-DoubleParam AI::HL::Util::get_ready_time("time we can prepare during special plays (sec)", "STP/util", 3.0, -1e99, 10.0);
+//DoubleParam AI::HL::Util::get_ready_time("time we can prepare during special plays (sec)", "STP/util", 3.0, -1e99, 10.0);
 
 const double AI::HL::Util::POS_CLOSE = AI::HL::W::Robot::MAX_RADIUS / 4.0;
 
@@ -27,11 +27,11 @@ const double AI::HL::Util::VEL_CLOSE = 1e-2;
 
 const double AI::HL::Util::VEL_EPS = 1e-12;
 
-const Angle AI::HL::Util::ORI_PASS_CLOSE = Angle::of_degrees(45.0);
+//const Angle AI::HL::Util::ORI_PASS_CLOSE = Angle::of_degrees(45.0);
 
-const double AI::HL::Util::HAS_BALL_ALLOWANCE = 3.0;
+//const double AI::HL::Util::HAS_BALL_ALLOWANCE = 3.0;
 
-const double AI::HL::Util::HAS_BALL_TIME = 2.0 / 15.0;
+//const double AI::HL::Util::HAS_BALL_TIME = 2.0 / 15.0;
 
 bool AI::HL::Util::point_in_friendly_defense(const Field &field, const Point p) {
 	const double defense_stretch = field.defense_area_stretch();
@@ -103,7 +103,7 @@ bool AI::HL::Util::path_check(const Point &begin, const Point &end, const std::v
 	}
 	return true;
 }
-
+/*
 #warning TODO: maybe the source to a point instead of defaulting to ball.
 bool AI::HL::Util::can_receive(World &world, const Player::Ptr passee) {
 	const Ball &ball = world.ball();
@@ -150,7 +150,7 @@ bool AI::HL::Util::can_receive(World &world, const Player::Ptr passee) {
 	}
 	return true;
 }
-
+*/
 std::pair<Point, Angle> AI::HL::Util::calc_best_shot(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
 	const Point p1 = Point(f.length() / 2.0, -f.goal_width() / 2.0);
 	const Point p2 = Point(f.length() / 2.0, f.goal_width() / 2.0);
@@ -219,7 +219,7 @@ std::vector<std::pair<Point, Angle> > AI::HL::Util::calc_best_shot_all(const Wor
     return true;
    }
  */
-
+/*
 bool AI::HL::Util::ball_close(const World &world, Robot::Ptr robot) {
 	const Point dist = world.ball().position() - robot->position();
 	return dist.len() < (Robot::MAX_RADIUS + Ball::RADIUS * ball_close_factor);
@@ -247,7 +247,7 @@ Player::Ptr AI::HL::Util::calc_baller(World &world, const std::vector<Player::Pt
 	}
 	return Player::Ptr();
 }
-
+*/
 std::vector<Player::CPtr> AI::HL::Util::get_players(const FriendlyTeam &friendly) {
 	std::vector<Player::CPtr> players;
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
@@ -263,7 +263,7 @@ std::vector<Player::Ptr> AI::HL::Util::get_players(FriendlyTeam &friendly) {
 	}
 	return players;
 }
-
+/*
 std::vector<Player::Ptr> AI::HL::Util::get_players_exclude(FriendlyTeam &friendly, std::vector<Player::Ptr> &others) {
 	std::vector<Player::Ptr> players;
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
@@ -273,7 +273,7 @@ std::vector<Player::Ptr> AI::HL::Util::get_players_exclude(FriendlyTeam &friendl
 	}
 	return players;
 }
-
+*/
 std::vector<Robot::Ptr> AI::HL::Util::get_robots(const EnemyTeam &enemy) {
 	std::vector<Robot::Ptr> robots;
 	for (std::size_t i = 0; i < enemy.size(); ++i) {

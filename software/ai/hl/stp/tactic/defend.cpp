@@ -110,7 +110,6 @@ namespace {
 		auto waypoints = Evaluation::evaluate_defense();
 		Point dest = waypoints[index];
 		if (tdefend && index > 0 && index < 3 && !Evaluation::ball_on_net(world)) {
-			Point diff = world.ball().position() - world.field().friendly_goal();
 			dest = Evaluation::evaluate_tdefense(world, index);
 		}
 		Action::defender_move(world, player, dest);
