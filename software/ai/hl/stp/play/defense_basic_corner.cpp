@@ -6,7 +6,7 @@
 
 using AI::HL::STP::Coordinate;
 
-BEGIN_PLAY(CMDBasicCorner)
+BEGIN_PLAY(DBasicCorner)
 
 #warning LONE GOALIE
 INVARIANT(false)

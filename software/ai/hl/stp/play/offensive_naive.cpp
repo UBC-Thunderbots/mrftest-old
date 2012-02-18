@@ -6,7 +6,7 @@
 
 using AI::HL::STP::Coordinate;
 
-BEGIN_PLAY(CMONaive)
+BEGIN_PLAY(ONaive)
 //INVARIANT(false) 
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3) && baller_can_shoot(world))
 APPLICABLE(offensive(world) && !ball_in_their_corner(world))

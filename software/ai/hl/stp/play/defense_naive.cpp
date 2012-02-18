@@ -6,7 +6,7 @@
 
 using AI::HL::STP::Coordinate;
 
-BEGIN_PLAY(CMDNaive)
+BEGIN_PLAY(DNaive)
 //INVARIANT(false)
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3) && num_of_enemies_on_our_side_at_least(world, 1))
 APPLICABLE(defensive(world) && !ball_in_our_corner(world))

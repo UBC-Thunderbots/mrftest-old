@@ -6,7 +6,7 @@
 
 using AI::HL::STP::Enemy;
 
-BEGIN_PLAY(CMDBasic2Block)
+BEGIN_PLAY(DBasic2Block)
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3))
 APPLICABLE(defensive(world) && ball_x_less_than(world, -0.7))
 DONE(offensive(world))
