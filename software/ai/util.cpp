@@ -14,8 +14,6 @@ bool AI::Util::calc_fastest_grab_ball_dest(Point ball_pos, Point ball_vel, Point
 	const double x = (p2 - p1).dot(u);
 	const double y = std::fabs((p2 - p1).cross(u));
 
-	//const Point p = p1 + u * x;
-
 	double a = 1 + (y * y) / (x * x);
 	double b = (2 * y * y * ux) / (x * x);
 	double c = (y * y * ux * ux) / (x * x) - v;

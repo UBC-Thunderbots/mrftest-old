@@ -55,24 +55,6 @@ namespace AI {
 			};
 
 			/**
-			 * The shooting accuracy of the robot, in terms of angle.
-			 */
-			//extern DegreeParam shoot_accuracy __attribute__((deprecated));
-
-			/**
-			 * Time the team can get ready for special plays.
-			 * If the team spend too much time preparing for a freekick etc,
-			 * the refree will force start.
-			 * Reduce this number to prevent such occurence.
-			 */
-			//extern DoubleParam get_ready_time __attribute__((deprecated));
-
-			/**
-			 * If dribble for more than this time, shoot already.
-			 */
-			//extern DoubleParam dribble_timeout __attribute__((deprecated));
-
-			/**
 			 * Somewhat close.
 			 */
 			extern const double POS_CLOSE;
@@ -92,24 +74,6 @@ namespace AI {
 			 * Super stationary.
 			 */
 			extern const double VEL_EPS;
-
-			/**
-			 * If the robot is less than this angle away from the ball,
-			 * then it is capable of receiving the ball.
-			 */
-			//extern const Angle ORI_PASS_CLOSE __attribute__((deprecated));
-
-			/**
-			 * Let t be time elpased since robot has ball.
-			 * If t < this number, then robot is considered to possess the ball.
-			 */
-			//extern const double HAS_BALL_ALLOWANCE __attribute__((deprecated));
-
-			/**
-			 * Let t be time elpased since robot senses the ball.
-			 * If t >= this number, then robot is considered to have the ball with very high probability.
-			 */
-			//extern const double HAS_BALL_TIME __attribute__((deprecated));
 
 			/**
 			 * Checks if a point lies inside the friendly defense area.
@@ -155,18 +119,6 @@ namespace AI {
 			bool path_check(const Point &begin, const Point &end, const std::vector<AI::HL::W::Robot::Ptr> &robots, double thresh);
 
 			/**
-			 * Checks if the passee can get the ball now.
-			 *
-			 * \param[in] world the world in which the HighLevel operates.
-			 *
-			 * \param[in] passee the robot being considered to receive the ball
-			 *
-			 * \return \c false if some robots is blocking line of sight of ball from \p passee, if \p passee is not facing the ball, or if some condition is invalid;
-			 * or \c true if \p passee can receive the ball.
-			 */
-			//bool can_receive(AI::HL::W::World &world, AI::HL::W::Player::Ptr passee) __attribute__((deprecated));
-
-			/**
 			 * Finds the length of the largest continuous interval (angle-wise) of the enemy goal that can be seen from a point.
 			 * Having a vector of points enables one to add imaginary threats.
 			 * This version accepts vector of obstacles, so that you can add imaginary robots.
@@ -198,39 +150,11 @@ namespace AI {
 			std::vector<std::pair<Point, Angle> > calc_best_shot_all(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player, double radius = 1.0);
 
 			/**
-			 * Checks if the robot is in a position close enough to the ball to start
-			 * So close that no other robot can be in the way of this ball.
-			 */
-			//bool ball_close(const AI::HL::W::World &world, AI::HL::W::Robot::Ptr robot) __attribute__((deprecated));
-
-			/**
-			 * Checks if a FRIENDLY PLAYER possess the ball.
-			 */
-			//bool possess_ball(const AI::HL::W::World &world, AI::HL::W::Player::Ptr player) __attribute__((deprecated));
-
-			/**
-			 * Checks if an ENEMY ROBOT possess the ball.
-			 */
-			//bool possess_ball(const AI::HL::W::World &world, AI::HL::W::Robot::Ptr robot) __attribute__((deprecated));
-
-			/**
-			 * Finds the player having the ball.
-			 *
-			 * \return the player, or a null pointer if no friendly player has the ball.
-			 */
-			//AI::HL::W::Player::Ptr calc_baller(AI::HL::W::World &world, const std::vector<AI::HL::W::Player::Ptr> &players) __attribute__((deprecated));
-
-			/**
 			 * Converts a friendly team into a vector of players.
 			 */
 			std::vector<AI::HL::W::Player::Ptr> get_players(AI::HL::W::FriendlyTeam &friendly);
 
 			std::vector<AI::HL::W::Player::CPtr> get_players(const AI::HL::W::FriendlyTeam &friendly);
-
-			/**
-			 * Converts a friendly team into a vector of players.
-			 */
-			//std::vector<AI::HL::W::Player::Ptr> get_players_exclude(AI::HL::W::FriendlyTeam &friendly, std::vector<AI::HL::W::Player::Ptr> &others) __attribute__((deprecated));
 
 			/**
 			 * Converts an enemy team into a vector of robots.
