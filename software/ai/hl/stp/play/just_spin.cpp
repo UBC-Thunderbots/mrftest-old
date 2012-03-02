@@ -28,6 +28,10 @@ roles[2].push_back(block_ball(world, Enemy::closest_ball(world, 1)));
 // ROLE 4 (optional)
 // offensive support
 roles[3].push_back(offend(world));
+
+// ROLE 5 (optional)
+// offensive support
+roles[4].push_back(offend_secondary(world));
 END_ASSIGN()
 END_PLAY()
 

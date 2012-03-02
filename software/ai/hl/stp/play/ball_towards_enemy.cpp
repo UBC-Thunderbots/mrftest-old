@@ -30,6 +30,9 @@ roles[2].push_back(offend(world));
 // ROLE 4 (optional)
 roles[3].push_back(defend_duo_extra1(world));
 
+// ROLE 5 (optional)
+roles[4].push_back(offend_secondary(world));
+
 END_ASSIGN()
 END_PLAY()
 

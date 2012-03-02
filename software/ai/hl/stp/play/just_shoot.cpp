@@ -32,7 +32,7 @@ roles[3].push_back(offend(world));
 
 // ROLE 5 (optional)
 // offend
-roles[4].push_back(offend(world));
+roles[4].push_back(offend_secondary(world));
 
 END_ASSIGN()
 END_PLAY()
