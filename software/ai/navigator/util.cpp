@@ -306,6 +306,7 @@ namespace {
 
 		unsigned int extra_flags;
 
+		// set the amount of violation that the player currently has
 		void set_violation_amount(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 			friendly = get_friendly_trespass(cur, dst, world, player);
 			enemy = get_enemy_trespass(cur, dst, world);
@@ -340,6 +341,7 @@ namespace {
 			}
 		}
 
+		// default, no violation
 		violation() : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(0) {
 		}
 
@@ -367,6 +369,7 @@ namespace {
 			return v;
 		}
 
+		// whether there is less violation than the violation parameter
 		bool no_more_violating_than(violation b) {
 			return enemy < b.enemy + EPS && friendly < b.friendly + EPS &&
 			       play_area < b.play_area + EPS && ball_stop < b.ball_stop + EPS &&
@@ -379,6 +382,7 @@ namespace {
 			       net_allowance < b.net_allowance + EPS;
 		}
 
+		// whether there are no violations at all
 		bool violation_free() {
 			return enemy < EPS && friendly < EPS &&
 			       play_area < EPS && ball_stop < EPS &&
