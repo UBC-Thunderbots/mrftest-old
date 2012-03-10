@@ -130,7 +130,7 @@ namespace AI {
 			 *
 			 * \param[in] obstacles is a list of all the obstacles in the way between the robot and the net
 			 *
-			 * \param[in] p is the location of the robot
+			 * \param[in] p the player that the shot is being calculated from
 			 *
 			 * \return the point and the score (angle),
 			 * where the score will be 0 if the point is invalid.
