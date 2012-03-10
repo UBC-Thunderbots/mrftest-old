@@ -226,7 +226,7 @@ namespace {
 				bool can_intercept = ((player->position() - world.ball().position()).dot(world.ball().velocity()) > 0);
 
 				if (world.ball().velocity().len() < negligible_velocity) {
-					Action::chase(world, player);
+					Action::chase(player, world.ball().position());
 					player->type(AI::Flags::MoveType::DRIBBLE);
 					return;
 				}
@@ -244,7 +244,7 @@ namespace {
 					Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos + addit);
 				} else {
 					// ball is running too slowly, chase it
-					Action::chase(world, player);
+					Action::chase(player, world.ball().position());
 				}
 				player->type(AI::Flags::MoveType::DRIBBLE);
 			}
