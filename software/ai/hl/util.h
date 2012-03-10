@@ -10,7 +10,7 @@ namespace AI {
 		/**
 		 * Contains a bunch of useful utility functions.
 		 * In general, functions that go here are those that
-		 * - can be used accross different roles/strategies/tactic.
+		 * - can be used across different roles/strategies/tactic.
 		 * - will unify definition (such as ball possession).
 		 */
 		namespace Util {
@@ -128,6 +128,10 @@ namespace AI {
 			 * \param[in] radius the multiplier to the radius of the robot,
 			 * you can decrease the radius to make it easier to shoot.
 			 *
+			 * \param[in] obstacles is a list of all the obstacles in the way between the robot and the net
+			 *
+			 * \param[in] p is the location of the robot
+			 *
 			 * \return the point and the score (angle),
 			 * where the score will be 0 if the point is invalid.
 			 */
@@ -138,6 +142,10 @@ namespace AI {
 			/**
 			 * Finds the length of the largest continuous interval (angle-wise) of the enemy goal that can be seen from a point.
 			 * To add imaginary threats, please use the other version.
+			 *
+			 * \param[in] world with field information
+			 *
+			 * \param[in] player player that the shot is being calculated from
 			 *
 			 * \param[in] radius the multiplier to the radius of the robot,
 			 * you can decrease the radius to make it easier to shoot.
