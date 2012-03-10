@@ -8,12 +8,14 @@
 #include "ai/hl/stp/evaluation/defense.h"
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/param.h"
+#include <cstdlib>
 
 #include <set>
 
 using namespace AI::HL::STP;
 
 namespace {
+        IntParam shoot_anyway("randomize factor that the baller will shoot even if blocked", "STP/predicates", 5, 1, 10);
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/predicates", 3.0, 1.0, 10.0);
 	DoubleParam fight_thresh("dist thresh to start fight ball with enemy (robot radius)", "STP/predicates", 2.0, 0.1, 4.0);
 
@@ -145,6 +147,7 @@ bool Predicates::BallerCanShoot::compute(const World &world) {
 	if (!baller || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
+	if (shoot_anyway > std::rand()%10) return true;
 	return Evaluation::evaluate_shoot(world, baller).angle >= min_shoot_region;
 }
 
@@ -156,6 +159,7 @@ bool Predicates::BallerCanPassTarget::compute(const World &world, const Point ta
 		return false;
 	}
 #warning something is wierd
+	if (shoot_anyway > std::rand()%10) return true;
 	return Evaluation::can_pass(world, baller->position(), target);
 }
 
