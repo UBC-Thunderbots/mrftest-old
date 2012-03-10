@@ -1,5 +1,6 @@
 #include "ai/hl/hl.h"
 #include "ai/flags.h"
+#include "ai/hl/stp/world.h"
 
 using namespace AI::HL;
 using namespace AI::HL::W;
@@ -27,6 +28,7 @@ namespace {
 
 				Player::Ptr player = friendly.get(0);
 				Angle to_goal = (Point(world.field().length(), 0) - player->position()).orientation();
+				player->autokick(AI::HL::STP::BALL_MAX_SPEED);
 				player->type(AI::Flags::MoveType::INTERCEPT);
 				player->move(world.field().enemy_goal(), to_goal, Point());
 			}
