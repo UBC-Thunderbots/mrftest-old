@@ -60,7 +60,9 @@ std::vector<std::size_t> dist_matching(const std::vector<Point> &v1, const std::
  *
  * \param[in] c a point
  *
- * \returns true if any two points are within EPS distance to each other.
+ * \returns true if any two points are within EPS distance to each other. (If any two of three points are within EPS distance of each other, they are essentially the same point and the two points will form the same line.)
+ *
+ * \returns true if the cross product of the two lines formed by the three points are smaller than EPS
  */
 bool collinear(const Point &a, const Point &b, const Point &c);
 
@@ -75,7 +77,7 @@ bool collinear(const Point &a, const Point &b, const Point &c);
  *
  * \pre The angle \p p1, \p src, \p p2 must not be greater than 180 degrees.
  *
- * \pre \p p must not be between \p p1 and \p p2.
+ * \pre \p src must not be between \p p1 and \p p2.
  *
  * \param[in] src the location where you are standing.
  *
@@ -93,7 +95,21 @@ bool collinear(const Point &a, const Point &b, const Point &c);
 std::pair<Point, Angle> angle_sweep_circles(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius);
 
 /**
- * Gets all angle
+ * Gets all angle.
+ *
+ * \pre The points \p p1,\p p2, and \p src has to not be collinear and \p src can't be within the radius of the obstacle
+ *
+ * \param[in] src the location where you are standing.
+ *
+ * \param[in] p1 the location of the right-hand edge of the target area.
+ *
+ * \param[in] p2 the location of the left-hand edge of the target area.
+ *
+ * \param[in] obstacles the coordinates of the centres of the obstacles.
+ *
+ * \param[in] radius the radii of the obstacles.
+ *
+ * \returns a vector of all possible pairs of directions and angles to a target area. An empty vector is returned if the preconditions aren't satisfied.
  */
 std::vector<std::pair<Point, Angle> > angle_sweep_circles_all(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius);
 
