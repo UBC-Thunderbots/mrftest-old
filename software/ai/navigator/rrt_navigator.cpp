@@ -294,11 +294,7 @@ namespace AI {
 					std::dynamic_pointer_cast<PlayerData>(player->object_store()[typeid(*this)])->added_flags = 0;
 					Point dest;
 					Angle dest_orientation = player->destination().second;
-					if (player->type() == AI::Flags::MoveType::CATCH) {
-						std::pair<Point, Angle> grab_ball_dest = grab_ball(player);
-						dest = grab_ball_dest.first;
-						dest_orientation = grab_ball_dest.second;
-					} else if (player->type() == AI::Flags::MoveType::CATCH_PIVOT) {
+					if (player->type() == AI::Flags::MoveType::CATCH_PIVOT) {
 						std::pair<Point, Angle> grab_ball_dest;
 
 						// Check the ball velocity. If it is travelling too fast, use grab_ball instead of grab_ball_orientation.
