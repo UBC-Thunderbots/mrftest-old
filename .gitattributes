@@ -177,6 +177,8 @@ software/ai/hl/stp/action/dribble.cpp -text
 software/ai/hl/stp/action/dribble.h -text
 software/ai/hl/stp/action/goalie.cpp -text
 software/ai/hl/stp/action/goalie.h -text
+software/ai/hl/stp/action/intercept.cpp -text
+software/ai/hl/stp/action/intercept.h -text
 software/ai/hl/stp/action/move.cpp -text
 software/ai/hl/stp/action/move.h -text
 software/ai/hl/stp/action/move_spin.cpp -text

@@ -8,14 +8,6 @@ namespace AI {
 		namespace STP {
 			namespace Action {
 				/**
-				 * TODO: implement steal ball
-				 *
-				 * Chases after the ball as fast as possible.
-				 * Orient towards the ball.
-				 */
-				void chase(const World &world, Player::Ptr player);
-
-				/**
 				 * Chases after the ball as fast as possible.
 				 * Orient towards Point target.
 				 */
