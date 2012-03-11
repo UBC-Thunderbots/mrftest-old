@@ -7,11 +7,6 @@
 
 using namespace AI::HL::W;
 
-namespace {
-	BoolParam possess_ball_is_has_ball("possess ball is has ball", "STP/util", true);
-	DoubleParam ball_close_factor("distance for ball possession (x ball radius)", "STP/util", 2.0, 1.0, 3.0);
-}
-
 const double AI::HL::Util::POS_CLOSE = AI::HL::W::Robot::MAX_RADIUS / 4.0;
 
 const double AI::HL::Util::POS_EPS = 1e-12;
