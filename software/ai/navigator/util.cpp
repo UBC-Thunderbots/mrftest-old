@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
+#include <iostream>
 
 using namespace AI::Flags;
 using namespace AI::Nav::W;
@@ -439,6 +440,38 @@ namespace {
 		path.push_back(std::make_pair(std::make_pair(dest_pos, dest_ang), working_time));
 		return path;
 	}
+
+	// only used when ball is not moving
+	AI::Nav::W::Player::Path get_path_around_ball(const AI::Nav::W::World &world, const Point player_pos, const Point target_pos, bool ccw){
+		
+		Point dest_pos;
+		Angle dest_ang = (target_pos-player_pos).orientation();
+		const Point ball_pos = world.ball().position();	
+
+		Point radial_norm = (player_pos - ball_pos).norm();
+		Angle angle_diff = (-radial_norm.orientation() - dest_ang).angle_mod();
+		if( angle_diff >= Angle::ZERO ){
+			ccw = false;
+			std::cout << "cw\n";
+		} else {
+			ccw = true;
+			std::cout << "ccw\n";
+		}
+		Point tangential_norm;
+		if( ccw ){
+			tangential_norm = radial_norm.rotate(Angle::THREE_QUARTER);
+		} else {
+			tangential_norm = radial_norm.rotate(Angle::QUARTER);
+		}
+
+		const double tangential_scale = 1.0;
+		dest_pos = player_pos + tangential_norm * tangential_scale;
+		timespec working_time = timespec_add(world.monotonic_time(), double_to_timespec(1.0));
+		
+		AI::Nav::W::Player::Path path;
+		path.push_back( std::make_pair( std::make_pair(dest_pos, dest_ang), working_time) );
+		return path;
+	}
 };
 
 std::vector<Point> AI::Nav::Util::get_destination_alternatives(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
@@ -571,7 +604,7 @@ double AI::Nav::Util::estimate_action_duration(std::vector<std::pair<Point, Angl
 	return total_time;
 }
 
-bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, Cairo::RefPtr<Cairo::Context> ctx) {
+bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, Cairo::RefPtr<Cairo::Context> ctx) {
 	// need to confirm that the player has proper flag
 
 	// need to confirm that the ball is moving at all
@@ -593,7 +626,8 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 	const bool robot_behind_ball =  !point_in_front_vector(ball_pos, ball_vel, robot_pos);
 
 	// display some info about the strategy
-	if (ctx != Cairo::RefPtr<Cairo::Context>()) {
+	// all drawing stuff is disabled
+	/*if (ctx != Cairo::RefPtr<Cairo::Context>()) {
 		// draw where ball goes out of field
 		ctx->arc(ball_bounded_pos.x, ball_bounded_pos.y, 0.05, 0.0, M_PI * 2);
 		ctx->set_source_rgb(0.8, 0.0, 0.0);
@@ -610,6 +644,11 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 		}
 		ctx->move_to(robot_pos.x + 0.1, robot_pos.y + 0.1);
 		ctx->show_text(str);
+	}*/
+
+	if ( ball_vel.len() < 0.1 ){
+		player->path(get_path_around_ball( world, robot_pos, target_pos, true ) );
+		return true;
 	}
 
 	// find out whether robot is behind the ball or in front of the ball
@@ -680,8 +719,8 @@ bool AI::Nav::Util::find_best_intersecting_point(AI::Nav::W::World &world, AI::N
 	return false;
 }
 
-void AI::Nav::Util::make_stationary(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+/*void AI::Nav::Util::make_stationary(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 	AI::Nav::W::Player::Path path;
 	path.push_back(std::make_pair(std::make_pair(player->position(), player->orientation()), world.monotonic_time()));
 	player->path(path);
-}
+}*/

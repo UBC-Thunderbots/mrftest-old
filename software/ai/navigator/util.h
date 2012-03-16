@@ -99,7 +99,7 @@ namespace AI {
 			 *
 			 * \parem[in] canvas to draw in 
 			 */
-			bool find_best_intersecting_point(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, Cairo::RefPtr<Cairo::Context> ctx = Cairo::RefPtr<Cairo::Context>());
+			bool intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, Cairo::RefPtr<Cairo::Context> ctx = Cairo::RefPtr<Cairo::Context>());
 
 
 			/**
