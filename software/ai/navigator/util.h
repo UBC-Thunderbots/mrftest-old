@@ -107,7 +107,7 @@ namespace AI {
 			 *
 			 * \param[in] player in interest
 			 */
-			void make_stationary( AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player );
+			//void make_stationary( AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player );
 		}
 	}
 }

@@ -448,14 +448,14 @@ namespace {
 		Angle dest_ang = (target_pos-player_pos).orientation();
 		const Point ball_pos = world.ball().position();	
 
-		Point radial_norm = (player_pos - ball_pos).norm();
-		Angle angle_diff = (-radial_norm.orientation() - dest_ang).angle_mod();
-		if( angle_diff >= Angle::ZERO ){
+		Point radial_norm = (player_pos-ball_pos).norm();
+		Angle angle_diff = (radial_norm.orientation() - (Angle::HALF+dest_ang).angle_mod()).angle_mod();
+		if( angle_diff <= Angle::ZERO ){
 			ccw = false;
-			std::cout << "cw\n";
+			//std::cout << "cw\n";
 		} else {
 			ccw = true;
-			std::cout << "ccw\n";
+			//std::cout << "ccw\n";
 		}
 		Point tangential_norm;
 		if( ccw ){
