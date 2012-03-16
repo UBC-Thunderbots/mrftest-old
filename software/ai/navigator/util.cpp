@@ -465,7 +465,11 @@ namespace {
 		}
 
 		const double tangential_scale = 1.0;
-		dest_pos = player_pos + tangential_norm * tangential_scale;
+		if( angle_diff.angle_diff(Angle::ZERO) > Angle::of_degrees(5)){
+			dest_pos = player_pos + tangential_norm * tangential_scale;
+		} else {
+			dest_pos = ball_pos;
+		}
 		timespec working_time = timespec_add(world.monotonic_time(), double_to_timespec(1.0));
 		
 		AI::Nav::W::Player::Path path;
