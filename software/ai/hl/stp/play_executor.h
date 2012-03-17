@@ -17,7 +17,7 @@ namespace AI {
 			 * See STP paper section 5.3.
 			 */
 			 
-			class PlayExecutor {
+			class PlayExecutor : public sigc::trackable {
 				public:
 					PlayExecutor(World &w);
 
