@@ -26,6 +26,8 @@ namespace {
 		CPPUNIT_TEST(test_seg_crosses_seg);
 		CPPUNIT_TEST(test_vector_crosses_seg);
 		CPPUNIT_TEST(test_vector_rect_intersect);
+		CPPUNIT_TEST(test_seg_pt_dist);
+		CPPUNIT_TEST(test_proj_dist);
 		CPPUNIT_TEST_SUITE_END();
 
 		public:
@@ -73,12 +75,95 @@ namespace {
 }
 
 void GeomUtilTest::test_line_pt_dist() {
+	double calculated_val, expected_val;
+
+	//case 1
+	Point test1linep1(0,1);
+	Point test1linep2(0,0);
+	Point test1p1(2,0);
+	calculated_val = line_pt_dist(test1linep1, test1linep2, test1p1);
+	expected_val = 2;
+	CPPUNIT_ASSERT_EQUAL(expected_val, calculated_val);
+
+	//case 2
+	Point test2linep1(2,0);
+	Point test2linep2(0,2);
+	Point test2p1(0,0);
+	calculated_val = line_pt_dist(test2linep1, test2linep2, test2p1);
+	expected_val = sqrt(2);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.00001);
+
+	//case 3
+	Point test3linep1(0,0);
+	Point test3linep2(0,0);
+	Point test3p1(1,0);
+	calculated_val = line_pt_dist(test3linep1, test3linep2, test3p1);
+	expected_val = 1;
+	CPPUNIT_ASSERT_EQUAL(expected_val, calculated_val);
 }
 
 void GeomUtilTest::test_seg_pt_dist() {
+	double calculated_val, expected_val;
+
+	//case 1
+	Point test1linep1(1,0);
+	Point test1linep2(2,3);
+	Point test1p1(2,0);
+	calculated_val = line_pt_dist(test1linep1, test1linep2, test1p1);
+	expected_val = sin(atan(3));
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.0000001);
+
+	//case 2
+	Point test2linep1(2,0);
+	Point test2linep2(0,2);
+	Point test2p1(0,0);
+	calculated_val = line_pt_dist(test2linep1, test2linep2, test2p1);
+	expected_val = sqrt(2);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.000001);
+
+	//case 3
+	Point test3linep1(0,0);
+	Point test3linep2(0,0);
+	Point test3p1(1,0);
+	calculated_val = line_pt_dist(test3linep1, test3linep2, test3p1);
+	expected_val = 1;
+	CPPUNIT_ASSERT_EQUAL(expected_val, calculated_val);
 }
 
 void GeomUtilTest::test_proj_dist() {
+	double calculated_val, expected_val;
+	//test case 1
+	Point test1p1(0,0);
+	Point test1p2(4,4);
+	Point test1p3(4,0);
+	calculated_val = proj_dist(test1p1, test1p2, test1p3);
+	expected_val = 2*sqrt(2);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.000001);
+
+	//test case 2
+	Point test2p1(0,0);
+	Point test2p2(4,0);
+	Point test2p3(4,4);
+	calculated_val = proj_dist(test2p1, test2p2, test2p3);
+	expected_val = 4;
+	CPPUNIT_ASSERT_EQUAL(expected_val, calculated_val);
+
+	//test case 3
+	Point test3p1(0,0);
+	Point test3p2(4,4);
+	Point test3p3(-4,-4);
+	calculated_val = proj_dist(test3p1, test3p2, test3p3);
+	expected_val = -4*sqrt(2);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.000001);
+
+	//test case 4
+	Point test4p1(0,0);
+	Point test4p2(4,1);
+	Point test4p3(-4,-4);
+	calculated_val = proj_dist(test4p1, test4p2, test4p3);
+	expected_val = -sqrt(32)*(cos((M_PI/4.0f)-atan(1.0f/4.0f)));
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.000001);
+
 }
 
 void GeomUtilTest::test_point_in_triangle() {
@@ -102,10 +187,45 @@ void GeomUtilTest::test_point_in_triangle() {
 	p3 += trans;
 	p += trans;
 	bool calculated_val = point_in_triangle(p1, p2, p3, p);
-	CPPUNIT_ASSERT_EQUAL(calculated_val, expected_val);
+	CPPUNIT_ASSERT_EQUAL(expected_val, calculated_val);
 }
 
 void GeomUtilTest::test_triangle_circle_intersect() {
+	Point test1p1(-5, 0);
+	Point test1p2(5, 0);
+	Point test1p3(2, 5);
+	Point test1c(0, -1);
+	double test1radius = 1;
+	CPPUNIT_ASSERT(triangle_circle_intersect(test1p1,test1p2,test1p3,test1c,test1radius));
+
+	Point test2p1(-10, 0);
+	Point test2p2(10, 0);
+	Point test2p3(0, 15);
+	Point test2c(0, 5);
+	double test2radius = 1;
+	CPPUNIT_ASSERT(!triangle_circle_intersect(test2p1,test2p2,test2p3,test2c,test2radius));
+
+	Point test3p1(-5, -5);
+	Point test3p2(5, -5);
+	Point test3p3(0, 0);
+	Point test3c(0, 1);
+	double test3radius = 1;
+	CPPUNIT_ASSERT(triangle_circle_intersect(test3p1,test3p2,test3p3,test3c,test3radius));
+
+	Point test4p1(-8, -5);
+	Point test4p2(0, 0);
+	Point test4p3(-3, -2);
+	Point test4c(5, 5);
+	double test4radius = 2;
+	CPPUNIT_ASSERT(!triangle_circle_intersect(test4p1,test4p2,test4p3,test4c,test4radius));
+
+	Point test5p1(-2, -2);
+	Point test5p2(2, -2);
+	Point test5p3(0, 1);
+	Point test5c(0, -1);
+	double test5radius = 1;
+	CPPUNIT_ASSERT(triangle_circle_intersect(test5p1,test5p2,test5p3,test5c,test5radius));
+
 }
 void GeomUtilTest::test_dist_matching() {
 	// not used anywhere
