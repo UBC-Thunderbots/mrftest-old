@@ -8,9 +8,9 @@ using namespace AI::HL::W;
 using namespace AI::HL::STP;
 
 namespace {
-	class TestCatchBall : public HighLevel {
+	class TestIntercept : public HighLevel {
 		public:
-			TestCatchBall(World &world) : world(world) {
+			TestIntercept(World &world) : world(world) {
 			}
 
 		private:
@@ -35,5 +35,5 @@ namespace {
 	};
 }
 
-HIGH_LEVEL_REGISTER(TestCatchBall)
+HIGH_LEVEL_REGISTER(TestIntercept)
 

@@ -326,6 +326,7 @@ software/ai/hl/stp/test/test.h -text
 software/ai/hl/stp/test/test_block.cpp -text
 software/ai/hl/stp/test/test_defend.cpp -text
 software/ai/hl/stp/test/test_goalie.cpp -text
+software/ai/hl/stp/test/test_intercept.cpp -text
 software/ai/hl/stp/test/test_pass.cpp -text
 software/ai/hl/stp/test/test_pivot.cpp -text
 software/ai/hl/stp/test/test_repel.cpp -text
@@ -360,7 +361,6 @@ software/ai/navigator/rrt_planner.h -text
 software/ai/navigator/rrtphysics_navigator.cpp -text
 software/ai/navigator/simple_navigator.cpp -text
 software/ai/navigator/straight_navigator.cpp -text
-software/ai/navigator/test_catch_ball.cpp -text
 software/ai/navigator/util.cpp -text
 software/ai/navigator/util.h -text
 software/ai/navigator/world.cpp -text
