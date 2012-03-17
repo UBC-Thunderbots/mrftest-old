@@ -296,19 +296,10 @@ namespace AI {
 
 						dest = grab_ball_dest.first;
 						dest_orientation = grab_ball_dest.second;
-					} else if (player->type() == AI::Flags::MoveType::INTERCEPT) {// worked on by matt and koko
+					} else if (player->type() == AI::Flags::MoveType::INTERCEPT) {
 						// refer to this function in util.cpp
 						intercept_flag_handler(world, player);
 						continue;
-					} else if (player->type() == AI::Flags::MoveType::INTERCEPT_PIVOT) {
-						std::pair<Point, Angle> grab_ball_dest = intercept_ball_orientation(player);
-						if( !isnan(grab_ball_dest.first.x) ){
-							dest = grab_ball_dest.first;
-							dest_orientation = grab_ball_dest.second;
-						} else {
-							dest = player->position();
-							dest_orientation = player->orientation();
-						}
 					} else if (player->type() == AI::Flags::MoveType::PIVOT) {
 						pivot(player);
 						continue;

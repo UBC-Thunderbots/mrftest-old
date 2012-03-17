@@ -1,7 +1,7 @@
 #include "ai/hl/stp/tactic/pass.h"
 #include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/stp/action/shoot.h"
-#include "ai/hl/stp/action/chase.h"
+#include "ai/hl/stp/action/intercept.h"
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/param.h"
 #include "ai/hl/stp/play_executor.h"
@@ -195,9 +195,9 @@ namespace {
 
 
 
-	class PasseeRecieve : public Tactic {
+	class PasseeReceive : public Tactic {
 		public:
-			PasseeRecieve(const World &world) : Tactic(world, true) {
+			PasseeReceive(const World &world) : Tactic(world, true) {
 #warning find a good mechanism for passing
 			}
 
@@ -226,7 +226,7 @@ namespace {
 				bool can_intercept = ((player->position() - world.ball().position()).dot(world.ball().velocity()) > 0);
 
 				if (world.ball().velocity().len() < negligible_velocity) {
-					Action::chase(player, world.ball().position());
+					Action::intercept(player, world.ball().position());
 					player->type(AI::Flags::MoveType::DRIBBLE);
 					return;
 				}
@@ -244,7 +244,7 @@ namespace {
 					Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos + addit);
 				} else {
 					// ball is running too slowly, chase it
-					Action::chase(player, world.ball().position());
+					Action::intercept(player, world.ball().position());
 				}
 				player->type(AI::Flags::MoveType::DRIBBLE);
 			}
@@ -266,7 +266,7 @@ Tactic::Ptr AI::HL::STP::Tactic::passee_move_target(const World &world, Coordina
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_receive_target(const World &world, Coordinate target) {
-	Tactic::Ptr p(new PasseeRecieve(world));
+	Tactic::Ptr p(new PasseeReceive(world));
 	return p;
 }
 
@@ -281,7 +281,7 @@ Tactic::Ptr AI::HL::STP::Tactic::passee_move_dynamic(const World &world) {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_receive(const World &world) {
-	Tactic::Ptr p(new PasseeRecieve(world));
+	Tactic::Ptr p(new PasseeReceive(world));
 	return p;
 }
 
