@@ -15,6 +15,7 @@
 using namespace AI::HL::STP;
 
 namespace {
+	/* shoot_anyway should be adjusted when facing different teams. */
         IntParam shoot_anyway("randomize factor that the baller will shoot even if blocked", "STP/predicates", 5, 1, 10);
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/predicates", 3.0, 1.0, 10.0);
 	DoubleParam fight_thresh("dist thresh to start fight ball with enemy (robot radius)", "STP/predicates", 2.0, 0.1, 4.0);
