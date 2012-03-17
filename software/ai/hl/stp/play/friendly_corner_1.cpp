@@ -1,15 +1,12 @@
 #include "ai/hl/stp/play/simple_play.h"
-#include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/stp/tactic/pass.h"
-//#include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/move.h"
+#include "ai/hl/stp/tactic/intercept.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
-//using AI::HL::STP::Enemy;
-//using AI::HL::STP::Coordinate;
 
 /**
  * Shoot the ball to origin (indirect pass)
@@ -54,7 +51,7 @@ goalie_role.push_back(defend_duo_goalie(world));
 roles[0].push_back(defend_duo_defender(world));
 
 // Recieve Pass
-roles[1].push_back(chase(world));
+roles[1].push_back(intercept(world));
 
 // ROLE 4 (optional)
 // block

@@ -1,5 +1,5 @@
 #include "ai/hl/stp/action/shoot.h"
-#include "ai/hl/stp/action/chase.h"
+#include "ai/hl/stp/action/intercept.h"
 #include "ai/hl/stp/action/pivot.h"
 #include "ai/hl/stp/action/ram.h"
 #include "ai/hl/stp/evaluation/shoot.h"
@@ -51,7 +51,7 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, boo
 			return false;
 		}
 		LOG_INFO("autokick");
-		chase(player, shoot_data.target);
+		intercept(player, shoot_data.target);
 		autokick(player, shoot_data.target, BALL_MAX_SPEED);
 		return true;
 	} else {

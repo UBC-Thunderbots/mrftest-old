@@ -1,5 +1,5 @@
 #include "ai/hl/stp/action/pivot.h"
-#include "ai/hl/stp/action/chase.h"
+#include "ai/hl/stp/action/intercept.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
@@ -12,7 +12,7 @@ void AI::HL::STP::Action::chase_pivot(const World &world, Player::Ptr player, co
 	if (Evaluation::ball_in_pivot_thresh(world, player)) {
 		pivot(world, player, target);
 	} else {
-		chase(player, target);
+		intercept(player, target);
 	}
 }
 

@@ -4,7 +4,6 @@
 #include "ai/hl/stp/action/move_spin.h"
 #include "ai/hl/stp/action/dribble.h"
 #include "ai/hl/stp/action/shoot.h"
-#include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/repel.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "geom/angle.h"

@@ -169,8 +169,6 @@ software/ai/hl/rc_tester_hl.cpp -text
 software/ai/hl/rc_tester_hl2.cpp -text
 software/ai/hl/stp/action/block.cpp -text
 software/ai/hl/stp/action/block.h -text
-software/ai/hl/stp/action/chase.cpp -text
-software/ai/hl/stp/action/chase.h -text
 software/ai/hl/stp/action/defend.cpp -text
 software/ai/hl/stp/action/defend.h -text
 software/ai/hl/stp/action/dribble.cpp -text
@@ -276,8 +274,6 @@ software/ai/hl/stp/tactic/ball.cpp -text
 software/ai/hl/stp/tactic/ball.h -text
 software/ai/hl/stp/tactic/block.cpp -text
 software/ai/hl/stp/tactic/block.h -text
-software/ai/hl/stp/tactic/chase.cpp -text
-software/ai/hl/stp/tactic/chase.h -text
 software/ai/hl/stp/tactic/defend.cpp -text
 software/ai/hl/stp/tactic/defend.h -text
 software/ai/hl/stp/tactic/defend_solo.cpp -text

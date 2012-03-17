@@ -1,4 +1,3 @@
-#include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/stp/tactic/pass.h"

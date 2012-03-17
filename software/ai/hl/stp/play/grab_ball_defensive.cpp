@@ -1,4 +1,4 @@
-#include "ai/hl/stp/tactic/chase.h"
+#include "ai/hl/stp/tactic/intercept.h"
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/block.h"
 
@@ -20,7 +20,7 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // chase the ball!
-roles[0].push_back(chase(world));
+roles[0].push_back(intercept(world));
 
 // ROLE 2
 // defend

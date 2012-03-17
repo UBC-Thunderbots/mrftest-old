@@ -1,6 +1,5 @@
 #include "ai/hl/hl.h"
 #include "ai/hl/stp/stp.h"
-#include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/move_spin.h"
 #include "ai/hl/stp/test/test.h"
 

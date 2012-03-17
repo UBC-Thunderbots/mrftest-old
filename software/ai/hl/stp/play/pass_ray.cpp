@@ -2,7 +2,6 @@
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/pass_ray.h"
 #include "ai/hl/stp/tactic/pass_simple.h"
-#include "ai/hl/stp/tactic/chase.h"
 
 using AI::HL::STP::Enemy;
 namespace Predicates = AI::HL::STP::Predicates;
