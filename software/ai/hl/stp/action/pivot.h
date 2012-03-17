@@ -10,7 +10,7 @@ namespace AI {
 				/**
 				 * Go chase after the ball and pivot towards the direction of target
 				 */
-				void chase_pivot(const World &world, Player::Ptr player, const Point target);
+				void intercept_pivot(const World &world, Player::Ptr player, const Point target);
 
 				/**
 				 * Pivot around the ball until the player is oriented in the direction of the target.

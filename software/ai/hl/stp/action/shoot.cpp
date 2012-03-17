@@ -36,7 +36,7 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, boo
 
 	Player::CPtr pc = player;
 	if (!Evaluation::possess_ball(world, pc)) {
-		chase_pivot(world, player, shoot_data.target);
+		intercept_pivot(world, player, shoot_data.target);
 		return false;
 	}
 
@@ -55,7 +55,7 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, boo
 		autokick(player, shoot_data.target, BALL_MAX_SPEED);
 		return true;
 	} else {
-		chase_pivot(world, player, shoot_data.target);
+		intercept_pivot(world, player, shoot_data.target);
 	}
 
 	return false;
@@ -63,7 +63,7 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, boo
 
 bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target, double velocity) {
 	// Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot_target(world, player, target);
-	chase_pivot(world, player, target);
+	intercept_pivot(world, player, target);
 
 	// if (shoot_data.can_shoot) {
 	if (!Evaluation::player_within_angle_thresh(player, target, passer_angle_threshold)) {
@@ -95,7 +95,7 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 }
 
 bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target, Angle angle_tol) {
-	chase_pivot(world, player, target);
+	intercept_pivot(world, player, target);
 
 	// checker shooter orientation
 	if (!Evaluation::player_within_angle_thresh(player, target, angle_tol)) {

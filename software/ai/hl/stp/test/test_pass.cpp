@@ -1,6 +1,5 @@
 #include "ai/hl/hl.h"
 #include "ai/hl/stp/stp.h"
-#include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/action/pivot.h"
 #include "ai/hl/stp/action/shoot.h"
@@ -94,7 +93,7 @@ namespace {
 				if (kicked) {
 					Action::move(players[0], players[0]->orientation(), players[0]->position());
 				} else if (!players[0]->has_ball()) {
-					Action::chase_pivot(world, players[0], targets[pass_target]);
+					Action::intercept_pivot(world, players[0], targets[pass_target]);
 				}
 
 				// passer shoots

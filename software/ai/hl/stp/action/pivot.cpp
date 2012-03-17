@@ -8,7 +8,7 @@
 #include <cmath>
 #include <algorithm>
 
-void AI::HL::STP::Action::chase_pivot(const World &world, Player::Ptr player, const Point target) {
+void AI::HL::STP::Action::intercept_pivot(const World &world, Player::Ptr player, const Point target) {
 	if (Evaluation::ball_in_pivot_thresh(world, player)) {
 		pivot(world, player, target);
 	} else {
