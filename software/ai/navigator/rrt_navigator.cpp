@@ -70,7 +70,7 @@ namespace AI {
 			void RRTNavigator::pivot(Player::Ptr player) {
 				double offset_distance = (player->destination().first - world.ball().position()).len();
 
-				if (!use_new_pivot) {
+				if (!use_new_pivot || !player->has_ball()) {
 					Player::Path path;
 					Point dest;
 					Angle dest_orientation;
@@ -98,73 +98,46 @@ namespace AI {
 					player->path(path);
 				} else { // new pivot is byron's pivot and koko's code is designed for turning with the bal
 					Player::Path path;
-					if (!player->has_ball()) {
-						// use the byron pivot to catch to the ball
-						Point dest;
-						Angle dest_orientation;
-						// try to pivot around the ball to catch it
-						Point current_position = player->position();
-						Angle to_ball_orientation = (world.ball().position() - current_position).orientation();
-						Angle orientation_temp = orientation_offset;
 
-						Angle angle = offset_angle;
+					Angle diff = ((world.ball().position() - player->destination().first).orientation() - (player->orientation() + (is_ccw ? 1 : -1) * new_pivot_offset_angle)).angle_mod();
+					// LOG_INFO( diff );
+					LOG_INFO("NEWpiovt!");
+					Point zero_pos(new_pivot_radius, 0.0);
+					Point polar_pos;
+					Point rel_pos;
+					Point dest_pos;
+					Angle rel_orient;
+					Angle dest_orient;
 
-						Angle difference = (to_ball_orientation - player->destination().second).angle_mod();
-
-						if (difference > Angle::ZERO) {
-							angle = -angle;
-							orientation_temp = -orientation_temp;
-						}
-
-						Point diff = (world.ball().position() - current_position).rotate(angle);
-
-						dest = world.ball().position() - offset_distance * (diff / diff.len());
-						dest_orientation = (world.ball().position() - current_position).orientation() + orientation_temp;
-
-						path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));
-
-						player->path(path);
-					} else {
-						Angle diff = ((world.ball().position() - player->destination().first).orientation() - (player->orientation() + (is_ccw ? 1 : -1) * new_pivot_offset_angle)).angle_mod();
-						// LOG_INFO( diff );
-						LOG_INFO("NEWpiovt!");
-						Point zero_pos(new_pivot_radius, 0.0);
-						Point polar_pos;
-						Point rel_pos;
-						Point dest_pos;
-						Angle rel_orient;
-						Angle dest_orient;
-
-						// decide on ccw or cw
-						if (diff > new_pivot_hyster_angle * Angle::HALF) {
-							is_ccw = true;
-						} else if (diff < -new_pivot_hyster_angle * Angle::HALF) {
-							is_ccw = false;
-						}
-
-						// decide on how to get there fast
-						if (diff.abs() > new_pivot_thresh_angle * Angle::HALF) {
-							rel_orient = new_pivot_travel_angle * Angle::HALF * (is_ccw ? 1 : -1);
-							rel_orient *= new_pivot_angular_sfactor;
-							polar_pos = zero_pos - zero_pos.rotate(rel_orient);
-							rel_pos = polar_pos.rotate(player->orientation() + Angle::QUARTER * (is_ccw ? 1 : -1) * (new_pivot_go_backward ? -1 : 1));
-							rel_pos *= new_pivot_linear_sfactor;
-							dest_pos = player->position() + rel_pos;
-							dest_orient = player->orientation() + rel_orient;
-						} else {
-							// decide on how to be precise
-							rel_orient = diff;
-							rel_orient *= new_pivot_angular_sfactor;
-							polar_pos = zero_pos - zero_pos.rotate(rel_orient);
-							rel_pos = polar_pos.rotate(player->orientation() + Angle::QUARTER);
-							rel_pos *= new_pivot_linear_sfactor;
-							dest_pos = player->position() + rel_pos;
-							dest_orient = (world.ball().position() - player->destination().first).orientation();
-						}
-
-						path.push_back(std::make_pair(std::make_pair(dest_pos, dest_orient), world.monotonic_time()));
-						player->path(path);
+					// decide on ccw or cw
+					if (diff > new_pivot_hyster_angle * Angle::HALF) {
+						is_ccw = true;
+					} else if (diff < -new_pivot_hyster_angle * Angle::HALF) {
+						is_ccw = false;
 					}
+
+					// decide on how to get there fast
+					if (diff.abs() > new_pivot_thresh_angle * Angle::HALF) {
+						rel_orient = new_pivot_travel_angle * Angle::HALF * (is_ccw ? 1 : -1);
+						rel_orient *= new_pivot_angular_sfactor;
+						polar_pos = zero_pos - zero_pos.rotate(rel_orient);
+						rel_pos = polar_pos.rotate(player->orientation() + Angle::QUARTER * (is_ccw ? 1 : -1) * (new_pivot_go_backward ? -1 : 1));
+						rel_pos *= new_pivot_linear_sfactor;
+						dest_pos = player->position() + rel_pos;
+						dest_orient = player->orientation() + rel_orient;
+					} else {
+						// decide on how to be precise
+						rel_orient = diff;
+						rel_orient *= new_pivot_angular_sfactor;
+						polar_pos = zero_pos - zero_pos.rotate(rel_orient);
+						rel_pos = polar_pos.rotate(player->orientation() + Angle::QUARTER);
+						rel_pos *= new_pivot_linear_sfactor;
+						dest_pos = player->position() + rel_pos;
+						dest_orient = (world.ball().position() - player->destination().first).orientation();
+					}
+
+					path.push_back(std::make_pair(std::make_pair(dest_pos, dest_orient), world.monotonic_time()));
+					player->path(path);
 				}
 			}
 
