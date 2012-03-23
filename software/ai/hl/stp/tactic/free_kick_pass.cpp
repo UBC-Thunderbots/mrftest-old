@@ -13,11 +13,13 @@ using namespace AI::HL::W;
 namespace {
 	class FreeKickPass : public Tactic {
 		public:
-			FreeKickPass(const World &world) : Tactic(world) {
+			FreeKickPass(const World &world, const Point target, double speed) : Tactic(world), target(target), speed(speed) {
 				state = TO_BALL;
 			}
 
 		private:
+			Point target;
+			double speed;
 			enum tactic_state { TO_BALL, ROTATE_BOT, ROTATE_TOP, ROTATE_MID, SHOOT };
 			tactic_state state;
 			bool done() const {
@@ -35,7 +37,7 @@ namespace {
 				const double ROT_ANGLE = 135; // rotate to this angle
 				const double ANGLE_TOL = 5.0; // Be within this angle before shooting
 				Point player_to_ball = player->position() - world.ball().position();
-				Angle to_target = (world.ball().position() - world.field().enemy_goal()).orientation() - player_to_ball.orientation();
+				Angle to_target = (world.ball().position() - target).orientation() - player_to_ball.orientation();
 				switch(state) {
 					// Move towards the ball
 					// When robot stops, start rotating below it
@@ -63,7 +65,7 @@ namespace {
 						break;
 					// Rotate to shooting position
 					case ROTATE_MID:
-						pivot(world, player, world.field().enemy_goal(), DISTANCE_FROM_BALL);
+						pivot(world, player, target, DISTANCE_FROM_BALL);
 						if (to_target.abs() <= Angle::of_degrees(ANGLE_TOL)) {
 							state = SHOOT;
 						}
@@ -71,7 +73,7 @@ namespace {
 					case SHOOT:
 						dest = world.ball().position();
 						move(world, player, dest, Point(0, 0));
-						player->autokick(AI::HL::STP::BALL_MAX_SPEED);
+						player->autokick(speed);
 						break;
 				}
 			}
@@ -81,8 +83,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::free_kick_pass(const World &world) {
-	Tactic::Ptr p(new FreeKickPass(world));
+Tactic::Ptr AI::HL::STP::Tactic::free_kick_pass(const World &world, const Point target, double speed = AI::HL::STP::BALL_MAX_SPEED) {
+	Tactic::Ptr p(new FreeKickPass(world, target, speed));
 	return p;
 }
-
