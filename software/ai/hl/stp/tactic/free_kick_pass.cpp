@@ -13,7 +13,7 @@ using namespace AI::HL::W;
 namespace {
 	class FreeKickPass : public Tactic {
 		public:
-			FreeKickPass(const World &world, const Point target, double speed) : Tactic(world), target(target), speed(speed) {
+			FreeKickPass(const World &world, const Point target, double speed) : Tactic(world, true), target(target), speed(speed) {
 				state = TO_BALL;
 			}
 
@@ -83,7 +83,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::free_kick_pass(const World &world, const Point target, double speed = AI::HL::STP::BALL_MAX_SPEED) {
+Tactic::Ptr AI::HL::STP::Tactic::free_kick_pass(const World &world, const Point target, double speed) {
 	Tactic::Ptr p(new FreeKickPass(world, target, speed));
 	return p;
 }
