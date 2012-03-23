@@ -21,7 +21,7 @@ goalie_role.push_back(wait_playtype(world, goalie_dynamic(world, 1), AI::Common:
 
 // ROLE 1
 // kicker
-roles[0].push_back(free_kick_pass(world));
+roles[0].push_back(free_kick_pass(world,world.field().enemy_goal()));
 
 // ROLE 2
 // defend
