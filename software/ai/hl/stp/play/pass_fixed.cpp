@@ -9,7 +9,6 @@
 #include "ai/hl/stp/coordinate.h"
 #include "ai/hl/stp/region.h"
 #include "ai/hl/stp/world.h"
-#include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/stp/tactic/pass.h"
