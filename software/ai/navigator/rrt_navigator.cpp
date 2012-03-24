@@ -96,12 +96,12 @@ namespace AI {
 
 					path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));
 					player->path(path);
-				} else { // new pivot is byron's pivot and koko's code is designed for turning with the bal
+				} else {
 					Player::Path path;
 
 					Angle diff = ((world.ball().position() - player->destination().first).orientation() - (player->orientation() + (is_ccw ? 1 : -1) * new_pivot_offset_angle)).angle_mod();
 					// LOG_INFO( diff );
-					LOG_INFO("NEWpiovt!");
+					LOG_INFO("NEWpivot!");
 					Point zero_pos(new_pivot_radius, 0.0);
 					Point polar_pos;
 					Point rel_pos;
