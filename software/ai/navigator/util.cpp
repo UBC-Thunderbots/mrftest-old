@@ -4,6 +4,7 @@
 #include "geom/rect.h"
 #include "util/dprint.h"
 #include "util/param.h"
+#include "ai/util.h"
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -42,8 +43,6 @@ namespace {
 	DoubleParam FRIENDLY_BUFFER_HIGH("Buffer for higher priority friendly robot (meters)", "Nav/Util", 0.2, -1.0, 1.0);
 	DoubleParam FRIENDLY_BUFFER_LOW("Buffer for lower priority friendly robot (meters)", "Nav/Util", 0.1, -1.0, 1.0);
 
-	// This buffer is in addition to the robot radius
-	const double BALL_STOP_BUFFER = 0.5;
 
 	// This buffer is in addition to the robot radius
 	DoubleParam BALL_TINY_BUFFER("Buffer avoid ball tiny (meters)", "Nav/Util", 0.05, -1.0, 1.0);
@@ -116,7 +115,7 @@ namespace {
 			return 2.0 * (player->MAX_RADIUS) + buffer;
 		}
 		static double ball_stop(AI::Nav::W::Player::Ptr player) {
-			return Ball::RADIUS + player->MAX_RADIUS + BALL_STOP_BUFFER;
+			return Ball::RADIUS + player->MAX_RADIUS + AI::Util::BALL_STOP_DIST;
 		}
 		static double ball_tiny(AI::Nav::W::Player::Ptr player) {
 			return Ball::RADIUS + player->MAX_RADIUS + BALL_TINY_BUFFER;

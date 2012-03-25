@@ -1,6 +1,7 @@
 #include "ai/hl/stp/tactic/move_stop.h"
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/util.h"
+#include "ai/util.h"
 #include <algorithm>
 
 using namespace AI::HL::STP::Tactic;
@@ -13,12 +14,13 @@ StopLocations AI::HL::STP::Tactic::stop_locations;
 namespace {
 	// The closest distance players allowed to the ball
 	// DO NOT make this EXACT, instead, add a little tolerance!
-	const double AVOIDANCE_DIST = 0.50 + Robot::MAX_RADIUS + Ball::RADIUS + 0.005;
+	const double AVOIDANCE_DIST = AI::Util::BALL_STOP_DIST + Robot::MAX_RADIUS + Ball::RADIUS + 0.005;
 
 	// in ball avoidance, angle between center of 2 robots, as seen from the ball
 	const Angle AVOIDANCE_ANGLE = 2.0 * Angle::of_radians(std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST));
 
-	DegreeParam separation_angle("stop: angle to separate players (degrees)", "STP/Tactic", 20, 0, 90);
+	DegreeParam separation_angle("stop: angle to separate players (degrees)", "STP/Tactic", 78, 77, 79);
+//	DegreeParam separation_angle("stop: angle to separate players (degrees)", "STP/Tactic", 20, 0, 180); Wei
 
 	const unsigned int NUM_PLAYERS = 5;
 

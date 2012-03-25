@@ -5,6 +5,10 @@
 
 namespace AI {
 	namespace Util {
+
+		// distance robots need to be away from the ball when the game is in the stop playtype
+		const double BALL_STOP_DIST = 0.5;
+
 		/**
 		 * Computes the best location to grab the ball,
 		 * minimizing the time required.
