@@ -19,8 +19,7 @@ namespace {
 	// in ball avoidance, angle between center of 2 robots, as seen from the ball
 	const Angle AVOIDANCE_ANGLE = 2.0 * Angle::of_radians(std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST));
 
-	DegreeParam separation_angle("stop: angle to separate players (degrees)", "STP/Tactic", 78, 77, 79);
-//	DegreeParam separation_angle("stop: angle to separate players (degrees)", "STP/Tactic", 20, 0, 180); Wei
+	DegreeParam separation_angle("stop: angle to separate players (degrees)", "STP/Tactic", 20, 0, 90);
 
 	const unsigned int NUM_PLAYERS = 5;
 
