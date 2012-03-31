@@ -42,7 +42,7 @@ roles[3].push_back(move(world, Point(0, 0)));
 
 // ROLE 5
 // offend
-roles[3].push_back(offend(world));
+roles[4].push_back(offend(world));
 
 END_ASSIGN()
 END_PLAY()

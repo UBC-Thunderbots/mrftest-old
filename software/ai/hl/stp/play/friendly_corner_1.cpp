@@ -38,10 +38,15 @@ roles[1].push_back(move(world, target));
 // defend
 roles[2].push_back(defend_duo_defender(world));
 
-// ROLE 4 (optional)
-// block
-roles[3].push_back(offend(world));
+// ROLE 2
+// defend
+roles[3].push_back(defend_duo_extra1(world));
 
+// ROLE 4 (optional)
+// offend
+roles[4].push_back(offend(world));
+
+// SECOND STEP
 
 // GOALIE
 goalie_role.push_back(defend_duo_goalie(world));
@@ -60,6 +65,10 @@ roles[2].push_back(defend_duo_extra1(world));
 // ROLE 3
 // defend
 roles[3].push_back(offend(world));
+
+// ROLE 3
+// defend
+roles[4].push_back(offend_secondary(world));
 
 END_ASSIGN()
 END_PLAY()

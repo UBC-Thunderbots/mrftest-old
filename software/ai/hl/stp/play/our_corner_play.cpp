@@ -1,6 +1,7 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/move.h"
+#include "ai/hl/stp/tactic/offend.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::Enemy;
@@ -43,6 +44,10 @@ roles[2].push_back(move(world, Coordinate(world, Point(-world.ball().position().
 // ROLE 4 (optional)
 // defend extra
 roles[3].push_back(defend_duo_extra1(world));
+
+// ROLE 4 (optional)
+// offend
+roles[4].push_back(offend(world));
 
 END_ASSIGN()
 END_PLAY()
