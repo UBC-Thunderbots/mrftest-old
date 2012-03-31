@@ -26,8 +26,9 @@ BEGIN_ASSIGN()
 goalie_role.push_back(goalie_dynamic(world, 1));
 roles[0].push_back(passer_ray(world)); // ACTIVE
 roles[1].push_back(defend_duo_defender(world));
-roles[2].push_back(offend(world));
-roles[3].push_back(offend_secondary(world));
+roles[2].push_back(defend_duo_extra1(world));
+roles[3].push_back(offend(world));
+roles[4].push_back(offend_secondary(world));
 
 END_ASSIGN()
 END_PLAY()

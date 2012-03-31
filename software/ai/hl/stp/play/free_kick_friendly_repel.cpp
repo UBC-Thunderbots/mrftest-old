@@ -2,6 +2,7 @@
 #include "ai/hl/stp/tactic/pass.h"
 #include "ai/hl/stp/tactic/repel.h"
 #include "ai/hl/stp/tactic/move.h"
+#include "ai/hl/stp/tactic/offend.h"
 #include "ai/common/playtype.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
@@ -38,6 +39,10 @@ roles[2].push_back(defend_duo_extra1(world));
 // ROLE 4
 // position to centre
 roles[3].push_back(move(world, Point(0, 0)));
+
+// ROLE 5
+// offend
+roles[3].push_back(offend(world));
 
 END_ASSIGN()
 END_PLAY()

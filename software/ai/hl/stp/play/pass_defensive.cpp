@@ -1,6 +1,7 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/pass.h"
+#include "ai/hl/stp/tactic/intercept.h"
 #include "ai/hl/stp/tactic/offend.h"
 
 using AI::HL::STP::Enemy;
@@ -23,14 +24,15 @@ BEGIN_ASSIGN()
 // STEP 1
 goalie_role.push_back(defend_duo_goalie(world));
 roles[0].push_back(defend_duo_defender(world));
-roles[1].push_back(passer_shoot_dynamic(world));
-roles[2].push_back(passee_move_dynamic(world));
-roles[3].push_back(block_goal(world, Enemy::closest_friendly_goal(world, 0)));
+roles[1].push_back(defend_duo_extra1(world));
+roles[2].push_back(passer_shoot_dynamic(world));
+roles[3].push_back(passee_move_dynamic(world));
+roles[4].push_back(block_goal(world, Enemy::closest_friendly_goal(world, 0)));
 
 // STEP 2
-roles[1].push_back(passee_receive(world));
-roles[2].push_back(block_goal(world, Enemy::closest_friendly_goal(world, 0)));
-roles[3].push_back(offend(world));
+roles[2].push_back(intercept(world));
+roles[3].push_back(block_goal(world, Enemy::closest_friendly_goal(world, 0)));
+roles[4].push_back(offend(world));
 
 END_ASSIGN()
 END_PLAY()
