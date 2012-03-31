@@ -32,6 +32,10 @@ roles[2].push_back(tdefend_line(world, Coordinate(world, Point(-1.1, 0.25), Coor
 // defend line 2
 roles[3].push_back(tdefend_line(world, Coordinate(world, Point(-1.1, 0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-0.7, -0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.2));
 
+// ROLE 5 (optional)
+// offend
+roles[4].push_back(offend(world));
+
 END_ASSIGN()
 END_PLAY()
 
