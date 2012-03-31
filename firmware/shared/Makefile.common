@@ -1,6 +1,6 @@
 DEFS := $(wildcard *.def ../shared/*.def)
 SOURCES := $(wildcard *.c ../shared/*.c) $(DEFS:.def=.c)
-HEADERS := $(wildcard *.h ../shared/*.h) pins.h $(DEFS:.def=.h)
+HEADERS := $(wildcard *.h ../shared/*.h) $(if $(NO_PINS_H),,pins.h) $(DEFS:.def=.h)
 SDCC_FLAGS := --std-sdcc99 -mpic16 --fomit-frame-pointer --obanksel=1 --optimize-cmp --optimize-df --use-non-free -I. -I../shared $(SDCC_FLAGS)
 
 $(PROJ).hex : $(sort $(notdir $(SOURCES:.c=.o))) $(LKR)

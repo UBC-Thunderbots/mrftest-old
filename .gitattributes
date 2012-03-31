@@ -9,6 +9,8 @@ firmware/ChickerTest/chickertest.c -text
 firmware/ChickerTest/config.c -text
 firmware/ChickerTest/pwm.c -text
 firmware/ChickerTest/pwm.h -text
+firmware/DribblerTest/18f65j50.lkr -text
+firmware/DribblerTest/Makefile -text
 firmware/DribblerTest/dribbler_test.c -text
 firmware/HWRunSwitch/Makefile -text
 firmware/HWRunSwitch/hwrunswitch.c -text
