@@ -14,12 +14,12 @@ static const char __code __at(__CONFIG6H) c6h = _WRTD_OFF_6H & _WRTB_OFF_6H & _W
 static const char __code __at(__CONFIG7L) c7l = _EBTR_0_OFF_7L & _EBTR_1_OFF_7L & _EBTR_2_OFF_7L & _EBTR_3_OFF_7L;
 static const char __code __at(__CONFIG7H) c7h = _EBTRB_OFF_7H;
 
-#define TOGGLE_1P 0x80; //10000000
-#define TOGGLE_1N 0x40; //01000000
-#define TOGGLE_2P 0x20; //00100000
-#define TOGGLE_2N 0x10; //00010000
-#define TOGGLE_3P 0x08; //00001000
-#define TOGGLE_3N 0x04; //00000100
+#define TOGGLE_1P 0x80 //10000000
+#define TOGGLE_1N 0x40 //01000000
+#define TOGGLE_2P 0x20 //00100000
+#define TOGGLE_2N 0x10 //00010000
+#define TOGGLE_3P 0x08 //00001000
+#define TOGGLE_3N 0x04 //00000100
 
 
 #define BASE (TOGGLE_3P | TOGGLE_2P | TOGGLE_1P)
