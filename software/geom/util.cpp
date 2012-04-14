@@ -739,15 +739,11 @@ double closest_point_time(Point x1, Point v1, Point x2, Point v2) {
 	return t;
 }
 
-bool point_in_front_vector( Point offset, Point dir, Point p ){
+bool point_in_front_vector(Point offset, Point dir, Point p) {
 	// compare angle different
 	Angle a1 = dir.orientation();
-	Angle a2 = (p-offset).orientation();
-	Angle diff = (a1-a2).angle_mod();
-	if( diff < Angle::QUARTER && diff > -Angle::QUARTER  ){
-		return true;
-	} else {
-		return false;
-	}
+	Angle a2 = (p - offset).orientation();
+	Angle diff = (a1 - a2).angle_mod();
+	return diff < Angle::QUARTER && diff > -Angle::QUARTER;
 }
 
