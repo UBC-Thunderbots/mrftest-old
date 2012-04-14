@@ -28,6 +28,7 @@ namespace {
 		CPPUNIT_TEST(test_vector_rect_intersect);
 		CPPUNIT_TEST(test_seg_pt_dist);
 		CPPUNIT_TEST(test_proj_dist);
+		CPPUNIT_TEST(test_point_in_rectangle);
 		CPPUNIT_TEST_SUITE_END();
 
 		public:
@@ -190,6 +191,17 @@ void GeomUtilTest::test_point_in_triangle() {
 	CPPUNIT_ASSERT_EQUAL(expected_val, calculated_val);
 }
 
+void GeomUtilTest::test_collinear() {
+	for (unsigned int i = 0; i < 10; ++i) {
+		Point v = Point::of_angle(Angle::of_degrees(std::rand() % 360)); // should be random number here
+		Point pointA((std::rand() % 100) / 100.0, (std::rand() % 100) / 100.0);
+		Point pointB = pointA + v * (std::rand() % 100) / 100.0;
+		Point pointC = pointA - v * (std::rand() % 100) / 100.0;
+		bool val = collinear(pointA, pointB, pointC);
+		CPPUNIT_ASSERT(val);
+	}
+}
+
 void GeomUtilTest::test_triangle_circle_intersect() {
 	Point test1p1(-5, 0);
 	Point test1p2(5, 0);
@@ -230,16 +242,6 @@ void GeomUtilTest::test_triangle_circle_intersect() {
 void GeomUtilTest::test_dist_matching() {
 	// not used anywhere
 }
-void GeomUtilTest::test_collinear() {
-	for (unsigned int i = 0; i < 10; ++i) {
-		Point v = Point::of_angle(Angle::of_degrees(std::rand() % 360)); // should be random number here
-		Point pointA((std::rand() % 100) / 100.0, (std::rand() % 100) / 100.0);
-		Point pointB = pointA + v * (std::rand() % 100) / 100.0;
-		Point pointC = pointA - v * (std::rand() % 100) / 100.0;
-		bool val = collinear(pointA, pointB, pointC);
-		CPPUNIT_ASSERT(val);
-	}
-}
 
 void GeomUtilTest::test_angle_sweep_circles() {
 	// yes, this is used
@@ -252,6 +254,44 @@ void GeomUtilTest::test_line_seg_intersect_rectangle() {
 }
 
 void GeomUtilTest::test_point_in_rectangle() {
+
+	// Point in 1st quadrant, rectangle in the 3rd quadrant. Should fail!
+	Point test1rect[4] = {Point(0, 0), Point(-2,0), Point(-2,-2), Point(0,-2)};
+	CPPUNIT_ASSERT(!point_in_rectangle(Point(1,1),test1rect));
+
+	// Point in 3rd quadrant, rectangle in the 3rd quadrant. Pass!
+	Point test2rect[4] = {Point(0, 0), Point(-2,0), Point(-2,-2), Point(0,-2)};
+	CPPUNIT_ASSERT(point_in_rectangle(Point(-1,-1),test2rect));
+
+	// Point is one of the corners of the rectangle. Pass
+	Point test3rect[4] = {Point(0, 0), Point(2,0), Point(2,2), Point(0,2)};
+	CPPUNIT_ASSERT(point_in_rectangle(Point(2,2),test3rect));
+
+	// Point is on the edge of the rectangle. Pass
+	Point test4rect[4] = {Point(0, 0), Point(3,0), Point(3,3), Point(0,3)};
+	CPPUNIT_ASSERT(point_in_rectangle(Point(0,1),test4rect));
+
+	// Point in the 1st quadrant, rectangle in the 1st quadrant. Pass
+	Point test5rect[4] = {Point(0, 0), Point(3,0), Point(3,3), Point(0,3)};
+	CPPUNIT_ASSERT(point_in_rectangle(Point(1,2),test5rect));
+
+	// Point in the 2nd quadrant, rectangle in the 2nd quadrant. Point is off above, Fail.
+	Point test6rect[4] = {Point(0, 0), Point(0,4), Point(-4,0), Point(-4, 4)};
+	CPPUNIT_ASSERT(!point_in_rectangle(Point(-2,5),test6rect));
+
+	// Point in the 2nd quadrant, rectangle in the 4th quadrant. Point is off to the left, Fail.
+	Point test7rect[4] = {Point(0, 0), Point(0,4), Point(-4,0), Point(-4, 4)};
+	CPPUNIT_ASSERT(!point_in_rectangle(Point(-7,2),test7rect));
+
+	// Point in the 2nd quadrant, rectangle centered at origin. Point is off above, Fail.
+	Point test8rect[4] = {Point(1, 1), Point(-1,-1), Point(1,-1), Point(-1, 1)};
+	CPPUNIT_ASSERT(point_in_rectangle(Point(0.5,0.5),test8rect));
+
+	// Point in the 2nd quadrant, rectangle centered at origin. Point is off to the left, Fail.
+	Point test9point(2,2);
+	Point test9rect[4] = {Point(1, 1), Point(-1,-1), Point(1,-1), Point(-1, 1)};
+	CPPUNIT_ASSERT(!point_in_rectangle(Point(2,2), test9rect));
+
 }
 
 void GeomUtilTest::test_seg_buffer_boundaries() {
