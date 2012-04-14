@@ -31,7 +31,6 @@ void Simulator::Team::add_connection(Connection::Ptr &&conn) {
 	connection = std::move(conn);
 	ready_ = true;
 	Glib::signal_idle().connect_once(sigc::mem_fun(this, &Team::send_speed_mode));
-	Glib::signal_idle().connect_once(sigc::mem_fun(this, &Team::send_play_type));
 	Glib::signal_idle().connect_once(signal_ready().make_slot());
 }
 
@@ -113,16 +112,6 @@ void Simulator::Team::send_speed_mode() {
 		std::memset(&packet, 0, sizeof(packet));
 		packet.type = Proto::S2APacketType::SPEED_MODE;
 		packet.speed_mode = sim.speed_mode();
-		connection->send(packet);
-	}
-}
-
-void Simulator::Team::send_play_type() {
-	if (connection) {
-		Proto::S2APacket packet;
-		std::memset(&packet, 0, sizeof(packet));
-		packet.type = Proto::S2APacketType::PLAY_TYPE;
-		packet.playtype = invert ? AI::Common::PlayTypeInfo::invert(sim.play_type()) : sim.play_type();
 		connection->send(packet);
 	}
 }
@@ -261,15 +250,6 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet, std::shared_ptr<
 
 		case Proto::A2SPacketType::SET_SPEED:
 			sim.speed_mode(packet.speed_mode);
-			return;
-
-		case Proto::A2SPacketType::PLAY_TYPE:
-			if (packet.playtype != AI::Common::PlayType::NONE) {
-				sim.set_play_type(invert ? AI::Common::PlayTypeInfo::invert(packet.playtype) : packet.playtype);
-			} else {
-				std::cout << "AI asked to set invalid play type\n";
-				close_connection();
-			}
 			return;
 
 		case Proto::A2SPacketType::DRAG_BALL:

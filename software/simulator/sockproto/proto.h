@@ -1,7 +1,6 @@
 #ifndef SIMULATOR_SOCKPROTO_PROTO_H
 #define SIMULATOR_SOCKPROTO_PROTO_H
 
-#include "ai/common/playtype.h"
 #include "util/time.h"
 
 /**
@@ -120,12 +119,6 @@ namespace Simulator {
 			SET_SPEED,
 
 			/**
-			 * Requests that the simulator change play types.
-			 * This may be sent at any time.
-			 */
-			PLAY_TYPE,
-
-			/**
 			 * Requests that the simulator drag the ball to a new position.
 			 * This may be sent at any time.
 			 */
@@ -178,11 +171,6 @@ namespace Simulator {
 				 * The speed mode, in the case of A2S_PACKET_SPEED_MDOE.
 				 */
 				SpeedMode speed_mode;
-
-				/**
-				 * The play type, in the case of A2S_PACKET_PLAY_TYPE.
-				 */
-				AI::Common::PlayType playtype;
 
 				/**
 				 * Information about dragging an object, in the case of A2S_PACKET_DRAG_BALL or A2S_PACKET_DRAG_PLAYER.
@@ -261,12 +249,6 @@ namespace Simulator {
 			 * This packet is sent when the client connects and whenever the speed mode changes.
 			 */
 			SPEED_MODE,
-
-			/**
-			 * Indicates the current play type.
-			 * This packet is sent when the client connects and whenever the play type changes.
-			 */
-			PLAY_TYPE,
 		};
 
 		/**
@@ -318,11 +300,6 @@ namespace Simulator {
 				 * The current speed mode, in the case of S2A_PACKET_SPEED_MODE.
 				 */
 				SpeedMode speed_mode;
-
-				/**
-				 * The current play type, in the case of S2A_PACKET_PLAY_TYPE.
-				 */
-				AI::Common::PlayType playtype;
 			};
 		};
 	}

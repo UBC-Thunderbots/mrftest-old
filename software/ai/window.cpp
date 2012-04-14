@@ -17,14 +17,25 @@ using AI::Window;
 namespace {
 	class BasicControls : public Gtk::Frame {
 		public:
-			explicit BasicControls(AI::AIPackage &ai) : Gtk::Frame("Basics"), ai(ai), table(1 + ai.backend.main_ui_controls_table_rows(), 3), playtype_label("Play type:") {
-				table.attach(playtype_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+			explicit BasicControls(AI::AIPackage &ai) : Gtk::Frame("Basics"), ai(ai), table(2 + ai.backend.main_ui_controls_table_rows(), 3), playtype_override_label("Play type override:"), playtype_label("Play type:") {
+				table.attach(playtype_override_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				playtype_override_chooser.append_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayType::NONE));
+				for (unsigned int i = 0; i < static_cast<unsigned int>(AI::Common::PlayType::NONE); ++i) {
+					playtype_override_chooser.append_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayTypeInfo::of_int(i)));
+				}
+				playtype_override_chooser.set_active_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayType::NONE));
+				table.attach(playtype_override_chooser, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				playtype_override_chooser.signal_changed().connect(sigc::mem_fun(this, &BasicControls::on_playtype_override_chooser_changed));
+				ai.backend.playtype_override().signal_changed().connect(sigc::mem_fun(this, &BasicControls::on_playtype_override_changed));
+				on_playtype_override_changed();
+
+				table.attach(playtype_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				playtype_entry.set_editable(false);
-				table.attach(playtype_entry, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				table.attach(playtype_entry, 1, 3, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				ai.backend.playtype().signal_changed().connect(sigc::mem_fun(this, &BasicControls::on_playtype_changed));
 				on_playtype_changed();
 
-				ai.backend.main_ui_controls_attach(table, 1);
+				ai.backend.main_ui_controls_attach(table, 2);
 
 				add(table);
 			}
@@ -32,8 +43,23 @@ namespace {
 		private:
 			AI::AIPackage &ai;
 			Gtk::Table table;
-			Gtk::Label playtype_label;
+			Gtk::Label playtype_override_label, playtype_label;
+			Gtk::ComboBoxText playtype_override_chooser;
 			Gtk::Entry playtype_entry;
+
+			void on_playtype_override_chooser_changed() {
+				int row = playtype_override_chooser.get_active_row_number();
+				if (row == 0) {
+					ai.backend.playtype_override() = AI::Common::PlayType::NONE;
+				} else if (row > 0) {
+					ai.backend.playtype_override() = AI::Common::PlayTypeInfo::of_int(row - 1);
+				}
+			}
+
+			void on_playtype_override_changed() {
+				AI::Common::PlayType pt = ai.backend.playtype_override();
+				playtype_override_chooser.set_active_text(AI::Common::PlayTypeInfo::to_string(pt));
+			}
 
 			void on_playtype_changed() {
 				playtype_entry.set_text(AI::Common::PlayTypeInfo::to_string(ai.backend.playtype()));
@@ -263,57 +289,31 @@ namespace {
 
 	class SecondaryBasicControls : public Gtk::Table {
 		public:
-			explicit SecondaryBasicControls(AI::AIPackage &ai) : Gtk::Table(3 + ai.backend.secondary_ui_controls_table_rows(), 3), ai(ai), playtype_override_label("Play type override:"), defending_end_label("Defending:"), friendly_colour_label("Colour:"), flip_end_button("X"), flip_friendly_colour_button("X") {
-				attach(playtype_override_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				playtype_override_chooser.append_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayType::NONE));
-				for (unsigned int i = 0; i < static_cast<unsigned int>(AI::Common::PlayType::NONE); ++i) {
-					playtype_override_chooser.append_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayTypeInfo::of_int(i)));
-				}
-				playtype_override_chooser.set_active_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayType::NONE));
-				attach(playtype_override_chooser, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				playtype_override_chooser.signal_changed().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_playtype_override_chooser_changed));
-				ai.backend.playtype_override().signal_changed().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_playtype_override_changed));
-				on_playtype_override_changed();
-
-				attach(defending_end_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+			explicit SecondaryBasicControls(AI::AIPackage &ai) : Gtk::Table(2 + ai.backend.secondary_ui_controls_table_rows(), 3), ai(ai), defending_end_label("Defending:"), friendly_colour_label("Colour:"), flip_end_button("X"), flip_friendly_colour_button("X") {
+				attach(defending_end_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				defending_end_entry.set_editable(false);
-				attach(defending_end_entry, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				attach(flip_end_button, 2, 3, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				attach(defending_end_entry, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				attach(flip_end_button, 2, 3, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				flip_end_button.signal_clicked().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_flip_end_clicked));
 				ai.backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_defending_end_changed));
 				on_defending_end_changed();
 
-				attach(friendly_colour_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				attach(friendly_colour_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				friendly_colour_entry.set_editable(false);
-				attach(friendly_colour_entry, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				attach(flip_friendly_colour_button, 2, 3, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				attach(friendly_colour_entry, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				attach(flip_friendly_colour_button, 2, 3, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				flip_friendly_colour_button.signal_clicked().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_flip_friendly_colour_clicked));
 				ai.backend.friendly_colour().signal_changed().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_friendly_colour_changed));
 				on_friendly_colour_changed();
 
-				ai.backend.secondary_ui_controls_attach(*this, 3);
+				ai.backend.secondary_ui_controls_attach(*this, 2);
 			}
 
 		private:
 			AI::AIPackage &ai;
-			Gtk::Label playtype_override_label, defending_end_label, friendly_colour_label;
-			Gtk::ComboBoxText playtype_override_chooser;
+			Gtk::Label defending_end_label, friendly_colour_label;
 			Gtk::Entry defending_end_entry, friendly_colour_entry;
 			Gtk::Button flip_end_button, flip_friendly_colour_button;
-
-			void on_playtype_override_chooser_changed() {
-				int row = playtype_override_chooser.get_active_row_number();
-				if (row == 0) {
-					ai.backend.playtype_override() = AI::Common::PlayType::NONE;
-				} else if (row > 0) {
-					ai.backend.playtype_override() = AI::Common::PlayTypeInfo::of_int(row - 1);
-				}
-			}
-
-			void on_playtype_override_changed() {
-				AI::Common::PlayType pt = ai.backend.playtype_override();
-				playtype_override_chooser.set_active_text(AI::Common::PlayTypeInfo::to_string(pt));
-			}
 
 			void on_flip_end_clicked() {
 				switch (ai.backend.defending_end()) {

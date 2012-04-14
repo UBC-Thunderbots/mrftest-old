@@ -83,11 +83,6 @@ namespace Simulator {
 			void send_speed_mode();
 
 			/**
-			 * Sends a packet to the AI with the current play type.
-			 */
-			void send_play_type();
-
-			/**
 			 * Loads a team state from a file.
 			 *
 			 * \param[in] fd the file to load from.

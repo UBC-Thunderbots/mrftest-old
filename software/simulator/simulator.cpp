@@ -56,7 +56,7 @@ namespace {
 	}
 }
 
-Simulator::Simulator::Simulator(SimulatorEngine &engine) : engine(engine), listen_socket(create_listen_socket()), team1(*this, &team2, false), team2(*this, &team1, true), speed_mode_(::Simulator::Proto::SpeedMode::NORMAL), tick_scheduled(false), playtype(AI::Common::PlayType::HALT), frame_count(0), spinner_index(0) {
+Simulator::Simulator::Simulator(SimulatorEngine &engine) : engine(engine), listen_socket(create_listen_socket()), team1(*this, &team2, false), team2(*this, &team1, true), speed_mode_(::Simulator::Proto::SpeedMode::NORMAL), tick_scheduled(false), frame_count(0), spinner_index(0) {
 	next_tick_game_monotonic_time.tv_sec = 0;
 	next_tick_game_monotonic_time.tv_nsec = 0;
 	next_tick_phys_monotonic_time.tv_sec = 0;
@@ -78,18 +78,6 @@ void Simulator::Simulator::speed_mode(::Simulator::Proto::SpeedMode mode) {
 		speed_mode_ = mode;
 		team1.send_speed_mode();
 		team2.send_speed_mode();
-	}
-}
-
-AI::Common::PlayType Simulator::Simulator::play_type() const {
-	return playtype;
-}
-
-void Simulator::Simulator::set_play_type(AI::Common::PlayType pt) {
-	if (pt != playtype) {
-		playtype = pt;
-		team1.send_play_type();
-		team2.send_play_type();
 	}
 }
 

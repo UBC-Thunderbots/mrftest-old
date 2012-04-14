@@ -33,44 +33,6 @@ namespace AI {
 	namespace BE {
 		namespace Simulator {
 			/**
-			 * Packages up the GUI controls that are embedded into the window on the main tab when the simulator backend is used.
-			 */
-			class MainUIControls {
-				public:
-					/**
-					 * A label for playtype_combo.
-					 */
-					Gtk::Label playtype_label;
-
-					/**
-					 * A combo box for picking the master play type plumbed to both teams.
-					 */
-					Gtk::ComboBoxText playtype_combo;
-
-					/**
-					 * Constructs a new MainUIControls.
-					 * The controls are not added to a window yet.
-					 */
-					explicit MainUIControls();
-
-					/**
-					 * Returns the number of rows of controls.
-					 *
-					 * \return the row count.
-					 */
-					unsigned int rows() const;
-
-					/**
-					 * Attaches the controls into a table.
-					 *
-					 * \param[in] t the table into which to place the controls.
-					 *
-					 * \param[in] row the Y coordinate at which the top edge of the first row of components should be placed in the table.
-					 */
-					void attach(Gtk::Table &t, unsigned int row);
-			};
-
-			/**
 			 * Packages up the GUI controls that are embedded into the window on the secondary tab when the simulator backend is used.
 			 */
 			class SecondaryUIControls {
@@ -289,16 +251,6 @@ namespace AI {
 					timespec monotonic_time_;
 
 					/**
-					 * The current master play type.
-					 */
-					AI::Common::PlayType simulator_playtype;
-
-					/**
-					 * The main tab UI controls.
-					 */
-					MainUIControls main_controls;
-
-					/**
 					 * The secondary tab UI controls.
 					 */
 					SecondaryUIControls secondary_controls;
@@ -316,15 +268,9 @@ namespace AI {
 					void send_orders();
 
 					/**
-					 * Examines the current master play type and play type override and calculates the effective play type.
+					 * Examines the current play type override and calculates the effective play type.
 					 */
 					void update_playtype();
-
-					/**
-					 * Invoked when the user selects a new value in the master play type combobox.
-					 * Sends the new selected play type to the simulator.
-					 */
-					void on_sim_playtype_changed();
 
 					/**
 					 * Invoked when the user selects a new speed mode radio button.

@@ -46,20 +46,6 @@ namespace Simulator {
 			void speed_mode(::Simulator::Proto::SpeedMode mode);
 
 			/**
-			 * \brief Returns the current play type.
-			 *
-			 * \return the current play type.
-			 */
-			AI::Common::PlayType play_type() const;
-
-			/**
-			 * \brief Sets the play type.
-			 *
-			 * \param[in] pt the play type to select.
-			 */
-			void set_play_type(AI::Common::PlayType pt);
-
-			/**
 			 * \brief Stores the current state of the ball into a state block.
 			 *
 			 * \param[out] state the state block to fill.
@@ -122,11 +108,6 @@ namespace Simulator {
 			 * \brief Whether a call to tick() has been scheduled on a timer but not yet executed.
 			 */
 			bool tick_scheduled;
-
-			/**
-			 * \brief The current play type.
-			 */
-			AI::Common::PlayType playtype;
 
 			/**
 			 * \brief The number of ticks since the last update of the status line.
