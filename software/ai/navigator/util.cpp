@@ -413,15 +413,32 @@ namespace {
 		}
 	}
 
+	// create path that avoids obstacles and just keeps the orientation constant at each of the points
+	AI::Nav::W::Player::Path create_path(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, const std::pair<Point, Angle> dest) {
+		std::vector<Point> path_points;
+		AI::Nav::RRTPlanner planner(world);
+		AI::Nav::W::Player::Path path;
+
+		if (AI::Nav::Util::valid_path(player->position(), dest.first, world, player)) {
+			path_points.push_back(dest.first);
+		} else {
+			path_points = planner.plan(player, dest.first, 0);
+		}
+
+		for(unsigned int i = 0; i < path_points.size(); i++) {
+			path.push_back(std::make_pair(std::make_pair(path_points[i], dest.second), world.monotonic_time()));
+		}
+		return path;
+	}
+
 	// Get a path that goes beside the ball
-	AI::Nav::W::Player::Path get_path_near_ball(const AI::Nav::W::World &world, const Angle &target_ball_offset_angle) {
+	AI::Nav::W::Player::Path get_path_near_ball(AI::Nav::W::World &world, const AI::Nav::W::Player::Ptr player, const Angle &target_ball_offset_angle) {
 		Point dest_pos;
 		Angle dest_ang;
 		const Point ball_vel = world.ball().velocity();
 		const Point ball_norm = world.ball().velocity().norm();
 		const double AVOID_DIST = 0.2;
 		const double DELTA_TIME = 1.0;
-		timespec working_time = timespec_add(world.monotonic_time(), double_to_timespec(1.0));
 		// check for the side that has a clear path, TODO
 
 		// if the robot is in behind the ball, then move up to it from the far side to the target
@@ -434,14 +451,11 @@ namespace {
 		// make the robot face against the ball direction
 		dest_ang = -ball_vel.orientation();
 
-		// assign this destination to the player
-		AI::Nav::W::Player::Path path;
-		path.push_back(std::make_pair(std::make_pair(dest_pos, dest_ang), working_time));
-		return path;
+		return create_path(world, player, std::make_pair(dest_pos, dest_ang));
 	}
 
 	// only used when ball is not moving
-	AI::Nav::W::Player::Path get_path_around_ball(const AI::Nav::W::World &world, const Point player_pos, const Point target_pos, bool ccw) {
+	AI::Nav::W::Player::Path get_path_around_ball(AI::Nav::W::World &world, const AI::Nav::W::Player::Ptr player, const Point player_pos, const Point target_pos, bool ccw) {
 		Point dest_pos;
 		Angle dest_ang = (target_pos - player_pos).orientation();
 		const Point ball_pos = world.ball().position();
@@ -458,16 +472,13 @@ namespace {
 		}
 
 		const double tangential_scale = 0.3;
-		if (angle_diff.angle_diff(Angle::ZERO) > Angle::of_degrees(5)) {
+		if (angle_diff.angle_diff(Angle::ZERO) > Angle::of_degrees(10)) {
 			dest_pos = player_pos + tangential_norm * tangential_scale;
 		} else {
 			dest_pos = ball_pos;
 		}
-		timespec working_time = timespec_add(world.monotonic_time(), double_to_timespec(1.0));
-		
-		AI::Nav::W::Player::Path path;
-		path.push_back(std::make_pair(std::make_pair(dest_pos, dest_ang), working_time));
-		return path;
+
+		return create_path(world, player, std::make_pair(dest_pos, dest_ang));
 	}
 };
 
@@ -636,17 +647,20 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W:
 		ctx->show_text(str);
 	}*/
 
+	std::vector<Point> path_points;
+	AI::Nav::RRTPlanner planner(world);
+
 	// only start rotating around the stationary ball when we're within a certain distance
 	const double dist_to_rotate = 0.3;
 	if (ball_vel.len() < 0.1 && (robot_pos - ball_pos).len() < dist_to_rotate) {
-		player->path(get_path_around_ball(world, robot_pos, target_pos, true));
+		player->path(get_path_around_ball(world, player, robot_pos, target_pos, true));
 		return true;
 	}
 
 	const bool robot_behind_ball = !point_in_front_vector(ball_pos, ball_vel, robot_pos);
 	// find out whether robot is behind the ball or in front of the ball
 	if (robot_behind_ball) {
-		player->path(get_path_near_ball(world, target_ball_offset_angle));
+		player->path(get_path_near_ball(world, player, target_ball_offset_angle));
 		return true;
 	}
 
@@ -660,10 +674,6 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W:
 	Point interval = (-ball_pos + ball_bounded_pos) * (1.0 / points_to_check);
 	// set up how much the ball travels in each interval that we check, assume no decay
 	double interval_time = interval.len() / ball.velocity().len();
-	// we'll just make this value big first
-	// timespec min_time = timespec(10000);
-	std::vector<Point> path_points;
-	AI::Nav::RRTPlanner planner(world);
 	unsigned int flags = AI::Flags::FLAG_AVOID_BALL_TINY;
 
 #warning flags and timespec are not accounted for properly
@@ -711,9 +721,3 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W:
 	// guess we have't found a possible intersecting point
 	return false;
 }
-
-/*void AI::Nav::Util::make_stationary(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
-	AI::Nav::W::Player::Path path;
-	path.push_back(std::make_pair(std::make_pair(player->position(), player->orientation()), world.monotonic_time()));
-	player->path(path);
-}*/
