@@ -457,7 +457,7 @@ namespace {
 			tangential_norm = radial_norm.rotate(Angle::QUARTER);
 		}
 
-		const double tangential_scale = 1.0;
+		const double tangential_scale = 0.3;
 		if (angle_diff.angle_diff(Angle::ZERO) > Angle::of_degrees(5)) {
 			dest_pos = player_pos + tangential_norm * tangential_scale;
 		} else {
@@ -466,7 +466,7 @@ namespace {
 		timespec working_time = timespec_add(world.monotonic_time(), double_to_timespec(1.0));
 		
 		AI::Nav::W::Player::Path path;
-		path.push_back(std::make_pair( std::make_pair(dest_pos, dest_ang), working_time));
+		path.push_back(std::make_pair(std::make_pair(dest_pos, dest_ang), working_time));
 		return path;
 	}
 };
@@ -636,7 +636,9 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W:
 		ctx->show_text(str);
 	}*/
 
-	if (ball_vel.len() < 0.1) {
+	// only start rotating around the stationary ball when we're within a certain distance
+	const double dist_to_rotate = 0.3;
+	if (ball_vel.len() < 0.1 && (robot_pos - ball_pos).len() < dist_to_rotate) {
 		player->path(get_path_around_ball(world, robot_pos, target_pos, true));
 		return true;
 	}
