@@ -441,30 +441,24 @@ namespace {
 	}
 
 	// only used when ball is not moving
-	AI::Nav::W::Player::Path get_path_around_ball(const AI::Nav::W::World &world, const Point player_pos, const Point target_pos, bool ccw){
-		
+	AI::Nav::W::Player::Path get_path_around_ball(const AI::Nav::W::World &world, const Point player_pos, const Point target_pos, bool ccw) {
 		Point dest_pos;
-		Angle dest_ang = (target_pos-player_pos).orientation();
-		const Point ball_pos = world.ball().position();	
+		Angle dest_ang = (target_pos - player_pos).orientation();
+		const Point ball_pos = world.ball().position();
 
-		Point radial_norm = (player_pos-ball_pos).norm();
-		Angle angle_diff = (radial_norm.orientation() - (Angle::HALF+dest_ang).angle_mod()).angle_mod();
-		if( angle_diff <= Angle::ZERO ){
-			ccw = false;
-			//std::cout << "cw\n";
-		} else {
-			ccw = true;
-			//std::cout << "ccw\n";
-		}
+		Point radial_norm = (player_pos - ball_pos).norm();
+		Angle angle_diff = (radial_norm.orientation() - (Angle::HALF + dest_ang).angle_mod()).angle_mod();
+		ccw = angle_diff > Angle::ZERO;
+
 		Point tangential_norm;
-		if( ccw ){
+		if (ccw) {
 			tangential_norm = radial_norm.rotate(Angle::THREE_QUARTER);
 		} else {
 			tangential_norm = radial_norm.rotate(Angle::QUARTER);
 		}
 
 		const double tangential_scale = 1.0;
-		if( angle_diff.angle_diff(Angle::ZERO) > Angle::of_degrees(5)){
+		if (angle_diff.angle_diff(Angle::ZERO) > Angle::of_degrees(5)) {
 			dest_pos = player_pos + tangential_norm * tangential_scale;
 		} else {
 			dest_pos = ball_pos;
@@ -472,7 +466,7 @@ namespace {
 		timespec working_time = timespec_add(world.monotonic_time(), double_to_timespec(1.0));
 		
 		AI::Nav::W::Player::Path path;
-		path.push_back( std::make_pair( std::make_pair(dest_pos, dest_ang), working_time) );
+		path.push_back(std::make_pair( std::make_pair(dest_pos, dest_ang), working_time));
 		return path;
 	}
 };
@@ -557,12 +551,6 @@ std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World &wor
 	return ans;
 }
 
-// bool has_ramball_location(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
-// Point ball_dir = world.ball.velocity();
-// return unique_line_intersect(player->position(), dst, world.ball.position(), world.ball.position() + ball_dir);
-// }
-
-
 std::pair<Point, timespec> AI::Nav::Util::get_ramball_location(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 	Point ball_dir = world.ball().velocity();
 
@@ -615,7 +603,7 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W:
 	// extract data from the player
 	const Field &field = world.field();
 	const Point target_pos = player->destination().first;
-	const Angle target_ang = (field.enemy_goal()-player->position()).orientation();
+	const Angle target_ang = (field.enemy_goal() - player->position()).orientation();
 	const Point robot_pos = player->position();
 
 	// extract information from the ball
@@ -626,7 +614,6 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W:
 	const Point ball_norm = ball_vel.norm();
 	const Point ball_bounded_pos = vector_rect_intersect(field_rec, ball_pos, ball_pos + ball_norm);
 	const Angle target_ball_offset_angle = vertex_angle(ball_pos + ball_vel, ball_pos, target_pos).angle_mod();
-	const bool robot_behind_ball =  !point_in_front_vector(ball_pos, ball_vel, robot_pos);
 
 	// display some info about the strategy
 	// all drawing stuff is disabled
@@ -649,11 +636,12 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W:
 		ctx->show_text(str);
 	}*/
 
-	if ( ball_vel.len() < 0.1 ){
-		player->path(get_path_around_ball( world, robot_pos, target_pos, true ) );
+	if (ball_vel.len() < 0.1) {
+		player->path(get_path_around_ball(world, robot_pos, target_pos, true));
 		return true;
 	}
 
+	const bool robot_behind_ball = !point_in_front_vector(ball_pos, ball_vel, robot_pos);
 	// find out whether robot is behind the ball or in front of the ball
 	if (robot_behind_ball) {
 		player->path(get_path_near_ball(world, target_ball_offset_angle));
@@ -692,7 +680,7 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W:
 		// face the final direction the whole time
 		Angle path_orientation = (dir_from_target * -1).orientation();
 		path_points_with_angle.push_back(std::make_pair(player->position(), path_orientation));
-		for( unsigned int j = 0; j < path_points.size(); ++j ){
+		for(unsigned int j = 0; j < path_points.size(); ++j) {
 			path_points_with_angle.push_back(std::make_pair(path_points[j], path_orientation));
 		}
 
