@@ -10,8 +10,9 @@ namespace AI {
 				/**
 				 * intercepts the ball
 				 * Active tactic.
+				 * target defaults to enemy goal
 				 */
-				Tactic::Ptr intercept(const World &world);
+				Tactic::Ptr intercept(const World &world, const Point target=Point(3.025,0));
 			}
 		}
 	}

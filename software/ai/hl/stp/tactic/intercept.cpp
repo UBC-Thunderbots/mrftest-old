@@ -13,13 +13,14 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace {
 	class Intercept : public Tactic {
 		public:
-			Intercept(const World &world) : Tactic(world, true) {
+			Intercept(const World &world, const Point target) : Tactic(world, true), target(target) {
 			}
 
 		private:
 			bool done() const;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
+			const Point target;
 			Glib::ustring description() const {
 				return "intercept";
 			}
@@ -42,12 +43,12 @@ namespace {
 		}
 
 		// orient towards the enemy goal?
-		Action::intercept(player, world.field().enemy_goal());
+		Action::intercept(player, target);
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::intercept(const World &world) {
-	Tactic::Ptr p(new Intercept(world));
+Tactic::Ptr AI::HL::STP::Tactic::intercept(const World &world, const Point target) {
+	Tactic::Ptr p(new Intercept(world, target));
 	return p;
 }
 
