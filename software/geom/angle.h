@@ -73,6 +73,15 @@ class Angle {
 		static Angle acos(double x);
 
 		/**
+		 * \brief Computes the arc tangent of a value.
+		 *
+		 * \param[in] x the value.
+		 *
+		 * \return the angle.
+		 */
+		static Angle atan(double x);
+
+		/**
 		 * \brief Constructs the "zero" angle.
 		 */
 		Angle();
@@ -388,6 +397,10 @@ inline Angle Angle::asin(double x) {
 
 inline Angle Angle::acos(double x) {
 	return Angle::of_radians(std::acos(x));
+}
+
+inline Angle Angle::atan(double x) {
+	return Angle::of_radians(std::atan(x));
 }
 
 inline Angle::Angle() : rads(0.0) {
