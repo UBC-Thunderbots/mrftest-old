@@ -6,7 +6,7 @@ using namespace AI::HL::W;
 namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
-	const double PENALTY_MARK_LENGTH = 0.45;
+	const double PENALTY_MARK_LENGTH = 0.75;
 	const double RESTRICTED_ZONE_LENGTH = 0.85;
 }
 
@@ -44,7 +44,7 @@ roles[3].push_back(move(world, Point(-0.5 * world.field().length() + RESTRICTED_
 
 // ROLE 5
 // move to penalty position 5
-roles[4].push_back(move(world, Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 0 * Robot::MAX_RADIUS)));
+roles[4].push_back(move(world, Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + 4 * Robot::MAX_RADIUS, 0 * Robot::MAX_RADIUS)));
 
 END_ASSIGN()
 END_PLAY()

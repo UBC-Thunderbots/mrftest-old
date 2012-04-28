@@ -8,7 +8,7 @@ using namespace AI::HL::W;
 namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
-	const double PENALTY_MARK_LENGTH = 0.45;
+	const double PENALTY_MARK_LENGTH = 0.75;
 	const double RESTRICTED_ZONE_LENGTH = 0.85;
 }
 
@@ -57,19 +57,19 @@ roles[0].push_back(penalty_shoot(world));
 
 // ROLE 2
 // move to penalty position 1
-roles[1].push_back(move(world, Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS)));
+roles[1].push_back(move(world, Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS)));
 
 // ROLE 3
 // move to penalty position 2
-roles[2].push_back(move(world, Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 2 * Robot::MAX_RADIUS)));
+roles[2].push_back(move(world, Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, 3 * Robot::MAX_RADIUS)));
 
 // ROLE 4
 // move to penalty position 3
-roles[3].push_back(move(world, Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, -2 * Robot::MAX_RADIUS)));
+roles[3].push_back(move(world, Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, -3 * Robot::MAX_RADIUS)));
 
 // ROLE 5
 // move to penalty position 4
-roles[4].push_back(move(world, Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, -5 * Robot::MAX_RADIUS)));
+roles[4].push_back(move(world, Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, -6 * Robot::MAX_RADIUS)));
 
 
 END_ASSIGN()
