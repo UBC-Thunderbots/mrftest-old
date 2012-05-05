@@ -21,6 +21,7 @@
 #include "ai/hl/stp/tactic/penalty_shoot.h"
 #include "ai/hl/stp/tactic/shadow_kickoff.h"
 #include "ai/hl/stp/tactic/ball.h"
+#include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/predicates.h"
 #include "geom/util.h"
 #include "util/param.h"
@@ -244,17 +245,17 @@ namespace {
 				active->set_player(players[0]);
 				active->execute();
 			}
+
 			if (players.size() > 1) {
-				auto offend1 = Tactic::offend(world);
-				offend1->set_player(players[1]);
-				offend1->execute();
+				auto offend = Tactic::offend(world);
+				offend->set_player(players[1]);
+				offend->execute();
 			}
 			if (players.size() > 2) {
-				auto offend2 = Tactic::offend_secondary(world);
-				offend2->set_player(players[2]);
-				offend2->execute();
-			}
-
+				auto block = Tactic::block_ball(world, Enemy::closest_ball(world, 1));
+				block->set_player(players[2]);
+				block->execute();
+			}			
 		}
 
 		void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
