@@ -40,6 +40,7 @@ class PASCHL : public HighLevel {
 
 				current_state = state_zero;
 
+				kicked_ball = false;
 			}
 
 			HighLevelFactory &factory() const;
@@ -64,7 +65,7 @@ class PASCHL : public HighLevel {
 					break;
 				case state_one:{
 					Point intercept_location = horizontal_intercept(player1);
-					bool kicked_ball = false;
+
 					if(friendly.get(0)->has_ball()) {
 						AI::HL::STP::Action::autokick(friendly.get(0), Point(), kick_speed);
 						kicked_ball = true;
@@ -76,6 +77,7 @@ class PASCHL : public HighLevel {
 					std::cout<<intercept_location<<std::endl;
 					if(friendly.get(1)->has_ball())
 						current_state = state_two;
+						kicked_ball = false;
 				}
 					break;
 				case state_two:
@@ -105,7 +107,7 @@ class PASCHL : public HighLevel {
 			std::vector<std::pair<Point, Angle>> robot_positions;
 			state current_state;
 			Point horizontal_intercept(Player::Ptr player);
-
+			bool kicked_ball;
 
 };
 
