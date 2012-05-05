@@ -20,6 +20,8 @@
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/penalty_shoot.h"
 #include "ai/hl/stp/tactic/shadow_kickoff.h"
+#include "ai/hl/stp/tactic/ball.h"
+#include "ai/hl/stp/predicates.h"
 #include "geom/util.h"
 #include "util/param.h"
 
@@ -30,6 +32,7 @@ namespace Flags = AI::Flags;
 using namespace AI::HL;
 using namespace AI::HL::STP;
 using namespace AI::HL::W;
+using namespace AI::HL::STP::Predicates;
 
 namespace {
 	BoolParam enable0("enable robot 0", "MixedTeamOffense", true);
@@ -45,6 +48,7 @@ namespace {
 	BoolParam do_draw("draw", "MixedTeamOffense", true);
 
 	const double RESTRICTED_ZONE_LENGTH = 0.85;
+	const double PENALTY_MARK_LENGTH = 0.75;
 
 	struct MixedTeamOffense : public HighLevel {
 		World &world;
@@ -180,9 +184,7 @@ namespace {
 		}
 
 		void prepare_penalty_friendly(std::vector<Player::Ptr> &players) {
-			auto shooter = Tactic::penalty_shoot(world);
-			shooter->set_player(players[0]);
-			shooter->execute();
+			Action::move(world, players[0], Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0));
 
 			if (players.size() == 1) {
 				return;
@@ -233,19 +235,14 @@ namespace {
 		}
 
 		void play(std::vector<Player::Ptr> &players) {
-			//auto waypoints = Evaluation::evaluate_defense();
-			if (players.size() == 1) {
-				auto shooter = Tactic::shoot_goal(world, true);
-				shooter->set_player(players[0]);
-				shooter->execute();
-				return;
-			}
-
 
 			if (players.size() > 0) {
-				auto shooter = Tactic::shoot_goal(world, true);
-				shooter->set_player(players[0]);
-				shooter->execute();
+				auto active = Tactic::shoot_goal(world, true);
+				if (fight_ball(world)){
+					active = Tactic::tsteal(world);
+				}
+				active->set_player(players[0]);
+				active->execute();
 			}
 			if (players.size() > 1) {
 				auto offend1 = Tactic::offend(world);
