@@ -70,14 +70,15 @@ class PASCHL : public HighLevel {
 						AI::HL::STP::Action::autokick(friendly.get(0), Point(), kick_speed);
 						kicked_ball = true;
 					}
-					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (std::fabs(intercept_location.y-player1->position().y) < 1e-9) && kicked_ball) {
+					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player1->position().y < 1e-9) && kicked_ball) {
 						player1->move(Point(intercept_location.x, player1->position().y), robot_positions[1].second, Point());
 					}
 
 					std::cout<<intercept_location<<std::endl;
-					if(friendly.get(1)->has_ball())
+					if(player1->has_ball()){
 						current_state = state_two;
 						kicked_ball = false;
+					}
 				}
 					break;
 				case state_two:
