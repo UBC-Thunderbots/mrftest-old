@@ -2,6 +2,7 @@
 #include "util/algorithm.h"
 #include "util/dprint.h"
 #include <cmath>
+#include <cstdlib>
 
 #warning const-correctness is broken in AI::BE::Robot::Ptr.
 
@@ -58,6 +59,10 @@ void AI::BE::Player::prio(AI::Flags::MovePrio prio) {
 	move_prio_ = prio;
 }
 
+bool AI::BE::Player::has_chipper() const {
+	return false;
+}
+
 void AI::BE::Player::kick(double speed) {
 	if (!std::isfinite(speed)) {
 		LOG_ERROR("NaN or ±∞ speed");
@@ -82,6 +87,22 @@ void AI::BE::Player::autokick(double speed) {
 	autokick_impl(speed);
 }
 
+void AI::BE::Player::chip(double power) {
+	if (!(0 <= power && power <= 1)) {
+		LOG_ERROR("Out-of-range power");
+		power = clamp(power, 0.0, 1.0);
+	}
+	chip_impl(power);
+}
+
+void AI::BE::Player::autochip(double power) {
+	if (!(0 <= power && power <= 1)) {
+		LOG_ERROR("Out-of-range power");
+		power = clamp(power, 0.0, 1.0);
+	}
+	autochip_impl(power);
+}
+
 void AI::BE::Player::path(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p) {
 	for (auto i = p.begin(), iend = p.end(); i != iend; ++i) {
 		if (!std::isfinite(i->first.first.x) || !std::isfinite(i->first.first.y)) {
@@ -96,15 +117,23 @@ void AI::BE::Player::path(const std::vector<std::pair<std::pair<Point, Angle>, t
 	path_impl(p);
 }
 
-AI::BE::Player::Player() : moved(false), destination_(Point(), Angle::ZERO), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
-}
-
 void AI::BE::Player::pre_tick() {
 	AI::BE::Robot::pre_tick();
 	moved = false;
 	flags_ = 0;
 	move_type_ = AI::Flags::MoveType::NORMAL;
 	move_prio_ = AI::Flags::MovePrio::MEDIUM;
+}
+
+AI::BE::Player::Player() : moved(false), destination_(Point(), Angle::ZERO), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
+}
+
+void AI::BE::Player::chip_impl(double) {
+	std::abort();
+}
+
+void AI::BE::Player::autochip_impl(double) {
+	std::abort();
 }
 
 Backend::Backend() : defending_end_(FieldEnd::WEST), friendly_colour_(AI::Common::Team::Colour::YELLOW), playtype_(AI::Common::PlayType::HALT), playtype_override_(AI::Common::PlayType::NONE), ball_filter_(0) {

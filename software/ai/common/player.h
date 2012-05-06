@@ -41,9 +41,16 @@ namespace AI {
 				bool kicker_directional() const __attribute__((deprecated("No robots have directional kickers; this function always returns false.")));
 
 				/**
-				 * \brief Checks if this robot's autokick mechanism fired in the last tick.
+				 * \brief Checks if this robot has a chipper (a kicking device that can send the ball up into the air)
 				 *
-				 * \return \c true if the kicker was fired due to the autokick mechanism since the last tick, or \c false if not.
+				 * \return \c true if a chipper is available, or \c false if not
+				 */
+				virtual bool has_chipper() const = 0;
+
+				/**
+				 * \brief Checks if this robot's autokick or autochip mechanism fired in the last tick.
+				 *
+				 * \return \c true if the kicker was fired due to the autokick or autochip mechanism since the last tick, or \c false if not.
 				 */
 				virtual bool autokick_fired() const = 0;
 		};

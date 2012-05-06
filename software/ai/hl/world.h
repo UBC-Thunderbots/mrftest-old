@@ -128,6 +128,22 @@ namespace AI {
 					virtual void autokick(double speed) = 0;
 
 					/**
+					 * Causes the player to chip the ball up in the air
+					 *
+					 * \param[in] power the power of the chip, from 0 to 1 in arbitrary units
+					 */
+					virtual void chip(double power) = 0;
+
+					/**
+					 * Causes the player to automatically chip the ball as soon as it is picked up by the sensor.
+					 *
+					 * This function must be called on every tick in order to remain armed; failing to invoke the function will disarm the mechanism.
+					 *
+					 * \param[in] power the power of the chip, from 0 to 1 in arbitrary units
+					 */
+					virtual void autochip(double power) = 0;
+
+					/**
 					 * Causes the player to kick the ball.
 					 *
 					 * \param[in] speed the speed of the kick, in m/s.

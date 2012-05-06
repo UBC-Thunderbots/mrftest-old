@@ -112,8 +112,11 @@ namespace AI {
 				void type(AI::Flags::MoveType type);
 				AI::Flags::MovePrio prio() const { return move_prio_; }
 				void prio(AI::Flags::MovePrio prio);
+				bool has_chipper() const;
 				void kick(double speed);
 				void autokick(double speed);
+				void chip(double power);
+				void autochip(double power);
 				const std::pair<Point, Angle> &destination() const = 0;
 				using AI::RC::W::Player::path;
 				void path(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p);
@@ -130,6 +133,8 @@ namespace AI {
 				explicit Player();
 				virtual void kick_impl(double speed) = 0;
 				virtual void autokick_impl(double speed) = 0;
+				virtual void chip_impl(double power);
+				virtual void autochip_impl(double power);
 				virtual void path_impl(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p) = 0;
 		};
 
