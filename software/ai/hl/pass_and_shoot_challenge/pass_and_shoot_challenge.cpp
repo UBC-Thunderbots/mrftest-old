@@ -47,13 +47,12 @@ class PASCHL : public HighLevel {
 
 			void tick() {
 				FriendlyTeam &friendly = world.friendly_team();
+
+				if(friendly.size() < min_team_size) {
+					return;
+				}
+
 				Player::Ptr player1 = friendly.get(1);
-
-					if(friendly.size() < min_team_size) {
-						return;
-					}
-
-
 
 				switch(current_state) {
 				case state_zero:
