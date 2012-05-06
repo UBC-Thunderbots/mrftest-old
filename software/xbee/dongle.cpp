@@ -447,7 +447,7 @@ void XBeeDongle::on_debug(AsyncOperation<void> &) {
 			LOG_INFO(Glib::locale_to_utf8(str));
 		}
 		debug_transfer.submit();
-	} catch (const LibUSBTransferError &err) {
+	} catch (const USB::TransferError &err) {
 		LOG_ERROR(Glib::ustring::compose("Ignoring %1", err.what()));
 	}
 }
@@ -465,11 +465,11 @@ void XBeeDongle::dirty_drive(unsigned int index) {
 }
 
 void XBeeDongle::submit_drive_transfer(const void *buffer, std::size_t length) {
-	std::size_t index = std::find(drive_transfers.begin(), drive_transfers.end(), std::unique_ptr<LibUSBInterruptOutTransfer>()) - drive_transfers.begin();
+	std::size_t index = std::find(drive_transfers.begin(), drive_transfers.end(), std::unique_ptr<USB::InterruptOutTransfer>()) - drive_transfers.begin();
 	if (index == drive_transfers.size()) {
-		drive_transfers.push_back(std::unique_ptr<LibUSBInterruptOutTransfer>());
+		drive_transfers.push_back(std::unique_ptr<USB::InterruptOutTransfer>());
 	}
-	drive_transfers[index].reset(new LibUSBInterruptOutTransfer(device, EP_STATE_TRANSPORT, buffer, length, 0, STALL_LIMIT));
+	drive_transfers[index].reset(new USB::InterruptOutTransfer(device, EP_STATE_TRANSPORT, buffer, length, 0, STALL_LIMIT));
 	drive_transfers[index]->signal_done.connect(sigc::bind(sigc::mem_fun(this, &XBeeDongle::check_drive_transfer_result), index));
 	drive_transfers[index]->submit();
 }

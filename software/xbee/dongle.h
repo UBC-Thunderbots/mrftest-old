@@ -395,11 +395,11 @@ class XBeeDongle : public NonCopyable {
 	private:
 		friend class XBeeRobot;
 
-		LibUSBContext context;
-		LibUSBDeviceHandle device;
-		LibUSBInterruptInTransfer local_error_queue_transfer, debug_transfer, dongle_status_transfer, state_transport_in_transfer, interrupt_in_transfer;
-		LibUSBInterruptOutTransfer stamp_transfer;
-		std::vector<std::unique_ptr<LibUSBInterruptOutTransfer>> drive_transfers;
+		USB::Context context;
+		USB::DeviceHandle device;
+		USB::InterruptInTransfer local_error_queue_transfer, debug_transfer, dongle_status_transfer, state_transport_in_transfer, interrupt_in_transfer;
+		USB::InterruptOutTransfer stamp_transfer;
+		std::vector<std::unique_ptr<USB::InterruptOutTransfer>> drive_transfers;
 		std::vector<std::unique_ptr<XBeeRobot>> robots;
 		unsigned int dirty_drive_mask;
 		sigc::connection flush_drive_connection;
@@ -442,7 +442,7 @@ class XBeeDongle::SendMessageOperation : public AsyncOperation<void> {
 		void result() const;
 
 	private:
-		LibUSBInterruptOutTransfer transfer;
+		USB::InterruptOutTransfer transfer;
 };
 
 #endif
