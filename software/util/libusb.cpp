@@ -1,4 +1,4 @@
-#include "xbee/libusb.h"
+#include "util/libusb.h"
 #include "util/dprint.h"
 #include "util/exception.h"
 #include <cassert>

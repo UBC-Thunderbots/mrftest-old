@@ -1,5 +1,5 @@
-#ifndef XBEE_LIBUSB_H
-#define XBEE_LIBUSB_H
+#ifndef UTIL_LIBUSB_H
+#define UTIL_LIBUSB_H
 
 #include "util/async_operation.h"
 #include "util/noncopyable.h"

@@ -8,9 +8,9 @@
  */
 
 #include "util/async_operation.h"
+#include "util/libusb.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
-#include "xbee/libusb.h"
 #include <cassert>
 #include <cstddef>
 #include <memory>
