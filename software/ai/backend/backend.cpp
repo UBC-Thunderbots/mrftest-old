@@ -58,7 +58,7 @@ void AI::BE::Player::prio(AI::Flags::MovePrio prio) {
 	move_prio_ = prio;
 }
 
-void AI::BE::Player::kick(double speed, Angle angle) {
+void AI::BE::Player::kick(double speed) {
 	if (!std::isfinite(speed)) {
 		LOG_ERROR("NaN or ±∞ speed");
 		return;
@@ -67,18 +67,10 @@ void AI::BE::Player::kick(double speed, Angle angle) {
 		LOG_ERROR("Out-of-range speed");
 		speed = 0;
 	}
-	if (!angle.isfinite()) {
-		LOG_ERROR("NaN or ±∞ speed");
-		return;
-	}
-	if (!kicker_directional() && angle.abs() > Angle::of_radians(1e-9)) {
-		LOG_ERROR("Angled kick requested on nondirectional kicker");
-		return;
-	}
-	kick_impl(speed, angle);
+	kick_impl(speed);
 }
 
-void AI::BE::Player::autokick(double speed, Angle angle) {
+void AI::BE::Player::autokick(double speed) {
 	if (!std::isfinite(speed)) {
 		LOG_ERROR("NaN or ±∞ speed");
 		return;
@@ -87,15 +79,7 @@ void AI::BE::Player::autokick(double speed, Angle angle) {
 		LOG_ERROR("Out-of-range speed");
 		speed = 0;
 	}
-	if (!angle.isfinite()) {
-		LOG_ERROR("NaN or ±∞ speed");
-		return;
-	}
-	if (!kicker_directional() && angle.abs() > Angle::of_radians(1e-9)) {
-		LOG_ERROR("Angled kick requested on nondirectional kicker");
-		return;
-	}
-	autokick_impl(speed, angle);
+	autokick_impl(speed);
 }
 
 void AI::BE::Player::path(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p) {

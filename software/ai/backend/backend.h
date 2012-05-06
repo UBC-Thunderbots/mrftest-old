@@ -105,7 +105,6 @@ namespace AI {
 				Angle avelocity(double delta) const = 0;
 				unsigned int pattern() const = 0;
 				ObjectStore &object_store() const = 0;
-				bool kicker_directional() const = 0;
 				void move(Point dest, Angle ori, Point vel);
 				unsigned int flags() const { return flags_; }
 				void flags(unsigned int flags);
@@ -113,8 +112,8 @@ namespace AI {
 				void type(AI::Flags::MoveType type);
 				AI::Flags::MovePrio prio() const { return move_prio_; }
 				void prio(AI::Flags::MovePrio prio);
-				void kick(double speed, Angle angle);
-				void autokick(double speed, Angle angle);
+				void kick(double speed);
+				void autokick(double speed);
 				const std::pair<Point, Angle> &destination() const = 0;
 				using AI::RC::W::Player::path;
 				void path(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p);
@@ -129,8 +128,8 @@ namespace AI {
 				AI::Flags::MovePrio move_prio_;
 
 				explicit Player();
-				virtual void kick_impl(double speed, Angle angle) = 0;
-				virtual void autokick_impl(double speed, Angle angle) = 0;
+				virtual void kick_impl(double speed) = 0;
+				virtual void autokick_impl(double speed) = 0;
 				virtual void path_impl(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p) = 0;
 		};
 

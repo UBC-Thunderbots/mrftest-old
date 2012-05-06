@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE thunderbots [
-<!ELEMENT thunderbots (params , joysticks , robots)>
+<!ELEMENT thunderbots (params , joysticks)>
 <!ELEMENT params (category)*>
 <!ELEMENT category (category | boolean | integer | double | degrees | radians)*>
 <!ELEMENT boolean (#PCDATA)>
@@ -13,9 +13,6 @@
 <!ELEMENT axes (mapping)*>
 <!ELEMENT buttons (mapping)*>
 <!ELEMENT mapping EMPTY>
-<!ELEMENT robots (robot)*>
-<!ELEMENT robot (kicker)>
-<!ELEMENT kicker EMPTY>
 <!ATTLIST category name CDATA #REQUIRED>
 <!ATTLIST boolean name CDATA #REQUIRED>
 <!ATTLIST integer name CDATA #REQUIRED>
@@ -25,8 +22,6 @@
 <!ATTLIST joystick name CDATA #REQUIRED>
 <!ATTLIST mapping logical CDATA #REQUIRED>
 <!ATTLIST mapping physical CDATA #REQUIRED>
-<!ATTLIST robot id CDATA #REQUIRED>
-<!ATTLIST kicker directional CDATA #REQUIRED>
 ]>
 <thunderbots>
   <params>
@@ -450,39 +445,4 @@
       </buttons>
     </joystick>
   </joysticks>
-  <robots>
-    <robot id="0">
-	  <kicker directional="false"/>
-	</robot>
-    <robot id="1">
-	  <kicker directional="true"/>
-	</robot>
-	<robot id="2">
-	  <kicker directional="false"/>
-	</robot>
-	<robot id="3">
-	  <kicker directional="false"/>
-	</robot>
-	<robot id="4">
-	  <kicker directional="false"/>
-	</robot>
-	<robot id="5">
-	  <kicker directional="false"/>
-	</robot>
-	<robot id="6">
-	  <kicker directional="false"/>
-	</robot>
-	<robot id="7">
-	  <kicker directional="false"/>
-	</robot>
-	<robot id="8">
-	  <kicker directional="false"/>
-	</robot>
-	<robot id="9">
-	  <kicker directional="false"/>
-	</robot>
-	<robot id="10">
-	  <kicker directional="false"/>
-	</robot>
-  </robots>
 </thunderbots>

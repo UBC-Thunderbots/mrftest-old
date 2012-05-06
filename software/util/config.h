@@ -8,7 +8,6 @@ namespace Config {
 	void save();
 	xmlpp::Element *params();
 	xmlpp::Element *joysticks();
-	xmlpp::Element *robots();
 }
 
 #endif

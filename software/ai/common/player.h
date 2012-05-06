@@ -34,9 +34,11 @@ namespace AI {
 				/**
 				 * \brief Checks if this robot's kicker is able to kick on an angle.
 				 *
-				 * \return \c true if the kicker can kick on an angle, or \c false if the kicker can only kick straight.
+				 * \return \c false
+				 *
+				 * \deprecated No robots have directional kickers; this function always returns false.
 				 */
-				virtual bool kicker_directional() const = 0;
+				bool kicker_directional() const __attribute__((deprecated("No robots have directional kickers; this function always returns false.")));
 
 				/**
 				 * \brief Checks if this robot's autokick mechanism fired in the last tick.
@@ -46,6 +48,12 @@ namespace AI {
 				virtual bool autokick_fired() const = 0;
 		};
 	}
+}
+
+
+
+inline bool AI::Common::Player::kicker_directional() const {
+	return false;
 }
 
 #endif

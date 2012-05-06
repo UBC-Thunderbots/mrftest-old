@@ -43,42 +43,9 @@ namespace {
 		double power = (speed - speed_below) * slope + power_below;
 		return static_cast<unsigned int>(clamp(power, 0.0, 4064.0));
 	}
-
-	unsigned int calc_kick_directional_power(double speed) {
-		return static_cast<unsigned int>(clamp(78.6 * speed * speed - 84.4 * speed, 0.0, 4064.0));
-	}
-
-	int calc_kick_directional_offset(Angle angle) {
-		return static_cast<int>(clamp(37.0 * angle.to_degrees(), -4064.0, 4064.0));
-	}
-
-	bool kicker_directional_impl(unsigned int pattern) {
-		const xmlpp::Element *robots_elt = Config::robots();
-		const xmlpp::Node::NodeList &robot_elts = robots_elt->get_children();
-		for (auto i = robot_elts.begin(), iend = robot_elts.end(); i != iend; ++i) {
-			const xmlpp::Element *robot_elt = dynamic_cast<const xmlpp::Element *>(*i);
-			if (robot_elt && robot_elt->get_name() == "robot") {
-				std::wistringstream iss(ustring2wstring(robot_elt->get_attribute_value("id")));
-				iss.imbue(std::locale("C"));
-				unsigned int id;
-				if (iss >> id) {
-					if (id == pattern) {
-						const xmlpp::Node::NodeList &child_elts = robot_elt->get_children();
-						for (auto j = child_elts.begin(), jend = child_elts.end(); j != jend; ++j) {
-							const xmlpp::Element *child_elt = dynamic_cast<const xmlpp::Element *>(*j);
-							if (child_elt && child_elt->get_name() == "kicker") {
-								return child_elt->get_attribute_value("directional") == "true";
-							}
-						}
-					}
-				}
-			}
-		}
-		return false;
-	}
 }
 
-Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot &bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_invoked(false), kicker_directional_(kicker_directional_impl(pattern)), autokick_fired_(false) {
+Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot &bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_invoked(false), autokick_fired_(false) {
 	timespec now;
 	timespec_now(now);
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
@@ -145,31 +112,19 @@ bool Player::chicker_ready() const {
 	return bot.alive && bot.capacitor_charged;
 }
 
-bool Player::kicker_directional() const {
-	return kicker_directional_;
-}
-
-void Player::kick_impl(double speed, Angle angle) {
+void Player::kick_impl(double speed) {
 	if (bot.alive) {
 		if (bot.capacitor_charged) {
-			if (kicker_directional()) {
-				bot.kick(calc_kick_directional_power(speed), calc_kick_directional_power(speed), calc_kick_directional_offset(angle));
-			} else {
-				bot.kick(calc_kick_straight(speed), calc_kick_straight(speed), 0);
-			}
+			bot.kick(calc_kick_straight(speed), calc_kick_straight(speed), 0);
 		} else {
 			LOG_ERROR(Glib::ustring::compose("Bot %1 chick when not ready", pattern()));
 		}
 	}
 }
 
-void Player::autokick_impl(double speed, Angle angle) {
+void Player::autokick_impl(double speed) {
 	if (bot.alive) {
-		if (kicker_directional()) {
-			bot.autokick(calc_kick_directional_power(speed), calc_kick_directional_power(speed), calc_kick_directional_offset(angle));
-		} else {
-			bot.autokick(calc_kick_straight(speed), calc_kick_straight(speed), 0);
-		}
+		bot.autokick(calc_kick_straight(speed), calc_kick_straight(speed), 0);
 		autokick_invoked = true;
 	}
 }

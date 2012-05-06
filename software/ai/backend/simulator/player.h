@@ -98,9 +98,8 @@ namespace AI {
 					bool alive() const;
 					bool has_ball() const;
 					bool chicker_ready() const;
-					bool kicker_directional() const;
-					void kick_impl(double speed, Angle angle);
-					void autokick_impl(double speed, Angle angle);
+					void kick_impl(double speed);
+					void autokick_impl(double speed);
 					bool autokick_fired() const;
 					bool has_destination() const;
 					const std::pair<Point, Angle> &destination() const;

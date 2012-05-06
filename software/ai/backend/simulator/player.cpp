@@ -74,17 +74,13 @@ bool AI::BE::Simulator::Player::chicker_ready() const {
 	return true;
 }
 
-bool AI::BE::Simulator::Player::kicker_directional() const {
-	return false;
-}
-
-void AI::BE::Simulator::Player::kick_impl(double speed, Angle) {
+void AI::BE::Simulator::Player::kick_impl(double speed) {
 	kick_ = true;
 	chick_power_ = speed;
 }
 
-void AI::BE::Simulator::Player::autokick_impl(double speed, Angle angle) {
-	kick_impl(speed, angle);
+void AI::BE::Simulator::Player::autokick_impl(double speed) {
+	kick_impl(speed);
 	autokick_pre_fired_ = true;
 }
 
