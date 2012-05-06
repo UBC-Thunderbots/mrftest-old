@@ -77,7 +77,7 @@ $(addprefix bin/,$(EXECUTABLES)) : bin/% : $$(addprefix obj/,$$(subst .cc,.o,$$(
 # C++ header files corresponding to protobuf files do not exist when the
 # dependency-calculating rule is invoked, thus causing the C++ compiler to throw
 # an error on the #include line while trying to compute the dependencies. To
-# solve this, just make all ".d" files depend on the protobuf ".h" files, to
+# solve this, just make all ".o" files depend on the protobuf ".h" files, to
 # force protoc to be run before dependency calculation begins.
 #
 obj/%.o : %.cpp $(PROTOBUF_HS)
