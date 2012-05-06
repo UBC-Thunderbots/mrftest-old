@@ -36,6 +36,11 @@ world : $(addprefix bin/,$(filter-out $(EXECUTABLES_EXCLUDE_WORLD),$(EXECUTABLES
 .SILENT :
 
 #
+# Delete output files if the rule trying to build them fails.
+#
+.DELETE_ON_ERROR:
+
+#
 # Rule to build the documentation.
 #
 .PHONY : doc
@@ -81,7 +86,7 @@ $(addprefix bin/,$(EXECUTABLES)) : bin/% : $$(addprefix obj/,$$(subst .cc,.o,$$(
 # force protoc to be run before dependency calculation begins.
 #
 obj/%.o : %.cpp $(PROTOBUF_HS)
-	$(RM) $(@:.o=.d)
+	$(RM) $(@:.o=.d) $@
 	echo "  CXX   obj/$(<:.cpp=.o)"
 	mkdir -p $(dir obj/$(<:.cpp=.o))
 	$(CXX) $(CXXFLAGS) -o $@ -c -MT '$@' -MMD -MP $<
