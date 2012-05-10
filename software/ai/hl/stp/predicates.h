@@ -152,6 +152,16 @@ namespace AI {
 				extern BallerCanShoot baller_can_shoot;
 
 				/**
+				 * player with the ball can chip
+				 */
+				class BallerCanChip : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<> > {
+					protected:
+						bool compute(const World &world);
+				};
+
+				extern BallerCanChip baller_can_chip;
+
+				/**
 				 * player with the ball can pass
 				 */
 				class BallerCanPass : public Cacheable<bool, CacheableNonKeyArgs<const World &>, CacheableKeyArgs<> > {
