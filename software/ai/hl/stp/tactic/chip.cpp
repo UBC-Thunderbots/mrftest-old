@@ -15,8 +15,6 @@ using AI::HL::STP::Coordinate;
 namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
-	
-	DegreeParam shoot_thresh("Above this shoot score shoot (degrees)", "AI/STP/Tactic/shoot", 5.0, 0.0, 90.0);
 
 	class ChipTarget : public Tactic {
 		public:
