@@ -29,7 +29,7 @@ namespace {
 			void execute();
 			void player_changed();
 			Glib::ustring description() const {
-				return "shoot-target";
+				return "chip-target";
 			}
 	};
 

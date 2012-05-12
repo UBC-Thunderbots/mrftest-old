@@ -1,5 +1,5 @@
-#ifndef AI_HL_STP_TACTIC_SHOOT_H
-#define AI_HL_STP_TACTIC_SHOOT_H
+#ifndef AI_HL_STP_TACTIC_CHIP_H
+#define AI_HL_STP_TACTIC_CHIP_H
 
 #include "ai/hl/stp/tactic/tactic.h"
 #include "ai/hl/stp/coordinate.h"
