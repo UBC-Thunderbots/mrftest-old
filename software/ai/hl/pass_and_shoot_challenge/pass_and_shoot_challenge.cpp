@@ -26,7 +26,56 @@ namespace {
 	Angle robot3_orientation = (bot2_initial - bot3_initial).orientation();
 	double kick_speed = 0.05;
 
-	enum state{INITIAL_POSITION, BOT0_PASS, BOT1_PASS, BOT2_PASS, BOT3_PASS, BOT0_REPOS, BOT1_REPOS, BOT2_REPOS, BOT3_REPOS};
+	enum state{
+		/*
+		 * Set up bots to initial positions. Bot0 = (-2.5, -1.2) Bot1 = (-2.00, 1.2) Bot2 = (-1.00, -1.2) Bot3 = (0.00, 1.2)
+			Returns to this state if things go wrong
+		*/
+		INITIAL_POSITION,
+		/*
+		 * Bot0 waits until it has possesion of ball. it then passes ball to Bot1.
+		 * Bot1 moves along horizontally along y=1.2 and intercepts ball.
+		 */
+		BOT0_PASS,
+		/*
+		 * Bot1 rotates and faces Bot2.
+		 * if Bot1 has possesion of ball, pass to Bot2
+		 */
+		BOT1_PASS,
+		/*
+		 * Bot2 rotates and faces Bot3
+		 * if Bot2 has posession of ball, pass to Bot3
+		 * on next_state, Bot0 goes to position WRITE_NEW_POSITION_HERE
+		 */
+		BOT2_PASS,
+		/*
+		 * Bot3 rotates to face bot0
+		 * if bot3 has possesion of ball, pass to bot0
+		 * on next state, bot1 goes to WRITE_NEW_POSITION_HERE
+		 */
+		BOT3_PASS,
+		/*
+		 * bot0 rotates to face bot1
+		 * if b0t0 has possesion of ball, pass to bot1
+		 * on next state, bot2 goes to WRITE_NEW_POSITION_HERE
+		 */
+		BOT0_REPOS,
+		/*
+		 * bot1 rotates to face bot2
+		 * if bot1 still has possesion of ball, pass to bot2
+		 * on next state, bot3 goes to WRITE_NEW_POSITION HERE
+		 */
+		BOT1_REPOS,
+		/*
+		 * bot2 rotates to face bot3
+		 * if bot2 still has possesion of ball, pass to bot3
+		 */
+		BOT2_REPOS,
+		/*
+		 * If bot3 still has ball, rotate until facing center of goal
+		 * shoot and score.
+		 */
+		BOT3_REPOS};
 
 };
 
@@ -99,7 +148,6 @@ class PASCHL : public HighLevel {
 					break;
 				case BOT2_PASS:
 					break;
-
 				case BOT3_PASS:
 					break;
 				case BOT0_REPOS:
