@@ -21,6 +21,7 @@ namespace {
 	Point bot3_initial(0.00,1.2);
 	Angle robot0_orientation = (bot1_initial - bot0_initial).orientation();
 	Angle robot1_orientation = (bot0_initial - bot1_initial).orientation();
+	Angle robot1_orientation_dos= (bot2_initial - bot1_initial).orientation();
 	Angle robot2_orientation = (bot1_initial - bot2_initial).orientation();
 	Angle robot3_orientation = (bot2_initial - bot3_initial).orientation();
 	double kick_speed = 0.05;
@@ -52,7 +53,10 @@ class PASCHL : public HighLevel {
 					return;
 				}
 
+				Player::Ptr player0 = friendly.get(0);
 				Player::Ptr player1 = friendly.get(1);
+				Player::Ptr player2 = friendly.get(2);
+				//Player::Ptr player3 = friendly.get(3);
 
 				switch(current_state) {
 				case INITIAL_POSITION:
@@ -63,10 +67,10 @@ class PASCHL : public HighLevel {
 					current_state=BOT0_PASS;
 					break;
 				case BOT0_PASS:{
-					Point 	intercept_location = horizontal_intercept(player1);
+					Point intercept_location = horizontal_intercept(player1);
 
-					if(friendly.get(0)->has_ball()) {
-						AI::HL::STP::Action::autokick(friendly.get(0), Point(), kick_speed);
+					if(player0->has_ball()) {
+						AI::HL::STP::Action::autokick(player0, Point(), kick_speed);
 						kicked_ball = true;
 					}
 					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player1->position().y < 1e-9) && kicked_ball) {
@@ -80,8 +84,18 @@ class PASCHL : public HighLevel {
 					}
 				}
 					break;
-				case BOT1_PASS:
-					std::cout<<"state two"<<std::endl;
+				case BOT1_PASS:{
+					Point intercept_location = horizontal_intercept(player2);
+
+					if(player1->has_ball()){
+						player1->move(player1->position(),robot1_orientation_dos,Point());
+						AI::HL::STP::Action::autokick(player1, Point(), kick_speed);
+						kicked_ball=true;
+					}
+					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player2->position().y < 1e-9) && kicked_ball) {
+						player2->move(Point(intercept_location.x, player2->position().y), robot_positions[2].second, Point());
+					}
+				}
 					break;
 				case BOT2_PASS:
 					break;
