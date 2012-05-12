@@ -25,7 +25,7 @@ namespace {
 	Angle robot3_orientation = (bot2_initial - bot3_initial).orientation();
 	double kick_speed = 0.05;
 
-	enum state{state_zero, state_one, state_two, state_three, state_four, state_five, state_six, state_seven};
+	enum state{INITIAL_POSITION, BOT0_PASS, BOT1_PASS, BOT2_PASS, BOT3_PASS, BOT0_REPOS, BOT1_REPOS, BOT2_REPOS, BOT3_REPOS};
 
 };
 
@@ -55,15 +55,15 @@ class PASCHL : public HighLevel {
 				Player::Ptr player1 = friendly.get(1);
 
 				switch(current_state) {
-				case state_zero:
+				case INITIAL_POSITION:
 					for(unsigned int i = 0 ;i < min_team_size; i++) {
 						friendly.get(i)->move(robot_positions[i].first, robot_positions[i].second, Point());
 					}
 
-					current_state=state_one;
+					current_state=BOT0_PASS;
 					break;
-				case state_one:{
-					Point intercept_location = horizontal_intercept(player1);
+				case BOT0_PASS:{
+					Point 	intercept_location = horizontal_intercept(player1);
 
 					if(friendly.get(0)->has_ball()) {
 						AI::HL::STP::Action::autokick(friendly.get(0), Point(), kick_speed);
@@ -75,24 +75,26 @@ class PASCHL : public HighLevel {
 
 					std::cout<<intercept_location<<std::endl;
 					if(player1->has_ball()){
-						current_state = state_two;
+						current_state = BOT1_PASS;
 						kicked_ball = false;
 					}
 				}
 					break;
-				case state_two:
-					std::cout<<"hello"<<std::endl;
+				case BOT1_PASS:
+					std::cout<<"state two"<<std::endl;
 					break;
-				case state_three:
+				case BOT2_PASS:
 					break;
 
-				case state_four:
+				case BOT3_PASS:
 					break;
-				case state_five:
+				case BOT0_REPOS:
 					break;
-				case state_six:
+				case BOT1_REPOS:
 					break;
-				case state_seven:
+				case BOT2_REPOS:
+					break;
+				case BOT3_REPOS:
 					break;
 				}
 
