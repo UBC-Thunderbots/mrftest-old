@@ -38,7 +38,7 @@ class PASCHL : public HighLevel {
 				robot_positions.push_back(std::make_pair(bot2_initial,robot2_orientation));
 				robot_positions.push_back(std::make_pair(bot3_initial,robot3_orientation));
 
-				current_state = state_zero;
+				current_state = INITIAL_POSITION;
 
 				kicked_ball = false;
 			}
