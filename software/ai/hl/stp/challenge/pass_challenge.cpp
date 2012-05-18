@@ -5,11 +5,14 @@
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/evaluation/player.h"
 #include "ai/hl/stp/test/test.h"
+#include "ai/hl/stp/predicates.h"
 #include "geom/util.h"
 
 using namespace AI::HL;
 using namespace AI::HL::STP;
 using namespace AI::HL::W;
+
+using namespace AI::HL::STP::Predicates;
 
 namespace {
 	
@@ -46,7 +49,9 @@ namespace {
 					return;
 				}
 
-				
+				if (AI::HL::STP::Predicates::our_ball(world)){
+					// do something
+				}
 			}
 	};
 }
