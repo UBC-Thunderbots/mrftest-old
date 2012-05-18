@@ -115,6 +115,10 @@ namespace {
 				default:
 					break;
 			}
+			
+			if (players.size() == 1) {
+				players[0]->flags(default_flags);
+			}
 
 			if (players.size() > 1) {
 				players[1]->flags(default_flags);
