@@ -5,8 +5,9 @@ using AI::HL::STP::Coordinate;
 
 BEGIN_PLAY(JustChip)
 INVARIANT(false && playtype(world, PlayType::PLAY)
-		&& our_team_size_at_least(world, 2))
-APPLICABLE(our_ball(world) && baller_can_chip(world))
+		&& our_team_size_at_least(world, 2)
+		&& baller_can_chip(world))
+APPLICABLE(our_ball(world))
 DONE(goal(world))
 FAIL(their_ball(world))
 BEGIN_ASSIGN()
