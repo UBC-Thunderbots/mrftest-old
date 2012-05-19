@@ -129,7 +129,7 @@ class PASCHL : public HighLevel {
 					Point intercept_location = horizontal_intercept(player1);
 
 					if(player0->has_ball()) {
-						AI::HL::STP::Action::autokick(player0, Point(), kick_speed);
+						player0->autokick(kick_speed);
 						kicked_ball = true;
 					}
 					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player1->position().y < 1e-9) && kicked_ball) {
@@ -152,7 +152,7 @@ class PASCHL : public HighLevel {
 
 					if(player1->has_ball()){
 						player0->move(Point(bot0_secondary),robot0_orientation_dos,Point());
-						AI::HL::STP::Action::autokick(player1, Point(), kick_speed);
+						player1->autokick(kick_speed);
 						kicked_ball=true;
 					}
 					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player2->position().y < 1e-9) && kicked_ball) {
@@ -173,7 +173,7 @@ class PASCHL : public HighLevel {
 
 					if(player2->has_ball()){
 						player1->move(Point(bot1_secondary),robot1_orientation_dos,Point());
-						AI::HL::STP::Action::autokick(player2, Point(), kick_speed);
+						player2->autokick(kick_speed);
 						kicked_ball=true;
 					}
 					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player3->position().y < 1e-9) && kicked_ball) {
@@ -195,7 +195,7 @@ class PASCHL : public HighLevel {
 
 					if(player3->has_ball()){
 						player2->move(Point(bot2_secondary),robot2_orientation_dos,Point());
-						AI::HL::STP::Action::autokick(player3, Point(), kick_speed);
+						player3->autokick(kick_speed);
 						kicked_ball=true;
 					}
 					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player0->position().y < 1e-9) && kicked_ball) {
@@ -217,7 +217,7 @@ class PASCHL : public HighLevel {
 
 					if(player0->has_ball()){
 						player3->move(Point(bot3_secondary),robot3_orientation_dos,Point());
-						AI::HL::STP::Action::autokick(player0, Point(), kick_speed);
+						player0->autokick(kick_speed);
 						kicked_ball=true;
 					}
 					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player1->position().y < 1e-9) && kicked_ball) {
@@ -238,7 +238,7 @@ class PASCHL : public HighLevel {
 				Point intercept_location = horizontal_intercept(player2);
 
 				if(player1->has_ball()){
-					AI::HL::STP::Action::autokick(player1, Point(), kick_speed);
+					player1->autokick(kick_speed);
 					kicked_ball=true;
 				}
 				if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player2->position().y < 1e-9) && kicked_ball) {
@@ -259,7 +259,7 @@ class PASCHL : public HighLevel {
 					Point intercept_location = horizontal_intercept(player3);
 
 				if(player2->has_ball()){
-					AI::HL::STP::Action::autokick(player2, Point(), kick_speed);
+					player2->autokick(kick_speed);
 					kicked_ball=true;
 				}
 				if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player3->position().y < 1e-9) && kicked_ball) {
@@ -278,7 +278,7 @@ class PASCHL : public HighLevel {
 					break;
 				case BOT3_REPOS:{
 					if(player3->has_ball()){
-						AI::HL::STP::Action::autokick(player3, Point(), kick_speed);
+						player3->autokick(kick_speed);
 				}
 				}
 					break;
