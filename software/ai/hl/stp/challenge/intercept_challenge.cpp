@@ -60,7 +60,9 @@ namespace {
 							world);
 					Point dirToBall = (world.ball().position() - baller->position()).norm();
 					Point target = baller->position() + (0.50 * Robot::MAX_RADIUS * dirToBall);
-					Action::move(world, player, target);
+					Point perpToDirToBall = (world.ball().position() - baller->position()).perp();
+					Action::move(world, player, target + perpToDirToBall * Robot::MAX_RADIUS*2);
+					Action::move(world, player, target + perpToDirToBall * -Robot::MAX_RADIUS*2);
 				} else if (!AI::HL::STP::Predicates::their_ball(world)
 						&& !AI::HL::STP::Predicates::our_ball(world)) {
 					Action::ram(world, player);
