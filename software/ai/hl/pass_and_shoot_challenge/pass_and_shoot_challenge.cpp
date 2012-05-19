@@ -19,11 +19,21 @@ namespace {
 	Point bot1_initial(-2.00,1.2);
 	Point bot2_initial(-1.00,-1.2);
 	Point bot3_initial(0.00,1.2);
+	Point bot0_secondary(0.75, -1.2);
+	Point bot1_secondary(1.5, 1.2);
+	Point bot2_secondary(2.25, -1.2);
+	Point bot3_secondary(2.75, 1.2);
+	Point goal(3.00, 0);
 	Angle robot0_orientation = (bot1_initial - bot0_initial).orientation();
+	Angle robot0_orientation_dos = (bot3_initial - bot0_secondary).orientation();
 	Angle robot1_orientation = (bot0_initial - bot1_initial).orientation();
-	Angle robot1_orientation_dos= (bot2_initial - bot1_initial).orientation();
+	Angle robot1_orientation_dos = (bot0_secondary - bot1_secondary).orientation();
 	Angle robot2_orientation = (bot1_initial - bot2_initial).orientation();
+	Angle robot2_orientation_dos = (bot1_secondary - bot2_secondary).orientation();
 	Angle robot3_orientation = (bot2_initial - bot3_initial).orientation();
+	Angle robot3_orientation_dos = (goal - bot3_secondary).orientation();
+
+
 	double kick_speed = 0.05;
 
 	enum state{
@@ -45,7 +55,7 @@ namespace {
 		/*
 		 * Bot2 rotates and faces Bot3
 		 * if Bot2 has posession of ball, pass to Bot3
-		 * on next_state, Bot0 goes to position WRITE_NEW_POSITION_HERE
+		 * on next_state, Bot0 goes to position
 		 */
 		BOT2_PASS,
 		/*
@@ -105,7 +115,7 @@ class PASCHL : public HighLevel {
 				Player::Ptr player0 = friendly.get(0);
 				Player::Ptr player1 = friendly.get(1);
 				Player::Ptr player2 = friendly.get(2);
-				//Player::Ptr player3 = friendly.get(3);
+				Player::Ptr player3 = friendly.get(3);
 
 				switch(current_state) {
 				case INITIAL_POSITION:
@@ -137,26 +147,110 @@ class PASCHL : public HighLevel {
 					Point intercept_location = horizontal_intercept(player2);
 
 					if(player1->has_ball()){
-						player1->move(player1->position(),robot1_orientation_dos,Point());
+						player0->move(Point(bot0_secondary),robot0_orientation_dos,Point());
 						AI::HL::STP::Action::autokick(player1, Point(), kick_speed);
 						kicked_ball=true;
 					}
 					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player2->position().y < 1e-9) && kicked_ball) {
 						player2->move(Point(intercept_location.x, player2->position().y), robot_positions[2].second, Point());
 					}
+					if(player2->has_ball()){
+						current_state = BOT2_PASS;
+						kicked_ball = false;
+					}
+					}
+					break;
+				case BOT2_PASS: {
+					Point intercept_location = horizontal_intercept(player3);
+
+					if(player2->has_ball()){
+						player1->move(Point(bot1_secondary),robot1_orientation_dos,Point());
+						AI::HL::STP::Action::autokick(player2, Point(), kick_speed);
+						kicked_ball=true;
+					}
+					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player3->position().y < 1e-9) && kicked_ball) {
+						player3->move(Point(intercept_location.x, player3->position().y), robot_positions[3].second, Point());
+					}
+					if(player3->has_ball()){
+						current_state = BOT3_PASS;
+						kicked_ball = false;
+					}
+
 				}
 					break;
-				case BOT2_PASS:
+				case BOT3_PASS:{
+					Point intercept_location = horizontal_intercept(player0);
+
+					if(player3->has_ball()){
+						player2->move(Point(bot2_secondary),robot2_orientation_dos,Point());
+						AI::HL::STP::Action::autokick(player3, Point(), kick_speed);
+						kicked_ball=true;
+					}
+					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player0->position().y < 1e-9) && kicked_ball) {
+						player0->move(Point(intercept_location.x, player0->position().y), robot_positions[0].second, Point());
+					}
+					if(player0->has_ball()){
+						current_state = BOT0_REPOS;
+						kicked_ball = false;
+					}
+				}
 					break;
-				case BOT3_PASS:
+				case BOT0_REPOS:{
+					Point intercept_location = horizontal_intercept(player0);
+
+					if(player0->has_ball()){
+						player3->move(Point(bot3_secondary),robot3_orientation_dos,Point());
+						AI::HL::STP::Action::autokick(player0, Point(), kick_speed);
+						kicked_ball=true;
+					}
+					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player1->position().y < 1e-9) && kicked_ball) {
+						player1->move(Point(intercept_location.x, player1->position().y), robot_positions[1].second, Point());
+					}
+					if(player1->has_ball()){
+						current_state = BOT1_REPOS;
+						kicked_ball = false;
+					}
+
+				}
 					break;
-				case BOT0_REPOS:
+				case BOT1_REPOS:{
+				Point intercept_location = horizontal_intercept(player2);
+
+				if(player1->has_ball()){
+					AI::HL::STP::Action::autokick(player1, Point(), kick_speed);
+					kicked_ball=true;
+				}
+				if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player2->position().y < 1e-9) && kicked_ball) {
+					player2->move(Point(intercept_location.x, player2->position().y), robot_positions[2].second, Point());
+				}
+				if(player2->has_ball()){
+					current_state = BOT2_REPOS;
+					kicked_ball = false;
+				}
+
+				}
 					break;
-				case BOT1_REPOS:
+				case BOT2_REPOS:{
+					Point intercept_location = horizontal_intercept(player3);
+
+				if(player2->has_ball()){
+					AI::HL::STP::Action::autokick(player2, Point(), kick_speed);
+					kicked_ball=true;
+				}
+				if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player3->position().y < 1e-9) && kicked_ball) {
+					player3->move(Point(intercept_location.x, player3->position().y), robot_positions[2].second, Point());
+				}
+				if(player3->has_ball()){
+					current_state = BOT3_REPOS;
+					kicked_ball = false;
+				}
+				}
 					break;
-				case BOT2_REPOS:
-					break;
-				case BOT3_REPOS:
+				case BOT3_REPOS:{
+					if(player3->has_ball()){
+						AI::HL::STP::Action::autokick(player3, Point(), kick_speed);
+				}
+				}
 					break;
 				}
 
