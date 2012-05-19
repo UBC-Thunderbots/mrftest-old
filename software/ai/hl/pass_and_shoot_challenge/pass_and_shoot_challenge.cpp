@@ -141,6 +141,10 @@ class PASCHL : public HighLevel {
 						current_state = BOT1_PASS;
 						kicked_ball = false;
 					}
+					else{
+						current_state = INITIAL_POSITION;
+						kicked_ball = false;
+					}
 				}
 					break;
 				case BOT1_PASS:{
@@ -158,6 +162,10 @@ class PASCHL : public HighLevel {
 						current_state = BOT2_PASS;
 						kicked_ball = false;
 					}
+					else{
+						current_state = INITIAL_POSITION;
+						kicked_ball = false;
+					}
 					}
 					break;
 				case BOT2_PASS: {
@@ -173,6 +181,10 @@ class PASCHL : public HighLevel {
 					}
 					if(player3->has_ball()){
 						current_state = BOT3_PASS;
+						kicked_ball = false;
+					}
+					else{
+						current_state = INITIAL_POSITION;
 						kicked_ball = false;
 					}
 
@@ -193,6 +205,11 @@ class PASCHL : public HighLevel {
 						current_state = BOT0_REPOS;
 						kicked_ball = false;
 					}
+					else{
+						current_state = INITIAL_POSITION;
+						kicked_ball = false;
+					}
+
 				}
 					break;
 				case BOT0_REPOS:{
@@ -208,6 +225,10 @@ class PASCHL : public HighLevel {
 					}
 					if(player1->has_ball()){
 						current_state = BOT1_REPOS;
+						kicked_ball = false;
+					}
+					else{
+						current_state = INITIAL_POSITION;
 						kicked_ball = false;
 					}
 
@@ -227,6 +248,10 @@ class PASCHL : public HighLevel {
 					current_state = BOT2_REPOS;
 					kicked_ball = false;
 				}
+				else{
+					current_state = INITIAL_POSITION;
+					kicked_ball = false;
+				}
 
 				}
 					break;
@@ -244,6 +269,11 @@ class PASCHL : public HighLevel {
 					current_state = BOT3_REPOS;
 					kicked_ball = false;
 				}
+				else{
+					current_state = INITIAL_POSITION;
+					kicked_ball = false;
+				}
+
 				}
 					break;
 				case BOT3_REPOS:{
