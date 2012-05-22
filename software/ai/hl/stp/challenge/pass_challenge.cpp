@@ -1,8 +1,12 @@
 #include "ai/hl/hl.h"
 #include "ai/hl/stp/stp.h"
+#include "ai/hl/stp/world.h"
+#include "ai/hl/stp/play_executor.h"
+#include "ai/hl/stp/action/intercept.h"
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/action/pivot.h"
 #include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/tactic/move_stop.h"
 #include "ai/hl/stp/evaluation/player.h"
 #include "ai/hl/stp/test/test.h"
 #include "ai/hl/stp/predicates.h"
@@ -14,6 +18,7 @@ using namespace AI::HL::W;
 
 using namespace AI::HL::STP::Predicates;
 using namespace AI::Flags;
+using namespace AI::HL::STP::Predicates;
 
 namespace {
 	
@@ -46,8 +51,12 @@ namespace {
 				tick_eval(world);
 
 				std::vector<AI::HL::W::Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
-				if (players.size() != 4) {
+				if (players.empty() || players.size() > 4) {
 					return;
+				}
+
+				if (world.playtype() == AI::Common::PlayType::STOP){
+					return stop(players);
 				}
 
 				//const Player::CPtr baller = Evaluation::calc_friendly_baller();
@@ -59,6 +68,14 @@ namespace {
 
 				if (AI::HL::STP::Predicates::our_ball(world)){
 					// do something
+				}
+			}
+
+			void stop(std::vector<Player::Ptr> &players){
+				if (players.size() > 0) {
+					auto stop1 = Tactic::move_stop(world, 1);
+					stop1->set_player(players[0]);
+					stop1->execute();
 				}
 			}
 	};

@@ -59,8 +59,7 @@ namespace {
 				}
 				
 				if (world.playtype() == AI::Common::PlayType::STOP){
-					stop(players);
-					return;
+					return stop(players);
 				}
 
 				players[0]->autokick(AI::HL::STP::BALL_MAX_SPEED);
