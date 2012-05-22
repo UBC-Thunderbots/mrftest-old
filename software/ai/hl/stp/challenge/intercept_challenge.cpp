@@ -1,9 +1,12 @@
 #include "ai/hl/hl.h"
 #include "ai/flags.h"
+#include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/world.h"
+#include "ai/hl/stp/play_executor.h"
 #include "ai/hl/stp/action/intercept.h"
 #include "ai/hl/stp/action/ram.h"
 #include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/tactic/move_stop.h"
 #include "ai/hl/stp/predicates.h"
 #include "ai/hl/stp/evaluation/enemy.h"
 #include "ai/hl/stp/evaluation/pass.h"
@@ -16,15 +19,15 @@ using namespace AI::HL::W;
 using namespace AI::HL::STP;
 
 using namespace AI::HL::STP::Predicates;
+using AI::HL::STP::PlayExecutor;
 
 namespace {
-	// The minimum distance between the baller and friendly robots as specified in regulation
+	// The minimum distance between the enemy baller and friendly robots as specified in regulation
 	const double INTERCEPT_DIST = 0.50;
 
-	// The closest distance players allowed to the ball
+	// The closest distance enemy players allowed to the ball
 	// DO NOT make this EXACT, instead, add a little tolerance!
-	const double AVOIDANCE_DIST = INTERCEPT_DIST + Robot::MAX_RADIUS
-			+ Ball::RADIUS + 0.005;
+	const double AVOIDANCE_DIST = INTERCEPT_DIST + Robot::MAX_RADIUS + Ball::RADIUS + 0.005;
 
 	class InterceptChallenge: public HighLevel {
 		public:
@@ -42,36 +45,59 @@ namespace {
 			}
 
 			void tick() {
+				tick_eval(world);
+
 				FriendlyTeam &friendly = world.friendly_team();
-				if (friendly.size() != 2) {
+				std::vector<Player::Ptr> players;
+
+				for (std::size_t i = 0; i < friendly.size(); ++i) {
+					players.push_back(friendly.get(i));
+				}
+
+				if (players.empty() || players.size() > 2) {
+					return;
+				}
+				
+				if (world.playtype() == AI::Common::PlayType::STOP){
+					stop(players);
 					return;
 				}
 
-				Player::Ptr player = friendly.get(0);
-				player->autokick(AI::HL::STP::BALL_MAX_SPEED);
-				player->flags(AI::Flags::FLAG_STAY_OWN_HALF);
+				players[0]->autokick(AI::HL::STP::BALL_MAX_SPEED);
+				players[0]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
 
-				Player::Ptr player2 = friendly.get(1);
-				player2->autokick(AI::HL::STP::BALL_MAX_SPEED);
-				player2->flags(AI::Flags::FLAG_STAY_OWN_HALF);
+				players[1]->autokick(AI::HL::STP::BALL_MAX_SPEED);
+				players[1]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
 
 				if (AI::HL::STP::Predicates::their_ball(world)) {
-					const Robot::Ptr baller = Evaluation::calc_enemy_baller(
-							world);
+					const Robot::Ptr baller = Evaluation::calc_enemy_baller(world);
 					Point dirToBall = (world.ball().position() - baller->position()).norm();
-					Point target = baller->position() + (0.50 * Robot::MAX_RADIUS * dirToBall);
-					Point perpToDirToBall = (world.ball().position() - baller->position()).perp();
-					Action::move(world, player, target + perpToDirToBall * Robot::MAX_RADIUS*2);
-					Action::move(world, player, target + perpToDirToBall * -Robot::MAX_RADIUS*2);
-				} else if (!AI::HL::STP::Predicates::their_ball(world)
-						&& !AI::HL::STP::Predicates::our_ball(world)) {
-					Action::ram(world, player);
-					Action::ram(world, player2);
+					Point target = baller->position() + (AVOIDANCE_DIST * dirToBall);
+					Point perpToDirToBall = (world.ball().position() - baller->position()).perp().norm();
+					Action::move(world, players[0], target + perpToDirToBall * 4 * Robot::MAX_RADIUS);
+					Action::move(world, players[1], target - perpToDirToBall * 4 * Robot::MAX_RADIUS);
+				} else if (!AI::HL::STP::Predicates::their_ball(world) && !AI::HL::STP::Predicates::our_ball(world)) {
+					Action::ram(world, players[0]);
+					Action::ram(world, players[1]);
 				} else if (AI::HL::STP::Predicates::our_ball(world)) {
-					Action::ram(world, player);
-					Action::ram(world, player2);
+					Action::ram(world, players[0]);
+					Action::ram(world, players[1]);
 				}
 
+			}
+
+			void stop(std::vector<Player::Ptr> &players){
+				if (players.size() > 0) {
+					auto stop1 = Tactic::move_stop(world, 1);
+					stop1->set_player(players[0]);
+					stop1->execute();
+				}
+
+				if (players.size() > 1) {
+					auto stop2 = Tactic::move_stop(world, 2);
+					stop2->set_player(players[1]);
+					stop2->execute();
+				}
 			}
 	};
 }

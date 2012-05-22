@@ -13,6 +13,7 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 using namespace AI::HL::STP::Predicates;
+using namespace AI::Flags;
 
 namespace {
 	
@@ -48,6 +49,13 @@ namespace {
 				if (players.size() != 4) {
 					return;
 				}
+
+				//const Player::CPtr baller = Evaluation::calc_friendly_baller();
+
+				players[0]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
+				players[1]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
+				players[2]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
+				players[3]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
 
 				if (AI::HL::STP::Predicates::our_ball(world)){
 					// do something
