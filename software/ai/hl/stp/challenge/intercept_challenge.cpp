@@ -90,11 +90,13 @@ namespace {
 					}
 
 					if (players.size() > 1) {
+						// sort the players by dist to target
 						std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(target));
-						Enemy::Ptr furthest_enemy;
-						// 1st player blocks the baller
 						
+						// 1st player blocks the baller
 						Action::move(world, players[0], target);
+						
+						Enemy::Ptr furthest_enemy;
 						if (world.enemy_team().size() > 1) {
 							furthest_enemy = Enemy::closest_friendly_player(world, players[0], static_cast<unsigned int>(world.enemy_team().size()-1));
 						} 
