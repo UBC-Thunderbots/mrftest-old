@@ -23,12 +23,7 @@ namespace {
 }
 
 void AI::HL::STP::Action::autokick(Player::Ptr player, const Point target, double velocity) {
-	if (player->kicker_directional()) {
-		Angle angle = player->orientation().angle_diff((target - player->position()).orientation());
-		player->autokick(velocity, angle);
-	} else {
-		player->autokick(velocity);
-	}
+	player->autokick(velocity);
 }
 
 bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, bool use_reduced_radius) {

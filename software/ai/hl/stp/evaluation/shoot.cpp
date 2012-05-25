@@ -87,10 +87,6 @@ Evaluation::ShootData Evaluation::evaluate_shoot(const World &world, Player::CPt
 	Angle ori_diff = ori.angle_diff(player->orientation());
 	data.accuracy_diff = ori_diff - (shot.second / 2);
 
-	if (player->kicker_directional()) {
-		data.accuracy_diff -= Angle::of_degrees(45);
-	}
-
 	data.target = shot.first;
 	data.angle = shot.second;
 	data.can_shoot = data.accuracy_diff < -shoot_accuracy;
