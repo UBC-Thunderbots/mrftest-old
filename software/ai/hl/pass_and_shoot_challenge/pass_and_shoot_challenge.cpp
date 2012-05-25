@@ -25,13 +25,13 @@ namespace {
 	Point bot3_secondary(2.75, 1.2);
 	Point goal(3.00, 0);
 	Angle robot0_orientation = (bot1_initial - bot0_initial).orientation();
-	Angle robot0_orientation_dos = (bot3_initial - bot0_secondary).orientation();
+	Angle robot0_orientation_final = (bot3_initial - bot0_secondary).orientation();
 	Angle robot1_orientation = (bot0_initial - bot1_initial).orientation();
-	Angle robot1_orientation_dos = (bot0_secondary - bot1_secondary).orientation();
+	Angle robot1_orientation_final = (bot0_secondary - bot1_secondary).orientation();
 	Angle robot2_orientation = (bot1_initial - bot2_initial).orientation();
-	Angle robot2_orientation_dos = (bot1_secondary - bot2_secondary).orientation();
+	Angle robot2_orientation_final = (bot1_secondary - bot2_secondary).orientation();
 	Angle robot3_orientation = (bot2_initial - bot3_initial).orientation();
-	Angle robot3_orientation_dos = (goal - bot3_secondary).orientation();
+	Angle robot3_orientation_final = (goal - bot3_secondary).orientation();
 
 
 	double kick_speed = 0.05;
@@ -139,16 +139,9 @@ class PASCHL : public HighLevel {
 				}
 					break;
 				case BOT1_PASS:{
-					Point intercept_location = horizontal_intercept(player2);
 
-					if(player1->has_ball()){
-						player0->move(Point(bot0_secondary),robot0_orientation_dos,Point());
-						player1->autokick(kick_speed);
-						kicked_ball=true;
-					}
-					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player2->position().y < 1e-9) && kicked_ball) {
-						player2->move(Point(intercept_location.x, player2->position().y), robot_positions[2].second, Point());
-					}
+					robot_pass(player1, player2, 2);
+
 					if(player1->has_ball()) {
 						current_state = BOT1_PASS;
 						kicked_ball = false;
@@ -158,16 +151,9 @@ class PASCHL : public HighLevel {
 					}*/					}
 					break;
 				case BOT2_PASS: {
-					Point intercept_location = horizontal_intercept(player3);
 
-					if(player2->has_ball()){
-						player1->move(Point(bot1_secondary),robot1_orientation_dos,Point());
-						player2->autokick(kick_speed);
-						kicked_ball=true;
-					}
-					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player3->position().y < 1e-9) && kicked_ball) {
-						player3->move(Point(intercept_location.x, player3->position().y), robot_positions[3].second, Point());
-					}
+					robot_pass(player2, player3, 3);
+
 					if(player1->has_ball()) {
 						current_state = BOT1_PASS;
 						kicked_ball = false;
@@ -177,16 +163,10 @@ class PASCHL : public HighLevel {
 					}*/				}
 					break;
 				case BOT3_PASS:{
-					Point intercept_location = horizontal_intercept(player0);
 
-					if(player3->has_ball()){
-						player2->move(Point(bot2_secondary),robot2_orientation_dos,Point());
-						player3->autokick(kick_speed);
-						kicked_ball=true;
-					}
-					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player0->position().y < 1e-9) && kicked_ball) {
-						player0->move(Point(intercept_location.x, player0->position().y), robot_positions[0].second, Point());
-					}
+					robot_pass(player3, player0, 0);
+
+
 					if(player1->has_ball()) {
 						current_state = BOT1_PASS;
 						kicked_ball = false;
@@ -200,7 +180,7 @@ class PASCHL : public HighLevel {
 					Point intercept_location = horizontal_intercept(player0);
 
 					if(player0->has_ball()){
-						player3->move(Point(bot3_secondary),robot3_orientation_dos,Point());
+						player3->move(Point(bot3_secondary),robot3_orientation_final,Point());
 						player0->autokick(kick_speed);
 						kicked_ball=true;
 					}
@@ -280,6 +260,7 @@ class PASCHL : public HighLevel {
 
 Point PASCHL::horizontal_intercept(Player::Ptr player){
 	double top_horizontal_line=1.2;
+	//double bottom_horizontal_line = -1.2;
 	double width_of_rectangle = 2;
 	double height_of_rectangle = top_horizontal_line*2;
 	Rect ball_intercept_boundary(Point((player->position().x - width_of_rectangle*.5), -top_horizontal_line), height_of_rectangle, width_of_rectangle);
