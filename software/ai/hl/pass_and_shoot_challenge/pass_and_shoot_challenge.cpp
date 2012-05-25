@@ -101,6 +101,7 @@ class PASCHL : public HighLevel {
 				current_state = INITIAL_POSITION;
 
 				kicked_ball = false;
+
 			}
 
 			HighLevelFactory &factory() const;
@@ -126,25 +127,15 @@ class PASCHL : public HighLevel {
 					current_state=BOT0_PASS;
 					break;
 				case BOT0_PASS:{
-					Point intercept_location = horizontal_intercept(player1);
+					robot_pass(player0, player1, 1);
 
-					if(player0->has_ball()) {
-						player0->autokick(kick_speed);
-						kicked_ball = true;
-					}
-					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player1->position().y < 1e-9) && kicked_ball) {
-						player1->move(Point(intercept_location.x, player1->position().y), robot_positions[1].second, Point());
-					}
-
-					std::cout<<intercept_location<<std::endl;
-					if(player1->has_ball()){
+					if(player1->has_ball()) {
 						current_state = BOT1_PASS;
 						kicked_ball = false;
-					}
-					else{
+					} /*else {
 						current_state = INITIAL_POSITION;
 						kicked_ball = false;
-					}
+					}*/
 				}
 					break;
 				case BOT1_PASS:{
@@ -158,15 +149,13 @@ class PASCHL : public HighLevel {
 					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player2->position().y < 1e-9) && kicked_ball) {
 						player2->move(Point(intercept_location.x, player2->position().y), robot_positions[2].second, Point());
 					}
-					if(player2->has_ball()){
-						current_state = BOT2_PASS;
+					if(player1->has_ball()) {
+						current_state = BOT1_PASS;
 						kicked_ball = false;
-					}
-					else{
+					} /*else {
 						current_state = INITIAL_POSITION;
 						kicked_ball = false;
-					}
-					}
+					}*/					}
 					break;
 				case BOT2_PASS: {
 					Point intercept_location = horizontal_intercept(player3);
@@ -179,16 +168,13 @@ class PASCHL : public HighLevel {
 					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player3->position().y < 1e-9) && kicked_ball) {
 						player3->move(Point(intercept_location.x, player3->position().y), robot_positions[3].second, Point());
 					}
-					if(player3->has_ball()){
-						current_state = BOT3_PASS;
+					if(player1->has_ball()) {
+						current_state = BOT1_PASS;
 						kicked_ball = false;
-					}
-					else{
+					} /*else {
 						current_state = INITIAL_POSITION;
 						kicked_ball = false;
-					}
-
-				}
+					}*/				}
 					break;
 				case BOT3_PASS:{
 					Point intercept_location = horizontal_intercept(player0);
@@ -201,15 +187,13 @@ class PASCHL : public HighLevel {
 					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player0->position().y < 1e-9) && kicked_ball) {
 						player0->move(Point(intercept_location.x, player0->position().y), robot_positions[0].second, Point());
 					}
-					if(player0->has_ball()){
-						current_state = BOT0_REPOS;
+					if(player1->has_ball()) {
+						current_state = BOT1_PASS;
 						kicked_ball = false;
-					}
-					else{
+					} /*else {
 						current_state = INITIAL_POSITION;
 						kicked_ball = false;
-					}
-
+					}*/
 				}
 					break;
 				case BOT0_REPOS:{
@@ -223,16 +207,13 @@ class PASCHL : public HighLevel {
 					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player1->position().y < 1e-9) && kicked_ball) {
 						player1->move(Point(intercept_location.x, player1->position().y), robot_positions[1].second, Point());
 					}
-					if(player1->has_ball()){
-						current_state = BOT1_REPOS;
+					if(player1->has_ball()) {
+						current_state = BOT1_PASS;
 						kicked_ball = false;
-					}
-					else{
+					} /*else {
 						current_state = INITIAL_POSITION;
 						kicked_ball = false;
-					}
-
-				}
+					}*/				}
 					break;
 				case BOT1_REPOS:{
 				Point intercept_location = horizontal_intercept(player2);
@@ -244,16 +225,13 @@ class PASCHL : public HighLevel {
 				if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player2->position().y < 1e-9) && kicked_ball) {
 					player2->move(Point(intercept_location.x, player2->position().y), robot_positions[2].second, Point());
 				}
-				if(player2->has_ball()){
-					current_state = BOT2_REPOS;
+				if(player1->has_ball()) {
+					current_state = BOT1_PASS;
 					kicked_ball = false;
-				}
-				else{
+				} /*else {
 					current_state = INITIAL_POSITION;
 					kicked_ball = false;
-				}
-
-				}
+				}*/				}
 					break;
 				case BOT2_REPOS:{
 					Point intercept_location = horizontal_intercept(player3);
@@ -295,6 +273,7 @@ class PASCHL : public HighLevel {
 			std::vector<std::pair<Point, Angle>> robot_positions;
 			state current_state;
 			Point horizontal_intercept(Player::Ptr player);
+			void robot_pass(Player::Ptr passer, Player::Ptr receiver, int robot_number);
 			bool kicked_ball;
 
 };
@@ -307,6 +286,27 @@ Point PASCHL::horizontal_intercept(Player::Ptr player){
 
 	return vector_rect_intersect(ball_intercept_boundary,world.ball().position(), world.ball().velocity()+ world.ball().position());
 }
+
+void PASCHL::robot_pass(Player::Ptr passer, Player::Ptr receiver, int robot_number){
+	Point intercept_location = horizontal_intercept(receiver);
+
+	if (passer->has_ball()) {
+		passer->autokick(kick_speed);
+		kicked_ball = true;
+	}
+	// if there is no intercept location, will return (0,0)
+	bool valid_intercept_location = (intercept_location - Point(0,0)).len() > 1e-9;
+	//whether they coordinate is along the top rectangle line and not along sides
+	bool able_to_intercept = intercept_location.y - receiver->position().y < 1e-9;
+
+	if (valid_intercept_location && able_to_intercept && kicked_ball) {
+		receiver->move(Point(intercept_location.x, receiver->position().y), robot_positions[robot_number].second, Point());
+	}
+
+	std::cout<<intercept_location<<std::endl;
+
+}
+
 
 
 HIGH_LEVEL_REGISTER(PASCHL)
