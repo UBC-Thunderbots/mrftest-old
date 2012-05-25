@@ -10,10 +10,6 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Action {
-				/**
-				 * Auto kick at the exact angle if the robot has a multidirectional kicker.
-				 */
-				void autokick(Player::Ptr player, const Point target, double velocity);
 
 				/**
 				 * Shoots the ball at the largest open angle of the enemy goal.

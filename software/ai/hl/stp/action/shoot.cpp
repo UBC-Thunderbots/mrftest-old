@@ -22,10 +22,6 @@ namespace {
 	const double FAST = 100.0;
 }
 
-void AI::HL::STP::Action::autokick(Player::Ptr player, const Point target, double velocity) {
-	player->autokick(velocity);
-}
-
 bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, bool use_reduced_radius) {
 	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player, use_reduced_radius);
 
@@ -47,7 +43,7 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, boo
 		}
 		LOG_INFO("autokick");
 		intercept(player, shoot_data.target);
-		autokick(player, shoot_data.target, BALL_MAX_SPEED);
+		player->autokick(BALL_MAX_SPEED);
 		return true;
 	} else {
 		intercept_pivot(world, player, shoot_data.target);
@@ -77,7 +73,7 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 	}
 
 	LOG_INFO("autokick");
-	autokick(player, target, velocity);
+	player->autokick(velocity);
 	return true;
 }
 
@@ -116,7 +112,7 @@ bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, con
 	}
 
 	if (ok) {
-		autokick(player, target, pass_speed);
+		player->autokick(pass_speed);
 		return true;
 	}
 
