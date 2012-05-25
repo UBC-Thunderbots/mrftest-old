@@ -189,6 +189,9 @@ namespace {
 		}
 
 		void prepare_penalty_friendly(std::vector<Player::Ptr> &players) {
+			// sort the players by dist to ball
+			std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+
 			Action::move(world, players[0], Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0));
 
 			if (players.size() == 1) {
@@ -203,6 +206,9 @@ namespace {
 		}
 		
 		void execute_penalty_friendly(std::vector<Player::Ptr> &players) {
+			// sort the players by dist to ball
+			std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+
 			auto shooter = Tactic::penalty_shoot(world);
 			shooter->set_player(players[0]);
 			shooter->execute();
@@ -240,7 +246,8 @@ namespace {
 		}
 
 		void play(std::vector<Player::Ptr> &players) {
-
+			// sort the players by dist to ball
+			std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 			if (players.size() > 0) {
 				auto active = Tactic::shoot_goal(world, true);
 				if (fight_ball(world)){

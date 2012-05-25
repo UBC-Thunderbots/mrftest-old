@@ -141,6 +141,9 @@ namespace {
 
 			// ram / knock the ball out of the field
 			void ram(std::vector<Player::Ptr> &players){
+				// sort the players by dist to ball
+				std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+
 				// ram the ball with autokick on
 				if (players.size() > 0) {
 					auto ram = Tactic::ram(world);
