@@ -1,4 +1,5 @@
 #include "ai/hl/hl.h"
+#include "ai/hl/util.h"
 #include "ai/flags.h"
 #include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/world.h"
@@ -89,32 +90,22 @@ namespace {
 					}
 
 					if (players.size() > 1) {
-						bool closest = (players[0]->position() - target).len() > (players[1]->position()).len();
+						std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(target));
 						Enemy::Ptr furthest_enemy;
 						// 1st player blocks the baller
-						if (closest) {
-							Action::move(world, players[1], target);
-							if (world.enemy_team().size() > 1) {
-								furthest_enemy = Enemy::closest_friendly_player(world, players[1], static_cast<unsigned int>(world.enemy_team().size()-1));	
-							} 
-						} else {
-							Action::move(world, players[0], target);
-							if (world.enemy_team().size() > 1) {
-								furthest_enemy = Enemy::closest_friendly_player(world, players[0], static_cast<unsigned int>(world.enemy_team().size()-1));	
-							}
-						}
+						
+						Action::move(world, players[0], target);
+						if (world.enemy_team().size() > 1) {
+							furthest_enemy = Enemy::closest_friendly_player(world, players[0], static_cast<unsigned int>(world.enemy_team().size()-1));
+						} 
+
 						Robot::Ptr robot = furthest_enemy->evaluate();
 						Point dirToBallerEnemy = (baller->position() - robot->position()).norm();
 						Point blockTarget = baller->position() - (AVOIDANCE_DIST * dirToBallerEnemy);
 
 						// 2nd player blocks furthest robot not blocked by first player
-						if (closest){
-							Action::move(world, players[0], blockTarget);
-						} else {
-							Action::move(world, players[1], blockTarget);
-						}
+						Action::move(world, players[1], blockTarget);
 						
-
 					} else if (players.size() == 1){
 						Action::move(world, players[0], target);
 					}
