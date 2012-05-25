@@ -57,6 +57,18 @@ namespace AI {
 					 */
 					static Enemy::Ptr closest_pass(const World &world, unsigned int i);
 
+					/**
+					 * \brief Order by distance to a friendly player.
+					 *
+					 * \param[in] world the World in which STP operates
+					 *
+					 * \param[in] i the index of the enemy ordered by distance to friendly player
+					 * where 0 is closest and 1 is second closest etc.
+					 *
+					 * \return the (i+1)th closest enemy to the friendly player
+					 */
+					static Enemy::Ptr closest_friendly_player(const World &world, Player::Ptr player, unsigned int i);
+
 				protected:
 					Enemy();
 			};

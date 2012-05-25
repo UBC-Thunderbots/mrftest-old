@@ -7,6 +7,8 @@
 #include "ai/hl/stp/action/ram.h"
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/tactic/move_stop.h"
+#include "ai/hl/stp/tactic/ram.h"
+#include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/predicates.h"
 #include "ai/hl/stp/evaluation/enemy.h"
 #include "ai/hl/stp/evaluation/pass.h"
@@ -17,6 +19,7 @@ using namespace AI::Flags;
 using namespace AI::HL;
 using namespace AI::HL::W;
 using namespace AI::HL::STP;
+using AI::HL::STP::Enemy;
 
 using namespace AI::HL::STP::Predicates;
 using AI::HL::STP::PlayExecutor;
@@ -53,38 +56,82 @@ namespace {
 				for (std::size_t i = 0; i < friendly.size(); ++i) {
 					players.push_back(friendly.get(i));
 				}
-
-				if (players.empty() || players.size() > 2) {
-					return;
-				}
 				
 				if (world.playtype() == AI::Common::PlayType::STOP){
 					return stop(players);
 				}
 
-				players[0]->autokick(AI::HL::STP::BALL_MAX_SPEED);
-				players[0]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
+				if (players.empty() || players.size() > 2 || world.playtype() != AI::Common::PlayType::PLAY) {
+					return;
+				}
+				if (players.size() > 0) {
+					players[0]->autokick(AI::HL::STP::BALL_MAX_SPEED);
+					players[0]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
+				}
+				if (players.size() > 1) {
+					players[1]->autokick(AI::HL::STP::BALL_MAX_SPEED);
+					players[1]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
+				}
 
-				players[1]->autokick(AI::HL::STP::BALL_MAX_SPEED);
-				players[1]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
-
-				if (AI::HL::STP::Predicates::their_ball(world)) {
-					const Robot::Ptr baller = Evaluation::calc_enemy_baller(world);
+				const Robot::Ptr baller = Evaluation::calc_enemy_baller(world);
+				// if the enemy (passers) has the ball, position to block 
+				if (baller && AI::HL::STP::Predicates::their_ball(world)) {
+					
 					Point dirToBall = (world.ball().position() - baller->position()).norm();
 					Point target = baller->position() + (AVOIDANCE_DIST * dirToBall);
 					Point perpToDirToBall = (world.ball().position() - baller->position()).perp().norm();
-					Action::move(world, players[0], target + perpToDirToBall * 4 * Robot::MAX_RADIUS);
-					Action::move(world, players[1], target - perpToDirToBall * 4 * Robot::MAX_RADIUS);
+
+					// if there is only one enemy robot just block it...
+					if (world.enemy_team().size() == 1){
+						Action::move(world, players[0], target + perpToDirToBall * 4 * Robot::MAX_RADIUS);
+						Action::move(world, players[1], target - perpToDirToBall * 4 * Robot::MAX_RADIUS);
+						return;
+					}
+
+					if (players.size() > 1) {
+						bool closest = (players[0]->position() - target).len() > (players[1]->position()).len();
+						Enemy::Ptr furthest_enemy;
+						// 1st player blocks the baller
+						if (closest) {
+							Action::move(world, players[1], target);
+							if (world.enemy_team().size() > 1) {
+								furthest_enemy = Enemy::closest_friendly_player(world, players[1], static_cast<unsigned int>(world.enemy_team().size()-1));	
+							} 
+						} else {
+							Action::move(world, players[0], target);
+							if (world.enemy_team().size() > 1) {
+								furthest_enemy = Enemy::closest_friendly_player(world, players[0], static_cast<unsigned int>(world.enemy_team().size()-1));	
+							}
+						}
+						Robot::Ptr robot = furthest_enemy->evaluate();
+						Point dirToBallerEnemy = (baller->position() - robot->position()).norm();
+						Point blockTarget = baller->position() - (AVOIDANCE_DIST * dirToBallerEnemy);
+
+						// 2nd player blocks furthest robot not blocked by first player
+						if (closest){
+							Action::move(world, players[0], blockTarget);
+						} else {
+							Action::move(world, players[1], blockTarget);
+						}
+						
+
+					} else if (players.size() == 1){
+						Action::move(world, players[0], target);
+					}
+				// else try to knock the ball out of the field
 				} else if (!AI::HL::STP::Predicates::their_ball(world) && !AI::HL::STP::Predicates::our_ball(world)) {
-					Action::ram(world, players[0]);
-					Action::ram(world, players[1]);
+					ram(players);
+				// should not happen but safety check
 				} else if (AI::HL::STP::Predicates::our_ball(world)) {
-					Action::ram(world, players[0]);
-					Action::ram(world, players[1]);
+					ram(players);
+				// no enemies
+				} else {					
+					return;
 				}
 
 			}
 
+			// stay away from ball
 			void stop(std::vector<Player::Ptr> &players){
 				if (players.size() > 0) {
 					auto stop1 = Tactic::move_stop(world, 1);
@@ -98,6 +145,24 @@ namespace {
 					stop2->execute();
 				}
 			}
+
+			// ram / knock the ball out of the field
+			void ram(std::vector<Player::Ptr> &players){
+				// ram the ball with autokick on
+				if (players.size() > 0) {
+					auto ram = Tactic::ram(world);
+					ram->set_player(players[0]);
+					ram->execute();
+				}
+
+				// block the enemy that is closest to ball
+				if (players.size() > 1 && world.enemy_team().size()) {
+					auto block = Tactic::block_ball(world, Enemy::closest_ball(world, 0));
+					block->set_player(players[1]);
+					block->execute();
+				}
+			}
+
 	};
 }
 

@@ -94,6 +94,31 @@ namespace {
 				 */
 			}
 	};
+
+	class ClosestFriendlyPlayer : public Enemy {
+		public:
+			ClosestFriendlyPlayer(const World &w, Player::Ptr player, unsigned int i) : world(w), player(player), index(i) {
+			}
+
+		private:
+			const World &world;
+			Player::Ptr player;
+			unsigned int index;
+			Robot::Ptr evaluate() const {
+				if (world.enemy_team().size() <= index) {
+					return Robot::Ptr();
+				}
+
+				std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+
+				// sort enemies by distance to own goal
+				// TODO: cache this
+				std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(player->position()));
+
+				return enemies[index];
+			}
+	};
+	
 };
 
 Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_goal(const World &world, unsigned int i) {
@@ -106,6 +131,10 @@ Enemy::Ptr AI::HL::STP::Enemy::closest_ball(const World &world, unsigned int i) 
 
 Enemy::Ptr AI::HL::STP::Enemy::closest_pass(const World &world, unsigned int i) {
 	return std::make_shared<ClosestPass>(world, i);
+}
+
+Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_player(const World &world, Player::Ptr player, unsigned int i) {
+	return std::make_shared<ClosestFriendlyPlayer>(world, player, i);
 }
 
 Enemy::Enemy() = default;
