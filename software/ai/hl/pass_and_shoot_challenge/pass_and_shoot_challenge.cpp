@@ -141,70 +141,19 @@ class PASCHL : public HighLevel {
 					player2->move(Point(bot2_secondary), Angle(robot2_orientation_final), Point());
 					robot_pass(3, 0, BOT0_REPOS);
 					break;
-				case BOT0_REPOS:{
-
+				case BOT0_REPOS:
 					player3->move(Point(bot3_secondary), Angle(robot3_orientation_final), Point());
-
-					Point intercept_location = horizontal_intercept(player0);
-
-					if(player0->has_ball()){
-						player3->move(Point(bot3_secondary),robot3_orientation_final,Point());
-						player0->autokick(kick_speed);
-						kicked_ball=true;
-					}
-					if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player1->position().y < 1e-9) && kicked_ball) {
-						player1->move(Point(intercept_location.x, player1->position().y), robot_positions[1].second, Point());
-					}
-					if(player1->has_ball()) {
-						current_state = BOT1_PASS;
-						kicked_ball = false;
-					}
-				}
+					robot_pass(0, 1, BOT1_REPOS);
 					break;
-				case BOT1_REPOS:{
-				Point intercept_location = horizontal_intercept(player2);
-
-				if(player1->has_ball()){
-					player1->autokick(kick_speed);
-					kicked_ball=true;
-				}
-				if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player2->position().y < 1e-9) && kicked_ball) {
-					player2->move(Point(intercept_location.x, player2->position().y), robot_positions[2].second, Point());
-				}
-				if(player1->has_ball()) {
-					current_state = BOT1_PASS;
-					kicked_ball = false;
-				} /*else {
-					current_state = INITIAL_POSITION;
-					kicked_ball = false;
-				}*/				}
+				case BOT1_REPOS:
+					robot_pass(1, 2, BOT2_REPOS);
 					break;
-				case BOT2_REPOS:{
-					Point intercept_location = horizontal_intercept(player3);
-
-				if(player2->has_ball()){
-					player2->autokick(kick_speed);
-					kicked_ball=true;
-				}
-				if(!((intercept_location - Point(0,0)).len() < 1e-9) && (intercept_location.y - player3->position().y < 1e-9) && kicked_ball) {
-					player3->move(Point(intercept_location.x, player3->position().y), robot_positions[2].second, Point());
-				}
-				if(player3->has_ball()){
-					current_state = BOT3_REPOS;
-					kicked_ball = false;
-				}
-				else{
-					current_state = INITIAL_POSITION;
-					kicked_ball = false;
-				}
-
-				}
+				case BOT2_REPOS:
+					robot_pass(2, 3, BOT3_REPOS);
 					break;
-				case BOT3_REPOS:{
-					if(player3->has_ball()){
+				case BOT3_REPOS:
+					if(player3->has_ball())
 						player3->autokick(kick_speed);
-				}
-				}
 					break;
 				}
 
