@@ -34,6 +34,7 @@ namespace {
 	Angle robot3_orientation_final = (goal - bot3_secondary).orientation();
 
 
+	int robot_number[] = {0,1,2,3};
 	double kick_speed = 0.05;
 
 	enum state{
@@ -127,7 +128,7 @@ class PASCHL : public HighLevel {
 					current_state=BOT0_PASS;
 					break;
 				case BOT0_PASS:{
-					robot_pass(player0, player1, 1);
+					robot_pass(player0, player1, robot_number[1]);
 
 					if(player1->has_ball()) {
 						current_state = BOT1_PASS;
@@ -140,7 +141,7 @@ class PASCHL : public HighLevel {
 					break;
 				case BOT1_PASS:{
 
-					robot_pass(player1, player2, 2);
+					robot_pass(player1, player2, robot_number[2]);
 
 					if(player1->has_ball()) {
 						current_state = BOT1_PASS;
@@ -152,7 +153,7 @@ class PASCHL : public HighLevel {
 					break;
 				case BOT2_PASS: {
 
-					robot_pass(player2, player3, 3);
+					robot_pass(player2, player3, robot_number[3]);
 
 					if(player1->has_ball()) {
 						current_state = BOT1_PASS;
@@ -164,7 +165,7 @@ class PASCHL : public HighLevel {
 					break;
 				case BOT3_PASS:{
 
-					robot_pass(player3, player0, 0);
+					robot_pass(player3, player0, robot_number[0]);
 
 
 					if(player1->has_ball()) {
@@ -177,7 +178,7 @@ class PASCHL : public HighLevel {
 				}
 					break;
 				case BOT0_REPOS:{
-					Point intercept_location = horizontal_intercept(player0);
+					Point intercept_location = horizontal_intercept(player0, robot_number[0]);
 
 					if(player0->has_ball()){
 						player3->move(Point(bot3_secondary),robot3_orientation_final,Point());
@@ -196,7 +197,7 @@ class PASCHL : public HighLevel {
 					}*/				}
 					break;
 				case BOT1_REPOS:{
-				Point intercept_location = horizontal_intercept(player2);
+				Point intercept_location = horizontal_intercept(player2, robot_number[2]);
 
 				if(player1->has_ball()){
 					player1->autokick(kick_speed);
@@ -214,7 +215,7 @@ class PASCHL : public HighLevel {
 				}*/				}
 					break;
 				case BOT2_REPOS:{
-					Point intercept_location = horizontal_intercept(player3);
+					Point intercept_location = horizontal_intercept(player3, 3);
 
 				if(player2->has_ball()){
 					player2->autokick(kick_speed);
@@ -252,24 +253,28 @@ class PASCHL : public HighLevel {
 			World &world;
 			std::vector<std::pair<Point, Angle>> robot_positions;
 			state current_state;
-			Point horizontal_intercept(Player::Ptr player);
+			Point horizontal_intercept(Player::Ptr player, int robot_number);
 			void robot_pass(Player::Ptr passer, Player::Ptr receiver, int robot_number);
 			bool kicked_ball;
 
 };
 
-Point PASCHL::horizontal_intercept(Player::Ptr player){
-	double top_horizontal_line=1.2;
+Point PASCHL::horizontal_intercept(Player::Ptr player, int player_number){
+	double horizontal_line=1.2;
 	//double bottom_horizontal_line = -1.2;
 	double width_of_rectangle = 2;
-	double height_of_rectangle = top_horizontal_line*2;
-	Rect ball_intercept_boundary(Point((player->position().x - width_of_rectangle*.5), -top_horizontal_line), height_of_rectangle, width_of_rectangle);
+	double height_of_rectangle = horizontal_line*2;
+
+	if (player_number == 0 || player_number == 2){
+		horizontal_line = -1.2;
+	}
+	Rect ball_intercept_boundary(Point((player->position().x - width_of_rectangle*.5), -horizontal_line), height_of_rectangle, width_of_rectangle);
 
 	return vector_rect_intersect(ball_intercept_boundary,world.ball().position(), world.ball().velocity()+ world.ball().position());
 }
 
 void PASCHL::robot_pass(Player::Ptr passer, Player::Ptr receiver, int robot_number){
-	Point intercept_location = horizontal_intercept(receiver);
+	Point intercept_location = horizontal_intercept(receiver, robot_number);
 
 	if (passer->has_ball()) {
 		passer->autokick(kick_speed);
