@@ -32,15 +32,6 @@ namespace AI {
 				virtual bool chicker_ready() const = 0;
 
 				/**
-				 * \brief Checks if this robot's kicker is able to kick on an angle.
-				 *
-				 * \return \c false
-				 *
-				 * \deprecated No robots have directional kickers; this function always returns false.
-				 */
-				bool kicker_directional() const __attribute__((deprecated("No robots have directional kickers; this function always returns false.")));
-
-				/**
 				 * \brief Checks if this robot has a chipper (a kicking device that can send the ball up into the air)
 				 *
 				 * \return \c true if a chipper is available, or \c false if not
@@ -55,12 +46,6 @@ namespace AI {
 				virtual bool autokick_fired() const = 0;
 		};
 	}
-}
-
-
-
-inline bool AI::Common::Player::kicker_directional() const {
-	return false;
 }
 
 #endif

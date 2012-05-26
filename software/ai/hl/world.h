@@ -142,30 +142,6 @@ namespace AI {
 					 * \param[in] power the power of the chip, from 0 to 1 in arbitrary units
 					 */
 					virtual void autochip(double power) = 0;
-
-					/**
-					 * Causes the player to kick the ball.
-					 *
-					 * \param[in] speed the speed of the kick, in m/s.
-					 *
-					 * \param[in] angle the angle to kick at, in radians, with positive being to the left of the robot's orientation.
-					 *
-					 * \deprecated No robots have directional kickers; use the one-parameter form instead.
-					 */
-					void kick(double speed, Angle angle) __attribute__((deprecated("No robots have directional kickers; use the one-parameter form instead.")));
-
-					/**
-					 * Causes the player to automatically kick the ball as soon as it is picked up by the sensor.
-					 *
-					 * This function must be called on every tick in order to remain armed; failing to invoke the function will disarm the mechanism.
-					 *
-					 * \param[in] speed the speed of the kick, in m/s.
-					 *
-					 * \param[in] angle the angle to kick at, in radians, with positive being to the left of the robot's orientation.
-					 *
-					 * \deprecated No robots have directional kickers; use the one-parameter form instead.
-					 */
-					void autokick(double speed, Angle angle) __attribute__((deprecated("No robots have directional kickers; use the one-parameter form instead.")));
 			};
 
 			/**
