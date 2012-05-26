@@ -414,15 +414,15 @@ namespace {
 	}
 
 	// create path that avoids obstacles and just keeps the orientation constant at each of the points
-	AI::Nav::W::Player::Path create_path(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, const std::pair<Point, Angle> dest) {
+	AI::Nav::W::Player::Path create_path(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, const std::pair<Point, Angle> dest, unsigned int added_flags) {
 		std::vector<Point> path_points;
 		AI::Nav::RRTPlanner planner(world);
 		AI::Nav::W::Player::Path path;
 
-		if (AI::Nav::Util::valid_path(player->position(), dest.first, world, player)) {
+		if (AI::Nav::Util::valid_path(player->position(), dest.first, world, player, added_flags)) {
 			path_points.push_back(dest.first);
 		} else {
-			path_points = planner.plan(player, dest.first, 0);
+			path_points = planner.plan(player, dest.first, added_flags);
 		}
 
 		for(unsigned int i = 0; i < path_points.size(); i++) {
@@ -451,7 +451,7 @@ namespace {
 		// make the robot face against the ball direction
 		dest_ang = -ball_vel.orientation();
 
-		return create_path(world, player, std::make_pair(dest_pos, dest_ang));
+		return create_path(world, player, std::make_pair(dest_pos, dest_ang), AI::Flags::FLAG_AVOID_BALL_TINY);
 	}
 
 	// only used when ball is not moving
@@ -478,7 +478,7 @@ namespace {
 			dest_pos = ball_pos;
 		}
 
-		return create_path(world, player, std::make_pair(dest_pos, dest_ang));
+		return create_path(world, player, std::make_pair(dest_pos, dest_ang), 0);
 	}
 };
 
@@ -606,7 +606,7 @@ double AI::Nav::Util::estimate_action_duration(std::vector<std::pair<Point, Angl
 	return total_time;
 }
 
-bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, Cairo::RefPtr<Cairo::Context> ctx) {
+bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 	// need to confirm that the player has proper flag
 
 	// need to confirm that the ball is moving at all
@@ -614,7 +614,6 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W:
 	// extract data from the player
 	const Field &field = world.field();
 	const Point target_pos = player->destination().first;
-	const Angle target_ang = (field.enemy_goal() - player->position()).orientation();
 	const Point robot_pos = player->position();
 
 	// extract information from the ball
@@ -625,27 +624,6 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W:
 	const Point ball_norm = ball_vel.norm();
 	const Point ball_bounded_pos = vector_rect_intersect(field_rec, ball_pos, ball_pos + ball_norm);
 	const Angle target_ball_offset_angle = vertex_angle(ball_pos + ball_vel, ball_pos, target_pos).angle_mod();
-
-	// display some info about the strategy
-	// all drawing stuff is disabled
-	/*if (ctx != Cairo::RefPtr<Cairo::Context>()) {
-		// draw where ball goes out of field
-		ctx->arc(ball_bounded_pos.x, ball_bounded_pos.y, 0.05, 0.0, M_PI * 2);
-		ctx->set_source_rgb(0.8, 0.0, 0.0);
-		ctx->fill_preserve();
-		ctx->stroke();
-
-		// whether the robot is in front or behind the ball
-		ctx->set_font_size(0.1);
-		std::string str;
-		if (robot_behind_ball) {
-			str = "B";
-		} else {
-			str = "F";
-		}
-		ctx->move_to(robot_pos.x + 0.1, robot_pos.y + 0.1);
-		ctx->show_text(str);
-	}*/
 
 	std::vector<Point> path_points;
 	AI::Nav::RRTPlanner planner(world);

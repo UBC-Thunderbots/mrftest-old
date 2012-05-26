@@ -96,10 +96,8 @@ namespace AI {
 			 * \param[in] the world, passed into rrt_planner in the code
 			 *
 			 * \param[in] the robot that performing the intersection
-			 *
-			 * \parem[in] canvas to draw in 
 			 */
-			bool intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, Cairo::RefPtr<Cairo::Context> ctx = Cairo::RefPtr<Cairo::Context>());
+			bool intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
 
 
 			/**
