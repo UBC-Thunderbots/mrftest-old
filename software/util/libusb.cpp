@@ -270,6 +270,16 @@ std::size_t USB::DeviceHandle::interrupt_in(unsigned char endpoint, void *data, 
 	return transferred;
 }
 
+void USB::DeviceHandle::interrupt_out(unsigned char endpoint, const void *data, std::size_t length, unsigned int timeout) {
+	assert((endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK) == endpoint);
+	assert(length < static_cast<std::size_t>(std::numeric_limits<int>::max()));
+	int transferred;
+	check_fn("libusb_interrupt_transfer", libusb_interrupt_transfer(handle, endpoint | LIBUSB_ENDPOINT_OUT, const_cast<unsigned char *>(static_cast<const unsigned char *>(data)), static_cast<int>(length), &transferred, timeout));
+	if (transferred != static_cast<int>(length)) {
+		throw TransferError(1, "Device accepted wrong amount of data");
+	}
+}
+
 
 
 class TransferMetadata : public NonCopyable {

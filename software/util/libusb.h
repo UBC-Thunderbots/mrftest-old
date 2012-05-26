@@ -155,6 +155,8 @@ namespace USB {
 
 			std::size_t interrupt_in(unsigned char endpoint, void *data, std::size_t length, unsigned int timeout, unsigned int stall_max);
 
+			void interrupt_out(unsigned char endpoint, const void *data, std::size_t length, unsigned int timeout);
+
 		private:
 			friend class Transfer;
 			friend class InterruptOutTransfer;

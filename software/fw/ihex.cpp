@@ -28,7 +28,7 @@ namespace {
 		} else if (ch >= 'a' && ch <= 'f') {
 			return static_cast<uint8_t>(ch - 'a' + 0xA);
 		} else {
-			throw MalformedHexFileError();
+			throw Firmware::MalformedHexFileError();
 		}
 	}
 
@@ -40,19 +40,19 @@ namespace {
 
 	void check_checksum(const std::vector<uint8_t> &data) {
 		if (std::accumulate(data.begin(), data.end(), static_cast<uint8_t>(0)) != 0) {
-			throw MalformedHexFileError();
+			throw Firmware::MalformedHexFileError();
 		}
 	}
 }
 
-MalformedHexFileError::MalformedHexFileError() : std::runtime_error("Malformed hex file") {
+Firmware::MalformedHexFileError::MalformedHexFileError() : std::runtime_error("Malformed hex file") {
 }
 
-void IntelHex::add_section(unsigned int start, unsigned int length) {
+void Firmware::IntelHex::add_section(unsigned int start, unsigned int length) {
 	sections.push_back(Section(start, length));
 }
 
-void IntelHex::load(const std::string &filename) {
+void Firmware::IntelHex::load(const std::string &filename) {
 	// Allocate space to hold the new data.
 	std::vector<std::vector<uint8_t> > new_data(sections.size());
 

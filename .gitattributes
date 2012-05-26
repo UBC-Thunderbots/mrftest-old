@@ -423,6 +423,10 @@ software/experiment/main.cpp -text
 software/fw/ihex.cpp -text
 software/fw/ihex.h -text
 software/fw/main.cpp -text
+software/fw/pk2.cpp -text
+software/fw/pk2.h -text
+software/fw/xbee.cpp -text
+software/fw/xbee.h -text
 software/geom/angle.cpp -text
 software/geom/angle.h -text
 software/geom/point.h -text
