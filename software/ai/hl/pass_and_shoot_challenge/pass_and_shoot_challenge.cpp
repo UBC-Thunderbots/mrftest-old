@@ -141,6 +141,8 @@ class PASCHL : public HighLevel {
 					break;
 				case BOT1_PASS:{
 
+					player0->move(Point(bot0_secondary), Angle(robot0_orientation_final), Point());
+
 					robot_pass(player1, player2, robot_number[2]);
 
 					if(player1->has_ball()) {
@@ -153,6 +155,8 @@ class PASCHL : public HighLevel {
 					break;
 				case BOT2_PASS: {
 
+					player1->move(Point(bot1_secondary), Angle(robot1_orientation_final), Point());
+
 					robot_pass(player2, player3, robot_number[3]);
 
 					if(player1->has_ball()) {
@@ -164,6 +168,8 @@ class PASCHL : public HighLevel {
 					}*/				}
 					break;
 				case BOT3_PASS:{
+
+					player2->move(Point(bot2_secondary), Angle(robot2_orientation_final), Point());
 
 					robot_pass(player3, player0, robot_number[0]);
 
@@ -178,6 +184,8 @@ class PASCHL : public HighLevel {
 				}
 					break;
 				case BOT0_REPOS:{
+
+					player3->move(Point(bot3_secondary), Angle(robot3_orientation_final), Point());
 					Point intercept_location = horizontal_intercept(player0, robot_number[0]);
 
 					if(player0->has_ball()){
@@ -271,7 +279,7 @@ Point PASCHL::horizontal_intercept(Player::Ptr player, int player_number){
 	Rect ball_intercept_boundary(Point((player->position().x - width_of_rectangle*.5), -horizontal_line), height_of_rectangle, width_of_rectangle);
 
 	return vector_rect_intersect(ball_intercept_boundary,world.ball().position(), world.ball().velocity()+ world.ball().position());
-}
+	}
 
 void PASCHL::robot_pass(Player::Ptr passer, Player::Ptr receiver, int robot_number){
 	Point intercept_location = horizontal_intercept(receiver, robot_number);
