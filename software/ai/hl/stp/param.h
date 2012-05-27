@@ -33,6 +33,8 @@ namespace AI {
 
 			namespace Tactic {
 				extern BoolParam random_penalty_goalie;
+
+				extern DegreeParam separation_angle;
 			}
 		}
 	}

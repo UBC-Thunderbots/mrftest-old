@@ -4,9 +4,9 @@
 #include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/world.h"
 #include "ai/hl/stp/play_executor.h"
-#include "ai/hl/stp/action/intercept.h"
 #include "ai/hl/stp/action/ram.h"
 #include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/tactic/intercept.h"
 #include "ai/hl/stp/tactic/move_stop.h"
 #include "ai/hl/stp/tactic/ram.h"
 #include "ai/hl/stp/tactic/block.h"
@@ -60,13 +60,9 @@ namespace {
 				if (players.empty() || players.size() > 2 || world.playtype() != AI::Common::PlayType::PLAY) {
 					return;
 				}
-				if (players.size() > 0) {
-					players[0]->autokick(AI::HL::STP::BALL_MAX_SPEED);
-					players[0]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
-				}
-				if (players.size() > 1) {
-					players[1]->autokick(AI::HL::STP::BALL_MAX_SPEED);
-					players[1]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
+				for (std::size_t i = 0; i < players.size(); ++i) {
+					players[i]->autokick(AI::HL::STP::BALL_MAX_SPEED);
+					players[i]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
 				}
 
 				const Robot::Ptr baller = Evaluation::calc_enemy_baller(world);
@@ -122,13 +118,13 @@ namespace {
 			// stay away from ball
 			void stop(std::vector<Player::Ptr> &players){
 				if (players.size() > 0) {
-					auto stop1 = Tactic::move_stop(world, 1);
+					auto stop1 = Tactic::move_stop(world, 2);
 					stop1->set_player(players[0]);
 					stop1->execute();
 				}
 
 				if (players.size() > 1) {
-					auto stop2 = Tactic::move_stop(world, 2);
+					auto stop2 = Tactic::move_stop(world, 3);
 					stop2->set_player(players[1]);
 					stop2->execute();
 				}

@@ -226,20 +226,20 @@ namespace {
 
 		void stop(std::vector<Player::Ptr> &players) {
 			if (players.size() == 1) {
-				auto stop = Tactic::move_stop(world, 0);
+				auto stop = Tactic::move_stop(world, 2);
 				stop->set_player(players[0]);
 				stop->execute();
 				return;
 			}
 
 			if (players.size() > 1) {
-				auto stop1 = Tactic::move_stop(world, 1);
+				auto stop1 = Tactic::move_stop(world, 3);
 				stop1->set_player(players[1]);
 				stop1->execute();
 			}
 
 			if (players.size() > 2) {
-				auto stop2 = Tactic::move_stop(world, 2);
+				auto stop2 = Tactic::move_stop(world, 4);
 				stop2->set_player(players[2]);
 				stop2->execute();
 			}

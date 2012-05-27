@@ -1,12 +1,9 @@
+#include "ai/hl/stp/param.h"
 #include "ai/hl/stp/tactic/move_stop.h"
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/util.h"
 #include "ai/util.h"
 #include <algorithm>
-
-#include <iostream>
-
-using namespace std;
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -22,9 +19,7 @@ namespace {
 
 	// in ball avoidance, angle between center of 2 robots, as seen from the ball
 	const Angle AVOIDANCE_ANGLE = 2.0 * Angle::of_radians(std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST));
-
-	DegreeParam separation_angle("stop: angle to separate players (degrees)", "STP/Tactic", 20, 0, 90);
-
+	
 	const unsigned int NUM_PLAYERS = 5;
 
 	class MoveStop : public Tactic {
@@ -106,7 +101,7 @@ std::vector<Point> StopLocations::compute(const World &world) {
 		Angle angle = delta_angle * (w / 2) * ((w % 2) ? 1 : -1);
 		Point p = ball_pos + shoot.rotate(angle);
 		++w;
-		//if (w == 5) std::cout << p.x << " " << p.y << std::endl;
+
 		positions.push_back(AI::HL::Util::crop_point_to_field(world.field(), p));
 	}
 
