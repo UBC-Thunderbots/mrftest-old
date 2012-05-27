@@ -28,6 +28,7 @@ firmware/bitcodec/bitcodec -text
 firmware/bitcodec/bitcodec.py -text
 firmware/dongle/Makefile -text
 firmware/dongle/assert.h -text
+firmware/dongle/exit-dfu-mode.c -text
 firmware/dongle/limits.h -text
 firmware/dongle/main.c -text
 firmware/dongle/mrf.c -text
