@@ -27,6 +27,9 @@ firmware/SuperSimpleBoostConverter/*.lst
 firmware/bitcodec/__pycache__
 firmware/bitcodec/bitcodec.pyc
 firmware/bitcodec/bitcodec.pyo
+firmware/dongle/dongle.bin
+firmware/dongle/dongle.elf
+firmware/dongle/dongle.map
 firmware/flybackconverter/*.asm
 firmware/flybackconverter/*.cod
 firmware/flybackconverter/*.hex
