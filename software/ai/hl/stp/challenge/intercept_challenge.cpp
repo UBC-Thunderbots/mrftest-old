@@ -51,12 +51,7 @@ namespace {
 			void tick() {
 				tick_eval(world);
 
-				FriendlyTeam &friendly = world.friendly_team();
-				std::vector<Player::Ptr> players;
-
-				for (std::size_t i = 0; i < friendly.size(); ++i) {
-					players.push_back(friendly.get(i));
-				}
+				std::vector<AI::HL::W::Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 				
 				if (world.playtype() == AI::Common::PlayType::STOP){
 					return stop(players);

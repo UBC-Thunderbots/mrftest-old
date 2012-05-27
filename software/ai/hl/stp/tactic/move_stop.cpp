@@ -4,6 +4,10 @@
 #include "ai/util.h"
 #include <algorithm>
 
+#include <iostream>
+
+using namespace std;
+
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 using AI::HL::STP::Coordinate;
@@ -83,8 +87,11 @@ std::vector<Point> StopLocations::compute(const World &world) {
 
 		Point def1 = def;
 		def1.y += Robot::MAX_RADIUS * 1.25;
-
+		Point def2 = def;
+		def2.y -= Robot::MAX_RADIUS * 1.25;
+		
 		positions.push_back(def1);
+		positions.push_back(def2);
 	}
 
 	// calculate angle between robots
@@ -95,19 +102,12 @@ std::vector<Point> StopLocations::compute(const World &world) {
 	// the parity determines left or right
 	// we only want one of angle = 0, so start at w = 1
 	int w = 1;
-	for (std::size_t i = 0; i < NUM_PLAYERS-2; ++i) {
+	for (std::size_t i = 0; i < NUM_PLAYERS; ++i) {
 		Angle angle = delta_angle * (w / 2) * ((w % 2) ? 1 : -1);
 		Point p = ball_pos + shoot.rotate(angle);
 		++w;
-
+		//if (w == 5) std::cout << p.x << " " << p.y << std::endl;
 		positions.push_back(AI::HL::Util::crop_point_to_field(world.field(), p));
-	}
-	
-	// if we have a 6th player position it beside the defender
-	if (!in_defense){
-		Point def2 = def;
-		def2.y -= Robot::MAX_RADIUS * 1.25;
-		positions.push_back(def2);
 	}
 
 	return positions;
