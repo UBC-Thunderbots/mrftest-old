@@ -91,9 +91,6 @@ namespace {
 					// sort the players by dist to ball
 					std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 
-					Point dirToBall = (world.ball().position() - baller->position()).norm();
-					Point target = baller->position() + (AVOIDANCE_DIST * dirToBall);
-
 					const Angle delta_angle = AVOIDANCE_ANGLE + AI::HL::STP::Tactic::separation_angle;
 					Point ball_pos = world.ball().position();
 					Point ray = (baller->position() - ball_pos).norm();
@@ -103,7 +100,7 @@ namespace {
 
 					// look for a friendly player that is good to pass
 					if (AI::HL::STP::Predicates::baller_can_pass(world)) {
-						//players[0]->autokick(6.0); // might want to autochip?
+						players[0]->autokick(6.0); // might want to autochip?
 						// everybody else goes towards where ball is likely to go lol
 						int w = 1;
 						for (std::size_t i = 1; i < players.size(); ++i) {

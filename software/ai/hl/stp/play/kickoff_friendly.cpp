@@ -10,15 +10,12 @@ namespace {
 	// the distance we want the players to the ball
 	const double AVOIDANCE_DIST = Ball::RADIUS + Robot::MAX_RADIUS + 0.005;
 
-	// in ball avoidance, angle between center of 2 robots, as seen from the ball
-	const double AVOIDANCE_ANGLE = 2.0 * std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST);
-
 	// distance for the offenders to be positioned away from the kicker
 	const double SEPARATION_DIST = 10 * Robot::MAX_RADIUS;
 
 	// hard coded positions for the kicker, and 2 offenders
 	Point kicker_position = Point(-0.5 - Ball::RADIUS - Robot::MAX_RADIUS, 0);
-	Point ready_positions[3] = { Point(-AVOIDANCE_DIST, -SEPARATION_DIST), Point(-AVOIDANCE_DIST, SEPARATION_DIST), Point(AVOIDANCE_DIST, SEPARATION_DIST) };
+	Point ready_positions[2] = { Point(-AVOIDANCE_DIST, -SEPARATION_DIST), Point(-AVOIDANCE_DIST, SEPARATION_DIST) };
 }
 
 /**

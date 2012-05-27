@@ -146,7 +146,16 @@ namespace {
 				case AI::Common::PlayType::EXECUTE_PENALTY_FRIENDLY:
 					execute_penalty_friendly(players);
 					break;	
-
+				case AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY:
+					prepare_kickoff_friendly(players);
+					break;
+				case AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY:
+					execute_kickoff_friendly(players);
+					break;
+				case AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY:	
+				case AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY:
+					free_kick_enemy(players);
+					break;
 				default:
 					play(players);
 					break;
@@ -154,11 +163,10 @@ namespace {
 		}
 
 		void free_kick_enemy(std::vector<Player::Ptr> &players) {
-			if (players.size() == 1) {
+			if (players.size() > 0) {
 				auto shadow = Tactic::shadow_ball(world);
 				shadow->set_player(players[0]);
 				shadow->execute();
-				return;
 			}
 
 			if (players.size() > 1) {
@@ -175,15 +183,13 @@ namespace {
 		}
 
 		void penalty_enemy(std::vector<Player::Ptr> &players) {
-			Action::move(world, players[0], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
-
-			if (players.size() == 1) {
-				return;
+			if (players.size() > 0){
+				Action::move(world, players[0], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
 			}
-
-			Action::move(world, players[1], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + 4 * Robot::MAX_RADIUS, 0 * Robot::MAX_RADIUS));
-
-			if (players.size() == 3) {
+			if (players.size() > 1) {
+				Action::move(world, players[1], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + 4 * Robot::MAX_RADIUS, 0 * Robot::MAX_RADIUS));
+			}
+			if (players.size() > 2) {
 				Action::move(world, players[2], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
 			}
 		}
@@ -191,16 +197,13 @@ namespace {
 		void prepare_penalty_friendly(std::vector<Player::Ptr> &players) {
 			// sort the players by dist to ball
 			std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
-
-			Action::move(world, players[0], Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0));
-
-			if (players.size() == 1) {
-				return;
+			if (players.size() > 0) {
+				Action::move(world, players[0], Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0));
 			}
-
-			Action::move(world, players[1], Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
-
-			if (players.size() == 3) {
+			if (players.size() > 1) {
+				Action::move(world, players[1], Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
+			}
+			if (players.size() > 2) {
 				Action::move(world, players[2], Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, -6 * Robot::MAX_RADIUS));
 			}
 		}
@@ -208,28 +211,94 @@ namespace {
 		void execute_penalty_friendly(std::vector<Player::Ptr> &players) {
 			// sort the players by dist to ball
 			std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
-
-			auto shooter = Tactic::penalty_shoot(world);
-			shooter->set_player(players[0]);
-			shooter->execute();
-
-			if (players.size() == 1) {
-				return;
+			if (players.size() > 0) {
+				auto shooter = Tactic::penalty_shoot(world);
+				shooter->set_player(players[0]);
+				shooter->execute();
 			}
-
-			Action::move(world, players[1], Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
-
-			if (players.size() == 3) {
+			if (players.size() > 1) {
+				Action::move(world, players[1], Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
+			}
+			if (players.size() > 2) {
 				Action::move(world, players[2], Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, -6 * Robot::MAX_RADIUS));
 			}
 		}
 
+		void prepare_kickoff_friendly(std::vector<Player::Ptr> &players) {
+			// the distance we want the players to the ball
+			const double AVOIDANCE_DIST = Ball::RADIUS + Robot::MAX_RADIUS + 0.005;
+
+			// distance for the offenders to be positioned away from the kicker
+			const double SEPARATION_DIST = 10 * Robot::MAX_RADIUS;
+
+			// hard coded positions for the kicker, and 2 offenders
+			Point kicker_position = Point(-0.5 - Ball::RADIUS - Robot::MAX_RADIUS, 0);
+			Point ready_positions[2] = { Point(-AVOIDANCE_DIST, -SEPARATION_DIST), Point(-AVOIDANCE_DIST, SEPARATION_DIST) };
+
+			// sort the players by dist to ball
+			std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+
+			if (players.size() > 0) {
+				Action::move(world, players[0], kicker_position);
+			}
+			if (players.size() > 1) {
+				Action::move(world, players[1], ready_positions[0]);
+			} 
+			if (players.size() > 2) {
+				Action::move(world, players[2], ready_positions[1]);
+			}
+		}
+		
+		void execute_kickoff_friendly(std::vector<Player::Ptr> &players) {
+			// the distance we want the players to the ball
+			const double AVOIDANCE_DIST = Ball::RADIUS + Robot::MAX_RADIUS + 0.005;
+
+			// distance for the offenders to be positioned away from the kicker
+			const double SEPARATION_DIST = 10 * Robot::MAX_RADIUS;
+
+			// hard coded positions for the kicker, and 2 offenders
+			//Point kicker_position = Point(-0.5 - Ball::RADIUS - Robot::MAX_RADIUS, 0);
+			Point ready_positions[2] = { Point(-AVOIDANCE_DIST, -SEPARATION_DIST), Point(-AVOIDANCE_DIST, SEPARATION_DIST) };
+
+			// sort the players by dist to ball
+			std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+
+			if (players.size() > 0) {
+				Action::repel(world, players[0]);
+			}
+			if (players.size() > 1) {
+				Action::move(world, players[1], ready_positions[0]);
+			} 
+			if (players.size() > 2) {
+				Action::move(world, players[2], ready_positions[1]);
+			}
+		}
+
+		void free_kick_friendly(std::vector<Player::Ptr> &players) {
+			// sort the players by dist to ball
+			std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+			if (players.size() > 0) {
+				Action::repel(world, players[0]);
+			}
+
+			if (players.size() > 1) {
+				auto stop1 = Tactic::move_stop(world, 1);
+				stop1->set_player(players[1]);
+				stop1->execute();
+			}
+
+			if (players.size() > 2) {
+				auto stop2 = Tactic::move_stop(world, 2);
+				stop2->set_player(players[2]);
+				stop2->execute();
+			}
+		}
+
 		void stop(std::vector<Player::Ptr> &players) {
-			if (players.size() == 1) {
+			if (players.size() > 0) {
 				auto stop = Tactic::move_stop(world, 2);
 				stop->set_player(players[0]);
 				stop->execute();
-				return;
 			}
 
 			if (players.size() > 1) {
