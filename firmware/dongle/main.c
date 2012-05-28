@@ -7,7 +7,7 @@
 #include "usb_ep0.h"
 #include "usb_ep0_sources.h"
 
-static void stm32_main(void);
+static void stm32_main(void) __attribute__((noreturn));
 static void nmi_vector(void) __attribute__((interrupt));
 static void hard_fault_vector(void) __attribute__((interrupt));
 static void memory_manage_vector(void) __attribute__((interrupt));
@@ -88,17 +88,294 @@ static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	0xFF, // bDeviceClass
 	0, // bDeviceSubClass
 	0, // bDeviceProtocol
-	64, // bMaxPacketSize0
-	0x23, // idVendor LSB
-	0x01, // idVendor MSB
-	0x67, // idProduct LSB
-	0x45, // idProduct MSB
+	8, // bMaxPacketSize0
+	0x57, // idVendor LSB
+	0xC0, // idVendor MSB
+	0x79, // idProduct LSB
+	0x25, // idProduct MSB
 	0, // bcdDevice LSB
-	0, // bcdDevice MSB
-	0, // iManufacturer
-	0, // iProduct
-	0, // iSerialNumber
-	1, // bNumConfigurations
+	1, // bcdDevice MSB
+	1, // iManufacturer
+	2, // iProduct
+	9, // iSerialNumber
+	6, // bNumConfigurations
+};
+
+static const uint8_t CONFIGURATION_DESCRIPTOR1[] = {
+	9, // bLength
+	2, // bDescriptorType
+	9, // wTotalLength LSB
+	0, // wTotalLength MSB
+	0, // bNumInterfaces
+	1, // bConfigurationValue
+	3, // iConfiguration
+	0x80, // bmAttributes
+	50, // bMaxPower
+};
+
+static const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
+	9, // bLength
+	2, // bDescriptorType
+	60, // wTotalLength LSB
+	0, // wTotalLength MSB
+	1, // bNumInterfaces
+	2, // bConfigurationValue
+	4, // iConfiguration
+	0x80, // bmAttributes
+	150, // bMaxPower
+
+	9, // bLength
+	4, // bDescriptorType
+	0, // bInterfaceNumber
+	0, // bAlternateSetting
+	6, // bNumEndpoints
+	0xFF, // bInterfaceClass
+	0x00, // bInterfaceSubClass
+	0, // bInterfaceProtocol
+	0, // iInterface
+
+	7, // bLength
+	5, // bDescriptorType
+	0x01, // bEndpointAddress
+	0x03, // bmAttributes
+	64, // wMaxPacketSize LSB
+	0, // wMaxPacketSize MSB
+	1, // bInterval
+
+	7, // bLength
+	5, // bDescriptorType
+	0x02, // bEndpointAddress
+	0x03, // bmAttributes
+	64, // wMaxPacketSize LSB
+	0, // wMaxPacketSize MSB
+	1, // bInterval
+
+	7, // bLength
+	5, // bDescriptorType
+	0x03, // bEndpointAddress
+	0x03, // bmAttributes
+	64, // wMaxPacketSize LSB
+	0, // wMaxPacketSize MSB
+	1, // bInterval
+
+	7, // bLength
+	5, // bDescriptorType
+	0x81, // bEndpointAddress
+	0x03, // bmAttributes
+	2, // wMaxPacketSize LSB
+	0, // wMaxPacketSize MSB
+	1, // bInterval
+
+	7, // bLength
+	5, // bDescriptorType
+	0x82, // bEndpointAddress
+	0x03, // bmAttributes
+	64, // wMaxPacketSize LSB
+	0, // wMaxPacketSize MSB
+	1, // bInterval
+
+	7, // bLength
+	5, // bDescriptorType
+	0x83, // bEndpointAddress
+	0x03, // bmAttributes
+	2, // wMaxPacketSize LSB
+	0, // wMaxPacketSize MSB
+	1, // bInterval
+};
+
+static const uint8_t CONFIGURATION_DESCRIPTOR3[] = {
+	9, // bLength
+	2, // bDescriptorType
+	25, // wTotalLength LSB
+	0, // wTotalLength MSB
+	1, // bNumInterfaces
+	3, // bConfigurationValue
+	5, // iConfiguration
+	0x80, // bmAttributes
+	150, // bMaxPower
+
+	9, // bLength
+	4, // bDescriptorType
+	0, // bInterfaceNumber
+	0, // bAlternateSetting
+	1, // bNumEndpoints
+	0xFF, // bInterfaceClass
+	0x00, // bInterfaceSubClass
+	0, // bInterfaceProtocol
+	0, // iInterface
+
+	7, // bLength
+	5, // bDescriptorType
+	0x81, // bEndpointAddress
+	0x02, // bmAttributes
+	64, // wMaxPacketSize LSB
+	0, // wMaxPacketSize MSB
+	0, // bInterval
+};
+
+static const uint8_t CONFIGURATION_DESCRIPTOR4[] = {
+	9, // bLength
+	2, // bDescriptorType
+	9, // wTotalLength LSB
+	0, // wTotalLength MSB
+	0, // bNumInterfaces
+	4, // bConfigurationValue
+	6, // iConfiguration
+	0x80, // bmAttributes
+	150, // bMaxPower
+};
+
+static const uint8_t CONFIGURATION_DESCRIPTOR5[] = {
+	9, // bLength
+	2, // bDescriptorType
+	25, // wTotalLength LSB
+	0, // wTotalLength MSB
+	1, // bNumInterfaces
+	5, // bConfigurationValue
+	7, // iConfiguration
+	0x80, // bmAttributes
+	50, // bMaxPower
+
+	9, // bLength
+	4, // bDescriptorType
+	0, // bInterfaceNumber
+	0, // bAlternateSetting
+	1, // bNumEndpoints
+	0xFF, // bInterfaceClass
+	0x00, // bInterfaceSubClass
+	0, // bInterfaceProtocol
+	0, // iInterface
+
+	7, // bLength
+	5, // bDescriptorType
+	0x81, // bEndpointAddress
+	0x03, // bmAttributes
+	20, // wMaxPacketSize LSB
+	0, // wMaxPacketSize MSB
+	1, // bInterval
+};
+
+static const uint8_t CONFIGURATION_DESCRIPTOR6[] = {
+	9, // bLength
+	2, // bDescriptorType
+	25, // wTotalLength LSB
+	0, // wTotalLength MSB
+	1, // bNumInterfaces
+	6, // bConfigurationValue
+	8, // iConfiguration
+	0x80, // bmAttributes
+	150, // bMaxPower
+
+	9, // bLength
+	4, // bDescriptorType
+	0, // bInterfaceNumber
+	0, // bAlternateSetting
+	1, // bNumEndpoints
+	0xFF, // bInterfaceClass
+	0x00, // bInterfaceSubClass
+	0, // bInterfaceProtocol
+	0, // iInterface
+
+	7, // bLength
+	5, // bDescriptorType
+	0x81, // bEndpointAddress
+	0x03, // bmAttributes
+	1, // wMaxPacketSize LSB
+	0, // wMaxPacketSize MSB
+	1, // bInterval
+};
+
+static const uint8_t * const CONFIGURATION_DESCRIPTORS[] = {
+	CONFIGURATION_DESCRIPTOR1,
+	CONFIGURATION_DESCRIPTOR2,
+	CONFIGURATION_DESCRIPTOR3,
+	CONFIGURATION_DESCRIPTOR4,
+	CONFIGURATION_DESCRIPTOR5,
+	CONFIGURATION_DESCRIPTOR6,
+};
+
+static const usb_device_info_t DEVICE_INFO = {
+	.rx_fifo_words = 128,
+	.ep0_max_packet = 8,
+};
+
+static const uint8_t STRING_ZERO[4] = {
+	sizeof(STRING_ZERO),
+	USB_STD_DESCRIPTOR_STRING,
+	0x09, 0x10, /* English (Canadian) */
+};
+
+static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept) {
+	return false;
+}
+
+static usb_ep0_source_t *on_descriptor_request(uint8_t descriptor_type, uint8_t descriptor_index) {
+	static union {
+		usb_ep0_memory_source_t mem_src;
+		usb_ep0_string_descriptor_source_t string_src;
+	} src;
+	static char serial_number_buffer[25];
+
+	if (descriptor_type == USB_STD_DESCRIPTOR_DEVICE) {
+		return usb_ep0_memory_source_init(&src.mem_src, DEVICE_DESCRIPTOR, sizeof(DEVICE_DESCRIPTOR));
+	} else if (descriptor_type == USB_STD_DESCRIPTOR_CONFIGURATION) {
+		if (descriptor_index < 6) {
+			const uint8_t *desc = CONFIGURATION_DESCRIPTORS[descriptor_index];
+			return usb_ep0_memory_source_init(&src.mem_src, desc, (desc[3] << 8) | desc[2]);
+		}
+	} else if (descriptor_type == USB_STD_DESCRIPTOR_STRING) {
+		switch (descriptor_index) {
+			case 0: return usb_ep0_memory_source_init(&src.mem_src, STRING_ZERO, sizeof(STRING_ZERO));
+			case 1: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"UBC Thunderbots Small Size Team");
+			case 2: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"Radio Base Station");
+			case 3: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"Radio Sleep");
+			case 4: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"Normal Operation");
+			case 5: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"Promiscuous Mode");
+			case 6: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"Packet Generator");
+			case 7: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"Packet Receiver");
+			case 8: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"Debug Mode");
+			case 9:
+				formathex32(serial_number_buffer + 0, U_ID_H);
+				formathex32(serial_number_buffer + 8, U_ID_M);
+				formathex32(serial_number_buffer + 16, U_ID_L);
+				serial_number_buffer[24] = 0;
+				return usb_ep0_string_descriptor_source_init(&src.string_src, serial_number_buffer);
+		}
+	}
+
+	return 0;
+}
+
+static bool on_check_self_powered(void) {
+	return false;
+}
+
+static const usb_ep0_global_callbacks_t DEVICE_CBS = {
+	.on_zero_request = &on_zero_request,
+	.on_in_request = 0,
+	.on_descriptor_request = &on_descriptor_request,
+	.on_check_self_powered = &on_check_self_powered,
+};
+
+static bool can_enter_config1(void) {
+	return true;
+}
+
+static void on_enter_config1(void) {
+	GPIOB_ODR |= 2 << 12;
+}
+
+static void on_exit_config1(void) {
+	GPIOB_ODR &= ~(2 << 12);
+}
+
+static const usb_ep0_configuration_callbacks_t CONFIGURATION_CBS[] = {
+	{
+		.configuration = 1,
+		.can_enter = &can_enter_config1,
+		.on_enter = &on_enter_config1,
+		.on_exit = &on_exit_config1,
+	}
 };
 
 extern unsigned char linker_data_vma_start;
@@ -238,7 +515,7 @@ static void stm32_main(void) {
 	// PA2 = buzzer, start off
 	// PA1/PA0 = shorted to VDD
 	GPIOA_ODR = 0b1000000000110011;
-	GPIOA_OSPEEDR = 0b01000000000000000000000000000000;
+	GPIOA_OSPEEDR = 0b01000011110000000000000000000000;
 	GPIOA_PUPDR = 0b00100100000000000000000000000000;
 	GPIOA_AFRH = 0b00000000000010101010000000000000;
 	GPIOA_AFRL = 0b00000000000000000000000000000000;
@@ -293,74 +570,27 @@ static void stm32_main(void) {
 	// Wait a bit
 	sleep_millis(100);
 
-	// Release MRF24J40 from reset
-	GPIOB_ODR |= 1 << 7;
-	sleep_millis(100);
+	// Turn off LEDs
+	GPIOB_ODR = (GPIOB_ODR & ~(7 << 12)) | (1 << 12);
 
-	// Read register 0x12 (ACKTMOUT); should have initial value 0b00111001 = 0x39
-	{
-		// Configure and enable the SPI module
-		SPI1_CR1 = (0 << 15) // BIDIMODE = 0; use 2-line unidirectional mode
-			| (0 << 13) // CRCEN = 0; do not do hardware CRC calculation
-			| (0 << 12) // CRCNEXT = 0; do not calculate CRC at this time
-			| (0 << 11) // DFF = 0; send and receive 8-bit frames
-			| (0 << 10) // RXONLY = 0; enable both transmission and reception
-			| (1 << 9) // SSM = 1; in-transceiver chip select logic is controlled by software, not a pin
-			| (1 << 8) // SSI = 1; transceiver should assume /CS pin is deasserted
-			| (0 << 7) // LSBFIRST = 0; MSb is sent first
-			| (1 << 6) // SPE = 1; module enabled
-			| (3 << 3) // BR = 0b011; baud rate = fPCLK / 16 = 84 MHz / 16 = 5.25 MHz
-			| (1 << 2) // MSTR = 1; master mode
-			| (0 << 1) // CPOL = 0; clock idles low
-			| (0 << 0); // CPHA = 0; first edge (rising) is capture edge
-		sleep_millis(1);
-		// Assert chip select
-		GPIOA_ODR &= ~(1 << 15);
-		sleep_millis(1);
-		// Issue the command
-		SPI1_DR = 0x12 << 1;
-		while (!(SPI1_SR & (1 << 1) /* TXE */));
-		SPI1_DR = 0;
-		while (!(SPI1_SR & (1 << 0) /* RXNE */));
-		(void) SPI1_DR;
-		// Read the result;
-		while (!(SPI1_SR & (1 << 0) /* RXNE */));
-		unsigned char buffer = SPI1_DR;
-		while (!(SPI1_SR & (1 << 1) /* TXE */));
-		while (SPI1_SR & (1 << 7) /* BSY */);
-		// Deassert chip select
-		GPIOA_ODR |= 1 << 15;
-		if (SPI1_SR & ((1 << 8) | (1 << 6) | (1 << 5) | (1 << 4) | (1 << 3))) {
-			GPIOB_ODR &= ~(1 << 12);
-			for (;;);
-		}
-		// Deactivate the module
-		SPI1_CR1 &= ~(1 << 6); // SPE = 0; module disabled
-		// Check the result
-		if (buffer != 0x39) {
-			GPIOB_ODR &= ~(1 << 13);
-			for (;;);
-		}
-	}
-
-	// Blink some LEDs and beep
-	unsigned int i = 0;
+	// Initialize USB
+	usb_ep0_set_global_callbacks(&DEVICE_CBS);
+	usb_ep0_set_configuration_callbacks(CONFIGURATION_CBS, 1);
+	usb_attach(&DEVICE_INFO);
+	unsigned int tick_count = 0;
+	bool flash = false;
 	for (;;) {
-		i = (i + 1) & 7;
-		GPIOB_ODR = i << 12;
-		if (i == 0) {
-			for (unsigned int i = 0; i < 1000; ++i) {
-				GPIOA_ODR = 1 << 2;
-				sleep_systick_overflows(2);
-				GPIOA_ODR = 0;
-				sleep_systick_overflows(3);
-				GPIOA_ODR = 1 << 2;
-				sleep_systick_overflows(3);
-				GPIOA_ODR = 0;
-				sleep_systick_overflows(2);
+		usb_process();
+		if (SCS_STCSR & 0x00010000) {
+			if (++tick_count == 10000) {
+				tick_count = 0;
+				flash = !flash;
+				if (flash) {
+					GPIOB_ODR |= 4 << 12;
+				} else {
+					GPIOB_ODR &= ~(4 << 12);
+				}
 			}
-		} else {
-			sleep_millis(1000);
 		}
 	}
 }

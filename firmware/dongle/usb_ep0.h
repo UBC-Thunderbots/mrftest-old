@@ -119,6 +119,52 @@ typedef struct {
  */
 typedef struct {
 	/**
+	 * \brief Allows the application to override handling of any control request with no data stage
+	 *
+	 * This callback is optional; if not provided, it is treated as though always returning \c false.
+	 *
+	 * \pre Callback context is executing.
+	 *
+	 * \post Either \p *accept must be set to an appropriate value, or the callback must return \c false.
+	 *
+	 * \param[in] request_type the request type field from the SETUP transaction
+	 *
+	 * \param[in] request the request field from the SETUP transaction
+	 *
+	 * \param[in] value the value field from the SETUP transaction
+	 *
+	 * \param[in] index the index field from the SETUP transaction
+	 *
+	 * \param[out] accept \c true to accept the request, or \c false to return a STALL handshake
+	 *
+	 * \return \c true if the application handles the request and demands a response per the \p accept parameter, or \c false to let the stack handle the request
+	 */
+	bool (*on_zero_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept);
+
+	/**
+	 * \brief Allows the application to override handling of any control request with no data stage
+	 *
+	 * This callback is optional; if not provided, it is treated as though always returning \c false.
+	 *
+	 * \pre Callback context is executing.
+	 *
+	 * \post Either \p *source must be set to an appropriate value, or the callback must return \c false.
+	 *
+	 * \param[in] request_type the request type field from the SETUP transaction
+	 *
+	 * \param[in] request the request field from the SETUP transaction
+	 *
+	 * \param[in] value the value field from the SETUP transaction
+	 *
+	 * \param[in] index the index field from the SETUP transaction
+	 *
+	 * \param[out] source set to a source by the application to accept the request and return the sourced data, or to null to stall the request
+	 *
+	 * \return \c true if the application handles the request and demands a response per the \p source parameter, or \c false to let the stack handle the request
+	 */
+	bool (*on_in_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, usb_ep0_source_t **source);
+
+	/**
 	 * \brief Handles a request for a descriptor
 	 *
 	 * This function will be invoked for string descriptor zero, but never for a nonzero string descriptor.
@@ -139,11 +185,20 @@ typedef struct {
 	 *
 	 * \return \c true if the request is acceptable, or \c false if the requested descriptor does not exist
 	 */
-#if 0
-	bool (*on_descriptor_request)(uint8_t descriptor_type, uint8_t descriptor_index, const void **data, size_t *length);
-#else
 	usb_ep0_source_t *(*on_descriptor_request)(uint8_t descriptor_type, uint8_t descriptor_index);
-#endif
+
+	/**
+	 * \brief Checks whether the device is self-powered
+	 *
+	 * A self-powered device has its own power supply; a bus-powered device is powered by the USB.
+	 *
+	 * This callback is mandatory.
+	 *
+	 * \pre Callback context is executing.
+	 *
+	 * \return \c true if the device is self-powered at this moment, or \c false if bus-powered
+	 */
+	bool (*on_check_self_powered)(void);
 } usb_ep0_global_callbacks_t;
 
 /**

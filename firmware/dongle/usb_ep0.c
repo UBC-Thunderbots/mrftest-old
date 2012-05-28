@@ -1,6 +1,7 @@
 #include "usb_ep0.h"
 #include "registers.h"
 #include "usb.h"
+#include "usb_ep0_sources.h"
 #include "usb_internal.h"
 
 static const usb_ep0_global_callbacks_t *global_callbacks = 0;
@@ -88,6 +89,10 @@ static bool push_transaction(void) {
 }
 
 static void handle_setup_transaction(void) {
+	// A small buffer for staging miscellaneous bits and pieces of data for transmission, plus a source to read from it
+	static uint8_t stash_buffer[2];
+	static usb_ep0_memory_source_t stash_buffer_source;
+
 	// Flush the endpoint 0 transmit FIFO.
 	while (!(OTG_FS_GRSTCTL & (1 << 31)));
 	OTG_FS_GRSTCTL = (0 << 6) | (1 << 5);
@@ -105,60 +110,98 @@ static void handle_setup_transaction(void) {
 		request_type &= 0x7F;
 	}
 
-	// Clear all our globals until sorted out.
-	data_source = 0;
-
-	// Examine the packet and try to find out what to do with it.
-	bool ok = false;
-	if (request_type == 0x80 && request == USB_STD_REQ_GET_DESCRIPTOR) {
-		data_source = global_callbacks->on_descriptor_request(setup_packet[3], setup_packet[2]);
-		ok = !!data_source;
-	} else if (request_type == 0x00 && request == USB_STD_REQ_SET_ADDRESS) {
-		uint8_t address = setup_packet[2];
-		// SET_ADDRESS is only legal in the Default and Addressed states and the address must be 127 or less.
-		if (!current_configuration && address <= 127) {
-			// Lock in the address; the hardware knows to stay on address zero until the status stage is complete and, in fact, *FAILS* if the address is locked in later!
-			OTG_FS_DCFG = (OTG_FS_DCFG & ~(127 << 4)) | (((uint32_t) address) << 4);
-			ok = true;
+	// First try letting the application handle the request.
+	bool application_handled = false, ok;
+	if (data_requested) {
+		if (request_type & 0x80) {
+			if (global_callbacks->on_in_request) {
+				application_handled = global_callbacks->on_in_request(request_type, request, value, index, &data_source);
+				ok = !!data_source;
+			}
+		} else {
+#warning TODO handle OUT data stages
 		}
-	} else if (request_type == 0x00 && request == USB_STD_REQ_SET_CONFIGURATION) {
-		// SET_CONFIGURATION is only legal in the Addressed and Configured states.
-		if (OTG_FS_DCFG & (127 << 4)) {
-			if (value) {
-				// Check if the specified configuration exists and is currently available.
-				for (size_t i = 0; i < configuration_callbacks_length; ++i) {
-					if (configuration_callbacks[i].configuration == value) {
-						if (configuration_callbacks[i].can_enter) {
-							ok = configuration_callbacks[i].can_enter();
-						} else {
-							ok = true;
+	} else {
+		if (global_callbacks->on_zero_request) {
+			application_handled = global_callbacks->on_zero_request(request_type, request, value, index, &ok);
+		}
+	}
+	if (!application_handled) {
+		ok = false;
+		data_source = 0;
+	}
+
+	// If the application didn't handle the packet, examine it and try to find out what to do with it.
+	if (!application_handled) {
+		if (request_type == 0x80 && request == USB_STD_REQ_GET_STATUS) {
+			// We do not support remote wakeup, so bit 1 is always set to zero.
+			// We call the application to check whether we are currently bus-powered or self-powered.
+			stash_buffer[0] = global_callbacks->on_check_self_powered() ? 0x01 : 0x00;
+			stash_buffer[1] = 0x00;
+			data_source = usb_ep0_memory_source_init(&stash_buffer_source, stash_buffer, 2);
+			ok = true;
+		} else if (request_type == 0x81 && request == USB_STD_REQ_GET_STATUS) {
+#warning TODO implement GET_STATUS to an interface
+		} else if (request_type == 0x82 && request == USB_STD_REQ_GET_STATUS) {
+#warning TODO implement GET_STATUS to an endpoint
+		} else if (request_type == 0x00 && request == USB_STD_REQ_CLEAR_FEATURE) {
+#warning TODO implement CLEAR_FEATURE to the device
+		} else if (request_type == 0x02 && request == USB_STD_REQ_CLEAR_FEATURE) {
+#warning TODO implement CLEAR_FEATURE to an endpoint
+		} else if (request_type == 0x02 && request == USB_STD_REQ_SET_FEATURE) {
+#warning TODO implement SET_FEATURE to an endpoint
+		} else if (request_type == 0x00 && request == USB_STD_REQ_SET_ADDRESS) {
+			uint8_t address = setup_packet[2];
+			// SET_ADDRESS is only legal in the Default and Addressed states and the address must be 127 or less.
+			if (!current_configuration && address <= 127) {
+				// Lock in the address; the hardware knows to stay on address zero until the status stage is complete and, in fact, *FAILS* if the address is locked in later!
+				OTG_FS_DCFG = (OTG_FS_DCFG & ~(127 << 4)) | (((uint32_t) address) << 4);
+				ok = true;
+			}
+		} else if (request_type == 0x80 && request == USB_STD_REQ_GET_DESCRIPTOR) {
+			data_source = global_callbacks->on_descriptor_request(setup_packet[3], setup_packet[2]);
+			ok = !!data_source;
+		} else if (request_type == 0x80 && request == USB_STD_REQ_GET_CONFIGURATION) {
+#warning TODO implement GET_CONFIGURATION
+		} else if (request_type == 0x00 && request == USB_STD_REQ_SET_CONFIGURATION) {
+			// SET_CONFIGURATION is only legal in the Addressed and Configured states.
+			if (OTG_FS_DCFG & (127 << 4)) {
+				if (value) {
+					// Check if the specified configuration exists and is currently available.
+					for (size_t i = 0; i < configuration_callbacks_length; ++i) {
+						if (configuration_callbacks[i].configuration == value) {
+							if (configuration_callbacks[i].can_enter) {
+								ok = configuration_callbacks[i].can_enter();
+							} else {
+								ok = true;
+							}
 						}
 					}
-				}
 
-				// Only actually execute the transition between configurations if the new configuration is acceptable.
-				if (ok) {
+					// Only actually execute the transition between configurations if the new configuration is acceptable.
+					if (ok) {
+						for (size_t i = 0; i < configuration_callbacks_length; ++i) {
+							if (configuration_callbacks[i].configuration == current_configuration && configuration_callbacks[i].on_exit) {
+								configuration_callbacks[i].on_exit();
+							}
+						}
+						current_configuration = value;
+						for (size_t i = 0; i < configuration_callbacks_length; ++i) {
+							if (configuration_callbacks[i].configuration == current_configuration && configuration_callbacks[i].on_enter) {
+								configuration_callbacks[i].on_enter();
+							}
+						}
+					}
+				} else {
+					// It's always legal to go back to the Addressed state.
 					for (size_t i = 0; i < configuration_callbacks_length; ++i) {
 						if (configuration_callbacks[i].configuration == current_configuration && configuration_callbacks[i].on_exit) {
 							configuration_callbacks[i].on_exit();
 						}
 					}
-					current_configuration = value;
-					for (size_t i = 0; i < configuration_callbacks_length; ++i) {
-						if (configuration_callbacks[i].configuration == current_configuration && configuration_callbacks[i].on_enter) {
-							configuration_callbacks[i].on_enter();
-						}
-					}
+					current_configuration = 0;
+					ok = true;
 				}
-			} else {
-				// It's always legal to go back to the Addressed state.
-				for (size_t i = 0; i < configuration_callbacks_length; ++i) {
-					if (configuration_callbacks[i].configuration == current_configuration && configuration_callbacks[i].on_exit) {
-						configuration_callbacks[i].on_exit();
-					}
-				}
-				current_configuration = 0;
-				ok = true;
 			}
 		}
 	}

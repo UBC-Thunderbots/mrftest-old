@@ -117,17 +117,6 @@ void usb_attach(const usb_device_info_t *info) {
 	device_state = DEVICE_STATE_RESETTING;
 	usb_device_info = info;
 
-	// Set up the I/O pins. USB D- is on PA11 and D+ is on PA12.
-	GPIOA_AFRH = (GPIOA_AFRH & ~((15 << ((11 - 8) * 4)) | (15 << ((12 - 8) * 4))))
-		| (10 << ((11 - 8) * 4)) // AFRH11 = 10; USB D-.
-		| (10 << ((12 - 8) * 4)); // AFRH12 = 10; USB D+.
-	GPIOA_OSPEEDR = (GPIOA_OSPEEDR & ~((3 << (11 * 2)) | (3 << (12 * 2))))
-		| (3 << (11 * 2)) // OSPEEDR11 = b11; 100 MHz.
-		| (3 << (12 * 2)); // OSPEEDR12 = b11; 100 MHz.
-	GPIOA_MODER = (GPIOA_MODER & ~((3 << (11 * 2)) | (3 << (12 * 2))))
-		| (2 << (11 * 2)) // MODER11 = b10; alternate function.
-		| (2 << (12 * 2)); // MODER12 = b10; alternate function.
-
 	// Enable the clock.
 	RCC_AHB2ENR |= (1 << 7); // OTGFSEN = 1; enable clock to USB FS.
 
@@ -153,7 +142,7 @@ void usb_attach(const usb_device_info_t *info) {
 	while (!(OTG_FS_GRSTCTL & (1 << 31) /* AHBIDL */)); // Wait until AHB is idle.
 	OTG_FS_GCCFG =
 		(OTG_FS_GCCFG & 0xFFC2FFFF)
-		| (0 << 21) // NOVBUSSENS = 0; VBUS sensing is done.
+		| (1 << 21) // NOVBUSSENS = 1; VBUS sensing is not done.
 		| (0 << 20) // SOFOUTEN = 0; do not output SOF pulses to I/O pin.
 		| (1 << 19) // VBUSBSEN = 1; VBUS sensing B device enabled.
 		| (0 << 18) // VBUSASEN = 0; VBUS sensing A device disabled.
