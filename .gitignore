@@ -30,6 +30,7 @@ firmware/bitcodec/bitcodec.pyo
 firmware/dongle/dongle.bin
 firmware/dongle/dongle.elf
 firmware/dongle/dongle.map
+firmware/dongle/enter-dfu-mode
 firmware/dongle/exit-dfu-mode
 firmware/flybackconverter/*.asm
 firmware/flybackconverter/*.cod

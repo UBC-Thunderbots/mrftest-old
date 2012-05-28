@@ -75,7 +75,7 @@ static void system_tick_vector(void) {
 	for (;;);
 }
 
-static uint64_t bootload_flag;
+static volatile uint64_t bootload_flag;
 
 extern const unsigned int foo;
 extern unsigned int bar, baz;
@@ -306,6 +306,11 @@ static const uint8_t STRING_ZERO[4] = {
 };
 
 static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept) {
+	if (/*request_type == 0x40 && */request == 0x11 /*&& usb_ep0_get_configuration() == 0*/) {
+		bootload_flag = UINT64_C(0xDEADBEEFCAFEBABE);
+		SCS_AIRCR = 0x05FA0004;
+		for (;;);
+	}
 	return false;
 }
 
@@ -369,13 +374,98 @@ static void on_exit_config1(void) {
 	GPIOB_ODR &= ~(2 << 12);
 }
 
+static bool can_enter_config2(void) {
+#warning TODO implement this configuration
+	return false;
+}
+
+static void on_enter_config2(void) {
+}
+
+static void on_exit_config2(void) {
+}
+
+static bool can_enter_config3(void) {
+#warning TODO implement this configuration
+	return false;
+}
+
+static void on_enter_config3(void) {
+}
+
+static void on_exit_config3(void) {
+}
+
+static bool can_enter_config4(void) {
+#warning TODO implement this configuration
+	return false;
+}
+
+static void on_enter_config4(void) {
+}
+
+static void on_exit_config4(void) {
+}
+
+static bool can_enter_config5(void) {
+#warning TODO implement this configuration
+	return false;
+}
+
+static void on_enter_config5(void) {
+}
+
+static void on_exit_config5(void) {
+}
+
+static bool can_enter_config6(void) {
+#warning TODO implement this configuration
+	return false;
+}
+
+static void on_enter_config6(void) {
+}
+
+static void on_exit_config6(void) {
+}
+
 static const usb_ep0_configuration_callbacks_t CONFIGURATION_CBS[] = {
 	{
 		.configuration = 1,
 		.can_enter = &can_enter_config1,
 		.on_enter = &on_enter_config1,
 		.on_exit = &on_exit_config1,
-	}
+	},
+	{
+		.configuration = 2,
+		.can_enter = &can_enter_config2,
+		.on_enter = &on_enter_config2,
+		.on_exit = &on_exit_config2,
+	},
+	{
+		.configuration = 3,
+		.can_enter = &can_enter_config3,
+		.on_enter = &on_enter_config3,
+		.on_exit = &on_exit_config3,
+	},
+	{
+		.configuration = 4,
+		.can_enter = &can_enter_config4,
+		.on_enter = &on_enter_config4,
+		.on_exit = &on_exit_config4,
+	},
+	{
+		.configuration = 5,
+		.can_enter = &can_enter_config5,
+		.on_enter = &on_enter_config5,
+		.on_exit = &on_exit_config5,
+	},
+	{
+		.configuration = 6,
+		.can_enter = &can_enter_config6,
+		.on_enter = &on_enter_config6,
+		.on_exit = &on_exit_config6,
+	},
 };
 
 extern unsigned char linker_data_vma_start;
@@ -575,7 +665,7 @@ static void stm32_main(void) {
 
 	// Initialize USB
 	usb_ep0_set_global_callbacks(&DEVICE_CBS);
-	usb_ep0_set_configuration_callbacks(CONFIGURATION_CBS, 1);
+	usb_ep0_set_configuration_callbacks(CONFIGURATION_CBS, sizeof(CONFIGURATION_CBS) / sizeof(*CONFIGURATION_CBS));
 	usb_attach(&DEVICE_INFO);
 	unsigned int tick_count = 0;
 	bool flash = false;

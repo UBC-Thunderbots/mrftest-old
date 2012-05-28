@@ -341,3 +341,7 @@ void usb_ep0_set_configuration_callbacks(const usb_ep0_configuration_callbacks_t
 	configuration_callbacks_length = length;
 }
 
+uint8_t usb_ep0_get_configuration(void) {
+	return current_configuration;
+}
+

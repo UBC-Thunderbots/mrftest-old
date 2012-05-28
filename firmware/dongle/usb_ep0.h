@@ -256,5 +256,24 @@ void usb_ep0_set_configuration_callbacks(const usb_ep0_configuration_callbacks_t
  * @}
  */
 
+
+
+/**
+ * \name Miscellaneous
+ *
+ * @{
+ */
+
+/**
+ * \brief Checks which configuration is currently active
+ *
+ * \return the current configuration number, which may be 0 if the device is unconfigured
+ */
+uint8_t usb_ep0_get_configuration(void);
+
+/**
+ * @}
+ */
+
 #endif
 
