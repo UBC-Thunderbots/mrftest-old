@@ -104,31 +104,12 @@ void usb_set_global_nak(void) {
 		global_nak_state = true;
 		OTG_FS_DCTL |= 1 << 9; // SGONAK = 1; set global OUT NAK
 	}
-#if 0
-	if (global_out_nak == GLOBAL_NAK_STATE_SET && global_in_nak == GLOBAL_NAK_STATE_SET) {
-		usb_ep0_handle_global_nak_effective();
-		return;
-	}
-	if (global_out_nak == GLOBAL_NAK_STATE_CLEAR) {
-		OTG_FS_DCTL = (OTG_FS_DCTL & ~(1 << 10) /* CGONAK = 0 */) | (1 << 9) /* SGONAK = 1 */;
-		global_out_nak = GLOBAL_NAK_STATE_PENDING;
-	}
-	if (global_in_nak == GLOBAL_NAK_STATE_CLEAR) {
-		OTG_FS_DCTL = (OTG_FS_DCTL & ~(1 << 8) /* CGINAK = 0 */) | (1 << 7) /* SGINAK = 1 */;
-		OTG_FS_GINTMSK |= 1 << 6; // GINAKEFFM = 1; take an interrupt when global IN NAK becomes effective
-		global_in_nak = GLOBAL_NAK_STATE_PENDING;
-	}
-#endif
 }
 
 void usb_clear_global_nak(void) {
 	OTG_FS_DCTL = (OTG_FS_DCTL & ~(1 << 9) /* SGONAK = 0 */ & ~(1 << 7) /* SGINAK = 0 */) | (1 << 10) /* CGONAK = 1 */ | (1 << 8) /* CGINAK = 1 */;
 	OTG_FS_GINTMSK &= ~(1 << 6); // GINAKEFFM = 0; do not take an interrupt when global IN NAK becomes effective
 	global_nak_state = false;
-#if 0
-	global_out_nak = GLOBAL_NAK_STATE_CLEAR;
-	global_in_nak = GLOBAL_NAK_STATE_CLEAR;
-#endif
 }
 
 void usb_process(void) {
