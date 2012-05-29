@@ -179,13 +179,15 @@ typedef struct {
 	 *
 	 * \param[in] descriptor_index the index of the descriptor being requested.
 	 *
+	 * \param[in] language the language of the descriptor being requested, or zero for non-string descriptors
+	 *
 	 * \param[out] data a pointer to the requested descriptor.
 	 *
 	 * \param[out] length the total number of bytes to include in the descriptor as sent to the host.
 	 *
 	 * \return \c true if the request is acceptable, or \c false if the requested descriptor does not exist
 	 */
-	usb_ep0_source_t *(*on_descriptor_request)(uint8_t descriptor_type, uint8_t descriptor_index);
+	usb_ep0_source_t *(*on_descriptor_request)(uint8_t descriptor_type, uint8_t descriptor_index, uint16_t language);
 
 	/**
 	 * \brief Checks whether the device is self-powered

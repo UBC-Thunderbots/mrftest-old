@@ -314,7 +314,7 @@ static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t valu
 	return false;
 }
 
-static usb_ep0_source_t *on_descriptor_request(uint8_t descriptor_type, uint8_t descriptor_index) {
+static usb_ep0_source_t *on_descriptor_request(uint8_t descriptor_type, uint8_t descriptor_index, uint16_t language) {
 	static union {
 		usb_ep0_memory_source_t mem_src;
 		usb_ep0_string_descriptor_source_t string_src;
