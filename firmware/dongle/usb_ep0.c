@@ -214,6 +214,18 @@ static void handle_setup_transaction(void) {
 		// The next thing to set up is a data stage comprising IN data transactions.
 		// Start the first transaction.
 		push_transaction();
+
+		// Enable OUT endpoint 0 for a status stage as it is automatically disabled as part of SETUP transaction processing.
+		// We should enable this now rather than waiting for all transaction complete notifications for two reasons:
+		// (1) During initial enumeration, Linux sends a GET_DESCRIPTOR(DEVICE) with wLength=64, but if EP0 max packet=8 then accepts only one 8-byte transaction before the status stage.
+		// (2) In general, if the last IN transaction in the data stage suffers a lost ACK, the host will try to start the status stage while the device believes the data stage is still running; should this happen, the correct outcome is that the status stage starts (this being an IN data stage, the device shouldn't care whether it actually knows the data was delivered or not).
+		OTG_FS_DOEPTSIZ0 =
+			(OTG_FS_DOEPTSIZ0 & 0x9FF7FF80) // Reserved bits.
+			| (3 << 29) // STUPCNT = 3; allow up to 3 back-to-back SETUP data packets.
+			| (1 << 19) // PKTCNT = 1; accept one packet.
+			| (0 << 0); // XFRSIZ = 0; accept zero bytes.
+		OTG_FS_DOEPCTL0 |= (1 << 31); // EPENA = 1; enable endpoint.
+		OTG_FS_DOEPCTL0 |= (1 << 26); // CNAK = 1; stop NAKing packets.
 	} else if (data_requested) {
 #warning TODO handle OUT data stages
 		OTG_FS_DIEPCTL0 |= 1 << 21; // STALL = 1
@@ -270,16 +282,7 @@ void usb_ep0_handle_receive(uint32_t status_word) {
 }
 
 static void on_in_transaction_complete(void) {
-	if (!push_transaction()) {
-		// Enable OUT endpoint 0 for a status stage as it is automatically disabled as part of SETUP transaction processing.
-		OTG_FS_DOEPTSIZ0 =
-			(OTG_FS_DOEPTSIZ0 & 0x9FF7FF80) // Reserved bits.
-			| (3 << 29) // STUPCNT = 3; allow up to 3 back-to-back SETUP data packets.
-			| (1 << 19) // PKTCNT = 1; accept one packet.
-			| (0 << 0); // XFRSIZ = 0; accept zero bytes.
-		OTG_FS_DOEPCTL0 |= (1 << 31); // EPENA = 1; enable endpoint.
-		OTG_FS_DOEPCTL0 |= (1 << 26); // CNAK = 1; stop NAKing packets.
-	}
+	push_transaction();
 }
 
 static void on_in_endpoint_event(void) {
