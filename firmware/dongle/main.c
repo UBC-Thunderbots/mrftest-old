@@ -306,11 +306,19 @@ static const uint8_t STRING_ZERO[4] = {
 };
 
 static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept) {
-	if (/*request_type == 0x40 && */request == 0x11 /*&& usb_ep0_get_configuration() == 0*/) {
+	if (request_type == 0x40 && request == 0x11 && !value && !index && usb_ep0_get_configuration() == 0) {
 		bootload_flag = UINT64_C(0xDEADBEEFCAFEBABE);
 		SCS_AIRCR = 0x05FA0004;
 		for (;;);
 	}
+	return false;
+}
+
+static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, usb_ep0_source_t **source) {
+	return false;
+}
+
+static bool on_out_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, void **dest, bool (**cb)(void)) {
 	return false;
 }
 
@@ -357,7 +365,8 @@ static bool on_check_self_powered(void) {
 
 static const usb_ep0_global_callbacks_t DEVICE_CBS = {
 	.on_zero_request = &on_zero_request,
-	.on_in_request = 0,
+	.on_in_request = &on_in_request,
+	.on_out_request = &on_out_request,
 	.on_descriptor_request = &on_descriptor_request,
 	.on_check_self_powered = &on_check_self_powered,
 };
