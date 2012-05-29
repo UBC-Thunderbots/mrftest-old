@@ -318,10 +318,7 @@ void usb_ep0_init(void) {
 	}
 
 	// Enable interrupts to this endpoint.
-	OTG_FS_DAINTMSK |=
-#warning TODO handle OUT endpoint events
-//		(1 << 16) // OEPM[0] = 1; take an interrupt on OUT endpoint 0 event.
-/*		|*/ (1 << 0); // IEPM[0] = 1; take an interrupt on IN endpoint 0 event.
+	OTG_FS_DAINTMSK |= (1 << 0); // IEPM[0] = 1; take an interrupt on IN endpoint 0 event.
 
 	// Enable OUT endpoint 0 to receive data.
 	OTG_FS_DOEPTSIZ0 =
