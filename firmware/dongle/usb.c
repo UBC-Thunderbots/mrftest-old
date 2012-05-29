@@ -124,8 +124,6 @@ void usb_process(void) {
 		handle_receive_fifo_nonempty();
 	} else if (mask & (1 << 18) /* IEPINT */) {
 		handle_in_endpoint();
-	} else if (mask & (1 << 19) /* OEPINT */) {
-#warning TODO something sensible
 	} else if (mask & (1 << 6) /* GINAKEFF */) {
 		OTG_FS_GINTMSK &= ~(1 << 6); // GINAKEFFM = 0; do not take an interrupt when global IN NAK becomes effective
 		usb_ep0_handle_global_nak_effective();
