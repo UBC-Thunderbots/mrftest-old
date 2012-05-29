@@ -15,6 +15,7 @@ typedef enum {
 static device_state_t device_state = DEVICE_STATE_DETACHED;
 const usb_device_info_t *usb_device_info = 0;
 static void (*(in_endpoint_callbacks[4]))(void) = { 0, 0, 0, 0 };
+static bool global_nak_state = false;
 
 static void handle_reset(void) {
 	// Configure receive FIFO and endpoint 0 transmit FIFO sizes.
@@ -43,7 +44,6 @@ static void handle_reset(void) {
 static void handle_enumeration_done(void) {
 	// Enable some interrupts.
 	OTG_FS_DIEPMSK |= 1 << 0; // XFRCM = 1; take an interrupt on transfer complete.
-	OTG_FS_DOEPMSK |= 1 << 0; // XFRCM = 1; take an interrupt on transfer complete.
 	OTG_FS_GINTMSK |= 1 << 4; // RXFLVLM = 1; take an interrupt on RX FIFO non-empty
 
 	// Initialize the endpoint 0 layer.
@@ -55,8 +55,11 @@ static void handle_receive_fifo_nonempty(void) {
 	uint32_t status_word = OTG_FS_GRXSTSP & ~0xFE000000;
 
 	if ((status_word & (0xF << 17)) == (0x1 << 17)) {
-		// This is a notification of global OUT NAK effectiveness; this is the only RX FIFO status pattern that's independent of endpoint.
-#warning TODO something sensible
+		// This is a notification of global OUT NAK effectiveness
+		if (global_nak_state) {
+			OTG_FS_GINTMSK |= 1 << 6; // GINAKEFFM = 1; take an interrupt when global IN NAK becomes effective
+			OTG_FS_DCTL = (OTG_FS_DCTL & ~(1 << 8) /* CGINAK = 0 */) | (1 << 7) /* SGINAK = 1 */;
+		}
 	} else {
 		// This is an endpoint-specific pattern.
 		uint8_t endpoint = status_word & 0x0F;
@@ -96,6 +99,38 @@ void usb_copy_out_packet(void *target, size_t length) {
 	}
 }
 
+void usb_set_global_nak(void) {
+	if (!global_nak_state) {
+		global_nak_state = true;
+		OTG_FS_DCTL |= 1 << 9; // SGONAK = 1; set global OUT NAK
+	}
+#if 0
+	if (global_out_nak == GLOBAL_NAK_STATE_SET && global_in_nak == GLOBAL_NAK_STATE_SET) {
+		usb_ep0_handle_global_nak_effective();
+		return;
+	}
+	if (global_out_nak == GLOBAL_NAK_STATE_CLEAR) {
+		OTG_FS_DCTL = (OTG_FS_DCTL & ~(1 << 10) /* CGONAK = 0 */) | (1 << 9) /* SGONAK = 1 */;
+		global_out_nak = GLOBAL_NAK_STATE_PENDING;
+	}
+	if (global_in_nak == GLOBAL_NAK_STATE_CLEAR) {
+		OTG_FS_DCTL = (OTG_FS_DCTL & ~(1 << 8) /* CGINAK = 0 */) | (1 << 7) /* SGINAK = 1 */;
+		OTG_FS_GINTMSK |= 1 << 6; // GINAKEFFM = 1; take an interrupt when global IN NAK becomes effective
+		global_in_nak = GLOBAL_NAK_STATE_PENDING;
+	}
+#endif
+}
+
+void usb_clear_global_nak(void) {
+	OTG_FS_DCTL = (OTG_FS_DCTL & ~(1 << 9) /* SGONAK = 0 */ & ~(1 << 7) /* SGINAK = 0 */) | (1 << 10) /* CGONAK = 1 */ | (1 << 8) /* CGINAK = 1 */;
+	OTG_FS_GINTMSK &= ~(1 << 6); // GINAKEFFM = 0; do not take an interrupt when global IN NAK becomes effective
+	global_nak_state = false;
+#if 0
+	global_out_nak = GLOBAL_NAK_STATE_CLEAR;
+	global_in_nak = GLOBAL_NAK_STATE_CLEAR;
+#endif
+}
+
 void usb_process(void) {
 	uint32_t mask = OTG_FS_GINTSTS & OTG_FS_GINTMSK;
 	if (mask & (1 << 12) /* USBRST */) {
@@ -110,6 +145,9 @@ void usb_process(void) {
 		handle_in_endpoint();
 	} else if (mask & (1 << 19) /* OEPINT */) {
 #warning TODO something sensible
+	} else if (mask & (1 << 6) /* GINAKEFF */) {
+		OTG_FS_GINTMSK &= ~(1 << 6); // GINAKEFFM = 0; do not take an interrupt when global IN NAK becomes effective
+		usb_ep0_handle_global_nak_effective();
 	}
 }
 
