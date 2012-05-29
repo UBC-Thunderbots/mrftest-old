@@ -41,7 +41,7 @@ static const char *dfu_state_name(uint8_t state) {
 
 static int dfu_getstatus(struct libusb_device_handle *handle, void *buffer) {
 	int rc;
-	if ((rc = libusb_control_transfer(handle, 0xA1, 3, 0, 0, buffer, 6, 0)) != 6) {
+	if ((rc = libusb_control_transfer(handle, LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE, 3, 0, 0, buffer, 6, 0)) != 6) {
 		fprintf(stderr, "DFU_GETSTATUS: error %d\n", rc);
 		return 0;
 	} else {
@@ -51,7 +51,7 @@ static int dfu_getstatus(struct libusb_device_handle *handle, void *buffer) {
 
 static int dfu_clrstatus(struct libusb_device_handle *handle) {
 	int rc;
-	if ((rc = libusb_control_transfer(handle, 0x21, 4, 0, 0, 0, 0, 0)) != 0) {
+	if ((rc = libusb_control_transfer(handle, LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE, 4, 0, 0, 0, 0, 0)) != 0) {
 		fprintf(stderr, "DFU_CLRSTATUS: error %d\n", rc);
 		return 0;
 	} else {
@@ -91,7 +91,7 @@ static int exit_dfu_mode(struct libusb_device_handle *handle) {
 	fputs("Issuing zero-length download... ", stdout);
 	fflush(stdout);
 
-	if ((rc = libusb_control_transfer(handle, LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE, 0x01, 0, 0, 0, 0, 0)) != 0) {
+	if ((rc = libusb_control_transfer(handle, LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE, 0x01, 0, 0, 0, 0, 0)) != 0) {
 		fprintf(stderr, "DFU_DNLOAD: error %d\n", rc);
 		return EXIT_FAILURE;
 	}

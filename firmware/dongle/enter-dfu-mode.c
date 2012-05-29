@@ -33,7 +33,7 @@ static int enter_dfu_mode(struct libusb_device_handle *handle) {
 		}
 	}
 
-	if ((rc = libusb_control_transfer(handle, LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, 0x11, 0, 0, 0, 0, 0)) != 0) {
+	if ((rc = libusb_control_transfer(handle, LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, 0x11, 0, 0, 0, 0, 0)) != 0) {
 		fprintf(stderr, "libusb_control_transfer: error %d\n", rc);
 		return EXIT_FAILURE;
 	}
