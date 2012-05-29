@@ -432,36 +432,42 @@ static void on_exit_config6(void) {
 static const usb_ep0_configuration_callbacks_t CONFIGURATION_CBS[] = {
 	{
 		.configuration = 1,
+		.interfaces = 0,
 		.can_enter = &can_enter_config1,
 		.on_enter = &on_enter_config1,
 		.on_exit = &on_exit_config1,
 	},
 	{
 		.configuration = 2,
+		.interfaces = 1,
 		.can_enter = &can_enter_config2,
 		.on_enter = &on_enter_config2,
 		.on_exit = &on_exit_config2,
 	},
 	{
 		.configuration = 3,
+		.interfaces = 1,
 		.can_enter = &can_enter_config3,
 		.on_enter = &on_enter_config3,
 		.on_exit = &on_exit_config3,
 	},
 	{
 		.configuration = 4,
+		.interfaces = 0,
 		.can_enter = &can_enter_config4,
 		.on_enter = &on_enter_config4,
 		.on_exit = &on_exit_config4,
 	},
 	{
 		.configuration = 5,
+		.interfaces = 1,
 		.can_enter = &can_enter_config5,
 		.on_enter = &on_enter_config5,
 		.on_exit = &on_exit_config5,
 	},
 	{
 		.configuration = 6,
+		.interfaces = 1,
 		.can_enter = &can_enter_config6,
 		.on_enter = &on_enter_config6,
 		.on_exit = &on_exit_config6,

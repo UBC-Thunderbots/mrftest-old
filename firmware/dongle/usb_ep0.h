@@ -218,6 +218,11 @@ typedef struct {
 	uint8_t configuration;
 
 	/**
+	 * \brief The number of interfaces in this configuration
+	 */
+	uint8_t interfaces;
+
+	/**
 	 * \brief Checks whether it's acceptable to enter this configuration at this time
 	 *
 	 * This callback is optional; if not provided, requests to enter the configuration always succeed.

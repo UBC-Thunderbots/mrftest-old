@@ -11,6 +11,7 @@ static uint8_t setup_packet[8];
 static usb_ep0_source_t *data_source = 0;
 static size_t data_requested = 0;
 static uint8_t current_configuration = 0;
+static const usb_ep0_configuration_callbacks_t *current_configuration_callbacks = 0;
 
 static bool push_transaction(void) {
 	// If the host isn't expecting us to send any data, we're finished and can signal the caller to set up the status stage.
@@ -134,6 +135,7 @@ static void handle_setup_transaction(void) {
 	// If the application didn't handle the packet, examine it and try to find out what to do with it.
 	if (!application_handled) {
 		if (request_type == 0x80 && request == USB_STD_REQ_GET_STATUS) {
+			// GET_STATUS(DEVICE)
 			// We do not support remote wakeup, so bit 1 is always set to zero.
 			// We call the application to check whether we are currently bus-powered or self-powered.
 			stash_buffer[0] = global_callbacks->on_check_self_powered() ? 0x01 : 0x00;
@@ -141,8 +143,15 @@ static void handle_setup_transaction(void) {
 			data_source = usb_ep0_memory_source_init(&stash_buffer_source, stash_buffer, 2);
 			ok = true;
 		} else if (request_type == 0x81 && request == USB_STD_REQ_GET_STATUS) {
-#warning TODO implement GET_STATUS to an interface
+			// GET_STATUS(INTERFACE, n)
+			if (current_configuration_callbacks && index < current_configuration_callbacks->interfaces) {
+				stash_buffer[0] = 0x00;
+				stash_buffer[1] = 0x00;
+				data_source = usb_ep0_memory_source_init(&stash_buffer_source, stash_buffer, 2);
+				ok = true;
+			}
 		} else if (request_type == 0x82 && request == USB_STD_REQ_GET_STATUS) {
+			// GET_STATUS(ENDPOINT, n)
 #warning TODO implement GET_STATUS to an endpoint
 		} else if (request_type == 0x00 && request == USB_STD_REQ_CLEAR_FEATURE) {
 #warning TODO implement CLEAR_FEATURE to the device
@@ -166,10 +175,13 @@ static void handle_setup_transaction(void) {
 		} else if (request_type == 0x00 && request == USB_STD_REQ_SET_CONFIGURATION) {
 			// SET_CONFIGURATION is only legal in the Addressed and Configured states.
 			if (OTG_FS_DCFG & (127 << 4)) {
+				const usb_ep0_configuration_callbacks_t *new_cbs = 0;
 				if (value) {
 					// Check if the specified configuration exists and is currently available.
+					ok = false;
 					for (size_t i = 0; i < configuration_callbacks_length; ++i) {
 						if (configuration_callbacks[i].configuration == value) {
+							new_cbs = configuration_callbacks + i;
 							if (configuration_callbacks[i].can_enter) {
 								ok = configuration_callbacks[i].can_enter();
 							} else {
@@ -177,30 +189,20 @@ static void handle_setup_transaction(void) {
 							}
 						}
 					}
-
-					// Only actually execute the transition between configurations if the new configuration is acceptable.
-					if (ok) {
-						for (size_t i = 0; i < configuration_callbacks_length; ++i) {
-							if (configuration_callbacks[i].configuration == current_configuration && configuration_callbacks[i].on_exit) {
-								configuration_callbacks[i].on_exit();
-							}
-						}
-						current_configuration = value;
-						for (size_t i = 0; i < configuration_callbacks_length; ++i) {
-							if (configuration_callbacks[i].configuration == current_configuration && configuration_callbacks[i].on_enter) {
-								configuration_callbacks[i].on_enter();
-							}
-						}
-					}
 				} else {
-					// It's always legal to go back to the Addressed state.
-					for (size_t i = 0; i < configuration_callbacks_length; ++i) {
-						if (configuration_callbacks[i].configuration == current_configuration && configuration_callbacks[i].on_exit) {
-							configuration_callbacks[i].on_exit();
-						}
-					}
-					current_configuration = 0;
 					ok = true;
+				}
+
+				// Only actually execute the transition between configurations if the new configuration is acceptable.
+				if (ok) {
+					if (current_configuration_callbacks && current_configuration_callbacks->on_exit) {
+						current_configuration_callbacks->on_exit();
+					}
+					current_configuration = value;
+					current_configuration_callbacks = new_cbs;
+					if (new_cbs && new_cbs->on_enter) {
+						new_cbs->on_enter();
+					}
 				}
 			}
 		}
