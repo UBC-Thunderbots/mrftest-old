@@ -28,6 +28,8 @@ firmware/bitcodec/bitcodec -text
 firmware/bitcodec/bitcodec.py -text
 firmware/dongle/Makefile -text
 firmware/dongle/assert.h -text
+firmware/dongle/buzzer.c -text
+firmware/dongle/buzzer.h -text
 firmware/dongle/enter-dfu-mode.c -text
 firmware/dongle/exit-dfu-mode.c -text
 firmware/dongle/getabi.sh -text

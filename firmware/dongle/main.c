@@ -1,3 +1,4 @@
+#include "buzzer.h"
 #include "registers.h"
 #include "sleep.h"
 #include "stddef.h"
@@ -604,11 +605,15 @@ static void stm32_main(void) {
 		| (1 << 1) // GPIOBEN = 1; enable clock to GPIOB
 		| (1 << 0); // GPIOAEN = 1; enable clock to GPIOA
 	RCC_AHB2ENR |= (1 << 7); // OTGFSEN = 1; enable clock to USB FS
+	RCC_APB1ENR |= (1 << 0); // TIM2EN = 1; enable clock to timer 2
 	RCC_APB2ENR |= (1 << 12); // SPI1EN = 1; enable clock to SPI 1
 	asm volatile("nop");
 	asm volatile("nop");
 	asm volatile("nop");
 	asm volatile("nop");
+
+	// Initialize subsystems
+	buzzer_init();
 
 	// Set up pins
 	// PA15 = MRF /CS, start deasserted
@@ -617,14 +622,14 @@ static void stm32_main(void) {
 	// PA10/PA9/PA8/PA7/PA6 = N/C
 	// PA5/PA4 = shorted to VDD
 	// PA3 = shorted to VSS
-	// PA2 = buzzer, start off
+	// PA2 = alternate function TIM2 buzzer
 	// PA1/PA0 = shorted to VDD
 	GPIOA_ODR = 0b1000000000110011;
 	GPIOA_OSPEEDR = 0b01000011110000000000000000000000;
 	GPIOA_PUPDR = 0b00100100000000000000000000000000;
 	GPIOA_AFRH = 0b00000000000010101010000000000000;
-	GPIOA_AFRL = 0b00000000000000000000000000000000;
-	GPIOA_MODER = 0b01101010100101010101010101010101;
+	GPIOA_AFRL = 0b00000000000000000000000100000000;
+	GPIOA_MODER = 0b01101010100101010101010101100101;
 	// PB15 = N/C
 	// PB14 = LED 3
 	// PB13 = LED 2
@@ -695,6 +700,7 @@ static void stm32_main(void) {
 				} else {
 					GPIOB_ODR &= ~(4 << 12);
 				}
+				buzzer_set(flash);
 			}
 		}
 	}
