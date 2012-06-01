@@ -1,7 +1,8 @@
 HOSTCC := $(CC)
-CC := arm-elf-gcc
-LD := arm-elf-ld
-OBJCOPY := arm-elf-objcopy
+ABI := $(shell ./getabi.sh)
+CC := $(ABI)-gcc
+LD := $(ABI)-ld
+OBJCOPY := $(ABI)-objcopy
 PROJ := dongle
 override HOSTCFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -march=native -g
 override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -mlittle-endian -mthumb -mcpu=cortex-m3 -nostdinc -nostdlib -g

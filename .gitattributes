@@ -30,6 +30,7 @@ firmware/dongle/Makefile -text
 firmware/dongle/assert.h -text
 firmware/dongle/enter-dfu-mode.c -text
 firmware/dongle/exit-dfu-mode.c -text
+firmware/dongle/getabi.sh -text
 firmware/dongle/limits.h -text
 firmware/dongle/main.c -text
 firmware/dongle/mrf.c -text
