@@ -7,6 +7,9 @@
 #ifndef MRF_H
 #define MRF_H
 
+#include "stdbool.h"
+#include "stdint.h"
+
 /**
  * \brief The possible short register addresses
  */
@@ -128,9 +131,57 @@ typedef enum {
 } mrf_reg_long_t;
 
 /**
- * \brief Initializes the interface to the radio and resets the radio
+ * \brief Initializes the interface to the radio and places the radio in reset
  */
 void mrf_init(void);
+
+/**
+ * \brief Releases the radio from reset
+ */
+void mrf_release_reset(void);
+
+/**
+ * \brief Checks the radio's interrupt line
+ *
+ * \return \c true if the interrupt line is high, or \c false if low
+ */
+bool mrf_get_interrupt(void);
+
+/**
+ * \brief Reads a short-address register
+ *
+ * \param[in] reg the register to read
+ *
+ * \return the register's value
+ */
+uint8_t mrf_read_short(mrf_reg_short_t reg);
+
+/**
+ * \brief Writes a short-address register
+ *
+ * \param[in] reg the register to write
+ *
+ * \param[in] value the value to write
+ */
+void mrf_write_short(mrf_reg_short_t reg, uint8_t value);
+
+/**
+ * \brief Reads a long-address register
+ *
+ * \param[in] reg the register to read
+ *
+ * \return the register's value
+ */
+uint8_t mrf_read_long(mrf_reg_long_t reg);
+
+/**
+ * \brief Writes a long-address register
+ *
+ * \param[in] reg the register to write
+ *
+ * \param[in] value the value to write
+ */
+void mrf_write_long(mrf_reg_long_t reg, uint8_t value);
 
 #endif
 
