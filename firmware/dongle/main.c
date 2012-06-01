@@ -23,7 +23,7 @@ static void system_tick_vector(void) __attribute__((interrupt));
 static char stack[65536] __attribute__((section(".stack")));
 
 typedef void (*fptr)(void);
-static const fptr vectors[16 + 82] __attribute__((used, section(".vectors"))) = {
+static const fptr exception_vectors[16] __attribute__((used, section(".exception_vectors"))) = {
 	// Vector 0 contains the reset stack pointer
 	[0] = (fptr) (stack + sizeof(stack)),
 	// Vector 1 contains the reset vector
@@ -44,6 +44,8 @@ static const fptr vectors[16 + 82] __attribute__((used, section(".vectors"))) = 
 	[14] = &pending_service_vector,
 	// Vector 15 contains the SysTick vector
 	[15] = &system_tick_vector,
+};
+static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt_vectors"))) = {
 };
 
 static void nmi_vector(void) {

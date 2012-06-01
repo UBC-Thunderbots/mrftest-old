@@ -5,8 +5,12 @@ MEMORY {
 }
 
 SECTIONS {
-	.vectors : {
-		KEEP(*(.vectors))
+	.exception_vectors : {
+		KEEP(*(.exception_vectors))
+	} >flash_region
+
+	.interrupt_vectors : {
+		KEEP(*(.interrupt_vectors))
 	} >flash_region
 
 	.text : {
