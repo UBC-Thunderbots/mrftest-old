@@ -85,13 +85,24 @@ class PASCHL : public HighLevel {
 			PASCHL(World &world) : world(world) {
 
 				robot0_orientation = (bot1_initial - bot0_initial).orientation();
+				robot0_orientation_passing = (bot1_initial - bot0_initial).orientation();
 				robot0_orientation_final = (bot3_initial - bot0_secondary).orientation();
+				robot0_orientation_final_passing = (bot1_secondary - bot0_secondary).orientation();
+
 				robot1_orientation = (bot0_initial - bot1_initial).orientation();
+				robot1_orientation_passing = (bot2_initial - bot1_initial).orientation();
 				robot1_orientation_final = (bot0_secondary - bot1_secondary).orientation();
+				robot1_orientation_final_passing = (bot2_secondary - bot1_secondary).orientation();
+
 				robot2_orientation = (bot1_initial - bot2_initial).orientation();
+				robot2_orientation_passing = (bot3_initial - bot2_initial).orientation();
 				robot2_orientation_final = (bot1_secondary - bot2_secondary).orientation();
+				robot2_orientation_final_passing = (bot3_secondary - bot2_secondary).orientation();
+
 				robot3_orientation = (bot2_initial - bot3_initial).orientation();
-				robot3_orientation_final = (world.field().enemy_goal() - bot3_secondary).orientation();
+				robot3_orientation_passing = (bot0_secondary - bot3_initial).orientation();
+				robot3_orientation_final = (bot2_secondary - bot3_secondary).orientation();
+				robot3_orientation_final_passing = (world.field().enemy_goal() - bot3_secondary).orientation();
 
 				robot_positions.push_back(std::make_pair(bot0_initial, robot0_orientation));
 				robot_positions.push_back(std::make_pair(bot1_initial,robot1_orientation));
@@ -127,36 +138,41 @@ class PASCHL : public HighLevel {
 					current_state = BOT0_PASS;
 					break;
 				case BOT0_PASS:
-					robot_pass(0, 1, BOT1_PASS);
+					robot_pass(0, 1, BOT1_PASS, Angle(robot0_orientation_passing));
 					break;
-				case BOT1_PASS:
+				case BOT1_PASS:{
 					player0->move(Point(bot0_secondary), Angle(robot0_orientation_final), Point());
-					robot_pass(1, 2, BOT2_PASS);
+					robot_pass(1, 2, BOT2_PASS, Angle(robot1_orientation_passing));
+				}
 					break;
-				case BOT2_PASS:
+				case BOT2_PASS: {
 					player1->move(Point(bot1_secondary), Angle(robot1_orientation_final), Point());
-					robot_pass(2, 3, BOT3_PASS);
+					robot_pass(2, 3, BOT3_PASS, Angle(robot2_orientation_passing));
+				}
 					break;
-				case BOT3_PASS:
+				case BOT3_PASS: {
 					player2->move(Point(bot2_secondary), Angle(robot2_orientation_final), Point());
-					robot_pass(3, 0, BOT0_REPOS);
+					robot_pass(3, 0, BOT0_REPOS, Angle(robot3_orientation_passing));
+				}
 					break;
-				case BOT0_REPOS:
+				case BOT0_REPOS: {
 					player3->move(Point(bot3_secondary), Angle(robot3_orientation_final), Point());
-					robot_pass(0, 1, BOT1_REPOS);
+					robot_pass(0, 1, BOT1_REPOS, Angle(robot0_orientation_final_passing));
+				}
 					break;
-				case BOT1_REPOS:
-					robot_pass(1, 2, BOT2_REPOS);
+				case BOT1_REPOS: {
+					robot_pass(1, 2, BOT2_REPOS, Angle(robot1_orientation_final_passing));
+				}
 					break;
-				case BOT2_REPOS:
-					robot_pass(2, 3, BOT3_REPOS);
+				case BOT2_REPOS: {
+					robot_pass(2, 3, BOT3_REPOS, Angle(robot2_orientation_final_passing));
+				}
 					break;
 				case BOT3_REPOS:
 					if(player3->has_ball())
 						player3->autokick(kick_speed);
 					break;
 				}
-
 			}
 
 			Gtk::Widget *ui_controls() {
@@ -167,42 +183,60 @@ class PASCHL : public HighLevel {
 			World &world;
 
 			Angle robot0_orientation;
+			Angle robot0_orientation_passing;
 			Angle robot0_orientation_final;
+			Angle robot0_orientation_final_passing;
+
 			Angle robot1_orientation;
+			Angle robot1_orientation_passing;
 			Angle robot1_orientation_final;
+			Angle robot1_orientation_final_passing;
+
 			Angle robot2_orientation;
+			Angle robot2_orientation_passing;
 			Angle robot2_orientation_final;
+			Angle robot2_orientation_final_passing;
+
 			Angle robot3_orientation;
+			Angle robot3_orientation_passing;
 			Angle robot3_orientation_final;
+			Angle robot3_orientation_final_passing;
 
 			std::vector<std::pair<Point, Angle>> robot_positions;
 			state current_state;
 			Point horizontal_intercept(Player::Ptr player);
-			void robot_pass(int passer_num, int receiver_num, state next_state);
+			void robot_pass(int passer_num, int receiver_num, state next_state, Angle orientation);
 			void robot_pass_repos(Player::Ptr passer, Player::Ptr receiver, int robot_number);
 			bool kicked_ball;
 
 };
 
 Point PASCHL::horizontal_intercept(Player::Ptr player) {
-	double horizontal_line=1.2;
+	double horizontal_line = 1.2;
 	double width_of_rectangle = 2;
 	double height_of_rectangle = horizontal_line * 2;
 
 	if (player->position().y < 0) {
 		horizontal_line = -1.2;
 	}
-	Rect ball_intercept_boundary(Point((player->position().x - width_of_rectangle * .5), - horizontal_line), height_of_rectangle, width_of_rectangle);
+
+	Point sw_corner((player->position().x - width_of_rectangle * .5), -horizontal_line);
+	Rect ball_intercept_boundary(sw_corner, height_of_rectangle, width_of_rectangle);
 
 	return vector_rect_intersect(ball_intercept_boundary, world.ball().position(), world.ball().velocity() + world.ball().position());
 }
 
-void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state) {
+void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state, Angle orientation) {
 	Player::Ptr passer = world.friendly_team().get(passer_num);
 	Player::Ptr receiver = world.friendly_team().get(receiver_num);
 	Point intercept_location = horizontal_intercept(receiver);
 
 	if (passer->has_ball()) {
+		passer->move(passer->position(), orientation, Point());
+	}
+
+
+	if (passer->has_ball() && ((passer->orientation().angle_diff(orientation)) < Angle::of_degrees(2))) {
 		passer->autokick(kick_speed);
 		kicked_ball = true;
 	}
@@ -215,8 +249,8 @@ void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state) {
 		receiver->move(Point(intercept_location.x, receiver->position().y), robot_positions[receiver_num].second, Point());
 	}
 
-	std::cout<<intercept_location<<std::endl;
-
+	std::cout<<intercept_location<<" ";
+	std::cout<<receiver->position()<<std::endl;
 	if(receiver->has_ball()) {
 		current_state = next_state;
 		kicked_ball = false;
