@@ -11,14 +11,15 @@
 #include "usb_ep0_sources.h"
 
 static void stm32_main(void) __attribute__((noreturn));
-static void nmi_vector(void) __attribute__((interrupt));
-static void hard_fault_vector(void) __attribute__((interrupt));
-static void memory_manage_vector(void) __attribute__((interrupt));
-static void bus_fault_vector(void) __attribute__((interrupt));
-static void usage_fault_vector(void) __attribute__((interrupt));
-static void service_call_vector(void) __attribute__((interrupt));
-static void pending_service_vector(void) __attribute__((interrupt));
-static void system_tick_vector(void) __attribute__((interrupt));
+static void nmi_vector(void);
+static void hard_fault_vector(void);
+static void memory_manage_vector(void);
+static void bus_fault_vector(void);
+static void usage_fault_vector(void);
+static void service_call_vector(void);
+static void pending_service_vector(void);
+static void system_tick_vector(void);
+extern void timer5_interrupt_vector(void);
 
 static char stack[65536] __attribute__((section(".stack")));
 
@@ -45,7 +46,10 @@ static const fptr exception_vectors[16] __attribute__((used, section(".exception
 	// Vector 15 contains the SysTick vector
 	[15] = &system_tick_vector,
 };
+
 static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt_vectors"))) = {
+	// Vector 50 contains the timer 5 vector
+	[50] = &timer5_interrupt_vector
 };
 
 static void nmi_vector(void) {
@@ -513,6 +517,9 @@ static void stm32_main(void) {
 	memcpy(&linker_data_vma_start, &linker_data_lma_start, &linker_data_vma_end - &linker_data_vma_start);
 	// Scrub the BSS section in RAM
 	memset(&linker_bss_vma_start, 0, &linker_bss_vma_end - &linker_bss_vma_start);
+
+	// Always 8-byte-align the stack pointer on entry to an interrupt handler (as ARM recommends)
+	SCS_CCR |= 1 << 9; // STKALIGN = 1; guarantee 8-byte alignment
 
 	// Enable the HSE (8 MHz crystal) oscillator
 	RCC_CR =
