@@ -3,8 +3,10 @@
 
 void sleep_systick_overflows(unsigned long ticks);
 
-#define sleep_millis(ms) sleep_systick_overflows((ms) * 10U)
-#define sleep_100us sleep_systick_overflows
+#define sleep_1ms(x) sleep_100us((x) * 10UL)
+#define sleep_100us(x) sleep_10us((x) * 10UL)
+#define sleep_10us(x) sleep_1us((x) * 10UL)
+#define sleep_1us sleep_systick_overflows
 
 #endif
 

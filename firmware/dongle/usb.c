@@ -169,7 +169,7 @@ void usb_attach(const usb_device_info_t *info) {
 		| (0 << 8) // PTXFELVL = 0; only used in host mode.
 		| (0 << 7) // TXFELVL = 0; interrupt on TX FIFO half empty.
 		| (0 << 0); // GINTMSK = 0; no interrupts.
-	sleep_millis(30); // The application must wait at least 25 ms before a change to FDMOD takes effect.
+	sleep_1ms(25); // The application must wait at least 25 ms before a change to FDMOD takes effect.
 	OTG_FS_DCFG =
 		(OTG_FS_DCFG & 0xFFFFE008) // Reserved bits.
 		| (0 << 11) // PFIVL = 0; end of periodic frame notification occurs at 80% of complete frame.

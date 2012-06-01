@@ -28,8 +28,8 @@ void buzzer_init(void) {
 		| (1 << 8); // CC3E = 1; output is sent to pin
 	TIM2_CNT = 0; // Clear counter
 	TIM2_PSC = 0; // Set prescale 1:1
-	TIM2_ARR = 42000000 / 2048; // Set frequency
-	TIM2_CCR3 = 42000000 / 2048 / 2; // Set duty cycle
+	TIM2_ARR = 36000000 * 2 / 2048; // Set frequency
+	TIM2_CCR3 = 36000000 * 2 / 2048 / 2; // Set duty cycle
 	TIM2_CR1 |= 1 << 0; // CEN = 1; counter enabled
 }
 

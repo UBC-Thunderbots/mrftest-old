@@ -1,4 +1,6 @@
 #include "buzzer.h"
+#include "configs.h"
+#include "mrf.h"
 #include "registers.h"
 #include "sleep.h"
 #include "stddef.h"
@@ -517,13 +519,13 @@ static void stm32_main(void) {
 		| (1 << 0); // HSION = 1; enable HSI oscillator for now as we're still using it
 	// Wait for the HSE oscillator to be ready
 	while (!(RCC_CR & (1 << 17) /* HSERDY */));
-	// Configure the PLL. The VCO's input will be 2 MHz and its output will be 336 MHz
+	// Configure the PLL
 	RCC_PLLCFGR =
 		(RCC_PLLCFGR & 0xF0F00004) // Reserved bits
-		| (7 << 24) // PLLQ = 7; divide 336 MHz VCO output by 7 to get 48 MHz for USB, SDIO, and RNG
+		| (6 << 24) // PLLQ = 6; divide 288 MHz VCO output by 6 to get 48 MHz USB, SDIO, and RNG clock
 		| (1 << 22) // PLLSRC = 1; use HSE for PLL input
-		| (0 << 16) // PLLP = 0; divide 336 MHz VCO output by 2 to get 168 MHz for SYSCLK
-		| (168 << 6) // PLLN = 168; multiply 2 MHz VCO input by 168 to get 336 MHz output
+		| (0 << 16) // PLLP = 0; divide 288 MHz VCO output by 2 to get 144 MHz SYSCLK
+		| (144 << 6) // PLLN = 144; multiply 2 MHz VCO input by 144 to get 288 MHz VCO output
 		| (4 << 0); // PLLM = 4; divide 8 MHz HSE by 4 to get 2 MHz VCO input
 	// Enable the PLL
 	RCC_CR |= (1 << 24); // PLLON = 1; enable PLL
@@ -532,15 +534,15 @@ static void stm32_main(void) {
 	// Set up bus frequencies
 	RCC_CFGR =
 		(RCC_CFGR & 0x00000300) // Reserved bits
-		| (0 << 30) // MCO2 = 0; MCO2 pin outputs SYSCLK
-		| (4 << 27) // MCO2PRE = 4; divide 168 MHz SYSCLK by 2 to get 84 MHz MCO2 (must be ≤ 100 MHz)
-		| (4 << 24) // MCO1PRE = 0; divide 8 MHz HSE by 1 to get 8 MHz MCO1 (must be ≤ 100 MHz)
+		| (2 << 30) // MCO2 = 2; MCO2 pin outputs HSE
+		| (0 << 27) // MCO2PRE = 0; divide 8 MHz HSE by 1 to get 8 MHz MCO2 (must be ≤ 100 MHz)
+		| (0 << 24) // MCO1PRE = 0; divide 8 MHz HSE by 1 to get 8 MHz MCO1 (must be ≤ 100 MHz)
 		| (0 << 23) // I2SSRC = 0; I2S module gets clock from PLLI2X
 		| (2 << 21) // MCO1 = 2; MCO1 pin outputs HSE
 		| (8 << 16) // RTCPRE = 8; divide 8 MHz HSE by 8 to get 1 MHz RTC clock (must be 1 MHz)
-		| (4 << 13) // PPRE2 = 4; divide 168 MHz AHB clock by 2 to get 84 MHz APB2 clock (must be ≤ 84 MHz)
-		| (5 << 10) // PPRE1 = 5; divide 168 MHz AHB clock by 4 to get 42 MHz APB1 clock (must be ≤ 42 MHz)
-		| (0 << 4) // HPRE = 0; divide 168 MHz SYSCLK by 1 to get 168 MHz AHB clock (must be ≤ 168 MHz)
+		| (4 << 13) // PPRE2 = 4; divide 144 MHz AHB clock by 2 to get 72 MHz APB2 clock (must be ≤ 84 MHz)
+		| (5 << 10) // PPRE1 = 5; divide 144 MHz AHB clock by 4 to get 36 MHz APB1 clock (must be ≤ 42 MHz)
+		| (0 << 4) // HPRE = 0; divide 144 MHz SYSCLK by 1 to get 144 MHz AHB clock (must be ≤ 168 MHz)
 		| (0 << 0); // SW = 0; use HSI for SYSCLK for now, until everything else is ready
 	// Wait 16 AHB cycles for the new prescalers to settle
 	asm volatile("nop");
@@ -562,9 +564,9 @@ static void stm32_main(void) {
 	// Set Flash access latency to 5 wait states
 	FLASH_ACR =
 		(FLASH_ACR & 0xFFFFE0F8) // Reserved bits
-		| (5 << 0); // LATENCY = 5; five wait states
+		| (4 << 0); // LATENCY = 4; four wait states (acceptable for 120 ≤ HCLK ≤ 150)
 	// Flash access latency change may not be immediately effective; wait until it's locked in
-	while ((FLASH_ACR & 7) != 5);
+	while ((FLASH_ACR & 7) != 4);
 	// Actually initiate the clock switch
 	RCC_CFGR = (RCC_CFGR & ~(3 << 0)) | (2 << 0); // SW = 2; use PLL for SYSCLK
 	// Wait for the clock switch to complete
@@ -586,8 +588,8 @@ static void stm32_main(void) {
 		| (1 << 9) // ICEN = 1; enable instruction cache
 		| (1 << 8); // PRFTEN = 1; enable prefetching
 
-	// Set SYSTICK to divide by 16,800 so it overflows every 100 µs
-	SCS_STRVR = 16800 - 1;
+	// Set SYSTICK to divide by 144 so it overflows every microsecond
+	SCS_STRVR = 144 - 1;
 	// Set SYSTICK to run with the core AHB clock
 	SCS_STCSR =
 		(SCS_STCSR & 0xFFFEFFF8) // Reserved bits
@@ -678,7 +680,7 @@ static void stm32_main(void) {
 	// PI11/PI10/PI9/PI8/PI7/PI6/PI5/PI4/PI3/PI2/PI1/PI0 = unimplemented on this package
 
 	// Wait a bit
-	sleep_millis(100);
+	sleep_1ms(100);
 
 	// Turn off LEDs
 	GPIOB_ODR = (GPIOB_ODR & ~(7 << 12)) | (1 << 12);
@@ -692,7 +694,7 @@ static void stm32_main(void) {
 	for (;;) {
 		usb_process();
 		if (SCS_STCSR & 0x00010000) {
-			if (++tick_count == 10000) {
+			if (++tick_count == 1000000) {
 				tick_count = 0;
 				flash = !flash;
 				if (flash) {
@@ -700,7 +702,6 @@ static void stm32_main(void) {
 				} else {
 					GPIOB_ODR &= ~(4 << 12);
 				}
-				buzzer_set(flash);
 			}
 		}
 	}
