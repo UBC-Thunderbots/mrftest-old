@@ -616,7 +616,8 @@ static void stm32_main(void) {
 		| (1 << 1) // GPIOBEN = 1; enable clock to GPIOB
 		| (1 << 0); // GPIOAEN = 1; enable clock to GPIOA
 	RCC_AHB2ENR |= (1 << 7); // OTGFSEN = 1; enable clock to USB FS
-	RCC_APB1ENR |= (1 << 0); // TIM2EN = 1; enable clock to timer 2
+	RCC_APB1ENR |= (1 << 3) // TIM5EN = 1; enable clock to timer 5
+		| (1 << 0); // TIM2EN = 1; enable clock to timer 2
 	RCC_APB2ENR |= (1 << 12); // SPI1EN = 1; enable clock to SPI 1
 	asm volatile("nop");
 	asm volatile("nop");
