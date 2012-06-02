@@ -84,30 +84,30 @@ class PASCHL : public HighLevel {
 		public:
 			PASCHL(World &world) : world(world) {
 
-				robot0_orientation = (bot1_initial - bot0_initial).orientation();
-				robot0_orientation_passing = (bot1_initial - bot0_initial).orientation();
-				robot0_orientation_final = (bot3_initial - bot0_secondary).orientation();
-				robot0_orientation_final_passing = (bot1_secondary - bot0_secondary).orientation();
+				robot_orientation[0] = (bot1_initial - bot0_initial).orientation();
+				robot_orientation_passing[0] = (bot1_initial - bot0_initial).orientation();
+				robot_orientation_final[0] = (bot3_initial - bot0_secondary).orientation();
+				robot_orientation_final_passing[0] = (bot1_secondary - bot0_secondary).orientation();
 
-				robot1_orientation = (bot0_initial - bot1_initial).orientation();
-				robot1_orientation_passing = (bot2_initial - bot1_initial).orientation();
-				robot1_orientation_final = (bot0_secondary - bot1_secondary).orientation();
-				robot1_orientation_final_passing = (bot2_secondary - bot1_secondary).orientation();
+				robot_orientation[1] = (bot0_initial - bot1_initial).orientation();
+				robot_orientation_passing[1] = (bot2_initial - bot1_initial).orientation();
+				robot_orientation_final[1] = (bot0_secondary - bot1_secondary).orientation();
+				robot_orientation_final_passing[1] = (bot2_secondary - bot1_secondary).orientation();
 
-				robot2_orientation = (bot1_initial - bot2_initial).orientation();
-				robot2_orientation_passing = (bot3_initial - bot2_initial).orientation();
-				robot2_orientation_final = (bot1_secondary - bot2_secondary).orientation();
-				robot2_orientation_final_passing = (bot3_secondary - bot2_secondary).orientation();
+				robot_orientation[2] = (bot1_initial - bot2_initial).orientation();
+				robot_orientation_passing[2] = (bot3_initial - bot2_initial).orientation();
+				robot_orientation_final[2] = (bot1_secondary - bot2_secondary).orientation();
+				robot_orientation_final_passing[2] = (bot3_secondary - bot2_secondary).orientation();
 
-				robot3_orientation = (bot2_initial - bot3_initial).orientation();
-				robot3_orientation_passing = (bot0_secondary - bot3_initial).orientation();
-				robot3_orientation_final = (bot2_secondary - bot3_secondary).orientation();
-				robot3_orientation_final_passing = (world.field().enemy_goal() - bot3_secondary).orientation();
+				robot_orientation[3] = (bot2_initial - bot3_initial).orientation();
+				robot_orientation_passing[3] = (bot0_secondary - bot3_initial).orientation();
+				robot_orientation_final[3] = (bot2_secondary - bot3_secondary).orientation();
+				robot_orientation_final_passing[3] = (world.field().enemy_goal() - bot3_secondary).orientation();
 
-				robot_positions.push_back(std::make_pair(bot0_initial, robot0_orientation));
-				robot_positions.push_back(std::make_pair(bot1_initial,robot1_orientation));
-				robot_positions.push_back(std::make_pair(bot2_initial,robot2_orientation));
-				robot_positions.push_back(std::make_pair(bot3_initial,robot3_orientation));
+				robot_positions.push_back(std::make_pair(bot0_initial, robot_orientation[0]));
+				robot_positions.push_back(std::make_pair(bot1_initial,robot_orientation[1]));
+				robot_positions.push_back(std::make_pair(bot2_initial,robot_orientation[2]));
+				robot_positions.push_back(std::make_pair(bot3_initial,robot_orientation[3]));
 
 				current_state = INITIAL_POSITION;
 
@@ -138,34 +138,34 @@ class PASCHL : public HighLevel {
 					current_state = BOT0_PASS;
 					break;
 				case BOT0_PASS:
-					robot_pass(0, 1, BOT1_PASS, Angle(robot0_orientation_passing));
+					robot_pass(0, 1, BOT1_PASS, Angle(robot_orientation_passing[0]));
 					break;
 				case BOT1_PASS:{
-					player0->move(Point(bot0_secondary), Angle(robot0_orientation_final), Point());
-					robot_pass(1, 2, BOT2_PASS, Angle(robot1_orientation_passing));
+					player0->move(Point(bot0_secondary), Angle(robot_orientation_final[0]), Point());
+					robot_pass(1, 2, BOT2_PASS, Angle(robot_orientation_passing[1]));
 				}
 					break;
 				case BOT2_PASS: {
-					player1->move(Point(bot1_secondary), Angle(robot1_orientation_final), Point());
-					robot_pass(2, 3, BOT3_PASS, Angle(robot2_orientation_passing));
+					player1->move(Point(bot1_secondary), Angle(robot_orientation_final[1]), Point());
+					robot_pass(2, 3, BOT3_PASS, Angle(robot_orientation_passing[2]));
 				}
 					break;
 				case BOT3_PASS: {
-					player2->move(Point(bot2_secondary), Angle(robot2_orientation_final), Point());
-					robot_pass(3, 0, BOT0_REPOS, Angle(robot3_orientation_passing));
+					player2->move(Point(bot2_secondary), Angle(robot_orientation_final[2]), Point());
+					robot_pass(3, 0, BOT0_REPOS, Angle(robot_orientation_passing[3]));
 				}
 					break;
 				case BOT0_REPOS: {
-					player3->move(Point(bot3_secondary), Angle(robot3_orientation_final), Point());
-					robot_pass(0, 1, BOT1_REPOS, Angle(robot0_orientation_final_passing));
+					player3->move(Point(bot3_secondary), Angle(robot_orientation_final[3]), Point());
+					robot_pass(0, 1, BOT1_REPOS, Angle(robot_orientation_final_passing[0]));
 				}
 					break;
 				case BOT1_REPOS: {
-					robot_pass(1, 2, BOT2_REPOS, Angle(robot1_orientation_final_passing));
+					robot_pass(1, 2, BOT2_REPOS, Angle(robot_orientation_final_passing[1]));
 				}
 					break;
 				case BOT2_REPOS: {
-					robot_pass(2, 3, BOT3_REPOS, Angle(robot2_orientation_final_passing));
+					robot_pass(2, 3, BOT3_REPOS, Angle(robot_orientation_final_passing[2]));
 				}
 					break;
 				case BOT3_REPOS:
@@ -182,25 +182,10 @@ class PASCHL : public HighLevel {
 		private:
 			World &world;
 
-			Angle robot0_orientation;
-			Angle robot0_orientation_passing;
-			Angle robot0_orientation_final;
-			Angle robot0_orientation_final_passing;
-
-			Angle robot1_orientation;
-			Angle robot1_orientation_passing;
-			Angle robot1_orientation_final;
-			Angle robot1_orientation_final_passing;
-
-			Angle robot2_orientation;
-			Angle robot2_orientation_passing;
-			Angle robot2_orientation_final;
-			Angle robot2_orientation_final_passing;
-
-			Angle robot3_orientation;
-			Angle robot3_orientation_passing;
-			Angle robot3_orientation_final;
-			Angle robot3_orientation_final_passing;
+			Angle robot_orientation[4];
+			Angle robot_orientation_passing[4];
+			Angle robot_orientation_final[4];
+			Angle robot_orientation_final_passing[4];
 
 			std::vector<std::pair<Point, Angle>> robot_positions;
 			state current_state;
