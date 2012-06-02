@@ -15,11 +15,13 @@
 void buzzer_init(void);
 
 /**
- * \brief Turns the buzzer on or off
+ * \brief Ensures the buzzer runs for at least a specified length of time
  *
- * \param[in] ctl \c true to turn the buzzer on, or \c false to turn it off
+ * The buzzer will stop sounding at the last end time across all calls to this function.
+ *
+ * \param[in] millis the number of milliseconds to buzz for, starting from the current time
  */
-void buzzer_set(bool ctl);
+void buzzer_start(unsigned long millis);
 
 #endif
 
