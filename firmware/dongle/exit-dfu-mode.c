@@ -108,6 +108,21 @@ static int exit_dfu_mode(struct libusb_device_handle *handle) {
 	return EXIT_SUCCESS;
 }
 
+static int claim_interface_and_exit_dfu_mode(struct libusb_device_handle *handle) {
+	int rc;
+
+	if ((rc = libusb_claim_interface(handle, 0)) != 0) {
+		fprintf(stderr, "libusb_claim_interface: error %d\n", rc);
+		return EXIT_FAILURE;
+	}
+
+	rc = exit_dfu_mode(handle);
+
+	libusb_release_interface(handle, 0);
+
+	return rc;
+}
+
 static int find_device_and_exit_dfu_mode(uint16_t vid, uint16_t pid) {
 	struct libusb_device_handle *handle;
 	int rc;
@@ -117,7 +132,7 @@ static int find_device_and_exit_dfu_mode(uint16_t vid, uint16_t pid) {
 		return EXIT_FAILURE;
 	}
 
-	rc = exit_dfu_mode(handle);
+	rc = claim_interface_and_exit_dfu_mode(handle);
 
 	libusb_close(handle);
 
