@@ -136,10 +136,22 @@ void usb_attach(const usb_device_info_t *info) {
 
 	// Enable the clock.
 	RCC_AHB2ENR |= (1 << 7); // OTGFSEN = 1; enable clock to USB FS.
+	asm volatile("nop");
+	asm volatile("nop");
+	asm volatile("nop");
+	asm volatile("nop");
 
 	// Reset the entire module.
 	RCC_AHB2RSTR |= 1 << 7; // OTGFSRST = 1; reset USB FS.
+	asm volatile("nop");
+	asm volatile("nop");
+	asm volatile("nop");
+	asm volatile("nop");
 	RCC_AHB2RSTR &= ~(1 << 7); // OTGFSRST = 0; stop resetting USB FS.
+	asm volatile("nop");
+	asm volatile("nop");
+	asm volatile("nop");
+	asm volatile("nop");
 
 	// Reset the USB core and configure device-wide parameters.
 	OTG_FS_GUSBCFG =
