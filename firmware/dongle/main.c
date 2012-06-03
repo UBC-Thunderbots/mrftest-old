@@ -128,13 +128,23 @@ static const uint8_t DEVICE_DESCRIPTOR[18] = {
 static const uint8_t CONFIGURATION_DESCRIPTOR1[] = {
 	9, // bLength
 	2, // bDescriptorType
-	9, // wTotalLength LSB
+	18, // wTotalLength LSB
 	0, // wTotalLength MSB
-	0, // bNumInterfaces
+	1, // bNumInterfaces
 	1, // bConfigurationValue
 	3, // iConfiguration
 	0x80, // bmAttributes
 	50, // bMaxPower
+
+	9, // bLength
+	4, // bDescriptorType
+	0, // bInterfaceNumber
+	0, // bAlternateSetting
+	0, // bNumEndpoints
+	0xFF, // bInterfaceClass
+	0x00, // bInterfaceSubClass
+	0, // bInterfaceProtocol
+	0, // iInterface
 };
 
 static const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
@@ -240,13 +250,23 @@ static const uint8_t CONFIGURATION_DESCRIPTOR3[] = {
 static const uint8_t CONFIGURATION_DESCRIPTOR4[] = {
 	9, // bLength
 	2, // bDescriptorType
-	9, // wTotalLength LSB
+	18, // wTotalLength LSB
 	0, // wTotalLength MSB
-	0, // bNumInterfaces
+	1, // bNumInterfaces
 	4, // bConfigurationValue
 	6, // iConfiguration
 	0x80, // bmAttributes
 	150, // bMaxPower
+
+	9, // bLength
+	4, // bDescriptorType
+	0, // bInterfaceNumber
+	0, // bAlternateSetting
+	0, // bNumEndpoints
+	0xFF, // bInterfaceClass
+	0x00, // bInterfaceSubClass
+	0, // bInterfaceProtocol
+	0, // iInterface
 };
 
 static const uint8_t CONFIGURATION_DESCRIPTOR5[] = {
