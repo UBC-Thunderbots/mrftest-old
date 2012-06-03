@@ -1,5 +1,4 @@
 #include "buzzer.h"
-#include "configs.h"
 #include "mrf.h"
 #include "registers.h"
 #include "sleep.h"
@@ -49,7 +48,9 @@ static const fptr exception_vectors[16] __attribute__((used, section(".exception
 
 static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt_vectors"))) = {
 	// Vector 50 contains the timer 5 vector
-	[50] = &timer5_interrupt_vector
+	[50] = &timer5_interrupt_vector,
+	// Vector 67 contains the USB full speed vector
+	[67] = &usb_process,
 };
 
 static void nmi_vector(void) {
@@ -86,8 +87,22 @@ static void system_tick_vector(void) {
 
 static volatile uint64_t bootload_flag;
 
-extern const unsigned int foo;
-extern unsigned int bar, baz;
+static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept) {
+	if (request_type == 0x40 && request == 0x11 && !value && !index && usb_ep0_get_configuration() == 0) {
+		bootload_flag = UINT64_C(0xDEADBEEFCAFEBABE);
+		SCS_AIRCR = 0x05FA0004;
+		for (;;);
+	}
+	return false;
+}
+
+static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, usb_ep0_source_t **source) {
+	return false;
+}
+
+static bool on_out_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, void **dest, bool (**cb)(void)) {
+	return false;
+}
 
 static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	18, // bLength
@@ -303,33 +318,11 @@ static const uint8_t * const CONFIGURATION_DESCRIPTORS[] = {
 	CONFIGURATION_DESCRIPTOR6,
 };
 
-static const usb_device_info_t DEVICE_INFO = {
-	.rx_fifo_words = 128,
-	.ep0_max_packet = 8,
-};
-
 static const uint8_t STRING_ZERO[4] = {
 	sizeof(STRING_ZERO),
 	USB_STD_DESCRIPTOR_STRING,
 	0x09, 0x10, /* English (Canadian) */
 };
-
-static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept) {
-	if (request_type == 0x40 && request == 0x11 && !value && !index && usb_ep0_get_configuration() == 0) {
-		bootload_flag = UINT64_C(0xDEADBEEFCAFEBABE);
-		SCS_AIRCR = 0x05FA0004;
-		for (;;);
-	}
-	return false;
-}
-
-static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, usb_ep0_source_t **source) {
-	return false;
-}
-
-static bool on_out_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, void **dest, bool (**cb)(void)) {
-	return false;
-}
 
 static usb_ep0_source_t *on_descriptor_request(uint8_t descriptor_type, uint8_t descriptor_index, uint16_t language) {
 	static union {
@@ -346,22 +339,32 @@ static usb_ep0_source_t *on_descriptor_request(uint8_t descriptor_type, uint8_t 
 			return usb_ep0_memory_source_init(&src.mem_src, desc, (desc[3] << 8) | desc[2]);
 		}
 	} else if (descriptor_type == USB_STD_DESCRIPTOR_STRING) {
-		switch (descriptor_index) {
-			case 0: return usb_ep0_memory_source_init(&src.mem_src, STRING_ZERO, sizeof(STRING_ZERO));
-			case 1: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"UBC Thunderbots Small Size Team");
-			case 2: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"Radio Base Station");
-			case 3: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"Radio Sleep");
-			case 4: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"Normal Operation");
-			case 5: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"Promiscuous Mode");
-			case 6: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"Packet Generator");
-			case 7: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"Packet Receiver");
-			case 8: return usb_ep0_string_descriptor_source_init(&src.string_src, u8"Debug Mode");
-			case 9:
-				formathex32(serial_number_buffer + 0, U_ID_H);
-				formathex32(serial_number_buffer + 8, U_ID_M);
-				formathex32(serial_number_buffer + 16, U_ID_L);
-				serial_number_buffer[24] = 0;
-				return usb_ep0_string_descriptor_source_init(&src.string_src, serial_number_buffer);
+		if (descriptor_index == 0) {
+			return usb_ep0_memory_source_init(&src.mem_src, STRING_ZERO, sizeof(STRING_ZERO));
+		} else if (language == 0x1009 /* English (Canadian) */) {
+			const char *string = 0;
+			switch (descriptor_index) {
+				case 1: string = u8"UBC Thunderbots Small Size Team"; break;
+				case 2: string = u8"Radio Base Station"; break;
+				case 3: string = u8"Radio Sleep"; break;
+				case 4: string = u8"Normal Operation"; break;
+				case 5: string = u8"Promiscuous Mode"; break;
+				case 6: string = u8"Packet Generator"; break;
+				case 7: string = u8"Packet Receiver"; break;
+				case 8: string = u8"Debug Mode"; break;
+				case 9:
+					formathex32(serial_number_buffer + 0, U_ID_H);
+					formathex32(serial_number_buffer + 8, U_ID_M);
+					formathex32(serial_number_buffer + 16, U_ID_L);
+					serial_number_buffer[24] = 0;
+					string = serial_number_buffer;
+					break;
+			}
+			if (string) {
+				return usb_ep0_string_descriptor_source_init(&src.string_src, string);
+			} else {
+				return 0;
+			}
 		}
 	}
 
@@ -380,16 +383,8 @@ static const usb_ep0_global_callbacks_t DEVICE_CBS = {
 	.on_check_self_powered = &on_check_self_powered,
 };
 
-static bool can_enter_config1(void) {
-	return true;
-}
-
 static void on_enter_config1(void) {
-	GPIOB_ODR |= 2 << 12;
-}
-
-static void on_exit_config1(void) {
-	GPIOB_ODR &= ~(2 << 12);
+	GPIOB_ODR |= 7 << 12;
 }
 
 static bool can_enter_config2(void) {
@@ -451,9 +446,7 @@ static const usb_ep0_configuration_callbacks_t CONFIGURATION_CBS[] = {
 	{
 		.configuration = 1,
 		.interfaces = 0,
-		.can_enter = &can_enter_config1,
 		.on_enter = &on_enter_config1,
-		.on_exit = &on_exit_config1,
 	},
 	{
 		.configuration = 2,
@@ -490,6 +483,11 @@ static const usb_ep0_configuration_callbacks_t CONFIGURATION_CBS[] = {
 		.on_enter = &on_enter_config6,
 		.on_exit = &on_exit_config6,
 	},
+};
+
+static const usb_device_info_t DEVICE_INFO = {
+	.rx_fifo_words = 128,
+	.ep0_max_packet = 8,
 };
 
 extern unsigned char linker_data_vma_start;
@@ -693,27 +691,16 @@ static void stm32_main(void) {
 	sleep_1ms(100);
 
 	// Turn off LEDs
-	GPIOB_ODR = (GPIOB_ODR & ~(7 << 12)) | (1 << 12);
+	GPIOB_ODR &= ~(7 << 12);
 
 	// Initialize USB
 	usb_ep0_set_global_callbacks(&DEVICE_CBS);
 	usb_ep0_set_configuration_callbacks(CONFIGURATION_CBS, sizeof(CONFIGURATION_CBS) / sizeof(*CONFIGURATION_CBS));
 	usb_attach(&DEVICE_INFO);
-	unsigned int tick_count = 0;
-	bool flash = false;
+	NVIC_ISER(67 / 32) = 1 << (67 % 32);
+
+	// Handle activity
 	for (;;) {
-		usb_process();
-		if (SCS_STCSR & 0x00010000) {
-			if (++tick_count == 1000000) {
-				tick_count = 0;
-				flash = !flash;
-				if (flash) {
-					GPIOB_ODR |= 4 << 12;
-				} else {
-					GPIOB_ODR &= ~(4 << 12);
-				}
-			}
-		}
 	}
 }
 
