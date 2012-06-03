@@ -446,7 +446,12 @@ static const usb_ep0_configuration_callbacks_t CONFIGURATION_CBS[] = {
 	{
 		.configuration = 1,
 		.interfaces = 0,
+		.can_enter = 0,
 		.on_enter = &on_enter_config1,
+		.on_exit = 0,
+		.on_zero_request = 0,
+		.on_in_request = 0,
+		.on_out_request = 0,
 	},
 	{
 		.configuration = 2,
@@ -454,6 +459,9 @@ static const usb_ep0_configuration_callbacks_t CONFIGURATION_CBS[] = {
 		.can_enter = &can_enter_config2,
 		.on_enter = &on_enter_config2,
 		.on_exit = &on_exit_config2,
+		.on_zero_request = 0,
+		.on_in_request = 0,
+		.on_out_request = 0,
 	},
 	{
 		.configuration = 3,
@@ -461,6 +469,9 @@ static const usb_ep0_configuration_callbacks_t CONFIGURATION_CBS[] = {
 		.can_enter = &can_enter_config3,
 		.on_enter = &on_enter_config3,
 		.on_exit = &on_exit_config3,
+		.on_zero_request = 0,
+		.on_in_request = 0,
+		.on_out_request = 0,
 	},
 	{
 		.configuration = 4,
@@ -468,6 +479,9 @@ static const usb_ep0_configuration_callbacks_t CONFIGURATION_CBS[] = {
 		.can_enter = &can_enter_config4,
 		.on_enter = &on_enter_config4,
 		.on_exit = &on_exit_config4,
+		.on_zero_request = 0,
+		.on_in_request = 0,
+		.on_out_request = 0,
 	},
 	{
 		.configuration = 5,
@@ -475,6 +489,9 @@ static const usb_ep0_configuration_callbacks_t CONFIGURATION_CBS[] = {
 		.can_enter = &can_enter_config5,
 		.on_enter = &on_enter_config5,
 		.on_exit = &on_exit_config5,
+		.on_zero_request = 0,
+		.on_in_request = 0,
+		.on_out_request = 0,
 	},
 	{
 		.configuration = 6,
@@ -482,6 +499,9 @@ static const usb_ep0_configuration_callbacks_t CONFIGURATION_CBS[] = {
 		.can_enter = &can_enter_config6,
 		.on_enter = &on_enter_config6,
 		.on_exit = &on_exit_config6,
+		.on_zero_request = 0,
+		.on_in_request = 0,
+		.on_out_request = 0,
 	},
 };
 

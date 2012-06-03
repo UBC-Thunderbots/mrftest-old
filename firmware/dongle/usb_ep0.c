@@ -120,19 +120,29 @@ static void handle_setup_transaction(void) {
 	out_complete_callback = 0;
 	if (data_requested) {
 		if (request_type & 0x80) {
-			if (global_callbacks->on_in_request) {
+			if (!application_handled && global_callbacks->on_in_request) {
 				application_handled = global_callbacks->on_in_request(request_type, request, value, index, data_requested, &data_source);
-				ok = !!data_source;
 			}
+			if (!application_handled && current_configuration_callbacks && current_configuration_callbacks->on_in_request) {
+				application_handled = current_configuration_callbacks->on_in_request(request_type, request, value, index, data_requested, &data_source);
+			}
+			ok = !!data_source;
 		} else {
-			if (global_callbacks->on_out_request) {
-				void *pdest = 0;
-				application_handled = global_callbacks->on_out_request(request_type, request, value, index, data_requested, &pdest, &out_complete_callback);
-				data_sink = pdest;
+			void *pdest = 0;
+			if (!application_handled && current_configuration_callbacks && current_configuration_callbacks->on_out_request) {
+				application_handled = current_configuration_callbacks->on_out_request(request_type, request, value, index, data_requested, &pdest, &out_complete_callback);
 			}
+			if (!application_handled && global_callbacks->on_out_request) {
+				application_handled = global_callbacks->on_out_request(request_type, request, value, index, data_requested, &pdest, &out_complete_callback);
+			}
+			data_sink = pdest;
+			ok = !!pdest;
 		}
 	} else {
-		if (global_callbacks->on_zero_request) {
+		if (!application_handled && current_configuration_callbacks && current_configuration_callbacks->on_zero_request) {
+			application_handled = current_configuration_callbacks->on_zero_request(request_type, request, value, index, &ok);
+		}
+		if (!application_handled && global_callbacks->on_zero_request) {
 			application_handled = global_callbacks->on_zero_request(request_type, request, value, index, &ok);
 		}
 	}

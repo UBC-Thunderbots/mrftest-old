@@ -277,6 +277,88 @@ typedef struct {
 	 */
 	void (*on_exit)(void);
 
+	/**
+	 * \brief Allows the application to override handling of any control request with no data stage
+	 *
+	 * This callback is optional; if not provided, it is treated as though always returning \c false.
+	 *
+	 * This callback is executed before, and can override, any corresponding device-wide callback.
+	 *
+	 * \pre Callback context is executing.
+	 *
+	 * \post Either \p *accept must be set to an appropriate value, or the callback must return \c false.
+	 *
+	 * \param[in] request_type the request type field from the SETUP transaction
+	 *
+	 * \param[in] request the request field from the SETUP transaction
+	 *
+	 * \param[in] value the value field from the SETUP transaction
+	 *
+	 * \param[in] index the index field from the SETUP transaction
+	 *
+	 * \param[out] accept \c true to accept the request, or \c false to return a STALL handshake
+	 *
+	 * \return \c true if the application handles the request and demands a response per the \p accept parameter, or \c false to let the stack handle the request
+	 */
+	bool (*on_zero_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept);
+
+	/**
+	 * \brief Allows the application to override handling of any control request with an IN data stage
+	 *
+	 * This callback is optional; if not provided, it is treated as though always returning \c false.
+	 *
+	 * This callback is executed before, and can override, any corresponding device-wide callback.
+	 *
+	 * \pre Callback context is executing.
+	 *
+	 * \post Either \p *source must be set to an appropriate value, or the callback must return \c false.
+	 *
+	 * \param[in] request_type the request type field from the SETUP transaction
+	 *
+	 * \param[in] request the request field from the SETUP transaction
+	 *
+	 * \param[in] value the value field from the SETUP transaction
+	 *
+	 * \param[in] index the index field from the SETUP transaction
+	 *
+	 * \param[in] length the length of the data stage as specified by the host
+	 *
+	 * \param[out] source set to a source by the application to accept the request and return the sourced data, or to null to stall the request
+	 *
+	 * \return \c true if the application handles the request and demands a response per the \p source parameter, or \c false to let the stack handle the request
+	 */
+	bool (*on_in_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, usb_ep0_source_t **source);
+
+	/**
+	 * \brief Allows the application to override handling of any control request with an OUT data stage
+	 *
+	 * This callback is optional; if not provided, it is treated as though always returning \c false.
+	 *
+	 * This callback is executed before, and can override, any corresponding device-wide callback.
+	 *
+	 * \pre Callback context is executing.
+	 *
+	 * \post Either \p *dest and \p *cb must be set to an appropriate value, or the callback must return \c false.
+	 *
+	 * \param[in] request_type the request type field from the SETUP transaction
+	 *
+	 * \param[in] request the request field from the SETUP transaction
+	 *
+	 * \param[in] value the value field from the SETUP transaction
+	 *
+	 * \param[in] index the index field from the SETUP transaction
+	 *
+	 * \param[in] length the length of the data stage as specified by the host
+	 *
+	 * \param[out] dest set to a target buffer by the application to accept the request, or to null to stall the request
+	 *
+	 * \param[out] cb set to a callback by the application if it must be notified after the data stage completes to consume the data;
+	 * the callback may return \c true to issue a successful status stage, or \c false to stall the status stage
+	 *
+	 * \return \c true if the application handles the request and demands a response per the \p dest parameter, or \c false to let the stack handle the request
+	 */
+	bool (*on_out_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, void **dest, bool (**cb)(void));
+
 #warning we need a way to do things like alt settings and endpoint halt reporting
 } usb_ep0_configuration_callbacks_t;
 
