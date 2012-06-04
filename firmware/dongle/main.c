@@ -88,7 +88,11 @@ static void system_tick_vector(void) {
 static volatile uint64_t bootload_flag;
 
 static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept) {
-	if (request_type == 0x40 && request == 0x11 && !value && !index && usb_ep0_get_configuration() == 0) {
+	if (request_type == 0x40 && request == 0x12 && !index) {
+		buzzer_start(value);
+		*accept = true;
+		return true;
+	} else if (request_type == 0x40 && request == 0x13 && !value && !index && usb_ep0_get_configuration() == 0) {
 		bootload_flag = UINT64_C(0xDEADBEEFCAFEBABE);
 		SCS_AIRCR = 0x05FA0004;
 		for (;;);
