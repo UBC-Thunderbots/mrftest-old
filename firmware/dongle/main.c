@@ -675,26 +675,31 @@ static void stm32_main(void) {
 	// Reset the counter
 	SCS_STCVR = 0;
 
-	// Enable the clocks to peripherals
-	RCC_AHB1ENR |=
-		(1 << 20) // CCMDATARAMEN = 1; enable clock to core-coupled memory
-		| (1 << 3) // GPIODEN = 1; enable clock to GPIOD
-		| (1 << 2) // GPIOCEN = 1; enable clock to GPIOC
-		| (1 << 1) // GPIOBEN = 1; enable clock to GPIOB
-		| (1 << 0); // GPIOAEN = 1; enable clock to GPIOA
-	RCC_AHB2ENR |= (1 << 7); // OTGFSEN = 1; enable clock to USB FS
-	RCC_APB1ENR |= (1 << 3) // TIM5EN = 1; enable clock to timer 5
-		| (1 << 0); // TIM2EN = 1; enable clock to timer 2
-	RCC_APB2ENR |= (1 << 12); // SPI1EN = 1; enable clock to SPI 1
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-
 	// Initialize subsystems
 	buzzer_init();
 
 	// Set up pins
+	RCC_AHB1RSTR |=
+		(1 << 3) // GPIODEN = 1; reset GPIOD
+		| (1 << 2) // GPIOCEN = 1; reset GPIOC
+		| (1 << 1) // GPIOBEN = 1; reset GPIOB
+		| (1 << 0); // GPIOAEN = 1; reset GPIOA
+	asm volatile("dsb");
+	asm volatile("nop");
+	RCC_AHB1ENR |=
+		(1 << 3) // GPIODEN = 1; enable clock to GPIOD
+		| (1 << 2) // GPIOCEN = 1; enable clock to GPIOC
+		| (1 << 1) // GPIOBEN = 1; enable clock to GPIOB
+		| (1 << 0); // GPIOAEN = 1; enable clock to GPIOA
+	asm volatile("dsb");
+	asm volatile("nop");
+	RCC_AHB1RSTR &= ~(
+		(1 << 3) // GPIODEN = 0; release GPIOD from reset
+		| (1 << 2) // GPIOCEN = 0; release GPIOC from reset
+		| (1 << 1) // GPIOBEN = 0; release GPIOB from reset
+		| (1 << 0)); // GPIOAEN = 0; release GPIOA from reset
+	asm volatile("dsb");
+	asm volatile("nop");
 	// PA15 = MRF /CS, start deasserted
 	// PA14/PA13 = alternate function SWD
 	// PA12/PA11 = alternate function OTG FS
