@@ -22,8 +22,6 @@ namespace USB {
 	class Error : public std::runtime_error {
 		public:
 			Error(const std::string &msg);
-
-			int error_code() const;
 	};
 
 	/**
@@ -148,6 +146,8 @@ namespace USB {
 			void set_configuration(int config);
 
 			void claim_interface(int interface);
+
+			void release_interface(int interface);
 
 			void control_no_data(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout);
 

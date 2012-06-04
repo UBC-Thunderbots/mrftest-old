@@ -14,7 +14,7 @@
 #warning needs Doxygen
 
 namespace {
-	long check_fn(const char *call, long err) {
+	long check_fn(const char *call, long err, unsigned int endpoint) {
 		if (err >= 0) {
 			return err;
 		}
@@ -46,7 +46,7 @@ namespace {
 				break;
 
 			case LIBUSB_ERROR_TIMEOUT:
-				msg = "Operation timed out";
+				throw USB::TransferTimeoutError(endpoint);
 				break;
 
 			case LIBUSB_ERROR_OVERFLOW:
@@ -54,7 +54,7 @@ namespace {
 				break;
 
 			case LIBUSB_ERROR_PIPE:
-				msg = "Pipe error";
+				throw USB::TransferStallError(endpoint);
 				break;
 
 			case LIBUSB_ERROR_INTERRUPTED:
@@ -102,10 +102,10 @@ USB::TransferCancelledError::TransferCancelledError(unsigned int endpoint) : Tra
 
 
 USB::Context::Context() {
-	check_fn("libusb_init", libusb_init(&context));
+	check_fn("libusb_init", libusb_init(&context), 0);
 	const libusb_pollfd **pfds = libusb_get_pollfds(context);
 	if (!pfds) {
-		check_fn("libusb_get_pollfds", LIBUSB_ERROR_OTHER);
+		check_fn("libusb_get_pollfds", LIBUSB_ERROR_OTHER, 0);
 	}
 	for (const libusb_pollfd **i = pfds; *i; ++i) {
 		add_pollfd((*i)->fd, (*i)->events);
@@ -155,13 +155,13 @@ void USB::Context::remove_pollfd(int fd) {
 
 void USB::Context::handle_usb_fds() {
 	timeval tv = { 0, 0 };
-	check_fn("libusb_handle_events_timeout", libusb_handle_events_timeout(context, &tv));
+	check_fn("libusb_handle_events_timeout", libusb_handle_events_timeout(context, &tv), 0);
 }
 
 
 
 USB::Device::Device(const Device &copyref) : device(libusb_ref_device(copyref.device)) {
-	check_fn("libusb_get_device_descriptor", libusb_get_device_descriptor(device, &device_descriptor));
+	check_fn("libusb_get_device_descriptor", libusb_get_device_descriptor(device, &device_descriptor), 0);
 }
 
 USB::Device::~Device() {
@@ -177,14 +177,14 @@ USB::Device &USB::Device::operator=(const Device &assgref) {
 }
 
 USB::Device::Device(libusb_device *device) : device(libusb_ref_device(device)) {
-	check_fn("libusb_get_device_descriptor", libusb_get_device_descriptor(device, &device_descriptor));
+	check_fn("libusb_get_device_descriptor", libusb_get_device_descriptor(device, &device_descriptor), 0);
 }
 
 
 
 USB::DeviceList::DeviceList(Context &context) {
 	ssize_t ssz;
-	check_fn("libusb_get_device_list", ssz = libusb_get_device_list(context.context, &devices));
+	check_fn("libusb_get_device_list", ssz = libusb_get_device_list(context.context, &devices), 0);
 	size_ = ssz;
 }
 
@@ -200,7 +200,7 @@ USB::Device USB::DeviceList::operator[](const std::size_t i) const {
 
 
 USB::DeviceHandle::DeviceHandle(const Device &device) : context(device.context) {
-	check_fn("libusb_open", libusb_open(device.device, &handle));
+	check_fn("libusb_open", libusb_open(device.device, &handle), 0);
 }
 
 USB::DeviceHandle::DeviceHandle(Context &context, unsigned int vendor_id, unsigned int product_id) : context(context.context), submitted_transfer_count(0) {
@@ -215,7 +215,7 @@ USB::DeviceHandle::DeviceHandle(Context &context, unsigned int vendor_id, unsign
 				}
 			}
 
-			check_fn("libusb_open", libusb_open(device.device, &handle));
+			check_fn("libusb_open", libusb_open(device.device, &handle), 0);
 			return;
 		}
 	}
@@ -225,34 +225,38 @@ USB::DeviceHandle::DeviceHandle(Context &context, unsigned int vendor_id, unsign
 
 USB::DeviceHandle::~DeviceHandle() {
 	while (submitted_transfer_count) {
-		check_fn("libusb_handle_events", libusb_handle_events(context));
+		check_fn("libusb_handle_events", libusb_handle_events(context), 0);
 	}
 	libusb_close(handle);
 }
 
 int USB::DeviceHandle::get_configuration() const {
 	int conf;
-	check_fn("libusb_get_configuration", libusb_get_configuration(handle, &conf));
+	check_fn("libusb_get_configuration", libusb_get_configuration(handle, &conf), 0);
 	return conf;
 }
 
 void USB::DeviceHandle::set_configuration(int config) {
-	check_fn("libusb_set_configuration", libusb_set_configuration(handle, config));
+	check_fn("libusb_set_configuration", libusb_set_configuration(handle, config), 0);
 }
 
 void USB::DeviceHandle::claim_interface(int interface) {
-	check_fn("libusb_claim_interface", libusb_claim_interface(handle, interface));
+	check_fn("libusb_claim_interface", libusb_claim_interface(handle, interface), 0);
+}
+
+void USB::DeviceHandle::release_interface(int interface) {
+	check_fn("libusb_release_interface", libusb_release_interface(handle, interface), 0);
 }
 
 void USB::DeviceHandle::control_no_data(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout) {
 	assert((request_type & LIBUSB_ENDPOINT_DIR_MASK) == 0);
-	check_fn("libusb_control_transfer", libusb_control_transfer(handle, request_type | LIBUSB_ENDPOINT_OUT, request, value, index, 0, 0, timeout));
+	check_fn("libusb_control_transfer", libusb_control_transfer(handle, request_type | LIBUSB_ENDPOINT_OUT, request, value, index, 0, 0, timeout), 0);
 }
 
 std::size_t USB::DeviceHandle::control_in(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, void *buffer, std::size_t len, unsigned int timeout) {
 	assert((request_type & LIBUSB_ENDPOINT_DIR_MASK) == 0);
 	assert(len < 65536);
-	return check_fn("libusb_control_transfer", libusb_control_transfer(handle, request_type | LIBUSB_ENDPOINT_IN, request, value, index, static_cast<unsigned char *>(buffer), static_cast<uint16_t>(len), timeout));
+	return check_fn("libusb_control_transfer", libusb_control_transfer(handle, request_type | LIBUSB_ENDPOINT_IN, request, value, index, static_cast<unsigned char *>(buffer), static_cast<uint16_t>(len), timeout), 0);
 }
 
 std::size_t USB::DeviceHandle::interrupt_in(unsigned char endpoint, void *data, std::size_t length, unsigned int timeout, unsigned int stall_max) {
@@ -265,7 +269,7 @@ std::size_t USB::DeviceHandle::interrupt_in(unsigned char endpoint, void *data, 
 			LOG_ERROR(Glib::ustring::compose("Ignored stall on IN endpoint %1", static_cast<unsigned int>(endpoint)));
 		}
 	} while (rc == LIBUSB_ERROR_PIPE && stall_max--);
-	check_fn("libusb_interrupt_transfer", rc);
+	check_fn("libusb_interrupt_transfer", rc, endpoint | LIBUSB_ENDPOINT_IN);
 	assert(transferred >= 0);
 	return transferred;
 }
@@ -274,7 +278,7 @@ void USB::DeviceHandle::interrupt_out(unsigned char endpoint, const void *data, 
 	assert((endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK) == endpoint);
 	assert(length < static_cast<std::size_t>(std::numeric_limits<int>::max()));
 	int transferred;
-	check_fn("libusb_interrupt_transfer", libusb_interrupt_transfer(handle, endpoint | LIBUSB_ENDPOINT_OUT, const_cast<unsigned char *>(static_cast<const unsigned char *>(data)), static_cast<int>(length), &transferred, timeout));
+	check_fn("libusb_interrupt_transfer", libusb_interrupt_transfer(handle, endpoint | LIBUSB_ENDPOINT_OUT, const_cast<unsigned char *>(static_cast<const unsigned char *>(data)), static_cast<int>(length), &transferred, timeout), endpoint | LIBUSB_ENDPOINT_OUT);
 	if (transferred != static_cast<int>(length)) {
 		throw TransferError(1, "Device accepted wrong amount of data");
 	}
@@ -355,7 +359,7 @@ void USB::Transfer::result() const {
 
 void USB::Transfer::submit() {
 	assert(!submitted_);
-	check_fn("libusb_submit_transfer", libusb_submit_transfer(transfer));
+	check_fn("libusb_submit_transfer", libusb_submit_transfer(transfer), transfer->endpoint);
 	submitted_ = true;
 	done_ = false;
 	++device.submitted_transfer_count;
