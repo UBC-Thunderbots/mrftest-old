@@ -164,7 +164,7 @@ static void handle_setup_transaction(void) {
 			ok = true;
 		} else if (request_type == 0x81 && request == USB_STD_REQ_GET_STATUS && !value && data_requested == 2) {
 			// GET_STATUS(INTERFACE, n)
-			if (current_configuration_callbacks && index < current_configuration_callbacks->interfaces) {
+			if (current_configuration_callbacks && (index & 0x00FF) < current_configuration_callbacks->interfaces) {
 				stash_buffer[0] = 0x00;
 				stash_buffer[1] = 0x00;
 				data_source = usb_ep0_memory_source_init(&stash_buffer_source, stash_buffer, 2);
@@ -172,11 +172,32 @@ static void handle_setup_transaction(void) {
 			}
 		} else if (request_type == 0x82 && request == USB_STD_REQ_GET_STATUS && !value && data_requested == 2) {
 			// GET_STATUS(ENDPOINT, n)
-#warning TODO implement GET_STATUS to an endpoint
+			uint8_t endpoint_direction = index & 0x0080;
+			uint8_t endpoint_number = index & 0x000F;
+			uint8_t max_endpoint;
+			if (current_configuration_callbacks) {
+				max_endpoint = endpoint_direction ? current_configuration_callbacks->num_in_endpoints : current_configuration_callbacks->num_out_endpoints;
+			} else {
+				max_endpoint = 0;
+			}
+			if (endpoint_number <= max_endpoint) {
+				stash_buffer[0] = 0x00;
+				stash_buffer[1] = 0x00;
+				data_source = usb_ep0_memory_source_init(&stash_buffer_source, stash_buffer, 2);
+				ok = true;
+			}
 		} else if (request_type == 0x02 && request == USB_STD_REQ_CLEAR_FEATURE && !data_requested) {
-#warning TODO implement CLEAR_FEATURE to an endpoint
-		} else if (request_type == 0x02 && request == USB_STD_REQ_SET_FEATURE && !data_requested) {
-#warning TODO implement SET_FEATURE to an endpoint
+			uint8_t endpoint_direction = index & 0x0080;
+			uint8_t endpoint_number = index & 0x000F;
+			uint8_t max_endpoint;
+			if (current_configuration_callbacks) {
+				max_endpoint = endpoint_direction ? current_configuration_callbacks->num_in_endpoints : current_configuration_callbacks->num_out_endpoints;
+			} else {
+				max_endpoint = 0;
+			}
+			if (endpoint_number <= max_endpoint) {
+				ok = true;
+			}
 		} else if (request_type == 0x00 && request == USB_STD_REQ_SET_ADDRESS && !index && !data_requested) {
 			uint8_t address = setup_packet[2];
 			// SET_ADDRESS is only legal in the Default and Addressed states and the address must be 127 or less.

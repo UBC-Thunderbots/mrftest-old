@@ -255,6 +255,16 @@ typedef struct {
 	uint8_t interfaces;
 
 	/**
+	 * \brief The number of (non-zero) OUT endpoints in this configuration
+	 */
+	uint8_t num_out_endpoints;
+
+	/**
+	 * \brief The number of (non-zero) IN endpoints in this configuration
+	 */
+	uint8_t num_in_endpoints;
+
+	/**
 	 * \brief Checks whether it's acceptable to enter this configuration at this time
 	 *
 	 * This callback is optional; if not provided, requests to enter the configuration always succeed.
@@ -358,8 +368,6 @@ typedef struct {
 	 * \return \c true if the application handles the request and demands a response per the \p dest parameter, or \c false to let the stack handle the request
 	 */
 	bool (*on_out_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, void **dest, bool (**cb)(void));
-
-#warning we need a way to do things like alt settings and endpoint halt reporting
 } usb_ep0_configuration_callbacks_t;
 
 /**
