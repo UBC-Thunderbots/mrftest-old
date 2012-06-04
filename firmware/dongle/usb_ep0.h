@@ -257,12 +257,12 @@ typedef struct {
 	/**
 	 * \brief The number of (non-zero) OUT endpoints in this configuration
 	 */
-	uint8_t num_out_endpoints;
+	uint8_t out_endpoints;
 
 	/**
 	 * \brief The number of (non-zero) IN endpoints in this configuration
 	 */
-	uint8_t num_in_endpoints;
+	uint8_t in_endpoints;
 
 	/**
 	 * \brief Checks whether it's acceptable to enter this configuration at this time

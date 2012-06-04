@@ -176,7 +176,7 @@ static void handle_setup_transaction(void) {
 			uint8_t endpoint_number = index & 0x000F;
 			uint8_t max_endpoint;
 			if (current_configuration_callbacks) {
-				max_endpoint = endpoint_direction ? current_configuration_callbacks->num_in_endpoints : current_configuration_callbacks->num_out_endpoints;
+				max_endpoint = endpoint_direction ? current_configuration_callbacks->in_endpoints : current_configuration_callbacks->out_endpoints;
 			} else {
 				max_endpoint = 0;
 			}
@@ -191,7 +191,7 @@ static void handle_setup_transaction(void) {
 			uint8_t endpoint_number = index & 0x000F;
 			uint8_t max_endpoint;
 			if (current_configuration_callbacks) {
-				max_endpoint = endpoint_direction ? current_configuration_callbacks->num_in_endpoints : current_configuration_callbacks->num_out_endpoints;
+				max_endpoint = endpoint_direction ? current_configuration_callbacks->in_endpoints : current_configuration_callbacks->out_endpoints;
 			} else {
 				max_endpoint = 0;
 			}
