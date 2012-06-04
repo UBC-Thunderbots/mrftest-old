@@ -37,6 +37,7 @@ firmware/dongle/limits.h -text
 firmware/dongle/main.c -text
 firmware/dongle/mrf.c -text
 firmware/dongle/mrf.h -text
+firmware/dongle/rcc.h -text
 firmware/dongle/registers.h -text
 firmware/dongle/sleep.c -text
 firmware/dongle/sleep.h -text

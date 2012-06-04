@@ -1,6 +1,7 @@
 #include "usb.h"
 #include "assert.h"
 #include "usb_internal.h"
+#include "rcc.h"
 #include "registers.h"
 #include "sleep.h"
 #include "stdbool.h"
@@ -135,15 +136,7 @@ void usb_attach(const usb_device_info_t *info) {
 	usb_device_info = info;
 
 	// Reset the module and enable the clock
-	RCC_AHB2RSTR |= 1 << 7; // OTGFSRST = 1; reset USB FS
-	asm volatile("dsb");
-	asm volatile("nop");
-	RCC_AHB2ENR |= (1 << 7); // OTGFSEN = 1; enable clock to USB FS
-	asm volatile("dsb");
-	asm volatile("nop");
-	RCC_AHB2RSTR &= ~(1 << 7); // OTGFSRST = 0; release USB FS from reset
-	asm volatile("dsb");
-	asm volatile("nop");
+	rcc_enable(AHB2, 7);
 
 	// Reset the USB core and configure device-wide parameters
 	OTG_FS_GUSBCFG =

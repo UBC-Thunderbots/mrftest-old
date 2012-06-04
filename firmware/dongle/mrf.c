@@ -1,4 +1,5 @@
 #include "mrf.h"
+#include "rcc.h"
 #include "registers.h"
 #include "sleep.h"
 
@@ -20,15 +21,7 @@ void mrf_init(void) {
 	GPIOB_ODR &= ~(1 << 7); // PB7 = MRF /reset = 0; assert reset
 
 	// Reset the module and enable the clock
-	RCC_APB2RSTR |= 1 << 12; // SPI1RST = 1; reset SPI 1
-	asm volatile("dsb");
-	asm volatile("nop");
-	RCC_APB2ENR |= 1 << 12; // SPI1EN = 1; enable clock to SPI 1
-	asm volatile("dsb");
-	asm volatile("nop");
-	RCC_APB2RSTR &= ~(1 << 12); // SPI1RST = 0; release SPI 1 from reset
-	asm volatile("dsb");
-	asm volatile("nop");
+	rcc_enable(APB2, 12);
 
 	if (SPI1_CR1 & (1 << 6) /* SPE */) {
 		// Wait for SPI module to be idle

@@ -1,5 +1,6 @@
 #include "buzzer.h"
 #include "mrf.h"
+#include "rcc.h"
 #include "registers.h"
 #include "sleep.h"
 #include "stddef.h"
@@ -682,27 +683,7 @@ static void stm32_main(void) {
 	buzzer_init();
 
 	// Set up pins
-	RCC_AHB1RSTR |=
-		(1 << 3) // GPIODEN = 1; reset GPIOD
-		| (1 << 2) // GPIOCEN = 1; reset GPIOC
-		| (1 << 1) // GPIOBEN = 1; reset GPIOB
-		| (1 << 0); // GPIOAEN = 1; reset GPIOA
-	asm volatile("dsb");
-	asm volatile("nop");
-	RCC_AHB1ENR |=
-		(1 << 3) // GPIODEN = 1; enable clock to GPIOD
-		| (1 << 2) // GPIOCEN = 1; enable clock to GPIOC
-		| (1 << 1) // GPIOBEN = 1; enable clock to GPIOB
-		| (1 << 0); // GPIOAEN = 1; enable clock to GPIOA
-	asm volatile("dsb");
-	asm volatile("nop");
-	RCC_AHB1RSTR &= ~(
-		(1 << 3) // GPIODEN = 0; release GPIOD from reset
-		| (1 << 2) // GPIOCEN = 0; release GPIOC from reset
-		| (1 << 1) // GPIOBEN = 0; release GPIOB from reset
-		| (1 << 0)); // GPIOAEN = 0; release GPIOA from reset
-	asm volatile("dsb");
-	asm volatile("nop");
+	rcc_enable_multi(AHB1, 0x0000000F); // Enable GPIOA, GPIOB, GPIOC, and GPIOD modules
 	// PA15 = MRF /CS, start deasserted
 	// PA14/PA13 = alternate function SWD
 	// PA12/PA11 = alternate function OTG FS

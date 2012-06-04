@@ -1,4 +1,5 @@
 #include "buzzer.h"
+#include "rcc.h"
 #include "registers.h"
 
 void timer5_interrupt_vector(void) {
@@ -12,19 +13,8 @@ void timer5_interrupt_vector(void) {
 }
 
 void buzzer_init(void) {
-	// Reset the module and enable the clock
-	RCC_APB1RSTR |= (1 << 3) // TIM5RST = 1; reset timer 5
-		| (1 << 0); // TIM2RST = 1; reset timer 2
-	asm volatile("dsb");
-	asm volatile("nop");
-	RCC_APB1ENR |= (1 << 3) // TIM5EN = 1; enable clock to timer 5
-		| (1 << 0); // TIM2EN = 1; enable clock to timer 2
-	asm volatile("dsb");
-	asm volatile("nop");
-	RCC_APB1RSTR &= ~((1 << 3) // TIM5RST = 0; release timer 5 from reset
-		| (1 << 0)); // TIM2RST = 0; release timer 2 from reset
-	asm volatile("dsb");
-	asm volatile("nop");
+	// Power up the modules
+	rcc_enable_multi(APB1, 0b1001); // Enable timer 5 and 2
 
 	// Configure timer 2 to drive the buzzer itself in PWM mode
 	TIM2_CR1 = (TIM2_CR1 & 0b1111110000000000) // Reserved
