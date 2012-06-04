@@ -155,7 +155,7 @@ static void handle_setup_transaction(void) {
 	// If the application didn't handle the packet, examine it and try to find out what to do with it.
 	if (!application_handled) {
 		if (request_type == 0x80 && request == USB_STD_REQ_GET_STATUS && !value && !index && data_requested == 2) {
-			// GET_STATUS(DEVICE)
+			// GET STATUS(DEVICE)
 			// We do not support remote wakeup, so bit 1 is always set to zero.
 			// We call the application to check whether we are currently bus-powered or self-powered.
 			stash_buffer[0] = global_callbacks->on_check_self_powered() ? 0x01 : 0x00;
@@ -163,7 +163,7 @@ static void handle_setup_transaction(void) {
 			data_source = usb_ep0_memory_source_init(&stash_buffer_source, stash_buffer, 2);
 			ok = true;
 		} else if (request_type == 0x81 && request == USB_STD_REQ_GET_STATUS && !value && data_requested == 2) {
-			// GET_STATUS(INTERFACE, n)
+			// GET STATUS(INTERFACE)
 			if (current_configuration_callbacks && (index & 0x00FF) < current_configuration_callbacks->interfaces) {
 				stash_buffer[0] = 0x00;
 				stash_buffer[1] = 0x00;
@@ -171,7 +171,7 @@ static void handle_setup_transaction(void) {
 				ok = true;
 			}
 		} else if (request_type == 0x82 && request == USB_STD_REQ_GET_STATUS && !value && data_requested == 2) {
-			// GET_STATUS(ENDPOINT, n)
+			// GET STATUS(ENDPOINT)
 			uint8_t endpoint_direction = index & 0x0080;
 			uint8_t endpoint_number = index & 0x000F;
 			uint8_t max_endpoint;
@@ -187,6 +187,7 @@ static void handle_setup_transaction(void) {
 				ok = true;
 			}
 		} else if (request_type == 0x02 && request == USB_STD_REQ_CLEAR_FEATURE && !data_requested) {
+			// CLEAR FEATURE(ENDPOINT)
 			uint8_t endpoint_direction = index & 0x0080;
 			uint8_t endpoint_number = index & 0x000F;
 			uint8_t max_endpoint;
@@ -199,6 +200,7 @@ static void handle_setup_transaction(void) {
 				ok = true;
 			}
 		} else if (request_type == 0x00 && request == USB_STD_REQ_SET_ADDRESS && !index && !data_requested) {
+			// SET ADDRESS(DEVICE)
 			uint8_t address = setup_packet[2];
 			// SET_ADDRESS is only legal in the Default and Addressed states and the address must be 127 or less.
 			if (!current_configuration && address <= 127) {
@@ -207,16 +209,19 @@ static void handle_setup_transaction(void) {
 				ok = true;
 			}
 		} else if (request_type == 0x80 && request == USB_STD_REQ_GET_DESCRIPTOR) {
+			// GET DESCRIPTOR
 			data_source = global_callbacks->on_descriptor_request(setup_packet[3], setup_packet[2], index);
 			ok = !!data_source;
 		} else if (request_type == 0x80 && request == USB_STD_REQ_GET_CONFIGURATION && !value && !index && data_requested == 1) {
+			// GET CONFIGURATION(DEVICE)
 			if (OTG_FS_DCFG & (127 << 4)) {
 				stash_buffer[0] = current_configuration;
 				data_source = usb_ep0_memory_source_init(&stash_buffer_source, stash_buffer, 1);
 				ok = true;
 			}
 		} else if (request_type == 0x00 && request == USB_STD_REQ_SET_CONFIGURATION && !index && !data_requested) {
-			// SET_CONFIGURATION is only legal in the Addressed and Configured states.
+			// SET CONFIGURATION(DEVICE)
+			// This is only legal in the Addressed and Configured states.
 			// Because it results in endpoints being turned on or off, it should only happen when no traffic is moving.
 			if (OTG_FS_DCFG & (127 << 4)) {
 				usb_set_global_nak();
