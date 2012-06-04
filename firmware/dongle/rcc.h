@@ -26,6 +26,8 @@ static inline void rcc_enable_(uint32_t mask, volatile uint32_t *rstr, volatile 
 // This function is an implementation detail and should not be called directly
 static inline void rcc_disable_(uint32_t mask, volatile uint32_t *enr) __attribute__((unused));
 static inline void rcc_disable_(uint32_t mask, volatile uint32_t *enr) {
+	asm volatile("dsb");
+	asm volatile("nop");
 	*enr &= ~mask;
 }
 
