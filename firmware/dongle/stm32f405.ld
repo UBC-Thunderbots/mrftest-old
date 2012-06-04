@@ -5,11 +5,11 @@ MEMORY {
 }
 
 SECTIONS {
-	.exception_vectors : {
+	.exception_vectors 0x08000000 : {
 		KEEP(*(.exception_vectors))
 	} >flash_region
 
-	.interrupt_vectors : {
+	.interrupt_vectors 0x08000040 : {
 		KEEP(*(.interrupt_vectors))
 	} >flash_region
 
