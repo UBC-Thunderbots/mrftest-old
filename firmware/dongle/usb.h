@@ -2,6 +2,7 @@
 #define USB_H
 
 #include "stdbool.h"
+#include "stddef.h"
 #include "stdint.h"
 
 /**
@@ -80,6 +81,13 @@ void usb_attach(const usb_device_info_t *device_info);
  * \pre Callback context must not be executing.
  */
 void usb_detach(void);
+
+/**
+ * \brief Returns the offset into the FIFO space at which the application may begin allocating nonzero-endpoint FIFOs
+ *
+ * \return the number of words used by endpoint zero FIFOs
+ */
+size_t usb_application_fifo_offset(void);
 
 /**
  * @}

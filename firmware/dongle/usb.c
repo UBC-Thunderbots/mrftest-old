@@ -210,6 +210,10 @@ void usb_detach(void) {
 	OTG_FS_GAHBCFG &= ~(1 << 0); // GINTMSK = 0; disable USB interrupts globally
 }
 
+size_t usb_application_fifo_offset(void) {
+	return usb_device_info->rx_fifo_words + usb_device_info->ep0_max_packet / 4;
+}
+
 void usb_in_set_callback(uint8_t ep, void (*cb)(void)) {
 	in_endpoint_callbacks[ep] = cb;
 }
