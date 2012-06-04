@@ -1,4 +1,5 @@
 #include "buzzer.h"
+#include "configs.h"
 #include "mrf.h"
 #include "rcc.h"
 #include "registers.h"
@@ -19,7 +20,8 @@ static void usage_fault_vector(void);
 static void service_call_vector(void);
 static void pending_service_vector(void);
 static void system_tick_vector(void);
-extern void timer5_interrupt_vector(void);
+void exti15_10_interrupt_vector(void);
+void timer5_interrupt_vector(void);
 
 static char stack[65536] __attribute__((section(".stack")));
 
@@ -48,6 +50,8 @@ static const fptr exception_vectors[16] __attribute__((used, section(".exception
 };
 
 static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt_vectors"))) = {
+	// Vector 40 contains the EXTI 15 through 10 vector
+	[40] = &exti15_10_interrupt_vector,
 	// Vector 50 contains the timer 5 vector
 	[50] = &timer5_interrupt_vector,
 	// Vector 67 contains the USB full speed vector
@@ -128,28 +132,6 @@ static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	2, // iProduct
 	9, // iSerialNumber
 	6, // bNumConfigurations
-};
-
-static const uint8_t CONFIGURATION_DESCRIPTOR1[] = {
-	9, // bLength
-	2, // bDescriptorType
-	18, // wTotalLength LSB
-	0, // wTotalLength MSB
-	1, // bNumInterfaces
-	1, // bConfigurationValue
-	3, // iConfiguration
-	0x80, // bmAttributes
-	50, // bMaxPower
-
-	9, // bLength
-	4, // bDescriptorType
-	0, // bInterfaceNumber
-	0, // bAlternateSetting
-	0, // bNumEndpoints
-	0xFF, // bInterfaceClass
-	0x00, // bInterfaceSubClass
-	0, // bInterfaceProtocol
-	0, // iInterface
 };
 
 static const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
@@ -304,36 +286,6 @@ static const uint8_t CONFIGURATION_DESCRIPTOR5[] = {
 	1, // bInterval
 };
 
-static const uint8_t CONFIGURATION_DESCRIPTOR6[] = {
-	9, // bLength
-	2, // bDescriptorType
-	25, // wTotalLength LSB
-	0, // wTotalLength MSB
-	1, // bNumInterfaces
-	6, // bConfigurationValue
-	8, // iConfiguration
-	0x80, // bmAttributes
-	150, // bMaxPower
-
-	9, // bLength
-	4, // bDescriptorType
-	0, // bInterfaceNumber
-	0, // bAlternateSetting
-	1, // bNumEndpoints
-	0xFF, // bInterfaceClass
-	0x00, // bInterfaceSubClass
-	0, // bInterfaceProtocol
-	0, // iInterface
-
-	7, // bLength
-	5, // bDescriptorType
-	0x81, // bEndpointAddress
-	0x03, // bmAttributes
-	1, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	1, // bInterval
-};
-
 static const uint8_t * const CONFIGURATION_DESCRIPTORS[] = {
 	CONFIGURATION_DESCRIPTOR1,
 	CONFIGURATION_DESCRIPTOR2,
@@ -408,10 +360,6 @@ static const usb_ep0_global_callbacks_t DEVICE_CBS = {
 	.on_check_self_powered = &on_check_self_powered,
 };
 
-static void on_enter_config1(void) {
-	GPIOB_ODR |= 7 << 12;
-}
-
 static bool can_enter_config2(void) {
 #warning TODO implement this configuration
 	return false;
@@ -455,30 +403,6 @@ static void on_enter_config5(void) {
 
 static void on_exit_config5(void) {
 }
-
-static bool can_enter_config6(void) {
-#warning TODO implement this configuration
-	return false;
-}
-
-static void on_enter_config6(void) {
-}
-
-static void on_exit_config6(void) {
-}
-
-static const usb_ep0_configuration_callbacks_t CONFIG1_CBS = {
-	.configuration = 1,
-	.interfaces = 1,
-	.out_endpoints = 0,
-	.in_endpoints = 0,
-	.can_enter = 0,
-	.on_enter = &on_enter_config1,
-	.on_exit = 0,
-	.on_zero_request = 0,
-	.on_in_request = 0,
-	.on_out_request = 0,
-};
 
 static const usb_ep0_configuration_callbacks_t CONFIG2_CBS = {
 	.configuration = 2,
@@ -532,26 +456,13 @@ static const usb_ep0_configuration_callbacks_t CONFIG5_CBS = {
 	.on_out_request = 0,
 };
 
-static const usb_ep0_configuration_callbacks_t CONFIG6_CBS = {
-	.configuration = 6,
-	.interfaces = 1,
-	.out_endpoints = 0,
-	.in_endpoints = 1,
-	.can_enter = &can_enter_config6,
-	.on_enter = &on_enter_config6,
-	.on_exit = &on_exit_config6,
-	.on_zero_request = 0,
-	.on_in_request = 0,
-	.on_out_request = 0,
-};
-
 static const usb_ep0_configuration_callbacks_t * const CONFIG_CBS[] = {
-	&CONFIG1_CBS,
+	&CONFIGURATION_CBS1,
 	&CONFIG2_CBS,
 	&CONFIG3_CBS,
 	&CONFIG4_CBS,
 	&CONFIG5_CBS,
-	&CONFIG6_CBS,
+	&CONFIGURATION_CBS6,
 	0
 };
 

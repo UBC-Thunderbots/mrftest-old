@@ -32,6 +32,8 @@ firmware/dongle/buzzer.c -text
 firmware/dongle/buzzer.h -text
 firmware/dongle/config.c -text
 firmware/dongle/config.h -text
+firmware/dongle/configs.h -text
+firmware/dongle/debug.c -text
 firmware/dongle/enter-dfu-mode.c -text
 firmware/dongle/exit-dfu-mode.c -text
 firmware/dongle/getabi.sh -text
@@ -39,6 +41,7 @@ firmware/dongle/limits.h -text
 firmware/dongle/main.c -text
 firmware/dongle/mrf.c -text
 firmware/dongle/mrf.h -text
+firmware/dongle/radio_sleep.c -text
 firmware/dongle/rcc.h -text
 firmware/dongle/registers.h -text
 firmware/dongle/sleep.c -text
