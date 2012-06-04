@@ -771,7 +771,7 @@ static void stm32_main(void) {
 	usb_ep0_set_global_callbacks(&DEVICE_CBS);
 	usb_ep0_set_configuration_callbacks(CONFIG_CBS);
 	usb_attach(&DEVICE_INFO);
-	NVIC_ISER(67 / 32) = 1 << (67 % 32);
+	NVIC_ISER(67 / 32) = 1 << (67 % 32); // SETENA67 = 1; enable USB FS interrupt
 
 	// Handle activity
 	for (;;) {

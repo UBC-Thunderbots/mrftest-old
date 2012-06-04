@@ -77,9 +77,7 @@ void buzzer_init(void) {
 	TIM5_PSC = 35999; // Set prescale 1:36,000, yielding two ticks per millisecond
 	TIM5_ARR = 0xFFFFFFFF; // Set auto-reload to “infinity” because we don't really want auto-reload at all
 	TIM5_CR1 |= 1 << 0; // CEN = 1; enable counter for one tick after which an interrupt will be delivered (not doing this appears to break the first enablement of the timer by instantly delivering an interrupt for no apparent reason)
-
-	// Enable interrupt 50 (timer 5 interrupt) at the NVIC
-	NVIC_ISER(50 / 32) = 1 << (50 % 32); // SETENA50 = 1; enable interrupt
+	NVIC_ISER(50 / 32) = 1 << (50 % 32); // SETENA50 = 1; enable timer 5 interrupt
 }
 
 void buzzer_start(unsigned long millis) {
