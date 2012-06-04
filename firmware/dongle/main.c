@@ -588,6 +588,9 @@ static void stm32_main(void) {
 	// Always 8-byte-align the stack pointer on entry to an interrupt handler (as ARM recommends)
 	SCS_CCR |= 1 << 9; // STKALIGN = 1; guarantee 8-byte alignment
 
+	// As we will be running at 144 MHz, switch to the lower-power voltage regulator mode (compatible only up to 144 MHz)
+	PWR_CR &= ~(1 << 14); // VOS = 0; set regulator scale 2
+
 	// Enable the HSE (8 MHz crystal) oscillator
 	RCC_CR =
 		(1 << 16) // HSEON = 1; enable HSE oscillator
