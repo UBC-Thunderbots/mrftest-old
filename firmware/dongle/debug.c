@@ -38,16 +38,25 @@ const uint8_t CONFIGURATION_DESCRIPTOR6[] = {
 };
 
 void exti15_10_interrupt_vector(void) {
+	// Clear the interrupt
 	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
+
+	// Check the INT pin level
 	bool int_level = !!(GPIOC_IDR & (1 << 12));
+
+	// Display the INT pin level on LED 2
 	GPIOB_BSRR = int_level ? 2 << 12 : 2 << (12 + 16);
+
+	// Check if the transmit FIFO has any empty space
 	if (OTG_FS_DTXFSTS1 & 0xFFFF) {
+		// Space is available; queue a packet
 		OTG_FS_DIEPTSIZ1 += (1 << 19) // PKTCNT += 1; increment count of packets to send
 			| (1 << 0); // XFRSIZ += 1; increment count of bytes to send
 		OTG_FS_DIEPCTL1 |= (1 << 31) // EPENA = 1; start transmission on this endpoint
 			| (1 << 26); // CNAK = 1; clear NAk flag
 		OTG_FS_FIFO[1][0] = int_level ? 1 : 0;
 	} else {
+		// Space is not available; light LED 3 and wait for empty space
 		GPIOB_BSRR = 4 << 12;
 		OTG_FS_DIEPEMPMSK |= 1 << 1; // INEPTXFEM1 = 1; take interrupt on IN endpoint 1 TX FIFO empty
 	}
@@ -70,10 +79,13 @@ static void on_ep1_in_interrupt(void) {
 }
 
 static void on_enter(void) {
+	// Initialize radio
 	mrf_init();
 
+	// Turn on LED 1
 	GPIOB_BSRR = 1 << 12;
 
+	// Configure MRF INT (PC12) as an external interrupt
 	rcc_enable(APB2, 14);
 	SYSCFG_EXTICR[12 / 4] = (SYSCFG_EXTICR[12 / 4] & ~(15 << (12 % 4))) | (2 << (12 % 4)); // EXTI12 = 2; map PC12 to EXTI12
 	rcc_disable(APB2, 14);
@@ -82,6 +94,7 @@ static void on_enter(void) {
 	EXTI_IMR |= 1 << 12; // MR12 = 1; enable interrupt on EXTI12 trigger
 	NVIC_ISER[40 / 32] = 1 << (40 % 32); // SETENA40 = 1; enable EXTI15…10 interrupt
 
+	// Set up endpoint 1 (interrupt IN)
 	usb_in_set_callback(1, &on_ep1_in_interrupt);
 	OTG_FS_DIEPTXF1 =
 		(16 << 16) // INEPTXFD = 16; allocate 16 words of FIFO space for this FIFO
@@ -101,11 +114,13 @@ static void on_enter(void) {
 	OTG_FS_DIEPINT1 = OTG_FS_DIEPINT1; // Clear all pending interrupts for IN endpoint 1
 	OTG_FS_DAINTMSK |= 1 << 1; // IEPM1 = 1; enable interrupts for IN endpoint 1
 
+	// Display the current level of INT on LED 3
 	bool int_level = !!(GPIOC_IDR & (1 << 12));
 	GPIOB_BSRR = int_level ? 2 << 12 : 2 << (12 + 16);
 }
 
 static void on_exit(void) {
+	// Shut down endpoint 1
 	if (OTG_FS_DIEPCTL1 & (1 << 31) /* EPENA */) {
 		if (!(OTG_FS_DIEPCTL1 & (1 << 17) /* NAKSTS */)) {
 			OTG_FS_DIEPCTL1 |= 1 << 27; // SNAK = 1; start NAKing traffic
@@ -119,25 +134,31 @@ static void on_exit(void) {
 	OTG_FS_DIEPEMPMSK &= ~(1 << 1); // INEPTXFEM1 = 0; disable FIFO empty interrupts for IN endpoint 1
 	usb_in_set_callback(1, 0);
 
+	// Disable the external interrupt on MRF INT
 	NVIC_ICER[40 / 32] = 1 << (40 % 32); // CLRENA40 = 1; disable EXTI15…10 interrupt
 	EXTI_IMR &= ~(1 << 12); // MR12 = 0; disable interrupt on EXTI12 trigger
 
+	// Turn off all LEDs
 	GPIOB_BSRR = 7 << (12 + 16);
 
+	// Reset the radio
 	mrf_init();
 }
 
 static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept) {
 	if (request_type == 0x40 && request == 0x0D && !(value & 0b1111111111111100) && !index) {
+		// SET CONTROL LINES
 		GPIOB_BSRR = (value & (1 << 0)) ? 1 << 7 : 1 << (7 + 16);
 		GPIOB_BSRR = (value & (1 << 1)) ? 1 << 6 : 1 << (6 + 16);
 		*accept = true;
 		return true;
 	} else if (request_type == 0x40 && request == 0x0F && value <= 0xFF && index <= 0x3F) {
+		// SET SHORT-ADDRESS HARDWARE REGISTER
 		mrf_write_short(index, value);
 		*accept = true;
 		return true;
 	} else if (request_type == 0x40 && request == 0x11 && value <= 0xFF && index <= 0x038F && !(0x02C0 <= index && index <= 0x02FF)) {
+		// SET LONG-ADDRESS HARDWARE REGISTER
 		mrf_write_long(index, value);
 		*accept = true;
 		return true;
@@ -151,6 +172,7 @@ static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value,
 	static usb_ep0_memory_source_t mem_src;
 
 	if (request_type == 0xC0 && request == 0x0C && !value && !index) {
+		// GET CONTROL LINES
 		buffer[0] = 0;
 		if (GPIOB_ODR & (1 << 7)) {
 			buffer[0] |= 1 << 0;
@@ -164,10 +186,12 @@ static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value,
 		*source = usb_ep0_memory_source_init(&mem_src, buffer, 1);
 		return true;
 	} else if (request_type == 0xC0 && request == 0x0E && !value && index <= 0x3F) {
+		// GET SHORT-ADDRESS HARDWARE REGISTER
 		buffer[0] = mrf_read_short(index);
 		*source = usb_ep0_memory_source_init(&mem_src, buffer, 1);
 		return true;
 	} else if (request_type == 0xC0 && request == 0x10 && !value && index <= 0x038F && !(0x02C0 <= index && index <= 0x02FF)) {
+		// GET LONG-ADDRESS HARDWARE REGISTER
 		buffer[0] = mrf_read_long(index);
 		*source = usb_ep0_memory_source_init(&mem_src, buffer, 1);
 		return true;
