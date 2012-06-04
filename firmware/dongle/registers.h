@@ -46,6 +46,7 @@
 #define HASH_CR HASH_REG(0x00)
 #define HASH_DIN HASH_REG(0x04)
 #define HASH_STR HASH_REG(0x08)
+#define HASH_HR(n) HASH_REG(0x0C + (n) * 4)
 #define HASH_HR0 HASH_REG(0x0C)
 #define HASH_HR1 HASH_REG(0x10)
 #define HASH_HR2 HASH_REG(0x14)
