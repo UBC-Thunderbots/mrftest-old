@@ -87,7 +87,7 @@ static void handle_in_endpoint(void) {
 
 void usb_copy_out_packet(void *target, size_t length) {
 	length = (length + 3) / 4;
-	volatile const uint32_t *src = (volatile const uint32_t *) 0x50001000;
+	volatile const uint32_t *src = OTG_FS_FIFO[0];
 	if (target) {
 		uint32_t *dest = target;
 		while (length--) {

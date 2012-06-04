@@ -662,7 +662,7 @@ static void stm32_main(void) {
 	sleep_1ms(100);
 
 	// Turn off LEDs
-	GPIOB_ODR &= ~(7 << 12);
+	GPIOB_BSRR = 7 << (12 + 16);
 
 	// Initialize USB
 	usb_ep0_set_global_callbacks(&DEVICE_CBS);

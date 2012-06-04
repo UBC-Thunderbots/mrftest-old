@@ -173,6 +173,7 @@ extern volatile uint32_t OTG_FS_DOEPTSIZ1;
 extern volatile uint32_t OTG_FS_DOEPTSIZ2;
 extern volatile uint32_t OTG_FS_DOEPTSIZ3;
 extern volatile uint32_t OTG_FS_PCGCCTL;
+extern volatile uint32_t OTG_FS_FIFO[4][0x1000 / 4];
 
 extern volatile uint32_t DMA2_LISR;
 extern volatile uint32_t DMA2_HISR;

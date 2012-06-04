@@ -39,16 +39,16 @@ const uint8_t CONFIGURATION_DESCRIPTOR6[] = {
 
 void exti15_10_interrupt_vector(void) {
 	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
-	GPIOB_ODR ^= 2 << 12;
+	bool int_level = !!(GPIOC_IDR & (1 << 12));
+	GPIOB_BSRR = int_level ? 2 << 12 : 2 << (12 + 16);
 	if (OTG_FS_DTXFSTS1 & 0xFFFF) {
-		uint32_t data = !!(GPIOC_IDR & (1 << 12));
 		OTG_FS_DIEPTSIZ1 += (1 << 19) // PKTCNT += 1; increment count of packets to send
 			| (1 << 0); // XFRSIZ += 1; increment count of bytes to send
 		OTG_FS_DIEPCTL1 |= (1 << 31) // EPENA = 1; start transmission on this endpoint
 			| (1 << 26); // CNAK = 1; clear NAk flag
-		*((volatile uint32_t *) 0x50002000) = data;
+		OTG_FS_FIFO[1][0] = int_level ? 1 : 0;
 	} else {
-		GPIOB_ODR |= 4 << 12;
+		GPIOB_BSRR = 4 << 12;
 		OTG_FS_DIEPEMPMSK |= 1 << 1; // INEPTXFEM1 = 1; take interrupt on IN endpoint 1 TX FIFO empty
 	}
 }
@@ -57,13 +57,12 @@ static void on_ep1_in_interrupt(void) {
 	if ((OTG_FS_DIEPEMPMSK & (1 << 1) /* INEPTXFEM1 */) && (OTG_FS_DIEPINT1 & (1 << 7) /* TXFE */)) {
 		// We were waiting to be notified about the FIFO becoming empty, and now it has
 		// Push a packet
-		uint32_t data = !!(GPIOC_IDR & (1 << 12));
 		OTG_FS_DIEPTSIZ1 += (1 << 19) // PKTCNT += 1; increment count of packets to send
 			| (1 << 0); // XFRSIZ += 1; increment count of bytes to send
-		*((volatile uint32_t *) 0x50002000) = data;
+		OTG_FS_FIFO[1][0] = !!(GPIOC_IDR & (1 << 12));
 		// Stop asking to be interrupted about FIFO empty
 		OTG_FS_DIEPEMPMSK &= ~(1 << 1); // INEPTXFEM1 = 0; do not interrupt on IN endpoint 1 TX FIFO empty
-		GPIOB_ODR &= ~(4 << 12);
+		GPIOB_BSRR = 4 << (12 + 16);
 	} else if (OTG_FS_DIEPINT1 & (1 << 0) /* XFRC */) {
 		// We don’t actually care about transfer complete notification
 		OTG_FS_DIEPINT1 = 1 << 0; // XFRC = 1; clear transfer complete interrupt flag
@@ -73,7 +72,7 @@ static void on_ep1_in_interrupt(void) {
 static void on_enter(void) {
 	mrf_init();
 
-	GPIOB_ODR |= 1 << 12;
+	GPIOB_BSRR = 1 << 12;
 
 	rcc_enable(APB2, 14);
 	SYSCFG_EXTICR[12 / 4] = (SYSCFG_EXTICR[12 / 4] & ~(15 << (12 % 4))) | (2 << (12 % 4)); // EXTI12 = 2; map PC12 to EXTI12
@@ -91,15 +90,19 @@ static void on_enter(void) {
 		(0 << 31) // EPENA = 0; do not start transmission on this endpoint
 		| (0 << 30) // EPDIS = 0; do not disable this endpoint at this time
 		| (1 << 28) // SD0PID = 1; set data PID to 0
-		| (0 << 27) // SNAK = 0; do not set NAK flag
+		| (1 << 27) // SNAK = 1; set NAK flag
 		| (0 << 26) // CNAK = 0; do not clear NAK flag
 		| (1 << 22) // TXFNUM = 1; use transmit FIFO number 1
 		| (0 << 21) // STALL = 0; do not stall traffic
 		| (3 << 18) // EPTYP = 3; interrupt endpoint
 		| (1 << 15) // USBAEP = 1; endpoint is active in this configuration
 		| (1 << 0); // MPSIZ = 1; maximum packet size is 1 byte
+	while (!(OTG_FS_DIEPCTL1 & (1 << 17) /* NAKSTS */));
 	OTG_FS_DIEPINT1 = OTG_FS_DIEPINT1; // Clear all pending interrupts for IN endpoint 1
 	OTG_FS_DAINTMSK |= 1 << 1; // IEPM1 = 1; enable interrupts for IN endpoint 1
+
+	bool int_level = !!(GPIOC_IDR & (1 << 12));
+	GPIOB_BSRR = int_level ? 2 << 12 : 2 << (12 + 16);
 }
 
 static void on_exit(void) {
@@ -119,16 +122,15 @@ static void on_exit(void) {
 	NVIC_ICER[40 / 32] = 1 << (40 % 32); // CLRENA40 = 1; disable EXTI15…10 interrupt
 	EXTI_IMR &= ~(1 << 12); // MR12 = 0; disable interrupt on EXTI12 trigger
 
-	GPIOB_ODR &= ~(7 << 12);
+	GPIOB_BSRR = 7 << (12 + 16);
 
 	mrf_init();
 }
 
 static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept) {
 	if (request_type == 0x40 && request == 0x0D && !(value & 0b1111111111111100) && !index) {
-		GPIOB_ODR = (GPIOB_ODR & ~((1 << 7) | (1 << 6)))
-			| ((value & (1 << 0)) ? (1 << 7) : 0)
-			| ((value & (1 << 1)) ? (1 << 6) : 0);
+		GPIOB_BSRR = (value & (1 << 0)) ? 1 << 7 : 1 << (7 + 16);
+		GPIOB_BSRR = (value & (1 << 1)) ? 1 << 6 : 1 << (6 + 16);
 		*accept = true;
 		return true;
 	} else if (request_type == 0x40 && request == 0x0F && value <= 0xFF && index <= 0x3F) {

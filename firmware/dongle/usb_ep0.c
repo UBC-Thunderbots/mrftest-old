@@ -50,7 +50,7 @@ static bool push_transaction(void) {
 	// We are guaranteed to have enough space because the endpoint 0 TX FIFO is large enough to hold max packet, and we only ever send one transaction at a time.
 	size_t packet_words = (packet_size + 3) / 4;
 	for (size_t i = 0; i < packet_words; ++i) {
-		*(volatile uint32_t *) 0x50001000 = ((const uint32_t *) packet_buffer)[i];
+		OTG_FS_FIFO[0][i] = ((const uint32_t *) packet_buffer)[i];
 	}
 
 	// Account for the data we just sent.
@@ -378,7 +378,8 @@ void usb_ep0_handle_global_nak_effective(void) {
 	// See what the request was and handle appropriately.
 	bool ok = false;
 	if (request_type == 0x00 && request == USB_STD_REQ_SET_CONFIGURATION && !index && !data_requested) {
-		// SET_CONFIGURATION is only legal in the Addressed and Configured states.
+		// SET CONFIGURATION(DEVICE)
+		// This is only legal in the Addressed and Configured states.
 		if (OTG_FS_DCFG & (127 << 4)) {
 			const usb_ep0_configuration_callbacks_t *new_cbs = 0;
 			if (value) {
