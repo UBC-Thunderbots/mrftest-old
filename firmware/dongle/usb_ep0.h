@@ -365,11 +365,9 @@ typedef struct {
 /**
  * \brief Sets the configuration callbacks the application uses for all configurations
  *
- * \param[in] configurations an array of configuration callback structures, one per configuration
- *
- * \param[in] length the number of structures in the array
+ * \param[in] configurations an array of pointers to configuration callback structures, one per configuration, ending with a null pointer
  */
-void usb_ep0_set_configuration_callbacks(const usb_ep0_configuration_callbacks_t *configurations, size_t length);
+void usb_ep0_set_configuration_callbacks(const usb_ep0_configuration_callbacks_t * const *configurations);
 
 /**
  * @}

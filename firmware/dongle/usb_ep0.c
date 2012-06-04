@@ -5,8 +5,7 @@
 #include "usb_internal.h"
 
 static const usb_ep0_global_callbacks_t *global_callbacks = 0;
-static const usb_ep0_configuration_callbacks_t *configuration_callbacks = 0;
-static size_t configuration_callbacks_length = 0;
+static const usb_ep0_configuration_callbacks_t * const *configuration_callbacks = 0;
 static uint8_t setup_packet[8];
 static usb_ep0_source_t *data_source = 0;
 static uint8_t *data_sink = 0;
@@ -359,11 +358,11 @@ void usb_ep0_handle_global_nak_effective(void) {
 			if (value) {
 				// Check if the specified configuration exists and is currently available.
 				ok = false;
-				for (size_t i = 0; i < configuration_callbacks_length; ++i) {
-					if (configuration_callbacks[i].configuration == value) {
-						new_cbs = configuration_callbacks + i;
-						if (configuration_callbacks[i].can_enter) {
-							ok = configuration_callbacks[i].can_enter();
+				for (const usb_ep0_configuration_callbacks_t * const *i = configuration_callbacks; *i; ++i) {
+					if ((*i)->configuration == value) {
+						new_cbs = *i;
+						if (new_cbs->can_enter) {
+							ok = new_cbs->can_enter();
 						} else {
 							ok = true;
 						}
@@ -514,9 +513,8 @@ void usb_ep0_set_global_callbacks(const usb_ep0_global_callbacks_t *callbacks) {
 	global_callbacks = callbacks;
 }
 
-void usb_ep0_set_configuration_callbacks(const usb_ep0_configuration_callbacks_t *configurations, size_t length) {
+void usb_ep0_set_configuration_callbacks(const usb_ep0_configuration_callbacks_t * const *configurations) {
 	configuration_callbacks = configurations;
-	configuration_callbacks_length = length;
 }
 
 uint8_t usb_ep0_get_configuration(void) {
