@@ -76,12 +76,12 @@ static void on_enter(void) {
 	GPIOB_ODR |= 1 << 12;
 
 	rcc_enable(APB2, 14);
-	SYSCFG_EXTICR4 = (SYSCFG_EXTICR4 & 0xFFFFFFF0) | 2; // EXTI12 = 2; map PC12 to EXTI12
+	SYSCFG_EXTICR[12 / 4] = (SYSCFG_EXTICR[12 / 4] & ~(15 << (12 % 4))) | (2 << (12 % 4)); // EXTI12 = 2; map PC12 to EXTI12
 	rcc_disable(APB2, 14);
 	EXTI_RTSR |= 1 << 12; // TR12 = 1; enable rising edge trigger on EXTI12
 	EXTI_FTSR |= 1 << 12; // TR12 = 1; enable falling edge trigger on EXTI12
 	EXTI_IMR |= 1 << 12; // MR12 = 1; enable interrupt on EXTI12 trigger
-	NVIC_ISER(40 / 32) |= 1 << (40 % 32); // SETENA40 = 1; enable EXTI15…10 interrupt
+	NVIC_ISER[40 / 32] = 1 << (40 % 32); // SETENA40 = 1; enable EXTI15…10 interrupt
 
 	usb_in_set_callback(1, &on_ep1_in_interrupt);
 	OTG_FS_DIEPTXF1 =
@@ -116,7 +116,7 @@ static void on_exit(void) {
 	OTG_FS_DIEPEMPMSK &= ~(1 << 1); // INEPTXFEM1 = 0; disable FIFO empty interrupts for IN endpoint 1
 	usb_in_set_callback(1, 0);
 
-	NVIC_ICER(40 / 32) |= 1 << (40 % 32); // CLRENA40 = 1; disable EXTI15…10 interrupt
+	NVIC_ICER[40 / 32] = 1 << (40 % 32); // CLRENA40 = 1; disable EXTI15…10 interrupt
 	EXTI_IMR &= ~(1 << 12); // MR12 = 0; disable interrupt on EXTI12 trigger
 
 	GPIOB_ODR &= ~(7 << 12);
