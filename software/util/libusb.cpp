@@ -259,6 +259,12 @@ std::size_t USB::DeviceHandle::control_in(uint8_t request_type, uint8_t request,
 	return check_fn("libusb_control_transfer", libusb_control_transfer(handle, request_type | LIBUSB_ENDPOINT_IN, request, value, index, static_cast<unsigned char *>(buffer), static_cast<uint16_t>(len), timeout), 0);
 }
 
+void USB::DeviceHandle::control_out(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, const void *buffer, std::size_t len, unsigned int timeout) {
+	assert((request_type & LIBUSB_ENDPOINT_DIR_MASK) == 0);
+	assert(len < 65536);
+	check_fn("libusb_control_transfer", libusb_control_transfer(handle, request_type | LIBUSB_ENDPOINT_OUT, request, value, index, static_cast<unsigned char *>(const_cast<void *>(buffer)), static_cast<uint16_t>(len), timeout), 0);
+}
+
 std::size_t USB::DeviceHandle::interrupt_in(unsigned char endpoint, void *data, std::size_t length, unsigned int timeout, unsigned int stall_max) {
 	assert((endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK) == endpoint);
 	assert(length < static_cast<std::size_t>(std::numeric_limits<int>::max()));
@@ -282,6 +288,15 @@ void USB::DeviceHandle::interrupt_out(unsigned char endpoint, const void *data, 
 	if (transferred != static_cast<int>(length)) {
 		throw TransferError(1, "Device accepted wrong amount of data");
 	}
+}
+
+std::size_t USB::DeviceHandle::bulk_in(unsigned char endpoint, void *data, std::size_t length, unsigned int timeout) {
+	assert((endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK) == endpoint);
+	assert(length < static_cast<std::size_t>(std::numeric_limits<int>::max()));
+	int transferred = -1;
+	check_fn("libusb_bulk_transfer", libusb_bulk_transfer(handle, endpoint | LIBUSB_ENDPOINT_IN, static_cast<unsigned char *>(data), static_cast<uint16_t>(length), &transferred, timeout), endpoint | LIBUSB_ENDPOINT_IN);
+	assert(transferred >= 0);
+	return transferred;
 }
 
 

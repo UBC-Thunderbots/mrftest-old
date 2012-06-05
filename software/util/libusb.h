@@ -153,9 +153,13 @@ namespace USB {
 
 			std::size_t control_in(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, void *buffer, std::size_t len, unsigned int timeout);
 
+			void control_out(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, const void *buffer, std::size_t len, unsigned int timeout);
+
 			std::size_t interrupt_in(unsigned char endpoint, void *data, std::size_t length, unsigned int timeout, unsigned int stall_max);
 
 			void interrupt_out(unsigned char endpoint, const void *data, std::size_t length, unsigned int timeout);
+
+			std::size_t bulk_in(unsigned char endpoint, void *data, std::size_t length, unsigned int timeout);
 
 		private:
 			friend class Transfer;
