@@ -151,7 +151,7 @@ namespace {
 	}
 }
 
-int main(int, char **) {
+int main() {
 	try {
 		return main_impl();
 	} catch (const std::exception &exp) {
