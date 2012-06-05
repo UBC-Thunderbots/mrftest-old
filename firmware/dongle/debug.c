@@ -111,6 +111,11 @@ static void on_enter(void) {
 		| (1 << 15) // USBAEP = 1; endpoint is active in this configuration
 		| (1 << 0); // MPSIZ = 1; maximum packet size is 1 byte
 	while (!(OTG_FS_DIEPCTL1 & (1 << 17) /* NAKSTS */));
+	while (!(OTG_FS_GRSTCTL & (1 << 31) /* AHBIDL */));
+	OTG_FS_GRSTCTL = (OTG_FS_GRSTCTL & 0x7FFFF808) // Reserved
+		| (1 << 6) // TXFNUM = 1; flush transmit FIFO #1
+		| (1 << 5); // TXFFLSH = 1; flush transmit FIFO
+	while (OTG_FS_GRSTCTL & (1 << 5) /* TXFFLSH */);
 	OTG_FS_DIEPINT1 = OTG_FS_DIEPINT1; // Clear all pending interrupts for IN endpoint 1
 	OTG_FS_DAINTMSK |= 1 << 1; // IEPM1 = 1; enable interrupts for IN endpoint 1
 
