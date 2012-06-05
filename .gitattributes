@@ -37,10 +37,13 @@ firmware/dongle/debug.c -text
 firmware/dongle/enter-dfu-mode.c -text
 firmware/dongle/exit-dfu-mode.c -text
 firmware/dongle/getabi.sh -text
+firmware/dongle/interrupt.c -text
+firmware/dongle/interrupt.h -text
 firmware/dongle/limits.h -text
 firmware/dongle/main.c -text
 firmware/dongle/mrf.c -text
 firmware/dongle/mrf.h -text
+firmware/dongle/promiscuous.c -text
 firmware/dongle/radio_sleep.c -text
 firmware/dongle/rcc.h -text
 firmware/dongle/registers.h -text
@@ -440,6 +443,7 @@ software/log/shared/enums.cpp -text
 software/log/shared/enums.h -text
 software/log/shared/magic.cpp -text
 software/log/shared/magic.h -text
+software/mrfcap/main.cpp -text
 software/mrfdbg/main.cpp -text
 software/project.mk -text
 software/proto/log_record.proto -text

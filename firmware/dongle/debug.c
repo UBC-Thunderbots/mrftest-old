@@ -1,4 +1,5 @@
 #include "configs.h"
+#include "interrupt.h"
 #include "mrf.h"
 #include "rcc.h"
 #include "registers.h"
@@ -37,7 +38,7 @@ const uint8_t CONFIGURATION_DESCRIPTOR6[] = {
 	1, // bInterval
 };
 
-void exti15_10_interrupt_vector(void) {
+static void exti12_interrupt_vector(void) {
 	// Clear the interrupt
 	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
 
@@ -86,6 +87,7 @@ static void on_enter(void) {
 	GPIOB_BSRR = 1 << 12;
 
 	// Configure MRF INT (PC12) as an external interrupt
+	interrupt_exti12_handler = &exti12_interrupt_vector;
 	rcc_enable(APB2, 14);
 	SYSCFG_EXTICR[12 / 4] = (SYSCFG_EXTICR[12 / 4] & ~(15 << (12 % 4))) | (2 << (12 % 4)); // EXTI12 = 2; map PC12 to EXTI12
 	rcc_disable(APB2, 14);
@@ -142,6 +144,7 @@ static void on_exit(void) {
 	// Disable the external interrupt on MRF INT
 	NVIC_ICER[40 / 32] = 1 << (40 % 32); // CLRENA40 = 1; disable EXTI15…10 interrupt
 	EXTI_IMR &= ~(1 << 12); // MR12 = 0; disable interrupt on EXTI12 trigger
+	interrupt_exti12_handler = 0;
 
 	// Turn off all LEDs
 	GPIOB_BSRR = 7 << (12 + 16);

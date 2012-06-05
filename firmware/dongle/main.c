@@ -20,7 +20,7 @@ static void usage_fault_vector(void);
 static void service_call_vector(void);
 static void pending_service_vector(void);
 static void system_tick_vector(void);
-void exti15_10_interrupt_vector(void);
+void interrupt_dispatcher_exti15_10(void);
 void timer5_interrupt_vector(void);
 
 static char stack[65536] __attribute__((section(".stack")));
@@ -51,7 +51,7 @@ static const fptr exception_vectors[16] __attribute__((used, section(".exception
 
 static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt_vectors"))) = {
 	// Vector 40 contains the EXTI 15 through 10 vector
-	[40] = &exti15_10_interrupt_vector,
+	[40] = &interrupt_dispatcher_exti15_10,
 	// Vector 50 contains the timer 5 vector
 	[50] = &timer5_interrupt_vector,
 	// Vector 67 contains the USB full speed vector
@@ -204,36 +204,6 @@ static const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
 	1, // bInterval
 };
 
-static const uint8_t CONFIGURATION_DESCRIPTOR3[] = {
-	9, // bLength
-	2, // bDescriptorType
-	25, // wTotalLength LSB
-	0, // wTotalLength MSB
-	1, // bNumInterfaces
-	3, // bConfigurationValue
-	5, // iConfiguration
-	0x80, // bmAttributes
-	150, // bMaxPower
-
-	9, // bLength
-	4, // bDescriptorType
-	0, // bInterfaceNumber
-	0, // bAlternateSetting
-	1, // bNumEndpoints
-	0xFF, // bInterfaceClass
-	0x00, // bInterfaceSubClass
-	0, // bInterfaceProtocol
-	0, // iInterface
-
-	7, // bLength
-	5, // bDescriptorType
-	0x81, // bEndpointAddress
-	0x02, // bmAttributes
-	64, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	0, // bInterval
-};
-
 static const uint8_t CONFIGURATION_DESCRIPTOR4[] = {
 	9, // bLength
 	2, // bDescriptorType
@@ -371,17 +341,6 @@ static void on_enter_config2(void) {
 static void on_exit_config2(void) {
 }
 
-static bool can_enter_config3(void) {
-#warning TODO implement this configuration
-	return false;
-}
-
-static void on_enter_config3(void) {
-}
-
-static void on_exit_config3(void) {
-}
-
 static bool can_enter_config4(void) {
 #warning TODO implement this configuration
 	return false;
@@ -417,19 +376,6 @@ static const usb_ep0_configuration_callbacks_t CONFIG2_CBS = {
 	.on_out_request = 0,
 };
 
-static const usb_ep0_configuration_callbacks_t CONFIG3_CBS = {
-	.configuration = 3,
-	.interfaces = 1,
-	.out_endpoints = 0,
-	.in_endpoints = 1,
-	.can_enter = &can_enter_config3,
-	.on_enter = &on_enter_config3,
-	.on_exit = &on_exit_config3,
-	.on_zero_request = 0,
-	.on_in_request = 0,
-	.on_out_request = 0,
-};
-
 static const usb_ep0_configuration_callbacks_t CONFIG4_CBS = {
 	.configuration = 4,
 	.interfaces = 1,
@@ -459,7 +405,7 @@ static const usb_ep0_configuration_callbacks_t CONFIG5_CBS = {
 static const usb_ep0_configuration_callbacks_t * const CONFIG_CBS[] = {
 	&CONFIGURATION_CBS1,
 	&CONFIG2_CBS,
-	&CONFIG3_CBS,
+	&CONFIGURATION_CBS3,
 	&CONFIG4_CBS,
 	&CONFIG5_CBS,
 	&CONFIGURATION_CBS6,
