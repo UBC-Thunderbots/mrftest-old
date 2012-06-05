@@ -100,7 +100,7 @@ namespace {
 
 					// look for a friendly player that is good to pass
 					if (AI::HL::STP::Predicates::baller_can_pass(world)) {
-						players[0]->autokick(6.0); // might want to autochip?
+						
 						// everybody else goes towards where ball is likely to go lol
 						int w = 1;
 						for (std::size_t i = 1; i < players.size(); ++i) {
@@ -109,6 +109,14 @@ namespace {
 							w++;
 							Action::move(world, players[i], AI::HL::Util::crop_point_to_field(world.field(),p));
 						}
+						for (std::size_t i = 1; i < players.size(); ++i) {
+							// only shoot / chip when we have a player near the target
+							if ((players[i]->position() - start).len() < 4 * Robot::MAX_RADIUS) {
+								players[0]->autokick(6.0); // might want to autochip?
+								return;
+							}
+						}
+						
 					} else {						
 						// player with the ball turns around while trying to move to center of the half field
 						players[0]->move(Point(-world.field().length()/4, 0.0), (players[0]->orientation() + baller_spin_delta).angle_mod(), Point());
