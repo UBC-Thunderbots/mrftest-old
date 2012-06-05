@@ -183,5 +183,25 @@ uint8_t mrf_read_long(mrf_reg_long_t reg);
  */
 void mrf_write_long(mrf_reg_long_t reg, uint8_t value);
 
+/**
+ * \brief Performs common initialiation of the radio based on the configuration parameters
+ */
+void mrf_common_init(void);
+
+/**
+ * \brief Sets the analogue path on the MRF to consume minimum power and not allow any communication
+ */
+void mrf_analogue_off(void);
+
+/**
+ * \brief Sets the analogue path on the MRF to allow reception but not transmission
+ */
+void mrf_analogue_rx(void);
+
+/**
+ * \brief Sets the analogue path on the MRF to allow both transmission and reception
+ */
+void mrf_analogue_txrx(void);
+
 #endif
 
