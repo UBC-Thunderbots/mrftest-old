@@ -67,6 +67,9 @@ firmware/dongle/usb_internal.h -text
 firmware/flybackconverter/Makefile -text
 firmware/flybackconverter/config.h -text
 firmware/flybackconverter/main.c -text
+firmware/main/Makefile -text
+firmware/main/entry.c -text
+firmware/main/navre.ld -text
 firmware/pingen/Makefile -text
 firmware/pingen/pingen.c -text
 firmware/shared/Makefile.common -text
