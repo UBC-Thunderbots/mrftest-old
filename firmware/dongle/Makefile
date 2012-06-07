@@ -32,7 +32,7 @@ enter-dfu-mode exit-dfu-mode : % : %.c
 
 .PHONY : clean
 clean :
-	$(RM) $(PROJ).bin $(PROJ).elf $(PROJ).map exit-dfu-mode *.o
+	$(RM) $(PROJ).bin $(PROJ).elf $(PROJ).map enter-dfu-mode exit-dfu-mode *.o
 
 .PHONY : dfu
 dfu : $(PROJ).bin enter-dfu-mode exit-dfu-mode
