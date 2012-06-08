@@ -258,22 +258,14 @@ void Firmware::pk2_upload(const IntelHex &hex) {
 	// Read PICkit2 status, clean up any strange state, and initialize the pins
 	{
 		std::cout << "Checking PICkit2 status...\n";
-		const unsigned char command[] = { READ_STATUS };
-		pk2_write(handle, command, sizeof(command));
+		const unsigned char command = READ_STATUS;
+		pk2_write(handle, &command, sizeof(command));
 		unsigned char response[2];
 		pk2_read(handle, response, sizeof(response));
 		std::vector<unsigned char> cleanup_commands;
 		if (response[1] & (1 << 1)) {
 			std::cout << "WARNING: PICkit2 was in UART mode; exiting.\n";
 			cleanup_commands.push_back(EXIT_UART_MODE);
-		}
-		if (response[0] & ((1 << 3) | (1 << 2))) {
-			std::cout << "WARNING: PICkit2 VPP driver was enabled; disabling.\n";
-			cleanup_commands.push_back(EXECUTE_SCRIPT);
-			cleanup_commands.push_back(3);
-			cleanup_commands.push_back(VPP_OFF);
-			cleanup_commands.push_back(VPP_PWM_OFF);
-			cleanup_commands.push_back(MCLR_GND_OFF);
 		}
 		if (response[0] & ((1 << 1) | (1 << 0))) {
 			std::cout << "WARNING: PICkit2 VDD driver was enabled; disabling.\n";
@@ -286,7 +278,10 @@ void Firmware::pk2_upload(const IntelHex &hex) {
 		cleanup_commands.push_back(CLR_UPLOAD_BUFFER);
 		cleanup_commands.push_back(CLR_SCRIPT_BUFFER);
 		cleanup_commands.push_back(EXECUTE_SCRIPT);
-		cleanup_commands.push_back(6);
+		cleanup_commands.push_back(9);
+		cleanup_commands.push_back(VPP_PWM_OFF);
+		cleanup_commands.push_back(MCLR_GND_OFF);
+		cleanup_commands.push_back(VPP_ON);
 		cleanup_commands.push_back(SET_ICSP_PINS);
 		cleanup_commands.push_back(1 << 1); // PGD = MISO = input, PGC = CLK = output 0
 		cleanup_commands.push_back(SET_AUX);
@@ -300,7 +295,20 @@ void Firmware::pk2_upload(const IntelHex &hex) {
 	// Read the JEDEC ID from the SPI flash
 	{
 		std::cout << "Checking SPI flash manufacturer and model ID...\n";
-		const unsigned char command[] = { EXECUTE_SCRIPT, 11, BUSY_LED_ON, MCLR_GND_ON, DELAY_SHORT, 1, SPI_WR_BYTE_LIT, 0x9F, SPI_RD_BYTE_BUF, SPI_RD_BYTE_BUF, SPI_RD_BYTE_BUF, MCLR_GND_OFF, BUSY_LED_OFF, UPLOAD_DATA };
+		const unsigned char command[] = {
+			EXECUTE_SCRIPT, 11,
+				VPP_OFF,
+				BUSY_LED_ON,
+				MCLR_GND_ON,
+				SPI_WR_BYTE_LIT, 0x9F,
+				SPI_RD_BYTE_BUF,
+				SPI_RD_BYTE_BUF,
+				SPI_RD_BYTE_BUF,
+				MCLR_GND_OFF,
+				BUSY_LED_OFF,
+				VPP_ON,
+			UPLOAD_DATA
+		};
 		pk2_write(handle, command, sizeof(command));
 		unsigned char buffer[64];
 		pk2_read(handle, buffer, sizeof(buffer));
@@ -327,32 +335,39 @@ void Firmware::pk2_upload(const IntelHex &hex) {
 	{
 		std::cout << "Uploading scripts...\n";
 		const unsigned char command[] = {
-			DOWNLOAD_SCRIPT, SCRIPT_INDEX_READ_STATUS_1, 7,
+			DOWNLOAD_SCRIPT, SCRIPT_INDEX_READ_STATUS_1, 9,
+				VPP_OFF,
 				BUSY_LED_ON,
 				MCLR_GND_ON,
 				SPI_WR_BYTE_LIT, 0x05, // Read status register 1
 				SPI_RD_BYTE_BUF,
 				MCLR_GND_OFF,
 				BUSY_LED_OFF,
-			DOWNLOAD_SCRIPT, SCRIPT_INDEX_WRITE_ENABLE, 6,
+				VPP_ON,
+			DOWNLOAD_SCRIPT, SCRIPT_INDEX_WRITE_ENABLE, 8,
+				VPP_OFF,
 				BUSY_LED_ON,
 				MCLR_GND_ON,
 				SPI_WR_BYTE_LIT, 0x06,
 				MCLR_GND_OFF,
 				BUSY_LED_OFF,
-			DOWNLOAD_SCRIPT, SCRIPT_INDEX_PAGE_PROGRAM_BEGIN, 7,
+				VPP_ON,
+			DOWNLOAD_SCRIPT, SCRIPT_INDEX_PAGE_PROGRAM_BEGIN, 8,
+				VPP_OFF,
 				BUSY_LED_ON,
 				MCLR_GND_ON,
 				SPI_WR_BYTE_LIT, 0x02,
 				SPI_WR_BYTE_BUF,
 				SPI_WR_BYTE_BUF,
 				SPI_WR_BYTE_BUF,
-			DOWNLOAD_SCRIPT, SCRIPT_INDEX_PAGE_PROGRAM_END, 6,
+			DOWNLOAD_SCRIPT, SCRIPT_INDEX_PAGE_PROGRAM_END, 7,
 				SPI_WR_BYTE_BUF,
 				LOOP, 1, 255,
 				MCLR_GND_OFF,
 				BUSY_LED_OFF,
-			DOWNLOAD_SCRIPT, SCRIPT_INDEX_READ_126_BYTES, 13,
+				VPP_ON,
+			DOWNLOAD_SCRIPT, SCRIPT_INDEX_READ_126_BYTES, 15,
+				VPP_OFF,
 				BUSY_LED_ON,
 				MCLR_GND_ON,
 				SPI_WR_BYTE_LIT, 0x03,
@@ -363,6 +378,7 @@ void Firmware::pk2_upload(const IntelHex &hex) {
 				LOOP, 1, 125,
 				MCLR_GND_OFF,
 				BUSY_LED_OFF,
+				VPP_ON,
 		};
 		pk2_write(handle, command, sizeof(command));
 	}
@@ -373,14 +389,14 @@ void Firmware::pk2_upload(const IntelHex &hex) {
 		{
 			const unsigned char command[] = {
 				RUN_SCRIPT, SCRIPT_INDEX_WRITE_ENABLE, 1,
-				EXECUTE_SCRIPT, 10,
+				EXECUTE_SCRIPT, 8,
+					VPP_OFF,
 					BUSY_LED_ON,
 					MCLR_GND_ON,
-					DELAY_SHORT, 1,
 					SPI_WR_BYTE_LIT, 0xC7, // Chip erase
-					DELAY_SHORT, 1,
 					MCLR_GND_OFF,
 					BUSY_LED_OFF,
+					VPP_ON,
 			};
 			pk2_write(handle, command, sizeof(command));
 			check_status(handle);
@@ -485,6 +501,8 @@ void Firmware::pk2_upload(const IntelHex &hex) {
 			EXECUTE_SCRIPT, 4,
 			SET_ICSP_PINS, (1 << 1) | (1 << 0),
 			SET_AUX, (1 << 0),
+			EXECUTE_SCRIPT, 1,
+				VPP_OFF,
 		};
 		pk2_write(handle, command, sizeof(command));
 		check_status(handle);
