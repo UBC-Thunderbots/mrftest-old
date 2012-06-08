@@ -69,6 +69,7 @@ firmware/flybackconverter/config.h -text
 firmware/flybackconverter/main.c -text
 firmware/main/Makefile -text
 firmware/main/entry.c -text
+firmware/main/io.h -text
 firmware/main/navre.ld -text
 firmware/pingen/Makefile -text
 firmware/pingen/pingen.c -text

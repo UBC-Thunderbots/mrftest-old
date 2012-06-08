@@ -26,4 +26,9 @@ SECTIONS {
 	.bss : {
 		*(.bss)
 	} >ram_region
+
+	/* The stack sits at the topmost kilobyte */
+	.stack 0x800C00 (NOLOAD) : {
+		KEEP(*(.stack))
+	} >ram_region
 }

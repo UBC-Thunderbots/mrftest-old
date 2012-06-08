@@ -2,7 +2,7 @@ ABI := avr
 CC := $(ABI)-gcc
 LD := $(ABI)-ld
 PROJ := main
-override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -mmcu=avr2 -mno-interrupts -nostdinc -nostdlib -g
+override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -mmcu=avr2 -mno-interrupts -g
 override LDFLAGS := $(LDFLAGS) -Tnavre.ld --gc-sections
 
 FW_SOURCES := $(wildcard *.c)
