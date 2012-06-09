@@ -69,10 +69,10 @@ namespace {
 
 	void PID5_2012Controller::convert(const Point &vel, Angle avel, int(&wheel_speeds)[4]) {
 		static const double WHEEL_MATRIX[4][3] = {
-			{ -42.5995, 27.6645, 4.3175 },
-			{ -35.9169, -35.9169, 4.3175 },
-			{ 35.9169, -35.9169, 4.3175 },
-			{ 42.5995, 27.6645, 4.3175 }
+			{	-71.85,	46.66,	7.06},
+			{	-60.58,	-60.58,	7.06},
+			{	60.58,	-60.58,	7.06},
+			{	71.85,	46.68,	7.06}
 		};
 		const double input[3] = { vel.x, vel.y, avel.to_radians() };
 		double output[4] = { 0, 0, 0, 0 };
