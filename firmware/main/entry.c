@@ -13,13 +13,28 @@ static void entry(void) {
 		"rjmp avr_main\n\t");
 }
 
+static void sleep_1s(void) {
+	uint8_t x = 200;
+	while (--x) {
+		uint8_t old = inb(TICKS);
+		while (inb(TICKS) != old);
+	}
+}
+
 static void avr_main(void) __attribute__((noreturn, used));
 static void avr_main(void) {
-	uint8_t x;
-	for (;;) {
-		inb(0);
-		x = inb(3);
-		outb(0, x >> 2);
+	outb(FLASH_CTL, 0x00);
+	outb(FLASH_DATA, 0x9F);
+	while (inb(FLASH_CTL) & 0x01);
+	outb(FLASH_DATA, 0x00);
+	while (inb(FLASH_CTL) & 0x01);
+	uint8_t mfgr_id = inb(FLASH_DATA);
+	outb(FLASH_CTL, 0x02);
+	if (mfgr_id == 0xEF) {
+		outb(LED_CTL, 0x21);
+	} else {
+		outb(LED_CTL, 0x22);
 	}
+	for (;;);
 }
 
