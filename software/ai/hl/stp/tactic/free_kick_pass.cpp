@@ -32,9 +32,9 @@ namespace {
 
 			void execute() {
 				Point dest;
-				const double DISTANCE_FROM_BALL = Robot::MAX_RADIUS + 0.25; // Keep robot this far away from the ball
+				const double DISTANCE_FROM_BALL = 3 * Robot::MAX_RADIUS; // Keep robot this far away from the ball
 				const double TOLERANCE = 0.1; // Speed tolerance
-				const double ROT_ANGLE = 135; // rotate to this angle
+				const double ROT_ANGLE = 150; // rotate to this angle
 				const double ANGLE_TOL = 5.0; // Be within this angle before shooting
 				Point player_to_ball = player->position() - world.ball().position();
 				Angle to_target = (world.ball().position() - target).orientation() - player_to_ball.orientation();
@@ -49,14 +49,14 @@ namespace {
 							state = ROTATE_BOT;
 						}
 						break;
-					// Rotate below to a 45 degree angle
+					// Rotate below to a 30 degree angle
 					case ROTATE_BOT:
 						pivot(world, player, world.ball().position() + Point(0, DISTANCE_FROM_BALL), DISTANCE_FROM_BALL);						
 						if (player_to_ball.orientation() >= Angle::of_degrees(-ROT_ANGLE) && player_to_ball.orientation() <= Angle::ZERO) {
 							state = ROTATE_TOP;
 						}
 						break;
-					// Rotate above to a 45 degree angle
+					// Rotate above to a 30 degree angle
 					case ROTATE_TOP:
 						pivot(world, player,world.ball().position() - Point(0, DISTANCE_FROM_BALL), DISTANCE_FROM_BALL);
 						if (player_to_ball.orientation() <= Angle::of_degrees(ROT_ANGLE) && player_to_ball.orientation() >= Angle::ZERO) {
