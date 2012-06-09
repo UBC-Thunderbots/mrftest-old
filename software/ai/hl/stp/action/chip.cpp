@@ -27,7 +27,6 @@ bool AI::HL::STP::Action::chip_target(const World &world, Player::Ptr player, co
 	// Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot_target(world, player, target);
 	intercept_pivot(world, player, target);
 
-	// if (shoot_data.can_shoot) {
 	if (!Evaluation::player_within_angle_thresh(player, target, passer_angle_threshold)) {
 		return false;
 	}

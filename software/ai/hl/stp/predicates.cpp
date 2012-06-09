@@ -159,9 +159,17 @@ bool Predicates::BallerCanChip::compute(const World &world) {
 	if (!baller || !Evaluation::possess_ball(world, baller) || !baller->has_chipper()) {
 		return false;
 	}
-	#warning currently won't chip if it can't shoot, since enemy might be too close to chip the ball over them. 
+	
 	if (shoot_anyway > std::rand()%10) return true;
-	return Evaluation::evaluate_shoot(world, baller).angle >= min_shoot_region;
+
+	const EnemyTeam &enemies = world.enemy_team();
+	for (std::size_t i = 0; i < enemies.size(); ++i) {
+		if ((baller->position() - enemies.get(i)->position()).len() <= near_thresh * AI::HL::W::Robot::MAX_RADIUS) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 Predicates::BallerCanChip Predicates::baller_can_chip;
