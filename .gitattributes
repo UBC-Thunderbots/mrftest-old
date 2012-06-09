@@ -362,7 +362,9 @@ software/ai/robot_controller/kalman_controller.cpp -text
 software/ai/robot_controller/lazy_controller.cpp -text
 software/ai/robot_controller/max_controller.cpp -text
 software/ai/robot_controller/path_controller.cpp -text
+software/ai/robot_controller/pid5_2012_controller.cpp -text
 software/ai/robot_controller/pid5_controller.cpp -text
+software/ai/robot_controller/pid6_2012_controller.cpp -text
 software/ai/robot_controller/pid6_controller.cpp -text
 software/ai/robot_controller/pid_simulator_controller.cpp -text
 software/ai/robot_controller/point_velocity_controller.cpp -text
