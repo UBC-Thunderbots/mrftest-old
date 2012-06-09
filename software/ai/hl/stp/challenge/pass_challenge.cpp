@@ -39,9 +39,9 @@ namespace {
 	const Angle AVOIDANCE_ANGLE = 2.0 * Angle::of_radians(std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST));
 
 	// how far apart the passees should be separated
-	DegreeParam pass_separation_angle("CHALLENGE: angle to separate players (degrees)", "STP/Challenge", 120.0, 0.0, 180.0);
+	DegreeParam pass_separation_angle("CHALLENGE: angle to separate players (degrees)", "STP/Challenge", 120.0, 30.0, 120.0);
 	// how fast the baller should spin
-	RadianParam baller_spin_delta("CHALLENGE: change in orientation every time tick for move spin (radians)", "STP/Challenge", 3.0, 1.0, 5.0);
+	RadianParam baller_spin_delta("CHALLENGE: change in orientation every time tick for move spin (radians)", "STP/Challenge", 1.0, 1.0, 5.0);
 
 	class PassChallenge : public HighLevel {
 		public:
@@ -72,6 +72,8 @@ namespace {
 				tick_eval(world);
 
 				std::vector<AI::HL::W::Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
+
+				std::vector<AI::HL::W::Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 				
 				if (world.playtype() == AI::Common::PlayType::STOP){
 					return stop(players);
@@ -97,16 +99,33 @@ namespace {
 					Point start = ball_pos + ray * AVOIDANCE_DIST;
 
 					const Point shoot = (start - ball_pos);
+					
+					bool pass = true;
+					for (std::size_t i = 0; i < enemies.size(); ++i) {
+						if ((enemies[i]->position() - (ball_pos - shoot)).len() < 10 * Robot::MAX_RADIUS){
+							pass = false;
+							break;
+						}
+					}
 
-					// look for a friendly player that is good to pass
-					if (AI::HL::STP::Predicates::baller_can_pass(world)) {
+					// if good to pass look for a friendly player that is good to pass
+					if (pass) {
+						bool close = false;
 						for (std::size_t i = 1; i < players.size(); ++i) {
 							// only shoot / chip when we have a player near the target
-							if ((players[i]->position() - start).len() < 4 * Robot::MAX_RADIUS) {
-								players[0]->autokick(6.0); // might want to autochip?
-								return;
+							if ((players[i]->position() - (ball_pos - shoot)).len() < 4 * Robot::MAX_RADIUS) {
+								close = true;
+								break;
 							}
 						}
+
+						if (close){
+							players[0]->autokick(6.0); // might want to autochip?
+						} else {
+							// player with the ball turns around while trying to move to center of the half field
+							players[0]->move(Point(-world.field().length()/4, 0.0), (players[0]->orientation() + baller_spin_delta).angle_mod(), Point());
+						}
+
 						// everybody else goes towards where ball is likely to go lol
 						int w = 1;
 						for (std::size_t i = 1; i < players.size(); ++i) {
