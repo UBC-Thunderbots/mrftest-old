@@ -1,4 +1,5 @@
 #include "io.h"
+#include "run.h"
 
 static unsigned char stack[1024] __attribute__((section(".stack"), used));
 
@@ -15,18 +16,11 @@ static void entry(void) {
 
 static void avr_main(void) __attribute__((noreturn, used));
 static void avr_main(void) {
-	outb(FLASH_CTL, 0x00);
-	outb(FLASH_DATA, 0x9F);
-	while (inb(FLASH_CTL) & 0x01);
-	outb(FLASH_DATA, 0x00);
-	while (inb(FLASH_CTL) & 0x01);
-	uint8_t mfgr_id = inb(FLASH_DATA);
-	outb(FLASH_CTL, 0x02);
-	if (mfgr_id == 0xEF) {
-		outb(LED_CTL, 0x21);
-	} else {
-		outb(LED_CTL, 0x22);
+	startup();
+	for(;;) {
+		uint8_t tick_count = inb(TICKS);
+		tick();
+		do{fast_poll();} while(inb(TICKS) == tick_count);
 	}
-	for (;;);
 }
 

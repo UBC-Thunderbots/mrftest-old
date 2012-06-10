@@ -72,11 +72,15 @@ firmware/main/adc.h -text
 firmware/main/encoder.h -text
 firmware/main/entry.c -text
 firmware/main/io.h -text
+firmware/main/led.h -text
+firmware/main/mac.h -text
 firmware/main/motor.c -text
 firmware/main/motor.h -text
 firmware/main/mrf.c -text
 firmware/main/mrf.h -text
 firmware/main/navre.ld -text
+firmware/main/run.c -text
+firmware/main/run.h -text
 firmware/main/sleep.c -text
 firmware/main/sleep.h -text
 firmware/pingen/Makefile -text
