@@ -290,7 +290,7 @@ typedef enum {
 	 * \brief Reads and writes data on the MRF24J40 SPI bus
 	 *
 	 * On write, starts an SPI transaction outputting the written byte
-	 * On read (when FLASH_CTL<0> = 0), returns the most recent byte read from the bus
+	 * On read (when MRF_CTL<0> = 0), returns the most recent byte read from the bus
 	 */
 	MRF_DATA = 0x19,
 
