@@ -46,6 +46,8 @@ namespace {
 	BoolParam enable7("enable robot 7", "MixedTeamOffense", true);
 	BoolParam enable8("enable robot 8", "MixedTeamOffense", true);
 	BoolParam enable9("enable robot 9", "MixedTeamOffense", true);
+	BoolParam enable10("enable robot 10", "MixedTeamOffense", true);
+	BoolParam enable11("enable robot 11", "MixedTeamOffense", true);
 	BoolParam do_draw("draw", "MixedTeamOffense", true);
 
 	const double RESTRICTED_ZONE_LENGTH = 0.85;
@@ -80,6 +82,8 @@ namespace {
 				enable7,
 				enable8,
 				enable9,
+				enable10,
+				enable11,
 			};
 
 			for (std::size_t i = 0; i < friendly.size(); ++i) {

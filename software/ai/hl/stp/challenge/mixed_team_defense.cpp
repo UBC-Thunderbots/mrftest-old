@@ -38,6 +38,8 @@ namespace {
 	BoolParam enable7("enable robot 7", "MixedTeamDefense", true);
 	BoolParam enable8("enable robot 8", "MixedTeamDefense", true);
 	BoolParam enable9("enable robot 9", "MixedTeamDefense", true);
+	BoolParam enable10("enable robot 10", "MixedTeamDefense", true);
+	BoolParam enable11("enable robot 11", "MixedTeamDefense", true);
 	BoolParam use_simon("use simon", "MixedTeamDefense", true);
 	BoolParam do_draw("draw", "MixedTeamDefense", true);
 
@@ -72,6 +74,8 @@ namespace {
 				enable7,
 				enable8,
 				enable9,
+				enable10,
+				enable11,
 			};
 
 			for (std::size_t i = 0; i < friendly.size(); ++i) {
