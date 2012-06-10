@@ -30,7 +30,7 @@ using namespace AI::HL::STP::Predicates;
 using AI::HL::STP::PlayExecutor;
 
 namespace {
-	
+
 	// The closest distance players are allowed to the ball
 	// DO NOT make this EXACT, instead, add a little tolerance!
 	const double AVOIDANCE_DIST = 1.0 + Robot::MAX_RADIUS + Ball::RADIUS + 0.005;
@@ -43,9 +43,10 @@ namespace {
 	// how fast the baller should spin
 	RadianParam baller_spin_delta("CHALLENGE: change in orientation every time tick for move spin (radians)", "STP/Challenge", 1.0, 1.0, 5.0);
 
-	class PassChallenge : public HighLevel {
+	class PassChallenge: public HighLevel {
 		public:
-			PassChallenge(World &world) : world(world) {
+			PassChallenge(World &world) :
+					world(world) {
 				kicked_count = 0;
 				kicked = false;
 			}
@@ -74,8 +75,8 @@ namespace {
 				std::vector<AI::HL::W::Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
 				std::vector<AI::HL::W::Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
-				
-				if (world.playtype() == AI::Common::PlayType::STOP){
+
+				if (world.playtype() == AI::Common::PlayType::STOP) {
 					return stop(players);
 				}
 
@@ -85,11 +86,12 @@ namespace {
 
 				for (std::size_t i = 0; i < players.size(); ++i) {
 					players[i]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
+					world.friendly_team().get(i)->avoid_distance(AI::Flags::AvoidDistance::LONG);
 				}
 
 				const Player::CPtr baller = Evaluation::calc_friendly_baller();
-				if (baller && AI::HL::STP::Predicates::our_ball(world)){
-					
+				if (baller && AI::HL::STP::Predicates::our_ball(world)) {
+
 					// sort the players by dist to ball
 					std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 
@@ -99,10 +101,10 @@ namespace {
 					Point start = ball_pos + ray * AVOIDANCE_DIST;
 
 					const Point shoot = (start - ball_pos);
-					
+
 					bool pass = true;
 					for (std::size_t i = 0; i < enemies.size(); ++i) {
-						if ((enemies[i]->position() - (ball_pos - shoot)).len() < 10 * Robot::MAX_RADIUS){
+						if ((enemies[i]->position() - (ball_pos - shoot)).len() < 10 * Robot::MAX_RADIUS) {
 							pass = false;
 							break;
 						}
@@ -119,11 +121,12 @@ namespace {
 							}
 						}
 
-						if (close){
+						if (close) {
 							players[0]->autokick(6.0); // might want to autochip?
 						} else {
 							// player with the ball turns around while trying to move to center of the half field
-							players[0]->move(Point(-world.field().length()/4, 0.0), (players[0]->orientation() + baller_spin_delta).angle_mod(), Point());
+							players[0]->move(Point(-world.field().length() / 4, 0.0), (players[0]->orientation() + baller_spin_delta).angle_mod(),
+									Point());
 						}
 
 						// everybody else goes towards where ball is likely to go lol
@@ -132,32 +135,32 @@ namespace {
 							Angle angle = delta_angle * (w / 2) * ((w % 2) ? 1 : -1);
 							Point p = ball_pos - shoot.rotate(angle);
 							w++;
-							Action::move(world, players[i], AI::HL::Util::crop_point_to_field(world.field(),p));
+							Action::move(world, players[i], AI::HL::Util::crop_point_to_field(world.field(), p));
 						}
-						
-					} else {						
+
+					} else {
 						// player with the ball turns around while trying to move to center of the half field
-						players[0]->move(Point(-world.field().length()/4, 0.0), (players[0]->orientation() + baller_spin_delta).angle_mod(), Point());
+						players[0]->move(Point(-world.field().length() / 4, 0.0), (players[0]->orientation() + baller_spin_delta).angle_mod(),
+								Point());
 
 						// everybody else turns with the baller
 						int w = 1;
 						Angle pass_angle = (AVOIDANCE_ANGLE + pass_separation_angle);
 						for (std::size_t i = 1; i < players.size(); ++i) {
 							Angle angle = pass_angle * (w / 2) * ((w % 2) ? 1 : -1);
-							Point p = ball_pos - shoot.rotate(angle); 
+							Point p = ball_pos - shoot.rotate(angle);
 							w++;
-							Action::move(world, players[i], AI::HL::Util::crop_point_to_field(world.field(),p));
+							Action::move(world, players[i], AI::HL::Util::crop_point_to_field(world.field(), p));
 						}
 					}
-					
 
-				// grab / intercept the ball
+					// grab / intercept the ball
 				} else {
-					intercept_block(players);	
+					intercept_block(players);
 				}
 			}
 
-			void intercept_block(std::vector<Player::Ptr> &players){
+			void intercept_block(std::vector<Player::Ptr> &players) {
 				// dunno if it's a good idea to have 2 players grab the ball...
 
 				// sort the players by dist to ball
@@ -187,7 +190,7 @@ namespace {
 				}
 			}
 
-			void stop(std::vector<Player::Ptr> &players){
+			void stop(std::vector<Player::Ptr> &players) {
 				// first player should grab the ball or not in STOP? 
 				if (players.size() > 0) {
 					auto stop1 = Tactic::move_stop(world, 1);
