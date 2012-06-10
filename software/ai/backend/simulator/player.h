@@ -100,6 +100,8 @@ namespace AI {
 					bool chicker_ready() const;
 					void kick_impl(double speed);
 					void autokick_impl(double speed);
+					void chip_impl(double speed) { *(reinterpret_cast<int *>(0)) = 27; }
+					void autochip_impl(double speed) { *(reinterpret_cast<int *>(0)) = 27; }
 					bool autokick_fired() const;
 					bool has_destination() const;
 					const std::pair<Point, Angle> &destination() const;

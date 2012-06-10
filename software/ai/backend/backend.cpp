@@ -60,7 +60,7 @@ void AI::BE::Player::prio(AI::Flags::MovePrio prio) {
 }
 
 bool AI::BE::Player::has_chipper() const {
-	return false;
+	return true;
 }
 
 void AI::BE::Player::kick(double speed) {
@@ -126,14 +126,6 @@ void AI::BE::Player::pre_tick() {
 }
 
 AI::BE::Player::Player() : moved(false), destination_(Point(), Angle::ZERO), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
-}
-
-void AI::BE::Player::chip_impl(double) {
-	std::abort();
-}
-
-void AI::BE::Player::autochip_impl(double) {
-	std::abort();
 }
 
 Backend::Backend() : defending_end_(FieldEnd::WEST), friendly_colour_(AI::Common::Team::Colour::YELLOW), playtype_(AI::Common::PlayType::HALT), playtype_override_(AI::Common::PlayType::NONE), ball_filter_(0) {

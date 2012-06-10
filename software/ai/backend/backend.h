@@ -133,8 +133,8 @@ namespace AI {
 				explicit Player();
 				virtual void kick_impl(double speed) = 0;
 				virtual void autokick_impl(double speed) = 0;
-				virtual void chip_impl(double power);
-				virtual void autochip_impl(double power);
+				virtual void chip_impl(double power) = 0;
+				virtual void autochip_impl(double power) = 0;
 				virtual void path_impl(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p) = 0;
 		};
 

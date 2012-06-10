@@ -71,6 +71,8 @@ namespace AI {
 					bool chicker_ready() const;
 					void kick_impl(double speed);
 					void autokick_impl(double speed);
+					void chip_impl(double speed);
+					void autochip_impl(double speed);
 					bool autokick_fired() const { return autokick_fired_; }
 					bool has_destination() const { return true; }
 					const std::pair<Point, Angle> &destination() const;

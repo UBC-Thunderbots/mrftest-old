@@ -115,16 +115,33 @@ bool Player::chicker_ready() const {
 void Player::kick_impl(double speed) {
 	if (bot.alive) {
 		if (bot.capacitor_charged) {
-			bot.kick(calc_kick_straight(speed), calc_kick_straight(speed), 0);
+			bot.kick(calc_kick_straight(speed), 0, 0);
 		} else {
-			LOG_ERROR(Glib::ustring::compose("Bot %1 chick when not ready", pattern()));
+			LOG_ERROR(Glib::ustring::compose("Bot %1 kick when not ready", pattern()));
 		}
 	}
 }
 
 void Player::autokick_impl(double speed) {
 	if (bot.alive) {
-		bot.autokick(calc_kick_straight(speed), calc_kick_straight(speed), 0);
+		bot.autokick(calc_kick_straight(speed), 0, 0);
+		autokick_invoked = true;
+	}
+}
+
+void Player::chip_impl(double speed) {
+	if (bot.alive) {
+		if (bot.capacitor_charged) {
+			bot.kick(0, 4000, 0);
+		} else {
+			LOG_ERROR(Glib::ustring::compose("Bot %1 chip when not ready", pattern()));
+		}
+	}
+}
+
+void Player::autochip_impl(double speed) {
+	if (bot.alive) {
+		bot.autokick(0, 4000, 0);
 		autokick_invoked = true;
 	}
 }
