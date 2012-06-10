@@ -140,8 +140,7 @@ namespace {
 
 					} else {
 						// player with the ball turns around while trying to move to center of the half field
-						players[0]->move(Point(-world.field().length() / 4, 0.0), (players[0]->orientation() + baller_spin_delta).angle_mod(),
-								Point());
+						players[0]->move(Point(-world.field().length() / 4, 0.0), (players[0]->orientation() + baller_spin_delta).angle_mod(), Point());
 
 						// everybody else turns with the baller
 						int w = 1;
@@ -165,7 +164,7 @@ namespace {
 
 				// sort the players by dist to ball
 				std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
-
+				players[0]->avoid_distance(AI::Flags::AvoidDistance::SHORT);
 				if (players.size() > 0) {
 					auto intercept1 = Tactic::intercept(world);
 					intercept1->set_player(players[0]);
