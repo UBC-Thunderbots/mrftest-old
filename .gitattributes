@@ -227,9 +227,11 @@ software/ai/hl/stp/play/just_shoot.cpp -text
 software/ai/hl/stp/play/just_spin.cpp -text
 software/ai/hl/stp/play/kickoff_enemy.cpp -text
 software/ai/hl/stp/play/kickoff_friendly.cpp -text
+software/ai/hl/stp/play/kickoff_friendly_chip.cpp -text
 software/ai/hl/stp/play/lone_2_player.cpp -text
 software/ai/hl/stp/play/offensive_block.cpp -text
 software/ai/hl/stp/play/offensive_naive.cpp -text
+software/ai/hl/stp/play/our_corner_chip.cpp -text
 software/ai/hl/stp/play/our_corner_play.cpp -text
 software/ai/hl/stp/play/pass_defensive.cpp -text
 software/ai/hl/stp/play/pass_offensive.cpp -text
@@ -242,6 +244,7 @@ software/ai/hl/stp/play/play.h -text
 software/ai/hl/stp/play/shoot_goal.cpp -text
 software/ai/hl/stp/play/simple_play.h -text
 software/ai/hl/stp/play/stop.cpp -text
+software/ai/hl/stp/play/their_corner_chip.cpp -text
 software/ai/hl/stp/play/their_corner_play.cpp -text
 software/ai/hl/stp/play_executor.cpp -text
 software/ai/hl/stp/play_executor.h -text
@@ -310,6 +313,7 @@ software/ai/hl/stp/tactic/wait_playtype.cpp -text
 software/ai/hl/stp/tactic/wait_playtype.h -text
 software/ai/hl/stp/test/test.h -text
 software/ai/hl/stp/test/test_block.cpp -text
+software/ai/hl/stp/test/test_chip.cpp -text
 software/ai/hl/stp/test/test_defend.cpp -text
 software/ai/hl/stp/test/test_goalie.cpp -text
 software/ai/hl/stp/test/test_intercept.cpp -text
