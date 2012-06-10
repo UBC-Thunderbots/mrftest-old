@@ -7,6 +7,7 @@
 #include "ai/hl/stp/world.h"
 #include "ai/hl/stp/play_executor.h"
 #include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/tactic/intercept.h"
 #include "ai/hl/stp/tactic/move_stop.h"
 #include "ai/hl/stp/tactic/ram.h"
@@ -126,7 +127,8 @@ namespace {
 						}
 
 						if (close) {
-							players[0]->autokick(6.0); // might want to autochip?
+							//players[0]->autokick(6.0); // might want to autochip?
+							Action::shoot_pass(world, players[0], (ball_pos - shoot));
 						} else {
 							// player with the ball turns around while trying to move to center of the half field
 							players[0]->move(Point(-world.field().length() / 4, 0.0), (players[0]->orientation() + baller_spin_delta).angle_mod(),

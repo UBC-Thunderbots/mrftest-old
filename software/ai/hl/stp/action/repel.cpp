@@ -20,11 +20,12 @@ namespace {
 bool AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
 	// bool kicked = false;
 	const Field &f = world.field();
-	const Point diff = world.ball().position() - player->position();
+	const Point ball = world.ball().position();
+	const Point diff = ball - player->position();
 
 	// set to RAM_BALL instead of using chase
 	if (!player->has_ball()) {
-		Point dest = world.ball().position();
+		Point dest = ball;
 		if (dest.x < f.friendly_goal().x + Robot::MAX_RADIUS) { // avoid going inside the goal
 			dest.x = f.friendly_goal().x + Robot::MAX_RADIUS;
 		}
@@ -67,7 +68,7 @@ bool AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
 bool AI::HL::STP::Action::corner_repel(const World &world, Player::Ptr player) {
 	const Field &f = world.field();
 	const Point ball = world.ball().position();
-	const Point diff = world.ball().position() - player->position();
+	const Point diff = ball - player->position();
 
 	// if ball not in corner then just repel
 	if (Predicates::ball_in_our_corner(world) || Predicates::ball_in_their_corner(world)) {
