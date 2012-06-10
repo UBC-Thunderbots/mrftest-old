@@ -181,9 +181,9 @@ std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool pos
 	// threshold already
 	if (final_points.empty()) {
 		final_points.push_back(player->position());
-	} else if (valid_path(final_points[final_points.size() - 1], player->destination().first, world, player) && player->type() == AI::Flags::MoveType::NORMAL) {
-		// go exactly to the destination point if we are able
-		final_points.push_back(player->destination().first);
+	} else if (valid_path(final_points[final_points.size() - 1], player->destination().first, world, player)) {
+		// go exactly to the goal if we're able
+		final_points.push_back(goal);
 	}
 
 	return final_points;

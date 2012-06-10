@@ -42,7 +42,7 @@ namespace {
 	DoubleParam FRIENDLY_BUFFER("Buffer for equal priority friendly robot (meters)", "Nav/Util", 0.1, -1.0, 1.0);
 	DoubleParam FRIENDLY_BUFFER_HIGH("Buffer for higher priority friendly robot (meters)", "Nav/Util", 0.2, -1.0, 1.0);
 	DoubleParam FRIENDLY_BUFFER_LOW("Buffer for lower priority friendly robot (meters)", "Nav/Util", 0.1, -1.0, 1.0);
-
+	DoubleParam PASS_CHALLENGE_BUFFER("Buffer for friendly robots in the pass intercept challenge (meters)", "Nav/Util", 1.0, 0.1, 2.0);
 
 	// This buffer is in addition to the robot radius
 	DoubleParam BALL_TINY_BUFFER("Buffer avoid ball tiny (meters)", "Nav/Util", 0.05, -1.0, 1.0);
@@ -112,6 +112,11 @@ namespace {
 			} else if (player_prio < obs_prio) {
 				buffer = FRIENDLY_BUFFER_HIGH;
 			}
+
+			if(player->avoid_distance() == AvoidDistance::LONG) {
+				buffer = PASS_CHALLENGE_BUFFER;
+			}
+
 			return 2.0 * (player->MAX_RADIUS) + buffer;
 		}
 		static double ball_stop(AI::Nav::W::Player::Ptr player) {
@@ -174,6 +179,7 @@ namespace {
 			}
 			violate = std::max(violate, circle_radius - dist);
 		}
+
 		return violate;
 	}
 
@@ -220,6 +226,7 @@ namespace {
 			if (USE_FRIENDLY_MOVEMENT_FACTOR) {
 				dist = seg_seg_distance(rob->position(), rob->position() + FRIENDLY_MOVEMENT_FACTOR * rob->velocity(), cur, dst);
 			}
+
 			violate = std::max(violate, circle_radius - dist);
 		}
 		return violate;
@@ -630,7 +637,7 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W:
 
 	// only start rotating around the stationary ball when we're within a certain distance
 	const double dist_to_rotate = 0.3;
-	if (ball_vel.len() < 0.1 && (robot_pos - ball_pos).len() < dist_to_rotate) {
+	if (ball_vel.len() < 0.2 && (robot_pos - ball_pos).len() < dist_to_rotate) {
 		player->path(get_path_around_ball(world, player, robot_pos, target_pos, true));
 		return true;
 	}
