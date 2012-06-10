@@ -86,7 +86,7 @@ namespace {
 
 				for (std::size_t i = 0; i < players.size(); ++i) {
 					players[i]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
-					world.friendly_team().get(i)->avoid_distance(AI::Flags::AvoidDistance::LONG);
+					//world.friendly_team().get(i)->avoid_distance(AI::Flags::AvoidDistance::LONG);
 				}
 
 				const Player::CPtr baller = Evaluation::calc_friendly_baller();
@@ -94,6 +94,10 @@ namespace {
 
 					// sort the players by dist to ball
 					std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+					// player with the ball should not try to avoid other players					
+					for (std::size_t i = 1; i < players.size(); ++i) {
+						world.friendly_team().get(i)->avoid_distance(AI::Flags::AvoidDistance::LONG);
+					}
 
 					const Angle delta_angle = AVOIDANCE_ANGLE + AI::HL::STP::Tactic::separation_angle;
 					Point ball_pos = world.ball().position();
@@ -164,16 +168,17 @@ namespace {
 
 				// sort the players by dist to ball
 				std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
-				players[0]->avoid_distance(AI::Flags::AvoidDistance::SHORT);
+				//players[0]->avoid_distance(AI::Flags::AvoidDistance::SHORT);
 				if (players.size() > 0) {
 					auto intercept1 = Tactic::intercept(world);
 					intercept1->set_player(players[0]);
 					intercept1->execute();
 				}
+				// follow the ball but kept distance
 				if (players.size() > 1) {
-					auto intercept2 = Tactic::intercept(world);
-					intercept2->set_player(players[1]);
-					intercept2->execute();
+					auto stop1 = Tactic::move_stop(world, 1);
+					stop1->set_player(players[1]);
+					stop1->execute();
 				}
 				// block the enemies that are closest to ball
 				if (players.size() > 2 && world.enemy_team().size() > 0) {
