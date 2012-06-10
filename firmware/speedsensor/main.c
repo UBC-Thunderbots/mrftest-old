@@ -18,6 +18,7 @@ static void service_call_vector(void);
 static void pending_service_vector(void);
 static void system_tick_vector(void);
 static void external_interrupt_15_10_vector(void);
+static void timer2_wrap_interrupt(void);
 
 static char stack[65536] __attribute__((section(".stack")));
 
@@ -46,6 +47,8 @@ static const fptr exception_vectors[16] __attribute__((used, section(".exception
 };
 
 static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt_vectors"))) = {
+
+	[28] = &timer2_wrap_interrupt,
 	[40] = &external_interrupt_15_10_vector,
 	// Vector 67 contains the USB full speed vector
 	[67] = &usb_process,
@@ -259,6 +262,77 @@ extern const unsigned char linker_data_lma_start;
 extern unsigned char linker_bss_vma_start;
 extern unsigned char linker_bss_vma_end;
 
+static volatile unsigned long wrap_count = 0;
+
+static void tic_toc_setup(void){
+	rcc_enable(APB1, 0);
+	//           /
+	//           |/
+	//           ||/
+	//           |||/
+	//           ||||/
+	//           |||||/
+	//           ||||||/
+	//           |||||||/
+	//           ||||||||/
+	//           |||||||||/
+	//           //			Clock division
+	//           ||/		Auto-reload preload enable: diabled
+	//           |||//		Center-aligned mode selection: direction
+	//           |||||/		Direction: up
+	//           ||||||/		One-pulse mode: disabled
+	//           |||||||/		Update request source ??
+	//           ||||||||/		Update disable ??
+	//           |||||||||/		Counter enable: disabled
+	TIM2_CR1 = 0b0000000000;
+
+	//           /			TI1 selection: only channel 
+	//           |///		Master mode selection: reset
+	//           ||||/		CCDS ??
+	TIM2_CR2 = 0b00000;
+
+	//           /			Master/Slave mode: no action
+	//           |///		Trigger selection: not an option
+	//           ||||/		no used
+	//           |||||///		Slave mode selection: slave mode disabled
+	TIM2_SMCR= 0b00000000;		
+
+	//           /				Trigger DMA request enable
+	//           |/				reserved
+	//           ||////			Capture/Compare 4-1 DMA request enable
+	//           ||||||/			Update DMA request enable
+	//           |||||||/			reserved
+	//           ||||||||/			Trigger interrupt enable
+	//	     |||||||||/			Reserved
+	//	     ||||||||||////		Capture/Compare 4-1 interrupt enable
+	//	     ||||||||||||||/		Update interrupt enable
+	TIM2_DIER =0b000000000000001;
+
+	TIM2_PSC = 0b10000000;
+	
+	TIM2_ARR = 0x40;
+	
+	NVIC_ISER[28 / 32] = 1 << (28 % 32);
+}
+
+static void timer2_wrap_interrupt(void){
+	wrap_count++;
+	TIM2_SR = 0; // clear UIF bit
+}
+
+static void tic(void){
+	// clear counter, by setting UG
+	TIM2_EGR |= 1;
+	// enable clock, by setting CEN
+	TIM2_CR1 |= 1;
+	wrap_count = 0;
+}
+
+static void toc(void){
+	// stop clock
+	TIM2_CR1 = 0;
+}
+
 static void stm32_main(void) {
 	// Check if we're supposed to go to the bootloader
 	uint32_t rcc_csr_shadow = RCC_CSR; // Keep a copy of RCC_CSR
@@ -445,7 +519,7 @@ static void stm32_main(void) {
 	//           ooo|ooo|ooo|ooo|
 	EXTI_IMR = 0b1111000000000000;
 	EXTI_FTSR= 0b1111000000000000;
-	NVIC_ISER[40 / 32] = 1 << (40 % 32); // SETENA67 = 1; enable USB FS interrupt
+	//NVIC_ISER[40 / 32] = 1 << (40 % 32); // SETENA67 = 1; enable USB FS interrupt
 
 
 	// Wait a bit
@@ -454,7 +528,7 @@ static void stm32_main(void) {
 	// Turn on LED
 	GPIOB_BSRR = 3;
 	sleep_1ms(1000);
-	GPIOB_BSRR = (3<< 16);
+	//GPIOB_BSRR = (3<< 16);
 	//sleep_1ms(10);
 
 	// Initialize USB
@@ -464,7 +538,13 @@ static void stm32_main(void) {
 	//NVIC_ISER[67 / 32] = 1 << (67 % 32); // SETENA67 = 1; enable USB FS interrupt
 
 	// Handle activity
+	tic_toc_setup();
+	tic();
 	for (;;) {
+		if( TIM2_CNT > 0xF0 ){
+			GPIOB_BSRR = (3<<16);
+			toc();
+		}
 		/*if(GPIOB_IDR & (1<<15)) {
 			GPIOB_BSRR = (3);
 		} else {
