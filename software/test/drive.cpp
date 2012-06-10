@@ -24,10 +24,10 @@ namespace {
 
 	void on_update_matrix(Gtk::HScale(&controls)[4], XBeeRobot &robot, bool controlled) {
 		static const double matrix[4][3] = {
-			{ -42.5995, 27.6645, 4.3175 },
-			{ -35.9169, -35.9169, 4.3175 },
-			{ 35.9169, -35.9169, 4.3175 },
-			{ 42.5995, 27.6645, 4.3175 }
+					{	-71.85,	46.66,	7.06},
+					{	-60.58,	-60.58,	7.06},
+					{	60.58,	-60.58,	7.06},
+					{	71.85,	46.68,	7.06}
 		};
 		double input[G_N_ELEMENTS(matrix[0])];
 		for (unsigned int i = 0; i < G_N_ELEMENTS(input); ++i) {

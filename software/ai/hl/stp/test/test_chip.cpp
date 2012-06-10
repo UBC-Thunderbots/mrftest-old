@@ -32,7 +32,7 @@ namespace {
 				if (friendly.size() == 0) {
 					return;
 				}
-				#warning this won't work (not implemented) in the simulator
+				#warning this wont work (not implemented) in the simulator
 				Action::chip_target(world, friendly.get(0), world.field().enemy_goal());
 			}
 
