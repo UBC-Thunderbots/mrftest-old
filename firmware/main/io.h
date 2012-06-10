@@ -313,6 +313,16 @@ typedef enum {
 	 */
 	LPS_CTL = 0x1B,
 
+
+	DEVICE_ID0 = 0x1C,
+	DEVICE_ID1 = 0x1D,
+	DEVICE_ID2 = 0x1E,
+	DEVICE_ID3 = 0x1F,
+	DEVICE_ID4 = 0x20,
+	DEVICE_ID5 = 0x21,
+	DEVICE_ID6 = 0x22,
+	DEVICE_ID_STATUS = 0x23,
+
 	/**
 	 * \brief The LSB of the stack pointer
 	 */
