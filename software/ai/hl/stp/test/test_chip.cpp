@@ -33,7 +33,7 @@ namespace {
 					return;
 				}
 
-				Action::chip_target(world, friendly.get(0), world.field().enemy_goal());
+				//Action::chip_target(world, friendly.get(0), world.field().enemy_goal());
 			}
 
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {

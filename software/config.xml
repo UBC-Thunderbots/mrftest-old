@@ -78,6 +78,19 @@
       <boolean name="enable robot 9">true</boolean>
       <boolean name="use simon">true</boolean>
     </category>
+    <category name="MixedTeamOffense">
+      <boolean name="draw">true</boolean>
+      <boolean name="enable robot 0">true</boolean>
+      <boolean name="enable robot 1">true</boolean>
+      <boolean name="enable robot 2">true</boolean>
+      <boolean name="enable robot 3">true</boolean>
+      <boolean name="enable robot 4">true</boolean>
+      <boolean name="enable robot 5">true</boolean>
+      <boolean name="enable robot 6">true</boolean>
+      <boolean name="enable robot 7">true</boolean>
+      <boolean name="enable robot 8">true</boolean>
+      <boolean name="enable robot 9">true</boolean>
+    </category>
     <category name="Nav">
       <category name="Pivot">
         <degrees name="offset angle (degrees)">80</degrees>
@@ -94,13 +107,8 @@
         <double name="pivot radius">1.00</double>
       </category>
       <category name="RRT">
-        <double name="Ball velocity threshold (used to switch between chase and chase+pivot)">7.50</double>
-        <double name="Buffer behind ball for chase (meters)">0.350</double>
-        <boolean name="Byronic">false</boolean>
-        <degrees name="Chase angle range for behind target (degrees)">30.0</degrees>
         <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
         <double name="Distance to extend the tree on each step (m)">0.100</double>
-        <boolean name="New chase: enable">false</boolean>
         <boolean name="New Pivot: enable">true</boolean>
         <boolean name="New Pivot: go backward">false</boolean>
         <double name="New Pivot: Hysterisis angle, one side, (n*M_PI)">0.2000</double>
@@ -122,6 +130,7 @@
         <double name="Buffer avoid ball tiny (meters)">0.070</double>
         <double name="Buffer avoid defense area (meters)">0.000</double>
         <double name="Buffer for equal priority friendly robot (meters)">0.100</double>
+        <double name="Buffer for friendly robots in the pass intercept challenge (meters)">1.000</double>
         <double name="Buffer for higher priority friendly robot (meters)">0.200</double>
         <double name="Buffer for lower priority friendly robot (meters)">0.050</double>
         <double name="Buffer for staying away from play area boundary ">0.000</double>
@@ -159,7 +168,23 @@
         <double name="xy +proportional">14.0</double>
         <double name="YA ratio">0.08</double>
       </category>
+      <category name="PID5_2012">
+        <double name="angular -differential">0.2</double>
+        <double name="angular +proportional">30.0</double>
+        <double name="Limit wheel accel">5</double>
+        <double name="Limit wheel speed">100</double>
+        <double name="x to y ratio">0.810</double>
+        <double name="xy -differential">0.0</double>
+        <double name="xy +proportional">25.0</double>
+        <double name="YA ratio">0.08</double>
+      </category>
       <category name="PID6">
+        <double name="Aggressiveness of the controller">0.800</double>
+        <double name="Limit wheel accel (quarter degree per firmware tick squared)">45</double>
+        <double name="Limit wheel speed (quarter degree per firmware tick)">330</double>
+        <double name="Tick rate of firmware control loop in s^-1">200</double>
+      </category>
+      <category name="PID6_2012">
         <double name="Aggressiveness of the controller">0.800</double>
         <double name="Limit wheel accel (quarter degree per firmware tick squared)">45</double>
         <double name="Limit wheel speed (quarter degree per firmware tick)">330</double>
@@ -198,7 +223,7 @@
           <double name="Lone Goalie: distance to goal post (m)">0.300</double>
         </category>
         <category name="repel">
-          <double name="speed that repel will be kicking at in a corner">6.00</double>
+          <double name="speed that repel will be kicking at in a corner">6.000</double>
         </category>
         <category name="shoot">
           <degrees name="Angle threshold that defines passing accuracy, smaller is more accurate (degrees)">5.0</degrees>
@@ -211,12 +236,13 @@
       </category>
       <category name="ball">
         <boolean name="Calc baller always return">true</boolean>
-        <double name="circle radius in front of enemy robot to consider possesion (meters)">0.100</double>
+        <double name="circle radius in front of enemy robot to consider possession (meters)">0.100</double>
         <double name="circle radius in front of robot to enable pivot (meters)">0.100</double>
         <boolean name="Smart possess ball (instead of has ball only)">true</boolean>
       </category>
-      <category name="Chase">
-        <boolean name="Chase always face toward enemy goal">false</boolean>
+      <category name="Challenge">
+        <degrees name="CHALLENGE: angle to separate players (degrees)">120.0</degrees>
+        <radians name="CHALLENGE: change in orientation every time tick for move spin (radians)">1.000</radians>
       </category>
       <category name="defense">
         <double name="ball2side ratio">0.70</double>
@@ -283,80 +309,84 @@
       <category name="Play">
         <category name="Enable">
           <boolean name="BallTowardsEnemy">false</boolean>
-          <boolean name="CMDBasic2Block">true</boolean>
-          <boolean name="CMDBasicCorner">false</boolean>
-          <boolean name="CMDNaive">false</boolean>
-          <boolean name="CMONaive">false</boolean>
+          <boolean name="DBasic2Block">true</boolean>
+          <boolean name="DBasicCorner">true</boolean>
           <boolean name="DefensiveBlock">true</boolean>
+          <boolean name="DNaive">true</boolean>
           <boolean name="FranticDefense">true</boolean>
           <boolean name="FreeKickEnemy">true</boolean>
           <boolean name="FreeKickFriendly">true</boolean>
+          <boolean name="FreeKickFriendlyChip">false</boolean>
           <boolean name="FreeKickFriendlyPass">false</boolean>
           <boolean name="FreeKickFriendlyRay">true</boolean>
           <boolean name="FreeKickFriendlyRepel">true</boolean>
+          <boolean name="FreeKickPass">true</boolean>
           <boolean name="FriendlyCornerPlay1">true</boolean>
           <boolean name="GrabBallDefensive">true</boolean>
           <boolean name="GrabBallOffensive">true</boolean>
+          <boolean name="JustChip">false</boolean>
           <boolean name="JustGoalie">true</boolean>
           <boolean name="JustRepel">true</boolean>
           <boolean name="JustShoot">true</boolean>
           <boolean name="JustSpin">true</boolean>
           <boolean name="KickoffEnemy">true</boolean>
           <boolean name="KickoffFriendly">true</boolean>
+          <boolean name="KickoffFriendlyChip">false</boolean>
           <boolean name="Lone2Player">true</boolean>
           <boolean name="OffensiveBlock">true</boolean>
+          <boolean name="ONaive">true</boolean>
+          <boolean name="OurCornerChip">false</boolean>
           <boolean name="OurCornerPlay">true</boolean>
           <boolean name="PassDefensive">true</boolean>
-          <boolean name="PassDynamic">true</boolean>
           <boolean name="PassOffensive">true</boolean>
-          <boolean name="Pass Play (0,0)">true</boolean>
-          <boolean name="Pass Play (1.2,-1.5)">true</boolean>
-          <boolean name="Pass Play (1.2,1.5)">true</boolean>
           <boolean name="PassRay">true</boolean>
           <boolean name="PassSimple">true</boolean>
           <boolean name="PenaltyEnemy">true</boolean>
           <boolean name="PenaltyFriendly">true</boolean>
           <boolean name="ShootGoal">true</boolean>
           <boolean name="Stop">true</boolean>
+          <boolean name="TheirCornerChip">false</boolean>
           <boolean name="TheirCornerPlay">true</boolean>
         </category>
         <category name="Priority 0=low, 10=hi, 5=default">
           <integer name="BallTowardsEnemy">5</integer>
-          <integer name="CMDBasic2Block">5</integer>
-          <integer name="CMDBasicCorner">5</integer>
-          <integer name="CMDNaive">5</integer>
-          <integer name="CMONaive">5</integer>
+          <integer name="DBasic2Block">5</integer>
+          <integer name="DBasicCorner">5</integer>
           <integer name="DefensiveBlock">5</integer>
+          <integer name="DNaive">5</integer>
           <integer name="FranticDefense">10</integer>
           <integer name="FreeKickEnemy">5</integer>
           <integer name="FreeKickFriendly">10</integer>
+          <integer name="FreeKickFriendlyChip">5</integer>
           <integer name="FreeKickFriendlyPass">5</integer>
           <integer name="FreeKickFriendlyRay">5</integer>
           <integer name="FreeKickFriendlyRepel">0</integer>
+          <integer name="FreeKickPass">5</integer>
           <integer name="FriendlyCornerPlay1">5</integer>
           <integer name="GrabBallDefensive">5</integer>
           <integer name="GrabBallOffensive">5</integer>
+          <integer name="JustChip">5</integer>
           <integer name="JustGoalie">5</integer>
           <integer name="JustRepel">0</integer>
           <integer name="JustShoot">8</integer>
           <integer name="JustSpin">10</integer>
           <integer name="KickoffEnemy">5</integer>
           <integer name="KickoffFriendly">5</integer>
+          <integer name="KickoffFriendlyChip">5</integer>
           <integer name="Lone2Player">5</integer>
           <integer name="OffensiveBlock">5</integer>
+          <integer name="ONaive">5</integer>
+          <integer name="OurCornerChip">5</integer>
           <integer name="OurCornerPlay">5</integer>
           <integer name="PassDefensive">5</integer>
-          <integer name="PassDynamic">5</integer>
           <integer name="PassOffensive">5</integer>
-          <integer name="Pass Play (0,0)">5</integer>
-          <integer name="Pass Play (1.2,-1.5)">5</integer>
-          <integer name="Pass Play (1.2,1.5)">5</integer>
           <integer name="PassRay">5</integer>
           <integer name="PassSimple">5</integer>
           <integer name="PenaltyEnemy">5</integer>
           <integer name="PenaltyFriendly">5</integer>
           <integer name="ShootGoal">10</integer>
           <integer name="Stop">5</integer>
+          <integer name="TheirCornerChip">5</integer>
           <integer name="TheirCornerPlay">5</integer>
         </category>
       </category>
@@ -367,6 +397,7 @@
         <double name="dist thresh to start fight ball with enemy (robot radius)">2.000</double>
         <double name="enemy avoidance distance (robot radius)">3.00</double>
         <boolean name="new fight">true</boolean>
+        <integer name="randomize factor that the baller will shoot even if blocked">5</integer>
       </category>
       <category name="shoot">
         <radians name="Angle threshold that defines shoot accuracy, bigger is more accurate (radians)">0.0</radians>
@@ -397,7 +428,7 @@
         <category name="penalty_goalie">
           <boolean name="Whether the penalty goalie should choose random points">true</boolean>
         </category>
-        <degrees name="stop: angle to separate players (degrees)">20.0</degrees>
+        <degrees name="stop: angle to separate players (degrees) for pass challenge">60.00</degrees>
       </category>
       <category name="test_pass">
         <degrees name=" angle tolerance that the passer needs to be with respect to the passee (degrees)">20.0</degrees>
@@ -407,13 +438,6 @@
         <boolean name="lower numbered bot is passer">true</boolean>
         <integer name="passing target points">0</integer>
         <double name="velocity to ignore">0.100</double>
-      </category>
-      <category name="util">
-        <double name="distance for ball possesion (x ball radius)">2.000</double>
-        <double name="if dribble &gt; this time, force shoot (sec)">2.00</double>
-        <boolean name="posses ball is has ball">true</boolean>
-        <degrees name="Shooting Accuracy General (degrees)">10.0</degrees>
-        <double name="time we can prepare during special plays (sec)">3</double>
       </category>
     </category>
   </params>
