@@ -13,14 +13,6 @@ static void entry(void) {
 		"rjmp avr_main\n\t");
 }
 
-static void sleep_1s(void) {
-	uint8_t x = 200;
-	while (--x) {
-		uint8_t old = inb(TICKS);
-		while (inb(TICKS) == old);
-	}
-}
-
 static void avr_main(void) __attribute__((noreturn, used));
 static void avr_main(void) {
 	outb(FLASH_CTL, 0x00);

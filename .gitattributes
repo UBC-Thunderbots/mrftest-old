@@ -73,6 +73,8 @@ firmware/main/io.h -text
 firmware/main/motor.c -text
 firmware/main/motor.h -text
 firmware/main/navre.ld -text
+firmware/main/sleep.c -text
+firmware/main/sleep.h -text
 firmware/pingen/Makefile -text
 firmware/pingen/pingen.c -text
 firmware/shared/Makefile.common -text
