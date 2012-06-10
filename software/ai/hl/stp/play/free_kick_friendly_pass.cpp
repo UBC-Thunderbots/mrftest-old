@@ -34,12 +34,12 @@ roles[2].push_back(defend_duo_defender(world));
 
 // ROLE 4
 // defend
-roles[2].push_back(defend_duo_extra1(world));
+roles[3].push_back(defend_duo_extra1(world));
 
 // ROLE 5
 // offend
-roles[3].push_back(offend(world));
-roles[3].push_back(offend_secondary(world));
+roles[4].push_back(offend(world));
+roles[4].push_back(offend_secondary(world));
 END_ASSIGN()
 END_PLAY()
 
