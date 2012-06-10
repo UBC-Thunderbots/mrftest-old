@@ -41,6 +41,11 @@ firmware/main/main.map
 firmware/pingen/pingen
 firmware/shared/drive_packet.c
 firmware/shared/drive_packet.h
+firmware/speedsensor/dongle.bin
+firmware/speedsensor/dongle.elf
+firmware/speedsensor/dongle.map
+firmware/speedsensor/enter-dfu-mode
+firmware/speedsensor/exit-dfu-mode
 software/.cproject
 software/.metadata
 software/.project
