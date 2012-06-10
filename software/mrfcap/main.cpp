@@ -82,16 +82,16 @@ namespace {
 		devh.claim_interface(0);
 
 		// Set parameters
-		std::cout << "Setting channel… ";
+		std::cout << "Setting channel 0x" << tohex(channel, 2) << "… ";
 		std::cout.flush();
 		devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR, 0x01, channel, 0, 0);
-		std::cout << "OK\nSetting symbol rate… ";
+		std::cout << "OK\nSetting symbol rate " << (symbol_rate_encoded ? 625 : 250) << " kb/s… ";
 		std::cout.flush();
 		devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR, 0x03, symbol_rate_encoded, 0, 0);
-		std::cout << "OK\nSetting PAN ID… ";
+		std::cout << "OK\nSetting PAN ID 0x" << tohex(pan_id, 4) << "… ";
 		std::cout.flush();
 		devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR, 0x05, pan_id, 0, 0);
-		std::cout << "OK\nSetting MAC address… ";
+		std::cout << "OK\nSetting MAC address 0x" << tohex(mac_address, 16) << "… ";
 		std::cout.flush();
 		{
 			uint8_t buffer[8];
