@@ -115,6 +115,7 @@ namespace {
 
 		// Open the capture file
 		std::cout << "Opening capture file… ";
+		std::cout.flush();
 		std::ofstream ofs;
 		ofs.exceptions(std::ios_base::eofbit | std::ios_base::failbit | std::ios_base::badbit);
 		ofs.open(argv[6], std::ios_base::binary | std::ios_base::out | std::ios_base::trunc);
@@ -136,6 +137,7 @@ namespace {
 			ofs.write(reinterpret_cast<const char *>(&u32), 4); // Network data link type
 		}
 		ofs.flush();
+		std::cout << "OK\n";
 
 		// Go into a loop
 		for (;;) {
