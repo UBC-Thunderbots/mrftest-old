@@ -68,6 +68,7 @@ firmware/flybackconverter/Makefile -text
 firmware/flybackconverter/config.h -text
 firmware/flybackconverter/main.c -text
 firmware/main/Makefile -text
+firmware/main/adc.h -text
 firmware/main/entry.c -text
 firmware/main/io.h -text
 firmware/main/motor.c -text
