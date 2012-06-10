@@ -17,7 +17,7 @@ static void sleep_1s(void) {
 	uint8_t x = 200;
 	while (--x) {
 		uint8_t old = inb(TICKS);
-		while (inb(TICKS) != old);
+		while (inb(TICKS) == old);
 	}
 }
 
