@@ -3,7 +3,8 @@ CC := $(ABI)-gcc
 LD := $(ABI)-ld
 PROJ := main
 override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -mmcu=avr2 -mno-interrupts -g
-override LDFLAGS := $(LDFLAGS) -Tnavre.ld --gc-sections
+override LDFLAGS := $(LDFLAGS) -Wl,-Tnavre.ld -Wl,--gc-sections
+override LDLIBS := -lm
 
 FW_SOURCES := $(wildcard *.c)
 FW_HEADERS := $(wildcard *.h)
@@ -11,7 +12,7 @@ FW_OBJS := $(patsubst %.c,%.o,$(FW_SOURCES))
 
 $(PROJ).elf : $(FW_OBJS) navre.ld
 	@echo " LD        $@"
-	@$(LD) $(LDFLAGS) -o$@ -Map=$(PROJ).map $(FW_OBJS) $(LDLIBS)
+	@$(CC) $(LDFLAGS) -o$@ -Wl,-Map=$(PROJ).map $(FW_OBJS) $(LDLIBS)
 
 $(FW_OBJS) : $(FW_HEADERS) Makefile
 
