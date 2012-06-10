@@ -14,15 +14,16 @@ using namespace AI::HL::W;
 
 namespace {
 	const unsigned int min_team_size = 4;
-
-	Point bot0_initial(-2.75,-1.2);
-	Point bot1_initial(-2.00,1.2);
-	Point bot2_initial(-1.00,-1.2);
-	Point bot3_initial(0.00,1.2);
-	Point bot0_secondary(0.75, -1.2);
-	Point bot1_secondary(1.5, 1.2);
-	Point bot2_secondary(2.25, -1.2);
-	Point bot3_secondary(2.75, 1.2);
+	double bot_y_top_position = 1.2;
+	double bot_y_bottom_position = -1.2;
+	Point bot0_initial(-2.75,bot_y_bottom_position);
+	Point bot1_initial(-2.00,bot_y_top_position);
+	Point bot2_initial(-1.00,bot_y_bottom_position);
+	Point bot3_initial(0.00,bot_y_top_position);
+	Point bot0_secondary(0.75, bot_y_bottom_position);
+	Point bot1_secondary(1.5, bot_y_top_position);
+	Point bot2_secondary(2.25, bot_y_bottom_position);
+	Point bot3_secondary(2.75, bot_y_top_position);
 
 	double kick_speed = 0.05;
 
@@ -181,10 +182,13 @@ class PASCHL : public HighLevel {
 
 		private:
 			World &world;
-
+			// Orientation robot is for receiving ball
 			Angle robot_orientation[4];
+			//Orientation robot is in for passing ball
 			Angle robot_orientation_passing[4];
+			//second position orientation for receiving ball
 			Angle robot_orientation_final[4];
+			//second position orientation for passing ball
 			Angle robot_orientation_final_passing[4];
 
 			std::vector<std::pair<Point, Angle>> robot_positions;
@@ -192,6 +196,7 @@ class PASCHL : public HighLevel {
 			Point horizontal_intercept(Player::Ptr player);
 			void robot_pass(int passer_num, int receiver_num, state next_state, Angle orientation);
 			void robot_pass_repos(Player::Ptr passer, Player::Ptr receiver, int robot_number);
+			bool ball_out_of_play();
 			bool kicked_ball;
 
 };
@@ -204,7 +209,6 @@ Point PASCHL::horizontal_intercept(Player::Ptr player) {
 	if (player->position().y < 0) {
 		horizontal_line = -1.2;
 	}
-
 	Point sw_corner((player->position().x - width_of_rectangle * .5), -horizontal_line);
 	Rect ball_intercept_boundary(sw_corner, height_of_rectangle, width_of_rectangle);
 
@@ -236,13 +240,32 @@ void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state, Angl
 
 	std::cout<<intercept_location<<" ";
 	std::cout<<receiver->position()<<std::endl;
+
 	if(receiver->has_ball()) {
 		current_state = next_state;
 		kicked_ball = false;
 	}
 
+	if(ball_out_of_play() == true)
+		current_state = INITIAL_POSITION;
 }
 
+bool PASCHL::ball_out_of_play() {
+
+	Point ball_position = world.ball().position();
+	Point ball_velocity = world.ball().velocity();
+	double ball_future = ball_position.y + ball_velocity.y * 2;
+	bool ball_out_bounds_x = ball_position.x < world.field().friendly_goal().x && ball_position.x > world.field().enemy_goal().x;
+	bool ball_out_bounds_y = ball_position.y < -(world.field().width() / 2) && ball_position.y > (world.field().width() / 2);
+	bool ball_position_in_square = ball_position.y < 0.8 && ball_position.y > -0.8;
+
+	//if ball is out of bounds, return true
+	if(ball_out_bounds_x || ball_out_bounds_y)
+		return true;
+	//if ball is inside the square and is moving less than 0.5, return true
+	if(ball_position_in_square && (ball_future < bot_y_top_position || ball_future > bot_y_bottom_position))
+		return true;
+	}
 
 
 

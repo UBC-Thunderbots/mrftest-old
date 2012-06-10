@@ -42,6 +42,7 @@ firmware/pingen/pingen
 firmware/shared/drive_packet.c
 firmware/shared/drive_packet.h
 software/.cproject
+software/.metadata
 software/.project
 software/bin
 software/html
