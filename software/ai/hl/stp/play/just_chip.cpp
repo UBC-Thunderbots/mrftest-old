@@ -4,7 +4,7 @@
 using AI::HL::STP::Coordinate;
 
 BEGIN_PLAY(JustChip)
-INVARIANT(false && playtype(world, PlayType::PLAY)
+INVARIANT(playtype(world, PlayType::PLAY)
 		&& our_team_size_at_least(world, 2)
 		&& baller_can_chip(world))
 APPLICABLE(our_ball(world))

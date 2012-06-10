@@ -14,8 +14,8 @@ using AI::HL::STP::Coordinate;
  * - Handle Friendly Free Kick
  */
 BEGIN_PLAY(FreeKickFriendlyChip)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2) && Predicates::baller_can_shoot(world) &&
-Predicates::baller_can_chip(world) && false)
+INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2) && !Predicates::baller_can_shoot(world) &&
+Predicates::baller_can_chip(world))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
