@@ -1,7 +1,7 @@
 #include "control.h"
 
-float forward[CONTROL_ORDER] = {1.0, 0.0};
-float feed_back[CONTROL_ORDER-1] = {0.0};
+float forward[CONTROL_ORDER] = {4.5987234,2.92375e-4};
+float feed_back[CONTROL_ORDER-1] = {5.9385e-3};
 
 control_state_t controller_state[4];
 
