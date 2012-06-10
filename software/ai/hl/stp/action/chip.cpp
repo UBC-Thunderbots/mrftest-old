@@ -24,7 +24,7 @@ namespace {
 }
 
 bool AI::HL::STP::Action::chip_target(const World &world, Player::Ptr player, const Point target, double power) {
-	// Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot_target(world, player, target);
+	// grab the ball in case we don't have it or lost it
 	intercept_pivot(world, player, target);
 
 	if (!Evaluation::player_within_angle_thresh(player, target, passer_angle_threshold)) {

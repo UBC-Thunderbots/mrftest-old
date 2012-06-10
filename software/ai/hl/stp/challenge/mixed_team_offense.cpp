@@ -319,7 +319,7 @@ namespace {
 			std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 			if (players.size() > 0) {
 				auto active = Tactic::shoot_goal(world, true);
-				if (fight_ball(world)){
+				if (fight_ball(world) || !our_ball(world)){
 					active = Tactic::tsteal(world);
 				}
 				active->set_player(players[0]);
