@@ -22,6 +22,6 @@ DoubleParam AI::HL::STP::Action::target_region_param(" the buffer (meters) in wh
 
 BoolParam AI::HL::STP::Tactic::random_penalty_goalie("Whether the penalty goalie should choose random points", "STP/Tactic/penalty_goalie", false);
 
-DegreeParam AI::HL::STP::Tactic::separation_angle("stop: angle to separate players (degrees)", "STP/Tactic", 20, 0, 90);
+DegreeParam AI::HL::STP::Tactic::separation_angle("stop: angle to separate players (degrees) for pass challenge", "STP/Tactic", 60, 60, 90);
 
 
