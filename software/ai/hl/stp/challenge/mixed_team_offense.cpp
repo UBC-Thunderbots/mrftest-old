@@ -154,7 +154,7 @@ namespace {
 					break;
 				case AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY:	
 				case AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY:
-					free_kick_enemy(players);
+					free_kick_friendly(players);
 					break;
 				default:
 					play(players);
