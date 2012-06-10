@@ -187,7 +187,7 @@ namespace {
 	Point tdefender_block_ball(const World &world, const unsigned index) {
 		Point dirToGoal, target;
 		dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
-		target = world.field().friendly_goal() - (4 * (index + 1) * Robot::MAX_RADIUS * dirToGoal);
+		target = world.field().friendly_goal() - (6 * (index + 1) * Robot::MAX_RADIUS * dirToGoal);
 		Point t = target;
 		if (world.ball().position().y < 0.0) {
 			if (index == 2) {
@@ -208,7 +208,7 @@ namespace {
 	Point tdefender_block_enemy(const World &world, Point r, const unsigned index) {
 		Point dirToGoal;
 		dirToGoal = (world.field().friendly_goal() - r).norm();
-		return world.field().friendly_goal() - (4 * (index + 1) * Robot::MAX_RADIUS * dirToGoal);
+		return world.field().friendly_goal() - (6 * (index + 1) * Robot::MAX_RADIUS * dirToGoal);
 	}
 }
 
