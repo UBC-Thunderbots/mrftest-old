@@ -263,8 +263,7 @@ bool PASCHL::ball_out_of_play() {
 	if(ball_out_bounds_x || ball_out_bounds_y)
 		return true;
 	//if ball is inside the square and is moving less than 0.5, return true
-	if(ball_position_in_square && (ball_future < bot_y_top_position || ball_future > bot_y_bottom_position))
-		return true;
+	return (ball_position_in_square && (ball_future < bot_y_top_position || ball_future > bot_y_bottom_position));
 	}
 
 
