@@ -68,6 +68,8 @@
       <boolean name="draw">true</boolean>
       <boolean name="enable robot 0">true</boolean>
       <boolean name="enable robot 1">true</boolean>
+      <boolean name="enable robot 10">true</boolean>
+      <boolean name="enable robot 11">true</boolean>
       <boolean name="enable robot 2">true</boolean>
       <boolean name="enable robot 3">true</boolean>
       <boolean name="enable robot 4">true</boolean>
@@ -82,6 +84,8 @@
       <boolean name="draw">true</boolean>
       <boolean name="enable robot 0">true</boolean>
       <boolean name="enable robot 1">true</boolean>
+      <boolean name="enable robot 10">true</boolean>
+      <boolean name="enable robot 11">true</boolean>
       <boolean name="enable robot 2">true</boolean>
       <boolean name="enable robot 3">true</boolean>
       <boolean name="enable robot 4">true</boolean>
@@ -315,11 +319,11 @@
           <boolean name="DNaive">true</boolean>
           <boolean name="FranticDefense">true</boolean>
           <boolean name="FreeKickEnemy">true</boolean>
-          <boolean name="FreeKickFriendly">true</boolean>
+          <boolean name="FreeKickFriendly">false</boolean>
           <boolean name="FreeKickFriendlyChip">false</boolean>
           <boolean name="FreeKickFriendlyPass">false</boolean>
-          <boolean name="FreeKickFriendlyRay">true</boolean>
-          <boolean name="FreeKickFriendlyRepel">true</boolean>
+          <boolean name="FreeKickFriendlyRay">false</boolean>
+          <boolean name="FreeKickFriendlyRepel">false</boolean>
           <boolean name="FreeKickPass">true</boolean>
           <boolean name="FriendlyCornerPlay1">true</boolean>
           <boolean name="GrabBallDefensive">true</boolean>
