@@ -133,6 +133,8 @@ static void exti12_interrupt_vector(void) {
 				packet_dropped = true;
 			}
 			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00); // RXDECINV = 0; stop inverting receiver and allow further reception
+			// Toggle LED 3 to show reception
+			GPIOB_ODR ^= 4 << 12;
 		}
 	}
 }
