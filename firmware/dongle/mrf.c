@@ -153,7 +153,7 @@ void mrf_common_init(void) {
 	mrf_write_short(MRF_REG_SHORT_BBREG2, 0x80);
 	mrf_write_short(MRF_REG_SHORT_CCAEDTH, 0x60);
 	mrf_write_short(MRF_REG_SHORT_BBREG6, 0x40);
-	mrf_write_long(MRF_REG_LONG_RFCON0, ((config.channel - 0x0B) << 8) | 0x03);
+	mrf_write_long(MRF_REG_LONG_RFCON0, ((config.channel - 0x0B) << 4) | 0x03);
 	mrf_write_short(MRF_REG_SHORT_RFCTL, 0x04);
 	mrf_write_short(MRF_REG_SHORT_RFCTL, 0x00);
 	sleep_100us(2);
