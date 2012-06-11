@@ -22,6 +22,7 @@ static void pending_service_vector(void);
 static void system_tick_vector(void);
 void interrupt_dispatcher_exti15_10(void);
 void timer5_interrupt_vector(void);
+void timer6_interrupt_vector(void);
 
 static char stack[65536] __attribute__((section(".stack")));
 
@@ -54,6 +55,8 @@ static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt
 	[40] = &interrupt_dispatcher_exti15_10,
 	// Vector 50 contains the timer 5 vector
 	[50] = &timer5_interrupt_vector,
+	// Vector 54 contains the timer 6 vector
+	[54] = &timer6_interrupt_vector,
 	// Vector 67 contains the USB full speed vector
 	[67] = &usb_process,
 };
@@ -132,76 +135,6 @@ static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	2, // iProduct
 	9, // iSerialNumber
 	6, // bNumConfigurations
-};
-
-static const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
-	9, // bLength
-	2, // bDescriptorType
-	60, // wTotalLength LSB
-	0, // wTotalLength MSB
-	1, // bNumInterfaces
-	2, // bConfigurationValue
-	4, // iConfiguration
-	0x80, // bmAttributes
-	150, // bMaxPower
-
-	9, // bLength
-	4, // bDescriptorType
-	0, // bInterfaceNumber
-	0, // bAlternateSetting
-	6, // bNumEndpoints
-	0xFF, // bInterfaceClass
-	0x00, // bInterfaceSubClass
-	0, // bInterfaceProtocol
-	0, // iInterface
-
-	7, // bLength
-	5, // bDescriptorType
-	0x01, // bEndpointAddress
-	0x03, // bmAttributes
-	64, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	1, // bInterval
-
-	7, // bLength
-	5, // bDescriptorType
-	0x02, // bEndpointAddress
-	0x03, // bmAttributes
-	64, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	1, // bInterval
-
-	7, // bLength
-	5, // bDescriptorType
-	0x03, // bEndpointAddress
-	0x03, // bmAttributes
-	64, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	1, // bInterval
-
-	7, // bLength
-	5, // bDescriptorType
-	0x81, // bEndpointAddress
-	0x03, // bmAttributes
-	2, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	1, // bInterval
-
-	7, // bLength
-	5, // bDescriptorType
-	0x82, // bEndpointAddress
-	0x03, // bmAttributes
-	64, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	1, // bInterval
-
-	7, // bLength
-	5, // bDescriptorType
-	0x83, // bEndpointAddress
-	0x03, // bmAttributes
-	2, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	1, // bInterval
 };
 
 static const uint8_t CONFIGURATION_DESCRIPTOR4[] = {
@@ -330,17 +263,6 @@ static const usb_ep0_global_callbacks_t DEVICE_CBS = {
 	.on_check_self_powered = &on_check_self_powered,
 };
 
-static bool can_enter_config2(void) {
-#warning TODO implement this configuration
-	return false;
-}
-
-static void on_enter_config2(void) {
-}
-
-static void on_exit_config2(void) {
-}
-
 static bool can_enter_config4(void) {
 #warning TODO implement this configuration
 	return false;
@@ -362,19 +284,6 @@ static void on_enter_config5(void) {
 
 static void on_exit_config5(void) {
 }
-
-static const usb_ep0_configuration_callbacks_t CONFIG2_CBS = {
-	.configuration = 2,
-	.interfaces = 1,
-	.out_endpoints = 3,
-	.in_endpoints = 3,
-	.can_enter = &can_enter_config2,
-	.on_enter = &on_enter_config2,
-	.on_exit = &on_exit_config2,
-	.on_zero_request = 0,
-	.on_in_request = 0,
-	.on_out_request = 0,
-};
 
 static const usb_ep0_configuration_callbacks_t CONFIG4_CBS = {
 	.configuration = 4,
@@ -404,7 +313,7 @@ static const usb_ep0_configuration_callbacks_t CONFIG5_CBS = {
 
 static const usb_ep0_configuration_callbacks_t * const CONFIG_CBS[] = {
 	&CONFIGURATION_CBS1,
-	&CONFIG2_CBS,
+	&CONFIGURATION_CBS2,
 	&CONFIGURATION_CBS3,
 	&CONFIG4_CBS,
 	&CONFIG5_CBS,

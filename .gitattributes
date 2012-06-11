@@ -43,6 +43,7 @@ firmware/dongle/limits.h -text
 firmware/dongle/main.c -text
 firmware/dongle/mrf.c -text
 firmware/dongle/mrf.h -text
+firmware/dongle/normal.c -text
 firmware/dongle/perconfig.c -text
 firmware/dongle/perconfig.h -text
 firmware/dongle/promiscuous.c -text
