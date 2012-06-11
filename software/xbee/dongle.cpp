@@ -45,8 +45,6 @@ namespace std {
 }
 
 namespace {
-	const unsigned int STALL_LIMIT = 100;
-
 	enum TBotsControlRequest {
 		TBOTS_CONTROL_REQUEST_GET_XBEE_FW_VERSION = 0x00,
 		TBOTS_CONTROL_REQUEST_GET_XBEE_CHANNELS = 0x01,
@@ -298,7 +296,7 @@ namespace {
 	}
 }
 
-XBeeDongle::SendMessageOperation::SendMessageOperation(XBeeDongle &dongle, const void *data, std::size_t length) : transfer(dongle.device, EP_MESSAGE, data, length, 0, STALL_LIMIT) {
+XBeeDongle::SendMessageOperation::SendMessageOperation(XBeeDongle &dongle, const void *data, std::size_t length) : transfer(dongle.device, EP_MESSAGE, data, length, 0) {
 	transfer.signal_done.connect(signal_done.make_slot());
 	transfer.submit();
 }
@@ -307,7 +305,7 @@ void XBeeDongle::SendMessageOperation::result() const {
 	transfer.result();
 }
 
-XBeeDongle::XBeeDongle(bool force_reinit) : estop_state(EStopState::UNINITIALIZED), xbees_state(XBeesState::PREINIT), context(), device(context, 0x04D8, 0x7839), local_error_queue_transfer(device, EP_LOCAL_ERROR_QUEUE, 64, false, 0, STALL_LIMIT), debug_transfer(device, EP_DEBUG, 4096, false, 0, STALL_LIMIT), dongle_status_transfer(device, EP_DONGLE_STATUS, 4, true, 0, STALL_LIMIT), state_transport_in_transfer(device, EP_STATE_TRANSPORT, 64, false, 0, STALL_LIMIT), interrupt_in_transfer(device, EP_MESSAGE, 64, false, 0, STALL_LIMIT), stamp_transfer(device, EP_STATE_TRANSPORT, 0, 0, 0, STALL_LIMIT), dirty_drive_mask(0), enabled(false) {
+XBeeDongle::XBeeDongle(bool force_reinit) : estop_state(EStopState::UNINITIALIZED), xbees_state(XBeesState::PREINIT), context(), device(context, 0x04D8, 0x7839), local_error_queue_transfer(device, EP_LOCAL_ERROR_QUEUE, 64, false, 0), debug_transfer(device, EP_DEBUG, 4096, false, 0), dongle_status_transfer(device, EP_DONGLE_STATUS, 4, true, 0), state_transport_in_transfer(device, EP_STATE_TRANSPORT, 64, false, 0), interrupt_in_transfer(device, EP_MESSAGE, 64, false, 0), stamp_transfer(device, EP_STATE_TRANSPORT, 0, 0, 0), dirty_drive_mask(0), enabled(false) {
 	for (unsigned int i = 0; i < 16; ++i) {
 		std::unique_ptr<XBeeRobot> p(new XBeeRobot(*this, i));
 		robots.push_back(std::move(p));
@@ -338,7 +336,7 @@ void XBeeDongle::enable() {
 	device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, TBOTS_CONTROL_REQUEST_RESEND_DONGLE_STATUS, 0x0000, 0x0000, 0);
 	do {
 		uint8_t status[4];
-		if (device.interrupt_in(EP_DONGLE_STATUS, status, sizeof(status), 0, STALL_LIMIT) != sizeof(status)) {
+		if (device.interrupt_in(EP_DONGLE_STATUS, status, sizeof(status), 0) != sizeof(status)) {
 			throw std::runtime_error("Dongle status block of wrong length received");
 		}
 		parse_dongle_status(status);
@@ -469,7 +467,7 @@ void XBeeDongle::submit_drive_transfer(const void *buffer, std::size_t length) {
 	if (index == drive_transfers.size()) {
 		drive_transfers.push_back(std::unique_ptr<USB::InterruptOutTransfer>());
 	}
-	drive_transfers[index].reset(new USB::InterruptOutTransfer(device, EP_STATE_TRANSPORT, buffer, length, 0, STALL_LIMIT));
+	drive_transfers[index].reset(new USB::InterruptOutTransfer(device, EP_STATE_TRANSPORT, buffer, length, 0));
 	drive_transfers[index]->signal_done.connect(sigc::bind(sigc::mem_fun(this, &XBeeDongle::check_drive_transfer_result), index));
 	drive_transfers[index]->submit();
 }

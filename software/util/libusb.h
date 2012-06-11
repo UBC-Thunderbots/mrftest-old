@@ -159,7 +159,7 @@ namespace USB {
 
 			void control_out(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, const void *buffer, std::size_t len, unsigned int timeout);
 
-			std::size_t interrupt_in(unsigned char endpoint, void *data, std::size_t length, unsigned int timeout, unsigned int stall_max);
+			std::size_t interrupt_in(unsigned char endpoint, void *data, std::size_t length, unsigned int timeout);
 
 			void interrupt_out(unsigned char endpoint, const void *data, std::size_t length, unsigned int timeout);
 
@@ -190,10 +190,9 @@ namespace USB {
 			DeviceHandle &device;
 			libusb_transfer *transfer;
 			bool submitted_, done_;
-			unsigned int stall_count, stall_max;
 
 			static void handle_completed_transfer_trampoline(libusb_transfer *transfer);
-			Transfer(DeviceHandle &dev, unsigned int stall_max);
+			Transfer(DeviceHandle &dev);
 			void handle_completed_transfer();
 	};
 
@@ -202,7 +201,7 @@ namespace USB {
 	 */
 	class InterruptInTransfer : public Transfer {
 		public:
-			InterruptInTransfer(DeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout, unsigned int stall_max);
+			InterruptInTransfer(DeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout);
 
 			const uint8_t *data() const {
 				assert(done_);
@@ -220,7 +219,7 @@ namespace USB {
 	 */
 	class InterruptOutTransfer : public Transfer {
 		public:
-			InterruptOutTransfer(DeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max);
+			InterruptOutTransfer(DeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout);
 	};
 }
 

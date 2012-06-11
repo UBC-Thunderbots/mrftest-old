@@ -148,7 +148,7 @@ namespace {
 
 	void pk2_read(USB::DeviceHandle &handle, void *dest, std::size_t length) {
 		void *buffer = length >= 64 ? dest : alloca(64);
-		handle.interrupt_in(1, buffer, 64, 5000, 0);
+		handle.interrupt_in(1, buffer, 64, 5000);
 		if (dest && buffer != dest) {
 			std::memcpy(dest, buffer, std::min<std::size_t>(length, 64));
 		}
