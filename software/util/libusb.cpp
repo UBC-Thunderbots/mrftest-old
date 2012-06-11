@@ -82,6 +82,18 @@ namespace {
 	Glib::ustring make_transfer_error_message(unsigned int endpoint, const Glib::ustring &msg) {
 		return Glib::ustring::compose("%1 on %2 endpoint %3", msg, (endpoint & 0x80) ? "IN" : "OUT", endpoint & 0x7F);
 	}
+
+	bool matches_vid_pid_serial(const USB::Device &device, unsigned int vendor_id, unsigned int product_id, const char *serial_number) {
+		if (device.vendor_id() != vendor_id || device.product_id() != product_id) {
+			return false;
+		}
+
+		if (!serial_number) {
+			return true;
+		}
+
+		return device.serial_number() == serial_number;
+	}
 }
 
 USB::Error::Error(const std::string &msg) : std::runtime_error(msg) {
@@ -180,6 +192,19 @@ USB::Device::Device(libusb_device *device) : device(libusb_ref_device(device)) {
 	check_fn("libusb_get_device_descriptor", libusb_get_device_descriptor(device, &device_descriptor), 0);
 }
 
+std::string USB::Device::serial_number() const {
+	if (!device_descriptor.iSerialNumber) {
+		return "";
+	}
+
+	std::string value;
+	{
+		DeviceHandle devh(*this);
+		value = devh.get_string_descriptor(device_descriptor.iSerialNumber);
+	}
+	return value;
+}
+
 
 
 USB::DeviceList::DeviceList(Context &context) {
@@ -199,18 +224,18 @@ USB::Device USB::DeviceList::operator[](const std::size_t i) const {
 
 
 
-USB::DeviceHandle::DeviceHandle(const Device &device) : context(device.context) {
+USB::DeviceHandle::DeviceHandle(const Device &device) : context(device.context), submitted_transfer_count(0) {
 	check_fn("libusb_open", libusb_open(device.device, &handle), 0);
 }
 
-USB::DeviceHandle::DeviceHandle(Context &context, unsigned int vendor_id, unsigned int product_id) : context(context.context), submitted_transfer_count(0) {
+USB::DeviceHandle::DeviceHandle(Context &context, unsigned int vendor_id, unsigned int product_id, const char *serial_number) : context(context.context), submitted_transfer_count(0) {
 	DeviceList lst(context);
 	for (std::size_t i = 0; i < lst.size(); ++i) {
 		const Device &device = lst[i];
-		if (device.vendor_id() == vendor_id && device.product_id() == product_id) {
+		if (matches_vid_pid_serial(device, vendor_id, product_id, serial_number)) {
 			for (std::size_t j = i + 1; j < lst.size(); ++j) {
 				const Device &device = lst[j];
-				if (device.vendor_id() == vendor_id && device.product_id() == product_id) {
+				if (matches_vid_pid_serial(device, vendor_id, product_id, serial_number)) {
 					throw std::runtime_error("Multiple matching USB devices attached");
 				}
 			}
@@ -228,6 +253,18 @@ USB::DeviceHandle::~DeviceHandle() {
 		check_fn("libusb_handle_events", libusb_handle_events(context), 0);
 	}
 	libusb_close(handle);
+}
+
+#include <iostream>
+std::string USB::DeviceHandle::get_string_descriptor(uint8_t index) const {
+	std::vector<unsigned char> buf(8);
+	int rc;
+	do {
+		buf.resize(buf.size() * 2);
+		rc = libusb_get_string_descriptor_ascii(handle, index, &buf[0], static_cast<int>(buf.size()));
+	} while (rc >= static_cast<int>(buf.size()) - 1);
+	check_fn("libusb_get_string_descriptor_ascii", rc, 0);
+	return std::string(buf.begin(), buf.begin() + rc);
 }
 
 int USB::DeviceHandle::get_configuration() const {

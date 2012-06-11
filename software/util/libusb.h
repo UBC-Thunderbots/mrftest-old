@@ -98,6 +98,8 @@ namespace USB {
 				return device_descriptor.idProduct;
 			}
 
+			std::string serial_number() const;
+
 		private:
 			friend class DeviceList;
 			friend class DeviceHandle;
@@ -135,11 +137,13 @@ namespace USB {
 	 */
 	class DeviceHandle : public NonCopyable {
 		public:
-			DeviceHandle(Context &context, unsigned int vendor_id, unsigned int product_id);
+			DeviceHandle(Context &context, unsigned int vendor_id, unsigned int product_id, const char *serial_number = 0);
 
 			DeviceHandle(const Device &device);
 
 			~DeviceHandle();
+
+			std::string get_string_descriptor(uint8_t index) const;
 
 			int get_configuration() const;
 
