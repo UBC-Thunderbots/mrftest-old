@@ -113,6 +113,15 @@ size_t usb_application_fifo_offset(void);
 void usb_in_set_callback(uint8_t ep, void (*cb)(void));
 
 /**
+ * \brief Attaches a callback to handle OUT endpoint receive FIFO patterns
+ *
+ * \param[in] ep the endpoint number
+ *
+ * \param[in] cb the callback to register, which accepts the FIFO pattern
+ */
+void usb_out_set_callback(uint8_t ep, void (*cb)(uint32_t));
+
+/**
  * @}
  */
 

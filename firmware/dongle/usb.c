@@ -16,6 +16,7 @@ typedef enum {
 static device_state_t device_state = DEVICE_STATE_DETACHED;
 const usb_device_info_t *usb_device_info = 0;
 static void (*(in_endpoint_callbacks[4]))(void) = { 0, 0, 0, 0 };
+static void (*(out_endpoint_callbacks[4]))(uint32_t) = { &usb_ep0_handle_receive, 0, 0, 0 };
 static bool global_nak_state = false;
 
 static void handle_reset(void) {
@@ -64,12 +65,8 @@ static void handle_receive_fifo_nonempty(void) {
 	} else {
 		// This is an endpoint-specific pattern
 		uint8_t endpoint = status_word & 0x0F;
-		if (!endpoint) {
-			// This is a pattern to endpoint zero
-			usb_ep0_handle_receive(status_word);
-		} else {
-			// This is a pattern to a nonzero endpoint
-#warning TODO something sensible
+		if (out_endpoint_callbacks[endpoint]) {
+			out_endpoint_callbacks[endpoint](status_word);
 		}
 	}
 }
@@ -216,5 +213,9 @@ size_t usb_application_fifo_offset(void) {
 
 void usb_in_set_callback(uint8_t ep, void (*cb)(void)) {
 	in_endpoint_callbacks[ep] = cb;
+}
+
+void usb_out_set_callback(uint8_t ep, void (*cb)(uint32_t)) {
+	out_endpoint_callbacks[ep] = cb;
 }
 
