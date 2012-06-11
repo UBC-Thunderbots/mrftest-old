@@ -17,7 +17,7 @@ DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
 // GOALIE
-goalie_role.push_back(wait_playtype(world, goalie_dynamic(world, 1), AI::Common::PlayType::PLAY));
+goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // kicker
