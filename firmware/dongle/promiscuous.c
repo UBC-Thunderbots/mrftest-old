@@ -61,6 +61,7 @@ static void push_data(void) {
 			(1 << 31) // EPENA = 1; enable endpoint
 			| (1 << 26); // CNAK = 1; clear NAK flag
 		zlp_pending = false;
+		usb_active = true;
 		return;
 	}
 
@@ -88,6 +89,7 @@ static void push_data(void) {
 		uint32_t word = packet->data[i * 4] | (packet->data[i * 4 + 1] << 8) | (packet->data[i * 4 + 2] << 16) | (packet->data[i * 4 + 3] << 24);
 		OTG_FS_FIFO[1][0] = word;
 	}
+	usb_active = true;
 
 	// Decide if a zero-length packet will be needed after this
 	zlp_pending = !(packet->length % 64);
