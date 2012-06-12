@@ -2,16 +2,22 @@
 #include "mrf/dongle.h"
 #include "util/dprint.h"
 #include <cassert>
+#include <cstdlib>
 #include <cstring>
 #include <memory>
 
 void MRFRobot::drive(const int(&wheels)[4], bool controlled) {
 	for (unsigned int i = 0; i < 4; ++i) {
-		int16_t level = static_cast<int16_t>(wheels[i]);
-		uint16_t level_u = level;
-		level_u &= 0x7FF;
+		unsigned int level_u = std::abs(wheels[i]);
+		if (level_u > 1023) {
+			LOG_ERROR(u8"Wheel setpoint out of range");
+			level_u = 1023;
+		}
+		if (wheels[i] < 0) {
+			level_u |= 0x400;
+		}
 		dongle.drive_packet[index][i] &= static_cast<uint16_t>(~0x7FF);
-		dongle.drive_packet[index][i] |= level_u;
+		dongle.drive_packet[index][i] |= static_cast<uint16_t>(level_u);
 	}
 
 	dongle.drive_packet[index][0] |= 1 << 14;
