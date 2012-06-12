@@ -82,6 +82,12 @@ public:
 			    player2->move(bot2_right, Angle(), Point());
 			    player3->move(bot3_right, Angle(), Point());
 			    current_state=ROBOTS_ARE_RIGHT;
+			  } else {
+			    player0->move(bot0_left, Angle(), Point());
+			    player1->move(bot1_left, Angle(), Point());
+			    player2->move(bot2_left, Angle(), Point());
+			    player3->move(bot3_left, Angle(), Point());
+
 			  }
 			  
    			}
@@ -100,6 +106,11 @@ public:
 			    player2->move(bot2_left, Angle(), Point());
 			    player3->move(bot3_left, Angle(), Point());
 			    current_state=ROBOTS_ARE_LEFT;
+			  } else {
+			     player0->move(bot0_right, Angle(), Point());
+			     player1->move(bot1_right, Angle(), Point());
+			     player2->move(bot2_right, Angle(), Point());
+			     player3->move(bot3_right, Angle(), Point()); 
 			  }
 			}
 			  break;
