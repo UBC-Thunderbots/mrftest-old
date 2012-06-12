@@ -305,17 +305,10 @@ namespace {
 		}
 		unsigned int multicast_interface_index = 0;
 		if (!multicast_interface_name.empty()) {
-			FileDescriptor fd = FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, 0);
-			ifreq ifr;
-			const std::string &as_locale = Glib::locale_from_utf8(multicast_interface_name);
-			if (as_locale.size() > sizeof(ifr.ifr_name)) {
-				throw std::runtime_error("Interface name too long");
+			multicast_interface_index = if_nametoindex(Glib::locale_from_utf8(multicast_interface_name).c_str());
+			if (!multicast_interface_index) {
+				throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Interface \"%1\" not found", multicast_interface_name)).c_str());
 			}
-			std::copy(as_locale.begin(), as_locale.end(), ifr.ifr_name);
-			if (ioctl(fd.fd(), SIOCGIFINDEX, &ifr) < 0) {
-				throw SystemError("ioctl(SIOCGIFINDEX)", errno);
-			}
-			multicast_interface_index = ifr.ifr_ifindex;
 		}
 		setup.save();
 		if (!backend_name.size()) {
