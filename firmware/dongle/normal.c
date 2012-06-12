@@ -90,6 +90,7 @@ static bool in_ep1_enabled, in_ep2_enabled, in_ep2_zlp_pending, out_ep1_enabled,
 static uint8_t mrf_tx_seqnum;
 static normal_out_packet_t *unreliable_out_free, *reliable_out_free, *first_out_pending, *last_out_pending, *cur_out_transmitting, *first_mdr_pending, *last_mdr_pending;
 static normal_in_packet_t *in_free, *first_in_pending, *last_in_pending;
+static unsigned int poll_index;
 
 static void send_drive_packet(void) {
 	// Write out the packet
@@ -105,8 +106,13 @@ static void send_drive_packet(void) {
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 9, 0x00); // Source address LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 10, 0x01); // Source address MSB
 	for (size_t i = 0; i < sizeof(perconfig.normal.drive_packet); ++i) {
-		mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i, perconfig.normal.drive_packet[i]);
+		uint8_t mask = 0;
+		if (i - 1 == poll_index * sizeof(perconfig.normal.drive_packet) / 8) {
+			mask = 0x80;
+		}
+		mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i, perconfig.normal.drive_packet[i] | mask);
 	}
+	poll_index = (poll_index + 1) % 8;
 
 	// Initiate transmission with no acknowledgement
 	mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000001);
@@ -580,6 +586,7 @@ static void on_enter(void) {
 	first_out_pending = last_out_pending = cur_out_transmitting = first_mdr_pending = last_mdr_pending = 0;
 
 	// Initialize the radio
+	poll_index = 0;
 	mrf_tx_active = false;
 	mrf_init();
 	sleep_100us(1);
@@ -587,6 +594,8 @@ static void on_enter(void) {
 	sleep_100us(3);
 	mrf_common_init();
 	while (GPIOC_IDR & (1 << 12));
+	mrf_write_short(MRF_REG_SHORT_SADRH, 0x01);
+	mrf_write_short(MRF_REG_SHORT_SADRL, 0x00);
 	mrf_analogue_txrx();
 	mrf_write_short(MRF_REG_SHORT_INTCON, 0b11110110);
 #warning set sleep clock stuff needed for beacon order for beaconed coordinator mode; not doing that yet
