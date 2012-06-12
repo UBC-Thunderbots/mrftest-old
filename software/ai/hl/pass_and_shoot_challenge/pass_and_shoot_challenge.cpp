@@ -13,7 +13,7 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-  const unsigned int min_team_size = 4;
+  const unsigned int min_team_size = 2;
   double bot_y_top_position = 1.2;
   double bot_y_bottom_position = -1.2;
   Point bot0_initial(-2.75,bot_y_bottom_position);
@@ -140,44 +140,53 @@ class PASCHL : public HighLevel {
 					bool bot2_is_init = (player2->position() - robot_positions[2].first).len() < epsilon;
 					bool bot3_is_init = (player3->position() - robot_positions[3].first).len() < epsilon;
 
-					if (bot0_is_init && bot1_is_init && bot2_is_init && bot3_is_init) {
+					if (bot0_is_init && bot1_is_init /*&& bot2_is_init && bot3_is_init*/) {
 						current_state = BOT0_PASS;
 						std::cout << "next" << std::endl;
 					}
 				}
 					break;
 				case BOT0_PASS:
+					std::cout << "case 1" << std::endl;
+
 					robot_pass(0, 1, BOT1_PASS, Angle(robot_orientation_passing[0]));
 					break;
 				case BOT1_PASS:{
+					std::cout << "case 2" << std::endl;
 					player0->move(Point(bot0_secondary), Angle(robot_orientation_final[0]), Point());
 					robot_pass(1, 2, BOT2_PASS, Angle(robot_orientation_passing[1]));
 				}
 					break;
 				case BOT2_PASS: {
+					std::cout << "case 3" << std::endl;
 					player1->move(Point(bot1_secondary), Angle(robot_orientation_final[1]), Point());
 					robot_pass(2, 3, BOT3_PASS, Angle(robot_orientation_passing[2]));
 				}
 					break;
 				case BOT3_PASS: {
+					std::cout << "case 4" << std::endl;
 					player2->move(Point(bot2_secondary), Angle(robot_orientation_final[2]), Point());
 					robot_pass(3, 0, BOT0_REPOS, Angle(robot_orientation_passing[3]));
 				}
 					break;
 				case BOT0_REPOS: {
+					std::cout << "case 5" << std::endl;
 					player3->move(Point(bot3_secondary), Angle(robot_orientation_final[3]), Point());
 					robot_pass(0, 1, BOT1_REPOS, Angle(robot_orientation_final_passing[0]));
 				}
 					break;
 				case BOT1_REPOS: {
+					std::cout << "case 6" << std::endl;
 					robot_pass(1, 2, BOT2_REPOS, Angle(robot_orientation_final_passing[1]));
 				}
 					break;
 				case BOT2_REPOS: {
+					std::cout << "case 7" << std::endl;
 					robot_pass(2, 3, BOT3_REPOS, Angle(robot_orientation_final_passing[2]));
 				}
 					break;
 				case BOT3_REPOS:
+					std::cout << "case 8" << std::endl;
 					if(player3->has_ball())
 						player3->autokick(kick_speed);
 					break;
@@ -228,6 +237,9 @@ void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state, Angl
 	Player::Ptr receiver = world.friendly_team().get(receiver_num);
 	Point intercept_location = horizontal_intercept(receiver);
 
+	if ((passer->position().len() - world.ball().position().len()) < 0.01)
+		AI::HL::STP::Action::intercept(passer, world.ball().position());
+
 	if (passer->has_ball()) {
 		passer->move(passer->position(), orientation, Point());
 	}
@@ -246,12 +258,12 @@ void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state, Angl
 		receiver->move(Point(intercept_location.x, receiver->position().y), robot_positions[receiver_num].second, Point());
 	}
 
-	if(receiver->has_ball()) {
+	if (receiver->has_ball()) {
 		current_state = next_state;
 		kicked_ball = false;
 	}
 
-	if(ball_out_of_play())
+	if (ball_out_of_play())
 		current_state = INITIAL_POSITION;
 }
 
@@ -265,11 +277,11 @@ bool PASCHL::ball_out_of_play() {
 	bool ball_position_in_square = ball_position.y < 0.8 && ball_position.y > -0.8;
 	
 	//if ball is out of bounds, return true
-	if(ball_out_bounds_x || ball_out_bounds_y)
+	if (ball_out_bounds_x || ball_out_bounds_y)
 		return true;
 	//if ball is inside the square and is moving less than 0.5, return true
-	return (ball_position_in_square && (ball_future < bot_y_top_position || ball_future > bot_y_bottom_position));
-	}
+	return (ball_position_in_square && (ball_future < bot_y_top_position && ball_future > bot_y_bottom_position));
+}
 
 
 
