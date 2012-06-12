@@ -246,7 +246,7 @@ void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state, Angl
 		kicked_ball = false;
 	}
 
-	if(ball_out_of_play() == true)
+	if(ball_out_of_play())
 		current_state = INITIAL_POSITION;
 }
 
