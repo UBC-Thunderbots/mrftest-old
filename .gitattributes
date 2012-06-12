@@ -471,6 +471,10 @@ software/log/shared/enums.cpp -text
 software/log/shared/enums.h -text
 software/log/shared/magic.cpp -text
 software/log/shared/magic.h -text
+software/mrf/dongle.cpp -text
+software/mrf/dongle.h -text
+software/mrf/robot.cpp -text
+software/mrf/robot.h -text
 software/mrfcap/main.cpp -text
 software/mrfdbg/main.cpp -text
 software/project.mk -text
