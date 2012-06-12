@@ -102,6 +102,7 @@ MRFDongle::MRFDongle() : context(), device(context, 0xC057, 0x2579), mdr_transfe
 
 MRFDongle::~MRFDongle() {
 	drive_submit_connection.disconnect();
+	device.release_interface(0);
 	device.set_configuration(1);
 }
 
