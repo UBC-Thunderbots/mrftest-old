@@ -117,7 +117,7 @@ namespace {
 					unsigned int seconds = static_cast<unsigned int>(convert_number(parts[1]));
 					uint8_t buffer;
 					try {
-						std::size_t len = devh.interrupt_in(1, &buffer, 1, seconds * 1000, 0);
+						std::size_t len = devh.interrupt_in(1, &buffer, 1, seconds * 1000);
 						if (len == 1) {
 							if (buffer == 0x00) {
 								std::cout << "INT falling edge\n";
