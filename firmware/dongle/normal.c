@@ -425,13 +425,17 @@ static void on_ep1_out_pattern(uint32_t pattern) {
 	uint32_t pktsts = (pattern >> 17) & 0xF;
 	if (pktsts == 0b0010) {
 		// OUT data packet received
-		// Copy the received data into the drive packet buffer
 		uint32_t bcnt = (pattern >> 4) & 0x7FF;
-		for (size_t i = 0; i < bcnt; i += 4) {
-			perconfig.normal.drive_packet[i] = OTG_FS_FIFO[0][0];
+		if (bcnt == sizeof(perconfig.normal.drive_packet)) {
+			// Copy the received data into the drive packet buffer
+			for (size_t i = 0; i < bcnt; i += 4) {
+				perconfig.normal.drive_packet[i] = OTG_FS_FIFO[0][0];
+			}
+		} else {
+			for (size_t i = 0; i < bcnt; i += 4) {
+				(void) OTG_FS_FIFO[0][0];
+			}
 		}
-		// Clear the drive packet after the received data
-		memset(((char *) perconfig.normal.drive_packet) + bcnt, 0, sizeof(perconfig.normal.drive_packet) - bcnt);
 	} else if (pktsts == 0b0011) {
 		// OUT transfer complete
 		out_ep1_enabled = false;
