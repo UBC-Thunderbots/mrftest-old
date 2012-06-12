@@ -25,7 +25,7 @@ namespace {
   Point bot2_secondary(2.25, bot_y_bottom_position);
   Point bot3_secondary(2.75, bot_y_top_position);  
   double kick_speed = 0.05;
-  double epsilon=.3;
+  double epsilon = 0.1;
   
 
   enum state{
@@ -132,18 +132,18 @@ class PASCHL : public HighLevel {
 
 				switch(current_state) {
 				case INITIAL_POSITION:{
-				  unsigned int i;
 					for(unsigned int i = 0; i < min_team_size; i++) {
 						friendly.get(i)->move(robot_positions[i].first, robot_positions[i].second, Point());
 					}
-					 bool bot0_is_init= (player0->position()-robot_positions[i].first).len() < epsilon;
-					 bool bot1_is_init= (player1->position()-robot_positions[i].first).len() < epsilon;
-					 bool bot2_is_init= (player2->position()-robot_positions[i].first).len() < epsilon;
-					 bool bot3_is_init= (player3->position()-robot_positions[i].first).len() < epsilon;
+					bool bot0_is_init = (player0->position() - robot_positions[0].first).len() < epsilon;
+					bool bot1_is_init = (player1->position() - robot_positions[1].first).len() < epsilon;
+					bool bot2_is_init = (player2->position() - robot_positions[2].first).len() < epsilon;
+					bool bot3_is_init = (player3->position() - robot_positions[3].first).len() < epsilon;
 
-					 if(bot0_is_init && bot1_is_init && bot2_is_init && bot3_is_init) { 
-					   current_state = BOT0_PASS;
-					 }
+					if (bot0_is_init && bot1_is_init && bot2_is_init && bot3_is_init) {
+						current_state = BOT0_PASS;
+						std::cout << "next" << std::endl;
+					}
 				}
 					break;
 				case BOT0_PASS:
@@ -245,9 +245,6 @@ void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state, Angl
 	if (valid_intercept_location && able_to_intercept && kicked_ball) {
 		receiver->move(Point(intercept_location.x, receiver->position().y), robot_positions[receiver_num].second, Point());
 	}
-
-	std::cout<<intercept_location<<" ";
-	std::cout<<receiver->position()<<std::endl;
 
 	if(receiver->has_ball()) {
 		current_state = next_state;
