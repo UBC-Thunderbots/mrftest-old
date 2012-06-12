@@ -46,7 +46,8 @@ namespace {
 						move(world, player, dest, Point(0, 0));
 						
 						if (player_to_ball.len() - DISTANCE_FROM_BALL < TOLERANCE && player->velocity().len() < TOLERANCE) {
-							state = ROTATE_BOT;
+							// Skip to shooting right away
+							state = ROTATE_MID;
 						}
 						break;
 					// Rotate below to a 30 degree angle
