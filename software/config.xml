@@ -174,12 +174,12 @@
       </category>
       <category name="PID5_2012">
         <double name="angular -differential">0.2</double>
-        <double name="angular +proportional">30.0</double>
-        <double name="Limit wheel accel">5</double>
-        <double name="Limit wheel speed">100</double>
+        <double name="angular +proportional">1.0</double>
+        <double name="Limit wheel accel">150</double>
+        <double name="Limit wheel speed">500</double>
         <double name="x to y ratio">0.810</double>
         <double name="xy -differential">0.0</double>
-        <double name="xy +proportional">25.0</double>
+        <double name="xy +proportional">4.0</double>
         <double name="YA ratio">0.08</double>
       </category>
       <category name="PID6">
@@ -268,8 +268,8 @@
         <double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>
       </category>
       <category name="Goalie">
-        <boolean name="Goalie is lowest index">true</boolean>
-        <integer name="Goalie pattern index">3</integer>
+        <boolean name="Goalie is lowest index">false</boolean>
+        <integer name="Goalie pattern index">4</integer>
       </category>
       <category name="Kickoff">
         <degrees name="kickoff: angle to separate players (degrees)">20.0</degrees>
@@ -293,15 +293,15 @@
       <category name="param">
         <degrees name="minimum region available for baller_can_shoot to be true (degrees)">5.7</degrees>
       </category>
+      <category name="Pass">
+        <double name="Average ball pass velocity (HACK)">2.0</double>
+      </category>
       <category name="pass">
         <double name="Avoid goal radius when passing (m)">0.90</double>
         <double name="Enemy pass checking width (robot radius)">1.00</double>
         <double name="Friendly pass checking width (robot radius)">1.00</double>
         <double name="kicking speed for making a pass">4.75</double>
         <double name="Minimum distance for pass play">0.500</double>
-      </category>
-      <category name="Pass">
-        <double name="Average ball pass velocity (HACK)">2.0</double>
       </category>
       <category name="PassRay">
         <degrees name="Max ray shoot rotation (degrees)">75.0</degrees>
@@ -317,7 +317,7 @@
           <boolean name="DBasicCorner">true</boolean>
           <boolean name="DefensiveBlock">true</boolean>
           <boolean name="DNaive">true</boolean>
-          <boolean name="FranticDefense">true</boolean>
+          <boolean name="FranticDefense">false</boolean>
           <boolean name="FreeKickEnemy">true</boolean>
           <boolean name="FreeKickFriendly">false</boolean>
           <boolean name="FreeKickFriendlyChip">false</boolean>
@@ -403,13 +403,13 @@
         <boolean name="new fight">true</boolean>
         <integer name="randomize factor that the baller will shoot even if blocked">5</integer>
       </category>
-      <category name="shoot">
-        <radians name="Angle threshold that defines shoot accuracy, bigger is more accurate (radians)">0.0</radians>
-        <double name="Shoot accuracy (for various purposes)">3.0</double>
-      </category>
       <category name="Shoot">
         <double name="big reduced radius for calculating best shot (robot radius ratio)">0.600</double>
         <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
+      </category>
+      <category name="shoot">
+        <radians name="Angle threshold that defines shoot accuracy, bigger is more accurate (radians)">0.0</radians>
+        <double name="Shoot accuracy (for various purposes)">3.0</double>
       </category>
       <category name="Stop">
         <double name="goalie stop dist">0.180</double>
