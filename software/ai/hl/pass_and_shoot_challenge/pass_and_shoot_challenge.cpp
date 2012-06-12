@@ -13,71 +13,71 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	const unsigned int min_team_size = 4;
-	double bot_y_top_position = 1.2;
-	double bot_y_bottom_position = -1.2;
-	Point bot0_initial(-2.75,bot_y_bottom_position);
-	Point bot1_initial(-2.00,bot_y_top_position);
-	Point bot2_initial(-1.00,bot_y_bottom_position);
-	Point bot3_initial(0.00,bot_y_top_position);
-	Point bot0_secondary(0.75, bot_y_bottom_position);
-	Point bot1_secondary(1.5, bot_y_top_position);
-	Point bot2_secondary(2.25, bot_y_bottom_position);
-	Point bot3_secondary(2.75, bot_y_top_position);
+  const unsigned int min_team_size = 4;
+  double bot_y_top_position = 1.2;
+  double bot_y_bottom_position = -1.2;
+  Point bot0_initial(-2.75,bot_y_bottom_position);
+  Point bot1_initial(-2.00,bot_y_top_position);
+  Point bot2_initial(-1.00,bot_y_bottom_position);
+  Point bot3_initial(0.00,bot_y_top_position);
+  Point bot0_secondary(0.75, bot_y_bottom_position);
+  Point bot1_secondary(1.5, bot_y_top_position);
+  Point bot2_secondary(2.25, bot_y_bottom_position);
+  Point bot3_secondary(2.75, bot_y_top_position);  
+  double kick_speed = 0.05;
+  double epsilon=.3;
+  
 
-	double kick_speed = 0.05;
-
-	enum state{
-		/*
-		 * Set up bots to initial positions.
-			Returns to this state if things go wrong
-		*/
-		INITIAL_POSITION,
-		/*
-		 * Bot0 waits until it has possession of ball. it then passes ball to Bot1.
-		 * Bot1 moves horizontally along a line and intercepts ball.
-		 */
-		BOT0_PASS,
-		/*
-		 * Bot1 rotates and faces Bot2.
-		 * if Bot1 has possession of ball, pass to Bot2
-		 */
-		BOT1_PASS,
-		/*
-		 * Bot2 rotates and faces Bot3
-		 * if Bot2 has possession of ball, pass to Bot3
-		 * on next_state, Bot0 goes to position
-		 */
-		BOT2_PASS,
-		/*
-		 * Bot3 rotates to face bot0
-		 * if bot3 has possession of ball, pass to bot0
-		 * on next state, bot1 goes to its next position
-		 */
-		BOT3_PASS,
-		/*
-		 * bot0 rotates to face bot1
-		 * if b0t0 has possession of ball, pass to bot1
-		 * on next state, bot2 goes to its new position
-		 */
-		BOT0_REPOS,
-		/*
-		 * bot1 rotates to face bot2
-		 * if bot1 still has possession of ball, pass to bot2
-		 * on next state, bot3 goes to its new position
-		 */
-		BOT1_REPOS,
-		/*
-		 * bot2 rotates to face bot3
-		 * if bot2 still has possession of ball, pass to bot3
-		 */
-		BOT2_REPOS,
-		/*
-		 * If bot3 still has ball, rotate until facing center of goal
-		 * shoot and score.
-		 */
-		BOT3_REPOS};
-
+  enum state{
+    /*
+     * Set up bots to initial positions.
+     Returns to this state if things go wrong
+    */
+    INITIAL_POSITION,
+    /*
+     * Bot0 waits until it has possession of ball. it then passes ball to Bot1.
+     * Bot1 moves horizontally along a line and intercepts ball.
+     */
+    BOT0_PASS,
+    /*
+     * Bot1 rotates and faces Bot2.
+     * if Bot1 has possession of ball, pass to Bot2
+     */
+    BOT1_PASS,
+    /*
+     * Bot2 rotates and faces Bot3
+     * if Bot2 has possession of ball, pass to Bot3
+     * on next_state, Bot0 goes to position
+     */
+    BOT2_PASS,
+    /*
+     * Bot3 rotates to face bot0
+     * if bot3 has possession of ball, pass to bot0
+     * on next state, bot1 goes to its next position
+     */
+    BOT3_PASS,
+    /*
+     * bot0 rotates to face bot1
+     * if b0t0 has possession of ball, pass to bot1
+     * on next state, bot2 goes to its new position
+     */
+    BOT0_REPOS,
+    /*
+     * bot1 rotates to face bot2
+     * if bot1 still has possession of ball, pass to bot2
+     * on next state, bot3 goes to its new position
+     */
+    BOT1_REPOS,
+    /*
+     * bot2 rotates to face bot3
+     * if bot2 still has possession of ball, pass to bot3
+     */
+    BOT2_REPOS,
+    /*
+     * If bot3 still has ball, rotate until facing center of goal
+     * shoot and score.
+     */
+    BOT3_REPOS};
 };
 
 
@@ -131,12 +131,20 @@ class PASCHL : public HighLevel {
 				Player::Ptr player3 = friendly.get(3);
 
 				switch(current_state) {
-				case INITIAL_POSITION:
+				case INITIAL_POSITION:{
+				  unsigned int i;
 					for(unsigned int i = 0; i < min_team_size; i++) {
 						friendly.get(i)->move(robot_positions[i].first, robot_positions[i].second, Point());
 					}
+					 bool bot0_is_init= (player0->position()-robot_positions[i].first).len() < epsilon;
+					 bool bot1_is_init= (player1->position()-robot_positions[i].first).len() < epsilon;
+					 bool bot2_is_init= (player2->position()-robot_positions[i].first).len() < epsilon;
+					 bool bot3_is_init= (player3->position()-robot_positions[i].first).len() < epsilon;
 
-					current_state = BOT0_PASS;
+					 if(bot0_is_init && bot1_is_init && bot2_is_init && bot3_is_init) { 
+					   current_state = BOT0_PASS;
+					 }
+				}
 					break;
 				case BOT0_PASS:
 					robot_pass(0, 1, BOT1_PASS, Angle(robot_orientation_passing[0]));
@@ -258,7 +266,7 @@ bool PASCHL::ball_out_of_play() {
 	bool ball_out_bounds_x = ball_position.x < world.field().friendly_goal().x && ball_position.x > world.field().enemy_goal().x;
 	bool ball_out_bounds_y = ball_position.y < -(world.field().width() / 2) && ball_position.y > (world.field().width() / 2);
 	bool ball_position_in_square = ball_position.y < 0.8 && ball_position.y > -0.8;
-
+	
 	//if ball is out of bounds, return true
 	if(ball_out_bounds_x || ball_out_bounds_y)
 		return true;
