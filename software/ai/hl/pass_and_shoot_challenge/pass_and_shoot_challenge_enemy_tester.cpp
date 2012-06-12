@@ -15,19 +15,19 @@ using namespace AI::HL::W;
 namespace {
 
   const unsigned int min_team_size = 4;
-  const double epsilon = .15;
+  const double epsilon = 0.3;
 
-  Point bot0_left(-2.7, 0.6);
-  Point bot0_right(-.3, 0.6);
+  Point bot0_left(-2.0, 0.6);
+  Point bot0_right(0, 0.6);
 
-  Point bot1_left(.3, 0.6);
-  Point bot1_right(2.7, 0.6);
+  Point bot1_left(0.5, 0.6);
+  Point bot1_right(2.5, 0.6);
 
-  Point bot2_left(-2.7, -0.6);
-  Point bot2_right(-.3, -0.6);
+  Point bot2_left(-2.8, -0.6);
+  Point bot2_right(-0.8, -0.6);
 
-  Point bot3_left(.3, -0.6);
-  Point bot3_right(2.7, -0.6);
+  Point bot3_left(0, -0.6);
+  Point bot3_right(2.0, -0.6);
   
   enum state{
     INITIAL,
