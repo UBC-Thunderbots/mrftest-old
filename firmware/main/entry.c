@@ -109,8 +109,24 @@ static void handle_radio_receive(void) {
 #warning implement chicker charge/float/discharge
 					}
 				}
-			} else {
+			} else if (frame_length >= HEADER_LENGTH + 1 + FOOTER_LENGTH) {
 				// Non-broadcast frame contains a message specifically for this robot
+				static const uint16_t MESSAGE_PURPOSE_ADDR = MRF_REG_LONG_RXFIFO + 1 + HEADER_LENGTH;
+				static const uint16_t MESSAGE_PAYLOAD_ADDR = MESSAGE_PURPOSE_ADDR + 1;
+				switch (mrf_read_long(MESSAGE_PURPOSE_ADDR)) {
+					case 0x03: // Set LED mode
+						if (frame_length == HEADER_LENGTH + 2 + FOOTER_LENGTH) {
+							uint8_t mode = mrf_read_long(MESSAGE_PAYLOAD_ADDR);
+							if (mode <= 0x1F) {
+								outb(LED_CTL, (inb(LED_CTL) & ~0b00111111) | mode);
+							} else if (mode == 0x20) {
+#warning implement proper run LED handling
+							} else if (mode == 0x21) {
+#warning implement proper run LED handling
+							}
+						}
+						break;
+				}
 #warning implement fire kicker, arm autokick, disarm autokick (remember to do sequence number checking)
 			}
 		}
