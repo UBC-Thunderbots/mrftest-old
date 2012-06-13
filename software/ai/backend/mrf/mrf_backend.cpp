@@ -1,10 +1,10 @@
-#include "ai/backend/xbee/xbee_backend.h"
+#include "ai/backend/mrf/mrf_backend.h"
 #include "ai/backend/backend.h"
-#include "ai/backend/xbee/ball.h"
-#include "ai/backend/xbee/field.h"
-#include "ai/backend/xbee/player.h"
-#include "ai/backend/xbee/refbox.h"
-#include "ai/backend/xbee/robot.h"
+#include "ai/backend/mrf/ball.h"
+#include "ai/backend/mrf/field.h"
+#include "ai/backend/mrf/player.h"
+#include "ai/backend/mrf/refbox.h"
+#include "ai/backend/mrf/robot.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "util/box_array.h"
 #include "util/clocksource_timerfd.h"
@@ -13,8 +13,8 @@
 #include "util/exception.h"
 #include "util/sockaddrs.h"
 #include "util/timestep.h"
-#include "xbee/dongle.h"
-#include "xbee/robot.h"
+#include "mrf/dongle.h"
+#include "mrf/robot.h"
 #include <cassert>
 #include <cstring>
 #include <locale>
@@ -23,7 +23,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-DoubleParam XBEE_LOOP_DELAY("Loop Delay", "Backend/XBee", 0.0, -1.0, 1.0);
+DoubleParam MRF_LOOP_DELAY("Loop Delay", "Backend/MRF", 0.0, -1.0, 1.0);
 
 using namespace AI::BE;
 
@@ -41,7 +41,7 @@ namespace {
 	 */
 	const unsigned int MAX_VISION_FAILURES = 120;
 
-	class XBeeBackend;
+	class MRFBackend;
 
 	/**
 	 * \brief A generic team.
@@ -59,7 +59,7 @@ namespace {
 			 *
 			 * \param[in] backend the backend to which the team is attached.
 			 */
-			explicit GenericTeam(XBeeBackend &backend);
+			explicit GenericTeam(MRFBackend &backend);
 
 			/**
 			 * \brief Returns the number of existent robots in the team.
@@ -75,7 +75,7 @@ namespace {
 			 *
 			 * \return the robot.
 			 */
-			typename T::Ptr get_xbee_robot(std::size_t i);
+			typename T::Ptr get_mrf_robot(std::size_t i);
 
 			/**
 			 * \brief Returns a robot.
@@ -117,7 +117,7 @@ namespace {
 			void lock_time(const timespec &now);
 
 		protected:
-			XBeeBackend &backend;
+			MRFBackend &backend;
 			BoxArray<T, 16> members;
 			std::vector<typename T::Ptr> member_ptrs;
 
@@ -128,24 +128,24 @@ namespace {
 	/**
 	 * \brief The friendly team.
 	 */
-	class XBeeFriendlyTeam : public GenericTeam<AI::BE::XBee::Player, AI::BE::Player, AI::BE::FriendlyTeam> {
+	class MRFFriendlyTeam : public GenericTeam<AI::BE::MRF::Player, AI::BE::Player, AI::BE::FriendlyTeam> {
 		public:
-			explicit XBeeFriendlyTeam(XBeeBackend &backend, XBeeDongle &dongle);
+			explicit MRFFriendlyTeam(MRFBackend &backend, MRFDongle &dongle);
 			unsigned int score() const;
 
 		protected:
 			void create_member(unsigned int pattern);
 
 		private:
-			XBeeDongle &dongle;
+			MRFDongle &dongle;
 	};
 
 	/**
 	 * \brief The enemy team.
 	 */
-	class XBeeEnemyTeam : public GenericTeam<AI::BE::XBee::Robot, AI::BE::Robot, AI::BE::EnemyTeam> {
+	class MRFEnemyTeam : public GenericTeam<AI::BE::MRF::Robot, AI::BE::Robot, AI::BE::EnemyTeam> {
 		public:
-			explicit XBeeEnemyTeam(XBeeBackend &backend);
+			explicit MRFEnemyTeam(MRFBackend &backend);
 			unsigned int score() const;
 
 		protected:
@@ -155,11 +155,11 @@ namespace {
 	/**
 	 * \brief The backend.
 	 */
-	class XBeeBackend : public Backend {
+	class MRFBackend : public Backend {
 		public:
-			AI::BE::XBee::RefBox refbox;
+			AI::BE::MRF::RefBox refbox;
 
-			explicit XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, unsigned int multicast_interface);
+			explicit MRFBackend(MRFDongle &dongle, unsigned int camera_mask, unsigned int multicast_interface);
 			BackendFactory &factory() const;
 			const Field &field() const;
 			const Ball &ball() const;
@@ -182,10 +182,10 @@ namespace {
 		private:
 			unsigned int camera_mask;
 			TimerFDClockSource clock;
-			AI::BE::XBee::Field field_;
-			AI::BE::XBee::Ball ball_;
-			XBeeFriendlyTeam friendly;
-			XBeeEnemyTeam enemy;
+			AI::BE::MRF::Field field_;
+			AI::BE::MRF::Ball ball_;
+			MRFFriendlyTeam friendly;
+			MRFEnemyTeam enemy;
 			const FileDescriptor vision_socket;
 			timespec playtype_time;
 			Point playtype_arm_ball_position;
@@ -200,23 +200,23 @@ namespace {
 			AI::Common::PlayType compute_playtype(AI::Common::PlayType old_pt);
 	};
 
-	class XBeeBackendFactory : public BackendFactory {
+	class MRFBackendFactory : public BackendFactory {
 		public:
-			explicit XBeeBackendFactory();
+			explicit MRFBackendFactory();
 			void create_backend(const std::string &, unsigned int camera_mask, unsigned int multicast_interface, std::function<void(Backend &)> cb) const;
 	};
 }
 
-XBeeBackendFactory xbee_backend_factory_instance;
+MRFBackendFactory mrf_backend_factory_instance;
 
-template<typename T, typename TSuper, typename Super> GenericTeam<T, TSuper, Super>::GenericTeam(XBeeBackend &backend) : backend(backend) {
+template<typename T, typename TSuper, typename Super> GenericTeam<T, TSuper, Super>::GenericTeam(MRFBackend &backend) : backend(backend) {
 }
 
 template<typename T, typename TSuper, typename Super> std::size_t GenericTeam<T, TSuper, Super>::size() const {
 	return member_ptrs.size();
 }
 
-template<typename T, typename TSuper, typename Super> typename T::Ptr GenericTeam<T, TSuper, Super>::get_xbee_robot(std::size_t i) {
+template<typename T, typename TSuper, typename Super> typename T::Ptr GenericTeam<T, TSuper, Super>::get_mrf_robot(std::size_t i) {
 	return member_ptrs[i];
 }
 
@@ -302,38 +302,38 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 	}
 }
 
-XBeeFriendlyTeam::XBeeFriendlyTeam(XBeeBackend &backend, XBeeDongle &dongle) : GenericTeam<AI::BE::XBee::Player, AI::BE::Player, AI::BE::FriendlyTeam>(backend), dongle(dongle) {
+MRFFriendlyTeam::MRFFriendlyTeam(MRFBackend &backend, MRFDongle &dongle) : GenericTeam<AI::BE::MRF::Player, AI::BE::Player, AI::BE::FriendlyTeam>(backend), dongle(dongle) {
 }
 
-unsigned int XBeeFriendlyTeam::score() const {
+unsigned int MRFFriendlyTeam::score() const {
 	return backend.friendly_colour() == AI::Common::Team::Colour::YELLOW ? backend.refbox.goals_yellow : backend.refbox.goals_blue;
 }
 
-void XBeeFriendlyTeam::create_member(unsigned int pattern) {
+void MRFFriendlyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, std::ref(backend), pattern, std::ref(dongle.robot(pattern)));
 }
 
-XBeeEnemyTeam::XBeeEnemyTeam(XBeeBackend &backend) : GenericTeam<AI::BE::XBee::Robot, AI::BE::Robot, AI::BE::EnemyTeam>(backend) {
+MRFEnemyTeam::MRFEnemyTeam(MRFBackend &backend) : GenericTeam<AI::BE::MRF::Robot, AI::BE::Robot, AI::BE::EnemyTeam>(backend) {
 }
 
-unsigned int XBeeEnemyTeam::score() const {
+unsigned int MRFEnemyTeam::score() const {
 	return backend.friendly_colour() == AI::Common::Team::Colour::YELLOW ? backend.refbox.goals_blue : backend.refbox.goals_yellow;
 }
 
-void XBeeEnemyTeam::create_member(unsigned int pattern) {
+void MRFEnemyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, std::ref(backend), pattern);
 }
 
-XBeeBackend::XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, unsigned int multicast_interface) : Backend(), refbox(multicast_interface), camera_mask(camera_mask), clock(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND), ball_(*this), friendly(*this, dongle), enemy(*this), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
+MRFBackend::MRFBackend(MRFDongle &dongle, unsigned int camera_mask, unsigned int multicast_interface) : Backend(), refbox(multicast_interface), camera_mask(camera_mask), clock(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND), ball_(*this), friendly(*this, dongle), enemy(*this), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
 	if (!(1 <= camera_mask && camera_mask <= 3)) {
 		throw std::runtime_error("Invalid camera bitmask (must be 1–3)");
 	}
 
-	refbox.command.signal_changed().connect(sigc::mem_fun(this, &XBeeBackend::update_playtype));
-	friendly_colour().signal_changed().connect(sigc::mem_fun(this, &XBeeBackend::on_friendly_colour_changed));
-	playtype_override().signal_changed().connect(sigc::mem_fun(this, &XBeeBackend::update_playtype));
+	refbox.command.signal_changed().connect(sigc::mem_fun(this, &MRFBackend::update_playtype));
+	friendly_colour().signal_changed().connect(sigc::mem_fun(this, &MRFBackend::on_friendly_colour_changed));
+	playtype_override().signal_changed().connect(sigc::mem_fun(this, &MRFBackend::update_playtype));
 
-	clock.signal_tick.connect(sigc::mem_fun(this, &XBeeBackend::tick));
+	clock.signal_tick.connect(sigc::mem_fun(this, &MRFBackend::tick));
 
 	addrinfo hints;
 	std::memset(&hints, 0, sizeof(hints));
@@ -362,62 +362,62 @@ XBeeBackend::XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, unsigned 
 		LOG_INFO("Cannot join multicast group 224.5.23.2 for vision data.");
 	}
 
-	Glib::signal_io().connect(sigc::mem_fun(this, &XBeeBackend::on_vision_readable), vision_socket.fd(), Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(this, &MRFBackend::on_vision_readable), vision_socket.fd(), Glib::IO_IN);
 
-	refbox.signal_packet.connect(sigc::mem_fun(this, &XBeeBackend::on_refbox_packet));
+	refbox.signal_packet.connect(sigc::mem_fun(this, &MRFBackend::on_refbox_packet));
 	refbox.goals_yellow.signal_changed().connect(signal_score_changed().make_slot());
 	refbox.goals_blue.signal_changed().connect(signal_score_changed().make_slot());
 
 	timespec_now(playtype_time);
 }
 
-BackendFactory &XBeeBackend::factory() const {
-	return xbee_backend_factory_instance;
+BackendFactory &MRFBackend::factory() const {
+	return mrf_backend_factory_instance;
 }
 
-const Field &XBeeBackend::field() const {
+const Field &MRFBackend::field() const {
 	return field_;
 }
 
-const Ball &XBeeBackend::ball() const {
+const Ball &MRFBackend::ball() const {
 	return ball_;
 }
 
-FriendlyTeam &XBeeBackend::friendly_team() {
+FriendlyTeam &MRFBackend::friendly_team() {
 	return friendly;
 }
 
-const FriendlyTeam &XBeeBackend::friendly_team() const {
+const FriendlyTeam &MRFBackend::friendly_team() const {
 	return friendly;
 }
 
-EnemyTeam &XBeeBackend::enemy_team() {
+EnemyTeam &MRFBackend::enemy_team() {
 	return enemy;
 }
 
-const EnemyTeam &XBeeBackend::enemy_team() const {
+const EnemyTeam &MRFBackend::enemy_team() const {
 	return enemy;
 }
 
-unsigned int XBeeBackend::main_ui_controls_table_rows() const {
+unsigned int MRFBackend::main_ui_controls_table_rows() const {
 	return 0;
 }
 
-void XBeeBackend::main_ui_controls_attach(Gtk::Table &, unsigned int) {
+void MRFBackend::main_ui_controls_attach(Gtk::Table &, unsigned int) {
 }
 
-unsigned int XBeeBackend::secondary_ui_controls_table_rows() const {
+unsigned int MRFBackend::secondary_ui_controls_table_rows() const {
 	return 0;
 }
 
-void XBeeBackend::secondary_ui_controls_attach(Gtk::Table &, unsigned int) {
+void MRFBackend::secondary_ui_controls_attach(Gtk::Table &, unsigned int) {
 }
 
-std::size_t XBeeBackend::visualizable_num_robots() const {
+std::size_t MRFBackend::visualizable_num_robots() const {
 	return friendly.size() + enemy.size();
 }
 
-Visualizable::Robot::Ptr XBeeBackend::visualizable_robot(std::size_t i) const {
+Visualizable::Robot::Ptr MRFBackend::visualizable_robot(std::size_t i) const {
 	if (i < friendly.size()) {
 		return friendly.get(i);
 	} else {
@@ -425,23 +425,23 @@ Visualizable::Robot::Ptr XBeeBackend::visualizable_robot(std::size_t i) const {
 	}
 }
 
-void XBeeBackend::mouse_pressed(Point, unsigned int) {
+void MRFBackend::mouse_pressed(Point, unsigned int) {
 }
 
-void XBeeBackend::mouse_released(Point, unsigned int) {
+void MRFBackend::mouse_released(Point, unsigned int) {
 }
 
-void XBeeBackend::mouse_exited() {
+void MRFBackend::mouse_exited() {
 }
 
-void XBeeBackend::mouse_moved(Point) {
+void MRFBackend::mouse_moved(Point) {
 }
 
-timespec XBeeBackend::monotonic_time() const {
+timespec MRFBackend::monotonic_time() const {
 	return now;
 }
 
-void XBeeBackend::tick() {
+void MRFBackend::tick() {
 	// If the field geometry is not yet valid, do nothing.
 	if (!field_.valid()) {
 		return;
@@ -453,10 +453,10 @@ void XBeeBackend::tick() {
 	friendly.lock_time(now);
 	enemy.lock_time(now);
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		friendly.get_xbee_robot(i)->pre_tick();
+		friendly.get_mrf_robot(i)->pre_tick();
 	}
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		enemy.get_xbee_robot(i)->pre_tick();
+		enemy.get_mrf_robot(i)->pre_tick();
 	}
 
 	// Run the AI.
@@ -464,7 +464,7 @@ void XBeeBackend::tick() {
 
 	// Do post-AI stuff (pushing data to the radios).
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		friendly.get_xbee_robot(i)->tick(playtype() == AI::Common::PlayType::HALT);
+		friendly.get_mrf_robot(i)->tick(playtype() == AI::Common::PlayType::HALT);
 	}
 
 	// Notify anyone interested in the finish of a tick.
@@ -473,7 +473,7 @@ void XBeeBackend::tick() {
 	signal_post_tick().emit(timespec_to_nanos(timespec_sub(after, now)));
 }
 
-bool XBeeBackend::on_vision_readable(Glib::IOCondition) {
+bool MRFBackend::on_vision_readable(Glib::IOCondition) {
 	// Receive a packet.
 	uint8_t buffer[65536];
 	ssize_t len = recv(vision_socket.fd(), buffer, sizeof(buffer), 0);
@@ -564,13 +564,13 @@ bool XBeeBackend::on_vision_readable(Glib::IOCondition) {
 	return true;
 }
 
-void XBeeBackend::on_refbox_packet(const void *data, std::size_t length) {
+void MRFBackend::on_refbox_packet(const void *data, std::size_t length) {
 	timespec now;
 	timespec_now(now);
 	signal_refbox().emit(now, data, length);
 }
 
-void XBeeBackend::update_playtype() {
+void MRFBackend::update_playtype() {
 	AI::Common::PlayType new_pt;
 	AI::Common::PlayType old_pt = playtype();
 	if (playtype_override() != AI::Common::PlayType::NONE) {
@@ -590,13 +590,13 @@ void XBeeBackend::update_playtype() {
 	}
 }
 
-void XBeeBackend::on_friendly_colour_changed() {
+void MRFBackend::on_friendly_colour_changed() {
 	update_playtype();
 	friendly.clear();
 	enemy.clear();
 }
 
-AI::Common::PlayType XBeeBackend::compute_playtype(AI::Common::PlayType old_pt) {
+AI::Common::PlayType MRFBackend::compute_playtype(AI::Common::PlayType old_pt) {
 	switch (refbox.command) {
 		case 'H': // HALT
 		case 'h': // HALF TIME
@@ -730,13 +730,12 @@ AI::Common::PlayType XBeeBackend::compute_playtype(AI::Common::PlayType old_pt) 
 	}
 }
 
-XBeeBackendFactory::XBeeBackendFactory() : BackendFactory("xbee") {
+MRFBackendFactory::MRFBackendFactory() : BackendFactory("mrf") {
 }
 
-void XBeeBackendFactory::create_backend(const std::string &, unsigned int camera_mask, unsigned int multicast_interface, std::function<void(Backend &)> cb) const {
-	XBeeDongle dongle;
-	dongle.enable();
-	XBeeBackend be(dongle, camera_mask, multicast_interface);
+void MRFBackendFactory::create_backend(const std::string &, unsigned int camera_mask, unsigned int multicast_interface, std::function<void(Backend &)> cb) const {
+	MRFDongle dongle;
+	MRFBackend be(dongle, camera_mask, multicast_interface);
 	cb(be);
 }
 

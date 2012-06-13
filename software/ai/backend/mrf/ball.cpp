@@ -1,10 +1,10 @@
-#include "ai/backend/xbee/ball.h"
-#include "ai/backend/xbee/xbee_backend.h"
+#include "ai/backend/mrf/ball.h"
+#include "ai/backend/mrf/mrf_backend.h"
 
-using namespace AI::BE::XBee;
+using namespace AI::BE::MRF;
 
 namespace {
-	DoubleParam BALL_DECAY_CONSTANT("Ball Decay Constant", "Backend/XBee", 99.0, 0.0, 100.0);
+	DoubleParam BALL_DECAY_CONSTANT("Ball Decay Constant", "Backend/MRF", 99.0, 0.0, 100.0);
 }
 
 Ball::Ball(AI::BE::Backend &backend) : backend(backend), pred(1.3e-3, 2, BALL_DECAY_CONSTANT) {
@@ -13,7 +13,7 @@ Ball::Ball(AI::BE::Backend &backend) : backend(backend), pred(1.3e-3, 2, BALL_DE
 
 void Ball::update(Point pos, timespec ts) {
 	bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
-	pred.add_measurement(neg ? -pos : pos, timespec_sub(ts, double_to_timespec(XBEE_LOOP_DELAY)));
+	pred.add_measurement(neg ? -pos : pos, timespec_sub(ts, double_to_timespec(MRF_LOOP_DELAY)));
 }
 
 void Ball::lock_time(timespec now) {

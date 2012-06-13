@@ -12,7 +12,7 @@ EXECUTABLES_EXCLUDE_WORLD := cppunit
 # The source files for each executable.
 # Directories will be searched recursively for source files.
 #
-SOURCES_ai := ai geom log/shared proto uicomponents util xbee
+SOURCES_ai := ai geom log/shared mrf proto uicomponents util xbee
 SOURCES_convertlog := ai/common convertlog geom log/shared proto util
 SOURCES_cppunit := cppunit geom util
 SOURCES_crc16 := crc16.cpp geom util

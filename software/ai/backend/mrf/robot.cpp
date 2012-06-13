@@ -1,5 +1,5 @@
-#include "ai/backend/xbee/robot.h"
-#include "ai/backend/xbee/xbee_backend.h"
+#include "ai/backend/mrf/robot.h"
+#include "ai/backend/mrf/mrf_backend.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
 #include "util/param.h"
@@ -7,11 +7,11 @@
 #include <cmath>
 #include <stdexcept>
 
-using namespace AI::BE::XBee;
+using namespace AI::BE::MRF;
 
 namespace {
-	DoubleParam linear_decay_constant("Robot Linear Decay Constant", "Backend/XBee", 99.0, 0.0, 100.0);
-	DoubleParam angular_decay_constant("Robot Angular Decay Constant", "Backend/XBee", 99.0, 0.0, 100.0);
+	DoubleParam linear_decay_constant("Robot Linear Decay Constant", "Backend/MRF", 99.0, 0.0, 100.0);
+	DoubleParam angular_decay_constant("Robot Angular Decay Constant", "Backend/MRF", 99.0, 0.0, 100.0);
 }
 
 Robot::Robot(AI::BE::Backend &backend, unsigned int pattern) : seen_this_frame(false), vision_failures(0), backend(backend), pattern_(pattern), pred(1.3e-3, 2, linear_decay_constant, Angle::of_radians(1.3e-3), Angle::of_radians(2), angular_decay_constant) {
@@ -23,7 +23,7 @@ void Robot::update(const SSL_DetectionRobot &packet, timespec ts) {
 		bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
 		Point pos(neg ? -packet.x() / 1000.0 : packet.x() / 1000.0, neg ? -packet.y() / 1000.0 : packet.y() / 1000.0);
 		Angle ori = (Angle::of_radians(packet.orientation()) + (neg ? Angle::HALF : Angle::ZERO)).angle_mod();
-		pred.add_measurement(pos, ori, timespec_sub(ts, double_to_timespec(XBEE_LOOP_DELAY)));
+		pred.add_measurement(pos, ori, timespec_sub(ts, double_to_timespec(MRF_LOOP_DELAY)));
 	} else {
 		LOG_WARN("Vision packet has robot with no orientation.");
 	}
