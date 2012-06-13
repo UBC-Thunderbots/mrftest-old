@@ -228,7 +228,8 @@ typedef enum {
 	 * \brief Controls and reports on the chicker subsystem
 	 *
 	 * Bits:
-	 * 7–5: Reserved
+	 * 7–6: Reserved
+	 * 5 (R/W) [0]: Activates the safe discharge circuit to discharge the capacitors; 1 = enabled, 0 = disabled
 	 * 4 (R) [0]: Indicates whether the capacitors are fully charged; 1 = charged, 0 = not charged
 	 * 3 (R) [0]: Indicates whether charging timed out; 1 = timeout detected, 0 = timeout not detected
 	 * 2 (R/S) [0]: Fires the chipper; 1 = fire, 0 = do not fire, cleared in hardware at end of pulse
