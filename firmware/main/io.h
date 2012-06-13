@@ -325,6 +325,14 @@ typedef enum {
 	DEVICE_ID_STATUS = 0x23,
 
 	/**
+	* \brief lfsr control register
+	*
+	* 7-1: Reserved
+	* 0 (R/W) [1]: A write produces an increment of the LFSR, a read provides the LSB
+	**/
+	LFSR = 0x24,
+
+	/**
 	 * \brief The LSB of the stack pointer
 	 */
 	SP_LSB = 0x3D,
