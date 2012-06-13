@@ -565,7 +565,7 @@ static void on_ep3_out_pattern(uint32_t pattern) {
 }
 
 static bool can_enter(void) {
-	return config.pan_id != 0 && config.pan_id != 0xFFFF && config.mac_address != 0 && config.mac_address != 0xFFFF && config.mac_address != UINT64_C(0xFFFFFFFFFFFFFFFF);
+	return config.pan_id != 0xFFFF;
 }
 
 static void on_enter(void) {

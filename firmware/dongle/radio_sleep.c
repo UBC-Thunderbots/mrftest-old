@@ -36,7 +36,7 @@ static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t valu
 		config.symbol_rate = value;
 		*accept = true;
 		return true;
-	} else if (request_type == 0x40 && request == 0x05 && 0x0001 <= value && value <= 0xFFFE && !index) {
+	} else if (request_type == 0x40 && request == 0x05 && value != 0xFFFF && !index) {
 		config.pan_id = value;
 		*accept = true;
 		return true;
@@ -70,12 +70,8 @@ static union {
 } control_out_buffer;
 
 static bool out_request_set_mac_address_cb(void) {
-	if (control_out_buffer.mac_address != UINT64_C(0) && control_out_buffer.mac_address != UINT64_C(0xFFFF) && control_out_buffer.mac_address != UINT64_C(0xFFFFFFFFFFFFFFFF)) {
-		config.mac_address = control_out_buffer.mac_address;
-		return true;
-	} else {
-		return false;
-	}
+	config.mac_address = control_out_buffer.mac_address;
+	return true;
 }
 
 static bool on_out_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, void **dest, bool (**cb)(void)) {
