@@ -225,13 +225,13 @@ static void push_rx(void) {
 		return;
 	}
 
-	// Check if a prior tranfer needed a zero-length packet
+	// Check if a prior transfer needed a zero-length packet
 	if (in_ep2_zlp_pending) {
 		// A zero length packet was needed; do that now
-		OTG_FS_DIEPTSIZ1 =
+		OTG_FS_DIEPTSIZ2 =
 			(1 << 19) // PKTCNT = 1; send one packet
 			| (0 << 0); // XFRSIZ = 0; send zero bytes
-		OTG_FS_DIEPCTL1 |=
+		OTG_FS_DIEPCTL2 |=
 			(1 << 31) // EPENA = 1; enable endpoint
 			| (1 << 26); // CNAK = 1; clear NAK flag
 		in_ep2_zlp_pending = false;
@@ -252,16 +252,16 @@ static void push_rx(void) {
 	}
 	packet->next = 0;
 
-	// Push this captured packet into the USB FIFO
-	OTG_FS_DIEPTSIZ1 =
+	// Push this received packet into the USB FIFO
+	OTG_FS_DIEPTSIZ2 =
 		(((packet->length + 63) / 64) << 19) // PKTCNT = n; send the proper number of packets (this does not include any ZLP, which must be in a separate “transfer” as far as the STM32F4’s USB engine is concerned)
 		| (packet->length << 0); // XFRSIZ = n; send the proper number of bytes
-	OTG_FS_DIEPCTL1 |=
+	OTG_FS_DIEPCTL2 |=
 		(1 << 31) // EPENA = 1; enable endpoint
 		| (1 << 26); // CNAK = 1; clear NAK flag
 	for (size_t i = 0; i < (packet->length + 3U) / 4U; ++i) {
 		uint32_t word = packet->data[i * 4] | (packet->data[i * 4 + 1] << 8) | (packet->data[i * 4 + 2] << 16) | (packet->data[i * 4 + 3] << 24);
-		OTG_FS_FIFO[1][0] = word;
+		OTG_FS_FIFO[2][0] = word;
 	}
 	in_ep2_enabled = true;
 
@@ -290,20 +290,25 @@ static void exti12_interrupt_vector(void) {
 			uint8_t rxfifo_frame_length = mrf_read_long(MRF_REG_LONG_RXFIFO);
 			uint16_t frame_control = mrf_read_long(MRF_REG_LONG_RXFIFO + 1) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 2) << 8);
 			// Sanity-check the frame control word
-			if (((frame_control >> 0) & 7) == 1 /* Data packet */ && ((frame_control >> 3) & 1) == 0 /* No security */ && ((frame_control >> 6) & 1) == 0 /* Intra-PAN */ && ((frame_control >> 10) & 3) == 2 /* 16-bit destination address */ && ((frame_control >> 14) & 3) == 2 /* 16-bit source address */) {
+			if (((frame_control >> 0) & 7) == 1 /* Data packet */ && ((frame_control >> 3) & 1) == 0 /* No security */ && ((frame_control >> 6) & 1) == 1 /* Intra-PAN */ && ((frame_control >> 10) & 3) == 2 /* 16-bit destination address */ && ((frame_control >> 14) & 3) == 2 /* 16-bit source address */) {
 				// Read out and check the source address
 				uint16_t source_address = mrf_read_long(MRF_REG_LONG_RXFIFO + 8) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 9) << 8);
 				if (source_address < 8) {
+					// Blink the receive light
+					GPIOB_ODR ^= 4 << 12;
+
 					static const uint8_t HEADER_LENGTH = 2 /* Frame control */ + 1 /* Seq# */ + 2 /* Dest PAN */ + 2 /* Dest */ + 2 /* Src */;
+					static const uint8_t FOOTER_LENGTH = 2;
+
 					// Allocate a packet buffer
 					normal_in_packet_t *packet = in_free;
 					in_free = packet->next;
 					packet->next = 0;
 
 					// Fill in the packet buffer
-					packet->length = 1 + rxfifo_frame_length - HEADER_LENGTH;
+					packet->length = 1 + rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH;
 					packet->data[0] = source_address;
-					for (uint8_t i = 0; i < rxfifo_frame_length - HEADER_LENGTH; ++i) {
+					for (uint8_t i = 0; i < rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH; ++i) {
 						packet->data[i + 1] = mrf_read_long(MRF_REG_LONG_RXFIFO + 1 + HEADER_LENGTH + i);
 					}
 
@@ -382,7 +387,7 @@ static void on_ep1_in_interrupt(void) {
 
 static void on_ep2_in_interrupt(void) {
 	if (OTG_FS_DIEPINT2 & (1 << 0) /* XFRC */) {
-		// On transfer complete, go see if we have another MDR to send
+		// On transfer complete, go see if we have another message to send
 		OTG_FS_DIEPINT2 = 1 << 0; // XFRC = 1; clear transfer complete interrupt flag
 		in_ep2_enabled = false;
 		push_rx();
