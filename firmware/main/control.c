@@ -1,24 +1,36 @@
 #include "control.h"
 
-float forward[CONTROL_ORDER] = { 4.5987234, 2.92375e-4 };
-float feed_back[CONTROL_ORDER - 1] = { 5.9385e-3 };
+void control_clear(control_ctx_t *ctx) {
+	ctx->integrator = 0;
+	ctx->saturation_difference = 0;
+	ctx->anti_windup_offset = 0;
+}
 
-control_state_t controller_state[4];
+int16_t control_iter(int16_t setpoint, int16_t feedback, control_ctx_t *ctx) {
+	int16_t error;
+	float feedback_pwm_equiv, new_anti_windup_offset, error_compensated, control_action, plant_min, plant_max, plant;
 
-int16_t control_iteration(control_state_t control_state, int16_t wheel_setpoint, int16_t encoder) {
-	float diff = wheel_setpoint - encoder;
-	int16_t output = 0;
-	for(uint8_t i = CONTROL_ORDER; i>0;i--) {
-		diff += -1 * feed_back[i - 1] * control_state[i];
-		control_state[i] = control_state[i - 1];
-		output += control_state[i] * forward[i];
+	feedback_pwm_equiv = feedback / 3.0;
+	error = setpoint - feedback;
+	new_anti_windup_offset = 0.7992 * ctx->anti_windup_offset + 0.2852 * ctx->saturation_difference;
+	error_compensated = error - new_anti_windup_offset;
+	ctx->integrator += error_compensated;
+	control_action = error_compensated * 1.1072 + ctx->integrator * 0.2869;
+	plant = control_action;
+	plant_min = feedback_pwm_equiv - 45.0;
+	plant_max = feedback_pwm_equiv + 45.0;
+	if (plant < plant_min) {
+		plant = plant_min;
+	} else if (plant > plant_max) {
+		plant = plant_max;
 	}
-
-	if(output > 255)
-		output = 255;
-	if(output < -255)
-		output = -255;
-
-	return output;
+	if (plant < -255) {
+		plant = -255;
+	} else if (plant > 255) {
+		plant = 255;
+	}
+	ctx->saturation_difference = control_action - plant;
+	ctx->anti_windup_offset = new_anti_windup_offset;
+	return (int16_t) plant;
 }
 

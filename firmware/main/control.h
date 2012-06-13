@@ -3,15 +3,12 @@
 
 #include <stdint.h>
 
-#define CONTROL_ORDER 2
+typedef struct {
+	float integrator, saturation_difference, anti_windup_offset;
+} control_ctx_t;
 
-typedef float control_state_t[CONTROL_ORDER];
-
-extern control_state_t controller_state[4];
-extern float forward[CONTROL_ORDER];
-extern float feed_back[CONTROL_ORDER-1];
-
-int16_t control_iteration(control_state_t control_state, int16_t wheel_setpoint, int16_t encoder);
+void control_clear(control_ctx_t *ctx);
+int16_t control_iter(int16_t setpoint, int16_t feedback, control_ctx_t *ctx);
 
 #endif
 
