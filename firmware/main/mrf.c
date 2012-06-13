@@ -7,7 +7,7 @@ static inline void sleep_50ns(void) {
 	asm volatile("nop");
 }
 
-uint8_t mrf_read_short(mrf_reg_short_t reg) {
+uint8_t mrf_read_short(uint8_t reg) {
 	outb(MRF_CTL, 0x04); // Assert chip select
 	sleep_50ns();
 	outb(MRF_DATA, reg << 1); // Send first byte (read command plus address)
@@ -19,7 +19,7 @@ uint8_t mrf_read_short(mrf_reg_short_t reg) {
 	return inb(MRF_DATA); // Return read data
 }
 
-void mrf_write_short(mrf_reg_short_t reg, uint8_t value) {
+void mrf_write_short(uint8_t reg, uint8_t value) {
 	outb(MRF_CTL, 0x04); // Assert chip select
 	sleep_50ns();
 	outb(MRF_DATA, (reg << 1) | 0x01); // Send first byte (write command plus address)
@@ -30,7 +30,7 @@ void mrf_write_short(mrf_reg_short_t reg, uint8_t value) {
 	outb(MRF_CTL, 0x06); // Deassert chip select
 }
 
-uint8_t mrf_read_long(mrf_reg_long_t reg) {
+uint8_t mrf_read_long(uint16_t reg) {
 	outb(MRF_CTL, 0x04); // Assert chip select
 	sleep_50ns();
 	outb(MRF_DATA, (reg >> 3) | 0x80); // Send first byte (start of address)
@@ -44,7 +44,7 @@ uint8_t mrf_read_long(mrf_reg_long_t reg) {
 	return inb(MRF_DATA); // Return read data
 }
 
-void mrf_write_long(mrf_reg_long_t reg, uint8_t value) {
+void mrf_write_long(uint16_t reg, uint8_t value) {
 	outb(MRF_CTL, 0x04); // Assert chip select
 	sleep_50ns();
 	outb(MRF_DATA, (reg >> 3) | 0x80); // Send first byte (start of address)
@@ -73,7 +73,7 @@ void mrf_common_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint64_
 	mrf_write_short(MRF_REG_SHORT_BBREG2, 0x80);
 	mrf_write_short(MRF_REG_SHORT_CCAEDTH, 0x60);
 	mrf_write_short(MRF_REG_SHORT_BBREG6, 0x40);
-	mrf_write_long(MRF_REG_LONG_RFCON0, ((channel - 0x0B) << 8) | 0x03);
+	mrf_write_long(MRF_REG_LONG_RFCON0, ((channel - 0x0B) << 4) | 0x03);
 	mrf_write_short(MRF_REG_SHORT_RFCTL, 0x04);
 	mrf_write_short(MRF_REG_SHORT_RFCTL, 0x00);
 	sleep_short();
@@ -111,5 +111,4 @@ void mrf_analogue_txrx(void) {
 	mrf_write_short(MRF_REG_SHORT_GPIO, 0x00);
 	mrf_write_long(MRF_REG_LONG_TESTMODE, 0x0F);
 }
-
 

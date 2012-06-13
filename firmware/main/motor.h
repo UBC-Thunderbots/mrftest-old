@@ -7,7 +7,6 @@
  * \brief file with motor helper functions
  */
 
-
 #include <stdint.h>
 
 /**
@@ -28,7 +27,7 @@ typedef enum {
 void motor_scram();
 
 /**
- * \brief wheel safety switch 
+ * \brief wheel safety switch
  */
 void wheel_scram();
 
@@ -49,7 +48,7 @@ void set_wheel(uint8_t wheel_num, direction_t direction, uint8_t pwm_level);
  */
 void dribbler_scram();
 
-/** 
+/**
  * \brief set the dribbler direction and level
  *
  * \param[in] direction dribbler direction to set
@@ -65,7 +64,7 @@ void set_dribbler(direction_t direction, uint8_t pwm_level);
  *
  * \return current pwm of selected wheel
  *
- * Just a helper function to allow for computed indexing 
+ * Just a helper function to allow for computed indexing
  */
 uint8_t read_wheel_pwm(uint8_t wheel_num);
 
@@ -79,4 +78,6 @@ uint8_t read_wheel_pwm(uint8_t wheel_num);
  * Sets motor to specific pwm value (helper for computed indexing)
  */
 void write_wheel_pwm(uint8_t wheel_num, uint8_t pwm_level);
+
 #endif
+

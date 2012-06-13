@@ -155,7 +155,7 @@ static inline bool mrf_get_interrupt(void) {
  *
  * \return the register's value
  */
-uint8_t mrf_read_short(mrf_reg_short_t reg);
+uint8_t mrf_read_short(uint8_t reg);
 
 /**
  * \brief Writes a short-address register
@@ -164,7 +164,7 @@ uint8_t mrf_read_short(mrf_reg_short_t reg);
  *
  * \param[in] value the value to write
  */
-void mrf_write_short(mrf_reg_short_t reg, uint8_t value);
+void mrf_write_short(uint8_t reg, uint8_t value);
 
 /**
  * \brief Reads a long-address register
@@ -173,7 +173,7 @@ void mrf_write_short(mrf_reg_short_t reg, uint8_t value);
  *
  * \return the register's value
  */
-uint8_t mrf_read_long(mrf_reg_long_t reg);
+uint8_t mrf_read_long(uint16_t reg);
 
 /**
  * \brief Writes a long-address register
@@ -182,7 +182,7 @@ uint8_t mrf_read_long(mrf_reg_long_t reg);
  *
  * \param[in] value the value to write
  */
-void mrf_write_long(mrf_reg_long_t reg, uint8_t value);
+void mrf_write_long(uint16_t reg, uint8_t value);
 
 /**
  * \brief Performs common initialiation of the radio based on the configuration parameters
@@ -205,5 +205,4 @@ void mrf_analogue_rx(void);
 void mrf_analogue_txrx(void);
 
 #endif
-
 
