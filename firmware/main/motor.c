@@ -43,7 +43,7 @@ void wheel_scram() {
 void set_wheel(uint8_t wheel_num, direction_t direction, uint8_t pwm_level) {
 	if (wheel_num <= 3) {
 		uint8_t readback = inb(WHEEL_CTL);
-		readback |= (readback & ~(0x03 << (wheel_num * 2))) | (direction << (wheel_num * 2));
+		readback = (readback & ~(0x03 << (wheel_num * 2))) | (direction << (wheel_num * 2));
 		write_wheel_pwm(wheel_num, pwm_level);
 		outb(WHEEL_CTL, readback);
 	}
