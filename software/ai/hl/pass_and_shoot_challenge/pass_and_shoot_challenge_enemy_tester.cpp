@@ -31,8 +31,8 @@ namespace {
   
   enum state{
     INITIAL,
-    ROBOTS_ARE_LEFT,
-    ROBOTS_ARE_RIGHT
+    ROBOTS_ON_SIDE1,
+    ROBOTS_ON_SIDE2
   };
 
 };
@@ -63,30 +63,30 @@ public:
 			case INITIAL:
 			  player0->move(bot0_left, Angle(), Point());
 			  player1->move(bot1_left, Angle(), Point());
-			  player2->move(bot2_left, Angle(), Point());
-			  player3->move(bot3_left, Angle(), Point());
+			  player2->move(bot2_right, Angle(), Point());
+			  player3->move(bot3_right, Angle(), Point());
 
-			  current_state=ROBOTS_ARE_LEFT;
+			  current_state=ROBOTS_ON_SIDE1;
 			  
 			  break;
 
-			case ROBOTS_ARE_LEFT:{
+			case ROBOTS_ON_SIDE1:{
 			  bool bot0_is_left= (player0->position()-bot0_left).len() < epsilon;
 			  bool bot1_is_left= (player1->position()-bot1_left).len() < epsilon;
-			  bool bot2_is_left= (player2->position()-bot2_left).len() < epsilon;
-			  bool bot3_is_left= (player3->position()-bot3_left).len() < epsilon;
+			  bool bot2_is_left= (player2->position()-bot2_right).len() < epsilon;
+			  bool bot3_is_left= (player3->position()-bot3_right).len() < epsilon;
 
 			  if(bot0_is_left && bot1_is_left && bot2_is_left && bot3_is_left){
 			    player0->move(bot0_right, Angle(), Point());
 			    player1->move(bot1_right, Angle(), Point());
-			    player2->move(bot2_right, Angle(), Point());
-			    player3->move(bot3_right, Angle(), Point());
-			    current_state=ROBOTS_ARE_RIGHT;
+			    player2->move(bot2_left, Angle(), Point());
+			    player3->move(bot3_left, Angle(), Point());
+			    current_state=ROBOTS_ON_SIDE2;
 			  } else {
 			    player0->move(bot0_left, Angle(), Point());
 			    player1->move(bot1_left, Angle(), Point());
-			    player2->move(bot2_left, Angle(), Point());
-			    player3->move(bot3_left, Angle(), Point());
+			    player2->move(bot2_right, Angle(), Point());
+			    player3->move(bot3_right, Angle(), Point());
 
 			  }
 			  
@@ -94,23 +94,23 @@ public:
 			  break;
 			
 
-			case ROBOTS_ARE_RIGHT:{
+			case ROBOTS_ON_SIDE2:{
 			  bool bot0_is_right= (player0->position()-bot0_right).len() < epsilon;
 			  bool bot1_is_right= (player1->position()-bot1_right).len() < epsilon;
-			  bool bot2_is_right= (player2->position()-bot2_right).len() < epsilon;
-			  bool bot3_is_right= (player3->position()-bot3_right).len() < epsilon;
+			  bool bot2_is_right= (player2->position()-bot2_left).len() < epsilon;
+			  bool bot3_is_right= (player3->position()-bot3_left).len() < epsilon;
 
 			  if(bot0_is_right && bot1_is_right && bot2_is_right && bot3_is_right){
 			    player0->move(bot0_left, Angle(), Point());
 			    player1->move(bot1_left, Angle(), Point());
-			    player2->move(bot2_left, Angle(), Point());
-			    player3->move(bot3_left, Angle(), Point());
-			    current_state=ROBOTS_ARE_LEFT;
+			    player2->move(bot2_right, Angle(), Point());
+			    player3->move(bot3_right, Angle(), Point());
+			    current_state=ROBOTS_ON_SIDE1;
 			  } else {
 			     player0->move(bot0_right, Angle(), Point());
 			     player1->move(bot1_right, Angle(), Point());
-			     player2->move(bot2_right, Angle(), Point());
-			     player3->move(bot3_right, Angle(), Point()); 
+			     player2->move(bot2_left, Angle(), Point());
+			     player3->move(bot3_left, Angle(), Point()); 
 			  }
 			}
 			  break;
