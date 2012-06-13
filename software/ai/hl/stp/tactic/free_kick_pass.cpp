@@ -38,11 +38,13 @@ namespace {
 				const double ANGLE_TOL = 5.0; // Be within this angle before shooting
 				Point player_to_ball = player->position() - world.ball().position();
 				Angle to_target = (world.ball().position() - target).orientation() - player_to_ball.orientation();
+
 				switch(state) {
 					// Move towards the ball
 					// When robot stops, start rotating below it
 					case TO_BALL:
 						dest = world.ball().position() - Point(DISTANCE_FROM_BALL, 0);
+						player->flags(AI::Flags::FLAG_AVOID_BALL_TINY);
 						move(world, player, dest, Point(0, 0));
 						
 						if (player_to_ball.len() - DISTANCE_FROM_BALL < TOLERANCE && player->velocity().len() < TOLERANCE) {
