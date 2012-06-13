@@ -38,12 +38,12 @@ LEDsPanel::LEDsPanel(MRFDongle &dongle, unsigned int index) : dongle(dongle), in
 }
 
 void LEDsPanel::set_mode() {
-	if (mode_chooser.get_active() >= 0) {
+	if (mode_chooser.get_active_row_number() >= 0) {
 		status_entry.set_text(u8"Sending…");
 		set_button.set_sensitive(false);
 		uint8_t data[2];
 		data[0] = 0x03;
-		data[1] = MODES[mode_chooser.get_active()].value;
+		data[1] = MODES[mode_chooser.get_active_row_number()].value;
 		message.reset(new MRFDongle::SendReliableMessageOperation(dongle, index, data, sizeof(data)));
 		message->signal_done.connect(sigc::mem_fun(this, &LEDsPanel::check_result));
 	}
