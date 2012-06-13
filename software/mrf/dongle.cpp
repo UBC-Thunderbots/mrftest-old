@@ -122,6 +122,7 @@ void MRFDongle::free_message_id(uint8_t id) {
 void MRFDongle::handle_mdr(AsyncOperation<void> &) {
 	mdr_transfer.result();
 	signal_message_delivery_report.emit(mdr_transfer.data()[0], mdr_transfer.data()[1]);
+	mdr_transfer.submit();
 }
 
 void MRFDongle::handle_message(AsyncOperation<void> &) {
@@ -130,6 +131,7 @@ void MRFDongle::handle_message(AsyncOperation<void> &) {
 		unsigned int robot = message_transfer.data()[0];
 		robots[robot]->handle_message(message_transfer.data() + 1, message_transfer.size() - 1);
 	}
+	message_transfer.submit();
 }
 
 void MRFDongle::dirty_drive() {
