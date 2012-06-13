@@ -98,6 +98,8 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 		switch (bptr[0]) {
 			case 0x00:
 				// General robot status update
+				++bptr;
+				--len;
 				if (len == 9) {
 					alive = true;
 					has_feedback = true;
@@ -108,7 +110,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 					ball_in_beam = !!(bptr[8] & 0x01);
 					capacitor_charged = !!(bptr[8] & 0x02);
 				} else {
-					LOG_ERROR(u8"Received general robot status update with wrong byte count");
+					LOG_ERROR(Glib::ustring::compose(u8"Received general robot status update with wrong byte count %1", len));
 				}
 				break;
 
