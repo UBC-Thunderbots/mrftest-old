@@ -213,7 +213,7 @@ static void push_mdrs(void) {
 	OTG_FS_DIEPCTL1 |=
 		(1 << 31) // EPENA = 1; enable endpoint
 		| (1 << 26); // CNAK = 1; clear NAK flag
-	OTG_FS_FIFO[1][0] = pkt->dest | (pkt->delivery_status << 8);
+	OTG_FS_FIFO[1][0] = pkt->message_id | (pkt->delivery_status << 8);
 
 	// Push the consumed MDR packet buffer onto the free stack
 	pkt->next = reliable_out_free;
