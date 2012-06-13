@@ -26,12 +26,6 @@ static void entry(void) {
 static bool transmit_busy = false, feedback_pending = false;
 static uint8_t tx_seqnum = 0;
 
-static void count(void) {
-	static uint8_t counter = 0;
-	counter = (counter + 1) % 8;
-	set_test_leds(USER_MODE, counter);
-}
-
 static void send_feedback_packet(void) {
 #warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 0, 9); // Header length
@@ -104,7 +98,11 @@ static void handle_radio_receive(void) {
 						case 0b10: wheel_mode = WHEEL_MODE_OPEN_LOOP; break;
 						case 0b11: wheel_mode = WHEEL_MODE_CLOSED_LOOP; break;
 					}
+					if (wheel_mode != WHEEL_MODE_COAST && wheel_mode != WHEEL_MODE_BRAKE) {
+						outb(POWER_CTL, inb(POWER_CTL) | 0x02);
+					}
 					if (words[0] & (1 << 12)) {
+						outb(POWER_CTL, inb(POWER_CTL) | 0x02);
 						set_dribbler(FORWARD, 180);
 					} else {
 						set_dribbler(FLOAT, 0);
