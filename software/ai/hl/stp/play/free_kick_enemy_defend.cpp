@@ -6,13 +6,13 @@ namespace Predicates = AI::HL::STP::Predicates;
 
 /**
  * Condition:
- * - Playtype Free Kick Enemy on their side
+ * - Playtype Free Kick Enemy on our side
  *
  * Objective:
- * - Handle Enemy Free Kick on their side
+ * - Handle Enemy Free Kick on our side
  */
-BEGIN_PLAY(FreeKickEnemy)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY)) && Predicates::ball_on_their_side(world))
+BEGIN_PLAY(FreeKickEnemyDefend)
+INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY)) && Predicates::ball_on_our_side(world))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
@@ -29,12 +29,12 @@ roles[0].push_back(defend_duo_defender(world));
 roles[1].push_back(defend_duo_extra1(world));
 
 // ROLE 3
-// offend
-roles[2].push_back(offend(world));
+// defend
+roles[2].push_back(defend_duo_extra2(world));
 
 // ROLE 4
 // offend
-roles[3].push_back(offend_secondary(world));
+roles[3].push_back(offend(world));
 
 // ROLE 5
 // move to other half of the field to position for catching the ball after chipping shots
