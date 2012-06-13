@@ -108,6 +108,7 @@ static void handle_radio_receive(void) {
 						set_dribbler(FLOAT, 0);
 #warning implement chicker charge/float/discharge
 					}
+					outb(BREAK_BEAM_CTL, 1);
 				}
 			} else if (frame_length >= HEADER_LENGTH + 1 + FOOTER_LENGTH) {
 				// Non-broadcast frame contains a message specifically for this robot
