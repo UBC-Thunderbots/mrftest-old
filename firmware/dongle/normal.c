@@ -105,12 +105,13 @@ static void send_drive_packet(void) {
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 8, 0xFF); // Destination address MSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 9, 0x00); // Source address LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 10, 0x01); // Source address MSB
+	const uint8_t *bptr = (const uint8_t *) perconfig.normal.drive_packet;
 	for (size_t i = 0; i < sizeof(perconfig.normal.drive_packet); ++i) {
 		uint8_t mask = 0;
 		if (i - 1 == poll_index * sizeof(perconfig.normal.drive_packet) / 8) {
 			mask = 0x80;
 		}
-		mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i, perconfig.normal.drive_packet[i] | mask);
+		mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i, bptr[i] | mask);
 	}
 	poll_index = (poll_index + 1) % 8;
 
@@ -439,7 +440,7 @@ static void on_ep1_out_pattern(uint32_t pattern) {
 		uint32_t bcnt = (pattern >> 4) & 0x7FF;
 		if (bcnt == sizeof(perconfig.normal.drive_packet)) {
 			// Copy the received data into the drive packet buffer
-			for (size_t i = 0; i < bcnt; i += 4) {
+			for (size_t i = 0; i < sizeof(perconfig.normal.drive_packet) / sizeof(*perconfig.normal.drive_packet); ++i) {
 				perconfig.normal.drive_packet[i] = OTG_FS_FIFO[0][0];
 			}
 		} else {
