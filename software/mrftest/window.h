@@ -1,11 +1,12 @@
 #ifndef MRFTESTER_WINDOW_H
 #define MRFTESTER_WINDOW_H
 
+#include "mrf/dongle.h"
+#include "mrf/robot.h"
 #include "mrftest/kicker.h"
 #include "mrftest/drive.h"
 #include "mrftest/feedback.h"
-#include "mrf/dongle.h"
-#include "mrf/robot.h"
+#include "mrftest/leds.h"
 #include <vector>
 #include <glibmm/refptr.h>
 #include <gtkmm/box.h>
@@ -58,6 +59,9 @@ class TesterWindow : public Gtk::Window {
 
 		Gtk::Frame kicker_frame;
 		KickerPanel kicker_panel;
+
+		Gtk::Frame leds_frame;
+		LEDsPanel leds_panel;
 
 		Gtk::Frame joystick_frame;
 		Gtk::HBox joystick_sensitivity_hbox;

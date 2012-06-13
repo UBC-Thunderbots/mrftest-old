@@ -90,7 +90,7 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 		}
 };
 
-TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) : mapped_joysticks(MappedJoysticksModel::create()), robot(robot), feedback_frame(u8"Feedback"), feedback_panel(dongle, robot), drive_frame(u8"Drive"), drive_panel(robot), dribble_button(u8"Dribble"), kicker_frame(u8"Kicker"), kicker_panel(robot), joystick_frame(u8"Joystick"), joystick_sensitivity_high_button(joystick_sensitivity_group, u8"High Sensitivity"), joystick_sensitivity_low_button(joystick_sensitivity_group, u8"Low Sensitivity"), joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks)) {
+TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) : mapped_joysticks(MappedJoysticksModel::create()), robot(robot), feedback_frame(u8"Feedback"), feedback_panel(dongle, robot), drive_frame(u8"Drive"), drive_panel(robot), dribble_button(u8"Dribble"), kicker_frame(u8"Kicker"), kicker_panel(robot), leds_frame(u8"LEDs"), leds_panel(dongle, robot.index), joystick_frame(u8"Joystick"), joystick_sensitivity_high_button(joystick_sensitivity_group, u8"High Sensitivity"), joystick_sensitivity_low_button(joystick_sensitivity_group, u8"Low Sensitivity"), joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks)) {
 	set_title(Glib::ustring::compose(u8"Tester (%1)", robot.index));
 
 	feedback_frame.add(feedback_panel);
@@ -106,6 +106,9 @@ TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) : mapped_joystick
 
 	kicker_frame.add(kicker_panel);
 	vbox2.pack_start(kicker_frame, Gtk::PACK_SHRINK);
+
+	leds_frame.add(leds_panel);
+	vbox2.pack_start(leds_frame, Gtk::PACK_SHRINK);
 
 	hbox.pack_start(vbox2, Gtk::PACK_EXPAND_WIDGET);
 

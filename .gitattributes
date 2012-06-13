@@ -487,6 +487,8 @@ software/mrftest/kicker.cpp -text
 software/mrftest/kicker.h -text
 software/mrftest/launcher.cpp -text
 software/mrftest/launcher.h -text
+software/mrftest/leds.cpp -text
+software/mrftest/leds.h -text
 software/mrftest/main.cpp -text
 software/mrftest/mapper.cpp -text
 software/mrftest/mapper.h -text
