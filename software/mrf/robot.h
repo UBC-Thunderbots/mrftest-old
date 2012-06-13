@@ -97,9 +97,14 @@ class MRFRobot : public NonCopyable {
 		void drive(const int(&wheels)[4], bool controlled = true);
 
 		/**
-		 * \brief Halts the robot’s wheels
+		 * \brief Coasts the robot’s wheels
 		 */
-		void drive_scram();
+		void drive_coast();
+
+		/**
+		 * \brief Brakes the robot’s wheels
+		 */
+		void drive_brake();
 
 		/**
 		 * \brief Turns the dribbler motor on or off

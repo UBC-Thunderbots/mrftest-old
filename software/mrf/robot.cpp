@@ -29,8 +29,13 @@ void MRFRobot::drive(const int(&wheels)[4], bool controlled) {
 	dongle.dirty_drive();
 }
 
-void MRFRobot::drive_scram() {
-	dongle.drive_packet[index][0] &= static_cast<uint16_t>(~(1 << 14));
+void MRFRobot::drive_coast() {
+	dongle.drive_packet[index][0] &= static_cast<uint16_t>(~(3 << 13));
+	dongle.dirty_drive();
+}
+
+void MRFRobot::drive_brake() {
+	dongle.drive_packet[index][0] &= static_cast<uint16_t>(~(1 << 13));
 	dongle.drive_packet[index][0] |= 1 << 13;
 	dongle.dirty_drive();
 }

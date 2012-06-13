@@ -2,11 +2,19 @@
 #include "util/algorithm.h"
 
 namespace {
-	void on_update_scram(Gtk::HScale(&)[4], MRFRobot &robot, bool) {
-		robot.drive_scram();
+	void on_update_coast(Gtk::HScale(&)[4], MRFRobot &robot, bool) {
+		robot.drive_coast();
 	}
 
-	void get_low_sensitivity_scale_factors_scram(double (&scale)[4]) {
+	void get_low_sensitivity_scale_factors_coast(double (&scale)[4]) {
+		scale[0] = scale[1] = scale[2] = scale[3] = 0;
+	}
+
+	void on_update_brake(Gtk::HScale(&)[4], MRFRobot &robot, bool) {
+		robot.drive_brake();
+	}
+
+	void get_low_sensitivity_scale_factors_brake(double (&scale)[4]) {
 		scale[0] = scale[1] = scale[2] = scale[3] = 0;
 	}
 
@@ -63,7 +71,8 @@ namespace {
 		void (*on_update)(Gtk::HScale(&)[4], MRFRobot &, bool);
 		void (*get_low_sensitivity_scale_factors)(double (&)[4]);
 	} MODES[] = {
-		{ u8"Scram", 0x0, 1, 0.1, 0.5, 0, &on_update_scram, &get_low_sensitivity_scale_factors_scram },
+		{ u8"Coast", 0x0, 1, 0.1, 0.5, 0, &on_update_coast, &get_low_sensitivity_scale_factors_coast },
+		{ u8"Brake", 0x0, 1, 0.1, 0.5, 0, &on_update_brake, &get_low_sensitivity_scale_factors_brake },
 		{ u8"Per-motor", 0xF, 1023, 1, 25, 0, &on_update_permotor, &get_low_sensitivity_scale_factors_permotor },
 		{ u8"Matrix", 0x7, 20, 0.1, 3, 1, &on_update_matrix, &get_low_sensitivity_scale_factors_matrix },
 	};
@@ -73,7 +82,7 @@ DrivePanel::DrivePanel(MRFRobot &robot) : robot(robot), controllers_checkbox(u8"
 	for (unsigned int i = 0; i < G_N_ELEMENTS(MODES); ++i) {
 		mode_chooser.append_text(MODES[i].name);
 	}
-	scram();
+	coast();
 	mode_chooser.signal_changed().connect(sigc::mem_fun(this, &DrivePanel::on_mode_changed));
 	pack_start(mode_chooser, Gtk::PACK_SHRINK);
 	for (unsigned int i = 0; i < G_N_ELEMENTS(controls); ++i) {
@@ -92,7 +101,7 @@ void DrivePanel::zero() {
 	}
 }
 
-void DrivePanel::scram() {
+void DrivePanel::coast() {
 	mode_chooser.set_active(0);
 }
 

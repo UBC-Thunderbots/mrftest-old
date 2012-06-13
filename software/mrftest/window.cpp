@@ -132,7 +132,7 @@ TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) : mapped_joystick
 TesterWindow::~TesterWindow() = default;
 
 void TesterWindow::scram() {
-	drive_panel.scram();
+	drive_panel.coast();
 	dribble_button.set_active(false);
 	kicker_panel.scram();
 }
