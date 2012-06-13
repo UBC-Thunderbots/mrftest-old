@@ -35,7 +35,7 @@ void MRFRobot::drive_coast() {
 }
 
 void MRFRobot::drive_brake() {
-	dongle.drive_packet[index][0] &= static_cast<uint16_t>(~(1 << 13));
+	dongle.drive_packet[index][0] &= static_cast<uint16_t>(~(3 << 13));
 	dongle.drive_packet[index][0] |= 1 << 13;
 	dongle.dirty_drive();
 }
