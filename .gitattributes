@@ -75,6 +75,7 @@ firmware/main/control.c -text
 firmware/main/control.h -text
 firmware/main/encoder.h -text
 firmware/main/entry.c -text
+firmware/main/flash.h -text
 firmware/main/io.h -text
 firmware/main/led.h -text
 firmware/main/mac.h -text

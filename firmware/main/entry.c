@@ -1,4 +1,5 @@
 #include "adc.h"
+#include "flash.h"
 #include "io.h"
 #include "led.h"
 #include "motor.h"
@@ -25,6 +26,7 @@ static void entry(void) {
 
 static bool transmit_busy = false, feedback_pending = false;
 static uint8_t tx_seqnum = 0;
+static uint16_t rx_seqnum = 0xFFFF;
 static uint8_t led_mode = 0x20;
 static bool erasing_flash = false;
 static uint8_t flash_page_buffer[256];
@@ -76,9 +78,14 @@ static void handle_radio_receive(void) {
 	uint16_t frame_control = mrf_read_long(MRF_REG_LONG_RXFIFO + 1) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 2) << 8);
 	// Sanity-check the frame control word
 	if (((frame_control >> 0) & 7) == 1 /* Data packet */ && ((frame_control >> 3) & 1) == 0 /* No security */ && ((frame_control >> 6) & 1) == 1 /* Intra-PAN */ && ((frame_control >> 10) & 3) == 2 /* 16-bit destination address */ && ((frame_control >> 14) & 3) == 2 /* 16-bit source address */) {
-		// Read out and check the source address
+		// Read out and check the source address and sequence number
 		uint16_t source_address = mrf_read_long(MRF_REG_LONG_RXFIFO + 8) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 9) << 8);
-		if (source_address == 0x0100) {
+		uint8_t sequence_number = mrf_read_long(MRF_REG_LONG_RXFIFO + 3);
+		if (source_address == 0x0100 && sequence_number != rx_seqnum) {
+			// Update sequence number
+			rx_seqnum = sequence_number;
+
+			// Handle packet
 			uint16_t dest_address = mrf_read_long(MRF_REG_LONG_RXFIFO + 6) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 7) << 8);
 			static const uint8_t HEADER_LENGTH = 2 /* Frame control */ + 1 /* Seq# */ + 2 /* Dest PAN */ + 2 /* Dest */ + 2 /* Src */;
 			static const uint8_t FOOTER_LENGTH = 2;
@@ -135,14 +142,14 @@ static void handle_radio_receive(void) {
 
 					case 0x04: // Erase SPI flash
 						if (frame_length == HEADER_LENGTH + 1 + FOOTER_LENGTH) {
-							outb(FLASH_CTL, 0x00);
-							outb(FLASH_DATA, 0x06);
-							while (inb(FLASH_CTL) & 0x01);
-							outb(FLASH_CTL, 0x02);
-							outb(FLASH_CTL, 0x00);
-							outb(FLASH_DATA, 0xC7);
-							while (inb(FLASH_CTL) & 0x01);
-							outb(FLASH_CTL, 0x02);
+							flash_assert_cs();
+							flash_tx(0x06);
+							flash_deassert_cs();
+
+							flash_assert_cs();
+							flash_tx(0xC7);
+							flash_deassert_cs();
+
 							erasing_flash = true;
 						}
 						break;
@@ -152,7 +159,7 @@ static void handle_radio_receive(void) {
 							uint8_t offset = mrf_read_long(MESSAGE_PAYLOAD_ADDR);
 							if (((uint16_t) offset) + (frame_length - HEADER_LENGTH - 2 - FOOTER_LENGTH) <= 256) {
 								for (uint8_t i = 0; i < frame_length - HEADER_LENGTH - 2 - FOOTER_LENGTH; ++i) {
-									flash_page_buffer[offset + i] = mrf_read_long(MESSAGE_PAYLOAD_ADDR + 2 + i);
+									flash_page_buffer[offset + i] = mrf_read_long(MESSAGE_PAYLOAD_ADDR + 1 + i);
 								}
 							}
 						}
@@ -160,39 +167,49 @@ static void handle_radio_receive(void) {
 
 					case 0x06: // Write page buffer to SPI flash
 						if (frame_length == HEADER_LENGTH + 3 + FOOTER_LENGTH) {
-							uint16_t page = mrf_read_long(MESSAGE_PAYLOAD_ADDR) | (mrf_read_long(MESSAGE_PAYLOAD_ADDR) << 8);
-							outb(FLASH_CTL, 0x00);
-							outb(FLASH_DATA, 0x06);
-							while (inb(FLASH_CTL) & 0x01);
-							outb(FLASH_CTL, 0x02);
-							outb(FLASH_CTL, 0x00);
-							outb(FLASH_DATA, 0x02);
-							while (inb(FLASH_CTL) & 0x01);
-							outb(FLASH_DATA, page >> 8);
-							while (inb(FLASH_CTL) & 0x01);
-							outb(FLASH_DATA, page);
-							while (inb(FLASH_CTL) & 0x01);
-							outb(FLASH_DATA, 0x00);
-							while (inb(FLASH_CTL) & 0x01);
+							uint16_t page = mrf_read_long(MESSAGE_PAYLOAD_ADDR) | (mrf_read_long(MESSAGE_PAYLOAD_ADDR + 1) << 8);
+
+							flash_assert_cs();
+							flash_tx(0x06);
+							flash_deassert_cs();
+
+							flash_assert_cs();
+							flash_tx(0x02);
+							flash_tx(page >> 8);
+							flash_tx(page);
+							flash_tx(0);
 							uint8_t i = 0;
 							do {
-								outb(FLASH_DATA, flash_page_buffer[i]);
-								while (inb(FLASH_CTL) & 0x01);
+								flash_tx(flash_page_buffer[i]);
 							} while (++i);
-							outb(FLASH_CTL, 0x02);
+							flash_deassert_cs();
+
 							asm volatile("nop");
 							asm volatile("nop");
+							asm volatile("nop");
+							asm volatile("nop");
+
 							uint8_t status_register;
-							outb(FLASH_CTL, 0x00);
-							outb(FLASH_DATA, 0x05);
-							while (!(inb(FLASH_CTL) & 0x01));
+							flash_assert_cs();
+							flash_tx(0x05);
 							do {
-								outb(FLASH_DATA, 0x00);
-								while (!(inb(FLASH_CTL) & 0x01));
-								status_register = inb(FLASH_DATA);
+								status_register = flash_txrx(0x00);
 							} while (status_register & 0x01);
-							outb(FLASH_CTL, 0x02);
-							region_sum_pending = true;
+							flash_deassert_cs();
+
+							flash_assert_cs();
+							flash_tx(0x03);
+							flash_tx(page >> 8);
+							flash_tx(page);
+							flash_tx(0);
+							i = 0;
+							do {
+								if (flash_txrx(0x00) != flash_page_buffer[i]) {
+									set_test_leds(USER_MODE, 7);
+									for (;;);
+								}
+							} while (++i);
+							flash_deassert_cs();
 						}
 						break;
 
@@ -201,21 +218,18 @@ static void handle_radio_receive(void) {
 							uint32_t address = mrf_read_long(MESSAGE_PAYLOAD_ADDR) | (((uint32_t) mrf_read_long(MESSAGE_PAYLOAD_ADDR + 1)) << 8) | (((uint32_t) mrf_read_long(MESSAGE_PAYLOAD_ADDR + 2)) << 16);
 							uint32_t length = mrf_read_long(MESSAGE_PAYLOAD_ADDR + 3) | (((uint32_t) mrf_read_long(MESSAGE_PAYLOAD_ADDR + 4)) << 8) | (((uint32_t) mrf_read_long(MESSAGE_PAYLOAD_ADDR + 5)) << 16);
 							region_sum = 0;
-							outb(FLASH_CTL, 0x00);
-							outb(FLASH_DATA, 0x03);
-							while (!(inb(FLASH_CTL) & 0x01));
-							outb(FLASH_DATA, address >> 16);
-							while (!(inb(FLASH_CTL) & 0x01));
-							outb(FLASH_DATA, address >> 8);
-							while (!(inb(FLASH_CTL) & 0x01));
-							outb(FLASH_DATA, address);
-							while (!(inb(FLASH_CTL) & 0x01));
+
+							flash_assert_cs();
+							flash_tx(0x03);
+							flash_tx(address >> 16);
+							flash_tx(address >> 8);
+							flash_tx(address);
 							while (length--) {
-								outb(FLASH_DATA, 0x00);
-								while (!(inb(FLASH_CTL) & 0x01));
-								region_sum += inb(FLASH_DATA);
+								region_sum += flash_txrx(0x00);
 							}
-							outb(FLASH_CTL, 0x02);
+							flash_deassert_cs();
+
+							region_sum_pending = true;
 						}
 						break;
 				}
@@ -278,14 +292,25 @@ static void avr_main(void) {
 
 		// Check if an in-progress Flash erase operation has now finished
 		if (erasing_flash) {
-			outb(FLASH_CTL, 0x00);
-			outb(FLASH_DATA, 0x05);
-			while (!(inb(FLASH_CTL) & 0x01));
-			outb(FLASH_DATA, 0x00);
-			while (!(inb(FLASH_CTL) & 0x01));
-			uint8_t status_register = inb(FLASH_DATA);
-			outb(FLASH_CTL, 0x02);
+			flash_assert_cs();
+			flash_tx(0x05);
+			uint8_t status_register = flash_txrx(0x00);
+			flash_deassert_cs();
+
 			if (!(status_register & 0x01)) {
+				flash_assert_cs();
+				flash_tx(0x03);
+				flash_tx(0);
+				flash_tx(0);
+				flash_tx(0);
+				uint8_t i = 0;
+				do {
+					if (flash_txrx(0) != 0xFF) {
+						set_test_leds(USER_MODE, 7);
+						for (;;);
+					}
+				} while (++i);
+				flash_deassert_cs();
 				if (!transmit_busy) {
 					// Send notification to host
 #warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
@@ -328,10 +353,10 @@ static void avr_main(void) {
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 10, 0); // Source address MSB
 
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11, 0x03); // SPI region sum
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 12, region_sum >> 24);
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 13, region_sum >> 16);
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 14, region_sum >> 8);
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 15, region_sum);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 12, region_sum);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 13, region_sum >> 8);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 14, region_sum >> 16);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 15, region_sum >> 24);
 
 			mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
 
