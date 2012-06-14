@@ -25,6 +25,11 @@ static void entry(void) {
 
 static bool transmit_busy = false, feedback_pending = false;
 static uint8_t tx_seqnum = 0;
+static uint8_t led_mode = 0x20;
+static bool erasing_flash = false;
+static uint8_t flash_page_buffer[256];
+static uint32_t region_sum;
+static bool region_sum_pending = false;
 
 static void send_feedback_packet(void) {
 #warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
@@ -117,14 +122,100 @@ static void handle_radio_receive(void) {
 				switch (mrf_read_long(MESSAGE_PURPOSE_ADDR)) {
 					case 0x03: // Set LED mode
 						if (frame_length == HEADER_LENGTH + 2 + FOOTER_LENGTH) {
-							uint8_t mode = mrf_read_long(MESSAGE_PAYLOAD_ADDR);
-							if (mode <= 0x1F) {
-								outb(LED_CTL, (inb(LED_CTL) & ~0b00111111) | mode);
-							} else if (mode == 0x20) {
-#warning implement proper run LED handling
-							} else if (mode == 0x21) {
-#warning implement proper run LED handling
+							led_mode = mrf_read_long(MESSAGE_PAYLOAD_ADDR);
+							if (led_mode <= 0x1F) {
+								outb(LED_CTL, (inb(LED_CTL) & 0x80) | led_mode);
+							} else if (led_mode == 0x21) {
+								set_test_leds(USER_MODE, 7);
+							} else {
+								set_test_leds(USER_MODE, 0);
 							}
+						}
+						break;
+
+					case 0x04: // Erase SPI flash
+						if (frame_length == HEADER_LENGTH + 1 + FOOTER_LENGTH) {
+							outb(FLASH_CTL, 0x00);
+							outb(FLASH_DATA, 0x06);
+							while (inb(FLASH_CTL) & 0x01);
+							outb(FLASH_CTL, 0x02);
+							outb(FLASH_CTL, 0x00);
+							outb(FLASH_DATA, 0xC7);
+							while (inb(FLASH_CTL) & 0x01);
+							outb(FLASH_CTL, 0x02);
+							erasing_flash = true;
+						}
+						break;
+
+					case 0x05: // Fill page buffer
+						if (frame_length >= HEADER_LENGTH + 3 + FOOTER_LENGTH) {
+							uint8_t offset = mrf_read_long(MESSAGE_PAYLOAD_ADDR);
+							if (((uint16_t) offset) + (frame_length - HEADER_LENGTH - 2 - FOOTER_LENGTH) <= 256) {
+								for (uint8_t i = 0; i < frame_length - HEADER_LENGTH - 2 - FOOTER_LENGTH; ++i) {
+									flash_page_buffer[offset + i] = mrf_read_long(MESSAGE_PAYLOAD_ADDR + 2 + i);
+								}
+							}
+						}
+						break;
+
+					case 0x06: // Write page buffer to SPI flash
+						if (frame_length == HEADER_LENGTH + 3 + FOOTER_LENGTH) {
+							uint16_t page = mrf_read_long(MESSAGE_PAYLOAD_ADDR) | (mrf_read_long(MESSAGE_PAYLOAD_ADDR) << 8);
+							outb(FLASH_CTL, 0x00);
+							outb(FLASH_DATA, 0x06);
+							while (inb(FLASH_CTL) & 0x01);
+							outb(FLASH_CTL, 0x02);
+							outb(FLASH_CTL, 0x00);
+							outb(FLASH_DATA, 0x02);
+							while (inb(FLASH_CTL) & 0x01);
+							outb(FLASH_DATA, page >> 8);
+							while (inb(FLASH_CTL) & 0x01);
+							outb(FLASH_DATA, page);
+							while (inb(FLASH_CTL) & 0x01);
+							outb(FLASH_DATA, 0x00);
+							while (inb(FLASH_CTL) & 0x01);
+							uint8_t i = 0;
+							do {
+								outb(FLASH_DATA, flash_page_buffer[i]);
+								while (inb(FLASH_CTL) & 0x01);
+							} while (++i);
+							outb(FLASH_CTL, 0x02);
+							asm volatile("nop");
+							asm volatile("nop");
+							uint8_t status_register;
+							outb(FLASH_CTL, 0x00);
+							outb(FLASH_DATA, 0x05);
+							while (!(inb(FLASH_CTL) & 0x01));
+							do {
+								outb(FLASH_DATA, 0x00);
+								while (!(inb(FLASH_CTL) & 0x01));
+								status_register = inb(FLASH_DATA);
+							} while (status_register & 0x01);
+							outb(FLASH_CTL, 0x02);
+							region_sum_pending = true;
+						}
+						break;
+
+					case 0x07: // Sum region of SPI flash
+						if (frame_length == HEADER_LENGTH + 7 + FOOTER_LENGTH) {
+							uint32_t address = mrf_read_long(MESSAGE_PAYLOAD_ADDR) | (((uint32_t) mrf_read_long(MESSAGE_PAYLOAD_ADDR + 1)) << 8) | (((uint32_t) mrf_read_long(MESSAGE_PAYLOAD_ADDR + 2)) << 16);
+							uint32_t length = mrf_read_long(MESSAGE_PAYLOAD_ADDR + 3) | (((uint32_t) mrf_read_long(MESSAGE_PAYLOAD_ADDR + 4)) << 8) | (((uint32_t) mrf_read_long(MESSAGE_PAYLOAD_ADDR + 5)) << 16);
+							region_sum = 0;
+							outb(FLASH_CTL, 0x00);
+							outb(FLASH_DATA, 0x03);
+							while (!(inb(FLASH_CTL) & 0x01));
+							outb(FLASH_DATA, address >> 16);
+							while (!(inb(FLASH_CTL) & 0x01));
+							outb(FLASH_DATA, address >> 8);
+							while (!(inb(FLASH_CTL) & 0x01));
+							outb(FLASH_DATA, address);
+							while (!(inb(FLASH_CTL) & 0x01));
+							while (length--) {
+								outb(FLASH_DATA, 0x00);
+								while (!(inb(FLASH_CTL) & 0x01));
+								region_sum += inb(FLASH_DATA);
+							}
+							outb(FLASH_CTL, 0x02);
 						}
 						break;
 				}
@@ -178,6 +269,74 @@ static void avr_main(void) {
 		// Check if we should send a feedback packet now
 		if (feedback_pending && !transmit_busy) {
 			send_feedback_packet();
+		}
+
+		// Update the LEDs
+		if (led_mode == 0x20) {
+#warning implement this
+		}
+
+		// Check if an in-progress Flash erase operation has now finished
+		if (erasing_flash) {
+			outb(FLASH_CTL, 0x00);
+			outb(FLASH_DATA, 0x05);
+			while (!(inb(FLASH_CTL) & 0x01));
+			outb(FLASH_DATA, 0x00);
+			while (!(inb(FLASH_CTL) & 0x01));
+			uint8_t status_register = inb(FLASH_DATA);
+			outb(FLASH_CTL, 0x02);
+			if (!(status_register & 0x01)) {
+				if (!transmit_busy) {
+					// Send notification to host
+#warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
+					mrf_write_long(MRF_REG_LONG_TXNFIFO + 0, 9); // Header length
+					mrf_write_long(MRF_REG_LONG_TXNFIFO + 1, 9 + 1); // Frame length
+					mrf_write_long(MRF_REG_LONG_TXNFIFO + 2, 0b01100001); // Frame control LSB
+					mrf_write_long(MRF_REG_LONG_TXNFIFO + 3, 0b10001000); // Frame control MSB
+					mrf_write_long(MRF_REG_LONG_TXNFIFO + 4, tx_seqnum++); // Sequence number
+					mrf_write_long(MRF_REG_LONG_TXNFIFO + 5, PAN & 0xFF); // Destination PAN ID LSB
+					mrf_write_long(MRF_REG_LONG_TXNFIFO + 6, PAN >> 8); // Destination PAN ID MSB
+					mrf_write_long(MRF_REG_LONG_TXNFIFO + 7, 0x00); // Destination address LSB
+					mrf_write_long(MRF_REG_LONG_TXNFIFO + 8, 0x01); // Destination address MSB
+					mrf_write_long(MRF_REG_LONG_TXNFIFO + 9, INDEX); // Source address LSB
+					mrf_write_long(MRF_REG_LONG_TXNFIFO + 10, 0); // Source address MSB
+
+					mrf_write_long(MRF_REG_LONG_TXNFIFO + 11, 0x02); // SPI flash erase finished
+
+					mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
+
+					transmit_busy = true;
+					erasing_flash = false;
+				}
+			}
+		}
+
+		// Check if a flash region sum operation finished and the sum value needs transmitting
+		if (region_sum_pending && !transmit_busy) {
+			// Send notification to host
+#warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 0, 9); // Header length
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 1, 9 + 5); // Frame length
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 2, 0b01100001); // Frame control LSB
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 3, 0b10001000); // Frame control MSB
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 4, tx_seqnum++); // Sequence number
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 5, PAN & 0xFF); // Destination PAN ID LSB
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 6, PAN >> 8); // Destination PAN ID MSB
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 7, 0x00); // Destination address LSB
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 8, 0x01); // Destination address MSB
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 9, INDEX); // Source address LSB
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 10, 0); // Source address MSB
+
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11, 0x03); // SPI region sum
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 12, region_sum >> 24);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 13, region_sum >> 16);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 14, region_sum >> 8);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 15, region_sum);
+
+			mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
+
+			transmit_busy = true;
+			region_sum_pending = false;
 		}
 	}
 }
