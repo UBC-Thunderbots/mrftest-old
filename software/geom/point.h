@@ -146,6 +146,13 @@ class Point {
 		 * \return \c true if either coordinate is NaN, or \c false if not.
 		 */
 		bool isnan() const;
+
+		/**
+		 * \brief Checks whether this Point is close to another Point
+		 *
+		 * \param[in] other the other point to check against
+		 */
+		bool close(const Point &other) const;
 };
 
 /**
@@ -356,6 +363,10 @@ inline Angle Point::orientation() const {
 
 inline bool Point::isnan() const {
 	return std::isnan(x) || std::isnan(y);
+}
+
+inline bool Point::close(const Point &other) const {
+	return (*this - other).lensq() < 1e-18;
 }
 
 inline Point operator+(const Point &p, const Point &q) {
