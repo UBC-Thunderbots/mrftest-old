@@ -50,8 +50,9 @@ namespace {
 	BoolParam enable11("enable robot 11", "MixedTeamOffense", true);
 	BoolParam do_draw("draw", "MixedTeamOffense", true);
 
-	const double RESTRICTED_ZONE_LENGTH = 0.85;
 	const double PENALTY_MARK_LENGTH = 0.75;
+	const double DIST_FROM_PENALTY_MARK = 0.4;
+	const double RESTRICTED_ZONE_LENGTH = PENALTY_MARK_LENGTH + DIST_FROM_PENALTY_MARK; 
 
 	struct MixedTeamOffense : public HighLevel {
 		World &world;
