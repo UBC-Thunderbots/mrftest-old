@@ -333,7 +333,7 @@ namespace {
 			if (players.size() > 0) {
 				auto active = Tactic::shoot_goal(world, true);
 				if (fight_ball(world) || their_ball(world)){
-					active = Tactic::tsteal(world);
+					active = Tactic::spin_steal(world);
 				}
 				active->set_player(players[0]);
 				active->execute();

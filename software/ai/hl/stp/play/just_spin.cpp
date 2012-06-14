@@ -15,7 +15,7 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // shoot
-roles[0].push_back(tsteal(world));
+roles[0].push_back(spin_steal(world));
 
 // ROLE 2
 // defend

@@ -19,9 +19,9 @@ using AI::HL::STP::Region;
 
 namespace {
 
-	class TSteal : public Tactic {
+	class SpinSteal : public Tactic {
 		public:
-			TSteal(const World &world) : Tactic(world, true), none(false) {}
+			SpinSteal(const World &world) : Tactic(world, true), none(false) {}
 
 		private:
 			bool none;
@@ -35,8 +35,35 @@ namespace {
 			void execute();
 
 			Glib::ustring description() const {
-				return "tsteal";
+				return "spinsteal";
 			}
+	};
+
+	class BackUpSteal : public Tactic {
+			public:
+				BackUpSteal(const World &world) : Tactic(world, true), finished(false), backup_dist(4 * Robot::MAX_RADIUS) {}
+
+			private:
+				bool finished;
+				Point start_pos;
+				const double backup_dist;
+
+				bool done() const {
+					return finished;
+				}
+				Player::Ptr select(const std::set<Player::Ptr> &players) const {
+					return select_baller(world, players, player);
+				}
+
+				void player_changed() {
+					start_pos = player->position();
+				}
+
+				void execute();
+
+				Glib::ustring description() const {
+					return "backupsteal";
+				}
 	};
 
 	class TActiveDef : public Tactic {
@@ -100,7 +127,7 @@ namespace {
 	};
 }
 
-void TSteal::execute() {
+void SpinSteal::execute() {
 	none = false;
 	const EnemyTeam &enemy = world.enemy_team();
 	Point dirToBall = (world.ball().position() - player->position()).norm();
@@ -111,6 +138,12 @@ void TSteal::execute() {
 		}
 	}
 	none = true;
+}
+
+void BackUpSteal::execute() {
+	Action::move(world, player, start_pos + Point(-backup_dist, 0));
+
+	finished = (player->position() - start_pos).len() > backup_dist;
 }
 
 void TActiveDef::execute() {
@@ -136,8 +169,13 @@ void TSpinToRegion::execute() {
 	Action::move_spin(player, region.center_position());
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::tsteal(const World &world) {
-	Tactic::Ptr p(new TSteal(world));
+Tactic::Ptr AI::HL::STP::Tactic::spin_steal(const World &world) {
+	Tactic::Ptr p(new SpinSteal(world));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::back_up_steal(const World &world) {
+	Tactic::Ptr p(new BackUpSteal(world));
 	return p;
 }
 

@@ -11,9 +11,14 @@ namespace AI {
 			namespace Tactic {
 
 				/**
-				 * Steal
+				 * Spin steal
 				 */
-				Tactic::Ptr tsteal(const World &world);
+				Tactic::Ptr spin_steal(const World &world);
+
+				/*
+				 * Back up to steal the ball
+				 */
+				Tactic::Ptr back_up_steal(const World &world);
 
 				/**
 				 * Active Defense
