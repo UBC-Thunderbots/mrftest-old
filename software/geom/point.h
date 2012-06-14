@@ -148,11 +148,20 @@ class Point {
 		bool isnan() const;
 
 		/**
-		 * \brief Checks whether this Point is close to another Point
+		 * \brief Checks whether this Point is close to another Point, where “close” is defined as 1.0e-9
 		 *
 		 * \param[in] other the other point to check against
 		 */
 		bool close(const Point &other) const;
+
+		/**
+		 * \brief Checks whether this Point is close to another Point
+		 *
+		 * \param[in] other the other point to check against
+		 *
+		 * \param[in] dist the distance to check against
+		 */
+		bool close(const Point &other, double dist) const;
 };
 
 /**
@@ -367,6 +376,10 @@ inline bool Point::isnan() const {
 
 inline bool Point::close(const Point &other) const {
 	return (*this - other).lensq() < 1e-18;
+}
+
+inline bool Point::close(const Point &other, double dist) const {
+	return (*this - other).len() < dist;
 }
 
 inline Point operator+(const Point &p, const Point &q) {
