@@ -145,7 +145,7 @@ namespace {
 		for (;;) {
 			uint8_t buffer[256];
 			std::size_t len = devh.bulk_in(1, buffer, sizeof(buffer), 0);
-			if (len > 4) {
+			if (len >= 4) {
 				timespec ts;
 				clock_gettime(CLOCK_REALTIME, &ts);
 				{
@@ -162,7 +162,7 @@ namespace {
 				ofs.flush();
 				std::cout << "Captured packet of length " << len << '\n';
 			} else {
-				std::cout << "Bad capture size " << len << " (must be >4)\n";
+				std::cout << "Bad capture size " << len << " (must be ≥4)\n";
 			}
 		}
 	}
