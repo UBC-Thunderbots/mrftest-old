@@ -7,7 +7,7 @@
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/action/intercept.h"
 #include "geom/util.h"
-#include<iostream>
+#include <iostream>
 
 using namespace AI::HL;
 using namespace AI::HL::W;
@@ -240,12 +240,16 @@ void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state, Angl
 	if ((passer->position().len() - world.ball().position().len()) < 0.01)
 		AI::HL::STP::Action::intercept(passer, world.ball().position());
 
+	Angle acceptable_angle_difference = Angle::of_degrees(2);
+	bool correct_orientation = (passer->orientation() - orientation) < acceptable_angle_difference;
+
 	if (passer->has_ball()) {
+		while (correct_orientation == false)
 		passer->move(passer->position(), orientation, Point());
 	}
 
 
-	if (passer->has_ball() && ((passer->orientation().angle_diff(orientation)) < Angle::of_degrees(2))) {
+	if (passer->has_ball() && ((passer->orientation().angle_diff(orientation)) < acceptable_angle_difference)) {
 		passer->autokick(kick_speed);
 		kicked_ball = true;
 	}
@@ -272,8 +276,8 @@ bool PASCHL::ball_out_of_play() {
 	Point ball_position = world.ball().position();
 	Point ball_velocity = world.ball().velocity();
 	double ball_future = ball_position.y + ball_velocity.y * 2;
-	bool ball_out_bounds_x = ball_position.x < world.field().friendly_goal().x && ball_position.x > world.field().enemy_goal().x;
-	bool ball_out_bounds_y = ball_position.y < -(world.field().width() / 2) && ball_position.y > (world.field().width() / 2);
+	bool ball_out_bounds_x = ball_position.x < world.field().friendly_goal().x || ball_position.x > world.field().enemy_goal().x;
+	bool ball_out_bounds_y = ball_position.y < -(world.field().width() / 2) || ball_position.y > (world.field().width() / 2);
 	bool ball_position_in_square = ball_position.y < 0.8 && ball_position.y > -0.8;
 	
 	//if ball is out of bounds, return true
