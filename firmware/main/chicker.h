@@ -11,11 +11,11 @@ static inline uint8_t get_preserved_bits() {
 }
 
 static inline void set_charge_mode(bool enable) {
-	outb(CHICKER_CTL, (get_preserved_bits() & ~0x01) | (enable)? 0x01: 0x00);
+	outb(CHICKER_CTL, (get_preserved_bits() & ~0x01) | (enable? 0x01: 0x00));
 }
 
 static inline void set_discharge_mode(bool enable) {
-	outb(CHICKER_CTL, (get_preserved_bits() & ~0x20) | (enable)? 0x20: 0x00);
+	outb(CHICKER_CTL, (get_preserved_bits() & ~0x20) | (enable? 0x20: 0x00));
 }
 
 static inline bool is_charged() {
