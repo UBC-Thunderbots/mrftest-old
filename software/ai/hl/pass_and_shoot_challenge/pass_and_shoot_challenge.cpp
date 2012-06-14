@@ -13,7 +13,7 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-  const unsigned int min_team_size = 2;
+  const unsigned int min_team_size = 4;
   double bot_y_top_position = 1.2;
   double bot_y_bottom_position = -1.2;
   Point bot0_initial(-2.75,bot_y_bottom_position);
@@ -140,7 +140,7 @@ class PASCHL : public HighLevel {
 					bool bot2_is_init = (player2->position() - robot_positions[2].first).len() < epsilon;
 					bool bot3_is_init = (player3->position() - robot_positions[3].first).len() < epsilon;
 
-					if (bot0_is_init && bot1_is_init /*&& bot2_is_init && bot3_is_init*/) {
+					if (bot0_is_init && bot1_is_init && bot2_is_init && bot3_is_init) {
 						current_state = BOT0_PASS;
 						std::cout << "next" << std::endl;
 					}
