@@ -41,15 +41,18 @@ namespace {
 
 	class BackUpSteal : public Tactic {
 			public:
-				BackUpSteal(const World &world) : Tactic(world, true), finished(false), backup_dist(4 * Robot::MAX_RADIUS) {}
+				BackUpSteal(const World &world) : Tactic(world, true), state(BACKING_UP), finished(false), backup_dist(4 * Robot::MAX_RADIUS) {}
 
 			private:
+				enum state { BACKING_UP, GOING_FORWARD };
+
+				state state;
 				bool finished;
 				Point start_pos;
 				const double backup_dist;
 
 				bool done() const {
-					return finished;
+					return finished && player->has_ball();
 				}
 				Player::Ptr select(const std::set<Player::Ptr> &players) const {
 					return select_baller(world, players, player);
@@ -141,9 +144,22 @@ void SpinSteal::execute() {
 }
 
 void BackUpSteal::execute() {
-	Action::move(world, player, start_pos + Point(-backup_dist, 0));
-
 	finished = (player->position() - start_pos).len() > backup_dist;
+
+	switch(state) {
+	case BACKING_UP:
+		Action::move(world, player, start_pos + Point(-backup_dist, 0));
+		if (finished) {
+			state = GOING_FORWARD;
+		}
+		break;
+	case GOING_FORWARD:
+		Action::move(world, player, world.ball().position());
+		if (player->has_ball()) {
+			state = BACKING_UP;
+		}
+		break;
+	}
 }
 
 void TActiveDef::execute() {
