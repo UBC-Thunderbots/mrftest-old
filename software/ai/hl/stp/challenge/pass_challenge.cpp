@@ -96,9 +96,9 @@ namespace {
 					// sort the players by dist to ball
 					std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 					// player with the ball should not try to avoid other players					
-					for (std::size_t i = 1; i < players.size(); ++i) {
+					/*for (std::size_t i = 1; i < players.size(); ++i) {
 						world.friendly_team().get(i)->avoid_distance(AI::Flags::AvoidDistance::LONG);
-					}
+					}*/
 
 					const Angle delta_angle = AVOIDANCE_ANGLE + AI::HL::STP::Tactic::separation_angle;
 					Point ball_pos = world.ball().position();
@@ -138,6 +138,7 @@ namespace {
 						// everybody else goes towards where ball is likely to go lol
 						int w = 1;
 						for (std::size_t i = 1; i < players.size(); ++i) {
+							players[i]->avoid_distance(AI::Flags::AvoidDistance::LONG);
 							Angle angle = delta_angle * (w / 2) * ((w % 2) ? 1 : -1);
 							Point p = ball_pos - shoot.rotate(angle);
 							w++;
@@ -180,18 +181,21 @@ namespace {
 				if (players.size() > 1) {
 					auto stop1 = Tactic::move_stop(world, 1);
 					stop1->set_player(players[1]);
+					players[1]->avoid_distance(AI::Flags::AvoidDistance::LONG);
 					stop1->execute();
 				}
 				// block the enemies that are closest to ball
 				if (players.size() > 2 && world.enemy_team().size() > 0) {
 					auto block1 = Tactic::block_ball(world, Enemy::closest_ball(world, 0));
 					block1->set_player(players[2]);
+					players[2]->avoid_distance(AI::Flags::AvoidDistance::LONG);
 					block1->execute();
 				}
 
 				if (players.size() > 3 && world.enemy_team().size() > 1) {
 					auto block2 = Tactic::block_ball(world, Enemy::closest_ball(world, 1));
 					block2->set_player(players[3]);
+					players[3]->avoid_distance(AI::Flags::AvoidDistance::LONG);
 					block2->execute();
 				}
 			}
