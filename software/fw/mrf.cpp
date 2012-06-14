@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <cstring>
 #include <iostream>
+#include <stdexcept>
+#include <glibmm/convert.h>
+#include <glibmm/ustring.h>
 
 namespace {
 	void check_mdr(USB::DeviceHandle &device, uint8_t message_id) {
@@ -143,10 +146,9 @@ void Firmware::mrf_upload(const IntelHex &hex, unsigned int robot) {
 			}
 		}
 		if (sum_received != sum_computed) {
-			std::cout << "Check failed on page " << (i / 256) << ": expected " << sum_computed << " but got " << sum_received << '\n';
 			device.release_interface(0);
 			device.set_configuration(1);
-			return;
+			throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Check failed on page %1: expected %2 but got %3", i / 256, sum_computed, sum_received)).c_str());
 		}
 	}
 	std::cout << "OK\n";
