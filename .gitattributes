@@ -84,6 +84,7 @@ firmware/main/motor.h -text
 firmware/main/mrf.c -text
 firmware/main/mrf.h -text
 firmware/main/navre.ld -text
+firmware/main/power.h -text
 firmware/main/sleep.c -text
 firmware/main/sleep.h -text
 firmware/main/wheels.c -text

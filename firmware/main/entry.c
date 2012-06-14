@@ -1,9 +1,11 @@
 #include "adc.h"
+#include "chicker.h"
 #include "flash.h"
 #include "io.h"
 #include "led.h"
 #include "motor.h"
 #include "mrf.h"
+#include "power.h"
 #include "sleep.h"
 #include "wheels.h"
 
@@ -111,14 +113,29 @@ static void handle_radio_receive(void) {
 						case 0b11: wheel_mode = WHEEL_MODE_CLOSED_LOOP; break;
 					}
 					if (wheel_mode != WHEEL_MODE_COAST && wheel_mode != WHEEL_MODE_BRAKE) {
-						outb(POWER_CTL, inb(POWER_CTL) | 0x02);
+						power_enable_motors();
 					}
 					if (words[0] & (1 << 12)) {
-						outb(POWER_CTL, inb(POWER_CTL) | 0x02);
+						power_enable_motors();
 						set_dribbler(FORWARD, 180);
 					} else {
 						set_dribbler(FLOAT, 0);
-#warning implement chicker charge/float/discharge
+					}
+					switch ((words[1] >> 14) & 3) {
+						case 0b00:
+							power_enable_chicker();
+							set_charge_mode(false);
+							set_discharge_mode(true);
+							break;
+						case 0b01:
+							set_charge_mode(false);
+							set_discharge_mode(false);
+							break;
+						case 0b10:
+							power_enable_chicker();
+							set_discharge_mode(false);
+							set_charge_mode(true);
+							break;
 					}
 					outb(BREAK_BEAM_CTL, 1);
 				}
@@ -271,8 +288,15 @@ static void avr_main(void) {
 			// See what happened
 			uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
 			if (intstat & (1 << 0)) {
-				// Transmission complete
-				transmit_busy = false;
+				// Transmission complete; check status
+				uint8_t txstat = mrf_read_short(MRF_REG_SHORT_TXSTAT);
+				if (txstat & 0x01) {
+					// Transmission failed; resubmit frame
+					mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
+				} else {
+					// Transmission succeeded; release radio
+					transmit_busy = false;
+				}
 			}
 			if (intstat & (1 << 3)) {
 				// Packet received
@@ -298,19 +322,6 @@ static void avr_main(void) {
 			flash_deassert_cs();
 
 			if (!(status_register & 0x01)) {
-				flash_assert_cs();
-				flash_tx(0x03);
-				flash_tx(0);
-				flash_tx(0);
-				flash_tx(0);
-				uint8_t i = 0;
-				do {
-					if (flash_txrx(0) != 0xFF) {
-						set_test_leds(USER_MODE, 7);
-						for (;;);
-					}
-				} while (++i);
-				flash_deassert_cs();
 				if (!transmit_busy) {
 					// Send notification to host
 #warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
