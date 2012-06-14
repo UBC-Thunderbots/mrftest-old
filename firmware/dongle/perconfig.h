@@ -20,6 +20,7 @@ typedef struct normal_out_packet {
 	uint8_t message_id;
 	uint8_t delivery_status;
 	uint8_t length;
+	uint8_t retries_remaining;
 	uint8_t data[64];
 } normal_out_packet_t;
 

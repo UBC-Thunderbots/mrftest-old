@@ -88,6 +88,7 @@ const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
 
 static bool in_ep1_enabled, in_ep2_enabled, in_ep2_zlp_pending, out_ep1_enabled, out_ep2_enabled, out_ep3_enabled, drive_packet_pending, mrf_tx_active;
 static uint8_t mrf_tx_seqnum;
+static uint16_t mrf_rx_seqnum[8];
 static normal_out_packet_t *unreliable_out_free, *reliable_out_free, *first_out_pending, *last_out_pending, *cur_out_transmitting, *first_mdr_pending, *last_mdr_pending;
 static normal_in_packet_t *in_free, *first_in_pending, *last_in_pending;
 static unsigned int poll_index;
@@ -98,7 +99,7 @@ static void send_drive_packet(void) {
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 1, 9 + sizeof(perconfig.normal.drive_packet)); // Frame length
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 2, 0b01000001); // Frame control LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 3, 0b10001000); // Frame control MSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 4, mrf_tx_seqnum++); // Sequence number
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 4, ++mrf_tx_seqnum); // Sequence number
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 5, config.pan_id); // Destination PAN ID LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 6, config.pan_id >> 8); // Destination PAN ID MSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 7, 0xFF); // Destination address LSB
@@ -143,25 +144,32 @@ static void push_mrf_tx(void) {
 	}
 
 	// Decide what type of packet we should send
-	if (drive_packet_pending) {
+	if (!cur_out_transmitting && drive_packet_pending) {
 		// A timer interrupt indicated we should send a drive packet, but the transmitter was active; send it now
 		send_drive_packet();
-	} else if (first_out_pending) {
+	} else if (cur_out_transmitting || first_out_pending) {
 		// No need to send a drive packet right now, but there is an ordinary data packet waiting; send that
-		// Pop the packet from the queue
-		normal_out_packet_t *pkt = first_out_pending;
-		first_out_pending = pkt->next;
-		if (!first_out_pending) {
-			last_out_pending = 0;
+		// Pop the packet from the queue, if there is no current packet
+		normal_out_packet_t *pkt;
+		if (cur_out_transmitting) {
+			pkt = cur_out_transmitting;
+		} else {
+			pkt = first_out_pending;
+			first_out_pending = pkt->next;
+			if (!first_out_pending) {
+				last_out_pending = 0;
+			}
+			pkt->next = 0;
+			cur_out_transmitting = pkt;
+			++mrf_tx_seqnum;
 		}
-		pkt->next = 0;
 
 		// Write the packet into the transmit buffer
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 0, 9); // Header length
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 1, 9 + pkt->length); // Frame length
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 2, 0b01100001); // Frame control LSB
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 3, 0b10001000); // Frame control MSB
-		mrf_write_long(MRF_REG_LONG_TXNFIFO + 4, mrf_tx_seqnum++); // Sequence number
+		mrf_write_long(MRF_REG_LONG_TXNFIFO + 4, mrf_tx_seqnum); // Sequence number
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 5, config.pan_id); // Destination PAN ID LSB
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 6, config.pan_id >> 8); // Destination PAN ID MSB
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 7, pkt->dest); // Destination address LSB
@@ -175,15 +183,6 @@ static void push_mrf_tx(void) {
 		// Initiate transmission with acknowledgement
 		mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
 		mrf_tx_active = true;
-
-		// If the packet was reliable, save the buffer so it can be used for the message delivery report
-		// If the packet was unreliable, push the buffer back onto the free stack immediately
-		if (pkt->reliable) {
-			cur_out_transmitting = pkt;
-		} else {
-			pkt->next = unreliable_out_free;
-			unreliable_out_free = pkt;
-		}
 	}
 }
 
@@ -292,14 +291,18 @@ static void exti12_interrupt_vector(void) {
 			uint16_t frame_control = mrf_read_long(MRF_REG_LONG_RXFIFO + 1) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 2) << 8);
 			// Sanity-check the frame control word
 			if (((frame_control >> 0) & 7) == 1 /* Data packet */ && ((frame_control >> 3) & 1) == 0 /* No security */ && ((frame_control >> 6) & 1) == 1 /* Intra-PAN */ && ((frame_control >> 10) & 3) == 2 /* 16-bit destination address */ && ((frame_control >> 14) & 3) == 2 /* 16-bit source address */) {
-				// Read out and check the source address
+				// Read out and check the source address and sequence number
 				uint16_t source_address = mrf_read_long(MRF_REG_LONG_RXFIFO + 8) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 9) << 8);
-				if (source_address < 8) {
+				uint8_t sequence_number = mrf_read_long(MRF_REG_LONG_RXFIFO + 3);
+				if (source_address < 8 & sequence_number != mrf_rx_seqnum[source_address]) {
 					// Blink the receive light
 					GPIOB_ODR ^= 4 << 12;
 
 					static const uint8_t HEADER_LENGTH = 2 /* Frame control */ + 1 /* Seq# */ + 2 /* Dest PAN */ + 2 /* Dest */ + 2 /* Src */;
 					static const uint8_t FOOTER_LENGTH = 2;
+
+					// Update sequence number
+					mrf_rx_seqnum[source_address] = sequence_number;
 
 					// Allocate a packet buffer
 					normal_in_packet_t *packet = in_free;
@@ -335,37 +338,46 @@ static void exti12_interrupt_vector(void) {
 		}
 		if (intstat & (1 << 0)) {
 			// TXIF = 1; transmission complete (successful or failed)
-			// Check if the transmission was requested to be reliable
-			if (cur_out_transmitting) {
-				// Reliable delivery: read the transmission status to determine the packet’s fate and store it
-				normal_out_packet_t *pkt = cur_out_transmitting;
-				cur_out_transmitting = 0;
-				uint8_t txstat = mrf_read_short(MRF_REG_SHORT_TXSTAT);
-				if (txstat & 0x01) {
-					// Transmission failed
-					if (txstat & (1 << 5)) {
-						// CCA failed
-						pkt->delivery_status = 0x03;
-					} else {
-						// Assume: No ACK
+			// Read the transmission status to determine the packet’s fate
+			normal_out_packet_t *pkt = cur_out_transmitting;
+			cur_out_transmitting = 0;
+			uint8_t txstat = mrf_read_short(MRF_REG_SHORT_TXSTAT);
+			if (txstat & 0x01) {
+				// Transmission failed
+				if (txstat & (1 << 5)) {
+					// CCA failed
+					pkt->delivery_status = 0x03;
+				} else {
+					// Assume: No ACK
 #warning possibly bad assumption; add a code for "unknown reason"
-						pkt->delivery_status = 0x02;
+					pkt->delivery_status = 0x02;
+				}
+			} else {
+				// Transmission successful
+				pkt->delivery_status = 0x00;
+			}
+
+			// Decide whether to try transmission again or to retire the packet
+			if (pkt->delivery_status == 0x00 || !pkt->retries_remaining) {
+				// Push the packet buffer onto the message delivery report queue (if reliable, else free)
+				if (pkt->reliable) {
+					// Save the message delivery report
+					if (last_mdr_pending) {
+						last_mdr_pending->next = pkt;
+						last_mdr_pending = pkt;
+					} else {
+						first_mdr_pending = last_mdr_pending = pkt;
 					}
-				} else {
-					// Transmission successful
-					pkt->delivery_status = 0x00;
-				}
 
-				// Push the packet buffer onto the message delivery report queue
-				if (last_mdr_pending) {
-					last_mdr_pending->next = pkt;
-					last_mdr_pending = pkt;
+					// Kick the MDR queue
+					push_mdrs();
 				} else {
-					first_mdr_pending = last_mdr_pending = pkt;
+					pkt->next = unreliable_out_free;
+					unreliable_out_free = pkt;
 				}
-
-				// Kick the MDR queue
-				push_mdrs();
+			} else {
+				cur_out_transmitting = pkt;
+				--pkt->retries_remaining;
 			}
 
 			// The transmitter is no longer active
@@ -443,6 +455,8 @@ static void on_ep1_out_pattern(uint32_t pattern) {
 			for (size_t i = 0; i < sizeof(perconfig.normal.drive_packet) / sizeof(*perconfig.normal.drive_packet); ++i) {
 				perconfig.normal.drive_packet[i] = OTG_FS_FIFO[0][0];
 			}
+			// Enable the timer that generates drive packets on the radio
+			TIM6_CR1 |= 1 << 0; // CEN = 1; enable counter now
 		} else {
 			for (size_t i = 0; i < bcnt; i += 4) {
 				(void) OTG_FS_FIFO[0][0];
@@ -471,6 +485,9 @@ static void on_ep2_out_pattern(uint32_t pattern) {
 
 			// The transfer has a two-byte header
 			pkt->length = bcnt - 2;
+
+			// Allow up to twenty transport-layer retries
+			pkt->retries_remaining = 20;
 
 			// Copy out the header and first two bytes of data
 			{
@@ -526,6 +543,9 @@ static void on_ep3_out_pattern(uint32_t pattern) {
 
 			// The transfer has a one-byte header
 			pkt->length = bcnt - 1;
+
+			// Allow up to twenty transport-layer retries
+			pkt->retries_remaining = 20;
 
 			// Copy out the header and first three bytes of data
 			{
@@ -594,6 +614,9 @@ static void on_enter(void) {
 	// Initialize the radio
 	poll_index = 0;
 	mrf_tx_active = false;
+	for (size_t i = 0; i < sizeof(mrf_rx_seqnum) / sizeof(*mrf_rx_seqnum); ++i) {
+		mrf_rx_seqnum[i] = 0xFFFF;
+	}
 	mrf_init();
 	sleep_100us(1);
 	mrf_release_reset();
@@ -759,7 +782,6 @@ static void on_enter(void) {
 	TIM6_PSC = 999;
 	TIM6_ARR = 1439;
 	TIM6_CNT = 0;
-	TIM6_CR1 |= 1 << 0; // CEN = 1; enable counter now
 	NVIC_ISER[54 / 32] = 1 << (54 % 32); // SETENA54 = 1; enable timer 6 interrupt
 }
 
