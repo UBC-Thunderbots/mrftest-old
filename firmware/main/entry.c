@@ -123,13 +123,13 @@ static void handle_radio_receive(void) {
 					}
 					switch ((words[1] >> 14) & 3) {
 						case 0b00:
+							set_charge_mode(false);
+							set_discharge_mode(false);
+							break;
+						case 0b01:
 							power_enable_chicker();
 							set_charge_mode(false);
 							set_discharge_mode(true);
-							break;
-						case 0b01:
-							set_charge_mode(false);
-							set_discharge_mode(false);
 							break;
 						case 0b10:
 							power_enable_chicker();
@@ -144,6 +144,22 @@ static void handle_radio_receive(void) {
 				static const uint16_t MESSAGE_PURPOSE_ADDR = MRF_REG_LONG_RXFIFO + 1 + HEADER_LENGTH;
 				static const uint16_t MESSAGE_PAYLOAD_ADDR = MESSAGE_PURPOSE_ADDR + 1;
 				switch (mrf_read_long(MESSAGE_PURPOSE_ADDR)) {
+					case 0x00: // Fire kicker immediately
+						if (frame_length == HEADER_LENGTH + 4 + FOOTER_LENGTH) {
+							set_test_leds(USER_MODE, 7);
+							uint8_t which = mrf_read_long(MESSAGE_PAYLOAD_ADDR);
+							uint16_t width = mrf_read_long(MESSAGE_PAYLOAD_ADDR + 2);
+							width <<= 8;
+							width |= mrf_read_long(MESSAGE_PAYLOAD_ADDR + 1);
+							set_chick_pulse(width);
+							if (which) {
+								fire_chipper();
+							} else {
+								fire_kicker();
+							}
+						}
+						break;
+
 					case 0x03: // Set LED mode
 						if (frame_length == HEADER_LENGTH + 2 + FOOTER_LENGTH) {
 							led_mode = mrf_read_long(MESSAGE_PAYLOAD_ADDR);
@@ -250,7 +266,6 @@ static void handle_radio_receive(void) {
 						}
 						break;
 				}
-#warning implement fire kicker, arm autokick, disarm autokick (remember to do sequence number checking)
 			}
 		}
 	}

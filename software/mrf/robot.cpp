@@ -51,9 +51,9 @@ void MRFRobot::dribble(bool active) {
 void MRFRobot::set_charger_state(ChargerState state) {
 	dongle.drive_packet[index][1] &= static_cast<uint16_t>(~(0b11 << 14));
 	switch (state) {
-		case ChargerState::DISCHARGE:
-			break;
 		case ChargerState::FLOAT:
+			break;
+		case ChargerState::DISCHARGE:
 			dongle.drive_packet[index][1] |= 0b01 << 14;
 			break;
 		case ChargerState::CHARGE:

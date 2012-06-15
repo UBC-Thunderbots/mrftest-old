@@ -27,7 +27,7 @@ static inline bool is_charge_timeout() {
 }
 
 static inline void set_chick_pulse(uint16_t pulsewidth) {
-	outb( CHICKER_PULSE_LSB, pulsewidth & 0x0F );
+	outb( CHICKER_PULSE_LSB, pulsewidth & 0xFF );
 	outb( CHICKER_PULSE_MSB, pulsewidth >> 8);
 }
 
@@ -40,3 +40,4 @@ static inline void fire_chipper() {
 }
 
 #endif
+

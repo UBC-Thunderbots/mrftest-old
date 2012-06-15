@@ -5,7 +5,7 @@ KickerPanel::KickerPanel(MRFRobot &robot) : Gtk::Table(5, 2), robot(robot), disc
 	robot.alive.signal_changed().connect(sigc::mem_fun(this, &KickerPanel::on_alive_changed));
 	robot.signal_autokick_fired.connect(sigc::mem_fun(this, &KickerPanel::on_autokick_fired));
 
-	discharge_button.set_active();
+	float_button.set_active();
 	discharge_button.signal_toggled().connect(sigc::mem_fun(this, &KickerPanel::on_charge_changed));
 	float_button.signal_toggled().connect(sigc::mem_fun(this, &KickerPanel::on_charge_changed));
 	charge_button.signal_toggled().connect(sigc::mem_fun(this, &KickerPanel::on_charge_changed));
