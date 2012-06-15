@@ -1,5 +1,7 @@
 #include "control.h"
 
+#define CURRENTLIMIT 116.0
+
 void control_clear(control_ctx_t *ctx) {
 	ctx->integrator = 0;
 	ctx->saturation_difference = 0;
@@ -17,8 +19,8 @@ int16_t control_iter(int16_t setpoint, int16_t feedback, control_ctx_t *ctx) {
 	ctx->integrator += error_compensated;
 	control_action = error_compensated * 1.1072 + ctx->integrator * 0.2869;
 	plant = control_action;
-	plant_min = feedback_pwm_equiv - 45.0;
-	plant_max = feedback_pwm_equiv + 45.0;
+	plant_min = feedback_pwm_equiv - CURRENT_LIMIT;
+	plant_max = feedback_pwm_equiv + CURRENT_LIMIT;
 	if (plant < plant_min) {
 		plant = plant_min;
 	} else if (plant > plant_max) {
