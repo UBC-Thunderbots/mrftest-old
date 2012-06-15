@@ -1,6 +1,6 @@
 #include "control.h"
 
-#define CURRENTLIMIT 116.0
+#define CURRENT_LIMIT 116.0
 
 void control_clear(control_ctx_t *ctx) {
 	ctx->integrator = 0;
