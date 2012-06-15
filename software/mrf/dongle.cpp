@@ -166,6 +166,7 @@ void MRFDongle::send_unreliable(unsigned int robot, const void *data, std::size_
 	std::unique_ptr<USB::InterruptOutTransfer> elt(new USB::InterruptOutTransfer(device, 3, buffer, sizeof(buffer), 0));
 	auto i = unreliable_messages.insert(unreliable_messages.end(), std::move(elt));
 	(*i)->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::check_unreliable_transfer), i));
+	(*i)->submit();
 }
 
 void MRFDongle::check_unreliable_transfer(AsyncOperation<void> &, std::list<std::unique_ptr<USB::InterruptOutTransfer>>::iterator iter) {
