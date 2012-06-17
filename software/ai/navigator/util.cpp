@@ -99,7 +99,7 @@ namespace {
 					break;
 			}
 
-			return 2 * player->MAX_RADIUS + buffer;
+			return player->MAX_RADIUS + buffer;
 		}
 
 		static double goal_post(AI::Nav::W::Player::Ptr player) {
@@ -119,7 +119,7 @@ namespace {
 				buffer = PASS_CHALLENGE_BUFFER;
 			}
 
-			return 2.0 * (player->MAX_RADIUS) + buffer;
+			return player->MAX_RADIUS + buffer;
 		}
 		static double ball_stop(AI::Nav::W::Player::Ptr player) {
 			return Ball::RADIUS + player->MAX_RADIUS + AI::Util::BALL_STOP_DIST;
