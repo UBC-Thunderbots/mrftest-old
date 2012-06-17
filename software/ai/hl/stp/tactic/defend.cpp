@@ -6,6 +6,7 @@
 #include "ai/hl/stp/action/defend.h"
 #include "ai/hl/stp/action/repel.h"
 #include "ai/hl/util.h"
+#include "geom/util.h"
 
 #include <cassert>
 
@@ -72,11 +73,33 @@ namespace {
 			}
 	};
 
+	bool dangerous(const World &world, const Player::Ptr &player) {
+		// definition of "danger" is identified by the seg point between ball, net and players
+		const double danger_dist = 0.3;
+		// definition of "danger" is identified by the distance from ball to net
+		const double danger_dist_goal = 1.0;
+
+		// check if a ball is too close
+		if ((world.ball().position() - world.field().friendly_goal()).len() < danger_dist_goal) {
+			return true;
+		}
+		// check if there are any defenders close by
+		for (size_t i = 0; i < world.friendly_team().size(); i++) {
+			bool close_to_block_formation = seg_pt_dist(world.ball().position(), world.field().friendly_goal(), world.friendly_team().get(i)->position()) < danger_dist;
+			bool goalie = world.friendly_team().get(i)->position().close(player->position(), 0.1);
+			if (close_to_block_formation && !goalie)
+				return false;
+		}
+		return true;
+	}
+
 	void Goalie2::execute() {
 		if (tdefend) {
 			Point dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
 			Point dest = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
 			Action::goalie_move(world, player, dest);
+		} else if (dangerous(world, player)){
+			AI::HL::STP::Action::lone_goalie(world, player);
 		} else if (world.friendly_team().size() > defender_role + 1) {
 			// has defender
 			auto waypoints = Evaluation::evaluate_defense();
@@ -93,6 +116,8 @@ namespace {
 		if (tdefend) {
 			AI::HL::STP::Action::lone_goalie(world, player);
 			return;
+		}	else if (dangerous(world, player)){
+			AI::HL::STP::Action::lone_goalie(world, player);
 		}
 		Action::goalie_move(world, player, dest);
 	}

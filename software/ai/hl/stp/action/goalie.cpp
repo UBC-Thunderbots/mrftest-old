@@ -19,6 +19,7 @@ namespace {
 	DoubleParam goalie_repel_dist("Distance the defender should repel the ball in robot radius", "STP/Action/Goalie", 4.0, 1.0, 6.0);
 }
 
+//goalie moves in the direction towards the ball within the lone_goalie_dist from the goal post
 void AI::HL::STP::Action::lone_goalie(const World &world, Player::Ptr player) {
 	// Patrol
 	//const Point default_pos = Point(-0.45 * world.field().length(), 0);
