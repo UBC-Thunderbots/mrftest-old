@@ -152,5 +152,7 @@ void Firmware::mrf_upload(const IntelHex &hex, unsigned int robot) {
 		}
 	}
 	std::cout << "OK\n";
+	device.release_interface(0);
+	device.set_configuration(1);
 }
 
