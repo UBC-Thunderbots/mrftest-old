@@ -621,31 +621,32 @@ bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World &wo
 	const Point target_pos = player->destination().first;
 
 	const Point radial_dist = bot_pos - ball_pos;
-	const Angle target_angle = (target_pos - ball_pos).orientation()+Angle::of_degrees(180);
-	const Angle bot_angle = (bot_pos - ball_pos).orientation();
-	const Angle angular_dist = bot_angle-target_angle;
+	const Angle target_angle = ((target_pos - ball_pos).orientation()+Angle::of_degrees(180)).angle_mod();
+	const Angle bot_angle = (bot_pos - ball_pos).orientation().angle_mod();
+	const Angle angular_dist = (bot_angle-target_angle).angle_mod();
 
 	// the direction that robot should eventually face
-	const Angle target_orient = (target_pos - ball_pos).orientation();
+	const Angle target_orient = (ball_pos - target_pos).orientation().angle_mod();
 	
 	// number of step in the path
-	const int seg_number = angular_dist/Angle::of_degrees(20)+1;
+	const int seg_number = std::abs(angular_dist/Angle::of_degrees(10))+1;
 	// how far the step travels radially, 
 	const Point radial_step = radial_dist/(seg_number+1);
 	// how far the step tarvels tangentially
 	const Angle angular_step = angular_dist/seg_number;
+
+	std::cout << "step number " << seg_number << " angular_step " << angular_step.to_degrees() << " angular_dist " << angular_dist.to_degrees() << " target_angle " << target_angle.to_degrees() << "\n";
 	
 	std::vector<Point> step_points;
 	// i starts with 1 because the first step point is not robot position
 	for(int i = 1; i < seg_number; i++){
-		Point radial_pos = radial_dist-radial_step*i;
-		Angle angular_pos = bot_angle-angular_dist*i;
+		Point radial_pos = Point((radial_dist-radial_step*i).len(),0);
+		Angle angular_pos = bot_angle-angular_step*i;
 		// in every step robot get closer to the ball by 1 radial_step, and get closer lining up the robot with target by 1 angular_step
 		step_points.push_back(ball_pos+radial_pos.rotate(angular_pos));
 	}
 	// last point is ball position
 	step_points.push_back(ball_pos);
-
 
 	AI::Nav::W::Player::Path path;
 	timespec working_time = world.monotonic_time();
@@ -681,10 +682,17 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W:
 
 	// only start rotating around the stationary ball when we're within a certain distance
 	const double dist_to_rotate = 0.3;
+	if (ball_vel.len() < 0.2) {
+		//player->path(get_path_around_ball(world, player, robot_pos, target_pos, true));
+		intercept_flag_stationary_ball_handler(world, player);
+		return true;
+	}
+
+	/*const double dist_to_rotate = 0.3;
 	if (ball_vel.len() < 0.2 && (robot_pos - ball_pos).len() < dist_to_rotate) {
 		player->path(get_path_around_ball(world, player, robot_pos, target_pos, true));
 		return true;
-	}
+	}*/
 
 	const bool robot_behind_ball = !point_in_front_vector(ball_pos, ball_vel, robot_pos);
 	// find out whether robot is behind the ball or in front of the ball
