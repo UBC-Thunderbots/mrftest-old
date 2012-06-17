@@ -38,6 +38,10 @@ static bool erasing_flash = false;
 static uint8_t flash_page_buffer[256];
 static uint32_t region_sum;
 static bool region_sum_pending = false;
+static uint16_t autokick_pulse_width;
+static uint8_t autokick_device;
+static bool autokick_armed = false;
+static bool autokick_fired_pending = false;
 
 static void send_feedback_packet(void) {
 #warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
@@ -159,7 +163,6 @@ static void handle_radio_receive(void) {
 				switch (mrf_read_long(MESSAGE_PURPOSE_ADDR)) {
 					case 0x00: // Fire kicker immediately
 						if (frame_length == HEADER_LENGTH + 4 + FOOTER_LENGTH) {
-							set_test_leds(USER_MODE, 7);
 							uint8_t which = mrf_read_long(MESSAGE_PAYLOAD_ADDR);
 							uint16_t width = mrf_read_long(MESSAGE_PAYLOAD_ADDR + 2);
 							width <<= 8;
@@ -170,6 +173,22 @@ static void handle_radio_receive(void) {
 							} else {
 								fire_kicker();
 							}
+						}
+						break;
+
+					case 0x01: // Arm autokick
+						if (frame_length == HEADER_LENGTH + 4 + FOOTER_LENGTH) {
+							autokick_device = mrf_read_long(MESSAGE_PAYLOAD_ADDR);
+							autokick_pulse_width = mrf_read_long(MESSAGE_PAYLOAD_ADDR + 2);
+							autokick_pulse_width <<= 8;
+							autokick_pulse_width |= mrf_read_long(MESSAGE_PAYLOAD_ADDR + 1);
+							autokick_armed = true;
+						}
+						break;
+
+					case 0x02: // Disarm autokick
+						if (frame_length == HEADER_LENGTH + 1 + FOOTER_LENGTH) {
+							autokick_armed = false;
 						}
 						break;
 
@@ -321,6 +340,18 @@ static void avr_main(void) {
 	// Initialize a tick count
 	uint8_t old_ticks = inb(TICKS);
 	for(;;) {
+		// Check if an autokick needs to fire
+		if (autokick_armed && read_main_adc(BREAKBEAM) > BREAKBEAM_THRESHOLD) {
+			set_chick_pulse(autokick_pulse_width);
+			if (autokick_device) {
+				fire_chipper();
+			} else {
+				fire_kicker();
+			}
+			autokick_armed = false;
+			autokick_fired_pending = true;
+		}
+
 		// Check if a tick has passed; if so, iterate the control loop
 		if (inb(TICKS) != old_ticks) {
 			wheels_tick();
@@ -417,6 +448,30 @@ static void avr_main(void) {
 
 			transmit_busy = true;
 			region_sum_pending = false;
+		}
+
+		// Check if the autokick system fired and the report needs transmitting
+		if (autokick_fired_pending && !transmit_busy) {
+			// Send notification to host
+#warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 0, 9); // Header length
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 1, 9 + 1); // Frame length
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 2, 0b01100001); // Frame control LSB
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 3, 0b10001000); // Frame control MSB
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 4, tx_seqnum++); // Sequence number
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 5, PAN & 0xFF); // Destination PAN ID LSB
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 6, PAN >> 8); // Destination PAN ID MSB
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 7, 0x00); // Destination address LSB
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 8, 0x01); // Destination address MSB
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 9, INDEX); // Source address LSB
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 10, 0); // Source address MSB
+
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11, 0x01); // Autokick fired
+
+			mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
+
+			transmit_busy = true;
+			autokick_fired_pending = false;
 		}
 	}
 }
