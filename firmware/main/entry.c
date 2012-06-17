@@ -386,7 +386,14 @@ static void avr_main(void) {
 
 		// Update the LEDs
 		if (led_mode == 0x20) {
-#warning implement this
+			uint8_t flags = 0;
+			if (read_main_adc(BREAKBEAM) > BREAKBEAM_THRESHOLD) {
+				flags |= 0x01;
+			}
+			if (autokick_armed) {
+				flags |= 0x04;
+			}
+			set_test_leds(USER_MODE, flags);
 		}
 
 		// Check if an in-progress Flash erase operation has now finished
