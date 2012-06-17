@@ -538,7 +538,7 @@ std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World &wor
 		Point defense_point1(-f.length() / 2, -f.defense_area_stretch() / 2);
 		Point defense_point2(-f.length() / 2, f.defense_area_stretch() / 2);
 		process_obstacle(ans, world, player, defense_point1, defense_point2, distance_keepout::friendly_defense(world, player), POINTS_PER_OBSTACLE);
-	n}
+	}
 
 	if (flags & FLAG_AVOID_ENEMY_DEFENSE) {
 		Point defense_point1(f.length() / 2, -f.defense_area_stretch() / 2);
