@@ -144,7 +144,7 @@ class MRFRobot : public NonCopyable {
 		friend class MRFDongle;
 
 		MRFDongle &dongle;
-		Annunciator::Message hall_stuck_message;
+		Annunciator::Message hall_stuck_message, charge_timeout_message;
 
 		MRFRobot(MRFDongle &dongle, unsigned int index);
 		void handle_message(const void *data, std::size_t len);

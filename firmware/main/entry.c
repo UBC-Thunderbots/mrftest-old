@@ -15,6 +15,8 @@
 #define PAN 0x1846
 #define INDEX 0
 
+#define BREAKBEAM_THRESHOLD 800
+
 static unsigned char stack[1024] __attribute__((section(".stack"), used));
 
 static void entry(void) __attribute__((section(".entry"), used, naked));
@@ -58,14 +60,23 @@ static void send_feedback_packet(void) {
 	adc_value = read_chicker_adc();
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 14, adc_value); // Capacitor voltage LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 15, adc_value >> 8); // Capacitor voltage MSB
-	adc_value = read_main_adc(BREAKBEAM);
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 16, adc_value); // Break beam reading LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 17, adc_value >> 8); // Break beam reading MSB
+	uint16_t breakbeam_value = read_main_adc(BREAKBEAM);
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 16, breakbeam_value); // Break beam reading LSB
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 17, breakbeam_value >> 8); // Break beam reading MSB
 	adc_value = read_main_adc(THERMISTOR);
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 18, adc_value); // Thermistor reading LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 19, adc_value >> 8); // Thermistor reading MSB
-#warning implement the flags
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 20, 0x00); // Flags
+	uint8_t flags = 0;
+	if (breakbeam_value < BREAKBEAM_THRESHOLD) {
+		flags |= 0x01;
+	}
+	if (is_charged()) {
+		flags |= 0x02;
+	}
+	if (is_charge_timeout()) {
+		flags |= 0x04;
+	}
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 20, flags); // Flags
 
 	mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
 

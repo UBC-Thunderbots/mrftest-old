@@ -94,7 +94,7 @@ void MRFRobot::autokick(bool chip, unsigned int pulse_width) {
 	}
 }
 
-MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) : index(index), alive(false), has_feedback(false), ball_in_beam(false), capacitor_charged(false), battery_voltage(0), capacitor_voltage(0), break_beam_reading(0), dribbler_temperature(0), dongle(dongle), hall_stuck_message(Glib::ustring::compose("Bot %1 hall sensor stuck", index), Annunciator::Message::TriggerMode::LEVEL) {
+MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) : index(index), alive(false), has_feedback(false), ball_in_beam(false), capacitor_charged(false), battery_voltage(0), capacitor_voltage(0), break_beam_reading(0), dribbler_temperature(0), dongle(dongle), hall_stuck_message(Glib::ustring::compose(u8"Bot %1 hall sensor stuck", index), Annunciator::Message::TriggerMode::LEVEL), charge_timeout_message(Glib::ustring::compose(u8"Bot %1 charge timeout", index), Annunciator::Message::TriggerMode::LEVEL) {
 }
 
 void MRFRobot::handle_message(const void *data, std::size_t len) {
@@ -114,6 +114,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 					dribbler_temperature = (bptr[6] | (bptr[7] << 8)) * 0.5735 - 205.9815;
 					ball_in_beam = !!(bptr[8] & 0x01);
 					capacitor_charged = !!(bptr[8] & 0x02);
+					charge_timeout_message.active(!!(bptr[8] & 0x04));
 				} else {
 					LOG_ERROR(Glib::ustring::compose(u8"Received general robot status update with wrong byte count %1", len));
 				}
