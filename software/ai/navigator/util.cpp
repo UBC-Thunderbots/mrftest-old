@@ -635,7 +635,7 @@ bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World &wo
 	// how far the step tarvels tangentially
 	const Angle angular_step = angular_dist/seg_number;
 
-	std::cout << "step number " << seg_number << " angular_step " << angular_step.to_degrees() << " angular_dist " << angular_dist.to_degrees() << " target_angle " << target_angle.to_degrees() << "\n";
+	//std::cout << "step number " << seg_number << " angular_step " << angular_step.to_degrees() << " angular_dist " << angular_dist.to_degrees() << " target_angle " << target_angle.to_degrees() << "\n";
 	
 	std::vector<Point> step_points;
 	// i starts with 1 because the first step point is not robot position
