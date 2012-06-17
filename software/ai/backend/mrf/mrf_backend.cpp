@@ -253,7 +253,7 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 					create_member(pattern);
 					membership_changed = true;
 				}
-				if (!bot->seen_this_frame) {
+				if (bot && !bot->seen_this_frame) {
 					bot->seen_this_frame = true;
 					bot->update(detbot, ts);
 				}
@@ -310,7 +310,9 @@ unsigned int MRFFriendlyTeam::score() const {
 }
 
 void MRFFriendlyTeam::create_member(unsigned int pattern) {
-	members.create(pattern, std::ref(backend), pattern, std::ref(dongle.robot(pattern)));
+	if (pattern < 8) {
+		members.create(pattern, std::ref(backend), pattern, std::ref(dongle.robot(pattern)));
+	}
 }
 
 MRFEnemyTeam::MRFEnemyTeam(MRFBackend &backend) : GenericTeam<AI::BE::MRF::Robot, AI::BE::Robot, AI::BE::EnemyTeam>(backend) {

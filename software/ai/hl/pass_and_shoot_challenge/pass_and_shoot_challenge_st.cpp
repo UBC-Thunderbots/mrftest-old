@@ -13,7 +13,7 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-  const unsigned int min_team_size = 4;
+  const unsigned int min_team_size = 1;
   double bot_y_top_position = 1.2;
   double bot_y_bottom_position = -1.2;
   Point bot0_initial(-2.75,bot_y_bottom_position);
@@ -126,30 +126,30 @@ public:
     }
     
     Player::Ptr player0 = friendly.get(0);
-    Player::Ptr player1 = friendly.get(1);
-    Player::Ptr player2 = friendly.get(2);
-    Player::Ptr player3 = friendly.get(3);
+    //    Player::Ptr player1 = friendly.get(1);
+    // Player::Ptr player2 = friendly.get(2);
+    // Player::Ptr player3 = friendly.get(3);
     
     switch(current_state) {
     case INITIAL_POSITION:{
-      for(unsigned int i = 1; i < min_team_size; i++) {
+      /*  for(unsigned int i = 1; i < min_team_size; i++) {
 	friendly.get(i)->move(robot_positions[i].first, robot_positions[i].second, Point());
       }
 
       bool bot1_is_init = (player1->position() - robot_positions[1].first).len() < epsilon;
       bool bot2_is_init = (player2->position() - robot_positions[2].first).len() < epsilon;
       bool bot3_is_init = (player3->position() - robot_positions[3].first).len() < epsilon;
-      
+      */ 
       bool bot0_is_init= intercept_and_move(0);
       
-      if (bot0_is_init && bot1_is_init && bot2_is_init && bot3_is_init) {
-	current_state = BOT0_PASS;
+      if (bot0_is_init /*&& bot1_is_init && bot2_is_init && bot3_is_init*/) {
+	//	current_state = BOT0_PASS;
 	std::cout << "next" << std::endl;
       }
     }
       break;
-    case BOT0_PASS:
-      std::cout << "case 1" << std::endl;
+      /* case BOT0_PASS:
+       std::cout << "case 1" << std::endl;
 
       robot_pass(0, 1, BOT1_PASS, Angle(robot_orientation_passing[0]));
       break;
@@ -179,19 +179,20 @@ public:
       break;
     case BOT1_REPOS: {
       std::cout << "case 6" << std::endl;
-      robot_pass(1, 2, BOT2_REPOS, Angle(robot_orientation_final_passing[1]));
+	 robot_pass(1, 2, BOT2_REPOS, Angle(robot_orientation_final_passing[1]));
     }
       break;
     case BOT2_REPOS: {
       std::cout << "case 7" << std::endl;
-      robot_pass(2, 3, BOT3_REPOS, Angle(robot_orientation_final_passing[2]));
+	robot_pass(2, 3, BOT3_REPOS, Angle(robot_orientation_final_passing[2]));
     }
       break;
     case BOT3_REPOS:
-      std::cout << "case 8" << std::endl;
+    std::cout << "case 8" << std::endl;
       if(player3->has_ball())
-	player3->autokick(kick_speed);
+      player3->autokick(kick_speed);
       break;
+      }*/
     }
   }
   
@@ -212,15 +213,15 @@ private:
   
   std::vector<std::pair<Point, Angle>> robot_positions;
   state current_state;
-  Point horizontal_intercept(Player::Ptr player);
-  void robot_pass(int passer_num, int receiver_num, state next_state, Angle orientation);
-  void robot_pass_repos(Player::Ptr passer, Player::Ptr receiver, int robot_number);
+  //Point horizontal_intercept(Player::Ptr player);
+  //void robot_pass(int passer_num, int receiver_num, state next_state, Angle orientation);
+  // void robot_pass_repos(Player::Ptr passer, Player::Ptr receiver, int robot_number);
   bool intercept_and_move(int idx);
-  bool ball_out_of_play();
+  //  bool ball_out_of_play();
   bool kicked_ball;
 
 };
-
+  /*
 Point PASCHL_ST::horizontal_intercept(Player::Ptr player) {
   double horizontal_line = 1.2;
   double width_of_rectangle = 2;
@@ -282,12 +283,12 @@ bool PASCHL_ST::ball_out_of_play() {
   //if ball is inside the square and is moving less than 0.5, return true
   return (ball_position_in_square && (ball_future < bot_y_top_position && ball_future > bot_y_bottom_position));
 }
-
+  */
 bool PASCHL_ST::intercept_and_move(int idx){
   Player::Ptr intercepter= world.friendly_team().get(idx);
   
   if(!intercepter->has_ball())
-    intercepter->move(world.ball().position(), (world.ball().position()-intercepter->position()).orientation(), Point());
+    intercepter->move(world.ball().position(), (world.ball().position() - intercepter->position()).orientation(), Point());
   
   bool intercepter_location = (intercepter->position() - robot_positions[0].first).len() < epsilon;
 

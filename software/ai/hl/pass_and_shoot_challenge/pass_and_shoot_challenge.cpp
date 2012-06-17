@@ -132,13 +132,16 @@ class PASCHL : public HighLevel {
 
 				switch(current_state) {
 				case INITIAL_POSITION:{
-					for(unsigned int i = 0; i < min_team_size; i++) {
+					for(unsigned int i = 1; i < min_team_size; i++) {
 						friendly.get(i)->move(robot_positions[i].first, robot_positions[i].second, Point());
 					}
-					bool bot0_is_init = (player0->position() - robot_positions[0].first).len() < epsilon;
+
+				    bool bot0_is_init= intercept_and_move(0);
 					bool bot1_is_init = (player1->position() - robot_positions[1].first).len() < epsilon;
 					bool bot2_is_init = (player2->position() - robot_positions[2].first).len() < epsilon;
 					bool bot3_is_init = (player3->position() - robot_positions[3].first).len() < epsilon;
+
+
 
 					if (bot0_is_init && bot1_is_init && bot2_is_init && bot3_is_init) {
 						current_state = BOT0_PASS;
@@ -148,9 +151,9 @@ class PASCHL : public HighLevel {
 					break;
 				case BOT0_PASS:
 					std::cout << "case 1" << std::endl;
-
-					robot_pass(0, 1, BOT1_PASS, Angle(robot_orientation_passing[0]));
+					robot_pass(0,1, BOT1_PASS, Angle(robot_orientation_passing[0]));
 					break;
+
 				case BOT1_PASS:{
 					std::cout << "case 2" << std::endl;
 					player0->move(Point(bot0_secondary), Angle(robot_orientation_final[0]), Point());
@@ -215,7 +218,7 @@ class PASCHL : public HighLevel {
 			void robot_pass_repos(Player::Ptr passer, Player::Ptr receiver, int robot_number);
 			bool ball_out_of_play();
 			bool kicked_ball;
-
+		    bool intercept_and_move(int idx);
 };
 
 Point PASCHL::horizontal_intercept(Player::Ptr player) {
@@ -286,9 +289,22 @@ bool PASCHL::ball_out_of_play() {
 	//if ball is inside the square and is moving less than 0.5, return true
 	return (ball_position_in_square && (ball_future < bot_y_top_position && ball_future > bot_y_bottom_position));
 }
+bool PASCHL::intercept_and_move(int idx){
+  Player::Ptr intercepter= world.friendly_team().get(idx);
 
+  if(!intercepter->has_ball())
+    intercepter->move(world.ball().position(), (world.ball().position() - intercepter->position()).orientation(), Point());
 
+  bool intercepter_location = (intercepter->position() - robot_positions[0].first).len() < epsilon;
 
+  if(intercepter->has_ball() && !intercepter_location)
+    intercepter->move(robot_positions[0].first, robot_positions[0].second, Point());
+
+  if(intercepter->has_ball() && intercepter_location)
+    return true;
+  else
+    return false;
+}
 
 HIGH_LEVEL_REGISTER(PASCHL)
 
