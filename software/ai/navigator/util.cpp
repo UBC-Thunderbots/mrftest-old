@@ -629,7 +629,7 @@ bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World &wo
 	const Angle target_orient = (target_pos-ball_pos).orientation().angle_mod();
 	
 	// number of step in the path
-	const int seg_number = std::abs(angular_dist/Angle::of_degrees(10))+1;
+	const int seg_number = int(std::floor(std::abs(angular_dist/Angle::of_degrees(10)))+1);
 	// how far the step travels radially, 
 	const Point radial_step = radial_dist/(seg_number+1);
 	// how far the step tarvels tangentially
@@ -681,7 +681,7 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W:
 	AI::Nav::RRTPlanner planner(world);
 
 	// only start rotating around the stationary ball when we're within a certain distance
-	const double dist_to_rotate = 0.3;
+	//const double dist_to_rotate = 0.3;
 	if (ball_vel.len() < 0.2) {
 		//player->path(get_path_around_ball(world, player, robot_pos, target_pos, true));
 		intercept_flag_stationary_ball_handler(world, player);
