@@ -651,7 +651,7 @@ bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World &wo
 	AI::Nav::W::Player::Path path;
 	timespec working_time = world.monotonic_time();
 
-	for(int i = 0; i < step_points.size(); i++){
+	for(std::size_t i = 0; i < step_points.size(); i++){
 		path.push_back(std::make_pair(std::make_pair(step_points[i], target_orient), working_time));
 	}
 	player->path(path);
