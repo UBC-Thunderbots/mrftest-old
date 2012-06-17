@@ -259,6 +259,8 @@ typedef enum {
 	/**
 	 * \brief Controls and reports status of the SPI Flash
 	 *
+	 * The chip select pin must not be asserted unless the debug port is disabled.
+	 *
 	 * Bits:
 	 * 7–2: Reserved
 	 * 1 (R/W) [1]: Sets the level on the /CS pin
@@ -268,6 +270,8 @@ typedef enum {
 
 	/**
 	 * \brief Reads and writes data on the SPI Flash bus
+	 *
+	 * A transaction must not be started unless the debug port is disabled.
 	 *
 	 * On write, starts an SPI transaction outputting the written byte
 	 * On read (when FLASH_CTL<0> = 0), returns the most recent byte read from the bus
@@ -314,7 +318,6 @@ typedef enum {
 	 */
 	LPS_CTL = 0x1B,
 
-
 	DEVICE_ID0 = 0x1C,
 	DEVICE_ID1 = 0x1D,
 	DEVICE_ID2 = 0x1E,
@@ -325,12 +328,33 @@ typedef enum {
 	DEVICE_ID_STATUS = 0x23,
 
 	/**
-	* \brief lfsr control register
-	*
-	* 7-1: Reserved
-	* 0 (R/W) [1]: A write produces an increment of the LFSR, a read provides the LSB
-	**/
+	 * \brief Linear feedback shift register control register
+	 *
+	 * 7-1: Reserved
+	 * 0 (R/W) [1]: A write produces an increment of the LFSR, a read provides the LSb of its current value
+	 */
 	LFSR = 0x24,
+
+	/**
+	 * \brief Controls and reports the status of the debug port
+	 *
+	 * The debug port must not be enabled unless the flash memory SPI port is idle and chip select is deasserted.
+	 *
+	 * 7–2: Reserved
+	 * 1 (R) [0]: Indicates whether a debug port transaction is in progress; 1 = busy, 0 = idle
+	 * 0 (R/W) [0]: Controls whether the debug port is enabled; 1 = enabled, 0 = idle
+	 */
+	DEBUG_CTL = 0x25,
+
+	/**
+	 * \brief Starts a transaction on the debug port
+	 *
+	 * A write to this register sends the written value over the debug port.
+	 *
+	 * The debug port must be enabled before starting a transaction.
+	 * Writes to this register while the port is either disabled or busy will be discarded.
+	 */
+	DEBUG_DATA = 0x26,
 
 	/**
 	 * \brief The LSB of the stack pointer
