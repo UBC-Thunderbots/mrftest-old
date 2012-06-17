@@ -91,6 +91,12 @@ namespace AI {
 			timespec get_next_ts(timespec now, Point &p1, Point &p2, Point target_velocity);
 
 			/**
+			 * handle the cases where ball is not moving or, moving towards target slowly (when robot push the ball away)
+			 */
+		
+			bool intercept_flag_stationary_ball_handler(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+
+			/**
 			 * Calculate the best position to intersect the ball
 			 * 
 			 * \param[in] the world, passed into rrt_planner in the code
@@ -99,7 +105,7 @@ namespace AI {
 			 */
 			bool intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
 
-
+			
 			/**
 			 * assign the player to go to its current position, robot may still move depend on how the robot controller deal with it
 			 *

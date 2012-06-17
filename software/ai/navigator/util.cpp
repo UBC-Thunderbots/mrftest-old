@@ -613,6 +613,50 @@ double AI::Nav::Util::estimate_action_duration(std::vector<std::pair<Point, Angl
 	return total_time;
 }
 
+bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+	const Ball &ball = world.ball();
+
+	const Point ball_pos = ball.position();
+	const Point bot_pos = player->position();
+	const Point target_pos = player->destination().first;
+
+	const Point radial_dist = bot_pos - ball_pos;
+	const Angle target_angle = (target_pos - ball_pos).orientation()+Angle::of_degrees(180);
+	const Angle bot_angle = (bot_pos - ball_pos).orientation();
+	const Angle angular_dist = bot_angle-target_angle;
+
+	// the direction that robot should eventually face
+	const Angle target_orient = (target_pos - ball_pos).orientation();
+	
+	// number of step in the path
+	const int seg_number = angular_dist/Angle::of_degrees(20)+1;
+	// how far the step travels radially, 
+	const Point radial_step = radial_dist/(seg_number+1);
+	// how far the step tarvels tangentially
+	const Angle angular_step = angular_dist/seg_number;
+	
+	std::vector<Point> step_points;
+	// i starts with 1 because the first step point is not robot position
+	for(int i = 1; i < seg_number; i++){
+		Point radial_pos = radial_dist-radial_step*i;
+		Angle angular_pos = bot_angle-angular_dist*i;
+		// in every step robot get closer to the ball by 1 radial_step, and get closer lining up the robot with target by 1 angular_step
+		step_points.push_back(ball_pos+radial_pos.rotate(angular_pos));
+	}
+	// last point is ball position
+	step_points.push_back(ball_pos);
+
+
+	AI::Nav::W::Player::Path path;
+	timespec working_time = world.monotonic_time();
+
+	for(int i = 0; i < step_points.size(); i++){
+		path.push_back(std::make_pair(std::make_pair(step_points[i], target_orient), working_time));
+	}
+	player->path(path);
+	return true;
+}
+
 bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 	// need to confirm that the player has proper flag
 
