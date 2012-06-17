@@ -74,6 +74,8 @@ firmware/main/chicker.h -text
 firmware/main/control.c -text
 firmware/main/control.h -text
 firmware/main/debug.h -text
+firmware/main/device_dna.c -text
+firmware/main/device_dna.h -text
 firmware/main/encoder.h -text
 firmware/main/entry.c -text
 firmware/main/flash.h -text

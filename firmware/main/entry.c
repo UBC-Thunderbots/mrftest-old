@@ -1,5 +1,7 @@
 #include "adc.h"
 #include "chicker.h"
+#include "debug.h"
+#include "device_dna.h"
 #include "flash.h"
 #include "io.h"
 #include "led.h"
@@ -274,6 +276,22 @@ static void handle_radio_receive(void) {
 
 static void avr_main(void) __attribute__((noreturn, used));
 static void avr_main(void) {
+	// Print the device DNA on the debug port
+	{
+		uint64_t device_dna = device_dna_read();
+		sleep_short();
+		static const char PREFIX[] = "\n\nDevice DNA: ";
+		for (const char *p = PREFIX; *p; ++p) {
+			debug_send(*p);
+		}
+		static const char HEX_DIGITS[] = "0123456789ABCDEF";
+		for (uint8_t i = 0; i < 56 / 4; ++i) {
+			debug_send(HEX_DIGITS[(device_dna >> 52) & 0xF]);
+			device_dna <<= 4;
+		}
+		debug_send('\n');
+	}
+
 	// Initialize the radio
 	mrf_init();
 	sleep_short();
