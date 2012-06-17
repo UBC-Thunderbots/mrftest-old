@@ -538,7 +538,7 @@ std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World &wor
 		Point defense_point1(-f.length() / 2, -f.defense_area_stretch() / 2);
 		Point defense_point2(-f.length() / 2, f.defense_area_stretch() / 2);
 		process_obstacle(ans, world, player, defense_point1, defense_point2, distance_keepout::friendly_defense(world, player), POINTS_PER_OBSTACLE);
-	}
+	n}
 
 	if (flags & FLAG_AVOID_ENEMY_DEFENSE) {
 		Point defense_point1(f.length() / 2, -f.defense_area_stretch() / 2);
@@ -626,7 +626,7 @@ bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World &wo
 	const Angle angular_dist = (bot_angle-target_angle).angle_mod();
 
 	// the direction that robot should eventually face
-	const Angle target_orient = (ball_pos - target_pos).orientation().angle_mod();
+	const Angle target_orient = (target_pos-ball_pos).orientation().angle_mod();
 	
 	// number of step in the path
 	const int seg_number = std::abs(angular_dist/Angle::of_degrees(10))+1;
