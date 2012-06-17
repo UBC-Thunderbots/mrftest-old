@@ -15,6 +15,8 @@ using namespace AI::Nav::W;
 
 namespace {
 	const double EPS = 1e-9;
+	
+	DoubleParam INTERCEPT_ANGLE_STEP_SIZE("angle increment in approaching the ball, in degrees", "Nav/Util", 10.0, 0.1, 30.0);
 
 	BoolParam OWN_HALF_OVERRIDE("enforce that robots stay on own half ", "Nav/Util", false);
 
@@ -629,7 +631,7 @@ bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World &wo
 	const Angle target_orient = (target_pos-ball_pos).orientation().angle_mod();
 	
 	// number of step in the path
-	const int seg_number = int(std::floor(std::abs(angular_dist/Angle::of_degrees(10)))+1);
+	const int seg_number = int(std::floor(std::abs(angular_dist/Angle::of_degrees(INTERCEPT_ANGLE_STEP_SIZE)))+1);
 	// how far the step travels radially, 
 	const Point radial_step = radial_dist/(seg_number+1);
 	// how far the step tarvels tangentially
