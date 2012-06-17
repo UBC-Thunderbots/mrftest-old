@@ -40,6 +40,12 @@
       </category>
     </category>
     <category name="Backend">
+      <category name="MRF">
+        <double name="Ball Decay Constant">99.0</double>
+        <double name="Loop Delay">0.000</double>
+        <double name="Robot Angular Decay Constant">99.0</double>
+        <double name="Robot Linear Decay Constant">99.0</double>
+      </category>
       <category name="Simulator">
         <double name="Ball Decay Constant">99.0</double>
         <double name="Robot Angular Decay Constant">99.0</double>
@@ -131,12 +137,13 @@
         <double name="Amount behind ball during Penalty kick (rule=0.4) ">0.400</double>
         <double name="amount of time (s) to avoid enemy's future position">0.000</double>
         <double name="amount of time (s) to avoid friendly's future position">0.000</double>
+        <double name="angle increment in approaching the ball, in degrees">10.00</double>
         <double name="Buffer avoid ball tiny (meters)">0.070</double>
         <double name="Buffer avoid defense area (meters)">0.000</double>
-        <double name="Buffer for equal priority friendly robot (meters)">0.100</double>
+        <double name="Buffer for equal priority friendly robot (meters)">0.020</double>
         <double name="Buffer for friendly robots in the pass intercept challenge (meters)">1.000</double>
-        <double name="Buffer for higher priority friendly robot (meters)">0.200</double>
-        <double name="Buffer for lower priority friendly robot (meters)">0.050</double>
+        <double name="Buffer for higher priority friendly robot (meters)">0.050</double>
+        <double name="Buffer for lower priority friendly robot (meters)">0.000</double>
         <double name="Buffer for staying away from play area boundary ">0.000</double>
         <double name="Buffer for staying away from referee area boundary ">0.000</double>
         <double name="Buffer for staying on own half ">0.000</double>
@@ -144,7 +151,7 @@
         <double name="The amount centre of robot must stay out of net">0.0623</double>
         <double name="The amount of distance to maintain from enemy robots of high priority">0.600</double>
         <double name="The amount of distance to maintain from enemy robots that we are willing to bump">-0.050</double>
-        <double name="The amount of distance to maintain from enemy robots usually">0.100</double>
+        <double name="The amount of distance to maintain from enemy robots usually">0.000</double>
         <double name="The amount robots should stay away from goal post">0.0000</double>
         <boolean name="use enemy's future position">false</boolean>
         <boolean name="use friendly's future position">false</boolean>
@@ -268,7 +275,7 @@
         <double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>
       </category>
       <category name="Goalie">
-        <boolean name="Goalie is lowest index">false</boolean>
+        <boolean name="Goalie is lowest index">true</boolean>
         <integer name="Goalie pattern index">4</integer>
       </category>
       <category name="Kickoff">
@@ -312,6 +319,7 @@
       </category>
       <category name="Play">
         <category name="Enable">
+          <boolean name="BackUpSteal">false</boolean>
           <boolean name="BallTowardsEnemy">false</boolean>
           <boolean name="DBasic2Block">true</boolean>
           <boolean name="DBasicCorner">true</boolean>
@@ -319,6 +327,8 @@
           <boolean name="DNaive">true</boolean>
           <boolean name="FranticDefense">false</boolean>
           <boolean name="FreeKickEnemy">true</boolean>
+          <boolean name="FreeKickEnemyDefend">true</boolean>
+          <boolean name="FreeKickEnemyMarkDefend">true</boolean>
           <boolean name="FreeKickFriendly">false</boolean>
           <boolean name="FreeKickFriendlyChip">false</boolean>
           <boolean name="FreeKickFriendlyPass">false</boolean>
@@ -353,6 +363,7 @@
           <boolean name="TheirCornerPlay">true</boolean>
         </category>
         <category name="Priority 0=low, 10=hi, 5=default">
+          <integer name="BackUpSteal">5</integer>
           <integer name="BallTowardsEnemy">5</integer>
           <integer name="DBasic2Block">5</integer>
           <integer name="DBasicCorner">5</integer>
@@ -360,6 +371,8 @@
           <integer name="DNaive">5</integer>
           <integer name="FranticDefense">10</integer>
           <integer name="FreeKickEnemy">5</integer>
+          <integer name="FreeKickEnemyDefend">5</integer>
+          <integer name="FreeKickEnemyMarkDefend">5</integer>
           <integer name="FreeKickFriendly">10</integer>
           <integer name="FreeKickFriendlyChip">5</integer>
           <integer name="FreeKickFriendlyPass">5</integer>
