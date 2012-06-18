@@ -36,7 +36,7 @@ void Firmware::mrf_upload(const IntelHex &hex, unsigned int robot) {
 	std::cout << "Opening dongle… ";
 	std::cout.flush();
 	USB::Context context;
-	USB::DeviceHandle device(context, 0xC057, 0x2579, "303730303331470100240033");
+	USB::DeviceHandle device(context, 0xC057, 0x2579);
 	std::cout << "OK\n";
 
 	std::cout << "Configuring dongle… ";
