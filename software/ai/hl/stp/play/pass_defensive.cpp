@@ -11,7 +11,7 @@ namespace Predicates = AI::HL::STP::Predicates;
  * Pass, defenders have higher priority than passers
  */
 BEGIN_PLAY(PassDefensive)
-INVARIANT(false && Predicates::playtype(world, AI::Common::PlayType::PLAY)
+INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY)
 	&& Predicates::our_team_size_at_least(world, 4)
 	&& Predicates::their_team_size_at_least(world, 1))
 APPLICABLE(Predicates::our_ball(world)

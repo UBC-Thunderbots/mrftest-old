@@ -9,7 +9,7 @@ namespace Predicates = AI::HL::STP::Predicates;
  * Pass in front to whoever.
  */
 BEGIN_PLAY(PassSimple)
-INVARIANT(false && Predicates::playtype(world, AI::Common::PlayType::PLAY)
+INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY)
 		&& Predicates::our_team_size_at_least(world, 3))
 APPLICABLE(Predicates::our_ball(world)
 		&& Predicates::baller_can_pass(world))

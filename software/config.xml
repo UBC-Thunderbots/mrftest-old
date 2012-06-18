@@ -351,10 +351,10 @@
           <boolean name="ONaive">true</boolean>
           <boolean name="OurCornerChip">false</boolean>
           <boolean name="OurCornerPlay">true</boolean>
-          <boolean name="PassDefensive">true</boolean>
-          <boolean name="PassOffensive">true</boolean>
-          <boolean name="PassRay">true</boolean>
-          <boolean name="PassSimple">true</boolean>
+          <boolean name="PassDefensive">false</boolean>
+          <boolean name="PassOffensive">false</boolean>
+          <boolean name="PassRay">false</boolean>
+          <boolean name="PassSimple">false</boolean>
           <boolean name="PenaltyEnemy">true</boolean>
           <boolean name="PenaltyFriendly">true</boolean>
           <boolean name="ShootGoal">true</boolean>
