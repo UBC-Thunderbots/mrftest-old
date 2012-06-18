@@ -8,6 +8,8 @@
 #include <glibmm/convert.h>
 #include <glibmm/ustring.h>
 
+#define CHANNEL 11
+
 namespace {
 	void check_mdr(USB::DeviceHandle &device, uint8_t message_id) {
 		for (;;) {
@@ -40,7 +42,7 @@ void Firmware::mrf_upload(const IntelHex &hex, unsigned int robot) {
 	std::cout << "Configuring dongle… ";
 	std::cout.flush();
 	device.set_configuration(1);
-	device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x01, 11, 0, 0);
+	device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x01, CHANNEL, 0, 0);
 	device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x03, 0x00, 0, 0);
 	device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x05, 0x1846, 0, 0);
 	{
