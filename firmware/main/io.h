@@ -318,6 +318,10 @@ typedef enum {
 	 */
 	LPS_CTL = 0x1B,
 
+	/**
+	 * \brief device dna registers
+	 *
+	 */
 	DEVICE_ID0 = 0x1C,
 	DEVICE_ID1 = 0x1D,
 	DEVICE_ID2 = 0x1E,
@@ -325,6 +329,13 @@ typedef enum {
 	DEVICE_ID4 = 0x20,
 	DEVICE_ID5 = 0x21,
 	DEVICE_ID6 = 0x22,
+
+	/**
+	 * \brief Status of the device dna registers
+	 *
+	 * 7-1: Reserved
+	 * 0 (R) [0]: Valid ID; 1 = Device DNA is valid, 0 = Device DNA not ready
+	 */
 	DEVICE_ID_STATUS = 0x23,
 
 	/**
