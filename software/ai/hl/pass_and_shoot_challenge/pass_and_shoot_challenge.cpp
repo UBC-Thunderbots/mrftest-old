@@ -121,7 +121,7 @@ class PASCHL : public HighLevel {
 			void tick() {
 				FriendlyTeam &friendly = world.friendly_team();
 
-				if(friendly.size() < min_team_size) {
+				if (friendly.size() < min_team_size) {
 					return;
 				}
 
@@ -130,7 +130,7 @@ class PASCHL : public HighLevel {
 				Player::Ptr player2 = friendly.get(2);
 				Player::Ptr player3 = friendly.get(3);
 
-				switch(current_state) {
+				switch (current_state) {
 				case INITIAL_POSITION:{
 					for(unsigned int i = 1; i < min_team_size; i++) {
 						friendly.get(i)->move(robot_positions[i].first, robot_positions[i].second, Point());
@@ -221,7 +221,7 @@ class PASCHL : public HighLevel {
 		    bool intercept_and_move(int idx);
 };
 
-Point PASCHL::horizontal_intercept(Player::Ptr player) {
+Point PASCHL::horizontal_intercept (Player::Ptr player) {
 	double horizontal_line = 1.2;
 	double width_of_rectangle = 2;
 	double height_of_rectangle = horizontal_line * 2;
@@ -235,7 +235,7 @@ Point PASCHL::horizontal_intercept(Player::Ptr player) {
 	return vector_rect_intersect(ball_intercept_boundary, world.ball().position(), world.ball().velocity() + world.ball().position());
 }
 
-void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state, Angle orientation) {
+void PASCHL::robot_pass (int passer_num, int receiver_num, state next_state, Angle orientation) {
 	Player::Ptr passer = world.friendly_team().get(passer_num);
 	Player::Ptr receiver = world.friendly_team().get(receiver_num);
 	Point intercept_location = horizontal_intercept(receiver);
