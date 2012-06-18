@@ -84,7 +84,7 @@ MRFDongle::MRFDongle() : context(), device(context, 0xC057, 0x2579), mdr_transfe
 	}
 	if (device.get_configuration() != 2) {
 		device.set_configuration(1);
-		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x01, 0x16, 0, 0);
+		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x01, 11, 0, 0);
 		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x03, 0, 0, 0);
 		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x05, 0x1846, 0, 0);
 		static const uint64_t MAC = UINT64_C(0x20cb13bd834ab817);

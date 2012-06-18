@@ -11,7 +11,7 @@
 #include "sleep.h"
 #include "wheels.h"
 
-#define CHANNEL 0x16
+#define CHANNEL 11
 #define PAN 0x1846
 #define INDEX 0
 
