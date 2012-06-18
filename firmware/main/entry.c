@@ -303,6 +303,14 @@ static void handle_radio_receive(void) {
 							power_reboot();
 						}
 						break;
+
+					case 0x09: // Force on motor power
+						power_enable_motors();
+						break;
+
+					case 0x0A: // Force on chicker power
+						power_enable_chicker();
+						break;
 				}
 			}
 		}

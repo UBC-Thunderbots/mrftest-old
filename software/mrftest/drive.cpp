@@ -78,7 +78,7 @@ namespace {
 	};
 }
 
-DrivePanel::DrivePanel(MRFRobot &robot) : robot(robot), controllers_checkbox(u8"Controllers") {
+DrivePanel::DrivePanel(MRFDongle &dongle, MRFRobot &robot) : dongle(dongle), robot(robot), controllers_checkbox(u8"Controllers"), force_on_button(u8"Force power on") {
 	for (unsigned int i = 0; i < G_N_ELEMENTS(MODES); ++i) {
 		mode_chooser.append_text(MODES[i].name);
 	}
@@ -92,6 +92,8 @@ DrivePanel::DrivePanel(MRFRobot &robot) : robot(robot), controllers_checkbox(u8"
 	controllers_checkbox.set_active();
 	controllers_checkbox.signal_toggled().connect(sigc::mem_fun(this, &DrivePanel::on_update));
 	pack_start(controllers_checkbox, Gtk::PACK_SHRINK);
+	force_on_button.signal_clicked().connect(sigc::mem_fun(this, &DrivePanel::force_on));
+	pack_start(force_on_button, Gtk::PACK_SHRINK);
 	on_mode_changed();
 }
 
@@ -137,5 +139,28 @@ void DrivePanel::on_update() {
 	if (row >= 0) {
 		MODES[row].on_update(controls, robot, controllers_checkbox.get_active());
 	}
+}
+
+void DrivePanel::force_on() {
+	force_on_button.set_label(u8"Sending…");
+	force_on_button.set_sensitive(false);
+	uint8_t data[1] = { 0x09 };
+	force_on_message.reset(new MRFDongle::SendReliableMessageOperation(dongle, robot.index, data, sizeof(data)));
+	force_on_message->signal_done.connect(sigc::mem_fun(this, &DrivePanel::check_force_on_result));
+}
+
+void DrivePanel::check_force_on_result(AsyncOperation<void> &op) {
+	try {
+		op.result();
+		force_on_button.set_label(u8"OK");
+	} catch (const MRFDongle::SendReliableMessageOperation::NotAssociatedError &) {
+		force_on_button.set_label(u8"Not associated");
+	} catch (const MRFDongle::SendReliableMessageOperation::NotAcknowledgedError &) {
+		force_on_button.set_label(u8"Not acknowledged");
+	} catch (const MRFDongle::SendReliableMessageOperation::ClearChannelError &) {
+		force_on_button.set_label(u8"CCA fail");
+	}
+	force_on_message.reset();
+	force_on_button.set_sensitive();
 }
 

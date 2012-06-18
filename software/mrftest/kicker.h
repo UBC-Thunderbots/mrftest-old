@@ -18,9 +18,11 @@ class KickerPanel : public Gtk::Table {
 		/**
 		 * \brief Constructs a new KickerPanel.
 		 *
+		 * \param[in] dongle the dongle talking to the robot
+		 *
 		 * \param[in] robot the robot to control.
 		 */
-		KickerPanel(MRFRobot &robot);
+		KickerPanel(MRFDongle &dongle, MRFRobot &robot);
 
 		/**
 		 * \brief Shuts down the charger.
@@ -33,6 +35,7 @@ class KickerPanel : public Gtk::Table {
 		void fire();
 
 	private:
+		MRFDongle &dongle;
 		MRFRobot &robot;
 		Gtk::HBox charge_box;
 		Gtk::RadioButtonGroup charge_group;
@@ -47,6 +50,8 @@ class KickerPanel : public Gtk::Table {
 		Gtk::ToggleButton autokick;
 		Gtk::Label autokick_count_label;
 		Gtk::Label autokick_count_value_label;
+		Gtk::Button force_on_button;
+		std::unique_ptr<MRFDongle::SendReliableMessageOperation> force_on_message;
 		unsigned int autokick_count;
 
 		void on_alive_changed();
@@ -54,6 +59,8 @@ class KickerPanel : public Gtk::Table {
 		void on_kick();
 		void on_autokick_changed();
 		void on_autokick_fired();
+		void force_on();
+		void check_force_on_result(AsyncOperation<void> &op);
 };
 
 #endif
