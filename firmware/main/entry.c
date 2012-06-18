@@ -30,7 +30,7 @@ static void entry(void) {
 		"rjmp avr_main\n\t");
 }
 
-static bool transmit_busy = false, feedback_pending = false;
+static bool transmit_busy = false, transmission_reliable = false, feedback_pending = false;
 static uint8_t tx_seqnum = 0;
 static uint16_t rx_seqnum = 0xFFFF;
 static uint8_t led_mode = 0x20;
@@ -86,6 +86,7 @@ static void send_feedback_packet(void) {
 
 	transmit_busy = true;
 	feedback_pending = false;
+	transmission_reliable = false;
 }
 
 static void handle_radio_receive(void) {
@@ -379,7 +380,7 @@ static void avr_main(void) {
 			if (intstat & (1 << 0)) {
 				// Transmission complete; check status
 				uint8_t txstat = mrf_read_short(MRF_REG_SHORT_TXSTAT);
-				if (txstat & 0x01) {
+				if ((txstat & 0x01) && transmission_reliable) {
 					// Transmission failed; resubmit frame
 					mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
 				} else {
@@ -439,6 +440,7 @@ static void avr_main(void) {
 
 					transmit_busy = true;
 					erasing_flash = false;
+					transmission_reliable = true;
 				}
 			}
 		}
@@ -469,6 +471,7 @@ static void avr_main(void) {
 
 			transmit_busy = true;
 			region_sum_pending = false;
+			transmission_reliable = true;
 		}
 
 		// Check if the autokick system fired and the report needs transmitting
@@ -493,6 +496,7 @@ static void avr_main(void) {
 
 			transmit_busy = true;
 			autokick_fired_pending = false;
+			transmission_reliable = true;
 		}
 	}
 }
