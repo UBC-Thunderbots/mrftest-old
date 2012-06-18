@@ -7,6 +7,8 @@
  * \brief Controls power to the robot’s subsystems
  */
 
+#include "io.h"
+
 /**
  * \brief Enables power to the motors
  */
@@ -20,6 +22,11 @@ static inline void power_enable_motors(void) {
 static inline void power_enable_chicker(void) {
 	outb(POWER_CTL, inb(POWER_CTL) | 0x04);
 }
+
+/**
+ * \brief Reboots the FPGA
+ */
+void power_reboot(void) __attribute__((noreturn));
 
 #endif
 

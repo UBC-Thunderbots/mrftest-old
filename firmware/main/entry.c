@@ -297,6 +297,12 @@ static void handle_radio_receive(void) {
 							region_sum_pending = true;
 						}
 						break;
+
+					case 0x08: // Reboot
+						if (frame_length == HEADER_LENGTH + 1 + FOOTER_LENGTH) {
+							power_reboot();
+						}
+						break;
 				}
 			}
 		}

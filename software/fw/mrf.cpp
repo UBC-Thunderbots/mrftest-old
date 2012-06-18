@@ -152,6 +152,17 @@ void Firmware::mrf_upload(const IntelHex &hex, unsigned int robot) {
 		}
 	}
 	std::cout << "OK\n";
+
+	std::cout << "Rebooting FPGA… ";
+	std::cout.flush();
+	{
+		const uint8_t PACKET[] = { static_cast<uint8_t>(robot), message_id, 0x08 };
+		device.interrupt_out(2, PACKET, sizeof(PACKET), 0);
+	}
+	check_mdr(device, message_id);
+	++message_id;
+	std::cout << "OK\n";
+
 	device.release_interface(0);
 	device.set_configuration(1);
 }

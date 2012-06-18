@@ -357,6 +357,30 @@ typedef enum {
 	DEBUG_DATA = 0x26,
 
 	/**
+	 * \brief Controls and reports the status of the internal configuration access port
+	 *
+	 * 7–1: Reserved
+	 * 0 (R) [0]: Indicates whether the ICAP is busy; 1 = busy, 0 = idle
+	 */
+	ICAP_CTL = 0x27,
+
+	/**
+	 * \brief Starts a transaction on the FPGA’s internal configuration access port
+	 *
+	 * A write to this register initiates a transaction using the written value along with the value most recently written to \ref ICAP_MSB.
+	 * A read returns the most recently written value.
+	 */
+	ICAP_LSB = 0x28,
+
+	/**
+	 * \brief Buffers the MSB of the next ICAP transaction
+	 *
+	 * A write sets the buffer value.
+	 * A read returns the most recently written value.
+	 */
+	ICAP_MSB = 0x29,
+
+	/**
 	 * \brief The LSB of the stack pointer
 	 */
 	SP_LSB = 0x3D,
