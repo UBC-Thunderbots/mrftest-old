@@ -9,6 +9,7 @@
 #include "geom/util.h"
 #include <iostream>
 
+
 using namespace AI::HL;
 using namespace AI::HL::W;
 
@@ -136,10 +137,10 @@ class PASCHL : public HighLevel {
 						friendly.get(i)->move(robot_positions[i].first, robot_positions[i].second, Point());
 					}
 
-				    bool bot0_is_init= intercept_and_move(0);
-					bool bot1_is_init = (player1->position() - robot_positions[1].first).len() < epsilon;
-					bool bot2_is_init = (player2->position() - robot_positions[2].first).len() < epsilon;
-					bool bot3_is_init = (player3->position() - robot_positions[3].first).len() < epsilon;
+				    bool bot0_is_init = intercept_and_move(0);
+					bool bot1_is_init = player1->position().close(robot_positions[1].first, epsilon);
+					bool bot2_is_init = player2->position().close(robot_positions[2].first, epsilon);
+					bool bot3_is_init = player3->position().close(robot_positions[3].first, epsilon);
 
 
 
@@ -295,7 +296,7 @@ bool PASCHL::intercept_and_move(int idx){
   if (!intercepter->has_ball())
     intercepter->move(world.ball().position(), (world.ball().position() - intercepter->position()).orientation(), Point());
 
-  bool intercepter_location = (intercepter->position() - robot_positions[0].first).len() < epsilon;
+  bool intercepter_location = intercepter->position().close(robot_positions[0].first);
 
   if (intercepter->has_ball() && !intercepter_location)
     intercepter->move(robot_positions[0].first, robot_positions[0].second, Point());
