@@ -247,10 +247,8 @@ void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state, Angl
 	Angle acceptable_angle_difference = Angle::of_degrees(2);
 	bool correct_orientation = (passer->orientation() - orientation) < acceptable_angle_difference;
 
-	if (passer->has_ball()) {
-		while (correct_orientation == false)
-			passer->move(passer->position(), orientation, Point());
-	}
+	while (correct_orientation == false)
+		passer->move(passer->position(), orientation, Point());
 
 
 	if (passer->has_ball() && ((passer->orientation().angle_diff(orientation)) < acceptable_angle_difference)) {
