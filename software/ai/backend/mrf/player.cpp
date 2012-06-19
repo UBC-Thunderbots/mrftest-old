@@ -17,32 +17,6 @@ namespace {
 	const double BATTERY_CRITICAL_THRESHOLD = 13.5;
 
 	const int BATTERY_HYSTERESIS_MAGNITUDE = 15;
-
-	unsigned int calc_kick_straight(double speed) {
-		static const double SPEEDS[] = { 7.14, 8.89, 10.3 };
-		static const unsigned int POWERS[] = { 2016, 3024, 4032 };
-
-		double speed_below = 0.0, speed_above = 0.0;
-		unsigned int power_below = 0.0, power_above = 0.0;
-		if (speed <= SPEEDS[0] + 1e-9) {
-			speed_below = SPEEDS[0];
-			speed_above = SPEEDS[1];
-			power_below = POWERS[0];
-			power_above = POWERS[1];
-		} else {
-			for (std::size_t i = 0; i < G_N_ELEMENTS(SPEEDS) - 1 && SPEEDS[i] < speed; ++i) {
-				speed_below = SPEEDS[i];
-				speed_above = SPEEDS[i + 1];
-				power_below = POWERS[i];
-				power_above = POWERS[i + 1];
-			}
-		}
-		double diff_speed = speed_above - speed_below;
-		double diff_power = power_above - power_below;
-		double slope = diff_power / diff_speed;
-		double power = (speed - speed_below) * slope + power_below;
-		return static_cast<unsigned int>(clamp(power, 0.0, 4064.0));
-	}
 }
 
 Player::Player(AI::BE::Backend &backend, unsigned int pattern, MRFRobot &bot) : AI::BE::MRF::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_invoked(false), autokick_fired_(false) {
@@ -115,7 +89,7 @@ bool Player::chicker_ready() const {
 void Player::kick_impl(double speed) {
 	if (bot.alive) {
 		if (bot.capacitor_charged) {
-			bot.kick(false, calc_kick_straight(speed));
+			bot.kick(false, static_cast<unsigned int>(speed / 8.0 * 3000));
 		} else {
 			LOG_ERROR(Glib::ustring::compose("Bot %1 kick when not ready", pattern()));
 		}
@@ -124,7 +98,7 @@ void Player::kick_impl(double speed) {
 
 void Player::autokick_impl(double speed) {
 	if (bot.alive) {
-		bot.autokick(false, calc_kick_straight(speed));
+		bot.autokick(false, static_cast<unsigned int>(speed / 8.0 * 3000));
 		autokick_invoked = true;
 	}
 }
