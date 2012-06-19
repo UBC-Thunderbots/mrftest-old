@@ -18,5 +18,6 @@ build_for_channel 11
 build_for_channel 12
 build_for_channel 20
 build_for_channel 21
+build_for_channel 22
 
 cd $DIR
