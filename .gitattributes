@@ -26,7 +26,9 @@ firmware/SuperSimpleBoostConverter/config.c -text
 firmware/SuperSimpleBoostConverter/config.h -text
 firmware/binarys/thunderbots_channel11.mcs -text
 firmware/binarys/thunderbots_channel12.mcs -text
-firmware/binarys/thunderbots_channel20.mcs -text
+firmware/binarys/thunderbots_channel20_index0.mcs -text
+firmware/binarys/thunderbots_channel20_index1.mcs -text
+firmware/binarys/thunderbots_channel20_index2.mcs -text
 firmware/binarys/thunderbots_channel21.mcs -text
 firmware/bitcodec/bitcodec -text
 firmware/bitcodec/bitcodec.py -text
