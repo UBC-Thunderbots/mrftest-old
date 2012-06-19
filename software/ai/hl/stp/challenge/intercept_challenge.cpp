@@ -53,8 +53,9 @@ namespace {
 
 				std::vector<AI::HL::W::Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 				
-				if (world.playtype() == AI::Common::PlayType::STOP){
-					return stop(players);
+				if (world.playtype() == AI::Common::PlayType::STOP) {
+					stop(players);
+					return;
 				}
 
 				if (players.empty() || players.size() > 2 || world.playtype() != AI::Common::PlayType::PLAY) {
@@ -69,14 +70,14 @@ namespace {
 				// if the enemy (passers) has the ball, position to block 
 				if (baller && AI::HL::STP::Predicates::their_ball(world)) {
 					
-					Point dirToBall = (world.ball().position() - baller->position()).norm();
-					Point target = baller->position() + (AVOIDANCE_DIST * dirToBall);
-					Point perpToDirToBall = (world.ball().position() - baller->position()).perp().norm();
+					Point dir_to_ball = (world.ball().position() - baller->position()).norm();
+					Point target = baller->position() + (AVOIDANCE_DIST * dir_to_ball);
+					Point perp_to_dir_to_ball = (world.ball().position() - baller->position()).perp().norm();
 
 					// if there is only one enemy robot just block it...
-					if (world.enemy_team().size() == 1){
-						Action::move(world, players[0], target + perpToDirToBall * 4 * Robot::MAX_RADIUS);
-						Action::move(world, players[1], target - perpToDirToBall * 4 * Robot::MAX_RADIUS);
+					if (world.enemy_team().size() == 1) {
+						Action::move(world, players[0], target + perp_to_dir_to_ball * 4 * Robot::MAX_RADIUS);
+						Action::move(world, players[1], target - perp_to_dir_to_ball * 4 * Robot::MAX_RADIUS);
 						return;
 					}
 
@@ -89,30 +90,23 @@ namespace {
 						
 						Enemy::Ptr furthest_enemy;
 						if (world.enemy_team().size() > 1) {
-							furthest_enemy = Enemy::closest_friendly_player(world, players[0], static_cast<unsigned int>(world.enemy_team().size()-1));
+							furthest_enemy = Enemy::closest_friendly_player(world, players[0], static_cast<unsigned int>(world.enemy_team().size() - 1));
 						} 
 
 						Robot::Ptr robot = furthest_enemy->evaluate();
-						Point dirToBallerEnemy = (baller->position() - robot->position()).norm();
-						Point blockTarget = baller->position() - (AVOIDANCE_DIST * dirToBallerEnemy);
+						Point dir_to_baller_enemy = (baller->position() - robot->position()).norm();
+						Point block_target = baller->position() - (AVOIDANCE_DIST * dir_to_baller_enemy);
 
 						// 2nd player blocks furthest robot not blocked by first player
-						Action::move(world, players[1], blockTarget);
+						Action::move(world, players[1], block_target);
 						
-					} else if (players.size() == 1){
+					} else if (players.size() == 1) {
 						Action::move(world, players[0], target);
 					}
 				// else try to knock the ball out of the field
-				} else if (!AI::HL::STP::Predicates::their_ball(world) && !AI::HL::STP::Predicates::our_ball(world)) {
+				} else if (!AI::HL::STP::Predicates::their_ball(world)) {
 					ram(players);
-				// should not happen but safety check
-				} else if (AI::HL::STP::Predicates::our_ball(world)) {
-					ram(players);
-				// no enemies
-				} else {					
-					return;
 				}
-
 			}
 
 			// stay away from ball
@@ -140,13 +134,6 @@ namespace {
 					auto ram = Tactic::ram(world);
 					ram->set_player(players[0]);
 					ram->execute();
-				}
-
-				// block the enemy that is closest to ball
-				if (players.size() > 1 && world.enemy_team().size()) {
-					auto block = Tactic::block_ball(world, Enemy::closest_ball(world, 0));
-					block->set_player(players[1]);
-					block->execute();
 				}
 			}
 
