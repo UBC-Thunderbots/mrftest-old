@@ -245,9 +245,8 @@ void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state, Angl
 		AI::HL::STP::Action::intercept(passer, world.ball().position());
 
 	Angle acceptable_angle_difference = Angle::of_degrees(2);
-	bool correct_orientation = (passer->orientation() - orientation) < acceptable_angle_difference;
 
-	while (correct_orientation == false)
+	if (passer->has_ball())
 		passer->move(passer->position(), orientation, Point());
 
 
@@ -288,13 +287,14 @@ bool PASCHL::ball_out_of_play() {
 	//if ball is inside the square and is moving less than 0.5, return true
 	return (ball_position_in_square && (ball_future < bot_y_top_position && ball_future > bot_y_bottom_position));
 }
+
 bool PASCHL::intercept_and_move(int idx){
   Player::Ptr intercepter= world.friendly_team().get(idx);
 
   if (!intercepter->has_ball())
     intercepter->move(world.ball().position(), (world.ball().position() - intercepter->position()).orientation(), Point());
 
-  bool intercepter_location = intercepter->position().close(robot_positions[0].first);
+  bool intercepter_location = intercepter->position().close(robot_positions[0].first, epsilon);
 
   if (intercepter->has_ball() && !intercepter_location)
     intercepter->move(robot_positions[0].first, robot_positions[0].second, Point());
