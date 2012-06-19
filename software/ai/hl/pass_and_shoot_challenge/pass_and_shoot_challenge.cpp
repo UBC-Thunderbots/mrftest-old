@@ -86,31 +86,10 @@ namespace {
 class PASCHL : public HighLevel {
 		public:
 			PASCHL(World &world) : world(world) {
-
-				robot_orientation[0] = (bot1_initial - bot0_initial).orientation();
-				robot_orientation_passing[0] = (bot1_initial - bot0_initial).orientation();
-				robot_orientation_final[0] = (bot3_initial - bot0_secondary).orientation();
-				robot_orientation_final_passing[0] = (bot1_secondary - bot0_secondary).orientation();
-
-				robot_orientation[1] = (bot0_initial - bot1_initial).orientation();
-				robot_orientation_passing[1] = (bot2_initial - bot1_initial).orientation();
-				robot_orientation_final[1] = (bot0_secondary - bot1_secondary).orientation();
-				robot_orientation_final_passing[1] = (bot2_secondary - bot1_secondary).orientation();
-
-				robot_orientation[2] = (bot1_initial - bot2_initial).orientation();
-				robot_orientation_passing[2] = (bot3_initial - bot2_initial).orientation();
-				robot_orientation_final[2] = (bot1_secondary - bot2_secondary).orientation();
-				robot_orientation_final_passing[2] = (bot3_secondary - bot2_secondary).orientation();
-
-				robot_orientation[3] = (bot2_initial - bot3_initial).orientation();
-				robot_orientation_passing[3] = (bot0_secondary - bot3_initial).orientation();
-				robot_orientation_final[3] = (bot2_secondary - bot3_secondary).orientation();
-				robot_orientation_final_passing[3] = (world.field().enemy_goal() - bot3_secondary).orientation();
-
-				robot_positions.push_back(std::make_pair(bot0_initial, robot_orientation[0]));
-				robot_positions.push_back(std::make_pair(bot1_initial,robot_orientation[1]));
-				robot_positions.push_back(std::make_pair(bot2_initial,robot_orientation[2]));
-				robot_positions.push_back(std::make_pair(bot3_initial,robot_orientation[3]));
+				robot_positions.push_back(std::make_pair(bot0_initial, (bot1_initial - bot0_initial).orientation()));
+				robot_positions.push_back(std::make_pair(bot1_initial, (bot0_initial - bot1_initial).orientation()));
+				robot_positions.push_back(std::make_pair(bot2_initial, (bot1_initial - bot2_initial).orientation()));
+				robot_positions.push_back(std::make_pair(bot3_initial, (bot2_initial - bot3_initial).orientation()));
 
 				current_state = INITIAL_POSITION;
 
@@ -143,8 +122,6 @@ class PASCHL : public HighLevel {
 					bool bot2_is_init = player2->position().close(robot_positions[2].first, epsilon);
 					bool bot3_is_init = player3->position().close(robot_positions[3].first, epsilon);
 
-
-
 					if (bot0_is_init && bot1_is_init && bot2_is_init && bot3_is_init) {
 						current_state = BOT0_PASS;
 						std::cout << "next" << std::endl;
@@ -158,25 +135,25 @@ class PASCHL : public HighLevel {
 
 				case BOT1_PASS: {
 					std::cout << "case 2" << std::endl;
-					player0->move(Point(bot0_secondary), Angle(robot_orientation_final[0]), Point());
+					player0->move(bot0_secondary, player0->orientation(), Point());
 					robot_pass(1, 2, BOT2_PASS);
 				}
 					break;
 				case BOT2_PASS: {
 					std::cout << "case 3" << std::endl;
-					player1->move(Point(bot1_secondary), Angle(robot_orientation_final[1]), Point());
+					player1->move(bot1_secondary, player1->orientation(), Point());
 					robot_pass(2, 3, BOT3_PASS);
 				}
 					break;
 				case BOT3_PASS: {
 					std::cout << "case 4" << std::endl;
-					player2->move(Point(bot2_secondary), Angle(robot_orientation_final[2]), Point());
+					player2->move(bot2_secondary, player2->orientation(), Point());
 					robot_pass(3, 0, BOT0_REPOS);
 				}
 					break;
 				case BOT0_REPOS: {
 					std::cout << "case 5" << std::endl;
-					player3->move(Point(bot3_secondary), Angle(robot_orientation_final[3]), Point());
+					player3->move(bot3_secondary, player3->orientation(), Point());
 					robot_pass(0, 1, BOT1_REPOS);
 				}
 					break;
@@ -204,14 +181,6 @@ class PASCHL : public HighLevel {
 
 		private:
 			World &world;
-			// Orientation robot is for receiving ball
-			Angle robot_orientation[4];
-			//Orientation robot is in for passing ball
-			Angle robot_orientation_passing[4];
-			//second position orientation for receiving ball
-			Angle robot_orientation_final[4];
-			//second position orientation for passing ball
-			Angle robot_orientation_final_passing[4];
 
 			std::vector<std::pair<Point, Angle>> robot_positions;
 			state current_state;
@@ -245,10 +214,10 @@ void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state) {
 	if (!kicked_ball) {
 		if (!passer->has_ball()) {
 			Action::intercept(passer, receiver->position());
+		} else {
+			// rotate to face the receiver
+			passer->move(passer->position(), passer_orientation, Point());
 		}
-
-		// rotate to face the receiver
-		passer->move(passer->position(), passer_orientation, Point());
 
 		Angle acceptable_angle_difference = Angle::of_degrees(2);
 		if (passer->orientation().angle_diff(passer_orientation) < acceptable_angle_difference) {
@@ -275,10 +244,9 @@ void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state) {
 		Angle receiver_orientation = (receiver->position() - passer->position()).orientation();
 		if (valid_intercept_location && able_to_intercept) {
 			receiver->move(Point(intercept_location.x, receiver->position().y), receiver_orientation, Point());
-		}
 
-		// if the receiver is close to the ball but doesn't have it
-		if (receiver->position().close(world.ball().position(), 0.1)) {
+		} else if (receiver->position().close(world.ball().position(), 0.1)) {
+			// if the receiver is close to the ball but doesn't have it
 			Action::intercept(receiver, world.ball().position());
 		}
 	}
