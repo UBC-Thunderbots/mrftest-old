@@ -12,7 +12,9 @@
 #include <glibmm/main.h>
 #include <glibmm/ustring.h>
 
-#define CHANNEL 11
+#ifndef CHANNEL
+#define CHANNEL 20
+#endif
 
 namespace {
 	std::unique_ptr<USB::InterruptOutTransfer> create_reliable_message_transfer(USB::DeviceHandle &device, unsigned int robot, uint8_t message_id, const void *data, std::size_t length) {

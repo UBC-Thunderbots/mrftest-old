@@ -474,6 +474,7 @@ software/cppunit/util/bitcodec_primitives/decode.cpp -text
 software/cppunit/util/bitcodec_primitives/encode.cpp -text
 software/cppunit/util/codec.cpp -text
 software/crc16.cpp -text
+software/dongle_binaries/build.sh -text
 software/experiment/main.cpp -text
 software/fw/ihex.cpp -text
 software/fw/ihex.h -text

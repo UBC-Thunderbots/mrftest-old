@@ -8,7 +8,9 @@
 #include <glibmm/convert.h>
 #include <glibmm/ustring.h>
 
+#ifndef CHANNEL
 #define CHANNEL 11
+#endif
 
 namespace {
 	void check_mdr(USB::DeviceHandle &device, uint8_t message_id) {
