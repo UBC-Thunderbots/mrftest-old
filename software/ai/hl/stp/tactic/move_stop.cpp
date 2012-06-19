@@ -3,6 +3,7 @@
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/util.h"
 #include "ai/util.h"
+#include "ai/hl/stp/world.h"
 #include <algorithm>
 
 using namespace AI::HL::STP::Tactic;
@@ -20,7 +21,7 @@ namespace {
 	// in ball avoidance, angle between center of 2 robots, as seen from the ball
 	const Angle AVOIDANCE_ANGLE = 2.0 * Angle::of_radians(std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST));
 	
-	const unsigned int NUM_PLAYERS = 5;
+	const unsigned int NUM_PLAYERS = AI::HL::STP::TEAM_MAX_SIZE -1;
 
 	class MoveStop : public Tactic {
 		public:
