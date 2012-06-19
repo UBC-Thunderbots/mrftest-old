@@ -12,6 +12,7 @@
 
 using namespace AI::HL;
 using namespace AI::HL::W;
+using namespace AI::HL::STP;
 
 namespace {
   const unsigned int min_team_size = 4;
@@ -152,41 +153,41 @@ class PASCHL : public HighLevel {
 					break;
 				case BOT0_PASS:
 					std::cout << "case 1" << std::endl;
-					robot_pass(0,1, BOT1_PASS, Angle(robot_orientation_passing[0]));
+					robot_pass(0, 1, BOT1_PASS);
 					break;
 
 				case BOT1_PASS: {
 					std::cout << "case 2" << std::endl;
 					player0->move(Point(bot0_secondary), Angle(robot_orientation_final[0]), Point());
-					robot_pass(1, 2, BOT2_PASS, Angle(robot_orientation_passing[1]));
+					robot_pass(1, 2, BOT2_PASS);
 				}
 					break;
 				case BOT2_PASS: {
 					std::cout << "case 3" << std::endl;
 					player1->move(Point(bot1_secondary), Angle(robot_orientation_final[1]), Point());
-					robot_pass(2, 3, BOT3_PASS, Angle(robot_orientation_passing[2]));
+					robot_pass(2, 3, BOT3_PASS);
 				}
 					break;
 				case BOT3_PASS: {
 					std::cout << "case 4" << std::endl;
 					player2->move(Point(bot2_secondary), Angle(robot_orientation_final[2]), Point());
-					robot_pass(3, 0, BOT0_REPOS, Angle(robot_orientation_passing[3]));
+					robot_pass(3, 0, BOT0_REPOS);
 				}
 					break;
 				case BOT0_REPOS: {
 					std::cout << "case 5" << std::endl;
 					player3->move(Point(bot3_secondary), Angle(robot_orientation_final[3]), Point());
-					robot_pass(0, 1, BOT1_REPOS, Angle(robot_orientation_final_passing[0]));
+					robot_pass(0, 1, BOT1_REPOS);
 				}
 					break;
 				case BOT1_REPOS: {
 					std::cout << "case 6" << std::endl;
-					robot_pass(1, 2, BOT2_REPOS, Angle(robot_orientation_final_passing[1]));
+					robot_pass(1, 2, BOT2_REPOS);
 				}
 					break;
 				case BOT2_REPOS: {
 					std::cout << "case 7" << std::endl;
-					robot_pass(2, 3, BOT3_REPOS, Angle(robot_orientation_final_passing[2]));
+					robot_pass(2, 3, BOT3_REPOS);
 				}
 					break;
 				case BOT3_REPOS:
@@ -215,8 +216,7 @@ class PASCHL : public HighLevel {
 			std::vector<std::pair<Point, Angle>> robot_positions;
 			state current_state;
 			Point horizontal_intercept(Player::Ptr player);
-			void robot_pass(int passer_num, int receiver_num, state next_state, Angle orientation);
-			void robot_pass_repos(Player::Ptr passer, Player::Ptr receiver, int robot_number);
+			void robot_pass(int passer_num, int receiver_num, state next_state);
 			bool ball_out_of_play();
 			bool kicked_ball;
 		    bool intercept_and_move(int idx);
@@ -236,40 +236,52 @@ Point PASCHL::horizontal_intercept(Player::Ptr player) {
 	return vector_rect_intersect(ball_intercept_boundary, world.ball().position(), world.ball().velocity() + world.ball().position());
 }
 
-void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state, Angle orientation) {
+void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state) {
+	// we are assuming that we have the ball here
 	Player::Ptr passer = world.friendly_team().get(passer_num);
 	Player::Ptr receiver = world.friendly_team().get(receiver_num);
-	Point intercept_location = horizontal_intercept(receiver);
+	Angle passer_orientation = (passer->position() - receiver->position()).orientation();
 
-	if ((passer->position().len() - world.ball().position().len()) < 0.01)
-		AI::HL::STP::Action::intercept(passer, world.ball().position());
+	if (!kicked_ball) {
+		if (!passer->has_ball()) {
+			Action::intercept(passer, receiver->position());
+		}
 
-	Angle acceptable_angle_difference = Angle::of_degrees(2);
+		// rotate to face the receiver
+		passer->move(passer->position(), passer_orientation, Point());
 
-	if (passer->has_ball())
-		passer->move(passer->position(), orientation, Point());
+		Angle acceptable_angle_difference = Angle::of_degrees(2);
+		if (passer->orientation().angle_diff(passer_orientation) < acceptable_angle_difference) {
+			passer->autokick(kick_speed);
+			kicked_ball = true;
+		}
+	} else {
+		if (receiver->has_ball()) {
+			current_state = next_state;
+			kicked_ball = false;
+			return;
+		}
 
+		if (ball_out_of_play()) {
+			current_state = INITIAL_POSITION;
+			kicked_ball = false;
+			return;
+		}
 
-	if (passer->has_ball() && ((passer->orientation().angle_diff(orientation)) < acceptable_angle_difference)) {
-		passer->autokick(kick_speed);
-		kicked_ball = true;
+		Point intercept_location = horizontal_intercept(receiver);
+		bool valid_intercept_location = intercept_location.close(Point());
+		bool able_to_intercept = intercept_location.y - receiver->position().y < 1e-9;
+
+		Angle receiver_orientation = (receiver->position() - passer->position()).orientation();
+		if (valid_intercept_location && able_to_intercept) {
+			receiver->move(Point(intercept_location.x, receiver->position().y), receiver_orientation, Point());
+		}
+
+		// if the receiver is close to the ball but doesn't have it
+		if (receiver->position().close(world.ball().position(), 0.1)) {
+			Action::intercept(receiver, world.ball().position());
+		}
 	}
-	// if there is no intercept location, will return (0,0)
-	bool valid_intercept_location = (intercept_location - Point(0,0)).len() > 1e-9;
-	//whether they coordinate is along the top rectangle line and not along sides
-	bool able_to_intercept = intercept_location.y - receiver->position().y < 1e-9;
-
-	if (valid_intercept_location && able_to_intercept && kicked_ball) {
-		receiver->move(Point(intercept_location.x, receiver->position().y), robot_positions[receiver_num].second, Point());
-	}
-
-	if (receiver->has_ball()) {
-		current_state = next_state;
-		kicked_ball = false;
-	}
-
-	if (ball_out_of_play())
-		current_state = INITIAL_POSITION;
 }
 
 bool PASCHL::ball_out_of_play() {
@@ -288,21 +300,18 @@ bool PASCHL::ball_out_of_play() {
 	return (ball_position_in_square && (ball_future < bot_y_top_position && ball_future > bot_y_bottom_position));
 }
 
-bool PASCHL::intercept_and_move(int idx){
-  Player::Ptr intercepter= world.friendly_team().get(idx);
+bool PASCHL::intercept_and_move(int idx) {
+  Player::Ptr intercepter = world.friendly_team().get(idx);
 
   if (!intercepter->has_ball())
     intercepter->move(world.ball().position(), (world.ball().position() - intercepter->position()).orientation(), Point());
 
-  bool intercepter_location = intercepter->position().close(robot_positions[0].first, epsilon);
+  bool at_intercepter_location = intercepter->position().close(robot_positions[0].first, epsilon);
 
-  if (intercepter->has_ball() && !intercepter_location)
+  if (intercepter->has_ball() && !at_intercepter_location)
     intercepter->move(robot_positions[0].first, robot_positions[0].second, Point());
 
-  if (intercepter->has_ball() && intercepter_location)
-    return true;
-  else
-    return false;
+  return intercepter->has_ball() && at_intercepter_location;
 }
 
 HIGH_LEVEL_REGISTER(PASCHL)
