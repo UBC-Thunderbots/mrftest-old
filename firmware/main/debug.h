@@ -5,16 +5,9 @@
 #include <stdint.h>
 
 /**
- * \brief Sends a character over the debug port
- *
- * \param[in] ch the character to send
+ * \brief Initializes standard output and error to send to the debug port
  */
-static inline void debug_send(char ch) {
-	outb(DEBUG_CTL, 0x01);
-	outb(DEBUG_DATA, ch);
-	while (inb(DEBUG_CTL) & 0x02);
-	outb(DEBUG_CTL, 0x00);
-}
+void debug_init(void);
 
 #endif
 

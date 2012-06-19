@@ -10,6 +10,8 @@
 #include "power.h"
 #include "sleep.h"
 #include "wheels.h"
+#include <inttypes.h>
+#include <stdio.h>
 
 #define CHANNEL 11
 #define PAN 0x1846
@@ -321,20 +323,14 @@ static void handle_radio_receive(void) {
 
 static void avr_main(void) __attribute__((noreturn, used));
 static void avr_main(void) {
+	// Initialize the debug port
+	debug_init();
+
 	// Print the device DNA on the debug port
 	{
 		uint64_t device_dna = device_dna_read();
 		sleep_short();
-		static const char PREFIX[] = "\n\nDevice DNA: ";
-		for (const char *p = PREFIX; *p; ++p) {
-			debug_send(*p);
-		}
-		static const char HEX_DIGITS[] = "0123456789ABCDEF";
-		for (uint8_t i = 0; i < 56 / 4; ++i) {
-			debug_send(HEX_DIGITS[(device_dna >> 52) & 0xF]);
-			device_dna <<= 4;
-		}
-		debug_send('\n');
+		printf("\n\nDevice DNA: %06" PRIX32 "%08" PRIX32 "\n", (uint32_t) (device_dna >> 32), (uint32_t) device_dna);
 	}
 
 	// Initialize the radio
