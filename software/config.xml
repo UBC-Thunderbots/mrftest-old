@@ -150,7 +150,7 @@
         <boolean name="enforce that robots stay on own half ">false</boolean>
         <double name="The amount centre of robot must stay out of net">0.0623</double>
         <double name="The amount of distance to maintain from enemy robots of high priority">0.600</double>
-        <double name="The amount of distance to maintain from enemy robots that we are willing to bump">-0.050</double>
+        <double name="The amount of distance to maintain from enemy robots that we are willing to bump">-0.020</double>
         <double name="The amount of distance to maintain from enemy robots usually">0.000</double>
         <double name="The amount robots should stay away from goal post">0.0000</double>
         <boolean name="use enemy's future position">false</boolean>
@@ -321,6 +321,7 @@
         <category name="Enable">
           <boolean name="BackUpSteal">false</boolean>
           <boolean name="BallTowardsEnemy">false</boolean>
+          <boolean name="CornerChip">true</boolean>
           <boolean name="DBasic2Block">true</boolean>
           <boolean name="DBasicCorner">true</boolean>
           <boolean name="DefensiveBlock">true</boolean>
@@ -365,6 +366,7 @@
         <category name="Priority 0=low, 10=hi, 5=default">
           <integer name="BackUpSteal">5</integer>
           <integer name="BallTowardsEnemy">5</integer>
+          <integer name="CornerChip">5</integer>
           <integer name="DBasic2Block">5</integer>
           <integer name="DBasicCorner">5</integer>
           <integer name="DefensiveBlock">5</integer>

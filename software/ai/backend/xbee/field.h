@@ -128,19 +128,19 @@ namespace AI {
 					/**
 					 * Gets the position of the penalty mark near the enemy goal.
 					 *
-					 * \return the position of the penalty mark, 450mm from the centre of the enemy goal.
+					 * \return the position of the penalty mark near the enemy goal
 					 */
 					Point penalty_enemy() const {
-						return Point(length_ * 0.5 / 3.025 * (3.025 - 0.450), 0);
+						return Point(length_ * 0.5 / 3.025 * (3.025 - 0.750), 0);
 					}
 
 					/**
 					 * Gets the position of the penalty mark near the friendly goal.
 					 *
-					 * \return the position of the penalty mark, 450 mm from the centre of the friendly goal.
+					 * \return the position of the penalty mark near the friendly goal
 					 */
 					Point penalty_friendly() const {
-						return Point(-length_ * 0.5 / 3.025 * (3.025 - 0.450), 0);
+						return Point(-length_ * 0.5 / 3.025 * (3.025 - 0.750), 0);
 					}
 
 					/**

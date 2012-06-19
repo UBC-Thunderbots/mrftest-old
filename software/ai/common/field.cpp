@@ -11,11 +11,11 @@ Point Field::enemy_goal() const {
 }
 
 Point Field::penalty_enemy() const {
-	return Point(length() * 0.5 / 3.025 * (3.025 - 0.450), 0);
+	return Point(length() * 0.5 / 3.025 * (3.025 - 0.750), 0);
 }
 
 Point Field::penalty_friendly() const {
-	return Point(-length() * 0.5 / 3.025 * (3.025 - 0.450), 0);
+	return Point(-length() * 0.5 / 3.025 * (3.025 - 0.750), 0);
 }
 
 std::pair<Point, Point> Field::friendly_goal_boundary() const {
