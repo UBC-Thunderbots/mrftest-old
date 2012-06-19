@@ -22,6 +22,7 @@
 #include "ai/hl/stp/tactic/shadow_kickoff.h"
 #include "ai/hl/stp/tactic/ball.h"
 #include "ai/hl/stp/tactic/block.h"
+#include "ai/hl/stp/tactic/free_kick_pass.h"
 #include "ai/hl/stp/predicates.h"
 #include "geom/util.h"
 #include "util/param.h"
@@ -50,9 +51,7 @@ namespace {
 	BoolParam enable11("enable robot 11", "MixedTeamOffense", true);
 	BoolParam do_draw("draw", "MixedTeamOffense", true);
 
-	const double PENALTY_MARK_LENGTH = 0.75;
 	const double DIST_FROM_PENALTY_MARK = 0.4;
-	const double RESTRICTED_ZONE_LENGTH = PENALTY_MARK_LENGTH + DIST_FROM_PENALTY_MARK; 
 
 	struct MixedTeamOffense : public HighLevel {
 		World &world;
@@ -198,13 +197,13 @@ namespace {
 
 		void penalty_enemy(std::vector<Player::Ptr> &players) {
 			if (players.size() > 0){
-				Action::move(world, players[0], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
+				Action::move(world, players[0], Point(world.field().penalty_enemy().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
 			}
 			if (players.size() > 1) {
-				Action::move(world, players[1], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + 4 * Robot::MAX_RADIUS, 0 * Robot::MAX_RADIUS));
+				Action::move(world, players[1], Point(world.field().penalty_enemy().x + DIST_FROM_PENALTY_MARK + 4 * Robot::MAX_RADIUS, 0 * Robot::MAX_RADIUS));
 			}
 			if (players.size() > 2) {
-				Action::move(world, players[2], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
+				Action::move(world, players[2], Point(world.field().penalty_enemy().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
 			}
 		}
 
@@ -212,13 +211,13 @@ namespace {
 			// sort the players by dist to ball
 			//std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 			if (players.size() > 0) {
-				Action::move(world, players[0], Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0));
+				Action::move(world, players[0], Point(world.field().penalty_enemy().x - Robot::MAX_RADIUS, 0));
 			}
 			if (players.size() > 1) {
-				Action::move(world, players[1], Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
+				Action::move(world, players[1], Point(world.field().penalty_enemy().x - DIST_FROM_PENALTY_MARK - Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
 			}
 			if (players.size() > 2) {
-				Action::move(world, players[2], Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, -6 * Robot::MAX_RADIUS));
+				Action::move(world, players[2], Point(world.field().penalty_enemy().x - DIST_FROM_PENALTY_MARK - Robot::MAX_RADIUS, -6 * Robot::MAX_RADIUS));
 			}
 		}
 		
@@ -231,10 +230,10 @@ namespace {
 				shooter->execute();
 			}
 			if (players.size() > 1) {
-				Action::move(world, players[1], Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
+				Action::move(world, players[1], Point(world.field().penalty_enemy().x - DIST_FROM_PENALTY_MARK - Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
 			}
 			if (players.size() > 2) {
-				Action::move(world, players[2], Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, -6 * Robot::MAX_RADIUS));
+				Action::move(world, players[2], Point(world.field().penalty_enemy().x - DIST_FROM_PENALTY_MARK - Robot::MAX_RADIUS, -6 * Robot::MAX_RADIUS));
 			}
 		}
 
@@ -292,7 +291,9 @@ namespace {
 			// sort the players by dist to ball
 			//std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 			if (players.size() > 0) {
-				Action::repel(world, players[0]);
+				auto active = Tactic::free_kick_pass(world, world.field().enemy_goal(), BALL_MAX_SPEED);
+				active->set_player(players[0]);
+				active->execute();
 			}
 
 			if (players.size() > 1) {
