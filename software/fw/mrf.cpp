@@ -12,6 +12,10 @@
 #define CHANNEL 11
 #endif
 
+#ifndef PAN_ID
+#define PAN_ID 0x1846
+#endif
+
 namespace {
 	void check_mdr(USB::DeviceHandle &device, uint8_t message_id) {
 		for (;;) {
@@ -46,7 +50,7 @@ void Firmware::mrf_upload(const IntelHex &hex, unsigned int robot) {
 	device.set_configuration(1);
 	device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x01, CHANNEL, 0, 0);
 	device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x03, 0x00, 0, 0);
-	device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x05, 0x1846, 0, 0);
+	device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x05, PAN_ID, 0, 0);
 	{
 		static const uint64_t MAC = UINT64_C(0x20cb13bd834ab817);
 		device.control_out(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x07, 0, 0, &MAC, sizeof(MAC), 0);
