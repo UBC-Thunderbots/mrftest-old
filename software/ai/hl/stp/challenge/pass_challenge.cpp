@@ -91,7 +91,7 @@ namespace {
 				}
 
 				const Player::CPtr baller = Evaluation::calc_friendly_baller();
-				if (baller && AI::HL::STP::Predicates::our_ball(world)) {
+				if (baller && our_ball(players)) {
 
 					// sort the players by dist to ball
 					std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
@@ -198,6 +198,14 @@ namespace {
 					players[3]->avoid_distance(AI::Flags::AvoidDistance::LONG);
 					block2->execute();
 				}
+			}
+
+			bool our_ball(std::vector<Player::Ptr> &players) {
+				for (std::size_t i = 1; i < players.size(); ++i) {
+					if (players[i]->has_ball())
+						return true;
+				}
+				return false;
 			}
 
 			void stop(std::vector<Player::Ptr> &players) {
