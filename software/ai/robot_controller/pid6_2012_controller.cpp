@@ -10,6 +10,7 @@
 #include <functional>
 #include <vector>
 #include <iostream>
+#include <cmath>
 
 using AI::RC::RobotController;
 using AI::RC::OldRobotController;
@@ -181,8 +182,10 @@ namespace {
 //		double dist_to_vel = 2 * max_acc / wheel_max_speed * aggressiveness;
 
 //		return distance * dist_to_vel; // the velocity
-
-			return distance * aggressiveness;
+			
+			return std::copysign(std::sqrt(firmware_loop_rate*std::abs(distance)*2/wheel_max_accel*aggressiveness),distance);
+			
+//			return distance * aggressiveness;
 	}
 
 	void PID6_2012Controller::move(const Point &new_point, Angle new_orientation, timespec time_of_arrival, int(&wheel_speeds)[4]) {
@@ -197,8 +200,7 @@ namespace {
 
 		//toVector4 from a meter delta provides s*q/t therefore divide by seconds
 		Vector4 wheel_target_vel = position_delta.toVector4().map(distance_to_velocity) / time_deadline;
-		position_delta.toVector4().print();
-		wheel_target_vel.print();
+	
 		//vel error in q/t
 		Vector4 vel_error = wheel_target_vel - prev_speed;
 		wheel_target_vel = prev_speed + vel_error.limit(wheel_max_accel * firmware_loop_rate / TIMESTEPS_PER_SECOND);
