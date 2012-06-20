@@ -13,8 +13,8 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-#define DEFAULT_CHANNEL 20
-#define DEFAULT_PAN 0x1846
+#define DEFAULT_CHANNEL 21
+#define DEFAULT_PAN 0x1439
 #define DEFAULT_INDEX 0
 
 #define BREAKBEAM_THRESHOLD 300
