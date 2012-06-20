@@ -3,7 +3,7 @@ CC := $(ABI)-gcc
 LD := $(ABI)-ld
 PROJ := main
 override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -Os -mcall-prologues -mmcu=avr2 -mno-interrupts -g
-override LDFLAGS := $(LDFLAGS) -Wl,-Tnavre.ld -Wl,--gc-sections
+override LDFLAGS := $(LDFLAGS) -Wl,-Tnavre.ld -Wl,--gc-sections -Wl,-u,vfprintf -lprintf_min
 override LDLIBS := -lm
 
 FW_SOURCES := $(wildcard *.c)

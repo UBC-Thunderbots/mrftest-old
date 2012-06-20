@@ -13,11 +13,14 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-#define CHANNEL 11
-#define PAN 0x1846
-#define INDEX 0
+#define DEFAULT_CHANNEL 20
+#define DEFAULT_PAN 0x1846
+#define DEFAULT_INDEX 0
 
 #define BREAKBEAM_THRESHOLD 800
+
+#define SPI_FLASH_SIZE (16UL / 8UL * 1024UL * 1024UL)
+#define SPI_FLASH_PARAMETERS_ADDRESS (SPI_FLASH_SIZE - 4096UL)
 
 static unsigned char stack[1024] __attribute__((section(".stack"), used));
 
@@ -32,6 +35,8 @@ static void entry(void) {
 		"rjmp avr_main\n\t");
 }
 
+static uint8_t channel = DEFAULT_CHANNEL, index = DEFAULT_INDEX;
+static uint16_t pan = DEFAULT_PAN;
 static bool transmit_busy = false, transmission_reliable = false, feedback_pending = false;
 static uint8_t tx_seqnum = 0;
 static uint16_t rx_seqnum = 0xFFFF;
@@ -45,19 +50,23 @@ static uint8_t autokick_device;
 static bool autokick_armed = false;
 static bool autokick_fired_pending = false;
 
-static void send_feedback_packet(void) {
+void prepare_mrf_mhr(uint8_t payload_length) {
 #warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 0, 9); // Header length
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 1, 9 + 10); // Frame length
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 1, 9 + payload_length); // Frame length
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 2, 0b01100001); // Frame control LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 3, 0b10001000); // Frame control MSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 4, tx_seqnum++); // Sequence number
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 5, PAN & 0xFF); // Destination PAN ID LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 6, PAN >> 8); // Destination PAN ID MSB
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 5, pan & 0xFF); // Destination PAN ID LSB
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 6, pan >> 8); // Destination PAN ID MSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 7, 0x00); // Destination address LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 8, 0x01); // Destination address MSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 9, INDEX); // Source address LSB
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 9, index); // Source address LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 10, 0); // Source address MSB
+}
+
+static void send_feedback_packet(void) {
+	prepare_mrf_mhr(10);
 
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 11, 0x00); // General robot status update
 	uint16_t adc_value = read_main_adc(BATT_VOLT);
@@ -114,7 +123,7 @@ static void handle_radio_receive(void) {
 			if (dest_address == 0xFFFF) {
 				// Broadcast frame must contain drive packet, which must be 64 bytes long
 				if (frame_length == HEADER_LENGTH + 64 + FOOTER_LENGTH) {
-					static const uint8_t offset = 1 + HEADER_LENGTH + 8 * INDEX;
+					const uint8_t offset = 1 + HEADER_LENGTH + 8 * index;
 					uint16_t words[4];
 					for (uint8_t i = 0; i < 4; ++i) {
 						words[i] = mrf_read_long(MRF_REG_LONG_RXFIFO + offset + i * 2 + 1);
@@ -210,14 +219,7 @@ static void handle_radio_receive(void) {
 
 					case 0x04: // Erase SPI flash
 						if (frame_length == HEADER_LENGTH + 1 + FOOTER_LENGTH) {
-							flash_assert_cs();
-							flash_tx(0x06);
-							flash_deassert_cs();
-
-							flash_assert_cs();
-							flash_tx(0xC7);
-							flash_deassert_cs();
-
+							flash_start_chip_erase();
 							erasing_flash = true;
 						}
 						break;
@@ -236,48 +238,7 @@ static void handle_radio_receive(void) {
 					case 0x06: // Write page buffer to SPI flash
 						if (frame_length == HEADER_LENGTH + 3 + FOOTER_LENGTH) {
 							uint16_t page = mrf_read_long(MESSAGE_PAYLOAD_ADDR) | (mrf_read_long(MESSAGE_PAYLOAD_ADDR + 1) << 8);
-
-							flash_assert_cs();
-							flash_tx(0x06);
-							flash_deassert_cs();
-
-							flash_assert_cs();
-							flash_tx(0x02);
-							flash_tx(page >> 8);
-							flash_tx(page);
-							flash_tx(0);
-							uint8_t i = 0;
-							do {
-								flash_tx(flash_page_buffer[i]);
-							} while (++i);
-							flash_deassert_cs();
-
-							asm volatile("nop");
-							asm volatile("nop");
-							asm volatile("nop");
-							asm volatile("nop");
-
-							uint8_t status_register;
-							flash_assert_cs();
-							flash_tx(0x05);
-							do {
-								status_register = flash_txrx(0x00);
-							} while (status_register & 0x01);
-							flash_deassert_cs();
-
-							flash_assert_cs();
-							flash_tx(0x03);
-							flash_tx(page >> 8);
-							flash_tx(page);
-							flash_tx(0);
-							i = 0;
-							do {
-								if (flash_txrx(0x00) != flash_page_buffer[i]) {
-									set_test_leds(USER_MODE, 7);
-									for (;;);
-								}
-							} while (++i);
-							flash_deassert_cs();
+							flash_page_program(page, flash_page_buffer, 0);
 						}
 						break;
 
@@ -285,18 +246,7 @@ static void handle_radio_receive(void) {
 						if (frame_length == HEADER_LENGTH + 7 + FOOTER_LENGTH) {
 							uint32_t address = mrf_read_long(MESSAGE_PAYLOAD_ADDR) | (((uint32_t) mrf_read_long(MESSAGE_PAYLOAD_ADDR + 1)) << 8) | (((uint32_t) mrf_read_long(MESSAGE_PAYLOAD_ADDR + 2)) << 16);
 							uint32_t length = mrf_read_long(MESSAGE_PAYLOAD_ADDR + 3) | (((uint32_t) mrf_read_long(MESSAGE_PAYLOAD_ADDR + 4)) << 8) | (((uint32_t) mrf_read_long(MESSAGE_PAYLOAD_ADDR + 5)) << 16);
-							region_sum = 0;
-
-							flash_assert_cs();
-							flash_tx(0x03);
-							flash_tx(address >> 16);
-							flash_tx(address >> 8);
-							flash_tx(address);
-							while (length--) {
-								region_sum += flash_txrx(0x00);
-							}
-							flash_deassert_cs();
-
+							region_sum = flash_sum(address, length);
 							region_sum_pending = true;
 						}
 						break;
@@ -313,6 +263,22 @@ static void handle_radio_receive(void) {
 
 					case 0x0A: // Force on chicker power
 						power_enable_chicker();
+						break;
+
+					case 0x0B: // Set bootup radio parameters
+						if (frame_length == HEADER_LENGTH + 5 + FOOTER_LENGTH) {
+							// Extract the new data from the radio
+							uint8_t buffer[4];
+							for (uint8_t i = 0; i < sizeof(buffer); ++i) {
+								buffer[i] = mrf_read_long(MESSAGE_PAYLOAD_ADDR + i);
+							}
+
+							// Erase and rewrite the sector
+							flash_erase_sector(SPI_FLASH_PARAMETERS_ADDRESS);
+							flash_page_program(SPI_FLASH_PARAMETERS_ADDRESS >> 8, buffer, sizeof(buffer));
+
+							puts("Parameters rewritten.");
+						}
 						break;
 				}
 			}
@@ -333,15 +299,36 @@ static void avr_main(void) {
 		printf("\n\nDevice DNA: %06" PRIX32 "%08" PRIX32 "\n", (uint32_t) (device_dna >> 32), (uint32_t) device_dna);
 	}
 
+	// Read the parameters from the end of the SPI flash
+	{
+		uint8_t buffer[4];
+		flash_read(SPI_FLASH_PARAMETERS_ADDRESS, buffer, sizeof(buffer));
+		fputs("Parameters block:", stdout);
+		for (uint8_t i = 0; i < sizeof(buffer); ++i) {
+			printf("0x%" PRIX8 " ", buffer[i]);
+		}
+		putchar('\n');
+		if ((0x0B <= buffer[0] && buffer[0] <= 0x1A) && (buffer[1] <= 7) && ((buffer[2] != 0xFF) || (buffer[3] != 0xFF))) {
+			puts("Parameters OK.");
+			channel = buffer[0];
+			index = buffer[1];
+			pan = buffer[3];
+			pan <<= 8;
+			pan |= buffer[2];
+		} else {
+			puts("Invalid parameters; using defaults.");
+		}
+	}
+
 	// Initialize the radio
 	mrf_init();
 	sleep_short();
 	mrf_release_reset();
 	sleep_short();
-	mrf_common_init(CHANNEL, false, PAN, UINT64_C(0xec89d61e8ffd409b));
+	mrf_common_init(channel, false, pan, UINT64_C(0xec89d61e8ffd409b));
 	while (inb(MRF_CTL) & 0x10);
 	mrf_write_short(MRF_REG_SHORT_SADRH, 0);
-	mrf_write_short(MRF_REG_SHORT_SADRL, INDEX);
+	mrf_write_short(MRF_REG_SHORT_SADRL, index);
 	mrf_analogue_txrx();
 	mrf_write_short(MRF_REG_SHORT_INTCON, 0b11110110);
 
@@ -408,36 +395,18 @@ static void avr_main(void) {
 		}
 
 		// Check if an in-progress Flash erase operation has now finished
-		if (erasing_flash) {
-			flash_assert_cs();
-			flash_tx(0x05);
-			uint8_t status_register = flash_txrx(0x00);
-			flash_deassert_cs();
-
-			if (!(status_register & 0x01)) {
-				if (!transmit_busy) {
-					// Send notification to host
+		if (erasing_flash && !flash_is_busy()) {
+			if (!transmit_busy) {
+				// Send notification to host
 #warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
-					mrf_write_long(MRF_REG_LONG_TXNFIFO + 0, 9); // Header length
-					mrf_write_long(MRF_REG_LONG_TXNFIFO + 1, 9 + 1); // Frame length
-					mrf_write_long(MRF_REG_LONG_TXNFIFO + 2, 0b01100001); // Frame control LSB
-					mrf_write_long(MRF_REG_LONG_TXNFIFO + 3, 0b10001000); // Frame control MSB
-					mrf_write_long(MRF_REG_LONG_TXNFIFO + 4, tx_seqnum++); // Sequence number
-					mrf_write_long(MRF_REG_LONG_TXNFIFO + 5, PAN & 0xFF); // Destination PAN ID LSB
-					mrf_write_long(MRF_REG_LONG_TXNFIFO + 6, PAN >> 8); // Destination PAN ID MSB
-					mrf_write_long(MRF_REG_LONG_TXNFIFO + 7, 0x00); // Destination address LSB
-					mrf_write_long(MRF_REG_LONG_TXNFIFO + 8, 0x01); // Destination address MSB
-					mrf_write_long(MRF_REG_LONG_TXNFIFO + 9, INDEX); // Source address LSB
-					mrf_write_long(MRF_REG_LONG_TXNFIFO + 10, 0); // Source address MSB
+				prepare_mrf_mhr(1);
+				mrf_write_long(MRF_REG_LONG_TXNFIFO + 11, 0x02); // SPI flash erase finished
 
-					mrf_write_long(MRF_REG_LONG_TXNFIFO + 11, 0x02); // SPI flash erase finished
+				mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
 
-					mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
-
-					transmit_busy = true;
-					erasing_flash = false;
-					transmission_reliable = true;
-				}
+				transmit_busy = true;
+				erasing_flash = false;
+				transmission_reliable = true;
 			}
 		}
 
@@ -445,18 +414,7 @@ static void avr_main(void) {
 		if (region_sum_pending && !transmit_busy) {
 			// Send notification to host
 #warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 0, 9); // Header length
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 1, 9 + 5); // Frame length
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 2, 0b01100001); // Frame control LSB
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 3, 0b10001000); // Frame control MSB
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 4, tx_seqnum++); // Sequence number
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 5, PAN & 0xFF); // Destination PAN ID LSB
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 6, PAN >> 8); // Destination PAN ID MSB
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 7, 0x00); // Destination address LSB
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 8, 0x01); // Destination address MSB
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 9, INDEX); // Source address LSB
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 10, 0); // Source address MSB
-
+			prepare_mrf_mhr(5);
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11, 0x03); // SPI region sum
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 12, region_sum);
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 13, region_sum >> 8);
@@ -474,18 +432,7 @@ static void avr_main(void) {
 		if (autokick_fired_pending && !transmit_busy) {
 			// Send notification to host
 #warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 0, 9); // Header length
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 1, 9 + 1); // Frame length
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 2, 0b01100001); // Frame control LSB
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 3, 0b10001000); // Frame control MSB
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 4, tx_seqnum++); // Sequence number
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 5, PAN & 0xFF); // Destination PAN ID LSB
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 6, PAN >> 8); // Destination PAN ID MSB
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 7, 0x00); // Destination address LSB
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 8, 0x01); // Destination address MSB
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 9, INDEX); // Source address LSB
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 10, 0); // Source address MSB
-
+			prepare_mrf_mhr(1);
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11, 0x01); // Autokick fired
 
 			mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);

@@ -1,50 +1,73 @@
-#ifndef SPI_H
-#define SPI_H
+#ifndef FLASH_H
+#define FLASH_H
 
 /**
  * \file
  *
- * \brief Provides the ability to send and receive data over SPI
+ * \brief Provides the ability to send and receive data over SPI to the flash memory
  */
 
 #include "io.h"
+#include <stdbool.h>
 #include <stdint.h>
 
 /**
- * \brief Asserts chip select to the SPI flash
+ * \brief Starts a chip erase
+ *
+ * This function returns immediately.
  */
-static inline void flash_assert_cs(void) {
-	outb(FLASH_CTL, 0x00);
-}
+void flash_start_chip_erase(void);
 
 /**
- * \brief Deasserts chip select to the SPI flash
+ * \brief Checks if the flash is busy
+ *
+ * \return \c true if the flash is busy, or \c false if not
  */
-static inline void flash_deassert_cs(void) {
-	outb(FLASH_CTL, 0x02);
-}
+bool flash_is_busy(void);
 
 /**
- * \brief Sends one byte to the SPI flash
+ * \brief Erases a 4 kB sector
  *
- * \param[in] b the byte to send
+ * This function returns when the erase operation is complete.
+ *
+ * \param[in] address the address of the first byte in the sector
  */
-static inline void flash_tx(uint8_t b) {
-	outb(FLASH_DATA, b);
-	while (inb(FLASH_CTL) & 0x01);
-}
+void flash_erase_sector(uint32_t address);
 
 /**
- * \brief Sends and receives one byte to the SPI flash
+ * \brief Executes a page program
  *
- * \param[in] b the byte to send
+ * This function returns when the program operation is complete.
  *
- * \return the received byte
+ * \param[in] page the page number to program
+ *
+ * \param[in] data the data to program
+ *
+ * \param[in] length the number of bytes of data, or 0 to program 256 bytes
  */
-static inline uint8_t flash_txrx(uint8_t b) {
-	flash_tx(b);
-	return inb(FLASH_DATA);
-}
+void flash_page_program(uint16_t page, const void *data, uint8_t length);
+
+/**
+ * \brief Reads a block of data from flash
+ *
+ * \param[in] start the address of the first byte to read
+ *
+ * \param[out] buffer the buffer to write into
+ *
+ * \param[in] length the number of bytes to read
+ */
+void flash_read(uint32_t start, void *buffer, uint8_t length);
+
+/**
+ * \brief Computes the sum of a range of bytes
+ *
+ * \param[in] start the address of the first byte to sum
+ *
+ * \param[in] length the number of bytes to sum
+ *
+ * \return the sum
+ */
+uint32_t flash_sum(uint32_t start, uint32_t length);
 
 #endif
 
