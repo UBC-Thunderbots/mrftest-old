@@ -19,11 +19,11 @@ static inline void set_discharge_mode(bool enable) {
 }
 
 static inline bool is_charged() {
-	return ( inb(CHICKER_CTL) & 0x08 );
+	return ( inb(CHICKER_CTL) & 0x10 );
 }
 
 static inline bool is_charge_timeout() {
-	return ( inb(CHICKER_CTL) & 0x04 );                                          
+	return ( inb(CHICKER_CTL) & 0x08 );                                          
 }
 
 static inline void set_chick_pulse(uint16_t pulsewidth) {
