@@ -181,8 +181,8 @@
       </category>
       <category name="PID5_2012">
         <double name="angular -differential">0.2</double>
-        <double name="angular +proportional">1.0</double>
-        <double name="Limit wheel accel">150</double>
+        <double name="angular +proportional">3.5</double>
+        <double name="Limit wheel accel">100</double>
         <double name="Limit wheel speed">500</double>
         <double name="x to y ratio">0.810</double>
         <double name="xy -differential">0.0</double>
