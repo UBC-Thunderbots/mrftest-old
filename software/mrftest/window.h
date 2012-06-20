@@ -7,6 +7,7 @@
 #include "mrftest/drive.h"
 #include "mrftest/feedback.h"
 #include "mrftest/leds.h"
+#include "mrftest/params.h"
 #include <vector>
 #include <glibmm/refptr.h>
 #include <gtkmm/box.h>
@@ -62,6 +63,9 @@ class TesterWindow : public Gtk::Window {
 
 		Gtk::Frame leds_frame;
 		LEDsPanel leds_panel;
+
+		Gtk::Frame params_frame;
+		ParamsPanel params_panel;
 
 		Gtk::Frame joystick_frame;
 		Gtk::HBox joystick_sensitivity_hbox;

@@ -528,6 +528,8 @@ software/mrftest/mapper.cpp -text
 software/mrftest/mapper.h -text
 software/mrftest/mapping.cpp -text
 software/mrftest/mapping.h -text
+software/mrftest/params.cpp -text
+software/mrftest/params.h -text
 software/mrftest/window.cpp -text
 software/mrftest/window.h -text
 software/project.mk -text
