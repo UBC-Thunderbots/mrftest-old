@@ -19,7 +19,7 @@ namespace {
 	const int BATTERY_HYSTERESIS_MAGNITUDE = 15;
 }
 
-Player::Player(AI::BE::Backend &backend, unsigned int pattern, MRFRobot &bot) : AI::BE::MRF::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_invoked(false), autokick_fired_(false) {
+Player::Player(AI::BE::Backend &backend, unsigned int pattern, MRFRobot &bot) : AI::BE::MRF::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_fired_(false) {
 	timespec now;
 	timespec_now(now);
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
@@ -98,8 +98,8 @@ void Player::kick_impl(double speed) {
 
 void Player::autokick_impl(double speed) {
 	if (bot.alive) {
-		bot.autokick(false, static_cast<unsigned int>(speed / 8.0 * 3000 * 4));
-		autokick_invoked = true;
+		autokick_params.chip = false;
+		autokick_params.pulse = static_cast<unsigned int>(speed / 8.0 * 3000 * 4);
 	}
 }
 
@@ -115,8 +115,8 @@ void Player::chip_impl(double speed) {
 
 void Player::autochip_impl(double speed) {
 	if (bot.alive) {
-		bot.autokick(true, 4000);
-		autokick_invoked = true;
+		autokick_params.chip = true;
+		autokick_params.pulse = 4000;
 	}
 }
 
@@ -132,9 +132,6 @@ void Player::on_autokick_fired() {
 }
 
 void Player::tick(bool halt) {
-	// Clear the autokick flag so it doesn't stick at true forever.
-	autokick_fired_ = false;
-
 	// Check for emergency conditions.
 	if (!bot.alive) {
 		halt = true;
@@ -160,11 +157,25 @@ void Player::tick(bool halt) {
 		battery_warning_message.active(false);
 	}
 
-	// Inhibit auto-kick if halted or if the AI didn't renew its interest.
-	if (halt || !autokick_invoked) {
-		bot.autokick(false, 0);
+	// Auto-kick should be enabled in non-halt conditions.
+	if (halt) {
+		autokick_params.chip = false;
+		autokick_params.pulse = 0;
 	}
-	autokick_invoked = false;
+
+	// Only if the current request has changed or the system needs rearming is a packet needed.
+	if ((autokick_params != autokick_params_old) || (autokick_params.pulse && autokick_fired_)) {
+		bot.autokick(autokick_params.chip, autokick_params.pulse);
+		autokick_params_old = autokick_params;
+	}
+
+	// For the next tick, the AI needs to call the function again to keep the mechanism armed.
+	// Clear the current parameters here so that a disarm will occur at the end of the next tick if needed.
+	autokick_params.chip = false;
+	autokick_params.pulse = 0;
+
+	// Clear the autokick flag so it doesn't stick at true forever.
+	autokick_fired_ = false;
 
 	// Drivetrain control path.
 	if (!halt && moved && controlled) {
@@ -203,5 +214,16 @@ bool Player::highlight() const {
 
 Visualizable::Colour Player::highlight_colour() const {
 	return Visualizable::Colour(1.0, 0.5, 0.0);
+}
+
+Player::AutokickParams::AutokickParams() : chip(false), pulse(0) {
+}
+
+bool Player::AutokickParams::operator==(const AutokickParams &other) const {
+	return chip == other.chip && pulse == other.pulse;
+}
+
+bool Player::AutokickParams::operator!=(const AutokickParams &other) const {
+	return !(*this == other);
 }
 

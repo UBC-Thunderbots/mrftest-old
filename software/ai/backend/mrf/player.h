@@ -115,8 +115,14 @@ namespace AI {
 					Annunciator::Message battery_warning_message;
 					int wheel_speeds_[4];
 					std::vector<std::pair<std::pair<Point, Angle>, timespec> > path_;
-					bool autokick_invoked;
 					bool autokick_fired_;
+					struct AutokickParams {
+						bool chip;
+						unsigned int pulse;
+						AutokickParams();
+						bool operator==(const AutokickParams &other) const;
+						bool operator!=(const AutokickParams &other) const;
+					} autokick_params, autokick_params_old;
 
 					void on_autokick_fired();
 			};
