@@ -19,7 +19,7 @@ KickerPanel::KickerPanel(MRFDongle &dongle, MRFRobot &robot) : Gtk::Table(6, 2),
 	solenoid_box.pack_start(chipper_button, Gtk::PACK_EXPAND_WIDGET);
 	attach(solenoid_box, 0, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
-	pulse_width.get_adjustment()->configure(0, 0, 65535, 0.25, 100, 0);
+	pulse_width.get_adjustment()->configure(0, 0, 16383, 0.25, 100, 0);
 	pulse_width.set_digits(2);
 	attach(pulse_width_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(pulse_width, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
