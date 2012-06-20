@@ -41,7 +41,7 @@ const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
 	0x03, // bmAttributes
 	64, // wMaxPacketSize LSB
 	0, // wMaxPacketSize MSB
-	1, // bInterval
+	5, // bInterval
 
 	7, // bLength
 	5, // bDescriptorType
@@ -49,7 +49,7 @@ const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
 	0x03, // bmAttributes
 	64, // wMaxPacketSize LSB
 	0, // wMaxPacketSize MSB
-	1, // bInterval
+	5, // bInterval
 
 	7, // bLength
 	5, // bDescriptorType
@@ -57,7 +57,7 @@ const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
 	0x03, // bmAttributes
 	64, // wMaxPacketSize LSB
 	0, // wMaxPacketSize MSB
-	1, // bInterval
+	5, // bInterval
 
 	7, // bLength
 	5, // bDescriptorType
@@ -65,7 +65,7 @@ const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
 	0x03, // bmAttributes
 	2, // wMaxPacketSize LSB
 	0, // wMaxPacketSize MSB
-	1, // bInterval
+	5, // bInterval
 
 	7, // bLength
 	5, // bDescriptorType
@@ -73,7 +73,7 @@ const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
 	0x03, // bmAttributes
 	64, // wMaxPacketSize LSB
 	0, // wMaxPacketSize MSB
-	1, // bInterval
+	5, // bInterval
 
 	7, // bLength
 	5, // bDescriptorType
@@ -81,7 +81,7 @@ const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
 	0x03, // bmAttributes
 	2, // wMaxPacketSize LSB
 	0, // wMaxPacketSize MSB
-	1, // bInterval
+	5, // bInterval
 };
 
 #define PKT_FLAG_RELIABLE 0x01
