@@ -480,7 +480,7 @@ namespace {
 			tangential_norm = radial_norm.rotate(Angle::QUARTER);
 		}
 
-		const double tangential_scale = 0.3;
+		const double tangential_scale = 0.2;
 		if (angle_diff.angle_diff(Angle::ZERO) > Angle::of_degrees(10)) {
 			dest_pos = player_pos + tangential_norm * tangential_scale;
 		} else {
@@ -682,19 +682,18 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W:
 	std::vector<Point> path_points;
 	AI::Nav::RRTPlanner planner(world);
 
-	// only start rotating around the stationary ball when we're within a certain distance
-	//const double dist_to_rotate = 0.3;
-	if (ball_vel.len() < 0.2) {
-		//player->path(get_path_around_ball(world, player, robot_pos, target_pos, true));
-		intercept_flag_stationary_ball_handler(world, player);
-		return true;
-	}
+//	if (ball_vel.len() < 0.2) {
+//		//player->path(get_path_around_ball(world, player, robot_pos, target_pos, true));
+//		intercept_flag_stationary_ball_handler(world, player);
+//		return true;
+//	}
 
-	/*const double dist_to_rotate = 0.3;
-	if (ball_vel.len() < 0.2 && (robot_pos - ball_pos).len() < dist_to_rotate) {
+	// only start rotating around the stationary ball when we're within a certain distance
+	const double dist_to_rotate = 0.2;
+	if (ball_vel.len() < 0.4 && (robot_pos - ball_pos).len() < dist_to_rotate) {
 		player->path(get_path_around_ball(world, player, robot_pos, target_pos, true));
 		return true;
-	}*/
+	}
 
 	const bool robot_behind_ball = !point_in_front_vector(ball_pos, ball_vel, robot_pos);
 	// find out whether robot is behind the ball or in front of the ball
