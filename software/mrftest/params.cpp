@@ -62,8 +62,8 @@ void ParamsPanel::send_params() {
 		packet[0] = 0x0B;
 		packet[1] = channel;
 		packet[2] = index;
-		packet[3] = static_cast<uint8_t>(pan >> 8);
-		packet[4] = static_cast<uint8_t>(pan);
+		packet[3] = static_cast<uint8_t>(pan);
+		packet[4] = static_cast<uint8_t>(pan >> 8);
 		set.set_label(u8"Sending…");
 		activate_controls(false);
 		message.reset(new MRFDongle::SendReliableMessageOperation(dongle, robot.index, packet, sizeof(packet)));
