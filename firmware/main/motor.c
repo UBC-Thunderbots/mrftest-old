@@ -3,7 +3,7 @@
 
 void motor_scram() {
 	wheel_scram();
-	motor_scram();
+	dribbler_scram();
 }
 
 uint8_t read_wheel_pwm(uint8_t num) {
