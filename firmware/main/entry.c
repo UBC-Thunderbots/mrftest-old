@@ -17,7 +17,7 @@
 #define DEFAULT_PAN 0x1846
 #define DEFAULT_INDEX 0
 
-#define BREAKBEAM_THRESHOLD 800
+#define BREAKBEAM_THRESHOLD 300
 
 #define SPI_FLASH_SIZE (16UL / 8UL * 1024UL * 1024UL)
 #define SPI_FLASH_PARAMETERS_ADDRESS (SPI_FLASH_SIZE - 4096UL)
@@ -82,7 +82,7 @@ static void send_feedback_packet(void) {
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 18, adc_value); // Thermistor reading LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 19, adc_value >> 8); // Thermistor reading MSB
 	uint8_t flags = 0;
-	if (breakbeam_value < BREAKBEAM_THRESHOLD) {
+	if (breakbeam_value > BREAKBEAM_THRESHOLD) {
 		flags |= 0x01;
 	}
 	if (is_charged()) {
