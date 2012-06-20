@@ -1,6 +1,8 @@
 #include "control.h"
 
-#define CURRENT_LIMIT 116.0
+//Maximum deviation from encoder 
+//determinded setpoint in PWM levels
+#define CURRENT_LIMIT 75.0
 
 void control_clear(control_ctx_t *ctx) {
 	ctx->integrator = 0;
