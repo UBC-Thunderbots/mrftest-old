@@ -9,7 +9,7 @@
 #include <glibmm/ustring.h>
 
 #ifndef CHANNEL
-#define CHANNEL 11
+#define CHANNEL 20
 #endif
 
 #ifndef PAN_ID
