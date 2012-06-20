@@ -13,7 +13,7 @@ namespace {
 	}
 }
 
-ParamsPanel::ParamsPanel(MRFDongle &dongle, MRFRobot &robot) : Gtk::Table(4, 2), dongle(dongle), robot(robot), channel_label(u8"Channel:"), index_label(u8"Index:"), pan_label(u8"PAN (hex):"), set(u8"Set"), reboot(u8"Reboot") {
+ParamsPanel::ParamsPanel(MRFDongle &dongle, MRFRobot &robot) : Gtk::Table(4, 2), dongle(dongle), robot(robot), channel_label(u8"Channel:"), index_label(u8"Index:"), pan_label(u8"PAN (hex):"), set(u8"Set"), reboot(u8"Reboot"), shut_down(u8"Shut Down") {
 	for (unsigned int ch = 0x0B; ch <= 0x1A; ++ch) {
 		channel_chooser.append_text(format_channel(ch));
 	}
@@ -24,6 +24,7 @@ ParamsPanel::ParamsPanel(MRFDongle &dongle, MRFRobot &robot) : Gtk::Table(4, 2),
 	pan_entry.set_max_length(4);
 	set.signal_clicked().connect(sigc::mem_fun(this, &ParamsPanel::send_params));
 	reboot.signal_clicked().connect(sigc::mem_fun(this, &ParamsPanel::reboot_robot));
+	shut_down.signal_clicked().connect(sigc::mem_fun(this, &ParamsPanel::shut_down_robot));
 
 	attach(channel_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(channel_chooser, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -34,6 +35,7 @@ ParamsPanel::ParamsPanel(MRFDongle &dongle, MRFRobot &robot) : Gtk::Table(4, 2),
 
 	hbb.pack_start(set);
 	hbb.pack_start(reboot);
+	hbb.pack_start(shut_down);
 	attach(hbb, 0, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 }
 
@@ -43,6 +45,7 @@ void ParamsPanel::activate_controls(bool act) {
 	pan_entry.set_sensitive(act);
 	set.set_sensitive(act);
 	reboot.set_sensitive(act);
+	shut_down.set_sensitive(act);
 }
 
 void ParamsPanel::send_params() {
@@ -69,31 +72,43 @@ void ParamsPanel::send_params() {
 		message.reset(new MRFDongle::SendReliableMessageOperation(dongle, robot.index, packet, sizeof(packet)));
 		message->signal_done.connect(sigc::mem_fun(this, &ParamsPanel::check_result));
 		rebooting = false;
+		shutting_down = false;
 	}
 }
 
 void ParamsPanel::reboot_robot() {
-	if (channel_chooser.get_active_row_number() >= 0 && index_chooser.get_active_row_number() >= 0) {
-		uint8_t packet[1];
-		packet[0] = 0x08;
-		set.set_label(u8"Sending…");
-		activate_controls(false);
-		message.reset(new MRFDongle::SendReliableMessageOperation(dongle, robot.index, packet, sizeof(packet)));
-		message->signal_done.connect(sigc::mem_fun(this, &ParamsPanel::check_result));
-		rebooting = true;
-	}
+	uint8_t packet[1];
+	packet[0] = 0x08;
+	reboot.set_label(u8"Sending…");
+	activate_controls(false);
+	message.reset(new MRFDongle::SendReliableMessageOperation(dongle, robot.index, packet, sizeof(packet)));
+	message->signal_done.connect(sigc::mem_fun(this, &ParamsPanel::check_result));
+	rebooting = true;
+	shutting_down = false;
+}
+
+void ParamsPanel::shut_down_robot() {
+	uint8_t packet[1];
+	packet[0] = 0x0C;
+	shut_down.set_label(u8"Sending…");
+	activate_controls(false);
+	message.reset(new MRFDongle::SendReliableMessageOperation(dongle, robot.index, packet, sizeof(packet)));
+	message->signal_done.connect(sigc::mem_fun(this, &ParamsPanel::check_result));
+	rebooting = false;
+	shutting_down = true;
 }
 
 void ParamsPanel::check_result(AsyncOperation<void> &op) {
+	Gtk::Button &btn = rebooting ? reboot : shutting_down ? shut_down : set;
 	try {
 		op.result();
-		(rebooting ? reboot : set).set_label(u8"OK");
+		btn.set_label(u8"OK");
 	} catch (const MRFDongle::SendReliableMessageOperation::NotAssociatedError &) {
-		(rebooting ? reboot : set).set_label(u8"Not associated");
+		btn.set_label(u8"Not associated");
 	} catch (const MRFDongle::SendReliableMessageOperation::NotAcknowledgedError &) {
-		(rebooting ? reboot : set).set_label(u8"Not acknowledged");
+		btn.set_label(u8"Not acknowledged");
 	} catch (const MRFDongle::SendReliableMessageOperation::ClearChannelError &) {
-		(rebooting ? reboot : set).set_label(u8"CCA fail");
+		btn.set_label(u8"CCA fail");
 	}
 	message.reset();
 	activate_controls(true);

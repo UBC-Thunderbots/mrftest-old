@@ -37,13 +37,14 @@ class ParamsPanel : public Gtk::Table {
 		Gtk::Entry pan_entry;
 		Gtk::VBox vbox;
 		Gtk::HButtonBox hbb;
-		Gtk::Button set, reboot;
+		Gtk::Button set, reboot, shut_down;
 		std::unique_ptr<MRFDongle::SendReliableMessageOperation> message;
-		bool rebooting;
+		bool rebooting, shutting_down;
 
 		void activate_controls(bool act = true);
 		void send_params();
 		void reboot_robot();
+		void shut_down_robot();
 		void check_result(AsyncOperation<void> &op);
 };
 

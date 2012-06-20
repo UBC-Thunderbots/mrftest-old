@@ -280,6 +280,21 @@ static void handle_radio_receive(void) {
 							puts("Parameters rewritten.");
 						}
 						break;
+
+					case 0x0C: // Shut down
+						{
+							puts("Shutting down.");
+							set_charge_mode(false);
+							set_discharge_mode(true);
+							motor_scram();
+							sleep_1s();
+							sleep_1s();
+							sleep_1s();
+							outb(POWER_CTL, 0x01);
+							sleep_1s();
+							outb(POWER_CTL, 0x00);
+							for (;;);
+						}
 				}
 			}
 		}
