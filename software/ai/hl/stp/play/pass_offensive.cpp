@@ -1,5 +1,6 @@
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/pass.h"
+#include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/intercept.h"
 #include "ai/hl/stp/play/simple_play.h"
 
@@ -30,7 +31,7 @@ roles[4].push_back(block_ball(world, Enemy::closest_ball(world, 0)));
 
 // STEP 2
 goalie_role.push_back(goalie_dynamic(world, 1));
-roles[0].push_back(intercept(world));
+roles[0].push_back(shoot_goal(world));
 roles[1].push_back(offend(world));
 roles[2].push_back(defend_duo_defender(world));
 roles[3].push_back(defend_duo_extra1(world));
