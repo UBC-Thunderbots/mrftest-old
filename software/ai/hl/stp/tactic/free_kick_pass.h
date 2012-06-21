@@ -11,8 +11,7 @@ namespace AI {
 				 * For now, robot moves towards ball, rotates 30 degrees below, then 30 degrees above,
 				 * then to shooting position and shoots to target.
 				 */
-				Tactic::Ptr free_kick_pass(const AI::HL::W::World &world, const Point target, double speed  = AI::HL::STP::BALL_MAX_SPEED);
-			  
+				Tactic::Ptr free_kick_pass(const AI::HL::W::World &world, const Point target, bool chip = false, double speed  = AI::HL::STP::BALL_MAX_SPEED);
 			}
 		}
 	}
