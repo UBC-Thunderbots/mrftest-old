@@ -198,7 +198,7 @@
       <category name="PID6_2012">
         <double name="Aggressiveness of the controller">0.050</double>
         <double name="Limit wheel accel (quarter degree per firmware tick squared)">70</double>
-        <double name="Limit wheel speed (quarter degree per firmware tick)">214</double>
+        <double name="Limit wheel speed (quarter degree per firmware tick)">230</double>
         <double name="Tick rate of firmware control loop in s^-1">200</double>
       </category>
       <category name="PIDSim">
