@@ -178,12 +178,13 @@ namespace {
 	}
 
 	double distance_to_velocity(const double &distance) {
-//		double max_acc = firmware_loop_rate / TIMESTEPS_PER_SECOND * wheel_max_accel;
-//		double dist_to_vel = 2 * max_acc / wheel_max_speed * aggressiveness;
+			double max_distance = wheel_max_speed * wheel_max_speed / 2.0 / wheel_max_accel / aggressiveness;
+
+			return distance * firmware_loop_rate / max_distance * wheel_max_speed;
 
 //		return distance * dist_to_vel; // the velocity
 			
-			return std::copysign(std::sqrt(firmware_loop_rate*std::abs(distance)*2/wheel_max_accel*aggressiveness),distance);
+//			return std::copysign(std::sqrt(firmware_loop_rate*std::abs(distance)*2/wheel_max_accel*aggressiveness),distance);
 			
 //			return distance * aggressiveness;
 	}
