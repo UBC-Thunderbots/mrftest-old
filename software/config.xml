@@ -48,7 +48,7 @@
       </category>
       <category name="MRF">
         <double name="Ball Decay Constant">99.0</double>
-        <double name="Loop Delay">0.000</double>
+        <double name="Loop Delay">0.250</double>
         <double name="Robot Angular Decay Constant">99.0</double>
         <double name="Robot Linear Decay Constant">99.0</double>
       </category>
@@ -156,8 +156,8 @@
         <boolean name="enforce that robots stay on own half ">false</boolean>
         <double name="The amount centre of robot must stay out of net">0.0623</double>
         <double name="The amount of distance to maintain from enemy robots of high priority">0.600</double>
-        <double name="The amount of distance to maintain from enemy robots that we are willing to bump">-0.020</double>
-        <double name="The amount of distance to maintain from enemy robots usually">0.000</double>
+        <double name="The amount of distance to maintain from enemy robots that we are willing to bump">0.020</double>
+        <double name="The amount of distance to maintain from enemy robots usually">0.020</double>
         <double name="The amount robots should stay away from goal post">0.0000</double>
         <boolean name="use enemy's future position">false</boolean>
         <boolean name="use friendly's future position">false</boolean>
@@ -202,9 +202,9 @@
         <double name="Tick rate of firmware control loop in s^-1">200</double>
       </category>
       <category name="PID6_2012">
-        <double name="Aggressiveness of the controller">0.050</double>
-        <double name="Limit wheel accel (quarter degree per firmware tick squared)">70</double>
-        <double name="Limit wheel speed (quarter degree per firmware tick)">230</double>
+        <double name="Aggressiveness of the controller">0.040</double>
+        <double name="Limit wheel accel (quarter degree per firmware tick squared)">75</double>
+        <double name="Limit wheel speed (quarter degree per firmware tick)">257</double>
         <double name="Tick rate of firmware control loop in s^-1">200</double>
       </category>
       <category name="PIDSim">
@@ -264,7 +264,7 @@
       <category name="defense">
         <double name="ball2side ratio">0.70</double>
         <boolean name="defense protect against baller">false</boolean>
-        <boolean name="goalie hug switch">true</boolean>
+        <boolean name="goalie hug switch">false</boolean>
         <double name="max goalie dist from goal (robot radius)">5.00</double>
         <boolean name="open net enemy is dangerous">true</boolean>
         <double name="shrink robot radius">0.900</double>
@@ -334,7 +334,7 @@
           <boolean name="DNaive">true</boolean>
           <boolean name="FranticDefense">false</boolean>
           <boolean name="FreeKickEnemy">true</boolean>
-          <boolean name="FreeKickEnemyDefend">true</boolean>
+          <boolean name="FreeKickEnemyDefend">false</boolean>
           <boolean name="FreeKickEnemyMarkDefend">true</boolean>
           <boolean name="FreeKickFriendly">false</boolean>
           <boolean name="FreeKickFriendlyChip">false</boolean>
