@@ -742,7 +742,7 @@ AI::Common::PlayType HybridBackend::compute_playtype(AI::Common::PlayType old_pt
 	}
 }
 
-HybridBackendFactory::HybridBackendFactory() : BackendFactory("xbee") {
+HybridBackendFactory::HybridBackendFactory() : BackendFactory("hybrid") {
 }
 
 void HybridBackendFactory::create_backend(const std::string &, unsigned int camera_mask, unsigned int multicast_interface, std::function<void(Backend &)> cb) const {
