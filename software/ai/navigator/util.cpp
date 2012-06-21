@@ -473,11 +473,15 @@ namespace {
 		Angle angle_diff = (radial_norm.orientation() - (Angle::HALF + dest_ang).angle_mod()).angle_mod();
 		ccw = angle_diff > Angle::ZERO;
 
+		// when we are rotating, angle the movement inward slightly by this amount
+		// this is because we start rotating around the ball at a certain distance and can move slightly out of that distance
+		// causing the robot to attempt to correct and not be able to grab the ball smoothly
+		Angle rotate_offset_angle = Angle::of_degrees(10);
 		Point tangential_norm;
 		if (ccw) {
-			tangential_norm = radial_norm.rotate(Angle::THREE_QUARTER);
+			tangential_norm = radial_norm.rotate(Angle::THREE_QUARTER - rotate_offset_angle);
 		} else {
-			tangential_norm = radial_norm.rotate(Angle::QUARTER);
+			tangential_norm = radial_norm.rotate(Angle::QUARTER + rotate_offset_angle);
 		}
 
 		const double tangential_scale = 0.2;
