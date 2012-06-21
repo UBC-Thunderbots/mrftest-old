@@ -1,5 +1,6 @@
 #include "config.h"
 #include "configs.h"
+#include "estop.h"
 #include "interrupt.h"
 #include "mrf.h"
 #include "perconfig.h"
@@ -86,7 +87,8 @@ const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
 
 #define PKT_FLAG_RELIABLE 0x01
 
-static bool in_ep1_enabled, in_ep2_enabled, in_ep2_zlp_pending, out_ep1_enabled, out_ep2_enabled, out_ep3_enabled, drive_packet_pending, mrf_tx_active;
+static bool in_ep1_enabled, in_ep2_enabled, in_ep2_zlp_pending, in_ep3_enabled, out_ep1_enabled, out_ep2_enabled, out_ep3_enabled, drive_packet_pending, mrf_tx_active;
+static estop_t last_reported_estop_value;
 static uint8_t mrf_tx_seqnum;
 static uint16_t mrf_rx_seqnum[8];
 static normal_out_packet_t *unreliable_out_free, *reliable_out_free, *first_out_pending, *last_out_pending, *cur_out_transmitting, *first_mdr_pending, *last_mdr_pending;
@@ -107,12 +109,26 @@ static void send_drive_packet(void) {
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 9, 0x00); // Source address LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 10, 0x01); // Source address MSB
 	const uint8_t *bptr = (const uint8_t *) perconfig.normal.drive_packet;
-	for (size_t i = 0; i < sizeof(perconfig.normal.drive_packet); ++i) {
-		uint8_t mask = 0;
-		if (i - 1 == poll_index * sizeof(perconfig.normal.drive_packet) / 8) {
-			mask = 0x80;
+#warning should also scram on broken when we have enough switches to go around
+	if (estop_read() == ESTOP_STOP) {
+		for (size_t i = 0; i < sizeof(perconfig.normal.drive_packet); i += 8) {
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 1, (i == poll_index * sizeof(perconfig.normal.drive_packet) / 8) ? 0b10100000 : 0b00100000);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 0, 0x00);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 3, 0b01000000);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 2, 0x00);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 5, 0x00);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 4, 0x00);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 7, 0x00);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 6, 0x00);
 		}
-		mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i, bptr[i] | mask);
+	} else {
+		for (size_t i = 0; i < sizeof(perconfig.normal.drive_packet); ++i) {
+			uint8_t mask = 0;
+			if (i - 1 == poll_index * sizeof(perconfig.normal.drive_packet) / 8) {
+				mask = 0x80;
+			}
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i, bptr[i] | mask);
+		}
 	}
 	poll_index = (poll_index + 1) % 8;
 
@@ -276,6 +292,24 @@ static void push_rx(void) {
 	mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00); // RXDECINV = 0; stop inverting receiver and allow further reception
 }
 
+static void push_estop(void) {
+	// If the estop endpoint already has data queued, don’t try to send more data
+	if (in_ep3_enabled) {
+		return;
+	}
+
+	// Push the estop state into the USB FIFO
+	OTG_FS_DIEPTSIZ3 =
+		(1 << 19) // PKTCNT = 1; send one packet
+		| (2 << 0); // XFRSIZ = 2; send two bytes
+	OTG_FS_DIEPCTL3 |=
+		(1 << 31) // EPENA = 1; enable endpoint
+		| (1 << 26); // CNAK = 1; clear NAK flag
+	last_reported_estop_value = estop_read();
+	OTG_FS_FIFO[3][0] = last_reported_estop_value << 8;
+	in_ep3_enabled = true;
+}
+
 static void exti12_interrupt_vector(void) {
 	// Clear the interrupt
 	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
@@ -404,6 +438,16 @@ static void on_ep2_in_interrupt(void) {
 		OTG_FS_DIEPINT2 = 1 << 0; // XFRC = 1; clear transfer complete interrupt flag
 		in_ep2_enabled = false;
 		push_rx();
+	}
+}
+
+static void on_ep3_in_interrupt(void) {
+	if (OTG_FS_DIEPINT3 & (1 << 0) /* XFRC */) {
+		// On transfer complete, go see if we have another message to send
+		OTG_FS_DIEPINT3 = 1 << 0; // XFRC = 1; clear transfer complete interrupt flag
+		in_ep3_enabled = false;
+		if (estop_read() != last_reported_estop_value) {
+			push_estop(); }
 	}
 }
 
@@ -763,9 +807,39 @@ static void on_enter(void) {
 	OTG_FS_DIEPINT2 = OTG_FS_DIEPINT2; // Clear all pending interrupts for IN endpoint 2
 	OTG_FS_DAINTMSK |= 1 << 2; // IEPM2 = 1; enable interrupts for IN endpoint 2
 
+	// Set up endpoint 3 IN
+	in_ep3_enabled = false;
+	usb_in_set_callback(3, &on_ep3_in_interrupt);
+	OTG_FS_DIEPTXF3 =
+		(16 << 16) // INEPTXFD = 16; allocate 16 words of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
+		| ((usb_application_fifo_offset() + 96) << 0); // INEPTXSA = offset; place this FIFO after the endpoints 0, 1, and 2 FIFOs
+	OTG_FS_DIEPCTL3 =
+		(0 << 31) // EPENA = 0; do not start transmission on this endpoint
+		| (0 << 30) // EPDIS = 0; do not disable this endpoint at this time
+		| (1 << 28) // SD0PID = 1; set data PID to 0
+		| (1 << 27) // SNAK = 1; set NAK flag
+		| (0 << 26) // CNAK = 0; do not clear NAK flag
+		| (3 << 22) // TXFNUM = 3; use transmit FIFO number 3
+		| (0 << 21) // STALL = 0; do not stall traffic
+		| (3 << 18) // EPTYP = 3; interrupt endpoint
+		| (1 << 15) // USBAEP = 1; endpoint is active in this configuration
+		| (2 << 0); // MPSIZ = 2; maximum packet size is 2 bytes
+	while (!(OTG_FS_DIEPCTL3 & (1 << 17) /* NAKSTS */));
+	while (!(OTG_FS_GRSTCTL & (1 << 31) /* AHBIDL */));
+	OTG_FS_GRSTCTL = (OTG_FS_GRSTCTL & 0x7FFFF808) // Reserved
+		| (3 << 6) // TXFNUM = 3; flush transmit FIFO #3
+		| (1 << 5); // TXFFLSH = 1; flush transmit FIFO
+	while (OTG_FS_GRSTCTL & (1 << 5) /* TXFFLSH */);
+	OTG_FS_DIEPINT3 = OTG_FS_DIEPINT3; // Clear all pending interrupts for IN endpoint 3
+	OTG_FS_DAINTMSK |= 1 << 3; // IEPM3 = 1; enable interrupts for IN endpoint 3
+
 	// Wipe the drive packet
 	memset(perconfig.normal.drive_packet, 0, sizeof(perconfig.normal.drive_packet));
 	drive_packet_pending = false;
+
+	// Set up to be notified on estop changes and push the current state
+	estop_set_change_callback(&push_estop);
+	push_estop();
 
 	// Set up timer 6 to overflow every 20 milliseconds for the drive packet
 	// Timer 6 input is 72 MHz from the APB
@@ -790,6 +864,9 @@ static void on_exit(void) {
 	TIM6_CR1 &= ~(1 << 0); // CEN = 0; disable counter
 	NVIC_ICER[54 / 32] = 1 << (54 % 32); // CLRENA54 = 1; disable timer 6 interrupt
 	rcc_disable(APB1, 4);
+
+	// Stop receiving estop notifications
+	estop_set_change_callback(0);
 
 	// Shut down OUT endpoint 1
 	if (OTG_FS_DOEPCTL1 & (1 << 31) /* EPENA */) {
@@ -856,6 +933,21 @@ static void on_exit(void) {
 	OTG_FS_DIEPEMPMSK &= ~(1 << 2); // INEPTXFEM2 = 0; disable FIFO empty interrupts for IN endpoint 2
 	usb_in_set_callback(2, 0);
 	in_ep2_enabled = false;
+
+	// Shut down IN endpoint 3
+	if (OTG_FS_DIEPCTL3 & (1 << 31) /* EPENA */) {
+		if (!(OTG_FS_DIEPCTL3 & (1 << 17) /* NAKSTS */)) {
+			OTG_FS_DIEPCTL3 |= 1 << 27; // SNAK = 1; start NAKing traffic
+			while (!(OTG_FS_DIEPCTL3 & (1 << 17) /* NAKSTS */));
+		}
+		OTG_FS_DIEPCTL3 |= 1 << 30; // EPDIS = 1; disable endpoint
+		while (OTG_FS_DIEPCTL3 & (1 << 31) /* EPENA */);
+	}
+	OTG_FS_DIEPCTL3 = 0;
+	OTG_FS_DAINTMSK &= ~(1 << 3); // IEPM3 = 0; disable general interrupts for IN endpoint 3
+	OTG_FS_DIEPEMPMSK &= ~(1 << 3); // INEPTXFEM3 = 0; disable FIFO empty interrupts for IN endpoint 3
+	usb_in_set_callback(3, 0);
+	in_ep3_enabled = false;
 
 	// Disable the external interrupt on MRF INT
 	NVIC_ICER[40 / 32] = 1 << (40 % 32); // CLRENA40 = 1; disable EXTI15…10 interrupt

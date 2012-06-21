@@ -31,6 +31,26 @@ class MRFDongle : public NonCopyable {
 		class SendReliableMessageOperation;
 
 		/**
+		 * \brief The possible positions of the hardware run switch
+		 */
+		enum class EStopState {
+			/**
+			 * \brief The switch is not connected properly
+			 */
+			BROKEN,
+
+			/**
+			 * \brief The switch is in the stop state
+			 */
+			STOP,
+
+			/**
+			 * \brief The switch is in the run state
+			 */
+			RUN,
+		};
+
+		/**
 		 * \brief Emitted when a message is received
 		 *
 		 * \param[in] robot the robot who sent the message
@@ -40,6 +60,11 @@ class MRFDongle : public NonCopyable {
 		 * \param[in] length the length of the message
 		 */
 		sigc::signal<void, unsigned int, const void *, std::size_t> signal_message_received;
+
+		/**
+		 * \brief The current position of the emergency stop switch
+		 */
+		Property<EStopState> estop_state;
 
 		/**
 		 * \brief Constructs a new MRFDongle
@@ -69,7 +94,7 @@ class MRFDongle : public NonCopyable {
 
 		USB::Context context;
 		USB::DeviceHandle device;
-		USB::InterruptInTransfer mdr_transfer, message_transfer;
+		USB::InterruptInTransfer mdr_transfer, message_transfer, status_transfer;
 		std::unique_ptr<USB::InterruptOutTransfer> drive_transfer;
 		std::list<std::unique_ptr<USB::InterruptOutTransfer>> unreliable_messages;
 		std::unique_ptr<MRFRobot> robots[8];
@@ -83,6 +108,7 @@ class MRFDongle : public NonCopyable {
 		void free_message_id(uint8_t id);
 		void handle_mdr(AsyncOperation<void> &);
 		void handle_message(AsyncOperation<void> &);
+		void handle_status(AsyncOperation<void> &);
 		void dirty_drive();
 		bool submit_drive_transfer();
 		void handle_drive_transfer_done(AsyncOperation<void> &);

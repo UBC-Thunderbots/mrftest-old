@@ -29,7 +29,7 @@ TesterFeedbackPanel::TesterFeedbackPanel(MRFDongle &dongle, MRFRobot &robot) : G
 	robot.dribbler_temperature.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_dribbler_temperature_changed));
 	robot.break_beam_reading.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_break_beam_reading_changed));
 	robot.alive.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_alive_changed));
-#warning implement estop
+	dongle.estop_state.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_estop_changed));
 	robot.ball_in_beam.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_ball_in_beam_changed));
 	robot.capacitor_charged.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_capacitor_charged_changed));
 
@@ -95,6 +95,10 @@ void TesterFeedbackPanel::on_alive_changed() {
 	on_capacitor_voltage_changed();
 	on_dribbler_temperature_changed();
 	on_break_beam_reading_changed();
+}
+
+void TesterFeedbackPanel::on_estop_changed() {
+	estop.set_active(dongle.estop_state == MRFDongle::EStopState::RUN);
 }
 
 void TesterFeedbackPanel::on_ball_in_beam_changed() {

@@ -37,6 +37,7 @@ class TesterFeedbackPanel : public Gtk::Table {
 		void on_dribbler_temperature_changed();
 		void on_break_beam_reading_changed();
 		void on_alive_changed();
+		void on_estop_changed();
 		void on_ball_in_beam_changed();
 		void on_capacitor_charged_changed();
 };

@@ -1,5 +1,6 @@
 #include "buzzer.h"
 #include "configs.h"
+#include "estop.h"
 #include "mrf.h"
 #include "rcc.h"
 #include "registers.h"
@@ -20,9 +21,11 @@ static void usage_fault_vector(void);
 static void service_call_vector(void);
 static void pending_service_vector(void);
 static void system_tick_vector(void);
+void adc_interrupt_vector(void);
 void interrupt_dispatcher_exti15_10(void);
 void timer5_interrupt_vector(void);
 void timer6_interrupt_vector(void);
+void timer7_interrupt_vector(void);
 
 static char stack[65536] __attribute__((section(".stack")));
 
@@ -51,12 +54,16 @@ static const fptr exception_vectors[16] __attribute__((used, section(".exception
 };
 
 static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt_vectors"))) = {
+	// Vector 18 contains the ADC vector
+	[18] = &adc_interrupt_vector,
 	// Vector 40 contains the EXTI 15 through 10 vector
 	[40] = &interrupt_dispatcher_exti15_10,
 	// Vector 50 contains the timer 5 vector
 	[50] = &timer5_interrupt_vector,
 	// Vector 54 contains the timer 6 vector
 	[54] = &timer6_interrupt_vector,
+	// Vector 55 contains the timer 7 vector
+	[55] = &timer7_interrupt_vector,
 	// Vector 67 contains the USB full speed vector
 	[67] = &usb_process,
 };
@@ -512,6 +519,9 @@ static void stm32_main(void) {
 	// PH0 = OSC_IN (not configured via GPIO registers)
 	// PI15/PI14/PI13/PI12 = unimplemented
 	// PI11/PI10/PI9/PI8/PI7/PI6/PI5/PI4/PI3/PI2/PI1/PI0 = unimplemented on this package
+
+	// Initialize more subsystems
+	estop_init();
 
 	// Wait a bit
 	sleep_1ms(100);

@@ -82,7 +82,7 @@ MRFDongle::SendReliableMessageOperation::ClearChannelError::ClearChannelError() 
 
 
 #warning should support messages more than 64 bytes
-MRFDongle::MRFDongle() : context(), device(context, 0xC057, 0x2579), mdr_transfer(device, 1, 2, true, 0), message_transfer(device, 2, 64, false, 0), drive_dirty(false) {
+MRFDongle::MRFDongle() : estop_state(EStopState::BROKEN), context(), device(context, 0xC057, 0x2579), mdr_transfer(device, 1, 2, true, 0), message_transfer(device, 2, 64, false, 0), status_transfer(device, 3, 2, true, 0), drive_dirty(false) {
 	for (unsigned int i = 0; i < 8; ++i) {
 		robots[i].reset(new MRFRobot(*this, i));
 	}
@@ -106,6 +106,9 @@ MRFDongle::MRFDongle() : context(), device(context, 0xC057, 0x2579), mdr_transfe
 
 	message_transfer.signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_message));
 	message_transfer.submit();
+
+	status_transfer.signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_status));
+	status_transfer.submit();
 }
 
 MRFDongle::~MRFDongle() {
@@ -140,6 +143,26 @@ void MRFDongle::handle_message(AsyncOperation<void> &) {
 		robots[robot]->handle_message(message_transfer.data() + 1, message_transfer.size() - 1);
 	}
 	message_transfer.submit();
+}
+
+void MRFDongle::handle_status(AsyncOperation<void> &) {
+	status_transfer.result();
+	if (status_transfer.size() == 2) {
+		uint8_t status_class = status_transfer.data()[0];
+		switch (status_class) {
+			case 0x00: // Hardware Run Switch
+				{
+					uint8_t status = status_transfer.data()[1];
+					estop_state = static_cast<EStopState>(status);
+				}
+				break;
+
+			default:
+				LOG_ERROR(Glib::ustring::compose(u8"Unknown status class %1", status_class + 0U));
+				break;
+		}
+	}
+	status_transfer.submit();
 }
 
 void MRFDongle::dirty_drive() {

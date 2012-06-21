@@ -210,7 +210,7 @@ void Player::chip_impl(double speed) {
 	if (mrf_bot) {
 		if (mrf_bot->alive) {
 			if (mrf_bot->capacitor_charged) {
-				mrf_bot->kick(true, 4000);
+				mrf_bot->kick(true, 16000);
 			} else {
 				LOG_ERROR(Glib::ustring::compose("Bot %1 chip when not ready", pattern()));
 			}
@@ -220,7 +220,12 @@ void Player::chip_impl(double speed) {
 
 void Player::autochip_impl(double speed) {
 	autokick_params.chip = true;
-	autokick_params.pulse = 4000U;
+	if (xbee_bot) {
+		autokick_params.pulse = 4000U;
+	}
+	if (mrf_bot) {
+		autokick_params.pulse = 16000U;
+	}
 }
 
 void Player::drive(const int(&w)[4]) {
