@@ -1,0 +1,5 @@
+BITCODEC_DATA_S(char, uint8_t, command, 0, 8, '\0')
+BITCODEC_DATA_U(uint8_t, counter, 8, 8, 0)
+BITCODEC_DATA_U(uint8_t, goals_blue, 16, 8, 0)
+BITCODEC_DATA_U(uint8_t, goals_yellow, 24, 8, 0)
+BITCODEC_DATA_U(uint16_t, time_left, 32, 16, 0)
