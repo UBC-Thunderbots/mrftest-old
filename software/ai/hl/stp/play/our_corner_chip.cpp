@@ -2,7 +2,7 @@
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/tactic/offend.h"
-#include "ai/hl/stp/tactic/chip.h"
+#include "ai/hl/stp/tactic/free_kick_pass.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::Enemy;
@@ -32,7 +32,7 @@ goalie_role.push_back(defend_duo_goalie(world));
 
 // ROLE 1
 // shoot towards the midfield
-roles[0].push_back(chip_target(world, Point(0,0)));
+roles[0].push_back(free_kick_pass(world, Point(0,0), true));
 
 // ROLE 2
 // defend
@@ -40,7 +40,7 @@ roles[1].push_back(defend_duo_defender(world));
 
 // ROLE 3 (optional)
 // move to where the ball will be shot to
-roles[2].push_back(move(world, Coordinate(world, Point(0,0), Coordinate::YType::ABSOLUTE, Coordinate::OriginType::ABSOLUTE)));
+roles[2].push_back(move(world, Point(0,0)));
 
 // ROLE 4 (optional)
 // defend extra
