@@ -169,7 +169,12 @@ class PASCHL : public HighLevel {
 					break;
 				case BOT3_REPOS:
 					std::cout << "case 8" << std::endl;
-					if (player3->has_ball())
+
+					Angle facing_goal = (world.field().enemy_goal() - player3->position()).orientation();
+
+					if (player3->has_ball() && player3->orientation().angle_diff(facing_goal) > Angle::of_degrees(2))
+						player3->move(player3->position(), facing_goal , Point());
+					else
 						player3->autokick(kick_speed);
 					break;
 				}
@@ -211,21 +216,23 @@ void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state) {
 	Player::Ptr receiver = world.friendly_team().get(receiver_num);
 	Angle passer_orientation = (passer->position() - receiver->position()).orientation();
 
+
+	//if the ball hasn't been kicked yet and passer does not have the ball, intercept to ball
 	if (!kicked_ball) {
-		if (!passer->has_ball()) {
+		if (!passer->has_ball() && !kicked_ball) {
 			Action::intercept(passer, receiver->position());
 		} else {
 			// rotate to face the receiver
 			passer->move(passer->position(), passer_orientation, Point());
 		}
 
-		Angle acceptable_angle_difference = Angle::of_degrees(2);
+		Angle acceptable_angle_difference = Angle::of_degrees(10);
 		if (passer->orientation().angle_diff(passer_orientation) < acceptable_angle_difference) {
 			passer->autokick(kick_speed);
 			kicked_ball = true;
 		}
 	} else {
-		if (receiver->has_ball()) {
+		if (receiver->has_ball() && kicked_ball) {
 			current_state = next_state;
 			kicked_ball = false;
 			return;
