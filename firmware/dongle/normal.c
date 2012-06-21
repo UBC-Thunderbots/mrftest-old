@@ -294,7 +294,7 @@ static void exti12_interrupt_vector(void) {
 				// Read out and check the source address and sequence number
 				uint16_t source_address = mrf_read_long(MRF_REG_LONG_RXFIFO + 8) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 9) << 8);
 				uint8_t sequence_number = mrf_read_long(MRF_REG_LONG_RXFIFO + 3);
-				if (source_address < 8 & sequence_number != mrf_rx_seqnum[source_address]) {
+				if (source_address < 8 && sequence_number != mrf_rx_seqnum[source_address]) {
 					// Blink the receive light
 					GPIOB_ODR ^= 4 << 12;
 
