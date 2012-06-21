@@ -10,8 +10,8 @@ using AI::HL::STP::Coordinate;
  *
  */
 BEGIN_PLAY(CornerKickFriendly)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2) && !Predicates::baller_can_shoot(world) &&
-Predicates::baller_can_chip(world) && Predicates::ball_in_their_corner(world))
+INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2)
+&& Predicates::baller_can_chip(world) && Predicates::ball_in_their_corner(world))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
