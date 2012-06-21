@@ -6,6 +6,7 @@
 #include "ai/hl/stp/action/block.h"
 #include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/tactic/mark_offside.h"
+#include "ai/hl/stp/action/move.h"
 #include <vector>
 #include <iostream>
 
@@ -43,9 +44,12 @@ namespace {
 		// filter out enemies that:
 		// 1. are far away from our goal
 		// 2. can't shoot to goal
-		for (std::size_t i = enemies.size() - 1; i > 0; i--) {
-			if ((enemies[i]->position().x > 1.0) || (!Evaluation::enemy_can_shoot_goal(world, enemies[i]))) {
-				enemies.erase(enemies.begin() + i);
+		if (enemies.size() != 0) {
+			for (std::size_t i = enemies.size() - 1; i > 0; i--) {
+				std::cout << i << std::endl;
+				if ((enemies[i]->position().x > 1.0) || (!Evaluation::enemy_can_shoot_goal(world, enemies[i]))) {
+					enemies.erase(enemies.begin() + i);
+				}
 			}
 		}
 		AI::HL::W::Robot::Ptr open_robot = Evaluation::calc_enemy_baller(world);
@@ -59,7 +63,11 @@ namespace {
 				dist = d;
 			}
 		}
-		open_robot = enemies[most_open_index];
+
+		if (most_open_index != -1) {
+			open_robot = enemies[most_open_index];
+		}
+
 		return open_robot;
 	}
 
@@ -86,7 +94,12 @@ namespace {
 
 	void MarkOffside::execute() {
 		std::vector<AI::HL::W::Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
-		Action::block_ball(world, player, player_to_mark(enemies));
+
+		if (enemies.size() != 0) {
+			Action::block_ball(world, player, player_to_mark(enemies));
+		} else {
+			Action::move(player, (player->position() - world.ball().position()).orientation(), Point(world.ball().position().x, -world.ball().position().y));
+		}
 	}
 }
 

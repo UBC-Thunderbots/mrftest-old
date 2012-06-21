@@ -30,16 +30,16 @@ roles[0].push_back(defend_duo_defender(world));
 roles[1].push_back(defend_duo_extra1(world));
 
 // ROLE 3
-// defend
-roles[2].push_back(defend_duo_extra2(world));
+// prevent one timer plays
+roles[2].push_back(mark_offside(world));
 
 // ROLE 4
 // offend
 roles[3].push_back(offend(world));
 
 // ROLE 5
-// prevent one timer plays
-roles[4].push_back(mark_offside(world));
+// defend
+roles[4].push_back(defend_duo_extra2(world));
 
 END_ASSIGN()
 END_PLAY()
