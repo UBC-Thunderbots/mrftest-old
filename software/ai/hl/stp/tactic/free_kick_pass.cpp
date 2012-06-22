@@ -33,10 +33,10 @@ namespace {
 
 			void execute() {
 				Point dest;
-				const double DISTANCE_FROM_BALL = 3 * Robot::MAX_RADIUS; // Keep robot this far away from the ball
+				const double DISTANCE_FROM_BALL = 2 * Robot::MAX_RADIUS; // Keep robot this far away from the ball
 				const double TOLERANCE = 0.1; // Speed tolerance
 				const double ROT_ANGLE = 150; // rotate to this angle
-				const double ANGLE_TOL = 5.0; // Be within this angle before shooting
+				const double ANGLE_TOL = 3.0; // Be within this angle before shooting
 				Point player_to_ball = player->position() - world.ball().position();
 				Angle to_target = (world.ball().position() - target).orientation() - player_to_ball.orientation();
 
