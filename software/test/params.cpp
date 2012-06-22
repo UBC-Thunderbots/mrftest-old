@@ -8,7 +8,7 @@
 
 namespace {
 	Glib::ustring format_channel(unsigned int ch) {
-		return tohex(ch, 2);
+		return Glib::ustring::compose("%1 (%2)", tohex(ch, 2), ch);
 	}
 }
 
