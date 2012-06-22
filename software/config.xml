@@ -327,7 +327,8 @@
         <category name="Enable">
           <boolean name="BackUpSteal">false</boolean>
           <boolean name="BallTowardsEnemy">false</boolean>
-          <boolean name="CornerChip">true</boolean>
+          <boolean name="CornerChip">false</boolean>
+          <boolean name="CornerKickFriendly">true</boolean>
           <boolean name="DBasic2Block">true</boolean>
           <boolean name="DBasicCorner">true</boolean>
           <boolean name="DefensiveBlock">true</boolean>
@@ -343,6 +344,7 @@
           <boolean name="FreeKickFriendlyRepel">false</boolean>
           <boolean name="FreeKickPass">true</boolean>
           <boolean name="FriendlyCornerPlay1">true</boolean>
+          <boolean name="GoalKickFriendly">true</boolean>
           <boolean name="GrabBallDefensive">true</boolean>
           <boolean name="GrabBallOffensive">true</boolean>
           <boolean name="JustChip">false</boolean>
@@ -351,8 +353,8 @@
           <boolean name="JustShoot">true</boolean>
           <boolean name="JustSpin">true</boolean>
           <boolean name="KickoffEnemy">true</boolean>
-          <boolean name="KickoffFriendly">true</boolean>
-          <boolean name="KickoffFriendlyChip">false</boolean>
+          <boolean name="KickoffFriendly">false</boolean>
+          <boolean name="KickoffFriendlyChip">true</boolean>
           <boolean name="Lone2Player">true</boolean>
           <boolean name="OffensiveBlock">true</boolean>
           <boolean name="ONaive">true</boolean>
@@ -373,6 +375,7 @@
           <integer name="BackUpSteal">5</integer>
           <integer name="BallTowardsEnemy">5</integer>
           <integer name="CornerChip">5</integer>
+          <integer name="CornerKickFriendly">5</integer>
           <integer name="DBasic2Block">5</integer>
           <integer name="DBasicCorner">5</integer>
           <integer name="DefensiveBlock">5</integer>
@@ -388,6 +391,7 @@
           <integer name="FreeKickFriendlyRepel">0</integer>
           <integer name="FreeKickPass">5</integer>
           <integer name="FriendlyCornerPlay1">5</integer>
+          <integer name="GoalKickFriendly">5</integer>
           <integer name="GrabBallDefensive">5</integer>
           <integer name="GrabBallOffensive">5</integer>
           <integer name="JustChip">5</integer>
