@@ -49,13 +49,8 @@ namespace {
 						move(world, player, dest, Point(0, 0));
 						
 						if (player_to_ball.len() - DISTANCE_FROM_BALL < TOLERANCE && player->velocity().len() < TOLERANCE) {
-							if (world.friendly_team().score() > world.enemy_team().score()) {
-								// waste more time if we're winning
-								state = ROTATE_BOT;
-							} else {
-								// skip to shooting right away
-								state = ROTATE_MID;
-							}
+							// skip to shooting right away
+							state = ROTATE_MID;
 						}
 						break;
 					// Rotate below to a 30 degree angle
