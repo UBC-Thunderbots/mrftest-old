@@ -95,6 +95,7 @@ namespace AI {
 					Angle avelocity_stdev(double delta = 0.0) const { return Robot::avelocity_stdev(delta); }
 					unsigned int pattern() const { return Robot::pattern(); }
 					ObjectStore &object_store() const { return Robot::object_store(); }
+					bool has_chipper() const;
 					bool alive() const;
 					bool has_ball() const;
 					bool chicker_ready() const;

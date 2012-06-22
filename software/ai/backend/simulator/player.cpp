@@ -62,6 +62,10 @@ bool AI::BE::Simulator::Player::highlight() const {
 	return mouse_connections[0].connected();
 }
 
+bool AI::BE::Simulator::Player::has_chipper() const {
+	return false;
+}
+
 bool AI::BE::Simulator::Player::alive() const {
 	return true;
 }
