@@ -31,8 +31,8 @@ Point RRTPlanner::empty_state() {
 	return Point(-10000, -10000);
 }
 
-double RRTPlanner::distance(Glib::NodeTree<Point> *nearest, Point goal) {
-	return (nearest->data() - goal).len();
+double RRTPlanner::distance(Glib::NodeTree<Point> *node, Point goal) {
+	return (node->data() - goal).len();
 }
 
 // generate a random point from the field
@@ -146,6 +146,7 @@ std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool pos
 	path_points.push_front(last_added->data());
 
 	while (iterator != &rrt_tree) {
+		// keep adding the node's parents until we get to the root
 		iterator = iterator->parent();
 		path_points.push_front(iterator->data());
 
@@ -177,8 +178,7 @@ std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool pos
 		}
 	}
 
-	// just use the current player position as the destination if we are within the
-	// threshold already
+	// just use the current player position as the destination if we are within the threshold already
 	if (final_points.empty()) {
 		final_points.push_back(player->position());
 	} else if (valid_path(final_points[final_points.size() - 1], player->destination().first, world, player)) {

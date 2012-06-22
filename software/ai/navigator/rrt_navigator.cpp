@@ -161,10 +161,12 @@ namespace AI {
 				for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 					path.clear();
 					Player::Ptr player = world.friendly_team().get(i);
+
 					if (!std::dynamic_pointer_cast<PlayerData>(player->object_store()[typeid(*this)])) {
 						player->object_store()[typeid(*this)] = std::make_shared<PlayerData>();
 					}
 					std::dynamic_pointer_cast<PlayerData>(player->object_store()[typeid(*this)])->added_flags = 0;
+
 					Point dest;
 					Angle dest_orientation = player->destination().second;
 					if (player->type() == AI::Flags::MoveType::INTERCEPT) {

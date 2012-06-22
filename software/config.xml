@@ -433,7 +433,7 @@
         <double name="Shoot accuracy (for various purposes)">3.0</double>
       </category>
       <category name="Shoot">
-        <double name="big reduced radius for calculating best shot (robot radius ratio)">0.600</double>
+        <double name="big reduced radius for calculating best shot (robot radius ratio)">0.800</double>
         <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
       </category>
       <category name="Stop">

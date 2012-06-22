@@ -31,7 +31,7 @@ namespace AI {
 				/**
 				 * Determines how far an endpoint in the path is from the goal location
 				 */
-				virtual double distance(Glib::NodeTree<Point> *nearest, Point goal);
+				virtual double distance(Glib::NodeTree<Point> *node, Point goal);
 
 				Point random_point();
 
@@ -40,17 +40,14 @@ namespace AI {
 				Glib::NodeTree<Point> *nearest(Glib::NodeTree<Point> *tree, Point target);
 
 				/**
-				 * This function decides how to move toward the target
-				 * the target is one of a random point, a waypoint, or the goal location
-				 * a subclass may override this
+				 * This function decides how to move toward the target the target is one of a random point,
+				 * a waypoint, or the goal location. A subclass may override this
 				 */
 				virtual Point extend(AI::Nav::W::Player::Ptr player, Glib::NodeTree<Point> *start, Point target);
 
 				/**
-				 * This is the useful method in this class it
-				 * Generates a path for a player given the goal
-				 * optional parameter post_process sets whether to try and smooth out
-				 * the final path
+				 * This is the useful method in this class it generates a path for a player given the goal
+				 * optional parameter post_process sets whether to try and smooth out the final path
 				 */
 				std::vector<Point> rrt_plan(AI::Nav::W::Player::Ptr player, Point goal, bool post_process = true, unsigned int added_flags = 0);
 		};
