@@ -31,8 +31,8 @@ using namespace AI::BE;
 
 namespace {
 	const bool USE_MRF[8] = {
-		false, false, true, true,
-		false, false, false, false,
+		true, true, true, true,
+		true, false, false, false,
 	};
 
 	/**
