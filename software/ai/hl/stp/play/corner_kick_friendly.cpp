@@ -21,19 +21,20 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // kicker
-roles[0].push_back(free_kick_pass(world, world.field().penalty_friendly(), true));
+Point kick_dest = Point((world.field().enemy_goal().x - 1.0), -(world.ball().position().y)/2);
+roles[0].push_back(free_kick_pass(world, kick_dest, true));
 
 // ROLE 2
-// defend
-roles[1].push_back(offend(world));
+// gets the ball
+roles[1].push_back(move(world, kick_dest));
 
 // ROLE 3
-// offend
+// defend
 roles[2].push_back(defend_duo_defender(world));
 
 // ROLE 4
 // offend
-roles[3].push_back(offend_secondary(world));
+roles[3].push_back(offend(world));
 
 // ROLE 5
 // extra defender
