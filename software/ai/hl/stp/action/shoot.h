@@ -26,7 +26,7 @@ namespace AI {
 				 *
 				 * \return true if the player autokick is fired.
 				 */
-				bool shoot_target(const World &world, Player::Ptr player, const Point target, double velocity = 10.0);
+				bool shoot_target(const World &world, Player::Ptr player, const Point target, double velocity = BALL_MAX_SPEED);
 
 				/**
 				 * Shoots the ball at the region centred at target with radius.
