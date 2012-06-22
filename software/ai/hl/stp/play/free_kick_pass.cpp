@@ -13,7 +13,7 @@ INVARIANT(
 		&& Predicates::our_team_size_at_least(world, 2))
 APPLICABLE((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY)
 			|| Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY))
-			&& Predicates::baller_can_shoot(world))
+			&& !Predicates::ball_in_their_corner(world) && !Predicates::ball_in_our_corner(world))
 DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
