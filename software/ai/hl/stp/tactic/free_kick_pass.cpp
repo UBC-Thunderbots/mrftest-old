@@ -13,14 +13,14 @@ using namespace AI::HL::W;
 namespace {
 	class FreeKickPass : public Tactic {
 		public:
-			FreeKickPass(const World &world, const Point target, bool chip, double speed) : Tactic(world, true), target(target), chip(chip), speed(speed) {
+			FreeKickPass(const World &world, const Point target, bool chip, double speed_ratio) : Tactic(world, true), target(target), chip(chip), speed_ratio(speed_ratio) {
 				state = TO_BALL;
 			}
 
 		private:
 			Point target;
 			bool chip;
-			double speed;
+			double speed_ratio;
 			enum tactic_state { TO_BALL, ROTATE_BOT, ROTATE_TOP, ROTATE_MID, SHOOT };
 			tactic_state state;
 			bool done() const {
@@ -78,9 +78,9 @@ namespace {
 						dest = world.ball().position();
 						move(world, player, dest, Point(0, 0));
 						if (chip) {
-							player->autochip(1);
+							player->autochip(speed_ratio);
 						} else {
-							player->autokick(speed);
+							player->autokick(AI::HL::STP::BALL_MAX_SPEED * speed_ratio);
 						}
 						break;
 				}

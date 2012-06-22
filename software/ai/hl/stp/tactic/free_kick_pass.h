@@ -10,8 +10,14 @@ namespace AI {
 				/**
 				 * For now, robot moves towards ball, rotates 30 degrees below, then 30 degrees above,
 				 * then to shooting position and shoots to target.
+				 *
+				 * \param[in] target location to aim at
+				 *
+				 * \param[in] chip whether to chip or kick
+				 *
+				 * \param[in] speed_ratio ratio of max kick or chip power from 0 to 1
 				 */
-				Tactic::Ptr free_kick_pass(const AI::HL::W::World &world, const Point target, bool chip = false, double speed  = AI::HL::STP::BALL_MAX_SPEED);
+				Tactic::Ptr free_kick_pass(const AI::HL::W::World &world, const Point target, bool chip = false, double speed_ratio = 1.0);
 			}
 		}
 	}
