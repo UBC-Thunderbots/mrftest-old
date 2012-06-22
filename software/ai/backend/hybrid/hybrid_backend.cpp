@@ -32,7 +32,7 @@ using namespace AI::BE;
 namespace {
 	const bool USE_MRF[8] = {
 		true, true, true, true,
-		true, false, false, false,
+		true, true, false, false,
 	};
 
 	/**
