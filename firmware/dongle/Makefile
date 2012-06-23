@@ -5,7 +5,7 @@ LD := $(ABI)-ld
 OBJCOPY := $(ABI)-objcopy
 PROJ := dongle
 override HOSTCFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -march=native -g
-override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -mlittle-endian -mthumb -mcpu=cortex-m3 -nostdinc -nostdlib -g
+override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -mlittle-endian -mthumb -mcpu=cortex-m3 -nostdinc -nostdlib -g -fno-common
 override LDFLAGS := $(LDFLAGS) -Tstm32f405.ld --gc-sections
 
 FW_SOURCES := $(filter-out enter-dfu-mode.c exit-dfu-mode.c,$(wildcard *.c))
