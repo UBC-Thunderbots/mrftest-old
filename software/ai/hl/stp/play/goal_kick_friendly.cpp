@@ -17,12 +17,13 @@ DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
 
-Point drop_point;
+Point drop_point(0, 1.5);
+Point offset_point(2.5, 0.2);
 //check side of field we're kicking from
 if (world.ball().position().y > 0) {
-	drop_point = Point(0, 1.5);
+	offset_point.y *= -1;
 } else {
-	drop_point = Point(0, -1.5);
+	drop_point.y *= -1;
 }
 
 // GOALIE
@@ -34,7 +35,7 @@ roles[0].push_back(free_kick_pass(world, drop_point, true));
 
 // ROLE 2
 // defend
-roles[1].push_back(move(world, drop_point));
+roles[1].push_back(move(world, drop_point + offset_point));
 
 // ROLE 3
 // offend
