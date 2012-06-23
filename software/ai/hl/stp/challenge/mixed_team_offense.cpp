@@ -6,6 +6,7 @@
 #include "ai/hl/stp/action/goalie.h"
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/action/repel.h"
+#include "ai/hl/stp/action/intercept.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/hl/stp/evaluation/defense.h"
@@ -277,7 +278,10 @@ namespace {
 			//std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 
 			if (players.size() > 0) {
-				Action::repel(world, players[0]);
+				Action::intercept(players[0], world.field().enemy_goal());
+				if (players[0]->has_chipper()) {
+					players[0]->autochip(1);
+				}
 			}
 			if (players.size() > 1) {
 				Action::move(world, players[1], ready_positions[0]);
@@ -291,9 +295,10 @@ namespace {
 			// sort the players by dist to ball
 			//std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 			if (players.size() > 0) {
-				auto active = Tactic::free_kick_pass(world, world.field().enemy_goal(), BALL_MAX_SPEED);
-				active->set_player(players[0]);
-				active->execute();
+				Action::intercept(players[0], world.field().enemy_goal());
+				if (players[0]->has_chipper()) {
+					players[0]->autochip(1);
+				}
 			}
 
 			if (players.size() > 1) {
