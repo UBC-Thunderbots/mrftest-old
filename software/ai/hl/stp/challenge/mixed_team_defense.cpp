@@ -6,6 +6,7 @@
 #include "ai/hl/stp/action/goalie.h"
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/action/repel.h"
+#include "ai/hl/stp/action/intercept.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/hl/stp/evaluation/defense.h"
@@ -40,6 +41,7 @@ namespace {
 	BoolParam enable9("enable robot 9", "MixedTeamDefense", true);
 	BoolParam enable10("enable robot 10", "MixedTeamDefense", true);
 	BoolParam enable11("enable robot 11", "MixedTeamDefense", true);
+	BoolParam take_free_kick("take the free kicks and attempt to pass to the other team", "MixedTeamDefense", false);
 	BoolParam use_simon("use simon", "MixedTeamDefense", true);
 	BoolParam do_draw("draw", "MixedTeamDefense", true);
 
@@ -62,6 +64,7 @@ namespace {
 
 			FriendlyTeam &friendly = world.friendly_team();
 			std::vector<Player::Ptr> players;
+			std::vector<Player::Ptr> other_players;
 
 			const bool enabled[] = {
 				enable0,
@@ -80,6 +83,7 @@ namespace {
 
 			for (std::size_t i = 0; i < friendly.size(); ++i) {
 				if (!enabled[friendly.get(i)->pattern()]) {
+					other_players.push_back(friendly.get(i));
 					continue;
 				}
 				players.push_back(friendly.get(i));
@@ -130,9 +134,48 @@ namespace {
 					penalty(players);
 					break;
 
+				case AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY:
+				case AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY:
+					if (take_free_kick) {
+						free_kick_friendly(players, other_players);
+					} else {
+						play(players);
+					}
+					break;
+
 				default:
 					play(players);
 					break;
+			}
+		}
+
+		void free_kick_friendly(std::vector<Player::Ptr> &players, std::vector<Player::Ptr> &other_players) {
+			Action::move(world, players[0], Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, 0));
+
+			if (players.size() > 1) {
+				double largest_x = -3;
+				std::size_t index = 0;
+				for (std::size_t i = 0; i < other_players.size(); ++i) {
+					if (other_players[i]->position().x > largest_x) {
+						largest_x = other_players[i]->position().x;
+						index = i;
+					}
+				}
+
+				// pass to the net if there are no other players, otherwise to the one farthest along the field
+				Point location = world.field().enemy_goal();
+				if (other_players.size() > 0) {
+					location = other_players[index]->position();
+				}
+
+				Action::intercept(players[1], location);
+				players[1]->autochip(1);
+			}
+
+			if (players.size() > 2) {
+				auto stop2 = Tactic::move_stop(world, 2);
+				stop2->set_player(players[2]);
+				stop2->execute();
 			}
 		}
 
