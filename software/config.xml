@@ -146,10 +146,10 @@
         <double name="angle increment in approaching the ball, in degrees">10.00</double>
         <double name="Buffer avoid ball tiny (meters)">0.070</double>
         <double name="Buffer avoid defense area (meters)">0.030</double>
-        <double name="Buffer for equal priority friendly robot (meters)">0.020</double>
+        <double name="Buffer for equal priority friendly robot (meters)">0.050</double>
         <double name="Buffer for friendly robots in the pass intercept challenge (meters)">1.000</double>
         <double name="Buffer for higher priority friendly robot (meters)">0.050</double>
-        <double name="Buffer for lower priority friendly robot (meters)">0.000</double>
+        <double name="Buffer for lower priority friendly robot (meters)">0.020</double>
         <double name="Buffer for staying away from play area boundary ">0.000</double>
         <double name="Buffer for staying away from referee area boundary ">0.000</double>
         <double name="Buffer for staying on own half ">0.000</double>
@@ -233,7 +233,7 @@
           <double name="block threshold distance in terms of robot radius">3.000</double>
         </category>
         <category name="defend">
-          <double name="Distance the defender should repel the ball in robot radius">4.000</double>
+          <double name="Distance the defender should repel the ball in robot radius">6.000</double>
         </category>
         <category name="Goalie">
           <double name="Distance the defender should repel the ball in robot radius">4.000</double>
@@ -325,7 +325,7 @@
       </category>
       <category name="Play">
         <category name="Enable">
-          <boolean name="BackUpSteal">false</boolean>
+          <boolean name="BackUpSteal">true</boolean>
           <boolean name="BallTowardsEnemy">false</boolean>
           <boolean name="CornerChip">false</boolean>
           <boolean name="CornerKickFriendly">true</boolean>
@@ -351,7 +351,7 @@
           <boolean name="JustGoalie">true</boolean>
           <boolean name="JustRepel">true</boolean>
           <boolean name="JustShoot">true</boolean>
-          <boolean name="JustSpin">true</boolean>
+          <boolean name="JustSpin">false</boolean>
           <boolean name="KickoffEnemy">true</boolean>
           <boolean name="KickoffFriendly">false</boolean>
           <boolean name="KickoffFriendlyChip">true</boolean>
