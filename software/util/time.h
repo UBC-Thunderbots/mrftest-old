@@ -174,11 +174,11 @@ namespace {
 	 */
 	Glib::ustring timespec_to_string(const timespec &ts) {
 		if (ts.tv_sec >= 0) {
-			return Glib::ustring::compose("%1.%2", ts.tv_sec, todecu(ts.tv_nsec, 9));
+			return Glib::ustring::compose("%1.%2", ts.tv_sec, todecu(static_cast<unsigned long>(ts.tv_nsec), 9));
 		} else if (ts.tv_nsec == 0) {
 			return Glib::ustring::compose("-%1.000000000", -ts.tv_sec);
 		} else {
-			return Glib::ustring::compose("-%1.%2", -(ts.tv_sec + 1), todecu(1000000000 - ts.tv_nsec, 9));
+			return Glib::ustring::compose("-%1.%2", -(ts.tv_sec + 1), todecu(1000000000UL - static_cast<unsigned long>(ts.tv_nsec), 9));
 		}
 	}
 
@@ -191,11 +191,11 @@ namespace {
 	 */
 	Glib::ustring timespec_to_string_machine(const timespec &ts) {
 		if (ts.tv_sec >= 0) {
-			return Glib::ustring::compose("%1.%2", todecu(ts.tv_sec, 0), todecu(ts.tv_nsec, 9));
+			return Glib::ustring::compose("%1.%2", todecu(static_cast<uintmax_t>(ts.tv_sec), 0), todecu(static_cast<unsigned long>(ts.tv_nsec), 9));
 		} else if (ts.tv_nsec == 0) {
-			return Glib::ustring::compose("-%1.000000000", todecu(-ts.tv_sec, 0));
+			return Glib::ustring::compose("-%1.000000000", todecu(static_cast<uintmax_t>(-ts.tv_sec), 0));
 		} else {
-			return Glib::ustring::compose("-%1.%2", todecu(-(ts.tv_sec + 1), 0), todecu(1000000000 - ts.tv_nsec, 9));
+			return Glib::ustring::compose("-%1.%2", todecu(static_cast<uintmax_t>(-(ts.tv_sec + 1)), 0), todecu(1000000000UL - static_cast<unsigned long>(ts.tv_nsec), 9));
 		}
 	}
 }
