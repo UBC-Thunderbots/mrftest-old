@@ -5,7 +5,6 @@
 #include "geom/point.h"
 #include "util/noncopyable.h"
 #include "util/registerable.h"
-#include <map>
 #include <memory>
 #include <utility>
 #include <cairomm/context.h>
