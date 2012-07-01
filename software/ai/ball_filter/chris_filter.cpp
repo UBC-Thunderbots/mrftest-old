@@ -2,6 +2,7 @@
 #include "geom/point.h"
 #include "util/timestep.h"
 #include "ai/param.h"
+#include <forward_list>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -25,7 +26,7 @@ namespace {
 	class ChrisFilter : public BallFilter {
 		public:
 			explicit ChrisFilter() : BallFilter("Chris's Filter") {
-				circles.push_back(Circle(Point(), DELETE_THRESHOLD));
+				circles.push_front(Circle(Point(), DELETE_THRESHOLD));
 			}
 
 			Point filter(const std::vector<std::pair<double, Point> > &obs, World &) {
@@ -39,12 +40,13 @@ namespace {
 
 					// Compute the new certainty and delete the existing circles.
 					double recip_certainty = 1.0 - decay_rate;
-					for (std::list<Circle>::iterator i = circles.begin(); i != circles.end(); ) {
+					for (auto i = circles.begin(), prev = circles.before_begin(); i != circles.end(); ++i) {
 						if ((best_obs->second - i->centre).len() < circle_radius) {
 							recip_certainty *= 1.0 - i->certainty;
-							i = circles.erase(i);
+							circles.erase_after(prev);
+							i = prev;
 						} else {
-							++i;
+							prev = i;
 						}
 					}
 
@@ -52,7 +54,7 @@ namespace {
 					decay(true);
 
 					// Create the new circle.
-					circles.push_back(Circle(best_obs->second, 1.0 - recip_certainty));
+					circles.push_front(Circle(best_obs->second, 1.0 - recip_certainty));
 				} else {
 					// Decay the circles, but keep them around even if below the threshold so we don't end up with no circles at all.
 					// They'll all be deleted next time we get a detection.
@@ -71,16 +73,17 @@ namespace {
 
 		private:
 			static const double DELETE_THRESHOLD; // stores < 50 circles
-			std::list<Circle> circles;
+			std::forward_list<Circle> circles;
 			Point last_point;
 
 			void decay(bool delete_if_below_threshold) {
-				for (std::list<Circle>::iterator i = circles.begin(); i != circles.end(); ) {
+				for (auto i = circles.begin(), prev = circles.before_begin(); i != circles.end(); ++i) {
 					i->certainty *= 1.0 - decay_rate;
 					if (delete_if_below_threshold && i->certainty < DELETE_THRESHOLD) {
-						i = circles.erase(i);
+						circles.erase_after(prev);
+						i = prev;
 					} else {
-						++i;
+						prev = i;
 					}
 				}
 			}
