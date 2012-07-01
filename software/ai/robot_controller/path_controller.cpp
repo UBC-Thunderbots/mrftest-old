@@ -4,7 +4,6 @@
 #include "geom/point.h"
 #include "util/noncopyable.h"
 #include <cmath>
-#include <map>
 
 using AI::RC::RobotController;
 using AI::RC::TunableController;

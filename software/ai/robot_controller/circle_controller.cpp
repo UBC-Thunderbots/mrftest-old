@@ -7,7 +7,6 @@
 #include "util/param.h"
 #include <algorithm>
 #include <cmath>
-#include <map>
 
 using AI::RC::RobotController;
 using AI::RC::TunableController;
