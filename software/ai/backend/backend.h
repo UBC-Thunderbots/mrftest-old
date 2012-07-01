@@ -13,7 +13,6 @@
 #include "util/property.h"
 #include "util/registerable.h"
 #include <functional>
-#include <map>
 #include <gtkmm/table.h>
 #include <sigc++/signal.h>
 
