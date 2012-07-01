@@ -112,7 +112,7 @@ namespace {
 		}
 
 		angular_velocity = pa * PID_A_PROP + va * PID_A_DIFF + Angle::of_radians(linear_velocity.y * PID_YA_RATIO) + integral_a * PID_A_INTG;
-		angular_velocity = clamp(angular_velocity, -PID_A_THRESH.get(), PID_A_THRESH.get());
+		angular_velocity = clamp_symmetric(angular_velocity, PID_A_THRESH.get());
 
 		// threshold even more
 		if (PID_SLOW_ANGULAR) {

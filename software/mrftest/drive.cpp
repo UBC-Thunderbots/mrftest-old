@@ -21,7 +21,7 @@ namespace {
 	void on_update_permotor(Gtk::HScale(&controls)[4], MRFRobot &robot, bool controlled) {
 		int wheels[G_N_ELEMENTS(controls)];
 		for (unsigned int i = 0; i < G_N_ELEMENTS(controls); ++i) {
-			wheels[i] = clamp(static_cast<int>(controls[i].get_value()), -1023, 1023);
+			wheels[i] = clamp_symmetric(static_cast<int>(controls[i].get_value()), 1023);
 		}
 		robot.drive(wheels, controlled);
 	}
@@ -49,7 +49,7 @@ namespace {
 		}
 		int w[G_N_ELEMENTS(output)];
 		for (unsigned int i = 0; i < G_N_ELEMENTS(w); ++i) {
-			w[i] = clamp(static_cast<int>(output[i]), -1023, 1023);
+			w[i] = clamp_symmetric(static_cast<int>(output[i]), 1023);
 		}
 		robot.drive(w, controlled);
 	}
