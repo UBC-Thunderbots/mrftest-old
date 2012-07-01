@@ -10,8 +10,6 @@
 #include "ai/hl/stp/param.h"
 #include <cstdlib>
 
-#include <set>
-
 using namespace AI::HL::STP;
 
 namespace {

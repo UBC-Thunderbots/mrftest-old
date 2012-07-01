@@ -5,9 +5,7 @@
 #include "ai/hl/stp/play/play.h"
 #include "util/cacheable.h"
 #include "util/param.h"
-
 #include <array>
-#include <set>
 
 namespace AI {
 	namespace HL {

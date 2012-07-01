@@ -4,8 +4,6 @@
 #include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/param.h"
 
-#include <set>
-
 using namespace AI::HL::STP;
 
 namespace {
