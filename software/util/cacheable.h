@@ -2,9 +2,9 @@
 #define UTIL_CACHEABLE_H
 
 #include "util/noncopyable.h"
-#include <map>
 #include <memory>
 #include <tuple>
+#include <unordered_map>
 
 /**
  * The base class of all cacheable object types.
@@ -21,7 +21,7 @@ class CacheableBase : public NonCopyable {
 		virtual void flush() = 0;
 };
 
-template<typename ... T> class CacheableKeyArgs {
+template<typename ... T> struct CacheableKeyArgs {
 };
 
 template<typename ... T> class CacheableNonKeyArgs {
@@ -54,6 +54,26 @@ template<std::size_t DROP_FIRST, typename Head, typename ... Tail> class Cacheab
 		static Tuple build_tuple(const Head &, const Tail & ... tail) {
 			return CacheableTupleBuilder<DROP_FIRST - 1, Tail ...>::build_tuple(tail ...);
 		}
+};
+
+template<std::size_t OFFSET, typename K, typename ... Args> struct CacheableTupleHasherImpl;
+
+template<std::size_t OFFSET, typename ... Args> struct CacheableTupleHasherImpl<OFFSET, CacheableKeyArgs<Args ...>> {
+	static std::size_t hash(const std::tuple<Args ...> &) {
+		return 0;
+	}
+};
+
+template<std::size_t OFFSET, typename ... Args, typename First, typename ... Rest> struct CacheableTupleHasherImpl<OFFSET, CacheableKeyArgs<Args ...>, First, Rest ...> {
+	static std::size_t hash(const std::tuple<Args ...> &t) {
+		return std::hash<First>()(std::get<OFFSET>(t)) * 17 + CacheableTupleHasherImpl<OFFSET + 1, CacheableKeyArgs<Args ...>, Rest ...>::hash(t);
+	}
+};
+
+template<typename ... Args> struct CacheableTupleHasher {
+	std::size_t operator()(const std::tuple<Args ...> &t) const {
+		return CacheableTupleHasherImpl<0, CacheableKeyArgs<Args ...>, Args ...>::hash(t);
+	}
 };
 
 template<typename R, typename NK, typename K, typename ... Args> class CacheableImpl;
@@ -98,7 +118,7 @@ template<typename R, typename ... NK, typename ... K, typename ... Args> class C
 
 	private:
 		typedef std::tuple<K ...> Tuple;
-		typedef std::map<Tuple, R> Map;
+		typedef std::unordered_map<Tuple, R, CacheableTupleHasher<K ...>> Map;
 		Map cache;
 };
 
@@ -153,7 +173,7 @@ template<typename R, typename NK, typename K> class Cacheable;
  *
  * \tparam K the key parameters to the function.
  */
-template<typename R, typename ... NK, typename ... K> class Cacheable<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...> > : public CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>, NK ..., K ...>, public CacheableBase {
+template<typename R, typename ... NK, typename ... K> class Cacheable<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>> : public CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>, NK ..., K ...>, public CacheableBase {
 	public:
 		void flush() {
 			CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>, NK ..., K ...>::flush();

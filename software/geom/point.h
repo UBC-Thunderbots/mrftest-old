@@ -3,147 +3,148 @@
 
 #include "geom/angle.h"
 #include <cmath>
+#include <functional>
 #include <ostream>
 
 /**
- * A point or vector in 2D space.
+ * \brief A point or vector in 2D space
  */
 class Point {
 	public:
 		/**
-		 * The X coordinate of the Point.
+		 * \brief The X coordinate of the Point
 		 */
 		double x;
 
 		/**
-		 * The Y coordinate of the Point.
+		 * \brief The Y coordinate of the Point
 		 */
 		double y;
 
 		/**
-		 * Creates a unit-magnitude Point for an angle.
+		 * \brief Creates a unit-magnitude Point for an angle
 		 *
-		 * \param[in] angle the angle.
+		 * \param[in] angle the angle
 		 *
-		 * \return the Point.
+		 * \return the Point
 		 */
 		static Point of_angle(Angle angle);
 
 		/**
-		 * Creates the origin.
+		 * \brief Creates the origin
 		 */
 		Point();
 
 		/**
-		 * Creates a Point at arbitrary coordinates.
+		 * \brief Creates a Point at arbitrary coordinates
 		 *
-		 * \param[in] x the <var>x</var> value of the Point.
+		 * \param[in] x the <var>x</var> value of the Point
 		 *
-		 * \param[in] y the <var>y</var> value of the Point.
+		 * \param[in] y the <var>y</var> value of the Point
 		 */
 		Point(double x, double y);
 
 		/**
-		 * Creates a copy of a Point.
+		 * \brief Creates a copy of a Point
 		 *
-		 * \param[in] p the Point to duplicate.
+		 * \param[in] p the Point to duplicate
 		 */
 		Point(const Point &p);
 
 		/**
-		 * Returns the square of the length of the Point.
+		 * \brief Returns the square of the length of the Point
 		 *
-		 * \return the square of the length of the Point.
+		 * \return the square of the length of the Point
 		 */
 		double lensq() const __attribute__((warn_unused_result));
 
 		/**
-		 * Returns the length of the Point.
+		 * \brief Returns the length of the Point
 		 *
-		 * \return the length of the Point.
+		 * \return the length of the Point
 		 */
 		double len() const __attribute__((warn_unused_result));
 
 		/**
-		 * Returns the unit vector in the same direction as this Point.
+		 * \brief Returns the unit vector in the same direction as this Point
 		 *
-		 * \return a unit vector in the same direction as this Point, or a zero-length Point if this Point is zero.
+		 * \return a unit vector in the same direction as this Point, or a zero-length Point if this Point is zero
 		 */
 		Point norm() const __attribute__((warn_unused_result));
 
 		/**
-		 * Returns a scaled normalized vector in the same direction as this Point.
+		 * \brief Returns a scaled normalized vector in the same direction as this Point
 		 *
-		 * \param[in] l the desired length of the resultant vector.
+		 * \param[in] l the desired length of the resultant vector
 		 *
-		 * \return a vector in the same direction as this Point and with length \p l, or a zero-length Point if this Point is zero.
+		 * \return a vector in the same direction as this Point and with length \p l, or a zero-length Point if this Point is zero
 		 */
 		Point norm(double l) const __attribute__((warn_unused_result));
 
 		/**
-		 * Returns the vector perpendicular to this Point.
+		 * \brief Returns the vector perpendicular to this Point
 		 *
-		 * \return a vector perpendicular to this Point.
+		 * \return a vector perpendicular to this Point
 		 */
 		Point perp() const __attribute__((warn_unused_result));
 
 		/**
-		 * Rotates this Point by an angle.
+		 * \brief Rotates this Point by an angle
 		 *
-		 * \param[in] rot the angle to rotate the vector.
+		 * \param[in] rot the angle to rotate the vector
 		 *
-		 * \return the Point rotated by rot.
+		 * \return the Point rotated by rot
 		 */
 		Point rotate(Angle rot) const __attribute__((warn_unused_result));
 
 		/**
-		 * Projects this vector onto another vector.
+		 * \brief Projects this vector onto another vector
 		 *
-		 * \param[in] n the vector to project onto.
+		 * \param[in] n the vector to project onto
 		 *
-		 * \return the component of \p this that is in the same direction as \p n.
+		 * \return the component of \p this that is in the same direction as \p n
 		 */
 		Point project(const Point &n) const __attribute__((warn_unused_result));
 
 		/**
-		 * Takes the dot product of two vectors.
+		 * \brief Takes the dot product of two vectors
 		 *
-		 * \param[in] other the Point to dot against.
+		 * \param[in] other the Point to dot against
 		 *
-		 * \return the dot product of the points.
+		 * \return the dot product of the points
 		 */
 		double dot(const Point &other) const __attribute__((warn_unused_result));
 
 		/**
-		 * Takes the cross product of two vectors.
+		 * \brief Takes the cross product of two vectors
 		 *
-		 * \param[in] other the Point to cross with.
+		 * \param[in] other the Point to cross with
 		 *
-		 * \return the <var>z</var> component of the 3-dimensional cross product \p *this × \p other.
+		 * \return the <var>z</var> component of the 3-dimensional cross product \p *this × \p other
 		 */
 		double cross(const Point &other) const __attribute__((warn_unused_result));
 
 		/**
-		 * Assigns one vector to another.
+		 * \brief Assigns one vector to another
 		 *
-		 * \param[in] q the vector whose value should be copied into this vector.
+		 * \param[in] q the vector whose value should be copied into this vector
 		 *
-		 * \return this vector.
+		 * \return this vector
 		 */
 		Point &operator=(const Point &q);
 
 		/**
-		 * Returns the direction of this vector.
+		 * \brief Returns the direction of this vector
 		 *
 		 * \return the direction of this vector, in the range [-π, π], with 0 being the positive <var>x</var> direction, π/2 being up, etc.
-		 * (in actuality, this is <code>std::atan2(y, x)</code>).
+		 * (in actuality, this is <code>std::atan2(y, x)</code>)
 		 */
 		Angle orientation() const __attribute__((warn_unused_result));
 
 		/**
-		 * \brief Checks whether this Point contains NaN in either coordinate.
+		 * \brief Checks whether this Point contains NaN in either coordinate
 		 *
-		 * \return \c true if either coordinate is NaN, or \c false if not.
+		 * \return \c true if either coordinate is NaN, or \c false if not
 		 */
 		bool isnan() const;
 
@@ -165,135 +166,197 @@ class Point {
 };
 
 /**
- * Adds two points.
+ * \brief Adds two points
  *
- * \param[in] p the first Point.
+ * \param[in] p the first Point
  *
- * \param[in] q the second Point.
+ * \param[in] q the second Point
  *
- * \return the vector-sum of the two points.
+ * \return the vector-sum of the two points
  */
 Point operator+(const Point &p, const Point &q) __attribute__((warn_unused_result));
 
 /**
- * Adds an offset to a Point.
+ * \brief Adds an offset to a Point
  *
- * \param[in,out] p the Point to add the offset to.
+ * \param[in,out] p the Point to add the offset to
  *
- * \param[in] q the offset to add.
+ * \param[in] q the offset to add
  *
- * \return \p p.
+ * \return \p p
  */
 Point &operator+=(Point &p, const Point &q);
 
 /**
- * Negates a Point.
+ * \brief Negates a Point
  *
- * \param[in] p the Point to negate.
+ * \param[in] p the Point to negate
  *
- * \return \c −p.
+ * \return \c −p
  */
 Point operator-(const Point &p) __attribute__((warn_unused_result));
 
 /**
- * Subtracts two points.
+ * \brief Subtracts two points
  *
- * \param[in] p the Point to subtract from.
+ * \param[in] p the Point to subtract from
  *
- * \param[in] q the Point to subtract.
+ * \param[in] q the Point to subtract
  *
- * \return the vector-difference of the two points.
+ * \return the vector-difference of the two points
  */
 Point operator-(const Point &p, const Point &q) __attribute__((warn_unused_result));
 
 /**
- * Subtracts an offset from a Point.
+ * \brief Subtracts an offset from a Point
  *
- * \param[in,out] p the Point to subtract the offset from.
+ * \param[in,out] p the Point to subtract the offset from
  *
- * \param[in] q the offset to subtract.
+ * \param[in] q the offset to subtract
  *
- * \return p.
+ * \return p
  */
 Point &operator-=(Point &p, const Point &q);
 
 /**
- * Multiplies a vector by a scalar.
+ * \brief Multiplies a vector by a scalar
  *
- * \param[in] s the scaling factor.
+ * \param[in] s the scaling factor
  *
- * \param[in] p the vector to scale.
+ * \param[in] p the vector to scale
  *
- * \return the scaled vector.
+ * \return the scaled vector
  */
 Point operator*(double s, const Point &p) __attribute__((warn_unused_result));
 
 /**
- * Multiplies a vector by a scalar.
+ * \brief Multiplies a vector by a scalar
  *
- * \param[in] p the vector to scale.
+ * \param[in] p the vector to scale
  *
- * \param[in] s the scaling factor.
+ * \param[in] s the scaling factor
  *
- * \return the scaled vector.
+ * \return the scaled vector
  */
 Point operator*(const Point &p, double s) __attribute__((warn_unused_result));
 
 /**
- * Scales a vector by a scalar.
+ * \brief Scales a vector by a scalar
  *
- * \param[in,out] p the vector to scale.
+ * \param[in,out] p the vector to scale
  *
- * \param[in] s the scaling factor.
+ * \param[in] s the scaling factor
  *
- * \return \p p.
+ * \return \p p
  */
 Point &operator*=(Point &p, double s);
 
 /**
- * Divides a vector by a scalar.
+ * \brief Divides a vector by a scalar
  *
- * \param[in] p the vector to scale.
+ * \param[in] p the vector to scale
  *
- * \param[in] s the scalar to divide by.
+ * \param[in] s the scalar to divide by
  *
- * \return the scaled vector.
+ * \return the scaled vector
  */
 Point operator/(const Point &p, double s) __attribute__((warn_unused_result));
 
 /**
- * Scales a vector by a scalar.
+ * \brief Scales a vector by a scalar
  *
- * \param[in,out] p the vector to scale.
+ * \param[in,out] p the vector to scale
  *
- * \param[in] s the sclaing factor.
+ * \param[in] s the sclaing factor
  *
- * \return \p p.
+ * \return \p p
  */
 Point &operator/=(Point &p, double s);
 
 /**
- * Prints a vector to a stream.
+ * \brief Prints a vector to a stream
  *
- * \param[in] os the stream to print to.
+ * \param[in] os the stream to print to
  *
- * \param[in] p the Point to print.
+ * \param[in] p the Point to print
  *
- * \return \p os.
+ * \return \p os
  */
 template<typename CharT, typename Traits> std::basic_ostream<CharT, Traits> &operator<<(std::basic_ostream<CharT, Traits> &s, Point p);
 
 /**
- * Orders two vectors suitably for sorting.
+ * \brief Compares two vectors for equality
+ *
+ * \param[in] p the first Point
+ *
+ * \param[in] q the second Point
+ *
+ * \return \c true if \p p and \p q represent the same point, or \c false otherwise
+ */
+bool operator==(const Point &p, const Point &q);
+
+/**
+ * \brief Compares two vectors for inequality
+ *
+ * \param[in] p the first Point
+ *
+ * \param[in] q the second Point
+ *
+ * \return \c true if \p p and \p q represent different points, or \c false otherwise
+ */
+bool operator!=(const Point &p, const Point &q);
+
+/**
+ * \brief Orders two vectors suitably for sorting
+ *
  * Vectors are ordered first by <var>x</var> coordinate and then by <var>y</var> coordinate.
  *
- * \param[in] p the first Point.
+ * \param[in] p the first Point
  *
- * \param[in] q the second Point.
+ * \param[in] q the second Point
  *
- * \return \c true if \p p < \p q, or \c false otherwise.
+ * \return \c true if \p p < \p q, or \c false otherwise
  */
 bool operator<(const Point &p, const Point &q);
+
+/**
+ * \brief Orders two vectors suitably for sorting
+ *
+ * Vectors are ordered first by <var>x</var> coordinate and then by <var>y</var> coordinate.
+ *
+ * \param[in] p the first Point
+ *
+ * \param[in] q the second Point
+ *
+ * \return \c true if \p p > \p q, or \c false otherwise
+ */
+bool operator>(const Point &p, const Point &q);
+
+/**
+ * \brief Orders two vectors suitably for sorting
+ *
+ * Vectors are ordered first by <var>x</var> coordinate and then by <var>y</var> coordinate.
+ *
+ * \param[in] p the first Point
+ *
+ * \param[in] q the second Point
+ *
+ * \return \c true if \p p ≤ \p q, or \c false otherwise
+ */
+bool operator<=(const Point &p, const Point &q);
+
+/**
+ * \brief Orders two vectors suitably for sorting
+ *
+ * Vectors are ordered first by <var>x</var> coordinate and then by <var>y</var> coordinate.
+ *
+ * \param[in] p the first Point
+ *
+ * \param[in] q the second Point
+ *
+ * \return \c true if \p p ≥ \p q, or \c false otherwise
+ */
+bool operator>=(const Point &p, const Point &q);
 
 
 
@@ -435,12 +498,41 @@ template<typename CharT, typename Traits> inline std::basic_ostream<CharT, Trait
 	return s;
 }
 
+inline bool operator==(const Point &p, const Point &q) {
+	return p.x == q.x && p.y == q.y;
+}
+
+inline bool operator!=(const Point &p, const Point &q) {
+	return !(p == q);
+}
+
 inline bool operator<(const Point &p, const Point &q) {
 	if (p.x != q.x) {
 		return p.x < q.x;
 	} else {
 		return p.y < q.y;
 	}
+}
+
+inline bool operator>(const Point &p, const Point &q) {
+	return !(p < q || p == q);
+}
+
+inline bool operator<=(const Point &p, const Point &q) {
+	return p < q || p == q;
+}
+
+inline bool operator>=(const Point &p, const Point &q) {
+	return !(p < q);
+}
+
+namespace std {
+	template<> struct hash<Point> {
+		std::size_t operator()(const Point &p) const {
+			std::hash<double> h;
+			return h(p.x) * 17 + h(p.y);
+		}
+	};
 }
 
 #endif
