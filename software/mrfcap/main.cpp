@@ -1,5 +1,6 @@
 #include "util/libusb.h"
 #include "util/string.h"
+#include <chrono>
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
@@ -130,13 +131,27 @@ namespace {
 			uint8_t buffer[256];
 			std::size_t len = devh.bulk_in(1, buffer, sizeof(buffer), 0);
 			if (len >= 4) {
-				timespec ts;
-				clock_gettime(CLOCK_REALTIME, &ts);
+				uint32_t seconds, microseconds;
+				{
+					auto stamp = std::chrono::system_clock::now();
+					std::time_t converted = std::chrono::system_clock::to_time_t(stamp);
+					std::chrono::duration<uint64_t, std::micro> micros = stamp.time_since_epoch();
+					if (static_cast<uint64_t>(converted) == micros.count() / UINT64_C(1000000)) {
+						// std::chrono::system_clock and time_t use the same units on this platform, so we can get a fractional part.
+						seconds = static_cast<uint32_t>(micros.count() / UINT64_C(1000000));
+						microseconds = static_cast<uint32_t>(micros.count() % UINT64_C(1000000));
+					} else {
+						// std::chrono::system_clock and time_t use different units on this platform, so we can only achieve second resolution.
+						seconds = static_cast<uint32_t>(converted);
+						microseconds = 0;
+					}
+				}
+
 				{
 					uint32_t u32;
-					u32 = static_cast<uint32_t>(ts.tv_sec);
+					u32 = static_cast<uint32_t>(seconds);
 					ofs.write(reinterpret_cast<const char *>(&u32), 4);
-					u32 = static_cast<uint32_t>(ts.tv_nsec / 1000);
+					u32 = static_cast<uint32_t>(microseconds);
 					ofs.write(reinterpret_cast<const char *>(&u32), 4);
 					u32 = static_cast<uint32_t>(len - 4);
 					ofs.write(reinterpret_cast<const char *>(&u32), 4);

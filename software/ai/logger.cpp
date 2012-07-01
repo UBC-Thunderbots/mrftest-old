@@ -9,9 +9,9 @@
 #include "util/time.h"
 #include "util/timestep.h"
 #include <cerrno>
+#include <chrono>
 #include <csignal>
 #include <cstring>
-#include <ctime>
 #include <fcntl.h>
 #include <limits>
 #include <locale>
@@ -79,13 +79,9 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), fos(fd.
 
 	// Write the requisite first record, startup_time.
 	{
-		timespec ts;
-		if (clock_gettime(CLOCK_REALTIME, &ts) < 0) {
-			throw SystemError("clock_gettime", errno);
-		}
 		Log::Record record;
-		record.mutable_startup_time()->set_seconds(static_cast<int64_t>(ts.tv_sec));
-		record.mutable_startup_time()->set_nanoseconds(static_cast<int32_t>(ts.tv_nsec));
+		record.mutable_startup_time()->set_seconds(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
+		record.mutable_startup_time()->set_nanoseconds(0);
 		write_record(record);
 	}
 
