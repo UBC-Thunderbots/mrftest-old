@@ -19,22 +19,22 @@ SECTIONS {
 
 	/* Add program code to the Flash following the vectors */
 	.text : {
-		*(.text)
+		*(.text .text.*)
 	} >flash_region
 
 	/* Read-only data can also live entirely in Flash */
 	.rodata : {
-		*(.rodata)
+		*(.rodata .rodata.*)
 	} >flash_region
 
 	/* Read-write non-zero-initialized data must live in RAM but a copy be stored in Flash for initialization */
 	.data : {
-		*(.data)
+		*(.data .data.*)
 	} >sram_region AT>flash_region
 
 	/* Zero-initialized data can live entirely in SRAM and be wiped on boot */
 	.bss : {
-		*(.bss)
+		*(.bss .bss.*)
 	} >sram_region AT>sram_region
 
 	/* The stack can go in core-coupled memory for speed */

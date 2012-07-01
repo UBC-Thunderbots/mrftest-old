@@ -13,18 +13,22 @@ SECTIONS {
 
 	/* Put the rest of the code immediately afterwards in ROM */
 	.text : {
-		*(.text)
+		*(.trampolines)
+		*(.text .text.*)
+		*(.progmem .progmem.*)
 	} >rom_region
 
 	/* Data lives in RAM; no initialization is needed for initialized data because RAM is preloaded in the bitstream */
+	.rodata : {
+		*(.rodata .rodata.*)
+	} >ram_region
 	.data : {
-		*(.rodata)
-		*(.data)
+		*(.data .data.*)
 	} >ram_region
 
 	/* Uninitialized data just sits after initialized data in RAM */
 	.bss : {
-		*(.bss)
+		*(.bss .bss.*)
 	} >ram_region
 
 	/* The stack sits at the topmost kilobyte */
