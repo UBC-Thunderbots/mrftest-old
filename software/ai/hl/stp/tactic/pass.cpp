@@ -105,7 +105,7 @@ namespace {
 
 	class PasseeMove : public Tactic {
 		public:
-			PasseeMove(const World &world) : Tactic(world, false), dynamic(true), target(target) {
+			PasseeMove(const World &world) : Tactic(world, false), dynamic(true) {
 			}
 
 			PasseeMove(const World &world, Coordinate target) : Tactic(world, false), dynamic(false), target(target) {
@@ -239,7 +239,6 @@ namespace {
 					Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos + addit);
 				} else if (can_intercept && fast_ball) {
 					Point intercept_pos = closest_lineseg_point(player->position(), world.ball().position(), world.ball().position() + 100 * (world.ball().velocity().norm()));
-					Point pass_dir = (world.ball().position() - passer_info.kicker_location).norm();
 					Point addit = passee_hack_dist * (intercept_pos - player->position()).norm();
 					Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos + addit);
 				} else {
@@ -265,7 +264,7 @@ Tactic::Ptr AI::HL::STP::Tactic::passee_move_target(const World &world, Coordina
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passee_receive_target(const World &world, Coordinate target) {
+Tactic::Ptr AI::HL::STP::Tactic::passee_receive_target(const World &world, Coordinate) {
 	Tactic::Ptr p(new PasseeReceive(world));
 	return p;
 }

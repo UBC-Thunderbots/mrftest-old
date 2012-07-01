@@ -38,7 +38,7 @@ void StochasticLocalSearch::hill_climb() {
 	int tries = 100;
 	while (tries > 0) {
 		--tries;
-		std::size_t index = rand() % param_cur.size();
+		std::size_t index = static_cast<std::size_t>(rand()) % param_cur.size();
 		if (param_min[index] == param_max[index]) {
 			continue;
 		}

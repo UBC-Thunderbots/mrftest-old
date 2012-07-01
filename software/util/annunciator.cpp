@@ -103,7 +103,7 @@ void Annunciator::Message::hide() {
 	for (std::size_t i = 0; i < displayed.size(); ++i) {
 		if (displayed[i] == this) {
 			signal_message_hidden.emit(i);
-			displayed.erase(displayed.begin() + i);
+			displayed.erase(displayed.begin() + static_cast<std::vector<Annunciator::Message *>::difference_type>(i));
 			--i;
 		}
 	}

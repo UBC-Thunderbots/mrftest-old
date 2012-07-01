@@ -217,8 +217,12 @@ void Simulator::Simulator::tick() {
 	team2.send_tick(next_tick_game_monotonic_time);
 
 	// Update the game monotonic time by exactly the size of a timestep.
-	const timespec step_normal = { tv_sec: 1 / TIMESTEPS_PER_SECOND, tv_nsec: 1000000000L / TIMESTEPS_PER_SECOND - 1 / TIMESTEPS_PER_SECOND * 1000000000L, };
-	const timespec step_slow = { tv_sec: 1 / SLOW_TIMESTEPS_PER_SECOND, tv_nsec: 1000000000L / SLOW_TIMESTEPS_PER_SECOND - 1 / SLOW_TIMESTEPS_PER_SECOND * 1000000000L, };
+	timespec step_normal;
+	step_normal.tv_sec = 1 / TIMESTEPS_PER_SECOND;
+	step_normal.tv_nsec = 1000000000L / TIMESTEPS_PER_SECOND - 1 / TIMESTEPS_PER_SECOND * 1000000000L;
+	timespec step_slow;
+	step_slow.tv_sec = 1 / SLOW_TIMESTEPS_PER_SECOND;
+	step_slow.tv_nsec = 1000000000L / SLOW_TIMESTEPS_PER_SECOND - 1 / SLOW_TIMESTEPS_PER_SECOND * 1000000000L;
 	const timespec step = speed_mode_ == ::Simulator::Proto::SpeedMode::SLOW ? step_slow : step_normal;
 	timespec_add(next_tick_game_monotonic_time, step_normal, next_tick_game_monotonic_time);
 

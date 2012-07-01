@@ -59,7 +59,7 @@ bool Rect::expand(double amount) {
 
 double Rect::dist_to_boundary(Point p) {
 	double dist = 10e9; // approx of infinity
-	for (int i = 0; i < 4; i++) {
+	for (unsigned int i = 0; i < 4; i++) {
 		Point a = operator[](i);
 		Point b = operator[](i + 1);
 		dist = std::min(dist, lineseg_point_dist(p, a, b));

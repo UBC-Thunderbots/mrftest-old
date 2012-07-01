@@ -197,7 +197,7 @@ void TunablePIDController::move(const Point &new_position, Angle new_orientation
 	if (!initialized) {
 		initialized = true;
 		// make error 0
-		for (int t = 9; t > 0; --t) {
+		for (std::size_t t = 9; t > 0; --t) {
 			error_pos[t] = new_dir;
 			error_ori[t] = new_da;
 		}
@@ -206,7 +206,7 @@ void TunablePIDController::move(const Point &new_position, Angle new_orientation
 	}
 
 	// update the previous
-	for (int t = 9; t > 0; --t) {
+	for (std::size_t t = 9; t > 0; --t) {
 		error_pos[t] = error_pos[t - 1];
 		error_ori[t] = error_ori[t - 1];
 	}
@@ -218,8 +218,8 @@ void TunablePIDController::move(const Point &new_position, Angle new_orientation
 	for (int t = 9; t >= 0; --t) {
 		accum_pos *= DAMP;
 		accum_ori *= DAMP;
-		accum_pos += error_pos[t];
-		accum_ori += error_ori[t];
+		accum_pos += error_pos[static_cast<std::size_t>(t)];
+		accum_ori += error_ori[static_cast<std::size_t>(t)];
 	}
 
 	const double px = error_pos[0].x;

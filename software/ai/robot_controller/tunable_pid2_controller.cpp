@@ -97,7 +97,7 @@ namespace {
 		if (!initialized) {
 			initialized = true;
 			// make error 0
-			for (int t = 9; t > 0; --t) {
+			for (std::size_t t = 9; t > 0; --t) {
 				error_pos[t] = new_dir;
 				error_ori[t] = new_da;
 			}

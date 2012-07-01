@@ -115,8 +115,19 @@ AI::BE::Simulator::Backend::Backend(const std::string &load_filename) : sock(con
 }
 
 void AI::BE::Simulator::Backend::send_packet(const ::Simulator::Proto::A2SPacket &packet, const FileDescriptor &ancillary_fd) {
-	iovec iov = { iov_base: const_cast< ::Simulator::Proto::A2SPacket *>(&packet), iov_len: sizeof(packet), };
-	msghdr msgh = { msg_name: 0, msg_namelen: 0, msg_iov: &iov, msg_iovlen: 1, msg_control: 0, msg_controllen: 0, msg_flags: 0, };
+	iovec iov;
+	iov.iov_base = const_cast< ::Simulator::Proto::A2SPacket *>(&packet);
+	iov.iov_len = sizeof(packet);
+
+	msghdr msgh;
+	msgh.msg_name = 0;
+	msgh.msg_namelen = 0;
+	msgh.msg_iov = &iov;
+	msgh.msg_iovlen = 1;
+	msgh.msg_control = 0;
+	msgh.msg_controllen = 0;
+	msgh.msg_flags = 0;
+
 	char cmsgbuf[cmsg_space(sizeof(int))];
 	if (ancillary_fd.is()) {
 		msgh.msg_control = cmsgbuf;
@@ -202,8 +213,19 @@ void AI::BE::Simulator::Backend::secondary_ui_controls_attach(Gtk::Table &t, uns
 bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 	// Receive a packet.
 	::Simulator::Proto::S2APacket packet;
-	iovec iov = { iov_base: &packet, iov_len: sizeof(packet), };
-	msghdr mh = { msg_name: 0, msg_namelen: 0, msg_iov: &iov, msg_iovlen: 1, msg_control: 0, msg_controllen: 0, msg_flags: 0 };
+	iovec iov;
+	iov.iov_base = &packet;
+	iov.iov_len = sizeof(packet);
+
+	msghdr mh;
+	mh.msg_name = 0;
+	mh.msg_namelen = 0;
+	mh.msg_iov = &iov;
+	mh.msg_iovlen = 1;
+	mh.msg_control = 0;
+	mh.msg_controllen = 0;
+	mh.msg_flags = 0;
+
 	ssize_t rc = recvmsg(sock.fd(), &mh, MSG_DONTWAIT);
 	if (rc < 0) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -361,7 +383,7 @@ void AI::BE::Simulator::Backend::on_state_file_save_clicked() {
 AI::BE::Simulator::BackendFactory::BackendFactory() : AI::BE::BackendFactory("Simulator") {
 }
 
-void AI::BE::Simulator::BackendFactory::create_backend(const std::string &load_filename, unsigned int, unsigned int, std::function<void(AI::BE::Backend &)> cb) const {
+void AI::BE::Simulator::BackendFactory::create_backend(const std::string &load_filename, unsigned int, int, std::function<void(AI::BE::Backend &)> cb) const {
 	Backend be(load_filename);
 	cb(be);
 }

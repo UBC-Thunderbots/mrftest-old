@@ -46,7 +46,7 @@ Point RRTPlanner::random_point() {
 // choose a target to extend toward, the goal, a waypoint or a random point
 Point RRTPlanner::choose_target(Point goal, Player::Ptr player) {
 	double p = std::rand() / static_cast<double>(RAND_MAX);
-	size_t i = std::rand() % Waypoints::NUM_WAYPOINTS;
+	std::size_t i = static_cast<std::size_t>(std::rand()) % Waypoints::NUM_WAYPOINTS;
 
 	if (p > 0 && p <= WAYPOINT_PROB) {
 		return std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])->points[i];
@@ -75,7 +75,7 @@ Glib::NodeTree<Point> *RRTPlanner::nearest(Glib::NodeTree<Point> *rrt_tree, Poin
 		}
 
 		for (unsigned int i = 0; i < curr_node->child_count(); ++i) {
-			node_queue.push_back(curr_node->nth_child(i));
+			node_queue.push_back(curr_node->nth_child(static_cast<int>(i)));
 		}
 	}
 
@@ -153,7 +153,7 @@ std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool pos
 		// if we found a plan then add the path's points to the waypoint cache
 		// with random replacement
 		if (found_path) {
-			std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])->points[std::rand() % Waypoints::NUM_WAYPOINTS] = iterator->data();
+			std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])->points[static_cast<std::size_t>(std::rand()) % Waypoints::NUM_WAYPOINTS] = iterator->data();
 		}
 	}
 

@@ -22,7 +22,7 @@ class SignalHandlerScopedRegistration {
 		 *
 		 * \param[in] flags the flags to use while registering the handler.
 		 */
-		SignalHandlerScopedRegistration(int sig, SignalHandlerFunction handler, int flags);
+		SignalHandlerScopedRegistration(int sig, SignalHandlerFunction handler, unsigned int flags);
 
 		/**
 		 * Unregisters the signal handler.

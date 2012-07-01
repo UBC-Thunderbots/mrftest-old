@@ -1,6 +1,7 @@
 #include "util/mapped_file.h"
 #include "util/exception.h"
 #include "util/misc.h"
+#include <cerrno>
 #include <fcntl.h>
 #include <limits>
 #include <unistd.h>

@@ -4,6 +4,7 @@
 #include "util/box_ptr.h"
 #include "util/exception.h"
 #include "util/noncopyable.h"
+#include <algorithm>
 #include <cassert>
 #include <cerrno>
 #include <cstring>
@@ -77,7 +78,7 @@ template<typename T, std::size_t N> class BoxArray : public NonCopyable {
 template<typename T, std::size_t N> BoxArray<T, N>::BoxArray() {
 	std::fill(valid, valid + N, false);
 	buffer = static_cast<T *>(BoxArrayUtils::allocate_aligned_memory(N * sizeof(T)));
-	std::memset(buffer, 0, N * sizeof(T));
+	std::memset(static_cast<void *>(buffer), 0, N * sizeof(T));
 }
 
 template<typename T, std::size_t N> BoxArray<T, N>::~BoxArray() {
@@ -103,7 +104,7 @@ template<typename T, std::size_t N> void BoxArray<T, N>::destroy(std::size_t i) 
 		buffer[i].~T();
 
 		// By zeroing memory, we assure that future attempts to invoke virtual functions on the object will segfault when dereferencing the vtable pointer.
-		std::memset(&buffer[i], 0, sizeof(T));
+		std::memset(static_cast<void *>(&buffer[i]), 0, sizeof(T));
 	}
 }
 

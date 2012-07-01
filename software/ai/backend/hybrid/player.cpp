@@ -197,7 +197,7 @@ void Player::autokick_impl(double speed) {
 	}
 }
 
-void Player::chip_impl(double speed) {
+void Player::chip_impl(double) {
 	if (xbee_bot) {
 		if (xbee_bot->alive) {
 			if (xbee_bot->capacitor_charged) {
@@ -218,7 +218,7 @@ void Player::chip_impl(double speed) {
 	}
 }
 
-void Player::autochip_impl(double speed) {
+void Player::autochip_impl(double) {
 	autokick_params.chip = true;
 	if (xbee_bot) {
 		autokick_params.pulse = 4000U;

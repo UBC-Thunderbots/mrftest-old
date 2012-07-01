@@ -8,7 +8,7 @@
 
 void MRFRobot::drive(const int(&wheels)[4], bool controlled) {
 	for (unsigned int i = 0; i < 4; ++i) {
-		unsigned int level_u = std::abs(wheels[i]);
+		unsigned int level_u = static_cast<unsigned int>(std::abs(wheels[i]));
 		if (level_u > 1023) {
 			LOG_ERROR(u8"Wheel setpoint out of range");
 			level_u = 1023;
@@ -108,9 +108,9 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 				if (len == 9) {
 					alive = true;
 					has_feedback = true;
-					battery_voltage = (bptr[0] | (bptr[1] << 8)) / 1024.0 * 3.3 / 3300 * (3300 + 15000);
-					capacitor_voltage = (bptr[2] | (bptr[3] << 8)) / 4096.0 * 3.3 / 2200 * (2200 + 220000);
-					break_beam_reading = bptr[4] | (bptr[5] << 8);
+					battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1024.0 * 3.3 / 3300 * (3300 + 15000);
+					capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 4096.0 * 3.3 / 2200 * (2200 + 220000);
+					break_beam_reading = bptr[4] | static_cast<unsigned int>(bptr[5] << 8);
 					dribbler_temperature = (bptr[6] | (bptr[7] << 8)) * 0.5735 - 205.9815;
 					ball_in_beam = !!(bptr[8] & 0x01);
 					capacitor_charged = !!(bptr[8] & 0x02);

@@ -25,11 +25,11 @@ namespace {
 
 	class MoveStop : public Tactic {
 		public:
-			MoveStop(const World &world, int playerIndex) : Tactic(world), player_index(playerIndex) {
+			MoveStop(const World &world, std::size_t playerIndex) : Tactic(world), player_index(playerIndex) {
 			}
 
 		private:
-			const int player_index;
+			const std::size_t player_index;
 			Player::Ptr selected_player;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
@@ -51,7 +51,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::move_stop(const World &world, int player_index) {
+Tactic::Ptr AI::HL::STP::Tactic::move_stop(const World &world, std::size_t player_index) {
 	Tactic::Ptr p(new MoveStop(world, player_index));
 	return p;
 }

@@ -14,7 +14,7 @@
 namespace {
 	void parse_channels(const Glib::ustring &str, unsigned int &channel0, unsigned int &channel1) {
 		// 0B - 1A
-		if (str.size() == 5 && std::isxdigit(str[0]) && std::isxdigit(str[1]) && str[2] == ':' && std::isxdigit(str[3]) && std::isxdigit(str[4])) {
+		if (str.size() == 5 && std::isxdigit(static_cast<int>(str[0])) && std::isxdigit(static_cast<int>(str[1])) && str[2] == ':' && std::isxdigit(static_cast<int>(str[3])) && std::isxdigit(static_cast<int>(str[4]))) {
 			{
 				std::wistringstream iss(ustring2wstring(str.substr(0, 2)));
 				iss.imbue(std::locale("C"));

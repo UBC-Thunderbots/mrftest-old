@@ -29,8 +29,6 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-	double WHEEL_ORIENT[4] = { -0.25 * M_PI, -0.75 * M_PI, -1.25 * M_PI, -1.75 * M_PI };
-
 	class KalmanController : public RobotController {
 		public:
 			explicit KalmanController(World &world, Player::Ptr player) : RobotController(world, player), lbl_ramp_time("T ramp"), lbl_plateau_time("T plateau"), lbl_terminal_velocity("V terminal"), lbl_direction("Direction"), lbl_rotate_speed("Rotation"), lbl_pivot_radius("Pivot Radius"), adj_ramp_time(0.0, 0.0, 2.0, 0.1, 0.5, 1.0), adj_plateau_time(0.0, 0.0, 4.0, 0.2, 1.0, 1.0), adj_terminal_velocity(0.0, 0.0, 10.0, 0.1, 0.2, 0.2), adj_direction(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI, 1.0), adj_rotate_speed(0.0, -20 * M_PI, 20 * M_PI, 0.05 * M_PI, 0.1 * M_PI, 0.0), adj_pivot_radius(0.1, 0.1, 10.0, 0.1, 1.0, 0.0), hsb_ramp_time(adj_ramp_time), hsb_plateau_time(adj_plateau_time), hsb_terminal_velocity(adj_terminal_velocity), hsb_direction(adj_direction), hsb_rotate_speed(adj_rotate_speed), hsb_pivot_radius(adj_pivot_radius), enable_pivot_radius(true), velocity_inc(0.0, 0.0), to_be_ramp_time(0.0), to_be_plateau_time(0.0), to_be_terminal_velocity(0.0), to_be_velocity(0.0, 0.0), to_be_direction(Angle::ZERO), to_be_rotate_speed(Angle::ZERO), to_be_pivot_radius(0.1), state(State::IDLE) {

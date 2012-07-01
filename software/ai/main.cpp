@@ -277,7 +277,7 @@ namespace {
 			return 0;
 		}
 
-		if (argc != 1 || (east && west) || (yellow && blue)) {
+		if (argc != 1 || (east && west) || (yellow && blue) || (camera_mask < 0)) {
 			std::cerr << option_context.get_help();
 			return 1;
 		}
@@ -303,9 +303,9 @@ namespace {
 		} else if (blue) {
 			setup.friendly_colour = AI::Common::Team::Colour::BLUE;
 		}
-		unsigned int multicast_interface_index = 0;
+		int multicast_interface_index = 0;
 		if (!multicast_interface_name.empty()) {
-			multicast_interface_index = if_nametoindex(Glib::locale_from_utf8(multicast_interface_name).c_str());
+			multicast_interface_index = static_cast<int>(if_nametoindex(Glib::locale_from_utf8(multicast_interface_name).c_str()));
 			if (!multicast_interface_index) {
 				throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Interface \"%1\" not found", multicast_interface_name)).c_str());
 			}
@@ -323,7 +323,7 @@ namespace {
 		if (be == bem.end()) {
 			throw std::runtime_error(Glib::ustring::compose("There is no backend '%1'.", backend_name));
 		}
-		be->second->create_backend(load_filename, camera_mask, multicast_interface_index, [setup, minimize](AI::BE::Backend &be) { main_impl_with_backend(be, setup, minimize); });
+		be->second->create_backend(load_filename, static_cast<unsigned int>(camera_mask), multicast_interface_index, [setup, minimize](AI::BE::Backend &be) { main_impl_with_backend(be, setup, minimize); });
 
 		return 0;
 	}

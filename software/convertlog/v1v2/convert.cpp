@@ -90,7 +90,7 @@ namespace {
 	void write_record(const Log::Record &record, google::protobuf::io::ZeroCopyOutputStream &dest) {
 		assert(record.IsInitialized());
 		google::protobuf::io::CodedOutputStream cos(&dest);
-		cos.WriteVarint32(record.ByteSize());
+		cos.WriteVarint32(static_cast<uint32_t>(record.ByteSize()));
 		record.SerializeWithCachedSizes(&cos);
 		if (cos.HadError()) {
 			throw std::runtime_error("Failed to serialize log record.");
@@ -114,15 +114,15 @@ namespace {
 			bool found = false;
 			while (!found && sleft) {
 				if (sptr[0] == ConvertLogV1V2::T_AI_TICK) {
-					uint64_t seconds = decode_u64(&sptr[3]);
-					uint32_t nanoseconds = decode_u32(&sptr[11]);
+					int64_t seconds = static_cast<int64_t>(decode_u64(&sptr[3]));
+					int32_t nanoseconds = static_cast<int32_t>(decode_u32(&sptr[11]));
 					Log::Record record;
 					Log::UNIXTimeSpec *ts = record.mutable_startup_time();
 					ts->set_seconds(seconds);
 					ts->set_nanoseconds(nanoseconds);
 					write_record(record, dest);
-					seconds = decode_u64(&sptr[15]);
-					nanoseconds = decode_u32(&sptr[23]);
+					seconds = static_cast<int64_t>(decode_u64(&sptr[15]));
+					nanoseconds = static_cast<int32_t>(decode_u32(&sptr[23]));
 					most_recent_monotonic.tv_sec = seconds;
 					most_recent_monotonic.tv_nsec = nanoseconds;
 					found = true;
@@ -438,7 +438,7 @@ namespace {
 					wrapper.ParseFromArray(payload, static_cast<int>(payload_length));
 					Log::Record record;
 					record.mutable_vision()->mutable_timestamp()->set_seconds(most_recent_monotonic.tv_sec);
-					record.mutable_vision()->mutable_timestamp()->set_nanoseconds(static_cast<uint32_t>(most_recent_monotonic.tv_nsec));
+					record.mutable_vision()->mutable_timestamp()->set_nanoseconds(static_cast<int32_t>(most_recent_monotonic.tv_nsec));
 					record.mutable_vision()->mutable_data()->CopyFrom(wrapper);
 					write_record(record, dest);
 					break;
@@ -449,7 +449,7 @@ namespace {
 					// Copy the packet.
 					Log::Record record;
 					record.mutable_refbox()->mutable_timestamp()->set_seconds(most_recent_monotonic.tv_sec);
-					record.mutable_refbox()->mutable_timestamp()->set_nanoseconds(static_cast<uint32_t>(most_recent_monotonic.tv_nsec));
+					record.mutable_refbox()->mutable_timestamp()->set_nanoseconds(static_cast<int32_t>(most_recent_monotonic.tv_nsec));
 					record.mutable_refbox()->set_data(payload, payload_length);
 					write_record(record, dest);
 
@@ -540,7 +540,7 @@ namespace {
 					// Workaround bug where two flags were present both meaning FLAG_AVOID_ENEMY_DEFENSE.
 					if (movement_flags & 0x100) {
 						movement_flags |= 0x10;
-						movement_flags &= ~0x100;
+						movement_flags &= static_cast<uint64_t>(~0x100);
 					}
 					bot.set_movement_flags(movement_flags);
 					bot.set_movement_type(Log::Util::MoveType::to_protobuf(static_cast<AI::Flags::MoveType>(payload[57])));
@@ -567,8 +567,8 @@ namespace {
 					elt.mutable_point()->set_x(static_cast<int32_t>(decode_u32(&payload[1])));
 					elt.mutable_point()->set_y(static_cast<int32_t>(decode_u32(&payload[5])));
 					elt.mutable_point()->set_t(static_cast<int32_t>(decode_u32(&payload[9])));
-					elt.mutable_timestamp()->set_seconds(decode_u64(&payload[13]));
-					elt.mutable_timestamp()->set_nanoseconds(decode_u32(&payload[21]));
+					elt.mutable_timestamp()->set_seconds(static_cast<int64_t>(decode_u64(&payload[13])));
+					elt.mutable_timestamp()->set_nanoseconds(static_cast<int32_t>(decode_u32(&payload[21])));
 					break;
 				}
 
@@ -602,10 +602,10 @@ namespace {
 					// Finish and write out the tick record, then clear it in preparation for the next tick.
 					Log::Tick &tick = *tick_record.mutable_tick();
 					tick.set_play_type(Log::Util::PlayType::to_protobuf(play_type));
-					most_recent_monotonic.tv_sec = decode_u64(&payload[12]);
-					most_recent_monotonic.tv_nsec = decode_u32(&payload[20]);
+					most_recent_monotonic.tv_sec = static_cast<int64_t>(decode_u64(&payload[12]));
+					most_recent_monotonic.tv_nsec = static_cast<int32_t>(decode_u32(&payload[20]));
 					tick.mutable_start_time()->set_seconds(most_recent_monotonic.tv_sec);
-					tick.mutable_start_time()->set_nanoseconds(static_cast<uint32_t>(most_recent_monotonic.tv_nsec));
+					tick.mutable_start_time()->set_nanoseconds(static_cast<int32_t>(most_recent_monotonic.tv_nsec));
 					tick.set_compute_time(0);
 					write_record(tick_record, dest);
 					tick_record.Clear();

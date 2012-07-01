@@ -15,7 +15,7 @@ using namespace AI::BE::XBee;
 static_assert(RefboxPacket::BUFFER_SIZE == 6, "Bitcodec builds wrong refbox packet size.");
 
 namespace {
-	FileDescriptor create_socket(unsigned int multicast_interface) {
+	FileDescriptor create_socket(int multicast_interface) {
 		addrinfo hints;
 		std::memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_INET;
@@ -49,7 +49,7 @@ namespace {
 	}
 }
 
-RefBox::RefBox(unsigned int multicast_interface) : command('H'), goals_blue(0), goals_yellow(0), fd(create_socket(multicast_interface)) {
+RefBox::RefBox(int multicast_interface) : command('H'), goals_blue(0), goals_yellow(0), fd(create_socket(multicast_interface)) {
 	Glib::signal_io().connect(sigc::mem_fun(this, &RefBox::on_readable), fd.fd(), Glib::IO_IN);
 }
 
@@ -61,7 +61,7 @@ bool RefBox::on_readable(Glib::IOCondition) {
 		LOG_WARN(Glib::ustring::compose("Cannot receive from refbox socket: %1.", std::strerror(err)));
 		return true;
 	}
-	signal_packet.emit(packet, len);
+	signal_packet.emit(packet, static_cast<std::size_t>(len));
 	if (static_cast<std::size_t>(len) != RefboxPacket::BUFFER_SIZE) {
 		LOG_WARN(Glib::ustring::compose("Refbox packet was %1 bytes, expected %2.", len, RefboxPacket::BUFFER_SIZE));
 		return true;

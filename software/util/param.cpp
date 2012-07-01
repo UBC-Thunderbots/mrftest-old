@@ -35,7 +35,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 				const char *pch = std::strchr(path, '/');
 				Glib::ustring component;
 				if (pch) {
-					component.assign(path, pch - path);
+					component.assign(path, static_cast<std::size_t>(pch - path));
 				} else {
 					component.assign(path);
 				}
@@ -324,7 +324,7 @@ unsigned int NumericParam::fractional_digits() const {
 		double step = adjustment()->get_step_increment();
 		double log10 = std::log10(step);
 		if (log10 < 0) {
-			return static_cast<int>(-log10 + 0.9);
+			return static_cast<unsigned int>(-log10 + 0.9);
 		} else {
 			return 0;
 		}
@@ -394,7 +394,7 @@ void DoubleParam::save(xmlpp::Element *elt) const {
 	elt->set_attribute("name", name());
 	std::wostringstream oss;
 	oss.imbue(std::locale("C"));
-	oss << std::fixed << std::setprecision(fractional_digits()) << adjustment()->get_value();
+	oss << std::fixed << std::setprecision(static_cast<int>(fractional_digits())) << adjustment()->get_value();
 	elt->set_child_text(wstring2ustring(oss.str()));
 }
 
@@ -421,7 +421,7 @@ void RadianParam::save(xmlpp::Element *elt) const {
 	elt->set_attribute("name", name());
 	std::wostringstream oss;
 	oss.imbue(std::locale("C"));
-	oss << std::fixed << std::setprecision(fractional_digits()) << adjustment()->get_value();
+	oss << std::fixed << std::setprecision(static_cast<int>(fractional_digits())) << adjustment()->get_value();
 	elt->set_child_text(wstring2ustring(oss.str()));
 }
 
@@ -448,7 +448,7 @@ void DegreeParam::save(xmlpp::Element *elt) const {
 	elt->set_attribute("name", name());
 	std::wostringstream oss;
 	oss.imbue(std::locale("C"));
-	oss << std::fixed << std::setprecision(fractional_digits()) << adjustment()->get_value();
+	oss << std::fixed << std::setprecision(static_cast<int>(fractional_digits())) << adjustment()->get_value();
 	elt->set_child_text(wstring2ustring(oss.str()));
 }
 

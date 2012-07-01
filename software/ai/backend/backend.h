@@ -519,7 +519,7 @@ namespace AI {
 				 *
 				 * \param[in] cb a function to invoke passing the constructed Backend.
 				 */
-				virtual void create_backend(const std::string &load_filename, unsigned int camera_mask, unsigned int multicast_interface, std::function<void(Backend &)> cb) const = 0;
+				virtual void create_backend(const std::string &load_filename, unsigned int camera_mask, int multicast_interface, std::function<void(Backend &)> cb) const = 0;
 
 			protected:
 				/**

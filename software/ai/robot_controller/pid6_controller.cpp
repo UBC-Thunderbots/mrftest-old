@@ -82,10 +82,6 @@ namespace {
 			}
 	};
 
-	Vector4 operator*(const double &scale, const Vector4 &vec) {
-		return vec * scale;
-	}
-
 	class Vector3 {
 		public:
 			Point cartesian_direction;
@@ -121,10 +117,6 @@ namespace {
 				return temp;
 			}
 	};
-
-	Vector3 operator*(const double &scale, const Vector3 &vec) {
-		return vec * scale;
-	}
 
 	DoubleParam firmware_loop_rate("Tick rate of firmware control loop in s^-1", "RC/PID6", 200.0, 0.0, 48.0e6);
 	DoubleParam wheel_max_speed("Limit wheel speed (quarter degree per firmware tick)", "RC/PID6", 330.0, 0, 1023);

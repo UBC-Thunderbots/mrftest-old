@@ -20,7 +20,7 @@ AbstractListModel::~AbstractListModel() = default;
 
 void AbstractListModel::alm_row_changed(std::size_t index) {
 	Gtk::TreePath path;
-	path.push_back(static_cast<unsigned int>(index));
+	path.push_back(static_cast<int>(index));
 	iterator iter;
 	iter.set_stamp(stamp);
 	iter.gobj()->user_data = to_ptr(index);
@@ -29,7 +29,7 @@ void AbstractListModel::alm_row_changed(std::size_t index) {
 
 void AbstractListModel::alm_row_inserted(std::size_t index) {
 	Gtk::TreePath path;
-	path.push_back(static_cast<unsigned int>(index));
+	path.push_back(static_cast<int>(index));
 	iterator iter;
 	iter.set_stamp(stamp);
 	iter.gobj()->user_data = to_ptr(index);
@@ -38,7 +38,7 @@ void AbstractListModel::alm_row_inserted(std::size_t index) {
 
 void AbstractListModel::alm_row_deleted(std::size_t index) {
 	Gtk::TreePath path;
-	path.push_back(static_cast<unsigned int>(index));
+	path.push_back(static_cast<int>(index));
 	row_deleted(path);
 }
 
@@ -47,7 +47,7 @@ Gtk::TreeModelFlags AbstractListModel::get_flags_vfunc() const {
 }
 
 int AbstractListModel::get_n_columns_vfunc() const {
-	return alm_column_record.size();
+	return static_cast<int>(alm_column_record.size());
 }
 
 GType AbstractListModel::get_column_type_vfunc(int col) const {
@@ -69,7 +69,7 @@ bool AbstractListModel::iter_next_vfunc(const iterator &iter, iterator &next) co
 
 bool AbstractListModel::get_iter_vfunc(const Path &path, iterator &iter) const {
 	if (path.size() == 1 && static_cast<unsigned int>(path[0]) < alm_rows()) {
-		make_iter_valid(iter, path[0]);
+		make_iter_valid(iter, static_cast<std::size_t>(path[0]));
 		return true;
 	} else {
 		make_iter_invalid(iter);
@@ -94,7 +94,7 @@ bool AbstractListModel::iter_nth_child_vfunc(const iterator &, int, iterator &ne
 
 bool AbstractListModel::iter_nth_root_child_vfunc(int n, iterator &next) const {
 	if (static_cast<unsigned int>(n) < alm_rows()) {
-		make_iter_valid(next, n);
+		make_iter_valid(next, static_cast<std::size_t>(n));
 		return true;
 	} else {
 		make_iter_invalid(next);
@@ -111,14 +111,14 @@ int AbstractListModel::iter_n_children_vfunc(const iterator &) const {
 }
 
 int AbstractListModel::iter_n_root_children_vfunc() const {
-	return alm_rows();
+	return static_cast<int>(alm_rows());
 }
 
 Gtk::TreeModel::Path AbstractListModel::get_path_vfunc(const iterator &iter) const {
 	assert(iter_is_valid(iter));
 	Path p;
 	std::size_t index = of_ptr(iter.gobj()->user_data);
-	p.push_back(static_cast<unsigned int>(index));
+	p.push_back(static_cast<int>(index));
 	return p;
 }
 
@@ -140,14 +140,14 @@ void AbstractListModel::get_value_vfunc(const iterator &iter, int col, Glib::Val
 	assert(iter_is_valid(iter));
 	assert(is_valid_column(col));
 	std::size_t index = of_ptr(iter.gobj()->user_data);
-	alm_get_value(index, col, value);
+	alm_get_value(index, static_cast<unsigned int>(col), value);
 }
 
 void AbstractListModel::set_value_impl(const iterator &iter, int col, const Glib::ValueBase &value) {
 	assert(iter_is_valid(iter));
 	assert(is_valid_column(col));
 	std::size_t index = of_ptr(iter.gobj()->user_data);
-	alm_set_value(index, col, value);
+	alm_set_value(index, static_cast<unsigned int>(col), value);
 }
 
 bool AbstractListModel::is_valid_column(int col) const {

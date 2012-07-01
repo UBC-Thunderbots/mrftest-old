@@ -14,7 +14,7 @@ namespace std {
 	 *
 	 * \tparam T the type of object pointed to.
 	 */
-	template<typename T> class less<BoxPtr<T>> {
+	template<typename T> struct less<BoxPtr<T>> {
 		public:
 			/**
 			 * \brief Compares two pointers.
@@ -28,7 +28,7 @@ namespace std {
 			bool operator()(const BoxPtr<T> &x, const BoxPtr<T> &y) const;
 
 		private:
-			const std::less<T *> cmp;
+			std::less<T *> cmp;
 	};
 }
 
@@ -107,7 +107,7 @@ template<typename T> class BoxPtr {
 
 		template<typename U> friend class BoxPtr;
 		template<typename U, std::size_t N> friend class BoxArray;
-		friend class std::less<BoxPtr<T>>;
+		friend struct std::less<BoxPtr<T>>;
 		friend bool operator==<>(const BoxPtr<T> &, const BoxPtr<T> &);
 		friend bool operator!=<>(const BoxPtr<T> &, const BoxPtr<T> &);
 };

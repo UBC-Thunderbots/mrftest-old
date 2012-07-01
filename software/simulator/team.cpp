@@ -10,12 +10,6 @@
 #include <unistd.h>
 #include <utility>
 
-namespace {
-	bool pattern_equals(const Simulator::Team::PlayerInfo &pi, unsigned int pattern) {
-		return pi.pattern == pattern;
-	}
-}
-
 Simulator::Team::Team(Simulator &sim, const Team *other, bool invert) : sim(sim), other(other), invert(invert), ready_(true) {
 }
 
@@ -64,7 +58,9 @@ void Simulator::Team::send_tick(const timespec &ts) {
 			close_connection();
 			return;
 		}
-		PlayerInfo pi = { player: sim.engine.add_player(), pattern: *i, };
+		PlayerInfo pi;
+		pi.player = sim.engine.add_player();
+		pi.pattern = *i;
 		players.push_back(pi);
 	}
 	to_add.clear();
@@ -122,7 +118,7 @@ void Simulator::Team::load_state(const FileDescriptor &fd) {
 	to_remove.clear();
 
 	// Remove all robots from the team.
-	std::for_each(players.begin(), players.end(), [&sim](PlayerInfo p) { sim.engine.remove_player(p.player); });
+	std::for_each(players.begin(), players.end(), [this](PlayerInfo p) { sim.engine.remove_player(p.player); });
 	players.clear();
 
 	// Read the size of the team.
@@ -154,7 +150,9 @@ void Simulator::Team::load_state(const FileDescriptor &fd) {
 		}
 
 		// Create information structure.
-		PlayerInfo pi = { player: sim.engine.add_player(), pattern: static_cast<unsigned int>(pattern), };
+		PlayerInfo pi;
+		pi.player = sim.engine.add_player();
+		pi.pattern = static_cast<unsigned int>(pattern);
 
 		// Reload player state for engine.
 		pi.player->load_state(fd);

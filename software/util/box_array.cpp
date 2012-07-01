@@ -11,7 +11,7 @@ void *BoxArrayUtils::allocate_aligned_memory(std::size_t length) {
 	}
 
 	void *ptr;
-	int rc = posix_memalign(&ptr, page_size, length);
+	int rc = posix_memalign(&ptr, static_cast<std::size_t>(page_size), length);
 	if (rc != 0) {
 		throw SystemError("posix_memalign", errno);
 	}

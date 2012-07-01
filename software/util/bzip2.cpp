@@ -52,7 +52,7 @@ bool BZip2::InputStream::Next(const void **data, int *size) {
 				return false;
 			}
 			bzs.next_in = const_cast<char *>(static_cast<const char *>(p));
-			bzs.avail_in = sz;
+			bzs.avail_in = static_cast<unsigned int>(sz);
 		}
 
 		int rc = BZ2_bzDecompress(&bzs);
@@ -99,6 +99,6 @@ bool BZip2::InputStream::Skip(int count) {
 }
 
 int64_t BZip2::InputStream::ByteCount() const {
-	return (static_cast<uint64_t>(bzs.total_out_hi32) << 32) | static_cast<uint64_t>(bzs.total_out_lo32);
+	return static_cast<int64_t>((static_cast<uint64_t>(bzs.total_out_hi32) << 32) | static_cast<uint64_t>(bzs.total_out_lo32));
 }
 

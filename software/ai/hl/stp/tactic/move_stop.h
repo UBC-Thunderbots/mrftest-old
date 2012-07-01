@@ -15,7 +15,7 @@ namespace AI {
 				 * \param[in] player_index goes from 0 to 3 and is used for calculating a robot's relative
 				 * position around the ball.
 				 */
-				Tactic::Ptr move_stop(const World &world, int player_index);
+				Tactic::Ptr move_stop(const World &world, std::size_t player_index);
 
 				class StopLocations : public Cacheable<std::vector<Point>, CacheableNonKeyArgs<const AI::HL::W::World &>, CacheableKeyArgs<> > {
 					protected:

@@ -41,7 +41,7 @@ namespace {
 
 				if (done.size() < 3 && friendly.size() != done.size()) {
 					done.clear();
-					int taskIndex = 0;
+					std::size_t taskIndex = 0;
 					for (unsigned int i = 0; i < friendly.size() && i < 3; ++i) {
 						done.push_back(taskIndex);
 						if (taskIndex == 0) {

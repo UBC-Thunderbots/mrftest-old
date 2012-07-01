@@ -102,7 +102,7 @@ uint32_t encode_float_to_u32(float x) {
 float decode_u32_to_float(uint32_t x) {
 	// Extract the sign bit, biased exponent, and significand.
 	bool sign = !!(x & UINT32_C(0x80000000));
-	int8_t exponent = static_cast<uint8_t>((x >> 23) & 0xFF);
+	int8_t exponent = static_cast<int8_t>(static_cast<uint8_t>(static_cast<uint32_t>(x >> 23) & 0xFF));
 	uint32_t significand = x & UINT32_C(0x007FFFFF);
 
 	// Break down the possible exponents by class.
@@ -210,14 +210,14 @@ uint64_t encode_double_to_u64(double x) {
 		exponent = static_cast<int16_t>(exponent + 1023);
 
 		// Encode the number.
-		return pack_ses64(sign, exponent, significand);
+		return pack_ses64(sign, static_cast<uint16_t>(exponent), significand);
 	}
 }
 
 double decode_u64_to_double(uint64_t x) {
 	// Extract the sign bit, biased exponent, and significand.
 	bool sign = !!(x & UINT64_C(0x8000000000000000));
-	int16_t exponent = (x >> 52) & 0x7FF;
+	int16_t exponent = static_cast<uint64_t>(x >> 52) & 0x7FF;
 	uint64_t significand = x & UINT64_C(0x000FFFFFFFFFFFFF);
 
 	// Break down the possible exponents by class.

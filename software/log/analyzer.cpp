@@ -152,7 +152,7 @@ namespace {
 			hb.show_all();
 			dlg.get_vbox()->pack_start(hb, Gtk::PACK_SHRINK);
 			dlg.run();
-			pattern = spin.get_value_as_int();
+			pattern = static_cast<unsigned int>(spin.get_value_as_int());
 		}
 		if (records.size() < 2 || !records[1].has_config()) {
 			throw std::runtime_error("No config record where it ought to be.");
@@ -734,7 +734,7 @@ bool LogAnalyzer::on_delete_event(GdkEventAny *) {
 
 void LogAnalyzer::on_packets_list_view_selection_changed() {
 	if (packets_list_view.get_selection()->count_selected_rows() > 0) {
-		const Log::Record &record = impl->records[(*packets_list_view.get_selection()->get_selected_rows().begin())[0]];
+		const Log::Record &record = impl->records[static_cast<std::size_t>((*packets_list_view.get_selection()->get_selected_rows().begin())[0])];
 		Glib::RefPtr<Gtk::TreeStore> ts = Gtk::TreeStore::create(impl->packet_decoded_tree_columns);
 		build_decoded_tree(record, ts, impl->packet_decoded_tree_columns);
 		packet_decoded_tree.set_model(ts);

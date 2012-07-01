@@ -92,7 +92,7 @@ bool JoystickMapping::has_axis(unsigned int axis) const {
 
 unsigned int JoystickMapping::axis(unsigned int axis) const {
 	assert(has_axis(axis));
-	return axes[axis];
+	return static_cast<unsigned int>(axes[axis]);
 }
 
 void JoystickMapping::clear_axis(unsigned int axis) {
@@ -103,7 +103,7 @@ void JoystickMapping::clear_axis(unsigned int axis) {
 void JoystickMapping::set_axis(unsigned int logical, unsigned int physical) {
 	assert(logical < N_AXES);
 	assert(physical <= 255);
-	axes[logical] = physical;
+	axes[logical] = static_cast<int>(physical);
 }
 
 bool JoystickMapping::has_button(unsigned int button) const {
@@ -113,7 +113,7 @@ bool JoystickMapping::has_button(unsigned int button) const {
 
 unsigned int JoystickMapping::button(unsigned int button) const {
 	assert(has_button(button));
-	return buttons[button];
+	return static_cast<unsigned int>(buttons[button]);
 }
 
 void JoystickMapping::clear_button(unsigned int button) {
@@ -124,7 +124,7 @@ void JoystickMapping::clear_button(unsigned int button) {
 void JoystickMapping::set_button(unsigned int logical, unsigned int physical) {
 	assert(logical < N_BUTTONS);
 	assert(physical <= 255);
-	buttons[logical] = physical;
+	buttons[logical] = static_cast<int>(physical);
 }
 
 void JoystickMapping::save(xmlpp::Element *elt) const {
@@ -145,7 +145,7 @@ void JoystickMapping::save(xmlpp::Element *elt) const {
 			if (groups[i].mappings[j] >= 0) {
 				xmlpp::Element *mapping_elt = group_elt->add_child(u8"mapping");
 				mapping_elt->set_attribute(u8"logical", groups[i].xml_names ? groups[i].xml_names[j] : todecu(j));
-				mapping_elt->set_attribute(u8"physical", todecu(groups[i].mappings[j]));
+				mapping_elt->set_attribute(u8"physical", todecu(static_cast<unsigned int>(groups[i].mappings[j])));
 			}
 		}
 	}

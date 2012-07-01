@@ -103,7 +103,7 @@ void Player::autokick_impl(double speed) {
 	}
 }
 
-void Player::chip_impl(double speed) {
+void Player::chip_impl(double) {
 	if (bot.alive) {
 		if (bot.capacitor_charged) {
 			bot.kick(true, 16000);
@@ -113,7 +113,7 @@ void Player::chip_impl(double speed) {
 	}
 }
 
-void Player::autochip_impl(double speed) {
+void Player::autochip_impl(double) {
 	if (bot.alive) {
 		autokick_params.chip = true;
 		autokick_params.pulse = 16000;

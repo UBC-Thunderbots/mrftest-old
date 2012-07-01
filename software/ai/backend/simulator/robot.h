@@ -44,7 +44,7 @@ namespace AI {
 					 * \param[in] ts the timestamp at which the robot was in this position.
 					 */
 					void pre_tick(const ::Simulator::Proto::S2ARobotInfo &state, const timespec &ts) {
-						AI::BE::Robot::pre_tick();
+						pre_tick();
 						pred.add_measurement(Point(state.x, state.y), Angle::of_radians(state.orientation), ts);
 						pred.lock_time(ts);
 					}
@@ -70,6 +70,7 @@ namespace AI {
 					unsigned int num_bar_graphs() const { return 0; }
 					double bar_graph_value(unsigned int) const { return 0.0; }
 					Visualizable::Colour bar_graph_colour(unsigned int) const { return Visualizable::Colour(0.0, 0.0, 0.0); }
+					using AI::BE::Robot::pre_tick;
 
 				private:
 					/**

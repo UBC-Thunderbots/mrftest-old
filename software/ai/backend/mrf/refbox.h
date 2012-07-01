@@ -39,7 +39,7 @@ namespace AI {
 					 *
 					 * \param[in] multicast_interface the index of the interface on which to join the multicast group, or zero to use the kernel's default choice.
 					 */
-					explicit RefBox(unsigned int multicast_interface);
+					explicit RefBox(int multicast_interface);
 
 				private:
 					const FileDescriptor fd;

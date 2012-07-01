@@ -101,7 +101,7 @@ namespace {
 			}
 
 			int get_n_columns_vfunc() const {
-				return column_record.size();
+				return static_cast<int>(column_record.size());
 			}
 
 			GType get_column_type_vfunc(int index) const {
@@ -118,7 +118,7 @@ namespace {
 			bool get_iter_vfunc(const Gtk::TreePath &path, iterator &iter) const {
 				ParamTreeNode *node = ParamTreeNode::root();
 				for (auto i = path.begin(), iend = path.end(); node && i != iend; ++i) {
-					node = node->child(*i);
+					node = node->child(static_cast<std::size_t>(*i));
 				}
 				return make_iter(node, iter);
 			}
@@ -138,11 +138,11 @@ namespace {
 			bool iter_nth_child_vfunc(const iterator &parent, int n, iterator &iter) const {
 				assert(iter_is_valid(parent));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(parent.gobj()->user_data);
-				return make_iter(node->child(n), iter);
+				return make_iter(node->child(static_cast<std::size_t>(n)), iter);
 			}
 
 			bool iter_nth_root_child_vfunc(int n, iterator &iter) const {
-				return make_iter(ParamTreeNode::root()->child(n), iter);
+				return make_iter(ParamTreeNode::root()->child(static_cast<std::size_t>(n)), iter);
 			}
 
 			bool iter_has_child_vfunc(const iterator &iter) const {
@@ -219,7 +219,7 @@ namespace {
 					v.init(numeric_value_column.type());
 					NumericParam *np = dynamic_cast<NumericParam *>(node);
 					if (np) {
-						v.set(Glib::ustring::format(std::fixed, std::setprecision(np->fractional_digits()), np->adjustment()->get_value()));
+						v.set(Glib::ustring::format(std::fixed, std::setprecision(static_cast<int>(np->fractional_digits())), np->adjustment()->get_value()));
 					} else {
 						v.set("");
 					}

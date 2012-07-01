@@ -52,7 +52,7 @@ namespace {
 				if (row == 0) {
 					ai.backend.playtype_override() = AI::Common::PlayType::NONE;
 				} else if (row > 0) {
-					ai.backend.playtype_override() = AI::Common::PlayTypeInfo::of_int(row - 1);
+					ai.backend.playtype_override() = AI::Common::PlayTypeInfo::of_int(static_cast<unsigned int>(row) - 1);
 				}
 			}
 

@@ -29,51 +29,6 @@ namespace {
 		}
 		throw std::runtime_error("Invalid flash contents byte");
 	}
-
-	void discard_result(AsyncOperation<void> &op) {
-		op.result();
-	}
-
-	void encode_kick_parameters(unsigned int &pulse_width1, unsigned int &pulse_width2, unsigned int &slice_width, bool &ignore_slice1, bool &ignore_slice2, int offset) {
-		assert(pulse_width1 <= 4064);
-		assert(pulse_width2 <= 4064);
-		assert(-4064 <= offset && offset <= 4064);
-
-		/* The parameters pulse_width1, pulse_width2, and offset come as input.
-		 * These are numbers in microseconds; the pulse_widths are the actual widths and offset is the time difference between their leading edges.
-		 *
-		 * For transmission to the robot, however, a number of changes need to be made.
-		 *
-		 * First, the FPGA bitstream doesn't use pulse widths and a leading edge offset.
-		 * For each solenoid, it accepts the time from the start of the kick operation to the falling edge of the pulse.
-		 * It also accepts a “slice width”, which is the time from the start of the kick operation to the rising edge of some of the pulses.
-		 * Finally, it accepts two flags indicating whether each pulse's rising edge is at the start of the operation or after the slice width.
-		 *
-		 * Second, times sent to the robot over the radio are represented in 32µs units rather than in individual microseconds. */
-		if (offset < 0) {
-			slice_width = -offset;
-			pulse_width2 += slice_width;
-			assert(pulse_width2 <= 4064);
-			ignore_slice1 = true;
-			ignore_slice2 = false;
-		} else if (offset > 0) {
-			slice_width = offset;
-			pulse_width1 += slice_width;
-			assert(pulse_width1 <= 4064);
-			ignore_slice1 = false;
-			ignore_slice2 = true;
-		} else {
-			slice_width = 0;
-			ignore_slice1 = true;
-			ignore_slice2 = true;
-		}
-		pulse_width1 /= 32;
-		pulse_width2 /= 32;
-		slice_width /= 32;
-		assert(pulse_width1 <= 127);
-		assert(pulse_width2 <= 127);
-		assert(slice_width <= 127);
-	}
 }
 
 XBeeRobot::FirmwareSPIChipEraseOperation::FirmwareSPIChipEraseOperation(XBeeRobot &robot) : robot(robot), buffer{static_cast<uint8_t>((robot.index << 4) | XBeeDongle::PIPE_FIRMWARE_OUT), FIRMWARE_REQUEST_CHIP_ERASE}, send_message_op(robot.dongle, buffer, sizeof(buffer)) {

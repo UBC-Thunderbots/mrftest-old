@@ -156,7 +156,7 @@ void TesterWindow::on_dribble_toggled() {
 void TesterWindow::on_joystick_chooser_changed() {
 	std::for_each(joystick_signal_connections.begin(), joystick_signal_connections.end(), [](sigc::connection &conn) { conn.disconnect(); });
 	joystick_signal_connections.clear();
-	const Joystick *pstick = mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
+	const Joystick *pstick = mapped_joysticks->get_device(static_cast<std::size_t>(joystick_chooser.get_active_row_number()));
 	if (pstick) {
 		const Joystick &stick = *pstick;
 		const JoystickMapping &m = mapped_joysticks->get_mapping(stick);
@@ -179,7 +179,7 @@ void TesterWindow::on_joystick_chooser_changed() {
 }
 
 void TesterWindow::on_joystick_drive_axis_changed() {
-	const Joystick &stick = *mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
+	const Joystick &stick = *mapped_joysticks->get_device(static_cast<std::size_t>(joystick_chooser.get_active_row_number()));
 	const JoystickMapping &m = mapped_joysticks->get_mapping(stick);
 	double drive_axes[4];
 	static_assert(JoystickMapping::N_AXES >= G_N_ELEMENTS(drive_axes), "Not enough joystick axes for drive wheels");
@@ -201,7 +201,7 @@ void TesterWindow::on_joystick_drive_axis_changed() {
 }
 
 void TesterWindow::on_joystick_dribble_changed() {
-	const Joystick &stick = *mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
+	const Joystick &stick = *mapped_joysticks->get_device(static_cast<std::size_t>(joystick_chooser.get_active_row_number()));
 	const JoystickMapping &m = mapped_joysticks->get_mapping(stick);
 	if (m.has_button(JoystickMapping::BUTTON_DRIBBLE) && stick.buttons()[m.button(JoystickMapping::BUTTON_DRIBBLE)]) {
 		dribble_button.set_active(!dribble_button.get_active());
@@ -209,7 +209,7 @@ void TesterWindow::on_joystick_dribble_changed() {
 }
 
 void TesterWindow::on_joystick_kick_changed() {
-	const Joystick &stick = *mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
+	const Joystick &stick = *mapped_joysticks->get_device(static_cast<std::size_t>(joystick_chooser.get_active_row_number()));
 	const JoystickMapping &m = mapped_joysticks->get_mapping(stick);
 	if (m.has_button(JoystickMapping::BUTTON_KICK) && stick.buttons()[m.button(JoystickMapping::BUTTON_KICK)]) {
 		kicker_panel.fire();
@@ -217,7 +217,7 @@ void TesterWindow::on_joystick_kick_changed() {
 }
 
 void TesterWindow::on_joystick_scram_changed() {
-	const Joystick &stick = *mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
+	const Joystick &stick = *mapped_joysticks->get_device(static_cast<std::size_t>(joystick_chooser.get_active_row_number()));
 	const JoystickMapping &m = mapped_joysticks->get_mapping(stick);
 	if (m.has_button(JoystickMapping::BUTTON_SCRAM) && stick.buttons()[m.button(JoystickMapping::BUTTON_SCRAM)]) {
 		scram();

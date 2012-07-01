@@ -82,27 +82,27 @@ namespace AI {
 					void mouse_moved(Point p);
 
 					Visualizable::Colour visualizer_colour() const;
-					Glib::ustring visualizer_label() const { return Robot::visualizer_label(); }
+					Glib::ustring visualizer_label() const { return AI::BE::Simulator::Robot::visualizer_label(); }
 					bool highlight() const;
-					Visualizable::Colour highlight_colour() const { return Robot::highlight_colour(); }
-					Point position(double delta = 0.0) const { return Robot::position(delta); }
-					Point velocity(double delta = 0.0) const { return Robot::velocity(delta); }
-					Angle orientation(double delta = 0.0) const { return Robot::orientation(delta); }
-					Angle avelocity(double delta = 0.0) const { return Robot::avelocity(delta); }
-					Point position_stdev(double delta = 0.0) const { return Robot::position_stdev(delta); }
-					Point velocity_stdev(double delta = 0.0) const { return Robot::velocity_stdev(delta); }
-					Angle orientation_stdev(double delta = 0.0) const { return Robot::orientation_stdev(delta); }
-					Angle avelocity_stdev(double delta = 0.0) const { return Robot::avelocity_stdev(delta); }
-					unsigned int pattern() const { return Robot::pattern(); }
-					ObjectStore &object_store() const { return Robot::object_store(); }
+					Visualizable::Colour highlight_colour() const { return AI::BE::Simulator::Robot::highlight_colour(); }
+					Point position(double delta = 0.0) const { return AI::BE::Simulator::Robot::position(delta); }
+					Point velocity(double delta = 0.0) const { return AI::BE::Simulator::Robot::velocity(delta); }
+					Angle orientation(double delta = 0.0) const { return AI::BE::Simulator::Robot::orientation(delta); }
+					Angle avelocity(double delta = 0.0) const { return AI::BE::Simulator::Robot::avelocity(delta); }
+					Point position_stdev(double delta = 0.0) const { return AI::BE::Simulator::Robot::position_stdev(delta); }
+					Point velocity_stdev(double delta = 0.0) const { return AI::BE::Simulator::Robot::velocity_stdev(delta); }
+					Angle orientation_stdev(double delta = 0.0) const { return AI::BE::Simulator::Robot::orientation_stdev(delta); }
+					Angle avelocity_stdev(double delta = 0.0) const { return AI::BE::Simulator::Robot::avelocity_stdev(delta); }
+					unsigned int pattern() const { return AI::BE::Simulator::Robot::pattern(); }
+					ObjectStore &object_store() const { return AI::BE::Simulator::Robot::object_store(); }
 					bool has_chipper() const;
 					bool alive() const;
 					bool has_ball() const;
 					bool chicker_ready() const;
 					void kick_impl(double speed);
 					void autokick_impl(double speed);
-					void chip_impl(double speed) { *(reinterpret_cast<int *>(0)) = 27; }
-					void autochip_impl(double speed) { *(reinterpret_cast<int *>(0)) = 27; }
+					void chip_impl(double) { *(reinterpret_cast<volatile int *>(0)) = 27; }
+					void autochip_impl(double) { *(reinterpret_cast<volatile int *>(0)) = 27; }
 					bool autokick_fired() const;
 					bool has_destination() const;
 					const std::pair<Point, Angle> &destination() const;
@@ -110,13 +110,15 @@ namespace AI {
 					void path_impl(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p);
 					bool has_path() const;
 					const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path() const;
-					unsigned int num_bar_graphs() const { return Robot::num_bar_graphs(); }
-					double bar_graph_value(unsigned int index) const { return Robot::bar_graph_value(index); }
-					Visualizable::Colour bar_graph_colour(unsigned int index) const { return Robot::bar_graph_colour(index); }
+					unsigned int num_bar_graphs() const { return AI::BE::Simulator::Robot::num_bar_graphs(); }
+					double bar_graph_value(unsigned int index) const { return AI::BE::Simulator::Robot::bar_graph_value(index); }
+					Visualizable::Colour bar_graph_colour(unsigned int index) const { return AI::BE::Simulator::Robot::bar_graph_colour(index); }
 					void drive(const int(&w)[4]);
 					const int(&wheel_speeds() const)[4];
-					void avoid_distance(AI::Flags::AvoidDistance dist) const { Robot::avoid_distance(dist); }
-					AI::Flags::AvoidDistance avoid_distance() const { return Robot::avoid_distance(); }
+					void avoid_distance(AI::Flags::AvoidDistance dist) const { AI::BE::Simulator::Robot::avoid_distance(dist); }
+					AI::Flags::AvoidDistance avoid_distance() const { return AI::BE::Simulator::Robot::avoid_distance(); }
+					using AI::BE::Player::pre_tick;
+					using AI::BE::Player::path;
 
 				private:
 					/**

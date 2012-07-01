@@ -20,14 +20,14 @@ namespace {
 
 	class FirmwareUploadOperation : public NonCopyable, public sigc::trackable {
 		public:
-			FirmwareUploadOperation(const Firmware::IntelHex &hex, bool fpga, int robot, XBeeDongle &dongle, Glib::RefPtr<Glib::MainLoop> main_loop) : hex(hex), fpga(fpga), robot(robot), dongle(dongle), main_loop(main_loop) {
+			FirmwareUploadOperation(const Firmware::IntelHex &hex, bool fpga, unsigned int robot, XBeeDongle &dongle, Glib::RefPtr<Glib::MainLoop> main_loop) : hex(hex), fpga(fpga), robot(robot), dongle(dongle), main_loop(main_loop) {
 				Glib::signal_idle().connect_once(sigc::mem_fun(this, &FirmwareUploadOperation::start_operation));
 			}
 
 		private:
 			const Firmware::IntelHex &hex;
 			const bool fpga;
-			const int robot;
+			const unsigned int robot;
 			XBeeDongle &dongle;
 			const Glib::RefPtr<Glib::MainLoop> main_loop;
 			sigc::connection alive_changed_connection;
@@ -184,7 +184,7 @@ namespace {
 	};
 }
 
-void Firmware::xbee_upload(const IntelHex &hex, bool fpga, int robot) {
+void Firmware::xbee_upload(const IntelHex &hex, bool fpga, unsigned int robot) {
 	std::cout << "Finding dongle... " << std::flush;
 	XBeeDongle dongle;
 	std::cout << "OK\n";

@@ -190,10 +190,10 @@ class PASCHL : public HighLevel {
 			std::vector<std::pair<Point, Angle>> robot_positions;
 			state current_state;
 			Point horizontal_intercept(Player::Ptr player);
-			void robot_pass(int passer_num, int receiver_num, state next_state);
+			void robot_pass(std::size_t passer_num, std::size_t receiver_num, state next_state);
 			bool ball_out_of_play();
 			bool kicked_ball;
-		    bool intercept_and_move(int idx);
+		    bool intercept_and_move(std::size_t idx);
 };
 
 Point PASCHL::horizontal_intercept(Player::Ptr player) {
@@ -210,7 +210,7 @@ Point PASCHL::horizontal_intercept(Player::Ptr player) {
 	return vector_rect_intersect(ball_intercept_boundary, world.ball().position(), world.ball().velocity() + world.ball().position());
 }
 
-void PASCHL::robot_pass(int passer_num, int receiver_num, state next_state) {
+void PASCHL::robot_pass(std::size_t passer_num, std::size_t receiver_num, state next_state) {
 	// we are assuming that we have the ball here
 	Player::Ptr passer = world.friendly_team().get(passer_num);
 	Player::Ptr receiver = world.friendly_team().get(receiver_num);
@@ -275,7 +275,7 @@ bool PASCHL::ball_out_of_play() {
 	return (ball_position_in_square && (ball_future < bot_y_top_position && ball_future > bot_y_bottom_position));
 }
 
-bool PASCHL::intercept_and_move(int idx) {
+bool PASCHL::intercept_and_move(std::size_t idx) {
   Player::Ptr intercepter = world.friendly_team().get(idx);
 
   if (!intercepter->has_ball())

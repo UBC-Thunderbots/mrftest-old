@@ -15,18 +15,6 @@
 using namespace std::placeholders;
 
 namespace {
-	xmlpp::Element *find_joystick_elt(const Glib::ustring &name) {
-		const xmlpp::Element *joysticks_elt = Config::joysticks();
-		const xmlpp::Node::NodeList &joystick_elts = joysticks_elt->get_children();
-		for (auto i = joystick_elts.begin(), iend = joystick_elts.end(); i != iend; ++i) {
-			xmlpp::Element *joystick_elt = dynamic_cast<xmlpp::Element *>(*i);
-			if (joystick_elt && joystick_elt->get_attribute_value(u8"name") == name) {
-				return joystick_elt;
-			}
-		}
-		std::abort();
-	}
-
 	bool format_spin_output(Gtk::SpinButton &btn) {
 		int i = btn.get_value_as_int();
 		if (i >= 0) {
@@ -45,7 +33,7 @@ namespace {
 		const Gtk::TreeSelection::ListHandle_Path &sel = tv.get_selection()->get_selected_rows();
 		assert(!sel.empty());
 		const Gtk::TreePath &p = *sel.begin();
-		return p[0];
+		return static_cast<std::size_t>(p[0]);
 	}
 }
 
@@ -99,7 +87,7 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 			JoystickMapping m(name);
 			auto iter = std::lower_bound(mappings.begin(), mappings.end(), m);
 			assert(!(iter != mappings.end() && iter->name() == name));
-			std::size_t index = iter - mappings.begin();
+			std::size_t index = static_cast<std::size_t>(iter - mappings.begin());
 			mappings.insert(iter, m);
 			alm_row_inserted(index);
 			return index;
@@ -107,7 +95,7 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 
 		void remove_mapping(std::size_t index) {
 			assert(index < mappings.size());
-			mappings.erase(mappings.begin() + index);
+			mappings.erase(mappings.begin() + static_cast<std::vector<JoystickMapping>::difference_type>(index));
 			alm_row_deleted(index);
 		}
 
@@ -148,7 +136,7 @@ class MapperWindow::PreviewDevicesModel : public Glib::Object, public AbstractLi
 		void present(const Glib::ustring &model = Glib::ustring()) {
 			while (!devices.empty()) {
 				std::size_t sz = devices.size();
-				devices.erase(devices.begin() + sz - 1);
+				devices.erase(devices.begin() + static_cast<std::vector<const Joystick *>::difference_type>(sz - 1));
 				alm_row_deleted(sz);
 			}
 			if (!model.empty()) {
@@ -341,7 +329,7 @@ void MapperWindow::on_axis_changed(unsigned int i) {
 	if (has_selected_row(name_chooser)) {
 		JoystickMapping &m = mappings->mappings[get_selected_row(name_chooser)];
 		if (axis_spinners[i].get_text() != u8"<None>") {
-			m.set_axis(i, axis_spinners[i].get_value_as_int());
+			m.set_axis(i, static_cast<unsigned int>(axis_spinners[i].get_value_as_int()));
 		} else {
 			m.clear_axis(i);
 		}
@@ -353,7 +341,7 @@ void MapperWindow::on_button_changed(unsigned int i) {
 	if (has_selected_row(name_chooser)) {
 		JoystickMapping &m = mappings->mappings[get_selected_row(name_chooser)];
 		if (button_spinners[i].get_text() != u8"<None>") {
-			m.set_button(i, button_spinners[i].get_value_as_int());
+			m.set_button(i, static_cast<unsigned int>(button_spinners[i].get_value_as_int()));
 		} else {
 			m.clear_button(i);
 		}
@@ -363,14 +351,14 @@ void MapperWindow::on_button_changed(unsigned int i) {
 
 void MapperWindow::on_preview_device_changed() {
 	preview_device_connection.disconnect();
-	const Joystick *device = preview_devices->get_device(preview_device_chooser.get_active_row_number());
+	const Joystick *device = preview_devices->get_device(static_cast<std::size_t>(preview_device_chooser.get_active_row_number()));
 	if (device) {
 		preview_device_connection = device->signal_changed().connect(sigc::mem_fun(this, &MapperWindow::update_preview));
 	}
 }
 
 void MapperWindow::update_preview() {
-	const Joystick *device = preview_devices->get_device(preview_device_chooser.get_active_row_number());
+	const Joystick *device = preview_devices->get_device(static_cast<std::size_t>(preview_device_chooser.get_active_row_number()));
 	if (device && has_selected_row(name_chooser)) {
 		const JoystickMapping &m = mappings->mappings[get_selected_row(name_chooser)];
 		for (unsigned int i = 0; i < JoystickMapping::N_AXES; ++i) {

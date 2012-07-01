@@ -210,7 +210,7 @@ std::string USB::Device::serial_number() const {
 USB::DeviceList::DeviceList(Context &context) {
 	ssize_t ssz;
 	check_fn("libusb_get_device_list", ssz = libusb_get_device_list(context.context, &devices), 0);
-	size_ = ssz;
+	size_ = static_cast<std::size_t>(ssz);
 }
 
 USB::DeviceList::~DeviceList() {
@@ -293,7 +293,7 @@ void USB::DeviceHandle::control_no_data(uint8_t request_type, uint8_t request, u
 std::size_t USB::DeviceHandle::control_in(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, void *buffer, std::size_t len, unsigned int timeout) {
 	assert((request_type & LIBUSB_ENDPOINT_DIR_MASK) == 0);
 	assert(len < 65536);
-	return check_fn("libusb_control_transfer", libusb_control_transfer(handle, request_type | LIBUSB_ENDPOINT_IN, request, value, index, static_cast<unsigned char *>(buffer), static_cast<uint16_t>(len), timeout), 0);
+	return static_cast<std::size_t>(check_fn("libusb_control_transfer", libusb_control_transfer(handle, request_type | LIBUSB_ENDPOINT_IN, request, value, index, static_cast<unsigned char *>(buffer), static_cast<uint16_t>(len), timeout), 0));
 }
 
 void USB::DeviceHandle::control_out(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, const void *buffer, std::size_t len, unsigned int timeout) {
@@ -308,7 +308,7 @@ std::size_t USB::DeviceHandle::interrupt_in(unsigned char endpoint, void *data, 
 	int transferred = -1;
 	check_fn("libusb_interrupt_transfer", libusb_interrupt_transfer(handle, endpoint | LIBUSB_ENDPOINT_IN, static_cast<unsigned char *>(data), static_cast<int>(length), &transferred, timeout), endpoint | LIBUSB_ENDPOINT_IN);
 	assert(transferred >= 0);
-	return transferred;
+	return static_cast<std::size_t>(transferred);
 }
 
 void USB::DeviceHandle::interrupt_out(unsigned char endpoint, const void *data, std::size_t length, unsigned int timeout) {
@@ -327,7 +327,7 @@ std::size_t USB::DeviceHandle::bulk_in(unsigned char endpoint, void *data, std::
 	int transferred = -1;
 	check_fn("libusb_bulk_transfer", libusb_bulk_transfer(handle, endpoint | LIBUSB_ENDPOINT_IN, static_cast<unsigned char *>(data), static_cast<uint16_t>(length), &transferred, timeout), endpoint | LIBUSB_ENDPOINT_IN);
 	assert(transferred >= 0);
-	return transferred;
+	return static_cast<std::size_t>(transferred);
 }
 
 

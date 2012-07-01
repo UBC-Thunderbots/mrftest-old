@@ -46,10 +46,14 @@ namespace {
 		return FileDescriptor::create_open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	}
 
-	uint32_t encode_micros(double in) {
+	int32_t encode_micros(double in) {
 		const double min = std::numeric_limits<int32_t>::min();
 		const double max = std::numeric_limits<int32_t>::max();
-		return static_cast<uint32_t>(static_cast<int32_t>(clamp(in * 1000000.0, min, max)));
+		return static_cast<int32_t>(clamp(in * 1000000.0, min, max));
+	}
+
+	uint32_t encode_micros_unsigned(double in) {
+		return static_cast<uint32_t>(encode_micros(in));
 	}
 
 	void timespec_to_log(const timespec &src, Log::MonotonicTimeSpec &dest) {
@@ -160,7 +164,7 @@ void AI::Logger::end_with_exception(const char *msg) {
 void AI::Logger::write_record(const Log::Record &record) {
 	assert(record.IsInitialized());
 	google::protobuf::io::CodedOutputStream cos(&fos);
-	cos.WriteVarint32(record.ByteSize());
+	cos.WriteVarint32(static_cast<uint32_t>(record.ByteSize()));
 	record.SerializeWithCachedSizes(&cos);
 	if (cos.HadError()) {
 		throw std::runtime_error("Failed to serialize log record.");
@@ -197,7 +201,7 @@ void AI::Logger::attach_param_change_handler(ParamTreeNode *node) {
 
 void AI::Logger::signal_handler(int sig) {
 	Log::Record record;
-	record.mutable_shutdown()->mutable_signal()->set_signal(sig);
+	record.mutable_shutdown()->mutable_signal()->set_signal(static_cast<uint32_t>(sig));
 	write_record(record);
 	flush();
 	ended = true;
@@ -271,14 +275,14 @@ void AI::Logger::on_refbox_packet(timespec ts, const void *refbox_packet, std::s
 void AI::Logger::on_field_changed() {
 	Log::Record record;
 	const AI::Common::Field &field = static_cast<const AI::HL::W::Field &>(ai.backend.field());
-	record.mutable_field()->set_length(encode_micros(field.length()));
-	record.mutable_field()->set_total_length(encode_micros(field.total_length()));
-	record.mutable_field()->set_width(encode_micros(field.width()));
-	record.mutable_field()->set_total_width(encode_micros(field.total_width()));
-	record.mutable_field()->set_goal_width(encode_micros(field.goal_width()));
-	record.mutable_field()->set_centre_circle_radius(encode_micros(field.centre_circle_radius()));
-	record.mutable_field()->set_defense_area_radius(encode_micros(field.defense_area_radius()));
-	record.mutable_field()->set_defense_area_stretch(encode_micros(field.defense_area_stretch()));
+	record.mutable_field()->set_length(encode_micros_unsigned(field.length()));
+	record.mutable_field()->set_total_length(encode_micros_unsigned(field.total_length()));
+	record.mutable_field()->set_width(encode_micros_unsigned(field.width()));
+	record.mutable_field()->set_total_width(encode_micros_unsigned(field.total_width()));
+	record.mutable_field()->set_goal_width(encode_micros_unsigned(field.goal_width()));
+	record.mutable_field()->set_centre_circle_radius(encode_micros_unsigned(field.centre_circle_radius()));
+	record.mutable_field()->set_defense_area_radius(encode_micros_unsigned(field.defense_area_radius()));
+	record.mutable_field()->set_defense_area_stretch(encode_micros_unsigned(field.defense_area_stretch()));
 	write_record(record);
 }
 

@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <string>
+#include <unistd.h>
 #include <utility>
 #include <glibmm/convert.h>
 #include <glibmm/fileutils.h>
@@ -41,10 +42,10 @@ namespace {
 				return "";
 			}
 		} while (len == static_cast<int>(buffer.size()));
-		return Glib::locale_to_utf8(std::string(&buffer[0], len - 1));
+		return Glib::locale_to_utf8(std::string(&buffer[0], static_cast<std::size_t>(len) - 1));
 	}
 
-	unsigned int get_num_objects(const FileDescriptor &fd, int req, const char *call) {
+	unsigned int get_num_objects(const FileDescriptor &fd, unsigned long req, const char *call) {
 		uint8_t u8;
 		if (ioctl(fd.fd(), req, &u8) < 0) {
 			throw SystemError(call, errno);

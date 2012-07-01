@@ -77,8 +77,6 @@ bool triangle_circle_intersect(const Point p1, const Point p2, const Point p3, c
 std::vector<std::pair<Point, Angle> > angle_sweep_circles_all(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius) {
 	std::vector<std::pair<Point, Angle> > ret;
 
-	// default value to return if nothing is valid
-	Point bestshot = (p1 + p2) * 0.5;
 	const Angle offangle = (p1 - src).orientation();
 	if (collinear(src, p1, p2)) {
 		// std::cerr << "geom: collinear " << src << " " << p1 << " " << p2 << std::endl;
@@ -346,7 +344,6 @@ std::vector<Point> line_circle_intersect(const Point &centre, double radius, con
 	}
 	// first possible intersection
 	double lensegb = radius * radius - (C - centre).lensq();
-	Point inter = C - lensegb * (segB - segA).norm();
 
 	ans.push_back(C - lensegb * (segB - segA).norm());
 	ans.push_back(C + lensegb * (segB - segA).norm());
@@ -356,10 +353,9 @@ std::vector<Point> line_circle_intersect(const Point &centre, double radius, con
 
 std::vector<Point> line_rect_intersect(const Rect &r, const Point &segA, const Point &segB) {
 	std::vector<Point> ans;
-	for (int i = 0; i < 4; i++) {
-		int j = i + 1;
+	for (unsigned int i = 0; i < 4; i++) {
 		const Point &a = r[i];
-		const Point &b = r[j];
+		const Point &b = r[i + 1];
 		if (seg_crosses_seg(a, b, segA, segB) && unique_line_intersect(a, b, segA, segB)) {
 			ans.push_back(line_intersect(a, b, segA, segB));
 		}

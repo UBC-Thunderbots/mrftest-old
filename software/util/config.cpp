@@ -33,7 +33,7 @@ namespace {
 			throw SystemError("readlink(/proc/self/exe)", errno);
 		}
 		if (retval < static_cast<ssize_t>(buffer.size())) {
-			buffer[retval] = '\0';
+			buffer[static_cast<std::size_t>(retval)] = '\0';
 		} else {
 			buffer.push_back('\0');
 		}

@@ -3,32 +3,32 @@
 using namespace AI::HL::STP;
 
 Player::CPtr AI::HL::STP::Evaluation::nearest_friendly(const World &world, Point target) {
-	int dist_i = -1;
+	Player::CPtr plr;
 	double dist = 0;
 
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
 		double d = (target - world.friendly_team().get(i)->position()).len();
-		if (dist_i < 0 || d < dist) {
-			dist_i = static_cast<int>(i);
+		if (!plr || d < dist) {
+			plr = world.friendly_team().get(i);
 			dist = d;
 		}
 	}
 
-	return world.friendly_team().get(dist_i);
+	return plr;
 }
 
 Robot::Ptr AI::HL::STP::Evaluation::nearest_enemy(const World &world, Point target) {
-	int dist_i = -1;
+	Robot::Ptr bot;
 	double dist = 0;
 
 	for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
 		double d = (target - world.enemy_team().get(i)->position()).len();
-		if (dist_i < 0 || d < dist) {
-			dist_i = static_cast<int>(i);
+		if (!bot || d < dist) {
+			bot = world.enemy_team().get(i);
 			dist = d;
 		}
 	}
 
-	return world.enemy_team().get(dist_i);
+	return bot;
 }
 

@@ -111,11 +111,9 @@ BITCODEC_NS_BEGIN
 #undef BITCODEC_DATA_BOOL
 	};
 
-	bool operator==(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y);
+	bool operator==(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y) __attribute__((unused));
 
-	inline bool operator!=(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y) {
-		return !(x == y);
-	}
+	bool operator!=(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y) __attribute__((unused));
 BITCODEC_NS_END
 
 namespace {
@@ -188,6 +186,10 @@ BITCODEC_NS_BEGIN
 #undef BITCODEC_DATA_S
 #undef BITCODEC_DATA_BOOL
 			;
+	}
+
+	bool operator!=(const BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME &x, const BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME &y) {
+		return !(x == y);
 	}
 BITCODEC_NS_END
 #endif

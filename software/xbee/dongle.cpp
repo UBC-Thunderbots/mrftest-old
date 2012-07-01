@@ -13,7 +13,7 @@
 #include <glibmm/ustring.h>
 
 namespace std {
-	template<> class hash<XBeeDongle::CommonFault> {
+	template<> struct hash<XBeeDongle::CommonFault> {
 		public:
 			std::size_t operator()(XBeeDongle::CommonFault f) const {
 				return h(f);
@@ -23,7 +23,7 @@ namespace std {
 			std::hash<unsigned int> h;
 	};
 
-	template<> class hash<XBeeDongle::DongleFault> {
+	template<> struct hash<XBeeDongle::DongleFault> {
 		public:
 			std::size_t operator()(XBeeDongle::DongleFault f) const {
 				return h(f);
@@ -33,7 +33,7 @@ namespace std {
 			std::hash<unsigned int> h;
 	};
 
-	template<> class hash<XBeeDongle::RobotFault> {
+	template<> struct hash<XBeeDongle::RobotFault> {
 		public:
 			std::size_t operator()(XBeeDongle::RobotFault f) const {
 				return h(f);
@@ -463,7 +463,7 @@ void XBeeDongle::dirty_drive(unsigned int index) {
 }
 
 void XBeeDongle::submit_drive_transfer(const void *buffer, std::size_t length) {
-	std::size_t index = std::find(drive_transfers.begin(), drive_transfers.end(), std::unique_ptr<USB::InterruptOutTransfer>()) - drive_transfers.begin();
+	std::size_t index = static_cast<std::size_t>(std::find(drive_transfers.begin(), drive_transfers.end(), std::unique_ptr<USB::InterruptOutTransfer>()) - drive_transfers.begin());
 	if (index == drive_transfers.size()) {
 		drive_transfers.push_back(std::unique_ptr<USB::InterruptOutTransfer>());
 	}

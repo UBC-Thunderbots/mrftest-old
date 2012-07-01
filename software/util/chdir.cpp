@@ -1,5 +1,6 @@
 #include "util/chdir.h"
 #include "util/exception.h"
+#include <cerrno>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>

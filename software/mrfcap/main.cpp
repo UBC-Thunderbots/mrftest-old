@@ -20,22 +20,6 @@ namespace {
 		return ull;
 	}
 
-	void split(const std::string &whole, std::vector<std::string> &parts) {
-		if (whole.empty()) {
-			return;
-		}
-		std::string::size_type idx = 0;
-		while (idx != std::string::npos) {
-			if (whole[idx] == ' ') {
-				idx = whole.find_first_not_of(" ", idx);
-			} else {
-				std::string::size_type idx2 = whole.find_first_of(" ", idx);
-				parts.emplace_back(whole, idx, idx2 == std::string::npos ? std::string::npos : idx2 - idx);
-				idx = idx2;
-			}
-		}
-	}
-
 	int main_impl(int argc, char **argv) {
 		// Set the current locale from environment variables
 		std::locale::global(std::locale(""));
@@ -158,7 +142,7 @@ namespace {
 					ofs.write(reinterpret_cast<const char *>(&u32), 4);
 					ofs.write(reinterpret_cast<const char *>(&u32), 4);
 				}
-				ofs.write(reinterpret_cast<const char *>(buffer + 2), len - 4);
+				ofs.write(reinterpret_cast<const char *>(buffer + 2), static_cast<std::streamsize>(len - 4));
 				ofs.flush();
 				std::cout << "Captured packet of length " << len << '\n';
 			} else {

@@ -162,7 +162,7 @@ namespace {
 			void remove_player(Simulator::Player *p) {
 				for (std::size_t i = 0; i < the_players.size(); i++) {
 					if (the_players[i].get() == p) {
-						the_players.erase(the_players.begin() + i);
+						the_players.erase(the_players.begin() + static_cast<std::vector<std::unique_ptr<PlayerODE>>::difference_type>(i));
 						return;
 					}
 				}
@@ -233,7 +233,7 @@ namespace {
 					std::cout << "  hello world!!!  " << std::endl;
 					// handleRobotBallCollision(o1, o2);
 				} else {
-					if (unsigned int numc = dCollide(o1, o2, num_contact, &contact[0].geom, sizeof(dContact))) {
+					if (unsigned int numc = static_cast<unsigned int>(dCollide(o1, o2, num_contact, &contact[0].geom, sizeof(dContact)))) {
 						for (unsigned int i = 0; i < numc; i++) {
 							contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
 							contact[i].surface.mu = MU;

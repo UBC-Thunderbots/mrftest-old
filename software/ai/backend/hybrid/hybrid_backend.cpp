@@ -167,7 +167,7 @@ namespace {
 		public:
 			AI::BE::Hybrid::RefBox refbox;
 
-			explicit HybridBackend(XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle, unsigned int camera_mask, unsigned int multicast_interface);
+			explicit HybridBackend(XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle, unsigned int camera_mask, int multicast_interface);
 			BackendFactory &factory() const;
 			const Field &field() const;
 			const Ball &ball() const;
@@ -211,7 +211,7 @@ namespace {
 	class HybridBackendFactory : public BackendFactory {
 		public:
 			explicit HybridBackendFactory();
-			void create_backend(const std::string &, unsigned int camera_mask, unsigned int multicast_interface, std::function<void(Backend &)> cb) const;
+			void create_backend(const std::string &, unsigned int camera_mask, int multicast_interface, std::function<void(Backend &)> cb) const;
 	};
 }
 
@@ -249,11 +249,11 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 
 	// Update existing robots and create new robots.
 	std::vector<bool> used_data[2];
-	for (unsigned int i = 0; i < 2; ++i) {
+	for (std::size_t i = 0; i < 2; ++i) {
 		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> &rep(*packets[i]);
-		used_data[i].resize(rep.size(), false);
-		for (int j = 0; j < rep.size(); ++j) {
-			const SSL_DetectionRobot &detbot = rep.Get(j);
+		used_data[i].resize(static_cast<std::size_t>(rep.size()), false);
+		for (std::size_t j = 0; j < static_cast<std::size_t>(rep.size()); ++j) {
+			const SSL_DetectionRobot &detbot = rep.Get(static_cast<int>(j));
 			if (detbot.has_robot_id()) {
 				unsigned int pattern = detbot.robot_id();
 				typename T::Ptr bot = members[pattern];
@@ -336,7 +336,7 @@ void HybridEnemyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, std::ref(backend), pattern);
 }
 
-HybridBackend::HybridBackend(XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle, unsigned int camera_mask, unsigned int multicast_interface) : Backend(), refbox(multicast_interface), camera_mask(camera_mask), clock(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND), ball_(*this), friendly(*this, xbee_dongle, mrf_dongle), enemy(*this), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
+HybridBackend::HybridBackend(XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle, unsigned int camera_mask, int multicast_interface) : Backend(), refbox(multicast_interface), camera_mask(camera_mask), clock(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND), ball_(*this), friendly(*this, xbee_dongle, mrf_dongle), enemy(*this), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
 	if (!(1 <= camera_mask && camera_mask <= 3)) {
 		throw std::runtime_error("Invalid camera bitmask (must be 1–3)");
 	}
@@ -745,7 +745,7 @@ AI::Common::PlayType HybridBackend::compute_playtype(AI::Common::PlayType old_pt
 HybridBackendFactory::HybridBackendFactory() : BackendFactory("hybrid") {
 }
 
-void HybridBackendFactory::create_backend(const std::string &, unsigned int camera_mask, unsigned int multicast_interface, std::function<void(Backend &)> cb) const {
+void HybridBackendFactory::create_backend(const std::string &, unsigned int camera_mask, int multicast_interface, std::function<void(Backend &)> cb) const {
 	XBeeDongle xbee_dongle;
 	xbee_dongle.enable();
 	MRFDongle mrf_dongle;

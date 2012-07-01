@@ -23,7 +23,7 @@ namespace {
 		do {
 			char buffer[4096];
 			fs.read(buffer, sizeof(buffer));
-			crc = CRC16::calculate(buffer, fs.gcount(), crc);
+			crc = CRC16::calculate(buffer, static_cast<std::size_t>(fs.gcount()), crc);
 		} while (!fs.eof());
 		std::cout << "0x" << tohex(crc, 4) << '\n';
 

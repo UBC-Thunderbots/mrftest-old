@@ -39,6 +39,10 @@ namespace {
 		return x / 1.0e6;
 	}
 
+	double decode_micros_unsigned(uint32_t x) {
+		return x / 1.0e6;
+	}
+
 	class Field : public NonCopyable, public Visualizable::Field {
 		public:
 			Field() : valid_(false) {
@@ -82,14 +86,14 @@ namespace {
 
 			void update(const Log::Field &field) {
 				valid_ = true;
-				length_ = decode_micros(field.length());
-				total_length_ = decode_micros(field.total_length());
-				width_ = decode_micros(field.width());
-				total_width_ = decode_micros(field.total_width());
-				goal_width_ = decode_micros(field.goal_width());
-				centre_circle_radius_ = decode_micros(field.centre_circle_radius());
-				defense_area_radius_ = decode_micros(field.defense_area_radius());
-				defense_area_stretch_ = decode_micros(field.defense_area_stretch());
+				length_ = decode_micros_unsigned(field.length());
+				total_length_ = decode_micros_unsigned(field.total_length());
+				width_ = decode_micros_unsigned(field.width());
+				total_width_ = decode_micros_unsigned(field.total_width());
+				goal_width_ = decode_micros_unsigned(field.goal_width());
+				centre_circle_radius_ = decode_micros_unsigned(field.centre_circle_radius());
+				defense_area_radius_ = decode_micros_unsigned(field.defense_area_radius());
+				defense_area_stretch_ = decode_micros_unsigned(field.defense_area_stretch());
 				signal_changed.emit();
 			}
 

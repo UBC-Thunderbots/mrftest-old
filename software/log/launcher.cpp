@@ -153,7 +153,7 @@ void LogLauncher::start_compressing() {
 	}
 
 	// Update progress bar to show # of files completely finished (excludes those left to compress *and* those currently compressing).
-	std::size_t files_done = std::distance(static_cast<const std::vector<std::string> &>(files_to_compress).begin(), next_file_to_compress) - compress_threads.size();
+	std::size_t files_done = static_cast<std::size_t>(std::distance(static_cast<const std::vector<std::string> &>(files_to_compress).begin(), next_file_to_compress)) - compress_threads.size();
 	compress_progress_bar.set_text(Glib::ustring::compose("Compressed %1 / %2", files_done, files_to_compress.size()));
 	compress_progress_bar.set_fraction(static_cast<double>(files_done) / static_cast<double>(files_to_compress.size()));
 
@@ -198,7 +198,7 @@ void LogLauncher::compress_thread_proc(const std::string &filename) {
 		// BZip2 compression states:
 		// "To guarantee that the compressed data will fit in its buffer, allocate an output buffer of size 1% larger than the uncompressed data, plus six hundred extra bytes."
 		// We do this by truncating the file and then mapping it.
-		if (ftruncate(dst_fd.fd(), src_mapping.size() + (src_mapping.size() + 99) / 100 + 600) < 0) {
+		if (ftruncate(dst_fd.fd(), static_cast<off_t>(src_mapping.size() + (src_mapping.size() + 99) / 100 + 600)) < 0) {
 			throw SystemError("ftruncate", errno);
 		}
 
@@ -208,7 +208,7 @@ void LogLauncher::compress_thread_proc(const std::string &filename) {
 			if (dst_mapping.size() > std::numeric_limits<unsigned int>::max()) {
 				throw std::runtime_error("Log file too big.");
 			}
-			unsigned int dlen = static_cast<int>(dst_mapping.size());
+			unsigned int dlen = static_cast<unsigned int>(dst_mapping.size());
 			if (BZ2_bzBuffToBuffCompress(static_cast<char *>(dst_mapping.data()), &dlen, const_cast<char *>(static_cast<const char *>(src_mapping.data())), static_cast<unsigned int>(src_mapping.size()), 9, 0, 0) != BZ_OK) {
 				throw std::runtime_error("BZip2 error compressing log file.");
 			}
@@ -264,14 +264,14 @@ void LogLauncher::on_log_list_selection_changed() {
 void LogLauncher::on_analyzer_clicked() {
 	const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
 	for (auto i = selected.begin(), iend = selected.end(); i != iend; ++i) {
-		new LogAnalyzer(*this, filename_to_pathname(files[(*i)[0]]));
+		new LogAnalyzer(*this, filename_to_pathname(files[static_cast<std::size_t>((*i)[0])]));
 	}
 }
 
 void LogLauncher::on_player_clicked() {
 	const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
 	for (auto i = selected.begin(), iend = selected.end(); i != iend; ++i) {
-		new LogPlayer(*this, filename_to_pathname(files[(*i)[0]]));
+		new LogPlayer(*this, filename_to_pathname(files[static_cast<std::size_t>((*i)[0])]));
 	}
 }
 
@@ -283,7 +283,7 @@ void LogLauncher::on_rename_clicked() {
 	Gtk::Entry new_name_entry;
 	new_name_entry.set_activates_default();
 	new_name_entry.set_width_chars(30);
-	new_name_entry.set_text(log_list.get_text(log_list.get_selected()[0]));
+	new_name_entry.set_text(log_list.get_text(static_cast<unsigned int>(log_list.get_selected()[0])));
 	hbox.pack_start(new_name_entry, Gtk::PACK_EXPAND_WIDGET);
 	hbox.show_all();
 	dlg.get_vbox()->pack_start(hbox, Gtk::PACK_SHRINK);
@@ -292,7 +292,7 @@ void LogLauncher::on_rename_clicked() {
 	dlg.set_default_response(Gtk::RESPONSE_OK);
 	int resp = dlg.run();
 	if (resp == Gtk::RESPONSE_OK) {
-		const std::string &old_name = files[log_list.get_selected()[0]];
+		const std::string &old_name = files[static_cast<std::size_t>(log_list.get_selected()[0])];
 		const std::string &new_name = Glib::filename_from_utf8(new_name_entry.get_text());
 		if (new_name != old_name) {
 			const std::string &old_path = filename_to_pathname(old_name);
@@ -317,7 +317,7 @@ void LogLauncher::on_delete_clicked() {
 	if (resp == Gtk::RESPONSE_YES) {
 		const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
 		for (Gtk::TreeSelection::ListHandle_Path::const_iterator i = selected.begin(), iend = selected.end(); i != iend; ++i) {
-			const std::string &pathname = filename_to_pathname(files[(*i)[0]]);
+			const std::string &pathname = filename_to_pathname(files[static_cast<std::size_t>((*i)[0])]);
 			try {
 				if (std::remove(pathname.c_str()) < 0) {
 					throw SystemError("remove", errno);
@@ -332,7 +332,7 @@ void LogLauncher::on_delete_clicked() {
 }
 
 void LogLauncher::on_export_clicked() {
-	const std::string &original_name = files[log_list.get_selected()[0]];
+	const std::string &original_name = files[static_cast<std::size_t>(log_list.get_selected()[0])];
 	Gtk::FileChooserDialog fcd(*this, "Export Log", Gtk::FILE_CHOOSER_ACTION_SAVE);
 	fcd.set_do_overwrite_confirmation();
 	fcd.set_current_name(Glib::filename_display_basename(original_name));

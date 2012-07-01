@@ -56,16 +56,16 @@ namespace AI {
 					Glib::ustring visualizer_label() const;
 					bool highlight() const;
 					Visualizable::Colour highlight_colour() const;
-					Point position(double delta = 0.0) const { return Robot::position(delta); }
-					Point velocity(double delta = 0.0) const { return Robot::velocity(delta); }
-					Angle orientation(double delta = 0.0) const { return Robot::orientation(delta); }
-					Angle avelocity(double delta = 0.0) const { return Robot::avelocity(delta); }
-					Point position_stdev(double delta = 0.0) const { return Robot::position_stdev(delta); }
-					Point velocity_stdev(double delta = 0.0) const { return Robot::velocity_stdev(delta); }
-					Angle orientation_stdev(double delta = 0.0) const { return Robot::orientation_stdev(delta); }
-					Angle avelocity_stdev(double delta = 0.0) const { return Robot::avelocity_stdev(delta); }
-					unsigned int pattern() const { return Robot::pattern(); }
-					ObjectStore &object_store() const { return Robot::object_store(); }
+					Point position(double delta = 0.0) const { return AI::BE::XBee::Robot::position(delta); }
+					Point velocity(double delta = 0.0) const { return AI::BE::XBee::Robot::velocity(delta); }
+					Angle orientation(double delta = 0.0) const { return AI::BE::XBee::Robot::orientation(delta); }
+					Angle avelocity(double delta = 0.0) const { return AI::BE::XBee::Robot::avelocity(delta); }
+					Point position_stdev(double delta = 0.0) const { return AI::BE::XBee::Robot::position_stdev(delta); }
+					Point velocity_stdev(double delta = 0.0) const { return AI::BE::XBee::Robot::velocity_stdev(delta); }
+					Angle orientation_stdev(double delta = 0.0) const { return AI::BE::XBee::Robot::orientation_stdev(delta); }
+					Angle avelocity_stdev(double delta = 0.0) const { return AI::BE::XBee::Robot::avelocity_stdev(delta); }
+					unsigned int pattern() const { return AI::BE::XBee::Robot::pattern(); }
+					ObjectStore &object_store() const { return AI::BE::XBee::Robot::object_store(); }
 					bool alive() const;
 					bool has_ball() const;
 					bool chicker_ready() const;
@@ -80,15 +80,14 @@ namespace AI {
 					void path_impl(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p) { path_ = p; }
 					bool has_path() const { return true; }
 					const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path() const { return path_; }
+					using AI::BE::Player::path;
 					unsigned int num_bar_graphs() const;
 					double bar_graph_value(unsigned int) const;
 					Visualizable::Colour bar_graph_colour(unsigned int) const;
 					void drive(const int(&w)[4]);
-					const int(&wheel_speeds() const)[4] {
-						return wheel_speeds_;
-					}
-					void avoid_distance(AI::Flags::AvoidDistance dist) const { Robot::avoid_distance(dist); }
-					AI::Flags::AvoidDistance avoid_distance() const { return Robot::avoid_distance(); }
+					const int(&wheel_speeds() const)[4] { return wheel_speeds_; }
+					void avoid_distance(AI::Flags::AvoidDistance dist) const { AI::BE::XBee::Robot::avoid_distance(dist); }
+					AI::Flags::AvoidDistance avoid_distance() const { return AI::BE::XBee::Robot::avoid_distance(); }
 					void pre_tick() { AI::BE::Player::pre_tick(); }
 
 

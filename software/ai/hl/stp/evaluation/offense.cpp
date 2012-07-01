@@ -202,8 +202,8 @@ namespace {
 
 		best_pos = Point();
 
-		for (int i = 1; i <= 2 * grid_y + 1; i += 2) {
-			for (int j = (i / 2 + 1) % 2 + 1; j <= 2 * grid_x + 1; j += 2) {
+		for (unsigned int i = 1; i <= 2 * static_cast<unsigned int>(grid_y) + 1; i += 2) {
+			for (unsigned int j = (i / 2 + 1) % 2 + 1; j <= 2 * static_cast<unsigned int>(grid_x) + 1; j += 2) {
 				const double x = x1 + dx * j;
 				const double y = y1 + dy * i;
 				const Point pos = Point(x, y);
@@ -251,13 +251,13 @@ namespace {
 		score1.clear();
 		score2.clear();
 		good.clear();
-		score1.resize(2 * grid_y + 2);
-		score2.resize(2 * grid_y + 2);
-		good.resize(2 * grid_y + 2);
-		for (int i = 0; i < 2 * grid_y + 2; ++i) {
-			score1[i].resize(2 * grid_x + 2, -1e99);
-			score2[i].resize(2 * grid_x + 2, -1e99);
-			good[i].resize(2 * grid_x + 2, true);
+		score1.resize(2 * static_cast<unsigned int>(grid_y) + 2);
+		score2.resize(2 * static_cast<unsigned int>(grid_y) + 2);
+		good.resize(2 * static_cast<unsigned int>(grid_y) + 2);
+		for (std::size_t i = 0; i < 2 * static_cast<unsigned int>(grid_y) + 2; ++i) {
+			score1[i].resize(2 * static_cast<unsigned int>(grid_x) + 2, -1e99);
+			score2[i].resize(2 * static_cast<unsigned int>(grid_x) + 2, -1e99);
+			good[i].resize(2 * static_cast<unsigned int>(grid_x) + 2, true);
 		}
 
 		const EnemyTeam &enemy = world.enemy_team();

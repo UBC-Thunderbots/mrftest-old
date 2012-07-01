@@ -21,7 +21,7 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace {
 	class MarkOffside : public Tactic {
 		public:
-			MarkOffside(const World &world) : Tactic(world), target(target) {
+			MarkOffside(const World &world) : Tactic(world) {
 			}
 
 		private:
@@ -29,8 +29,7 @@ namespace {
 			void execute();
 			Coordinate dest;
 			Robot::Ptr player_to_mark(std::vector<AI::HL::W::Robot::Ptr> enemies) const;
-			const Point target;
-			Player::CPtr nearest_friendly (Point target) const;
+			Player::CPtr nearest_friendly(Point target) const;
 			Glib::ustring description() const {
 				return "MarkOffside";
 			}
@@ -44,14 +43,10 @@ namespace {
 		// filter out enemies that:
 		// 1. are far away from our goal
 		// 2. can't shoot to goal
-		if (enemies.size() != 0) {
-			for (std::size_t i = enemies.size() - 1; i > 0; i--) {
-				std::cout << i << std::endl;
-				if ((enemies[i]->position().x > 1.0) || (!Evaluation::enemy_can_shoot_goal(world, enemies[i]))) {
-					enemies.erase(enemies.begin() + i);
-				}
-			}
-		}
+		enemies.erase(std::remove_if(enemies.begin(), enemies.end(), [this](AI::HL::W::Robot::Ptr robot) -> bool {
+			return (robot->position().x > 1.0) || (!Evaluation::enemy_can_shoot_goal(world, robot));
+		}), enemies.end());
+
 		AI::HL::W::Robot::Ptr open_robot = Evaluation::calc_enemy_baller(world);
 		// find the enemy robot with the biggest open space
 		int most_open_index = -1;
@@ -65,14 +60,14 @@ namespace {
 		}
 
 		if (most_open_index != -1) {
-			open_robot = enemies[most_open_index];
+			open_robot = enemies[static_cast<std::size_t>(most_open_index)];
 		}
 
 		return open_robot;
 	}
 
 	//return nearest friendly from the pool of non-marker players
-	Player::CPtr MarkOffside::nearest_friendly (Point target) const{
+	Player::CPtr MarkOffside::nearest_friendly(Point target) const{
 		std::vector<Player::CPtr> team_pool;
 		for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
 			// filter out the player
@@ -80,16 +75,16 @@ namespace {
 				team_pool.push_back(world.friendly_team().get(i));
 			}
 		}
-		int closest_i = -1;
+		Player::CPtr closest;
 		double dist = 0;
 		for (std::size_t i = 0; i < team_pool.size(); i++) {
 			double d = (target - team_pool[i]->position()).len();
-			if (closest_i < 0 || d < dist) {
-				closest_i = static_cast<int>(i);
+			if (!closest || d < dist) {
+				closest = team_pool[i];
 				dist = d;
 			}
 		}
-		return team_pool[closest_i];
+		return closest;
 	}
 
 	void MarkOffside::execute() {

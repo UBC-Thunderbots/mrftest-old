@@ -12,7 +12,7 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	IntParam pass_target("passing target points", "STP/test_pass", 0, 0, 14);
+	IntParam pass_target_param("passing target points", "STP/test_pass", 0, 0, 14);
 	DoubleParam negligible_velocity("velocity to ignore", "STP/test_pass", 0.1, 0.0, 1.0);
 
 	DegreeParam passer_tol_target(" angle tolerance that the passer needs to be with respect to the target (degrees)", "STP/test_pass", 30.0, 0.0, 180.0);
@@ -70,6 +70,8 @@ namespace {
 			}
 
 			void tick() {
+				const std::size_t pass_target = static_cast<std::size_t>(pass_target_param);
+
 				tick_eval(world);
 
 				std::vector<AI::HL::W::Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());

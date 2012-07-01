@@ -210,7 +210,7 @@ namespace USB {
 
 			std::size_t size() const {
 				assert(done_);
-				return transfer->actual_length;
+				return static_cast<std::size_t>(transfer->actual_length);
 			}
 	};
 

@@ -147,13 +147,13 @@ namespace {
 		switch (mode) {
 			case MODE_2011_XBEE_FPGA:
 				if (0 <= robot && robot <= 15) {
-					Firmware::xbee_upload(hex, true, robot);
+					Firmware::xbee_upload(hex, true, static_cast<unsigned int>(robot));
 				}
 				break;
 
 			case MODE_2011_XBEE_PIC:
 				if (0 <= robot && robot <= 15) {
-					Firmware::xbee_upload(hex, false, robot);
+					Firmware::xbee_upload(hex, false, static_cast<unsigned int>(robot));
 				}
 				break;
 
@@ -163,7 +163,7 @@ namespace {
 
 			case MODE_2012_MRF_FPGA:
 				if (0 <= robot && robot <= 7) {
-					Firmware::mrf_upload(hex, robot);
+					Firmware::mrf_upload(hex, static_cast<unsigned int>(robot));
 				}
 				break;
 		}

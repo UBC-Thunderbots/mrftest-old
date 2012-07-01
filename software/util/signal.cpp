@@ -2,11 +2,11 @@
 #include "util/signal.h"
 #include <cerrno>
 
-SignalHandlerScopedRegistration::SignalHandlerScopedRegistration(int sig, SignalHandlerFunction handler, int flags) : sig(sig) {
+SignalHandlerScopedRegistration::SignalHandlerScopedRegistration(int sig, SignalHandlerFunction handler, unsigned int flags) : sig(sig) {
 	struct sigaction sa;
 	sa.sa_handler = handler;
 	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = flags;
+	sa.sa_flags = static_cast<int>(flags);
 	if (sigaction(sig, &sa, &old) < 0) {
 		throw SystemError("sigaction", errno);
 	}

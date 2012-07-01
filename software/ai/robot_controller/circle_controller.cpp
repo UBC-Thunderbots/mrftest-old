@@ -90,8 +90,6 @@ namespace {
 				robot_vel *= proportion;
 				robot_ang_vel *= proportion;
 
-				timespec cur_time = world.monotonic_time();
-
 				// if(robot_vel.len() > DIST_TOL){
 				// double speed = std::min(5.0, robot_vel.len());
 				// robot_vel = speed*(robot_vel.norm());

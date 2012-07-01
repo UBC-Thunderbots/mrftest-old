@@ -145,7 +145,7 @@ void Firmware::mrf_upload(const IntelHex &hex, unsigned int robot) {
 					if (message[0] == robot) {
 						if (len == 6) {
 							if (message[1] == 0x03) {
-								sum_received = message[2] | (message[3] << 8) | (message[4] << 16) | (message[5] << 24);
+								sum_received = message[2] | static_cast<uint32_t>(message[3] << 8) | static_cast<uint32_t>(message[4] << 16) | static_cast<uint32_t>(message[5] << 24);
 								done = true;
 							}
 						}

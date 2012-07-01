@@ -1,6 +1,8 @@
 #include "util/clocksource_timerfd.h"
 #include "util/exception.h"
+#include <cerrno>
 #include <stdint.h>
+#include <unistd.h>
 #include <sys/timerfd.h>
 
 namespace {

@@ -22,10 +22,6 @@ namespace {
 			}
 	};
 
-	bool operator==(const Circle &c1, const Circle &c2) {
-		return (c1.centre - c2.centre).len() < 0.001;
-	}
-
 	class ChrisFilter : public BallFilter {
 		public:
 			explicit ChrisFilter() : BallFilter("Chris's Filter") {
@@ -64,7 +60,7 @@ namespace {
 				}
 
 				// Use the circle with the highest certainty.
-				return std::max_element(circles.begin(), circles.end(), [](const Circle &c1, const Circle &c2) {
+				return std::max_element(circles.begin(), circles.end(), [](const Circle &c1, const Circle &c2) -> bool {
 					if (c1.certainty != c2.certainty) {
 						return c1.certainty < c2.certainty;
 					} else {

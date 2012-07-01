@@ -41,7 +41,7 @@ AI::Setup::Setup() : defending_end(AI::BE::Backend::FieldEnd::WEST), friendly_co
 		for (std::size_t i = 0; i < G_N_ELEMENTS(STRINGS); ++i) {
 			ifs.read(u32buf, sizeof(u32buf));
 			char buffer[decode_u32(u32buf)];
-			ifs.read(buffer, sizeof(buffer));
+			ifs.read(buffer, static_cast<std::streamsize>(sizeof(buffer)));
 			(this->*STRINGS[i]).assign(buffer, sizeof(buffer));
 		}
 
@@ -68,7 +68,7 @@ void AI::Setup::save() {
 	for (std::size_t i = 0; i < G_N_ELEMENTS(STRINGS); ++i) {
 		encode_u32(u32buf, static_cast<uint32_t>((this->*STRINGS[i]).bytes()));
 		ofs.write(u32buf, sizeof(u32buf));
-		ofs.write((this->*STRINGS[i]).data(), (this->*STRINGS[i]).bytes());
+		ofs.write((this->*STRINGS[i]).data(), static_cast<std::streamsize>((this->*STRINGS[i]).bytes()));
 	}
 
 	ch = defending_end == AI::BE::Backend::FieldEnd::EAST;

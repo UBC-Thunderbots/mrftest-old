@@ -34,9 +34,22 @@ void Simulator::Connection::send(const Proto::S2APacket &packet) {
 
 bool Simulator::Connection::on_readable(Glib::IOCondition) {
 	Proto::A2SPacket packet;
-	iovec iov = { iov_base: &packet, iov_len: sizeof(packet), };
+
+	iovec iov;
+	iov.iov_base = &packet;
+	iov.iov_len = sizeof(packet);
+
 	char ancillary[cmsg_space(sizeof(int))];
-	msghdr mh = { msg_name: 0, msg_namelen: 0, msg_iov: &iov, msg_iovlen: 1, msg_control: ancillary, msg_controllen: sizeof(ancillary), msg_flags: 0, };
+
+	msghdr mh;
+	mh.msg_name = 0;
+	mh.msg_namelen = 0;
+	mh.msg_iov = &iov;
+	mh.msg_iovlen = 1;
+	mh.msg_control = ancillary;
+	mh.msg_controllen = sizeof(ancillary);
+	mh.msg_flags = 0;
+
 	ssize_t rc = recvmsg(sock.fd(), &mh, MSG_DONTWAIT);
 	if (rc < 0) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {

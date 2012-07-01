@@ -4,7 +4,7 @@
 #include "fw/ihex.h"
 
 namespace Firmware {
-	void xbee_upload(const IntelHex &hex, bool fpga, int robot);
+	void xbee_upload(const IntelHex &hex, bool fpga, unsigned int robot);
 }
 
 #endif
