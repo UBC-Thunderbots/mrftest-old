@@ -35,7 +35,7 @@ template<typename T> class Property : public NonCopyable {
 		 *
 		 * \param[in] moveref the original Property to destroy while initializing this Property.
 		 */
-		Property(Property<T> &&moveref) : value(value), signal_changing_(moveref.signal_changing_), signal_changed_(moveref.signal_changed_) {
+		Property(Property<T> &&moveref) : value(std::move(moveref.value)), signal_changing_(std::move(moveref.signal_changing_)), signal_changed_(std::move(moveref.signal_changed_)) {
 		}
 
 		/**
@@ -64,9 +64,9 @@ template<typename T> class Property : public NonCopyable {
 		 * \param[in] moveref the original Property to destroy while initializing this Property.
 		 */
 		Property<T> &operator=(Property<T> &&moveref) {
-			value = moveref.value;
-			signal_changing_ = moveref.signal_changing_;
-			signal_changed_ = moveref.signal_changed_;
+			value = std::move(moveref.value);
+			signal_changing_ = std::move(moveref.signal_changing_);
+			signal_changed_ = std::move(moveref.signal_changed_);
 			return *this;
 		}
 
