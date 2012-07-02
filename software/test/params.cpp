@@ -12,7 +12,7 @@ namespace {
 	}
 }
 
-TesterParamsPanel::TesterParamsPanel(XBeeRobot &robot) : Gtk::Table(6, 2), robot(robot), channel0label("Out Channel:"), channel1label("In Channel:"), index_label("Index:"), dribble_power_label("Dribble Power:"), commit("Commit"), reboot("Reboot"), test_mode_label("Test mode (hex):"), set_test_mode("Set Test Mode"), build_signatures_hbox(false, 10), build_signatures_label("Build Sigs:"), freeze(false) {
+TesterParamsPanel::TesterParamsPanel(XBeeRobot &robot) : Gtk::Table(5, 2), robot(robot), channel0label("Out Channel:"), channel1label("In Channel:"), index_label("Index:"), commit("Commit"), reboot("Reboot"), test_mode_label("Test mode (hex):"), set_test_mode("Set Test Mode"), build_signatures_hbox(false, 10), build_signatures_label("Build Sigs:"), freeze(false) {
 	for (std::size_t i = 0; i < 2; ++i) {
 		for (unsigned int ch = 0x0B; ch <= 0x1A; ++ch) {
 			channels[i].append_text(format_channel(ch));
@@ -22,10 +22,7 @@ TesterParamsPanel::TesterParamsPanel(XBeeRobot &robot) : Gtk::Table(6, 2), robot
 	for (unsigned int i = 0; i <= 15; ++i) {
 		index.append_text(Glib::ustring::format(i));
 	}
-	dribble_power.get_adjustment()->configure(0, 0, 255, 1, 10, 0);
-	dribble_power.set_digits(0);
 	index.signal_changed().connect(sigc::mem_fun(this, &TesterParamsPanel::on_change));
-	dribble_power.signal_value_changed().connect(sigc::mem_fun(this, &TesterParamsPanel::on_change));
 	commit.signal_clicked().connect(sigc::mem_fun(this, &TesterParamsPanel::on_commit));
 	reboot.signal_clicked().connect(sigc::mem_fun(this, &TesterParamsPanel::on_reboot));
 	test_mode.set_max_length(4);
@@ -40,8 +37,6 @@ TesterParamsPanel::TesterParamsPanel(XBeeRobot &robot) : Gtk::Table(6, 2), robot
 	attach(channels[1], 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(index_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(index, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(dribble_power_label, 0, 1, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(dribble_power, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	hbb.pack_start(commit);
 	hbb.pack_start(reboot);
@@ -50,12 +45,12 @@ TesterParamsPanel::TesterParamsPanel(XBeeRobot &robot) : Gtk::Table(6, 2), robot
 	test_mode_hbox.pack_start(test_mode, Gtk::PACK_EXPAND_WIDGET);
 	test_mode_hbox.pack_start(set_test_mode);
 	vbox.pack_start(test_mode_hbox, Gtk::PACK_SHRINK);
-	attach(vbox, 0, 2, 4, 5, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(vbox, 0, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	build_signatures_hbox.pack_start(firmware_signature_label, Gtk::PACK_EXPAND_WIDGET);
 	build_signatures_hbox.pack_start(flash_signature_label, Gtk::PACK_EXPAND_WIDGET);
-	attach(build_signatures_label, 0, 1, 5, 6, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(build_signatures_hbox, 1, 2, 5, 6, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(build_signatures_label, 0, 1, 4, 5, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(build_signatures_hbox, 1, 2, 4, 5, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	robot.alive.signal_changed().connect(sigc::mem_fun(this, &TesterParamsPanel::on_alive_changed));
 	on_alive_changed();
@@ -95,7 +90,6 @@ void TesterParamsPanel::on_read_done(AsyncOperation<XBeeRobot::OperationalParame
 		channels[i].set_active_text(format_channel(params.xbee_channels[i]));
 	}
 	index.set_active_text(Glib::ustring::format(static_cast<unsigned int>(params.robot_number)));
-	dribble_power.set_value(params.dribble_power);
 	activate_controls();
 	freeze = false;
 }
@@ -109,7 +103,7 @@ void TesterParamsPanel::on_change() {
 			params.xbee_channels[i] = static_cast<uint8_t>(0x0B + channels[i].get_active_row_number());
 		}
 		params.robot_number = static_cast<uint8_t>(index.get_active_row_number());
-		params.dribble_power = static_cast<uint8_t>(dribble_power.get_value());
+		params.dribble_power = 0;
 		write_opparams_op.reset(new XBeeRobot::FirmwareWriteOperationalParametersOperation(robot, params));
 		write_opparams_op->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_change_done));
 	}

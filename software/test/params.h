@@ -31,8 +31,6 @@ class TesterParamsPanel : public Gtk::Table {
 		Gtk::ComboBoxText channels[2];
 		Gtk::Label index_label;
 		Gtk::ComboBoxText index;
-		Gtk::Label dribble_power_label;
-		Gtk::HScale dribble_power;
 		Gtk::VBox vbox;
 		Gtk::HButtonBox hbb;
 		Gtk::Button commit, reboot;
