@@ -3,7 +3,7 @@
 
 #include "ai/common/predictable.h"
 #include "util/box_ptr.h"
-#include "util/objectstore.h"
+#include "util/object_store.h"
 
 namespace AI {
 	namespace Common {

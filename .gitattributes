@@ -646,8 +646,8 @@ software/util/matrix.h -text
 software/util/misc.cpp -text
 software/util/misc.h -text
 software/util/noncopyable.h -text
-software/util/objectstore.cpp -text
-software/util/objectstore.h -text
+software/util/object_store.cpp -text
+software/util/object_store.h -text
 software/util/param.cpp -text
 software/util/param.h -text
 software/util/predictor.cpp -text

@@ -1,5 +1,5 @@
 #include "ai/navigator/plan.h"
-#include "util/objectstore.h"
+#include "util/object_store.h"
 #include <memory>
 #include <glibmm/nodetree.h>
 

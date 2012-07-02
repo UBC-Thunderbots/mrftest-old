@@ -1,5 +1,5 @@
-#ifndef UTIL_OBJECTSTORE_H
-#define UTIL_OBJECTSTORE_H
+#ifndef UTIL_OBJECT_STORE_H
+#define UTIL_OBJECT_STORE_H
 
 #include "util/noncopyable.h"
 #include <map>

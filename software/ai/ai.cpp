@@ -2,7 +2,7 @@
 #include "ai/setup.h"
 #include "util/cacheable.h"
 #include "util/dprint.h"
-#include "util/objectstore.h"
+#include "util/object_store.h"
 #include <memory>
 
 using AI::AIPackage;

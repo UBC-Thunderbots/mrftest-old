@@ -1,4 +1,4 @@
-#include "util/objectstore.h"
+#include "util/object_store.h"
 
 namespace {
 	bool compare_typeinfos(const std::type_info *x, const std::type_info *y) {
