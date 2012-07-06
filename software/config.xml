@@ -471,6 +471,18 @@
     </category>
   </params>
   <joysticks>
+    <joystick name="Generic X-Box pad">
+      <axes>
+        <mapping logical="0" physical="4"/>
+        <mapping logical="1" physical="3"/>
+        <mapping logical="2" physical="0"/>
+        <mapping logical="3" physical="1"/>
+      </axes>
+      <buttons>
+        <mapping logical="dribble" physical="0"/>
+        <mapping logical="kick" physical="3"/>
+      </buttons>
+    </joystick>
     <joystick name="Logitech Logitech Dual Action">
       <axes>
         <mapping logical="0" physical="3"/>
@@ -494,7 +506,6 @@
       <buttons>
         <mapping logical="dribble" physical="0"/>
         <mapping logical="kick" physical="3"/>
-        <mapping logical="scram" physical="1"/>
       </buttons>
     </joystick>
   </joysticks>
