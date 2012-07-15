@@ -117,7 +117,7 @@ namespace AI {
 					bool autokick_fired_;
 					struct AutokickParams {
 						bool chip;
-						unsigned int pulse;
+						double pulse;
 						AutokickParams();
 						bool operator==(const AutokickParams &other) const;
 						bool operator!=(const AutokickParams &other) const;

@@ -1,4 +1,5 @@
 #include "xbee/robot.h"
+#include "util/algorithm.h"
 #include "xbee/dongle.h"
 #include "xbee/kickpacket.h"
 #include "xbee/testmodepacket.h"
@@ -329,24 +330,32 @@ void XBeeRobot::set_charger_state(ChargerState state) {
 	flush_drive();
 }
 
-void XBeeRobot::autokick(bool chip, unsigned int pulse_width) {
-	assert(pulse_width <= 4064);
+double XBeeRobot::kick_pulse_maximum() const {
+	return 4064.0;
+}
+
+double XBeeRobot::kick_pulse_resolution() const {
+	return 32.0;
+}
+
+void XBeeRobot::autokick(bool chip, double pulse_width) {
+	unsigned int clamped = clamp(static_cast<int>(pulse_width + 0.1), 0, 4064);
 
 	drive_block.enable_autokick = !!pulse_width;
 	drive_block.autokick_offset_sign = false;
-	drive_block.autokick_width1 = static_cast<uint8_t>(chip ? 0 : pulse_width / 32);
-	drive_block.autokick_width2 = static_cast<uint8_t>(chip ? pulse_width / 32 : 0);
+	drive_block.autokick_width1 = static_cast<uint8_t>(chip ? 0 : (clamped + 15) / 32);
+	drive_block.autokick_width2 = static_cast<uint8_t>(chip ? (clamped + 15) / 32 : 0);
 	drive_block.autokick_offset = 0;
 
 	flush_drive();
 }
 
-void XBeeRobot::kick(bool chip, unsigned int pulse_width) {
-	assert(pulse_width <= 4064);
+void XBeeRobot::kick(bool chip, double pulse_width) {
+	unsigned int clamped = clamp(static_cast<int>(pulse_width + 0.1), 0, 4064);
 
 	XBeePackets::Kick packet;
-	packet.width1 = static_cast<uint8_t>(chip ? 0 : pulse_width / 32);
-	packet.width2 = static_cast<uint8_t>(chip ? pulse_width / 32 : 0);
+	packet.width1 = static_cast<uint8_t>(chip ? 0 : (clamped + 15) / 32);
+	packet.width2 = static_cast<uint8_t>(chip ? (clamped + 15) / 32 : 0);
 	packet.offset_sign = false;
 	packet.offset = 0;
 

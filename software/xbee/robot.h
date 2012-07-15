@@ -106,8 +106,10 @@ class XBeeRobot : public Drive::Robot {
 		void drive_brake();
 		void dribble(bool active = true);
 		void set_charger_state(ChargerState state);
-		void kick(bool chip, unsigned int pulse_width);
-		void autokick(bool chip, unsigned int pulse_width);
+		double kick_pulse_maximum() const;
+		double kick_pulse_resolution() const;
+		void kick(bool chip, double pulse_width);
+		void autokick(bool chip, double pulse_width);
 
 		/**
 		 * \brief Sets an on-board electrical test readout mode on the robot's LEDs.

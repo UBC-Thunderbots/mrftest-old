@@ -18,7 +18,7 @@ namespace {
 
 	const int BATTERY_HYSTERESIS_MAGNITUDE = 15;
 
-	unsigned int calc_kick_straight(double speed) {
+	double calc_kick_straight(double speed) {
 		static const double SPEEDS[] = { 7.14, 8.89, 10.3 };
 		static const unsigned int POWERS[] = { 2016, 3024, 4032 };
 
@@ -40,8 +40,7 @@ namespace {
 		double diff_speed = speed_above - speed_below;
 		double diff_power = power_above - power_below;
 		double slope = diff_power / diff_speed;
-		double power = (speed - speed_below) * slope + power_below;
-		return static_cast<unsigned int>(clamp(power, 0.0, 4064.0));
+		return (speed - speed_below) * slope + power_below;
 	}
 }
 

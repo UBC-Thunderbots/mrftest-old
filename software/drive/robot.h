@@ -123,13 +123,27 @@ namespace Drive {
 			virtual void set_charger_state(ChargerState state) = 0;
 
 			/**
+			 * \brief Indicates the maximum kicker pulse width the robot is capable of executing
+			 *
+			 * \return the maximum pulse width, in microseconds
+			 */
+			virtual double kick_pulse_maximum() const = 0;
+
+			/**
+			 * \brief Indicates the resolution of kicker pulse width the robot is capable of encoding
+			 *
+			 * \return the pulse width resolution, in microseconds
+			 */
+			virtual double kick_pulse_resolution() const = 0;
+
+			/**
 			 * \brief Executes a kick
 			 *
 			 * \param[in] chip \c true to fire the chipper, or \c false to fire the kicker
 			 *
-			 * \param[in] pulse_width the width of the pulse to send to the solenoid, in quarters of a microsecond
+			 * \param[in] pulse_width the width of the pulse to send to the solenoid, in microseconds
 			 */
-			virtual void kick(bool chip, unsigned int pulse_width) = 0;
+			virtual void kick(bool chip, double pulse_width) = 0;
 
 			/**
 			 * \brief Enables or disables automatic kicking when the ball breaks the robot’s laser
@@ -138,9 +152,9 @@ namespace Drive {
 			 *
 			 * \param[in] chip \c true to fire the chipper, or \c false to fire the kicker
 			 *
-			 * \param[in] pulse_width the width of the pulse to send to the solenoid, in quarters of a microsecond
+			 * \param[in] pulse_width the width of the pulse to send to the solenoid, in microseconds
 			 */
-			virtual void autokick(bool chip, unsigned int pulse_width) = 0;
+			virtual void autokick(bool chip, double pulse_width) = 0;
 
 		protected:
 			/**

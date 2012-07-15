@@ -1,5 +1,6 @@
 #include "mrf/robot.h"
 #include "mrf/dongle.h"
+#include "util/algorithm.h"
 #include "util/dprint.h"
 #include <cassert>
 #include <cstdlib>
@@ -67,27 +68,35 @@ void MRFRobot::set_charger_state(ChargerState state) {
 	dongle.dirty_drive();
 }
 
-void MRFRobot::kick(bool chip, unsigned int pulse_width) {
-	assert(pulse_width <= 65535);
+double MRFRobot::kick_pulse_maximum() const {
+	return 16383.0;
+}
+
+double MRFRobot::kick_pulse_resolution() const {
+	return 0.25;
+}
+
+void MRFRobot::kick(bool chip, double pulse_width) {
+	unsigned int clamped = clamp(static_cast<int>(pulse_width * 4.0 + 0.1), 0, 65535);
 
 	uint8_t buffer[4];
 	buffer[0] = 0x00;
 	buffer[1] = chip ? 0x01 : 0x00;
-	buffer[2] = static_cast<uint8_t>(pulse_width);
-	buffer[3] = static_cast<uint8_t>(pulse_width >> 8);
+	buffer[2] = static_cast<uint8_t>(clamped);
+	buffer[3] = static_cast<uint8_t>(clamped >> 8);
 
 	dongle.send_unreliable(index, buffer, sizeof(buffer));
 }
 
-void MRFRobot::autokick(bool chip, unsigned int pulse_width) {
-	assert(pulse_width <= 65535);
+void MRFRobot::autokick(bool chip, double pulse_width) {
+	unsigned int clamped = clamp(static_cast<int>(pulse_width * 4.0 + 0.1), 0, 65535);
 
-	if (pulse_width) {
+	if (clamped) {
 		uint8_t buffer[4];
 		buffer[0] = 0x01;
 		buffer[1] = chip ? 0x01 : 0x00;
-		buffer[2] = static_cast<uint8_t>(pulse_width);
-		buffer[3] = static_cast<uint8_t>(pulse_width >> 8);
+		buffer[2] = static_cast<uint8_t>(clamped);
+		buffer[3] = static_cast<uint8_t>(clamped >> 8);
 
 		dongle.send_unreliable(index, buffer, sizeof(buffer));
 	} else {

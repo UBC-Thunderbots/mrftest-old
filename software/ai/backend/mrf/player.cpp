@@ -89,7 +89,7 @@ bool Player::chicker_ready() const {
 void Player::kick_impl(double speed) {
 	if (bot.alive) {
 		if (bot.capacitor_charged) {
-			bot.kick(false, static_cast<unsigned int>(speed / 8.0 * 3000 * 4));
+			bot.kick(false, speed / 8.0 * 3000);
 		} else {
 			LOG_ERROR(Glib::ustring::compose("Bot %1 kick when not ready", pattern()));
 		}
@@ -99,14 +99,14 @@ void Player::kick_impl(double speed) {
 void Player::autokick_impl(double speed) {
 	if (bot.alive) {
 		autokick_params.chip = false;
-		autokick_params.pulse = static_cast<unsigned int>(speed / 8.0 * 3000 * 4);
+		autokick_params.pulse = speed / 8.0 * 3000;
 	}
 }
 
 void Player::chip_impl(double) {
 	if (bot.alive) {
 		if (bot.capacitor_charged) {
-			bot.kick(true, 16000);
+			bot.kick(true, 4000);
 		} else {
 			LOG_ERROR(Glib::ustring::compose("Bot %1 chip when not ready", pattern()));
 		}
@@ -116,7 +116,7 @@ void Player::chip_impl(double) {
 void Player::autochip_impl(double) {
 	if (bot.alive) {
 		autokick_params.chip = true;
-		autokick_params.pulse = 16000;
+		autokick_params.pulse = 4000;
 	}
 }
 
