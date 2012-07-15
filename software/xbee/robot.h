@@ -1,22 +1,25 @@
 #ifndef XBEE_ROBOT_H
 #define XBEE_ROBOT_H
 
+#include "drive/robot.h"
 #include "util/annunciator.h"
 #include "util/async_operation.h"
 #include "util/bit_array.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
-#include "xbee/dongle.h"
 #include "xbee/drivepacket.h"
 #include <cstddef>
 #include <functional>
 #include <memory>
 #include <stdint.h>
 
+class XBeeDongle;
+class XBeeDongle_SendMessageOperation;
+
 /**
  * \brief A single robot addressable through a dongle.
  */
-class XBeeRobot : public NonCopyable {
+class XBeeRobot : public Drive::Robot {
 	public:
 		/**
 		 * \brief The components of the operational parameters block stored on board a robot.
@@ -44,79 +47,9 @@ class XBeeRobot : public NonCopyable {
 		};
 
 		/**
-		 * \brief The possible states of the charger.
-		 */
-		enum class ChargerState {
-			/**
-			 * \brief Safely discharges the capacitor down to battery level.
-			 */
-			DISCHARGE,
-
-			/**
-			 * \brief Neither charges nor discharges the capacitors.
-			 */
-			FLOAT,
-
-			/**
-			 * \brief Charges the capacitor to full voltage.
-			 */
-			CHARGE,
-		};
-
-		/**
-		 * \brief The index of the robot, from 0 to 15.
-		 */
-		const unsigned int index;
-
-		/**
-		 * \brief Whether or not the robot is currently responding to radio communication.
-		 */
-		Property<bool> alive;
-
-		/**
-		 * \brief Whether or not up-to-date feedback is available for the robot.
-		 */
-		Property<bool> has_feedback;
-
-		/**
-		 * \brief Whether or not the ball is interrupting the robot's laser beam.
-		 */
-		Property<bool> ball_in_beam;
-
-		/**
-		 * \brief Whether or not the robot's capacitor is charged enough to kick the ball.
-		 */
-		Property<bool> capacitor_charged;
-
-		/**
-		 * \brief The voltage on the robot's battery, in volts.
-		 */
-		Property<double> battery_voltage;
-
-		/**
-		 * \brief The voltage on the robot's kicking capacitor, in volts.
-		 */
-		Property<double> capacitor_voltage;
-
-		/**
-		 * \brief The temperature of the robot's dribbler motor, in degrees Celsius.
-		 */
-		Property<double> dribbler_temperature;
-
-		/**
-		 * \brief The raw analogue-to-digital converter reading of the robot's laser sensor.
-		 */
-		Property<unsigned int> break_beam_reading;
-
-		/**
 		 * \brief Emitted when the robot sends a block of experiment data.
 		 */
 		sigc::signal<void, const void *, std::size_t> signal_experiment_data;
-
-		/**
-		 * \brief Emitted when the autokick mechanism causes the robot to kick.
-		 */
-		sigc::signal<void> signal_autokick_fired;
 
 		/**
 		 * \brief An operation to erase the SPI flash chip on the robot.
@@ -167,57 +100,14 @@ class XBeeRobot : public NonCopyable {
 		 */
 		class FirmwareReadBuildSignaturesOperation;
 
-		/**
-		 * \brief Sets the speeds of the robot's wheels.
-		 *
-		 * \param[in] wheels the speeds of the wheels, in quarters of a degree per five milliseconds, in the range ±1023.
-		 *
-		 * \param[in] controlled \c true to run the provided setpoints through the wheel controllers, or \c false to run open-loop.
-		 */
 		void drive(const int(&wheels)[4], bool controlled = true);
-
-		/**
-		 * \brief Halts the robot's wheels.
-		 */
-		void drive_scram();
-
-		/**
-		 * \brief Turns the dribbler motor on or off.
-		 *
-		 * \param[in] active \c true to turn the motor on, or \c false to turn it off.
-		 */
+		bool can_coast() const;
+		void drive_coast();
+		void drive_brake();
 		void dribble(bool active = true);
-
-		/**
-		 * \brief Sets the state of the capacitor charger.
-		 *
-		 * \param[in] state the state to set the charger to.
-		 */
 		void set_charger_state(ChargerState state);
-
-		/**
-		 * \brief Executes a kick.
-		 *
-		 * \param[in] pulse_width1 the width of the pulse to send to solenoid #1, in microseconds.
-		 *
-		 * \param[in] pulse_width2 the width of the pulse to send to solenoid #2, in microseconds.
-		 *
-		 * \param[in] offset the time difference between the leading edges of the pulses, in microseconds, with positive values causing solenoid #1's pulse to lag solenoid #2's pulse.
-		 */
-		void kick(unsigned int pulse_width1, unsigned int pulse_width2, int offset);
-
-		/**
-		 * \brief Enables or disables automatic kicking when the ball breaks the robot's laser.
-		 *
-		 * If all parameters are set to zero, automatic kicking will be disabled.
-		 *
-		 * \param[in] pulse_width1 the width of the pulse to send to solenoid #1, in microseconds.
-		 *
-		 * \param[in] pulse_width2 the width of the pulse to send to solenoid #2, in microseconds.
-		 *
-		 * \param[in] offset the time difference between the leading edges of the pulses, in microseconds, with positive values causing solenoid #1's pulse to lag solenoid #2's pulse.
-		 */
-		void autokick(unsigned int pulse_width1, unsigned int pulse_width2, int offset);
+		void kick(bool chip, unsigned int pulse_width);
+		void autokick(bool chip, unsigned int pulse_width);
 
 		/**
 		 * \brief Sets an on-board electrical test readout mode on the robot's LEDs.
@@ -240,7 +130,7 @@ class XBeeRobot : public NonCopyable {
 		XBeePackets::Drive drive_block, last_drive_block;
 		Annunciator::Message encoder_1_stuck_message, encoder_2_stuck_message, encoder_3_stuck_message, encoder_4_stuck_message;
 		Annunciator::Message hall_stuck_message;
-		std::unique_ptr<XBeeDongle::SendMessageOperation> kick_send_message_op, test_mode_send_message_op, start_experiment_send_message_op;
+		std::unique_ptr<XBeeDongle_SendMessageOperation> kick_send_message_op, test_mode_send_message_op, start_experiment_send_message_op;
 
 		XBeeRobot(XBeeDongle &dongle, unsigned int index);
 		void flush_drive(bool force = false);
@@ -250,7 +140,7 @@ class XBeeRobot : public NonCopyable {
 		void check_start_experiment_message_result(AsyncOperation<void> &);
 };
 
-
+#include "xbee/dongle.h"
 
 class XBeeRobot::FirmwareSPIChipEraseOperation : public AsyncOperation<void>, public sigc::trackable {
 	public:
@@ -271,11 +161,11 @@ class XBeeRobot::FirmwareSPIChipEraseOperation : public AsyncOperation<void>, pu
 	private:
 		XBeeRobot &robot;
 		uint8_t buffer[2];
-		XBeeDongle::SendMessageOperation send_message_op;
+		XBeeDongle_SendMessageOperation send_message_op;
 		sigc::connection receive_message_conn;
 
 		void send_message_op_done(AsyncOperation<void> &op);
-		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
+		void check_received_message(unsigned int robot, XBeeDongle_Pipe pipe, const void *data, std::size_t len);
 };
 
 class XBeeRobot::FirmwareSPIFillPageBufferOperation : public AsyncOperation<void>, public sigc::trackable {
@@ -305,7 +195,7 @@ class XBeeRobot::FirmwareSPIFillPageBufferOperation : public AsyncOperation<void
 	private:
 		XBeeRobot &robot;
 		uint8_t buffer[64];
-		XBeeDongle::SendMessageOperation send_message_op;
+		XBeeDongle_SendMessageOperation send_message_op;
 
 		uint8_t *prepare_buffer(unsigned int offset, const void *data, std::size_t length);
 		void send_message_op_done(AsyncOperation<void> &);
@@ -334,11 +224,11 @@ class XBeeRobot::FirmwareSPIPageProgramOperation : public AsyncOperation<void>, 
 	private:
 		XBeeRobot &robot;
 		uint8_t buffer[6];
-		XBeeDongle::SendMessageOperation send_message_op;
+		XBeeDongle_SendMessageOperation send_message_op;
 		sigc::connection receive_message_conn;
 
 		void send_message_op_done(AsyncOperation<void> &op);
-		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
+		void check_received_message(unsigned int robot, XBeeDongle_Pipe pipe, const void *data, std::size_t len);
 };
 
 class XBeeRobot::FirmwareSPIBlockCRCOperation : public AsyncOperation<uint16_t>, public sigc::trackable {
@@ -368,12 +258,12 @@ class XBeeRobot::FirmwareSPIBlockCRCOperation : public AsyncOperation<uint16_t>,
 		unsigned int address;
 		std::size_t length;
 		uint8_t buffer[7];
-		XBeeDongle::SendMessageOperation send_message_op;
+		XBeeDongle_SendMessageOperation send_message_op;
 		sigc::connection receive_message_conn;
 		uint16_t crc;
 
 		void send_message_op_done(AsyncOperation<void> &op);
-		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
+		void check_received_message(unsigned int robot, XBeeDongle_Pipe pipe, const void *data, std::size_t len);
 };
 
 class XBeeRobot::FirmwareReadOperationalParametersOperation : public AsyncOperation<OperationalParameters>, public sigc::trackable {
@@ -399,12 +289,12 @@ class XBeeRobot::FirmwareReadOperationalParametersOperation : public AsyncOperat
 	private:
 		XBeeRobot &robot;
 		uint8_t buffer[2];
-		XBeeDongle::SendMessageOperation send_message_op;
+		XBeeDongle_SendMessageOperation send_message_op;
 		sigc::connection receive_message_conn;
 		OperationalParameters params;
 
 		void send_message_op_done(AsyncOperation<void> &op);
-		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
+		void check_received_message(unsigned int robot, XBeeDongle_Pipe pipe, const void *data, std::size_t len);
 };
 
 class XBeeRobot::FirmwareWriteOperationalParametersOperation : public AsyncOperation<void>, public sigc::trackable {
@@ -430,12 +320,12 @@ class XBeeRobot::FirmwareWriteOperationalParametersOperation : public AsyncOpera
 	private:
 		XBeeRobot &robot;
 		uint8_t buffer[8];
-		XBeeDongle::SendMessageOperation send_message_op;
+		XBeeDongle_SendMessageOperation send_message_op;
 		sigc::connection receive_message_conn;
 
 		uint8_t *prepare_buffer(unsigned int offset, const void *data, std::size_t length);
 		void send_message_op_done(AsyncOperation<void> &);
-		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
+		void check_received_message(unsigned int robot, XBeeDongle_Pipe pipe, const void *data, std::size_t len);
 };
 
 class XBeeRobot::FirmwareCommitOperationalParametersOperation : public AsyncOperation<void>, public sigc::trackable {
@@ -459,12 +349,12 @@ class XBeeRobot::FirmwareCommitOperationalParametersOperation : public AsyncOper
 	private:
 		XBeeRobot &robot;
 		uint8_t buffer[2];
-		XBeeDongle::SendMessageOperation send_message_op;
+		XBeeDongle_SendMessageOperation send_message_op;
 		sigc::connection receive_message_conn;
 
 		uint8_t *prepare_buffer(unsigned int offset, const void *data, std::size_t length);
 		void send_message_op_done(AsyncOperation<void> &);
-		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
+		void check_received_message(unsigned int robot, XBeeDongle_Pipe pipe, const void *data, std::size_t len);
 };
 
 class XBeeRobot::RebootOperation : public AsyncOperation<void>, public sigc::trackable {
@@ -486,12 +376,12 @@ class XBeeRobot::RebootOperation : public AsyncOperation<void>, public sigc::tra
 	private:
 		XBeeRobot &robot;
 		uint8_t buffer[2];
-		XBeeDongle::SendMessageOperation send_message_op;
+		XBeeDongle_SendMessageOperation send_message_op;
 		sigc::connection receive_message_conn;
 
 		uint8_t *prepare_buffer(unsigned int offset, const void *data, std::size_t length);
 		void send_message_op_done(AsyncOperation<void> &);
-		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
+		void check_received_message(unsigned int robot, XBeeDongle_Pipe pipe, const void *data, std::size_t len);
 };
 
 class XBeeRobot::FirmwareReadBuildSignaturesOperation : public AsyncOperation<BuildSignatures>, public sigc::trackable {
@@ -515,12 +405,12 @@ class XBeeRobot::FirmwareReadBuildSignaturesOperation : public AsyncOperation<Bu
 	private:
 		XBeeRobot &robot;
 		uint8_t buffer[2];
-		XBeeDongle::SendMessageOperation send_message_op;
+		XBeeDongle_SendMessageOperation send_message_op;
 		sigc::connection receive_message_conn;
 		BuildSignatures sigs;
 
 		void send_message_op_done(AsyncOperation<void> &op);
-		void check_received_message(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len);
+		void check_received_message(unsigned int robot, XBeeDongle_Pipe pipe, const void *data, std::size_t len);
 };
 
 #endif

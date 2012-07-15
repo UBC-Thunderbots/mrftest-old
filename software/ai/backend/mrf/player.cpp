@@ -138,7 +138,7 @@ void Player::tick(bool halt) {
 	}
 
 	// Check for low battery condition.
-	if (bot.alive && bot.has_feedback) {
+	if (bot.alive) {
 		// Apply some hysteresis.
 		if (bot.battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
 			if (battery_warning_hysteresis == BATTERY_HYSTERESIS_MAGNITUDE) {

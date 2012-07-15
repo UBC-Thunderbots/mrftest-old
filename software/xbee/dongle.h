@@ -7,6 +7,7 @@
  * \brief Provides access to an XBee dongle.
  */
 
+#include "drive/dongle.h"
 #include "util/async_operation.h"
 #include "util/libusb.h"
 #include "util/noncopyable.h"
@@ -17,38 +18,86 @@
 #include <utility>
 #include <vector>
 
-class XBeeRobot;
+class XBeeDongle;
+
+class XBeeDongle_SendMessageOperation : public AsyncOperation<void> {
+	public:
+		/**
+		 * \brief Queues a message for transmission.
+		 *
+		 * \param[in] dongle the dongle on which to send the message.
+		 *
+		 * \param[in] data the data to send, which must include the header (the data is copied into an internal buffer).
+		 *
+		 * \param[in] len the length of the data, including the header.
+		 */
+		XBeeDongle_SendMessageOperation(XBeeDongle &dongle, const void *data, std::size_t len);
+
+		/**
+		 * \brief Checks for the success of the operation.
+		 *
+		 * If the operation failed, this function throws the relevant exception.
+		 */
+		void result() const;
+
+	private:
+		USB::InterruptOutTransfer transfer;
+};
+
+enum XBeeDongle_Pipe {
+	/**
+	 * \brief A state transport pipe that carries drive information to the robot.
+	 */
+	XBEE_PIPE_DRIVE,
+
+	/**
+	 * \brief A state transport pipe that carries feedback information from the robot.
+	 */
+	XBEE_PIPE_FEEDBACK,
+
+	/**
+	 * \brief A message pipe that allows the robot to be ordered to kick or chip.
+	 */
+	XBEE_PIPE_KICK,
+
+	/**
+	 * \brief A bulk pipe that allows firmware upgrades to be executed.
+	 */
+	XBEE_PIPE_FIRMWARE_OUT,
+
+	/**
+	 * \brief A message pipe that carries responses to firmware upgrade operation requests.
+	 */
+	XBEE_PIPE_FIRMWARE_IN,
+
+	/**
+	 * \brief A message pipe that carries test mode settings.
+	 */
+	XBEE_PIPE_TEST_MODE,
+
+	/**
+	 * \brief A message pipe that carries indications that the autokick mechanism has triggered.
+	 */
+	XBEE_PIPE_AUTOKICK_INDICATOR,
+
+	/**
+	 * \brief A message pipe that carries data from a scripted experiment.
+	 */
+	XBEE_PIPE_EXPERIMENT_DATA,
+
+	/**
+	 * \brief A message pipe that carries a control code to start a scripted experiment.
+	 */
+	XBEE_PIPE_EXPERIMENT_CONTROL,
+};
+
+#include "xbee/robot.h"
 
 /**
  * \brief The dongle.
  */
-class XBeeDongle : public NonCopyable {
+class XBeeDongle : public Drive::Dongle {
 	public:
-		/**
-		 * \brief The possible states the emergency stop switch can be in.
-		 */
-		enum class EStopState {
-			/**
-			 * \brief The switch has not been sampled yet.
-			 */
-			UNINITIALIZED,
-
-			/**
-			 * \brief The switch is not plugged in or is not working properly.
-			 */
-			DISCONNECTED,
-
-			/**
-			 * \brief The switch is in the stop position.
-			 */
-			STOP,
-
-			/**
-			 * \brief The switch is in the run position.
-			 */
-			RUN,
-		};
-
 		/**
 		 * \brief The possible states the XBees can be in.
 		 */
@@ -87,52 +136,7 @@ class XBeeDongle : public NonCopyable {
 		/**
 		 * \brief The pipes between the host and a robot.
 		 */
-		enum Pipe {
-			/**
-			 * \brief A state transport pipe that carries drive information to the robot.
-			 */
-			PIPE_DRIVE,
-
-			/**
-			 * \brief A state transport pipe that carries feedback information from the robot.
-			 */
-			PIPE_FEEDBACK,
-
-			/**
-			 * \brief A message pipe that allows the robot to be ordered to kick or chip.
-			 */
-			PIPE_KICK,
-
-			/**
-			 * \brief A bulk pipe that allows firmware upgrades to be executed.
-			 */
-			PIPE_FIRMWARE_OUT,
-
-			/**
-			 * \brief A message pipe that carries responses to firmware upgrade operation requests.
-			 */
-			PIPE_FIRMWARE_IN,
-
-			/**
-			 * \brief A message pipe that carries test mode settings.
-			 */
-			PIPE_TEST_MODE,
-
-			/**
-			 * \brief A message pipe that carries indications that the autokick mechanism has triggered.
-			 */
-			PIPE_AUTOKICK_INDICATOR,
-
-			/**
-			 * \brief A message pipe that carries data from a scripted experiment.
-			 */
-			PIPE_EXPERIMENT_DATA,
-
-			/**
-			 * \brief A message pipe that carries a control code to start a scripted experiment.
-			 */
-			PIPE_EXPERIMENT_CONTROL,
-		};
+		typedef XBeeDongle_Pipe Pipe;
 
 		/**
 		 * \brief The fault codes that can be reported by both a dongle and a robot.
@@ -315,17 +319,12 @@ class XBeeDongle : public NonCopyable {
 		/**
 		 * \brief An operation to send a message.
 		 */
-		class SendMessageOperation;
+		typedef XBeeDongle_SendMessageOperation SendMessageOperation;
 
 		/**
 		 * \brief Emitted when a dongle status update is received.
 		 */
 		sigc::signal<void> signal_dongle_status_updated;
-
-		/**
-		 * \brief The current state of the emergency stop switch.
-		 */
-		Property<EStopState> estop_state;
 
 		/**
 		 * \brief The current state of the XBees.
@@ -393,6 +392,7 @@ class XBeeDongle : public NonCopyable {
 		}
 
 	private:
+		friend class XBeeDongle_SendMessageOperation;
 		friend class XBeeRobot;
 
 		USB::Context context;
@@ -417,32 +417,6 @@ class XBeeDongle : public NonCopyable {
 		void submit_drive_transfer(const void *buffer, std::size_t length);
 		void flush_drive();
 		void check_drive_transfer_result(AsyncOperation<void> &, std::size_t index);
-};
-
-
-
-class XBeeDongle::SendMessageOperation : public AsyncOperation<void> {
-	public:
-		/**
-		 * \brief Queues a message for transmission.
-		 *
-		 * \param[in] dongle the dongle on which to send the message.
-		 *
-		 * \param[in] data the data to send, which must include the header (the data is copied into an internal buffer).
-		 *
-		 * \param[in] len the length of the data, including the header.
-		 */
-		SendMessageOperation(XBeeDongle &dongle, const void *data, std::size_t len);
-
-		/**
-		 * \brief Checks for the success of the operation.
-		 *
-		 * If the operation failed, this function throws the relevant exception.
-		 */
-		void result() const;
-
-	private:
-		USB::InterruptOutTransfer transfer;
 };
 
 #endif

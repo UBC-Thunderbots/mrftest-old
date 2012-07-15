@@ -53,9 +53,9 @@ Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot &bot) :
 }
 
 Player::~Player() {
-	bot.drive_scram();
+	bot.drive_brake();
 	bot.dribble(false);
-	bot.autokick(0, 0, 0);
+	bot.autokick(false, 0);
 	bot.set_charger_state(XBeeRobot::ChargerState::DISCHARGE);
 }
 
@@ -115,7 +115,7 @@ bool Player::chicker_ready() const {
 void Player::kick_impl(double speed) {
 	if (bot.alive) {
 		if (bot.capacitor_charged) {
-			bot.kick(calc_kick_straight(speed), 0, 0);
+			bot.kick(false, calc_kick_straight(speed));
 		} else {
 			LOG_ERROR(Glib::ustring::compose("Bot %1 kick when not ready", pattern()));
 		}
@@ -124,7 +124,7 @@ void Player::kick_impl(double speed) {
 
 void Player::autokick_impl(double speed) {
 	if (bot.alive) {
-		bot.autokick(calc_kick_straight(speed), 0, 0);
+		bot.autokick(false, calc_kick_straight(speed));
 		autokick_invoked = true;
 	}
 }
@@ -132,7 +132,7 @@ void Player::autokick_impl(double speed) {
 void Player::chip_impl(double) {
 	if (bot.alive) {
 		if (bot.capacitor_charged) {
-			bot.kick(0, 4000, 0);
+			bot.kick(true, 4000);
 		} else {
 			LOG_ERROR(Glib::ustring::compose("Bot %1 chip when not ready", pattern()));
 		}
@@ -141,7 +141,7 @@ void Player::chip_impl(double) {
 
 void Player::autochip_impl(double) {
 	if (bot.alive) {
-		bot.autokick(0, 4000, 0);
+		bot.autokick(true, 4000);
 		autokick_invoked = true;
 	}
 }
@@ -167,7 +167,7 @@ void Player::tick(bool halt) {
 	}
 
 	// Check for low battery condition.
-	if (bot.alive && bot.has_feedback) {
+	if (bot.alive) {
 		// Apply some hysteresis.
 		if (bot.battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
 			if (battery_warning_hysteresis == BATTERY_HYSTERESIS_MAGNITUDE) {
@@ -188,7 +188,7 @@ void Player::tick(bool halt) {
 
 	// Inhibit auto-kick if halted or if the AI didn't renew its interest.
 	if (halt || !autokick_invoked) {
-		bot.autokick(0, 0, 0);
+		bot.autokick(false, 0);
 	}
 	autokick_invoked = false;
 
@@ -196,7 +196,7 @@ void Player::tick(bool halt) {
 	if (!halt && moved && controlled) {
 		bot.drive(wheel_speeds_);
 	} else {
-		bot.drive_scram();
+		bot.drive_brake();
 	}
 	controlled = false;
 

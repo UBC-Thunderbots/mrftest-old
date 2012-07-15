@@ -270,13 +270,11 @@ namespace {
 	Annunciator::Message in_micropacket_overflow_message("Inbound micropacket overflow from dongle", Annunciator::Message::TriggerMode::EDGE);
 
 	XBeeDongle::EStopState decode_estop_state(uint8_t st) {
-		XBeeDongle::EStopState est = static_cast<XBeeDongle::EStopState>(st);
-		switch (est) {
-			case XBeeDongle::EStopState::UNINITIALIZED:
-			case XBeeDongle::EStopState::DISCONNECTED:
-			case XBeeDongle::EStopState::STOP:
-			case XBeeDongle::EStopState::RUN:
-				return est;
+		switch (st) {
+			case 0: return Drive::Dongle::EStopState::BROKEN;
+			case 1: return Drive::Dongle::EStopState::BROKEN;
+			case 2: return Drive::Dongle::EStopState::STOP;
+			case 3: return Drive::Dongle::EStopState::RUN;
 		}
 		throw std::runtime_error("Dongle status illegal emergency stop state");
 	}
@@ -296,16 +294,16 @@ namespace {
 	}
 }
 
-XBeeDongle::SendMessageOperation::SendMessageOperation(XBeeDongle &dongle, const void *data, std::size_t length) : transfer(dongle.device, EP_MESSAGE, data, length, 0) {
+XBeeDongle_SendMessageOperation::XBeeDongle_SendMessageOperation(XBeeDongle &dongle, const void *data, std::size_t length) : transfer(dongle.device, XBeeDongle::EP_MESSAGE, data, length, 0) {
 	transfer.signal_done.connect(signal_done.make_slot());
 	transfer.submit();
 }
 
-void XBeeDongle::SendMessageOperation::result() const {
+void XBeeDongle_SendMessageOperation::result() const {
 	transfer.result();
 }
 
-XBeeDongle::XBeeDongle(bool force_reinit) : estop_state(EStopState::UNINITIALIZED), xbees_state(XBeesState::PREINIT), context(), device(context, 0x04D8, 0x7839), local_error_queue_transfer(device, EP_LOCAL_ERROR_QUEUE, 64, false, 0), debug_transfer(device, EP_DEBUG, 4096, false, 0), dongle_status_transfer(device, EP_DONGLE_STATUS, 4, true, 0), state_transport_in_transfer(device, EP_STATE_TRANSPORT, 64, false, 0), interrupt_in_transfer(device, EP_MESSAGE, 64, false, 0), stamp_transfer(device, EP_STATE_TRANSPORT, 0, 0, 0), dirty_drive_mask(0), enabled(false) {
+XBeeDongle::XBeeDongle(bool force_reinit) : xbees_state(XBeesState::PREINIT), context(), device(context, 0x04D8, 0x7839), local_error_queue_transfer(device, EP_LOCAL_ERROR_QUEUE, 64, false, 0), debug_transfer(device, EP_DEBUG, 4096, false, 0), dongle_status_transfer(device, EP_DONGLE_STATUS, 4, true, 0), state_transport_in_transfer(device, EP_STATE_TRANSPORT, 64, false, 0), interrupt_in_transfer(device, EP_MESSAGE, 64, false, 0), stamp_transfer(device, EP_STATE_TRANSPORT, 0, 0, 0), dirty_drive_mask(0), enabled(false) {
 	for (unsigned int i = 0; i < 16; ++i) {
 		std::unique_ptr<XBeeRobot> p(new XBeeRobot(*this, i));
 		robots.push_back(std::move(p));
@@ -387,7 +385,9 @@ void XBeeDongle::parse_dongle_status(const uint8_t *data) {
 	}
 	uint16_t mask = static_cast<uint16_t>(data[2] | (data[3] << 8));
 	for (unsigned int i = 0; i < robots.size(); ++i) {
-		robot(i).alive = !!(mask & (1 << i));
+		if (!mask & (1 << i)) {
+			robot(i).alive = false;
+		}
 	}
 	signal_dongle_status_updated.emit();
 }
@@ -416,7 +416,7 @@ void XBeeDongle::on_state_transport_in(AsyncOperation<void> &) {
 		unsigned int index = state_transport_in_transfer.data()[i + 1] >> 4;
 		assert(index <= 15);
 		unsigned int pipe = state_transport_in_transfer.data()[i + 1] & 0x0F;
-		assert(pipe == PIPE_FEEDBACK);
+		assert(pipe == XBEE_PIPE_FEEDBACK);
 		robot(index).on_feedback(state_transport_in_transfer.data() + i + 2, state_transport_in_transfer.data()[i] - 2);
 	}
 	state_transport_in_transfer.submit();
@@ -428,9 +428,9 @@ void XBeeDongle::on_interrupt_in(AsyncOperation<void> &) {
 		unsigned int robot = interrupt_in_transfer.data()[0] >> 4;
 		Pipe pipe = static_cast<Pipe>(interrupt_in_transfer.data()[0] & 0x0F);
 		signal_message_received.emit(robot, pipe, interrupt_in_transfer.data() + 1, interrupt_in_transfer.size() - 1);
-		if (pipe == Pipe::PIPE_EXPERIMENT_DATA) {
+		if (pipe == XBEE_PIPE_EXPERIMENT_DATA) {
 			this->robot(robot).signal_experiment_data.emit(interrupt_in_transfer.data() + 1, interrupt_in_transfer.size() - 1);
-		} else if (pipe == Pipe::PIPE_AUTOKICK_INDICATOR) {
+		} else if (pipe == XBEE_PIPE_AUTOKICK_INDICATOR) {
 			this->robot(robot).signal_autokick_fired.emit();
 		}
 	}
@@ -481,7 +481,7 @@ void XBeeDongle::flush_drive() {
 		if (dirty_drive_mask & (1 << i)) {
 			dirty_drive_mask &= ~(1 << i);
 			buffer[wptr][0] = static_cast<uint8_t>(sizeof(buffer[0]));
-			buffer[wptr][1] = static_cast<uint8_t>(i << 4) | PIPE_DRIVE;
+			buffer[wptr][1] = static_cast<uint8_t>(i << 4) | XBEE_PIPE_DRIVE;
 			robot(i).drive_block.encode(&buffer[wptr][2]);
 			++wptr;
 

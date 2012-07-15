@@ -29,6 +29,10 @@ void MRFRobot::drive(const int(&wheels)[4], bool controlled) {
 	dongle.dirty_drive();
 }
 
+bool MRFRobot::can_coast() const {
+	return true;
+}
+
 void MRFRobot::drive_coast() {
 	dongle.drive_packet[index][0] &= static_cast<uint16_t>(~(3 << 13));
 	dongle.dirty_drive();
@@ -94,7 +98,7 @@ void MRFRobot::autokick(bool chip, unsigned int pulse_width) {
 	}
 }
 
-MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) : index(index), alive(false), has_feedback(false), ball_in_beam(false), capacitor_charged(false), battery_voltage(0), capacitor_voltage(0), break_beam_reading(0), dribbler_temperature(0), dongle(dongle), hall_stuck_message(Glib::ustring::compose(u8"Bot %1 hall sensor stuck", index), Annunciator::Message::TriggerMode::LEVEL), charge_timeout_message(Glib::ustring::compose(u8"Bot %1 charge timeout", index), Annunciator::Message::TriggerMode::LEVEL) {
+MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) : Drive::Robot(index), dongle(dongle), hall_stuck_message(Glib::ustring::compose(u8"Bot %1 hall sensor stuck", index), Annunciator::Message::TriggerMode::LEVEL), charge_timeout_message(Glib::ustring::compose(u8"Bot %1 charge timeout", index), Annunciator::Message::TriggerMode::LEVEL) {
 }
 
 void MRFRobot::handle_message(const void *data, std::size_t len) {
@@ -107,7 +111,6 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 				--len;
 				if (len == 9) {
 					alive = true;
-					has_feedback = true;
 					battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1024.0 * 3.3 / 3300 * (3300 + 15000);
 					capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 4096.0 * 3.3 / 2200 * (2200 + 220000);
 					break_beam_reading = bptr[4] | static_cast<unsigned int>(bptr[5] << 8);

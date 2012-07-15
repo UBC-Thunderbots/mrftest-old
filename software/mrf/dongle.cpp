@@ -82,7 +82,7 @@ MRFDongle::SendReliableMessageOperation::ClearChannelError::ClearChannelError() 
 
 
 #warning should support messages more than 64 bytes
-MRFDongle::MRFDongle() : estop_state(EStopState::BROKEN), context(), device(context, 0xC057, 0x2579), mdr_transfer(device, 1, 2, true, 0), message_transfer(device, 2, 64, false, 0), status_transfer(device, 3, 2, true, 0), drive_dirty(false) {
+MRFDongle::MRFDongle() : context(), device(context, 0xC057, 0x2579), mdr_transfer(device, 1, 2, true, 0), message_transfer(device, 2, 64, false, 0), status_transfer(device, 3, 2, true, 0), drive_dirty(false) {
 	for (unsigned int i = 0; i < 8; ++i) {
 		robots[i].reset(new MRFRobot(*this, i));
 	}

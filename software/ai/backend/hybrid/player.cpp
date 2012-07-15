@@ -60,9 +60,9 @@ Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot *xbee_b
 
 Player::~Player() {
 	if (xbee_bot) {
-		xbee_bot->drive_scram();
+		xbee_bot->drive_coast();
 		xbee_bot->dribble(false);
-		xbee_bot->autokick(0, 0, 0);
+		xbee_bot->autokick(false, 0);
 		xbee_bot->set_charger_state(XBeeRobot::ChargerState::DISCHARGE);
 	}
 	if (mrf_bot) {
@@ -169,7 +169,7 @@ void Player::kick_impl(double speed) {
 	if (xbee_bot) {
 		if (xbee_bot->alive) {
 			if (xbee_bot->capacitor_charged) {
-				xbee_bot->kick(calc_kick_straight(speed), 0, 0);
+				xbee_bot->kick(false, calc_kick_straight(speed));
 			} else {
 				LOG_ERROR(Glib::ustring::compose("Bot %1 kick when not ready", pattern()));
 			}
@@ -201,7 +201,7 @@ void Player::chip_impl(double) {
 	if (xbee_bot) {
 		if (xbee_bot->alive) {
 			if (xbee_bot->capacitor_charged) {
-				xbee_bot->kick(0, 4000, 0);
+				xbee_bot->kick(true, 4000);
 			} else {
 				LOG_ERROR(Glib::ustring::compose("Bot %1 chip when not ready", pattern()));
 			}
@@ -240,16 +240,14 @@ void Player::on_autokick_fired() {
 }
 
 void Player::tick(bool halt) {
-	bool alive = false, has_feedback = false;
+	bool alive = false;
 	double battery_voltage = 0.0;
 	if (xbee_bot) {
 		alive = xbee_bot->alive;
-		has_feedback = xbee_bot->has_feedback;
 		battery_voltage = xbee_bot->battery_voltage;
 	}
 	if (mrf_bot) {
 		alive = mrf_bot->alive;
-		has_feedback = mrf_bot->has_feedback;
 		battery_voltage = mrf_bot->battery_voltage;
 	}
 
@@ -259,7 +257,7 @@ void Player::tick(bool halt) {
 	}
 
 	// Check for low battery condition.
-	if (alive && has_feedback) {
+	if (alive) {
 		// Apply some hysteresis.
 		if (battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
 			if (battery_warning_hysteresis == BATTERY_HYSTERESIS_MAGNITUDE) {
@@ -287,9 +285,7 @@ void Player::tick(bool halt) {
 	// Only if the current request has changed or the system needs rearming is a packet needed.
 	if ((autokick_params != autokick_params_old) || (autokick_params.pulse && autokick_fired_)) {
 		if (xbee_bot) {
-			unsigned int pulse1 = autokick_params.chip ? 0 : autokick_params.pulse;
-			unsigned int pulse2 = autokick_params.chip ? autokick_params.pulse : 0;
-			xbee_bot->autokick(pulse1, pulse2, 0);
+			xbee_bot->autokick(autokick_params.chip, autokick_params.pulse);
 		}
 		if (mrf_bot) {
 			mrf_bot->autokick(autokick_params.chip, autokick_params.pulse);
@@ -315,7 +311,7 @@ void Player::tick(bool halt) {
 		}
 	} else {
 		if (xbee_bot) {
-			xbee_bot->drive_scram();
+			xbee_bot->drive_coast();
 		}
 		if (mrf_bot) {
 			mrf_bot->drive_coast();

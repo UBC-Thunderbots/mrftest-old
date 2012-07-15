@@ -12,20 +12,20 @@ EXECUTABLES_EXCLUDE_WORLD := cppunit
 # The source files for each executable.
 # Directories will be searched recursively for source files.
 #
-SOURCES_ai := ai geom log/shared mrf proto uicomponents util xbee
+SOURCES_ai := ai drive geom log/shared mrf proto uicomponents util xbee
 SOURCES_convertlog := ai/common convertlog geom log/shared proto util
 SOURCES_cppunit := cppunit geom util
 SOURCES_crc16 := crc16.cpp geom util
-SOURCES_experiment := experiment geom util xbee
-SOURCES_fw := fw geom util xbee
+SOURCES_experiment := drive experiment geom util xbee
+SOURCES_fw := drive fw geom util xbee
 SOURCES_hall2phase := hall2phase
 SOURCES_log := ai/common log geom proto uicomponents util
 SOURCES_mrfcap := geom mrfcap util
 SOURCES_mrfdbg := geom mrfdbg util
-SOURCES_mrftest := geom mrf mrftest uicomponents util
+SOURCES_mrftest := drive geom mrf test/common test/mrf uicomponents util
 SOURCES_simulator := ai/common/playtype.cpp geom simulator util
-SOURCES_test := geom test uicomponents util xbee
-SOURCES_xbeeconfig := geom util xbee xbeeconfig.cpp
+SOURCES_test := drive geom test/common test/xbee uicomponents util xbee
+SOURCES_xbeeconfig := drive geom util xbee xbeeconfig.cpp
 
 #
 # All the pkg-config packages used.

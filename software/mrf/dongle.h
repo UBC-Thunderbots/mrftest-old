@@ -7,6 +7,8 @@
  * \brief Provides access to an MRF24J40 dongle
  */
 
+#include "drive/dongle.h"
+#include "mrf/robot.h"
 #include "util/async_operation.h"
 #include "util/libusb.h"
 #include "util/noncopyable.h"
@@ -18,37 +20,15 @@
 #include <utility>
 #include <vector>
 
-class MRFRobot;
-
 /**
  * \brief The dongle
  */
-class MRFDongle : public NonCopyable {
+class MRFDongle : public Drive::Dongle {
 	public:
 		/**
 		 * \brief An operation to send a reliable message
 		 */
 		class SendReliableMessageOperation;
-
-		/**
-		 * \brief The possible positions of the hardware run switch
-		 */
-		enum class EStopState {
-			/**
-			 * \brief The switch is not connected properly
-			 */
-			BROKEN,
-
-			/**
-			 * \brief The switch is in the stop state
-			 */
-			STOP,
-
-			/**
-			 * \brief The switch is in the run state
-			 */
-			RUN,
-		};
 
 		/**
 		 * \brief Emitted when a message is received
@@ -60,11 +40,6 @@ class MRFDongle : public NonCopyable {
 		 * \param[in] length the length of the message
 		 */
 		sigc::signal<void, unsigned int, const void *, std::size_t> signal_message_received;
-
-		/**
-		 * \brief The current position of the emergency stop switch
-		 */
-		Property<EStopState> estop_state;
 
 		/**
 		 * \brief Constructs a new MRFDongle
