@@ -5,6 +5,7 @@
 #include "ai/backend/hybrid/player.h"
 #include "ai/backend/hybrid/refbox.h"
 #include "ai/backend/hybrid/robot.h"
+#include "drive/robot.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "util/box_array.h"
 #include "util/clocksource_timerfd.h"
@@ -14,9 +15,7 @@
 #include "util/sockaddrs.h"
 #include "util/timestep.h"
 #include "mrf/dongle.h"
-#include "mrf/robot.h"
 #include "xbee/dongle.h"
-#include "xbee/robot.h"
 #include <cassert>
 #include <cstring>
 #include <locale>
@@ -319,9 +318,9 @@ unsigned int HybridFriendlyTeam::score() const {
 
 void HybridFriendlyTeam::create_member(unsigned int pattern) {
 	if (pattern <= 7 && USE_MRF[pattern]) {
-		members.create(pattern, std::ref(backend), pattern, static_cast<XBeeRobot *>(0), &mrf_dongle.robot(pattern));
+		members.create(pattern, std::ref(backend), pattern, &mrf_dongle.robot(pattern));
 	} else {
-		members.create(pattern, std::ref(backend), pattern, &xbee_dongle.robot(pattern), static_cast<MRFRobot *>(0));
+		members.create(pattern, std::ref(backend), pattern, &xbee_dongle.robot(pattern));
 	}
 }
 

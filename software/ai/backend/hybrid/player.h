@@ -2,10 +2,9 @@
 #define AI_BACKEND_HYBRID_PLAYER_H
 
 #include "ai/backend/hybrid/robot.h"
-#include "mrf/robot.h"
+#include "drive/robot.h"
 #include "util/annunciator.h"
 #include "util/box_ptr.h"
-#include "xbee/robot.h"
 #include <ctime>
 #include <utility>
 #include <vector>
@@ -37,11 +36,9 @@ namespace AI {
 					 *
 					 * \param[in] pattern the index of the vision pattern associated with the player.
 					 *
-					 * \param[in] xbee_bot the XBee robot being driven.
-					 *
-					 * \param[in] mrf_bot the MRF robot being driven.
+					 * \param[in] bot the robot being driven.
 					 */
-					explicit Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot *bot, MRFRobot *mrf_bot);
+					explicit Player(AI::BE::Backend &backend, unsigned int pattern, Drive::Robot *bot);
 
 					/**
 					 * \brief Destroys a Player object.
@@ -109,8 +106,7 @@ namespace AI {
 					}
 
 				private:
-					XBeeRobot *xbee_bot;
-					MRFRobot *mrf_bot;
+					Drive::Robot *bot;
 					bool controlled;
 					double dribble_distance_;
 					Point last_dribble_position;
@@ -122,7 +118,7 @@ namespace AI {
 					struct AutokickParams {
 						AutokickParams();
 						bool chip;
-						unsigned int pulse;
+						double pulse;
 						bool operator==(const AutokickParams &other) const;
 						bool operator!=(const AutokickParams &other) const;
 					};

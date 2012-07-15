@@ -17,60 +17,21 @@ namespace {
 	const double BATTERY_CRITICAL_THRESHOLD = 13.5;
 
 	const int BATTERY_HYSTERESIS_MAGNITUDE = 15;
-
-	unsigned int calc_kick_straight(double speed) {
-		static const double SPEEDS[] = { 7.14, 8.89, 10.3 };
-		static const unsigned int POWERS[] = { 2016, 3024, 4032 };
-
-		double speed_below = 0.0, speed_above = 0.0;
-		unsigned int power_below = 0.0, power_above = 0.0;
-		if (speed <= SPEEDS[0] + 1e-9) {
-			speed_below = SPEEDS[0];
-			speed_above = SPEEDS[1];
-			power_below = POWERS[0];
-			power_above = POWERS[1];
-		} else {
-			for (std::size_t i = 0; i < G_N_ELEMENTS(SPEEDS) - 1 && SPEEDS[i] < speed; ++i) {
-				speed_below = SPEEDS[i];
-				speed_above = SPEEDS[i + 1];
-				power_below = POWERS[i];
-				power_above = POWERS[i + 1];
-			}
-		}
-		double diff_speed = speed_above - speed_below;
-		double diff_power = power_above - power_below;
-		double slope = diff_power / diff_speed;
-		double power = (speed - speed_below) * slope + power_below;
-		return static_cast<unsigned int>(clamp(power, 0.0, 4064.0));
-	}
 }
 
-Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot *xbee_bot, MRFRobot *mrf_bot) : AI::BE::Hybrid::Robot(backend, pattern), xbee_bot(xbee_bot), mrf_bot(mrf_bot), controlled(false), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_fired_(false) {
-	assert(xbee_bot || mrf_bot);
+Player::Player(AI::BE::Backend &backend, unsigned int pattern, Drive::Robot *bot) : AI::BE::Hybrid::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_fired_(false) {
+	assert(bot);
 	timespec now;
 	timespec_now(now);
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
-	if (xbee_bot) {
-		xbee_bot->signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
-	}
-	if (mrf_bot) {
-		mrf_bot->signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
-	}
+	bot->signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
 }
 
 Player::~Player() {
-	if (xbee_bot) {
-		xbee_bot->drive_coast();
-		xbee_bot->dribble(false);
-		xbee_bot->autokick(false, 0);
-		xbee_bot->set_charger_state(XBeeRobot::ChargerState::DISCHARGE);
-	}
-	if (mrf_bot) {
-		mrf_bot->drive_coast();
-		mrf_bot->dribble(false);
-		mrf_bot->autokick(false, 0);
-		mrf_bot->set_charger_state(MRFRobot::ChargerState::DISCHARGE);
-	}
+	bot->drive_coast();
+	bot->dribble(false);
+	bot->autokick(false, 0);
+	bot->set_charger_state(Drive::Robot::ChargerState::DISCHARGE);
 }
 
 const std::pair<Point, Angle> &Player::destination() const {
@@ -86,31 +47,16 @@ unsigned int Player::num_bar_graphs() const {
 }
 
 double Player::bar_graph_value(unsigned int index) const {
-	if (xbee_bot) {
-		switch (index) {
-			case 0:
-				return xbee_bot->alive ? clamp((xbee_bot->battery_voltage - 13.0) / (16.5 - 13.0), 0.0, 1.0) : 0.0;
+	switch (index) {
+		case 0:
+			return bot->alive ? clamp((bot->battery_voltage - 13.0) / (16.5 - 13.0), 0.0, 1.0) : 0.0;
 
-			case 1:
-				return xbee_bot->alive ? clamp(xbee_bot->capacitor_voltage / 230.0, 0.0, 1.0) : 0.0;
+		case 1:
+			return bot->alive ? clamp(bot->capacitor_voltage / 230.0, 0.0, 1.0) : 0.0;
 
-			default:
-				throw std::logic_error("invalid bar graph index");
-		}
+		default:
+			throw std::logic_error("invalid bar graph index");
 	}
-	if (mrf_bot) {
-		switch (index) {
-			case 0:
-				return mrf_bot->alive ? clamp((mrf_bot->battery_voltage - 13.0) / (16.5 - 13.0), 0.0, 1.0) : 0.0;
-
-			case 1:
-				return mrf_bot->alive ? clamp(mrf_bot->capacitor_voltage / 230.0, 0.0, 1.0) : 0.0;
-
-			default:
-				throw std::logic_error("invalid bar graph index");
-		}
-	}
-	std::abort();
 }
 
 Visualizable::Colour Player::bar_graph_colour(unsigned int index) const {
@@ -122,12 +68,7 @@ Visualizable::Colour Player::bar_graph_colour(unsigned int index) const {
 		}
 
 		case 1:
-			if (xbee_bot) {
-				return Visualizable::Colour(xbee_bot->capacitor_charged ? 0.0 : 1.0, xbee_bot->capacitor_charged ? 1.0 : 0.0, 0.0);
-			}
-			if (mrf_bot) {
-				return Visualizable::Colour(mrf_bot->capacitor_charged ? 0.0 : 1.0, mrf_bot->capacitor_charged ? 1.0 : 0.0, 0.0);
-			}
+			return Visualizable::Colour(bot->capacitor_charged ? 0.0 : 1.0, bot->capacitor_charged ? 1.0 : 0.0, 0.0);
 
 		default:
 			throw std::logic_error("invalid bar graph index");
@@ -136,96 +77,45 @@ Visualizable::Colour Player::bar_graph_colour(unsigned int index) const {
 }
 
 bool Player::alive() const {
-	if (xbee_bot) {
-		return xbee_bot->alive;
-	}
-	if (mrf_bot) {
-		return mrf_bot->alive;
-	}
-	std::abort();
+	return bot->alive;
 }
 
 bool Player::has_ball() const {
-	if (xbee_bot) {
-		return xbee_bot->ball_in_beam;
-	}
-	if (mrf_bot) {
-		return mrf_bot->ball_in_beam;
-	}
-	std::abort();
+	return bot->ball_in_beam;
 }
 
 bool Player::chicker_ready() const {
-	if (xbee_bot) {
-		return xbee_bot->alive && xbee_bot->capacitor_charged;
-	}
-	if (mrf_bot) {
-		return mrf_bot->alive && mrf_bot->capacitor_charged;
-	}
-	std::abort();
+	return bot->alive && bot->capacitor_charged;
 }
 
 void Player::kick_impl(double speed) {
-	if (xbee_bot) {
-		if (xbee_bot->alive) {
-			if (xbee_bot->capacitor_charged) {
-				xbee_bot->kick(false, calc_kick_straight(speed));
-			} else {
-				LOG_ERROR(Glib::ustring::compose("Bot %1 kick when not ready", pattern()));
-			}
-		}
-	}
-	if (mrf_bot) {
-		if (mrf_bot->alive) {
-			if (mrf_bot->capacitor_charged) {
-				mrf_bot->kick(false, static_cast<unsigned int>(speed / 8.0 * 3000.0 * 4.0));
-			} else {
-				LOG_ERROR(Glib::ustring::compose("Bot %1 kick when not ready", pattern()));
-			}
+	if (bot->alive) {
+		if (bot->capacitor_charged) {
+			bot->kick(false, speed / 8.0 * 3000.0);
+		} else {
+			LOG_ERROR(Glib::ustring::compose("Bot %1 kick when not ready", pattern()));
 		}
 	}
 }
 
 void Player::autokick_impl(double speed) {
-	if (xbee_bot) {
-		autokick_params.chip = false;
-		autokick_params.pulse = calc_kick_straight(speed);
-	}
-	if (mrf_bot) {
-		autokick_params.chip = false;
-		autokick_params.pulse = static_cast<unsigned int>(speed / 8.0 * 3000.0 * 4.0);
-	}
+	autokick_params.chip = false;
+	autokick_params.pulse = speed / 8.0 * 3000.0;
 }
 
 void Player::chip_impl(double) {
-	if (xbee_bot) {
-		if (xbee_bot->alive) {
-			if (xbee_bot->capacitor_charged) {
-				xbee_bot->kick(true, 4000);
-			} else {
-				LOG_ERROR(Glib::ustring::compose("Bot %1 chip when not ready", pattern()));
-			}
-		}
-	}
-	if (mrf_bot) {
-		if (mrf_bot->alive) {
-			if (mrf_bot->capacitor_charged) {
-				mrf_bot->kick(true, 16000);
-			} else {
-				LOG_ERROR(Glib::ustring::compose("Bot %1 chip when not ready", pattern()));
-			}
+	if (bot->alive) {
+		if (bot->capacitor_charged) {
+			bot->kick(true, 4000);
+		} else {
+			LOG_ERROR(Glib::ustring::compose("Bot %1 chip when not ready", pattern()));
 		}
 	}
 }
 
 void Player::autochip_impl(double) {
 	autokick_params.chip = true;
-	if (xbee_bot) {
-		autokick_params.pulse = 4000U;
-	}
-	if (mrf_bot) {
-		autokick_params.pulse = 16000U;
-	}
+	autokick_params.pulse = 4000;
 }
 
 void Player::drive(const int(&w)[4]) {
@@ -240,26 +130,15 @@ void Player::on_autokick_fired() {
 }
 
 void Player::tick(bool halt) {
-	bool alive = false;
-	double battery_voltage = 0.0;
-	if (xbee_bot) {
-		alive = xbee_bot->alive;
-		battery_voltage = xbee_bot->battery_voltage;
-	}
-	if (mrf_bot) {
-		alive = mrf_bot->alive;
-		battery_voltage = mrf_bot->battery_voltage;
-	}
-
 	// Check for emergency conditions.
-	if (!alive) {
+	if (!bot->alive) {
 		halt = true;
 	}
 
 	// Check for low battery condition.
-	if (alive) {
+	if (bot->alive) {
 		// Apply some hysteresis.
-		if (battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
+		if (bot->battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
 			if (battery_warning_hysteresis == BATTERY_HYSTERESIS_MAGNITUDE) {
 				battery_warning_message.active(true);
 			} else {
@@ -284,12 +163,7 @@ void Player::tick(bool halt) {
 
 	// Only if the current request has changed or the system needs rearming is a packet needed.
 	if ((autokick_params != autokick_params_old) || (autokick_params.pulse && autokick_fired_)) {
-		if (xbee_bot) {
-			xbee_bot->autokick(autokick_params.chip, autokick_params.pulse);
-		}
-		if (mrf_bot) {
-			mrf_bot->autokick(autokick_params.chip, autokick_params.pulse);
-		}
+		bot->autokick(autokick_params.chip, autokick_params.pulse);
 		autokick_params_old = autokick_params;
 	}
 
@@ -303,37 +177,17 @@ void Player::tick(bool halt) {
 
 	// Drivetrain control path.
 	if (!halt && moved && controlled) {
-		if (xbee_bot) {
-			xbee_bot->drive(wheel_speeds_);
-		}
-		if (mrf_bot) {
-			mrf_bot->drive(wheel_speeds_);
-		}
+		bot->drive(wheel_speeds_);
 	} else {
-		if (xbee_bot) {
-			xbee_bot->drive_coast();
-		}
-		if (mrf_bot) {
-			mrf_bot->drive_coast();
-		}
+		bot->drive_coast();
 	}
 	controlled = false;
 
 	// Dribbler should always run except in halt.
-	if (xbee_bot) {
-		xbee_bot->dribble(!halt);
-	}
-	if (mrf_bot) {
-		mrf_bot->dribble(!halt);
-	}
+	bot->dribble(!halt);
 
 	// Kicker should always charge except in halt.
-	if (xbee_bot) {
-		xbee_bot->set_charger_state(halt ? XBeeRobot::ChargerState::DISCHARGE : XBeeRobot::ChargerState::CHARGE);
-	}
-	if (mrf_bot) {
-		mrf_bot->set_charger_state(halt ? MRFRobot::ChargerState::DISCHARGE : MRFRobot::ChargerState::CHARGE);
-	}
+	bot->set_charger_state(halt ? Drive::Robot::ChargerState::DISCHARGE : Drive::Robot::ChargerState::CHARGE);
 
 	// Calculations.
 	if (has_ball()) {
