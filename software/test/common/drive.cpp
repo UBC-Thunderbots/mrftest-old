@@ -87,8 +87,10 @@ namespace {
 }
 
 DrivePanel::DrivePanel(Drive::Robot &robot) : robot(robot), controllers_checkbox(u8"Controllers") {
-	for (unsigned int i = 0; i < robot.can_coast() ? G_N_ELEMENTS(MODES_COAST) : G_N_ELEMENTS(MODES_NO_COAST); ++i) {
-		mode_chooser.append_text((robot.can_coast() ? MODES_COAST : MODES_NO_COAST)[i].name);
+	const Mode * const MODES = robot.can_coast() ? MODES_COAST : MODES_NO_COAST;
+	const std::size_t MODES_SIZE = robot.can_coast() ? G_N_ELEMENTS(MODES_COAST) : G_N_ELEMENTS(MODES_NO_COAST);
+	for (std::size_t i = 0; i < MODES_SIZE; ++i) {
+		mode_chooser.append_text(MODES[i].name);
 	}
 	coast();
 	mode_chooser.signal_changed().connect(sigc::mem_fun(this, &DrivePanel::on_mode_changed));
@@ -122,9 +124,10 @@ void DrivePanel::set_values(const double(&values)[4]) {
 }
 
 void DrivePanel::get_low_sensitivity_scale_factors(double (&scale)[4]) {
+	const Mode * const MODES = robot.can_coast() ? MODES_COAST : MODES_NO_COAST;
 	int row = mode_chooser.get_active_row_number();
 	if (row >= 0) {
-		(robot.can_coast() ? MODES_COAST : MODES_NO_COAST)[row].get_low_sensitivity_scale_factors(scale);
+		MODES[row].get_low_sensitivity_scale_factors(scale);
 	}
 }
 
@@ -142,9 +145,10 @@ void DrivePanel::on_mode_changed() {
 }
 
 void DrivePanel::on_update() {
+	const Mode * const MODES = robot.can_coast() ? MODES_COAST : MODES_NO_COAST;
 	int row = mode_chooser.get_active_row_number();
 	if (row >= 0) {
-		(robot.can_coast() ? MODES_COAST : MODES_NO_COAST)[row].on_update(controls, robot, controllers_checkbox.get_active());
+		MODES[row].on_update(controls, robot, controllers_checkbox.get_active());
 	}
 }
 
