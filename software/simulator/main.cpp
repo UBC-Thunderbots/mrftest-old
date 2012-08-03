@@ -1,8 +1,7 @@
 #include "simulator/simulator.h"
 #include "util/clocksource_timerfd.h"
+#include "util/random.h"
 #include "util/timestep.h"
-#include <cstdlib>
-#include <ctime>
 #include <exception>
 #include <iostream>
 #include <locale>
@@ -56,8 +55,7 @@ namespace {
 		std::locale::global(std::locale(""));
 
 		// Seed the PRNGs.
-		std::srand(static_cast<unsigned int>(std::time(0)));
-		srand48(static_cast<long>(std::time(0)));
+		Random::seed();
 
 		Glib::OptionContext option_context;
 		option_context.set_summary("Runs the Thunderbots simulator.");

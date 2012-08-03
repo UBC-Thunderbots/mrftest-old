@@ -8,11 +8,10 @@
 #include "util/config.h"
 #include "util/exception.h"
 #include "util/param.h"
+#include "util/random.h"
 #include "util/timestep.h"
 #include <algorithm>
 #include <cerrno>
-#include <cstdlib>
-#include <ctime>
 #include <functional>
 #include <iostream>
 #include <locale>
@@ -120,8 +119,7 @@ namespace {
 		std::locale::global(std::locale(""));
 
 		// Seed the PRNGs.
-		std::srand(static_cast<unsigned int>(std::time(0)));
-		srand48(static_cast<long>(std::time(0)));
+		Random::seed();
 
 		// Parse the command-line arguments.
 		AI::Setup setup;

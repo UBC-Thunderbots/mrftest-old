@@ -1,5 +1,3 @@
-#include <cstdlib>
-#include <ctime>
 #include <iostream>
 #include <locale>
 #include <string>
@@ -13,10 +11,6 @@ namespace {
 int main(void) {
 	// Set the current locale from environment variables.
 	std::locale::global(std::locale(""));
-
-	// Seed the PRNGs.
-	std::srand(static_cast<unsigned int>(std::time(0)));
-	srand48(static_cast<long>(std::time(0)));
 
 	// Ask for input.
 	std::wcout << L"Direction (+/-): " << std::flush;

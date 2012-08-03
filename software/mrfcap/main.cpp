@@ -1,7 +1,6 @@
 #include "util/libusb.h"
 #include "util/string.h"
 #include <chrono>
-#include <cstdlib>
 #include <ctime>
 #include <fstream>
 #include <iostream>
@@ -24,10 +23,6 @@ namespace {
 	int main_impl(int argc, char **argv) {
 		// Set the current locale from environment variables
 		std::locale::global(std::locale(""));
-
-		// Seed the PRNGs
-		std::srand(static_cast<unsigned int>(std::time(0)));
-		srand48(static_cast<long>(std::time(0)));
 
 		// Parse command-line arguments
 		if (argc != 7 && argc != 8) {

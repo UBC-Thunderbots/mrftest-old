@@ -649,6 +649,8 @@ software/util/param.h -text
 software/util/predictor.cpp -text
 software/util/predictor.h -text
 software/util/property.h -text
+software/util/random.cpp -text
+software/util/random.h -text
 software/util/registerable.h -text
 software/util/signal.cpp -text
 software/util/signal.h -text
