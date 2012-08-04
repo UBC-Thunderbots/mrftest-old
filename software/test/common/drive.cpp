@@ -72,13 +72,13 @@ namespace {
 		void (*get_low_sensitivity_scale_factors)(double (&)[4]);
 	};
 
-	const Mode MODES_COAST[] = {
+	const Mode MODES_NO_COAST[] = {
 		{ u8"Brake", 0x0, 1, 0.1, 0.5, 0, &on_update_brake, &get_low_sensitivity_scale_factors_brake },
 		{ u8"Per-motor", 0xF, 1023, 1, 25, 0, &on_update_permotor, &get_low_sensitivity_scale_factors_permotor },
 		{ u8"Matrix", 0x7, 20, 0.1, 3, 1, &on_update_matrix, &get_low_sensitivity_scale_factors_matrix },
 	};
 
-	const Mode MODES_NO_COAST[] = {
+	const Mode MODES_COAST[] = {
 		{ u8"Coast", 0x0, 1, 0.1, 0.5, 0, &on_update_coast, &get_low_sensitivity_scale_factors_coast },
 		{ u8"Brake", 0x0, 1, 0.1, 0.5, 0, &on_update_brake, &get_low_sensitivity_scale_factors_brake },
 		{ u8"Per-motor", 0xF, 1023, 1, 25, 0, &on_update_permotor, &get_low_sensitivity_scale_factors_permotor },
