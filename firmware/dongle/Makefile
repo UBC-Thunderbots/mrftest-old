@@ -1,5 +1,5 @@
 HOSTCC := $(CC)
-ABI := $(shell ./getabi.sh)
+ABI := arm-linux-gnueabi
 CC := $(ABI)-gcc
 LD := $(ABI)-ld
 OBJCOPY := $(ABI)-objcopy
