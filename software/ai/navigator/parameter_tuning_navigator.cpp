@@ -22,41 +22,13 @@ namespace {
 	 */
 	class ParameterTuningNavigator : public Navigator {
 		public:
-			NavigatorFactory &factory() const;
-			static Navigator::Ptr create(World &world);
+			ParameterTuningNavigator(World &world);
 			void tick();
+			NavigatorFactory &factory() const;
 
 		private:
-			ParameterTuningNavigator(World &world);
 			StochasticLocalSearch sls;
 	};
-
-	class ParameterTuningNavigatorFactory : public NavigatorFactory {
-		public:
-			Navigator::Ptr create_navigator(World &world) const;
-			ParameterTuningNavigatorFactory();
-	};
-
-	ParameterTuningNavigatorFactory simple_nav_factory;
-
-	NavigatorFactory &ParameterTuningNavigator::factory() const {
-		return simple_nav_factory;
-	}
-
-	Navigator::Ptr ParameterTuningNavigator::create(World &world) {
-		Navigator::Ptr p(new ParameterTuningNavigator(world));
-		return p;
-	}
-
-	ParameterTuningNavigator::ParameterTuningNavigator(World &world) : Navigator(world), sls(TunableController::get_instance()->get_params_default(), TunableController::get_instance()->get_params_min(), TunableController::get_instance()->get_params_max()) {
-	}
-
-	ParameterTuningNavigatorFactory::ParameterTuningNavigatorFactory() : NavigatorFactory("TEST: Parameter Tuning") {
-	}
-
-	Navigator::Ptr ParameterTuningNavigatorFactory::create_navigator(World &world) const {
-		return ParameterTuningNavigator::create(world);
-	}
 
 	const double PI = M_PI;
 	int taskIndex = 0;
@@ -82,63 +54,67 @@ namespace {
 		std::make_pair(Point(0.5, 0), Angle::of_radians(0)),
 		std::make_pair(Point(2.5, 0.6), Angle::of_radians(-PI / 2))
 	};
+}
 
+ParameterTuningNavigator::ParameterTuningNavigator(World &world) : Navigator(world), sls(TunableController::get_instance()->get_params_default(), TunableController::get_instance()->get_params_min(), TunableController::get_instance()->get_params_max()) {
+}
 
-	void ParameterTuningNavigator::tick() {
-		FriendlyTeam &fteam = world.friendly_team();
+void ParameterTuningNavigator::tick() {
+	FriendlyTeam &fteam = world.friendly_team();
 
-		TunableController *tc = TunableController::get_instance();
+	TunableController *tc = TunableController::get_instance();
 
-		if (fteam.size() != 1) {
-			std::cerr << "error: must have only 1 robot in the team!" << std::endl;
-			return;
-		}
+	if (fteam.size() != 1) {
+		std::cerr << "error: must have only 1 robot in the team!" << std::endl;
+		return;
+	}
 
-		time++;
+	time++;
 
-		Player::Ptr player;
-		Player::Path path;
+	Player::Ptr player;
+	Player::Path path;
 
-		path.clear();
-		player = fteam.get(0);
-		Point currentPosition = player->position();
-		if ((currentPosition - tasks[taskIndex].first).len() < pos_dis_threshold
-		    && player->velocity().len() < pos_vel_threshold
-		    && tasks[taskIndex].second.angle_diff(player->orientation()) < ori_dis_threshold
-		    && player->avelocity() < ori_vel_threshold) {
-			taskIndex++;
-			if (taskIndex == 1) {
-				time = 0;
-			}
-		}
-
-		if (taskIndex == numTasks || time >= best) {
-			taskIndex = 0;
-			std::cout << "Parameters: ";
-			std::vector<double> params = tc->get_params();
-			for (uint i = 0; i < params.size(); i++) {
-				std::cout << params[i] << " ";
-			}
-			std::cout << "Time steps taken: " << time;
-			if (time < best) {
-				best = time;
-				sls.set_cost(time);
-			} else {
-				sls.set_cost(limit);
-			}
-			sls.hill_climb();
-			std::cout << " Best parameters: ";
-			params = sls.get_best_params();
-			for (uint i = 0; i < params.size(); i++) {
-				std::cout << params[i] << " ";
-			}
-			std::cout << std::endl;
-			tc->set_params(sls.get_params());
+	path.clear();
+	player = fteam.get(0);
+	Point currentPosition = player->position();
+	if ((currentPosition - tasks[taskIndex].first).len() < pos_dis_threshold
+		&& player->velocity().len() < pos_vel_threshold
+		&& tasks[taskIndex].second.angle_diff(player->orientation()) < ori_dis_threshold
+		&& player->avelocity() < ori_vel_threshold) {
+		taskIndex++;
+		if (taskIndex == 1) {
 			time = 0;
 		}
-
-		path.push_back(std::make_pair(std::make_pair(tasks[taskIndex].first, tasks[taskIndex].second), world.monotonic_time()));
-		player->path(path);
 	}
+
+	if (taskIndex == numTasks || time >= best) {
+		taskIndex = 0;
+		std::cout << "Parameters: ";
+		std::vector<double> params = tc->get_params();
+		for (uint i = 0; i < params.size(); i++) {
+			std::cout << params[i] << " ";
+		}
+		std::cout << "Time steps taken: " << time;
+		if (time < best) {
+			best = time;
+			sls.set_cost(time);
+		} else {
+			sls.set_cost(limit);
+		}
+		sls.hill_climb();
+		std::cout << " Best parameters: ";
+		params = sls.get_best_params();
+		for (uint i = 0; i < params.size(); i++) {
+			std::cout << params[i] << " ";
+		}
+		std::cout << std::endl;
+		tc->set_params(sls.get_params());
+		time = 0;
+	}
+
+	path.push_back(std::make_pair(std::make_pair(tasks[taskIndex].first, tasks[taskIndex].second), world.monotonic_time()));
+	player->path(path);
 }
+
+NAVIGATOR_REGISTER(ParameterTuningNavigator)
 

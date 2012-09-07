@@ -15,69 +15,44 @@ namespace {
 	 */
 	class PivotNavigator2 : public Navigator {
 		public:
-			NavigatorFactory &factory() const;
-			static Navigator::Ptr create(World &world);
-			void tick();
-
-		private:
 			PivotNavigator2(World &world);
+			void tick();
+			NavigatorFactory &factory() const;
 	};
-
-	class PivotNavigator2Factory : public NavigatorFactory {
-		public:
-			Navigator::Ptr create_navigator(World &world) const;
-			PivotNavigator2Factory();
-	};
-
-	PivotNavigator2Factory pivot_nav_factory;
-
-	NavigatorFactory &PivotNavigator2::factory() const {
-		return pivot_nav_factory;
-	}
-
-	Navigator::Ptr PivotNavigator2::create(World &world) {
-		Navigator::Ptr p(new PivotNavigator2(world));
-		return p;
-	}
-
-	PivotNavigator2::PivotNavigator2(World &world) : Navigator(world) {
-	}
-
-	PivotNavigator2Factory::PivotNavigator2Factory() : NavigatorFactory("TEST: Pivot Navigator 2") {
-	}
-
-	Navigator::Ptr PivotNavigator2Factory::create_navigator(World &world) const {
-		return PivotNavigator2::create(world);
-	}
 
 	DegreeParam offset_angle("offset angle (degrees)", "Nav/Pivot2", 30.0, -1000.0, 1000.0);
 	DoubleParam offset_distance("offset distance", "Nav/Pivot2", 0.15, -10.0, 10.0);
 	DegreeParam orientation_offset("orientation offset (degrees)", "Nav/Pivot2", 30.0, -1000.0, 1000.0);
+}
 
-	void PivotNavigator2::tick() {
-		FriendlyTeam &fteam = world.friendly_team();
+PivotNavigator2::PivotNavigator2(World &world) : Navigator(world) {
+}
 
-		Player::Ptr player;
-		Player::Path path;
+void PivotNavigator2::tick() {
+	FriendlyTeam &fteam = world.friendly_team();
 
-		Point currentPosition, destinationPosition;
-		Angle currentOrientation, destinationOrientation;
+	Player::Ptr player;
+	Player::Path path;
 
-		for (std::size_t i = 0; i < fteam.size(); i++) {
-			path.clear();
-			player = fteam.get(i);
-			currentPosition = player->position();
-			currentOrientation = player->orientation();
+	Point currentPosition, destinationPosition;
+	Angle currentOrientation, destinationOrientation;
 
-			Point diff = (world.ball().position() - currentPosition).rotate(offset_angle);
+	for (std::size_t i = 0; i < fteam.size(); i++) {
+		path.clear();
+		player = fteam.get(i);
+		currentPosition = player->position();
+		currentOrientation = player->orientation();
 
-			destinationPosition = world.ball().position() - offset_distance * diff.norm();
-			destinationOrientation = (world.ball().position() - currentPosition).orientation() + orientation_offset;
+		Point diff = (world.ball().position() - currentPosition).rotate(offset_angle);
 
-			path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
+		destinationPosition = world.ball().position() - offset_distance * diff.norm();
+		destinationOrientation = (world.ball().position() - currentPosition).orientation() + orientation_offset;
 
-			player->path(path);
-		}
+		path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
+
+		player->path(path);
 	}
 }
+
+NAVIGATOR_REGISTER(PivotNavigator2)
 

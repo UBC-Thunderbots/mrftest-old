@@ -123,5 +123,28 @@ namespace AI {
 	}
 }
 
+#define NAVIGATOR_REGISTER(cls) \
+	namespace { \
+		class cls##NavigatorFactory : public AI::Nav::NavigatorFactory { \
+			public: \
+				cls##NavigatorFactory(); \
+				std::unique_ptr<Navigator> create_navigator(AI::Nav::W::World &) const; \
+		}; \
+	} \
+	\
+	cls##NavigatorFactory::cls##NavigatorFactory() : NavigatorFactory(#cls) { \
+	} \
+	\
+	std::unique_ptr<Navigator> cls##NavigatorFactory::create_navigator(AI::Nav::W::World &world) const { \
+		std::unique_ptr<Navigator> p(new cls(world)); \
+		return p; \
+	} \
+	\
+	cls##NavigatorFactory cls##NavigatorFactory_instance; \
+	\
+	NavigatorFactory &cls::factory() const { \
+		return cls##NavigatorFactory_instance; \
+	}
+
 #endif
 

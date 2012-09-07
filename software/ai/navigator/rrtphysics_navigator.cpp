@@ -26,77 +26,54 @@ namespace {
 
 	class RRTPhysicsNavigator : public Navigator {
 		public:
-			NavigatorFactory &factory() const;
+			RRTPhysicsNavigator(World &world);
 			void tick();
-			static Navigator::Ptr create(World &world);
+			NavigatorFactory &factory() const;
 
 		private:
-			RRTPhysicsNavigator(World &world);
 			PhysicsPlanner planner;
 	};
+}
 
-	class RRTPhysicsNavigatorFactory : public NavigatorFactory {
-		public:
-			RRTPhysicsNavigatorFactory();
-			Navigator::Ptr create_navigator(World &world) const;
-	};
+RRTPhysicsNavigator::RRTPhysicsNavigator(World &world) : Navigator(world), planner(world) {
+}
 
-	RRTPhysicsNavigatorFactory factory_instance;
+void RRTPhysicsNavigator::tick() {
+	struct timespec currentTime;
+	Player::Path path;
+	std::vector<Point> pathPoints;
 
-	NavigatorFactory &RRTPhysicsNavigator::factory() const {
-		return factory_instance;
-	}
+	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
+		path.clear();
+		Player::Ptr player = world.friendly_team().get(i);
+		currentTime = world.monotonic_time();
+		const double dist = (player->position() - player->destination().first).len();
+		struct timespec timeToAdd = double_to_timespec(dist / MAX_SPEED);
+		struct timespec finalTime;
 
-	void RRTPhysicsNavigator::tick() {
-		struct timespec currentTime;
-		Player::Path path;
-		std::vector<Point> pathPoints;
+		timespec_add(currentTime, timeToAdd, finalTime);
+		pathPoints.clear();
+		pathPoints = planner.plan(player, player->destination().first);
 
-		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-			path.clear();
-			Player::Ptr player = world.friendly_team().get(i);
-			currentTime = world.monotonic_time();
-			const double dist = (player->position() - player->destination().first).len();
-			struct timespec timeToAdd = double_to_timespec(dist / MAX_SPEED);
-			struct timespec finalTime;
-
-			timespec_add(currentTime, timeToAdd, finalTime);
-			pathPoints.clear();
-			pathPoints = planner.plan(player, player->destination().first);
-
-			Angle destOrientation = player->destination().second;
-			for (std::size_t j = 0; j < pathPoints.size(); ++j) {
-				// the last point will just use whatever the last orientation was
-				if (j + 1 != pathPoints.size()) {
-					destOrientation = (pathPoints[j + 1] - pathPoints[j]).orientation();
-				}
-
-				path.push_back(std::make_pair(std::make_pair(pathPoints[j], destOrientation), finalTime));
+		Angle destOrientation = player->destination().second;
+		for (std::size_t j = 0; j < pathPoints.size(); ++j) {
+			// the last point will just use whatever the last orientation was
+			if (j + 1 != pathPoints.size()) {
+				destOrientation = (pathPoints[j + 1] - pathPoints[j]).orientation();
 			}
 
-			// just use the current player position as the destination if we are within the
-			// threshold already
-			if (pathPoints.empty()) {
-				path.push_back(std::make_pair(std::make_pair(player->position(), destOrientation), finalTime));
-			}
-
-			player->path(path);
+			path.push_back(std::make_pair(std::make_pair(pathPoints[j], destOrientation), finalTime));
 		}
-	}
 
-	Navigator::Ptr RRTPhysicsNavigator::create(World &world) {
-		Navigator::Ptr p(new RRTPhysicsNavigator(world));
-		return p;
-	}
+		// just use the current player position as the destination if we are within the
+		// threshold already
+		if (pathPoints.empty()) {
+			path.push_back(std::make_pair(std::make_pair(player->position(), destOrientation), finalTime));
+		}
 
-	RRTPhysicsNavigator::RRTPhysicsNavigator(World &world) : Navigator(world), planner(world) {
-	}
-
-	RRTPhysicsNavigatorFactory::RRTPhysicsNavigatorFactory() : NavigatorFactory("RRT Physics Navigator") {
-	}
-
-	Navigator::Ptr RRTPhysicsNavigatorFactory::create_navigator(World &world) const {
-		return RRTPhysicsNavigator::create(world);
+		player->path(path);
 	}
 }
+
+NAVIGATOR_REGISTER(RRTPhysicsNavigator)
 
