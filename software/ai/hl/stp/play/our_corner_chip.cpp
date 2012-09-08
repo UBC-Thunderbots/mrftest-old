@@ -32,7 +32,7 @@ goalie_role.push_back(defend_duo_goalie(world));
 
 // ROLE 1
 // shoot towards the midfield
-roles[0].push_back(free_kick_pass(world, Point(0,0), true));
+roles[0].push_back(free_kick_pass(world, world.field().enemy_goal(), true));
 
 // ROLE 2
 // defend
