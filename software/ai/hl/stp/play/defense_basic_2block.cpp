@@ -5,11 +5,18 @@
 
 using AI::HL::STP::Enemy;
 
+/**
+ * Condition:
+ * - When we are not on the offensive. 
+ *
+ * Objective:
+ * - Gain control of the ball and block enemy players. 
+ */
 BEGIN_PLAY(DBasic2Block)
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3))
-APPLICABLE(defensive(world) && ball_x_less_than(world, -0.7))
+APPLICABLE(defensive(world) && ball_x_less_than(world, -world.field().centre_circle_radius()))
 DONE(offensive(world))
-FAIL(!ball_x_less_than(world, -0.7) && !offensive(world))
+FAIL(!ball_x_less_than(world, -world.field().centre_circle_radius()) && !offensive(world))
 BEGIN_ASSIGN()
 // GOALIE
 goalie_role.push_back(defend_duo_goalie(world));

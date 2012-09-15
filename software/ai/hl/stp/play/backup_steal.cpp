@@ -4,6 +4,13 @@
 
 using AI::HL::STP::Enemy;
 
+/**
+ * Condition:
+ * - When our baller and their baller are fighting for control for the ball. 
+ *
+ * Objective:
+ * - Gain control of the ball or at least prevent the enemy from having the ball. 
+ */
 BEGIN_PLAY(BackUpSteal)
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2))
 APPLICABLE(fight_ball(world))

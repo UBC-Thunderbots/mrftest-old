@@ -3,6 +3,13 @@
 
 using AI::HL::STP::Enemy;
 
+/**
+ * Condition:
+ * - When the ball is moving towards the enemy goal. 
+ *
+ * Objective:
+ * - Go on the offensive and make sure that the we get a goal. 
+ */
 BEGIN_PLAY(BallTowardsEnemy)
 INVARIANT(playtype(world, PlayType::PLAY)
 		&& our_team_size_at_least(world, 2) )

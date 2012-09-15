@@ -6,7 +6,11 @@ namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::Coordinate;
 
 /**
- * Chips ball to right in front of penalty spot from enemy corner
+ * Condition:
+ * - In our Freekick, and ball is in their corner. 
+ *
+ * Objective:
+ * - Pass the ball to a friendly player. 
  */
 BEGIN_PLAY(CornerKickFriendly)
 INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2)
