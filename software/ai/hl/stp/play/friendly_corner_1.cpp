@@ -9,7 +9,11 @@
 namespace Predicates = AI::HL::STP::Predicates;
 
 /**
- * Shoot the ball to origin (indirect pass)
+ * Condition:
+ * - Ball is in our corner and we can pass to the origin. 
+ *
+ * Objective:
+ * - Shoot the ball to origin (indirect pass)
  */
 Point target(0 ,0);
 

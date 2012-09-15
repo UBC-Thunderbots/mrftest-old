@@ -5,6 +5,13 @@
 
 namespace Predicates = AI::HL::STP::Predicates;
 
+/**
+ * Condition:
+ * - Playtype Free Kick Friendly
+ *
+ * Objective:
+ * - Handle Friendly Free Kick by passing. 
+ */
 BEGIN_PLAY(FreeKickPass)
 INVARIANT(
 		(Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY)

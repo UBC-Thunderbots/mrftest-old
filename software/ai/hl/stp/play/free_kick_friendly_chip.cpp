@@ -1,6 +1,6 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/move.h"
-#include "ai/hl/stp/tactic/free_kick_pass.h"
+#include "ai/hl/stp/tactic/chip.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::Coordinate;
@@ -11,7 +11,7 @@ using AI::HL::STP::Coordinate;
  * - Baller can Chip
  *
  * Objective:
- * - Handle Friendly Free Kick
+ * - Handle Friendly Free Kick by chipping to enemy goal. 
  */
 BEGIN_PLAY(FreeKickFriendlyChip)
 INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2) && !Predicates::baller_can_shoot(world) &&
@@ -25,7 +25,7 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // kicker
-roles[0].push_back(free_kick_pass(world, world.field().enemy_goal(), true));
+roles[0].push_back(chip_target(world, world.field().enemy_goal()));
 
 // ROLE 2
 // defend

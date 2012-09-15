@@ -13,7 +13,7 @@ namespace Predicates = AI::HL::STP::Predicates;
  * - at least 3 players
  *
  * Objective:
- * - defend the net
+ * - defend the net by blocking enemy players and our net.
  * - try to grab the ball
  */
 BEGIN_PLAY(DefensiveBlock)
@@ -27,12 +27,12 @@ BEGIN_ASSIGN()
 goalie_role.push_back(defend_duo_goalie(world));
 
 // ROLE 1
-// defend duo
-roles[0].push_back(defend_duo_defender(world));
-
-// ROLE 2
 // active def
 roles[1].push_back(tactive_def(world));
+
+// ROLE 2
+// defend duo
+roles[0].push_back(defend_duo_defender(world));
 
 // ROLE 3 (optional)
 // defend extra

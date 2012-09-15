@@ -9,7 +9,7 @@ using AI::HL::STP::Coordinate;
  * - Playtype Free Kick Friendly
  *
  * Objective:
- * - Handle Friendly Free Kick
+ * - Handle Friendly Free Kick by simply shooting at the enemy goal. 
  */
 BEGIN_PLAY(FreeKickFriendly)
 INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2) && Predicates::baller_can_shoot(world))

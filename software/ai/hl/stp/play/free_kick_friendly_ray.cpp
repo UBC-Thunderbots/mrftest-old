@@ -7,7 +7,11 @@ using AI::HL::STP::Enemy;
 namespace Predicates = AI::HL::STP::Predicates;
 
 /**
- * Pass using ray.
+ * Condition:
+ * - Playtype Free Kick Friendly
+ *
+ * Objective:
+ * - Handle Friendly Free Kick by passing by ray. 
  */
 BEGIN_PLAY(FreeKickFriendlyRay)
 INVARIANT(

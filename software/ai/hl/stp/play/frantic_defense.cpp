@@ -8,10 +8,13 @@ using AI::HL::STP::Enemy;
 namespace Predicates = AI::HL::STP::Predicates;
 
 /**
- * Get the ball away from our goal at all cost!
+ * Condition:
+ * - When the ball is near our goal and enemy baller can shoot towards our goal. 
+ *
+ * Objective:
+ * - Get the ball away from our goal at all cost!
  */
 BEGIN_PLAY(FranticDefense)
-//INVARIANT(false)
 INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY) 
 	&& Predicates::our_team_size_at_least(world, 3) 
 	&& (Predicates::enemy_baller_can_shoot(world) || Predicates::ball_near_friendly_goal(world)))

@@ -10,7 +10,7 @@ namespace Predicates = AI::HL::STP::Predicates;
  * - Playtype Free Kick Enemy on our side
  *
  * Objective:
- * - Handle Enemy Free Kick on our side
+ * - Handle Enemy Free Kick on our side by marking offside player
  */
 BEGIN_PLAY(FreeKickEnemyMarkDefend)
 INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY)) && Predicates::ball_on_our_side(world))

@@ -7,7 +7,7 @@ using AI::HL::STP::Coordinate;
 
 BEGIN_PLAY(DBasicCorner)
 
-#warning LONE GOALIE
+#warning Consider Retiring this play
 INVARIANT(false)
 // INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3))
 
