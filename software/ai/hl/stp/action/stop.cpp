@@ -4,7 +4,7 @@
 
 using namespace AI::HL::STP;
 
-void AI::HL::STP::Action::stop(const World &, Player::Ptr player) {
+void AI::HL::STP::Action::stop(World, Player::Ptr player) {
 	player->move(player->position(), player->orientation(), Point());
 	player->type(AI::Flags::MoveType::NORMAL);
 	player->prio(AI::Flags::MovePrio::LOW);

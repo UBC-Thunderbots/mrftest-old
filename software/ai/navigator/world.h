@@ -1,9 +1,10 @@
 #ifndef AI_NAVIGATOR_WORLD_H
 #define AI_NAVIGATOR_WORLD_H
 
+#include "ai/backend/backend.h"
 #include "ai/common/world.h"
 #include "ai/flags.h"
-#include "util/box_ptr.h"
+#include <functional>
 #include <utility>
 #include <vector>
 
@@ -11,250 +12,405 @@ namespace AI {
 	namespace Nav {
 		namespace W {
 			/**
-			 * The field, as seen by a Navigator.
+			 * \brief The field, as seen by a Navigator
 			 */
-			class Field : public AI::Common::Field {
-			};
+			typedef AI::Common::Field Field;
 
 			/**
-			 * The ball, as seen by a Navigator.
+			 * \brief The ball, as seen by a Navigator
 			 */
-			class Ball : public AI::Common::Ball {
-			};
+			typedef AI::Common::Ball Ball;
 
 			/**
-			 * A robot, as seen by a Navigator.
+			 * \brief A robot, as seen by a Navigator
 			 */
 			class Robot : public AI::Common::Robot {
 				public:
 					/**
-					 * \brief A pointer to a const Robot.
+					 * \brief This class
 					 */
-					typedef BoxPtr<const Robot> Ptr;
+					typedef Robot Ptr;
 
 					/**
-					 * \brief Returns the avoidance distance for this robot.
-					 *
-					 * \return the avoidance distance.
+					 * \brief The largest possible radius of a robot, in metres
 					 */
-					virtual AI::Flags::AvoidDistance avoid_distance() const = 0;
+					static const double MAX_RADIUS;
+
+					/**
+					 * \brief Constructs a nonexistent Robot
+					 */
+					explicit Robot();
+
+					/**
+					 * \brief Constructs a new Robot
+					 *
+					 * \param[in] impl the backend implementation to wrap
+					 */
+					explicit Robot(AI::BE::Robot::Ptr impl);
+
+					/**
+					 * \brief Constructs a copy of a Robot
+					 *
+					 * \param[in] copyref the object to copy
+					 */
+					Robot(const Robot &copyref);
+
+					/**
+					 * \brief Returns this object
+					 *
+					 * \return this object
+					 */
+					Robot *operator->();
+
+					/**
+					 * \brief Returns this object
+					 *
+					 * \return this object
+					 */
+					const Robot *operator->() const;
+
+					/**
+					 * \brief Returns the avoidance distance for this robot
+					 *
+					 * \return the avoidance distance
+					 */
+					AI::Flags::AvoidDistance avoid_distance() const;
 			};
 
 			/**
-			 * A player, as seen by a Navigator.
+			 * \brief A player, as seen by a Navigator
 			 */
-			class Player : public Robot, public AI::Common::Player {
+			class Player : public AI::Common::Player, public Robot {
 				public:
 					/**
-					 * A pointer to a Player.
+					 * \brief This class
 					 */
-					typedef BoxPtr<Player> Ptr;
+					typedef Player Ptr;
 
 					/**
-					 * A pointer to a const Player.
+					 * \brief This class, const
 					 */
-					typedef BoxPtr<const Player> CPtr;
+					typedef Player CPtr;
 
 					/**
-					 * The type of a single point in a path.
+					 * \brief The type of a single point in a path
 					 */
 					typedef std::pair<std::pair<Point, Angle>, timespec> PathPoint;
 
 					/**
-					 * The type of a complete path.
+					 * \brief The type of a complete path
 					 */
 					typedef std::vector<PathPoint> Path;
 
 					/**
-					 * The maximum linear velocity of the robot, in metres per second.
+					 * \brief The maximum linear velocity of the robot, in metres per second
 					 */
 					static const double MAX_LINEAR_VELOCITY;
 
 					/**
-					 * The maximum linear acceleration of the robot, in metres per second squared.
+					 * \brief The maximum linear acceleration of the robot, in metres per second squared
 					 */
 					static const double MAX_LINEAR_ACCELERATION;
 
 					/**
-					 * The maximum angular velocity of the robot per second.
+					 * \brief The maximum angular velocity of the robot per second
 					 */
 					static const Angle MAX_ANGULAR_VELOCITY;
 
 					/**
-					 * The maximum angular acceleration of the robot per second squared.
+					 * \brief The maximum angular acceleration of the robot per second squared
 					 */
 					static const Angle MAX_ANGULAR_ACCELERATION;
 
 					/**
-					 * Returns the destination position and orientation requested by the Strategy.
-					 *
-					 * \return the destination position and orientation.
+					 * \brief Constructs a nonexistent Player
 					 */
-					virtual const std::pair<Point, Angle> &destination() const = 0;
+					explicit Player();
 
 					/**
-					 * Returns the target velocity requested by the Strategy.
+					 * \brief Constructs a new Player
 					 *
-					 * \return the target velocity.
+					 * \param[in] impl the backend implementation to wrap
 					 */
-					virtual Point target_velocity() const = 0;
+					explicit Player(AI::BE::Player::Ptr impl);
 
 					/**
-					 * Returns the movement flags requested by the Strategy.
+					 * \brief Constructs a copy of a Player
 					 *
-					 * \return the flags.
+					 * \param[in] copyref the object to copy
 					 */
-					virtual unsigned int flags() const = 0;
+					Player(const Player &copyref);
 
 					/**
-					 * Returns the movement type requested by the Strategy.
+					 * \brief Returns this object
 					 *
-					 * \return the type.
+					 * \return this object
 					 */
-					virtual AI::Flags::MoveType type() const = 0;
+					Player *operator->();
 
 					/**
-					 * Returns the movement priority requested by the Strategy.
+					 * \brief Returns this object
 					 *
-					 * \return the priority.
+					 * \return this object
 					 */
-					virtual AI::Flags::MovePrio prio() const = 0;
+					const Player *operator->() const;
+
+					using AI::Common::Player::operator==;
+					using AI::Common::Player::operator!=;
+					using AI::Common::Player::operator bool;
 
 					/**
-					 * Sets the path this player should follow.
+					 * \brief Returns the destination position and orientation requested by the HighLevel
 					 *
-					 * \param[in] p the path (an empty path causes the robot to halt).
+					 * \return the destination position and orientation
 					 */
-					virtual void path(const Path &p) = 0;
+					std::pair<Point, Angle> destination() const;
+
+					/**
+					 * \brief Returns the target velocity requested by the HighLevel
+					 *
+					 * \return the target velocity
+					 */
+					Point target_velocity() const;
+
+					/**
+					 * \brief Returns the movement flags requested by the HighLevel
+					 *
+					 * \return the flags
+					 */
+					unsigned int flags() const;
+
+					/**
+					 * \brief Returns the movement type requested by the HighLevel
+					 *
+					 * \return the type
+					 */
+					AI::Flags::MoveType type() const;
+
+					/**
+					 * \brief Returns the movement priority requested by the HighLevel
+					 *
+					 * \return the priority
+					 */
+					AI::Flags::MovePrio prio() const;
+
+					/**
+					 * \brief Sets the path this player should follow
+					 *
+					 * \param[in] p the path (an empty path causes the robot to halt)
+					 */
+					void path(const Path &p);
 			};
 
 			/**
-			 * The friendly team.
+			 * \brief The friendly team
 			 */
-			class FriendlyTeam : public AI::Common::Team {
-				public:
-					/**
-					 * Returns a player from the team.
-					 *
-					 * \param[in] i the index of the player.
-					 *
-					 * \return the player.
-					 */
-					Player::Ptr get(std::size_t i) {
-						return get_navigator_player(i);
-					}
-
-					/**
-					 * Returns a player from the team.
-					 *
-					 * \param[in] i the index of the player.
-					 *
-					 * \return the player.
-					 */
-					Player::CPtr get(std::size_t i) const {
-						return get_navigator_player(i);
-					}
-
-				protected:
-					/**
-					 * Returns a player from the team.
-					 *
-					 * \param[in] i the index of the player.
-					 *
-					 * \return the player.
-					 */
-					virtual Player::Ptr get_navigator_player(std::size_t i) = 0;
-
-					/**
-					 * Returns a player from the team.
-					 *
-					 * \param[in] i the index of the player.
-					 *
-					 * \return the player.
-					 */
-					virtual Player::CPtr get_navigator_player(std::size_t i) const = 0;
-			};
+			typedef AI::Common::Team<Player, AI::BE::Player> FriendlyTeam;
 
 			/**
-			 * The enemy team.
+			 * \brief The enemy team
 			 */
-			class EnemyTeam : public AI::Common::Team {
-				public:
-					/**
-					 * Returns a robot from the team.
-					 *
-					 * \param[in] i the index of the robot.
-					 *
-					 * \return the robot.
-					 */
-					Robot::Ptr get(std::size_t i) const {
-						return get_navigator_robot(i);
-					}
-
-				protected:
-					/**
-					 * Returns a robot from the team.
-					 *
-					 * \param[in] i the index of the robot.
-					 *
-					 * \return the robot.
-					 */
-					virtual Robot::Ptr get_navigator_robot(std::size_t i) const = 0;
-			};
+			typedef AI::Common::Team<Robot, AI::BE::Robot> EnemyTeam;
 
 			/**
-			 * The world, as seen by a Navigator.
+			 * \brief The world, as seen by a Navigator
 			 */
 			class World {
 				public:
 					/**
-					 * Returns the field.
+					 * \brief Constructs a new World
 					 *
-					 * \return the field.
+					 * \param[in] impl the backend implementation
 					 */
-					virtual const Field &field() const = 0;
+					explicit World(AI::BE::Backend &impl);
 
 					/**
-					 * Returns the ball.
+					 * \brief Constructs a copy of a World
 					 *
-					 * \return the ball.
+					 * \param[in] copyref the object to copy
 					 */
-					virtual const Ball &ball() const = 0;
+					World(const World &copyref);
 
 					/**
-					 * Returns the friendly team.
+					 * \brief Returns the field
 					 *
-					 * \return the friendly team.
+					 * \return the field
 					 */
-					virtual FriendlyTeam &friendly_team() = 0;
+					const Field &field() const;
 
 					/**
-					 * Returns the friendly team.
+					 * \brief Returns the ball
 					 *
-					 * \return the friendly team.
+					 * \return the ball
 					 */
-					virtual const FriendlyTeam &friendly_team() const = 0;
+					const Ball &ball() const;
 
 					/**
-					 * Returns the enemy team.
+					 * \brief Returns the friendly team
 					 *
-					 * \return the enemy team.
+					 * \return the friendly team
 					 */
-					virtual const EnemyTeam &enemy_team() const = 0;
+					FriendlyTeam friendly_team() const;
 
 					/**
-					 * Returns the current monotonic time.
-					 * Monotonic time is a way of representing "game time", which always moves forward.
-					 * Monotonic time is consistent within the game world, and may or may not be linked to real time.
+					 * \brief Returns the enemy team
+					 *
+					 * \return the enemy team
+					 */
+					EnemyTeam enemy_team() const;
+
+					/**
+					 * \brief Returns the current monotonic time
+					 *
+					 * Monotonic time is a way of representing "game time", which always moves forward
+					 * Monotonic time is consistent within the game world, and may or may not be linked to real time
 					 * A navigator should \em always use this function to retrieve monotonic time, not one of the functions in util/time.h!
-					 * The AI will not generally have any use for real time.
+					 * The AI will not generally have any use for real time
 					 *
-					 * \return the current monotonic time.
+					 * \return the current monotonic time
 					 */
-					virtual timespec monotonic_time() const = 0;
+					timespec monotonic_time() const;
+
+				private:
+					AI::BE::Backend &impl;
 			};
 		}
 	}
+}
+
+namespace std {
+	/**
+	 * \brief Provides a total ordering of Robot objects so they can be stored in STL ordered containers
+	 */
+	template<> struct less<AI::Nav::W::Robot> {
+		public:
+			/**
+			 * \brief Compares two objects
+			 *
+			 * \param[in] x the first objects
+			 *
+			 * \param[in] y the second objects
+			 *
+			 * \return \c true if \p x should precede \p y in an ordered container, or \c false if not
+			 */
+			bool operator()(const AI::Nav::W::Robot &x, const AI::Nav::W::Robot &y) const;
+
+		private:
+			std::less<AI::Common::Robot> cmp;
+	};
+
+	/**
+	 * \brief Provides a total ordering of Player objects so they can be stored in STL ordered containers
+	 */
+	template<> struct less<AI::Nav::W::Player> {
+		public:
+			/**
+			 * \brief Compares two objects
+			 *
+			 * \param[in] x the first objects
+			 *
+			 * \param[in] y the second objects
+			 *
+			 * \return \c true if \p x should precede \p y in an ordered container, or \c false if not
+			 */
+			bool operator()(const AI::Nav::W::Player &x, const AI::Nav::W::Player &y) const;
+
+		private:
+			std::less<AI::Common::Player> cmp;
+	};
+}
+
+
+
+inline AI::Nav::W::Robot::Robot() = default;
+
+inline AI::Nav::W::Robot::Robot(AI::BE::Robot::Ptr impl) : AI::Common::Robot(impl) {
+}
+
+inline AI::Nav::W::Robot::Robot(const Robot &) = default;
+
+inline AI::Nav::W::Robot *AI::Nav::W::Robot::operator->() {
+	return this;
+}
+
+inline const AI::Nav::W::Robot *AI::Nav::W::Robot::operator->() const {
+	return this;
+}
+
+inline AI::Flags::AvoidDistance AI::Nav::W::Robot::avoid_distance() const {
+	return impl->avoid_distance();
+}
+
+inline AI::Nav::W::Player::Player() = default;
+
+inline AI::Nav::W::Player::Player(AI::BE::Player::Ptr impl) : AI::Common::Player(impl), AI::Nav::W::Robot(impl) {
+}
+
+inline AI::Nav::W::Player::Player(const Player &) = default;
+
+inline AI::Nav::W::Player *AI::Nav::W::Player::operator->() {
+	return this;
+}
+
+inline const AI::Nav::W::Player *AI::Nav::W::Player::operator->() const {
+	return this;
+}
+
+inline std::pair<Point, Angle> AI::Nav::W::Player::destination() const {
+	return AI::Common::Player::impl->destination();
+}
+
+inline Point AI::Nav::W::Player::target_velocity() const {
+	return AI::Common::Player::impl->target_velocity();
+}
+
+inline unsigned int AI::Nav::W::Player::flags() const {
+	return AI::Common::Player::impl->flags();
+}
+
+inline AI::Flags::MoveType AI::Nav::W::Player::type() const {
+	return AI::Common::Player::impl->type();
+}
+
+inline AI::Flags::MovePrio AI::Nav::W::Player::prio() const {
+	return AI::Common::Player::impl->prio();
+}
+
+inline void AI::Nav::W::Player::path(const Path &p) {
+	AI::Common::Player::impl->path(p);
+}
+
+inline AI::Nav::W::World::World(AI::BE::Backend &impl) : impl(impl) {
+}
+
+inline AI::Nav::W::World::World(const World &) = default;
+
+inline const AI::Nav::W::Field &AI::Nav::W::World::field() const {
+	return impl.field();
+}
+
+inline const AI::Nav::W::Ball &AI::Nav::W::World::ball() const {
+	return impl.ball();
+}
+
+inline AI::Nav::W::FriendlyTeam AI::Nav::W::World::friendly_team() const {
+	return FriendlyTeam(impl.friendly_team());
+}
+
+inline AI::Nav::W::EnemyTeam AI::Nav::W::World::enemy_team() const {
+	return EnemyTeam(impl.enemy_team());
+}
+
+inline timespec AI::Nav::W::World::monotonic_time() const {
+	return impl.monotonic_time();
+}
+
+inline bool std::less<AI::Nav::W::Robot>::operator()(const AI::Nav::W::Robot &x, const AI::Nav::W::Robot &y) const {
+	return cmp(x, y);
+}
+
+inline bool std::less<AI::Nav::W::Player>::operator()(const AI::Nav::W::Player &x, const AI::Nav::W::Player &y) const {
+	return cmp(x, y);
 }
 
 #endif

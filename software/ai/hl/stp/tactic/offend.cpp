@@ -10,7 +10,7 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class Primary : public Tactic {
 		public:
-			Primary(const World &world) : Tactic(world) {
+			Primary(World world) : Tactic(world) {
 			}
 
 		private:
@@ -23,7 +23,7 @@ namespace {
 
 	class Secondary : public Tactic {
 		public:
-			Secondary(const World &world) : Tactic(world) {
+			Secondary(World world) : Tactic(world) {
 			}
 
 		private:
@@ -57,12 +57,12 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::offend(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::offend(World world) {
 	Tactic::Ptr p(new Primary(world));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::offend_secondary(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::offend_secondary(World world) {
 	Tactic::Ptr p(new Secondary(world));
 	return p;
 }

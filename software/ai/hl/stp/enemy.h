@@ -38,7 +38,7 @@ namespace AI {
 					 *
 					 * \return the (i+1)th closest enemy to the friendly goal
 					 */
-					static Enemy::Ptr closest_friendly_goal(const World &world, unsigned int i);
+					static Enemy::Ptr closest_friendly_goal(World world, unsigned int i);
 
 					/**
 					 * \brief Order by distance to ball.
@@ -50,12 +50,12 @@ namespace AI {
 					 *
 					 * \return the (i+1)th closest enemy to the ball
 					 */
-					static Enemy::Ptr closest_ball(const World &world, unsigned int i);
+					static Enemy::Ptr closest_ball(World world, unsigned int i);
 
 					/**
 					 * \brief Closest to enemy having the ball, by passing.
 					 */
-					static Enemy::Ptr closest_pass(const World &world, unsigned int i);
+					static Enemy::Ptr closest_pass(World world, unsigned int i);
 
 					/**
 					 * \brief Order by distance to a friendly player.
@@ -67,7 +67,7 @@ namespace AI {
 					 *
 					 * \return the (i+1)th closest enemy to the friendly player
 					 */
-					static Enemy::Ptr closest_friendly_player(const World &world, Player::Ptr player, unsigned int i);
+					static Enemy::Ptr closest_friendly_player(World world, Player::Ptr player, unsigned int i);
 
 				protected:
 					Enemy();

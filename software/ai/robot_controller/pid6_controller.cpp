@@ -128,13 +128,13 @@ namespace {
 			void tick();
 			void move(const Point &new_position, Angle new_orientation, timespec time_of_arrival, int(&wheel_speeds)[4]);
 			void clear();
-			explicit PID6Controller(World &world, Player::Ptr plr);
+			explicit PID6Controller(World world, Player::Ptr plr);
 
 		protected:
 			Vector4 prev_speed;
 	};
 
-	PID6Controller::PID6Controller(World &world, Player::Ptr plr) : RobotController(world, plr) {
+	PID6Controller::PID6Controller(World world, Player::Ptr plr) : RobotController(world, plr) {
 		for (unsigned i = 0; i < 4; ++i) {
 			prev_speed.direction[i] = 0;
 		}

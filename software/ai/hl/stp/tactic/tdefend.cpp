@@ -23,7 +23,7 @@ namespace {
 	 */
 	class TGoalie : public Tactic {
 		public:
-			TGoalie(const World &world, size_t defender_role) : Tactic(world), defender_role(defender_role) {
+			TGoalie(World world, size_t defender_role) : Tactic(world), defender_role(defender_role) {
 			}
 
 		private:
@@ -43,7 +43,7 @@ namespace {
 
 	class TDefender : public Tactic {
 		public:
-			TDefender(const World &world, unsigned i) : Tactic(world), index(i) {
+			TDefender(World world, unsigned i) : Tactic(world), index(i) {
 			}
 
 		private:
@@ -79,7 +79,7 @@ namespace {
 	
 	class TDefendLine : public Tactic {
 		public:
-			TDefendLine(const World &world, Coordinate p1_, Coordinate p2_, double dist_min_, double dist_max_) : Tactic(world), p1(p1_), p2(p2_), dist_min(dist_min_), dist_max(dist_max_) {
+			TDefendLine(World world, Coordinate p1_, Coordinate p2_, double dist_min_, double dist_max_) : Tactic(world), p1(p1_), p2(p2_), dist_min(dist_min_), dist_max(dist_max_) {
 			}
 
 		private:
@@ -120,22 +120,22 @@ void TDefendLine::execute() {
 	player->move(target, angle, velocity);
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::tgoalie(const World &world, const size_t defender_role) {
+Tactic::Ptr AI::HL::STP::Tactic::tgoalie(World world, const size_t defender_role) {
 	Tactic::Ptr p(new TGoalie(world, defender_role));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::tdefender1(const AI::HL::W::World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::tdefender1(AI::HL::W::World world) {
 	Tactic::Ptr p(new TDefender(world, 1));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::tdefender2(const AI::HL::W::World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::tdefender2(AI::HL::W::World world) {
 	Tactic::Ptr p(new TDefender(world, 2));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::tdefend_line(const World &world, Coordinate p1_, Coordinate p2_, double dist_min_, double dist_max_) {
+Tactic::Ptr AI::HL::STP::Tactic::tdefend_line(World world, Coordinate p1_, Coordinate p2_, double dist_min_, double dist_max_) {
 	Tactic::Ptr p(new TDefendLine(world, p1_, p2_, dist_min_, dist_max_));
 	return p;
 }

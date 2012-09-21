@@ -11,7 +11,7 @@ namespace AI {
 				 * Only to be used for defending against penalty kicks.
 				 * Active Tactic.
 				 */
-				Tactic::Ptr penalty_goalie(const World &world);
+				Tactic::Ptr penalty_goalie(World world);
 			}
 		}
 	}

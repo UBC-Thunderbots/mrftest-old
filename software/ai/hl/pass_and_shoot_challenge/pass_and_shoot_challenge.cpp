@@ -85,7 +85,7 @@ namespace {
 
 class PASCHL : public HighLevel {
 		public:
-			PASCHL(World &world) : world(world) {
+			PASCHL(World world) : world(world) {
 				robot_positions.push_back(std::make_pair(bot0_initial, (bot1_initial - bot0_initial).orientation()));
 				robot_positions.push_back(std::make_pair(bot1_initial, (bot0_initial - bot1_initial).orientation()));
 				robot_positions.push_back(std::make_pair(bot2_initial, (bot1_initial - bot2_initial).orientation()));
@@ -100,7 +100,7 @@ class PASCHL : public HighLevel {
 			HighLevelFactory &factory() const;
 
 			void tick() {
-				FriendlyTeam &friendly = world.friendly_team();
+				FriendlyTeam friendly = world.friendly_team();
 
 				if (friendly.size() < min_team_size) {
 					return;
@@ -185,7 +185,7 @@ class PASCHL : public HighLevel {
 			}
 
 		private:
-			World &world;
+			World world;
 
 			std::vector<std::pair<Point, Angle>> robot_positions;
 			state current_state;

@@ -3,7 +3,6 @@
 
 #include "ai/backend/backend.h"
 #include "ai/backend/simulator/player.h"
-#include "ai/backend/simulator/robot.h"
 #include "simulator/sockproto/proto.h"
 #include "util/box_array.h"
 #include "util/noncopyable.h"
@@ -39,13 +38,15 @@ namespace AI {
 					/**
 					 * \brief Creates a robot.
 					 *
-					 * \param[in] be the backend to attach the robot to.
+					 * \tparam Args the types of the constructor arguments
 					 *
 					 * \param[in] pattern the pattern index of the robot.
+					 *
+					 * \param[in] args the constructor arguments
 					 */
-					void create(Backend &be, unsigned int pattern) {
+					template<typename ... Args> void create(unsigned int pattern, Args ... args) {
 						assert(pattern < members.SIZE);
-						members.create(pattern, std::ref(be), pattern);
+						members.create(pattern, args...);
 						populate_pointers();
 						emit_membership_changed();
 					}
@@ -69,8 +70,7 @@ namespace AI {
 
 					unsigned int score() const { return score_prop; }
 					std::size_t size() const { return member_ptrs.size(); }
-					typename T::Ptr get(std::size_t i) { return member_ptrs[i]; }
-					typename T::CPtr get(std::size_t i) const { return member_ptrs[i]; }
+					typename T::Ptr get(std::size_t i) const { return member_ptrs[i]; }
 
 				private:
 					/**
@@ -97,7 +97,7 @@ namespace AI {
 			/**
 			 * The team containing \ref Player "Players" that the AI can control.
 			 */
-			class FriendlyTeam : public AI::BE::FriendlyTeam, public GenericTeam<Player> {
+			class FriendlyTeam : public AI::BE::Team<AI::BE::Player>, public GenericTeam<Player> {
 				public:
 					/**
 					 * Constructs a new FriendlyTeam.
@@ -114,16 +114,7 @@ namespace AI {
 					 *
 					 * \return the Player.
 					 */
-					Player::Ptr get_impl(std::size_t i) { return GenericTeam<Player>::get(i); }
-
-					/**
-					 * Retrieves a Player from the team.
-					 *
-					 * \param[in] i the index of the Player to retrieve.
-					 *
-					 * \return the Player.
-					 */
-					Player::CPtr get_impl(std::size_t i) const { return GenericTeam<Player>::get(i); }
+					Player::Ptr get_impl(std::size_t i) const { return GenericTeam<Player>::get(i); }
 
 					/**
 					 * Loads new data into the robots and locks the predictors.
@@ -161,7 +152,7 @@ namespace AI {
 									}
 								}
 								if (!found) {
-									create(be, state[i].robot_info.pattern);
+									create(state[i].robot_info.pattern, std::ref(be), state[i].robot_info.pattern);
 								}
 							}
 						}
@@ -196,8 +187,7 @@ namespace AI {
 
 					unsigned int score() const { return GenericTeam<Player>::score(); }
 					std::size_t size() const { return GenericTeam<Player>::size(); }
-					AI::BE::Player::Ptr get(std::size_t i) { return get_impl(i); }
-					AI::BE::Player::CPtr get(std::size_t i) const { return get_impl(i); }
+					AI::BE::Player::Ptr get(std::size_t i) const { return get_impl(i); }
 					void emit_membership_changed() const { signal_membership_changed().emit(); }
 
 				private:
@@ -210,7 +200,7 @@ namespace AI {
 			/**
 			 * The team containing \ref Robot "Robots" that are controlled by another AI.
 			 */
-			class EnemyTeam : public AI::BE::EnemyTeam, public GenericTeam<Robot> {
+			class EnemyTeam : public AI::BE::Team<AI::BE::Robot>, public GenericTeam<Robot> {
 				public:
 					/**
 					 * Constructs a new EnemyTeam.
@@ -227,16 +217,7 @@ namespace AI {
 					 *
 					 * \return the Robot.
 					 */
-					Robot::Ptr get_impl(std::size_t i) { return GenericTeam<Robot>::get(i); }
-
-					/**
-					 * Retrieves a Robot from the team.
-					 *
-					 * \param[in] i the index of the Robot to retrieve.
-					 *
-					 * \return the Robot.
-					 */
-					Robot::CPtr get_impl(std::size_t i) const { return GenericTeam<Robot>::get(i); }
+					Robot::Ptr get_impl(std::size_t i) const { return GenericTeam<Robot>::get(i); }
 
 					/**
 					 * Loads new data into the robots and locks the predictors.
@@ -274,7 +255,7 @@ namespace AI {
 									}
 								}
 								if (!found) {
-									create(be, state[i].pattern);
+									create(state[i].pattern, state[i].pattern);
 								}
 							}
 						}
@@ -283,9 +264,11 @@ namespace AI {
 						for (std::size_t i = 0; i < G_N_ELEMENTS(state); ++i) {
 							if (state[i].pattern != std::numeric_limits<unsigned int>::max()) {
 								for (std::size_t j = 0; j < size(); ++j) {
-									Robot::Ptr bot = get_impl(j);
+									AI::BE::Robot::Ptr bot = get_impl(j);
 									if (state[i].pattern == bot->pattern()) {
-										bot->pre_tick(state[i], ts);
+										bot->add_field_data({state[i].x, state[i].y}, Angle::of_radians(state[i].orientation), ts);
+										bot->pre_tick();
+										bot->lock_time(ts);
 									}
 								}
 							}
@@ -294,8 +277,7 @@ namespace AI {
 
 					unsigned int score() const { return GenericTeam<Robot>::score(); }
 					std::size_t size() const { return GenericTeam<Robot>::size(); }
-					AI::BE::Robot::Ptr get(std::size_t i) { return get_impl(i); }
-					AI::BE::Robot::CPtr get(std::size_t i) const { return get_impl(i); }
+					AI::BE::Robot::Ptr get(std::size_t i) const { return get_impl(i); }
 					void emit_membership_changed() const { signal_membership_changed().emit(); }
 
 				private:

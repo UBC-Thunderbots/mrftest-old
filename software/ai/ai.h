@@ -2,6 +2,7 @@
 #define AI_AI_H
 
 #include "ai/backend/backend.h"
+#include "ai/ball_filter/ball_filter.h"
 #include "ai/hl/hl.h"
 #include "ai/navigator/navigator.h"
 #include "ai/robot_controller/robot_controller.h"
@@ -22,7 +23,7 @@ namespace AI {
 			/**
 			 * The HighLevel in use.
 			 */
-			Property<std::unique_ptr<AI::HL::HighLevel> > high_level;
+			Property<std::unique_ptr<AI::HL::HighLevel>> high_level;
 
 			/**
 			 * The Navigator navigating the robots.

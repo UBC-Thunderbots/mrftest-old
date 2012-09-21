@@ -21,7 +21,7 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace {
 	class MarkOffside : public Tactic {
 		public:
-			MarkOffside(const World &world) : Tactic(world) {
+			MarkOffside(World world) : Tactic(world) {
 			}
 
 		private:
@@ -99,7 +99,7 @@ namespace {
 }
 
 
-Tactic::Ptr AI::HL::STP::Tactic::mark_offside(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::mark_offside(World world) {
 	Tactic::Ptr p(new MarkOffside(world));
 	return p;
 }

@@ -1,5 +1,4 @@
 #include "simulator/simulator.h"
-#include "util/clocksource_timerfd.h"
 #include "util/random.h"
 #include "util/timestep.h"
 #include <exception>

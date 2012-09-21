@@ -29,7 +29,7 @@ void Tactic::set_player(Player::Ptr p) {
 void Tactic::draw_overlay(Cairo::RefPtr<Cairo::Context>) const {
 }
 
-Tactic::Tactic(const World &world, bool active) : world(world), active_(active) {
+Tactic::Tactic(World world, bool active) : world(world), active_(active) {
 }
 
 void Tactic::player_changed() {

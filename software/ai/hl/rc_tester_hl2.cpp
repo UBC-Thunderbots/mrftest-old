@@ -11,14 +11,14 @@ using namespace AI::HL::W;
 
 namespace {
 	struct RCTester2 : public HighLevel {
-		World &world;
+		World world;
 		Gtk::VBox vbox;
 		Gtk::HScale controls[3];
 		Gtk::HScale offsets_x;
 		Gtk::HScale offsets_y;
 		Gtk::Button reset_button;
 
-		RCTester2(World &world) : world(world) {
+		RCTester2(World world) : world(world) {
 			for (int i = 0; i < 3; ++i) {
 				vbox.add(controls[i]);
 				// params are
@@ -53,7 +53,7 @@ namespace {
 		}
 
 		void tick() {
-			FriendlyTeam &friendly = world.friendly_team();
+			FriendlyTeam friendly = world.friendly_team();
 			if (friendly.size() < 1) {
 				LOG_INFO("error: must have at least one robot on the field!");
 				return;

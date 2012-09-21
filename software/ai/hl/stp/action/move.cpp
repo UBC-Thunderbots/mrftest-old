@@ -3,12 +3,12 @@
 
 using namespace AI::HL::STP;
 
-void AI::HL::STP::Action::move(const World &world, Player::Ptr player, const Point dest) {
+void AI::HL::STP::Action::move(World world, Player::Ptr player, const Point dest) {
 	player->move(dest, (world.ball().position() - player->position()).orientation(), Point());
 	player->type(AI::Flags::MoveType::NORMAL);
 }
 
-void AI::HL::STP::Action::move(const World &world, Player::Ptr player, const Point dest, const Point vel) {
+void AI::HL::STP::Action::move(World world, Player::Ptr player, const Point dest, const Point vel) {
 	player->move(dest, (world.ball().position() - player->position()).orientation(), vel);
 	player->type(AI::Flags::MoveType::NORMAL);
 }

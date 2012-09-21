@@ -80,14 +80,14 @@ namespace AI {
 				/**
 				 * \brief The World in which to navigate.
 				 */
-				AI::Nav::W::World &world;
+				AI::Nav::W::World world;
 
 				/**
 				 * \brief Constructs a new Navigator.
 				 *
 				 * \param[in] world the World in which to navigate.
 				 */
-				Navigator(AI::Nav::W::World &world);
+				Navigator(AI::Nav::W::World world);
 
 				// hack should move this variable somewhere else later, koko
 				// save state for new_pivot
@@ -108,7 +108,7 @@ namespace AI {
 				 *
 				 * \return the new Navigator.
 				 */
-				virtual Navigator::Ptr create_navigator(AI::Nav::W::World &world) const = 0;
+				virtual Navigator::Ptr create_navigator(AI::Nav::W::World world) const = 0;
 
 			protected:
 				/**
@@ -128,14 +128,14 @@ namespace AI {
 		class cls##NavigatorFactory : public AI::Nav::NavigatorFactory { \
 			public: \
 				cls##NavigatorFactory(); \
-				std::unique_ptr<Navigator> create_navigator(AI::Nav::W::World &) const; \
+				std::unique_ptr<Navigator> create_navigator(AI::Nav::W::World) const; \
 		}; \
 	} \
 	\
 	cls##NavigatorFactory::cls##NavigatorFactory() : NavigatorFactory(#cls) { \
 	} \
 	\
-	std::unique_ptr<Navigator> cls##NavigatorFactory::create_navigator(AI::Nav::W::World &world) const { \
+	std::unique_ptr<Navigator> cls##NavigatorFactory::create_navigator(AI::Nav::W::World world) const { \
 		std::unique_ptr<Navigator> p(new cls(world)); \
 		return p; \
 	} \

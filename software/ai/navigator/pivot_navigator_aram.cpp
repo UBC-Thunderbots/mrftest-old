@@ -15,7 +15,7 @@ namespace {
 	 */
 	class PivotNavigatorAram : public Navigator {
 		public:
-			PivotNavigatorAram(World &world);
+			PivotNavigatorAram(World world);
 			void tick();
 			NavigatorFactory &factory() const;
 	};
@@ -24,11 +24,11 @@ namespace {
 	DoubleParam acceleration("max acceleration", "Nav/PivotAram", 10.0, 0.0, 1000.0);
 }
 
-PivotNavigatorAram::PivotNavigatorAram(World &world) : Navigator(world) {
+PivotNavigatorAram::PivotNavigatorAram(World world) : Navigator(world) {
 }
 
 void PivotNavigatorAram::tick() {
-	FriendlyTeam &fteam = world.friendly_team();
+	FriendlyTeam fteam = world.friendly_team();
 
 	Player::Ptr player;
 	Player::Path path;

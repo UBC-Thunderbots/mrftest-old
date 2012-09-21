@@ -10,11 +10,11 @@ using namespace AI::HL::W;
 namespace {
 	class TestBlock : public HighLevel {
 		public:
-			TestBlock(World &world) : world(world) {
+			TestBlock(World world) : world(world) {
 			}
 
 		private:
-			World &world;
+			World world;
 
 			HighLevelFactory &factory() const;
 
@@ -24,8 +24,8 @@ namespace {
 
 			void tick() {
 				tick_eval(world);
-				FriendlyTeam &friendly = world.friendly_team();
-				const EnemyTeam &enemy = world.enemy_team();
+				FriendlyTeam friendly = world.friendly_team();
+				EnemyTeam enemy = world.enemy_team();
 				if (friendly.size() == 0 || enemy.size() == 0) {
 					return;
 				}

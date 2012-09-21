@@ -18,7 +18,7 @@ namespace {
 	DoubleParam block_angle("baller projects a cone of this angle, blocker will avoid this cone (degrees)", "STP/Action/block", 5.0, 0, 90);
 }
 
-void AI::HL::STP::Action::block_goal(const World &world, Player::Ptr player, Robot::Ptr robot) {
+void AI::HL::STP::Action::block_goal(World world, Player::Ptr player, Robot::Ptr robot) {
 	Point dirToGoal = (world.field().friendly_goal() - robot->position()).norm();
 	Point target = robot->position() + (block_threshold * Robot::MAX_RADIUS * dirToGoal);
 
@@ -33,7 +33,7 @@ void AI::HL::STP::Action::block_goal(const World &world, Player::Ptr player, Rob
 	move(world, player, target);
 }
 
-void AI::HL::STP::Action::block_ball(const World &world, Player::Ptr player, Robot::Ptr robot) {
+void AI::HL::STP::Action::block_ball(World world, Player::Ptr player, Robot::Ptr robot) {
 	Point dirToBall = (world.ball().position() - robot->position()).norm();
 	Point target = robot->position() + (block_threshold * Robot::MAX_RADIUS * dirToBall);
 

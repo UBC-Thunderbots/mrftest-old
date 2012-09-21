@@ -14,12 +14,12 @@ namespace {
 
 	class TestPivot : public HighLevel {
 		public:
-			TestPivot(World &world) : world(world), target_enemy(false) {
+			TestPivot(World world) : world(world), target_enemy(false) {
 				time = 0;
 			}
 
 		private:
-			World &world;
+			World world;
 			bool target_enemy;
 
 			HighLevelFactory &factory() const;
@@ -29,7 +29,7 @@ namespace {
 			}
 
 			void tick() {
-				FriendlyTeam &friendly = world.friendly_team();
+				FriendlyTeam friendly = world.friendly_team();
 				if (friendly.size() == 0) {
 					return;
 				}

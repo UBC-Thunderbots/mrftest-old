@@ -11,12 +11,12 @@ namespace AI {
 				 * Used for single goalie with NO defenders.
 				 * USE IT ONLY IF YOU ARE SURE OF WHAT YOU ARE DOING
 				 */
-				Tactic::Ptr lone_goalie(const World &world);
+				Tactic::Ptr lone_goalie(World world);
 
 				/**
 				 * Used for single goalie with NO defenders and is an active tactic.
 				 */
-				Tactic::Ptr lone_goalie_active(const World &world);
+				Tactic::Ptr lone_goalie_active(World world);
 			}
 		}
 	}

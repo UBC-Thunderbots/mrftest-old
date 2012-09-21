@@ -13,11 +13,11 @@ using AI::HL::STP::Coordinate;
 namespace {
 	class TestChip : public HighLevel {
 		public:
-			TestChip(World &world) : world(world) {
+			TestChip(World world) : world(world) {
 			}
 
 		private:
-			World &world;
+			World world;
 
 			HighLevelFactory &factory() const;
 
@@ -28,7 +28,7 @@ namespace {
 			void tick() {
 				tick_eval(world);
 
-				FriendlyTeam &friendly = world.friendly_team();
+				FriendlyTeam friendly = world.friendly_team();
 				if (friendly.size() == 0) {
 					return;
 				}

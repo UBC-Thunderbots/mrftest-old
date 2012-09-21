@@ -12,17 +12,17 @@ namespace {
 	 */
 	class FollowBallNavigator : public Navigator {
 		public:
-			FollowBallNavigator(World &world);
+			FollowBallNavigator(World world);
 			void tick();
 			NavigatorFactory &factory() const;
 	};
 }
 
-FollowBallNavigator::FollowBallNavigator(World &world) : Navigator(world) {
+FollowBallNavigator::FollowBallNavigator(World world) : Navigator(world) {
 }
 
 void FollowBallNavigator::tick() {
-	FriendlyTeam &fteam = world.friendly_team();
+	FriendlyTeam fteam = world.friendly_team();
 
 	Player::Ptr player;
 	Player::Path path;

@@ -40,7 +40,7 @@ namespace {
 
 	class PID5_2012Controller : public RobotController {
 		public:
-			explicit PID5_2012Controller(World &world, Player::Ptr plr, Gtk::Entry &std_entry);
+			explicit PID5_2012Controller(World world, Player::Ptr plr, Gtk::Entry &std_entry);
 
 			~PID5_2012Controller();
 
@@ -58,7 +58,7 @@ namespace {
 			double prev_speed[4];
 	};
 
-	PID5_2012Controller::PID5_2012Controller(World &world, Player::Ptr plr, Gtk::Entry &std_entry) : RobotController(world, plr), std_entry(std_entry), prev_speed{0, 0, 0, 0} {
+	PID5_2012Controller::PID5_2012Controller(World world, Player::Ptr plr, Gtk::Entry &std_entry) : RobotController(world, plr), std_entry(std_entry), prev_speed{0, 0, 0, 0} {
 		std_entry.set_sensitive(true);
 	}
 	
@@ -177,7 +177,7 @@ namespace {
 			explicit PID5_2012ControllerFactory() : RobotControllerFactory("PID 5 2012") {
 			}
 
-			std::unique_ptr<RobotController> create_controller(World &world, Player::Ptr plr) const {
+			std::unique_ptr<RobotController> create_controller(World world, Player::Ptr plr) const {
 				std::unique_ptr<RobotController> p(new PID5_2012Controller(world, plr, get_std(plr->pattern())));
 				return p;
 			}

@@ -101,12 +101,12 @@ namespace AI {
 						/**
 						 * \brief The World in which the Play lives.
 						 */
-						const World &world;
+						World world;
 
 						/**
 						 * \brief The constructor.
 						 */
-						Play(const World &world);
+						Play(World world);
 				};
 
 				/**
@@ -119,7 +119,7 @@ namespace AI {
 						/**
 						 * \brief Constructs a new instance of the Play corresponding to this PlayFactory.
 						 */
-						virtual std::unique_ptr<Play> create(const World &world) const = 0;
+						virtual std::unique_ptr<Play> create(World world) const = 0;
 
 						/**
 						 * \brief Constructs a new PlayFactory.
@@ -146,7 +146,7 @@ namespace AI {
 						PlayFactoryImpl(const char *name) : PlayFactory(name) {
 						}
 
-						std::unique_ptr<Play> create(const World &world) const {
+						std::unique_ptr<Play> create(World world) const {
 							std::unique_ptr<Play> p(new P(world));
 							return p;
 						}

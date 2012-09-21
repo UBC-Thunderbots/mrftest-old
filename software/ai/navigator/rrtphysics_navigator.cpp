@@ -26,7 +26,7 @@ namespace {
 
 	class RRTPhysicsNavigator : public Navigator {
 		public:
-			RRTPhysicsNavigator(World &world);
+			RRTPhysicsNavigator(World world);
 			void tick();
 			NavigatorFactory &factory() const;
 
@@ -35,7 +35,7 @@ namespace {
 	};
 }
 
-RRTPhysicsNavigator::RRTPhysicsNavigator(World &world) : Navigator(world), planner(world) {
+RRTPhysicsNavigator::RRTPhysicsNavigator(World world) : Navigator(world), planner(world) {
 }
 
 void RRTPhysicsNavigator::tick() {

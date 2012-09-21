@@ -168,7 +168,9 @@ void Simulator::Simulator::check_tick() {
 		case ::Simulator::Proto::SpeedMode::SLOW:
 			// In normal-speed mode and slow mode, we first determine whether we've passed the deadline.
 			timespec now;
-			timespec_now(now);
+			if (clock_gettime(CLOCK_MONOTONIC, &now) < 0) {
+				throw SystemError(u8"clock_gettime(CLOCK_MONOTONIC)", errno);
+			}
 			if (timespec_cmp(now, next_tick_phys_monotonic_time) >= 0) {
 				// It's time to tick.
 				tick();
@@ -231,7 +233,9 @@ void Simulator::Simulator::tick() {
 	// The min-clamp prevents overloads from accumulating tick backlogs.
 	// The max-clamp prevents fast-mode from pushing the deadline way into the future.
 	timespec now;
-	timespec_now(now);
+	if (clock_gettime(CLOCK_MONOTONIC, &now) < 0) {
+		throw SystemError(u8"clock_gettime(CLOCK_MONOTONIC)", errno);
+	}
 	timespec_add(next_tick_phys_monotonic_time, step, next_tick_phys_monotonic_time);
 	if (timespec_cmp(next_tick_phys_monotonic_time, now) < 0) {
 		next_tick_phys_monotonic_time = now;

@@ -9,7 +9,7 @@
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
-Player::Ptr AI::HL::STP::Tactic::select_baller(const World &world, const std::set<Player::Ptr> &players, Player::Ptr previous) {
+Player::Ptr AI::HL::STP::Tactic::select_baller(World world, const std::set<Player::Ptr> &players, Player::Ptr previous) {
 	// if someone has ball, use it
 	for (auto it = players.begin(); it != players.end(); ++it) {
 		Player::Ptr p = *it;

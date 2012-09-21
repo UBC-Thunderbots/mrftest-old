@@ -19,7 +19,7 @@ namespace {
 
 	class ShootGoal : public Tactic {
 		public:
-			ShootGoal(const World &world, bool force) : Tactic(world, true), kick_attempted(false), force(force), shoot_score(Angle::ZERO) {
+			ShootGoal(World world, bool force) : Tactic(world, true), kick_attempted(false), force(force), shoot_score(Angle::ZERO) {
 				// world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &ShootGoal::on_player_removed));
 			}
 
@@ -48,7 +48,7 @@ namespace {
 
 	class ShootTarget : public Tactic {
 		public:
-			ShootTarget(const World &world, const Coordinate target) : Tactic(world, true), target(target), kick_attempted(false) {
+			ShootTarget(World world, const Coordinate target) : Tactic(world, true), target(target), kick_attempted(false) {
 			}
 
 		private:
@@ -117,12 +117,12 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::shoot_goal(const World &world, bool force) {
+Tactic::Ptr AI::HL::STP::Tactic::shoot_goal(World world, bool force) {
 	Tactic::Ptr p(new ShootGoal(world, force));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::shoot_target(const World &world, const Coordinate target) {
+Tactic::Ptr AI::HL::STP::Tactic::shoot_target(World world, const Coordinate target) {
 	Tactic::Ptr p(new ShootTarget(world, target));
 	return p;
 }

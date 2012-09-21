@@ -14,12 +14,12 @@ namespace AI {
 				 * - ball inside the defense area
 				 * \return true if kicked
 				 */
-				bool repel(const World &world, Player::Ptr player);
+				bool repel(World world, Player::Ptr player);
 
 				/**
 				 * repel in the corner
 				 */
-				bool corner_repel(const World &world, Player::Ptr player);
+				bool corner_repel(World world, Player::Ptr player);
 			}
 		}
 	}

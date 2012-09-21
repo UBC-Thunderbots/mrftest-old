@@ -139,7 +139,7 @@ namespace {
 				const Map::const_iterator &i = m.find(selected.collate_key());
 				if (i != m.end()) {
 					if (!ai.high_level.get() || &ai.high_level->factory() != i->second) {
-						ai.high_level = i->second->create_high_level(ai.backend);
+						ai.high_level = i->second->create_high_level(AI::HL::W::World(ai.backend));
 					}
 				} else {
 					ai.high_level = std::unique_ptr<AI::HL::HighLevel>();
@@ -200,7 +200,7 @@ namespace {
 				const Map::const_iterator &i = m.find(selected.collate_key());
 				if (i != m.end()) {
 					if (!ai.navigator.get() || &ai.navigator->factory() != i->second) {
-						ai.navigator = i->second->create_navigator(ai.backend);
+						ai.navigator = i->second->create_navigator(AI::Nav::W::World(ai.backend));
 					}
 				} else {
 					ai.navigator = AI::Nav::Navigator::Ptr();
@@ -333,18 +333,18 @@ namespace {
 
 			void on_flip_friendly_colour_clicked() {
 				switch (ai.backend.friendly_colour()) {
-					case AI::Common::Team::Colour::YELLOW:
-						ai.backend.friendly_colour() = AI::Common::Team::Colour::BLUE;
+					case AI::Common::Colour::YELLOW:
+						ai.backend.friendly_colour() = AI::Common::Colour::BLUE;
 						break;
 
-					case AI::Common::Team::Colour::BLUE:
-						ai.backend.friendly_colour() = AI::Common::Team::Colour::YELLOW;
+					case AI::Common::Colour::BLUE:
+						ai.backend.friendly_colour() = AI::Common::Colour::YELLOW;
 						break;
 				}
 			}
 
 			void on_friendly_colour_changed() {
-				friendly_colour_entry.set_text(ai.backend.friendly_colour() == AI::Common::Team::Colour::YELLOW ? "Yellow" : "Blue");
+				friendly_colour_entry.set_text(ai.backend.friendly_colour() == AI::Common::Colour::YELLOW ? "Yellow" : "Blue");
 			}
 	};
 

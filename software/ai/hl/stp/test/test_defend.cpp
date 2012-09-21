@@ -13,11 +13,11 @@ using namespace AI::HL::W;
 namespace {
 	class TestDefend : public HighLevel {
 		public:
-			TestDefend(World &world) : world(world) {
+			TestDefend(World world) : world(world) {
 			}
 
 		private:
-			World &world;
+			World world;
 
 			HighLevelFactory &factory() const;
 
@@ -28,7 +28,7 @@ namespace {
 			void tick() {
 				tick_eval(world);
 
-				FriendlyTeam &friendly = world.friendly_team();
+				FriendlyTeam friendly = world.friendly_team();
 				if (friendly.size() < 2) {
 					return;
 				}

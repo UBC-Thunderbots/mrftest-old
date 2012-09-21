@@ -153,21 +153,19 @@ namespace AI {
 			 * \return the point as and the score (angle),
 			 * where the score will be 0 if the point is invalid,
 			 */
-			std::pair<Point, Angle> calc_best_shot(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player, double radius = 1.0);
+			std::pair<Point, Angle> calc_best_shot(AI::HL::W::World world, AI::HL::W::Player::CPtr player, double radius = 1.0);
 
-			std::vector<std::pair<Point, Angle> > calc_best_shot_all(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player, double radius = 1.0);
+			std::vector<std::pair<Point, Angle> > calc_best_shot_all(AI::HL::W::World world, AI::HL::W::Player::CPtr player, double radius = 1.0);
 
 			/**
 			 * Converts a friendly team into a vector of players.
 			 */
-			std::vector<AI::HL::W::Player::Ptr> get_players(AI::HL::W::FriendlyTeam &friendly);
-
-			std::vector<AI::HL::W::Player::CPtr> get_players(const AI::HL::W::FriendlyTeam &friendly);
+			std::vector<AI::HL::W::Player::Ptr> get_players(AI::HL::W::FriendlyTeam friendly);
 
 			/**
 			 * Converts an enemy team into a vector of robots.
 			 */
-			std::vector<AI::HL::W::Robot::Ptr> get_robots(const AI::HL::W::EnemyTeam &enemy);
+			std::vector<AI::HL::W::Robot::Ptr> get_robots(AI::HL::W::EnemyTeam enemy);
 		}
 	}
 }

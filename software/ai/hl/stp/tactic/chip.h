@@ -12,7 +12,7 @@ namespace AI {
 				/**
 				 * Chip at a specified target.
 				 */
-				Tactic::Ptr chip_target(const World &world, const Coordinate target);
+				Tactic::Ptr chip_target(World world, const Coordinate target);
 			}
 		}
 	}

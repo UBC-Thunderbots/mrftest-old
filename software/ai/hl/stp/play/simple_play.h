@@ -24,7 +24,7 @@ using AI::HL::STP::TEAM_MAX_SIZE;
 		AI::HL::STP::Play::PlayFactoryImpl<cls> factory_instance(# cls); \
 		class cls : public AI::HL::STP::Play::Play { \
 			public: \
-				cls(const AI::HL::W::World & world) : AI::HL::STP::Play::Play(world) { \
+				cls(AI::HL::W::World world) : AI::HL::STP::Play::Play(world) { \
 				} \
  \
 				AI::HL::STP::Play::PlayFactory &factory() const { \

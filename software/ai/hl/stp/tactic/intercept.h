@@ -12,7 +12,7 @@ namespace AI {
 				 * Active tactic.
 				 * target defaults to enemy goal
 				 */
-				Tactic::Ptr intercept(const World &world, const Point target=Point(3.025,0));
+				Tactic::Ptr intercept(World world, Point target = Point(3.025, 0));
 			}
 		}
 	}

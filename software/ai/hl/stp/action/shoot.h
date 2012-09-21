@@ -16,7 +16,7 @@ namespace AI {
 				 *
 				 * \return true if the player autokick is fired.
 				 */
-				bool shoot_goal(const World &world, Player::Ptr player, bool use_reduced_radius = true);
+				bool shoot_goal(World world, Player::Ptr player, bool use_reduced_radius = true);
 
 				/**
 				 * WARNING: should use shoot_region or shoot_pass
@@ -26,7 +26,7 @@ namespace AI {
 				 *
 				 * \return true if the player autokick is fired.
 				 */
-				bool shoot_target(const World &world, Player::Ptr player, const Point target, double velocity = BALL_MAX_SPEED);
+				bool shoot_target(World world, Player::Ptr player, const Point target, double velocity = BALL_MAX_SPEED);
 
 				/**
 				 * Shoots the ball at the region centred at target with radius.
@@ -37,21 +37,21 @@ namespace AI {
 				 *
 				 * \return true if the player autokick is fired.
 				 */
-				bool shoot_region(const World &world, Player::Ptr player, const Point target, double radius, double delta = 1e9);
+				bool shoot_region(World world, Player::Ptr player, const Point target, double radius, double delta = 1e9);
 
 				/**
 				 * Directly shoots to a player.
 				 *
 				 * \return true if the player autokick is fired.
 				 */
-				bool shoot_pass(const World &world, Player::Ptr shooter, const Point target);
+				bool shoot_pass(World world, Player::Ptr shooter, const Point target);
 
 				/**
 				 * Directly shoots to a player.
 				 *
 				 * \return true if the player autokick is fired.
 				 */
-				bool shoot_pass(const World &world, Player::Ptr shooter, const Point target, Angle angle_tol);
+				bool shoot_pass(World world, Player::Ptr shooter, const Point target, Angle angle_tol);
 
 
 				/**
@@ -59,7 +59,7 @@ namespace AI {
 				 *
 				 * \return true if the player autokick is fired.
 				 */
-				bool shoot_pass(const World &world, Player::Ptr shooter, Player::CPtr target);
+				bool shoot_pass(World world, Player::Ptr shooter, Player::CPtr target);
 
 				/**
 				 * Testing function designed for internal use & use with shoot_distance_test!!!
@@ -74,7 +74,7 @@ namespace AI {
 				 * or alternatively reach target at time delta from the current time ( may be moving )
 				 * \return true if the constraints are achievable
 				 */
-				// bool arm(const World &world, Player::Ptr player, const Point target, double delta = 1e10);
+				// bool arm(World world, Player::Ptr player, const Point target, double delta = 1e10);
 			}
 		}
 	}

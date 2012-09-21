@@ -55,7 +55,7 @@ namespace AI {
 				/**
 				 * call this every tick!
 				 */
-				void tick_offense(const World &world);
+				void tick_offense(World world);
 			}
 		}
 	}

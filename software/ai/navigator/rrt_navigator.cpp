@@ -42,7 +42,7 @@ namespace AI {
 
 			class RRTNavigator : public Navigator {
 				public:
-					RRTNavigator(World &world);
+					RRTNavigator(World world);
 					void tick();
 					void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
 					NavigatorFactory &factory() const;
@@ -59,7 +59,7 @@ namespace AI {
 
 using AI::Nav::RRT::RRTNavigator;
 
-RRTNavigator::RRTNavigator(AI::Nav::W::World &world) : Navigator(world), planner(world) {
+RRTNavigator::RRTNavigator(AI::Nav::W::World world) : Navigator(world), planner(world) {
 }
 
 void RRTNavigator::pivot(Player::Ptr player) {

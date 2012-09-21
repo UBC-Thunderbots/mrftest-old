@@ -18,8 +18,8 @@ namespace {
 	BoolParam draw_ray("draw ray", "STP/draw", false);
 }
 
-void AI::HL::STP::draw_player_status(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
-	const FriendlyTeam &friendly = world.friendly_team();
+void AI::HL::STP::draw_player_status(World world, Cairo::RefPtr<Cairo::Context> ctx) {
+	const FriendlyTeam friendly = world.friendly_team();
 
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		Player::CPtr player = friendly.get(i);
@@ -33,8 +33,8 @@ void AI::HL::STP::draw_player_status(const World &world, Cairo::RefPtr<Cairo::Co
 	}
 }
 
-void AI::HL::STP::draw_friendly_pass(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
-	const FriendlyTeam &friendly = world.friendly_team();
+void AI::HL::STP::draw_friendly_pass(World world, Cairo::RefPtr<Cairo::Context> ctx) {
+	const FriendlyTeam friendly = world.friendly_team();
 
 	if (Predicates::our_ball(world)) {
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
@@ -49,9 +49,9 @@ void AI::HL::STP::draw_friendly_pass(const World &world, Cairo::RefPtr<Cairo::Co
 	}
 }
 
-void AI::HL::STP::draw_enemy_pass(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
+void AI::HL::STP::draw_enemy_pass(World world, Cairo::RefPtr<Cairo::Context> ctx) {
 	auto threats = Evaluation::calc_enemy_threat(world);
-	const EnemyTeam &enemy = world.enemy_team();
+	EnemyTeam enemy = world.enemy_team();
 
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		Robot::Ptr robot = threats[i].robot;
@@ -80,8 +80,8 @@ void AI::HL::STP::draw_enemy_pass(const World &world, Cairo::RefPtr<Cairo::Conte
 	}
 }
 
-void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
-	const FriendlyTeam &friendly = world.friendly_team();
+void AI::HL::STP::draw_shoot(World world, Cairo::RefPtr<Cairo::Context> ctx) {
+	const FriendlyTeam friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		const Player::CPtr player = friendly.get(i);
 		Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
@@ -149,7 +149,7 @@ void AI::HL::STP::draw_shoot(const World &world, Cairo::RefPtr<Cairo::Context> c
 	}
 }
 
-void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
+void AI::HL::STP::draw_offense(World world, Cairo::RefPtr<Cairo::Context> ctx) {
 	// draw blue circles for offense
 	{
 		// divide up into grids
@@ -206,7 +206,7 @@ void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context>
 	}
 }
 
-void AI::HL::STP::draw_defense(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
+void AI::HL::STP::draw_defense(World world, Cairo::RefPtr<Cairo::Context> ctx) {
 	const Field &field = world.field();
 
 	const Point goal1 = Point(-field.length() / 2, field.goal_width() / 2);
@@ -233,8 +233,8 @@ void AI::HL::STP::draw_defense(const World &world, Cairo::RefPtr<Cairo::Context>
 	 */
 }
 
-void AI::HL::STP::draw_velocity(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
-	const FriendlyTeam &friendly = world.friendly_team();
+void AI::HL::STP::draw_velocity(World world, Cairo::RefPtr<Cairo::Context> ctx) {
+	const FriendlyTeam friendly = world.friendly_team();
 	ctx->set_line_width(1.0);
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		const Player::CPtr player = friendly.get(i);
@@ -247,7 +247,7 @@ void AI::HL::STP::draw_velocity(const World &world, Cairo::RefPtr<Cairo::Context
 	}
 }
 
-void AI::HL::STP::draw_baller(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
+void AI::HL::STP::draw_baller(World world, Cairo::RefPtr<Cairo::Context> ctx) {
 	Player::CPtr baller = Evaluation::calc_friendly_baller();
 	if (baller && !Evaluation::possess_ball(world, baller)) {
 		Point dest = Evaluation::calc_fastest_grab_ball_dest(world, baller);

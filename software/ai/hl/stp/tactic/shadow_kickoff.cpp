@@ -13,7 +13,7 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class ShadowKickoff : public Tactic {
 		public:
-			ShadowKickoff(const World &world, Enemy::Ptr enemy, const Coordinate default_loc) : Tactic(world), enemy(enemy), default_loc(default_loc) {
+			ShadowKickoff(World world, Enemy::Ptr enemy, const Coordinate default_loc) : Tactic(world), enemy(enemy), default_loc(default_loc) {
 			}
 
 		private:
@@ -48,7 +48,7 @@ namespace {
 
 	class ShadowBall : public Tactic {
 		public:
-			ShadowBall(const World &world) : Tactic(world) {
+			ShadowBall(World world) : Tactic(world) {
 			}
 
 		private:
@@ -72,12 +72,12 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::shadow_kickoff(const World &world, Enemy::Ptr enemy, const Coordinate default_loc) {
+Tactic::Ptr AI::HL::STP::Tactic::shadow_kickoff(World world, Enemy::Ptr enemy, const Coordinate default_loc) {
 	Tactic::Ptr p(new ShadowKickoff(world, enemy, default_loc));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::shadow_ball(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::shadow_ball(World world) {
 	Tactic::Ptr p(new ShadowBall(world));
 	return p;
 }

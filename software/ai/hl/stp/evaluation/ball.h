@@ -8,7 +8,7 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-				void tick_ball(const World &world);
+				void tick_ball(World world);
 
 				/**
 				 * Finds a friendly player with the ball.
@@ -19,29 +19,29 @@ namespace AI {
 				/**
 				 * Finds an enemy player with the ball.
 				 */
-				Robot::Ptr calc_enemy_baller(const World &world);
+				Robot::Ptr calc_enemy_baller(World world);
 
 				/**
 				 * Ball is within pivot threshold.
 				 */
-				bool ball_in_pivot_thresh(const World &world, Player::CPtr player);
+				bool ball_in_pivot_thresh(World world, Player::CPtr player);
 
 				/**
 				 * The ball is right in front of the player.
 				 */
-				bool possess_ball(const World &world, Player::CPtr player);
+				bool possess_ball(World world, Player::CPtr player);
 
 				/**
 				 * Ball is right in front of the robot.
 				 */
-				bool possess_ball(const World &world, Robot::Ptr robot);
+				bool possess_ball(World world, Robot::Ptr robot);
 
 				/**
 				 * Computes the best location to grab the ball,
 				 * minimizing the time required.
 				 * This is a wrapper to the function in ai/util.h
 				 */
-				Point calc_fastest_grab_ball_dest(const World &world, Player::CPtr player);
+				Point calc_fastest_grab_ball_dest(World world, Player::CPtr player);
 
 				std::vector<Robot::Ptr> enemies_by_grab_ball_dist();
 

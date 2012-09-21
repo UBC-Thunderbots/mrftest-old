@@ -1,29 +1,24 @@
-#include "ai/backend/xbee/xbee_backend.h"
 #include "ai/backend/backend.h"
-#include "ai/backend/xbee/ball.h"
-#include "ai/backend/xbee/field.h"
+#include "ai/backend/clock/monotonic.h"
 #include "ai/backend/xbee/player.h"
 #include "ai/backend/xbee/refbox.h"
-#include "ai/backend/xbee/robot.h"
+#include "ai/ball_filter/ball_filter.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "util/box_array.h"
-#include "util/clocksource_timerfd.h"
 #include "util/codec.h"
 #include "util/dprint.h"
 #include "util/exception.h"
 #include "util/sockaddrs.h"
-#include "util/timestep.h"
 #include "xbee/dongle.h"
 #include "xbee/robot.h"
 #include <cassert>
+#include <cerrno>
 #include <cstring>
 #include <locale>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-
-DoubleParam XBEE_LOOP_DELAY("Loop Delay", "Backend/XBee", 0.0, -1.0, 1.0);
 
 using namespace AI::BE;
 
@@ -75,7 +70,7 @@ namespace {
 			 *
 			 * \return the robot.
 			 */
-			typename T::Ptr get_xbee_robot(std::size_t i);
+			typename T::Ptr get_xbee_robot(std::size_t i) const;
 
 			/**
 			 * \brief Returns a robot.
@@ -84,16 +79,7 @@ namespace {
 			 *
 			 * \return the robot.
 			 */
-			typename TSuper::Ptr get(std::size_t i);
-
-			/**
-			 * \brief Returns a robot.
-			 *
-			 * \param[in] i the index of the robot to fetch.
-			 *
-			 * \return the robot.
-			 */
-			typename TSuper::CPtr get(std::size_t i) const;
+			typename TSuper::Ptr get(std::size_t i) const;
 
 			/**
 			 * \brief Removes all robots from the team.
@@ -120,6 +106,7 @@ namespace {
 			XBeeBackend &backend;
 			BoxArray<T, 16> members;
 			std::vector<typename T::Ptr> member_ptrs;
+			std::vector<unsigned int> vision_failures;
 
 			void populate_pointers();
 			virtual void create_member(unsigned int pattern) = 0;
@@ -128,7 +115,7 @@ namespace {
 	/**
 	 * \brief The friendly team.
 	 */
-	class XBeeFriendlyTeam : public GenericTeam<AI::BE::XBee::Player, AI::BE::Player, AI::BE::FriendlyTeam> {
+	class XBeeFriendlyTeam : public GenericTeam<AI::BE::XBee::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>> {
 		public:
 			explicit XBeeFriendlyTeam(XBeeBackend &backend, XBeeDongle &dongle);
 			unsigned int score() const;
@@ -143,7 +130,7 @@ namespace {
 	/**
 	 * \brief The enemy team.
 	 */
-	class XBeeEnemyTeam : public GenericTeam<AI::BE::XBee::Robot, AI::BE::Robot, AI::BE::EnemyTeam> {
+	class XBeeEnemyTeam : public GenericTeam<AI::BE::Robot, AI::BE::Robot, AI::BE::Team<AI::BE::Robot>> {
 		public:
 			explicit XBeeEnemyTeam(XBeeBackend &backend);
 			unsigned int score() const;
@@ -161,12 +148,8 @@ namespace {
 
 			explicit XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, int multicast_interface);
 			BackendFactory &factory() const;
-			const Field &field() const;
-			const Ball &ball() const;
-			FriendlyTeam &friendly_team();
-			const FriendlyTeam &friendly_team() const;
-			EnemyTeam &enemy_team();
-			const EnemyTeam &enemy_team() const;
+			const AI::BE::Team<AI::BE::Player> &friendly_team() const;
+			const AI::BE::Team<AI::BE::Robot> &enemy_team() const;
 			unsigned int main_ui_controls_table_rows() const;
 			void main_ui_controls_attach(Gtk::Table &, unsigned int);
 			unsigned int secondary_ui_controls_table_rows() const;
@@ -181,9 +164,7 @@ namespace {
 
 		private:
 			unsigned int camera_mask;
-			TimerFDClockSource clock;
-			AI::BE::XBee::Field field_;
-			AI::BE::XBee::Ball ball_;
+			AI::BE::Clock::Monotonic clock;
 			XBeeFriendlyTeam friendly;
 			XBeeEnemyTeam enemy;
 			const FileDescriptor vision_socket;
@@ -216,15 +197,11 @@ template<typename T, typename TSuper, typename Super> std::size_t GenericTeam<T,
 	return member_ptrs.size();
 }
 
-template<typename T, typename TSuper, typename Super> typename T::Ptr GenericTeam<T, TSuper, Super>::get_xbee_robot(std::size_t i) {
+template<typename T, typename TSuper, typename Super> typename T::Ptr GenericTeam<T, TSuper, Super>::get_xbee_robot(std::size_t i) const {
 	return member_ptrs[i];
 }
 
-template<typename T, typename TSuper, typename Super> typename TSuper::Ptr GenericTeam<T, TSuper, Super>::get(std::size_t i) {
-	return member_ptrs[i];
-}
-
-template<typename T, typename TSuper, typename Super> typename TSuper::CPtr GenericTeam<T, TSuper, Super>::get(std::size_t i) const {
+template<typename T, typename TSuper, typename Super> typename TSuper::Ptr GenericTeam<T, TSuper, Super>::get(std::size_t i) const {
 	return member_ptrs[i];
 }
 
@@ -241,6 +218,7 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 
 	// Update existing robots and create new robots.
 	std::vector<bool> used_data[2];
+	std::vector<bool> seen_this_frame;
 	for (std::size_t i = 0; i < 2; ++i) {
 		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> &rep(*packets[i]);
 		used_data[i].resize(static_cast<std::size_t>(rep.size()), false);
@@ -253,9 +231,16 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 					create_member(pattern);
 					membership_changed = true;
 				}
-				if (!bot->seen_this_frame) {
-					bot->seen_this_frame = true;
-					bot->update(detbot, ts);
+				if (!seen_this_frame[bot->pattern()]) {
+					seen_this_frame[bot->pattern()] = true;
+					if (detbot.has_orientation()) {
+						bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
+						Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
+						Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::HALF : Angle::ZERO)).angle_mod();
+						bot->add_field_data(pos, ori, ts);
+					} else {
+						LOG_WARN("Vision packet has robot with no orientation.");
+					}
 				}
 				used_data[i][j] = true;
 			}
@@ -266,13 +251,16 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 	for (std::size_t i = 0; i < members.SIZE; ++i) {
 		typename T::Ptr bot = members[i];
 		if (bot) {
-			if (!bot->seen_this_frame) {
-				++bot->vision_failures;
-			} else {
-				bot->vision_failures = 0;
+			if (vision_failures.size() <= bot->pattern()) {
+				vision_failures.resize(bot->pattern() + 1);
 			}
-			bot->seen_this_frame = false;
-			if (bot->vision_failures >= MAX_VISION_FAILURES) {
+			if (!seen_this_frame[bot->pattern()]) {
+				++vision_failures[bot->pattern()];
+			} else {
+				vision_failures[bot->pattern()] = 0;
+			}
+			seen_this_frame[bot->pattern()] = false;
+			if (vision_failures[bot->pattern()] >= MAX_VISION_FAILURES) {
 				members.destroy(i);
 				membership_changed = true;
 			}
@@ -302,29 +290,29 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 	}
 }
 
-XBeeFriendlyTeam::XBeeFriendlyTeam(XBeeBackend &backend, XBeeDongle &dongle) : GenericTeam<AI::BE::XBee::Player, AI::BE::Player, AI::BE::FriendlyTeam>(backend), dongle(dongle) {
+XBeeFriendlyTeam::XBeeFriendlyTeam(XBeeBackend &backend, XBeeDongle &dongle) : GenericTeam<AI::BE::XBee::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>>(backend), dongle(dongle) {
 }
 
 unsigned int XBeeFriendlyTeam::score() const {
-	return backend.friendly_colour() == AI::Common::Team::Colour::YELLOW ? backend.refbox.goals_yellow : backend.refbox.goals_blue;
+	return backend.friendly_colour() == AI::Common::Colour::YELLOW ? backend.refbox.goals_yellow : backend.refbox.goals_blue;
 }
 
 void XBeeFriendlyTeam::create_member(unsigned int pattern) {
-	members.create(pattern, std::ref(backend), pattern, std::ref(dongle.robot(pattern)));
+	members.create(pattern, pattern, std::ref(dongle.robot(pattern)));
 }
 
-XBeeEnemyTeam::XBeeEnemyTeam(XBeeBackend &backend) : GenericTeam<AI::BE::XBee::Robot, AI::BE::Robot, AI::BE::EnemyTeam>(backend) {
+XBeeEnemyTeam::XBeeEnemyTeam(XBeeBackend &backend) : GenericTeam<AI::BE::Robot, AI::BE::Robot, AI::BE::Team<AI::BE::Robot>>(backend) {
 }
 
 unsigned int XBeeEnemyTeam::score() const {
-	return backend.friendly_colour() == AI::Common::Team::Colour::YELLOW ? backend.refbox.goals_blue : backend.refbox.goals_yellow;
+	return backend.friendly_colour() == AI::Common::Colour::YELLOW ? backend.refbox.goals_blue : backend.refbox.goals_yellow;
 }
 
 void XBeeEnemyTeam::create_member(unsigned int pattern) {
-	members.create(pattern, std::ref(backend), pattern);
+	members.create(pattern, pattern);
 }
 
-XBeeBackend::XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, int multicast_interface) : Backend(), refbox(multicast_interface), camera_mask(camera_mask), clock(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND), ball_(*this), friendly(*this, dongle), enemy(*this), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
+XBeeBackend::XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, int multicast_interface) : Backend(), refbox(multicast_interface), camera_mask(camera_mask), friendly(*this, dongle), enemy(*this), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
 	if (!(1 <= camera_mask && camera_mask <= 3)) {
 		throw std::runtime_error("Invalid camera bitmask (must be 1–3)");
 	}
@@ -368,34 +356,18 @@ XBeeBackend::XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, int multi
 	refbox.goals_yellow.signal_changed().connect(signal_score_changed().make_slot());
 	refbox.goals_blue.signal_changed().connect(signal_score_changed().make_slot());
 
-	timespec_now(playtype_time);
+	playtype_time = clock.now();
 }
 
 BackendFactory &XBeeBackend::factory() const {
 	return xbee_backend_factory_instance;
 }
 
-const Field &XBeeBackend::field() const {
-	return field_;
-}
-
-const Ball &XBeeBackend::ball() const {
-	return ball_;
-}
-
-FriendlyTeam &XBeeBackend::friendly_team() {
+const AI::BE::Team<AI::BE::Player> &XBeeBackend::friendly_team() const {
 	return friendly;
 }
 
-const FriendlyTeam &XBeeBackend::friendly_team() const {
-	return friendly;
-}
-
-EnemyTeam &XBeeBackend::enemy_team() {
-	return enemy;
-}
-
-const EnemyTeam &XBeeBackend::enemy_team() const {
+const AI::BE::Team<AI::BE::Robot> &XBeeBackend::enemy_team() const {
 	return enemy;
 }
 
@@ -448,7 +420,7 @@ void XBeeBackend::tick() {
 	}
 
 	// Do pre-AI stuff (locking predictors).
-	timespec_now(now);
+	now = clock.now();
 	ball_.lock_time(now);
 	friendly.lock_time(now);
 	enemy.lock_time(now);
@@ -469,7 +441,7 @@ void XBeeBackend::tick() {
 
 	// Notify anyone interested in the finish of a tick.
 	timespec after;
-	timespec_now(after);
+	after = clock.now();
 	signal_post_tick().emit(timespec_to_nanos(timespec_sub(after, now)));
 }
 
@@ -493,14 +465,22 @@ bool XBeeBackend::on_vision_readable(Glib::IOCondition) {
 
 	// Pass it to any attached listeners.
 	timespec now;
-	timespec_now(now);
+	now = clock.now();
 	signal_vision().emit(now, packet);
 
 	// If it contains geometry data, update the field shape.
 	if (packet.has_geometry()) {
 		const SSL_GeometryData &geom(packet.geometry());
 		const SSL_GeometryFieldSize &fsize(geom.field());
-		field_.update(fsize);
+		double length = fsize.field_length() / 1000.0;
+		double total_length = length + (2.0 * fsize.boundary_width() + 2.0 * fsize.referee_width()) / 1000.0;
+		double width = fsize.field_width() / 1000.0;
+		double total_width = width + (2.0 * fsize.boundary_width() + 2.0 * fsize.referee_width()) / 1000.0;
+		double goal_width = fsize.goal_width() / 1000.0;
+		double centre_circle_radius = fsize.center_circle_radius() / 1000.0;
+		double defense_area_radius = fsize.defense_radius() / 1000.0;
+		double defense_area_stretch = fsize.defense_stretch() / 1000.0;
+		field_.update(length, total_length, width, total_width, goal_width, centre_circle_radius, defense_area_radius, defense_area_stretch);
 	}
 
 	// If it contains ball and robot data, update the ball and the teams.
@@ -523,7 +503,7 @@ bool XBeeBackend::on_vision_readable(Glib::IOCondition) {
 
 		// Take a timestamp.
 		timespec now;
-		timespec_now(now);
+		now = clock.now();
 
 		// Update the ball.
 		{
@@ -539,17 +519,17 @@ bool XBeeBackend::on_vision_readable(Glib::IOCondition) {
 			// Execute the current ball filter.
 			Point pos;
 			if (ball_filter()) {
-				pos = ball_filter()->filter(balls, *this);
+				pos = ball_filter()->filter(balls, AI::BF::W::World(*this));
 			}
 
 			// Use the result.
-			ball_.update(pos, now);
+			ball_.add_field_data(defending_end() == FieldEnd::EAST ? -pos : pos, now);
 		}
 
 		// Update the robots.
 		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *yellow_packets[2] = { &detections[0].robots_yellow(), &detections[1].robots_yellow() };
 		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *blue_packets[2] = { &detections[0].robots_blue(), &detections[1].robots_blue() };
-		if (friendly_colour() == AI::Common::Team::Colour::YELLOW) {
+		if (friendly_colour() == AI::Common::Colour::YELLOW) {
 			friendly.update(yellow_packets, now);
 			enemy.update(blue_packets, now);
 		} else {
@@ -566,7 +546,7 @@ bool XBeeBackend::on_vision_readable(Glib::IOCondition) {
 
 void XBeeBackend::on_refbox_packet(const void *data, std::size_t length) {
 	timespec now;
-	timespec_now(now);
+	now = clock.now();
 	signal_refbox().emit(now, data, length);
 }
 
@@ -576,17 +556,17 @@ void XBeeBackend::update_playtype() {
 	if (playtype_override() != AI::Common::PlayType::NONE) {
 		new_pt = playtype_override();
 	} else {
-		if (friendly_colour() == AI::Common::Team::Colour::YELLOW) {
+		if (friendly_colour() == AI::Common::Colour::YELLOW) {
 			old_pt = AI::Common::PlayTypeInfo::invert(old_pt);
 		}
 		new_pt = compute_playtype(old_pt);
-		if (friendly_colour() == AI::Common::Team::Colour::YELLOW) {
+		if (friendly_colour() == AI::Common::Colour::YELLOW) {
 			new_pt = AI::Common::PlayTypeInfo::invert(new_pt);
 		}
 	}
 	if (new_pt != playtype()) {
 		playtype_rw() = new_pt;
-		timespec_now(playtype_time);
+		playtype_time = clock.now();
 	}
 }
 

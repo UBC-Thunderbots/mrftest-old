@@ -1,8 +1,11 @@
 #include "ai/backend/simulator/backend.h"
+#include "ai/common/robot.h"
+#include "util/exception.h"
 #include "util/fd.h"
 #include "util/misc.h"
 #include <cstring>
 #include <fcntl.h>
+#include <limits>
 #include <gtkmm/filechooserdialog.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/window.h>
@@ -94,7 +97,7 @@ FileDescriptor AI::BE::Simulator::connect_to_simulator() {
 	return sock;
 }
 
-AI::BE::Simulator::Backend::Backend(const std::string &load_filename) : sock(connect_to_simulator()), ball_(*this), friendly_(*this), enemy_(*this), secondary_controls(load_filename) {
+AI::BE::Simulator::Backend::Backend(const std::string &load_filename) : sock(connect_to_simulator()), friendly_(*this), enemy_(*this), secondary_controls(load_filename), dragging_ball(false), dragging_pattern(std::numeric_limits<unsigned int>::max()) {
 	monotonic_time_.tv_sec = 0;
 	monotonic_time_.tv_nsec = 0;
 	secondary_controls.speed_normal.signal_toggled().connect(sigc::mem_fun(this, &Backend::on_speed_toggled));
@@ -112,6 +115,8 @@ AI::BE::Simulator::Backend::Backend(const std::string &load_filename) : sock(con
 	if (!load_filename.empty()) {
 		on_state_file_load_clicked();
 	}
+
+	field_.update(6.05, 7.40, 4.05, 5.40, 0.70, 0.50, 0.80, 0.35);
 }
 
 void AI::BE::Simulator::Backend::send_packet(const ::Simulator::Proto::A2SPacket &packet, const FileDescriptor &ancillary_fd) {
@@ -143,23 +148,11 @@ void AI::BE::Simulator::Backend::send_packet(const ::Simulator::Proto::A2SPacket
 	}
 }
 
-const AI::BE::Simulator::Field &AI::BE::Simulator::Backend::field() const {
-	return field_;
-}
-
-const AI::BE::Simulator::Ball &AI::BE::Simulator::Backend::ball() const {
-	return ball_;
-}
-
-AI::BE::Simulator::FriendlyTeam &AI::BE::Simulator::Backend::friendly_team() {
+const AI::BE::Team<AI::BE::Player> &AI::BE::Simulator::Backend::friendly_team() const {
 	return friendly_;
 }
 
-const AI::BE::Simulator::FriendlyTeam &AI::BE::Simulator::Backend::friendly_team() const {
-	return friendly_;
-}
-
-const AI::BE::Simulator::EnemyTeam &AI::BE::Simulator::Backend::enemy_team() const {
+const AI::BE::Team<AI::BE::Robot> &AI::BE::Simulator::Backend::enemy_team() const {
 	return enemy_;
 }
 
@@ -180,19 +173,73 @@ Visualizable::Robot::Ptr AI::BE::Simulator::Backend::visualizable_robot(std::siz
 }
 
 void AI::BE::Simulator::Backend::mouse_pressed(Point p, unsigned int btn) {
-	signal_mouse_pressed.emit(p, btn);
+	if (btn == 1) {
+		dragging_ball = false;
+		dragging_pattern = std::numeric_limits<unsigned int>::max();
+		ball_.should_highlight = false;
+		for (std::size_t i = 0; i < friendly_.size(); ++i) {
+			friendly_.get_impl(i)->stop_drag();
+		}
+		if ((p - ball_.position()).len() < Ball::RADIUS) {
+			dragging_ball = true;
+			dragging_pattern = std::numeric_limits<unsigned int>::max();
+			ball_.should_highlight = true;
+		} else {
+			for (std::size_t i = 0; i < friendly_.size(); ++i) {
+				AI::BE::Simulator::Player::Ptr bot = friendly_.get_impl(i);
+				if ((p - bot->position(0.0)).len() < AI::Common::Robot::MAX_RADIUS) {
+					bot->start_drag();
+					dragging_pattern = bot->pattern();
+					break;
+				}
+			}
+		}
+	}
 }
 
-void AI::BE::Simulator::Backend::mouse_released(Point p, unsigned int btn) {
-	signal_mouse_released.emit(p, btn);
+void AI::BE::Simulator::Backend::mouse_released(Point, unsigned int btn) {
+	if (btn == 1) {
+		mouse_exited();
+	}
 }
 
 void AI::BE::Simulator::Backend::mouse_exited() {
-	signal_mouse_exited.emit();
+	dragging_ball = false;
+	dragging_pattern = std::numeric_limits<unsigned int>::max();
+	ball_.should_highlight = false;
+	for (std::size_t i = 0; i < friendly_.size(); ++i) {
+		friendly_.get_impl(i)->stop_drag();
+	}
 }
 
 void AI::BE::Simulator::Backend::mouse_moved(Point p) {
-	signal_mouse_moved.emit(p);
+	if (dragging_ball) {
+		::Simulator::Proto::A2SPacket packet;
+		std::memset(&packet, 0, sizeof(packet));
+		packet.type = ::Simulator::Proto::A2SPacketType::DRAG_BALL;
+		packet.drag.pattern = 0;
+		packet.drag.x = p.x;
+		packet.drag.y = p.y;
+		send_packet(packet);
+	} else if (dragging_pattern != std::numeric_limits<unsigned int>::max()) {
+		bool found = false;
+		for (std::size_t i = 0; i < friendly_.size() && !found; ++i) {
+			if (friendly_.get_impl(i)->pattern() == dragging_pattern) {
+				found = true;
+			}
+		}
+		if (found) {
+			::Simulator::Proto::A2SPacket packet;
+			std::memset(&packet, 0, sizeof(packet));
+			packet.type = ::Simulator::Proto::A2SPacketType::DRAG_PLAYER;
+			packet.drag.pattern = dragging_pattern;
+			packet.drag.x = p.x;
+			packet.drag.y = p.y;
+			send_packet(packet);
+		} else {
+			dragging_pattern = std::numeric_limits<unsigned int>::max();
+		}
+	}
 }
 
 unsigned int AI::BE::Simulator::Backend::main_ui_controls_table_rows() const {
@@ -247,10 +294,13 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 
 			// Record the current physical monotonic time.
 			timespec before;
-			timespec_now(before);
+			if (clock_gettime(CLOCK_MONOTONIC, &before) < 0) {
+				throw SystemError(u8"clock_gettime(CLOCK_MONOTONIC)", errno);
+			}
 
 			// Update the objects with the newly-received data and lock in their predictors.
-			ball_.pre_tick(packet.world_state.ball, monotonic_time_);
+			ball_.add_field_data({packet.world_state.ball.x, packet.world_state.ball.y}, monotonic_time_);
+			ball_.lock_time(monotonic_time_);
 			friendly_.pre_tick(packet.world_state.friendly, packet.world_state.friendly_score, monotonic_time_);
 			enemy_.pre_tick(packet.world_state.enemy, packet.world_state.enemy_score, monotonic_time_);
 
@@ -262,7 +312,9 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 
 			// Compute time taken.
 			timespec after;
-			timespec_now(after);
+			if (clock_gettime(CLOCK_MONOTONIC, &after) < 0) {
+				throw SystemError(u8"clock_gettime(CLOCK_MONOTONIC)", errno);
+			}
 			unsigned int compute_time = timespec_to_nanos(timespec_sub(after, before));
 
 			// Notify anyone interested in the finish of a tick.

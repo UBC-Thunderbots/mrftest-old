@@ -29,7 +29,7 @@ namespace {
 				circles.push_front(Circle(Point(), DELETE_THRESHOLD));
 			}
 
-			Point filter(const std::vector<std::pair<double, Point> > &obs, World &) {
+			Point filter(const std::vector<std::pair<double, Point> > &obs, World) {
 				// Just use the maximum-confidence ball.
 				const std::vector<std::pair<double, Point> >::const_iterator &best_obs(std::max_element(obs.begin(), obs.end()));
 

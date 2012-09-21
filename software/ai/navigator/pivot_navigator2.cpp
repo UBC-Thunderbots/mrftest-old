@@ -15,7 +15,7 @@ namespace {
 	 */
 	class PivotNavigator2 : public Navigator {
 		public:
-			PivotNavigator2(World &world);
+			PivotNavigator2(World world);
 			void tick();
 			NavigatorFactory &factory() const;
 	};
@@ -25,11 +25,11 @@ namespace {
 	DegreeParam orientation_offset("orientation offset (degrees)", "Nav/Pivot2", 30.0, -1000.0, 1000.0);
 }
 
-PivotNavigator2::PivotNavigator2(World &world) : Navigator(world) {
+PivotNavigator2::PivotNavigator2(World world) : Navigator(world) {
 }
 
 void PivotNavigator2::tick() {
-	FriendlyTeam &fteam = world.friendly_team();
+	FriendlyTeam fteam = world.friendly_team();
 
 	Player::Ptr player;
 	Player::Path path;

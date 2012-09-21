@@ -19,25 +19,25 @@ namespace AI {
 					Point target;
 				};
 
-				ShootData evaluate_shoot(const World &world, Player::CPtr player, bool use_reduced_radius = true);
+				ShootData evaluate_shoot(World world, Player::CPtr player, bool use_reduced_radius = true);
 
 				/**
 				 * The current score of the the robot, in it's current position and orientation
 				 * a positive score indicates a scoring oppurtunity
 				 * the return value represents the maximum angle error acceptable while still representing a goal scored
 				 */
-				Angle get_shoot_score(const World &world, Player::Ptr player, bool use_reduced_radius = true);
-				// double get_shoot_target(const World &world, Player::Ptr player);
+				Angle get_shoot_score(World world, Player::Ptr player, bool use_reduced_radius = true);
+				// double get_shoot_target(World world, Player::Ptr player);
 
-				// Point get_best_shoot_target(const World &world, Player::Ptr player);
+				// Point get_best_shoot_target(World world, Player::Ptr player);
 
-				// ShootData evaluate_shoot_target(const World &world, Player::CPtr player, const Point target);
+				// ShootData evaluate_shoot_target(World world, Player::CPtr player, const Point target);
 
 				/**
 				 * Checks if a player can shoot to this location.
 				 * A pass will ignore friendly robots for the purpose of obstacle avoidance.
 				 */
-				// bool can_shoot_target(const World &world, Player::CPtr player, const Point target, bool pass = false);
+				// bool can_shoot_target(World world, Player::CPtr player, const Point target, bool pass = false);
 			}
 		}
 	}

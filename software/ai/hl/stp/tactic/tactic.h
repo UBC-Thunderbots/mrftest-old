@@ -97,7 +97,7 @@ namespace AI {
 						virtual void draw_overlay(Cairo::RefPtr<Cairo::Context> context) const;
 
 					protected:
-						const World &world;
+						World world;
 						Player::Ptr player;
 
 						/**
@@ -105,7 +105,7 @@ namespace AI {
 						 *
 						 * \param [in] active indicates if this is an active tactic.
 						 */
-						Tactic(const World &world, bool active = false);
+						Tactic(World world, bool active = false);
 
 						/**
 						 * \brief Triggerred when the player associated changes.

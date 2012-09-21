@@ -10,7 +10,7 @@ namespace AI {
 				/**
 				 * Stay at the same position and do nothing.
 				 */
-				Tactic::Ptr idle(const World &world);
+				Tactic::Ptr idle(World world);
 			}
 		}
 	}

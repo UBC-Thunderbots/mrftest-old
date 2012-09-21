@@ -1,129 +1,187 @@
 #ifndef AI_BALL_FILTER_WORLD_H
 #define AI_BALL_FILTER_WORLD_H
 
+#include "ai/backend/backend.h"
 #include "ai/common/world.h"
-#include "util/box_ptr.h"
+#include <functional>
 
 namespace AI {
 	namespace BF {
 		namespace W {
 			/**
-			 * The field, as seen by a ball filter.
+			 * \brief The field
 			 */
-			class Field : public AI::Common::Field {
-			};
+			typedef AI::Common::Field Field;
 
 			/**
-			 * The ball, as seen by a ball filter.
+			 * \brief The ball
 			 */
-			class Ball : public AI::Common::Ball {
-			};
+			typedef AI::Common::Ball Ball;
 
 			/**
-			 * A robot, as seen by a ball filter.
+			 * \brief A robot
 			 */
 			typedef AI::Common::Robot Robot;
 
 			/**
-			 * A player, as seen by a ball filter.
+			 * \brief A player
 			 */
 			class Player : public Robot, public AI::Common::Player {
 				public:
 					/**
-					 * A pointer to a Player.
+					 * \brief This class
 					 */
-					typedef BoxPtr<const Player> Ptr;
+					typedef Player Ptr;
+
+					/**
+					 * \brief Constructs a nonexistent Player
+					 */
+					explicit Player();
+
+					/**
+					 * \brief Constructs a new Player
+					 *
+					 * \param[in] impl the backend implementation to wrap
+					 */
+					explicit Player(AI::BE::Player::Ptr impl);
+
+					/**
+					 * \brief Constructs a copy of a Player
+					 *
+					 * \param[in] copyref the object to copy
+					 */
+					Player(const Player &copyref);
+
+					/**
+					 * \brief Returns this object
+					 *
+					 * \return this object
+					 */
+					Player *operator->();
+
+					/**
+					 * \brief Returns this object
+					 *
+					 * \return this object
+					 */
+					const Player *operator->() const;
+
+					using AI::Common::Player::operator==;
+					using AI::Common::Player::operator!=;
+					using AI::Common::Player::operator bool;
 			};
 
 			/**
-			 * The friendly team.
+			 * \brief The friendly team
 			 */
-			class FriendlyTeam : public AI::Common::Team {
-				public:
-					/**
-					 * Returns a player from the team.
-					 *
-					 * \param[in] i the index of the player.
-					 *
-					 * \return the player.
-					 */
-					Player::Ptr get(std::size_t i) const {
-						return get_ball_filter_player(i);
-					}
-
-				protected:
-					/**
-					 * Returns a player from the team.
-					 *
-					 * \param[in] i the index of the player.
-					 *
-					 * \return the player.
-					 */
-					virtual Player::Ptr get_ball_filter_player(std::size_t i) const = 0;
-			};
+			typedef AI::Common::Team<Player, AI::BE::Player> FriendlyTeam;
 
 			/**
-			 * The enemy team.
+			 * \brief The enemy team.
 			 */
-			class EnemyTeam : public AI::Common::Team {
-				public:
-					/**
-					 * Returns a robot from the team.
-					 *
-					 * \param[in] i the index of the robot.
-					 *
-					 * \return the robot.
-					 */
-					Robot::Ptr get(std::size_t i) const {
-						return get_ball_filter_robot(i);
-					}
-
-				protected:
-					/**
-					 * Returns a robot from the team.
-					 *
-					 * \param[in] i the index of the robot.
-					 *
-					 * \return the robot.
-					 */
-					virtual Robot::Ptr get_ball_filter_robot(std::size_t i) const = 0;
-			};
+			typedef AI::Common::Team<Robot, AI::BE::Robot> EnemyTeam;
 
 			/**
-			 * The world, as seen by a Coach.
+			 * \brief The world
 			 */
 			class World {
 				public:
 					/**
-					 * Returns the field.
+					 * \brief Constructs a new World
 					 *
-					 * \return the field.
+					 * \param[in] impl the backend implementation
 					 */
-					virtual const Field &field() const = 0;
+					explicit World(AI::BE::Backend &impl);
 
 					/**
-					 * Returns the ball.
+					 * \brief Constructs a copy of a World
 					 *
-					 * \return the ball.
+					 * \param[in] copyref the object to copy
 					 */
-					virtual const Ball &ball() const = 0;
+					World(const World &copyref);
 
 					/**
-					 * Returns the friendly team.
+					 * \brief Returns the field
 					 *
-					 * \return the friendly team.
+					 * \return the field
 					 */
-					virtual const FriendlyTeam &friendly_team() const = 0;
+					const Field &field() const;
 
 					/**
-					 * Returns the enemy team.
+					 * \brief Returns the ball
 					 *
-					 * \return the enemy team.
+					 * \return the ball
 					 */
-					virtual const EnemyTeam &enemy_team() const = 0;
+					const Ball &ball() const;
+
+					/**
+					 * \brief Returns the friendly team
+					 *
+					 * \return the friendly team
+					 */
+					FriendlyTeam friendly_team() const;
+
+					/**
+					 * \brief Returns the enemy team
+					 *
+					 * \return the enemy team
+					 */
+					EnemyTeam enemy_team() const;
+
+				private:
+					AI::BE::Backend &impl;
 			};
 		}
 	}
+}
+
+namespace std {
+	/**
+	 * \brief Provides a total ordering of Player objects so they can be stored in STL ordered containers
+	 */
+	template<> struct less<AI::BF::W::Player> {
+		public:
+			/**
+			 * \brief Compares two objects
+			 *
+			 * \param[in] x the first objects
+			 *
+			 * \param[in] y the second objects
+			 *
+			 * \return \c true if \p x should precede \p y in an ordered container, or \c false if not.
+			 */
+			bool operator()(const AI::BF::W::Player &x, const AI::BF::W::Player &y) const;
+
+		private:
+			std::less<AI::Common::Player> cmp;
+	};
+}
+
+
+
+inline AI::BF::W::World::World(AI::BE::Backend &impl) : impl(impl) {
+}
+
+inline AI::BF::W::World::World(const World &) = default;
+
+inline const AI::BF::W::Field &AI::BF::W::World::field() const {
+	return impl.field();
+}
+
+inline const AI::BF::W::Ball &AI::BF::W::World::ball() const {
+	return impl.ball();
+}
+
+inline AI::BF::W::FriendlyTeam AI::BF::W::World::friendly_team() const {
+	return FriendlyTeam(impl.friendly_team());
+}
+
+inline AI::BF::W::EnemyTeam AI::BF::W::World::enemy_team() const {
+	return EnemyTeam(impl.enemy_team());
+}
+
+inline bool std::less<AI::BF::W::Player>::operator()(const AI::BF::W::Player &x, const AI::BF::W::Player &y) const {
+	return cmp(x, y);
 }
 
 #endif

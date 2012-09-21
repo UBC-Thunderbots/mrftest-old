@@ -4,7 +4,6 @@
 #include "util/config.h"
 #include "util/dprint.h"
 #include "util/string.h"
-#include "util/time.h"
 #include <algorithm>
 #include <cmath>
 #include <locale>
@@ -44,9 +43,7 @@ namespace {
 	}
 }
 
-Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot &bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_invoked(false), autokick_fired_(false) {
-	timespec now;
-	timespec_now(now);
+Player::Player(unsigned int pattern, XBeeRobot &bot) : AI::BE::Player(pattern), bot(bot), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_invoked(false), autokick_fired_(false) {
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 	bot.signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
 }
@@ -56,14 +53,6 @@ Player::~Player() {
 	bot.dribble(false);
 	bot.autokick(false, 0);
 	bot.set_charger_state(XBeeRobot::ChargerState::DISCHARGE);
-}
-
-const std::pair<Point, Angle> &Player::destination() const {
-	return destination_;
-}
-
-Point Player::target_velocity() const {
-	return target_velocity_;
 }
 
 unsigned int Player::num_bar_graphs() const {
@@ -97,10 +86,6 @@ Visualizable::Colour Player::bar_graph_colour(unsigned int index) const {
 		default:
 			throw std::logic_error("invalid bar graph index");
 	}
-}
-
-bool Player::alive() const {
-	return bot.alive;
 }
 
 bool Player::has_ball() const {
@@ -143,13 +128,6 @@ void Player::autochip_impl(double) {
 		bot.autokick(true, 4000);
 		autokick_invoked = true;
 	}
-}
-
-void Player::drive(const int(&w)[4]) {
-	for (unsigned int i = 0; i < 4; ++i) {
-		wheel_speeds_[i] = w[i];
-	}
-	controlled = true;
 }
 
 void Player::on_autokick_fired() {
@@ -207,11 +185,11 @@ void Player::tick(bool halt) {
 
 	// Calculations.
 	if (has_ball()) {
-		dribble_distance_ += (position() - last_dribble_position).len();
+		dribble_distance_ += (position(0.0) - last_dribble_position).len();
 	} else {
 		dribble_distance_ = 0.0;
 	}
-	last_dribble_position = position();
+	last_dribble_position = position(0.0);
 }
 
 Visualizable::Colour Player::visualizer_colour() const {

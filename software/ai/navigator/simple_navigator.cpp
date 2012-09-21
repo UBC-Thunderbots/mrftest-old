@@ -13,17 +13,17 @@ namespace {
 	 */
 	class SimpleNavigator : public Navigator {
 		public:
-			SimpleNavigator(World &world);
+			SimpleNavigator(World world);
 			void tick();
 			NavigatorFactory &factory() const;
 	};
 }
 
-SimpleNavigator::SimpleNavigator(World &world) : Navigator(world) {
+SimpleNavigator::SimpleNavigator(World world) : Navigator(world) {
 }
 
 void SimpleNavigator::tick() {
-	FriendlyTeam &fteam = world.friendly_team();
+	FriendlyTeam fteam = world.friendly_team();
 	timespec ts;
 
 	Player::Ptr player;

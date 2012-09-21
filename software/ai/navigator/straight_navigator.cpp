@@ -23,7 +23,7 @@ namespace {
 	 */
 	class StraightNavigator : public Navigator {
 		public:
-			StraightNavigator(World &world);
+			StraightNavigator(World world);
 			void tick();
 			NavigatorFactory &factory() const;
 
@@ -84,11 +84,11 @@ std::vector<std::pair<std::size_t, std::size_t>> PathModerator::getPathCrossPath
 }
 
 
-StraightNavigator::StraightNavigator(World &world) : Navigator(world) {
+StraightNavigator::StraightNavigator(World world) : Navigator(world) {
 }
 
 std::vector<Player::Ptr> StraightNavigator::getMovePrioPlayers(AI::Flags::MovePrio prio) {
-	FriendlyTeam &fteam = world.friendly_team();
+	FriendlyTeam fteam = world.friendly_team();
 	std::vector<Player::Ptr> interested_players;
 	for (std::size_t i = 0; i < fteam.size(); i++) {
 		if (fteam.get(i)->prio() == prio) {
@@ -99,7 +99,7 @@ std::vector<Player::Ptr> StraightNavigator::getMovePrioPlayers(AI::Flags::MovePr
 }
 
 std::vector<Player::Ptr> StraightNavigator::getMoveTypePlayers(AI::Flags::MoveType type) {
-	FriendlyTeam &fteam = world.friendly_team();
+	FriendlyTeam fteam = world.friendly_team();
 	std::vector<Player::Ptr> interested_players;
 	for (std::size_t i = 0; i < fteam.size(); i++) {
 		if (fteam.get(i)->type() == type) {
@@ -110,7 +110,7 @@ std::vector<Player::Ptr> StraightNavigator::getMoveTypePlayers(AI::Flags::MoveTy
 }
 
 std::vector<Player::Ptr> StraightNavigator::getUnhappyPlayers() {
-	FriendlyTeam &fteam = world.friendly_team();
+	FriendlyTeam fteam = world.friendly_team();
 	std::vector<Player::Ptr> interested_players;
 	for (std::size_t i = 0; i < fteam.size(); i++) {
 		if (!player_happiness[i]) {
@@ -121,7 +121,7 @@ std::vector<Player::Ptr> StraightNavigator::getUnhappyPlayers() {
 }
 
 void StraightNavigator::teamUpdater() {
-	FriendlyTeam &fteam = world.friendly_team();
+	FriendlyTeam fteam = world.friendly_team();
 	player_happiness.clear();
 	player_happiness.resize(fteam.size(), false);
 
@@ -170,7 +170,7 @@ void StraightNavigator::dealWithPath() {
 }
 
 void StraightNavigator::tick() {
-	FriendlyTeam &fteam = world.friendly_team();
+	FriendlyTeam fteam = world.friendly_team();
 	timespec ts;
 
 	Player::Ptr player;

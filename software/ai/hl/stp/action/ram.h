@@ -11,12 +11,12 @@ namespace AI {
 				 * Move to a particular location and stop.
 				 * Orient the player towards the ball.
 				 */
-				void ram(const World &world, Player::Ptr player, const Point dest, const Point vel);
+				void ram(World world, Player::Ptr player, const Point dest, const Point vel);
 
 				/**
 				 * ram defaulting to ram the ball
 				 */
-				void ram(const World &world, Player::Ptr player);
+				void ram(World world, Player::Ptr player);
 			}
 		}
 	}

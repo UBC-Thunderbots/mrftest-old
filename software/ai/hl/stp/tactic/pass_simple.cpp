@@ -29,7 +29,7 @@ namespace {
 		// HYSTERISIS
 		Player::CPtr target;
 
-		PasserSimple(const World &world) : Tactic(world, true), kick_attempted(false) {
+		PasserSimple(World world) : Tactic(world, true), kick_attempted(false) {
 		}
 
 		bool done() const {
@@ -80,7 +80,7 @@ namespace {
 	struct PasseeSimple : public Tactic {
 		const unsigned number;
 
-		PasseeSimple(const World &world, unsigned number) : Tactic(world, false), number(number) {
+		PasseeSimple(World world, unsigned number) : Tactic(world, false), number(number) {
 		}
 
 		Player::Ptr select(const std::set<Player::Ptr> &players) const {
@@ -114,7 +114,7 @@ namespace {
 	};
 
 	struct FollowBaller : public Tactic {
-		FollowBaller(const World &world) : Tactic(world, false) {
+		FollowBaller(World world) : Tactic(world, false) {
 		}
 
 		Player::Ptr select(const std::set<Player::Ptr> &players) const {
@@ -145,17 +145,17 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passer_simple(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::passer_simple(World world) {
 	Tactic::Ptr p(new PasserSimple(world));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passee_simple(const World &world, unsigned number) {
+Tactic::Ptr AI::HL::STP::Tactic::passee_simple(World world, unsigned number) {
 	Tactic::Ptr p(new PasseeSimple(world, number));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::follow_baller(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::follow_baller(World world) {
 	Tactic::Ptr p(new FollowBaller(world));
 	return p;
 }

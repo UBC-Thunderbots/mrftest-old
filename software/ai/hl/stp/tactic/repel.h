@@ -11,13 +11,13 @@ namespace AI {
 				 * Move the ball away from our own goal at all cost.
 				 * Active tactic.
 				 */
-				Tactic::Ptr repel(const AI::HL::W::World &world);
+				Tactic::Ptr repel(AI::HL::W::World world);
 
 				/**
 				 * Special repel to be used in corner kicks
 				 * Active tactic.
 				 */
-				Tactic::Ptr corner_repel(const AI::HL::W::World &world);
+				Tactic::Ptr corner_repel(AI::HL::W::World world);
 			}
 		}
 	}

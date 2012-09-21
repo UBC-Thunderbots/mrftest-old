@@ -2,24 +2,24 @@
 #include <cstdlib>
 #include <stdexcept>
 
-Log::Colour Log::Util::Colour::to_protobuf(AI::Common::Team::Colour clr) {
+Log::Colour Log::Util::Colour::to_protobuf(AI::Common::Colour clr) {
 	switch (clr) {
-		case AI::Common::Team::Colour::YELLOW:
+		case AI::Common::Colour::YELLOW:
 			return Log::COLOUR_YELLOW;
 
-		case AI::Common::Team::Colour::BLUE:
+		case AI::Common::Colour::BLUE:
 			return Log::COLOUR_BLUE;
 	}
 	throw std::invalid_argument("Invalid enumeration element.");
 }
 
-AI::Common::Team::Colour Log::Util::Colour::of_protobuf(Log::Colour clr) {
+AI::Common::Colour Log::Util::Colour::of_protobuf(Log::Colour clr) {
 	switch (clr) {
 		case Log::COLOUR_YELLOW:
-			return AI::Common::Team::Colour::YELLOW;
+			return AI::Common::Colour::YELLOW;
 
 		case Log::COLOUR_BLUE:
-			return AI::Common::Team::Colour::BLUE;
+			return AI::Common::Colour::BLUE;
 	}
 	throw std::invalid_argument("Invalid enumeration element.");
 }

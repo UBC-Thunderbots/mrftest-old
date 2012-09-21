@@ -14,7 +14,7 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class ShadowEnemy : public Tactic {
 		public:
-			ShadowEnemy(const World &world) : Tactic(world) {
+			ShadowEnemy(World world) : Tactic(world) {
 			}
 
 		private:
@@ -42,7 +42,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::shadow_enemy(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::shadow_enemy(World world) {
 	Tactic::Ptr p(new ShadowEnemy(world));
 	return p;
 }

@@ -25,7 +25,7 @@ namespace {
 
 	class NCHL : public HighLevel {
 		public:
-			NCHL(World &world) : world(world), tasks(default_tasks, default_tasks + default_tasks_n), time_steps(0) {
+			NCHL(World world) : world(world), tasks(default_tasks, default_tasks + default_tasks_n), time_steps(0) {
 				std::vector<std::size_t> done;
 				obstacleIndex = 0;
 			}
@@ -33,7 +33,7 @@ namespace {
 			HighLevelFactory &factory() const;
 
 			void tick() {
-				FriendlyTeam &friendly = world.friendly_team();
+				FriendlyTeam friendly = world.friendly_team();
 
 				if (friendly.size() == 0) {
 					return;
@@ -144,7 +144,7 @@ namespace {
 			}
 
 		private:
-			World &world;
+			World world;
 			std::vector<std::pair<Point, double> > tasks;
 			int time_steps;
 			std::vector<std::size_t> done;

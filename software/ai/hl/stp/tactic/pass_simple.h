@@ -11,19 +11,19 @@ namespace AI {
 				/**
 				 * Just toss the ball to someone in front.
 				 */
-				Tactic::Ptr passer_simple(const World &world);
+				Tactic::Ptr passer_simple(World world);
 
 				/**
 				 * Stay at position and wait for pass.
 				 * number: first passee is 0, second is 1 etc
 				 */
-				Tactic::Ptr passee_simple(const World &world, unsigned number);
+				Tactic::Ptr passee_simple(World world, unsigned number);
 
 				/**
 				 * Look at where the ball is heading,
 				 * and catch it.
 				 */
-				Tactic::Ptr follow_baller(const World &world);
+				Tactic::Ptr follow_baller(World world);
 			}
 		}
 	}

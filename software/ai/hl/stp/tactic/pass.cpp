@@ -43,12 +43,12 @@ namespace {
 
 	class PasserShoot : public Tactic {
 		public:
-			PasserShoot(const World &world) : Tactic(world, true), dynamic(true), target(Point(0, 0)) {
+			PasserShoot(World world) : Tactic(world, true), dynamic(true), target(Point(0, 0)) {
 				kicked = false;
 				passer_info.kicked = false;
 			}
 
-			PasserShoot(const World &world, Coordinate target) : Tactic(world, true), dynamic(false), target(target) {
+			PasserShoot(World world, Coordinate target) : Tactic(world, true), dynamic(false), target(target) {
 				kicked = false;
 				passer_info.kicked = false;
 			}
@@ -105,10 +105,10 @@ namespace {
 
 	class PasseeMove : public Tactic {
 		public:
-			PasseeMove(const World &world) : Tactic(world, false), dynamic(true) {
+			PasseeMove(World world) : Tactic(world, false), dynamic(true) {
 			}
 
-			PasseeMove(const World &world, Coordinate target) : Tactic(world, false), dynamic(false), target(target) {
+			PasseeMove(World world, Coordinate target) : Tactic(world, false), dynamic(false), target(target) {
 			}
 
 		private:
@@ -197,7 +197,7 @@ namespace {
 
 	class PasseeReceive : public Tactic {
 		public:
-			PasseeReceive(const World &world) : Tactic(world, true) {
+			PasseeReceive(World world) : Tactic(world, true) {
 #warning find a good mechanism for passing
 			}
 
@@ -254,32 +254,32 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passer_shoot_target(const World &world, Coordinate target) {
+Tactic::Ptr AI::HL::STP::Tactic::passer_shoot_target(World world, Coordinate target) {
 	Tactic::Ptr p(new PasserShoot(world, target));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passee_move_target(const World &world, Coordinate target) {
+Tactic::Ptr AI::HL::STP::Tactic::passee_move_target(World world, Coordinate target) {
 	Tactic::Ptr p(new PasseeMove(world, target));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passee_receive_target(const World &world, Coordinate) {
+Tactic::Ptr AI::HL::STP::Tactic::passee_receive_target(World world, Coordinate) {
 	Tactic::Ptr p(new PasseeReceive(world));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passer_shoot_dynamic(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::passer_shoot_dynamic(World world) {
 	Tactic::Ptr p(new PasserShoot(world));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passee_move_dynamic(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::passee_move_dynamic(World world) {
 	Tactic::Ptr p(new PasseeMove(world));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passee_receive(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::passee_receive(World world) {
 	Tactic::Ptr p(new PasseeReceive(world));
 	return p;
 }

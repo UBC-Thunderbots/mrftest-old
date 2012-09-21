@@ -2,10 +2,7 @@
 #define AI_BACKEND_SIMULATOR_H
 
 #include "ai/backend/backend.h"
-#include "ai/backend/simulator/ball.h"
-#include "ai/backend/simulator/field.h"
 #include "ai/backend/simulator/player.h"
-#include "ai/backend/simulator/robot.h"
 #include "ai/backend/simulator/team.h"
 #include "simulator/sockproto/proto.h"
 #include "util/chdir.h"
@@ -166,26 +163,6 @@ namespace AI {
 			class Backend : public AI::BE::Backend {
 				public:
 					/**
-					 * Fired when a mouse button is pressed over the visualizer.
-					 */
-					mutable sigc::signal<void, Point, unsigned int> signal_mouse_pressed;
-
-					/**
-					 * Fired when a mouse button is released over the visualizer.
-					 */
-					mutable sigc::signal<void, Point, unsigned int> signal_mouse_released;
-
-					/**
-					 * Fired when the mouse pointer leaves the visualizer area.
-					 */
-					mutable sigc::signal<void> signal_mouse_exited;
-
-					/**
-					 * Fired when the mouse moves within the visualizer area.
-					 */
-					mutable sigc::signal<void, Point> signal_mouse_moved;
-
-					/**
 					 * Constructs a new Backend and connects to the running simulator.
 					 *
 					 * \param[in] load_filename the name of a state file to load.
@@ -202,11 +179,8 @@ namespace AI {
 					void send_packet(const ::Simulator::Proto::A2SPacket &packet, const FileDescriptor &ancillary_fd = FileDescriptor());
 
 					AI::BE::BackendFactory &factory() const;
-					const AI::BE::Simulator::Field &field() const;
-					const AI::BE::Simulator::Ball &ball() const;
-					AI::BE::Simulator::FriendlyTeam &friendly_team();
-					const AI::BE::Simulator::FriendlyTeam &friendly_team() const;
-					const AI::BE::Simulator::EnemyTeam &enemy_team() const;
+					const AI::BE::Team<AI::BE::Player> &friendly_team() const;
+					const AI::BE::Team<AI::BE::Robot> &enemy_team() const;
 					timespec monotonic_time() const;
 					std::size_t visualizable_num_robots() const;
 					Visualizable::Robot::Ptr visualizable_robot(std::size_t i) const;
@@ -224,16 +198,6 @@ namespace AI {
 					 * The UNIX-domain socket connected to the server.
 					 */
 					FileDescriptor sock;
-
-					/**
-					 * The field geometry.
-					 */
-					AI::BE::Simulator::Field field_;
-
-					/**
-					 * The ball.
-					 */
-					AI::BE::Simulator::Ball ball_;
 
 					/**
 					 * The friendly team.
@@ -254,6 +218,9 @@ namespace AI {
 					 * The secondary tab UI controls.
 					 */
 					SecondaryUIControls secondary_controls;
+
+					bool dragging_ball;
+					unsigned int dragging_pattern;
 
 					/**
 					 * Invoked when a packet is ready to receive from the simulator over the socket.

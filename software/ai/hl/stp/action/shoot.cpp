@@ -22,7 +22,7 @@ namespace {
 	const double FAST = 100.0;
 }
 
-bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, bool use_reduced_radius) {
+bool AI::HL::STP::Action::shoot_goal(World world, Player::Ptr player, bool use_reduced_radius) {
 	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player, use_reduced_radius);
 
 	Player::CPtr pc = player;
@@ -52,7 +52,7 @@ bool AI::HL::STP::Action::shoot_goal(const World &world, Player::Ptr player, boo
 	return false;
 }
 
-bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, const Point target, double velocity) {
+bool AI::HL::STP::Action::shoot_target(World world, Player::Ptr player, const Point target, double velocity) {
 	// Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot_target(world, player, target);
 	intercept_pivot(world, player, target);
 
@@ -77,15 +77,15 @@ bool AI::HL::STP::Action::shoot_target(const World &world, Player::Ptr player, c
 	return true;
 }
 
-bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr shooter, Player::CPtr target) {
+bool AI::HL::STP::Action::shoot_pass(World world, Player::Ptr shooter, Player::CPtr target) {
 	return shoot_pass(world, shooter, target->position());
 }
 
-bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target) {
+bool AI::HL::STP::Action::shoot_pass(World world, Player::Ptr player, const Point target) {
 	return shoot_pass(world, player, target, passer_angle_threshold);
 }
 
-bool AI::HL::STP::Action::shoot_pass(const World &world, Player::Ptr player, const Point target, Angle angle_tol) {
+bool AI::HL::STP::Action::shoot_pass(World world, Player::Ptr player, const Point target, Angle angle_tol) {
 	intercept_pivot(world, player, target);
 
 	// checker shooter orientation

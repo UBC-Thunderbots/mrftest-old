@@ -22,7 +22,7 @@ namespace {
 	 */
 	class ParameterTuningNavigator : public Navigator {
 		public:
-			ParameterTuningNavigator(World &world);
+			ParameterTuningNavigator(World world);
 			void tick();
 			NavigatorFactory &factory() const;
 
@@ -56,11 +56,11 @@ namespace {
 	};
 }
 
-ParameterTuningNavigator::ParameterTuningNavigator(World &world) : Navigator(world), sls(TunableController::get_instance()->get_params_default(), TunableController::get_instance()->get_params_min(), TunableController::get_instance()->get_params_max()) {
+ParameterTuningNavigator::ParameterTuningNavigator(World world) : Navigator(world), sls(TunableController::get_instance()->get_params_default(), TunableController::get_instance()->get_params_min(), TunableController::get_instance()->get_params_max()) {
 }
 
 void ParameterTuningNavigator::tick() {
-	FriendlyTeam &fteam = world.friendly_team();
+	FriendlyTeam fteam = world.friendly_team();
 
 	TunableController *tc = TunableController::get_instance();
 

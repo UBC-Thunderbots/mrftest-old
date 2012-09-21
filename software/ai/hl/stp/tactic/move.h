@@ -13,7 +13,7 @@ namespace AI {
 				 *
 				 * \param[in] dest the location to move to.
 				 */
-				Tactic::Ptr move(const World &world, const Coordinate dest);
+				Tactic::Ptr move(World world, const Coordinate dest);
 			}
 		}
 	}

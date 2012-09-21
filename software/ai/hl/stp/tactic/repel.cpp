@@ -9,7 +9,7 @@ using namespace AI::HL::W;
 namespace {
 	class Repel : public Tactic {
 		public:
-			Repel(const World &world) : Tactic(world, true), finished(false) {
+			Repel(World world) : Tactic(world, true), finished(false) {
 			}
 
 		private:
@@ -37,7 +37,7 @@ namespace {
 
 	class CornerRepel : public Tactic {
 		public:
-			CornerRepel(const World &world) : Tactic(world, true), finished(false) {
+			CornerRepel(World world) : Tactic(world, true), finished(false) {
 			}
 
 		private:
@@ -64,12 +64,12 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::repel(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::repel(World world) {
 	Tactic::Ptr p(new Repel(world));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::corner_repel(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::corner_repel(World world) {
 	Tactic::Ptr p(new CornerRepel(world));
 	return p;
 }

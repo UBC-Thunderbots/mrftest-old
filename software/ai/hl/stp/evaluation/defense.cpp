@@ -34,16 +34,16 @@ namespace {
 
 	/*
 	   template<int N>
-	   class EvaluateDefense : public Cacheable<Point, CacheableNonKeyArgs<AI::HL::W::World &>> {
+	   class EvaluateDefense : public Cacheable<Point, CacheableNonKeyArgs<AI::HL::W::World>> {
 	   protected:
-	   std::array<Point, N> compute(AI::HL::W::World &world);
+	   std::array<Point, N> compute(AI::HL::W::World world);
 	   bool goalie_top;
 	   };
 	 */
 
 	std::array<Point, MAX_DEFENDERS + 1> waypoints;
 
-	std::array<Point, MAX_DEFENDERS + 1> compute(const World &world) {
+	std::array<Point, MAX_DEFENDERS + 1> compute(World world) {
 		const Field &field = world.field();
 
 		if (world.ball().position().y > field.goal_width() / 2) {
@@ -184,7 +184,7 @@ namespace {
 		return waypoints;
 	}
 
-	Point tdefender_block_ball(const World &world, const unsigned index) {
+	Point tdefender_block_ball(World world, const unsigned index) {
 		Point dirToGoal, target;
 		dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
 		target = world.field().friendly_goal() - (6 * (index + 1) * Robot::MAX_RADIUS * dirToGoal);
@@ -205,14 +205,14 @@ namespace {
 		return target;
 	}
 
-	Point tdefender_block_enemy(const World &world, Point r, const unsigned index) {
+	Point tdefender_block_enemy(World world, Point r, const unsigned index) {
 		Point dirToGoal;
 		dirToGoal = (world.field().friendly_goal() - r).norm();
 		return world.field().friendly_goal() - (6 * (index + 1) * Robot::MAX_RADIUS * dirToGoal);
 	}
 }
 
-void AI::HL::STP::Evaluation::tick_defense(const World &world) {
+void AI::HL::STP::Evaluation::tick_defense(World world) {
 	waypoints = compute(world);
 }
 
@@ -220,7 +220,7 @@ const std::array<Point, MAX_DEFENDERS + 1> AI::HL::STP::Evaluation::evaluate_def
 	return waypoints;
 }
 
-bool AI::HL::STP::Evaluation::enemy_break_defense_duo(const World &world, const Robot::Ptr enemy) {
+bool AI::HL::STP::Evaluation::enemy_break_defense_duo(World world, const Robot::Ptr enemy) {
 	std::vector<Point> obstacles;
 	obstacles.push_back(waypoints[0]);
 	obstacles.push_back(waypoints[1]);
@@ -228,7 +228,7 @@ bool AI::HL::STP::Evaluation::enemy_break_defense_duo(const World &world, const 
 	return calc_enemy_best_shot_goal(world.field(), obstacles, enemy->position()).second > enemy_shoot_accuracy;
 }
 
-Point AI::HL::STP::Evaluation::evaluate_tdefense(const World &world, const unsigned index) {
+Point AI::HL::STP::Evaluation::evaluate_tdefense(World world, const unsigned index) {
 	Point target;
 	if (world.enemy_team().size() > index - 1) {
 		std::vector<Robot::Ptr> enemies = Evaluation::enemies_by_grab_ball_dist();
@@ -248,7 +248,7 @@ Point AI::HL::STP::Evaluation::evaluate_tdefense(const World &world, const unsig
 	return target;
 }
 
-Point AI::HL::STP::Evaluation::evaluate_tdefense_line(const World &world, const Point p1, const Point p2, const double dist_min, const double dist_max){
+Point AI::HL::STP::Evaluation::evaluate_tdefense_line(World world, const Point p1, const Point p2, const double dist_min, const double dist_max){
 
 	Point ball = world.ball().position(), target = (p1+p2)/2;
 	double diff = (ball - target).len();

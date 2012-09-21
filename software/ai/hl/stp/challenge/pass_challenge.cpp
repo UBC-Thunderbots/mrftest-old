@@ -46,14 +46,14 @@ namespace {
 
 	class PassChallenge: public HighLevel {
 		public:
-			PassChallenge(World &world) :
+			PassChallenge(World world) :
 					world(world) {
 				kicked_count = 0;
 				kicked = false;
 			}
 
 		private:
-			World &world;
+			World world;
 
 			std::vector<Point> targets;
 

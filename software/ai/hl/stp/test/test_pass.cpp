@@ -46,13 +46,13 @@ namespace {
 
 	class TestPass : public HighLevel {
 		public:
-			TestPass(World &world) : world(world), targets(default_targets, default_targets + default_targets_n) {
+			TestPass(World world) : world(world), targets(default_targets, default_targets + default_targets_n) {
 				kicked_count = 0;
 				kicked = false;
 			}
 
 		private:
-			World &world;
+			World world;
 
 			std::vector<Point> targets;
 

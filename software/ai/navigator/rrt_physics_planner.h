@@ -4,7 +4,7 @@ namespace AI {
 	namespace Nav {
 		class PhysicsPlanner : public RRTPlanner {
 			public:
-				PhysicsPlanner(AI::Nav::W::World &world);
+				PhysicsPlanner(AI::Nav::W::World world);
 				std::vector<Point> plan(AI::Nav::W::Player::Ptr player, Point goal, unsigned int added_flags = 0);
 
 			protected:

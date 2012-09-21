@@ -20,7 +20,7 @@ namespace {
 	}
 }
 
-AI::Setup::Setup() : defending_end(AI::BE::Backend::FieldEnd::WEST), friendly_colour(AI::Common::Team::Colour::YELLOW) {
+AI::Setup::Setup() : defending_end(AI::BE::Backend::FieldEnd::WEST), friendly_colour(AI::Common::Colour::YELLOW) {
 	const std::string &cache_filename = get_cache_filename();
 	std::ifstream ifs;
 	ifs.exceptions(std::ios_base::eofbit | std::ios_base::failbit | std::ios_base::badbit);
@@ -48,7 +48,7 @@ AI::Setup::Setup() : defending_end(AI::BE::Backend::FieldEnd::WEST), friendly_co
 		ifs.read(&ch, 1);
 		defending_end = ch ? AI::BE::Backend::FieldEnd::EAST : AI::BE::Backend::FieldEnd::WEST;
 		ifs.read(&ch, 1);
-		friendly_colour = ch ? AI::Common::Team::Colour::BLUE : AI::Common::Team::Colour::YELLOW;
+		friendly_colour = ch ? AI::Common::Colour::BLUE : AI::Common::Colour::YELLOW;
 	} catch (const std::ios_base::failure &) {
 		// Swallow
 	}
@@ -73,7 +73,7 @@ void AI::Setup::save() {
 
 	ch = defending_end == AI::BE::Backend::FieldEnd::EAST;
 	ofs.write(&ch, 1);
-	ch = friendly_colour == AI::Common::Team::Colour::BLUE;
+	ch = friendly_colour == AI::Common::Colour::BLUE;
 	ofs.write(&ch, 1);
 }
 

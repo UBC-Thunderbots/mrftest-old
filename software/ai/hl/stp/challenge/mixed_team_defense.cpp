@@ -48,9 +48,9 @@ namespace {
 	const double RESTRICTED_ZONE_LENGTH = 1.15;
 
 	struct MixedTeamDefense : public HighLevel {
-		World &world;
+		World world;
 
-		MixedTeamDefense(World &world) : world(world) {
+		MixedTeamDefense(World world) : world(world) {
 		}
 
 		HighLevelFactory &factory() const;
@@ -62,7 +62,7 @@ namespace {
 		void tick() {
 			tick_eval(world);
 
-			FriendlyTeam &friendly = world.friendly_team();
+			FriendlyTeam friendly = world.friendly_team();
 			std::vector<Player::Ptr> players;
 			std::vector<Player::Ptr> other_players;
 

@@ -10,7 +10,7 @@ namespace AI {
 				/**
 				 * Shoot for the enemy goal.
 				 */
-				Tactic::Ptr penalty_shoot(const AI::HL::W::World &world);
+				Tactic::Ptr penalty_shoot(AI::HL::W::World world);
 			}
 		}
 	}

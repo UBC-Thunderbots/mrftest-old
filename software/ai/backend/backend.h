@@ -1,15 +1,18 @@
 #ifndef AI_BACKEND_BACKEND_H
 #define AI_BACKEND_BACKEND_H
 
-#include "ai/ball_filter/ball_filter.h"
-#include "ai/hl/hl.h"
-#include "ai/hl/world.h"
-#include "ai/navigator/world.h"
-#include "ai/robot_controller/world.h"
+#include "ai/backend/ball.h"
+#include "ai/backend/field.h"
+#include "ai/backend/player.h"
+#include "ai/backend/robot.h"
+#include "ai/backend/team.h"
+#include "ai/common/team.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "uicomponents/visualizer.h"
 #include "util/box_ptr.h"
 #include "util/noncopyable.h"
+#include "util/param.h"
+#include "util/predictor.h"
 #include "util/property.h"
 #include "util/registerable.h"
 #include <functional>
@@ -21,244 +24,15 @@ namespace Gtk {
 }
 
 namespace AI {
+	namespace BF {
+		class BallFilter;
+	}
+
 	namespace BE {
 		/**
-		 * \brief The field, as exposed by the backend.
+		 * \brief The system loop delay, in seconds
 		 */
-		class Field : public AI::BF::W::Field, public AI::HL::W::Field, public AI::Nav::W::Field, public Visualizable::Field {
-			public:
-				/**
-				 * \brief Checks if the field data is valid yet.
-				 *
-				 * \return \c true if the data in the Field is valid, or \c false if not.
-				 */
-				virtual bool valid() const = 0;
-		};
-
-		/**
-		 * \brief The ball, as exposed by the backend.
-		 */
-		class Ball : public AI::BF::W::Ball, public AI::HL::W::Ball, public AI::Nav::W::Ball, public Visualizable::Ball {
-			public:
-				Point position(double delta) const = 0;
-				Point velocity(double delta) const = 0;
-		};
-
-		/**
-		 * \brief A robot, as exposed by the backend.
-		 */
-		class Robot : public AI::HL::W::Robot, public AI::Nav::W::Robot, public Visualizable::Robot {
-			public:
-				/**
-				 * \brief A pointer to a Robot.
-				 */
-				typedef BoxPtr<const Robot> Ptr;
-
-				/**
-				 * \brief A pointer to a const Robot.
-				 */
-				typedef BoxPtr<const Robot> CPtr;
-
-				ObjectStore &object_store() const = 0;
-				unsigned int pattern() const = 0;
-				Point position(double delta) const = 0;
-				Angle orientation(double delta) const = 0;
-				Point velocity(double delta) const = 0;
-				Angle avelocity(double delta) const = 0;
-				void avoid_distance(AI::Flags::AvoidDistance dist) const;
-				AI::Flags::AvoidDistance avoid_distance() const;
-				virtual void pre_tick();
-
-			protected:
-				explicit Robot();
-
-			private:
-				mutable AI::Flags::AvoidDistance avoid_distance_;
-		};
-
-		/**
-		 * \brief A player, as exposed by the backend.
-		 */
-		class Player : public AI::BE::Robot, public AI::BF::W::Player, public AI::HL::W::Player, public AI::Nav::W::Player, public AI::RC::W::Player {
-			public:
-				/**
-				 * \brief A pointer to a Player.
-				 */
-				typedef BoxPtr<Player> Ptr;
-
-				/**
-				 * \brief A pointer to a const Player.
-				 */
-				typedef BoxPtr<const Player> CPtr;
-
-				/**
-				 * \brief Returns the speeds of the four wheels as requested by the RobotController.
-				 *
-				 * \return the wheel speeds.
-				 */
-				virtual const int(&wheel_speeds() const)[4] = 0;
-
-				Point position(double delta) const = 0;
-				Point velocity(double delta) const = 0;
-				Angle orientation(double delta) const = 0;
-				Angle avelocity(double delta) const = 0;
-				unsigned int pattern() const = 0;
-				ObjectStore &object_store() const = 0;
-				void move(Point dest, Angle ori, Point vel);
-				unsigned int flags() const { return flags_; }
-				void flags(unsigned int flags);
-				AI::Flags::MoveType type() const { return move_type_; }
-				void type(AI::Flags::MoveType type);
-				AI::Flags::MovePrio prio() const { return move_prio_; }
-				void prio(AI::Flags::MovePrio prio);
-				bool has_chipper() const;
-				void kick(double speed);
-				void autokick(double speed);
-				void chip(double power);
-				void autochip(double power);
-				const std::pair<Point, Angle> &destination() const = 0;
-				using AI::RC::W::Player::path;
-				void path(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p);
-				void pre_tick();
-
-			protected:
-				bool moved;
-				std::pair<Point, Angle> destination_;
-				Point target_velocity_;
-				unsigned int flags_;
-				AI::Flags::MoveType move_type_;
-				AI::Flags::MovePrio move_prio_;
-
-				explicit Player();
-				virtual void kick_impl(double speed) = 0;
-				virtual void autokick_impl(double speed) = 0;
-				virtual void chip_impl(double power) = 0;
-				virtual void autochip_impl(double power) = 0;
-				virtual void path_impl(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p) = 0;
-		};
-
-		/**
-		 * \brief The friendly team.
-		 */
-		class FriendlyTeam : public AI::BF::W::FriendlyTeam, public AI::HL::W::FriendlyTeam, public AI::Nav::W::FriendlyTeam {
-			public:
-				/**
-				 * \brief Returns the size of the team.
-				 *
-				 * \return the size of the team.
-				 */
-				virtual std::size_t size() const = 0;
-
-				/**
-				 * \brief Returns a player from the team.
-				 *
-				 * \param[in] i the index of the player.
-				 *
-				 * \return the player.
-				 */
-				virtual Player::Ptr get(std::size_t i) = 0;
-
-				/**
-				 * \brief Returns a player from the team.
-				 *
-				 * \param[in] i the index of the player.
-				 *
-				 * \return the player.
-				 */
-				virtual Player::CPtr get(std::size_t i) const = 0;
-
-				/**
-				 * \brief Returns the signal that is fired after a team's membership has changed.
-				 *
-				 * \return the signal that is fired after a team's membership has changed.
-				 */
-				sigc::signal<void> &signal_membership_changed() const {
-					return signal_membership_changed_;
-				}
-
-				unsigned int score() const = 0;
-
-			private:
-				mutable sigc::signal<void> signal_membership_changed_;
-
-				AI::BF::W::Player::Ptr get_ball_filter_player(std::size_t i) const {
-					return get(i);
-				}
-
-				AI::HL::W::Player::Ptr get_hl_player(std::size_t i) {
-					return get(i);
-				}
-
-				AI::HL::W::Player::CPtr get_hl_player(std::size_t i) const {
-					return get(i);
-				}
-
-				AI::Nav::W::Player::Ptr get_navigator_player(std::size_t i) {
-					return get(i);
-				}
-
-				AI::Nav::W::Player::CPtr get_navigator_player(std::size_t i) const {
-					return get(i);
-				}
-		};
-
-		/**
-		 * \brief The enemy team.
-		 */
-		class EnemyTeam : public AI::BF::W::EnemyTeam, public AI::HL::W::EnemyTeam, public AI::Nav::W::EnemyTeam {
-			public:
-				/**
-				 * \brief Returns the size of the team.
-				 *
-				 * \return the size of the team.
-				 */
-				virtual std::size_t size() const = 0;
-
-				/**
-				 * \brief Returns a robot from the team.
-				 *
-				 * \param[in] i the index of the robot.
-				 *
-				 * \return the robot.
-				 */
-				virtual Robot::Ptr get(std::size_t i) = 0;
-
-				/**
-				 * \brief Returns a robot from the team.
-				 *
-				 * \param[in] i the index of the robot.
-				 *
-				 * \return the robot.
-				 */
-				virtual Robot::CPtr get(std::size_t i) const = 0;
-
-				/**
-				 * \brief Returns the signal that is fired after a team's membership has changed.
-				 *
-				 * \return the signal that is fired after a team's membership has changed.
-				 */
-				sigc::signal<void> &signal_membership_changed() const {
-					return signal_membership_changed_;
-				}
-
-				unsigned int score() const = 0;
-
-			private:
-				mutable sigc::signal<void> signal_membership_changed_;
-
-				AI::BF::W::Robot::Ptr get_ball_filter_robot(std::size_t i) const {
-					AI::HL::W::Robot::Ptr bot = get(i);
-					return bot;
-				}
-
-				AI::HL::W::Robot::Ptr get_hl_robot(std::size_t i) const {
-					return get(i);
-				}
-
-				AI::Nav::W::Robot::Ptr get_navigator_robot(std::size_t i) const {
-					return get(i);
-				}
-		};
+		extern DoubleParam LOOP_DELAY;
 
 		class BackendFactory;
 
@@ -267,7 +41,7 @@ namespace AI {
 		 *
 		 * A backend must get the state of the world, expose it to the AI, accept commands from the AI, and deliver those commands into the world.
 		 */
-		class Backend : public AI::BF::W::World, public AI::HL::W::World, public AI::Nav::W::World, public AI::RC::W::World, public Visualizable::World, public NonCopyable {
+		class Backend : public Visualizable::World, public NonCopyable {
 			public:
 				/**
 				 * \brief The possible values indicating which end of the field the team is defending.
@@ -289,35 +63,28 @@ namespace AI {
 				 *
 				 * \return the field.
 				 */
-				virtual const Field &field() const = 0;
+				const Field &field() const;
 
 				/**
-				 * \brief Returns the ball.
+				 * \brief Returns the ball
 				 *
-				 * \return the ball.
+				 * \return the ball
 				 */
-				virtual const Ball &ball() const = 0;
+				const Ball &ball() const;
 
 				/**
-				 * \brief Returns the friendly team.
+				 * \brief Returns the friendly team
 				 *
-				 * \return the friendly team.
+				 * \return the friendly team
 				 */
-				virtual FriendlyTeam &friendly_team() = 0;
+				virtual const Team<Player> &friendly_team() const = 0;
 
 				/**
-				 * \brief Returns the friendly team.
+				 * \brief Returns the enemy team
 				 *
-				 * \return the friendly team.
+				 * \return the enemy team
 				 */
-				virtual const FriendlyTeam &friendly_team() const = 0;
-
-				/**
-				 * \brief Returns the enemy team.
-				 *
-				 * \return the enemy team.
-				 */
-				virtual const EnemyTeam &enemy_team() const = 0;
+				virtual const Team<Robot> &enemy_team() const = 0;
 
 				/**
 				 * \brief Returns the current monotonic time.
@@ -387,7 +154,7 @@ namespace AI {
 				 *
 				 * \return the colour.
 				 */
-				Property<AI::Common::Team::Colour> &friendly_colour() {
+				Property<AI::Common::Colour> &friendly_colour() {
 					return friendly_colour_;
 				}
 
@@ -474,6 +241,16 @@ namespace AI {
 
 			protected:
 				/**
+				 * \brief The field
+				 */
+				Field field_;
+
+				/**
+				 * \brief The ball
+				 */
+				Ball ball_;
+
+				/**
 				 * \brief Constructs a new Backend.
 				 */
 				explicit Backend();
@@ -489,7 +266,7 @@ namespace AI {
 
 			private:
 				Property<FieldEnd> defending_end_;
-				Property<AI::Common::Team::Colour> friendly_colour_;
+				Property<AI::Common::Colour> friendly_colour_;
 				Property<AI::Common::PlayType> playtype_, playtype_override_;
 				Property<AI::BF::BallFilter *> ball_filter_;
 				mutable sigc::signal<void> signal_tick_;
@@ -529,6 +306,16 @@ namespace AI {
 				explicit BackendFactory(const char *name);
 		};
 	}
+}
+
+
+
+inline const AI::BE::Field &AI::BE::Backend::field() const {
+	return field_;
+}
+
+inline const AI::BE::Ball &AI::BE::Backend::ball() const {
+	return ball_;
 }
 
 #endif

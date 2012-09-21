@@ -13,7 +13,7 @@ using namespace AI::RC::W;
 namespace {
 	class LazyController : public RobotController {
 		public:
-			explicit LazyController(World &world, Player::Ptr player) : RobotController(world, player) {
+			explicit LazyController(World world, Player::Ptr player) : RobotController(world, player) {
 			}
 
 			void tick() {

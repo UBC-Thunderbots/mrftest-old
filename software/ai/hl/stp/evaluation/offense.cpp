@@ -55,7 +55,7 @@ namespace {
 
 	std::array<Point, 2> best_positions;
 
-	double scoring_function(const World &world, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
+	double scoring_function(World world, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
 		// can't be too close to enemy
 		double closest_enemy = world.field().width();
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
@@ -68,7 +68,7 @@ namespace {
 		const double score_enemy = closest_enemy;
 
 		double closest_friendly = 1e99;
-		const FriendlyTeam &friendly = world.friendly_team();
+		const FriendlyTeam friendly = world.friendly_team();
 		for (size_t i = 0; i < friendly.size(); ++i) {
 			double dist = (friendly.get(i)->position() - dest).len();
 			closest_friendly = std::min(closest_friendly, dist);
@@ -189,7 +189,7 @@ namespace {
 		return weight_total * raw_score;
 	}
 
-	bool calc_position_best(const World &world, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos, int idx) {
+	bool calc_position_best(World world, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos, int idx) {
 		// divide up into a hexagonal grid
 		const double x1 = -world.field().length() / 2, x2 = -x1;
 		const double y1 = -world.field().width() / 2, y2 = -y1;
@@ -247,7 +247,7 @@ namespace {
 		return best_score > 0;
 	}
 
-	void update(const World &world) {
+	void update(World world) {
 		score1.clear();
 		score2.clear();
 		good.clear();
@@ -260,7 +260,7 @@ namespace {
 			good[i].resize(2 * static_cast<unsigned int>(grid_x) + 2, true);
 		}
 
-		const EnemyTeam &enemy = world.enemy_team();
+		EnemyTeam enemy = world.enemy_team();
 		std::vector<Point> enemy_pos;
 		for (size_t i = 0; i < enemy.size(); ++i) {
 			enemy_pos.push_back(enemy.get(i)->position());
@@ -270,7 +270,7 @@ namespace {
 		std::vector<Point> dont_block;
 		dont_block.push_back(world.ball().position());
 		/*
-		   const FriendlyTeam &friendly = world.friendly_team();
+		   const FriendlyTeam friendly = world.friendly_team();
 		   for (size_t i = 0; i < friendly.size(); ++i) {
 		   if (players.find(friendly.get(i)) == players.end()) {
 		   dont_block.push_back(friendly.get(i)->position());
@@ -295,7 +295,7 @@ double AI::HL::STP::Evaluation::offense_score(unsigned int i, unsigned int j) {
 	return score1[i][j];
 }
 
-void AI::HL::STP::Evaluation::tick_offense(const World &world) {
+void AI::HL::STP::Evaluation::tick_offense(World world) {
 	update(world);
 }
 

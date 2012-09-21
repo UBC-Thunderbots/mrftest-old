@@ -14,7 +14,7 @@ using namespace AI::HL::W;
 namespace {
 	class SimPassPlayer : public HighLevel {
 		public:
-			SimPassPlayer(World &world) : world(world), adj_xposition(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_xposition(adj_xposition), xpos(0.0), adj_yposition(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_yposition(adj_yposition), ypos(0.0), adj_orientation(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_orientation(adj_orientation), orient(Angle::ZERO) {
+			SimPassPlayer(World world) : world(world), adj_xposition(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_xposition(adj_xposition), xpos(0.0), adj_yposition(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_yposition(adj_yposition), ypos(0.0), adj_orientation(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_orientation(adj_orientation), orient(Angle::ZERO) {
 				adj_orientation.signal_value_changed().connect(sigc::mem_fun(*this, &SimPassPlayer::on_orientation_value_changed));
 				adj_xposition.signal_value_changed().connect(sigc::mem_fun(*this, &SimPassPlayer::on_xposition_value_changed));
 				adj_yposition.signal_value_changed().connect(sigc::mem_fun(*this, &SimPassPlayer::on_yposition_value_changed));
@@ -24,7 +24,7 @@ namespace {
 			}
 
 		private:
-			World &world;
+			World world;
 
 			HighLevelFactory &factory() const;
 
@@ -33,7 +33,7 @@ namespace {
 			}
 
 			void tick() {
-				FriendlyTeam &friendly = world.friendly_team();
+				FriendlyTeam friendly = world.friendly_team();
 				if (friendly.size() == 0) {
 					return;
 				} else if (friendly.size() >= 1) {

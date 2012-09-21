@@ -130,16 +130,16 @@ template<typename R, typename NK, typename K> class Cacheable;
  * As an example of how to implement such a computation, the following would be placed in a header file:
  *
  * \code
- * // Third parameter type (part of cache key) ------------------------------------------------------------------\\\\\\
- * //                                                                                                            ||||||
- * // Second parameter type (part of cache key) ---------------------------------------------------------\\\\\\  ||||||
- * //                                                                                                    ||||||  ||||||
- * // First parameter type (not saved or compared in cache) -------\\\\\\\\\\\\\\\\\\                    ||||||  ||||||
- * //                                                              ||||||||||||||||||                    ||||||  ||||||
- * //          Function return type ---\\\\\\                      ||||||||||||||||||                    ||||||  ||||||
- * class MyFunction : public Cacheable<double, CacheableNonKeyArgs<AI::HL::W::World &>, CacheableKeyArgs<double, double>> {
+ * // Third parameter type (part of cache key) ----------------------------------------------------------------\\\\\\
+ * //                                                                                                          ||||||
+ * // Second parameter type (part of cache key) -------------------------------------------------------\\\\\\  ||||||
+ * //                                                                                                  ||||||  ||||||
+ * // First parameter type (not saved or compared in cache) -------\\\\\\\\\\\\\\\\                    ||||||  ||||||
+ * //                                                              ||||||||||||||||                    ||||||  ||||||
+ * //          Function return type ---\\\\\\                      ||||||||||||||||                    ||||||  ||||||
+ * class MyFunction : public Cacheable<double, CacheableNonKeyArgs<AI::HL::W::World>, CacheableKeyArgs<double, double>> {
  *     protected:
- *         double compute(AI::HL::W::World &w, double x, double y);
+ *         double compute(AI::HL::W::World w, double x, double y);
  * };
  *
  * extern MyFunction my_function;
@@ -148,7 +148,7 @@ template<typename R, typename NK, typename K> class Cacheable;
  * The following would be placed in the corresponding source file:
  *
  * \code
- * double MyFunction::compute(AI::HL::W::World &w, double x, double y) const {
+ * double MyFunction::compute(AI::HL::W::World w, double x, double y) const {
  *     return x * y + w.field().length(); // Or whatever calculation you want to do.
  * }
  *

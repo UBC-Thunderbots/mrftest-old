@@ -20,7 +20,7 @@ namespace {
 }
 
 //goalie moves in the direction towards the ball within the lone_goalie_dist from the goal post
-void AI::HL::STP::Action::lone_goalie(const World &world, Player::Ptr player) {
+void AI::HL::STP::Action::lone_goalie(World world, Player::Ptr player) {
 	// Patrol
 	//const Point default_pos = Point(-0.45 * world.field().length(), 0);
 	const Point centre_of_goal = world.field().friendly_goal();
@@ -34,7 +34,7 @@ void AI::HL::STP::Action::lone_goalie(const World &world, Player::Ptr player) {
 	goalie_move(world, player, target);
 }
 
-void AI::HL::STP::Action::goalie_move(const World &world, Player::Ptr player, Point dest) {
+void AI::HL::STP::Action::goalie_move(World world, Player::Ptr player, Point dest) {
 	//autokick always on, if player has chipper, its autochip
 	if (player->has_chipper()) {
 		player->autochip(1);

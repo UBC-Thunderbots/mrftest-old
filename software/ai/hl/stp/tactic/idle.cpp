@@ -8,7 +8,7 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class Idle : public Tactic {
 		public:
-			Idle(const World &world) : Tactic(world) {
+			Idle(World world) : Tactic(world) {
 			}
 
 		private:
@@ -28,7 +28,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::idle(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::idle(World world) {
 	Tactic::Ptr p(new Idle(world));
 	return p;
 }

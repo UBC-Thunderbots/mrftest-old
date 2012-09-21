@@ -55,9 +55,9 @@ namespace {
 	const double DIST_FROM_PENALTY_MARK = 0.4;
 
 	struct MixedTeamOffense : public HighLevel {
-		World &world;
+		World world;
 
-		MixedTeamOffense(World &world) : world(world) {
+		MixedTeamOffense(World world) : world(world) {
 		}
 
 		HighLevelFactory &factory() const;
@@ -69,7 +69,7 @@ namespace {
 		void tick() {
 			tick_eval(world);
 
-			FriendlyTeam &friendly = world.friendly_team();
+			FriendlyTeam friendly = world.friendly_team();
 			std::vector<Player::Ptr> players;
 
 			const bool enabled[] = {

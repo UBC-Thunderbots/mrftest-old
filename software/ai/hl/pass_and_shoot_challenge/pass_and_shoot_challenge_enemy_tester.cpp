@@ -38,14 +38,14 @@ namespace {
 
 class PASCHL_ENEMIES : public HighLevel {
 public:
-  PASCHL_ENEMIES(World &world) : world(world) {
+  PASCHL_ENEMIES(World world) : world(world) {
     current_state=INITIAL;
   }
   
   HighLevelFactory &factory() const;
   
   void tick() {
-    FriendlyTeam &friendly = world.friendly_team();
+    FriendlyTeam friendly = world.friendly_team();
 
     if (friendly.size() < min_team_size) {
       return;
@@ -141,7 +141,7 @@ public:
     }
   
   private:
-    World &world;
+    World world;
     state current_state;
     bool bot0_state,bot1_state,bot2_state,bot3_state;
 };

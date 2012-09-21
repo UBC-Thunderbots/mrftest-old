@@ -36,7 +36,7 @@ namespace AI {
 			/**
 			 * \brief The colour of the central dot on the team's robots.
 			 */
-			AI::Common::Team::Colour friendly_colour;
+			AI::Common::Colour friendly_colour;
 
 			/**
 			 * \brief Loads the cached setup data, if available.

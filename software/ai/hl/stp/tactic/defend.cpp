@@ -23,7 +23,7 @@ namespace {
 	 */
 	class Goalie2 : public Tactic {
 		public:
-			Goalie2(const World &world, size_t defender_role) : Tactic(world), defender_role(defender_role) {
+			Goalie2(World world, size_t defender_role) : Tactic(world), defender_role(defender_role) {
 			}
 
 		private:
@@ -46,7 +46,7 @@ namespace {
 	 */
 	class Goalie : public Tactic {
 		public:
-			Goalie(const World &world) : Tactic(world) {
+			Goalie(World world) : Tactic(world) {
 			}
 
 		private:
@@ -61,7 +61,7 @@ namespace {
 
 	class Defender : public Tactic {
 		public:
-			Defender(const World &world, unsigned i) : Tactic(world), index(i) {
+			Defender(World world, unsigned i) : Tactic(world), index(i) {
 			}
 
 		private:
@@ -73,7 +73,7 @@ namespace {
 			}
 	};
 
-	bool dangerous(const World &world, const Player::Ptr &player) {
+	bool dangerous(World world, const Player::Ptr &player) {
 		// definition of "danger" is identified by the seg point between ball, net and players
 		const double danger_dist = 0.3;
 		// definition of "danger" is identified by the distance from ball to net
@@ -141,27 +141,27 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::goalie_dynamic(const World &world, const size_t defender_role) {
+Tactic::Ptr AI::HL::STP::Tactic::goalie_dynamic(World world, const size_t defender_role) {
 	Tactic::Ptr p(new Goalie2(world, defender_role));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::defend_duo_goalie(const AI::HL::W::World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::defend_duo_goalie(AI::HL::W::World world) {
 	Tactic::Ptr p(new Goalie(world));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::defend_duo_defender(const AI::HL::W::World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::defend_duo_defender(AI::HL::W::World world) {
 	Tactic::Ptr p(new Defender(world, 1));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::defend_duo_extra1(const AI::HL::W::World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::defend_duo_extra1(AI::HL::W::World world) {
 	Tactic::Ptr p(new Defender(world, 2));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::defend_duo_extra2(const AI::HL::W::World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::defend_duo_extra2(AI::HL::W::World world) {
 	Tactic::Ptr p(new Defender(world, 3));
 	return p;
 }

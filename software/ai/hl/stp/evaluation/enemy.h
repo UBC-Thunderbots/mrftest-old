@@ -59,12 +59,12 @@ namespace AI {
 				/**
 				 * Evaluates each robot and calculates how dangerous they are.
 				 */
-				std::vector<Threat> calc_enemy_threat(const World &world);
+				std::vector<Threat> calc_enemy_threat(World world);
 
 				/**
 				 * Checks if it's possible for this enemy to shoot to the goal.
 				 */
-				bool enemy_can_shoot_goal(const World &world, const Robot::Ptr enemy);
+				bool enemy_can_shoot_goal(World world, const Robot::Ptr enemy);
 
 				/**
 				 * Calculates how good an enemy is at shooting our goal.
@@ -74,19 +74,19 @@ namespace AI {
 				/**
 				 * Calculates how good an enemy is at shooting our goal.
 				 */
-				std::pair<Point, Angle> calc_enemy_best_shot_goal(const World &world, const Robot::Ptr enemy, const double radius = 1.0);
+				std::pair<Point, Angle> calc_enemy_best_shot_goal(World world, const Robot::Ptr enemy, const double radius = 1.0);
 
 				/**
 				 * # of passes it takes for the enemy to shoot to our goal
 				 * 0 means the enemy has a clear shot to our goal!
 				 * ignore (set to 5 if # of passes > 2)
 				 */
-				int calc_enemy_pass(const World &world, Robot::Ptr robot);
+				int calc_enemy_pass(World world, Robot::Ptr robot);
 
 				/**
 				 * BAD STUFF
 				 */
-				std::vector<Robot::Ptr> get_passees(const World &world, Robot::Ptr robot);
+				std::vector<Robot::Ptr> get_passees(World world, Robot::Ptr robot);
 
 				/**
 				 * Given obstacle position, calculates the min amount of passing

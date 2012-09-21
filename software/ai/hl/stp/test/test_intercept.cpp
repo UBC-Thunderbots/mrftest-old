@@ -10,11 +10,11 @@ using namespace AI::HL::STP;
 namespace {
 	class TestIntercept : public HighLevel {
 		public:
-			TestIntercept(World &world) : world(world) {
+			TestIntercept(World world) : world(world) {
 			}
 
 		private:
-			World &world;
+			World world;
 
 			HighLevelFactory &factory() const;
 
@@ -23,7 +23,7 @@ namespace {
 			}
 
 			void tick() {
-				FriendlyTeam &friendly = world.friendly_team();
+				FriendlyTeam friendly = world.friendly_team();
 				if (friendly.size() == 0) {
 					return;
 				}

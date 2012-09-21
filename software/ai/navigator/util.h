@@ -21,28 +21,28 @@ namespace AI {
 			/**
 			 * Finds where to go and when to get there in order to intercept the moving ball along the route to dst
 			 */
-			std::pair<Point, timespec> get_ramball_location(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+			std::pair<Point, timespec> get_ramball_location(Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player);
 
-			// bool has_ramball_location(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+			// bool has_ramball_location(Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player);
 
 
 			/**
 			 * returns true if the destination is valid
 			 */
-			bool valid_dst(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+			bool valid_dst(Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player);
 
 			/**
 			 * Returns true if the straight line path between cur & dst has a maximum level of rules violation
 			 * exactly equal to the violation level of cur
 			 */
-			bool valid_path(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+			bool valid_path(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player);
 
 			/**
 			 * Returns true if the straight line path between cur & dst has a maximum level of rules violation
 			 * exactly equal to the violation level of cur. This method allows for extra rules to be imposed via the "extra_flags"
 			 * parameter
 			 */
-			bool valid_path(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int extra_flags);
+			bool valid_path(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player, unsigned int extra_flags);
 
 			/**
 			 * returns a list of legal points circling the destination. These set of points may be valuable as a search space for a navigator
@@ -54,7 +54,7 @@ namespace AI {
 			 *
 			 * \param[in] player the player thats being checked
 			 */
-			std::vector<Point> get_destination_alternatives(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+			std::vector<Point> get_destination_alternatives(Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player);
 
 
 			/**
@@ -65,7 +65,7 @@ namespace AI {
 			 *
 			 * \param[in] player the player thats being checked
 			 */
-			std::vector<Point> get_obstacle_boundaries(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+			std::vector<Point> get_obstacle_boundaries(AI::Nav::W::World world, AI::Nav::W::Player::Ptr player);
 
 			/**
 			 * returns a list of legal destinations that are on the boundaries of obstacles such as the ball
@@ -75,7 +75,7 @@ namespace AI {
 			 *
 			 * \param[in] player the player thats being checked
 			 */
-			std::vector<Point> get_obstacle_boundaries(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int added_flags);
+			std::vector<Point> get_obstacle_boundaries(AI::Nav::W::World world, AI::Nav::W::Player::Ptr player, unsigned int added_flags);
 
 			/**
 			 * returns the next timespec
@@ -94,7 +94,7 @@ namespace AI {
 			 * handle the cases where ball is not moving or, moving towards target slowly (when robot push the ball away)
 			 */
 		
-			bool intercept_flag_stationary_ball_handler(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+			bool intercept_flag_stationary_ball_handler(AI::Nav::W::World world, AI::Nav::W::Player::Ptr player);
 
 			/**
 			 * Calculate the best position to intersect the ball
@@ -103,7 +103,7 @@ namespace AI {
 			 *
 			 * \param[in] the robot that performing the intersection
 			 */
-			bool intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+			bool intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::Player::Ptr player);
 
 			
 			/**
@@ -111,7 +111,7 @@ namespace AI {
 			 *
 			 * \param[in] player in interest
 			 */
-			//void make_stationary( AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player );
+			//void make_stationary( AI::Nav::W::World world, AI::Nav::W::Player::Ptr player );
 		}
 	}
 }

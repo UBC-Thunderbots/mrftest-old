@@ -16,7 +16,7 @@ namespace Log {
 			 *
 			 * \return the Protobuf colour.
 			 */
-			Log::Colour to_protobuf(AI::Common::Team::Colour clr);
+			Log::Colour to_protobuf(AI::Common::Colour clr);
 
 			/**
 			 * \brief Converts a Protobuf colour to an AI colour.
@@ -25,7 +25,7 @@ namespace Log {
 			 *
 			 * \return the AI colour.
 			 */
-			AI::Common::Team::Colour of_protobuf(Log::Colour clr);
+			AI::Common::Colour of_protobuf(Log::Colour clr);
 		}
 
 		namespace PlayType {

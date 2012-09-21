@@ -6,24 +6,6 @@
 #include <glibmm/ustring.h>
 
 /**
- * Gets the current time into a timespec.
- *
- * \param[out] result the location at which to store the current time.
- *
- * \param[in] clk which clock to query.
- */
-void timespec_now(timespec *result, clockid_t clk = CLOCK_MONOTONIC);
-
-/**
- * Gets the current time into a timespec.
- *
- * \param[out] result the location at which to store the current time.
- *
- * \param[in] clk which clock to query.
- */
-void timespec_now(timespec &result, clockid_t clk = CLOCK_MONOTONIC);
-
-/**
  * Adds a pair of timespecs.
  *
  * \param[in] ts1 the first timespec.
@@ -133,10 +115,6 @@ Glib::ustring timespec_to_string(const timespec &ts);
 Glib::ustring timespec_to_string_machine(const timespec &ts);
 
 
-
-inline void timespec_now(timespec &result, clockid_t clk) {
-	timespec_now(&result, clk);
-}
 
 inline void timespec_add(const timespec &ts1, const timespec &ts2, timespec &result) {
 	result.tv_sec = ts1.tv_sec + ts2.tv_sec;

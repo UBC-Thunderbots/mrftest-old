@@ -11,9 +11,9 @@ namespace AI {
 			/**
 			 * Run all evaluations.
 			 */
-			void tick_eval(const World &world);
+			void tick_eval(World world);
 
-			void draw_ui(const World &world, Cairo::RefPtr<Cairo::Context> ctx);
+			void draw_ui(World world, Cairo::RefPtr<Cairo::Context> ctx);
 
 			Player::CPtr get_goalie();
 		}

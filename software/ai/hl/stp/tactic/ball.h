@@ -13,27 +13,27 @@ namespace AI {
 				/**
 				 * Spin steal
 				 */
-				Tactic::Ptr spin_steal(const World &world);
+				Tactic::Ptr spin_steal(World world);
 
 				/*
 				 * Back up to steal the ball
 				 */
-				Tactic::Ptr back_up_steal(const World &world);
+				Tactic::Ptr back_up_steal(World world);
 
 				/**
 				 * Active Defense
 				 */
-				Tactic::Ptr tactive_def(const World &world);
+				Tactic::Ptr tactive_def(World world);
 
 				/**
 				 * Dribble to Region
 				 */
-				Tactic::Ptr tdribble_to_region(const World &world, Region _region);
+				Tactic::Ptr tdribble_to_region(World world, Region _region);
 
 				/**
 				 * Spin to Region
 				 */
-				Tactic::Ptr tspin_to_region(const World &world, Region _region);
+				Tactic::Ptr tspin_to_region(World world, Region _region);
 			}
 		}
 	}

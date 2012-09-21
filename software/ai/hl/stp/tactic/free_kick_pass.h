@@ -17,7 +17,7 @@ namespace AI {
 				 *
 				 * \param[in] speed_ratio ratio of max kick or chip power from 0 to 1
 				 */
-				Tactic::Ptr free_kick_pass(const AI::HL::W::World &world, const Point target, bool chip = false, double speed_ratio = 1.0);
+				Tactic::Ptr free_kick_pass(AI::HL::W::World world, const Point target, bool chip = false, double speed_ratio = 1.0);
 			}
 		}
 	}

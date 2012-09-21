@@ -12,12 +12,12 @@ using namespace AI::HL::W;
 namespace {
 	struct VDHL : public HighLevel {
 		
-		World &world;
+		World world;
 		Gtk::VBox vbox;
 		Gtk::Button reset_button;
 		Gtk::HScale dest_control;
 
-		VDHL(World &world) : world(world) {
+		VDHL(World world) : world(world) {
 			vbox.add(dest_control);
 			// params are
 			// min, max, step, intervals
@@ -36,7 +36,7 @@ namespace {
 		}
 		
 		void tick() {
-			FriendlyTeam &friendly = world.friendly_team();
+			FriendlyTeam friendly = world.friendly_team();
 
 			for (uint robotIndex = 0; robotIndex < friendly.size(); robotIndex++) {
 				Point des(dest_control.get_value(), 0);

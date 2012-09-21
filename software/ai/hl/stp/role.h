@@ -44,7 +44,7 @@ namespace AI {
 					/**
 					 * \brief The goalie.
 					 */
-					static Role::Ptr goalie(World &world);
+					static Role::Ptr goalie(World world);
 
 				protected:
 					Role();

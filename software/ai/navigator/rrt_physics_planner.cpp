@@ -79,6 +79,6 @@ Point AI::Nav::PhysicsPlanner::extend(Player::Ptr player, Glib::NodeTree<Point> 
 	return extendPoint;
 }
 
-AI::Nav::PhysicsPlanner::PhysicsPlanner(World &world) : RRTPlanner(world) {
+AI::Nav::PhysicsPlanner::PhysicsPlanner(World world) : RRTPlanner(world) {
 }
 

@@ -31,7 +31,7 @@ namespace {
 	BoolParam high_priority_always("If higher priority play exists, switch", "STP/PlayExecutor", true);
 }
 
-PlayExecutor::PlayExecutor(World &w) : world(w), curr_play(0), curr_active(0) {
+PlayExecutor::PlayExecutor(World w) : world(w), curr_play(0), curr_active(0) {
 	std::fill(curr_tactic, curr_tactic + TEAM_MAX_SIZE, static_cast<Tactic::Tactic *>(0));
 
 	for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
@@ -385,13 +385,13 @@ void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 void PlayExecutor::clear_assignments() {
 	LOG_INFO("Team membership changed, reset play");
 
-	_goalie.reset();
+	_goalie = AI::HL::W::Player();
 
 	curr_play = 0;
 	curr_active = 0;
 	for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
 		curr_tactic[i] = 0;
-		curr_assignment[i].reset();
+		curr_assignment[i] = AI::HL::W::Player();
 		curr_roles[i].clear();
 	}
 }

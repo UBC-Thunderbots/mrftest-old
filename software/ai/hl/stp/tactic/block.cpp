@@ -13,7 +13,7 @@ namespace {
 
 	class BlockGoal : public Tactic {
 		public:
-			BlockGoal(const World &world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
+			BlockGoal(World world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
 			}
 
 		private:
@@ -42,7 +42,7 @@ namespace {
 
 	class BlockBall : public Tactic {
 		public:
-			BlockBall(const World &world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
+			BlockBall(World world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
 			}
 
 		private:
@@ -71,12 +71,12 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::block_goal(const World &world, Enemy::Ptr enemy) {
+Tactic::Ptr AI::HL::STP::Tactic::block_goal(World world, Enemy::Ptr enemy) {
 	Tactic::Ptr p(new BlockGoal(world, enemy));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::block_ball(const World &world, Enemy::Ptr enemy) {
+Tactic::Ptr AI::HL::STP::Tactic::block_ball(World world, Enemy::Ptr enemy) {
 	Tactic::Ptr p(new BlockBall(world, enemy));
 	return p;
 }

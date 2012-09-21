@@ -26,11 +26,11 @@ namespace {
 
 	class ClosestFriendlyGoal : public Enemy {
 		public:
-			ClosestFriendlyGoal(const World &w, unsigned int i) : world(w), index(i) {
+			ClosestFriendlyGoal(World w, unsigned int i) : world(w), index(i) {
 			}
 
 		private:
-			const World &world;
+			World world;
 			unsigned int index;
 			Robot::Ptr evaluate() const {
 				if (world.enemy_team().size() <= index) {
@@ -49,11 +49,11 @@ namespace {
 
 	class ClosestBall : public Enemy {
 		public:
-			ClosestBall(const World &w, unsigned int i) : world(w), index(i) {
+			ClosestBall(World w, unsigned int i) : world(w), index(i) {
 			}
 
 		private:
-			const World &world;
+			World world;
 			unsigned int index;
 			Robot::Ptr evaluate() const {
 				if (world.enemy_team().size() <= index) {
@@ -68,11 +68,11 @@ namespace {
 
 	class ClosestPass : public Enemy {
 		public:
-			ClosestPass(const World &w, unsigned int i) : world(w), index(i) {
+			ClosestPass(World w, unsigned int i) : world(w), index(i) {
 			}
 
 		private:
-			const World &world;
+			World world;
 			unsigned int index;
 			Robot::Ptr evaluate() const {
 				return Robot::Ptr();
@@ -97,11 +97,11 @@ namespace {
 
 	class ClosestFriendlyPlayer : public Enemy {
 		public:
-			ClosestFriendlyPlayer(const World &w, Player::Ptr player, unsigned int i) : world(w), player(player), index(i) {
+			ClosestFriendlyPlayer(World w, Player::Ptr player, unsigned int i) : world(w), player(player), index(i) {
 			}
 
 		private:
-			const World &world;
+			World world;
 			Player::Ptr player;
 			unsigned int index;
 			Robot::Ptr evaluate() const {
@@ -121,19 +121,19 @@ namespace {
 	
 };
 
-Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_goal(const World &world, unsigned int i) {
+Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_goal(World world, unsigned int i) {
 	return std::make_shared<ClosestFriendlyGoal>(world, i);
 }
 
-Enemy::Ptr AI::HL::STP::Enemy::closest_ball(const World &world, unsigned int i) {
+Enemy::Ptr AI::HL::STP::Enemy::closest_ball(World world, unsigned int i) {
 	return std::make_shared<ClosestBall>(world, i);
 }
 
-Enemy::Ptr AI::HL::STP::Enemy::closest_pass(const World &world, unsigned int i) {
+Enemy::Ptr AI::HL::STP::Enemy::closest_pass(World world, unsigned int i) {
 	return std::make_shared<ClosestPass>(world, i);
 }
 
-Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_player(const World &world, Player::Ptr player, unsigned int i) {
+Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_player(World world, Player::Ptr player, unsigned int i) {
 	return std::make_shared<ClosestFriendlyPlayer>(world, player, i);
 }
 

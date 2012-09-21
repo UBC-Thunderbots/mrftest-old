@@ -11,7 +11,7 @@ namespace AI {
 				/**
 				 * Pass using ray.
 				 */
-				Tactic::Ptr passer_ray(const World &world);
+				Tactic::Ptr passer_ray(World world);
 			}
 		}
 	}

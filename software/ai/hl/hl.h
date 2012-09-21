@@ -71,7 +71,7 @@ namespace AI {
 				 *
 				 * \return the new HighLevel.
 				 */
-				virtual std::unique_ptr<HighLevel> create_high_level(AI::HL::W::World &world) const = 0;
+				virtual std::unique_ptr<HighLevel> create_high_level(AI::HL::W::World world) const = 0;
 
 			protected:
 				/**
@@ -90,14 +90,14 @@ namespace AI {
 		class cls##HighLevelFactory : public AI::HL::HighLevelFactory { \
 			public: \
 				cls##HighLevelFactory(); \
-				std::unique_ptr<HighLevel> create_high_level(AI::HL::W::World &) const; \
+				std::unique_ptr<HighLevel> create_high_level(AI::HL::W::World) const; \
 		}; \
 	} \
 	\
 	cls##HighLevelFactory::cls##HighLevelFactory() : HighLevelFactory(#cls) { \
 	} \
 	\
-	std::unique_ptr<HighLevel> cls##HighLevelFactory::create_high_level(AI::HL::W::World &world) const { \
+	std::unique_ptr<HighLevel> cls##HighLevelFactory::create_high_level(AI::HL::W::World world) const { \
 		std::unique_ptr<HighLevel> p(new cls(world)); \
 		return p; \
 	} \

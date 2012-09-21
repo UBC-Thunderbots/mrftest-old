@@ -12,7 +12,7 @@ namespace AI {
 				/**
 				 * Follows the enemy
 				 */
-				Tactic::Ptr shadow_enemy(const World &world);
+				Tactic::Ptr shadow_enemy(World world);
 			}
 		}
 	}

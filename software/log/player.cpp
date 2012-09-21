@@ -180,7 +180,7 @@ namespace {
 				return false;
 			}
 
-			const std::pair<Point, Angle> &destination() const {
+			std::pair<Point, Angle> destination() const {
 				std::abort();
 			}
 
@@ -237,7 +237,7 @@ namespace {
 				return true;
 			}
 
-			const std::pair<Point, Angle> &destination() const {
+			std::pair<Point, Angle> destination() const {
 				return destination_;
 			}
 

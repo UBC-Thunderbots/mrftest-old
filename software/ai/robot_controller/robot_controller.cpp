@@ -31,10 +31,10 @@ RobotController::~RobotController() = default;
 void RobotController::draw_overlay(Cairo::RefPtr<Cairo::Context>) {
 }
 
-RobotController::RobotController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player) : world(world), player(player) {
+RobotController::RobotController(AI::RC::W::World world, AI::RC::W::Player::Ptr player) : world(world), player(player) {
 }
 
-OldRobotController2::OldRobotController2(AI::RC::W::World &world, AI::RC::W::Player::Ptr player) : RobotController(world, player) {
+OldRobotController2::OldRobotController2(AI::RC::W::World world, AI::RC::W::Player::Ptr player) : RobotController(world, player) {
 }
 
 void OldRobotController2::tick() {
@@ -55,7 +55,7 @@ void OldRobotController::move(const Point &new_position, Angle new_orientation, 
 	convert_to_wheels(vel, avel, wheel_speeds);
 }
 
-OldRobotController::OldRobotController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player) : OldRobotController2(world, player) {
+OldRobotController::OldRobotController(AI::RC::W::World world, AI::RC::W::Player::Ptr player) : OldRobotController2(world, player) {
 }
 
 Gtk::Widget *RobotControllerFactory::ui_controls() {

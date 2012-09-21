@@ -19,7 +19,7 @@ namespace AI {
 			 
 			class PlayExecutor : public sigc::trackable {
 				public:
-					PlayExecutor(World &w);
+					PlayExecutor(World w);
 
 					/**
 					 * Runs every time step.
@@ -32,7 +32,7 @@ namespace AI {
 					Glib::ustring info() const;
 
 				protected:
-					World &world;
+					World world;
 
 					/**
 					 * \brief Idle tactics to use when other tactics have not yet been selected.

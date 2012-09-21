@@ -4,7 +4,7 @@
 #include "ai/window.h"
 #include "ai/backend/backend.h"
 #include "uicomponents/abstract_list_model.h"
-#include "util/clocksource_timerfd.h"
+#include "util/annunciator.h"
 #include "util/config.h"
 #include "util/exception.h"
 #include "util/param.h"
@@ -49,7 +49,7 @@ namespace {
 			const Map &m = AI::HL::HighLevelFactory::all();
 			const Map::const_iterator &i = m.find(setup.high_level_name.collate_key());
 			if (i != m.end()) {
-				ai.high_level = i->second->create_high_level(backend);
+				ai.high_level = i->second->create_high_level(AI::HL::W::World(backend));
 			}
 		}
 
@@ -58,7 +58,7 @@ namespace {
 			const Map &m = AI::Nav::NavigatorFactory::all();
 			const Map::const_iterator &i = m.find(setup.navigator_name.collate_key());
 			if (i != m.end()) {
-				ai.navigator = i->second->create_navigator(backend);
+				ai.navigator = i->second->create_navigator(AI::Nav::W::World(backend));
 			}
 		}
 
@@ -297,9 +297,9 @@ namespace {
 			setup.defending_end = AI::BE::Backend::FieldEnd::WEST;
 		}
 		if (yellow) {
-			setup.friendly_colour = AI::Common::Team::Colour::YELLOW;
+			setup.friendly_colour = AI::Common::Colour::YELLOW;
 		} else if (blue) {
-			setup.friendly_colour = AI::Common::Team::Colour::BLUE;
+			setup.friendly_colour = AI::Common::Colour::BLUE;
 		}
 		int multicast_interface_index = 0;
 		if (!multicast_interface_name.empty()) {

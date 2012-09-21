@@ -32,22 +32,22 @@ namespace AI {
 					std::vector<AI::HL::W::Robot::Ptr> enemies;
 				};
 
-				BallThreat evaluate_ball_threat(const AI::HL::W::World &world);
+				BallThreat evaluate_ball_threat(AI::HL::W::World world);
 
 				/**
 				 * Assesses whether a ball is heading towards our net
 				 */
-				bool ball_on_net(const AI::HL::W::World &world);
+				bool ball_on_net(AI::HL::W::World world);
 
 				/**
 				 * Assesses whether a ball is heading towards their net
 				 */
-				bool ball_on_enemy_net(const AI::HL::W::World &world);
+				bool ball_on_enemy_net(AI::HL::W::World world);
 
 				/**
 				 * Get where the goalie should go to block the shot
 				 */
-				Point goalie_shot_block(const AI::HL::W::World &world, AI::HL::W::Player::Ptr player);
+				Point goalie_shot_block(AI::HL::W::World world, AI::HL::W::Player::Ptr player);
 			}
 		}
 	}

@@ -69,7 +69,7 @@ namespace {
 				tasks.assign(tasks_square, tasks_square + tasks_square_n);
 			}
 
-			MBHL(World &world) : world(world), time_steps(0) {
+			MBHL(World world) : world(world), time_steps(0) {
 				done = 999;
 
 				vbox.add(button_normal);
@@ -93,7 +93,7 @@ namespace {
 					return;
 				}
 
-				FriendlyTeam &friendly = world.friendly_team();
+				FriendlyTeam friendly = world.friendly_team();
 				if (friendly.size() < 1) {
 					// LOG_INFO("error: must have at exactly one robot on the field!");
 					LOG_INFO("error: must have at least one robot on the field!");
@@ -141,7 +141,7 @@ namespace {
 			}
 
 		private:
-			World &world;
+			World world;
 			std::vector<std::pair<Point, Angle> > tasks;
 			int time_steps;
 			std::size_t done;

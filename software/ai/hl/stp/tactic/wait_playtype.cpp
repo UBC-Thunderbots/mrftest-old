@@ -9,7 +9,7 @@ using namespace AI::HL::W;
 namespace {
 	class WaitPlaytype : public Tactic {
 		public:
-			WaitPlaytype(const World &world, Tactic::Ptr &&tactic, const AI::Common::PlayType playtype) : Tactic(world, true), tactic(std::move(tactic)), playtype(playtype) {
+			WaitPlaytype(World world, Tactic::Ptr &&tactic, const AI::Common::PlayType playtype) : Tactic(world, true), tactic(std::move(tactic)), playtype(playtype) {
 				assert(this->tactic);
 			}
 
@@ -42,7 +42,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::wait_playtype(const World &world, Tactic::Ptr &&tactic, const AI::Common::PlayType playtype) {
+Tactic::Ptr AI::HL::STP::Tactic::wait_playtype(World world, Tactic::Ptr &&tactic, const AI::Common::PlayType playtype) {
 	Tactic::Ptr p(new WaitPlaytype(world, std::move(tactic), playtype));
 	return p;
 }

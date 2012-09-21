@@ -8,7 +8,7 @@ using namespace AI::HL::W;
 namespace {
 	class PenaltyShoot : public Tactic {
 		public:
-			PenaltyShoot(const World &world) : Tactic(world, true), shoot_up(true), has_shot(false) {
+			PenaltyShoot(World world) : Tactic(world, true), shoot_up(true), has_shot(false) {
 			}
 
 		private:
@@ -71,7 +71,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::penalty_shoot(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::penalty_shoot(World world) {
 	Tactic::Ptr p(new PenaltyShoot(world));
 	return p;
 }

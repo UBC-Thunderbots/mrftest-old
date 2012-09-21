@@ -26,7 +26,7 @@ namespace {
 			Gtk::TextView text_status;
 			Gtk::ComboBoxText combo;
 
-			STPHLChoosable(World &world) : PlayExecutor(world) {
+			STPHLChoosable(World world) : PlayExecutor(world) {
 				combo.append_text(CHOOSE_PLAY_TEXT);
 				const Play::PlayFactory::Map &m = Play::PlayFactory::all();
 				for (Play::PlayFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {

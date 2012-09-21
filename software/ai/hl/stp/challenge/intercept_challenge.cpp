@@ -35,12 +35,12 @@ namespace {
 
 	class InterceptChallenge: public HighLevel {
 		public:
-			InterceptChallenge(World &world) :
+			InterceptChallenge(World world) :
 					world(world) {
 			}
 
 		private:
-			World &world;
+			World world;
 
 			HighLevelFactory &factory() const;
 

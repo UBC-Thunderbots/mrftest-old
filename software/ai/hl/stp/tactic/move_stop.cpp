@@ -25,7 +25,7 @@ namespace {
 
 	class MoveStop : public Tactic {
 		public:
-			MoveStop(const World &world, std::size_t playerIndex) : Tactic(world), player_index(playerIndex) {
+			MoveStop(World world, std::size_t playerIndex) : Tactic(world), player_index(playerIndex) {
 			}
 
 		private:
@@ -51,12 +51,12 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::move_stop(const World &world, std::size_t player_index) {
+Tactic::Ptr AI::HL::STP::Tactic::move_stop(World world, std::size_t player_index) {
 	Tactic::Ptr p(new MoveStop(world, player_index));
 	return p;
 }
 
-std::vector<Point> StopLocations::compute(const World &world) {
+std::vector<Point> StopLocations::compute(World world) {
 	// draw a circle of radius 50cm from the ball
 	Point ball_pos = world.ball().position();
 	Point goal_pos = world.field().friendly_goal();

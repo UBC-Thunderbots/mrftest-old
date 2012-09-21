@@ -59,7 +59,7 @@ namespace AI {
 					/**
 					 * Implicit conversion.
 					 */
-					Coordinate(const Point &pos);
+					Coordinate(Point pos);
 
 					/**
 					 * Copy constructor.
@@ -75,7 +75,7 @@ namespace AI {
 					 *
 					 * \param [in] o_type determines the origin.
 					 */
-					Coordinate(const World &world, const Point &pos, YType y_type, OriginType o_type);
+					Coordinate(World world, Point pos, YType y_type, OriginType o_type);
 
 					/**
 					 * Evaluates the absolute position.

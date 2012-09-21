@@ -7,13 +7,13 @@ using namespace AI::HL::STP;
 Coordinate::Coordinate() : world(0), y_type(YType::ABSOLUTE), o_type(OriginType::ABSOLUTE) {
 }
 
-Coordinate::Coordinate(const Point &pos) : world(0), y_type(YType::ABSOLUTE), o_type(OriginType::ABSOLUTE), pos(pos) {
+Coordinate::Coordinate(Point pos) : world(0), y_type(YType::ABSOLUTE), o_type(OriginType::ABSOLUTE), pos(pos) {
 }
 
 Coordinate::Coordinate(const Coordinate &coord) : world(coord.world), y_type(coord.y_type), o_type(coord.o_type), pos(coord.pos) {
 }
 
-Coordinate::Coordinate(const World &world, const Point &pos, YType y_type, OriginType o_type) : world(&world), y_type(y_type), o_type(o_type), pos(pos) {
+Coordinate::Coordinate(World world, Point pos, YType y_type, OriginType o_type) : world(&world), y_type(y_type), o_type(o_type), pos(pos) {
 }
 
 Point Coordinate::position() const {

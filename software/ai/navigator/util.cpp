@@ -79,7 +79,7 @@ namespace {
 		static double total_bounds_area(AI::Nav::W::Player::Ptr player) {
 			return (player->MAX_RADIUS) + PLAY_AREA_BUFFER;
 		}
-		static double enemy(AI::Nav::W::World &world, AI::Nav::W::Robot::Ptr player) {
+		static double enemy(AI::Nav::W::World world, AI::Nav::W::Robot::Ptr player) {
 			if (world.enemy_team().size() <= 0) {
 				return 0.0;
 			}
@@ -127,10 +127,10 @@ namespace {
 		static double ball_tiny(AI::Nav::W::Player::Ptr player) {
 			return Ball::RADIUS + player->MAX_RADIUS + BALL_TINY_BUFFER;
 		}
-		static double friendly_defense(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+		static double friendly_defense(AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 			return world.field().defense_area_radius() + player->MAX_RADIUS + DEFENSE_AREA_BUFFER;
 		}
-		static double friendly_kick(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+		static double friendly_kick(AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 			return world.field().defense_area_radius() + player->MAX_RADIUS + FRIENDLY_KICK_BUFFER;
 		}
 		static double own_half(AI::Nav::W::Player::Ptr player) {
@@ -144,7 +144,7 @@ namespace {
 		}
 	};
 
-	double get_net_tresspass(Point cur, Point dst, AI::Nav::W::World &world) {
+	double get_net_tresspass(Point cur, Point dst, AI::Nav::W::World world) {
 		double violate = 0.0;
 		double circle_radius = world.field().total_length() / 2.0 - world.field().length() / 2.0;
 		Point A(-world.field().total_length() / 2.0, world.field().goal_width() / 2.0);
@@ -154,7 +154,7 @@ namespace {
 		return violate;
 	}
 
-	double get_goal_post_tresspass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+	double get_goal_post_tresspass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 		double violate = 0.0;
 		double circle_radius = distance_keepout::goal_post(player);
 		Point A(world.field().length() / 2.0, world.field().goal_width() / 2.0);
@@ -169,7 +169,7 @@ namespace {
 		return violate;
 	}
 
-	double get_enemy_trespass(Point cur, Point dst, AI::Nav::W::World &world) {
+	double get_enemy_trespass(Point cur, Point dst, AI::Nav::W::World world) {
 		double violate = 0.0;
 		// avoid enemy robots
 		for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
@@ -185,7 +185,7 @@ namespace {
 		return violate;
 	}
 
-	double get_play_area_boundary_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+	double get_play_area_boundary_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 		const Field &f = world.field();
 		Point sw_corner(-f.length() / 2, -f.width() / 2);
 		Rect bounds(sw_corner, f.length(), f.width());
@@ -200,7 +200,7 @@ namespace {
 		return violation;
 	}
 
-	double get_total_bounds_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+	double get_total_bounds_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 		const Field &f = world.field();
 		Point sw_corner(-f.total_length() / 2, -f.total_width() / 2);
 		Rect bounds(sw_corner, f.total_length(), f.total_width());
@@ -215,7 +215,7 @@ namespace {
 		return violation;
 	}
 
-	double get_friendly_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+	double get_friendly_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 		double violate = 0.0;
 		// avoid enemy robots
 		for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
@@ -234,7 +234,7 @@ namespace {
 		return violate;
 	}
 
-	double get_ball_stop_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+	double get_ball_stop_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 		double violate = 0.0;
 		const Ball &ball = world.ball();
 		double circle_radius = distance_keepout::ball_stop(player);
@@ -243,7 +243,7 @@ namespace {
 		return violate;
 	}
 
-	double get_defense_area_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+	double get_defense_area_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 		const Field &f = world.field();
 		double defense_dist = distance_keepout::friendly_defense(world, player);
 		Point defense_point1(-f.length() / 2, -f.defense_area_stretch() / 2);
@@ -251,7 +251,7 @@ namespace {
 		return std::max(0.0, defense_dist - seg_seg_distance(cur, dst, defense_point1, defense_point2));
 	}
 
-	double get_own_half_trespass(Point, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+	double get_own_half_trespass(Point, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 		const Field &f = world.field();
 		Point p(-f.total_length() / 2, -f.total_width() / 2);
 		Rect bounds(p, f.total_length() / 2, f.total_width());
@@ -263,7 +263,7 @@ namespace {
 		return violation;
 	}
 
-	double get_offense_area_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+	double get_offense_area_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 		const Field &f = world.field();
 		double defense_dist = distance_keepout::friendly_kick(world, player);
 		Point defense_point1(f.length() / 2, -f.defense_area_stretch() / 2);
@@ -271,14 +271,14 @@ namespace {
 		return std::max(0.0, defense_dist - seg_seg_distance(cur, dst, defense_point1, defense_point2));
 	}
 
-	double get_ball_tiny_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+	double get_ball_tiny_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 		const Ball &ball = world.ball();
 		double circle_radius = distance_keepout::ball_tiny(player);
 		double dist = lineseg_point_dist(ball.position(), cur, dst);
 		return std::max(0.0, circle_radius - dist);
 	}
 
-	double get_penalty_friendly_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+	double get_penalty_friendly_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 		const Ball &ball = world.ball();
 		const Field &f = world.field();
 		Point a(ball.position().x - distance_keepout::penalty_kick_friendly(player), -f.total_width() / 2);
@@ -294,7 +294,7 @@ namespace {
 		return violation;
 	}
 
-	double get_penalty_enemy_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+	double get_penalty_enemy_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 		const Ball &ball = world.ball();
 		const Field &f = world.field();
 		Point a(ball.position().x + distance_keepout::penalty_kick_enemy(player), -f.total_width() / 2);
@@ -316,7 +316,7 @@ namespace {
 		unsigned int extra_flags;
 
 		// set the amount of violation that the player currently has
-		void set_violation_amount(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+		void set_violation_amount(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 			friendly = get_friendly_trespass(cur, dst, world, player);
 			enemy = get_enemy_trespass(cur, dst, world);
 			goal_post = get_goal_post_tresspass(cur, dst, world, player);
@@ -354,26 +354,26 @@ namespace {
 		violation() : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(0) {
 		}
 
-		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(0) {
+		violation(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(0) {
 			if (OWN_HALF_OVERRIDE) {
 				extra_flags = extra_flags | FLAG_STAY_OWN_HALF;
 			}
 			set_violation_amount(cur, dst, world, player);
 		}
 
-		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int added_flags) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(added_flags) {
+		violation(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player, unsigned int added_flags) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(added_flags) {
 			if (OWN_HALF_OVERRIDE) {
 				extra_flags = extra_flags | FLAG_STAY_OWN_HALF;
 			}
 			set_violation_amount(cur, dst, world, player);
 		}
 
-		static violation get_violation_amount(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+		static violation get_violation_amount(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 			violation v(cur, dst, world, player);
 			return v;
 		}
 
-		static violation get_violation_amount(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int extra_flags) {
+		static violation get_violation_amount(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player, unsigned int extra_flags) {
 			violation v(cur, dst, world, player, extra_flags);
 			return v;
 		}
@@ -404,7 +404,7 @@ namespace {
 	};
 
 
-	void process_obstacle(std::vector<Point> &ans, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, Point segA, Point segB, double dist, int num_points) {
+	void process_obstacle(std::vector<Point> &ans, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player, Point segA, Point segB, double dist, int num_points) {
 		// we want a regular polygon where the largest inscribed circle
 		// has the keepout distance as it's radius
 		// circle radius then becomes the radius of the smallest circle that will contain the polygon
@@ -423,7 +423,7 @@ namespace {
 	}
 
 	// create path that avoids obstacles and just keeps the orientation constant at each of the points
-	AI::Nav::W::Player::Path create_path(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, const std::pair<Point, Angle> dest, unsigned int added_flags) {
+	AI::Nav::W::Player::Path create_path(AI::Nav::W::World world, AI::Nav::W::Player::Ptr player, const std::pair<Point, Angle> dest, unsigned int added_flags) {
 		std::vector<Point> path_points;
 		AI::Nav::RRTPlanner planner(world);
 		AI::Nav::W::Player::Path path;
@@ -441,7 +441,7 @@ namespace {
 	}
 
 	// Get a path that goes beside the ball
-	AI::Nav::W::Player::Path get_path_near_ball(AI::Nav::W::World &world, const AI::Nav::W::Player::Ptr player, const Angle &target_ball_offset_angle) {
+	AI::Nav::W::Player::Path get_path_near_ball(AI::Nav::W::World world, const AI::Nav::W::Player::Ptr player, const Angle &target_ball_offset_angle) {
 		Point dest_pos;
 		Angle dest_ang;
 		const Point ball_vel = world.ball().velocity();
@@ -464,7 +464,7 @@ namespace {
 	}
 
 	// only used when ball is not moving
-	AI::Nav::W::Player::Path get_path_around_ball(AI::Nav::W::World &world, const AI::Nav::W::Player::Ptr player, const Point player_pos, const Point target_pos, bool ccw) {
+	AI::Nav::W::Player::Path get_path_around_ball(AI::Nav::W::World world, const AI::Nav::W::Player::Ptr player, const Point player_pos, const Point target_pos, bool ccw) {
 		Point dest_pos;
 		Angle dest_ang = (target_pos - player_pos).orientation();
 		const Point ball_pos = world.ball().position();
@@ -495,7 +495,7 @@ namespace {
 	}
 };
 
-std::vector<Point> AI::Nav::Util::get_destination_alternatives(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+std::vector<Point> AI::Nav::Util::get_destination_alternatives(Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 	const int POINTS_PER_OBSTACLE = 6;
 	std::vector<Point> ans;
 	unsigned int flags = player->flags();
@@ -507,23 +507,23 @@ std::vector<Point> AI::Nav::Util::get_destination_alternatives(Point dst, AI::Na
 	return ans;
 }
 
-bool AI::Nav::Util::valid_dst(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+bool AI::Nav::Util::valid_dst(Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 	return violation::get_violation_amount(dst, dst, world, player).violation_free();
 }
 
-bool AI::Nav::Util::valid_path(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+bool AI::Nav::Util::valid_path(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 	return violation::get_violation_amount(cur, dst, world, player).no_more_violating_than(violation::get_violation_amount(cur, cur, world, player));
 }
 
-bool AI::Nav::Util::valid_path(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int extra_flags) {
+bool AI::Nav::Util::valid_path(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player, unsigned int extra_flags) {
 	return violation::get_violation_amount(cur, dst, world, player, extra_flags).no_more_violating_than(violation::get_violation_amount(cur, cur, world, player, extra_flags));
 }
 
-std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 	return get_obstacle_boundaries(world, player, 0);
 }
 #warning some magic numbers here need to clean up a bit
-std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int added_flags) {
+std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World world, AI::Nav::W::Player::Ptr player, unsigned int added_flags) {
 	// this number must be >=3
 	const int POINTS_PER_OBSTACLE = 6;
 	std::vector<Point> ans;
@@ -575,7 +575,7 @@ std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World &wor
 	return ans;
 }
 
-std::pair<Point, timespec> AI::Nav::Util::get_ramball_location(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+std::pair<Point, timespec> AI::Nav::Util::get_ramball_location(Point dst, AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 	Point ball_dir = world.ball().velocity();
 
 	if (ball_dir.lensq() < EPS) {
@@ -619,7 +619,7 @@ double AI::Nav::Util::estimate_action_duration(std::vector<std::pair<Point, Angl
 	return total_time;
 }
 
-bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World world, AI::Nav::W::Player::Ptr player){
 	const Ball &ball = world.ball();
 
 	const Point ball_pos = ball.position();
@@ -664,7 +664,7 @@ bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World &wo
 	return true;
 }
 
-bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::Player::Ptr player) {
 	// need to confirm that the player has proper flag
 
 	// need to confirm that the ball is moving at all

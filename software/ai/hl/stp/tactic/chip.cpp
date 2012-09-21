@@ -18,7 +18,7 @@ namespace {
 
 	class ChipTarget : public Tactic {
 		public:
-			ChipTarget(const World &world, const Coordinate target) : Tactic(world, true), target(target), kick_attempted(false) {
+			ChipTarget(World world, const Coordinate target) : Tactic(world, true), target(target), kick_attempted(false) {
 			}
 
 		private:
@@ -60,7 +60,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::chip_target(const World &world, const Coordinate target) {
+Tactic::Ptr AI::HL::STP::Tactic::chip_target(World world, const Coordinate target) {
 	Tactic::Ptr p(new ChipTarget(world, target));
 	return p;
 }

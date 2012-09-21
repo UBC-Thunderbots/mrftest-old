@@ -230,7 +230,7 @@ namespace Visualizable {
 			 *
 			 * \return the destination position and orientation.
 			 */
-			virtual const std::pair<Point, Angle> &destination() const = 0;
+			virtual std::pair<Point, Angle> destination() const = 0;
 
 			/**
 			 * Returns whether or not the robot has a path.

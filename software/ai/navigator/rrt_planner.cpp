@@ -189,6 +189,6 @@ std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool pos
 	return final_points;
 }
 
-RRTPlanner::RRTPlanner(World &world) : Plan(world) {
+RRTPlanner::RRTPlanner(World world) : Plan(world) {
 }
 

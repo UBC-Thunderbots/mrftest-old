@@ -12,7 +12,7 @@ namespace AI {
 				 *
 				 * use a hysterisis
 				 */
-				Player::Ptr select_baller(const World &world, const std::set<Player::Ptr> &players, Player::Ptr previous);
+				Player::Ptr select_baller(World world, const std::set<Player::Ptr> &players, Player::Ptr previous);
 			}
 		}
 	}

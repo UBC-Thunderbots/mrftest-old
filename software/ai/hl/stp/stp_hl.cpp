@@ -19,7 +19,7 @@ namespace {
 			Gtk::Button reset_button;
 			Gtk::TextView text_view;
 
-			STPHL(World &world) : PlayExecutor(world) {
+			STPHL(World world) : PlayExecutor(world) {
 				text_view.set_editable(false);
 				vbox.add(reset_button);
 				vbox.add(text_view);

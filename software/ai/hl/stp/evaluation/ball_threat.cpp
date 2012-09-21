@@ -15,7 +15,7 @@ namespace {
 	DoubleParam negligible_velocity("speed goalie should ignore direction of ball", "STP/evaluation", 0.05, 1e-4, 1.0);
 }
 
-BallThreat AI::HL::STP::Evaluation::evaluate_ball_threat(const World &world) {
+BallThreat AI::HL::STP::Evaluation::evaluate_ball_threat(World world) {
 	BallThreat ball_threat;
 
 	ball_threat.enemies = AI::HL::Util::get_robots(world.enemy_team());
@@ -50,7 +50,7 @@ BallThreat AI::HL::STP::Evaluation::evaluate_ball_threat(const World &world) {
 	return ball_threat;
 }
 
-bool AI::HL::STP::Evaluation::ball_on_net(const AI::HL::W::World &world) {
+bool AI::HL::STP::Evaluation::ball_on_net(AI::HL::W::World world) {
 	if (world.ball().velocity().lensq() < negligible_velocity || world.ball().velocity().x > 0) {
 		return false;
 	}
@@ -67,7 +67,7 @@ bool AI::HL::STP::Evaluation::ball_on_net(const AI::HL::W::World &world) {
 	return false;
 }
 
-bool AI::HL::STP::Evaluation::ball_on_enemy_net(const AI::HL::W::World &world) {
+bool AI::HL::STP::Evaluation::ball_on_enemy_net(AI::HL::W::World world) {
 	if (world.ball().velocity().lensq() < negligible_velocity || world.ball().velocity().x < 0) {
 		return false;
 	}
@@ -84,7 +84,7 @@ bool AI::HL::STP::Evaluation::ball_on_enemy_net(const AI::HL::W::World &world) {
 	return false;
 }
 
-Point AI::HL::STP::Evaluation::goalie_shot_block(const AI::HL::W::World &world, const AI::HL::W::Player::Ptr player) {
+Point AI::HL::STP::Evaluation::goalie_shot_block(AI::HL::W::World world, const AI::HL::W::Player::Ptr player) {
 	if (world.friendly_team().size() <= 0 || !ball_on_net(world)) {
 		return Point(0, 0);
 	}

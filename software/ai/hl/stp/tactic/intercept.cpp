@@ -13,7 +13,7 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace {
 	class Intercept : public Tactic {
 		public:
-			Intercept(const World &world, const Point target) : Tactic(world, true), target(target) {
+			Intercept(World world, const Point target) : Tactic(world, true), target(target) {
 			}
 
 		private:
@@ -47,7 +47,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::intercept(const World &world, const Point target) {
+Tactic::Ptr AI::HL::STP::Tactic::intercept(World world, const Point target) {
 	Tactic::Ptr p(new Intercept(world, target));
 	return p;
 }

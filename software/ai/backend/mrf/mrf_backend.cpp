@@ -1,18 +1,14 @@
-#include "ai/backend/mrf/mrf_backend.h"
 #include "ai/backend/backend.h"
-#include "ai/backend/mrf/ball.h"
-#include "ai/backend/mrf/field.h"
+#include "ai/backend/clock/monotonic.h"
 #include "ai/backend/mrf/player.h"
 #include "ai/backend/mrf/refbox.h"
-#include "ai/backend/mrf/robot.h"
+#include "ai/ball_filter/ball_filter.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "util/box_array.h"
-#include "util/clocksource_timerfd.h"
 #include "util/codec.h"
 #include "util/dprint.h"
 #include "util/exception.h"
 #include "util/sockaddrs.h"
-#include "util/timestep.h"
 #include "mrf/dongle.h"
 #include "mrf/robot.h"
 #include <cassert>
@@ -22,8 +18,6 @@
 #include <netinet/ip.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-
-DoubleParam MRF_LOOP_DELAY("Loop Delay", "Backend/MRF", 0.0, -1.0, 1.0);
 
 using namespace AI::BE;
 
@@ -44,75 +38,66 @@ namespace {
 	class MRFBackend;
 
 	/**
-	 * \brief A generic team.
+	 * \brief A generic team
 	 *
-	 * \tparam T the type of robot on this team, either Player or Robot.
+	 * \tparam T the type of robot on this team, either Player or Robot
 	 *
-	 * \tparam TSuper the type of the superclass of the robot, one of the backend Player or Robot classes.
+	 * \tparam TSuper the type of the superclass of the robot, one of the backend Player or Robot classes
 	 *
-	 * \tparam Super the type of the class's superclass.
+	 * \tparam Super the type of the class's superclass
 	 */
 	template<typename T, typename TSuper, typename Super> class GenericTeam : public Super {
 		public:
 			/**
-			 * \brief Constructs a new GenericTeam.
+			 * \brief Constructs a new GenericTeam
 			 *
-			 * \param[in] backend the backend to which the team is attached.
+			 * \param[in] backend the backend to which the team is attached
 			 */
 			explicit GenericTeam(MRFBackend &backend);
 
 			/**
-			 * \brief Returns the number of existent robots in the team.
+			 * \brief Returns the number of existent robots in the team
 			 *
-			 * \return the number of existent robots in the team.
+			 * \return the number of existent robots in the team
 			 */
 			std::size_t size() const;
 
 			/**
-			 * \brief Returns a robot.
+			 * \brief Returns a robot
 			 *
-			 * \param[in] i the index of the robot to fetch.
+			 * \param[in] i the index of the robot to fetch
 			 *
-			 * \return the robot.
+			 * \return the robot
 			 */
-			typename T::Ptr get_mrf_robot(std::size_t i);
+			typename TSuper::Ptr get(std::size_t i) const;
 
 			/**
-			 * \brief Returns a robot.
+			 * \brief Returns a robot as an MRF robot
 			 *
-			 * \param[in] i the index of the robot to fetch.
+			 * \param[in] i the index of the robot to fetch
 			 *
-			 * \return the robot.
+			 * \return the robot
 			 */
-			typename TSuper::Ptr get(std::size_t i);
+			typename T::Ptr get_mrf_robot(std::size_t i) const;
 
 			/**
-			 * \brief Returns a robot.
-			 *
-			 * \param[in] i the index of the robot to fetch.
-			 *
-			 * \return the robot.
-			 */
-			typename TSuper::CPtr get(std::size_t i) const;
-
-			/**
-			 * \brief Removes all robots from the team.
+			 * \brief Removes all robots from the team
 			 */
 			void clear();
 
 			/**
-			 * \brief Updates the robots on the team using data from SSL-Vision.
+			 * \brief Updates the robots on the team using data from SSL-Vision
 			 *
-			 * \param[in] packets the packets to extract vision data from.
+			 * \param[in] packets the packets to extract vision data from
 			 *
-			 * \param[in] ts the time at which the packet was received.
+			 * \param[in] ts the time at which the packet was received
 			 */
 			void update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec &ts);
 
 			/**
-			 * \brief Locks a time for prediction across all players on the team.
+			 * \brief Locks a time for prediction across all players on the team
 			 *
-			 * \param[in] now the time to lock as time zero.
+			 * \param[in] now the time to lock as time zero
 			 */
 			void lock_time(const timespec &now);
 
@@ -120,6 +105,7 @@ namespace {
 			MRFBackend &backend;
 			BoxArray<T, 16> members;
 			std::vector<typename T::Ptr> member_ptrs;
+			std::vector<unsigned int> vision_failures;
 
 			void populate_pointers();
 			virtual void create_member(unsigned int pattern) = 0;
@@ -128,7 +114,7 @@ namespace {
 	/**
 	 * \brief The friendly team.
 	 */
-	class MRFFriendlyTeam : public GenericTeam<AI::BE::MRF::Player, AI::BE::Player, AI::BE::FriendlyTeam> {
+	class MRFFriendlyTeam : public GenericTeam<AI::BE::MRF::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>> {
 		public:
 			explicit MRFFriendlyTeam(MRFBackend &backend, MRFDongle &dongle);
 			unsigned int score() const;
@@ -143,7 +129,7 @@ namespace {
 	/**
 	 * \brief The enemy team.
 	 */
-	class MRFEnemyTeam : public GenericTeam<AI::BE::MRF::Robot, AI::BE::Robot, AI::BE::EnemyTeam> {
+	class MRFEnemyTeam : public GenericTeam<AI::BE::Robot, AI::BE::Robot, AI::BE::Team<AI::BE::Robot>> {
 		public:
 			explicit MRFEnemyTeam(MRFBackend &backend);
 			unsigned int score() const;
@@ -161,12 +147,8 @@ namespace {
 
 			explicit MRFBackend(MRFDongle &dongle, unsigned int camera_mask, int multicast_interface);
 			BackendFactory &factory() const;
-			const Field &field() const;
-			const Ball &ball() const;
-			FriendlyTeam &friendly_team();
-			const FriendlyTeam &friendly_team() const;
-			EnemyTeam &enemy_team();
-			const EnemyTeam &enemy_team() const;
+			const Team<AI::BE::Player> &friendly_team() const;
+			const Team<AI::BE::Robot> &enemy_team() const;
 			unsigned int main_ui_controls_table_rows() const;
 			void main_ui_controls_attach(Gtk::Table &, unsigned int);
 			unsigned int secondary_ui_controls_table_rows() const;
@@ -181,9 +163,7 @@ namespace {
 
 		private:
 			unsigned int camera_mask;
-			TimerFDClockSource clock;
-			AI::BE::MRF::Field field_;
-			AI::BE::MRF::Ball ball_;
+			AI::BE::Clock::Monotonic clock;
 			MRFFriendlyTeam friendly;
 			MRFEnemyTeam enemy;
 			const FileDescriptor vision_socket;
@@ -216,15 +196,11 @@ template<typename T, typename TSuper, typename Super> std::size_t GenericTeam<T,
 	return member_ptrs.size();
 }
 
-template<typename T, typename TSuper, typename Super> typename T::Ptr GenericTeam<T, TSuper, Super>::get_mrf_robot(std::size_t i) {
+template<typename T, typename TSuper, typename Super> typename T::Ptr GenericTeam<T, TSuper, Super>::get_mrf_robot(std::size_t i) const {
 	return member_ptrs[i];
 }
 
-template<typename T, typename TSuper, typename Super> typename TSuper::Ptr GenericTeam<T, TSuper, Super>::get(std::size_t i) {
-	return member_ptrs[i];
-}
-
-template<typename T, typename TSuper, typename Super> typename TSuper::CPtr GenericTeam<T, TSuper, Super>::get(std::size_t i) const {
+template<typename T, typename TSuper, typename Super> typename TSuper::Ptr GenericTeam<T, TSuper, Super>::get(std::size_t i) const {
 	return member_ptrs[i];
 }
 
@@ -241,6 +217,7 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 
 	// Update existing robots and create new robots.
 	std::vector<bool> used_data[2];
+	std::vector<bool> seen_this_frame;
 	for (std::size_t i = 0; i < 2; ++i) {
 		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> &rep(*packets[i]);
 		used_data[i].resize(static_cast<std::size_t>(rep.size()), false);
@@ -253,9 +230,19 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 					create_member(pattern);
 					membership_changed = true;
 				}
-				if (bot && !bot->seen_this_frame) {
-					bot->seen_this_frame = true;
-					bot->update(detbot, ts);
+				if (seen_this_frame.size() <= bot->pattern()) {
+					seen_this_frame.resize(bot->pattern() + 1);
+				}
+				if (bot && !seen_this_frame[bot->pattern()]) {
+					seen_this_frame[bot->pattern()] = true;
+					if (detbot.has_orientation()) {
+						bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
+						Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
+						Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::HALF : Angle::ZERO)).angle_mod();
+						bot->add_field_data(pos, ori, ts);
+					} else {
+						LOG_WARN("Vision packet has robot with no orientation.");
+					}
 				}
 				used_data[i][j] = true;
 			}
@@ -266,13 +253,16 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 	for (std::size_t i = 0; i < members.SIZE; ++i) {
 		typename T::Ptr bot = members[i];
 		if (bot) {
-			if (!bot->seen_this_frame) {
-				++bot->vision_failures;
-			} else {
-				bot->vision_failures = 0;
+			if (vision_failures.size() <= bot->pattern()) {
+				vision_failures.resize(bot->pattern() + 1);
 			}
-			bot->seen_this_frame = false;
-			if (bot->vision_failures >= MAX_VISION_FAILURES) {
+			if (!seen_this_frame[bot->pattern()]) {
+				++vision_failures[bot->pattern()];
+			} else {
+				vision_failures[bot->pattern()] = 0;
+			}
+			seen_this_frame[bot->pattern()] = false;
+			if (vision_failures[bot->pattern()] >= MAX_VISION_FAILURES) {
 				members.destroy(i);
 				membership_changed = true;
 			}
@@ -302,31 +292,31 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 	}
 }
 
-MRFFriendlyTeam::MRFFriendlyTeam(MRFBackend &backend, MRFDongle &dongle) : GenericTeam<AI::BE::MRF::Player, AI::BE::Player, AI::BE::FriendlyTeam>(backend), dongle(dongle) {
+MRFFriendlyTeam::MRFFriendlyTeam(MRFBackend &backend, MRFDongle &dongle) : GenericTeam<AI::BE::MRF::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>>(backend), dongle(dongle) {
 }
 
 unsigned int MRFFriendlyTeam::score() const {
-	return backend.friendly_colour() == AI::Common::Team::Colour::YELLOW ? backend.refbox.goals_yellow : backend.refbox.goals_blue;
+	return backend.friendly_colour() == AI::Common::Colour::YELLOW ? backend.refbox.goals_yellow : backend.refbox.goals_blue;
 }
 
 void MRFFriendlyTeam::create_member(unsigned int pattern) {
 	if (pattern < 8) {
-		members.create(pattern, std::ref(backend), pattern, std::ref(dongle.robot(pattern)));
+		members.create(pattern, pattern, std::ref(dongle.robot(pattern)));
 	}
 }
 
-MRFEnemyTeam::MRFEnemyTeam(MRFBackend &backend) : GenericTeam<AI::BE::MRF::Robot, AI::BE::Robot, AI::BE::EnemyTeam>(backend) {
+MRFEnemyTeam::MRFEnemyTeam(MRFBackend &backend) : GenericTeam<AI::BE::Robot, AI::BE::Robot, AI::BE::Team<AI::BE::Robot>>(backend) {
 }
 
 unsigned int MRFEnemyTeam::score() const {
-	return backend.friendly_colour() == AI::Common::Team::Colour::YELLOW ? backend.refbox.goals_blue : backend.refbox.goals_yellow;
+	return backend.friendly_colour() == AI::Common::Colour::YELLOW ? backend.refbox.goals_blue : backend.refbox.goals_yellow;
 }
 
 void MRFEnemyTeam::create_member(unsigned int pattern) {
-	members.create(pattern, std::ref(backend), pattern);
+	members.create(pattern, pattern);
 }
 
-MRFBackend::MRFBackend(MRFDongle &dongle, unsigned int camera_mask, int multicast_interface) : Backend(), refbox(multicast_interface), camera_mask(camera_mask), clock(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND), ball_(*this), friendly(*this, dongle), enemy(*this), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
+MRFBackend::MRFBackend(MRFDongle &dongle, unsigned int camera_mask, int multicast_interface) : Backend(), refbox(multicast_interface), camera_mask(camera_mask), friendly(*this, dongle), enemy(*this), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
 	if (!(1 <= camera_mask && camera_mask <= 3)) {
 		throw std::runtime_error("Invalid camera bitmask (must be 1–3)");
 	}
@@ -370,34 +360,18 @@ MRFBackend::MRFBackend(MRFDongle &dongle, unsigned int camera_mask, int multicas
 	refbox.goals_yellow.signal_changed().connect(signal_score_changed().make_slot());
 	refbox.goals_blue.signal_changed().connect(signal_score_changed().make_slot());
 
-	timespec_now(playtype_time);
+	playtype_time = clock.now();
 }
 
 BackendFactory &MRFBackend::factory() const {
 	return mrf_backend_factory_instance;
 }
 
-const Field &MRFBackend::field() const {
-	return field_;
-}
-
-const Ball &MRFBackend::ball() const {
-	return ball_;
-}
-
-FriendlyTeam &MRFBackend::friendly_team() {
+const AI::BE::Team<AI::BE::Player> &MRFBackend::friendly_team() const {
 	return friendly;
 }
 
-const FriendlyTeam &MRFBackend::friendly_team() const {
-	return friendly;
-}
-
-EnemyTeam &MRFBackend::enemy_team() {
-	return enemy;
-}
-
-const EnemyTeam &MRFBackend::enemy_team() const {
+const AI::BE::Team<AI::BE::Robot> &MRFBackend::enemy_team() const {
 	return enemy;
 }
 
@@ -450,7 +424,7 @@ void MRFBackend::tick() {
 	}
 
 	// Do pre-AI stuff (locking predictors).
-	timespec_now(now);
+	now = clock.now();
 	ball_.lock_time(now);
 	friendly.lock_time(now);
 	enemy.lock_time(now);
@@ -471,7 +445,7 @@ void MRFBackend::tick() {
 
 	// Notify anyone interested in the finish of a tick.
 	timespec after;
-	timespec_now(after);
+	after = clock.now();
 	signal_post_tick().emit(timespec_to_nanos(timespec_sub(after, now)));
 }
 
@@ -495,14 +469,22 @@ bool MRFBackend::on_vision_readable(Glib::IOCondition) {
 
 	// Pass it to any attached listeners.
 	timespec now;
-	timespec_now(now);
+	now = clock.now();
 	signal_vision().emit(now, packet);
 
 	// If it contains geometry data, update the field shape.
 	if (packet.has_geometry()) {
 		const SSL_GeometryData &geom(packet.geometry());
 		const SSL_GeometryFieldSize &fsize(geom.field());
-		field_.update(fsize);
+		double length = fsize.field_length() / 1000.0;
+		double total_length = length + (2.0 * fsize.boundary_width() + 2.0 * fsize.referee_width()) / 1000.0;
+		double width = fsize.field_width() / 1000.0;
+		double total_width = width + (2.0 * fsize.boundary_width() + 2.0 * fsize.referee_width()) / 1000.0;
+		double goal_width = fsize.goal_width() / 1000.0;
+		double centre_circle_radius = fsize.center_circle_radius() / 1000.0;
+		double defense_area_radius = fsize.defense_radius() / 1000.0;
+		double defense_area_stretch = fsize.defense_stretch() / 1000.0;
+		field_.update(length, total_length, width, total_width, goal_width, centre_circle_radius, defense_area_radius, defense_area_stretch);
 	}
 
 	// If it contains ball and robot data, update the ball and the teams.
@@ -525,7 +507,7 @@ bool MRFBackend::on_vision_readable(Glib::IOCondition) {
 
 		// Take a timestamp.
 		timespec now;
-		timespec_now(now);
+		now = clock.now();
 
 		// Update the ball.
 		{
@@ -541,17 +523,17 @@ bool MRFBackend::on_vision_readable(Glib::IOCondition) {
 			// Execute the current ball filter.
 			Point pos;
 			if (ball_filter()) {
-				pos = ball_filter()->filter(balls, *this);
+				pos = ball_filter()->filter(balls, AI::BF::W::World(*this));
 			}
 
 			// Use the result.
-			ball_.update(pos, now);
+			ball_.add_field_data(defending_end() == FieldEnd::EAST ? -pos : pos, now);
 		}
 
 		// Update the robots.
 		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *yellow_packets[2] = { &detections[0].robots_yellow(), &detections[1].robots_yellow() };
 		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *blue_packets[2] = { &detections[0].robots_blue(), &detections[1].robots_blue() };
-		if (friendly_colour() == AI::Common::Team::Colour::YELLOW) {
+		if (friendly_colour() == AI::Common::Colour::YELLOW) {
 			friendly.update(yellow_packets, now);
 			enemy.update(blue_packets, now);
 		} else {
@@ -568,7 +550,7 @@ bool MRFBackend::on_vision_readable(Glib::IOCondition) {
 
 void MRFBackend::on_refbox_packet(const void *data, std::size_t length) {
 	timespec now;
-	timespec_now(now);
+	now = clock.now();
 	signal_refbox().emit(now, data, length);
 }
 
@@ -578,17 +560,17 @@ void MRFBackend::update_playtype() {
 	if (playtype_override() != AI::Common::PlayType::NONE) {
 		new_pt = playtype_override();
 	} else {
-		if (friendly_colour() == AI::Common::Team::Colour::YELLOW) {
+		if (friendly_colour() == AI::Common::Colour::YELLOW) {
 			old_pt = AI::Common::PlayTypeInfo::invert(old_pt);
 		}
 		new_pt = compute_playtype(old_pt);
-		if (friendly_colour() == AI::Common::Team::Colour::YELLOW) {
+		if (friendly_colour() == AI::Common::Colour::YELLOW) {
 			new_pt = AI::Common::PlayTypeInfo::invert(new_pt);
 		}
 	}
 	if (new_pt != playtype()) {
 		playtype_rw() = new_pt;
-		timespec_now(playtype_time);
+		playtype_time = clock.now();
 	}
 }
 

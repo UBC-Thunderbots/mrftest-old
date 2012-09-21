@@ -21,7 +21,7 @@ namespace {
 
 	class SpinSteal : public Tactic {
 		public:
-			SpinSteal(const World &world) : Tactic(world, true), none(false) {}
+			SpinSteal(World world) : Tactic(world, true), none(false) {}
 
 		private:
 			bool none;
@@ -41,7 +41,7 @@ namespace {
 
 	class BackUpSteal : public Tactic {
 			public:
-				BackUpSteal(const World &world) : Tactic(world, true), state(BACKING_UP), finished(false), backup_dist(4 * Robot::MAX_RADIUS) {}
+				BackUpSteal(World world) : Tactic(world, true), state(BACKING_UP), finished(false), backup_dist(4 * Robot::MAX_RADIUS) {}
 
 			private:
 				enum state { BACKING_UP, GOING_FORWARD };
@@ -71,7 +71,7 @@ namespace {
 
 	class TActiveDef : public Tactic {
 		public:
-			TActiveDef(const World &world) : Tactic(world, true), finished(false) {}
+			TActiveDef(World world) : Tactic(world, true), finished(false) {}
 
 		private:
 			bool finished;
@@ -91,7 +91,7 @@ namespace {
 
 	class TDribbleToRegion : public Tactic {
 		public:
-			TDribbleToRegion(const World &world, Region region_) : Tactic(world, true), region(region_) {}
+			TDribbleToRegion(World world, Region region_) : Tactic(world, true), region(region_) {}
 
 		private:
 			Region region;
@@ -111,7 +111,7 @@ namespace {
 
 	class TSpinToRegion : public Tactic {
 		public:
-			TSpinToRegion(const World &world, Region region_) : Tactic(world, true), region(region_) {}
+			TSpinToRegion(World world, Region region_) : Tactic(world, true), region(region_) {}
 
 		private:
 			Region region;
@@ -132,7 +132,7 @@ namespace {
 
 void SpinSteal::execute() {
 	none = false;
-	const EnemyTeam &enemy = world.enemy_team();
+	EnemyTeam enemy = world.enemy_team();
 	Point dirToBall = (world.ball().position() - player->position()).norm();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		if (Evaluation::possess_ball(world, enemy.get(i))) {
@@ -164,7 +164,7 @@ void BackUpSteal::execute() {
 
 void TActiveDef::execute() {
 	finished = false;
-	const EnemyTeam &enemy = world.enemy_team();
+	EnemyTeam enemy = world.enemy_team();
 
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		if (Evaluation::possess_ball(world, enemy.get(i))) {
@@ -185,27 +185,27 @@ void TSpinToRegion::execute() {
 	Action::move_spin(player, region.center_position());
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::spin_steal(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::spin_steal(World world) {
 	Tactic::Ptr p(new SpinSteal(world));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::back_up_steal(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::back_up_steal(World world) {
 	Tactic::Ptr p(new BackUpSteal(world));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::tactive_def(const World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::tactive_def(World world) {
 	Tactic::Ptr p(new TActiveDef(world));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::tdribble_to_region(const World &world, Region region_) {
+Tactic::Ptr AI::HL::STP::Tactic::tdribble_to_region(World world, Region region_) {
 	Tactic::Ptr p(new TDribbleToRegion(world, region_));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::tspin_to_region(const World &world, Region region_) {
+Tactic::Ptr AI::HL::STP::Tactic::tspin_to_region(World world, Region region_) {
 	Tactic::Ptr p(new TSpinToRegion(world, region_));
 	return p;
 }

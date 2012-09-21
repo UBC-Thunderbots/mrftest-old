@@ -12,12 +12,12 @@ namespace AI {
 				/**
 				 * Shadow a specific enemy robot on the enemy kickoff.
 				 */
-				Tactic::Ptr shadow_kickoff(const World &world, Enemy::Ptr enemy, const Coordinate default_loc);
+				Tactic::Ptr shadow_kickoff(World world, Enemy::Ptr enemy, const Coordinate default_loc);
 
 				/**
 				 * Shadow the ball (in freekicks).
 				 */
-				Tactic::Ptr shadow_ball(const World &world);
+				Tactic::Ptr shadow_ball(World world);
 			}
 		}
 	}

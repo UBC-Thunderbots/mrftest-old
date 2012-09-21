@@ -69,7 +69,7 @@ void AIPackage::attach_robot_controllers() {
 		if (!state) {
 			state = std::make_shared<PrivateState>();
 			if (robot_controller_factory) {
-				state->robot_controller = robot_controller_factory->create_controller(backend, plr);
+				state->robot_controller = robot_controller_factory->create_controller(AI::RC::W::World(backend), AI::RC::W::Player(plr));
 			}
 			plr->object_store()[typeid(*this)] = state;
 		}
@@ -84,7 +84,7 @@ void AIPackage::robot_controller_factory_changed() {
 		state->robot_controller.reset();
 
 		if (robot_controller_factory) {
-			state->robot_controller = robot_controller_factory->create_controller(backend, plr);
+			state->robot_controller = robot_controller_factory->create_controller(AI::RC::W::World(backend), AI::RC::W::Player(plr));
 		}
 	}
 }

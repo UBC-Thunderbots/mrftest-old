@@ -2,282 +2,442 @@
 #define AI_HL_WORLD_H
 
 #include "ai/flags.h"
+#include "ai/backend/backend.h"
 #include "ai/common/world.h"
-#include "util/box_ptr.h"
 #include "util/property.h"
+#include <functional>
 
 namespace AI {
 	namespace HL {
 		namespace W {
 			/**
-			 * The field, as seen by a Strategy.
+			 * The field
 			 */
-			class Field : public AI::Common::Field {
-			};
+			typedef AI::Common::Field Field;
 
 			/**
-			 * The ball, as seen by a Strategy.
+			 * The ball
 			 */
-			class Ball : public AI::Common::Ball {
-			};
+			typedef AI::Common::Ball Ball;
 
 			/**
-			 * A robot, as seen by a Strategy.
+			 * \brief A robot
 			 */
 			class Robot : public AI::Common::Robot {
 				public:
 					/**
-					 * \brief A pointer to a const Robot.
+					 * \brief This class
 					 */
-					typedef BoxPtr<const Robot> Ptr;
+					typedef Robot Ptr;
 
 					/**
-					 * \brief Sets the avoidance distance for this robot.
-					 *
-					 * If this function is not called, the avoidance distance is reset to medium.
-					 *
-					 * This function has no effect on friendly robots.
-					 *
-					 * \param[in] dist the avoidance distance.
+					 * \brief Constructs a nonexistent Robot
 					 */
-					virtual void avoid_distance(AI::Flags::AvoidDistance dist) const = 0;
+					explicit Robot();
+
+					/**
+					 * \brief Constructs a new Robot
+					 *
+					 * \param[in] impl the backend implementation to wrap
+					 */
+					explicit Robot(AI::BE::Robot::Ptr impl);
+
+					/**
+					 * \brief Constructs a copy of a Robot
+					 *
+					 * \param[in] copyref the object to copy
+					 */
+					Robot(const Robot &copyref);
+
+					/**
+					 * \brief Returns this object
+					 *
+					 * \return this object
+					 */
+					Robot *operator->();
+
+					/**
+					 * \brief Returns this object
+					 *
+					 * \return this object
+					 */
+					const Robot *operator->() const;
+
+					/**
+					 * \brief Sets the avoidance distance for this robot
+					 *
+					 * If this function is not called, the avoidance distance is reset to medium
+					 *
+					 * This function has no effect on friendly robots
+					 *
+					 * \param[in] dist the avoidance distance
+					 */
+					void avoid_distance(AI::Flags::AvoidDistance dist) const;
 			};
 
 			/**
-			 * A player, as seen by a Strategy.
+			 * \brief A player
 			 */
 			class Player : public Robot, public AI::Common::Player {
 				public:
 					/**
-					 * A pointer to a Player.
+					 * \brief This class
 					 */
-					typedef BoxPtr<Player> Ptr;
+					typedef Player Ptr;
 
 					/**
-					 * A pointer to a const Player.
+					 * \brief This class, const
 					 */
-					typedef BoxPtr<const Player> CPtr;
+					typedef Player CPtr;
 
 					/**
-					 * Sets the destination for this player.
-					 *
-					 * \param[in] dest the destination position to move to.
-					 *
-					 * \param[in] ori the target orientation to assume.
-					 *
-					 * \param[in] vel the velocity the robot should be moving when it arrives at the target point.
+					 * \brief Constructs a nonexistent Player
 					 */
-					virtual void move(Point dest, Angle ori, Point vel) = 0;
+					explicit Player();
 
 					/**
-					 * Returns the movement flags for this player.
+					 * \brief Constructs a new Player
 					 *
-					 * \return the flags governing the movement.
+					 * \param[in] impl the backend implementation to wrap
 					 */
-					virtual unsigned int flags() const = 0;
+					explicit Player(AI::BE::Player::Ptr impl);
 
 					/**
-					 * Sets the movement flags for this player.
+					 * \brief Constructs a copy of a Player
 					 *
-					 * \param[in] flags the flags governing the movement.
+					 * \param[in] copyref the object to copy
 					 */
-					virtual void flags(unsigned int flags) = 0;
+					Player(const Player &copyref);
 
 					/**
-					 * Returns the movement type for this player.
+					 * \brief Returns this object
 					 *
-					 * \return the type of movement to perform.
+					 * \return this object
 					 */
-					virtual AI::Flags::MoveType type() const = 0;
+					Player *operator->();
 
 					/**
-					 * Sets the movement type for this player.
+					 * \brief Returns this object
 					 *
-					 * \param[in] type the type of movement to perform.
+					 * \return this object
 					 */
-					virtual void type(AI::Flags::MoveType type) = 0;
+					const Player *operator->() const;
+
+					using AI::Common::Player::operator==;
+					using AI::Common::Player::operator!=;
+					using AI::Common::Player::operator bool;
 
 					/**
-					 * Returns the movement priority for this player.
+					 * \brief Sets the destination for this player
 					 *
-					 * \return the priority of the movement.
+					 * \param[in] dest the destination position to move to
+					 *
+					 * \param[in] ori the target orientation to assume
+					 *
+					 * \param[in] vel the velocity the robot should be moving when it arrives at the target point
 					 */
-					virtual AI::Flags::MovePrio prio() const = 0;
+					void move(Point dest, Angle ori, Point vel);
 
 					/**
-					 * Sets the movement priority for this player.
+					 * \brief Returns the movement flags for this player
 					 *
-					 * \param[in] prio the priority of the movement.
+					 * \return the flags governing the movement
 					 */
-					virtual void prio(AI::Flags::MovePrio prio) = 0;
+					unsigned int flags() const;
 
 					/**
-					 * Causes the player to kick the ball.
+					 * \brief Sets the movement flags for this player
 					 *
-					 * \param[in] speed the speed of the kick, in m/s.
+					 * \param[in] flags the flags governing the movement
 					 */
-					virtual void kick(double speed) = 0;
+					void flags(unsigned int flags);
 
 					/**
-					 * Causes the player to automatically kick the ball as soon as it is picked up by the sensor.
+					 * \brief Returns the movement type for this player
 					 *
-					 * This function must be called on every tick in order to remain armed; failing to invoke the function will disarm the mechanism.
-					 *
-					 * \param[in] speed the speed of the kick, in m/s.
+					 * \return the type of movement to perform
 					 */
-					virtual void autokick(double speed) = 0;
+					AI::Flags::MoveType type() const;
 
 					/**
-					 * Causes the player to chip the ball up in the air
+					 * \brief Sets the movement type for this player
+					 *
+					 * \param[in] type the type of movement to perform
+					 */
+					void type(AI::Flags::MoveType type);
+
+					/**
+					 * \brief Returns the movement priority for this player
+					 *
+					 * \return the priority of the movement
+					 */
+					AI::Flags::MovePrio prio() const;
+
+					/**
+					 * \brief Sets the movement priority for this player
+					 *
+					 * \param[in] prio the priority of the movement
+					 */
+					void prio(AI::Flags::MovePrio prio);
+
+					/**
+					 * \brief Causes the player to kick the ball
+					 *
+					 * \param[in] speed the speed of the kick, in m/s
+					 */
+					void kick(double speed);
+
+					/**
+					 * \brief Causes the player to automatically kick the ball as soon as it is picked up by the sensor
+					 *
+					 * This function must be called on every tick in order to remain armed; failing to invoke the function will disarm the mechanism
+					 *
+					 * \param[in] speed the speed of the kick, in m/s
+					 */
+					void autokick(double speed);
+
+					/**
+					 * \brief Causes the player to chip the ball up in the air
 					 *
 					 * \param[in] power the power of the chip, from 0 to 1 in arbitrary units
 					 */
-					virtual void chip(double power) = 0;
+					void chip(double power);
 
 					/**
-					 * Causes the player to automatically chip the ball as soon as it is picked up by the sensor.
+					 * \brief Causes the player to automatically chip the ball as soon as it is picked up by the sensor
 					 *
-					 * This function must be called on every tick in order to remain armed; failing to invoke the function will disarm the mechanism.
+					 * This function must be called on every tick in order to remain armed; failing to invoke the function will disarm the mechanism
 					 *
 					 * \param[in] power the power of the chip, from 0 to 1 in arbitrary units
 					 */
-					virtual void autochip(double power) = 0;
+					void autochip(double power);
 			};
 
 			/**
-			 * The friendly team.
+			 * \brief The friendly team
 			 */
-			class FriendlyTeam : public AI::Common::Team {
-				public:
-					/**
-					 * Returns a player from the team.
-					 *
-					 * \param[in] i the index of the player.
-					 *
-					 * \return the player.
-					 */
-					Player::Ptr get(std::size_t i) {
-						return get_hl_player(i);
-					}
-
-					/**
-					 * Returns a player from the team.
-					 *
-					 * \param[in] i the index of the player.
-					 *
-					 * \return the player.
-					 */
-					Player::CPtr get(std::size_t i) const {
-						return get_hl_player(i);
-					}
-
-				protected:
-					/**
-					 * Returns a player from the team.
-					 *
-					 * \param[in] i the index of the player.
-					 *
-					 * \return the player.
-					 */
-					virtual Player::Ptr get_hl_player(std::size_t i) = 0;
-
-					/**
-					 * Returns a player from the team.
-					 *
-					 * \param[in] i the index of the player.
-					 *
-					 * \return the player.
-					 */
-					virtual Player::CPtr get_hl_player(std::size_t i) const = 0;
-			};
+			typedef AI::Common::Team<Player, AI::BE::Player> FriendlyTeam;
 
 			/**
-			 * The enemy team.
+			 * \brief The enemy team
 			 */
-			class EnemyTeam : public AI::Common::Team {
-				public:
-					/**
-					 * Returns a robot from the team.
-					 *
-					 * \param[in] i the index of the robot.
-					 *
-					 * \return the robot.
-					 */
-					Robot::Ptr get(std::size_t i) const {
-						return get_hl_robot(i);
-					}
-
-				protected:
-					/**
-					 * Returns a robot from the team.
-					 *
-					 * \param[in] i the index of the robot.
-					 *
-					 * \return the robot.
-					 */
-					virtual Robot::Ptr get_hl_robot(std::size_t i) const = 0;
-			};
+			typedef AI::Common::Team<Robot, AI::BE::Robot> EnemyTeam;
 
 			/**
-			 * The world, as seen by a Strategy.
+			 * \brief The world, as seen by a Strategy
 			 */
 			class World {
 				public:
 					/**
-					 * Returns the field.
+					 * \brief Constructs a new World
 					 *
-					 * \return the field.
+					 * \param[in] impl the backend implementation
 					 */
-					virtual const Field &field() const = 0;
+					explicit World(AI::BE::Backend &impl);
 
 					/**
-					 * Returns the ball.
+					 * \brief Constructs a copy of a World
 					 *
-					 * \return the ball.
+					 * \param[in] copyref the object to copy
 					 */
-					virtual const Ball &ball() const = 0;
+					World(const World &copyref);
 
 					/**
-					 * Returns the friendly team.
+					 * \brief Returns the field
 					 *
-					 * \return the friendly team.
+					 * \return the field
 					 */
-					virtual FriendlyTeam &friendly_team() = 0;
+					const Field &field() const;
 
 					/**
-					 * Returns the friendly team.
+					 * \brief Returns the ball
 					 *
-					 * \return the friendly team.
+					 * \return the ball
 					 */
-					virtual const FriendlyTeam &friendly_team() const = 0;
+					const Ball &ball() const;
 
 					/**
-					 * Returns the enemy team.
+					 * \brief Returns the friendly team
 					 *
-					 * \return the enemy team.
+					 * \return the friendly team
 					 */
-					virtual const EnemyTeam &enemy_team() const = 0;
+					FriendlyTeam friendly_team() const;
 
 					/**
-					 * Returns the current play type.
+					 * \brief Returns the enemy team
 					 *
-					 * \return the current play type.
+					 * \return the enemy team
 					 */
-					virtual const Property<AI::Common::PlayType> &playtype() const = 0;
+					EnemyTeam enemy_team() const;
 
-				protected:
 					/**
-					 * Constructs a new World.
+					 * \brief Returns the current play type
+					 *
+					 * \return the current play type
 					 */
-					World();
+					const Property<AI::Common::PlayType> &playtype() const;
+
+				private:
+					AI::BE::Backend &impl;
 			};
 		}
 	}
 }
 
+namespace std {
+	/**
+	 * \brief Provides a total ordering of Robot objects so they can be stored in STL ordered containers
+	 */
+	template<> struct less<AI::HL::W::Robot> {
+		public:
+			/**
+			 * \brief Compares two objects
+			 *
+			 * \param[in] x the first objects
+			 *
+			 * \param[in] y the second objects
+			 *
+			 * \return \c true if \p x should precede \p y in an ordered container, or \c false if not.
+			 */
+			bool operator()(const AI::HL::W::Robot &x, const AI::HL::W::Robot &y) const;
+
+		private:
+			std::less<AI::Common::Robot> cmp;
+	};
+
+	/**
+	 * \brief Provides a total ordering of Player objects so they can be stored in STL ordered containers
+	 */
+	template<> struct less<AI::HL::W::Player> {
+		public:
+			/**
+			 * \brief Compares two objects
+			 *
+			 * \param[in] x the first objects
+			 *
+			 * \param[in] y the second objects
+			 *
+			 * \return \c true if \p x should precede \p y in an ordered container, or \c false if not.
+			 */
+			bool operator()(const AI::HL::W::Player &x, const AI::HL::W::Player &y) const;
+
+		private:
+			std::less<AI::Common::Player> cmp;
+	};
+}
 
 
-inline AI::HL::W::World::World() = default;
+
+inline AI::HL::W::Robot::Robot() = default;
+
+inline AI::HL::W::Robot::Robot(AI::BE::Robot::Ptr impl) : AI::Common::Robot(impl) {
+}
+
+inline AI::HL::W::Robot::Robot(const Robot &) = default;
+
+inline AI::HL::W::Robot *AI::HL::W::Robot::operator->() {
+	return this;
+}
+
+inline const AI::HL::W::Robot *AI::HL::W::Robot::operator->() const {
+	return this;
+}
+
+inline void AI::HL::W::Robot::avoid_distance(AI::Flags::AvoidDistance dist) const {
+	impl->avoid_distance(dist);
+}
+
+inline AI::HL::W::Player::Player() = default;
+
+inline AI::HL::W::Player::Player(AI::BE::Player::Ptr impl) : AI::HL::W::Robot(impl), AI::Common::Player(impl) {
+}
+
+inline AI::HL::W::Player::Player(const Player &) = default;
+
+inline AI::HL::W::Player *AI::HL::W::Player::operator->() {
+	return this;
+}
+
+inline const AI::HL::W::Player *AI::HL::W::Player::operator->() const {
+	return this;
+}
+
+inline void AI::HL::W::Player::move(Point dest, Angle ori, Point vel) {
+	AI::Common::Player::impl->move(dest, ori, vel);
+}
+
+inline unsigned int AI::HL::W::Player::flags() const {
+	return AI::Common::Player::impl->flags();
+}
+
+inline void AI::HL::W::Player::flags(unsigned int flags) {
+	AI::Common::Player::impl->flags(flags);
+}
+
+inline AI::Flags::MoveType AI::HL::W::Player::type() const {
+	return AI::Common::Player::impl->type();
+}
+
+inline void AI::HL::W::Player::type(AI::Flags::MoveType type) {
+	AI::Common::Player::impl->type(type);
+}
+
+inline AI::Flags::MovePrio AI::HL::W::Player::prio() const {
+	return AI::Common::Player::impl->prio();
+}
+
+inline void AI::HL::W::Player::prio(AI::Flags::MovePrio prio) {
+	AI::Common::Player::impl->prio(prio);
+}
+
+inline void AI::HL::W::Player::kick(double speed) {
+	AI::Common::Player::impl->kick(speed);
+}
+
+inline void AI::HL::W::Player::autokick(double speed) {
+	AI::Common::Player::impl->autokick(speed);
+}
+
+inline void AI::HL::W::Player::chip(double power) {
+	AI::Common::Player::impl->chip(power);
+}
+
+inline void AI::HL::W::Player::autochip(double power) {
+	AI::Common::Player::impl->autochip(power);
+}
+
+inline AI::HL::W::World::World(AI::BE::Backend &impl) : impl(impl) {
+}
+
+inline AI::HL::W::World::World(const World &) = default;
+
+inline const AI::HL::W::Field &AI::HL::W::World::field() const {
+	return impl.field();
+}
+
+inline const AI::HL::W::Ball &AI::HL::W::World::ball() const {
+	return impl.ball();
+}
+
+inline AI::HL::W::FriendlyTeam AI::HL::W::World::friendly_team() const {
+	return FriendlyTeam(impl.friendly_team());
+}
+
+inline AI::HL::W::EnemyTeam AI::HL::W::World::enemy_team() const {
+	return EnemyTeam(impl.enemy_team());
+}
+
+inline const Property<AI::Common::PlayType> &AI::HL::W::World::playtype() const {
+	return impl.playtype();
+}
+
+inline bool std::less<AI::HL::W::Robot>::operator()(const AI::HL::W::Robot &x, const AI::HL::W::Robot &y) const {
+	return cmp(x, y);
+}
+
+inline bool std::less<AI::HL::W::Player>::operator()(const AI::HL::W::Player &x, const AI::HL::W::Player &y) const {
+	return cmp(x, y);
+}
 
 #endif
 
