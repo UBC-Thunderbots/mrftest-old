@@ -20,6 +20,8 @@ static void system_tick_vector(void);
 static void external_interrupt_15_10_vector(void);
 static void timer2_wrap_interrupt(void);
 
+static void display( float );
+
 static char stack[65536] __attribute__((section(".stack")));
 
 typedef void (*fptr)(void);
@@ -189,7 +191,7 @@ static usb_ep0_source_t *on_descriptor_request(uint8_t descriptor_type, uint8_t 
 			return usb_ep0_memory_source_init(&src.mem_src, STRING_ZERO, sizeof(STRING_ZERO));
 		} else if (language == 0x1009 /* English (Canadian) */) {
 			const char *string = 0;
-			switch (descriptor_index) {
+			/*switch (descriptor_index) {
 				case 1: string = u8"UBC Thunderbots Small Size Team"; break;
 				case 2: string = u8"Speed Sensor"; break;
 				case 9:
@@ -199,7 +201,7 @@ static usb_ep0_source_t *on_descriptor_request(uint8_t descriptor_type, uint8_t 
 					serial_number_buffer[24] = 0;
 					string = serial_number_buffer;
 					break;
-			}
+			}*/
 			if (string) {
 				return usb_ep0_string_descriptor_source_init(&src.string_src, string);
 			} else {
@@ -262,7 +264,12 @@ extern const unsigned char linker_data_lma_start;
 extern unsigned char linker_bss_vma_start;
 extern unsigned char linker_bss_vma_end;
 
+// need to be checked
+#define DECIMAL_POINT_OFFSET 6 
+
 static volatile unsigned long wrap_count = 0;
+static uint8_t seg_lookup[10];
+static uint8_t display_byte[4]={0x0,0x0,0x0,0x0};
 
 static void tic_toc_setup(void){
 	rcc_enable(APB1, 0);
@@ -331,6 +338,46 @@ static void tic(void){
 static void toc(void){
 	// stop clock
 	TIM2_CR1 = 0;
+}
+
+static int get_first_digit(float fl){
+	while( fl >= 10 ){
+		fl*=0.1;
+	}
+	while( fl < 1 ){
+		fl*=10;
+	}
+	return (int)(fl);
+}
+
+static void display_float(float fl){
+	int decimal_marker = 0;
+	int digits[4]={-1,-1,-1,-1};
+	int i = 0, j = 0;
+	while( fl >= 10 ){
+		fl*=0.1;
+		decimal_marker++;
+	}
+	while( fl < 1 ){
+		fl*=10;
+		decimal_marker--;
+	}
+	digits[0]=get_first_digit(fl);
+	digits[1]=get_first_digit(fl-digits[0]);
+	digits[2]=get_first_digit(fl-digits[0]-digits[1]*0.1);
+	digits[3]=get_first_digit(fl-digits[0]-digits[1]*0.1-digits[2]*0.01);
+	if( decimal_marker > 3 ){
+	} else if( decimal_marker >= 0 ){
+		for( i = 0; i < 4; i++ ){
+			display_byte[i] = seg_lookup[digits[i]];
+		}
+		display_byte[decimal_marker] = display_byte[decimal_marker] | (1<<DECIMAL_POINT_OFFSET);
+	} else if( decimal_marker >= -3 ){
+		for( i = (0-decimal_marker), j=0; i<4; i++, j++ ){
+			display_byte[i] = seg_lookup[digits[j]];
+		}
+		display_byte[0] = display_byte[0] | (1<<DECIMAL_POINT_OFFSET);
+	}
 }
 
 static void stm32_main(void) {
