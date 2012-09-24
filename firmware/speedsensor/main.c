@@ -8,6 +8,20 @@
 #include "usb_ep0.h"
 #include "usb_ep0_sources.h"
 
+#define BIT_ACCESS(a) (a^255<<16)|a
+
+int digits[10]={	BIT_ACCESS(0b01011111),	// 0
+			BIT_ACCESS(0b01000001),	// 1
+			BIT_ACCESS(0b10011101), // 2
+			BIT_ACCESS(0b11010101),	// 3
+			BIT_ACCESS(0b11000011), // 4
+			BIT_ACCESS(0b11010110), // 5
+			BIT_ACCESS(0b11011110), // 6
+			BIT_ACCESS(0b01000101), // 7
+			BIT_ACCESS(0b11011111), // 8
+			BIT_ACCESS(0b11000111),	// 9
+};
+
 static void stm32_main(void) __attribute__((noreturn));
 static void nmi_vector(void);
 static void hard_fault_vector(void);
@@ -550,7 +564,7 @@ static void stm32_main(void) {
 	GPIOC_PUPDR = 0b00000000000000000000000000000000;
 	GPIOC_AFRH = 0b00000000000000000000000000000000;
 	GPIOC_AFRL = 0b00000000000000000000000000000000;
-	GPIOC_MODER = 0b00010101000000000101010101010101;
+	GPIOC_MODER = 0b01010100000000000101010101010101;
 	// PD15/PD14/PD13/PD12/PD11/PD10/PD9/PD8/PD7/PD6/PD5/PD4/PD3 = unimplemented on package
 	// PD2 = N/C
 	// PD1/PD0 = unimplemented on package
@@ -598,15 +612,20 @@ static void stm32_main(void) {
 
 	// turn off portC pin 13, turn on pin 14, 15
 	//GPIOC_BSRR = 3 << 13;
-	GPIOC_BSRR = 7 << (12+16);
+	//GPIOC_BSRR = 1 << (13+16);
+	GPIOC_BSRR = 1 << (14+16);
 	for (;;) {
-		for( counter_i = 0; counter_i < 8; counter_i++ ){
+		for( counter_i = 0; counter_i < 10; counter_i++){
+			GPIOC_BSRR = digits[counter_i];
+			sleep_1ms(1000);
+		}
+		/*for( counter_i = 0; counter_i < 8; counter_i++ ){
 			GPIOC_BSRR = 1 << counter_i;
 			sleep_1ms(1000);
 			GPIOC_BSRR = 1 << (counter_i+16);
 			sleep_1ms(1000);
 			
-		}
+		}*/
 		/*if( TIM2_CNT > 0xF0 ){
 			GPIOB_BSRR = (3<<16);
 			toc();
