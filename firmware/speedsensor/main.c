@@ -88,7 +88,13 @@ static void system_tick_vector(void) {
 	for (;;);
 }
 
+
+// This function is where the state machine goes
 static void external_interrupt_15_10_vector(void){
+	// TODO
+	// Take one of the interrupt to clear every thing and start the timer, set status_timer_on to on.
+	// Take the other interrupt to stop the timer and update display
+
 	if( EXTI_PR & (1<<15)){
 		EXTI_PR = 1<<15;
 		if( GPIOB_ODR & 3 ){
@@ -381,6 +387,8 @@ static void display_float(float fl){
 }
 
 static void stm32_main(void) {
+	int counter_i = 0;	
+
 	// Check if we're supposed to go to the bootloader
 	uint32_t rcc_csr_shadow = RCC_CSR; // Keep a copy of RCC_CSR
 	RCC_CSR |= 1 << 24; // RMVF = 1; clear reset flags
@@ -542,7 +550,7 @@ static void stm32_main(void) {
 	GPIOC_PUPDR = 0b00000000000000000000000000000000;
 	GPIOC_AFRH = 0b00000000000000000000000000000000;
 	GPIOC_AFRL = 0b00000000000000000000000000000000;
-	GPIOC_MODER = 0b00000000000000000000000000000000;
+	GPIOC_MODER = 0b00010101000000000101010101010101;
 	// PD15/PD14/PD13/PD12/PD11/PD10/PD9/PD8/PD7/PD6/PD5/PD4/PD3 = unimplemented on package
 	// PD2 = N/C
 	// PD1/PD0 = unimplemented on package
@@ -587,11 +595,22 @@ static void stm32_main(void) {
 	// Handle activity
 	tic_toc_setup();
 	tic();
+
+	// turn off portC pin 13, turn on pin 14, 15
+	//GPIOC_BSRR = 3 << 13;
+	GPIOC_BSRR = 7 << (12+16);
 	for (;;) {
-		if( TIM2_CNT > 0xF0 ){
+		for( counter_i = 0; counter_i < 8; counter_i++ ){
+			GPIOC_BSRR = 1 << counter_i;
+			sleep_1ms(1000);
+			GPIOC_BSRR = 1 << (counter_i+16);
+			sleep_1ms(1000);
+			
+		}
+		/*if( TIM2_CNT > 0xF0 ){
 			GPIOB_BSRR = (3<<16);
 			toc();
-		}
+		}*/
 		/*if(GPIOB_IDR & (1<<15)) {
 			GPIOB_BSRR = (3);
 		} else {

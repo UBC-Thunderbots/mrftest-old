@@ -118,6 +118,7 @@ firmware/shared/xbee_rxpacket.c -text
 firmware/shared/xbee_rxpacket.h -text
 firmware/shared/xbee_txpacket.c -text
 firmware/shared/xbee_txpacket.h -text
+firmware/speedsensor/7seg.png -text
 firmware/speedsensor/Makefile -text
 firmware/speedsensor/assert.h -text
 firmware/speedsensor/enter-dfu-mode.c -text
