@@ -96,7 +96,7 @@ namespace AI {
 				 *
 				 * \return the current monotonic time.
 				 */
-				virtual timespec monotonic_time() const = 0;
+				timespec monotonic_time() const;
 
 				/**
 				 * \brief Returns the number of table rows the backend's main tab UI controls will consume.
@@ -251,6 +251,11 @@ namespace AI {
 				Ball ball_;
 
 				/**
+				 * \brief The current monotonic time
+				 */
+				timespec monotonic_time_;
+
+				/**
 				 * \brief Constructs a new Backend.
 				 */
 				explicit Backend();
@@ -316,6 +321,10 @@ inline const AI::BE::Field &AI::BE::Backend::field() const {
 
 inline const AI::BE::Ball &AI::BE::Backend::ball() const {
 	return ball_;
+}
+
+inline timespec AI::BE::Backend::monotonic_time() const {
+	return monotonic_time_;
 }
 
 #endif

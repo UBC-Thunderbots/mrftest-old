@@ -98,8 +98,6 @@ FileDescriptor AI::BE::Simulator::connect_to_simulator() {
 }
 
 AI::BE::Simulator::Backend::Backend(const std::string &load_filename) : sock(connect_to_simulator()), friendly_(*this), enemy_(*this), secondary_controls(load_filename), dragging_ball(false), dragging_pattern(std::numeric_limits<unsigned int>::max()) {
-	monotonic_time_.tv_sec = 0;
-	monotonic_time_.tv_nsec = 0;
 	secondary_controls.speed_normal.signal_toggled().connect(sigc::mem_fun(this, &Backend::on_speed_toggled));
 	secondary_controls.speed_fast.signal_toggled().connect(sigc::mem_fun(this, &Backend::on_speed_toggled));
 	secondary_controls.speed_slow.signal_toggled().connect(sigc::mem_fun(this, &Backend::on_speed_toggled));
@@ -154,10 +152,6 @@ const AI::BE::Team<AI::BE::Player> &AI::BE::Simulator::Backend::friendly_team() 
 
 const AI::BE::Team<AI::BE::Robot> &AI::BE::Simulator::Backend::enemy_team() const {
 	return enemy_;
-}
-
-timespec AI::BE::Simulator::Backend::monotonic_time() const {
-	return monotonic_time_;
 }
 
 std::size_t AI::BE::Simulator::Backend::visualizable_num_robots() const {

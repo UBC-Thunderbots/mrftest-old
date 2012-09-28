@@ -171,7 +171,6 @@ namespace {
 			timespec playtype_time;
 			Point playtype_arm_ball_position;
 			SSL_DetectionFrame detections[2];
-			timespec now;
 
 			void tick();
 			bool on_vision_readable(Glib::IOCondition);
@@ -409,10 +408,6 @@ void XBeeBackend::mouse_exited() {
 void XBeeBackend::mouse_moved(Point) {
 }
 
-timespec XBeeBackend::monotonic_time() const {
-	return now;
-}
-
 void XBeeBackend::tick() {
 	// If the field geometry is not yet valid, do nothing.
 	if (!field_.valid()) {
@@ -420,10 +415,10 @@ void XBeeBackend::tick() {
 	}
 
 	// Do pre-AI stuff (locking predictors).
-	now = clock.now();
-	ball_.lock_time(now);
-	friendly.lock_time(now);
-	enemy.lock_time(now);
+	monotonic_time_ = clock.now();
+	ball_.lock_time(monotonic_time_);
+	friendly.lock_time(monotonic_time_);
+	enemy.lock_time(monotonic_time_);
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		friendly.get_xbee_robot(i)->pre_tick();
 	}
@@ -442,7 +437,7 @@ void XBeeBackend::tick() {
 	// Notify anyone interested in the finish of a tick.
 	timespec after;
 	after = clock.now();
-	signal_post_tick().emit(timespec_to_nanos(timespec_sub(after, now)));
+	signal_post_tick().emit(timespec_to_nanos(timespec_sub(after, monotonic_time_)));
 }
 
 bool XBeeBackend::on_vision_readable(Glib::IOCondition) {

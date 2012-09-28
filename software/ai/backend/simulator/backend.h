@@ -181,7 +181,6 @@ namespace AI {
 					AI::BE::BackendFactory &factory() const;
 					const AI::BE::Team<AI::BE::Player> &friendly_team() const;
 					const AI::BE::Team<AI::BE::Robot> &enemy_team() const;
-					timespec monotonic_time() const;
 					std::size_t visualizable_num_robots() const;
 					Visualizable::Robot::Ptr visualizable_robot(std::size_t i) const;
 					void mouse_pressed(Point p, unsigned int btn);
@@ -208,11 +207,6 @@ namespace AI {
 					 * The enemy team.
 					 */
 					AI::BE::Simulator::EnemyTeam enemy_;
-
-					/**
-					 * The timestamp in game monotonic time of the most recent AI tick.
-					 */
-					timespec monotonic_time_;
 
 					/**
 					 * The secondary tab UI controls.
