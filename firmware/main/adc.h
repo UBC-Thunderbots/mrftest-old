@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 typedef enum {
-	THERMISTOR,
+	CHICKER,
 	BREAKBEAM,
 	LPS,
 	BATT_VOLT
