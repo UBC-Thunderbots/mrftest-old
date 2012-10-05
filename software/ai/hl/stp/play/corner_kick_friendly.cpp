@@ -13,8 +13,10 @@ using AI::HL::STP::Coordinate;
  * - Pass the ball to a friendly player. 
  */
 BEGIN_PLAY(CornerKickFriendly)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2)
-&& Predicates::ball_in_their_corner(world))
+INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY)
+		|| Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY))
+		&& Predicates::our_team_size_at_least(world, 2)
+		&& Predicates::ball_in_their_corner(world))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
@@ -45,8 +47,3 @@ roles[3].push_back(offend(world));
 roles[4].push_back(defend_duo_extra1(world));
 END_ASSIGN()
 END_PLAY()
-
-
-
-
-

@@ -375,6 +375,8 @@ software/ai/hl/stp/tactic/shadow_kickoff.cpp -text
 software/ai/hl/stp/tactic/shadow_kickoff.h -text
 software/ai/hl/stp/tactic/shoot.cpp -text
 software/ai/hl/stp/tactic/shoot.h -text
+software/ai/hl/stp/tactic/smart_shoot.cpp -text
+software/ai/hl/stp/tactic/smart_shoot.h -text
 software/ai/hl/stp/tactic/tactic.cpp -text
 software/ai/hl/stp/tactic/tactic.h -text
 software/ai/hl/stp/tactic/tdefend.cpp -text
