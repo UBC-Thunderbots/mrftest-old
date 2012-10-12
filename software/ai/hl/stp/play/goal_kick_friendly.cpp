@@ -6,9 +6,12 @@ namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::Coordinate;
 
 /**
- *Chips ball to center of field from friendly corner
+ * Condition:
+ * - Playtype Free Kick Friendly, ball in our corner
+ *
+ * Objective:
+ * - Handle Friendly Free Kick by chipping or kicking. 
  */
-
 BEGIN_PLAY(GoalKickFriendly)
 INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2)
 && Predicates::ball_in_our_corner(world))
@@ -30,7 +33,7 @@ if (world.ball().position().y > 0) {
 goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
-// kicker
+// kicker (chips or kicks)
 roles[0].push_back(free_kick_pass(world, drop_point, true));
 
 // ROLE 2

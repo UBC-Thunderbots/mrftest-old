@@ -4,6 +4,13 @@
 
 using AI::HL::STP::Enemy;
 
+/**
+ * Condition:
+ * - Playtype Play
+ *
+ * Objective:
+ * - just fight for the ball
+ */
 BEGIN_PLAY(JustSpin)
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2) && fight_ball(world))
 APPLICABLE(true)

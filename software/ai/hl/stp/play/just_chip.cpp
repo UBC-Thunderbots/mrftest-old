@@ -3,6 +3,13 @@
 
 using AI::HL::STP::Coordinate;
 
+/**
+ * Condition:
+ * - Playtype Play
+ *
+ * Objective:
+ * - just chip at the enemy goal
+ */
 BEGIN_PLAY(JustChip)
 INVARIANT(playtype(world, PlayType::PLAY)
 		&& our_team_size_at_least(world, 2)

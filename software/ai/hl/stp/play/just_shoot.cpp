@@ -3,6 +3,13 @@
 
 using AI::HL::STP::Enemy;
 
+/**
+ * Condition:
+ * - Playtype Play
+ *
+ * Objective:
+ * - just shoot at the enemy goal
+ */
 BEGIN_PLAY(JustShoot)
 INVARIANT(playtype(world, PlayType::PLAY)
 		&& our_team_size_at_least(world, 2))

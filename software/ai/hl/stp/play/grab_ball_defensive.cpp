@@ -5,6 +5,13 @@
 namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::Enemy;
 
+/**
+ * Condition:
+ * - Ball not under team possession and the ball is in our side of the field
+ *
+ * Objective:
+ * - Grab the ball, defensively
+ */
 BEGIN_PLAY(GrabBallDefensive)
 INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY)
 	&& Predicates::our_team_size_at_least(world, 2))
