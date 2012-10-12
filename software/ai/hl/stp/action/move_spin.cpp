@@ -13,13 +13,26 @@ namespace {
 }
 
 void AI::HL::STP::Action::move_spin(Player::Ptr player, const Point dest) {
-	// spin in different directions depending on if you are on the top or bottom of the field
+	// spin in different directions depending on which quadrant of the field the robot is at
 	int direction_to_spin;
-	if (dest.y > 0) {
-		direction_to_spin = CLOCKWISE;
-	} else {
-		direction_to_spin = COUNTER_CLOCKWISE;
+
+	if(player->position().x < 0){
+		if(player->position().y < 0){
+			direction_to_spin= CLOCKWISE;
+		}
+		else{
+			direction_to_spin= COUNTER_CLOCKWISE;
+		}
 	}
+	else{
+		if(player->position().y < 0){
+			direction_to_spin= COUNTER_CLOCKWISE;
+		}
+		else{
+			direction_to_spin= CLOCKWISE;
+		}
+	}
+
 
 	// spin faster when you are close to the destination point
 	if ((player->position() - dest).len() < AI::HL::Util::POS_CLOSE + Robot::MAX_RADIUS) {
