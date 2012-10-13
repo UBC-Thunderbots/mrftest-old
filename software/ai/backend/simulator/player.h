@@ -57,9 +57,6 @@ namespace AI {
 					void chip_impl(double speed) { kick_impl(speed); }
 					void autochip_impl(double speed) { autokick_impl(speed); }
 					bool autokick_fired() const;
-					unsigned int num_bar_graphs() const { return 0; }
-					double bar_graph_value(unsigned int) const { std::abort(); }
-					Visualizable::Colour bar_graph_colour(unsigned int) const { std::abort(); }
 
 				private:
 					/**
