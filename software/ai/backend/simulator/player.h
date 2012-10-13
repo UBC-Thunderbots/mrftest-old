@@ -49,9 +49,7 @@ namespace AI {
 					void start_drag() { dragging_ = true; }
 					void stop_drag() { dragging_ = false; }
 
-					Visualizable::Colour visualizer_colour() const;
 					bool highlight() const;
-					Visualizable::Colour highlight_colour() const;
 					bool has_ball() const;
 					bool chicker_ready() const;
 					void kick_impl(double speed);

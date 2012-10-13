@@ -115,6 +115,22 @@ void Player::pre_tick() {
 	move_prio_ = AI::Flags::MovePrio::MEDIUM;
 }
 
+Visualizable::Colour Player::visualizer_colour() const {
+	return Visualizable::Colour(0.0, 1.0, 0.0);
+}
+
+bool Player::highlight() const {
+	return has_ball();
+}
+
+Visualizable::Colour Player::highlight_colour() const {
+	if (has_ball()) {
+		return Visualizable::Colour(1.0, 0.5, 0.0);
+	} else {
+		return Visualizable::Colour(0.0, 0.0, 0.0);
+	}
+}
+
 Player::Player(unsigned int pattern) : AI::BE::Robot(pattern), moved(false), destination_(Point(), Angle::ZERO), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 }

@@ -24,20 +24,8 @@ void AI::BE::Simulator::Player::encode_orders(::Simulator::Proto::A2SPlayerInfo 
 	std::copy(&wheel_speeds_[0], &wheel_speeds_[4], &orders.wheel_speeds[0]);
 }
 
-Visualizable::Colour AI::BE::Simulator::Player::visualizer_colour() const {
-	return Visualizable::Colour(0.0, 1.0, 0.0);
-}
-
 bool AI::BE::Simulator::Player::highlight() const {
-	return has_ball() || dragging_;
-}
-
-Visualizable::Colour AI::BE::Simulator::Player::highlight_colour() const {
-	if (has_ball()) {
-		return Visualizable::Colour(1.0, 0.5, 0.0);
-	} else {
-		return Visualizable::Colour(0.0, 0.0, 0.0);
-	}
+	return AI::BE::Player::highlight() || dragging_;
 }
 
 bool AI::BE::Simulator::Player::has_ball() const {

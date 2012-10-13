@@ -176,22 +176,6 @@ void Player::tick(bool halt) {
 	last_dribble_position = position(0.0);
 }
 
-Visualizable::Colour Player::visualizer_colour() const {
-	return Visualizable::Colour(0.0, 1.0, 0.0);
-}
-
-Glib::ustring Player::visualizer_label() const {
-	return Glib::ustring::format(pattern());
-}
-
-bool Player::highlight() const {
-	return has_ball();
-}
-
-Visualizable::Colour Player::highlight_colour() const {
-	return Visualizable::Colour(1.0, 0.5, 0.0);
-}
-
 Player::AutokickParams::AutokickParams() : chip(false), pulse(0) {
 }
 

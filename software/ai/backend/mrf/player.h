@@ -50,10 +50,6 @@ namespace AI {
 					 */
 					void tick(bool halt);
 
-					Visualizable::Colour visualizer_colour() const;
-					Glib::ustring visualizer_label() const;
-					bool highlight() const;
-					Visualizable::Colour highlight_colour() const;
 					bool has_ball() const;
 					bool chicker_ready() const;
 					void kick_impl(double speed);

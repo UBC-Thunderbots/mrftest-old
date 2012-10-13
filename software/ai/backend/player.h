@@ -49,6 +49,10 @@ namespace AI {
 				const int(&wheel_speeds() const)[4];
 				void pre_tick();
 
+				Visualizable::Colour visualizer_colour() const;
+				bool highlight() const;
+				Visualizable::Colour highlight_colour() const;
+
 				virtual bool has_ball() const = 0;
 				virtual bool chicker_ready() const = 0;
 				virtual bool autokick_fired() const = 0;
