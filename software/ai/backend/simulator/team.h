@@ -25,17 +25,6 @@ namespace AI {
 			template<typename T> class GenericTeam : public NonCopyable {
 				public:
 					/**
-					 * \brief The property holding the team's score.
-					 */
-					Property<unsigned int> score_prop;
-
-					/**
-					 * \brief Constructs a new GenericTeam.
-					 */
-					explicit GenericTeam() : score_prop(0) {
-					}
-
-					/**
 					 * \brief Creates a robot.
 					 *
 					 * \tparam Args the types of the constructor arguments
@@ -68,7 +57,6 @@ namespace AI {
 					 */
 					virtual void emit_membership_changed() const = 0;
 
-					unsigned int score() const { return score_prop; }
 					std::size_t size() const { return member_ptrs.size(); }
 					typename T::Ptr get(std::size_t i) const { return member_ptrs[i]; }
 
@@ -127,7 +115,7 @@ namespace AI {
 					 */
 					void pre_tick(const ::Simulator::Proto::S2APlayerInfo(&state)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM], unsigned int score, const timespec &ts) {
 						// Record new score.
-						score_prop = score;
+						this->score = score;
 
 						// Remove any robots that no longer appear.
 						for (std::size_t i = 0; i < size(); ++i) {
@@ -185,7 +173,6 @@ namespace AI {
 						}
 					}
 
-					unsigned int score() const { return GenericTeam<Player>::score(); }
 					std::size_t size() const { return GenericTeam<Player>::size(); }
 					AI::BE::Player::Ptr get(std::size_t i) const { return get_impl(i); }
 					void emit_membership_changed() const { signal_membership_changed().emit(); }
@@ -230,7 +217,7 @@ namespace AI {
 					 */
 					void pre_tick(const ::Simulator::Proto::S2ARobotInfo(&state)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM], unsigned int score, const timespec &ts) {
 						// Record new score.
-						score_prop = score;
+						this->score = score;
 
 						// Remove any robots that no longer appear.
 						for (std::size_t i = 0; i < size(); ++i) {
@@ -275,7 +262,6 @@ namespace AI {
 						}
 					}
 
-					unsigned int score() const { return GenericTeam<Robot>::score(); }
 					std::size_t size() const { return GenericTeam<Robot>::size(); }
 					AI::BE::Robot::Ptr get(std::size_t i) const { return get_impl(i); }
 					void emit_membership_changed() const { signal_membership_changed().emit(); }

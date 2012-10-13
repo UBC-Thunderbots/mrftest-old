@@ -118,7 +118,6 @@ namespace {
 	class XBeeFriendlyTeam : public GenericTeam<AI::BE::XBee::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>> {
 		public:
 			explicit XBeeFriendlyTeam(XBeeBackend &backend, XBeeDongle &dongle);
-			unsigned int score() const;
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -133,7 +132,6 @@ namespace {
 	class XBeeEnemyTeam : public GenericTeam<AI::BE::Robot, AI::BE::Robot, AI::BE::Team<AI::BE::Robot>> {
 		public:
 			explicit XBeeEnemyTeam(XBeeBackend &backend);
-			unsigned int score() const;
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -176,6 +174,7 @@ namespace {
 			bool on_vision_readable(Glib::IOCondition);
 			void on_refbox_packet(const void *data, std::size_t length);
 			void update_playtype();
+			void update_scores();
 			void on_friendly_colour_changed();
 			AI::Common::PlayType compute_playtype(AI::Common::PlayType old_pt);
 	};
@@ -292,19 +291,11 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 XBeeFriendlyTeam::XBeeFriendlyTeam(XBeeBackend &backend, XBeeDongle &dongle) : GenericTeam<AI::BE::XBee::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>>(backend), dongle(dongle) {
 }
 
-unsigned int XBeeFriendlyTeam::score() const {
-	return backend.friendly_colour() == AI::Common::Colour::YELLOW ? backend.refbox.goals_yellow : backend.refbox.goals_blue;
-}
-
 void XBeeFriendlyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, pattern, std::ref(dongle.robot(pattern)));
 }
 
 XBeeEnemyTeam::XBeeEnemyTeam(XBeeBackend &backend) : GenericTeam<AI::BE::Robot, AI::BE::Robot, AI::BE::Team<AI::BE::Robot>>(backend) {
-}
-
-unsigned int XBeeEnemyTeam::score() const {
-	return backend.friendly_colour() == AI::Common::Colour::YELLOW ? backend.refbox.goals_blue : backend.refbox.goals_yellow;
 }
 
 void XBeeEnemyTeam::create_member(unsigned int pattern) {
@@ -319,6 +310,9 @@ XBeeBackend::XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, int multi
 	refbox.command.signal_changed().connect(sigc::mem_fun(this, &XBeeBackend::update_playtype));
 	friendly_colour().signal_changed().connect(sigc::mem_fun(this, &XBeeBackend::on_friendly_colour_changed));
 	playtype_override().signal_changed().connect(sigc::mem_fun(this, &XBeeBackend::update_playtype));
+	refbox.goals_yellow.signal_changed().connect(sigc::mem_fun(this, &XBeeBackend::update_scores));
+	refbox.goals_blue.signal_changed().connect(sigc::mem_fun(this, &XBeeBackend::update_scores));
+	refbox.signal_packet.connect(sigc::mem_fun(this, &XBeeBackend::on_refbox_packet));
 
 	clock.signal_tick.connect(sigc::mem_fun(this, &XBeeBackend::tick));
 
@@ -350,10 +344,6 @@ XBeeBackend::XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, int multi
 	}
 
 	Glib::signal_io().connect(sigc::mem_fun(this, &XBeeBackend::on_vision_readable), vision_socket.fd(), Glib::IO_IN);
-
-	refbox.signal_packet.connect(sigc::mem_fun(this, &XBeeBackend::on_refbox_packet));
-	refbox.goals_yellow.signal_changed().connect(signal_score_changed().make_slot());
-	refbox.goals_blue.signal_changed().connect(signal_score_changed().make_slot());
 
 	playtype_time = clock.now();
 }
@@ -565,8 +555,19 @@ void XBeeBackend::update_playtype() {
 	}
 }
 
+void XBeeBackend::update_scores() {
+	if (friendly_colour() == AI::Common::Colour::YELLOW) {
+		friendly.score = refbox.goals_yellow.get();
+		enemy.score = refbox.goals_blue.get();
+	} else {
+		friendly.score = refbox.goals_blue.get();
+		enemy.score = refbox.goals_yellow.get();
+	}
+}
+
 void XBeeBackend::on_friendly_colour_changed() {
 	update_playtype();
+	update_scores();
 	friendly.clear();
 	enemy.clear();
 }

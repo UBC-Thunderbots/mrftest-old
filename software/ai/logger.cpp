@@ -125,7 +125,8 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), fos(fd.
 	ai.backend.friendly_colour().signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_friendly_colour_changed));
 	ai.backend.ball_filter().signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_ball_filter_changed));
 	ai.robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_robot_controller_factory_changed));
-	ai.backend.signal_score_changed().connect(sigc::mem_fun(this, &AI::Logger::on_score_changed));
+	ai.backend.friendly_team().score.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_score_changed));
+	ai.backend.enemy_team().score.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_score_changed));
 	ai.backend.signal_post_tick().connect(sigc::mem_fun(this, &AI::Logger::on_tick));
 	ai.high_level.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_high_level_changed));
 
@@ -317,8 +318,8 @@ void AI::Logger::on_robot_controller_factory_changed() {
 
 void AI::Logger::on_score_changed() {
 	Log::Record record;
-	record.mutable_scores()->set_friendly(ai.backend.friendly_team().score());
-	record.mutable_scores()->set_enemy(ai.backend.enemy_team().score());
+	record.mutable_scores()->set_friendly(ai.backend.friendly_team().score);
+	record.mutable_scores()->set_enemy(ai.backend.enemy_team().score);
 	write_record(record);
 }
 

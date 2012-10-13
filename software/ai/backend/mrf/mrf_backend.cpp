@@ -117,7 +117,6 @@ namespace {
 	class MRFFriendlyTeam : public GenericTeam<AI::BE::MRF::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>> {
 		public:
 			explicit MRFFriendlyTeam(MRFBackend &backend, MRFDongle &dongle);
-			unsigned int score() const;
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -132,7 +131,6 @@ namespace {
 	class MRFEnemyTeam : public GenericTeam<AI::BE::Robot, AI::BE::Robot, AI::BE::Team<AI::BE::Robot>> {
 		public:
 			explicit MRFEnemyTeam(MRFBackend &backend);
-			unsigned int score() const;
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -175,6 +173,7 @@ namespace {
 			bool on_vision_readable(Glib::IOCondition);
 			void on_refbox_packet(const void *data, std::size_t length);
 			void update_playtype();
+			void update_scores();
 			void on_friendly_colour_changed();
 			AI::Common::PlayType compute_playtype(AI::Common::PlayType old_pt);
 	};
@@ -294,10 +293,6 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 MRFFriendlyTeam::MRFFriendlyTeam(MRFBackend &backend, MRFDongle &dongle) : GenericTeam<AI::BE::MRF::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>>(backend), dongle(dongle) {
 }
 
-unsigned int MRFFriendlyTeam::score() const {
-	return backend.friendly_colour() == AI::Common::Colour::YELLOW ? backend.refbox.goals_yellow : backend.refbox.goals_blue;
-}
-
 void MRFFriendlyTeam::create_member(unsigned int pattern) {
 	if (pattern < 8) {
 		members.create(pattern, pattern, std::ref(dongle.robot(pattern)));
@@ -305,10 +300,6 @@ void MRFFriendlyTeam::create_member(unsigned int pattern) {
 }
 
 MRFEnemyTeam::MRFEnemyTeam(MRFBackend &backend) : GenericTeam<AI::BE::Robot, AI::BE::Robot, AI::BE::Team<AI::BE::Robot>>(backend) {
-}
-
-unsigned int MRFEnemyTeam::score() const {
-	return backend.friendly_colour() == AI::Common::Colour::YELLOW ? backend.refbox.goals_blue : backend.refbox.goals_yellow;
 }
 
 void MRFEnemyTeam::create_member(unsigned int pattern) {
@@ -323,6 +314,9 @@ MRFBackend::MRFBackend(MRFDongle &dongle, unsigned int camera_mask, int multicas
 	refbox.command.signal_changed().connect(sigc::mem_fun(this, &MRFBackend::update_playtype));
 	friendly_colour().signal_changed().connect(sigc::mem_fun(this, &MRFBackend::on_friendly_colour_changed));
 	playtype_override().signal_changed().connect(sigc::mem_fun(this, &MRFBackend::update_playtype));
+	refbox.goals_yellow.signal_changed().connect(sigc::mem_fun(this, &MRFBackend::update_scores));
+	refbox.goals_blue.signal_changed().connect(sigc::mem_fun(this, &MRFBackend::update_scores));
+	refbox.signal_packet.connect(sigc::mem_fun(this, &MRFBackend::on_refbox_packet));
 
 	clock.signal_tick.connect(sigc::mem_fun(this, &MRFBackend::tick));
 
@@ -354,10 +348,6 @@ MRFBackend::MRFBackend(MRFDongle &dongle, unsigned int camera_mask, int multicas
 	}
 
 	Glib::signal_io().connect(sigc::mem_fun(this, &MRFBackend::on_vision_readable), vision_socket.fd(), Glib::IO_IN);
-
-	refbox.signal_packet.connect(sigc::mem_fun(this, &MRFBackend::on_refbox_packet));
-	refbox.goals_yellow.signal_changed().connect(signal_score_changed().make_slot());
-	refbox.goals_blue.signal_changed().connect(signal_score_changed().make_slot());
 
 	playtype_time = clock.now();
 }
@@ -569,8 +559,19 @@ void MRFBackend::update_playtype() {
 	}
 }
 
+void MRFBackend::update_scores() {
+	if (friendly_colour() == AI::Common::Colour::YELLOW) {
+		friendly.score = refbox.goals_yellow.get();
+		enemy.score = refbox.goals_blue.get();
+	} else {
+		friendly.score = refbox.goals_blue.get();
+		enemy.score = refbox.goals_yellow.get();
+	}
+}
+
 void MRFBackend::on_friendly_colour_changed() {
 	update_playtype();
+	update_scores();
 	friendly.clear();
 	enemy.clear();
 }

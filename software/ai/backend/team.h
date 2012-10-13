@@ -2,6 +2,7 @@
 #define AI_BACKEND_TEAM_H
 
 #include "util/noncopyable.h"
+#include "util/property.h"
 #include <sigc++/signal.h>
 
 namespace AI {
@@ -13,6 +14,16 @@ namespace AI {
 		 */
 		template<typename T> class Team : public NonCopyable {
 			public:
+				/**
+				 * \brief The team’s score
+				 */
+				Property<unsigned int> score;
+
+				/**
+				 * \brief Constructs a new Team
+				 */
+				Team();
+
 				/**
 				 * \brief Returns the size of the team
 				 *
@@ -36,13 +47,6 @@ namespace AI {
 				 */
 				sigc::signal<void> &signal_membership_changed() const;
 
-				/**
-				 * \brief Returns the number of points scored by the team.
-				 *
-				 * \return the team’s score
-				 */
-				virtual unsigned int score() const = 0;
-
 			private:
 				mutable sigc::signal<void> signal_membership_changed_;
 		};
@@ -50,6 +54,9 @@ namespace AI {
 }
 
 
+
+template<typename T> inline AI::BE::Team<T>::Team() : score(0U) {
+}
 
 template<typename T> inline sigc::signal<void> &AI::BE::Team<T>::signal_membership_changed() const {
 	return signal_membership_changed_;

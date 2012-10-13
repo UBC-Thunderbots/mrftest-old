@@ -123,7 +123,6 @@ namespace {
 	class HybridFriendlyTeam : public GenericTeam<AI::BE::Hybrid::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>> {
 		public:
 			explicit HybridFriendlyTeam(HybridBackend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle);
-			unsigned int score() const;
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -139,7 +138,6 @@ namespace {
 	class HybridEnemyTeam : public GenericTeam<AI::BE::Robot, AI::BE::Robot, AI::BE::Team<AI::BE::Robot>> {
 		public:
 			explicit HybridEnemyTeam(HybridBackend &backend);
-			unsigned int score() const;
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -182,6 +180,7 @@ namespace {
 			bool on_vision_readable(Glib::IOCondition);
 			void on_refbox_packet(const void *data, std::size_t length);
 			void update_playtype();
+			void update_scores();
 			void on_friendly_colour_changed();
 			AI::Common::PlayType compute_playtype(AI::Common::PlayType old_pt);
 	};
@@ -298,10 +297,6 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 HybridFriendlyTeam::HybridFriendlyTeam(HybridBackend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle) : GenericTeam<AI::BE::Hybrid::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>>(backend), xbee_dongle(xbee_dongle), mrf_dongle(mrf_dongle) {
 }
 
-unsigned int HybridFriendlyTeam::score() const {
-	return backend.friendly_colour() == AI::Common::Colour::YELLOW ? backend.refbox.goals_yellow : backend.refbox.goals_blue;
-}
-
 void HybridFriendlyTeam::create_member(unsigned int pattern) {
 	if (pattern <= 7 && USE_MRF[pattern]) {
 		members.create(pattern, pattern, &mrf_dongle.robot(pattern));
@@ -311,10 +306,6 @@ void HybridFriendlyTeam::create_member(unsigned int pattern) {
 }
 
 HybridEnemyTeam::HybridEnemyTeam(HybridBackend &backend) : GenericTeam<AI::BE::Robot, AI::BE::Robot, AI::BE::Team<AI::BE::Robot>>(backend) {
-}
-
-unsigned int HybridEnemyTeam::score() const {
-	return backend.friendly_colour() == AI::Common::Colour::YELLOW ? backend.refbox.goals_blue : backend.refbox.goals_yellow;
 }
 
 void HybridEnemyTeam::create_member(unsigned int pattern) {
@@ -329,6 +320,9 @@ HybridBackend::HybridBackend(XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle, uns
 	refbox.command.signal_changed().connect(sigc::mem_fun(this, &HybridBackend::update_playtype));
 	friendly_colour().signal_changed().connect(sigc::mem_fun(this, &HybridBackend::on_friendly_colour_changed));
 	playtype_override().signal_changed().connect(sigc::mem_fun(this, &HybridBackend::update_playtype));
+	refbox.goals_yellow.signal_changed().connect(sigc::mem_fun(this, &HybridBackend::update_scores));
+	refbox.goals_blue.signal_changed().connect(sigc::mem_fun(this, &HybridBackend::update_scores));
+	refbox.signal_packet.connect(sigc::mem_fun(this, &HybridBackend::on_refbox_packet));
 
 	clock.signal_tick.connect(sigc::mem_fun(this, &HybridBackend::tick));
 
@@ -360,10 +354,6 @@ HybridBackend::HybridBackend(XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle, uns
 	}
 
 	Glib::signal_io().connect(sigc::mem_fun(this, &HybridBackend::on_vision_readable), vision_socket.fd(), Glib::IO_IN);
-
-	refbox.signal_packet.connect(sigc::mem_fun(this, &HybridBackend::on_refbox_packet));
-	refbox.goals_yellow.signal_changed().connect(signal_score_changed().make_slot());
-	refbox.goals_blue.signal_changed().connect(signal_score_changed().make_slot());
 
 	playtype_time = clock.now();
 }
@@ -575,8 +565,19 @@ void HybridBackend::update_playtype() {
 	}
 }
 
+void HybridBackend::update_scores() {
+	if (friendly_colour() == AI::Common::Colour::YELLOW) {
+		friendly.score = refbox.goals_yellow.get();
+		enemy.score = refbox.goals_blue.get();
+	} else {
+		friendly.score = refbox.goals_blue.get();
+		enemy.score = refbox.goals_yellow.get();
+	}
+}
+
 void HybridBackend::on_friendly_colour_changed() {
 	update_playtype();
+	update_scores();
 	friendly.clear();
 	enemy.clear();
 }

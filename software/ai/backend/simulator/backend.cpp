@@ -106,8 +106,6 @@ AI::BE::Simulator::Backend::Backend(const std::string &load_filename) : sock(con
 	secondary_controls.state_file_load_button.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_state_file_load_clicked));
 	secondary_controls.state_file_save_button.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_state_file_save_clicked));
 	Glib::signal_io().connect(sigc::mem_fun(this, &Backend::on_packet), sock.fd(), Glib::IO_IN);
-	friendly_.score_prop.signal_changed().connect(signal_score_changed().make_slot());
-	enemy_.score_prop.signal_changed().connect(signal_score_changed().make_slot());
 	playtype_override().signal_changed().connect(sigc::mem_fun(this, &Backend::update_playtype));
 
 	if (!load_filename.empty()) {

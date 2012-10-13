@@ -222,15 +222,6 @@ namespace AI {
 				}
 
 				/**
-				 * \brief Returns a signal that fires when the friendly or enemy team's score changes.
-				 *
-				 * \return the change signal.
-				 */
-				sigc::signal<void> &signal_score_changed() const {
-					return signal_score_changed_;
-				}
-
-				/**
 				 * \brief Returns a signal that fires when the visualizer needs an overlay to be drawn.
 				 *
 				 * \return the signal.
@@ -278,7 +269,6 @@ namespace AI {
 				mutable sigc::signal<void, unsigned int> signal_post_tick_;
 				mutable sigc::signal<void, timespec, const SSL_WrapperPacket &> signal_vision_;
 				mutable sigc::signal<void, timespec, const void *, std::size_t> signal_refbox_;
-				mutable sigc::signal<void> signal_score_changed_;
 				mutable sigc::signal<void, Cairo::RefPtr<Cairo::Context> > signal_draw_overlay_;
 
 				void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
