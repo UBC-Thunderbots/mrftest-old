@@ -64,20 +64,21 @@ namespace {
 			 * clearDistance is double value subject to change.
 			 */
 
-			bool chipperclear(Player::Ptr Player) {
+			bool chipperclear(Player::Ptr player) {
 				std::size_t size_enemy = world.enemy_team().size();
 
 				double clearDistance = 0.18;
 
 				for (size_t i = 0; i < size_enemy; i++) {
-					Point displacement = world.enemy_team().get(i)->position() - Player->position();
+					Point displacement = world.enemy_team().get(i)->position() - player->position();
 
-					if (displacement.len() < clearDistance)
+					if (displacement.len() < clearDistance && player->orientation().angle_mod().to_radians() < M_PI / 2 && player->orientation().angle_mod().to_radians() > -M_PI / 2) {
 						return false;
+					}
 				}
 
 				return true;
-				}
+			}
 
 
 			/*
