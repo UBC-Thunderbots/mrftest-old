@@ -29,7 +29,7 @@ namespace {
 		private:
 			size_t defender_role;
 			void execute();
-			Player::Ptr select(const std::set<Player::Ptr> &) const {
+			Player select(const std::set<Player> &) const {
 				assert(0);
 			}
 			Glib::ustring description() const {
@@ -51,7 +51,7 @@ namespace {
 
 		private:
 			void execute();
-			Player::Ptr select(const std::set<Player::Ptr> &) const {
+			Player select(const std::set<Player> &) const {
 				assert(0);
 			}
 			Glib::ustring description() const {
@@ -66,14 +66,14 @@ namespace {
 
 		private:
 			unsigned index;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
 				return "extra defender";
 			}
 	};
 
-	bool dangerous(World world, const Player::Ptr &player) {
+	bool dangerous(World world, const Player &player) {
 		// definition of "danger" is identified by the seg point between ball, net and players
 		const double danger_dist = 0.3;
 		// definition of "danger" is identified by the distance from ball to net
@@ -122,13 +122,13 @@ namespace {
 		Action::goalie_move(world, player, dest);
 	}
 
-	Player::Ptr Defender::select(const std::set<Player::Ptr> &players) const {
+	Player Defender::select(const std::set<Player> &players) const {
 		auto waypoints = Evaluation::evaluate_defense();
 		Point dest = waypoints[index];
 		if (tdefend && index > 0 && index < 3) {
 			dest = Evaluation::evaluate_tdefense(world, index);
 		}
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest));
 	}
 
 	void Defender::execute() {

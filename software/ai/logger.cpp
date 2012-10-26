@@ -370,7 +370,7 @@ void AI::Logger::on_tick(unsigned int compute_time) {
 
 	for (std::size_t i = 0; i < ai.backend.enemy_team().size(); ++i) {
 		Log::Tick::EnemyRobot &robot = *tick.add_enemy_robots();
-		AI::BE::Robot::CPtr r = ai.backend.enemy_team().get(i);
+		AI::BE::Robot::Ptr r = ai.backend.enemy_team().get(i);
 		robot.set_pattern(r->pattern());
 		robot.mutable_position()->set_x(encode_micros(r->position(0).x));
 		robot.mutable_position()->set_y(encode_micros(r->position(0).y));

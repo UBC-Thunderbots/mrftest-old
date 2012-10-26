@@ -62,7 +62,7 @@ namespace {
 
 		Point ball_pos = world.ball().position();
 		if (defense_follow_enemy_baller) {
-			Robot::Ptr robot = calc_enemy_baller(world);
+			Robot robot = calc_enemy_baller(world);
 			if (robot) {
 				ball_pos = robot->position();
 			}
@@ -111,12 +111,12 @@ namespace {
 			waypoint_defenders.push_back(D1);
 		}
 
-		std::vector<Robot::Ptr> enemies = enemies_by_grab_ball_dist();
+		std::vector<Robot> enemies = enemies_by_grab_ball_dist();
 
 		// sort enemies by distance to own goal
-		// std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(field.friendly_goal()));
+		// std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot>(field.friendly_goal()));
 
-		std::vector<Robot::Ptr> threat;
+		std::vector<Robot> threat;
 
 		if (open_net_dangerous && second_needed) {
 			std::vector<Point> obstacles;
@@ -142,7 +142,7 @@ namespace {
 		for (size_t i = 0; i < threat.size() && waypoint_defenders.size() < MAX_DEFENDERS; ++i) {
 // HACK
 			if (defense_follow_enemy_baller) {
-				Robot::Ptr robot = calc_enemy_baller(world);
+				Robot robot = calc_enemy_baller(world);
 				if (robot && threat[i] == robot) {
 					continue;
 				}
@@ -220,7 +220,7 @@ const std::array<Point, MAX_DEFENDERS + 1> AI::HL::STP::Evaluation::evaluate_def
 	return waypoints;
 }
 
-bool AI::HL::STP::Evaluation::enemy_break_defense_duo(World world, const Robot::Ptr enemy) {
+bool AI::HL::STP::Evaluation::enemy_break_defense_duo(World world, const Robot enemy) {
 	std::vector<Point> obstacles;
 	obstacles.push_back(waypoints[0]);
 	obstacles.push_back(waypoints[1]);
@@ -231,7 +231,7 @@ bool AI::HL::STP::Evaluation::enemy_break_defense_duo(World world, const Robot::
 Point AI::HL::STP::Evaluation::evaluate_tdefense(World world, const unsigned index) {
 	Point target;
 	if (world.enemy_team().size() > index - 1) {
-		std::vector<Robot::Ptr> enemies = Evaluation::enemies_by_grab_ball_dist();
+		std::vector<Robot> enemies = Evaluation::enemies_by_grab_ball_dist();
 		Point r = enemies[index - 1]->position();
 		if (r.x < world.field().centre_circle_radius()) {
 			target = tdefender_block_enemy(world, r, index);

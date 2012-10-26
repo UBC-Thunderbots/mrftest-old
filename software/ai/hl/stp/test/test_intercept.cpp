@@ -28,7 +28,7 @@ namespace {
 					return;
 				}
 
-				Player::Ptr player = friendly.get(0);
+				Player player = friendly.get(0);
 				player->autokick(AI::HL::STP::BALL_MAX_SPEED);
 				Action::intercept(player, world.field().enemy_goal());
 			}

@@ -103,7 +103,7 @@ namespace {
 
 				unsigned int index = static_cast<unsigned int>(rchoose.get_value());
 
-				Player::Ptr runner;
+				Player runner;
 
 				for (std::size_t i = 0; i < friendly.size(); ++i) {
 					if (friendly.get(i)->pattern() == index) {

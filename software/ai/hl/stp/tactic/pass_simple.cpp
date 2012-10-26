@@ -27,7 +27,7 @@ namespace {
 		bool kick_attempted;
 
 		// HYSTERISIS
-		Player::CPtr target;
+		Player target;
 
 		PasserSimple(World world) : Tactic(world, true), kick_attempted(false) {
 		}
@@ -50,7 +50,7 @@ namespace {
 			return false;
 		}
 
-		Player::Ptr select(const std::set<Player::Ptr> &players) const {
+		Player select(const std::set<Player> &players) const {
 			// if a player attempted to shoot, keep the player
 			if (kick_attempted && players.count(player)) {
 				return player;
@@ -83,7 +83,7 @@ namespace {
 		PasseeSimple(World world, unsigned number) : Tactic(world, false), number(number) {
 		}
 
-		Player::Ptr select(const std::set<Player::Ptr> &players) const {
+		Player select(const std::set<Player> &players) const {
 			// hysterysis.
 			if (player && players.count(player) && Evaluation::passee_suitable(world, player)) {
 				return player;
@@ -117,8 +117,8 @@ namespace {
 		FollowBaller(World world) : Tactic(world, false) {
 		}
 
-		Player::Ptr select(const std::set<Player::Ptr> &players) const {
-			Player::Ptr best;
+		Player select(const std::set<Player> &players) const {
+			Player best;
 			double min_dist = 1e99;
 			for (auto it = players.begin(); it != players.end(); ++it) {
 				Point dest = Evaluation::calc_fastest_grab_ball_dest_if_baller_shoots(world, (*it)->position());

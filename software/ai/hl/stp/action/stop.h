@@ -10,7 +10,7 @@ namespace AI {
 				/**
 				 * Stop at the current location.
 				 */
-				void stop(World world, Player::Ptr player);
+				void stop(World world, Player player);
 			}
 		}
 	}

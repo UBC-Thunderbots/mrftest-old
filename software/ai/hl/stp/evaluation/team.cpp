@@ -2,8 +2,8 @@
 
 using namespace AI::HL::STP;
 
-Player::CPtr AI::HL::STP::Evaluation::nearest_friendly(World world, Point target) {
-	Player::CPtr plr;
+Player AI::HL::STP::Evaluation::nearest_friendly(World world, Point target) {
+	Player plr;
 	double dist = 0;
 
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
@@ -17,8 +17,8 @@ Player::CPtr AI::HL::STP::Evaluation::nearest_friendly(World world, Point target
 	return plr;
 }
 
-Robot::Ptr AI::HL::STP::Evaluation::nearest_enemy(World world, Point target) {
-	Robot::Ptr bot;
+Robot AI::HL::STP::Evaluation::nearest_enemy(World world, Point target) {
+	Robot bot;
 	double dist = 0;
 
 	for (std::size_t i = 0; i < world.enemy_team().size(); i++) {

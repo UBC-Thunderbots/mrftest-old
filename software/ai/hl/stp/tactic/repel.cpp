@@ -15,7 +15,7 @@ namespace {
 		private:
 			bool finished;
 			bool done() const;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
 				return "repel";
@@ -26,7 +26,7 @@ namespace {
 		return player && player->autokick_fired();
 	}
 
-	Player::Ptr Repel::select(const std::set<Player::Ptr> &players) const {
+	Player Repel::select(const std::set<Player> &players) const {
 		return select_baller(world, players, player);
 	}
 
@@ -43,7 +43,7 @@ namespace {
 		private:
 			bool finished;
 			bool done() const;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
 				return "corner_repel";
@@ -54,7 +54,7 @@ namespace {
 		return player && player->autokick_fired();
 	}
 
-	Player::Ptr CornerRepel::select(const std::set<Player::Ptr> &players) const {
+	Player CornerRepel::select(const std::set<Player> &players) const {
 		return select_baller(world, players, player);
 	}
 

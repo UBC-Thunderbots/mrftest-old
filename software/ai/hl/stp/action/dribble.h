@@ -10,12 +10,12 @@ namespace AI {
 				/**
 				 * Dribble and stay at the same position.
 				 */
-				void dribble(World world, Player::Ptr player);
+				void dribble(World world, Player player);
 
 				/**
 				 * Dribble to a particular location and stop.
 				 */
-				void dribble(World world, Player::Ptr player, const Point dest);
+				void dribble(World world, Player player, const Point dest);
 			}
 		}
 	}

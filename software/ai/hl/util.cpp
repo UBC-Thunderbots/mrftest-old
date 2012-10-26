@@ -69,7 +69,7 @@ bool AI::HL::Util::path_check(const Point &begin, const Point &end, const std::v
 }
 
 #warning TODO: add more features to this function
-bool AI::HL::Util::path_check(const Point &begin, const Point &end, const std::vector<Robot::Ptr> &robots, const double thresh) {
+bool AI::HL::Util::path_check(const Point &begin, const Point &end, const std::vector<Robot> &robots, const double thresh) {
 	const Point direction = (end - begin).norm();
 	const double dist = (end - begin).len();
 	for (std::size_t i = 0; i < robots.size(); ++i) {
@@ -98,7 +98,7 @@ std::vector<std::pair<Point, Angle> > AI::HL::Util::calc_best_shot_all(const Fie
 	return angle_sweep_circles_all(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
 }
 
-std::pair<Point, Angle> AI::HL::Util::calc_best_shot(World world, const Player::CPtr player, const double radius) {
+std::pair<Point, Angle> AI::HL::Util::calc_best_shot(World world, const Player player, const double radius) {
 	std::vector<Point> obstacles;
 	EnemyTeam enemy = world.enemy_team();
 	FriendlyTeam friendly = world.friendly_team();
@@ -107,7 +107,7 @@ std::pair<Point, Angle> AI::HL::Util::calc_best_shot(World world, const Player::
 		obstacles.push_back(enemy.get(i)->position());
 	}
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		const Player::CPtr fpl = friendly.get(i);
+		const Player fpl = friendly.get(i);
 		if (fpl == player) {
 			continue;
 		}
@@ -123,7 +123,7 @@ std::pair<Point, Angle> AI::HL::Util::calc_best_shot(World world, const Player::
 	return best_shot;
 }
 
-std::vector<std::pair<Point, Angle> > AI::HL::Util::calc_best_shot_all(World world, const Player::CPtr player, const double radius) {
+std::vector<std::pair<Point, Angle> > AI::HL::Util::calc_best_shot_all(World world, const Player player, const double radius) {
 	std::vector<Point> obstacles;
 	EnemyTeam enemy = world.enemy_team();
 	FriendlyTeam friendly = world.friendly_team();
@@ -132,7 +132,7 @@ std::vector<std::pair<Point, Angle> > AI::HL::Util::calc_best_shot_all(World wor
 		obstacles.push_back(enemy.get(i)->position());
 	}
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		const Player::CPtr fpl = friendly.get(i);
+		const Player fpl = friendly.get(i);
 		if (fpl == player) {
 			continue;
 		}
@@ -141,16 +141,16 @@ std::vector<std::pair<Point, Angle> > AI::HL::Util::calc_best_shot_all(World wor
 	return calc_best_shot_all(world.field(), obstacles, player->position(), radius);
 }
 
-std::vector<Player::Ptr> AI::HL::Util::get_players(FriendlyTeam friendly) {
-	std::vector<Player::Ptr> players;
+std::vector<Player> AI::HL::Util::get_players(FriendlyTeam friendly) {
+	std::vector<Player> players;
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		players.push_back(friendly.get(i));
 	}
 	return players;
 }
 
-std::vector<Robot::Ptr> AI::HL::Util::get_robots(EnemyTeam enemy) {
-	std::vector<Robot::Ptr> robots;
+std::vector<Robot> AI::HL::Util::get_robots(EnemyTeam enemy) {
+	std::vector<Robot> robots;
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		robots.push_back(enemy.get(i));
 	}

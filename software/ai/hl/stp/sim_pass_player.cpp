@@ -37,7 +37,7 @@ namespace {
 				if (friendly.size() == 0) {
 					return;
 				} else if (friendly.size() >= 1) {
-					Player::Ptr receiver = friendly.get(0);
+					Player receiver = friendly.get(0);
 					Point receiver_pos = receiver->position();
 					Point ball_pos = world.ball().position();
 					Point ball_vel = world.ball().velocity();
@@ -62,7 +62,7 @@ namespace {
 
 			Point to_draw;
 			Angle to_draw_orient;
-			Player::Ptr fake_enemy;
+			Player fake_enemy;
 
 			void on_orientation_value_changed() {
 				orient = Angle::of_radians(hsb_orientation.get_value());

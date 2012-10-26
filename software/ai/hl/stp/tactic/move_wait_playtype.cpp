@@ -18,7 +18,7 @@ namespace {
 			const Coordinate dest;
 			const AI::Common::PlayType playtype;
 			bool done() const;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
 				return "move-wait-playtype";
@@ -29,8 +29,8 @@ namespace {
 		return world.playtype() == playtype && (player->position() - dest.position()).len() < AI::HL::Util::POS_CLOSE;
 	}
 
-	Player::Ptr MoveWaitPlaytype::select(const std::set<Player::Ptr> &players) const {
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest.position()));
+	Player MoveWaitPlaytype::select(const std::set<Player> &players) const {
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest.position()));
 	}
 
 	void MoveWaitPlaytype::execute() {

@@ -25,29 +25,29 @@ namespace {
 			}
 
 		private:
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			Coordinate dest;
-			Robot::Ptr player_to_mark(std::vector<AI::HL::W::Robot::Ptr> enemies) const;
-			Player::CPtr nearest_friendly(Point target) const;
+			Robot player_to_mark(std::vector<AI::HL::W::Robot> enemies) const;
+			Player nearest_friendly(Point target) const;
 			Glib::ustring description() const {
 				return "MarkOffside";
 			}
 	};
 
-	Player::Ptr MarkOffside::select(const std::set<Player::Ptr> &players) const {
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest.position()));
+	Player MarkOffside::select(const std::set<Player> &players) const {
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest.position()));
 	}
 
-	Robot::Ptr MarkOffside::player_to_mark(std::vector<AI::HL::W::Robot::Ptr> enemies) const {
+	Robot MarkOffside::player_to_mark(std::vector<AI::HL::W::Robot> enemies) const {
 		// filter out enemies that:
 		// 1. are far away from our goal
 		// 2. can't shoot to goal
-		enemies.erase(std::remove_if(enemies.begin(), enemies.end(), [this](AI::HL::W::Robot::Ptr robot) -> bool {
+		enemies.erase(std::remove_if(enemies.begin(), enemies.end(), [this](AI::HL::W::Robot robot) -> bool {
 			return (robot->position().x > 1.0) || (!Evaluation::enemy_can_shoot_goal(world, robot));
 		}), enemies.end());
 
-		AI::HL::W::Robot::Ptr open_robot = Evaluation::calc_enemy_baller(world);
+		AI::HL::W::Robot open_robot = Evaluation::calc_enemy_baller(world);
 		// find the enemy robot with the biggest open space
 		int most_open_index = -1;
 		double dist = 0;
@@ -67,15 +67,15 @@ namespace {
 	}
 
 	//return nearest friendly from the pool of non-marker players
-	Player::CPtr MarkOffside::nearest_friendly(Point target) const{
-		std::vector<Player::CPtr> team_pool;
+	Player MarkOffside::nearest_friendly(Point target) const{
+		std::vector<Player> team_pool;
 		for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
 			// filter out the player
 			if (!world.friendly_team().get(i)->position().close(player->position(), 0.01)) {
 				team_pool.push_back(world.friendly_team().get(i));
 			}
 		}
-		Player::CPtr closest;
+		Player closest;
 		double dist = 0;
 		for (std::size_t i = 0; i < team_pool.size(); i++) {
 			double d = (target - team_pool[i]->position()).len();
@@ -88,7 +88,7 @@ namespace {
 	}
 
 	void MarkOffside::execute() {
-		std::vector<AI::HL::W::Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+		std::vector<AI::HL::W::Robot> enemies = AI::HL::Util::get_robots(world.enemy_team());
 
 		if (enemies.size() != 0) {
 			Action::block_ball(world, player, player_to_mark(enemies));

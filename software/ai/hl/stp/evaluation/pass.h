@@ -11,7 +11,7 @@ namespace AI {
 				/**
 				 * Can pass?
 				 */
-				bool can_pass(World world, Player::CPtr passer, Player::CPtr passee);
+				bool can_pass(World world, Player passer, Player passee);
 
 				/**
 				 * Can pass from p1 to p2.
@@ -22,23 +22,23 @@ namespace AI {
 				/**
 				 * Checks if a pass is possible for the pair of enemy
 				 */
-				bool enemy_can_pass(World world, const Robot::Ptr passer, const Robot::Ptr passee);
+				bool enemy_can_pass(World world, const Robot passer, const Robot passee);
 
 				/**
 				 * Checks if passee is facing towards the ball so it can receive.
 				 */
-				bool passee_facing_ball(World world, Player::CPtr passee);
+				bool passee_facing_ball(World world, Player passee);
 
 				/**
 				 * Check if passee is facing towards passer so it can receive.
 				 * Not sure why we need passer instead of ball.
 				 */
-				bool passee_facing_passer(Player::CPtr passer, Player::CPtr passee);
+				bool passee_facing_passer(Player passer, Player passee);
 
 				/**
 				 * Checks if a passee is suitable.
 				 */
-				bool passee_suitable(World world, Player::CPtr passee);
+				bool passee_suitable(World world, Player passee);
 
 				/**
 				 * Obtains a player who can be a passee.
@@ -46,18 +46,18 @@ namespace AI {
 				 * This function has built-in hysterysis.
 				 * Calls will return the previously chosen player if possible.
 				 */
-				Player::CPtr select_passee(World world);
+				Player select_passee(World world);
 
 				/**
 				 * Checks if this direction is valid for shooting
 				 * for indirect pass.
 				 */
-				bool can_shoot_ray(World world, Player::CPtr player, Angle orientation);
+				bool can_shoot_ray(World world, Player player, Angle orientation);
 
 				/**
 				 * Calculates the best shooting angle.
 				 */
-				std::pair<bool, Angle> best_shoot_ray(World world, const Player::CPtr player);
+				std::pair<bool, Angle> best_shoot_ray(World world, const Player player);
 
 				Point calc_fastest_grab_ball_dest_if_baller_shoots(World world, const Point player_pos);
 

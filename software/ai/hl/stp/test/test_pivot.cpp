@@ -34,7 +34,7 @@ namespace {
 					return;
 				}
 
-				Player::Ptr player = friendly.get(0);
+				Player player = friendly.get(0);
 
 				Point target;
 

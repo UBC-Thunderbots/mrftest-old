@@ -175,7 +175,7 @@ namespace {
 
 		// if a baller exists,
 		// calculate the deviation from the direction
-		Player::CPtr baller = Evaluation::calc_friendly_baller();
+		Player baller = Evaluation::calc_friendly_baller();
 
 		if (baller) {
 			Angle ori_ball = (dest - baller->position()).orientation();

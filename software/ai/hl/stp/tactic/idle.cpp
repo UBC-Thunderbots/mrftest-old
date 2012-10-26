@@ -12,14 +12,14 @@ namespace {
 			}
 
 		private:
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
 				return "idle";
 			}
 	};
 
-	Player::Ptr Idle::select(const std::set<Player::Ptr> &players) const {
+	Player Idle::select(const std::set<Player> &players) const {
 		return *players.begin();
 	}
 

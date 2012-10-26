@@ -17,7 +17,7 @@ namespace {
 	DoubleParam corner_repel_speed("speed that repel will be kicking at in a corner", "STP/Action/repel", 3.0, 1.0, BALL_MAX_SPEED);
 }
 
-bool AI::HL::STP::Action::repel(World world, Player::Ptr player) {
+bool AI::HL::STP::Action::repel(World world, Player player) {
 	// bool kicked = false;
 	const Field &f = world.field();
 	const Point ball = world.ball().position();
@@ -65,7 +65,7 @@ bool AI::HL::STP::Action::repel(World world, Player::Ptr player) {
 	return shoot_target(world, player, target.first);
 }
 
-bool AI::HL::STP::Action::corner_repel(World world, Player::Ptr player) {
+bool AI::HL::STP::Action::corner_repel(World world, Player player) {
 	const Field &f = world.field();
 	const Point ball = world.ball().position();
 	const Point diff = ball - player->position();

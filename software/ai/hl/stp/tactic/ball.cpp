@@ -28,7 +28,7 @@ namespace {
 			bool done() const {
 				return none;
 			}
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+			Player select(const std::set<Player> &players) const {
 				return select_baller(world, players, player);
 			}
 
@@ -54,7 +54,7 @@ namespace {
 				bool done() const {
 					return finished && player->has_ball();
 				}
-				Player::Ptr select(const std::set<Player::Ptr> &players) const {
+				Player select(const std::set<Player> &players) const {
 					return select_baller(world, players, player);
 				}
 
@@ -78,7 +78,7 @@ namespace {
 			bool done() const {
 				return finished;
 			}
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+			Player select(const std::set<Player> &players) const {
 				return select_baller(world, players, player);
 			}
 
@@ -98,7 +98,7 @@ namespace {
 			bool done() const {
 				return region.inside(player->position());
 			}
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+			Player select(const std::set<Player> &players) const {
 				return select_baller(world, players, player);
 			}
 
@@ -118,7 +118,7 @@ namespace {
 			bool done() const {
 				return region.inside(player->position());
 			}
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+			Player select(const std::set<Player> &players) const {
 				return select_baller(world, players, player);
 			}
 

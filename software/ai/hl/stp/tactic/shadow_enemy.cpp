@@ -19,7 +19,7 @@ namespace {
 
 		private:
 			Coordinate dest;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 
 			void execute();
 			Glib::ustring description() const {
@@ -27,8 +27,8 @@ namespace {
 			}
 	};
 
-	Player::Ptr ShadowEnemy::select(const std::set<Player::Ptr> &players) const {
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest.position()));
+	Player ShadowEnemy::select(const std::set<Player> &players) const {
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest.position()));
 	}
 
 	void ShadowEnemy::execute() {

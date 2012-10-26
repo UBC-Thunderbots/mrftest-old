@@ -106,10 +106,10 @@ class PASCHL : public HighLevel {
 					return;
 				}
 
-				Player::Ptr player0 = friendly.get(0);
-				Player::Ptr player1 = friendly.get(1);
-				Player::Ptr player2 = friendly.get(2);
-				Player::Ptr player3 = friendly.get(3);
+				Player player0 = friendly.get(0);
+				Player player1 = friendly.get(1);
+				Player player2 = friendly.get(2);
+				Player player3 = friendly.get(3);
 
 				switch (current_state) {
 				case INITIAL_POSITION:{
@@ -189,14 +189,14 @@ class PASCHL : public HighLevel {
 
 			std::vector<std::pair<Point, Angle>> robot_positions;
 			state current_state;
-			Point horizontal_intercept(Player::Ptr player);
+			Point horizontal_intercept(Player player);
 			void robot_pass(std::size_t passer_num, std::size_t receiver_num, state next_state);
 			bool ball_out_of_play();
 			bool kicked_ball;
 		    bool intercept_and_move(std::size_t idx);
 };
 
-Point PASCHL::horizontal_intercept(Player::Ptr player) {
+Point PASCHL::horizontal_intercept(Player player) {
 	double horizontal_line = 1.2;
 	double width_of_rectangle = 2;
 	double height_of_rectangle = horizontal_line * 2;
@@ -212,8 +212,8 @@ Point PASCHL::horizontal_intercept(Player::Ptr player) {
 
 void PASCHL::robot_pass(std::size_t passer_num, std::size_t receiver_num, state next_state) {
 	// we are assuming that we have the ball here
-	Player::Ptr passer = world.friendly_team().get(passer_num);
-	Player::Ptr receiver = world.friendly_team().get(receiver_num);
+	Player passer = world.friendly_team().get(passer_num);
+	Player receiver = world.friendly_team().get(receiver_num);
 	Angle passer_orientation = (passer->position() - receiver->position()).orientation();
 
 
@@ -276,7 +276,7 @@ bool PASCHL::ball_out_of_play() {
 }
 
 bool PASCHL::intercept_and_move(std::size_t idx) {
-  Player::Ptr intercepter = world.friendly_team().get(idx);
+  Player intercepter = world.friendly_team().get(idx);
 
   if (!intercepter->has_ball())
     intercepter->move(world.ball().position(), (world.ball().position() - intercepter->position()).orientation(), Point());

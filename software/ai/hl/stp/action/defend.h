@@ -10,7 +10,7 @@ namespace AI {
 				/**
 				 * Move the defender to this location.
 				 */
-				void defender_move(World world, Player::Ptr player, Point dest);
+				void defender_move(World world, Player player, Point dest);
 			}
 		}
 	}

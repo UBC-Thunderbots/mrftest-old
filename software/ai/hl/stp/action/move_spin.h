@@ -11,7 +11,7 @@ namespace AI {
 				 * Move to a particular location and stop.
 				 * Spin while moving and continue spinning at the point.
 				 */
-				void move_spin(Player::Ptr player, const Point dest);
+				void move_spin(Player player, const Point dest);
 			}
 		}
 	}

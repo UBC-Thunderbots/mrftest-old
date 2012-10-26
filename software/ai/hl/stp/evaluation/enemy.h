@@ -43,17 +43,17 @@ namespace AI {
 					 * For convenience.
 					 * A pointer to the robot.
 					 */
-					Robot::Ptr robot;
+					Robot robot;
 
 					/**
 					 * If this robot needs to shoot at someone before shooting goal.
 					 */
-					Robot::Ptr passee;
+					Robot passee;
 
 					/**
 					 * If this robot needs to receive the ball from someone.
 					 */
-					Robot::Ptr passer;
+					Robot passer;
 				};
 
 				/**
@@ -64,7 +64,7 @@ namespace AI {
 				/**
 				 * Checks if it's possible for this enemy to shoot to the goal.
 				 */
-				bool enemy_can_shoot_goal(World world, const Robot::Ptr enemy);
+				bool enemy_can_shoot_goal(World world, const Robot enemy);
 
 				/**
 				 * Calculates how good an enemy is at shooting our goal.
@@ -74,19 +74,19 @@ namespace AI {
 				/**
 				 * Calculates how good an enemy is at shooting our goal.
 				 */
-				std::pair<Point, Angle> calc_enemy_best_shot_goal(World world, const Robot::Ptr enemy, const double radius = 1.0);
+				std::pair<Point, Angle> calc_enemy_best_shot_goal(World world, const Robot enemy, const double radius = 1.0);
 
 				/**
 				 * # of passes it takes for the enemy to shoot to our goal
 				 * 0 means the enemy has a clear shot to our goal!
 				 * ignore (set to 5 if # of passes > 2)
 				 */
-				int calc_enemy_pass(World world, Robot::Ptr robot);
+				int calc_enemy_pass(World world, Robot robot);
 
 				/**
 				 * BAD STUFF
 				 */
-				std::vector<Robot::Ptr> get_passees(World world, Robot::Ptr robot);
+				std::vector<Robot> get_passees(World world, Robot robot);
 
 				/**
 				 * Given obstacle position, calculates the min amount of passing

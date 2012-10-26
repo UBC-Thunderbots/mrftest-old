@@ -9,8 +9,8 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace HACK {
-				extern Player::Ptr active_player;
-				extern Player::Ptr last_kicked;
+				extern Player active_player;
+				extern Player last_kicked;
 			}
 			/**
 			 * A play executor.
@@ -66,7 +66,7 @@ namespace AI {
 					Tactic::Tactic *curr_active;
 
 					// current player assignment
-					AI::HL::W::Player::Ptr curr_assignment[TEAM_MAX_SIZE];
+					AI::HL::W::Player curr_assignment[TEAM_MAX_SIZE];
 
 					/**
 					 * List of all the available plays

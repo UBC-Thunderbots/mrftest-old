@@ -30,18 +30,18 @@ namespace {
 
 		private:
 			const std::size_t player_index;
-			Player::Ptr selected_player;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player selected_player;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
 				return "move-stop";
 			}
 	};
 
-	Player::Ptr MoveStop::select(const std::set<Player::Ptr> &players) const {
+	Player MoveStop::select(const std::set<Player> &players) const {
 		std::vector<Point> positions = stop_locations(world);
 
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(positions[player_index]));
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(positions[player_index]));
 	}
 
 	void MoveStop::execute() {

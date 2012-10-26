@@ -21,8 +21,8 @@ namespace AI {
 			 *
 			 * Example:
 			 * <code>
-			 * std::vector<AI::HL::W::Robot::Ptr> enemies = ai_util::get_robots(enemy);
-			 * std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<AI::HL::W::Robot::Ptr>(goal));
+			 * std::vector<AI::HL::W::Robot> enemies = ai_util::get_robots(enemy);
+			 * std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<AI::HL::W::Robot>(goal));
 			 * </code>
 			 *
 			 * \tparam T the type of object to sort (must have a function called \c position).
@@ -116,7 +116,7 @@ namespace AI {
 			 *
 			 * \return \c true if the path is not blocked, or \c false if it is.
 			 */
-			bool path_check(const Point &begin, const Point &end, const std::vector<AI::HL::W::Robot::Ptr> &robots, double thresh);
+			bool path_check(const Point &begin, const Point &end, const std::vector<AI::HL::W::Robot> &robots, double thresh);
 
 			/**
 			 * Finds the length of the largest continuous interval (angle-wise) of the enemy goal that can be seen from a point.
@@ -153,19 +153,19 @@ namespace AI {
 			 * \return the point as and the score (angle),
 			 * where the score will be 0 if the point is invalid,
 			 */
-			std::pair<Point, Angle> calc_best_shot(AI::HL::W::World world, AI::HL::W::Player::CPtr player, double radius = 1.0);
+			std::pair<Point, Angle> calc_best_shot(AI::HL::W::World world, AI::HL::W::Player player, double radius = 1.0);
 
-			std::vector<std::pair<Point, Angle> > calc_best_shot_all(AI::HL::W::World world, AI::HL::W::Player::CPtr player, double radius = 1.0);
+			std::vector<std::pair<Point, Angle> > calc_best_shot_all(AI::HL::W::World world, AI::HL::W::Player player, double radius = 1.0);
 
 			/**
 			 * Converts a friendly team into a vector of players.
 			 */
-			std::vector<AI::HL::W::Player::Ptr> get_players(AI::HL::W::FriendlyTeam friendly);
+			std::vector<AI::HL::W::Player> get_players(AI::HL::W::FriendlyTeam friendly);
 
 			/**
 			 * Converts an enemy team into a vector of robots.
 			 */
-			std::vector<AI::HL::W::Robot::Ptr> get_robots(AI::HL::W::EnemyTeam enemy);
+			std::vector<AI::HL::W::Robot> get_robots(AI::HL::W::EnemyTeam enemy);
 		}
 	}
 }

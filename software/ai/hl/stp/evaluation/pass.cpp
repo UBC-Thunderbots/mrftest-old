@@ -59,7 +59,7 @@ DegreeParam Evaluation::max_pass_ray_angle("Max ray shoot rotation (degrees)", "
 
 IntParam Evaluation::ray_intervals("Ray # of intervals", "STP/PassRay", 30, 0, 80);
 
-bool Evaluation::can_shoot_ray(World world, Player::CPtr player, Angle orientation) {
+bool Evaluation::can_shoot_ray(World world, Player player, Angle orientation) {
 	const Point p1 = player->position();
 	const Point p2 = p1 + 10 * Point::of_angle(orientation);
 
@@ -86,7 +86,7 @@ bool Evaluation::can_shoot_ray(World world, Player::CPtr player, Angle orientati
 	Point ball_vel = Point::of_angle(orientation) * ball_pass_velocity;
 
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		Player::CPtr fptr = friendly.get(i);
+		Player fptr = friendly.get(i);
 		if (fptr == player) {
 			continue;
 		}
@@ -105,7 +105,7 @@ bool Evaluation::can_shoot_ray(World world, Player::CPtr player, Angle orientati
 	}
 
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		Robot::Ptr robot = enemy.get(i);
+		Robot robot = enemy.get(i);
 
 		double dist;
 		if (pass_ray_use_calc_fastest) {
@@ -122,7 +122,7 @@ bool Evaluation::can_shoot_ray(World world, Player::CPtr player, Angle orientati
 	return closest_friendly * pass_ray_threat_mult <= closest_enemy;
 }
 
-std::pair<bool, Angle> Evaluation::best_shoot_ray(World world, const Player::CPtr player) {
+std::pair<bool, Angle> Evaluation::best_shoot_ray(World world, const Player player) {
 	if (!Evaluation::possess_ball(world, player)) {
 		return std::make_pair(false, Angle::ZERO);
 	}
@@ -167,7 +167,7 @@ std::pair<bool, Angle> Evaluation::best_shoot_ray(World world, const Player::CPt
 	return std::make_pair(true, best_angle);
 }
 
-bool Evaluation::enemy_can_pass(World world, const Robot::Ptr passer, const Robot::Ptr passee) {
+bool Evaluation::enemy_can_pass(World world, const Robot passer, const Robot passee) {
 	std::vector<Point> obstacles;
 	const FriendlyTeam friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
@@ -177,7 +177,7 @@ bool Evaluation::enemy_can_pass(World world, const Robot::Ptr passer, const Robo
 	return can_pass_check(passer->position(), passee->position(), obstacles, enemy_pass_width);
 }
 
-bool Evaluation::can_pass(World world, Player::CPtr passer, Player::CPtr passee) {
+bool Evaluation::can_pass(World world, Player passer, Player passee) {
 	std::vector<Point> obstacles;
 	EnemyTeam enemy = world.enemy_team();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
@@ -207,15 +207,15 @@ bool Evaluation::can_pass(World world, const Point p1, const Point p2) {
 	return can_pass_check(p1, p2, obstacles, friendly_pass_width);
 }
 
-bool Evaluation::passee_facing_ball(World world, Player::CPtr passee) {
+bool Evaluation::passee_facing_ball(World world, Player passee) {
 	return player_within_angle_thresh(passee, world.ball().position(), passee_angle_threshold);
 }
 
-bool Evaluation::passee_facing_passer(Player::CPtr passer, Player::CPtr passee) {
+bool Evaluation::passee_facing_passer(Player passer, Player passee) {
 	return player_within_angle_thresh(passee, passer->position(), passee_angle_threshold);
 }
 
-bool Evaluation::passee_suitable(World world, Player::CPtr passee) {
+bool Evaluation::passee_suitable(World world, Player passee) {
 	if (!passee) {
 		LOG_ERROR("Passee is null");
 		return false;
@@ -247,12 +247,12 @@ bool Evaluation::passee_suitable(World world, Player::CPtr passee) {
 
 namespace {
 	// hysterysis for select_passee
-	Player::CPtr previous_passee;
+	Player previous_passee;
 }
 
-Player::CPtr Evaluation::select_passee(World world) {
+Player Evaluation::select_passee(World world) {
 	const FriendlyTeam friendly = world.friendly_team();
-	std::vector<Player::CPtr> candidates;
+	std::vector<Player> candidates;
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		if (possess_ball(world, friendly.get(i))) {
 			continue;
@@ -268,7 +268,7 @@ Player::CPtr Evaluation::select_passee(World world) {
 		candidates.push_back(friendly.get(i));
 	}
 	if (candidates.empty()) {
-		return Player::CPtr();
+		return Player();
 	}
 	random_shuffle(candidates.begin(), candidates.end());
 	previous_passee = candidates.front();
@@ -276,7 +276,7 @@ Player::CPtr Evaluation::select_passee(World world) {
 }
 
 Point Evaluation::calc_fastest_grab_ball_dest_if_baller_shoots(World world, const Point player_pos) {
-	Player::CPtr baller = Evaluation::calc_friendly_baller();
+	Player baller = Evaluation::calc_friendly_baller();
 	if (!baller) {
 		return world.ball().position();
 	}

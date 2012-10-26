@@ -23,11 +23,6 @@ namespace AI {
 					typedef BoxPtr<Player> Ptr;
 
 					/**
-					 * \brief A pointer to a const Player.
-					 */
-					typedef BoxPtr<const Player> CPtr;
-
-					/**
 					 * \brief Constructs a new Player object.
 					 *
 					 * \param[in] name the robot's name.

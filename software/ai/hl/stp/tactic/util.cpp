@@ -9,19 +9,19 @@
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
-Player::Ptr AI::HL::STP::Tactic::select_baller(World world, const std::set<Player::Ptr> &players, Player::Ptr previous) {
+Player AI::HL::STP::Tactic::select_baller(World world, const std::set<Player> &players, Player previous) {
 	// if someone has ball, use it
 	for (auto it = players.begin(); it != players.end(); ++it) {
-		Player::Ptr p = *it;
+		Player p = *it;
 		if (p->has_ball()) {
 			return p;
 		}
 	}
 	// possess ball
-	Player::Ptr best;
+	Player best;
 	for (auto it = players.begin(); it != players.end(); ++it) {
-		Player::Ptr p = *it;
-		Player::CPtr p_c = p;
+		Player p = *it;
+		Player p_c = p;
 		if (!Evaluation::possess_ball(world, p_c)) {
 			continue;
 		}
@@ -37,7 +37,7 @@ Player::Ptr AI::HL::STP::Tactic::select_baller(World world, const std::set<Playe
 
 	double min_dist = 1e99;
 	for (auto it = players.begin(); it != players.end(); ++it) {
-		Player::Ptr player = *it;
+		Player player = *it;
 		Point dest = Evaluation::calc_fastest_grab_ball_dest(world, player);
 		if (!best || min_dist > (dest - player->position()).len()) {
 			min_dist = (dest - player->position()).len();

@@ -62,7 +62,7 @@ namespace {
 				// enable the bot to go to the next dst
 
 				if (world.friendly_team().size() == 1 && to_run) {
-					Player::Ptr player = world.friendly_team().get(0);
+					Player player = world.friendly_team().get(0);
 					player->move(Point(xposition, yposition), oposition, Point());
 					player->type(AI::Flags::MoveType::PIVOT);
 					if (to_dribble) {

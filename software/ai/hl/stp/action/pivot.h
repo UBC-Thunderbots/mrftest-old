@@ -10,7 +10,7 @@ namespace AI {
 				/**
 				 * Go chase after the ball and pivot towards the direction of target
 				 */
-				void intercept_pivot(World world, Player::Ptr player, const Point target);
+				void intercept_pivot(World world, Player player, const Point target);
 
 				/**
 				 * Pivot around the ball until the player is oriented in the direction of the target.
@@ -19,7 +19,7 @@ namespace AI {
 				 *
 				 *  \param[in] radius The distance player stays from the ball while pivoting.
 				 */
-				void pivot(World world, Player::Ptr player, const Point target, const double radius = 0);
+				void pivot(World world, Player player, const Point target, const double radius = 0);
 			}
 		}
 	}

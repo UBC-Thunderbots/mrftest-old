@@ -27,7 +27,7 @@ namespace AI {
 				/**
 				 * Checks if an enemy breaks our defense duo.
 				 */
-				bool enemy_break_defense_duo(World world, const Robot::Ptr enemy);
+				bool enemy_break_defense_duo(World world, Robot enemy);
 
 				/**
 				 * return dest of Terence defender - index.

@@ -42,7 +42,7 @@ namespace {
 				Point des(dest_control.get_value(), 0);
 				double radius = 0.2 * robotIndex + 0.2;
 				Angle offset_angle = Angle::of_radians(0.7 + robotIndex * 1.1);
-				Player::Ptr runner = friendly.get(robotIndex);
+				Player runner = friendly.get(robotIndex);
 				Point diff = (des - friendly.get(0)->position()).rotate(offset_angle);
 				Point dest = des - radius * (diff / diff.len());
 

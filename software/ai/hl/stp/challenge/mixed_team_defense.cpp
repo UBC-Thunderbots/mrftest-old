@@ -63,8 +63,8 @@ namespace {
 			tick_eval(world);
 
 			FriendlyTeam friendly = world.friendly_team();
-			std::vector<Player::Ptr> players;
-			std::vector<Player::Ptr> other_players;
+			std::vector<Player> players;
+			std::vector<Player> other_players;
 
 			const bool enabled[] = {
 				enable0,
@@ -149,7 +149,7 @@ namespace {
 			}
 		}
 
-		void free_kick_friendly(std::vector<Player::Ptr> &players, std::vector<Player::Ptr> &other_players) {
+		void free_kick_friendly(std::vector<Player> &players, std::vector<Player> &other_players) {
 			Action::move(world, players[0], Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, 0));
 
 			if (players.size() > 1) {
@@ -179,7 +179,7 @@ namespace {
 			}
 		}
 
-		void penalty(std::vector<Player::Ptr> &players) {
+		void penalty(std::vector<Player> &players) {
 			auto goalie = Tactic::penalty_goalie(world);
 			goalie->set_player(players[0]);
 			goalie->execute();
@@ -195,7 +195,7 @@ namespace {
 			}
 		}
 
-		void stop(std::vector<Player::Ptr> &players) {
+		void stop(std::vector<Player> &players) {
 			Action::move(world, players[0], Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, 0));
 
 			if (players.size() > 1) {
@@ -211,7 +211,7 @@ namespace {
 			}
 		}
 
-		void play(std::vector<Player::Ptr> &players) {
+		void play(std::vector<Player> &players) {
 			//auto waypoints = Evaluation::evaluate_defense();
 			if (players.size() == 1) {
 				auto goalie = Tactic::lone_goalie(world);

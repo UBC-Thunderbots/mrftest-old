@@ -51,7 +51,7 @@ namespace {
 			void tick() {
 				tick_eval(world);
 
-				std::vector<AI::HL::W::Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
+				std::vector<AI::HL::W::Player> players = AI::HL::Util::get_players(world.friendly_team());
 				
 				if (world.playtype() == AI::Common::PlayType::STOP) {
 					stop(players);
@@ -66,7 +66,7 @@ namespace {
 					players[i]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
 				}
 
-				const Robot::Ptr baller = Evaluation::calc_enemy_baller(world);
+				const Robot baller = Evaluation::calc_enemy_baller(world);
 				// if the enemy (passers) has the ball, position to block 
 				if (baller && AI::HL::STP::Predicates::their_ball(world)) {
 					
@@ -83,7 +83,7 @@ namespace {
 
 					if (players.size() > 1) {
 						// sort the players by dist to target
-						std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(target));
+						std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(target));
 						
 						// 1st player blocks the baller
 						Action::move(world, players[0], target);
@@ -93,7 +93,7 @@ namespace {
 							furthest_enemy = Enemy::closest_friendly_player(world, players[0], static_cast<unsigned int>(world.enemy_team().size() - 1));
 						} 
 
-						Robot::Ptr robot = furthest_enemy->evaluate();
+						Robot robot = furthest_enemy->evaluate();
 						Point dir_to_baller_enemy = (baller->position() - robot->position()).norm();
 						Point block_target = baller->position() - (AVOIDANCE_DIST * dir_to_baller_enemy);
 
@@ -110,7 +110,7 @@ namespace {
 			}
 
 			// stay away from ball
-			void stop(std::vector<Player::Ptr> &players){
+			void stop(std::vector<Player> &players){
 				if (players.size() > 0) {
 					auto stop1 = Tactic::move_stop(world, 2);
 					stop1->set_player(players[0]);
@@ -125,9 +125,9 @@ namespace {
 			}
 
 			// ram / knock the ball out of the field
-			void ram(std::vector<Player::Ptr> &players){
+			void ram(std::vector<Player> &players){
 				// sort the players by dist to ball
-				std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+				std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(world.ball().position()));
 
 				// ram the ball with autokick on
 				if (players.size() > 0) {

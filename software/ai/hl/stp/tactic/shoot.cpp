@@ -27,7 +27,7 @@ namespace {
 			bool kick_attempted;
 			bool force;
 			Angle shoot_score;
-			// mutable Player::Ptr shooter;
+			// mutable Player shooter;
 
 			// void on_player_removed(std::size_t index) {
 			// if(passer.is() && world.friendly_team().get(index) == Player::CPtr(passer)){
@@ -38,7 +38,7 @@ namespace {
 
 
 			bool done() const;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			void player_changed();
 			Glib::ustring description() const {
@@ -55,7 +55,7 @@ namespace {
 			Coordinate target;
 			bool kick_attempted;
 			bool done() const;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			void player_changed();
 			Glib::ustring description() const {
@@ -67,7 +67,7 @@ namespace {
 		return player /* && kick_attempted*/ && player->autokick_fired();
 	}
 
-	Player::Ptr ShootGoal::select(const std::set<Player::Ptr> &players) const {
+	Player ShootGoal::select(const std::set<Player> &players) const {
 		// if a player attempted to shoot, keep the player
 		if (kick_attempted && players.count(player)) {
 			return player;
@@ -94,9 +94,9 @@ namespace {
 		return player /* && kick_attempted */ && player->autokick_fired();
 	}
 
-	Player::Ptr ShootTarget::select(const std::set<Player::Ptr> &players) const {
+	Player ShootTarget::select(const std::set<Player> &players) const {
 		// if a player attempted to shoot, keep the player
-		Player::CPtr player_c = player;
+		Player player_c = player;
 		if (players.count(player) && Evaluation::possess_ball(world, player_c)) {
 			return player;
 		}

@@ -18,7 +18,7 @@ namespace {
 
 		private:
 			bool done() const;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			const Point target;
 			Glib::ustring description() const {
@@ -31,7 +31,7 @@ namespace {
 		return player->has_ball();
 	}
 
-	Player::Ptr Intercept::select(const std::set<Player::Ptr> &players) const {
+	Player Intercept::select(const std::set<Player> &players) const {
 		return select_baller(world, players, player);
 	}
 

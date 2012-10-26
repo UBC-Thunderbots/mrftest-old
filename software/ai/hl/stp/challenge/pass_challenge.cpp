@@ -73,9 +73,9 @@ namespace {
 			void tick() {
 				tick_eval(world);
 
-				std::vector<AI::HL::W::Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
+				std::vector<AI::HL::W::Player> players = AI::HL::Util::get_players(world.friendly_team());
 
-				std::vector<AI::HL::W::Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+				std::vector<AI::HL::W::Robot> enemies = AI::HL::Util::get_robots(world.enemy_team());
 
 				if (world.playtype() == AI::Common::PlayType::STOP) {
 					return stop(players);
@@ -90,11 +90,11 @@ namespace {
 					//world.friendly_team().get(i)->avoid_distance(AI::Flags::AvoidDistance::LONG);
 				}
 
-				const Player::CPtr baller = Evaluation::calc_friendly_baller();
+				const Player baller = Evaluation::calc_friendly_baller();
 				if (baller && our_ball(players)) {
 
 					// sort the players by dist to ball
-					std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+					std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(world.ball().position()));
 					// player with the ball should not try to avoid other players					
 					/*for (std::size_t i = 1; i < players.size(); ++i) {
 						world.friendly_team().get(i)->avoid_distance(AI::Flags::AvoidDistance::LONG);
@@ -166,11 +166,11 @@ namespace {
 				}
 			}
 
-			void intercept_block(std::vector<Player::Ptr> &players) {
+			void intercept_block(std::vector<Player> &players) {
 				// dunno if it's a good idea to have 2 players grab the ball...
 
 				// sort the players by dist to ball
-				std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+				std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(world.ball().position()));
 				//players[0]->avoid_distance(AI::Flags::AvoidDistance::SHORT);
 				if (players.size() > 0) {
 					auto intercept1 = Tactic::intercept(world);
@@ -200,7 +200,7 @@ namespace {
 				}
 			}
 
-			bool our_ball(std::vector<Player::Ptr> &players) {
+			bool our_ball(std::vector<Player> &players) {
 				for (std::size_t i = 1; i < players.size(); ++i) {
 					if (players[i]->has_ball())
 						return true;
@@ -208,7 +208,7 @@ namespace {
 				return false;
 			}
 
-			void stop(std::vector<Player::Ptr> &players) {
+			void stop(std::vector<Player> &players) {
 				// first player should grab the ball or not in STOP? 
 				if (players.size() > 0) {
 					auto stop1 = Tactic::move_stop(world, 1);

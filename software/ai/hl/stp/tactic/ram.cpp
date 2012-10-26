@@ -18,7 +18,7 @@ namespace {
 				return (player->position() - world.ball().position()).len() < AI::HL::Util::POS_CLOSE;
 			}
 
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+			Player select(const std::set<Player> &players) const {
 				return select_baller(world, players, player);
 			}
 

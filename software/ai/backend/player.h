@@ -22,11 +22,6 @@ namespace AI {
 				 */
 				typedef BoxPtr<Player> Ptr;
 
-				/**
-				 * \brief A pointer to a const Player
-				 */
-				typedef BoxPtr<const Player> CPtr;
-
 				void move(Point dest, Angle ori, Point vel);
 				unsigned int flags() const;
 				void flags(unsigned int flags);

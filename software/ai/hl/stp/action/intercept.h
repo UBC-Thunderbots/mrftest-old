@@ -12,7 +12,7 @@ namespace AI {
 				 *
 				 *  \param[in] target Used to determine the direction the player should be facing when player intercepts the ball.
 				 */
-				void intercept(Player::Ptr player, const Point target);
+				void intercept(Player player, const Point target);
 			}
 		}
 	}

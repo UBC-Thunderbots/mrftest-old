@@ -11,14 +11,14 @@ namespace AI {
 				/**
 				 * A single goalie and NO ONE ELSE defending the field.
 				 */
-				void lone_goalie(World world, Player::Ptr player);
+				void lone_goalie(World world, Player player);
 
 				/**
 				 * Move the goalie to this location.
 				 * If the ball is dangerously moving towards the net,
 				 * then rush to defend it.
 				 */
-				void goalie_move(World world, Player::Ptr player, Point dest);
+				void goalie_move(World world, Player player, Point dest);
 			}
 		}
 	}

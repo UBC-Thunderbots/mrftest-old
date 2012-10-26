@@ -9,7 +9,7 @@ namespace {
 	DoubleParam repel_dist("Distance the defender should repel the ball in robot radius", "STP/Action/defend", 4.0, 1.0, 6.0);
 }
 
-void AI::HL::STP::Action::defender_move(World world, Player::Ptr player, const Point dest) {
+void AI::HL::STP::Action::defender_move(World world, Player player, const Point dest) {
 	// if the ball is too close we repel
 	if ((world.ball().position() - player->position()).len() < repel_dist * Robot::MAX_RADIUS) {
 		corner_repel(world, player);

@@ -11,13 +11,13 @@
 using AI::HL::STP::PlayExecutor;
 using namespace AI::HL::STP;
 
-Player::Ptr AI::HL::STP::HACK::active_player;
-Player::Ptr AI::HL::STP::HACK::last_kicked;
+Player AI::HL::STP::HACK::active_player;
+Player AI::HL::STP::HACK::last_kicked;
 
 namespace AI {
 	namespace HL {
 		namespace STP {
-			Player::CPtr _goalie;
+			Player _goalie;
 
 			size_t team_size = 0;
 		}
@@ -122,14 +122,14 @@ void PlayExecutor::role_assignment() {
 	// we cannot have less than 1 active tactic.
 	assert(curr_active);
 
-	std::fill(curr_assignment, curr_assignment + TEAM_MAX_SIZE, Player::Ptr());
+	std::fill(curr_assignment, curr_assignment + TEAM_MAX_SIZE, Player());
 
-	Player::Ptr goalie;
+	Player goalie;
 	if (goalie_lowest) {
 		goalie = world.friendly_team().get(0);
 	} else {
 		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-			Player::Ptr p = world.friendly_team().get(i);
+			Player p = world.friendly_team().get(i);
 			if (p->pattern() == static_cast<unsigned int>(goalie_pattern_index)) {
 				goalie = p;
 			}
@@ -149,9 +149,9 @@ void PlayExecutor::role_assignment() {
 	curr_assignment[0] = goalie;
 
 	// pool of available people
-	std::set<Player::Ptr> players;
+	std::set<Player> players;
 	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-		Player::Ptr p = world.friendly_team().get(i);
+		Player p = world.friendly_team().get(i);
 		if (p == goalie) {
 			continue;
 		}

@@ -25,7 +25,7 @@ namespace {
 			Coordinate target;
 			bool kick_attempted;
 			bool done() const;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			void player_changed();
 			Glib::ustring description() const {
@@ -37,9 +37,9 @@ namespace {
 		return player /* && kick_attempted */ && player->autokick_fired();
 	}
 
-	Player::Ptr ChipTarget::select(const std::set<Player::Ptr> &players) const {
+	Player ChipTarget::select(const std::set<Player> &players) const {
 		// if a player attempted to shoot, keep the player
-		Player::CPtr player_c = player;
+		Player player_c = player;
 		if (players.count(player) && Evaluation::possess_ball(world, player_c) && player->has_chipper()) {
 			return player;
 		}

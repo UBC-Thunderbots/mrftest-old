@@ -14,36 +14,36 @@ namespace AI {
 				 * Finds a friendly player with the ball.
 				 * Wrapper to stp's baller.
 				 */
-				Player::CPtr calc_friendly_baller();
+				Player calc_friendly_baller();
 
 				/**
 				 * Finds an enemy player with the ball.
 				 */
-				Robot::Ptr calc_enemy_baller(World world);
+				Robot calc_enemy_baller(World world);
 
 				/**
 				 * Ball is within pivot threshold.
 				 */
-				bool ball_in_pivot_thresh(World world, Player::CPtr player);
+				bool ball_in_pivot_thresh(World world, Player player);
 
 				/**
 				 * The ball is right in front of the player.
 				 */
-				bool possess_ball(World world, Player::CPtr player);
+				bool possess_ball(World world, Player player);
 
 				/**
 				 * Ball is right in front of the robot.
 				 */
-				bool possess_ball(World world, Robot::Ptr robot);
+				bool possess_ball(World world, Robot robot);
 
 				/**
 				 * Computes the best location to grab the ball,
 				 * minimizing the time required.
 				 * This is a wrapper to the function in ai/util.h
 				 */
-				Point calc_fastest_grab_ball_dest(World world, Player::CPtr player);
+				Point calc_fastest_grab_ball_dest(World world, Player player);
 
-				std::vector<Robot::Ptr> enemies_by_grab_ball_dist();
+				std::vector<Robot> enemies_by_grab_ball_dist();
 
 				/**
 				 * Distance from the front to be considered ball possession.

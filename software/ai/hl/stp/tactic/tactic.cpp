@@ -19,7 +19,7 @@ bool Tactic::fail() const {
 	return false;
 }
 
-void Tactic::set_player(Player::Ptr p) {
+void Tactic::set_player(Player p) {
 	if (player != p) {
 		player = p;
 		player_changed();

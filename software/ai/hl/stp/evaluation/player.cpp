@@ -10,7 +10,7 @@ bool Evaluation::player_within_angle_thresh(const Point position, const Angle or
 	return facing_dir.dot(pass_dir) > dir_thresh;
 }
 
-bool Evaluation::player_within_angle_thresh(Player::CPtr player, const Point target, Angle threshold) {
+bool Evaluation::player_within_angle_thresh(Player player, const Point target, Angle threshold) {
 	return player_within_angle_thresh(player->position(), player->orientation(), target, threshold);
 }
 

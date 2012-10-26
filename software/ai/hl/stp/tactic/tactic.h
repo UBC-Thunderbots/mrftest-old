@@ -69,12 +69,12 @@ namespace AI {
 						 *
 						 * \return a player to be used by this tactic
 						 */
-						virtual Player::Ptr select(const std::set<Player::Ptr> &players) const = 0;
+						virtual Player select(const std::set<Player> &players) const = 0;
 
 						/**
 						 * \brief Changes the player associated with this tactic.
 						 */
-						void set_player(Player::Ptr p);
+						void set_player(Player p);
 
 						/**
 						 * \brief The main execution of this tactic.
@@ -98,7 +98,7 @@ namespace AI {
 
 					protected:
 						World world;
-						Player::Ptr player;
+						Player player;
 
 						/**
 						 * \brief Constructor for tactic.

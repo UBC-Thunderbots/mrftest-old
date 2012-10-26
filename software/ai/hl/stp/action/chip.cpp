@@ -23,7 +23,7 @@ namespace {
 	const double FAST = 100.0;
 }
 
-bool AI::HL::STP::Action::chip_target(World world, Player::Ptr player, const Point target, double power) {
+bool AI::HL::STP::Action::chip_target(World world, Player player, const Point target, double power) {
 	// grab the ball in case we don't have it or lost it
 	intercept_pivot(world, player, target);
 

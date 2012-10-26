@@ -12,7 +12,7 @@ namespace {
 	const int COUNTER_CLOCKWISE = 1;
 }
 
-void AI::HL::STP::Action::move_spin(Player::Ptr player, const Point dest) {
+void AI::HL::STP::Action::move_spin(Player player, const Point dest) {
 	// spin in different directions depending on which quadrant of the field the robot is at
 	int direction_to_spin;
 

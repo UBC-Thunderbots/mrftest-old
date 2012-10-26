@@ -14,7 +14,7 @@ namespace AI {
 					/**
 					 * Enemy robot closest to ball.
 					 */
-					AI::HL::W::Robot::Ptr threat;
+					AI::HL::W::Robot threat;
 
 					/**
 					 * Closest distance of enemy robot to ball.
@@ -29,7 +29,7 @@ namespace AI {
 					/**
 					 * Enemies sorted by distance to ball.
 					 */
-					std::vector<AI::HL::W::Robot::Ptr> enemies;
+					std::vector<AI::HL::W::Robot> enemies;
 				};
 
 				BallThreat evaluate_ball_threat(AI::HL::W::World world);
@@ -47,7 +47,7 @@ namespace AI {
 				/**
 				 * Get where the goalie should go to block the shot
 				 */
-				Point goalie_shot_block(AI::HL::W::World world, AI::HL::W::Player::Ptr player);
+				Point goalie_shot_block(AI::HL::W::World world, AI::HL::W::Player player);
 			}
 		}
 	}

@@ -29,11 +29,6 @@ namespace AI {
 			class Player : public Robot, public AI::Common::Player {
 				public:
 					/**
-					 * \brief This class
-					 */
-					typedef Player Ptr;
-
-					/**
 					 * \brief Constructs a nonexistent Player
 					 */
 					explicit Player();

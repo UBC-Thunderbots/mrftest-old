@@ -11,7 +11,7 @@ namespace {
 	DoubleParam reduced_radius_big("big reduced radius for calculating best shot (robot radius ratio)", "STP/Shoot", 0.8, 0.0, 1.1);
 }
 
-Angle Evaluation::get_shoot_score(World world, Player::Ptr player, bool use_reduced_radius) {
+Angle Evaluation::get_shoot_score(World world, Player player, bool use_reduced_radius) {
 	double radius;
 	if (use_reduced_radius) {
 		radius = reduced_radius_small;
@@ -34,8 +34,8 @@ Angle Evaluation::get_shoot_score(World world, Player::Ptr player, bool use_redu
 }
 
 /*
-   Point Evaluation::get_best_shoot_target(World world, Player::Ptr player) {
-    //			std::vector<std::pair<Point, double> > calc_best_shot_all(AI::HL::W::World world, AI::HL::W::Player::CPtr player, double radius = 1.0);
+   Point Evaluation::get_best_shoot_target(World world, Player player) {
+    //			std::vector<std::pair<Point, double> > calc_best_shot_all(AI::HL::W::World world, AI::HL::W::Player player, double radius = 1.0);
     std::vector<std::pair<Point, double> > openings = AI::HL::Util::calc_best_shot_all(world, player);
 
     double ans = 0.0;
@@ -69,7 +69,7 @@ Angle Evaluation::get_shoot_score(World world, Player::Ptr player, bool use_redu
     return best.first;
    }
  */
-Evaluation::ShootData Evaluation::evaluate_shoot(World world, Player::CPtr player, bool use_reduced_radius) {
+Evaluation::ShootData Evaluation::evaluate_shoot(World world, Player player, bool use_reduced_radius) {
 	ShootData data;
 
 	double radius;

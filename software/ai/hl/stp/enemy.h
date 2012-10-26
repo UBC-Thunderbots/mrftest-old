@@ -26,7 +26,7 @@ namespace AI {
 					 *
 					 * \return the enemy robot, or null if such a robot does not exist.
 					 */
-					virtual Robot::Ptr evaluate() const = 0;
+					virtual Robot evaluate() const = 0;
 
 					/**
 					 * \brief Order by distance to friendly goal.
@@ -67,7 +67,7 @@ namespace AI {
 					 *
 					 * \return the (i+1)th closest enemy to the friendly player
 					 */
-					static Enemy::Ptr closest_friendly_player(World world, Player::Ptr player, unsigned int i);
+					static Enemy::Ptr closest_friendly_player(World world, Player player, unsigned int i);
 
 				protected:
 					Enemy();

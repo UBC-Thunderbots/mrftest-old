@@ -14,12 +14,12 @@ namespace {
 
 	class Fixed : public Enemy {
 		public:
-			Fixed(Robot::Ptr r) : robot(r) {
+			Fixed(Robot r) : robot(r) {
 			}
 
 		private:
-			Robot::Ptr robot;
-			Robot::Ptr evaluate() const {
+			Robot robot;
+			Robot evaluate() const {
 				return robot;
 			}
 	};
@@ -32,16 +32,16 @@ namespace {
 		private:
 			World world;
 			unsigned int index;
-			Robot::Ptr evaluate() const {
+			Robot evaluate() const {
 				if (world.enemy_team().size() <= index) {
-					return Robot::Ptr();
+					return Robot();
 				}
 
-				std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+				std::vector<Robot> enemies = AI::HL::Util::get_robots(world.enemy_team());
 
 				// sort enemies by distance to own goal
 				// TODO: cache this
-				std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().friendly_goal()));
+				std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot>(world.field().friendly_goal()));
 
 				return enemies[index];
 			}
@@ -55,9 +55,9 @@ namespace {
 		private:
 			World world;
 			unsigned int index;
-			Robot::Ptr evaluate() const {
+			Robot evaluate() const {
 				if (world.enemy_team().size() <= index) {
-					return Robot::Ptr();
+					return Robot();
 				}
 
 				auto enemies = Evaluation::enemies_by_grab_ball_dist();
@@ -74,19 +74,19 @@ namespace {
 		private:
 			World world;
 			unsigned int index;
-			Robot::Ptr evaluate() const {
-				return Robot::Ptr();
+			Robot evaluate() const {
+				return Robot();
 				// TODO: redo this
 				/*
-				   std::vector<Robot::Ptr> passees = Evaluation::get_passees(world, robot);
+				   std::vector<Robot> passees = Evaluation::get_passees(world, robot);
 
 				   if (passees.size() <= index) {
 				   if (world.enemy_team().size() > index) {
 				   passees = AI::HL::Util::get_robots(world.enemy_team());
-				   std::sort(passees.begin(), passees.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
+				   std::sort(passees.begin(), passees.end(), AI::HL::Util::CmpDist<Robot>(world.ball().position()));
 				   return passees[index];
 				   } else {
-				   return Robot::Ptr();
+				   return Robot();
 				   }
 				   }
 
@@ -97,23 +97,23 @@ namespace {
 
 	class ClosestFriendlyPlayer : public Enemy {
 		public:
-			ClosestFriendlyPlayer(World w, Player::Ptr player, unsigned int i) : world(w), player(player), index(i) {
+			ClosestFriendlyPlayer(World w, Player player, unsigned int i) : world(w), player(player), index(i) {
 			}
 
 		private:
 			World world;
-			Player::Ptr player;
+			Player player;
 			unsigned int index;
-			Robot::Ptr evaluate() const {
+			Robot evaluate() const {
 				if (world.enemy_team().size() <= index) {
-					return Robot::Ptr();
+					return Robot();
 				}
 
-				std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+				std::vector<Robot> enemies = AI::HL::Util::get_robots(world.enemy_team());
 
 				// sort enemies by distance to own goal
 				// TODO: cache this
-				std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(player->position()));
+				std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot>(player->position()));
 
 				return enemies[index];
 			}
@@ -133,7 +133,7 @@ Enemy::Ptr AI::HL::STP::Enemy::closest_pass(World world, unsigned int i) {
 	return std::make_shared<ClosestPass>(world, i);
 }
 
-Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_player(World world, Player::Ptr player, unsigned int i) {
+Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_player(World world, Player player, unsigned int i) {
 	return std::make_shared<ClosestFriendlyPlayer>(world, player, i);
 }
 

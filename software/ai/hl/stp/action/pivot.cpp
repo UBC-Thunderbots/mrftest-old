@@ -8,7 +8,7 @@
 #include <cmath>
 #include <algorithm>
 
-void AI::HL::STP::Action::intercept_pivot(AI::HL::STP::World world, AI::HL::STP::Player::Ptr player, const Point target) {
+void AI::HL::STP::Action::intercept_pivot(AI::HL::STP::World world, AI::HL::STP::Player player, const Point target) {
 	if (Evaluation::ball_in_pivot_thresh(world, player)) {
 		pivot(world, player, target);
 	} else {
@@ -16,7 +16,7 @@ void AI::HL::STP::Action::intercept_pivot(AI::HL::STP::World world, AI::HL::STP:
 	}
 }
 
-void AI::HL::STP::Action::pivot(AI::HL::STP::World world, AI::HL::STP::Player::Ptr player, const Point target, const double radius) {
+void AI::HL::STP::Action::pivot(AI::HL::STP::World world, AI::HL::STP::Player player, const Point target, const double radius) {
 	const Angle ori = (target - player->position()).orientation();
 	// set the destination point to be just behind the ball in the correct direction at the offset distance
 	Point dest = -(target - world.ball().position()).norm() * radius + world.ball().position();

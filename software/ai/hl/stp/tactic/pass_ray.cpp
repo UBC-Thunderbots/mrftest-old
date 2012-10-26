@@ -25,7 +25,7 @@ namespace {
 
 	struct PasserRay : public Tactic {
 		bool kick_attempted;
-		Player::CPtr target;
+		Player target;
 
 		// HYSTERESIS
 		Angle ori_fix;
@@ -49,7 +49,7 @@ namespace {
 			return false;
 		}
 
-		Player::Ptr select(const std::set<Player::Ptr> &players) const {
+		Player select(const std::set<Player> &players) const {
 			// if a player attempted to shoot, keep the player
 			if (kick_attempted && players.count(player)) {
 				return player;

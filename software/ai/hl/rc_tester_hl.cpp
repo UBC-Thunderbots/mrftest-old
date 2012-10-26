@@ -43,7 +43,7 @@ namespace {
 			}
 
 			for (std::size_t i = 0; i < friendly.size(); ++i) {
-				Player::Ptr runner = friendly.get(i);
+				Player runner = friendly.get(i);
 
 				const double px = runner->position().x + controls[0].get_value();
 				const double py = runner->position().y + controls[1].get_value();

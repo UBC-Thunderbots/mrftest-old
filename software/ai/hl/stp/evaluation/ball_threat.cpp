@@ -22,7 +22,7 @@ BallThreat AI::HL::STP::Evaluation::evaluate_ball_threat(World world) {
 	ball_threat.activate_steal = false;
 
 	if (ball_threat.enemies.size() > 0) {
-		std::sort(ball_threat.enemies.begin(), ball_threat.enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
+		std::sort(ball_threat.enemies.begin(), ball_threat.enemies.end(), AI::HL::Util::CmpDist<Robot>(world.ball().position()));
 
 		ball_threat.threat = ball_threat.enemies[0];
 
@@ -84,7 +84,7 @@ bool AI::HL::STP::Evaluation::ball_on_enemy_net(AI::HL::W::World world) {
 	return false;
 }
 
-Point AI::HL::STP::Evaluation::goalie_shot_block(AI::HL::W::World world, const AI::HL::W::Player::Ptr player) {
+Point AI::HL::STP::Evaluation::goalie_shot_block(AI::HL::W::World world, const AI::HL::W::Player player) {
 	if (world.friendly_team().size() <= 0 || !ball_on_net(world)) {
 		return Point(0, 0);
 	}

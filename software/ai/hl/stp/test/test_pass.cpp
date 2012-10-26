@@ -74,7 +74,7 @@ namespace {
 
 				tick_eval(world);
 
-				std::vector<AI::HL::W::Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
+				std::vector<AI::HL::W::Player> players = AI::HL::Util::get_players(world.friendly_team());
 				if (players.size() != 2) {
 					return;
 				}

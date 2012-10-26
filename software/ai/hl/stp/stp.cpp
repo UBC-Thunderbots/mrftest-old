@@ -9,7 +9,7 @@ using namespace AI::HL::STP;
 namespace AI {
 	namespace HL {
 		namespace STP {
-			extern Player::CPtr _goalie;
+			extern Player _goalie;
 		}
 	}
 }
@@ -30,7 +30,7 @@ void AI::HL::STP::draw_ui(World world, Cairo::RefPtr<Cairo::Context> ctx) {
 	draw_baller(world, ctx);
 }
 
-Player::CPtr AI::HL::STP::get_goalie() {
+Player AI::HL::STP::get_goalie() {
 	return _goalie;
 }
 

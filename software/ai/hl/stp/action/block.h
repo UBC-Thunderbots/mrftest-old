@@ -10,12 +10,12 @@ namespace AI {
 				/**
 				 * Blocks against a single enemy from shooting to our goal.
 				 */
-				void block_goal(World world, Player::Ptr player, Robot::Ptr robot);
+				void block_goal(World world, Player player, Robot robot);
 
 				/**
 				 * Blocks against a single enemy from the ball / passing.
 				 */
-				void block_ball(World world, Player::Ptr player, Robot::Ptr robot);
+				void block_ball(World world, Player player, Robot robot);
 			}
 		}
 	}

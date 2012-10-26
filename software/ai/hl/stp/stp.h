@@ -15,7 +15,7 @@ namespace AI {
 
 			void draw_ui(World world, Cairo::RefPtr<Cairo::Context> ctx);
 
-			Player::CPtr get_goalie();
+			Player get_goalie();
 		}
 	}
 }

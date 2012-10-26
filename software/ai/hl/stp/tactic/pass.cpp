@@ -75,7 +75,7 @@ namespace {
 				               && !AI::HL::STP::Predicates::baller_can_shoot(world)));
 			}
 
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+			Player select(const std::set<Player> &players) const {
 				return select_baller(world, players, player);
 			}
 
@@ -101,7 +101,7 @@ namespace {
 	};
 
 	kick_info PasserShoot::passer_info;
-	Player::Ptr last_passee;
+	Player last_passee;
 
 	class PasseeMove : public Tactic {
 		public:
@@ -115,9 +115,9 @@ namespace {
 			bool dynamic;
 			Coordinate target;
 
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+			Player select(const std::set<Player> &players) const {
 				Point dest = dynamic ? Evaluation::passee_position() : target.position();
-				last_passee = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
+				last_passee = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest));
 				return last_passee;
 			}
 
@@ -202,7 +202,7 @@ namespace {
 			}
 
 		private:
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+			Player select(const std::set<Player> &players) const {
 				// hard to calculate who is best to recieve the pass
 				// so use whoever last was assigned if they are still around
 				// closeness to "intended target" is a terrible way to choose
@@ -212,7 +212,7 @@ namespace {
 				}
 				// otherwise we don't really have a choice but to use the one closest to the "intended target"
 				const Point dest = PasserShoot::passer_info.kicker_location;
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest));
 			}
 			bool done() const {
 				return player && player->has_ball();

@@ -22,11 +22,6 @@ namespace AI {
 				 */
 				typedef BoxPtr<Robot> Ptr;
 
-				/**
-				 * \brief A pointer to a const Robot
-				 */
-				typedef BoxPtr<const Robot> CPtr;
-
 				explicit Robot(unsigned int pattern);
 
 				/**

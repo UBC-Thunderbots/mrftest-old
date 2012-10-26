@@ -28,7 +28,7 @@ namespace {
 				return player && player->autokick_fired();
 			}
 
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+			Player select(const std::set<Player> &players) const {
 				return select_baller(world, players, player);
 			}
 
@@ -88,7 +88,7 @@ namespace {
 				}
 			}
 
-			bool obstacle(Player::Ptr Passer, Point Destination) {
+			bool obstacle(Player Passer, Point Destination) {
 				std::size_t size_enemy = world.enemy_team().size();
 				std::size_t size_friendly = world.friendly_team().size();
 				double tolerance = Robot::MAX_RADIUS/2;

@@ -26,11 +26,6 @@ namespace AI {
 			class Robot : public AI::Common::Robot {
 				public:
 					/**
-					 * \brief This class
-					 */
-					typedef Robot Ptr;
-
-					/**
 					 * \brief Constructs a nonexistent Robot
 					 */
 					explicit Robot();
@@ -80,16 +75,6 @@ namespace AI {
 			 */
 			class Player : public Robot, public AI::Common::Player {
 				public:
-					/**
-					 * \brief This class
-					 */
-					typedef Player Ptr;
-
-					/**
-					 * \brief This class, const
-					 */
-					typedef Player CPtr;
-
 					/**
 					 * \brief Constructs a nonexistent Player
 					 */

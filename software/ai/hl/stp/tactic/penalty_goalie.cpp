@@ -19,7 +19,7 @@ namespace {
 			bool goto_target1;
 			bool done() const;
 			void execute();
-			Player::Ptr select(const std::set<Player::Ptr> &) const {
+			Player select(const std::set<Player> &) const {
 				assert(0);
 			}
 			Glib::ustring description() const {

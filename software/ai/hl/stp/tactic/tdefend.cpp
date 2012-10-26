@@ -29,7 +29,7 @@ namespace {
 		private:
 			size_t defender_role;
 			void execute();
-			Player::Ptr select(const std::set<Player::Ptr> &) const {
+			Player select(const std::set<Player> &) const {
 				assert(0);
 			}
 			Glib::ustring description() const {
@@ -48,7 +48,7 @@ namespace {
 
 		private:
 			unsigned index;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
 				return "tdefender";
@@ -63,9 +63,9 @@ namespace {
 		Action::lone_goalie(world, player);
 	}
 
-	Player::Ptr TDefender::select(const std::set<Player::Ptr> &players) const {
+	Player TDefender::select(const std::set<Player> &players) const {
 		Point target = Evaluation::evaluate_tdefense(world, index);
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(target));
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(target));
 	}
 
 	void TDefender::execute() {
@@ -86,8 +86,8 @@ namespace {
 			Coordinate p1, p2;
 			double dist_min, dist_max;
 
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>((p1.position() + p2.position()) / 2));
+			Player select(const std::set<Player> &players) const {
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>((p1.position() + p2.position()) / 2));
 			}
 
 			void execute();

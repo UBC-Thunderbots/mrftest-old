@@ -17,7 +17,7 @@ namespace {
 			Tactic::Ptr tactic;
 			const AI::Common::PlayType playtype;
 			bool done() const;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void player_changed();
 			void execute();
 			Glib::ustring description() const {
@@ -33,7 +33,7 @@ namespace {
 		tactic->set_player(player);
 	}
 
-	Player::Ptr WaitPlaytype::select(const std::set<Player::Ptr> &players) const {
+	Player WaitPlaytype::select(const std::set<Player> &players) const {
 		return tactic->select(players);
 	}
 

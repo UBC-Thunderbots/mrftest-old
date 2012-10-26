@@ -6,18 +6,18 @@ using AI::HL::STP::Role;
 namespace {
 	class Fixed : public Role {
 		public:
-			Fixed(Player::Ptr p) : player(p) {
+			Fixed(Player p) : player(p) {
 			}
 
 		private:
-			Player::Ptr player;
-			Player::Ptr evaluate() const {
+			Player player;
+			Player evaluate() const {
 				return player;
 			}
 	};
 }
 
-Role::Ptr AI::HL::STP::Role::player(Player::Ptr p) {
+Role::Ptr AI::HL::STP::Role::player(Player p) {
 	return std::make_shared<Fixed>(p);
 }
 

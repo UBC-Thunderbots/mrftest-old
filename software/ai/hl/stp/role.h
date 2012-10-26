@@ -24,12 +24,12 @@ namespace AI {
 					/**
 					 * \brief Gets the player associated with this role.
 					 */
-					virtual Player::Ptr evaluate() const = 0;
+					virtual Player evaluate() const = 0;
 
 					/**
 					 * \brief A specific player.
 					 */
-					static Role::Ptr player(Player::Ptr player);
+					static Role::Ptr player(Player player);
 
 					/**
 					 * \brief A specific tactic.

@@ -15,7 +15,7 @@ namespace {
 			bool shoot_up;
 			bool has_shot;
 			bool done() const;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
 				return "penalty-shoot";
@@ -26,8 +26,8 @@ namespace {
 		return has_shot;
 	}
 
-	Player::Ptr PenaltyShoot::select(const std::set<Player::Ptr> &players) const {
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.field().enemy_goal()));
+	Player PenaltyShoot::select(const std::set<Player> &players) const {
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(world.field().enemy_goal()));
 	}
 
 	void PenaltyShoot::execute() {

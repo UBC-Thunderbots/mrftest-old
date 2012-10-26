@@ -18,18 +18,18 @@ namespace {
 
 		private:
 			Enemy::Ptr enemy;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
 				return "block-goal";
 			}
 	};
 
-	Player::Ptr BlockGoal::select(const std::set<Player::Ptr> &players) const {
+	Player BlockGoal::select(const std::set<Player> &players) const {
 		if (!enemy->evaluate()) {
 			return *(players.begin());
 		}
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(enemy->evaluate()->position()));
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(enemy->evaluate()->position()));
 	}
 
 	void BlockGoal::execute() {
@@ -47,18 +47,18 @@ namespace {
 
 		private:
 			Enemy::Ptr enemy;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
 				return "block-ball";
 			}
 	};
 
-	Player::Ptr BlockBall::select(const std::set<Player::Ptr> &players) const {
+	Player BlockBall::select(const std::set<Player> &players) const {
 		if (!enemy->evaluate()) {
 			return *(players.begin());
 		}
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(enemy->evaluate()->position()));
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(enemy->evaluate()->position()));
 	}
 
 	void BlockBall::execute() {

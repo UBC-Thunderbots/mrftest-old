@@ -22,10 +22,10 @@ namespace {
 	const double FAST = 100.0;
 }
 
-bool AI::HL::STP::Action::shoot_goal(World world, Player::Ptr player, bool use_reduced_radius) {
+bool AI::HL::STP::Action::shoot_goal(World world, Player player, bool use_reduced_radius) {
 	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player, use_reduced_radius);
 
-	Player::CPtr pc = player;
+	Player pc = player;
 	if (!Evaluation::possess_ball(world, pc)) {
 		intercept_pivot(world, player, shoot_data.target);
 		return false;
@@ -52,7 +52,7 @@ bool AI::HL::STP::Action::shoot_goal(World world, Player::Ptr player, bool use_r
 	return false;
 }
 
-bool AI::HL::STP::Action::shoot_target(World world, Player::Ptr player, const Point target, double velocity) {
+bool AI::HL::STP::Action::shoot_target(World world, Player player, const Point target, double velocity) {
 	// Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot_target(world, player, target);
 	intercept_pivot(world, player, target);
 
@@ -77,15 +77,15 @@ bool AI::HL::STP::Action::shoot_target(World world, Player::Ptr player, const Po
 	return true;
 }
 
-bool AI::HL::STP::Action::shoot_pass(World world, Player::Ptr shooter, Player::CPtr target) {
+bool AI::HL::STP::Action::shoot_pass(World world, Player shooter, Player target) {
 	return shoot_pass(world, shooter, target->position());
 }
 
-bool AI::HL::STP::Action::shoot_pass(World world, Player::Ptr player, const Point target) {
+bool AI::HL::STP::Action::shoot_pass(World world, Player player, const Point target) {
 	return shoot_pass(world, player, target, passer_angle_threshold);
 }
 
-bool AI::HL::STP::Action::shoot_pass(World world, Player::Ptr player, const Point target, Angle angle_tol) {
+bool AI::HL::STP::Action::shoot_pass(World world, Player player, const Point target, Angle angle_tol) {
 	intercept_pivot(world, player, target);
 
 	// checker shooter orientation
@@ -103,7 +103,7 @@ bool AI::HL::STP::Action::shoot_pass(World world, Player::Ptr player, const Poin
 	bool ok = false;
 
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
-		Player::CPtr p = player;
+		Player p = player;
 		if (world.friendly_team().get(i) != p) {
 			bool curr_ok = (target - world.friendly_team().get(i)->position()).len() < distance_tol
 			               && Evaluation::passee_facing_passer(player, world.friendly_team().get(i));

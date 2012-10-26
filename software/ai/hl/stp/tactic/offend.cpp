@@ -14,7 +14,7 @@ namespace {
 			}
 
 		private:
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
 				return "offender";
@@ -27,16 +27,16 @@ namespace {
 			}
 
 		private:
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
 				return "offender (secondary)";
 			}
 	};
 
-	Player::Ptr Primary::select(const std::set<Player::Ptr> &players) const {
+	Player Primary::select(const std::set<Player> &players) const {
 		auto dest = AI::HL::STP::Evaluation::offense_positions();
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest[0]));
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest[0]));
 	}
 
 	void Primary::execute() {
@@ -45,9 +45,9 @@ namespace {
 		player->prio(AI::Flags::MovePrio::LOW);
 	}
 
-	Player::Ptr Secondary::select(const std::set<Player::Ptr> &players) const {
+	Player Secondary::select(const std::set<Player> &players) const {
 		auto dest = AI::HL::STP::Evaluation::offense_positions();
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest[1]));
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest[1]));
 	}
 
 	void Secondary::execute() {

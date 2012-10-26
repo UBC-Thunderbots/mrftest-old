@@ -90,7 +90,7 @@ namespace {
 
 				// Set up to three players
 				for (unsigned int robotIndex = 0; robotIndex < friendly.size() && robotIndex < 3; ++robotIndex) {
-					Player::Ptr runner = friendly.get(robotIndex);
+					Player runner = friendly.get(robotIndex);
 
 					const Point diff_pos = runner->position() - tasks[done[robotIndex]].first;
 
@@ -117,7 +117,7 @@ namespace {
 
 				// Set moving obstacles
 				if (friendly.size() >= 4) {
-					Player::Ptr runner = friendly.get(3);
+					Player runner = friendly.get(3);
 					Point des;
 					if (obstacleIndex == 0) {
 						des = Point(0, 1);

@@ -19,21 +19,21 @@ namespace {
 		private:
 			const Enemy::Ptr enemy;
 			const Coordinate default_loc;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
 				return "shadow kickoff";
 			}
 	};
 
-	Player::Ptr ShadowKickoff::select(const std::set<Player::Ptr> &players) const {
+	Player ShadowKickoff::select(const std::set<Player> &players) const {
 		Point location_eval;
 		if (enemy->evaluate()) {
 			location_eval = enemy->evaluate()->position();
 		} else {
 			location_eval = default_loc.position();
 		}
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(location_eval));
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(location_eval));
 	}
 
 	void ShadowKickoff::execute() {
@@ -52,15 +52,15 @@ namespace {
 			}
 
 		private:
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
 				return "shadow ball";
 			}
 	};
 
-	Player::Ptr ShadowBall::select(const std::set<Player::Ptr> &players) const {
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(world.ball().position().x, -world.ball().position().y)));
+	Player ShadowBall::select(const std::set<Player> &players) const {
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(Point(world.ball().position().x, -world.ball().position().y)));
 	}
 
 	void ShadowBall::execute() {

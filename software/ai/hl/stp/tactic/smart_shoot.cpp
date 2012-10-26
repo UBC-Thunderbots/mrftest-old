@@ -24,7 +24,7 @@ namespace {
 				return player && player->autokick_fired();
 			}
 
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+			Player select(const std::set<Player> &players) const {
 				return select_baller(world, players, player);
 			}
 
@@ -64,7 +64,7 @@ namespace {
 			 * clearDistance is double value subject to change.
 			 */
 
-			bool chipperclear(Player::Ptr player) {
+			bool chipperclear(Player player) {
 				std::size_t size_enemy = world.enemy_team().size();
 
 				double clearDistance = 0.18;
@@ -86,7 +86,7 @@ namespace {
 			 * If there are not any robots in the path of the robot to the target, it returns false.
 			 */
 
-			bool obstacle(Player::Ptr Passer, Point Destination) {
+			bool obstacle(Player Passer, Point Destination) {
 				std::size_t size_enemy = world.enemy_team().size();
 				std::size_t size_friendly = world.friendly_team().size();
 				double tolerance = Robot::MAX_RADIUS/2;
