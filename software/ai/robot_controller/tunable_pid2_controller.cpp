@@ -51,7 +51,7 @@ namespace {
 		public:
 			void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity);
 			void clear();
-			explicit TunablePID2Controller(World world, Player::Ptr plr);
+			explicit TunablePID2Controller(World world, Player plr);
 			void set_params(const std::vector<double> &params) {
 				this->param = params;
 			}
@@ -75,7 +75,7 @@ namespace {
 			Angle prev_angular_velocity;
 	};
 
-	TunablePID2Controller::TunablePID2Controller(World world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), param(param_default), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(Angle::ZERO) {
+	TunablePID2Controller::TunablePID2Controller(World world, Player plr) : OldRobotController(world, plr), initialized(false), param(param_default), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(Angle::ZERO) {
 	}
 
 	const std::vector<std::string> TunablePID2Controller::get_params_name() const {

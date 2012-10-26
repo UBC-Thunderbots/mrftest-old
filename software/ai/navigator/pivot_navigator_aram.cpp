@@ -30,7 +30,7 @@ PivotNavigatorAram::PivotNavigatorAram(World world) : Navigator(world) {
 void PivotNavigatorAram::tick() {
 	FriendlyTeam fteam = world.friendly_team();
 
-	Player::Ptr player;
+	Player player;
 	Player::Path path;
 
 	Point currentPosition, currentVelocity, destinationPosition, targetPosition, turnCentre, diff;

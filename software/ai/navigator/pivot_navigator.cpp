@@ -31,7 +31,7 @@ PivotNavigator::PivotNavigator(World world) : Navigator(world) {
 void PivotNavigator::tick() {
 	FriendlyTeam fteam = world.friendly_team();
 
-	Player::Ptr player;
+	Player player;
 	Player::Path path;
 
 	Point currentPosition, destinationPosition;

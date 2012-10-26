@@ -27,11 +27,6 @@ namespace AI {
 			class Robot : public AI::Common::Robot {
 				public:
 					/**
-					 * \brief This class
-					 */
-					typedef Robot Ptr;
-
-					/**
 					 * \brief The largest possible radius of a robot, in metres
 					 */
 					static const double MAX_RADIUS;
@@ -82,16 +77,6 @@ namespace AI {
 			 */
 			class Player : public AI::Common::Player, public Robot {
 				public:
-					/**
-					 * \brief This class
-					 */
-					typedef Player Ptr;
-
-					/**
-					 * \brief This class, const
-					 */
-					typedef Player CPtr;
-
 					/**
 					 * \brief The type of a single point in a path
 					 */

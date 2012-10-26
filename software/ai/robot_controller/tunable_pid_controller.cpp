@@ -17,7 +17,7 @@ namespace {
 
 			void clear();
 
-			explicit TunablePIDController(AI::RC::W::World world, AI::RC::W::Player::Ptr plr);
+			explicit TunablePIDController(AI::RC::W::World world, AI::RC::W::Player plr);
 
 			void set_params(const std::vector<double> &params) {
 				this->param = params;
@@ -162,7 +162,7 @@ const std::vector<double> TunablePIDController::param_min(arr_min, arr_min + P);
 const std::vector<double> TunablePIDController::param_max(arr_max, arr_max + P);
 const std::vector<double> TunablePIDController::param_default(arr_def, arr_def + P);
 
-TunablePIDController::TunablePIDController(World world, AI::RC::W::Player::Ptr plr) : OldRobotController(world, plr), initialized(false), param(param_default), error_pos(10), error_ori(10) {
+TunablePIDController::TunablePIDController(World world, AI::RC::W::Player plr) : OldRobotController(world, plr), initialized(false), param(param_default), error_pos(10), error_ori(10) {
 }
 
 const std::vector<std::string> TunablePIDController::get_params_name() const {

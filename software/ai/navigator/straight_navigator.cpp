@@ -31,9 +31,9 @@ namespace {
 			void teamUpdater();
 			void dealWithFlags();
 			void dealWithPath();
-			std::vector<Player::Ptr> getMovePrioPlayers(AI::Flags::MovePrio);
-			std::vector<Player::Ptr> getMoveTypePlayers(AI::Flags::MoveType);
-			std::vector<Player::Ptr> getUnhappyPlayers();
+			std::vector<Player> getMovePrioPlayers(AI::Flags::MovePrio);
+			std::vector<Player> getMoveTypePlayers(AI::Flags::MoveType);
+			std::vector<Player> getUnhappyPlayers();
 
 			std::vector<bool> player_happiness;
 			std::vector<AI::Flags::MoveType> movetype_array;
@@ -87,9 +87,9 @@ std::vector<std::pair<std::size_t, std::size_t>> PathModerator::getPathCrossPath
 StraightNavigator::StraightNavigator(World world) : Navigator(world) {
 }
 
-std::vector<Player::Ptr> StraightNavigator::getMovePrioPlayers(AI::Flags::MovePrio prio) {
+std::vector<Player> StraightNavigator::getMovePrioPlayers(AI::Flags::MovePrio prio) {
 	FriendlyTeam fteam = world.friendly_team();
-	std::vector<Player::Ptr> interested_players;
+	std::vector<Player> interested_players;
 	for (std::size_t i = 0; i < fteam.size(); i++) {
 		if (fteam.get(i)->prio() == prio) {
 			interested_players.push_back(fteam.get(i));
@@ -98,9 +98,9 @@ std::vector<Player::Ptr> StraightNavigator::getMovePrioPlayers(AI::Flags::MovePr
 	return interested_players;
 }
 
-std::vector<Player::Ptr> StraightNavigator::getMoveTypePlayers(AI::Flags::MoveType type) {
+std::vector<Player> StraightNavigator::getMoveTypePlayers(AI::Flags::MoveType type) {
 	FriendlyTeam fteam = world.friendly_team();
-	std::vector<Player::Ptr> interested_players;
+	std::vector<Player> interested_players;
 	for (std::size_t i = 0; i < fteam.size(); i++) {
 		if (fteam.get(i)->type() == type) {
 			interested_players.push_back(fteam.get(i));
@@ -109,9 +109,9 @@ std::vector<Player::Ptr> StraightNavigator::getMoveTypePlayers(AI::Flags::MoveTy
 	return interested_players;
 }
 
-std::vector<Player::Ptr> StraightNavigator::getUnhappyPlayers() {
+std::vector<Player> StraightNavigator::getUnhappyPlayers() {
 	FriendlyTeam fteam = world.friendly_team();
-	std::vector<Player::Ptr> interested_players;
+	std::vector<Player> interested_players;
 	for (std::size_t i = 0; i < fteam.size(); i++) {
 		if (!player_happiness[i]) {
 			interested_players.push_back(fteam.get(i));
@@ -138,7 +138,7 @@ void StraightNavigator::dealWithFlags() {
 }
 
 void StraightNavigator::dealWithPath() {
-	std::vector<Player::Ptr> unhappyPlayers = getUnhappyPlayers();
+	std::vector<Player> unhappyPlayers = getUnhappyPlayers();
 	std::vector<SPath> all_path;
 	std::vector<Circle> all_obs;
 	// put all path into the same variable
@@ -153,8 +153,8 @@ void StraightNavigator::dealWithPath() {
 	// get all crossed path and deal with them
 	const std::vector<std::pair<std::size_t, std::size_t>> &bot_crosses_bot = moderator.getPathCrossPath();
 	for (auto i = bot_crosses_bot.begin(), iend = bot_crosses_bot.end(); i != iend; ++i) {
-		Player::Ptr botA = unhappyPlayers[i->first];
-		Player::Ptr botB = unhappyPlayers[i->second];
+		Player botA = unhappyPlayers[i->first];
+		Player botB = unhappyPlayers[i->second];
 		Point intersect = line_intersect(botA->position(), botA->destination().first, botB->position(), botB->destination().first);
 		if ((intersect - botA->position()).len() - (intersect-botB->position()).len() < Robot::MAX_RADIUS * 2) {
 			if (botA->prio() == botB->prio()) {
@@ -173,7 +173,7 @@ void StraightNavigator::tick() {
 	FriendlyTeam fteam = world.friendly_team();
 	timespec ts;
 
-	Player::Ptr player;
+	Player player;
 	Player::Path path;
 
 	Point currentPosition, destinationPosition;

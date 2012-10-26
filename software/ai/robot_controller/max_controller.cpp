@@ -19,10 +19,10 @@ namespace {
 			void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity);
 			void clear();
 			RobotControllerFactory &get_factory() const;
-			explicit MaxController(World world, Player::Ptr plr);
+			explicit MaxController(World world, Player plr);
 	};
 
-	MaxController::MaxController(World world, Player::Ptr plr) : OldRobotController(world, plr) {
+	MaxController::MaxController(World world, Player plr) : OldRobotController(world, plr) {
 	}
 
 	void MaxController::move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity) {

@@ -70,7 +70,7 @@ namespace AI {
 				/**
 				 * \brief The player to control.
 				 */
-				const AI::RC::W::Player::Ptr player;
+				const AI::RC::W::Player player;
 
 				/**
 				 * \brief Constructs a new RobotController.
@@ -79,7 +79,7 @@ namespace AI {
 				 *
 				 * \param[in] player the player to control.
 				 */
-				explicit RobotController(AI::RC::W::World world, AI::RC::W::Player::Ptr player);
+				explicit RobotController(AI::RC::W::World world, AI::RC::W::Player player);
 		};
 
 		/**
@@ -119,7 +119,7 @@ namespace AI {
 				 *
 				 * \param[in] player the player to control.
 				 */
-				explicit OldRobotController2(AI::RC::W::World world, AI::RC::W::Player::Ptr player);
+				explicit OldRobotController2(AI::RC::W::World world, AI::RC::W::Player player);
 
 			private:
 				void tick();
@@ -157,7 +157,7 @@ namespace AI {
 				 *
 				 * \param[in] player the player to control.
 				 */
-				explicit OldRobotController(AI::RC::W::World world, AI::RC::W::Player::Ptr player);
+				explicit OldRobotController(AI::RC::W::World world, AI::RC::W::Player player);
 
 			private:
 				void move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]);
@@ -177,7 +177,7 @@ namespace AI {
 				 *
 				 * \return the new controller.
 				 */
-				virtual std::unique_ptr<RobotController> create_controller(AI::RC::W::World world, AI::RC::W::Player::Ptr plr) const = 0;
+				virtual std::unique_ptr<RobotController> create_controller(AI::RC::W::World world, AI::RC::W::Player plr) const = 0;
 
 				/**
 				 * \brief Returns the GTK widget for this RobotControllerFactory, which will be integrated into the AI's user interface.
@@ -213,14 +213,14 @@ namespace AI {
 		class cls##ControllerFactory : public RobotControllerFactory { \
 			public: \
 				explicit cls##ControllerFactory(); \
-				std::unique_ptr<RobotController> create_controller(World, Player::Ptr) const; \
+				std::unique_ptr<RobotController> create_controller(World, Player) const; \
 		}; \
 	} \
 	\
 	cls##ControllerFactory::cls##ControllerFactory() : RobotControllerFactory(#cls) { \
 	} \
 	\
-	std::unique_ptr<RobotController> cls##ControllerFactory::create_controller(World w, Player::Ptr p) const { \
+	std::unique_ptr<RobotController> cls##ControllerFactory::create_controller(World w, Player p) const { \
 		std::unique_ptr<RobotController> ptr(new cls(w, p)); \
 		return ptr; \
 	} \

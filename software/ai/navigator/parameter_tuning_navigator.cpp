@@ -71,7 +71,7 @@ void ParameterTuningNavigator::tick() {
 
 	time++;
 
-	Player::Ptr player;
+	Player player;
 	Player::Path path;
 
 	path.clear();

@@ -44,7 +44,7 @@ Point RRTPlanner::random_point() {
 }
 
 // choose a target to extend toward, the goal, a waypoint or a random point
-Point RRTPlanner::choose_target(Point goal, Player::Ptr player) {
+Point RRTPlanner::choose_target(Point goal, Player player) {
 	double p = std::rand() / static_cast<double>(RAND_MAX);
 	std::size_t i = static_cast<std::size_t>(std::rand()) % Waypoints::NUM_WAYPOINTS;
 
@@ -83,7 +83,7 @@ Glib::NodeTree<Point> *RRTPlanner::nearest(Glib::NodeTree<Point> *rrt_tree, Poin
 }
 
 // extend by STEP_DISTANCE towards the target from the start
-Point RRTPlanner::extend(Player::Ptr player, Glib::NodeTree<Point> *start, Point target) {
+Point RRTPlanner::extend(Player player, Glib::NodeTree<Point> *start, Point target) {
 	Point extend_point = start->data() + ((target - start->data()).norm() * step_distance);
 
 	if (!valid_path(start->data(), extend_point, world, player, std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])->added_flags)) {
@@ -93,11 +93,11 @@ Point RRTPlanner::extend(Player::Ptr player, Glib::NodeTree<Point> *start, Point
 	return extend_point;
 }
 
-std::vector<Point> RRTPlanner::plan(Player::Ptr player, Point goal, unsigned int added_flags) {
+std::vector<Point> RRTPlanner::plan(Player player, Point goal, unsigned int added_flags) {
 	return rrt_plan(player, goal, POST_PROCESS, added_flags);
 }
 
-std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool post_process, unsigned int added_flags) {
+std::vector<Point> RRTPlanner::rrt_plan(Player player, Point goal, bool post_process, unsigned int added_flags) {
 	Point initial = player->position();
 
 	if (!std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])) {

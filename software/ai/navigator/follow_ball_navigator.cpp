@@ -24,7 +24,7 @@ FollowBallNavigator::FollowBallNavigator(World world) : Navigator(world) {
 void FollowBallNavigator::tick() {
 	FriendlyTeam fteam = world.friendly_team();
 
-	Player::Ptr player;
+	Player player;
 	Player::Path path;
 
 	Point currentPosition, destinationPosition;

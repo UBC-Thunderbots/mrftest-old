@@ -29,7 +29,7 @@ namespace {
 	const bool POST_PROCESS = false;
 }
 
-std::vector<Point> AI::Nav::PhysicsPlanner::plan(Player::Ptr player, Point goal, unsigned int added_flags) {
+std::vector<Point> AI::Nav::PhysicsPlanner::plan(Player player, Point goal, unsigned int added_flags) {
 	curr_player = player;
 	return rrt_plan(player, goal, POST_PROCESS, added_flags);
 }
@@ -47,7 +47,7 @@ double PhysicsPlanner::distance(NodeTree<Point> *nearest, Point goal) {
 }
 
 // extend by STEP_DISTANCE towards the target from the start
-Point AI::Nav::PhysicsPlanner::extend(Player::Ptr player, Glib::NodeTree<Point> *start, Point target) {
+Point AI::Nav::PhysicsPlanner::extend(Player player, Glib::NodeTree<Point> *start, Point target) {
 	Point projected;
 	if (!start->parent()) {
 		projected = start->data() + (player->velocity() * TIMESTEP);

@@ -37,7 +37,7 @@ namespace {
 		public:
 			void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity);
 			void clear();
-			explicit PIDSimController(World world, Player::Ptr plr);
+			explicit PIDSimController(World world, Player plr);
 
 		protected:
 			bool initialized;
@@ -51,7 +51,7 @@ namespace {
 			Angle integral_a;
 	};
 
-	PIDSimController::PIDSimController(World world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(Angle::ZERO), integral_a(Angle::ZERO) {
+	PIDSimController::PIDSimController(World world, Player plr) : OldRobotController(world, plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(Angle::ZERO), integral_a(Angle::ZERO) {
 	}
 
 	void PIDSimController::move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity) {

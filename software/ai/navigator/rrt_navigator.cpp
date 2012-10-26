@@ -48,7 +48,7 @@ namespace AI {
 					NavigatorFactory &factory() const;
 
 				private:
-					void pivot(Player::Ptr player);
+					void pivot(Player player);
 
 					RRTPlanner planner;
 					bool is_ccw;
@@ -62,7 +62,7 @@ using AI::Nav::RRT::RRTNavigator;
 RRTNavigator::RRTNavigator(AI::Nav::W::World world) : Navigator(world), planner(world) {
 }
 
-void RRTNavigator::pivot(Player::Ptr player) {
+void RRTNavigator::pivot(Player player) {
 	double offset_distance = (player->destination().first - world.ball().position()).len();
 
 	if (!use_new_pivot || !player->has_ball()) {
@@ -139,7 +139,7 @@ void RRTNavigator::pivot(Player::Ptr player) {
 void RRTNavigator::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 	ctx->set_source_rgb(1.0, 1.0, 1.0);
 	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-		Player::Ptr player = world.friendly_team().get(i);
+		Player player = world.friendly_team().get(i);
 		ctx->begin_new_path();
 		ctx->set_line_width(1);
 		ctx->move_to(world.ball().position().x, world.ball().position().y);
@@ -154,7 +154,7 @@ void RRTNavigator::tick() {
 
 	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 		path.clear();
-		Player::Ptr player = world.friendly_team().get(i);
+		Player player = world.friendly_team().get(i);
 
 		if (!std::dynamic_pointer_cast<PlayerData>(player->object_store()[typeid(*this)])) {
 			player->object_store()[typeid(*this)] = std::make_shared<PlayerData>();

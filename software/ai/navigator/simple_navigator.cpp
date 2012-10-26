@@ -26,7 +26,7 @@ void SimpleNavigator::tick() {
 	FriendlyTeam fteam = world.friendly_team();
 	timespec ts;
 
-	Player::Ptr player;
+	Player player;
 	Player::Path path;
 
 	Point currentPosition, destinationPosition;

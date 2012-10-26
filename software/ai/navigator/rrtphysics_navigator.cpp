@@ -45,7 +45,7 @@ void RRTPhysicsNavigator::tick() {
 
 	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 		path.clear();
-		Player::Ptr player = world.friendly_team().get(i);
+		Player player = world.friendly_team().get(i);
 		currentTime = world.monotonic_time();
 		const double dist = (player->position() - player->destination().first).len();
 		struct timespec timeToAdd = double_to_timespec(dist / MAX_SPEED);

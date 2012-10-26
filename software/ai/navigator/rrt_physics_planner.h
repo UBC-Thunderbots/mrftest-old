@@ -5,7 +5,7 @@ namespace AI {
 		class PhysicsPlanner : public RRTPlanner {
 			public:
 				PhysicsPlanner(AI::Nav::W::World world);
-				std::vector<Point> plan(AI::Nav::W::Player::Ptr player, Point goal, unsigned int added_flags = 0);
+				std::vector<Point> plan(AI::Nav::W::Player player, Point goal, unsigned int added_flags = 0);
 
 			protected:
 				/**
@@ -18,10 +18,10 @@ namespace AI {
 				 * the gtarget is one of a random point, a waypoint, or the goal location
 				 * a subclass may override this
 				 */
-				Point extend(AI::Nav::W::Player::Ptr player, Glib::NodeTree<Point> *start, Point target);
+				Point extend(AI::Nav::W::Player player, Glib::NodeTree<Point> *start, Point target);
 
 			private:
-				AI::Nav::W::Player::Ptr curr_player;
+				AI::Nav::W::Player curr_player;
 		};
 	}
 }

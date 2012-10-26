@@ -15,7 +15,7 @@ namespace {
 
 			void clear();
 
-			explicit FuzzyController(AI::RC::W::World world, AI::RC::W::Player::Ptr player);
+			explicit FuzzyController(AI::RC::W::World world, AI::RC::W::Player player);
 
 			void set_params(const std::vector<double> &params) {
 				this->param = params;
@@ -58,7 +58,7 @@ const std::vector<double> FuzzyController::get_params_default() const {
 	return param_default;
 }
 
-FuzzyController::FuzzyController(AI::RC::W::World world, AI::RC::W::Player::Ptr player) : OldRobotController(world, player), param(5) {
+FuzzyController::FuzzyController(AI::RC::W::World world, AI::RC::W::Player player) : OldRobotController(world, player), param(5) {
 	param = param_default;
 }
 

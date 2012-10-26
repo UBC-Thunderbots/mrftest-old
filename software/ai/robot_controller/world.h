@@ -19,16 +19,6 @@ namespace AI {
 			class Player : public AI::Common::Player, public AI::Common::Robot {
 				public:
 					/**
-					 * \brief This class
-					 */
-					typedef Player Ptr;
-
-					/**
-					 * \brief This class, const
-					 */
-					typedef Player CPtr;
-
-					/**
 					 * \brief The type of a single point in a path
 					 */
 					typedef std::pair<std::pair<Point, Angle>, timespec> PathPoint;
