@@ -231,6 +231,9 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 					create_member(pattern);
 					membership_changed = true;
 				}
+				if (seen_this_frame.size() <= bot->pattern()) {
+					seen_this_frame.resize(bot->pattern() + 1);
+				}
 				if (!seen_this_frame[bot->pattern()]) {
 					seen_this_frame[bot->pattern()] = true;
 					if (detbot.has_orientation()) {
@@ -253,6 +256,9 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 		if (bot) {
 			if (vision_failures.size() <= bot->pattern()) {
 				vision_failures.resize(bot->pattern() + 1);
+			}
+			if (seen_this_frame.size() <= bot->pattern()) {
+				seen_this_frame.resize(bot->pattern() + 1);
 			}
 			if (!seen_this_frame[bot->pattern()]) {
 				++vision_failures[bot->pattern()];

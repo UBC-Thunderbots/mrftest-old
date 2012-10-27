@@ -250,6 +250,9 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 			if (vision_failures.size() <= bot->pattern()) {
 				vision_failures.resize(bot->pattern() + 1);
 			}
+			if (seen_this_frame.size() <= bot->pattern()) {
+				seen_this_frame.resize(bot->pattern() + 1);
+			}
 			if (!seen_this_frame[bot->pattern()]) {
 				++vision_failures[bot->pattern()];
 			} else {
