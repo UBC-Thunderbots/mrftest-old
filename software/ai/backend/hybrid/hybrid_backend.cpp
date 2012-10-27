@@ -299,9 +299,9 @@ HybridFriendlyTeam::HybridFriendlyTeam(HybridBackend &backend, XBeeDongle &xbee_
 
 void HybridFriendlyTeam::create_member(unsigned int pattern) {
 	if (pattern <= 7 && USE_MRF[pattern]) {
-		members.create(pattern, pattern, &mrf_dongle.robot(pattern));
+		members.create(pattern, pattern, std::ref(mrf_dongle.robot(pattern)));
 	} else {
-		members.create(pattern, pattern, &xbee_dongle.robot(pattern));
+		members.create(pattern, pattern, std::ref(xbee_dongle.robot(pattern)));
 	}
 }
 

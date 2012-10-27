@@ -31,7 +31,7 @@ namespace AI {
 					 *
 					 * \param[in] bot the robot being driven.
 					 */
-					explicit Player(unsigned int pattern, Drive::Robot *bot);
+					explicit Player(unsigned int pattern, Drive::Robot &bot);
 
 					/**
 					 * \brief Destroys a Player object.
@@ -57,7 +57,7 @@ namespace AI {
 					Visualizable::Colour bar_graph_colour(unsigned int) const;
 
 				private:
-					Drive::Robot *bot;
+					Drive::Robot &bot;
 					int battery_warning_hysteresis;
 					Annunciator::Message battery_warning_message;
 					bool autokick_fired_;

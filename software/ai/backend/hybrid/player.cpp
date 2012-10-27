@@ -18,17 +18,16 @@ namespace {
 	const int BATTERY_HYSTERESIS_MAGNITUDE = 15;
 }
 
-Player::Player(unsigned int pattern, Drive::Robot *bot) : AI::BE::Player(pattern), bot(bot), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_fired_(false) {
-	assert(bot);
+Player::Player(unsigned int pattern, Drive::Robot &bot) : AI::BE::Player(pattern), bot(bot), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_fired_(false) {
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
-	bot->signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
+	bot.signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
 }
 
 Player::~Player() {
-	bot->drive_coast();
-	bot->dribble(false);
-	bot->autokick(false, 0);
-	bot->set_charger_state(Drive::Robot::ChargerState::DISCHARGE);
+	bot.drive_coast();
+	bot.dribble(false);
+	bot.autokick(false, 0);
+	bot.set_charger_state(Drive::Robot::ChargerState::DISCHARGE);
 }
 
 unsigned int Player::num_bar_graphs() const {
@@ -38,10 +37,10 @@ unsigned int Player::num_bar_graphs() const {
 double Player::bar_graph_value(unsigned int index) const {
 	switch (index) {
 		case 0:
-			return bot->alive ? clamp((bot->battery_voltage - 13.0) / (16.5 - 13.0), 0.0, 1.0) : 0.0;
+			return bot.alive ? clamp((bot.battery_voltage - 13.0) / (16.5 - 13.0), 0.0, 1.0) : 0.0;
 
 		case 1:
-			return bot->alive ? clamp(bot->capacitor_voltage / 230.0, 0.0, 1.0) : 0.0;
+			return bot.alive ? clamp(bot.capacitor_voltage / 230.0, 0.0, 1.0) : 0.0;
 
 		default:
 			throw std::logic_error("invalid bar graph index");
@@ -57,7 +56,7 @@ Visualizable::Colour Player::bar_graph_colour(unsigned int index) const {
 		}
 
 		case 1:
-			return Visualizable::Colour(bot->capacitor_charged ? 0.0 : 1.0, bot->capacitor_charged ? 1.0 : 0.0, 0.0);
+			return Visualizable::Colour(bot.capacitor_charged ? 0.0 : 1.0, bot.capacitor_charged ? 1.0 : 0.0, 0.0);
 
 		default:
 			throw std::logic_error("invalid bar graph index");
@@ -66,17 +65,17 @@ Visualizable::Colour Player::bar_graph_colour(unsigned int index) const {
 }
 
 bool Player::has_ball() const {
-	return bot->ball_in_beam;
+	return bot.ball_in_beam;
 }
 
 bool Player::chicker_ready() const {
-	return bot->alive && bot->capacitor_charged;
+	return bot.alive && bot.capacitor_charged;
 }
 
 void Player::kick_impl(double speed) {
-	if (bot->alive) {
-		if (bot->capacitor_charged) {
-			bot->kick(false, speed / 8.0 * 3000.0);
+	if (bot.alive) {
+		if (bot.capacitor_charged) {
+			bot.kick(false, speed / 8.0 * 3000.0);
 		} else {
 			LOG_ERROR(Glib::ustring::compose("Bot %1 kick when not ready", pattern()));
 		}
@@ -89,9 +88,9 @@ void Player::autokick_impl(double speed) {
 }
 
 void Player::chip_impl(double) {
-	if (bot->alive) {
-		if (bot->capacitor_charged) {
-			bot->kick(true, 4000);
+	if (bot.alive) {
+		if (bot.capacitor_charged) {
+			bot.kick(true, 4000);
 		} else {
 			LOG_ERROR(Glib::ustring::compose("Bot %1 chip when not ready", pattern()));
 		}
@@ -109,14 +108,14 @@ void Player::on_autokick_fired() {
 
 void Player::tick(bool halt) {
 	// Check for emergency conditions.
-	if (!bot->alive) {
+	if (!bot.alive) {
 		halt = true;
 	}
 
 	// Check for low battery condition.
-	if (bot->alive) {
+	if (bot.alive) {
 		// Apply some hysteresis.
-		if (bot->battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
+		if (bot.battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
 			if (battery_warning_hysteresis == BATTERY_HYSTERESIS_MAGNITUDE) {
 				battery_warning_message.active(true);
 			} else {
@@ -141,7 +140,7 @@ void Player::tick(bool halt) {
 
 	// Only if the current request has changed or the system needs rearming is a packet needed.
 	if ((autokick_params != autokick_params_old) || (autokick_params.pulse && autokick_fired_)) {
-		bot->autokick(autokick_params.chip, autokick_params.pulse);
+		bot.autokick(autokick_params.chip, autokick_params.pulse);
 		autokick_params_old = autokick_params;
 	}
 
@@ -155,17 +154,17 @@ void Player::tick(bool halt) {
 
 	// Drivetrain control path.
 	if (!halt && moved && controlled) {
-		bot->drive(wheel_speeds_);
+		bot.drive(wheel_speeds_);
 	} else {
-		bot->drive_coast();
+		bot.drive_coast();
 	}
 	controlled = false;
 
 	// Dribbler should always run except in halt.
-	bot->dribble(!halt);
+	bot.dribble(!halt);
 
 	// Kicker should always charge except in halt.
-	bot->set_charger_state(halt ? Drive::Robot::ChargerState::DISCHARGE : Drive::Robot::ChargerState::CHARGE);
+	bot.set_charger_state(halt ? Drive::Robot::ChargerState::DISCHARGE : Drive::Robot::ChargerState::CHARGE);
 }
 
 Player::AutokickParams::AutokickParams() : chip(false), pulse(0) {
