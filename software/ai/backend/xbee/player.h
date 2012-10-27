@@ -63,8 +63,14 @@ namespace AI {
 					Drive::Robot &bot;
 					int battery_warning_hysteresis;
 					Annunciator::Message battery_warning_message;
-					bool autokick_invoked;
 					bool autokick_fired_;
+					struct AutokickParams {
+						bool chip;
+						double pulse;
+						AutokickParams();
+						bool operator==(const AutokickParams &other) const;
+						bool operator!=(const AutokickParams &other) const;
+					} autokick_params, autokick_params_old;
 
 					void on_autokick_fired();
 			};

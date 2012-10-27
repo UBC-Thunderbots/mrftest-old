@@ -1,4 +1,5 @@
 #include "ai/backend/hybrid/player.h"
+#include "drive/robot.h"
 #include "geom/angle.h"
 #include "util/algorithm.h"
 #include "util/config.h"
@@ -61,7 +62,6 @@ Visualizable::Colour Player::bar_graph_colour(unsigned int index) const {
 		default:
 			throw std::logic_error("invalid bar graph index");
 	}
-	std::abort();
 }
 
 bool Player::has_ball() const {
@@ -83,8 +83,10 @@ void Player::kick_impl(double speed) {
 }
 
 void Player::autokick_impl(double speed) {
-	autokick_params.chip = false;
-	autokick_params.pulse = speed / 8.0 * 3000.0;
+	if (bot.alive) {
+		autokick_params.chip = false;
+		autokick_params.pulse = speed / 8.0 * 3000.0;
+	}
 }
 
 void Player::chip_impl(double) {
@@ -98,8 +100,10 @@ void Player::chip_impl(double) {
 }
 
 void Player::autochip_impl(double) {
-	autokick_params.chip = true;
-	autokick_params.pulse = 4000;
+	if (bot.alive) {
+		autokick_params.chip = true;
+		autokick_params.pulse = 4000;
+	}
 }
 
 void Player::on_autokick_fired() {
@@ -156,7 +160,7 @@ void Player::tick(bool halt) {
 	if (!halt && moved && controlled) {
 		bot.drive(wheel_speeds_);
 	} else {
-		bot.drive_coast();
+		bot.drive_brake();
 	}
 	controlled = false;
 

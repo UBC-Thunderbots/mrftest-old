@@ -20,6 +20,7 @@ namespace {
 }
 
 Player::Player(unsigned int pattern, Drive::Robot &bot) : AI::BE::Player(pattern), bot(bot), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_fired_(false) {
+	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 	bot.signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
 }
 
@@ -74,7 +75,7 @@ bool Player::chicker_ready() const {
 void Player::kick_impl(double speed) {
 	if (bot.alive) {
 		if (bot.capacitor_charged) {
-			bot.kick(false, speed / 8.0 * 3000);
+			bot.kick(false, speed / 8.0 * 3000.0);
 		} else {
 			LOG_ERROR(Glib::ustring::compose("Bot %1 kick when not ready", pattern()));
 		}
@@ -84,7 +85,7 @@ void Player::kick_impl(double speed) {
 void Player::autokick_impl(double speed) {
 	if (bot.alive) {
 		autokick_params.chip = false;
-		autokick_params.pulse = speed / 8.0 * 3000;
+		autokick_params.pulse = speed / 8.0 * 3000.0;
 	}
 }
 

@@ -2,12 +2,15 @@
 #define AI_BACKEND_HYBRID_PLAYER_H
 
 #include "ai/backend/player.h"
-#include "drive/robot.h"
 #include "util/annunciator.h"
 #include "util/box_ptr.h"
 #include <ctime>
 #include <utility>
 #include <vector>
+
+namespace Drive {
+	class Robot;
+}
 
 namespace AI {
 	namespace BE {
