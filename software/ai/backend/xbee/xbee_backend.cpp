@@ -1,7 +1,7 @@
 #include "ai/backend/backend.h"
+#include "ai/backend/refbox.h"
 #include "ai/backend/clock/monotonic.h"
 #include "ai/backend/physical/player.h"
-#include "ai/backend/xbee/refbox.h"
 #include "ai/ball_filter/ball_filter.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "util/box_array.h"
@@ -142,7 +142,7 @@ namespace {
 	 */
 	class XBeeBackend : public Backend {
 		public:
-			AI::BE::XBee::RefBox refbox;
+			AI::BE::RefBox refbox;
 
 			explicit XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, int multicast_interface);
 			BackendFactory &factory() const;

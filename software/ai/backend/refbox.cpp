@@ -1,4 +1,4 @@
-#include "ai/backend/xbee/refbox.h"
+#include "ai/backend/refbox.h"
 #include "ai/backend/refbox_packet.h"
 #include "util/codec.h"
 #include "util/dprint.h"
@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-using namespace AI::BE::XBee;
+using AI::BE::RefBox;
 
 static_assert(RefboxPacket::BUFFER_SIZE == 6, "Bitcodec builds wrong refbox packet size.");
 

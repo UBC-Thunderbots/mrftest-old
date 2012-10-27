@@ -156,15 +156,13 @@ software/ai/backend/clock/monotonic.h -text
 software/ai/backend/field.cpp -text
 software/ai/backend/field.h -text
 software/ai/backend/hybrid/hybrid_backend.cpp -text
-software/ai/backend/hybrid/refbox.cpp -text
-software/ai/backend/hybrid/refbox.h -text
 software/ai/backend/mrf/mrf_backend.cpp -text
-software/ai/backend/mrf/refbox.cpp -text
-software/ai/backend/mrf/refbox.h -text
 software/ai/backend/physical/player.cpp -text
 software/ai/backend/physical/player.h -text
 software/ai/backend/player.cpp -text
 software/ai/backend/player.h -text
+software/ai/backend/refbox.cpp -text
+software/ai/backend/refbox.h -text
 software/ai/backend/refbox_packet.def -text
 software/ai/backend/refbox_packet.h -text
 software/ai/backend/robot.cpp -text
@@ -175,8 +173,6 @@ software/ai/backend/simulator/player.cpp -text
 software/ai/backend/simulator/player.h -text
 software/ai/backend/simulator/team.h -text
 software/ai/backend/team.h -text
-software/ai/backend/xbee/refbox.cpp -text
-software/ai/backend/xbee/refbox.h -text
 software/ai/backend/xbee/xbee_backend.cpp -text
 software/ai/ball_filter/ball_filter.h -text
 software/ai/ball_filter/chris_filter.cpp -text
