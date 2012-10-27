@@ -55,8 +55,8 @@ namespace {
 	}
 
 	void PIDSimController::move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity) {
-		const Point &current_position = player->position();
-		const Angle current_orientation = player->orientation();
+		const Point &current_position = player.position();
+		const Angle current_orientation = player.orientation();
 
 		// relative new direction and angle
 		Angle new_da = (new_orientation - current_orientation).angle_mod();
@@ -75,10 +75,10 @@ namespace {
 		const double px = new_dir.x;
 		const double py = new_dir.y;
 		const Angle pa = new_da;
-		Point vel = (player->velocity()).rotate(-current_orientation);
+		Point vel = (player.velocity()).rotate(-current_orientation);
 		double vx = -vel.x;
 		double vy = -vel.y;
-		Angle va = -player->avelocity();
+		Angle va = -player.avelocity();
 
 		// const double cx = accum_pos.x;
 		// const double cy = accum_pos.y;

@@ -18,7 +18,7 @@ namespace {
 
 			void tick() {
 				int wheel_speeds[4] = { 0, 0, 0, 0 };
-				player->drive(wheel_speeds);
+				player.drive(wheel_speeds);
 			}
 	};
 }

@@ -38,13 +38,13 @@ OldRobotController2::OldRobotController2(AI::RC::W::World world, AI::RC::W::Play
 }
 
 void OldRobotController2::tick() {
-	const AI::RC::W::Player::Path &path = player->path();
+	const AI::RC::W::Player::Path &path = player.path();
 	if (path.empty()) {
 		clear();
 	} else {
 		int wheels[4];
 		move(path[0].first.first, path[0].first.second, wheels);
-		player->drive(wheels);
+		player.drive(wheels);
 	}
 }
 

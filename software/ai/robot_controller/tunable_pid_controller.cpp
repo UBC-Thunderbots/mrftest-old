@@ -183,8 +183,8 @@ const std::vector<std::string> TunablePIDController::get_params_name() const {
 }
 
 void TunablePIDController::move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity) {
-	const Point &current_position = player->position();
-	const Angle current_orientation = player->orientation();
+	const Point &current_position = player.position();
+	const Angle current_orientation = player.orientation();
 
 	// relative new direction and angle
 	Angle new_da = (new_orientation - current_orientation).angle_mod();
@@ -225,10 +225,10 @@ void TunablePIDController::move(const Point &new_position, Angle new_orientation
 	const double px = error_pos[0].x;
 	const double py = error_pos[0].y;
 	const Angle pa = error_ori[0];
-	Point vel = (player->velocity()).rotate(-current_orientation);
+	Point vel = (player.velocity()).rotate(-current_orientation);
 	double vx = -vel.x;
 	double vy = -vel.y;
-	Angle va = -player->avelocity();
+	Angle va = -player.avelocity();
 
 	const double cx = accum_pos.x;
 	const double cy = accum_pos.y;

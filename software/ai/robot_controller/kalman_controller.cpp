@@ -77,7 +77,7 @@ namespace {
 					convert_to_wheels(to_be_velocity, to_be_rotate_speed, wheel_speeds);
 					LOG_INFO(Glib::ustring::compose("%1\t%2\t%3 %4 (%5, %6, %7, %8)", to_be_pivot_radius, to_be_terminal_velocity, to_be_velocity, to_be_rotate_speed, wheel_speeds[0], wheel_speeds[1], wheel_speeds[2], wheel_speeds[3]));
 				}
-				player->drive(wheel_speeds);
+				player.drive(wheel_speeds);
 
 
 				pop.show();
@@ -152,7 +152,7 @@ namespace {
 				if (state == State::IDLE) {
 					if (enable_pivot_radius) {
 						state = State::PIVOT;
-						to_be_velocity = Point::of_angle(player->orientation()) * to_be_terminal_velocity;
+						to_be_velocity = Point::of_angle(player.orientation()) * to_be_terminal_velocity;
 						to_be_rotate_speed = Angle::of_radians(to_be_terminal_velocity / to_be_pivot_radius);
 						test_drive_btn.set_label("Stop Pivot");
 					} else {
@@ -177,7 +177,7 @@ namespace {
 					to_be_velocity = Point::of_angle(to_be_direction) * to_be_terminal_velocity;
 					LOG_INFO(Glib::ustring::format(to_be_velocity));
 				} else {
-					to_be_velocity = Point::of_angle(player->orientation()) * to_be_terminal_velocity;
+					to_be_velocity = Point::of_angle(player.orientation()) * to_be_terminal_velocity;
 					to_be_rotate_speed = Angle::of_radians(to_be_terminal_velocity / to_be_pivot_radius);
 				}
 			}

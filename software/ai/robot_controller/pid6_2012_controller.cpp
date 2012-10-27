@@ -158,13 +158,13 @@ namespace {
 	}
 
 	void PID6_2012Controller::tick() {
-		const AI::RC::W::Player::Path &path = player->path();
+		const AI::RC::W::Player::Path &path = player.path();
 		if (path.empty()) {
 			clear();
 		} else {
 			int wheels[4];
 			move(path[0].first.first, path[0].first.second, path[0].second, wheels);
-			player->drive(wheels);
+			player.drive(wheels);
 		}
 	}
 
@@ -182,7 +182,7 @@ namespace {
 
 	void PID6_2012Controller::move(const Point &new_point, Angle new_orientation, timespec time_of_arrival, int(&wheel_speeds)[4]) {
 		// This is the difference between where we are and where we are going rotated to robot coordinates
-		Vector3 current_position = Vector3(player->position(),player->orientation());
+		Vector3 current_position = Vector3(player.position(),player.orientation());
 		Vector3 new_position = Vector3(new_point,new_orientation);
 		Vector3 position_delta = new_position.rebase(current_position);
 

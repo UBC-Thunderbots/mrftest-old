@@ -47,20 +47,6 @@ namespace AI {
 					 */
 					Player(const Player &copyref);
 
-					/**
-					 * \brief Returns this object
-					 *
-					 * \return this object
-					 */
-					Player *operator->();
-
-					/**
-					 * \brief Returns this object
-					 *
-					 * \return this object
-					 */
-					const Player *operator->() const;
-
 					using AI::Common::Player::operator==;
 					using AI::Common::Player::operator!=;
 					using AI::Common::Player::operator bool;
@@ -174,14 +160,6 @@ inline AI::RC::W::Player::Player(AI::BE::Player::Ptr impl) : AI::Common::Player(
 }
 
 inline AI::RC::W::Player::Player(const Player &) = default;
-
-inline AI::RC::W::Player *AI::RC::W::Player::operator->() {
-	return this;
-}
-
-inline const AI::RC::W::Player *AI::RC::W::Player::operator->() const {
-	return this;
-}
 
 inline unsigned int AI::RC::W::Player::flags() const {
 	return AI::Common::Player::impl->flags();

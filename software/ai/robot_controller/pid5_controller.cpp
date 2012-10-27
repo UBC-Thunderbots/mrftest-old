@@ -116,13 +116,13 @@ namespace {
 	}
 
 	void PID5Controller::tick() {
-		const AI::RC::W::Player::Path &path = player->path();
+		const AI::RC::W::Player::Path &path = player.path();
 		if (path.empty()) {
 			clear();
 		} else {
 			int wheels[4];
 			move(path[0].first.first, path[0].first.second, wheels);
-			player->drive(wheels);
+			player.drive(wheels);
 		}
 		
 		
@@ -137,8 +137,8 @@ namespace {
 	}
 
 	void PID5Controller::move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity) {
-		const Point &current_position = player->position();
-		const Angle current_orientation = player->orientation();
+		const Point &current_position = player.position();
+		const Angle current_orientation = player.orientation();
 
 		// relative new direction and angle
 		Angle new_da = (new_orientation - current_orientation).angle_mod();
@@ -151,10 +151,10 @@ namespace {
 		const double px = new_dir.x;
 		const double py = new_dir.y;
 		const Angle pa = new_da;
-		Point vel = (player->velocity()).rotate(-current_orientation);
+		Point vel = (player.velocity()).rotate(-current_orientation);
 		double vx = -vel.x;
 		double vy = -vel.y;
-		Angle va = -player->avelocity();
+		Angle va = -player.avelocity();
 
 		linear_velocity.x = px * pid_xy_prop + vx * pid_xy_diff;
 		linear_velocity.y = (py * pid_xy_prop + vy * pid_xy_diff) * pid_xy_ratio;
@@ -166,8 +166,8 @@ namespace {
 	}
 
 	void PID5Controller::update_k_monitor() {
-		Point p_stdev = player->position_stdev();
-		Angle o_stdev = player->orientation_stdev();
+		Point p_stdev = player.position_stdev();
+		Angle o_stdev = player.orientation_stdev();
 		Glib::ustring text = Glib::ustring::format( std::scientific, std::setprecision(2), p_stdev, o_stdev);
 		std_entry.set_text(text);
 	}
@@ -178,7 +178,7 @@ namespace {
 			}
 
 			std::unique_ptr<RobotController> create_controller(World world, Player plr) const {
-				std::unique_ptr<RobotController> p(new PID5Controller(world, plr, get_std(plr->pattern())));
+				std::unique_ptr<RobotController> p(new PID5Controller(world, plr, get_std(plr.pattern())));
 				return p;
 			}
 

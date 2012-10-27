@@ -26,9 +26,9 @@ namespace {
 	}
 
 	void MaxController::move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity) {
-		const Angle current_orientation = player->orientation();
+		const Angle current_orientation = player.orientation();
 		angular_velocity = (new_orientation - current_orientation).angle_mod();
-		linear_velocity = (new_position - player->position()).rotate(-current_orientation);
+		linear_velocity = (new_position - player.position()).rotate(-current_orientation);
 		if (linear_velocity.len() != 0) {
 			linear_velocity = linear_velocity / linear_velocity.len() * 9001; // It's over NINE THOUSAAAAAND!!!
 		}

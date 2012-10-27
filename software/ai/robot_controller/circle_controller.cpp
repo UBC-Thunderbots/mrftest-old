@@ -44,15 +44,15 @@ namespace {
 			}
 
 			void tick() {
-				const Player::Path &path = player->path();
+				const Player::Path &path = player.path();
 				if (path.empty()) {
 					return;
 				}
 
-				Angle orientation_diff = (path[0].first.second - player->orientation()).angle_mod();
-				Point location_diff = (path[0].first.first - player->position());
+				Angle orientation_diff = (path[0].first.second - player.orientation()).angle_mod();
+				Point location_diff = (path[0].first.first - player.position());
 				// std::cout<<location_diff<<std::endl;
-				Point centre_of_line = (path[0].first.first + player->position()) / 2.0;
+				Point centre_of_line = (path[0].first.first + player.position()) / 2.0;
 
 				Point robot_vel = location_diff;
 				Angle robot_ang_vel = orientation_diff;
@@ -74,12 +74,12 @@ namespace {
 					// to the centre of the pivot point
 					Point line_to_centre = dir * distance_from_line * location_diff.norm().rotate(Angle::QUARTER);
 					Point pivot_centre = centre_of_line + line_to_centre;
-					double pivot_radius = (pivot_centre - player->position()).len();
+					double pivot_radius = (pivot_centre - player.position()).len();
 
 					distance_to_cover = orientation_diff.to_radians() * pivot_radius;
 
 					// std::cout<<distance_to_cover<<' ';
-					direction = ((player->position() - pivot_centre).rotate(dir * Angle::QUARTER)).norm();
+					direction = ((player.position() - pivot_centre).rotate(dir * Angle::QUARTER)).norm();
 					// std::cout<<direction<<std::endl;
 
 					robot_vel = distance_to_cover * direction;
@@ -100,7 +100,7 @@ namespace {
 				// convert_to_wheels(location_diff,0.0, wheel_speeds);
 				convert_to_wheels(robot_vel, robot_ang_vel, wheel_speeds);
 
-				player->drive(wheel_speeds);
+				player.drive(wheel_speeds);
 			}
 
 			void set_params(const std::vector<double> &params) {

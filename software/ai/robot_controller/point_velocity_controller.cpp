@@ -32,7 +32,7 @@ namespace {
 			}
 
 			void tick() {
-				const Player::Path &path = player->path();
+				const Player::Path &path = player.path();
 				if (path.empty()) {
 					return;
 				}
@@ -40,8 +40,8 @@ namespace {
 				Point new_position = path[0].first.first;
 				Angle new_orientation = path[0].first.second;
 
-				const Point &current_position = player->position();
-				const Angle current_orientation = player->orientation();
+				const Point &current_position = player.position();
+				const Angle current_orientation = player.orientation();
 				Angle angular_velocity = param[4] * (new_orientation - current_orientation).angle_mod();
 
 				double distance_factor = (new_position - current_position).len() / param[1];
@@ -55,12 +55,12 @@ namespace {
 					linear_velocity = linear_velocity / linear_velocity.len() * distance_factor * param[0];
 				}
 
-				Point stopping_velocity = (-player->velocity()).rotate(-current_orientation);
+				Point stopping_velocity = (-player.velocity()).rotate(-current_orientation);
 				if (stopping_velocity.len() != 0) {
 					stopping_velocity = stopping_velocity / stopping_velocity.len() * param[0];
 				}
 
-				double velocity_factor = ((player->velocity()).len() / param[0]) * param[2];
+				double velocity_factor = ((player.velocity()).len() / param[0]) * param[2];
 				if (velocity_factor > 1) {
 					velocity_factor = 1;
 				}
@@ -81,7 +81,7 @@ namespace {
 
 				convert_to_wheels(linear_velocity, angular_velocity, wheel_speeds);
 
-				player->drive(wheel_speeds);
+				player.drive(wheel_speeds);
 			}
 
 			void set_params(const std::vector<double> &params) {
