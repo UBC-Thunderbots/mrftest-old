@@ -23,8 +23,8 @@ namespace {
 
 		for (unsigned i = 0; i < enemies.size(); ++i) {
 			Point dest;
-			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), enemies[i]->position(), dest);
-			double dist = (enemies[i]->position() - dest).len();
+			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), enemies[i].position(), dest);
+			double dist = (enemies[i].position() - dest).len();
 			score.push_back(dist);
 		}
 
@@ -46,7 +46,7 @@ namespace {
 			if (get_goalie() == friendly.get(i)) {
 				continue;
 			}
-			if (friendly.get(i)->has_ball()) {
+			if (friendly.get(i).has_ball()) {
 				baller = friendly.get(i);
 				return;
 			}
@@ -70,8 +70,8 @@ namespace {
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
 			Player player = friendly.get(i);
 			Point dest = Evaluation::calc_fastest_grab_ball_dest(world, player);
-			if (!best || min_dist > (dest - player->position()).len()) {
-				min_dist = (dest - player->position()).len();
+			if (!best || min_dist > (dest - player.position()).len()) {
+				min_dist = (dest - player.position()).len();
 				best = player;
 			}
 		}
@@ -83,14 +83,14 @@ namespace {
 DoubleParam Evaluation::pivot_threshold("circle radius in front of robot to enable pivot (meters)", "STP/ball", 0.1, 0.0, 1.0);
 
 bool Evaluation::ball_in_pivot_thresh(World world, Player player) {
-	Point unit_vector = Point::of_angle(player->orientation());
-	Point circle_center = player->position() + Robot::MAX_RADIUS * unit_vector;
+	Point unit_vector = Point::of_angle(player.orientation());
+	Point circle_center = player.position() + Robot::MAX_RADIUS * unit_vector;
 	double dist = (circle_center - world.ball().position()).len();
 	return dist < pivot_threshold;
 }
 
 bool Evaluation::possess_ball(World world, Player player) {
-	if (player->has_ball()) {
+	if (player.has_ball()) {
 		return true;
 	}
 	if (!smart_possess_ball) {
@@ -101,8 +101,8 @@ bool Evaluation::possess_ball(World world, Player player) {
 
 bool Evaluation::possess_ball(World world, Robot robot) {
 	// true if in pivot thresh
-	Point unit_vector = Point::of_angle(robot->orientation());
-	Point circle_center = robot->position() + Robot::MAX_RADIUS * unit_vector;
+	Point unit_vector = Point::of_angle(robot.orientation());
+	Point circle_center = robot.position() + Robot::MAX_RADIUS * unit_vector;
 	double dist = (circle_center - world.ball().position()).len();
 	return dist < enemy_pivot_threshold;
 }
@@ -120,8 +120,8 @@ Robot Evaluation::calc_enemy_baller(World world) {
 			return enemy.get(i);
 		}
 		Point dest;
-		AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), enemy.get(i)->position(), dest);
-		double dist = (enemy.get(i)->position() - dest).len();
+		AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), enemy.get(i).position(), dest);
+		double dist = (enemy.get(i).position() - dest).len();
 		if (!robot || dist < best_dist) {
 			best_dist = dist;
 			robot = enemy.get(i);
@@ -132,7 +132,7 @@ Robot Evaluation::calc_enemy_baller(World world) {
 
 Point Evaluation::calc_fastest_grab_ball_dest(World world, Player player) {
 	Point dest;
-	AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), player->position(), dest);
+	AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), player.position(), dest);
 	return dest;
 }
 

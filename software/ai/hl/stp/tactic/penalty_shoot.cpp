@@ -47,9 +47,9 @@ namespace {
 		    double goal_post_diff = (f.enemy_goal_boundary().first - f.enemy_goal_boundary().second).len();
 		    const double target_y = goal_post_diff * 3 / 4;
 
-		    if (shoot_up && enemy_goalie->position().y + Robot::MAX_RADIUS > target_y) {
+		    if (shoot_up && enemy_goalie.position().y + Robot::MAX_RADIUS > target_y) {
 		        shoot_up = false;
-		    } else if (!shoot_up && enemy_goalie->position().y - Robot::MAX_RADIUS < -target_y) {
+		    } else if (!shoot_up && enemy_goalie.position().y - Robot::MAX_RADIUS < -target_y) {
 		        shoot_up = true;
 		    }
 
@@ -67,7 +67,7 @@ namespace {
 		has_shot = AI::HL::STP::Action::shoot_goal(world, player, false);
 
 		// unset any flags
-		player->flags(0);
+		player.flags(0);
 	}
 }
 

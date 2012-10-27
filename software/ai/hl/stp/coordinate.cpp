@@ -29,7 +29,7 @@ Point Coordinate::position() const {
 
 		case YType::OUR_SIDE_STRONG:
 			for (std::size_t i = 0; i < world->friendly_team().size(); i++) {
-				center += world->friendly_team().get(i)->position().y;
+				center += world->friendly_team().get(i).position().y;
 			}
 			if (center < 0.0) {
 				p.y *= -1;
@@ -38,7 +38,7 @@ Point Coordinate::position() const {
 
 		case YType::THEIR_SIDE_STRONG:
 			for (std::size_t i = 0; i < world->enemy_team().size(); i++) {
-				center += world->enemy_team().get(i)->position().y;
+				center += world->enemy_team().get(i).position().y;
 			}
 			if (center < 0.0) {
 				p.y *= -1;

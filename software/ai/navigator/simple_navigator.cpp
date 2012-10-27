@@ -35,15 +35,15 @@ void SimpleNavigator::tick() {
 	for (std::size_t i = 0; i < fteam.size(); i++) {
 		path.clear();
 		player = fteam.get(i);
-		currentPosition = player->position();
-		currentOrientation = player->orientation();
-		destinationPosition = player->destination().first;
-		destinationOrientation = player->destination().second;
+		currentPosition = player.position();
+		currentOrientation = player.orientation();
+		destinationPosition = player.destination().first;
+		destinationOrientation = player.destination().second;
 
-		ts = get_next_ts(world.monotonic_time(), currentPosition, destinationPosition, player->target_velocity());
+		ts = get_next_ts(world.monotonic_time(), currentPosition, destinationPosition, player.target_velocity());
 
 		path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), ts));
-		player->path(path);
+		player.path(path);
 	}
 }
 

@@ -36,19 +36,19 @@ void AI::HL::STP::Action::lone_goalie(World world, Player player) {
 
 void AI::HL::STP::Action::goalie_move(World world, Player player, Point dest) {
 	//autokick always on, if player has chipper, its autochip
-	if (player->has_chipper()) {
-		player->autochip(1);
+	if (player.has_chipper()) {
+		player.autochip(1);
 	} else {
-		player->autokick(BALL_MAX_SPEED);
+		player.autokick(BALL_MAX_SPEED);
 	}
 
 	// if ball is inside the defense area or just too close, repel!!!!
-	if ((AI::HL::Util::point_in_friendly_defense(world.field(), world.ball().position()) || (world.ball().position() - player->position()).len() < goalie_repel_dist * Robot::MAX_RADIUS) && world.playtype() != AI::Common::PlayType::STOP) {
+	if ((AI::HL::Util::point_in_friendly_defense(world.field(), world.ball().position()) || (world.ball().position() - player.position()).len() < goalie_repel_dist * Robot::MAX_RADIUS) && world.playtype() != AI::Common::PlayType::STOP) {
 		repel(world, player);
 		return;
 	}
 
-	const Point diff = world.ball().position() - player->position();
+	const Point diff = world.ball().position() - player.position();
 	// check if ball is heading towards our goal
 	if (Evaluation::ball_on_net(world)) {
 		// goalie block position

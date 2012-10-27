@@ -82,7 +82,7 @@ namespace {
 			};
 
 			for (std::size_t i = 0; i < friendly.size(); ++i) {
-				if (!enabled[friendly.get(i)->pattern()]) {
+				if (!enabled[friendly.get(i).pattern()]) {
 					other_players.push_back(friendly.get(i));
 					continue;
 				}
@@ -117,11 +117,11 @@ namespace {
 			}
 
 			if (players.size() > 1) {
-				players[1]->flags(default_flags);
+				players[1].flags(default_flags);
 			}
 
 			if (players.size() > 2) {
-				players[2]->flags(default_flags);
+				players[2].flags(default_flags);
 			}
 
 			switch (world.playtype()) {
@@ -156,8 +156,8 @@ namespace {
 				double largest_x = -3;
 				std::size_t index = 0;
 				for (std::size_t i = 0; i < other_players.size(); ++i) {
-					if (other_players[i]->position().x > largest_x) {
-						largest_x = other_players[i]->position().x;
+					if (other_players[i].position().x > largest_x) {
+						largest_x = other_players[i].position().x;
 						index = i;
 					}
 				}
@@ -165,11 +165,11 @@ namespace {
 				// pass to the net if there are no other players, otherwise to the one farthest along the field
 				Point location = world.field().enemy_goal();
 				if (other_players.size() > 0) {
-					location = other_players[index]->position();
+					location = other_players[index].position();
 				}
 
 				Action::intercept(players[1], location);
-				players[1]->autochip(1);
+				players[1].autochip(1);
 			}
 
 			if (players.size() > 2) {

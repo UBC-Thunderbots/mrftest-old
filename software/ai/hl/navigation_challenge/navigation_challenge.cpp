@@ -58,7 +58,7 @@ namespace {
 					Point rightmost(0, 0);
 					unsigned int rightmostIndex = 0;
 					for (unsigned int i = 0; i < world.enemy_team().size(); ++i) {
-						Point location = world.enemy_team().get(i)->position();
+						Point location = world.enemy_team().get(i).position();
 						if (location.x < leftmost.x) {
 							leftmost = location;
 							leftmostIndex = i;
@@ -79,9 +79,9 @@ namespace {
 					// set avoidance distance based on whether the robot is moving
 					for (unsigned int i = 0; i < world.enemy_team().size(); ++i) {
 						if (i == leftmostIndex || i == rightmostIndex) {
-							world.enemy_team().get(i)->avoid_distance(AI::Flags::AvoidDistance::MEDIUM);
+							world.enemy_team().get(i).avoid_distance(AI::Flags::AvoidDistance::MEDIUM);
 						} else {
-							world.enemy_team().get(i)->avoid_distance(AI::Flags::AvoidDistance::LONG);
+							world.enemy_team().get(i).avoid_distance(AI::Flags::AvoidDistance::LONG);
 						}
 					}
 				}
@@ -92,7 +92,7 @@ namespace {
 				for (unsigned int robotIndex = 0; robotIndex < friendly.size() && robotIndex < 3; ++robotIndex) {
 					Player runner = friendly.get(robotIndex);
 
-					const Point diff_pos = runner->position() - tasks[done[robotIndex]].first;
+					const Point diff_pos = runner.position() - tasks[done[robotIndex]].first;
 
 					if (diff_pos.len() < pos_dis_threshold) {
 						if (done[robotIndex] == 0) {
@@ -107,12 +107,12 @@ namespace {
 						done[robotIndex] = 0;
 						return;
 					}
-					Angle dest_ori = (tasks[done[robotIndex]].first - runner->position()).orientation();
+					Angle dest_ori = (tasks[done[robotIndex]].first - runner.position()).orientation();
 
-					runner->flags(0);
-					runner->type(AI::Flags::MoveType::NORMAL);
-					runner->prio(AI::Flags::MovePrio::HIGH);
-					runner->move(tasks[done[robotIndex]].first, dest_ori, Point());
+					runner.flags(0);
+					runner.type(AI::Flags::MoveType::NORMAL);
+					runner.prio(AI::Flags::MovePrio::HIGH);
+					runner.move(tasks[done[robotIndex]].first, dest_ori, Point());
 				}
 
 				// Set moving obstacles
@@ -124,7 +124,7 @@ namespace {
 					} else {
 						des = Point(0, -1);
 					}
-					const Point diff_pos = runner->position() - des;
+					const Point diff_pos = runner.position() - des;
 					if (diff_pos.len() < pos_dis_threshold) {
 						obstacleIndex++;
 						if (obstacleIndex > 1) {
@@ -132,10 +132,10 @@ namespace {
 						}
 					}
 
-					runner->flags(0);
-					runner->type(AI::Flags::MoveType::NORMAL);
-					runner->prio(AI::Flags::MovePrio::HIGH);
-					runner->move(des, Angle::ZERO, Point());
+					runner.flags(0);
+					runner.type(AI::Flags::MoveType::NORMAL);
+					runner.prio(AI::Flags::MovePrio::HIGH);
+					runner.move(des, Angle::ZERO, Point());
 				}
 			}
 

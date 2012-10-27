@@ -11,6 +11,6 @@ bool Evaluation::player_within_angle_thresh(const Point position, const Angle or
 }
 
 bool Evaluation::player_within_angle_thresh(Player player, const Point target, Angle threshold) {
-	return player_within_angle_thresh(player->position(), player->orientation(), target, threshold);
+	return player_within_angle_thresh(player.position(), player.orientation(), target, threshold);
 }
 

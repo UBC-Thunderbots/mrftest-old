@@ -23,7 +23,7 @@ namespace {
 	};
 
 	bool Repel::done() const {
-		return player && player->autokick_fired();
+		return player && player.autokick_fired();
 	}
 
 	Player Repel::select(const std::set<Player> &players) const {
@@ -51,7 +51,7 @@ namespace {
 	};
 
 	bool CornerRepel::done() const {
-		return player && player->autokick_fired();
+		return player && player.autokick_fired();
 	}
 
 	Player CornerRepel::select(const std::set<Player> &players) const {

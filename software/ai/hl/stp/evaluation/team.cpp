@@ -7,7 +7,7 @@ Player AI::HL::STP::Evaluation::nearest_friendly(World world, Point target) {
 	double dist = 0;
 
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
-		double d = (target - world.friendly_team().get(i)->position()).len();
+		double d = (target - world.friendly_team().get(i).position()).len();
 		if (!plr || d < dist) {
 			plr = world.friendly_team().get(i);
 			dist = d;
@@ -22,7 +22,7 @@ Robot AI::HL::STP::Evaluation::nearest_enemy(World world, Point target) {
 	double dist = 0;
 
 	for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
-		double d = (target - world.enemy_team().get(i)->position()).len();
+		double d = (target - world.enemy_team().get(i).position()).len();
 		if (!bot || d < dist) {
 			bot = world.enemy_team().get(i);
 			dist = d;

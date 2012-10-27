@@ -106,7 +106,7 @@ namespace {
 				Player runner;
 
 				for (std::size_t i = 0; i < friendly.size(); ++i) {
-					if (friendly.get(i)->pattern() == index) {
+					if (friendly.get(i).pattern() == index) {
 						runner = friendly.get(i);
 					}
 				}
@@ -114,10 +114,10 @@ namespace {
 					return;
 				}
 
-				const Point diff_pos = runner->position() - tasks[done].first;
-				const Angle diff_ori = runner->orientation().angle_diff(tasks[done].second);
+				const Point diff_pos = runner.position() - tasks[done].first;
+				const Angle diff_ori = runner.orientation().angle_diff(tasks[done].second);
 
-				if (diff_pos.len() < pos_dis_threshold && runner->velocity().len() < pos_vel_threshold && diff_ori < ori_dis_threshold && runner->avelocity() < ori_vel_threshold) {
+				if (diff_pos.len() < pos_dis_threshold && runner.velocity().len() < pos_vel_threshold && diff_ori < ori_dis_threshold && runner.avelocity() < ori_vel_threshold) {
 					if (done == 0) {
 						time_steps = 0;
 					}
@@ -130,10 +130,10 @@ namespace {
 					return;
 				}
 
-				runner->flags(0);
-				runner->type(AI::Flags::MoveType::NORMAL);
-				runner->prio(AI::Flags::MovePrio::HIGH);
-				runner->move(tasks[done].first, tasks[done].second, Point());
+				runner.flags(0);
+				runner.type(AI::Flags::MoveType::NORMAL);
+				runner.prio(AI::Flags::MovePrio::HIGH);
+				runner.move(tasks[done].first, tasks[done].second, Point());
 			}
 
 			Gtk::Widget *ui_controls() {

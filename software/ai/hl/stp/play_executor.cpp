@@ -130,7 +130,7 @@ void PlayExecutor::role_assignment() {
 	} else {
 		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 			Player p = world.friendly_team().get(i);
-			if (p->pattern() == static_cast<unsigned int>(goalie_pattern_index)) {
+			if (p.pattern() == static_cast<unsigned int>(goalie_pattern_index)) {
 				goalie = p;
 			}
 		}
@@ -223,7 +223,7 @@ void PlayExecutor::execute_tactics() {
 	}
 
 	// set flags, do it before any execution
-	curr_assignment[0]->flags(0);
+	curr_assignment[0].flags(0);
 	for (std::size_t i = 1; i < TEAM_MAX_SIZE; ++i) {
 		if (!curr_assignment[i]) {
 			continue;
@@ -250,7 +250,7 @@ void PlayExecutor::execute_tactics() {
 			default:
 				break;
 		}
-		curr_assignment[i]->flags(default_flags);
+		curr_assignment[i].flags(default_flags);
 	}
 
 	// execute!
@@ -351,7 +351,7 @@ Glib::ustring PlayExecutor::info() const {
 				// LOG_ERROR("curr-assignment empty");
 				continue;
 			}
-			text += Glib::ustring::compose("\n%1: %2%3", curr_assignment[i]->pattern(), curr_tactic[i]->active() ? '*' : ' ', curr_tactic[i]->description());
+			text += Glib::ustring::compose("\n%1: %2%3", curr_assignment[i].pattern(), curr_tactic[i]->active() ? '*' : ' ', curr_tactic[i]->description());
 		}
 	} else {
 		text = "No Play";

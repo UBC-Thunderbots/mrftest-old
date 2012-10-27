@@ -22,9 +22,9 @@ Angle Evaluation::get_shoot_score(World world, Player player, bool use_reduced_r
 	std::vector<std::pair<Point, Angle> > openings = AI::HL::Util::calc_best_shot_all(world, player, radius);
 
 	for (std::vector<std::pair<Point, Angle> >::iterator it = openings.begin(); it != openings.end(); ++it) {
-		Angle centre_ang = player->orientation();
-		Angle ang_1 = (it->first - player->position()).orientation() + it->second / 2.0;
-		Angle ang_2 = (it->first - player->position()).orientation() - it->second / 2.0;
+		Angle centre_ang = player.orientation();
+		Angle ang_1 = (it->first - player.position()).orientation() + it->second / 2.0;
+		Angle ang_2 = (it->first - player.position()).orientation() - it->second / 2.0;
 		if (ang_1.angle_diff(centre_ang) + ang_2.angle_diff(centre_ang) > it->second + Angle::of_radians(1e-6)) {
 			continue;
 		}
@@ -42,7 +42,7 @@ Angle Evaluation::get_shoot_score(World world, Player player, bool use_reduced_r
     Point post_low(world.field().length()/2.0, -world.field().goal_width()/2.0);
     Point post_high(world.field().length()/2.0, -world.field().goal_width()/2.0);
     Point player_dir(1, 0);
-    player_dir = player_dir.rotate(player->orientation());
+    player_dir = player_dir.rotate(player.orientation());
 
     if(openings.size() == 0){
         Point ans(world.field().length()/2.0, 0.0);
@@ -55,7 +55,7 @@ Angle Evaluation::get_shoot_score(World world, Player player, bool use_reduced_r
             best = *it;
         }
 
-        double centre_ang = (it->first - player->position()).orientation();
+        double centre_ang = (it->first - player.position()).orientation();
         double ang_1 = (it->first - post_low).orientation();
         double ang_2 = (it->first - post_high).orientation();
         double both = angle_diff(ang_1, ang_2);
@@ -83,8 +83,8 @@ Evaluation::ShootData Evaluation::evaluate_shoot(World world, Player player, boo
 
 	data.reduced_radius = true;
 
-	Angle ori = (shot.first - player->position()).orientation();
-	Angle ori_diff = ori.angle_diff(player->orientation());
+	Angle ori = (shot.first - player.position()).orientation();
+	Angle ori_diff = ori.angle_diff(player.orientation());
 	data.accuracy_diff = ori_diff - (shot.second / 2);
 
 	data.target = shot.first;

@@ -32,18 +32,18 @@ bool AI::HL::STP::Action::shoot_goal(World world, Player player, bool use_reduce
 	}
 
 	if (shoot_data.can_shoot) {
-		if (!player->chicker_ready()) {
+		if (!player.chicker_ready()) {
 			LOG_INFO("chicker not ready");
 			// angle is right but chicker not ready, ram the ball and get closer to target, only use in normal play
 			if (world.playtype() == AI::Common::PlayType::PLAY) {
-				const Point diff = world.ball().position() - player->position();
+				const Point diff = world.ball().position() - player.position();
 				ram(world, player, shoot_data.target, diff * FAST);
 			}
 			return false;
 		}
 		LOG_INFO("autokick");
 		intercept(player, shoot_data.target);
-		player->autokick(BALL_MAX_SPEED);
+		player.autokick(BALL_MAX_SPEED);
 		return true;
 	} else {
 		intercept_pivot(world, player, shoot_data.target);
@@ -62,23 +62,23 @@ bool AI::HL::STP::Action::shoot_target(World world, Player player, const Point t
 	}
 
 	// angle is right but chicker not ready, ram the ball and get closer to target
-	if (!player->chicker_ready()) {
+	if (!player.chicker_ready()) {
 		LOG_INFO("chicker not ready");
 		// angle is right but chicker not ready, ram the ball and get closer to target, only use in normal play
 		if (world.playtype() == AI::Common::PlayType::PLAY) {
-			const Point diff = world.ball().position() - player->position();
+			const Point diff = world.ball().position() - player.position();
 			ram(world, player, target, diff * FAST);
 		}
 		return false;
 	}
 
 	LOG_INFO("autokick");
-	player->autokick(velocity);
+	player.autokick(velocity);
 	return true;
 }
 
 bool AI::HL::STP::Action::shoot_pass(World world, Player shooter, Player target) {
-	return shoot_pass(world, shooter, target->position());
+	return shoot_pass(world, shooter, target.position());
 }
 
 bool AI::HL::STP::Action::shoot_pass(World world, Player player, const Point target) {
@@ -93,26 +93,26 @@ bool AI::HL::STP::Action::shoot_pass(World world, Player player, const Point tar
 		return false;
 	}
 
-	if (player->has_ball() && !player->chicker_ready()) {
+	if (player.has_ball() && !player.chicker_ready()) {
 		LOG_INFO("chicker not ready");
 		return false;
 	}
 
 	// check receiver is within passing range & angle
-	double distance_tol = (target - player->position()).len() * angle_tol.sin() + AI::HL::STP::Action::target_region_param;
+	double distance_tol = (target - player.position()).len() * angle_tol.sin() + AI::HL::STP::Action::target_region_param;
 	bool ok = false;
 
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
 		Player p = player;
 		if (world.friendly_team().get(i) != p) {
-			bool curr_ok = (target - world.friendly_team().get(i)->position()).len() < distance_tol
+			bool curr_ok = (target - world.friendly_team().get(i).position()).len() < distance_tol
 			               && Evaluation::passee_facing_passer(player, world.friendly_team().get(i));
 			ok = ok || curr_ok;
 		}
 	}
 
 	if (ok) {
-		player->autokick(pass_speed);
+		player.autokick(pass_speed);
 		return true;
 	}
 

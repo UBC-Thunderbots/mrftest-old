@@ -16,8 +16,8 @@ void AI::HL::STP::Action::move_spin(Player player, const Point dest) {
 	// spin in different directions depending on which quadrant of the field the robot is at
 	int direction_to_spin;
 
-	if(player->position().x < 0){
-		if(player->position().y < 0){
+	if(player.position().x < 0){
+		if(player.position().y < 0){
 			direction_to_spin= CLOCKWISE;
 		}
 		else{
@@ -25,7 +25,7 @@ void AI::HL::STP::Action::move_spin(Player player, const Point dest) {
 		}
 	}
 	else{
-		if(player->position().y < 0){
+		if(player.position().y < 0){
 			direction_to_spin= COUNTER_CLOCKWISE;
 		}
 		else{
@@ -35,12 +35,12 @@ void AI::HL::STP::Action::move_spin(Player player, const Point dest) {
 
 
 	// spin faster when you are close to the destination point
-	if ((player->position() - dest).len() < AI::HL::Util::POS_CLOSE + Robot::MAX_RADIUS) {
-		player->move(dest, (player->orientation() + 2 * spin_delta * direction_to_spin).angle_mod(), Point());
+	if ((player.position() - dest).len() < AI::HL::Util::POS_CLOSE + Robot::MAX_RADIUS) {
+		player.move(dest, (player.orientation() + 2 * spin_delta * direction_to_spin).angle_mod(), Point());
 	} else {
-		player->move(dest, (player->orientation() + spin_delta * direction_to_spin).angle_mod(), Point());
+		player.move(dest, (player.orientation() + spin_delta * direction_to_spin).angle_mod(), Point());
 	}
-	player->type(AI::Flags::MoveType::RAM_BALL);
-	player->prio(AI::Flags::MovePrio::HIGH);
+	player.type(AI::Flags::MoveType::RAM_BALL);
+	player.prio(AI::Flags::MovePrio::HIGH);
 }
 

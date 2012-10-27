@@ -45,12 +45,12 @@ namespace {
 			for (std::size_t i = 0; i < friendly.size(); ++i) {
 				Player runner = friendly.get(i);
 
-				const double px = runner->position().x + controls[0].get_value();
-				const double py = runner->position().y + controls[1].get_value();
-				const Angle pz = runner->orientation() + Angle::of_radians(controls[2].get_value());
+				const double px = runner.position().x + controls[0].get_value();
+				const double py = runner.position().y + controls[1].get_value();
+				const Angle pz = runner.orientation() + Angle::of_radians(controls[2].get_value());
 
-				runner->move(Point(px, py), pz, Point());
-				runner->type(AI::Flags::MoveType::NORMAL);
+				runner.move(Point(px, py), pz, Point());
+				runner.type(AI::Flags::MoveType::NORMAL);
 			}
 		}
 

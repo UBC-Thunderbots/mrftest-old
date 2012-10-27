@@ -29,7 +29,7 @@ namespace {
 		if (!enemy->evaluate()) {
 			return *(players.begin());
 		}
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(enemy->evaluate()->position()));
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(enemy->evaluate().position()));
 	}
 
 	void BlockGoal::execute() {
@@ -58,7 +58,7 @@ namespace {
 		if (!enemy->evaluate()) {
 			return *(players.begin());
 		}
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(enemy->evaluate()->position()));
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(enemy->evaluate().position()));
 	}
 
 	void BlockBall::execute() {

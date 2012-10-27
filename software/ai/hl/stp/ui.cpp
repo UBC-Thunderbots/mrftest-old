@@ -23,12 +23,12 @@ void AI::HL::STP::draw_player_status(World world, Cairo::RefPtr<Cairo::Context> 
 
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		Player player = friendly.get(i);
-		if (!player->has_ball()) {
+		if (!player.has_ball()) {
 			continue;
 		}
 		ctx->set_source_rgba(1.0, 0.0, 0.0, 1.0);
 		ctx->set_line_width(0.02);
-		ctx->arc(player->position().x, player->position().y, Robot::MAX_RADIUS * 0.75, 0.0, 2 * M_PI);
+		ctx->arc(player.position().x, player.position().y, Robot::MAX_RADIUS * 0.75, 0.0, 2 * M_PI);
 		ctx->stroke();
 	}
 }
@@ -41,7 +41,7 @@ void AI::HL::STP::draw_friendly_pass(World world, Cairo::RefPtr<Cairo::Context> 
 			if (Evaluation::passee_suitable(world, friendly.get(i))) {
 				ctx->set_source_rgba(0.5, 1.0, 0.5, 0.5);
 				ctx->set_line_width(0.01);
-				ctx->move_to(friendly.get(i)->position().x, friendly.get(i)->position().y);
+				ctx->move_to(friendly.get(i).position().x, friendly.get(i).position().y);
 				ctx->line_to(world.ball().position().x, world.ball().position().y);
 				ctx->stroke();
 			}
@@ -60,21 +60,21 @@ void AI::HL::STP::draw_enemy_pass(World world, Cairo::RefPtr<Cairo::Context> ctx
 			auto shot = Evaluation::calc_enemy_best_shot_goal(world, enemy.get(i));
 			ctx->set_source_rgba(1.0, 0.5, 0.5, 0.5);
 			ctx->set_line_width(0.02);
-			ctx->move_to(robot->position().x, robot->position().y);
+			ctx->move_to(robot.position().x, robot.position().y);
 			ctx->line_to(shot.first.x, shot.first.y);
 			ctx->stroke();
 		}
 		if (threats[i].passes_goal > 2) {
 			ctx->set_source_rgba(0.2, 0.2, 0.2, 0.5);
-			ctx->arc(robot->position().x, robot->position().y, Robot::MAX_RADIUS + 0.01, 0.0, 2 * M_PI);
+			ctx->arc(robot.position().x, robot.position().y, Robot::MAX_RADIUS + 0.01, 0.0, 2 * M_PI);
 			ctx->fill();
 			ctx->stroke();
 		}
 		if (threats[i].passes_goal <= 2 && passee) {
 			ctx->set_source_rgba(1.0, 0.5, 0.5, 0.5);
 			ctx->set_line_width(0.01);
-			ctx->move_to(robot->position().x, robot->position().y);
-			ctx->line_to(passee->position().x, passee->position().y);
+			ctx->move_to(robot.position().x, robot.position().y);
+			ctx->line_to(passee.position().x, passee.position().y);
 			ctx->stroke();
 		}
 	}
@@ -97,7 +97,7 @@ void AI::HL::STP::draw_shoot(World world, Cairo::RefPtr<Cairo::Context> ctx) {
 		} else {
 			ctx->set_line_width(0.02);
 		}
-		ctx->move_to(player->position().x, player->position().y);
+		ctx->move_to(player.position().x, player.position().y);
 		ctx->line_to(shoot_data.target.x, shoot_data.target.y);
 		ctx->stroke();
 	}
@@ -108,7 +108,7 @@ void AI::HL::STP::draw_shoot(World world, Cairo::RefPtr<Cairo::Context> ctx) {
 
 		if (shot.first) {
 			const Angle angle = shot.second;
-			const Point p1 = baller->position();
+			const Point p1 = baller.position();
 			const Point p2 = p1 + 5 * Point::of_angle(angle);
 			if (Evaluation::can_shoot_ray(world, baller, angle)) {
 				ctx->set_source_rgba(0.0, 1.0, 1.0, 0.4);
@@ -130,12 +130,12 @@ void AI::HL::STP::draw_shoot(World world, Cairo::RefPtr<Cairo::Context> ctx) {
 			// draw rays for ray shooting
 			const Angle angle_span = 2 * Evaluation::max_pass_ray_angle;
 			const Angle angle_step = angle_span / Evaluation::ray_intervals;
-			const Angle angle_min = player->orientation() - angle_span / 2;
+			const Angle angle_min = player.orientation() - angle_span / 2;
 
 			for (int i = 0; i < Evaluation::ray_intervals; ++i) {
 				const Angle angle = angle_min + angle_step * i;
 
-				const Point p1 = player->position();
+				const Point p1 = player.position();
 				const Point p2 = p1 + 3 * Point::of_angle(angle);
 				if (Evaluation::can_shoot_ray(world, player, angle)) {
 					ctx->set_source_rgba(1.0, 0.0, 1.0, 0.4);
@@ -238,11 +238,11 @@ void AI::HL::STP::draw_velocity(World world, Cairo::RefPtr<Cairo::Context> ctx) 
 	ctx->set_line_width(1.0);
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		const Player player = friendly.get(i);
-		double vel_direction = atan(player->velocity().y / player->velocity().x);
-		double vel_mag = std::sqrt(player->velocity().y * player->velocity().y + player->velocity().x * player->velocity().x);
+		double vel_direction = atan(player.velocity().y / player.velocity().x);
+		double vel_mag = std::sqrt(player.velocity().y * player.velocity().y + player.velocity().x * player.velocity().x);
 		// std::cout << vel_direction << "  " << vel_mag <<std::endl;
 		ctx->set_source_rgba(0.0, 0.0, 0.0, 0.2);
-		ctx->arc(player->position().x, player->position().y, vel_mag, vel_direction, vel_direction + 1.0);
+		ctx->arc(player.position().x, player.position().y, vel_mag, vel_direction, vel_direction + 1.0);
 		ctx->stroke();
 	}
 }
@@ -254,7 +254,7 @@ void AI::HL::STP::draw_baller(World world, Cairo::RefPtr<Cairo::Context> ctx) {
 		// black line
 		ctx->set_source_rgba(0.0, 0.0, 0.0, 0.2);
 		ctx->set_line_width(0.01);
-		ctx->move_to(baller->position().x, baller->position().y);
+		ctx->move_to(baller.position().x, baller.position().y);
 		ctx->line_to(dest.x, dest.y);
 		ctx->stroke();
 	}
@@ -262,10 +262,10 @@ void AI::HL::STP::draw_baller(World world, Cairo::RefPtr<Cairo::Context> ctx) {
 	if (robot && !Evaluation::possess_ball(world, robot)) {
 		// black line
 		Point dest;
-		AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), robot->position(), dest);
+		AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), robot.position(), dest);
 		ctx->set_source_rgba(0.0, 0.0, 0.0, 0.2);
 		ctx->set_line_width(0.01);
-		ctx->move_to(robot->position().x, robot->position().y);
+		ctx->move_to(robot.position().x, robot.position().y);
 		ctx->line_to(dest.x, dest.y);
 		ctx->stroke();
 	}

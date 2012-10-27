@@ -154,7 +154,7 @@ Predicates::BallerCanShoot Predicates::baller_can_shoot;
 
 bool Predicates::BallerCanChip::compute(World world) {
 	const Player baller = Evaluation::calc_friendly_baller();
-	if (!baller || !Evaluation::possess_ball(world, baller) || !baller->has_chipper()) {
+	if (!baller || !Evaluation::possess_ball(world, baller) || !baller.has_chipper()) {
 		return false;
 	}
 	
@@ -162,7 +162,7 @@ bool Predicates::BallerCanChip::compute(World world) {
 
 	EnemyTeam enemies = world.enemy_team();
 	for (std::size_t i = 0; i < enemies.size(); ++i) {
-		if ((baller->position() - enemies.get(i)->position()).len() <= near_thresh * AI::HL::W::Robot::MAX_RADIUS) {
+		if ((baller.position() - enemies.get(i).position()).len() <= near_thresh * AI::HL::W::Robot::MAX_RADIUS) {
 			return false;
 		}
 	}
@@ -179,7 +179,7 @@ bool Predicates::BallerCanPassTarget::compute(World world, const Point target) {
 	}
 #warning something is wierd
 	if (shoot_anyway > std::rand()%10) return true;
-	return Evaluation::can_pass(world, baller->position(), target);
+	return Evaluation::can_pass(world, baller.position(), target);
 }
 
 Predicates::BallerCanPassTarget Predicates::baller_can_pass_target;
@@ -202,7 +202,7 @@ bool Predicates::BallerUnderThreat::compute(World world) {
 	int enemy_cnt = 0;
 	EnemyTeam enemies = world.enemy_team();
 	for (std::size_t i = 0; i < enemies.size(); ++i) {
-		if ((baller->position() - enemies.get(i)->position()).len() <= near_thresh * AI::HL::W::Robot::MAX_RADIUS) {
+		if ((baller.position() - enemies.get(i).position()).len() <= near_thresh * AI::HL::W::Robot::MAX_RADIUS) {
 			enemy_cnt++;
 		}
 	}
@@ -258,7 +258,7 @@ bool Predicates::NumOfEnemiesOnOurSideAtLeast::compute(World world, const unsign
 	unsigned int cnt = 0;
 	EnemyTeam enemies = world.enemy_team();
 	for (std::size_t i = 0; i < enemies.size(); ++i) {
-		if (enemies.get(i)->position().x < 0) {
+		if (enemies.get(i).position().x < 0) {
 			cnt++;
 		}
 	}
@@ -284,8 +284,8 @@ bool Predicates::FightBall::compute(World world) {
 		const Robot enemy_baller = Evaluation::calc_enemy_baller(world);
 
 		return (friendly_baller && enemy_baller)
-		       && (friendly_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS
-		       && (enemy_baller->position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS;
+		       && (friendly_baller.position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS
+		       && (enemy_baller.position() - world.ball().position()).len() < fight_thresh * Robot::MAX_RADIUS;
 	}
 }
 
@@ -312,14 +312,14 @@ bool Predicates::BallInsideRobot::compute(World world) {
 
 	const FriendlyTeam friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if ((friendly.get(i)->position() - ball).len() < AI::HL::Util::POS_CLOSE) {
+		if ((friendly.get(i).position() - ball).len() < AI::HL::Util::POS_CLOSE) {
 			return true;
 		}
 	}
 
 	EnemyTeam enemies = world.enemy_team();
 	for (std::size_t i = 0; i < enemies.size(); ++i) {
-		if ((enemies.get(i)->position() - ball).len() < AI::HL::Util::POS_CLOSE) {
+		if ((enemies.get(i).position() - ball).len() < AI::HL::Util::POS_CLOSE) {
 			return true;
 		}
 	}

@@ -32,18 +32,18 @@ bool AI::HL::STP::Action::chip_target(World world, Player player, const Point ta
 	}
 
 	// angle is right but chicker not ready, ram the ball and get closer to target
-	if (!player->chicker_ready()) {
+	if (!player.chicker_ready()) {
 		LOG_INFO("chicker not ready");
 		// angle is right but chicker not ready, ram the ball and get closer to target, only use in normal play
 		if (world.playtype() == AI::Common::PlayType::PLAY) {
-			const Point diff = world.ball().position() - player->position();
+			const Point diff = world.ball().position() - player.position();
 			ram(world, player, target, diff * FAST);
 		}
 		return false;
 	}
 
 	LOG_INFO("autochip");
-	player->autochip(power);
+	player.autochip(power);
 	return true;
 }
 

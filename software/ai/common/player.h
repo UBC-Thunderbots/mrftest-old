@@ -59,20 +59,6 @@ namespace AI {
 				explicit Player(const Player &copyref);
 
 				/**
-				 * \brief Returns this object
-				 *
-				 * \return this object
-				 */
-				Player *operator->();
-
-				/**
-				 * \brief Returns this object
-				 *
-				 * \return this object
-				 */
-				const Player *operator->() const;
-
-				/**
 				 * \brief Checks whether two robots are equal
 				 *
 				 * \param[in] other the robot to compare to
@@ -145,14 +131,6 @@ inline AI::Common::Player::Player(AI::BE::Player::Ptr impl) : impl(impl) {
 }
 
 inline AI::Common::Player::Player(const Player &) = default;
-
-inline AI::Common::Player *AI::Common::Player::operator->() {
-	return this;
-}
-
-inline const AI::Common::Player *AI::Common::Player::operator->() const {
-	return this;
-}
 
 inline bool AI::Common::Player::operator==(const Player &other) const {
 	return impl == other.impl;

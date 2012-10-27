@@ -40,9 +40,9 @@ void PivotNavigatorAram::tick() {
 	for (std::size_t i = 0; i < fteam.size(); i++) {
 		path.clear();
 		player = fteam.get(i);
-		currentPosition = player->position();
-		currentVelocity = player->velocity();
-		currentOrientation = player->orientation();
+		currentPosition = player.position();
+		currentVelocity = player.velocity();
+		currentOrientation = player.orientation();
 
 		if (currentVelocity.lensq() < 0.0001) {
 			currentVelocity = Point(0.0, 0.01).rotate(currentOrientation);
@@ -74,7 +74,7 @@ void PivotNavigatorAram::tick() {
 
 		path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
 
-		player->path(path);
+		player.path(path);
 	}
 }
 

@@ -40,8 +40,8 @@ void PivotNavigator2::tick() {
 	for (std::size_t i = 0; i < fteam.size(); i++) {
 		path.clear();
 		player = fteam.get(i);
-		currentPosition = player->position();
-		currentOrientation = player->orientation();
+		currentPosition = player.position();
+		currentOrientation = player.orientation();
 
 		Point diff = (world.ball().position() - currentPosition).rotate(offset_angle);
 
@@ -50,7 +50,7 @@ void PivotNavigator2::tick() {
 
 		path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
 
-		player->path(path);
+		player.path(path);
 	}
 }
 

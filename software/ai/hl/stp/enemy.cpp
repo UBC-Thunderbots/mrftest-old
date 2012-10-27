@@ -113,7 +113,7 @@ namespace {
 
 				// sort enemies by distance to own goal
 				// TODO: cache this
-				std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot>(player->position()));
+				std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot>(player.position()));
 
 				return enemies[index];
 			}

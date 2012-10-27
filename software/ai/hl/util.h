@@ -47,7 +47,7 @@ namespace AI {
 					 * \return \c true if \p x precedes \p y, or \c false if not.
 					 */
 					bool operator()(const T &x, const T &y) const {
-						return (x->position() - dest).lensq() < (y->position() - dest).lensq();
+						return (x.position() - dest).lensq() < (y.position() - dest).lensq();
 					}
 
 				private:

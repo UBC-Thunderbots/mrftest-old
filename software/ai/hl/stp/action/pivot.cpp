@@ -17,12 +17,12 @@ void AI::HL::STP::Action::intercept_pivot(AI::HL::STP::World world, AI::HL::STP:
 }
 
 void AI::HL::STP::Action::pivot(AI::HL::STP::World world, AI::HL::STP::Player player, const Point target, const double radius) {
-	const Angle ori = (target - player->position()).orientation();
+	const Angle ori = (target - player.position()).orientation();
 	// set the destination point to be just behind the ball in the correct direction at the offset distance
 	Point dest = -(target - world.ball().position()).norm() * radius + world.ball().position();
 
-	player->move(dest, ori, Point());
-	player->type(AI::Flags::MoveType::PIVOT);
-	player->prio(AI::Flags::MovePrio::HIGH);
+	player.move(dest, ori, Point());
+	player.type(AI::Flags::MoveType::PIVOT);
+	player.prio(AI::Flags::MovePrio::HIGH);
 }
 

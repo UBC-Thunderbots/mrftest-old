@@ -43,13 +43,13 @@ namespace {
 				double radius = 0.2 * robotIndex + 0.2;
 				Angle offset_angle = Angle::of_radians(0.7 + robotIndex * 1.1);
 				Player runner = friendly.get(robotIndex);
-				Point diff = (des - friendly.get(0)->position()).rotate(offset_angle);
+				Point diff = (des - friendly.get(0).position()).rotate(offset_angle);
 				Point dest = des - radius * (diff / diff.len());
 
-				runner->flags(0);
-				runner->type(AI::Flags::MoveType::NORMAL);
-				runner->prio(AI::Flags::MovePrio::HIGH);
-				runner->move(dest, (des - runner->position()).orientation().angle_mod(), Point());
+				runner.flags(0);
+				runner.type(AI::Flags::MoveType::NORMAL);
+				runner.prio(AI::Flags::MovePrio::HIGH);
+				runner.move(dest, (des - runner.position()).orientation().angle_mod(), Point());
 			}
 		}
 

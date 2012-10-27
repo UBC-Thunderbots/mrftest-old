@@ -91,7 +91,7 @@ std::vector<Player> StraightNavigator::getMovePrioPlayers(AI::Flags::MovePrio pr
 	FriendlyTeam fteam = world.friendly_team();
 	std::vector<Player> interested_players;
 	for (std::size_t i = 0; i < fteam.size(); i++) {
-		if (fteam.get(i)->prio() == prio) {
+		if (fteam.get(i).prio() == prio) {
 			interested_players.push_back(fteam.get(i));
 		}
 	}
@@ -102,7 +102,7 @@ std::vector<Player> StraightNavigator::getMoveTypePlayers(AI::Flags::MoveType ty
 	FriendlyTeam fteam = world.friendly_team();
 	std::vector<Player> interested_players;
 	for (std::size_t i = 0; i < fteam.size(); i++) {
-		if (fteam.get(i)->type() == type) {
+		if (fteam.get(i).type() == type) {
 			interested_players.push_back(fteam.get(i));
 		}
 	}
@@ -128,8 +128,8 @@ void StraightNavigator::teamUpdater() {
 	movetype_array.clear();
 	moveprio_array.clear();
 	for (std::size_t i = 0; i < fteam.size(); i++) {
-		movetype_array.push_back(fteam.get(i)->type());
-		moveprio_array.push_back(fteam.get(i)->prio());
+		movetype_array.push_back(fteam.get(i).type());
+		moveprio_array.push_back(fteam.get(i).prio());
 	}
 }
 
@@ -143,7 +143,7 @@ void StraightNavigator::dealWithPath() {
 	std::vector<Circle> all_obs;
 	// put all path into the same variable
 	for (std::size_t i = 0; i < unhappyPlayers.size(); i++) {
-		SPath new_item(unhappyPlayers[i]->position(), unhappyPlayers[i]->destination().first);
+		SPath new_item(unhappyPlayers[i].position(), unhappyPlayers[i].destination().first);
 		all_path.push_back(new_item);
 	}
 	PathModerator moderator;
@@ -155,15 +155,15 @@ void StraightNavigator::dealWithPath() {
 	for (auto i = bot_crosses_bot.begin(), iend = bot_crosses_bot.end(); i != iend; ++i) {
 		Player botA = unhappyPlayers[i->first];
 		Player botB = unhappyPlayers[i->second];
-		Point intersect = line_intersect(botA->position(), botA->destination().first, botB->position(), botB->destination().first);
-		if ((intersect - botA->position()).len() - (intersect-botB->position()).len() < Robot::MAX_RADIUS * 2) {
-			if (botA->prio() == botB->prio()) {
+		Point intersect = line_intersect(botA.position(), botA.destination().first, botB.position(), botB.destination().first);
+		if ((intersect - botA.position()).len() - (intersect-botB.position()).len() < Robot::MAX_RADIUS * 2) {
+			if (botA.prio() == botB.prio()) {
 				// let A get the priority
-			} else if (botA->prio() == MovePrio::HIGH) {
+			} else if (botA.prio() == MovePrio::HIGH) {
 				// let A get the priority
-			} else if (botB->prio()	== MovePrio::HIGH) {
-			} else if (botA->prio() == MovePrio::MEDIUM) {
-			} else if (botB->prio() == MovePrio::MEDIUM) {
+			} else if (botB.prio()	== MovePrio::HIGH) {
+			} else if (botA.prio() == MovePrio::MEDIUM) {
+			} else if (botB.prio() == MovePrio::MEDIUM) {
 			}
 		}
 	}
@@ -182,15 +182,15 @@ void StraightNavigator::tick() {
 	for (std::size_t i = 0; i < fteam.size(); i++) {
 		path.clear();
 		player = fteam.get(i);
-		currentPosition = player->position();
-		currentOrientation = player->orientation();
-		destinationPosition = player->destination().first;
-		destinationOrientation = player->destination().second;
+		currentPosition = player.position();
+		currentOrientation = player.orientation();
+		destinationPosition = player.destination().first;
+		destinationOrientation = player.destination().second;
 
-		ts = get_next_ts(world.monotonic_time(), currentPosition, destinationPosition, player->target_velocity());
+		ts = get_next_ts(world.monotonic_time(), currentPosition, destinationPosition, player.target_velocity());
 
 		path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), ts));
-		player->path(path);
+		player.path(path);
 	}
 }
 

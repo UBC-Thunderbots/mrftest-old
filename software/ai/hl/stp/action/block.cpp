@@ -19,30 +19,30 @@ namespace {
 }
 
 void AI::HL::STP::Action::block_goal(World world, Player player, Robot robot) {
-	Point dirToGoal = (world.field().friendly_goal() - robot->position()).norm();
-	Point target = robot->position() + (block_threshold * Robot::MAX_RADIUS * dirToGoal);
+	Point dirToGoal = (world.field().friendly_goal() - robot.position()).norm();
+	Point target = robot.position() + (block_threshold * Robot::MAX_RADIUS * dirToGoal);
 
 	// #warning CHECK ??
 	/*
 	   // don't block from ball if we are blocking our baller!!
 	   Player baller = Evaluation::calc_friendly_baller(world);
 	   if (baller.is() && Evaluation::player_within_angle_thresh(baller, target, 2 * degrees2radians(block_angle))) {
-	    Point target = robot->position() + (2 * block_threshold * Robot::MAX_RADIUS * dirToGoal);
+	    Point target = robot.position() + (2 * block_threshold * Robot::MAX_RADIUS * dirToGoal);
 	   }
 	 */
 	move(world, player, target);
 }
 
 void AI::HL::STP::Action::block_ball(World world, Player player, Robot robot) {
-	Point dirToBall = (world.ball().position() - robot->position()).norm();
-	Point target = robot->position() + (block_threshold * Robot::MAX_RADIUS * dirToBall);
+	Point dirToBall = (world.ball().position() - robot.position()).norm();
+	Point target = robot.position() + (block_threshold * Robot::MAX_RADIUS * dirToBall);
 
 	// #warning CHECK ??
 	/*
 	   // don't block from ball if we are blocking our baller!!
 	   Player baller = Evaluation::calc_friendly_baller(world);
 	   if (baller.is() && Evaluation::player_within_angle_thresh(baller, target, 2 * degrees2radians(block_angle))){
-	    target = robot->position() + (2 * block_threshold * Robot::MAX_RADIUS * dirToBall);
+	    target = robot.position() + (2 * block_threshold * Robot::MAX_RADIUS * dirToBall);
 	   }
 	 */
 	move(world, player, target);

@@ -8,12 +8,12 @@
 using namespace AI::HL::STP;
 
 void AI::HL::STP::Action::dribble(World world, Player player, const Point dest) {
-	player->move(dest, (world.ball().position() - player->position()).orientation(), Point());
-	player->type(AI::Flags::MoveType::DRIBBLE);
-	player->prio(AI::Flags::MovePrio::HIGH);
+	player.move(dest, (world.ball().position() - player.position()).orientation(), Point());
+	player.type(AI::Flags::MoveType::DRIBBLE);
+	player.prio(AI::Flags::MovePrio::HIGH);
 }
 
 void AI::HL::STP::Action::dribble(World world, Player player) {
-	dribble(world, player, player->position());
+	dribble(world, player, player.position());
 }
 

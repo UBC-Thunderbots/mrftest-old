@@ -26,12 +26,12 @@ BallThreat AI::HL::STP::Evaluation::evaluate_ball_threat(World world) {
 
 		ball_threat.threat = ball_threat.enemies[0];
 
-		ball_threat.threat_distance = (ball_threat.threat->position() - world.ball().position()).len();
+		ball_threat.threat_distance = (ball_threat.threat.position() - world.ball().position()).len();
 
 		for (std::size_t i = 0; i < ball_threat.enemies.size(); ++i) {
 			Point pos = world.ball().position(), vel = world.ball().velocity();
-			Point a = ball_threat.enemies[i]->position();
-			Point b = a + ball_threat.enemies[i]->velocity();
+			Point a = ball_threat.enemies[i].position();
+			Point b = a + ball_threat.enemies[i].velocity();
 			Point c = pos;
 			Point d = pos + vel;
 
@@ -42,7 +42,7 @@ BallThreat AI::HL::STP::Evaluation::evaluate_ball_threat(World world) {
 		}
 
 		// steal mechanism activation when ball is close enough
-		if ((ball_threat.threat->position() - world.ball().position()).len() * Robot::MAX_RADIUS < steal_threshold) {
+		if ((ball_threat.threat.position() - world.ball().position()).len() * Robot::MAX_RADIUS < steal_threshold) {
 			ball_threat.activate_steal = true;
 		}
 	}
@@ -89,7 +89,7 @@ Point AI::HL::STP::Evaluation::goalie_shot_block(AI::HL::W::World world, const A
 		return Point(0, 0);
 	}
 
-	Point goalie_pos = player->position();
+	Point goalie_pos = player.position();
 
 	Point a = world.field().friendly_goal_boundary().first;
 	Point b = world.field().friendly_goal_boundary().second;

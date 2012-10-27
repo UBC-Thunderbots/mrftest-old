@@ -69,8 +69,8 @@ namespace {
 				const double ix = px + offsets_x.get_value() * static_cast<double>(i);
 				const double iy = py + offsets_y.get_value() * static_cast<double>(i);
 
-				runner->move(Point(ix, iy), pz, Point());
-				runner->type(AI::Flags::MoveType::NORMAL);
+				runner.move(Point(ix, iy), pz, Point());
+				runner.type(AI::Flags::MoveType::NORMAL);
 			}
 		}
 

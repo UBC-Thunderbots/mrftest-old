@@ -88,7 +88,7 @@ namespace {
 			};
 
 			for (std::size_t i = 0; i < friendly.size(); ++i) {
-				if (!enabled[friendly.get(i)->pattern()]) {
+				if (!enabled[friendly.get(i).pattern()]) {
 					continue;
 				}
 				players.push_back(friendly.get(i));
@@ -129,15 +129,15 @@ namespace {
 			}
 			
 			if (players.size() == 1) {
-				players[0]->flags(default_flags);
+				players[0].flags(default_flags);
 			}
 
 			if (players.size() > 1) {
-				players[1]->flags(default_flags);
+				players[1].flags(default_flags);
 			}
 
 			if (players.size() > 2) {
-				players[2]->flags(default_flags);
+				players[2].flags(default_flags);
 			}
 
 			switch (world.playtype()) {
@@ -279,8 +279,8 @@ namespace {
 
 			if (players.size() > 0) {
 				Action::intercept(players[0], world.field().enemy_goal());
-				if (players[0]->has_chipper()) {
-					players[0]->autochip(1);
+				if (players[0].has_chipper()) {
+					players[0].autochip(1);
 				}
 			}
 			if (players.size() > 1) {
@@ -296,8 +296,8 @@ namespace {
 			//std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(world.ball().position()));
 			if (players.size() > 0) {
 				Action::intercept(players[0], world.field().enemy_goal());
-				if (players[0]->has_chipper()) {
-					players[0]->autochip(1);
+				if (players[0].has_chipper()) {
+					players[0].autochip(1);
 				}
 			}
 

@@ -64,20 +64,6 @@ namespace AI {
 				Robot(const Robot &copyref);
 
 				/**
-				 * \brief Returns this object
-				 *
-				 * \return this object
-				 */
-				Robot *operator->();
-
-				/**
-				 * \brief Returns this object
-				 *
-				 * \return this object
-				 */
-				const Robot *operator->() const;
-
-				/**
 				 * \brief Checks whether two robots are equal
 				 *
 				 * \param[in] other the robot to compare to
@@ -211,14 +197,6 @@ inline AI::Common::Robot::Robot(AI::BE::Robot::Ptr impl) : impl(impl) {
 }
 
 inline AI::Common::Robot::Robot(const Robot &) = default;
-
-inline AI::Common::Robot *AI::Common::Robot::operator->() {
-	return this;
-}
-
-inline const AI::Common::Robot *AI::Common::Robot::operator->() const {
-	return this;
-}
 
 inline bool AI::Common::Robot::operator==(const Robot &other) const {
 	return impl == other.impl;

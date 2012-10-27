@@ -34,7 +34,7 @@ namespace {
 		}
 
 		bool done() const {
-			return player && kick_attempted && player->autokick_fired();
+			return player && kick_attempted && player.autokick_fired();
 		}
 
 		void player_changed() {
@@ -60,7 +60,7 @@ namespace {
 		void execute() {
 			Angle ori = Evaluation::best_shoot_ray(world, player).second;
 
-			Point target = player->position() + 10 * Point::of_angle(ori);
+			Point target = player.position() + 10 * Point::of_angle(ori);
 			if (Action::shoot_target(world, player, target, Action::pass_speed)) {
 				kick_attempted = true;
 			}

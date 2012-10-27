@@ -62,17 +62,17 @@ namespace {
 					return;
 				}
 				for (std::size_t i = 0; i < players.size(); ++i) {
-					players[i]->autokick(AI::HL::STP::BALL_MAX_SPEED);
-					players[i]->flags(AI::Flags::FLAG_STAY_OWN_HALF);
+					players[i].autokick(AI::HL::STP::BALL_MAX_SPEED);
+					players[i].flags(AI::Flags::FLAG_STAY_OWN_HALF);
 				}
 
 				const Robot baller = Evaluation::calc_enemy_baller(world);
 				// if the enemy (passers) has the ball, position to block 
 				if (baller && AI::HL::STP::Predicates::their_ball(world)) {
 					
-					Point dir_to_ball = (world.ball().position() - baller->position()).norm();
-					Point target = baller->position() + (AVOIDANCE_DIST * dir_to_ball);
-					Point perp_to_dir_to_ball = (world.ball().position() - baller->position()).perp().norm();
+					Point dir_to_ball = (world.ball().position() - baller.position()).norm();
+					Point target = baller.position() + (AVOIDANCE_DIST * dir_to_ball);
+					Point perp_to_dir_to_ball = (world.ball().position() - baller.position()).perp().norm();
 
 					// if there is only one enemy robot just block it...
 					if (world.enemy_team().size() == 1) {
@@ -94,8 +94,8 @@ namespace {
 						} 
 
 						Robot robot = furthest_enemy->evaluate();
-						Point dir_to_baller_enemy = (baller->position() - robot->position()).norm();
-						Point block_target = baller->position() - (AVOIDANCE_DIST * dir_to_baller_enemy);
+						Point dir_to_baller_enemy = (baller.position() - robot.position()).norm();
+						Point block_target = baller.position() - (AVOIDANCE_DIST * dir_to_baller_enemy);
 
 						// 2nd player blocks furthest robot not blocked by first player
 						Action::move(world, players[1], block_target);

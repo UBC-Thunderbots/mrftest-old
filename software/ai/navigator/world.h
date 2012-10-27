@@ -51,20 +51,6 @@ namespace AI {
 					Robot(const Robot &copyref);
 
 					/**
-					 * \brief Returns this object
-					 *
-					 * \return this object
-					 */
-					Robot *operator->();
-
-					/**
-					 * \brief Returns this object
-					 *
-					 * \return this object
-					 */
-					const Robot *operator->() const;
-
-					/**
 					 * \brief Returns the avoidance distance for this robot
 					 *
 					 * \return the avoidance distance
@@ -125,20 +111,6 @@ namespace AI {
 					 * \param[in] copyref the object to copy
 					 */
 					Player(const Player &copyref);
-
-					/**
-					 * \brief Returns this object
-					 *
-					 * \return this object
-					 */
-					Player *operator->();
-
-					/**
-					 * \brief Returns this object
-					 *
-					 * \return this object
-					 */
-					const Player *operator->() const;
 
 					using AI::Common::Player::operator==;
 					using AI::Common::Player::operator!=;
@@ -314,14 +286,6 @@ inline AI::Nav::W::Robot::Robot(AI::BE::Robot::Ptr impl) : AI::Common::Robot(imp
 
 inline AI::Nav::W::Robot::Robot(const Robot &) = default;
 
-inline AI::Nav::W::Robot *AI::Nav::W::Robot::operator->() {
-	return this;
-}
-
-inline const AI::Nav::W::Robot *AI::Nav::W::Robot::operator->() const {
-	return this;
-}
-
 inline AI::Flags::AvoidDistance AI::Nav::W::Robot::avoid_distance() const {
 	return impl->avoid_distance();
 }
@@ -332,14 +296,6 @@ inline AI::Nav::W::Player::Player(AI::BE::Player::Ptr impl) : AI::Common::Player
 }
 
 inline AI::Nav::W::Player::Player(const Player &) = default;
-
-inline AI::Nav::W::Player *AI::Nav::W::Player::operator->() {
-	return this;
-}
-
-inline const AI::Nav::W::Player *AI::Nav::W::Player::operator->() const {
-	return this;
-}
 
 inline std::pair<Point, Angle> AI::Nav::W::Player::destination() const {
 	return AI::Common::Player::impl->destination();

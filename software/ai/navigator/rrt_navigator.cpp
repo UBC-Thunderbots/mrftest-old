@@ -63,21 +63,21 @@ RRTNavigator::RRTNavigator(AI::Nav::W::World world) : Navigator(world), planner(
 }
 
 void RRTNavigator::pivot(Player player) {
-	double offset_distance = (player->destination().first - world.ball().position()).len();
+	double offset_distance = (player.destination().first - world.ball().position()).len();
 
-	if (!use_new_pivot || !player->has_ball()) {
+	if (!use_new_pivot || !player.has_ball()) {
 		Player::Path path;
 		Point dest;
 		Angle dest_orientation;
 
 		// try to pivot around the ball to catch it
-		Point current_position = player->position();
+		Point current_position = player.position();
 		Angle to_ball_orientation = (world.ball().position() - current_position).orientation();
 		Angle orientation_temp = orientation_offset;
 
 		Angle angle = offset_angle;
 
-		Angle difference = (to_ball_orientation - player->destination().second).angle_mod();
+		Angle difference = (to_ball_orientation - player.destination().second).angle_mod();
 
 		if (difference > Angle::ZERO) {
 			angle = -angle;
@@ -90,11 +90,11 @@ void RRTNavigator::pivot(Player player) {
 		dest_orientation = (world.ball().position() - current_position).orientation() + orientation_temp;
 
 		path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));
-		player->path(path);
+		player.path(path);
 	} else {
 		Player::Path path;
 
-		Angle diff = ((world.ball().position() - player->destination().first).orientation() - (player->orientation() + (is_ccw ? 1 : -1) * new_pivot_offset_angle)).angle_mod();
+		Angle diff = ((world.ball().position() - player.destination().first).orientation() - (player.orientation() + (is_ccw ? 1 : -1) * new_pivot_offset_angle)).angle_mod();
 		// LOG_INFO( diff );
 		LOG_INFO("NEWpivot!");
 		Point zero_pos(new_pivot_radius, 0.0);
@@ -116,23 +116,23 @@ void RRTNavigator::pivot(Player player) {
 			rel_orient = new_pivot_travel_angle * Angle::HALF * (is_ccw ? 1 : -1);
 			rel_orient *= new_pivot_angular_sfactor;
 			polar_pos = zero_pos - zero_pos.rotate(rel_orient);
-			rel_pos = polar_pos.rotate(player->orientation() + Angle::QUARTER * (is_ccw ? 1 : -1) * (new_pivot_go_backward ? -1 : 1));
+			rel_pos = polar_pos.rotate(player.orientation() + Angle::QUARTER * (is_ccw ? 1 : -1) * (new_pivot_go_backward ? -1 : 1));
 			rel_pos *= new_pivot_linear_sfactor;
-			dest_pos = player->position() + rel_pos;
-			dest_orient = player->orientation() + rel_orient;
+			dest_pos = player.position() + rel_pos;
+			dest_orient = player.orientation() + rel_orient;
 		} else {
 			// decide on how to be precise
 			rel_orient = diff;
 			rel_orient *= new_pivot_angular_sfactor;
 			polar_pos = zero_pos - zero_pos.rotate(rel_orient);
-			rel_pos = polar_pos.rotate(player->orientation() + Angle::QUARTER);
+			rel_pos = polar_pos.rotate(player.orientation() + Angle::QUARTER);
 			rel_pos *= new_pivot_linear_sfactor;
-			dest_pos = player->position() + rel_pos;
-			dest_orient = (world.ball().position() - player->destination().first).orientation();
+			dest_pos = player.position() + rel_pos;
+			dest_orient = (world.ball().position() - player.destination().first).orientation();
 		}
 
 		path.push_back(std::make_pair(std::make_pair(dest_pos, dest_orient), world.monotonic_time()));
-		player->path(path);
+		player.path(path);
 	}
 }
 
@@ -143,7 +143,7 @@ void RRTNavigator::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 		ctx->begin_new_path();
 		ctx->set_line_width(1);
 		ctx->move_to(world.ball().position().x, world.ball().position().y);
-		ctx->line_to(player->destination().first.x, player->destination().first.y);
+		ctx->line_to(player.destination().first.x, player.destination().first.y);
 	}
 }
 
@@ -156,36 +156,36 @@ void RRTNavigator::tick() {
 		path.clear();
 		Player player = world.friendly_team().get(i);
 
-		if (!std::dynamic_pointer_cast<PlayerData>(player->object_store()[typeid(*this)])) {
-			player->object_store()[typeid(*this)] = std::make_shared<PlayerData>();
+		if (!std::dynamic_pointer_cast<PlayerData>(player.object_store()[typeid(*this)])) {
+			player.object_store()[typeid(*this)] = std::make_shared<PlayerData>();
 		}
-		std::dynamic_pointer_cast<PlayerData>(player->object_store()[typeid(*this)])->added_flags = 0;
+		std::dynamic_pointer_cast<PlayerData>(player.object_store()[typeid(*this)])->added_flags = 0;
 
 		Point dest;
-		Angle dest_orientation = player->destination().second;
-		if (player->type() == AI::Flags::MoveType::INTERCEPT) {
+		Angle dest_orientation = player.destination().second;
+		if (player.type() == AI::Flags::MoveType::INTERCEPT) {
 			// refer to this function in util.cpp
 			intercept_flag_handler(world, player);
 			continue;
-		} else if (player->type() == AI::Flags::MoveType::PIVOT) {
+		} else if (player.type() == AI::Flags::MoveType::PIVOT) {
 			pivot(player);
 			continue;
-		} else if (player->type() == AI::Flags::MoveType::RAM_BALL) {
-			Point cur_position = player->position(), dest_position = player->destination().first;
-			timespec ts = get_next_ts(world.monotonic_time(), cur_position, dest_position, player->target_velocity());
+		} else if (player.type() == AI::Flags::MoveType::RAM_BALL) {
+			Point cur_position = player.position(), dest_position = player.destination().first;
+			timespec ts = get_next_ts(world.monotonic_time(), cur_position, dest_position, player.target_velocity());
 			path.push_back(std::make_pair(std::make_pair(dest_position, dest_orientation), ts));
-			player->path(path);
+			player.path(path);
 			continue;
-		} else if (valid_path(player->position(), player->destination().first, world, player)) {
+		} else if (valid_path(player.position(), player.destination().first, world, player)) {
 			// if we're not trying to catch the ball and there are no obstacles in our way then go
 			// to the exact location, skipping all of the tree creation
-			path.push_back(std::make_pair(player->destination(), world.monotonic_time()));
-			player->path(path);
+			path.push_back(std::make_pair(player.destination(), world.monotonic_time()));
+			player.path(path);
 			continue;
 		} else {
-			dest = player->destination().first;
+			dest = player.destination().first;
 		}
-		unsigned int flags = std::dynamic_pointer_cast<PlayerData>(player->object_store()[typeid(*this)])->added_flags;
+		unsigned int flags = std::dynamic_pointer_cast<PlayerData>(player.object_store()[typeid(*this)])->added_flags;
 		// calculate a path
 		path_points.clear();
 		path_points = planner.plan(player, dest, flags);
@@ -201,21 +201,21 @@ void RRTNavigator::tick() {
 
 			// get distance between last two points
 			if (j == 0) {
-				dist = (player->position() - path_points[0]).len();
+				dist = (player.position() - path_points[0]).len();
 			} else {
 				dist = (path_points[j] - path_points[j - 1]).len();
 			}
 
 			// dribble at a different speed
-			if (player->type() == AI::Flags::MoveType::DRIBBLE) {
-				timespec time_to_add = double_to_timespec(dist / player->MAX_LINEAR_VELOCITY / DRIBBLE_SPEED);
+			if (player.type() == AI::Flags::MoveType::DRIBBLE) {
+				timespec time_to_add = double_to_timespec(dist / player.MAX_LINEAR_VELOCITY / DRIBBLE_SPEED);
 				timespec_add(working_time, time_to_add, working_time);
 			}
 
 			path.push_back(std::make_pair(std::make_pair(path_points[j], dest_orientation), working_time));
 		}
 
-		player->path(path);
+		player.path(path);
 	}
 }
 

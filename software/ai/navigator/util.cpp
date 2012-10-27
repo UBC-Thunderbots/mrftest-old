@@ -74,10 +74,10 @@ namespace {
 	// this structure determines how far away to stay from a prohibited point or line-segment
 	struct distance_keepout {
 		static double play_area(AI::Nav::W::Player player) {
-			return (player->MAX_RADIUS) + PLAY_AREA_BUFFER;
+			return (player.MAX_RADIUS) + PLAY_AREA_BUFFER;
 		}
 		static double total_bounds_area(AI::Nav::W::Player player) {
-			return (player->MAX_RADIUS) + PLAY_AREA_BUFFER;
+			return (player.MAX_RADIUS) + PLAY_AREA_BUFFER;
 		}
 		static double enemy(AI::Nav::W::World world, AI::Nav::W::Robot player) {
 			if (world.enemy_team().size() <= 0) {
@@ -85,7 +85,7 @@ namespace {
 			}
 			double buffer = 0.0;
 
-			switch (player->avoid_distance()) {
+			switch (player.avoid_distance()) {
 				case AvoidDistance::SHORT:
 					buffer = ENEMY_BUFFER_SHORT;
 					break;
@@ -99,15 +99,15 @@ namespace {
 					break;
 			}
 
-			return player->MAX_RADIUS + buffer;
+			return player.MAX_RADIUS + buffer;
 		}
 
 		static double goal_post(AI::Nav::W::Player player) {
-			return Ball::RADIUS + player->MAX_RADIUS + GOAL_POST_BUFFER;
+			return Ball::RADIUS + player.MAX_RADIUS + GOAL_POST_BUFFER;
 		}
 
 		static double friendly(AI::Nav::W::Player player, MovePrio obs_prio = MovePrio::MEDIUM) {
-			MovePrio player_prio = player->prio();
+			MovePrio player_prio = player.prio();
 			double buffer = FRIENDLY_BUFFER;
 			if (obs_prio < player_prio) {
 				buffer = FRIENDLY_BUFFER_LOW;
@@ -115,32 +115,32 @@ namespace {
 				buffer = FRIENDLY_BUFFER_HIGH;
 			}
 
-			if(player->avoid_distance() == AvoidDistance::LONG) {
+			if(player.avoid_distance() == AvoidDistance::LONG) {
 				buffer = PASS_CHALLENGE_BUFFER;
 			}
 
-			return player->MAX_RADIUS + buffer;
+			return player.MAX_RADIUS + buffer;
 		}
 		static double ball_stop(AI::Nav::W::Player player) {
-			return Ball::RADIUS + player->MAX_RADIUS + AI::Util::BALL_STOP_DIST;
+			return Ball::RADIUS + player.MAX_RADIUS + AI::Util::BALL_STOP_DIST;
 		}
 		static double ball_tiny(AI::Nav::W::Player player) {
-			return Ball::RADIUS + player->MAX_RADIUS + BALL_TINY_BUFFER;
+			return Ball::RADIUS + player.MAX_RADIUS + BALL_TINY_BUFFER;
 		}
 		static double friendly_defense(AI::Nav::W::World world, AI::Nav::W::Player player) {
-			return world.field().defense_area_radius() + player->MAX_RADIUS + DEFENSE_AREA_BUFFER;
+			return world.field().defense_area_radius() + player.MAX_RADIUS + DEFENSE_AREA_BUFFER;
 		}
 		static double friendly_kick(AI::Nav::W::World world, AI::Nav::W::Player player) {
-			return world.field().defense_area_radius() + player->MAX_RADIUS + FRIENDLY_KICK_BUFFER;
+			return world.field().defense_area_radius() + player.MAX_RADIUS + FRIENDLY_KICK_BUFFER;
 		}
 		static double own_half(AI::Nav::W::Player player) {
-			return player->MAX_RADIUS + OWN_HALF_BUFFER;
+			return player.MAX_RADIUS + OWN_HALF_BUFFER;
 		}
 		static double penalty_kick_friendly(AI::Nav::W::Player player) {
-			return player->MAX_RADIUS + PENALTY_KICK_BUFFER + Ball::RADIUS;
+			return player.MAX_RADIUS + PENALTY_KICK_BUFFER + Ball::RADIUS;
 		}
 		static double penalty_kick_enemy(AI::Nav::W::Player player) {
-			return player->MAX_RADIUS + PENALTY_KICK_BUFFER + Ball::RADIUS;
+			return player.MAX_RADIUS + PENALTY_KICK_BUFFER + Ball::RADIUS;
 		}
 	};
 
@@ -175,9 +175,9 @@ namespace {
 		for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
 			AI::Nav::W::Robot rob = world.enemy_team().get(i);
 			double circle_radius = distance_keepout::enemy(world, rob);
-			double dist = lineseg_point_dist(rob->position(), cur, dst);
+			double dist = lineseg_point_dist(rob.position(), cur, dst);
 			if (USE_ENEMY_MOVEMENT_FACTOR) {
-				dist = seg_seg_distance(rob->position(), rob->position() + ENEMY_MOVEMENT_FACTOR * rob->velocity(), cur, dst);
+				dist = seg_seg_distance(rob.position(), rob.position() + ENEMY_MOVEMENT_FACTOR * rob.velocity(), cur, dst);
 			}
 			violate = std::max(violate, circle_radius - dist);
 		}
@@ -223,10 +223,10 @@ namespace {
 			if (rob == player) {
 				continue;
 			}
-			double circle_radius = distance_keepout::friendly(player, rob->prio());
-			double dist = lineseg_point_dist(rob->position(), cur, dst);
+			double circle_radius = distance_keepout::friendly(player, rob.prio());
+			double dist = lineseg_point_dist(rob.position(), cur, dst);
 			if (USE_FRIENDLY_MOVEMENT_FACTOR) {
-				dist = seg_seg_distance(rob->position(), rob->position() + FRIENDLY_MOVEMENT_FACTOR * rob->velocity(), cur, dst);
+				dist = seg_seg_distance(rob.position(), rob.position() + FRIENDLY_MOVEMENT_FACTOR * rob.velocity(), cur, dst);
 			}
 
 			violate = std::max(violate, circle_radius - dist);
@@ -322,7 +322,7 @@ namespace {
 			goal_post = get_goal_post_tresspass(cur, dst, world, player);
 			total_bounds = get_total_bounds_trespass(cur, dst, world, player);
 			net_allowance = get_net_tresspass(cur, dst, world);
-			unsigned int flags = player->flags() | extra_flags;
+			unsigned int flags = player.flags() | extra_flags;
 
 			if (flags & FLAG_CLIP_PLAY_AREA) {
 				play_area = get_play_area_boundary_trespass(cur, dst, world, player);
@@ -428,7 +428,7 @@ namespace {
 		AI::Nav::RRTPlanner planner(world);
 		AI::Nav::W::Player::Path path;
 
-		if (AI::Nav::Util::valid_path(player->position(), dest.first, world, player, added_flags)) {
+		if (AI::Nav::Util::valid_path(player.position(), dest.first, world, player, added_flags)) {
 			path_points.push_back(dest.first);
 		} else {
 			path_points = planner.plan(player, dest.first, added_flags);
@@ -498,7 +498,7 @@ namespace {
 std::vector<Point> AI::Nav::Util::get_destination_alternatives(Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
 	const int POINTS_PER_OBSTACLE = 6;
 	std::vector<Point> ans;
-	unsigned int flags = player->flags();
+	unsigned int flags = player.flags();
 
 	if (flags & FLAG_AVOID_BALL_STOP) {
 		process_obstacle(ans, world, player, dst, dst, distance_keepout::friendly(player), 3 * POINTS_PER_OBSTACLE);
@@ -527,7 +527,7 @@ std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World worl
 	// this number must be >=3
 	const int POINTS_PER_OBSTACLE = 6;
 	std::vector<Point> ans;
-	unsigned int flags = player->flags() | added_flags;
+	unsigned int flags = player.flags() | added_flags;
 	const Field &f = world.field();
 
 	if (flags & FLAG_AVOID_BALL_STOP) {
@@ -561,15 +561,15 @@ std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World worl
 		if (rob == player) {
 			// points around self may help with trying to escape when stuck
 			// that is why there are double the number of points here
-			process_obstacle(ans, world, player, rob->position(), rob->position(), distance_keepout::friendly(player), 2 * POINTS_PER_OBSTACLE);
+			process_obstacle(ans, world, player, rob.position(), rob.position(), distance_keepout::friendly(player), 2 * POINTS_PER_OBSTACLE);
 			continue;
 		}
-		process_obstacle(ans, world, player, rob->position(), rob->position(), distance_keepout::friendly(player), POINTS_PER_OBSTACLE);
+		process_obstacle(ans, world, player, rob.position(), rob.position(), distance_keepout::friendly(player), POINTS_PER_OBSTACLE);
 	}
 
 	for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
 		AI::Nav::W::Robot rob = world.enemy_team().get(i);
-		process_obstacle(ans, world, player, rob->position(), rob->position(), distance_keepout::enemy(world, player), POINTS_PER_OBSTACLE);
+		process_obstacle(ans, world, player, rob.position(), rob.position(), distance_keepout::enemy(world, player), POINTS_PER_OBSTACLE);
 	}
 
 	return ans;
@@ -579,18 +579,18 @@ std::pair<Point, timespec> AI::Nav::Util::get_ramball_location(Point dst, AI::Na
 	Point ball_dir = world.ball().velocity();
 
 	if (ball_dir.lensq() < EPS) {
-		if (lineseg_point_dist(world.ball().position(), player->position(), dst) < RAM_BALL_ALLOWANCE) {
+		if (lineseg_point_dist(world.ball().position(), player.position(), dst) < RAM_BALL_ALLOWANCE) {
 			return std::make_pair(world.ball().position(), world.monotonic_time());
 		}
 	}
 
-	if (unique_line_intersect(player->position(), dst, world.ball().position(), world.ball().position() + ball_dir)) {
-		Point location = line_intersect(player->position(), dst, world.ball().position(), world.ball().position() + ball_dir);
+	if (unique_line_intersect(player.position(), dst, world.ball().position(), world.ball().position() + ball_dir)) {
+		Point location = line_intersect(player.position(), dst, world.ball().position(), world.ball().position() + ball_dir);
 		timespec intersect = world.monotonic_time();
 		timespec_add(intersect, double_to_timespec((location - world.ball().position()).len() / world.ball().velocity().len()), intersect);
 
-		Point vec1 = location - player->position();
-		Point vec2 = dst - player->position();
+		Point vec1 = location - player.position();
+		Point vec2 = dst - player.position();
 
 		Point ball_vec = location - world.ball().position();
 
@@ -600,7 +600,7 @@ std::pair<Point, timespec> AI::Nav::Util::get_ramball_location(Point dst, AI::Na
 	}
 
 	// if everything fails then just stay put
-	return std::make_pair(player->position(), world.monotonic_time());
+	return std::make_pair(player.position(), world.monotonic_time());
 }
 
 timespec AI::Nav::Util::get_next_ts(timespec now, Point &p1, Point &p2, Point target_velocity) {
@@ -623,8 +623,8 @@ bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World wor
 	const Ball &ball = world.ball();
 
 	const Point ball_pos = ball.position();
-	const Point bot_pos = player->position();
-	const Point target_pos = player->destination().first;
+	const Point bot_pos = player.position();
+	const Point target_pos = player.destination().first;
 
 	const Point radial_dist = bot_pos - ball_pos;
 	const Angle target_angle = ((target_pos - ball_pos).orientation()+Angle::of_degrees(180)).angle_mod();
@@ -660,7 +660,7 @@ bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World wor
 	for(std::size_t i = 0; i < step_points.size(); i++){
 		path.push_back(std::make_pair(std::make_pair(step_points[i], target_orient), working_time));
 	}
-	player->path(path);
+	player.path(path);
 	return true;
 }
 
@@ -671,8 +671,8 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 
 	// extract data from the player
 	const Field &field = world.field();
-	const Point target_pos = player->destination().first;
-	const Point robot_pos = player->position();
+	const Point target_pos = player.destination().first;
+	const Point robot_pos = player.position();
 
 	// extract information from the ball
 	const Ball &ball = world.ball();
@@ -687,7 +687,7 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 	AI::Nav::RRTPlanner planner(world);
 
 //	if (ball_vel.len() < 0.2) {
-//		//player->path(get_path_around_ball(world, player, robot_pos, target_pos, true));
+//		//player.path(get_path_around_ball(world, player, robot_pos, target_pos, true));
 //		intercept_flag_stationary_ball_handler(world, player);
 //		return true;
 //	}
@@ -695,14 +695,14 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 	// only start rotating around the stationary ball when we're within a certain distance
 	const double dist_to_rotate = 0.2;
 	if (ball_vel.len() < 0.4 && (robot_pos - ball_pos).len() < dist_to_rotate) {
-		player->path(get_path_around_ball(world, player, robot_pos, target_pos, true));
+		player.path(get_path_around_ball(world, player, robot_pos, target_pos, true));
 		return true;
 	}
 
 	const bool robot_behind_ball = !point_in_front_vector(ball_pos, ball_vel, robot_pos);
 	// find out whether robot is behind the ball or in front of the ball
 	if (robot_behind_ball) {
-		player->path(get_path_near_ball(world, player, target_ball_offset_angle));
+		player.path(get_path_near_ball(world, player, target_ball_offset_angle));
 		return true;
 	}
 
@@ -722,7 +722,7 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 	for (int i = 0; i <= points_to_check; i++) {
 		// where the ball would roll to at a later time
 		Point ball_future_pos = ball_pos + (interval * i);
-		Point dir_from_target = (ball_future_pos - player->destination().first).norm();
+		Point dir_from_target = (ball_future_pos - player.destination().first).norm();
 
 		// get a point that is behind the ball's future position in the direction of the target, this is where the robot should go to
 		Point move_to_point = ball_future_pos + (dir_from_target * CATCH_BALL_DISTANCE_AWAY);
@@ -733,7 +733,7 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 
 		// face the final direction the whole time
 		Angle path_orientation = (dir_from_target * -1).orientation();
-		path_points_with_angle.push_back(std::make_pair(player->position(), path_orientation));
+		path_points_with_angle.push_back(std::make_pair(player.position(), path_orientation));
 		for(unsigned int j = 0; j < path_points.size(); ++j) {
 			path_points_with_angle.push_back(std::make_pair(path_points[j], path_orientation));
 		}
@@ -745,7 +745,7 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 			timespec working_time = world.monotonic_time();
 
 			// if we're within a certain threshold then skip this and just move towards the ball's future position
-			if (line_pt_dist(move_to_point, ball_future_pos, player->position()) > CATCH_BALL_THRESHOLD) {
+			if (line_pt_dist(move_to_point, ball_future_pos, player.position()) > CATCH_BALL_THRESHOLD) {
 				// ignore first point since it is bot's position
 				for (unsigned int j = 1; j < path_points_with_angle.size(); j++) {
 					// not going for proper timestamp, yet
@@ -754,8 +754,8 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 			}
 
 			// add last point to be the actual point where the ball should be since we generate a path to a point just behind it
-			path.push_back(std::make_pair(std::make_pair(ball_future_pos, player->destination().second), working_time));
-			player->path(path);
+			path.push_back(std::make_pair(std::make_pair(ball_future_pos, player.destination().second), working_time));
+			player.path(path);
 			return true;
 		}
 	}

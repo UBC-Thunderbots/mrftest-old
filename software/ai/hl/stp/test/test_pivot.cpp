@@ -44,7 +44,7 @@ namespace {
 					target = world.field().friendly_goal();
 				}
 
-				const Angle diff_ori = player->orientation().angle_diff((target - player->position()).orientation());
+				const Angle diff_ori = player.orientation().angle_diff((target - player.position()).orientation());
 				if (diff_ori < Angle::of_radians(0.1)) {
 					// angle completed, switch goals.
 					target_enemy = !target_enemy;

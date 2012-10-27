@@ -70,7 +70,7 @@ namespace {
 		double closest_friendly = 1e99;
 		const FriendlyTeam friendly = world.friendly_team();
 		for (size_t i = 0; i < friendly.size(); ++i) {
-			double dist = (friendly.get(i)->position() - dest).len();
+			double dist = (friendly.get(i).position() - dest).len();
 			closest_friendly = std::min(closest_friendly, dist);
 		}
 
@@ -178,8 +178,8 @@ namespace {
 		Player baller = Evaluation::calc_friendly_baller();
 
 		if (baller) {
-			Angle ori_ball = (dest - baller->position()).orientation();
-			Angle ori_player = baller->orientation();
+			Angle ori_ball = (dest - baller.position()).orientation();
+			Angle ori_player = baller.orientation();
 			double score_diff = ori_ball.angle_diff(ori_player).to_radians();
 
 			// reduce score by rotation
@@ -263,7 +263,7 @@ namespace {
 		EnemyTeam enemy = world.enemy_team();
 		std::vector<Point> enemy_pos;
 		for (size_t i = 0; i < enemy.size(); ++i) {
-			enemy_pos.push_back(enemy.get(i)->position());
+			enemy_pos.push_back(enemy.get(i).position());
 		}
 
 		// don't block ball, and the others
@@ -273,7 +273,7 @@ namespace {
 		   const FriendlyTeam friendly = world.friendly_team();
 		   for (size_t i = 0; i < friendly.size(); ++i) {
 		   if (players.find(friendly.get(i)) == players.end()) {
-		   dont_block.push_back(friendly.get(i)->position());
+		   dont_block.push_back(friendly.get(i).position());
 		   }
 		   }
 		 */

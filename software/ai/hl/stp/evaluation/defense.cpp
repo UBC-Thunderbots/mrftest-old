@@ -64,7 +64,7 @@ namespace {
 		if (defense_follow_enemy_baller) {
 			Robot robot = calc_enemy_baller(world);
 			if (robot) {
-				ball_pos = robot->position();
+				ball_pos = robot.position();
 			}
 		}
 
@@ -124,12 +124,12 @@ namespace {
 			obstacles.push_back(waypoint_defenders[0]);
 
 			for (size_t i = 0; i < enemies.size(); ++i) {
-				if (calc_enemy_best_shot_goal(world.field(), obstacles, enemies[i]->position()).second > enemy_shoot_accuracy) {
+				if (calc_enemy_best_shot_goal(world.field(), obstacles, enemies[i].position()).second > enemy_shoot_accuracy) {
 					threat.push_back(enemies[i]);
 				}
 			}
 			for (size_t i = 0; i < enemies.size(); ++i) {
-				if (!(calc_enemy_best_shot_goal(world.field(), obstacles, enemies[i]->position()).second > enemy_shoot_accuracy)) {
+				if (!(calc_enemy_best_shot_goal(world.field(), obstacles, enemies[i].position()).second > enemy_shoot_accuracy)) {
 					threat.push_back(enemies[i]);
 				}
 			}
@@ -149,7 +149,7 @@ namespace {
 			}
 
 #warning A HACK FOR NOW, may intefere with baller above
-			double ball_diff = (ball_pos - threat[i]->position()).len();
+			double ball_diff = (ball_pos - threat[i].position()).len();
 			if (ball_diff < Robot::MAX_RADIUS + Ball::RADIUS) {
 				continue;
 			}
@@ -158,7 +158,7 @@ namespace {
 			// if so, block it
 
 			bool blowup = false;
-			Point D = calc_block_cone(goal_side, goal_opp, threat[i]->position(), radius);
+			Point D = calc_block_cone(goal_side, goal_opp, threat[i].position(), radius);
 			if (D.x < Robot::MAX_RADIUS - field.length() / 2 + field.defense_area_stretch()) {
 				blowup = true;
 			}
@@ -166,7 +166,7 @@ namespace {
 				blowup = true;
 			}
 			if (blowup) {
-				D = (field.friendly_goal() + threat[i]->position()) / 2;
+				D = (field.friendly_goal() + threat[i].position()) / 2;
 			}
 			waypoint_defenders.push_back(D);
 		}
@@ -225,14 +225,14 @@ bool AI::HL::STP::Evaluation::enemy_break_defense_duo(World world, const Robot e
 	obstacles.push_back(waypoints[0]);
 	obstacles.push_back(waypoints[1]);
 
-	return calc_enemy_best_shot_goal(world.field(), obstacles, enemy->position()).second > enemy_shoot_accuracy;
+	return calc_enemy_best_shot_goal(world.field(), obstacles, enemy.position()).second > enemy_shoot_accuracy;
 }
 
 Point AI::HL::STP::Evaluation::evaluate_tdefense(World world, const unsigned index) {
 	Point target;
 	if (world.enemy_team().size() > index - 1) {
 		std::vector<Robot> enemies = Evaluation::enemies_by_grab_ball_dist();
-		Point r = enemies[index - 1]->position();
+		Point r = enemies[index - 1].position();
 		if (r.x < world.field().centre_circle_radius()) {
 			target = tdefender_block_enemy(world, r, index);
 		} else {

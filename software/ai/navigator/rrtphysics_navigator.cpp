@@ -47,15 +47,15 @@ void RRTPhysicsNavigator::tick() {
 		path.clear();
 		Player player = world.friendly_team().get(i);
 		currentTime = world.monotonic_time();
-		const double dist = (player->position() - player->destination().first).len();
+		const double dist = (player.position() - player.destination().first).len();
 		struct timespec timeToAdd = double_to_timespec(dist / MAX_SPEED);
 		struct timespec finalTime;
 
 		timespec_add(currentTime, timeToAdd, finalTime);
 		pathPoints.clear();
-		pathPoints = planner.plan(player, player->destination().first);
+		pathPoints = planner.plan(player, player.destination().first);
 
-		Angle destOrientation = player->destination().second;
+		Angle destOrientation = player.destination().second;
 		for (std::size_t j = 0; j < pathPoints.size(); ++j) {
 			// the last point will just use whatever the last orientation was
 			if (j + 1 != pathPoints.size()) {
@@ -68,10 +68,10 @@ void RRTPhysicsNavigator::tick() {
 		// just use the current player position as the destination if we are within the
 		// threshold already
 		if (pathPoints.empty()) {
-			path.push_back(std::make_pair(std::make_pair(player->position(), destOrientation), finalTime));
+			path.push_back(std::make_pair(std::make_pair(player.position(), destOrientation), finalTime));
 		}
 
-		player->path(path);
+		player.path(path);
 	}
 }
 

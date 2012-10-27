@@ -33,7 +33,7 @@ namespace {
 		}
 
 		bool done() const {
-			return player && kick_attempted && player->autokick_fired();
+			return player && kick_attempted && player.autokick_fired();
 		}
 
 		void player_changed() {
@@ -69,7 +69,7 @@ namespace {
 				kick_attempted = true;
 			}
 
-			player->flags(0);
+			player.flags(0);
 		}
 
 		Glib::ustring description() const {
@@ -99,12 +99,12 @@ namespace {
 
 		void execute() {
 			if (Evaluation::passee_suitable(world, player)) {
-				Action::move(world, player, player->position());
+				Action::move(world, player, player.position());
 			} else {
 				// move to a suitable position
 				auto dest = AI::HL::STP::Evaluation::offense_positions();
 				Action::move(world, player, dest[number]);
-				player->prio(AI::Flags::MovePrio::LOW);
+				player.prio(AI::Flags::MovePrio::LOW);
 			}
 		}
 
@@ -121,9 +121,9 @@ namespace {
 			Player best;
 			double min_dist = 1e99;
 			for (auto it = players.begin(); it != players.end(); ++it) {
-				Point dest = Evaluation::calc_fastest_grab_ball_dest_if_baller_shoots(world, (*it)->position());
-				if (!best || min_dist > (dest - (*it)->position()).len()) {
-					min_dist = (dest - (*it)->position()).len();
+				Point dest = Evaluation::calc_fastest_grab_ball_dest_if_baller_shoots(world, (*it).position());
+				if (!best || min_dist > (dest - (*it).position()).len()) {
+					min_dist = (dest - (*it).position()).len();
 					best = *it;
 				}
 			}
@@ -132,9 +132,9 @@ namespace {
 
 		void execute() {
 			if (Evaluation::passee_suitable(world, player)) {
-				Action::move(world, player, player->position());
+				Action::move(world, player, player.position());
 			} else {
-				Point dest = Evaluation::calc_fastest_grab_ball_dest_if_baller_shoots(world, player->position());
+				Point dest = Evaluation::calc_fastest_grab_ball_dest_if_baller_shoots(world, player.position());
 				Action::move(world, player, dest);
 			}
 		}

@@ -32,7 +32,7 @@ namespace {
 	}
 
 	void ShadowEnemy::execute() {
-		Point enemy = Enemy::closest_ball(world, 0)->evaluate()->position();
+		Point enemy = Enemy::closest_ball(world, 0)->evaluate().position();
 		Point ball = world.ball().position();
 		Point destination = ball - enemy;
 		destination = destination.norm() * (AI::Util::BALL_STOP_DIST + Robot::MAX_RADIUS + Ball::RADIUS);

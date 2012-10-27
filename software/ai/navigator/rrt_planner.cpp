@@ -49,7 +49,7 @@ Point RRTPlanner::choose_target(Point goal, Player player) {
 	std::size_t i = static_cast<std::size_t>(std::rand()) % Waypoints::NUM_WAYPOINTS;
 
 	if (p > 0 && p <= WAYPOINT_PROB) {
-		return std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])->points[i];
+		return std::dynamic_pointer_cast<Waypoints>(player.object_store()[typeid(*this)])->points[i];
 	} else if (p > WAYPOINT_PROB && p < (WAYPOINT_PROB + RAND_PROB)) {
 		return random_point();
 	} else {
@@ -86,7 +86,7 @@ Glib::NodeTree<Point> *RRTPlanner::nearest(Glib::NodeTree<Point> *rrt_tree, Poin
 Point RRTPlanner::extend(Player player, Glib::NodeTree<Point> *start, Point target) {
 	Point extend_point = start->data() + ((target - start->data()).norm() * step_distance);
 
-	if (!valid_path(start->data(), extend_point, world, player, std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])->added_flags)) {
+	if (!valid_path(start->data(), extend_point, world, player, std::dynamic_pointer_cast<Waypoints>(player.object_store()[typeid(*this)])->added_flags)) {
 		return empty_state();
 	}
 
@@ -98,13 +98,13 @@ std::vector<Point> RRTPlanner::plan(Player player, Point goal, unsigned int adde
 }
 
 std::vector<Point> RRTPlanner::rrt_plan(Player player, Point goal, bool post_process, unsigned int added_flags) {
-	Point initial = player->position();
+	Point initial = player.position();
 
-	if (!std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])) {
-		player->object_store()[typeid(*this)] = std::make_shared<Waypoints>();
+	if (!std::dynamic_pointer_cast<Waypoints>(player.object_store()[typeid(*this)])) {
+		player.object_store()[typeid(*this)] = std::make_shared<Waypoints>();
 	}
 
-	std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])->added_flags = added_flags;
+	std::dynamic_pointer_cast<Waypoints>(player.object_store()[typeid(*this)])->added_flags = added_flags;
 
 	Point nearest_point, extended, target;
 	Glib::NodeTree<Point> *nearest_node;
@@ -153,7 +153,7 @@ std::vector<Point> RRTPlanner::rrt_plan(Player player, Point goal, bool post_pro
 		// if we found a plan then add the path's points to the waypoint cache
 		// with random replacement
 		if (found_path) {
-			std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])->points[static_cast<std::size_t>(std::rand()) % Waypoints::NUM_WAYPOINTS] = iterator->data();
+			std::dynamic_pointer_cast<Waypoints>(player.object_store()[typeid(*this)])->points[static_cast<std::size_t>(std::rand()) % Waypoints::NUM_WAYPOINTS] = iterator->data();
 		}
 	}
 
@@ -170,7 +170,7 @@ std::vector<Point> RRTPlanner::rrt_plan(Player player, Point goal, bool post_pro
 	std::vector<Point> final_points;
 
 	for (std::size_t i = 0; i < path_points.size(); ++i) {
-		if (!valid_path(path_points[sub_path_index], path_points[i], world, player, std::dynamic_pointer_cast<Waypoints>(player->object_store()[typeid(*this)])->added_flags)) {
+		if (!valid_path(path_points[sub_path_index], path_points[i], world, player, std::dynamic_pointer_cast<Waypoints>(player.object_store()[typeid(*this)])->added_flags)) {
 			sub_path_index = i - 1;
 			final_points.push_back(path_points[i - 1]);
 		} else if (i == path_points.size() - 1) {
@@ -180,8 +180,8 @@ std::vector<Point> RRTPlanner::rrt_plan(Player player, Point goal, bool post_pro
 
 	// just use the current player position as the destination if we are within the threshold already
 	if (final_points.empty()) {
-		final_points.push_back(player->position());
-	} else if (valid_path(final_points[final_points.size() - 1], player->destination().first, world, player)) {
+		final_points.push_back(player.position());
+	} else if (valid_path(final_points[final_points.size() - 1], player.destination().first, world, player)) {
 		// go exactly to the goal if we're able
 		final_points.push_back(goal);
 	}

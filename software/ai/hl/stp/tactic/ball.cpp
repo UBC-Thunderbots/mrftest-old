@@ -52,14 +52,14 @@ namespace {
 				const double backup_dist;
 
 				bool done() const {
-					return finished && player->has_ball();
+					return finished && player.has_ball();
 				}
 				Player select(const std::set<Player> &players) const {
 					return select_baller(world, players, player);
 				}
 
 				void player_changed() {
-					start_pos = player->position();
+					start_pos = player.position();
 				}
 
 				void execute();
@@ -96,7 +96,7 @@ namespace {
 		private:
 			Region region;
 			bool done() const {
-				return region.inside(player->position());
+				return region.inside(player.position());
 			}
 			Player select(const std::set<Player> &players) const {
 				return select_baller(world, players, player);
@@ -116,7 +116,7 @@ namespace {
 		private:
 			Region region;
 			bool done() const {
-				return region.inside(player->position());
+				return region.inside(player.position());
 			}
 			Player select(const std::set<Player> &players) const {
 				return select_baller(world, players, player);
@@ -133,7 +133,7 @@ namespace {
 void SpinSteal::execute() {
 	none = false;
 	EnemyTeam enemy = world.enemy_team();
-	Point dirToBall = (world.ball().position() - player->position()).norm();
+	Point dirToBall = (world.ball().position() - player.position()).norm();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		if (Evaluation::possess_ball(world, enemy.get(i))) {
 			Action::move_spin(player, world.ball().position() + Robot::MAX_RADIUS * dirToBall);
@@ -144,7 +144,7 @@ void SpinSteal::execute() {
 }
 
 void BackUpSteal::execute() {
-	finished = (player->position() - start_pos).len() > backup_dist;
+	finished = (player.position() - start_pos).len() > backup_dist;
 
 	switch(state) {
 	case BACKING_UP:
@@ -155,7 +155,7 @@ void BackUpSteal::execute() {
 		break;
 	case GOING_FORWARD:
 		Action::move(world, player, world.ball().position());
-		if (player->has_ball()) {
+		if (player.has_ball()) {
 			state = BACKING_UP;
 		}
 		break;
@@ -168,7 +168,7 @@ void TActiveDef::execute() {
 
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		if (Evaluation::possess_ball(world, enemy.get(i))) {
-			Point dirToBall = (world.ball().position() - enemy.get(i)->position()).norm();
+			Point dirToBall = (world.ball().position() - enemy.get(i).position()).norm();
 			Action::move_spin(player, world.ball().position() + 0.75 * Robot::MAX_RADIUS * dirToBall);
 			return;
 		}

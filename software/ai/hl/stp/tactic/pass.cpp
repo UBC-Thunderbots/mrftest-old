@@ -61,7 +61,7 @@ namespace {
 
 			bool done() const {
 #warning TODO allow more time, WTH how this works
-				return kicked || player->autokick_fired();
+				return kicked || player.autokick_fired();
 			}
 
 			bool fail() const {
@@ -69,7 +69,7 @@ namespace {
 				return player
 				       // should fail when cannot pass to target,
 				       && ((passer_depends_calc_best_shot_target
-				            && !Evaluation::can_pass(world, player->position(), dest))
+				            && !Evaluation::can_pass(world, player.position(), dest))
 				           // or a shot on net is available
 				           || (passer_depends_baller_can_shoot
 				               && !AI::HL::STP::Predicates::baller_can_shoot(world)));
@@ -81,10 +81,10 @@ namespace {
 
 			void execute() {
 				Point dest = dynamic ? Evaluation::passee_position() : target.position();
-				kicked = kicked || player->autokick_fired();
-				if (!player->autokick_fired() && !kicked) {
-					PasserShoot::passer_info.kicker_location = player->position();
-					PasserShoot::passer_info.kicker_orientation = player->orientation();
+				kicked = kicked || player.autokick_fired();
+				if (!player.autokick_fired() && !kicked) {
+					PasserShoot::passer_info.kicker_location = player.position();
+					PasserShoot::passer_info.kicker_orientation = player.orientation();
 					PasserShoot::passer_info.kicker_target = dest;
 					PasserShoot::passer_info.kicked = false;
 				} else {
@@ -163,11 +163,11 @@ namespace {
 					// tuned controller
 					Point add_dist_hack(0, 0);
 					// if the passee is currently outside of it's target by certain amount add hack distance
-					if ((passee_goto - player->position()).len() > passee_hack_appl) {
-						add_dist_hack = passee_hack_dist * (passee_goto - player->position()).norm();
+					if ((passee_goto - player.position()).len() > passee_hack_appl) {
+						add_dist_hack = passee_hack_dist * (passee_goto - player.position()).norm();
 					}
 					passee_goto = passee_goto + add_dist_hack;
-					Action::move(player, (world.ball().position() - player->position()).orientation(), passee_goto);
+					Action::move(player, (world.ball().position() - player.position()).orientation(), passee_goto);
 				} else { // passer is within passer tolerance
 					Point passee_goto(0.0, 0.0);
 					for (unsigned int i = 0; i < Passer_ray_target_region_intersect.size(); i++) {
@@ -179,13 +179,13 @@ namespace {
 					// tuned controller
 					Point add_dist_hack(0, 0);
 					// if the passee is currently outside of it's target by certain amount add hack distance
-					if ((passee_goto - player->position()).len() > passee_hack_appl) {
-						add_dist_hack = passee_hack_dist * (passee_goto - player->position()).norm();
+					if ((passee_goto - player.position()).len() > passee_hack_appl) {
+						add_dist_hack = passee_hack_dist * (passee_goto - player.position()).norm();
 					}
 					passee_goto = passee_goto + add_dist_hack;
-					Action::move(player, (world.ball().position() - player->position()).orientation(), passee_goto);
+					Action::move(player, (world.ball().position() - player.position()).orientation(), passee_goto);
 				}
-				player->type(AI::Flags::MoveType::DRIBBLE);
+				player.type(AI::Flags::MoveType::DRIBBLE);
 			}
 
 			Glib::ustring description() const {
@@ -215,7 +215,7 @@ namespace {
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest));
 			}
 			bool done() const {
-				return player && player->has_ball();
+				return player && player.has_ball();
 			}
 			void execute() {
 				const kick_info &passer_info = PasserShoot::passer_info;
@@ -223,29 +223,29 @@ namespace {
 				bool fast_ball = world.ball().velocity().len() > fast_velocity;
 
 				// ball heading towards us
-				bool can_intercept = ((player->position() - world.ball().position()).dot(world.ball().velocity()) > 0);
+				bool can_intercept = ((player.position() - world.ball().position()).dot(world.ball().velocity()) > 0);
 
 				if (world.ball().velocity().len() < negligible_velocity) {
 					Action::intercept(player, world.ball().position());
-					player->type(AI::Flags::MoveType::DRIBBLE);
+					player.type(AI::Flags::MoveType::DRIBBLE);
 					return;
 				}
 
 				if (!fast_ball) {
 					Point pass_dir(100, 0);
 					pass_dir = pass_dir.rotate(passer_info.kicker_orientation);
-					Point intercept_pos = closest_lineseg_point(player->position(), passer_info.kicker_location, passer_info.kicker_location + pass_dir);
-					Point addit = passee_hack_dist * (intercept_pos - player->position()).norm();
+					Point intercept_pos = closest_lineseg_point(player.position(), passer_info.kicker_location, passer_info.kicker_location + pass_dir);
+					Point addit = passee_hack_dist * (intercept_pos - player.position()).norm();
 					Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos + addit);
 				} else if (can_intercept && fast_ball) {
-					Point intercept_pos = closest_lineseg_point(player->position(), world.ball().position(), world.ball().position() + 100 * (world.ball().velocity().norm()));
-					Point addit = passee_hack_dist * (intercept_pos - player->position()).norm();
+					Point intercept_pos = closest_lineseg_point(player.position(), world.ball().position(), world.ball().position() + 100 * (world.ball().velocity().norm()));
+					Point addit = passee_hack_dist * (intercept_pos - player.position()).norm();
 					Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos + addit);
 				} else {
 					// ball is running too slowly, chase it
 					Action::intercept(player, world.ball().position());
 				}
-				player->type(AI::Flags::MoveType::DRIBBLE);
+				player.type(AI::Flags::MoveType::DRIBBLE);
 			}
 
 			Glib::ustring description() const {

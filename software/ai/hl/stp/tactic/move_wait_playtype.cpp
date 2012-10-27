@@ -26,7 +26,7 @@ namespace {
 	};
 
 	bool MoveWaitPlaytype::done() const {
-		return world.playtype() == playtype && (player->position() - dest.position()).len() < AI::HL::Util::POS_CLOSE;
+		return world.playtype() == playtype && (player.position() - dest.position()).len() < AI::HL::Util::POS_CLOSE;
 	}
 
 	Player MoveWaitPlaytype::select(const std::set<Player> &players) const {

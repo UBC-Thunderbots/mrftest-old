@@ -44,7 +44,7 @@ namespace {
 		// 1. are far away from our goal
 		// 2. can't shoot to goal
 		enemies.erase(std::remove_if(enemies.begin(), enemies.end(), [this](AI::HL::W::Robot robot) -> bool {
-			return (robot->position().x > 1.0) || (!Evaluation::enemy_can_shoot_goal(world, robot));
+			return (robot.position().x > 1.0) || (!Evaluation::enemy_can_shoot_goal(world, robot));
 		}), enemies.end());
 
 		AI::HL::W::Robot open_robot = Evaluation::calc_enemy_baller(world);
@@ -52,7 +52,7 @@ namespace {
 		int most_open_index = -1;
 		double dist = 0;
 		for (std::size_t i = 0; i < enemies.size(); i++) {
-			double d = (enemies[i]->position() - nearest_friendly(enemies[i]->position())->position()).len();
+			double d = (enemies[i].position() - nearest_friendly(enemies[i].position()).position()).len();
 			if (most_open_index < 0 || d > dist) {
 				most_open_index = static_cast<int>(i);
 				dist = d;
@@ -71,14 +71,14 @@ namespace {
 		std::vector<Player> team_pool;
 		for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
 			// filter out the player
-			if (!world.friendly_team().get(i)->position().close(player->position(), 0.01)) {
+			if (!world.friendly_team().get(i).position().close(player.position(), 0.01)) {
 				team_pool.push_back(world.friendly_team().get(i));
 			}
 		}
 		Player closest;
 		double dist = 0;
 		for (std::size_t i = 0; i < team_pool.size(); i++) {
-			double d = (target - team_pool[i]->position()).len();
+			double d = (target - team_pool[i].position()).len();
 			if (!closest || d < dist) {
 				closest = team_pool[i];
 				dist = d;
@@ -93,7 +93,7 @@ namespace {
 		if (enemies.size() != 0) {
 			Action::block_ball(world, player, player_to_mark(enemies));
 		} else {
-			Action::move(player, (player->position() - world.ball().position()).orientation(), Point(world.ball().position().x, -world.ball().position().y));
+			Action::move(player, (player.position() - world.ball().position()).orientation(), Point(world.ball().position().x, -world.ball().position().y));
 		}
 	}
 }

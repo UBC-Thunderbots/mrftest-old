@@ -13,7 +13,7 @@ Player AI::HL::STP::Tactic::select_baller(World world, const std::set<Player> &p
 	// if someone has ball, use it
 	for (auto it = players.begin(); it != players.end(); ++it) {
 		Player p = *it;
-		if (p->has_ball()) {
+		if (p.has_ball()) {
 			return p;
 		}
 	}
@@ -39,8 +39,8 @@ Player AI::HL::STP::Tactic::select_baller(World world, const std::set<Player> &p
 	for (auto it = players.begin(); it != players.end(); ++it) {
 		Player player = *it;
 		Point dest = Evaluation::calc_fastest_grab_ball_dest(world, player);
-		if (!best || min_dist > (dest - player->position()).len()) {
-			min_dist = (dest - player->position()).len();
+		if (!best || min_dist > (dest - player.position()).len()) {
+			min_dist = (dest - player.position()).len();
 			best = player;
 		}
 	}

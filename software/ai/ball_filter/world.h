@@ -47,20 +47,6 @@ namespace AI {
 					 */
 					Player(const Player &copyref);
 
-					/**
-					 * \brief Returns this object
-					 *
-					 * \return this object
-					 */
-					Player *operator->();
-
-					/**
-					 * \brief Returns this object
-					 *
-					 * \return this object
-					 */
-					const Player *operator->() const;
-
 					using AI::Common::Player::operator==;
 					using AI::Common::Player::operator!=;
 					using AI::Common::Player::operator bool;

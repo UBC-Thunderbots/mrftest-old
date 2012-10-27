@@ -76,11 +76,11 @@ void ParameterTuningNavigator::tick() {
 
 	path.clear();
 	player = fteam.get(0);
-	Point currentPosition = player->position();
+	Point currentPosition = player.position();
 	if ((currentPosition - tasks[taskIndex].first).len() < pos_dis_threshold
-		&& player->velocity().len() < pos_vel_threshold
-		&& tasks[taskIndex].second.angle_diff(player->orientation()) < ori_dis_threshold
-		&& player->avelocity() < ori_vel_threshold) {
+		&& player.velocity().len() < pos_vel_threshold
+		&& tasks[taskIndex].second.angle_diff(player.orientation()) < ori_dis_threshold
+		&& player.avelocity() < ori_vel_threshold) {
 		taskIndex++;
 		if (taskIndex == 1) {
 			time = 0;
@@ -113,7 +113,7 @@ void ParameterTuningNavigator::tick() {
 	}
 
 	path.push_back(std::make_pair(std::make_pair(tasks[taskIndex].first, tasks[taskIndex].second), world.monotonic_time()));
-	player->path(path);
+	player.path(path);
 }
 
 NAVIGATOR_REGISTER(ParameterTuningNavigator)

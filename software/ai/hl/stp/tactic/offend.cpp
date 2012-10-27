@@ -42,7 +42,7 @@ namespace {
 	void Primary::execute() {
 		auto dest = AI::HL::STP::Evaluation::offense_positions();
 		Action::move(world, player, dest[0]);
-		player->prio(AI::Flags::MovePrio::LOW);
+		player.prio(AI::Flags::MovePrio::LOW);
 	}
 
 	Player Secondary::select(const std::set<Player> &players) const {
@@ -53,7 +53,7 @@ namespace {
 	void Secondary::execute() {
 		auto dest = AI::HL::STP::Evaluation::offense_positions();
 		Action::move(world, player, dest[1]);
-		player->prio(AI::Flags::MovePrio::LOW);
+		player.prio(AI::Flags::MovePrio::LOW);
 	}
 }
 

@@ -21,7 +21,7 @@ namespace {
 			Point target;
 			double speed_ratio;
 			bool done() const {
-				return player && player->autokick_fired();
+				return player && player.autokick_fired();
 			}
 
 			Player select(const std::set<Player> &players) const {
@@ -30,17 +30,17 @@ namespace {
 
 			void execute() {
 				Point dest;
-				Point player_to_ball = player->position() - world.ball().position();
+				Point player_to_ball = player.position() - world.ball().position();
 //				Point move_back_distance = Point(0.05, 0.05);
 				Angle epsilon = Angle::of_degrees(4);
 				Angle to_target = ((world.ball().position() - target).orientation()) - player_to_ball.orientation();
 
-				Angle player_orientation = player->orientation();
-				player->move(player->position(), to_target, Point());
+				Angle player_orientation = player.orientation();
+				player.move(player.position(), to_target, Point());
 
 				if ((player_orientation.angle_diff(to_target) < epsilon)) {
 					if (obstacle(player, target) == true && chipperclear(player) == true) {
-						player->autochip(speed_ratio);
+						player.autochip(speed_ratio);
 						}
 /*
  * 					TODO: Add code so that if enemy is too close for robot to chip, it moves back a bit to make room and then chips.
@@ -48,12 +48,12 @@ namespace {
 //					else if (obstacle(player, target) == true && chipperclear(player) == false) {
 //
 //						//ASK TERENCE ABOUT ILLEGAL ZONES
-//						if ((player->position() - move_back_distance) < (world.field().friendly_goal()) && (player->position() - move_back_distance) > (world.field().enemy_goal())) {
-//							player->move(Point(player->position() - move_back_distance), player->orientation(), Point());
+//						if ((player.position() - move_back_distance) < (world.field().friendly_goal()) && (player.position() - move_back_distance) > (world.field().enemy_goal())) {
+//							player.move(Point(player.position() - move_back_distance), player.orientation(), Point());
 //						}
 //					}
 					else {
-						player->autokick(speed_ratio);
+						player.autokick(speed_ratio);
 					}
 				}
 			}
@@ -70,9 +70,9 @@ namespace {
 				double clearDistance = 0.18;
 
 				for (size_t i = 0; i < size_enemy; i++) {
-					Point displacement = world.enemy_team().get(i)->position() - player->position();
+					Point displacement = world.enemy_team().get(i).position() - player.position();
 
-					if (displacement.len() < clearDistance && player->orientation().angle_mod().to_radians() < M_PI / 2 && player->orientation().angle_mod().to_radians() > -M_PI / 2) {
+					if (displacement.len() < clearDistance && player.orientation().angle_mod().to_radians() < M_PI / 2 && player.orientation().angle_mod().to_radians() > -M_PI / 2) {
 						return false;
 					}
 				}
@@ -91,22 +91,22 @@ namespace {
 				std::size_t size_friendly = world.friendly_team().size();
 				double tolerance = Robot::MAX_RADIUS/2;
 				Point rectangle[4];
-				Point norm_passer = (Passer->position() - Destination).norm();
+				Point norm_passer = (Passer.position() - Destination).norm();
 				//rectangle drawn by getting normal vector. then the 4 points are chosen by tolerance
-				rectangle[0] = Passer->position() + (norm_passer * tolerance);
-				rectangle[1] = Passer->position() - (norm_passer * tolerance);
+				rectangle[0] = Passer.position() + (norm_passer * tolerance);
+				rectangle[1] = Passer.position() - (norm_passer * tolerance);
 				rectangle[2] = Destination + (norm_passer * tolerance);
 				rectangle[3] = Destination - (norm_passer * tolerance);
 				//check if any enemies are in the rectangle
 				for (std::size_t i = 0; i < size_enemy; i++) {
 
-					if (point_in_rectangle(world.enemy_team().get(i)->position(), rectangle) == true)
+					if (point_in_rectangle(world.enemy_team().get(i).position(), rectangle) == true)
 						return true;
 					}
 				//check if any friendlies are in the rectangle
 				for (std::size_t i = 0; i < size_friendly; i++) {
 
-					if (point_in_rectangle(world.friendly_team().get(i)->position(), rectangle) == true)
+					if (point_in_rectangle(world.friendly_team().get(i).position(), rectangle) == true)
 						return true;
 				}
 				//return false if rectangle is clear of obstacles

@@ -73,7 +73,7 @@ bool AI::HL::Util::path_check(const Point &begin, const Point &end, const std::v
 	const Point direction = (end - begin).norm();
 	const double dist = (end - begin).len();
 	for (std::size_t i = 0; i < robots.size(); ++i) {
-		const Point ray = robots[i]->position() - begin;
+		const Point ray = robots[i].position() - begin;
 		const double proj = ray.dot(direction);
 		const double perp = fabs(ray.cross(direction));
 		if (proj <= 0) {
@@ -104,16 +104,16 @@ std::pair<Point, Angle> AI::HL::Util::calc_best_shot(World world, const Player p
 	FriendlyTeam friendly = world.friendly_team();
 	obstacles.reserve(enemy.size() + friendly.size());
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		obstacles.push_back(enemy.get(i)->position());
+		obstacles.push_back(enemy.get(i).position());
 	}
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		const Player fpl = friendly.get(i);
 		if (fpl == player) {
 			continue;
 		}
-		obstacles.push_back(fpl->position());
+		obstacles.push_back(fpl.position());
 	}
-	std::pair<Point, Angle> best_shot = calc_best_shot(world.field(), obstacles, player->position(), radius);
+	std::pair<Point, Angle> best_shot = calc_best_shot(world.field(), obstacles, player.position(), radius);
 	// if there is no good shot at least make the
 	// target within the goal area
 	if (best_shot.second <= Angle::ZERO) {
@@ -129,16 +129,16 @@ std::vector<std::pair<Point, Angle> > AI::HL::Util::calc_best_shot_all(World wor
 	FriendlyTeam friendly = world.friendly_team();
 	obstacles.reserve(enemy.size() + friendly.size());
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		obstacles.push_back(enemy.get(i)->position());
+		obstacles.push_back(enemy.get(i).position());
 	}
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		const Player fpl = friendly.get(i);
 		if (fpl == player) {
 			continue;
 		}
-		obstacles.push_back(fpl->position());
+		obstacles.push_back(fpl.position());
 	}
-	return calc_best_shot_all(world.field(), obstacles, player->position(), radius);
+	return calc_best_shot_all(world.field(), obstacles, player.position(), radius);
 }
 
 std::vector<Player> AI::HL::Util::get_players(FriendlyTeam friendly) {

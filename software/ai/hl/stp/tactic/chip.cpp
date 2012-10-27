@@ -34,13 +34,13 @@ namespace {
 	};
 
 	bool ChipTarget::done() const {
-		return player /* && kick_attempted */ && player->autokick_fired();
+		return player /* && kick_attempted */ && player.autokick_fired();
 	}
 
 	Player ChipTarget::select(const std::set<Player> &players) const {
 		// if a player attempted to shoot, keep the player
 		Player player_c = player;
-		if (players.count(player) && Evaluation::possess_ball(world, player_c) && player->has_chipper()) {
+		if (players.count(player) && Evaluation::possess_ball(world, player_c) && player.has_chipper()) {
 			return player;
 		}
 		if (kick_attempted && players.count(player)) {

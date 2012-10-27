@@ -64,7 +64,7 @@ namespace {
 	};
 
 	bool ShootGoal::done() const {
-		return player /* && kick_attempted*/ && player->autokick_fired();
+		return player /* && kick_attempted*/ && player.autokick_fired();
 	}
 
 	Player ShootGoal::select(const std::set<Player> &players) const {
@@ -85,13 +85,13 @@ namespace {
 		}
 		Angle cur_shoot_score = AI::HL::STP::Evaluation::get_shoot_score(world, player);
 		if (new_shoot && ((cur_shoot_score < shoot_score + Angle::of_radians(1e-9) && shoot_score > Angle::ZERO) || cur_shoot_score > shoot_thresh)) {
-			player->autokick(BALL_MAX_SPEED);
+			player.autokick(BALL_MAX_SPEED);
 		}
 		shoot_score = cur_shoot_score;
 	}
 
 	bool ShootTarget::done() const {
-		return player /* && kick_attempted */ && player->autokick_fired();
+		return player /* && kick_attempted */ && player.autokick_fired();
 	}
 
 	Player ShootTarget::select(const std::set<Player> &players) const {

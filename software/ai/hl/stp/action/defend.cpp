@@ -11,11 +11,11 @@ namespace {
 
 void AI::HL::STP::Action::defender_move(World world, Player player, const Point dest) {
 	// if the ball is too close we repel
-	if ((world.ball().position() - player->position()).len() < repel_dist * Robot::MAX_RADIUS) {
+	if ((world.ball().position() - player.position()).len() < repel_dist * Robot::MAX_RADIUS) {
 		corner_repel(world, player);
 		return;
 	}
-	player->move(dest, (world.ball().position() - player->position()).orientation(), Point());
-	player->type(AI::Flags::MoveType::NORMAL);
+	player.move(dest, (world.ball().position() - player.position()).orientation(), Point());
+	player.type(AI::Flags::MoveType::NORMAL);
 }
 

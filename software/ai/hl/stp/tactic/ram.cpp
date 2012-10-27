@@ -15,7 +15,7 @@ namespace {
 
 		private:
 			bool done() const {
-				return (player->position() - world.ball().position()).len() < AI::HL::Util::POS_CLOSE;
+				return (player.position() - world.ball().position()).len() < AI::HL::Util::POS_CLOSE;
 			}
 
 			Player select(const std::set<Player> &players) const {

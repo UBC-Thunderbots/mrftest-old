@@ -28,7 +28,7 @@ namespace {
 	};
 
 	bool Intercept::done() const {
-		return player->has_ball();
+		return player.has_ball();
 	}
 
 	Player Intercept::select(const std::set<Player> &players) const {
@@ -37,7 +37,7 @@ namespace {
 
 	void Intercept::execute() {
 		// if it has the ball, stay there
-		if (player->has_ball()) {
+		if (player.has_ball()) {
 			Action::dribble(world, player);
 			return;
 		}

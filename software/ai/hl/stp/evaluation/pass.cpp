@@ -16,7 +16,7 @@ namespace {
 	DoubleParam enemy_pass_width("Enemy pass checking width (robot radius)", "STP/pass", 1, 0, 9);
 
 	bool can_pass_check(const Point p1, const Point p2, const std::vector<Point> &obstacles, double tol) {
-		// auto allowance = AI::HL::Util::calc_best_shot_target(passer->position(), obstacles, passee->position(), 1).second;
+		// auto allowance = AI::HL::Util::calc_best_shot_target(passer.position(), obstacles, passee.position(), 1).second;
 		// return allowance > degrees2radians(enemy_shoot_accuracy);
 
 		// OLD method is TRIED and TESTED
@@ -60,10 +60,10 @@ DegreeParam Evaluation::max_pass_ray_angle("Max ray shoot rotation (degrees)", "
 IntParam Evaluation::ray_intervals("Ray # of intervals", "STP/PassRay", 30, 0, 80);
 
 bool Evaluation::can_shoot_ray(World world, Player player, Angle orientation) {
-	const Point p1 = player->position();
+	const Point p1 = player.position();
 	const Point p2 = p1 + 10 * Point::of_angle(orientation);
 
-	Angle diff = player->orientation().angle_diff(orientation);
+	Angle diff = player.orientation().angle_diff(orientation);
 	if (diff > max_pass_ray_angle) {
 		return false;
 	}
@@ -95,10 +95,10 @@ bool Evaluation::can_shoot_ray(World world, Player player, Angle orientation) {
 
 		if (pass_ray_use_calc_fastest) {
 			Point dest;
-			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, fptr->position(), dest);
-			dist = (dest - fptr->position()).len();
+			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, fptr.position(), dest);
+			dist = (dest - fptr.position()).len();
 		} else {
-			dist = seg_pt_dist(p1, p2, fptr->position());
+			dist = seg_pt_dist(p1, p2, fptr.position());
 		}
 
 		closest_friendly = std::min(closest_friendly, dist);
@@ -110,10 +110,10 @@ bool Evaluation::can_shoot_ray(World world, Player player, Angle orientation) {
 		double dist;
 		if (pass_ray_use_calc_fastest) {
 			Point dest;
-			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, robot->position(), dest);
-			dist = (dest - robot->position()).len();
+			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, robot.position(), dest);
+			dist = (dest - robot.position()).len();
 		} else {
-			dist = seg_pt_dist(p1, p2, robot->position());
+			dist = seg_pt_dist(p1, p2, robot.position());
 		}
 
 		closest_enemy = std::min(closest_enemy, dist);
@@ -134,15 +134,15 @@ std::pair<bool, Angle> Evaluation::best_shoot_ray(World world, const Player play
 
 	const Angle angle_span = 2 * max_pass_ray_angle;
 	const Angle angle_step = angle_span / Evaluation::ray_intervals;
-	const Angle angle_min = player->orientation() - angle_span / 2;
+	const Angle angle_min = player.orientation() - angle_span / 2;
 
 	for (int i = 0; i < Evaluation::ray_intervals; ++i) {
 		const Angle angle = angle_min + angle_step * i;
 
-		//const Point p1 = player->position();
+		//const Point p1 = player.position();
 		//const Point p2 = p1 + 3 * Point::of_angle(angle);
 
-		Angle diff = player->orientation().angle_diff(angle);
+		Angle diff = player.orientation().angle_diff(angle);
 
 		if (diff > best_diff) {
 			continue;
@@ -171,17 +171,17 @@ bool Evaluation::enemy_can_pass(World world, const Robot passer, const Robot pas
 	std::vector<Point> obstacles;
 	const FriendlyTeam friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		obstacles.push_back(friendly.get(i)->position());
+		obstacles.push_back(friendly.get(i).position());
 	}
 
-	return can_pass_check(passer->position(), passee->position(), obstacles, enemy_pass_width);
+	return can_pass_check(passer.position(), passee.position(), obstacles, enemy_pass_width);
 }
 
 bool Evaluation::can_pass(World world, Player passer, Player passee) {
 	std::vector<Point> obstacles;
 	EnemyTeam enemy = world.enemy_team();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		obstacles.push_back(enemy.get(i)->position());
+		obstacles.push_back(enemy.get(i).position());
 	}
 	const FriendlyTeam friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
@@ -191,17 +191,17 @@ bool Evaluation::can_pass(World world, Player passer, Player passee) {
 		if (friendly.get(i) == passee) {
 			continue;
 		}
-		obstacles.push_back(friendly.get(i)->position());
+		obstacles.push_back(friendly.get(i).position());
 	}
 
-	return can_pass_check(passer->position(), passee->position(), obstacles, friendly_pass_width);
+	return can_pass_check(passer.position(), passee.position(), obstacles, friendly_pass_width);
 }
 
 bool Evaluation::can_pass(World world, const Point p1, const Point p2) {
 	std::vector<Point> obstacles;
 	EnemyTeam enemy = world.enemy_team();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		obstacles.push_back(enemy.get(i)->position());
+		obstacles.push_back(enemy.get(i).position());
 	}
 
 	return can_pass_check(p1, p2, obstacles, friendly_pass_width);
@@ -212,7 +212,7 @@ bool Evaluation::passee_facing_ball(World world, Player passee) {
 }
 
 bool Evaluation::passee_facing_passer(Player passer, Player passee) {
-	return player_within_angle_thresh(passee, passer->position(), passee_angle_threshold);
+	return player_within_angle_thresh(passee, passer.position(), passee_angle_threshold);
 }
 
 bool Evaluation::passee_suitable(World world, Player passee) {
@@ -222,17 +222,17 @@ bool Evaluation::passee_suitable(World world, Player passee) {
 	}
 
 	// can't pass backwards
-	if (passee->position().x < world.ball().position().x) {
+	if (passee.position().x < world.ball().position().x) {
 		return false;
 	}
 
 	// must be at least some distance
-	if ((passee->position() - world.ball().position()).len() < min_pass_dist) {
+	if ((passee.position() - world.ball().position()).len() < min_pass_dist) {
 		return false;
 	}
 
 	// must be able to pass
-	if (!Evaluation::can_pass(world, world.ball().position(), passee->position())) {
+	if (!Evaluation::can_pass(world, world.ball().position(), passee.position())) {
 		return false;
 	}
 
@@ -281,7 +281,7 @@ Point Evaluation::calc_fastest_grab_ball_dest_if_baller_shoots(World world, cons
 		return world.ball().position();
 	}
 
-	Point ball_vel = ball_pass_velocity * Point::of_angle(baller->orientation());
+	Point ball_vel = ball_pass_velocity * Point::of_angle(baller.orientation());
 	Point dest;
 	AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, player_pos, dest);
 	return dest;

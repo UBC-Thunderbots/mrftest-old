@@ -36,7 +36,7 @@ std::vector<Point> AI::Nav::PhysicsPlanner::plan(Player player, Point goal, unsi
 
 double PhysicsPlanner::distance(NodeTree<Point> *nearest, Point goal) {
 	Point projected;
-	Point currPlayerVelocity = curr_player->velocity();
+	Point currPlayerVelocity = curr_player.velocity();
 	if (!nearest->parent()) {
 		projected = nearest->data() + (currPlayerVelocity * TIMESTEP);
 	} else {
@@ -50,7 +50,7 @@ double PhysicsPlanner::distance(NodeTree<Point> *nearest, Point goal) {
 Point AI::Nav::PhysicsPlanner::extend(Player player, Glib::NodeTree<Point> *start, Point target) {
 	Point projected;
 	if (!start->parent()) {
-		projected = start->data() + (player->velocity() * TIMESTEP);
+		projected = start->data() + (player.velocity() * TIMESTEP);
 	} else {
 		projected = 2 * start->data() - start->parent()->data();
 	}

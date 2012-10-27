@@ -45,20 +45,6 @@ namespace AI {
 					Robot(const Robot &copyref);
 
 					/**
-					 * \brief Returns this object
-					 *
-					 * \return this object
-					 */
-					Robot *operator->();
-
-					/**
-					 * \brief Returns this object
-					 *
-					 * \return this object
-					 */
-					const Robot *operator->() const;
-
-					/**
 					 * \brief Sets the avoidance distance for this robot
 					 *
 					 * If this function is not called, the avoidance distance is reset to medium
@@ -93,20 +79,6 @@ namespace AI {
 					 * \param[in] copyref the object to copy
 					 */
 					Player(const Player &copyref);
-
-					/**
-					 * \brief Returns this object
-					 *
-					 * \return this object
-					 */
-					Player *operator->();
-
-					/**
-					 * \brief Returns this object
-					 *
-					 * \return this object
-					 */
-					const Player *operator->() const;
 
 					using AI::Common::Player::operator==;
 					using AI::Common::Player::operator!=;
@@ -320,14 +292,6 @@ inline AI::HL::W::Robot::Robot(AI::BE::Robot::Ptr impl) : AI::Common::Robot(impl
 
 inline AI::HL::W::Robot::Robot(const Robot &) = default;
 
-inline AI::HL::W::Robot *AI::HL::W::Robot::operator->() {
-	return this;
-}
-
-inline const AI::HL::W::Robot *AI::HL::W::Robot::operator->() const {
-	return this;
-}
-
 inline void AI::HL::W::Robot::avoid_distance(AI::Flags::AvoidDistance dist) const {
 	impl->avoid_distance(dist);
 }
@@ -338,14 +302,6 @@ inline AI::HL::W::Player::Player(AI::BE::Player::Ptr impl) : AI::HL::W::Robot(im
 }
 
 inline AI::HL::W::Player::Player(const Player &) = default;
-
-inline AI::HL::W::Player *AI::HL::W::Player::operator->() {
-	return this;
-}
-
-inline const AI::HL::W::Player *AI::HL::W::Player::operator->() const {
-	return this;
-}
 
 inline void AI::HL::W::Player::move(Point dest, Angle ori, Point vel) {
 	AI::Common::Player::impl->move(dest, ori, vel);
