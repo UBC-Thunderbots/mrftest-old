@@ -1,5 +1,6 @@
 #include "ai/backend/backend.h"
 #include "ai/backend/refbox.h"
+#include "ai/backend/ssl_vision.h"
 #include "ai/backend/clock/monotonic.h"
 #include "ai/backend/physical/player.h"
 #include "ai/ball_filter/ball_filter.h"
@@ -9,16 +10,11 @@
 #include "util/codec.h"
 #include "util/dprint.h"
 #include "util/exception.h"
-#include "util/sockaddrs.h"
 #include "mrf/dongle.h"
 #include "xbee/dongle.h"
 #include <cassert>
 #include <cstring>
 #include <locale>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 
 using namespace AI::BE;
 
@@ -171,13 +167,13 @@ namespace {
 			AI::BE::Clock::Monotonic clock;
 			HybridFriendlyTeam friendly;
 			HybridEnemyTeam enemy;
-			const FileDescriptor vision_socket;
+			AI::BE::VisionReceiver vision_rx;
 			timespec playtype_time;
 			Point playtype_arm_ball_position;
 			SSL_DetectionFrame detections[2];
 
 			void tick();
-			bool on_vision_readable(Glib::IOCondition);
+			void handle_vision_packet(const SSL_WrapperPacket &packet);
 			void on_refbox_packet(const void *data, std::size_t length);
 			void update_playtype();
 			void update_scores();
@@ -312,7 +308,7 @@ void HybridEnemyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, pattern);
 }
 
-HybridBackend::HybridBackend(XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle, unsigned int camera_mask, int multicast_interface) : Backend(), refbox(multicast_interface), camera_mask(camera_mask), friendly(*this, xbee_dongle, mrf_dongle), enemy(*this), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
+HybridBackend::HybridBackend(XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle, unsigned int camera_mask, int multicast_interface) : Backend(), refbox(multicast_interface), camera_mask(camera_mask), friendly(*this, xbee_dongle, mrf_dongle), enemy(*this), vision_rx(multicast_interface) {
 	if (!(1 <= camera_mask && camera_mask <= 3)) {
 		throw std::runtime_error("Invalid camera bitmask (must be 1–3)");
 	}
@@ -326,34 +322,7 @@ HybridBackend::HybridBackend(XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle, uns
 
 	clock.signal_tick.connect(sigc::mem_fun(this, &HybridBackend::tick));
 
-	addrinfo hints;
-	std::memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_DGRAM;
-	hints.ai_protocol = IPPROTO_UDP;
-	hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
-	AddrInfoSet ai(0, "10002", &hints);
-
-	vision_socket.set_blocking(false);
-
-	const int one = 1;
-	if (setsockopt(vision_socket.fd(), SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
-		throw SystemError("setsockopt(SO_REUSEADDR)", errno);
-	}
-
-	if (bind(vision_socket.fd(), ai.first()->ai_addr, ai.first()->ai_addrlen) < 0) {
-		throw SystemError("bind(:10002)", errno);
-	}
-
-	ip_mreqn mcreq;
-	mcreq.imr_multiaddr.s_addr = inet_addr("224.5.23.2");
-	mcreq.imr_address.s_addr = get_inaddr_any();
-	mcreq.imr_ifindex = multicast_interface;
-	if (setsockopt(vision_socket.fd(), IPPROTO_IP, IP_ADD_MEMBERSHIP, &mcreq, sizeof(mcreq)) < 0) {
-		LOG_INFO("Cannot join multicast group 224.5.23.2 for vision data.");
-	}
-
-	Glib::signal_io().connect(sigc::mem_fun(this, &HybridBackend::on_vision_readable), vision_socket.fd(), Glib::IO_IN);
+	vision_rx.signal_vision_data.connect(sigc::mem_fun(this, &HybridBackend::handle_vision_packet));
 
 	playtype_time = clock.now();
 }
@@ -440,24 +409,7 @@ void HybridBackend::tick() {
 	signal_post_tick().emit(timespec_to_nanos(timespec_sub(after, monotonic_time_)));
 }
 
-bool HybridBackend::on_vision_readable(Glib::IOCondition) {
-	// Receive a packet.
-	uint8_t buffer[65536];
-	ssize_t len = recv(vision_socket.fd(), buffer, sizeof(buffer), 0);
-	if (len < 0) {
-		if (errno != EAGAIN && errno != EWOULDBLOCK) {
-			LOG_WARN("Cannot receive packet from SSL-Vision.");
-		}
-		return true;
-	}
-
-	// Decode it.
-	SSL_WrapperPacket packet;
-	if (!packet.ParseFromArray(buffer, static_cast<int>(len))) {
-		LOG_WARN("Received malformed SSL-Vision packet.");
-		return true;
-	}
-
+void HybridBackend::handle_vision_packet(const SSL_WrapperPacket &packet) {
 	// Pass it to any attached listeners.
 	timespec now;
 	now = clock.now();
@@ -485,12 +437,12 @@ bool HybridBackend::on_vision_readable(Glib::IOCondition) {
 		// Check for a sensible camera ID number.
 		if (det.camera_id() >= 2) {
 			LOG_WARN(Glib::ustring::compose("Received SSL-Vision packet for unknown camera %1.", det.camera_id()));
-			return true;
+			return;
 		}
 
 		// Check for an accepted camera ID number.
 		if (!(camera_mask & (1U << det.camera_id()))) {
-			return true;
+			return;
 		}
 
 		// Keep a local copy of all detection frames.
@@ -536,7 +488,7 @@ bool HybridBackend::on_vision_readable(Glib::IOCondition) {
 	// Movement of the ball may, potentially, result in a play type change.
 	update_playtype();
 
-	return true;
+	return;
 }
 
 void HybridBackend::on_refbox_packet(const void *data, std::size_t length) {

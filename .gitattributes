@@ -172,6 +172,8 @@ software/ai/backend/simulator/backend.h -text
 software/ai/backend/simulator/player.cpp -text
 software/ai/backend/simulator/player.h -text
 software/ai/backend/simulator/team.h -text
+software/ai/backend/ssl_vision.cpp -text
+software/ai/backend/ssl_vision.h -text
 software/ai/backend/team.h -text
 software/ai/backend/xbee/xbee_backend.cpp -text
 software/ai/ball_filter/ball_filter.h -text
