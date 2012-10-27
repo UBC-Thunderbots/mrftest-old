@@ -1,5 +1,5 @@
 #include "ai/backend/mrf/refbox.h"
-#include "ai/backend/mrf/refbox_packet.h"
+#include "ai/backend/refbox_packet.h"
 #include "util/codec.h"
 #include "util/dprint.h"
 #include "util/exception.h"
