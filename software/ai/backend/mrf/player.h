@@ -8,7 +8,9 @@
 #include <utility>
 #include <vector>
 
-class MRFRobot;
+namespace Drive {
+	class Robot;
+}
 
 namespace AI {
 	namespace BE {
@@ -32,7 +34,7 @@ namespace AI {
 					 *
 					 * \param[in] bot the MRF robot being driven.
 					 */
-					explicit Player(unsigned int pattern, MRFRobot &bot);
+					explicit Player(unsigned int pattern, Drive::Robot &bot);
 
 					/**
 					 * \brief Destroys a Player object.
@@ -58,7 +60,7 @@ namespace AI {
 					Visualizable::Colour bar_graph_colour(unsigned int) const;
 
 				private:
-					MRFRobot &bot;
+					Drive::Robot &bot;
 					int battery_warning_hysteresis;
 					Annunciator::Message battery_warning_message;
 					bool autokick_fired_;

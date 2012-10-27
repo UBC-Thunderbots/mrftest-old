@@ -1,10 +1,10 @@
 #include "ai/backend/xbee/player.h"
+#include "drive/robot.h"
 #include "geom/angle.h"
 #include "util/algorithm.h"
 #include "util/config.h"
 #include "util/dprint.h"
 #include "util/string.h"
-#include "xbee/robot.h"
 #include <algorithm>
 #include <cmath>
 #include <locale>
@@ -44,7 +44,7 @@ namespace {
 	}
 }
 
-Player::Player(unsigned int pattern, XBeeRobot &bot) : AI::BE::Player(pattern), bot(bot), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_invoked(false), autokick_fired_(false) {
+Player::Player(unsigned int pattern, Drive::Robot &bot) : AI::BE::Player(pattern), bot(bot), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_invoked(false), autokick_fired_(false) {
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 	bot.signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
 }
@@ -53,7 +53,7 @@ Player::~Player() {
 	bot.drive_brake();
 	bot.dribble(false);
 	bot.autokick(false, 0);
-	bot.set_charger_state(XBeeRobot::ChargerState::DISCHARGE);
+	bot.set_charger_state(Drive::Robot::ChargerState::DISCHARGE);
 }
 
 unsigned int Player::num_bar_graphs() const {
@@ -182,6 +182,6 @@ void Player::tick(bool halt) {
 	bot.dribble(!halt);
 
 	// Kicker should always charge except in halt.
-	bot.set_charger_state(halt ? XBeeRobot::ChargerState::DISCHARGE : XBeeRobot::ChargerState::CHARGE);
+	bot.set_charger_state(halt ? Drive::Robot::ChargerState::DISCHARGE : Drive::Robot::ChargerState::CHARGE);
 }
 

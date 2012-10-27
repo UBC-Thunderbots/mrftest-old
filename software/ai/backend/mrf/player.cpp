@@ -1,6 +1,6 @@
 #include "ai/backend/mrf/player.h"
+#include "drive/robot.h"
 #include "geom/angle.h"
-#include "mrf/robot.h"
 #include "util/algorithm.h"
 #include "util/config.h"
 #include "util/dprint.h"
@@ -19,7 +19,7 @@ namespace {
 	const int BATTERY_HYSTERESIS_MAGNITUDE = 15;
 }
 
-Player::Player(unsigned int pattern, MRFRobot &bot) : AI::BE::Player(pattern), bot(bot), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_fired_(false) {
+Player::Player(unsigned int pattern, Drive::Robot &bot) : AI::BE::Player(pattern), bot(bot), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_fired_(false) {
 	bot.signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
 }
 
@@ -27,7 +27,7 @@ Player::~Player() {
 	bot.drive_coast();
 	bot.dribble(false);
 	bot.autokick(false, 0);
-	bot.set_charger_state(MRFRobot::ChargerState::DISCHARGE);
+	bot.set_charger_state(Drive::Robot::ChargerState::DISCHARGE);
 }
 
 unsigned int Player::num_bar_graphs() const {
@@ -167,7 +167,7 @@ void Player::tick(bool halt) {
 	bot.dribble(!halt);
 
 	// Kicker should always charge except in halt.
-	bot.set_charger_state(halt ? MRFRobot::ChargerState::DISCHARGE : MRFRobot::ChargerState::CHARGE);
+	bot.set_charger_state(halt ? Drive::Robot::ChargerState::DISCHARGE : Drive::Robot::ChargerState::CHARGE);
 }
 
 Player::AutokickParams::AutokickParams() : chip(false), pulse(0) {
