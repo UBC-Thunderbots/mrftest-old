@@ -1,7 +1,7 @@
 #include "ai/backend/backend.h"
 #include "ai/backend/clock/monotonic.h"
-#include "ai/backend/hybrid/player.h"
 #include "ai/backend/hybrid/refbox.h"
+#include "ai/backend/physical/player.h"
 #include "ai/ball_filter/ball_filter.h"
 #include "drive/robot.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
@@ -120,7 +120,7 @@ namespace {
 	/**
 	 * \brief The friendly team.
 	 */
-	class HybridFriendlyTeam : public GenericTeam<AI::BE::Hybrid::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>> {
+	class HybridFriendlyTeam : public GenericTeam<AI::BE::Physical::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>> {
 		public:
 			explicit HybridFriendlyTeam(HybridBackend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle);
 
@@ -294,7 +294,7 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 	}
 }
 
-HybridFriendlyTeam::HybridFriendlyTeam(HybridBackend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle) : GenericTeam<AI::BE::Hybrid::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>>(backend), xbee_dongle(xbee_dongle), mrf_dongle(mrf_dongle) {
+HybridFriendlyTeam::HybridFriendlyTeam(HybridBackend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle) : GenericTeam<AI::BE::Physical::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>>(backend), xbee_dongle(xbee_dongle), mrf_dongle(mrf_dongle) {
 }
 
 void HybridFriendlyTeam::create_member(unsigned int pattern) {

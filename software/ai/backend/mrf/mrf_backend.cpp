@@ -1,7 +1,7 @@
 #include "ai/backend/backend.h"
 #include "ai/backend/clock/monotonic.h"
-#include "ai/backend/mrf/player.h"
 #include "ai/backend/mrf/refbox.h"
+#include "ai/backend/physical/player.h"
 #include "ai/ball_filter/ball_filter.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "util/box_array.h"
@@ -114,7 +114,7 @@ namespace {
 	/**
 	 * \brief The friendly team.
 	 */
-	class MRFFriendlyTeam : public GenericTeam<AI::BE::MRF::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>> {
+	class MRFFriendlyTeam : public GenericTeam<AI::BE::Physical::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>> {
 		public:
 			explicit MRFFriendlyTeam(MRFBackend &backend, MRFDongle &dongle);
 
@@ -290,7 +290,7 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 	}
 }
 
-MRFFriendlyTeam::MRFFriendlyTeam(MRFBackend &backend, MRFDongle &dongle) : GenericTeam<AI::BE::MRF::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>>(backend), dongle(dongle) {
+MRFFriendlyTeam::MRFFriendlyTeam(MRFBackend &backend, MRFDongle &dongle) : GenericTeam<AI::BE::Physical::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>>(backend), dongle(dongle) {
 }
 
 void MRFFriendlyTeam::create_member(unsigned int pattern) {

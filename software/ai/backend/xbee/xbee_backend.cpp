@@ -1,6 +1,6 @@
 #include "ai/backend/backend.h"
 #include "ai/backend/clock/monotonic.h"
-#include "ai/backend/xbee/player.h"
+#include "ai/backend/physical/player.h"
 #include "ai/backend/xbee/refbox.h"
 #include "ai/ball_filter/ball_filter.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
@@ -115,7 +115,7 @@ namespace {
 	/**
 	 * \brief The friendly team.
 	 */
-	class XBeeFriendlyTeam : public GenericTeam<AI::BE::XBee::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>> {
+	class XBeeFriendlyTeam : public GenericTeam<AI::BE::Physical::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>> {
 		public:
 			explicit XBeeFriendlyTeam(XBeeBackend &backend, XBeeDongle &dongle);
 
@@ -288,7 +288,7 @@ template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper
 	}
 }
 
-XBeeFriendlyTeam::XBeeFriendlyTeam(XBeeBackend &backend, XBeeDongle &dongle) : GenericTeam<AI::BE::XBee::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>>(backend), dongle(dongle) {
+XBeeFriendlyTeam::XBeeFriendlyTeam(XBeeBackend &backend, XBeeDongle &dongle) : GenericTeam<AI::BE::Physical::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>>(backend), dongle(dongle) {
 }
 
 void XBeeFriendlyTeam::create_member(unsigned int pattern) {

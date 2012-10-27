@@ -1,5 +1,5 @@
-#ifndef AI_BACKEND_MRF_PLAYER_H
-#define AI_BACKEND_MRF_PLAYER_H
+#ifndef AI_BACKEND_PHYSICAL_PLAYER_H
+#define AI_BACKEND_PHYSICAL_PLAYER_H
 
 #include "ai/backend/player.h"
 #include "util/annunciator.h"
@@ -14,7 +14,7 @@ namespace Drive {
 
 namespace AI {
 	namespace BE {
-		namespace MRF {
+		namespace Physical {
 			/**
 			 * \brief A player is a robot that can be driven.
 			 */
@@ -32,7 +32,7 @@ namespace AI {
 					 *
 					 * \param[in] pattern the index of the vision pattern associated with the player.
 					 *
-					 * \param[in] bot the MRF robot being driven.
+					 * \param[in] bot the robot being driven.
 					 */
 					explicit Player(unsigned int pattern, Drive::Robot &bot);
 
@@ -42,7 +42,7 @@ namespace AI {
 					~Player();
 
 					/**
-					 * \brief Drives one tick of time through the RobotController and to the MRF.
+					 * \brief Drives one tick of time through the RobotController and to the radio.
 					 *
 					 * \param[in] halt \c true if the current play type is halt, or \c false if not.
 					 */

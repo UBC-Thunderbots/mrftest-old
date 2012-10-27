@@ -1,4 +1,4 @@
-#include "ai/backend/hybrid/player.h"
+#include "ai/backend/physical/player.h"
 #include "drive/robot.h"
 #include "geom/angle.h"
 #include "util/algorithm.h"
@@ -11,7 +11,7 @@
 #include <sstream>
 #include <stdexcept>
 
-using namespace AI::BE::Hybrid;
+using namespace AI::BE::Physical;
 
 namespace {
 	const double BATTERY_CRITICAL_THRESHOLD = 13.5;
