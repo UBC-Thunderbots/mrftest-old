@@ -3,18 +3,13 @@
 #include "ai/backend/ssl_vision.h"
 #include "ai/backend/clock/monotonic.h"
 #include "ai/backend/physical/player.h"
+#include "ai/backend/physical/team.h"
 #include "ai/ball_filter/ball_filter.h"
 #include "drive/robot.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
-#include "util/box_array.h"
-#include "util/codec.h"
 #include "util/dprint.h"
-#include "util/exception.h"
 #include "mrf/dongle.h"
 #include "xbee/dongle.h"
-#include <cassert>
-#include <cstring>
-#include <locale>
 
 using namespace AI::BE;
 
@@ -30,95 +25,11 @@ namespace {
 	const double BALL_FREE_DISTANCE = 0.09;
 
 	/**
-	 * \brief The number of vision failures to tolerate before assuming the robot is gone and removing it from the system.
-	 *
-	 * Note that this should be fairly high because the failure count includes instances of a packet arriving from a camera that cannot see the robot
-	 * (this is expected to cause a failure to be counted which will then be zeroed out a moment later as the other camera sends its packet).
-	 */
-	const unsigned int MAX_VISION_FAILURES = 120;
-
-	class HybridBackend;
-
-	/**
-	 * \brief A generic team
-	 *
-	 * \tparam T the type of robot on this team, either Player or Robot
-	 *
-	 * \tparam TSuper the type of the superclass of the robot, one of the backend Player or Robot classes
-	 *
-	 * \tparam Super the type of the class's superclass
-	 */
-	template<typename T, typename TSuper, typename Super> class GenericTeam : public Super {
-		public:
-			/**
-			 * \brief Constructs a new GenericTeam
-			 *
-			 * \param[in] backend the backend to which the team is attached
-			 */
-			explicit GenericTeam(HybridBackend &backend);
-
-			/**
-			 * \brief Returns the number of existent robots in the team
-			 *
-			 * \return the number of existent robots in the team
-			 */
-			std::size_t size() const;
-
-			/**
-			 * \brief Returns a robot
-			 *
-			 * \param[in] i the index of the robot to fetch
-			 *
-			 * \return the robot
-			 */
-			typename TSuper::Ptr get(std::size_t i) const;
-
-			/**
-			 * \brief Returns a robot as a hybrid robot
-			 *
-			 * \param[in] i the index of the robot to fetch
-			 *
-			 * \return the robot
-			 */
-			typename T::Ptr get_hybrid_robot(std::size_t i) const;
-
-			/**
-			 * \brief Removes all robots from the team
-			 */
-			void clear();
-
-			/**
-			 * \brief Updates the robots on the team using data from SSL-Vision
-			 *
-			 * \param[in] packets the packets to extract vision data from
-			 *
-			 * \param[in] ts the time at which the packet was received
-			 */
-			void update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec &ts);
-
-			/**
-			 * \brief Locks a time for prediction across all players on the team
-			 *
-			 * \param[in] now the time to lock as time zero
-			 */
-			void lock_time(const timespec &now);
-
-		protected:
-			HybridBackend &backend;
-			BoxArray<T, 16> members;
-			std::vector<typename T::Ptr> member_ptrs;
-			std::vector<unsigned int> vision_failures;
-
-			void populate_pointers();
-			virtual void create_member(unsigned int pattern) = 0;
-	};
-
-	/**
 	 * \brief The friendly team.
 	 */
-	class HybridFriendlyTeam : public GenericTeam<AI::BE::Physical::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>> {
+	class HybridFriendlyTeam : public AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player> {
 		public:
-			explicit HybridFriendlyTeam(HybridBackend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle);
+			explicit HybridFriendlyTeam(Backend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle);
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -131,9 +42,9 @@ namespace {
 	/**
 	 * \brief The enemy team.
 	 */
-	class HybridEnemyTeam : public GenericTeam<AI::BE::Robot, AI::BE::Robot, AI::BE::Team<AI::BE::Robot>> {
+	class HybridEnemyTeam : public AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot> {
 		public:
-			explicit HybridEnemyTeam(HybridBackend &backend);
+			explicit HybridEnemyTeam(Backend &backend);
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -190,113 +101,7 @@ namespace {
 
 HybridBackendFactory hybrid_backend_factory_instance;
 
-template<typename T, typename TSuper, typename Super> GenericTeam<T, TSuper, Super>::GenericTeam(HybridBackend &backend) : backend(backend) {
-}
-
-template<typename T, typename TSuper, typename Super> std::size_t GenericTeam<T, TSuper, Super>::size() const {
-	return member_ptrs.size();
-}
-
-template<typename T, typename TSuper, typename Super> typename T::Ptr GenericTeam<T, TSuper, Super>::get_hybrid_robot(std::size_t i) const {
-	return member_ptrs[i];
-}
-
-template<typename T, typename TSuper, typename Super> typename TSuper::Ptr GenericTeam<T, TSuper, Super>::get(std::size_t i) const {
-	return member_ptrs[i];
-}
-
-template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper, Super>::clear() {
-	for (std::size_t i = 0; i < members.SIZE; ++i) {
-		members.destroy(i);
-	}
-	member_ptrs.clear();
-	Super::signal_membership_changed().emit();
-}
-
-template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper, Super>::update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec &ts) {
-	bool membership_changed = false;
-
-	// Update existing robots and create new robots.
-	std::vector<bool> used_data[2];
-	std::vector<bool> seen_this_frame;
-	for (std::size_t i = 0; i < 2; ++i) {
-		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> &rep(*packets[i]);
-		used_data[i].resize(static_cast<std::size_t>(rep.size()), false);
-		for (std::size_t j = 0; j < static_cast<std::size_t>(rep.size()); ++j) {
-			const SSL_DetectionRobot &detbot = rep.Get(static_cast<int>(j));
-			if (detbot.has_robot_id()) {
-				unsigned int pattern = detbot.robot_id();
-				typename T::Ptr bot = members[pattern];
-				if (!bot) {
-					create_member(pattern);
-					membership_changed = true;
-				}
-				if (seen_this_frame.size() <= bot->pattern()) {
-					seen_this_frame.resize(bot->pattern() + 1);
-				}
-				if (!seen_this_frame[bot->pattern()]) {
-					seen_this_frame[bot->pattern()] = true;
-					if (detbot.has_orientation()) {
-						bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
-						Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
-						Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::HALF : Angle::ZERO)).angle_mod();
-						bot->add_field_data(pos, ori, ts);
-					} else {
-						LOG_WARN("Vision packet has robot with no orientation.");
-					}
-				}
-				used_data[i][j] = true;
-			}
-		}
-	}
-
-	// Count failures.
-	for (std::size_t i = 0; i < members.SIZE; ++i) {
-		typename T::Ptr bot = members[i];
-		if (bot) {
-			if (vision_failures.size() <= bot->pattern()) {
-				vision_failures.resize(bot->pattern() + 1);
-			}
-			if (seen_this_frame.size() <= bot->pattern()) {
-				seen_this_frame.resize(bot->pattern() + 1);
-			}
-			if (!seen_this_frame[bot->pattern()]) {
-				++vision_failures[bot->pattern()];
-			} else {
-				vision_failures[bot->pattern()] = 0;
-			}
-			seen_this_frame[bot->pattern()] = false;
-			if (vision_failures[bot->pattern()] >= MAX_VISION_FAILURES) {
-				members.destroy(i);
-				membership_changed = true;
-			}
-		}
-	}
-
-	// If membership changed, rebuild the pointer array and emit the signal.
-	if (membership_changed) {
-		populate_pointers();
-		Super::signal_membership_changed().emit();
-	}
-}
-
-template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper, Super>::lock_time(const timespec &now) {
-	for (auto i = member_ptrs.begin(), iend = member_ptrs.end(); i != iend; ++i) {
-		(*i)->lock_time(now);
-	}
-}
-
-template<typename T, typename TSuper, typename Super> void GenericTeam<T, TSuper, Super>::populate_pointers() {
-	member_ptrs.clear();
-	for (std::size_t i = 0; i < members.SIZE; ++i) {
-		typename T::Ptr p = members[i];
-		if (p) {
-			member_ptrs.push_back(p);
-		}
-	}
-}
-
-HybridFriendlyTeam::HybridFriendlyTeam(HybridBackend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle) : GenericTeam<AI::BE::Physical::Player, AI::BE::Player, AI::BE::Team<AI::BE::Player>>(backend), xbee_dongle(xbee_dongle), mrf_dongle(mrf_dongle) {
+HybridFriendlyTeam::HybridFriendlyTeam(Backend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle) : AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player>(backend), xbee_dongle(xbee_dongle), mrf_dongle(mrf_dongle) {
 }
 
 void HybridFriendlyTeam::create_member(unsigned int pattern) {
@@ -307,7 +112,7 @@ void HybridFriendlyTeam::create_member(unsigned int pattern) {
 	}
 }
 
-HybridEnemyTeam::HybridEnemyTeam(HybridBackend &backend) : GenericTeam<AI::BE::Robot, AI::BE::Robot, AI::BE::Team<AI::BE::Robot>>(backend) {
+HybridEnemyTeam::HybridEnemyTeam(Backend &backend) : AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot>(backend) {
 }
 
 void HybridEnemyTeam::create_member(unsigned int pattern) {
@@ -395,10 +200,10 @@ void HybridBackend::tick() {
 	friendly.lock_time(monotonic_time_);
 	enemy.lock_time(monotonic_time_);
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		friendly.get_hybrid_robot(i)->pre_tick();
+		friendly.get_backend_robot(i)->pre_tick();
 	}
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		enemy.get_hybrid_robot(i)->pre_tick();
+		enemy.get_backend_robot(i)->pre_tick();
 	}
 
 	// Run the AI.
@@ -406,7 +211,7 @@ void HybridBackend::tick() {
 
 	// Do post-AI stuff (pushing data to the radios).
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		friendly.get_hybrid_robot(i)->tick(playtype() == AI::Common::PlayType::HALT);
+		friendly.get_backend_robot(i)->tick(playtype() == AI::Common::PlayType::HALT);
 	}
 
 	// Notify anyone interested in the finish of a tick.

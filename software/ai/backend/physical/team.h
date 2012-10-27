@@ -1,0 +1,206 @@
+#ifndef AI_BACKEND_PHYSICAL_TEAM_H
+#define AI_BACKEND_PHYSICAL_TEAM_H
+
+#include "ai/backend/backend.h"
+#include "proto/messages_robocup_ssl_wrapper.pb.h"
+#include "util/box_array.h"
+#include "util/dprint.h"
+
+namespace {
+	/**
+	 * \brief The number of vision failures to tolerate before assuming the robot is gone and removing it from the system.
+	 *
+	 * Note that this should be fairly high because the failure count includes instances of a packet arriving from a camera that cannot see the robot
+	 * (this is expected to cause a failure to be counted which will then be zeroed out a moment later as the other camera sends its packet).
+	 */
+	const unsigned int MAX_VISION_FAILURES = 120;
+}
+
+namespace AI {
+	namespace BE {
+		namespace Physical {
+			/**
+			 * \brief A generic team.
+			 *
+			 * \tparam T the type of robot on this team, either Player or Robot.
+			 *
+			 * \tparam TSuper the type of the superclass of the robot, one of the backend Player or Robot classes.
+			 */
+			template<typename T, typename TSuper> class Team : public AI::BE::Team<TSuper> {
+				public:
+					/**
+					 * \brief Constructs a new Team.
+					 *
+					 * \param[in] backend the backend to which the team is attached.
+					 */
+					explicit Team(AI::BE::Backend &backend);
+
+					/**
+					 * \brief Returns the number of existent robots in the team.
+					 *
+					 * \return the number of existent robots in the team.
+					 */
+					std::size_t size() const;
+
+					/**
+					 * \brief Returns a robot.
+					 *
+					 * \param[in] i the index of the robot to fetch.
+					 *
+					 * \return the robot.
+					 */
+					typename TSuper::Ptr get(std::size_t i) const;
+
+					/**
+					 * \brief Returns a robot.
+					 *
+					 * \param[in] i the index of the robot to fetch.
+					 *
+					 * \return the robot.
+					 */
+					typename T::Ptr get_backend_robot(std::size_t i) const;
+
+					/**
+					 * \brief Removes all robots from the team.
+					 */
+					void clear();
+
+					/**
+					 * \brief Updates the robots on the team using data from SSL-Vision.
+					 *
+					 * \param[in] packets the packets to extract vision data from.
+					 *
+					 * \param[in] ts the time at which the packet was received.
+					 */
+					void update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec &ts);
+
+					/**
+					 * \brief Locks a time for prediction across all players on the team.
+					 *
+					 * \param[in] now the time to lock as time zero.
+					 */
+					void lock_time(const timespec &now);
+
+				protected:
+					AI::BE::Backend &backend;
+					BoxArray<T, 16> members;
+					std::vector<typename T::Ptr> member_ptrs;
+					std::vector<unsigned int> vision_failures;
+
+					void populate_pointers();
+					virtual void create_member(unsigned int pattern) = 0;
+			};
+		}
+	}
+}
+
+
+
+template<typename T, typename TSuper> AI::BE::Physical::Team<T, TSuper>::Team(AI::BE::Backend &backend) : backend(backend) {
+}
+
+template<typename T, typename TSuper> std::size_t AI::BE::Physical::Team<T, TSuper>::size() const {
+	return member_ptrs.size();
+}
+
+template<typename T, typename TSuper> typename T::Ptr AI::BE::Physical::Team<T, TSuper>::get_backend_robot(std::size_t i) const {
+	return member_ptrs[i];
+}
+
+template<typename T, typename TSuper> typename TSuper::Ptr AI::BE::Physical::Team<T, TSuper>::get(std::size_t i) const {
+	return member_ptrs[i];
+}
+
+template<typename T, typename TSuper> void AI::BE::Physical::Team<T, TSuper>::clear() {
+	for (std::size_t i = 0; i < members.SIZE; ++i) {
+		members.destroy(i);
+	}
+	member_ptrs.clear();
+	AI::BE::Team<TSuper>::signal_membership_changed().emit();
+}
+
+template<typename T, typename TSuper> void AI::BE::Physical::Team<T, TSuper>::update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec &ts) {
+	bool membership_changed = false;
+
+	// Update existing robots and create new robots.
+	std::vector<bool> used_data[2];
+	std::vector<bool> seen_this_frame;
+	for (std::size_t i = 0; i < 2; ++i) {
+		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> &rep(*packets[i]);
+		used_data[i].resize(static_cast<std::size_t>(rep.size()), false);
+		for (std::size_t j = 0; j < static_cast<std::size_t>(rep.size()); ++j) {
+			const SSL_DetectionRobot &detbot = rep.Get(static_cast<int>(j));
+			if (detbot.has_robot_id()) {
+				unsigned int pattern = detbot.robot_id();
+				typename T::Ptr bot = members[pattern];
+				if (!bot) {
+					create_member(pattern);
+					membership_changed = true;
+				}
+				if (seen_this_frame.size() <= bot->pattern()) {
+					seen_this_frame.resize(bot->pattern() + 1);
+				}
+				if (!seen_this_frame[bot->pattern()]) {
+					seen_this_frame[bot->pattern()] = true;
+					if (detbot.has_orientation()) {
+						bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
+						Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
+						Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::HALF : Angle::ZERO)).angle_mod();
+						bot->add_field_data(pos, ori, ts);
+					} else {
+						LOG_WARN("Vision packet has robot with no orientation.");
+					}
+				}
+				used_data[i][j] = true;
+			}
+		}
+	}
+
+	// Count failures.
+	for (std::size_t i = 0; i < members.SIZE; ++i) {
+		typename T::Ptr bot = members[i];
+		if (bot) {
+			if (vision_failures.size() <= bot->pattern()) {
+				vision_failures.resize(bot->pattern() + 1);
+			}
+			if (seen_this_frame.size() <= bot->pattern()) {
+				seen_this_frame.resize(bot->pattern() + 1);
+			}
+			if (!seen_this_frame[bot->pattern()]) {
+				++vision_failures[bot->pattern()];
+			} else {
+				vision_failures[bot->pattern()] = 0;
+			}
+			seen_this_frame[bot->pattern()] = false;
+			if (vision_failures[bot->pattern()] >= MAX_VISION_FAILURES) {
+				members.destroy(i);
+				membership_changed = true;
+			}
+		}
+	}
+
+	// If membership changed, rebuild the pointer array and emit the signal.
+	if (membership_changed) {
+		populate_pointers();
+		AI::BE::Team<TSuper>::signal_membership_changed().emit();
+	}
+}
+
+template<typename T, typename TSuper> void AI::BE::Physical::Team<T, TSuper>::lock_time(const timespec &now) {
+	for (auto i = member_ptrs.begin(), iend = member_ptrs.end(); i != iend; ++i) {
+		(*i)->lock_time(now);
+	}
+}
+
+template<typename T, typename TSuper> void AI::BE::Physical::Team<T, TSuper>::populate_pointers() {
+	member_ptrs.clear();
+	for (std::size_t i = 0; i < members.SIZE; ++i) {
+		typename T::Ptr p = members[i];
+		if (p) {
+			member_ptrs.push_back(p);
+		}
+	}
+}
+
+#endif
+
