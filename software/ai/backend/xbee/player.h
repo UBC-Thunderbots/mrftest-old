@@ -56,25 +56,8 @@ namespace AI {
 					double bar_graph_value(unsigned int) const;
 					Visualizable::Colour bar_graph_colour(unsigned int) const;
 
-
-
-
-
-
-
-					/**
-					 * \brief Gets the distance the player has travelled while dribbling the ball.
-					 *
-					 * \return the distance in metres.
-					 */
-					double dribble_distance() const {
-						return dribble_distance_;
-					}
-
 				private:
 					XBeeRobot &bot;
-					double dribble_distance_;
-					Point last_dribble_position;
 					int battery_warning_hysteresis;
 					Annunciator::Message battery_warning_message;
 					bool autokick_invoked;

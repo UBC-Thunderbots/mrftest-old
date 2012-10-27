@@ -18,7 +18,7 @@ namespace {
 	const int BATTERY_HYSTERESIS_MAGNITUDE = 15;
 }
 
-Player::Player(unsigned int pattern, Drive::Robot *bot) : AI::BE::Player(pattern), bot(bot), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_fired_(false) {
+Player::Player(unsigned int pattern, Drive::Robot *bot) : AI::BE::Player(pattern), bot(bot), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_fired_(false) {
 	assert(bot);
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 	bot->signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
@@ -166,14 +166,6 @@ void Player::tick(bool halt) {
 
 	// Kicker should always charge except in halt.
 	bot->set_charger_state(halt ? Drive::Robot::ChargerState::DISCHARGE : Drive::Robot::ChargerState::CHARGE);
-
-	// Calculations.
-	if (has_ball()) {
-		dribble_distance_ += (position(0.0) - last_dribble_position).len();
-	} else {
-		dribble_distance_ = 0.0;
-	}
-	last_dribble_position = position(0.0);
 }
 
 Player::AutokickParams::AutokickParams() : chip(false), pulse(0) {
