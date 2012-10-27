@@ -4,10 +4,11 @@
 #include "ai/backend/player.h"
 #include "util/annunciator.h"
 #include "util/box_ptr.h"
-#include "xbee/robot.h"
 #include <ctime>
 #include <utility>
 #include <vector>
+
+class XBeeRobot;
 
 namespace AI {
 	namespace BE {

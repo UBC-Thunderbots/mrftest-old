@@ -2,12 +2,13 @@
 #define AI_BACKEND_MRF_PLAYER_H
 
 #include "ai/backend/player.h"
-#include "mrf/robot.h"
 #include "util/annunciator.h"
 #include "util/box_ptr.h"
 #include <ctime>
 #include <utility>
 #include <vector>
+
+class MRFRobot;
 
 namespace AI {
 	namespace BE {

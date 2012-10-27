@@ -1,5 +1,6 @@
 #include "ai/backend/mrf/player.h"
 #include "geom/angle.h"
+#include "mrf/robot.h"
 #include "util/algorithm.h"
 #include "util/config.h"
 #include "util/dprint.h"

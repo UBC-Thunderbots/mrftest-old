@@ -4,6 +4,7 @@
 #include "util/config.h"
 #include "util/dprint.h"
 #include "util/string.h"
+#include "xbee/robot.h"
 #include <algorithm>
 #include <cmath>
 #include <locale>
