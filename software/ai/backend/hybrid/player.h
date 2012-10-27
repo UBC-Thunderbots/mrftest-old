@@ -65,13 +65,12 @@ namespace AI {
 					Annunciator::Message battery_warning_message;
 					bool autokick_fired_;
 					struct AutokickParams {
-						AutokickParams();
 						bool chip;
 						double pulse;
+						AutokickParams();
 						bool operator==(const AutokickParams &other) const;
 						bool operator!=(const AutokickParams &other) const;
-					};
-					AutokickParams autokick_params, autokick_params_old;
+					} autokick_params, autokick_params_old;
 
 					void on_autokick_fired();
 			};
