@@ -65,7 +65,7 @@ namespace {
 			 *
 			 * \return the robot.
 			 */
-			typename T::Ptr get_xbee_robot(std::size_t i) const;
+			typename TSuper::Ptr get(std::size_t i) const;
 
 			/**
 			 * \brief Returns a robot.
@@ -74,7 +74,7 @@ namespace {
 			 *
 			 * \return the robot.
 			 */
-			typename TSuper::Ptr get(std::size_t i) const;
+			typename T::Ptr get_xbee_robot(std::size_t i) const;
 
 			/**
 			 * \brief Removes all robots from the team.
