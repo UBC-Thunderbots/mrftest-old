@@ -54,10 +54,6 @@ namespace {
 			BackendFactory &factory() const;
 			const Team<AI::BE::Player> &friendly_team() const;
 			const Team<AI::BE::Robot> &enemy_team() const;
-			void mouse_pressed(Point, unsigned int);
-			void mouse_released(Point, unsigned int);
-			void mouse_exited();
-			void mouse_moved(Point);
 			timespec monotonic_time() const;
 
 		private:
@@ -133,18 +129,6 @@ const Team<AI::BE::Player> &MRFBackend::friendly_team() const {
 
 const Team<AI::BE::Robot> &MRFBackend::enemy_team() const {
 	return enemy;
-}
-
-void MRFBackend::mouse_pressed(Point, unsigned int) {
-}
-
-void MRFBackend::mouse_released(Point, unsigned int) {
-}
-
-void MRFBackend::mouse_exited() {
-}
-
-void MRFBackend::mouse_moved(Point) {
 }
 
 void MRFBackend::tick() {

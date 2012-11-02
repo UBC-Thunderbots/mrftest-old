@@ -61,10 +61,6 @@ namespace {
 			BackendFactory &factory() const;
 			const Team<AI::BE::Player> &friendly_team() const;
 			const Team<AI::BE::Robot> &enemy_team() const;
-			void mouse_pressed(Point, unsigned int);
-			void mouse_released(Point, unsigned int);
-			void mouse_exited();
-			void mouse_moved(Point);
 			timespec monotonic_time() const;
 
 		private:
@@ -142,18 +138,6 @@ const Team<AI::BE::Player> &HybridBackend::friendly_team() const {
 
 const Team<AI::BE::Robot> &HybridBackend::enemy_team() const {
 	return enemy;
-}
-
-void HybridBackend::mouse_pressed(Point, unsigned int) {
-}
-
-void HybridBackend::mouse_released(Point, unsigned int) {
-}
-
-void HybridBackend::mouse_exited() {
-}
-
-void HybridBackend::mouse_moved(Point) {
 }
 
 void HybridBackend::tick() {

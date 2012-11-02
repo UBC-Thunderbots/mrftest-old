@@ -49,6 +49,18 @@ sigc::signal<void> &AI::BE::Backend::signal_tick() const {
 	return signal_tick_;
 }
 
+void Backend::mouse_pressed(Point, unsigned int) {
+}
+
+void Backend::mouse_released(Point, unsigned int) {
+}
+
+void Backend::mouse_exited() {
+}
+
+void Backend::mouse_moved(Point) {
+}
+
 Backend::Backend() : defending_end_(FieldEnd::WEST), friendly_colour_(AI::Common::Colour::YELLOW), playtype_(AI::Common::PlayType::HALT), playtype_override_(AI::Common::PlayType::NONE), ball_filter_(0) {
 	monotonic_time_.tv_sec = 0;
 	monotonic_time_.tv_nsec = 0;

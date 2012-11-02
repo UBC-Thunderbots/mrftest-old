@@ -199,6 +199,36 @@ namespace AI {
 				sigc::signal<void> &signal_tick() const;
 
 				/**
+				 * Indicates that the mouse was pressed over the visualizer.
+				 *
+				 * \param[in] p the point, in world coordinates, over which the mouse was pressed.
+				 *
+				 * \param[in] btn the number of the button that was pressed.
+				 */
+				void mouse_pressed(Point p, unsigned int btn);
+
+				/**
+				 * Indicates that the mouse was released over the visualizer.
+				 *
+				 * \param[in] p the point, in world coordinates, over which the mouse was released.
+				 *
+				 * \param[in] btn the number of the button that was released.
+				 */
+				void mouse_released(Point p, unsigned int btn);
+
+				/**
+				 * Indicates that the mouse exited the area of the visualizer.
+				 */
+				void mouse_exited();
+
+				/**
+				 * Indicates that the mouse was moved over the visualizer.
+				 *
+				 * \param[in] p the new position of the mouse pointer, in world coordinates.
+				 */
+				void mouse_moved(Point p);
+
+				/**
 				 * \brief Returns a signal that fires at the very end of the AI's work each tick.
 				 *
 				 * \return the post-tick signal.
