@@ -11,6 +11,26 @@ using AI::BE::BackendFactory;
 
 DoubleParam AI::BE::LOOP_DELAY("Loop Delay", "Backend", 0.08, -1.0, 1.0);
 
+const AI::BE::Field &AI::BE::Backend::field() const {
+	return field_;
+}
+
+const AI::BE::Ball &AI::BE::Backend::ball() const {
+	return ball_;
+}
+
+std::size_t Backend::visualizable_num_robots() const {
+	return friendly_team().size() + enemy_team().size();
+}
+
+Visualizable::Robot::Ptr Backend::visualizable_robot(std::size_t index) const {
+	if (index < friendly_team().size()) {
+		return friendly_team().get(index);
+	} else {
+		return enemy_team().get(index - friendly_team().size());
+	}
+}
+
 unsigned int Backend::main_ui_controls_table_rows() const {
 	return 0;
 }
@@ -23,6 +43,10 @@ unsigned int Backend::secondary_ui_controls_table_rows() const {
 }
 
 void Backend::secondary_ui_controls_attach(Gtk::Table &, unsigned int) {
+}
+
+sigc::signal<void> &AI::BE::Backend::signal_tick() const {
+	return signal_tick_;
 }
 
 Backend::Backend() : defending_end_(FieldEnd::WEST), friendly_colour_(AI::Common::Colour::YELLOW), playtype_(AI::Common::PlayType::HALT), playtype_override_(AI::Common::PlayType::NONE), ball_filter_(0) {

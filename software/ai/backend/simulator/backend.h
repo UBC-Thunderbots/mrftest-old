@@ -181,8 +181,6 @@ namespace AI {
 					AI::BE::BackendFactory &factory() const;
 					const AI::BE::Team<AI::BE::Player> &friendly_team() const;
 					const AI::BE::Team<AI::BE::Robot> &enemy_team() const;
-					std::size_t visualizable_num_robots() const;
-					Visualizable::Robot::Ptr visualizable_robot(std::size_t i) const;
 					void mouse_pressed(Point p, unsigned int btn);
 					void mouse_released(Point p, unsigned int btn);
 					void mouse_exited();

@@ -61,8 +61,6 @@ namespace {
 			BackendFactory &factory() const;
 			const Team<AI::BE::Player> &friendly_team() const;
 			const Team<AI::BE::Robot> &enemy_team() const;
-			std::size_t visualizable_num_robots() const;
-			Visualizable::Robot::Ptr visualizable_robot(std::size_t i) const;
 			void mouse_pressed(Point, unsigned int);
 			void mouse_released(Point, unsigned int);
 			void mouse_exited();
@@ -144,18 +142,6 @@ const Team<AI::BE::Player> &HybridBackend::friendly_team() const {
 
 const Team<AI::BE::Robot> &HybridBackend::enemy_team() const {
 	return enemy;
-}
-
-std::size_t HybridBackend::visualizable_num_robots() const {
-	return friendly.size() + enemy.size();
-}
-
-Visualizable::Robot::Ptr HybridBackend::visualizable_robot(std::size_t i) const {
-	if (i < friendly.size()) {
-		return friendly.get(i);
-	} else {
-		return enemy.get(i - friendly.size());
-	}
 }
 
 void HybridBackend::mouse_pressed(Point, unsigned int) {

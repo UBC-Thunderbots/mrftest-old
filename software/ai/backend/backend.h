@@ -73,6 +73,22 @@ namespace AI {
 				const Ball &ball() const;
 
 				/**
+				 * Returns the number of robots in the world.
+				 *
+				 * \return the number of robots.
+				 */
+				std::size_t visualizable_num_robots() const;
+
+				/**
+				 * Fetches a robot.
+				 *
+				 * \param[in] index the index of the Robot to retrieve.
+				 *
+				 * \return the Robot.
+				 */
+				Visualizable::Robot::Ptr visualizable_robot(std::size_t index) const;
+
+				/**
 				 * \brief Returns the friendly team
 				 *
 				 * \return the friendly team
@@ -145,90 +161,70 @@ namespace AI {
 				 *
 				 * \return the current defending end.
 				 */
-				Property<FieldEnd> &defending_end() {
-					return defending_end_;
-				}
+				Property<FieldEnd> &defending_end();
 
 				/**
 				 * \brief Returns or allows setting the colour of the friendly team.
 				 *
 				 * \return the colour.
 				 */
-				Property<AI::Common::Colour> &friendly_colour() {
-					return friendly_colour_;
-				}
+				Property<AI::Common::Colour> &friendly_colour();
 
 				/**
 				 * \brief Returns the current play type.
 				 *
 				 * \return the current play type.
 				 */
-				const Property<AI::Common::PlayType> &playtype() const {
-					return playtype_;
-				}
+				const Property<AI::Common::PlayType> &playtype() const;
 
 				/**
 				 * \brief Returns or allows setting the play type override.
 				 *
 				 * \return the play type override.
 				 */
-				Property<AI::Common::PlayType> &playtype_override() {
-					return playtype_override_;
-				}
+				Property<AI::Common::PlayType> &playtype_override();
 
 				/**
 				 * \brief Returns or allows setting the ball filter being used.
 				 *
 				 * \return the ball filter being used.
 				 */
-				Property<AI::BF::BallFilter *> &ball_filter() {
-					return ball_filter_;
-				}
+				Property<AI::BF::BallFilter *> &ball_filter();
 
 				/**
 				 * \brief Returns a signal that fires once per AI tick.
 				 *
 				 * \return the timer signal.
 				 */
-				sigc::signal<void> &signal_tick() const {
-					return signal_tick_;
-				}
+				sigc::signal<void> &signal_tick() const;
 
 				/**
 				 * \brief Returns a signal that fires at the very end of the AI's work each tick.
 				 *
 				 * \return the post-tick signal.
 				 */
-				sigc::signal<void, unsigned int> &signal_post_tick() const {
-					return signal_post_tick_;
-				}
+				sigc::signal<void, unsigned int> &signal_post_tick() const;
 
 				/**
 				 * \brief Returns a signal that fires when an SSL-Vision packet is received.
 				 *
 				 * \return the vision signal.
 				 */
-				sigc::signal<void, timespec, const SSL_WrapperPacket &> &signal_vision() const {
-					return signal_vision_;
-				}
+				sigc::signal<void, timespec, const SSL_WrapperPacket &> &signal_vision() const;
 
 				/**
 				 * \brief Returns a signal that fires when a referee box packet is received.
 				 *
 				 * \return the referee box signal.
 				 */
-				sigc::signal<void, timespec, const void *, std::size_t> &signal_refbox() const {
-					return signal_refbox_;
-				}
+				sigc::signal<void, timespec, const void *, std::size_t> &signal_refbox() const;
 
 				/**
 				 * \brief Returns a signal that fires when the visualizer needs an overlay to be drawn.
 				 *
 				 * \return the signal.
 				 */
-				sigc::signal<void, Cairo::RefPtr<Cairo::Context> > &signal_draw_overlay() const {
-					return signal_draw_overlay_;
-				}
+				sigc::signal<void, Cairo::RefPtr<Cairo::Context> > &signal_draw_overlay() const;
 
 			protected:
 				/**
@@ -305,16 +301,44 @@ namespace AI {
 
 
 
-inline const AI::BE::Field &AI::BE::Backend::field() const {
-	return field_;
-}
-
-inline const AI::BE::Ball &AI::BE::Backend::ball() const {
-	return ball_;
-}
-
 inline timespec AI::BE::Backend::monotonic_time() const {
 	return monotonic_time_;
+}
+
+inline Property<AI::BE::Backend::FieldEnd> &AI::BE::Backend::defending_end() {
+	return defending_end_;
+}
+
+inline Property<AI::Common::Colour> &AI::BE::Backend::friendly_colour() {
+	return friendly_colour_;
+}
+
+inline const Property<AI::Common::PlayType> &AI::BE::Backend::playtype() const {
+	return playtype_;
+}
+
+inline Property<AI::Common::PlayType> &AI::BE::Backend::playtype_override() {
+	return playtype_override_;
+}
+
+inline Property<AI::BF::BallFilter *> &AI::BE::Backend::ball_filter() {
+	return ball_filter_;
+}
+
+inline sigc::signal<void, unsigned int> &AI::BE::Backend::signal_post_tick() const {
+	return signal_post_tick_;
+}
+
+inline sigc::signal<void, timespec, const SSL_WrapperPacket &> &AI::BE::Backend::signal_vision() const {
+	return signal_vision_;
+}
+
+inline sigc::signal<void, timespec, const void *, std::size_t> &AI::BE::Backend::signal_refbox() const {
+	return signal_refbox_;
+}
+
+inline sigc::signal<void, Cairo::RefPtr<Cairo::Context> > &AI::BE::Backend::signal_draw_overlay() const {
+	return signal_draw_overlay_;
 }
 
 #endif

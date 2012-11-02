@@ -152,18 +152,6 @@ const AI::BE::Team<AI::BE::Robot> &AI::BE::Simulator::Backend::enemy_team() cons
 	return enemy_;
 }
 
-std::size_t AI::BE::Simulator::Backend::visualizable_num_robots() const {
-	return friendly_.size() + enemy_.size();
-}
-
-Visualizable::Robot::Ptr AI::BE::Simulator::Backend::visualizable_robot(std::size_t i) const {
-	if (i < friendly_.size()) {
-		return friendly_.get(i);
-	} else {
-		return enemy_.get(i - friendly_.size());
-	}
-}
-
 void AI::BE::Simulator::Backend::mouse_pressed(Point p, unsigned int btn) {
 	if (btn == 1) {
 		dragging_ball = false;
