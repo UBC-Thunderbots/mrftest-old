@@ -21,9 +21,9 @@ namespace {
 	/**
 	 * \brief The friendly team.
 	 */
-	class MRFFriendlyTeam : public AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player> {
+	class FriendlyTeam : public AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player> {
 		public:
-			explicit MRFFriendlyTeam(Backend &backend, MRFDongle &dongle);
+			explicit FriendlyTeam(Backend &backend, MRFDongle &dongle);
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -35,9 +35,9 @@ namespace {
 	/**
 	 * \brief The enemy team.
 	 */
-	class MRFEnemyTeam : public AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot> {
+	class EnemyTeam : public AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot> {
 		public:
-			explicit MRFEnemyTeam(Backend &backend);
+			explicit EnemyTeam(Backend &backend);
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -69,8 +69,8 @@ namespace {
 		private:
 			unsigned int camera_mask;
 			AI::BE::Clock::Monotonic clock;
-			MRFFriendlyTeam friendly;
-			MRFEnemyTeam enemy;
+			FriendlyTeam friendly;
+			EnemyTeam enemy;
 			AI::BE::VisionReceiver vision_rx;
 			timespec playtype_time;
 			Point playtype_arm_ball_position;
@@ -94,19 +94,19 @@ namespace {
 
 MRFBackendFactory mrf_backend_factory_instance;
 
-MRFFriendlyTeam::MRFFriendlyTeam(Backend &backend, MRFDongle &dongle) : AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player>(backend), dongle(dongle) {
+FriendlyTeam::FriendlyTeam(Backend &backend, MRFDongle &dongle) : AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player>(backend), dongle(dongle) {
 }
 
-void MRFFriendlyTeam::create_member(unsigned int pattern) {
+void FriendlyTeam::create_member(unsigned int pattern) {
 	if (pattern < 8) {
 		members.create(pattern, pattern, std::ref(dongle.robot(pattern)));
 	}
 }
 
-MRFEnemyTeam::MRFEnemyTeam(Backend &backend) : AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot>(backend) {
+EnemyTeam::EnemyTeam(Backend &backend) : AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot>(backend) {
 }
 
-void MRFEnemyTeam::create_member(unsigned int pattern) {
+void EnemyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, pattern);
 }
 
@@ -133,11 +133,11 @@ BackendFactory &MRFBackend::factory() const {
 	return mrf_backend_factory_instance;
 }
 
-const AI::BE::Team<AI::BE::Player> &MRFBackend::friendly_team() const {
+const Team<AI::BE::Player> &MRFBackend::friendly_team() const {
 	return friendly;
 }
 
-const AI::BE::Team<AI::BE::Robot> &MRFBackend::enemy_team() const {
+const Team<AI::BE::Robot> &MRFBackend::enemy_team() const {
 	return enemy;
 }
 

@@ -27,9 +27,9 @@ namespace {
 	/**
 	 * \brief The friendly team.
 	 */
-	class HybridFriendlyTeam : public AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player> {
+	class FriendlyTeam : public AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player> {
 		public:
-			explicit HybridFriendlyTeam(Backend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle);
+			explicit FriendlyTeam(Backend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle);
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -42,9 +42,9 @@ namespace {
 	/**
 	 * \brief The enemy team.
 	 */
-	class HybridEnemyTeam : public AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot> {
+	class EnemyTeam : public AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot> {
 		public:
-			explicit HybridEnemyTeam(Backend &backend);
+			explicit EnemyTeam(Backend &backend);
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -59,8 +59,8 @@ namespace {
 
 			explicit HybridBackend(XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle, unsigned int camera_mask, int multicast_interface);
 			BackendFactory &factory() const;
-			const AI::BE::Team<AI::BE::Player> &friendly_team() const;
-			const AI::BE::Team<AI::BE::Robot> &enemy_team() const;
+			const Team<AI::BE::Player> &friendly_team() const;
+			const Team<AI::BE::Robot> &enemy_team() const;
 			unsigned int main_ui_controls_table_rows() const;
 			void main_ui_controls_attach(Gtk::Table &, unsigned int);
 			unsigned int secondary_ui_controls_table_rows() const;
@@ -76,8 +76,8 @@ namespace {
 		private:
 			unsigned int camera_mask;
 			AI::BE::Clock::Monotonic clock;
-			HybridFriendlyTeam friendly;
-			HybridEnemyTeam enemy;
+			FriendlyTeam friendly;
+			EnemyTeam enemy;
 			AI::BE::VisionReceiver vision_rx;
 			timespec playtype_time;
 			Point playtype_arm_ball_position;
@@ -101,21 +101,21 @@ namespace {
 
 HybridBackendFactory hybrid_backend_factory_instance;
 
-HybridFriendlyTeam::HybridFriendlyTeam(Backend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle) : AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player>(backend), xbee_dongle(xbee_dongle), mrf_dongle(mrf_dongle) {
+FriendlyTeam::FriendlyTeam(Backend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle) : AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player>(backend), xbee_dongle(xbee_dongle), mrf_dongle(mrf_dongle) {
 }
 
-void HybridFriendlyTeam::create_member(unsigned int pattern) {
+void FriendlyTeam::create_member(unsigned int pattern) {
 	if (pattern <= 7 && USE_MRF[pattern]) {
 		members.create(pattern, pattern, std::ref(mrf_dongle.robot(pattern)));
-	} else {
+	} else if (pattern <= 15) {
 		members.create(pattern, pattern, std::ref(xbee_dongle.robot(pattern)));
 	}
 }
 
-HybridEnemyTeam::HybridEnemyTeam(Backend &backend) : AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot>(backend) {
+EnemyTeam::EnemyTeam(Backend &backend) : AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot>(backend) {
 }
 
-void HybridEnemyTeam::create_member(unsigned int pattern) {
+void EnemyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, pattern);
 }
 
@@ -142,11 +142,11 @@ BackendFactory &HybridBackend::factory() const {
 	return hybrid_backend_factory_instance;
 }
 
-const AI::BE::Team<AI::BE::Player> &HybridBackend::friendly_team() const {
+const Team<AI::BE::Player> &HybridBackend::friendly_team() const {
 	return friendly;
 }
 
-const AI::BE::Team<AI::BE::Robot> &HybridBackend::enemy_team() const {
+const Team<AI::BE::Robot> &HybridBackend::enemy_team() const {
 	return enemy;
 }
 

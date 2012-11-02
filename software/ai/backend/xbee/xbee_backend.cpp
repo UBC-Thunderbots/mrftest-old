@@ -21,9 +21,9 @@ namespace {
 	/**
 	 * \brief The friendly team.
 	 */
-	class XBeeFriendlyTeam : public AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player> {
+	class FriendlyTeam : public AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player> {
 		public:
-			explicit XBeeFriendlyTeam(Backend &backend, XBeeDongle &dongle);
+			explicit FriendlyTeam(Backend &backend, XBeeDongle &dongle);
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -35,9 +35,9 @@ namespace {
 	/**
 	 * \brief The enemy team.
 	 */
-	class XBeeEnemyTeam : public AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot> {
+	class EnemyTeam : public AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot> {
 		public:
-			explicit XBeeEnemyTeam(Backend &backend);
+			explicit EnemyTeam(Backend &backend);
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -52,8 +52,8 @@ namespace {
 
 			explicit XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, int multicast_interface);
 			BackendFactory &factory() const;
-			const AI::BE::Team<AI::BE::Player> &friendly_team() const;
-			const AI::BE::Team<AI::BE::Robot> &enemy_team() const;
+			const Team<AI::BE::Player> &friendly_team() const;
+			const Team<AI::BE::Robot> &enemy_team() const;
 			unsigned int main_ui_controls_table_rows() const;
 			void main_ui_controls_attach(Gtk::Table &, unsigned int);
 			unsigned int secondary_ui_controls_table_rows() const;
@@ -69,8 +69,8 @@ namespace {
 		private:
 			unsigned int camera_mask;
 			AI::BE::Clock::Monotonic clock;
-			XBeeFriendlyTeam friendly;
-			XBeeEnemyTeam enemy;
+			FriendlyTeam friendly;
+			EnemyTeam enemy;
 			AI::BE::VisionReceiver vision_rx;
 			timespec playtype_time;
 			Point playtype_arm_ball_position;
@@ -94,17 +94,17 @@ namespace {
 
 XBeeBackendFactory xbee_backend_factory_instance;
 
-XBeeFriendlyTeam::XBeeFriendlyTeam(Backend &backend, XBeeDongle &dongle) : AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player>(backend), dongle(dongle) {
+FriendlyTeam::FriendlyTeam(Backend &backend, XBeeDongle &dongle) : AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player>(backend), dongle(dongle) {
 }
 
-void XBeeFriendlyTeam::create_member(unsigned int pattern) {
+void FriendlyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, pattern, std::ref(dongle.robot(pattern)));
 }
 
-XBeeEnemyTeam::XBeeEnemyTeam(Backend &backend) : AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot>(backend) {
+EnemyTeam::EnemyTeam(Backend &backend) : AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot>(backend) {
 }
 
-void XBeeEnemyTeam::create_member(unsigned int pattern) {
+void EnemyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, pattern);
 }
 
@@ -131,11 +131,11 @@ BackendFactory &XBeeBackend::factory() const {
 	return xbee_backend_factory_instance;
 }
 
-const AI::BE::Team<AI::BE::Player> &XBeeBackend::friendly_team() const {
+const Team<AI::BE::Player> &XBeeBackend::friendly_team() const {
 	return friendly;
 }
 
-const AI::BE::Team<AI::BE::Robot> &XBeeBackend::enemy_team() const {
+const Team<AI::BE::Robot> &XBeeBackend::enemy_team() const {
 	return enemy;
 }
 
