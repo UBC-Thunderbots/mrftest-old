@@ -103,7 +103,7 @@ namespace AI {
 				 *
 				 * \return the number of rows.
 				 */
-				virtual unsigned int main_ui_controls_table_rows() const = 0;
+				virtual unsigned int main_ui_controls_table_rows() const;
 
 				/**
 				 * \brief Attaches the backend's main tab UI controls to a table.
@@ -117,14 +117,14 @@ namespace AI {
 				 *
 				 * \param[in] row the number of the first row the backend should start using.
 				 */
-				virtual void main_ui_controls_attach(Gtk::Table &t, unsigned int row) = 0;
+				virtual void main_ui_controls_attach(Gtk::Table &t, unsigned int row);
 
 				/**
 				 * \brief Returns the number of table rows the backend's secondary tab UI controls will consume.
 				 *
 				 * \return the number of rows.
 				 */
-				virtual unsigned int secondary_ui_controls_table_rows() const = 0;
+				virtual unsigned int secondary_ui_controls_table_rows() const;
 
 				/**
 				 * \brief Attaches the backend's secondary tab UI controls to a table.
@@ -138,7 +138,7 @@ namespace AI {
 				 *
 				 * \param[in] row the number of the first row the backend should start using.
 				 */
-				virtual void secondary_ui_controls_attach(Gtk::Table &t, unsigned int row) = 0;
+				virtual void secondary_ui_controls_attach(Gtk::Table &t, unsigned int row);
 
 				/**
 				 * \brief Returns or allows setting the end of the field the friendly team is defending.

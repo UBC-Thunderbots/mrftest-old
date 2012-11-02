@@ -187,8 +187,6 @@ namespace AI {
 					void mouse_released(Point p, unsigned int btn);
 					void mouse_exited();
 					void mouse_moved(Point p);
-					unsigned int main_ui_controls_table_rows() const;
-					void main_ui_controls_attach(Gtk::Table &t, unsigned int row);
 					unsigned int secondary_ui_controls_table_rows() const;
 					void secondary_ui_controls_attach(Gtk::Table &t, unsigned int row);
 

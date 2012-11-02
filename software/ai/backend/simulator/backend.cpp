@@ -234,13 +234,6 @@ void AI::BE::Simulator::Backend::mouse_moved(Point p) {
 	}
 }
 
-unsigned int AI::BE::Simulator::Backend::main_ui_controls_table_rows() const {
-	return 0;
-}
-
-void AI::BE::Simulator::Backend::main_ui_controls_attach(Gtk::Table &, unsigned int) {
-}
-
 unsigned int AI::BE::Simulator::Backend::secondary_ui_controls_table_rows() const {
 	return secondary_controls.rows();
 }

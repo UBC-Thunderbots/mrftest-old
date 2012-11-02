@@ -54,10 +54,6 @@ namespace {
 			BackendFactory &factory() const;
 			const Team<AI::BE::Player> &friendly_team() const;
 			const Team<AI::BE::Robot> &enemy_team() const;
-			unsigned int main_ui_controls_table_rows() const;
-			void main_ui_controls_attach(Gtk::Table &, unsigned int);
-			unsigned int secondary_ui_controls_table_rows() const;
-			void secondary_ui_controls_attach(Gtk::Table &, unsigned int);
 			std::size_t visualizable_num_robots() const;
 			Visualizable::Robot::Ptr visualizable_robot(std::size_t i) const;
 			void mouse_pressed(Point, unsigned int);
@@ -139,20 +135,6 @@ const Team<AI::BE::Player> &MRFBackend::friendly_team() const {
 
 const Team<AI::BE::Robot> &MRFBackend::enemy_team() const {
 	return enemy;
-}
-
-unsigned int MRFBackend::main_ui_controls_table_rows() const {
-	return 0;
-}
-
-void MRFBackend::main_ui_controls_attach(Gtk::Table &, unsigned int) {
-}
-
-unsigned int MRFBackend::secondary_ui_controls_table_rows() const {
-	return 0;
-}
-
-void MRFBackend::secondary_ui_controls_attach(Gtk::Table &, unsigned int) {
 }
 
 std::size_t MRFBackend::visualizable_num_robots() const {
