@@ -5,6 +5,8 @@
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "util/box_array.h"
 #include "util/dprint.h"
+#include <algorithm>
+#include <vector>
 
 namespace {
 	/**
@@ -28,6 +30,11 @@ namespace AI {
 			 */
 			template<typename T, typename TSuper> class Team : public AI::BE::Team<TSuper> {
 				public:
+					/**
+					 * \brief The maximum number of patterns on a team.
+					 */
+					static const std::size_t NUM_PATTERNS = 16;
+
 					/**
 					 * \brief Constructs a new Team.
 					 *
@@ -83,9 +90,9 @@ namespace AI {
 
 				protected:
 					AI::BE::Backend &backend;
-					BoxArray<T, 16> members;
+					BoxArray<T, NUM_PATTERNS> members;
 					std::vector<typename T::Ptr> member_ptrs;
-					std::vector<unsigned int> vision_failures;
+					unsigned int vision_failures[NUM_PATTERNS];
 
 					void populate_pointers();
 					virtual void create_member(unsigned int pattern) = 0;
@@ -97,6 +104,7 @@ namespace AI {
 
 
 template<typename T, typename TSuper> AI::BE::Physical::Team<T, TSuper>::Team(AI::BE::Backend &backend) : backend(backend) {
+	std::fill_n(vision_failures, NUM_PATTERNS, 0U);
 }
 
 template<typename T, typename TSuper> std::size_t AI::BE::Physical::Team<T, TSuper>::size() const {
@@ -124,7 +132,8 @@ template<typename T, typename TSuper> void AI::BE::Physical::Team<T, TSuper>::up
 
 	// Update existing robots and create new robots.
 	std::vector<bool> used_data[2];
-	std::vector<bool> seen_this_frame;
+	bool seen_this_frame[NUM_PATTERNS];
+	std::fill_n(seen_this_frame, NUM_PATTERNS, false);
 	for (std::size_t i = 0; i < 2; ++i) {
 		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> &rep(*packets[i]);
 		used_data[i].resize(static_cast<std::size_t>(rep.size()), false);
@@ -132,26 +141,25 @@ template<typename T, typename TSuper> void AI::BE::Physical::Team<T, TSuper>::up
 			const SSL_DetectionRobot &detbot = rep.Get(static_cast<int>(j));
 			if (detbot.has_robot_id()) {
 				unsigned int pattern = detbot.robot_id();
-				typename T::Ptr bot = members[pattern];
-				if (!bot) {
-					create_member(pattern);
-					membership_changed = true;
-				}
-				if (seen_this_frame.size() <= bot->pattern()) {
-					seen_this_frame.resize(bot->pattern() + 1);
-				}
-				if (!seen_this_frame[bot->pattern()]) {
-					seen_this_frame[bot->pattern()] = true;
-					if (detbot.has_orientation()) {
-						bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
-						Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
-						Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::HALF : Angle::ZERO)).angle_mod();
-						bot->add_field_data(pos, ori, ts);
-					} else {
-						LOG_WARN("Vision packet has robot with no orientation.");
+				if (pattern < NUM_PATTERNS) {
+					typename T::Ptr bot = members[pattern];
+					if (!bot) {
+						create_member(pattern);
+						membership_changed = true;
 					}
+					if (bot && !seen_this_frame[bot->pattern()]) {
+						seen_this_frame[bot->pattern()] = true;
+						if (detbot.has_orientation()) {
+							bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
+							Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
+							Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::HALF : Angle::ZERO)).angle_mod();
+							bot->add_field_data(pos, ori, ts);
+						} else {
+							LOG_WARN("Vision packet has robot with no orientation.");
+						}
+					}
+					used_data[i][j] = true;
 				}
-				used_data[i][j] = true;
 			}
 		}
 	}
@@ -160,21 +168,17 @@ template<typename T, typename TSuper> void AI::BE::Physical::Team<T, TSuper>::up
 	for (std::size_t i = 0; i < members.SIZE; ++i) {
 		typename T::Ptr bot = members[i];
 		if (bot) {
-			if (vision_failures.size() <= bot->pattern()) {
-				vision_failures.resize(bot->pattern() + 1);
-			}
-			if (seen_this_frame.size() <= bot->pattern()) {
-				seen_this_frame.resize(bot->pattern() + 1);
-			}
-			if (!seen_this_frame[bot->pattern()]) {
-				++vision_failures[bot->pattern()];
-			} else {
-				vision_failures[bot->pattern()] = 0;
-			}
-			seen_this_frame[bot->pattern()] = false;
-			if (vision_failures[bot->pattern()] >= MAX_VISION_FAILURES) {
-				members.destroy(i);
-				membership_changed = true;
+			if (bot->pattern() < NUM_PATTERNS) {
+				if (!seen_this_frame[bot->pattern()]) {
+					++vision_failures[bot->pattern()];
+				} else {
+					vision_failures[bot->pattern()] = 0;
+				}
+				seen_this_frame[bot->pattern()] = false;
+				if (vision_failures[bot->pattern()] >= MAX_VISION_FAILURES) {
+					members.destroy(i);
+					membership_changed = true;
+				}
 			}
 		}
 	}
