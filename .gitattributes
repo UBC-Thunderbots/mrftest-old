@@ -172,6 +172,7 @@ software/ai/backend/simulator/backend.h -text
 software/ai/backend/simulator/player.cpp -text
 software/ai/backend/simulator/player.h -text
 software/ai/backend/simulator/team.h -text
+software/ai/backend/ssl_vision/backend.h -text
 software/ai/backend/ssl_vision/team.h -text
 software/ai/backend/ssl_vision/vision_socket.cpp -text
 software/ai/backend/ssl_vision/vision_socket.h -text
