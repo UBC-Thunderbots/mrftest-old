@@ -157,9 +157,6 @@ software/ai/backend/field.cpp -text
 software/ai/backend/field.h -text
 software/ai/backend/hybrid/hybrid_backend.cpp -text
 software/ai/backend/mrf/mrf_backend.cpp -text
-software/ai/backend/physical/player.cpp -text
-software/ai/backend/physical/player.h -text
-software/ai/backend/physical/team.h -text
 software/ai/backend/player.cpp -text
 software/ai/backend/player.h -text
 software/ai/backend/refbox.cpp -text
@@ -173,8 +170,11 @@ software/ai/backend/simulator/backend.h -text
 software/ai/backend/simulator/player.cpp -text
 software/ai/backend/simulator/player.h -text
 software/ai/backend/simulator/team.h -text
-software/ai/backend/ssl_vision.cpp -text
-software/ai/backend/ssl_vision.h -text
+software/ai/backend/ssl_vision/player.cpp -text
+software/ai/backend/ssl_vision/player.h -text
+software/ai/backend/ssl_vision/team.h -text
+software/ai/backend/ssl_vision/vision_socket.cpp -text
+software/ai/backend/ssl_vision/vision_socket.h -text
 software/ai/backend/team.h -text
 software/ai/backend/xbee/xbee_backend.cpp -text
 software/ai/ball_filter/ball_filter.h -text

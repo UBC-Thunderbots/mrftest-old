@@ -1,9 +1,9 @@
 #include "ai/backend/backend.h"
 #include "ai/backend/refbox.h"
-#include "ai/backend/ssl_vision.h"
 #include "ai/backend/clock/monotonic.h"
-#include "ai/backend/physical/player.h"
-#include "ai/backend/physical/team.h"
+#include "ai/backend/ssl_vision/player.h"
+#include "ai/backend/ssl_vision/team.h"
+#include "ai/backend/ssl_vision/vision_socket.h"
 #include "ai/ball_filter/ball_filter.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "util/dprint.h"
@@ -21,7 +21,7 @@ namespace {
 	/**
 	 * \brief The friendly team.
 	 */
-	class FriendlyTeam : public AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player> {
+	class FriendlyTeam : public AI::BE::SSLVision::Team<AI::BE::SSLVision::Player, AI::BE::Player> {
 		public:
 			explicit FriendlyTeam(Backend &backend, XBeeDongle &dongle);
 
@@ -35,7 +35,7 @@ namespace {
 	/**
 	 * \brief The enemy team.
 	 */
-	class EnemyTeam : public AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot> {
+	class EnemyTeam : public AI::BE::SSLVision::Team<AI::BE::Robot, AI::BE::Robot> {
 		public:
 			explicit EnemyTeam(Backend &backend);
 
@@ -61,7 +61,7 @@ namespace {
 			AI::BE::Clock::Monotonic clock;
 			FriendlyTeam friendly;
 			EnemyTeam enemy;
-			AI::BE::VisionReceiver vision_rx;
+			AI::BE::SSLVision::VisionSocket vision_rx;
 			timespec playtype_time;
 			Point playtype_arm_ball_position;
 			SSL_DetectionFrame detections[2];
@@ -84,14 +84,14 @@ namespace {
 
 XBeeBackendFactory xbee_backend_factory_instance;
 
-FriendlyTeam::FriendlyTeam(Backend &backend, XBeeDongle &dongle) : AI::BE::Physical::Team<AI::BE::Physical::Player, AI::BE::Player>(backend), dongle(dongle) {
+FriendlyTeam::FriendlyTeam(Backend &backend, XBeeDongle &dongle) : AI::BE::SSLVision::Team<AI::BE::SSLVision::Player, AI::BE::Player>(backend), dongle(dongle) {
 }
 
 void FriendlyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, pattern, std::ref(dongle.robot(pattern)));
 }
 
-EnemyTeam::EnemyTeam(Backend &backend) : AI::BE::Physical::Team<AI::BE::Robot, AI::BE::Robot>(backend) {
+EnemyTeam::EnemyTeam(Backend &backend) : AI::BE::SSLVision::Team<AI::BE::Robot, AI::BE::Robot>(backend) {
 }
 
 void EnemyTeam::create_member(unsigned int pattern) {

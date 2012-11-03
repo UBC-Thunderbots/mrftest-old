@@ -1,4 +1,4 @@
-#include "ai/backend/ssl_vision.h"
+#include "ai/backend/ssl_vision/vision_socket.h"
 #include "util/dprint.h"
 #include "util/exception.h"
 #include "util/sockaddrs.h"
@@ -10,9 +10,9 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-using AI::BE::VisionReceiver;
+using AI::BE::SSLVision::VisionSocket;
 
-VisionReceiver::VisionReceiver(int multicast_interface) : sock(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
+VisionSocket::VisionSocket(int multicast_interface) : sock(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
 	addrinfo hints;
 	std::memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
@@ -40,14 +40,14 @@ VisionReceiver::VisionReceiver(int multicast_interface) : sock(FileDescriptor::c
 		LOG_INFO("Cannot join multicast group 224.5.23.2 for vision data.");
 	}
 
-	conn = Glib::signal_io().connect(sigc::mem_fun(this, &VisionReceiver::receive_packet), sock.fd(), Glib::IO_IN);
+	conn = Glib::signal_io().connect(sigc::mem_fun(this, &VisionSocket::receive_packet), sock.fd(), Glib::IO_IN);
 }
 
-VisionReceiver::~VisionReceiver() {
+VisionSocket::~VisionSocket() {
 	conn.disconnect();
 }
 
-bool VisionReceiver::receive_packet(Glib::IOCondition) {
+bool VisionSocket::receive_packet(Glib::IOCondition) {
 	// Receive a packet.
 	uint8_t buffer[65536];
 	ssize_t len = recv(sock.fd(), buffer, sizeof(buffer), 0);
