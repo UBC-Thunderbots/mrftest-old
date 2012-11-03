@@ -1,5 +1,5 @@
-#ifndef AI_BACKEND_SSL_VISION_H
-#define AI_BACKEND_SSL_VISION_H
+#ifndef AI_BACKEND_SSL_VISION_VISION_SOCKET_H
+#define AI_BACKEND_SSL_VISION_VISION_SOCKET_H
 
 #include "util/fd.h"
 #include "util/noncopyable.h"

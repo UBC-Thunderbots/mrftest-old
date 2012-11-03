@@ -14,7 +14,7 @@ namespace Drive {
 
 namespace AI {
 	namespace BE {
-		namespace SSLVision {
+		namespace Physical {
 			/**
 			 * \brief A player is a robot that can be driven.
 			 */

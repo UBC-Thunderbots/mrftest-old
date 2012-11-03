@@ -1,5 +1,5 @@
-#ifndef AI_BACKEND_PHYSICAL_TEAM_H
-#define AI_BACKEND_PHYSICAL_TEAM_H
+#ifndef AI_BACKEND_SSL_VISION_TEAM_H
+#define AI_BACKEND_SSL_VISION_TEAM_H
 
 #include "ai/backend/backend.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"

@@ -1,7 +1,7 @@
 #include "ai/backend/backend.h"
 #include "ai/backend/refbox.h"
 #include "ai/backend/clock/monotonic.h"
-#include "ai/backend/ssl_vision/player.h"
+#include "ai/backend/physical/player.h"
 #include "ai/backend/ssl_vision/team.h"
 #include "ai/backend/ssl_vision/vision_socket.h"
 #include "ai/ball_filter/ball_filter.h"
@@ -21,7 +21,7 @@ namespace {
 	/**
 	 * \brief The friendly team.
 	 */
-	class FriendlyTeam : public AI::BE::SSLVision::Team<AI::BE::SSLVision::Player, AI::BE::Player> {
+	class FriendlyTeam : public AI::BE::SSLVision::Team<AI::BE::Physical::Player, AI::BE::Player> {
 		public:
 			explicit FriendlyTeam(Backend &backend, MRFDongle &dongle);
 
@@ -84,7 +84,7 @@ namespace {
 
 MRFBackendFactory mrf_backend_factory_instance;
 
-FriendlyTeam::FriendlyTeam(Backend &backend, MRFDongle &dongle) : AI::BE::SSLVision::Team<AI::BE::SSLVision::Player, AI::BE::Player>(backend), dongle(dongle) {
+FriendlyTeam::FriendlyTeam(Backend &backend, MRFDongle &dongle) : AI::BE::SSLVision::Team<AI::BE::Physical::Player, AI::BE::Player>(backend), dongle(dongle) {
 }
 
 void FriendlyTeam::create_member(unsigned int pattern) {

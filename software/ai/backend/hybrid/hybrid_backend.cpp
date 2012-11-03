@@ -1,7 +1,7 @@
 #include "ai/backend/backend.h"
 #include "ai/backend/refbox.h"
 #include "ai/backend/clock/monotonic.h"
-#include "ai/backend/ssl_vision/player.h"
+#include "ai/backend/physical/player.h"
 #include "ai/backend/ssl_vision/team.h"
 #include "ai/backend/ssl_vision/vision_socket.h"
 #include "ai/ball_filter/ball_filter.h"
@@ -27,7 +27,7 @@ namespace {
 	/**
 	 * \brief The friendly team.
 	 */
-	class FriendlyTeam : public AI::BE::SSLVision::Team<AI::BE::SSLVision::Player, AI::BE::Player> {
+	class FriendlyTeam : public AI::BE::SSLVision::Team<AI::BE::Physical::Player, AI::BE::Player> {
 		public:
 			explicit FriendlyTeam(Backend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle);
 
@@ -91,7 +91,7 @@ namespace {
 
 HybridBackendFactory hybrid_backend_factory_instance;
 
-FriendlyTeam::FriendlyTeam(Backend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle) : AI::BE::SSLVision::Team<AI::BE::SSLVision::Player, AI::BE::Player>(backend), xbee_dongle(xbee_dongle), mrf_dongle(mrf_dongle) {
+FriendlyTeam::FriendlyTeam(Backend &backend, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle) : AI::BE::SSLVision::Team<AI::BE::Physical::Player, AI::BE::Player>(backend), xbee_dongle(xbee_dongle), mrf_dongle(mrf_dongle) {
 }
 
 void FriendlyTeam::create_member(unsigned int pattern) {
