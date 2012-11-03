@@ -3,6 +3,7 @@
 
 #include "util/fd.h"
 #include "util/noncopyable.h"
+#include <string>
 #include <glibmm/iochannel.h>
 #include <sigc++/signal.h>
 
@@ -15,7 +16,7 @@ namespace AI {
 				public:
 					sigc::signal<void, const SSL_WrapperPacket &> signal_vision_data;
 
-					VisionSocket(int multicast_interface);
+					VisionSocket(int multicast_interface, const std::string &port);
 					~VisionSocket();
 
 				private:

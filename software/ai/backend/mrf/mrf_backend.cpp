@@ -74,7 +74,7 @@ void EnemyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, pattern);
 }
 
-MRFBackend::MRFBackend(MRFDongle &dongle, unsigned int camera_mask, int multicast_interface) : Backend(camera_mask, multicast_interface), friendly(*this, dongle), enemy(*this) {
+MRFBackend::MRFBackend(MRFDongle &dongle, unsigned int camera_mask, int multicast_interface) : Backend(camera_mask, multicast_interface, "10002"), friendly(*this, dongle), enemy(*this) {
 }
 
 BackendFactory &MRFBackend::factory() const {

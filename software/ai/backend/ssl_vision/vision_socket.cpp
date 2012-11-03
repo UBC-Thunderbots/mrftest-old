@@ -12,14 +12,14 @@
 
 using AI::BE::SSLVision::VisionSocket;
 
-VisionSocket::VisionSocket(int multicast_interface) : sock(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
+VisionSocket::VisionSocket(int multicast_interface, const std::string &port) : sock(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
 	addrinfo hints;
 	std::memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_protocol = IPPROTO_UDP;
 	hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
-	AddrInfoSet ai(0, "10002", &hints);
+	AddrInfoSet ai(0, port.c_str(), &hints);
 
 	sock.set_blocking(false);
 

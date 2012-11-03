@@ -35,8 +35,10 @@ namespace AI {
 					 * \param[in] camera_mask the bitmask of cameras whose data should be accepted.
 					 *
 					 * \param[in] multicast_interface the index of the network interface on which to join multicast groups.
+					 *
+					 * \param[in] vision_port the port on which SSL-Vision data is delivered.
 					 */
-					explicit Backend(unsigned int camera_mask, int multicast_interface);
+					explicit Backend(unsigned int camera_mask, int multicast_interface, const std::string &vision_port);
 
 					virtual FriendlyTeam &friendly_team() = 0;
 					const FriendlyTeam &friendly_team() const = 0;
@@ -68,7 +70,7 @@ namespace AI {
 
 template<typename FriendlyTeam, typename EnemyTeam> const double AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::BALL_FREE_DISTANCE = 0.09;
 
-template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::Backend(unsigned int camera_mask, int multicast_interface) : refbox(multicast_interface), camera_mask(camera_mask), vision_rx(multicast_interface) {
+template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::Backend(unsigned int camera_mask, int multicast_interface, const std::string &vision_port) : refbox(multicast_interface), camera_mask(camera_mask), vision_rx(multicast_interface, vision_port) {
 	if (!(1 <= camera_mask && camera_mask <= 3)) {
 		throw std::runtime_error("Invalid camera bitmask (must be 1–3)");
 	}

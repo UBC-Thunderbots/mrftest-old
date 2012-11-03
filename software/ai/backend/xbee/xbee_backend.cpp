@@ -72,7 +72,7 @@ void EnemyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, pattern);
 }
 
-XBeeBackend::XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, int multicast_interface) : Backend(camera_mask, multicast_interface), friendly(*this, dongle), enemy(*this) {
+XBeeBackend::XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, int multicast_interface) : Backend(camera_mask, multicast_interface, "10002"), friendly(*this, dongle), enemy(*this) {
 }
 
 BackendFactory &XBeeBackend::factory() const {
