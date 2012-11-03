@@ -11,7 +11,7 @@
 #include <sstream>
 #include <stdexcept>
 
-using namespace AI::BE::Physical;
+using AI::BE::Physical::Player;
 
 namespace {
 	const double BATTERY_CRITICAL_THRESHOLD = 13.5;
