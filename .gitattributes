@@ -155,6 +155,9 @@ software/ai/backend/clock/monotonic.cpp -text
 software/ai/backend/clock/monotonic.h -text
 software/ai/backend/field.cpp -text
 software/ai/backend/field.h -text
+software/ai/backend/grsim/backend.cpp -text
+software/ai/backend/grsim/player.cpp -text
+software/ai/backend/grsim/player.h -text
 software/ai/backend/hybrid_backend.cpp -text
 software/ai/backend/mrf_backend.cpp -text
 software/ai/backend/physical/player.cpp -text
@@ -511,6 +514,9 @@ software/mrf/robot.h -text
 software/mrfcap/main.cpp -text
 software/mrfdbg/main.cpp -text
 software/project.mk -text
+software/proto/grSim_Commands.proto -text
+software/proto/grSim_Packet.proto -text
+software/proto/grSim_Replacement.proto -text
 software/proto/log_record.proto -text
 software/proto/messages_robocup_ssl_detection.proto -text
 software/proto/messages_robocup_ssl_geometry.proto -text
@@ -590,6 +596,7 @@ software/util/cacheable.cpp -text
 software/util/cacheable.h -text
 software/util/chdir.cpp -text
 software/util/chdir.h -text
+software/util/chrono.h -text
 software/util/codec.cpp -text
 software/util/codec.h -text
 software/util/config.cpp -text
