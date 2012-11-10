@@ -20,7 +20,7 @@ namespace AI {
 					bool chicker_ready() const;
 					bool autokick_fired() const;
 					void tick(bool halt);
-					void post_tick(grSim_Robot_Command &packet);
+					void encode_orders(grSim_Robot_Command &packet);
 
 				protected:
 					void kick_impl(double speed);

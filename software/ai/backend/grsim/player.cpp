@@ -57,7 +57,7 @@ void Player::tick(bool halt) {
 	}
 }
 
-void Player::post_tick(grSim_Robot_Command &packet) {
+void Player::encode_orders(grSim_Robot_Command &packet) {
 	packet.set_id(pattern());
 	packet.set_veltangent(0.0);
 	packet.set_velnormal(0.0);

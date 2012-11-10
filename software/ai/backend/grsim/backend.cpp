@@ -144,7 +144,7 @@ void Backend::send_packet(unsigned int) {
 	commands->set_isteamyellow(friendly_colour() == AI::Common::Colour::YELLOW);
 	for (std::size_t i = 0; i < friendly_team().size(); ++i) {
 		AI::BE::GRSim::Player::Ptr player = friendly_team().get_backend_robot(i);
-		player->post_tick(*commands->add_robot_commands());
+		player->encode_orders(*commands->add_robot_commands());
 	}
 	std::string buffer;
 	packet.SerializeToString(&buffer);
