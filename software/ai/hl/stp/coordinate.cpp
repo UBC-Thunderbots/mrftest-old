@@ -10,7 +10,7 @@ Coordinate::Coordinate() : world(), y_type(YType::ABSOLUTE), o_type(OriginType::
 Coordinate::Coordinate(Point pos) : world(), y_type(YType::ABSOLUTE), o_type(OriginType::ABSOLUTE), pos(pos) {
 }
 
-Coordinate::Coordinate(const Coordinate &coord) : world(new World(*coord.world.get())), y_type(coord.y_type), o_type(coord.o_type), pos(coord.pos) {
+Coordinate::Coordinate(const Coordinate &coord) : world(coord.world.get() ? new World(*coord.world.get()) : 0), y_type(coord.y_type), o_type(coord.o_type), pos(coord.pos) {
 }
 
 Coordinate::Coordinate(World world, Point pos, YType y_type, OriginType o_type) : world(new World(world)), y_type(y_type), o_type(o_type), pos(pos) {
