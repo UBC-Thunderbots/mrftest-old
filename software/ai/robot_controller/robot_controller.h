@@ -32,6 +32,11 @@ namespace AI {
 				static const double WHEEL_MATRIX[4][3];
 
 				/**
+				 * \brief The pseudo-inverse of \ref WHEEL_MATRIX.
+				 */
+				static const double WHEEL_MATRIX_PINV[3][4];
+
+				/**
 				 * \brief Multiplies a robot-relative velocity tuple by the wheel matrix, producing a set of wheel rotation speeds.
 				 *
 				 * A robot controller implementation may call this function.

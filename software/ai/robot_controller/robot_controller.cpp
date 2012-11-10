@@ -9,7 +9,13 @@ const double RobotController::WHEEL_MATRIX[4][3] = {
 	{ -42.5995, 27.6645, 4.3175 },
 	{ -35.9169, -35.9169, 4.3175 },
 	{ 35.9169, -35.9169, 4.3175 },
-	{ 42.5995, 27.6645, 4.3175 }
+	{ 42.5995, 27.6645, 4.3175 },
+};
+
+const double RobotController::WHEEL_MATRIX_PINV[3][4] = {
+	{ -0.0068604, -0.0057842, 0.0057842, 0.0068604 },
+	{ 0.0078639, -0.0078639, -0.0078639, 0.0078639 },
+	{ 0.0654194, 0.0503884, 0.0503884, 0.0654194 },
 };
 
 void RobotController::convert_to_wheels(const Point &vel, Angle avel, int(&wheel_speeds)[4]) {
