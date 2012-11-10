@@ -11,7 +11,6 @@
 #include <vector>
 
 using AI::RC::RobotController;
-using AI::RC::OldRobotController;
 using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 

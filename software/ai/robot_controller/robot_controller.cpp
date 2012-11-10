@@ -2,8 +2,6 @@
 #include "util/param.h"
 
 using AI::RC::RobotController;
-using AI::RC::OldRobotController;
-using AI::RC::OldRobotController2;
 using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
@@ -32,30 +30,6 @@ void RobotController::draw_overlay(Cairo::RefPtr<Cairo::Context>) {
 }
 
 RobotController::RobotController(AI::RC::W::World world, AI::RC::W::Player player) : world(world), player(player) {
-}
-
-OldRobotController2::OldRobotController2(AI::RC::W::World world, AI::RC::W::Player player) : RobotController(world, player) {
-}
-
-void OldRobotController2::tick() {
-	const AI::RC::W::Player::Path &path = player.path();
-	if (path.empty()) {
-		clear();
-	} else {
-		int wheels[4];
-		move(path[0].first.first, path[0].first.second, wheels);
-		player.drive(wheels);
-	}
-}
-
-void OldRobotController::move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]) {
-	Point vel;
-	Angle avel;
-	move(new_position, new_orientation, vel, avel);
-	convert_to_wheels(vel, avel, wheel_speeds);
-}
-
-OldRobotController::OldRobotController(AI::RC::W::World world, AI::RC::W::Player player) : OldRobotController2(world, player) {
 }
 
 Gtk::Widget *RobotControllerFactory::ui_controls() {
