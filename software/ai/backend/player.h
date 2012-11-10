@@ -43,6 +43,7 @@ namespace AI {
 				void drive(const int (&w)[4]);
 				const int(&wheel_speeds() const)[4];
 				void pre_tick();
+				void update_predictor(timespec ts);
 
 				Visualizable::Colour visualizer_colour() const;
 				bool highlight() const;

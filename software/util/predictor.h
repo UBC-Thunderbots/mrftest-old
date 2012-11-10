@@ -54,6 +54,15 @@ template<typename T> class Predictor {
 		void add_measurement(T value, timespec ts);
 
 		/**
+		 * \brief Pushes a new control value into the prediction engine.
+		 *
+		 * \param[in] value the value to add.
+		 *
+		 * \param[in] ts the timestamp at which the control input will take effect.
+		 */
+		void add_control(T value, timespec ts);
+
+		/**
 		 * \brief Clears the accumulated history of the predictor.
 		 *
 		 * This means that on the next addition of a new datum, the predictor will estimate zero for all derivatives.
@@ -114,6 +123,15 @@ class Predictor2 {
 		void add_measurement(Point value, timespec ts);
 
 		/**
+		 * \brief Pushes a new control input into the prediction engine.
+		 *
+		 * \param[in] value the value to add.
+		 *
+		 * \param[in] ts the timestamp at which the control input will take effect.
+		 */
+		void add_control(Point value, timespec ts);
+
+		/**
 		 * \brief Clears the accumulated history of the predictor.
 		 *
 		 * This means that on the next addition of a new datum, the predictor will estimate zero for all derivatives.
@@ -171,13 +189,24 @@ class Predictor3 {
 		/**
 		 * \brief Pushes a new measurement into the prediction engine.
 		 *
-		 * \param[in] position the positional measurement to add.
+		 * \param[in] linear_value the positional measurement to add.
 		 *
 		 * \param[in] orientation the orientation measurement to add.
 		 *
 		 * \param[in] ts the timestamp at which the value was sampled.
 		 */
 		void add_measurement(Point linear_value, Angle orientation, timespec ts);
+
+		/**
+		 * \brief Pushes a new control input into the prediction engine.
+		 *
+		 * \param[in] linear_value the linear velocity input to add.
+		 *
+		 * \param[in] angular_value the angular velocity input to add.
+		 *
+		 * \param[in] ts the timestamp at which the control input will take effect.
+		 */
+		void add_control(Point linear_value, Angle angular_value, timespec ts);
 
 		/**
 		 * \brief Clears the accumulated history of the predictor.

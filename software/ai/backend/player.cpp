@@ -1,4 +1,5 @@
 #include "ai/backend/player.h"
+#include "ai/robot_controller/robot_controller.h"
 #include "util/algorithm.h"
 #include "util/dprint.h"
 #include <cmath>
@@ -113,6 +114,16 @@ void Player::pre_tick() {
 	flags_ = 0;
 	move_type_ = AI::Flags::MoveType::NORMAL;
 	move_prio_ = AI::Flags::MovePrio::MEDIUM;
+}
+
+void Player::update_predictor(timespec ts) {
+	double prediction_vector[3] = { 0, 0, 0 };
+	for (unsigned int row = 0; row < 3; ++row) {
+		for (unsigned int col = 0; col < 4; ++col) {
+			prediction_vector[row] += AI::RC::RobotController::WHEEL_MATRIX_PINV[row][col] * wheel_speeds_[col];
+		}
+	}
+	pred.add_control(Point(prediction_vector[0], prediction_vector[1]), Angle::of_radians(prediction_vector[2]), ts);
 }
 
 Visualizable::Colour Player::visualizer_colour() const {

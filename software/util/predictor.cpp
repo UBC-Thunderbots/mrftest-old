@@ -63,6 +63,10 @@ template<typename T> void Predictor<T>::add_measurement(T value, timespec ts) {
 	filter.update(value_to_double(value), ts);
 }
 
+template<typename T> void Predictor<T>::add_control(T value, timespec ts) {
+	filter.add_control(value_to_double(value), ts);
+}
+
 template<typename T> void Predictor<T>::clear() {
 }
 
@@ -89,6 +93,11 @@ void Predictor2::lock_time(timespec ts) {
 void Predictor2::add_measurement(Point value, timespec ts) {
 	x.add_measurement(value.x, ts);
 	y.add_measurement(value.y, ts);
+}
+
+void Predictor2::add_control(Point value, timespec ts) {
+	x.add_control(value.x, ts);
+	y.add_control(value.y, ts);
 }
 
 void Predictor2::clear() {
@@ -118,6 +127,12 @@ void Predictor3::add_measurement(Point position, Angle orientation, timespec ts)
 	x.add_measurement(position.x, ts);
 	y.add_measurement(position.y, ts);
 	t.add_measurement(orientation, ts);
+}
+
+void Predictor3::add_control(Point linear_value, Angle angular_value, timespec ts) {
+	x.add_control(linear_value.x, ts);
+	y.add_control(linear_value.y, ts);
+	t.add_control(angular_value, ts);
 }
 
 void Predictor3::clear() {

@@ -110,9 +110,10 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 	// Run the AI.
 	signal_tick().emit();
 
-	// Do post-AI stuff (pushing data to the radios).
+	// Do post-AI stuff (pushing data to the radios and updating predictors).
 	for (std::size_t i = 0; i < friendly_team().size(); ++i) {
 		friendly_team().get_backend_robot(i)->tick(playtype() == AI::Common::PlayType::HALT);
+		friendly_team().get_backend_robot(i)->update_predictor(monotonic_time_);
 	}
 
 	// Notify anyone interested in the finish of a tick.

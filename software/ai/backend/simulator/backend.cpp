@@ -283,6 +283,11 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 			// Push results back to the simulator.
 			send_orders();
 
+			// Update robot predictors.
+			for (std::size_t i = 0; i < friendly_.size(); ++i) {
+				friendly_.get(i)->update_predictor(monotonic_time_);
+			}
+
 			// Compute time taken.
 			timespec after;
 			if (clock_gettime(CLOCK_MONOTONIC, &after) < 0) {
