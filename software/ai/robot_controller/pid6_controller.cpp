@@ -85,7 +85,6 @@ namespace {
 		public:
 			Point cartesian_direction;
 			double angular_direction;
-			static const double WHEEL_MATRIX[4][3];
 
 			explicit Vector3() : cartesian_direction(0, 0), angular_direction(0.0) {
 			}
@@ -111,7 +110,7 @@ namespace {
 			Vector4 toVector4() const {
 				Vector4 temp;
 				for (int i = 0; i < 4; i++) {
-					temp.direction[i] = WHEEL_MATRIX[i][0] * cartesian_direction.x + WHEEL_MATRIX[i][1] * cartesian_direction.y + WHEEL_MATRIX[i][2] * angular_direction;
+					temp.direction[i] = AI::RC::RobotController::WHEEL_MATRIX[i][0] * cartesian_direction.x + AI::RC::RobotController::WHEEL_MATRIX[i][1] * cartesian_direction.y + AI::RC::RobotController::WHEEL_MATRIX[i][2] * angular_direction;
 				}
 				return temp;
 			}
@@ -181,11 +180,4 @@ namespace {
 }
 
 ROBOT_CONTROLLER_REGISTER(PID6Controller)
-
-const double Vector3::WHEEL_MATRIX[4][3] = {
-	{ -42.5995, 27.6645, 4.3175 },
-	{ -35.9169, -35.9169, 4.3175 },
-	{ 35.9169, -35.9169, 4.3175 },
-	{ 42.5995, 27.6645, 4.3175 }
-};
 

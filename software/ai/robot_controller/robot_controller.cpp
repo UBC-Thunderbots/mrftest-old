@@ -5,13 +5,14 @@ using AI::RC::RobotController;
 using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
+const double RobotController::WHEEL_MATRIX[4][3] = {
+	{ -42.5995, 27.6645, 4.3175 },
+	{ -35.9169, -35.9169, 4.3175 },
+	{ 35.9169, -35.9169, 4.3175 },
+	{ 42.5995, 27.6645, 4.3175 }
+};
+
 void RobotController::convert_to_wheels(const Point &vel, Angle avel, int(&wheel_speeds)[4]) {
-	static const double WHEEL_MATRIX[4][3] = {
-		{ -42.5995, 27.6645, 4.3175 },
-		{ -35.9169, -35.9169, 4.3175 },
-		{ 35.9169, -35.9169, 4.3175 },
-		{ 42.5995, 27.6645, 4.3175 }
-	};
 	const double input[3] = { vel.x, vel.y, avel.to_radians() };
 	double output[4] = { 0, 0, 0, 0 };
 	for (unsigned int row = 0; row < 4; ++row) {

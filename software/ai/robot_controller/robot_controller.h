@@ -27,6 +27,11 @@ namespace AI {
 		class RobotController : public NonCopyable {
 			public:
 				/**
+				 * \brief The matrix which converts a 3-vector of (X, Y, T) coordinates into a 4-vector of wheel speeds.
+				 */
+				static const double WHEEL_MATRIX[4][3];
+
+				/**
 				 * \brief Multiplies a robot-relative velocity tuple by the wheel matrix, producing a set of wheel rotation speeds.
 				 *
 				 * A robot controller implementation may call this function.
