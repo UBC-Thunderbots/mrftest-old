@@ -82,7 +82,7 @@ class Kalman {
 		void predict_step(double timestep, double control, Matrix &state_predict, Matrix &p_predict) const;
 		Matrix gen_f_mat(double timestep) const;
 		Matrix gen_q_mat(double timestep) const;
-		Matrix gen_g_mat(double timestep) const;
+		Matrix gen_b_mat(double timestep) const;
 };
 
 #endif

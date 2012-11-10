@@ -15,14 +15,14 @@ Kalman::Kalman(bool angle, double measure_std, double accel_std, double decay_ti
 	h(0, 1) = 0.0;
 }
 
-Matrix Kalman::gen_g_mat(double timestep) const {
-	// %the acceleration to state vector (given an acceleration, what is the state
+Matrix Kalman::gen_b_mat(double timestep) const {
+	// %the control to state vector (given a control, what is the state
 	// %update)
-	// G=[timestep.^2/2; 1-decay_constant];
-	Matrix G(2, 1);
-	G(0, 0) = timestep / 2;
-	G(1, 0) = 1 - std::exp(-timestep / time_constant);
-	return G;
+	// B=[timestep/2; 1-decay_constant];
+	Matrix B(2, 1);
+	B(0, 0) = timestep / 2;
+	B(1, 0) = 1 - std::exp(-timestep / time_constant);
+	return B;
 }
 
 Matrix Kalman::gen_q_mat(double timestep) const {
@@ -52,9 +52,9 @@ Matrix Kalman::gen_f_mat(double timestep) const {
 // predict forward one step with fixed control parameter
 void Kalman::predict_step(double timestep, double control, Matrix &state_predict, Matrix &p_predict) const {
 	const Matrix &f = gen_f_mat(timestep);
-	const Matrix &g = gen_g_mat(timestep);
+	const Matrix &b = gen_b_mat(timestep);
 	const Matrix &q = gen_q_mat(timestep);
-	state_predict = f * state_predict + g * control;
+	state_predict = f * state_predict + b * control;
 	p_predict = f * p_predict * ~f + q;
 }
 
