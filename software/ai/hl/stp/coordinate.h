@@ -3,6 +3,7 @@
 
 #include "geom/point.h"
 #include "ai/hl/stp/world.h"
+#include <memory>
 
 namespace AI {
 	namespace HL {
@@ -90,7 +91,7 @@ namespace AI {
 					Coordinate &operator=(const Coordinate &c);
 
 				protected:
-					const World *world;
+					std::unique_ptr<World> world;
 					YType y_type;
 					OriginType o_type;
 					Point pos;
