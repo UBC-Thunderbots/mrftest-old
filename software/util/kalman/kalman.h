@@ -51,15 +51,6 @@ class Kalman {
 		 */
 		void add_control(double input, timespec input_time);
 
-		/**
-		 * \brief Finds the most recent control input in force at a particular time.
-		 *
-		 * \param[in] control_time the time to query.
-		 *
-		 * \return the most recent control input appearing at or before \p control_time.
-		 */
-		double get_control(timespec control_time) const;
-
 	private:
 		struct ControlInput {
 			ControlInput(timespec t, double v);

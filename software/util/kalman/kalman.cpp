@@ -108,15 +108,6 @@ void Kalman::update(double measurement, timespec measurement_time) {
 	}
 }
 
-double Kalman::get_control(timespec control_time) const {
-	double current_control = last_control;
-
-	for (std::deque<ControlInput>::const_iterator inputs_itr = inputs.begin(); inputs_itr != inputs.end() && timespec_cmp(inputs_itr->time, control_time) <= 0; ++inputs_itr) {
-		current_control = inputs_itr->value;
-	}
-	return current_control;
-}
-
 void Kalman::add_control(double input, timespec input_time) {
 	// the new control input overwrites all actions that were scheduled for later times
 	// this allows us, for instance, to change our mind about future control sequences
