@@ -284,12 +284,10 @@ extern const unsigned char linker_data_lma_start;
 extern unsigned char linker_bss_vma_start;
 extern unsigned char linker_bss_vma_end;
 
-// need to be checked
-#define DECIMAL_POINT_OFFSET 6 
 
-static volatile unsigned long wrap_count = 0;
-static uint8_t seg_lookup[10];
-static uint8_t display_byte[4]={0x0,0x0,0x0,0x0};
+/***********************************************************
+ *    		 	Timing Functions		   *
+ ***********************************************************/
 
 static void tic_toc_setup(void){
 	rcc_enable(APB1, 0);
@@ -360,17 +358,125 @@ static void toc(void){
 	TIM2_CR1 = 0;
 }
 
-static int get_first_digit(float fl){
-	while( fl >= 10 ){
-		fl*=0.1;
-	}
-	while( fl < 1 ){
-		fl*=10;
-	}
-	return (int)(fl);
+/***********************************************************
+ *    util functions when for the lcd control output       *
+ ***********************************************************/
+
+// pin assignment
+#define PIN_E 13
+#define PIN_RW 14
+#define PIN_RS 15
+
+// line states
+#define LCD_WRITE false
+#define LCD_COMMAND false
+#define LCD_DATA true
+
+// byte command that doesn't vary
+#define LCD_CLEAR_SCREEN 0x00000001
+#define LCD_HOME_SCREEN 0x00000010
+
+// byte command that this prefer
+#define LCD_FUNCTION_SET_P	0x00111100	// display on, two line mode
+#define LCD_ON_CONTROL_P		0x00001100	// display one everything else off
+#define LCD_ENTRY_MODE_P	0x00000110	// increment, entire shift off
+
+// bit start with 0
+static void PORTC_set_bit( int bit ){
+	GPIOC_BSRR = 1 << (bit);
 }
 
-static void display_float(float fl){
+// bit start with 0
+static void PORTC_reset_bit( int bit ){
+	GPIOC_BSRR = 1 << (bit+16);
+}
+
+// bit start with 0
+static void PORTC_config_bit( int bit, bool is_on ){
+	if( is_on ){
+		GPIOC_BSRR = 1 << bit;
+	} else {
+		GPIOC_BSRR = 1 << (bit+16);
+	}
+}
+
+// only update the first byte
+static void PORTC_set_first_byte( unsigned int byte ){
+	GPIOC_BSRR = BIT_ACCESS( byte );
+}
+
+// change lcd mode
+static void LCD_switch_mode( bool signal_rs, bool signal_rw ){
+	PORTC_config_bit( PIN_RS, signal_rs );
+	PORTC_config_bit( PIN_RW, signal_rw );
+}
+
+// write command
+static void LCD_output( unsigned int command ){
+	PORTC_config_bit( PIN_E, true );
+	PORTC_set_first_byte( command );
+	sleep_1us(1);
+	PORTC_config_bit( PIN_E, false );
+	sleep_1us(1);
+}
+
+// write char to screen
+static void LCD_write_char( char a ){
+	LCD_switch_mode( LCD_DATA, LCD_WRITE );
+	LCD_output( a );
+}
+
+// clear screen
+static void LCD_clear_screen(){
+	LCD_switch_mode( LCD_COMMAND, LCD_WRITE );
+	LCD_output( LCD_CLEAR_SCREEN );
+}
+
+// initialize screen
+static void LCD_init_routine(){
+	sleep_1ms(10); // recommanded waiting time is 40ms
+	LCD_switch_mode( LCD_COMMAND, LCD_WRITE );
+	LCD_output( LCD_FUNCTION_SET_P );
+	sleep_1us(50);
+	LCD_output( LCD_ON_CONTROL_P );
+	sleep_1us(50);
+	LCD_output( LCD_CLEAR_SCREEN );
+	sleep_1ms(2);
+	LCD_output( LCD_ENTRY_MODE_P );
+	sleep_1us(50);
+}
+
+// write something to the screen, this writes all ones
+static void LCD_write_something(){
+	LCD_switch_mode( LCD_DATA, LCD_WRITE );
+	LCD_output( 0x00110001 );
+	LCD_output( 0x00110001 );
+	LCD_output( 0x00110001 );
+	LCD_output( 0x00110001 );
+	LCD_output( 0x00110001 );
+	LCD_output( 0x00110001 );
+}
+
+/***************************************************
+ *		Print functions			   *
+ ***************************************************/
+
+
+// print to lcd screen, starting from the firstline
+static void LCD_print( char* a, int size ){
+	int i=0;
+	LCD_clear_screen();
+	for( i = 0; i<size; i++ ){
+		LCD_write_char(a[i]);
+	}
+}
+
+/***************************************************
+ *	Math: turning float to char		   *
+ ***************************************************/
+
+// turn to scientific notation, with 10 significant figures
+static void ftoa_sci ( float fl, char* a, int* dec ) {
 	int decimal_marker = 0;
 	int digits[4]={-1,-1,-1,-1};
 	int i = 0, j = 0;
@@ -382,23 +488,59 @@ static void display_float(float fl){
 		fl*=10;
 		decimal_marker--;
 	}
-	digits[0]=get_first_digit(fl);
-	digits[1]=get_first_digit(fl-digits[0]);
-	digits[2]=get_first_digit(fl-digits[0]-digits[1]*0.1);
-	digits[3]=get_first_digit(fl-digits[0]-digits[1]*0.1-digits[2]*0.01);
-	if( decimal_marker > 3 ){
-	} else if( decimal_marker >= 0 ){
-		for( i = 0; i < 4; i++ ){
-			display_byte[i] = seg_lookup[digits[i]];
-		}
-		display_byte[decimal_marker] = display_byte[decimal_marker] | (1<<DECIMAL_POINT_OFFSET);
-	} else if( decimal_marker >= -3 ){
-		for( i = (0-decimal_marker), j=0; i<4; i++, j++ ){
-			display_byte[i] = seg_lookup[digits[j]];
-		}
-		display_byte[0] = display_byte[0] | (1<<DECIMAL_POINT_OFFSET);
+	
+	*dec = decimal_marker;
+	
+	for( i = 0; i<10; i++ ){
+		a[i] = (char) (30+(int)(fl));
+		fl = fl*10-(int)a[i] - 30;
 	}
+
+	return;
 }
+
+// output float to char array with dynamic scaling. The output is in the form of xx.xxxk, x.xxxx or xxx.xm
+static void ftoa_tho (float fl, char* a, int size){
+	char sci_a[10];
+	int decimal_mark;
+	int num1, num2;
+	int i, j; // i represents the index of char array a, j represents the index of char array sci_a. There is a bit of shuffling here for inserting the decimal point.
+
+	ftoa_sci(fl,sci_a,&decimal_mark);
+	switch( decimal_mark ){
+		case 	-6:
+		case 	-5:
+		case	-4:	a[size-1]='u'; break;
+		case	-3:	
+		case	-2:	
+		case	-1:	a[size-1]='m';	break;
+		case	0:
+		case	1:
+		case	2:	a[size-1]=' ';	break;
+		case	3:
+		case	4:
+		case	5:	a[size-1]='k';	break;
+		default	:	a[size-1]='x'; 	break;
+	}
+	num1 = (decimal_mark+12)%3;
+	num2 = num1 +1; // the index of a where the decimal point should be.
+	for( i = size-2, j=size-3; i>=0; i--, j-- ){
+		if( i == num2 ){
+		// then we insert the decimal point
+			a[i]='.';
+			i--;
+			continue;
+		}
+		a[i]=sci_a[j];
+	}
+	return;
+}
+
+
+/***************************************************
+ *			Main			   *
+ ***************************************************/
+
 
 static void stm32_main(void) {
 	int counter_i = 0;	
@@ -613,12 +755,14 @@ static void stm32_main(void) {
 	// turn off portC pin 13, turn on pin 14, 15
 	//GPIOC_BSRR = 3 << 13;
 	//GPIOC_BSRR = 1 << (13+16);
-	GPIOC_BSRR = 1 << (14+16);
+	//GPIOC_BSRR = 1 << (14+16);
+	LCD_init_routine();
+	LCD_write_something();
 	for (;;) {
-		for( counter_i = 0; counter_i < 10; counter_i++){
+		/*for( counter_i = 0; counter_i < 10; counter_i++){
 			GPIOC_BSRR = digits[counter_i];
 			sleep_1ms(1000);
-		}
+		}*/
 		/*for( counter_i = 0; counter_i < 8; counter_i++ ){
 			GPIOC_BSRR = 1 << counter_i;
 			sleep_1ms(1000);
