@@ -45,6 +45,13 @@ template<typename T> class Predictor {
 		void lock_time(timespec ts);
 
 		/**
+		 * \brief Returns the most recent locked timestamp.
+		 *
+		 * \return the lock timestamp.
+		 */
+		timespec lock_time() const;
+
+		/**
 		 * \brief Pushes a new measurement into the prediction engine.
 		 *
 		 * \param[in] value the value to add.
@@ -112,6 +119,13 @@ class Predictor2 {
 		 * \param[in] ts the timestamp.
 		 */
 		void lock_time(timespec ts);
+
+		/**
+		 * \brief Returns the most recent locked timestamp.
+		 *
+		 * \return the lock timestamp.
+		 */
+		timespec lock_time() const;
 
 		/**
 		 * \brief Pushes a new measurement into the prediction engine.
@@ -185,6 +199,13 @@ class Predictor3 {
 		 * \param[in] ts the timestamp.
 		 */
 		void lock_time(timespec ts);
+
+		/**
+		 * \brief Returns the most recent locked timestamp.
+		 *
+		 * \return the lock timestamp.
+		 */
+		timespec lock_time() const;
 
 		/**
 		 * \brief Pushes a new measurement into the prediction engine.

@@ -59,6 +59,10 @@ template<typename T> void Predictor<T>::lock_time(timespec ts) {
 	zero_first_deriv = value(0, 1, true);
 }
 
+template<typename T> timespec Predictor<T>::lock_time() const {
+	return lock_timestamp;
+}
+
 template<typename T> void Predictor<T>::add_measurement(T value, timespec ts) {
 	filter.update(value_to_double(value), ts);
 }
@@ -88,6 +92,10 @@ std::pair<Point, Point> Predictor2::value(double delta, unsigned int deriv, bool
 void Predictor2::lock_time(timespec ts) {
 	x.lock_time(ts);
 	y.lock_time(ts);
+}
+
+timespec Predictor2::lock_time() const {
+	return x.lock_time();
 }
 
 void Predictor2::add_measurement(Point value, timespec ts) {
@@ -121,6 +129,10 @@ void Predictor3::lock_time(timespec ts) {
 	x.lock_time(ts);
 	y.lock_time(ts);
 	t.lock_time(ts);
+}
+
+timespec Predictor3::lock_time() const {
+	return x.lock_time();
 }
 
 void Predictor3::add_measurement(Point position, Angle orientation, timespec ts) {
