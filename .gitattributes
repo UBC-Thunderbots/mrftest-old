@@ -281,7 +281,6 @@ software/ai/hl/stp/play/free_kick_friendly_pass.cpp -text
 software/ai/hl/stp/play/free_kick_friendly_ray.cpp -text
 software/ai/hl/stp/play/free_kick_friendly_repel.cpp -text
 software/ai/hl/stp/play/free_kick_pass.cpp -text
-software/ai/hl/stp/play/friendly_corner_1.cpp -text
 software/ai/hl/stp/play/goal_kick_friendly.cpp -text
 software/ai/hl/stp/play/grab_ball_defensive.cpp -text
 software/ai/hl/stp/play/grab_ball_offensive.cpp -text
@@ -298,6 +297,7 @@ software/ai/hl/stp/play/offensive_block.cpp -text
 software/ai/hl/stp/play/offensive_naive.cpp -text
 software/ai/hl/stp/play/our_corner_chip.cpp -text
 software/ai/hl/stp/play/our_corner_play.cpp -text
+software/ai/hl/stp/play/our_corner_shoot.cpp -text
 software/ai/hl/stp/play/pass_defensive.cpp -text
 software/ai/hl/stp/play/pass_offensive.cpp -text
 software/ai/hl/stp/play/pass_ray.cpp -text
