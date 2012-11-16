@@ -40,6 +40,13 @@ namespace AI {
 				 */
 				void lock_time(timespec now);
 
+				/**
+				 * \brief Returns the most recent locked timestamp.
+				 *
+				 * \return the lock timestamp.
+				 */
+				timespec lock_time() const;
+
 				Point position(double delta = 0.0) const;
 				Point velocity(double delta = 0.0) const;
 				Point position_stdev(double delta = 0.0) const;

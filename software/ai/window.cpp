@@ -66,47 +66,6 @@ namespace {
 			}
 	};
 
-	class BallFilterControls : public Gtk::Frame {
-		public:
-			explicit BallFilterControls(AI::AIPackage &ai) : Gtk::Frame("Ball Filter"), ai(ai) {
-				ball_filter_chooser.append_text("<Select Ball Filter>");
-				typedef AI::BF::BallFilter::Map Map;
-				const Map &m = AI::BF::BallFilter::all();
-				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					ball_filter_chooser.append_text(i->second->name());
-				}
-				add(ball_filter_chooser);
-				ball_filter_chooser.signal_changed().connect(sigc::mem_fun(this, &BallFilterControls::on_ball_filter_chooser_changed));
-				ai.backend.ball_filter().signal_changed().connect(sigc::mem_fun(this, &BallFilterControls::on_ball_filter_changed));
-				on_ball_filter_changed();
-			}
-
-		private:
-			AI::AIPackage &ai;
-			Gtk::ComboBoxText ball_filter_chooser;
-
-			void on_ball_filter_chooser_changed() {
-				const Glib::ustring &selected = ball_filter_chooser.get_active_text();
-				typedef AI::BF::BallFilter::Map Map;
-				const Map &m = AI::BF::BallFilter::all();
-				const Map::const_iterator &i = m.find(selected.collate_key());
-				if (i != m.end()) {
-					ai.backend.ball_filter() = i->second;
-				} else {
-					ai.backend.ball_filter() = 0;
-				}
-			}
-
-			void on_ball_filter_changed() {
-				AI::BF::BallFilter *ball_filter = ai.backend.ball_filter();
-				if (ball_filter) {
-					ball_filter_chooser.set_active_text(ball_filter->name());
-				} else {
-					ball_filter_chooser.set_active_text("<Select Ball Filter>");
-				}
-			}
-	};
-
 	class HighLevelControls : public Gtk::Frame {
 		public:
 			explicit HighLevelControls(AI::AIPackage &ai) : Gtk::Frame("High Level"), ai(ai), table(2, 2), custom_controls(0) {
@@ -450,7 +409,6 @@ Window::Window(AIPackage &ai) : visualizer(ai.backend) {
 	set_title("AI");
 
 	main_vbox.pack_start(*Gtk::manage(new BasicControls(ai)), Gtk::PACK_SHRINK);
-	main_vbox.pack_start(*Gtk::manage(new BallFilterControls(ai)), Gtk::PACK_SHRINK);
 	main_vbox.pack_start(*Gtk::manage(new HighLevelControls(ai)), Gtk::PACK_EXPAND_WIDGET);
 	main_vbox.pack_start(*Gtk::manage(new NavigatorControls(ai)), Gtk::PACK_EXPAND_WIDGET);
 	main_vbox.pack_start(*Gtk::manage(new RobotControllerControls(ai)), Gtk::PACK_EXPAND_WIDGET);

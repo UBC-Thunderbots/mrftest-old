@@ -77,9 +77,9 @@ namespace AI {
 					 *
 					 * \param[in] packets the packets to extract vision data from.
 					 *
-					 * \param[in] ts the time at which the packet was received.
+					 * \param[in] ts the times at which the packets were received.
 					 */
-					void update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec &ts);
+					void update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec (&ts)[2]);
 
 					/**
 					 * \brief Locks a time for prediction across all players on the team.
@@ -127,7 +127,7 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::c
 	AI::BE::Team<TSuper>::signal_membership_changed().emit();
 }
 
-template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec &ts) {
+template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec (&ts)[2]) {
 	bool membership_changed = false;
 
 	// Update existing robots and create new robots.
@@ -153,7 +153,7 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::u
 							bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
 							Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
 							Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::HALF : Angle::ZERO)).angle_mod();
-							bot->add_field_data(pos, ori, ts);
+							bot->add_field_data(pos, ori, ts[i]);
 						} else {
 							LOG_WARN("Vision packet has robot with no orientation.");
 						}

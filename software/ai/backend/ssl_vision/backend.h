@@ -5,16 +5,25 @@
 #include "ai/backend/refbox.h"
 #include "ai/backend/clock/monotonic.h"
 #include "ai/backend/ssl_vision/vision_socket.h"
-#include "ai/ball_filter/ball_filter.h"
 #include "ai/common/playtype.h"
 #include "geom/point.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "util/dprint.h"
+#include "util/param.h"
+#include "util/time.h"
+#include <cmath>
 #include <stdexcept>
+#include <tuple>
+#include <utility>
 
 namespace AI {
 	namespace BE {
 		namespace SSLVision {
+			/**
+			 * \brief The minimum probability above which the best ball detection will be accepted.
+			 */
+			extern DoubleParam BALL_FILTER_THRESHOLD;
+
 			/**
 			 * \brief A backend whose input comes from SSL-Vision and the Referee Box (or another tool that uses the same protocol).
 			 *
@@ -52,7 +61,7 @@ namespace AI {
 					AI::BE::SSLVision::VisionSocket vision_rx;
 					timespec playtype_time;
 					Point playtype_arm_ball_position;
-					SSL_DetectionFrame detections[2];
+					std::pair<SSL_DetectionFrame, timespec> detections[2];
 
 					void tick();
 					void handle_vision_packet(const SSL_WrapperPacket &packet);
@@ -158,43 +167,57 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 			return;
 		}
 
-		// Keep a local copy of all detection frames.
-		detections[det.camera_id()].CopyFrom(det);
-
-		// Take a timestamp.
-		timespec now;
-		now = clock.now();
+		// Keep a local copy of all detection frames with timestamps.
+		detections[det.camera_id()].first.CopyFrom(det);
+		detections[det.camera_id()].second = clock.now();
 
 		// Update the ball.
 		{
-			// Build a vector of all detections so far.
-			std::vector<std::pair<double, Point> > balls;
+			// Compute the best ball position from the list of detections.
+			bool found = false;
+			double best_prob = 0.0;
+			Point best_pos;
+			timespec best_time;
 			for (unsigned int i = 0; i < 2; ++i) {
-				for (int j = 0; j < detections[i].balls_size(); ++j) {
-					const SSL_DetectionBall &b(detections[i].balls(j));
-					balls.push_back(std::make_pair(b.confidence(), Point(b.x() / 1000.0, b.y() / 1000.0)));
+				// Estimate the ball’s position at the camera frame’s timestamp.
+				double time_delta = timespec_to_double(timespec_sub(detections[i].second, ball_.lock_time()));
+				Point estimated_position = ball_.position(time_delta);
+				Point estimated_stdev = ball_.position_stdev(time_delta);
+				for (int j = 0; j < detections[i].first.balls_size(); ++j) {
+					// Compute the probability of this ball being the wanted one.
+					const SSL_DetectionBall &b(detections[i].first.balls(j));
+					Point detection_position(b.x() / 1000.0, b.y() / 1000.0);
+					Point distance_from_estimate = detection_position = estimated_position;
+					double x_var = estimated_stdev.x * estimated_stdev.x;
+					double y_var = estimated_stdev.y * estimated_stdev.y;
+					double x_prob = std::exp(-std::pow(distance_from_estimate.x, 2.0 / x_var));
+					double y_prob = std::exp(-std::pow(distance_from_estimate.y, 2.0 / y_var));
+					double prob = x_prob * y_prob * b.confidence();
+					if (prob > best_prob || !found) {
+						found = true;
+						best_prob = prob;
+						best_pos = detection_position;
+						best_time = detections[i].second;
+					}
 				}
 			}
 
-			// Execute the current ball filter.
-			Point pos;
-			if (ball_filter()) {
-				pos = ball_filter()->filter(balls, AI::BF::W::World(*this));
+			// Keep the detection if it is good enough.
+			if (best_prob >= BALL_FILTER_THRESHOLD) {
+				ball_.add_field_data(defending_end() == FieldEnd::EAST ? -best_pos : best_pos, best_time);
 			}
-
-			// Use the result.
-			ball_.add_field_data(defending_end() == FieldEnd::EAST ? -pos : pos, now);
 		}
 
 		// Update the robots.
-		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *yellow_packets[2] = { &detections[0].robots_yellow(), &detections[1].robots_yellow() };
-		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *blue_packets[2] = { &detections[0].robots_blue(), &detections[1].robots_blue() };
+		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *yellow_packets[2] = { &detections[0].first.robots_yellow(), &detections[1].first.robots_yellow() };
+		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *blue_packets[2] = { &detections[0].first.robots_blue(), &detections[1].first.robots_blue() };
+		const timespec packet_timestamps[2] = { detections[0].second, detections[1].second };
 		if (friendly_colour() == AI::Common::Colour::YELLOW) {
-			friendly_team().update(yellow_packets, now);
-			enemy_team().update(blue_packets, now);
+			friendly_team().update(yellow_packets, packet_timestamps);
+			enemy_team().update(blue_packets, packet_timestamps);
 		} else {
-			friendly_team().update(blue_packets, now);
-			enemy_team().update(yellow_packets, now);
+			friendly_team().update(blue_packets, packet_timestamps);
+			enemy_team().update(yellow_packets, packet_timestamps);
 		}
 	}
 

@@ -19,6 +19,10 @@ void Ball::lock_time(timespec now) {
 	pred.lock_time(now);
 }
 
+timespec Ball::lock_time() const {
+	return pred.lock_time();
+}
+
 Point Ball::position(double delta) const {
 	return pred.value(delta).first;
 }

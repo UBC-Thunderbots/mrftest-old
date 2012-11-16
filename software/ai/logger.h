@@ -89,7 +89,6 @@ namespace AI {
 			void on_refbox_packet(timespec ts, const void *refbox_packet, std::size_t refbox_length);
 			void on_field_changed();
 			void on_friendly_colour_changed();
-			void on_ball_filter_changed();
 			void on_high_level_changed();
 			void on_robot_controller_factory_changed();
 			void on_score_changed();

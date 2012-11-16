@@ -33,15 +33,6 @@ namespace {
 		backend.defending_end() = setup.defending_end;
 		backend.friendly_colour() = setup.friendly_colour;
 
-		if (!setup.ball_filter_name.empty()) {
-			typedef AI::BF::BallFilter::Map Map;
-			const Map &m = AI::BF::BallFilter::all();
-			const Map::const_iterator &i = m.find(setup.ball_filter_name.collate_key());
-			if (i != m.end()) {
-				backend.ball_filter() = i->second;
-			}
-		}
-
 		AI::AIPackage ai(backend);
 
 		if (!setup.high_level_name.empty()) {
@@ -209,12 +200,6 @@ namespace {
 		robot_controller_entry.set_arg_description("CONTROLLER");
 		option_group.add_entry(robot_controller_entry, setup.robot_controller_name);
 
-		Glib::OptionEntry ball_filter_entry;
-		ball_filter_entry.set_long_name("ball-filter");
-		ball_filter_entry.set_description("Selects which ball filter should be selected at startup");
-		ball_filter_entry.set_arg_description("FILTER");
-		option_group.add_entry(ball_filter_entry, setup.ball_filter_name);
-
 		Glib::OptionEntry minimize_entry;
 		minimize_entry.set_long_name("minimize");
 		minimize_entry.set_short_name('m');
@@ -258,15 +243,6 @@ namespace {
 				std::cerr << "The following robot controllers are available:\n";
 				typedef AI::RC::RobotControllerFactory::Map Map;
 				const Map &m = AI::RC::RobotControllerFactory::all();
-				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					std::cerr << i->second->name() << '\n';
-				}
-				std::cerr << '\n';
-			}
-			{
-				std::cerr << "The following ball filters are available:\n";
-				typedef AI::BF::BallFilter::Map Map;
-				const Map &m = AI::BF::BallFilter::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					std::cerr << i->second->name() << '\n';
 				}

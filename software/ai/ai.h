@@ -2,7 +2,6 @@
 #define AI_AI_H
 
 #include "ai/backend/backend.h"
-#include "ai/ball_filter/ball_filter.h"
 #include "ai/hl/hl.h"
 #include "ai/navigator/navigator.h"
 #include "ai/robot_controller/robot_controller.h"

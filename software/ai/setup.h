@@ -24,11 +24,6 @@ namespace AI {
 			Glib::ustring robot_controller_name;
 
 			/**
-			 * \brief The name of the ball filter in use.
-			 */
-			Glib::ustring ball_filter_name;
-
-			/**
 			 * \brief Which end of the field the team is defending.
 			 */
 			AI::BE::Backend::FieldEnd defending_end;

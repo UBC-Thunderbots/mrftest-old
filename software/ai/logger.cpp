@@ -86,10 +86,6 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), fos(fd.
 	}
 
 	// Write the requisite second record, config.
-	config_record.mutable_config();
-	if (ai.backend.ball_filter()) {
-		config_record.mutable_config()->set_ball_filter(ai.backend.ball_filter()->name());
-	}
 	config_record.mutable_config()->set_backend(ai.backend.factory().name());
 	if (ai.high_level.get()) {
 		config_record.mutable_config()->set_high_level(ai.high_level->factory().name());
@@ -123,7 +119,6 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), fos(fd.
 	ai.backend.signal_refbox().connect(sigc::mem_fun(this, &AI::Logger::on_refbox_packet));
 	ai.backend.field().signal_changed.connect(sigc::mem_fun(this, &AI::Logger::on_field_changed));
 	ai.backend.friendly_colour().signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_friendly_colour_changed));
-	ai.backend.ball_filter().signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_ball_filter_changed));
 	ai.robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_robot_controller_factory_changed));
 	ai.backend.friendly_team().score.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_score_changed));
 	ai.backend.enemy_team().score.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_score_changed));
@@ -285,16 +280,6 @@ void AI::Logger::on_field_changed() {
 
 void AI::Logger::on_friendly_colour_changed() {
 	config_record.mutable_config()->set_friendly_colour(Log::Util::Colour::to_protobuf(ai.backend.friendly_colour()));
-	write_record(config_record);
-}
-
-void AI::Logger::on_ball_filter_changed() {
-	AI::BF::BallFilter *ball_filter = ai.backend.ball_filter();
-	if (ball_filter) {
-		config_record.mutable_config()->set_ball_filter(ball_filter->name());
-	} else {
-		config_record.mutable_config()->clear_ball_filter();
-	}
 	write_record(config_record);
 }
 

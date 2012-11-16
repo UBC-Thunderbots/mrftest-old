@@ -185,13 +185,6 @@ namespace AI {
 				Property<AI::Common::PlayType> &playtype_override();
 
 				/**
-				 * \brief Returns or allows setting the ball filter being used.
-				 *
-				 * \return the ball filter being used.
-				 */
-				Property<AI::BF::BallFilter *> &ball_filter();
-
-				/**
 				 * \brief Returns a signal that fires once per AI tick.
 				 *
 				 * \return the timer signal.
@@ -290,7 +283,6 @@ namespace AI {
 				Property<FieldEnd> defending_end_;
 				Property<AI::Common::Colour> friendly_colour_;
 				Property<AI::Common::PlayType> playtype_, playtype_override_;
-				Property<AI::BF::BallFilter *> ball_filter_;
 				mutable sigc::signal<void> signal_tick_;
 				mutable sigc::signal<void, unsigned int> signal_post_tick_;
 				mutable sigc::signal<void, timespec, const SSL_WrapperPacket &> signal_vision_;
@@ -349,10 +341,6 @@ inline const Property<AI::Common::PlayType> &AI::BE::Backend::playtype() const {
 
 inline Property<AI::Common::PlayType> &AI::BE::Backend::playtype_override() {
 	return playtype_override_;
-}
-
-inline Property<AI::BF::BallFilter *> &AI::BE::Backend::ball_filter() {
-	return ball_filter_;
 }
 
 inline sigc::signal<void, unsigned int> &AI::BE::Backend::signal_post_tick() const {
