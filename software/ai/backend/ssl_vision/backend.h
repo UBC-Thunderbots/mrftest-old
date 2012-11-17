@@ -188,10 +188,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 					const SSL_DetectionBall &b(detections[i].first.balls(j));
 					Point detection_position(b.x() / 1000.0, b.y() / 1000.0);
 					Point distance_from_estimate = detection_position - estimated_position;
-					double x_var = estimated_stdev.x * estimated_stdev.x;
-					double y_var = estimated_stdev.y * estimated_stdev.y;
-					double x_prob = std::exp(-std::pow(distance_from_estimate.x, 2.0 / x_var));
-					double y_prob = std::exp(-std::pow(distance_from_estimate.y, 2.0 / y_var));
+					double x_prob = std::exp(-std::pow(distance_from_estimate.x / estimated_stdev.x, 2.0));
+					double y_prob = std::exp(-std::pow(distance_from_estimate.y / estimated_stdev.y, 2.0));
 					double prob = x_prob * y_prob * b.confidence();
 					if (prob > best_prob || !found) {
 						found = true;
