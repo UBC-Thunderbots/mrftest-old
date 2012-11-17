@@ -187,7 +187,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 					// Compute the probability of this ball being the wanted one.
 					const SSL_DetectionBall &b(detections[i].first.balls(j));
 					Point detection_position(b.x() / 1000.0, b.y() / 1000.0);
-					Point distance_from_estimate = detection_position = estimated_position;
+					Point distance_from_estimate = detection_position - estimated_position;
 					double x_var = estimated_stdev.x * estimated_stdev.x;
 					double y_var = estimated_stdev.y * estimated_stdev.y;
 					double x_prob = std::exp(-std::pow(distance_from_estimate.x, 2.0 / x_var));
