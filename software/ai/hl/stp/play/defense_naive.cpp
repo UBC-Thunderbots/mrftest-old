@@ -5,7 +5,6 @@
 
 using AI::HL::STP::Coordinate;
 
-#warning Consider retiring this play
 BEGIN_PLAY(DNaive)
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3) && num_of_enemies_on_our_side_at_least(world, 1))
 APPLICABLE(defensive(world) && !ball_in_our_corner(world))
@@ -26,15 +25,15 @@ roles[1].push_back(defend_duo_defender(world));
 
 // ROLE 3 (optional)
 // defend line 1
-roles[2].push_back(tdefend_line(world, Coordinate(world, Point(-1.1, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-0.7, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.2));
+roles[2].push_back(tdefend_line(world, Coordinate(world, Point(-1.1, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-0.7, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 1.5));
 
 // ROLE 4 (optional)
 // defend line 2
-roles[3].push_back(tdefend_line(world, Coordinate(world, Point(-1.1, 0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-0.7, -0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.2));
+roles[3].push_back(tdefend_line(world, Coordinate(world, Point(-1.1, 0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-0.7, -0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 1.5));
 
 // ROLE 5 (optional)
 // offend
-roles[4].push_back(offend(world));
+roles[4].push_back(defend_duo_extra1(world));
 
 END_ASSIGN()
 END_PLAY()
