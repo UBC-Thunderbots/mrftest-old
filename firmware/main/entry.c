@@ -66,21 +66,18 @@ void prepare_mrf_mhr(uint8_t payload_length) {
 }
 
 static void send_feedback_packet(void) {
-	prepare_mrf_mhr(10);
+	prepare_mrf_mhr(8);
 
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 11, 0x00); // General robot status update
 	uint16_t adc_value = read_main_adc(BATT_VOLT);
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 12, adc_value); // Battery voltage LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 13, adc_value >> 8); // Battery voltage MSB
-	adc_value = read_chicker_adc();
+	adc_value = read_main_adc(CHICKER);
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 14, adc_value); // Capacitor voltage LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 15, adc_value >> 8); // Capacitor voltage MSB
 	uint16_t breakbeam_value = read_main_adc(BREAKBEAM);
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 16, breakbeam_value); // Break beam reading LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 17, breakbeam_value >> 8); // Break beam reading MSB
-	adc_value = read_main_adc(THERMISTOR);
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 18, adc_value); // Thermistor reading LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 19, adc_value >> 8); // Thermistor reading MSB
 	uint8_t flags = 0;
 	if (breakbeam_value > BREAKBEAM_THRESHOLD) {
 		flags |= 0x01;
@@ -91,7 +88,7 @@ static void send_feedback_packet(void) {
 	if (is_charge_timeout()) {
 		flags |= 0x04;
 	}
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 20, flags); // Flags
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 18, flags); // Flags
 
 	mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
 
@@ -166,7 +163,6 @@ static void handle_radio_receive(void) {
 							set_charge_mode(true);
 							break;
 					}
-					outb(BREAK_BEAM_CTL, 1);
 				}
 			} else if (frame_length >= HEADER_LENGTH + 1 + FOOTER_LENGTH) {
 				// Non-broadcast frame contains a message specifically for this robot

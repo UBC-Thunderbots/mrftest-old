@@ -210,21 +210,6 @@ typedef enum {
 	ADC_MSB = 0x10,
 
 	/**
-	 * \brief Reports chicker analogue-to-digital converter readings
-	 *
-	 * A write to this register snapshots the most recent conversion result.
-	 * A read from this register returns the LSB of the snapshot value.
-	 */
-	CHICKER_ADC_LSB = 0x11,
-
-	/**
-	 * \brief Reports chicker analogue-to-digital converter readings
-	 *
-	 * A read from this register returns the MSB of the snapshot value taken by a write to \ref CHICKER_ADC_LSB.
-	 */
-	CHICKER_ADC_MSB = 0x12,
-
-	/**
 	 * \brief Controls and reports on the chicker subsystem
 	 *
 	 * Bits:
@@ -300,21 +285,11 @@ typedef enum {
 	MRF_DATA = 0x19,
 
 	/**
-	 * \brief Controls the break beam LED
-	 *
-	 * Bits:
-	 * 7–1: Reserved
-	 * 0 (R/W) [0]: LED drive; 1 = LED on, 0 = LED off
-	 */
-	BREAK_BEAM_CTL = 0x1A,
-
-	/**
 	 * \brief Controls the lateral position sensor
 	 *
 	 * Bits:
-	 * 7–2: Reserved
-	 * 1 (R/W) [1]: Reset LPS; 1 = hold in reset, 0 = release from reset
-	 * 0 (R/W) [0]: Clock LPS; 1 = clock high, 0 = clock low
+	 * 7–4: Reserved
+	 * 3–0 (R/W) [0]: Drive LPS LEDs; 1 = LED lit, 0 = LED dark
 	 */
 	LPS_CTL = 0x1B,
 
@@ -346,7 +321,7 @@ typedef enum {
 	 */
 	LFSR = 0x24,
 
-	/**
+ 	/**
 	 * \brief Controls and reports the status of the debug port
 	 *
 	 * The debug port must not be enabled unless the flash memory SPI port is idle and chip select is deasserted.
