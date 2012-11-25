@@ -6,7 +6,7 @@
 using namespace AI::HL::STP;
 
 namespace {
-	DoubleParam repel_dist("Distance the defender should repel the ball in robot radius", "STP/Action/defend", 4.0, 1.0, 6.0);
+	DoubleParam repel_dist("Distance the defender should repel the ball in robot radius", "STP/Action/defend", 3.0, 2.0, 6.0);
 }
 
 void AI::HL::STP::Action::defender_move(World world, Player player, const Point dest) {
