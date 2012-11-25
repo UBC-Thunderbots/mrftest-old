@@ -106,8 +106,7 @@ void TDefendLine::execute() {
 	Point target, velocity;
 	Angle angle;
 
-	Point v[2] = { p1.position(), p2.position() };
-	
+	Point v[2] = { p1.position(), p2.position() }; 
 	velocity = Point(0, 0);
 
 	//Point mypos = player.position();
@@ -117,7 +116,8 @@ void TDefendLine::execute() {
 	// Angle
 	angle = (ball - target).orientation();
 
-	player.move(target, angle, velocity);
+	//player.move(target, angle, velocity);
+	Action::defender_move(world, player, target);
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::tgoalie(World world, const size_t defender_role) {
