@@ -4,6 +4,7 @@
 #include <exception>
 #include <iostream>
 #include <locale>
+#include <typeinfo>
 #include <glibmm/exception.h>
 #include <glibmm/main.h>
 #include <glibmm/optioncontext.h>
@@ -100,9 +101,9 @@ int main(int argc, char **argv) {
 	try {
 		return main_impl(argc, argv);
 	} catch (const Glib::Exception &exp) {
-		std::cerr << exp.what() << '\n';
+		std::cerr << typeid(exp).name() << ": " << exp.what() << '\n';
 	} catch (const std::exception &exp) {
-		std::cerr << exp.what() << '\n';
+		std::cerr << typeid(exp).name() << ": " << exp.what() << '\n';
 	} catch (...) {
 		std::cerr << "Unknown error!\n";
 	}

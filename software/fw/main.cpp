@@ -7,6 +7,7 @@
 #include <iostream>
 #include <locale>
 #include <string>
+#include <typeinfo>
 #include <glibmm/exception.h>
 #include <glibmm/optioncontext.h>
 #include <glibmm/optionentry.h>
@@ -170,9 +171,9 @@ int main(int argc, char **argv) {
 	try {
 		return main_impl(argc, argv);
 	} catch (const Glib::Exception &exp) {
-		std::cerr << exp.what() << '\n';
+		std::cerr << typeid(exp).name() << ": " << exp.what() << '\n';
 	} catch (const std::exception &exp) {
-		std::cerr << exp.what() << '\n';
+		std::cerr << typeid(exp).name() << ": " << exp.what() << '\n';
 	} catch (...) {
 		std::cerr << "Unknown error!\n";
 	}

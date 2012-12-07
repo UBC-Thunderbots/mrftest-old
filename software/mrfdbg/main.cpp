@@ -5,6 +5,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <typeinfo>
 #include <vector>
 
 namespace {
@@ -149,7 +150,7 @@ int main() {
 	try {
 		return main_impl();
 	} catch (const std::exception &exp) {
-		std::cerr << exp.what() << '\n';
+		std::cerr << typeid(exp).name() << ": " << exp.what() << '\n';
 	} catch (...) {
 		std::cerr << "Unknown error!\n";
 	}

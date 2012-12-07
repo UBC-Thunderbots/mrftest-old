@@ -17,6 +17,7 @@
 #include <locale>
 #include <stdexcept>
 #include <stdint.h>
+#include <typeinfo>
 #include <vector>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/dialog.h>
