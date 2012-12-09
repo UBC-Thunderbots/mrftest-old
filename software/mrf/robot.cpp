@@ -118,15 +118,14 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 				// General robot status update
 				++bptr;
 				--len;
-				if (len == 9) {
+				if (len == 7) {
 					alive = true;
-					battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1024.0 * 3.3 / 3300 * (3300 + 15000);
-					capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 4096.0 * 3.3 / 2200 * (2200 + 220000);
+					battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 20000);
+					capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 200000);
 					break_beam_reading = bptr[4] | static_cast<unsigned int>(bptr[5] << 8);
-					dribbler_temperature = (bptr[6] | (bptr[7] << 8)) * 0.5735 - 205.9815;
-					ball_in_beam = !!(bptr[8] & 0x01);
-					capacitor_charged = !!(bptr[8] & 0x02);
-					charge_timeout_message.active(!!(bptr[8] & 0x04));
+					ball_in_beam = !!(bptr[6] & 0x01);
+					capacitor_charged = !!(bptr[6] & 0x02);
+					charge_timeout_message.active(!!(bptr[6] & 0x04));
 				} else {
 					LOG_ERROR(Glib::ustring::compose(u8"Received general robot status update with wrong byte count %1", len));
 				}
