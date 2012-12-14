@@ -70,7 +70,8 @@ typedef enum {
 	 * \brief Controls power to various parts of the robot
 	 *
 	 * Bits:
-	 * 7–3: Reserved
+	 * 7–4: Reserved
+	 * 3 (R/W) [0]: Chicker emergency relay; 1 = ADC, 0 = drain
 	 * 2 (R/W) [0]: Chicker power; 1 = run, 0 = power down
 	 * 1 (R/W) [0]: Motor power; 1 = run, 0 = power down
 	 * 0 (R/W) [1]: Logic power; 1 = run, 0 = power down
