@@ -58,21 +58,38 @@ void mrf_write_long(uint16_t reg, uint8_t value) {
 }
 
 void mrf_common_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint64_t mac_address) {
-	mrf_write_short(MRF_REG_SHORT_SOFTRST, 0x07);
-	mrf_write_short(MRF_REG_SHORT_PACON2, 0x98);
-	mrf_write_short(MRF_REG_SHORT_TXSTBL, 0x95);
-	mrf_write_long(MRF_REG_LONG_RFCON0, 0x03);
-	mrf_write_long(MRF_REG_LONG_RFCON1, 0x02);
-	mrf_write_long(MRF_REG_LONG_RFCON2, 0x80);
-	mrf_write_long(MRF_REG_LONG_RFCON6, 0x90);
-	mrf_write_long(MRF_REG_LONG_RFCON7, 0x80);
-	mrf_write_long(MRF_REG_LONG_RFCON8, 0x10);
-	mrf_write_long(MRF_REG_LONG_SLPCON0, 0x03);
-	mrf_write_long(MRF_REG_LONG_SLPCON1, 0x21);
-	mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x61);
-	mrf_write_short(MRF_REG_SHORT_BBREG2, 0x80);
-	mrf_write_short(MRF_REG_SHORT_CCAEDTH, 0x60);
-	mrf_write_short(MRF_REG_SHORT_BBREG6, 0x40);
+	struct init_elt_long {
+		uint16_t address;
+		uint8_t data;
+	};
+	struct init_elt_short {
+		uint8_t address;
+		uint8_t data;
+	};
+	static const struct init_elt_long INIT_ELTS1[] = {
+		{ MRF_REG_SHORT_SOFTRST, 0x07 },
+		{ MRF_REG_SHORT_PACON2, 0x98 },
+		{ MRF_REG_SHORT_TXSTBL, 0x95 },
+		{ MRF_REG_LONG_RFCON0, 0x03 },
+		{ MRF_REG_LONG_RFCON1, 0x02 },
+		{ MRF_REG_LONG_RFCON2, 0x80 },
+		{ MRF_REG_LONG_RFCON6, 0x90 },
+		{ MRF_REG_LONG_RFCON7, 0x80 },
+		{ MRF_REG_LONG_RFCON8, 0x10 },
+		{ MRF_REG_LONG_SLPCON0, 0x03 },
+		{ MRF_REG_LONG_SLPCON1, 0x21 },
+		{ MRF_REG_SHORT_RXFLUSH, 0x61 },
+		{ MRF_REG_SHORT_BBREG2, 0x80 },
+		{ MRF_REG_SHORT_CCAEDTH, 0x60 },
+		{ MRF_REG_SHORT_BBREG6, 0x40 },
+	};
+	for (uint8_t i = 0; i < sizeof(INIT_ELTS1) / sizeof(*INIT_ELTS1); ++i) {
+		if (INIT_ELTS1[i].address >= 0x200) {
+			mrf_write_long(INIT_ELTS1[i].address, INIT_ELTS1[i].data);
+		} else {
+			mrf_write_short(INIT_ELTS1[i].address, INIT_ELTS1[i].data);
+		}
+	}
 	mrf_write_long(MRF_REG_LONG_RFCON0, ((channel - 0x0B) << 4) | 0x03);
 	mrf_write_short(MRF_REG_SHORT_RFCTL, 0x04);
 	mrf_write_short(MRF_REG_SHORT_RFCTL, 0x00);
@@ -85,14 +102,10 @@ void mrf_common_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint64_
 	}
 	mrf_write_short(MRF_REG_SHORT_PANIDL, pan_id);
 	mrf_write_short(MRF_REG_SHORT_PANIDH, pan_id >> 8);
-	mrf_write_short(MRF_REG_SHORT_EADR0, mac_address);
-	mrf_write_short(MRF_REG_SHORT_EADR1, mac_address >> 8);
-	mrf_write_short(MRF_REG_SHORT_EADR2, mac_address >> 16);
-	mrf_write_short(MRF_REG_SHORT_EADR3, mac_address >> 24);
-	mrf_write_short(MRF_REG_SHORT_EADR4, mac_address >> 32);
-	mrf_write_short(MRF_REG_SHORT_EADR5, mac_address >> 40);
-	mrf_write_short(MRF_REG_SHORT_EADR6, mac_address >> 48);
-	mrf_write_short(MRF_REG_SHORT_EADR7, mac_address >> 56);
+	for (uint8_t i = 0; i < 8; ++i) {
+		mrf_write_short(MRF_REG_SHORT_EADR0 + i, mac_address);
+		mac_address >>= 8;
+	}
 	mrf_analogue_off();
 	mrf_write_short(MRF_REG_SHORT_TRISGPIO, 0x3F);
 }
