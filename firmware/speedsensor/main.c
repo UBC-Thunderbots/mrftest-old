@@ -542,7 +542,8 @@ static void ftoa_sci ( float fl, char* a, int* dec ) {
 	a[0] = (char)ftoi_single(fl);
 	a[0] += 48;
 	fl = (fl-ftoi_single(fl))*10;
-	
+	a[1] = (char)ftoi_single(fl);
+	a[1] += 48;
 	
 	//a[0]='i';
 
@@ -815,14 +816,14 @@ static void stm32_main(void) {
 	//GPIOC_BSRR = 1 << (14+16);
 	LCD_init_routine();
 	//LCD_write_something();
-	ftoa_sci( 1.2, buffer, ptr );
+	ftoa_sci( test_num, buffer, ptr );
 	//sprintf( buffer, "%f", num );
 	/*buffer[0]=0b00110000;
 	buffer[1]=0b00110001;
 	buffer[2]=0b00110010;
 	buffer[3]=0b00110011;*/
 	LCD_print( buffer, 1 );
-	//LCD_write( ftoi_single(1.2)+48 );
+	//LCD_write( ftoi_single(1.234)+48 );
 	for (;;) {
 		/*for( counter_i = 0; counter_i < 10; counter_i++){
 			GPIOC_BSRR = digits[counter_i];
