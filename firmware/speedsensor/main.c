@@ -289,6 +289,8 @@ extern unsigned char linker_bss_vma_end;
  *    		 	Timing Functions		   *
  ***********************************************************/
 
+volatile unsigned char wrap_count;
+
 static void tic_toc_setup(void){
 	rcc_enable(APB1, 0);
 	//           /
@@ -363,11 +365,12 @@ static void toc(void){
  ***********************************************************/
 
 // pin assignment
-#define PIN_E 13
+#define PIN_E 15
 #define PIN_RW 14
-#define PIN_RS 15
+#define PIN_RS 13
 
 // line states
+#define LCD_READ true
 #define LCD_WRITE false
 #define LCD_COMMAND false
 #define LCD_DATA true
@@ -411,50 +414,69 @@ static void LCD_switch_mode( bool signal_rs, bool signal_rw ){
 	PORTC_config_bit( PIN_RW, signal_rw );
 }
 
-// write command
-static void LCD_output( unsigned int command ){
+// write 
+static void LCD_write( char a ){
+	PORTC_set_first_byte( a );
+	LCD_switch_mode( LCD_DATA, LCD_WRITE );
 	PORTC_config_bit( PIN_E, true );
-	PORTC_set_first_byte( command );
+	sleep_1us(1);
+	PORTC_config_bit( PIN_E, false );
+	sleep_1us(50);
+}
+
+static void LCD_command( char a ){
+	PORTC_set_first_byte( a );
+	LCD_switch_mode( LCD_COMMAND, LCD_WRITE );
+	PORTC_config_bit( PIN_E, true );
 	sleep_1us(1);
 	PORTC_config_bit( PIN_E, false );
 	sleep_1us(1);
-}
-
-// write char to screen
-static void LCD_write_char( char a ){
-	LCD_switch_mode( LCD_DATA, LCD_WRITE );
-	LCD_output( a );
-}
-
-// clear screen
-static void LCD_clear_screen(){
-	LCD_switch_mode( LCD_COMMAND, LCD_WRITE );
-	LCD_output( LCD_CLEAR_SCREEN );
+	
 }
 
 // initialize screen
 static void LCD_init_routine(){
-	sleep_1ms(10); // recommanded waiting time is 40ms
-	LCD_switch_mode( LCD_COMMAND, LCD_WRITE );
-	LCD_output( LCD_FUNCTION_SET_P );
+	sleep_1ms(500); // recommanded waiting time is 40ms
+	LCD_command( 0x30 );
+	sleep_1us(30);
+	LCD_command( 0x30 );
+	sleep_1us(10);
+	LCD_command( 0x30 );
+	sleep_1us(10);
+	LCD_command( 0x38 ); // function set
 	sleep_1us(50);
-	LCD_output( LCD_ON_CONTROL_P );
+	LCD_command( 0x1c ); // set cursor
 	sleep_1us(50);
-	LCD_output( LCD_CLEAR_SCREEN );
+	LCD_command( 0x0c ); // display on, cursor on
+	sleep_1us(50);
+	LCD_command( 0x06 ); // entry mode set
+	sleep_1us(50);
+	LCD_command( 0x02 ); // return home
 	sleep_1ms(2);
-	LCD_output( LCD_ENTRY_MODE_P );
+/*	sleep_1us(50);
+	LCD_command( LCD_ON_CONTROL_P );
 	sleep_1us(50);
+	LCD_command( LCD_CLEAR_SCREEN );
+	sleep_1ms(2);
+	LCD_command( LCD_ENTRY_MODE_P );
+*/	sleep_1us(50);
 }
 
 // write something to the screen, this writes all ones
 static void LCD_write_something(){
-	LCD_switch_mode( LCD_DATA, LCD_WRITE );
-	LCD_output( 0x00110001 );
-	LCD_output( 0x00110001 );
-	LCD_output( 0x00110001 );
-	LCD_output( 0x00110001 );
-	LCD_output( 0x00110001 );
-	LCD_output( 0x00110001 );
+	LCD_write( '1' );
+	LCD_write( '2' );
+	LCD_write( '3' );
+	LCD_write( 'A' );
+	LCD_write( 'B' );
+	LCD_write( 'C' );
+}
+
+static void LCD_print( char* a, unsigned int size ){
+	unsigned int i = 0;
+	for( i = 0; i < size; i++){
+		LCD_write( a[i] );
+	}
 }
 
 /***************************************************
@@ -463,38 +485,66 @@ static void LCD_write_something(){
 
 
 // print to lcd screen, starting from the firstline
-static void LCD_print( char* a, int size ){
+/*static void LCD_print( char* a, int size ){
 	int i=0;
 	LCD_clear_screen();
 	for( i = 0; i<size; i++ ){
 		LCD_write_char(a[i]);
 	}
-}
+}*/
 
 /***************************************************
  *	Math: turning float to char		   *
  ***************************************************/
 
+char buffer[10];
+
+static int ftoi_single ( float fl ){
+	static int i = 0;
+	for( i = 1; i < 10; i++ ){
+		if( fl < i ){
+			return i-1;
+		}
+	}
+	return 0;
+}
+
 // turn to scientific notation, with 10 significant figures
 static void ftoa_sci ( float fl, char* a, int* dec ) {
-	int decimal_marker = 0;
-	int digits[4]={-1,-1,-1,-1};
-	int i = 0, j = 0;
-	while( fl >= 10 ){
-		fl*=0.1;
+	//static const int SIGFIG = 5;
+	static unsigned int decimal_marker = 0;
+	static int digit = 0;
+	//int digits[4]={-1,-1,-1,-1};
+	static unsigned int i = 0, j = 0;
+	/*while (fl > 10){
+		fl=fl/10;
 		decimal_marker++;
-	}
-	while( fl < 1 ){
-		fl*=10;
-		decimal_marker--;
-	}
+	}*/
+
+	/*for( i = 0; i< 5; i++ ){
+		if( fl > 1){
+			break;
+		}
+		fl=fl*0.1;
+		decimal_marker++;
+	}*/
 	
-	*dec = decimal_marker;
+	/*if( dec != 0 ){
+		*dec = decimal_marker;
+	}*/
 	
-	for( i = 0; i<10; i++ ){
-		a[i] = (char) (30+(int)(fl));
-		fl = fl*10-(int)a[i] - 30;
-	}
+
+	/*if( i == decimal_marker ){
+		a[i] = ',';
+		i++;
+	}*/
+
+	a[0] = (char)ftoi_single(fl);
+	a[0] += 48;
+	fl = (fl-ftoi_single(fl))*10;
+	
+	
+	//a[0]='i';
 
 	return;
 }
@@ -541,6 +591,11 @@ static void ftoa_tho (float fl, char* a, int size){
  *			Main			   *
  ***************************************************/
 
+
+char test_c[]={'1','2','3','4','a'};
+char* char_ptr = &buffer[0];
+float test_num = 1.234;
+int* ptr = 0;
 
 static void stm32_main(void) {
 	int counter_i = 0;	
@@ -732,14 +787,16 @@ static void stm32_main(void) {
 	EXTI_FTSR= 0b1111000000000000;
 	//NVIC_ISER[40 / 32] = 1 << (40 % 32); // SETENA67 = 1; enable USB FS interrupt
 
+	PORTC_config_bit( PIN_E, false ); 
+
 
 	// Wait a bit
 	sleep_1ms(100);
 
 	// Turn on LED
-	GPIOB_BSRR = 3;
-	sleep_1ms(1000);
-	//GPIOB_BSRR = (3<< 16);
+	GPIOB_BSRR = 2;
+	//sleep_1ms(1000);
+	GPIOB_BSRR = (1<< 16);
 	//sleep_1ms(10);
 
 	// Initialize USB
@@ -757,7 +814,15 @@ static void stm32_main(void) {
 	//GPIOC_BSRR = 1 << (13+16);
 	//GPIOC_BSRR = 1 << (14+16);
 	LCD_init_routine();
-	LCD_write_something();
+	//LCD_write_something();
+	ftoa_sci( 1.2, buffer, ptr );
+	//sprintf( buffer, "%f", num );
+	/*buffer[0]=0b00110000;
+	buffer[1]=0b00110001;
+	buffer[2]=0b00110010;
+	buffer[3]=0b00110011;*/
+	LCD_print( buffer, 1 );
+	//LCD_write( ftoi_single(1.2)+48 );
 	for (;;) {
 		/*for( counter_i = 0; counter_i < 10; counter_i++){
 			GPIOC_BSRR = digits[counter_i];
