@@ -6,6 +6,11 @@
 
 void *memcpy(void *dest, const void *src, size_t n);
 void *memset(void *s, int c, size_t n);
+void formatuint1(char *dest, uint8_t val);
+void formatuint2(char *dest, uint8_t val);
+void formatuint4(char *dest, uint16_t val);
+void formatuint8(char *dest, uint32_t val);
+void formatuint16(char *dest, uint32_t val);
 void formathex4(char *dest, uint8_t val);
 void formathex8(char *dest, uint8_t val);
 void formathex16(char *dest, uint16_t val);

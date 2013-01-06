@@ -22,6 +22,8 @@ int digits[10]={	BIT_ACCESS(0b01011111),	// 0
 			BIT_ACCESS(0b11000111),	// 9
 };
 
+volatile uint8_t G_status = 0; // 1 for first triggered, 2 for second triggered, 0 for last wrap_count is output to screen
+
 static void stm32_main(void) __attribute__((noreturn));
 static void nmi_vector(void);
 static void hard_fault_vector(void);
@@ -35,6 +37,11 @@ static void external_interrupt_15_10_vector(void);
 static void timer2_wrap_interrupt(void);
 
 static void display( float );
+static void LCD_write( char a );
+
+static void tic(void);
+static void toc(void);
+
 
 static char stack[65536] __attribute__((section(".stack")));
 
@@ -109,13 +116,32 @@ static void external_interrupt_15_10_vector(void){
 	// Take one of the interrupt to clear every thing and start the timer, set status_timer_on to on.
 	// Take the other interrupt to stop the timer and update display
 
-	if( EXTI_PR & (1<<15)){
-		EXTI_PR = 1<<15;
-		if( GPIOB_ODR & 3 ){
-			GPIOB_BSRR = 3<<16;
+	if( EXTI_PR & (1<<12)){
+		EXTI_PR = 1<<12;
+		if( GPIOB_ODR & 1 ){
+			GPIOB_BSRR = 1<<16;
 		} else {
-			GPIOB_BSRR = 3;
+			GPIOB_BSRR = 1;
 		}
+		if( G_status == 0 ){
+			G_status = 1;
+			tic();
+		}
+		//tic();
+	}
+
+	if( EXTI_PR & (1<<13)){
+		EXTI_PR = 1<<13;
+		if( GPIOB_ODR & 2 ){
+			GPIOB_BSRR = 2<<16;
+		} else {
+			GPIOB_BSRR = 2;
+		}
+		if( G_status == 1 ){
+			G_status = 2;
+			toc();
+		}
+		//toc();
 	}
 	
 }
@@ -289,7 +315,7 @@ extern unsigned char linker_bss_vma_end;
  *    		 	Timing Functions		   *
  ***********************************************************/
 
-volatile unsigned char wrap_count;
+volatile uint32_t wrap_count;
 
 static void tic_toc_setup(void){
 	rcc_enable(APB1, 0);
@@ -497,7 +523,7 @@ static void LCD_print( char* a, unsigned int size ){
  *	Math: turning float to char		   *
  ***************************************************/
 
-char buffer[10];
+
 
 static int ftoi_single ( float fl ){
 	static int i = 0;
@@ -542,8 +568,6 @@ static void ftoa_sci ( float fl, char* a, int* dec ) {
 	a[0] = (char)ftoi_single(fl);
 	a[0] += 48;
 	fl = (fl-ftoi_single(fl))*10;
-	a[1] = (char)ftoi_single(fl);
-	a[1] += 48;
 	
 	//a[0]='i';
 
@@ -592,14 +616,20 @@ static void ftoa_tho (float fl, char* a, int size){
  *			Main			   *
  ***************************************************/
 
-
+/*char buffer[10];
 char test_c[]={'1','2','3','4','a'};
 char* char_ptr = &buffer[0];
 float test_num = 1.234;
-int* ptr = 0;
+int* ptr = 0;*/
 
 static void stm32_main(void) {
-	int counter_i = 0;	
+	int counter_i = 0;
+	char buffer[10];
+	char test_c[]={'1','2','3','4','a'};
+	char* char_ptr = &buffer[0];
+	//float test_num = 1.234;
+	int* ptr = 0;	
+	uint32_t test_num = 123456;
 
 	// Check if we're supposed to go to the bootloader
 	uint32_t rcc_csr_shadow = RCC_CSR; // Keep a copy of RCC_CSR
@@ -725,12 +755,13 @@ static void stm32_main(void) {
 	// PA3 = shorted to VSS
 	// PA2 = alternate function TIM2 buzzer
 	// PA1/PA0 = shorted to VDD
-	GPIOA_ODR = 0b0000000000000000;
+	GPIOA_ODR = 0b0000000011110000;
+	//               5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 
 	GPIOA_OSPEEDR=0b00000000000000000000000000000000;
 	GPIOA_PUPDR = 0b00000000000000000000000000000000;
 	GPIOA_AFRH =  0b00000000000000000000000000000000;
 	GPIOA_AFRL =  0b00000000000000000000000000000000;
-	GPIOA_MODER = 0b00000000000000000000000000000000;
+	GPIOA_MODER = 0b00000000000000000101010100000000;
 	// PB15 = N/C
 	// PB14 = LED 3
 	// PB13 = LED 2
@@ -784,9 +815,11 @@ static void stm32_main(void) {
 	SYSCFG_EXTICR[3] = 0b0001000100010001;
 	rcc_disable(APB2, 14);
 	//           ooo|ooo|ooo|ooo|
-	EXTI_IMR = 0b1111000000000000;
-	EXTI_FTSR= 0b1111000000000000;
-	//NVIC_ISER[40 / 32] = 1 << (40 % 32); // SETENA67 = 1; enable USB FS interrupt
+	EXTI_IMR = 0b0011000000000000;
+	EXTI_FTSR= 0b0011000000000000;
+	NVIC_ISER[40 / 32] = 1 << (40 % 32); 
+
+// SETENA67 = 1; enable USB FS interrupt
 
 	PORTC_config_bit( PIN_E, false ); 
 
@@ -794,11 +827,7 @@ static void stm32_main(void) {
 	// Wait a bit
 	sleep_1ms(100);
 
-	// Turn on LED
-	GPIOB_BSRR = 2;
-	//sleep_1ms(1000);
-	GPIOB_BSRR = (1<< 16);
-	//sleep_1ms(10);
+	
 
 	// Initialize USB
 	//usb_ep0_set_global_callbacks(&DEVICE_CBS);
@@ -808,7 +837,9 @@ static void stm32_main(void) {
 
 	// Handle activity
 	tic_toc_setup();
-	tic();
+	/*tic();
+	sleep_1ms(3000);
+	toc();*/
 
 	// turn off portC pin 13, turn on pin 14, 15
 	//GPIOC_BSRR = 3 << 13;
@@ -816,14 +847,16 @@ static void stm32_main(void) {
 	//GPIOC_BSRR = 1 << (14+16);
 	LCD_init_routine();
 	//LCD_write_something();
-	ftoa_sci( test_num, buffer, ptr );
-	//sprintf( buffer, "%f", num );
-	/*buffer[0]=0b00110000;
-	buffer[1]=0b00110001;
-	buffer[2]=0b00110010;
-	buffer[3]=0b00110011;*/
-	LCD_print( buffer, 1 );
+	formatuint8( buffer, wrap_count );
+	LCD_print( buffer, 8 );
+	//LCD_print( test_c, 5 );
 	//LCD_write( ftoi_single(1.234)+48 );
+
+	// Turn on LED
+	GPIOB_BSRR = 2;
+	//sleep_1ms(1000);
+	GPIOB_BSRR = (1<< 16);
+	//sleep_1ms(10);
 	for (;;) {
 		/*for( counter_i = 0; counter_i < 10; counter_i++){
 			GPIOC_BSRR = digits[counter_i];
@@ -840,12 +873,22 @@ static void stm32_main(void) {
 			GPIOB_BSRR = (3<<16);
 			toc();
 		}*/
-		/*if(GPIOB_IDR & (1<<15)) {
+		/*if(GPIOB_IDR & (1<<12)) {
 			GPIOB_BSRR = (3);
 		} else {
 			GPIOB_BSRR = (3 << 16);
+		}*/
+		if( G_status == 2 ){
+			if( wrap_count != 0 ){
+				formatuint8( buffer, 1716000/wrap_count );
+				LCD_command( 0x02 ); // return home
+				sleep_1ms(2) ;
+				LCD_print( buffer, 8 );
+			}
+			G_status = 0;
+
 		}
-		sleep_1ms(1);*/
+		sleep_1ms(1);
 	}
 }
 
