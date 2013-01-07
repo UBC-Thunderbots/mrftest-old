@@ -24,6 +24,13 @@ static inline void power_enable_chicker(void) {
 }
 
 /**
+ * \brief Enables power to the laser
+ */
+static inline void power_enable_laser(void) {
+	outb(POWER_CTL, inb(POWER_CTL) | 0x08);
+}
+
+/**
  * \brief Reboots the FPGA
  */
 void power_reboot(void) __attribute__((noreturn));

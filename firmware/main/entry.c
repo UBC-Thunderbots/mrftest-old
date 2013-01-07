@@ -346,6 +346,9 @@ static void avr_main(void) {
 	// Turn on the radio LED
 	radio_led_ctl(true);
 
+	// Turn on the break beam laser
+	power_enable_laser();
+
 	// Initialize a tick count
 	uint8_t old_ticks = inb(TICKS);
 	for(;;) {
