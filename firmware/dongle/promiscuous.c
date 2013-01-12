@@ -1,5 +1,6 @@
 #include "config.h"
 #include "configs.h"
+#include "constants.h"
 #include "interrupt.h"
 #include "mrf.h"
 #include "perconfig.h"
@@ -19,7 +20,7 @@ const uint8_t CONFIGURATION_DESCRIPTOR3[] = {
 	0, // wTotalLength MSB
 	1, // bNumInterfaces
 	3, // bConfigurationValue
-	5, // iConfiguration
+	STRING_INDEX_CONFIG3, // iConfiguration
 	0x80, // bmAttributes
 	150, // bMaxPower
 

@@ -1,5 +1,6 @@
 #include "buzzer.h"
 #include "configs.h"
+#include "constants.h"
 #include "estop.h"
 #include "mrf.h"
 #include "rcc.h"
@@ -139,9 +140,9 @@ static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	0x25, // idProduct MSB
 	0, // bcdDevice LSB
 	1, // bcdDevice MSB
-	1, // iManufacturer
-	2, // iProduct
-	9, // iSerialNumber
+	STRING_INDEX_MANUFACTURER, // iManufacturer
+	STRING_INDEX_PRODUCT, // iProduct
+	STRING_INDEX_SERIAL, // iSerialNumber
 	6, // bNumConfigurations
 };
 
@@ -152,7 +153,7 @@ static const uint8_t CONFIGURATION_DESCRIPTOR4[] = {
 	0, // wTotalLength MSB
 	1, // bNumInterfaces
 	4, // bConfigurationValue
-	6, // iConfiguration
+	STRING_INDEX_CONFIG4, // iConfiguration
 	0x80, // bmAttributes
 	150, // bMaxPower
 
@@ -174,7 +175,7 @@ static const uint8_t CONFIGURATION_DESCRIPTOR5[] = {
 	0, // wTotalLength MSB
 	1, // bNumInterfaces
 	5, // bConfigurationValue
-	7, // iConfiguration
+	STRING_INDEX_CONFIG5, // iConfiguration
 	0x80, // bmAttributes
 	50, // bMaxPower
 
@@ -232,15 +233,15 @@ static usb_ep0_source_t *on_descriptor_request(uint8_t descriptor_type, uint8_t 
 		} else if (language == 0x1009 /* English (Canadian) */) {
 			const char *string = 0;
 			switch (descriptor_index) {
-				case 1: string = u8"UBC Thunderbots Small Size Team"; break;
-				case 2: string = u8"Radio Base Station"; break;
-				case 3: string = u8"Radio Sleep"; break;
-				case 4: string = u8"Normal Operation"; break;
-				case 5: string = u8"Promiscuous Mode"; break;
-				case 6: string = u8"Packet Generator"; break;
-				case 7: string = u8"Packet Receiver"; break;
-				case 8: string = u8"Debug Mode"; break;
-				case 9:
+				case STRING_INDEX_MANUFACTURER: string = u8"UBC Thunderbots Small Size Team"; break;
+				case STRING_INDEX_PRODUCT: string = u8"Radio Base Station"; break;
+				case STRING_INDEX_CONFIG1: string = u8"Radio Sleep"; break;
+				case STRING_INDEX_CONFIG2: string = u8"Normal Operation"; break;
+				case STRING_INDEX_CONFIG3: string = u8"Promiscuous Mode"; break;
+				case STRING_INDEX_CONFIG4: string = u8"Packet Generator"; break;
+				case STRING_INDEX_CONFIG5: string = u8"Packet Receiver"; break;
+				case STRING_INDEX_CONFIG6: string = u8"Debug Mode"; break;
+				case STRING_INDEX_SERIAL:
 					formathex32(serial_number_buffer + 0, U_ID_H);
 					formathex32(serial_number_buffer + 8, U_ID_M);
 					formathex32(serial_number_buffer + 16, U_ID_L);

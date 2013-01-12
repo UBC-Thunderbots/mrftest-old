@@ -1,5 +1,6 @@
 #include "config.h"
 #include "configs.h"
+#include "constants.h"
 #include "registers.h"
 #include "stdint.h"
 #include "usb_ep0.h"
@@ -12,7 +13,7 @@ const uint8_t CONFIGURATION_DESCRIPTOR1[] = {
 	0, // wTotalLength MSB
 	1, // bNumInterfaces
 	1, // bConfigurationValue
-	3, // iConfiguration
+	STRING_INDEX_CONFIG1, // iConfiguration
 	0x80, // bmAttributes
 	50, // bMaxPower
 
