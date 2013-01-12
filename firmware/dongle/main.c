@@ -8,6 +8,7 @@
 #include "stddef.h"
 #include "stdint.h"
 #include "string.h"
+#include "unused.h"
 #include "usb.h"
 #include "usb_ep0.h"
 #include "usb_ep0_sources.h"
@@ -115,11 +116,11 @@ static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t valu
 	return false;
 }
 
-static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, usb_ep0_source_t **source) {
+static bool on_in_request(uint8_t UNUSED(request_type), uint8_t UNUSED(request), uint16_t UNUSED(value), uint16_t UNUSED(index), uint16_t UNUSED(length), usb_ep0_source_t **UNUSED(source)) {
 	return false;
 }
 
-static bool on_out_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, void **dest, bool (**cb)(void)) {
+static bool on_out_request(uint8_t UNUSED(request_type), uint8_t UNUSED(request), uint16_t UNUSED(value), uint16_t UNUSED(index), uint16_t UNUSED(length), void **UNUSED(dest), bool (**UNUSED_cb)(void) __attribute__((unused))) {
 	return false;
 }
 

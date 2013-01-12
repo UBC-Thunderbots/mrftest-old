@@ -60,6 +60,7 @@ firmware/dongle/stm32f405.ld -text
 firmware/dongle/string.c -text
 firmware/dongle/string.h -text
 firmware/dongle/timers.txt -text
+firmware/dongle/unused.h -text
 firmware/dongle/usb.c -text
 firmware/dongle/usb.h -text
 firmware/dongle/usb_ep0.c -text
