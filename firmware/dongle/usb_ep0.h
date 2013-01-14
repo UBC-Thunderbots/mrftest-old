@@ -22,6 +22,20 @@
  */
 
 /**
+ * \brief The request type bit fields
+ */
+enum {
+	USB_STD_REQ_TYPE_OUT = 0x00,
+	USB_STD_REQ_TYPE_IN = 0x80,
+	USB_STD_REQ_TYPE_STD = 0x00,
+	USB_STD_REQ_TYPE_CLASS = 0x20,
+	USB_STD_REQ_TYPE_VENDOR = 0x40,
+	USB_STD_REQ_TYPE_DEVICE = 0x00,
+	USB_STD_REQ_TYPE_INTERFACE = 0x01,
+	USB_STD_REQ_TYPE_ENDPOINT = 0x02,
+};
+
+/**
  * \brief The standard request codes
  */
 enum {

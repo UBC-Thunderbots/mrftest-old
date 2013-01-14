@@ -242,8 +242,7 @@ static void on_exit(void) {
 }
 
 static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept) {
-	if (request_type == 0x40 && request == 0x0B && !index) {
-		// SET PROMISCUOUS FLAGS
+	if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_SET_PROMISCUOUS_FLAGS && !index) {
 		*accept = false;
 		// Sanity check: flags 8 through 15 are reserved and must be zero
 		if (value & 0xFF00) {
@@ -316,24 +315,19 @@ static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t valu
 static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length __attribute__((unused)), usb_ep0_source_t **source) {
 	static usb_ep0_memory_source_t mem_src;
 
-	if (request_type == 0xC0 && request == 0x00 && !value && !index) {
-		// GET CHANNEL
+	if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_CHANNEL && !value && !index) {
 		*source = usb_ep0_memory_source_init(&mem_src, &config.channel, sizeof(config.channel));
 		return true;
-	} else if (request_type == 0xC0 && request == 0x02 && !value && !index) {
-		// GET SYMBOL RATE
+	} else if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_SYMBOL_RATE && !value && !index) {
 		*source = usb_ep0_memory_source_init(&mem_src, &config.symbol_rate, sizeof(config.symbol_rate));
 		return true;
-	} else if (request_type == 0xC0 && request == 0x04 && !value && !index) {
-		// GET PAN ID
+	} else if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_PAN_ID && !value && !index) {
 		*source = usb_ep0_memory_source_init(&mem_src, &config.pan_id, sizeof(config.pan_id));
 		return true;
-	} else if (request_type == 0xC0 && request == 0x06 && !value && !index) {
-		// GET MAC ADDRESS
+	} else if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_MAC_ADDRESS && !value && !index) {
 		*source = usb_ep0_memory_source_init(&mem_src, &config.mac_address, sizeof(config.mac_address));
 		return true;
-	} else if (request_type == 0xC0 && request == 0x0A && !value && !index) {
-		// GET PROMISCUOUS FLAGS
+	} else if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_PROMISCUOUS_FLAGS && !value && !index) {
 		*source = usb_ep0_memory_source_init(&mem_src, &promisc_flags, sizeof(promisc_flags));
 		return true;
 	} else {

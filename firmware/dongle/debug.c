@@ -1,4 +1,5 @@
 #include "configs.h"
+#include "constants.h"
 #include "interrupt.h"
 #include "mrf.h"
 #include "rcc.h"
@@ -154,19 +155,16 @@ static void on_exit(void) {
 }
 
 static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept) {
-	if (request_type == 0x40 && request == 0x0D && !(value & 0b1111111111111100) && !index) {
-		// SET CONTROL LINES
+	if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_SET_CONTROL_LINES && !(value & 0b1111111111111100) && !index) {
 		GPIOB_BSRR = (value & (1 << 0)) ? 1 << 7 : 1 << (7 + 16);
 		GPIOB_BSRR = (value & (1 << 1)) ? 1 << 6 : 1 << (6 + 16);
 		*accept = true;
 		return true;
-	} else if (request_type == 0x40 && request == 0x0F && value <= 0xFF && index <= 0x3F) {
-		// SET SHORT-ADDRESS HARDWARE REGISTER
+	} else if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_SET_SHORT_REGISTER && value <= 0xFF && index <= 0x3F) {
 		mrf_write_short(index, value);
 		*accept = true;
 		return true;
-	} else if (request_type == 0x40 && request == 0x11 && value <= 0xFF && index <= 0x038F && !(0x02C0 <= index && index <= 0x02FF)) {
-		// SET LONG-ADDRESS HARDWARE REGISTER
+	} else if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_SET_LONG_REGISTER && value <= 0xFF && index <= 0x038F && !(0x02C0 <= index && index <= 0x02FF)) {
 		mrf_write_long(index, value);
 		*accept = true;
 		return true;
@@ -179,8 +177,7 @@ static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value,
 	static uint8_t buffer[1];
 	static usb_ep0_memory_source_t mem_src;
 
-	if (request_type == 0xC0 && request == 0x0C && !value && !index) {
-		// GET CONTROL LINES
+	if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_CONTROL_LINES && !value && !index) {
 		buffer[0] = 0;
 		if (GPIOB_ODR & (1 << 7)) {
 			buffer[0] |= 1 << 0;
@@ -193,13 +190,11 @@ static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value,
 		}
 		*source = usb_ep0_memory_source_init(&mem_src, buffer, 1);
 		return true;
-	} else if (request_type == 0xC0 && request == 0x0E && !value && index <= 0x3F) {
-		// GET SHORT-ADDRESS HARDWARE REGISTER
+	} else if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_SHORT_REGISTER && !value && index <= 0x3F) {
 		buffer[0] = mrf_read_short(index);
 		*source = usb_ep0_memory_source_init(&mem_src, buffer, 1);
 		return true;
-	} else if (request_type == 0xC0 && request == 0x10 && !value && index <= 0x038F && !(0x02C0 <= index && index <= 0x02FF)) {
-		// GET LONG-ADDRESS HARDWARE REGISTER
+	} else if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_LONG_REGISTER && !value && index <= 0x038F && !(0x02C0 <= index && index <= 0x02FF)) {
 		buffer[0] = mrf_read_long(index);
 		*source = usb_ep0_memory_source_init(&mem_src, buffer, 1);
 		return true;

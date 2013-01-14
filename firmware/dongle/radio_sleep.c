@@ -29,15 +29,15 @@ const uint8_t CONFIGURATION_DESCRIPTOR1[] = {
 };
 
 static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept) {
-	if (request_type == 0x40 && request == 0x01 && 0x0B <= value && value <= 0x1A && !index) {
+	if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_SET_CHANNEL && 0x0B <= value && value <= 0x1A && !index) {
 		config.channel = value;
 		*accept = true;
 		return true;
-	} else if (request_type == 0x40 && request == 0x03 && (value == 0x00 || value == 0x01) && !index) {
+	} else if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_SET_SYMBOL_RATE && (value == 0x00 || value == 0x01) && !index) {
 		config.symbol_rate = value;
 		*accept = true;
 		return true;
-	} else if (request_type == 0x40 && request == 0x05 && value != 0xFFFF && !index) {
+	} else if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_SET_PAN_ID && value != 0xFFFF && !index) {
 		config.pan_id = value;
 		*accept = true;
 		return true;
@@ -49,16 +49,16 @@ static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t valu
 static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length __attribute__((unused)), usb_ep0_source_t **source) {
 	static usb_ep0_memory_source_t mem_src;
 
-	if (request_type == 0xC0 && request == 0x00 && !value && !index) {
+	if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_CHANNEL && !value && !index) {
 		*source = usb_ep0_memory_source_init(&mem_src, &config.channel, sizeof(config.channel));
 		return true;
-	} else if (request_type == 0xC0 && request == 0x02 && !value && !index) {
+	} else if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_SYMBOL_RATE && !value && !index) {
 		*source = usb_ep0_memory_source_init(&mem_src, &config.symbol_rate, sizeof(config.symbol_rate));
 		return true;
-	} else if (request_type == 0xC0 && request == 0x04 && !value && !index) {
+	} else if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_PAN_ID && !value && !index) {
 		*source = usb_ep0_memory_source_init(&mem_src, &config.pan_id, sizeof(config.pan_id));
 		return true;
-	} else if (request_type == 0xC0 && request == 0x06 && !value && !index) {
+	} else if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_MAC_ADDRESS && !value && !index) {
 		*source = usb_ep0_memory_source_init(&mem_src, &config.mac_address, sizeof(config.mac_address));
 		return true;
 	} else {
