@@ -12,6 +12,7 @@
 #include "usb.h"
 #include "usb_ep0.h"
 #include "usb_ep0_sources.h"
+#include "usb_fifo.h"
 
 const uint8_t CONFIGURATION_DESCRIPTOR3[] = {
 	9, // bLength
@@ -190,9 +191,6 @@ static void on_enter(void) {
 
 	// Set up endpoint 1 (interrupt IN)
 	usb_in_set_callback(1, &on_ep1_in_interrupt);
-	OTG_FS_DIEPTXF1 =
-		(128 << 16) // INEPTXFD = 128; allocate 128 words of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
-		| (usb_application_fifo_offset() << 0); // INEPTXSA = offset; place this FIFO after the endpoint-zero FIFOs
 	OTG_FS_DIEPCTL1 =
 		(0 << 31) // EPENA = 0; do not start transmission on this endpoint
 		| (0 << 30) // EPDIS = 0; do not disable this endpoint at this time
@@ -205,11 +203,8 @@ static void on_enter(void) {
 		| (1 << 15) // USBAEP = 1; endpoint is active in this configuration
 		| (64 << 0); // MPSIZ = 64; maximum packet size is 64 bytes
 	while (!(OTG_FS_DIEPCTL1 & (1 << 17) /* NAKSTS */));
-	while (!(OTG_FS_GRSTCTL & (1 << 31) /* AHBIDL */));
-	OTG_FS_GRSTCTL = (OTG_FS_GRSTCTL & 0x7FFFF808) // Reserved
-		| (1 << 6) // TXFNUM = 1; flush transmit FIFO #1
-		| (1 << 5); // TXFFLSH = 1; flush transmit FIFO
-	while (OTG_FS_GRSTCTL & (1 << 5) /* TXFFLSH */);
+	usb_fifo_set_size(1, 128); // Allocate 128 words of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
+	usb_fifo_flush(1);
 	OTG_FS_DIEPINT1 = OTG_FS_DIEPINT1; // Clear all pending interrupts for IN endpoint 1
 	OTG_FS_DAINTMSK |= 1 << 1; // IEPM1 = 1; enable interrupts for IN endpoint 1
 }
@@ -228,6 +223,9 @@ static void on_exit(void) {
 	OTG_FS_DAINTMSK &= ~(1 << 1); // IEPM1 = 0; disable general interrupts for IN endpoint 1
 	OTG_FS_DIEPEMPMSK &= ~(1 << 1); // INEPTXFEM1 = 0; disable FIFO empty interrupts for IN endpoint 1
 	usb_in_set_callback(1, 0);
+
+	// Deallocate FIFOs.
+	usb_fifo_reset();
 
 	// Disable the external interrupt on MRF INT
 	NVIC_ICER[40 / 32] = 1 << (40 % 32); // CLRENA40 = 1; disable EXTI15…10 interrupt

@@ -68,6 +68,8 @@ firmware/dongle/usb_ep0.c -text
 firmware/dongle/usb_ep0.h -text
 firmware/dongle/usb_ep0_sources.c -text
 firmware/dongle/usb_ep0_sources.h -text
+firmware/dongle/usb_fifo.c -text
+firmware/dongle/usb_fifo.h -text
 firmware/dongle/usb_internal.h -text
 firmware/flybackconverter/Makefile -text
 firmware/flybackconverter/config.h -text

@@ -1,5 +1,6 @@
 #include "usb.h"
 #include "assert.h"
+#include "usb_fifo.h"
 #include "usb_internal.h"
 #include "rcc.h"
 #include "registers.h"
@@ -22,24 +23,20 @@ static bool global_nak_state = false;
 static void handle_reset(void) {
 	// Configure receive FIFO and endpoint 0 transmit FIFO sizes
 	size_t ep0_tx_fifo_words = usb_device_info->ep0_max_packet / 4;
-	OTG_FS_GRXFSIZ =
-		(OTG_FS_GRXFSIZ & 0xFFFF0000) // Reserved bits
-		| (usb_device_info->rx_fifo_words << 0); // RXFD; allocate this many words to receive FIFO
-	OTG_FS_DIEPTXF0 =
-		(ep0_tx_fifo_words << 16) // TX0FD; allocate this many words to endpoint 0 transmit FIFO
-		| (usb_device_info->rx_fifo_words << 0); // TX0FSA; endpoint 0 transmit FIFO starts at this many words into FIFO RAM
-	while (!(OTG_FS_GRSTCTL & (1 << 31) /* AHBIDL */));
-	OTG_FS_GRSTCTL =
-		(16 << 6) // TXFNUM = b10000; flush all transmit FIFOs
-		| (1 << 5); // TXFFLSH = 1; flush transmit FIFOs
-	while (OTG_FS_GRSTCTL & (1 << 5) /* TXFFLSH */);
-	OTG_FS_GRSTCTL = (1 << 4); // RXFFLSH = 1; flush receive FIFO
-	while (OTG_FS_GRSTCTL & (1 << 4) /* RXFFLSH */);
+	usb_fifo_init(ep0_tx_fifo_words);
+
+	// Flush all transmit FIFOs and the receive FIFO.
+	usb_fifo_flush(16);
+	usb_fifo_rx_flush();
+
+	// Set up the endpoint transfer size.
 	OTG_FS_DOEPTSIZ0 =
 		(OTG_FS_DOEPTSIZ0 & 0x9FF7FF80) // Reserved bits
 		| (3 << 29) // STUPCNT = 3; allow up to 3 back-to-back SETUP data packets
 		| (0 << 19) // PKTCNT = 0; no non-SETUP packets should be issued
 		| (0 << 0); // XFRSIZ = 0; no non-SETUP transfer is occurring
+
+	// Take an interrupt on enumeration complete.
 	OTG_FS_GINTMSK |= 1 << 13; // ENUMDNEM = 1; take an interrupt when speed enumeration is complete
 }
 
@@ -205,10 +202,6 @@ void usb_attach(const usb_device_info_t *info) {
 void usb_detach(void) {
 	OTG_FS_DCTL |= 1 << 1; // SDIS = 1; soft disconnect from bus
 	OTG_FS_GAHBCFG &= ~(1 << 0); // GINTMSK = 0; disable USB interrupts globally
-}
-
-size_t usb_application_fifo_offset(void) {
-	return usb_device_info->rx_fifo_words + usb_device_info->ep0_max_packet / 4;
 }
 
 void usb_in_set_callback(uint8_t ep, void (*cb)(void)) {
