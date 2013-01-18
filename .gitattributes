@@ -379,6 +379,8 @@ software/ai/hl/stp/tactic/tactic.cpp -text
 software/ai/hl/stp/tactic/tactic.h -text
 software/ai/hl/stp/tactic/tdefend.cpp -text
 software/ai/hl/stp/tactic/tdefend.h -text
+software/ai/hl/stp/tactic/tri_attack_active.cpp -text
+software/ai/hl/stp/tactic/tri_attack_active.h -text
 software/ai/hl/stp/tactic/util.cpp -text
 software/ai/hl/stp/tactic/util.h -text
 software/ai/hl/stp/tactic/wait_playtype.cpp -text
