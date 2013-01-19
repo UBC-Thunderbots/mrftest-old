@@ -3,79 +3,6 @@
 
 #include "stdint.h"
 
-extern volatile uint32_t FSMC_BCR1;
-extern volatile uint32_t FSMC_BCR2;
-extern volatile uint32_t FSMC_BCR3;
-extern volatile uint32_t FSMC_BCR4;
-extern volatile uint32_t FSMC_BTR1;
-extern volatile uint32_t FSMC_BTR2;
-extern volatile uint32_t FSMC_BTR3;
-extern volatile uint32_t FSMC_BTR4;
-extern volatile uint32_t FSMC_BWTR1;
-extern volatile uint32_t FSMC_BWTR2;
-extern volatile uint32_t FSMC_BWTR3;
-extern volatile uint32_t FSMC_BWTR4;
-extern volatile uint32_t FSMC_PCR2;
-extern volatile uint32_t FSMC_PCR3;
-extern volatile uint32_t FSMC_PCR4;
-extern volatile uint32_t FSMC_SR2;
-extern volatile uint32_t FSMC_SR3;
-extern volatile uint32_t FSMC_SR4;
-extern volatile uint32_t FSMC_PMEM2;
-extern volatile uint32_t FSMC_PMEM3;
-extern volatile uint32_t FSMC_PMEM4;
-extern volatile uint32_t FSMC_PATT2;
-extern volatile uint32_t FSMC_PATT3;
-extern volatile uint32_t FSMC_PATT4;
-extern volatile uint32_t FSMC_PIO4;
-extern volatile uint32_t FSMC_ECCR2;
-extern volatile uint32_t FSMC_ECCR3;
-
-extern volatile uint32_t RNG_CR;
-extern volatile uint32_t RNG_SR;
-extern volatile uint32_t RNG_DR;
-
-extern volatile uint32_t HASH_CR;
-extern volatile uint32_t HASH_DIN;
-extern volatile uint32_t HASH_STR;
-extern volatile uint32_t HASH_HR[5];
-extern volatile uint32_t HASH_IMR;
-extern volatile uint32_t HASH_SR;
-extern volatile uint32_t HASH_CSR[51];
-
-extern volatile uint32_t CRYP_CR;
-extern volatile uint32_t CRYP_SR;
-extern volatile uint32_t CRYP_DR;
-extern volatile uint32_t CRYP_DOUT;
-extern volatile uint32_t CRYP_DMACR;
-extern volatile uint32_t CRYP_IMSCR;
-extern volatile uint32_t CRYP_RISR;
-extern volatile uint32_t CRYP_MISR;
-extern volatile uint32_t CRYP_K0LR;
-extern volatile uint32_t CRYP_K0RR;
-extern volatile uint32_t CRYP_K1LR;
-extern volatile uint32_t CRYP_K1RR;
-extern volatile uint32_t CRYP_K2LR;
-extern volatile uint32_t CRYP_K2RR;
-extern volatile uint32_t CRYP_K3LR;
-extern volatile uint32_t CRYP_K3RR;
-extern volatile uint32_t CRYP_IV0LR;
-extern volatile uint32_t CRYP_IV0RR;
-extern volatile uint32_t CRYP_IV1LR;
-extern volatile uint32_t CRYP_IV1RR;
-
-extern volatile uint32_t DCMI_CR;
-extern volatile uint32_t DCMI_SR;
-extern volatile uint32_t DCMI_RIS;
-extern volatile uint32_t DCMI_IER;
-extern volatile uint32_t DCMI_MIS;
-extern volatile uint32_t DCMI_ICR;
-extern volatile uint32_t DCMI_ESCR;
-extern volatile uint32_t DCMI_ESUR;
-extern volatile uint32_t DCMI_CWSTRT;
-extern volatile uint32_t DCMI_CWSIZE;
-extern volatile uint32_t DCMI_DR;
-
 extern volatile uint32_t OTG_FS_GOTGCTL;
 extern volatile uint32_t OTG_FS_GOTGINT;
 extern volatile uint32_t OTG_FS_GAHBCFG;
@@ -175,112 +102,6 @@ extern volatile uint32_t OTG_FS_DOEPTSIZ3;
 extern volatile uint32_t OTG_FS_PCGCCTL;
 extern volatile uint32_t OTG_FS_FIFO[4][0x1000 / 4];
 
-extern volatile uint32_t DMA2_LISR;
-extern volatile uint32_t DMA2_HISR;
-extern volatile uint32_t DMA2_LIFCR;
-extern volatile uint32_t DMA2_HIFCR;
-extern volatile uint32_t DMA2_S0CR;
-extern volatile uint32_t DMA2_S0NDTR;
-extern volatile uint32_t DMA2_S0PAR;
-extern volatile uint32_t DMA2_S0M0AR;
-extern volatile uint32_t DMA2_S0M1AR;
-extern volatile uint32_t DMA2_S0FCR;
-extern volatile uint32_t DMA2_S1CR;
-extern volatile uint32_t DMA2_S1NDTR;
-extern volatile uint32_t DMA2_S1PAR;
-extern volatile uint32_t DMA2_S1M0AR;
-extern volatile uint32_t DMA2_S1M1AR;
-extern volatile uint32_t DMA2_S1FCR;
-extern volatile uint32_t DMA2_S2CR;
-extern volatile uint32_t DMA2_S2NDTR;
-extern volatile uint32_t DMA2_S2PAR;
-extern volatile uint32_t DMA2_S2M0AR;
-extern volatile uint32_t DMA2_S2M1AR;
-extern volatile uint32_t DMA2_S2FCR;
-extern volatile uint32_t DMA2_S3CR;
-extern volatile uint32_t DMA2_S3NDTR;
-extern volatile uint32_t DMA2_S3PAR;
-extern volatile uint32_t DMA2_S3M0AR;
-extern volatile uint32_t DMA2_S3M1AR;
-extern volatile uint32_t DMA2_S3FCR;
-extern volatile uint32_t DMA2_S4CR;
-extern volatile uint32_t DMA2_S4NDTR;
-extern volatile uint32_t DMA2_S4PAR;
-extern volatile uint32_t DMA2_S4M0AR;
-extern volatile uint32_t DMA2_S4M1AR;
-extern volatile uint32_t DMA2_S4FCR;
-extern volatile uint32_t DMA2_S5CR;
-extern volatile uint32_t DMA2_S5NDTR;
-extern volatile uint32_t DMA2_S5PAR;
-extern volatile uint32_t DMA2_S5M0AR;
-extern volatile uint32_t DMA2_S5M1AR;
-extern volatile uint32_t DMA2_S5FCR;
-extern volatile uint32_t DMA2_S6CR;
-extern volatile uint32_t DMA2_S6NDTR;
-extern volatile uint32_t DMA2_S6PAR;
-extern volatile uint32_t DMA2_S6M0AR;
-extern volatile uint32_t DMA2_S6M1AR;
-extern volatile uint32_t DMA2_S6FCR;
-extern volatile uint32_t DMA2_S7CR;
-extern volatile uint32_t DMA2_S7NDTR;
-extern volatile uint32_t DMA2_S7PAR;
-extern volatile uint32_t DMA2_S7M0AR;
-extern volatile uint32_t DMA2_S7M1AR;
-extern volatile uint32_t DMA2_S7FCR;
-
-extern volatile uint32_t DMA1_LISR;
-extern volatile uint32_t DMA1_HISR;
-extern volatile uint32_t DMA1_LIFCR;
-extern volatile uint32_t DMA1_HIFCR;
-extern volatile uint32_t DMA1_S0CR;
-extern volatile uint32_t DMA1_S0NDTR;
-extern volatile uint32_t DMA1_S0PAR;
-extern volatile uint32_t DMA1_S0M0AR;
-extern volatile uint32_t DMA1_S0M1AR;
-extern volatile uint32_t DMA1_S0FCR;
-extern volatile uint32_t DMA1_S1CR;
-extern volatile uint32_t DMA1_S1NDTR;
-extern volatile uint32_t DMA1_S1PAR;
-extern volatile uint32_t DMA1_S1M0AR;
-extern volatile uint32_t DMA1_S1M1AR;
-extern volatile uint32_t DMA1_S1FCR;
-extern volatile uint32_t DMA1_S2CR;
-extern volatile uint32_t DMA1_S2NDTR;
-extern volatile uint32_t DMA1_S2PAR;
-extern volatile uint32_t DMA1_S2M0AR;
-extern volatile uint32_t DMA1_S2M1AR;
-extern volatile uint32_t DMA1_S2FCR;
-extern volatile uint32_t DMA1_S3CR;
-extern volatile uint32_t DMA1_S3NDTR;
-extern volatile uint32_t DMA1_S3PAR;
-extern volatile uint32_t DMA1_S3M0AR;
-extern volatile uint32_t DMA1_S3M1AR;
-extern volatile uint32_t DMA1_S3FCR;
-extern volatile uint32_t DMA1_S4CR;
-extern volatile uint32_t DMA1_S4NDTR;
-extern volatile uint32_t DMA1_S4PAR;
-extern volatile uint32_t DMA1_S4M0AR;
-extern volatile uint32_t DMA1_S4M1AR;
-extern volatile uint32_t DMA1_S4FCR;
-extern volatile uint32_t DMA1_S5CR;
-extern volatile uint32_t DMA1_S5NDTR;
-extern volatile uint32_t DMA1_S5PAR;
-extern volatile uint32_t DMA1_S5M0AR;
-extern volatile uint32_t DMA1_S5M1AR;
-extern volatile uint32_t DMA1_S5FCR;
-extern volatile uint32_t DMA1_S6CR;
-extern volatile uint32_t DMA1_S6NDTR;
-extern volatile uint32_t DMA1_S6PAR;
-extern volatile uint32_t DMA1_S6M0AR;
-extern volatile uint32_t DMA1_S6M1AR;
-extern volatile uint32_t DMA1_S6FCR;
-extern volatile uint32_t DMA1_S7CR;
-extern volatile uint32_t DMA1_S7NDTR;
-extern volatile uint32_t DMA1_S7PAR;
-extern volatile uint32_t DMA1_S7M0AR;
-extern volatile uint32_t DMA1_S7M1AR;
-extern volatile uint32_t DMA1_S7FCR;
-
 extern volatile uint32_t FLASH_ACR;
 extern volatile uint32_t FLASH_KEYR;
 extern volatile uint32_t FLASH_OPTKEYR;
@@ -311,10 +132,6 @@ extern volatile uint32_t RCC_BDCR;
 extern volatile uint32_t RCC_CSR;
 extern volatile uint32_t RCC_SSCGR;
 extern volatile uint32_t RCC_PLLI2SCFGR;
-
-extern volatile uint32_t CRC_DR;
-extern volatile uint32_t CRC_IDR;
-extern volatile uint32_t CRC_CR;
 
 extern volatile uint32_t GPIOI_MODER;
 extern volatile uint32_t GPIOI_OTYPER;
@@ -476,25 +293,6 @@ extern volatile uint32_t SPI1_TXCRCR;
 extern volatile uint32_t SPI1_I2SCFGR;
 extern volatile uint32_t SPI1_I2SPR;
 
-extern volatile uint32_t SDIO_POWER;
-extern volatile uint32_t SDIO_CLKCR;
-extern volatile uint32_t SDIO_ARG;
-extern volatile uint32_t SDIO_CMD;
-extern volatile uint32_t SDIO_RESPCMD;
-extern volatile uint32_t SDIO_RESP1;
-extern volatile uint32_t SDIO_RESP2;
-extern volatile uint32_t SDIO_RESP3;
-extern volatile uint32_t SDIO_RESP4;
-extern volatile uint32_t SDIO_DTIMER;
-extern volatile uint32_t SDIO_DLEN;
-extern volatile uint32_t SDIO_DCTRL;
-extern volatile uint32_t SDIO_DCOUNT;
-extern volatile uint32_t SDIO_STA;
-extern volatile uint32_t SDIO_ICR;
-extern volatile uint32_t SDIO_MASK;
-extern volatile uint32_t SDIO_FIFOCNT;
-extern volatile uint32_t SDIO_FIFO;
-
 extern volatile uint32_t ADC1_SR;
 extern volatile uint32_t ADC1_CR1;
 extern volatile uint32_t ADC1_CR2;
@@ -562,22 +360,6 @@ extern volatile uint32_t ADC_CSR;
 extern volatile uint32_t ADC_CCR;
 extern volatile uint32_t ADC_CDR;
 
-extern volatile uint32_t USART6_SR;
-extern volatile uint32_t USART6_DR;
-extern volatile uint32_t USART6_BRR;
-extern volatile uint32_t USART6_CR1;
-extern volatile uint32_t USART6_CR2;
-extern volatile uint32_t USART6_CR3;
-extern volatile uint32_t USART6_GTPR;
-
-extern volatile uint32_t USART1_SR;
-extern volatile uint32_t USART1_DR;
-extern volatile uint32_t USART1_BRR;
-extern volatile uint32_t USART1_CR1;
-extern volatile uint32_t USART1_CR2;
-extern volatile uint32_t USART1_CR3;
-extern volatile uint32_t USART1_GTPR;
-
 extern volatile uint32_t TIM8_CR1;
 extern volatile uint32_t TIM8_CR2;
 extern volatile uint32_t TIM8_SMCR;
@@ -620,85 +402,8 @@ extern volatile uint32_t TIM1_BDTR;
 extern volatile uint32_t TIM1_DCR;
 extern volatile uint32_t TIM1_DMAR;
 
-extern volatile uint32_t DAC_CR;
-extern volatile uint32_t DAC_SWTRIGR;
-extern volatile uint32_t DAC_DHR12R1;
-extern volatile uint32_t DAC_DHR12L1;
-extern volatile uint32_t DAC_DHR8R1;
-extern volatile uint32_t DAC_DHR12R2;
-extern volatile uint32_t DAC_DHR12L2;
-extern volatile uint32_t DAC_DHR8R2;
-extern volatile uint32_t DAC_DHR12RD;
-extern volatile uint32_t DAC_DHR12LD;
-extern volatile uint32_t DAC_DHR8RD;
-extern volatile uint32_t DAC_DOR1;
-extern volatile uint32_t DAC_DOR2;
-extern volatile uint32_t DAC_SR;
-
 extern volatile uint32_t PWR_CR;
 extern volatile uint32_t PWR_CSR;
-
-extern volatile uint32_t I2C3_CR1;
-extern volatile uint32_t I2C3_CR2;
-extern volatile uint32_t I2C3_OAR1;
-extern volatile uint32_t I2C3_OAR2;
-extern volatile uint32_t I2C3_DR;
-extern volatile uint32_t I2C3_SR1;
-extern volatile uint32_t I2C3_SR2;
-extern volatile uint32_t I2C3_CCR;
-extern volatile uint32_t I2C3_TRISE;
-
-extern volatile uint32_t I2C2_CR1;
-extern volatile uint32_t I2C2_CR2;
-extern volatile uint32_t I2C2_OAR1;
-extern volatile uint32_t I2C2_OAR2;
-extern volatile uint32_t I2C2_DR;
-extern volatile uint32_t I2C2_SR1;
-extern volatile uint32_t I2C2_SR2;
-extern volatile uint32_t I2C2_CCR;
-extern volatile uint32_t I2C2_TRISE;
-
-extern volatile uint32_t I2C1_CR1;
-extern volatile uint32_t I2C1_CR2;
-extern volatile uint32_t I2C1_OAR1;
-extern volatile uint32_t I2C1_OAR2;
-extern volatile uint32_t I2C1_DR;
-extern volatile uint32_t I2C1_SR1;
-extern volatile uint32_t I2C1_SR2;
-extern volatile uint32_t I2C1_CCR;
-extern volatile uint32_t I2C1_TRISE;
-
-extern volatile uint32_t UART5_SR;
-extern volatile uint32_t UART5_DR;
-extern volatile uint32_t UART5_BRR;
-extern volatile uint32_t UART5_CR1;
-extern volatile uint32_t UART5_CR2;
-extern volatile uint32_t UART5_CR3;
-extern volatile uint32_t UART5_GTPR;
-
-extern volatile uint32_t UART4_SR;
-extern volatile uint32_t UART4_DR;
-extern volatile uint32_t UART4_BRR;
-extern volatile uint32_t UART4_CR1;
-extern volatile uint32_t UART4_CR2;
-extern volatile uint32_t UART4_CR3;
-extern volatile uint32_t UART4_GTPR;
-
-extern volatile uint32_t USART3_SR;
-extern volatile uint32_t USART3_DR;
-extern volatile uint32_t USART3_BRR;
-extern volatile uint32_t USART3_CR1;
-extern volatile uint32_t USART3_CR2;
-extern volatile uint32_t USART3_CR3;
-extern volatile uint32_t USART3_GTPR;
-
-extern volatile uint32_t USART2_SR;
-extern volatile uint32_t USART2_DR;
-extern volatile uint32_t USART2_BRR;
-extern volatile uint32_t USART2_CR1;
-extern volatile uint32_t USART2_CR2;
-extern volatile uint32_t USART2_CR3;
-extern volatile uint32_t USART2_GTPR;
 
 extern volatile uint32_t SPI3_CR1;
 extern volatile uint32_t SPI3_CR2;
@@ -719,15 +424,6 @@ extern volatile uint32_t SPI2_RXCRCR;
 extern volatile uint32_t SPI2_TXCRCR;
 extern volatile uint32_t SPI2_I2SCFGR;
 extern volatile uint32_t SPI2_I2SPR;
-
-extern volatile uint32_t IWDG_KR;
-extern volatile uint32_t IWDG_PR;
-extern volatile uint32_t IWDG_RLR;
-extern volatile uint32_t IWDG_SR;
-
-extern volatile uint32_t WWDG_CR;
-extern volatile uint32_t WWDG_CFR;
-extern volatile uint32_t WWDG_SR;
 
 extern volatile uint32_t TIM14_CR1;
 extern volatile uint32_t TIM14_SMCR;
@@ -927,11 +623,6 @@ extern volatile uint32_t FPU_FPCAR;
 extern volatile uint32_t FPU_FPDSCR;
 extern volatile uint32_t FPU_MVFR0;
 extern volatile uint32_t FPU_MVFR1;
-
-extern volatile uint32_t DBGMCU_IDCODE;
-extern volatile uint32_t DBGMCU_CR;
-extern volatile uint32_t DBGMCU_APB1_FZ;
-extern volatile uint32_t DBGMCU_APB2_FZ;
 
 #endif
 
