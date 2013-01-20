@@ -45,39 +45,39 @@ static void exti12_interrupt_vector(void) {
 	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
 
 	// Check the INT pin level
-	bool int_level = !!(GPIOC_IDR & (1 << 12));
+	bool int_level = !!(IDR_X(GPIOC_IDR) & (1 << 12));
 
 	// Display the INT pin level on LED 2
-	GPIOB_BSRR = int_level ? 2 << 12 : 2 << (12 + 16);
+	GPIOB_BSRR = int_level ? GPIO_BS(12) : GPIO_BR(12);
 
 	// Check if the transmit FIFO has any empty space
-	if (OTG_FS_DTXFSTS1 & 0xFFFF) {
+	if (INEPTFSAV_X(OTG_FS_DTXFSTS1)) {
 		// Space is available; queue a packet
-		OTG_FS_DIEPTSIZ1 += (1 << 19) // PKTCNT += 1; increment count of packets to send
-			| (1 << 0); // XFRSIZ += 1; increment count of bytes to send
-		OTG_FS_DIEPCTL1 |= (1 << 31) // EPENA = 1; start transmission on this endpoint
-			| (1 << 26); // CNAK = 1; clear NAk flag
+		OTG_FS_DIEPTSIZ1 += PKTCNT(1) // Increment count of packets to send
+			| XFRSIZ(1); // Increment count of bytes to send
+		OTG_FS_DIEPCTL1 |= EPENA // Start transmission on this endpoint
+			| CNAK; // Clear NAk flag
 		OTG_FS_FIFO[1][0] = int_level ? 1 : 0;
 	} else {
 		// Space is not available; light LED 3 and wait for empty space
-		GPIOB_BSRR = 4 << 12;
-		OTG_FS_DIEPEMPMSK |= 1 << 1; // INEPTXFEM1 = 1; take interrupt on IN endpoint 1 TX FIFO empty
+		GPIOB_BSRR = GPIO_BS(12) | GPIO_BS(13) | GPIO_BS(14);
+		OTG_FS_DIEPEMPMSK |= INEPTXFEM(1 << 1); // Take interrupt on IN endpoint 1 TX FIFO empty
 	}
 }
 
 static void on_ep1_in_interrupt(void) {
-	if ((OTG_FS_DIEPEMPMSK & (1 << 1) /* INEPTXFEM1 */) && (OTG_FS_DIEPINT1 & (1 << 7) /* TXFE */)) {
+	if ((OTG_FS_DIEPEMPMSK & INEPTXFEM(1 << 1)) && (OTG_FS_DIEPINT1 & TXFE)) {
 		// We were waiting to be notified about the FIFO becoming empty, and now it has
 		// Push a packet
-		OTG_FS_DIEPTSIZ1 += (1 << 19) // PKTCNT += 1; increment count of packets to send
-			| (1 << 0); // XFRSIZ += 1; increment count of bytes to send
-		OTG_FS_FIFO[1][0] = !!(GPIOC_IDR & (1 << 12));
+		OTG_FS_DIEPTSIZ1 += PKTCNT(1) // Increment count of packets to send
+			| XFRSIZ(1); // Increment count of bytes to send
+		OTG_FS_FIFO[1][0] = !!(IDR_X(GPIOC_IDR) & (1 << 12));
 		// Stop asking to be interrupted about FIFO empty
-		OTG_FS_DIEPEMPMSK &= ~(1 << 1); // INEPTXFEM1 = 0; do not interrupt on IN endpoint 1 TX FIFO empty
-		GPIOB_BSRR = 4 << (12 + 16);
-	} else if (OTG_FS_DIEPINT1 & (1 << 0) /* XFRC */) {
+		OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << 1); // Do not interrupt on IN endpoint 1 TX FIFO empty
+		GPIOB_BSRR = GPIO_BR(14);
+	} else if (OTG_FS_DIEPINT1 & XFRC) {
 		// We don’t actually care about transfer complete notification
-		OTG_FS_DIEPINT1 = 1 << 0; // XFRC = 1; clear transfer complete interrupt flag
+		OTG_FS_DIEPINT1 = XFRC; // Clear transfer complete interrupt flag
 	}
 }
 
@@ -86,7 +86,7 @@ static void on_enter(void) {
 	mrf_init();
 
 	// Turn on LED 1
-	GPIOB_BSRR = 1 << 12;
+	GPIOB_BSRR = GPIO_BS(12);
 
 	// Configure MRF INT (PC12) as an external interrupt
 	interrupt_exti12_handler = &exti12_interrupt_vector;
@@ -101,40 +101,40 @@ static void on_enter(void) {
 	// Set up endpoint 1 (interrupt IN)
 	usb_in_set_callback(1, &on_ep1_in_interrupt);
 	OTG_FS_DIEPCTL1 =
-		(0 << 31) // EPENA = 0; do not start transmission on this endpoint
-		| (0 << 30) // EPDIS = 0; do not disable this endpoint at this time
-		| (1 << 28) // SD0PID = 1; set data PID to 0
-		| (1 << 27) // SNAK = 1; set NAK flag
-		| (0 << 26) // CNAK = 0; do not clear NAK flag
-		| (1 << 22) // TXFNUM = 1; use transmit FIFO number 1
-		| (0 << 21) // STALL = 0; do not stall traffic
-		| (3 << 18) // EPTYP = 3; interrupt endpoint
-		| (1 << 15) // USBAEP = 1; endpoint is active in this configuration
-		| (1 << 0); // MPSIZ = 1; maximum packet size is 1 byte
-	while (!(OTG_FS_DIEPCTL1 & (1 << 17) /* NAKSTS */));
+		0 // EPENA = 0; do not start transmission on this endpoint
+		| 0 // EPDIS = 0; do not disable this endpoint at this time
+		| SD0PID // Set data PID to 0
+		| SNAK // Set NAK flag
+		| 0 // CNAK = 0; do not clear NAK flag
+		| DIEPCTL_TXFNUM(1) // Use transmit FIFO number 1
+		| 0 // STALL = 0; do not stall traffic
+		| EPTYP(3) // Interrupt endpoint
+		| USBAEP // Endpoint is active in this configuration
+		| MPSIZ(1); // Maximum packet size is 1 byte
+	while (!(OTG_FS_DIEPCTL1 & NAKSTS));
 	usb_fifo_set_size(1, 16); // Allocate 16 words of FIFO space for this FIFO
 	usb_fifo_flush(1);
 	OTG_FS_DIEPINT1 = OTG_FS_DIEPINT1; // Clear all pending interrupts for IN endpoint 1
-	OTG_FS_DAINTMSK |= 1 << 1; // IEPM1 = 1; enable interrupts for IN endpoint 1
+	OTG_FS_DAINTMSK |= IEPM(1 << 1); // Enable interrupts for IN endpoint 1
 
 	// Display the current level of INT on LED 3
-	bool int_level = !!(GPIOC_IDR & (1 << 12));
-	GPIOB_BSRR = int_level ? 2 << 12 : 2 << (12 + 16);
+	bool int_level = !!(IDR_X(GPIOC_IDR) & (1 << 12));
+	GPIOB_BSRR = int_level ? GPIO_BS(13) : GPIO_BR(13);
 }
 
 static void on_exit(void) {
 	// Shut down endpoint 1
-	if (OTG_FS_DIEPCTL1 & (1 << 31) /* EPENA */) {
-		if (!(OTG_FS_DIEPCTL1 & (1 << 17) /* NAKSTS */)) {
-			OTG_FS_DIEPCTL1 |= 1 << 27; // SNAK = 1; start NAKing traffic
-			while (!(OTG_FS_DIEPCTL1 & (1 << 17) /* NAKSTS */));
+	if (OTG_FS_DIEPCTL1 & EPENA) {
+		if (!(OTG_FS_DIEPCTL1 & NAKSTS)) {
+			OTG_FS_DIEPCTL1 |= SNAK; // Start NAKing traffic
+			while (!(OTG_FS_DIEPCTL1 & NAKSTS));
 		}
-		OTG_FS_DIEPCTL1 |= 1 << 30; // EPDIS = 1; disable endpoint
-		while (OTG_FS_DIEPCTL1 & (1 << 31) /* EPENA */);
+		OTG_FS_DIEPCTL1 |= EPDIS; // Disable endpoint
+		while (OTG_FS_DIEPCTL1 & EPENA);
 	}
 	OTG_FS_DIEPCTL1 = 0;
-	OTG_FS_DAINTMSK &= ~(1 << 1); // IEPM1 = 0; disable general interrupts for IN endpoint 1
-	OTG_FS_DIEPEMPMSK &= ~(1 << 1); // INEPTXFEM1 = 0; disable FIFO empty interrupts for IN endpoint 1
+	OTG_FS_DAINTMSK &= ~IEPM(1); // Disable general interrupts for IN endpoint 1
+	OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << 1); // Disable FIFO empty interrupts for IN endpoint 1
 	usb_in_set_callback(1, 0);
 
 	// Deallocate FIFOs.
@@ -146,7 +146,7 @@ static void on_exit(void) {
 	interrupt_exti12_handler = 0;
 
 	// Turn off all LEDs
-	GPIOB_BSRR = 7 << (12 + 16);
+	GPIOB_BSRR = GPIO_BR(12) | GPIO_BR(13) | GPIO_BR(14);
 
 	// Reset the radio
 	mrf_init();
@@ -154,8 +154,8 @@ static void on_exit(void) {
 
 static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept) {
 	if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_SET_CONTROL_LINES && !(value & 0b1111111111111100) && !index) {
-		GPIOB_BSRR = (value & (1 << 0)) ? 1 << 7 : 1 << (7 + 16);
-		GPIOB_BSRR = (value & (1 << 1)) ? 1 << 6 : 1 << (6 + 16);
+		GPIOB_BSRR = (value & (1 << 0)) ? GPIO_BS(7) : GPIO_BR(7);
+		GPIOB_BSRR = (value & (1 << 1)) ? GPIO_BS(6) : GPIO_BR(6);
 		*accept = true;
 		return true;
 	} else if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_SET_SHORT_REGISTER && value <= 0xFF && index <= 0x3F) {
@@ -177,13 +177,13 @@ static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value,
 
 	if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_CONTROL_LINES && !value && !index) {
 		buffer[0] = 0;
-		if (GPIOB_ODR & (1 << 7)) {
+		if (ODR_X(GPIOB_ODR) & (1 << 7)) {
 			buffer[0] |= 1 << 0;
 		}
-		if (GPIOB_ODR & (1 << 6)) {
+		if (ODR_X(GPIOB_ODR) & (1 << 6)) {
 			buffer[0] |= 1 << 1;
 		}
-		if (GPIOC_IDR & (1 << 12)) {
+		if (IDR_X(GPIOC_IDR) & (1 << 12)) {
 			buffer[0] |= 1 << 2;
 		}
 		*source = usb_ep0_memory_source_init(&mem_src, buffer, 1);

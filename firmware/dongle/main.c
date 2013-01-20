@@ -344,9 +344,9 @@ extern unsigned char linker_bss_vma_end;
 static void stm32_main(void) {
 	// Check if we're supposed to go to the bootloader
 	uint32_t rcc_csr_shadow = RCC_CSR; // Keep a copy of RCC_CSR
-	RCC_CSR |= 1 << 24; // RMVF = 1; clear reset flags
-	RCC_CSR &= ~(1 << 24); // RMVF = 0; stop clearing reset flags
-	if ((rcc_csr_shadow & (1 << 28) /* SFTRST */) && bootload_flag == UINT64_C(0xDEADBEEFCAFEBABE)) {
+	RCC_CSR |= RMVF; // Clear reset flags
+	RCC_CSR &= ~RMVF; // Stop clearing reset flags
+	if ((rcc_csr_shadow & SFTRSTF) && bootload_flag == UINT64_C(0xDEADBEEFCAFEBABE)) {
 		bootload_flag = 0;
 		asm volatile(
 			"mov sp, %[stack]\n\t"
@@ -365,37 +365,32 @@ static void stm32_main(void) {
 	SCS_CCR |= 1 << 9; // STKALIGN = 1; guarantee 8-byte alignment
 
 	// Enable the HSE (8 MHz crystal) oscillator
-	RCC_CR =
-		(1 << 16) // HSEON = 1; enable HSE oscillator
-		| (16 << 3) // HSITRIM = 16; trim HSI oscillator to midpoint
-		| (1 << 0); // HSION = 1; enable HSI oscillator for now as we're still using it
+	RCC_CR = HSEON // Enable HSE oscillator
+		| HSITRIM(16) // Trim HSI oscillator to midpoint
+		| HSION; // Enable HSI oscillator for now as we're still using it
 	// Wait for the HSE oscillator to be ready
-	while (!(RCC_CR & (1 << 17) /* HSERDY */));
+	while (!(RCC_CR & HSERDY));
 	// Configure the PLL
-	RCC_PLLCFGR =
-		(RCC_PLLCFGR & 0xF0F00004) // Reserved bits
-		| (6 << 24) // PLLQ = 6; divide 288 MHz VCO output by 6 to get 48 MHz USB, SDIO, and RNG clock
-		| (1 << 22) // PLLSRC = 1; use HSE for PLL input
-		| (0 << 16) // PLLP = 0; divide 288 MHz VCO output by 2 to get 144 MHz SYSCLK
-		| (144 << 6) // PLLN = 144; multiply 2 MHz VCO input by 144 to get 288 MHz VCO output
-		| (4 << 0); // PLLM = 4; divide 8 MHz HSE by 4 to get 2 MHz VCO input
+	RCC_PLLCFGR = PLLQ(6) // Divide 288 MHz VCO output by 6 to get 48 MHz USB, SDIO, and RNG clock
+		| PLLSRC // Use HSE for PLL input
+		| PLLP(0) // Divide 288 MHz VCO output by 2 to get 144 MHz SYSCLK
+		| PLLN(144) // Multiply 2 MHz VCO input by 144 to get 288 MHz VCO output
+		| PLLM(4); // Divide 8 MHz HSE by 4 to get 2 MHz VCO input
 	// Enable the PLL
-	RCC_CR |= (1 << 24); // PLLON = 1; enable PLL
+	RCC_CR |= PLLON; // Enable PLL
 	// Wait for the PLL to lock
-	while (!(RCC_CR & (1 << 25) /* PLLRDY */));
+	while (!(RCC_CR & PLLRDY));
 	// Set up bus frequencies
-	RCC_CFGR =
-		(RCC_CFGR & 0x00000300) // Reserved bits
-		| (2 << 30) // MCO2 = 2; MCO2 pin outputs HSE
-		| (0 << 27) // MCO2PRE = 0; divide 8 MHz HSE by 1 to get 8 MHz MCO2 (must be ≤ 100 MHz)
-		| (0 << 24) // MCO1PRE = 0; divide 8 MHz HSE by 1 to get 8 MHz MCO1 (must be ≤ 100 MHz)
-		| (0 << 23) // I2SSRC = 0; I2S module gets clock from PLLI2X
-		| (2 << 21) // MCO1 = 2; MCO1 pin outputs HSE
-		| (8 << 16) // RTCPRE = 8; divide 8 MHz HSE by 8 to get 1 MHz RTC clock (must be 1 MHz)
-		| (4 << 13) // PPRE2 = 4; divide 144 MHz AHB clock by 2 to get 72 MHz APB2 clock (must be ≤ 84 MHz)
-		| (5 << 10) // PPRE1 = 5; divide 144 MHz AHB clock by 4 to get 36 MHz APB1 clock (must be ≤ 42 MHz)
-		| (0 << 4) // HPRE = 0; divide 144 MHz SYSCLK by 1 to get 144 MHz AHB clock (must be ≤ 168 MHz)
-		| (0 << 0); // SW = 0; use HSI for SYSCLK for now, until everything else is ready
+	RCC_CFGR = MCO2(2) // MCO2 pin outputs HSE
+		| MCO2PRE(0) // Divide 8 MHz HSE by 1 to get 8 MHz MCO2 (must be ≤ 100 MHz)
+		| MCO1PRE(0) // Divide 8 MHz HSE by 1 to get 8 MHz MCO1 (must be ≤ 100 MHz)
+		| 0 // I2SSRC = 0; I2S module gets clock from PLLI2X
+		| MCO1(2) // MCO1 pin outputs HSE
+		| RTCPRE(8) // Divide 8 MHz HSE by 8 to get 1 MHz RTC clock (must be 1 MHz)
+		| PPRE2(4) // Divide 144 MHz AHB clock by 2 to get 72 MHz APB2 clock (must be ≤ 84 MHz)
+		| PPRE1(5) // Divide 144 MHz AHB clock by 4 to get 36 MHz APB1 clock (must be ≤ 42 MHz)
+		| HPRE(0) // Divide 144 MHz SYSCLK by 1 to get 144 MHz AHB clock (must be ≤ 168 MHz)
+		| SW(0); // Use HSI for SYSCLK for now, until everything else is ready
 	// Wait 16 AHB cycles for the new prescalers to settle
 	asm volatile("nop");
 	asm volatile("nop");
@@ -414,31 +409,26 @@ static void stm32_main(void) {
 	asm volatile("nop");
 	asm volatile("nop");
 	// Set Flash access latency to 5 wait states
-	FLASH_ACR =
-		(FLASH_ACR & 0xFFFFE0F8) // Reserved bits
-		| (4 << 0); // LATENCY = 4; four wait states (acceptable for 120 ≤ HCLK ≤ 150)
+	FLASH_ACR = LATENCY(4); // Four wait states (acceptable for 120 ≤ HCLK ≤ 150)
 	// Flash access latency change may not be immediately effective; wait until it's locked in
-	while ((FLASH_ACR & 7) != 4);
+	while (LATENCY_X(FLASH_ACR) != 4);
 	// Actually initiate the clock switch
-	RCC_CFGR = (RCC_CFGR & ~(3 << 0)) | (2 << 0); // SW = 2; use PLL for SYSCLK
+	RCC_CFGR = (RCC_CFGR & ~SW_MSK) | SW(2); // Use PLL for SYSCLK
 	// Wait for the clock switch to complete
-	while ((RCC_CFGR & (3 << 2)) != (2 << 2) /* SWS */);
+	while (SWS_X(RCC_CFGR) != 2);
 	// Turn off the HSI now that it's no longer needed
-	RCC_CR = (RCC_CR & ~(1 << 0)) | (0 << 0); // HSION = 0; disable HSI
+	RCC_CR &= ~HSION; // Disable HSI
 
 	// Flush any data in the CPU caches (which are not presently enabled)
-	FLASH_ACR |=
-		(1 << 12) // DCRST = 1; reset data cache
-		| (1 << 11); // ICRST = 1; reset instruction cache
-	FLASH_ACR &=
-		~(1 << 12) // DCRST = 0; stop resetting data cache
-		& ~(1 << 11); // ICRST = 0; stop resetting instruction cache
+	FLASH_ACR |= DCRST // Reset data cache
+		| ICRST; // Reset instruction cache
+	FLASH_ACR &= ~DCRST // Stop resetting data cache
+		& ~ICRST; // Stop resetting instruction cache
 
 	// Turn on the caches. There is an errata that says prefetching doesn't work on some silicon, but it seems harmless to enable the flag even so
-	FLASH_ACR |=
-		(1 << 10) // DCEN = 1; enable data cache
-		| (1 << 9) // ICEN = 1; enable instruction cache
-		| (1 << 8); // PRFTEN = 1; enable prefetching
+	FLASH_ACR |= DCEN // Enable data cache
+		| ICEN // Enable instruction cache
+		| PRFTEN; // Enable prefetching
 
 	// Set SYSTICK to divide by 144 so it overflows every microsecond
 	SCS_STRVR = 144 - 1;
@@ -529,7 +519,7 @@ static void stm32_main(void) {
 	sleep_1ms(100);
 
 	// Turn off LEDs
-	GPIOB_BSRR = 7 << (12 + 16);
+	GPIOB_BSRR = GPIO_BR(12) | GPIO_BR(13) | GPIO_BR(14);
 
 	// Initialize USB
 	usb_ep0_set_global_callbacks(&DEVICE_CBS);

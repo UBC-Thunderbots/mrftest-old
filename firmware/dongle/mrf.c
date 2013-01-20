@@ -17,10 +17,9 @@ static inline void sleep_50ns(void) {
 
 void mrf_init(void) {
 	// Set bus to reset state
-	GPIOA_BSRR = 1 << 15; // PA15 = MRF /CS = 1; deassert chip select
-	GPIOB_BSRR =
-		(1 << (6 + 16)) // PB6 = MRF wake = 0; deassert wake
-		| (1 << (7 + 16)); // PB7 = MRF /reset = 0; assert reset
+	GPIOA_BSRR = GPIO_BS(15); // PA15 = MRF /CS = 1; deassert chip select
+	GPIOB_BSRR = GPIO_BR(6) // PB6 = MRF wake = 0; deassert wake
+		| GPIO_BR(7); // PB7 = MRF /reset = 0; assert reset
 
 	// Reset the module and enable the clock
 	rcc_enable(APB2, 12);
@@ -60,15 +59,15 @@ void mrf_init(void) {
 }
 
 void mrf_release_reset(void) {
-	GPIOB_BSRR = 1 << 7; // PB7 = MRF /reset = 1; release reset
+	GPIOB_BSRR = GPIO_BS(7); // PB7 = MRF /reset = 1; release reset
 }
 
 bool mrf_get_interrupt(void) {
-	return !!(GPIOC_IDR & (1 << 12));
+	return !!(IDR_X(GPIOC_IDR) & (1 << 12));
 }
 
 uint8_t mrf_read_short(mrf_reg_short_t reg) {
-	GPIOA_BSRR = 1 << (15 + 16); // PA15 = MRF /CS = 0; assert chip select
+	GPIOA_BSRR = GPIO_BR(15); // PA15 = MRF /CS = 0; assert chip select
 	sleep_50ns();
 	SPI1_DR = reg << 1; // Load first byte to send
 	while (!(SPI1_SR & (1 << 1) /* TXE */)); // Wait for space in TX buffer (should be almost immediate, 1 byte in shift reg + 1 byte in data reg)
@@ -79,12 +78,12 @@ uint8_t mrf_read_short(mrf_reg_short_t reg) {
 	uint8_t value = SPI1_DR; // Grab second received byte
 	while (SPI1_SR & (1 << 7) /* BSY */); // Wait for bus to be fully idle
 	sleep_50ns();
-	GPIOA_BSRR = 1 << 15; // PA15 = MRF /CS = 1; deassert chip select
+	GPIOA_BSRR = GPIO_BS(15); // PA15 = MRF /CS = 1; deassert chip select
 	return value;
 }
 
 void mrf_write_short(mrf_reg_short_t reg, uint8_t value) {
-	GPIOA_BSRR = 1 << (15 + 16); // PA15 = MRF /CS = 0; assert chip select
+	GPIOA_BSRR = GPIO_BR(15); // PA15 = MRF /CS = 0; assert chip select
 	sleep_50ns();
 	SPI1_DR = (reg << 1) | 0x01; // Load first byte to send
 	while (!(SPI1_SR & (1 << 1) /* TXE */)); // Wait for space in TX buffer (should be almost immediate, 1 byte in shift reg + 1 byte in data reg)
@@ -95,11 +94,11 @@ void mrf_write_short(mrf_reg_short_t reg, uint8_t value) {
 	(void) SPI1_DR; // Discard second received byte
 	while (SPI1_SR & (1 << 7) /* BSY */); // Wait for bus to be fully idle
 	sleep_50ns();
-	GPIOA_BSRR = 1 << 15; // PA15 = MRF /CS = 1; deassert chip select
+	GPIOA_BSRR = GPIO_BS(15); // PA15 = MRF /CS = 1; deassert chip select
 }
 
 uint8_t mrf_read_long(mrf_reg_long_t reg) {
-	GPIOA_BSRR = 1 << (15 + 16); // PA15 = MRF /CS = 0; assert chip select
+	GPIOA_BSRR = GPIO_BR(15); // PA15 = MRF /CS = 0; assert chip select
 	sleep_50ns();
 	SPI1_DR = (reg >> 3) | 0x80; // Load first byte to send (TX count 0→1)
 	while (!(SPI1_SR & (1 << 1) /* TXE */)); // Wait for space in TX buffer (TX count 1, RX count 0, should be immediate)
@@ -114,12 +113,12 @@ uint8_t mrf_read_long(mrf_reg_long_t reg) {
 	uint8_t value = SPI1_DR; // Grab third received byte (RX count 1→0)
 	while (SPI1_SR & (1 << 7) /* BSY */); // Wait for bus to be fully idle
 	sleep_50ns();
-	GPIOA_BSRR = 1 << 15; // PA15 = MRF /CS = 1; deassert chip select
+	GPIOA_BSRR = GPIO_BS(15); // PA15 = MRF /CS = 1; deassert chip select
 	return value;
 }
 
 void mrf_write_long(mrf_reg_long_t reg, uint8_t value) {
-	GPIOA_BSRR = 1 << (15 + 16); // PA15 = MRF /CS = 0; assert chip select
+	GPIOA_BSRR = GPIO_BR(15); // PA15 = MRF /CS = 0; assert chip select
 	sleep_50ns();
 	SPI1_DR = (reg >> 3) | 0x80; // Load first byte to send (TX count 0→1)
 	while (!(SPI1_SR & (1 << 1) /* TXE */)); // Wait for space in TX buffer (TX count 1, RX count 0, should be immediate)
@@ -134,7 +133,7 @@ void mrf_write_long(mrf_reg_long_t reg, uint8_t value) {
 	(void) SPI1_DR; // Discard third received byte (RX count 1→0)
 	while (SPI1_SR & (1 << 7) /* BSY */); // Wait for bus to be fully idle
 	sleep_50ns();
-	GPIOA_BSRR = 1 << 15; // PA15 = MRF /CS = 1; deassert chip select
+	GPIOA_BSRR = GPIO_BS(15); // PA15 = MRF /CS = 1; deassert chip select
 }
 
 void mrf_common_init(void) {

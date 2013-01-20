@@ -38,13 +38,11 @@ static bool push_transaction(void) {
 	// We're here because either packet_size == max_packet or generate() returned zero indicating end of available data.
 
 	// Enable the endpoint and lock in a transaction.
-	OTG_FS_DIEPTSIZ0 =
-		(OTG_FS_DIEPTSIZ0 & 0xFFE7FF80) // Reserved bits.
-		| (1 << 19) // PKTCNT = 1; transmit one packet.
-		| (packet_size << 0); // XFRSIZ = packet_size; transmit packet_size bytes in this transaction (this may be zero).
+	OTG_FS_DIEPTSIZ0 = PKTCNT(1) // Transmit one packet.
+		| XFRSIZ(packet_size); // Transmit packet_size bytes in this transaction (this may be zero).
 	OTG_FS_DIEPCTL0 |=
-		(1 << 31) // EPENA = 1; enable endpoint.
-		| (1 << 26); // CNAK = 1; stop NAKing all transactions.
+		EPENA // Enable endpoint.
+		| CNAK; // Stop NAKing all transactions.
 
 	// Push the data into the FIFO.
 	// We are guaranteed to have enough space because the endpoint 0 TX FIFO is large enough to hold max packet, and we only ever send one transaction at a time.
@@ -96,9 +94,9 @@ static void handle_setup_transaction(void) {
 	static usb_ep0_memory_source_t stash_buffer_source;
 
 	// Flush the endpoint 0 transmit FIFO.
-	while (!(OTG_FS_GRSTCTL & (1 << 31)));
-	OTG_FS_GRSTCTL = (0 << 6) | (1 << 5);
-	while (OTG_FS_GRSTCTL & (1 << 5));
+	while (!(OTG_FS_GRSTCTL & AHBIDL));
+	OTG_FS_GRSTCTL = GRSTCTL_TXFNUM(0) | TXFFLSH;
+	while (OTG_FS_GRSTCTL & TXFFLSH);
 
 	// Parse the packet.
 	uint8_t request_type = setup_packet[0];
@@ -205,7 +203,7 @@ static void handle_setup_transaction(void) {
 			// SET_ADDRESS is only legal in the Default and Addressed states and the address must be 127 or less.
 			if (!current_configuration && address <= 127) {
 				// Lock in the address; the hardware knows to stay on address zero until the status stage is complete and, in fact, *FAILS* if the address is locked in later!
-				OTG_FS_DCFG = (OTG_FS_DCFG & ~(127 << 4)) | (((uint32_t) address) << 4);
+				OTG_FS_DCFG = (OTG_FS_DCFG & ~DCFG_DAD_MSK) | DCFG_DAD(address);
 				ok = true;
 			}
 		} else if (request_type == 0x80 && request == USB_STD_REQ_GET_DESCRIPTOR) {
@@ -214,7 +212,7 @@ static void handle_setup_transaction(void) {
 			ok = !!data_source;
 		} else if (request_type == 0x80 && request == USB_STD_REQ_GET_CONFIGURATION && !value && !index && data_requested == 1) {
 			// GET CONFIGURATION(DEVICE)
-			if (OTG_FS_DCFG & (127 << 4)) {
+			if (DCFG_DAD_X(OTG_FS_DCFG)) {
 				stash_buffer[0] = current_configuration;
 				data_source = usb_ep0_memory_source_init(&stash_buffer_source, stash_buffer, 1);
 				ok = true;
@@ -223,7 +221,7 @@ static void handle_setup_transaction(void) {
 			// SET CONFIGURATION(DEVICE)
 			// This is only legal in the Addressed and Configured states.
 			// Because it results in endpoints being turned on or off, it should only happen when no traffic is moving.
-			if (OTG_FS_DCFG & (127 << 4)) {
+			if (DCFG_DAD_X(OTG_FS_DCFG)) {
 				usb_set_global_nak();
 				return;
 			}
@@ -232,8 +230,8 @@ static void handle_setup_transaction(void) {
 
 	if (!ok) {
 		// On failure, just stall everything.
-		OTG_FS_DIEPCTL0 |= 1 << 21; // STALL = 1
-		OTG_FS_DOEPCTL0 |= 1 << 21; // STALL = 1
+		OTG_FS_DIEPCTL0 |= DIEPCTL_STALL;
+		OTG_FS_DOEPCTL0 |= DOEPCTL_STALL;
 	} else if (request_type & 0x80) {
 		// The next thing to set up is a data stage comprising IN data transactions.
 		// Start the first transaction.
@@ -243,13 +241,11 @@ static void handle_setup_transaction(void) {
 		// We should enable this now rather than waiting for all transaction complete notifications for two reasons:
 		// (1) During initial enumeration, Linux sends a GET_DESCRIPTOR(DEVICE) with wLength=64, but if EP0 max packet=8 then accepts only one 8-byte transaction before the status stage.
 		// (2) In general, if the last IN transaction in the data stage suffers a lost ACK, the host will try to start the status stage while the device believes the data stage is still running; should this happen, the correct outcome is that the status stage starts (this being an IN data stage, the device shouldn't care whether it actually knows the data was delivered or not).
-		OTG_FS_DOEPTSIZ0 =
-			(OTG_FS_DOEPTSIZ0 & 0x9FF7FF80) // Reserved bits.
-			| (3 << 29) // STUPCNT = 3; allow up to 3 back-to-back SETUP data packets.
-			| (1 << 19) // PKTCNT = 1; accept one packet.
-			| (0 << 0); // XFRSIZ = 0; accept zero bytes.
-		OTG_FS_DOEPCTL0 |= (1 << 31); // EPENA = 1; enable endpoint.
-		OTG_FS_DOEPCTL0 |= (1 << 26); // CNAK = 1; stop NAKing packets.
+		OTG_FS_DOEPTSIZ0 = STUPCNT(3) // Allow up to 3 back-to-back SETUP data packets.
+			| PKTCNT(1) // Accept one packet.
+			| XFRSIZ(0); // Accept zero bytes.
+		OTG_FS_DOEPCTL0 |= EPENA; // Enable endpoint.
+		OTG_FS_DOEPCTL0 |= CNAK; // Stop NAKing packets.
 	} else if (data_requested) {
 		// Enable OUT endpoint 0 for the data stage.
 		// It is not necessary to enable IN endpoint 0 at this time because the host guarantees to send exactly as much data as it says it wishes to.
@@ -259,27 +255,23 @@ static void handle_setup_transaction(void) {
 		if (packet_size > data_requested) {
 			packet_size = data_requested;
 		}
-		OTG_FS_DOEPTSIZ0 =
-			(OTG_FS_DOEPTSIZ0 & 0x9FF7FF80) // Reserved bits.
-			| (3 << 29) // STUPCNT = 3; allow up to 3 back-to-back SETUP data packets.
-			| (1 << 19) // PKTCNT = 1; accept one packet.
-			| (packet_size << 0); // XFRSIZ = packet_size; accept min{max-packet|data-requested} bytes.
-		OTG_FS_DOEPCTL0 |= (1 << 31); // EPENA = 1; enable endpoint.
-		OTG_FS_DOEPCTL0 |= (1 << 26); // CNAK = 1; stop NAKing packets.
+		OTG_FS_DOEPTSIZ0 = STUPCNT(3) // Allow up to 3 back-to-back SETUP data packets.
+			| PKTCNT(1) // Accept one packet.
+			| XFRSIZ(packet_size); // Accept min{max-packet|data-requested} bytes.
+		OTG_FS_DOEPCTL0 |= EPENA; // Enable endpoint.
+		OTG_FS_DOEPCTL0 |= CNAK; // Stop NAKing packets.
 	} else {
 		// The next thing to set up is a status stage comprising an IN data transaction.
-		OTG_FS_DIEPTSIZ0 =
-			(OTG_FS_DIEPTSIZ0 & 0xFFE7FF80) // Reserved bits.
-			| (1 << 19) // PKTCNT = 1; transmit one packet.
-			| (0 << 0); // XFRSIZ = 0; transmit 0 bytes in the whole transfer.
-		OTG_FS_DIEPCTL0 &= ~(1 << 21); // STALL = 0; stop stalling transactions on this endpoint.
+		OTG_FS_DIEPTSIZ0 = PKTCNT(1) // Transmit one packet.
+			| XFRSIZ(0); // Transmit 0 bytes in the whole transfer.
+		OTG_FS_DIEPCTL0 &= ~DIEPCTL_STALL; // Stop stalling transactions on this endpoint.
 		OTG_FS_DIEPCTL0 |=
-			(1 << 31) // EPENA = 1; enable endpoint.
-			| (1 << 26); // CNAK = 1; stop NAKing all transactions.
+			EPENA // Enable endpoint.
+			| CNAK; // Stop NAKing all transactions.
 	}
 
 	// Whatever happened, reset the setup counter in the OUT endpoint so we can receive additional SETUP transactions.
-	OTG_FS_DOEPTSIZ0 |= 3 << 29; // STUPCNT = 3; allow up to 3 back-to-back SETUP data packets.
+	OTG_FS_DOEPTSIZ0 |= STUPCNT(3); // Allow up to 3 back-to-back SETUP data packets.
 }
 
 void usb_ep0_handle_receive(uint32_t status_word) {
@@ -306,18 +298,16 @@ void usb_ep0_handle_receive(uint32_t status_word) {
 					}
 					if (ok) {
 						// Set up an IN status stage.
-						OTG_FS_DIEPTSIZ0 =
-							(OTG_FS_DIEPTSIZ0 & 0xFFE7FF80) // Reserved bits.
-							| (1 << 19) // PKTCNT = 1; transmit one packet.
-							| (0 << 0); // XFRSIZ = 0; transmit 0 bytes in the whole transfer.
-						OTG_FS_DIEPCTL0 &= ~(1 << 21); // STALL = 0; stop stalling transactions on this endpoint.
+						OTG_FS_DIEPTSIZ0 = PKTCNT(1) // Transmit one packet.
+							| XFRSIZ(0); // Transmit 0 bytes in the whole transfer.
+						OTG_FS_DIEPCTL0 &= ~DIEPCTL_STALL; // Stop stalling transactions on this endpoint.
 						OTG_FS_DIEPCTL0 |=
-							(1 << 31) // EPENA = 1; enable endpoint.
-							| (1 << 26); // CNAK = 1; stop NAKing all transactions.
+							EPENA // Enable endpoint.
+							| CNAK; // Stop NAKing all transactions.
 					} else {
 						// On failure, just stall everything.
-						OTG_FS_DIEPCTL0 |= 1 << 21; // STALL = 1
-						OTG_FS_DOEPCTL0 |= 1 << 21; // STALL = 1
+						OTG_FS_DIEPCTL0 |= DIEPCTL_STALL;
+						OTG_FS_DOEPCTL0 |= DOEPCTL_STALL;
 					}
 				} else {
 					// There is more data to transfer.
@@ -325,13 +315,11 @@ void usb_ep0_handle_receive(uint32_t status_word) {
 					if (packet_size > data_requested) {
 						packet_size = data_requested;
 					}
-					OTG_FS_DOEPTSIZ0 =
-						(OTG_FS_DOEPTSIZ0 & 0x9FF7FF80) // Reserved bits.
-						| (3 << 29) // STUPCNT = 3; allow up to 3 back-to-back SETUP data packets.
-						| (1 << 19) // PKTCNT = 1; accept one packet.
-						| (packet_size << 0); // XFRSIZ = packet_size; accept min{max-packet|data-requested} bytes.
-					OTG_FS_DOEPCTL0 |= (1 << 31); // EPENA = 1; enable endpoint.
-					OTG_FS_DOEPCTL0 |= (1 << 26); // CNAK = 1; stop NAKing packets.
+					OTG_FS_DOEPTSIZ0 = STUPCNT(3) // Allow up to 3 back-to-back SETUP data packets.
+						| PKTCNT(1) // Accept one packet.
+						| XFRSIZ(packet_size); // Accept min{max-packet|data-requested} bytes.
+					OTG_FS_DOEPCTL0 |= EPENA; // Enable endpoint.
+					OTG_FS_DOEPCTL0 |= CNAK; // Stop NAKing packets.
 				}
 			} else {
 				// This is part of an OUT status stage.
@@ -342,7 +330,7 @@ void usb_ep0_handle_receive(uint32_t status_word) {
 		case 0x3:
 			// OUT transfer completed
 			// Clean up the endpoint.
-			OTG_FS_DOEPTSIZ0 |= 3 << 29; // STUPCNT = 3; allow up to 3 back-to-back SETUP data packets.
+			OTG_FS_DOEPTSIZ0 |= STUPCNT(3); // Allow up to 3 back-to-back SETUP data packets.
 			break;
 
 		case 0x4:
@@ -380,7 +368,7 @@ void usb_ep0_handle_global_nak_effective(void) {
 	if (request_type == 0x00 && request == USB_STD_REQ_SET_CONFIGURATION && !index && !data_requested) {
 		// SET CONFIGURATION(DEVICE)
 		// This is only legal in the Addressed and Configured states.
-		if (OTG_FS_DCFG & (127 << 4)) {
+		if (DCFG_DAD_X(OTG_FS_DCFG)) {
 			const usb_ep0_configuration_callbacks_t *new_cbs = 0;
 			if (value) {
 				// Check if the specified configuration exists and is currently available.
@@ -432,8 +420,8 @@ void usb_ep0_handle_global_nak_effective(void) {
 
 	if (!ok) {
 		// On failure, just stall everything.
-		OTG_FS_DIEPCTL0 |= 1 << 21; // STALL = 1
-		OTG_FS_DOEPCTL0 |= 1 << 21; // STALL = 1
+		OTG_FS_DIEPCTL0 |= DIEPCTL_STALL;
+		OTG_FS_DOEPCTL0 |= DOEPCTL_STALL;
 	} else if (request_type & 0x80) {
 		// The next thing to set up is a data stage comprising IN data transactions.
 		// Start the first transaction.
@@ -443,13 +431,11 @@ void usb_ep0_handle_global_nak_effective(void) {
 		// We should enable this now rather than waiting for all transaction complete notifications for two reasons:
 		// (1) During initial enumeration, Linux sends a GET_DESCRIPTOR(DEVICE) with wLength=64, but if EP0 max packet=8 then accepts only one 8-byte transaction before the status stage.
 		// (2) In general, if the last IN transaction in the data stage suffers a lost ACK, the host will try to start the status stage while the device believes the data stage is still running; should this happen, the correct outcome is that the status stage starts (this being an IN data stage, the device shouldn't care whether it actually knows the data was delivered or not).
-		OTG_FS_DOEPTSIZ0 =
-			(OTG_FS_DOEPTSIZ0 & 0x9FF7FF80) // Reserved bits.
-			| (3 << 29) // STUPCNT = 3; allow up to 3 back-to-back SETUP data packets.
-			| (1 << 19) // PKTCNT = 1; accept one packet.
-			| (0 << 0); // XFRSIZ = 0; accept zero bytes.
-		OTG_FS_DOEPCTL0 |= (1 << 31); // EPENA = 1; enable endpoint.
-		OTG_FS_DOEPCTL0 |= (1 << 26); // CNAK = 1; stop NAKing packets.
+		OTG_FS_DOEPTSIZ0 = STUPCNT(3) // Allow up to 3 back-to-back SETUP data packets.
+			| PKTCNT(1) // Accept one packet.
+			| XFRSIZ(0); // Accept zero bytes.
+		OTG_FS_DOEPCTL0 |= EPENA; // Enable endpoint.
+		OTG_FS_DOEPCTL0 |= CNAK; // Stop NAKing packets.
 	} else if (data_requested) {
 		// Enable OUT endpoint 0 for the data stage.
 		// It is not necessary to enable IN endpoint 0 at this time because the host guarantees to send exactly as much data as it says it wishes to.
@@ -459,27 +445,23 @@ void usb_ep0_handle_global_nak_effective(void) {
 		if (packet_size > data_requested) {
 			packet_size = data_requested;
 		}
-		OTG_FS_DOEPTSIZ0 =
-			(OTG_FS_DOEPTSIZ0 & 0x9FF7FF80) // Reserved bits.
-			| (3 << 29) // STUPCNT = 3; allow up to 3 back-to-back SETUP data packets.
-			| (1 << 19) // PKTCNT = 1; accept one packet.
-			| (packet_size << 0); // XFRSIZ = packet_size; accept min{max-packet|data-requested} bytes.
-		OTG_FS_DOEPCTL0 |= (1 << 31); // EPENA = 1; enable endpoint.
-		OTG_FS_DOEPCTL0 |= (1 << 26); // CNAK = 1; stop NAKing packets.
+		OTG_FS_DOEPTSIZ0 = STUPCNT(3) // Allow up to 3 back-to-back SETUP data packets.
+			| PKTCNT(1) // Accept one packet.
+			| XFRSIZ(packet_size); // Accept min{max-packet|data-requested} bytes.
+		OTG_FS_DOEPCTL0 |= EPENA; // Enable endpoint.
+		OTG_FS_DOEPCTL0 |= CNAK; // Stop NAKing packets.
 	} else {
 		// The next thing to set up is a status stage comprising an IN data transaction.
-		OTG_FS_DIEPTSIZ0 =
-			(OTG_FS_DIEPTSIZ0 & 0xFFE7FF80) // Reserved bits.
-			| (1 << 19) // PKTCNT = 1; transmit one packet.
-			| (0 << 0); // XFRSIZ = 0; transmit 0 bytes in the whole transfer.
-		OTG_FS_DIEPCTL0 &= ~(1 << 21); // STALL = 0; stop stalling transactions on this endpoint.
+		OTG_FS_DIEPTSIZ0 = PKTCNT(1) // Transmit one packet.
+			| XFRSIZ(0); // Transmit 0 bytes in the whole transfer.
+		OTG_FS_DIEPCTL0 &= ~DIEPCTL_STALL; // Stop stalling transactions on this endpoint.
 		OTG_FS_DIEPCTL0 |=
-			(1 << 31) // EPENA = 1; enable endpoint.
-			| (1 << 26); // CNAK = 1; stop NAKing all transactions.
+			EPENA // Enable endpoint.
+			| CNAK; // Stop NAKing all transactions.
 	}
 
 	// Whatever happened, reset the setup counter in the OUT endpoint so we can receive additional SETUP transactions.
-	OTG_FS_DOEPTSIZ0 |= 3 << 29; // STUPCNT = 3; allow up to 3 back-to-back SETUP data packets.
+	OTG_FS_DOEPTSIZ0 |= STUPCNT(3); // Allow up to 3 back-to-back SETUP data packets.
 
 	// Whatever happened, re-enable traffic.
 	usb_clear_global_nak();
@@ -492,8 +474,8 @@ static void on_in_transaction_complete(void) {
 static void on_in_endpoint_event(void) {
 	// Find out what happened.
 	uint32_t diepint = OTG_FS_DIEPINT0;
-	if (diepint & (1 << 0) /* XFRC */) {
-		OTG_FS_DIEPINT0 |= 1 << 0;
+	if (diepint & XFRC) {
+		OTG_FS_DIEPINT0 = XFRC;
 		on_in_transaction_complete();
 	}
 }
@@ -508,32 +490,30 @@ void usb_ep0_init(void) {
 	// Set max packet size.
 	switch (usb_device_info->ep0_max_packet) {
 		case 8:
-			OTG_FS_DIEPCTL0 = 0x3;
+			OTG_FS_DIEPCTL0 = MPSIZ(0x3);
 			break;
 		case 16:
-			OTG_FS_DIEPCTL0 = 0x2;
+			OTG_FS_DIEPCTL0 = MPSIZ(0x2);
 			break;
 		case 32:
-			OTG_FS_DIEPCTL0 = 0x1;
+			OTG_FS_DIEPCTL0 = MPSIZ(0x1);
 			break;
 		case 64:
-			OTG_FS_DIEPCTL0 = 0x0;
+			OTG_FS_DIEPCTL0 = MPSIZ(0x0);
 			break;
 	}
 
 	// Enable interrupts to this endpoint.
-	OTG_FS_DAINTMSK |= (1 << 0); // IEPM[0] = 1; take an interrupt on IN endpoint 0 event.
+	OTG_FS_DAINTMSK |= IEPM(1 << 0); // Take an interrupt on IN endpoint 0 event.
 
 	// Enable OUT endpoint 0 to receive data.
-	OTG_FS_DOEPTSIZ0 =
-		(OTG_FS_DOEPTSIZ0 & 0x9FF7FF80) // Reserved bits.
-		| (3 << 29) // STUPCNT = 3; allow up to 3 back-to-back SETUP data packets.
-		| (0 << 19) // PKTCNT = 0; no non-SETUP packets should be issued.
-		| (0 << 0); // XFRSIZ = 0; no non-SETUP transfer is occurring.
+	OTG_FS_DOEPTSIZ0 = STUPCNT(3) // Allow up to 3 back-to-back SETUP data packets.
+		| PKTCNT(0) // No non-SETUP packets should be issued.
+		| XFRSIZ(0); // No non-SETUP transfer is occurring.
 	OTG_FS_GINTMSK |=
-		(1 << 19) // OEPINT = 1; take an interrupt on unmasked events for OUT endpoints
-		| (1 << 18) // IEPINT = 1; take an interrupt on unmasked events for IN endpoints
-		| (1 << 4); // RXFLVLM = 1; take an interrupt on receive FIFO non-empty.
+		GINTMSK_OEPINT // Take an interrupt on unmasked events for OUT endpoints
+		| GINTMSK_IEPINT // Take an interrupt on unmasked events for IN endpoints
+		| RXFLVLM; // Take an interrupt on receive FIFO non-empty.
 }
 
 void usb_ep0_set_global_callbacks(const usb_ep0_global_callbacks_t *callbacks) {

@@ -57,11 +57,11 @@ static void push_data(void) {
 	if (zlp_pending) {
 		// A prior transfer needed a zero-length packet to be added on; do that now
 		OTG_FS_DIEPTSIZ1 =
-			(1 << 19) // PKTCNT = 1; send one packet
-			| (0 << 0); // XFRSIZ = 0; send zero bytes
+			PKTCNT(1) // Send one packet
+			| XFRSIZ(0); // Send zero bytes
 		OTG_FS_DIEPCTL1 |=
-			(1 << 31) // EPENA = 1; enable endpoint
-			| (1 << 26); // CNAK = 1; clear NAK flag
+			EPENA // Enable endpoint
+			| CNAK; // Clear NAK flag
 		zlp_pending = false;
 		usb_active = true;
 		return;
@@ -82,11 +82,11 @@ static void push_data(void) {
 
 	// Push this captured packet into the USB FIFO
 	OTG_FS_DIEPTSIZ1 =
-		(((packet->length + 63) / 64) << 19) // PKTCNT = n; send the proper number of packets (this does not include any ZLP, which must be in a separate “transfer” as far as the STM32F4’s USB engine is concerned)
-		| (packet->length << 0); // XFRSIZ = n; send the proper number of bytes
+		PKTCNT(((packet->length + 63) / 64)) // Send the proper number of packets (this does not include any ZLP, which must be in a separate “transfer” as far as the STM32F4’s USB engine is concerned)
+		| XFRSIZ(packet->length); // Send the proper number of bytes
 	OTG_FS_DIEPCTL1 |=
-		(1 << 31) // EPENA = 1; enable endpoint
-		| (1 << 26); // CNAK = 1; clear NAK flag
+		EPENA // Enable endpoint
+		| CNAK; // Clear NAK flag
 	for (size_t i = 0; i < (packet->length + 3U) / 4U; ++i) {
 		uint32_t word = packet->data[i * 4] | (packet->data[i * 4 + 1] << 8) | (packet->data[i * 4 + 2] << 16) | (packet->data[i * 4 + 3] << 24);
 		OTG_FS_FIFO[1][0] = word;
@@ -105,7 +105,7 @@ static void exti12_interrupt_vector(void) {
 	// Clear the interrupt
 	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
 
-	while (GPIOC_IDR & (1 << 12) /* PC12 */) {
+	while (IDR_X(GPIOC_IDR) & (1 << 12) /* PC12 */) {
 		// Check outstanding interrupts
 		uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
 		if (intstat & (1 << 3)) {
@@ -136,15 +136,15 @@ static void exti12_interrupt_vector(void) {
 			}
 			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00); // RXDECINV = 0; stop inverting receiver and allow further reception
 			// Toggle LED 3 to show reception
-			GPIOB_ODR ^= 4 << 12;
+			GPIOB_ODR ^= ODR(1 << 14);
 		}
 	}
 }
 
 static void on_ep1_in_interrupt(void) {
-	if (OTG_FS_DIEPINT1 & (1 << 0) /* XFRC */) {
+	if (OTG_FS_DIEPINT1 & XFRC) {
 		// On transfer complete, go see if we have another captured packet to send
-		OTG_FS_DIEPINT1 = 1 << 0; // XFRC = 1; clear transfer complete interrupt flag
+		OTG_FS_DIEPINT1 = XFRC; // Clear transfer complete interrupt flag
 		usb_active = false;
 		push_data();
 	}
@@ -174,10 +174,10 @@ static void on_enter(void) {
 	sleep_100us(1);
 	mrf_release_reset();
 	mrf_common_init();
-	while (GPIOC_IDR & (1 << 12));
+	while (IDR_X(GPIOC_IDR) & (1 << 12));
 
 	// Turn on LED 1
-	GPIOB_BSRR = 1 << 12;
+	GPIOB_BSRR = GPIO_BS(12);
 
 	// Enable external interrupt on MRF INT rising edge
 	interrupt_exti12_handler = &exti12_interrupt_vector;
@@ -192,36 +192,36 @@ static void on_enter(void) {
 	// Set up endpoint 1 (interrupt IN)
 	usb_in_set_callback(1, &on_ep1_in_interrupt);
 	OTG_FS_DIEPCTL1 =
-		(0 << 31) // EPENA = 0; do not start transmission on this endpoint
-		| (0 << 30) // EPDIS = 0; do not disable this endpoint at this time
-		| (1 << 28) // SD0PID = 1; set data PID to 0
-		| (1 << 27) // SNAK = 1; set NAK flag
-		| (0 << 26) // CNAK = 0; do not clear NAK flag
-		| (1 << 22) // TXFNUM = 1; use transmit FIFO number 1
-		| (0 << 21) // STALL = 0; do not stall traffic
-		| (2 << 18) // EPTYP = 2; bulk endpoint
-		| (1 << 15) // USBAEP = 1; endpoint is active in this configuration
-		| (64 << 0); // MPSIZ = 64; maximum packet size is 64 bytes
-	while (!(OTG_FS_DIEPCTL1 & (1 << 17) /* NAKSTS */));
+		0 // EPENA = 0; do not start transmission on this endpoint
+		| 0 // EPDIS = 0; do not disable this endpoint at this time
+		| SD0PID // Set data PID to 0
+		| SNAK // Set NAK flag
+		| 0 // CNAK = 0; do not clear NAK flag
+		| DIEPCTL_TXFNUM(1) // Use transmit FIFO number 1
+		| 0 // STALL = 0; do not stall traffic
+		| EPTYP(2) // Bulk endpoint
+		| USBAEP // Endpoint is active in this configuration
+		| MPSIZ(64); // Maximum packet size is 64 bytes
+	while (!(OTG_FS_DIEPCTL1 & NAKSTS));
 	usb_fifo_set_size(1, 128); // Allocate 128 words of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
 	usb_fifo_flush(1);
 	OTG_FS_DIEPINT1 = OTG_FS_DIEPINT1; // Clear all pending interrupts for IN endpoint 1
-	OTG_FS_DAINTMSK |= 1 << 1; // IEPM1 = 1; enable interrupts for IN endpoint 1
+	OTG_FS_DAINTMSK |= IEPM(1 << 1); // Enable interrupts for IN endpoint 1
 }
 
 static void on_exit(void) {
 	// Shut down endpoint 1
-	if (OTG_FS_DIEPCTL1 & (1 << 31) /* EPENA */) {
-		if (!(OTG_FS_DIEPCTL1 & (1 << 17) /* NAKSTS */)) {
-			OTG_FS_DIEPCTL1 |= 1 << 27; // SNAK = 1; start NAKing traffic
-			while (!(OTG_FS_DIEPCTL1 & (1 << 17) /* NAKSTS */));
+	if (OTG_FS_DIEPCTL1 & EPENA) {
+		if (!(OTG_FS_DIEPCTL1 & NAKSTS)) {
+			OTG_FS_DIEPCTL1 |= SNAK; // Start NAKing traffic
+			while (!(OTG_FS_DIEPCTL1 & NAKSTS));
 		}
-		OTG_FS_DIEPCTL1 |= 1 << 30; // EPDIS = 1; disable endpoint
-		while (OTG_FS_DIEPCTL1 & (1 << 31) /* EPENA */);
+		OTG_FS_DIEPCTL1 |= EPDIS; // Disable endpoint
+		while (OTG_FS_DIEPCTL1 & EPENA);
 	}
 	OTG_FS_DIEPCTL1 = 0;
-	OTG_FS_DAINTMSK &= ~(1 << 1); // IEPM1 = 0; disable general interrupts for IN endpoint 1
-	OTG_FS_DIEPEMPMSK &= ~(1 << 1); // INEPTXFEM1 = 0; disable FIFO empty interrupts for IN endpoint 1
+	OTG_FS_DAINTMSK &= ~IEPM(1 << 1); // Disable general interrupts for IN endpoint 1
+	OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << 1); // Disable FIFO empty interrupts for IN endpoint 1
 	usb_in_set_callback(1, 0);
 
 	// Deallocate FIFOs.
@@ -233,7 +233,7 @@ static void on_exit(void) {
 	interrupt_exti12_handler = 0;
 
 	// Turn off all LEDs
-	GPIOB_BSRR = 7 << (12 + 16);
+	GPIOB_BSRR = GPIO_BR(12) | GPIO_BR(13) | GPIO_BR(14);
 
 	// Reset the radio
 	mrf_init();
@@ -292,7 +292,7 @@ static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t valu
 			// Enable interrupt on receive
 			mrf_write_short(MRF_REG_SHORT_INTCON, 0xF7);
 			// Turn on LED 2 to indicate capture is enabled
-			GPIOB_BSRR = 2 << 12;
+			GPIOB_BSRR = GPIO_BS(13);
 		} else {
 			// Shut down the radio
 			mrf_write_short(MRF_REG_SHORT_RXMCR, 0x20);
@@ -300,7 +300,7 @@ static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t valu
 			mrf_write_short(MRF_REG_SHORT_INTCON, 0xFF);
 			mrf_analogue_off();
 			// Turn off LED 2 to indicate capture is disabled
-			GPIOB_BSRR = 2 << (12 + 16);
+			GPIOB_BSRR = GPIO_BR(13);
 		}
 		// Accept this request
 		*accept = true;

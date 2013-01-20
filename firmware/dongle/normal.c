@@ -140,7 +140,7 @@ static void send_drive_packet(void) {
 	drive_packet_pending = false;
 
 	// Blink the transmit light
-	GPIOB_ODR ^= 2 << 12;
+	GPIOB_ODR ^= ODR(1 << 13);
 }
 
 void timer6_interrupt_vector(void) {
@@ -225,11 +225,11 @@ static void push_mdrs(void) {
 
 	// Push the delivery status into the USB FIFO
 	OTG_FS_DIEPTSIZ1 = 
-		(1 << 19) // PKTCNT = 1; send one packet
-		| (2 << 0); // XFRSIZ = 2; send two bytes
+		PKTCNT(1) // Send one packet
+		| XFRSIZ(2); // Send two bytes
 	OTG_FS_DIEPCTL1 |=
-		(1 << 31) // EPENA = 1; enable endpoint
-		| (1 << 26); // CNAK = 1; clear NAK flag
+		EPENA // Enable endpoint
+		| CNAK; // Clear NAK flag
 	OTG_FS_FIFO[1][0] = pkt->message_id | (pkt->delivery_status << 8);
 
 	// Push the consumed MDR packet buffer onto the free stack
@@ -247,11 +247,11 @@ static void push_rx(void) {
 	if (in_ep2_zlp_pending) {
 		// A zero length packet was needed; do that now
 		OTG_FS_DIEPTSIZ2 =
-			(1 << 19) // PKTCNT = 1; send one packet
-			| (0 << 0); // XFRSIZ = 0; send zero bytes
+			PKTCNT(1) // Send one packet
+			| XFRSIZ(0); // Send zero bytes
 		OTG_FS_DIEPCTL2 |=
-			(1 << 31) // EPENA = 1; enable endpoint
-			| (1 << 26); // CNAK = 1; clear NAK flag
+			EPENA // Enable endpoint
+			| CNAK; // Clear NAK flag
 		in_ep2_zlp_pending = false;
 		in_ep2_enabled = true;
 		return;
@@ -272,11 +272,11 @@ static void push_rx(void) {
 
 	// Push this received packet into the USB FIFO
 	OTG_FS_DIEPTSIZ2 =
-		(((packet->length + 63) / 64) << 19) // PKTCNT = n; send the proper number of packets (this does not include any ZLP, which must be in a separate “transfer” as far as the STM32F4’s USB engine is concerned)
-		| (packet->length << 0); // XFRSIZ = n; send the proper number of bytes
+		PKTCNT((packet->length + 63) / 64) // Send the proper number of packets (this does not include any ZLP, which must be in a separate “transfer” as far as the STM32F4’s USB engine is concerned)
+		| XFRSIZ(packet->length); // Send the proper number of bytes
 	OTG_FS_DIEPCTL2 |=
-		(1 << 31) // EPENA = 1; enable endpoint
-		| (1 << 26); // CNAK = 1; clear NAK flag
+		EPENA // Enable endpoint
+		| CNAK; // Clear NAK flag
 	for (size_t i = 0; i < (packet->length + 3U) / 4U; ++i) {
 		uint32_t word = packet->data[i * 4] | (packet->data[i * 4 + 1] << 8) | (packet->data[i * 4 + 2] << 16) | (packet->data[i * 4 + 3] << 24);
 		OTG_FS_FIFO[2][0] = word;
@@ -302,11 +302,11 @@ static void push_estop(void) {
 
 	// Push the estop state into the USB FIFO
 	OTG_FS_DIEPTSIZ3 =
-		(1 << 19) // PKTCNT = 1; send one packet
-		| (2 << 0); // XFRSIZ = 2; send two bytes
+		PKTCNT(1) // Send one packet
+		| XFRSIZ(2); // Send two bytes
 	OTG_FS_DIEPCTL3 |=
-		(1 << 31) // EPENA = 1; enable endpoint
-		| (1 << 26); // CNAK = 1; clear NAK flag
+		EPENA // Enable endpoint
+		| CNAK; // Clear NAK flag
 	last_reported_estop_value = estop_read();
 	OTG_FS_FIFO[3][0] = last_reported_estop_value << 8;
 	in_ep3_enabled = true;
@@ -316,7 +316,7 @@ static void exti12_interrupt_vector(void) {
 	// Clear the interrupt
 	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
 
-	while (GPIOC_IDR & (1 << 12) /* PC12 */) {
+	while (IDR_X(GPIOC_IDR) & (1 << 12) /* PC12 */) {
 		// Check outstanding interrupts
 		uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
 		if (intstat & (1 << 3)) {
@@ -332,7 +332,7 @@ static void exti12_interrupt_vector(void) {
 				uint8_t sequence_number = mrf_read_long(MRF_REG_LONG_RXFIFO + 3);
 				if (source_address < 8 && sequence_number != mrf_rx_seqnum[source_address]) {
 					// Blink the receive light
-					GPIOB_ODR ^= 4 << 12;
+					GPIOB_ODR ^= ODR(1 << 14);
 
 					static const uint8_t HEADER_LENGTH = 2 /* Frame control */ + 1 /* Seq# */ + 2 /* Dest PAN */ + 2 /* Dest */ + 2 /* Src */;
 					static const uint8_t FOOTER_LENGTH = 2;
@@ -426,27 +426,27 @@ static void exti12_interrupt_vector(void) {
 }
 
 static void on_ep1_in_interrupt(void) {
-	if (OTG_FS_DIEPINT1 & (1 << 0) /* XFRC */) {
+	if (OTG_FS_DIEPINT1 & XFRC) {
 		// On transfer complete, go see if we have another MDR to send
-		OTG_FS_DIEPINT1 = 1 << 0; // XFRC = 1; clear transfer complete interrupt flag
+		OTG_FS_DIEPINT1 = XFRC; // Clear transfer complete interrupt flag
 		in_ep1_enabled = false;
 		push_mdrs();
 	}
 }
 
 static void on_ep2_in_interrupt(void) {
-	if (OTG_FS_DIEPINT2 & (1 << 0) /* XFRC */) {
+	if (OTG_FS_DIEPINT2 & XFRC) {
 		// On transfer complete, go see if we have another message to send
-		OTG_FS_DIEPINT2 = 1 << 0; // XFRC = 1; clear transfer complete interrupt flag
+		OTG_FS_DIEPINT2 = XFRC; // Clear transfer complete interrupt flag
 		in_ep2_enabled = false;
 		push_rx();
 	}
 }
 
 static void on_ep3_in_interrupt(void) {
-	if (OTG_FS_DIEPINT3 & (1 << 0) /* XFRC */) {
+	if (OTG_FS_DIEPINT3 & XFRC) {
 		// On transfer complete, go see if we have another message to send
-		OTG_FS_DIEPINT3 = 1 << 0; // XFRC = 1; clear transfer complete interrupt flag
+		OTG_FS_DIEPINT3 = XFRC; // Clear transfer complete interrupt flag
 		in_ep3_enabled = false;
 		if (estop_read() != last_reported_estop_value) {
 			push_estop(); }
@@ -455,12 +455,10 @@ static void on_ep3_in_interrupt(void) {
 
 static void init_out_ep1(void) {
 	if (!out_ep1_enabled) {
-		OTG_FS_DOEPTSIZ1 =
-			(1 << 19) // PKTCNT = 1; receive one packet
-			| (64 << 0); // XFRSIZ = 64; receive a packet of up to 64 bytes
-		OTG_FS_DOEPCTL1 |=
-			(1 << 31) // EPENA = 1; enable endpoint
-			| (1 << 26); // CNAK = 1; clear NAK flag
+		OTG_FS_DOEPTSIZ1 = PKTCNT(1) // Receive one packet
+			| XFRSIZ(64); // Receive a packet of up to 64 bytes
+		OTG_FS_DOEPCTL1 |= EPENA // Enable endpoint
+			| CNAK; // Clear NAK flag
 		out_ep1_enabled = true;
 	}
 }
@@ -468,12 +466,11 @@ static void init_out_ep1(void) {
 static void init_out_ep2(void) {
 #warning this endpoint really ought to handle transfers of more than 64 bytes
 	if (!out_ep2_enabled) {
-		OTG_FS_DOEPTSIZ2 =
-			(1 << 19) // PKTCNT = 1; receive one packet
-			| (64 << 0); // XFRSIZ = 64; receive a packet of up to 64 bytes
+		OTG_FS_DOEPTSIZ2 = PKTCNT(1) // Receive one packet
+			| XFRSIZ(64); // Receive a packet of up to 64 bytes
 		OTG_FS_DOEPCTL2 |=
-			(1 << 31) // EPENA = 1; enable endpoint
-			| (1 << 26); // CNAK = 1; clear NAK flag
+			EPENA // Enable endpoint
+			| CNAK; // Clear NAK flag
 		out_ep2_enabled = true;
 	}
 }
@@ -481,12 +478,11 @@ static void init_out_ep2(void) {
 static void init_out_ep3(void) {
 #warning this endpoint really ought to handle transfers of more than 64 bytes
 	if (!out_ep3_enabled) {
-		OTG_FS_DOEPTSIZ3 =
-			(1 << 19) // PKTCNT = 1; receive one packet
-			| (64 << 0); // XFRSIZ = 64; receive a packet of up to 64 bytes
+		OTG_FS_DOEPTSIZ3 = PKTCNT(1) // Receive one packet
+			| XFRSIZ(64); // Receive a packet of up to 64 bytes
 		OTG_FS_DOEPCTL3 |=
-			(1 << 31) // EPENA = 1; enable endpoint
-			| (1 << 26); // CNAK = 1; clear NAK flag
+			EPENA // Enable endpoint
+			| CNAK; // Clear NAK flag
 		out_ep3_enabled = true;
 	}
 }
@@ -668,7 +664,7 @@ static void on_enter(void) {
 	mrf_release_reset();
 	sleep_100us(3);
 	mrf_common_init();
-	while (GPIOC_IDR & (1 << 12));
+	while (IDR_X(GPIOC_IDR) & (1 << 12));
 	mrf_write_short(MRF_REG_SHORT_SADRH, 0x01);
 	mrf_write_short(MRF_REG_SHORT_SADRL, 0x00);
 	mrf_analogue_txrx();
@@ -714,7 +710,7 @@ static void on_enter(void) {
 #endif
 
 	// Turn on LED 1
-	GPIOB_BSRR = 1 << 12;
+	GPIOB_BSRR = GPIO_BS(12);
 
 	// Enable external interrupt on MRF INT rising edge
 	interrupt_exti12_handler = &exti12_interrupt_vector;
@@ -730,92 +726,92 @@ static void on_enter(void) {
 	out_ep1_enabled = false;
 	usb_out_set_callback(1, &on_ep1_out_pattern);
 	OTG_FS_DOEPCTL1 =
-		(1 << 28) // SD0PID + 1; set data 0 PID
-		| (3 << 18) // EPTYP = 3; interrupt endpoint
-		| (1 << 15) // USBAEP = 1; endpoint active in this configuration
-		| (64 << 0); // MPSIZ = 64; max packet size is 64 bytes
+		SD0PID // Set data 0 PID
+		| EPTYP(3) // Interrupt endpoint
+		| USBAEP // Endpoint active in this configuration
+		| MPSIZ(64); // Max packet size is 64 bytes
 	init_out_ep1();
 
 	// Set up interrupt endpoint 2 OUT
 	out_ep2_enabled = false;
 	usb_out_set_callback(2, &on_ep2_out_pattern);
 	OTG_FS_DOEPCTL2 =
-		(1 << 28) // SD0PID + 1; set data 0 PID
-		| (3 << 18) // EPTYP = 3; interrupt endpoint
-		| (1 << 15) // USBAEP = 1; endpoint active in this configuration
-		| (64 << 0); // MPSIZ = 64; max packet size is 64 bytes
+		SD0PID // Set data 0 PID
+		| EPTYP(3) // Interrupt endpoint
+		| USBAEP // Endpoint active in this configuration
+		| MPSIZ(64); // Max packet size is 64 bytes
 	init_out_ep2();
 
 	// Set up interrupt endpoint 3 OUT
 	out_ep3_enabled = false;
 	usb_out_set_callback(3, &on_ep3_out_pattern);
 	OTG_FS_DOEPCTL3 =
-		(1 << 28) // SD0PID = 1; set data 0 PID
-		| (3 << 18) // EPTYP = 3; interrupt endpoint
-		| (1 << 15) // USBAEP = 1; endpoint active in this configuration
-		| (64 << 0); // MPSIZ = 64; max packet size is 64 bytes
+		SD0PID // Set data 0 PID
+		| EPTYP(3) // Interrupt endpoint
+		| USBAEP // Endpoint active in this configuration
+		| MPSIZ(64); // Max packet size is 64 bytes
 	init_out_ep3();
 
 	// Set up endpoint 1 IN
 	in_ep1_enabled = false;
 	usb_in_set_callback(1, &on_ep1_in_interrupt);
 	OTG_FS_DIEPCTL1 =
-		(0 << 31) // EPENA = 0; do not start transmission on this endpoint
-		| (0 << 30) // EPDIS = 0; do not disable this endpoint at this time
-		| (1 << 28) // SD0PID = 1; set data PID to 0
-		| (1 << 27) // SNAK = 1; set NAK flag
-		| (0 << 26) // CNAK = 0; do not clear NAK flag
-		| (1 << 22) // TXFNUM = 1; use transmit FIFO number 1
-		| (0 << 21) // STALL = 0; do not stall traffic
-		| (3 << 18) // EPTYP = 3; interrupt endpoint
-		| (1 << 15) // USBAEP = 1; endpoint is active in this configuration
-		| (2 << 0); // MPSIZ = 2; maximum packet size is 2 bytes
-	while (!(OTG_FS_DIEPCTL1 & (1 << 17) /* NAKSTS */));
+		0 // EPENA = 0; do not start transmission on this endpoint
+		| 0 // EPDIS = 0; do not disable this endpoint at this time
+		| SD0PID // Set data PID to 0
+		| SNAK // Set NAK flag
+		| 0 // Do not clear NAK flag
+		| DIEPCTL_TXFNUM(1) // Use transmit FIFO number 1
+		| 0 // Do not stall traffic
+		| EPTYP(3) // Interrupt endpoint
+		| USBAEP // Endpoint is active in this configuration
+		| MPSIZ(2); // Maximum packet size is 2 bytes
+	while (!(OTG_FS_DIEPCTL1 & NAKSTS));
 	usb_fifo_set_size(1, 16); // Allocate 16 words of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
 	usb_fifo_flush(1);
 	OTG_FS_DIEPINT1 = OTG_FS_DIEPINT1; // Clear all pending interrupts for IN endpoint 1
-	OTG_FS_DAINTMSK |= 1 << 1; // IEPM1 = 1; enable interrupts for IN endpoint 1
+	OTG_FS_DAINTMSK |= IEPM(1 << 1); // Enable interrupts for IN endpoint 1
 
 	// Set up endpoint 2 IN
 	in_ep2_enabled = false;
 	in_ep2_zlp_pending = false;
 	usb_in_set_callback(2, &on_ep2_in_interrupt);
 	OTG_FS_DIEPCTL2 =
-		(0 << 31) // EPENA = 0; do not start transmission on this endpoint
-		| (0 << 30) // EPDIS = 0; do not disable this endpoint at this time
-		| (1 << 28) // SD0PID = 1; set data PID to 0
-		| (1 << 27) // SNAK = 1; set NAK flag
-		| (0 << 26) // CNAK = 0; do not clear NAK flag
-		| (2 << 22) // TXFNUM = 2; use transmit FIFO number 2
-		| (0 << 21) // STALL = 0; do not stall traffic
-		| (3 << 18) // EPTYP = 3; interrupt endpoint
-		| (1 << 15) // USBAEP = 1; endpoint is active in this configuration
-		| (64 << 0); // MPSIZ = 64; maximum packet size is 64 bytes
-	while (!(OTG_FS_DIEPCTL2 & (1 << 17) /* NAKSTS */));
+		0 // EPENA = 0; do not start transmission on this endpoint
+		| 0 // EPDIS = 0; do not disable this endpoint at this time
+		| SD0PID // Set data PID to 0
+		| SNAK // Set NAK flag
+		| 0 // Do not clear NAK flag
+		| DIEPCTL_TXFNUM(2) // Use transmit FIFO number 2
+		| 0 // STALL = 0; do not stall traffic
+		| EPTYP(3) // Interrupt endpoint
+		| USBAEP // Endpoint is active in this configuration
+		| MPSIZ(64); // Maximum packet size is 64 bytes
+	while (!(OTG_FS_DIEPCTL2 & NAKSTS));
 	usb_fifo_set_size(2, 64); // Allocate 64 words of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
 	usb_fifo_flush(2);
 	OTG_FS_DIEPINT2 = OTG_FS_DIEPINT2; // Clear all pending interrupts for IN endpoint 2
-	OTG_FS_DAINTMSK |= 1 << 2; // IEPM2 = 1; enable interrupts for IN endpoint 2
+	OTG_FS_DAINTMSK |= IEPM(1 << 2); // Enable interrupts for IN endpoint 2
 
 	// Set up endpoint 3 IN
 	in_ep3_enabled = false;
 	usb_in_set_callback(3, &on_ep3_in_interrupt);
 	OTG_FS_DIEPCTL3 =
-		(0 << 31) // EPENA = 0; do not start transmission on this endpoint
-		| (0 << 30) // EPDIS = 0; do not disable this endpoint at this time
-		| (1 << 28) // SD0PID = 1; set data PID to 0
-		| (1 << 27) // SNAK = 1; set NAK flag
-		| (0 << 26) // CNAK = 0; do not clear NAK flag
-		| (3 << 22) // TXFNUM = 3; use transmit FIFO number 3
-		| (0 << 21) // STALL = 0; do not stall traffic
-		| (3 << 18) // EPTYP = 3; interrupt endpoint
-		| (1 << 15) // USBAEP = 1; endpoint is active in this configuration
-		| (2 << 0); // MPSIZ = 2; maximum packet size is 2 bytes
-	while (!(OTG_FS_DIEPCTL3 & (1 << 17) /* NAKSTS */));
+		0 // EPENA = 0; do not start transmission on this endpoint
+		| 0 // EPDIS = 0; do not disable this endpoint at this time
+		| SD0PID // Set data PID to 0
+		| SNAK // Set NAK flag
+		| 0 // CNAK = 0; do not clear NAK flag
+		| DIEPCTL_TXFNUM(3) // Use transmit FIFO number 3
+		| 0 // STALL = 0; do not stall traffic
+		| EPTYP(3) // Interrupt endpoint
+		| USBAEP // Endpoint is active in this configuration
+		| MPSIZ(2); // Maximum packet size is 2 bytes
+	while (!(OTG_FS_DIEPCTL3 & NAKSTS));
 	usb_fifo_set_size(3, 16); // Allocate 16 words of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
 	usb_fifo_flush(3);
 	OTG_FS_DIEPINT3 = OTG_FS_DIEPINT3; // Clear all pending interrupts for IN endpoint 3
-	OTG_FS_DAINTMSK |= 1 << 3; // IEPM3 = 1; enable interrupts for IN endpoint 3
+	OTG_FS_DAINTMSK |= IEPM(1 << 3); // Enable interrupts for IN endpoint 3
 
 	// Wipe the drive packet
 	memset(perconfig.normal.drive_packet, 0, sizeof(perconfig.normal.drive_packet));
@@ -853,83 +849,83 @@ static void on_exit(void) {
 	estop_set_change_callback(0);
 
 	// Shut down OUT endpoint 1
-	if (OTG_FS_DOEPCTL1 & (1 << 31) /* EPENA */) {
-		if (!(OTG_FS_DOEPCTL1 & (1 << 17) /* NAKSTS */)) {
-			OTG_FS_DOEPCTL1 |= 1 << 27; // SNAK = 1; start NAKing traffic
-			while (!(OTG_FS_DOEPCTL1 & (1 << 17) /* NAKSTS */));
+	if (OTG_FS_DOEPCTL1 & EPENA) {
+		if (!(OTG_FS_DOEPCTL1 & NAKSTS)) {
+			OTG_FS_DOEPCTL1 |= SNAK; // Start NAKing traffic
+			while (!(OTG_FS_DOEPCTL1 & NAKSTS));
 		}
-		OTG_FS_DOEPCTL1 |= 1 << 30; // EPDIS = 1; disable endpoint
-		while (OTG_FS_DOEPCTL1 & (1 << 31) /* EPENA */);
+		OTG_FS_DOEPCTL1 |= EPDIS; // Disable endpoint
+		while (OTG_FS_DOEPCTL1 & EPENA);
 	}
 	usb_out_set_callback(1, 0);
 	out_ep1_enabled = false;
 
 	// Shut down OUT endpoint 2
-	if (OTG_FS_DOEPCTL2 & (1 << 31) /* EPENA */) {
-		if (!(OTG_FS_DOEPCTL2 & (1 << 17) /* NAKSTS */)) {
-			OTG_FS_DOEPCTL2 |= 1 << 27; // SNAK = 1; start NAKing traffic
-			while (!(OTG_FS_DOEPCTL2 & (1 << 17) /* NAKSTS */));
+	if (OTG_FS_DOEPCTL2 & EPENA) {
+		if (!(OTG_FS_DOEPCTL2 & NAKSTS)) {
+			OTG_FS_DOEPCTL2 |= SNAK; // Start NAKing traffic
+			while (!(OTG_FS_DOEPCTL2 & NAKSTS));
 		}
-		OTG_FS_DOEPCTL2 |= 1 << 30; // EPDIS = 1; disable endpoint
-		while (OTG_FS_DOEPCTL2 & (1 << 31) /* EPENA */);
+		OTG_FS_DOEPCTL2 |= EPDIS; // Disable endpoint
+		while (OTG_FS_DOEPCTL2 & EPENA);
 	}
 	usb_out_set_callback(2, 0);
 	out_ep2_enabled = false;
 
 	// Shut down OUT endpoint 3
-	if (OTG_FS_DOEPCTL3 & (1 << 31) /* EPENA */) {
-		if (!(OTG_FS_DOEPCTL3 & (1 << 17) /* NAKSTS */)) {
-			OTG_FS_DOEPCTL3 |= 1 << 27; // SNAK = 1; start NAKing traffic
-			while (!(OTG_FS_DOEPCTL3 & (1 << 17) /* NAKSTS */));
+	if (OTG_FS_DOEPCTL3 & EPENA) {
+		if (!(OTG_FS_DOEPCTL3 & NAKSTS)) {
+			OTG_FS_DOEPCTL3 |= SNAK; // Start NAKing traffic
+			while (!(OTG_FS_DOEPCTL3 & NAKSTS));
 		}
-		OTG_FS_DOEPCTL3 |= 1 << 30; // EPDIS = 1; disable endpoint
-		while (OTG_FS_DOEPCTL3 & (1 << 31) /* EPENA */);
+		OTG_FS_DOEPCTL3 |= EPDIS; // Disable endpoint
+		while (OTG_FS_DOEPCTL3 & EPENA);
 	}
 	usb_out_set_callback(3, 0);
 	out_ep3_enabled = false;
 
 	// Shut down IN endpoint 1
-	if (OTG_FS_DIEPCTL1 & (1 << 31) /* EPENA */) {
-		if (!(OTG_FS_DIEPCTL1 & (1 << 17) /* NAKSTS */)) {
-			OTG_FS_DIEPCTL1 |= 1 << 27; // SNAK = 1; start NAKing traffic
-			while (!(OTG_FS_DIEPCTL1 & (1 << 17) /* NAKSTS */));
+	if (OTG_FS_DIEPCTL1 & EPENA) {
+		if (!(OTG_FS_DIEPCTL1 & NAKSTS)) {
+			OTG_FS_DIEPCTL1 |= SNAK; // Start NAKing traffic
+			while (!(OTG_FS_DIEPCTL1 & NAKSTS));
 		}
-		OTG_FS_DIEPCTL1 |= 1 << 30; // EPDIS = 1; disable endpoint
-		while (OTG_FS_DIEPCTL1 & (1 << 31) /* EPENA */);
+		OTG_FS_DIEPCTL1 |= EPDIS; // Disable endpoint
+		while (OTG_FS_DIEPCTL1 & EPENA);
 	}
 	OTG_FS_DIEPCTL1 = 0;
-	OTG_FS_DAINTMSK &= ~(1 << 1); // IEPM1 = 0; disable general interrupts for IN endpoint 1
-	OTG_FS_DIEPEMPMSK &= ~(1 << 1); // INEPTXFEM1 = 0; disable FIFO empty interrupts for IN endpoint 1
+	OTG_FS_DAINTMSK &= ~IEPM(1 << 1); // Disable general interrupts for IN endpoint 1
+	OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << 1); // Disable FIFO empty interrupts for IN endpoint 1
 	usb_in_set_callback(1, 0);
 	in_ep1_enabled = false;
 
 	// Shut down IN endpoint 2
-	if (OTG_FS_DIEPCTL2 & (1 << 31) /* EPENA */) {
-		if (!(OTG_FS_DIEPCTL2 & (1 << 17) /* NAKSTS */)) {
-			OTG_FS_DIEPCTL2 |= 1 << 27; // SNAK = 1; start NAKing traffic
-			while (!(OTG_FS_DIEPCTL2 & (1 << 17) /* NAKSTS */));
+	if (OTG_FS_DIEPCTL2 & EPENA) {
+		if (!(OTG_FS_DIEPCTL2 & NAKSTS)) {
+			OTG_FS_DIEPCTL2 |= SNAK; // Start NAKing traffic
+			while (!(OTG_FS_DIEPCTL2 & NAKSTS));
 		}
-		OTG_FS_DIEPCTL2 |= 1 << 30; // EPDIS = 1; disable endpoint
-		while (OTG_FS_DIEPCTL2 & (1 << 31) /* EPENA */);
+		OTG_FS_DIEPCTL2 |= EPDIS; // Disable endpoint
+		while (OTG_FS_DIEPCTL2 & EPENA);
 	}
 	OTG_FS_DIEPCTL2 = 0;
-	OTG_FS_DAINTMSK &= ~(1 << 2); // IEPM2 = 0; disable general interrupts for IN endpoint 2
-	OTG_FS_DIEPEMPMSK &= ~(1 << 2); // INEPTXFEM2 = 0; disable FIFO empty interrupts for IN endpoint 2
+	OTG_FS_DAINTMSK &= ~IEPM(1 << 2); // Disable general interrupts for IN endpoint 2
+	OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << 2); // Disable FIFO empty interrupts for IN endpoint 2
 	usb_in_set_callback(2, 0);
 	in_ep2_enabled = false;
 
 	// Shut down IN endpoint 3
-	if (OTG_FS_DIEPCTL3 & (1 << 31) /* EPENA */) {
-		if (!(OTG_FS_DIEPCTL3 & (1 << 17) /* NAKSTS */)) {
-			OTG_FS_DIEPCTL3 |= 1 << 27; // SNAK = 1; start NAKing traffic
-			while (!(OTG_FS_DIEPCTL3 & (1 << 17) /* NAKSTS */));
+	if (OTG_FS_DIEPCTL3 & EPENA) {
+		if (!(OTG_FS_DIEPCTL3 & NAKSTS)) {
+			OTG_FS_DIEPCTL3 |= SNAK; // Start NAKing traffic
+			while (!(OTG_FS_DIEPCTL3 & NAKSTS));
 		}
-		OTG_FS_DIEPCTL3 |= 1 << 30; // EPDIS = 1; disable endpoint
-		while (OTG_FS_DIEPCTL3 & (1 << 31) /* EPENA */);
+		OTG_FS_DIEPCTL3 |= EPDIS; // Disable endpoint
+		while (OTG_FS_DIEPCTL3 & EPENA);
 	}
 	OTG_FS_DIEPCTL3 = 0;
-	OTG_FS_DAINTMSK &= ~(1 << 3); // IEPM3 = 0; disable general interrupts for IN endpoint 3
-	OTG_FS_DIEPEMPMSK &= ~(1 << 3); // INEPTXFEM3 = 0; disable FIFO empty interrupts for IN endpoint 3
+	OTG_FS_DAINTMSK &= ~IEPM(1 << 3); // Disable general interrupts for IN endpoint 3
+	OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << 3); // Disable FIFO empty interrupts for IN endpoint 3
 	usb_in_set_callback(3, 0);
 	in_ep3_enabled = false;
 
@@ -942,7 +938,7 @@ static void on_exit(void) {
 	interrupt_exti12_handler = 0;
 
 	// Turn off all LEDs
-	GPIOB_BSRR = 7 << (12 + 16);
+	GPIOB_BSRR = GPIO_BR(12) | GPIO_BR(13) | GPIO_BR(14);
 
 	// Reset the radio
 	mrf_init();
