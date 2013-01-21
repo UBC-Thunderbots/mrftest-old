@@ -105,7 +105,7 @@ static void exti12_interrupt_vector(void) {
 	// Clear the interrupt
 	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
 
-	while (IDR_X(GPIOC_IDR) & (1 << 12) /* PC12 */) {
+	while (GPIOC_IDR & (1 << 12) /* PC12 */) {
 		// Check outstanding interrupts
 		uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
 		if (intstat & (1 << 3)) {
@@ -136,7 +136,7 @@ static void exti12_interrupt_vector(void) {
 			}
 			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00); // RXDECINV = 0; stop inverting receiver and allow further reception
 			// Toggle LED 3 to show reception
-			GPIOB_ODR ^= ODR(1 << 14);
+			GPIOB_ODR ^= 1 << 14;
 		}
 	}
 }
@@ -174,7 +174,7 @@ static void on_enter(void) {
 	sleep_100us(1);
 	mrf_release_reset();
 	mrf_common_init();
-	while (IDR_X(GPIOC_IDR) & (1 << 12));
+	while (GPIOC_IDR & (1 << 12));
 
 	// Turn on LED 1
 	GPIOB_BSRR = GPIO_BS(12);

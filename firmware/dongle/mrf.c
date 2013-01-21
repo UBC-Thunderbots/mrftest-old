@@ -63,7 +63,7 @@ void mrf_release_reset(void) {
 }
 
 bool mrf_get_interrupt(void) {
-	return !!(IDR_X(GPIOC_IDR) & (1 << 12));
+	return !!(GPIOC_IDR & (1 << 12));
 }
 
 uint8_t mrf_read_short(mrf_reg_short_t reg) {

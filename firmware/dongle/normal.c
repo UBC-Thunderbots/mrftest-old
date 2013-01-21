@@ -140,7 +140,7 @@ static void send_drive_packet(void) {
 	drive_packet_pending = false;
 
 	// Blink the transmit light
-	GPIOB_ODR ^= ODR(1 << 13);
+	GPIOB_ODR ^= 1 << 13;
 }
 
 void timer6_interrupt_vector(void) {
@@ -316,7 +316,7 @@ static void exti12_interrupt_vector(void) {
 	// Clear the interrupt
 	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
 
-	while (IDR_X(GPIOC_IDR) & (1 << 12) /* PC12 */) {
+	while (GPIOC_IDR & (1 << 12) /* PC12 */) {
 		// Check outstanding interrupts
 		uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
 		if (intstat & (1 << 3)) {
@@ -332,7 +332,7 @@ static void exti12_interrupt_vector(void) {
 				uint8_t sequence_number = mrf_read_long(MRF_REG_LONG_RXFIFO + 3);
 				if (source_address < 8 && sequence_number != mrf_rx_seqnum[source_address]) {
 					// Blink the receive light
-					GPIOB_ODR ^= ODR(1 << 14);
+					GPIOB_ODR ^= 1 << 14;
 
 					static const uint8_t HEADER_LENGTH = 2 /* Frame control */ + 1 /* Seq# */ + 2 /* Dest PAN */ + 2 /* Dest */ + 2 /* Src */;
 					static const uint8_t FOOTER_LENGTH = 2;
@@ -664,7 +664,7 @@ static void on_enter(void) {
 	mrf_release_reset();
 	sleep_100us(3);
 	mrf_common_init();
-	while (IDR_X(GPIOC_IDR) & (1 << 12));
+	while (GPIOC_IDR & (1 << 12));
 	mrf_write_short(MRF_REG_SHORT_SADRH, 0x01);
 	mrf_write_short(MRF_REG_SHORT_SADRL, 0x00);
 	mrf_analogue_txrx();

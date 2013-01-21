@@ -45,7 +45,7 @@ static void exti12_interrupt_vector(void) {
 	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
 
 	// Check the INT pin level
-	bool int_level = !!(IDR_X(GPIOC_IDR) & (1 << 12));
+	bool int_level = !!(GPIOC_IDR & (1 << 12));
 
 	// Display the INT pin level on LED 2
 	GPIOB_BSRR = int_level ? GPIO_BS(12) : GPIO_BR(12);
@@ -71,7 +71,7 @@ static void on_ep1_in_interrupt(void) {
 		// Push a packet
 		OTG_FS_DIEPTSIZ1 += PKTCNT(1) // Increment count of packets to send
 			| XFRSIZ(1); // Increment count of bytes to send
-		OTG_FS_FIFO[1][0] = !!(IDR_X(GPIOC_IDR) & (1 << 12));
+		OTG_FS_FIFO[1][0] = !!(GPIOC_IDR & (1 << 12));
 		// Stop asking to be interrupted about FIFO empty
 		OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << 1); // Do not interrupt on IN endpoint 1 TX FIFO empty
 		GPIOB_BSRR = GPIO_BR(14);
@@ -118,7 +118,7 @@ static void on_enter(void) {
 	OTG_FS_DAINTMSK |= IEPM(1 << 1); // Enable interrupts for IN endpoint 1
 
 	// Display the current level of INT on LED 3
-	bool int_level = !!(IDR_X(GPIOC_IDR) & (1 << 12));
+	bool int_level = !!(GPIOC_IDR & (1 << 12));
 	GPIOB_BSRR = int_level ? GPIO_BS(13) : GPIO_BR(13);
 }
 
@@ -177,13 +177,13 @@ static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value,
 
 	if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_CONTROL_LINES && !value && !index) {
 		buffer[0] = 0;
-		if (ODR_X(GPIOB_ODR) & (1 << 7)) {
+		if (GPIOB_ODR & (1 << 7)) {
 			buffer[0] |= 1 << 0;
 		}
-		if (ODR_X(GPIOB_ODR) & (1 << 6)) {
+		if (GPIOB_ODR & (1 << 6)) {
 			buffer[0] |= 1 << 1;
 		}
-		if (IDR_X(GPIOC_IDR) & (1 << 12)) {
+		if (mrf_get_interrupt()) {
 			buffer[0] |= 1 << 2;
 		}
 		*source = usb_ep0_memory_source_init(&mem_src, buffer, 1);

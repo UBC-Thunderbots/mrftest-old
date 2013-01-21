@@ -680,14 +680,10 @@ extern volatile uint32_t GPIOA_AFRL;
 extern volatile uint32_t GPIOA_AFRH;
 
 BITSS(MODER, 0, 2)
-BITS(OTYPER, 0, 16)
 BITSS(OSPEEDR, 0, 2)
 BITSS(PUPDR, 0, 2)
-BITS(IDR, 0, 16)
-BITS(ODR, 0, 16)
 #define GPIO_BS(i) (1 << (i))
 #define GPIO_BR(i) (1 << ((i) + 16))
-BITS(LCKR, 0, 16)
 BITSS(AFRL, 0, 4)
 BITSS(AFRH, 0, 4)
 
