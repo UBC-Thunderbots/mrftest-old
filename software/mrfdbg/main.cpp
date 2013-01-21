@@ -64,7 +64,10 @@ namespace {
 			std::vector<std::string> parts;
 			split(line, parts);
 			if (!parts.empty()) {
-				if (parts[0] == "gc" && parts.size() == 1) {
+				if (parts[0] == "beep" && parts.size() == 2) {
+					uint16_t millis = static_cast<uint16_t>(convert_number(parts[1]));
+					devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR, 0x12, millis, 0, 0);
+				} else if (parts[0] == "gc" && parts.size() == 1) {
 					// Get control lines
 					uint8_t buffer;
 					if (devh.control_in(LIBUSB_REQUEST_TYPE_VENDOR, 0x0C, 0x0000, 0x0000, &buffer, 1, 0) != 1) {
@@ -127,6 +130,7 @@ namespace {
 					}
 				} else {
 					std::cout << "Unrecognized command or invalid arguments; valid commands are:\n";
+					std::cout << "beep millis: activate the buzzer for <millis> milliseconds\n";
 					std::cout << "gc: get control lines\n";
 					std::cout << "sc {0|1} {0|1}: set control lines, first ¬RESET then WAKE\n";
 					std::cout << "rs addr: read short register\n";
