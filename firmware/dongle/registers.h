@@ -1302,65 +1302,211 @@ extern volatile uint32_t FLASH_SIZE;
 
 
 
-extern volatile uint32_t SCS_ACTLR;
-extern volatile uint32_t SCS_STCSR;
-extern volatile uint32_t SCS_STRVR;
-extern volatile uint32_t SCS_STCVR;
-extern volatile uint32_t SCS_STCR;
 extern volatile uint32_t SCS_CPUID;
+BITS(REVISION, 0, 4)
+BITS(PARTNO, 4, 12)
+BITS(ARCHITECTURE, 16, 4)
+BITS(VARIANT, 20, 4)
+BITS(IMPLEMENTER, 24, 8)
+
 extern volatile uint32_t SCS_ICSR;
+BITS(VECTACTIVE, 0, 9)
+BIT(RETTOBASE, 11)
+BITS(VECTPENDING, 12, 9)
+BIT(ISRPENDING, 22)
+BIT(ISRPREEMPT, 23)
+BIT(PENDSTCLR, 25)
+BIT(PENDSTSET, 26)
+BIT(PENDSVCLR, 27)
+BIT(PENDSVSET, 28)
+BIT(NMIPENDSET, 31)
+
 extern volatile uint32_t SCS_VTOR;
+
 extern volatile uint32_t SCS_AIRCR;
+BIT(VECTRESET, 0)
+BIT(VECTCLRACTIVE, 1)
+BIT(SYSRESETREQ, 2)
+BITS(PRIGROUP, 8, 3)
+BIT(ENDIANNESS, 15)
+BITS(VECTKEY, 16, 16)
+
 extern volatile uint32_t SCS_SCR;
+BIT(SLEEPONEXIT, 1)
+BIT(SLEEPDEEP, 2)
+BIT(SEVONPEND, 4)
+
 extern volatile uint32_t SCS_CCR;
+BIT(NONBASETHRDENA, 0)
+BIT(USERSETMPEND, 1)
+BIT(UNALIGN_TRP, 3)
+BIT(DIV_0_TRP, 4)
+BIT(BFHFNMIGN, 8)
+BIT(STKALIGN, 9)
+
 extern volatile uint32_t SCS_SHPR1;
 extern volatile uint32_t SCS_SHPR2;
 extern volatile uint32_t SCS_SHPR3;
+
 extern volatile uint32_t SCS_SHCSR;
+BIT(MEMFAULTACT, 0)
+BIT(BUSFAULTACT, 1)
+BIT(USGFAULTACT, 3)
+BIT(SVCALLACT, 7)
+BIT(MONITORACT, 8)
+BIT(PENDSVACT, 10)
+BIT(SYSTICKACT, 11)
+BIT(USGFAULTPENDED, 12)
+BIT(MEMFAULTPENDED, 13)
+BIT(BUSFAULTPENDED, 14)
+BIT(SVCALLPENDED, 15)
+BIT(MEMFAULTENA, 16)
+BIT(BUSFAULTENA, 17)
+BIT(USGFAULTENA, 18)
+
 extern volatile uint32_t SCS_CFSR;
+BIT(IACCVIOL, 0)
+BIT(DACVIOL, 1)
+BIT(MUNSTKERR, 3)
+BIT(MSTKERR, 4)
+BIT(MLSPERR, 5)
+BIT(MMARVALID, 7)
+BIT(IBUSERR, 8)
+BIT(PRECISERR, 9)
+BIT(IMPRECISERR, 10)
+BIT(UNSTKERR, 11)
+BIT(STKERR, 12)
+BIT(LSPERR, 13)
+BIT(BFARVALID, 15)
+BIT(UNDEFINSTR, 16)
+BIT(INVSTATE, 17)
+BIT(INVPC, 18)
+BIT(NOCP, 19)
+BIT(UNALIGNED, 24)
+BIT(DIVBYZERO, 25)
+
 extern volatile uint32_t SCS_HFSR;
-extern volatile uint32_t SCS_DFSR;
+BIT(VECTTBL, 1)
+BIT(FORCED, 30)
+BIT(DEBUGEVT, 31)
+
 extern volatile uint32_t SCS_MMFAR;
 extern volatile uint32_t SCS_BFAR;
 extern volatile uint32_t SCS_AFSR;
-extern volatile uint32_t SCS_ID_PFR0;
-extern volatile uint32_t SCS_ID_PFR1;
-extern volatile uint32_t SCS_ID_DFR0;
-extern volatile uint32_t SCS_ID_AFR0;
-extern volatile uint32_t SCS_MMFR0;
-extern volatile uint32_t SCS_MMFR1;
-extern volatile uint32_t SCS_MMFR2;
-extern volatile uint32_t SCS_MMFR3;
-extern volatile uint32_t SCS_ISAR0;
-extern volatile uint32_t SCS_ISAR1;
-extern volatile uint32_t SCS_ISAR2;
-extern volatile uint32_t SCS_ISAR3;
-extern volatile uint32_t SCS_ISAR4;
+
 extern volatile uint32_t SCS_CPACR;
-extern volatile uint32_t SCS_STIR;
-extern volatile uint32_t MPU_TYPE;
-extern volatile uint32_t MPU_CTRL;
-extern volatile uint32_t MPU_RNR;
-extern volatile uint32_t MPU_RBAR;
-extern volatile uint32_t MPU_RASR;
-extern volatile uint32_t MPU_RBAR_A1;
-extern volatile uint32_t MPU_RASR_A1;
-extern volatile uint32_t MPU_RBAR_A2;
-extern volatile uint32_t MPU_RASR_A2;
-extern volatile uint32_t MPU_RBAR_A3;
-extern volatile uint32_t MPU_RASR_A3;
+
+extern volatile uint32_t FPU_FPCCR;
+BIT(LSPACT, 0)
+BIT(FPU_USER, 1)
+BIT(FPU_THREAD, 3)
+BIT(FPU_HFRDY, 4)
+BIT(FPU_MMRDY, 5)
+BIT(FPU_BFRDY, 6)
+BIT(FPU_MONRDY, 8)
+BIT(LSPEN, 30)
+BIT(ASPEN, 31)
+
+extern volatile uint32_t FPU_FPCAR;
+
+extern volatile uint32_t FPU_FPDSCR;
+BITS(FPDSCR_RMODE, 22, 2)
+BIT(FPDSCR_FZ, 24)
+BIT(FPDSCR_DN, 25)
+BIT(FPDSCR_AHP, 26)
+
 extern volatile uint32_t NVIC_ICTR;
+extern volatile uint32_t SCS_STIR;
+
+
+
+extern volatile uint32_t SCS_STCSR;
+BIT(SCS_STCSR_ENABLE, 0)
+BIT(TICKINT, 1)
+BIT(CLKSOURCE, 2)
+BIT(COUNTFLAG, 16)
+
+extern volatile uint32_t SCS_STRVR;
+extern volatile uint32_t SCS_STCVR;
+
+extern volatile uint32_t SCS_STCALIB;
+BITS(TENMS, 0, 24)
+BIT(SKEW, 30)
+BIT(NOREF, 31)
+
+
+
 extern volatile uint32_t NVIC_ISER[8];
 extern volatile uint32_t NVIC_ICER[8];
 extern volatile uint32_t NVIC_ISPR[8];
 extern volatile uint32_t NVIC_ICPR[8];
 extern volatile uint32_t NVIC_IABR[8];
 extern volatile uint32_t NVIC_IPR[60];
-extern volatile uint32_t FPU_FPCCR;
-extern volatile uint32_t FPU_FPCAR;
-extern volatile uint32_t FPU_FPDSCR;
-extern volatile uint32_t FPU_MVFR0;
-extern volatile uint32_t FPU_MVFR1;
+
+
+
+extern volatile uint32_t SCS_ID_PFR0;
+BITS(ARM_ISA, 0, 4)
+BITS(THUMB_ISA, 4, 4)
+
+extern volatile uint32_t SCS_ID_PFR1;
+
+extern volatile uint32_t SCS_ID_DFR0;
+BITS(DEBUG_MODEL, 20, 4)
+
+
+
+extern volatile uint32_t SCS_MMFR0;
+BITS(PMSA_SUPPORTED, 4, 4)
+BITS(OUTERMOST_SHAREABILITY, 8, 4)
+BITS(AUX_REGISTERS, 20, 4)
+
+extern volatile uint32_t SCS_MMFR2;
+BITS(WFI_STALL, 24, 4)
+
+
+
+extern volatile uint32_t SCS_ISAR0;
+BITS(BITCOUNT_INSTRS, 4, 4)
+BITS(BITFIELD_INSTRS, 8, 4)
+BITS(CMPBRANCH_INSTRS, 12, 4)
+BITS(COPROC_INSTRS, 16, 4)
+BITS(DEBUG_INSTRS, 20, 4)
+BITS(DIVIDE_INSTRS, 24, 4)
+
+extern volatile uint32_t SCS_ISAR1;
+BITS(EXTEND_INSTRS, 12, 4)
+BITS(IFTHEN_INSTRS, 16, 4)
+BITS(IMMEDIATE_INSTRS, 20, 4)
+BITS(INTERWORK_INSTRS, 24, 4)
+
+extern volatile uint32_t SCS_ISAR2;
+BITS(LOADSTORE_INSTRS, 0, 4)
+BITS(MEMHINT_INSTRS, 4, 4)
+BITS(MULTIACCESSINT_INSTRS, 8, 4)
+BITS(MULT_INSTRS, 12, 4)
+BITS(MULTS_INSTRS, 16, 4)
+BITS(MULTU_INSTRS, 20, 4)
+BITS(REVERSAL_INSTRS, 28, 4)
+
+extern volatile uint32_t SCS_ISAR3;
+BITS(SATURATE_INSTRS, 0, 4)
+BITS(SIMD_INSTRS, 4, 4)
+BITS(SYNCHPRIM_INSTRS, 12, 4)
+
+extern volatile uint32_t SCS_ISAR4;
+BITS(UNPRIV_INSTRS, 0, 4)
+BITS(WITHSHIFT_INSTRS, 4, 4)
+BITS(SYNCHPRIM_INSTRS_FRAC, 20, 4)
+
+
+
+extern volatile uint32_t SCS_DFSR;
+BIT(HALTED, 0)
+BIT(BKPT, 1)
+BIT(DWTTRAP, 2)
+BIT(VCATCH, 3)
+BIT(EXTERNAL, 4)
 
 #undef BIT
 #undef BITS

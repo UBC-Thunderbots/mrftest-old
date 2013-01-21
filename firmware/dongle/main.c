@@ -111,7 +111,7 @@ static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t valu
 		return true;
 	} else if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_ENTER_BOOTLOADER && !value && !index && usb_ep0_get_configuration() == 0) {
 		bootload_flag = UINT64_C(0xDEADBEEFCAFEBABE);
-		SCS_AIRCR = 0x05FA0004;
+		SCS_AIRCR = VECTKEY(0x05FA) | SYSRESETREQ;
 		for (;;);
 	}
 	return false;
@@ -362,7 +362,7 @@ static void stm32_main(void) {
 	memset(&linker_bss_vma_start, 0, &linker_bss_vma_end - &linker_bss_vma_start);
 
 	// Always 8-byte-align the stack pointer on entry to an interrupt handler (as ARM recommends)
-	SCS_CCR |= 1 << 9; // STKALIGN = 1; guarantee 8-byte alignment
+	SCS_CCR |= STKALIGN; // Guarantee 8-byte alignment
 
 	// Enable the HSE (8 MHz crystal) oscillator
 	RCC_CR = HSEON // Enable HSE oscillator
@@ -433,11 +433,8 @@ static void stm32_main(void) {
 	// Set SYSTICK to divide by 144 so it overflows every microsecond
 	SCS_STRVR = 144 - 1;
 	// Set SYSTICK to run with the core AHB clock
-	SCS_STCSR =
-		(SCS_STCSR & 0xFFFEFFF8) // Reserved bits
-		| (1 << 2) // CLKSOURCE = 1; use core clock
-		| (0 << 1) // TICKINT = 0; do not generate an interrupt on expiry
-		| (1 << 0); // ENABLE = 1; counter is running
+	SCS_STCSR = CLKSOURCE // Use core clock
+		| SCS_STCSR_ENABLE; // Counter is running
 	// Reset the counter
 	SCS_STCVR = 0;
 
