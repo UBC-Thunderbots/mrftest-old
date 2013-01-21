@@ -1,6 +1,7 @@
 #include "config.h"
 #include "configs.h"
 #include "constants.h"
+#include "exti.h"
 #include "interrupt.h"
 #include "mrf.h"
 #include "perconfig.h"
@@ -182,7 +183,7 @@ static void on_enter(void) {
 	// Enable external interrupt on MRF INT rising edge
 	interrupt_exti12_handler = &exti12_interrupt_vector;
 	rcc_enable(APB2, 14);
-	SYSCFG_EXTICR[12 / 4] = (SYSCFG_EXTICR[12 / 4] & ~(15 << (12 % 4))) | (2 << (12 % 4)); // EXTI12 = 2; map PC12 to EXTI12
+	exti_map(12, 2); // Map PC12 to EXTI12
 	rcc_disable(APB2, 14);
 	EXTI_RTSR |= 1 << 12; // TR12 = 1; enable rising edge trigger on EXTI12
 	EXTI_FTSR &= ~(1 << 12); // TR12 = 0; disable falling edge trigger on EXTI12

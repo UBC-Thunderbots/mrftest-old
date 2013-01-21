@@ -443,7 +443,7 @@ static void stm32_main(void) {
 
 	// As we will be running at 144 MHz, switch to the lower-power voltage regulator mode (compatible only up to 144 MHz)
 	rcc_enable(APB1, 28);
-	PWR_CR &= ~(1 << 14); // VOS = 0; set regulator scale 2
+	PWR_CR &= ~VOS; // Set regulator scale 2
 	rcc_disable(APB1, 28);
 
 	// Initialize subsystems

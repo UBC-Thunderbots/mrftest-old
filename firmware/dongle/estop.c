@@ -7,7 +7,7 @@ static estop_t value = ESTOP_BROKEN;
 static void (*change_cb)(void) = 0;
 
 static void estop_start_sample(void) {
-	ADC1_CR2 |= 1 << 30; // SWSTART = 1; start conversion
+	ADC1_CR2 |= SWSTART; // Start conversion
 }
 
 static void estop_finish_sample(void) {
@@ -54,21 +54,22 @@ void estop_init(void) {
 
 	// Configure the ADC
 	rcc_enable(APB2, 8);
-	ADC_CSR = 0;
-	ADC1_CR1 = 0;
-	ADC1_CR2 = 1 << 0; // ADON = 1; enable ADC
+	ADC1_CR1 = 0; // All interrupts disabled, 12-bit resolution, analogue watchdogs disabled, all special modes disabled
+	ADC1_CR2 = 0 // Conversion not starting, no external triggers, data right-aligned, single conversion mode
+		| ADON; // Enable ADC
 	sleep_1us(3);
-	ADC1_SMPR2 = 1 << 27; // SMP9 = 1; set sample time to 15 cycles
-	ADC1_SQR1 = 0; // L = 0; conversion length 1
-	ADC1_SQR3 = 9; // SQ1 = 9; first conversion is channel 9
+	ADC1_SMPR2 = SMP(9, 1); // SMP9 = 1; set sample time to 15 cycles
+	ADC1_SQR1 = 0 // No channels to set here
+		| ADC_SQR1_L(0); // Conversion length 1
+	ADC1_SQR3 = ADC_SQR_SQ(0, 9); // SQ1 = 9; first conversion is channel 9
 
 	// Take one sample now
 	estop_start_sample();
-	while (!(ADC1_SR & (1 << 1) /* EOC */));
+	while (!(ADC1_SR & EOC));
 	estop_finish_sample();
 
 	// Enable ADC completion interrupts
-	ADC1_CR1 |= 1 << 5; // EOCIE = 1; enable interrupt on end of conversion
+	ADC1_CR1 |= EOCIE; // Enable interrupt on end of conversion
 	NVIC_ISER[18 / 32] = 1 << (18 % 32); // SETENA18 = 1; enable ADC interrupt
 
 	// Set up timer 7 to overflow every 10 milliseconds for sampling the emergency stop
@@ -76,17 +77,13 @@ void estop_init(void) {
 	// Need to count to 720,000 for each overflow
 	// Set prescaler to 1,000, auto-reload to 720
 	rcc_enable(APB1, 5);
-	TIM7_CR1 = (TIM7_CR1 & 0b1111111101110000) // Reserved
-		| (0 << 7) // ARPE = 0; ARR not buffered
-		| (0 << 3) // OPM = 0; run continuously
-		| (1 << 2) // URS = 1; only overflow generates an interrupt
-		| (0 << 1) // UDIS = 0; updates not disabled
-		| (0 << 0); // CEN = 0; counter not presently enabled
-	TIM7_DIER = 1 << 0; // UIE = 1; update interrupt enabled
+	TIM7_CR1 = 0 // Auto reload not buffered, counter runs continuously (not just for one pulse), updates not disabled, counter disabled for now
+		| URS; // Only overflow generates an interrupt
+	TIM7_DIER = UIE; // Update interrupt enabled
 	TIM7_PSC = 999;
 	TIM7_ARR = 719;
 	TIM7_CNT = 0;
-	TIM7_CR1 |= 1 << 0; // CEN = 1; enable counter
+	TIM7_CR1 |= CEN; // Enable counter
 	NVIC_ISER[55 / 32] = 1 << (55 % 32); // SETENA55 = 1; enable timer 7 interrupt
 }
 

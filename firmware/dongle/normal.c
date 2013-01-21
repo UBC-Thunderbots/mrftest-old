@@ -2,6 +2,7 @@
 #include "configs.h"
 #include "constants.h"
 #include "estop.h"
+#include "exti.h"
 #include "interrupt.h"
 #include "mrf.h"
 #include "perconfig.h"
@@ -498,7 +499,7 @@ static void on_ep1_out_pattern(uint32_t pattern) {
 				perconfig.normal.drive_packet[i] = OTG_FS_FIFO[0][0];
 			}
 			// Enable the timer that generates drive packets on the radio
-			TIM6_CR1 |= 1 << 0; // CEN = 1; enable counter now
+			TIM6_CR1 |= CEN; // Enable counter now
 		} else {
 			for (size_t i = 0; i < bcnt; i += 4) {
 				(void) OTG_FS_FIFO[0][0];
@@ -715,7 +716,7 @@ static void on_enter(void) {
 	// Enable external interrupt on MRF INT rising edge
 	interrupt_exti12_handler = &exti12_interrupt_vector;
 	rcc_enable(APB2, 14);
-	SYSCFG_EXTICR[12 / 4] = (SYSCFG_EXTICR[12 / 4] & ~(15 << (12 % 4))) | (2 << (12 % 4)); // EXTI12 = 2; map PC12 to EXTI12
+	exti_map(12, 2); // Map PC12 to EXTI12
 	rcc_disable(APB2, 14);
 	EXTI_RTSR |= 1 << 12; // TR12 = 1; enable rising edge trigger on EXTI12
 	EXTI_FTSR &= ~(1 << 12); // TR12 = 0; disable falling edge trigger on EXTI12
@@ -826,13 +827,9 @@ static void on_enter(void) {
 	// Need to count to 1,440,000 for each overflow
 	// Set prescaler to 1,000, auto-reload to 1,440
 	rcc_enable(APB1, 4);
-	TIM6_CR1 = (TIM6_CR1 & 0b1111111101110000) // Reserved
-		| (0 << 7) // ARPE = 0; ARR not buffered
-		| (0 << 3) // OPM = 0; run continuously
-		| (1 << 2) // URS = 1; only overflow generates an interrupt
-		| (0 << 1) // UDIS = 0; updates not disabled
-		| (0 << 0); // CEN = 0; counter not presently enabled
-	TIM6_DIER = 1 << 0; // UIE = 1; update interrupt enabled
+	TIM6_CR1 = 0 // Auto reload not buffered, counter runs continuously (not just for one pulse), updates not disabled, counter disabled for now
+		| URS; // Only overflow generates an interrupt
+	TIM6_DIER = UIE; // Update interrupt enabled
 	TIM6_PSC = 999;
 	TIM6_ARR = 1439;
 	TIM6_CNT = 0;
@@ -841,7 +838,7 @@ static void on_enter(void) {
 
 static void on_exit(void) {
 	// Turn off timer 6
-	TIM6_CR1 &= ~(1 << 0); // CEN = 0; disable counter
+	TIM6_CR1 = 0; // Disable counter
 	NVIC_ICER[54 / 32] = 1 << (54 % 32); // CLRENA54 = 1; disable timer 6 interrupt
 	rcc_disable(APB1, 4);
 

@@ -451,7 +451,7 @@ BIT(WRPERR, 4)
 BIT(PGAERR, 5)
 BIT(PGPERR, 6)
 BIT(PGSERR, 7)
-BIT(BSY, 16)
+BIT(FLASH_SR_BSY, 16)
 
 extern volatile uint32_t FLASH_CR;
 BIT(PG, 0)
@@ -459,9 +459,9 @@ BIT(SER, 1)
 BIT(MER, 2)
 BITS(SNB, 3, 4)
 BITS(PSIZE, 8, 2)
-BIT(STRT, 16)
+BIT(FLASH_CR_STRT, 16)
 BIT(EOPIE, 24)
-BIT(ERRIE, 25)
+BIT(FLASH_CR_ERRIE, 25)
 BIT(LOCK, 31)
 
 extern volatile uint32_t FLASH_OPTCR;
@@ -689,45 +689,6 @@ BITSS(AFRH, 0, 4)
 
 
 
-extern volatile uint32_t TIM11_CR1;
-extern volatile uint32_t TIM11_SMCR;
-extern volatile uint32_t TIM11_DIER;
-extern volatile uint32_t TIM11_SR;
-extern volatile uint32_t TIM11_EGR;
-extern volatile uint32_t TIM11_CCMR1;
-extern volatile uint32_t TIM11_CCER;
-extern volatile uint32_t TIM11_CNT;
-extern volatile uint32_t TIM11_PSC;
-extern volatile uint32_t TIM11_ARR;
-extern volatile uint32_t TIM11_CCR1;
-extern volatile uint32_t TIM11_OR;
-
-extern volatile uint32_t TIM10_CR1;
-extern volatile uint32_t TIM10_SMCR;
-extern volatile uint32_t TIM10_DIER;
-extern volatile uint32_t TIM10_SR;
-extern volatile uint32_t TIM10_EGR;
-extern volatile uint32_t TIM10_CCMR1;
-extern volatile uint32_t TIM10_CCER;
-extern volatile uint32_t TIM10_CNT;
-extern volatile uint32_t TIM10_PSC;
-extern volatile uint32_t TIM10_ARR;
-extern volatile uint32_t TIM10_CCR1;
-
-extern volatile uint32_t TIM9_CR1;
-extern volatile uint32_t TIM9_CR2;
-extern volatile uint32_t TIM9_SMCR;
-extern volatile uint32_t TIM9_DIER;
-extern volatile uint32_t TIM9_SR;
-extern volatile uint32_t TIM9_EGR;
-extern volatile uint32_t TIM9_CCMR1;
-extern volatile uint32_t TIM9_CCER;
-extern volatile uint32_t TIM9_CNT;
-extern volatile uint32_t TIM9_PSC;
-extern volatile uint32_t TIM9_ARR;
-extern volatile uint32_t TIM9_CCR1;
-extern volatile uint32_t TIM9_CCR2;
-
 extern volatile uint32_t EXTI_IMR;
 extern volatile uint32_t EXTI_EMR;
 extern volatile uint32_t EXTI_RTSR;
@@ -735,291 +696,611 @@ extern volatile uint32_t EXTI_FTSR;
 extern volatile uint32_t EXTI_SWIER;
 extern volatile uint32_t EXTI_PR;
 
+
+
 extern volatile uint32_t SYSCFG_MEMRMP;
+BITS(MEM_MODE, 0, 2)
+
 extern volatile uint32_t SYSCFG_PMC;
+BIT(MII_RMII_SEL, 23)
+
 extern volatile uint32_t SYSCFG_EXTICR[4];
+
 extern volatile uint32_t SYSCFG_CMPCR;
+BIT(CMP_PD, 0)
+BIT(READY, 8)
+
+
 
 extern volatile uint32_t SPI1_CR1;
+extern volatile uint32_t SPI2_CR1;
+extern volatile uint32_t SPI3_CR1;
+BIT(CPHA, 0)
+BIT(CPOL, 1)
+BIT(MSTR, 2)
+BITS(BR, 3, 3)
+BIT(SPE, 6)
+BIT(LSBFIRST, 7)
+BIT(SSI, 8)
+BIT(SSM, 9)
+BIT(RXONLY, 10)
+BIT(DFF, 11)
+BIT(CRCNEXT, 12)
+BIT(CRCEN, 13)
+BIT(BIDIOE, 14)
+BIT(BIDIMODE, 15)
+
 extern volatile uint32_t SPI1_CR2;
+extern volatile uint32_t SPI2_CR2;
+extern volatile uint32_t SPI3_CR2;
+BIT(RXDMAEN, 0)
+BIT(TXDMAEN, 1)
+BIT(SSOE, 2)
+BIT(FRF, 4)
+BIT(SPI_ERRIE, 5)
+BIT(RXNEIE, 6)
+BIT(TXEIE, 7)
+
 extern volatile uint32_t SPI1_SR;
+extern volatile uint32_t SPI2_SR;
+extern volatile uint32_t SPI3_SR;
+BIT(RXNE, 0)
+BIT(TXE, 1)
+BIT(CHSIDE, 2)
+BIT(UDR, 3)
+BIT(CRCERR, 4)
+BIT(MODF, 5)
+BIT(SPI_OVR, 6)
+BIT(SPI_BSY, 7)
+BIT(TIFRFE, 8)
+
 extern volatile uint32_t SPI1_DR;
+extern volatile uint32_t SPI2_DR;
+extern volatile uint32_t SPI3_DR;
+
 extern volatile uint32_t SPI1_CRCPR;
+extern volatile uint32_t SPI2_CRCPR;
+extern volatile uint32_t SPI3_CRCPR;
+
 extern volatile uint32_t SPI1_RXCRCR;
+extern volatile uint32_t SPI2_RXCRCR;
+extern volatile uint32_t SPI3_RXCRCR;
+
 extern volatile uint32_t SPI1_TXCRCR;
+extern volatile uint32_t SPI2_TXCRCR;
+extern volatile uint32_t SPI3_TXCRCR;
+
 extern volatile uint32_t SPI1_I2SCFGR;
+extern volatile uint32_t SPI2_I2SCFGR;
+extern volatile uint32_t SPI3_I2SCFGR;
+BIT(CHLEN, 0)
+BITS(DATLEN, 1, 2)
+BIT(CKPOL, 3)
+BITS(I2SSTD, 4, 2)
+BIT(PCMSYNC, 7)
+BITS(I2SCFG, 8, 2)
+BIT(I2SE, 10)
+BIT(I2SMOD, 11)
+
 extern volatile uint32_t SPI1_I2SPR;
+extern volatile uint32_t SPI2_I2SPR;
+extern volatile uint32_t SPI3_I2SPR;
+BITS(I2SDIV, 0, 8)
+BIT(ODD, 8)
+BIT(MCKOE, 9)
+
+
 
 extern volatile uint32_t ADC1_SR;
-extern volatile uint32_t ADC1_CR1;
-extern volatile uint32_t ADC1_CR2;
-extern volatile uint32_t ADC1_SMPR1;
-extern volatile uint32_t ADC1_SMPR2;
-extern volatile uint32_t ADC1_JOFR1;
-extern volatile uint32_t ADC1_JOFR2;
-extern volatile uint32_t ADC1_JOFR3;
-extern volatile uint32_t ADC1_JOFR4;
-extern volatile uint32_t ADC1_HTR;
-extern volatile uint32_t ADC1_LTR;
-extern volatile uint32_t ADC1_SQR1;
-extern volatile uint32_t ADC1_SQR2;
-extern volatile uint32_t ADC1_SQR3;
-extern volatile uint32_t ADC1_JSQR;
-extern volatile uint32_t ADC1_JDR1;
-extern volatile uint32_t ADC1_JDR2;
-extern volatile uint32_t ADC1_JDR3;
-extern volatile uint32_t ADC1_JDR4;
-extern volatile uint32_t ADC1_DR;
-
 extern volatile uint32_t ADC2_SR;
-extern volatile uint32_t ADC2_CR1;
-extern volatile uint32_t ADC2_CR2;
-extern volatile uint32_t ADC2_SMPR1;
-extern volatile uint32_t ADC2_SMPR2;
-extern volatile uint32_t ADC2_JOFR1;
-extern volatile uint32_t ADC2_JOFR2;
-extern volatile uint32_t ADC2_JOFR3;
-extern volatile uint32_t ADC2_JOFR4;
-extern volatile uint32_t ADC2_HTR;
-extern volatile uint32_t ADC2_LTR;
-extern volatile uint32_t ADC2_SQR1;
-extern volatile uint32_t ADC2_SQR2;
-extern volatile uint32_t ADC2_SQR3;
-extern volatile uint32_t ADC2_JSQR;
-extern volatile uint32_t ADC2_JDR1;
-extern volatile uint32_t ADC2_JDR2;
-extern volatile uint32_t ADC2_JDR3;
-extern volatile uint32_t ADC2_JDR4;
-extern volatile uint32_t ADC2_DR;
-
 extern volatile uint32_t ADC3_SR;
+BIT(AWD, 0)
+BIT(EOC, 1)
+BIT(JEOC, 2)
+BIT(JSTRT, 3)
+BIT(ADC_STRT, 4)
+BIT(ADC_OVR, 5)
+
+extern volatile uint32_t ADC1_CR1;
+extern volatile uint32_t ADC2_CR1;
 extern volatile uint32_t ADC3_CR1;
+BITS(AWDCH, 0, 5)
+BIT(EOCIE, 5)
+BIT(AWDIE, 6)
+BIT(JEOCIE, 7)
+BIT(SCAN, 8)
+BIT(AWDSGL, 9)
+BIT(JAUTO, 10)
+BIT(DISCEN, 11)
+BIT(JDISCEN, 12)
+BITS(DISCNUM, 13, 3)
+BIT(JAWDEN, 22)
+BIT(AWDEN, 23)
+BITS(RES, 24, 2)
+BIT(OVRIE, 26)
+
+extern volatile uint32_t ADC1_CR2;
+extern volatile uint32_t ADC2_CR2;
 extern volatile uint32_t ADC3_CR2;
+BIT(ADON, 0)
+BIT(CONT, 1)
+BIT(ADCx_CR2_DMA, 8)
+BIT(ADCx_CR2_DDS, 9)
+BIT(EOCS, 10)
+BIT(ALIGN, 11)
+BITS(JEXTSEL, 16, 4)
+BITS(JEXTEN, 20, 2)
+BIT(JSWSTART, 22)
+BITS(EXTSEL, 24, 4)
+BITS(EXTEN, 28, 2)
+BIT(SWSTART, 30)
+
+extern volatile uint32_t ADC1_SMPR1;
+extern volatile uint32_t ADC2_SMPR1;
 extern volatile uint32_t ADC3_SMPR1;
+extern volatile uint32_t ADC1_SMPR2;
+extern volatile uint32_t ADC2_SMPR2;
 extern volatile uint32_t ADC3_SMPR2;
+BITSS(SMP, 0, 3)
+
+extern volatile uint32_t ADC1_JOFR1;
+extern volatile uint32_t ADC2_JOFR1;
 extern volatile uint32_t ADC3_JOFR1;
+extern volatile uint32_t ADC1_JOFR2;
+extern volatile uint32_t ADC2_JOFR2;
 extern volatile uint32_t ADC3_JOFR2;
+extern volatile uint32_t ADC1_JOFR3;
+extern volatile uint32_t ADC2_JOFR3;
 extern volatile uint32_t ADC3_JOFR3;
+extern volatile uint32_t ADC1_JOFR4;
+extern volatile uint32_t ADC2_JOFR4;
 extern volatile uint32_t ADC3_JOFR4;
+
+extern volatile uint32_t ADC1_HTR;
+extern volatile uint32_t ADC2_HTR;
 extern volatile uint32_t ADC3_HTR;
+
+extern volatile uint32_t ADC1_LTR;
+extern volatile uint32_t ADC2_LTR;
 extern volatile uint32_t ADC3_LTR;
+
+extern volatile uint32_t ADC1_SQR1;
+extern volatile uint32_t ADC2_SQR1;
 extern volatile uint32_t ADC3_SQR1;
+extern volatile uint32_t ADC1_SQR2;
+extern volatile uint32_t ADC2_SQR2;
 extern volatile uint32_t ADC3_SQR2;
+extern volatile uint32_t ADC1_SQR3;
+extern volatile uint32_t ADC2_SQR3;
 extern volatile uint32_t ADC3_SQR3;
+BITSS(ADC_SQR_SQ, 0, 5)
+BITS(ADC_SQR1_L, 20, 4)
+
+extern volatile uint32_t ADC1_JSQR;
+extern volatile uint32_t ADC2_JSQR;
 extern volatile uint32_t ADC3_JSQR;
+BITSS(ADC_JSQ, 0, 5)
+BITS(ADC_JL, 20, 2)
+
+extern volatile uint32_t ADC1_JDR1;
+extern volatile uint32_t ADC2_JDR1;
 extern volatile uint32_t ADC3_JDR1;
+extern volatile uint32_t ADC1_JDR2;
+extern volatile uint32_t ADC2_JDR2;
 extern volatile uint32_t ADC3_JDR2;
+extern volatile uint32_t ADC1_JDR3;
+extern volatile uint32_t ADC2_JDR3;
 extern volatile uint32_t ADC3_JDR3;
+extern volatile uint32_t ADC1_JDR4;
+extern volatile uint32_t ADC2_JDR4;
 extern volatile uint32_t ADC3_JDR4;
+
+extern volatile uint32_t ADC1_DR;
+extern volatile uint32_t ADC2_DR;
 extern volatile uint32_t ADC3_DR;
 
 extern volatile uint32_t ADC_CSR;
+BIT(AWD1, 0)
+BIT(EOC1, 1)
+BIT(JEOC1, 2)
+BIT(JSTRT1, 3)
+BIT(STRT1, 4)
+BIT(OVR1, 5)
+BIT(AWD2, 8)
+BIT(EOC2, 9)
+BIT(JEOC2, 10)
+BIT(JSTRT2, 11)
+BIT(STRT2, 12)
+BIT(OVR2, 13)
+BIT(AWD3, 16)
+BIT(EOC3, 17)
+BIT(JEOC3, 18)
+BIT(JSTRT3, 19)
+BIT(STRT3, 20)
+BIT(OVR3, 21)
+
 extern volatile uint32_t ADC_CCR;
+BITS(MULTI, 0, 5)
+BITS(DELAY, 8, 4)
+BIT(ADC_CCR_DDS, 13)
+BITS(ADC_CCR_DMA, 14, 2)
+BITS(ADCPRE, 16, 2)
+BIT(VBATE, 22)
+BIT(TSVREFE, 23)
+
 extern volatile uint32_t ADC_CDR;
 
-extern volatile uint32_t TIM8_CR1;
-extern volatile uint32_t TIM8_CR2;
-extern volatile uint32_t TIM8_SMCR;
-extern volatile uint32_t TIM8_DIER;
-extern volatile uint32_t TIM8_SR;
-extern volatile uint32_t TIM8_EGR;
-extern volatile uint32_t TIM8_CCMR1;
-extern volatile uint32_t TIM8_CCMR2;
-extern volatile uint32_t TIM8_CCER;
-extern volatile uint32_t TIM8_CNT;
-extern volatile uint32_t TIM8_PSC;
-extern volatile uint32_t TIM8_ARR;
-extern volatile uint32_t TIM8_RCR;
-extern volatile uint32_t TIM8_CCR1;
-extern volatile uint32_t TIM8_CCR2;
-extern volatile uint32_t TIM8_CCR3;
-extern volatile uint32_t TIM8_CCR4;
-extern volatile uint32_t TIM8_BDTR;
-extern volatile uint32_t TIM8_DCR;
-extern volatile uint32_t TIM8_DMAR;
 
-extern volatile uint32_t TIM1_CR1;
-extern volatile uint32_t TIM1_CR2;
-extern volatile uint32_t TIM1_SMCR;
-extern volatile uint32_t TIM1_DIER;
-extern volatile uint32_t TIM1_SR;
-extern volatile uint32_t TIM1_EGR;
-extern volatile uint32_t TIM1_CCMR1;
-extern volatile uint32_t TIM1_CCMR2;
-extern volatile uint32_t TIM1_CCER;
-extern volatile uint32_t TIM1_CNT;
-extern volatile uint32_t TIM1_PSC;
-extern volatile uint32_t TIM1_ARR;
-extern volatile uint32_t TIM1_RCR;
-extern volatile uint32_t TIM1_CCR1;
-extern volatile uint32_t TIM1_CCR2;
-extern volatile uint32_t TIM1_CCR3;
-extern volatile uint32_t TIM1_CCR4;
-extern volatile uint32_t TIM1_BDTR;
-extern volatile uint32_t TIM1_DCR;
-extern volatile uint32_t TIM1_DMAR;
 
 extern volatile uint32_t PWR_CR;
+BIT(LPDS, 0)
+BIT(PDDS, 1)
+BIT(CWUF, 2)
+BIT(CSBF, 3)
+BIT(PVDE, 4)
+BITS(PLS, 5, 3)
+BIT(DBP, 8)
+BIT(FPDS, 9)
+BIT(VOS, 14)
+
 extern volatile uint32_t PWR_CSR;
+BIT(WUF, 0)
+BIT(SBF, 1)
+BIT(PVDO, 2)
+BIT(BRR, 3)
+BIT(EWUP, 8)
+BIT(BRE, 9)
+BIT(VOSRDY, 14)
 
-extern volatile uint32_t SPI3_CR1;
-extern volatile uint32_t SPI3_CR2;
-extern volatile uint32_t SPI3_SR;
-extern volatile uint32_t SPI3_DR;
-extern volatile uint32_t SPI3_CRCPR;
-extern volatile uint32_t SPI3_RXCRCR;
-extern volatile uint32_t SPI3_TXCRCR;
-extern volatile uint32_t SPI3_I2SCFGR;
-extern volatile uint32_t SPI3_I2SPR;
 
-extern volatile uint32_t SPI2_CR1;
-extern volatile uint32_t SPI2_CR2;
-extern volatile uint32_t SPI2_SR;
-extern volatile uint32_t SPI2_DR;
-extern volatile uint32_t SPI2_CRCPR;
-extern volatile uint32_t SPI2_RXCRCR;
-extern volatile uint32_t SPI2_TXCRCR;
-extern volatile uint32_t SPI2_I2SCFGR;
-extern volatile uint32_t SPI2_I2SPR;
 
+extern volatile uint32_t TIM1_CR1;
+extern volatile uint32_t TIM2_CR1;
+extern volatile uint32_t TIM3_CR1;
+extern volatile uint32_t TIM4_CR1;
+extern volatile uint32_t TIM5_CR1;
+extern volatile uint32_t TIM6_CR1;
+extern volatile uint32_t TIM7_CR1;
+extern volatile uint32_t TIM8_CR1;
+extern volatile uint32_t TIM9_CR1;
+extern volatile uint32_t TIM10_CR1;
+extern volatile uint32_t TIM11_CR1;
+extern volatile uint32_t TIM12_CR1;
+extern volatile uint32_t TIM13_CR1;
 extern volatile uint32_t TIM14_CR1;
-extern volatile uint32_t TIM14_SMCR;
+BIT(CEN, 0)
+BIT(UDIS, 1)
+BIT(URS, 2)
+BIT(OPM, 3)
+BIT(DIR, 4)
+BITS(CMS, 5, 2)
+BIT(ARPE, 7)
+BITS(CKD, 8, 2)
+
+extern volatile uint32_t TIM1_CR2;
+extern volatile uint32_t TIM2_CR2;
+extern volatile uint32_t TIM3_CR2;
+extern volatile uint32_t TIM4_CR2;
+extern volatile uint32_t TIM5_CR2;
+extern volatile uint32_t TIM6_CR2;
+extern volatile uint32_t TIM7_CR2;
+extern volatile uint32_t TIM8_CR2;
+extern volatile uint32_t TIM9_CR2;
+extern volatile uint32_t TIM12_CR2;
+BIT(CCPC, 0)
+BIT(CCUS, 2)
+BIT(CCDS, 3)
+BITS(MMS, 4, 3)
+BIT(TI1S, 7)
+BIT(OIS1, 8)
+BIT(OIS1N, 9)
+BIT(OIS2, 10)
+BIT(OIS2N, 11)
+BIT(OIS3, 12)
+BIT(OIS3N, 13)
+BIT(OIS4, 14)
+
+extern volatile uint32_t TIM1_SMCR;
+extern volatile uint32_t TIM2_SMCR;
+extern volatile uint32_t TIM3_SMCR;
+extern volatile uint32_t TIM4_SMCR;
+extern volatile uint32_t TIM5_SMCR;
+extern volatile uint32_t TIM8_SMCR;
+extern volatile uint32_t TIM9_SMCR;
+extern volatile uint32_t TIM12_SMCR;
+BITS(SMS, 0, 3)
+BITS(TS, 4, 3)
+BIT(MSM, 7)
+BITS(ETF, 8, 4)
+BITS(ETPS, 12, 2)
+BIT(ECE, 14)
+BIT(ETP, 15)
+
+extern volatile uint32_t TIM1_DIER;
+extern volatile uint32_t TIM2_DIER;
+extern volatile uint32_t TIM3_DIER;
+extern volatile uint32_t TIM4_DIER;
+extern volatile uint32_t TIM5_DIER;
+extern volatile uint32_t TIM6_DIER;
+extern volatile uint32_t TIM7_DIER;
+extern volatile uint32_t TIM8_DIER;
+extern volatile uint32_t TIM9_DIER;
+extern volatile uint32_t TIM10_DIER;
+extern volatile uint32_t TIM11_DIER;
+extern volatile uint32_t TIM12_DIER;
+extern volatile uint32_t TIM13_DIER;
 extern volatile uint32_t TIM14_DIER;
+BIT(UIE, 0)
+BIT(CC1IE, 1)
+BIT(CC2IE, 2)
+BIT(CC3IE, 3)
+BIT(CC4IE, 4)
+BIT(COMIE, 5)
+BIT(TIE, 6)
+BIT(BIE, 7)
+BIT(UDE, 8)
+BIT(CC1DE, 9)
+BIT(CC2DE, 10)
+BIT(CC3DE, 11)
+BIT(CC4DE, 12)
+BIT(COMDE, 13)
+BIT(TDE, 14)
+
+extern volatile uint32_t TIM1_SR;
+extern volatile uint32_t TIM2_SR;
+extern volatile uint32_t TIM3_SR;
+extern volatile uint32_t TIM4_SR;
+extern volatile uint32_t TIM5_SR;
+extern volatile uint32_t TIM6_SR;
+extern volatile uint32_t TIM7_SR;
+extern volatile uint32_t TIM8_SR;
+extern volatile uint32_t TIM9_SR;
+extern volatile uint32_t TIM10_SR;
+extern volatile uint32_t TIM11_SR;
+extern volatile uint32_t TIM12_SR;
+extern volatile uint32_t TIM13_SR;
 extern volatile uint32_t TIM14_SR;
+BIT(UIF, 0)
+BIT(CC1IF, 1)
+BIT(CC2IF, 2)
+BIT(CC3IF, 3)
+BIT(CC4IF, 4)
+BIT(COMIF, 5)
+BIT(TIF, 6)
+BIT(BIF, 7)
+BIT(CC1OF, 9)
+BIT(CC2OF, 10)
+BIT(CC3OF, 11)
+BIT(CC4OF, 12)
+
+extern volatile uint32_t TIM1_EGR;
+extern volatile uint32_t TIM2_EGR;
+extern volatile uint32_t TIM3_EGR;
+extern volatile uint32_t TIM4_EGR;
+extern volatile uint32_t TIM5_EGR;
+extern volatile uint32_t TIM6_EGR;
+extern volatile uint32_t TIM7_EGR;
+extern volatile uint32_t TIM8_EGR;
+extern volatile uint32_t TIM9_EGR;
+extern volatile uint32_t TIM10_EGR;
+extern volatile uint32_t TIM11_EGR;
+extern volatile uint32_t TIM12_EGR;
+extern volatile uint32_t TIM13_EGR;
 extern volatile uint32_t TIM14_EGR;
+BIT(UG, 0)
+BIT(CC1G, 1)
+BIT(CC2G, 2)
+BIT(CC3G, 3)
+BIT(CC4G, 4)
+BIT(COMG, 5)
+BIT(TG, 6)
+BIT(BG, 7)
+
+extern volatile uint32_t TIM1_CCMR1;
+extern volatile uint32_t TIM2_CCMR1;
+extern volatile uint32_t TIM3_CCMR1;
+extern volatile uint32_t TIM4_CCMR1;
+extern volatile uint32_t TIM5_CCMR1;
+extern volatile uint32_t TIM8_CCMR1;
+extern volatile uint32_t TIM9_CCMR1;
+extern volatile uint32_t TIM10_CCMR1;
+extern volatile uint32_t TIM11_CCMR1;
+extern volatile uint32_t TIM12_CCMR1;
+extern volatile uint32_t TIM13_CCMR1;
 extern volatile uint32_t TIM14_CCMR1;
+BITS(CC1S, 0, 2)
+BITS(IC1PSC, 2, 2)
+BITS(IC1F, 4, 4)
+BIT(OC1FE, 2)
+BIT(OC1PE, 3)
+BITS(OC1M, 4, 3)
+BIT(OC1CE, 7)
+BITS(CC2S, 8, 2)
+BITS(IC2PSC, 10, 2)
+BITS(IC2F, 12, 4)
+BIT(OC2FE, 10)
+BIT(OC2PE, 11)
+BITS(OC2M, 12, 3)
+BIT(OC2CE, 15)
+
+extern volatile uint32_t TIM1_CCMR2;
+extern volatile uint32_t TIM2_CCMR2;
+extern volatile uint32_t TIM3_CCMR2;
+extern volatile uint32_t TIM4_CCMR2;
+extern volatile uint32_t TIM5_CCMR2;
+extern volatile uint32_t TIM8_CCMR2;
+BITS(CC3S, 0, 2)
+BITS(IC3PSC, 2, 2)
+BITS(IC3F, 4, 4)
+BIT(OC3FE, 2)
+BIT(OC3PE, 3)
+BITS(OC3M, 4, 3)
+BIT(OC3CE, 7)
+BITS(CC4S, 8, 2)
+BITS(IC4PSC, 10, 2)
+BITS(IC4F, 12, 4)
+BIT(OC4FE, 10)
+BIT(OC4PE, 11)
+BITS(OC4M, 12, 3)
+BIT(OC4CE, 15)
+
+extern volatile uint32_t TIM1_CCER;
+extern volatile uint32_t TIM2_CCER;
+extern volatile uint32_t TIM3_CCER;
+extern volatile uint32_t TIM4_CCER;
+extern volatile uint32_t TIM5_CCER;
+extern volatile uint32_t TIM8_CCER;
+extern volatile uint32_t TIM9_CCER;
+extern volatile uint32_t TIM10_CCER;
+extern volatile uint32_t TIM11_CCER;
+extern volatile uint32_t TIM12_CCER;
+extern volatile uint32_t TIM13_CCER;
 extern volatile uint32_t TIM14_CCER;
+BIT(CC1E, 0)
+BIT(CC1P, 1)
+BIT(CC1NE, 2)
+BIT(CC1NP, 3)
+BIT(CC2E, 4)
+BIT(CC2P, 5)
+BIT(CC2NE, 6)
+BIT(CC2NP, 7)
+BIT(CC3E, 8)
+BIT(CC3P, 9)
+BIT(CC3NE, 10)
+BIT(CC3NP, 11)
+BIT(CC4E, 12)
+BIT(CC4P, 13)
+BIT(CC4NP, 15)
+
+extern volatile uint32_t TIM1_CNT;
+extern volatile uint32_t TIM2_CNT;
+extern volatile uint32_t TIM3_CNT;
+extern volatile uint32_t TIM4_CNT;
+extern volatile uint32_t TIM5_CNT;
+extern volatile uint32_t TIM6_CNT;
+extern volatile uint32_t TIM7_CNT;
+extern volatile uint32_t TIM8_CNT;
+extern volatile uint32_t TIM9_CNT;
+extern volatile uint32_t TIM10_CNT;
+extern volatile uint32_t TIM11_CNT;
+extern volatile uint32_t TIM12_CNT;
+extern volatile uint32_t TIM13_CNT;
 extern volatile uint32_t TIM14_CNT;
+
+extern volatile uint32_t TIM1_PSC;
+extern volatile uint32_t TIM2_PSC;
+extern volatile uint32_t TIM3_PSC;
+extern volatile uint32_t TIM4_PSC;
+extern volatile uint32_t TIM5_PSC;
+extern volatile uint32_t TIM6_PSC;
+extern volatile uint32_t TIM7_PSC;
+extern volatile uint32_t TIM8_PSC;
+extern volatile uint32_t TIM9_PSC;
+extern volatile uint32_t TIM10_PSC;
+extern volatile uint32_t TIM11_PSC;
+extern volatile uint32_t TIM12_PSC;
+extern volatile uint32_t TIM13_PSC;
 extern volatile uint32_t TIM14_PSC;
+
+extern volatile uint32_t TIM1_ARR;
+extern volatile uint32_t TIM2_ARR;
+extern volatile uint32_t TIM3_ARR;
+extern volatile uint32_t TIM4_ARR;
+extern volatile uint32_t TIM5_ARR;
+extern volatile uint32_t TIM6_ARR;
+extern volatile uint32_t TIM7_ARR;
+extern volatile uint32_t TIM8_ARR;
+extern volatile uint32_t TIM9_ARR;
+extern volatile uint32_t TIM10_ARR;
+extern volatile uint32_t TIM11_ARR;
+extern volatile uint32_t TIM12_ARR;
+extern volatile uint32_t TIM13_ARR;
 extern volatile uint32_t TIM14_ARR;
+
+extern volatile uint32_t TIM1_RCR;
+extern volatile uint32_t TIM8_RCR;
+
+extern volatile uint32_t TIM1_CCR1;
+extern volatile uint32_t TIM2_CCR1;
+extern volatile uint32_t TIM3_CCR1;
+extern volatile uint32_t TIM4_CCR1;
+extern volatile uint32_t TIM5_CCR1;
+extern volatile uint32_t TIM8_CCR1;
+extern volatile uint32_t TIM9_CCR1;
+extern volatile uint32_t TIM10_CCR1;
+extern volatile uint32_t TIM11_CCR1;
+extern volatile uint32_t TIM12_CCR1;
+extern volatile uint32_t TIM13_CCR1;
 extern volatile uint32_t TIM14_CCR1;
 
-extern volatile uint32_t TIM13_CR1;
-extern volatile uint32_t TIM13_SMCR;
-extern volatile uint32_t TIM13_DIER;
-extern volatile uint32_t TIM13_SR;
-extern volatile uint32_t TIM13_EGR;
-extern volatile uint32_t TIM13_CCMR1;
-extern volatile uint32_t TIM13_CCER;
-extern volatile uint32_t TIM13_CNT;
-extern volatile uint32_t TIM13_PSC;
-extern volatile uint32_t TIM13_ARR;
-extern volatile uint32_t TIM13_CCR1;
-
-extern volatile uint32_t TIM12_CR1;
-extern volatile uint32_t TIM12_CR2;
-extern volatile uint32_t TIM12_SMCR;
-extern volatile uint32_t TIM12_DIER;
-extern volatile uint32_t TIM12_SR;
-extern volatile uint32_t TIM12_EGR;
-extern volatile uint32_t TIM12_CCMR1;
-extern volatile uint32_t TIM12_CCER;
-extern volatile uint32_t TIM12_CNT;
-extern volatile uint32_t TIM12_PSC;
-extern volatile uint32_t TIM12_ARR;
-extern volatile uint32_t TIM12_CCR1;
+extern volatile uint32_t TIM1_CCR2;
+extern volatile uint32_t TIM2_CCR2;
+extern volatile uint32_t TIM3_CCR2;
+extern volatile uint32_t TIM4_CCR2;
+extern volatile uint32_t TIM5_CCR2;
+extern volatile uint32_t TIM8_CCR2;
+extern volatile uint32_t TIM9_CCR2;
 extern volatile uint32_t TIM12_CCR2;
 
-extern volatile uint32_t TIM7_CR1;
-extern volatile uint32_t TIM7_CR2;
-extern volatile uint32_t TIM7_DIER;
-extern volatile uint32_t TIM7_SR;
-extern volatile uint32_t TIM7_EGR;
-extern volatile uint32_t TIM7_CNT;
-extern volatile uint32_t TIM7_PSC;
-extern volatile uint32_t TIM7_ARR;
-
-extern volatile uint32_t TIM6_CR1;
-extern volatile uint32_t TIM6_CR2;
-extern volatile uint32_t TIM6_DIER;
-extern volatile uint32_t TIM6_SR;
-extern volatile uint32_t TIM6_EGR;
-extern volatile uint32_t TIM6_CNT;
-extern volatile uint32_t TIM6_PSC;
-extern volatile uint32_t TIM6_ARR;
-
-extern volatile uint32_t TIM5_CR1;
-extern volatile uint32_t TIM5_CR2;
-extern volatile uint32_t TIM5_SMCR;
-extern volatile uint32_t TIM5_DIER;
-extern volatile uint32_t TIM5_SR;
-extern volatile uint32_t TIM5_EGR;
-extern volatile uint32_t TIM5_CCMR1;
-extern volatile uint32_t TIM5_CCMR2;
-extern volatile uint32_t TIM5_CCER;
-extern volatile uint32_t TIM5_CNT;
-extern volatile uint32_t TIM5_PSC;
-extern volatile uint32_t TIM5_ARR;
-extern volatile uint32_t TIM5_CCR1;
-extern volatile uint32_t TIM5_CCR2;
-extern volatile uint32_t TIM5_CCR3;
-extern volatile uint32_t TIM5_CCR4;
-extern volatile uint32_t TIM5_DCR;
-extern volatile uint32_t TIM5_DMAR;
-extern volatile uint32_t TIM5_OR;
-
-extern volatile uint32_t TIM4_CR1;
-extern volatile uint32_t TIM4_CR2;
-extern volatile uint32_t TIM4_SMCR;
-extern volatile uint32_t TIM4_DIER;
-extern volatile uint32_t TIM4_SR;
-extern volatile uint32_t TIM4_EGR;
-extern volatile uint32_t TIM4_CCMR1;
-extern volatile uint32_t TIM4_CCMR2;
-extern volatile uint32_t TIM4_CCER;
-extern volatile uint32_t TIM4_CNT;
-extern volatile uint32_t TIM4_PSC;
-extern volatile uint32_t TIM4_ARR;
-extern volatile uint32_t TIM4_CCR1;
-extern volatile uint32_t TIM4_CCR2;
-extern volatile uint32_t TIM4_CCR3;
-extern volatile uint32_t TIM4_CCR4;
-extern volatile uint32_t TIM4_DCR;
-extern volatile uint32_t TIM4_DMAR;
-
-extern volatile uint32_t TIM3_CR1;
-extern volatile uint32_t TIM3_CR2;
-extern volatile uint32_t TIM3_SMCR;
-extern volatile uint32_t TIM3_DIER;
-extern volatile uint32_t TIM3_SR;
-extern volatile uint32_t TIM3_EGR;
-extern volatile uint32_t TIM3_CCMR1;
-extern volatile uint32_t TIM3_CCMR2;
-extern volatile uint32_t TIM3_CCER;
-extern volatile uint32_t TIM3_CNT;
-extern volatile uint32_t TIM3_PSC;
-extern volatile uint32_t TIM3_ARR;
-extern volatile uint32_t TIM3_CCR1;
-extern volatile uint32_t TIM3_CCR2;
-extern volatile uint32_t TIM3_CCR3;
-extern volatile uint32_t TIM3_CCR4;
-extern volatile uint32_t TIM3_DCR;
-extern volatile uint32_t TIM3_DMAR;
-
-extern volatile uint32_t TIM2_CR1;
-extern volatile uint32_t TIM2_CR2;
-extern volatile uint32_t TIM2_SMCR;
-extern volatile uint32_t TIM2_DIER;
-extern volatile uint32_t TIM2_SR;
-extern volatile uint32_t TIM2_EGR;
-extern volatile uint32_t TIM2_CCMR1;
-extern volatile uint32_t TIM2_CCMR2;
-extern volatile uint32_t TIM2_CCER;
-extern volatile uint32_t TIM2_CNT;
-extern volatile uint32_t TIM2_PSC;
-extern volatile uint32_t TIM2_ARR;
-extern volatile uint32_t TIM2_CCR1;
-extern volatile uint32_t TIM2_CCR2;
+extern volatile uint32_t TIM1_CCR3;
 extern volatile uint32_t TIM2_CCR3;
+extern volatile uint32_t TIM3_CCR3;
+extern volatile uint32_t TIM4_CCR3;
+extern volatile uint32_t TIM5_CCR3;
+extern volatile uint32_t TIM8_CCR3;
+
+extern volatile uint32_t TIM1_CCR4;
 extern volatile uint32_t TIM2_CCR4;
+extern volatile uint32_t TIM3_CCR4;
+extern volatile uint32_t TIM4_CCR4;
+extern volatile uint32_t TIM5_CCR4;
+extern volatile uint32_t TIM8_CCR4;
+
+extern volatile uint32_t TIM1_BDTR;
+extern volatile uint32_t TIM8_BDTR;
+BITS(DTG, 0, 8)
+BITS(TIM_LOCK, 8, 2)
+BIT(OSSI, 10)
+BIT(OSSR, 11)
+BIT(BKE, 12)
+BIT(BKP, 13)
+BIT(AOE, 14)
+BIT(MOE, 15)
+
+extern volatile uint32_t TIM1_DCR;
 extern volatile uint32_t TIM2_DCR;
+extern volatile uint32_t TIM3_DCR;
+extern volatile uint32_t TIM4_DCR;
+extern volatile uint32_t TIM5_DCR;
+extern volatile uint32_t TIM8_DCR;
+BITS(DBA, 0, 5)
+BITS(DBL, 8, 5)
+
+extern volatile uint32_t TIM1_DMAR;
 extern volatile uint32_t TIM2_DMAR;
+extern volatile uint32_t TIM3_DMAR;
+extern volatile uint32_t TIM4_DMAR;
+extern volatile uint32_t TIM5_DMAR;
+extern volatile uint32_t TIM8_DMAR;
+
 extern volatile uint32_t TIM2_OR;
+BITS(ITR1_RMP, 10, 2)
+
+extern volatile uint32_t TIM5_OR;
+BITS(TI4_RMP, 6, 2)
+
+extern volatile uint32_t TIM11_OR;
+BITS(TI1_RMP, 0, 2)
+
+
 
 extern volatile uint32_t U_ID_L;
 extern volatile uint32_t U_ID_M;
 extern volatile uint32_t U_ID_H;
+
 extern volatile uint32_t FLASH_SIZE;
+
+
 
 extern volatile uint32_t SCS_ACTLR;
 extern volatile uint32_t SCS_STCSR;

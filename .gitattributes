@@ -39,6 +39,7 @@ firmware/dongle/enter-dfu-mode.c -text
 firmware/dongle/estop.c -text
 firmware/dongle/estop.h -text
 firmware/dongle/exit-dfu-mode.c -text
+firmware/dongle/exti.h -text
 firmware/dongle/interrupt.c -text
 firmware/dongle/interrupt.h -text
 firmware/dongle/limits.h -text
