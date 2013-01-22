@@ -36,15 +36,15 @@ void buzzer_init(void) {
 	TIM5_DIER = UIE; // Enable interrupt on timer update
 	TIM5_CNT = 0; // Clear timer
 	TIM5_PSC = 35999; // Set prescale 1:36,000, yielding two ticks per millisecond
-	TIM5_ARR = 0xFFFFFFFF; // Set auto-reload to “infinity” because we don't really want auto-reload at all
+	TIM5_ARR = 1; // An auto-reload value of zero does not work; a value of 1, however, makes sure TIM5_CNT is very small when the counter stops, so it is less than future requests
 	TIM5_CR1 |= CEN; // Enable counter for one tick after which an interrupt will be delivered (not doing this appears to break the first enablement of the timer by instantly delivering an interrupt for no apparent reason)
 	NVIC_ISER[50 / 32] = 1 << (50 % 32); // SETENA50 = 1; enable timer 5 interrupt
 }
 
 void buzzer_start(unsigned long millis) {
-	if (TIM5_CNT < millis * 2UL || TIM5_CNT == 0xFFFFFFFF) {
+	if (TIM5_CNT < millis * 2UL) {
 		TIM5_CNT = millis * 2UL;
-		TIM5_CR1 |= CEN; // Enable counter
+		TIM5_CR1 |= CEN; // Enable counter, in case it was disabled
 	}
 	TIM2_CCMR2 = (TIM2_CCMR2 & ~OC3M_MSK) | OC3M(6); // OC3M = 0b110; PWM mode active high
 }
