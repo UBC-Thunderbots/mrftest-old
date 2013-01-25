@@ -57,7 +57,7 @@ BIT(PTXFELVL, 8)
 
 extern volatile uint32_t OTG_FS_GUSBCFG;
 BITS(TOCAL, 0, 3)
-BIT(PHYSEL, 7)
+BIT(PHYSEL, 6)
 BIT(SRPCAP, 8)
 BIT(HNPCAP, 9)
 BITS(TRDT, 10, 4)
@@ -752,7 +752,7 @@ BIT(CRCERR, 4)
 BIT(MODF, 5)
 BIT(SPI_OVR, 6)
 BIT(SPI_BSY, 7)
-BIT(TIFRFE, 8)
+BIT(FRE, 8)
 
 extern volatile uint32_t SPI1_DR;
 extern volatile uint32_t SPI2_DR;
