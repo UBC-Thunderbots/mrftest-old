@@ -174,7 +174,7 @@ namespace {
 		raw_score *= (1 + weight_goal_dist * score_goal_dist);
 
 		// if a baller exists,
-		// calculate the deviation from the direction
+	// calculate the deviation from the direction
 		Player baller = Evaluation::calc_friendly_baller();
 
 		if (baller) {
