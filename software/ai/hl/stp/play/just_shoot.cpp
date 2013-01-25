@@ -1,6 +1,7 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/block.h"
-
+#include "ai/hl/stp/tactic/smart_shoot.h"
+#include "ai/hl/stp/tactic/free_kick_pass.h"
 using AI::HL::STP::Enemy;
 
 /**
@@ -24,7 +25,7 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // shoot
-roles[0].push_back(shoot_goal(world, true));
+roles[0].push_back(free_kick_pass(world, Point(0,0), false, 1));
 
 // ROLE 2
 // defend
