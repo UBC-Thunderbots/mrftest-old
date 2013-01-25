@@ -1436,11 +1436,11 @@ BIT(NOREF, 31)
 
 
 
-extern volatile uint32_t NVIC_ISER[8];
-extern volatile uint32_t NVIC_ICER[8];
-extern volatile uint32_t NVIC_ISPR[8];
-extern volatile uint32_t NVIC_ICPR[8];
-extern volatile uint32_t NVIC_IABR[8];
+extern volatile uint32_t NVIC_ISER[16];
+extern volatile uint32_t NVIC_ICER[16];
+extern volatile uint32_t NVIC_ISPR[16];
+extern volatile uint32_t NVIC_ICPR[16];
+extern volatile uint32_t NVIC_IABR[16];
 extern volatile uint32_t NVIC_IPR[60];
 
 
