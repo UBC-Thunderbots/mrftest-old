@@ -255,7 +255,6 @@ USB::DeviceHandle::~DeviceHandle() {
 	libusb_close(handle);
 }
 
-#include <iostream>
 std::string USB::DeviceHandle::get_string_descriptor(uint8_t index) const {
 	std::vector<unsigned char> buf(8);
 	int rc;
