@@ -255,6 +255,10 @@ USB::DeviceHandle::~DeviceHandle() {
 	libusb_close(handle);
 }
 
+void USB::DeviceHandle::reset() {
+	check_fn("libusb_reset_device", libusb_reset_device(handle), 0);
+}
+
 std::string USB::DeviceHandle::get_string_descriptor(uint8_t index) const {
 	std::vector<unsigned char> buf(8);
 	int rc;

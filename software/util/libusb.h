@@ -143,6 +143,8 @@ namespace USB {
 
 			~DeviceHandle();
 
+			void reset();
+
 			std::string get_string_descriptor(uint8_t index) const;
 
 			int get_configuration() const;

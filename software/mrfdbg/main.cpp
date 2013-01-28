@@ -128,6 +128,8 @@ namespace {
 					} catch (const USB::TransferTimeoutError &exp) {
 						std::cout << "Timeout\n";
 					}
+				} else if (parts[0] == "reset" && parts.size() == 1) {
+					devh.reset();
 				} else {
 					std::cout << "Unrecognized command or invalid arguments; valid commands are:\n";
 					std::cout << "beep millis: activate the buzzer for <millis> milliseconds\n";
@@ -138,6 +140,7 @@ namespace {
 					std::cout << "rl addr: read long register\n";
 					std::cout << "wl addr value: write long register\n";
 					std::cout << "wi seconds: wait for interrupt pin to change up to <seconds> seconds\n";
+					std::cout << "reset: issue USB reset signalling\n";
 				}
 			}
 		}
