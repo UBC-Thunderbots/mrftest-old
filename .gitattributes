@@ -27,6 +27,7 @@ firmware/SuperSimpleBoostConverter/config.h -text
 firmware/bitcodec/bitcodec -text
 firmware/bitcodec/bitcodec.py -text
 firmware/dongle/Makefile -text
+firmware/dongle/abort.c -text
 firmware/dongle/assert.h -text
 firmware/dongle/buzzer.c -text
 firmware/dongle/buzzer.h -text
