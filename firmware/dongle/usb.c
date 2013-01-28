@@ -9,9 +9,9 @@
 
 typedef enum {
 	DEVICE_STATE_DETACHED,
-	DEVICE_STATE_RESETTING,
-	DEVICE_STATE_SPEED_ENUMERATING,
-	DEVICE_STATE_CONNECTED,
+	DEVICE_STATE_POWERED,
+	DEVICE_STATE_ENUMERATING,
+	DEVICE_STATE_ACTIVE,
 } device_state_t;
 
 static device_state_t device_state = DEVICE_STATE_DETACHED;
@@ -21,6 +21,30 @@ static void (*(out_endpoint_callbacks[4]))(uint32_t) = { &usb_ep0_handle_receive
 static bool global_nak_state = false;
 
 static void handle_reset(void) {
+	// Sanity check.
+	assert(device_state != DEVICE_STATE_DETACHED);
+
+	// It’s possible a reset could have happened while the device was already connected. Handle it.
+	if (device_state == DEVICE_STATE_ACTIVE) {
+		usb_ep0_deinit();
+		OTG_FS_GINTMSK = USBRSTM;
+		OTG_FS_GINTSTS = OTG_FS_GINTSTS & ~ENUMDNE;
+	}
+
+	// Update state.
+	device_state = DEVICE_STATE_ENUMERATING;
+
+	// Enable enumeration complete and reset interrupts only, and clear any pending interrupts.
+	OTG_FS_DIEPMSK = 0;
+	OTG_FS_DOEPMSK = 0;
+	OTG_FS_DAINTMSK = 0;
+	OTG_FS_DIEPEMPMSK = 0;
+	OTG_FS_DOEPINT0 = B2BSTUP | OTEPDIS | STUP | EPDISD | XFRC;
+	OTG_FS_DOEPINT1 = B2BSTUP | OTEPDIS | STUP | EPDISD | XFRC;
+	OTG_FS_DOEPINT2 = B2BSTUP | OTEPDIS | STUP | EPDISD | XFRC;
+	OTG_FS_DOEPINT3 = B2BSTUP | OTEPDIS | STUP | EPDISD | XFRC;
+	OTG_FS_GINTMSK = USBRSTM | ENUMDNEM | OTGINT;
+
 	// Configure receive FIFO and endpoint 0 transmit FIFO sizes
 	size_t ep0_tx_fifo_words = usb_device_info->ep0_max_packet / 4;
 	usb_fifo_init(ep0_tx_fifo_words);
@@ -29,19 +53,22 @@ static void handle_reset(void) {
 	usb_fifo_flush(16);
 	usb_fifo_rx_flush();
 
-	// Set up the endpoint transfer size.
-	OTG_FS_DOEPTSIZ0 = STUPCNT(3) // Allow up to 3 back-to-back SETUP data packets
-		| PKTCNT(0) // No non-SETUP packets should be issued
-		| XFRSIZ(0); // No non-SETUP transfer is occurring
-
-	// Take an interrupt on enumeration complete.
-	OTG_FS_GINTMSK |= ENUMDNEM; // Take an interrupt when speed enumeration is complete
+	// Invoke any registered callback.
+	if (usb_device_info->on_reset) {
+		usb_device_info->on_reset();
+	}
 }
 
 static void handle_enumeration_done(void) {
-	// Enable some interrupts
-	OTG_FS_DIEPMSK |= XFRCM; // Take an interrupt on transfer complete
-	OTG_FS_GINTMSK |= RXFLVLM; // Take an interrupt on RX FIFO non-empty
+	// Update state.
+	device_state = DEVICE_STATE_ACTIVE;
+
+	// Enable interrupts on IN transfer complete and receive FIFO non-empty.
+	OTG_FS_DIEPMSK |= XFRCM;
+	OTG_FS_GINTMSK |= RXFLVLM | GINTMSK_IEPINT;
+
+	// Disable enumeration complete interrupt; this shouldn’t happen any more.
+	OTG_FS_GINTMSK &= ~ENUMDNEM;
 
 	// Initialize the endpoint 0 layer
 	usb_ep0_init();
@@ -105,6 +132,14 @@ void usb_clear_global_nak(void) {
 	global_nak_state = false;
 }
 
+static void handle_otg_interrupt(void) {
+	uint32_t otgint = OTG_FS_GOTGINT;
+	OTG_FS_GOTGINT = otgint;
+	if (otgint & SEDET) {
+		usb_detach();
+	}
+}
+
 void usb_process(void) {
 	uint32_t mask = OTG_FS_GINTSTS & OTG_FS_GINTMSK;
 	if (mask & USBRST) {
@@ -114,17 +149,25 @@ void usb_process(void) {
 		OTG_FS_GINTSTS = ENUMDNE;
 		handle_enumeration_done();
 	} else if (mask & RXFLVL) {
+		// This interrupt is level-sensitive; it clears automatically when the FIFO is read.
 		handle_receive_fifo_nonempty();
 	} else if (mask & GINTSTS_IEPINT) {
+		// This interrupt is level-sensitive; it clears automatically when the more specific interrupt bit is cleared.
 		handle_in_endpoint();
 	} else if (mask & GINAKEFF) {
-		OTG_FS_GINTMSK &= ~GINAKEFFM; // Do not take an interrupt when global IN NAK becomes effective
+		// Disable this interrupt; it is level-sensitive so cannot actually be cleared.
+		OTG_FS_GINTMSK &= ~GINAKEFFM;
 		usb_ep0_handle_global_nak_effective();
+	} else if (mask & OTGINT) {
+		// This interrupt is level-sensitive; it clears automatically when the more specific interrupt bit is cleared.
+		handle_otg_interrupt();
 	}
 }
 
 void usb_attach(const usb_device_info_t *info) {
-	device_state = DEVICE_STATE_RESETTING;
+	assert(device_state == DEVICE_STATE_DETACHED);
+
+	device_state = DEVICE_STATE_POWERED;
 	usb_device_info = info;
 
 	// Reset the module and enable the clock
@@ -187,14 +230,22 @@ void usb_attach(const usb_device_info_t *info) {
 		| 0 // HNPRQ = 0; do not issue host negotiation protocol request
 		| 0; // SRQ = 0; do not issue session request
 
-	// Enable an interrupt on USB reset
-	OTG_FS_GINTMSK = USBRSTM; // Take an interrupt on USB reset
-	OTG_FS_GAHBCFG |= GINTMSK; // Enable USB interrupts globally
+	// Enable interrupts on USB reset and bus unplug.
+	OTG_FS_GOTGINT = ADTOCHG | HNGDET | HNSSCHG | SRSSCHG | SEDET;
+	OTG_FS_GINTMSK = USBRSTM | OTGINT;
+	OTG_FS_GAHBCFG |= GINTMSK;
 }
 
 void usb_detach(void) {
+	if (device_state == DEVICE_STATE_ACTIVE) {
+		usb_ep0_deinit();
+	}
+
 	OTG_FS_DCTL |= SDIS; // Soft disconnect from bus
 	OTG_FS_GAHBCFG &= ~GINTMSK; // Disable USB interrupts globally
+	OTG_FS_GCCFG &= ~PWRDWN; // Transceiver inactive
+	rcc_disable(AHB2, 7); // Power down the module
+	device_state = DEVICE_STATE_DETACHED;
 }
 
 void usb_in_set_callback(uint8_t ep, void (*cb)(void)) {

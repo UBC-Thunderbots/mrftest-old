@@ -4,7 +4,7 @@
 
 void timer5_interrupt_vector(void) {
 	// The interrupt occurs when the buzzer should turn off.
-	TIM2_CCMR2 = (TIM2_CCMR2 & ~OC3M_MSK) | OC3M(4); // OC3M = 0b100; output forced low
+	buzzer_stop();
 	TIM5_SR = 0; // Clear interrupt flag
 }
 
@@ -47,5 +47,10 @@ void buzzer_start(unsigned long millis) {
 		TIM5_CR1 |= CEN; // Enable counter, in case it was disabled
 	}
 	TIM2_CCMR2 = (TIM2_CCMR2 & ~OC3M_MSK) | OC3M(6); // OC3M = 0b110; PWM mode active high
+}
+
+void buzzer_stop(void) {
+	TIM2_CCMR2 = (TIM2_CCMR2 & ~OC3M_MSK) | OC3M(4); // OC3M = 0b100; output forced low
+	TIM5_SR = 0; // Clear interrupt flag
 }
 

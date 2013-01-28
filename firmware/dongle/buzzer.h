@@ -23,5 +23,10 @@ void buzzer_init(void);
  */
 void buzzer_start(unsigned long millis);
 
+/**
+ * \brief Stops the buzzer immediately
+ */
+void buzzer_stop(void);
+
 #endif
 

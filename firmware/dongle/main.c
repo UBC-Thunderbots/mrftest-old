@@ -294,6 +294,10 @@ static void on_enter_config5(void) {
 static void on_exit_config5(void) {
 }
 
+static void handle_usb_reset(void) {
+	buzzer_stop();
+}
+
 static const usb_ep0_configuration_callbacks_t CONFIG4_CBS = {
 	.configuration = 4,
 	.interfaces = 1,
@@ -333,6 +337,7 @@ static const usb_ep0_configuration_callbacks_t * const CONFIG_CBS[] = {
 static const usb_device_info_t DEVICE_INFO = {
 	.rx_fifo_words = 128,
 	.ep0_max_packet = 8,
+	.on_reset = &handle_usb_reset,
 };
 
 extern unsigned char linker_data_vma_start;

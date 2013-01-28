@@ -510,10 +510,26 @@ void usb_ep0_init(void) {
 	OTG_FS_DOEPTSIZ0 = STUPCNT(3) // Allow up to 3 back-to-back SETUP data packets.
 		| PKTCNT(0) // No non-SETUP packets should be issued.
 		| XFRSIZ(0); // No non-SETUP transfer is occurring.
-	OTG_FS_GINTMSK |=
-		GINTMSK_OEPINT // Take an interrupt on unmasked events for OUT endpoints
-		| GINTMSK_IEPINT // Take an interrupt on unmasked events for IN endpoints
-		| RXFLVLM; // Take an interrupt on receive FIFO non-empty.
+}
+
+void usb_ep0_deinit(void) {
+	// If we are in a configuration, we exit it in the process of deinitializing.
+	if (current_configuration) {
+		if (current_configuration_callbacks && current_configuration_callbacks->on_exit) {
+			current_configuration_callbacks->on_exit();
+		}
+		current_configuration = 0;
+		current_configuration_callbacks = 0;
+	}
+
+	// Disable OUT endpoint 0 from receiving data, including SETUP packets.
+	OTG_FS_DOEPTSIZ0 = STUPCNT(0) | PKTCNT(0) | XFRSIZ(0);
+
+	// Disable interrupts to this endpoint.
+	OTG_FS_DAINTMSK &= ~IEPM(1 << 0);
+
+	// Unregister callback.
+	usb_in_set_callback(0, 0);
 }
 
 void usb_ep0_set_global_callbacks(const usb_ep0_global_callbacks_t *callbacks) {

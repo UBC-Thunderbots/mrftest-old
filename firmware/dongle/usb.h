@@ -34,6 +34,11 @@ typedef struct {
 	 * \brief The maximum packet size on endpoint 0 (must be one of 8, 16, 32, or 64)
 	 */
 	uint8_t ep0_max_packet;
+
+	/**
+	 * \brief A callback invoked when a USB reset occurs
+	 */
+	void (*on_reset)(void);
 } usb_device_info_t;
 
 /**
@@ -89,7 +94,7 @@ void usb_detach(void);
 
 
 /**
- * \name IN endpoint functions
+ * \name Endpoint callback management
  *
  * These functions handle operations related to one IN endpoint.
  *
