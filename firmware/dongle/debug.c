@@ -7,6 +7,7 @@
 #include "registers.h"
 #include "stdint.h"
 #include "usb.h"
+#include "usb_bi_in.h"
 #include "usb_ep0.h"
 #include "usb_ep0_sources.h"
 #include "usb_fifo.h"
@@ -41,45 +42,54 @@ const uint8_t CONFIGURATION_DESCRIPTOR6[] = {
 	1, // bInterval
 };
 
-static void exti12_interrupt_vector(void) {
-	// Clear the interrupt
-	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
+static uint64_t int_buffer;
+static size_t int_buffer_used;
 
-	// Check the INT pin level
-	bool int_level = !!(GPIOC_IDR & (1 << 12));
-
-	// Display the INT pin level on LED 2
-	GPIOB_BSRR = int_level ? GPIO_BS(12) : GPIO_BR(12);
-
-	// Check if the transmit FIFO has any empty space
-	if (INEPTFSAV_X(OTG_FS_DTXFSTS1)) {
-		// Space is available; queue a packet
-		OTG_FS_DIEPTSIZ1 += PKTCNT(1) // Increment count of packets to send
-			| XFRSIZ(1); // Increment count of bytes to send
-		OTG_FS_DIEPCTL1 |= EPENA // Start transmission on this endpoint
-			| CNAK; // Clear NAk flag
-		OTG_FS_FIFO[1][0] = int_level ? 1 : 0;
-	} else {
-		// Space is not available; light LED 3 and wait for empty space
-		GPIOB_BSRR = GPIO_BS(12) | GPIO_BS(13) | GPIO_BS(14);
-		OTG_FS_DIEPEMPMSK |= INEPTXFEM(1 << 1); // Take interrupt on IN endpoint 1 TX FIFO empty
+static void push_int_notify(void) {
+	// If the interrupt notification endpoint already has data queued, don’t try to send more data.
+	// We will get back here later when the transfer complete notification occurs for this endpoint and we can push more notifications.
+	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+		return;
 	}
+
+	// If there are no interrupt notifications waiting to be sent, do nothing.
+	// We will get back here later when pin change leads to a notification being queued and we can then push the message.
+	if (!int_buffer_used) {
+		return;
+	}
+
+	// Pop a notification from the queue
+	bool value = !!(int_buffer & 1);
+	int_buffer >>= 1;
+	--int_buffer_used;
+
+	// Start a transfer.
+	// Interrupt notification transfers are always one byte long.
+	usb_bi_in_start_transfer(1, 1, 1, &push_int_notify, 0);
+
+	// Push the data for this transfer.
+	usb_bi_in_push_word(1, value);
 }
 
-static void on_ep1_in_interrupt(void) {
-	if ((OTG_FS_DIEPEMPMSK & INEPTXFEM(1 << 1)) && (OTG_FS_DIEPINT1 & TXFE)) {
-		// We were waiting to be notified about the FIFO becoming empty, and now it has
-		// Push a packet
-		OTG_FS_DIEPTSIZ1 += PKTCNT(1) // Increment count of packets to send
-			| XFRSIZ(1); // Increment count of bytes to send
-		OTG_FS_FIFO[1][0] = !!(GPIOC_IDR & (1 << 12));
-		// Stop asking to be interrupted about FIFO empty
-		OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << 1); // Do not interrupt on IN endpoint 1 TX FIFO empty
-		GPIOB_BSRR = GPIO_BR(14);
-	} else if (OTG_FS_DIEPINT1 & XFRC) {
-		// We don’t actually care about transfer complete notification
-		OTG_FS_DIEPINT1 = XFRC; // Clear transfer complete interrupt flag
+static void exti12_interrupt_vector(void) {
+	// Clear the interrupt.
+	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
+
+	// Check the INT pin level.
+	bool int_level = !!(GPIOC_IDR & (1 << 12));
+
+	// Display the INT pin level on LED 2.
+	GPIOB_BSRR = int_level ? GPIO_BS(13) : GPIO_BR(13);
+
+	// Buffer the new state.
+	if (int_buffer_used == 64) {
+		int_buffer_used = 63;
 	}
+	int_buffer = (int_buffer & ~(UINT64_C(1) << 63)) | ((int_level ? 1 : 0) << int_buffer_used);
+	++int_buffer_used;
+
+	// Try to push an interrupt notification.
+	push_int_notify();
 }
 
 static void on_enter(void) {
@@ -99,57 +109,39 @@ static void on_enter(void) {
 	EXTI_IMR |= 1 << 12; // MR12 = 1; enable interrupt on EXTI12 trigger
 	NVIC_ISER[40 / 32] = 1 << (40 % 32); // SETENA40 = 1; enable EXTI15…10 interrupt
 
-	// Set up endpoint 1 (interrupt IN)
-	usb_in_set_callback(1, &on_ep1_in_interrupt);
-	OTG_FS_DIEPCTL1 =
-		0 // EPENA = 0; do not start transmission on this endpoint
-		| 0 // EPDIS = 0; do not disable this endpoint at this time
-		| SD0PID // Set data PID to 0
-		| SNAK // Set NAK flag
-		| 0 // CNAK = 0; do not clear NAK flag
-		| DIEPCTL_TXFNUM(1) // Use transmit FIFO number 1
-		| 0 // STALL = 0; do not stall traffic
-		| EPTYP(3) // Interrupt endpoint
-		| USBAEP // Endpoint is active in this configuration
-		| MPSIZ(1); // Maximum packet size is 1 byte
-	while (!(OTG_FS_DIEPCTL1 & NAKSTS));
-	usb_fifo_set_size(1, 64); // Allocate 64 bytes of FIFO space for this FIFO
-	usb_fifo_flush(1);
-	OTG_FS_DIEPINT1 = OTG_FS_DIEPINT1; // Clear all pending interrupts for IN endpoint 1
-	OTG_FS_DAINTMSK |= IEPM(1 << 1); // Enable interrupts for IN endpoint 1
+	// Clear the interrupt buffer.
+	int_buffer_used = 0;
 
-	// Display the current level of INT on LED 3
+	// Set up IN endpoint 1 with a 64-byte FIFO, large enough for any transfer (thus we never need to use the on_space callback).
+	usb_fifo_set_size(1, 64);
+	usb_fifo_flush(1);
+	usb_bi_in_init(1, 1, USB_BI_IN_EP_TYPE_INTERRUPT);
+
+	// Display the current level of INT on LED 2.
 	bool int_level = !!(GPIOC_IDR & (1 << 12));
 	GPIOB_BSRR = int_level ? GPIO_BS(13) : GPIO_BR(13);
 }
 
 static void on_exit(void) {
-	// Shut down endpoint 1
-	if (OTG_FS_DIEPCTL1 & EPENA) {
-		if (!(OTG_FS_DIEPCTL1 & NAKSTS)) {
-			OTG_FS_DIEPCTL1 |= SNAK; // Start NAKing traffic
-			while (!(OTG_FS_DIEPCTL1 & NAKSTS));
-		}
-		OTG_FS_DIEPCTL1 |= EPDIS; // Disable endpoint
-		while (OTG_FS_DIEPCTL1 & EPENA);
+	// Shut down IN endpoint 1.
+	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+		usb_bi_in_abort_transfer(1);
+		usb_fifo_flush(1);
 	}
-	OTG_FS_DIEPCTL1 = 0;
-	OTG_FS_DAINTMSK &= ~IEPM(1); // Disable general interrupts for IN endpoint 1
-	OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << 1); // Disable FIFO empty interrupts for IN endpoint 1
-	usb_in_set_callback(1, 0);
+	usb_bi_in_deinit(1);
 
 	// Deallocate FIFOs.
 	usb_fifo_reset();
 
-	// Disable the external interrupt on MRF INT
+	// Disable the external interrupt on MRF INT.
 	NVIC_ICER[40 / 32] = 1 << (40 % 32); // CLRENA40 = 1; disable EXTI15…10 interrupt
 	EXTI_IMR &= ~(1 << 12); // MR12 = 0; disable interrupt on EXTI12 trigger
 	interrupt_exti12_handler = 0;
 
-	// Turn off all LEDs
+	// Turn off all LEDs.
 	GPIOB_BSRR = GPIO_BR(12) | GPIO_BR(13) | GPIO_BR(14);
 
-	// Reset the radio
+	// Reset the radio.
 	mrf_init();
 }
 

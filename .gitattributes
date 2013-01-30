@@ -65,6 +65,8 @@ firmware/dongle/timers.txt -text
 firmware/dongle/unused.h -text
 firmware/dongle/usb.c -text
 firmware/dongle/usb.h -text
+firmware/dongle/usb_bi_in.c -text
+firmware/dongle/usb_bi_in.h -text
 firmware/dongle/usb_ep0.c -text
 firmware/dongle/usb_ep0.h -text
 firmware/dongle/usb_ep0_sources.c -text

@@ -14,6 +14,7 @@
 #include "stdint.h"
 #include "string.h"
 #include "usb.h"
+#include "usb_bi_in.h"
 #include "usb_ep0.h"
 #include "usb_ep0_sources.h"
 #include "usb_fifo.h"
@@ -90,7 +91,7 @@ const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
 
 #define PKT_FLAG_RELIABLE 0x01
 
-static bool in_ep1_enabled, in_ep2_enabled, in_ep2_zlp_pending, in_ep3_enabled, out_ep1_enabled, out_ep2_enabled, out_ep3_enabled, drive_packet_pending, mrf_tx_active;
+static bool out_ep1_enabled, out_ep2_enabled, out_ep3_enabled, drive_packet_pending, mrf_tx_active;
 static estop_t last_reported_estop_value;
 static uint8_t mrf_tx_seqnum;
 static uint16_t mrf_rx_seqnum[8];
@@ -206,17 +207,19 @@ static void push_mrf_tx(void) {
 }
 
 static void push_mdrs(void) {
-	// If the message delivery endpoint already has data queued, don’t try to send more data
-	if (in_ep1_enabled) {
+	// If the message delivery endpoint is already running a transfer, we have nothing to do.
+	// We will get back here later when the transfer complete notification occurs for this endpoint and we can then push more MDRs.
+	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
 		return;
 	}
 
-	// If there are no MDRs waiting, do nothing
+	// If there are no MDRs waiting, do nothing.
+	// We will get back here later when an MRF interrupt leads to an MDR being produced and we can then push the MDR.
 	if (!first_mdr_pending) {
 		return;
 	}
 
-	// Pop an MDR from the queue
+	// Pop an MDR from the queue.
 	normal_out_packet_t *pkt = first_mdr_pending;
 	first_mdr_pending = pkt->next;
 	if (!first_mdr_pending) {
@@ -224,14 +227,12 @@ static void push_mdrs(void) {
 	}
 	pkt->next = 0;
 
-	// Push the delivery status into the USB FIFO
-	OTG_FS_DIEPTSIZ1 = 
-		PKTCNT(1) // Send one packet
-		| XFRSIZ(2); // Send two bytes
-	OTG_FS_DIEPCTL1 |=
-		EPENA // Enable endpoint
-		| CNAK; // Clear NAK flag
-	OTG_FS_FIFO[1][0] = pkt->message_id | (pkt->delivery_status << 8);
+	// Start a transfer.
+	// MDR transfers are always two bytes long.
+	usb_bi_in_start_transfer(1, 2, 2, &push_mdrs, 0);
+
+	// Push the data for this transfer.
+	usb_bi_in_push_word(1, pkt->message_id | (pkt->delivery_status << 8));
 
 	// Push the consumed MDR packet buffer onto the free stack
 	pkt->next = reliable_out_free;
@@ -239,26 +240,14 @@ static void push_mdrs(void) {
 }
 
 static void push_rx(void) {
-	// If a received message endpoint already has data queued, don’t try to send more data
-	if (in_ep2_enabled) {
+	// If the received message endpoint already has data queued, don’t try to send more data.
+	// We will get back here later when the transfer complete notification occurs for this endpoint and we can push more messages.
+	if (usb_bi_in_get_state(2) == USB_BI_IN_STATE_ACTIVE) {
 		return;
 	}
 
-	// Check if a prior transfer needed a zero-length packet
-	if (in_ep2_zlp_pending) {
-		// A zero length packet was needed; do that now
-		OTG_FS_DIEPTSIZ2 =
-			PKTCNT(1) // Send one packet
-			| XFRSIZ(0); // Send zero bytes
-		OTG_FS_DIEPCTL2 |=
-			EPENA // Enable endpoint
-			| CNAK; // Clear NAK flag
-		in_ep2_zlp_pending = false;
-		in_ep2_enabled = true;
-		return;
-	}
-
-	// If there are no received messages waiting to be sent, do nothing
+	// If there are no received messages waiting to be sent, do nothing.
+	// We will get back here later when an MRF interrupt leads to a received message being queued and we can then push the message.
 	if (!first_in_pending) {
 		return;
 	}
@@ -271,98 +260,101 @@ static void push_rx(void) {
 	}
 	packet->next = 0;
 
-	// Push this received packet into the USB FIFO
-	OTG_FS_DIEPTSIZ2 =
-		PKTCNT((packet->length + 63) / 64) // Send the proper number of packets (this does not include any ZLP, which must be in a separate “transfer” as far as the STM32F4’s USB engine is concerned)
-		| XFRSIZ(packet->length); // Send the proper number of bytes
-	OTG_FS_DIEPCTL2 |=
-		EPENA // Enable endpoint
-		| CNAK; // Clear NAK flag
-	for (size_t i = 0; i < (packet->length + 3U) / 4U; ++i) {
-		uint32_t word = packet->data[i * 4] | (packet->data[i * 4 + 1] << 8) | (packet->data[i * 4 + 2] << 16) | (packet->data[i * 4 + 3] << 24);
-		OTG_FS_FIFO[2][0] = word;
-	}
-	in_ep2_enabled = true;
+	// Start a transfer.
+	// Received message transfers are variable length up to a known maximum size.
+	usb_bi_in_start_transfer(2, packet->length, sizeof(packet->data), &push_rx, 0);
 
-	// Decide if a zero-length packet will be needed after this
-	in_ep2_zlp_pending = !(packet->length % 64);
+	// Push the data for this transfer.
+	usb_bi_in_push_block(2, packet->data, packet->length);
 
-	// Push this consumed packet buffer into the free list
+	// Push this consumed packet buffer into the free list.
 	packet->next = in_free;
 	in_free = packet;
 
-	// Re-enable the receiver; it may have been left disabled if there were no free packet buffers for flow control purposes
+	// Re-enable the receiver; it may have been left disabled if there were no free receive message buffers.
 	mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00); // RXDECINV = 0; stop inverting receiver and allow further reception
 }
 
 static void push_estop(void) {
-	// If the estop endpoint already has data queued, don’t try to send more data
-	if (in_ep3_enabled) {
+	// If the estop endpoint already has data queued, don’t try to send more data.
+	// We will get back here later when the transfer complete notification occurs for this endpoint and we can push more data.
+	if (usb_bi_in_get_state(3) == USB_BI_IN_STATE_ACTIVE) {
 		return;
 	}
 
-	// Push the estop state into the USB FIFO
-	OTG_FS_DIEPTSIZ3 =
-		PKTCNT(1) // Send one packet
-		| XFRSIZ(2); // Send two bytes
-	OTG_FS_DIEPCTL3 |=
-		EPENA // Enable endpoint
-		| CNAK; // Clear NAK flag
-	last_reported_estop_value = estop_read();
-	OTG_FS_FIFO[3][0] = last_reported_estop_value << 8;
-	in_ep3_enabled = true;
+	// Read the current estop state.
+	estop_t current_value = estop_read();
+
+	// If there is nothing interesting to say, don’t try to send more data.
+	// We will get back here later when the estop status changes and we can push more data.
+	if (current_value == last_reported_estop_value) {
+		return;
+	}
+
+	// Start a transfer.
+	// Estop transfers are always two bytes long.
+	usb_bi_in_start_transfer(3, 2, 2, &push_estop, 0);
+
+	// Push the data for this transfer.
+	usb_bi_in_push_word(3, current_value | (last_reported_estop_value << 8));
+
+	// Record the current value as the last reported.
+	last_reported_estop_value = current_value;
 }
 
 static void exti12_interrupt_vector(void) {
-	// Clear the interrupt
+	// Clear the interrupt.
 	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
 
 	while (GPIOC_IDR & (1 << 12) /* PC12 */) {
-		// Check outstanding interrupts
+		// Check outstanding interrupts.
 		uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
 		if (intstat & (1 << 3)) {
-			// RXIF = 1; packet received
+			// RXIF = 1; packet received.
 			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04); // RXDECINV = 1; invert receiver symbol sign to prevent further packet reception
-			// Read out the frame length byte and frame control word
+			// Read out the frame length byte and frame control word.
 			uint8_t rxfifo_frame_length = mrf_read_long(MRF_REG_LONG_RXFIFO);
 			uint16_t frame_control = mrf_read_long(MRF_REG_LONG_RXFIFO + 1) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 2) << 8);
-			// Sanity-check the frame control word
+			// Sanity-check the frame control word.
 			if (((frame_control >> 0) & 7) == 1 /* Data packet */ && ((frame_control >> 3) & 1) == 0 /* No security */ && ((frame_control >> 6) & 1) == 1 /* Intra-PAN */ && ((frame_control >> 10) & 3) == 2 /* 16-bit destination address */ && ((frame_control >> 14) & 3) == 2 /* 16-bit source address */) {
-				// Read out and check the source address and sequence number
-				uint16_t source_address = mrf_read_long(MRF_REG_LONG_RXFIFO + 8) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 9) << 8);
-				uint8_t sequence_number = mrf_read_long(MRF_REG_LONG_RXFIFO + 3);
-				if (source_address < 8 && sequence_number != mrf_rx_seqnum[source_address]) {
-					// Blink the receive light
-					GPIOB_ODR ^= 1 << 14;
+				static const uint8_t HEADER_LENGTH = 2 /* Frame control */ + 1 /* Seq# */ + 2 /* Dest PAN */ + 2 /* Dest */ + 2 /* Src */;
+				static const uint8_t FOOTER_LENGTH = 2 /* Frame check sequence */;
 
-					static const uint8_t HEADER_LENGTH = 2 /* Frame control */ + 1 /* Seq# */ + 2 /* Dest PAN */ + 2 /* Dest */ + 2 /* Src */;
-					static const uint8_t FOOTER_LENGTH = 2;
+				// Sanity-check the total frame length.
+				if (HEADER_LENGTH + FOOTER_LENGTH <= rxfifo_frame_length && rxfifo_frame_length <= HEADER_LENGTH + 102 + FOOTER_LENGTH) {
+					// Read out and check the source address and sequence number.
+					uint16_t source_address = mrf_read_long(MRF_REG_LONG_RXFIFO + 8) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 9) << 8);
+					uint8_t sequence_number = mrf_read_long(MRF_REG_LONG_RXFIFO + 3);
+					if (source_address < 8 && sequence_number != mrf_rx_seqnum[source_address]) {
+						// Blink the receive light.
+						GPIOB_ODR ^= 1 << 14;
 
-					// Update sequence number
-					mrf_rx_seqnum[source_address] = sequence_number;
+						// Update sequence number.
+						mrf_rx_seqnum[source_address] = sequence_number;
 
-					// Allocate a packet buffer
-					normal_in_packet_t *packet = in_free;
-					in_free = packet->next;
-					packet->next = 0;
+						// Allocate a packet buffer.
+						normal_in_packet_t *packet = in_free;
+						in_free = packet->next;
+						packet->next = 0;
 
-					// Fill in the packet buffer
-					packet->length = 1 + rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH;
-					packet->data[0] = source_address;
-					for (uint8_t i = 0; i < rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH; ++i) {
-						packet->data[i + 1] = mrf_read_long(MRF_REG_LONG_RXFIFO + 1 + HEADER_LENGTH + i);
+						// Fill in the packet buffer.
+						packet->length = 1 /* Source robot index */ + (rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH) /* 802.15.4 packet payload */;
+						packet->data[0] = source_address;
+						for (uint8_t i = 0; i < rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH; ++i) {
+							packet->data[i + 1] = mrf_read_long(MRF_REG_LONG_RXFIFO + 1 + HEADER_LENGTH + i);
+						}
+
+						// Push the packet on the receive queue.
+						if (last_in_pending) {
+							last_in_pending->next = packet;
+							last_in_pending = packet;
+						} else {
+							first_in_pending = last_in_pending = packet;
+						}
+
+						// Kick the receive queue.
+						push_rx();
 					}
-
-					// Push the packet on the receive queue
-					if (last_in_pending) {
-						last_in_pending->next = packet;
-						last_in_pending = packet;
-					} else {
-						first_in_pending = last_in_pending = packet;
-					}
-
-					// Kick the receive queue
-					push_rx();
 				}
 			}
 
@@ -423,34 +415,6 @@ static void exti12_interrupt_vector(void) {
 			// Kick the transmit queue
 			push_mrf_tx();
 		}
-	}
-}
-
-static void on_ep1_in_interrupt(void) {
-	if (OTG_FS_DIEPINT1 & XFRC) {
-		// On transfer complete, go see if we have another MDR to send
-		OTG_FS_DIEPINT1 = XFRC; // Clear transfer complete interrupt flag
-		in_ep1_enabled = false;
-		push_mdrs();
-	}
-}
-
-static void on_ep2_in_interrupt(void) {
-	if (OTG_FS_DIEPINT2 & XFRC) {
-		// On transfer complete, go see if we have another message to send
-		OTG_FS_DIEPINT2 = XFRC; // Clear transfer complete interrupt flag
-		in_ep2_enabled = false;
-		push_rx();
-	}
-}
-
-static void on_ep3_in_interrupt(void) {
-	if (OTG_FS_DIEPINT3 & XFRC) {
-		// On transfer complete, go see if we have another message to send
-		OTG_FS_DIEPINT3 = XFRC; // Clear transfer complete interrupt flag
-		in_ep3_enabled = false;
-		if (estop_read() != last_reported_estop_value) {
-			push_estop(); }
 	}
 }
 
@@ -753,72 +717,27 @@ static void on_enter(void) {
 		| MPSIZ(64); // Max packet size is 64 bytes
 	init_out_ep3();
 
-	// Set up endpoint 1 IN
-	in_ep1_enabled = false;
-	usb_in_set_callback(1, &on_ep1_in_interrupt);
-	OTG_FS_DIEPCTL1 =
-		0 // EPENA = 0; do not start transmission on this endpoint
-		| 0 // EPDIS = 0; do not disable this endpoint at this time
-		| SD0PID // Set data PID to 0
-		| SNAK // Set NAK flag
-		| 0 // Do not clear NAK flag
-		| DIEPCTL_TXFNUM(1) // Use transmit FIFO number 1
-		| 0 // Do not stall traffic
-		| EPTYP(3) // Interrupt endpoint
-		| USBAEP // Endpoint is active in this configuration
-		| MPSIZ(2); // Maximum packet size is 2 bytes
-	while (!(OTG_FS_DIEPCTL1 & NAKSTS));
-	usb_fifo_set_size(1, 64); // Allocate 64 bytes of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
+	// Set up endpoint 1 IN with a 64-byte FIFO, large enough for any transfer (thus we never need to use the on_space callback).
+	usb_fifo_set_size(1, 64);
 	usb_fifo_flush(1);
-	OTG_FS_DIEPINT1 = OTG_FS_DIEPINT1; // Clear all pending interrupts for IN endpoint 1
-	OTG_FS_DAINTMSK |= IEPM(1 << 1); // Enable interrupts for IN endpoint 1
+	usb_bi_in_init(1, 2, USB_BI_IN_EP_TYPE_INTERRUPT);
 
-	// Set up endpoint 2 IN
-	in_ep2_enabled = false;
-	in_ep2_zlp_pending = false;
-	usb_in_set_callback(2, &on_ep2_in_interrupt);
-	OTG_FS_DIEPCTL2 =
-		0 // EPENA = 0; do not start transmission on this endpoint
-		| 0 // EPDIS = 0; do not disable this endpoint at this time
-		| SD0PID // Set data PID to 0
-		| SNAK // Set NAK flag
-		| 0 // Do not clear NAK flag
-		| DIEPCTL_TXFNUM(2) // Use transmit FIFO number 2
-		| 0 // STALL = 0; do not stall traffic
-		| EPTYP(3) // Interrupt endpoint
-		| USBAEP // Endpoint is active in this configuration
-		| MPSIZ(64); // Maximum packet size is 64 bytes
-	while (!(OTG_FS_DIEPCTL2 & NAKSTS));
-	usb_fifo_set_size(2, 256); // Allocate 256 bytes of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
+	// Set up endpoint 2 IN with a 256-byte FIFO, large enough for any transfer (thus we never need to use the on_space callback).
+	usb_fifo_set_size(2, 256);
 	usb_fifo_flush(2);
-	OTG_FS_DIEPINT2 = OTG_FS_DIEPINT2; // Clear all pending interrupts for IN endpoint 2
-	OTG_FS_DAINTMSK |= IEPM(1 << 2); // Enable interrupts for IN endpoint 2
+	usb_bi_in_init(2, 64, USB_BI_IN_EP_TYPE_INTERRUPT);
 
-	// Set up endpoint 3 IN
-	in_ep3_enabled = false;
-	usb_in_set_callback(3, &on_ep3_in_interrupt);
-	OTG_FS_DIEPCTL3 =
-		0 // EPENA = 0; do not start transmission on this endpoint
-		| 0 // EPDIS = 0; do not disable this endpoint at this time
-		| SD0PID // Set data PID to 0
-		| SNAK // Set NAK flag
-		| 0 // CNAK = 0; do not clear NAK flag
-		| DIEPCTL_TXFNUM(3) // Use transmit FIFO number 3
-		| 0 // STALL = 0; do not stall traffic
-		| EPTYP(3) // Interrupt endpoint
-		| USBAEP // Endpoint is active in this configuration
-		| MPSIZ(2); // Maximum packet size is 2 bytes
-	while (!(OTG_FS_DIEPCTL3 & NAKSTS));
+	// Set up endpoint 3 IN with a 64-byte FIFO, large enough for any transfer (thus we never need to use the on_space callback).
 	usb_fifo_set_size(3, 64); // Allocate 64 bytes of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
 	usb_fifo_flush(3);
-	OTG_FS_DIEPINT3 = OTG_FS_DIEPINT3; // Clear all pending interrupts for IN endpoint 3
-	OTG_FS_DAINTMSK |= IEPM(1 << 3); // Enable interrupts for IN endpoint 3
+	usb_bi_in_init(3, 2, USB_BI_IN_EP_TYPE_INTERRUPT);
 
 	// Wipe the drive packet
 	memset(perconfig.normal.drive_packet, 0, sizeof(perconfig.normal.drive_packet));
 	drive_packet_pending = false;
 
 	// Set up to be notified on estop changes and push the current state
+	last_reported_estop_value = ESTOP_BROKEN;
 	estop_set_change_callback(&push_estop);
 	push_estop();
 
@@ -881,50 +800,26 @@ static void on_exit(void) {
 	usb_out_set_callback(3, 0);
 	out_ep3_enabled = false;
 
-	// Shut down IN endpoint 1
-	if (OTG_FS_DIEPCTL1 & EPENA) {
-		if (!(OTG_FS_DIEPCTL1 & NAKSTS)) {
-			OTG_FS_DIEPCTL1 |= SNAK; // Start NAKing traffic
-			while (!(OTG_FS_DIEPCTL1 & NAKSTS));
-		}
-		OTG_FS_DIEPCTL1 |= EPDIS; // Disable endpoint
-		while (OTG_FS_DIEPCTL1 & EPENA);
+	// Shut down IN endpoint 1.
+	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+		usb_bi_in_abort_transfer(1);
+		usb_fifo_flush(1);
 	}
-	OTG_FS_DIEPCTL1 = 0;
-	OTG_FS_DAINTMSK &= ~IEPM(1 << 1); // Disable general interrupts for IN endpoint 1
-	OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << 1); // Disable FIFO empty interrupts for IN endpoint 1
-	usb_in_set_callback(1, 0);
-	in_ep1_enabled = false;
+	usb_bi_in_deinit(1);
 
-	// Shut down IN endpoint 2
-	if (OTG_FS_DIEPCTL2 & EPENA) {
-		if (!(OTG_FS_DIEPCTL2 & NAKSTS)) {
-			OTG_FS_DIEPCTL2 |= SNAK; // Start NAKing traffic
-			while (!(OTG_FS_DIEPCTL2 & NAKSTS));
-		}
-		OTG_FS_DIEPCTL2 |= EPDIS; // Disable endpoint
-		while (OTG_FS_DIEPCTL2 & EPENA);
+	// Shut down IN endpoint 2.
+	if (usb_bi_in_get_state(2) == USB_BI_IN_STATE_ACTIVE) {
+		usb_bi_in_abort_transfer(2);
+		usb_fifo_flush(2);
 	}
-	OTG_FS_DIEPCTL2 = 0;
-	OTG_FS_DAINTMSK &= ~IEPM(1 << 2); // Disable general interrupts for IN endpoint 2
-	OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << 2); // Disable FIFO empty interrupts for IN endpoint 2
-	usb_in_set_callback(2, 0);
-	in_ep2_enabled = false;
+	usb_bi_in_deinit(2);
 
-	// Shut down IN endpoint 3
-	if (OTG_FS_DIEPCTL3 & EPENA) {
-		if (!(OTG_FS_DIEPCTL3 & NAKSTS)) {
-			OTG_FS_DIEPCTL3 |= SNAK; // Start NAKing traffic
-			while (!(OTG_FS_DIEPCTL3 & NAKSTS));
-		}
-		OTG_FS_DIEPCTL3 |= EPDIS; // Disable endpoint
-		while (OTG_FS_DIEPCTL3 & EPENA);
+	// Shut down IN endpoint 3.
+	if (usb_bi_in_get_state(3) == USB_BI_IN_STATE_ACTIVE) {
+		usb_bi_in_abort_transfer(3);
+		usb_fifo_flush(3);
 	}
-	OTG_FS_DIEPCTL3 = 0;
-	OTG_FS_DAINTMSK &= ~IEPM(1 << 3); // Disable general interrupts for IN endpoint 3
-	OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << 3); // Disable FIFO empty interrupts for IN endpoint 3
-	usb_in_set_callback(3, 0);
-	in_ep3_enabled = false;
+	usb_bi_in_deinit(3);
 
 	// Deallocate FIFOs.
 	usb_fifo_reset();

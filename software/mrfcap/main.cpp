@@ -124,7 +124,7 @@ namespace {
 
 		// Go into a loop
 		for (;;) {
-			uint8_t buffer[256];
+			uint8_t buffer[131];
 			std::size_t len = devh.bulk_in(1, buffer, sizeof(buffer), 0);
 			if (len >= 4) {
 				uint32_t seconds, microseconds;
