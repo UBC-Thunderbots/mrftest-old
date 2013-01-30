@@ -5,8 +5,17 @@
 #include "usb_internal.h"
 
 #define FIFO_MIN_SIZE (16 * 4)
+#define TOTAL_FIFO_SPACE (1024 * 5 / 4)
 #define NUM_FIFOS 4
 static volatile uint32_t * const TX_FIFO_REGISTERS[NUM_FIFOS] = { &OTG_FS_DIEPTXF0, &OTG_FS_DIEPTXF1, &OTG_FS_DIEPTXF2, &OTG_FS_DIEPTXF3 };
+
+static size_t total_fifo_space_used(void) {
+	size_t acc = 0;
+	for (unsigned int i = 0; i < NUM_FIFOS; ++i) {
+		acc += usb_fifo_get_size(i);
+	}
+	return acc;
+}
 
 void usb_fifo_init(size_t fifo_zero_size) {
 	// Set receive FIFO to proper size.
@@ -57,6 +66,9 @@ void usb_fifo_set_size(unsigned int fifo, size_t size) {
 		*TX_FIFO_REGISTERS[fifo] = INEPTXFD(size) | INEPTXSA(offset);
 		offset += size;
 	}
+
+	// Sanity check that we have not overrun the available FIFO memory.
+	assert(total_fifo_space_used() <= TOTAL_FIFO_SPACE);
 }
 
 void usb_fifo_flush(unsigned int fifo) {
