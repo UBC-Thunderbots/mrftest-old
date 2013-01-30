@@ -1,9 +1,10 @@
 #include "usb_fifo.h"
+#include "assert.h"
 #include "registers.h"
 #include "stddef.h"
 #include "usb_internal.h"
 
-#define FIFO_MIN_SIZE 16
+#define FIFO_MIN_SIZE (16 * 4)
 #define NUM_FIFOS 4
 static volatile uint32_t * const TX_FIFO_REGISTERS[NUM_FIFOS] = { &OTG_FS_DIEPTXF0, &OTG_FS_DIEPTXF1, &OTG_FS_DIEPTXF2, &OTG_FS_DIEPTXF3 };
 
@@ -34,10 +35,15 @@ size_t usb_fifo_get_offset(unsigned int fifo) {
 }
 
 size_t usb_fifo_get_size(unsigned int fifo) {
-	return INEPTXFD_X(*TX_FIFO_REGISTERS[fifo]);
+	return INEPTXFD_X(*TX_FIFO_REGISTERS[fifo]) * 4;
 }
 
 void usb_fifo_set_size(unsigned int fifo, size_t size) {
+	// Sanity check the size and convert to words.
+	assert(!(size % 4));
+	assert(size >= FIFO_MIN_SIZE);
+	size /= 4;
+
 	// Keep this FIFO’s offset the same, but change its size.
 	size_t offset = usb_fifo_get_offset(fifo);
 	*TX_FIFO_REGISTERS[fifo] = INEPTXFD(size) | INEPTXSA(offset);
@@ -47,7 +53,7 @@ void usb_fifo_set_size(unsigned int fifo, size_t size) {
 
 	// The remaining FIFOs keep the same size but change offsets.
 	for (unsigned int i = fifo + 1; i < NUM_FIFOS; ++i) {
-		size = usb_fifo_get_size(i);
+		size = usb_fifo_get_size(i) / 4;
 		*TX_FIFO_REGISTERS[fifo] = INEPTXFD(size) | INEPTXSA(offset);
 		offset += size;
 	}

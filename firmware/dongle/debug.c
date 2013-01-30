@@ -113,7 +113,7 @@ static void on_enter(void) {
 		| USBAEP // Endpoint is active in this configuration
 		| MPSIZ(1); // Maximum packet size is 1 byte
 	while (!(OTG_FS_DIEPCTL1 & NAKSTS));
-	usb_fifo_set_size(1, 16); // Allocate 16 words of FIFO space for this FIFO
+	usb_fifo_set_size(1, 64); // Allocate 64 bytes of FIFO space for this FIFO
 	usb_fifo_flush(1);
 	OTG_FS_DIEPINT1 = OTG_FS_DIEPINT1; // Clear all pending interrupts for IN endpoint 1
 	OTG_FS_DAINTMSK |= IEPM(1 << 1); // Enable interrupts for IN endpoint 1

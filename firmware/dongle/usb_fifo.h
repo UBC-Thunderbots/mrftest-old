@@ -33,7 +33,7 @@ size_t usb_fifo_get_offset(unsigned int fifo);
  *
  * \param[in] fifo the endpoint whose FIFO size should be returned, from 1 to 3.
  *
- * \return the size, in words.
+ * \return the size, in bytes.
  */
 size_t usb_fifo_get_size(unsigned int fifo);
 
@@ -44,7 +44,7 @@ size_t usb_fifo_get_size(unsigned int fifo);
  *
  * \param[in] fifo the endpoint whose FIFO size should be set, from 1 to 3.
  *
- * \param[in] size the size of the FIFO, in words.
+ * \param[in] size the size of the FIFO, in bytes, which must be a multiple of 4 and at least 64.
  */
 void usb_fifo_set_size(unsigned int fifo, size_t size);
 

@@ -768,7 +768,7 @@ static void on_enter(void) {
 		| USBAEP // Endpoint is active in this configuration
 		| MPSIZ(2); // Maximum packet size is 2 bytes
 	while (!(OTG_FS_DIEPCTL1 & NAKSTS));
-	usb_fifo_set_size(1, 16); // Allocate 16 words of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
+	usb_fifo_set_size(1, 64); // Allocate 64 bytes of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
 	usb_fifo_flush(1);
 	OTG_FS_DIEPINT1 = OTG_FS_DIEPINT1; // Clear all pending interrupts for IN endpoint 1
 	OTG_FS_DAINTMSK |= IEPM(1 << 1); // Enable interrupts for IN endpoint 1
@@ -789,7 +789,7 @@ static void on_enter(void) {
 		| USBAEP // Endpoint is active in this configuration
 		| MPSIZ(64); // Maximum packet size is 64 bytes
 	while (!(OTG_FS_DIEPCTL2 & NAKSTS));
-	usb_fifo_set_size(2, 64); // Allocate 64 words of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
+	usb_fifo_set_size(2, 256); // Allocate 256 bytes of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
 	usb_fifo_flush(2);
 	OTG_FS_DIEPINT2 = OTG_FS_DIEPINT2; // Clear all pending interrupts for IN endpoint 2
 	OTG_FS_DAINTMSK |= IEPM(1 << 2); // Enable interrupts for IN endpoint 2
@@ -809,7 +809,7 @@ static void on_enter(void) {
 		| USBAEP // Endpoint is active in this configuration
 		| MPSIZ(2); // Maximum packet size is 2 bytes
 	while (!(OTG_FS_DIEPCTL3 & NAKSTS));
-	usb_fifo_set_size(3, 16); // Allocate 16 words of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
+	usb_fifo_set_size(3, 64); // Allocate 64 bytes of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
 	usb_fifo_flush(3);
 	OTG_FS_DIEPINT3 = OTG_FS_DIEPINT3; // Clear all pending interrupts for IN endpoint 3
 	OTG_FS_DAINTMSK |= IEPM(1 << 3); // Enable interrupts for IN endpoint 3
