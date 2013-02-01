@@ -68,7 +68,7 @@ usb_bi_in_state_t usb_bi_in_get_state(unsigned int ep);
  * This avoids the need for the transfer to be split up into many 8-packet physical transfers for flow control reasons.
  * There is no performance impact for having an overly large FIFO if all transfers will be smaller than 8 packets anyway.
  *
- * \pre The endpoint is in USB_BI_STATE_UNINITIALIZED.
+ * \pre The endpoint is in USB_BI_IN_STATE_UNINITIALIZED.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  *
@@ -83,7 +83,7 @@ void usb_bi_in_init(unsigned int ep, size_t max_packet, usb_bi_in_ep_type_t type
  *
  * This is typically called when exiting a configuration or switching interface alternate settings.
  *
- * \pre The endpoint is in USB_BI_STATE_IDLE.
+ * \pre The endpoint is in USB_BI_IN_STATE_IDLE.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  */
@@ -95,7 +95,7 @@ void usb_bi_in_deinit(unsigned int ep);
  * This is typically done in response to certain control transfers targetting the endpoint.
  * The application does not need to call this function after initializing the endpoint; \ref usb_bi_in_init automatically sets the PID to DATA0.
  *
- * \pre The endpoint is in USB_BI_STATE_IDLE.
+ * \pre The endpoint is in USB_BI_IN_STATE_IDLE.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  */
@@ -110,7 +110,7 @@ void usb_bi_in_reset_pid(unsigned int ep);
  *
  * The application can send a zero-length transfer consisting of a sole zero-length packet by setting \p length to zero and \p max_length to any nonzero value.
  *
- * \pre The endpoint is in USB_BI_STATE_IDLE.
+ * \pre The endpoint is in USB_BI_IN_STATE_IDLE.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  *
@@ -130,7 +130,7 @@ void usb_bi_in_start_transfer(unsigned int ep, size_t length, size_t max_length,
  * This function does not flush the FIFO.
  * The application should do that once this function returns.
  *
- * \pre The endpoint is in USB_BI_STATE_ACTIVE.
+ * \pre The endpoint is in USB_BI_IN_STATE_ACTIVE.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  */
