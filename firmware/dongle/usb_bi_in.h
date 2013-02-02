@@ -70,6 +70,8 @@ usb_bi_in_state_t usb_bi_in_get_state(unsigned int ep);
  *
  * \pre The endpoint is in USB_BI_IN_STATE_UNINITIALIZED.
  *
+ * \post The endpoint is in USB_BI_IN_STATE_IDLE.
+ *
  * \param[in] ep the endpoint number, from 1 to 3
  *
  * \param[in] max_packet the maximum packet size for this endpoint, in bytes
@@ -84,6 +86,8 @@ void usb_bi_in_init(unsigned int ep, size_t max_packet, usb_bi_in_ep_type_t type
  * This is typically called when exiting a configuration or switching interface alternate settings.
  *
  * \pre The endpoint is in USB_BI_IN_STATE_IDLE.
+ *
+ * \post The endpoint is in USB_BI_IN_STATE_UNINITIALIZED.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  */
@@ -112,6 +116,8 @@ void usb_bi_in_reset_pid(unsigned int ep);
  *
  * \pre The endpoint is in USB_BI_IN_STATE_IDLE.
  *
+ * \post The endpoint is in USB_BI_IN_STATE_ACTIVE.
+ *
  * \param[in] ep the endpoint number, from 1 to 3
  *
  * \param[in] length the number of bytes to transfer
@@ -132,6 +138,8 @@ void usb_bi_in_start_transfer(unsigned int ep, size_t length, size_t max_length,
  *
  * \pre The endpoint is in USB_BI_IN_STATE_ACTIVE.
  *
+ * \post The endpoint is in USB_BI_IN_STATE_IDLE.
+ *
  * \param[in] ep the endpoint number, from 1 to 3
  */
 void usb_bi_in_abort_transfer(unsigned int ep);
@@ -142,7 +150,7 @@ void usb_bi_in_abort_transfer(unsigned int ep);
  * If FIFO space is available, the amount of data actually pushed will be the lesser of 4 and the number of bytes left in the transfer.
  * It is not possible to push less than 4 bytes of data except at the end of a transfer.
  *
- * \pre A transfer must be running on the endpoint.
+ * \pre The endpoint must be in USB_BI_IN_STATE_ACTIVE.
  *
  * \pre The running transfer must not have had all its data pushed yet.
  *
@@ -170,7 +178,7 @@ bool usb_bi_in_push_word(unsigned int ep, uint32_t data);
  * When space is available in the FIFO for more data, the \p on_space callback passed to \ref usb_bi_in_start_transfer is invoked.
  * In that callback, the application pushes more data into the transmit FIFO.
  *
- * \pre A transfer must be running on the endpoint.
+ * \pre The endpoint must be in USB_BI_IN_STATE_ACTIVE.
  *
  * \pre The amount of data provided must not be more than needed to finish the transfer.
  *
