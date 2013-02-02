@@ -49,7 +49,7 @@ extern union perconfig {
 	struct {
 		normal_out_packet_t out_packets[128];
 		normal_in_packet_t in_packets[64];
-		uint32_t drive_packet[64 / 4];
+		uint8_t drive_packet[64];
 	} normal;
 	promisc_packet_t promisc_packets[256];
 } perconfig;

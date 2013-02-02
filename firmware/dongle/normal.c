@@ -15,6 +15,7 @@
 #include "string.h"
 #include "usb.h"
 #include "usb_bi_in.h"
+#include "usb_bi_out.h"
 #include "usb_ep0.h"
 #include "usb_ep0_sources.h"
 #include "usb_fifo.h"
@@ -91,7 +92,7 @@ const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
 
 #define PKT_FLAG_RELIABLE 0x01
 
-static bool out_ep1_enabled, out_ep2_enabled, out_ep3_enabled, drive_packet_pending, mrf_tx_active;
+static bool drive_packet_pending, mrf_tx_active;
 static estop_t last_reported_estop_value;
 static uint8_t mrf_tx_seqnum;
 static uint16_t mrf_rx_seqnum[8];
@@ -418,178 +419,143 @@ static void exti12_interrupt_vector(void) {
 	}
 }
 
-static void init_out_ep1(void) {
-	if (!out_ep1_enabled) {
-		OTG_FS_DOEPTSIZ1 = PKTCNT(1) // Receive one packet
-			| XFRSIZ(64); // Receive a packet of up to 64 bytes
-		OTG_FS_DOEPCTL1 |= EPENA // Enable endpoint
-			| CNAK; // Clear NAK flag
-		out_ep1_enabled = true;
+static void on_ep1_out_packet(size_t bcnt) {
+	if (bcnt == sizeof(perconfig.normal.drive_packet)) {
+		// Copy the received data into the drive packet buffer.
+		usb_bi_out_read(1, perconfig.normal.drive_packet, sizeof(perconfig.normal.drive_packet));
+		// Enable the timer that generates drive packets on the radio.
+		TIM6_CR1 |= CEN; // Enable counter now
+	} else {
+		// Discard the received packet.
+		usb_bi_out_read(1, 0, bcnt);
 	}
 }
 
-static void init_out_ep2(void) {
-#warning this endpoint really ought to handle transfers of more than 64 bytes
-	if (!out_ep2_enabled) {
-		OTG_FS_DOEPTSIZ2 = PKTCNT(1) // Receive one packet
-			| XFRSIZ(64); // Receive a packet of up to 64 bytes
-		OTG_FS_DOEPCTL2 |=
-			EPENA // Enable endpoint
-			| CNAK; // Clear NAK flag
-		out_ep2_enabled = true;
-	}
+static void start_ep1_out_transfer(void) {
+	// Start another transfer.
+	usb_bi_out_start_transfer(1, sizeof(perconfig.normal.drive_packet), &start_ep1_out_transfer, &on_ep1_out_packet);
 }
 
-static void init_out_ep3(void) {
-#warning this endpoint really ought to handle transfers of more than 64 bytes
-	if (!out_ep3_enabled) {
-		OTG_FS_DOEPTSIZ3 = PKTCNT(1) // Receive one packet
-			| XFRSIZ(64); // Receive a packet of up to 64 bytes
-		OTG_FS_DOEPCTL3 |=
-			EPENA // Enable endpoint
-			| CNAK; // Clear NAK flag
-		out_ep3_enabled = true;
-	}
-}
+static void on_ep2_out_packet(size_t bcnt) {
+	if (bcnt >= 2) {
+		// Allocate a packet buffer.
+		normal_out_packet_t *pkt = reliable_out_free;
+		reliable_out_free = pkt->next;
+		pkt->next = 0;
 
-static void on_ep1_out_pattern(uint32_t pattern) {
-	uint32_t pktsts = (pattern >> 17) & 0xF;
-	if (pktsts == 0b0010) {
-		// OUT data packet received
-		uint32_t bcnt = (pattern >> 4) & 0x7FF;
-		if (bcnt == sizeof(perconfig.normal.drive_packet)) {
-			// Copy the received data into the drive packet buffer
-			for (size_t i = 0; i < sizeof(perconfig.normal.drive_packet) / sizeof(*perconfig.normal.drive_packet); ++i) {
-				perconfig.normal.drive_packet[i] = OTG_FS_FIFO[0][0];
-			}
-			// Enable the timer that generates drive packets on the radio
-			TIM6_CR1 |= CEN; // Enable counter now
+		// Flag the packet as reliable.
+		pkt->reliable = true;
+
+		// The transfer has a two-byte header.
+		pkt->length = bcnt - 2;
+
+		// Allow up to twenty transport-layer retries.
+		pkt->retries_remaining = 20;
+
+		// Copy out the header and first two bytes of data.
+		uint32_t buf;
+		{
+			uint32_t word = OTG_FS_FIFO[0][0];
+			pkt->dest = word & 0x0F;
+			pkt->message_id = word >> 8;
+			pkt->data[0] = word >> 16;
+			pkt->data[1] = word >> 24;
+		}
+
+		// Copy out the rest of the data.
+		for (size_t i = 2; i < bcnt - 2; i += 4) {
+			uint32_t word = OTG_FS_FIFO[0][0];
+			pkt->data[i] = word;
+			pkt->data[i + 1] = word >> 8;
+			pkt->data[i + 2] = word >> 16;
+			pkt->data[i + 3] = word >> 24;
+		}
+
+		// Push the packet onto the transmit queue.
+		if (last_out_pending) {
+			last_out_pending->next = pkt;
+			last_out_pending = pkt;
 		} else {
-			for (size_t i = 0; i < bcnt; i += 4) {
-				(void) OTG_FS_FIFO[0][0];
-			}
+			first_out_pending = last_out_pending = pkt;
 		}
-	} else if (pktsts == 0b0011) {
-		// OUT transfer complete
-		out_ep1_enabled = false;
-		init_out_ep1();
+
+		// Kick the transmit queue.
+		push_mrf_tx();
 	}
 }
 
-static void on_ep2_out_pattern(uint32_t pattern) {
-	uint32_t pktsts = (pattern >> 17) & 0xF;
-	if (pktsts == 0b0010) {
-		// OUT data packet received
-		uint32_t bcnt = (pattern >> 4) & 0x7FF;
-		if (bcnt >= 2) {
-			// Allocate a packet buffer
-			normal_out_packet_t *pkt = reliable_out_free;
-			reliable_out_free = pkt->next;
-			pkt->next = 0;
+static void start_ep2_out_transfer(void);
 
-			// Flag the packet as reliable
-			pkt->reliable = true;
-
-			// The transfer has a two-byte header
-			pkt->length = bcnt - 2;
-
-			// Allow up to twenty transport-layer retries
-			pkt->retries_remaining = 20;
-
-			// Copy out the header and first two bytes of data
-			{
-				uint32_t word = OTG_FS_FIFO[0][0];
-				pkt->dest = word & 0x0F;
-				pkt->message_id = word >> 8;
-				pkt->data[0] = word >> 16;
-				pkt->data[1] = word >> 24;
-			}
-
-			// Copy out the rest of the data
-			for (size_t i = 2; i < bcnt - 2; i += 4) {
-				uint32_t word = OTG_FS_FIFO[0][0];
-				pkt->data[i] = word;
-				pkt->data[i + 1] = word >> 8;
-				pkt->data[i + 2] = word >> 16;
-				pkt->data[i + 3] = word >> 24;
-			}
-
-			// Push the packet onto the transmit queue
-			if (last_out_pending) {
-				last_out_pending->next = pkt;
-				last_out_pending = pkt;
-			} else {
-				first_out_pending = last_out_pending = pkt;
-			}
-
-			// Kick the transmit queue
-			push_mrf_tx();
-		}
-	} else if (pktsts == 0b0011) {
-		// OUT transfer complete
-		out_ep2_enabled = false;
-		if (reliable_out_free) {
-			init_out_ep2();
-		}
+static void on_ep2_out_transfer_complete(void) {
+	if (reliable_out_free) {
+		start_ep2_out_transfer();
 	}
 }
 
-static void on_ep3_out_pattern(uint32_t pattern) {
-	uint32_t pktsts = (pattern >> 17) & 0xF;
-	if (pktsts == 0b0010) {
-		// OUT data packet received
-		uint32_t bcnt = (pattern >> 4) & 0x7FF;
-		if (bcnt) {
-			// Allocate a packet buffer
-			normal_out_packet_t *pkt = unreliable_out_free;
-			unreliable_out_free = pkt->next;
-			pkt->next = 0;
+static void start_ep2_out_transfer(void) {
+#warning this endpoint really ought to handle transfers of more than 64 bytes
+	// Start another transfer.
+	usb_bi_out_start_transfer(2, 64, &on_ep2_out_transfer_complete, &on_ep2_out_packet);
+}
 
-			// Flag the packet as unreliable
-			pkt->reliable = false;
+static void on_ep3_out_packet(size_t bcnt) {
+	if (bcnt) {
+		// Allocate a packet buffer.
+		normal_out_packet_t *pkt = unreliable_out_free;
+		unreliable_out_free = pkt->next;
+		pkt->next = 0;
 
-			// The transfer has a one-byte header
-			pkt->length = bcnt - 1;
+		// Flag the packet as unreliable.
+		pkt->reliable = false;
 
-			// Allow up to twenty transport-layer retries
-			pkt->retries_remaining = 20;
+		// The transfer has a one-byte header.
+		pkt->length = bcnt - 1;
 
-			// Copy out the header and first three bytes of data
-			{
-				uint32_t word = OTG_FS_FIFO[0][0];
-				pkt->dest = word & 0x0F;
-				pkt->data[0] = word >> 8;
-				pkt->data[1] = word >> 16;
-				pkt->data[2] = word >> 24;
-			}
+		// Allow up to twenty transport-layer retries.
+		pkt->retries_remaining = 20;
 
-			// Copy out the rest of the data
-			for (size_t i = 3; i < bcnt - 1; i += 4) {
-				uint32_t word = OTG_FS_FIFO[0][0];
-				pkt->data[i] = word;
-				pkt->data[i + 1] = word >> 8;
-				pkt->data[i + 2] = word >> 16;
-				pkt->data[i + 3] = word >> 24;
-			}
-
-			// Push the packet onto the transmit queue
-			if (last_out_pending) {
-				last_out_pending->next = pkt;
-				last_out_pending = pkt;
-			} else {
-				first_out_pending = last_out_pending = pkt;
-			}
-
-			// Kick the transmit queue
-			push_mrf_tx();
+		// Copy out the header and first three bytes of data.
+		{
+			uint32_t word = OTG_FS_FIFO[0][0];
+			pkt->dest = word & 0x0F;
+			pkt->data[0] = word >> 8;
+			pkt->data[1] = word >> 16;
+			pkt->data[2] = word >> 24;
 		}
-	} else if (pktsts == 0b0011) {
-		// OUT transfer complete
-		out_ep3_enabled = false;
-		if (unreliable_out_free) {
-			init_out_ep3();
+
+		// Copy out the rest of the data.
+		for (size_t i = 3; i < bcnt - 1; i += 4) {
+			uint32_t word = OTG_FS_FIFO[0][0];
+			pkt->data[i] = word;
+			pkt->data[i + 1] = word >> 8;
+			pkt->data[i + 2] = word >> 16;
+			pkt->data[i + 3] = word >> 24;
 		}
+
+		// Push the packet onto the transmit queue.
+		if (last_out_pending) {
+			last_out_pending->next = pkt;
+			last_out_pending = pkt;
+		} else {
+			first_out_pending = last_out_pending = pkt;
+		}
+
+		// Kick the transmit queue.
+		push_mrf_tx();
 	}
+}
+
+static void start_ep3_out_transfer(void);
+
+static void on_ep3_out_transfer_complete(void) {
+	if (unreliable_out_free) {
+		start_ep3_out_transfer();
+	}
+}
+
+static void start_ep3_out_transfer(void) {
+#warning this endpoint really ought to handle transfers of more than 64 bytes
+	usb_bi_out_start_transfer(3, 64, &on_ep3_out_transfer_complete, &on_ep3_out_packet);
 }
 
 static bool can_enter(void) {
@@ -687,35 +653,17 @@ static void on_enter(void) {
 	EXTI_IMR |= 1 << 12; // MR12 = 1; enable interrupt on EXTI12 trigger
 	NVIC_ISER[40 / 32] = 1 << (40 % 32); // SETENA40 = 1; enable EXTI15…10 interrupt
 
-	// Set up interrupt endpoint 1 OUT
-	out_ep1_enabled = false;
-	usb_out_set_callback(1, &on_ep1_out_pattern);
-	OTG_FS_DOEPCTL1 =
-		SD0PID // Set data 0 PID
-		| EPTYP(3) // Interrupt endpoint
-		| USBAEP // Endpoint active in this configuration
-		| MPSIZ(64); // Max packet size is 64 bytes
-	init_out_ep1();
+	// Set up interrupt endpoint 1 OUT.
+	usb_bi_out_init(1, 64, USB_BI_OUT_EP_TYPE_INTERRUPT);
+	start_ep1_out_transfer();
 
 	// Set up interrupt endpoint 2 OUT
-	out_ep2_enabled = false;
-	usb_out_set_callback(2, &on_ep2_out_pattern);
-	OTG_FS_DOEPCTL2 =
-		SD0PID // Set data 0 PID
-		| EPTYP(3) // Interrupt endpoint
-		| USBAEP // Endpoint active in this configuration
-		| MPSIZ(64); // Max packet size is 64 bytes
-	init_out_ep2();
+	usb_bi_out_init(2, 64, USB_BI_OUT_EP_TYPE_INTERRUPT);
+	start_ep2_out_transfer();
 
 	// Set up interrupt endpoint 3 OUT
-	out_ep3_enabled = false;
-	usb_out_set_callback(3, &on_ep3_out_pattern);
-	OTG_FS_DOEPCTL3 =
-		SD0PID // Set data 0 PID
-		| EPTYP(3) // Interrupt endpoint
-		| USBAEP // Endpoint active in this configuration
-		| MPSIZ(64); // Max packet size is 64 bytes
-	init_out_ep3();
+	usb_bi_out_init(3, 64, USB_BI_OUT_EP_TYPE_INTERRUPT);
+	start_ep3_out_transfer();
 
 	// Set up endpoint 1 IN with a 64-byte FIFO, large enough for any transfer (thus we never need to use the on_space callback).
 	usb_fifo_set_size(1, 64);
@@ -764,41 +712,21 @@ static void on_exit(void) {
 	// Stop receiving estop notifications
 	estop_set_change_callback(0);
 
-	// Shut down OUT endpoint 1
-	if (OTG_FS_DOEPCTL1 & EPENA) {
-		if (!(OTG_FS_DOEPCTL1 & NAKSTS)) {
-			OTG_FS_DOEPCTL1 |= SNAK; // Start NAKing traffic
-			while (!(OTG_FS_DOEPCTL1 & NAKSTS));
-		}
-		OTG_FS_DOEPCTL1 |= EPDIS; // Disable endpoint
-		while (OTG_FS_DOEPCTL1 & EPENA);
-	}
-	usb_out_set_callback(1, 0);
-	out_ep1_enabled = false;
+	// Shut down OUT endpoint 1.
+	usb_bi_out_abort_transfer(1);
+	usb_bi_out_deinit(1);
 
 	// Shut down OUT endpoint 2
-	if (OTG_FS_DOEPCTL2 & EPENA) {
-		if (!(OTG_FS_DOEPCTL2 & NAKSTS)) {
-			OTG_FS_DOEPCTL2 |= SNAK; // Start NAKing traffic
-			while (!(OTG_FS_DOEPCTL2 & NAKSTS));
-		}
-		OTG_FS_DOEPCTL2 |= EPDIS; // Disable endpoint
-		while (OTG_FS_DOEPCTL2 & EPENA);
+	if (usb_bi_out_get_state(2) == USB_BI_OUT_STATE_ACTIVE) {
+		usb_bi_out_abort_transfer(2);
 	}
-	usb_out_set_callback(2, 0);
-	out_ep2_enabled = false;
+	usb_bi_out_deinit(2);
 
 	// Shut down OUT endpoint 3
-	if (OTG_FS_DOEPCTL3 & EPENA) {
-		if (!(OTG_FS_DOEPCTL3 & NAKSTS)) {
-			OTG_FS_DOEPCTL3 |= SNAK; // Start NAKing traffic
-			while (!(OTG_FS_DOEPCTL3 & NAKSTS));
-		}
-		OTG_FS_DOEPCTL3 |= EPDIS; // Disable endpoint
-		while (OTG_FS_DOEPCTL3 & EPENA);
+	if (usb_bi_out_get_state(3) == USB_BI_OUT_STATE_ACTIVE) {
+		usb_bi_out_abort_transfer(3);
 	}
-	usb_out_set_callback(3, 0);
-	out_ep3_enabled = false;
+	usb_bi_out_deinit(3);
 
 	// Shut down IN endpoint 1.
 	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {

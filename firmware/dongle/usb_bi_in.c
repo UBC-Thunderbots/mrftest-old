@@ -205,7 +205,7 @@ void usb_bi_in_init(unsigned int ep, size_t max_packet, usb_bi_in_ep_type_t type
 	*OTG_FS_DIEPCTL[ep] = SD0PID | SNAK | DIEPCTL_TXFNUM(ep) | EPTYP(type) | USBAEP | MPSIZ(max_packet);
 
 	// Wait until NAK status is effective.
-	while (!(OTG_FS_DIEPCTL1 & NAKSTS));
+	while (!(*OTG_FS_DIEPCTL[ep] & NAKSTS));
 
 	// Register a callback to handle endpoint interrupts for this endpoint.
 	usb_in_set_callback(ep, INTERRUPT_TRAMPOLINES[ep]);

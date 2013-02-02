@@ -68,6 +68,8 @@ firmware/dongle/usb.c -text
 firmware/dongle/usb.h -text
 firmware/dongle/usb_bi_in.c -text
 firmware/dongle/usb_bi_in.h -text
+firmware/dongle/usb_bi_out.c -text
+firmware/dongle/usb_bi_out.h -text
 firmware/dongle/usb_ep0.c -text
 firmware/dongle/usb_ep0.h -text
 firmware/dongle/usb_ep0_sources.c -text
