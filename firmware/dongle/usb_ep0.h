@@ -139,6 +139,8 @@ typedef struct {
 	 *
 	 * \pre Callback context is executing.
 	 *
+	 * \pre Global NAK is effective in both directions.
+	 *
 	 * \post Either \p *accept must be set to an appropriate value, or the callback must return \c false.
 	 *
 	 * \param[in] request_type the request type field from the SETUP transaction
@@ -161,6 +163,8 @@ typedef struct {
 	 * This callback is optional; if not provided, it is treated as though always returning \c false.
 	 *
 	 * \pre Callback context is executing.
+	 *
+	 * \pre Global NAK is effective in both directions.
 	 *
 	 * \post Either \p *source must be set to an appropriate value, or the callback must return \c false.
 	 *
@@ -186,6 +190,8 @@ typedef struct {
 	 * This callback is optional; if not provided, it is treated as though always returning \c false.
 	 *
 	 * \pre Callback context is executing.
+	 *
+	 * \pre Global NAK is effective in both directions.
 	 *
 	 * \post Either \p *dest and \p *cb must be set to an appropriate value, or the callback must return \c false.
 	 *
@@ -217,6 +223,8 @@ typedef struct {
 	 *
 	 * \pre Callback context is executing.
 	 *
+	 * \pre Global NAK is effective in both directions.
+	 *
 	 * \post Either \p *data and \p *length must be set to appropriate values, or the callback must return \c false.
 	 *
 	 * \param[in] descriptor_type the type of descriptor being requested.
@@ -241,6 +249,8 @@ typedef struct {
 	 * This callback is mandatory.
 	 *
 	 * \pre Callback context is executing.
+	 *
+	 * \pre Global NAK is effective in both directions.
 	 *
 	 * \return \c true if the device is self-powered at this moment, or \c false if bus-powered
 	 */
@@ -283,6 +293,10 @@ typedef struct {
 	 *
 	 * This callback is optional; if not provided, requests to enter the configuration always succeed.
 	 *
+	 * \pre Callback context is executing.
+	 *
+	 * \pre Global NAK is effective in both directions.
+	 *
 	 * \return \c true if the request is acceptable, or \c false if not
 	 */
 	bool (*can_enter)(void);
@@ -291,6 +305,10 @@ typedef struct {
 	 * \brief Enters the configuration
 	 *
 	 * This callback is optional.
+	 *
+	 * \pre Callback context is executing.
+	 *
+	 * \pre Global NAK is effective in both directions.
 	 */
 	void (*on_enter)(void);
 
@@ -298,6 +316,10 @@ typedef struct {
 	 * \brief Exits the configuration
 	 *
 	 * This callback is optional.
+	 *
+	 * \pre Callback context is executing.
+	 *
+	 * \pre Global NAK is effective in both directions.
 	 */
 	void (*on_exit)(void);
 
@@ -309,6 +331,8 @@ typedef struct {
 	 * This callback is executed before, and can override, any corresponding device-wide callback.
 	 *
 	 * \pre Callback context is executing.
+	 *
+	 * \pre Global NAK is effective in both directions.
 	 *
 	 * \post Either \p *accept must be set to an appropriate value, or the callback must return \c false.
 	 *
@@ -334,6 +358,8 @@ typedef struct {
 	 * This callback is executed before, and can override, any corresponding device-wide callback.
 	 *
 	 * \pre Callback context is executing.
+	 *
+	 * \pre Global NAK is effective in both directions.
 	 *
 	 * \post Either \p *source must be set to an appropriate value, or the callback must return \c false.
 	 *
@@ -361,6 +387,8 @@ typedef struct {
 	 * This callback is executed before, and can override, any corresponding device-wide callback.
 	 *
 	 * \pre Callback context is executing.
+	 *
+	 * \pre Global NAK is effective in both directions.
 	 *
 	 * \post Either \p *dest and \p *cb must be set to an appropriate value, or the callback must return \c false.
 	 *

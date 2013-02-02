@@ -12,22 +12,35 @@ typedef enum {
 	DEVICE_STATE_POWERED,
 	DEVICE_STATE_ENUMERATING,
 	DEVICE_STATE_ACTIVE,
+	DEVICE_STATE_DETACHING,
 } device_state_t;
 
 static device_state_t device_state = DEVICE_STATE_DETACHED;
+static usb_gnak_request_t *gnak_requests_head = 0, *gnak_requests_tail = 0;
+static bool gonak_requested = false, ginak_requested = false;
 const usb_device_info_t *usb_device_info = 0;
 static void (*(in_endpoint_callbacks[4]))(void) = { 0, 0, 0, 0 };
 static void (*(out_endpoint_callbacks[4]))(uint32_t) = { &usb_ep0_handle_receive, 0, 0, 0 };
-static bool global_nak_state = false;
+
+static void handle_reset_gnak(void);
 
 static void handle_reset(void) {
+	// Get global NAK going.
+	// We will handle the rest of the initialization under global NAK.
+	// This is necessary because, if the device was attached at the time, we might potentially need to call usb_ep0_deinit().
+	// That function must only be called under global NAK.
+	static usb_gnak_request_t req = USB_GNAK_REQUEST_INIT;
+	usb_set_global_nak(&req, &handle_reset_gnak);
+}
+
+static void handle_reset_gnak(void) {
 	// Sanity check.
 	assert(device_state != DEVICE_STATE_DETACHED);
 
 	// It’s possible a reset could have happened while the device was already connected. Handle it.
 	if (device_state == DEVICE_STATE_ACTIVE) {
 		usb_ep0_deinit();
-		OTG_FS_GINTMSK = USBRSTM;
+		OTG_FS_GINTMSK = USBRSTM | GONAKEFFM | GINAKEFFM | RXFLVLM | OTGINT;
 		OTG_FS_GINTSTS = OTG_FS_GINTSTS & ~ENUMDNE;
 	}
 
@@ -43,7 +56,7 @@ static void handle_reset(void) {
 	OTG_FS_DOEPINT1 = B2BSTUP | OTEPDIS | STUP | EPDISD | XFRC;
 	OTG_FS_DOEPINT2 = B2BSTUP | OTEPDIS | STUP | EPDISD | XFRC;
 	OTG_FS_DOEPINT3 = B2BSTUP | OTEPDIS | STUP | EPDISD | XFRC;
-	OTG_FS_GINTMSK = USBRSTM | ENUMDNEM | OTGINT;
+	OTG_FS_GINTMSK = USBRSTM | ENUMDNEM | GONAKEFFM | GINAKEFFM | RXFLVLM | OTGINT;
 
 	// Configure receive FIFO and endpoint 0 transmit FIFO sizes
 	size_t ep0_tx_fifo_words = usb_device_info->ep0_max_packet / 4;
@@ -65,7 +78,7 @@ static void handle_enumeration_done(void) {
 
 	// Enable interrupts on IN transfer complete and receive FIFO non-empty.
 	OTG_FS_DIEPMSK |= XFRCM;
-	OTG_FS_GINTMSK |= RXFLVLM | GINTMSK_IEPINT;
+	OTG_FS_GINTMSK |= GINTMSK_IEPINT;
 
 	// Disable enumeration complete interrupt; this shouldn’t happen any more.
 	OTG_FS_GINTMSK &= ~ENUMDNEM;
@@ -74,18 +87,101 @@ static void handle_enumeration_done(void) {
 	usb_ep0_init();
 }
 
+static void handle_gnak_effective(void) {
+	// We need a single, atomic read of this register or else our logic will get confused.
+	uint32_t gintsts = OTG_FS_GINTSTS;
+
+	if (gnak_requests_head) {
+		// There are queued requests for global NAK.
+		if ((gintsts & GOUTNAKEFF) && (gintsts & GINAKEFF)) {
+			// Both IN and OUT NAK are effective.
+			gonak_requested = false;
+			ginak_requested = false;
+			// Run the global NAK request callbacks now.
+			// This is a careful traversal that handles concurrent list modification.
+			while (gnak_requests_head) {
+				usb_gnak_request_t *req = gnak_requests_head;
+				gnak_requests_head = req->next;
+				if (!gnak_requests_head) {
+					gnak_requests_tail = 0;
+				}
+				req->queued = false;
+				if (req->cb) {
+					req->cb();
+				}
+			}
+			// We no longer have any requests, so disable global NAK.
+			OTG_FS_DCTL |= CGONAK | CGINAK;
+			// We want to be notified of any other global NAK effectivenesses occurring later.
+			OTG_FS_GINTMSK |= GONAKEFFM | GINAKEFFM;
+		} else {
+			// Global NAK has been requested, but not all global NAKs have become effective yet.
+			// We must disable the interrupt for the specific direction that has become effective (to avoid endless interrupts).
+			// Then we must return and wait for the other direction that is not yet effective to become effective.
+			if (gintsts & GOUTNAKEFF) {
+				gonak_requested = false;
+				OTG_FS_GINTMSK &= ~GONAKEFFM;
+			}
+			if (gintsts & GINAKEFF) {
+				ginak_requested = false;
+				OTG_FS_GINTMSK &= ~GINAKEFFM;
+			}
+		}
+	} else {
+		// There are no queued requests for global NAK.
+		// This is spurious, perhaps caused by an old request.
+		// We should cancel whatever global NAK is effective.
+		if (gintsts & GOUTNAKEFF) {
+			gonak_requested = false;
+			OTG_FS_DCTL |= CGONAK;
+		}
+		if (gintsts & GINAKEFF) {
+			ginak_requested = false;
+			OTG_FS_DCTL |= CGINAK;
+		}
+		// We want to be notified of any other global NAK effectivenesses occurring later.
+		OTG_FS_GINTMSK |= GONAKEFFM | GINAKEFFM;
+	}
+}
+
+void usb_set_global_nak(usb_gnak_request_t *req, void (*cb)(void)) {
+	req->cb = cb;
+
+	if (!req->queued) {
+		// This request is not already registered.
+		// We must do something interesting.
+		// Push the request into the list.
+		req->queued = true;
+		req->next = 0;
+		if (gnak_requests_tail) {
+			gnak_requests_tail->next = req;
+			gnak_requests_tail = req;
+		} else {
+			gnak_requests_head = gnak_requests_tail = req;
+		}
+		// If any direction’s global NAK is neither effective nor requested, request it now.
+		if (!gonak_requested && !(OTG_FS_GINTSTS & GOUTNAKEFF)) {
+			OTG_FS_DCTL |= SGONAK;
+			gonak_requested = true;
+		}
+		if (!ginak_requested && !(OTG_FS_GINTSTS & GINAKEFF)) {
+			OTG_FS_DCTL |= SGINAK;
+			ginak_requested = true;
+		}
+	}
+}
+
 static void handle_receive_fifo_nonempty(void) {
-	// Pop a status word from the FIFO
+	// Pop a status word from the FIFO.
 	uint32_t status_word = OTG_FS_GRXSTSP & (FRMNUM_MSK | PKTSTS_MSK | GRXSTSP_DPID_MSK | BCNT_MSK | GRXSTSP_EPNUM_MSK);
 
 	if (PKTSTS_X(status_word) == 0x1) {
-		// This is a notification of global OUT NAK effectiveness
-		if (global_nak_state) {
-			OTG_FS_GINTMSK |= GINAKEFFM; // Take an interrupt when global IN NAK becomes effective
-			OTG_FS_DCTL |= SGINAK; // Request global IN NAK
-		}
+		// This is a notification of global OUT NAK effectiveness.
+		// We actually don’t do anything here, because the engine automatically sets an interrupt flag when we pop this pattern.
+		// We will handle the situation through that interrupt.
+		// The pattern just serves to serialize the OUT NAK effectiveness with received data packets.
 	} else {
-		// This is an endpoint-specific pattern
+		// This is an endpoint-specific pattern.
 		uint8_t endpoint = GRXSTSP_EPNUM_X(status_word);
 		if (out_endpoint_callbacks[endpoint]) {
 			out_endpoint_callbacks[endpoint](status_word);
@@ -119,19 +215,6 @@ void usb_copy_out_packet(void *target, size_t length) {
 	}
 }
 
-void usb_set_global_nak(void) {
-	if (!global_nak_state) {
-		global_nak_state = true;
-		OTG_FS_DCTL |= SGONAK; // Request global OUT NAK
-	}
-}
-
-void usb_clear_global_nak(void) {
-	OTG_FS_DCTL |= CGONAK | CGINAK; // Clear both global NAKs
-	OTG_FS_GINTMSK &= ~GINAKEFFM; // Do not take an interrupt when global IN NAK becomes effective
-	global_nak_state = false;
-}
-
 static void handle_otg_interrupt(void) {
 	uint32_t otgint = OTG_FS_GOTGINT;
 	OTG_FS_GOTGINT = otgint;
@@ -154,10 +237,9 @@ void usb_process(void) {
 	} else if (mask & GINTSTS_IEPINT) {
 		// This interrupt is level-sensitive; it clears automatically when the more specific interrupt bit is cleared.
 		handle_in_endpoint();
-	} else if (mask & GINAKEFF) {
-		// Disable this interrupt; it is level-sensitive so cannot actually be cleared.
-		OTG_FS_GINTMSK &= ~GINAKEFFM;
-		usb_ep0_handle_global_nak_effective();
+	} else if ((mask & GINAKEFF) || (mask & GOUTNAKEFF)) {
+		// These interrupts are level-sensitive; the handler will disable the mask if they need to be ignored for a while.
+		handle_gnak_effective();
 	} else if (mask & OTGINT) {
 		// This interrupt is level-sensitive; it clears automatically when the more specific interrupt bit is cleared.
 		handle_otg_interrupt();
@@ -167,8 +249,15 @@ void usb_process(void) {
 void usb_attach(const usb_device_info_t *info) {
 	assert(device_state == DEVICE_STATE_DETACHED);
 
+	// Initialize variables.
 	device_state = DEVICE_STATE_POWERED;
 	usb_device_info = info;
+	gonak_requested = false;
+	ginak_requested = false;
+	for (usb_gnak_request_t *req = gnak_requests_head; req; req = req->next) {
+		req->queued = false;
+	}
+	gnak_requests_head = gnak_requests_tail = 0;
 
 	// Reset the module and enable the clock
 	rcc_enable(AHB2, 7);
@@ -229,15 +318,18 @@ void usb_attach(const usb_device_info_t *info) {
 		| 0 // HSHNPEN = 0; host negotiation protocol has not been enabled on the peer
 		| 0 // HNPRQ = 0; do not issue host negotiation protocol request
 		| 0; // SRQ = 0; do not issue session request
+	OTG_FS_DCTL =
+		CGONAK // CGONAK = 1; do not do OUT NAKs
+		| CGINAK; // CGINAK = 1; do not do IN NAKs
 
-	// Enable interrupts on USB reset and bus unplug.
+	// Enable interrupts on USB reset, bus unplug, and RX FIFO activity.
 	OTG_FS_GOTGINT = ADTOCHG | HNGDET | HNSSCHG | SRSSCHG | SEDET;
-	OTG_FS_GINTMSK = USBRSTM | OTGINT;
+	OTG_FS_GINTMSK = USBRSTM | GONAKEFFM | GINAKEFFM | RXFLVLM | OTGINT;
 	OTG_FS_GAHBCFG |= GINTMSK;
 }
 
-void usb_detach(void) {
-	if (device_state == DEVICE_STATE_ACTIVE) {
+static void usb_detach_impl(void) {
+	if (device_state == DEVICE_STATE_DETACHING) {
 		usb_ep0_deinit();
 	}
 
@@ -246,6 +338,16 @@ void usb_detach(void) {
 	OTG_FS_GCCFG &= ~PWRDWN; // Transceiver inactive
 	rcc_disable(AHB2, 7); // Power down the module
 	device_state = DEVICE_STATE_DETACHED;
+}
+
+void usb_detach(void) {
+	if (device_state == DEVICE_STATE_ACTIVE) {
+		static usb_gnak_request_t gnak_req = USB_GNAK_REQUEST_INIT;
+		device_state = DEVICE_STATE_DETACHING;
+		usb_set_global_nak(&gnak_req, &usb_detach_impl);
+	} else {
+		usb_detach_impl();
+	}
 }
 
 void usb_in_set_callback(uint8_t ep, void (*cb)(void)) {

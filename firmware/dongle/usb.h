@@ -36,7 +36,11 @@ typedef struct {
 	uint8_t ep0_max_packet;
 
 	/**
-	 * \brief A callback invoked when a USB reset occurs
+	 * \brief A callback invoked when a USB reset occurs.
+	 *
+	 * \pre Callback context is executing.
+	 *
+	 * \pre Global NAK is effective in both directions.
 	 */
 	void (*on_reset)(void);
 } usb_device_info_t;
@@ -83,6 +87,9 @@ void usb_attach(const usb_device_info_t *device_info);
 /**
  * \brief Detaches from the bus.
  *
+ * The detach operation does not complete immediately.
+ * The function returns while the detach operation may still be taking place.
+ *
  * \pre Callback context must not be executing.
  */
 void usb_detach(void);
@@ -118,6 +125,53 @@ void usb_in_set_callback(uint8_t ep, void (*cb)(void));
  * \param[in] cb the callback to register, which accepts the FIFO pattern
  */
 void usb_out_set_callback(uint8_t ep, void (*cb)(uint32_t));
+
+/**
+ * @}
+ */
+
+
+
+/**
+ * \name Global NAK handling
+ *
+ * These functions and types allow an application to enter global NAK mode.
+ *
+ * @{
+ */
+
+/**
+ * \brief A request for global NAK.
+ *
+ * The application must allocate a structure of this type in order to issue a global NAK request.
+ * The application should not modify the elements of this structure.
+ * The allocated structure should be initialized to \ref USB_GNAK_REQUEST_INIT.
+ */
+typedef struct usb_gnak_request {
+	struct usb_gnak_request *next;
+	bool queued;
+	void (*cb)(void);
+} usb_gnak_request_t;
+
+/**
+ * \brief The initialization value for a \ref usb_gnak_request_t.
+ */
+#define USB_GNAK_REQUEST_INIT { 0, 0, 0 }
+
+/**
+ * \brief Requests for global NAK to occur.
+ *
+ * The USB stack will enter global NAK state as soon as possible and will then invoke the callback.
+ * Global NAK state will end after the callback returns.
+ *
+ * It is safe to call this function with a request structure that has already been queued; in this case, nothing happens.
+ * However, the application can change which callback function will be invoked by doing this.
+ *
+ * \param[in] req the request structure identifying this request
+ *
+ * \param[in] cb the callback to invoke when global NAK becomes effective, which may be null to effectively cancel a queued request
+ */
+void usb_set_global_nak(usb_gnak_request_t *req, void (*cb)(void));
 
 /**
  * @}

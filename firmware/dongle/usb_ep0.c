@@ -88,7 +88,7 @@ static bool push_transaction(void) {
 	return true;
 }
 
-static void handle_setup_transaction(void) {
+static void handle_setup_stage_done(void) {
 	// A small buffer for staging miscellaneous bits and pieces of data for transmission, plus a source to read from it
 	static uint8_t stash_buffer[2];
 	static usb_ep0_memory_source_t stash_buffer_source;
@@ -220,10 +220,36 @@ static void handle_setup_transaction(void) {
 		} else if (request_type == 0x00 && request == USB_STD_REQ_SET_CONFIGURATION && !index && !data_requested) {
 			// SET CONFIGURATION(DEVICE)
 			// This is only legal in the Addressed and Configured states.
-			// Because it results in endpoints being turned on or off, it should only happen when no traffic is moving.
 			if (DCFG_DAD_X(OTG_FS_DCFG)) {
-				usb_set_global_nak();
-				return;
+				const usb_ep0_configuration_callbacks_t *new_cbs = 0;
+				if (value) {
+					// Check if the specified configuration exists and is currently available.
+					ok = false;
+					for (const usb_ep0_configuration_callbacks_t * const *i = configuration_callbacks; *i; ++i) {
+						if ((*i)->configuration == value) {
+							new_cbs = *i;
+							if (new_cbs->can_enter) {
+								ok = new_cbs->can_enter();
+							} else {
+								ok = true;
+							}
+						}
+					}
+				} else {
+					ok = true;
+				}
+
+				// Only actually execute the transition between configurations if the new configuration is acceptable.
+				if (ok) {
+					if (current_configuration_callbacks && current_configuration_callbacks->on_exit) {
+						current_configuration_callbacks->on_exit();
+					}
+					current_configuration = value;
+					current_configuration_callbacks = new_cbs;
+					if (new_cbs && new_cbs->on_enter) {
+						new_cbs->on_enter();
+					}
+				}
 			}
 		}
 	}
@@ -275,6 +301,8 @@ static void handle_setup_transaction(void) {
 }
 
 void usb_ep0_handle_receive(uint32_t status_word) {
+	static usb_gnak_request_t gnak_request = USB_GNAK_REQUEST_INIT;
+
 	// See what happened.
 	size_t bcnt = (status_word >> 4) & 0x7FF;
 	uint8_t pktsts = (status_word >> 17) & 0xF;
@@ -334,8 +362,8 @@ void usb_ep0_handle_receive(uint32_t status_word) {
 			break;
 
 		case 0x4:
-			// SETUP transaction completed
-			handle_setup_transaction();
+			// SETUP stage completed
+			usb_set_global_nak(&gnak_request, &handle_setup_stage_done);
 			break;
 
 		case 0x6:
@@ -349,122 +377,6 @@ void usb_ep0_handle_receive(uint32_t status_word) {
 			break;
 
 	}
-}
-
-void usb_ep0_handle_global_nak_effective(void) {
-	// Parse the packet.
-	uint8_t request_type = setup_packet[0];
-	uint8_t request = setup_packet[1];
-	uint16_t value = setup_packet[2] | (((uint16_t) setup_packet[3]) << 8);
-	uint16_t index = setup_packet[4] | (((uint16_t) setup_packet[5]) << 8);
-
-	// If length is zero, direction is ignored (mask it out for canonicalization).
-	if (!data_requested) {
-		request_type &= 0x7F;
-	}
-
-	// See what the request was and handle appropriately.
-	bool ok = false;
-	if (request_type == 0x00 && request == USB_STD_REQ_SET_CONFIGURATION && !index && !data_requested) {
-		// SET CONFIGURATION(DEVICE)
-		// This is only legal in the Addressed and Configured states.
-		if (DCFG_DAD_X(OTG_FS_DCFG)) {
-			const usb_ep0_configuration_callbacks_t *new_cbs = 0;
-			if (value) {
-				// Check if the specified configuration exists and is currently available.
-				ok = false;
-				for (const usb_ep0_configuration_callbacks_t * const *i = configuration_callbacks; *i; ++i) {
-					if ((*i)->configuration == value) {
-						new_cbs = *i;
-						if (new_cbs->can_enter) {
-							ok = new_cbs->can_enter();
-						} else {
-							ok = true;
-						}
-					}
-				}
-			} else {
-				ok = true;
-			}
-
-			// Only actually execute the transition between configurations if the new configuration is acceptable.
-			if (ok) {
-				if (current_configuration_callbacks && current_configuration_callbacks->on_exit) {
-					current_configuration_callbacks->on_exit();
-				}
-				current_configuration = value;
-				current_configuration_callbacks = new_cbs;
-				if (new_cbs && new_cbs->on_enter) {
-					new_cbs->on_enter();
-				}
-			}
-		}
-	} else {
-		// We don't recognize the request.
-		// We should only ever have requested a global NAK to handle very specific requests, and we should handle all of them.
-		// How, then can this happen?
-		// It could happen if another SETUP packet arrives, for a different control transfer, and we end up interleaving as follows:
-		// (1) Original SETUP packet received
-		// (2) Global NAK requested by handle_setup_transaction()
-		// (3) New SETUP packet received
-		// (4) Global NAK effective
-		// (5) SETUP transaction complete
-		//
-		// (#4 must come between #3 and #5 and not after #5 because otherwise handle_setup_transaction() would clear the global NAK request)
-		//
-		// Should this interleaving happen, we would arrive in here but not recognize the contents of the SETUP packet.
-		// The proper response is to re-enable traffic and then let handle_setup_transaction() take care of the situation at step 5.
-		usb_clear_global_nak();
-		return;
-	}
-
-	if (!ok) {
-		// On failure, just stall everything.
-		OTG_FS_DIEPCTL0 |= DIEPCTL_STALL;
-		OTG_FS_DOEPCTL0 |= DOEPCTL_STALL;
-	} else if (request_type & 0x80) {
-		// The next thing to set up is a data stage comprising IN data transactions.
-		// Start the first transaction.
-		push_transaction();
-
-		// Enable OUT endpoint 0 for a status stage as it is automatically disabled as part of SETUP transaction processing.
-		// We should enable this now rather than waiting for all transaction complete notifications for two reasons:
-		// (1) During initial enumeration, Linux sends a GET_DESCRIPTOR(DEVICE) with wLength=64, but if EP0 max packet=8 then accepts only one 8-byte transaction before the status stage.
-		// (2) In general, if the last IN transaction in the data stage suffers a lost ACK, the host will try to start the status stage while the device believes the data stage is still running; should this happen, the correct outcome is that the status stage starts (this being an IN data stage, the device shouldn't care whether it actually knows the data was delivered or not).
-		OTG_FS_DOEPTSIZ0 = STUPCNT(3) // Allow up to 3 back-to-back SETUP data packets.
-			| PKTCNT(1) // Accept one packet.
-			| XFRSIZ(0); // Accept zero bytes.
-		OTG_FS_DOEPCTL0 |= EPENA; // Enable endpoint.
-		OTG_FS_DOEPCTL0 |= CNAK; // Stop NAKing packets.
-	} else if (data_requested) {
-		// Enable OUT endpoint 0 for the data stage.
-		// It is not necessary to enable IN endpoint 0 at this time because the host guarantees to send exactly as much data as it says it wishes to.
-		// We can therefore safely wait until we have received that much data before moving into the status stage.
-		// Thus, for now, leave IN endpoint 0 disabled.
-		uint8_t packet_size = usb_device_info->ep0_max_packet;
-		if (packet_size > data_requested) {
-			packet_size = data_requested;
-		}
-		OTG_FS_DOEPTSIZ0 = STUPCNT(3) // Allow up to 3 back-to-back SETUP data packets.
-			| PKTCNT(1) // Accept one packet.
-			| XFRSIZ(packet_size); // Accept min{max-packet|data-requested} bytes.
-		OTG_FS_DOEPCTL0 |= EPENA; // Enable endpoint.
-		OTG_FS_DOEPCTL0 |= CNAK; // Stop NAKing packets.
-	} else {
-		// The next thing to set up is a status stage comprising an IN data transaction.
-		OTG_FS_DIEPTSIZ0 = PKTCNT(1) // Transmit one packet.
-			| XFRSIZ(0); // Transmit 0 bytes in the whole transfer.
-		OTG_FS_DIEPCTL0 &= ~DIEPCTL_STALL; // Stop stalling transactions on this endpoint.
-		OTG_FS_DIEPCTL0 |=
-			EPENA // Enable endpoint.
-			| CNAK; // Stop NAKing all transactions.
-	}
-
-	// Whatever happened, reset the setup counter in the OUT endpoint so we can receive additional SETUP transactions.
-	OTG_FS_DOEPTSIZ0 |= STUPCNT(3); // Allow up to 3 back-to-back SETUP data packets.
-
-	// Whatever happened, re-enable traffic.
-	usb_clear_global_nak();
 }
 
 static void on_in_transaction_complete(void) {
