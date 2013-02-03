@@ -169,7 +169,16 @@ void usb_bi_out_deinit(unsigned int ep) {
 	// Sanity check.
 	assert(ep);
 	assert(ep <= 3);
-	assert(ep_info[ep].state == USB_BI_OUT_STATE_IDLE);
+
+	// If a transfer is in progress, abort it.
+	if (ep_info[ep].state == USB_BI_OUT_STATE_ACTIVE) {
+		usb_bi_out_abort_transfer(ep);
+	}
+
+	// If the endpoint is halted, clear the halt.
+	if (ep_info[ep].state == USB_BI_OUT_STATE_HALTED) {
+		usb_bi_out_clear_halt(ep);
+	}
 
 	// Deconfigure the endpoint.
 	*OTG_FS_DOEPCTL[ep] = 0;
@@ -179,6 +188,28 @@ void usb_bi_out_deinit(unsigned int ep) {
 
 	// Update accounting.
 	ep_info[ep].state = USB_BI_OUT_STATE_UNINITIALIZED;
+}
+
+void usb_bi_out_halt(unsigned int ep) {
+	// Sanity check.
+	assert(ep);
+	assert(ep <= 3);
+	assert(ep_info[ep].state == USB_BI_OUT_STATE_IDLE);
+
+	// Do it.
+	*OTG_FS_DOEPCTL[ep] |= DOEPCTL_STALL;
+	ep_info[ep].state = USB_BI_OUT_STATE_HALTED;
+}
+
+void usb_bi_out_clear_halt(unsigned int ep) {
+	// Sanity check.
+	assert(ep);
+	assert(ep <= 3);
+	assert(ep_info[ep].state == USB_BI_OUT_STATE_HALTED);
+
+	// Do it.
+	*OTG_FS_DOEPCTL[ep] &= ~DOEPCTL_STALL;
+	ep_info[ep].state = USB_BI_OUT_STATE_IDLE;
 }
 
 void usb_bi_out_reset_pid(unsigned int ep, unsigned int pid) {

@@ -6,6 +6,7 @@
 
 static const usb_ep0_global_callbacks_t *global_callbacks = 0;
 static const usb_ep0_configuration_callbacks_t * const *configuration_callbacks = 0;
+static const usb_ep0_endpoints_callbacks_t *endpoints_callbacks = 0;
 static uint8_t setup_packet[8];
 static usb_ep0_source_t *data_source = 0;
 static uint8_t *data_sink = 0;
@@ -179,7 +180,11 @@ static void handle_setup_stage_done(void) {
 				max_endpoint = 0;
 			}
 			if (endpoint_number <= max_endpoint) {
-				stash_buffer[0] = 0x00;
+				if (endpoint_number) {
+					stash_buffer[0] = (endpoint_direction ? endpoints_callbacks->in_cbs : endpoints_callbacks->out_cbs)[endpoint_number - 1].is_halted() ? 0x01 : 0x00;
+				} else {
+					stash_buffer[0] = 0x00;
+				}
 				stash_buffer[1] = 0x00;
 				data_source = usb_ep0_memory_source_init(&stash_buffer_source, stash_buffer, 2);
 				ok = true;
@@ -195,7 +200,34 @@ static void handle_setup_stage_done(void) {
 				max_endpoint = 0;
 			}
 			if (endpoint_number <= max_endpoint) {
-				ok = true;
+				if (value == 0) {
+					// ENDPOINT_HALT
+					if (endpoint_number) {
+						ok = (endpoint_direction ? endpoints_callbacks->in_cbs : endpoints_callbacks->out_cbs)[endpoint_number - 1].on_clear_halt();
+					} else {
+						ok = true;
+					}
+				}
+			}
+		} else if (request_type == 0x02 && request == USB_STD_REQ_SET_FEATURE && !data_requested) {
+			GPIOB_BSRR = GPIO_BS(14);
+			// SET FEATURE(ENDPOINT)
+			uint8_t endpoint_direction = index & 0x0080;
+			uint8_t endpoint_number = index & 0x000F;
+			uint8_t max_endpoint;
+			if (current_configuration_callbacks) {
+				max_endpoint = endpoint_direction ? current_configuration_callbacks->in_endpoints : current_configuration_callbacks->out_endpoints;
+			} else {
+				max_endpoint = 0;
+			}
+			if (endpoint_number <= max_endpoint) {
+				if (value == 0) {
+					// ENDPOINT_HALT
+					if (endpoint_number) {
+						(endpoint_direction ? endpoints_callbacks->in_cbs : endpoints_callbacks->out_cbs)[endpoint_number - 1].on_halt();
+					}
+					ok = true;
+				}
 			}
 		} else if (request_type == 0x00 && request == USB_STD_REQ_SET_ADDRESS && !index && !data_requested) {
 			// SET ADDRESS(DEVICE)
@@ -450,6 +482,10 @@ void usb_ep0_set_global_callbacks(const usb_ep0_global_callbacks_t *callbacks) {
 
 void usb_ep0_set_configuration_callbacks(const usb_ep0_configuration_callbacks_t * const *configurations) {
 	configuration_callbacks = configurations;
+}
+
+void usb_ep0_set_endpoints_callbacks(const usb_ep0_endpoints_callbacks_t *cbs) {
+	endpoints_callbacks = cbs;
 }
 
 uint8_t usb_ep0_get_configuration(void) {

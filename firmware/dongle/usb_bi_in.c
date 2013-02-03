@@ -215,7 +215,16 @@ void usb_bi_in_deinit(unsigned int ep) {
 	// Sanity check.
 	assert(ep);
 	assert(ep <= 3);
-	assert(ep_info[ep].state == USB_BI_IN_STATE_IDLE);
+
+	// If a transfer is in progress, abort it.
+	if (ep_info[ep].state == USB_BI_IN_STATE_ACTIVE) {
+		usb_bi_in_abort_transfer(ep);
+	}
+
+	// If the endpoint is halted, clear the halt.
+	if (ep_info[ep].state == USB_BI_IN_STATE_HALTED) {
+		usb_bi_in_clear_halt(ep);
+	}
 
 	// Disable all interrupts for the endpoint.
 	OTG_FS_DAINTMSK &= ~IEPM(1 << ep);
@@ -229,6 +238,28 @@ void usb_bi_in_deinit(unsigned int ep) {
 
 	// Update accounting.
 	ep_info[ep].state = USB_BI_IN_STATE_UNINITIALIZED;
+}
+
+void usb_bi_in_halt(unsigned int ep) {
+	// Sanity check.
+	assert(ep);
+	assert(ep <= 3);
+	assert(ep_info[ep].state == USB_BI_IN_STATE_IDLE);
+
+	// Do it.
+	*OTG_FS_DIEPCTL[ep] |= DIEPCTL_STALL;
+	ep_info[ep].state = USB_BI_IN_STATE_HALTED;
+}
+
+void usb_bi_in_clear_halt(unsigned int ep) {
+	// Sanity check.
+	assert(ep);
+	assert(ep <= 3);
+	assert(ep_info[ep].state == USB_BI_IN_STATE_HALTED);
+
+	// Do it.
+	*OTG_FS_DIEPCTL[ep] &= ~DIEPCTL_STALL;
+	ep_info[ep].state = USB_BI_IN_STATE_IDLE;
 }
 
 void usb_bi_in_reset_pid(unsigned int ep) {

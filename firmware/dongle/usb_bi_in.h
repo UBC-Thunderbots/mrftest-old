@@ -44,6 +44,11 @@ typedef enum {
 	 * \brief Indicates the endpoint is currently running a transfer.
 	 */
 	USB_BI_IN_STATE_ACTIVE,
+
+	/**
+	 * \brief Indicates that the endpoint is currently halted.
+	 */
+	USB_BI_IN_STATE_HALTED,
 } usb_bi_in_state_t;
 
 /**
@@ -84,14 +89,36 @@ void usb_bi_in_init(unsigned int ep, size_t max_packet, usb_bi_in_ep_type_t type
  * \brief Disables an IN endpoint.
  *
  * This is typically called when exiting a configuration or switching interface alternate settings.
- *
- * \pre The endpoint is in USB_BI_IN_STATE_IDLE.
+ * If the endpoint is active, the transfer is aborted.
+ * If the endpoint is halted, the halt is cleared.
  *
  * \post The endpoint is in USB_BI_IN_STATE_UNINITIALIZED.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  */
 void usb_bi_in_deinit(unsigned int ep);
+
+/**
+ * \brief Halts an IN endpoint.
+ *
+ * \pre The endpoint is in USB_BI_IN_STATE_IDLE.
+ *
+ * \post The endpoint is in USB_BI_IN_STATE_HALTED.
+ *
+ * \param[in] ep the endpoint number, from 1 to 3
+ */
+void usb_bi_in_halt(unsigned int ep);
+
+/**
+ * \brief Takes an IN endpoint out of halt status.
+ *
+ * \pre The endpoint is in USB_BI_IN_STATE_HALTED.
+ *
+ * \post The endpoint is in USB_BI_IN_STATE_IDLE.
+ *
+ * \param[in] ep the endpoint number, from 1 to 3
+ */
+void usb_bi_in_clear_halt(unsigned int ep);
 
 /**
  * \brief Resets an IN endpoint’s data PID.

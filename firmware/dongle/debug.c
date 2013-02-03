@@ -46,9 +46,10 @@ static uint64_t int_buffer;
 static size_t int_buffer_used;
 
 static void push_int_notify(void) {
-	// If the interrupt notification endpoint already has data queued, don’t try to send more data.
+	// If the interrupt notification endpoint already has data queued, or it is halted, don’t try to send more data.
 	// We will get back here later when the transfer complete notification occurs for this endpoint and we can push more notifications.
-	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+	usb_bi_in_state_t state = usb_bi_in_get_state(1);
+	if (state == USB_BI_IN_STATE_ACTIVE || state == USB_BI_IN_STATE_HALTED) {
 		return;
 	}
 
@@ -81,16 +82,56 @@ static void exti12_interrupt_vector(void) {
 	// Display the INT pin level on LED 2.
 	GPIOB_BSRR = int_level ? GPIO_BS(13) : GPIO_BR(13);
 
-	// Buffer the new state.
-	if (int_buffer_used == 64) {
-		int_buffer_used = 63;
-	}
-	int_buffer = (int_buffer & ~(UINT64_C(1) << 63)) | ((int_level ? 1 : 0) << int_buffer_used);
-	++int_buffer_used;
+	if (usb_bi_in_get_state(1) != USB_BI_IN_STATE_HALTED) {
+		// Buffer the new state.
+		if (int_buffer_used == 64) {
+			int_buffer_used = 63;
+		}
+		int_buffer = (int_buffer & ~(UINT64_C(1) << 63)) | ((int_level ? 1 : 0) << int_buffer_used);
+		++int_buffer_used;
 
-	// Try to push an interrupt notification.
-	push_int_notify();
+		// Try to push an interrupt notification.
+		push_int_notify();
+	}
 }
+
+static bool ep1_in_is_halted(void) {
+	return usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED;
+}
+
+static void ep1_in_halt(void) {
+	if (!ep1_in_is_halted()) {
+		if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+			usb_bi_in_abort_transfer(1);
+		}
+		usb_bi_in_halt(1);
+	}
+}
+
+static bool ep1_in_clear_halt(void) {
+	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+		usb_bi_in_abort_transfer(1);
+	}
+	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED) {
+		usb_bi_in_clear_halt(1);
+	}
+	usb_bi_in_reset_pid(1);
+	int_buffer_used = 0;
+	return true;
+}
+
+static const usb_ep0_endpoint_callbacks_t IN_ENDPOINT_CALLBACKS[] = {
+	{
+		.is_halted = &ep1_in_is_halted,
+		.on_halt = &ep1_in_halt,
+		.on_clear_halt = &ep1_in_clear_halt,
+	},
+};
+
+static const usb_ep0_endpoints_callbacks_t ENDPOINTS_CALLBACKS = {
+	.out_cbs = 0,
+	.in_cbs = IN_ENDPOINT_CALLBACKS,
+};
 
 static void on_enter(void) {
 	// Initialize radio
@@ -120,14 +161,16 @@ static void on_enter(void) {
 	// Display the current level of INT on LED 2.
 	bool int_level = !!(GPIOC_IDR & (1 << 12));
 	GPIOB_BSRR = int_level ? GPIO_BS(13) : GPIO_BR(13);
+
+	// Register endpoints callbacks.
+	usb_ep0_set_endpoints_callbacks(&ENDPOINTS_CALLBACKS);
 }
 
 static void on_exit(void) {
+	// Unregister endpoints callbacks.
+	usb_ep0_set_endpoints_callbacks(0);
+
 	// Shut down IN endpoint 1.
-	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
-		usb_bi_in_abort_transfer(1);
-		usb_fifo_flush(1);
-	}
 	usb_bi_in_deinit(1);
 
 	// Deallocate FIFOs.

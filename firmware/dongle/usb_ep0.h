@@ -420,6 +420,70 @@ typedef struct {
 void usb_ep0_set_configuration_callbacks(const usb_ep0_configuration_callbacks_t * const *configurations);
 
 /**
+ * \brief A set of callbacks to handle activities related to a single endpoint.
+ */
+typedef struct {
+	/**
+	 * \brief Checks whether the endpoint is halted.
+	 *
+	 * This callback is mandatory.
+	 *
+	 * \pre Callback context is executing.
+	 *
+	 * \pre Global NAK is effective in both directions.
+	 *
+	 * \return \c true if the endpoint is halted, or \c false if not
+	 */
+	bool (*is_halted)(void);
+
+	/**
+	 * \brief Halts the endpoint.
+	 *
+	 * This callback is mandatory.
+	 *
+	 * \pre Callback context is executing.
+	 *
+	 * \pre Global NAK is effective in both directions.
+	 */
+	void (*on_halt)(void);
+
+	/**
+	 * \brief Clears the endpoint halt.
+	 *
+	 * This callback is mandatory.
+	 *
+	 * \pre Callback context is executing.
+	 *
+	 * \pre Global NAK is effective in both directions.
+	 *
+	 * \return \c true if the halt status was successfully cleared, or \c false if halt could not be cleared
+	 */
+	bool (*on_clear_halt)(void);
+} usb_ep0_endpoint_callbacks_t;
+
+/**
+ * \brief A set of callbacks for all endpoints.
+ */
+typedef struct {
+	/**
+	 * \brief The callbacks for OUT endpoints.
+	 */
+	const usb_ep0_endpoint_callbacks_t *out_cbs;
+
+	/**
+	 * \brief The callbacks for IN endpoints.
+	 */
+	const usb_ep0_endpoint_callbacks_t *in_cbs;
+} usb_ep0_endpoints_callbacks_t;
+
+/**
+ * \brief Sets the endpoint callbacks the application uses for the current configuration.
+ *
+ * \param[in] cbs the callback collection to activate 
+ */
+void usb_ep0_set_endpoints_callbacks(const usb_ep0_endpoints_callbacks_t *cbs);
+
+/**
  * @}
  */
 

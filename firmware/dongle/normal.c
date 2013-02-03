@@ -207,10 +207,15 @@ static void push_mrf_tx(void) {
 	}
 }
 
+static bool ep1_in_is_halted(void) {
+	return usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED;
+}
+
 static void push_mdrs(void) {
-	// If the message delivery endpoint is already running a transfer, we have nothing to do.
+	// If the message delivery endpoint is already running a transfer, or it is halted, we have nothing to do.
 	// We will get back here later when the transfer complete notification occurs for this endpoint and we can then push more MDRs.
-	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+	usb_bi_in_state_t state = usb_bi_in_get_state(1);
+	if (state == USB_BI_IN_STATE_ACTIVE || state == USB_BI_IN_STATE_HALTED) {
 		return;
 	}
 
@@ -240,10 +245,45 @@ static void push_mdrs(void) {
 	reliable_out_free = pkt;
 }
 
+static void ep1_in_halt(void) {
+	if (!ep1_in_is_halted()) {
+		if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+			usb_bi_in_abort_transfer(1);
+		}
+		usb_bi_in_halt(1);
+	}
+}
+
+static bool ep1_in_clear_halt(void) {
+	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+		usb_bi_in_abort_transfer(1);
+	}
+	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED) {
+		usb_bi_in_clear_halt(1);
+	}
+	usb_bi_in_reset_pid(1);
+	
+	// Free all the queued MDRs.
+	while (first_mdr_pending) {
+		normal_out_packet_t *pkt = first_mdr_pending;
+		first_mdr_pending = pkt->next;
+		pkt->next = reliable_out_free;
+		reliable_out_free = pkt;
+	}
+	last_mdr_pending = 0;
+
+	return true;
+}
+
+static bool ep2_in_is_halted(void) {
+	return usb_bi_in_get_state(2) == USB_BI_IN_STATE_HALTED;
+}
+
 static void push_rx(void) {
-	// If the received message endpoint already has data queued, don’t try to send more data.
+	// If the received message endpoint already has data queued, or it is halted, don’t try to send more data.
 	// We will get back here later when the transfer complete notification occurs for this endpoint and we can push more messages.
-	if (usb_bi_in_get_state(2) == USB_BI_IN_STATE_ACTIVE) {
+	usb_bi_in_state_t state = usb_bi_in_get_state(2);
+	if (state == USB_BI_IN_STATE_ACTIVE || state == USB_BI_IN_STATE_HALTED) {
 		return;
 	}
 
@@ -276,10 +316,45 @@ static void push_rx(void) {
 	mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00); // RXDECINV = 0; stop inverting receiver and allow further reception
 }
 
+static void ep2_in_halt(void) {
+	if (!ep2_in_is_halted()) {
+		if (usb_bi_in_get_state(2) == USB_BI_IN_STATE_ACTIVE) {
+			usb_bi_in_abort_transfer(2);
+		}
+		usb_bi_in_halt(2);
+	}
+}
+
+static bool ep2_in_clear_halt(void) {
+	if (usb_bi_in_get_state(2) == USB_BI_IN_STATE_ACTIVE) {
+		usb_bi_in_abort_transfer(2);
+	}
+	if (usb_bi_in_get_state(2) == USB_BI_IN_STATE_HALTED) {
+		usb_bi_in_clear_halt(2);
+	}
+	usb_bi_in_reset_pid(2);
+	
+	// Free all the queued packets.
+	while (first_in_pending) {
+		normal_in_packet_t *pkt = first_in_pending;
+		first_in_pending = pkt->next;
+		pkt->next = in_free;
+		in_free = pkt;
+	}
+	last_in_pending = 0;
+
+	return true;
+}
+
+static bool ep3_in_is_halted(void) {
+	return usb_bi_in_get_state(3) == USB_BI_IN_STATE_HALTED;
+}
+
 static void push_estop(void) {
-	// If the estop endpoint already has data queued, don’t try to send more data.
+	// If the estop endpoint already has data queued, or it is halted, don’t try to send more data.
 	// We will get back here later when the transfer complete notification occurs for this endpoint and we can push more data.
-	if (usb_bi_in_get_state(3) == USB_BI_IN_STATE_ACTIVE) {
+	usb_bi_in_state_t state = usb_bi_in_get_state(3);
+	if (state == USB_BI_IN_STATE_ACTIVE || state == USB_BI_IN_STATE_HALTED) {
 		return;
 	}
 
@@ -301,6 +376,30 @@ static void push_estop(void) {
 
 	// Record the current value as the last reported.
 	last_reported_estop_value = current_value;
+}
+
+static void ep3_in_halt(void) {
+	if (!ep3_in_is_halted()) {
+		if (usb_bi_in_get_state(3) == USB_BI_IN_STATE_ACTIVE) {
+			usb_bi_in_abort_transfer(3);
+		}
+		usb_bi_in_halt(3);
+	}
+}
+
+static bool ep3_in_clear_halt(void) {
+	if (usb_bi_in_get_state(3) == USB_BI_IN_STATE_ACTIVE) {
+		usb_bi_in_abort_transfer(3);
+	}
+	if (usb_bi_in_get_state(3) == USB_BI_IN_STATE_HALTED) {
+		usb_bi_in_clear_halt(3);
+	}
+	usb_bi_in_reset_pid(3);
+
+	// Report the current state.
+	push_estop();
+	
+	return true;
 }
 
 static void exti12_interrupt_vector(void) {
@@ -419,6 +518,10 @@ static void exti12_interrupt_vector(void) {
 	}
 }
 
+static bool ep1_out_is_halted(void) {
+	return usb_bi_out_get_state(1) == USB_BI_OUT_STATE_HALTED;
+}
+
 static void on_ep1_out_packet(size_t bcnt) {
 	if (bcnt == sizeof(perconfig.normal.drive_packet)) {
 		// Copy the received data into the drive packet buffer.
@@ -432,8 +535,35 @@ static void on_ep1_out_packet(size_t bcnt) {
 }
 
 static void start_ep1_out_transfer(void) {
-	// Start another transfer.
-	usb_bi_out_start_transfer(1, sizeof(perconfig.normal.drive_packet), &start_ep1_out_transfer, &on_ep1_out_packet);
+	// Start another transfer, if not halted.
+	if (!ep1_out_is_halted()) {
+		usb_bi_out_start_transfer(1, sizeof(perconfig.normal.drive_packet), &start_ep1_out_transfer, &on_ep1_out_packet);
+	}
+}
+
+static void ep1_out_halt(void) {
+	if (!ep1_out_is_halted()) {
+		if (usb_bi_out_get_state(1) == USB_BI_OUT_STATE_ACTIVE) {
+			usb_bi_out_abort_transfer(1);
+		}
+		usb_bi_out_halt(1);
+	}
+}
+
+static bool ep1_out_clear_halt(void) {
+	if (usb_bi_out_get_state(1) == USB_BI_OUT_STATE_ACTIVE) {
+		usb_bi_out_abort_transfer(1);
+	}
+	if (usb_bi_out_get_state(1) == USB_BI_OUT_STATE_HALTED) {
+		usb_bi_out_clear_halt(1);
+	}
+	usb_bi_out_reset_pid(1, 0);
+	start_ep1_out_transfer();
+	return true;
+}
+
+static bool ep2_out_is_halted(void) {
+	return usb_bi_out_get_state(2) == USB_BI_OUT_STATE_HALTED;
 }
 
 static void on_ep2_out_packet(size_t bcnt) {
@@ -498,6 +628,31 @@ static void start_ep2_out_transfer(void) {
 	usb_bi_out_start_transfer(2, 64, &on_ep2_out_transfer_complete, &on_ep2_out_packet);
 }
 
+static void ep2_out_halt(void) {
+	if (!ep2_out_is_halted()) {
+		if (usb_bi_out_get_state(2) == USB_BI_OUT_STATE_ACTIVE) {
+			usb_bi_out_abort_transfer(2);
+		}
+		usb_bi_out_halt(2);
+	}
+}
+
+static bool ep2_out_clear_halt(void) {
+	if (usb_bi_out_get_state(2) == USB_BI_OUT_STATE_ACTIVE) {
+		usb_bi_out_abort_transfer(2);
+	}
+	if (usb_bi_out_get_state(2) == USB_BI_OUT_STATE_HALTED) {
+		usb_bi_out_clear_halt(2);
+	}
+	usb_bi_out_reset_pid(2, 0);
+	start_ep2_out_transfer();
+	return true;
+}
+
+static bool ep3_out_is_halted(void) {
+	return usb_bi_out_get_state(3) == USB_BI_OUT_STATE_HALTED;
+}
+
 static void on_ep3_out_packet(size_t bcnt) {
 	if (bcnt) {
 		// Allocate a packet buffer.
@@ -558,9 +713,71 @@ static void start_ep3_out_transfer(void) {
 	usb_bi_out_start_transfer(3, 64, &on_ep3_out_transfer_complete, &on_ep3_out_packet);
 }
 
+static void ep3_out_halt(void) {
+	if (!ep3_out_is_halted()) {
+		if (usb_bi_out_get_state(3) == USB_BI_OUT_STATE_ACTIVE) {
+			usb_bi_out_abort_transfer(3);
+		}
+		usb_bi_out_halt(3);
+	}
+}
+
+static bool ep3_out_clear_halt(void) {
+	if (usb_bi_out_get_state(3) == USB_BI_OUT_STATE_ACTIVE) {
+		usb_bi_out_abort_transfer(3);
+	}
+	if (usb_bi_out_get_state(3) == USB_BI_OUT_STATE_HALTED) {
+		usb_bi_out_clear_halt(3);
+	}
+	usb_bi_out_reset_pid(3, 0);
+	start_ep3_out_transfer();
+	return true;
+}
+
 static bool can_enter(void) {
 	return config.pan_id != 0xFFFF;
 }
+
+static const usb_ep0_endpoint_callbacks_t OUT_ENDPOINT_CALLBACKS[3] = {
+	{
+		.is_halted = &ep1_out_is_halted,
+		.on_halt = &ep1_out_halt,
+		.on_clear_halt = &ep1_out_clear_halt,
+	},
+	{
+		.is_halted = &ep2_out_is_halted,
+		.on_halt = &ep2_out_halt,
+		.on_clear_halt = &ep2_out_clear_halt,
+	},
+	{
+		.is_halted = &ep3_out_is_halted,
+		.on_halt = &ep3_out_halt,
+		.on_clear_halt = &ep3_out_clear_halt,
+	},
+};
+
+static const usb_ep0_endpoint_callbacks_t IN_ENDPOINT_CALLBACKS[3] = {
+	{
+		.is_halted = &ep1_in_is_halted,
+		.on_halt = &ep1_in_halt,
+		.on_clear_halt = &ep1_in_clear_halt,
+	},
+	{
+		.is_halted = &ep2_in_is_halted,
+		.on_halt = &ep2_in_halt,
+		.on_clear_halt = &ep2_in_clear_halt,
+	},
+	{
+		.is_halted = &ep3_in_is_halted,
+		.on_halt = &ep3_in_halt,
+		.on_clear_halt = &ep3_in_clear_halt,
+	},
+};
+
+static const usb_ep0_endpoints_callbacks_t ENDPOINTS_CALLBACKS = {
+	.out_cbs = OUT_ENDPOINT_CALLBACKS,
+	.in_cbs = IN_ENDPOINT_CALLBACKS,
+};
 
 static void on_enter(void) {
 	// Initialize the linked lists
@@ -701,9 +918,15 @@ static void on_enter(void) {
 	TIM6_ARR = 1439;
 	TIM6_CNT = 0;
 	NVIC_ISER[54 / 32] = 1 << (54 % 32); // SETENA54 = 1; enable timer 6 interrupt
+
+	// Register endpoints callbacks.
+	usb_ep0_set_endpoints_callbacks(&ENDPOINTS_CALLBACKS);
 }
 
 static void on_exit(void) {
+	// Unregister endpoints callbacks.
+	usb_ep0_set_endpoints_callbacks(0);
+
 	// Turn off timer 6
 	TIM6_CR1 = 0; // Disable counter
 	NVIC_ICER[54 / 32] = 1 << (54 % 32); // CLRENA54 = 1; disable timer 6 interrupt
@@ -712,41 +935,12 @@ static void on_exit(void) {
 	// Stop receiving estop notifications
 	estop_set_change_callback(0);
 
-	// Shut down OUT endpoint 1.
-	usb_bi_out_abort_transfer(1);
+	// Shut down endpoints.
 	usb_bi_out_deinit(1);
-
-	// Shut down OUT endpoint 2
-	if (usb_bi_out_get_state(2) == USB_BI_OUT_STATE_ACTIVE) {
-		usb_bi_out_abort_transfer(2);
-	}
 	usb_bi_out_deinit(2);
-
-	// Shut down OUT endpoint 3
-	if (usb_bi_out_get_state(3) == USB_BI_OUT_STATE_ACTIVE) {
-		usb_bi_out_abort_transfer(3);
-	}
 	usb_bi_out_deinit(3);
-
-	// Shut down IN endpoint 1.
-	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
-		usb_bi_in_abort_transfer(1);
-		usb_fifo_flush(1);
-	}
 	usb_bi_in_deinit(1);
-
-	// Shut down IN endpoint 2.
-	if (usb_bi_in_get_state(2) == USB_BI_IN_STATE_ACTIVE) {
-		usb_bi_in_abort_transfer(2);
-		usb_fifo_flush(2);
-	}
 	usb_bi_in_deinit(2);
-
-	// Shut down IN endpoint 3.
-	if (usb_bi_in_get_state(3) == USB_BI_IN_STATE_ACTIVE) {
-		usb_bi_in_abort_transfer(3);
-		usb_fifo_flush(3);
-	}
 	usb_bi_in_deinit(3);
 
 	// Deallocate FIFOs.

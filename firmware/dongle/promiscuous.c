@@ -51,9 +51,10 @@ static promisc_packet_t *first_free_packet, *first_captured_packet, *last_captur
 static bool packet_dropped;
 
 static void push_data(void) {
-	// If the received message endpoint already has data queued, don’t try to send more data.
+	// If the received message endpoint already has data queued or is halted, don’t try to send more data.
 	// We will get back here later when the transfer complete notification occurs for this endpoint and we can push more messages.
-	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+	usb_bi_in_state_t state = usb_bi_in_get_state(1);
+	if (state == USB_BI_IN_STATE_ACTIVE || state == USB_BI_IN_STATE_HALTED) {
 		return;
 	}
 
@@ -132,6 +133,53 @@ static void exti12_interrupt_vector(void) {
 	}
 }
 
+static bool ep1_in_is_halted(void) {
+	return usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED;
+}
+
+static void on_ep1_in_halt(void) {
+	if (!ep1_in_is_halted()) {
+		if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+			usb_bi_in_abort_transfer(1);
+		}
+		usb_bi_in_halt(1);
+	}
+}
+
+static bool on_ep1_in_clear_halt(void) {
+	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+		usb_bi_in_abort_transfer(1);
+	}
+	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED) {
+		usb_bi_in_clear_halt(1);
+	}
+	usb_bi_in_reset_pid(1);
+
+	// Free all the queued packets.
+	while (first_captured_packet) {
+		promisc_packet_t *packet = first_captured_packet;
+		first_captured_packet = packet->next;
+		packet->next = first_free_packet;
+		first_free_packet = packet;
+	}
+	last_captured_packet = 0;
+
+	return true;
+}
+
+static const usb_ep0_endpoint_callbacks_t IN_ENDPOINTS_CALLBACKS[] = {
+	{
+		.is_halted = &ep1_in_is_halted,
+		.on_halt = &on_ep1_in_halt,
+		.on_clear_halt = &on_ep1_in_clear_halt,
+	},
+};
+
+static const usb_ep0_endpoints_callbacks_t ENDPOINTS_CALLBACKS = {
+	.out_cbs = 0,
+	.in_cbs = IN_ENDPOINTS_CALLBACKS,
+};
+
 static void on_enter(void) {
 	// Clear promiscuous mode flags
 	promisc_flags = 0;
@@ -171,14 +219,16 @@ static void on_enter(void) {
 	usb_fifo_set_size(1, 512);
 	usb_fifo_flush(1);
 	usb_bi_in_init(1, 64, USB_BI_IN_EP_TYPE_BULK);
+
+	// Register endpoints callbacks.
+	usb_ep0_set_endpoints_callbacks(&ENDPOINTS_CALLBACKS);
 }
 
 static void on_exit(void) {
+	// Unregister endpoints callbacks.
+	usb_ep0_set_endpoints_callbacks(0);
+
 	// Shut down IN endpoint 1.
-	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
-		usb_bi_in_abort_transfer(1);
-		usb_fifo_flush(1);
-	}
 	usb_bi_in_deinit(1);
 
 	// Deallocate FIFOs.
