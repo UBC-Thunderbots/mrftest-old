@@ -155,12 +155,10 @@ void usb_bi_out_start_transfer(unsigned int ep, size_t max_length, void (*on_com
 void usb_bi_out_abort_transfer(unsigned int ep);
 
 /**
- * \brief Reads a block of data from the receive FIFO.
+ * \brief Reads a block of data from a received packet.
  *
  * The application must call this function when the \c on_packet callback is invoked.
- * The application must read the entire packet in one call to this function.
- *
- * The application may also access the FIFO in memory directly, if it needs to do more complex processing (e.g., scatter-gather I/O).
+ * The application is responsible for not requesting more bytes than the size of the packet.
  *
  * \pre The endpoint is in USB_BI_OUT_STATE_ACTIVE.
  *
@@ -168,11 +166,27 @@ void usb_bi_out_abort_transfer(unsigned int ep);
  *
  * \param[in] ep the endpoint number, from 1 to 3
  *
- * \param[in] dst the location to store the data at, which may be null to discard the data
+ * \param[in] dst the location to store the data at
  *
- * \param[in] length the number of bytes to read from the FIFO and write to \p dst
+ * \param[in] length the number of bytes to read from the packet and write to \p dst
  */
 void usb_bi_out_read(unsigned int ep, void *dst, size_t length);
+
+/**
+ * \brief Reads a block of data from a received packet and discards it.
+ *
+ * The application must call this function when the \c on_packet callback is invoked.
+ * The application is responsible for not requesting more bytes than the size of the packet.
+ *
+ * \pre The endpoint is in USB_BI_OUT_STATE_ACTIVE.
+ *
+ * \pre The \c on_packet callback registered in \ref usb_bi_out_start_transfer is executing.
+ *
+ * \param[in] ep the endpoint number, from 1 to 3
+ *
+ * \param[in] length the number of bytes to read from the packet
+ */
+void usb_bi_out_discard(unsigned int ep, size_t length);
 
 #endif
 

@@ -1,5 +1,6 @@
 #include "usb_bi_out.h"
 #include "assert.h"
+#include "minmax.h"
 #include "registers.h"
 #include "usb.h"
 
@@ -30,6 +31,15 @@ struct ep_info {
 	// The number of bytes left in the current physical transfer.
 	size_t transfer_bytes_left_to_read;
 
+	// The number of bytes left in the FIFO from the current packet.
+	size_t packet_fifo_bytes_left;
+
+	// The number of bytes left in the buffer word.
+	size_t buffer_word_bytes_left;
+
+	// Between 0 and 3 bytes read from the FIFO but not yet delivered to the application.
+	uint32_t buffer_word;
+
 	// A callback to invoke when the current logical transfer completes.
 	void (*on_complete)(void);
 
@@ -58,21 +68,17 @@ static struct ep_info ep_info[4] = {
 static void start_physical_transfer(unsigned int ep) {
 	assert(ep_info[ep].state == USB_BI_OUT_STATE_ACTIVE);
 	assert(ep_info[ep].transfer_bytes_left_to_enable);
+	assert(!ep_info[ep].packet_fifo_bytes_left);
+	assert(!ep_info[ep].buffer_word_bytes_left);
 
 	// Compute the number of packets to expect.
-	size_t num_packets = ep_info[ep].transfer_bytes_left_to_enable / ep_info[ep].max_packet;
-	if (num_packets > 1023) {
-		num_packets = 1023;
-	}
+	size_t num_packets = MIN(1023, ep_info[ep].transfer_bytes_left_to_enable / ep_info[ep].max_packet);
 
 	// Compute the maximum number of bytes that could be transferred if all these packets were maximum size.
 	size_t max_bytes = num_packets * ep_info[ep].max_packet;
 
 	// Compute the maximum number of bytes we expect to see in this physical transfer.
-	size_t expected_max_bytes = max_bytes;
-	if (expected_max_bytes > ep_info[ep].transfer_bytes_left_to_enable) {
-		expected_max_bytes = ep_info[ep].transfer_bytes_left_to_enable;
-	}
+	size_t expected_max_bytes = MIN(max_bytes, ep_info[ep].transfer_bytes_left_to_enable);
 
 	// Set up the endpoint.
 	*OTG_FS_DOEPTSIZ[ep] = PKTCNT(num_packets) | XFRSIZ(max_bytes);
@@ -90,9 +96,17 @@ static void handle_ep_pattern(unsigned int ep, uint32_t pattern) {
 		// A data packet arrived.
 		size_t packet_size = BCNT_X(pattern);
 
-		// Pass the packet to the application.
+		// ZLPs should not be passed to the application; it is notified of end-of-transfer by a separate mechanism.
 		if (packet_size) {
-			ep_info[ep].on_packet(packet_size);
+			// Pass the packet to the application, truncating to the expected transfer size in case the host sent more than we expected.
+			// We do not need to include transfer_bytes_left_to_enable here, because all non-final physical transfers are enabled as a multiple of max packet.
+			// Therefore, the final packet in a non-final physical transfer will see transfer_bytes_left_to_read == max_packet, and packet_size cannot be any larger than that.
+			size_t expected_packet_size = MIN(packet_size, ep_info[ep].transfer_bytes_left_to_read);
+			ep_info[ep].packet_fifo_bytes_left = packet_size;
+			ep_info[ep].on_packet(expected_packet_size);
+
+			// Throw away any data the application didn’t care about, including any data the host sent beyond the expected transfer size.
+			usb_bi_out_discard(ep, ep_info[ep].packet_fifo_bytes_left + ep_info[ep].buffer_word_bytes_left);
 		}
 
 		if (packet_size != ep_info[ep].max_packet) {
@@ -152,6 +166,8 @@ void usb_bi_out_init(unsigned int ep, size_t max_packet, usb_bi_out_ep_type_t ty
 	ep_info[ep].max_packet = max_packet;
 	ep_info[ep].transfer_bytes_left_to_enable = 0;
 	ep_info[ep].transfer_bytes_left_to_read = 0;
+	ep_info[ep].packet_fifo_bytes_left = 0;
+	ep_info[ep].buffer_word_bytes_left = 0;
 	ep_info[ep].on_complete = 0;
 	ep_info[ep].on_packet = 0;
 
@@ -268,32 +284,78 @@ void usb_bi_out_read(unsigned int ep, void *dst, size_t length) {
 	assert(ep);
 	assert(ep <= 3);
 	assert(ep_info[ep].state == USB_BI_OUT_STATE_ACTIVE);
-	assert(length);
+	assert(dst);
+	assert(length <= ep_info[ep].buffer_word_bytes_left + ep_info[ep].packet_fifo_bytes_left);
 
 	uint8_t *pdst = dst;
 
-	// Read all the full words.
-	size_t num_full_words = length / 4;
-	while (num_full_words--) {
-		uint32_t word = OTG_FS_FIFO[0][0];
-		if (pdst) {
-			*pdst++ = word;
-			*pdst++ = word >> 8;
-			*pdst++ = word >> 16;
-			*pdst++ = word >> 24;
-		}
+	// Take any data left in the buffer word first.
+	while (ep_info[ep].buffer_word_bytes_left && length) {
+		*pdst = ep_info[ep].buffer_word;
+		++pdst;
+		--length;
+
+		ep_info[ep].buffer_word >>= 8;
+		--ep_info[ep].buffer_word_bytes_left;
 	}
 
-	// Read a partial word.
-	size_t num_extra_bytes = length % 4;
-	if (num_extra_bytes) {
+	// Read all the full words from the FIFO.
+	while (length >= 4) {
 		uint32_t word = OTG_FS_FIFO[0][0];
-		if (pdst) {
-			while (num_extra_bytes--) {
-				*pdst++ = word;
-				word >>= 8;
-			}
+		ep_info[ep].packet_fifo_bytes_left -= 4;
+
+		pdst[0] = word;
+		pdst[1] = word >> 8;
+		pdst[2] = word >> 16;
+		pdst[3] = word >> 24;
+		pdst += 4;
+		length -= 4;
+	}
+
+	// Read a partial word if necessary.
+	if (length) {
+		ep_info[ep].buffer_word = OTG_FS_FIFO[0][0];
+		ep_info[ep].buffer_word_bytes_left = MIN(4, ep_info[ep].packet_fifo_bytes_left);
+		ep_info[ep].packet_fifo_bytes_left -= ep_info[ep].buffer_word_bytes_left;
+
+		while (length) {
+			*pdst = ep_info[ep].buffer_word;
+			++pdst;
+			--length;
+
+			ep_info[ep].buffer_word >>= 8;
+			--ep_info[ep].buffer_word_bytes_left;
 		}
+	}
+}
+
+void usb_bi_out_discard(unsigned int ep, size_t length) {
+	// Sanity check.
+	assert(ep);
+	assert(ep <= 3);
+	assert(ep_info[ep].state == USB_BI_OUT_STATE_ACTIVE);
+	assert(length <= ep_info[ep].buffer_word_bytes_left + ep_info[ep].packet_fifo_bytes_left);
+
+	// Take any data left in the buffer word first.
+	size_t buffer_word_bytes_to_discard = MIN(length, ep_info[ep].buffer_word_bytes_left);
+	ep_info[ep].buffer_word_bytes_left -= buffer_word_bytes_to_discard;
+	length -= buffer_word_bytes_to_discard;
+
+	// Read all the full words from the FIFO.
+	while (length >= 4) {
+		(void) OTG_FS_FIFO[0][0];
+		ep_info[ep].packet_fifo_bytes_left -= 4;
+		length -= 4;
+	}
+
+	// Read a partial word if necessary.
+	if (length) {
+		ep_info[ep].buffer_word = OTG_FS_FIFO[0][0];
+		ep_info[ep].buffer_word_bytes_left = MIN(4, ep_info[ep].packet_fifo_bytes_left);
+		ep_info[ep].packet_fifo_bytes_left -= ep_info[ep].buffer_word_bytes_left;
+
+		ep_info[ep].buffer_word_bytes_left -= length;
+		length = 0;
 	}
 }
 

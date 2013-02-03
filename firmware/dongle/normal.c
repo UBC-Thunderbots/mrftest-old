@@ -528,9 +528,6 @@ static void on_ep1_out_packet(size_t bcnt) {
 		usb_bi_out_read(1, perconfig.normal.drive_packet, sizeof(perconfig.normal.drive_packet));
 		// Enable the timer that generates drive packets on the radio.
 		TIM6_CR1 |= CEN; // Enable counter now
-	} else {
-		// Discard the received packet.
-		usb_bi_out_read(1, 0, bcnt);
 	}
 }
 
@@ -582,24 +579,12 @@ static void on_ep2_out_packet(size_t bcnt) {
 		// Allow up to twenty transport-layer retries.
 		pkt->retries_remaining = 20;
 
-		// Copy out the header and first two bytes of data.
-		uint32_t buf;
-		{
-			uint32_t word = OTG_FS_FIFO[0][0];
-			pkt->dest = word & 0x0F;
-			pkt->message_id = word >> 8;
-			pkt->data[0] = word >> 16;
-			pkt->data[1] = word >> 24;
-		}
-
-		// Copy out the rest of the data.
-		for (size_t i = 2; i < bcnt - 2; i += 4) {
-			uint32_t word = OTG_FS_FIFO[0][0];
-			pkt->data[i] = word;
-			pkt->data[i + 1] = word >> 8;
-			pkt->data[i + 2] = word >> 16;
-			pkt->data[i + 3] = word >> 24;
-		}
+		// Copy out the header and data.
+		uint8_t destination_and_priority;
+		usb_bi_out_read(2, &destination_and_priority, 1);
+		pkt->dest = destination_and_priority & 0x0F;
+		usb_bi_out_read(2, &pkt->message_id, 1);
+		usb_bi_out_read(2, pkt->data, bcnt - 2);
 
 		// Push the packet onto the transmit queue.
 		if (last_out_pending) {
@@ -669,23 +654,11 @@ static void on_ep3_out_packet(size_t bcnt) {
 		// Allow up to twenty transport-layer retries.
 		pkt->retries_remaining = 20;
 
-		// Copy out the header and first three bytes of data.
-		{
-			uint32_t word = OTG_FS_FIFO[0][0];
-			pkt->dest = word & 0x0F;
-			pkt->data[0] = word >> 8;
-			pkt->data[1] = word >> 16;
-			pkt->data[2] = word >> 24;
-		}
-
-		// Copy out the rest of the data.
-		for (size_t i = 3; i < bcnt - 1; i += 4) {
-			uint32_t word = OTG_FS_FIFO[0][0];
-			pkt->data[i] = word;
-			pkt->data[i + 1] = word >> 8;
-			pkt->data[i + 2] = word >> 16;
-			pkt->data[i + 3] = word >> 24;
-		}
+		// Copy out the header and data.
+		uint8_t destination_and_priority;
+		usb_bi_out_read(2, &destination_and_priority, 1);
+		pkt->dest = destination_and_priority & 0x0F;
+		usb_bi_out_read(2, pkt->data, bcnt - 1);
 
 		// Push the packet onto the transmit queue.
 		if (last_out_pending) {

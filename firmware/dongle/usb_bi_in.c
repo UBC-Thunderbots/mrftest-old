@@ -1,5 +1,6 @@
 #include "usb_bi_in.h"
 #include "assert.h"
+#include "minmax.h"
 #include "registers.h"
 #include "usb.h"
 #include "usb_fifo.h"
@@ -86,18 +87,8 @@ static void start_physical_transfer(unsigned int ep) {
 		// First, figure out how many bytes we will send in this transfer.
 
 		// There is a limit on the number of packets we can send in this physical transfer; that limit is either eight or 1023 depending on whether the eight-packet workaround is needed.
-		size_t bytes_this_transfer;
-		if (ep_info[ep].eight_packet_workaround) {
-			bytes_this_transfer = 8;
-		} else {
-			bytes_this_transfer = 1023;
-		}
-		bytes_this_transfer *= ep_info[ep].max_packet;
-
 		// In all cases, however, do not send more bytes than are left in the logical transfer.
-		if (bytes_this_transfer > ep_info[ep].transfer_bytes_left_to_enable) {
-			bytes_this_transfer = ep_info[ep].transfer_bytes_left_to_enable;
-		}
+		size_t bytes_this_transfer = MIN(ep_info[ep].transfer_bytes_left_to_enable, (ep_info[ep].eight_packet_workaround ? 8 : 1023) * ep_info[ep].max_packet);
 
 		// Set up the endpoint.
 		*OTG_FS_DIEPTSIZ[ep] = PKTCNT((bytes_this_transfer + ep_info[ep].max_packet - 1) / ep_info[ep].max_packet) | XFRSIZ(bytes_this_transfer);
@@ -369,13 +360,7 @@ size_t usb_bi_in_push_block(unsigned int ep, const void *data, size_t length) {
 	}
 
 	// Compute how much data to push.
-	size_t to_push = ep_info[ep].transfer_bytes_left_to_push;
-	if (length < to_push) {
-		to_push = length;
-	}
-	if (buffer_space < to_push) {
-		to_push = buffer_space;
-	}
+	size_t to_push = MIN(length, MIN(buffer_space, ep_info[ep].transfer_bytes_left_to_push));
 
 	// Update accounting info.
 	ep_info[ep].transfer_bytes_left_to_push -= to_push;
