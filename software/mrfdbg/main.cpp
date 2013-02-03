@@ -127,7 +127,13 @@ namespace {
 						}
 					} catch (const USB::TransferTimeoutError &exp) {
 						std::cout << "Timeout\n";
+					} catch (const USB::TransferStallError &exp) {
+						std::cout << "Stall\n";
 					}
+				} else if (parts[0] == "ch" && parts.size() == 1) {
+					devh.clear_halt_in(1);
+				} else if (parts[0] == "sh" && parts.size() == 1) {
+					devh.control_no_data(LIBUSB_REQUEST_TYPE_STANDARD | LIBUSB_RECIPIENT_ENDPOINT, LIBUSB_REQUEST_SET_FEATURE, 0, 1 | LIBUSB_ENDPOINT_IN, 0);
 				} else if (parts[0] == "reset" && parts.size() == 1) {
 					devh.reset();
 				} else {
@@ -140,6 +146,8 @@ namespace {
 					std::cout << "rl addr: read long register\n";
 					std::cout << "wl addr value: write long register\n";
 					std::cout << "wi seconds: wait for interrupt pin to change up to <seconds> seconds\n";
+					std::cout << "ch: clear endpoint halt feature on the interrupt change endpoint\n";
+					std::cout << "sh: set endpoint halt feature on the interrupt change endpoint\n";
 					std::cout << "reset: issue USB reset signalling\n";
 				}
 			}

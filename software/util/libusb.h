@@ -155,6 +155,10 @@ namespace USB {
 
 			void release_interface(int interface);
 
+			void clear_halt_in(unsigned char endpoint);
+
+			void clear_halt_out(unsigned char endpoint);
+
 			void control_no_data(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout);
 
 			std::size_t control_in(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, void *buffer, std::size_t len, unsigned int timeout);

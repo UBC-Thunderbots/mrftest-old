@@ -288,6 +288,14 @@ void USB::DeviceHandle::release_interface(int interface) {
 	check_fn("libusb_release_interface", libusb_release_interface(handle, interface), 0);
 }
 
+void USB::DeviceHandle::clear_halt_in(unsigned char endpoint) {
+	check_fn("libusb_clear_halt", libusb_clear_halt(handle, endpoint | LIBUSB_ENDPOINT_IN), endpoint | LIBUSB_ENDPOINT_IN);
+}
+
+void USB::DeviceHandle::clear_halt_out(unsigned char endpoint) {
+	check_fn("libusb_clear_halt", libusb_clear_halt(handle, endpoint | LIBUSB_ENDPOINT_OUT), endpoint | LIBUSB_ENDPOINT_OUT);
+}
+
 void USB::DeviceHandle::control_no_data(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout) {
 	assert((request_type & LIBUSB_ENDPOINT_DIR_MASK) == 0);
 	check_fn("libusb_control_transfer", libusb_control_transfer(handle, request_type | LIBUSB_ENDPOINT_OUT, request, value, index, 0, 0, timeout), 0);
