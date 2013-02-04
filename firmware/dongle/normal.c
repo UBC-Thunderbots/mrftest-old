@@ -159,49 +159,43 @@ void timer6_interrupt_vector(void) {
 }
 
 static void push_mrf_tx(void) {
-	// Don’t try to transmit if already doing so
+	// Don’t try to transmit if already doing so.
 	if (mrf_tx_active) {
 		return;
 	}
 
-	// Decide what type of packet we should send
-	if (!cur_out_transmitting && drive_packet_pending) {
-		// A timer interrupt indicated we should send a drive packet, but the transmitter was active; send it now
+	// Decide what type of packet we should send.
+	if (drive_packet_pending) {
+		// A timer interrupt indicated we should send a drive packet, but the transmitter was active; send it now.
 		send_drive_packet();
-	} else if (cur_out_transmitting || first_out_pending) {
-		// No need to send a drive packet right now, but there is an ordinary data packet waiting; send that
-		// Pop the packet from the queue, if there is no current packet
-		normal_out_packet_t *pkt;
-		if (cur_out_transmitting) {
-			pkt = cur_out_transmitting;
-		} else {
-			pkt = first_out_pending;
-			first_out_pending = pkt->next;
-			if (!first_out_pending) {
-				last_out_pending = 0;
-			}
-			pkt->next = 0;
-			cur_out_transmitting = pkt;
-			++mrf_tx_seqnum;
+	} else if (first_out_pending) {
+		// No need to send a drive packet right now, but there is an ordinary data packet waiting; send that.
+		// Pop the packet from the queue, if there is no current packet.
+		cur_out_transmitting = first_out_pending;
+		first_out_pending = cur_out_transmitting->next;
+		if (!first_out_pending) {
+			last_out_pending = 0;
 		}
+		cur_out_transmitting->next = 0;
+		++mrf_tx_seqnum;
 
-		// Write the packet into the transmit buffer
+		// Write the packet into the transmit buffer.
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 0, 9); // Header length
-		mrf_write_long(MRF_REG_LONG_TXNFIFO + 1, 9 + pkt->length); // Frame length
+		mrf_write_long(MRF_REG_LONG_TXNFIFO + 1, 9 + cur_out_transmitting->length); // Frame length
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 2, 0b01100001); // Frame control LSB
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 3, 0b10001000); // Frame control MSB
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 4, mrf_tx_seqnum); // Sequence number
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 5, config.pan_id); // Destination PAN ID LSB
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 6, config.pan_id >> 8); // Destination PAN ID MSB
-		mrf_write_long(MRF_REG_LONG_TXNFIFO + 7, pkt->dest); // Destination address LSB
+		mrf_write_long(MRF_REG_LONG_TXNFIFO + 7, cur_out_transmitting->dest); // Destination address LSB
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 8, 0x00); // Destination address MSB
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 9, 0x00); // Source address LSB
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 10, 0x01); // Source address MSB
-		for (size_t i = 0; i < pkt->length; ++i) {
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i, pkt->data[i]);
+		for (size_t i = 0; i < cur_out_transmitting->length; ++i) {
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i, cur_out_transmitting->data[i]);
 		}
 
-		// Initiate transmission with acknowledgement
+		// Initiate transmission with acknowledgement.
 		mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
 		mrf_tx_active = true;
 	}
@@ -458,61 +452,75 @@ static void exti12_interrupt_vector(void) {
 				}
 			}
 
-			// Only re-enable the receiver if we have a free packet buffer into which to receive additional data
+			// Only re-enable the receiver if we have a free packet buffer into which to receive additional data.
 			// Not re-enabling the receiver if we don’t have a packet buffer will cause the MRF not to ACK,
-			// which serves as flow control and guarantees that every ACKed packet is, in fact, delivered
+			// which serves as flow control and guarantees that every ACKed packet is, in fact, delivered.
 			if (in_free) {
 				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00); // RXDECINV = 0; stop inverting receiver and allow further reception
 			}
 		}
 		if (intstat & (1 << 0)) {
-			// TXIF = 1; transmission complete (successful or failed)
-			// Read the transmission status to determine the packet’s fate
-			normal_out_packet_t *pkt = cur_out_transmitting;
-			cur_out_transmitting = 0;
-			uint8_t txstat = mrf_read_short(MRF_REG_SHORT_TXSTAT);
-			if (txstat & 0x01) {
-				// Transmission failed
-				if (txstat & (1 << 5)) {
-					// CCA failed
-					pkt->delivery_status = 0x03;
-				} else {
-					// Assume: No ACK
-#warning possibly bad assumption; add a code for "unknown reason"
-					pkt->delivery_status = 0x02;
-				}
-			} else {
-				// Transmission successful
-				pkt->delivery_status = 0x00;
-			}
-
-			// Decide whether to try transmission again or to retire the packet
-			if (pkt->delivery_status == 0x00 || !pkt->retries_remaining) {
-				// Push the packet buffer onto the message delivery report queue (if reliable, else free)
-				if (pkt->reliable) {
-					// Save the message delivery report
-					if (last_mdr_pending) {
-						last_mdr_pending->next = pkt;
-						last_mdr_pending = pkt;
+			// TXIF = 1; transmission complete (successful or failed).
+			if (cur_out_transmitting) {
+				// This is a unicast packet.
+				// Read the transmission status to determine the packet’s fate.
+				normal_out_packet_t *pkt = cur_out_transmitting;
+				cur_out_transmitting = 0;
+				uint8_t txstat = mrf_read_short(MRF_REG_SHORT_TXSTAT);
+				if (txstat & 0x01) {
+					// Transmission failed.
+					if (txstat & (1 << 5)) {
+						// CCA failed.
+						pkt->delivery_status = 0x03;
 					} else {
-						first_mdr_pending = last_mdr_pending = pkt;
+						// Assume: No ACK.
+#warning possibly bad assumption; add a code for "unknown reason"
+						pkt->delivery_status = 0x02;
 					}
-
-					// Kick the MDR queue
-					push_mdrs();
 				} else {
-					pkt->next = unreliable_out_free;
-					unreliable_out_free = pkt;
+					// Transmission successful.
+					pkt->delivery_status = 0x00;
 				}
-			} else {
-				cur_out_transmitting = pkt;
-				--pkt->retries_remaining;
+
+				// Decide whether to try transmission again or to retire the packet.
+				if (pkt->delivery_status == 0x00 || !pkt->retries_remaining) {
+					// Push the packet buffer onto the message delivery report queue (if reliable, else free).
+					if (pkt->reliable) {
+						// Save the message delivery report.
+						if (last_mdr_pending) {
+							last_mdr_pending->next = pkt;
+							last_mdr_pending = pkt;
+						} else {
+							first_mdr_pending = last_mdr_pending = pkt;
+						}
+
+						// Kick the MDR queue.
+						push_mdrs();
+					} else {
+						pkt->next = unreliable_out_free;
+						unreliable_out_free = pkt;
+					}
+				} else {
+					// We need to try the packet again later.
+					// Push it to the front of the transmit queue.
+					// This way, if a unicast packet fails, we will have a chance to send a drive packet before trying the unicast packet again.
+					// This eliminates the possibility of a failed unicast packet tying up the radio for a long time and preventing drive packets from flowing.
+					// We would like to push it to the BACK of the queue to avoid delaying packets to other robots.
+					// However, we cannot do that because it might get out-of-order with other packets for the same bot.
+					// This will be future work, to have separate per-robot transmit queues for better QoS/performance isolation.
+					--pkt->retries_remaining;
+					pkt->next = first_out_pending;
+					first_out_pending = pkt;
+					if (!last_out_pending) {
+						last_out_pending = pkt;
+					}
+				}
 			}
 
-			// The transmitter is no longer active
+			// The transmitter is no longer active.
 			mrf_tx_active = false;
 
-			// Kick the transmit queue
+			// Kick the transmit queue.
 			push_mrf_tx();
 		}
 	}
