@@ -3,6 +3,9 @@
 
 #include "stdint.h"
 
+/**
+ * \cond INTERNAL_SYMBOLS
+ */
 #define BIT(name, position) \
 	static const unsigned int name ## _SHIFT __attribute__((unused)) = (position); \
 	static const uint32_t name __attribute__((unused)) = 1 << (position);
@@ -27,6 +30,9 @@
 	static uint32_t name(unsigned int i, uint32_t value) { return value << name ## _SHIFT(i); } \
 	static uint32_t name ## _X(unsigned int i, uint32_t value) __attribute__((unused)); \
 	static uint32_t name ## _X(unsigned int i, uint32_t value) { return (value >> name ## _SHIFT(i)) & name ## _MSKU(i); }
+/**
+ * \endcond
+ */
 
 
 
@@ -433,7 +439,6 @@ extern volatile uint32_t OTG_FS_FIFO[4][0x1000 / 4];
 
 
 extern volatile uint32_t FLASH_ACR;
-#define FLASH_ACR_R 0xFFFFE0F8
 BITS(LATENCY, 0, 3)
 BIT(PRFTEN, 8)
 BIT(ICEN, 9)

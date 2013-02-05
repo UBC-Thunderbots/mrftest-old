@@ -4,7 +4,7 @@
 /**
  * \file
  *
- * \brief Provides a collection of useful data sources for endpoint 0 data transmission
+ * \brief Provides a collection of useful data sources for endpoint 0 data transmission.
  */
 
 #include "stddef.h"
@@ -14,7 +14,7 @@
 
 
 /**
- * \name Memory block source
+ * \name Memory block source.
  *
  * This data source returns the contents of a block of bytes addressable through a pointer.
  *
@@ -22,7 +22,7 @@
  */
 
 /**
- * \brief A memory block source
+ * \brief A memory block source.
  *
  * The contents of this structure are private.
  * The application should not access them.
@@ -34,7 +34,7 @@ typedef struct {
 } usb_ep0_memory_source_t;
 
 /**
- * \brief Sets up a memory block source
+ * \brief Sets up a memory block source.
  *
  * \param[in] source the source to configure, which must have storage allocated
  *
@@ -53,7 +53,7 @@ usb_ep0_source_t *usb_ep0_memory_source_init(usb_ep0_memory_source_t *source, co
 
 
 /**
- * \name Generator that produces a USB-compliant string descriptor from a UTF-8 literal string
+ * \name Generator that produces a USB-compliant string descriptor from a UTF-8 literal string.
  *
  * This data source reads a NUL-terminated UTF-8 string from memory and returns, as its output, a USB-compliant string descriptor.
  *
@@ -61,7 +61,7 @@ usb_ep0_source_t *usb_ep0_memory_source_init(usb_ep0_memory_source_t *source, co
  */
 
 /**
- * \brief A UTF-8 to UTF-16 transcoding source
+ * \brief A UTF-8 to UTF-16 transcoding source.
  *
  * The contents of this structure are private.
  * The application should not access them.
@@ -74,7 +74,7 @@ typedef struct {
 } usb_ep0_string_descriptor_source_t;
 
 /**
- * \brief Sets up a string descriptor generating source
+ * \brief Sets up a string descriptor generating source.
  *
  * \param[in] source the source to configure, which must have storage allocated
  *

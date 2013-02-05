@@ -8,7 +8,7 @@
 /**
  * \file
  *
- * \brief Provides functionality for acting as a USB device
+ * \brief Provides functionality for acting as a USB device.
  */
 
 
@@ -22,16 +22,16 @@
  */
 
 /**
- * \brief A collection of information about the device
+ * \brief A collection of information about the device.
  */
 typedef struct {
 	/**
-	 * \brief The number of words to allocate for the receive FIFO
+	 * \brief The number of words to allocate for the receive FIFO.
 	 */
 	uint16_t rx_fifo_words;
 
 	/**
-	 * \brief The maximum packet size on endpoint 0 (must be one of 8, 16, 32, or 64)
+	 * \brief The maximum packet size on endpoint 0 (must be one of 8, 16, 32, or 64).
 	 */
 	uint8_t ep0_max_packet;
 
@@ -52,7 +52,7 @@ typedef struct {
 
 
 /**
- * \name Device-wide functions
+ * \name Device-wide functions.
  *
  * These functions handle bus attachment and detachment, entering the stack to do pending work, and other device-wide functionality.
  *
@@ -101,7 +101,7 @@ void usb_detach(void);
 
 
 /**
- * \name Endpoint callback management
+ * \name Endpoint callback management.
  *
  * These functions handle operations related to one IN endpoint.
  *
@@ -109,22 +109,22 @@ void usb_detach(void);
  */
 
 /**
- * \brief Attaches a callback to handle IN endpoint interrupts
+ * \brief Attaches a callback to handle IN endpoint interrupts.
  *
  * \param[in] ep the endpoint number
  *
  * \param[in] cb the callback to register
  */
-void usb_in_set_callback(uint8_t ep, void (*cb)(void));
+void usb_in_set_callback(unsigned int ep, void (*cb)(void));
 
 /**
- * \brief Attaches a callback to handle OUT endpoint receive FIFO patterns
+ * \brief Attaches a callback to handle OUT endpoint receive FIFO patterns.
  *
  * \param[in] ep the endpoint number
  *
  * \param[in] cb the callback to register, which accepts the FIFO pattern
  */
-void usb_out_set_callback(uint8_t ep, void (*cb)(uint32_t));
+void usb_out_set_callback(unsigned int ep, void (*cb)(uint32_t));
 
 /**
  * @}
@@ -133,7 +133,7 @@ void usb_out_set_callback(uint8_t ep, void (*cb)(uint32_t));
 
 
 /**
- * \name Global NAK handling
+ * \name Global NAK handling.
  *
  * These functions and types allow an application to enter global NAK mode.
  *
@@ -156,7 +156,7 @@ typedef struct usb_gnak_request {
 /**
  * \brief The initialization value for a \ref usb_gnak_request_t.
  */
-#define USB_GNAK_REQUEST_INIT { 0, 0, 0 }
+#define USB_GNAK_REQUEST_INIT { 0, false, 0 }
 
 /**
  * \brief Requests for global NAK to occur.

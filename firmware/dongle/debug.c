@@ -1,7 +1,6 @@
 #include "configs.h"
 #include "constants.h"
 #include "exti.h"
-#include "interrupt.h"
 #include "mrf.h"
 #include "rcc.h"
 #include "registers.h"
@@ -59,7 +58,7 @@ static void push_int_notify(void) {
 		return;
 	}
 
-	// Pop a notification from the queue
+	// Pop a notification from the queue.
 	bool value = !!(int_buffer & 1);
 	int_buffer >>= 1;
 	--int_buffer_used;
@@ -134,17 +133,15 @@ static const usb_ep0_endpoints_callbacks_t ENDPOINTS_CALLBACKS = {
 };
 
 static void on_enter(void) {
-	// Initialize radio
+	// Initialize radio.
 	mrf_init();
 
-	// Turn on LED 1
+	// Turn on LED 1.
 	GPIOB_BSRR = GPIO_BS(12);
 
-	// Configure MRF INT (PC12) as an external interrupt
-	interrupt_exti12_handler = &exti12_interrupt_vector;
-	rcc_enable(APB2, 14);
+	// Configure MRF INT (PC12) as an external interrupt.
+	exti_set_handler(12, &exti12_interrupt_vector);
 	exti_map(12, 2); // Map PC12 to EXTI12
-	rcc_disable(APB2, 14);
 	EXTI_RTSR |= 1 << 12; // TR12 = 1; enable rising edge trigger on EXTI12
 	EXTI_FTSR |= 1 << 12; // TR12 = 1; enable falling edge trigger on EXTI12
 	EXTI_IMR |= 1 << 12; // MR12 = 1; enable interrupt on EXTI12 trigger
@@ -179,7 +176,7 @@ static void on_exit(void) {
 	// Disable the external interrupt on MRF INT.
 	NVIC_ICER[40 / 32] = 1 << (40 % 32); // CLRENA40 = 1; disable EXTI15…10 interrupt
 	EXTI_IMR &= ~(1 << 12); // MR12 = 0; disable interrupt on EXTI12 trigger
-	interrupt_exti12_handler = 0;
+	exti_set_handler(12, 0);
 
 	// Turn off all LEDs.
 	GPIOB_BSRR = GPIO_BR(12) | GPIO_BR(13) | GPIO_BR(14);

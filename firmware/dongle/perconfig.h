@@ -4,14 +4,14 @@
 /**
  * \file
  *
- * \brief Provides a union that allows memory to be reused between different USB configurations (which are necessarily mutually exclusive)
+ * \brief Provides a union that allows memory to be reused between different USB configurations (which are necessarily mutually exclusive).
  */
 
 #include "stdbool.h"
 #include "stdint.h"
 
 /**
- * \brief An outbound packet buffer used in normal mode
+ * \brief An outbound packet buffer used in normal mode (configuration 2).
  */
 typedef struct normal_out_packet {
 	struct normal_out_packet *next;
@@ -25,7 +25,7 @@ typedef struct normal_out_packet {
 } normal_out_packet_t;
 
 /**
- * \brief An inbound packet buffer used in normal mode
+ * \brief An inbound packet buffer used in normal mode (configuration 2).
  */
 typedef struct normal_in_packet {
 	struct normal_in_packet *next;
@@ -34,7 +34,16 @@ typedef struct normal_in_packet {
 } normal_in_packet_t;
 
 /**
- * \brief A packet buffer used in promiscuous mode
+ * \brief The complete collection of data used in normal mode (configuration 2).
+ */
+typedef struct {
+	normal_out_packet_t out_packets[128];
+	normal_in_packet_t in_packets[64];
+	uint8_t drive_packet[64];
+} normal_perconfig_t;
+
+/**
+ * \brief A packet buffer used in promiscuous mode.
  */
 typedef struct promisc_packet {
 	struct promisc_packet *next;
@@ -43,16 +52,17 @@ typedef struct promisc_packet {
 } promisc_packet_t;
 
 /**
- * \brief The reusable memory block
+ * \brief The type of the reusable memory block.
  */
-extern union perconfig {
-	struct {
-		normal_out_packet_t out_packets[128];
-		normal_in_packet_t in_packets[64];
-		uint8_t drive_packet[64];
-	} normal;
+typedef union {
+	normal_perconfig_t normal;
 	promisc_packet_t promisc_packets[256];
-} perconfig;
+} perconfig_t;
+
+/**
+ * \brief The actual memory block.
+ */
+extern perconfig_t perconfig;
 
 #endif
 

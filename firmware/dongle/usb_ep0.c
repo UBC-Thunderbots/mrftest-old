@@ -16,7 +16,7 @@ static uint8_t current_configuration = 0;
 static const usb_ep0_configuration_callbacks_t *current_configuration_callbacks = 0;
 
 static bool push_transaction(void) {
-	// If the host isn't expecting us to send any data, we're finished and can signal the caller to set up the status stage.
+	// If the host isn’t expecting us to send any data, we’re finished and can signal the caller to set up the status stage.
 	if (!data_requested) {
 		return false;
 	}
@@ -36,7 +36,7 @@ static bool push_transaction(void) {
 		packet_size += block_size;
 	}
 
-	// We're here because either packet_size == max_packet or generate() returned zero indicating end of available data.
+	// We’re here because either packet_size == max_packet or generate() returned zero indicating end of available data.
 
 	// Enable the endpoint and lock in a transaction.
 	OTG_FS_DIEPTSIZ0 = PKTCNT(1) // Transmit one packet.
@@ -56,30 +56,30 @@ static bool push_transaction(void) {
 	data_requested -= packet_size;
 
 	// There are five cases:
-	// 1. We're not at the end of the data stage. We just pushed a maximum-sized transaction, the host wants more data, and the data source can produce more data.
+	// 1. We’re not at the end of the data stage. We just pushed a maximum-sized transaction, the host wants more data, and the data source can produce more data.
 	//    Here, data_requested ≠ 0 and packet_size = ep0_max_packet.
-	//    At some point we'll get a transaction complete interrupt and come back here to push more data.
+	//    At some point we’ll get a transaction complete interrupt and come back here to push more data.
 	//
-	// 2. We're at the end of the data stage. We just pushed a transaction (maximum-sized or not), and the host doesn't want any more data.
+	// 2. We’re at the end of the data stage. We just pushed a transaction (maximum-sized or not), and the host doesn’t want any more data.
 	//    Here, data_requested = 0 and packet_size ≠ 0.
-	//    At some point we'll get a transaction complete interrupt and, because data_requested = 0, return false, signalling the transition to the status stage.
+	//    At some point we’ll get a transaction complete interrupt and, because data_requested = 0, return false, signalling the transition to the status stage.
 	//    No more packets will be generated, even if packet_size = ep0_max_packet this time, which is correct, because after wLength bytes, the host knows the data stage is over.
 	//
-	// 3. We're at the end of the data stage. The data source ran out of data so we pushed a short packet, but the host would have wanted more data.
+	// 3. We’re at the end of the data stage. The data source ran out of data so we pushed a short packet, but the host would have wanted more data.
 	//    Here, data_requested ≠ 0 and 0 < packet_size < ep0_max_packet.
 	//    There is no need for a ZLP because the host recognizes the end of the data stage by the fact that packet_size ≠ ep0_max_packet.
 	//    Consequently, at the next transaction complete interrupt, when the handler calls push_transaction() again, we must arrange to return false to signal the transition to the status stage.
 	//    Do that by setting data_requested = 0 now.
 	//
-	// 4. We're at the end of the data stage. The data source had no data at all so we pushed a zero-length packet, but the host would have wanted more data.
+	// 4. We’re at the end of the data stage. The data source had no data at all so we pushed a zero-length packet, but the host would have wanted more data.
 	//    Here, data_requested ≠ 0 and packet_size = 0.
 	//    The ZLP we just sent indicates to the host the end of the data stage.
 	//    Consequently, at the next transaction complete interrupt, when the handler calls push_transaction() again, we must arrange to return false to signal the transition to the status stage.
 	//    Do that by setting data_requested = 0 now.
 	//
-	// 5. We're at the end of the data stage. We just pushed a maximum-sized transaction, the data source has nothing left (though we don't know that yet), but the host wants more data.
-	//    We don't actually have any way of knowing that this is our situation without calling the generator again.
-	//    We don't want to call the generator again because then we'd have to store its output somewhere.
+	// 5. We’re at the end of the data stage. We just pushed a maximum-sized transaction, the data source has nothing left (though we don’t know that yet), but the host wants more data.
+	//    We don’t actually have any way of knowing that this is our situation without calling the generator again.
+	//    We don’t want to call the generator again because then we’d have to store its output somewhere.
 	//    Instead, we just do nothing; on the next call to push_transaction(), we will fall into case 4 and generate a ZLP.
 	//    This is the correct behaviour: after sending a maximum-sized packet and wanting to signal end-of-data before the host expects it, a ZLP must be sent.
 	if (data_requested != 0 && packet_size != usb_device_info->ep0_max_packet) {
@@ -151,7 +151,7 @@ static void handle_setup_stage_done(void) {
 		out_complete_callback = 0;
 	}
 
-	// If the application didn't handle the packet, examine it and try to find out what to do with it.
+	// If the application didn’t handle the packet, examine it and try to find out what to do with it.
 	if (!application_handled) {
 		if (request_type == 0x80 && request == USB_STD_REQ_GET_STATUS && !value && !index && data_requested == 2) {
 			// GET STATUS(DEVICE)
@@ -298,7 +298,7 @@ static void handle_setup_stage_done(void) {
 		// Enable OUT endpoint 0 for a status stage as it is automatically disabled as part of SETUP transaction processing.
 		// We should enable this now rather than waiting for all transaction complete notifications for two reasons:
 		// (1) During initial enumeration, Linux sends a GET_DESCRIPTOR(DEVICE) with wLength=64, but if EP0 max packet=8 then accepts only one 8-byte transaction before the status stage.
-		// (2) In general, if the last IN transaction in the data stage suffers a lost ACK, the host will try to start the status stage while the device believes the data stage is still running; should this happen, the correct outcome is that the status stage starts (this being an IN data stage, the device shouldn't care whether it actually knows the data was delivered or not).
+		// (2) In general, if the last IN transaction in the data stage suffers a lost ACK, the host will try to start the status stage while the device believes the data stage is still running; should this happen, the correct outcome is that the status stage starts (this being an IN data stage, the device shouldn’t care whether it actually knows the data was delivered or not).
 		OTG_FS_DOEPTSIZ0 = STUPCNT(3) // Allow up to 3 back-to-back SETUP data packets.
 			| PKTCNT(1) // Accept one packet.
 			| XFRSIZ(0); // Accept zero bytes.
@@ -349,7 +349,7 @@ void usb_ep0_handle_receive(uint32_t status_word) {
 				data_sink += bcnt;
 				data_requested -= bcnt;
 				if (!data_requested) {
-					// The data stage is finished and it's time to do the status stage.
+					// The data stage is finished and it’s time to do the status stage.
 					bool ok;
 					if (out_complete_callback) {
 						ok = out_complete_callback();

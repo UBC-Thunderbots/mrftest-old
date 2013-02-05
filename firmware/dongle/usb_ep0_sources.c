@@ -75,7 +75,7 @@ static uint32_t decode_utf8(const unsigned char **psrc) {
 		return UINT32_C(0xFFFFFFFF);
 	}
 
-	// Check that the decoded code unit doesn't lie in the UTF-16 surrogate range (these numbers may never appear as code points, only UTF-16 code units).
+	// Check that the decoded code unit doesn’t lie in the UTF-16 surrogate range (these numbers may never appear as code points, only UTF-16 code units).
 	if (0xD800 <= code_point && code_point <= 0xDFFF) {
 		return UINT32_C(0xFFFFFFFF);
 	}

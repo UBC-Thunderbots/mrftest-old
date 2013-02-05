@@ -16,12 +16,12 @@
  */
 typedef enum {
 	/**
-	 * \brief Indicates a bulk endpoint.
+	 * \brief A bulk endpoint.
 	 */
 	USB_BI_IN_EP_TYPE_BULK = 2,
 
 	/**
-	 * \brief Indicates an interrupt endpoint.
+	 * \brief An interrupt endpoint.
 	 */
 	USB_BI_IN_EP_TYPE_INTERRUPT = 3,
 } usb_bi_in_ep_type_t;
@@ -31,22 +31,22 @@ typedef enum {
  */
 typedef enum {
 	/**
-	 * \brief Indicates the endpoint is not initialized.
+	 * \brief The endpoint is not initialized.
 	 */
 	USB_BI_IN_STATE_UNINITIALIZED,
 
 	/**
-	 * \brief Indicates the endpoint is initialized but no transfer is running.
+	 * \brief The endpoint is initialized but no transfer is running.
 	 */
 	USB_BI_IN_STATE_IDLE,
 
 	/**
-	 * \brief Indicates the endpoint is currently running a transfer.
+	 * \brief The endpoint is currently running a transfer.
 	 */
 	USB_BI_IN_STATE_ACTIVE,
 
 	/**
-	 * \brief Indicates that the endpoint is currently halted.
+	 * \brief The endpoint is currently halted.
 	 */
 	USB_BI_IN_STATE_HALTED,
 } usb_bi_in_state_t;
@@ -67,15 +67,16 @@ usb_bi_in_state_t usb_bi_in_get_state(unsigned int ep);
  * The application is expected to initialize the relevant transmit FIFO to the appropriate size and flush it before calling this function.
  * The FIFO should not be moved or resized until the endpoint is deinitialized, though if necessary it may be flushed as long as no transfer is running.
  *
+ * \warning
  * The chip manual states that no more than eight packets may be in the transmit FIFO at a time, regardless of the sizes of the packets, the FIFO, or the running transfer.
  * This module works around this limitation if necessary; however, the workaround may negatively impact performance for some traffic patterns.
  * Thus, if an endpoint will be used to issue transfers comprising large numbers of small packets, the FIFO size should be at most 8× the maximum packet size.
  * This avoids the need for the transfer to be split up into many 8-packet physical transfers for flow control reasons.
  * There is no performance impact for having an overly large FIFO if all transfers will be smaller than 8 packets anyway.
  *
- * \pre The endpoint is in USB_BI_IN_STATE_UNINITIALIZED.
+ * \pre The endpoint is in \ref USB_BI_IN_STATE_UNINITIALIZED.
  *
- * \post The endpoint is in USB_BI_IN_STATE_IDLE.
+ * \post The endpoint is in \ref USB_BI_IN_STATE_IDLE.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  *
@@ -92,7 +93,7 @@ void usb_bi_in_init(unsigned int ep, size_t max_packet, usb_bi_in_ep_type_t type
  * If the endpoint is active, the transfer is aborted.
  * If the endpoint is halted, the halt is cleared.
  *
- * \post The endpoint is in USB_BI_IN_STATE_UNINITIALIZED.
+ * \post The endpoint is in \ref USB_BI_IN_STATE_UNINITIALIZED.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  */
@@ -101,9 +102,9 @@ void usb_bi_in_deinit(unsigned int ep);
 /**
  * \brief Halts an IN endpoint.
  *
- * \pre The endpoint is in USB_BI_IN_STATE_IDLE.
+ * \pre The endpoint is in \ref USB_BI_IN_STATE_IDLE.
  *
- * \post The endpoint is in USB_BI_IN_STATE_HALTED.
+ * \post The endpoint is in \ref USB_BI_IN_STATE_HALTED.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  */
@@ -112,9 +113,9 @@ void usb_bi_in_halt(unsigned int ep);
 /**
  * \brief Takes an IN endpoint out of halt status.
  *
- * \pre The endpoint is in USB_BI_IN_STATE_HALTED.
+ * \pre The endpoint is in \ref USB_BI_IN_STATE_HALTED.
  *
- * \post The endpoint is in USB_BI_IN_STATE_IDLE.
+ * \post The endpoint is in \ref USB_BI_IN_STATE_IDLE.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  */
@@ -126,7 +127,7 @@ void usb_bi_in_clear_halt(unsigned int ep);
  * This is typically done in response to certain control transfers targetting the endpoint.
  * The application does not need to call this function after initializing the endpoint; \ref usb_bi_in_init automatically sets the PID to DATA0.
  *
- * \pre The endpoint is in USB_BI_IN_STATE_IDLE.
+ * \pre The endpoint is in \ref USB_BI_IN_STATE_IDLE.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  */
@@ -141,9 +142,9 @@ void usb_bi_in_reset_pid(unsigned int ep);
  *
  * The application can send a zero-length transfer consisting of a sole zero-length packet by setting \p length to zero and \p max_length to any nonzero value.
  *
- * \pre The endpoint is in USB_BI_IN_STATE_IDLE.
+ * \pre The endpoint is in \ref USB_BI_IN_STATE_IDLE.
  *
- * \post The endpoint is in USB_BI_IN_STATE_ACTIVE.
+ * \post The endpoint is in \ref USB_BI_IN_STATE_ACTIVE.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  *
@@ -163,9 +164,9 @@ void usb_bi_in_start_transfer(unsigned int ep, size_t length, size_t max_length,
  * This function does not flush the FIFO.
  * The application should do that once this function returns.
  *
- * \pre The endpoint is in USB_BI_IN_STATE_ACTIVE.
+ * \pre The endpoint is in \ref USB_BI_IN_STATE_ACTIVE.
  *
- * \post The endpoint is in USB_BI_IN_STATE_IDLE.
+ * \post The endpoint is in \ref USB_BI_IN_STATE_IDLE.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  */
@@ -177,7 +178,7 @@ void usb_bi_in_abort_transfer(unsigned int ep);
  * If FIFO space is available, the amount of data actually pushed will be the lesser of 4 and the number of bytes left in the transfer.
  * It is not possible to push less than 4 bytes of data except at the end of a transfer.
  *
- * \pre The endpoint must be in USB_BI_IN_STATE_ACTIVE.
+ * \pre The endpoint must be in \ref USB_BI_IN_STATE_ACTIVE.
  *
  * \pre The running transfer must not have had all its data pushed yet.
  *
@@ -205,7 +206,7 @@ bool usb_bi_in_push_word(unsigned int ep, uint32_t data);
  * When space is available in the FIFO for more data, the \p on_space callback passed to \ref usb_bi_in_start_transfer is invoked.
  * In that callback, the application pushes more data into the transmit FIFO.
  *
- * \pre The endpoint must be in USB_BI_IN_STATE_ACTIVE.
+ * \pre The endpoint must be in \ref USB_BI_IN_STATE_ACTIVE.
  *
  * \pre The amount of data provided must not be more than needed to finish the transfer.
  *

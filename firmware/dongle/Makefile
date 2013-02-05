@@ -33,6 +33,7 @@ enter-dfu-mode : % : %.c
 .PHONY : clean
 clean :
 	$(RM) $(PROJ).bin $(PROJ).elf $(PROJ).map enter-dfu-mode *.o
+	$(RM) -r html
 
 .PHONY : dfu
 dfu : $(PROJ).bin enter-dfu-mode
@@ -41,3 +42,7 @@ dfu : $(PROJ).bin enter-dfu-mode
 	@sleep 1
 	@echo " DFU-UTIL"
 	@dfu-util -d 0483:DF11 -c 1 -i 0 -a 0 -D $< -s 0x08000000:leave
+
+.PHONY : doc
+doc :
+	doxygen

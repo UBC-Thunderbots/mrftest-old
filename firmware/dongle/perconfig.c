@@ -1,4 +1,4 @@
 #include "perconfig.h"
 
-union perconfig perconfig;
+perconfig_t perconfig;
 

@@ -4,7 +4,7 @@
 /**
  * \file
  *
- * \brief Provides access to the various USB configurations supported by the dongle
+ * \brief Provides access to the various USB configurations supported by the dongle.
  */
 
 #include "stdint.h"

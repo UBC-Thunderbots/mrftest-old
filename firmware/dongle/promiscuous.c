@@ -2,7 +2,6 @@
 #include "configs.h"
 #include "constants.h"
 #include "exti.h"
-#include "interrupt.h"
 #include "mrf.h"
 #include "perconfig.h"
 #include "rcc.h"
@@ -64,7 +63,7 @@ static void push_data(void) {
 		return;
 	}
 
-	// Pop a packet from the queue
+	// Pop a packet from the queue.
 	promisc_packet_t *packet = first_captured_packet;
 	first_captured_packet = packet->next;
 	if (!first_captured_packet) {
@@ -79,7 +78,7 @@ static void push_data(void) {
 	// Push the data for this transfer.
 	usb_bi_in_push_block(1, packet->data, packet->length);
 
-	// Push this consumed packet buffer into the free list
+	// Push this consumed packet buffer into the free list.
 	packet->next = first_free_packet;
 	first_free_packet = packet;
 }
@@ -127,7 +126,7 @@ static void exti12_interrupt_vector(void) {
 				packet_dropped = true;
 			}
 			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00); // RXDECINV = 0; stop inverting receiver and allow further reception
-			// Toggle LED 3 to show reception
+			// Toggle LED 3 to show reception.
 			GPIOB_ODR ^= 1 << 14;
 		}
 	}
@@ -181,10 +180,10 @@ static const usb_ep0_endpoints_callbacks_t ENDPOINTS_CALLBACKS = {
 };
 
 static void on_enter(void) {
-	// Clear promiscuous mode flags
+	// Clear promiscuous mode flags.
 	promisc_flags = 0;
 
-	// Initialize the packet buffers
+	// Initialize the packet buffers.
 	for (size_t i = 0; i < sizeof(perconfig.promisc_packets) / sizeof(*perconfig.promisc_packets) - 1; ++i) {
 		perconfig.promisc_packets[i].next = &perconfig.promisc_packets[i + 1];
 	}
@@ -192,24 +191,22 @@ static void on_enter(void) {
 	first_free_packet = &perconfig.promisc_packets[0];
 	first_captured_packet = last_captured_packet = 0;
 
-	// Clear the dropped-packet flag
+	// Clear the dropped-packet flag.
 	packet_dropped = false;
 
-	// Initialize the radio
+	// Initialize the radio.
 	mrf_init();
-	sleep_100us(1);
+	sleep_us(100);
 	mrf_release_reset();
 	mrf_common_init();
 	while (GPIOC_IDR & (1 << 12));
 
-	// Turn on LED 1
+	// Turn on LED 1.
 	GPIOB_BSRR = GPIO_BS(12);
 
-	// Enable external interrupt on MRF INT rising edge
-	interrupt_exti12_handler = &exti12_interrupt_vector;
-	rcc_enable(APB2, 14);
+	// Enable external interrupt on MRF INT rising edge.
+	exti_set_handler(12, &exti12_interrupt_vector);
 	exti_map(12, 2); // Map PC12 to EXTI12
-	rcc_disable(APB2, 14);
 	EXTI_RTSR |= 1 << 12; // TR12 = 1; enable rising edge trigger on EXTI12
 	EXTI_FTSR &= ~(1 << 12); // TR12 = 0; disable falling edge trigger on EXTI12
 	EXTI_IMR |= 1 << 12; // MR12 = 1; enable interrupt on EXTI12 trigger
@@ -234,26 +231,26 @@ static void on_exit(void) {
 	// Deallocate FIFOs.
 	usb_fifo_reset();
 
-	// Disable the external interrupt on MRF INT
+	// Disable the external interrupt on MRF INT.
 	NVIC_ICER[40 / 32] = 1 << (40 % 32); // CLRENA40 = 1; disable EXTI15…10 interrupt
 	EXTI_IMR &= ~(1 << 12); // MR12 = 0; disable interrupt on EXTI12 trigger
-	interrupt_exti12_handler = 0;
+	exti_set_handler(12, 0);
 
-	// Turn off all LEDs
+	// Turn off all LEDs.
 	GPIOB_BSRR = GPIO_BR(12) | GPIO_BR(13) | GPIO_BR(14);
 
-	// Reset the radio
+	// Reset the radio.
 	mrf_init();
 }
 
 static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept) {
 	if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_SET_PROMISCUOUS_FLAGS && !index) {
 		*accept = false;
-		// Sanity check: flags 8 through 15 are reserved and must be zero
+		// Sanity check: flags 8 through 15 are reserved and must be zero.
 		if (value & 0xFF00) {
 			return true;
 		}
-		// Check if the application actually wants *ANY* packets
+		// Check if the application actually wants *ANY* packets.
 		if (value & 0xF0) {
 			// Sanity check: if flag 0 (acknowledge) is set and one of bits 4 through 7 (accept some type of frame) is set…
 			if ((value & 0x0001) && (value & 0xF0)) {
@@ -270,11 +267,11 @@ static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t valu
 					return true;
 				}
 			}
-			// This set of flags is acceptable; save
+			// This set of flags is acceptable; save.
 			promisc_flags = value;
-			// Disable all packet reception
+			// Disable all packet reception.
 			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04);
-			// Install the new flags
+			// Install the new flags.
 			mrf_write_short(MRF_REG_SHORT_RXMCR,
 					((value & (1 << 0)) ? 0 : (1 << 5))
 					| ((value & (1 << 3)) ? (1 << 1) : 0)
@@ -288,28 +285,28 @@ static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t valu
 			} else {
 				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x60);
 			}
-			// Set analogue path appropriately based on whether ACKs are being generated and whether any packets are desired
+			// Set analogue path appropriately based on whether ACKs are being generated and whether any packets are desired.
 			if (value & 0x01) {
 				mrf_analogue_txrx();
 			} else {
 				mrf_analogue_rx();
 			}
-			// Re-enable packet reception
+			// Re-enable packet reception.
 			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00);
-			// Enable interrupt on receive
+			// Enable interrupt on receive.
 			mrf_write_short(MRF_REG_SHORT_INTCON, 0xF7);
-			// Turn on LED 2 to indicate capture is enabled
+			// Turn on LED 2 to indicate capture is enabled.
 			GPIOB_BSRR = GPIO_BS(13);
 		} else {
-			// Shut down the radio
+			// Shut down the radio.
 			mrf_write_short(MRF_REG_SHORT_RXMCR, 0x20);
 			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04);
 			mrf_write_short(MRF_REG_SHORT_INTCON, 0xFF);
 			mrf_analogue_off();
-			// Turn off LED 2 to indicate capture is disabled
+			// Turn off LED 2 to indicate capture is disabled.
 			GPIOB_BSRR = GPIO_BR(13);
 		}
-		// Accept this request
+		// Accept this request.
 		*accept = true;
 		return true;
 	} else {

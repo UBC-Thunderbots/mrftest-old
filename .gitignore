@@ -31,7 +31,7 @@ firmware/dongle/dongle.bin
 firmware/dongle/dongle.elf
 firmware/dongle/dongle.map
 firmware/dongle/enter-dfu-mode
-firmware/dongle/exit-dfu-mode
+firmware/dongle/html
 firmware/flybackconverter/*.asm
 firmware/flybackconverter/*.cod
 firmware/flybackconverter/*.hex

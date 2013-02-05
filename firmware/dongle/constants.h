@@ -1,6 +1,9 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+/**
+ * \brief The string indices understood by a GET DESCRIPTOR(String) request.
+ */
 enum {
 	STRING_INDEX_ZERO = 0,
 	STRING_INDEX_MANUFACTURER,
@@ -14,6 +17,9 @@ enum {
 	STRING_INDEX_SERIAL,
 };
 
+/**
+ * \brief The vendor-specific control requests understood by the dongle.
+ */
 enum {
 	CONTROL_REQUEST_GET_CHANNEL = 0,
 	CONTROL_REQUEST_SET_CHANNEL,

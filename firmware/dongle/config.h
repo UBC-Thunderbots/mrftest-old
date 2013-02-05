@@ -4,32 +4,32 @@
 /**
  * \file
  *
- * \brief Stores configuration parameters that are used in multiple locations
+ * \brief Stores configuration parameters that are used in multiple locations.
  */
 
 #include "stdint.h"
 
 /**
- * \brief The configuration parameters
+ * \brief The configuration parameters.
  */
 extern struct config {
 	/**
-	 * \brief The radio channel
+	 * \brief The radio channel.
 	 */
 	uint8_t channel;
 
 	/**
-	 * \brief The symbol rate
+	 * \brief The symbol rate.
 	 */
 	uint8_t symbol_rate;
 
 	/**
-	 * \brief The PAN ID
+	 * \brief The PAN ID.
 	 */
 	uint16_t pan_id;
 
 	/**
-	 * \brief The station’s MAC address
+	 * \brief The station’s MAC address.
 	 */
 	uint64_t mac_address;
 } config;

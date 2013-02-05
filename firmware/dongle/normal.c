@@ -3,7 +3,6 @@
 #include "constants.h"
 #include "estop.h"
 #include "exti.h"
-#include "interrupt.h"
 #include "mrf.h"
 #include "perconfig.h"
 #include "rcc.h"
@@ -101,7 +100,7 @@ static normal_in_packet_t *in_free, *first_in_pending, *last_in_pending;
 static unsigned int poll_index;
 
 static void send_drive_packet(void) {
-	// Write out the packet
+	// Write out the packet.
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 0, 9); // Header length
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 1, 9 + sizeof(perconfig.normal.drive_packet)); // Frame length
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 2, 0b01000001); // Frame control LSB
@@ -137,20 +136,20 @@ static void send_drive_packet(void) {
 	}
 	poll_index = (poll_index + 1) % 8;
 
-	// Initiate transmission with no acknowledgement
+	// Initiate transmission with no acknowledgement.
 	mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000001);
 	mrf_tx_active = true;
 	drive_packet_pending = false;
 
-	// Blink the transmit light
+	// Blink the transmit light.
 	GPIOB_ODR ^= 1 << 13;
 }
 
 void timer6_interrupt_vector(void) {
-	// Clear interrupt flag
+	// Clear interrupt flag.
 	TIM6_SR = 0;
 
-	// Check if a packet is currently being transmitted
+	// Check if a packet is currently being transmitted.
 	if (!mrf_tx_active) {
 		send_drive_packet();
 	} else {
@@ -761,7 +760,7 @@ static const usb_ep0_endpoints_callbacks_t ENDPOINTS_CALLBACKS = {
 };
 
 static void on_enter(void) {
-	// Initialize the linked lists
+	// Initialize the linked lists.
 	unreliable_out_free = 0;
 	for (size_t i = 0; i < sizeof(perconfig.normal.out_packets) / sizeof(*perconfig.normal.out_packets) / 2; ++i) {
 		normal_out_packet_t *pkt = &perconfig.normal.out_packets[i];
@@ -782,16 +781,16 @@ static void on_enter(void) {
 	}
 	first_out_pending = last_out_pending = cur_out_transmitting = first_mdr_pending = last_mdr_pending = 0;
 
-	// Initialize the radio
+	// Initialize the radio.
 	poll_index = 0;
 	mrf_tx_active = false;
 	for (size_t i = 0; i < sizeof(mrf_rx_seqnum) / sizeof(*mrf_rx_seqnum); ++i) {
 		mrf_rx_seqnum[i] = 0xFFFF;
 	}
 	mrf_init();
-	sleep_100us(1);
+	sleep_us(100);
 	mrf_release_reset();
-	sleep_100us(3);
+	sleep_us(300);
 	mrf_common_init();
 	while (GPIOC_IDR & (1 << 12));
 	mrf_write_short(MRF_REG_SHORT_SADRH, 0x01);
@@ -804,7 +803,7 @@ static void on_enter(void) {
 #if 1
 	mrf_write_short(MRF_REG_SHORT_TXMCR, (1 << 5) | (3 << 3) | (4 << 0)); // Enable slotted transmission mode
 #endif
-	// Load beacon
+	// Load beacon.
 	mrf_write_long(MRF_REG_LONG_TXBFIFO + 0, 11); // Header length
 	mrf_write_long(MRF_REG_LONG_TXBFIFO + 1, 16); // Frame length
 	mrf_write_long(MRF_REG_LONG_TXBFIFO + 2, 0b00000000); // Frame control LSB
@@ -838,14 +837,12 @@ static void on_enter(void) {
 #endif
 #endif
 
-	// Turn on LED 1
+	// Turn on LED 1.
 	GPIOB_BSRR = GPIO_BS(12);
 
-	// Enable external interrupt on MRF INT rising edge
-	interrupt_exti12_handler = &exti12_interrupt_vector;
-	rcc_enable(APB2, 14);
+	// Enable external interrupt on MRF INT rising edge.
+	exti_set_handler(12, &exti12_interrupt_vector);
 	exti_map(12, 2); // Map PC12 to EXTI12
-	rcc_disable(APB2, 14);
 	EXTI_RTSR |= 1 << 12; // TR12 = 1; enable rising edge trigger on EXTI12
 	EXTI_FTSR &= ~(1 << 12); // TR12 = 0; disable falling edge trigger on EXTI12
 	EXTI_IMR |= 1 << 12; // MR12 = 1; enable interrupt on EXTI12 trigger
@@ -855,11 +852,11 @@ static void on_enter(void) {
 	usb_bi_out_init(1, 64, USB_BI_OUT_EP_TYPE_INTERRUPT);
 	start_ep1_out_transfer();
 
-	// Set up interrupt endpoint 2 OUT
+	// Set up interrupt endpoint 2 OUT.
 	usb_bi_out_init(2, 64, USB_BI_OUT_EP_TYPE_INTERRUPT);
 	start_ep2_out_transfer();
 
-	// Set up interrupt endpoint 3 OUT
+	// Set up interrupt endpoint 3 OUT.
 	usb_bi_out_init(3, 64, USB_BI_OUT_EP_TYPE_INTERRUPT);
 	start_ep3_out_transfer();
 
@@ -874,23 +871,23 @@ static void on_enter(void) {
 	usb_bi_in_init(2, 64, USB_BI_IN_EP_TYPE_INTERRUPT);
 
 	// Set up endpoint 3 IN with a 64-byte FIFO, large enough for any transfer (thus we never need to use the on_space callback).
-	usb_fifo_set_size(3, 64); // Allocate 64 bytes of FIFO space for this FIFO; this is larger than any transfer we will ever send, so we *never* need to deal with a full FIFO!
+	usb_fifo_set_size(3, 64);
 	usb_fifo_flush(3);
 	usb_bi_in_init(3, 2, USB_BI_IN_EP_TYPE_INTERRUPT);
 
-	// Wipe the drive packet
+	// Wipe the drive packet.
 	memset(perconfig.normal.drive_packet, 0, sizeof(perconfig.normal.drive_packet));
 	drive_packet_pending = false;
 
-	// Set up to be notified on estop changes and push the current state
+	// Set up to be notified on estop changes and push the current state.
 	last_reported_estop_value = ESTOP_BROKEN;
 	estop_set_change_callback(&push_estop);
 	push_estop();
 
-	// Set up timer 6 to overflow every 20 milliseconds for the drive packet
-	// Timer 6 input is 72 MHz from the APB
-	// Need to count to 1,440,000 for each overflow
-	// Set prescaler to 1,000, auto-reload to 1,440
+	// Set up timer 6 to overflow every 20 milliseconds for the drive packet.
+	// Timer 6 input is 72 MHz from the APB.
+	// Need to count to 1,440,000 for each overflow.
+	// Set prescaler to 1,000, auto-reload to 1,440.
 	rcc_enable(APB1, 4);
 	TIM6_CR1 = 0 // Auto reload not buffered, counter runs continuously (not just for one pulse), updates not disabled, counter disabled for now
 		| URS; // Only overflow generates an interrupt
@@ -908,12 +905,12 @@ static void on_exit(void) {
 	// Unregister endpoints callbacks.
 	usb_ep0_set_endpoints_callbacks(0);
 
-	// Turn off timer 6
+	// Turn off timer 6.
 	TIM6_CR1 = 0; // Disable counter
 	NVIC_ICER[54 / 32] = 1 << (54 % 32); // CLRENA54 = 1; disable timer 6 interrupt
 	rcc_disable(APB1, 4);
 
-	// Stop receiving estop notifications
+	// Stop receiving estop notifications.
 	estop_set_change_callback(0);
 
 	// Shut down endpoints.
@@ -927,15 +924,15 @@ static void on_exit(void) {
 	// Deallocate FIFOs.
 	usb_fifo_reset();
 
-	// Disable the external interrupt on MRF INT
+	// Disable the external interrupt on MRF INT.
 	NVIC_ICER[40 / 32] = 1 << (40 % 32); // CLRENA40 = 1; disable EXTI15…10 interrupt
 	EXTI_IMR &= ~(1 << 12); // MR12 = 0; disable interrupt on EXTI12 trigger
-	interrupt_exti12_handler = 0;
+	exti_set_handler(12, 0);
 
-	// Turn off all LEDs
+	// Turn off all LEDs.
 	GPIOB_BSRR = GPIO_BR(12) | GPIO_BR(13) | GPIO_BR(14);
 
-	// Reset the radio
+	// Reset the radio.
 	mrf_init();
 }
 

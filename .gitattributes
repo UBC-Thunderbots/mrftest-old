@@ -27,8 +27,8 @@ firmware/SuperSimpleBoostConverter/config.c -text
 firmware/SuperSimpleBoostConverter/config.h -text
 firmware/bitcodec/bitcodec -text
 firmware/bitcodec/bitcodec.py -text
+firmware/dongle/Doxyfile -text
 firmware/dongle/Makefile -text
-firmware/dongle/abort.c -text
 firmware/dongle/assert.h -text
 firmware/dongle/buzzer.c -text
 firmware/dongle/buzzer.h -text
@@ -41,8 +41,8 @@ firmware/dongle/enter-dfu-mode.c -text
 firmware/dongle/estop.c -text
 firmware/dongle/estop.h -text
 firmware/dongle/exti.h -text
-firmware/dongle/interrupt.c -text
-firmware/dongle/interrupt.h -text
+firmware/dongle/format.c -text
+firmware/dongle/format.h -text
 firmware/dongle/limits.h -text
 firmware/dongle/main.c -text
 firmware/dongle/minmax.h -text
@@ -60,6 +60,8 @@ firmware/dongle/sleep.h -text
 firmware/dongle/stdbool.h -text
 firmware/dongle/stddef.h -text
 firmware/dongle/stdint.h -text
+firmware/dongle/stdlib.c -text
+firmware/dongle/stdlib.h -text
 firmware/dongle/stm32f405.ld -text
 firmware/dongle/string.c -text
 firmware/dongle/string.h -text

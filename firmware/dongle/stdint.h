@@ -101,7 +101,7 @@ typedef uint64_t uintmax_t;
 
 #define UINT8_C(x) (x)
 #define UINT16_C(x) (x)
-#define UINT32_C(x) (x)
+#define UINT32_C(x) (x ## U)
 #define UINT64_C(x) (x ## ULL)
 
 #define INTMAX_C(x) INT64_C(x)

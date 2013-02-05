@@ -2,6 +2,7 @@
 #include "configs.h"
 #include "constants.h"
 #include "estop.h"
+#include "format.h"
 #include "mrf.h"
 #include "rcc.h"
 #include "registers.h"
@@ -24,7 +25,13 @@ static void service_call_vector(void);
 static void pending_service_vector(void);
 static void system_tick_vector(void);
 void adc_interrupt_vector(void);
-void interrupt_dispatcher_exti15_10(void);
+void exti_dispatcher_0(void);
+void exti_dispatcher_1(void);
+void exti_dispatcher_2(void);
+void exti_dispatcher_3(void);
+void exti_dispatcher_4(void);
+void exti_dispatcher_9_5(void);
+void exti_dispatcher_15_10(void);
 void timer5_interrupt_vector(void);
 void timer6_interrupt_vector(void);
 void timer7_interrupt_vector(void);
@@ -33,40 +40,30 @@ static char stack[65536] __attribute__((section(".stack")));
 
 typedef void (*fptr)(void);
 static const fptr exception_vectors[16] __attribute__((used, section(".exception_vectors"))) = {
-	// Vector 0 contains the reset stack pointer
 	[0] = (fptr) (stack + sizeof(stack)),
-	// Vector 1 contains the reset vector
 	[1] = &stm32_main,
-	// Vector 2 contains the NMI vector
 	[2] = &nmi_vector,
-	// Vector 3 contains the HardFault vector
 	[3] = &hard_fault_vector,
-	// Vector 4 contains the MemManage vector
 	[4] = &memory_manage_vector,
-	// Vector 5 contains the BusFault vector
 	[5] = &bus_fault_vector,
-	// Vector 6 contains the UsageFault vector
 	[6] = &usage_fault_vector,
-	// Vector 11 contains the SVCall vector
 	[11] = &service_call_vector,
-	// Vector 14 contains the PendSV vector
 	[14] = &pending_service_vector,
-	// Vector 15 contains the SysTick vector
 	[15] = &system_tick_vector,
 };
 
 static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt_vectors"))) = {
-	// Vector 18 contains the ADC vector
+	[6] = &exti_dispatcher_0,
+	[7] = &exti_dispatcher_1,
+	[8] = &exti_dispatcher_2,
+	[9] = &exti_dispatcher_3,
+	[10] = &exti_dispatcher_4,
 	[18] = &adc_interrupt_vector,
-	// Vector 40 contains the EXTI 15 through 10 vector
-	[40] = &interrupt_dispatcher_exti15_10,
-	// Vector 50 contains the timer 5 vector
+	[23] = &exti_dispatcher_9_5,
+	[40] = &exti_dispatcher_15_10,
 	[50] = &timer5_interrupt_vector,
-	// Vector 54 contains the timer 6 vector
 	[54] = &timer6_interrupt_vector,
-	// Vector 55 contains the timer 7 vector
 	[55] = &timer7_interrupt_vector,
-	// Vector 67 contains the USB full speed vector
 	[67] = &usb_process,
 };
 
@@ -347,7 +344,7 @@ extern unsigned char linker_bss_vma_start;
 extern unsigned char linker_bss_vma_end;
 
 static void stm32_main(void) {
-	// Check if we're supposed to go to the bootloader
+	// Check if we’re supposed to go to the bootloader.
 	uint32_t rcc_csr_shadow = RCC_CSR; // Keep a copy of RCC_CSR
 	RCC_CSR |= RMVF; // Clear reset flags
 	RCC_CSR &= ~RMVF; // Stop clearing reset flags
@@ -361,31 +358,31 @@ static void stm32_main(void) {
 	}
 	bootload_flag = 0;
 
-	// Copy initialized globals and statics from ROM to RAM
+	// Copy initialized globals and statics from ROM to RAM.
 	memcpy(&linker_data_vma_start, &linker_data_lma_start, &linker_data_vma_end - &linker_data_vma_start);
-	// Scrub the BSS section in RAM
+	// Scrub the BSS section in RAM.
 	memset(&linker_bss_vma_start, 0, &linker_bss_vma_end - &linker_bss_vma_start);
 
-	// Always 8-byte-align the stack pointer on entry to an interrupt handler (as ARM recommends)
+	// Always 8-byte-align the stack pointer on entry to an interrupt handler (as ARM recommends).
 	SCS_CCR |= STKALIGN; // Guarantee 8-byte alignment
 
-	// Enable the HSE (8 MHz crystal) oscillator
+	// Enable the HSE (8 MHz crystal) oscillator.
 	RCC_CR = HSEON // Enable HSE oscillator
 		| HSITRIM(16) // Trim HSI oscillator to midpoint
-		| HSION; // Enable HSI oscillator for now as we're still using it
-	// Wait for the HSE oscillator to be ready
+		| HSION; // Enable HSI oscillator for now as we’re still using it
+	// Wait for the HSE oscillator to be ready.
 	while (!(RCC_CR & HSERDY));
-	// Configure the PLL
+	// Configure the PLL.
 	RCC_PLLCFGR = PLLQ(6) // Divide 288 MHz VCO output by 6 to get 48 MHz USB, SDIO, and RNG clock
 		| PLLSRC // Use HSE for PLL input
 		| PLLP(0) // Divide 288 MHz VCO output by 2 to get 144 MHz SYSCLK
 		| PLLN(144) // Multiply 2 MHz VCO input by 144 to get 288 MHz VCO output
 		| PLLM(4); // Divide 8 MHz HSE by 4 to get 2 MHz VCO input
-	// Enable the PLL
+	// Enable the PLL.
 	RCC_CR |= PLLON; // Enable PLL
-	// Wait for the PLL to lock
+	// Wait for the PLL to lock.
 	while (!(RCC_CR & PLLRDY));
-	// Set up bus frequencies
+	// Set up bus frequencies.
 	RCC_CFGR = MCO2(2) // MCO2 pin outputs HSE
 		| MCO2PRE(0) // Divide 8 MHz HSE by 1 to get 8 MHz MCO2 (must be ≤ 100 MHz)
 		| MCO1PRE(0) // Divide 8 MHz HSE by 1 to get 8 MHz MCO1 (must be ≤ 100 MHz)
@@ -396,7 +393,7 @@ static void stm32_main(void) {
 		| PPRE1(5) // Divide 144 MHz AHB clock by 4 to get 36 MHz APB1 clock (must be ≤ 42 MHz)
 		| HPRE(0) // Divide 144 MHz SYSCLK by 1 to get 144 MHz AHB clock (must be ≤ 168 MHz)
 		| SW(0); // Use HSI for SYSCLK for now, until everything else is ready
-	// Wait 16 AHB cycles for the new prescalers to settle
+	// Wait 16 AHB cycles for the new prescalers to settle.
 	asm volatile("nop");
 	asm volatile("nop");
 	asm volatile("nop");
@@ -413,45 +410,49 @@ static void stm32_main(void) {
 	asm volatile("nop");
 	asm volatile("nop");
 	asm volatile("nop");
-	// Set Flash access latency to 5 wait states
+	// Set Flash access latency to 5 wait states.
 	FLASH_ACR = LATENCY(4); // Four wait states (acceptable for 120 ≤ HCLK ≤ 150)
-	// Flash access latency change may not be immediately effective; wait until it's locked in
+	// Flash access latency change may not be immediately effective; wait until it’s locked in.
 	while (LATENCY_X(FLASH_ACR) != 4);
-	// Actually initiate the clock switch
+	// Actually initiate the clock switch.
 	RCC_CFGR = (RCC_CFGR & ~SW_MSK) | SW(2); // Use PLL for SYSCLK
-	// Wait for the clock switch to complete
+	// Wait for the clock switch to complete.
 	while (SWS_X(RCC_CFGR) != 2);
-	// Turn off the HSI now that it's no longer needed
+	// Turn off the HSI now that it’s no longer needed.
 	RCC_CR &= ~HSION; // Disable HSI
 
-	// Flush any data in the CPU caches (which are not presently enabled)
+	// Flush any data in the CPU caches (which are not presently enabled).
 	FLASH_ACR |= DCRST // Reset data cache
 		| ICRST; // Reset instruction cache
 	FLASH_ACR &= ~DCRST // Stop resetting data cache
 		& ~ICRST; // Stop resetting instruction cache
 
-	// Turn on the caches. There is an errata that says prefetching doesn't work on some silicon, but it seems harmless to enable the flag even so
+	// Turn on the caches.
+	// There is an errata that says prefetching doesn’t work on some silicon, but it seems harmless to enable the flag even so.
 	FLASH_ACR |= DCEN // Enable data cache
 		| ICEN // Enable instruction cache
 		| PRFTEN; // Enable prefetching
 
-	// Set SYSTICK to divide by 144 so it overflows every microsecond
+	// Enable the system configuration registers.
+	rcc_enable(APB2, 14);
+
+	// Set SYSTICK to divide by 144 so it overflows every microsecond.
 	SCS_STRVR = 144 - 1;
-	// Set SYSTICK to run with the core AHB clock
+	// Set SYSTICK to run with the core AHB clock.
 	SCS_STCSR = CLKSOURCE // Use core clock
 		| SCS_STCSR_ENABLE; // Counter is running
-	// Reset the counter
+	// Reset the counter.
 	SCS_STCVR = 0;
 
-	// As we will be running at 144 MHz, switch to the lower-power voltage regulator mode (compatible only up to 144 MHz)
+	// As we will be running at 144 MHz, switch to the lower-power voltage regulator mode (compatible only up to 144 MHz).
 	rcc_enable(APB1, 28);
 	PWR_CR &= ~VOS; // Set regulator scale 2
 	rcc_disable(APB1, 28);
 
-	// Initialize subsystems
+	// Initialize subsystems.
 	buzzer_init();
 
-	// Set up pins
+	// Set up pins.
 	rcc_enable_multi(AHB1, 0x0000000F); // Enable GPIOA, GPIOB, GPIOC, and GPIOD modules
 	// PA15 = MRF /CS, start deasserted
 	// PA14/PA13 = alternate function SWD
@@ -514,22 +515,22 @@ static void stm32_main(void) {
 	// PI15/PI14/PI13/PI12 = unimplemented
 	// PI11/PI10/PI9/PI8/PI7/PI6/PI5/PI4/PI3/PI2/PI1/PI0 = unimplemented on this package
 
-	// Initialize more subsystems
+	// Initialize more subsystems.
 	estop_init();
 
-	// Wait a bit
-	sleep_1ms(100);
+	// Wait a bit.
+	sleep_ms(100);
 
-	// Turn off LEDs
+	// Turn off LEDs.
 	GPIOB_BSRR = GPIO_BR(12) | GPIO_BR(13) | GPIO_BR(14);
 
-	// Initialize USB
+	// Initialize USB.
 	usb_ep0_set_global_callbacks(&DEVICE_CBS);
 	usb_ep0_set_configuration_callbacks(CONFIG_CBS);
 	usb_attach(&DEVICE_INFO);
 	NVIC_ISER[67 / 32] = 1 << (67 % 32); // SETENA67 = 1; enable USB FS interrupt
 
-	// Handle activity
+	// Handle activity.
 	for (;;) {
 	}
 }

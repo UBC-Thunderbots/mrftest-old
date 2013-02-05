@@ -6,25 +6,27 @@
 /**
  * \file
  *
- * \brief Handles the alert buzzer
+ * \brief Handles the alert buzzer.
  */
 
 /**
- * \brief Initializes the buzzer system
+ * \brief Initializes the buzzer system.
  */
 void buzzer_init(void);
 
 /**
- * \brief Ensures the buzzer runs for at least a specified length of time
+ * \brief Starts the buzzer sounding.
  *
- * The buzzer will stop sounding at the last end time across all calls to this function.
+ * The buzzer starts sounding when this function is called.
+ * The buzzer stops when \ref buzzer_stop is called or when all requested time periods have expired.
+ * Calling this function while the buzzer is already sounding extends the remaining time the buzzer sounds, if necessary, to satisfy the request.
  *
  * \param[in] millis the number of milliseconds to buzz for, starting from the current time
  */
 void buzzer_start(unsigned long millis);
 
 /**
- * \brief Stops the buzzer immediately
+ * \brief Stops the buzzer immediately.
  */
 void buzzer_stop(void);
 

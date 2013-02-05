@@ -4,7 +4,7 @@
 #include "sleep.h"
 
 static estop_t value = ESTOP_BROKEN;
-static void (*change_cb)(void) = 0;
+static estop_change_callback_t change_cb = 0;
 
 static void estop_start_sample(void) {
 	ADC1_CR2 |= SWSTART; // Start conversion
@@ -57,7 +57,7 @@ void estop_init(void) {
 	ADC1_CR1 = 0; // All interrupts disabled, 12-bit resolution, analogue watchdogs disabled, all special modes disabled
 	ADC1_CR2 = 0 // Conversion not starting, no external triggers, data right-aligned, single conversion mode
 		| ADON; // Enable ADC
-	sleep_1us(3);
+	sleep_us(3);
 	ADC1_SMPR2 = SMP(9, 1); // SMP9 = 1; set sample time to 15 cycles
 	ADC1_SQR1 = 0 // No channels to set here
 		| ADC_SQR1_L(0); // Conversion length 1
@@ -91,7 +91,7 @@ estop_t estop_read(void) {
 	return value;
 }
 
-void estop_set_change_callback(void (*cb)(void)) {
+void estop_set_change_callback(estop_change_callback_t cb) {
 	change_cb = cb;
 }
 

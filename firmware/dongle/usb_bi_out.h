@@ -14,12 +14,12 @@
  */
 typedef enum {
 	/**
-	 * \brief Indicates a bulk endpoint.
+	 * \brief A bulk endpoint.
 	 */
 	USB_BI_OUT_EP_TYPE_BULK = 2,
 
 	/**
-	 * \brief Indicates an interrupt endpoint.
+	 * \brief An interrupt endpoint.
 	 */
 	USB_BI_OUT_EP_TYPE_INTERRUPT = 3,
 } usb_bi_out_ep_type_t;
@@ -29,22 +29,22 @@ typedef enum {
  */
 typedef enum {
 	/**
-	 * \brief Indicates the endpoint is not initialized.
+	 * \brief The endpoint is not initialized.
 	 */
 	USB_BI_OUT_STATE_UNINITIALIZED,
 
 	/**
-	 * \brief Indicates the endpoint is initialized but no transfer is running.
+	 * \brief The endpoint is initialized but no transfer is running.
 	 */
 	USB_BI_OUT_STATE_IDLE,
 
 	/**
-	 * \brief Indicates the endpoint is currently running a transfer.
+	 * \brief The endpoint is currently running a transfer.
 	 */
 	USB_BI_OUT_STATE_ACTIVE,
 
 	/**
-	 * \brief Indicates that the endpoint is currently halted.
+	 * \brief The endpoint is currently halted.
 	 */
 	USB_BI_OUT_STATE_HALTED,
 } usb_bi_out_state_t;
@@ -63,9 +63,9 @@ usb_bi_out_state_t usb_bi_out_get_state(unsigned int ep);
  *
  * This is typically called when entering a configuration or switching interface alternate settings.
  *
- * \pre The endpoint is in USB_BI_OUT_STATE_UNINITIALIZED.
+ * \pre The endpoint is in \ref USB_BI_OUT_STATE_UNINITIALIZED.
  *
- * \post The endpoint is in USB_BI_OUT_STATE_IDLE.
+ * \post The endpoint is in \ref USB_BI_OUT_STATE_IDLE.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  *
@@ -82,7 +82,7 @@ void usb_bi_out_init(unsigned int ep, size_t max_packet, usb_bi_out_ep_type_t ty
  * If the endpoint is active, the transfer is aborted.
  * If the endpoint is halted, the halt is cleared.
  *
- * \post The endpoint is in USB_BI_OUT_STATE_UNINITIALIZED.
+ * \post The endpoint is in \ref USB_BI_OUT_STATE_UNINITIALIZED.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  */
@@ -91,9 +91,9 @@ void usb_bi_out_deinit(unsigned int ep);
 /**
  * \brief Halts an OUT endpoint.
  *
- * \pre The endpoint is in USB_BI_OUT_STATE_IDLE.
+ * \pre The endpoint is in \ref USB_BI_OUT_STATE_IDLE.
  *
- * \post The endpoint is in USB_BI_OUT_STATE_HALTED.
+ * \post The endpoint is in \ref USB_BI_OUT_STATE_HALTED.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  */
@@ -102,9 +102,9 @@ void usb_bi_out_halt(unsigned int ep);
 /**
  * \brief Takes an OUT endpoint out of halt status.
  *
- * \pre The endpoint is in USB_BI_OUT_STATE_HALTED.
+ * \pre The endpoint is in \ref USB_BI_OUT_STATE_HALTED.
  *
- * \post The endpoint is in USB_BI_OUT_STATE_IDLE.
+ * \post The endpoint is in \ref USB_BI_OUT_STATE_IDLE.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  */
@@ -116,7 +116,7 @@ void usb_bi_out_clear_halt(unsigned int ep);
  * This is typically done in response to certain control transfers targetting the endpoint.
  * The application does not need to call this function after initializing the endpoint; \ref usb_bi_out_init automatically sets the PID to DATA0.
  *
- * \pre The endpoint is in USB_BI_OUT_STATE_IDLE.
+ * \pre The endpoint is in \ref USB_BI_OUT_STATE_IDLE.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  *
@@ -127,9 +127,9 @@ void usb_bi_out_reset_pid(unsigned int ep, unsigned int pid);
 /**
  * \brief Starts a transfer on an OUT endpoint.
  *
- * \pre The endpoint is in USB_BI_OUT_STATE_IDLE.
+ * \pre The endpoint is in \ref USB_BI_OUT_STATE_IDLE.
  *
- * \post The endpoint is in USB_BI_OUT_STATE_ACTIVE.
+ * \post The endpoint is in \ref USB_BI_OUT_STATE_ACTIVE.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  *
@@ -137,18 +137,20 @@ void usb_bi_out_reset_pid(unsigned int ep, unsigned int pid);
  *
  * \param[in] on_complete a callback to invoke when the transfer is complete; may be null if not needed; within this callback, no transfer is running so another transfer can be started
  *
- * \param[in] on_packet a callback to invoke when a packet is available in the receive FIFO; this callback must read the packet data; the parameter is the size of the received packet (but be aware that this size could extend beyond the maximum transfer length, if the host is noncompliant)
+ * \param[in] on_packet a callback to invoke when a packet is available in the receive FIFO; this callback must read the packet data; the parameter is the size of the received packet (but be aware that this size could extend beyond the maximum transfer length, if the host is noncompliant); any data not read by the callback is automatically discarded after it returns
  */
 void usb_bi_out_start_transfer(unsigned int ep, size_t max_length, void (*on_complete)(void), void (*on_packet)(size_t));
 
 /**
  * \brief Aborts a running transfer on an OUT endpoint.
  *
+ * After a transfer is aborted, no further calls to the registered callbacks will be made (at least not until a new transfer is started for the endpoint).
+ *
  * \pre Global NAK is effective.
  *
- * \pre The endpoint is in USB_BI_OUT_STATE_ACTIVE.
+ * \pre The endpoint is in \ref USB_BI_OUT_STATE_ACTIVE.
  *
- * \post The endpoint is in USB_BI_OUT_STATE_IDLE.
+ * \post The endpoint is in \ref USB_BI_OUT_STATE_IDLE.
  *
  * \param[in] ep the endpoint number, from 1 to 3
  */
@@ -157,10 +159,10 @@ void usb_bi_out_abort_transfer(unsigned int ep);
 /**
  * \brief Reads a block of data from a received packet.
  *
- * The application must call this function when the \c on_packet callback is invoked.
+ * The application must call this function or \ref usb_bi_out_discard when the \c on_packet callback registered with \ref usb_bi_out_start_transfer is invoked.
  * The application is responsible for not requesting more bytes than the size of the packet.
  *
- * \pre The endpoint is in USB_BI_OUT_STATE_ACTIVE.
+ * \pre The endpoint is in \ref USB_BI_OUT_STATE_ACTIVE.
  *
  * \pre The \c on_packet callback registered in \ref usb_bi_out_start_transfer is executing.
  *
@@ -175,10 +177,10 @@ void usb_bi_out_read(unsigned int ep, void *dst, size_t length);
 /**
  * \brief Reads a block of data from a received packet and discards it.
  *
- * The application must call this function when the \c on_packet callback is invoked.
+ * The application must call this function or \ref usb_bi_out_read when the \c on_packet callback registered with \ref usb_bi_out_start_transfer is invoked.
  * The application is responsible for not requesting more bytes than the size of the packet.
  *
- * \pre The endpoint is in USB_BI_OUT_STATE_ACTIVE.
+ * \pre The endpoint is in \ref USB_BI_OUT_STATE_ACTIVE.
  *
  * \pre The \c on_packet callback registered in \ref usb_bi_out_start_transfer is executing.
  *

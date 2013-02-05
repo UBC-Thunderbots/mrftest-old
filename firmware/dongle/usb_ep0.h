@@ -4,7 +4,7 @@
 /**
  * \file
  *
- * \brief Provides functionality related to USB endpoint zero
+ * \brief Provides functionality related to USB endpoint zero.
  */
 
 #include "stdbool.h"
@@ -14,7 +14,7 @@
 
 
 /**
- * \name USB standard identifiers
+ * \name USB standard identifiers.
  *
  * These names represent ID numbers used in the USB standard.
  *
@@ -22,7 +22,7 @@
  */
 
 /**
- * \brief The request type bit fields
+ * \brief The request type bit fields.
  */
 enum {
 	USB_STD_REQ_TYPE_OUT = 0x00,
@@ -36,7 +36,7 @@ enum {
 };
 
 /**
- * \brief The standard request codes
+ * \brief The standard request codes.
  */
 enum {
 	USB_STD_REQ_GET_STATUS = 0,
@@ -53,7 +53,7 @@ enum {
 };
 
 /**
- * \brief The standard descriptor types
+ * \brief The standard descriptor types.
  */
 enum {
 	USB_STD_DESCRIPTOR_DEVICE = 1,
@@ -67,7 +67,7 @@ enum {
 };
 
 /**
- * \brief The standard features
+ * \brief The standard features.
  */
 enum {
 	USB_STD_FEATURE_ENDPOINT_HALT = 0,
@@ -82,7 +82,7 @@ enum {
 
 
 /**
- * \name Callback management
+ * \name Callback management.
  *
  * These types and functions handle registering callbacks with the stack to be invoked when certain events occur.
  *
@@ -90,16 +90,16 @@ enum {
  */
 
 /**
- * \brief A source of data to be sent in a control transfer
+ * \brief A source of data to be sent in a control transfer.
  */
 typedef struct {
 	/**
-	 * \brief Private data usable by the implementation of the data source
+	 * \brief Private data usable by the implementation of the data source.
 	 */
 	void *opaque;
 
 	/**
-	 * \brief Generates some data
+	 * \brief Generates some data.
 	 *
 	 * This callback is mandatory.
 	 *
@@ -115,7 +115,7 @@ typedef struct {
 	 *
 	 * \pre \p length is nonzero.
 	 *
-	 * \post \p buffer[0] through \p buffer[N-1] have been populated, if \code N is the return value.
+	 * \post \p buffer[0] through \p buffer[N-1] have been populated, if \a N is the return value.
 	 *
 	 * \param[in] opaque the opaque pointer from the data source structure
 	 *
@@ -129,11 +129,11 @@ typedef struct {
 } usb_ep0_source_t;
 
 /**
- * \brief A set of callbacks to handle device-wide activities
+ * \brief A set of callbacks to handle device-wide activities.
  */
 typedef struct {
 	/**
-	 * \brief Allows the application to override handling of any control request with no data stage
+	 * \brief Allows the application to override handling of any control request with no data stage.
 	 *
 	 * This callback is optional; if not provided, it is treated as though always returning \c false.
 	 *
@@ -158,7 +158,7 @@ typedef struct {
 	bool (*on_zero_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept);
 
 	/**
-	 * \brief Allows the application to override handling of any control request with an IN data stage
+	 * \brief Allows the application to override handling of any control request with an IN data stage.
 	 *
 	 * This callback is optional; if not provided, it is treated as though always returning \c false.
 	 *
@@ -185,7 +185,7 @@ typedef struct {
 	bool (*on_in_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, usb_ep0_source_t **source);
 
 	/**
-	 * \brief Allows the application to override handling of any control request with an OUT data stage
+	 * \brief Allows the application to override handling of any control request with an OUT data stage.
 	 *
 	 * This callback is optional; if not provided, it is treated as though always returning \c false.
 	 *
@@ -215,7 +215,7 @@ typedef struct {
 	bool (*on_out_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, void **dest, bool (**cb)(void));
 
 	/**
-	 * \brief Handles a request for a descriptor
+	 * \brief Handles a request for a descriptor.
 	 *
 	 * This function will be invoked for string descriptor zero, but never for a nonzero string descriptor.
 	 *
@@ -242,7 +242,7 @@ typedef struct {
 	usb_ep0_source_t *(*on_descriptor_request)(uint8_t descriptor_type, uint8_t descriptor_index, uint16_t language);
 
 	/**
-	 * \brief Checks whether the device is self-powered
+	 * \brief Checks whether the device is self-powered.
 	 *
 	 * A self-powered device has its own power supply; a bus-powered device is powered by the USB.
 	 *
@@ -258,38 +258,38 @@ typedef struct {
 } usb_ep0_global_callbacks_t;
 
 /**
- * \brief Sets the global endpoint 0 callbacks the application uses to be informed of global events
+ * \brief Sets the global endpoint 0 callbacks the application uses to be informed of global events.
  *
  * \param[in] callbacks the callbacks to register.
  */
 void usb_ep0_set_global_callbacks(const usb_ep0_global_callbacks_t *callbacks);
 
 /**
- * \brief A set of callbacks to handle activities related to a single configuration
+ * \brief A set of callbacks to handle activities related to a single configuration.
  */
 typedef struct {
 	/**
-	 * \brief The configuration value of the configuration
+	 * \brief The configuration value of the configuration.
 	 */
 	uint8_t configuration;
 
 	/**
-	 * \brief The number of interfaces in this configuration
+	 * \brief The number of interfaces in this configuration.
 	 */
 	uint8_t interfaces;
 
 	/**
-	 * \brief The number of (non-zero) OUT endpoints in this configuration
+	 * \brief The number of (non-zero) OUT endpoints in this configuration.
 	 */
 	uint8_t out_endpoints;
 
 	/**
-	 * \brief The number of (non-zero) IN endpoints in this configuration
+	 * \brief The number of (non-zero) IN endpoints in this configuration.
 	 */
 	uint8_t in_endpoints;
 
 	/**
-	 * \brief Checks whether it's acceptable to enter this configuration at this time
+	 * \brief Checks whether it’s acceptable to enter this configuration at this time.
 	 *
 	 * This callback is optional; if not provided, requests to enter the configuration always succeed.
 	 *
@@ -302,7 +302,7 @@ typedef struct {
 	bool (*can_enter)(void);
 
 	/**
-	 * \brief Enters the configuration
+	 * \brief Enters the configuration.
 	 *
 	 * This callback is optional.
 	 *
@@ -313,7 +313,7 @@ typedef struct {
 	void (*on_enter)(void);
 
 	/**
-	 * \brief Exits the configuration
+	 * \brief Exits the configuration.
 	 *
 	 * This callback is optional.
 	 *
@@ -324,7 +324,7 @@ typedef struct {
 	void (*on_exit)(void);
 
 	/**
-	 * \brief Allows the application to override handling of any control request with no data stage
+	 * \brief Allows the application to override handling of any control request with no data stage.
 	 *
 	 * This callback is optional; if not provided, it is treated as though always returning \c false.
 	 *
@@ -351,7 +351,7 @@ typedef struct {
 	bool (*on_zero_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept);
 
 	/**
-	 * \brief Allows the application to override handling of any control request with an IN data stage
+	 * \brief Allows the application to override handling of any control request with an IN data stage.
 	 *
 	 * This callback is optional; if not provided, it is treated as though always returning \c false.
 	 *
@@ -380,7 +380,7 @@ typedef struct {
 	bool (*on_in_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, usb_ep0_source_t **source);
 
 	/**
-	 * \brief Allows the application to override handling of any control request with an OUT data stage
+	 * \brief Allows the application to override handling of any control request with an OUT data stage.
 	 *
 	 * This callback is optional; if not provided, it is treated as though always returning \c false.
 	 *
@@ -413,7 +413,7 @@ typedef struct {
 } usb_ep0_configuration_callbacks_t;
 
 /**
- * \brief Sets the configuration callbacks the application uses for all configurations
+ * \brief Sets the configuration callbacks the application uses for all configurations.
  *
  * \param[in] configurations an array of pointers to configuration callback structures, one per configuration, ending with a null pointer
  */
@@ -490,13 +490,13 @@ void usb_ep0_set_endpoints_callbacks(const usb_ep0_endpoints_callbacks_t *cbs);
 
 
 /**
- * \name Miscellaneous
+ * \name Miscellaneous.
  *
  * @{
  */
 
 /**
- * \brief Checks which configuration is currently active
+ * \brief Checks which configuration is currently active.
  *
  * \return the current configuration number, which may be 0 if the device is unconfigured
  */

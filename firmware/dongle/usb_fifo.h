@@ -15,7 +15,7 @@
  * \brief Sets all transmit FIFOs to their minimum sizes, ready to be set to other sizes later.
  * The FIFOs are also flushed.
  *
- * \pre All nonzero endpoints must be NAKing.
+ * \pre All nonzero endpoints must be NAKing or inactive.
  */
 void usb_fifo_reset(void);
 
@@ -51,7 +51,7 @@ void usb_fifo_set_size(unsigned int fifo, size_t size);
 /**
  * \brief Flushes a transmit FIFO.
  *
- * \pre The endpoint must be NAKing, due to either local or global NAK status.
+ * \pre The endpoint must be NAKing, due to either local or global NAK status, or inactive.
  *
  * \param[in] fifo the endpoint whose FIFO should be flushed, from 1 to 3.
  */

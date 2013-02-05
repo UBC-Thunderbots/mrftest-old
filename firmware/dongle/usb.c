@@ -307,7 +307,7 @@ void usb_attach(const usb_device_info_t *info) {
 		0 // PTXFELVL = 0; only used in host mode
 		| 0 // TXFELVL = 0; interrupt on TX FIFO half empty
 		| 0; // GINTMSK = 0; no interrupts
-	sleep_1ms(25); // The application must wait at least 25 ms before a change to FDMOD takes effect
+	sleep_ms(25); // The application must wait at least 25 ms before a change to FDMOD takes effect
 	OTG_FS_DCFG =
 		0 // PFIVL = 0; end of periodic frame notification occurs at 80% of complete frame
 		| 0 // DAD = 0; device does not yet have an address
@@ -350,11 +350,11 @@ void usb_detach(void) {
 	}
 }
 
-void usb_in_set_callback(uint8_t ep, void (*cb)(void)) {
+void usb_in_set_callback(unsigned int ep, void (*cb)(void)) {
 	in_endpoint_callbacks[ep] = cb;
 }
 
-void usb_out_set_callback(uint8_t ep, void (*cb)(uint32_t)) {
+void usb_out_set_callback(unsigned int ep, void (*cb)(uint32_t)) {
 	out_endpoint_callbacks[ep] = cb;
 }
 
