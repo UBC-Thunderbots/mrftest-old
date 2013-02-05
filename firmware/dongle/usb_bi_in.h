@@ -54,7 +54,7 @@ typedef enum {
 /**
  * \brief Returns the state of an endpoint.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  *
  * \return the current endpoint state
  */
@@ -78,11 +78,11 @@ usb_bi_in_state_t usb_bi_in_get_state(unsigned int ep);
  *
  * \post The endpoint is in \ref USB_BI_IN_STATE_IDLE.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  *
- * \param[in] max_packet the maximum packet size for this endpoint, in bytes
+ * \param max_packet the maximum packet size for this endpoint, in bytes
  *
- * \param[in] type the type of endpoint
+ * \param type the type of endpoint
  */
 void usb_bi_in_init(unsigned int ep, size_t max_packet, usb_bi_in_ep_type_t type);
 
@@ -95,7 +95,7 @@ void usb_bi_in_init(unsigned int ep, size_t max_packet, usb_bi_in_ep_type_t type
  *
  * \post The endpoint is in \ref USB_BI_IN_STATE_UNINITIALIZED.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  */
 void usb_bi_in_deinit(unsigned int ep);
 
@@ -106,7 +106,7 @@ void usb_bi_in_deinit(unsigned int ep);
  *
  * \post The endpoint is in \ref USB_BI_IN_STATE_HALTED.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  */
 void usb_bi_in_halt(unsigned int ep);
 
@@ -117,7 +117,7 @@ void usb_bi_in_halt(unsigned int ep);
  *
  * \post The endpoint is in \ref USB_BI_IN_STATE_IDLE.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  */
 void usb_bi_in_clear_halt(unsigned int ep);
 
@@ -129,7 +129,7 @@ void usb_bi_in_clear_halt(unsigned int ep);
  *
  * \pre The endpoint is in \ref USB_BI_IN_STATE_IDLE.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  */
 void usb_bi_in_reset_pid(unsigned int ep);
 
@@ -146,15 +146,15 @@ void usb_bi_in_reset_pid(unsigned int ep);
  *
  * \post The endpoint is in \ref USB_BI_IN_STATE_ACTIVE.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  *
- * \param[in] length the number of bytes to transfer
+ * \param length the number of bytes to transfer
  *
- * \param[in] max_length the maximum transfer size the host is expecting; if \p length is equal to \p max_length, the terminating zero-length packet will be omitted
+ * \param max_length the maximum transfer size the host is expecting; if \p length is equal to \p max_length, the terminating zero-length packet will be omitted
  *
- * \param[in] on_complete a callback to invoke when the transfer is complete; may be null if not needed; within this callback, no transfer is running so another transfer can be started
+ * \param on_complete a callback to invoke when the transfer is complete; may be null if not needed; within this callback, no transfer is running so another transfer can be started
  *
- * \param[in] on_space a callback to invoke when space is available in the transmit FIFO (see \ref usb_bi_in_push_block for details); may be null if not needed; if provided, this callback \em must push data into the transmit FIFO before returning
+ * \param on_space a callback to invoke when space is available in the transmit FIFO (see \ref usb_bi_in_push_block for details); may be null if not needed; if provided, this callback \em must push data into the transmit FIFO before returning
  */
 void usb_bi_in_start_transfer(unsigned int ep, size_t length, size_t max_length, void (*on_complete)(void), void (*on_space)(void));
 
@@ -168,7 +168,7 @@ void usb_bi_in_start_transfer(unsigned int ep, size_t length, size_t max_length,
  *
  * \post The endpoint is in \ref USB_BI_IN_STATE_IDLE.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  */
 void usb_bi_in_abort_transfer(unsigned int ep);
 
@@ -182,9 +182,9 @@ void usb_bi_in_abort_transfer(unsigned int ep);
  *
  * \pre The running transfer must not have had all its data pushed yet.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  *
- * \param[in] data the data to push
+ * \param data the data to push
  *
  * \return \c true if the data was accepted, or \c false if there was no FIFO space available
  */
@@ -210,11 +210,11 @@ bool usb_bi_in_push_word(unsigned int ep, uint32_t data);
  *
  * \pre The amount of data provided must not be more than needed to finish the transfer.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  *
- * \param[in] data the data to push
+ * \param data the data to push
  *
- * \param[in] length the number of bytes to push
+ * \param length the number of bytes to push
  *
  * \return the number of bytes actually consumed
  */

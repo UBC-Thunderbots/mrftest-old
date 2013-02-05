@@ -52,7 +52,7 @@ typedef enum {
 /**
  * \brief Returns the state of an endpoint.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  *
  * \return the current endpoint state
  */
@@ -67,11 +67,11 @@ usb_bi_out_state_t usb_bi_out_get_state(unsigned int ep);
  *
  * \post The endpoint is in \ref USB_BI_OUT_STATE_IDLE.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  *
- * \param[in] max_packet the maximum packet size for this endpoint, in bytes
+ * \param max_packet the maximum packet size for this endpoint, in bytes
  *
- * \param[in] type the type of endpoint
+ * \param type the type of endpoint
  */
 void usb_bi_out_init(unsigned int ep, size_t max_packet, usb_bi_out_ep_type_t type);
 
@@ -84,7 +84,7 @@ void usb_bi_out_init(unsigned int ep, size_t max_packet, usb_bi_out_ep_type_t ty
  *
  * \post The endpoint is in \ref USB_BI_OUT_STATE_UNINITIALIZED.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  */
 void usb_bi_out_deinit(unsigned int ep);
 
@@ -95,7 +95,7 @@ void usb_bi_out_deinit(unsigned int ep);
  *
  * \post The endpoint is in \ref USB_BI_OUT_STATE_HALTED.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  */
 void usb_bi_out_halt(unsigned int ep);
 
@@ -106,7 +106,7 @@ void usb_bi_out_halt(unsigned int ep);
  *
  * \post The endpoint is in \ref USB_BI_OUT_STATE_IDLE.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  */
 void usb_bi_out_clear_halt(unsigned int ep);
 
@@ -118,9 +118,9 @@ void usb_bi_out_clear_halt(unsigned int ep);
  *
  * \pre The endpoint is in \ref USB_BI_OUT_STATE_IDLE.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  *
- * \param[in] pid the PID to set as expected for the next packet, either 0 or 1
+ * \param pid the PID to set as expected for the next packet, either 0 or 1
  */
 void usb_bi_out_reset_pid(unsigned int ep, unsigned int pid);
 
@@ -131,13 +131,13 @@ void usb_bi_out_reset_pid(unsigned int ep, unsigned int pid);
  *
  * \post The endpoint is in \ref USB_BI_OUT_STATE_ACTIVE.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  *
- * \param[in] max_length the maximum transfer size the device is expecting; if the number of bytes the host sends is equal to \p max_length, the transfer will complete without the host sending a zero-length packet
+ * \param max_length the maximum transfer size the device is expecting; if the number of bytes the host sends is equal to \p max_length, the transfer will complete without the host sending a zero-length packet
  *
- * \param[in] on_complete a callback to invoke when the transfer is complete; may be null if not needed; within this callback, no transfer is running so another transfer can be started
+ * \param on_complete a callback to invoke when the transfer is complete; may be null if not needed; within this callback, no transfer is running so another transfer can be started
  *
- * \param[in] on_packet a callback to invoke when a packet is available in the receive FIFO; this callback must read the packet data; the parameter is the size of the received packet (but be aware that this size could extend beyond the maximum transfer length, if the host is noncompliant); any data not read by the callback is automatically discarded after it returns
+ * \param on_packet a callback to invoke when a packet is available in the receive FIFO; this callback must read the packet data; the parameter is the size of the received packet (but be aware that this size could extend beyond the maximum transfer length, if the host is noncompliant); any data not read by the callback is automatically discarded after it returns
  */
 void usb_bi_out_start_transfer(unsigned int ep, size_t max_length, void (*on_complete)(void), void (*on_packet)(size_t));
 
@@ -152,7 +152,7 @@ void usb_bi_out_start_transfer(unsigned int ep, size_t max_length, void (*on_com
  *
  * \post The endpoint is in \ref USB_BI_OUT_STATE_IDLE.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  */
 void usb_bi_out_abort_transfer(unsigned int ep);
 
@@ -166,11 +166,11 @@ void usb_bi_out_abort_transfer(unsigned int ep);
  *
  * \pre The \c on_packet callback registered in \ref usb_bi_out_start_transfer is executing.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  *
- * \param[in] dst the location to store the data at
+ * \param dst the location to store the data at
  *
- * \param[in] length the number of bytes to read from the packet and write to \p dst
+ * \param length the number of bytes to read from the packet and write to \p dst
  */
 void usb_bi_out_read(unsigned int ep, void *dst, size_t length);
 
@@ -184,9 +184,9 @@ void usb_bi_out_read(unsigned int ep, void *dst, size_t length);
  *
  * \pre The \c on_packet callback registered in \ref usb_bi_out_start_transfer is executing.
  *
- * \param[in] ep the endpoint number, from 1 to 3
+ * \param ep the endpoint number, from 1 to 3
  *
- * \param[in] length the number of bytes to read from the packet
+ * \param length the number of bytes to read from the packet
  */
 void usb_bi_out_discard(unsigned int ep, size_t length);
 

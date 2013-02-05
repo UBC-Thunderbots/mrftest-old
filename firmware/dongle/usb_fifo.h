@@ -22,7 +22,7 @@ void usb_fifo_reset(void);
 /**
  * \brief Gets the starting offset of a transmit FIFO.
  *
- * \param[in] fifo the endpoint whose FIFO offset should be returned, from 1 to 3.
+ * \param fifo the endpoint whose FIFO offset should be returned, from 1 to 3.
  *
  * \return the offset, in words.
  */
@@ -31,7 +31,7 @@ size_t usb_fifo_get_offset(unsigned int fifo);
 /**
  * \brief Gets the size of a transmit FIFO.
  *
- * \param[in] fifo the endpoint whose FIFO size should be returned, from 1 to 3.
+ * \param fifo the endpoint whose FIFO size should be returned, from 1 to 3.
  *
  * \return the size, in bytes.
  */
@@ -42,9 +42,9 @@ size_t usb_fifo_get_size(unsigned int fifo);
  *
  * \pre The endpoint that uses the FIFO must be inactive.
  *
- * \param[in] fifo the endpoint whose FIFO size should be set, from 1 to 3.
+ * \param fifo the endpoint whose FIFO size should be set, from 1 to 3.
  *
- * \param[in] size the size of the FIFO, in bytes, which must be a multiple of 4 and at least 64.
+ * \param size the size of the FIFO, in bytes, which must be a multiple of 4 and at least 64.
  */
 void usb_fifo_set_size(unsigned int fifo, size_t size);
 
@@ -53,7 +53,7 @@ void usb_fifo_set_size(unsigned int fifo, size_t size);
  *
  * \pre The endpoint must be NAKing, due to either local or global NAK status, or inactive.
  *
- * \param[in] fifo the endpoint whose FIFO should be flushed, from 1 to 3.
+ * \param fifo the endpoint whose FIFO should be flushed, from 1 to 3.
  */
 void usb_fifo_flush(unsigned int fifo);
 

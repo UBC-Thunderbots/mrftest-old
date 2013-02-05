@@ -21,7 +21,7 @@ void buzzer_init(void);
  * The buzzer stops when \ref buzzer_stop is called or when all requested time periods have expired.
  * Calling this function while the buzzer is already sounding extends the remaining time the buzzer sounds, if necessary, to satisfy the request.
  *
- * \param[in] millis the number of milliseconds to buzz for, starting from the current time
+ * \param millis the number of milliseconds to buzz for, starting from the current time
  */
 void buzzer_start(unsigned long millis);
 

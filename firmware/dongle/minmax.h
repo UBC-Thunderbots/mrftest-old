@@ -10,9 +10,9 @@
 /**
  * \brief Returns the smaller of two elements.
  *
- * \param[in] a the first element
+ * \param a the first element
  *
- * \param[in] b the second element
+ * \param b the second element
  *
  * \return the smaller element
  */
@@ -21,9 +21,9 @@
 /**
  * \brief Returns the larger of two elements.
  *
- * \param[in] a the first element
+ * \param a the first element
  *
- * \param[in] b the second element
+ * \param b the second element
  *
  * \return the larger element
  */

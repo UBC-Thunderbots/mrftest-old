@@ -153,7 +153,7 @@ bool mrf_get_interrupt(void);
 /**
  * \brief Reads a short-address register.
  *
- * \param[in] reg the register to read
+ * \param reg the register to read
  *
  * \return the register’s value
  */
@@ -162,16 +162,16 @@ uint8_t mrf_read_short(mrf_reg_short_t reg);
 /**
  * \brief Writes a short-address register.
  *
- * \param[in] reg the register to write
+ * \param reg the register to write
  *
- * \param[in] value the value to write
+ * \param value the value to write
  */
 void mrf_write_short(mrf_reg_short_t reg, uint8_t value);
 
 /**
  * \brief Reads a long-address register.
  *
- * \param[in] reg the register to read
+ * \param reg the register to read
  *
  * \return the register’s value
  */
@@ -180,9 +180,9 @@ uint8_t mrf_read_long(mrf_reg_long_t reg);
 /**
  * \brief Writes a long-address register.
  *
- * \param[in] reg the register to write
+ * \param reg the register to write
  *
- * \param[in] value the value to write
+ * \param value the value to write
  */
 void mrf_write_long(mrf_reg_long_t reg, uint8_t value);
 

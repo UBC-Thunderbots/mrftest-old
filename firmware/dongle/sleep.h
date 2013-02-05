@@ -18,14 +18,14 @@ void sleep_systick_overflows(unsigned long ticks);
 /**
  * \brief Sleeps for some number of milliseconds.
  *
- * \param[in] x the number of milliseconds to sleep
+ * \param x the number of milliseconds to sleep
  */
 #define sleep_ms(x) sleep_us((x) * 1000UL)
 
 /**
  * \brief Sleeps for some number of microseconds.
  *
- * \param[in] x the number of microseconds to sleep
+ * \param x the number of microseconds to sleep
  */
 #define sleep_us(x) sleep_systick_overflows((x))
 

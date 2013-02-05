@@ -12,9 +12,9 @@
 /**
  * \brief Formats a 4-bit nybble as a single hexadecimal digit.
  *
- * \param[in] dest the location at which to store the digit
+ * \param dest the location at which to store the digit
  *
- * \param[in] val the nybble to convert
+ * \param val the nybble to convert
  */
 void formathex4(char *dest, uint8_t val);
 

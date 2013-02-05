@@ -50,7 +50,7 @@ estop_t estop_read(void);
 /**
  * \brief Sets a callback that will be invoked every time the state of the emergency stop switch changes.
  *
- * \param[in] cb the callback to invoke on switch state change
+ * \param cb the callback to invoke on switch state change
  */
 void estop_set_change_callback(estop_change_callback_t cb);
 

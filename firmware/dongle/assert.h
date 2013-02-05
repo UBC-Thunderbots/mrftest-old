@@ -4,7 +4,7 @@
 /**
  * \brief Checks a condition and calls \ref abort if false.
  *
- * \param[in] cond the condition to check, which is not evaluated if the NDEBUG macro is defined
+ * \param cond the condition to check, which is not evaluated if the NDEBUG macro is defined
  */
 #ifdef NDEBUG
 #define assert(cond)

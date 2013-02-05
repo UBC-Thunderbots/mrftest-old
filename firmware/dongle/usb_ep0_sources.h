@@ -36,11 +36,11 @@ typedef struct {
 /**
  * \brief Sets up a memory block source.
  *
- * \param[in] source the source to configure, which must have storage allocated
+ * \param source the source to configure, which must have storage allocated
  *
- * \param[in] data the block of data to return
+ * \param data the block of data to return
  *
- * \param[in] length the length of \p data, in bytes
+ * \param length the length of \p data, in bytes
  *
  * \return the configured source pointer, ready to use
  */
@@ -76,9 +76,9 @@ typedef struct {
 /**
  * \brief Sets up a string descriptor generating source.
  *
- * \param[in] source the source to configure, which must have storage allocated
+ * \param source the source to configure, which must have storage allocated
  *
- * \param[in] string the string to transcode
+ * \param string the string to transcode
  *
  * \return the configured source pointer, ready to use
  */

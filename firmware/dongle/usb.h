@@ -80,7 +80,7 @@ void usb_process(void);
  *
  * \pre The device must not already be attached (corollary: this function cannot be invoked from a callback).
  *
- * \param[in] device_info the device information structure defining the device.
+ * \param device_info the device information structure defining the device.
  */
 void usb_attach(const usb_device_info_t *device_info);
 
@@ -111,18 +111,18 @@ void usb_detach(void);
 /**
  * \brief Attaches a callback to handle IN endpoint interrupts.
  *
- * \param[in] ep the endpoint number
+ * \param ep the endpoint number
  *
- * \param[in] cb the callback to register
+ * \param cb the callback to register
  */
 void usb_in_set_callback(unsigned int ep, void (*cb)(void));
 
 /**
  * \brief Attaches a callback to handle OUT endpoint receive FIFO patterns.
  *
- * \param[in] ep the endpoint number
+ * \param ep the endpoint number
  *
- * \param[in] cb the callback to register, which accepts the FIFO pattern
+ * \param cb the callback to register, which accepts the FIFO pattern
  */
 void usb_out_set_callback(unsigned int ep, void (*cb)(uint32_t));
 
@@ -167,9 +167,9 @@ typedef struct usb_gnak_request {
  * It is safe to call this function with a request structure that has already been queued; in this case, nothing happens.
  * However, the application can change which callback function will be invoked by doing this.
  *
- * \param[in] req the request structure identifying this request
+ * \param req the request structure identifying this request
  *
- * \param[in] cb the callback to invoke when global NAK becomes effective, which may be null to effectively cancel a queued request
+ * \param cb the callback to invoke when global NAK becomes effective, which may be null to effectively cancel a queued request
  */
 void usb_set_global_nak(usb_gnak_request_t *req, void (*cb)(void));
 
