@@ -231,7 +231,8 @@ static void push_mdrs(void) {
 	usb_bi_in_start_transfer(1, 2, 2, &push_mdrs, 0);
 
 	// Push the data for this transfer.
-	usb_bi_in_push_word(1, pkt->message_id | (pkt->delivery_status << 8));
+	usb_bi_in_push(1, &pkt->message_id, 1);
+	usb_bi_in_push(1, &pkt->delivery_status, 1);
 
 	// Push the consumed MDR packet buffer onto the free stack
 	pkt->next = reliable_out_free;
@@ -299,7 +300,7 @@ static void push_rx(void) {
 	usb_bi_in_start_transfer(2, packet->length, sizeof(packet->data), &push_rx, 0);
 
 	// Push the data for this transfer.
-	usb_bi_in_push_block(2, packet->data, packet->length);
+	usb_bi_in_push(2, packet->data, packet->length);
 
 	// Push this consumed packet buffer into the free list.
 	packet->next = in_free;
@@ -365,7 +366,8 @@ static void push_estop(void) {
 	usb_bi_in_start_transfer(3, 2, 2, &push_estop, 0);
 
 	// Push the data for this transfer.
-	usb_bi_in_push_word(3, current_value | (last_reported_estop_value << 8));
+	usb_bi_in_push(3, &current_value, 1);
+	usb_bi_in_push(3, &last_reported_estop_value, 1);
 
 	// Record the current value as the last reported.
 	last_reported_estop_value = current_value;

@@ -27,6 +27,17 @@
  * The logical/physical split also allows us to handle zero-length packets properly.
  * The USB engine requires that a ZLP be submitted as a separate physical transfer.
  * When the application submits a logical transfer that should end with a ZLP, we execute one extra physical transfer for the ZLP before considering the logical transfer to be complete.
+ *
+ *
+ *
+ * The USB engine also has two other limitations:
+ * 1. Except at the end of a packet, is only possible to push data into the transmit FIFO 4 bytes at a time.
+ * 2. Reading from OTG_FS_DTXFSTSn when part, but not all, of a packet has already been pushed to the transmit FIFO causes packet truncation on the bus resulting in I/O errors.
+ *
+ * Limitation #1 is addressed by keeping a subword buffer in the endpoint info structure to hold up to 3 bytes provided by the application but not yet pushed to the FIFO.
+ * This subword buffer is empty between packets, but may be nonempty when the application has only provided part of a packet so far.
+ *
+ * Limitation #2 is addressed by keeping track of how many bytes are left to push in the current packet and only checking for FIFO space at packet boundaries.
  */
 
 struct ep_info {
@@ -44,6 +55,16 @@ struct ep_info {
 
 	// The number of bytes left in the current physical transfer that have not been pushed into the FIFO yet.
 	size_t transfer_bytes_left_to_push;
+
+	// The number of bytes left in the current packet that have not been pushed into the FIFO yet.
+	size_t packet_bytes_left_to_push;
+
+	// Between zero and three bytes passed by the application but not yet pushed to the transmit FIFO because it must be written 4 bytes at a time.
+	// In this buffer, bytes are shifted in from the MSB.
+	uint32_t subword_buffer;
+
+	// The number of bytes in subword_buffer.
+	size_t subword_buffer_used;
 
 	// Whether or not a ZLP will be sent after all data-carrying physical transfers for the current logical transfer are completed.
 	bool zlp_pending;
@@ -80,6 +101,8 @@ static void start_physical_transfer(unsigned int ep) {
 	// Sanity check.
 	assert(ep_info[ep].state == USB_BI_IN_STATE_ACTIVE);
 	assert(ep_info[ep].transfer_bytes_left_to_enable || ep_info[ep].zlp_pending);
+	assert(!ep_info[ep].packet_bytes_left_to_push);
+	assert(!ep_info[ep].subword_buffer_used);
 
 	if (ep_info[ep].transfer_bytes_left_to_enable) {
 		// We have some bytes remaining in the logical transfer.
@@ -179,6 +202,8 @@ void usb_bi_in_init(unsigned int ep, size_t max_packet, usb_bi_in_ep_type_t type
 	ep_info[ep].eight_packet_workaround = usb_fifo_get_size(ep) > max_packet * 8;
 	ep_info[ep].transfer_bytes_left_to_enable = 0;
 	ep_info[ep].transfer_bytes_left_to_push = 0;
+	ep_info[ep].packet_bytes_left_to_push = 0;
+	ep_info[ep].subword_buffer_used = 0;
 	ep_info[ep].zlp_pending = false;
 	ep_info[ep].on_complete = 0;
 	ep_info[ep].on_space = 0;
@@ -280,6 +305,8 @@ void usb_bi_in_start_transfer(unsigned int ep, size_t length, size_t max_length,
 	// Record how much data is left.
 	ep_info[ep].transfer_bytes_left_to_enable = length;
 	ep_info[ep].transfer_bytes_left_to_push = 0;
+	ep_info[ep].packet_bytes_left_to_push = 0;
+	ep_info[ep].subword_buffer_used = 0;
 
 	// Mark the transfer as running.
 	ep_info[ep].state = USB_BI_IN_STATE_ACTIVE;
@@ -316,36 +343,7 @@ void usb_bi_in_abort_transfer(unsigned int ep) {
 	ep_info[ep].state = USB_BI_IN_STATE_IDLE;
 }
 
-bool usb_bi_in_push_word(unsigned int ep, uint32_t word) {
-	// Sanity check.
-	assert(ep);
-	assert(ep <= 3);
-	assert(ep_info[ep].state == USB_BI_IN_STATE_ACTIVE);
-	assert(ep_info[ep].transfer_bytes_left_to_push);
-
-	// Check for buffer space.
-	if (!INEPTFSAV_X(*OTG_FS_DTXFSTS[ep])) {
-		return false;
-	}
-
-	// Push the word.
-	OTG_FS_FIFO[ep][0] = word;
-
-	// Account.
-	if (ep_info[ep].transfer_bytes_left_to_push <= 4) {
-		ep_info[ep].transfer_bytes_left_to_push = 0;
-
-		// We are reaching the end of the current physical transfer.
-		// Do not take FIFO-space-available interrupts any more for this endpoint; the FIFO will drain until transfer complete.
-		OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << ep);
-	} else {
-		ep_info[ep].transfer_bytes_left_to_push -= 4;
-	}
-
-	return true;
-}
-
-size_t usb_bi_in_push_block(unsigned int ep, const void *data, size_t length) {
+size_t usb_bi_in_push(unsigned int ep, const void *data, size_t length) {
 	// Sanity check.
 	assert(ep);
 	assert(ep <= 3);
@@ -353,34 +351,70 @@ size_t usb_bi_in_push_block(unsigned int ep, const void *data, size_t length) {
 	assert(ep_info[ep].state == USB_BI_IN_STATE_ACTIVE);
 	assert(ep_info[ep].transfer_bytes_left_to_push);
 
-	// Get buffer space.
-	size_t buffer_space = INEPTFSAV_X(*OTG_FS_DTXFSTS[ep]) * 4;
-	if (!buffer_space) {
-		return 0;
-	}
-
-	// Compute how much data to push.
-	size_t to_push = MIN(length, MIN(buffer_space, ep_info[ep].transfer_bytes_left_to_push));
-
-	// Update accounting info.
-	ep_info[ep].transfer_bytes_left_to_push -= to_push;
-
-	// Push the data.
-	size_t words_to_push = (to_push + 3) / 4;
+	// Get a source pointer going.
 	const uint8_t *psrc = data;
-	while (words_to_push--) {
-		uint32_t word = psrc[0] | (psrc[1] << 8) | (psrc[2] << 16) | (psrc[3] << 24);
-		OTG_FS_FIFO[ep][0] = word;
-		psrc += 4;
-	}
 
-	// Check how much data is left to push on this physical transfer.
-	if (!ep_info[ep].transfer_bytes_left_to_push) {
-		// We are reaching the end of the current physical transfer.
-		// Do not take FIFO-space-available interrupts any more for this endpoint; the FIFO will drain until transfer complete.
-		OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << ep);
-	}
+	// Accumulate how much data we have consumed.
+	size_t ret = 0;
 
-	return to_push;
+	// Keep looping, trying to do something, until we run out of things to do.
+	for (;;) {
+		if (!length) {
+			// The application is not making any more data available to us.
+			// We can do nothing more.
+			return ret;
+		} else if (!ep_info[ep].transfer_bytes_left_to_push) {
+			// The current physical transfer is fully satisfied with data in the FIFO.
+			// Do not take FIFO-space-available interrupts any more for this endpoint; the FIFO will drain until transfer complete.
+			OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << ep);
+			// The application will have to try again later, after the transfer complete interrupt has been taken and a new physical transfer has started (if applicable).
+			// We can do nothing more.
+			return ret;
+		} else if (!ep_info[ep].packet_bytes_left_to_push) {
+			// We are not currently filling a packet, but we do need to add more packets to finish the current physical transfer.
+			// Because we are not in the middle of a packet, it is OK to read OTG_FS_DTXFSTS.
+			// We should do that now, to check if there is space in the FIFO for a whole packet.
+			size_t fifo_space = INEPTFSAV_X(*OTG_FS_DTXFSTS[ep]) * 4;
+			if (fifo_space < ep_info[ep].max_packet) {
+				// There isn’t enough FIFO space for a single packet.
+				// The application will have to try again later, probably in response to an on_space callback.
+				// Wait until a full packet’s worth of space is available instead.
+				// We can do nothing more.
+				return ret;
+			} else {
+				// There is enough FIFO space for a packet.
+				// Remember how much data is left to push in the current packet.
+				// Note that this might be a short packet; we must set the byte count properly to account for that.
+				ep_info[ep].packet_bytes_left_to_push = MIN(ep_info[ep].max_packet, ep_info[ep].transfer_bytes_left_to_push);
+			}
+		} else {
+			// We want to push some data.
+			// Keep going until we run out of either data to push or space in the current packet.
+			while (ep_info[ep].subword_buffer_used + length > 0 && ep_info[ep].packet_bytes_left_to_push) {
+				size_t to_push = MIN(4, ep_info[ep].packet_bytes_left_to_push);
+				if (ep_info[ep].subword_buffer_used == to_push) {
+					// We have accumulated enough bytes to satisfy either a full word OR the partial word at the end of the current packet and are ready to push that.
+					// Remember that the subword buffer is populated from the MSB, so for a partial word push it must be shifted down so the bytes to send are at the LSB.
+					OTG_FS_FIFO[ep][0] = ep_info[ep].subword_buffer >> (8 * (4 - to_push));
+					ep_info[ep].subword_buffer_used = 0;
+					ep_info[ep].transfer_bytes_left_to_push -= to_push;
+					ep_info[ep].packet_bytes_left_to_push -= to_push;
+				} else if (!length) {
+					// There is SOME data in the subword buffer, but not enough to finish the current (full or partial) word.
+					// We can’t add any data to the subword buffer, because there is no data left in the application buffer.
+					// We have data, but we don’t have enough data to push, so we should stop here.
+					return ret;
+				} else {
+					// We are not ready to push anything yet.
+					// Accumulate more data into the subword buffer.
+					ep_info[ep].subword_buffer = (ep_info[ep].subword_buffer >> 8) | (*psrc << 24);
+					++ep_info[ep].subword_buffer_used;
+					++psrc;
+					--length;
+					++ret;
+				}
+			}
+		}
+	}
 }
 

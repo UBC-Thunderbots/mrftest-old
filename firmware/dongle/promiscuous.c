@@ -76,7 +76,7 @@ static void push_data(void) {
 	usb_bi_in_start_transfer(1, packet->length, sizeof(packet->data), &push_data, 0);
 
 	// Push the data for this transfer.
-	usb_bi_in_push_block(1, packet->data, packet->length);
+	usb_bi_in_push(1, packet->data, packet->length);
 
 	// Push this consumed packet buffer into the free list.
 	packet->next = first_free_packet;

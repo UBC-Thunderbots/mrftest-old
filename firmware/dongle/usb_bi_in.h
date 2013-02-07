@@ -64,7 +64,7 @@ usb_bi_in_state_t usb_bi_in_get_state(unsigned int ep);
  * \brief Initializes an IN endpoint for bulk or interrupt operation.
  *
  * This is typically called when entering a configuration or switching interface alternate settings.
- * The application is expected to initialize the relevant transmit FIFO to the appropriate size and flush it before calling this function.
+ * The application is expected to initialize the relevant transmit FIFO to the appropriate size (at least large enough to hold two maximum-sized packets) and flush it before calling this function.
  * The FIFO should not be moved or resized until the endpoint is deinitialized, though if necessary it may be flushed as long as no transfer is running.
  *
  * \warning
@@ -154,7 +154,7 @@ void usb_bi_in_reset_pid(unsigned int ep);
  *
  * \param on_complete a callback to invoke when the transfer is complete; may be null if not needed; within this callback, no transfer is running so another transfer can be started
  *
- * \param on_space a callback to invoke when space is available in the transmit FIFO (see \ref usb_bi_in_push_block for details); may be null if not needed; if provided, this callback \em must push data into the transmit FIFO before returning
+ * \param on_space a callback to invoke when space is available in the transmit FIFO to hold another packet (see \ref usb_bi_in_push for details); may be null if not needed; if provided, this callback \em must push data into the transmit FIFO before returning
  */
 void usb_bi_in_start_transfer(unsigned int ep, size_t length, size_t max_length, void (*on_complete)(void), void (*on_space)(void));
 
@@ -173,24 +173,6 @@ void usb_bi_in_start_transfer(unsigned int ep, size_t length, size_t max_length,
 void usb_bi_in_abort_transfer(unsigned int ep);
 
 /**
- * \brief Pushes up to 32 bits of data into the transmit FIFO.
- *
- * If FIFO space is available, the amount of data actually pushed will be the lesser of 4 and the number of bytes left in the transfer.
- * It is not possible to push less than 4 bytes of data except at the end of a transfer.
- *
- * \pre The endpoint must be in \ref USB_BI_IN_STATE_ACTIVE.
- *
- * \pre The running transfer must not have had all its data pushed yet.
- *
- * \param ep the endpoint number, from 1 to 3
- *
- * \param data the data to push
- *
- * \return \c true if the data was accepted, or \c false if there was no FIFO space available
- */
-bool usb_bi_in_push_word(unsigned int ep, uint32_t data);
-
-/**
  * \brief Pushes a block of data into the transmit FIFO.
  *
  * This function returns the number of bytes actually consumed.
@@ -201,10 +183,11 @@ bool usb_bi_in_push_word(unsigned int ep, uint32_t data);
  * The application can then push the entire transfer’s worth of data immediately after starting the transfer, ignoring return values, and not provide an \p on_space callback to \ref usb_bi_in_start_transfer.
  *
  * Alternatively, if transfers may be large, the transmit FIFO cannot be made large enough to hold a whole transfer.
- * In this case, the application must check the return value from this function (or from \ref usb_bi_in_push_word) to detect when the transmit FIFO is full.
+ * In this case, the application must check the return value from this function to detect when the transmit FIFO is full.
  * Once a full FIFO is detected, the application can do other work.
  * When space is available in the FIFO for more data, the \p on_space callback passed to \ref usb_bi_in_start_transfer is invoked.
  * In that callback, the application pushes more data into the transmit FIFO.
+ * Note that in this case, the application need not actually push \em any data immediately after starting the transfer; it can instead simply wait for \p on_space to be called before pushing the initial data.
  *
  * \pre The endpoint must be in \ref USB_BI_IN_STATE_ACTIVE.
  *
@@ -218,7 +201,7 @@ bool usb_bi_in_push_word(unsigned int ep, uint32_t data);
  *
  * \return the number of bytes actually consumed
  */
-size_t usb_bi_in_push_block(unsigned int ep, const void *data, size_t length);
+size_t usb_bi_in_push(unsigned int ep, const void *data, size_t length);
 
 #endif
 

@@ -68,7 +68,7 @@ static void push_int_notify(void) {
 	usb_bi_in_start_transfer(1, 1, 1, &push_int_notify, 0);
 
 	// Push the data for this transfer.
-	usb_bi_in_push_word(1, value);
+	usb_bi_in_push(1, &value, 1);
 }
 
 static void exti12_interrupt_vector(void) {
