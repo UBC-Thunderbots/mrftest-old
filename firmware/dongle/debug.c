@@ -38,7 +38,7 @@ const uint8_t CONFIGURATION_DESCRIPTOR6[] = {
 	0x03, // bmAttributes
 	1, // wMaxPacketSize LSB
 	0, // wMaxPacketSize MSB
-	1, // bInterval
+	10, // bInterval
 };
 
 static uint64_t int_buffer;
