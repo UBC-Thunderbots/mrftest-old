@@ -67,10 +67,10 @@ const uint8_t CONFIGURATION_DESCRIPTOR2[] = {
 	7, // bLength
 	5, // bDescriptorType
 	0x81, // bEndpointAddress
-	0x03, // bmAttributes
-	2, // wMaxPacketSize LSB
+	0x02, // bmAttributes
+	8, // wMaxPacketSize LSB
 	0, // wMaxPacketSize MSB
-	5, // bInterval
+	0, // bInterval
 
 	7, // bLength
 	5, // bDescriptorType
@@ -865,7 +865,7 @@ static void on_enter(void) {
 	// Set up endpoint 1 IN with a 64-byte FIFO, large enough for any transfer (thus we never need to use the on_space callback).
 	usb_fifo_set_size(1, 64);
 	usb_fifo_flush(1);
-	usb_bi_in_init(1, 2, USB_BI_IN_EP_TYPE_INTERRUPT);
+	usb_bi_in_init(1, 8, USB_BI_IN_EP_TYPE_BULK);
 
 	// Set up endpoint 2 IN with a 256-byte FIFO, large enough for any transfer (thus we never need to use the on_space callback).
 	usb_fifo_set_size(2, 256);

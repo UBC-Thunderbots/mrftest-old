@@ -473,3 +473,21 @@ USB::InterruptOutTransfer::InterruptOutTransfer(DeviceHandle &dev, unsigned char
 	std::memcpy(transfer->buffer, data, len);
 }
 
+
+
+USB::BulkInTransfer::BulkInTransfer(DeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout) : Transfer(dev) {
+	assert((endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK) == endpoint);
+	libusb_fill_bulk_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_IN, new unsigned char[len], static_cast<int>(len), &Transfer::handle_completed_transfer_trampoline, transfer->user_data, timeout);
+	if (exact_len) {
+		transfer->flags |= LIBUSB_TRANSFER_SHORT_NOT_OK;
+	}
+}
+
+
+
+USB::BulkOutTransfer::BulkOutTransfer(DeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout) : Transfer(dev) {
+	assert((endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK) == endpoint);
+	libusb_fill_bulk_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_OUT, new unsigned char[len], static_cast<int>(len), &Transfer::handle_completed_transfer_trampoline, transfer->user_data, timeout);
+	std::memcpy(transfer->buffer, data, len);
+}
+

@@ -175,6 +175,8 @@ namespace USB {
 			friend class Transfer;
 			friend class InterruptOutTransfer;
 			friend class InterruptInTransfer;
+			friend class BulkOutTransfer;
+			friend class BulkInTransfer;
 
 			libusb_context *context;
 			libusb_device_handle *handle;
@@ -226,6 +228,32 @@ namespace USB {
 	class InterruptOutTransfer : public Transfer {
 		public:
 			InterruptOutTransfer(DeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout);
+	};
+
+	/**
+	 * \brief A libusb inbound bulk transfer
+	 */
+	class BulkInTransfer : public Transfer {
+		public:
+			BulkInTransfer(DeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout);
+
+			const uint8_t *data() const {
+				assert(done_);
+				return transfer->buffer;
+			}
+
+			std::size_t size() const {
+				assert(done_);
+				return static_cast<std::size_t>(transfer->actual_length);
+			}
+	};
+
+	/**
+	 * \brief A libusb outbound bulk transfer
+	 */
+	class BulkOutTransfer : public Transfer {
+		public:
+			BulkOutTransfer(DeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout);
 	};
 }
 
