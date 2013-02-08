@@ -1,10 +1,8 @@
-HOSTCC := $(CC)
 ABI := arm-linux-gnueabi
 CC := $(ABI)-gcc
 LD := $(ABI)-ld
 OBJCOPY := $(ABI)-objcopy
 PROJ := dongle
-override HOSTCFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -march=native -g
 override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -mlittle-endian -mthumb -mcpu=cortex-m3 -nostdinc -nostdlib -g -fno-common -ffunction-sections -fdata-sections
 override LDFLAGS := $(LDFLAGS) -Tstm32f405.ld --gc-sections
 
@@ -25,10 +23,6 @@ $(FW_OBJS) : $(FW_HEADERS) Makefile
 $(FW_OBJS) : %.o : %.c
 	@echo " CC        $@"
 	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $<
-
-enter-dfu-mode : % : %.c
-	@echo " HOSTCC    $@"
-	@$(HOSTCC) $(CPPFLAGS) $(HOSTCFLAGS) $(shell pkg-config --cflags --libs-only-other --libs-only-L libusb-1.0) -o $@ $< $(shell pkg-config --libs-only-l libusb-1.0)
 
 .PHONY : clean
 clean :
