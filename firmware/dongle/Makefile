@@ -36,12 +36,9 @@ clean :
 	$(RM) -r html
 
 .PHONY : dfu
-dfu : $(PROJ).bin enter-dfu-mode
-	@echo " ENTER-DFU-MODE"
-	-@./enter-dfu-mode C057 2579
-	@sleep 1
-	@echo " DFU-UTIL"
-	@dfu-util -d 0483:DF11 -c 1 -i 0 -a 0 -D $< -s 0x08000000:leave
+dfu : $(PROJ).bin
+	@echo " DFU-UTIL  $<"
+	@dfu-util -d 0483 -c 1 -i 0 -a 0 -D $< -s 0x08000000:leave
 
 .PHONY : doc
 doc :

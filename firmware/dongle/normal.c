@@ -12,6 +12,7 @@
 #include "stddef.h"
 #include "stdint.h"
 #include "string.h"
+#include "unused.h"
 #include "usb.h"
 #include "usb_bi_in.h"
 #include "usb_bi_out.h"
@@ -938,7 +939,7 @@ static void on_exit(void) {
 	mrf_init();
 }
 
-static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length __attribute__((unused)), usb_ep0_source_t **source) {
+static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length __attribute__((unused)), usb_ep0_source_t **source, usb_ep0_poststatus_callback_t *UNUSED(poststatus)) {
 	static usb_ep0_memory_source_t mem_src;
 
 	if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_CHANNEL && !value && !index) {

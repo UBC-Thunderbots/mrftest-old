@@ -7,15 +7,7 @@
 #include "sleep.h"
 #include "stdbool.h"
 
-typedef enum {
-	DEVICE_STATE_DETACHED,
-	DEVICE_STATE_POWERED,
-	DEVICE_STATE_ENUMERATING,
-	DEVICE_STATE_ACTIVE,
-	DEVICE_STATE_DETACHING,
-} device_state_t;
-
-static device_state_t device_state = DEVICE_STATE_DETACHED;
+static usb_device_state_t device_state = USB_DEVICE_STATE_DETACHED;
 static usb_gnak_request_t *gnak_requests_head = 0, *gnak_requests_tail = 0;
 static bool gonak_requested = false, ginak_requested = false;
 const usb_device_info_t *usb_device_info = 0;
@@ -35,17 +27,17 @@ static void handle_reset(void) {
 
 static void handle_reset_gnak(void) {
 	// Sanity check.
-	assert(device_state != DEVICE_STATE_DETACHED);
+	assert(device_state != USB_DEVICE_STATE_DETACHED);
 
 	// It’s possible a reset could have happened while the device was already connected. Handle it.
-	if (device_state == DEVICE_STATE_ACTIVE) {
+	if (device_state == USB_DEVICE_STATE_ACTIVE) {
 		usb_ep0_deinit();
 		OTG_FS_GINTMSK = USBRSTM | GONAKEFFM | GINAKEFFM | RXFLVLM | OTGINT;
 		OTG_FS_GINTSTS = OTG_FS_GINTSTS & ~ENUMDNE;
 	}
 
 	// Update state.
-	device_state = DEVICE_STATE_ENUMERATING;
+	device_state = USB_DEVICE_STATE_ENUMERATING;
 
 	// Enable enumeration complete and reset interrupts only, and clear any pending interrupts.
 	OTG_FS_DIEPMSK = 0;
@@ -74,7 +66,7 @@ static void handle_reset_gnak(void) {
 
 static void handle_enumeration_done(void) {
 	// Update state.
-	device_state = DEVICE_STATE_ACTIVE;
+	device_state = USB_DEVICE_STATE_ACTIVE;
 
 	// Enable interrupts on IN transfer complete and receive FIFO non-empty.
 	OTG_FS_DIEPMSK |= XFRCM;
@@ -142,6 +134,10 @@ static void handle_gnak_effective(void) {
 		// We want to be notified of any other global NAK effectivenesses occurring later.
 		OTG_FS_GINTMSK |= GONAKEFFM | GINAKEFFM;
 	}
+}
+
+usb_device_state_t usb_get_device_state(void) {
+	return device_state;
 }
 
 void usb_set_global_nak(usb_gnak_request_t *req, void (*cb)(void)) {
@@ -247,10 +243,10 @@ void usb_process(void) {
 }
 
 void usb_attach(const usb_device_info_t *info) {
-	assert(device_state == DEVICE_STATE_DETACHED);
+	assert(device_state == USB_DEVICE_STATE_DETACHED);
 
 	// Initialize variables.
-	device_state = DEVICE_STATE_POWERED;
+	device_state = USB_DEVICE_STATE_POWERED;
 	usb_device_info = info;
 	gonak_requested = false;
 	ginak_requested = false;
@@ -329,7 +325,7 @@ void usb_attach(const usb_device_info_t *info) {
 }
 
 static void usb_detach_impl(void) {
-	if (device_state == DEVICE_STATE_DETACHING) {
+	if (device_state == USB_DEVICE_STATE_DETACHING) {
 		usb_ep0_deinit();
 	}
 
@@ -337,13 +333,13 @@ static void usb_detach_impl(void) {
 	OTG_FS_GAHBCFG &= ~GINTMSK; // Disable USB interrupts globally
 	OTG_FS_GCCFG &= ~PWRDWN; // Transceiver inactive
 	rcc_disable(AHB2, 7); // Power down the module
-	device_state = DEVICE_STATE_DETACHED;
+	device_state = USB_DEVICE_STATE_DETACHED;
 }
 
 void usb_detach(void) {
-	if (device_state == DEVICE_STATE_ACTIVE) {
+	if (device_state == USB_DEVICE_STATE_ACTIVE) {
 		static usb_gnak_request_t gnak_req = USB_GNAK_REQUEST_INIT;
-		device_state = DEVICE_STATE_DETACHING;
+		device_state = USB_DEVICE_STATE_DETACHING;
 		usb_set_global_nak(&gnak_req, &usb_detach_impl);
 	} else {
 		usb_detach_impl();

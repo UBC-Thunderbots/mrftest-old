@@ -37,7 +37,6 @@ firmware/dongle/config.h -text
 firmware/dongle/configs.h -text
 firmware/dongle/constants.h -text
 firmware/dongle/debug.c -text
-firmware/dongle/enter-dfu-mode.c -text
 firmware/dongle/estop.c -text
 firmware/dongle/estop.h -text
 firmware/dongle/exti.c -text

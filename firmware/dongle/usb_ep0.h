@@ -129,6 +129,11 @@ typedef struct {
 } usb_ep0_source_t;
 
 /**
+ * \brief The type of a callback that can be invoked after the status stage of a control transfer is complete, if the application requires notification at such a time.
+ */
+typedef void (*usb_ep0_poststatus_callback_t)(void);
+
+/**
  * \brief A set of callbacks to handle device-wide activities.
  */
 typedef struct {
@@ -153,9 +158,11 @@ typedef struct {
 	 *
 	 * \param[out] accept \c true to accept the request, or \c false to return a STALL handshake
 	 *
+	 * \param[out] poststatus a poststatus callback, in the case of an accepted request, which will be invoked when the status stage is complete
+	 *
 	 * \return \c true if the application handles the request and demands a response per the \p accept parameter, or \c false to let the stack handle the request
 	 */
-	bool (*on_zero_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept);
+	bool (*on_zero_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept, usb_ep0_poststatus_callback_t *poststatus);
 
 	/**
 	 * \brief Allows the application to override handling of any control request with an IN data stage.
@@ -180,9 +187,11 @@ typedef struct {
 	 *
 	 * \param[out] source set to a source by the application to accept the request and return the sourced data, or to null to stall the request
 	 *
+	 * \param[out] poststatus a poststatus callback, in the case of an accepted request, which will be invoked when the status stage is complete
+	 *
 	 * \return \c true if the application handles the request and demands a response per the \p source parameter, or \c false to let the stack handle the request
 	 */
-	bool (*on_in_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, usb_ep0_source_t **source);
+	bool (*on_in_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, usb_ep0_source_t **source, usb_ep0_poststatus_callback_t *poststatus);
 
 	/**
 	 * \brief Allows the application to override handling of any control request with an OUT data stage.
@@ -210,9 +219,11 @@ typedef struct {
 	 * \param[out] cb set to a callback by the application if it must be notified after the data stage completes to consume the data;
 	 * the callback may return \c true to issue a successful status stage, or \c false to stall the status stage
 	 *
+	 * \param[out] poststatus a poststatus callback, in the case of an accepted request, which will be invoked when the status stage is complete
+	 *
 	 * \return \c true if the application handles the request and demands a response per the \p dest parameter, or \c false to let the stack handle the request
 	 */
-	bool (*on_out_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, void **dest, bool (**cb)(void));
+	bool (*on_out_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, void **dest, bool (**cb)(void), usb_ep0_poststatus_callback_t *poststatus);
 
 	/**
 	 * \brief Handles a request for a descriptor.
@@ -346,9 +357,11 @@ typedef struct {
 	 *
 	 * \param[out] accept \c true to accept the request, or \c false to return a STALL handshake
 	 *
+	 * \param[out] poststatus a poststatus callback, in the case of an accepted request, which will be invoked when the status stage is complete
+	 *
 	 * \return \c true if the application handles the request and demands a response per the \p accept parameter, or \c false to let the stack handle the request
 	 */
-	bool (*on_zero_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept);
+	bool (*on_zero_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept, usb_ep0_poststatus_callback_t *poststatus);
 
 	/**
 	 * \brief Allows the application to override handling of any control request with an IN data stage.
@@ -375,9 +388,11 @@ typedef struct {
 	 *
 	 * \param[out] source set to a source by the application to accept the request and return the sourced data, or to null to stall the request
 	 *
+	 * \param[out] poststatus a poststatus callback, in the case of an accepted request, which will be invoked when the status stage is complete
+	 *
 	 * \return \c true if the application handles the request and demands a response per the \p source parameter, or \c false to let the stack handle the request
 	 */
-	bool (*on_in_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, usb_ep0_source_t **source);
+	bool (*on_in_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, usb_ep0_source_t **source, usb_ep0_poststatus_callback_t *poststatus);
 
 	/**
 	 * \brief Allows the application to override handling of any control request with an OUT data stage.
@@ -407,9 +422,11 @@ typedef struct {
 	 * \param[out] cb set to a callback by the application if it must be notified after the data stage completes to consume the data;
 	 * the callback may return \c true to issue a successful status stage, or \c false to stall the status stage
 	 *
+	 * \param[out] poststatus a poststatus callback, in the case of an accepted request, which will be invoked when the status stage is complete
+	 *
 	 * \return \c true if the application handles the request and demands a response per the \p dest parameter, or \c false to let the stack handle the request
 	 */
-	bool (*on_out_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, void **dest, bool (**cb)(void));
+	bool (*on_out_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, void **dest, bool (**cb)(void), usb_ep0_poststatus_callback_t *poststatus);
 } usb_ep0_configuration_callbacks_t;
 
 /**

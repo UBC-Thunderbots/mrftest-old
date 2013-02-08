@@ -81,7 +81,7 @@ MRFDongle::SendReliableMessageOperation::ClearChannelError::ClearChannelError() 
 
 
 
-MRFDongle::MRFDongle() : context(), device(context, 0xC057, 0x2579), mdr_transfer(device, 1, 2, true, 0), message_transfer(device, 2, 103, false, 0), status_transfer(device, 3, 2, true, 0), drive_dirty(false) {
+MRFDongle::MRFDongle() : context(), device(context, 0x0483, 0x497C), mdr_transfer(device, 1, 2, true, 0), message_transfer(device, 2, 103, false, 0), status_transfer(device, 3, 2, true, 0), drive_dirty(false) {
 	for (unsigned int i = 0; i < 8; ++i) {
 		robots[i].reset(new MRFRobot(*this, i));
 	}

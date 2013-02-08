@@ -22,6 +22,24 @@
  */
 
 /**
+ * \brief The possible states a device can be in.
+ */
+typedef enum {
+	USB_DEVICE_STATE_DETACHED,
+	USB_DEVICE_STATE_POWERED,
+	USB_DEVICE_STATE_ENUMERATING,
+	USB_DEVICE_STATE_ACTIVE,
+	USB_DEVICE_STATE_DETACHING,
+} usb_device_state_t;
+
+/**
+ * \brief Returns the device’s current state.
+ *
+ * \return the current state
+ */
+usb_device_state_t usb_get_device_state(void);
+
+/**
  * \brief A collection of information about the device.
  */
 typedef struct {

@@ -55,7 +55,7 @@ namespace {
 		std::cout << "Addressing dongle… ";
 		std::cout.flush();
 		USB::Context ctx;
-		USB::DeviceHandle devh(ctx, 0xC057, 0x2579, dongle_serial);
+		USB::DeviceHandle devh(ctx, 0x0483, 0x497C, dongle_serial);
 		std::cout << "OK\n";
 
 		// Set configuration 1 to enter parameters

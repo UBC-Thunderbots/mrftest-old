@@ -13,6 +13,8 @@ static usb_ep0_source_t *data_source = 0;
 static uint8_t *data_sink = 0;
 static size_t data_requested = 0;
 static bool (*out_complete_callback)(void) = 0;
+static bool in_is_status = false;
+static usb_ep0_poststatus_callback_t poststatus = 0;
 static uint8_t current_configuration = 0;
 static const usb_ep0_configuration_callbacks_t *current_configuration_callbacks = 0;
 
@@ -117,32 +119,34 @@ static void handle_setup_stage_done(void) {
 	data_source = 0;
 	data_sink = 0;
 	out_complete_callback = 0;
+	in_is_status = false;
+	poststatus = 0;
 	if (data_requested) {
 		if (request_type & 0x80) {
 			if (!application_handled && global_callbacks->on_in_request) {
-				application_handled = global_callbacks->on_in_request(request_type, request, value, index, data_requested, &data_source);
+				application_handled = global_callbacks->on_in_request(request_type, request, value, index, data_requested, &data_source, &poststatus);
 			}
 			if (!application_handled && current_configuration_callbacks && current_configuration_callbacks->on_in_request) {
-				application_handled = current_configuration_callbacks->on_in_request(request_type, request, value, index, data_requested, &data_source);
+				application_handled = current_configuration_callbacks->on_in_request(request_type, request, value, index, data_requested, &data_source, &poststatus);
 			}
 			ok = !!data_source;
 		} else {
 			void *pdest = 0;
 			if (!application_handled && current_configuration_callbacks && current_configuration_callbacks->on_out_request) {
-				application_handled = current_configuration_callbacks->on_out_request(request_type, request, value, index, data_requested, &pdest, &out_complete_callback);
+				application_handled = current_configuration_callbacks->on_out_request(request_type, request, value, index, data_requested, &pdest, &out_complete_callback, &poststatus);
 			}
 			if (!application_handled && global_callbacks->on_out_request) {
-				application_handled = global_callbacks->on_out_request(request_type, request, value, index, data_requested, &pdest, &out_complete_callback);
+				application_handled = global_callbacks->on_out_request(request_type, request, value, index, data_requested, &pdest, &out_complete_callback, &poststatus);
 			}
 			data_sink = pdest;
 			ok = !!pdest;
 		}
 	} else {
 		if (!application_handled && current_configuration_callbacks && current_configuration_callbacks->on_zero_request) {
-			application_handled = current_configuration_callbacks->on_zero_request(request_type, request, value, index, &ok);
+			application_handled = current_configuration_callbacks->on_zero_request(request_type, request, value, index, &ok, &poststatus);
 		}
 		if (!application_handled && global_callbacks->on_zero_request) {
-			application_handled = global_callbacks->on_zero_request(request_type, request, value, index, &ok);
+			application_handled = global_callbacks->on_zero_request(request_type, request, value, index, &ok, &poststatus);
 		}
 	}
 	if (!application_handled) {
@@ -150,6 +154,7 @@ static void handle_setup_stage_done(void) {
 		data_source = 0;
 		data_sink = 0;
 		out_complete_callback = 0;
+		poststatus = 0;
 	}
 
 	// If the application didn’t handle the packet, examine it and try to find out what to do with it.
@@ -321,6 +326,7 @@ static void handle_setup_stage_done(void) {
 		OTG_FS_DOEPCTL0 |= CNAK; // Stop NAKing packets.
 	} else {
 		// The next thing to set up is a status stage comprising an IN data transaction.
+		in_is_status = true;
 		OTG_FS_DIEPTSIZ0 = PKTCNT(1) // Transmit one packet.
 			| XFRSIZ(0); // Transmit 0 bytes in the whole transfer.
 		OTG_FS_DIEPCTL0 &= ~DIEPCTL_STALL; // Stop stalling transactions on this endpoint.
@@ -359,6 +365,7 @@ void usb_ep0_handle_receive(unsigned int UNUSED(ep), uint32_t status_word) {
 					}
 					if (ok) {
 						// Set up an IN status stage.
+						in_is_status = true;
 						OTG_FS_DIEPTSIZ0 = PKTCNT(1) // Transmit one packet.
 							| XFRSIZ(0); // Transmit 0 bytes in the whole transfer.
 						OTG_FS_DIEPCTL0 &= ~DIEPCTL_STALL; // Stop stalling transactions on this endpoint.
@@ -384,7 +391,10 @@ void usb_ep0_handle_receive(unsigned int UNUSED(ep), uint32_t status_word) {
 				}
 			} else {
 				// This is part of an OUT status stage.
-				// Nothing to do here.
+				if (poststatus) {
+					poststatus();
+					poststatus = 0;
+				}
 			}
 			break;
 
@@ -413,7 +423,15 @@ void usb_ep0_handle_receive(unsigned int UNUSED(ep), uint32_t status_word) {
 }
 
 static void on_in_transaction_complete(void) {
-	push_transaction();
+	if (in_is_status) {
+		if (poststatus) {
+			poststatus();
+			poststatus = 0;
+			in_is_status = false;
+		}
+	} else {
+		push_transaction();
+	}
 }
 
 static void on_in_endpoint_event(unsigned int UNUSED(ep)) {

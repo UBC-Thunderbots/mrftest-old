@@ -99,26 +99,22 @@ static void system_tick_vector(void) {
 	for (;;);
 }
 
-static volatile uint64_t bootload_flag;
+volatile uint64_t bootload_flag;
 
-static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept) {
+static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept, usb_ep0_poststatus_callback_t *UNUSED(poststatus)) {
 	if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_BEEP && !index) {
 		buzzer_start(value);
 		*accept = true;
 		return true;
-	} else if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_ENTER_BOOTLOADER && !value && !index && usb_ep0_get_configuration() == 0) {
-		bootload_flag = UINT64_C(0xDEADBEEFCAFEBABE);
-		SCS_AIRCR = VECTKEY(0x05FA) | SYSRESETREQ;
-		for (;;);
 	}
 	return false;
 }
 
-static bool on_in_request(uint8_t UNUSED(request_type), uint8_t UNUSED(request), uint16_t UNUSED(value), uint16_t UNUSED(index), uint16_t UNUSED(length), usb_ep0_source_t **UNUSED(source)) {
+static bool on_in_request(uint8_t UNUSED(request_type), uint8_t UNUSED(request), uint16_t UNUSED(value), uint16_t UNUSED(index), uint16_t UNUSED(length), usb_ep0_source_t **UNUSED(source), usb_ep0_poststatus_callback_t *UNUSED(poststatus)) {
 	return false;
 }
 
-static bool on_out_request(uint8_t UNUSED(request_type), uint8_t UNUSED(request), uint16_t UNUSED(value), uint16_t UNUSED(index), uint16_t UNUSED(length), void **UNUSED(dest), bool (**UNUSED_cb)(void) __attribute__((unused))) {
+static bool on_out_request(uint8_t UNUSED(request_type), uint8_t UNUSED(request), uint16_t UNUSED(value), uint16_t UNUSED(index), uint16_t UNUSED(length), void **UNUSED(dest), bool (**UNUSED_cb)(void) __attribute__((unused)), usb_ep0_poststatus_callback_t *UNUSED(poststatus)) {
 	return false;
 }
 
@@ -131,10 +127,10 @@ static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	0, // bDeviceSubClass
 	0, // bDeviceProtocol
 	8, // bMaxPacketSize0
-	0x57, // idVendor LSB
-	0xC0, // idVendor MSB
-	0x79, // idProduct LSB
-	0x25, // idProduct MSB
+	0x83, // idVendor LSB
+	0x04, // idVendor MSB
+	0x7C, // idProduct LSB
+	0x49, // idProduct MSB
 	0, // bcdDevice LSB
 	1, // bcdDevice MSB
 	STRING_INDEX_MANUFACTURER, // iManufacturer
@@ -232,7 +228,7 @@ static usb_ep0_source_t *on_descriptor_request(uint8_t descriptor_type, uint8_t 
 			switch (descriptor_index) {
 				case STRING_INDEX_MANUFACTURER: string = u8"UBC Thunderbots Small Size Team"; break;
 				case STRING_INDEX_PRODUCT: string = u8"Radio Base Station"; break;
-				case STRING_INDEX_CONFIG1: string = u8"Radio Sleep"; break;
+				case STRING_INDEX_CONFIG1: string = u8"Radio Sleep/Pre-DFU"; break;
 				case STRING_INDEX_CONFIG2: string = u8"Normal Operation"; break;
 				case STRING_INDEX_CONFIG3: string = u8"Promiscuous Mode"; break;
 				case STRING_INDEX_CONFIG4: string = u8"Packet Generator"; break;
@@ -531,7 +527,10 @@ static void stm32_main(void) {
 	NVIC_ISER[67 / 32] = 1 << (67 % 32); // SETENA67 = 1; enable USB FS interrupt
 
 	// Handle activity.
-	for (;;) {
-	}
+	while (usb_get_device_state() != USB_DEVICE_STATE_DETACHED);
+
+	// Reboot.
+	SCS_AIRCR = VECTKEY(0x05FA) | SYSRESETREQ;
+	for (;;);
 }
 
