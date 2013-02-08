@@ -13,7 +13,7 @@ void usb_fifo_rx_flush(void);
 
 void usb_ep0_init(void);
 void usb_ep0_deinit(void);
-void usb_ep0_handle_receive(uint32_t status_word);
+void usb_ep0_handle_receive(unsigned int ep, uint32_t status_word);
 
 #endif
 

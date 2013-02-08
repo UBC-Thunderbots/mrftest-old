@@ -109,13 +109,29 @@ void usb_detach(void);
  */
 
 /**
+ * \brief The type of a callback that handles IN endpoint interrupts.
+ *
+ * \param ep the endpoint number
+ */
+typedef void (*usb_in_callback_t)(unsigned int ep);
+
+/**
  * \brief Attaches a callback to handle IN endpoint interrupts.
  *
  * \param ep the endpoint number
  *
  * \param cb the callback to register
  */
-void usb_in_set_callback(unsigned int ep, void (*cb)(void));
+void usb_in_set_callback(unsigned int ep, usb_in_callback_t cb);
+
+/**
+ * \brief The type of a callback that handles OUT endpoint patterns.
+ *
+ * \param ep the endpoint number
+ *
+ * \param pattern the pattern to handle
+ */
+typedef void (*usb_out_callback_t)(unsigned int ep, uint32_t pattern);
 
 /**
  * \brief Attaches a callback to handle OUT endpoint receive FIFO patterns.
@@ -124,7 +140,7 @@ void usb_in_set_callback(unsigned int ep, void (*cb)(void));
  *
  * \param cb the callback to register, which accepts the FIFO pattern
  */
-void usb_out_set_callback(unsigned int ep, void (*cb)(uint32_t));
+void usb_out_set_callback(unsigned int ep, usb_out_callback_t cb);
 
 /**
  * @}

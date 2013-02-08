@@ -19,8 +19,8 @@ static device_state_t device_state = DEVICE_STATE_DETACHED;
 static usb_gnak_request_t *gnak_requests_head = 0, *gnak_requests_tail = 0;
 static bool gonak_requested = false, ginak_requested = false;
 const usb_device_info_t *usb_device_info = 0;
-static void (*(in_endpoint_callbacks[4]))(void) = { 0, 0, 0, 0 };
-static void (*(out_endpoint_callbacks[4]))(uint32_t) = { &usb_ep0_handle_receive, 0, 0, 0 };
+static usb_in_callback_t in_endpoint_callbacks[4] = { 0, 0, 0, 0 };
+static usb_out_callback_t out_endpoint_callbacks[4] = { 0, 0, 0, 0 };
 
 static void handle_reset_gnak(void);
 
@@ -182,9 +182,9 @@ static void handle_receive_fifo_nonempty(void) {
 		// The pattern just serves to serialize the OUT NAK effectiveness with received data packets.
 	} else {
 		// This is an endpoint-specific pattern.
-		uint8_t endpoint = GRXSTSP_EPNUM_X(status_word);
+		unsigned int endpoint = GRXSTSP_EPNUM_X(status_word);
 		if (out_endpoint_callbacks[endpoint]) {
-			out_endpoint_callbacks[endpoint](status_word);
+			out_endpoint_callbacks[endpoint](endpoint, status_word);
 		}
 	}
 }
@@ -194,7 +194,7 @@ static void handle_in_endpoint(void) {
 	uint32_t daint = OTG_FS_DAINT;
 	for (unsigned int i = 0; i < 4; ++i) {
 		if (DAINT_IEPINT_X(daint) & (1 << i)) {
-			in_endpoint_callbacks[i]();
+			in_endpoint_callbacks[i](i);
 			return;
 		}
 	}
@@ -350,11 +350,11 @@ void usb_detach(void) {
 	}
 }
 
-void usb_in_set_callback(unsigned int ep, void (*cb)(void)) {
+void usb_in_set_callback(unsigned int ep, usb_in_callback_t cb) {
 	in_endpoint_callbacks[ep] = cb;
 }
 
-void usb_out_set_callback(unsigned int ep, void (*cb)(uint32_t)) {
+void usb_out_set_callback(unsigned int ep, usb_out_callback_t cb) {
 	out_endpoint_callbacks[ep] = cb;
 }
 

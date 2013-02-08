@@ -53,11 +53,6 @@ static volatile uint32_t * const OTG_FS_DOEPCTL[] = { &OTG_FS_DOEPCTL0, &OTG_FS_
 static volatile uint32_t * const OTG_FS_DOEPINT[] = { &OTG_FS_DOEPINT0, &OTG_FS_DOEPINT1, &OTG_FS_DOEPINT2, &OTG_FS_DOEPINT3 };
 static volatile uint32_t * const OTG_FS_DOEPTSIZ[] = { &OTG_FS_DOEPTSIZ0, &OTG_FS_DOEPTSIZ1, &OTG_FS_DOEPTSIZ2, &OTG_FS_DOEPTSIZ3 };
 
-static void handle_ep1_pattern(uint32_t);
-static void handle_ep2_pattern(uint32_t);
-static void handle_ep3_pattern(uint32_t);
-static void (*const PATTERN_TRAMPOLINES[])(uint32_t) = { 0, &handle_ep1_pattern, &handle_ep2_pattern, &handle_ep3_pattern };
-
 static struct ep_info ep_info[4] = {
 	{ .state = USB_BI_OUT_STATE_UNINITIALIZED },
 	{ .state = USB_BI_OUT_STATE_UNINITIALIZED },
@@ -135,18 +130,6 @@ static void handle_ep_pattern(unsigned int ep, uint32_t pattern) {
 	}
 }
 
-static void handle_ep1_pattern(uint32_t pattern) {
-	handle_ep_pattern(1, pattern);
-}
-
-static void handle_ep2_pattern(uint32_t pattern) {
-	handle_ep_pattern(2, pattern);
-}
-
-static void handle_ep3_pattern(uint32_t pattern) {
-	handle_ep_pattern(3, pattern);
-}
-
 usb_bi_out_state_t usb_bi_out_get_state(unsigned int ep) {
 	assert(ep);
 	assert(ep <= 3);
@@ -178,7 +161,7 @@ void usb_bi_out_init(unsigned int ep, size_t max_packet, usb_bi_out_ep_type_t ty
 	while (!(*OTG_FS_DOEPCTL[ep] & NAKSTS));
 
 	// Register a callback to handle endpoint patterns for this endpoint.
-	usb_out_set_callback(ep, PATTERN_TRAMPOLINES[ep]);
+	usb_out_set_callback(ep, &handle_ep_pattern);
 }
 
 void usb_bi_out_deinit(unsigned int ep) {

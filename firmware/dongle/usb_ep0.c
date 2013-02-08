@@ -1,5 +1,6 @@
 #include "usb_ep0.h"
 #include "registers.h"
+#include "unused.h"
 #include "usb.h"
 #include "usb_ep0_sources.h"
 #include "usb_internal.h"
@@ -332,7 +333,7 @@ static void handle_setup_stage_done(void) {
 	OTG_FS_DOEPTSIZ0 |= STUPCNT(3); // Allow up to 3 back-to-back SETUP data packets.
 }
 
-void usb_ep0_handle_receive(uint32_t status_word) {
+void usb_ep0_handle_receive(unsigned int UNUSED(ep), uint32_t status_word) {
 	static usb_gnak_request_t gnak_request = USB_GNAK_REQUEST_INIT;
 
 	// See what happened.
@@ -415,7 +416,7 @@ static void on_in_transaction_complete(void) {
 	push_transaction();
 }
 
-static void on_in_endpoint_event(void) {
+static void on_in_endpoint_event(unsigned int UNUSED(ep)) {
 	// Find out what happened.
 	uint32_t diepint = OTG_FS_DIEPINT0;
 	if (diepint & XFRC) {
@@ -430,6 +431,7 @@ void usb_ep0_init(void) {
 
 	// Register callbacks.
 	usb_in_set_callback(0, &on_in_endpoint_event);
+	usb_out_set_callback(0, &usb_ep0_handle_receive);
 
 	// Set max packet size.
 	switch (usb_device_info->ep0_max_packet) {
@@ -472,8 +474,9 @@ void usb_ep0_deinit(void) {
 	// Disable interrupts to this endpoint.
 	OTG_FS_DAINTMSK &= ~IEPM(1 << 0);
 
-	// Unregister callback.
+	// Unregister callbacks.
 	usb_in_set_callback(0, 0);
+	usb_out_set_callback(0, 0);
 }
 
 void usb_ep0_set_global_callbacks(const usb_ep0_global_callbacks_t *callbacks) {

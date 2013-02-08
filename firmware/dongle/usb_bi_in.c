@@ -83,11 +83,6 @@ static volatile uint32_t * const OTG_FS_DIEPINT[] = { &OTG_FS_DIEPINT0, &OTG_FS_
 static volatile uint32_t * const OTG_FS_DIEPTSIZ[] = { &OTG_FS_DIEPTSIZ0, &OTG_FS_DIEPTSIZ1, &OTG_FS_DIEPTSIZ2, &OTG_FS_DIEPTSIZ3 };
 static volatile uint32_t * const OTG_FS_DTXFSTS[] = { &OTG_FS_DTXFSTS0, &OTG_FS_DTXFSTS1, &OTG_FS_DTXFSTS2, &OTG_FS_DTXFSTS3 };
 
-static void handle_ep1_interrupt(void);
-static void handle_ep2_interrupt(void);
-static void handle_ep3_interrupt(void);
-static void (*const INTERRUPT_TRAMPOLINES[])(void) = { 0, &handle_ep1_interrupt, &handle_ep2_interrupt, &handle_ep3_interrupt };
-
 static struct ep_info ep_info[4] = {
 	{ .state = USB_BI_IN_STATE_UNINITIALIZED },
 	{ .state = USB_BI_IN_STATE_UNINITIALIZED },
@@ -167,18 +162,6 @@ static void handle_ep_interrupt(unsigned int ep) {
 	}
 }
 
-static void handle_ep1_interrupt(void) {
-	handle_ep_interrupt(1);
-}
-
-static void handle_ep2_interrupt(void) {
-	handle_ep_interrupt(2);
-}
-
-static void handle_ep3_interrupt(void) {
-	handle_ep_interrupt(3);
-}
-
 usb_bi_in_state_t usb_bi_in_get_state(unsigned int ep) {
 	// Sanity check.
 	assert(ep);
@@ -224,7 +207,7 @@ void usb_bi_in_init(unsigned int ep, size_t max_packet, usb_bi_in_ep_type_t type
 	while (!(*OTG_FS_DIEPCTL[ep] & NAKSTS));
 
 	// Register a callback to handle endpoint interrupts for this endpoint.
-	usb_in_set_callback(ep, INTERRUPT_TRAMPOLINES[ep]);
+	usb_in_set_callback(ep, &handle_ep_interrupt);
 }
 
 void usb_bi_in_deinit(unsigned int ep) {
