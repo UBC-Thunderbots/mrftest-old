@@ -1,4 +1,4 @@
-#include "configs.h"
+#include "debug.h"
 #include "constants.h"
 #include "exti.h"
 #include "mrf.h"
@@ -6,13 +6,12 @@
 #include "registers.h"
 #include "stdint.h"
 #include "unused.h"
-#include "usb.h"
 #include "usb_bi_in.h"
 #include "usb_ep0.h"
 #include "usb_ep0_sources.h"
 #include "usb_fifo.h"
 
-const uint8_t CONFIGURATION_DESCRIPTOR6[] = {
+const uint8_t DEBUG_CONFIGURATION_DESCRIPTOR[] = {
 	9, // bLength
 	2, // bDescriptorType
 	25, // wTotalLength LSB
@@ -95,42 +94,131 @@ static void exti12_interrupt_vector(void) {
 	}
 }
 
-static bool ep1_in_is_halted(void) {
-	return usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED;
-}
-
-static void ep1_in_halt(void) {
-	if (!ep1_in_is_halted()) {
-		if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
-			usb_bi_in_abort_transfer(1);
+static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
+	if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_SET_CONTROL_LINES) {
+		if (!(pkt->value & 0b1111111111111100) && !pkt->index) {
+			GPIOB_BSRR = (pkt->value & (1 << 0)) ? GPIO_BS(7) : GPIO_BR(7);
+			GPIOB_BSRR = (pkt->value & (1 << 1)) ? GPIO_BS(6) : GPIO_BR(6);
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
 		}
-		usb_bi_in_halt(1);
+	} else if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_SET_SHORT_REGISTER) {
+		if (pkt->value <= 0xFF && pkt->index <= 0x3F) {
+			mrf_write_short(pkt->index, pkt->value);
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_SET_LONG_REGISTER) {
+		if (pkt->value <= 0xFF && pkt->index <= 0x038F && !(0x02C0 <= pkt->index && pkt->index <= 0x02FF)) {
+			mrf_write_long(pkt->index, pkt->value);
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_STD | USB_REQ_TYPE_ENDPOINT) && pkt->request == USB_REQ_CLEAR_FEATURE) {
+		if (pkt->value == USB_FEATURE_ENDPOINT_HALT && pkt->index == 0x81) {
+			if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+				usb_bi_in_abort_transfer(1);
+			}
+			if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED) {
+				usb_bi_in_clear_halt(1);
+			}
+			usb_bi_in_reset_pid(1);
+			int_buffer_used = 0;
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_STD | USB_REQ_TYPE_ENDPOINT) && pkt->request == USB_REQ_SET_FEATURE) {
+		if (pkt->value == USB_FEATURE_ENDPOINT_HALT && pkt->index == 0x81) {
+			if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+				usb_bi_in_abort_transfer(1);
+			}
+			if (usb_bi_in_get_state(1) != USB_BI_IN_STATE_HALTED) {
+				usb_bi_in_halt(1);
+			}
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else {
+		return USB_EP0_DISPOSITION_NONE;
 	}
 }
 
-static bool ep1_in_clear_halt(void) {
-	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
-		usb_bi_in_abort_transfer(1);
+static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_source_t **source, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
+	static uint8_t stash_buffer[2];
+	static usb_ep0_memory_source_t mem_src;
+
+	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_CONTROL_LINES) {
+		if (!pkt->value && !pkt->index) {
+			stash_buffer[0] = 0;
+			if (GPIOB_ODR & (1 << 7)) {
+				stash_buffer[0] |= 1 << 0;
+			}
+			if (GPIOB_ODR & (1 << 6)) {
+				stash_buffer[0] |= 1 << 1;
+			}
+			if (mrf_get_interrupt()) {
+				stash_buffer[0] |= 1 << 2;
+			}
+			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_SHORT_REGISTER) {
+		if (!pkt->value && pkt->index <= 0x3F) {
+			stash_buffer[0] = mrf_read_short(pkt->index);
+			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_LONG_REGISTER) {
+		if (!pkt->value && pkt->index <= 0x038F && !(0x02C0 <= pkt->index && pkt->index <= 0x02FF)) {
+			stash_buffer[0] = mrf_read_long(pkt->index);
+			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_INTERFACE) {
+		if (!pkt->value && !pkt->index && pkt->length == 1) {
+			stash_buffer[0] = 0;
+			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_STATUS) {
+		if (!pkt->value && !pkt->index && pkt->length == 2) {
+			stash_buffer[0] = 0;
+			stash_buffer[1] = 0;
+			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_ENDPOINT) && pkt->request == USB_REQ_GET_STATUS) {
+		if (!pkt->value && pkt->index == 0x81 && pkt->length == 2) {
+			stash_buffer[0] = usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED;
+			stash_buffer[1] = 0;
+			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 2);
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else {
+		return USB_EP0_DISPOSITION_NONE;
 	}
-	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED) {
-		usb_bi_in_clear_halt(1);
-	}
-	usb_bi_in_reset_pid(1);
-	int_buffer_used = 0;
-	return true;
 }
 
-static const usb_ep0_endpoint_callbacks_t IN_ENDPOINT_CALLBACKS[] = {
-	{
-		.is_halted = &ep1_in_is_halted,
-		.on_halt = &ep1_in_halt,
-		.on_clear_halt = &ep1_in_clear_halt,
-	},
-};
-
-static const usb_ep0_endpoints_callbacks_t ENDPOINTS_CALLBACKS = {
-	.out_cbs = 0,
-	.in_cbs = IN_ENDPOINT_CALLBACKS,
+static const usb_ep0_cbs_t EP0_CBS = {
+	.on_zero_request = &on_zero_request,
+	.on_in_request = &on_in_request,
 };
 
 static void on_enter(void) {
@@ -152,7 +240,7 @@ static void on_enter(void) {
 	int_buffer_used = 0;
 
 	// Set up IN endpoint 1 with a 64-byte FIFO, large enough for any transfer (thus we never need to use the on_space callback).
-	usb_fifo_set_size(1, 64);
+	usb_fifo_enable(1, 64);
 	usb_fifo_flush(1);
 	usb_bi_in_init(1, 1, USB_BI_IN_EP_TYPE_INTERRUPT);
 
@@ -161,18 +249,18 @@ static void on_enter(void) {
 	GPIOB_BSRR = int_level ? GPIO_BS(13) : GPIO_BR(13);
 
 	// Register endpoints callbacks.
-	usb_ep0_set_endpoints_callbacks(&ENDPOINTS_CALLBACKS);
+	usb_ep0_cbs_push(&EP0_CBS);
 }
 
 static void on_exit(void) {
 	// Unregister endpoints callbacks.
-	usb_ep0_set_endpoints_callbacks(0);
+	usb_ep0_cbs_remove(&EP0_CBS);
 
 	// Shut down IN endpoint 1.
 	usb_bi_in_deinit(1);
 
 	// Deallocate FIFOs.
-	usb_fifo_reset();
+	usb_fifo_disable(1);
 
 	// Disable the external interrupt on MRF INT.
 	NVIC_ICER[40 / 32] = 1 << (40 % 32); // CLRENA40 = 1; disable EXTI15…10 interrupt
@@ -186,65 +274,9 @@ static void on_exit(void) {
 	mrf_init();
 }
 
-static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept, usb_ep0_poststatus_callback_t *UNUSED(poststatus)) {
-	if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_SET_CONTROL_LINES && !(value & 0b1111111111111100) && !index) {
-		GPIOB_BSRR = (value & (1 << 0)) ? GPIO_BS(7) : GPIO_BR(7);
-		GPIOB_BSRR = (value & (1 << 1)) ? GPIO_BS(6) : GPIO_BR(6);
-		*accept = true;
-		return true;
-	} else if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_SET_SHORT_REGISTER && value <= 0xFF && index <= 0x3F) {
-		mrf_write_short(index, value);
-		*accept = true;
-		return true;
-	} else if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_SET_LONG_REGISTER && value <= 0xFF && index <= 0x038F && !(0x02C0 <= index && index <= 0x02FF)) {
-		mrf_write_long(index, value);
-		*accept = true;
-		return true;
-	} else {
-		return false;
-	}
-}
-
-static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t UNUSED(length), usb_ep0_source_t **source, usb_ep0_poststatus_callback_t *UNUSED(poststatus)) {
-	static uint8_t buffer[1];
-	static usb_ep0_memory_source_t mem_src;
-
-	if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_CONTROL_LINES && !value && !index) {
-		buffer[0] = 0;
-		if (GPIOB_ODR & (1 << 7)) {
-			buffer[0] |= 1 << 0;
-		}
-		if (GPIOB_ODR & (1 << 6)) {
-			buffer[0] |= 1 << 1;
-		}
-		if (mrf_get_interrupt()) {
-			buffer[0] |= 1 << 2;
-		}
-		*source = usb_ep0_memory_source_init(&mem_src, buffer, 1);
-		return true;
-	} else if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_SHORT_REGISTER && !value && index <= 0x3F) {
-		buffer[0] = mrf_read_short(index);
-		*source = usb_ep0_memory_source_init(&mem_src, buffer, 1);
-		return true;
-	} else if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_LONG_REGISTER && !value && index <= 0x038F && !(0x02C0 <= index && index <= 0x02FF)) {
-		buffer[0] = mrf_read_long(index);
-		*source = usb_ep0_memory_source_init(&mem_src, buffer, 1);
-		return true;
-	} else {
-		return false;
-	}
-}
-
-const usb_ep0_configuration_callbacks_t CONFIGURATION_CBS6 = {
+const usb_configs_config_t DEBUG_CONFIGURATION = {
 	.configuration = 6,
-	.interfaces = 1,
-	.out_endpoints = 0,
-	.in_endpoints = 1,
-	.can_enter = 0,
 	.on_enter = &on_enter,
 	.on_exit = &on_exit,
-	.on_zero_request = &on_zero_request,
-	.on_in_request = &on_in_request,
-	.on_out_request = 0,
 };
 

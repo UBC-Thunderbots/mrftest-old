@@ -2,7 +2,7 @@
 #include "assert.h"
 #include "minmax.h"
 #include "registers.h"
-#include "usb.h"
+#include "usb_ll.h"
 
 /*
  * The USB engine in the STM32F4 has a number of numerical limitations:
@@ -161,7 +161,7 @@ void usb_bi_out_init(unsigned int ep, size_t max_packet, usb_bi_out_ep_type_t ty
 	while (!(*OTG_FS_DOEPCTL[ep] & NAKSTS));
 
 	// Register a callback to handle endpoint patterns for this endpoint.
-	usb_out_set_callback(ep, &handle_ep_pattern);
+	usb_ll_out_set_cb(ep, &handle_ep_pattern);
 }
 
 void usb_bi_out_deinit(unsigned int ep) {
@@ -183,7 +183,7 @@ void usb_bi_out_deinit(unsigned int ep) {
 	*OTG_FS_DOEPCTL[ep] = 0;
 
 	// Unregister the callback.
-	usb_out_set_callback(ep, 0);
+	usb_ll_out_set_cb(ep, 0);
 
 	// Update accounting.
 	ep_info[ep].state = USB_BI_OUT_STATE_UNINITIALIZED;

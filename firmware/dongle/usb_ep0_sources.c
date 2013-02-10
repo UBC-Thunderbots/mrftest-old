@@ -97,7 +97,7 @@ static size_t string_descriptor_source_generate(void *opaque, void *buffer, size
 	while (generated < length) {
 		if (source->flags & FLAG_HEADER_PENDING) {
 			// We need to send the header before anything else.
-			*pdest++ = source->descriptor_length | (USB_STD_DESCRIPTOR_STRING << 8);
+			*pdest++ = source->descriptor_length | (USB_DTYPE_STRING << 8);
 			generated += 2;
 			source->flags &= ~FLAG_HEADER_PENDING;
 		} else if (source->pending_trail_surrogate) {

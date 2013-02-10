@@ -1,5 +1,5 @@
+#include "promiscuous.h"
 #include "config.h"
-#include "configs.h"
 #include "constants.h"
 #include "exti.h"
 #include "mrf.h"
@@ -10,13 +10,12 @@
 #include "stddef.h"
 #include "stdint.h"
 #include "unused.h"
-#include "usb.h"
 #include "usb_bi_in.h"
 #include "usb_ep0.h"
 #include "usb_ep0_sources.h"
 #include "usb_fifo.h"
 
-const uint8_t CONFIGURATION_DESCRIPTOR3[] = {
+const uint8_t PROMISCUOUS_CONFIGURATION_DESCRIPTOR[] = {
 	9, // bLength
 	2, // bDescriptorType
 	25, // wTotalLength LSB
@@ -133,51 +132,185 @@ static void exti12_interrupt_vector(void) {
 	}
 }
 
-static bool ep1_in_is_halted(void) {
-	return usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED;
-}
-
-static void on_ep1_in_halt(void) {
-	if (!ep1_in_is_halted()) {
-		if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
-			usb_bi_in_abort_transfer(1);
+static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
+	if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_SET_PROMISCUOUS_FLAGS) {
+		if (!pkt->index) {
+			// Sanity check: flags 8 through 15 are reserved and must be zero.
+			if (pkt->value & 0xFF00) {
+				return USB_EP0_DISPOSITION_REJECT;
+			}
+			// Check if the application actually wants *ANY* packets.
+			if (pkt->value & 0xF0) {
+				// Sanity check: if flag 0 (acknowledge) is set and one of bits 4 through 7 (accept some type of frame) is set…
+				if ((pkt->value & 0x0001) && (pkt->value & 0xF0)) {
+					// … either exactly one or all three of bits 4 through 6 must be set to 1…
+					if ((pkt->value & 0x70) != 0x10 && (pkt->value & 0x70) != 0x20 && (pkt->value & 0x70) != 0x40 && (pkt->value & 0x70) != 0x70) {
+						return USB_EP0_DISPOSITION_REJECT;
+					}
+					// … either none or all of bits 1, 2, and 7 must be set to 1…
+					if ((pkt->value & 0x86) != 0x00 && (pkt->value & 0x86) != 0x86) {
+						return USB_EP0_DISPOSITION_REJECT;
+					}
+					// … and if bit 7 is set to 1, bits 4 through 6 must also all be set to 1
+					if ((pkt->value & 0x80) && (pkt->value & 0x70) != 0x70) {
+						return USB_EP0_DISPOSITION_REJECT;
+					}
+				}
+				// This set of flags is acceptable; save.
+				promisc_flags = pkt->value;
+				// Disable all packet reception.
+				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04);
+				// Install the new flags.
+				mrf_write_short(MRF_REG_SHORT_RXMCR,
+						((pkt->value & (1 << 0)) ? 0 : (1 << 5))
+						| ((pkt->value & (1 << 3)) ? (1 << 1) : 0)
+						| ((pkt->value & 0x86) ? (1 << 0) : 0));
+				if ((pkt->value & 0xF0) == 0x10) {
+					mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x64);
+				} else if ((pkt->value & 0xF0) == 0x20) {
+					mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x68);
+				} else if ((pkt->value & 0xF0) == 0x40) {
+					mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x62);
+				} else {
+					mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x60);
+				}
+				// Set analogue path appropriately based on whether ACKs are being generated and whether any packets are desired.
+				if (pkt->value & 0x01) {
+					mrf_analogue_txrx();
+				} else {
+					mrf_analogue_rx();
+				}
+				// Re-enable packet reception.
+				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00);
+				// Enable interrupt on receive.
+				mrf_write_short(MRF_REG_SHORT_INTCON, 0xF7);
+				// Turn on LED 2 to indicate capture is enabled.
+				GPIOB_BSRR = GPIO_BS(13);
+			} else {
+				// Shut down the radio.
+				mrf_write_short(MRF_REG_SHORT_RXMCR, 0x20);
+				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04);
+				mrf_write_short(MRF_REG_SHORT_INTCON, 0xFF);
+				mrf_analogue_off();
+				// Turn off LED 2 to indicate capture is disabled.
+				GPIOB_BSRR = GPIO_BR(13);
+			}
+			// Accept this request.
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
 		}
-		usb_bi_in_halt(1);
+	} else if (pkt->request_type == (USB_REQ_TYPE_STD | USB_REQ_TYPE_ENDPOINT) && pkt->request == USB_REQ_CLEAR_FEATURE) {
+		if (pkt->value == USB_FEATURE_ENDPOINT_HALT && pkt->index == 0x81) {
+			if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+				usb_bi_in_abort_transfer(1);
+			}
+			if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED) {
+				usb_bi_in_clear_halt(1);
+			}
+			usb_bi_in_reset_pid(1);
+			// Free all the queued packets.
+			while (first_captured_packet) {
+				promisc_packet_t *packet = first_captured_packet;
+				first_captured_packet = packet->next;
+				packet->next = first_free_packet;
+				first_free_packet = packet;
+			}
+			last_captured_packet = 0;
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_STD | USB_REQ_TYPE_ENDPOINT) && pkt->request == USB_REQ_SET_FEATURE) {
+		if (pkt->value == USB_FEATURE_ENDPOINT_HALT && pkt->index == 0x81) {
+			if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
+				usb_bi_in_abort_transfer(1);
+			}
+			if (usb_bi_in_get_state(1) != USB_BI_IN_STATE_HALTED) {
+				usb_bi_in_halt(1);
+			}
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else {
+		return USB_EP0_DISPOSITION_NONE;
 	}
 }
 
-static bool on_ep1_in_clear_halt(void) {
-	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
-		usb_bi_in_abort_transfer(1);
-	}
-	if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED) {
-		usb_bi_in_clear_halt(1);
-	}
-	usb_bi_in_reset_pid(1);
+static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_source_t **source, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
+	static usb_ep0_memory_source_t mem_src;
+	static uint8_t stash_buffer[2];
 
-	// Free all the queued packets.
-	while (first_captured_packet) {
-		promisc_packet_t *packet = first_captured_packet;
-		first_captured_packet = packet->next;
-		packet->next = first_free_packet;
-		first_free_packet = packet;
+	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_CHANNEL) {
+		if (!pkt->value && !pkt->index) {
+			*source = usb_ep0_memory_source_init(&mem_src, &config.channel, sizeof(config.channel));
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_SYMBOL_RATE) {
+		if (!pkt->value && !pkt->index) {
+			*source = usb_ep0_memory_source_init(&mem_src, &config.symbol_rate, sizeof(config.symbol_rate));
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_PAN_ID) {
+		if (!pkt->value && !pkt->index) {
+			*source = usb_ep0_memory_source_init(&mem_src, &config.pan_id, sizeof(config.pan_id));
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_MAC_ADDRESS) {
+		if (!pkt->value && !pkt->index) {
+			*source = usb_ep0_memory_source_init(&mem_src, &config.mac_address, sizeof(config.mac_address));
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_PROMISCUOUS_FLAGS) {
+		if (!pkt->value && !pkt->index) {
+			*source = usb_ep0_memory_source_init(&mem_src, &promisc_flags, sizeof(promisc_flags));
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_INTERFACE) {
+		if (!pkt->value && !pkt->index && pkt->length == 1) {
+			stash_buffer[0] = 0;
+			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_STATUS) {
+		if (!pkt->value && !pkt->index && pkt->length == 2) {
+			stash_buffer[0] = 0;
+			stash_buffer[1] = 0;
+			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_ENDPOINT) && pkt->request == USB_REQ_GET_STATUS) {
+		if (!pkt->value && pkt->index == 0x81 && pkt->length == 2) {
+			stash_buffer[0] = usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED;
+			stash_buffer[1] = 0;
+			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 2);
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else {
+		return USB_EP0_DISPOSITION_NONE;
 	}
-	last_captured_packet = 0;
-
-	return true;
 }
 
-static const usb_ep0_endpoint_callbacks_t IN_ENDPOINTS_CALLBACKS[] = {
-	{
-		.is_halted = &ep1_in_is_halted,
-		.on_halt = &on_ep1_in_halt,
-		.on_clear_halt = &on_ep1_in_clear_halt,
-	},
-};
-
-static const usb_ep0_endpoints_callbacks_t ENDPOINTS_CALLBACKS = {
-	.out_cbs = 0,
-	.in_cbs = IN_ENDPOINTS_CALLBACKS,
+static const usb_ep0_cbs_t EP0_CBS = {
+	.on_zero_request = &on_zero_request,
+	.on_in_request = &on_in_request,
 };
 
 static void on_enter(void) {
@@ -214,23 +347,23 @@ static void on_enter(void) {
 	NVIC_ISER[40 / 32] = 1 << (40 % 32); // SETENA40 = 1; enable EXTI15…10 interrupt
 
 	// Set up endpoint 1 with a 512-byte FIFO, large enough for any transfer (thus we never need to use the on_space callback).
-	usb_fifo_set_size(1, 512);
+	usb_fifo_enable(1, 512);
 	usb_fifo_flush(1);
 	usb_bi_in_init(1, 64, USB_BI_IN_EP_TYPE_BULK);
 
 	// Register endpoints callbacks.
-	usb_ep0_set_endpoints_callbacks(&ENDPOINTS_CALLBACKS);
+	usb_ep0_cbs_push(&EP0_CBS);
 }
 
 static void on_exit(void) {
 	// Unregister endpoints callbacks.
-	usb_ep0_set_endpoints_callbacks(0);
+	usb_ep0_cbs_remove(&EP0_CBS);
 
 	// Shut down IN endpoint 1.
 	usb_bi_in_deinit(1);
 
 	// Deallocate FIFOs.
-	usb_fifo_reset();
+	usb_fifo_disable(1);
 
 	// Disable the external interrupt on MRF INT.
 	NVIC_ICER[40 / 32] = 1 << (40 % 32); // CLRENA40 = 1; disable EXTI15…10 interrupt
@@ -244,110 +377,9 @@ static void on_exit(void) {
 	mrf_init();
 }
 
-static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept, usb_ep0_poststatus_callback_t *UNUSED(poststatus)) {
-	if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_SET_PROMISCUOUS_FLAGS && !index) {
-		*accept = false;
-		// Sanity check: flags 8 through 15 are reserved and must be zero.
-		if (value & 0xFF00) {
-			return true;
-		}
-		// Check if the application actually wants *ANY* packets.
-		if (value & 0xF0) {
-			// Sanity check: if flag 0 (acknowledge) is set and one of bits 4 through 7 (accept some type of frame) is set…
-			if ((value & 0x0001) && (value & 0xF0)) {
-				// … either exactly one or all three of bits 4 through 6 must be set to 1…
-				if ((value & 0x70) != 0x10 && (value & 0x70) != 0x20 && (value & 0x70) != 0x40 && (value & 0x70) != 0x70) {
-					return true;
-				}
-				// … either none or all of bits 1, 2, and 7 must be set to 1…
-				if ((value & 0x86) != 0x00 && (value & 0x86) != 0x86) {
-					return true;
-				}
-				// … and if bit 7 is set to 1, bits 4 through 6 must also all be set to 1
-				if ((value & 0x80) && (value & 0x70) != 0x70) {
-					return true;
-				}
-			}
-			// This set of flags is acceptable; save.
-			promisc_flags = value;
-			// Disable all packet reception.
-			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04);
-			// Install the new flags.
-			mrf_write_short(MRF_REG_SHORT_RXMCR,
-					((value & (1 << 0)) ? 0 : (1 << 5))
-					| ((value & (1 << 3)) ? (1 << 1) : 0)
-					| ((value & 0x86) ? (1 << 0) : 0));
-			if ((value & 0xF0) == 0x10) {
-				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x64);
-			} else if ((value & 0xF0) == 0x20) {
-				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x68);
-			} else if ((value & 0xF0) == 0x40) {
-				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x62);
-			} else {
-				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x60);
-			}
-			// Set analogue path appropriately based on whether ACKs are being generated and whether any packets are desired.
-			if (value & 0x01) {
-				mrf_analogue_txrx();
-			} else {
-				mrf_analogue_rx();
-			}
-			// Re-enable packet reception.
-			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00);
-			// Enable interrupt on receive.
-			mrf_write_short(MRF_REG_SHORT_INTCON, 0xF7);
-			// Turn on LED 2 to indicate capture is enabled.
-			GPIOB_BSRR = GPIO_BS(13);
-		} else {
-			// Shut down the radio.
-			mrf_write_short(MRF_REG_SHORT_RXMCR, 0x20);
-			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04);
-			mrf_write_short(MRF_REG_SHORT_INTCON, 0xFF);
-			mrf_analogue_off();
-			// Turn off LED 2 to indicate capture is disabled.
-			GPIOB_BSRR = GPIO_BR(13);
-		}
-		// Accept this request.
-		*accept = true;
-		return true;
-	} else {
-		return false;
-	}
-}
-
-static bool on_in_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t UNUSED(length), usb_ep0_source_t **source, usb_ep0_poststatus_callback_t *UNUSED(poststatus)) {
-	static usb_ep0_memory_source_t mem_src;
-
-	if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_CHANNEL && !value && !index) {
-		*source = usb_ep0_memory_source_init(&mem_src, &config.channel, sizeof(config.channel));
-		return true;
-	} else if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_SYMBOL_RATE && !value && !index) {
-		*source = usb_ep0_memory_source_init(&mem_src, &config.symbol_rate, sizeof(config.symbol_rate));
-		return true;
-	} else if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_PAN_ID && !value && !index) {
-		*source = usb_ep0_memory_source_init(&mem_src, &config.pan_id, sizeof(config.pan_id));
-		return true;
-	} else if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_MAC_ADDRESS && !value && !index) {
-		*source = usb_ep0_memory_source_init(&mem_src, &config.mac_address, sizeof(config.mac_address));
-		return true;
-	} else if (request_type == (USB_STD_REQ_TYPE_IN | USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_GET_PROMISCUOUS_FLAGS && !value && !index) {
-		*source = usb_ep0_memory_source_init(&mem_src, &promisc_flags, sizeof(promisc_flags));
-		return true;
-	} else {
-		return false;
-	}
-}
-
-const usb_ep0_configuration_callbacks_t CONFIGURATION_CBS3 = {
+const usb_configs_config_t PROMISCUOUS_CONFIGURATION = {
 	.configuration = 3,
-	.interfaces = 1,
-	.out_endpoints = 0,
-	.in_endpoints = 1,
-	.can_enter = 0,
 	.on_enter = &on_enter,
 	.on_exit = &on_exit,
-	.on_zero_request = &on_zero_request,
-	.on_in_request = &on_in_request,
-	.on_out_request = 0,
 };
 

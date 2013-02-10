@@ -26,7 +26,7 @@ $(FW_OBJS) : %.o : %.c
 
 .PHONY : clean
 clean :
-	$(RM) $(PROJ).bin $(PROJ).elf $(PROJ).map enter-dfu-mode *.o
+	$(RM) $(PROJ).bin $(PROJ).elf $(PROJ).map *.o
 	$(RM) -r html
 
 .PHONY : dfu

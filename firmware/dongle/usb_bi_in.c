@@ -2,7 +2,7 @@
 #include "assert.h"
 #include "minmax.h"
 #include "registers.h"
-#include "usb.h"
+#include "usb_ll.h"
 #include "usb_fifo.h"
 
 /*
@@ -207,7 +207,7 @@ void usb_bi_in_init(unsigned int ep, size_t max_packet, usb_bi_in_ep_type_t type
 	while (!(*OTG_FS_DIEPCTL[ep] & NAKSTS));
 
 	// Register a callback to handle endpoint interrupts for this endpoint.
-	usb_in_set_callback(ep, &handle_ep_interrupt);
+	usb_ll_in_set_cb(ep, &handle_ep_interrupt);
 }
 
 void usb_bi_in_deinit(unsigned int ep) {
@@ -233,7 +233,7 @@ void usb_bi_in_deinit(unsigned int ep) {
 	*OTG_FS_DIEPCTL[ep] = 0;
 
 	// Unregister the callback.
-	usb_in_set_callback(ep, 0);
+	usb_ll_in_set_cb(ep, 0);
 
 	// Update accounting.
 	ep_info[ep].state = USB_BI_IN_STATE_UNINITIALIZED;

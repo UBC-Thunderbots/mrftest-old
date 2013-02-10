@@ -1,19 +1,98 @@
 #include "buzzer.h"
-#include "configs.h"
 #include "constants.h"
+#include "debug.h"
 #include "estop.h"
 #include "format.h"
 #include "mrf.h"
+#include "normal.h"
+#include "promiscuous.h"
 #include "rcc.h"
+#include "radio_sleep.h"
 #include "registers.h"
 #include "sleep.h"
 #include "stddef.h"
 #include "stdint.h"
 #include "string.h"
 #include "unused.h"
-#include "usb.h"
+#include "usb_configs.h"
 #include "usb_ep0.h"
 #include "usb_ep0_sources.h"
+#include "usb_fifo.h"
+#include "usb_ll.h"
+
+#if 0
+static void handle_setup_stage_done(void) {
+		} else if (pkt->request_type == 0x81 && pkt->request == USB_REQ_GET_STATUS && !pkt->value && pkt->length == 2) {
+			// GET STATUS(INTERFACE)
+			if (current_configuration_callbacks && (pkt->index & 0x00FF) < current_configuration_callbacks->interfaces) {
+				stash_buffer[0] = 0x00;
+				stash_buffer[1] = 0x00;
+				data_source = usb_ep0_memory_source_init(&stash_buffer_source, stash_buffer, 2);
+				ok = true;
+			}
+		} else if (pkt->request_type == 0x82 && pkt->request == USB_REQ_GET_STATUS && !pkt->value && pkt->length == 2) {
+			// GET STATUS(ENDPOINT)
+			uint8_t endpoint_direction = pkt->index & 0x0080;
+			uint8_t endpoint_number = pkt->index & 0x000F;
+			uint8_t max_endpoint;
+			if (current_configuration_callbacks) {
+				max_endpoint = endpoint_direction ? current_configuration_callbacks->in_endpoints : current_configuration_callbacks->out_endpoints;
+			} else {
+				max_endpoint = 0;
+			}
+			if (endpoint_number <= max_endpoint) {
+				if (endpoint_number) {
+					stash_buffer[0] = (endpoint_direction ? endpoints_callbacks->in_cbs : endpoints_callbacks->out_cbs)[endpoint_number - 1].is_halted() ? 0x01 : 0x00;
+				} else {
+					stash_buffer[0] = 0x00;
+				}
+				stash_buffer[1] = 0x00;
+				data_source = usb_ep0_memory_source_init(&stash_buffer_source, stash_buffer, 2);
+				ok = true;
+			}
+		} else if (pkt->request_type == 0x02 && pkt->request == USB_REQ_CLEAR_FEATURE && !pkt->length) {
+			// CLEAR FEATURE(ENDPOINT)
+			uint8_t endpoint_direction = pkt->index & 0x0080;
+			uint8_t endpoint_number = pkt->index & 0x000F;
+			uint8_t max_endpoint;
+			if (current_configuration_callbacks) {
+				max_endpoint = endpoint_direction ? current_configuration_callbacks->in_endpoints : current_configuration_callbacks->out_endpoints;
+			} else {
+				max_endpoint = 0;
+			}
+			if (endpoint_number <= max_endpoint) {
+				if (pkt->value == 0) {
+					// ENDPOINT_HALT
+					if (endpoint_number) {
+						ok = (endpoint_direction ? endpoints_callbacks->in_cbs : endpoints_callbacks->out_cbs)[endpoint_number - 1].on_clear_halt();
+					} else {
+						ok = true;
+					}
+				}
+			}
+		} else if (pkt->request_type == 0x02 && pkt->request == USB_REQ_SET_FEATURE && !pkt->length) {
+			GPIOB_BSRR = GPIO_BS(14);
+			// SET FEATURE(ENDPOINT)
+			uint8_t endpoint_direction = pkt->index & 0x0080;
+			uint8_t endpoint_number = pkt->index & 0x000F;
+			uint8_t max_endpoint;
+			if (current_configuration_callbacks) {
+				max_endpoint = endpoint_direction ? current_configuration_callbacks->in_endpoints : current_configuration_callbacks->out_endpoints;
+			} else {
+				max_endpoint = 0;
+			}
+			if (endpoint_number <= max_endpoint) {
+				if (pkt->value == 0) {
+					// ENDPOINT_HALT
+					if (endpoint_number) {
+						(endpoint_direction ? endpoints_callbacks->in_cbs : endpoints_callbacks->out_cbs)[endpoint_number - 1].on_halt();
+					}
+					ok = true;
+				}
+			}
+	}
+}
+#endif
 
 static void stm32_main(void) __attribute__((noreturn));
 static void nmi_vector(void);
@@ -64,7 +143,7 @@ static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt
 	[50] = &timer5_interrupt_vector,
 	[54] = &timer6_interrupt_vector,
 	[55] = &timer7_interrupt_vector,
-	[67] = &usb_process,
+	[67] = &usb_ll_process,
 };
 
 static void nmi_vector(void) {
@@ -101,23 +180,6 @@ static void system_tick_vector(void) {
 
 volatile uint64_t bootload_flag;
 
-static bool on_zero_request(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept, usb_ep0_poststatus_callback_t *UNUSED(poststatus)) {
-	if (request_type == (USB_STD_REQ_TYPE_VENDOR | USB_STD_REQ_TYPE_DEVICE) && request == CONTROL_REQUEST_BEEP && !index) {
-		buzzer_start(value);
-		*accept = true;
-		return true;
-	}
-	return false;
-}
-
-static bool on_in_request(uint8_t UNUSED(request_type), uint8_t UNUSED(request), uint16_t UNUSED(value), uint16_t UNUSED(index), uint16_t UNUSED(length), usb_ep0_source_t **UNUSED(source), usb_ep0_poststatus_callback_t *UNUSED(poststatus)) {
-	return false;
-}
-
-static bool on_out_request(uint8_t UNUSED(request_type), uint8_t UNUSED(request), uint16_t UNUSED(value), uint16_t UNUSED(index), uint16_t UNUSED(length), void **UNUSED(dest), bool (**UNUSED_cb)(void) __attribute__((unused)), usb_ep0_poststatus_callback_t *UNUSED(poststatus)) {
-	return false;
-}
-
 static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	18, // bLength
 	1, // bDescriptorType
@@ -139,7 +201,7 @@ static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	6, // bNumConfigurations
 };
 
-static const uint8_t CONFIGURATION_DESCRIPTOR4[] = {
+static const uint8_t PACKET_GENERATOR_CONFIGURATION_DESCRIPTOR[] = {
 	9, // bLength
 	2, // bDescriptorType
 	18, // wTotalLength LSB
@@ -161,7 +223,7 @@ static const uint8_t CONFIGURATION_DESCRIPTOR4[] = {
 	0, // iInterface
 };
 
-static const uint8_t CONFIGURATION_DESCRIPTOR5[] = {
+static const uint8_t PACKET_RECEIVER_CONFIGURATION_DESCRIPTOR[] = {
 	9, // bLength
 	2, // bDescriptorType
 	25, // wTotalLength LSB
@@ -191,147 +253,200 @@ static const uint8_t CONFIGURATION_DESCRIPTOR5[] = {
 	1, // bInterval
 };
 
-static const uint8_t * const CONFIGURATION_DESCRIPTORS[] = {
-	CONFIGURATION_DESCRIPTOR1,
-	CONFIGURATION_DESCRIPTOR2,
-	CONFIGURATION_DESCRIPTOR3,
-	CONFIGURATION_DESCRIPTOR4,
-	CONFIGURATION_DESCRIPTOR5,
-	CONFIGURATION_DESCRIPTOR6,
-};
-
 static const uint8_t STRING_ZERO[4] = {
 	sizeof(STRING_ZERO),
-	USB_STD_DESCRIPTOR_STRING,
+	USB_DTYPE_STRING,
 	0x09, 0x10, /* English (Canadian) */
 };
 
-static usb_ep0_source_t *on_descriptor_request(uint8_t descriptor_type, uint8_t descriptor_index, uint16_t language) {
+static const usb_configs_config_t * const CONFIGURATIONS[] = {
+	&RADIO_SLEEP_CONFIGURATION,
+	&NORMAL_CONFIGURATION,
+	&PROMISCUOUS_CONFIGURATION,
+	/*&PACKET_GENERATOR_CONFIGURATION,*/
+	/*&PACKET_RECEIVER_CONFIGURATION,*/
+	&DEBUG_CONFIGURATION,
+	0
+};
+
+static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
+	if (pkt->request_type == (USB_REQ_TYPE_OUT | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_BEEP) {
+		if (!pkt->index) {
+			buzzer_start(pkt->value);
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_OUT | USB_REQ_TYPE_STD | USB_REQ_TYPE_DEVICE) && pkt->request == USB_REQ_SET_ADDRESS) {
+		if (!pkt->index && !pkt->length) {
+			// SET ADDRESS
+			if (usb_configs_get_current()) {
+				// Changing address while configured is not acceptable.
+				return USB_EP0_DISPOSITION_REJECT;
+			} else if (pkt->value <= 127) {
+				// Lock in the address; the hardware knows to stay on address zero until the status stage is complete and, in fact, *FAILS* if the address is locked in later!
+				OTG_FS_DCFG = (OTG_FS_DCFG & ~DCFG_DAD_MSK) | DCFG_DAD(pkt->value);
+				// Initialize or deinitialize the configuration handler module depending on the assigned address.
+				if (pkt->value) {
+					usb_configs_init(CONFIGURATIONS);
+				} else {
+					usb_configs_deinit();
+				}
+				return USB_EP0_DISPOSITION_ACCEPT;
+			} else {
+				return USB_EP0_DISPOSITION_REJECT;
+			}
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+	} else {
+		return USB_EP0_DISPOSITION_NONE;
+	}
+}
+
+static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_source_t **source, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
+	static uint8_t stash_buffer[25];
 	static union {
 		usb_ep0_memory_source_t mem_src;
 		usb_ep0_string_descriptor_source_t string_src;
 	} src;
-	static char serial_number_buffer[25];
 
-	if (descriptor_type == USB_STD_DESCRIPTOR_DEVICE) {
-		return usb_ep0_memory_source_init(&src.mem_src, DEVICE_DESCRIPTOR, sizeof(DEVICE_DESCRIPTOR));
-	} else if (descriptor_type == USB_STD_DESCRIPTOR_CONFIGURATION) {
-		if (descriptor_index < 6) {
-			const uint8_t *desc = CONFIGURATION_DESCRIPTORS[descriptor_index];
-			return usb_ep0_memory_source_init(&src.mem_src, desc, (desc[3] << 8) | desc[2]);
+	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_DEVICE) && pkt->request == USB_REQ_GET_STATUS) {
+		// GET STATUS(DEVICE)
+		if (!pkt->value && !pkt->index && pkt->length == 2) {
+			// We do not support remote wakeup, so bit 1 is always set to zero.
+			// We are always bus-powered, so bit 0 is always set to zero.
+			// We call the application to check whether we are currently bus-powered or self-powered.
+			stash_buffer[0] = 0;
+			stash_buffer[1] = 0;
+			*source = usb_ep0_memory_source_init(&src.mem_src, stash_buffer, 2);
+			return USB_EP0_DISPOSITION_ACCEPT;
+		} else {
+			return USB_EP0_DISPOSITION_REJECT;
 		}
-	} else if (descriptor_type == USB_STD_DESCRIPTOR_STRING) {
-		if (descriptor_index == 0) {
-			return usb_ep0_memory_source_init(&src.mem_src, STRING_ZERO, sizeof(STRING_ZERO));
-		} else if (language == 0x1009 /* English (Canadian) */) {
-			const char *string = 0;
-			switch (descriptor_index) {
-				case STRING_INDEX_MANUFACTURER: string = u8"UBC Thunderbots Small Size Team"; break;
-				case STRING_INDEX_PRODUCT: string = u8"Radio Base Station"; break;
-				case STRING_INDEX_CONFIG1: string = u8"Radio Sleep/Pre-DFU"; break;
-				case STRING_INDEX_CONFIG2: string = u8"Normal Operation"; break;
-				case STRING_INDEX_CONFIG3: string = u8"Promiscuous Mode"; break;
-				case STRING_INDEX_CONFIG4: string = u8"Packet Generator"; break;
-				case STRING_INDEX_CONFIG5: string = u8"Packet Receiver"; break;
-				case STRING_INDEX_CONFIG6: string = u8"Debug Mode"; break;
-				case STRING_INDEX_SERIAL:
-					formathex32(serial_number_buffer + 0, U_ID_H);
-					formathex32(serial_number_buffer + 8, U_ID_M);
-					formathex32(serial_number_buffer + 16, U_ID_L);
-					serial_number_buffer[24] = 0;
-					string = serial_number_buffer;
-					break;
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_DEVICE) && pkt->request == USB_REQ_GET_DESCRIPTOR) {
+		// GET DESCRIPTOR
+		uint8_t type = pkt->value >> 8;
+		uint8_t index = pkt->value;
+		switch (type) {
+			case USB_DTYPE_DEVICE:
+			{
+				// GET DESCRIPTOR(DEVICE)
+				if (!index && !pkt->index) {
+					*source = usb_ep0_memory_source_init(&src.mem_src, DEVICE_DESCRIPTOR, sizeof(DEVICE_DESCRIPTOR));
+					return USB_EP0_DISPOSITION_ACCEPT;
+				} else {
+					return USB_EP0_DISPOSITION_REJECT;
+				}
 			}
-			if (string) {
-				return usb_ep0_string_descriptor_source_init(&src.string_src, string);
-			} else {
-				return 0;
+
+			case USB_DTYPE_CONFIGURATION:
+			{
+				// GET DESCRIPTOR(CONFIGURATION)
+				if (!pkt->index) {
+					const uint8_t *descriptor = 0;
+					switch (index) {
+						case 0: descriptor = RADIO_SLEEP_CONFIGURATION_DESCRIPTOR; break;
+						case 1: descriptor = NORMAL_CONFIGURATION_DESCRIPTOR; break;
+						case 2: descriptor = PROMISCUOUS_CONFIGURATION_DESCRIPTOR; break;
+						case 3: descriptor = PACKET_GENERATOR_CONFIGURATION_DESCRIPTOR; break;
+						case 4: descriptor = PACKET_RECEIVER_CONFIGURATION_DESCRIPTOR; break;
+						case 5: descriptor = DEBUG_CONFIGURATION_DESCRIPTOR; break;
+					}
+					if (descriptor) {
+						size_t total_length = descriptor[2] | (descriptor[3] << 8);
+						*source = usb_ep0_memory_source_init(&src.mem_src, descriptor, total_length);
+						return USB_EP0_DISPOSITION_ACCEPT;
+					} else {
+						return USB_EP0_DISPOSITION_REJECT;
+					}
+				} else {
+					return USB_EP0_DISPOSITION_REJECT;
+				}
+			}
+
+			case USB_DTYPE_STRING:
+			{
+				// GET DESCRIPTOR(STRING)
+				if (!index && !pkt->index) {
+					*source = usb_ep0_memory_source_init(&src.mem_src, STRING_ZERO, sizeof(STRING_ZERO));
+					return USB_EP0_DISPOSITION_ACCEPT;
+				} else if (pkt->index == 0x1009 /* English (Canadian) */) {
+					const char *string = 0;
+					switch (index) {
+						case STRING_INDEX_MANUFACTURER: string = u8"UBC Thunderbots Small Size Team"; break;
+						case STRING_INDEX_PRODUCT: string = u8"Radio Base Station"; break;
+						case STRING_INDEX_CONFIG1: string = u8"Radio Sleep/Pre-DFU"; break;
+						case STRING_INDEX_CONFIG2: string = u8"Normal Operation"; break;
+						case STRING_INDEX_CONFIG3: string = u8"Promiscuous Mode"; break;
+						case STRING_INDEX_CONFIG4: string = u8"Packet Generator"; break;
+						case STRING_INDEX_CONFIG5: string = u8"Packet Receiver"; break;
+						case STRING_INDEX_CONFIG6: string = u8"Debug Mode"; break;
+						case STRING_INDEX_SERIAL:
+							formathex32((char *) stash_buffer + 0, U_ID_H);
+							formathex32((char *) stash_buffer + 8, U_ID_M);
+							formathex32((char *) stash_buffer + 16, U_ID_L);
+							((char *) stash_buffer)[24] = '\0';
+							string = (const char *) stash_buffer;
+							break;
+					}
+					if (string) {
+						*source = usb_ep0_string_descriptor_source_init(&src.string_src, string);
+						return USB_EP0_DISPOSITION_ACCEPT;
+					} else {
+						return USB_EP0_DISPOSITION_REJECT;
+					}
+				} else {
+					return USB_EP0_DISPOSITION_REJECT;
+				}
+			}
+
+			case USB_DTYPE_INTERFACE:
+			case USB_DTYPE_ENDPOINT:
+			case USB_DTYPE_DEVICE_QUALIFIER:
+			case USB_DTYPE_OTHER_SPEED_CONFIGURATION:
+			case USB_DTYPE_INTERFACE_POWER:
+			{
+				// GET DESCRIPTOR(…)
+				// These are either not present or are not meant to be requested through GET DESCRIPTOR.
+				return USB_EP0_DISPOSITION_REJECT;
+			}
+
+			default:
+			{
+				// GET DESCRIPTOR(unknown)
+				// Other descriptors may be handled by other layers.
+				return USB_EP0_DISPOSITION_NONE;
 			}
 		}
+	} else {
+		return USB_EP0_DISPOSITION_NONE;
 	}
-
-	return 0;
 }
 
-static bool on_check_self_powered(void) {
-	return false;
-}
-
-static const usb_ep0_global_callbacks_t DEVICE_CBS = {
+static const usb_ep0_cbs_t GLOBAL_CBS = {
 	.on_zero_request = &on_zero_request,
 	.on_in_request = &on_in_request,
-	.on_out_request = &on_out_request,
-	.on_descriptor_request = &on_descriptor_request,
-	.on_check_self_powered = &on_check_self_powered,
 };
-
-static bool can_enter_config4(void) {
-#warning TODO implement this configuration
-	return false;
-}
-
-static void on_enter_config4(void) {
-}
-
-static void on_exit_config4(void) {
-}
-
-static bool can_enter_config5(void) {
-#warning TODO implement this configuration
-	return false;
-}
-
-static void on_enter_config5(void) {
-}
-
-static void on_exit_config5(void) {
-}
 
 static void handle_usb_reset(void) {
+	// Turn off the buzzer.
 	buzzer_stop();
+
+	// Shut down the control transfer layer, if the device was already active (implying the control transfer layer had been initialized).
+	if (usb_ll_get_state() == USB_LL_STATE_ACTIVE) {
+		usb_configs_deinit();
+		usb_ep0_deinit();
+	}
+	
+	// Configure receive FIFO and endpoint 0 transmit FIFO sizes.
+	usb_fifo_init(512, 64);
 }
 
-static const usb_ep0_configuration_callbacks_t CONFIG4_CBS = {
-	.configuration = 4,
-	.interfaces = 1,
-	.out_endpoints = 0,
-	.in_endpoints = 0,
-	.can_enter = &can_enter_config4,
-	.on_enter = &on_enter_config4,
-	.on_exit = &on_exit_config4,
-	.on_zero_request = 0,
-	.on_in_request = 0,
-	.on_out_request = 0,
-};
-
-static const usb_ep0_configuration_callbacks_t CONFIG5_CBS = {
-	.configuration = 5,
-	.interfaces = 1,
-	.out_endpoints = 0,
-	.in_endpoints = 0,
-	.can_enter = &can_enter_config5,
-	.on_enter = &on_enter_config5,
-	.on_exit = &on_exit_config5,
-	.on_zero_request = 0,
-	.on_in_request = 0,
-	.on_out_request = 0,
-};
-
-static const usb_ep0_configuration_callbacks_t * const CONFIG_CBS[] = {
-	&CONFIGURATION_CBS1,
-	&CONFIGURATION_CBS2,
-	&CONFIGURATION_CBS3,
-	&CONFIG4_CBS,
-	&CONFIG5_CBS,
-	&CONFIGURATION_CBS6,
-	0
-};
-
-static const usb_device_info_t DEVICE_INFO = {
-	.rx_fifo_words = 128,
-	.ep0_max_packet = 8,
-	.on_reset = &handle_usb_reset,
-};
+static void handle_usb_enumeration_done(void) {
+	usb_ep0_init(8);
+	usb_ep0_cbs_push(&GLOBAL_CBS);
+}
 
 extern unsigned char linker_data_vma_start;
 extern unsigned char linker_data_vma_end;
@@ -344,7 +459,7 @@ static void stm32_main(void) {
 	uint32_t rcc_csr_shadow = RCC_CSR; // Keep a copy of RCC_CSR
 	RCC_CSR |= RMVF; // Clear reset flags
 	RCC_CSR &= ~RMVF; // Stop clearing reset flags
-	if ((rcc_csr_shadow & SFTRSTF) && bootload_flag == UINT64_C(0xDEADBEEFCAFEBABE)) {
+	if ((rcc_csr_shadow & SFTRSTF) && bootload_flag == UINT64_C(0xFE228106195AD2B0)) {
 		bootload_flag = 0;
 		asm volatile(
 			"mov sp, %[stack]\n\t"
@@ -521,15 +636,13 @@ static void stm32_main(void) {
 	GPIOB_BSRR = GPIO_BR(12) | GPIO_BR(13) | GPIO_BR(14);
 
 	// Initialize USB.
-	usb_ep0_set_global_callbacks(&DEVICE_CBS);
-	usb_ep0_set_configuration_callbacks(CONFIG_CBS);
-	usb_attach(&DEVICE_INFO);
+	usb_ll_attach(&handle_usb_reset, &handle_usb_enumeration_done, 0);
 	NVIC_ISER[67 / 32] = 1 << (67 % 32); // SETENA67 = 1; enable USB FS interrupt
 
-	// Handle activity.
-	while (usb_get_device_state() != USB_DEVICE_STATE_DETACHED);
+	// Handle activity until detach.
+	while (usb_ll_get_state() != USB_LL_STATE_DETACHED);
 
-	// Reboot.
+	// Reboot the chip.
 	SCS_AIRCR = VECTKEY(0x05FA) | SYSRESETREQ;
 	for (;;);
 }

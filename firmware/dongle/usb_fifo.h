@@ -12,50 +12,59 @@
 
 
 /**
- * \brief Sets all transmit FIFOs to their minimum sizes, ready to be set to other sizes later.
- * The FIFOs are also flushed.
+ * \brief Initializes the FIFO manager and sets up the receive and endpoint-zero transmit FIFOs.
+ * All other FIFOs are set to their minimum sizes.
  *
- * \pre All nonzero endpoints must be NAKing or inactive.
+ * All FIFOs are flushed.
+ *
+ * This function should be called as a result of USB reset signalling.
+ *
+ * \param rx_size the size, in bytes, of the receive FIFO (which is shared between all endpoint zero and all nonzero OUT endpoints), which must be a multiple of 4 and at least 64
+ *
+ * \param tx0_size the size, in bytes, of the transmit FIFO for IN endpoint zero, which must be a multiple of 4 and at least 64
  */
-void usb_fifo_reset(void);
+void usb_fifo_init(size_t rx_size, size_t tx0_size);
 
 /**
- * \brief Gets the starting offset of a transmit FIFO.
+ * \brief Enables a transmit FIFO.
  *
- * \param fifo the endpoint whose FIFO offset should be returned, from 1 to 3.
+ * Enabling a transmit FIFO allocates space for it and flushes it.
+ * The FIFO must be enabled before an endpoint can use it.
+ * Before enabling a FIFO, numerically lower FIFOs must be enabled.
  *
- * \return the offset, in words.
+ * \param fifo the index of the FIFO to enable, from 1 to 3
+ *
+ * \param size the size, in bytes, of the FIFO, which must be a multiple of 4 and at least 64
  */
-size_t usb_fifo_get_offset(unsigned int fifo);
+void usb_fifo_enable(unsigned int fifo, size_t size);
 
 /**
- * \brief Gets the size of a transmit FIFO.
+ * \brief Disables a transmit FIFO.
  *
- * \param fifo the endpoint whose FIFO size should be returned, from 1 to 3.
+ * Disabling a transmit FIFO deallocates all space used by the FIFO.
+ * Before disabling a FIFO, numerically higher FIFOs must be disabled.
  *
- * \return the size, in bytes.
+ * \param fifo the index of the FIFO to disable, from 1 to 3
  */
-size_t usb_fifo_get_size(unsigned int fifo);
-
-/**
- * \brief Sets the size of a transmit FIFO.
- *
- * \pre The endpoint that uses the FIFO must be inactive.
- *
- * \param fifo the endpoint whose FIFO size should be set, from 1 to 3.
- *
- * \param size the size of the FIFO, in bytes, which must be a multiple of 4 and at least 64.
- */
-void usb_fifo_set_size(unsigned int fifo, size_t size);
+void usb_fifo_disable(unsigned int fifo);
 
 /**
  * \brief Flushes a transmit FIFO.
  *
- * \pre The endpoint must be NAKing, due to either local or global NAK status, or inactive.
+ * \pre The endpoint must be inactive.
  *
- * \param fifo the endpoint whose FIFO should be flushed, from 1 to 3.
+ * \param fifo the endpoint whose FIFO should be flushed, from 0 to 3
  */
 void usb_fifo_flush(unsigned int fifo);
+
+/**
+ * \brief Returns the size of a FIFO.
+ *
+ * \param fifo the endpoint whose FIFO should be examined, from 0 to 3
+ *
+ * \return the size of the FIFO, in bytes
+ */
+size_t usb_fifo_get_size(unsigned int fifo);
 
 #endif
 

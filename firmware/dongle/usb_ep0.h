@@ -14,83 +14,151 @@
 
 
 /**
- * \name USB standard identifiers.
- *
- * These names represent ID numbers used in the USB standard.
- *
- * @{
+ * \brief A USB SETUP packet as used in a control transfer.
  */
+typedef struct {
+	/**
+	 * \brief The request type, indicating data stage direction, level of specification defining request, and type of recipient.
+	 */
+	uint8_t request_type;
+
+	/**
+	 * \brief The request ID.
+	 */
+	uint8_t request;
+
+	/**
+	 * \brief A numerical value associated with the request.
+	 */
+	uint16_t value;
+
+	/**
+	 * \brief A second numerical value, often used to select a specific element of a collection.
+	 */
+	uint16_t index;
+
+	/**
+	 * \brief The number of bytes the host expects to send or receive in the data stage.
+	 */
+	uint16_t length;
+} usb_ep0_setup_packet_t;
 
 /**
- * \brief The request type bit fields.
+ * \brief The bit field values in the \ref usb_ep0_setup_packet_t.request_type field.
  */
 enum {
-	USB_STD_REQ_TYPE_OUT = 0x00,
-	USB_STD_REQ_TYPE_IN = 0x80,
-	USB_STD_REQ_TYPE_STD = 0x00,
-	USB_STD_REQ_TYPE_CLASS = 0x20,
-	USB_STD_REQ_TYPE_VENDOR = 0x40,
-	USB_STD_REQ_TYPE_DEVICE = 0x00,
-	USB_STD_REQ_TYPE_INTERFACE = 0x01,
-	USB_STD_REQ_TYPE_ENDPOINT = 0x02,
+	/**
+	 * \brief Indicates that the data stage will be in the OUT direction or that there will be no data stage.
+	 */
+	USB_REQ_TYPE_OUT = 0x00,
+
+	/**
+	 * \brief Indicates that the data stage will be in the IN direction.
+	 */
+	USB_REQ_TYPE_IN = 0x80,
+
+	/**
+	 * \brief Indicates that the request ID is defined by the core USB standard.
+	 */
+	USB_REQ_TYPE_STD = 0x00,
+
+	/**
+	 * \brief Indicates that the request ID is defined by a standardized device class.
+	 */
+	USB_REQ_TYPE_CLASS = 0x20,
+
+	/**
+	 * \brief Indicates that the request ID is defined by the vendor and is specific to the device.
+	 */
+	USB_REQ_TYPE_VENDOR = 0x40,
+
+	/**
+	 * \brief Indicates that the request is directed at the device as a whole.
+	 */
+	USB_REQ_TYPE_DEVICE = 0x00,
+
+	/**
+	 * \brief Indicates that the request is directed at a single interface selected by \ref usb_ep0_setup_packet_t.index.
+	 */
+	USB_REQ_TYPE_INTERFACE = 0x01,
+
+	/**
+	 * \brief Indicates that the request is directed at a single endpoint selected by \ref usb_ep0_setup_packet_t.index.
+	 */
+	USB_REQ_TYPE_ENDPOINT = 0x02,
 };
 
 /**
- * \brief The standard request codes.
+ * \brief The request codes defined by the core USB standard.
  */
 enum {
-	USB_STD_REQ_GET_STATUS = 0,
-	USB_STD_REQ_CLEAR_FEATURE = 1,
-	USB_STD_REQ_SET_FEATURE = 3,
-	USB_STD_REQ_SET_ADDRESS = 5,
-	USB_STD_REQ_GET_DESCRIPTOR = 6,
-	USB_STD_REQ_SET_DESCRIPTOR = 7,
-	USB_STD_REQ_GET_CONFIGURATION = 8,
-	USB_STD_REQ_SET_CONFIGURATION = 9,
-	USB_STD_REQ_GET_INTERFACE = 10,
-	USB_STD_REQ_SET_INTERFACE = 11,
-	USB_STD_REQ_SYNCH_FRAME = 12,
+	USB_REQ_GET_STATUS = 0,
+	USB_REQ_CLEAR_FEATURE = 1,
+	USB_REQ_SET_FEATURE = 3,
+	USB_REQ_SET_ADDRESS = 5,
+	USB_REQ_GET_DESCRIPTOR = 6,
+	USB_REQ_SET_DESCRIPTOR = 7,
+	USB_REQ_GET_CONFIGURATION = 8,
+	USB_REQ_SET_CONFIGURATION = 9,
+	USB_REQ_GET_INTERFACE = 10,
+	USB_REQ_SET_INTERFACE = 11,
+	USB_REQ_SYNCH_FRAME = 12,
 };
 
 /**
- * \brief The standard descriptor types.
+ * \brief The descriptor types defined by the core USB standard.
  */
 enum {
-	USB_STD_DESCRIPTOR_DEVICE = 1,
-	USB_STD_DESCRIPTOR_CONFIGURATION = 2,
-	USB_STD_DESCRIPTOR_STRING = 3,
-	USB_STD_DESCRIPTOR_INTERFACE = 4,
-	USB_STD_DESCRIPTOR_ENDPOINT = 5,
-	USB_STD_DESCRIPTOR_DEVICE_QUALIFIER = 6,
-	USB_STD_DESCRIPTOR_OTHER_SPEED_CONFIGURATION = 7,
-	USB_STD_DESCRIPTOR_INTERFACE_POWER = 8,
+	USB_DTYPE_DEVICE = 1,
+	USB_DTYPE_CONFIGURATION = 2,
+	USB_DTYPE_STRING = 3,
+	USB_DTYPE_INTERFACE = 4,
+	USB_DTYPE_ENDPOINT = 5,
+	USB_DTYPE_DEVICE_QUALIFIER = 6,
+	USB_DTYPE_OTHER_SPEED_CONFIGURATION = 7,
+	USB_DTYPE_INTERFACE_POWER = 8,
 };
 
 /**
- * \brief The standard features.
+ * \brief The features defined by the core USB standard.
  */
 enum {
-	USB_STD_FEATURE_ENDPOINT_HALT = 0,
-	USB_STD_FEATURE_DEVICE_REMOTE_WAKEUP = 1,
-	USB_STD_FEATURE_TEST_MODE = 2,
+	USB_FEATURE_ENDPOINT_HALT = 0,
+	USB_FEATURE_DEVICE_REMOTE_WAKEUP = 1,
+	USB_FEATURE_TEST_MODE = 2,
 };
 
 /**
- * @}
+ * \brief The possible “dispositions” of a control transfer.
  */
+typedef enum {
+	/**
+	 * \brief Indicates that the callback does not care about the transfer.
+	 * The transfer will be offered to the next callback.
+	 * If every callback returns this disposition for a particular transfer, the transfer will be rejected with STALL.
+	 */
+	USB_EP0_DISPOSITION_NONE,
 
+	/**
+	 * \brief Indicates that the callback will accept this transfer.
+	 * No further callbacks will be consulted.
+	 * In the case of a no-data transfer (with the exception of a SET ADDRESS request), the side-effects should already have happened.
+	 * In the case of an IN-data-stage transfer, a data source must be set up to provide the data, and the status stage will accept.
+	 * In the case of an OUT-data-stage transfer, the post-data callback provides a later opportunity to reject the transfer.
+	 */
+	USB_EP0_DISPOSITION_ACCEPT,
 
+	/**
+	 * \brief Indicates that the callback explicitly rejects this transfer.
+	 * No further callbacks will be consulted.
+	 * In the case of a no-data transfer, the status stage will be rejected with STALL.
+	 * In the case of a transfer with a data stage, the data stage will be rejected with STALL.
+	 */
+	USB_EP0_DISPOSITION_REJECT,
+} usb_ep0_disposition_t;
 
 /**
- * \name Callback management.
- *
- * These types and functions handle registering callbacks with the stack to be invoked when certain events occur.
- *
- * @{
- */
-
-/**
- * \brief A source of data to be sent in a control transfer.
+ * \brief A source of data to be sent in an IN-data-stage control transfer.
  */
 typedef struct {
 	/**
@@ -115,11 +183,11 @@ typedef struct {
 	 *
 	 * \pre \p length is nonzero.
 	 *
-	 * \post \p buffer[0] through \p buffer[N-1] have been populated, if \a N is the return value.
+	 * \post \p buffer[0] through \p buffer[\a N - 1] have been populated, if \a N is the return value.
 	 *
 	 * \param opaque the opaque pointer from the data source structure
 	 *
-	 * \param[out] buffer the location in which to store generated bytes
+	 * \param buffer the location in which to store generated bytes
 	 *
 	 * \param length the maximum number of bytes to generate
 	 *
@@ -129,399 +197,121 @@ typedef struct {
 } usb_ep0_source_t;
 
 /**
- * \brief The type of a callback that can be invoked after the status stage of a control transfer is complete, if the application requires notification at such a time.
+ * \brief The type of a callback invoked after an OUT data stage of a transfer is complete.
+ *
+ * This callback is invoked in callback context but not under global NAK.
+ *
+ * \return \c true to accept the request, or \c false to reject the request by returning STALL handshake in the status stage
  */
-typedef void (*usb_ep0_poststatus_callback_t)(void);
+typedef bool (*usb_ep0_postdata_cb_t)(void);
 
 /**
- * \brief A set of callbacks to handle device-wide activities.
+ * \brief The type of a callback invoked after the status stage of a control transfer is complete.
+ *
+ * This callback is invoked in callback context but not under global NAK.
+ */
+typedef void (*usb_ep0_poststatus_cb_t)(void);
+
+/**
+ * \brief A set of callbacks to handle control transfers.
  */
 typedef struct {
 	/**
-	 * \brief Allows the application to override handling of any control request with no data stage.
+	 * \brief Handles a control transfer with no data stage.
 	 *
-	 * This callback is optional; if not provided, it is treated as though always returning \c false.
+	 * This callback is optional; if not provided, it is treated as though always returning \ref USB_EP0_DISPOSITION_NONE.
 	 *
 	 * \pre Callback context is executing.
 	 *
 	 * \pre Global NAK is effective in both directions.
 	 *
-	 * \post Either \p *accept must be set to an appropriate value, or the callback must return \c false.
+	 * \param setup_packet the SETUP packet
 	 *
-	 * \param request_type the request type field from the SETUP transaction
+	 * \param[out] poststatus a poststatus callback (if \ref USB_EP0_DISPOSITION_ACCEPT)
 	 *
-	 * \param request the request field from the SETUP transaction
-	 *
-	 * \param value the value field from the SETUP transaction
-	 *
-	 * \param index the index field from the SETUP transaction
-	 *
-	 * \param[out] accept \c true to accept the request, or \c false to return a STALL handshake
-	 *
-	 * \param[out] poststatus a poststatus callback, in the case of an accepted request, which will be invoked when the status stage is complete
-	 *
-	 * \return \c true if the application handles the request and demands a response per the \p accept parameter, or \c false to let the stack handle the request
+	 * \return the disposition of the request
 	 */
-	bool (*on_zero_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept, usb_ep0_poststatus_callback_t *poststatus);
+	usb_ep0_disposition_t (*on_zero_request)(const usb_ep0_setup_packet_t *setup_packet, usb_ep0_poststatus_cb_t *poststatus);
 
 	/**
-	 * \brief Allows the application to override handling of any control request with an IN data stage.
+	 * \brief Handles a control transfer with an IN data stage.
 	 *
-	 * This callback is optional; if not provided, it is treated as though always returning \c false.
+	 * This callback is optional; if not provided, it is treated as though always returning \ref USB_EP0_DISPOSITION_NONE.
 	 *
 	 * \pre Callback context is executing.
 	 *
 	 * \pre Global NAK is effective in both directions.
 	 *
-	 * \post Either \p *source must be set to an appropriate value, or the callback must return \c false.
+	 * \param setup_packet the SETUP packet
 	 *
-	 * \param request_type the request type field from the SETUP transaction
+	 * \param[out] source the source of data to return (if \ref USB_EP0_DISPOSITION_ACCEPT)
 	 *
-	 * \param request the request field from the SETUP transaction
+	 * \param[out] poststatus a poststatus callback (if \ref USB_EP0_DISPOSITION_ACCEPT)
 	 *
-	 * \param value the value field from the SETUP transaction
-	 *
-	 * \param index the index field from the SETUP transaction
-	 *
-	 * \param length the length of the data stage as specified by the host
-	 *
-	 * \param[out] source set to a source by the application to accept the request and return the sourced data, or to null to stall the request
-	 *
-	 * \param[out] poststatus a poststatus callback, in the case of an accepted request, which will be invoked when the status stage is complete
-	 *
-	 * \return \c true if the application handles the request and demands a response per the \p source parameter, or \c false to let the stack handle the request
+	 * \return the disposition of the request
 	 */
-	bool (*on_in_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, usb_ep0_source_t **source, usb_ep0_poststatus_callback_t *poststatus);
+	usb_ep0_disposition_t (*on_in_request)(const usb_ep0_setup_packet_t *setup_packet, usb_ep0_source_t **source, usb_ep0_poststatus_cb_t *poststatus);
 
 	/**
-	 * \brief Allows the application to override handling of any control request with an OUT data stage.
+	 * \brief Handles a control transfer with an OUT data stage.
 	 *
-	 * This callback is optional; if not provided, it is treated as though always returning \c false.
-	 *
-	 * \pre Callback context is executing.
-	 *
-	 * \pre Global NAK is effective in both directions.
-	 *
-	 * \post Either \p *dest and \p *cb must be set to an appropriate value, or the callback must return \c false.
-	 *
-	 * \param request_type the request type field from the SETUP transaction
-	 *
-	 * \param request the request field from the SETUP transaction
-	 *
-	 * \param value the value field from the SETUP transaction
-	 *
-	 * \param index the index field from the SETUP transaction
-	 *
-	 * \param length the length of the data stage as specified by the host
-	 *
-	 * \param[out] dest set to a target buffer by the application to accept the request, or to null to stall the request
-	 *
-	 * \param[out] cb set to a callback by the application if it must be notified after the data stage completes to consume the data;
-	 * the callback may return \c true to issue a successful status stage, or \c false to stall the status stage
-	 *
-	 * \param[out] poststatus a poststatus callback, in the case of an accepted request, which will be invoked when the status stage is complete
-	 *
-	 * \return \c true if the application handles the request and demands a response per the \p dest parameter, or \c false to let the stack handle the request
-	 */
-	bool (*on_out_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, void **dest, bool (**cb)(void), usb_ep0_poststatus_callback_t *poststatus);
-
-	/**
-	 * \brief Handles a request for a descriptor.
-	 *
-	 * This function will be invoked for string descriptor zero, but never for a nonzero string descriptor.
-	 *
-	 * This callback is mandatory.
+	 * This callback is optional; if not provided, it is treated as though always returning \ref USB_EP0_DISPOSITION_NONE.
 	 *
 	 * \pre Callback context is executing.
 	 *
 	 * \pre Global NAK is effective in both directions.
 	 *
-	 * \post Either \p *data and \p *length must be set to appropriate values, or the callback must return \c false.
+	 * \param setup_packet the SETUP packet *
 	 *
-	 * \param descriptor_type the type of descriptor being requested.
+	 * \param[out] dest the location into which to store the data sent by the host (if \ref USB_EP0_DISPOSITION_ACCEPT)
 	 *
-	 * \param descriptor_index the index of the descriptor being requested.
+	 * \param[out] postdata an postdata callback (if \ref USB_EP0_DISPOSITION_ACCEPT), assumed to return \c true if not provided
 	 *
-	 * \param language the language of the descriptor being requested, or zero for non-string descriptors
+	 * \param[out] poststatus a poststatus callback (if \ref USB_EP0_DISPOSITION_ACCEPT)
 	 *
-	 * \param[out] data a pointer to the requested descriptor.
-	 *
-	 * \param[out] length the total number of bytes to include in the descriptor as sent to the host.
-	 *
-	 * \return \c true if the request is acceptable, or \c false if the requested descriptor does not exist
+	 * \return the disposition of the request
 	 */
-	usb_ep0_source_t *(*on_descriptor_request)(uint8_t descriptor_type, uint8_t descriptor_index, uint16_t language);
-
-	/**
-	 * \brief Checks whether the device is self-powered.
-	 *
-	 * A self-powered device has its own power supply; a bus-powered device is powered by the USB.
-	 *
-	 * This callback is mandatory.
-	 *
-	 * \pre Callback context is executing.
-	 *
-	 * \pre Global NAK is effective in both directions.
-	 *
-	 * \return \c true if the device is self-powered at this moment, or \c false if bus-powered
-	 */
-	bool (*on_check_self_powered)(void);
-} usb_ep0_global_callbacks_t;
+	usb_ep0_disposition_t (*on_out_request)(const usb_ep0_setup_packet_t *setup_packet, void **dest, usb_ep0_postdata_cb_t *postdata, usb_ep0_poststatus_cb_t *poststatus);
+} usb_ep0_cbs_t;
 
 /**
- * \brief Sets the global endpoint 0 callbacks the application uses to be informed of global events.
+ * \brief The maximum number of callback structures that can be registered at the same time.
+ */
+#define USB_EP0_CBS_STACK_SIZE 8
+
+/**
+ * \brief Initializes the endpoint zero module.
  *
- * \param callbacks the callbacks to register.
- */
-void usb_ep0_set_global_callbacks(const usb_ep0_global_callbacks_t *callbacks);
-
-/**
- * \brief A set of callbacks to handle activities related to a single configuration.
- */
-typedef struct {
-	/**
-	 * \brief The configuration value of the configuration.
-	 */
-	uint8_t configuration;
-
-	/**
-	 * \brief The number of interfaces in this configuration.
-	 */
-	uint8_t interfaces;
-
-	/**
-	 * \brief The number of (non-zero) OUT endpoints in this configuration.
-	 */
-	uint8_t out_endpoints;
-
-	/**
-	 * \brief The number of (non-zero) IN endpoints in this configuration.
-	 */
-	uint8_t in_endpoints;
-
-	/**
-	 * \brief Checks whether it’s acceptable to enter this configuration at this time.
-	 *
-	 * This callback is optional; if not provided, requests to enter the configuration always succeed.
-	 *
-	 * \pre Callback context is executing.
-	 *
-	 * \pre Global NAK is effective in both directions.
-	 *
-	 * \return \c true if the request is acceptable, or \c false if not
-	 */
-	bool (*can_enter)(void);
-
-	/**
-	 * \brief Enters the configuration.
-	 *
-	 * This callback is optional.
-	 *
-	 * \pre Callback context is executing.
-	 *
-	 * \pre Global NAK is effective in both directions.
-	 */
-	void (*on_enter)(void);
-
-	/**
-	 * \brief Exits the configuration.
-	 *
-	 * This callback is optional.
-	 *
-	 * \pre Callback context is executing.
-	 *
-	 * \pre Global NAK is effective in both directions.
-	 */
-	void (*on_exit)(void);
-
-	/**
-	 * \brief Allows the application to override handling of any control request with no data stage.
-	 *
-	 * This callback is optional; if not provided, it is treated as though always returning \c false.
-	 *
-	 * This callback is executed before, and can override, any corresponding device-wide callback.
-	 *
-	 * \pre Callback context is executing.
-	 *
-	 * \pre Global NAK is effective in both directions.
-	 *
-	 * \post Either \p *accept must be set to an appropriate value, or the callback must return \c false.
-	 *
-	 * \param request_type the request type field from the SETUP transaction
-	 *
-	 * \param request the request field from the SETUP transaction
-	 *
-	 * \param value the value field from the SETUP transaction
-	 *
-	 * \param index the index field from the SETUP transaction
-	 *
-	 * \param[out] accept \c true to accept the request, or \c false to return a STALL handshake
-	 *
-	 * \param[out] poststatus a poststatus callback, in the case of an accepted request, which will be invoked when the status stage is complete
-	 *
-	 * \return \c true if the application handles the request and demands a response per the \p accept parameter, or \c false to let the stack handle the request
-	 */
-	bool (*on_zero_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, bool *accept, usb_ep0_poststatus_callback_t *poststatus);
-
-	/**
-	 * \brief Allows the application to override handling of any control request with an IN data stage.
-	 *
-	 * This callback is optional; if not provided, it is treated as though always returning \c false.
-	 *
-	 * This callback is executed before, and can override, any corresponding device-wide callback.
-	 *
-	 * \pre Callback context is executing.
-	 *
-	 * \pre Global NAK is effective in both directions.
-	 *
-	 * \post Either \p *source must be set to an appropriate value, or the callback must return \c false.
-	 *
-	 * \param request_type the request type field from the SETUP transaction
-	 *
-	 * \param request the request field from the SETUP transaction
-	 *
-	 * \param value the value field from the SETUP transaction
-	 *
-	 * \param index the index field from the SETUP transaction
-	 *
-	 * \param length the length of the data stage as specified by the host
-	 *
-	 * \param[out] source set to a source by the application to accept the request and return the sourced data, or to null to stall the request
-	 *
-	 * \param[out] poststatus a poststatus callback, in the case of an accepted request, which will be invoked when the status stage is complete
-	 *
-	 * \return \c true if the application handles the request and demands a response per the \p source parameter, or \c false to let the stack handle the request
-	 */
-	bool (*on_in_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, usb_ep0_source_t **source, usb_ep0_poststatus_callback_t *poststatus);
-
-	/**
-	 * \brief Allows the application to override handling of any control request with an OUT data stage.
-	 *
-	 * This callback is optional; if not provided, it is treated as though always returning \c false.
-	 *
-	 * This callback is executed before, and can override, any corresponding device-wide callback.
-	 *
-	 * \pre Callback context is executing.
-	 *
-	 * \pre Global NAK is effective in both directions.
-	 *
-	 * \post Either \p *dest and \p *cb must be set to an appropriate value, or the callback must return \c false.
-	 *
-	 * \param request_type the request type field from the SETUP transaction
-	 *
-	 * \param request the request field from the SETUP transaction
-	 *
-	 * \param value the value field from the SETUP transaction
-	 *
-	 * \param index the index field from the SETUP transaction
-	 *
-	 * \param length the length of the data stage as specified by the host
-	 *
-	 * \param[out] dest set to a target buffer by the application to accept the request, or to null to stall the request
-	 *
-	 * \param[out] cb set to a callback by the application if it must be notified after the data stage completes to consume the data;
-	 * the callback may return \c true to issue a successful status stage, or \c false to stall the status stage
-	 *
-	 * \param[out] poststatus a poststatus callback, in the case of an accepted request, which will be invoked when the status stage is complete
-	 *
-	 * \return \c true if the application handles the request and demands a response per the \p dest parameter, or \c false to let the stack handle the request
-	 */
-	bool (*on_out_request)(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, uint16_t length, void **dest, bool (**cb)(void), usb_ep0_poststatus_callback_t *poststatus);
-} usb_ep0_configuration_callbacks_t;
-
-/**
- * \brief Sets the configuration callbacks the application uses for all configurations.
+ * This should generally be done as a result of an enumeration complete interrupt from the low level module.
+ * After calling this function, the application should push some callback structures onto the stack to handle requests.
  *
- * \param configurations an array of pointers to configuration callback structures, one per configuration, ending with a null pointer
+ * \param max_packet the maximum packet size for endpoint zero
  */
-void usb_ep0_set_configuration_callbacks(const usb_ep0_configuration_callbacks_t * const *configurations);
+void usb_ep0_init(size_t max_packet);
 
 /**
- * \brief A set of callbacks to handle activities related to a single endpoint.
+ * \brief Shuts down the endpoint zero module.
  */
-typedef struct {
-	/**
-	 * \brief Checks whether the endpoint is halted.
-	 *
-	 * This callback is mandatory.
-	 *
-	 * \pre Callback context is executing.
-	 *
-	 * \pre Global NAK is effective in both directions.
-	 *
-	 * \return \c true if the endpoint is halted, or \c false if not
-	 */
-	bool (*is_halted)(void);
-
-	/**
-	 * \brief Halts the endpoint.
-	 *
-	 * This callback is mandatory.
-	 *
-	 * \pre Callback context is executing.
-	 *
-	 * \pre Global NAK is effective in both directions.
-	 */
-	void (*on_halt)(void);
-
-	/**
-	 * \brief Clears the endpoint halt.
-	 *
-	 * This callback is mandatory.
-	 *
-	 * \pre Callback context is executing.
-	 *
-	 * \pre Global NAK is effective in both directions.
-	 *
-	 * \return \c true if the halt status was successfully cleared, or \c false if halt could not be cleared
-	 */
-	bool (*on_clear_halt)(void);
-} usb_ep0_endpoint_callbacks_t;
+void usb_ep0_deinit(void);
 
 /**
- * \brief A set of callbacks for all endpoints.
- */
-typedef struct {
-	/**
-	 * \brief The callbacks for OUT endpoints.
-	 */
-	const usb_ep0_endpoint_callbacks_t *out_cbs;
-
-	/**
-	 * \brief The callbacks for IN endpoints.
-	 */
-	const usb_ep0_endpoint_callbacks_t *in_cbs;
-} usb_ep0_endpoints_callbacks_t;
-
-/**
- * \brief Sets the endpoint callbacks the application uses for the current configuration.
+ * \brief Pushes a callbacks structure on the callback handling stack.
  *
- * \param cbs the callback collection to activate 
- */
-void usb_ep0_set_endpoints_callbacks(const usb_ep0_endpoints_callbacks_t *cbs);
-
-/**
- * @}
- */
-
-
-
-/**
- * \name Miscellaneous.
+ * When handling a request, callbacks are invoked from newest (most recently pushed) to oldest.
  *
- * @{
+ * \param cbs the callbacks structure to push
  */
+void usb_ep0_cbs_push(const usb_ep0_cbs_t *cbs);
 
 /**
- * \brief Checks which configuration is currently active.
+ * \brief Removes a callbacks structure from the callback handling stack.
  *
- * \return the current configuration number, which may be 0 if the device is unconfigured
+ * It is not necessary to remove callbacks structures in the opposite order they are pushed.
+ * It is also safe to call this function with a structure that is not yet registered.
+ *
+ * \param cbs the callbacks structure to remove
  */
-uint8_t usb_ep0_get_configuration(void);
-
-/**
- * @}
- */
+void usb_ep0_cbs_remove(const usb_ep0_cbs_t *cbs);
 
 #endif
 
