@@ -14,7 +14,7 @@ int16_t control_iter(int16_t setpoint, int16_t feedback, control_ctx_t *ctx) {
 	int16_t error;
 	float feedback_pwm_equiv, new_anti_windup_offset, error_compensated, control_action, plant_min, plant_max, plant;
 
-	feedback_pwm_equiv = feedback / 3.0;
+	feedback_pwm_equiv = feedback * (1.0 / 3.0);
 	error = setpoint - feedback;
 	new_anti_windup_offset = 0.7992 * ctx->anti_windup_offset + 0.2852 * ctx->saturation_difference;
 	error_compensated = error - new_anti_windup_offset;
