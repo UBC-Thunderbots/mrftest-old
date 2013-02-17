@@ -153,12 +153,10 @@ static void handle_radio_receive(void) {
 							set_discharge_mode(false);
 							break;
 						case 0b01:
-							power_enable_chicker();
 							set_charge_mode(false);
 							set_discharge_mode(true);
 							break;
 						case 0b10:
-							power_enable_chicker();
 							set_discharge_mode(false);
 							set_charge_mode(true);
 							break;
@@ -255,10 +253,6 @@ static void handle_radio_receive(void) {
 
 					case 0x09: // Force on motor power
 						power_enable_motors();
-						break;
-
-					case 0x0A: // Force on chicker power
-						power_enable_chicker();
 						break;
 
 					case 0x0B: // Set bootup radio parameters

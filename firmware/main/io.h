@@ -72,7 +72,7 @@ typedef enum {
 	 * Bits:
 	 * 7–4: Reserved
 	 * 3 (R/W) [0]: Laser power; 1 = lit, 0 = unlit
-	 * 2 (R/W) [0]: Chicker power; 1 = run, 0 = power down
+	 * 2: Reserved
 	 * 1 (R/W) [0]: Motor power; 1 = run, 0 = power down
 	 * 0 (R/W) [1]: Logic power; 1 = run, 0 = power down
 	 */

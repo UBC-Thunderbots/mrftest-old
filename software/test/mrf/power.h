@@ -25,13 +25,12 @@ class PowerPanel : public Gtk::Table {
 	private:
 		MRFDongle &dongle;
 		unsigned int index;
-		Gtk::Button drivetrain_button, kicker_button;
-		Gtk::Entry drivetrain_status, kicker_status;
+		Gtk::Button drivetrain_button;
+		Gtk::Entry drivetrain_status;
 		Gtk::Entry *current_operation_status_entry;
 		std::unique_ptr<MRFDongle::SendReliableMessageOperation> message;
 
 		void power_drivetrain();
-		void power_kicker();
 		void send_message(uint8_t code);
 		void check_result(AsyncOperation<void> &op);
 };

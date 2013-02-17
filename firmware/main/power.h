@@ -17,13 +17,6 @@ static inline void power_enable_motors(void) {
 }
 
 /**
- * \brief Enables power to the chicker
- */
-static inline void power_enable_chicker(void) {
-	outb(POWER_CTL, inb(POWER_CTL) | 0x04);
-}
-
-/**
  * \brief Enables power to the laser
  */
 static inline void power_enable_laser(void) {
