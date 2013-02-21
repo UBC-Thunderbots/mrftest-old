@@ -120,7 +120,7 @@ volatile uint64_t bootload_flag;
 
 static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	18, // bLength
-	1, // bDescriptorType
+	USB_DTYPE_DEVICE, // bDescriptorType
 	0, // bcdUSB LSB
 	2, // bcdUSB MSB
 	0xFF, // bDeviceClass
@@ -141,7 +141,7 @@ static const uint8_t DEVICE_DESCRIPTOR[18] = {
 
 static const uint8_t PACKET_GENERATOR_CONFIGURATION_DESCRIPTOR[] = {
 	9, // bLength
-	2, // bDescriptorType
+	USB_DTYPE_CONFIGURATION, // bDescriptorType
 	18, // wTotalLength LSB
 	0, // wTotalLength MSB
 	1, // bNumInterfaces
@@ -151,7 +151,7 @@ static const uint8_t PACKET_GENERATOR_CONFIGURATION_DESCRIPTOR[] = {
 	150, // bMaxPower
 
 	9, // bLength
-	4, // bDescriptorType
+	USB_DTYPE_INTERFACE, // bDescriptorType
 	0, // bInterfaceNumber
 	0, // bAlternateSetting
 	0, // bNumEndpoints
@@ -163,7 +163,7 @@ static const uint8_t PACKET_GENERATOR_CONFIGURATION_DESCRIPTOR[] = {
 
 static const uint8_t PACKET_RECEIVER_CONFIGURATION_DESCRIPTOR[] = {
 	9, // bLength
-	2, // bDescriptorType
+	USB_DTYPE_CONFIGURATION, // bDescriptorType
 	25, // wTotalLength LSB
 	0, // wTotalLength MSB
 	1, // bNumInterfaces
@@ -173,7 +173,7 @@ static const uint8_t PACKET_RECEIVER_CONFIGURATION_DESCRIPTOR[] = {
 	50, // bMaxPower
 
 	9, // bLength
-	4, // bDescriptorType
+	USB_DTYPE_INTERFACE, // bDescriptorType
 	0, // bInterfaceNumber
 	0, // bAlternateSetting
 	1, // bNumEndpoints
@@ -183,7 +183,7 @@ static const uint8_t PACKET_RECEIVER_CONFIGURATION_DESCRIPTOR[] = {
 	0, // iInterface
 
 	7, // bLength
-	5, // bDescriptorType
+	USB_DTYPE_ENDPOINT, // bDescriptorType
 	0x81, // bEndpointAddress
 	0x03, // bmAttributes
 	20, // wMaxPacketSize LSB

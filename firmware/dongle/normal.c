@@ -21,7 +21,7 @@
 
 const uint8_t NORMAL_CONFIGURATION_DESCRIPTOR[] = {
 	9, // bLength
-	2, // bDescriptorType
+	USB_DTYPE_CONFIGURATION, // bDescriptorType
 	60, // wTotalLength LSB
 	0, // wTotalLength MSB
 	1, // bNumInterfaces
@@ -31,7 +31,7 @@ const uint8_t NORMAL_CONFIGURATION_DESCRIPTOR[] = {
 	150, // bMaxPower
 
 	9, // bLength
-	4, // bDescriptorType
+	USB_DTYPE_INTERFACE, // bDescriptorType
 	0, // bInterfaceNumber
 	0, // bAlternateSetting
 	6, // bNumEndpoints
@@ -41,7 +41,7 @@ const uint8_t NORMAL_CONFIGURATION_DESCRIPTOR[] = {
 	0, // iInterface
 
 	7, // bLength
-	5, // bDescriptorType
+	USB_DTYPE_ENDPOINT, // bDescriptorType
 	0x01, // bEndpointAddress
 	0x03, // bmAttributes
 	64, // wMaxPacketSize LSB
@@ -49,7 +49,7 @@ const uint8_t NORMAL_CONFIGURATION_DESCRIPTOR[] = {
 	5, // bInterval
 
 	7, // bLength
-	5, // bDescriptorType
+	USB_DTYPE_ENDPOINT, // bDescriptorType
 	0x02, // bEndpointAddress
 	0x03, // bmAttributes
 	64, // wMaxPacketSize LSB
@@ -57,7 +57,7 @@ const uint8_t NORMAL_CONFIGURATION_DESCRIPTOR[] = {
 	5, // bInterval
 
 	7, // bLength
-	5, // bDescriptorType
+	USB_DTYPE_ENDPOINT, // bDescriptorType
 	0x03, // bEndpointAddress
 	0x03, // bmAttributes
 	64, // wMaxPacketSize LSB
@@ -65,7 +65,7 @@ const uint8_t NORMAL_CONFIGURATION_DESCRIPTOR[] = {
 	5, // bInterval
 
 	7, // bLength
-	5, // bDescriptorType
+	USB_DTYPE_ENDPOINT, // bDescriptorType
 	0x81, // bEndpointAddress
 	0x02, // bmAttributes
 	8, // wMaxPacketSize LSB
@@ -73,7 +73,7 @@ const uint8_t NORMAL_CONFIGURATION_DESCRIPTOR[] = {
 	0, // bInterval
 
 	7, // bLength
-	5, // bDescriptorType
+	USB_DTYPE_ENDPOINT, // bDescriptorType
 	0x82, // bEndpointAddress
 	0x03, // bmAttributes
 	64, // wMaxPacketSize LSB
@@ -81,7 +81,7 @@ const uint8_t NORMAL_CONFIGURATION_DESCRIPTOR[] = {
 	5, // bInterval
 
 	7, // bLength
-	5, // bDescriptorType
+	USB_DTYPE_ENDPOINT, // bDescriptorType
 	0x83, // bEndpointAddress
 	0x03, // bmAttributes
 	2, // wMaxPacketSize LSB

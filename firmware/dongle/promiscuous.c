@@ -17,7 +17,7 @@
 
 const uint8_t PROMISCUOUS_CONFIGURATION_DESCRIPTOR[] = {
 	9, // bLength
-	2, // bDescriptorType
+	USB_DTYPE_CONFIGURATION, // bDescriptorType
 	25, // wTotalLength LSB
 	0, // wTotalLength MSB
 	1, // bNumInterfaces
@@ -27,7 +27,7 @@ const uint8_t PROMISCUOUS_CONFIGURATION_DESCRIPTOR[] = {
 	150, // bMaxPower
 
 	9, // bLength
-	4, // bDescriptorType
+	USB_DTYPE_INTERFACE, // bDescriptorType
 	0, // bInterfaceNumber
 	0, // bAlternateSetting
 	1, // bNumEndpoints
@@ -37,7 +37,7 @@ const uint8_t PROMISCUOUS_CONFIGURATION_DESCRIPTOR[] = {
 	0, // iInterface
 
 	7, // bLength
-	5, // bDescriptorType
+	USB_DTYPE_ENDPOINT, // bDescriptorType
 	0x81, // bEndpointAddress
 	0x02, // bmAttributes
 	64, // wMaxPacketSize LSB

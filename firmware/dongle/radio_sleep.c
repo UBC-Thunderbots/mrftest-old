@@ -9,6 +9,8 @@
 #include <usb_ep0_sources.h>
 #include <usb_ll.h>
 
+#define USB_DTYPE_DFU 0x21
+
 enum {
 	DFU_DETACH = 0,
 	DFU_DNLOAD = 1,
@@ -21,7 +23,7 @@ enum {
 
 const uint8_t RADIO_SLEEP_CONFIGURATION_DESCRIPTOR[] = {
 	9, // bLength
-	2, // bDescriptorType
+	USB_DTYPE_CONFIGURATION, // bDescriptorType
 	27, // wTotalLength LSB
 	0, // wTotalLength MSB
 	1, // bNumInterfaces
@@ -31,7 +33,7 @@ const uint8_t RADIO_SLEEP_CONFIGURATION_DESCRIPTOR[] = {
 	50, // bMaxPower
 
 	9, // bLength
-	4, // bDescriptorType
+	USB_DTYPE_INTERFACE, // bDescriptorType
 	0, // bInterfaceNumber
 	0, // bAlternateSetting
 	0, // bNumEndpoints
@@ -41,7 +43,7 @@ const uint8_t RADIO_SLEEP_CONFIGURATION_DESCRIPTOR[] = {
 	0, // iInterface
 
 	9, // bLength
-	0x21, // bDescriptorType
+	USB_DTYPE_DFU, // bDescriptorType
 	0b00001011, // bmAttributes
 	255, 0, // wDetachTimeout
 	0, 8, // wTransferSize
