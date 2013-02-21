@@ -447,6 +447,17 @@ static void start_ep1_out_transfer(void) {
 	}
 }
 
+static void handle_ep1_clear_halt(unsigned int UNUSED(ep)) {
+	// Free all the queued MDRs.
+	while (first_mdr_pending) {
+		normal_out_packet_t *pkt = first_mdr_pending;
+		first_mdr_pending = pkt->next;
+		pkt->next = reliable_out_free;
+		reliable_out_free = pkt;
+	}
+	last_mdr_pending = 0;
+}
+
 static void on_ep2_out_packet(size_t bcnt) {
 	if (bcnt >= 2) {
 		// Allocate a packet buffer.
@@ -497,6 +508,17 @@ static void start_ep2_out_transfer(void) {
 	usb_bi_out_start_transfer(2, 64, &on_ep2_out_transfer_complete, &on_ep2_out_packet);
 }
 
+static void handle_ep2_clear_halt(unsigned int UNUSED(ep)) {
+	// Free all the queued packets.
+	while (first_in_pending) {
+		normal_in_packet_t *pkt = first_in_pending;
+		first_in_pending = pkt->next;
+		pkt->next = in_free;
+		in_free = pkt;
+	}
+	last_in_pending = 0;
+}
+
 static void on_ep3_out_packet(size_t bcnt) {
 	if (bcnt) {
 		// Allocate a packet buffer.
@@ -545,6 +567,11 @@ static void start_ep3_out_transfer(void) {
 	usb_bi_out_start_transfer(3, 64, &on_ep3_out_transfer_complete, &on_ep3_out_packet);
 }
 
+static void handle_ep3_clear_halt(unsigned int UNUSED(ep)) {
+	// Report the current state.
+	push_estop();
+}
+
 static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
 	if (pkt->request_type == (USB_REQ_TYPE_STD | USB_REQ_TYPE_ENDPOINT) && pkt->request == USB_REQ_CLEAR_FEATURE) {
 		if (pkt->value == USB_FEATURE_ENDPOINT_HALT) {
@@ -568,46 +595,11 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 						break;
 				}
 				return USB_EP0_DISPOSITION_ACCEPT;
-			} else if (0x81 <= pkt->index && pkt->index <= 0x83) {
-				if (usb_bi_in_get_state(pkt->index & 0x7F) == USB_BI_IN_STATE_ACTIVE) {
-					usb_bi_in_abort_transfer(pkt->index & 0x7F);
-				}
-				if (usb_bi_in_get_state(pkt->index & 0x7F) == USB_BI_IN_STATE_HALTED) {
-					usb_bi_in_clear_halt(pkt->index & 0x7F);
-				}
-				usb_bi_in_reset_pid(pkt->index & 0x7F);
-				switch (pkt->index & 0x7F) {
-					case 1:
-						// Free all the queued MDRs.
-						while (first_mdr_pending) {
-							normal_out_packet_t *pkt = first_mdr_pending;
-							first_mdr_pending = pkt->next;
-							pkt->next = reliable_out_free;
-							reliable_out_free = pkt;
-						}
-						last_mdr_pending = 0;
-						break;
-					case 2:
-						// Free all the queued packets.
-						while (first_in_pending) {
-							normal_in_packet_t *pkt = first_in_pending;
-							first_in_pending = pkt->next;
-							pkt->next = in_free;
-							in_free = pkt;
-						}
-						last_in_pending = 0;
-						break;
-					case 3:
-						// Report the current state.
-						push_estop();
-						break;
-				}
-				return USB_EP0_DISPOSITION_ACCEPT;
 			} else {
-				return USB_EP0_DISPOSITION_REJECT;
+				return USB_EP0_DISPOSITION_NONE;
 			}
 		} else {
-			return USB_EP0_DISPOSITION_REJECT;
+			return USB_EP0_DISPOSITION_NONE;
 		}
 	} else if (pkt->request_type == (USB_REQ_TYPE_STD | USB_REQ_TYPE_ENDPOINT) && pkt->request == USB_REQ_SET_FEATURE) {
 		if (pkt->value == USB_FEATURE_ENDPOINT_HALT) {
@@ -619,19 +611,11 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 					usb_bi_out_halt(pkt->index);
 				}
 				return USB_EP0_DISPOSITION_ACCEPT;
-			} else if (0x81 <= pkt->index && pkt->index <= 0x83) {
-				if (usb_bi_in_get_state(pkt->index & 0x7F) == USB_BI_IN_STATE_ACTIVE) {
-					usb_bi_in_abort_transfer(pkt->index & 0x7F);
-				}
-				if (usb_bi_in_get_state(pkt->index & 0x7F) != USB_BI_IN_STATE_HALTED) {
-					usb_bi_in_halt(pkt->index & 0x7F);
-				}
-				return USB_EP0_DISPOSITION_ACCEPT;
 			} else {
-				return USB_EP0_DISPOSITION_REJECT;
+				return USB_EP0_DISPOSITION_NONE;
 			}
 		} else {
-			return USB_EP0_DISPOSITION_REJECT;
+			return USB_EP0_DISPOSITION_NONE;
 		}
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
@@ -694,16 +678,11 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 				stash_buffer[1] = 0;
 				*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 2);
 				return USB_EP0_DISPOSITION_ACCEPT;
-			} else if (0x81 <= pkt->index && pkt->index <= 0x83) {
-				stash_buffer[0] = usb_bi_in_get_state(pkt->index & 0x7F) == USB_BI_IN_STATE_HALTED;
-				stash_buffer[1] = 0;
-				*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 2);
-				return USB_EP0_DISPOSITION_ACCEPT;
 			} else {
-				return USB_EP0_DISPOSITION_REJECT;
+				return USB_EP0_DISPOSITION_NONE;
 			}
 		} else {
-			return USB_EP0_DISPOSITION_REJECT;
+			return USB_EP0_DISPOSITION_NONE;
 		}
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
@@ -824,16 +803,19 @@ static void on_enter(void) {
 	usb_fifo_enable(1, 64);
 	usb_fifo_flush(1);
 	usb_bi_in_init(1, 8, USB_BI_IN_EP_TYPE_BULK);
+	usb_bi_in_set_std_halt(1, 0, 0, &handle_ep1_clear_halt);
 
 	// Set up endpoint 2 IN with a 256-byte FIFO, large enough for any transfer (thus we never need to use the on_space callback).
 	usb_fifo_enable(2, 256);
 	usb_fifo_flush(2);
 	usb_bi_in_init(2, 64, USB_BI_IN_EP_TYPE_INTERRUPT);
+	usb_bi_in_set_std_halt(2, 0, 0, &handle_ep2_clear_halt);
 
 	// Set up endpoint 3 IN with a 64-byte FIFO, large enough for any transfer (thus we never need to use the on_space callback).
 	usb_fifo_enable(3, 64);
 	usb_fifo_flush(3);
 	usb_bi_in_init(3, 2, USB_BI_IN_EP_TYPE_INTERRUPT);
+	usb_bi_in_set_std_halt(3, 0, 0, &handle_ep3_clear_halt);
 
 	// Wipe the drive packet.
 	memset(perconfig.normal.drive_packet, 0, sizeof(perconfig.normal.drive_packet));

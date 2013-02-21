@@ -2,8 +2,11 @@
 #include "assert.h"
 #include "minmax.h"
 #include "registers.h"
-#include "usb_ll.h"
+#include "unused.h"
+#include "usb_ep0.h"
+#include "usb_ep0_sources.h"
 #include "usb_fifo.h"
+#include "usb_ll.h"
 
 /*
  * The USB engine in the STM32F4 has a number of numerical limitations:
@@ -74,6 +77,14 @@ struct ep_info {
 
 	// A callback to invoke when more data is needed to continue the current logical transfer.
 	void (*on_space)(void);
+
+	// Whether this endpoint is using standard halt handling.
+	bool standard_halt_handling;
+
+	// Callbacks related to standard halt handling.
+	usb_bi_in_enter_halt_cb_t enter_halt_cb;
+	usb_bi_in_pre_exit_halt_cb_t pre_exit_halt_cb;
+	usb_bi_in_post_exit_halt_cb_t post_exit_halt_cb;
 };
 
 
@@ -84,13 +95,81 @@ static volatile uint32_t * const OTG_FS_DIEPTSIZ[] = { &OTG_FS_DIEPTSIZ0, &OTG_F
 static volatile uint32_t * const OTG_FS_DTXFSTS[] = { &OTG_FS_DTXFSTS0, &OTG_FS_DTXFSTS1, &OTG_FS_DTXFSTS2, &OTG_FS_DTXFSTS3 };
 
 static struct ep_info ep_info[4] = {
-	{ .state = USB_BI_IN_STATE_UNINITIALIZED },
-	{ .state = USB_BI_IN_STATE_UNINITIALIZED },
-	{ .state = USB_BI_IN_STATE_UNINITIALIZED },
-	{ .state = USB_BI_IN_STATE_UNINITIALIZED },
+	{ .state = USB_BI_IN_STATE_UNINITIALIZED, .standard_halt_handling = false, },
+	{ .state = USB_BI_IN_STATE_UNINITIALIZED, .standard_halt_handling = false, },
+	{ .state = USB_BI_IN_STATE_UNINITIALIZED, .standard_halt_handling = false, },
+	{ .state = USB_BI_IN_STATE_UNINITIALIZED, .standard_halt_handling = false, },
 };
 
+static unsigned int standard_halt_handling_endpoint_count = 0;
 
+
+
+static usb_ep0_disposition_t on_ep0_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
+	if (pkt->request_type == (USB_REQ_TYPE_STD | USB_REQ_TYPE_ENDPOINT) && pkt->request == USB_REQ_CLEAR_FEATURE) {
+		if (pkt->value == USB_FEATURE_ENDPOINT_HALT) {
+			if (0x81 <= pkt->index && pkt->index <= 0x83 && ep_info[pkt->index & 0x7F].standard_halt_handling) {
+				if (usb_bi_in_get_state(pkt->index & 0x7F) == USB_BI_IN_STATE_HALTED) {
+					if (ep_info[pkt->index & 0x7F].pre_exit_halt_cb) {
+						if (!ep_info[pkt->index & 0x7F].pre_exit_halt_cb(pkt->index & 0x7F)) {
+							return USB_EP0_DISPOSITION_REJECT;
+						}
+					}
+				}
+				if (usb_bi_in_get_state(pkt->index & 0x7F) == USB_BI_IN_STATE_ACTIVE) {
+					usb_bi_in_abort_transfer(pkt->index & 0x7F);
+				}
+				if (usb_bi_in_get_state(pkt->index & 0x7F) == USB_BI_IN_STATE_HALTED) {
+					usb_bi_in_clear_halt(pkt->index & 0x7F);
+				}
+				usb_bi_in_reset_pid(pkt->index & 0x7F);
+				if (ep_info[pkt->index & 0x7F].post_exit_halt_cb) {
+					ep_info[pkt->index & 0x7F].post_exit_halt_cb(pkt->index & 0x7F);
+				}
+				return USB_EP0_DISPOSITION_ACCEPT;
+			}
+		}
+	} else if (pkt->request_type == (USB_REQ_TYPE_STD | USB_REQ_TYPE_ENDPOINT) && pkt->request == USB_REQ_SET_FEATURE) {
+		if (pkt->value == USB_FEATURE_ENDPOINT_HALT) {
+			if (0x81 <= pkt->index && pkt->index <= 0x83 && ep_info[pkt->index & 0x7F].standard_halt_handling) {
+				if (usb_bi_in_get_state(pkt->index & 0x7F) == USB_BI_IN_STATE_ACTIVE) {
+					usb_bi_in_abort_transfer(pkt->index & 0x7F);
+				}
+				if (usb_bi_in_get_state(pkt->index & 0x7F) != USB_BI_IN_STATE_HALTED) {
+					usb_bi_in_halt(pkt->index & 0x7F);
+					if (ep_info[pkt->index & 0x7F].enter_halt_cb) {
+						ep_info[pkt->index & 0x7F].enter_halt_cb(pkt->index & 0x7F);
+					}
+				}
+				return USB_EP0_DISPOSITION_ACCEPT;
+			}
+		}
+	}
+
+	return USB_EP0_DISPOSITION_NONE;
+}
+
+static usb_ep0_disposition_t on_ep0_in_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_source_t **source, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
+	static uint8_t stash_buffer[2];
+	static usb_ep0_memory_source_t mem_src;
+
+	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_ENDPOINT) && pkt->request == USB_REQ_GET_STATUS) {
+		if (!pkt->value && pkt->length == 2 && 0x81 <= pkt->index && pkt->index <= 0x83 && ep_info[pkt->index & 0x7F].standard_halt_handling) {
+			stash_buffer[0] = usb_bi_in_get_state(pkt->index & 0x7F) == USB_BI_IN_STATE_HALTED;
+			stash_buffer[1] = 0;
+			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 2);
+			return USB_EP0_DISPOSITION_ACCEPT;
+		}
+	}
+
+	return USB_EP0_DISPOSITION_NONE;
+}
+
+static const usb_ep0_cbs_t EP0_CBS = {
+	.on_zero_request = &on_ep0_zero_request,
+	.on_in_request = &on_ep0_in_request,
+	.on_out_request = 0,
+};
 
 static void start_physical_transfer(unsigned int ep) {
 	// Sanity check.
@@ -190,6 +269,10 @@ void usb_bi_in_init(unsigned int ep, size_t max_packet, usb_bi_in_ep_type_t type
 	ep_info[ep].zlp_pending = false;
 	ep_info[ep].on_complete = 0;
 	ep_info[ep].on_space = 0;
+	ep_info[ep].standard_halt_handling = false;
+	ep_info[ep].enter_halt_cb = 0;
+	ep_info[ep].pre_exit_halt_cb = 0;
+	ep_info[ep].post_exit_halt_cb = 0;
 
 	// Clear any pending transfer complete interrupt on this endpoint.
 	*OTG_FS_DIEPINT[ep] = XFRC;
@@ -225,6 +308,17 @@ void usb_bi_in_deinit(unsigned int ep) {
 		usb_bi_in_clear_halt(ep);
 	}
 
+	// If standard halt handling is in use for the endpoint, disable it and account accordingly.
+	if (ep_info[ep].standard_halt_handling) {
+		ep_info[ep].standard_halt_handling = false;
+		ep_info[ep].enter_halt_cb = 0;
+		ep_info[ep].pre_exit_halt_cb = 0;
+		ep_info[ep].post_exit_halt_cb = 0;
+		if (!--standard_halt_handling_endpoint_count) {
+			usb_ep0_cbs_remove(&EP0_CBS);
+		}
+	}
+
 	// Disable all interrupts for the endpoint.
 	OTG_FS_DAINTMSK &= ~IEPM(1 << ep);
 	OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << ep);
@@ -237,6 +331,26 @@ void usb_bi_in_deinit(unsigned int ep) {
 
 	// Update accounting.
 	ep_info[ep].state = USB_BI_IN_STATE_UNINITIALIZED;
+}
+
+void usb_bi_in_set_std_halt(unsigned int ep, usb_bi_in_enter_halt_cb_t enter_halt_cb, usb_bi_in_pre_exit_halt_cb_t pre_exit_halt_cb, usb_bi_in_post_exit_halt_cb_t post_exit_halt_cb) {
+	// Sanity check.
+	assert(ep);
+	assert(ep <= 3);
+	assert(ep_info[ep].state != USB_BI_IN_STATE_UNINITIALIZED);
+
+	// If standard halt handling was not already active for this endpoint, account and potentially register the callbacks.
+	if (!ep_info[ep].standard_halt_handling) {
+		if (!standard_halt_handling_endpoint_count++) {
+			usb_ep0_cbs_push(&EP0_CBS);
+		}
+	}
+
+	// Set variables.
+	ep_info[ep].standard_halt_handling = true;
+	ep_info[ep].enter_halt_cb = enter_halt_cb;
+	ep_info[ep].pre_exit_halt_cb = pre_exit_halt_cb;
+	ep_info[ep].post_exit_halt_cb = post_exit_halt_cb;
 }
 
 void usb_bi_in_halt(unsigned int ep) {

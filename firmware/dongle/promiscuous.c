@@ -132,6 +132,17 @@ static void exti12_interrupt_vector(void) {
 	}
 }
 
+static void handle_ep1_clear_halt(unsigned int UNUSED(ep)) {
+	// Free all the queued packets.
+	while (first_captured_packet) {
+		promisc_packet_t *packet = first_captured_packet;
+		first_captured_packet = packet->next;
+		packet->next = first_free_packet;
+		first_free_packet = packet;
+	}
+	last_captured_packet = 0;
+}
+
 static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
 	if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_SET_PROMISCUOUS_FLAGS) {
 		if (!pkt->index) {
@@ -200,39 +211,6 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 		} else {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
-	} else if (pkt->request_type == (USB_REQ_TYPE_STD | USB_REQ_TYPE_ENDPOINT) && pkt->request == USB_REQ_CLEAR_FEATURE) {
-		if (pkt->value == USB_FEATURE_ENDPOINT_HALT && pkt->index == 0x81) {
-			if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
-				usb_bi_in_abort_transfer(1);
-			}
-			if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED) {
-				usb_bi_in_clear_halt(1);
-			}
-			usb_bi_in_reset_pid(1);
-			// Free all the queued packets.
-			while (first_captured_packet) {
-				promisc_packet_t *packet = first_captured_packet;
-				first_captured_packet = packet->next;
-				packet->next = first_free_packet;
-				first_free_packet = packet;
-			}
-			last_captured_packet = 0;
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
-	} else if (pkt->request_type == (USB_REQ_TYPE_STD | USB_REQ_TYPE_ENDPOINT) && pkt->request == USB_REQ_SET_FEATURE) {
-		if (pkt->value == USB_FEATURE_ENDPOINT_HALT && pkt->index == 0x81) {
-			if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_ACTIVE) {
-				usb_bi_in_abort_transfer(1);
-			}
-			if (usb_bi_in_get_state(1) != USB_BI_IN_STATE_HALTED) {
-				usb_bi_in_halt(1);
-			}
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
 	}
@@ -294,15 +272,6 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 		} else {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_ENDPOINT) && pkt->request == USB_REQ_GET_STATUS) {
-		if (!pkt->value && pkt->index == 0x81 && pkt->length == 2) {
-			stash_buffer[0] = usb_bi_in_get_state(1) == USB_BI_IN_STATE_HALTED;
-			stash_buffer[1] = 0;
-			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 2);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
 	}
@@ -350,6 +319,7 @@ static void on_enter(void) {
 	usb_fifo_enable(1, 512);
 	usb_fifo_flush(1);
 	usb_bi_in_init(1, 64, USB_BI_IN_EP_TYPE_BULK);
+	usb_bi_in_set_std_halt(1, 0, 0, &handle_ep1_clear_halt);
 
 	// Register endpoints callbacks.
 	usb_ep0_cbs_push(&EP0_CBS);
