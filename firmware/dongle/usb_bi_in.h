@@ -66,6 +66,7 @@ typedef void (*usb_bi_in_enter_halt_cb_t)(unsigned int ep);
  * \brief The type of a callback invoked by the standard halt handling layer just before an endpoint exits halt.
  *
  * This callback is not invoked if the host requests to exit halt when the endpoint is not halted.
+ * This callback is also not invoked if the application caused the exit by calling \ref usb_bi_in_clear_halt.
  *
  * \pre The endpoint is in \ref USB_BI_IN_STATE_HALTED.
  *
@@ -79,6 +80,7 @@ typedef bool (*usb_bi_in_pre_exit_halt_cb_t)(unsigned int ep);
  * \brief The type of a callback invoked by the standard halt handling layer just after an endpoint exits halt.
  *
  * This callback is also invoked if the host requests to exit halt when the endpoint is not halted.
+ * This callback is also not invoked if the application caused the exit by calling \ref usb_bi_in_clear_halt.
  *
  * \pre The endpoint is in \ref USB_BI_IN_STATE_IDLE.
  *
