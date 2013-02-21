@@ -5,7 +5,7 @@
 #include <sleep.h>
 #include <stdbool.h>
 
-static usb_ll_state_t device_state = USB_LL_STATE_DETACHED;
+static volatile usb_ll_state_t device_state = USB_LL_STATE_DETACHED;
 static usb_ll_reset_cb_t reset_cb;
 static usb_ll_enumeration_done_cb_t enumeration_done_cb;
 static usb_ll_unplug_cb_t unplug_cb;
