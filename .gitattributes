@@ -49,7 +49,6 @@ firmware/dongle/promiscuous.c -text
 firmware/dongle/promiscuous.h -text
 firmware/dongle/radio_sleep.c -text
 firmware/dongle/radio_sleep.h -text
-firmware/dongle/stm32f405.ld -text
 firmware/dongle/timers.txt -text
 firmware/flybackconverter/Makefile -text
 firmware/flybackconverter/config.h -text
@@ -153,6 +152,7 @@ firmware/stm32lib/include/usb_fifo.h -text
 firmware/stm32lib/include/usb_ll.h -text
 firmware/stm32lib/sleep.c -text
 firmware/stm32lib/stdlib.c -text
+firmware/stm32lib/stm32f405.ld -text
 firmware/stm32lib/string.c -text
 firmware/stm32lib/usb_bi_in.c -text
 firmware/stm32lib/usb_bi_out.c -text

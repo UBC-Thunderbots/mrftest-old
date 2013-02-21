@@ -3,8 +3,9 @@ CC := $(ABI)-gcc
 LD := $(ABI)-ld
 OBJCOPY := $(ABI)-objcopy
 PROJ := dongle
+LINKER_SCRIPT := ../stm32lib/stm32f405.ld
 override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -mlittle-endian -mthumb -mcpu=cortex-m3 -nostdinc -nostdlib -g -fno-common -ffunction-sections -fdata-sections -isystem ../stm32lib/include
-override LDFLAGS := $(LDFLAGS) -Tstm32f405.ld --gc-sections
+override LDFLAGS := $(LDFLAGS) -T$(LINKER_SCRIPT) --gc-sections
 override LDLIBS := $(LDLIBS) ../stm32lib/stm32lib.a
 
 FW_SOURCES := $(wildcard *.c)
@@ -15,7 +16,7 @@ $(PROJ).bin : $(PROJ).elf
 	@echo " OBJCOPY   $@"
 	@$(OBJCOPY) -O binary $+ $@
 
-$(PROJ).elf : $(FW_OBJS) ../stm32lib/stm32lib.a stm32f405.ld
+$(PROJ).elf : $(FW_OBJS) ../stm32lib/stm32lib.a $(LINKER_SCRIPT)
 	@echo " LD        $@"
 	@$(LD) $(LDFLAGS) -o$@ -Map=$(PROJ).map $(FW_OBJS) $(LDLIBS)
 
