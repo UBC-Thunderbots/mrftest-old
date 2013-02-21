@@ -7,8 +7,8 @@
  * \brief Communicates with an MRF24J40 radio.
  */
 
-#include "stdbool.h"
-#include "stdint.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 /**
  * \brief The possible short register addresses.

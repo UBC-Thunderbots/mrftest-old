@@ -1,6 +1,6 @@
 #include "buzzer.h"
-#include "rcc.h"
-#include "registers.h"
+#include <rcc.h>
+#include <registers.h>
 
 void timer5_interrupt_vector(void) {
 	// The interrupt occurs when the buzzer should turn off.

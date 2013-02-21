@@ -1,8 +1,8 @@
 #include "mrf.h"
 #include "config.h"
-#include "rcc.h"
-#include "registers.h"
-#include "sleep.h"
+#include <rcc.h>
+#include <registers.h>
+#include <sleep.h>
 
 static inline void sleep_50ns(void) {
 	asm volatile("nop");

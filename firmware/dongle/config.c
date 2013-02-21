@@ -1,5 +1,5 @@
 #include "config.h"
-#include "stdint.h"
+#include <stdint.h>
 
 struct config config = {
 	.channel = UINT8_C(0x0B),

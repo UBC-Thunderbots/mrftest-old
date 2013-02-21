@@ -45,6 +45,8 @@ firmware/speedsensor/dongle.elf
 firmware/speedsensor/dongle.map
 firmware/speedsensor/enter-dfu-mode
 firmware/speedsensor/exit-dfu-mode
+firmware/stm32lib/html
+firmware/stm32lib/stm32lib.a
 software/.cproject
 software/.metadata
 software/.project

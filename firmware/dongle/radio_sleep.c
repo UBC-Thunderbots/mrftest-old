@@ -1,13 +1,13 @@
 #include "radio_sleep.h"
 #include "config.h"
 #include "constants.h"
-#include "registers.h"
-#include "stdint.h"
-#include "unused.h"
-#include "usb_configs.h"
-#include "usb_ep0.h"
-#include "usb_ep0_sources.h"
-#include "usb_ll.h"
+#include <registers.h>
+#include <stdint.h>
+#include <unused.h>
+#include <usb_configs.h>
+#include <usb_ep0.h>
+#include <usb_ep0_sources.h>
+#include <usb_ll.h>
 
 enum {
 	DFU_DETACH = 0,

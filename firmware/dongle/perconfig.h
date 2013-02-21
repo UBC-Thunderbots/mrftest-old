@@ -7,8 +7,8 @@
  * \brief Provides a union that allows memory to be reused between different USB configurations (which are necessarily mutually exclusive).
  */
 
-#include "stdbool.h"
-#include "stdint.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 /**
  * \brief An outbound packet buffer used in normal mode (configuration 2).

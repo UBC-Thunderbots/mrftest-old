@@ -1,7 +1,7 @@
 #include "estop.h"
-#include "rcc.h"
-#include "registers.h"
-#include "sleep.h"
+#include <rcc.h>
+#include <registers.h>
+#include <sleep.h>
 
 static estop_t value = ESTOP_BROKEN;
 static estop_change_callback_t change_cb = 0;

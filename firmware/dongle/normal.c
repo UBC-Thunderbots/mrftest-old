@@ -2,22 +2,22 @@
 #include "config.h"
 #include "constants.h"
 #include "estop.h"
-#include "exti.h"
 #include "mrf.h"
 #include "perconfig.h"
-#include "rcc.h"
-#include "registers.h"
-#include "sleep.h"
-#include "stdbool.h"
-#include "stddef.h"
-#include "stdint.h"
-#include "string.h"
-#include "unused.h"
-#include "usb_bi_in.h"
-#include "usb_bi_out.h"
-#include "usb_ep0.h"
-#include "usb_ep0_sources.h"
-#include "usb_fifo.h"
+#include <exti.h>
+#include <rcc.h>
+#include <registers.h>
+#include <sleep.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+#include <unused.h>
+#include <usb_bi_in.h>
+#include <usb_bi_out.h>
+#include <usb_ep0.h>
+#include <usb_ep0_sources.h>
+#include <usb_fifo.h>
 
 const uint8_t NORMAL_CONFIGURATION_DESCRIPTOR[] = {
 	9, // bLength

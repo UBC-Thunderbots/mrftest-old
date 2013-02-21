@@ -7,7 +7,7 @@
  * \brief Stores configuration parameters that are used in multiple locations.
  */
 
-#include "stdint.h"
+#include <stdint.h>
 
 /**
  * \brief The configuration parameters.

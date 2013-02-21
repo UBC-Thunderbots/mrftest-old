@@ -2,23 +2,23 @@
 #include "constants.h"
 #include "debug.h"
 #include "estop.h"
-#include "format.h"
 #include "mrf.h"
 #include "normal.h"
 #include "promiscuous.h"
-#include "rcc.h"
 #include "radio_sleep.h"
-#include "registers.h"
-#include "sleep.h"
-#include "stddef.h"
-#include "stdint.h"
-#include "string.h"
-#include "unused.h"
-#include "usb_configs.h"
-#include "usb_ep0.h"
-#include "usb_ep0_sources.h"
-#include "usb_fifo.h"
-#include "usb_ll.h"
+#include <format.h>
+#include <rcc.h>
+#include <registers.h>
+#include <sleep.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+#include <unused.h>
+#include <usb_configs.h>
+#include <usb_ep0.h>
+#include <usb_ep0_sources.h>
+#include <usb_fifo.h>
+#include <usb_ll.h>
 
 static void stm32_main(void) __attribute__((noreturn));
 static void nmi_vector(void);
