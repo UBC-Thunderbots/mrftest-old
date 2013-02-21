@@ -6,7 +6,7 @@ PROJ := dongle
 override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -mlittle-endian -mthumb -mcpu=cortex-m3 -nostdinc -nostdlib -g -fno-common -ffunction-sections -fdata-sections
 override LDFLAGS := $(LDFLAGS) -Tstm32f405.ld --gc-sections
 
-FW_SOURCES := $(filter-out enter-dfu-mode.c,$(wildcard *.c))
+FW_SOURCES := $(wildcard *.c)
 FW_HEADERS := $(wildcard *.h)
 FW_OBJS := $(patsubst %.c,%.o,$(FW_SOURCES))
 
