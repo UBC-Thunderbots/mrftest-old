@@ -97,7 +97,19 @@ static void service_call_vector(void) {
 }
 
 static void pending_service_vector(void) {
-	for (;;);
+	// The PendSV exception is used by code that wants to reboot the chip after all other pending exceptions have flushed out.
+	// Request the reboot now.
+	SCS_AIRCR = VECTKEY(0x05FA) | SYSRESETREQ;
+	asm volatile("dsb");
+
+	// Disable all interrupts.
+	asm volatile("cpsid i");
+	asm volatile("isb");
+
+	// Wait forever until the reboot happens.
+	for (;;) {
+		asm volatile("wfi");
+	}
 }
 
 static void system_tick_vector(void) {
@@ -565,11 +577,15 @@ static void stm32_main(void) {
 	usb_ll_attach(&handle_usb_reset, &handle_usb_enumeration_done, 0);
 	NVIC_ISER[67 / 32] = 1 << (67 % 32); // SETENA67 = 1; enable USB FS interrupt
 
-	// Handle activity until detach.
-	while (usb_ll_get_state() != USB_LL_STATE_DETACHED);
+	// All activity from now on happens in interrupt handlers.
+	// Therefore, enable the mode where the chip automatically goes to sleep on return from an interrupt handler.
+	SCS_SCR |= SLEEPONEXIT;
+	asm volatile("dsb");
+	asm volatile("isb");
 
-	// Reboot the chip.
-	SCS_AIRCR = VECTKEY(0x05FA) | SYSRESETREQ;
-	for (;;);
+	// Now wait forever handling activity in interrupt handlers.
+	for (;;) {
+		asm volatile("wfi");
+	}
 }
 

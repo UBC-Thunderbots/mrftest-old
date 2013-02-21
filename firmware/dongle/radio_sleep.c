@@ -57,7 +57,8 @@ static void dfu_detach_gnak2(void) {
 	// Mark that we should go to the bootloader on next reboot.
 	bootload_flag = UINT64_C(0xFE228106195AD2B0);
 
-	// We will reboot when the main loop notices that the USB is detached.
+	// Set a pending system call exception so that when we exit from interrupt handling, we will go to the PendSV handler which will reboot the chip.
+	SCS_ICSR = PENDSVSET;
 }
 
 static void dfu_detach_gnak1(void) {
