@@ -254,7 +254,6 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 		if (!pkt->value && !pkt->index && pkt->length == 2) {
 			// We do not support remote wakeup, so bit 1 is always set to zero.
 			// We are always bus-powered, so bit 0 is always set to zero.
-			// We call the application to check whether we are currently bus-powered or self-powered.
 			stash_buffer[0] = 0;
 			stash_buffer[1] = 0;
 			*source = usb_ep0_memory_source_init(&src.mem_src, stash_buffer, 2);
@@ -346,7 +345,7 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 			case USB_DTYPE_INTERFACE_POWER:
 			{
 				// GET DESCRIPTOR(…)
-				// These are either not present or are not meant to be requested through GET DESCRIPTOR.
+				// These are either not present or are not meant to be requested through GET DESCRIPTOR(CONFIGURATION).
 				return USB_EP0_DISPOSITION_REJECT;
 			}
 
@@ -459,7 +458,7 @@ static void stm32_main(void) {
 	asm volatile("nop");
 	asm volatile("nop");
 	asm volatile("nop");
-	// Set Flash access latency to 5 wait states.
+	// Set Flash access latency to 4 wait states.
 	FLASH_ACR = LATENCY(4); // Four wait states (acceptable for 120 ≤ HCLK ≤ 150)
 	// Flash access latency change may not be immediately effective; wait until it’s locked in.
 	while (LATENCY_X(FLASH_ACR) != 4);
