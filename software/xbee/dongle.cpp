@@ -294,7 +294,7 @@ namespace {
 	}
 }
 
-XBeeDongle_SendMessageOperation::XBeeDongle_SendMessageOperation(XBeeDongle &dongle, const void *data, std::size_t length) : transfer(dongle.device, XBeeDongle::EP_MESSAGE, data, length, 0) {
+XBeeDongle_SendMessageOperation::XBeeDongle_SendMessageOperation(XBeeDongle &dongle, const void *data, std::size_t length) : transfer(dongle.device, XBeeDongle::EP_MESSAGE, data, length, 0, 0) {
 	transfer.signal_done.connect(signal_done.make_slot());
 	transfer.submit();
 }
@@ -303,7 +303,7 @@ void XBeeDongle_SendMessageOperation::result() const {
 	transfer.result();
 }
 
-XBeeDongle::XBeeDongle(bool force_reinit) : xbees_state(XBeesState::PREINIT), context(), device(context, 0x04D8, 0x7839), local_error_queue_transfer(device, EP_LOCAL_ERROR_QUEUE, 64, false, 0), debug_transfer(device, EP_DEBUG, 4096, false, 0), dongle_status_transfer(device, EP_DONGLE_STATUS, 4, true, 0), state_transport_in_transfer(device, EP_STATE_TRANSPORT, 64, false, 0), interrupt_in_transfer(device, EP_MESSAGE, 64, false, 0), stamp_transfer(device, EP_STATE_TRANSPORT, 0, 0, 0), dirty_drive_mask(0), enabled(false) {
+XBeeDongle::XBeeDongle(bool force_reinit) : xbees_state(XBeesState::PREINIT), context(), device(context, 0x04D8, 0x7839), local_error_queue_transfer(device, EP_LOCAL_ERROR_QUEUE, 64, false, 0), debug_transfer(device, EP_DEBUG, 4096, false, 0), dongle_status_transfer(device, EP_DONGLE_STATUS, 4, true, 0), state_transport_in_transfer(device, EP_STATE_TRANSPORT, 64, false, 0), interrupt_in_transfer(device, EP_MESSAGE, 64, false, 0), stamp_transfer(device, EP_STATE_TRANSPORT, 0, 0, 0, 0), dirty_drive_mask(0), enabled(false) {
 	for (unsigned int i = 0; i < 16; ++i) {
 		std::unique_ptr<XBeeRobot> p(new XBeeRobot(*this, i));
 		robots.push_back(std::move(p));
@@ -467,7 +467,7 @@ void XBeeDongle::submit_drive_transfer(const void *buffer, std::size_t length) {
 	if (index == drive_transfers.size()) {
 		drive_transfers.push_back(std::unique_ptr<USB::InterruptOutTransfer>());
 	}
-	drive_transfers[index].reset(new USB::InterruptOutTransfer(device, EP_STATE_TRANSPORT, buffer, length, 0));
+	drive_transfers[index].reset(new USB::InterruptOutTransfer(device, EP_STATE_TRANSPORT, buffer, length, 0, 0));
 	drive_transfers[index]->signal_done.connect(sigc::bind(sigc::mem_fun(this, &XBeeDongle::check_drive_transfer_result), index));
 	drive_transfers[index]->submit();
 }

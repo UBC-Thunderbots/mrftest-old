@@ -27,7 +27,7 @@ namespace {
 		buffer[0] = static_cast<uint8_t>(robot);
 		buffer[1] = message_id;
 		std::memcpy(buffer + 2, data, length);
-		std::unique_ptr<USB::InterruptOutTransfer> ptr(new USB::InterruptOutTransfer(device, 2, buffer, sizeof(buffer), 0));
+		std::unique_ptr<USB::InterruptOutTransfer> ptr(new USB::InterruptOutTransfer(device, 2, buffer, sizeof(buffer), 64, 0));
 		return ptr;
 	}
 }
@@ -172,7 +172,7 @@ void MRFDongle::dirty_drive() {
 
 bool MRFDongle::submit_drive_transfer() {
 	if (!drive_transfer) {
-		drive_transfer.reset(new USB::InterruptOutTransfer(device, 1, drive_packet, sizeof(drive_packet), 0));
+		drive_transfer.reset(new USB::InterruptOutTransfer(device, 1, drive_packet, sizeof(drive_packet), 64, 0));
 		drive_transfer->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_drive_transfer_done));
 		drive_transfer->submit();
 		drive_dirty = false;
@@ -192,7 +192,7 @@ void MRFDongle::send_unreliable(unsigned int robot, const void *data, std::size_
 	uint8_t buffer[len + 1];
 	buffer[0] = static_cast<uint8_t>(robot);
 	std::memcpy(buffer + 1, data, len);
-	std::unique_ptr<USB::InterruptOutTransfer> elt(new USB::InterruptOutTransfer(device, 3, buffer, sizeof(buffer), 0));
+	std::unique_ptr<USB::InterruptOutTransfer> elt(new USB::InterruptOutTransfer(device, 3, buffer, sizeof(buffer), 64, 0));
 	auto i = unreliable_messages.insert(unreliable_messages.end(), std::move(elt));
 	(*i)->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::check_unreliable_transfer), i));
 	(*i)->submit();

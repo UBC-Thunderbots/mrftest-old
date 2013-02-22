@@ -277,7 +277,7 @@ namespace USB {
 	 */
 	class InterruptOutTransfer : public Transfer {
 		public:
-			InterruptOutTransfer(DeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout);
+			InterruptOutTransfer(DeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, std::size_t max_len, unsigned int timeout);
 	};
 
 	/**
@@ -303,7 +303,7 @@ namespace USB {
 	 */
 	class BulkOutTransfer : public Transfer {
 		public:
-			BulkOutTransfer(DeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout);
+			BulkOutTransfer(DeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, std::size_t max_len, unsigned int timeout);
 	};
 }
 
