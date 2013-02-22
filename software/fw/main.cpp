@@ -1,3 +1,4 @@
+#include "fw/fb.h"
 #include "fw/ihex.h"
 #include "fw/mrf.h"
 #include "fw/pk2.h"
@@ -65,6 +66,7 @@ namespace {
 			MODE_2011_XBEE_PIC,
 			MODE_2012_PK2_FPGA,
 			MODE_2012_MRF_FPGA,
+			MODE_2013_FB_FPGA,
 		} mode;
 		if (mode_string == u8"2011-xbee-fpga") {
 			mode = MODE_2011_XBEE_FPGA;
@@ -74,6 +76,8 @@ namespace {
 			mode = MODE_2012_PK2_FPGA;
 		} else if (mode_string == u8"2012-mrf-fpga") {
 			mode = MODE_2012_MRF_FPGA;
+		} else if (mode_string == u8"2013-fb-fpga") {
+			mode = MODE_2013_FB_FPGA;
 		} else {
 			std::cerr << "Unrecognized mode string " << mode_string << ".\n";
 			return 1;
@@ -88,6 +92,7 @@ namespace {
 			case MODE_2011_XBEE_FPGA:
 			case MODE_2012_PK2_FPGA:
 			case MODE_2012_MRF_FPGA:
+			case MODE_2013_FB_FPGA:
 				hex.add_section(0, 2 * 1024 * 1024);
 				break;
 			case MODE_2011_XBEE_PIC:
@@ -116,6 +121,7 @@ namespace {
 					break;
 				case MODE_2012_PK2_FPGA:
 				case MODE_2012_MRF_FPGA:
+				case MODE_2013_FB_FPGA:
 					signature_type = SIGNATURE_TYPE_CRC32;
 					signature_section = &hex.data()[0];
 					signature_len = 2 * 1024 * 1024;
@@ -160,6 +166,10 @@ namespace {
 				if (0 <= robot && robot <= 7) {
 					Firmware::mrf_upload(hex, static_cast<unsigned int>(robot));
 				}
+				break;
+
+			case MODE_2013_FB_FPGA:
+				Firmware::fb_upload(hex);
 				break;
 		}
 

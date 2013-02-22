@@ -50,6 +50,17 @@ firmware/dongle/promiscuous.h -text
 firmware/dongle/radio_sleep.c -text
 firmware/dongle/radio_sleep.h -text
 firmware/dongle/timers.txt -text
+firmware/flashburner/Makefile -text
+firmware/flashburner/constants.h -text
+firmware/flashburner/host_controlled.c -text
+firmware/flashburner/host_controlled.h -text
+firmware/flashburner/idle.c -text
+firmware/flashburner/idle.h -text
+firmware/flashburner/main.c -text
+firmware/flashburner/spi.c -text
+firmware/flashburner/spi.h -text
+firmware/flashburner/stm32f405.ld -text
+firmware/flashburner/timers.txt -text
 firmware/flybackconverter/Makefile -text
 firmware/flybackconverter/config.h -text
 firmware/flybackconverter/main.c -text
@@ -492,6 +503,8 @@ software/drive/dongle.h -text
 software/drive/robot.cpp -text
 software/drive/robot.h -text
 software/experiment/main.cpp -text
+software/fw/fb.cpp -text
+software/fw/fb.h -text
 software/fw/ihex.cpp -text
 software/fw/ihex.h -text
 software/fw/main.cpp -text

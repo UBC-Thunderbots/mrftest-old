@@ -1,0 +1,17 @@
+Hardware timers and their purposes
+==================================
+
+Timer 1 (advanced-control): Unused
+Timer 2 (general-purpose up/down/updown): Unused
+Timer 3 (general-purpose up/down/updown): Unused
+Timer 4 (general-purpose up/down/updown): Unused
+Timer 5 (general-purpose up/down/updown): Unused
+Timer 6 (basic): Status register polling interval during write or erase in alternate setting 1
+Timer 7 (basic): Unused
+Timer 8 (advanced-control): Unused
+Timer 9 (general-purpose up): Unused
+Timer 10 (general-purpose up): Unused
+Timer 11 (general-purpose up): Unused
+Timer 12 (general-purpose up): Unused
+Timer 13 (general-purpose up): Unused
+Timer 14 (general-purpose up): Unused

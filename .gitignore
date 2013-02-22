@@ -31,6 +31,10 @@ firmware/dongle/dongle.bin
 firmware/dongle/dongle.elf
 firmware/dongle/dongle.map
 firmware/dongle/html
+firmware/flashburner/flashburner.bin
+firmware/flashburner/flashburner.elf
+firmware/flashburner/flashburner.map
+firmware/flashburner/html
 firmware/flybackconverter/*.asm
 firmware/flybackconverter/*.cod
 firmware/flybackconverter/*.hex
