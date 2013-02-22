@@ -96,6 +96,7 @@ const uint8_t ONBOARD_CONFIGURATION_DESCRIPTOR[] = {
 
 static volatile bool read_in_progress = false, autopolled_write_in_progress = false, autopolled_mode = false;
 static const struct spi_ops *spi = 0;
+static unsigned int led_index = 13;
 static uint16_t write_page;
 static uint8_t write_buffer[256];
 
@@ -135,6 +136,9 @@ void timer6_interrupt_vector(void) {
 			// Disable this timer.
 			stop_timer6();
 
+			// Turn off the activity LED.
+			GPIOB_BSRR = GPIO_BR(led_index);
+
 			// Start a transfer on the endpoint to notify the host.
 			usb_bi_in_start_transfer(1, 0, 1, 0, 0);
 		}
@@ -148,6 +152,7 @@ static void handle_ep1i_set_or_clear_halt(unsigned int UNUSED(ep)) {
 	// Stop polling for any currently-running write.
 	autopolled_write_in_progress = false;
 	stop_timer6();
+	GPIOB_BSRR = GPIO_BR(led_index);
 }
 
 static void stop_background(void) {
@@ -167,6 +172,9 @@ static void stop_background(void) {
 		}
 		autopolled_write_in_progress = false;
 	}
+
+	// Turn off the activity LED.
+	GPIOB_BSRR = GPIO_BR(led_index);
 }
 
 typedef struct {
@@ -224,6 +232,7 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 			spi->deassert_cs();
 			spi->disable();
 			if (autopolled_mode) {
+				GPIOB_BSRR = GPIO_BS(led_index);
 				autopolled_write_in_progress = true;
 				start_timer6();
 			}
@@ -273,7 +282,11 @@ static size_t flash_source_generate(void *UNUSED(opaque), void *buffer, size_t l
 	}
 }
 
-static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_source_t **source, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
+static void read_flash_poststatus(void) {
+	GPIOB_BSRR = GPIO_BR(led_index);
+}
+
+static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_source_t **source, usb_ep0_poststatus_cb_t *poststatus) {
 	static uint8_t stash_buffer[3];
 	static union {
 		usb_ep0_memory_source_t mem_src;
@@ -344,8 +357,10 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 			spi->transceive_byte(0);
 			spi->transceive_byte(0);
 			read_in_progress = true;
+			GPIOB_BSRR = GPIO_BS(led_index);
 			source_union.flash_src.generate = &flash_source_generate;
 			*source = &source_union.flash_src;
+			*poststatus = &read_flash_poststatus;
 			return USB_EP0_DISPOSITION_ACCEPT;
 		} else {
 			return USB_EP0_DISPOSITION_REJECT;
@@ -386,6 +401,7 @@ static bool write_postdata(void) {
 	spi->deassert_cs();
 	spi->disable();
 	if (autopolled_mode) {
+		GPIOB_BSRR = GPIO_BS(led_index);
 		autopolled_write_in_progress = true;
 		start_timer6();
 	}
@@ -460,13 +476,13 @@ static void on_enter_common(void) {
 }
 
 static void on_enter_target(void) {
-	GPIOB_BSRR = GPIO_BS(13);
+	led_index = 13;
 	spi = &spi_external_ops;
 	on_enter_common();
 }
 
 static void on_enter_onboard(void) {
-	GPIOB_BSRR = GPIO_BS(14);
+	led_index = 14;
 	spi = &spi_internal_ops;
 	on_enter_common();
 }
