@@ -17,7 +17,7 @@
 
 namespace USB {
 	/**
-	 * \brief An error that occurs in a libusb library function
+	 * \brief An error that occurs in a libusb library function.
 	 */
 	class Error : public std::runtime_error {
 		public:
@@ -25,7 +25,7 @@ namespace USB {
 	};
 
 	/**
-	 * \brief An error that occurs on a USB transfer
+	 * \brief An error that occurs on a USB transfer.
 	 */
 	class TransferError : public Error {
 		public:
@@ -33,7 +33,7 @@ namespace USB {
 	};
 
 	/**
-	 * \brief An error that occurs when a USB transfer times out
+	 * \brief An error that occurs when a USB transfer times out.
 	 */
 	class TransferTimeoutError : public TransferError {
 		public:
@@ -41,7 +41,7 @@ namespace USB {
 	};
 
 	/**
-	 * \brief An error that occurs when a USB stall occurs
+	 * \brief An error that occurs when a USB stall occurs.
 	 */
 	class TransferStallError : public TransferError {
 		public:
@@ -49,7 +49,7 @@ namespace USB {
 	};
 
 	/**
-	 * \brief An error that occurs when a USB transfer is cancelled
+	 * \brief An error that occurs when a USB transfer is cancelled.
 	 */
 	class TransferCancelledError : public TransferError {
 		public:
@@ -57,7 +57,7 @@ namespace USB {
 	};
 
 	/**
-	 * \brief A libusb context
+	 * \brief A libusb context.
 	 */
 	class Context : public NonCopyable {
 		public:
@@ -80,7 +80,7 @@ namespace USB {
 	};
 
 	/**
-	 * \brief A USB device
+	 * \brief A USB device.
 	 */
 	class Device {
 		public:
@@ -112,7 +112,7 @@ namespace USB {
 	};
 
 	/**
-	 * \brief A list of USB devices
+	 * \brief A list of USB devices.
 	 */
 	class DeviceList : public NonCopyable {
 		public:
@@ -133,7 +133,7 @@ namespace USB {
 	};
 
 	/**
-	 * \brief A libusb device handle
+	 * \brief A libusb device handle.
 	 */
 	class DeviceHandle : public NonCopyable {
 		public:
@@ -154,6 +154,8 @@ namespace USB {
 			void claim_interface(int interface);
 
 			void release_interface(int interface);
+
+			void set_interface_alt_setting(int interface, int alternate_setting);
 
 			void clear_halt_in(unsigned char endpoint);
 
@@ -184,7 +186,55 @@ namespace USB {
 	};
 
 	/**
-	 * \brief A libusb transfer
+	 * \brief An RAII-style way to set a configuration on a device.
+	 */
+	class ConfigurationSetter : public NonCopyable {
+		public:
+			/**
+			 * \brief Sets a device’s configuration.
+			 *
+			 * \param[in] device the device to set
+			 *
+			 * \param[in] configuration the configuration number to set
+			 */
+			ConfigurationSetter(DeviceHandle &device, int configuration);
+
+			/**
+			 * \brief Resets the device to its original configuration.
+			 */
+			~ConfigurationSetter();
+
+		private:
+			DeviceHandle &device;
+			int original_configuration;
+	};
+
+	/**
+	 * \brief An RAII-style way to claim an interface on a device.
+	 */
+	class InterfaceClaimer : public NonCopyable {
+		public:
+			/**
+			 * \brief Claims an interface on a device.
+			 *
+			 * \param[in] device the device whose interface should be claimed
+			 *
+			 * \param[in] interface the interface to claim
+			 */
+			InterfaceClaimer(DeviceHandle &device, int interface);
+
+			/**
+			 * \brief Releases the interface.
+			 */
+			~InterfaceClaimer();
+
+		private:
+			DeviceHandle &device;
+			int interface;
+	};
+
+	/**
+	 * \brief A libusb transfer.
 	 */
 	class Transfer : public AsyncOperation<void> {
 		public:
@@ -205,7 +255,7 @@ namespace USB {
 	};
 
 	/**
-	 * \brief A libusb inbound interrupt transfer
+	 * \brief A libusb inbound interrupt transfer.
 	 */
 	class InterruptInTransfer : public Transfer {
 		public:
@@ -223,7 +273,7 @@ namespace USB {
 	};
 
 	/**
-	 * \brief A libusb outbound interrupt transfer
+	 * \brief A libusb outbound interrupt transfer.
 	 */
 	class InterruptOutTransfer : public Transfer {
 		public:
@@ -231,7 +281,7 @@ namespace USB {
 	};
 
 	/**
-	 * \brief A libusb inbound bulk transfer
+	 * \brief A libusb inbound bulk transfer.
 	 */
 	class BulkInTransfer : public Transfer {
 		public:
@@ -249,7 +299,7 @@ namespace USB {
 	};
 
 	/**
-	 * \brief A libusb outbound bulk transfer
+	 * \brief A libusb outbound bulk transfer.
 	 */
 	class BulkOutTransfer : public Transfer {
 		public:

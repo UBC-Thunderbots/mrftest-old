@@ -288,6 +288,10 @@ void USB::DeviceHandle::release_interface(int interface) {
 	check_fn("libusb_release_interface", libusb_release_interface(handle, interface), 0);
 }
 
+void USB::DeviceHandle::set_interface_alt_setting(int interface, int alternate_setting) {
+	check_fn("libusb_set_interface_alt_setting", libusb_set_interface_alt_setting(handle, interface, alternate_setting), 0);
+}
+
 void USB::DeviceHandle::clear_halt_in(unsigned char endpoint) {
 	check_fn("libusb_clear_halt", libusb_clear_halt(handle, endpoint | LIBUSB_ENDPOINT_IN), endpoint | LIBUSB_ENDPOINT_IN);
 }
@@ -339,6 +343,27 @@ std::size_t USB::DeviceHandle::bulk_in(unsigned char endpoint, void *data, std::
 	check_fn("libusb_bulk_transfer", libusb_bulk_transfer(handle, endpoint | LIBUSB_ENDPOINT_IN, static_cast<unsigned char *>(data), static_cast<uint16_t>(length), &transferred, timeout), endpoint | LIBUSB_ENDPOINT_IN);
 	assert(transferred >= 0);
 	return static_cast<std::size_t>(transferred);
+}
+
+
+
+USB::ConfigurationSetter::ConfigurationSetter(DeviceHandle &device, int configuration) : device(device) {
+	original_configuration = device.get_configuration();
+	device.set_configuration(configuration);
+}
+
+USB::ConfigurationSetter::~ConfigurationSetter() {
+	device.set_configuration(original_configuration ? original_configuration : -1);
+}
+
+
+
+USB::InterfaceClaimer::InterfaceClaimer(DeviceHandle &device, int interface) : device(device), interface(interface) {
+	device.claim_interface(interface);
+}
+
+USB::InterfaceClaimer::~InterfaceClaimer() {
+	device.release_interface(interface);
 }
 
 
