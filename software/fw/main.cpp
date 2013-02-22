@@ -68,6 +68,7 @@ namespace {
 			MODE_2012_MRF_FPGA,
 			MODE_2013_FB_FPGA,
 		} mode;
+		bool onboard = false;
 		bool leave_powered = false;
 		if (mode_string == u8"2011-xbee-fpga") {
 			mode = MODE_2011_XBEE_FPGA;
@@ -82,6 +83,9 @@ namespace {
 		} else if (mode_string == u8"2013-fb-fpga-power") {
 			mode = MODE_2013_FB_FPGA;
 			leave_powered = true;
+		} else if (mode_string == u8"2013-fb-onboard") {
+			mode = MODE_2013_FB_FPGA;
+			onboard = true;
 		} else {
 			std::cerr << "Unrecognized mode string " << mode_string << ".\n";
 			std::cerr << "Valid modes are:\n";
@@ -92,6 +96,7 @@ namespace {
 			std::cerr << "2013-pk2-fpga: FPGA bitstream for 2013 robots is burnt into SPI Flash using a PICkit2.\n";
 			std::cerr << "2013-fb-fpga: FPGA bitstream for 2013 robots is burnt into SPI Flash using the dedicated Flash burner board.\n";
 			std::cerr << "2013-fb-fpga-power: FPGA bitstream for 2013 robots is burnt into SPI Flash using the dedicated Flash burner board, leaving the robot powered afterwards.\n";
+			std::cerr << "2013-fb-onboard: FPGA bitstream for 2013 robots is burnt into onboard storage of the dedicated Flash burner board, for later autonomous burning.\n";
 			return 1;
 		}
 		if (!hex_filename.size()) {
@@ -181,7 +186,7 @@ namespace {
 				break;
 
 			case MODE_2013_FB_FPGA:
-				Firmware::fb_upload(hex, leave_powered);
+				Firmware::fb_upload(hex, onboard, leave_powered);
 				break;
 		}
 
