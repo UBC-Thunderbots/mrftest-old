@@ -65,7 +65,7 @@ namespace {
 	}
 }
 
-void Firmware::fb_upload(const IntelHex &hex) {
+void Firmware::fb_upload(const IntelHex &hex, bool leave_powered) {
 	// Find and open the burner module.
 	std::cout << "Finding and activating burner module… ";
 	std::cout.flush();
@@ -150,6 +150,25 @@ void Firmware::fb_upload(const IntelHex &hex) {
 		std::cout << "\rReading and comparing data… " << std::min(i + READ_BLOCK_SIZE, hex.data()[0].size()) << '/' << hex.data()[0].size();
 	}
 	std::cout << "\rReading and comparing data… OK.               \n";
+
+	// Release the bus.
+	if (leave_powered) {
+		// Float PROGRAM_B, wait a while, and then let go of power control—by that time, the FPGA should be holding itself up.
+		std::cout << "Allowing FPGA to boot… ";
+		std::cout.flush();
+		write_io(handle, PIN_POWER, PIN_POWER);
+		Glib::usleep(500000);
+		write_io(handle, 0, 0);
+		std::cout << "OK.\n";
+	} else {
+		// Drive power control low while holding PROGRAM_B low, wait a while, and then let go of the bus once it’s certain everything is dead.
+		std::cout << "Powering down board… ";
+		std::cout.flush();
+		write_io(handle, 0, PIN_POWER | PIN_PROGRAM_B);
+		Glib::usleep(300000);
+		write_io(handle, 0, 0);
+		std::cout << "OK.\n";
+	}
 
 	// Show a final message.
 	std::cout << "Operation complete.\n";

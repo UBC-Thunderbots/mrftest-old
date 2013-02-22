@@ -68,18 +68,30 @@ namespace {
 			MODE_2012_MRF_FPGA,
 			MODE_2013_FB_FPGA,
 		} mode;
+		bool leave_powered = false;
 		if (mode_string == u8"2011-xbee-fpga") {
 			mode = MODE_2011_XBEE_FPGA;
 		} else if (mode_string == u8"2011-xbee-pic") {
 			mode = MODE_2011_XBEE_PIC;
-		} else if (mode_string == u8"2012-pk2-fpga" || mode_string.empty()) {
+		} else if (mode_string == u8"2012-pk2-fpga" || mode_string == u8"2013-pk2-fpga") {
 			mode = MODE_2012_PK2_FPGA;
 		} else if (mode_string == u8"2012-mrf-fpga") {
 			mode = MODE_2012_MRF_FPGA;
-		} else if (mode_string == u8"2013-fb-fpga") {
+		} else if (mode_string == u8"2013-fb-fpga" || mode_string.empty()) {
 			mode = MODE_2013_FB_FPGA;
+		} else if (mode_string == u8"2013-fb-fpga-power") {
+			mode = MODE_2013_FB_FPGA;
+			leave_powered = true;
 		} else {
 			std::cerr << "Unrecognized mode string " << mode_string << ".\n";
+			std::cerr << "Valid modes are:\n";
+			std::cerr << "2011-xbee-fpga: FPGA bitstream for 2011 robots is sent over the XBee dongle to the robot.\n";
+			std::cerr << "2011-xbee-pic: PIC firmware for 2011 robots is sent over the XBee dongle to the robot.\n";
+			std::cerr << "2012-pk2-fpga: FPGA bitstream for 2012 robots is burnt into SPI Flash using a PICkit2.\n";
+			std::cerr << "2012-mrf-fpga: FPGA bitstream for 2012 robots is sent over the MRF dongle to the robot.\n";
+			std::cerr << "2013-pk2-fpga: FPGA bitstream for 2013 robots is burnt into SPI Flash using a PICkit2.\n";
+			std::cerr << "2013-fb-fpga: FPGA bitstream for 2013 robots is burnt into SPI Flash using the dedicated Flash burner board.\n";
+			std::cerr << "2013-fb-fpga-power: FPGA bitstream for 2013 robots is burnt into SPI Flash using the dedicated Flash burner board, leaving the robot powered afterwards.\n";
 			return 1;
 		}
 		if (!hex_filename.size()) {
@@ -169,7 +181,7 @@ namespace {
 				break;
 
 			case MODE_2013_FB_FPGA:
-				Firmware::fb_upload(hex);
+				Firmware::fb_upload(hex, leave_powered);
 				break;
 		}
 
