@@ -59,36 +59,29 @@ namespace {
 		std::cout << "OK\n";
 
 		// Set configuration 1 to enter parameters
-		if (devh.get_configuration() != 1) {
-			devh.set_configuration(1);
-		}
-		devh.claim_interface(0);
+		devh.set_configuration(1);
 
 		// Set parameters
-		std::cout << "Setting channel 0x" << tohex(channel, 2) << "… ";
-		std::cout.flush();
-		devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR, 0x01, channel, 0, 0);
-		std::cout << "OK\nSetting symbol rate " << (symbol_rate_encoded ? 625 : 250) << " kb/s… ";
-		std::cout.flush();
-		devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR, 0x03, symbol_rate_encoded, 0, 0);
-		std::cout << "OK\nSetting PAN ID 0x" << tohex(pan_id, 4) << "… ";
-		std::cout.flush();
-		devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR, 0x05, pan_id, 0, 0);
-		std::cout << "OK\nSetting MAC address 0x" << tohex(mac_address, 16) << "… ";
-		std::cout.flush();
 		{
-			uint8_t buffer[8];
-			for (std::size_t i = 0; i < 8; ++i) {
-				buffer[i] = static_cast<uint8_t>(mac_address >> (i * 8));
-			}
-			devh.control_out(LIBUSB_REQUEST_TYPE_VENDOR, 0x07, 0, 0, buffer, sizeof(buffer), 0);
+			USB::InterfaceClaimer interface_claimer(devh, 0);
+			std::cout << "Setting channel 0x" << tohex(channel, 2) << "… ";
+			std::cout.flush();
+			devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR, 0x01, channel, 0, 0);
+			std::cout << "OK\nSetting symbol rate " << (symbol_rate_encoded ? 625 : 250) << " kb/s… ";
+			std::cout.flush();
+			devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR, 0x03, symbol_rate_encoded, 0, 0);
+			std::cout << "OK\nSetting PAN ID 0x" << tohex(pan_id, 4) << "… ";
+			std::cout.flush();
+			devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR, 0x05, pan_id, 0, 0);
+			std::cout << "OK\nSetting MAC address 0x" << tohex(mac_address, 16) << "… ";
+			std::cout.flush();
+			devh.control_out(LIBUSB_REQUEST_TYPE_VENDOR, 0x07, 0, 0, &mac_address, sizeof(mac_address), 0);
+			std::cout << "OK\n";
 		}
-		std::cout << "OK\n";
 
 		// Set configuration 3 to enter promiscuous mode
-		devh.release_interface(0);
-		devh.set_configuration(3);
-		devh.claim_interface(0);
+		USB::ConfigurationSetter config_setter(devh, 3);
+		USB::InterfaceClaimer interface_claimer(devh, 0);
 
 		// Set capture flags
 		std::cout << "Setting capture flags… ";

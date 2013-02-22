@@ -46,11 +46,8 @@ namespace {
 		std::cout << "OK\n";
 
 		// Set configuration
-		if (devh.get_configuration() == 6) {
-			devh.set_configuration(1);
-		}
-		devh.set_configuration(6);
-		devh.claim_interface(0);
+		USB::ConfigurationSetter config_setter(devh, 6);
+		USB::InterfaceClaimer interface_claimer(devh, 0);
 
 		// Go into a loop
 		for (;;) {
@@ -152,10 +149,6 @@ namespace {
 				}
 			}
 		}
-
-		// Shut down the dongle
-		devh.release_interface(0);
-		devh.set_configuration(1);
 
 		return 0;
 	}

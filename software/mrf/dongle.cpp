@@ -89,16 +89,17 @@ MRFDongle::MRFDongle() : context(), device(context, 0x0483, 0x497C), mdr_transfe
 	for (unsigned int i = 0; i < 256; ++i) {
 		free_message_ids.push(static_cast<uint8_t>(i));
 	}
-	if (device.get_configuration() != 2) {
-		device.set_configuration(1);
+	device.set_configuration(1);
+	{
+		USB::InterfaceClaimer temp_interface_claimer(device, 0);
 		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x01, CHANNEL, 0, 0);
 		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x03, 0, 0, 0);
 		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x05, PAN_ID, 0, 0);
 		static const uint64_t MAC = UINT64_C(0x20cb13bd834ab817);
 		device.control_out(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x07, 0, 0, &MAC, sizeof(MAC), 0);
-		device.set_configuration(2);
 	}
-	device.claim_interface(0);
+	config_setter.reset(new USB::ConfigurationSetter(device, 2));
+	interface_claimer.reset(new USB::InterfaceClaimer(device, 0));
 
 	mdr_transfer.signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_mdr));
 	mdr_transfer.submit();
@@ -112,8 +113,6 @@ MRFDongle::MRFDongle() : context(), device(context, 0x0483, 0x497C), mdr_transfe
 
 MRFDongle::~MRFDongle() {
 	drive_submit_connection.disconnect();
-	device.release_interface(0);
-	device.set_configuration(1);
 }
 
 uint8_t MRFDongle::alloc_message_id() {

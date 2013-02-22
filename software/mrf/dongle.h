@@ -69,6 +69,8 @@ class MRFDongle : public Drive::Dongle {
 
 		USB::Context context;
 		USB::DeviceHandle device;
+		std::unique_ptr<USB::ConfigurationSetter> config_setter;
+		std::unique_ptr<USB::InterfaceClaimer> interface_claimer;
 		USB::BulkInTransfer mdr_transfer;
 		USB::InterruptInTransfer message_transfer, status_transfer;
 		std::unique_ptr<USB::InterruptOutTransfer> drive_transfer;
