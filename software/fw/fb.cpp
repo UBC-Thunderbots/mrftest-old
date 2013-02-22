@@ -59,9 +59,8 @@ namespace {
 		dev.interrupt_in(1, &byte, sizeof(byte), 250);
 	}
 
-	void read_data(USB::DeviceHandle &dev, uint16_t page, void *data, std::size_t length) {
-		std::size_t sz = dev.control_in(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, CONTROL_REQUEST_READ, page, 0, data, length, 5000);
-		if (sz != length) { std::cout << "Asked for a read of " << length << " bytes but got " << sz << "!\n"; }
+	std::size_t read_data(USB::DeviceHandle &dev, uint16_t page, void *data, std::size_t length) {
+		return dev.control_in(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, CONTROL_REQUEST_READ, page, 0, data, length, 5000);
 	}
 }
 
@@ -142,10 +141,14 @@ void Firmware::fb_upload(const IntelHex &hex, bool onboard, bool leave_powered) 
 	std::cout.flush();
 	for (std::size_t i = 0; i < hex.data()[0].size(); i += READ_BLOCK_SIZE) {
 		std::array<uint8_t, READ_BLOCK_SIZE> buffer;
-		read_data(handle, static_cast<uint16_t>(i / PAGE_SIZE), &buffer[0], buffer.size());
+		std::size_t bytes_read;
+		if ((bytes_read = read_data(handle, static_cast<uint16_t>(i / PAGE_SIZE), &buffer[0], buffer.size())) != buffer.size()) {
+			std::cout << "\rReading and comparing data… read block request issued for " << buffer.size() << " bytes but returned only " << bytes_read << "!\n";
+			return;
+		}
 		for (std::size_t j = 0; j < buffer.size() && i + j < hex.data()[0].size(); ++j) {
 			if (buffer[j] != hex.data()[0][i + j]) {
-				std::cout << "\rReading and comparing data… compare failed at byte " << (i + j) << ": expected " << Glib::locale_from_utf8(tohex(hex.data()[0][i + j], 2)) << " but found " << Glib::locale_from_utf8(tohex(buffer[j], 2)) << '\n';
+				std::cout << "\rReading and comparing data… compare failed at byte " << (i + j) << ": expected " << Glib::locale_from_utf8(tohex(hex.data()[0][i + j], 2)) << " but found " << Glib::locale_from_utf8(tohex(buffer[j], 2)) << "!\n";
 				return;
 			}
 		}
