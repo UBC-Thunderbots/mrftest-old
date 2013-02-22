@@ -1401,6 +1401,30 @@ extern volatile uint32_t SCS_AFSR;
 
 extern volatile uint32_t SCS_CPACR;
 
+extern volatile uint32_t MPU_TYPE;
+BIT(SEPARATE, 0)
+BITS(DREGION, 8, 8)
+
+extern volatile uint32_t MPU_CTRL;
+BIT(MPU_CTRL_ENABLE, 0)
+BIT(HFNMIENA, 1)
+BIT(PRIVDEFENA, 2)
+
+extern volatile uint32_t MPU_RNR;
+
+extern volatile uint32_t MPU_RBAR;
+
+extern volatile uint32_t MPU_RASR;
+BIT(MPU_RASR_ENABLE, 0)
+BITS(MPU_RASR_SIZE, 1, 5)
+BITS(MPU_RASR_SRD, 8, 8)
+BIT(MPU_RASR_B, 16)
+BIT(MPU_RASR_C, 17)
+BIT(MPU_RASR_S, 18)
+BITS(MPU_RASR_TEX, 19, 3)
+BITS(MPU_RASR_AP, 24, 3)
+BIT(MPU_RASR_XN, 28)
+
 extern volatile uint32_t FPU_FPCCR;
 BIT(LSPACT, 0)
 BIT(FPU_USER, 1)
