@@ -11,6 +11,7 @@
 #include <registers.h>
 #include <sleep.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include <unused.h>
@@ -22,10 +23,10 @@
 
 static void stm32_main(void) __attribute__((noreturn));
 static void nmi_vector(void);
-static void hard_fault_vector(void);
-static void memory_manage_vector(void);
-static void bus_fault_vector(void);
-static void usage_fault_vector(void);
+static void hard_fault_vector(void) __attribute__((naked));
+static void memory_manage_fault_vector(void) __attribute__((naked));
+static void bus_fault_vector(void) __attribute__((naked));
+static void usage_fault_vector(void) __attribute__((naked));
 static void service_call_vector(void);
 static void pending_service_vector(void);
 static void system_tick_vector(void);
@@ -49,7 +50,7 @@ static const fptr exception_vectors[16] __attribute__((used, section(".exception
 	[1] = &stm32_main,
 	[2] = &nmi_vector,
 	[3] = &hard_fault_vector,
-	[4] = &memory_manage_vector,
+	[4] = &memory_manage_fault_vector,
 	[5] = &bus_fault_vector,
 	[6] = &usage_fault_vector,
 	[11] = &service_call_vector,
@@ -73,23 +74,63 @@ static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt
 };
 
 static void nmi_vector(void) {
-	for (;;);
+	abort();
+}
+
+static void hard_fault_vector_impl(const uint32_t *context) __attribute__((used));
+static void hard_fault_vector_impl(const uint32_t *context) {
+	abort_cause.cause = ABORT_CAUSE_HARD_FAULT;
+	abort_cause.detail[0] = SCS_HFSR; // Fault status register
+	abort_cause.detail[1] = SCS_CFSR; // This may contain the original underlying cause of the hard fault
+	abort_cause.detail[2] = context[6]; // Return address to faulting instruction
+	abort();
 }
 
 static void hard_fault_vector(void) {
-	for (;;);
+	asm volatile("mov r0, sp");
+	asm volatile("b hard_fault_vector_impl");
 }
 
-static void memory_manage_vector(void) {
-	for (;;);
+static void memory_manage_fault_vector_impl(const uint32_t *context) __attribute__((used));
+static void memory_manage_fault_vector_impl(const uint32_t *context) {
+	abort_cause.cause = ABORT_CAUSE_MEMORY_MANAGE_FAULT;
+	abort_cause.detail[0] = SCS_CFSR; // Fault status register
+	abort_cause.detail[1] = SCS_MMFAR; // Faulting data address
+	abort_cause.detail[2] = context[6]; // Return address to faulting instruction
+	abort();
+}
+
+static void memory_manage_fault_vector(void) {
+	asm volatile("mov r0, sp");
+	asm volatile("b memory_manage_fault_vector_impl");
+}
+
+static void bus_fault_vector_impl(const uint32_t *context) __attribute__((used));
+static void bus_fault_vector_impl(const uint32_t *context) {
+	abort_cause.cause = ABORT_CAUSE_BUS_FAULT;
+	abort_cause.detail[0] = SCS_CFSR; // Fault status register
+	abort_cause.detail[1] = SCS_BFAR; // Faulting data address
+	abort_cause.detail[2] = context[6]; // Return address to faulting instruction
+	abort();
 }
 
 static void bus_fault_vector(void) {
-	for (;;);
+	asm volatile("mov r0, sp");
+	asm volatile("b bus_fault_vector_impl");
+}
+
+static void usage_fault_vector_impl(const uint32_t *context) __attribute__((used));
+static void usage_fault_vector_impl(const uint32_t *context) {
+	abort_cause.cause = ABORT_CAUSE_USAGE_FAULT;
+	abort_cause.detail[0] = SCS_CFSR; // Fault status register
+	abort_cause.detail[1] = SCS_BFAR; // Faulting data address
+	abort_cause.detail[2] = context[6]; // Return address to faulting instruction
+	abort();
 }
 
 static void usage_fault_vector(void) {
-	for (;;);
+	asm volatile("mov r0, sp");
+	asm volatile("b usage_fault_vector_impl");
 }
 
 static void service_call_vector(void) {
@@ -413,6 +454,62 @@ static void stm32_main(void) {
 
 	// Always 8-byte-align the stack pointer on entry to an interrupt handler (as ARM recommends).
 	SCS_CCR |= STKALIGN; // Guarantee 8-byte alignment
+
+	// Enable Usage, Bus, and MemManage faults to be taken as such rather than escalating to HardFaults.
+	SCS_SHCSR |= USGFAULTENA | BUSFAULTENA | MEMFAULTENA;
+
+	// Make all hardware interrupts be priority 0xFF (or as close as possible), leaving CPU exceptions at priority 0, so that we can take CPU exceptions inside interrupt handlers.
+	for (size_t i = 0; i < sizeof(NVIC_IPR) / sizeof(*NVIC_IPR); ++i) {
+		NVIC_IPR[i] = 0xFFFFFFFF;
+	}
+
+	// Set up the memory protection unit to catch bad pointer dereferences.
+	// We define the following regions:
+	// Region 0: 0x08000000 length 1 MiB: Flash memory (normal, read-only, write-through cache, executable)
+	// Region 1: 0x10000000 length 64 kiB: CCM (normal, read-write, write-back write-allocate cache, not executable)
+	// Region 2: 0x1FFF7A00 length 64 bytes: U_ID and F_SIZE (device, read-only, not executable) (this should be 0x1FFF7A10 length 12 plus 0x1FFF7A22 length 4, but this is all we can do)
+	// Region 3: 0x20000000 length 128 kiB: SRAM (normal, read-write, write-back write-allocate cache, not executable)
+	// Region 4: 0x40000000 length 32 kiB: APB1 peripherals (device, read-write, not executable)
+	// Region 5: 0x40010000 length 32 kiB: APB2 peripherals (device, read-write, not executable) using subregions:
+	//   This should be 22,258 bytes.
+	//   Regions must be powers of 2, so we set 32 kiB.
+	//   The closest eight divsion we can get is ¾; ⅝ would be too small.
+	//   So set the bottommost 6 subregions as present, and the top 2 subregions as absent.
+	// Region 6: 0x40020000 length 512 kiB: AHB1 peripherals (device, read-write, not executable)
+	// Region 7: 0x50000000 length 512 kiB: AHB2 peripherals (device, read-write, not executable)
+	//   This should be 396,288 bytes.
+	//   Regions must be powers of 2, so we set 512 kiB.
+	//   The closest eight division we can get is ⅞; ¾ is too small.
+	//   So set the bottommost 7 subregions as present, and the top 1 subregion as absent.
+	// The private peripheral bus (0xE0000000 length 1 MiB) always uses the system memory map, so no region is needed for it.
+	// We set up the regions first, then enable the MPU.
+	MPU_RNR = 0;
+	MPU_RBAR = 0x08000000;
+	MPU_RASR = MPU_RASR_AP(0b111) | MPU_RASR_TEX(0b000) | MPU_RASR_C | MPU_RASR_SRD(0) | MPU_RASR_SIZE(19) | MPU_RASR_ENABLE;
+	MPU_RNR = 1;
+	MPU_RBAR = 0x10000000;
+	MPU_RASR = MPU_RASR_XN | MPU_RASR_AP(0b011) | MPU_RASR_TEX(0b001) | MPU_RASR_C | MPU_RASR_B | MPU_RASR_SRD(0) | MPU_RASR_SIZE(15) | MPU_RASR_ENABLE;
+	MPU_RNR = 2;
+	MPU_RBAR = 0x1FFF7A00;
+	MPU_RASR = MPU_RASR_XN | MPU_RASR_AP(0b111) | MPU_RASR_TEX(0b010) | MPU_RASR_SRD(0) | MPU_RASR_SIZE(5) | MPU_RASR_ENABLE;
+	MPU_RNR = 3;
+	MPU_RBAR = 0x20000000;
+	MPU_RASR = MPU_RASR_XN | MPU_RASR_AP(0b011) | MPU_RASR_TEX(0b001) | MPU_RASR_C | MPU_RASR_B | MPU_RASR_SRD(0) | MPU_RASR_SIZE(16) | MPU_RASR_ENABLE;
+	MPU_RNR = 4;
+	MPU_RBAR = 0x40000000;
+	MPU_RASR = MPU_RASR_XN | MPU_RASR_AP(0b011) | MPU_RASR_TEX(0b010) | MPU_RASR_SRD(0) | MPU_RASR_SIZE(14) | MPU_RASR_ENABLE;
+	MPU_RNR = 5;
+	MPU_RBAR = 0x40010000;
+	MPU_RASR = MPU_RASR_XN | MPU_RASR_AP(0b011) | MPU_RASR_TEX(0b010) | MPU_RASR_SRD(0b11000000) | MPU_RASR_SIZE(14) | MPU_RASR_ENABLE;
+	MPU_RNR = 6;
+	MPU_RBAR = 0x40020000;
+	MPU_RASR = MPU_RASR_XN | MPU_RASR_AP(0b011) | MPU_RASR_TEX(0b010) | MPU_RASR_SRD(0) | MPU_RASR_SIZE(18) | MPU_RASR_ENABLE;
+	MPU_RNR = 7;
+	MPU_RBAR = 0x50000000;
+	MPU_RASR = MPU_RASR_XN | MPU_RASR_AP(0b011) | MPU_RASR_TEX(0b010) | MPU_RASR_SRD(0b10000000) | MPU_RASR_SIZE(18) | MPU_RASR_ENABLE;
+	MPU_CTRL = MPU_CTRL_ENABLE;
+	asm volatile("dsb");
+	asm volatile("isb");
 
 	// Enable the HSE (8 MHz crystal) oscillator.
 	RCC_CR = HSEON // Enable HSE oscillator
