@@ -10,7 +10,15 @@
 #define assert(cond)
 #else
 #include <stdlib.h>
-#define assert(cond) do { if (!(cond)) { abort(); } } while(0)
+#define assert(cond) do { \
+	if (!(cond)) { \
+		abort_cause.cause = ABORT_CAUSE_ASSERTION_FAILURE; \
+		abort_cause.detail[0] = __LINE__; \
+		abort_cause.detail[1] = ((const uint32_t *) __FILE__)[0]; \
+		abort_cause.detail[2] = ((const uint32_t *) __FILE__)[1]; \
+		abort(); \
+	} \
+} while(0)
 #endif
 
 #endif
