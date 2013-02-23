@@ -49,7 +49,7 @@ static void int_enable(void) {
 		| SSI // Assume slave select is deasserted (no other master is transmitting)
 		| 0 // LSBFIRST = 0; data is transferred MSb first
 		| SPE // Module is enabled
-		| 0 // BR = 0; transmission speed is 42 MHz (APB1) ÷ 2 = 21 MHz
+		| BR(0) // Transmission speed is 42 MHz (APB1) ÷ 2 = 21 MHz
 		| MSTR // Master mode
 		| 0 // CPOL = 0; clock idles low
 		| 0; // CPHA = 0; capture is on rising (first) edge while advance is on falling (second) edge
@@ -84,7 +84,7 @@ static void int_assert_cs(void) {
 static void int_deassert_cs(void) {
 	while (SPI3_SR & SPI_BSY); // Wait until no activity
 	sleep_50ns();
-	GPIOA_BSRR = GPIO_BR(4);
+	GPIOA_BSRR = GPIO_BS(4);
 }
 
 static uint8_t int_transceive_byte(uint8_t byte) {
@@ -166,7 +166,7 @@ static void ext_enable(void) {
 		| SSI // Assume slave select is deasserted (no other master is transmitting)
 		| 0 // LSBFIRST = 0; data is transferred MSb first
 		| SPE // Module is enabled
-		| 0 // BR = 0; transmission speed is 84 MHz (APB2) ÷ 2 = 42 MHz
+		| BR(0) // Transmission speed is 84 MHz (APB2) ÷ 2 = 42 MHz
 		| MSTR // Master mode
 		| 0 // CPOL = 0; clock idles low
 		| 0; // CPHA = 0; capture is on rising (first) edge while advance is on falling (second) edge
