@@ -1,6 +1,7 @@
 #include "constants.h"
 #include "host_controlled.h"
 #include "idle.h"
+#include "spi.h"
 #include <format.h>
 #include <rcc.h>
 #include <registers.h>
@@ -599,6 +600,9 @@ static void stm32_main(void) {
 
 	// Turn off LEDs.
 	GPIOB_BSRR = GPIO_BR(12) | GPIO_BR(13) | GPIO_BR(14);
+
+	// Enable the SPI transceiver modules.
+	spi_init();
 
 	// Determine whether to enable USB now or later depending on the state of VBus.
 	if (GPIOA_IDR & (1 << 9)) {

@@ -3,38 +3,34 @@
 #include <sleep.h>
 #include "spi.h"
 
-static inline void sleep_50ns(void) {
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-}
+void spi_init(void) {
+	// Reset and enable the SPI module.
+	rcc_enable(APB2, 12);
 
-static void int_enable(void) {
+	// Configure the SPI module for the target.
+	SPI1_CR2 = 0 // Motorola frame format
+		| 0 // SPOE = 0; hardware chip select output is disabled
+		| 0 // TXDMAEN = 0; no transmit DMA
+		| 0; // RXDMAEN = 0; no receive DMA
+	SPI1_CR1 = 0 // BIDIMODE = 0; 2-line unidirectional mode
+		| 0 // BIDIOE = 0; ignored in unidirectional mode
+		| 0 // CRCEN = 0; hardware CRC calculation disabled
+		| 0 // CRCNEXT = 0; next transfer is not a CRC
+		| 0 // DFF = 0; data frames are 8 bits wide
+		| 0 // RXONLY = 0; module both transmits and receives
+		| SSM // Software slave select management selected
+		| SSI // Assume slave select is deasserted (no other master is transmitting)
+		| 0 // LSBFIRST = 0; data is transferred MSb first
+		| SPE // Module is enabled
+		| BR(0) // Transmission speed is 84 MHz (APB2) ÷ 2 = 42 MHz
+		| MSTR // Master mode
+		| 0 // CPOL = 0; clock idles low
+		| 0; // CPHA = 0; capture is on rising (first) edge while advance is on falling (second) edge
+
 	// Reset and enable the SPI module.
 	rcc_enable(APB1, 15);
 
-	// Deassert /CS.
-	GPIOA_BSRR = GPIO_BS(4);
-
-	// Disable the SPI module.
-	if (SPI3_CR1 & SPE) {
-		// Wait for SPI module to be idle.
-		while (!(SPI3_SR & TXE) || (SPI3_SR & SPI_BSY)) {
-			if (SPI3_SR & RXNE) {
-				(void) SPI3_DR;
-			}
-		}
-
-		// Disable SPI module.
-		SPI3_CR1 &= ~SPE; // Disable module
-	}
-
-	// Configure the SPI module.
+	// Configure the SPI module for the onboard memory.
 	SPI3_CR2 = 0 // Motorola frame format
 		| 0 // SPOE = 0; hardware chip select output is disabled
 		| 0 // TXDMAEN = 0; no transmit DMA
@@ -55,28 +51,25 @@ static void int_enable(void) {
 		| 0; // CPHA = 0; capture is on rising (first) edge while advance is on falling (second) edge
 }
 
+static inline void sleep_50ns(void) {
+	asm volatile("nop");
+	asm volatile("nop");
+	asm volatile("nop");
+	asm volatile("nop");
+	asm volatile("nop");
+	asm volatile("nop");
+	asm volatile("nop");
+	asm volatile("nop");
+}
+
+static void int_enable(void) {
+}
+
 static void int_disable(void) {
-	// Deassert /CS.
-	GPIOA_BSRR = GPIO_BS(4);
-
-	// Disable the SPI module.
-	if (SPI3_CR1 & SPE) {
-		// Wait for SPI module to be idle.
-		while (!(SPI3_SR & TXE) || (SPI3_SR & SPI_BSY)) {
-			if (SPI3_SR & RXNE) {
-				(void) SPI3_DR;
-			}
-		}
-
-		// Disable SPI module.
-		SPI3_CR1 &= ~SPE; // Disable module
-	}
-
-	// Disconnect clock from the SPI module.
-	rcc_disable(APB1, 15);
 }
 
 static void int_assert_cs(void) {
+	sleep_50ns();
 	GPIOA_BSRR = GPIO_BR(4);
 	sleep_50ns();
 }
@@ -135,76 +128,19 @@ const struct spi_ops spi_internal_ops = {
 };
 
 static void ext_enable(void) {
-	// Reset and enable the SPI module.
-	rcc_enable(APB2, 12);
-
-	// Disable the SPI module.
-	if (SPI1_CR1 & SPE) {
-		// Wait for SPI module to be idle.
-		while (!(SPI1_SR & TXE) || (SPI1_SR & SPI_BSY)) {
-			if (SPI1_SR & RXNE) {
-				(void) SPI1_DR;
-			}
-		}
-
-		// Disable SPI module.
-		SPI1_CR1 &= ~SPE; // Disable module
-	}
-
-	// Configure the SPI module.
-	SPI1_CR2 = 0 // Motorola frame format
-		| 0 // SPOE = 0; hardware chip select output is disabled
-		| 0 // TXDMAEN = 0; no transmit DMA
-		| 0; // RXDMAEN = 0; no receive DMA
-	SPI1_CR1 = 0 // BIDIMODE = 0; 2-line unidirectional mode
-		| 0 // BIDIOE = 0; ignored in unidirectional mode
-		| 0 // CRCEN = 0; hardware CRC calculation disabled
-		| 0 // CRCNEXT = 0; next transfer is not a CRC
-		| 0 // DFF = 0; data frames are 8 bits wide
-		| 0 // RXONLY = 0; module both transmits and receives
-		| SSM // Software slave select management selected
-		| SSI // Assume slave select is deasserted (no other master is transmitting)
-		| 0 // LSBFIRST = 0; data is transferred MSb first
-		| SPE // Module is enabled
-		| BR(0) // Transmission speed is 84 MHz (APB2) ÷ 2 = 42 MHz
-		| MSTR // Master mode
-		| 0 // CPOL = 0; clock idles low
-		| 0; // CPHA = 0; capture is on rising (first) edge while advance is on falling (second) edge
-
 	// The host is expected to have already set /CS as a high output before doing any SPI operations; therefore, we do not handle it here.
 	// Switch them MOSI (PB5), MISO (PB4), and Clock (PB3) into alternate function mode.
-	GPIOB_MODER = (GPIOB_MODER & ~(0b111111 << (3 * 2)))
-		| (0b10 << (5 * 2))
-		| (0b10 << (4 * 2))
-		| (0b10 << (3 * 2));
+	GPIOB_MODER = (GPIOB_MODER & ~(0b111111 << (3 * 2))) | (0b101010 << (3 * 2));
 }
 
 static void ext_disable(void) {
-	// Deassert /CS.
-	GPIOA_BSRR = GPIO_BS(15);
-
 	// Switch the MOSI (PB5), MISO (PB4), and Clock (PB3) back to inputs from alternate function mode, thus tristating those lines.
 	// The host is expected to handle /CS as needed.
-	GPIOB_MODER = (GPIOB_MODER & ~(0b111111 << 3));
-
-	// Disable the SPI module.
-	if (SPI1_CR1 & (1 << 6) /* SPE */) {
-		// Wait for SPI module to be idle.
-		while (!(SPI1_SR & TXE) || (SPI1_SR & SPI_BSY)) {
-			if (SPI1_SR & RXNE) {
-				(void) SPI1_DR;
-			}
-		}
-
-		// Disable SPI module.
-		SPI1_CR1 &= ~SPE; // Disable module
-	}
-
-	// Disconnect the clock from the SPI module.
-	rcc_disable(APB2, 12);
+	GPIOB_MODER = (GPIOB_MODER & ~(0b111111 << (3 * 2)));
 }
 
 static void ext_assert_cs(void) {
+	sleep_50ns();
 	GPIOA_BSRR = GPIO_BR(15);
 	sleep_50ns();
 }

@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+void spi_init(void);
+
 struct spi_ops {
 	void (*enable)(void);
 	void (*disable)(void);

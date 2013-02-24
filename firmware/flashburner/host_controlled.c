@@ -106,7 +106,6 @@ static uint8_t read_status_register(void) {
 	spi->transceive_byte(0x05);
 	uint8_t status = spi->transceive_byte(0);
 	spi->deassert_cs();
-	spi->disable();
 	return status;
 }
 
@@ -159,7 +158,6 @@ static void stop_background(void) {
 	// Stop any in-progress operation (writes and erases can’t actually be stopped, but we can set the halt feature on the reporting endpoint if enabled and stop polling).
 	if (read_in_progress) {
 		spi->deassert_cs();
-		spi->disable();
 		read_in_progress = false;
 	} else if (autopolled_write_in_progress) {
 		TIM6_CR1 &= ~CEN;
@@ -204,6 +202,7 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 		if (!pkt->index && usb_configs_get_current() == 2) {
 			// LSB indicates drive level.
 			// MSB indicates direction.
+			spi->disable();
 			for (unsigned int i = 0; i < sizeof(TARGET_IO_PIN_INFO) / sizeof(*TARGET_IO_PIN_INFO); ++i) {
 				if (pkt->value & (1 << (i + 8))) {
 					if (pkt->value & (1 << i)) {
@@ -230,7 +229,9 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 			spi->assert_cs();
 			spi->transceive_byte(0xC7);
 			spi->deassert_cs();
-			spi->disable();
+			if (!(read_status_register() & 1)) {
+				return USB_EP0_DISPOSITION_REJECT;
+			}
 			if (autopolled_mode) {
 				GPIOB_BSRR = GPIO_BS(led_index);
 				autopolled_write_in_progress = true;
@@ -329,7 +330,6 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 			spi->transceive_byte(0x9F);
 			spi->read_bytes(stash_buffer, 3);
 			spi->deassert_cs();
-			spi->disable();
 			*source = usb_ep0_memory_source_init(&source_union.mem_src, stash_buffer, 3);
 			return USB_EP0_DISPOSITION_ACCEPT;
 		} else {
@@ -399,7 +399,9 @@ static bool write_postdata(void) {
 	spi->transceive_byte(0);
 	spi->write_bytes(write_buffer, 256);
 	spi->deassert_cs();
-	spi->disable();
+	if (!(read_status_register() & 1)) {
+		return false;
+	}
 	if (autopolled_mode) {
 		GPIOB_BSRR = GPIO_BS(led_index);
 		autopolled_write_in_progress = true;
@@ -490,6 +492,9 @@ static void on_enter_onboard(void) {
 static void on_exit_common(void) {
 	// Stop any background operation.
 	stop_background();
+
+	// Disable the bus.
+	spi->disable();
 
 	// Unregister endpoints callbacks.
 	usb_ep0_cbs_remove(&EP0_CBS);
