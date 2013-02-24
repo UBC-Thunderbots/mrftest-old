@@ -453,6 +453,7 @@ void usb_bi_out_discard(unsigned int ep, size_t length) {
 		ep_info[ep].buffer_word_bytes_left = MIN(4, ep_info[ep].packet_fifo_bytes_left);
 		ep_info[ep].packet_fifo_bytes_left -= ep_info[ep].buffer_word_bytes_left;
 
+		ep_info[ep].buffer_word >>= length * 8;
 		ep_info[ep].buffer_word_bytes_left -= length;
 		length = 0;
 	}
