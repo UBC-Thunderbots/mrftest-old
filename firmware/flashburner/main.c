@@ -598,8 +598,8 @@ static void stm32_main(void) {
 	// Wait a bit.
 	sleep_ms(100);
 
-	// Turn off LEDs.
-	GPIOB_BSRR = GPIO_BR(12) | GPIO_BR(13) | GPIO_BR(14);
+	// Turn off LEDs 2 and 3.
+	GPIOB_BSRR = GPIO_BR(13) | GPIO_BR(14);
 
 	// Enable the SPI transceiver modules.
 	spi_init();

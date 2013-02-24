@@ -7,8 +7,7 @@
 void spi_init(void);
 
 struct spi_ops {
-	void (*enable)(void);
-	void (*disable)(void);
+	void (*drive_bus)(void);
 	void (*assert_cs)(void);
 	void (*deassert_cs)(void);
 	uint8_t (*transceive_byte)(uint8_t);

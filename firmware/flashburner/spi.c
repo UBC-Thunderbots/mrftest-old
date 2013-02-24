@@ -62,10 +62,7 @@ static inline void sleep_50ns(void) {
 	asm volatile("nop");
 }
 
-static void int_enable(void) {
-}
-
-static void int_disable(void) {
+static void int_drive_bus(void) {
 }
 
 static void int_assert_cs(void) {
@@ -118,8 +115,7 @@ static void int_write_bytes(const void *buffer, size_t length) {
 }
 
 const struct spi_ops spi_internal_ops = {
-	.enable = &int_enable,
-	.disable = &int_disable,
+	.drive_bus = &int_drive_bus,
 	.assert_cs = &int_assert_cs,
 	.deassert_cs = &int_deassert_cs,
 	.transceive_byte = &int_transceive_byte,
@@ -127,16 +123,13 @@ const struct spi_ops spi_internal_ops = {
 	.write_bytes = &int_write_bytes,
 };
 
-static void ext_enable(void) {
-	// The host is expected to have already set /CS as a high output before doing any SPI operations; therefore, we do not handle it here.
-	// Switch them MOSI (PB5), MISO (PB4), and Clock (PB3) into alternate function mode.
+static void ext_drive_bus(void) {
+	// Switch the MOSI (PB5), MISO (PB4), and Clock (PB3) into alternate function mode.
 	GPIOB_MODER = (GPIOB_MODER & ~(0b111111 << (3 * 2))) | (0b101010 << (3 * 2));
-}
 
-static void ext_disable(void) {
-	// Switch the MOSI (PB5), MISO (PB4), and Clock (PB3) back to inputs from alternate function mode, thus tristating those lines.
-	// The host is expected to handle /CS as needed.
-	GPIOB_MODER = (GPIOB_MODER & ~(0b111111 << (3 * 2)));
+	// Switch /CS (PA15) to output high.
+	GPIOA_BSRR = GPIO_BS(15);
+	GPIOA_MODER = (GPIOA_MODER & ~(0b11 << (15 * 2))) | (0b01 << (15 * 2));
 }
 
 static void ext_assert_cs(void) {
@@ -189,8 +182,7 @@ static void ext_write_bytes(const void *buffer, size_t length) {
 }
 
 const struct spi_ops spi_external_ops = {
-	.enable = &ext_enable,
-	.disable = &ext_disable,
+	.drive_bus = &ext_drive_bus,
 	.assert_cs = &ext_assert_cs,
 	.deassert_cs = &ext_deassert_cs,
 	.transceive_byte = &ext_transceive_byte,
