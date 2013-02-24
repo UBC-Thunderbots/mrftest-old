@@ -82,7 +82,7 @@ void Firmware::fb_upload(const IntelHex &hex, bool onboard, bool leave_powered) 
 		write_io(handle, PIN_POWER, PIN_POWER | PIN_PROGRAM_B);
 		Glib::usleep(1000);
 		write_io(handle, PIN_CS | PIN_POWER, PIN_MOSI | PIN_CLOCK | PIN_CS | PIN_POWER | PIN_PROGRAM_B);
-		Glib::usleep(1000);
+		Glib::usleep(15000);
 		std::cout << "OK.\n";
 	}
 
