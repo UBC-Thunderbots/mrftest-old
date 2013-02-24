@@ -545,9 +545,9 @@ static void on_ep3_out_packet(size_t bcnt) {
 
 		// Copy out the header and data.
 		uint8_t destination_and_priority;
-		usb_bi_out_read(2, &destination_and_priority, 1);
+		usb_bi_out_read(3, &destination_and_priority, 1);
 		pkt->dest = destination_and_priority & 0x0F;
-		usb_bi_out_read(2, pkt->data, bcnt - 1);
+		usb_bi_out_read(3, pkt->data, bcnt - 1);
 
 		// Push the packet onto the transmit queue.
 		if (last_out_pending) {
