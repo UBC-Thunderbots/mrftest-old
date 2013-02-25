@@ -1,4 +1,5 @@
 #include "constants.h"
+#include "exti.h"
 #include "host_controlled.h"
 #include "idle.h"
 #include "spi.h"
@@ -360,8 +361,41 @@ static void handle_usb_unplug(void) {
 	// However, if VBUS is not provided, and we are target-powered, this would back-feed power through D+ from the device to the host.
 	// This is illegal: when VBUS is not powered, the pull-up resistor must be detached, so we issue a detach here.
 	usb_ll_detach();
+	NVIC_ICER[67 / 32] = 1 << (67 % 32); // CLRENA67 = 1; disable USB FS interrupt
 
-#warning need to enable an interrupt on rising edge of VBUS to know when to reattach the USB
+	// Maybe there was a race condition or contact bounce and actually VBus is present right now.
+	// Just in case that happened, check VBus; if it’s high, reattach.
+	if (GPIOA_IDR & (1 << 9)) {
+		// VBus detected; initialize USB now.
+		usb_ll_attach(&handle_usb_reset, &handle_usb_enumeration_done, &handle_usb_unplug);
+		NVIC_ISER[67 / 32] = 1 << (67 % 32); // SETENA67 = 1; enable USB FS interrupt
+	}
+}
+
+static void handle_usb_plug(void) {
+	// Clear the pending interrupt.
+	EXTI_PR = 1 << 9;
+
+	// Maybe the USB is not currently detached.
+	// In that case, we should do nothing, because one of three cases are possible:
+	// (1) This was a small downward dip followed by an upswing in VBus, which was not large enough to cause session end.
+	// (2) This was a downward dip in VBus which caused session end and then VBus was restored, but we have not yet processed the session end.
+	// (3) This was a small downward dip or contact bounce during plug.
+	// In cases 1 and 2, the session end handler (handle_usb_unplug) will detach the USB, then notice that VBus is high and reattach; we need do nothing here.
+	// In case 3, the session end handler will never be invoked and we should leave well enough alone and continue waiting for reset signalling.
+	if (usb_ll_get_state() != USB_LL_STATE_DETACHED) {
+		return;
+	}
+
+	// Maybe there was a race condition or contact bounce and actually VBus is not present yet.
+	// In that case, do not attach now; we will take another interrupt later and attach then.
+	if (!(GPIOA_IDR & (1 << 9))) {
+		return;
+	}
+
+	// Initialize USB now.
+	usb_ll_attach(&handle_usb_reset, &handle_usb_enumeration_done, &handle_usb_unplug);
+	NVIC_ISER[67 / 32] = 1 << (67 % 32); // SETENA67 = 1; enable USB FS interrupt
 }
 
 extern unsigned char linker_data_vma_start;
@@ -604,15 +638,19 @@ static void stm32_main(void) {
 	// Enable the SPI transceiver modules.
 	spi_init();
 
-	// Determine whether to enable USB now or later depending on the state of VBus.
+	// Determine whether to enable USB now depending on the state of VBus.
 	if (GPIOA_IDR & (1 << 9)) {
 		// VBus detected; initialize USB now.
 		usb_ll_attach(&handle_usb_reset, &handle_usb_enumeration_done, &handle_usb_unplug);
 		NVIC_ISER[67 / 32] = 1 << (67 % 32); // SETENA67 = 1; enable USB FS interrupt
-	} else {
-		// VBus not detected; set up an interrupt to detect if the bus is plugged in later.
-#warning TODO this
 	}
+
+	// Enable an interrupt to handle VBus going high when the USB cable is plugged in.
+	exti_map(9, 0);
+	exti_set_handler(9, &handle_usb_plug);
+	EXTI_RTSR |= 1 << 9;
+	EXTI_IMR |= 1 << 9;
+	NVIC_ISER[23 / 32] = 1 << (23 % 32); // SETENA23 = 1; enable EXTI 5 through 9 interrupts
 
 #warning TODO set up an interrupt to detect the autonomous mode pushbutton being pushed and do an autonomous burn IF THE USB IS NOT IN HOST-CONTROLLED MODE
 
