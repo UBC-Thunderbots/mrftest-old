@@ -131,7 +131,7 @@ static void service_call_vector(void) {
 static void pending_service_vector(void) {
 	// The PendSV exception is used by code that wants to reboot the chip after all other pending exceptions have flushed out.
 	// Request the reboot now.
-	SCS_AIRCR = VECTKEY(0x05FA) | SYSRESETREQ;
+	SCS_AIRCR = (SCS_AIRCR & ~VECTKEY(0xFFFF)) | VECTKEY(0x05FA) | SYSRESETREQ;
 	asm volatile("dsb");
 
 	// Disable all interrupts.
@@ -427,13 +427,23 @@ static void stm32_main(void) {
 	// Always 8-byte-align the stack pointer on entry to an interrupt handler (as ARM recommends).
 	SCS_CCR |= STKALIGN; // Guarantee 8-byte alignment
 
+	// Set the interrupt system to set priorities as having the upper two bits for group priorities and the rest as subpriorities.
+	SCS_AIRCR = (SCS_AIRCR & ~VECTKEY(0xFFFF)) | VECTKEY(0x05FA) | PRIGROUP(5);
+
+	// We will run as follows:
+	// CPU exceptions (UsageFault, BusFault, MemManage) will be priority 0, subpriority 0 and thus preempt everything else.
+	// Hardware interrupts will be priority 1, subpriority 0.
+	// PendSV exceptions will be priority 1, subpriority 0x3F so they neither preempt nor are preempted by hardware interrupts but are taken at less priority.
+	// Set hardware interrupt priorities.
+	for (size_t i = 0; i < sizeof(NVIC_IPR) / sizeof(*NVIC_IPR); ++i) {
+		NVIC_IPR[i] = 0x40404040;
+	}
+
+	// Set PendSV (exception 14) priority.
+	SCS_SHPR3 = (SCS_SHPR3 & ~0x00FF0000) | 0x007F0000;
+
 	// Enable Usage, Bus, and MemManage faults to be taken as such rather than escalating to HardFaults.
 	SCS_SHCSR |= USGFAULTENA | BUSFAULTENA | MEMFAULTENA;
-
-	// Make all hardware interrupts be priority 0xFF (or as close as possible), leaving CPU exceptions at priority 0, so that we can take CPU exceptions inside interrupt handlers.
-	for (size_t i = 0; i < sizeof(NVIC_IPR) / sizeof(*NVIC_IPR); ++i) {
-		NVIC_IPR[i] = 0xFFFFFFFF;
-	}
 
 	// Set up the memory protection unit to catch bad pointer dereferences.
 	// We define the following regions:
