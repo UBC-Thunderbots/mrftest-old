@@ -6,6 +6,8 @@
 #include "normal.h"
 #include "promiscuous.h"
 #include "radio_sleep.h"
+#include <deferred.h>
+#include <exception.h>
 #include <format.h>
 #include <rcc.h>
 #include <registers.h>
@@ -23,12 +25,7 @@
 
 static void stm32_main(void) __attribute__((noreturn));
 static void nmi_vector(void);
-static void hard_fault_vector(void) __attribute__((naked));
-static void memory_manage_fault_vector(void) __attribute__((naked));
-static void bus_fault_vector(void) __attribute__((naked));
-static void usage_fault_vector(void) __attribute__((naked));
 static void service_call_vector(void);
-static void pending_service_vector(void);
 static void system_tick_vector(void);
 void adc_interrupt_vector(void);
 void exti_dispatcher_0(void);
@@ -49,12 +46,12 @@ static const fptr exception_vectors[16] __attribute__((used, section(".exception
 	[0] = (fptr) (stack + sizeof(stack)),
 	[1] = &stm32_main,
 	[2] = &nmi_vector,
-	[3] = &hard_fault_vector,
-	[4] = &memory_manage_fault_vector,
-	[5] = &bus_fault_vector,
-	[6] = &usage_fault_vector,
+	[3] = &exception_hard_fault_vector,
+	[4] = &exception_memory_manage_fault_vector,
+	[5] = &exception_bus_fault_vector,
+	[6] = &exception_usage_fault_vector,
 	[11] = &service_call_vector,
-	[14] = &pending_service_vector,
+	[14] = &deferred_fn_pendsv_handler,
 	[15] = &system_tick_vector,
 };
 
@@ -77,80 +74,8 @@ static void nmi_vector(void) {
 	abort();
 }
 
-static void hard_fault_vector_impl(const uint32_t *context) __attribute__((used));
-static void hard_fault_vector_impl(const uint32_t *context) {
-	abort_cause.cause = ABORT_CAUSE_HARD_FAULT;
-	abort_cause.detail[0] = SCS_HFSR; // Fault status register
-	abort_cause.detail[1] = SCS_CFSR; // This may contain the original underlying cause of the hard fault
-	abort_cause.detail[2] = context[6]; // Return address to faulting instruction
-	abort();
-}
-
-static void hard_fault_vector(void) {
-	asm volatile("mov r0, sp");
-	asm volatile("b hard_fault_vector_impl");
-}
-
-static void memory_manage_fault_vector_impl(const uint32_t *context) __attribute__((used));
-static void memory_manage_fault_vector_impl(const uint32_t *context) {
-	abort_cause.cause = ABORT_CAUSE_MEMORY_MANAGE_FAULT;
-	abort_cause.detail[0] = SCS_CFSR; // Fault status register
-	abort_cause.detail[1] = SCS_MMFAR; // Faulting data address
-	abort_cause.detail[2] = context[6]; // Return address to faulting instruction
-	abort();
-}
-
-static void memory_manage_fault_vector(void) {
-	asm volatile("mov r0, sp");
-	asm volatile("b memory_manage_fault_vector_impl");
-}
-
-static void bus_fault_vector_impl(const uint32_t *context) __attribute__((used));
-static void bus_fault_vector_impl(const uint32_t *context) {
-	abort_cause.cause = ABORT_CAUSE_BUS_FAULT;
-	abort_cause.detail[0] = SCS_CFSR; // Fault status register
-	abort_cause.detail[1] = SCS_BFAR; // Faulting data address
-	abort_cause.detail[2] = context[6]; // Return address to faulting instruction
-	abort();
-}
-
-static void bus_fault_vector(void) {
-	asm volatile("mov r0, sp");
-	asm volatile("b bus_fault_vector_impl");
-}
-
-static void usage_fault_vector_impl(const uint32_t *context) __attribute__((used));
-static void usage_fault_vector_impl(const uint32_t *context) {
-	abort_cause.cause = ABORT_CAUSE_USAGE_FAULT;
-	abort_cause.detail[0] = SCS_CFSR; // Fault status register
-	abort_cause.detail[1] = SCS_BFAR; // Faulting data address
-	abort_cause.detail[2] = context[6]; // Return address to faulting instruction
-	abort();
-}
-
-static void usage_fault_vector(void) {
-	asm volatile("mov r0, sp");
-	asm volatile("b usage_fault_vector_impl");
-}
-
 static void service_call_vector(void) {
 	for (;;);
-}
-
-static void pending_service_vector(void) {
-	// The PendSV exception is used by code that wants to reboot the chip after all other pending exceptions have flushed out.
-	// Request the reboot now.
-	SCS_AIRCR = (SCS_AIRCR & ~VECTKEY(0xFFFF)) | VECTKEY(0x05FA) | SYSRESETREQ;
-	asm volatile("dsb");
-
-	// Disable all interrupts.
-	asm volatile("cpsid i");
-	asm volatile("isb");
-
-	// Wait forever until the reboot happens.
-	for (;;) {
-		asm volatile("wfi");
-	}
 }
 
 static void system_tick_vector(void) {
@@ -458,20 +383,8 @@ static void stm32_main(void) {
 	// Set the interrupt system to set priorities as having the upper two bits for group priorities and the rest as subpriorities.
 	SCS_AIRCR = (SCS_AIRCR & ~VECTKEY(0xFFFF)) | VECTKEY(0x05FA) | PRIGROUP(5);
 
-	// We will run as follows:
-	// CPU exceptions (UsageFault, BusFault, MemManage) will be priority 0, subpriority 0 and thus preempt everything else.
-	// Hardware interrupts will be priority 1, subpriority 0.
-	// PendSV exceptions will be priority 1, subpriority 0x3F so they neither preempt nor are preempted by hardware interrupts but are taken at less priority.
-	// Set hardware interrupt priorities.
-	for (size_t i = 0; i < sizeof(NVIC_IPR) / sizeof(*NVIC_IPR); ++i) {
-		NVIC_IPR[i] = 0x40404040;
-	}
-
-	// Set PendSV (exception 14) priority.
-	SCS_SHPR3 = (SCS_SHPR3 & ~0x00FF0000) | 0x007F0000;
-
-	// Enable Usage, Bus, and MemManage faults to be taken as such rather than escalating to HardFaults.
-	SCS_SHCSR |= USGFAULTENA | BUSFAULTENA | MEMFAULTENA;
+	// Set up interrupt handling.
+	exception_init();
 
 	// Set up the memory protection unit to catch bad pointer dereferences.
 	// We define the following regions:

@@ -138,9 +138,13 @@ firmware/speedsensor/usb_ep0_sources.h -text
 firmware/speedsensor/usb_internal.h -text
 firmware/stm32lib/Doxyfile -text
 firmware/stm32lib/Makefile -text
+firmware/stm32lib/deferred.c -text
+firmware/stm32lib/exception.c -text
 firmware/stm32lib/exti.c -text
 firmware/stm32lib/format.c -text
 firmware/stm32lib/include/assert.h -text
+firmware/stm32lib/include/deferred.h -text
+firmware/stm32lib/include/exception.h -text
 firmware/stm32lib/include/exti.h -text
 firmware/stm32lib/include/format.h -text
 firmware/stm32lib/include/limits.h -text

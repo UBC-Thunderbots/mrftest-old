@@ -1,6 +1,7 @@
 #include "radio_sleep.h"
 #include "config.h"
 #include "constants.h"
+#include <deferred.h>
 #include <registers.h>
 #include <stdint.h>
 #include <unused.h>
@@ -52,15 +53,32 @@ const uint8_t RADIO_SLEEP_CONFIGURATION_DESCRIPTOR[] = {
 
 extern volatile uint64_t bootload_flag;
 
-static void dfu_detach_gnak2(void) {
-	// Detach from the USB.
-	usb_ll_detach();
-
+static void dfu_detach_reboot(void *UNUSED(cookie)) {
 	// Mark that we should go to the bootloader on next reboot.
 	bootload_flag = UINT64_C(0xFE228106195AD2B0);
 
-	// Set a pending system call exception so that when we exit from interrupt handling, we will go to the PendSV handler which will reboot the chip.
-	SCS_ICSR = PENDSVSET;
+	// Disable all interrupts.
+	asm volatile("cpsid i");
+	asm volatile("isb");
+
+	// Request the reboot.
+	SCS_AIRCR = (SCS_AIRCR & ~VECTKEY(0xFFFF)) | VECTKEY(0x05FA) | SYSRESETREQ;
+	asm volatile("dsb");
+
+	// Wait forever until the reboot happens.
+	for (;;) {
+		asm volatile("wfi");
+	}
+}
+
+static void dfu_detach_gnak2(void) {
+	static deferred_fn_t def = DEFERRED_FN_INIT;
+
+	// Detach from the USB.
+	usb_ll_detach();
+
+	// Set a deferred function to reboot into the bootloader once we unwind out of current interrupts.
+	deferred_fn_register(&def, &dfu_detach_reboot, 0);
 }
 
 static void dfu_detach_gnak1(void) {
