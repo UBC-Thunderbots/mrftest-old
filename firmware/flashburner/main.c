@@ -31,7 +31,6 @@ void exti_dispatcher_3(void);
 void exti_dispatcher_4(void);
 void exti_dispatcher_9_5(void);
 void exti_dispatcher_15_10(void);
-void timer6_interrupt_vector(void);
 
 static char stack[65536] __attribute__((section(".stack")));
 
@@ -57,7 +56,6 @@ static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt
 	[10] = &exti_dispatcher_4,
 	[23] = &exti_dispatcher_9_5,
 	[40] = &exti_dispatcher_15_10,
-	[54] = &timer6_interrupt_vector,
 	[67] = &usb_ll_process,
 };
 

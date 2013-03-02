@@ -1,6 +1,7 @@
 #include "host_controlled.h"
 #include "constants.h"
 #include "spi.h"
+#include <deferred.h>
 #include <minmax.h>
 #include <rcc.h>
 #include <registers.h>
@@ -101,6 +102,7 @@ static const struct spi_ops *spi;
 static uint16_t write_page;
 static uint8_t write_buffer[PAGE_BYTES];
 static size_t read_bytes_left;
+static deferred_fn_t monitor_deferred_fn;
 
 static uint8_t read_status_register(void) {
 	spi->assert_cs();
@@ -110,39 +112,43 @@ static uint8_t read_status_register(void) {
 	return status;
 }
 
+static void monitor_poll(void *UNUSED(cookie)) {
+	if (!interrupt_monitoring) {
+		// Monitoring has been cancelled; do nothing.
+		// Do not reregister the deferred function call.
+		return;
+	}
+
+	// A write or erase has been requested and the module is set up to autopoll and report completion on interrupt IN endpoint 1.
+	// Poll the status now.
+	uint8_t status = read_status_register();
+	if (status & 1) {
+		// The write is still in progress.
+		// Reregister the deferred function call.
+		deferred_fn_register(&monitor_deferred_fn, &monitor_poll, 0);
+	} else {
+		// The write has completed.
+		// Stop monitoring now.
+		interrupt_monitoring = false;
+
+		// Start a transfer on the endpoint to notify the host.
+		if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_IDLE) {
+			usb_bi_in_start_transfer(1, 0, 1, 0, 0);
+		}
+	}
+}
+
 static void start_monitoring(void) {
-	interrupt_monitoring = true;
-	TIM6_CR1 |= CEN;
-	NVIC_ISER[54 / 32] = 1 << (54 % 32); // SETENA54 = 1; enable timer 6 interrupt
+	if (!interrupt_monitoring) {
+		interrupt_monitoring = true;
+		deferred_fn_register(&monitor_deferred_fn, &monitor_poll, 0);
+	}
 }
 
 static void stop_monitoring(void) {
-	interrupt_monitoring = false;
-	TIM6_CR1 &= ~CEN;
-	NVIC_ICER[54 / 32] = 1 << (54 % 32); // CLRENA54 = 1; disable timer 6 interrupt
-}
-
-void timer6_interrupt_vector(void) {
-	// Clear interrupt flag.
-	TIM6_SR = 0;
-
 	if (interrupt_monitoring) {
-		// A write or erase has been requested and the module is set up to autopoll and report completion on interrupt IN endpoint 1.
-		// Poll the status now.
-		uint8_t status = read_status_register();
-		if (!(status & 1)) {
-			// The write has completed.
-			// Stop monitoring now.
-			stop_monitoring();
-
-			// Start a transfer on the endpoint to notify the host.
-			if (usb_bi_in_get_state(1) == USB_BI_IN_STATE_IDLE) {
-				usb_bi_in_start_transfer(1, 0, 1, 0, 0);
-			}
-		}
-	} else {
-		// No write or erase currently needs polling; disable the timer.
-		stop_monitoring();
+		interrupt_monitoring = false;
+		deferred_fn_register(&monitor_deferred_fn, 0, 0);
 	}
 }
 
@@ -569,18 +575,6 @@ static void on_enter_common(void) {
 	usb_fifo_enable(1, 64);
 	usb_fifo_flush(1);
 
-	// Set up timer 6 to overflow every 250 microseconds, but do not start it yet.
-	// Timer 6 input is 84 MHz from the APB.
-	// Need to count to 21,000 for each overflow.
-	// Set prescaler to 1, auto-reload to 21,000.
-	rcc_enable(APB1, 4);
-	TIM6_CR1 = 0 // Auto reload not buffered, counter runs continuously (not just for one pulse), updates not disabled, counter disabled for now
-		| URS; // Only overflow generates an interrupt
-	TIM6_DIER = UIE; // Update interrupt enabled
-	TIM6_PSC = 0;
-	TIM6_ARR = 20999;
-	TIM6_CNT = 0;
-
 	// Register endpoints callbacks.
 	usb_ep0_cbs_push(&EP0_CBS);
 }
@@ -601,9 +595,6 @@ static void on_exit_common(void) {
 
 	// Unregister endpoints callbacks.
 	usb_ep0_cbs_remove(&EP0_CBS);
-
-	// Power down timer 6.
-	rcc_disable(APB1, 4);
 
 	// Shut down the endpoint, if enabled.
 	usb_bi_in_deinit(1);
