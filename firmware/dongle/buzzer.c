@@ -32,7 +32,7 @@ void buzzer_init(void) {
 		| DIR // Counter counts down
 		| OPM // Counter counts once, not continuously
 		| URS; // Only underflow generates an interrupt
-	TIM2_SMCR = 0; // Slave mode disabled
+	TIM5_SMCR = 0; // Slave mode disabled
 	TIM5_DIER = UIE; // Enable interrupt on timer update
 	TIM5_CNT = 0; // Clear timer
 	TIM5_PSC = 35999; // Set prescale 1:36,000, yielding two ticks per millisecond
