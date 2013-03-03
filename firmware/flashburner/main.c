@@ -1,3 +1,4 @@
+#include "autonomous.h"
 #include "constants.h"
 #include "exti.h"
 #include "host_controlled.h"
@@ -31,6 +32,7 @@ void exti_dispatcher_3(void);
 void exti_dispatcher_4(void);
 void exti_dispatcher_9_5(void);
 void exti_dispatcher_15_10(void);
+void timer5_interrupt_vector(void);
 
 static char stack[65536] __attribute__((section(".stack")));
 
@@ -56,6 +58,7 @@ static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt
 	[10] = &exti_dispatcher_4,
 	[23] = &exti_dispatcher_9_5,
 	[40] = &exti_dispatcher_15_10,
+	[50] = &timer5_interrupt_vector,
 	[67] = &usb_ll_process,
 };
 
@@ -321,6 +324,34 @@ static void handle_usb_plug(void) {
 	NVIC_ISER[67 / 32] = 1 << (67 % 32); // SETENA67 = 1; enable USB FS interrupt
 }
 
+static void handle_autonomous_burn_and_turn_off(void) {
+	// Clear the pending interrupt.
+	EXTI_PR = 1 << 14;
+
+	if (usb_ll_get_state() != USB_LL_STATE_ACTIVE || usb_configs_get_current() <= 1) {
+		// The USB is not in host-controlled mode.
+		if (!autonomous_is_running()) {
+			// No autonomous operation is already running.
+			// Start one.
+			autonomous_start(false);
+		}
+	}
+}
+
+static void handle_autonomous_burn_and_boot(void) {
+	// Clear the pending interrupt.
+	EXTI_PR = 1 << 15;
+
+	if (usb_ll_get_state() != USB_LL_STATE_ACTIVE || usb_configs_get_current() <= 1) {
+		// The USB is not in host-controlled mode.
+		if (!autonomous_is_running()) {
+			// No autonomous operation is already running.
+			// Start one.
+			autonomous_start(true);
+		}
+	}
+}
+
 extern unsigned char linker_data_vma_start;
 extern unsigned char linker_data_vma_end;
 extern const unsigned char linker_data_lma_start;
@@ -576,7 +607,16 @@ static void stm32_main(void) {
 	EXTI_IMR |= 1 << 9;
 	NVIC_ISER[23 / 32] = 1 << (23 % 32); // SETENA23 = 1; enable EXTI 5 through 9 interrupts
 
-#warning TODO set up an interrupt to detect the autonomous mode pushbutton being pushed and do an autonomous burn IF THE USB IS NOT IN HOST-CONTROLLED MODE
+	// Enable an interrupt to handle an autonomous mode pushbutton being pushed.
+	// PC15 is SW2 which is burn and turn off.
+	// PC14 is SW3 which is burn and boot.
+	exti_map(14, 2);
+	exti_set_handler(14, &handle_autonomous_burn_and_turn_off);
+	exti_map(15, 2);
+	exti_set_handler(15, &handle_autonomous_burn_and_boot);
+	EXTI_FTSR |= (1 << 14) | (1 << 15);
+	EXTI_IMR |= (1 << 14) | (1 << 15);
+	NVIC_ISER[40 / 32] = 1 << (40 % 32); // SETENA40 = 1; enable EXTI 15 through 10 interrupts
 
 	// All activity from now on happens in interrupt handlers.
 	// Therefore, enable the mode where the chip automatically goes to sleep on return from an interrupt handler.

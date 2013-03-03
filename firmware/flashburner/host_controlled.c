@@ -1,4 +1,5 @@
 #include "host_controlled.h"
+#include "autonomous.h"
 #include "constants.h"
 #include "spi.h"
 #include <deferred.h>
@@ -558,8 +559,7 @@ static const usb_ep0_cbs_t EP0_CBS = {
 };
 
 static bool can_enter(void) {
-#warning TODO fail this request if autonomous mode running
-	return true;
+	return !autonomous_is_running();
 }
 
 static void on_enter_common(void) {

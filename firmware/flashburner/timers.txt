@@ -5,7 +5,7 @@ Timer 1 (advanced-control): Unused
 Timer 2 (general-purpose up/down/updown): Unused
 Timer 3 (general-purpose up/down/updown): Unused
 Timer 4 (general-purpose up/down/updown): Unused
-Timer 5 (general-purpose up/down/updown): Unused
+Timer 5 (general-purpose up/down/updown): Power-up and power-down delay on entering and leaving autonomous mode
 Timer 6 (basic): Unused
 Timer 7 (basic): Unused
 Timer 8 (advanced-control): Unused

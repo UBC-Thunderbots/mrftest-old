@@ -51,6 +51,8 @@ firmware/dongle/radio_sleep.c -text
 firmware/dongle/radio_sleep.h -text
 firmware/dongle/timers.txt -text
 firmware/flashburner/Makefile -text
+firmware/flashburner/autonomous.c -text
+firmware/flashburner/autonomous.h -text
 firmware/flashburner/constants.h -text
 firmware/flashburner/host_controlled.c -text
 firmware/flashburner/host_controlled.h -text
