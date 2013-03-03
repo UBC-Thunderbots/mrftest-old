@@ -404,6 +404,9 @@ static void stm32_main(void) {
 	asm volatile("dsb");
 	asm volatile("isb");
 
+	// Enable the SYSCFG module.
+	rcc_enable(APB2, 14);
+
 	// Enable the HSE (8 MHz crystal) oscillator.
 	RCC_CR =
 		HSEON // Enable HSE oscillator
