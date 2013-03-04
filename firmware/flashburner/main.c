@@ -438,6 +438,10 @@ static void stm32_main(void) {
 	// Enable the SYSCFG module.
 	rcc_enable(APB2, 14);
 
+	// Enable the I/O compensation cell because we will be using some GPIOs at 50+ MHz.
+	SYSCFG_CMPCR = CMP_PD;
+	while (!(SYSCFG_CMPCR & READY));
+
 	// Enable the HSE (8 MHz crystal) oscillator.
 	RCC_CR =
 		HSEON // Enable HSE oscillator
