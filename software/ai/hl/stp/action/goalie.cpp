@@ -1,6 +1,7 @@
 #include "ai/hl/stp/action/goalie.h"
 #include "ai/hl/stp/action/repel.h"
 #include "ai/hl/stp/action/ram.h"
+#include "ai/hl/stp/action/chip.h"
 #include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
