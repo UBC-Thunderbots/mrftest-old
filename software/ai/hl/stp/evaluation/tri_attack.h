@@ -14,7 +14,7 @@ namespace AI {
 				/**
 				 * return point to where player needs to go in a tri-attack
 				 */
-				Point tri_offence_main(World world);
+				Point tri_attack_evaluation(World world);
 			}
 		}
 	}

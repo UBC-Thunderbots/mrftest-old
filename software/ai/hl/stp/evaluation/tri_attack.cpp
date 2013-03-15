@@ -18,7 +18,7 @@ using namespace AI::HL::STP::Evaluation;
 #define GRID_X 20.0
 #define GRID_Y 15.0
 
-Point AI::HL::STP::Evaluation::tri_offence_main(World world) {
+Point AI::HL::STP::Evaluation::tri_attack_evaluation(World world) {
 
 	int enemy_free_zone_importance = 50;
 	int shooting_distance_importance = 30;
