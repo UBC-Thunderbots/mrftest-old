@@ -6,16 +6,6 @@ void motor_scram() {
 	dribbler_scram();
 }
 
-uint8_t read_wheel_pwm(uint8_t num) {
-	outb(MOTOR_INDEX, num);
-	return inb(MOTOR_PWM);
-}
-
-void write_wheel_pwm(uint8_t num, uint8_t value) {
-	outb(MOTOR_INDEX, num);
-	outb(MOTOR_PWM, value);
-}
-
 void wheel_scram() {
 	for (uint8_t index = 0; index < 4; ++index) {
 		set_wheel(index, FLOAT, 0);

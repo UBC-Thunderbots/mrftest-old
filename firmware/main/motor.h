@@ -57,27 +57,5 @@ void dribbler_scram();
  */
 void set_dribbler(direction_t direction, uint8_t pwm_level);
 
-/**
- * \brief gets current pwm value of a motor
- *
- * \param[in] wheel_num wheel number to read current pwm value
- *
- * \return current pwm of selected wheel
- *
- * Just a helper function to allow for computed indexing
- */
-uint8_t read_wheel_pwm(uint8_t wheel_num);
-
-/**
- * \brief set wheel pwm value
- *
- * \param[in] wheel_num index of wheel to control
- *
- * \param[in] pwm_level pwm value to set
- *
- * Sets motor to specific pwm value (helper for computed indexing)
- */
-void write_wheel_pwm(uint8_t wheel_num, uint8_t pwm_level);
-
 #endif
 
