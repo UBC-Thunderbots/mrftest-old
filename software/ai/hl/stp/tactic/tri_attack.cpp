@@ -14,6 +14,7 @@ namespace Action = AI::HL::STP::Action;
 using namespace AI::HL::W;
 namespace Evaluation = AI::HL::STP::Evaluation;
 using AI::HL::STP::Coordinate;
+using namespace AI::HL::Util;
 
 namespace {
 
