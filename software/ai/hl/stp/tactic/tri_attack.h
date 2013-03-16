@@ -11,12 +11,12 @@ namespace AI {
 				/**
 				 * Tri_attack offence
 				 */
-				Tactic::Ptr tri_attack_active(AI::HL::W::World world);
+				Tactic::Ptr tri_attack_primary(AI::HL::W::World world);
 				/**
 				 * Defend a line
 				 * If p1_ == p2_ it'll be equivalent as defending a point
 				 */
-				Tactic::Ptr tri_attack_secondaries(AI::HL::W::World world);
+				Tactic::Ptr tri_attack_secondary(AI::HL::W::World world);
 				
 				Tactic::Ptr tri_attack_tertiary(AI::HL::W::World world);
 
@@ -26,4 +26,3 @@ namespace AI {
 }
 
 #endif
-

@@ -21,4 +21,3 @@ namespace AI {
 }
 
 #endif
-
