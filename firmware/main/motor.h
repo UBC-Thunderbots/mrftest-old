@@ -27,11 +27,6 @@ typedef enum {
 void motor_scram();
 
 /**
- * \brief wheel safety switch
- */
-void wheel_scram();
-
-/**
  * \brief wheel control interface
  *
  * \param[in] wheel_num wheel index from 0
@@ -42,11 +37,6 @@ void wheel_scram();
  *
  */
 void set_wheel(uint8_t wheel_num, direction_t direction, uint8_t pwm_level);
-
-/**
- * \brief dribbler safety switch
- */
-void dribbler_scram();
 
 /**
  * \brief set the dribbler direction and level

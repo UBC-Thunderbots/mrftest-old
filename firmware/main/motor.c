@@ -2,12 +2,7 @@
 #include "io.h"
 
 void motor_scram() {
-	wheel_scram();
-	dribbler_scram();
-}
-
-void wheel_scram() {
-	for (uint8_t index = 0; index < 4; ++index) {
+	for (uint8_t index = 0; index <= 4; ++index) {
 		set_wheel(index, FLOAT, 0);
 	}
 }
@@ -25,10 +20,6 @@ void set_wheel(uint8_t wheel_num, direction_t direction, uint8_t pwm_level) {
 			outb(MOTOR_CTL, direction == BACKWARD ? 0b00000011 : 0b00000010);
 		}
 	}
-}
-
-void dribbler_scram() {
-	set_wheel(4, FLOAT, 0);
 }
 
 void set_dribbler(direction_t direction, uint8_t pwm_level) {
