@@ -87,86 +87,68 @@ typedef enum {
 	TICKS = 0x02,
 
 	/**
-	 * \brief Controls wheel motors between floating, braking, and driving in one of two directions
+	 * \brief Selects which motor will be controlled.
+	 *
+	 * The value in this register controls which registers are viewed by the MOTOR_CTL, MOTOR_STATUS, and MOTOR_PWM locations.
 	 *
 	 * Bits:
-	 * 7–6 (R/W) [00]: Motor 3 control
-	 * 5–4 (R/W) [00]: Motor 2 control
-	 * 3–2 (R/W) [00]: Motor 1 control
-	 * 1–0 (R/W) [00]: Motor 0 control
+	 * 7–0 (R/W) [00000000]: Motor index
 	 *
 	 * Values:
-	 * 00 = float
-	 * 01 = brake
-	 * 10 = drive forward
-	 * 11 = drive backward
+	 * 0: Motor registers control wheel 0
+	 * 1: Motor registers control wheel 1
+	 * 2: Motor registers control wheel 2
+	 * 3: Motor registers control wheel 3
+	 * 4: Motor registers control dribbler
 	 */
-	WHEEL_CTL = 0x03,
+	MOTOR_INDEX = 0x03,
 
 	/**
-	 * \brief Reports Hall sensor failures on wheel motors
+	 * \brief Controls the overall operation of the motor.
 	 *
 	 * Bits:
-	 * 7 (R/C) [0]: Wheel 3 Halls observed all high; 1 = failure observed, 0 = failure not observed
-	 * 6 (R/C) [0]: Wheel 2 Halls observed all high; 1 = failure observed, 0 = failure not observed
-	 * 5 (R/C) [0]: Wheel 1 Halls observed all high; 1 = failure observed, 0 = failure not observed
-	 * 4 (R/C) [0]: Wheel 0 Halls observed all high; 1 = failure observed, 0 = failure not observed
-	 * 3 (R/C) [0]: Wheel 3 Halls observed all low; 1 = failure observed, 0 = failure not observed
-	 * 2 (R/C) [0]: Wheel 2 Halls observed all low; 1 = failure observed, 0 = failure not observed
-	 * 1 (R/C) [0]: Wheel 1 Halls observed all low; 1 = failure observed, 0 = failure not observed
-	 * 0 (R/C) [0]: Wheel 0 Halls observed all low; 1 = failure observed, 0 = failure not observed
+	 * 7–6 (R/W) [00]: Phase 2 control
+	 * 5–4 (R/W) [00]: Phase 1 control
+	 * 3–2 (R/W) [00]: Phase 0 control
+	 * 1 (R/W) [0]: Automatic commutation
+	 * 0 (R/W) [0]: Direction
+	 *
+	 * When automatic commutation is enabled, the Direction bit controls the direction of motor power and the Phase bits are ignored.
+	 * When automatic commutation is disabled, the Direction bit is ignored and the Phase bits control the motor phases directly.
+	 *
+	 * Direction values:
+	 * 0: Forward
+	 * 1: Reverse
+	 *
+	 * Phase values:
+	 * 00: Float
+	 * 01: PWM
+	 * 10: Low
+	 * 11: High
+	 *
+	 * Unless interlocks are overridden, the upper six bits can only be 000000 or 101010.
+	 * Any write that does not satisfy this constraint will result in these bits being set to 000000.
+	 * The same will happen if interlocks are re-enabled while an illegal value is set.
 	 */
-	WHEEL_HALL_FAIL = 0x04,
+	MOTOR_CTL = 0x04,
 
 	/**
-	 * \brief PWM duty cycle for motor 0 drive
-	 */
-	WHEEL0_PWM = 0x05,
-
-	/**
-	 * \brief PWM duty cycle for motor 1 drive
-	 */
-	WHEEL1_PWM = 0x06,
-
-	/**
-	 * \brief PWM duty cycle for motor 2 drive
-	 */
-	WHEEL2_PWM = 0x07,
-
-	/**
-	 * \brief PWM duty cycle for motor 3 drive
-	 */
-	WHEEL3_PWM = 0x08,
-
-	/**
-	 * \brief Controls the dribbler motor’s operating mode
+	 * \brief Reports the status of the motor.
 	 *
 	 * Bits:
 	 * 7–2: Reserved
-	 * 1–0 (R/W) [00]: Dribbler motor control
-	 *
-	 * Values:
-	 * 00 = float
-	 * 01 = brake
-	 * 10 = drive forward
-	 * 11 = drive backward
+	 * 1 (R/C) [0]: Hall sensors observed all high; 1 = failure observed, 0 = failure not observed
+	 * 0 (R/C) [0]: Hall sensors observed all low; 1 = failure observed, 0 = failure not observed
 	 */
-	DRIBBLER_CTL = 0x09,
+	MOTOR_STATUS = 0x05,
 
 	/**
-	 * \brief Reports Hall sensor failures on the dribbler motor
+	 * \brief The PWM duty cycle for the motor.
 	 *
 	 * Bits:
-	 * 7–2: Reserved
-	 * 1 (R/C) [0]: Dribbler Halls observed all high; 1 = failure observed, 0 = failure not observed
-	 * 0 (R/C) [0]: Dribbler Halls observed all low; 1 = failure observed, 0 = failure not observed
+	 * 7–0 (R/W) [00]: Duty cycle
 	 */
-	DRIBBLER_HALL_FAIL = 0x0A,
-
-	/**
-	 * \brief PWM duty cycle for the dribbler motor
-	 */
-	DRIBBLER_PWM = 0x0B,
+	MOTOR_PWM = 0x06,
 
 	/**
 	 * \brief Reports the accumulated count of optical encoder ticks
