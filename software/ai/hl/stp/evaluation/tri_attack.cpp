@@ -41,11 +41,11 @@ Point AI::HL::STP::Evaluation::tri_attack_evaluation(World world) {
 			
 			point_underevaluation.x = x;
 			point_underevaluation.y = y;
-			do {
+			for (size_t i = 0 ; i < enemies.size() ; i++) {
 				// Calculate how many enemies are within the danger_zone
 				distance = (point_underevaluation - enemies[index].position()).len();
-				if(distance < danger_zone) { robot_count++; index++;}			
-			} while (distance < danger_zone);
+				if(distance < danger_zone) { robot_count++; }			
+			} 
 
 			// Calculate distance from net
 			distance = (point_underevaluation - world.field().enemy_goal()).len();
