@@ -16,7 +16,7 @@
  *
  * \return the port’s current value
  */
-static uint8_t inb(uint8_t port) __attribute__((unused));
+static uint8_t inb(uint8_t port) __attribute__((always_inline, unused));
 
 /**
  * \brief Writes to an I/O port
@@ -25,7 +25,7 @@ static uint8_t inb(uint8_t port) __attribute__((unused));
  *
  * \param[in] value the value to write
  */
-static void outb(uint8_t port, uint8_t value) __attribute__((unused));
+static void outb(uint8_t port, uint8_t value) __attribute__((always_inline, unused));
 
 /**
  * \brief The I/O ports
