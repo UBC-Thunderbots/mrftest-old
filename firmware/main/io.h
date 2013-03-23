@@ -369,12 +369,12 @@ typedef enum {
 
 static inline uint8_t inb(uint8_t port) {
 	uint8_t value;
-	asm volatile("in %0, %1" : "=r"(value) : "i"(port));
+	asm volatile("in %0, %1" : "=r"(value) : "I"(port));
 	return value;
 }
 
 static inline void outb(uint8_t port, uint8_t value) {
-	asm volatile("out %0, %1" : : "i"(port), "r"(value));
+	asm volatile("out %0, %1" : : "I"(port), "r"(value));
 }
 
 #endif
