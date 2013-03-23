@@ -10,18 +10,6 @@
 
 #define BIT_ACCESS(a) (a^255<<16)|a
 
-int digits[10]={	BIT_ACCESS(0b01011111),	// 0
-			BIT_ACCESS(0b01000001),	// 1
-			BIT_ACCESS(0b10011101), // 2
-			BIT_ACCESS(0b11010101),	// 3
-			BIT_ACCESS(0b11000011), // 4
-			BIT_ACCESS(0b11010110), // 5
-			BIT_ACCESS(0b11011110), // 6
-			BIT_ACCESS(0b01000101), // 7
-			BIT_ACCESS(0b11011111), // 8
-			BIT_ACCESS(0b11000111),	// 9
-};
-
 volatile uint8_t G_status = 0; // 1 for first triggered, 2 for second triggered, 0 for last wrap_count is output to screen
 
 static void stm32_main(void) __attribute__((noreturn));
@@ -314,6 +302,7 @@ extern unsigned char linker_bss_vma_end;
 /***********************************************************
  *    		 	Timing Functions		   *
  ***********************************************************/
+
 
 volatile uint32_t wrap_count;
 
@@ -789,20 +778,22 @@ static void stm32_main(void) {
 	// PC5 = run switch negative supply, always low
 	// PC4/PC3/PC2/PC1/PC0 = N/C
 	GPIOC_ODR = 0b0000000000000000;
+	//                 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 
 	GPIOC_OSPEEDR = 0b00000000000000000000000000000000;
-	GPIOC_PUPDR = 0b00000000000000000000000000000000;
-	GPIOC_AFRH = 0b00000000000000000000000000000000;
-	GPIOC_AFRL = 0b00000000000000000000000000000000;
-	GPIOC_MODER = 0b01010100000000000101010101010101;
+	GPIOC_PUPDR =   0b00000000000000000000000000000000;
+	GPIOC_AFRH =    0b00000000000000000000000000000000;
+	GPIOC_AFRL =    0b00000000000000000000000000000000;
+	GPIOC_MODER =   0b01010100000000000101010101010101;
 	// PD15/PD14/PD13/PD12/PD11/PD10/PD9/PD8/PD7/PD6/PD5/PD4/PD3 = unimplemented on package
 	// PD2 = N/C
 	// PD1/PD0 = unimplemented on package
 	GPIOD_ODR = 0b0000000000000000;
+	//                 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 
 	GPIOD_OSPEEDR = 0b00000000000000000000000000000000;
-	GPIOD_PUPDR = 0b00000000000000000000000000000000;
-	GPIOD_AFRH = 0b00000000000000000000000000000000;
-	GPIOD_AFRL = 0b00000000000000000000000000000000;
-	GPIOD_MODER = 0b00000000000000000000000000000000;
+	GPIOD_PUPDR =   0b00000000000000000000000000000000;
+	GPIOD_AFRH =    0b00000000000000000000000000000000;
+	GPIOD_AFRL =    0b00000000000000000000000000000000;
+	GPIOD_MODER =   0b00000100000000000000000000000000;
 	// PE/PF/PG = unimplemented on this package
 	// PH15/PH14/PH13/PH12/PH11/PH10/PH9/PH8/PH7/PH6/PH5/PH4/PH3/PH2 = unimplemented on this package
 	// PH1 = OSC_OUT (not configured via GPIO registers)
@@ -827,8 +818,11 @@ static void stm32_main(void) {
 	// Wait a bit
 	sleep_1ms(100);
 
-	
-
+	// Turn on LED
+	//GPIOB_BSRR = 3;
+	//sleep_1ms(1000);
+	//GPIOB_BSRR = (3<< 16);
+	//sleep_1ms(10);
 	// Initialize USB
 	//usb_ep0_set_global_callbacks(&DEVICE_CBS);
 	//usb_ep0_set_configuration_callbacks(CONFIG_CBS);
@@ -889,6 +883,12 @@ static void stm32_main(void) {
 
 		}
 		sleep_1ms(1);
+		
+		GPIOD_BSRR = 1 << (13+16);
+		sleep_1ms(1000);
+		GPIOD_BSRR = 1 << (13);
+		sleep_1ms(1000);
+		
 	}
 }
 
