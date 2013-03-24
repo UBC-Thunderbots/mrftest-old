@@ -20,6 +20,13 @@ firmware/MotorController/Makefile -text
 firmware/MotorController/test.c -text
 firmware/OvenController/temp_controlf_ver1_ino/temp_controlf_ver1_ino.ino -text
 firmware/OvenController/temp_controlf_ver1_ino_closed_loop/temp_controlf_ver1_ino.ino -text
+firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/logs/CAPTURE1.csv -text
+firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/logs/CAPTURE2.csv -text
+firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/logs/CAPTURE2.xlsx -text
+firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/logs/CAPTURE3.csv -text
+firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/logs/Doc1.docx -text
+firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/logs/expected.xlsx -text
+firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/temp_controlf_ver2_ino_wPMW_ino.ino -text
 firmware/SuperSimpleBoostConverter/18f4550.lkr -text
 firmware/SuperSimpleBoostConverter/Makefile -text
 firmware/SuperSimpleBoostConverter/boostconverter.c -text
