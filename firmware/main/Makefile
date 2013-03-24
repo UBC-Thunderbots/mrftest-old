@@ -2,8 +2,9 @@ ABI := avr
 CC := $(ABI)-gcc
 LD := $(ABI)-ld
 PROJ := main
-override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -Os -mcall-prologues -mmcu=avr3 -mno-interrupts -g -ffunction-sections -fdata-sections
-override LDFLAGS := $(LDFLAGS) -Wl,-Tnavre.ld -Wl,--gc-sections -Wl,-u,vfprintf -lprintf_min
+C_AND_LD_FLAGS := -mcall-prologues -mno-interrupts -mmcu=avr3
+override CFLAGS := $(CFLAGS) $(C_AND_LD_FLAGS) -Wall -Wextra -std=gnu99 -Os -g -ffunction-sections -fdata-sections
+override LDFLAGS := $(LDFLAGS) $(C_AND_LD_FLAGS) -Wl,-Tnavre.ld -Wl,--gc-sections -Wl,-u,vfprintf -lprintf_min
 override LDLIBS := -lm
 
 FW_SOURCES := $(wildcard *.c)
