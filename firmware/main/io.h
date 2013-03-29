@@ -151,6 +151,14 @@ typedef enum {
 	MOTOR_PWM = 0x06,
 
 	/**
+	 * \brief Used in simulation only to move magic values from firmware to testbench
+	 *
+	 * A write sets the magic value.
+	 * A read returns the most recently written value.
+	 */
+	SIM_MAGIC = 0x07,
+
+	/**
 	 * \brief Reports the accumulated count of optical encoder ticks
 	 *
 	 * A write to this register selects an optical encoder (0–3) and simultaneously snapshots and clears the accumulated count.

@@ -1,7 +1,7 @@
 /* Define the memory areas implemented on the FPGA */
 MEMORY {
 	rom_region (RXAI) : ORIGIN = 0x000000, LENGTH = 32K
-	ram_region (RWXA) : ORIGIN = 0x800000, LENGTH = 4K
+	ram_region (RWXA) : ORIGIN = 0x800060, LENGTH = 4K - 96
 }
 
 /* Lay out the data from the input object files in memory */
