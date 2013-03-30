@@ -18,7 +18,6 @@ firmware/MotorControl2/Makefile -text
 firmware/MotorControl2/test.c -text
 firmware/MotorController/Makefile -text
 firmware/MotorController/test.c -text
-firmware/OvenController/temp_controlf_ver1_ino/temp_controlf_ver1_ino.ino -text
 firmware/OvenController/temp_controlf_ver1_ino_closed_loop/temp_controlf_ver1_ino.ino -text
 firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/logs/CAPTURE1.csv -text
 firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/logs/CAPTURE2.csv -text
