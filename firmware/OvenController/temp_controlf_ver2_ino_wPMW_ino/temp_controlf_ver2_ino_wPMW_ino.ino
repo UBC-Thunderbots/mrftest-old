@@ -6,7 +6,7 @@ const int SSB_PIN = 10;
 
 const int stage1End = 100;
 const int stage2End = 150;
-const int stage3End = 240;
+const int stage3End = 245;
 
 const unsigned long stage1Time = 50000UL;
 const unsigned long stage2Time = stage1Time + 90000UL;
@@ -34,7 +34,7 @@ void loop()
   float currentTemp = readTemp(  );
 
   
-  float stage_duty_cycles[3] = { 1, 0.3, 1 };
+  float stage_duty_cycles[3] = { 1, 0.2, 1 };
   
   while ( currentTemp < stage1End )
   {
