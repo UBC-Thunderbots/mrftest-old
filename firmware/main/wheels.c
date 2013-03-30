@@ -58,13 +58,11 @@ void wheels_tick() {
 				enc_val[i] = read_encoder(i);
 			}
 			control_iter(enc_val, outputs);
-			for(uint8_t i=0;i<4;++i) {
-				if(outputs[i] > 0) {
+			for (uint8_t i = 0; i < 4; ++i) {
+				if (outputs[i] >= 0) {
 					set_wheel(i, FORWARD, outputs[i]);
-				} else if(outputs[i] < 0) {
-					set_wheel(i, BACKWARD, -outputs[i]);
 				} else {
-					set_wheel(i, BRAKE, 0);
+					set_wheel(i, BACKWARD, -outputs[i]);
 				}
 			}
 			break;
