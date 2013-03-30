@@ -17,10 +17,10 @@ void wheels_tick() {
 	int16_t enc_val[4];
 	int16_t outputs[4];
 	switch (wheel_context.mode) {
-		case WHEEL_MODE_COAST:
+		case WHEEL_MODE_MANUAL_COMMUTATION:
 			control_clear();
 			for (uint8_t i = 0; i < 4; ++i) {
-				set_wheel(i, FLOAT, 0);
+				set_wheel(i, MANUAL_COMMUTATION, wheel_context.setpoints[i]);
 				read_encoder(i);
 			}
 			break;

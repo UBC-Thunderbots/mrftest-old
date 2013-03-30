@@ -90,7 +90,7 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 		}
 };
 
-TesterWindow::TesterWindow(XBeeDongle &dongle, XBeeRobot &robot) : mapped_joysticks(MappedJoysticksModel::create()), robot(robot), feedback_frame("Feedback"), feedback_panel(dongle, robot), drive_frame("Drive"), drive_panel(robot), dribble_button("Dribble"), kicker_frame("Kicker"), kicker_panel(robot), params_frame("Parameters"), params_panel(robot), joystick_frame("Joystick"), joystick_sensitivity_high_button(joystick_sensitivity_group, "High Sensitivity"), joystick_sensitivity_low_button(joystick_sensitivity_group, "Low Sensitivity"), joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks)) {
+TesterWindow::TesterWindow(XBeeDongle &dongle, XBeeRobot &robot) : mapped_joysticks(MappedJoysticksModel::create()), robot(robot), feedback_frame("Feedback"), feedback_panel(dongle, robot), drive_frame("Drive"), drive_panel(robot, nullptr), dribble_button("Dribble"), kicker_frame("Kicker"), kicker_panel(robot), params_frame("Parameters"), params_panel(robot), joystick_frame("Joystick"), joystick_sensitivity_high_button(joystick_sensitivity_group, "High Sensitivity"), joystick_sensitivity_low_button(joystick_sensitivity_group, "Low Sensitivity"), joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks)) {
 	set_title(Glib::ustring::compose("Tester (%1)", robot.index));
 
 	feedback_frame.add(feedback_panel);

@@ -7,7 +7,7 @@
  * \brief The modes the wheels can be in
  */
 typedef enum {
-	WHEEL_MODE_COAST,
+	WHEEL_MODE_MANUAL_COMMUTATION,
 	WHEEL_MODE_BRAKE,
 	WHEEL_MODE_OPEN_LOOP,
 	WHEEL_MODE_CLOSED_LOOP,

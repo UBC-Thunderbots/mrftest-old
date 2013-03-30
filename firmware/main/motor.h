@@ -4,30 +4,33 @@
 /**
  * \file
  *
- * \brief file with motor helper functions
+ * \brief Functions for operating motors.
  */
 
 #include <stdint.h>
 
 /**
- * \brief possible motor control states
+ * \brief The possible methods of driving a motor.
  */
 typedef enum {
-	FLOAT,
+	MANUAL_COMMUTATION,
 	BRAKE,
 	FORWARD,
 	BACKWARD
 } direction_t;
 
 /**
- * \brief motor safety switch
- *
- * sets all motor pwms to 0 and floats direction
+ * \brief The patterns to use for manual commutation.
+ */
+extern uint8_t motor_manual_commutation_patterns[5];
+
+/**
+ * \brief Coasts all motors immediately.
  */
 void motor_scram();
 
 /**
- * \brief wheel control interface
+ * \brief Sets the configuration of a wheel.
  *
  * \param[in] wheel_num wheel index from 0
  *
@@ -39,7 +42,7 @@ void motor_scram();
 void set_wheel(uint8_t wheel_num, direction_t direction, uint8_t pwm_level);
 
 /**
- * \brief set the dribbler direction and level
+ * \brief Sets the configuration of the dribbler.
  *
  * \param[in] direction dribbler direction to set
  *

@@ -600,6 +600,8 @@ software/test/mrf/launcher.h -text
 software/test/mrf/leds.cpp -text
 software/test/mrf/leds.h -text
 software/test/mrf/main.cpp -text
+software/test/mrf/manual_commutation_window.cpp -text
+software/test/mrf/manual_commutation_window.h -text
 software/test/mrf/params.cpp -text
 software/test/mrf/params.h -text
 software/test/mrf/power.cpp -text

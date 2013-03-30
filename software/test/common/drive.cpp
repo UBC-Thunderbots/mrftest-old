@@ -2,8 +2,12 @@
 #include "util/algorithm.h"
 
 namespace {
-	void on_update_coast(Gtk::HScale(&)[4], Drive::Robot &robot, bool) {
-		robot.drive_coast();
+	void on_update_coast(Gtk::HScale(&controls)[4], Drive::Robot &robot, bool) {
+		int wheels[G_N_ELEMENTS(controls)];
+		for (unsigned int i = 0; i < G_N_ELEMENTS(controls); ++i) {
+			wheels[i] = clamp_symmetric(static_cast<int>(controls[i].get_value()), 255);
+		}
+		robot.drive_coast_or_manual(wheels);
 	}
 
 	void get_low_sensitivity_scale_factors_coast(double (&scale)[4]) {
@@ -64,6 +68,7 @@ namespace {
 	struct Mode {
 		const char *name;
 		unsigned int sensitive_mask;
+		bool sensitive_if_manual_commutation;
 		double limit;
 		double step;
 		double page;
@@ -73,20 +78,20 @@ namespace {
 	};
 
 	const Mode MODES_NO_COAST[] = {
-		{ u8"Brake", 0x0, 1, 0.1, 0.5, 0, &on_update_brake, &get_low_sensitivity_scale_factors_brake },
-		{ u8"Per-motor", 0xF, 1023, 1, 25, 0, &on_update_permotor, &get_low_sensitivity_scale_factors_permotor },
-		{ u8"Matrix", 0x7, 20, 0.1, 3, 1, &on_update_matrix, &get_low_sensitivity_scale_factors_matrix },
+		{ u8"Brake", 0x0, false, 1, 0.1, 0.5, 0, &on_update_brake, &get_low_sensitivity_scale_factors_brake },
+		{ u8"Per-motor", 0xF, false, 1023, 1, 25, 0, &on_update_permotor, &get_low_sensitivity_scale_factors_permotor },
+		{ u8"Matrix", 0x7, false, 20, 0.1, 3, 1, &on_update_matrix, &get_low_sensitivity_scale_factors_matrix },
 	};
 
 	const Mode MODES_COAST[] = {
-		{ u8"Coast", 0x0, 1, 0.1, 0.5, 0, &on_update_coast, &get_low_sensitivity_scale_factors_coast },
-		{ u8"Brake", 0x0, 1, 0.1, 0.5, 0, &on_update_brake, &get_low_sensitivity_scale_factors_brake },
-		{ u8"Per-motor", 0xF, 1023, 1, 25, 0, &on_update_permotor, &get_low_sensitivity_scale_factors_permotor },
-		{ u8"Matrix", 0x7, 20, 0.1, 3, 1, &on_update_matrix, &get_low_sensitivity_scale_factors_matrix },
+		{ u8"Coast/Manual Commutation", 0x0, true, 255, 1, 25, 0, &on_update_coast, &get_low_sensitivity_scale_factors_coast },
+		{ u8"Brake", 0x0, false, 1, 0.1, 0.5, 0, &on_update_brake, &get_low_sensitivity_scale_factors_brake },
+		{ u8"Per-motor", 0xF, false, 1023, 1, 25, 0, &on_update_permotor, &get_low_sensitivity_scale_factors_permotor },
+		{ u8"Matrix", 0x7, false, 20, 0.1, 3, 1, &on_update_matrix, &get_low_sensitivity_scale_factors_matrix },
 	};
 }
 
-DrivePanel::DrivePanel(Drive::Robot &robot) : robot(robot), controllers_checkbox(u8"Controllers") {
+DrivePanel::DrivePanel(Drive::Robot &robot, Gtk::Window *manual_commutation_window) : robot(robot), controllers_checkbox(u8"Controllers"), manual_commutation_button(u8"Manual Commutation"), manual_commutation_window(manual_commutation_window) {
 	const Mode * const MODES = robot.can_coast() ? MODES_COAST : MODES_NO_COAST;
 	const std::size_t MODES_SIZE = robot.can_coast() ? G_N_ELEMENTS(MODES_COAST) : G_N_ELEMENTS(MODES_NO_COAST);
 	for (std::size_t i = 0; i < MODES_SIZE; ++i) {
@@ -102,6 +107,11 @@ DrivePanel::DrivePanel(Drive::Robot &robot) : robot(robot), controllers_checkbox
 	controllers_checkbox.set_active();
 	controllers_checkbox.signal_toggled().connect(sigc::mem_fun(this, &DrivePanel::on_update));
 	pack_start(controllers_checkbox, Gtk::PACK_SHRINK);
+	if (manual_commutation_window) {
+		manual_commutation_button.signal_toggled().connect(sigc::mem_fun(this, &DrivePanel::on_manual_commutation_toggled));
+		pack_start(manual_commutation_button, Gtk::PACK_SHRINK);
+		manual_commutation_window->signal_delete_event().connect(sigc::mem_fun(this, &DrivePanel::on_manual_commutation_window_closed));
+	}
 	on_mode_changed();
 }
 
@@ -136,7 +146,7 @@ void DrivePanel::on_mode_changed() {
 	int row = mode_chooser.get_active_row_number();
 	if (row >= 0) {
 		for (unsigned int i = 0; i < G_N_ELEMENTS(controls); ++i) {
-			controls[i].set_sensitive(!!(MODES[row].sensitive_mask & (1 << i)));
+			controls[i].set_sensitive(!!(MODES[row].sensitive_mask & (1 << i)) || (manual_commutation_button.get_active() && MODES[row].sensitive_if_manual_commutation));
 			controls[i].get_adjustment()->configure(0, -MODES[row].limit, MODES[row].limit, MODES[row].step, MODES[row].page, 0);
 			controls[i].set_digits(MODES[row].digits);
 		}
@@ -150,5 +160,19 @@ void DrivePanel::on_update() {
 	if (row >= 0) {
 		MODES[row].on_update(controls, robot, controllers_checkbox.get_active());
 	}
+}
+
+void DrivePanel::on_manual_commutation_toggled() {
+	if (manual_commutation_button.get_active()) {
+		manual_commutation_window->show_all();
+	} else {
+		manual_commutation_window->hide();
+	}
+	on_mode_changed();
+}
+
+bool DrivePanel::on_manual_commutation_window_closed(GdkEventAny *) {
+	manual_commutation_button.set_active(false);
+	return false;
 }
 

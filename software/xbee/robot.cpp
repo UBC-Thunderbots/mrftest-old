@@ -310,7 +310,7 @@ bool XBeeRobot::can_coast() const {
 	return false;
 }
 
-void XBeeRobot::drive_coast() {
+void XBeeRobot::drive_coast_or_manual(const int(&)[4]) {
 	drive_brake();
 }
 

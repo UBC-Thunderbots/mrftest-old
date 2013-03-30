@@ -25,7 +25,8 @@ Player::Player(unsigned int pattern, Drive::Robot &bot) : AI::BE::Player(pattern
 }
 
 Player::~Player() {
-	bot.drive_coast();
+	static const int ZEROES[4] = { 0, 0, 0, 0 };
+	bot.drive_coast_or_manual(ZEROES);
 	bot.dribble(false);
 	bot.autokick(false, 0);
 	bot.set_charger_state(Drive::Robot::ChargerState::DISCHARGE);

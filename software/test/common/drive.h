@@ -6,6 +6,8 @@
 #include <gtkmm/checkbutton.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/scale.h>
+#include <gtkmm/togglebutton.h>
+#include <gtkmm/window.h>
 
 /**
  * \brief A panel that lets the user manually control the wheels
@@ -16,8 +18,10 @@ class DrivePanel : public Gtk::VBox {
 		 * \brief Constructs a new DrivePanel
 		 *
 		 * \param[in] robot the robot to control
+		 *
+		 * \param[in] manual_commutation_window the window to show for manual commutation control (may be null)
 		 */
-		DrivePanel(Drive::Robot &robot);
+		DrivePanel(Drive::Robot &robot, Gtk::Window *manual_commutation_window);
 
 		/**
 		 * \brief Sets all speed selectors to their zero positions
@@ -48,9 +52,13 @@ class DrivePanel : public Gtk::VBox {
 		Gtk::ComboBoxText mode_chooser;
 		Gtk::HScale controls[4];
 		Gtk::CheckButton controllers_checkbox;
+		Gtk::ToggleButton manual_commutation_button;
+		Gtk::Window *manual_commutation_window;
 
 		void on_mode_changed();
 		void on_update();
+		void on_manual_commutation_toggled();
+		bool on_manual_commutation_window_closed(GdkEventAny *);
 };
 
 #endif

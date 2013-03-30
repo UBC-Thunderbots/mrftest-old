@@ -102,7 +102,7 @@ class XBeeRobot : public Drive::Robot {
 
 		void drive(const int(&wheels)[4], bool controlled = true);
 		bool can_coast() const;
-		void drive_coast();
+		void drive_coast_or_manual(const int(&)[4]);
 		void drive_brake();
 		void dribble(bool active = true);
 		void set_charger_state(ChargerState state);

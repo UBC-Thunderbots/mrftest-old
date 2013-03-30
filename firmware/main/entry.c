@@ -133,23 +133,23 @@ static void handle_radio_receive(void) {
 					}
 					feedback_pending = !!(words[0] & 0x8000);
 					switch ((words[0] >> 13) & 0b11) {
-						case 0b00: wheel_context.mode = WHEEL_MODE_COAST; break;
+						case 0b00: wheel_context.mode = WHEEL_MODE_MANUAL_COMMUTATION; break;
 						case 0b01: wheel_context.mode = WHEEL_MODE_BRAKE; break;
 						case 0b10: wheel_context.mode = WHEEL_MODE_OPEN_LOOP; break;
 						case 0b11: wheel_context.mode = WHEEL_MODE_CLOSED_LOOP; break;
 					}
-					
+
 					wheel_update_ctx();
-					
-					if (wheel_context.mode != WHEEL_MODE_COAST && wheel_context.mode != WHEEL_MODE_BRAKE) {
+
+					if (wheel_context.mode != WHEEL_MODE_MANUAL_COMMUTATION && wheel_context.mode != WHEEL_MODE_BRAKE) {
 						power_enable_motors();
 					}
-					
+
 					if (words[0] & (1 << 12)) {
 						power_enable_motors();
 						set_dribbler(FORWARD, 180);
 					} else {
-						set_dribbler(FLOAT, 0);
+						set_dribbler(MANUAL_COMMUTATION, 0);
 					}
 					switch ((words[1] >> 14) & 3) {
 						case 0b00:
@@ -289,6 +289,14 @@ static void handle_radio_receive(void) {
 							outb(POWER_CTL, 0x00);
 							for (;;);
 						}
+
+					case 0x0D: // Manually commutate motors
+						if (frame_length == HEADER_LENGTH + 6 + FOOTER_LENGTH) {
+							for (uint8_t i = 0; i < 5; ++i) {
+								motor_manual_commutation_patterns[i] = mrf_read_long(MESSAGE_PAYLOAD_ADDR + i) & 0b11111100;
+							}
+						}
+						break;
 				}
 			}
 		}
