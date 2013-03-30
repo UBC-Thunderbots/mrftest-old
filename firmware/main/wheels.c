@@ -7,32 +7,36 @@
 #include "motor.h"
 #include "mrf.h"
 
-wheel_mode_t wheel_mode = WHEEL_MODE_COAST;
-int16_t wheel_setpoint[4] = { 0, 0, 0, 0 };
+wheel_ctx_t wheel_context;
 
-static control_ctx_t control_contexts[4];
+void wheel_update_ctx() {
+	control_setpoint_changed(wheel_context.setpoints);
+}
 
 void wheels_tick() {
-	switch (wheel_mode) {
+	int16_t enc_val[4];
+	int16_t outputs[4];
+	switch (wheel_context.mode) {
 		case WHEEL_MODE_COAST:
+			control_clear();
 			for (uint8_t i = 0; i < 4; ++i) {
 				set_wheel(i, FLOAT, 0);
-				control_clear(&control_contexts[i]);
 				read_encoder(i);
 			}
 			break;
 
 		case WHEEL_MODE_BRAKE:
+			control_clear();
 			for (uint8_t i = 0; i < 4; ++i) {
 				set_wheel(i, BRAKE, 0);
-				control_clear(&control_contexts[i]);
 				read_encoder(i);
 			}
 			break;
 
 		case WHEEL_MODE_OPEN_LOOP:
+			control_clear();
 			for (uint8_t i = 0; i < 4; ++i) {
-				int16_t output = wheel_setpoint[i];
+				int16_t output = wheel_context.setpoints[i];
 				if (output < -255) {
 					output = -255;
 				} else if (output > 255) {
@@ -45,19 +49,20 @@ void wheels_tick() {
 				} else {
 					set_wheel(i, BRAKE, 0);
 				}
-				control_clear(&control_contexts[i]);
 				read_encoder(i);
 			}
 			break;
 
 		case WHEEL_MODE_CLOSED_LOOP:
 			for (uint8_t i = 0; i < 4; ++i) {
-				int16_t enc_val = read_encoder(i);
-				int16_t output = control_iter(wheel_setpoint[i], enc_val, &control_contexts[i]);
-				if(output > 0) {
-					set_wheel(i, FORWARD, output);
-				} else if(output < 0) {
-					set_wheel(i, BACKWARD, -output);
+				enc_val[i] = read_encoder(i);
+			}
+			control_iter(enc_val, outputs);
+			for(uint8_t i=0;i<4;++i) {
+				if(outputs[i] > 0) {
+					set_wheel(i, FORWARD, outputs[i]);
+				} else if(outputs[i] < 0) {
+					set_wheel(i, BACKWARD, -outputs[i]);
 				} else {
 					set_wheel(i, BRAKE, 0);
 				}

@@ -13,16 +13,22 @@ typedef enum {
 	WHEEL_MODE_CLOSED_LOOP,
 } wheel_mode_t;
 
-/**
- * \brief The mode the wheels are in
- */
-extern wheel_mode_t wheel_mode;
+
+typedef struct {
+	wheel_mode_t mode;
+	int16_t setpoints[4];
+} wheel_ctx_t;
 
 /**
- * \brief The setpoints for the wheels,
- * in quarters of a degree per five milliseconds (for controlled mode) or PWM duty cycle out of 255 (for uncontrolled)
+ * \brief the current wheel settings
+ *
  */
-extern int16_t wheel_setpoint[4];
+extern wheel_ctx_t wheel_context;
+
+/**
+ * \brief update the controllers for new wheel settings
+ */
+void wheel_update_ctx();
 
 /**
  * \brief Runs the wheels

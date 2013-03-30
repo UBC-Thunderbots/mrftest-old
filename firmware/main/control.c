@@ -4,13 +4,27 @@
 //determinded setpoint in PWM levels
 #define CURRENT_LIMIT 75.0
 
-void control_clear(control_ctx_t *ctx) {
+static control_ctx_t control_context;
+
+void control_setpoint_changed(int16_t setpoints[4]) {
+	for(uint8_t i=0;i<4;++i) {
+		control_context.setpoints[i]=setpoints[i];
+	}
+}
+
+void wheel_clear(PI_ctx_t *ctx) {
 	ctx->integrator = 0;
 	ctx->saturation_difference = 0;
 	ctx->anti_windup_offset = 0;
 }
 
-int16_t control_iter(int16_t setpoint, int16_t feedback, control_ctx_t *ctx) {
+void control_clear() {
+	for(uint8_t i=0;i<4;i++) {
+		wheel_clear(&(control_context.wheels[i]));
+	}
+}
+
+int16_t wheel_iter(PI_ctx_t *ctx, int16_t feedback, int16_t setpoint) {
 	int16_t error;
 	float feedback_pwm_equiv, new_anti_windup_offset, error_compensated, control_action, plant_min, plant_max, plant;
 
@@ -37,4 +51,11 @@ int16_t control_iter(int16_t setpoint, int16_t feedback, control_ctx_t *ctx) {
 	ctx->anti_windup_offset = new_anti_windup_offset;
 	return (int16_t) plant;
 }
+
+void control_iter(int16_t feedback[4],int16_t outputs[4]) {
+	for(int i=0;i<4;i++) {
+		outputs[i] = wheel_iter(&(control_context.wheels[i]),feedback[i],control_context.setpoints[i]);
+	}
+}
+
 

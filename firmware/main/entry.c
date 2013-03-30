@@ -126,21 +126,25 @@ static void handle_radio_receive(void) {
 						words[i] = mrf_read_long(MRF_REG_LONG_RXFIFO + offset + i * 2 + 1);
 						words[i] <<= 8;
 						words[i] |= mrf_read_long(MRF_REG_LONG_RXFIFO + offset + i * 2);
-						wheel_setpoint[i] = words[i] & 0x3FF;
+						wheel_context.setpoints[i] = words[i] & 0x3FF;
 						if (words[i] & 0x400) {
-							wheel_setpoint[i] = -wheel_setpoint[i];
+							wheel_context.setpoints[i] = -wheel_context.setpoints[i];
 						}
 					}
 					feedback_pending = !!(words[0] & 0x8000);
 					switch ((words[0] >> 13) & 0b11) {
-						case 0b00: wheel_mode = WHEEL_MODE_COAST; break;
-						case 0b01: wheel_mode = WHEEL_MODE_BRAKE; break;
-						case 0b10: wheel_mode = WHEEL_MODE_OPEN_LOOP; break;
-						case 0b11: wheel_mode = WHEEL_MODE_CLOSED_LOOP; break;
+						case 0b00: wheel_context.mode = WHEEL_MODE_COAST; break;
+						case 0b01: wheel_context.mode = WHEEL_MODE_BRAKE; break;
+						case 0b10: wheel_context.mode = WHEEL_MODE_OPEN_LOOP; break;
+						case 0b11: wheel_context.mode = WHEEL_MODE_CLOSED_LOOP; break;
 					}
-					if (wheel_mode != WHEEL_MODE_COAST && wheel_mode != WHEEL_MODE_BRAKE) {
+					
+					wheel_update_ctx();
+					
+					if (wheel_context.mode != WHEEL_MODE_COAST && wheel_context.mode != WHEEL_MODE_BRAKE) {
 						power_enable_motors();
 					}
+					
 					if (words[0] & (1 << 12)) {
 						power_enable_motors();
 						set_dribbler(FORWARD, 180);
