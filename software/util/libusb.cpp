@@ -400,6 +400,7 @@ USB::Transfer::~Transfer() {
 		// Initiate transfer cancellation.
 		// Instead of waiting for cancellation to complete, "disown" the transfer object.
 		// It will be freed by the trampoline.
+		LOG_ERROR(Glib::ustring::compose(u8"Destroying in-progress transfer to USB %1 endpoint %2; this is unreliable and may be a problem if not happening during system shutdown!", ((transfer->endpoint & LIBUSB_ENDPOINT_DIR_MASK) == LIBUSB_ENDPOINT_IN ? "in" : "out"), static_cast<unsigned int>(transfer->endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK)));
 		libusb_cancel_transfer(transfer);
 		TransferMetadata::get(transfer)->disown();
 	} else {
