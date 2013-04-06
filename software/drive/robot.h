@@ -71,6 +71,11 @@ namespace Drive {
 			Property<double> dribbler_temperature;
 
 			/**
+			 * \brief The temperature of the robot’s mainboard, in degrees Celsius
+			 */
+			Property<double> board_temperature;
+
+			/**
 			 * \brief Emitted when the autokick mechanism causes the robot to kick
 			 */
 			sigc::signal<void> signal_autokick_fired;

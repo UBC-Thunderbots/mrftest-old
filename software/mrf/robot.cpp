@@ -7,6 +7,23 @@
 #include <cstring>
 #include <memory>
 
+namespace {
+	double adc_voltage_to_board_temp(double voltage) {
+		// For V being ADC voltage and R being thermistor voltage:
+		// V = 3.3 / (10,000 + R) * R
+		// 10,000 V + VR = 3.3 R
+		// (3.3 - V) R = 10,000 V
+		// R = 10,000 V / (3.3 - V)
+		double thermistor_resistance = 10000 * voltage / (3.3 - voltage);
+
+		// Magic math from binaryblade
+		double ltemp = std::log(thermistor_resistance);
+		double temperature = 1.6648 * ltemp * ltemp - 61.3664 * ltemp + 510.18;
+
+		return temperature;
+	}
+}
+
 void MRFRobot::drive(const int(&wheels)[4], bool controlled) {
 	for (unsigned int i = 0; i < 4; ++i) {
 		unsigned int level_u = static_cast<unsigned int>(std::abs(wheels[i]));
@@ -128,14 +145,15 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 				// General robot status update
 				++bptr;
 				--len;
-				if (len == 7) {
+				if (len == 9) {
 					alive = true;
 					battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 20000);
 					capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 200000);
 					break_beam_reading = bptr[4] | static_cast<unsigned int>(bptr[5] << 8);
-					ball_in_beam = !!(bptr[6] & 0x01);
-					capacitor_charged = !!(bptr[6] & 0x02);
-					charge_timeout_message.active(!!(bptr[6] & 0x04));
+					board_temperature = adc_voltage_to_board_temp((bptr[6] | static_cast<unsigned int>(bptr[7] << 8)) / 1024.0 * 3.3);
+					ball_in_beam = !!(bptr[8] & 0x01);
+					capacitor_charged = !!(bptr[8] & 0x02);
+					charge_timeout_message.active(!!(bptr[8] & 0x04));
 				} else {
 					LOG_ERROR(Glib::ustring::compose(u8"Received general robot status update with wrong byte count %1", len));
 				}

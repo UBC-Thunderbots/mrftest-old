@@ -5,10 +5,11 @@
 #include <stdint.h>
 
 typedef enum {
-	CHICKER,
-	BATT_VOLT,
-	LPS,
-	BREAKBEAM,
+	CHICKER = 0,
+	BATT_VOLT = 1,
+	TEMPERATURE = 5,
+	LPS = 6,
+	BREAKBEAM = 7,
 } adc_t;
 
 static inline uint16_t read_main_adc(adc_t adc_index) {
