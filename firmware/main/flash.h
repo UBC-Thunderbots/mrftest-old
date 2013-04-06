@@ -12,20 +12,6 @@
 #include <stdint.h>
 
 /**
- * \brief Starts a chip erase
- *
- * This function returns immediately.
- */
-void flash_start_chip_erase(void);
-
-/**
- * \brief Checks if the flash is busy
- *
- * \return \c true if the flash is busy, or \c false if not
- */
-bool flash_is_busy(void);
-
-/**
  * \brief Erases a 4 kB sector
  *
  * This function returns when the erase operation is complete.
@@ -57,17 +43,6 @@ void flash_page_program(uint16_t page, const void *data, uint8_t length);
  * \param[in] length the number of bytes to read
  */
 void flash_read(uint32_t start, void *buffer, uint8_t length);
-
-/**
- * \brief Computes the sum of a range of bytes
- *
- * \param[in] start the address of the first byte to sum
- *
- * \param[in] length the number of bytes to sum
- *
- * \return the sum
- */
-uint32_t flash_sum(uint32_t start, uint32_t length);
 
 #endif
 

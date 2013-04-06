@@ -38,22 +38,6 @@ static void wait_not_busy(void) {
 	deassert_cs();
 }
 
-void flash_start_chip_erase(void) {
-	write_enable();
-
-	assert_cs();
-	tx(0xC7);
-	deassert_cs();
-}
-
-bool flash_is_busy(void) {
-	assert_cs();
-	tx(0x05);
-	uint8_t status_register = txrx(0x00);
-	deassert_cs();
-	return !!(status_register & 0x01);
-}
-
 void flash_erase_sector(uint32_t address) {
 	write_enable();
 
@@ -97,18 +81,3 @@ void flash_read(uint32_t address, void *data, uint8_t length) {
 	deassert_cs();
 }
 
-uint32_t flash_sum(uint32_t address, uint32_t length) {
-	uint32_t sum = 0;
-
-	assert_cs();
-	tx(0x03);
-	tx(address >> 16);
-	tx(address >> 8);
-	tx(address);
-	while (length--) {
-		sum += txrx(0x00);
-	}
-	deassert_cs();
-
-	return sum;
-}
