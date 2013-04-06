@@ -45,6 +45,7 @@ static uint16_t autokick_pulse_width;
 static uint8_t autokick_device;
 static bool autokick_armed = false;
 static bool autokick_fired_pending = false;
+static uint8_t last_drive_packet_tick = 0;
 
 void prepare_mrf_mhr(uint8_t payload_length) {
 #warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
@@ -119,6 +120,7 @@ static void handle_radio_receive(void) {
 			if (dest_address == 0xFFFF) {
 				// Broadcast frame must contain drive packet, which must be 64 bytes long
 				if (frame_length == HEADER_LENGTH + 64 + FOOTER_LENGTH) {
+					last_drive_packet_tick = inb(TICKS);
 					const uint8_t offset = 1 + HEADER_LENGTH + 8 * index;
 					uint16_t words[4];
 					for (uint8_t i = 0; i < 4; ++i) {
@@ -391,6 +393,19 @@ static void avr_main(void) {
 			transmit_busy = true;
 			autokick_fired_pending = false;
 			transmission_reliable = true;
+		}
+
+		// Check if more than a second has passed since we last received a fresh drive packet
+		if ((uint8_t) (inb(TICKS) - last_drive_packet_tick) > 200) {
+			// Time out and stop driving
+			for (uint8_t i = 0; i < 4; ++i) {
+				wheel_context.setpoints[i] = 0;
+			}
+			wheel_context.mode = WHEEL_MODE_MANUAL_COMMUTATION;
+			wheel_update_ctx();
+			set_dribbler(MANUAL_COMMUTATION, 0);
+			set_charge_mode(false);
+			set_discharge_mode(false);
 		}
 	}
 }
