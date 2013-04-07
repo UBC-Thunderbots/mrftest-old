@@ -73,7 +73,7 @@ void loop()
     digitalWrite(output, LOW);
   }
   */
-  while (currentTemp > stage3End)
+  while (1 )
   {
     analogWrite(buzzerOut, 500);
     delay(500);
