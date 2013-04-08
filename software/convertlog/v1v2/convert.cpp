@@ -105,7 +105,7 @@ namespace {
 		}
 
 		// Accumulate at all times the most recent monotonic timestamp.
-		timespec most_recent_monotonic;
+		timespec most_recent_monotonic = { 0, 0 };
 
 		// Before we can start our normal iteration, we need to find the first AI tick and grab its UNIX timestamp.
 		{

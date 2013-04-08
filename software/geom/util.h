@@ -191,22 +191,6 @@ std::vector<Point> line_circle_intersect(const Point &centre, double radius, con
  * Finds the points of intersection between a circle and a line.
  * There may be zero, one, or two such points.
  *
- * \param[in] centre the centre of the circle.
- *
- * \param[in] radius the radius of the circle.
- *
- * \param[in] segA one point on the line.
- *
- * \param[in] segB another point on the line.
- *
- * \return the points of intersection.
- */
-std::vector<Point> line_circle_intersect(const Point &centre, double radius, const Point &segA, const Point &segB);
-
-/**
- * Finds the points of intersection between a circle and a line.
- * There may be zero, one, or two such points.
- *
  * \param[in] r the rectangle.
  *
  * \param[in] segA one point on the line.

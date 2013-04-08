@@ -363,33 +363,35 @@ std::vector<Point> line_rect_intersect(const Rect &r, const Point &segA, const P
 	return ans;
 }
 
-bool point_in_seg(const Point &p, const Point &segA, const Point &segB) {
-	if (collinear(p, segA, segB)) {
-		if ((p.x <= segA.x && p.x >= segB.x) || (p.x <= segB.x && p.x >= segA.x)) {
-			// if( (p.y<= segA.y && p.y >= segB.y) || (p.y <= segB.y && p.y >= segA.y ) ){
-			return true;
-			/*} else {
-			    return false;
-			   }*/
+namespace {
+	bool point_in_seg(const Point &p, const Point &segA, const Point &segB) {
+		if (collinear(p, segA, segB)) {
+			if ((p.x <= segA.x && p.x >= segB.x) || (p.x <= segB.x && p.x >= segA.x)) {
+				// if( (p.y<= segA.y && p.y >= segB.y) || (p.y <= segB.y && p.y >= segA.y ) ){
+				return true;
+				/*} else {
+					return false;
+				   }*/
+			} else {
+				return false;
+			}
 		} else {
+			LOG_ERROR("not collinear");
 			return false;
 		}
-	} else {
-		LOG_ERROR("not collinear");
-		return false;
 	}
-}
 
-bool point_in_vec(const Point &p, const Point &vecA, const Point &vecB) { // vecA is the beginning of the vector
-	if (collinear(p, vecA, vecB)) {
-		if (((p.x - vecA.x) * (vecB.x - vecA.x) > EPS) && ((p.y - vecA.y) * (vecB.y - vecA.y) > EPS)) {
-			return true;
+	bool point_in_vec(const Point &p, const Point &vecA, const Point &vecB) { // vecA is the beginning of the vector
+		if (collinear(p, vecA, vecB)) {
+			if (((p.x - vecA.x) * (vecB.x - vecA.x) > EPS) && ((p.y - vecA.y) * (vecB.y - vecA.y) > EPS)) {
+				return true;
+			} else {
+				return false;
+			}
 		} else {
+			LOG_ERROR("not collinear");
 			return false;
 		}
-	} else {
-		LOG_ERROR("not collinear");
-		return false;
 	}
 }
 
@@ -502,18 +504,21 @@ double seg_seg_distance(const Point &a, const Point &b, const Point &c, const Po
 	return std::min(std::min(lineseg_point_dist(a, c, d), lineseg_point_dist(b, c, d)), std::min(lineseg_point_dist(c, a, b), lineseg_point_dist(d, a, b)));
 }
 
-std::vector<Point> lineseg_circle_intersect(const Point &centre, double radius, const Point &segA, const Point &segB) {
-	std::vector<Point> ans;
-	std::vector<Point> poss = line_circle_intersect(centre, radius, segA, segB);
+namespace {
+#warning this function is never used
+	std::vector<Point> lineseg_circle_intersect(const Point &centre, double radius, const Point &segA, const Point &segB) {
+		std::vector<Point> ans;
+		std::vector<Point> poss = line_circle_intersect(centre, radius, segA, segB);
 
-	for (std::size_t i = 0; i < poss.size(); i++) {
-		bool x_ok = poss[i].x <= std::max(segA.x, segB.x) + EPS && poss[i].x >= std::min(segA.x, segB.x) - EPS;
-		bool y_ok = poss[i].y <= std::max(segA.y, segB.y) + EPS && poss[i].y >= std::min(segA.y, segB.y) - EPS;
-		if (x_ok && y_ok) {
-			ans.push_back(poss[i]);
+		for (std::size_t i = 0; i < poss.size(); i++) {
+			bool x_ok = poss[i].x <= std::max(segA.x, segB.x) + EPS && poss[i].x >= std::min(segA.x, segB.x) - EPS;
+			bool y_ok = poss[i].y <= std::max(segA.y, segB.y) + EPS && poss[i].y >= std::min(segA.y, segB.y) - EPS;
+			if (x_ok && y_ok) {
+				ans.push_back(poss[i]);
+			}
 		}
+		return ans;
 	}
-	return ans;
 }
 
 bool unique_line_intersect(const Point &a, const Point &b, const Point &c, const Point &d) {

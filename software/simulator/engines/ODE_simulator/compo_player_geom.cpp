@@ -124,48 +124,50 @@ void CompoPlayerGeom::handle_collision(dGeomID o1, dGeomID o2, dJointGroupID con
 	}
 }
 
-bool hasContactPenetration(dVector3 pos, dGeomID geom) {
-	if (dGeomGetClass(geom) == dBoxClass && dGeomBoxPointDepth(geom, pos[0], pos[1], pos[2]) < 0) {
-		return true;
+namespace {
+	bool hasContactPenetration(dVector3 pos, dGeomID geom) {
+		if (dGeomGetClass(geom) == dBoxClass && dGeomBoxPointDepth(geom, pos[0], pos[1], pos[2]) < 0) {
+			return true;
+		}
+
+		double y_len = 0.1;
+		double x_len = sqrt((2 * ROBOT_RADIUS) * (2 * ROBOT_RADIUS) - (y_len) * (y_len));
+
+		const dReal *p = dBodyGetPosition(dGeomGetBody(geom));
+
+		Point ball_loc(pos[0], pos[1]);
+		Point play_loc(p[0], p[1]);
+		Point play_ball_diff = ball_loc - play_loc;
+		play_ball_diff = play_ball_diff.rotate(-orientationFromMatrix(dBodyGetRotation(dGeomGetBody(geom))));
+
+		bool face = play_ball_diff.x >= x_len / 2 && (play_ball_diff.y * x_len) <= (play_ball_diff.x * y_len);
+
+		if (!face && pos[2] > 0 && pos[2] < ROBOT_HEIGHT && dGeomGetClass(geom) == dCCylinderClass) {
+			return dGeomCapsulePointDepth(geom, pos[0], pos[1], pos[2]) < 0;
+		}
+
+		return false;
 	}
 
-	double y_len = 0.1;
-	double x_len = sqrt((2 * ROBOT_RADIUS) * (2 * ROBOT_RADIUS) - (y_len) * (y_len));
 
-	const dReal *p = dBodyGetPosition(dGeomGetBody(geom));
+	/**
+	 * sees whether the contact joint penetrates the face of the robot
+	 */
+	bool hasContactWithFace(dVector3 pos, dGeomID geom) {
+		double y_len = 0.1;
+		double x_len = sqrt((2 * ROBOT_RADIUS) * (2 * ROBOT_RADIUS) - (y_len) * (y_len));
+		const dReal *p = dBodyGetPosition(dGeomGetBody(geom));
+		Point ball_loc(pos[0], pos[1]);
+		Point play_loc(p[0], p[1]);
+		Point play_ball_diff = ball_loc - play_loc;
+		play_ball_diff = play_ball_diff.rotate(-orientationFromMatrix(dBodyGetRotation(dGeomGetBody(geom))));
+		bool face = play_ball_diff.x >= x_len / 2 && (play_ball_diff.y * x_len) < (play_ball_diff.x * y_len);
 
-	Point ball_loc(pos[0], pos[1]);
-	Point play_loc(p[0], p[1]);
-	Point play_ball_diff = ball_loc - play_loc;
-	play_ball_diff = play_ball_diff.rotate(-orientationFromMatrix(dBodyGetRotation(dGeomGetBody(geom))));
-
-	bool face = play_ball_diff.x >= x_len / 2 && (play_ball_diff.y * x_len) <= (play_ball_diff.x * y_len);
-
-	if (!face && pos[2] > 0 && pos[2] < ROBOT_HEIGHT && dGeomGetClass(geom) == dCCylinderClass) {
-		return dGeomCapsulePointDepth(geom, pos[0], pos[1], pos[2]) < 0;
+		if (dGeomGetClass(geom) == dBoxClass && dGeomBoxPointDepth(geom, pos[0], pos[1], pos[2]) < 0) {
+			return face;
+		}
+		return false;
 	}
-
-	return false;
-}
-
-
-/**
- * sees whether the contact joint penetrates the face of the robot
- */
-bool hasContactWithFace(dVector3 pos, dGeomID geom) {
-	double y_len = 0.1;
-	double x_len = sqrt((2 * ROBOT_RADIUS) * (2 * ROBOT_RADIUS) - (y_len) * (y_len));
-	const dReal *p = dBodyGetPosition(dGeomGetBody(geom));
-	Point ball_loc(pos[0], pos[1]);
-	Point play_loc(p[0], p[1]);
-	Point play_ball_diff = ball_loc - play_loc;
-	play_ball_diff = play_ball_diff.rotate(-orientationFromMatrix(dBodyGetRotation(dGeomGetBody(geom))));
-	bool face = play_ball_diff.x >= x_len / 2 && (play_ball_diff.y * x_len) < (play_ball_diff.x * y_len);
-
-	if (dGeomGetClass(geom) == dBoxClass && dGeomBoxPointDepth(geom, pos[0], pos[1], pos[2]) < 0) {
-		return face;
-	}
-	return false;
 }
 
 /**
@@ -253,10 +255,6 @@ void CompoPlayerGeom::handleCollisionWithGround(dGeomID o1, dGeomID o2, dJointGr
 			}
 		}
 	}
-}
-
-double orientationFromMatrix(const dReal *t) {
-	return std::atan2(-t[1], t[0]);
 }
 
 /**
