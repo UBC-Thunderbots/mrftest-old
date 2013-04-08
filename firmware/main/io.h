@@ -188,7 +188,7 @@ typedef enum {
 	/**
 	 * \brief Reports mainboard analogue-to-digital converter readings
 	 *
-	 * A write to this register selects a channel (0–3) and snapshots the most recent conversion result for the channel.
+	 * A write to this register selects a channel (0–7) and snapshots the most recent conversion result for the channel.
 	 * A read from this register returns the LSB of the snapshot value.
 	 */
 	ADC_LSB = 0x0F,
