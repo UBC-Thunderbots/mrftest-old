@@ -93,13 +93,11 @@ static void dfu_detach_poststatus(void) {
 }
 
 static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *poststatus) {
-	if (pkt->request_type == (USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE) && pkt->request == DFU_DETACH) {
-		if (!pkt->index) {
-			*poststatus = &dfu_detach_poststatus;
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
+	if (pkt->request_type == (USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == DFU_DETACH) {
+		// We will reboot into the bootloader after the transfer’s status stage finishes.
+		*poststatus = &dfu_detach_poststatus;
+
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
 	}
@@ -115,36 +113,46 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 	static const uint8_t ZEROES[2] = { 0, 0 };
 	static usb_ep0_memory_source_t mem_src;
 
-	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE) && pkt->request == DFU_GETSTATUS) {
-		if (!pkt->value && !pkt->index) {
-			// Send all six bytes of the status block.
-			*source = usb_ep0_memory_source_init(&mem_src, DFU_STATUS, sizeof(DFU_STATUS));
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == DFU_GETSTATUS) {
+		// This request must have value set to zero.
+		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE) && pkt->request == DFU_GETSTATE) {
-		if (!pkt->value && !pkt->index) {
-			// Send only bState out of the status block.
-			*source = usb_ep0_memory_source_init(&mem_src, &DFU_STATUS[4], 1);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+
+		// Send all six bytes of the status block.
+		*source = usb_ep0_memory_source_init(&mem_src, DFU_STATUS, sizeof(DFU_STATUS));
+
+		return USB_EP0_DISPOSITION_ACCEPT;
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == DFU_GETSTATE) {
+		// This request must have value set to zero.
+		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_INTERFACE) {
-		if (!pkt->value && !pkt->index && pkt->length == 1) {
-			*source = usb_ep0_memory_source_init(&mem_src, ZEROES, 1);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+
+		// Send only bState out of the status block.
+		*source = usb_ep0_memory_source_init(&mem_src, &DFU_STATUS[4], 1);
+
+		return USB_EP0_DISPOSITION_ACCEPT;
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == USB_REQ_GET_INTERFACE) {
+		// This request must have value set to zero.
+		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_STATUS) {
-		if (!pkt->value && !pkt->index && pkt->length == 2) {
-			*source = usb_ep0_memory_source_init(&mem_src, ZEROES, 2);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+
+		// Return the alternate setting number, which is always zero.
+		*source = usb_ep0_memory_source_init(&mem_src, ZEROES, 1);
+
+		return USB_EP0_DISPOSITION_ACCEPT;
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == USB_REQ_GET_STATUS) {
+		// This request must have value set to zero.
+		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Interface status is always all zeroes.
+		*source = usb_ep0_memory_source_init(&mem_src, ZEROES, 2);
+
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
 	}

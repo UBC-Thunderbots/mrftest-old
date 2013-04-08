@@ -227,7 +227,7 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 		}
 
 		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && pkt->request == CONTROL_REQUEST_ERASE && !pkt->index) {
+	} else if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == CONTROL_REQUEST_ERASE) {
 		// This request must have value set to zero.
 		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
@@ -267,7 +267,7 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 		}
 
 		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_SET_INTERFACE && !pkt->index) {
+	} else if (pkt->request_type == (USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == USB_REQ_SET_INTERFACE) {
 		// Even if the alternate setting is not actually changing, this is a way to stop monitoring an operation.
 		// Of course, if it is changing, we definitely need to do this.
 		stop_monitoring();
@@ -341,7 +341,7 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 	// If that request was a read, stop the read.
 	stop_read();
 
-	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && pkt->request == CONTROL_REQUEST_READ_IO && !pkt->index) {
+	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == CONTROL_REQUEST_READ_IO) {
 		// This request must have value set to zero.
 		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
@@ -379,7 +379,7 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 
 		*source = usb_ep0_memory_source_init(&source_union.mem_src, stash_buffer, 2);
 		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && pkt->request == CONTROL_REQUEST_JEDEC_ID && !pkt->index) {
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == CONTROL_REQUEST_JEDEC_ID) {
 		// This request must have value set to zero.
 		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
@@ -406,7 +406,7 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 
 		*source = usb_ep0_memory_source_init(&source_union.mem_src, stash_buffer, 3);
 		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && pkt->request == CONTROL_REQUEST_READ_STATUS && !pkt->index) {
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == CONTROL_REQUEST_READ_STATUS) {
 		// This request must have value set to zero.
 		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
@@ -420,7 +420,7 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 
 		*source = usb_ep0_memory_source_init(&source_union.mem_src, stash_buffer, 1);
 		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && pkt->request == CONTROL_REQUEST_READ && !pkt->index) {
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == CONTROL_REQUEST_READ) {
 		// This request must have value set to a legal page number.
 		if (pkt->value >= NUM_PAGES) {
 			return USB_EP0_DISPOSITION_REJECT;
@@ -454,7 +454,7 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 		*source = &source_union.flash_src;
 		*poststatus = &read_flash_poststatus;
 		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_INTERFACE && !pkt->index) {
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == USB_REQ_GET_INTERFACE) {
 		// This request must have value set to zero.
 		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
@@ -465,9 +465,9 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 
 		*source = usb_ep0_memory_source_init(&source_union.mem_src, stash_buffer, 1);
 		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_STATUS && !pkt->index) {
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == USB_REQ_GET_STATUS) {
 		// This request must have value set to zero.
-		if (pkt->value) {
+		if (pkt->value != 0) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
 
@@ -475,7 +475,7 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 		stash_buffer[0] = 0;
 		stash_buffer[1] = 0;
 
-		*source = usb_ep0_memory_source_init(&source_union.mem_src, stash_buffer, 1);
+		*source = usb_ep0_memory_source_init(&source_union.mem_src, stash_buffer, 2);
 		return USB_EP0_DISPOSITION_ACCEPT;
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
@@ -515,7 +515,7 @@ static usb_ep0_disposition_t on_out_request(const usb_ep0_setup_packet_t *pkt, v
 	// If that request was a read, stop the read.
 	stop_read();
 
-	if (pkt->request_type == (USB_REQ_TYPE_OUT | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && pkt->request == CONTROL_REQUEST_WRITE && !pkt->index) {
+	if (pkt->request_type == (USB_REQ_TYPE_OUT | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == CONTROL_REQUEST_WRITE) {
 		// This request must have value set to a legal page number.
 		if (pkt->value >= NUM_PAGES) {
 			return USB_EP0_DISPOSITION_REJECT;
@@ -544,7 +544,6 @@ static usb_ep0_disposition_t on_out_request(const usb_ep0_setup_packet_t *pkt, v
 
 		// Provide a write buffer to hold the payload.
 		*dest = write_buffer;
-
 		*postdata = &write_postdata;
 		return USB_EP0_DISPOSITION_ACCEPT;
 	} else {

@@ -112,27 +112,22 @@ static const usb_configs_config_t * const CONFIGURATIONS[] = {
 
 static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
 	if (pkt->request_type == (USB_REQ_TYPE_OUT | USB_REQ_TYPE_STD | USB_REQ_TYPE_DEVICE) && pkt->request == USB_REQ_SET_ADDRESS) {
-		if (!pkt->index && !pkt->length) {
-			// SET ADDRESS
-			if (usb_configs_get_current()) {
-				// Changing address while configured is not acceptable.
-				return USB_EP0_DISPOSITION_REJECT;
-			} else if (pkt->value <= 127) {
-				// Lock in the address; the hardware knows to stay on address zero until the status stage is complete and, in fact, *FAILS* if the address is locked in later!
-				OTG_FS_DCFG = (OTG_FS_DCFG & ~DCFG_DAD_MSK) | DCFG_DAD(pkt->value);
-				// Initialize or deinitialize the configuration handler module depending on the assigned address.
-				if (pkt->value) {
-					usb_configs_init(CONFIGURATIONS);
-				} else {
-					usb_configs_deinit();
-				}
-				return USB_EP0_DISPOSITION_ACCEPT;
-			} else {
-				return USB_EP0_DISPOSITION_REJECT;
-			}
-		} else {
+		// This request must have a valid address as its value, an index of zero, and occur while the device is unconfigured.
+		if (pkt->value > 127 || pkt->index || usb_configs_get_current()) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Lock in the address; the hardware knows to stay on address zero until the status stage is complete and, in fact, *FAILS* if the address is locked in later!
+		OTG_FS_DCFG = (OTG_FS_DCFG & ~DCFG_DAD_MSK) | DCFG_DAD(pkt->value);
+
+		// Initialize or deinitialize the configuration handler module depending on the assigned address.
+		if (pkt->value) {
+			usb_configs_init(CONFIGURATIONS);
+		} else {
+			usb_configs_deinit();
+		}
+
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
 	}
@@ -146,50 +141,48 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 	} src;
 
 	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_DEVICE) && pkt->request == USB_REQ_GET_STATUS) {
-		// GET STATUS(DEVICE)
-		if (!pkt->value && !pkt->index && pkt->length == 2) {
-			// We do not support remote wakeup, so bit 1 is always set to zero.
-			// We are always *effectively* bus-powered (we can be target-powered, but might as well be so only when the bus is disconnected), so bit 0 is always set to zero.
-			stash_buffer[0] = 0;
-			stash_buffer[1] = 0;
-			*source = usb_ep0_memory_source_init(&src.mem_src, stash_buffer, 2);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value and index set to zero.
+		if (pkt->value || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// We do not support remote wakeup, so bit 1 is always set to zero.
+		// We are always *effectively* bus-powered (we can be target-powered, but might as well be so only when the bus is disconnected), so bit 0 is always set to zero.
+		stash_buffer[0] = 0;
+		stash_buffer[1] = 0;
+		*source = usb_ep0_memory_source_init(&src.mem_src, stash_buffer, 2);
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_DEVICE) && pkt->request == USB_REQ_GET_DESCRIPTOR) {
-		// GET DESCRIPTOR
 		uint8_t type = pkt->value >> 8;
 		uint8_t index = pkt->value;
 		switch (type) {
 			case USB_DTYPE_DEVICE:
 			{
 				// GET DESCRIPTOR(DEVICE)
-				if (!index && !pkt->index) {
-					*source = usb_ep0_memory_source_init(&src.mem_src, DEVICE_DESCRIPTOR, sizeof(DEVICE_DESCRIPTOR));
-					return USB_EP0_DISPOSITION_ACCEPT;
-				} else {
+				if (index || pkt->index) {
 					return USB_EP0_DISPOSITION_REJECT;
 				}
+				*source = usb_ep0_memory_source_init(&src.mem_src, DEVICE_DESCRIPTOR, sizeof(DEVICE_DESCRIPTOR));
+				return USB_EP0_DISPOSITION_ACCEPT;
 			}
 
 			case USB_DTYPE_CONFIGURATION:
 			{
 				// GET DESCRIPTOR(CONFIGURATION)
-				if (!pkt->index) {
-					const uint8_t *descriptor = 0;
-					switch (index) {
-						case 0: descriptor = IDLE_CONFIGURATION_DESCRIPTOR; break;
-						case 1: descriptor = TARGET_CONFIGURATION_DESCRIPTOR; break;
-						case 2: descriptor = ONBOARD_CONFIGURATION_DESCRIPTOR; break;
-					}
-					if (descriptor) {
-						size_t total_length = descriptor[2] | (descriptor[3] << 8);
-						*source = usb_ep0_memory_source_init(&src.mem_src, descriptor, total_length);
-						return USB_EP0_DISPOSITION_ACCEPT;
-					} else {
-						return USB_EP0_DISPOSITION_REJECT;
-					}
+				if (pkt->index) {
+					return USB_EP0_DISPOSITION_REJECT;
+				}
+
+				const uint8_t *descriptor = 0;
+				switch (index) {
+					case 0: descriptor = IDLE_CONFIGURATION_DESCRIPTOR; break;
+					case 1: descriptor = TARGET_CONFIGURATION_DESCRIPTOR; break;
+					case 2: descriptor = ONBOARD_CONFIGURATION_DESCRIPTOR; break;
+				}
+				if (descriptor) {
+					size_t total_length = descriptor[2] | (descriptor[3] << 8);
+					*source = usb_ep0_memory_source_init(&src.mem_src, descriptor, total_length);
+					return USB_EP0_DISPOSITION_ACCEPT;
 				} else {
 					return USB_EP0_DISPOSITION_REJECT;
 				}
@@ -235,7 +228,7 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 			case USB_DTYPE_INTERFACE_POWER:
 			{
 				// GET DESCRIPTOR(…)
-				// These are either not present or are not meant to be requested through GET DESCRIPTOR(CONFIGURATION).
+				// These are either not present or are meant to be requested through GET DESCRIPTOR(CONFIGURATION).
 				return USB_EP0_DISPOSITION_REJECT;
 			}
 

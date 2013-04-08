@@ -95,33 +95,40 @@ static void dfu_detach_poststatus(void) {
 
 static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *poststatus) {
 	if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_SET_CHANNEL) {
-		if (0x0B <= pkt->value && pkt->value <= 0x1A && !pkt->index) {
-			config.channel = pkt->value;
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value set to a valid channel and index set to zero.
+		if (pkt->value < 0x0B || pkt->value > 0x1A || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Save the channel.
+		config.channel = pkt->value;
+
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_SET_SYMBOL_RATE) {
-		if ((pkt->value == 0x00 || pkt->value == 0x01) && !pkt->index) {
-			config.symbol_rate = pkt->value;
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value set to a valid symbol rate and index set to zero.
+		if (pkt->value > 2 || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Save the symbol rate.
+		config.symbol_rate = pkt->value;
+
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_SET_PAN_ID) {
-		if (pkt->value != 0xFFFF && !pkt->index) {
-			config.pan_id = pkt->value;
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value set to a valid PAN ID and index set to zero.
+		if (pkt->value == 0xFFFF || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
-	} else if (pkt->request_type == (USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE) && pkt->request == DFU_DETACH) {
-		if (!pkt->index) {
-			*poststatus = &dfu_detach_poststatus;
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
+
+		// Save the PAN ID.
+		config.pan_id = pkt->value;
+
+		return USB_EP0_DISPOSITION_ACCEPT;
+	} else if (pkt->request_type == (USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == DFU_DETACH) {
+		// We will reboot into the bootloader after the transfer’s status stage finishes.
+		*poststatus = &dfu_detach_poststatus;
+
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
 	}
@@ -138,63 +145,77 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 	static usb_ep0_memory_source_t mem_src;
 
 	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_CHANNEL) {
-		if (!pkt->value && !pkt->index) {
-			*source = usb_ep0_memory_source_init(&mem_src, &config.channel, sizeof(config.channel));
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value and index set to zero.
+		if (pkt->value || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Return the channel number.
+		*source = usb_ep0_memory_source_init(&mem_src, &config.channel, sizeof(config.channel));
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_SYMBOL_RATE) {
-		if (!pkt->value && !pkt->index) {
-			*source = usb_ep0_memory_source_init(&mem_src, &config.symbol_rate, sizeof(config.symbol_rate));
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value and index set to zero.
+		if (pkt->value || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Return the symbol rate.
+		*source = usb_ep0_memory_source_init(&mem_src, &config.symbol_rate, sizeof(config.symbol_rate));
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_PAN_ID) {
-		if (!pkt->value && !pkt->index) {
-			*source = usb_ep0_memory_source_init(&mem_src, &config.pan_id, sizeof(config.pan_id));
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value and index set to zero.
+		if (pkt->value || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Return the PAN ID.
+		*source = usb_ep0_memory_source_init(&mem_src, &config.pan_id, sizeof(config.pan_id));
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_MAC_ADDRESS) {
-		if (!pkt->value && !pkt->index) {
-			*source = usb_ep0_memory_source_init(&mem_src, &config.mac_address, sizeof(config.mac_address));
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value and index set to zero.
+		if (pkt->value || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE) && pkt->request == DFU_GETSTATUS) {
-		if (!pkt->value && !pkt->index) {
-			// Send all six bytes of the status block.
-			*source = usb_ep0_memory_source_init(&mem_src, DFU_STATUS, sizeof(DFU_STATUS));
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+
+		// Return the MAC address.
+		*source = usb_ep0_memory_source_init(&mem_src, &config.mac_address, sizeof(config.mac_address));
+		return USB_EP0_DISPOSITION_ACCEPT;
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == DFU_GETSTATUS) {
+		// This request must have value set to zero.
+		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE) && pkt->request == DFU_GETSTATE) {
-		if (!pkt->value && !pkt->index) {
-			// Send only bState out of the status block.
-			*source = usb_ep0_memory_source_init(&mem_src, &DFU_STATUS[4], 1);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+
+		// Send all six bytes of the status block.
+		*source = usb_ep0_memory_source_init(&mem_src, DFU_STATUS, sizeof(DFU_STATUS));
+		return USB_EP0_DISPOSITION_ACCEPT;
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == DFU_GETSTATE) {
+		// This request must have value set to zero.
+		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_INTERFACE) {
-		if (!pkt->value && !pkt->index && pkt->length == 1) {
-			*source = usb_ep0_memory_source_init(&mem_src, ZEROES, 1);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+
+		// Send only bState out of the status block.
+		*source = usb_ep0_memory_source_init(&mem_src, &DFU_STATUS[4], 1);
+		return USB_EP0_DISPOSITION_ACCEPT;
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == USB_REQ_GET_INTERFACE) {
+		// This request must have value set to zero.
+		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_STATUS) {
-		if (!pkt->value && !pkt->index && pkt->length == 2) {
-			*source = usb_ep0_memory_source_init(&mem_src, ZEROES, 2);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+
+		// Return the alternate setting number, which is always zero.
+		*source = usb_ep0_memory_source_init(&mem_src, ZEROES, 1);
+		return USB_EP0_DISPOSITION_ACCEPT;
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == USB_REQ_GET_STATUS) {
+		// This request must have value set to zero.
+		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Interface status is always all zeroes.
+		*source = usb_ep0_memory_source_init(&mem_src, ZEROES, 2);
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
 	}
@@ -211,13 +232,15 @@ static bool out_request_set_mac_address_postdata(void) {
 
 static usb_ep0_disposition_t on_out_request(const usb_ep0_setup_packet_t *pkt, void **dest, usb_ep0_postdata_cb_t *postdata, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
 	if (pkt->request_type == (USB_REQ_TYPE_OUT | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_SET_MAC_ADDRESS) {
-		if (!pkt->value && !pkt->index && pkt->length == 8) {
-			*dest = &control_out_buffer.mac_address;
-			*postdata = &out_request_set_mac_address_postdata;
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value and index set to zero and a length of eight.
+		if (pkt->value || pkt->index || pkt->length != 8) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Set up a write buffer.
+		*dest = &control_out_buffer.mac_address;
+		*postdata = &out_request_set_mac_address_postdata;
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
 	}

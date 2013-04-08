@@ -145,72 +145,69 @@ static void handle_ep1_clear_halt(unsigned int UNUSED(ep)) {
 
 static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
 	if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_SET_PROMISCUOUS_FLAGS) {
-		if (!pkt->index) {
-			// Sanity check: flags 8 through 15 are reserved and must be zero.
-			if (pkt->value & 0xFF00) {
-				return USB_EP0_DISPOSITION_REJECT;
-			}
-			// Check if the application actually wants *ANY* packets.
-			if (pkt->value & 0xF0) {
-				// Sanity check: if flag 0 (acknowledge) is set and one of bits 4 through 7 (accept some type of frame) is set…
-				if ((pkt->value & 0x0001) && (pkt->value & 0xF0)) {
-					// … either exactly one or all three of bits 4 through 6 must be set to 1…
-					if ((pkt->value & 0x70) != 0x10 && (pkt->value & 0x70) != 0x20 && (pkt->value & 0x70) != 0x40 && (pkt->value & 0x70) != 0x70) {
-						return USB_EP0_DISPOSITION_REJECT;
-					}
-					// … either none or all of bits 1, 2, and 7 must be set to 1…
-					if ((pkt->value & 0x86) != 0x00 && (pkt->value & 0x86) != 0x86) {
-						return USB_EP0_DISPOSITION_REJECT;
-					}
-					// … and if bit 7 is set to 1, bits 4 through 6 must also all be set to 1
-					if ((pkt->value & 0x80) && (pkt->value & 0x70) != 0x70) {
-						return USB_EP0_DISPOSITION_REJECT;
-					}
-				}
-				// This set of flags is acceptable; save.
-				promisc_flags = pkt->value;
-				// Disable all packet reception.
-				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04);
-				// Install the new flags.
-				mrf_write_short(MRF_REG_SHORT_RXMCR,
-						((pkt->value & (1 << 0)) ? 0 : (1 << 5))
-						| ((pkt->value & (1 << 3)) ? (1 << 1) : 0)
-						| ((pkt->value & 0x86) ? (1 << 0) : 0));
-				if ((pkt->value & 0xF0) == 0x10) {
-					mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x64);
-				} else if ((pkt->value & 0xF0) == 0x20) {
-					mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x68);
-				} else if ((pkt->value & 0xF0) == 0x40) {
-					mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x62);
-				} else {
-					mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x60);
-				}
-				// Set analogue path appropriately based on whether ACKs are being generated and whether any packets are desired.
-				if (pkt->value & 0x01) {
-					mrf_analogue_txrx();
-				} else {
-					mrf_analogue_rx();
-				}
-				// Re-enable packet reception.
-				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00);
-				// Enable interrupt on receive.
-				mrf_write_short(MRF_REG_SHORT_INTCON, 0xF7);
-				// Turn on LED 2 to indicate capture is enabled.
-				GPIOB_BSRR = GPIO_BS(13);
-			} else {
-				// Shut down the radio.
-				mrf_write_short(MRF_REG_SHORT_RXMCR, 0x20);
-				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04);
-				mrf_write_short(MRF_REG_SHORT_INTCON, 0xFF);
-				mrf_analogue_off();
-				// Turn off LED 2 to indicate capture is disabled.
-				GPIOB_BSRR = GPIO_BR(13);
-			}
-			// Accept this request.
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value using only bits 0 through 7 and index set to zero.
+		if (pkt->value & 0xFF00 || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Check if the application actually wants *ANY* packets.
+		if (pkt->value & 0xF0) {
+			// Sanity check: if flag 0 (acknowledge) is set and one of bits 4 through 7 (accept some type of frame) is set…
+			if ((pkt->value & 0x0001) && (pkt->value & 0xF0)) {
+				// … either exactly one or all three of bits 4 through 6 must be set to 1…
+				if ((pkt->value & 0x70) != 0x10 && (pkt->value & 0x70) != 0x20 && (pkt->value & 0x70) != 0x40 && (pkt->value & 0x70) != 0x70) {
+					return USB_EP0_DISPOSITION_REJECT;
+				}
+				// … either none or all of bits 1, 2, and 7 must be set to 1…
+				if ((pkt->value & 0x86) != 0x00 && (pkt->value & 0x86) != 0x86) {
+					return USB_EP0_DISPOSITION_REJECT;
+				}
+				// … and if bit 7 is set to 1, bits 4 through 6 must also all be set to 1
+				if ((pkt->value & 0x80) && (pkt->value & 0x70) != 0x70) {
+					return USB_EP0_DISPOSITION_REJECT;
+				}
+			}
+			// This set of flags is acceptable; save.
+			promisc_flags = pkt->value;
+			// Disable all packet reception.
+			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04);
+			// Install the new flags.
+			mrf_write_short(MRF_REG_SHORT_RXMCR,
+					((pkt->value & (1 << 0)) ? 0 : (1 << 5))
+					| ((pkt->value & (1 << 3)) ? (1 << 1) : 0)
+					| ((pkt->value & 0x86) ? (1 << 0) : 0));
+			if ((pkt->value & 0xF0) == 0x10) {
+				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x64);
+			} else if ((pkt->value & 0xF0) == 0x20) {
+				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x68);
+			} else if ((pkt->value & 0xF0) == 0x40) {
+				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x62);
+			} else {
+				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x60);
+			}
+			// Set analogue path appropriately based on whether ACKs are being generated and whether any packets are desired.
+			if (pkt->value & 0x01) {
+				mrf_analogue_txrx();
+			} else {
+				mrf_analogue_rx();
+			}
+			// Re-enable packet reception.
+			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00);
+			// Enable interrupt on receive.
+			mrf_write_short(MRF_REG_SHORT_INTCON, 0xF7);
+			// Turn on LED 2 to indicate capture is enabled.
+			GPIOB_BSRR = GPIO_BS(13);
+		} else {
+			// Shut down the radio.
+			mrf_write_short(MRF_REG_SHORT_RXMCR, 0x20);
+			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04);
+			mrf_write_short(MRF_REG_SHORT_INTCON, 0xFF);
+			mrf_analogue_off();
+			// Turn off LED 2 to indicate capture is disabled.
+			GPIOB_BSRR = GPIO_BR(13);
+		}
+
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
 	}
@@ -221,57 +218,71 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 	static uint8_t stash_buffer[2];
 
 	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_CHANNEL) {
-		if (!pkt->value && !pkt->index) {
-			*source = usb_ep0_memory_source_init(&mem_src, &config.channel, sizeof(config.channel));
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value and index set to zero.
+		if (pkt->value || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Return the channel number.
+		*source = usb_ep0_memory_source_init(&mem_src, &config.channel, sizeof(config.channel));
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_SYMBOL_RATE) {
-		if (!pkt->value && !pkt->index) {
-			*source = usb_ep0_memory_source_init(&mem_src, &config.symbol_rate, sizeof(config.symbol_rate));
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value and index set to zero.
+		if (pkt->value || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Return the symbol rate.
+		*source = usb_ep0_memory_source_init(&mem_src, &config.symbol_rate, sizeof(config.symbol_rate));
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_PAN_ID) {
-		if (!pkt->value && !pkt->index) {
-			*source = usb_ep0_memory_source_init(&mem_src, &config.pan_id, sizeof(config.pan_id));
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value and index set to zero.
+		if (pkt->value || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Return the PAN ID.
+		*source = usb_ep0_memory_source_init(&mem_src, &config.pan_id, sizeof(config.pan_id));
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_MAC_ADDRESS) {
-		if (!pkt->value && !pkt->index) {
-			*source = usb_ep0_memory_source_init(&mem_src, &config.mac_address, sizeof(config.mac_address));
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value and index set to zero.
+		if (pkt->value || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Return the MAC address.
+		*source = usb_ep0_memory_source_init(&mem_src, &config.mac_address, sizeof(config.mac_address));
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_PROMISCUOUS_FLAGS) {
-		if (!pkt->value && !pkt->index) {
-			*source = usb_ep0_memory_source_init(&mem_src, &promisc_flags, sizeof(promisc_flags));
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value and index set to zero.
+		if (pkt->value || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_INTERFACE) {
-		if (!pkt->value && !pkt->index && pkt->length == 1) {
-			stash_buffer[0] = 0;
-			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+
+		// Return the promiscuous flags.
+		*source = usb_ep0_memory_source_init(&mem_src, &promisc_flags, sizeof(promisc_flags));
+		return USB_EP0_DISPOSITION_ACCEPT;
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == USB_REQ_GET_INTERFACE) {
+		// This request must have value set to zero.
+		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Return the alternate setting number, which is always zero.
+		stash_buffer[0] = 0;
+		*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_STATUS) {
-		if (!pkt->value && !pkt->index && pkt->length == 2) {
-			stash_buffer[0] = 0;
-			stash_buffer[1] = 0;
-			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value set to zero.
+		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Interface status is always all zeroes.
+		stash_buffer[0] = 0;
+		stash_buffer[1] = 0;
+		*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 2);
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
 	}

@@ -101,27 +101,36 @@ static void handle_ep1_clear_halt(unsigned int UNUSED(ep)) {
 
 static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
 	if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_SET_CONTROL_LINES) {
-		if (!(pkt->value & 0b1111111111111100) && !pkt->index) {
-			GPIOB_BSRR = (pkt->value & (1 << 0)) ? GPIO_BS(7) : GPIO_BR(7);
-			GPIOB_BSRR = (pkt->value & (1 << 1)) ? GPIO_BS(6) : GPIO_BR(6);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have only the bottom two bits of value set nonzero and must have index set to zero.
+		if (pkt->value & 0b1111111111111100 || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Set the pins appropriately.
+		GPIOB_BSRR = (pkt->value & (1 << 0)) ? GPIO_BS(7) : GPIO_BR(7);
+		GPIOB_BSRR = (pkt->value & (1 << 1)) ? GPIO_BS(6) : GPIO_BR(6);
+
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_SET_SHORT_REGISTER) {
-		if (pkt->value <= 0xFF && pkt->index <= 0x3F) {
-			mrf_write_short(pkt->index, pkt->value);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value set to a valid byte and index set to a valid short register address.
+		if (pkt->value > 0xFF || pkt->index > 0x3F) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Write to the register.
+		mrf_write_short(pkt->index, pkt->value);
+
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_SET_LONG_REGISTER) {
-		if (pkt->value <= 0xFF && pkt->index <= 0x038F && !(0x02C0 <= pkt->index && pkt->index <= 0x02FF)) {
-			mrf_write_long(pkt->index, pkt->value);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value set to a valid byte and index set to a valid long register address.
+		if (pkt->value > 0xFF || pkt->index > 0x038F || (0x02C0 <= pkt->index && pkt->index <= 0x02FF)) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Write to the register.
+		mrf_write_long(pkt->index, pkt->value);
+
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
 	}
@@ -132,55 +141,66 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 	static usb_ep0_memory_source_t mem_src;
 
 	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_CONTROL_LINES) {
-		if (!pkt->value && !pkt->index) {
-			stash_buffer[0] = 0;
-			if (GPIOB_ODR & (1 << 7)) {
-				stash_buffer[0] |= 1 << 0;
-			}
-			if (GPIOB_ODR & (1 << 6)) {
-				stash_buffer[0] |= 1 << 1;
-			}
-			if (mrf_get_interrupt()) {
-				stash_buffer[0] |= 1 << 2;
-			}
-			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value and index set to zero.
+		if (pkt->value || pkt->index) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Read the control lines.
+		stash_buffer[0] = 0;
+		if (GPIOB_ODR & (1 << 7)) {
+			stash_buffer[0] |= 1 << 0;
+		}
+		if (GPIOB_ODR & (1 << 6)) {
+			stash_buffer[0] |= 1 << 1;
+		}
+		if (mrf_get_interrupt()) {
+			stash_buffer[0] |= 1 << 2;
+		}
+
+		*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_SHORT_REGISTER) {
-		if (!pkt->value && pkt->index <= 0x3F) {
-			stash_buffer[0] = mrf_read_short(pkt->index);
-			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value set to zero and index set to a valid short register address.
+		if (pkt->value || pkt->index > 0x3F) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Read the register.
+		stash_buffer[0] = mrf_read_short(pkt->index);
+		*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_LONG_REGISTER) {
-		if (!pkt->value && pkt->index <= 0x038F && !(0x02C0 <= pkt->index && pkt->index <= 0x02FF)) {
-			stash_buffer[0] = mrf_read_long(pkt->index);
-			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+		// This request must have value set to zero and index set to a valid long register address.
+		if (pkt->value || pkt->index > 0x038F || (0x02C0 <= pkt->index && pkt->index <= 0x02FF)) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_INTERFACE) {
-		if (!pkt->value && !pkt->index && pkt->length == 1) {
-			stash_buffer[0] = 0;
-			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+
+		// Read the register.
+		stash_buffer[0] = mrf_read_long(pkt->index);
+		*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
+		return USB_EP0_DISPOSITION_ACCEPT;
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == USB_REQ_GET_INTERFACE) {
+		// This request must have value set to zero.
+		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_STATUS) {
-		if (!pkt->value && !pkt->index && pkt->length == 2) {
-			stash_buffer[0] = 0;
-			stash_buffer[1] = 0;
-			*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
-			return USB_EP0_DISPOSITION_ACCEPT;
-		} else {
+
+		// Return the alternate setting number, which is always zero.
+		stash_buffer[0] = 0;
+		*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
+		return USB_EP0_DISPOSITION_ACCEPT;
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == USB_REQ_GET_STATUS) {
+		// This request must have value set to zero.
+		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
+
+		// Interface status is always all zeroes.
+		stash_buffer[0] = 0;
+		stash_buffer[1] = 0;
+		*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 2);
+		return USB_EP0_DISPOSITION_ACCEPT;
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
 	}
