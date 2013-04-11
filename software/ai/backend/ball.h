@@ -2,9 +2,9 @@
 #define AI_BACKEND_BALL_H
 
 #include "ai/common/ball.h"
+#include "geom/predictor.h"
 #include "geom/point.h"
 #include "uicomponents/visualizer.h"
-#include "util/predictor.h"
 #include "util/time.h"
 
 namespace AI {

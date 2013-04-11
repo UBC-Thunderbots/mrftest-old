@@ -1,5 +1,6 @@
 #include "ai/hl/hl.h"
 #include "geom/angle.h"
+#include "geom/param.h"
 #include "util/dprint.h"
 #include "util/param.h"
 #include <gtkmm/box.h>

@@ -2,6 +2,7 @@
 #define AI_PARAM
 
 #include "math.h"
+#include "geom/param.h"
 #include "util/param.h"
 
 namespace AI {

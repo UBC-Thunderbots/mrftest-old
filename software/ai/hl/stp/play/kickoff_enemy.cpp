@@ -1,8 +1,9 @@
+#include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/tactic/shadow_kickoff.h"
 #include "ai/hl/stp/tactic/wait_playtype.h"
-#include "ai/hl/stp/play/simple_play.h"
-#include "ai/hl/stp/tactic/defend.h"
+#include "geom/param.h"
 
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;

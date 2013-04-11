@@ -1,7 +1,8 @@
 #include "ai/flags.h"
+#include "ai/hl/util.h"
 #include "ai/hl/stp/action/move_spin.h"
 #include "geom/angle.h"
-#include "ai/hl/util.h"
+#include "geom/param.h"
 
 using namespace AI::HL::STP;
 

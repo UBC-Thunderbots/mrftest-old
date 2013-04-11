@@ -7,12 +7,12 @@
 #include "ai/backend/robot.h"
 #include "ai/backend/team.h"
 #include "ai/common/team.h"
+#include "geom/predictor.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "uicomponents/visualizer.h"
 #include "util/box_ptr.h"
 #include "util/noncopyable.h"
 #include "util/param.h"
-#include "util/predictor.h"
 #include "util/property.h"
 #include "util/registerable.h"
 #include <functional>

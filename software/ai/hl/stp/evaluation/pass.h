@@ -2,7 +2,7 @@
 #define AI_HL_STP_EVALUATION_PASS_H
 
 #include "ai/hl/stp/world.h"
-#include "util/param.h"
+#include "geom/param.h"
 
 namespace AI {
 	namespace HL {

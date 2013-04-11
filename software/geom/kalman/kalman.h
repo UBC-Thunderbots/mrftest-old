@@ -1,5 +1,5 @@
-#ifndef UTIL_KALMAN_KALMAN_H
-#define UTIL_KALMAN_KALMAN_H
+#ifndef GEOM_KALMAN_KALMAN_H
+#define GEOM_KALMAN_KALMAN_H
 
 #include "util/matrix.h"
 #include <deque>

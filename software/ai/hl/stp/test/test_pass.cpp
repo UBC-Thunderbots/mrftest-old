@@ -5,7 +5,9 @@
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/evaluation/player.h"
 #include "ai/hl/stp/test/test.h"
+#include "geom/param.h"
 #include "geom/util.h"
+#include "util/param.h"
 
 using namespace AI::HL;
 using namespace AI::HL::STP;

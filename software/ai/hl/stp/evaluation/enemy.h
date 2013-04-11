@@ -2,8 +2,7 @@
 #define AI_HL_STP_EVALUATION_ENEMY_H
 
 #include "ai/hl/stp/world.h"
-#include "util/param.h"
-
+#include "geom/param.h"
 #include <vector>
 
 namespace AI {

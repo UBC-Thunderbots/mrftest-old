@@ -3,11 +3,11 @@
 
 #include "ai/flags.h"
 #include "geom/angle.h"
+#include "geom/predictor.h"
 #include "geom/point.h"
 #include "uicomponents/visualizer.h"
 #include "util/box_ptr.h"
 #include "util/object_store.h"
-#include "util/predictor.h"
 #include <glibmm/ustring.h>
 
 namespace AI {

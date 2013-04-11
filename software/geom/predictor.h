@@ -1,9 +1,9 @@
-#ifndef UTIL_PREDICTOR_H
-#define UTIL_PREDICTOR_H
+#ifndef GEOM_PREDICTOR_H
+#define GEOM_PREDICTOR_H
 
 #include "geom/point.h"
+#include "geom/kalman/kalman.h"
 #include "util/time.h"
-#include "util/kalman/kalman.h"
 #include <utility>
 
 /**

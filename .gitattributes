@@ -527,7 +527,13 @@ software/fw/xbee.cpp -text
 software/fw/xbee.h -text
 software/geom/angle.cpp -text
 software/geom/angle.h -text
+software/geom/kalman/kalman.cpp -text
+software/geom/kalman/kalman.h -text
+software/geom/param.cpp -text
+software/geom/param.h -text
 software/geom/point.h -text
+software/geom/predictor.cpp -text
+software/geom/predictor.h -text
 software/geom/rect.cpp -text
 software/geom/rect.h -text
 software/geom/util.cpp -text
@@ -654,8 +660,6 @@ software/util/hungarian.cpp -text
 software/util/hungarian.h -text
 software/util/joystick.cpp -text
 software/util/joystick.h -text
-software/util/kalman/kalman.cpp -text
-software/util/kalman/kalman.h -text
 software/util/libusb.cpp -text
 software/util/libusb.h -text
 software/util/mapped_file.cpp -text
@@ -669,8 +673,6 @@ software/util/object_store.cpp -text
 software/util/object_store.h -text
 software/util/param.cpp -text
 software/util/param.h -text
-software/util/predictor.cpp -text
-software/util/predictor.h -text
 software/util/property.h -text
 software/util/random.cpp -text
 software/util/random.h -text
