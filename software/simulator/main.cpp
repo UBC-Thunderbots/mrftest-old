@@ -1,5 +1,6 @@
 #include "main.h"
 #include "simulator/simulator.h"
+#include "util/main_loop.h"
 #include "util/random.h"
 #include "util/timestep.h"
 #include <iostream>
@@ -76,12 +77,10 @@ int app_main(int argc, char **argv) {
 		return 1;
 	}
 
-	Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
-
 	std::unique_ptr<SimulatorEngine> engine(create_engine(engine_name));
 	if (engine) {
 		Simulator::Simulator sim(*engine.get());
-		main_loop->run();
+		MainLoop::run();
 	}
 	return 0;
 }

@@ -1,6 +1,7 @@
 #include "fw/xbee.h"
 #include "util/async_operation.h"
 #include "util/crc16.h"
+#include "util/main_loop.h"
 #include "util/noncopyable.h"
 #include "xbee/dongle.h"
 #include "xbee/robot.h"
@@ -10,7 +11,6 @@
 #include <memory>
 #include <stdint.h>
 #include <glibmm/main.h>
-#include <glibmm/refptr.h>
 #include <sigc++/connection.h>
 #include <sigc++/trackable.h>
 #include <sigc++/functors/mem_fun.h>
@@ -20,7 +20,7 @@ namespace {
 
 	class FirmwareUploadOperation : public NonCopyable, public sigc::trackable {
 		public:
-			FirmwareUploadOperation(const Firmware::IntelHex &hex, bool fpga, unsigned int robot, XBeeDongle &dongle, Glib::RefPtr<Glib::MainLoop> main_loop) : hex(hex), fpga(fpga), robot(robot), dongle(dongle), main_loop(main_loop) {
+			FirmwareUploadOperation(const Firmware::IntelHex &hex, bool fpga, unsigned int robot, XBeeDongle &dongle) : hex(hex), fpga(fpga), robot(robot), dongle(dongle) {
 				Glib::signal_idle().connect_once(sigc::mem_fun(this, &FirmwareUploadOperation::start_operation));
 			}
 
@@ -29,7 +29,6 @@ namespace {
 			const bool fpga;
 			const unsigned int robot;
 			XBeeDongle &dongle;
-			const Glib::RefPtr<Glib::MainLoop> main_loop;
 			sigc::connection alive_changed_connection;
 			std::unique_ptr<AsyncOperation<void>> void_op;
 			std::unique_ptr<AsyncOperation<uint16_t>> crc_op;
@@ -56,7 +55,7 @@ namespace {
 			void on_alive_changed2() {
 				if (!dongle.robot(robot).alive) {
 					std::cout << "Robot unexpectedly died\n";
-					main_loop->quit();
+					MainLoop::quit();
 				}
 			}
 
@@ -136,7 +135,7 @@ namespace {
 				uint16_t calculated = CRC16::calculate(&hex.data()[0][block * CRC_BLOCK_SIZE], std::min(CRC_BLOCK_SIZE, hex.data()[0].size() - block * CRC_BLOCK_SIZE));
 				if (crc != calculated) {
 					std::cout << "Failed, expected " << calculated << ", got " << crc << '\n';
-					main_loop->quit();
+					MainLoop::quit();
 					return;
 				}
 				++block;
@@ -179,7 +178,7 @@ namespace {
 			void on_reboot_done(AsyncOperation<void> &op) {
 				op.result();
 				std::cout << "OK\n";
-				main_loop->quit();
+				MainLoop::quit();
 			}
 	};
 }
@@ -193,8 +192,7 @@ void Firmware::xbee_upload(const IntelHex &hex, bool fpga, unsigned int robot) {
 	dongle.enable();
 	std::cout << "OK\n";
 
-	Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
-	FirmwareUploadOperation op(hex, fpga, robot, dongle, main_loop);
-	main_loop->run();
+	FirmwareUploadOperation op(hex, fpga, robot, dongle);
+	MainLoop::run();
 }
 

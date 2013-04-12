@@ -1,5 +1,6 @@
 #include "main.h"
 #include "log/launcher.h"
+#include "util/main_loop.h"
 #include <locale>
 #include <gtkmm/main.h>
 
@@ -12,7 +13,7 @@ int app_main(int argc, char **argv) {
 
 	// Show the tool launcher window.
 	LogLauncher win;
-	Gtk::Main::run(win);
+	MainLoop::run(win);
 
 	return 0;
 }

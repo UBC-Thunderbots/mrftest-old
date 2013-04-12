@@ -616,6 +616,8 @@ software/util/joystick.cpp -text
 software/util/joystick.h -text
 software/util/libusb.cpp -text
 software/util/libusb.h -text
+software/util/main_loop.cpp -text
+software/util/main_loop.h -text
 software/util/mapped_file.cpp -text
 software/util/mapped_file.h -text
 software/util/matrix.cpp -text

@@ -7,6 +7,7 @@
 #include "uicomponents/abstract_list_model.h"
 #include "util/annunciator.h"
 #include "util/config.h"
+#include "util/main_loop.h"
 #include "util/param.h"
 #include "util/random.h"
 #include "util/timestep.h"
@@ -72,7 +73,7 @@ namespace {
 				win.iconify();
 			}
 
-			Gtk::Main::run(win);
+			MainLoop::run(win);
 		} catch (const Glib::Exception &exp) {
 			logger.end_with_exception(exp.what());
 			throw;

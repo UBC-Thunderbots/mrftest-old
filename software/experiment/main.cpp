@@ -2,6 +2,7 @@
 #include "util/algorithm.h"
 #include "util/annunciator.h"
 #include "util/crc16.h"
+#include "util/main_loop.h"
 #include "util/noncopyable.h"
 #include "util/string.h"
 #include "xbee/dongle.h"
@@ -13,13 +14,12 @@
 #include <stdint.h>
 #include <string>
 #include <glibmm/main.h>
-#include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
 
 namespace {
 	class RobotExperimentReceiver : public NonCopyable, public sigc::trackable {
 		public:
-			RobotExperimentReceiver(uint8_t control_code, XBeeRobot &robot, Glib::RefPtr<Glib::MainLoop> main_loop) : control_code(control_code), robot(robot), main_loop(main_loop) {
+			RobotExperimentReceiver(uint8_t control_code, XBeeRobot &robot) : control_code(control_code), robot(robot) {
 				std::fill(received, received + G_N_ELEMENTS(received), false);
 				robot.signal_experiment_data.connect(sigc::mem_fun(this, &RobotExperimentReceiver::on_experiment_data));
 				Glib::signal_idle().connect_once(sigc::mem_fun(this, &RobotExperimentReceiver::start_operation));
@@ -28,7 +28,6 @@ namespace {
 		private:
 			uint8_t control_code;
 			XBeeRobot &robot;
-			Glib::RefPtr<Glib::MainLoop> main_loop;
 			sigc::connection alive_changed_connection;
 			uint8_t data[256];
 			bool received[256];
@@ -53,7 +52,7 @@ namespace {
 			void on_alive_changed2() {
 				if (!robot.alive) {
 					std::cerr << "Robot unexpectedly died\n";
-					main_loop->quit();
+					MainLoop::quit();
 				}
 			}
 
@@ -68,7 +67,7 @@ namespace {
 						for (std::size_t i = 0; i < G_N_ELEMENTS(data); ++i) {
 							std::cout << static_cast<unsigned int>(data[i]) << '\n';
 						}
-						main_loop->quit();
+						MainLoop::quit();
 					} else {
 						std::cerr << c << " / " << G_N_ELEMENTS(received) << '\n';
 					}
@@ -118,9 +117,8 @@ int app_main(int argc, char **argv) {
 	dongle.enable();
 	std::cerr << "OK\n";
 
-	Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
-	RobotExperimentReceiver rx(control_code, dongle.robot(robot_index), main_loop);
-	main_loop->run();
+	RobotExperimentReceiver rx(control_code, dongle.robot(robot_index));
+	MainLoop::run();
 
 	return 0;
 }

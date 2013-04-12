@@ -2,6 +2,7 @@
 #include "test/mrf/launcher.h"
 #include "util/annunciator.h"
 #include "util/config.h"
+#include "util/main_loop.h"
 #include "mrf/dongle.h"
 #include <iostream>
 #include <locale>
@@ -32,7 +33,7 @@ int app_main(int argc, char **argv) {
 
 	// Create the window.
 	TesterLauncher win(dongle);
-	Gtk::Main::run(win);
+	MainLoop::run(win);
 
 	return 0;
 }
