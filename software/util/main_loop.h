@@ -22,6 +22,13 @@ namespace MainLoop {
 	 * \brief Exits the main loop.
 	 */
 	void quit();
+
+	/**
+	 * \brief Exits the main loop, propagating the currently-caught exception.
+	 *
+	 * This function must be invoked from inside a catch block.
+	 */
+	void quit_with_current_exception();
 }
 
 #endif
