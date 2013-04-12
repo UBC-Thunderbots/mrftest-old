@@ -91,7 +91,7 @@ const uint8_t NORMAL_CONFIGURATION_DESCRIPTOR[] = {
 
 #define PKT_FLAG_RELIABLE 0x01
 
-static bool drive_packet_pending, mrf_tx_active;
+static bool drive_packet_pending, drive_packet_halt_pending, mrf_tx_active;
 static estop_t last_reported_estop_value;
 static uint8_t mrf_tx_seqnum;
 static uint16_t mrf_rx_seqnum[8];
@@ -433,16 +433,35 @@ static void exti12_interrupt_vector(void) {
 
 static void on_ep1_out_packet(size_t bcnt) {
 	if (bcnt == sizeof(perconfig.normal.drive_packet)) {
-		// Copy the received data into the drive packet buffer.
-		usb_bi_out_read(1, perconfig.normal.drive_packet, sizeof(perconfig.normal.drive_packet));
+		// Copy the received data into the temporary packet buffer.
+		uint16_t temp[8][4];
+		usb_bi_out_read(1, temp, sizeof(temp));
+		// Check for any packet with the MSb of the first word set, which is illegal.
+		bool legal = true;
+		for (unsigned int i = 0; i < 8; ++i) {
+			if (temp[i][0] & 0x8000) {
+				legal = false;
+			}
+		}
+		// Handle the packet.
+		if (legal) {
+			// Copy to final buffer.
+			memcpy(perconfig.normal.drive_packet, temp, sizeof(temp));
+		} else {
+			// Halt the endpoint later.
+			drive_packet_halt_pending = true;
+		}
 		// Enable the timer that generates drive packets on the radio.
 		TIM6_CR1 |= CEN; // Enable counter now
 	}
 }
 
 static void start_ep1_out_transfer(void) {
-	// Start another transfer, if not halted.
-	if (usb_bi_out_get_state(1) != USB_BI_OUT_STATE_HALTED) {
+	// Start another transfer, if not halted and not halt pending.
+	if (drive_packet_halt_pending) {
+		usb_bi_out_halt(1);
+		drive_packet_halt_pending = false;
+	} else if (usb_bi_out_get_state(1) != USB_BI_OUT_STATE_HALTED) {
 		usb_bi_out_start_transfer(1, sizeof(perconfig.normal.drive_packet), &start_ep1_out_transfer, &on_ep1_out_packet);
 	}
 }
@@ -783,6 +802,7 @@ static void on_enter(void) {
 	// Wipe the drive packet.
 	memset(perconfig.normal.drive_packet, 0, sizeof(perconfig.normal.drive_packet));
 	drive_packet_pending = false;
+	drive_packet_halt_pending = false;
 
 	// Set up to be notified on estop changes and push the current state.
 	last_reported_estop_value = ESTOP_BROKEN;
