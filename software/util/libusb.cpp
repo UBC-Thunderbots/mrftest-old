@@ -1,6 +1,7 @@
 #include "util/libusb.h"
 #include "util/dprint.h"
 #include "util/exception.h"
+#include "util/main_loop.h"
 #include <cassert>
 #include <cerrno>
 #include <cstdlib>
@@ -449,16 +450,22 @@ void USB::Transfer::submit() {
 }
 
 void USB::Transfer::handle_completed_transfer_trampoline(libusb_transfer *transfer) {
-	TransferMetadata *md = TransferMetadata::get(transfer);
-	--md->device().submitted_transfer_count;
-	if (md->transfer()) {
-		md->transfer()->handle_completed_transfer();
-	} else {
-		// This happens if the Transfer object has been destroyed but the transfer was submitted at the time.
-		// The disowned libusb_transfer needs to be allowed to finish cancelling before being freed.
-		delete md;
-		delete [] transfer->buffer;
-		libusb_free_transfer(transfer);
+	try {
+		TransferMetadata *md = TransferMetadata::get(transfer);
+		--md->device().submitted_transfer_count;
+		if (md->transfer()) {
+			md->transfer()->handle_completed_transfer();
+		} else {
+			// This happens if the Transfer object has been destroyed but the transfer was submitted at the time.
+			// The disowned libusb_transfer needs to be allowed to finish cancelling before being freed.
+			delete md;
+			delete [] transfer->buffer;
+			libusb_free_transfer(transfer);
+		}
+	} catch (...) {
+		// libusb is C code, so exception cannot safely propagate through it doing a normal stack unwind.
+		// Save the exception in the main loop and do a normal return, which will let libusb unwind itself properly before the exception continues unwinding.
+		MainLoop::quit_with_current_exception();
 	}
 }
 
