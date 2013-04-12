@@ -12,16 +12,16 @@ void motor_scram() {
 
 void set_wheel(uint8_t wheel_num, direction_t direction, uint8_t pwm_level) {
 	if (wheel_num <= 4) {
-		outb(MOTOR_INDEX, wheel_num);
+		MOTOR_INDEX = wheel_num;
 		if (direction == MANUAL_COMMUTATION) {
-			outb(MOTOR_CTL, motor_manual_commutation_patterns[wheel_num]);
-			outb(MOTOR_PWM, pwm_level);
+			MOTOR_CTL = motor_manual_commutation_patterns[wheel_num];
+			MOTOR_PWM = pwm_level;
 		} else if (direction == BRAKE) {
-			outb(MOTOR_CTL, 0b10101000);
-			outb(MOTOR_PWM, 0);
+			MOTOR_CTL = 0b10101000;
+			MOTOR_PWM = 0;
 		} else {
-			outb(MOTOR_PWM, pwm_level);
-			outb(MOTOR_CTL, direction == BACKWARD ? 0b00000011 : 0b00000010);
+			MOTOR_PWM = pwm_level;
+			MOTOR_CTL = direction == BACKWARD ? 0b00000011 : 0b00000010;
 		}
 	}
 }

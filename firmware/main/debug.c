@@ -2,10 +2,10 @@
 #include <stdio.h>
 
 static int put_function(char ch, FILE *fp __attribute__((unused))) {
-	outb(DEBUG_CTL, 0x01);
-	outb(DEBUG_DATA, ch);
-	while (inb(DEBUG_CTL) & 0x02);
-	outb(DEBUG_CTL, 0x00);
+	DEBUG_CTL = 0x01;
+	DEBUG_DATA = ch;
+	while (DEBUG_CTL & 0x02);
+	DEBUG_CTL = 0x00;
 	return 0;
 }
 

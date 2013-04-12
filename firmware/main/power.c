@@ -20,9 +20,9 @@ void power_reboot(void) {
 	};
 
 	for (uint8_t i = 0; i < sizeof(COMMANDS) / sizeof(*COMMANDS); ++i) {
-		outb(ICAP_MSB, COMMANDS[i] >> 8);
-		outb(ICAP_LSB, COMMANDS[i]);
-		while (inb(ICAP_CTL) & 0x01);
+		ICAP_MSB = COMMANDS[i] >> 8;
+		ICAP_LSB = COMMANDS[i];
+		while (ICAP_CTL & 0x01);
 	}
 
 	for (;;);

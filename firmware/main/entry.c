@@ -120,7 +120,7 @@ static void handle_radio_receive(void) {
 			if (dest_address == 0xFFFF) {
 				// Broadcast frame must contain drive packet, which must be 64 bytes long
 				if (frame_length == HEADER_LENGTH + 64 + FOOTER_LENGTH) {
-					last_drive_packet_tick = inb(TICKS);
+					last_drive_packet_tick = TICKS;
 					const uint8_t offset = 1 + HEADER_LENGTH + 8 * index;
 					uint16_t words[4];
 					for (uint8_t i = 0; i < 4; ++i) {
@@ -207,7 +207,7 @@ static void handle_radio_receive(void) {
 						if (frame_length == HEADER_LENGTH + 2 + FOOTER_LENGTH) {
 							led_mode = mrf_read_long(MESSAGE_PAYLOAD_ADDR);
 							if (led_mode <= 0x1F) {
-								outb(LED_CTL, (inb(LED_CTL) & 0x80) | led_mode);
+								LED_CTL = (LED_CTL & 0x80) | led_mode;
 							} else if (led_mode == 0x21) {
 								set_test_leds(USER_MODE, 7);
 							} else {
@@ -251,9 +251,9 @@ static void handle_radio_receive(void) {
 							sleep_1s();
 							sleep_1s();
 							sleep_1s();
-							outb(POWER_CTL, 0x01);
+							POWER_CTL = 0x01;
 							sleep_1s();
-							outb(POWER_CTL, 0x00);
+							POWER_CTL = 0x00;
 							for (;;);
 						}
 
@@ -310,7 +310,7 @@ static void avr_main(void) {
 	mrf_release_reset();
 	sleep_short();
 	mrf_common_init(channel, false, pan, UINT64_C(0xec89d61e8ffd409b));
-	while (inb(MRF_CTL) & 0x10);
+	while (MRF_CTL & 0x10);
 	mrf_write_short(MRF_REG_SHORT_SADRH, 0);
 	mrf_write_short(MRF_REG_SHORT_SADRL, index);
 	mrf_analogue_txrx();
@@ -323,7 +323,7 @@ static void avr_main(void) {
 	power_enable_laser();
 
 	// Initialize a tick count
-	uint8_t old_ticks = inb(TICKS);
+	uint8_t old_ticks = TICKS;
 	for(;;) {
 		// Check if an autokick needs to fire
 		if (autokick_armed && read_main_adc(BREAKBEAM) > BREAKBEAM_THRESHOLD) {
@@ -338,7 +338,7 @@ static void avr_main(void) {
 		}
 
 		// Check if a tick has passed; if so, iterate the control loop
-		if (inb(TICKS) != old_ticks) {
+		if (TICKS != old_ticks) {
 			wheels_tick();
 			++old_ticks;
 		}
@@ -396,7 +396,7 @@ static void avr_main(void) {
 		}
 
 		// Check if more than a second has passed since we last received a fresh drive packet
-		if ((uint8_t) (inb(TICKS) - last_drive_packet_tick) > 200) {
+		if ((uint8_t) (TICKS - last_drive_packet_tick) > 200) {
 			// Time out and stop driving
 			for (uint8_t i = 0; i < 4; ++i) {
 				wheel_context.setpoints[i] = 0;

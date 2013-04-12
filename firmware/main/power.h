@@ -13,14 +13,14 @@
  * \brief Enables power to the motors
  */
 static inline void power_enable_motors(void) {
-	outb(POWER_CTL, inb(POWER_CTL) | 0x02);
+	POWER_CTL |= 0x02;
 }
 
 /**
  * \brief Enables power to the laser
  */
 static inline void power_enable_laser(void) {
-	outb(POWER_CTL, inb(POWER_CTL) | 0x08);
+	POWER_CTL |= 0x08;
 }
 
 /**

@@ -3,21 +3,21 @@
 #include <stdint.h>
 
 static void assert_cs(void) {
-	outb(FLASH_CTL, 0x00);
+	FLASH_CTL = 0x00;
 }
 
 static void deassert_cs(void) {
-	outb(FLASH_CTL, 0x02);
+	FLASH_CTL = 0x02;
 }
 
 static void tx(uint8_t b) {
-	outb(FLASH_DATA, b);
-	while (inb(FLASH_CTL) & 0x01);
+	FLASH_DATA = b;
+	while (FLASH_CTL & 0x01);
 }
 
 static uint8_t txrx(uint8_t b) {
 	tx(b);
-	return inb(FLASH_DATA);
+	return FLASH_DATA;
 }
 
 static void write_enable(void) {

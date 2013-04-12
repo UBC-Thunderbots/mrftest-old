@@ -14,9 +14,9 @@ typedef enum {
 
 static inline uint16_t read_main_adc(adc_t adc_index) {
 	uint16_t ret_val;
-	outb(ADC_LSB, adc_index);
-	ret_val = inb(ADC_MSB);
-	ret_val = (ret_val << 8) | inb(ADC_LSB);
+	ADC_LSB = adc_index;
+	ret_val = ADC_MSB;
+	ret_val = (ret_val << 8) | ADC_LSB;
 	return ret_val;
 }
 
