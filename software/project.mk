@@ -12,21 +12,21 @@ EXECUTABLES_EXCLUDE_WORLD := cppunit
 # The source files for each executable.
 # Directories will be searched recursively for source files.
 #
-SOURCES_ai := ai drive geom log/shared mrf proto uicomponents util xbee
-SOURCES_convertlog := ai/common convertlog log/shared proto util
+SOURCES_ai := ai drive geom log/shared main.cpp mrf proto uicomponents util xbee
+SOURCES_convertlog := ai/common convertlog log/shared main.cpp proto util
 SOURCES_cppunit := cppunit util
-SOURCES_crc16 := crc16.cpp util
-SOURCES_experiment := drive experiment util xbee
-SOURCES_fbuart := fbuart.cpp util
-SOURCES_fw := drive fw util xbee
+SOURCES_crc16 := crc16.cpp main.cpp util
+SOURCES_experiment := drive experiment main.cpp util xbee
+SOURCES_fbuart := fbuart.cpp main.cpp util
+SOURCES_fw := drive fw main.cpp util xbee
 SOURCES_hall2phase := hall2phase
-SOURCES_log := ai/common log geom proto uicomponents util
-SOURCES_mrfcap := mrfcap util
-SOURCES_mrfdbg := mrfdbg util
-SOURCES_mrftest := drive mrf test/common test/mrf uicomponents util
-SOURCES_simulator := ai/common/playtype.cpp geom simulator util
-SOURCES_test := drive test/common test/xbee uicomponents util xbee
-SOURCES_xbeeconfig := drive util xbee xbeeconfig.cpp
+SOURCES_log := ai/common geom log main.cpp proto uicomponents util
+SOURCES_mrfcap := main.cpp mrfcap util
+SOURCES_mrfdbg := main.cpp mrfdbg util
+SOURCES_mrftest := drive main.cpp mrf test/common test/mrf uicomponents util
+SOURCES_simulator := ai/common/playtype.cpp geom main.cpp simulator util
+SOURCES_test := drive main.cpp test/common test/xbee uicomponents util xbee
+SOURCES_xbeeconfig := drive main.cpp util xbee xbeeconfig.cpp
 
 #
 # All the pkg-config packages used.

@@ -1,3 +1,4 @@
+#include "main.h"
 #include "util/algorithm.h"
 #include "util/annunciator.h"
 #include "util/crc16.h"
@@ -11,8 +12,6 @@
 #include <sstream>
 #include <stdint.h>
 #include <string>
-#include <typeinfo>
-#include <glibmm/exception.h>
 #include <glibmm/main.h>
 #include <glibmm/refptr.h>
 #include <glibmm/ustring.h>
@@ -76,66 +75,53 @@ namespace {
 				}
 			}
 	};
-
-	int main_impl(int argc, char **argv) {
-		// Set the current locale from environment variables.
-		std::locale::global(std::locale(""));
-
-		// Handle command-line arguments.
-		if (argc != 3) {
-			std::cerr << "Usage:\n  " << argv[0] << " ROBOT_INDEX CONTROL_CODE\n\nLaunches a controlled experiment.\n\nApplication Options:\n  ROBOT_INDEX     Selects the robot to run the experiment.\n  CONTROL_CODE    Specifies a one-byte control code to select an experiment to run\n\n";
-			return 1;
-		}
-		unsigned int robot_index;
-		{
-			Glib::ustring str(argv[1]);
-			std::wistringstream iss(ustring2wstring(str));
-			iss >> robot_index;
-			if (!iss || robot_index > 15) {
-				std::cerr << "Invalid robot index (must be a decimal number from 0 to 15).\n";
-				return 1;
-			}
-		}
-		uint8_t control_code;
-		{
-			Glib::ustring str(argv[2]);
-			if (str.size() != 2 || !std::isxdigit(static_cast<wchar_t>(str[0]), std::locale()) || !std::isxdigit(static_cast<wchar_t>(str[1]), std::locale())) {
-				std::cerr << "Invalid control code (must be a 2-digit hex number).\n";
-				return 1;
-			}
-			std::wistringstream iss(ustring2wstring(str));
-			iss.setf(std::ios_base::hex, std::ios_base::basefield);
-			unsigned int ui;
-			iss >> ui;
-			control_code = static_cast<uint8_t>(ui);
-		}
-
-		std::cerr << "Finding and resetting dongle... " << std::flush;
-		XBeeDongle dongle(true);
-		std::cerr << "OK\n";
-
-		std::cerr << "Enabling radios... " << std::flush;
-		dongle.enable();
-		std::cerr << "OK\n";
-
-		Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
-		RobotExperimentReceiver rx(control_code, dongle.robot(robot_index), main_loop);
-		main_loop->run();
-
-		return 0;
-	}
 }
 
-int main(int argc, char **argv) {
-	try {
-		return main_impl(argc, argv);
-	} catch (const Glib::Exception &exp) {
-		std::cerr << typeid(exp).name() << ": " << exp.what() << '\n';
-	} catch (const std::exception &exp) {
-		std::cerr << typeid(exp).name() << ": " << exp.what() << '\n';
-	} catch (...) {
-		std::cerr << "Unknown error!\n";
+int app_main(int argc, char **argv) {
+	// Set the current locale from environment variables.
+	std::locale::global(std::locale(""));
+
+	// Handle command-line arguments.
+	if (argc != 3) {
+		std::cerr << "Usage:\n  " << argv[0] << " ROBOT_INDEX CONTROL_CODE\n\nLaunches a controlled experiment.\n\nApplication Options:\n  ROBOT_INDEX     Selects the robot to run the experiment.\n  CONTROL_CODE    Specifies a one-byte control code to select an experiment to run\n\n";
+		return 1;
 	}
-	return 1;
+	unsigned int robot_index;
+	{
+		Glib::ustring str(argv[1]);
+		std::wistringstream iss(ustring2wstring(str));
+		iss >> robot_index;
+		if (!iss || robot_index > 15) {
+			std::cerr << "Invalid robot index (must be a decimal number from 0 to 15).\n";
+			return 1;
+		}
+	}
+	uint8_t control_code;
+	{
+		Glib::ustring str(argv[2]);
+		if (str.size() != 2 || !std::isxdigit(static_cast<wchar_t>(str[0]), std::locale()) || !std::isxdigit(static_cast<wchar_t>(str[1]), std::locale())) {
+			std::cerr << "Invalid control code (must be a 2-digit hex number).\n";
+			return 1;
+		}
+		std::wistringstream iss(ustring2wstring(str));
+		iss.setf(std::ios_base::hex, std::ios_base::basefield);
+		unsigned int ui;
+		iss >> ui;
+		control_code = static_cast<uint8_t>(ui);
+	}
+
+	std::cerr << "Finding and resetting dongle... " << std::flush;
+	XBeeDongle dongle(true);
+	std::cerr << "OK\n";
+
+	std::cerr << "Enabling radios... " << std::flush;
+	dongle.enable();
+	std::cerr << "OK\n";
+
+	Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
+	RobotExperimentReceiver rx(control_code, dongle.robot(robot_index), main_loop);
+	main_loop->run();
+
+	return 0;
 }
 

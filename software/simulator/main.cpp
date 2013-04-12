@@ -1,11 +1,9 @@
+#include "main.h"
 #include "simulator/simulator.h"
 #include "util/random.h"
 #include "util/timestep.h"
-#include <exception>
 #include <iostream>
 #include <locale>
-#include <typeinfo>
-#include <glibmm/exception.h>
 #include <glibmm/main.h>
 #include <glibmm/optioncontext.h>
 #include <glibmm/optionentry.h>
@@ -40,52 +38,6 @@ namespace {
 			return std::unique_ptr<SimulatorEngine>();
 		}
 	}
-
-	/**
-	 * Runs the simulator.
-	 *
-	 * \param[in] argc the number of command-line arguments provided.
-	 *
-	 * \param[in] argv the command-line arguments.
-	 *
-	 * \return the application's exit code.
-	 */
-	int main_impl(int argc, char **argv) {
-		// Set the current locale from environment variables.
-		std::locale::global(std::locale(""));
-
-		// Seed the PRNGs.
-		Random::seed();
-
-		Glib::OptionContext option_context;
-		option_context.set_summary("Runs the Thunderbots simulator.");
-		Glib::OptionGroup option_group("thunderbots", "Simulator Options", "Show Simulator Options");
-		Glib::OptionEntry engine_name_entry;
-		engine_name_entry.set_long_name("engine");
-		engine_name_entry.set_short_name('e');
-		engine_name_entry.set_description("Chooses which engine to use rather than the default (if no valid engine provided, displays a list)");
-		engine_name_entry.set_arg_description("ENGINE");
-		Glib::ustring engine_name = DEFAULT_ENGINE;
-		option_group.add_entry(engine_name_entry, engine_name);
-		option_context.set_main_group(option_group);
-
-		if (!option_context.parse(argc, argv)) {
-			return 1;
-		}
-		if (argc != 1) {
-			std::cerr << option_context.get_help();
-			return 1;
-		}
-
-		Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
-
-		std::unique_ptr<SimulatorEngine> engine(create_engine(engine_name));
-		if (engine) {
-			Simulator::Simulator sim(*engine.get());
-			main_loop->run();
-		}
-		return 0;
-	}
 }
 
 /**
@@ -97,16 +49,40 @@ namespace {
  *
  * \return the application's exit code.
  */
-int main(int argc, char **argv) {
-	try {
-		return main_impl(argc, argv);
-	} catch (const Glib::Exception &exp) {
-		std::cerr << typeid(exp).name() << ": " << exp.what() << '\n';
-	} catch (const std::exception &exp) {
-		std::cerr << typeid(exp).name() << ": " << exp.what() << '\n';
-	} catch (...) {
-		std::cerr << "Unknown error!\n";
+int app_main(int argc, char **argv) {
+	// Set the current locale from environment variables.
+	std::locale::global(std::locale(""));
+
+	// Seed the PRNGs.
+	Random::seed();
+
+	Glib::OptionContext option_context;
+	option_context.set_summary("Runs the Thunderbots simulator.");
+	Glib::OptionGroup option_group("thunderbots", "Simulator Options", "Show Simulator Options");
+	Glib::OptionEntry engine_name_entry;
+	engine_name_entry.set_long_name("engine");
+	engine_name_entry.set_short_name('e');
+	engine_name_entry.set_description("Chooses which engine to use rather than the default (if no valid engine provided, displays a list)");
+	engine_name_entry.set_arg_description("ENGINE");
+	Glib::ustring engine_name = DEFAULT_ENGINE;
+	option_group.add_entry(engine_name_entry, engine_name);
+	option_context.set_main_group(option_group);
+
+	if (!option_context.parse(argc, argv)) {
+		return 1;
 	}
-	return 1;
+	if (argc != 1) {
+		std::cerr << option_context.get_help();
+		return 1;
+	}
+
+	Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
+
+	std::unique_ptr<SimulatorEngine> engine(create_engine(engine_name));
+	if (engine) {
+		Simulator::Simulator sim(*engine.get());
+		main_loop->run();
+	}
+	return 0;
 }
 
