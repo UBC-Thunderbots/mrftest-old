@@ -1,7 +1,7 @@
 #
 # The executables to compile.
 #
-EXECUTABLES := ai convertlog cppunit crc16 experiment fw hall2phase log mrfcap mrfdbg mrftest simulator test xbeeconfig
+EXECUTABLES := ai convertlog cppunit crc16 experiment fbuart fw hall2phase log mrfcap mrfdbg mrftest simulator test xbeeconfig
 
 #
 # The subset of the above that should not be built by the world target.
@@ -17,6 +17,7 @@ SOURCES_convertlog := ai/common convertlog log/shared proto util
 SOURCES_cppunit := cppunit util
 SOURCES_crc16 := crc16.cpp util
 SOURCES_experiment := drive experiment util xbee
+SOURCES_fbuart := fbuart.cpp util
 SOURCES_fw := drive fw util xbee
 SOURCES_hall2phase := hall2phase
 SOURCES_log := ai/common log geom proto uicomponents util

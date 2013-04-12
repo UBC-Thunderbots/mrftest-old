@@ -43,6 +43,8 @@ firmware/flashburner/spi.c -text
 firmware/flashburner/spi.h -text
 firmware/flashburner/stm32f405.ld -text
 firmware/flashburner/timers.txt -text
+firmware/flashburner/uart.c -text
+firmware/flashburner/uart.h -text
 firmware/main/Makefile -text
 firmware/main/adc.h -text
 firmware/main/chicker.h -text
@@ -465,6 +467,7 @@ software/drive/dongle.h -text
 software/drive/robot.cpp -text
 software/drive/robot.h -text
 software/experiment/main.cpp -text
+software/fbuart.cpp -text
 software/fw/fb.cpp -text
 software/fw/fb.h -text
 software/fw/ihex.cpp -text

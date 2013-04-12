@@ -720,8 +720,8 @@ BIT(READY, 8)
 extern volatile uint32_t SPI1_CR1;
 extern volatile uint32_t SPI2_CR1;
 extern volatile uint32_t SPI3_CR1;
-BIT(CPHA, 0)
-BIT(CPOL, 1)
+BIT(SPI_CPHA, 0)
+BIT(SPI_CPOL, 1)
 BIT(MSTR, 2)
 BITS(BR, 3, 3)
 BIT(SPE, 6)
@@ -743,14 +743,14 @@ BIT(TXDMAEN, 1)
 BIT(SSOE, 2)
 BIT(FRF, 4)
 BIT(SPI_ERRIE, 5)
-BIT(RXNEIE, 6)
+BIT(SPI_RXNEIE, 6)
 BIT(TXEIE, 7)
 
 extern volatile uint32_t SPI1_SR;
 extern volatile uint32_t SPI2_SR;
 extern volatile uint32_t SPI3_SR;
-BIT(RXNE, 0)
-BIT(TXE, 1)
+BIT(SPI_RXNE, 0)
+BIT(SPI_TXE, 1)
 BIT(CHSIDE, 2)
 BIT(UDR, 3)
 BIT(CRCERR, 4)
@@ -1296,6 +1296,72 @@ BITS(TI4_RMP, 6, 2)
 
 extern volatile uint32_t TIM11_OR;
 BITS(TI1_RMP, 0, 2)
+
+
+
+extern volatile uint32_t USART1_SR;
+BIT(PE, 0)
+BIT(FE, 1)
+BIT(NF, 2)
+BIT(ORE, 3)
+BIT(IDLE, 4)
+BIT(USART_RXNE, 5)
+BIT(TC, 6)
+BIT(USART_TXE, 7)
+BIT(LBD, 8)
+BIT(CTS, 9)
+
+extern volatile uint32_t USART1_DR;
+
+extern volatile uint32_t USART1_BRR;
+BITS(DIV_Fraction, 0, 4)
+BITS(DIV_Mantissa, 4, 12)
+
+extern volatile uint32_t USART1_CR1;
+BIT(SBK, 0)
+BIT(RWU, 1)
+BIT(RE, 2)
+BIT(TE, 3)
+BIT(IDLEIE, 4)
+BIT(USART_RXNEIE, 5)
+BIT(TCIE, 6)
+//BIT(TXEIE, 7)
+BIT(PEIE, 8)
+BIT(PS, 9)
+BIT(PCE, 10)
+BIT(WAKE, 11)
+BIT(M, 12)
+BIT(UE, 13)
+BIT(OVER8, 15)
+
+extern volatile uint32_t USART1_CR2;
+BITS(ADD, 0, 4)
+BIT(LBDL, 5)
+BIT(LBDIE, 6)
+BIT(LBCL, 8)
+BIT(USART_CPHA, 9)
+BIT(USART_CPOL, 10)
+BIT(CLKEN, 11)
+BITS(STOP, 12, 2)
+BIT(LINEN, 14)
+
+extern volatile uint32_t USART1_CR3;
+BIT(EIE, 0)
+BIT(IREN, 1)
+BIT(IRLP, 2)
+BIT(HDSEL, 3)
+BIT(NACK, 4)
+BIT(SCEN, 5)
+BIT(DMAR, 6)
+BIT(DMAT, 7)
+BIT(RTSE, 8)
+BIT(CTSE, 9)
+BIT(CTSIE, 10)
+BIT(ONEBIT, 11)
+
+extern volatile uint32_t USART1_GTPR;
+BITS(PSC, 0, 8)
+BITS(GT, 8, 8)
 
 
 

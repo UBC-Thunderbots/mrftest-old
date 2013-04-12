@@ -78,9 +78,9 @@ static void int_deassert_cs(void) {
 }
 
 static uint8_t int_transceive_byte(uint8_t byte) {
-	while (!(SPI3_SR & TXE)); // Wait for send buffer space
+	while (!(SPI3_SR & SPI_TXE)); // Wait for send buffer space
 	SPI3_DR = byte;
-	while (!(SPI3_SR & RXNE)); // Wait for inbound byte to be received
+	while (!(SPI3_SR & SPI_RXNE)); // Wait for inbound byte to be received
 	return SPI3_DR;
 }
 
@@ -88,11 +88,11 @@ static void int_read_bytes(void *buffer, size_t length) {
 	uint8_t *pch = buffer;
 	size_t sent = 0, received = 0;
 	while (sent < length || received < length) {
-		if (received < length && (SPI3_SR & RXNE)) {
+		if (received < length && (SPI3_SR & SPI_RXNE)) {
 			*pch++ = SPI3_DR;
 			++received;
 		}
-		if (sent < length && (SPI3_SR & TXE)) {
+		if (sent < length && (SPI3_SR & SPI_TXE)) {
 			SPI3_DR = 0;
 			++sent;
 		}
@@ -103,11 +103,11 @@ static void int_write_bytes(const void *buffer, size_t length) {
 	size_t sent = 0, received = 0;
 	const uint8_t *pch = buffer;
 	while (sent < length || received < length) {
-		if (received < length && (SPI3_SR & RXNE)) {
+		if (received < length && (SPI3_SR & SPI_RXNE)) {
 			(void) SPI3_DR;
 			++received;
 		}
-		if (sent < length && (SPI3_SR & TXE)) {
+		if (sent < length && (SPI3_SR & SPI_TXE)) {
 			SPI3_DR = *pch++;
 			++sent;
 		}
@@ -145,9 +145,9 @@ static void ext_deassert_cs(void) {
 }
 
 static uint8_t ext_transceive_byte(uint8_t byte) {
-	while (!(SPI1_SR & TXE)); // Wait for send buffer space
+	while (!(SPI1_SR & SPI_TXE)); // Wait for send buffer space
 	SPI1_DR = byte;
-	while (!(SPI1_SR & RXNE)); // Wait for inbound byte to be received
+	while (!(SPI1_SR & SPI_RXNE)); // Wait for inbound byte to be received
 	return SPI1_DR;
 }
 
@@ -155,11 +155,11 @@ static void ext_read_bytes(void *buffer, size_t length) {
 	uint8_t *pch = buffer;
 	size_t sent = 0, received = 0;
 	while (sent < length || received < length) {
-		if (received < length && (SPI1_SR & RXNE)) {
+		if (received < length && (SPI1_SR & SPI_RXNE)) {
 			*pch++ = SPI1_DR;
 			++received;
 		}
-		if (sent < length && (SPI1_SR & TXE)) {
+		if (sent < length && (SPI1_SR & SPI_TXE)) {
 			SPI1_DR = 0;
 			++sent;
 		}
@@ -170,11 +170,11 @@ static void ext_write_bytes(const void *buffer, size_t length) {
 	size_t sent = 0, received = 0;
 	const uint8_t *pch = buffer;
 	while (sent < length || received < length) {
-		if (received < length && (SPI1_SR & RXNE)) {
+		if (received < length && (SPI1_SR & SPI_RXNE)) {
 			(void) SPI1_DR;
 			++received;
 		}
-		if (sent < length && (SPI1_SR & TXE)) {
+		if (sent < length && (SPI1_SR & SPI_TXE)) {
 			SPI1_DR = *pch++;
 			++sent;
 		}

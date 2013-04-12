@@ -26,8 +26,8 @@ void mrf_init(void) {
 
 	if (SPI1_CR1 & SPE) {
 		// Wait for SPI module to be idle
-		while (!(SPI1_SR & TXE) || (SPI1_SR & SPI_BSY)) {
-			if (SPI1_SR & RXNE) {
+		while (!(SPI1_SR & SPI_TXE) || (SPI1_SR & SPI_BSY)) {
+			if (SPI1_SR & SPI_RXNE) {
 				(void) SPI1_DR;
 			}
 		}
@@ -58,11 +58,11 @@ uint8_t mrf_read_short(mrf_reg_short_t reg) {
 	GPIOA_BSRR = GPIO_BR(15); // PA15 = MRF /CS = 0; assert chip select
 	sleep_50ns();
 	SPI1_DR = reg << 1; // Load first byte to send
-	while (!(SPI1_SR & TXE)); // Wait for space in TX buffer (should be almost immediate, 1 byte in shift reg + 1 byte in data reg)
+	while (!(SPI1_SR & SPI_TXE)); // Wait for space in TX buffer (should be almost immediate, 1 byte in shift reg + 1 byte in data reg)
 	SPI1_DR = 0; // Load second byte to send
-	while (!(SPI1_SR & RXNE)); // Wait for first inbound byte to be received
+	while (!(SPI1_SR & SPI_RXNE)); // Wait for first inbound byte to be received
 	(void) SPI1_DR; // Discard first received byte
-	while (!(SPI1_SR & RXNE)); // Wait for second inbound byte to be received
+	while (!(SPI1_SR & SPI_RXNE)); // Wait for second inbound byte to be received
 	uint8_t value = SPI1_DR; // Grab second received byte
 	while (SPI1_SR & SPI_BSY); // Wait for bus to be fully idle
 	sleep_50ns();
@@ -74,11 +74,11 @@ void mrf_write_short(mrf_reg_short_t reg, uint8_t value) {
 	GPIOA_BSRR = GPIO_BR(15); // PA15 = MRF /CS = 0; assert chip select
 	sleep_50ns();
 	SPI1_DR = (reg << 1) | 0x01; // Load first byte to send
-	while (!(SPI1_SR & TXE)); // Wait for space in TX buffer (should be almost immediate, 1 byte in shift reg + 1 byte in data reg)
+	while (!(SPI1_SR & SPI_TXE)); // Wait for space in TX buffer (should be almost immediate, 1 byte in shift reg + 1 byte in data reg)
 	SPI1_DR = value; // Load second byte to send
-	while (!(SPI1_SR & RXNE)); // Wait for first inbound byte to be received
+	while (!(SPI1_SR & SPI_RXNE)); // Wait for first inbound byte to be received
 	(void) SPI1_DR; // Discard first received byte
-	while (!(SPI1_SR & RXNE)); // Wait for second inbound byte to be received
+	while (!(SPI1_SR & SPI_RXNE)); // Wait for second inbound byte to be received
 	(void) SPI1_DR; // Discard second received byte
 	while (SPI1_SR & SPI_BSY); // Wait for bus to be fully idle
 	sleep_50ns();
@@ -89,15 +89,15 @@ uint8_t mrf_read_long(mrf_reg_long_t reg) {
 	GPIOA_BSRR = GPIO_BR(15); // PA15 = MRF /CS = 0; assert chip select
 	sleep_50ns();
 	SPI1_DR = (reg >> 3) | 0x80; // Load first byte to send (TX count 0→1)
-	while (!(SPI1_SR & TXE)); // Wait for space in TX buffer (TX count 1, RX count 0, should be immediate)
+	while (!(SPI1_SR & SPI_TXE)); // Wait for space in TX buffer (TX count 1, RX count 0, should be immediate)
 	SPI1_DR = (reg << 5); // Load second byte to send (TX count 1→2)
-	while (!(SPI1_SR & RXNE)); // Wait for first inbound byte to be received (TX count 2→1.1, RX count 0→1)
+	while (!(SPI1_SR & SPI_RXNE)); // Wait for first inbound byte to be received (TX count 2→1.1, RX count 0→1)
 	(void) SPI1_DR; // Discard first received byte (RX count 1→0)
-	while (!(SPI1_SR & TXE)); // Wait for space in TX buffer (TX count 1.1→1, RX count 0→0.1, should be quite fast)
+	while (!(SPI1_SR & SPI_TXE)); // Wait for space in TX buffer (TX count 1.1→1, RX count 0→0.1, should be quite fast)
 	SPI1_DR = 0; // Load third byte to send (TX count 1→2)
-	while (!(SPI1_SR & RXNE)); // Wait for second inbound byte to be received (TX count 2→1.1, RX count 0.1→1)
+	while (!(SPI1_SR & SPI_RXNE)); // Wait for second inbound byte to be received (TX count 2→1.1, RX count 0.1→1)
 	(void) SPI1_DR; // Discard second received byte (RX count 1→0)
-	while (!(SPI1_SR & RXNE)); // Wait for third inbound byte to be received (TX count 1.1→0, RX count 0→1)
+	while (!(SPI1_SR & SPI_RXNE)); // Wait for third inbound byte to be received (TX count 1.1→0, RX count 0→1)
 	uint8_t value = SPI1_DR; // Grab third received byte (RX count 1→0)
 	while (SPI1_SR & SPI_BSY); // Wait for bus to be fully idle
 	sleep_50ns();
@@ -109,15 +109,15 @@ void mrf_write_long(mrf_reg_long_t reg, uint8_t value) {
 	GPIOA_BSRR = GPIO_BR(15); // PA15 = MRF /CS = 0; assert chip select
 	sleep_50ns();
 	SPI1_DR = (reg >> 3) | 0x80; // Load first byte to send (TX count 0→1)
-	while (!(SPI1_SR & TXE)); // Wait for space in TX buffer (TX count 1, RX count 0, should be immediate)
+	while (!(SPI1_SR & SPI_TXE)); // Wait for space in TX buffer (TX count 1, RX count 0, should be immediate)
 	SPI1_DR = (reg << 5) | 0x10; // Load second byte to send (TX count 1→2)
-	while (!(SPI1_SR & RXNE)); // Wait for first inbound byte to be received (TX count 2→1.1, RX count 0→1)
+	while (!(SPI1_SR & SPI_RXNE)); // Wait for first inbound byte to be received (TX count 2→1.1, RX count 0→1)
 	(void) SPI1_DR; // Discard first received byte (RX count 1→0)
-	while (!(SPI1_SR & TXE)); // Wait for space in TX buffer (TX count 1.1→1, RX count 0→0.1, should be quite fast)
+	while (!(SPI1_SR & SPI_TXE)); // Wait for space in TX buffer (TX count 1.1→1, RX count 0→0.1, should be quite fast)
 	SPI1_DR = value; // Load third byte to send (TX count 1→2)
-	while (!(SPI1_SR & RXNE)); // Wait for second inbound byte to be received (TX count 2→1.1, RX count 0.1→1)
+	while (!(SPI1_SR & SPI_RXNE)); // Wait for second inbound byte to be received (TX count 2→1.1, RX count 0.1→1)
 	(void) SPI1_DR; // Discard second received byte (RX count 1→0)
-	while (!(SPI1_SR & RXNE)); // Wait for third inbound byte to be received (TX count 1.1→0, RX count 0→1)
+	while (!(SPI1_SR & SPI_RXNE)); // Wait for third inbound byte to be received (TX count 1.1→0, RX count 0→1)
 	(void) SPI1_DR; // Discard third received byte (RX count 1→0)
 	while (SPI1_SR & SPI_BSY); // Wait for bus to be fully idle
 	sleep_50ns();

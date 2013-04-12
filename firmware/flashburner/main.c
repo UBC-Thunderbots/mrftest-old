@@ -4,6 +4,7 @@
 #include "host_controlled.h"
 #include "idle.h"
 #include "spi.h"
+#include "uart.h"
 #include <deferred.h>
 #include <exception.h>
 #include <format.h>
@@ -33,6 +34,7 @@ void exti_dispatcher_4(void);
 void exti_dispatcher_9_5(void);
 void exti_dispatcher_15_10(void);
 void timer5_interrupt_vector(void);
+void usart1_interrupt_vector(void);
 
 static char stack[65536] __attribute__((section(".stack")));
 
@@ -57,6 +59,7 @@ static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt
 	[9] = &exti_dispatcher_3,
 	[10] = &exti_dispatcher_4,
 	[23] = &exti_dispatcher_9_5,
+	[37] = &usart1_interrupt_vector,
 	[40] = &exti_dispatcher_15_10,
 	[50] = &timer5_interrupt_vector,
 	[67] = &usb_ll_process,
@@ -94,7 +97,7 @@ static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	STRING_INDEX_MANUFACTURER, // iManufacturer
 	STRING_INDEX_PRODUCT, // iProduct
 	STRING_INDEX_SERIAL, // iSerialNumber
-	3, // bNumConfigurations
+	4, // bNumConfigurations
 };
 
 static const uint8_t STRING_ZERO[4] = {
@@ -107,6 +110,7 @@ static const usb_configs_config_t * const CONFIGURATIONS[] = {
 	&IDLE_CONFIGURATION,
 	&TARGET_CONFIGURATION,
 	&ONBOARD_CONFIGURATION,
+	&UART_CONFIGURATION,
 	0
 };
 
@@ -178,6 +182,7 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 					case 0: descriptor = IDLE_CONFIGURATION_DESCRIPTOR; break;
 					case 1: descriptor = TARGET_CONFIGURATION_DESCRIPTOR; break;
 					case 2: descriptor = ONBOARD_CONFIGURATION_DESCRIPTOR; break;
+					case 3: descriptor = UART_CONFIGURATION_DESCRIPTOR;
 				}
 				if (descriptor) {
 					size_t total_length = descriptor[2] | (descriptor[3] << 8);
@@ -202,6 +207,7 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 						case STRING_INDEX_CONFIG1: string = u8"Idle/Pre-DFU"; break;
 						case STRING_INDEX_CONFIG2: string = u8"Host-Controlled to Target Board"; break;
 						case STRING_INDEX_CONFIG3: string = u8"Host-Controlled to Onboard Memory"; break;
+						case STRING_INDEX_CONFIG4: string = u8"UART Receiver"; break;
 						case STRING_INDEX_SERIAL:
 							formathex32((char *) stash_buffer + 0, U_ID_H);
 							formathex32((char *) stash_buffer + 8, U_ID_M);
@@ -537,7 +543,8 @@ static void stm32_main(void) {
 	// PB12 = LED 1, start high (on)
 	// PB11/PB10 = N/C, driven low
 	// PB9/PB8 = shorted to VSS, driven low
-	// PB7/PB6 = N/C, driven low
+	// PB7 = alternate function USART 1 receive
+	// PB6 = N/C, driven low
 	// PB5 = external Flash MOSI, input with no resistors until needed
 	// PB4 = external Flash MISO, input with no resistors until needed
 	// PB3 = external Flash SCK, input with no resistors until needed
@@ -548,8 +555,8 @@ static void stm32_main(void) {
 	GPIOB_OSPEEDR = 0b00000000000000000000100010000000;
 	GPIOB_PUPDR = 0b00000000000000000000000000000000;
 	GPIOB_AFRH = 0b00000000000000000000000000000000;
-	GPIOB_AFRL = 0b00000000010101010101000000000000;
-	GPIOB_MODER = 0b01010101010101010101000000010101;
+	GPIOB_AFRL = 0b01110000010101010101000000000000;
+	GPIOB_MODER = 0b01010101010101011001000000010101;
 	// PC15 = switch SW2 to ground (input with pull-up)
 	// PC14 = switch SW3 to ground (input with pull-up)
 	// PC13 = N/C, driven low
