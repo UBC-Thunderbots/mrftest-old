@@ -267,9 +267,6 @@ int app_main(int argc, char **argv) {
 	Config::load();
 	ParamTreeNode::load_all();
 
-	// Enable the use of the siren for annunciator messages.
-	Annunciator::activate_siren();
-
 	// Create the backend.
 	if (east) {
 		setup.defending_end = AI::BE::Backend::FieldEnd::EAST;

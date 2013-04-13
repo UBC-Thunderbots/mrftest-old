@@ -137,11 +137,6 @@ namespace Annunciator {
 	 * Fired when a message is hidden.
 	 */
 	extern sigc::signal<void, std::size_t> signal_message_hidden;
-
-	/**
-	 * Causes the audible siren to be used when annunciator messages activate.
-	 */
-	void activate_siren();
 }
 
 #endif
