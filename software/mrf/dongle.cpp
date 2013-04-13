@@ -21,6 +21,8 @@
 #endif
 
 namespace {
+	const unsigned int ANNUNCIATOR_BEEP_LENGTH = 750;
+
 	std::unique_ptr<USB::InterruptOutTransfer> create_reliable_message_transfer(USB::DeviceHandle &device, unsigned int robot, uint8_t message_id, const void *data, std::size_t length) {
 		assert(robot < 8);
 		uint8_t buffer[2 + length];
@@ -109,10 +111,19 @@ MRFDongle::MRFDongle() : context(), device(context, 0x0483, 0x497C), mdr_transfe
 
 	status_transfer.signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_status));
 	status_transfer.submit();
+
+	annunciator_beep_connections[0] = Annunciator::signal_message_activated.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::beep), ANNUNCIATOR_BEEP_LENGTH));
+	annunciator_beep_connections[1] = Annunciator::signal_message_reactivated.connect(sigc::bind(sigc::hide(sigc::mem_fun(this, &MRFDongle::beep)), ANNUNCIATOR_BEEP_LENGTH));
 }
 
 MRFDongle::~MRFDongle() {
+	annunciator_beep_connections[0].disconnect();
+	annunciator_beep_connections[1].disconnect();
 	drive_submit_connection.disconnect();
+}
+
+void MRFDongle::beep(unsigned int length) {
+	device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, 0x12, static_cast<uint16_t>(length), 0, 0);
 }
 
 uint8_t MRFDongle::alloc_message_id() {
