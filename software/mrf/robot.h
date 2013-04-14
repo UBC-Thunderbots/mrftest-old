@@ -35,7 +35,7 @@ class MRFRobot : public Drive::Robot {
 		friend class MRFDongle;
 
 		MRFDongle &dongle;
-		Annunciator::Message charge_timeout_message, breakout_missing_message, chicker_missing_message, sd_missing_message;
+		Annunciator::Message charge_timeout_message, breakout_missing_message, chicker_missing_message, sd_missing_message, interlocks_overridden_message;
 		std::array<std::unique_ptr<Annunciator::Message>, 10> hall_sensor_stuck_messages;
 		std::array<std::unique_ptr<Annunciator::Message>, 4> optical_encoder_not_commutating_messages;
 

@@ -53,7 +53,7 @@
  * 7–5: Reserved
  * 4 (R): Breakout board present; 1 = present, 0 = absent
  * 3 (R/W) [0]: Laser power; 1 = lit, 0 = unlit
- * 2: Reserved
+ * 2 (R): Interlocks overridden; 1 = overridden, 0 = not overridden
  * 1 (R/W) [0]: Motor power; 1 = run, 0 = power down
  * 0 (R/W) [1]: Logic power; 1 = run, 0 = power down
  */

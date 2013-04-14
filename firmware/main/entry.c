@@ -97,6 +97,9 @@ static void send_feedback_packet(void) {
 	if (SD_CTL & 0x02 /* SD card present */) {
 		flags |= 0x20;
 	}
+	if (POWER_CTL & 0x04 /* Interlocks overridden */) {
+		flags |= 0x40;
+	}
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 20, flags); // Flags
 	flags = 0;
 	for (uint8_t wheel = 0; wheel < 4; ++wheel) {
