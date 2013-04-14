@@ -50,7 +50,8 @@
  * \brief Controls power to various parts of the robot
  *
  * Bits:
- * 7–4: Reserved
+ * 7–5: Reserved
+ * 4 (R): Breakout board present; 1 = present, 0 = absent
  * 3 (R/W) [0]: Laser power; 1 = lit, 0 = unlit
  * 2: Reserved
  * 1 (R/W) [0]: Motor power; 1 = run, 0 = power down
@@ -202,7 +203,8 @@
  * \brief Controls and reports on the chicker subsystem
  *
  * Bits:
- * 7–6: Reserved
+ * 7: Reserved
+ * 6 (R): Indicates whether the chicker board is present; 1 = present, 0 = absent
  * 5 (R/W) [0]: Activates the safe discharge circuit to discharge the capacitors; 1 = enabled, 0 = disabled
  * 4 (R) [0]: Indicates whether the capacitors are fully charged; 1 = charged, 0 = not charged
  * 3 (R) [0]: Indicates whether charging timed out; 1 = timeout detected, 0 = timeout not detected

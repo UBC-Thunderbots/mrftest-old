@@ -88,6 +88,15 @@ static void send_feedback_packet(void) {
 	if (is_charge_timeout()) {
 		flags |= 0x04;
 	}
+	if (POWER_CTL & 0x10 /* Breakout present */) {
+		flags |= 0x08;
+	}
+	if (CHICKER_CTL & 0x40 /* Chicker present */) {
+		flags |= 0x10;
+	}
+	if (SD_CTL & 0x02 /* SD card present */) {
+		flags |= 0x20;
+	}
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 20, flags); // Flags
 	flags = 0;
 	for (uint8_t wheel = 0; wheel < 4; ++wheel) {

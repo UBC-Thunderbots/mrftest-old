@@ -134,7 +134,7 @@ void MRFRobot::autokick(bool chip, double pulse_width) {
 	}
 }
 
-MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) : Drive::Robot(index), dongle(dongle), charge_timeout_message(Glib::ustring::compose(u8"Bot %1 charge timeout", index), Annunciator::Message::TriggerMode::LEVEL) {
+MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) : Drive::Robot(index), dongle(dongle), charge_timeout_message(Glib::ustring::compose(u8"Bot %1 charge timeout", index), Annunciator::Message::TriggerMode::LEVEL), breakout_missing_message(Glib::ustring::compose(u8"Bot %1 breakout missing", index), Annunciator::Message::TriggerMode::LEVEL), chicker_missing_message(Glib::ustring::compose(u8"Bot %1 chicker missing", index), Annunciator::Message::TriggerMode::LEVEL), sd_missing_message(Glib::ustring::compose(u8"Bot %1 SD card missing", index), Annunciator::Message::TriggerMode::LEVEL) {
 	for (unsigned int i = 0; i < 8; ++i) {
 		hall_sensor_stuck_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 wheel %2 Hall sensor stuck %3", index, i / 2, (i % 2) == 0 ? u8"low" : u8"high"), Annunciator::Message::TriggerMode::LEVEL));
 	}
@@ -162,14 +162,18 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 					ball_in_beam = !!(bptr[8] & 0x01);
 					capacitor_charged = !!(bptr[8] & 0x02);
 					charge_timeout_message.active(!!(bptr[8] & 0x04));
+					bool breakout_present = !!(bptr[8] & 0x08);
+					breakout_missing_message.active(!breakout_present);
+					chicker_missing_message.active(!(bptr[8] & 0x10));
+					sd_missing_message.active(!(bptr[8] & 0x20));
 					for (unsigned int bit = 0; bit < 8; ++bit) {
-						hall_sensor_stuck_messages[bit]->active(!!(bptr[9] & (1 << bit)));
+						hall_sensor_stuck_messages[bit]->active(!!(bptr[9] & (1 << bit)) && breakout_present);
 					}
 					for (unsigned int bit = 0; bit < 2; ++bit) {
 						hall_sensor_stuck_messages[bit + 8]->active(!!(bptr[10] & (1 << bit)));
 					}
 					for (unsigned int wheel = 0; wheel < 4; ++wheel) {
-						optical_encoder_not_commutating_messages[wheel]->active(!!(bptr[10] & (1 << (wheel + 2))));
+						optical_encoder_not_commutating_messages[wheel]->active(!!(bptr[10] & (1 << (wheel + 2))) && breakout_present);
 					}
 				} else {
 					LOG_ERROR(Glib::ustring::compose(u8"Received general robot status update with wrong byte count %1", len));
