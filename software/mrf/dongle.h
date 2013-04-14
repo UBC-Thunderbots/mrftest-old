@@ -91,6 +91,8 @@ class MRFDongle : public Drive::Dongle {
 		sigc::connection drive_submit_connection;
 		std::queue<uint8_t> free_message_ids;
 		sigc::signal<void, uint8_t, uint8_t> signal_message_delivery_report;
+		std::unique_ptr<USB::ControlNoDataTransfer> beep_transfer;
+		unsigned int pending_beep_length;
 		sigc::connection annunciator_beep_connections[2];
 
 		uint8_t alloc_message_id();
@@ -103,6 +105,8 @@ class MRFDongle : public Drive::Dongle {
 		void handle_drive_transfer_done(AsyncOperation<void> &);
 		void send_unreliable(unsigned int robot, const void *data, std::size_t len);
 		void check_unreliable_transfer(AsyncOperation<void> &, std::list<std::unique_ptr<USB::InterruptOutTransfer>>::iterator iter);
+		void submit_beep();
+		void handle_beep_done(AsyncOperation<void> &);
 };
 
 

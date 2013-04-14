@@ -83,7 +83,7 @@ MRFDongle::SendReliableMessageOperation::ClearChannelError::ClearChannelError() 
 
 
 
-MRFDongle::MRFDongle() : context(), device(context, 0x0483, 0x497C), mdr_transfer(device, 1, 2, true, 0), message_transfer(device, 2, 103, false, 0), status_transfer(device, 3, 2, true, 0), drive_dirty(false) {
+MRFDongle::MRFDongle() : context(), device(context, 0x0483, 0x497C), mdr_transfer(device, 1, 2, true, 0), message_transfer(device, 2, 103, false, 0), status_transfer(device, 3, 2, true, 0), drive_dirty(false), pending_beep_length(0) {
 	for (unsigned int i = 0; i < 8; ++i) {
 		robots[i].reset(new MRFRobot(*this, i));
 	}
@@ -123,7 +123,13 @@ MRFDongle::~MRFDongle() {
 }
 
 void MRFDongle::beep(unsigned int length) {
-	device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, 0x12, static_cast<uint16_t>(length), 0, 0);
+	pending_beep_length = std::max(length, pending_beep_length);
+	if (!beep_transfer && pending_beep_length) {
+		beep_transfer.reset(new USB::ControlNoDataTransfer(device, LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, 0x12, static_cast<uint16_t>(pending_beep_length), 0, 0));
+		beep_transfer->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_beep_done));
+		beep_transfer->submit();
+		pending_beep_length = 0;
+	}
 }
 
 uint8_t MRFDongle::alloc_message_id() {
@@ -212,5 +218,11 @@ void MRFDongle::send_unreliable(unsigned int robot, const void *data, std::size_
 void MRFDongle::check_unreliable_transfer(AsyncOperation<void> &, std::list<std::unique_ptr<USB::InterruptOutTransfer>>::iterator iter) {
 	(*iter)->result();
 	unreliable_messages.erase(iter);
+}
+
+void MRFDongle::handle_beep_done(AsyncOperation<void> &) {
+	beep_transfer->result();
+	beep_transfer.reset();
+	beep(0);
 }
 
