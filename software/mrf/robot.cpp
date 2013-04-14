@@ -134,7 +134,15 @@ void MRFRobot::autokick(bool chip, double pulse_width) {
 	}
 }
 
-MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) : Drive::Robot(index), dongle(dongle), hall_stuck_message(Glib::ustring::compose(u8"Bot %1 hall sensor stuck", index), Annunciator::Message::TriggerMode::LEVEL), charge_timeout_message(Glib::ustring::compose(u8"Bot %1 charge timeout", index), Annunciator::Message::TriggerMode::LEVEL) {
+MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) : Drive::Robot(index), dongle(dongle), charge_timeout_message(Glib::ustring::compose(u8"Bot %1 charge timeout", index), Annunciator::Message::TriggerMode::LEVEL) {
+	for (unsigned int i = 0; i < 8; ++i) {
+		hall_sensor_stuck_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 wheel %2 Hall sensor stuck %3", index, i / 2, (i % 2) == 0 ? u8"low" : u8"high"), Annunciator::Message::TriggerMode::LEVEL));
+	}
+	hall_sensor_stuck_messages[8].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 dribbler Hall sensor stuck low", index), Annunciator::Message::TriggerMode::LEVEL));
+	hall_sensor_stuck_messages[9].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 dribbler Hall sensor stuck high", index), Annunciator::Message::TriggerMode::LEVEL));
+	for (unsigned int i = 0; i < 4; ++i) {
+		optical_encoder_not_commutating_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 wheel %2 optical encoder not commutating", index, i), Annunciator::Message::TriggerMode::LEVEL));
+	}
 }
 
 void MRFRobot::handle_message(const void *data, std::size_t len) {
@@ -145,7 +153,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 				// General robot status update
 				++bptr;
 				--len;
-				if (len == 9) {
+				if (len == 11) {
 					alive = true;
 					battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 20000);
 					capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 200000);
@@ -154,6 +162,15 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 					ball_in_beam = !!(bptr[8] & 0x01);
 					capacitor_charged = !!(bptr[8] & 0x02);
 					charge_timeout_message.active(!!(bptr[8] & 0x04));
+					for (unsigned int bit = 0; bit < 8; ++bit) {
+						hall_sensor_stuck_messages[bit]->active(!!(bptr[9] & (1 << bit)));
+					}
+					for (unsigned int bit = 0; bit < 2; ++bit) {
+						hall_sensor_stuck_messages[bit + 8]->active(!!(bptr[10] & (1 << bit)));
+					}
+					for (unsigned int wheel = 0; wheel < 4; ++wheel) {
+						optical_encoder_not_commutating_messages[wheel]->active(!!(bptr[10] & (1 << (wheel + 2))));
+					}
 				} else {
 					LOG_ERROR(Glib::ustring::compose(u8"Received general robot status update with wrong byte count %1", len));
 				}

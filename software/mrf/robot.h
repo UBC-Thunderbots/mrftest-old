@@ -7,6 +7,7 @@
 #include "util/bit_array.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
+#include <array>
 #include <cstddef>
 #include <functional>
 #include <memory>
@@ -34,7 +35,9 @@ class MRFRobot : public Drive::Robot {
 		friend class MRFDongle;
 
 		MRFDongle &dongle;
-		Annunciator::Message hall_stuck_message, charge_timeout_message;
+		Annunciator::Message charge_timeout_message;
+		std::array<std::unique_ptr<Annunciator::Message>, 10> hall_sensor_stuck_messages;
+		std::array<std::unique_ptr<Annunciator::Message>, 4> optical_encoder_not_commutating_messages;
 
 		MRFRobot(MRFDongle &dongle, unsigned int index);
 		void handle_message(const void *data, std::size_t len);

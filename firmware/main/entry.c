@@ -63,7 +63,7 @@ void prepare_mrf_mhr(uint8_t payload_length) {
 }
 
 static void send_feedback_packet(void) {
-	prepare_mrf_mhr(10);
+	prepare_mrf_mhr(12);
 
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 11, 0x00); // General robot status update
 	uint16_t adc_value = read_main_adc(BATT_VOLT);
@@ -89,6 +89,21 @@ static void send_feedback_packet(void) {
 		flags |= 0x04;
 	}
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 20, flags); // Flags
+	flags = 0;
+	for (uint8_t wheel = 0; wheel < 4; ++wheel) {
+		MOTOR_INDEX = wheel;
+		uint8_t status = MOTOR_STATUS;
+		MOTOR_STATUS = ~status;
+		flags |= status << (wheel * 2);
+	}
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 21, flags); // Wheel motor Hall sensors stuck
+	MOTOR_INDEX = 4;
+	{
+		uint8_t motor_status = MOTOR_STATUS;
+		MOTOR_STATUS = ~motor_status;
+		flags = motor_status | (ENCODER_FAIL << 2);
+	}
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 22, flags); // Dribbler Hall sensors stuck and optical encoders not commutating
 
 	mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
 
