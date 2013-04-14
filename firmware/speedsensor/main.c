@@ -1,12 +1,16 @@
-#include "rcc.h"
-#include "registers.h"
-#include "sleep.h"
-#include "stddef.h"
-#include "stdint.h"
-#include "string.h"
-#include "usb.h"
-#include "usb_ep0.h"
-#include "usb_ep0_sources.h"
+#include "format.h"
+#include <rcc.h>
+#include <registers.h>
+#include <sleep.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+#include <usb_configs.h>
+#include <usb_ep0.h>
+#include <usb_ep0_sources.h>
+#include <usb_fifo.h>
+#include <usb_ll.h>
+#include <unused.h>
 
 #define BIT_ACCESS(a) (a^255<<16)|a
 
@@ -62,7 +66,7 @@ static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt
 	[28] = &timer2_wrap_interrupt,
 	[40] = &external_interrupt_15_10_vector,
 	// Vector 67 contains the USB full speed vector
-	[67] = &usb_process,
+	[67] = &usb_ll_process,
 };
 
 static void nmi_vector(void) {
@@ -202,7 +206,7 @@ static const uint8_t * const CONFIGURATION_DESCRIPTORS[] = {
 
 static const uint8_t STRING_ZERO[4] = {
 	sizeof(STRING_ZERO),
-	USB_STD_DESCRIPTOR_STRING,
+	USB_DTYPE_STRING,
 	0x09, 0x10, /* English (Canadian) */
 };
 
@@ -213,14 +217,14 @@ static usb_ep0_source_t *on_descriptor_request(uint8_t descriptor_type, uint8_t 
 	} src;
 	static char serial_number_buffer[25];
 
-	if (descriptor_type == USB_STD_DESCRIPTOR_DEVICE) {
+	if (descriptor_type == USB_DTYPE_DEVICE) {
 		return usb_ep0_memory_source_init(&src.mem_src, DEVICE_DESCRIPTOR, sizeof(DEVICE_DESCRIPTOR));
-	} else if (descriptor_type == USB_STD_DESCRIPTOR_CONFIGURATION) {
+	} else if (descriptor_type == USB_DTYPE_CONFIGURATION) {
 		if (descriptor_index < 6) {
 			const uint8_t *desc = CONFIGURATION_DESCRIPTORS[descriptor_index];
 			return usb_ep0_memory_source_init(&src.mem_src, desc, (desc[3] << 8) | desc[2]);
 		}
-	} else if (descriptor_type == USB_STD_DESCRIPTOR_STRING) {
+	} else if (descriptor_type == USB_DTYPE_STRING) {
 		if (descriptor_index == 0) {
 			return usb_ep0_memory_source_init(&src.mem_src, STRING_ZERO, sizeof(STRING_ZERO));
 		} else if (language == 0x1009 /* English (Canadian) */) {
@@ -251,12 +255,12 @@ static bool on_check_self_powered(void) {
 	return false;
 }
 
-static const usb_ep0_global_callbacks_t DEVICE_CBS = {
+static const usb_ep0_cbs_t DEVICE_CBS = {
 	.on_zero_request = &on_zero_request,
 	.on_in_request = &on_in_request,
 	.on_out_request = &on_out_request,
-	.on_descriptor_request = &on_descriptor_request,
-	.on_check_self_powered = &on_check_self_powered,
+	//.on_descriptor_request = &on_descriptor_request,
+	//.on_check_self_powered = &on_check_self_powered,
 };
 
 static bool can_enter_config1(void) {
@@ -269,28 +273,28 @@ static void on_enter_config1(void) {
 static void on_exit_config1(void) {
 }
 
-static const usb_ep0_configuration_callbacks_t CONFIG1_CBS = {
-	.configuration = 1,
-	.interfaces = 1,
-	.out_endpoints = 0,
-	.in_endpoints = 0,
+static const usb_configs_config_t CONFIG1_CBS = {
+	//.configuration = 1,
+	//.interfaces = 1,
+	//.out_endpoints = 0,
+	//.in_endpoints = 0,
 	.can_enter = &can_enter_config1,
 	.on_enter = &on_enter_config1,
 	.on_exit = &on_exit_config1,
-	.on_zero_request = 0,
-	.on_in_request = 0,
-	.on_out_request = 0,
+	//.on_zero_request = 0,
+	//.on_in_request = 0,
+	//.on_out_request = 0,
 };
 
-static const usb_ep0_configuration_callbacks_t * const CONFIG_CBS[] = {
+static const usb_configs_config_t * const CONFIG_CBS[] = {
 	&CONFIG1_CBS,
 	0
 };
 
-static const usb_device_info_t DEVICE_INFO = {
-	.rx_fifo_words = 128,
-	.ep0_max_packet = 8,
-};
+//static const usb_device_info_t DEVICE_INFO = {
+//	.rx_fifo_words = 128,
+//	.ep0_max_packet = 8,
+//};
 
 extern unsigned char linker_data_vma_start;
 extern unsigned char linker_data_vma_end;
@@ -434,47 +438,47 @@ static void LCD_write( char a ){
 	PORTC_set_first_byte( a );
 	LCD_switch_mode( LCD_DATA, LCD_WRITE );
 	PORTC_config_bit( PIN_E, true );
-	sleep_1us(1);
+	sleep_us(1);
 	PORTC_config_bit( PIN_E, false );
-	sleep_1us(50);
+	sleep_us(50);
 }
 
 static void LCD_command( char a ){
 	PORTC_set_first_byte( a );
 	LCD_switch_mode( LCD_COMMAND, LCD_WRITE );
 	PORTC_config_bit( PIN_E, true );
-	sleep_1us(1);
+	sleep_us(1);
 	PORTC_config_bit( PIN_E, false );
-	sleep_1us(1);
+	sleep_us(1);
 	
 }
 
 // initialize screen
 static void LCD_init_routine(){
-	sleep_1ms(500); // recommanded waiting time is 40ms
+	sleep_ms(500); // recommanded waiting time is 40ms
 	LCD_command( 0x30 );
-	sleep_1us(30);
+	sleep_us(30);
 	LCD_command( 0x30 );
-	sleep_1us(10);
+	sleep_us(10);
 	LCD_command( 0x30 );
-	sleep_1us(10);
+	sleep_us(10);
 	LCD_command( 0x38 ); // function set
-	sleep_1us(50);
+	sleep_us(50);
 	LCD_command( 0x1c ); // set cursor
-	sleep_1us(50);
+	sleep_us(50);
 	LCD_command( 0x0c ); // display on, cursor on
-	sleep_1us(50);
+	sleep_us(50);
 	LCD_command( 0x06 ); // entry mode set
-	sleep_1us(50);
+	sleep_us(50);
 	LCD_command( 0x02 ); // return home
-	sleep_1ms(2);
-/*	sleep_1us(50);
+	sleep_ms(2);
+/*	sleep_us(50);
 	LCD_command( LCD_ON_CONTROL_P );
-	sleep_1us(50);
+	sleep_us(50);
 	LCD_command( LCD_CLEAR_SCREEN );
-	sleep_1ms(2);
+	sleep_ms(2);
 	LCD_command( LCD_ENTRY_MODE_P );
-*/	sleep_1us(50);
+*/	sleep_us(50);
 }
 
 // write something to the screen, this writes all ones
@@ -816,13 +820,13 @@ static void stm32_main(void) {
 
 
 	// Wait a bit
-	sleep_1ms(100);
+	sleep_ms(100);
 
 	// Turn on LED
 	//GPIOB_BSRR = 3;
-	//sleep_1ms(1000);
+	//sleep_ms(1000);
 	//GPIOB_BSRR = (3<< 16);
-	//sleep_1ms(10);
+	//sleep_ms(10);
 	// Initialize USB
 	//usb_ep0_set_global_callbacks(&DEVICE_CBS);
 	//usb_ep0_set_configuration_callbacks(CONFIG_CBS);
@@ -832,7 +836,7 @@ static void stm32_main(void) {
 	// Handle activity
 	tic_toc_setup();
 	/*tic();
-	sleep_1ms(3000);
+	sleep_ms(3000);
 	toc();*/
 
 	// turn off portC pin 13, turn on pin 14, 15
@@ -848,19 +852,19 @@ static void stm32_main(void) {
 
 	// Turn on LED
 	GPIOB_BSRR = 2;
-	//sleep_1ms(1000);
+	//sleep_ms(1000);
 	GPIOB_BSRR = (1<< 16);
-	//sleep_1ms(10);
+	//sleep_ms(10);
 	for (;;) {
 		/*for( counter_i = 0; counter_i < 10; counter_i++){
 			GPIOC_BSRR = digits[counter_i];
-			sleep_1ms(1000);
+			sleep_ms(1000);
 		}*/
 		/*for( counter_i = 0; counter_i < 8; counter_i++ ){
 			GPIOC_BSRR = 1 << counter_i;
-			sleep_1ms(1000);
+			sleep_ms(1000);
 			GPIOC_BSRR = 1 << (counter_i+16);
-			sleep_1ms(1000);
+			sleep_ms(1000);
 			
 		}*/
 		/*if( TIM2_CNT > 0xF0 ){
@@ -876,18 +880,18 @@ static void stm32_main(void) {
 			if( wrap_count != 0 ){
 				formatuint8( buffer, 1716000/wrap_count );
 				LCD_command( 0x02 ); // return home
-				sleep_1ms(2) ;
+				sleep_ms(2) ;
 				LCD_print( buffer, 8 );
 			}
 			G_status = 0;
 
 		}
-		sleep_1ms(1);
+		sleep_ms(1);
 		
 		GPIOD_BSRR = 1 << (13+16);
-		sleep_1ms(1000);
+		sleep_ms(1000);
 		GPIOD_BSRR = 1 << (13);
-		sleep_1ms(1000);
+		sleep_ms(1000);
 		
 	}
 }

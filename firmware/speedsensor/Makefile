@@ -1,22 +1,22 @@
-HOSTCC := $(CC)
 ABI := arm-linux-gnueabi
 CC := $(ABI)-gcc
 LD := $(ABI)-ld
 OBJCOPY := $(ABI)-objcopy
-PROJ := dongle
-override HOSTCFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -march=native -g
-override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -mlittle-endian -mthumb -mcpu=cortex-m3 -nostdinc -nostdlib -g
-override LDFLAGS := $(LDFLAGS) -Tstm32f405.ld --gc-sections
+PROJ := speedsensor
+LINKER_SCRIPT := ../stm32lib/stm32f405.ld
+override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -mlittle-endian -mthumb -mcpu=cortex-m3 -nostdinc -nostdlib -g -fno-common -ffunction-sections -fdata-sections -isystem ../stm32lib/include
+override LDFLAGS := $(LDFLAGS) -T$(LINKER_SCRIPT) --gc-sections
+override LDLIBS := $(LDLIBS) ../stm32lib/stm32lib.a
 
-FW_SOURCES := $(filter-out enter-dfu-mode.c exit-dfu-mode.c,$(wildcard *.c))
-FW_HEADERS := $(wildcard *.h)
+FW_SOURCES := $(wildcard *.c)
+FW_HEADERS := $(wildcard *.h ../stm32lib/include/*.h)
 FW_OBJS := $(patsubst %.c,%.o,$(FW_SOURCES))
 
 $(PROJ).bin : $(PROJ).elf
 	@echo " OBJCOPY   $@"
 	@$(OBJCOPY) -O binary $+ $@
 
-$(PROJ).elf : $(FW_OBJS) stm32f405.ld
+$(PROJ).elf : $(FW_OBJS) ../stm32lib/stm32lib.a $(LINKER_SCRIPT)
 	@echo " LD        $@"
 	@$(LD) $(LDFLAGS) -o$@ -Map=$(PROJ).map $(FW_OBJS) $(LDLIBS)
 
@@ -26,20 +26,19 @@ $(FW_OBJS) : %.o : %.c
 	@echo " CC        $@"
 	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $<
 
-enter-dfu-mode exit-dfu-mode : % : %.c
-	@echo " HOSTCC    $@"
-	@$(HOSTCC) $(CPPFLAGS) $(HOSTCFLAGS) $(shell pkg-config --cflags --libs-only-other --libs-only-L libusb-1.0) -o $@ $< $(shell pkg-config --libs-only-l libusb-1.0)
+../stm32lib/stm32lib.a : $(wildcard ../stm32lib/*.o ../stm32lib/*.c ../stm32lib/*.h ../stm32lib/include/*.h)
+	$(MAKE) -C ../stm32lib
 
 .PHONY : clean
 clean :
-	$(RM) $(PROJ).bin $(PROJ).elf $(PROJ).map enter-dfu-mode exit-dfu-mode *.o
+	$(RM) $(PROJ).bin $(PROJ).elf $(PROJ).map *.o
+	$(RM) -r html
 
 .PHONY : dfu
-dfu : $(PROJ).bin enter-dfu-mode exit-dfu-mode
-	@echo " ENTER-DFU-MODE"
-	-@./enter-dfu-mode C057 2579
-	@sleep 1
-	@echo " DFU-UTIL"
-	@dfu-util -d 0483:DF11 -c 1 -i 0 -a 0 -D $< -s 0x08000000
-	@echo " EXIT-DFU-MODE"
-	@./exit-dfu-mode 0483 DF11
+dfu : $(PROJ).bin
+	@echo " DFU-UTIL  $<"
+	@dfu-util -d 0483 -c 1 -i 0 -a 0 -D $< -s 0x08000000:leave
+
+.PHONY : doc
+doc :
+	doxygen

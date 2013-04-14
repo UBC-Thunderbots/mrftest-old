@@ -1,11 +1,9 @@
 #ifndef STRING_H
 #define STRING_H
 
-#include "stddef.h"
-#include "stdint.h"
+#include <stddef.h>
+#include <stdint.h>
 
-void *memcpy(void *dest, const void *src, size_t n);
-void *memset(void *s, int c, size_t n);
 void formatuint1(char *dest, uint8_t val);
 void formatuint2(char *dest, uint8_t val);
 void formatuint4(char *dest, uint16_t val);
