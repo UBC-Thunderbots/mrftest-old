@@ -139,6 +139,24 @@
 #define SIM_MAGIC IO_PORT(0x07)
 
 /**
+ * \brief Controls and reports status of the Secure Digital card
+ *
+ * Bits:
+ * 7–2: Reserved
+ * 1 (R): Indicates whether a card is present according to the card detection switch; 1 = present, 0 = absent
+ * 0 (R) [0]: Indicates whether an SPI transaction is in progress; 1 = busy, 0 = idle
+ */
+#define SD_CTL IO_PORT(0x08)
+
+/**
+ * \brief Reads and writes data on the Secure Digital SPI bus
+ *
+ * On write, starts an SPI transaction outputting the written byte
+ * On read (when SD_CTL<0> = 0), returns the most recent byte read from the bus
+ */
+#define SD_DATA IO_PORT(0x09)
+
+/**
  * \brief Reports the accumulated count of optical encoder ticks
  *
  * A write to this register selects an optical encoder (0–3) and simultaneously snapshots and clears the accumulated count.
