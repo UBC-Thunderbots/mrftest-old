@@ -113,7 +113,7 @@ MRFDongle::MRFDongle() : context(), device(context, 0x0483, 0x497C), mdr_transfe
 	status_transfer.submit();
 
 	annunciator_beep_connections[0] = Annunciator::signal_message_activated.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::beep), ANNUNCIATOR_BEEP_LENGTH));
-	annunciator_beep_connections[1] = Annunciator::signal_message_reactivated.connect(sigc::bind(sigc::hide(sigc::mem_fun(this, &MRFDongle::beep)), ANNUNCIATOR_BEEP_LENGTH));
+	annunciator_beep_connections[1] = Annunciator::signal_message_reactivated.connect(sigc::hide(sigc::bind(sigc::mem_fun(this, &MRFDongle::beep), ANNUNCIATOR_BEEP_LENGTH)));
 }
 
 MRFDongle::~MRFDongle() {
