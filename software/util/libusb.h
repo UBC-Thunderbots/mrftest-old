@@ -175,6 +175,7 @@ namespace USB {
 
 		private:
 			friend class Transfer;
+			friend class ControlNoDataTransfer;
 			friend class InterruptOutTransfer;
 			friend class InterruptInTransfer;
 			friend class BulkOutTransfer;
@@ -252,6 +253,14 @@ namespace USB {
 			static void handle_completed_transfer_trampoline(libusb_transfer *transfer);
 			Transfer(DeviceHandle &dev);
 			void handle_completed_transfer();
+	};
+
+	/**
+	 * \brief A libusb control transfer with no data.
+	 */
+	class ControlNoDataTransfer : public Transfer {
+		public:
+			ControlNoDataTransfer(DeviceHandle &dev, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout);
 	};
 
 	/**

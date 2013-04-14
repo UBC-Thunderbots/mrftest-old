@@ -490,6 +490,13 @@ void USB::Transfer::handle_completed_transfer() {
 
 
 
+USB::ControlNoDataTransfer::ControlNoDataTransfer(DeviceHandle &dev, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout) : Transfer(dev) {
+	libusb_fill_control_transfer(transfer, dev.handle, new unsigned char[8], &Transfer::handle_completed_transfer_trampoline, transfer->user_data, timeout);
+	libusb_fill_control_setup(transfer->buffer, request_type, request, value, index, 0);
+}
+
+
+
 USB::InterruptInTransfer::InterruptInTransfer(DeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout) : Transfer(dev) {
 	assert((endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK) == endpoint);
 	libusb_fill_interrupt_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_IN, new unsigned char[len], static_cast<int>(len), &Transfer::handle_completed_transfer_trampoline, transfer->user_data, timeout);
