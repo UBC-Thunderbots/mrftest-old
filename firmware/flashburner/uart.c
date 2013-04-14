@@ -182,6 +182,11 @@ void usart1_interrupt_vector(void) {
 	uint32_t status = USART1_SR;
 	uint8_t data = USART1_DR;
 
+	// If chip select is asserted, the FPGA is talking to the SPI Flash, so we should not consider this as useful information.
+	if (!(GPIOA_IDR & (1 << 15))) {
+		return;
+	}
+
 	// If there is a framing or noise error, it applies to the byte which we just read from the data register, so it must be queued for reporting first.
 	if (status & (NF | FE)) {
 		uint8_t errors = 0;
