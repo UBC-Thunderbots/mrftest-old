@@ -101,6 +101,7 @@ void TesterFeedbackPanel::on_alive_changed() {
 	on_battery_voltage_changed();
 	on_capacitor_voltage_changed();
 	on_dribbler_temperature_changed();
+	on_board_temperature_changed();
 	on_break_beam_reading_changed();
 }
 
