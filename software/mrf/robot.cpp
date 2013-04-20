@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <glibmm/main.h>
+#include <sigc++/functors/mem_fun.h>
 
 namespace {
 	double adc_voltage_to_board_temp(double voltage) {
@@ -145,6 +147,10 @@ MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) : Drive::Robot(index),
 	}
 }
 
+MRFRobot::~MRFRobot() {
+	feedback_timeout_connection.disconnect();
+}
+
 void MRFRobot::handle_message(const void *data, std::size_t len) {
 	const uint8_t *bptr = static_cast<const uint8_t *>(data);
 	if (len) {
@@ -176,6 +182,8 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 					for (unsigned int wheel = 0; wheel < 4; ++wheel) {
 						optical_encoder_not_commutating_messages[wheel]->active(!!(bptr[10] & (1 << (wheel + 2))) && breakout_present);
 					}
+					feedback_timeout_connection.disconnect();
+					feedback_timeout_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &MRFRobot::handle_feedback_timeout), 3);
 				} else {
 					LOG_ERROR(Glib::ustring::compose(u8"Received general robot status update with wrong byte count %1", len));
 				}
@@ -191,5 +199,21 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 				break;
 		}
 	}
+}
+
+bool MRFRobot::handle_feedback_timeout() {
+	alive = false;
+	charge_timeout_message.active(false);
+	breakout_missing_message.active(false);
+	chicker_missing_message.active(false);
+	sd_missing_message.active(false);
+	interlocks_overridden_message.active(false);
+	for (auto &i : hall_sensor_stuck_messages) {
+		i->active(false);
+	}
+	for (auto &i : optical_encoder_not_commutating_messages) {
+		i->active(false);
+	}
+	return false;
 }
 
