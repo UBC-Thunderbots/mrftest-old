@@ -178,10 +178,10 @@
  *
  * Bits:
  * 7–4: Reserved
- * 3 (R/C) [0]: Encoder 3 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
- * 2 (R/C) [0]: Encoder 2 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
- * 1 (R/C) [0]: Encoder 1 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
- * 0 (R/C) [0]: Encoder 0 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
+ * 3 (R) [0]: Encoder 3 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
+ * 2 (R) [0]: Encoder 2 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
+ * 1 (R) [0]: Encoder 1 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
+ * 0 (R) [0]: Encoder 0 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
  */
 #define ENCODER_FAIL IO_PORT(0x0E)
 
