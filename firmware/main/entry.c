@@ -17,6 +17,7 @@
 #define DEFAULT_PAN 0x1846
 #define DEFAULT_INDEX 0
 
+#define LOW_BATTERY_THRESHOLD ((unsigned int) (12.5 / (10.0e3 * 2 + 2.2e3) * 2.2e3 / 3.3 * 1024.0))
 #define BREAKBEAM_THRESHOLD 300
 
 #define SPI_FLASH_SIZE (16UL / 8UL * 1024UL * 1024UL)
@@ -47,6 +48,21 @@ static bool autokick_armed = false;
 static bool autokick_fired_pending = false;
 static bool drivetrain_power_forced_on = false;
 static uint8_t last_drive_packet_tick = 0;
+static uint16_t battery_average = 1023;
+
+static void shutdown_sequence(void) __attribute__((noreturn));
+static void shutdown_sequence(void) {
+	set_charge_mode(false);
+	set_discharge_mode(true);
+	motor_scram();
+	sleep_1s();
+	sleep_1s();
+	sleep_1s();
+	POWER_CTL = 0x01;
+	sleep_1s();
+	POWER_CTL = 0x00;
+	for (;;);
+}
 
 void prepare_mrf_mhr(uint8_t payload_length) {
 #warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
@@ -274,17 +290,8 @@ static void handle_radio_receive(void) {
 
 					case 0x0C: // Shut down
 						{
-							puts("Shutting down.");
-							set_charge_mode(false);
-							set_discharge_mode(true);
-							motor_scram();
-							sleep_1s();
-							sleep_1s();
-							sleep_1s();
-							POWER_CTL = 0x01;
-							sleep_1s();
-							POWER_CTL = 0x00;
-							for (;;);
+							puts("Shutting down at operator request.");
+							shutdown_sequence();
 						}
 
 					case 0x0D: // Manually commutate motors
@@ -367,10 +374,18 @@ static void avr_main(void) {
 			autokick_fired_pending = true;
 		}
 
-		// Check if a tick has passed; if so, iterate the control loop
+		// Check if a tick has passed; if so, iterate the control loop and update average battery level
 		if (TICKS != old_ticks) {
 			wheels_tick();
 			++old_ticks;
+			battery_average = (battery_average * 63 + read_main_adc(BATT_VOLT)) / 64;
+			if (battery_average < LOW_BATTERY_THRESHOLD && !interlocks_overridden()) {
+				puts("Shutting down due to low battery.");
+				shutdown_sequence();
+			}
+			if (!(TICKS % 100)) {
+				printf("%u\n", (unsigned int) battery_average);
+			}
 		}
 
 		// Check if there is activity on the radio that needs handling
