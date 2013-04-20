@@ -143,7 +143,8 @@
  * \brief Controls and reports status of the Secure Digital card
  *
  * Bits:
- * 7–2: Reserved
+ * 7–3: Reserved
+ * 2 (R/W) [1]: Sets the level on the /CS pin
  * 1 (R): Indicates whether a card is present according to the card detection switch; 1 = present, 0 = absent
  * 0 (R) [0]: Indicates whether an SPI transaction is in progress; 1 = busy, 0 = idle
  */
