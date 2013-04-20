@@ -169,7 +169,7 @@ static void handle_radio_receive(void) {
 
 					wheel_update_ctx();
 
-					if (wheel_context.mode != WHEEL_MODE_MANUAL_COMMUTATION && wheel_context.mode != WHEEL_MODE_BRAKE) {
+					if (wheel_context.mode != WHEEL_MODE_MANUAL_COMMUTATION) {
 						power_enable_motors();
 					}
 
