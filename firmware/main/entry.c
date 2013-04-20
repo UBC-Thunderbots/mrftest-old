@@ -45,6 +45,7 @@ static uint16_t autokick_pulse_width;
 static uint8_t autokick_device;
 static bool autokick_armed = false;
 static bool autokick_fired_pending = false;
+static bool drivetrain_power_forced_on = false;
 static uint8_t last_drive_packet_tick = 0;
 
 void prepare_mrf_mhr(uint8_t payload_length) {
@@ -169,16 +170,18 @@ static void handle_radio_receive(void) {
 
 					wheel_update_ctx();
 
-					if (wheel_context.mode != WHEEL_MODE_MANUAL_COMMUTATION) {
+					if (drivetrain_power_forced_on || wheel_context.mode != WHEEL_MODE_MANUAL_COMMUTATION || words[0] & (1 << 12)) {
 						power_enable_motors();
+					} else {
+						power_disable_motors();
 					}
 
 					if (words[0] & (1 << 12)) {
-						power_enable_motors();
 						set_dribbler(FORWARD, 180);
 					} else {
 						set_dribbler(MANUAL_COMMUTATION, 0);
 					}
+
 					switch ((words[1] >> 14) & 3) {
 						case 0b00:
 							set_charge_mode(false);
@@ -250,7 +253,7 @@ static void handle_radio_receive(void) {
 						break;
 
 					case 0x09: // Force on motor power
-						power_enable_motors();
+						drivetrain_power_forced_on = true;
 						break;
 
 					case 0x0B: // Set bootup radio parameters

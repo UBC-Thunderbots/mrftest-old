@@ -17,6 +17,13 @@ static inline void power_enable_motors(void) {
 }
 
 /**
+ * \brief Disables power to the motors
+ */
+static inline void power_disable_motors(void) {
+	POWER_CTL &= ~0x02;
+}
+
+/**
  * \brief Enables power to the laser
  */
 static inline void power_enable_laser(void) {
