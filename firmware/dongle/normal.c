@@ -214,25 +214,37 @@ static void push_mdrs(void) {
 		return;
 	}
 
-	// Pop an MDR from the queue.
-	normal_out_packet_t *pkt = first_mdr_pending;
-	first_mdr_pending = pkt->next;
-	if (!first_mdr_pending) {
-		last_mdr_pending = 0;
+	// Pop up to four MDRs from the queue.
+	normal_out_packet_t *pkts = 0;
+	unsigned int num_pkts = 0;
+	while (first_mdr_pending && num_pkts < 4) {
+		normal_out_packet_t *pkt = first_mdr_pending;
+		first_mdr_pending = pkt->next;
+		if (!first_mdr_pending) {
+			last_mdr_pending = 0;
+		}
+		pkt->next = pkts;
+		pkts = pkt;
+		++num_pkts;
 	}
-	pkt->next = 0;
 
 	// Start a transfer.
-	// MDR transfers are always two bytes long.
-	usb_bi_in_start_transfer(1, 2, 2, &push_mdrs, 0);
+	usb_bi_in_start_transfer(1, 2 * num_pkts, 8, &push_mdrs, 0);
 
-	// Push the data for this transfer.
-	usb_bi_in_push(1, &pkt->message_id, 1);
-	usb_bi_in_push(1, &pkt->delivery_status, 1);
+	while (pkts) {
+		// Pop a packet from the queue of MDRs to use in this transfer.
+		normal_out_packet_t *pkt = pkts;
+		pkts = pkt->next;
+		pkt->next = 0;
 
-	// Push the consumed MDR packet buffer onto the free stack
-	pkt->next = reliable_out_free;
-	reliable_out_free = pkt;
+		// Push the data for this MDR.
+		usb_bi_in_push(1, &pkt->message_id, 1);
+		usb_bi_in_push(1, &pkt->delivery_status, 1);
+
+		// Push the consumed MDR packet buffer onto the free stack
+		pkt->next = reliable_out_free;
+		reliable_out_free = pkt;
+	}
 }
 
 static void push_rx(void) {

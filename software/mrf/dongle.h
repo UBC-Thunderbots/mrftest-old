@@ -97,7 +97,7 @@ class MRFDongle : public Drive::Dongle {
 
 		uint8_t alloc_message_id();
 		void free_message_id(uint8_t id);
-		void handle_mdr(AsyncOperation<void> &);
+		void handle_mdrs(AsyncOperation<void> &);
 		void handle_message(AsyncOperation<void> &);
 		void handle_status(AsyncOperation<void> &);
 		void dirty_drive();

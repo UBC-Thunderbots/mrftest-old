@@ -83,7 +83,7 @@ MRFDongle::SendReliableMessageOperation::ClearChannelError::ClearChannelError() 
 
 
 
-MRFDongle::MRFDongle() : context(), device(context, 0x0483, 0x497C), mdr_transfer(device, 1, 2, true, 0), message_transfer(device, 2, 103, false, 0), status_transfer(device, 3, 2, true, 0), drive_dirty(false), pending_beep_length(0) {
+MRFDongle::MRFDongle() : context(), device(context, 0x0483, 0x497C), mdr_transfer(device, 1, 8, false, 0), message_transfer(device, 2, 103, false, 0), status_transfer(device, 3, 2, true, 0), drive_dirty(false), pending_beep_length(0) {
 	for (unsigned int i = 0; i < 8; ++i) {
 		robots[i].reset(new MRFRobot(*this, i));
 	}
@@ -103,7 +103,7 @@ MRFDongle::MRFDongle() : context(), device(context, 0x0483, 0x497C), mdr_transfe
 	config_setter.reset(new USB::ConfigurationSetter(device, 2));
 	interface_claimer.reset(new USB::InterfaceClaimer(device, 0));
 
-	mdr_transfer.signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_mdr));
+	mdr_transfer.signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_mdrs));
 	mdr_transfer.submit();
 
 	message_transfer.signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_message));
@@ -145,9 +145,14 @@ void MRFDongle::free_message_id(uint8_t id) {
 	free_message_ids.push(id);
 }
 
-void MRFDongle::handle_mdr(AsyncOperation<void> &) {
+void MRFDongle::handle_mdrs(AsyncOperation<void> &) {
 	mdr_transfer.result();
-	signal_message_delivery_report.emit(mdr_transfer.data()[0], mdr_transfer.data()[1]);
+	if ((mdr_transfer.size() % 2) != 0) {
+		throw std::runtime_error("MDR transfer has odd size");
+	}
+	for (unsigned int i = 0; i < mdr_transfer.size(); i += 2) {
+		signal_message_delivery_report.emit(mdr_transfer.data()[i], mdr_transfer.data()[i + 1]);
+	}
 	mdr_transfer.submit();
 }
 
