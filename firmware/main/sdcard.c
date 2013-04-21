@@ -95,6 +95,14 @@ void sd_reset_state() {
 	card_state.enabled = false;
 }
 
+uint8_t receive_DRT() {
+	uint8_t byte;
+	do {
+		send_nop();
+		} while ((byte = sd_read_byte()) == 0xFF);
+	return byte;
+}
+
 void receive_R1() {
 	uint8_t byte;
 	do {
@@ -150,14 +158,14 @@ bool any_error_except_idle(void) {
 	return (card_state.response & 0xFE);
 }
 
-bool send_command(sd_cmd_t cmd, uint8_t args[4]) {
+bool send_command(sd_cmd_t cmd, uint32_t addr) {
 	sd_assert_cs();
 	uint8_t retries = 3;
 	uint8_t send_data[6];
 	send_data[0] = (uint8_t) cmd;
 	send_data[0] = send_data[0] | 0x40;
 	for(uint8_t i=0; i<4;++i) {
-		send_data[i+1] = args[i];
+		send_data[i+1] = (addr >> (8*(3-i)))&0x000000FF;
 	}
 	send_data[5] = CRC7(send_data,5);
 	do {
@@ -170,11 +178,11 @@ bool send_command(sd_cmd_t cmd, uint8_t args[4]) {
 }
 
 
-bool send_command_checked(sd_cmd_t cmd, uint8_t args[4]) {
+bool send_command_checked(sd_cmd_t cmd, uint32_t addr) {
 	if(!is_ready()) {
 		return false;
 	}
-	return send_command(cmd,args) && !any_error();
+	return send_command(cmd,addr) && !any_error();
 }
 
 void close_transaction() {
@@ -182,34 +190,52 @@ void close_transaction() {
 	send_nop();
 }
 
-bool send_acommand(sd_acmd_t acmd, uint8_t args[4]) {
-	uint8_t fake_args[] = {0x00, 0x00, 0x00, 0x00};
-	if(send_command(APP_CMD,fake_args)) {
+bool send_acommand(sd_acmd_t acmd, uint32_t addr) {
+	if(send_command(APP_CMD,0)) {
 		close_transaction();
 		bool retval =!any_error_except_idle();
-		return retval && send_command((sd_cmd_t) acmd, args);
+		return retval && send_command((sd_cmd_t) acmd, addr);
 	}
 	return false;
 }
 
 bool goto_idle_state() {
-	uint8_t temp_args[]={0x00, 0x00, 0x00,0x00};
-	bool retval = send_command(GO_IDLE_STATE,temp_args) && !any_error_except_idle() && is_idle();
+	bool retval = send_command(GO_IDLE_STATE,0) && !any_error_except_idle() && is_idle();
 	close_transaction();
 	return retval;
 }
 
 bool get_OCR_register() {
-	uint8_t temp_args[]={0x00, 0x00, 0x00, 0x00};
-	send_command(SEND_STATUS,temp_args);
+	send_command(SEND_STATUS,0);
 	receive_R3();
 	close_transaction();
 	return !any_error_except_idle();
 }
 
-
 bool write_hello() {
 	unsigned char test_string[] = "Hello World\n";
+	
+	//open transaction to write block to address zero and read R1	
+	if(send_command_checked(READ_SINGLE_BLOCK, 0)) {
+
+		sd_write_byte(0xFE);
+		for(uint16_t i=0;i<512;i++) {
+			if(i < sizeof(test_string)) {
+				sd_write_byte(test_string[i]);
+			} else {
+				sd_write_byte(0xFF);
+			}
+		}
+		sd_write_byte(0x00); //CRC16 byte 1
+		sd_write_byte(0x00); //CRC16 byte 2
+	}
+	uint8_t DRT;
+	if(((DRT = receive_DRT())&0x0E) != 0x04) {
+		printf("Received bad data response token: %02x\n",DRT);
+		return false;
+	}
+	while(line_is_busy());
+	close_transaction();
 	return false;	
 }
 
@@ -235,7 +261,7 @@ bool sd_init_card(bool enable_CRC) {
 		printf("Successfully returned to idle state.\n");
 	}
 
-	uint8_t if_cond_args[]={0x00, 0x00, 0x01, 0x42};
+	uint32_t if_cond_args = 0x00000142;
 	send_command(SEND_IF_COND,if_cond_args);
 	if(is_illegal_cmd()) {
 		card_state.version = VERSION_1_x;
@@ -278,7 +304,7 @@ bool sd_init_card(bool enable_CRC) {
 
 	if(enable_CRC) {
 		card_state.crc_enabled = true;
-		uint8_t crc_args[] = {0x00, 0x00, 0x00, 0x01};
+		uint32_t crc_args = 0x00000001;
 		if(!send_command(CRC_ON_OFF,crc_args) || any_error_except_idle()) {
 			printf("Failed to enable CRC\n");
 			return false;
@@ -286,9 +312,9 @@ bool sd_init_card(bool enable_CRC) {
 		close_transaction();
 	}
 
-	uint8_t op_cond_args[] = {0x00, 0x00, 0x00, 0x00};
+	uint32_t op_cond_args =0;
 	if(card_state.version == VERSION_2_later) {
-		op_cond_args[0] = 0x40;
+		op_cond_args |= 0x00000040;
 	}
 	printf("Entering init wait.\n");
 	do {
