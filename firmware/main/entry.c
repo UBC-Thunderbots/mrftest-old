@@ -8,6 +8,7 @@
 #include "motor.h"
 #include "mrf.h"
 #include "power.h"
+#include "sdcard.h"
 #include "sleep.h"
 #include "wheels.h"
 #include <inttypes.h>
@@ -339,6 +340,13 @@ static void avr_main(void) {
 		} else {
 			puts("Invalid parameters; using defaults.");
 		}
+	}
+
+	// Initialize the SDcard
+	if(sd_init_card(true))	{
+		printf("SD card successfully inited\n");
+	} else {
+		printf("OMGWTFBBQ\n");
 	}
 
 	// Initialize the radio

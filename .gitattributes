@@ -68,6 +68,8 @@ firmware/main/mrf.h -text
 firmware/main/pavr.ld -text
 firmware/main/power.c -text
 firmware/main/power.h -text
+firmware/main/sdcard.c -text
+firmware/main/sdcard.h -text
 firmware/main/sleep.c -text
 firmware/main/sleep.h -text
 firmware/main/wheels.c -text
