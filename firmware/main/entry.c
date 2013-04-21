@@ -383,9 +383,6 @@ static void avr_main(void) {
 				puts("Shutting down due to low battery.");
 				shutdown_sequence();
 			}
-			if (!(TICKS % 100)) {
-				printf("%u\n", (unsigned int) battery_average);
-			}
 		}
 
 		// Check if there is activity on the radio that needs handling
