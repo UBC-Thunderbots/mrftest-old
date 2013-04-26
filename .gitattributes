@@ -14,8 +14,6 @@ firmware/dongle/buzzer.h -text
 firmware/dongle/config.c -text
 firmware/dongle/config.h -text
 firmware/dongle/constants.h -text
-firmware/dongle/debug.c -text
-firmware/dongle/debug.h -text
 firmware/dongle/estop.c -text
 firmware/dongle/estop.h -text
 firmware/dongle/main.c -text
@@ -493,7 +491,6 @@ software/mrf/dongle.h -text
 software/mrf/robot.cpp -text
 software/mrf/robot.h -text
 software/mrfcap/main.cpp -text
-software/mrfdbg/main.cpp -text
 software/project.mk -text
 software/proto/grSim_Commands.proto -text
 software/proto/grSim_Packet.proto -text

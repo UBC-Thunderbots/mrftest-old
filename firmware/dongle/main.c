@@ -1,6 +1,5 @@
 #include "buzzer.h"
 #include "constants.h"
-#include "debug.h"
 #include "estop.h"
 #include "mrf.h"
 #include "normal.h"
@@ -102,7 +101,7 @@ static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	STRING_INDEX_MANUFACTURER, // iManufacturer
 	STRING_INDEX_PRODUCT, // iProduct
 	STRING_INDEX_SERIAL, // iSerialNumber
-	6, // bNumConfigurations
+	5, // bNumConfigurations
 };
 
 static const uint8_t PACKET_GENERATOR_CONFIGURATION_DESCRIPTOR[] = {
@@ -169,7 +168,6 @@ static const usb_configs_config_t * const CONFIGURATIONS[] = {
 	&PROMISCUOUS_CONFIGURATION,
 	/*&PACKET_GENERATOR_CONFIGURATION,*/
 	/*&PACKET_RECEIVER_CONFIGURATION,*/
-	&DEBUG_CONFIGURATION,
 	0
 };
 
@@ -253,7 +251,6 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 					case 2: descriptor = PROMISCUOUS_CONFIGURATION_DESCRIPTOR; break;
 					case 3: descriptor = PACKET_GENERATOR_CONFIGURATION_DESCRIPTOR; break;
 					case 4: descriptor = PACKET_RECEIVER_CONFIGURATION_DESCRIPTOR; break;
-					case 5: descriptor = DEBUG_CONFIGURATION_DESCRIPTOR; break;
 				}
 				if (descriptor) {
 					size_t total_length = descriptor[2] | (descriptor[3] << 8);
@@ -280,7 +277,6 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 						case STRING_INDEX_CONFIG3: string = u8"Promiscuous Mode"; break;
 						case STRING_INDEX_CONFIG4: string = u8"Packet Generator"; break;
 						case STRING_INDEX_CONFIG5: string = u8"Packet Receiver"; break;
-						case STRING_INDEX_CONFIG6: string = u8"Debug Mode"; break;
 						case STRING_INDEX_SERIAL:
 							formathex32((char *) stash_buffer + 0, U_ID_H);
 							formathex32((char *) stash_buffer + 8, U_ID_M);

@@ -125,7 +125,7 @@ MRFDongle::~MRFDongle() {
 void MRFDongle::beep(unsigned int length) {
 	pending_beep_length = std::max(length, pending_beep_length);
 	if (!beep_transfer && pending_beep_length) {
-		beep_transfer.reset(new USB::ControlNoDataTransfer(device, LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, 0x12, static_cast<uint16_t>(pending_beep_length), 0, 0));
+		beep_transfer.reset(new USB::ControlNoDataTransfer(device, LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, 0x0C, static_cast<uint16_t>(pending_beep_length), 0, 0));
 		beep_transfer->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_beep_done));
 		beep_transfer->submit();
 		pending_beep_length = 0;
