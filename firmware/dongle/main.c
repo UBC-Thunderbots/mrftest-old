@@ -92,10 +92,10 @@ static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	0, // bDeviceSubClass
 	0, // bDeviceProtocol
 	8, // bMaxPacketSize0
-	0x83, // idVendor LSB
-	0x04, // idVendor MSB
-	0x7C, // idProduct LSB
-	0x49, // idProduct MSB
+	(uint8_t) MRF_DONGLE_VID, // idVendor LSB
+	MRF_DONGLE_VID >> 8, // idVendor MSB
+	(uint8_t) MRF_DONGLE_PID, // idProduct LSB
+	MRF_DONGLE_PID >> 8, // idProduct MSB
 	0, // bcdDevice LSB
 	1, // bcdDevice MSB
 	STRING_INDEX_MANUFACTURER, // iManufacturer

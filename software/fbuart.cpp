@@ -1,25 +1,13 @@
 #include "main.h"
+#include "fw/fb/constants.h"
 #include "util/libusb.h"
 #include <cstdint>
 #include <iostream>
 
-namespace {
-	enum {
-		CONTROL_REQUEST_READ_IO,
-		CONTROL_REQUEST_WRITE_IO,
-		CONTROL_REQUEST_JEDEC_ID,
-		CONTROL_REQUEST_READ_STATUS,
-		CONTROL_REQUEST_READ,
-		CONTROL_REQUEST_WRITE,
-		CONTROL_REQUEST_ERASE,
-		CONTROL_REQUEST_GET_ERRORS,
-	};
-}
-
 int app_main(int, char **) {
 	// Set up the device.
 	USB::Context usb_context;
-	USB::DeviceHandle usb_handle(usb_context, 0x0483, 0x497D);
+	USB::DeviceHandle usb_handle(usb_context, FLASH_BURNER_VID, FLASH_BURNER_PID);
 	USB::ConfigurationSetter usb_config_setter(usb_handle, 4);
 	USB::InterfaceClaimer usb_interface_claimer(usb_handle, 0);
 

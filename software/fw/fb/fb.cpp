@@ -1,4 +1,5 @@
-#include "fw/fb.h"
+#include "fw/fb/fb.h"
+#include "fw/fb/constants.h"
 #include "util/libusb.h"
 #include "util/string.h"
 #include <algorithm>
@@ -12,17 +13,6 @@
 #define READ_BLOCK_SIZE 4096
 
 namespace {
-	enum {
-		CONTROL_REQUEST_READ_IO,
-		CONTROL_REQUEST_WRITE_IO,
-		CONTROL_REQUEST_JEDEC_ID,
-		CONTROL_REQUEST_READ_STATUS,
-		CONTROL_REQUEST_READ,
-		CONTROL_REQUEST_WRITE,
-		CONTROL_REQUEST_ERASE,
-		CONTROL_REQUEST_GET_ERRORS,
-	};
-
 	enum {
 		PIN_MOSI = 1,
 		PIN_MISO = 2,
@@ -70,7 +60,7 @@ void Firmware::fb_upload(const IntelHex &hex, bool onboard, bool leave_powered) 
 	std::cout << "Finding and activating burner module… ";
 	std::cout.flush();
 	USB::Context context;
-	USB::DeviceHandle handle(context, 0x0483, 0x497D);
+	USB::DeviceHandle handle(context, FLASH_BURNER_VID, FLASH_BURNER_PID);
 	USB::ConfigurationSetter config_setter(handle, onboard ? 3 : 2);
 	USB::InterfaceClaimer interface_claimer(handle, 0);
 	handle.set_interface_alt_setting(0, 1);

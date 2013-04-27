@@ -448,8 +448,9 @@ software/drive/robot.cpp -text
 software/drive/robot.h -text
 software/experiment/main.cpp -text
 software/fbuart.cpp -text
-software/fw/fb.cpp -text
-software/fw/fb.h -text
+software/fw/fb/constants.h -text
+software/fw/fb/fb.cpp -text
+software/fw/fb/fb.h -text
 software/fw/ihex.cpp -text
 software/fw/ihex.h -text
 software/fw/main.cpp -text
@@ -486,6 +487,7 @@ software/log/shared/magic.cpp -text
 software/log/shared/magic.h -text
 software/main.cpp -text
 software/main.h -text
+software/mrf/constants.h -text
 software/mrf/dongle.cpp -text
 software/mrf/dongle.h -text
 software/mrf/robot.cpp -text

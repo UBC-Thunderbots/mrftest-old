@@ -1,8 +1,8 @@
 #include "main.h"
-#include "fw/fb.h"
 #include "fw/ihex.h"
 #include "fw/pk2.h"
 #include "fw/xbee.h"
+#include "fw/fb/fb.h"
 #include "util/crc16.h"
 #include "util/string.h"
 #include <iostream>

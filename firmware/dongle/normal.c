@@ -388,19 +388,19 @@ static void exti12_interrupt_vector(void) {
 					// Transmission failed.
 					if (txstat & (1 << 5)) {
 						// CCA failed.
-						pkt->delivery_status = 0x03;
+						pkt->delivery_status = MDR_STATUS_NO_CLEAR_CHANNEL;
 					} else {
 						// Assume: No ACK.
 #warning possibly bad assumption; add a code for "unknown reason"
-						pkt->delivery_status = 0x02;
+						pkt->delivery_status = MDR_STATUS_NOT_ACKNOWLEDGED;
 					}
 				} else {
 					// Transmission successful.
-					pkt->delivery_status = 0x00;
+					pkt->delivery_status = MDR_STATUS_OK;
 				}
 
 				// Decide whether to try transmission again or to retire the packet.
-				if (pkt->delivery_status == 0x00 || !pkt->retries_remaining) {
+				if (pkt->delivery_status == MDR_STATUS_OK || !pkt->retries_remaining) {
 					// Push the packet buffer onto the message delivery report queue (if reliable, else free).
 					if (pkt->reliable) {
 						// Save the message delivery report.

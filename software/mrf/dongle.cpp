@@ -1,4 +1,5 @@
 #include "mrf/dongle.h"
+#include "mrf/constants.h"
 #include "mrf/robot.h"
 #include "util/annunciator.h"
 #include "util/dprint.h"
@@ -43,10 +44,10 @@ MRFDongle::SendReliableMessageOperation::SendReliableMessageOperation(MRFDongle 
 void MRFDongle::SendReliableMessageOperation::result() const {
 	transfer->result();
 	switch (delivery_status) {
-		case 0x00: break;
-		case 0x01: throw NotAssociatedError();
-		case 0x02: throw NotAcknowledgedError();
-		case 0x03: throw ClearChannelError();
+		case MDR_STATUS_OK: break;
+		case MDR_STATUS_NOT_ASSOCIATED: throw NotAssociatedError();
+		case MDR_STATUS_NOT_ACKNOWLEDGED: throw NotAcknowledgedError();
+		case MDR_STATUS_NO_CLEAR_CHANNEL: throw ClearChannelError();
 		default: throw std::logic_error("Unknown delivery status");
 	}
 }
@@ -83,7 +84,7 @@ MRFDongle::SendReliableMessageOperation::ClearChannelError::ClearChannelError() 
 
 
 
-MRFDongle::MRFDongle() : context(), device(context, 0x0483, 0x497C), mdr_transfer(device, 1, 8, false, 0), message_transfer(device, 2, 103, false, 0), status_transfer(device, 3, 2, true, 0), drive_dirty(false), pending_beep_length(0) {
+MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_PID), mdr_transfer(device, 1, 8, false, 0), message_transfer(device, 2, 103, false, 0), status_transfer(device, 3, 2, true, 0), drive_dirty(false), pending_beep_length(0) {
 	for (unsigned int i = 0; i < 8; ++i) {
 		robots[i].reset(new MRFRobot(*this, i));
 	}
@@ -94,11 +95,11 @@ MRFDongle::MRFDongle() : context(), device(context, 0x0483, 0x497C), mdr_transfe
 	device.set_configuration(1);
 	{
 		USB::InterfaceClaimer temp_interface_claimer(device, 0);
-		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x01, CHANNEL, 0, 0);
-		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x03, 0, 0, 0);
-		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x05, PAN_ID, 0, 0);
+		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_CHANNEL, CHANNEL, 0, 0);
+		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_SYMBOL_RATE, 0, 0, 0);
+		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_PAN_ID, PAN_ID, 0, 0);
 		static const uint64_t MAC = UINT64_C(0x20cb13bd834ab817);
-		device.control_out(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, 0x07, 0, 0, &MAC, sizeof(MAC), 0);
+		device.control_out(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_MAC_ADDRESS, 0, 0, &MAC, sizeof(MAC), 0);
 	}
 	config_setter.reset(new USB::ConfigurationSetter(device, 2));
 	interface_claimer.reset(new USB::InterfaceClaimer(device, 0));
@@ -125,7 +126,7 @@ MRFDongle::~MRFDongle() {
 void MRFDongle::beep(unsigned int length) {
 	pending_beep_length = std::max(length, pending_beep_length);
 	if (!beep_transfer && pending_beep_length) {
-		beep_transfer.reset(new USB::ControlNoDataTransfer(device, LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, 0x0C, static_cast<uint16_t>(pending_beep_length), 0, 0));
+		beep_transfer.reset(new USB::ControlNoDataTransfer(device, LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, CONTROL_REQUEST_BEEP, static_cast<uint16_t>(pending_beep_length), 0, 0));
 		beep_transfer->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_beep_done));
 		beep_transfer->submit();
 		pending_beep_length = 0;

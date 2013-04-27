@@ -88,10 +88,10 @@ static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	0, // bDeviceSubClass
 	0, // bDeviceProtocol
 	8, // bMaxPacketSize0
-	0x83, // idVendor LSB
-	0x04, // idVendor MSB
-	0x7D, // idProduct LSB
-	0x49, // idProduct MSB
+	(uint8_t) FLASH_BURNER_VID, // idVendor LSB
+	FLASH_BURNER_VID >> 8, // idVendor MSB
+	(uint8_t) FLASH_BURNER_PID, // idProduct LSB
+	FLASH_BURNER_PID >> 8, // idProduct MSB
 	0, // bcdDevice LSB
 	1, // bcdDevice MSB
 	STRING_INDEX_MANUFACTURER, // iManufacturer
