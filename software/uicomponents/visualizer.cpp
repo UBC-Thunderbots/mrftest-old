@@ -51,11 +51,7 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 
 	// Fill the background with field-green.
 	ctx->set_source_rgb(0.0, 0.33, 0.0);
-	ctx->move_to(0.0, 0.0);
-	ctx->line_to(width, 0.0);
-	ctx->line_to(width, height);
-	ctx->line_to(0.0, height);
-	ctx->fill();
+	ctx->paint();
 
 	// If the field data is invalid, go no further.
 	if (!data.field().valid()) {
