@@ -2,6 +2,7 @@
 #define SDCARD_H_
 
 #include <stdbool.h>
+#include <stdint.h>
 
 //For all addresses, SDSC uses byte addresses, SDHC or SDXC use block addresses
 typedef enum {
@@ -45,7 +46,23 @@ typedef enum {
 	SEND_SCR=51, // (no params) read the sd configuration register (SCR)
 } sd_acmd_t;
 
+typedef enum {
+	SD_POLL_SUCCESS,
+	SD_POLL_UNKNOWN,
+	SD_PREVIOUS_ERROR,
+	SD_CRC_ERROR,
+	SD_WRITE_ERROR,
+} sd_poll_error_t;
+
+sd_poll_error_t sd_poll();
 
 bool sd_init_card(bool enable_CRC);
 
+bool sd_multiwrite_open(uint32_t addr);
+
+void sd_multiwrite_finalize();
+
+bool sd_multiwrite_push_data(uint8_t *data, uint16_t length);
+
+uint16_t sd_multiwrite_available_buffer_space();
 #endif

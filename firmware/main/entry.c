@@ -343,10 +343,10 @@ static void avr_main(void) {
 	}
 
 	// Initialize the SDcard
-	if(sd_init_card(true))	{
-		printf("SD card successfully inited\n");
+	if(sd_init_card(false))	{
+		puts("SD card successfully inited");
 	} else {
-		printf("OMGWTFBBQ\n");
+		puts("OMGWTFBBQ");
 	}
 
 	// Initialize the radio

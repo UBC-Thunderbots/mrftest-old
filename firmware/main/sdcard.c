@@ -1,8 +1,9 @@
 #include "sdcard.h"
 #include "io.h"
 #include <stddef.h>
-#include <stdint.h>
 #include <stdio.h>
+
+#define START_BLOCK 0b11111110
 
 bool sd_write_busy(void) {
 	return !!(SD_CTL&0x01);
@@ -95,19 +96,21 @@ void sd_reset_state() {
 	card_state.enabled = false;
 }
 
+#define LINE_IDLE_STATE 0xFF
+uint8_t sd_receive_byte() {
+	send_nop();
+	return sd_read_byte();
+}
+
 uint8_t receive_DRT() {
 	uint8_t byte;
-	do {
-		send_nop();
-		} while ((byte = sd_read_byte()) == 0xFF);
+	while ((byte = sd_receive_byte()) == LINE_IDLE_STATE);
 	return byte;
 }
 
 void receive_R1() {
 	uint8_t byte;
-	do {
-		send_nop();
-		} while ((byte = sd_read_byte()) == 0xFF);
+	while ((byte = sd_receive_byte()) == LINE_IDLE_STATE);
 	card_state.response = byte;
 }
 
@@ -147,7 +150,7 @@ bool CRC7_error(void) {
 }
 
 bool any_error(void) {
-	return card_state.response;
+	return !!card_state.response;
 }
 
 bool voltage_check(void) {
@@ -212,13 +215,14 @@ bool get_OCR_register() {
 	return !any_error_except_idle();
 }
 
+
 bool write_hello() {
 	unsigned char test_string[] = "Hello World\n";
 	
 	//open transaction to write block to address zero and read R1	
-	if(send_command_checked(READ_SINGLE_BLOCK, 0)) {
+	if(send_command_checked(WRITE_BLOCK, 0)) {
 
-		sd_write_byte(0xFE);
+		sd_write_byte(START_BLOCK);
 		for(uint16_t i=0;i<512;i++) {
 			if(i < sizeof(test_string)) {
 				sd_write_byte(test_string[i]);
@@ -228,6 +232,9 @@ bool write_hello() {
 		}
 		sd_write_byte(0x00); //CRC16 byte 1
 		sd_write_byte(0x00); //CRC16 byte 2
+	} else {
+		puts("Send WRITE_SINGLE_BLOCK failed");
+		return false;
 	}
 	uint8_t DRT;
 	if(((DRT = receive_DRT())&0x0E) != 0x04) {
@@ -236,17 +243,203 @@ bool write_hello() {
 	}
 	while(line_is_busy());
 	close_transaction();
-	return false;	
+	return true;	
 }
 
+typedef enum {
+	SEND_START,
+	WRITE_BYTE,
+	WRITE_CRC,
+	RECEIVE_DRT,
+	WAIT_BUSY,
+	ERROR,
+} sd_poll_state_t;
+
+#define BUFFER_SIZE 1024
+#define BLOCK_SIZE 512
+#define NUM_HEADS 2
+
+typedef struct {
+	uint8_t data[BUFFER_SIZE];
+	uint16_t head;
+	uint16_t tail;
+	uint8_t head_mask;
+	uint16_t heads[2];
+} sd_buffer_t;
+
+sd_buffer_t multiwrite_buffer;
+
+sd_poll_state_t poll_state;
+
+void initCRC16() {
+	//nop for now
+}
+
+void appendCRC16(uint8_t byte) {
+	//add to crc 16
+	//nop for now
+}
+
+void sendCRC16() {
+	sd_write_byte(0x00);
+	sd_write_byte(0x00);
+}
+
+bool send_next_byte() {
+	if(multiwrite_buffer.head != multiwrite_buffer.tail || multiwrite_buffer.head_mask) {
+		uint8_t shift=1;
+		for(uint8_t i=0;i<NUM_HEADS;i++) {
+			if(multiwrite_buffer.heads[i] == multiwrite_buffer.head && (multiwrite_buffer.head_mask & shift)) {
+				multiwrite_buffer.head_mask &= ~shift;
+			}
+		}
+		sd_write_byte(multiwrite_buffer.data[multiwrite_buffer.head]);
+		appendCRC16(multiwrite_buffer.data[multiwrite_buffer.head]);
+		multiwrite_buffer.head += 1;
+		multiwrite_buffer.head = (multiwrite_buffer.head)%BUFFER_SIZE;
+		return true;
+	}
+	return false;
+}
+
+sd_poll_error_t sd_poll() {
+	uint8_t data;
+	switch(poll_state) {
+		case SEND_START:
+			sd_write_byte(START_BLOCK);
+			initCRC16();
+			poll_state = WRITE_BYTE;
+			break;
+		case WRITE_BYTE:
+			if(send_next_byte()) {
+				poll_state = WRITE_CRC;
+			}
+			break;
+		case WRITE_CRC:
+				sendCRC16();
+				poll_state = RECEIVE_DRT; 
+			break;
+		case RECEIVE_DRT:
+			data = sd_receive_byte();
+			if(data != LINE_IDLE_STATE) {
+				switch(data&0x1F) {
+					case 0x05:
+						poll_state = WAIT_BUSY;
+						return SD_POLL_SUCCESS;
+					case 0x0B:
+						poll_state = ERROR;
+						return SD_CRC_ERROR;
+					case 0x0D:
+						poll_state = ERROR;
+						return SD_WRITE_ERROR;
+				}
+			}
+			break;
+		case WAIT_BUSY:
+			if(!line_is_busy()) {
+				poll_state = SEND_START;
+			}
+			break;
+		case ERROR:
+			return SD_PREVIOUS_ERROR;
+		default:
+			return SD_POLL_UNKNOWN;
+	}
+	return SD_POLL_SUCCESS;
+}
+
+
+uint16_t sd_mulitwrite_available_buffer_space() {
+	uint16_t length = BUFFER_SIZE - ((multiwrite_buffer.tail-multiwrite_buffer.head)%BUFFER_SIZE);
+
+	if(length == BUFFER_SIZE && (multiwrite_buffer.head_mask)) {
+		return 0;
+	}
+
+	return length;
+}
+
+
+void buffer_push(uint8_t *data, uint16_t length) {
+	for(uint16_t i=0;i<length; ++i) {
+		multiwrite_buffer.data[multiwrite_buffer.tail]=data[i];
+		if(!((multiwrite_buffer.tail - multiwrite_buffer.head)%BLOCK_SIZE)) {
+			multiwrite_buffer.head_mask <<= 1;
+			for(uint8_t j=(NUM_HEADS-1);j!=0;--j) {
+				multiwrite_buffer.heads[j] = multiwrite_buffer.heads[j-1];
+			}
+			multiwrite_buffer.head_mask |= 0x01;
+			multiwrite_buffer.heads[0] = multiwrite_buffer.tail;
+		}
+		multiwrite_buffer.tail += 1;
+		multiwrite_buffer.tail = (multiwrite_buffer.tail)%BUFFER_SIZE;
+	}
+}
+
+void collapse_buffer() {
+	if(multiwrite_buffer.heads[NUM_HEADS-1] != multiwrite_buffer.head) {
+		//need to copy data from tail block to tailblock -1;
+		for(uint16_t i=0;multiwrite_buffer.heads[0]+i < multiwrite_buffer.tail; ++i) {
+			multiwrite_buffer.data[multiwrite_buffer.heads[1]+i] =multiwrite_buffer.data[multiwrite_buffer.heads[0]+i]; 
+		}
+	}
+	
+	multiwrite_buffer.tail = multiwrite_buffer.heads[0];
+	for(uint8_t i=0;i < (NUM_HEADS -1); ++i) {
+		multiwrite_buffer.heads[i] = multiwrite_buffer.heads[i+1];
+	}
+	
+	multiwrite_buffer.head_mask >>=1;
+}
+
+bool sd_mulitwrite_push_data(uint8_t *data, uint16_t length) {
+	uint16_t available_space = sd_multiwrite_available_buffer_space();
+	if(length > available_space) {
+		buffer_push(data,available_space);
+		data = data + available_space;
+		length = length - available_space;
+	} else {
+		buffer_push(data,length);
+		data = data + length;
+		length = length - length;
+	}
+
+	if(length) {
+		collapse_buffer();
+		sd_multiwrite_push_data(data,length);
+		return false;
+	}
+	return true;
+}
+
+void sd_multiwrite_finalize() {
+	uint8_t stuff_byte = 0x00;
+	while(poll_state != SEND_START) {
+		sd_multiwrite_push_data(&stuff_byte,1);
+		sd_poll();
+	};
+	close_transaction();
+}
+
+bool sd_multiwrite_open(uint32_t addr) {
+	//if standard card shift address here;
+	bool retval = send_command_checked(WRITE_MULTIPLE_BLOCK,addr);
+	poll_state = SEND_START;
+	multiwrite_buffer.head_mask=0x00;
+	multiwrite_buffer.head=0;
+	multiwrite_buffer.tail=0;
+	multiwrite_buffer.heads[0]=0;
+	multiwrite_buffer.heads[1]=0;
+	return retval;
+}
 
 bool sd_init_card(bool enable_CRC) {
 	sd_reset_state();
 	if(!is_sd_present()) {
-		printf("Card not detected.\n");
+		puts("Card not detected.");
 		return false;
 	} else {
-		printf("Card detected for init.\n");
+		puts("Card detected for init.");
 	}
 
 	sd_deassert_cs();
@@ -255,24 +448,24 @@ bool sd_init_card(bool enable_CRC) {
 	}
 	
 	if(!goto_idle_state()) {
-		printf("Failed to enter idle state");
+		puts("Failed to enter idle state");
 		return false;
 	} else {
-		printf("Successfully returned to idle state.\n");
+		puts("Successfully returned to idle state.");
 	}
 
 	uint32_t if_cond_args = 0x00000142;
 	send_command(SEND_IF_COND,if_cond_args);
 	if(is_illegal_cmd()) {
 		card_state.version = VERSION_1_x;
-		printf("possible VERSION 1_x card detected.\n");
+		puts("possible VERSION 1_x card detected.");
 	} else {
 		if(any_error_except_idle()) {
-			printf("Fatal error getting interface condition\n");
+			puts("Fatal error getting interface condition.");
 			return false;
 		}
 		card_state.version = VERSION_2_later;
-		printf("possible VERSION 2_later card detected.\n");
+		puts("possible VERSION 2_later card detected.");
 		send_nop(); //command version and reserved bits ignore these
 		send_nop(); //reserved bits ignore these
 		send_nop(); //reserved bits and voltage accepted
@@ -280,33 +473,33 @@ bool sd_init_card(bool enable_CRC) {
 		send_nop(); //check pattern
 		uint8_t check = sd_read_byte();
 		if((check != 0x42) || (voltage != 0x01)) {
-			printf("Fatal error getting interface condition\n");
+			puts("Fatal error getting interface condition.");
 			return false;
 		} else {
-			printf("Iterface condition checks out\n");
+			puts("Iterface condition checks out.");
 		}
 	}
 	close_transaction();
 
 	if(!get_OCR_register()) {
-		printf("Failed to initialize Card\n");
+		puts("Failed to initialize Card.");
 		return false;
 	} else {
-		printf("Retrieved OCR register\n");
+		puts("Retrieved OCR register.");
 	}
 
 	if(!voltage_check()) {
-		printf("Card voltage not compatible\n");
+		puts("Card voltage not compatible.");
 		return false;
 	} else {
-		printf("Card voltage appears compatible.\n");	
+		puts("Card voltage appears compatible.");	
 	}
 
 	if(enable_CRC) {
 		card_state.crc_enabled = true;
 		uint32_t crc_args = 0x00000001;
 		if(!send_command(CRC_ON_OFF,crc_args) || any_error_except_idle()) {
-			printf("Failed to enable CRC\n");
+			puts("Failed to enable CRC.");
 			return false;
 		}
 		close_transaction();
@@ -316,33 +509,33 @@ bool sd_init_card(bool enable_CRC) {
 	if(card_state.version == VERSION_2_later) {
 		op_cond_args |= 0x00000040;
 	}
-	printf("Entering init wait.\n");
+	puts("Entering init wait.");
 	do {
 		send_acommand(SD_SEND_OP_COND,op_cond_args);
 		close_transaction();
 	} while(is_idle() && !any_error_except_idle());
-	printf("Card no longer idle.\n");
+	puts("Card no longer idle.");
 
 	if(any_error_except_idle()) {
-		printf("Failed to initialize Card\n");
+		puts("Failed to initialize Card.");
 		return false;
 	}
 
 	do {
 		if(!get_OCR_register()) {
-			printf("Failed to get OCR register during init\n");
+			puts("Failed to get OCR register during init.");
 			return false;
 		} else {
-			printf("read OCR register\n");
+			puts("read OCR register.");
 		}
 	} while(!(card_state.OCR&0x8000));
 
 	if(card_state.OCR&0x4000 && card_state.version == VERSION_2_later) {
 		card_state.capacity = CAPACITY_HC;
-		printf("Card is high or extended capacity\n");
+		puts("Card is high or extended capacity.");
 	} else {
 		card_state.capacity = CAPACITY_SD;
-		printf("Card is standard capacity");
+		puts("Card is standard capacity");
 	}
 
 	card_state.enabled=true;
