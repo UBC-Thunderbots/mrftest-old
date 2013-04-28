@@ -257,6 +257,8 @@ typedef enum {
 
 #define BUFFER_SIZE 1024
 #define BLOCK_SIZE 512
+
+//ceil(BUFFER_SIZE/BLOCK_SIZE)
 #define NUM_HEADS 2
 
 typedef struct {
