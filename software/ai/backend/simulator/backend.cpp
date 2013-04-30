@@ -76,10 +76,14 @@ FileDescriptor AI::BE::Simulator::connect_to_simulator() {
 	sock.set_blocking(true);
 
 	// Connect to the simulator's socket.
-	sockaddr_un sa;
-	sa.sun_family = AF_UNIX;
-	std::strcpy(sa.sun_path, SIMULATOR_SOCKET_FILENAME);
-	if (connect(sock.fd(), reinterpret_cast<const sockaddr *>(&sa), sizeof(sa)) < 0) {
+	union {
+		sockaddr sa;
+		sockaddr_un un;
+	} sa;
+	std::memset(&sa, 0, sizeof(sa));
+	sa.un.sun_family = AF_UNIX;
+	std::strcpy(sa.un.sun_path, SIMULATOR_SOCKET_FILENAME);
+	if (connect(sock.fd(), &sa.sa, sizeof(sa.un)) < 0) {
 		throw SystemError("connect", errno);
 	}
 

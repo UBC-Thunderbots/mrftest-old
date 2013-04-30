@@ -41,10 +41,14 @@ namespace {
 		sock.set_blocking(false);
 
 		// Bind the new socket to the appropriate filename.
-		sockaddr_un sa;
-		sa.sun_family = AF_UNIX;
-		std::strcpy(sa.sun_path, SIMULATOR_SOCKET_FILENAME);
-		if (bind(sock.fd(), reinterpret_cast<const sockaddr *>(&sa), sizeof(sa)) < 0) {
+		union {
+			sockaddr sa;
+			sockaddr_un un;
+		} sa;
+		std::memset(&sa, 0, sizeof(sa));
+		sa.un.sun_family = AF_UNIX;
+		std::strcpy(sa.un.sun_path, SIMULATOR_SOCKET_FILENAME);
+		if (bind(sock.fd(), &sa.sa, sizeof(sa.un)) < 0) {
 			throw SystemError("bind(" SIMULATOR_SOCKET_FILENAME ")", errno);
 		}
 
