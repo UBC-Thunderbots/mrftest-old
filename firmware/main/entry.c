@@ -342,13 +342,6 @@ static void avr_main(void) {
 		}
 	}
 
-	// Initialize the SDcard
-	if(sd_init_card(false))	{
-		puts("SD card successfully inited");
-	} else {
-		puts("OMGWTFBBQ");
-	}
-
 	// Initialize the radio
 	mrf_init();
 	sleep_short();

@@ -51,6 +51,7 @@ typedef enum {
 	SD_POLL_UNKNOWN,
 	SD_PREVIOUS_ERROR,
 	SD_CRC_ERROR,
+	SD_DRT_ERROR,
 	SD_WRITE_ERROR,
 } sd_poll_error_t;
 
@@ -60,7 +61,7 @@ bool sd_init_card(bool enable_CRC);
 
 bool sd_multiwrite_open(uint32_t addr);
 
-void sd_multiwrite_finalize();
+bool sd_multiwrite_finalize();
 
 bool sd_multiwrite_push_data(uint8_t *data, uint16_t length);
 
