@@ -3,6 +3,7 @@
 
 #include "ai/ai.h"
 #include "proto/log_record.pb.h"
+#include "proto/referee.pb.h"
 #include "util/fd.h"
 #include "util/noncopyable.h"
 #include "util/param.h"
@@ -86,7 +87,7 @@ namespace AI {
 			void on_annunciator_message_reactivated(std::size_t i);
 			void on_param_changed(const Param *p);
 			void on_vision_packet(timespec ts, const SSL_WrapperPacket &vision_packet);
-			void on_refbox_packet(timespec ts, const void *refbox_packet, std::size_t refbox_length);
+			void on_refbox_packet(timespec ts, const SSL_Referee &packet);
 			void on_field_changed();
 			void on_friendly_colour_changed();
 			void on_high_level_changed();

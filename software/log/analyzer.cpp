@@ -453,7 +453,7 @@ namespace {
 				cols.append_kv(ts, row, "Unknown Flags", tohex(flags, 16));
 			}
 			return;
-		} else if (dynamic_cast<const Log::Refbox *>(&message) && fd.name() == "data") {
+		} else if (dynamic_cast<const Log::Refbox *>(&message) && fd.name() == "legacy_data") {
 			assert(fd.type() == google::protobuf::FieldDescriptor::TYPE_BYTES);
 			const std::string &data = refl.GetString(message, &fd);
 			if (data.size() != 6) {

@@ -65,7 +65,7 @@ namespace AI {
 
 					void tick();
 					void handle_vision_packet(const SSL_WrapperPacket &packet);
-					void on_refbox_packet(const void *data, std::size_t length);
+					void on_refbox_packet();
 					void update_playtype();
 					void update_scores();
 					void on_friendly_colour_changed();
@@ -84,11 +84,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::SSLVision::Ba
 		throw std::runtime_error("Invalid camera bitmask (must be 1–3)");
 	}
 
-	refbox.command.signal_changed().connect(sigc::mem_fun(this, &Backend::update_playtype));
 	friendly_colour().signal_changed().connect(sigc::mem_fun(this, &Backend::on_friendly_colour_changed));
 	playtype_override().signal_changed().connect(sigc::mem_fun(this, &Backend::update_playtype));
-	refbox.goals_yellow.signal_changed().connect(sigc::mem_fun(this, &Backend::update_scores));
-	refbox.goals_blue.signal_changed().connect(sigc::mem_fun(this, &Backend::update_scores));
 	refbox.signal_packet.connect(sigc::mem_fun(this, &Backend::on_refbox_packet));
 
 	clock.signal_tick.connect(sigc::mem_fun(this, &Backend::tick));
@@ -225,10 +222,12 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 	return;
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::on_refbox_packet(const void *data, std::size_t length) {
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::on_refbox_packet() {
+	update_scores();
+	update_playtype();
 	timespec now;
 	now = clock.now();
-	signal_refbox().emit(now, data, length);
+	signal_refbox().emit(now, refbox.packet);
 }
 
 template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::update_playtype() {
@@ -253,11 +252,11 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 
 template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::update_scores() {
 	if (friendly_colour() == AI::Common::Colour::YELLOW) {
-		friendly_team().score = refbox.goals_yellow.get();
-		enemy_team().score = refbox.goals_blue.get();
+		friendly_team().score = refbox.packet.yellow().score();
+		enemy_team().score = refbox.packet.blue().score();
 	} else {
-		friendly_team().score = refbox.goals_blue.get();
-		enemy_team().score = refbox.goals_yellow.get();
+		friendly_team().score = refbox.packet.blue().score();
+		enemy_team().score = refbox.packet.yellow().score();
 	}
 }
 
@@ -269,18 +268,18 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 }
 
 template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::compute_playtype(AI::Common::PlayType old_pt) {
-	switch (refbox.command) {
-		case 'H': // HALT
-		case 'h': // HALF TIME
-		case 't': // TIMEOUT YELLOW
-		case 'T': // TIMEOUT BLUE
+	switch (refbox.packet.command()) {
+		case SSL_Referee::HALT:
+		case SSL_Referee::TIMEOUT_YELLOW:
+		case SSL_Referee::TIMEOUT_BLUE:
 			return AI::Common::PlayType::HALT;
 
-		case 'S': // STOP
-		case 'z': // END TIMEOUT
+		case SSL_Referee::STOP:
+		case SSL_Referee::GOAL_YELLOW:
+		case SSL_Referee::GOAL_BLUE:
 			return AI::Common::PlayType::STOP;
 
-		case ' ': // NORMAL START
+		case SSL_Referee::NORMAL_START:
 			switch (old_pt) {
 				case AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY:
 					playtype_arm_ball_position = ball_.position();
@@ -312,7 +311,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType 
 					return AI::Common::PlayType::PLAY;
 			}
 
-		case 'f': // DIRECT FREE KICK YELLOW
+		case SSL_Referee::DIRECT_FREE_YELLOW:
 			if (old_pt == AI::Common::PlayType::PLAY) {
 				return AI::Common::PlayType::PLAY;
 			} else if (old_pt == AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) {
@@ -326,7 +325,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType 
 				return AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY;
 			}
 
-		case 'F': // DIRECT FREE KICK BLUE
+		case SSL_Referee::DIRECT_FREE_BLUE:
 			if (old_pt == AI::Common::PlayType::PLAY) {
 				return AI::Common::PlayType::PLAY;
 			} else if (old_pt == AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) {
@@ -340,7 +339,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType 
 				return AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY;
 			}
 
-		case 'i': // INDIRECT FREE KICK YELLOW
+		case SSL_Referee::INDIRECT_FREE_YELLOW:
 			if (old_pt == AI::Common::PlayType::PLAY) {
 				return AI::Common::PlayType::PLAY;
 			} else if (old_pt == AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY) {
@@ -354,7 +353,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType 
 				return AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY;
 			}
 
-		case 'I': // INDIRECT FREE KICK BLUE
+		case SSL_Referee::INDIRECT_FREE_BLUE:
 			if (old_pt == AI::Common::PlayType::PLAY) {
 				return AI::Common::PlayType::PLAY;
 			} else if (old_pt == AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY) {
@@ -368,38 +367,23 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType 
 				return AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY;
 			}
 
-		case 's': // FORCE START
+		case SSL_Referee::FORCE_START:
 			return AI::Common::PlayType::PLAY;
 
-		case 'k': // KICKOFF YELLOW
+		case SSL_Referee::PREPARE_KICKOFF_YELLOW:
 			return AI::Common::PlayType::PREPARE_KICKOFF_ENEMY;
 
-		case 'K': // KICKOFF BLUE
+		case SSL_Referee::PREPARE_KICKOFF_BLUE:
 			return AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY;
 
-		case 'p': // PENALTY YELLOW
+		case SSL_Referee::PREPARE_PENALTY_YELLOW:
 			return AI::Common::PlayType::PREPARE_PENALTY_ENEMY;
 
-		case 'P': // PENALTY BLUE
+		case SSL_Referee::PREPARE_PENALTY_BLUE:
 			return AI::Common::PlayType::PREPARE_PENALTY_FRIENDLY;
-
-		case '1': // BEGIN FIRST HALF
-		case '2': // BEGIN SECOND HALF
-		case 'o': // BEGIN OVERTIME 1
-		case 'O': // BEGIN OVERTIME 2
-		case 'a': // BEGIN PENALTY SHOOTOUT
-		case 'g': // GOAL YELLOW
-		case 'G': // GOAL BLUE
-		case 'd': // REVOKE GOAL YELLOW
-		case 'D': // REVOKE GOAL BLUE
-		case 'y': // YELLOW CARD YELLOW
-		case 'Y': // YELLOW CARD BLUE
-		case 'r': // RED CARD YELLOW
-		case 'R': // RED CARD BLUE
-		case 'c': // CANCEL
-		default:
-			return old_pt;
 	}
+
+	return old_pt;
 }
 
 #endif

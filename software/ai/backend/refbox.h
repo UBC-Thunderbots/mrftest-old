@@ -1,6 +1,7 @@
 #ifndef AI_BACKEND_REFBOX_H
 #define AI_BACKEND_REFBOX_H
 
+#include "proto/referee.pb.h"
 #include "util/fd.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
@@ -9,29 +10,19 @@
 namespace AI {
 	namespace BE {
 		/**
-		 * Provides the ability to receive referee box packets.
+		 * \brief Provides the ability to receive referee box packets.
 		 */
 		class RefBox : public NonCopyable, public sigc::trackable {
 			public:
 				/**
-				 * The current command character.
+				 * \brief The most recently received referee box packet.
 				 */
-				Property<char> command;
-
-				/**
-				 * The blue team's score.
-				 */
-				Property<unsigned int> goals_blue;
-
-				/**
-				 * The yellow team's score.
-				 */
-				Property<unsigned int> goals_yellow;
+				SSL_Referee packet;
 
 				/**
 				 * Fired on receipt of a packet.
 				 */
-				mutable sigc::signal<void, const void *, std::size_t> signal_packet;
+				mutable sigc::signal<void> signal_packet;
 
 				/**
 				 * Constructs a new RefBox.

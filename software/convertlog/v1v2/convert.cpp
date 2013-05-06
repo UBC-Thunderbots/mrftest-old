@@ -450,7 +450,7 @@ namespace {
 					Log::Record record;
 					record.mutable_refbox()->mutable_timestamp()->set_seconds(most_recent_monotonic.tv_sec);
 					record.mutable_refbox()->mutable_timestamp()->set_nanoseconds(static_cast<int32_t>(most_recent_monotonic.tv_nsec));
-					record.mutable_refbox()->set_data(payload, payload_length);
+					record.mutable_refbox()->set_legacy_data(payload, payload_length);
 					write_record(record, dest);
 
 					// The old XBee backend had a bug which generated bad T_SCORES packets.

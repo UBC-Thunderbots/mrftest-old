@@ -140,8 +140,6 @@ software/ai/backend/player.cpp -text
 software/ai/backend/player.h -text
 software/ai/backend/refbox.cpp -text
 software/ai/backend/refbox.h -text
-software/ai/backend/refbox_packet.def -text
-software/ai/backend/refbox_packet.h -text
 software/ai/backend/robot.cpp -text
 software/ai/backend/robot.h -text
 software/ai/backend/simulator/backend.cpp -text
@@ -501,6 +499,7 @@ software/proto/log_record.proto -text
 software/proto/messages_robocup_ssl_detection.proto -text
 software/proto/messages_robocup_ssl_geometry.proto -text
 software/proto/messages_robocup_ssl_wrapper.proto -text
+software/proto/referee.proto -text
 software/simulator/Pal[!!-~]Report.txt.txt -text
 software/simulator/ball.h -text
 software/simulator/connection.cpp -text

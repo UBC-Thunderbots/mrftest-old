@@ -257,10 +257,10 @@ void AI::Logger::on_vision_packet(timespec ts, const SSL_WrapperPacket &vision_p
 	write_record(record);
 }
 
-void AI::Logger::on_refbox_packet(timespec ts, const void *refbox_packet, std::size_t refbox_length) {
+void AI::Logger::on_refbox_packet(timespec ts, const SSL_Referee &packet) {
 	Log::Record record;
 	timespec_to_log(ts, *record.mutable_refbox()->mutable_timestamp());
-	record.mutable_refbox()->set_data(refbox_packet, refbox_length);
+	*record.mutable_refbox()->mutable_new_data() = packet;
 	write_record(record);
 }
 

@@ -9,6 +9,7 @@
 #include "ai/common/team.h"
 #include "geom/predictor.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
+#include "proto/referee.pb.h"
 #include "uicomponents/visualizer.h"
 #include "util/box_ptr.h"
 #include "util/noncopyable.h"
@@ -240,7 +241,7 @@ namespace AI {
 				 *
 				 * \return the referee box signal.
 				 */
-				sigc::signal<void, timespec, const void *, std::size_t> &signal_refbox() const;
+				sigc::signal<void, timespec, const SSL_Referee &> &signal_refbox() const;
 
 				/**
 				 * \brief Returns a signal that fires when the visualizer needs an overlay to be drawn.
@@ -286,7 +287,7 @@ namespace AI {
 				mutable sigc::signal<void> signal_tick_;
 				mutable sigc::signal<void, unsigned int> signal_post_tick_;
 				mutable sigc::signal<void, timespec, const SSL_WrapperPacket &> signal_vision_;
-				mutable sigc::signal<void, timespec, const void *, std::size_t> signal_refbox_;
+				mutable sigc::signal<void, timespec, const SSL_Referee &> signal_refbox_;
 				mutable sigc::signal<void, Cairo::RefPtr<Cairo::Context> > signal_draw_overlay_;
 
 				void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
@@ -351,7 +352,7 @@ inline sigc::signal<void, timespec, const SSL_WrapperPacket &> &AI::BE::Backend:
 	return signal_vision_;
 }
 
-inline sigc::signal<void, timespec, const void *, std::size_t> &AI::BE::Backend::signal_refbox() const {
+inline sigc::signal<void, timespec, const SSL_Referee &> &AI::BE::Backend::signal_refbox() const {
 	return signal_refbox_;
 }
 
