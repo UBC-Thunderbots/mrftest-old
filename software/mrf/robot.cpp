@@ -163,7 +163,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 					alive = true;
 					battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 20000);
 					capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 200000);
-					break_beam_reading = bptr[4] | static_cast<unsigned int>(bptr[5] << 8);
+					break_beam_reading = static_cast<int16_t>(static_cast<uint16_t>(bptr[4] | static_cast<unsigned int>(bptr[5] << 8)));
 					board_temperature = adc_voltage_to_board_temp((bptr[6] | static_cast<unsigned int>(bptr[7] << 8)) / 1024.0 * 3.3);
 					ball_in_beam = !!(bptr[8] & 0x01);
 					capacitor_charged = !!(bptr[8] & 0x02);

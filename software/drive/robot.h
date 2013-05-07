@@ -63,7 +63,7 @@ namespace Drive {
 			/**
 			 * \brief The raw analogue-to-digital converter reading of the robot’s laser sensor
 			 */
-			Property<unsigned int> break_beam_reading;
+			Property<int> break_beam_reading;
 
 			/**
 			 * \brief The temperature of the robot’s dribbler motor, in degrees Celsius
