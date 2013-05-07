@@ -16,6 +16,7 @@
 #include <limits>
 #include <locale>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <unistd.h>
 #include <vector>
@@ -264,14 +265,24 @@ void LogLauncher::on_log_list_selection_changed() {
 void LogLauncher::on_analyzer_clicked() {
 	const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
 	for (auto i = selected.begin(), iend = selected.end(); i != iend; ++i) {
-		new LogAnalyzer(*this, filename_to_pathname(files[static_cast<std::size_t>((*i)[0])]));
+		try {
+			new LogAnalyzer(*this, filename_to_pathname(files[static_cast<std::size_t>((*i)[0])]));
+		} catch (const std::runtime_error &exp) {
+			Gtk::MessageDialog md(*this, exp.what(), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
+			md.run();
+		}
 	}
 }
 
 void LogLauncher::on_player_clicked() {
 	const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
 	for (auto i = selected.begin(), iend = selected.end(); i != iend; ++i) {
-		new LogPlayer(*this, filename_to_pathname(files[static_cast<std::size_t>((*i)[0])]));
+		try {
+			new LogPlayer(*this, filename_to_pathname(files[static_cast<std::size_t>((*i)[0])]));
+		} catch (const std::runtime_error &exp) {
+			Gtk::MessageDialog md(*this, exp.what(), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
+			md.run();
+		}
 	}
 }
 
