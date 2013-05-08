@@ -125,7 +125,7 @@ int app_main(int argc, char **argv) {
 			{
 				auto stamp = std::chrono::system_clock::now();
 				std::time_t converted = std::chrono::system_clock::to_time_t(stamp);
-				std::chrono::duration<uint64_t, std::micro> micros = stamp.time_since_epoch();
+				std::chrono::duration<uint64_t, std::micro> micros = std::chrono::duration_cast<std::chrono::duration<uint64_t, std::micro>>(stamp.time_since_epoch());
 				if (static_cast<uint64_t>(converted) == micros.count() / UINT64_C(1000000)) {
 					// std::chrono::system_clock and time_t use the same units on this platform, so we can get a fractional part.
 					seconds = static_cast<uint32_t>(micros.count() / UINT64_C(1000000));
