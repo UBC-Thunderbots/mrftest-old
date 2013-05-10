@@ -259,22 +259,32 @@
  * \brief Controls and reports status of the MRF24J40
  *
  * Bits:
- * 7–5: Reserved
- * 4 (R): Reports the level on the INT pin
- * 3 (R/W) [0]: Sets the level on the WAKE pin
- * 2 (R/W) [1]: Sets the level on the /RESET pin
- * 1 (R/W) [1]: Sets the level on the /CS pin
- * 0 (R) [0]: Indicates whether an SPI transaction is in progress; 1 = busy, 0 = idle
+ * 7 (R): Indicates whether an operation is currently executing; 1 = busy, 0 = idle
+ * 6 (S): Starts a long-address register write on set
+ * 5 (S): Starts a short-address register write on set
+ * 4 (S): Starts a long-address register read on set
+ * 3 (S): Starts a short-address register read on set
+ * 2 (R): Reports the level on the INT pin
+ * 1 (R/W) [0]: Sets the level on the WAKE pin
+ * 0 (R/W) [1]: Sets the level on the /RESET pin
  */
 #define MRF_CTL IO_PORT(0x18)
 
 /**
- * \brief Reads and writes data on the MRF24J40 SPI bus
+ * \brief Provides access to the register value.
  *
- * On write, starts an SPI transaction outputting the written byte
- * On read (when MRF_CTL<0> = 0), returns the most recent byte read from the bus
+ * On write, sets the value that will be written in a register write.
+ * On read, returns the value most recently read by a register read.
  */
 #define MRF_DATA IO_PORT(0x19)
+
+/**
+ * \brief Sets the address of the register to be accessed in the MRF24J40.
+ *
+ * On write, transfers the previous written byte to the MSB of the address and writes the new value to the LSB.
+ * On read, returns an unspecified value.
+ */
+#define MRF_ADDR IO_PORT(0x1A)
 
 /**
  * \brief Controls the lateral position sensor

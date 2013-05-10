@@ -2,59 +2,34 @@
 #include "mrf.h"
 #include "sleep.h"
 
-static inline void sleep_50ns(void) {
-	asm volatile("nop");
-	asm volatile("nop");
-}
-
 uint8_t mrf_read_short(uint8_t reg) {
-	MRF_CTL = 0x04; // Assert chip select
-	sleep_50ns();
-	MRF_DATA = reg << 1; // Send first byte (read command plus address)
-	while (MRF_CTL & 0x01); // Wait for bus idle
-	MRF_DATA = 0x00; // Send second byte (dummy for receive)
-	while (MRF_CTL & 0x01); // Wait for bus idle
-	sleep_50ns();
-	MRF_CTL = 0x06; // Deassert chip select
-	return MRF_DATA; // Return read data
+	MRF_ADDR = reg;
+	MRF_CTL = 0b00001001;
+	while (MRF_CTL & 0x80);
+	return MRF_DATA;
 }
 
 void mrf_write_short(uint8_t reg, uint8_t value) {
-	MRF_CTL = 0x04; // Assert chip select
-	sleep_50ns();
-	MRF_DATA = (reg << 1) | 0x01; // Send first byte (write command plus address)
-	while (MRF_CTL & 0x01); // Wait for bus idle
-	MRF_DATA = value; // Send second byte (value)
-	while (MRF_CTL & 0x01); // Wait for bus idle
-	sleep_50ns();
-	MRF_CTL = 0x06; // Deassert chip select
+	MRF_ADDR = reg;
+	MRF_DATA = value;
+	MRF_CTL = 0b00100001;
+	while (MRF_CTL & 0x80);
 }
 
 uint8_t mrf_read_long(uint16_t reg) {
-	MRF_CTL = 0x04; // Assert chip select
-	sleep_50ns();
-	MRF_DATA = (reg >> 3) | 0x80; // Send first byte (start of address)
-	while (MRF_CTL & 0x01); // Wait for bus idle
-	MRF_DATA = reg << 5; // Send second byte (rest of address plus read command)
-	while (MRF_CTL & 0x01); // Wait for bus idle
-	MRF_DATA = 0x00; // Send third byte (dummy for receive)
-	while (MRF_CTL & 0x01); // Wait for bus idle
-	sleep_50ns();
-	MRF_CTL = 0x06; // Deassert chip select
-	return MRF_DATA; // Return read data
+	MRF_ADDR = reg >> 8;
+	MRF_ADDR = reg;
+	MRF_CTL = 0b00010001;
+	while (MRF_CTL & 0x80);
+	return MRF_DATA;
 }
 
 void mrf_write_long(uint16_t reg, uint8_t value) {
-	MRF_CTL = 0x04; // Assert chip select
-	sleep_50ns();
-	MRF_DATA = (reg >> 3) | 0x80; // Send first byte (start of address)
-	while (MRF_CTL & 0x01); // Wait for bus idle
-	MRF_DATA = (reg << 5) | 0x10; // Send second byte (rest of address plus write command)
-	while (MRF_CTL & 0x01); // Wait for bus idle
-	MRF_DATA = value; // Send third byte (value)
-	while (MRF_CTL & 0x01); // Wait for bus idle
-	sleep_50ns();
-	MRF_CTL = 0x06; // Deassert chip select
+	MRF_ADDR = reg >> 8;
+	MRF_ADDR = reg;
+	MRF_DATA = value;
+	MRF_CTL = 0b01000001;
+	while (MRF_CTL & 0x80);
 }
 
 void mrf_common_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint64_t mac_address) {

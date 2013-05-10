@@ -129,14 +129,14 @@ typedef enum {
  * \brief Initializes the interface to the radio and places the radio in reset
  */
 static inline void mrf_init(void) {
-	MRF_CTL = 0x02;
+	MRF_CTL = 0x00;
 }
 
 /**
  * \brief Releases the radio from reset
  */
 static inline void mrf_release_reset(void) {
-	MRF_CTL = 0x06;
+	MRF_CTL = 0x01;
 }
 
 /**
@@ -145,7 +145,7 @@ static inline void mrf_release_reset(void) {
  * \return \c true if the interrupt line is high, or \c false if low
  */
 static inline bool mrf_get_interrupt(void) {
-	return !!(MRF_CTL & 0x10);
+	return !!(MRF_CTL & 0x04);
 }
 
 /**
