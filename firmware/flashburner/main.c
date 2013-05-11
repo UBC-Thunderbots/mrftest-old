@@ -325,7 +325,7 @@ static void handle_usb_plug(void) {
 
 static void handle_autonomous_burn_and_turn_off(void) {
 	// Clear the pending interrupt.
-	EXTI_PR = 1 << 14;
+	EXTI_PR = 1 << 15;
 
 	if (usb_ll_get_state() != USB_LL_STATE_ACTIVE || usb_configs_get_current() <= 1) {
 		// The USB is not in host-controlled mode.
@@ -339,7 +339,7 @@ static void handle_autonomous_burn_and_turn_off(void) {
 
 static void handle_autonomous_burn_and_boot(void) {
 	// Clear the pending interrupt.
-	EXTI_PR = 1 << 15;
+	EXTI_PR = 1 << 14;
 
 	if (usb_ll_get_state() != USB_LL_STATE_ACTIVE || usb_configs_get_current() <= 1) {
 		// The USB is not in host-controlled mode.
@@ -615,9 +615,9 @@ static void stm32_main(void) {
 	// PC15 is SW2 which is burn and turn off.
 	// PC14 is SW3 which is burn and boot.
 	exti_map(14, 2);
-	exti_set_handler(14, &handle_autonomous_burn_and_turn_off);
+	exti_set_handler(14, &handle_autonomous_burn_and_boot);
 	exti_map(15, 2);
-	exti_set_handler(15, &handle_autonomous_burn_and_boot);
+	exti_set_handler(15, &handle_autonomous_burn_and_turn_off);
 	EXTI_FTSR |= (1 << 14) | (1 << 15);
 	EXTI_IMR |= (1 << 14) | (1 << 15);
 	NVIC_ISER[40 / 32] = 1 << (40 % 32); // SETENA40 = 1; enable EXTI 15 through 10 interrupts
