@@ -222,14 +222,14 @@ bool get_OCR_register() {
 }
 
 
-//The states of the multiblock write poll thingamajig
+//The states of the multiblock write poll
 typedef enum {
-	SEND_START,
-	WRITE_BYTE,
-	WRITE_CRC,
-	RECEIVE_DRT,
-	WAIT_BUSY,
-	ERROR,
+	SEND_START, //send the start block token
+	WRITE_BYTE, //write a byte of data
+	WRITE_CRC, //send the two CRC bytes
+	RECEIVE_DRT, //Receive the block Data Response Token
+	WAIT_BUSY, //Wait for the card to be non-busy
+	ERROR, //stalls here if any error occurs
 } sd_poll_state_t;
 
 
@@ -284,16 +284,19 @@ bool send_next_byte() {
 			shift <<= 1;
 		}
 
-		//send the data to the card
+		//send the data to the card and increment head
 		sd_write_byte(multiwrite_buffer.data[multiwrite_buffer.head]);
 		multiwrite_buffer.byte_index += 1;
 		multiwrite_buffer.byte_index = (multiwrite_buffer.byte_index)%BLOCK_SIZE;
+
 		//use the byte in the crc16 
 		appendCRC16(multiwrite_buffer.data[multiwrite_buffer.head]);
 
 		//increment head with wrap around
 		multiwrite_buffer.head += 1;
 		multiwrite_buffer.head = (multiwrite_buffer.head)%BUFFER_SIZE;
+
+		//return if this is the end of a block
 		return !!(multiwrite_buffer.byte_index == 0);
 	}
 	return false;
@@ -330,12 +333,15 @@ sd_poll_error_t sd_poll(void) {
 						return SD_POLL_SUCCESS;
 						//return the various error codes and lock in an error
 					case 0x0B:
+						//There was a block CRC error
 						poll_state = ERROR;
 						return SD_CRC_ERROR;
 					case 0x0D:
+						//There was a genric write error, should check card status and number of well written blocks
 						poll_state = ERROR;
 						return SD_WRITE_ERROR;
 					default:
+						//Something dun got fucked up good
 						poll_state = ERROR;
 						return SD_DRT_ERROR;
 				}
@@ -438,6 +444,7 @@ bool sd_multiwrite_finalize() {
 	//until we are ready to send another start token
 	//push a null byte into the buffer and run poll.
 	do {
+		//If the buffer is empty push a stuffing byte
 		if(sd_multiwrite_available_buffer_space() == BUFFER_SIZE) {
 			sd_multiwrite_push_data(&stuff_byte,1);
 		}
@@ -447,17 +454,19 @@ bool sd_multiwrite_finalize() {
 			printf("SD error code is: %d\n",(int) error_code);
 		}
 	} while(poll_state != SEND_START && poll_state != ERROR);
+
+	//Send the Stoptoken insteand of block start token
 	sd_write_byte(STOP_TRAN);
-	send_nop();
-	while(line_is_busy());
-	send_acommand(SEND_NUM_WR_BLOCKS,0);
-	for(uint8_t i=0;i<8;++i) {
-		sd_receive_byte();
-	}
+	send_nop(); //WARNING: There is one byte of delay between the stop transmission and the asertion of busy
+	while(line_is_busy()); //Let the write finish
+	
+	//deassert CS and clock out 8 bits to finish things
 	close_transaction();
 	return true;
 }
 
+
+//Init some variables and open a multiblock write in the card
 bool sd_multiwrite_open(uint32_t addr) {
 	//if standard card shift address here;
 #warning making the assumption that addr is the block addr
@@ -475,8 +484,12 @@ bool sd_multiwrite_open(uint32_t addr) {
 	return retval;
 }
 
+//Initializes the SD Card
 bool sd_init_card(bool enable_CRC) {
+	//clear the current sdcard state context
 	sd_reset_state();
+
+	//First check the present line is active, if not do nothing
 	if(!is_sd_present()) {
 		puts("SD: Card not detected.");
 		return false;
@@ -484,11 +497,13 @@ bool sd_init_card(bool enable_CRC) {
 		puts("SD: Card detected for init.");
 	}
 
+	//send a bunch of clocks to insure the card is booted up 
 	sd_deassert_cs();
 	for(uint8_t i=0;i<80;i++) {
 		send_nop();	
 	}
 	
+	//Send the idle state command
 	if(!goto_idle_state()) {
 		puts("SD: Failed to enter idle state");
 		return false;
@@ -496,6 +511,8 @@ bool sd_init_card(bool enable_CRC) {
 		puts("SD: Successfully returned to idle state.");
 	}
 
+
+	//Follow the starup procedure of checking voltages and such
 	uint32_t if_cond_args = 0x00000142;
 	send_command(SEND_IF_COND,if_cond_args);
 	if(is_illegal_cmd()) {
@@ -523,6 +540,7 @@ bool sd_init_card(bool enable_CRC) {
 	}
 	close_transaction();
 
+	//retrieve the OCR register, has useful status about capacity and such
 	if(!get_OCR_register()) {
 		puts("SD: Failed to initialize Card.");
 		return false;
@@ -537,6 +555,7 @@ bool sd_init_card(bool enable_CRC) {
 		puts("SD: Card voltage appears compatible.");	
 	}
 
+	//Turn on CRC checking if we want it
 	if(enable_CRC) {
 		card_state.crc_enabled = true;
 		uint32_t crc_args = 0x00000001;
@@ -547,6 +566,7 @@ bool sd_init_card(bool enable_CRC) {
 		close_transaction();
 	}
 
+	//If card supports V2 then send that we support SDHC
 	uint32_t op_cond_args =0;
 	if(card_state.version == VERSION_2_later) {
 		op_cond_args |= 0x00000040;
@@ -563,6 +583,7 @@ bool sd_init_card(bool enable_CRC) {
 		return false;
 	}
 
+	//get the OCR and wait on power up status busy
 	do {
 		if(!get_OCR_register()) {
 			puts("Failed to get OCR register during init.");
@@ -572,6 +593,7 @@ bool sd_init_card(bool enable_CRC) {
 		}
 	} while(!(card_state.OCR&0x8000));
 
+	//Check final card capacity of OCR
 	if(card_state.OCR&0x4000 && card_state.version == VERSION_2_later) {
 		card_state.capacity = CAPACITY_HC;
 		puts("Card is high or extended capacity.");

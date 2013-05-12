@@ -55,15 +55,25 @@ typedef enum {
 	SD_WRITE_ERROR,
 } sd_poll_error_t;
 
+//allows multi block writes to keep chugging along.
 sd_poll_error_t sd_poll();
 
+//Initialize the card for operations. 
+//Performs and version 2 init so we can support SDHC
 bool sd_init_card(bool enable_CRC);
 
+//Start a multiblock write at addr.
+//Does not do address conversion when dealing with SDSC VS SDHC (byte vs block)
 bool sd_multiwrite_open(uint32_t addr);
 
+//finish writing the last block with 0x42
 bool sd_multiwrite_finalize();
 
+
+//add data to the write queue.
 bool sd_multiwrite_push_data(uint8_t *data, uint16_t length);
 
+
+//gets space left in write buffer
 uint16_t sd_multiwrite_available_buffer_space();
 #endif
