@@ -164,14 +164,14 @@
  * A write to this register selects an optical encoder (0–3) and simultaneously snapshots and clears the accumulated count.
  * A read from this register returns the LSB of the snapshot value.
  */
-#define ENCODER_LSB IO_PORT(0x0C)
+#define ENCODER_LSB IO_PORT(0x0A)
 
 /**
  * \brief Reports the accumulated count of optical encoder ticks
  *
  * A read from this register reports the MSB of the snapshot value taken by a write to \ref ENCODER_LSB.
  */
-#define ENCODER_MSB IO_PORT(0x0D)
+#define ENCODER_MSB IO_PORT(0x0B)
 
 /**
  * \brief Reports encoder commutation failures
@@ -183,7 +183,7 @@
  * 1 (R) [0]: Encoder 1 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
  * 0 (R) [0]: Encoder 0 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
  */
-#define ENCODER_FAIL IO_PORT(0x0E)
+#define ENCODER_FAIL IO_PORT(0x0C)
 
 /**
  * \brief Reports mainboard analogue-to-digital converter readings
@@ -191,14 +191,14 @@
  * A write to this register selects a channel (0–7) and snapshots the most recent conversion result for the channel.
  * A read from this register returns the LSB of the snapshot value.
  */
-#define ADC_LSB IO_PORT(0x0F)
+#define ADC_LSB IO_PORT(0x0D)
 
 /**
  * \brief Reports mainboard analogue-to-digital converter readings
  *
  * A read from this register reports the MSB of the snapshot value taken by a write to \ref ADC_LSB.
  */
-#define ADC_MSB IO_PORT(0x10)
+#define ADC_MSB IO_PORT(0x0E)
 
 /**
  * \brief Controls and reports on the chicker subsystem
@@ -213,7 +213,7 @@
  * 1 (R/S) [0]: Fires the kicker; 1 = fire, 0 = do not fire, cleared in hardware at end of pulse
  * 0 (R/W) [0]: Enables the charger; 1 = charge, 0 = do not charge
  */
-#define CHICKER_CTL IO_PORT(0x13)
+#define CHICKER_CTL IO_PORT(0x0F)
 
 /**
  * \brief Sets the chicker firing pulse width
@@ -223,7 +223,7 @@
  * Bits:
  * 7–0 (R/W) [00000000]: LSB of pulse width setting
  */
-#define CHICKER_PULSE_LSB IO_PORT(0x14)
+#define CHICKER_PULSE_LSB IO_PORT(0x10)
 
 /**
  * \brief Sets the chicker firing pulse width
@@ -231,7 +231,7 @@
  * Bits:
  * 7–0 (R/W) [00000000]: MSB of pulse width setting
  */
-#define CHICKER_PULSE_MSB IO_PORT(0x15)
+#define CHICKER_PULSE_MSB IO_PORT(0x11)
 
 /**
  * \brief Controls and reports status of the SPI Flash
@@ -243,7 +243,7 @@
  * 1 (R/W) [1]: Sets the level on the /CS pin
  * 0 (R) [0]: Indicates whether an SPI transaction is in progress; 1 = busy, 0 = idle
  */
-#define FLASH_CTL IO_PORT(0x16)
+#define FLASH_CTL IO_PORT(0x12)
 
 /**
  * \brief Reads and writes data on the SPI Flash bus
@@ -253,7 +253,7 @@
  * On write, starts an SPI transaction outputting the written byte
  * On read (when FLASH_CTL<0> = 0), returns the most recent byte read from the bus
  */
-#define FLASH_DATA IO_PORT(0x17)
+#define FLASH_DATA IO_PORT(0x13)
 
 /**
  * \brief Controls and reports status of the MRF24J40
@@ -268,7 +268,7 @@
  * 1 (R/W) [0]: Sets the level on the WAKE pin
  * 0 (R/W) [1]: Sets the level on the /RESET pin
  */
-#define MRF_CTL IO_PORT(0x18)
+#define MRF_CTL IO_PORT(0x14)
 
 /**
  * \brief Provides access to the register value.
@@ -276,7 +276,7 @@
  * On write, sets the value that will be written in a register write.
  * On read, returns the value most recently read by a register read.
  */
-#define MRF_DATA IO_PORT(0x19)
+#define MRF_DATA IO_PORT(0x15)
 
 /**
  * \brief Sets the address of the register to be accessed in the MRF24J40.
@@ -284,7 +284,7 @@
  * On write, transfers the previous written byte to the MSB of the address and writes the new value to the LSB.
  * On read, returns an unspecified value.
  */
-#define MRF_ADDR IO_PORT(0x1A)
+#define MRF_ADDR IO_PORT(0x16)
 
 /**
  * \brief Controls the lateral position sensor
@@ -293,7 +293,7 @@
  * 7–4: Reserved
  * 3–0 (R/W) [0]: Drive LPS LEDs; 1 = LED lit, 0 = LED dark
  */
-#define LPS_CTL IO_PORT(0x1B)
+#define LPS_CTL IO_PORT(0x17)
 
 /**
  * \brief Holds the least significant byte of the device DNA.
@@ -301,13 +301,13 @@
  * Bits:
  * 7–0 (R): The byte
  */
-#define DEVICE_ID0 IO_PORT(0x1C)
-#define DEVICE_ID1 IO_PORT(0x1D)
-#define DEVICE_ID2 IO_PORT(0x1E)
-#define DEVICE_ID3 IO_PORT(0x1F)
-#define DEVICE_ID4 IO_PORT(0x20)
-#define DEVICE_ID5 IO_PORT(0x21)
-#define DEVICE_ID6 IO_PORT(0x22)
+#define DEVICE_ID0 IO_PORT(0x18)
+#define DEVICE_ID1 IO_PORT(0x19)
+#define DEVICE_ID2 IO_PORT(0x1A)
+#define DEVICE_ID3 IO_PORT(0x1B)
+#define DEVICE_ID4 IO_PORT(0x1C)
+#define DEVICE_ID5 IO_PORT(0x1D)
+#define DEVICE_ID6 IO_PORT(0x1E)
 
 /**
  * \brief Status of the device dna registers
@@ -315,7 +315,7 @@
  * 7-1: Reserved
  * 0 (R) [0]: Valid ID; 1 = Device DNA is valid, 0 = Device DNA not ready
  */
-#define DEVICE_ID_STATUS IO_PORT(0x23)
+#define DEVICE_ID_STATUS IO_PORT(0x1F)
 
 /**
  * \brief Linear feedback shift register control register
@@ -323,7 +323,7 @@
  * 7-1: Reserved
  * 0 (R/W) [1]: A write produces an increment of the LFSR, a read provides the LSb of its current value
  */
-#define LFSR IO_PORT(0x24)
+#define LFSR IO_PORT(0x20)
 
 /**
  * \brief Controls and reports the status of the debug port
@@ -334,7 +334,7 @@
  * 1 (R) [0]: Indicates whether a debug port transaction is in progress; 1 = busy, 0 = idle
  * 0 (R/W) [0]: Controls whether the debug port is enabled; 1 = enabled, 0 = idle
  */
-#define DEBUG_CTL IO_PORT(0x25)
+#define DEBUG_CTL IO_PORT(0x21)
 
 /**
  * \brief Starts a transaction on the debug port
@@ -344,7 +344,7 @@
  * The debug port must be enabled before starting a transaction.
  * Writes to this register while the port is either disabled or busy will be discarded.
  */
-#define DEBUG_DATA IO_PORT(0x26)
+#define DEBUG_DATA IO_PORT(0x22)
 
 /**
  * \brief Controls and reports the status of the internal configuration access port
@@ -352,7 +352,7 @@
  * 7–1: Reserved
  * 0 (R) [0]: Indicates whether the ICAP is busy; 1 = busy, 0 = idle
  */
-#define ICAP_CTL IO_PORT(0x27)
+#define ICAP_CTL IO_PORT(0x23)
 
 /**
  * \brief Starts a transaction on the FPGA’s internal configuration access port
@@ -360,7 +360,7 @@
  * A write to this register initiates a transaction using the written value along with the value most recently written to \ref ICAP_MSB.
  * A read returns the most recently written value.
  */
-#define ICAP_LSB IO_PORT(0x28)
+#define ICAP_LSB IO_PORT(0x24)
 
 /**
  * \brief Buffers the MSB of the next ICAP transaction
@@ -368,7 +368,63 @@
  * A write sets the buffer value.
  * A read returns the most recently written value.
  */
-#define ICAP_MSB IO_PORT(0x29)
+#define ICAP_MSB IO_PORT(0x25)
+
+/**
+ * \brief Holds the channel number of the DMA channel whose control registers are currently visible on the other DMA ports
+ *
+ * This register has an unspecified value at startup.
+ * A write to this register exposes a new set of control registers.
+ * A read returns the most recently written value.
+ */
+#define DMA_CHANNEL IO_PORT(0x26)
+
+/**
+ * \brief Holds the LSB of the address of the next byte that will be read or written by the selected DMA channel
+ *
+ * This register in all channels has an unspecified value at startup.
+ * When the channel is disabled, this register can be safely read or written.
+ * When the channel is enabled, writing to this register yields unspecified behaviour; reading from the register is safe but yields an unspecified value.
+ *
+ * Addresses used by the DMA controller must lie only within data memory and are therefore 96 bytes smaller than the same address used in CPU code!
+ */
+#define DMA_PTRL IO_PORT(0x27)
+
+/**
+ * \brief Holds the MSB of the address of the next byte that will be read or written by the selected DMA channel
+ *
+ * This register in all channels has an unspecified value at startup.
+ * When the channel is disabled, this register can be safely read or written.
+ * When the channel is enabled, writing to this register yields unspecified behaviour; reading from the register is safe but yields an unspecified value.
+ *
+ * Addresses used by the DMA controller must lie only within data memory and are therefore 96 bytes smaller than the same address used in CPU code!
+ */
+#define DMA_PTRH IO_PORT(0x28)
+
+/**
+ * \brief Holds the number of bytes left to read or write on the selected DMA channel
+ *
+ * This register in all channels has an unspecified value at startup.
+ * When the channel is disabled, this register can be safely read or written.
+ * When the channel is enabled, writing to this register yields unspecified behaviour; reading from the register is safe but yields an unspecified value.
+ */
+#define DMA_COUNT IO_PORT(0x29)
+
+/**
+ * \brief Holds the enable bit of the selected DMA channel
+ *
+ * 7–1: Reserved
+ * 0 [R/S] (0): Indicates whether the DMA channel is enabled; 1 = enabled, 0 = disabled
+ *
+ * To execute a DMA block transfer on a channel, the software must first, with the channel disabled, ensure that \ref DMA_PTRL, \ref DMA_PTRH, and \ref DMA_COUNT are set properly.
+ * Software must also ensure the peripheral is ready to execute a DMA transfer.
+ * Software must then write a 1 to the enable bit in this register to start the transfer.
+ * Once the transfer is enabled, software must not write to the \ref DMA_PTRL, \ref DMA_PTRH, or \ref DMA_COUNT registers, nor rely on a value read from them.
+ * Once the transfer completes, hardware clears the enable bit automatically.
+ * When this happens, \ref DMA_PTRL and \ref DMA_PTRH point to the first byte after the transferred block, and \ref DMA_COUNT is zero.
+ * Completion of the DMA transfer may or may not imply completion of the peripheral activities related to the transfer; this is peripheral-specific.
+ */
+#define DMA_CTL IO_PORT(0x2A)
 
 /**
  * \brief The LSB of the stack pointer

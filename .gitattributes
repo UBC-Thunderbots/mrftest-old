@@ -52,6 +52,8 @@ firmware/main/debug.c -text
 firmware/main/debug.h -text
 firmware/main/device_dna.c -text
 firmware/main/device_dna.h -text
+firmware/main/dma.c -text
+firmware/main/dma.h -text
 firmware/main/encoder.h -text
 firmware/main/entry.c -text
 firmware/main/flash.c -text

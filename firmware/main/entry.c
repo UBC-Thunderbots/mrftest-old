@@ -50,6 +50,7 @@ static bool autokick_fired_pending = false;
 static bool drivetrain_power_forced_on = false;
 static uint8_t last_drive_packet_tick = 0;
 static uint16_t battery_average = 1023;
+static uint8_t mrf_rx_buffer[128];
 
 static void shutdown_sequence(void) __attribute__((noreturn));
 static void shutdown_sequence(void) {
@@ -147,19 +148,20 @@ static void handle_radio_receive(void) {
 	radio_led_blink();
 
 	mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04); // RXDECINV = 1; invert receiver symbol sign to prevent further packet reception
-	uint8_t frame_length = mrf_read_long(MRF_REG_LONG_RXFIFO + 0);
-	uint16_t frame_control = mrf_read_long(MRF_REG_LONG_RXFIFO + 1) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 2) << 8);
+	mrf_read_long_block(MRF_REG_LONG_RXFIFO, mrf_rx_buffer, 128);
+	uint8_t frame_length = mrf_rx_buffer[0];
+	uint16_t frame_control = mrf_rx_buffer[1] | (mrf_rx_buffer[2] << 8);
 	// Sanity-check the frame control word
 	if (((frame_control >> 0) & 7) == 1 /* Data packet */ && ((frame_control >> 3) & 1) == 0 /* No security */ && ((frame_control >> 6) & 1) == 1 /* Intra-PAN */ && ((frame_control >> 10) & 3) == 2 /* 16-bit destination address */ && ((frame_control >> 14) & 3) == 2 /* 16-bit source address */) {
 		// Read out and check the source address and sequence number
-		uint16_t source_address = mrf_read_long(MRF_REG_LONG_RXFIFO + 8) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 9) << 8);
-		uint8_t sequence_number = mrf_read_long(MRF_REG_LONG_RXFIFO + 3);
+		uint16_t source_address = mrf_rx_buffer[8] | (mrf_rx_buffer[9] << 8);
+		uint8_t sequence_number = mrf_rx_buffer[3];
 		if (source_address == 0x0100 && sequence_number != rx_seqnum) {
 			// Update sequence number
 			rx_seqnum = sequence_number;
 
 			// Handle packet
-			uint16_t dest_address = mrf_read_long(MRF_REG_LONG_RXFIFO + 6) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 7) << 8);
+			uint16_t dest_address = mrf_rx_buffer[6] | (mrf_rx_buffer[7] << 8);
 			static const uint8_t HEADER_LENGTH = 2 /* Frame control */ + 1 /* Seq# */ + 2 /* Dest PAN */ + 2 /* Dest */ + 2 /* Src */;
 			static const uint8_t FOOTER_LENGTH = 2;
 			if (dest_address == 0xFFFF) {
@@ -169,9 +171,9 @@ static void handle_radio_receive(void) {
 					const uint8_t offset = 1 + HEADER_LENGTH + 8 * index;
 					uint16_t words[4];
 					for (uint8_t i = 0; i < 4; ++i) {
-						words[i] = mrf_read_long(MRF_REG_LONG_RXFIFO + offset + i * 2 + 1);
+						words[i] = mrf_rx_buffer[offset + i * 2 + 1];
 						words[i] <<= 8;
-						words[i] |= mrf_read_long(MRF_REG_LONG_RXFIFO + offset + i * 2);
+						words[i] |= mrf_rx_buffer[offset + i * 2];
 						wheel_context.setpoints[i] = words[i] & 0x3FF;
 						if (words[i] & 0x400) {
 							wheel_context.setpoints[i] = -wheel_context.setpoints[i];
@@ -216,15 +218,15 @@ static void handle_radio_receive(void) {
 				}
 			} else if (frame_length >= HEADER_LENGTH + 1 + FOOTER_LENGTH) {
 				// Non-broadcast frame contains a message specifically for this robot
-				static const uint16_t MESSAGE_PURPOSE_ADDR = MRF_REG_LONG_RXFIFO + 1 + HEADER_LENGTH;
+				static const uint16_t MESSAGE_PURPOSE_ADDR = 1 + HEADER_LENGTH;
 				static const uint16_t MESSAGE_PAYLOAD_ADDR = MESSAGE_PURPOSE_ADDR + 1;
-				switch (mrf_read_long(MESSAGE_PURPOSE_ADDR)) {
+				switch (mrf_rx_buffer[MESSAGE_PURPOSE_ADDR]) {
 					case 0x00: // Fire kicker immediately
 						if (frame_length == HEADER_LENGTH + 4 + FOOTER_LENGTH) {
-							uint8_t which = mrf_read_long(MESSAGE_PAYLOAD_ADDR);
-							uint16_t width = mrf_read_long(MESSAGE_PAYLOAD_ADDR + 2);
+							uint8_t which = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR];
+							uint16_t width = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + 2];
 							width <<= 8;
-							width |= mrf_read_long(MESSAGE_PAYLOAD_ADDR + 1);
+							width |= mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + 1];
 							set_chick_pulse(width);
 							if (which) {
 								fire_chipper();
@@ -236,10 +238,10 @@ static void handle_radio_receive(void) {
 
 					case 0x01: // Arm autokick
 						if (frame_length == HEADER_LENGTH + 4 + FOOTER_LENGTH) {
-							autokick_device = mrf_read_long(MESSAGE_PAYLOAD_ADDR);
-							autokick_pulse_width = mrf_read_long(MESSAGE_PAYLOAD_ADDR + 2);
+							autokick_device = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR];
+							autokick_pulse_width = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + 2];
 							autokick_pulse_width <<= 8;
-							autokick_pulse_width |= mrf_read_long(MESSAGE_PAYLOAD_ADDR + 1);
+							autokick_pulse_width |= mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + 1];
 							autokick_armed = true;
 						}
 						break;
@@ -252,7 +254,7 @@ static void handle_radio_receive(void) {
 
 					case 0x03: // Set LED mode
 						if (frame_length == HEADER_LENGTH + 2 + FOOTER_LENGTH) {
-							led_mode = mrf_read_long(MESSAGE_PAYLOAD_ADDR);
+							led_mode = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR];
 							if (led_mode <= 0x1F) {
 								LED_CTL = (LED_CTL & 0x80) | led_mode;
 							} else if (led_mode == 0x21) {
@@ -278,7 +280,7 @@ static void handle_radio_receive(void) {
 							// Extract the new data from the radio
 							uint8_t buffer[4];
 							for (uint8_t i = 0; i < sizeof(buffer); ++i) {
-								buffer[i] = mrf_read_long(MESSAGE_PAYLOAD_ADDR + i);
+								buffer[i] = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + i];
 							}
 
 							// Erase and rewrite the sector
@@ -298,7 +300,7 @@ static void handle_radio_receive(void) {
 					case 0x0D: // Manually commutate motors
 						if (frame_length == HEADER_LENGTH + 6 + FOOTER_LENGTH) {
 							for (uint8_t i = 0; i < 5; ++i) {
-								motor_manual_commutation_patterns[i] = mrf_read_long(MESSAGE_PAYLOAD_ADDR + i) & 0b11111100;
+								motor_manual_commutation_patterns[i] = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + i] & 0b11111100;
 							}
 						}
 						break;

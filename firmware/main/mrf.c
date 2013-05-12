@@ -1,5 +1,6 @@
-#include "io.h"
 #include "mrf.h"
+#include "dma.h"
+#include "io.h"
 #include "sleep.h"
 
 uint8_t mrf_read_short(uint8_t reg) {
@@ -29,6 +30,14 @@ void mrf_write_long(uint16_t reg, uint8_t value) {
 	MRF_ADDR = reg;
 	MRF_DATA = value;
 	MRF_CTL = 0b01000001;
+	while (MRF_CTL & 0x80);
+}
+
+void mrf_read_long_block(uint16_t reg, void *data, uint8_t length) {
+	MRF_ADDR = reg >> 8;
+	MRF_ADDR = reg;
+	dma_write_start(DMA_WRITE_CHANNEL_MRF, data, length);
+	while (dma_running(DMA_WRITE_CHANNEL_MRF));
 	while (MRF_CTL & 0x80);
 }
 

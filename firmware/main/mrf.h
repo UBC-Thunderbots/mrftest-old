@@ -185,6 +185,17 @@ uint8_t mrf_read_long(uint16_t reg);
 void mrf_write_long(uint16_t reg, uint8_t value);
 
 /**
+ * \brief Reads a contiguous block of long-address registers.
+ *
+ * \param[in] reg the first register to read
+ *
+ * \param[in] data the buffer into which to store the data
+ *
+ * \param[in] length the number of bytes to read
+ */
+void mrf_read_long_block(uint16_t reg, void *data, uint8_t length);
+
+/**
  * \brief Performs common initialiation of the radio based on the configuration parameters
  */
 void mrf_common_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint64_t mac_address);
