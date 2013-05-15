@@ -25,13 +25,6 @@ static inline void power_disable_motors(void) {
 }
 
 /**
- * \brief Enables power to the laser
- */
-static inline void power_enable_laser(void) {
-	POWER_CTL |= 0x08;
-}
-
-/**
  * \brief Reboots the FPGA
  */
 void power_reboot(void) __attribute__((noreturn));

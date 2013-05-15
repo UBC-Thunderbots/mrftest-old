@@ -20,5 +20,13 @@ static inline uint16_t read_main_adc(adc_t adc_index) {
 	return ret_val;
 }
 
+static inline int16_t read_breakbeam_diff(void) {
+	int16_t diff;
+	BREAKBEAM_DIFF_L = 0;
+	diff = BREAKBEAM_DIFF_H;
+	diff = (diff << 8) | BREAKBEAM_DIFF_L;
+	return diff;
+}
+
 #endif
 

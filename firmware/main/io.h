@@ -427,6 +427,21 @@
 #define DMA_CTL IO_PORT(0x2A)
 
 /**
+ * \brief Reports break beam voltage difference
+ * 
+ * A write to this register records the voltage difference
+ * A read from this register returns the LSB of the snapshot value
+ */
+#define BREAKBEAM_DIFF_L IO_PORT(0x2B)
+
+/**
+ * \brief Reports break beam voltage difference
+ * 
+ * A read from this register returns the MSB of the snapshot value
+ */
+#define BREAKBEAM_DIFF_H IO_PORT(0x2C)
+
+/**
  * \brief The LSB of the stack pointer
  */
 #define SP_LSB IO_PORT(0x3D)
