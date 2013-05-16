@@ -140,6 +140,10 @@ namespace {
 				players[2].flags(default_flags);
 			}
 
+			if (players.size() >3) {
+				players[3].flags(default_flags);
+			}
+
 			switch (world.playtype()) {
 				case AI::Common::PlayType::STOP:
 					stop(players);
@@ -194,6 +198,12 @@ namespace {
 				stop2->set_player(players[2]);
 				stop2->execute();
 			}
+
+			if (players.size() >3) {
+				auto stop3 = Tactic::move_stop(world, 3);
+				stop3->set_player(players[3]);
+				stop3->execute();
+			}
 		}
 
 		void penalty_enemy(std::vector<Player> &players) {
@@ -205,6 +215,10 @@ namespace {
 			}
 			if (players.size() > 2) {
 				Action::move(world, players[2], Point(world.field().penalty_enemy().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
+			}
+			//check magic numbers. what do they mean?
+			if (players.size() > 3) {
+				Action::move(world, players[3], Point(world.field().penalty_enemy().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 8 * Robot::MAX_RADIUS));
 			}
 		}
 
@@ -220,6 +234,11 @@ namespace {
 			if (players.size() > 2) {
 				Action::move(world, players[2], Point(world.field().penalty_enemy().x - DIST_FROM_PENALTY_MARK - Robot::MAX_RADIUS, -6 * Robot::MAX_RADIUS));
 			}
+			//again clarify on magic numbers!
+			if (players.size() > 3) {
+				Action::move(world, players[3], Point(world.field().penalty_enemy().x - DIST_FROM_PENALTY_MARK - Robot::MAX_RADIUS, 8 * Robot::MAX_RADIUS));
+			}
+
 		}
 		
 		void execute_penalty_friendly(std::vector<Player> &players) {
@@ -236,6 +255,11 @@ namespace {
 			if (players.size() > 2) {
 				Action::move(world, players[2], Point(world.field().penalty_enemy().x - DIST_FROM_PENALTY_MARK - Robot::MAX_RADIUS, -6 * Robot::MAX_RADIUS));
 			}
+			//magic number!!
+			if (players.size() > 3) {
+				Action::move(world, players[3], Point(world.field().penalty_enemy().x - DIST_FROM_PENALTY_MARK - Robot::MAX_RADIUS, 8 * Robot::MAX_RADIUS));
+			}
+
 		}
 
 		void prepare_kickoff_friendly(std::vector<Player> &players) {
@@ -261,6 +285,10 @@ namespace {
 			if (players.size() > 2) {
 				Action::move(world, players[2], ready_positions[1]);
 			}
+			if (players.size() > 3) {
+				Action::move(world, players[3], ready_positions[2]);
+			}
+
 		}
 		
 		void execute_kickoff_friendly(std::vector<Player> &players) {
@@ -289,6 +317,10 @@ namespace {
 			if (players.size() > 2) {
 				Action::move(world, players[2], ready_positions[1]);
 			}
+			if (players.size() > 3) {
+				Action::move(world, players[3], ready_positions[2]);
+			}
+
 		}
 
 		void free_kick_friendly(std::vector<Player> &players) {
@@ -312,6 +344,12 @@ namespace {
 				stop2->set_player(players[2]);
 				stop2->execute();
 			}
+			if (players.size() > 3) {
+				auto stop3 = Tactic::move_stop(world, 3);
+				stop3->set_player(players[3]);
+				stop3->execute();
+			}
+
 		}
 
 		void stop(std::vector<Player> &players) {
@@ -332,6 +370,12 @@ namespace {
 				stop2->set_player(players[2]);
 				stop2->execute();
 			}
+			if (players.size() > 3) {
+				auto stop2 = Tactic::move_stop(world, 5);
+				stop2->set_player(players[3]);
+				stop2->execute();
+			}
+
 		}
 
 		void play(std::vector<Player> &players) {
@@ -355,7 +399,13 @@ namespace {
 				auto block = Tactic::block_ball(world, Enemy::closest_ball(world, 1));
 				block->set_player(players[2]);
 				block->execute();
+			}
+			if (players.size() > 3) {
+				auto block2 = Tactic::block_ball(world, Enemy::closest_ball(world, 2));
+				block2->set_player(players[3]);
+				block2->execute();
 			}			
+
 		}
 
 		void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
