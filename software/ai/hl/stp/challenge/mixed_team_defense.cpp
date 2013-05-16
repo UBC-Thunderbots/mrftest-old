@@ -124,6 +124,10 @@ namespace {
 				players[2].flags(default_flags);
 			}
 
+			if (players.size() > 3) {
+				players[3].flags(default_flags);
+			}
+
 			switch (world.playtype()) {
 				case AI::Common::PlayType::STOP:
 					stop(players);
@@ -209,6 +213,12 @@ namespace {
 				stop2->set_player(players[2]);
 				stop2->execute();
 			}
+
+			if (players.size() > 3) {
+				auto stop3 = Tactic::move_stop(world, 3);
+				stop3->set_player(players[3]);
+				stop3->execute();
+			}
 		}
 
 		void play(std::vector<Player> &players) {
@@ -236,8 +246,16 @@ namespace {
 					defend2->execute();
 				}
 
+				if (players.size() > 3) {
+					auto defend3 = Tactic::defend_duo_extra2(world);
+					defend3->set_player(players[3]);
+					defend3->execute();
+				}
+
 				return;
 			} else {
+
+
 				if (players.size() > 0) {
 					auto goalie = Tactic::lone_goalie(world);
 					goalie->set_player(players[0]);
@@ -253,6 +271,12 @@ namespace {
 					defend2->set_player(players[2]);
 					defend2->execute();
 				}
+				if (players.size() > 3) {
+					auto defend3 = Tactic::tdefender2(world);
+					defend3->set_player(players[3]);
+					defend3->execute();
+				}
+
 			}
 		}
 
