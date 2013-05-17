@@ -33,12 +33,10 @@ void mrf_write_long(uint16_t reg, uint8_t value) {
 	while (MRF_CTL & 0x80);
 }
 
-void mrf_read_long_block(uint16_t reg, void *data, uint8_t length) {
+void mrf_start_read_long_block(uint16_t reg, volatile void *data, uint8_t length) {
 	MRF_ADDR = reg >> 8;
 	MRF_ADDR = reg;
 	dma_write_start(DMA_WRITE_CHANNEL_MRF, data, length);
-	while (dma_running(DMA_WRITE_CHANNEL_MRF));
-	while (MRF_CTL & 0x80);
 }
 
 void mrf_common_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint64_t mac_address) {

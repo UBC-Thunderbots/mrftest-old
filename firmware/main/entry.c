@@ -50,7 +50,8 @@ static bool autokick_fired_pending = false;
 static bool drivetrain_power_forced_on = false;
 static uint8_t last_drive_packet_tick = 0;
 static uint16_t battery_average = 1023;
-static uint8_t mrf_rx_buffer[128];
+static volatile uint8_t mrf_rx_buffer[128];
+static bool mrf_rx_dma_started = false;
 
 static void shutdown_sequence(void) __attribute__((noreturn));
 static void shutdown_sequence(void) {
@@ -144,11 +145,7 @@ static void send_feedback_packet(void) {
 }
 
 static void handle_radio_receive(void) {
-	// Blink a light
-	radio_led_blink();
-
-	mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04); // RXDECINV = 1; invert receiver symbol sign to prevent further packet reception
-	mrf_read_long_block(MRF_REG_LONG_RXFIFO, mrf_rx_buffer, 128);
+	mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00); // RXDECINV = 0; stop inverting receiver and allow further reception
 	uint8_t frame_length = mrf_rx_buffer[0];
 	uint16_t frame_control = mrf_rx_buffer[1] | (mrf_rx_buffer[2] << 8);
 	// Sanity-check the frame control word
@@ -308,7 +305,6 @@ static void handle_radio_receive(void) {
 			}
 		}
 	}
-	mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00); // RXDECINV = 0; stop inverting receiver and allow further reception
 }
 
 static void avr_main(void) __attribute__((noreturn, used));
@@ -400,10 +396,24 @@ static void avr_main(void) {
 					transmit_busy = false;
 				}
 			}
-			if (intstat & (1 << 3)) {
-				// Packet received
-				handle_radio_receive();
+			if ((intstat & (1 << 3)) && !mrf_rx_dma_started) {
+				// Packet received.
+				// Blink a light.
+				radio_led_blink();
+
+				// Disable reception of further packets.
+				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04); // RXDECINV = 1; invert receiver symbol sign to prevent further packet reception
+
+				// Start copying the data into the receive buffer.
+				mrf_start_read_long_block(MRF_REG_LONG_RXFIFO, mrf_rx_buffer, 128);
+				mrf_rx_dma_started = true;
 			}
+		}
+
+		// Check if a DMA transfer from the radio has now finished and is ready to handle the received packet.
+		if (mrf_rx_dma_started && !mrf_read_long_block_active()) {
+			mrf_rx_dma_started = false;
+			handle_radio_receive();
 		}
 
 		// Check if we should send a feedback packet now
