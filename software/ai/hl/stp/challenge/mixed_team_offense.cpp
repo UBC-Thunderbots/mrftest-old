@@ -271,7 +271,7 @@ namespace {
 
 			// hard coded positions for the kicker, and 2 offenders
 			Point kicker_position = Point(-0.5 - Ball::RADIUS - Robot::MAX_RADIUS, 0);
-			Point ready_positions[2] = { Point(-AVOIDANCE_DIST, -SEPARATION_DIST), Point(-AVOIDANCE_DIST, SEPARATION_DIST) };
+			Point ready_positions[3] = { Point(-AVOIDANCE_DIST, -SEPARATION_DIST), Point(-AVOIDANCE_DIST, SEPARATION_DIST), Point(AVOIDANCE_DIST, SEPARATION_DIST) };
 
 			// sort the players by dist to ball
 			//std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(world.ball().position()));
@@ -300,7 +300,7 @@ namespace {
 
 			// hard coded positions for the kicker, and 2 offenders
 			//Point kicker_position = Point(-0.5 - Ball::RADIUS - Robot::MAX_RADIUS, 0);
-			Point ready_positions[2] = { Point(-AVOIDANCE_DIST, -SEPARATION_DIST), Point(-AVOIDANCE_DIST, SEPARATION_DIST) };
+			Point ready_positions[3] = { Point(-AVOIDANCE_DIST, -SEPARATION_DIST), Point(-AVOIDANCE_DIST, SEPARATION_DIST), Point(AVOIDANCE_DIST, SEPARATION_DIST) };
 
 			// sort the players by dist to ball
 			//std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(world.ball().position()));
