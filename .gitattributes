@@ -502,6 +502,7 @@ software/proto/messages_robocup_ssl_detection.proto -text
 software/proto/messages_robocup_ssl_geometry.proto -text
 software/proto/messages_robocup_ssl_wrapper.proto -text
 software/proto/referee.proto -text
+software/sdutil.cpp -text
 software/simulator/Pal[!!-~]Report.txt.txt -text
 software/simulator/ball.h -text
 software/simulator/connection.cpp -text
