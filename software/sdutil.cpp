@@ -20,6 +20,7 @@ namespace {
 			explicit SectorArray(const FileDescriptor &fd);
 			off_t size() const;
 			std::vector<uint8_t> get(off_t i) const;
+			void zero(off_t i);
 
 		private:
 			const FileDescriptor &fd;
@@ -57,6 +58,25 @@ std::vector<uint8_t> SectorArray::get(off_t i) const {
 		}
 	}
 	return buffer;
+}
+
+void SectorArray::zero(off_t i) {
+	assert(i < size());
+	std::vector<uint8_t> buffer(512, static_cast<uint8_t>(i));
+	{
+		const uint8_t *ptr = &buffer[0];
+		std::size_t len = 512;
+		off_t off = i * 512U;
+		while (len) {
+			ssize_t rc = pwrite(fd.fd(), ptr, len, off);
+			if (rc < 0) {
+				throw SystemError("pwrite", errno);
+			}
+			ptr += rc;
+			len -= rc;
+			off += rc;
+		}
+	}
 }
 
 namespace {
@@ -147,17 +167,63 @@ const std::vector<ScanResult::Epoch> &ScanResult::epochs() const {
 }
 
 namespace {
-	int do_erase(const SectorArray &sdcard, const ScanResult *) {
-		std::cout << "Not implemented.\n";
-		return 1;
+	int do_copy(SectorArray &sdcard, const ScanResult *scan_result, char **args) {
+		std::size_t epoch_index = static_cast<std::size_t>(std::stoll(args[0], nullptr, 0));
+		if (epoch_index >= scan_result->epochs().size()) {
+			std::cerr << "This card has only " << scan_result->epochs().size() << " epochs.\n";
+			return 1;
+		}
+		const ScanResult::Epoch &epoch = scan_result->epochs()[epoch_index];
+
+		std::cout << "Copying sectors " << epoch.first_sector << " through " << epoch.last_sector << " to file \"" << args[1] << "\": ";
+		std::cout.flush();
+
+		FileDescriptor fd(FileDescriptor::create_open(args[1], O_WRONLY | O_CREAT | O_TRUNC, 0666));
+		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
+			const std::vector<uint8_t> &buffer = sdcard.get(sector);
+			const uint8_t *ptr = &buffer[0];
+			std::size_t len = 512;
+			while (len) {
+				ssize_t rc = write(fd.fd(), ptr, len);
+				if (rc < 0) {
+					throw SystemError("write", errno);
+				}
+				ptr += rc;
+				len -= rc;
+			}
+		}
+		fd.close();
+
+		std::cout << "OK.\n";
+		return 0;
 	}
 
-	int do_info(const SectorArray &sdcard, const ScanResult *scan_result) {
+	int do_erase(SectorArray &sdcard, const ScanResult *scan_result, char **) {
+		std::cout << "Erasing sectors 0 through " << (scan_result->nonblank_size() - 1) << ": ";
+		std::cout.flush();
+		for (off_t i = 0; i < scan_result->nonblank_size(); ++i) {
+			sdcard.zero(i);
+		}
+		std::cout << "OK.\n";
+		return 0;
+	}
+
+	int do_format(SectorArray &sdcard, const ScanResult *, char **) {
+		std::cout << "Erasing sectors 0 through " << (sdcard.size() - 1) << ": ";
+		std::cout.flush();
+		for (off_t i = 0; i < sdcard.size(); ++i) {
+			sdcard.zero(i);
+		}
+		std::cout << "OK.\n";
+		return 0;
+	}
+
+	int do_info(SectorArray &sdcard, const ScanResult *scan_result, char **) {
 		std::cout << "Sectors: " << sdcard.size() << '\n';
 		std::cout << "Used: " << scan_result->nonblank_size() << '\n';
 		std::cout << "Epochs:\n";
-		for (auto i : scan_result->epochs()) {
-			std::cout << '[' << i.first_sector << ',' << i.last_sector << "]\n";
+		for (std::size_t i = 0; i < scan_result->epochs().size(); ++i) {
+			std::cout << i << ": " << '[' << scan_result->epochs()[i].first_sector << ',' << scan_result->epochs()[i].last_sector << "]\n";
 		}
 		return 1;
 	}
@@ -167,11 +233,13 @@ namespace {
 		int args;
 		bool needs_write;
 		bool needs_scan;
-		int (*handler)(const SectorArray &sdcard, const ScanResult *scan_result);
+		int (*handler)(SectorArray &sdcard, const ScanResult *scan_result, char **args);
 	};
 
 	const struct Command COMMANDS[] = {
-		{ "erase", 0, true, false, &do_erase },
+		{ "copy", 2, false, true, &do_copy },
+		{ "erase", 0, true, true, &do_erase },
+		{ "format", 0, true, false, &do_format },
 		{ "info", 0, false, true, &do_info },
 	};
 
@@ -227,6 +295,6 @@ int app_main(int argc, char **argv) {
 	}
 
 	// Execute the command.
-	return command->handler(sdcard, scan_result.get());
+	return command->handler(sdcard, scan_result.get(), argv + 3);
 }
 
