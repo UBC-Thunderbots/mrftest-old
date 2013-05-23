@@ -8,7 +8,7 @@
  * \brief The possible DMA read channels.
  */
 typedef enum {
-	DMA_READ_CHANNEL_0,
+	DMA_READ_CHANNEL_SD,
 	DMA_READ_CHANNEL_COUNT,
 } dma_read_channel_t;
 

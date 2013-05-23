@@ -143,7 +143,10 @@
  * \brief Controls and reports status of the Secure Digital card
  *
  * Bits:
- * 7–3: Reserved
+ * 7–6: Reserved
+ * 5 (R) [0]: Indicates whether a past DMA-driven multiblock write encountered a malformed data response token from the card.
+ * 4 (R) [0]: Indicates whether a past DMA-driven multiblock write encountered a write error in a data response token from the card.
+ * 3 (R) [0]: Indicates whether a past DMA-driven multiblock write encountered a CRC error in a data response token from the card.
  * 2 (R/W) [1]: Sets the level on the /CS pin
  * 1 (R): Indicates whether a card is present according to the card detection switch; 1 = present, 0 = absent
  * 0 (R) [0]: Indicates whether an SPI transaction is in progress; 1 = busy, 0 = idle
