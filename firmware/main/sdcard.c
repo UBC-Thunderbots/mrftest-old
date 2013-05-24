@@ -612,7 +612,7 @@ bool sd_init_card(bool enable_CRC) {
 	//If card supports V2 then send that we support SDHC
 	uint32_t op_cond_args =0;
 	if(card_state.version == VERSION_2_later) {
-		op_cond_args |= 0x00000040;
+		op_cond_args |= 0x40000000;
 	}
 	puts("Entering init wait.");
 	do {
