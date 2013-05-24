@@ -417,6 +417,45 @@ void collapse_buffer() {
 	multiwrite_buffer.head_mask >>=1;
 }
 
+bool sd_read(uint32_t addr, void *buffer) {
+	if (!send_command_checked(READ_SINGLE_BLOCK, addr)) {
+		return false;
+	}
+	uint8_t token;
+	do {
+		send_nop();
+		token = sd_read_byte();
+		printf("token = %02X\n", (unsigned int) token);
+	} while (token != 0b11111110 && (token & 0xF0) != 0);
+	if (token != 0b11111110) {
+		if (token & 0x08) {
+			puts("sd_read: out of range");
+		}
+		if (token & 0x04) {
+			puts("sd_read: ECC error");
+		}
+		if (token & 0x02) {
+			puts("sd_read: card controller error");
+		}
+		if (token & 0x01) {
+			puts("sd_read: general error");
+		}
+		return false;
+	}
+	uint8_t *bufptr = buffer;
+	uint16_t len = 512;
+	while (len--) {
+		send_nop();
+		*bufptr++ = sd_read_byte();
+	}
+#warning check CRC
+	send_nop();
+	sd_read_byte();
+	send_nop();
+	sd_read_byte();
+	return true;
+}
+
 bool sd_multiwrite_push_data(uint8_t *data, uint16_t length) {
 	uint16_t available_space = sd_multiwrite_available_buffer_space();
 	if(length > available_space) {

@@ -62,6 +62,9 @@ sd_poll_error_t sd_poll();
 //Performs and version 2 init so we can support SDHC
 bool sd_init_card(bool enable_CRC);
 
+//Read a block from the card.
+bool sd_read(uint32_t addr, void *buffer);
+
 //Start a multiblock write at addr.
 //Does not do address conversion when dealing with SDSC VS SDHC (byte vs block)
 bool sd_multiwrite_open(uint32_t addr);
