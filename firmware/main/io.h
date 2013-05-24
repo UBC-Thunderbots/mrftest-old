@@ -383,35 +383,28 @@
 #define DMA_CHANNEL IO_PORT(0x26)
 
 /**
- * \brief Holds the LSB of the address of the next byte that will be read or written by the selected DMA channel
+ * \brief Sets the address of the next byte to be read or written by the selected DMA channel.
  *
- * This register in all channels has an unspecified value at startup.
- * When the channel is disabled, this register can be safely read or written.
- * When the channel is enabled, writing to this register yields unspecified behaviour; reading from the register is safe but yields an unspecified value.
+ * As a memory address is 16 bits wide, it is necessary to write to this register twice to set the complete address.
+ * The first write operation sets the MSB of the address and the second sets the LSB.
+ * Reading the register returns an unspecified value.
  *
- * Addresses used by the DMA controller must lie only within data memory and are therefore 96 bytes smaller than the same address used in CPU code!
+ * This register must not be written to when the channel is enabled.
+ *
+ * Addresses used by the DMA controller must lie only within data memory and are therefore 96 bytes smaller than the same address used in CPU code.
  */
-#define DMA_PTRL IO_PORT(0x27)
+#define DMA_PTR IO_PORT(0x27)
 
 /**
- * \brief Holds the MSB of the address of the next byte that will be read or written by the selected DMA channel
+ * \brief Sets the length of the next transfer on the selected DMA channel.
  *
- * This register in all channels has an unspecified value at startup.
- * When the channel is disabled, this register can be safely read or written.
- * When the channel is enabled, writing to this register yields unspecified behaviour; reading from the register is safe but yields an unspecified value.
+ * As DMA transfers can be more than 256 byte slong, it is necessary to write to this register twice to set the complete byte count.
+ * The first write operation sets the MSB of the count and the second sets the LSB.
+ * Reading the register returns an unspecified value.
  *
- * Addresses used by the DMA controller must lie only within data memory and are therefore 96 bytes smaller than the same address used in CPU code!
+ * This register must not be written to when the channel is enabled.
  */
-#define DMA_PTRH IO_PORT(0x28)
-
-/**
- * \brief Holds the number of bytes left to read or write on the selected DMA channel
- *
- * This register in all channels has an unspecified value at startup.
- * When the channel is disabled, this register can be safely read or written.
- * When the channel is enabled, writing to this register yields unspecified behaviour; reading from the register is safe but yields an unspecified value.
- */
-#define DMA_COUNT IO_PORT(0x29)
+#define DMA_COUNT IO_PORT(0x28)
 
 /**
  * \brief Holds the enable bit of the selected DMA channel
@@ -427,7 +420,7 @@
  * When this happens, \ref DMA_PTRL and \ref DMA_PTRH point to the first byte after the transferred block, and \ref DMA_COUNT is zero.
  * Completion of the DMA transfer may or may not imply completion of the peripheral activities related to the transfer; this is peripheral-specific.
  */
-#define DMA_CTL IO_PORT(0x2A)
+#define DMA_CTL IO_PORT(0x29)
 
 /**
  * \brief Reports break beam voltage difference
@@ -435,14 +428,14 @@
  * A write to this register records the voltage difference
  * A read from this register returns the LSB of the snapshot value
  */
-#define BREAKBEAM_DIFF_L IO_PORT(0x2B)
+#define BREAKBEAM_DIFF_L IO_PORT(0x2A)
 
 /**
  * \brief Reports break beam voltage difference
  * 
  * A read from this register returns the MSB of the snapshot value
  */
-#define BREAKBEAM_DIFF_H IO_PORT(0x2C)
+#define BREAKBEAM_DIFF_H IO_PORT(0x2B)
 
 /**
  * \brief The LSB of the stack pointer
