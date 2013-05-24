@@ -456,6 +456,8 @@ bool sd_read(uint32_t addr, void *buffer) {
 	sd_read_byte();
 	send_nop();
 	sd_read_byte();
+	close_transaction();
+	send_nop();
 	return true;
 }
 
