@@ -65,8 +65,7 @@ bool sd_init_card(bool enable_CRC);
 //Read a block from the card.
 bool sd_read(uint32_t addr, void *buffer);
 
-//Start a multiblock write at addr.
-//Does not do address conversion when dealing with SDSC VS SDHC (byte vs block)
+//Start a multiblock write at addr, measured in 512-byte sectors.
 bool sd_multiwrite_open(uint32_t addr);
 
 //finish writing the last block with 0x42

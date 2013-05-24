@@ -418,6 +418,9 @@ void collapse_buffer() {
 }
 
 bool sd_read(uint32_t addr, void *buffer) {
+	if (card_state.capacity == CAPACITY_SD) {
+		addr *= 512;
+	}
 	if (!send_command_checked(READ_SINGLE_BLOCK, addr)) {
 		return false;
 	}
@@ -507,8 +510,9 @@ bool sd_multiwrite_finalize() {
 
 //Init some variables and open a multiblock write in the card
 bool sd_multiwrite_open(uint32_t addr) {
-	//if standard card shift address here;
-#warning making the assumption that addr is the block addr
+	if (card_state.capacity == CAPACITY_SD) {
+		addr *= 512;
+	}
 	bool retval = send_command_checked(WRITE_MULTIPLE_BLOCK,addr);
 	poll_state = SEND_START;
 	multiwrite_buffer.head_mask=0x00;
