@@ -1,4 +1,5 @@
 #include "adc.h"
+#include "buffers.h"
 #include "chicker.h"
 #include "debug.h"
 #include "device_dna.h"
@@ -13,6 +14,7 @@
 #include "wheels.h"
 #include <inttypes.h>
 #include <stdio.h>
+#include <string.h>
 
 #define DEFAULT_CHANNEL 20
 #define DEFAULT_PAN 0x1846
@@ -52,12 +54,14 @@ static uint8_t last_drive_packet_tick = 0;
 static uint16_t battery_average = 1023;
 static volatile uint8_t mrf_rx_buffer[128];
 static bool mrf_rx_dma_started = false;
+static uint32_t ticks32 = 0;
 
 static void shutdown_sequence(void) __attribute__((noreturn));
 static void shutdown_sequence(void) {
 	set_charge_mode(false);
 	set_discharge_mode(true);
 	motor_scram();
+	sd_write_multi_end();
 	sleep_1s();
 	sleep_1s();
 	sleep_1s();
@@ -340,6 +344,36 @@ static void avr_main(void) {
 		}
 	}
 
+	// Initialize the SD card logging layer.
+	memset(buffers, 0, sizeof(buffers));
+	if (sd_init()) {
+		uint32_t low = 0, high = sd_sector_count();
+		while (low != high && sd_status() == SD_STATUS_OK) {
+			uint32_t probe = (low + high) / 2;
+			if (sd_read(probe, &buffers[0])) {
+				if (buffers[0].tick.epoch) {
+					low = probe + 1;
+				} else {
+					high = probe;
+				}
+			}
+		}
+		if (low > 0) {
+			if (sd_read(low - 1, &buffers[0])) {
+				buffers[0].tick.epoch++;
+				buffers[1].tick.epoch = buffers[0].tick.epoch;
+			}
+		} else {
+			buffers[0].tick.epoch = 1;
+			buffers[1].tick.epoch = 1;
+		}
+		if (sd_status() == SD_STATUS_OK) {
+			if (sd_write_multi_start(low)) {
+				printf("Starting log at sector %" PRIu32 " with epoch %" PRIu16 "\n", low, buffers[0].tick.epoch);
+			}
+		}
+	}
+
 	// Initialize the radio
 	mrf_init();
 	sleep_short();
@@ -371,13 +405,29 @@ static void avr_main(void) {
 		}
 
 		// Check if a tick has passed; if so, iterate the control loop and update average battery level
-		if (TICKS != old_ticks) {
-			wheels_tick();
-			++old_ticks;
-			battery_average = (battery_average * 63 + read_main_adc(BATT_VOLT)) / 64;
-			if (battery_average < LOW_BATTERY_THRESHOLD && !interlocks_overridden()) {
-				puts("Shutting down due to low battery.");
-				shutdown_sequence();
+		{
+			uint8_t new_ticks = TICKS;
+			if (new_ticks != old_ticks) {
+				ticks32 += (uint8_t) (new_ticks - old_ticks);
+				old_ticks = new_ticks;
+				wheels_tick();
+				battery_average = (battery_average * 63 + read_main_adc(BATT_VOLT)) / 64;
+				if (battery_average < LOW_BATTERY_THRESHOLD && !interlocks_overridden()) {
+					puts("Shutting down due to low battery.");
+					shutdown_sequence();
+				}
+				if (sd_write_multi_active() && !sd_write_multi_busy()) {
+					current_buffer->tick.ticks = ticks32;
+					current_buffer->tick.breakbeam_diff = read_breakbeam_diff();
+					for (uint8_t i = 0; i < 8; ++i) {
+						current_buffer->tick.adc_channels[i] = read_main_adc(i);
+					}
+					sd_write_multi_sector(current_buffer);
+					buffers_swap();
+					uint16_t epoch = current_buffer->tick.epoch;
+					memset(current_buffer, 0, sizeof(buffer_t));
+					current_buffer->tick.epoch = epoch;
+				}
 			}
 		}
 

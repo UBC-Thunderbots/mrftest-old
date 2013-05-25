@@ -45,6 +45,8 @@ firmware/flashburner/uart.c -text
 firmware/flashburner/uart.h -text
 firmware/main/Makefile -text
 firmware/main/adc.h -text
+firmware/main/buffers.c -text
+firmware/main/buffers.h -text
 firmware/main/chicker.h -text
 firmware/main/control.c -text
 firmware/main/control.h -text

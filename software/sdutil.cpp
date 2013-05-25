@@ -7,6 +7,7 @@
 #include <cinttypes>
 #include <cstdint>
 #include <fcntl.h>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -168,6 +169,21 @@ const std::vector<ScanResult::Epoch> &ScanResult::epochs() const {
 }
 
 namespace {
+	double adc_voltage_to_board_temp(double voltage) {
+		// For V being ADC voltage and R being thermistor voltage:
+		// V = 3.3 / (10,000 + R) * R
+		// 10,000 V + VR = 3.3 R
+		// (3.3 - V) R = 10,000 V
+		// R = 10,000 V / (3.3 - V)
+		double thermistor_resistance = 10000 * voltage / (3.3 - voltage);
+
+		// Magic math from binaryblade
+		double ltemp = std::log(thermistor_resistance);
+		double temperature = 1.6648 * ltemp * ltemp - 61.3664 * ltemp + 510.18;
+
+		return temperature;
+	}
+
 	int do_copy(SectorArray &sdcard, const ScanResult *scan_result, char **args) {
 		std::size_t epoch_index = static_cast<std::size_t>(std::stoll(args[0], nullptr, 0));
 		if (!epoch_index) {
@@ -226,6 +242,51 @@ namespace {
 		return 1;
 	}
 
+	int do_tsv(SectorArray &sdcard, const ScanResult *scan_result, char **args) {
+		std::size_t epoch_index = static_cast<std::size_t>(std::stoll(args[0], nullptr, 0));
+		if (!epoch_index) {
+			std::cerr << "Epoch indices start from 1.\n";
+			return 1;
+		}
+		if (epoch_index > scan_result->epochs().size()) {
+			std::cerr << "This card has only " << scan_result->epochs().size() << " epochs.\n";
+			return 1;
+		}
+		const ScanResult::Epoch &epoch = scan_result->epochs()[epoch_index - 1];
+
+		std::cout << "Outputting sectors " << epoch.first_sector << " through " << epoch.last_sector << " to TSV file \"" << args[1] << "\": ";
+		std::cout.flush();
+
+		std::ofstream ofs;
+		ofs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
+		ofs.open(args[1], std::ios_base::out | std::ios_base::trunc);
+		ofs << "Epoch\tTicks\tBreakbeam Difference\tCapacitor Voltage\tBattery Voltage\tBoard Temperature\tLPS Reading\n";
+		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
+			const std::vector<uint8_t> &buffer = sdcard.get(sector);
+			const uint8_t *tick = &buffer[128 * 3];
+			unsigned int epoch = static_cast<uint16_t>(tick[0] | static_cast<uint16_t>(tick[1] << 8));
+			uint32_t ticks = 0;
+			for (unsigned int offset = 5; offset >= 2; --offset) {
+				ticks <<= 8;
+				ticks |= tick[offset];
+			}
+			int breakbeam_diff = static_cast<int16_t>(static_cast<uint16_t>(tick[6] | static_cast<uint16_t>(tick[7] << 8)));
+			unsigned int adc_channels[8];
+			for (std::size_t i = 0; i < sizeof(adc_channels) / sizeof(*adc_channels); ++i) {
+				adc_channels[i] = static_cast<uint16_t>(tick[8 + i * 2] | static_cast<uint16_t>(tick[8 + i * 2 + 1] << 8));
+			}
+			double capacitor_voltage = adc_channels[0] / 1024.0 * 3.3 / 2200 * (2200 + 200000);
+			double battery_voltage = adc_channels[1] / 1024.0 * 3.3 / 2200 * (2200 + 20000);
+			double board_temperature = adc_voltage_to_board_temp(adc_channels[5] / 1024.0 * 3.3);
+			unsigned int lps_reading = adc_channels[6];
+			ofs << epoch << '\t' << ticks << '\t' << breakbeam_diff << '\t' << capacitor_voltage << '\t' << battery_voltage << '\t' << board_temperature << '\t' << lps_reading << '\n';
+		}
+		ofs.close();
+
+		std::cout << "OK.\n";
+		return 0;
+	}
+
 	struct Command {
 		std::string command;
 		int args;
@@ -238,6 +299,7 @@ namespace {
 		{ "copy", 2, false, true, &do_copy },
 		{ "erase", 0, true, false, &do_erase },
 		{ "info", 0, false, true, &do_info },
+		{ "tsv", 2, false, true, &do_tsv },
 	};
 
 	const Command *find_command(const char *command) {
