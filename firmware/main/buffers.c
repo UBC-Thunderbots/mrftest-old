@@ -1,5 +1,7 @@
 #include "buffers.h"
 
+typedef int TICK_INFO_T_IS_TOO_FAT[sizeof(buffer_t) == 512 ? 1 : -1];
+
 buffer_t buffers[2];
 buffer_t *current_buffer = &buffers[0];
 
