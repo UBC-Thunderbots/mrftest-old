@@ -305,7 +305,7 @@ namespace {
 			uint8_t motor_directions = *ptr++;
 			int motor_drives[5];
 			for (std::size_t i = 0; i < 5; ++i) {
-				motor_drives[i] = static_cast<int16_t>(static_cast<uint16_t>(ptr[0] | static_cast<uint16_t>(ptr[1] << 8)));
+				motor_drives[i] = static_cast<int8_t>(*ptr++);
 				if (motor_directions & (UINT8_C(1) << i)) {
 					motor_drives[i] = -motor_drives[i];
 				}
