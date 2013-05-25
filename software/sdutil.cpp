@@ -124,7 +124,6 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 
 		// Find locations of epochs.
 		for (std::size_t epoch = 1; epoch <= num_epochs; ++epoch) {
-			std::cout << "Looking for epoch " << epoch << '\n';
 			Epoch epoch_struct;
 
 			// Search for start of epoch.
@@ -133,7 +132,6 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 				off_t pos = (low + high - 1) / 2;
 				const std::vector<uint8_t> &sector = sarray.get(pos);
 				std::size_t sector_epoch = sector[128 * 3] | (sector[128 * 3 + 1] << 8);
-				std::cout << "Search start, low=" << low << ", high=" << high << ", pos=" << pos << ", sector_epoch=" << sector_epoch << '\n';
 				if (sector_epoch >= epoch) {
 					high = pos + 1;
 				} else {
@@ -148,7 +146,6 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 				off_t pos = (low + high - 1) / 2;
 				const std::vector<uint8_t> &sector = sarray.get(pos);
 				std::size_t sector_epoch = sector[128 * 3] | (sector[128 * 3 + 1] << 8);
-				std::cout << "Search end, low=" << low << ", high=" << high << ", pos=" << pos << ", sector_epoch=" << sector_epoch << '\n';
 				if (sector_epoch > epoch) {
 					high = pos + 1;
 				} else {
@@ -173,11 +170,15 @@ const std::vector<ScanResult::Epoch> &ScanResult::epochs() const {
 namespace {
 	int do_copy(SectorArray &sdcard, const ScanResult *scan_result, char **args) {
 		std::size_t epoch_index = static_cast<std::size_t>(std::stoll(args[0], nullptr, 0));
-		if (epoch_index >= scan_result->epochs().size()) {
+		if (!epoch_index) {
+			std::cerr << "Epoch indices start from 1.\n";
+			return 1;
+		}
+		if (epoch_index > scan_result->epochs().size()) {
 			std::cerr << "This card has only " << scan_result->epochs().size() << " epochs.\n";
 			return 1;
 		}
-		const ScanResult::Epoch &epoch = scan_result->epochs()[epoch_index];
+		const ScanResult::Epoch &epoch = scan_result->epochs()[epoch_index - 1];
 
 		std::cout << "Copying sectors " << epoch.first_sector << " through " << epoch.last_sector << " to file \"" << args[1] << "\": ";
 		std::cout.flush();
@@ -220,7 +221,7 @@ namespace {
 		std::cout << "Used: " << scan_result->nonblank_size() << '\n';
 		std::cout << "Epochs:\n";
 		for (std::size_t i = 0; i < scan_result->epochs().size(); ++i) {
-			std::cout << i << ": " << '[' << scan_result->epochs()[i].first_sector << ',' << scan_result->epochs()[i].last_sector << "]\n";
+			std::cout << (i + 1) << ": " << '[' << scan_result->epochs()[i].first_sector << ',' << scan_result->epochs()[i].last_sector << "]\n";
 		}
 		return 1;
 	}
