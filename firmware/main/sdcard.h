@@ -1,81 +1,124 @@
-#ifndef SDCARD_H_
-#define SDCARD_H_
+#ifndef SDCARD_H
+#define SDCARD_H
 
 #include <stdbool.h>
 #include <stdint.h>
 
-//For all addresses, SDSC uses byte addresses, SDHC or SDXC use block addresses
+/**
+ * \brief The possible results of taking an action against the card.
+ */
 typedef enum {
-	GO_IDLE_STATE=0, //(no params return R1) resets the SD memory card
-	SEND_OP_COND=1, //(30: HCS host supports HC(1) return R1) set host capacity support and init card (only valid after soft reset)
-	SWITCH_FUNC=6,  // (see docs return R1)checks switchable function and switches card function
-	SEND_IF_COND=8, // (11:8 supply voltage 7:0 check pattern return R7) sends card interface condition
-	SEND_CSD=9,     //( no params return R1) asks the card to send its card-specific data (CSD)
-	SEND_CID=10,    //(no params return R1) asks the card to send its card identification (CID)
-	STOP_TRANSMISSION=12, //(no params return R1b) forces the card to stop multiblock read
-	SEND_STATUS=13, //(no params return R2)
-	SET_BLOCKLEN=16, //(31:0 block length return R1) length of lock_unlock, for SDSC sets block length (others block length is fixed 512)
-	READ_SINGLE_BLOCK=17, //(31:0 data address return R1) reads a block of block length
-	READ_MULTIPLE_BLOCK=18, //(31:0 data address return R1) continuously transfers data blocks until stopped
-	WRITE_BLOCK=24,         //(31:0 data address return R1) write a block of length block length
-	WRITE_MULTIPLE_BLOCK=25, //(31:0 data address return R1) continuously write blocks until stopped
-	PROGRAM_CSD=27, //(no params return R1) programming the bits of CSD
-	SET_WRITE_PROT=28, //(31:0 data address return R1b) write protect on for WP_GRP_SIZE fo CSD data, not available on SDHC or SDXC (is optional for SDSC)
-	CLR_WRITE_PROT=29, //(31:0 data address return R1b) clears write protect of above, not available on SDHC or SDXC (is optional for SDSC)
-	SEND_WRITE_PROT=30, //(31:0 write protect data address return R1) if the card has write protect features returns the value not available on SDHC or SDXC (is optional for SDSC)
-	ERASE_WR_BLK_START_ADDR=32, //(31:0 data address return R1) sets the address of the first block ot be erased
-	ERASE_WR_BLK_END_ADDR=33, //(31:0 data address return R1) sets the address of the last block to be erased
-	ERASE=38, //(no params returns R1b) Erases all previously selected blocks
-	LOCK_UNLOCK=42, //(reserved set to 0, return R1) set/reset password or lock/unlock card refer to docs
-	APP_CMD=55, //(no params return R1) next command will be application specific instead of standard
-	GEN_CMD=56, //(0 : read(0) write(1)) used to transfer or retrieve a block for commands, size is block length.
-	READ_OCR=58, // (no params return R3) reads the OCR register (CCS is in this register)
-	CRC_ON_OFF=59, //(0 : CRC on (1)) turns the CRC on or off defaults off
-} sd_cmd_t;
+	/**
+	 * \brief The action completed successfully.
+	 */
+	SD_STATUS_OK,
 
-typedef enum {
-	SD_STATUS=13, // (no params) Send the SD status
-	UNKNOWN1=18, // reserved for security
-	SEND_NUM_WR_BLOCKS=22, //(no params) Send the number of well written (no error) blocks
-	SET_WR_BLK_ERASE_COUNT=23, //(22:0 num of blocks) set the number of write blocks to be pre erased when writing
-	UNKNOWN2=25, // reserved for security
-	UNKNOWN3=26, // reserved for security
-	UNKNOWN4=38, // reserved for security
-	SD_SEND_OP_COND=41, //(30 : HCS host supports HC(1) bit) sends host capacity support
-	SET_CLR_CARD_DETECT=42, //(0 set_cd) connect(1)/disconnect(0) the 50k pull up on CS.
-	SEND_SCR=51, // (no params) read the sd configuration register (SCR)
-} sd_acmd_t;
+	/**
+	 * \brief The action failed because the card has not been initialized.
+	 */
+	SD_STATUS_UNINITIALIZED,
 
-typedef enum {
-	SD_POLL_SUCCESS,
-	SD_POLL_UNKNOWN,
-	SD_PREVIOUS_ERROR,
-	SD_CRC_ERROR,
-	SD_DRT_ERROR,
-	SD_WRITE_ERROR,
-} sd_poll_error_t;
+	/**
+	 * \brief The action failed because no card is plugged in.
+	 */
+	SD_STATUS_NO_CARD,
 
-//allows multi block writes to keep chugging along.
-sd_poll_error_t sd_poll();
+	/**
+	 * \brief The action failed because the attached card is working properly but is incompatible with this system.
+	 */
+	SD_STATUS_INCOMPATIBLE_CARD,
 
-//Initialize the card for operations. 
-//Performs and version 2 init so we can support SDHC
-bool sd_init_card(bool enable_CRC);
+	/**
+	 * \brief The action failed because the card sent an illegal response.
+	 */
+	SD_STATUS_ILLEGAL_RESPONSE,
 
-//Read a block from the card.
-bool sd_read(uint32_t addr, void *buffer);
+	/**
+	 * \brief The action failed because a logical error occurred (e.g. invalid parameter or address value or command sequence error).
+	 */
+	SD_STATUS_LOGICAL_ERROR,
 
-//Start a multiblock write at addr, measured in 512-byte sectors.
-bool sd_multiwrite_open(uint32_t addr);
+	/**
+	 * \brief The action failed because a CRC failed.
+	 */
+	SD_STATUS_CRC_ERROR,
 
-//finish writing the last block with 0x42
-bool sd_multiwrite_finalize();
+	/**
+	 * \brief The action failed because a command was sent that the card did not recognize.
+	 */
+	SD_STATUS_ILLEGAL_COMMAND,
 
+	/**
+	 * \brief The card was idle when it should not be or was not idle when it should be.
+	 */
+	SD_STATUS_ILLEGAL_IDLE,
 
-//add data to the write queue.
-bool sd_multiwrite_push_data(uint8_t *data, uint16_t length);
+	/**
+	 * \brief The card encountered an internal error in its controller or uncorrectable corruption in its memory array.
+	 */
+	SD_STATUS_CARD_INTERNAL_ERROR,
+} sd_status_t;
 
+/**
+ * \brief Returns the current status of the SD card.
+ *
+ * \return the current status, including the last error if an operation failed
+ */
+sd_status_t sd_status(void);
 
-//gets space left in write buffer
-uint16_t sd_multiwrite_available_buffer_space();
+/**
+ * \brief Initializes the SD card.
+ *
+ * \return \c true on success, or \c false on failure
+ */
+bool sd_init(void);
+
+/**
+ * \brief Reads a sector from the SD card.
+ *
+ * \param sector the sector to read
+ *
+ * \param buffer a 512-byte buffer in which to store the sector data
+ *
+ * \return \c true on success, or \c false on failure
+ */
+bool sd_read(uint32_t sector, void *buffer);
+
+/**
+ * \brief Starts a multi-sector write operation to the SD card.
+ *
+ * While a multi-sector write operation is ongoing, no other operation can be performed.
+ *
+ * \param sector the first sector to write
+ *
+ * \return \c true on success, or \c false on failure
+ */
+bool sd_write_multi_start(uint32_t sector);
+
+/**
+ * \brief Checks whether a sector is currently being written.
+ *
+ * \return \c true if a sector write is currently occurring, or \c false if not
+ */
+bool sd_write_multi_busy(void);
+
+/**
+ * \brief Starts writing one sector of a multi-sector write.
+ *
+ * There must not be a sector currently being written.
+ *
+ * \param data the 512 bytes of data to write to the sector (which must remain unmodified until the write is no longer running)
+ *
+ * \return \c true on success, or \c false on failure
+ */
+bool sd_write_multi_sector(const void *data);
+
+/**
+ * \brief Ends a multi-sector write.
+ *
+ * \return \c true on success, or \c false on failure
+ */
+bool sd_write_multi_end(void);
+
 #endif
+

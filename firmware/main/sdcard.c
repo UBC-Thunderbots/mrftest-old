@@ -1,653 +1,518 @@
 #include "sdcard.h"
+#include "dma.h"
 #include "io.h"
 #include <stddef.h>
 #include <stdio.h>
 
-#define START_BLOCK 0b11111110
-#define START_BLOCK_MULTI 0b11111100
-#define STOP_TRAN 0b11111101
+typedef enum {
+	GO_IDLE_STATE = 0,
+	SEND_OP_COND = 1,
+	SWITCH_FUNC = 6, 
+	SEND_IF_COND = 8,
+	SEND_CSD = 9,    
+	SEND_CID = 10,   
+	STOP_TRANSMISSION = 12,
+	SEND_STATUS = 13,
+	SET_BLOCKLEN = 16,
+	READ_SINGLE_BLOCK = 17,
+	READ_MULTIPLE_BLOCK = 18,
+	WRITE_BLOCK = 24,        
+	WRITE_MULTIPLE_BLOCK = 25,
+	PROGRAM_CSD = 27,
+	SET_WRITE_PROT = 28,
+	CLR_WRITE_PROT = 29,
+	SEND_WRITE_PROT = 30,
+	ERASE_WR_BLK_START_ADDR = 32,
+	ERASE_WR_BLK_END_ADDR = 33,
+	ERASE = 38,
+	LOCK_UNLOCK = 42,
+	APP_CMD = 55,
+	GEN_CMD = 56,
+	READ_OCR = 58,
+	CRC_ON_OFF = 59,
+} sd_cmd_t;
 
-bool sd_write_busy(void) {
-	return !!(SD_CTL&0x01);
+typedef enum {
+	SD_STATUS = 13,
+	SEND_NUM_WR_BLOCKS = 22,
+	SET_WR_BLK_ERASE_COUNT = 23,
+	SD_SEND_OP_COND = 41,
+	SET_CLR_CARD_DETECT = 42,
+	SEND_SCR = 51,
+} sd_acmd_t;
+
+#define START_BLOCK_TOKEN 0b11111110
+#define START_BLOCK_MULTI_TOKEN 0b11111100
+#define STOP_TRAN_TOKEN 0b11111101
+#define LINE_IDLE_STATE 0xFF
+
+
+
+typedef struct {
+	sd_status_t status;
+	uint32_t sector_count;
+	bool expect_idle;
+	bool sdhc;
+	bool write_multi_active;
+} sd_ctx_t;
+
+static sd_ctx_t card_state = {
+	.status = SD_STATUS_UNINITIALIZED,
+};
+
+
+
+static void spi_assert_cs(void) {
+	SD_CTL &= ~4;
 }
 
-uint8_t sd_read_byte(void) {
-	while(sd_write_busy());
+static void spi_deassert_cs(void) {
+	SD_CTL |= 4;
+}
+
+static void spi_transmit(uint8_t send) {
+	SD_DATA = send;
+	while (!!(SD_CTL & 1));
+}
+
+static uint8_t spi_transceive(uint8_t send) {
+	spi_transmit(send);
 	return SD_DATA;
 }
 
-void sd_write_byte(uint8_t byte) {
-	while(sd_write_busy());
-	SD_DATA = byte;
+
+
+static bool card_present(void) {
+	return !!(SD_CTL & 2);
 }
 
-
-#define LINE_IDLE_STATE 0xFF
-
-void send_nop() {
-	sd_write_byte(LINE_IDLE_STATE);
+static void nop8(void) {
+	spi_transmit(LINE_IDLE_STATE);
 }
 
-uint8_t sd_receive_byte() {
-	send_nop();
-	return sd_read_byte();
+static uint8_t nop8r(void) {
+	return spi_transceive(LINE_IDLE_STATE);
 }
 
-void sd_deassert_cs() {
-	SD_CTL = SD_CTL|0x04;
-}
-
-void sd_assert_cs() {
-	SD_CTL = SD_CTL&(~0x04);
-}
-
-bool is_sd_present() {
-	return !!(SD_CTL&0x02);
-}
-
-
-bool line_is_busy() {
-	send_nop();
-	return (sd_read_byte() == 0x00);
-}
-
-uint8_t CRC7(uint8_t *chr, size_t cnt) {
-	size_t i,a;
-	uint8_t crc,Data;
-
-	crc=0;
-	for (a=0;a<cnt;a++) {
-		Data=chr[a];
-		for (i=0;i<8;i++) {
-			crc <<= 1;
-
-			if ((Data & 0x80)^(crc & 0x80)) {
-				crc ^=0x09;
-			}
-			Data <<= 1;	
-		}
-	}
-	crc=(crc<<1)|1;
-	return(crc);
-}
-
-typedef enum {
-	VERSION_UNKNOWN, //reset value card needs to init
-	VERSION_1_x, //card is version 1.x
-	VERSION_2_later, //card is version 2.00 or later
-} sd_version_t;
-
-typedef enum {
-	CAPACITY_UNKNOWN,
-	CAPACITY_SD,
-	CAPACITY_HC,
-} sd_capacity_t;
-
-typedef struct {
-	sd_version_t version;
-	sd_capacity_t capacity;
-	size_t block_size;
-	uint8_t response;
-	uint8_t status;
-	uint32_t OCR;
-	bool crc_enabled;
-	bool enabled;
-} sd_ctx_t;
-
-sd_ctx_t card_state;
-
-void sd_reset_state() {
-	card_state.version = VERSION_UNKNOWN;
-	card_state.capacity = CAPACITY_UNKNOWN;
-	card_state.block_size = 512;
-	card_state.response = 0;
-	card_state.status = 0;
-	card_state.OCR = 0;
-	card_state.crc_enabled = false;
-	card_state.enabled = false;
-}
-
-
-uint8_t receive_DRT() {
-	uint8_t byte;
-	while ((byte = sd_receive_byte()) == LINE_IDLE_STATE);
-	return byte;
-}
-
-void receive_R1() {
-	uint8_t byte;
-	while ((byte = sd_receive_byte()) == LINE_IDLE_STATE);
-	card_state.response = byte;
-}
-
-void receive_R2() {
-	send_nop();
-	card_state.status = sd_read_byte();
-}
-
-void receive_R3() {
-	card_state.OCR=0;
-	for(uint8_t i=0;i<4;++i) {
-		send_nop();
-		card_state.OCR |= ((uint32_t) sd_read_byte())<< (8*(3-i));
-	}
-}
-
-bool is_ready(void) {
-	if(card_state.enabled) {
-		if(is_sd_present()) {
-			return true;
-		}
-		card_state.enabled = false;
-	}
-	return false;
-}
-
-bool is_idle(void) {
-	return (card_state.response & 0x01);
-}
-
-bool is_illegal_cmd(void) {
-	return (card_state.response & 0x04);
-}
-
-bool CRC7_error(void) {
-	return (card_state.response & 0x08);
-}
-
-bool any_error(void) {
-	return !!card_state.response;
-}
-
-bool voltage_check(void) {
-	return (card_state.OCR & ((uint32_t)1 << 20) ) && (card_state.OCR & ((uint32_t)1 << 21));	
-}
-
-bool any_error_except_idle(void) {
-	return (card_state.response & 0xFE);
-}
-
-bool send_command(sd_cmd_t cmd, uint32_t addr) {
-	sd_assert_cs();
-	uint8_t retries = 3;
-	uint8_t send_data[6];
-	send_data[0] = (uint8_t) cmd;
-	send_data[0] = send_data[0] | 0x40;
-	for(uint8_t i=0; i<4;++i) {
-		send_data[i+1] = (addr >> (8*(3-i)))&0x000000FF;
-	}
-	send_data[5] = CRC7(send_data,5);
+static uint32_t nop32r(void) {
+	uint32_t acc = 0;
+	uint8_t bits = 4;
 	do {
-		for(uint8_t i=0;i<6;++i) {
-			sd_write_byte(send_data[i]);
-		}
-		receive_R1();
-	} while(CRC7_error() && --retries);
-	return !!retries;
+		acc <<= 8;
+		acc |= spi_transceive(LINE_IDLE_STATE);
+	} while (--bits);
+	return acc;
 }
 
+static uint8_t crc7(const void *data, size_t len) {
+	const uint8_t *pdata = data;
+	uint8_t crc = 0;
 
-bool send_command_checked(sd_cmd_t cmd, uint32_t addr) {
-	if(!is_ready()) {
-		return false;
-	}
-	return send_command(cmd,addr) && !any_error();
-}
-
-void close_transaction() {
-	sd_deassert_cs();
-	send_nop();
-}
-
-bool send_acommand(sd_acmd_t acmd, uint32_t addr) {
-	if(send_command(APP_CMD,0)) {
-		close_transaction();
-		bool retval =!any_error_except_idle();
-		return retval && send_command((sd_cmd_t) acmd, addr);
-	}
-	return false;
-}
-
-bool goto_idle_state() {
-	bool retval = send_command(GO_IDLE_STATE,0) && !any_error_except_idle() && is_idle();
-	close_transaction();
-	return retval;
-}
-
-bool get_OCR_register() {
-	send_command(SEND_STATUS,0);
-	receive_R3();
-	close_transaction();
-	return !any_error_except_idle();
-}
-
-
-//The states of the multiblock write poll
-typedef enum {
-	SEND_START, //send the start block token
-	WRITE_BYTE, //write a byte of data
-	WRITE_CRC, //send the two CRC bytes
-	RECEIVE_DRT, //Receive the block Data Response Token
-	WAIT_BUSY, //Wait for the card to be non-busy
-	ERROR, //stalls here if any error occurs
-} sd_poll_state_t;
-
-
-//we should have a buffer at least two blocks long
-#define BUFFER_SIZE 1024
-#define BLOCK_SIZE 512
-
-//we need some pointers to track the block beginnings ceil(BUFFER_SIZE/BLOCK_SIZE)
-#define NUM_HEADS 2
-
-
-//The data buffer singlton
-typedef struct {
-	uint8_t data[BUFFER_SIZE];
-	uint16_t head;
-	uint16_t tail;
-	uint8_t head_mask;
-	uint16_t heads[2];
-	uint16_t byte_index;
-} sd_buffer_t;
-
-sd_buffer_t multiwrite_buffer;
-
-sd_poll_state_t poll_state;
-
-void initCRC16() {
-	//do what is needed to start a crc16
-	//nop for now
-}
-
-void appendCRC16(uint8_t byte) {
-	//add byte to crc 16
-	//nop for now
-}
-
-void sendCRC16() {
-	//retrieve the computed crc16 and send
-	//send garbage for now
-	sd_write_byte(0x00);
-	sd_write_byte(0x00);
-}
-
-bool send_next_byte() {
-	//if there is data to be sent
-	if(multiwrite_buffer.head != multiwrite_buffer.tail || multiwrite_buffer.head_mask) {
-		//walk the heads array and remove any that match the current head
-		uint8_t shift=1;
-		for(uint8_t i=0;i<NUM_HEADS;i++) {
-			if(multiwrite_buffer.heads[i] == multiwrite_buffer.head && (multiwrite_buffer.head_mask & shift)) {
-				multiwrite_buffer.head_mask &= ~shift;
+	do {
+		uint8_t byte = *pdata++;
+		uint8_t bits = 8;
+		do {
+			crc <<= 1;
+			if ((byte & 0x80) ^ (crc & 0x80)) {
+				crc ^= 0x09;
 			}
-			shift <<= 1;
-		}
+			byte <<= 1;
+		} while (--bits);
+	} while (--len);
 
-		//send the data to the card and increment head
-		sd_write_byte(multiwrite_buffer.data[multiwrite_buffer.head]);
-		multiwrite_buffer.byte_index += 1;
-		multiwrite_buffer.byte_index = (multiwrite_buffer.byte_index)%BLOCK_SIZE;
-
-		//use the byte in the crc16 
-		appendCRC16(multiwrite_buffer.data[multiwrite_buffer.head]);
-
-		//increment head with wrap around
-		multiwrite_buffer.head += 1;
-		multiwrite_buffer.head = (multiwrite_buffer.head)%BUFFER_SIZE;
-
-		//return if this is the end of a block
-		return !!(multiwrite_buffer.byte_index == 0);
-	}
-	return false;
+	return crc;
 }
 
-sd_poll_error_t sd_poll(void) {
-	uint8_t data;
-	switch(poll_state) {
-		case SEND_START:
-			//send the start token and init the crc
-			send_nop();
-			sd_write_byte(START_BLOCK_MULTI);
-			initCRC16();
-			poll_state = WRITE_BYTE;
-			break;
-		case WRITE_BYTE:
-			//we sit here until a block is written
-			if(send_next_byte()) {
-				poll_state = WRITE_CRC;
-			}
-			break;
-		case WRITE_CRC:
-				//send both bytes of the crc
-				sendCRC16();
-				poll_state = RECEIVE_DRT; 
-			break;
-		case RECEIVE_DRT:
-			data = sd_receive_byte();
-			if(data != LINE_IDLE_STATE) {
-				switch(data&0x1F) {
-					case 0x05:
-						// good reponse so carry on
-						poll_state = WAIT_BUSY;
-						return SD_POLL_SUCCESS;
-						//return the various error codes and lock in an error
-					case 0x0B:
-						//There was a block CRC error
-						poll_state = ERROR;
-						return SD_CRC_ERROR;
-					case 0x0D:
-						//There was a genric write error, should check card status and number of well written blocks
-						poll_state = ERROR;
-						return SD_WRITE_ERROR;
-					default:
-						//Something dun got fucked up good
-						poll_state = ERROR;
-						return SD_DRT_ERROR;
-				}
-			}
-			break;
-		case WAIT_BUSY:
-			//stay here while the card writes the block
-			if(!line_is_busy()) {
-				poll_state = SEND_START;
-			}
-			break;
-		case ERROR:
-			return SD_PREVIOUS_ERROR;
-		default:
-			//this should never happen but we've seen stranger bugs
-			return SD_POLL_UNKNOWN;
-	}
-	return SD_POLL_SUCCESS;
+static uint16_t crc16(const void *data, size_t len) {
+	const uint8_t *pdata = data;
+	uint16_t crc = 0;
+
+	do {
+		uint8_t s = *pdata++ ^ (crc >> 8);
+		uint8_t t = s ^ (s >> 4);
+		crc = (crc << 8) ^ t ^ (t << 5) ^ (t << 12);
+	} while (--len);
+
+	return crc;
 }
 
-//I want the available buffer space for data
-uint16_t sd_multiwrite_available_buffer_space() {
-	uint16_t length = BUFFER_SIZE - ((multiwrite_buffer.tail-multiwrite_buffer.head)%BUFFER_SIZE);
-
-	if(length == BUFFER_SIZE && (multiwrite_buffer.head_mask)) {
-		return 0;
-	}
-
-	return length;
+static void close_transaction(void) {
+	spi_deassert_cs();
+	nop8();
 }
 
-
-//just write data into the buffer taking care of head flagging
-//overflows are handled elsewhere
-void buffer_push(uint8_t *data, uint16_t length) {
-	for(uint16_t i=0;i<length; ++i) {
-		multiwrite_buffer.data[multiwrite_buffer.tail]=data[i];
-		if(!((multiwrite_buffer.tail - multiwrite_buffer.head)%BLOCK_SIZE)) {
-			multiwrite_buffer.head_mask <<= 1;
-			for(uint8_t j=(NUM_HEADS-1);j!=0;--j) {
-				multiwrite_buffer.heads[j] = multiwrite_buffer.heads[j-1];
-			}
-			multiwrite_buffer.head_mask |= 0x01;
-			multiwrite_buffer.heads[0] = multiwrite_buffer.tail;
-		}
-		multiwrite_buffer.tail += 1;
-		multiwrite_buffer.tail = (multiwrite_buffer.tail)%BUFFER_SIZE;
-	}
-}
-
-//if a write will overflow the buffer we need to destroy data
-//so take the last block written to the buffer but not to the card and clobber it
-//write in it's place the partial data currently in the buffer this ensures only whole blocks are written
-void collapse_buffer() {
-	//the head does not align with the edge of the buffer, so copy the partial data
-	//this expoits the fact that the buffer is a even multiple of blocks and no copy is needed if the first head aligns with the buffer head
-	//heads should always be sequential with earliest head at greatest index and later head (closer to tail) at index 0;
-	if(multiwrite_buffer.heads[NUM_HEADS-1] != multiwrite_buffer.head) {
-		//need to copy data from tail block to tailblock -1;
-		for(uint16_t i=0;multiwrite_buffer.heads[0]+i < multiwrite_buffer.tail; ++i) {
-			multiwrite_buffer.data[multiwrite_buffer.heads[1]+i] =multiwrite_buffer.data[multiwrite_buffer.heads[0]+i]; 
-		}
-	}
-	
-	// reset the tail clobber the block but include the copied data
-	multiwrite_buffer.tail = multiwrite_buffer.heads[1] + multiwrite_buffer.tail - multiwrite_buffer.heads[0];
-	
-	//we removed a head so handle it
-	for(uint8_t i=0;i < (NUM_HEADS -1); ++i) {
-		multiwrite_buffer.heads[i] = multiwrite_buffer.heads[i+1];
-	}
-	
-	multiwrite_buffer.head_mask >>=1;
-}
-
-bool sd_read(uint32_t addr, void *buffer) {
-	if (card_state.capacity == CAPACITY_SD) {
-		addr *= 512;
-	}
-	if (!send_command_checked(READ_SINGLE_BLOCK, addr)) {
-		return false;
-	}
+static bool read_data_token(void) {
 	uint8_t token;
 	do {
-		send_nop();
-		token = sd_read_byte();
-		printf("token = %02X\n", (unsigned int) token);
-	} while (token != 0b11111110 && (token & 0xF0) != 0);
-	if (token != 0b11111110) {
-		if (token & 0x08) {
-			puts("sd_read: out of range");
-		}
-		if (token & 0x04) {
-			puts("sd_read: ECC error");
-		}
-		if (token & 0x02) {
-			puts("sd_read: card controller error");
-		}
-		if (token & 0x01) {
-			puts("sd_read: general error");
-		}
-		return false;
-	}
-	uint8_t *bufptr = buffer;
-	uint16_t len = 512;
-	while (len--) {
-		send_nop();
-		*bufptr++ = sd_read_byte();
-	}
-#warning check CRC
-	send_nop();
-	sd_read_byte();
-	send_nop();
-	sd_read_byte();
-	close_transaction();
-	send_nop();
-	return true;
-}
-
-bool sd_multiwrite_push_data(uint8_t *data, uint16_t length) {
-	uint16_t available_space = sd_multiwrite_available_buffer_space();
-	if(length > available_space) {
-
-		//if there isn't enough space, push what you can then clober the buffer and recurse on remaining data
-		buffer_push(data,available_space);
-		data = data + available_space;
-		length = length - available_space;
-		collapse_buffer();
-		sd_multiwrite_push_data(data,length);
-		//things were clobbered so flag it
-		return false;
-	} else {
-
-		//just a normal push because there is room
-		buffer_push(data,length);
-		data = data + length;
-		length = 0;
+		token = nop8r();
+	} while (token == LINE_IDLE_STATE);
+	if (token == START_BLOCK_TOKEN) {
 		return true;
 	}
+	printf("SD: Illegal or data error token 0x%" PRIX8 "\n", token);
+	if (token & 0xF0) {
+		card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
+	} else if (token & 0x08) {
+		card_state.status = SD_STATUS_LOGICAL_ERROR;
+	} else {
+		card_state.status = SD_STATUS_CARD_INTERNAL_ERROR;
+	}
+	return false;
 }
 
-bool sd_multiwrite_finalize() {
-	uint8_t stuff_byte = 0x42;
-	//until we are ready to send another start token
-	//push a null byte into the buffer and run poll.
+static bool send_command_r1_nc(uint8_t command, uint32_t argument) {
+	uint8_t buffer[6];
+	buffer[0] = command | 0x40;
+	buffer[1] = argument >> 24;
+	buffer[2] = argument >> 16;
+	buffer[3] = argument >> 8;
+	buffer[4] = argument;
+	buffer[5] = (crc7(buffer, 5) << 1) | 1;
+
+	spi_assert_cs();
+	for (uint8_t i = 0; i < 6; ++i) {
+		spi_transmit(buffer[i]);
+	}
+	uint8_t r1;
 	do {
-		//If the buffer is empty push a stuffing byte
-		if(sd_multiwrite_available_buffer_space() == BUFFER_SIZE) {
-			sd_multiwrite_push_data(&stuff_byte,1);
-		}
+		r1 = nop8r();
+	} while (r1 == LINE_IDLE_STATE);
+	if (r1 == card_state.expect_idle ? 0x01 : 0x00) {
+		return true;
+	}
 
-		sd_poll_error_t error_code;
-		if((error_code = sd_poll()) != SD_POLL_SUCCESS) {
-			printf("SD error code is: %d\n",(int) error_code);
-		}
-	} while(poll_state != SEND_START && poll_state != ERROR);
+	printf("SD: Command %" PRIu8 ": Bad R1: 0x%" PRIX8 "\n", (uint8_t) command, r1);
+	if (r1 & 0x80) {
+		card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
+	} else if (r1 & 0x08) {
+		card_state.status = SD_STATUS_CRC_ERROR;
+	} else if (r1 & 0x04) {
+		card_state.status = SD_STATUS_ILLEGAL_COMMAND;
+	} else if ((r1 & 0x01) != (card_state.expect_idle ? 0x01 : 0x00)) {
+		card_state.status = SD_STATUS_ILLEGAL_IDLE;
+	} else {
+		card_state.status = SD_STATUS_LOGICAL_ERROR;
+	}
+	return false;
+}
 
-	//Send the Stoptoken insteand of block start token
-	sd_write_byte(STOP_TRAN);
-	send_nop(); //WARNING: There is one byte of delay between the stop transmission and the asertion of busy
-	while(line_is_busy()); //Let the write finish
-	
-	//deassert CS and clock out 8 bits to finish things
+static bool send_command_r1(uint8_t command, uint32_t argument) {
+	bool ret = send_command_r1_nc(command, argument);
 	close_transaction();
+	return ret;
+}
+
+static bool send_command_r1_x32(uint8_t command, uint32_t argument, uint32_t *extra_response) {
+	bool ret = send_command_r1_nc(command, argument);
+	if (ret) {
+		*extra_response = nop32r();
+	}
+	close_transaction();
+	return ret;
+}
+
+static bool send_command_r1_data_read(uint8_t command, uint32_t argument, void *buffer, size_t length) {
+	if (!send_command_r1_nc(command, argument)) {
+		close_transaction();
+		return false;
+	}
+	if (!read_data_token()) {
+		close_transaction();
+		return false;
+	}
+	uint8_t *ptr = buffer;
+	size_t bytes_left = length;
+	do {
+		*ptr++ = nop8r();
+	} while (--bytes_left);
+	uint16_t received_crc = 0;
+	received_crc |= nop8r();
+	received_crc <<= 8;
+	received_crc |= nop8r();
+	close_transaction();
+	uint16_t calculated_crc = crc16(buffer, length);
+	if (received_crc != calculated_crc) {
+		printf("SD: RX data CRC error (calc %" PRIX16 ", RX %" PRIX16 ")\n", calculated_crc, received_crc);
+		card_state.status = SD_STATUS_CRC_ERROR;
+		return false;
+	}
 	return true;
 }
 
 
-//Init some variables and open a multiblock write in the card
-bool sd_multiwrite_open(uint32_t addr) {
-	if (card_state.capacity == CAPACITY_SD) {
-		addr *= 512;
-	}
-	bool retval = send_command_checked(WRITE_MULTIPLE_BLOCK,addr);
-	poll_state = SEND_START;
-	multiwrite_buffer.head_mask=0x00;
-	multiwrite_buffer.head=0;
-	multiwrite_buffer.tail=0;
-	multiwrite_buffer.heads[0]=0;
-	multiwrite_buffer.heads[1]=0;
-	multiwrite_buffer.byte_index=0;
-	for(uint16_t i=0;i<BUFFER_SIZE; ++i) {
-		multiwrite_buffer.data[i] = 0x24;
-	}
-	return retval;
+
+sd_status_t sd_status(void) {
+	return card_state.status;
 }
 
-//Initializes the SD Card
-bool sd_init_card(bool enable_CRC) {
-	//clear the current sdcard state context
-	sd_reset_state();
+bool sd_init(void) {
+	// Reset status.
+	card_state.status = SD_STATUS_UNINITIALIZED;
 
-	//First check the present line is active, if not do nothing
-	if(!is_sd_present()) {
-		puts("SD: Card not detected.");
+	// Check for card.
+	if (!card_present()) {
+		puts("SD: No card");
+		card_state.status = SD_STATUS_NO_CARD;
 		return false;
-	} else {
-		puts("SD: Card detected for init.");
 	}
 
-	//send a bunch of clocks to insure the card is booted up 
-	sd_deassert_cs();
-	for(uint8_t i=0;i<80;i++) {
-		send_nop();	
-	}
-	
-	//Send the idle state command
-	if(!goto_idle_state()) {
-		puts("SD: Failed to enter idle state");
-		return false;
-	} else {
-		puts("SD: Successfully returned to idle state.");
+	// Reset bus.
+	{
+		spi_deassert_cs();
+		uint8_t count = 80;
+		do {
+			nop8();
+		} while (--count);
 	}
 
-
-	//Follow the starup procedure of checking voltages and such
-	uint32_t if_cond_args = 0x00000142;
-	send_command(SEND_IF_COND,if_cond_args);
-	if(is_illegal_cmd()) {
-		card_state.version = VERSION_1_x;
-		puts("SD: possible VERSION 1_x card detected.");
-	} else {
-		if(any_error_except_idle()) {
-			puts("SD: Fatal error getting interface condition.");
+	// Reset card and enter idle state in SPI mode.
+	{
+		card_state.expect_idle = true;
+		if (!send_command_r1(GO_IDLE_STATE, 0)) {
 			return false;
 		}
-		card_state.version = VERSION_2_later;
-		puts("SD: possible VERSION 2_later card detected.");
-		send_nop(); //command version and reserved bits ignore these
-		send_nop(); //reserved bits ignore these
-		send_nop(); //reserved bits and voltage accepted
-		uint8_t voltage = (sd_read_byte() & 0x0F);
-		send_nop(); //check pattern
-		uint8_t check = sd_read_byte();
-		if((check != 0x42) || (voltage != 0x01)) {
-			puts("SD: Fatal error getting interface condition.");
-			return false;
+	}
+
+	// Check interface condition and whether card is version 1 or version 2.
+	bool v2;
+	{
+		uint32_t r7;
+		bool ret = send_command_r1_x32(SEND_IF_COND, (0b0001 << 8) | 0x5A, &r7);
+		if (ret) {
+			// Command was accepted, so this must be a version 2 card.
+			v2 = true;
+			// Check the interface condition.
+			uint8_t check_pattern = r7 & 0xFF;
+			if (check_pattern != 0x5A) {
+				printf("SD: Bad R7: 0x%" PRIX32 ", expected LSB 0x5A\n", r7);
+				card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
+				return false;
+			}
+			uint8_t voltage_mask = (r7 >> 8) & 0x0F;
+			if (voltage_mask != 0x1) {
+				printf("SD: Bad R7: accepted voltage mask=0x%" PRIX8 ", expected 0x1\n", voltage_mask);
+				card_state.status = SD_STATUS_INCOMPATIBLE_CARD;
+				return false;
+			}
 		} else {
-			puts("SD: Iterface condition checks out.");
+			if (card_state.status == SD_STATUS_ILLEGAL_COMMAND) {
+				// Illegal command indicates this is a version 1 card, and is not actually an error.
+				v2 = false;
+			} else {
+				// Command failed for some other reason which should not happen.
+				return false;
+			}
 		}
 	}
-	close_transaction();
+	printf("SD: V%" PRIu8 " card, interface OK\n", v2 ? (uint8_t) 2 : (uint8_t) 1);
 
-	//retrieve the OCR register, has useful status about capacity and such
-	if(!get_OCR_register()) {
-		puts("SD: Failed to initialize Card.");
+	// Enable CRC protection of transactions.
+	if (!send_command_r1(CRC_ON_OFF, 1)) {
 		return false;
-	} else {
-		puts("SD: Retrieved OCR register.");
 	}
 
-	if(!voltage_check()) {
-		puts("SD: Card voltage not compatible.");
-		return false;
-	} else {
-		puts("SD: Card voltage appears compatible.");	
-	}
-
-	//Turn on CRC checking if we want it
-	if(enable_CRC) {
-		card_state.crc_enabled = true;
-		uint32_t crc_args = 0x00000001;
-		if(!send_command(CRC_ON_OFF,crc_args) || any_error_except_idle()) {
-			puts("Failed to enable CRC.");
+	// Check OCR for compatible voltage range.
+	{
+		uint32_t ocr;
+		if (!send_command_r1_x32(READ_OCR, 0, &ocr)) {
 			return false;
 		}
-		close_transaction();
+		if (!(ocr & (UINT32_C(3) << 20))) {
+			printf("SD: OCR=0x%" PRIX32 ", 3.2 to 3.4 volts not supported\n", ocr);
+			card_state.status = SD_STATUS_INCOMPATIBLE_CARD;
+			return false;
+		}
 	}
 
-	//If card supports V2 then send that we support SDHC
-	uint32_t op_cond_args =0;
-	if(card_state.version == VERSION_2_later) {
-		op_cond_args |= 0x40000000;
+	// Initialize the card.
+	{
+		card_state.expect_idle = false;
+		uint32_t arg = v2 ? (UINT32_C(1) << 30) : 0; // Only V2 cards are allowed to see an SDHC host.
+		for (;;) {
+			if (!send_command_r1(APP_CMD, 0) && card_state.status != SD_STATUS_ILLEGAL_IDLE) {
+				return false;
+			}
+			if (send_command_r1(SD_SEND_OP_COND, arg)) {
+				break;
+			} else if (card_state.status != SD_STATUS_ILLEGAL_IDLE) {
+				return false;
+			}
+		}
+		card_state.status = SD_STATUS_UNINITIALIZED;
 	}
-	puts("Entering init wait.");
-	do {
-		send_acommand(SD_SEND_OP_COND,op_cond_args);
-		close_transaction();
-	} while(is_idle() && !any_error_except_idle());
-	puts("Card no longer idle.");
 
-	if(any_error_except_idle()) {
-		puts("Failed to initialize Card.");
+	// Determine card capacity class (SDSC vs SDHC/SDXC).
+	if (v2) {
+		uint32_t ocr;
+		if (!send_command_r1_x32(READ_OCR, 0, &ocr)) {
+			return false;
+		}
+		if (!(ocr & (UINT32_C(1) << 31))) {
+			printf("SD: OCR=0x%" PRIX32 ", power up not done\n", ocr);
+			card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
+			return false;
+		}
+		card_state.sdhc = !!(ocr & (UINT32_C(1) << 30));
+	} else {
+		card_state.sdhc = false;
+	}
+	printf("SD: SD%cC init OK\n", card_state.sdhc ? 'H' : 'S');
+
+	// Set block length to 512 bytes (this is ignored in all the ways we care about for SDHC/SDXC, as they always use a 512 byte block length, but harmless).
+	if (!send_command_r1(SET_BLOCKLEN, 512)) {
 		return false;
 	}
 
-	//get the OCR and wait on power up status busy
-	do {
-		if(!get_OCR_register()) {
-			puts("Failed to get OCR register during init.");
+	// Read the card specific data register and compute the number of sectors on the card.
+	{
+		uint8_t csd[16];
+		if (!send_command_r1_data_read(SEND_CSD, 0, csd, sizeof(csd))) {
 			return false;
+		}
+		uint8_t csd_structure = csd[0] >> 6;
+		if (csd_structure == 0) {
+			// CSD structure version 1.0
+			uint8_t read_bl_len = csd[5] & 0x0F;
+			uint16_t c_size = (((uint16_t) (csd[6] & 0x03)) << 10) | (((uint16_t) csd[7]) << 2) | (csd[8] >> 6);
+			uint8_t c_size_mult = ((csd[9] & 0x03) << 1) | (csd[10] >> 7);
+			uint16_t block_len = 1 << read_bl_len;
+			uint16_t mult = 1 << (c_size_mult + 2);
+			uint32_t blocknr = ((uint32_t) (c_size + 1)) * mult;
+			uint32_t bytes = blocknr * block_len;
+			card_state.sector_count = bytes / 512;
+		} else if (csd_structure == 1) {
+			// CSD structure version 2.0
+			uint32_t c_size = (((uint32_t) (csd[7] & 0x3F)) << 16) | (((uint32_t) csd[8]) << 8) | csd[9];
+			card_state.sector_count = (c_size + 1) * 1024; // bytes = (c_size + 1) * 512 kB
 		} else {
-			puts("read OCR register.");
+			printf("SD: CSD_STRUCTURE=%" PRIu8 " (expected 0 or 1)\n", (uint8_t) (csd[0] >> 6));
+			card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
+			return false;
 		}
-	} while(!(card_state.OCR&0x8000));
-
-	//Check final card capacity of OCR
-	if(card_state.OCR&0x4000 && card_state.version == VERSION_2_later) {
-		card_state.capacity = CAPACITY_HC;
-		puts("Card is high or extended capacity.");
-	} else {
-		card_state.capacity = CAPACITY_SD;
-		puts("Card is standard capacity");
 	}
+	printf("SD: %" PRIu32 " sectors\n", card_state.sector_count);
 
-	card_state.enabled=true;
-	
+	card_state.status = SD_STATUS_OK;
+	card_state.write_multi_active = false;
 	return true;
 }
+
+bool sd_read(uint32_t sector, void *buffer) {
+	// Sanity check.
+	if (card_state.status != SD_STATUS_OK) {
+		return false;
+	}
+	if (card_state.write_multi_active) {
+		card_state.status = SD_STATUS_LOGICAL_ERROR;
+		puts("SD: read during write multi");
+		return false;
+	}
+
+	// Execute operation.
+	return send_command_r1_data_read(READ_SINGLE_BLOCK, card_state.sdhc ? sector : sector * 512U, buffer, 512);
+}
+
+bool sd_write_multi_start(uint32_t sector) {
+	// Sanity check.
+	if (card_state.status != SD_STATUS_OK) {
+		return false;
+	}
+	if (card_state.write_multi_active) {
+		card_state.status = SD_STATUS_LOGICAL_ERROR;
+		puts("SD: write multi start during write multi");
+		return false;
+	}
+
+	// Send the command to start the operation.
+	if (!send_command_r1_nc(WRITE_MULTIPLE_BLOCK, card_state.sdhc ? sector : sector * 512U)) {
+		return false;
+	}
+
+	card_state.write_multi_active = true;
+	return true;
+}
+
+bool sd_write_multi_busy(void) {
+	return dma_running(DMA_READ_CHANNEL_SD);
+}
+
+bool sd_write_multi_sector(const void *data) {
+	// Sanity check.
+	if (card_state.status != SD_STATUS_OK) {
+		return false;
+	}
+	if (!card_state.write_multi_active) {
+		card_state.status = SD_STATUS_LOGICAL_ERROR;
+		puts("SD: write multi sector outside write multi");
+		return false;
+	}
+	if (sd_write_multi_busy()) {
+		card_state.status = SD_STATUS_LOGICAL_ERROR;
+		puts("SD: write multi sector while busy");
+		return false;
+	}
+	uint8_t ctl = SD_CTL & 0b00111000;
+	if (ctl) {
+		if (ctl & 0b00100000) {
+			card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
+			puts("SD: write multi saw malformed DRT");
+		} else if (ctl & 0b00010000) {
+			card_state.status = SD_STATUS_CARD_INTERNAL_ERROR;
+			puts("SD: write multi saw I/O error in DRT");
+		} else if (ctl & 0b00001000) {
+			card_state.status = SD_STATUS_CRC_ERROR;
+			puts("SD: write multi saw CRC error in DRT");
+		}
+		return false;
+	}
+
+	// Start the DMA transfer.
+	dma_read_start(DMA_READ_CHANNEL_SD, data, 512);
+	return true;
+}
+
+bool sd_write_multi_end(void) {
+	// Sanity check.
+	if (card_state.status != SD_STATUS_OK) {
+		return false;
+	}
+	if (!card_state.write_multi_active) {
+		card_state.status = SD_STATUS_LOGICAL_ERROR;
+		puts("SD: write multi end outside write multi");
+		return false;
+	}
+
+	// Wait for non-busy status.
+	while (sd_write_multi_busy());
+	while (SD_CTL & 1);
+
+	// Check for any errors in the final sector.
+	bool ret = true;
+	uint8_t ctl = SD_CTL & 0b00111000;
+	if (ctl) {
+		if (ctl & 0b00100000) {
+			card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
+			puts("SD: write multi saw malformed DRT");
+		} else if (ctl & 0b00010000) {
+			card_state.status = SD_STATUS_CARD_INTERNAL_ERROR;
+			puts("SD: write multi saw I/O error in DRT");
+		} else if (ctl & 0b00001000) {
+			card_state.status = SD_STATUS_CRC_ERROR;
+			puts("SD: write multi saw CRC error in DRT");
+		}
+		ret = false;
+	}
+
+	// Shut down the multi-sector write.
+	nop8();
+	spi_transmit(STOP_TRAN_TOKEN);
+	nop8();
+	while (!nop8r());
+	close_transaction();
+	card_state.write_multi_active = false;
+
+	return ret;
+}
+
+#endif
+
