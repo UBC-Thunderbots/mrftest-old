@@ -27,8 +27,10 @@ typedef struct {
 
 extern buffer_t buffers[2];
 extern buffer_t *current_buffer;
+extern uint8_t *next_packet_buffer;
 
 void buffers_swap(void);
+void buffers_push_packet(void);
 
 #endif
 

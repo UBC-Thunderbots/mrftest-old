@@ -52,7 +52,6 @@ static bool autokick_fired_pending = false;
 static bool drivetrain_power_forced_on = false;
 static uint8_t last_drive_packet_tick = 0;
 static uint16_t battery_average = 1023;
-static volatile uint8_t mrf_rx_buffer[128];
 static bool mrf_rx_dma_started = false;
 static uint32_t ticks32 = 0;
 
@@ -71,37 +70,51 @@ static void shutdown_sequence(void) {
 	for (;;);
 }
 
+void send_current_packet_and_fix_frame_length_for_logging(void) {
+	const uint8_t *pbuf = next_packet_buffer;
+	mrf_write_long(MRF_REG_LONG_TXNFIFO, 9); // Header length (used by MRF24J40 but not logged to SD)
+	uint8_t frame_length = *pbuf + 1; // Include frame length byte in frame length so enough bytes will be copied to MRF
+	uint16_t mrf_reg_index = MRF_REG_LONG_TXNFIFO + 1;
+	do {
+		mrf_write_long(mrf_reg_index++, *pbuf++);
+	} while (--frame_length);
+	mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
+	transmit_busy = true;
+	next_packet_buffer[0] += 2; // Add 2 bytes for (non-existent) FCS in the log, so structure matches that of RX packet
+}
+
 void prepare_mrf_mhr(uint8_t payload_length) {
 #warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 0, 9); // Header length
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 1, 9 + payload_length); // Frame length
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 2, 0b01100001); // Frame control LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 3, 0b10001000); // Frame control MSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 4, tx_seqnum++); // Sequence number
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 5, pan & 0xFF); // Destination PAN ID LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 6, pan >> 8); // Destination PAN ID MSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 7, 0x00); // Destination address LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 8, 0x01); // Destination address MSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 9, index); // Source address LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 10, 0); // Source address MSB
+	uint8_t *pbuf = next_packet_buffer;
+	pbuf[0] = 9 + payload_length; // Frame length
+	pbuf[1] = 0b01100001; // Frame control LSB
+	pbuf[2] = 0b10001000; // Frame control MSB
+	pbuf[3] = tx_seqnum++; // Sequence number
+	pbuf[4] = pan & 0xFF; // Destination PAN ID LSB
+	pbuf[5] = pan >> 8; // Destination PAN ID MSB
+	pbuf[6] = 0x00; // Destination address LSB
+	pbuf[7] = 0x01; // Destination address MSB
+	pbuf[8] = index; // Source address LSB
+	pbuf[9] = 0; // Source address MSB
 }
 
 static void send_feedback_packet(void) {
 	prepare_mrf_mhr(12);
 
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 11, 0x00); // General robot status update
+	uint8_t *payload = next_packet_buffer + 10;
+	payload[0] = 0x00; // General robot status update
 	uint16_t adc_value = read_main_adc(BATT_VOLT);
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 12, adc_value); // Battery voltage LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 13, adc_value >> 8); // Battery voltage MSB
+	payload[1] = adc_value; // Battery voltage LSB
+	payload[2] = adc_value >> 8; // Battery voltage MSB
 	adc_value = read_main_adc(CHICKER);
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 14, adc_value); // Capacitor voltage LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 15, adc_value >> 8); // Capacitor voltage MSB
+	payload[3] = adc_value; // Capacitor voltage LSB
+	payload[4] = adc_value >> 8; // Capacitor voltage MSB
 	int16_t breakbeam_diff = read_breakbeam_diff();
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 16, breakbeam_diff); // Break beam reading LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 17, breakbeam_diff >> 8); // Break beam reading MSB
+	payload[5] = breakbeam_diff; // Break beam reading LSB
+	payload[6] = breakbeam_diff >> 8; // Break beam reading MSB
 	adc_value = read_main_adc(TEMPERATURE);
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 18, adc_value); // Board temperature LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 19, adc_value >> 8); // Board temperature MSB
+	payload[7] = adc_value; // Board temperature LSB
+	payload[8] = adc_value >> 8; // Board temperature MSB
 	uint8_t flags = 0;
 	if (breakbeam_diff > BREAKBEAM_DIFF_THRESHOLD) {
 		flags |= 0x01;
@@ -124,7 +137,7 @@ static void send_feedback_packet(void) {
 	if (interlocks_overridden()) {
 		flags |= 0x40;
 	}
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 20, flags); // Flags
+	payload[9] = flags; // Flags
 	flags = 0;
 	for (uint8_t wheel = 0; wheel < 4; ++wheel) {
 		MOTOR_INDEX = wheel;
@@ -132,37 +145,35 @@ static void send_feedback_packet(void) {
 		MOTOR_STATUS = ~status;
 		flags |= status << (wheel * 2);
 	}
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 21, flags); // Wheel motor Hall sensors stuck
+	payload[10] = flags; // Wheel motor Hall sensors stuck
 	MOTOR_INDEX = 4;
 	{
 		uint8_t motor_status = MOTOR_STATUS;
 		MOTOR_STATUS = ~motor_status;
 		flags = motor_status | (ENCODER_FAIL << 2);
 	}
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 22, flags); // Dribbler Hall sensors stuck and optical encoders not commutating
+	payload[11] = flags; // Dribbler Hall sensors stuck and optical encoders not commutating
 
-	mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
-
-	transmit_busy = true;
+	send_current_packet_and_fix_frame_length_for_logging();
 	feedback_pending = false;
 	transmission_reliable = false;
 }
 
 static void handle_radio_receive(void) {
 	mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00); // RXDECINV = 0; stop inverting receiver and allow further reception
-	uint8_t frame_length = mrf_rx_buffer[0];
-	uint16_t frame_control = mrf_rx_buffer[1] | (mrf_rx_buffer[2] << 8);
+	uint8_t frame_length = next_packet_buffer[0];
+	uint16_t frame_control = next_packet_buffer[1] | (next_packet_buffer[2] << 8);
 	// Sanity-check the frame control word
 	if (((frame_control >> 0) & 7) == 1 /* Data packet */ && ((frame_control >> 3) & 1) == 0 /* No security */ && ((frame_control >> 6) & 1) == 1 /* Intra-PAN */ && ((frame_control >> 10) & 3) == 2 /* 16-bit destination address */ && ((frame_control >> 14) & 3) == 2 /* 16-bit source address */) {
 		// Read out and check the source address and sequence number
-		uint16_t source_address = mrf_rx_buffer[8] | (mrf_rx_buffer[9] << 8);
-		uint8_t sequence_number = mrf_rx_buffer[3];
+		uint16_t source_address = next_packet_buffer[8] | (next_packet_buffer[9] << 8);
+		uint8_t sequence_number = next_packet_buffer[3];
 		if (source_address == 0x0100 && sequence_number != rx_seqnum) {
 			// Update sequence number
 			rx_seqnum = sequence_number;
 
 			// Handle packet
-			uint16_t dest_address = mrf_rx_buffer[6] | (mrf_rx_buffer[7] << 8);
+			uint16_t dest_address = next_packet_buffer[6] | (next_packet_buffer[7] << 8);
 			static const uint8_t HEADER_LENGTH = 2 /* Frame control */ + 1 /* Seq# */ + 2 /* Dest PAN */ + 2 /* Dest */ + 2 /* Src */;
 			static const uint8_t FOOTER_LENGTH = 2;
 			if (dest_address == 0xFFFF) {
@@ -172,9 +183,9 @@ static void handle_radio_receive(void) {
 					const uint8_t offset = 1 + HEADER_LENGTH + 8 * index;
 					uint16_t words[4];
 					for (uint8_t i = 0; i < 4; ++i) {
-						words[i] = mrf_rx_buffer[offset + i * 2 + 1];
+						words[i] = next_packet_buffer[offset + i * 2 + 1];
 						words[i] <<= 8;
-						words[i] |= mrf_rx_buffer[offset + i * 2];
+						words[i] |= next_packet_buffer[offset + i * 2];
 						wheel_context.setpoints[i] = words[i] & 0x3FF;
 						if (words[i] & 0x400) {
 							wheel_context.setpoints[i] = -wheel_context.setpoints[i];
@@ -221,13 +232,13 @@ static void handle_radio_receive(void) {
 				// Non-broadcast frame contains a message specifically for this robot
 				static const uint16_t MESSAGE_PURPOSE_ADDR = 1 + HEADER_LENGTH;
 				static const uint16_t MESSAGE_PAYLOAD_ADDR = MESSAGE_PURPOSE_ADDR + 1;
-				switch (mrf_rx_buffer[MESSAGE_PURPOSE_ADDR]) {
+				switch (next_packet_buffer[MESSAGE_PURPOSE_ADDR]) {
 					case 0x00: // Fire kicker immediately
 						if (frame_length == HEADER_LENGTH + 4 + FOOTER_LENGTH) {
-							uint8_t which = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR];
-							uint16_t width = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + 2];
+							uint8_t which = next_packet_buffer[MESSAGE_PAYLOAD_ADDR];
+							uint16_t width = next_packet_buffer[MESSAGE_PAYLOAD_ADDR + 2];
 							width <<= 8;
-							width |= mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + 1];
+							width |= next_packet_buffer[MESSAGE_PAYLOAD_ADDR + 1];
 							set_chick_pulse(width);
 							if (which) {
 								fire_chipper();
@@ -239,10 +250,10 @@ static void handle_radio_receive(void) {
 
 					case 0x01: // Arm autokick
 						if (frame_length == HEADER_LENGTH + 4 + FOOTER_LENGTH) {
-							autokick_device = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR];
-							autokick_pulse_width = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + 2];
+							autokick_device = next_packet_buffer[MESSAGE_PAYLOAD_ADDR];
+							autokick_pulse_width = next_packet_buffer[MESSAGE_PAYLOAD_ADDR + 2];
 							autokick_pulse_width <<= 8;
-							autokick_pulse_width |= mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + 1];
+							autokick_pulse_width |= next_packet_buffer[MESSAGE_PAYLOAD_ADDR + 1];
 							autokick_armed = true;
 						}
 						break;
@@ -255,7 +266,7 @@ static void handle_radio_receive(void) {
 
 					case 0x03: // Set LED mode
 						if (frame_length == HEADER_LENGTH + 2 + FOOTER_LENGTH) {
-							led_mode = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR];
+							led_mode = next_packet_buffer[MESSAGE_PAYLOAD_ADDR];
 							if (led_mode <= 0x1F) {
 								LED_CTL = (LED_CTL & 0x80) | led_mode;
 							} else if (led_mode == 0x21) {
@@ -281,7 +292,7 @@ static void handle_radio_receive(void) {
 							// Extract the new data from the radio
 							uint8_t buffer[4];
 							for (uint8_t i = 0; i < sizeof(buffer); ++i) {
-								buffer[i] = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + i];
+								buffer[i] = next_packet_buffer[MESSAGE_PAYLOAD_ADDR + i];
 							}
 
 							// Erase and rewrite the sector
@@ -301,7 +312,7 @@ static void handle_radio_receive(void) {
 					case 0x0D: // Manually commutate motors
 						if (frame_length == HEADER_LENGTH + 6 + FOOTER_LENGTH) {
 							for (uint8_t i = 0; i < 5; ++i) {
-								motor_manual_commutation_patterns[i] = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + i] & 0b11111100;
+								motor_manual_commutation_patterns[i] = next_packet_buffer[MESSAGE_PAYLOAD_ADDR + i] & 0b11111100;
 							}
 						}
 						break;
@@ -406,10 +417,12 @@ static void avr_main(void) {
 			autokick_fired_pending = true;
 		}
 
-		// Check if a tick has passed; if so, iterate the control loop and update average battery level
+		// Check if a tick has passed; if so, iterate the control loop and update average battery level.
+		// We must not run a tick if an MRF receive is running, because the SD and MRF DMA operations would overlap and break.
+		// MRF receive should take very little time, so this should not significantly delay ticks.
 		{
 			uint8_t new_ticks = TICKS;
-			if (new_ticks != old_ticks) {
+			if (new_ticks != old_ticks && !mrf_rx_dma_started) {
 				ticks32 += (uint8_t) (new_ticks - old_ticks);
 				old_ticks = new_ticks;
 				wheels_tick();
@@ -458,7 +471,7 @@ static void avr_main(void) {
 				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04); // RXDECINV = 1; invert receiver symbol sign to prevent further packet reception
 
 				// Start copying the data into the receive buffer.
-				mrf_start_read_long_block(MRF_REG_LONG_RXFIFO, mrf_rx_buffer, 128);
+				mrf_start_read_long_block(MRF_REG_LONG_RXFIFO, next_packet_buffer, 128);
 				mrf_rx_dma_started = true;
 			}
 		}
@@ -467,6 +480,7 @@ static void avr_main(void) {
 		if (mrf_rx_dma_started && !mrf_read_long_block_active()) {
 			mrf_rx_dma_started = false;
 			handle_radio_receive();
+			buffers_push_packet();
 		}
 
 		// Check if we should send a feedback packet now
@@ -491,11 +505,9 @@ static void avr_main(void) {
 			// Send notification to host
 #warning once beaconed coordinator mode is working, destination address can be omitted to send to PAN coordinator
 			prepare_mrf_mhr(1);
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11, 0x01); // Autokick fired
-
-			mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
-
-			transmit_busy = true;
+			uint8_t *payload = next_packet_buffer + 10;
+			payload[0] = 0x01; // Autokick fired
+			send_current_packet_and_fix_frame_length_for_logging();
 			autokick_fired_pending = false;
 			transmission_reliable = true;
 		}

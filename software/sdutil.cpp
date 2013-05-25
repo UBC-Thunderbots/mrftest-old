@@ -245,6 +245,90 @@ namespace {
 		return 1;
 	}
 
+	int do_pcap(SectorArray &sdcard, const ScanResult *scan_result, char **args) {
+		// Get the epoch.
+		std::size_t epoch_index = static_cast<std::size_t>(std::stoll(args[0], nullptr, 0));
+		if (!epoch_index) {
+			std::cerr << "Epoch indices start from 1.\n";
+			return 1;
+		}
+		if (epoch_index > scan_result->epochs().size()) {
+			std::cerr << "This card has only " << scan_result->epochs().size() << " epochs.\n";
+			return 1;
+		}
+		const ScanResult::Epoch &epoch = scan_result->epochs()[epoch_index - 1];
+
+		std::cout << "Outputting sectors " << epoch.first_sector << " through " << epoch.last_sector << " to PCAP file \"" << args[1] << "\": ";
+		std::cout.flush();
+
+		// Open the capture file.
+		std::cout.flush();
+		std::ofstream ofs;
+		ofs.exceptions(std::ios_base::eofbit | std::ios_base::failbit | std::ios_base::badbit);
+		ofs.open(args[1], std::ios_base::binary | std::ios_base::out | std::ios_base::trunc);
+		{
+			uint32_t u32;
+			uint16_t u16;
+			u32 = 0xA1B2C3D4;
+			ofs.write(reinterpret_cast<const char *>(&u32), 4); // Magic number
+			u16 = 2;
+			ofs.write(reinterpret_cast<const char *>(&u16), 2); // Major version number
+			u16 = 4;
+			ofs.write(reinterpret_cast<const char *>(&u16), 2); // Minor version number
+			u32 = 0;
+			ofs.write(reinterpret_cast<const char *>(&u32), 4); // Timezone offset (we use UTC)
+			ofs.write(reinterpret_cast<const char *>(&u32), 4); // Significant figures in timestamps (everyone sets this to zero)
+			u32 = 131;
+			ofs.write(reinterpret_cast<const char *>(&u32), 4); // Maximum length of a captured packet
+			u32 = 195;
+			ofs.write(reinterpret_cast<const char *>(&u32), 4); // Network data link type
+		}
+
+		// Copy the data.
+		unsigned int packets = 0;
+		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
+			const std::vector<uint8_t> &buffer = sdcard.get(sector);
+
+			uint32_t ticks = 0;
+			{
+				const uint8_t *ptr = &buffer[128 * 3];
+				ptr += 2;
+				unsigned int version = *ptr++;
+				if (version != 1) {
+					throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Log record has version %1, expected 1!", version)));
+				}
+				for (unsigned int i = 0; i < 4; ++i) {
+					ticks <<= 8;
+					ticks |= ptr[3 - i];
+				}
+			}
+
+			for (unsigned int packet_index = 0; packet_index < 3; ++packet_index) {
+				const uint8_t *ptr = &buffer[packet_index * 128];
+				std::size_t len = *ptr++;
+				if (len) {
+					unsigned long seconds = ticks / 200;
+					unsigned long microseconds = (ticks % 200) * 5000;
+					{
+						uint32_t u32;
+						u32 = static_cast<uint32_t>(seconds);
+						ofs.write(reinterpret_cast<const char *>(&u32), 4);
+						u32 = static_cast<uint32_t>(microseconds);
+						ofs.write(reinterpret_cast<const char *>(&u32), 4);
+						u32 = static_cast<uint32_t>(len);
+						ofs.write(reinterpret_cast<const char *>(&u32), 4);
+						ofs.write(reinterpret_cast<const char *>(&u32), 4);
+					}
+					ofs.write(reinterpret_cast<const char *>(ptr), static_cast<std::streamsize>(len));
+					++packets;
+				}
+			}
+		}
+		ofs.close();
+		std::cout << "Copied " << packets << " packets.\n";
+		return 0;
+	}
+
 	int do_tsv(SectorArray &sdcard, const ScanResult *scan_result, char **args) {
 		std::size_t epoch_index = static_cast<std::size_t>(std::stoll(args[0], nullptr, 0));
 		if (!epoch_index) {
@@ -344,6 +428,7 @@ namespace {
 		{ "copy", 2, false, true, &do_copy },
 		{ "erase", 0, true, false, &do_erase },
 		{ "info", 0, false, true, &do_info },
+		{ "pcap", 2, false, true, &do_pcap },
 		{ "tsv", 2, false, true, &do_tsv },
 	};
 
