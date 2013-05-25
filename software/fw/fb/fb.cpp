@@ -6,8 +6,10 @@
 #include <array>
 #include <cstdint>
 #include <iostream>
+#include <stdexcept>
 #include <glibmm/convert.h>
 #include <glibmm/timer.h>
+#include <glibmm/ustring.h>
 
 #define PAGE_SIZE 256
 #define READ_BLOCK_SIZE 4096
@@ -83,8 +85,7 @@ void Firmware::fb_upload(const IntelHex &hex, bool onboard, bool leave_powered) 
 	uint32_t jedec = read_jedec_id(handle);
 	std::cout << Glib::locale_from_utf8(tohex(jedec, 6));
 	if (jedec != 0xEF4015) {
-		std::cout << " (unknown)!\n";
-		return;
+		throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Unknown JEDEC ID %1 (expected EF4015)!", tohex(jedec, 6))));
 	} else {
 		std::cout << " (OK).\n";
 	}
@@ -95,11 +96,9 @@ void Firmware::fb_upload(const IntelHex &hex, bool onboard, bool leave_powered) 
 	uint8_t status = read_status_register(handle);
 	std::cout << Glib::locale_from_utf8(tohex(status, 2));
 	if (status & 1) {
-		std::cout << " (already busy with an operation)!\n";
-		return;
+		throw std::runtime_error("Flash memory is busy!");
 	} else if (status & 0b11100) {
-		std::cout << " (write protected)!\n";
-		return;
+		throw std::runtime_error("Flash memory is write protected!");
 	} else {
 		std::cout << " (OK).\n";
 	}
@@ -134,13 +133,13 @@ void Firmware::fb_upload(const IntelHex &hex, bool onboard, bool leave_powered) 
 		std::array<uint8_t, READ_BLOCK_SIZE> buffer;
 		std::size_t bytes_read;
 		if ((bytes_read = read_data(handle, static_cast<uint16_t>(i / PAGE_SIZE), &buffer[0], buffer.size())) != buffer.size()) {
-			std::cout << "\rReading and comparing data… read block request issued for " << buffer.size() << " bytes but returned only " << bytes_read << "!\n";
-			return;
+			std::cout << "\rReading and comparing data… ";
+			throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Read block request issued for %1 bytes but returned only %2!", buffer.size(), bytes_read)));
 		}
 		for (std::size_t j = 0; j < buffer.size() && i + j < hex.data()[0].size(); ++j) {
 			if (buffer[j] != hex.data()[0][i + j]) {
-				std::cout << "\rReading and comparing data… compare failed at byte " << (i + j) << ": expected " << Glib::locale_from_utf8(tohex(hex.data()[0][i + j], 2)) << " but found " << Glib::locale_from_utf8(tohex(buffer[j], 2)) << "!\n";
-				return;
+				std::cout << "\rReading and comparing data… ";
+				throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Compare failed at byte %1: expected %2 but found %3!", i + j, tohex(hex.data()[0][i + j], 2), tohex(buffer[j], 2))));
 			}
 		}
 		std::cout << "\rReading and comparing data… " << std::min(i + READ_BLOCK_SIZE, hex.data()[0].size()) << '/' << hex.data()[0].size();
