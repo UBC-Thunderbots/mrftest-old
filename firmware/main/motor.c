@@ -1,4 +1,5 @@
 #include "motor.h"
+#include "buffers.h"
 #include "io.h"
 
 uint8_t motor_manual_commutation_patterns[5] = { 0, 0, 0, 0, 0 };
@@ -12,6 +13,16 @@ void motor_scram() {
 
 void set_wheel(uint8_t wheel_num, direction_t direction, uint8_t pwm_level) {
 	if (wheel_num <= 4) {
+		if (direction == BACKWARD) {
+			current_buffer->tick.motor_directions |= 1 << wheel_num;
+		} else {
+			current_buffer->tick.motor_directions &= ~(1 << wheel_num);
+		}
+		if (direction == BRAKE) {
+			current_buffer->tick.motor_drives[wheel_num] = 0;
+		} else {
+			current_buffer->tick.motor_drives[wheel_num] = pwm_level;
+		}
 		MOTOR_INDEX = wheel_num;
 		if (direction == MANUAL_COMMUTATION) {
 			MOTOR_CTL = motor_manual_commutation_patterns[wheel_num];

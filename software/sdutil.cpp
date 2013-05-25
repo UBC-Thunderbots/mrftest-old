@@ -1,4 +1,5 @@
 #include "main.h"
+#include "util/codec.h"
 #include "util/exception.h"
 #include "util/fd.h"
 #include <algorithm>
@@ -13,6 +14,8 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
+#include <glibmm/convert.h>
+#include <glibmm/ustring.h>
 #include <linux/fs.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -260,26 +263,68 @@ namespace {
 		std::ofstream ofs;
 		ofs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
 		ofs.open(args[1], std::ios_base::out | std::ios_base::trunc);
-		ofs << "Epoch\tTicks\tBreakbeam Difference\tCapacitor Voltage\tBattery Voltage\tBoard Temperature\tLPS Reading\n";
+		ofs << "Epoch\tTicks\tBreakbeam\tCapacitor (V)\tBattery (V)\tBoard Temperature (C)\tLPS\tEncoder 0\tEncoder 1\tEncoder 2\tEncoder 3\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tMotor 0\tMotor 1\tMotor 2\tMotor 3\tMotor 4\n";
 		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
 			const std::vector<uint8_t> &buffer = sdcard.get(sector);
-			const uint8_t *tick = &buffer[128 * 3];
-			unsigned int epoch = static_cast<uint16_t>(tick[0] | static_cast<uint16_t>(tick[1] << 8));
-			uint32_t ticks = 0;
-			for (unsigned int offset = 5; offset >= 2; --offset) {
-				ticks <<= 8;
-				ticks |= tick[offset];
+
+			const uint8_t *ptr = &buffer[128 * 3];
+			unsigned int epoch = static_cast<uint16_t>(ptr[0] | static_cast<uint16_t>(ptr[1] << 8));
+			ptr += 2;
+			unsigned int version = *ptr++;
+			if (version != 1) {
+				throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Log record has version %1, expected 1!", version)));
 			}
-			int breakbeam_diff = static_cast<int16_t>(static_cast<uint16_t>(tick[6] | static_cast<uint16_t>(tick[7] << 8)));
+			uint32_t ticks = 0;
+			for (unsigned int i = 0; i < 4; ++i) {
+				ticks <<= 8;
+				ticks |= ptr[3 - i];
+			}
+			ptr += 4;
+			int breakbeam_diff = static_cast<int16_t>(static_cast<uint16_t>(ptr[0] | static_cast<uint16_t>(ptr[1] << 8)));
+			ptr += 2;
 			unsigned int adc_channels[8];
 			for (std::size_t i = 0; i < sizeof(adc_channels) / sizeof(*adc_channels); ++i) {
-				adc_channels[i] = static_cast<uint16_t>(tick[8 + i * 2] | static_cast<uint16_t>(tick[8 + i * 2 + 1] << 8));
+				adc_channels[i] = static_cast<uint16_t>(ptr[0] | static_cast<uint16_t>(ptr[1] << 8));
+				ptr += 2;
+			}
+			int encoder_counts[4];
+			for (std::size_t i = 0; i < sizeof(encoder_counts) / sizeof(*encoder_counts); ++i) {
+				encoder_counts[i] = static_cast<int16_t>(static_cast<uint16_t>(ptr[0] | static_cast<uint16_t>(ptr[1] << 8)));
+				ptr += 2;
+			}
+			float setpoint[4];
+			for (std::size_t i = 0; i < sizeof(setpoint) / sizeof(*setpoint); ++i) {
+				uint32_t store = 0;
+				for (unsigned int j = 0; j < 4; ++j) {
+					store <<= 8;
+					store |= ptr[3 - j];
+				}
+				ptr += 4;
+				setpoint[i] = decode_u32_to_float(store);
+			}
+			uint8_t motor_directions = *ptr++;
+			int motor_drives[5];
+			for (std::size_t i = 0; i < 5; ++i) {
+				motor_drives[i] = static_cast<int16_t>(static_cast<uint16_t>(ptr[0] | static_cast<uint16_t>(ptr[1] << 8)));
+				if (motor_directions & (UINT8_C(1) << i)) {
+					motor_drives[i] = -motor_drives[i];
+				}
 			}
 			double capacitor_voltage = adc_channels[0] / 1024.0 * 3.3 / 2200 * (2200 + 200000);
 			double battery_voltage = adc_channels[1] / 1024.0 * 3.3 / 2200 * (2200 + 20000);
 			double board_temperature = adc_voltage_to_board_temp(adc_channels[5] / 1024.0 * 3.3);
 			unsigned int lps_reading = adc_channels[6];
-			ofs << epoch << '\t' << ticks << '\t' << breakbeam_diff << '\t' << capacitor_voltage << '\t' << battery_voltage << '\t' << board_temperature << '\t' << lps_reading << '\n';
+			ofs << epoch << '\t' << ticks << '\t' << breakbeam_diff << '\t' << capacitor_voltage << '\t' << battery_voltage << '\t' << board_temperature << '\t' << lps_reading;
+			for (unsigned int i = 0; i < 4; ++i) {
+				ofs << '\t' << encoder_counts[i];
+			}
+			for (unsigned int i = 0; i < 4; ++i) {
+				ofs << '\t' << setpoint[i];
+			}
+			for (unsigned int i = 0; i < 5; ++i) {
+				ofs << '\t' << motor_drives[i];
+			}
+			ofs << '\n';
 		}
 		ofs.close();
 

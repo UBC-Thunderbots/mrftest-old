@@ -1,4 +1,5 @@
 #include "wheels.h"
+#include "buffers.h"
 #include "control.h"
 #include "encoder.h"
 #include "io.h"
@@ -14,14 +15,15 @@ void wheel_update_ctx() {
 }
 
 void wheels_tick() {
-	int16_t enc_val[4];
+	for (uint8_t i = 0; i < 4; ++i) {
+		current_buffer->tick.encoder_counts[i] = read_encoder(i);
+	}
 	int16_t outputs[4];
 	switch (wheel_context.mode) {
 		case WHEEL_MODE_MANUAL_COMMUTATION:
 			control_clear();
 			for (uint8_t i = 0; i < 4; ++i) {
 				set_wheel(i, MANUAL_COMMUTATION, wheel_context.setpoints[i]);
-				read_encoder(i);
 			}
 			break;
 
@@ -29,7 +31,6 @@ void wheels_tick() {
 			control_clear();
 			for (uint8_t i = 0; i < 4; ++i) {
 				set_wheel(i, BRAKE, 0);
-				read_encoder(i);
 			}
 			break;
 
@@ -49,15 +50,11 @@ void wheels_tick() {
 				} else {
 					set_wheel(i, BRAKE, 0);
 				}
-				read_encoder(i);
 			}
 			break;
 
 		case WHEEL_MODE_CLOSED_LOOP:
-			for (uint8_t i = 0; i < 4; ++i) {
-				enc_val[i] = read_encoder(i);
-			}
-			control_iter(enc_val, outputs);
+			control_iter(current_buffer->tick.encoder_counts, outputs);
 			uint8_t encoders_fail = ENCODER_FAIL;
 			for (uint8_t i = 0; i < 4; ++i) {
 				if (encoders_fail & (1 << i)) {

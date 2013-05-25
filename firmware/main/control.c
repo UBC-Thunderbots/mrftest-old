@@ -1,4 +1,5 @@
 #include "control.h"
+#include "buffers.h"
 
 //Maximum deviation from encoder 
 //determinded setpoint in PWM levels
@@ -54,6 +55,7 @@ int16_t wheel_iter(PI_ctx_t *ctx, int16_t feedback, int16_t setpoint) {
 
 void control_iter(int16_t feedback[4],int16_t outputs[4]) {
 	for(int i=0;i<4;i++) {
+		current_buffer->tick.setpoint[i] = control_context.setpoints[i];
 		outputs[i] = wheel_iter(&(control_context.wheels[i]),feedback[i],control_context.setpoints[i]);
 	}
 }
