@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cerrno>
+#include <cinttypes>
 #include <cstdint>
 #include <fcntl.h>
 #include <iostream>
@@ -11,19 +12,22 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
+#include <linux/fs.h>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
 namespace {
 	class SectorArray : public NonCopyable {
 		public:
+			const FileDescriptor &fd;
+
 			explicit SectorArray(const FileDescriptor &fd);
 			off_t size() const;
 			std::vector<uint8_t> get(off_t i) const;
 			void zero(off_t i);
 
 		private:
-			const FileDescriptor &fd;
 			off_t size_;
 	};
 }
@@ -198,21 +202,14 @@ namespace {
 		return 0;
 	}
 
-	int do_erase(SectorArray &sdcard, const ScanResult *scan_result, char **) {
-		std::cout << "Erasing sectors 0 through " << (scan_result->nonblank_size() - 1) << ": ";
-		std::cout.flush();
-		for (off_t i = 0; i < scan_result->nonblank_size(); ++i) {
-			sdcard.zero(i);
-		}
-		std::cout << "OK.\n";
-		return 0;
-	}
-
-	int do_format(SectorArray &sdcard, const ScanResult *, char **) {
+	int do_erase(SectorArray &sdcard, const ScanResult *, char **) {
 		std::cout << "Erasing sectors 0 through " << (sdcard.size() - 1) << ": ";
 		std::cout.flush();
-		for (off_t i = 0; i < sdcard.size(); ++i) {
-			sdcard.zero(i);
+		uint64_t params[2];
+		params[0] = 0;
+		params[1] = static_cast<uint64_t>(sdcard.size()) * UINT64_C(512);
+		if (ioctl(sdcard.fd.fd(), BLKDISCARD, params) < 0) {
+			throw SystemError("ioctl(BLKDISCARDS)", errno);
 		}
 		std::cout << "OK.\n";
 		return 0;
@@ -238,8 +235,7 @@ namespace {
 
 	const struct Command COMMANDS[] = {
 		{ "copy", 2, false, true, &do_copy },
-		{ "erase", 0, true, true, &do_erase },
-		{ "format", 0, true, false, &do_format },
+		{ "erase", 0, true, false, &do_erase },
 		{ "info", 0, false, true, &do_info },
 	};
 
