@@ -397,6 +397,10 @@ bool sd_init(void) {
 	return true;
 }
 
+uint32_t sd_sector_count(void) {
+	return card_state.status == SD_STATUS_OK ? card_state.sector_count : UINT32_C(0);
+}
+
 bool sd_read(uint32_t sector, void *buffer) {
 	// Sanity check.
 	if (card_state.status != SD_STATUS_OK) {
@@ -410,6 +414,10 @@ bool sd_read(uint32_t sector, void *buffer) {
 
 	// Execute operation.
 	return send_command_r1_data_read(READ_SINGLE_BLOCK, card_state.sdhc ? sector : sector * 512U, buffer, 512);
+}
+
+bool sd_write_multi_active(void) {
+	return card_state.status == SD_STATUS_OK && card_state.write_multi_active;
 }
 
 bool sd_write_multi_start(uint32_t sector) {
@@ -513,6 +521,4 @@ bool sd_write_multi_end(void) {
 
 	return ret;
 }
-
-#endif
 

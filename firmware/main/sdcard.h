@@ -74,6 +74,13 @@ sd_status_t sd_status(void);
 bool sd_init(void);
 
 /**
+ * \brief Returns the number of sectors on the SD card.
+ *
+ * \return the number of sectors, or 0 on failure
+ */
+uint32_t sd_sector_count(void);
+
+/**
  * \brief Reads a sector from the SD card.
  *
  * \param sector the sector to read
@@ -83,6 +90,13 @@ bool sd_init(void);
  * \return \c true on success, or \c false on failure
  */
 bool sd_read(uint32_t sector, void *buffer);
+
+/**
+ * \brief Checks whether a multi-sector write is currently active.
+ *
+ * \return \c true if a multi-sector write is active, or \c false if not
+ */
+bool sd_write_multi_active(void);
 
 /**
  * \brief Starts a multi-sector write operation to the SD card.
