@@ -21,7 +21,7 @@
 #define DEFAULT_INDEX 0
 
 #define LOW_BATTERY_THRESHOLD ((unsigned int) (12.5 / (10.0e3 * 2 + 2.2e3) * 2.2e3 / 3.3 * 1024.0))
-#define BREAKBEAM_DIFF_THRESHOLD 100
+#define BREAKBEAM_DIFF_THRESHOLD 15
 
 #define SPI_FLASH_SIZE (16UL / 8UL * 1024UL * 1024UL)
 #define SPI_FLASH_PARAMETERS_ADDRESS (SPI_FLASH_SIZE - 4096UL)
@@ -116,7 +116,7 @@ static void send_feedback_packet(void) {
 	payload[7] = adc_value; // Board temperature LSB
 	payload[8] = adc_value >> 8; // Board temperature MSB
 	uint8_t flags = 0;
-	if (breakbeam_diff > BREAKBEAM_DIFF_THRESHOLD) {
+	if (breakbeam_diff < BREAKBEAM_DIFF_THRESHOLD) {
 		flags |= 0x01;
 	}
 	if (is_charged()) {
@@ -406,7 +406,7 @@ static void avr_main(void) {
 	uint8_t old_ticks = TICKS;
 	for(;;) {
 		// Check if an autokick needs to fire
-		if (autokick_armed && read_breakbeam_diff() > BREAKBEAM_DIFF_THRESHOLD) {
+		if (autokick_armed && read_breakbeam_diff() < BREAKBEAM_DIFF_THRESHOLD) {
 			set_chick_pulse(autokick_pulse_width);
 			if (autokick_device) {
 				fire_chipper();
@@ -491,7 +491,7 @@ static void avr_main(void) {
 		// Update the LEDs
 		if (led_mode == 0x20) {
 			uint8_t flags = 0;
-			if (read_breakbeam_diff() > BREAKBEAM_DIFF_THRESHOLD) {
+			if (read_breakbeam_diff() < BREAKBEAM_DIFF_THRESHOLD) {
 				flags |= 0x01;
 			}
 			if (autokick_armed) {
