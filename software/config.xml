@@ -508,5 +508,17 @@
         <mapping logical="kick" physical="3"/>
       </buttons>
     </joystick>
+    <joystick name="Xbox 360 Wireless Receiver (XBOX)">
+      <axes>
+        <mapping logical="0" physical="4"/>
+        <mapping logical="1" physical="3"/>
+        <mapping logical="2" physical="0"/>
+        <mapping logical="3" physical="1"/>
+      </axes>
+      <buttons>
+        <mapping logical="dribble" physical="0"/>
+        <mapping logical="kick" physical="3"/>
+      </buttons>
+    </joystick>
   </joysticks>
 </thunderbots>
