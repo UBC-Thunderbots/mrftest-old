@@ -50,7 +50,7 @@ void adc_interrupt_vector(void) {
 
 void estop_init(void) {
 	// Send power to the switch
-	GPIOB_BSRR = GPIO_BS(1);
+	GPIOB_BSRR = GPIO_BS(0);
 
 	// Configure the ADC
 	rcc_enable(APB2, 8);
