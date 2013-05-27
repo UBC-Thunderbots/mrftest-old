@@ -9,17 +9,16 @@ using namespace AI::HL::W;
 namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
-	const double DIST_FROM_PENALTY_MARK = 0.4;
 }
 
 /**
  * Condition:
- * - Playtype Prepare Penalty Friendly
+ * - Playtype Execute/Prepare Direct Free Kick Friendly
  *
  * Objective:
- * - move to Penalty positions and shoot the ball to enemy goal
+ * - move to the position of the ball, wait until the path to goal is clear, then shoot ball
  */
-BEGIN_PLAY(PenaltyFriendly)
+BEGIN_PLAY(Shooting_challenge)
 INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_PENALTY_FRIENDLY)) && Predicates::our_team_size_at_least(world, 1))
 APPLICABLE(true)
 DONE(Predicates::goal(world))
