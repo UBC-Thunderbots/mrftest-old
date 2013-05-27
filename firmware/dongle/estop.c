@@ -12,8 +12,8 @@ static void estop_start_sample(void) {
 
 static void estop_finish_sample(void) {
 	uint32_t reading = ADC1_DR;
-	// EStop open produces nominal 1.086 V
-	// EStop closed produces nominal 2.242 V
+	// EStop open (stop) produces nominal 1.086 V
+	// EStop closed (run) produces nominal 2.242 V
 	//
 	// Dividing the space:
 	// 0–0.543 → broken
@@ -36,7 +36,7 @@ static void estop_finish_sample(void) {
 }
 
 void timer7_interrupt_vector(void) {
-	TIM7_SR = 0; // UIF = 1; clear interrupt flag
+	TIM7_SR = 0; // Clear interrupt flag
 	estop_start_sample();
 }
 
