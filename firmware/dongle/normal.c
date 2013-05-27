@@ -84,9 +84,9 @@ const uint8_t NORMAL_CONFIGURATION_DESCRIPTOR[] = {
 	USB_DTYPE_ENDPOINT, // bDescriptorType
 	0x83, // bEndpointAddress
 	0x03, // bmAttributes
-	2, // wMaxPacketSize LSB
+	1, // wMaxPacketSize LSB
 	0, // wMaxPacketSize MSB
-	5, // bInterval
+	10, // bInterval
 };
 
 #define PKT_FLAG_RELIABLE 0x01
@@ -302,11 +302,10 @@ static void push_estop(void) {
 
 	// Start a transfer.
 	// Estop transfers are always two bytes long.
-	usb_bi_in_start_transfer(3, 2, 2, &push_estop, 0);
+	usb_bi_in_start_transfer(3, 1, 1, &push_estop, 0);
 
 	// Push the data for this transfer.
 	usb_bi_in_push(3, &current_value, 1);
-	usb_bi_in_push(3, &last_reported_estop_value, 1);
 
 	// Record the current value as the last reported.
 	last_reported_estop_value = current_value;
@@ -807,7 +806,7 @@ static void on_enter(void) {
 	// Set up endpoint 3 IN with a 64-byte FIFO, large enough for any transfer (thus we never need to use the on_space callback).
 	usb_fifo_enable(3, 64);
 	usb_fifo_flush(3);
-	usb_bi_in_init(3, 2, USB_BI_IN_EP_TYPE_INTERRUPT);
+	usb_bi_in_init(3, 1, USB_BI_IN_EP_TYPE_INTERRUPT);
 	usb_bi_in_set_std_halt(3, 0, 0, &handle_ep3i_clear_halt);
 
 	// Wipe the drive packet.
@@ -816,7 +815,7 @@ static void on_enter(void) {
 	drive_packet_halt_pending = false;
 
 	// Set up to be notified on estop changes and push the current state.
-	last_reported_estop_value = ESTOP_BROKEN;
+	last_reported_estop_value = ESTOP_STOP;
 	estop_set_change_callback(&push_estop);
 	push_estop();
 

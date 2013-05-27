@@ -84,7 +84,7 @@ MRFDongle::SendReliableMessageOperation::ClearChannelError::ClearChannelError() 
 
 
 
-MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_PID), mdr_transfer(device, 1, 8, false, 0), message_transfer(device, 2, 103, false, 0), status_transfer(device, 3, 2, true, 0), drive_dirty(false), pending_beep_length(0) {
+MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_PID), mdr_transfer(device, 1, 8, false, 0), message_transfer(device, 2, 103, false, 0), status_transfer(device, 3, 1, true, 0), drive_dirty(false), pending_beep_length(0) {
 	for (unsigned int i = 0; i < 8; ++i) {
 		robots[i].reset(new MRFRobot(*this, i));
 	}
@@ -168,21 +168,7 @@ void MRFDongle::handle_message(AsyncOperation<void> &) {
 
 void MRFDongle::handle_status(AsyncOperation<void> &) {
 	status_transfer.result();
-	if (status_transfer.size() == 2) {
-		uint8_t status_class = status_transfer.data()[0];
-		switch (status_class) {
-			case 0x00: // Hardware Run Switch
-				{
-					uint8_t status = status_transfer.data()[1];
-					estop_state = static_cast<EStopState>(status);
-				}
-				break;
-
-			default:
-				LOG_ERROR(Glib::ustring::compose(u8"Unknown status class %1", status_class + 0U));
-				break;
-		}
-	}
+	estop_state = static_cast<EStopState>(status_transfer.data()[0]);
 	status_transfer.submit();
 }
 
