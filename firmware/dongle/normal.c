@@ -113,8 +113,7 @@ static void send_drive_packet(void) {
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 9, 0x00); // Source address LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 10, 0x01); // Source address MSB
 	const uint8_t *bptr = (const uint8_t *) perconfig.normal.drive_packet;
-#warning should also scram on broken when we have enough switches to go around
-	if (estop_read() == ESTOP_STOP) {
+	if (estop_read() != ESTOP_RUN) {
 		for (size_t i = 0; i < sizeof(perconfig.normal.drive_packet); i += 8) {
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 1, (i == poll_index * sizeof(perconfig.normal.drive_packet) / 8) ? 0b10000000 : 0b00000000);
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 0, 0x00);
