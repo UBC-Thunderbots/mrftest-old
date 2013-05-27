@@ -1,6 +1,7 @@
 #ifndef DRIVE_DONGLE_H
 #define DRIVE_DONGLE_H
 
+#include "util/annunciator.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
 
@@ -56,6 +57,11 @@ namespace Drive {
 			 * \brief Constructs a new \code Dongle
 			 */
 			Dongle();
+
+		private:
+			Annunciator::Message estop_broken_message;
+
+			void handle_estop_state_changed();
 	};
 }
 
