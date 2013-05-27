@@ -283,6 +283,7 @@ software/ai/hl/stp/play/penalty_friendly.cpp -text
 software/ai/hl/stp/play/play.cpp -text
 software/ai/hl/stp/play/play.h -text
 software/ai/hl/stp/play/shoot_goal.cpp -text
+software/ai/hl/stp/play/shooting_challenge.cpp -text
 software/ai/hl/stp/play/simple_play.h -text
 software/ai/hl/stp/play/stop.cpp -text
 software/ai/hl/stp/play/their_corner_chip.cpp -text
@@ -347,6 +348,8 @@ software/ai/hl/stp/tactic/shadow_kickoff.cpp -text
 software/ai/hl/stp/tactic/shadow_kickoff.h -text
 software/ai/hl/stp/tactic/shoot.cpp -text
 software/ai/hl/stp/tactic/shoot.h -text
+software/ai/hl/stp/tactic/shooting_challenge.cpp -text
+software/ai/hl/stp/tactic/shooting_challenge.h -text
 software/ai/hl/stp/tactic/smart_shoot.cpp -text
 software/ai/hl/stp/tactic/smart_shoot.h -text
 software/ai/hl/stp/tactic/tactic.cpp -text
