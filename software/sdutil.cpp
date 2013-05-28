@@ -2,6 +2,7 @@
 #include "util/codec.h"
 #include "util/exception.h"
 #include "util/fd.h"
+#include "util/thermal.h"
 #include <algorithm>
 #include <cassert>
 #include <cerrno>
@@ -172,21 +173,6 @@ const std::vector<ScanResult::Epoch> &ScanResult::epochs() const {
 }
 
 namespace {
-	double adc_voltage_to_board_temp(double voltage) {
-		// For V being ADC voltage and R being thermistor voltage:
-		// V = 3.3 / (10,000 + R) * R
-		// 10,000 V + VR = 3.3 R
-		// (3.3 - V) R = 10,000 V
-		// R = 10,000 V / (3.3 - V)
-		double thermistor_resistance = 10000 * voltage / (3.3 - voltage);
-
-		// Magic math from binaryblade
-		double ltemp = std::log(thermistor_resistance);
-		double temperature = 1.6648 * ltemp * ltemp - 61.3664 * ltemp + 510.18;
-
-		return temperature;
-	}
-
 	int do_copy(SectorArray &sdcard, const ScanResult *scan_result, char **args) {
 		std::size_t epoch_index = static_cast<std::size_t>(std::stoll(args[0], nullptr, 0));
 		if (!epoch_index) {

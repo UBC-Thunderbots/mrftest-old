@@ -629,6 +629,8 @@ software/util/stochastic_local_search.cpp -text
 software/util/stochastic_local_search.h -text
 software/util/string.cpp -text
 software/util/string.h -text
+software/util/thermal.cpp -text
+software/util/thermal.h -text
 software/util/time.h -text
 software/util/timestep.h -text
 software/xbee/dongle.cpp -text
