@@ -279,10 +279,6 @@ namespace {
 			{
 				const uint8_t *ptr = &buffer[128 * 3];
 				ptr += 2;
-				unsigned int version = *ptr++;
-				if (version != 1) {
-					throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Log record has version %1, expected 1!", version)));
-				}
 				for (unsigned int i = 0; i < 4; ++i) {
 					ticks <<= 8;
 					ticks |= ptr[3 - i];
@@ -340,10 +336,6 @@ namespace {
 			const uint8_t *ptr = &buffer[128 * 3];
 			unsigned int epoch = static_cast<uint16_t>(ptr[0] | static_cast<uint16_t>(ptr[1] << 8));
 			ptr += 2;
-			unsigned int version = *ptr++;
-			if (version != 1) {
-				throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Log record has version %1, expected 1!", version)));
-			}
 			uint32_t ticks = 0;
 			for (unsigned int i = 0; i < 4; ++i) {
 				ticks <<= 8;

@@ -378,8 +378,6 @@ static void avr_main(void) {
 			buffers[0].tick.epoch = 1;
 			buffers[1].tick.epoch = 1;
 		}
-		buffers[0].tick.version = BUFFER_VERSION;
-		buffers[1].tick.version = BUFFER_VERSION;
 		if (sd_status() == SD_STATUS_OK) {
 			if (sd_write_multi_start(low)) {
 				printf("Starting log at sector %" PRIu32 " with epoch %" PRIu16 "\n", low, buffers[0].tick.epoch);
@@ -442,7 +440,6 @@ static void avr_main(void) {
 					uint16_t epoch = current_buffer->tick.epoch;
 					memset(current_buffer, 0, sizeof(buffer_t));
 					current_buffer->tick.epoch = epoch;
-					current_buffer->tick.version = BUFFER_VERSION;
 				}
 			}
 		}
