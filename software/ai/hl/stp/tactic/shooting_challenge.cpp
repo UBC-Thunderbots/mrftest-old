@@ -33,7 +33,7 @@ namespace {
 			void execute() {
 					Angle to_target = ((world.ball().position() - goal_point).orientation()) - player_to_ball.orientation();
 					player.move(player.position(), to_target, Point());
-						if (obstacle(player, goal_point) == false) {
+						if (player.has_ball() == true && obstacle(player, goal_point) == false) {
 							player.autokick(speed_ratio);
 						}
 					}
@@ -72,11 +72,6 @@ namespace {
 
 	};
 }
-
-
-
-
-
 
 Tactic::Ptr AI::HL::STP::Tactic::shooting_challenge(World world, double speed) {
 	Tactic::Ptr p(new ShootingChallenge(world, speed));
