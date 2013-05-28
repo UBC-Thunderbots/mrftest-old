@@ -118,8 +118,8 @@
  *
  * Bits:
  * 7–2: Reserved
- * 1 (R/C) [0]: Hall sensors observed all high; 1 = failure observed, 0 = failure not observed
- * 0 (R/C) [0]: Hall sensors observed all low; 1 = failure observed, 0 = failure not observed
+ * 1 (R) [0]: Hall sensors observed all high; 1 = failure observed, 0 = failure not observed
+ * 0 (R) [0]: Hall sensors observed all low; 1 = failure observed, 0 = failure not observed
  */
 #define MOTOR_STATUS IO_PORT(0x05)
 
