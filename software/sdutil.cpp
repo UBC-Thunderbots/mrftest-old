@@ -372,19 +372,31 @@ namespace {
 					motor_drives[i] = -motor_drives[i];
 				}
 			}
+			uint8_t encoders_failed = *ptr++;
+			uint8_t wheel_hall_sensors_failed = *ptr++;
+			uint8_t dribbler_hall_sensors_failed = *ptr++;
 			double capacitor_voltage = adc_channels[0] / 1024.0 * 3.3 / 2200 * (2200 + 200000);
 			double battery_voltage = adc_channels[1] / 1024.0 * 3.3 / 2200 * (2200 + 20000);
 			double board_temperature = adc_voltage_to_board_temp(adc_channels[5] / 1024.0 * 3.3);
 			unsigned int lps_reading = adc_channels[6];
 			ofs << epoch << '\t' << ticks << '\t' << breakbeam_diff << '\t' << capacitor_voltage << '\t' << battery_voltage << '\t' << board_temperature << '\t' << lps_reading;
 			for (unsigned int i = 0; i < 4; ++i) {
-				ofs << '\t' << encoder_counts[i];
+				if (encoders_failed & (1 << i)) {
+					ofs << "\tNaN";
+				} else {
+					ofs << '\t' << encoder_counts[i];
+				}
 			}
 			for (unsigned int i = 0; i < 4; ++i) {
 				ofs << '\t' << setpoint[i];
 			}
 			for (unsigned int i = 0; i < 5; ++i) {
-				ofs << '\t' << motor_drives[i];
+				bool failed = i == 4 ? !!(dribbler_hall_sensors_failed & 3) : !!((wheel_hall_sensors_failed >> (2 * i)) & 3);
+				if (failed) {
+					ofs << "\tNaN";
+				} else {
+					ofs << '\t' << motor_drives[i];
+				}
 			}
 			ofs << '\n';
 		}

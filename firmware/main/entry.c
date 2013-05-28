@@ -423,6 +423,14 @@ static void avr_main(void) {
 			if (new_ticks != old_ticks && !mrf_rx_dma_started) {
 				ticks32 += (uint8_t) (new_ticks - old_ticks);
 				old_ticks = new_ticks;
+				current_buffer->tick.encoders_failed = ENCODER_FAIL;
+				current_buffer->tick.wheel_hall_sensors_failed = 0;
+				for (uint8_t wheel = 0; wheel < 4; ++wheel) {
+					MOTOR_INDEX = wheel;
+					current_buffer->tick.wheel_hall_sensors_failed |= MOTOR_STATUS << (2 * wheel);
+				}
+				MOTOR_INDEX = 4;
+				current_buffer->tick.dribbler_hall_sensors_failed = MOTOR_STATUS;
 				wheels_tick();
 				battery_average = (battery_average * 63 + read_main_adc(BATT_VOLT)) / 64;
 				if (battery_average < LOW_BATTERY_THRESHOLD && !interlocks_overridden()) {

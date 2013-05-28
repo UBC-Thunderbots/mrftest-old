@@ -12,6 +12,9 @@ typedef struct {
 	float setpoint[4];
 	uint8_t motor_directions;
 	uint8_t motor_drives[5];
+	uint8_t encoders_failed;
+	uint8_t wheel_hall_sensors_failed;
+	uint8_t dribbler_hall_sensors_failed;
 } tick_info_t;
 
 typedef struct {
