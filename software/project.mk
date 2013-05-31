@@ -14,7 +14,7 @@ EXECUTABLES_EXCLUDE_WORLD := cppunit
 #
 SOURCES_ai := ai drive geom log/shared main.cpp mrf proto uicomponents util xbee
 SOURCES_convertlog := ai/common convertlog log/shared main.cpp proto util
-SOURCES_cppunit := cppunit util
+SOURCES_cppunit := cppunit geom util
 SOURCES_crc16 := crc16.cpp main.cpp util
 SOURCES_experiment := drive experiment main.cpp util xbee
 SOURCES_fbuart := fbuart.cpp main.cpp util
