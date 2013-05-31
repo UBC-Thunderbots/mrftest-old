@@ -3,6 +3,9 @@
 #include <registers.h>
 #include <sleep.h>
 
+#define NOT_BROKEN_THRESHOLD 200
+
+static unsigned int not_broken_count = NOT_BROKEN_THRESHOLD;
 static estop_t value = ESTOP_BROKEN;
 static estop_change_callback_t change_cb = 0;
 
@@ -43,6 +46,12 @@ void timer7_interrupt_vector(void) {
 void adc_interrupt_vector(void) {
 	estop_t old = value;
 	estop_finish_sample();
+	if (value == ESTOP_BROKEN) {
+		not_broken_count = 0;
+	} else if (not_broken_count < NOT_BROKEN_THRESHOLD) {
+		++not_broken_count;
+		value = ESTOP_BROKEN;
+	}
 	if (value != old && change_cb) {
 		change_cb();
 	}
