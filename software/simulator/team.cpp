@@ -146,7 +146,7 @@ void Simulator::Team::load_state(const FileDescriptor &fd) {
 			} else if (rc != sizeof(buffer)) {
 				throw std::runtime_error("Premature EOF in state file");
 			}
-			pattern = decode_u32(buffer);
+			pattern = decode_u32_be(buffer);
 		}
 
 		// Create information structure.
@@ -173,7 +173,7 @@ void Simulator::Team::save_state(const FileDescriptor &fd) const {
 	for (std::vector<PlayerInfo>::const_iterator i = players.begin(), iend = players.end(); i != iend; ++i) {
 		// Write the lid pattern.
 		uint8_t buffer[sizeof(uint32_t)];
-		encode_u32(buffer, static_cast<uint32_t>(i->pattern));
+		encode_u32_be(buffer, static_cast<uint32_t>(i->pattern));
 		if (write(fd.fd(), buffer, sizeof(buffer)) != sizeof(buffer)) {
 			throw SystemError("write", errno);
 		}

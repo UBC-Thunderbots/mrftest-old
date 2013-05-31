@@ -29,18 +29,18 @@ AI::Setup::Setup() : defending_end(AI::BE::Backend::FieldEnd::WEST), friendly_co
 		char u32buf[4], ch;
 
 		ifs.read(u32buf, sizeof(u32buf));
-		if (decode_u32(u32buf) != MAGIC) {
+		if (decode_u32_be(u32buf) != MAGIC) {
 			return;
 		}
 
 		ifs.read(u32buf, sizeof(u32buf));
-		if (decode_u32(u32buf) != VERSION) {
+		if (decode_u32_be(u32buf) != VERSION) {
 			return;
 		}
 
 		for (std::size_t i = 0; i < G_N_ELEMENTS(STRINGS); ++i) {
 			ifs.read(u32buf, sizeof(u32buf));
-			char buffer[decode_u32(u32buf)];
+			char buffer[decode_u32_be(u32buf)];
 			ifs.read(buffer, static_cast<std::streamsize>(sizeof(buffer)));
 			(this->*STRINGS[i]).assign(buffer, sizeof(buffer));
 		}
@@ -60,13 +60,13 @@ void AI::Setup::save() {
 	ofs.open(cache_filename.c_str(), std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
 	char u32buf[4], ch;
 
-	encode_u32(u32buf, MAGIC);
+	encode_u32_be(u32buf, MAGIC);
 	ofs.write(u32buf, sizeof(u32buf));
-	encode_u32(u32buf, VERSION);
+	encode_u32_be(u32buf, VERSION);
 	ofs.write(u32buf, sizeof(u32buf));
 
 	for (std::size_t i = 0; i < G_N_ELEMENTS(STRINGS); ++i) {
-		encode_u32(u32buf, static_cast<uint32_t>((this->*STRINGS[i]).bytes()));
+		encode_u32_be(u32buf, static_cast<uint32_t>((this->*STRINGS[i]).bytes()));
 		ofs.write(u32buf, sizeof(u32buf));
 		ofs.write((this->*STRINGS[i]).data(), static_cast<std::streamsize>((this->*STRINGS[i]).bytes()));
 	}

@@ -472,7 +472,7 @@ namespace {
 			cols.append_kv(ts, row, "Counter", Glib::ustring::format(static_cast<unsigned int>(static_cast<uint8_t>(data[1]))));
 			cols.append_kv(ts, row, "Goals Blue", Glib::ustring::format(static_cast<unsigned int>(static_cast<uint8_t>(data[2]))));
 			cols.append_kv(ts, row, "Goals Yellow", Glib::ustring::format(static_cast<unsigned int>(static_cast<uint8_t>(data[3]))));
-			cols.append_kv(ts, row, "Seconds Left", Glib::ustring::format(decode_u16(&data.data()[4])));
+			cols.append_kv(ts, row, "Seconds Left", Glib::ustring::format(decode_u16_be(&data.data()[4])));
 		}
 
 		switch (fd.cpp_type()) {

@@ -67,12 +67,12 @@ namespace {
 				std::cout << "Log file contains unrecognized tag.\n";
 				return false;
 			}
-			uint16_t payload_length = decode_u16(ptr + 1);
+			uint16_t payload_length = decode_u16_be(ptr + 1);
 			if (1U + payload_length + 2U > left) {
 				std::cout << "Log file truncated (EOF in middle of packet).\n";
 				return false;
 			}
-			uint16_t crc_stored = decode_u16(ptr + 1 + 2 + payload_length);
+			uint16_t crc_stored = decode_u16_be(ptr + 1 + 2 + payload_length);
 			uint16_t crc_computed = CRC16::calculate(ptr, 1 + 2 + payload_length);
 			if (crc_stored != crc_computed) {
 				std::cout << "Log file contains packet with bad CRC (stored " << tohex(crc_stored, 4) << ", computed " << tohex(crc_computed, 4) << ").\n";
@@ -114,20 +114,20 @@ namespace {
 			bool found = false;
 			while (!found && sleft) {
 				if (sptr[0] == ConvertLogV1V2::T_AI_TICK) {
-					int64_t seconds = static_cast<int64_t>(decode_u64(&sptr[3]));
-					int32_t nanoseconds = static_cast<int32_t>(decode_u32(&sptr[11]));
+					int64_t seconds = static_cast<int64_t>(decode_u64_be(&sptr[3]));
+					int32_t nanoseconds = static_cast<int32_t>(decode_u32_be(&sptr[11]));
 					Log::Record record;
 					Log::UNIXTimeSpec *ts = record.mutable_startup_time();
 					ts->set_seconds(seconds);
 					ts->set_nanoseconds(nanoseconds);
 					write_record(record, dest);
-					seconds = static_cast<int64_t>(decode_u64(&sptr[15]));
-					nanoseconds = static_cast<int32_t>(decode_u32(&sptr[23]));
+					seconds = static_cast<int64_t>(decode_u64_be(&sptr[15]));
+					nanoseconds = static_cast<int32_t>(decode_u32_be(&sptr[23]));
 					most_recent_monotonic.tv_sec = seconds;
 					most_recent_monotonic.tv_nsec = nanoseconds;
 					found = true;
 				}
-				std::size_t packet_length = 1 + 2 + decode_u16(&sptr[1]) + 2;
+				std::size_t packet_length = 1 + 2 + decode_u16_be(&sptr[1]) + 2;
 				sptr += packet_length;
 				sleft -= packet_length;
 			}
@@ -162,7 +162,7 @@ namespace {
 			Log::Record boot_parameters_record;
 			while (sleft) {
 				ConvertLogV1V2::Tag tag = static_cast<ConvertLogV1V2::Tag>(sptr[0]);
-				std::size_t payload_length = decode_u16(&sptr[1]);
+				std::size_t payload_length = decode_u16_be(&sptr[1]);
 				const uint8_t *payload = sptr + 1 + 2;
 				bool end_of_boot = false;
 				switch (tag) {
@@ -184,7 +184,7 @@ namespace {
 						// Add this parameter value to the parameters record.
 						Log::Parameter &param = *boot_parameters_record.add_parameters();
 						param.set_name(std::string(payload + 8, payload + payload_length));
-						param.set_int_value(static_cast<int64_t>(decode_u64(payload)));
+						param.set_int_value(static_cast<int64_t>(decode_u64_be(payload)));
 						break;
 					}
 
@@ -241,7 +241,7 @@ namespace {
 						// Add this parameter value to the parameters record.
 						Log::Parameter &param = *boot_parameters_record.add_parameters();
 						param.set_name(std::string(payload + 8, payload + payload_length));
-						param.set_double_value(decode_double(payload));
+						param.set_double_value(decode_double_be(payload));
 						break;
 					}
 
@@ -293,7 +293,7 @@ namespace {
 				if (sptr2[0] == ConvertLogV1V2::T_FIELD) {
 					found = true;
 				}
-				std::size_t packet_length = 1 + 2 + decode_u16(&sptr2[1]) + 2;
+				std::size_t packet_length = 1 + 2 + decode_u16_be(&sptr2[1]) + 2;
 				sptr2 += packet_length;
 				sleft2 -= packet_length;
 			}
@@ -317,7 +317,7 @@ namespace {
 		bool ended = false;
 		while (!ended && sleft) {
 			ConvertLogV1V2::Tag tag = static_cast<ConvertLogV1V2::Tag>(sptr[0]);
-			std::size_t payload_length = decode_u16(&sptr[1]);
+			std::size_t payload_length = decode_u16_be(&sptr[1]);
 			const uint8_t *payload = sptr + 1 + 2;
 			switch (tag) {
 				case ConvertLogV1V2::T_START:
@@ -411,7 +411,7 @@ namespace {
 					Log::Record record;
 					Log::Parameter &param = *record.add_parameters();
 					param.set_name(reinterpret_cast<const char *>(&payload[8]), payload_length - 8);
-					param.set_int_value(static_cast<int64_t>(decode_u64(&payload[0])));
+					param.set_int_value(static_cast<int64_t>(decode_u64_be(&payload[0])));
 					write_record(record, dest);
 					break;
 				}
@@ -476,14 +476,14 @@ namespace {
 					// Copy the packet.
 					Log::Record record;
 					Log::Field &field = *record.mutable_field();
-					field.set_length(decode_u32(&payload[0]));
-					field.set_total_length(decode_u32(&payload[4]));
-					field.set_width(decode_u32(&payload[8]));
-					field.set_total_width(decode_u32(&payload[12]));
-					field.set_goal_width(decode_u32(&payload[16]));
-					field.set_centre_circle_radius(decode_u32(&payload[20]));
-					field.set_defense_area_radius(decode_u32(&payload[24]));
-					field.set_defense_area_stretch(decode_u32(&payload[28]));
+					field.set_length(decode_u32_be(&payload[0]));
+					field.set_total_length(decode_u32_be(&payload[4]));
+					field.set_width(decode_u32_be(&payload[8]));
+					field.set_total_width(decode_u32_be(&payload[12]));
+					field.set_goal_width(decode_u32_be(&payload[16]));
+					field.set_centre_circle_radius(decode_u32_be(&payload[20]));
+					field.set_defense_area_radius(decode_u32_be(&payload[24]));
+					field.set_defense_area_stretch(decode_u32_be(&payload[28]));
 					write_record(record, dest);
 					break;
 				}
@@ -527,16 +527,16 @@ namespace {
 					// Add to the current tick record.
 					Log::Tick::FriendlyRobot &bot = *tick_record.mutable_tick()->add_friendly_robots();
 					bot.set_pattern(payload[0]);
-					bot.mutable_position()->set_x(static_cast<int32_t>(decode_u32(&payload[1])));
-					bot.mutable_position()->set_y(static_cast<int32_t>(decode_u32(&payload[5])));
-					bot.mutable_position()->set_t(static_cast<int32_t>(decode_u32(&payload[9])));
-					bot.mutable_velocity()->set_x(static_cast<int32_t>(decode_u32(&payload[13])));
-					bot.mutable_velocity()->set_y(static_cast<int32_t>(decode_u32(&payload[17])));
-					bot.mutable_velocity()->set_t(static_cast<int32_t>(decode_u32(&payload[21])));
-					bot.mutable_target()->set_x(static_cast<int32_t>(decode_u32(&payload[37])));
-					bot.mutable_target()->set_y(static_cast<int32_t>(decode_u32(&payload[41])));
-					bot.mutable_target()->set_t(static_cast<int32_t>(decode_u32(&payload[45])));
-					uint64_t movement_flags = decode_u64(&payload[49]);
+					bot.mutable_position()->set_x(static_cast<int32_t>(decode_u32_be(&payload[1])));
+					bot.mutable_position()->set_y(static_cast<int32_t>(decode_u32_be(&payload[5])));
+					bot.mutable_position()->set_t(static_cast<int32_t>(decode_u32_be(&payload[9])));
+					bot.mutable_velocity()->set_x(static_cast<int32_t>(decode_u32_be(&payload[13])));
+					bot.mutable_velocity()->set_y(static_cast<int32_t>(decode_u32_be(&payload[17])));
+					bot.mutable_velocity()->set_t(static_cast<int32_t>(decode_u32_be(&payload[21])));
+					bot.mutable_target()->set_x(static_cast<int32_t>(decode_u32_be(&payload[37])));
+					bot.mutable_target()->set_y(static_cast<int32_t>(decode_u32_be(&payload[41])));
+					bot.mutable_target()->set_t(static_cast<int32_t>(decode_u32_be(&payload[45])));
+					uint64_t movement_flags = decode_u64_be(&payload[49]);
 					// Workaround bug where two flags were present both meaning FLAG_AVOID_ENEMY_DEFENSE.
 					if (movement_flags & 0x100) {
 						movement_flags |= 0x10;
@@ -546,7 +546,7 @@ namespace {
 					bot.set_movement_type(Log::Util::MoveType::to_protobuf(static_cast<AI::Flags::MoveType>(payload[57])));
 					bot.set_movement_priority(Log::Util::MovePrio::to_protobuf(static_cast<AI::Flags::MovePrio>(payload[58])));
 					for (unsigned int i = 0; i < 4; ++i) {
-						bot.add_wheel_setpoints(static_cast<int16_t>(decode_u16(&payload[59 + i * 2])));
+						bot.add_wheel_setpoints(static_cast<int16_t>(decode_u16_be(&payload[59 + i * 2])));
 					}
 					break;
 				}
@@ -564,11 +564,11 @@ namespace {
 						throw std::runtime_error("T_PATH_ELEMENT without corresponding T_FRIENDLY_ROBOT.");
 					}
 					Log::Tick::FriendlyRobot::PathElement &elt = *bot->add_path();
-					elt.mutable_point()->set_x(static_cast<int32_t>(decode_u32(&payload[1])));
-					elt.mutable_point()->set_y(static_cast<int32_t>(decode_u32(&payload[5])));
-					elt.mutable_point()->set_t(static_cast<int32_t>(decode_u32(&payload[9])));
-					elt.mutable_timestamp()->set_seconds(static_cast<int64_t>(decode_u64(&payload[13])));
-					elt.mutable_timestamp()->set_nanoseconds(static_cast<int32_t>(decode_u32(&payload[21])));
+					elt.mutable_point()->set_x(static_cast<int32_t>(decode_u32_be(&payload[1])));
+					elt.mutable_point()->set_y(static_cast<int32_t>(decode_u32_be(&payload[5])));
+					elt.mutable_point()->set_t(static_cast<int32_t>(decode_u32_be(&payload[9])));
+					elt.mutable_timestamp()->set_seconds(static_cast<int64_t>(decode_u64_be(&payload[13])));
+					elt.mutable_timestamp()->set_nanoseconds(static_cast<int32_t>(decode_u32_be(&payload[21])));
 					break;
 				}
 
@@ -577,12 +577,12 @@ namespace {
 					// Add to the current tick record.
 					Log::Tick::EnemyRobot &bot = *tick_record.mutable_tick()->add_enemy_robots();
 					bot.set_pattern(payload[0]);
-					bot.mutable_position()->set_x(static_cast<int32_t>(decode_u32(&payload[1])));
-					bot.mutable_position()->set_y(static_cast<int32_t>(decode_u32(&payload[5])));
-					bot.mutable_position()->set_t(static_cast<int32_t>(decode_u32(&payload[9])));
-					bot.mutable_velocity()->set_x(static_cast<int32_t>(decode_u32(&payload[13])));
-					bot.mutable_velocity()->set_y(static_cast<int32_t>(decode_u32(&payload[17])));
-					bot.mutable_velocity()->set_t(static_cast<int32_t>(decode_u32(&payload[21])));
+					bot.mutable_position()->set_x(static_cast<int32_t>(decode_u32_be(&payload[1])));
+					bot.mutable_position()->set_y(static_cast<int32_t>(decode_u32_be(&payload[5])));
+					bot.mutable_position()->set_t(static_cast<int32_t>(decode_u32_be(&payload[9])));
+					bot.mutable_velocity()->set_x(static_cast<int32_t>(decode_u32_be(&payload[13])));
+					bot.mutable_velocity()->set_y(static_cast<int32_t>(decode_u32_be(&payload[17])));
+					bot.mutable_velocity()->set_t(static_cast<int32_t>(decode_u32_be(&payload[21])));
 					break;
 				}
 
@@ -590,10 +590,10 @@ namespace {
 				{
 					// Add to the current tick record.
 					Log::Tick::Ball &ball = *tick_record.mutable_tick()->mutable_ball();
-					ball.mutable_position()->set_x(static_cast<int32_t>(decode_u32(&payload[0])));
-					ball.mutable_position()->set_y(static_cast<int32_t>(decode_u32(&payload[4])));
-					ball.mutable_velocity()->set_x(static_cast<int32_t>(decode_u32(&payload[8])));
-					ball.mutable_velocity()->set_y(static_cast<int32_t>(decode_u32(&payload[12])));
+					ball.mutable_position()->set_x(static_cast<int32_t>(decode_u32_be(&payload[0])));
+					ball.mutable_position()->set_y(static_cast<int32_t>(decode_u32_be(&payload[4])));
+					ball.mutable_velocity()->set_x(static_cast<int32_t>(decode_u32_be(&payload[8])));
+					ball.mutable_velocity()->set_y(static_cast<int32_t>(decode_u32_be(&payload[12])));
 					break;
 				}
 
@@ -602,8 +602,8 @@ namespace {
 					// Finish and write out the tick record, then clear it in preparation for the next tick.
 					Log::Tick &tick = *tick_record.mutable_tick();
 					tick.set_play_type(Log::Util::PlayType::to_protobuf(play_type));
-					most_recent_monotonic.tv_sec = static_cast<int64_t>(decode_u64(&payload[12]));
-					most_recent_monotonic.tv_nsec = static_cast<int32_t>(decode_u32(&payload[20]));
+					most_recent_monotonic.tv_sec = static_cast<int64_t>(decode_u64_be(&payload[12]));
+					most_recent_monotonic.tv_nsec = static_cast<int32_t>(decode_u32_be(&payload[20]));
 					tick.mutable_start_time()->set_seconds(most_recent_monotonic.tv_sec);
 					tick.mutable_start_time()->set_nanoseconds(static_cast<int32_t>(most_recent_monotonic.tv_nsec));
 					tick.set_compute_time(0);
@@ -622,7 +622,7 @@ namespace {
 					Log::Record record;
 					Log::Parameter &param = *record.add_parameters();
 					param.set_name(reinterpret_cast<const char *>(&payload[8]), payload_length - 8);
-					param.set_double_value(decode_double(&payload[0]));
+					param.set_double_value(decode_double_be(&payload[0]));
 					write_record(record, dest);
 					break;
 				}

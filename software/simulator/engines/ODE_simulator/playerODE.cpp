@@ -334,7 +334,7 @@ void PlayerODE::load_state(const FileDescriptor &fd) {
 	}
 
 	for (std::size_t i = 0; i < sizeof(values) / sizeof(*values); ++i) {
-		values[i] = static_cast<dReal>(decode_double(&buffer[i * 8]));
+		values[i] = static_cast<dReal>(decode_double_be(&buffer[i * 8]));
 	}
 
 	dBodySetPosition(body, values[0], values[1], values[2]);
@@ -362,7 +362,7 @@ void PlayerODE::save_state(const FileDescriptor &fd) const {
 
 	uint8_t buffer[sizeof(values) / sizeof(*values) * 8];
 	for (std::size_t i = 0; i < sizeof(values) / sizeof(*values); ++i) {
-		encode_double(&buffer[i * 8], values[i]);
+		encode_double_be(&buffer[i * 8], values[i]);
 	}
 
 	if (write(fd.fd(), buffer, sizeof(buffer)) != sizeof(buffer)) {
