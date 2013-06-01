@@ -113,8 +113,8 @@ MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_P
 	status_transfer.signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_status));
 	status_transfer.submit();
 
-	annunciator_beep_connections[0] = Annunciator::signal_message_activated.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::beep), ANNUNCIATOR_BEEP_LENGTH));
-	annunciator_beep_connections[1] = Annunciator::signal_message_reactivated.connect(sigc::hide(sigc::bind(sigc::mem_fun(this, &MRFDongle::beep), ANNUNCIATOR_BEEP_LENGTH)));
+	annunciator_beep_connections[0] = Annunciator::signal_message_activated.connect(sigc::mem_fun(this, &MRFDongle::handle_annunciator_message_activated));
+	annunciator_beep_connections[1] = Annunciator::signal_message_reactivated.connect(sigc::mem_fun(this, &MRFDongle::handle_annunciator_message_reactivated));
 }
 
 MRFDongle::~MRFDongle() {
@@ -216,5 +216,19 @@ void MRFDongle::handle_beep_done(AsyncOperation<void> &) {
 	beep_transfer->result();
 	beep_transfer.reset();
 	beep(0);
+}
+
+void MRFDongle::handle_annunciator_message_activated() {
+	const Annunciator::Message *msg = Annunciator::visible().back();
+	if (msg->severity == Annunciator::Message::Severity::HIGH) {
+		beep(ANNUNCIATOR_BEEP_LENGTH);
+	}
+}
+
+void MRFDongle::handle_annunciator_message_reactivated(std::size_t index) {
+	const Annunciator::Message *msg = Annunciator::visible()[index];
+	if (msg->severity == Annunciator::Message::Severity::HIGH) {
+		beep(ANNUNCIATOR_BEEP_LENGTH);
+	}
 }
 

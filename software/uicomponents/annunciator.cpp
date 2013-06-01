@@ -10,6 +10,7 @@ namespace {
 			Gtk::TreeModelColumn<unsigned int> age_column;
 			Gtk::TreeModelColumn<Glib::ustring> message_column;
 			Gtk::TreeModelColumn<bool> active_column;
+			Gtk::TreeModelColumn<Annunciator::Message::Severity> severity_column;
 
 			static Glib::RefPtr<MessagesALM> instance() {
 				static Glib::RefPtr<MessagesALM> inst;
@@ -24,6 +25,7 @@ namespace {
 				alm_column_record.add(age_column);
 				alm_column_record.add(message_column);
 				alm_column_record.add(active_column);
+				alm_column_record.add(severity_column);
 
 				Annunciator::signal_message_activated.connect(sigc::mem_fun(this, &MessagesALM::on_message_activated));
 				Annunciator::signal_message_deactivated.connect(sigc::mem_fun(this, &MessagesALM::on_message_deactivated));
@@ -54,6 +56,12 @@ namespace {
 					v.init(active_column.type());
 					v.set(Annunciator::visible()[row]->active());
 					value.init(active_column.type());
+					value = v;
+				} else if (col == static_cast<unsigned int>(severity_column.index())) {
+					Glib::Value<Annunciator::Message::Severity> v;
+					v.init(severity_column.type());
+					v.set(Annunciator::visible()[row]->severity);
+					value.init(severity_column.type());
 					value = v;
 				} else {
 					std::abort();
@@ -88,8 +96,9 @@ namespace {
 		Gtk::CellRendererText *rt = dynamic_cast<Gtk::CellRendererText *>(r);
 		rt->property_text() = iter->get_value(MessagesALM::instance()->message_column);
 		bool active = iter->get_value(MessagesALM::instance()->active_column);
+		Annunciator::Message::Severity severity = iter->get_value(MessagesALM::instance()->severity_column);
 		rt->property_foreground() = active ? "white" : "black";
-		rt->property_background() = active ? "red" : "white";
+		rt->property_background() = active ? (severity == Annunciator::Message::Severity::HIGH ? "red" : "yellow") : "white";
 	}
 }
 

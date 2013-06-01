@@ -107,6 +107,8 @@ class MRFDongle : public Drive::Dongle {
 		void check_unreliable_transfer(AsyncOperation<void> &, std::list<std::unique_ptr<USB::InterruptOutTransfer>>::iterator iter);
 		void submit_beep();
 		void handle_beep_done(AsyncOperation<void> &);
+		void handle_annunciator_message_activated();
+		void handle_annunciator_message_reactivated(std::size_t index);
 };
 
 

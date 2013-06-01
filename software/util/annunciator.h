@@ -11,90 +11,107 @@
 
 namespace Annunciator {
 	/**
-	 * A message that can be displayed in an annunciator panel.
-	 * It is expected that an object that wishes to announce messages will contain one or more instances of this class as members,
-	 * one for each message, and will call \c activate to turn them on and off.
+	 * \brief A message that can be displayed in an annunciator panel.
+	 *
+	 * It is expected that an object that wishes to announce messages will contain one or more instances of this class as members, one for each message, and will call \ref activate to turn them on and off.
 	 */
 	class Message : public NonCopyable, public sigc::trackable {
 		public:
 			/**
-			 * The possible triggering modes for a message.
+			 * \brief The possible triggering modes for a message.
 			 */
 			enum class TriggerMode {
 				/**
-				 * Indicates that the message is either asserted or deasserted at any given time,
-				 * and is put into those states by the caller.
+				 * \brief Indicates that the message is either asserted or deasserted at any given time, and is put into those states by the caller.
 				 */
 				LEVEL,
 
 				/**
-				 * Indicates that the message reflects an event which can occur at some instant in time.
+				 * \brief Indicates that the message reflects an event which can occur at some instant in time.
 				 */
 				EDGE,
 			};
 
 			/**
-			 * Registers a new message source with the annunciator system.
-			 *
-			 * \param[in] text the text of the message.
-			 *
-			 * \param[in] mode the trigger mode of the message.
+			 * \brief The possible severity levels of a message.
 			 */
-			Message(const Glib::ustring &text, TriggerMode mode);
+			enum class Severity {
+				/**
+				 * \brief Indicates that the message is not very severe.
+				 */
+				LOW,
+
+				/**
+				 * \brief Indicates that the message is severe.
+				 */
+				HIGH,
+			};
 
 			/**
-			 * Unregisters the message source.
+			 * \brief Registers a new message source with the annunciator system.
+			 *
+			 * \param[in] text the text of the message
+			 *
+			 * \param[in] mode the trigger mode of the message
+			 *
+			 * \param[in] severity the severity of the message
+			 */
+			Message(const Glib::ustring &text, TriggerMode mode, Severity severity);
+
+			/**
+			 * \brief Unregisters the message source.
 			 */
 			~Message();
 
 			/**
-			 * The text of the message.
+			 * \brief The text of the message.
 			 */
 			const Glib::ustring text;
 
 			/**
-			 * The trigger mode of the message.
+			 * \brief The trigger mode of the message.
 			 */
 			const TriggerMode mode;
 
 			/**
-			 * A globally-unique ID number that refers to this message.
+			 * \brief The severity of the message.
+			 */
+			const Severity severity;
+
+			/**
+			 * \brief A globally-unique ID number that refers to this message.
 			 */
 			const unsigned int id;
 
 			/**
-			 * Checks whether the message is active.
+			 * \brief Checks whether the message is active.
 			 *
-			 * \return \c true if the message is active, or \c false if not (always \c false if \c mode is TRIGGER_EDGE).
+			 * \return \c true if the message is active, or \c false if not (always \c false if \c mode is TRIGGER_EDGE)
 			 */
-			bool active() const {
-				return active_;
-			}
+			bool active() const;
 
 			/**
-			 * Sets whether a level-triggered message is active or not.
+			 * \brief Sets whether a level-triggered message is active or not.
 			 *
-			 * \pre \c mode must be TRIGGER_LEVEL.
+			 * \pre \ref mode must be TRIGGER_LEVEL.
 			 *
-			 * \param[in] actv \c true to activate the message, or \c false to deactivate it.
+			 * \param[in] actv \c true to activate the message, or \c false to deactivate it
 			 */
 			void active(bool actv);
 
 			/**
-			 * Fires an edge-triggered message.
+			 * \brief Fires an edge-triggered message.
 			 *
 			 * \pre \c mode must be TRIGGER_EDGE.
 			 */
 			void fire();
 
 			/**
-			 * Returns the age of the message.
+			 * \brief Returns the age of the message.
 			 *
-			 * \return the age of the message, in seconds (that is, the amount of time since the message was last active).
+			 * \return the age of the message, in seconds (that is, the amount of time since the message was last active)
 			 */
-			unsigned int age() const {
-				return age_;
-			}
+			unsigned int age() const;
 
 		private:
 			bool active_;
@@ -107,36 +124,46 @@ namespace Annunciator {
 	};
 
 	/**
-	 * Returns the currently visible (active and aging) messages.
+	 * \brief Returns the currently visible (active and aging) messages.
 	 *
-	 * \return the messages.
+	 * \return the messages
 	 */
 	const std::vector<Message *> &visible();
 
 	/**
-	 * Fired when a hidden message is activated.
+	 * \brief Fired when a hidden message is activated.
 	 */
 	extern sigc::signal<void> signal_message_activated;
 
 	/**
-	 * Fired when an active message is deactivated.
+	 * \brief Fired when an active message is deactivated.
 	 */
 	extern sigc::signal<void, std::size_t> signal_message_deactivated;
 
 	/**
-	 * Fired when a message ages.
+	 * \brief Fired when a message ages.
 	 */
 	extern sigc::signal<void, std::size_t> signal_message_aging;
 
 	/**
-	 * Fired when a still-visible but deactivated message is reactivated.
+	 * \brief Fired when a still-visible but deactivated message is reactivated.
 	 */
 	extern sigc::signal<void, std::size_t> signal_message_reactivated;
 
 	/**
-	 * Fired when a message is hidden.
+	 * \brief Fired when a message is hidden.
 	 */
 	extern sigc::signal<void, std::size_t> signal_message_hidden;
+}
+
+
+
+inline bool Annunciator::Message::active() const {
+	return active_;
+}
+
+inline unsigned int Annunciator::Message::age() const {
+	return age_;
 }
 
 #endif

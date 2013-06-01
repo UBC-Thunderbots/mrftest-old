@@ -18,7 +18,7 @@ namespace {
 	}
 }
 
-Monotonic::Monotonic() : tfd(create_timerfd(CLOCK_MONOTONIC)), overflow_message("Timer overflow!", Annunciator::Message::TriggerMode::EDGE) {
+Monotonic::Monotonic() : tfd(create_timerfd(CLOCK_MONOTONIC)), overflow_message("Timer overflow!", Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::LOW) {
 	const uint64_t nanoseconds = (UINT64_C(1000000000) + TIMESTEPS_PER_SECOND / 2) / TIMESTEPS_PER_SECOND;
 	tfd.set_blocking(false);
 	itimerspec tspec;

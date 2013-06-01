@@ -391,7 +391,14 @@ void XBeeRobot::start_experiment(uint8_t control_code) {
 	start_experiment_send_message_op->signal_done.connect(sigc::mem_fun(this, &XBeeRobot::check_start_experiment_message_result));
 }
 
-XBeeRobot::XBeeRobot(XBeeDongle &dongle, unsigned int index) : Drive::Robot(index), dongle(dongle), encoder_1_stuck_message(Glib::ustring::compose("Bot %1 encoder 1 not commutating", index), Annunciator::Message::TriggerMode::LEVEL), encoder_2_stuck_message(Glib::ustring::compose("Bot %1 encoder 2 not commutating", index), Annunciator::Message::TriggerMode::LEVEL), encoder_3_stuck_message(Glib::ustring::compose("Bot %1 encoder 3 not commutating", index), Annunciator::Message::TriggerMode::LEVEL), encoder_4_stuck_message(Glib::ustring::compose("Bot %1 encoder 4 not commutating", index), Annunciator::Message::TriggerMode::LEVEL), hall_stuck_message(Glib::ustring::compose("Bot %1 hall sensor stuck", index), Annunciator::Message::TriggerMode::LEVEL) {
+XBeeRobot::XBeeRobot(XBeeDongle &dongle, unsigned int index) :
+		Drive::Robot(index),
+		dongle(dongle),
+		encoder_1_stuck_message(Glib::ustring::compose("Bot %1 encoder 1 not commutating", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
+		encoder_2_stuck_message(Glib::ustring::compose("Bot %1 encoder 2 not commutating", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
+		encoder_3_stuck_message(Glib::ustring::compose("Bot %1 encoder 3 not commutating", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
+		encoder_4_stuck_message(Glib::ustring::compose("Bot %1 encoder 4 not commutating", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
+		hall_stuck_message(Glib::ustring::compose("Bot %1 hall sensor stuck", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH) {
 }
 
 void XBeeRobot::flush_drive(bool force) {

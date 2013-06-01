@@ -218,7 +218,7 @@ namespace {
 		public:
 			static typename std::unordered_map<T, FaultMessage<T> *> INSTANCES;
 
-			FaultMessage(const FaultMessageInfo<T> *array_base, unsigned int index) : Annunciator::Message(array_base[index].message, array_base[index].mode) {
+			FaultMessage(const FaultMessageInfo<T> *array_base, unsigned int index) : Annunciator::Message(array_base[index].message, array_base[index].mode, Annunciator::Message::Severity::HIGH) {
 				instances_rw()[array_base[index].code] = this;
 			}
 
@@ -266,8 +266,8 @@ namespace {
 
 	RobotFaultMessage RobotFaultMessage::INSTANCE_ARRAY[G_N_ELEMENTS(ROBOT_FAULT_MESSAGE_INFOS)];
 
-	Annunciator::Message unknown_local_error_message("Dongle local error queue contained unknown error code", Annunciator::Message::TriggerMode::EDGE);
-	Annunciator::Message in_micropacket_overflow_message("Inbound micropacket overflow from dongle", Annunciator::Message::TriggerMode::EDGE);
+	Annunciator::Message unknown_local_error_message("Dongle local error queue contained unknown error code", Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::HIGH);
+	Annunciator::Message in_micropacket_overflow_message("Inbound micropacket overflow from dongle", Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::HIGH);
 
 	XBeeDongle::EStopState decode_estop_state(uint8_t st) {
 		switch (st) {

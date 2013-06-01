@@ -19,8 +19,7 @@ namespace {
 	std::vector<Annunciator::Message *> displayed;
 }
 
-Annunciator::Message::Message(const Glib::ustring &text, TriggerMode mode) : text(text), mode(mode), id(next_id++), active_(false), age_(0), displayed_(false) {
-	assert(mode == TriggerMode::LEVEL || mode == TriggerMode::EDGE);
+Annunciator::Message::Message(const Glib::ustring &text, TriggerMode mode, Severity severity) : text(text), mode(mode), severity(severity), id(next_id++), active_(false), age_(0), displayed_(false) {
 	registered()[id] = this;
 }
 
