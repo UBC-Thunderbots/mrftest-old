@@ -29,6 +29,7 @@ namespace {
 	IntParam goalie_pattern_index("Goalie pattern index", "STP/Goalie", 0, 0, 11);
 
 	BoolParam high_priority_always("If higher priority play exists, switch", "STP/PlayExecutor", true);
+	IntParam playbook_index("Current Playbook, use bitwise operations", "STP/PlayExecutor", 0, 0, 10);
 }
 
 PlayExecutor::PlayExecutor(World w) : world(w), curr_play(0), curr_active(0) {
@@ -54,6 +55,9 @@ void PlayExecutor::calc_play() {
 	// find a valid play
 	std::random_shuffle(plays.begin(), plays.end());
 	for (std::size_t i = 0; i < plays.size(); ++i) {
+		if (!(plays[i]->factory().playbook & (1 << playbook_index))) {
+			continue;
+		}
 		if (!plays[i]->factory().enable) {
 			continue;
 		}
