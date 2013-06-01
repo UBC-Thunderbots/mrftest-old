@@ -97,7 +97,7 @@ namespace {
 		rt->property_text() = iter->get_value(MessagesALM::instance()->message_column);
 		bool active = iter->get_value(MessagesALM::instance()->active_column);
 		Annunciator::Message::Severity severity = iter->get_value(MessagesALM::instance()->severity_column);
-		rt->property_foreground() = active ? "white" : "black";
+		rt->property_foreground() = active && severity == Annunciator::Message::Severity::HIGH ? "white" : "black";
 		rt->property_background() = active ? (severity == Annunciator::Message::Severity::HIGH ? "red" : "yellow") : "white";
 	}
 }
