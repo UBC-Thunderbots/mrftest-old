@@ -103,10 +103,9 @@ static void send_feedback_packet(void) {
 
 	uint8_t *payload = next_packet_buffer + 10;
 	payload[0] = 0x00; // General robot status update
-	uint16_t adc_value = read_main_adc(BATT_VOLT);
-	payload[1] = adc_value; // Battery voltage LSB
-	payload[2] = adc_value >> 8; // Battery voltage MSB
-	adc_value = read_main_adc(CHICKER);
+	payload[1] = battery_average; // Battery voltage LSB
+	payload[2] = battery_average >> 8; // Battery voltage MSB
+	uint16_t adc_value = read_main_adc(CHICKER);
 	payload[3] = adc_value; // Capacitor voltage LSB
 	payload[4] = adc_value >> 8; // Capacitor voltage MSB
 	int16_t breakbeam_diff = read_breakbeam_diff();
