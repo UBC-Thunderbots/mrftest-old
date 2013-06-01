@@ -115,7 +115,20 @@ inline void encode_u64_be(void *b, uint64_t x) {
 }
 
 /**
- * \brief Encodes a floating-point number to a byte array in big endian form.
+ * \brief Encodes a single-precision floating-point number to a byte array in big endian form.
+ *
+ * The floating-point number will consume 4 bytes of storage.
+ *
+ * \param[out] b the buffer into which to encode.
+ *
+ * \param[in] x the floating-point number to encode.
+ */
+inline void encode_float_be(void *b, float x) {
+	encode_u32_be(b, encode_float_to_u32(x));
+}
+
+/**
+ * \brief Encodes a double-precision floating-point number to a byte array in big endian form.
  *
  * The floating-point number will consume 8 bytes of storage.
  *
@@ -204,7 +217,20 @@ inline uint64_t decode_u64_be(const void *buffer) {
 }
 
 /**
- * \brief Extracts a floating-point number from a data buffer in big endian form.
+ * \brief Extracts a single-precision floating-point number from a data buffer in big endian form.
+ *
+ * The floating-point number must be 4 bytes wide.
+ *
+ * \param[in] buffer the data to extract from.
+ *
+ * \return the floating-point number.
+ */
+inline float decode_float_be(const void *buffer) {
+	return decode_u32_to_float(decode_u32_be(buffer));
+}
+
+/**
+ * \brief Extracts a double-precision floating-point number from a data buffer in big endian form.
  *
  * The floating-point number must be 8 bytes wide.
  *
@@ -290,7 +316,20 @@ inline void encode_u64_le(void *b, uint64_t x) {
 }
 
 /**
- * \brief Encodes a floating-point number to a byte array in little endian form.
+ * \brief Encodes a single-precision floating-point number to a byte array in little endian form.
+ *
+ * The floating-point number will consume 4 bytes of storage.
+ *
+ * \param[out] b the buffer into which to encode.
+ *
+ * \param[in] x the floating-point number to encode.
+ */
+inline void encode_float_le(void *b, float x) {
+	encode_u32_le(b, encode_float_to_u32(x));
+}
+
+/**
+ * \brief Encodes a double-precision floating-point number to a byte array in little endian form.
  *
  * The floating-point number will consume 8 bytes of storage.
  *
@@ -379,7 +418,20 @@ inline uint64_t decode_u64_le(const void *buffer) {
 }
 
 /**
- * \brief Extracts a floating-point number from a data buffer in little endian form.
+ * \brief Extracts a single-precision floating-point number from a data buffer in little endian form.
+ *
+ * The floating-point number must be 4 bytes wide.
+ *
+ * \param[in] buffer the data to extract from.
+ *
+ * \return the floating-point number.
+ */
+inline float decode_float_le(const void *buffer) {
+	return decode_u32_to_float(decode_u32_le(buffer));
+}
+
+/**
+ * \brief Extracts a double-precision floating-point number from a data buffer in little endian form.
  *
  * The floating-point number must be 8 bytes wide.
  *
