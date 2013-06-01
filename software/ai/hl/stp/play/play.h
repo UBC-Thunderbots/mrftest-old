@@ -133,6 +133,8 @@ namespace AI {
 						BoolParam enable;
 
 						IntParam priority;
+
+						IntParam playbook;
 				};
 
 				/**
