@@ -2,7 +2,6 @@
 #define AI_BACKEND_PHYSICAL_PLAYER_H
 
 #include "ai/backend/player.h"
-#include "util/annunciator.h"
 #include "util/box_ptr.h"
 #include <ctime>
 #include <utility>
@@ -61,8 +60,6 @@ namespace AI {
 
 				private:
 					Drive::Robot &bot;
-					int battery_warning_hysteresis;
-					Annunciator::Message battery_warning_message;
 					bool autokick_fired_;
 					struct AutokickParams {
 						bool chip;

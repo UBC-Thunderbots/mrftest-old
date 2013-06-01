@@ -13,13 +13,7 @@
 
 using AI::BE::Physical::Player;
 
-namespace {
-	const double BATTERY_CRITICAL_THRESHOLD = 13.5;
-
-	const int BATTERY_HYSTERESIS_MAGNITUDE = 15;
-}
-
-Player::Player(unsigned int pattern, Drive::Robot &bot) : AI::BE::Player(pattern), bot(bot), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH), autokick_fired_(false) {
+Player::Player(unsigned int pattern, Drive::Robot &bot) : AI::BE::Player(pattern), bot(bot), autokick_fired_(false) {
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 	bot.signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
 }
@@ -115,26 +109,6 @@ void Player::tick(bool halt) {
 	// Check for emergency conditions.
 	if (!bot.alive) {
 		halt = true;
-	}
-
-	// Check for low battery condition.
-	if (bot.alive) {
-		// Apply some hysteresis.
-		if (bot.battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
-			if (battery_warning_hysteresis == BATTERY_HYSTERESIS_MAGNITUDE) {
-				battery_warning_message.active(true);
-			} else {
-				++battery_warning_hysteresis;
-			}
-		} else {
-			if (battery_warning_hysteresis == -BATTERY_HYSTERESIS_MAGNITUDE) {
-				battery_warning_message.active(false);
-			} else {
-				--battery_warning_hysteresis;
-			}
-		}
-	} else {
-		battery_warning_message.active(false);
 	}
 
 	// Auto-kick should be enabled in non-halt conditions.
