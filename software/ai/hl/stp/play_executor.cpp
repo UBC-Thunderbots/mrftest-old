@@ -29,7 +29,7 @@ namespace {
 	IntParam goalie_pattern_index("Goalie pattern index", "STP/Goalie", 0, 0, 11);
 
 	BoolParam high_priority_always("If higher priority play exists, switch", "STP/PlayExecutor", true);
-	IntParam playbook_index("Current Playbook, use bitwise operations", "STP/PlayExecutor", 0, 0, 10);
+	IntParam playbook_index("Current Playbook, use bitwise operations", "STP/PlayExecutor", 0, 0, 9);
 }
 
 PlayExecutor::PlayExecutor(World w) : world(w), curr_play(0), curr_active(0) {
