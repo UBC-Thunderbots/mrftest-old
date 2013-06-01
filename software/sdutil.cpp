@@ -8,6 +8,7 @@
 #include <cerrno>
 #include <cinttypes>
 #include <cstdint>
+#include <cstring>
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
@@ -215,7 +216,26 @@ namespace {
 		params[0] = 0;
 		params[1] = static_cast<uint64_t>(sdcard.size()) * UINT64_C(512);
 		if (ioctl(sdcard.fd.fd(), BLKDISCARD, params) < 0) {
-			throw SystemError("ioctl(BLKDISCARDS)", errno);
+			if (errno == EOPNOTSUPP) {
+				std::cout << "Well your card reader dun sucks so I card scans and manual overwrite" << std::endl;
+				ScanResult scan_result(sdcard);
+				const off_t WRITE_AMOUNT = 4*1024*1024;
+				uint8_t blank_data[WRITE_AMOUNT];
+				std::memset(blank_data, 0,WRITE_AMOUNT); //4 megs of nothing
+				std::size_t write_size;
+				off_t file_offset = 0; 
+				do  {
+					write_size = std::min(WRITE_AMOUNT, scan_result.nonblank_size()*512 - file_offset);
+					ssize_t ret_val = pwrite(sdcard.fd.fd(),blank_data,write_size,file_offset);
+					if (ret_val < 0) {
+						throw SystemError("pwrite", errno);
+					}
+					file_offset += ret_val;
+				} while(file_offset < scan_result.nonblank_size()*512);
+
+			} else {
+				throw SystemError("ioctl(BLKDISCARDS)", errno);
+			}
 		}
 		std::cout << "OK.\n";
 		return 0;
