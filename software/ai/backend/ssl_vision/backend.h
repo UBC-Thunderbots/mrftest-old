@@ -67,6 +67,7 @@ namespace AI {
 					void handle_vision_packet(const SSL_WrapperPacket &packet);
 					void on_refbox_packet();
 					void update_playtype();
+					void update_goalies();
 					void update_scores();
 					void on_friendly_colour_changed();
 					AI::Common::PlayType compute_playtype(AI::Common::PlayType old_pt);
@@ -223,6 +224,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 }
 
 template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::on_refbox_packet() {
+	update_goalies();
 	update_scores();
 	update_playtype();
 	timespec now;
@@ -247,6 +249,16 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 	if (new_pt != playtype()) {
 		playtype_rw() = new_pt;
 		playtype_time = clock.now();
+	}
+}
+
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::update_goalies() {
+	if (friendly_colour() == AI::Common::Colour::YELLOW) {
+		friendly_team().goalie = refbox.packet.yellow().goalie();
+		enemy_team().goalie = refbox.packet.blue().goalie();
+	} else {
+		friendly_team().goalie = refbox.packet.blue().goalie();
+		enemy_team().goalie = refbox.packet.yellow().goalie();
 	}
 }
 
