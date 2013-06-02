@@ -194,7 +194,7 @@ void mrf_write_long(uint16_t reg, uint8_t value);
  *
  * \param[in] length the number of bytes to read
  */
-void mrf_start_read_long_block(uint16_t reg, volatile void *data, uint8_t length);
+void mrf_start_read_long_block(uint16_t reg, void *data, uint8_t length);
 
 /**
  * \brief Checks whether a block read is in progress.

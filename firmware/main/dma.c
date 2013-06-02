@@ -13,6 +13,9 @@ void dma_start_impl(uint8_t channel, uint16_t data, uint16_t length) {
 
 bool dma_running(uint8_t channel) {
 	DMA_CHANNEL = channel;
-	return !!(DMA_CTL & 1);
+	bool running = !!(DMA_CTL & 1);
+	// Execute a memory barrier forcing the compiler not to reorder software memory reads before the point at which the flag bit is observed clear.
+	__sync_synchronize();
+	return running;
 }
 

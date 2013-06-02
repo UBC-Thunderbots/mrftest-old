@@ -34,7 +34,9 @@ void dma_start_impl(uint8_t channel, uint16_t data, uint16_t length);
  *
  * \param[in] the number of bytes to send
  */
-static inline void dma_read_start(dma_read_channel_t channel, const volatile void *data, uint16_t length) {
+static inline void dma_read_start(dma_read_channel_t channel, const void *data, uint16_t length) {
+	// Execute a memory barrier forcing the compiler not to reorder software memory writes after the start of the DMA transfer.
+	__sync_synchronize();
 	dma_start_impl(channel, (uint16_t) data, length);
 }
 
@@ -47,7 +49,7 @@ static inline void dma_read_start(dma_read_channel_t channel, const volatile voi
  *
  * \param[in] the number of bytes to receive
  */
-static inline void dma_write_start(dma_write_channel_t channel, volatile void *data, uint16_t length) {
+static inline void dma_write_start(dma_write_channel_t channel, void *data, uint16_t length) {
 	dma_start_impl(channel, (uint16_t) data, length);
 }
 
