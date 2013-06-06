@@ -8,6 +8,8 @@
 #include <glibmm/ustring.h>
 #include <utility>
 
+#include <iostream>
+
 using AI::HL::STP::PlayExecutor;
 using namespace AI::HL::STP;
 
@@ -25,9 +27,14 @@ namespace AI {
 }
 
 namespace {
+	// One of the changes from the technical committee this year (2013) is that the
+	// referee box will send the pattern number of the goalie for each team.
+	// You can retrieve this with the goalie() function on a Team object.
+	// Therefore use the following goalie code only for testing. 
+#ifdef TEST_GOALIE
 	BoolParam goalie_lowest("Goalie is lowest index", "STP/Goalie", true);
 	IntParam goalie_pattern_index("Goalie pattern index", "STP/Goalie", 0, 0, 11);
-
+#endif
 	BoolParam high_priority_always("If higher priority play exists, switch", "STP/PlayExecutor", true);
 	IntParam playbook_index("Current Playbook, use bitwise operations", "STP/PlayExecutor", 0, 0, 9);
 }
@@ -128,7 +135,16 @@ void PlayExecutor::role_assignment() {
 
 	std::fill(curr_assignment, curr_assignment + TEAM_MAX_SIZE, Player());
 
+	
 	Player goalie;
+	#warning This removes the safety check of must having a goalie to execute a play. 
+	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
+		Player p = world.friendly_team().get(i);
+		if (p.pattern() == static_cast<unsigned int>(world.friendly_team().goalie())) {
+			goalie = p;
+		}
+	}
+#ifdef TEST_GOALIE
 	if (goalie_lowest) {
 		goalie = world.friendly_team().get(0);
 	} else {
@@ -138,25 +154,28 @@ void PlayExecutor::role_assignment() {
 				goalie = p;
 			}
 		}
-	}
+	} 
 
 	if (!goalie) {
 		LOG_ERROR("No goalie with the desired pattern");
 		curr_play = 0;
 		return;
 	}
+#endif
+	if (goalie) {
+		AI::HL::STP::_goalie = goalie;
 
-	AI::HL::STP::_goalie = goalie;
-
-	assert(curr_tactic[0]);
-	curr_tactic[0]->set_player(goalie);
-	curr_assignment[0] = goalie;
-
+		assert(curr_tactic[0]);
+		curr_tactic[0]->set_player(goalie);
+		curr_assignment[0] = goalie;
+	} else {
+		LOG_ERROR("No goalie with the desired pattern");
+	}
 	// pool of available people
 	std::set<Player> players;
 	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 		Player p = world.friendly_team().get(i);
-		if (p == goalie) {
+		if (goalie && p == goalie) {
 			continue;
 		}
 		players.insert(p);
@@ -164,7 +183,10 @@ void PlayExecutor::role_assignment() {
 
 	team_size = 1 + players.size();
 
-	bool active_assigned = (curr_tactic[0]->active());
+	bool active_assigned = false; 
+	if (goalie) {
+		active_assigned = (curr_tactic[0]->active());
+	}
 	for (std::size_t i = 1; i < TEAM_MAX_SIZE; ++i) {
 		if (players.empty()) {
 			break;
@@ -227,7 +249,9 @@ void PlayExecutor::execute_tactics() {
 	}
 
 	// set flags, do it before any execution
-	curr_assignment[0].flags(0);
+	if (AI::HL::STP::_goalie){
+		curr_assignment[0].flags(0);
+	}
 	for (std::size_t i = 1; i < TEAM_MAX_SIZE; ++i) {
 		if (!curr_assignment[i]) {
 			continue;
