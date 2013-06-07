@@ -138,7 +138,7 @@ void PlayExecutor::role_assignment() {
 	#warning This removes the safety check of must having a goalie to execute a play. 
 	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 		Player p = world.friendly_team().get(i);
-		if (p.pattern() == static_cast<unsigned int>(world.friendly_team().goalie())) {
+		if (p.pattern() == world.friendly_team().goalie()) {
 			goalie = p;
 		}
 	}
