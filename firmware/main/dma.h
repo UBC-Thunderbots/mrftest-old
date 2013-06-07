@@ -9,6 +9,7 @@
  */
 typedef enum {
 	DMA_READ_CHANNEL_SD,
+	DMA_READ_CHANNEL_MRF,
 	DMA_READ_CHANNEL_COUNT,
 } dma_read_channel_t;
 

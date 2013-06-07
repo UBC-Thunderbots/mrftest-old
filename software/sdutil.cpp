@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
+#include <locale>
 #include <memory>
 #include <string>
 #include <unistd.h>
@@ -24,6 +25,12 @@
 #include <sys/types.h>
 
 namespace {
+	const unsigned long CPU_FREQUENCY = 40000000UL;
+	const std::size_t SECTOR_SIZE = 512;
+	const std::size_t LOG_RECORD_SIZE = 128;
+	const std::size_t RECORDS_PER_SECTOR = SECTOR_SIZE / LOG_RECORD_SIZE;
+	const uint32_t LOG_MAGIC_TICK = UINT32_C(0xE2468842);
+
 	class SectorArray : public NonCopyable {
 		public:
 			const FileDescriptor &fd;
@@ -43,7 +50,7 @@ SectorArray::SectorArray(const FileDescriptor &fd) : fd(fd) {
 	if (rc == static_cast<off_t>(-1)) {
 		throw SystemError("lseek", errno);
 	}
-	size_ = rc / 512;
+	size_ = rc / SECTOR_SIZE;
 }
 
 off_t SectorArray::size() const {
@@ -52,11 +59,11 @@ off_t SectorArray::size() const {
 
 std::vector<uint8_t> SectorArray::get(off_t i) const {
 	assert(i < size());
-	std::vector<uint8_t> buffer(512);
+	std::vector<uint8_t> buffer(SECTOR_SIZE);
 	{
 		uint8_t *ptr = &buffer[0];
-		std::size_t len = 512;
-		off_t off = i * 512U;
+		std::size_t len = SECTOR_SIZE;
+		off_t off = i * SECTOR_SIZE;
 		while (len) {
 			ssize_t rc = pread(fd.fd(), ptr, len, off);
 			if (rc < 0) {
@@ -72,11 +79,11 @@ std::vector<uint8_t> SectorArray::get(off_t i) const {
 
 void SectorArray::zero(off_t i) {
 	assert(i < size());
-	std::vector<uint8_t> buffer(512, static_cast<uint8_t>(i));
+	std::vector<uint8_t> buffer(SECTOR_SIZE, static_cast<uint8_t>(i));
 	{
 		const uint8_t *ptr = &buffer[0];
-		std::size_t len = 512;
-		off_t off = i * 512U;
+		std::size_t len = SECTOR_SIZE;
+		off_t off = i * SECTOR_SIZE;
 		while (len) {
 			ssize_t rc = pwrite(fd.fd(), ptr, len, off);
 			if (rc < 0) {
@@ -125,7 +132,7 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 		std::size_t num_epochs;
 		{
 			const std::vector<uint8_t> &sector = sarray.get(nonblank_size() - 1);
-			num_epochs = sector[128 * 3] | (sector[128 * 3 + 1] << 8);
+			num_epochs = sector[0] | (sector[1] << 8);
 		}
 
 		// Find locations of epochs.
@@ -137,7 +144,7 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 			while (low + 1 < high) {
 				off_t pos = (low + high - 1) / 2;
 				const std::vector<uint8_t> &sector = sarray.get(pos);
-				std::size_t sector_epoch = sector[128 * 3] | (sector[128 * 3 + 1] << 8);
+				std::size_t sector_epoch = sector[4] | (sector[5] << 8);
 				if (sector_epoch >= epoch) {
 					high = pos + 1;
 				} else {
@@ -151,7 +158,7 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 			while (low + 1 < high) {
 				off_t pos = (low + high - 1) / 2;
 				const std::vector<uint8_t> &sector = sarray.get(pos);
-				std::size_t sector_epoch = sector[128 * 3] | (sector[128 * 3 + 1] << 8);
+				std::size_t sector_epoch = sector[4] | (sector[5] << 8);
 				if (sector_epoch > epoch) {
 					high = pos + 1;
 				} else {
@@ -193,7 +200,7 @@ namespace {
 		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
 			const std::vector<uint8_t> &buffer = sdcard.get(sector);
 			const uint8_t *ptr = &buffer[0];
-			std::size_t len = 512;
+			std::size_t len = SECTOR_SIZE;
 			while (len) {
 				ssize_t rc = write(fd.fd(), ptr, len);
 				if (rc < 0) {
@@ -214,7 +221,7 @@ namespace {
 		std::cout.flush();
 		uint64_t params[2];
 		params[0] = 0;
-		params[1] = static_cast<uint64_t>(sdcard.size()) * UINT64_C(512);
+		params[1] = static_cast<uint64_t>(static_cast<uint64_t>(sdcard.size()) * SECTOR_SIZE);
 		if (ioctl(sdcard.fd.fd(), BLKDISCARD, params) < 0) {
 			if (errno == EOPNOTSUPP) {
 				std::cout << "Well your card reader dun sucks so I card scans and manual overwrite" << std::endl;
@@ -251,86 +258,6 @@ namespace {
 		return 1;
 	}
 
-	int do_pcap(SectorArray &sdcard, const ScanResult *scan_result, char **args) {
-		// Get the epoch.
-		std::size_t epoch_index = static_cast<std::size_t>(std::stoll(args[0], nullptr, 0));
-		if (!epoch_index) {
-			std::cerr << "Epoch indices start from 1.\n";
-			return 1;
-		}
-		if (epoch_index > scan_result->epochs().size()) {
-			std::cerr << "This card has only " << scan_result->epochs().size() << " epochs.\n";
-			return 1;
-		}
-		const ScanResult::Epoch &epoch = scan_result->epochs()[epoch_index - 1];
-
-		std::cout << "Outputting sectors " << epoch.first_sector << " through " << epoch.last_sector << " to PCAP file \"" << args[1] << "\": ";
-		std::cout.flush();
-
-		// Open the capture file.
-		std::cout.flush();
-		std::ofstream ofs;
-		ofs.exceptions(std::ios_base::eofbit | std::ios_base::failbit | std::ios_base::badbit);
-		ofs.open(args[1], std::ios_base::binary | std::ios_base::out | std::ios_base::trunc);
-		{
-			uint32_t u32;
-			uint16_t u16;
-			u32 = 0xA1B2C3D4;
-			ofs.write(reinterpret_cast<const char *>(&u32), 4); // Magic number
-			u16 = 2;
-			ofs.write(reinterpret_cast<const char *>(&u16), 2); // Major version number
-			u16 = 4;
-			ofs.write(reinterpret_cast<const char *>(&u16), 2); // Minor version number
-			u32 = 0;
-			ofs.write(reinterpret_cast<const char *>(&u32), 4); // Timezone offset (we use UTC)
-			ofs.write(reinterpret_cast<const char *>(&u32), 4); // Significant figures in timestamps (everyone sets this to zero)
-			u32 = 131;
-			ofs.write(reinterpret_cast<const char *>(&u32), 4); // Maximum length of a captured packet
-			u32 = 195;
-			ofs.write(reinterpret_cast<const char *>(&u32), 4); // Network data link type
-		}
-
-		// Copy the data.
-		unsigned int packets = 0;
-		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
-			const std::vector<uint8_t> &buffer = sdcard.get(sector);
-
-			uint32_t ticks = 0;
-			{
-				const uint8_t *ptr = &buffer[128 * 3];
-				ptr += 2;
-				for (unsigned int i = 0; i < 4; ++i) {
-					ticks <<= 8;
-					ticks |= ptr[3 - i];
-				}
-			}
-
-			for (unsigned int packet_index = 0; packet_index < 3; ++packet_index) {
-				const uint8_t *ptr = &buffer[packet_index * 128];
-				std::size_t len = *ptr++;
-				if (len) {
-					unsigned long seconds = ticks / 200;
-					unsigned long microseconds = (ticks % 200) * 5000;
-					{
-						uint32_t u32;
-						u32 = static_cast<uint32_t>(seconds);
-						ofs.write(reinterpret_cast<const char *>(&u32), 4);
-						u32 = static_cast<uint32_t>(microseconds);
-						ofs.write(reinterpret_cast<const char *>(&u32), 4);
-						u32 = static_cast<uint32_t>(len);
-						ofs.write(reinterpret_cast<const char *>(&u32), 4);
-						ofs.write(reinterpret_cast<const char *>(&u32), 4);
-					}
-					ofs.write(reinterpret_cast<const char *>(ptr), static_cast<std::streamsize>(len));
-					++packets;
-				}
-			}
-		}
-		ofs.close();
-		std::cout << "Copied " << packets << " packets.\n";
-		return 0;
-	}
-
 	int do_tsv(SectorArray &sdcard, const ScanResult *scan_result, char **args) {
 		std::size_t epoch_index = static_cast<std::size_t>(std::stoll(args[0], nullptr, 0));
 		if (!epoch_index) {
@@ -349,76 +276,65 @@ namespace {
 		std::ofstream ofs;
 		ofs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
 		ofs.open(args[1], std::ios_base::out | std::ios_base::trunc);
-		ofs << "Epoch\tTicks\tBreakbeam\tCapacitor (V)\tBattery (V)\tBoard Temperature (C)\tLPS\tEncoder 0\tEncoder 1\tEncoder 2\tEncoder 3\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tMotor 0\tMotor 1\tMotor 2\tMotor 3\tMotor 4\n";
+		ofs << "Epoch\tTime (s)\tBreakbeam\tCapacitor (V)\tBattery (V)\tBoard Temperature (°C)\tLPS\tEncoder 0\tEncoder 1\tEncoder 2\tEncoder 3\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tMotor 0\tMotor 1\tMotor 2\tMotor 3\tMotor 4\n";
 		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
 			const std::vector<uint8_t> &buffer = sdcard.get(sector);
+			for (std::size_t record = 0; record < RECORDS_PER_SECTOR; ++record) {
+				const uint8_t *ptr = &buffer[record * LOG_RECORD_SIZE];
 
-			const uint8_t *ptr = &buffer[128 * 3];
-			unsigned int epoch = static_cast<uint16_t>(ptr[0] | static_cast<uint16_t>(ptr[1] << 8));
-			ptr += 2;
-			uint32_t ticks = 0;
-			for (unsigned int i = 0; i < 4; ++i) {
-				ticks <<= 8;
-				ticks |= ptr[3 - i];
-			}
-			ptr += 4;
-			int breakbeam_diff = static_cast<int16_t>(static_cast<uint16_t>(ptr[0] | static_cast<uint16_t>(ptr[1] << 8)));
-			ptr += 2;
-			unsigned int adc_channels[8];
-			for (std::size_t i = 0; i < sizeof(adc_channels) / sizeof(*adc_channels); ++i) {
-				adc_channels[i] = static_cast<uint16_t>(ptr[0] | static_cast<uint16_t>(ptr[1] << 8));
-				ptr += 2;
-			}
-			int encoder_counts[4];
-			for (std::size_t i = 0; i < sizeof(encoder_counts) / sizeof(*encoder_counts); ++i) {
-				encoder_counts[i] = static_cast<int16_t>(static_cast<uint16_t>(ptr[0] | static_cast<uint16_t>(ptr[1] << 8)));
-				ptr += 2;
-			}
-			float setpoint[4];
-			for (std::size_t i = 0; i < sizeof(setpoint) / sizeof(*setpoint); ++i) {
-				uint32_t store = 0;
-				for (unsigned int j = 0; j < 4; ++j) {
-					store <<= 8;
-					store |= ptr[3 - j];
-				}
-				ptr += 4;
-				setpoint[i] = decode_u32_to_float(store);
-			}
-			uint8_t motor_directions = *ptr++;
-			int motor_drives[5];
-			for (std::size_t i = 0; i < 5; ++i) {
-				motor_drives[i] = static_cast<int8_t>(*ptr++);
-				if (motor_directions & (UINT8_C(1) << i)) {
-					motor_drives[i] = -motor_drives[i];
-				}
-			}
-			uint8_t encoders_failed = *ptr++;
-			uint8_t wheel_hall_sensors_failed = *ptr++;
-			uint8_t dribbler_hall_sensors_failed = *ptr++;
-			double capacitor_voltage = adc_channels[0] / 1024.0 * 3.3 / 2200 * (2200 + 200000);
-			double battery_voltage = adc_channels[1] / 1024.0 * 3.3 / 2200 * (2200 + 20000);
-			double board_temperature = adc_voltage_to_board_temp(adc_channels[5] / 1024.0 * 3.3);
-			unsigned int lps_reading = adc_channels[6];
-			ofs << epoch << '\t' << ticks << '\t' << breakbeam_diff << '\t' << capacitor_voltage << '\t' << battery_voltage << '\t' << board_temperature << '\t' << lps_reading;
-			for (unsigned int i = 0; i < 4; ++i) {
-				if (encoders_failed & (1 << i)) {
-					ofs << "\tNaN";
-				} else {
-					ofs << '\t' << encoder_counts[i];
-				}
-			}
-			for (unsigned int i = 0; i < 4; ++i) {
-				ofs << '\t' << setpoint[i];
-			}
-			for (unsigned int i = 0; i < 5; ++i) {
-				bool failed = i == 4 ? !!(dribbler_hall_sensors_failed & 3) : !!((wheel_hall_sensors_failed >> (2 * i)) & 3);
-				if (failed) {
-					ofs << "\tNaN";
-				} else {
-					ofs << '\t' << motor_drives[i];
+				// Decode the record.
+				uint32_t magic = decode_u32_le(ptr); ptr += 4;
+				uint16_t record_epoch = decode_u16_le(ptr); ptr += 2;
+				uint64_t tsc = decode_u64_le(ptr); ptr += 8;
+				if (magic == LOG_MAGIC_TICK && record_epoch == epoch_index) {
+					int16_t breakbeam_diff = decode_u16_le(ptr); ptr += 2;
+					uint16_t adc_channels[8];
+					for (std::size_t i = 0; i < sizeof(adc_channels) / sizeof(*adc_channels); ++i) {
+						adc_channels[i] = decode_u16_le(ptr); ptr += 2;
+					}
+					float wheels_setpoints[4];
+					for (std::size_t i = 0; i < sizeof(wheels_setpoints) / sizeof(*wheels_setpoints); ++i) {
+						wheels_setpoints[i] = decode_float_le(ptr); ptr += 4;
+					}
+					int16_t wheels_encoder_counts[4];
+					for (std::size_t i = 0; i < sizeof(wheels_encoder_counts) / sizeof(*wheels_encoder_counts); ++i) {
+						wheels_encoder_counts[i] = decode_u16_le(ptr); ptr += 2;
+					}
+					int16_t wheels_drives[4];
+					for (std::size_t i = 0; i < sizeof(wheels_drives) / sizeof(*wheels_drives); ++i) {
+						wheels_drives[i] = decode_u16_le(ptr); ptr += 2;
+					}
+					/*bool dribbler_enabled = !!decode_u8_le(ptr);*/ ptr += 1;
+					uint8_t encoders_failed = decode_u8_le(ptr); ptr += 1;
+					uint8_t wheels_hall_sensors_failed = decode_u8_le(ptr); ptr += 1;
+					uint8_t dribbler_hall_sensors_failed = decode_u8_le(ptr); ptr += 1;
+
+					double capacitor_voltage = adc_channels[0] / 1024.0 * 3.3 / 2200 * (2200 + 200000);
+					double battery_voltage = adc_channels[1] / 1024.0 * 3.3 / 2200 * (2200 + 20000);
+					double board_temperature = adc_voltage_to_board_temp(adc_channels[5] / 1024.0 * 3.3);
+					unsigned int lps_reading = adc_channels[6];
+					ofs << epoch_index << '\t' << (static_cast<long double>(tsc) / static_cast<long double>(CPU_FREQUENCY)) << '\t' << breakbeam_diff << '\t' << capacitor_voltage << '\t' << battery_voltage << '\t' << board_temperature << '\t' << lps_reading;
+					for (unsigned int i = 0; i < 4; ++i) {
+						if (encoders_failed & (1 << i)) {
+							ofs << "\tNaN";
+						} else {
+							ofs << '\t' << wheels_encoder_counts[i];
+						}
+					}
+					for (unsigned int i = 0; i < 4; ++i) {
+						ofs << '\t' << wheels_setpoints[i];
+					}
+					for (unsigned int i = 0; i < 5; ++i) {
+						bool failed = i == 4 ? !!(dribbler_hall_sensors_failed & 3) : !!((wheels_hall_sensors_failed >> (2 * i)) & 3);
+						if (failed) {
+							ofs << "\tNaN";
+						} else {
+							ofs << '\t' << wheels_drives[i];
+						}
+					}
+					ofs << '\n';
 				}
 			}
-			ofs << '\n';
 		}
 		ofs.close();
 
@@ -438,7 +354,6 @@ namespace {
 		{ "copy", 2, false, true, &do_copy },
 		{ "erase", 0, true, false, &do_erase },
 		{ "info", 0, false, true, &do_info },
-		{ "pcap", 2, false, true, &do_pcap },
 		{ "tsv", 2, false, true, &do_tsv },
 	};
 
@@ -463,6 +378,9 @@ namespace {
 }
 
 int app_main(int argc, char **argv) {
+	// Set the current locale from environment variables.
+	std::locale::global(std::locale(""));
+
 	// Check for at least a device node and a command.
 	if (argc < 3) {
 		usage(argv[0]);

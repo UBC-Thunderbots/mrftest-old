@@ -60,12 +60,12 @@
 #define POWER_CTL IO_PORT(0x01)
 
 /**
- * \brief A real-time timer counting 5 millisecond ticks
+ * \brief A real-time counter counting CPU clock cycles.
  *
- * Bits:
- * 7–0 (R) [00000000]: Count of ticks since power-up
+ * A write to this register latches the value of the counter.
+ * Four consecutive reads from this register following a write return the 32-bit tick count, MSB first.
  */
-#define TICKS IO_PORT(0x02)
+#define TSC IO_PORT(0x02)
 
 /**
  * \brief Selects which motor will be controlled.
@@ -165,16 +165,9 @@
  * \brief Reports the accumulated count of optical encoder ticks
  *
  * A write to this register selects an optical encoder (0–3) and simultaneously snapshots and clears the accumulated count.
- * A read from this register returns the LSB of the snapshot value.
+ * Two consecutive reads from this register following a write return first the MSB then the LSB of the snapshot value.
  */
-#define ENCODER_LSB IO_PORT(0x0A)
-
-/**
- * \brief Reports the accumulated count of optical encoder ticks
- *
- * A read from this register reports the MSB of the snapshot value taken by a write to \ref ENCODER_LSB.
- */
-#define ENCODER_MSB IO_PORT(0x0B)
+#define ENCODER_DATA IO_PORT(0x0A)
 
 /**
  * \brief Reports encoder commutation failures
@@ -186,7 +179,7 @@
  * 1 (R) [0]: Encoder 1 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
  * 0 (R) [0]: Encoder 0 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
  */
-#define ENCODER_FAIL IO_PORT(0x0C)
+#define ENCODER_FAIL IO_PORT(0x0B)
 
 /**
  * \brief Reports mainboard analogue-to-digital converter readings

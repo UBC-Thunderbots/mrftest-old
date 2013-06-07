@@ -1,5 +1,4 @@
 #include "wheels.h"
-#include "buffers.h"
 #include "control.h"
 #include "encoder.h"
 #include "io.h"
@@ -8,62 +7,63 @@
 #include "motor.h"
 #include "mrf.h"
 
-wheel_ctx_t wheel_context;
-
-void wheel_update_ctx() {
-	control_setpoint_changed(wheel_context.setpoints);
-}
+wheels_mode_t wheels_mode = WHEELS_MODE_MANUAL_COMMUTATION;
+int16_t wheels_setpoints[4] = { 0, 0, 0, 0 };
+int16_t wheels_encoder_counts[4] = { 0, 0, 0, 0 };
+int16_t wheels_drives[4] = { 0, 0, 0, 0 };
 
 void wheels_tick() {
+	// Read optical encoders.
 	for (uint8_t i = 0; i < 4; ++i) {
-		current_buffer->tick.encoder_counts[i] = read_encoder(i);
+		wheels_encoder_counts[i] = read_encoder(i);
 	}
-	int16_t outputs[4];
-	switch (wheel_context.mode) {
-		case WHEEL_MODE_MANUAL_COMMUTATION:
+
+	// Run the controller if necessary and drive the motors.
+	switch (wheels_mode) {
+		case WHEELS_MODE_MANUAL_COMMUTATION:
 			control_clear();
 			for (uint8_t i = 0; i < 4; ++i) {
-				set_wheel(i, MANUAL_COMMUTATION, wheel_context.setpoints[i]);
+				motor_set_wheel(i, MOTOR_MODE_MANUAL_COMMUTATION, wheels_setpoints[i]);
 			}
 			break;
 
-		case WHEEL_MODE_BRAKE:
+		case WHEELS_MODE_BRAKE:
 			control_clear();
 			for (uint8_t i = 0; i < 4; ++i) {
-				set_wheel(i, BRAKE, 0);
+				motor_set_wheel(i, MOTOR_MODE_BRAKE, 0);
 			}
 			break;
 
-		case WHEEL_MODE_OPEN_LOOP:
+		case WHEELS_MODE_OPEN_LOOP:
 			control_clear();
 			for (uint8_t i = 0; i < 4; ++i) {
-				int16_t output = wheel_context.setpoints[i];
+				int16_t output = wheels_setpoints[i];
 				if (output < -255) {
 					output = -255;
 				} else if (output > 255) {
 					output = 255;
 				}
-				if (output > 0) {
-					set_wheel(i, FORWARD, output);
+				wheels_drives[i] = output;
+				if (output >= 0) {
+					motor_set_wheel(i, MOTOR_MODE_FORWARD, output);
 				} else if (output < 0) {
-					set_wheel(i, BACKWARD, -output);
-				} else {
-					set_wheel(i, BRAKE, 0);
+					motor_set_wheel(i, MOTOR_MODE_BACKWARD, -output);
 				}
 			}
 			break;
 
-		case WHEEL_MODE_CLOSED_LOOP:
-			control_iter(current_buffer->tick.encoder_counts, outputs);
+		case WHEELS_MODE_CLOSED_LOOP:
+			control_tick();
 			uint8_t encoders_fail = ENCODER_FAIL;
 			for (uint8_t i = 0; i < 4; ++i) {
-				if (encoders_fail & (1 << i)) {
-					set_wheel(i, MANUAL_COMMUTATION, 0);
-				} else if (outputs[i] >= 0) {
-					set_wheel(i, FORWARD, outputs[i]);
+				if (encoders_fail & 1) {
+					motor_set_wheel(i, MOTOR_MODE_MANUAL_COMMUTATION, 0);
+				} else if (wheels_drives[i] >= 0) {
+					motor_set_wheel(i, MOTOR_MODE_FORWARD, wheels_drives[i]);
 				} else {
-					set_wheel(i, BACKWARD, -outputs[i]);
+					motor_set_wheel(i, MOTOR_MODE_BACKWARD, -wheels_drives[i]);
 				}
+				encoders_fail >>= 1;
 			}
 			break;
 	}

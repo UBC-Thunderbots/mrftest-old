@@ -3,7 +3,7 @@ CC := $(ABI)-gcc
 LD := $(ABI)-ld
 PROJ := main
 C_AND_LD_FLAGS := -mcall-prologues -mno-interrupts -mmcu=avr6
-override CFLAGS := $(CFLAGS) $(C_AND_LD_FLAGS) -Wall -Wextra -std=gnu99 -Os -g -ffunction-sections -fdata-sections
+override CFLAGS := $(CFLAGS) $(C_AND_LD_FLAGS) -Wall -Wextra -std=gnu99 -Os -g -ffunction-sections -fdata-sections -DF_CPU=40000000UL
 override LDFLAGS := $(LDFLAGS) $(C_AND_LD_FLAGS) -Wl,-Tpavr.ld -Wl,--gc-sections -Wl,-u,vfprintf -lprintf_min
 override LDLIBS := -lm
 

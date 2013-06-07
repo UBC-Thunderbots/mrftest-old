@@ -3,18 +3,29 @@
 
 #include <stdint.h>
 
-typedef struct {
-	float integrator, saturation_difference, anti_windup_offset;
-} PI_ctx_t;
+/**
+ * \brief Invoked once per tick when the control loop is not enabled to clear accumulated state.
+ */
+void control_clear(void);
 
-typedef struct {
-	PI_ctx_t wheels[4];
-	int16_t setpoints[4];
-} control_ctx_t;
+/**
+ * \brief Invoked when new setpoints are received from the host.
+ *
+ * This function should read the new setpoints and write them into \ref wheels_setpoints in an appropriate internal format.
+ * This function must not assume anything about the value of \ref wheels_setpoints.
+ *
+ * \param setpoints the new setpoints
+ */
+void control_process_new_setpoints(const int16_t setpoints[4]);
 
-void control_clear();
-void control_setpoint_changed(int16_t setpoints[4]);
-void control_iter(int16_t feedback[4], int16_t outputs[4]);
+/**
+ * \brief Invoked once per tick when the control loop is enabled.
+ *
+ * This function should read from \ref wheels_setpoints, \ref wheels_encoder_counts, and the controller’s internal state, and write to \ref wheels_drives.
+ * This function may also modify \ref wheels_setpoints.
+ * This function may assume that the value it finds in \ref wheels_setpoints was placed there either by \ref control_process_new_setpoints or \ref control_tick.
+ */
+void control_tick(void);
 
 #endif
 

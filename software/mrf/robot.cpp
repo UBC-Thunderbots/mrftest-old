@@ -10,6 +10,34 @@
 #include <glibmm/main.h>
 #include <sigc++/functors/mem_fun.h>
 
+namespace {
+	struct MessageTemplate {
+		const char *pattern;
+		Annunciator::Message::Severity severity;
+	};
+
+	const MessageTemplate SD_MESSAGES[] = {
+		{ 0, Annunciator::Message::Severity::LOW },
+		{ u8"Bot %1 SD card uninitialized", Annunciator::Message::Severity::HIGH },
+		{ u8"Bot %1 SD card missing", Annunciator::Message::Severity::LOW },
+		{ u8"Bot %1 SD card incompatible", Annunciator::Message::Severity::HIGH },
+		{ u8"Bot %1 SD card sent illegal response", Annunciator::Message::Severity::HIGH },
+		{ u8"Bot %1 SD layer logical error", Annunciator::Message::Severity::HIGH },
+		{ u8"Bot %1 SD card CRC error", Annunciator::Message::Severity::HIGH },
+		{ u8"Bot %1 SD card claimed illegal command", Annunciator::Message::Severity::HIGH },
+		{ u8"Bot %1 SD card illegally idle", Annunciator::Message::Severity::HIGH },
+		{ u8"Bot %1 SD card internal error", Annunciator::Message::Severity::HIGH },
+	};
+
+	const MessageTemplate LOGGER_MESSAGES[] = {
+		{ 0, Annunciator::Message::Severity::LOW },
+		{ u8"Bot %1 logger uninitialized", Annunciator::Message::Severity::HIGH },
+		{ 0, Annunciator::Message::Severity::LOW },
+		{ u8"Bot %1 SD card full", Annunciator::Message::Severity::HIGH },
+		{ u8"Bot %1 log buffer overflow", Annunciator::Message::Severity::HIGH },
+	};
+}
+
 void MRFRobot::drive(const int(&wheels)[4], bool controlled) {
 	for (unsigned int i = 0; i < 4; ++i) {
 		unsigned int level_u = static_cast<unsigned int>(std::abs(wheels[i]));
@@ -126,7 +154,6 @@ MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) :
 		charge_timeout_message(Glib::ustring::compose(u8"Bot %1 charge timeout", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
 		breakout_missing_message(Glib::ustring::compose(u8"Bot %1 breakout missing", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
 		chicker_missing_message(Glib::ustring::compose(u8"Bot %1 chicker missing", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
-		sd_missing_message(Glib::ustring::compose(u8"Bot %1 SD card missing", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
 		interlocks_overridden_message(Glib::ustring::compose(u8"Bot %1 interlocks overridden", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH) {
 	for (unsigned int i = 0; i < 8; ++i) {
 		hall_sensor_stuck_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 wheel %2 Hall sensor stuck %3", index, i / 2, (i % 2) == 0 ? u8"low" : u8"high"), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
@@ -135,6 +162,16 @@ MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) :
 	hall_sensor_stuck_messages[9].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 dribbler Hall sensor stuck high", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
 	for (unsigned int i = 0; i < 4; ++i) {
 		optical_encoder_not_commutating_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 wheel %2 optical encoder not commutating", index, i), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
+	}
+	for (std::size_t i = 0; i < sizeof(SD_MESSAGES) / sizeof(*SD_MESSAGES); ++i) {
+		if (SD_MESSAGES[i].pattern) {
+			sd_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(SD_MESSAGES[i].pattern, index), Annunciator::Message::TriggerMode::LEVEL, SD_MESSAGES[i].severity));
+		}
+	}
+	for (std::size_t i = 0; i < sizeof(LOGGER_MESSAGES) / sizeof(*LOGGER_MESSAGES); ++i) {
+		if (LOGGER_MESSAGES[i].pattern) {
+			logger_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(LOGGER_MESSAGES[i].pattern, index), Annunciator::Message::TriggerMode::LEVEL, LOGGER_MESSAGES[i].severity));
+		}
 	}
 }
 
@@ -150,7 +187,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 				// General robot status update
 				++bptr;
 				--len;
-				if (len == 11) {
+				if (len == 12) {
 					alive = true;
 					battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 20000);
 					capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 200000);
@@ -162,7 +199,6 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 					bool breakout_present = !!(bptr[8] & 0x08);
 					breakout_missing_message.active(!breakout_present);
 					chicker_missing_message.active(!(bptr[8] & 0x10));
-					sd_missing_message.active(!(bptr[8] & 0x20));
 					interlocks_overridden_message.active(!!(bptr[8] & 0x40));
 					for (unsigned int bit = 0; bit < 8; ++bit) {
 						hall_sensor_stuck_messages[bit]->active(!!(bptr[9] & (1 << bit)) && breakout_present);
@@ -172,6 +208,18 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 					}
 					for (unsigned int wheel = 0; wheel < 4; ++wheel) {
 						optical_encoder_not_commutating_messages[wheel]->active(!!(bptr[10] & (1 << (wheel + 2))) && breakout_present);
+					}
+					unsigned int sd_status = bptr[11] & 0x0F;
+					unsigned int logger_status = bptr[11] >> 4;
+					for (std::size_t i = 0; i < sd_messages.size(); ++i) {
+						if (sd_messages[i]) {
+							sd_messages[i]->active(sd_status == i);
+						}
+					}
+					for (std::size_t i = 0; i < logger_messages.size(); ++i) {
+						if (logger_messages[i]) {
+							logger_messages[i]->active(sd_status == 0 && logger_status == i);
+						}
 					}
 					feedback_timeout_connection.disconnect();
 					feedback_timeout_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &MRFRobot::handle_feedback_timeout), 3);
@@ -197,13 +245,22 @@ bool MRFRobot::handle_feedback_timeout() {
 	charge_timeout_message.active(false);
 	breakout_missing_message.active(false);
 	chicker_missing_message.active(false);
-	sd_missing_message.active(false);
 	interlocks_overridden_message.active(false);
 	for (auto &i : hall_sensor_stuck_messages) {
 		i->active(false);
 	}
 	for (auto &i : optical_encoder_not_commutating_messages) {
 		i->active(false);
+	}
+	for (auto &i : sd_messages) {
+		if (i) {
+			i->active(false);
+		}
+	}
+	for (auto &i : logger_messages) {
+		if (i) {
+			i->active(false);
+		}
 	}
 	return false;
 }

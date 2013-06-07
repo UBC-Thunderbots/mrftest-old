@@ -4,36 +4,41 @@
 #include <stdint.h>
 
 /**
- * \brief The modes the wheels can be in
+ * \brief The modes the wheels can be in.
  */
 typedef enum {
-	WHEEL_MODE_MANUAL_COMMUTATION,
-	WHEEL_MODE_BRAKE,
-	WHEEL_MODE_OPEN_LOOP,
-	WHEEL_MODE_CLOSED_LOOP,
-} wheel_mode_t;
-
-
-typedef struct {
-	wheel_mode_t mode;
-	int16_t setpoints[4];
-} wheel_ctx_t;
+	WHEELS_MODE_MANUAL_COMMUTATION,
+	WHEELS_MODE_BRAKE,
+	WHEELS_MODE_OPEN_LOOP,
+	WHEELS_MODE_CLOSED_LOOP,
+} wheels_mode_t;
 
 /**
- * \brief the current wheel settings
+ * \brief The current mode of the wheels.
+ */
+extern wheels_mode_t wheels_mode;
+
+/**
+ * \brief The wheel speed setpoints currently applying.
+ */
+extern int16_t wheels_setpoints[4];
+
+/**
+ * \brief The most recently read wheel optical encoder counts.
+ */
+extern int16_t wheels_encoder_counts[4];
+
+/**
+ * \brief The most recently calculated drive levels to send to the wheel motors.
+ */
+extern int16_t wheels_drives[4];
+
+/**
+ * \brief Updates the wheels.
  *
+ * This function updates \ref wheel_encoder_counts as well as running the control loop (if needed) and sending new power levels to the wheel motors.
  */
-extern wheel_ctx_t wheel_context;
-
-/**
- * \brief update the controllers for new wheel settings
- */
-void wheel_update_ctx();
-
-/**
- * \brief Runs the wheels
- */
-void wheels_tick();
+void wheels_tick(void);
 
 #endif
 

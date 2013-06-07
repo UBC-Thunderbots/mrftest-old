@@ -7,7 +7,7 @@
 #include "io.h"
 
 /**
- * \brief The possible short register addresses
+ * \brief The possible short register addresses.
  */
 typedef enum {
 	MRF_REG_SHORT_RXMCR,
@@ -70,6 +70,9 @@ typedef enum {
 	MRF_REG_SHORT_CCAEDTH,
 } mrf_reg_short_t;
 
+/**
+ * \brief The possible long register addresses.
+ */
 typedef enum {
 	MRF_REG_LONG_TXNFIFO = 0x000,
 	MRF_REG_LONG_TXBFIFO = 0x080,
@@ -127,103 +130,70 @@ typedef enum {
 } mrf_reg_long_t;
 
 /**
- * \brief Initializes the interface to the radio and places the radio in reset
+ * \brief A buffer into which received data is placed.
+ *
+ * The structure of data found here is as described in the MRF24J40 datasheet.
+ * The application must only read from this buffer immediately following a \c true return from a call to \ref mrf_rx_poll.
  */
-static inline void mrf_init(void) {
-	MRF_CTL = 0x00;
-}
+extern uint8_t mrf_rx_buffer[128];
 
 /**
- * \brief Releases the radio from reset
+ * \brief A buffer into which the application places data for transmission.
+ *
+ * The structure of data placed here must match the format described in the MRF24J40 datasheet.
+ * The application must only write to this buffer if \c mrf_tx_buffer_free returned \c true.
  */
-static inline void mrf_release_reset(void) {
-	MRF_CTL = 0x01;
-}
+extern uint8_t mrf_tx_buffer[128];
 
 /**
- * \brief Checks the radio's interrupt line
+ * \brief Initializes the radio.
  *
- * \return \c true if the interrupt line is high, or \c false if low
+ * \param channel the channel to operate on, from 11 to 26 inclusive
+ *
+ * \param symbol_rate \c true to run at 625 kb/s, or \c false to run at 250 kb/s
+ *
+ * \param short_address the 16-bit address to use
+ *
+ * \param pan_id the PAN ID to communicate on, from 0 to 0xFFFE
+ *
+ * \param mac_address the node’s MAC address
  */
-static inline bool mrf_get_interrupt(void) {
-	return !!(MRF_CTL & 0x04);
-}
+void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short_address, uint64_t mac_address);
 
 /**
- * \brief Reads a short-address register
+ * \brief Checks whether a new packet has been received.
  *
- * \param[in] reg the register to read
+ * This function returns \c true exactly once for each packet received.
+ * Once this function returns \c true, the application must consume the packet before calling this function again.
  *
- * \return the register's value
+ * \return \c true if a packet is ready in the receive buffer for the application to process, or \c false if not
  */
-uint8_t mrf_read_short(uint8_t reg);
+bool mrf_rx_poll(void);
 
 /**
- * \brief Writes a short-address register
+ * \brief Checks whether the transmit buffer is available for application use.
  *
- * \param[in] reg the register to write
+ * If \ref mrf_tx_path_free returns \c true, then this function can also be assumed to return true.
  *
- * \param[in] value the value to write
+ * \return \c true if it is safe for the application to modify \ref mrf_tx_buffer, or \c false if not
  */
-void mrf_write_short(uint8_t reg, uint8_t value);
+bool mrf_tx_buffer_free(void);
 
 /**
- * \brief Reads a long-address register
+ * \brief Checks whether the transmit path is available for starting a packet transmission.
  *
- * \param[in] reg the register to read
- *
- * \return the register's value
+ * \return \c true if it is safe for the appication to call \ref mrf_tx_start, or \c false if not
  */
-uint8_t mrf_read_long(uint16_t reg);
+bool mrf_tx_path_free(void);
 
 /**
- * \brief Writes a long-address register
+ * \brief Starts a packet transmission.
  *
- * \param[in] reg the register to write
+ * \pre \ref mrf_tx_path_free must have returned \c true
  *
- * \param[in] value the value to write
+ * \param reliable \c true if the transmission must be acknowledged by the peer, or \c false if not
  */
-void mrf_write_long(uint16_t reg, uint8_t value);
-
-/**
- * \brief Starts reading a contiguous block of long-address registers.
- *
- * \param[in] reg the first register to read
- *
- * \param[in] data the buffer into which to store the data
- *
- * \param[in] length the number of bytes to read
- */
-void mrf_start_read_long_block(uint16_t reg, void *data, uint8_t length);
-
-/**
- * \brief Checks whether a block read is in progress.
- *
- * \return \c true if a block read is running, or \c false if not
- */
-static inline bool mrf_read_long_block_active(void) {
-	return dma_running(DMA_WRITE_CHANNEL_MRF) || (MRF_CTL & 0x80);
-}
-
-/**
- * \brief Performs common initialiation of the radio based on the configuration parameters
- */
-void mrf_common_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint64_t mac_address);
-
-/**
- * \brief Sets the analogue path on the MRF to consume minimum power and not allow any communication
- */
-void mrf_analogue_off(void);
-
-/**
- * \brief Sets the analogue path on the MRF to allow reception but not transmission
- */
-void mrf_analogue_rx(void);
-
-/**
- * \brief Sets the analogue path on the MRF to allow both transmission and reception
- */
-void mrf_analogue_txrx(void);
+void mrf_tx_start(bool reliable);
 
 #endif
 

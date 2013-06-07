@@ -1,31 +1,34 @@
 #include "control.h"
-#include "buffers.h"
+#include "wheels.h"
+#include <string.h>
 
 //Maximum deviation from encoder 
 //determinded setpoint in PWM levels
 #define CURRENT_LIMIT 75.0
 
-static control_ctx_t control_context;
+typedef struct {
+	float integrator, saturation_difference, anti_windup_offset;
+} PI_ctx_t;
 
-void control_setpoint_changed(int16_t setpoints[4]) {
-	for(uint8_t i=0;i<4;++i) {
-		control_context.setpoints[i]=setpoints[i];
-	}
-}
+static PI_ctx_t pis[4];
 
-void wheel_clear(PI_ctx_t *ctx) {
+static void wheel_clear(PI_ctx_t *ctx) {
 	ctx->integrator = 0;
 	ctx->saturation_difference = 0;
 	ctx->anti_windup_offset = 0;
 }
 
 void control_clear() {
-	for(uint8_t i=0;i<4;i++) {
-		wheel_clear(&(control_context.wheels[i]));
+	for (uint8_t i = 0; i < 4; ++i) {
+		wheel_clear(&pis[i]);
 	}
 }
 
-int16_t wheel_iter(PI_ctx_t *ctx, int16_t feedback, int16_t setpoint) {
+void control_process_new_setpoints(const int16_t setpoints[4]) {
+	memcpy(wheels_setpoints, setpoints, sizeof(wheels_setpoints));
+}
+
+static int16_t wheel_iter(PI_ctx_t *ctx, int16_t feedback, int16_t setpoint) {
 	int16_t error;
 	float feedback_pwm_equiv, new_anti_windup_offset, error_compensated, control_action, plant_min, plant_max, plant;
 
@@ -53,10 +56,9 @@ int16_t wheel_iter(PI_ctx_t *ctx, int16_t feedback, int16_t setpoint) {
 	return (int16_t) plant;
 }
 
-void control_iter(int16_t feedback[4],int16_t outputs[4]) {
-	for(int i=0;i<4;i++) {
-		current_buffer->tick.setpoint[i] = control_context.setpoints[i];
-		outputs[i] = wheel_iter(&(control_context.wheels[i]),feedback[i],control_context.setpoints[i]);
+void control_tick(void) {
+	for (uint8_t i = 0; i < 4; ++i) {
+		wheels_drives[i] = wheel_iter(&pis[i], wheels_encoder_counts[i], wheels_setpoints[i]);
 	}
 }
 

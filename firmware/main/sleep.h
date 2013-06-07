@@ -2,12 +2,12 @@
 #define SLEEP_H
 
 /**
- * \brief Delays for between 5 and 10 milliseconds
+ * \brief Delays for 5 milliseconds.
  */
 void sleep_short(void);
 
 /**
- * \brief Delays for one second
+ * \brief Delays for one second.
  */
 void sleep_1s(void);
 

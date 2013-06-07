@@ -45,8 +45,6 @@ firmware/flashburner/uart.c -text
 firmware/flashburner/uart.h -text
 firmware/main/Makefile -text
 firmware/main/adc.h -text
-firmware/main/buffers.c -text
-firmware/main/buffers.h -text
 firmware/main/chicker.h -text
 firmware/main/control.c -text
 firmware/main/control.h -text
@@ -62,6 +60,8 @@ firmware/main/flash.c -text
 firmware/main/flash.h -text
 firmware/main/io.h -text
 firmware/main/led.h -text
+firmware/main/log.c -text
+firmware/main/log.h -text
 firmware/main/mac.h -text
 firmware/main/motor.c -text
 firmware/main/motor.h -text
@@ -74,6 +74,7 @@ firmware/main/sdcard.c -text
 firmware/main/sdcard.h -text
 firmware/main/sleep.c -text
 firmware/main/sleep.h -text
+firmware/main/tsc.h -text
 firmware/main/wheels.c -text
 firmware/main/wheels.h -text
 firmware/speedsensor/Makefile -text
