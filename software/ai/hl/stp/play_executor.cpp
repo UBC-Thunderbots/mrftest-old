@@ -5,10 +5,8 @@
 #include "ai/hl/stp/tactic/idle.h"
 #include "util/dprint.h"
 #include <cassert>
-#include <glibmm/ustring.h>
 #include <utility>
-
-#include <iostream>
+#include <glibmm/ustring.h>
 
 using AI::HL::STP::PlayExecutor;
 using namespace AI::HL::STP;
