@@ -76,7 +76,7 @@ void flash_read(uint32_t address, void *data, uint8_t length) {
 	tx(address);
 	uint8_t *ptr = data;
 	while (length--) {
-		*ptr++ += txrx(0x00);
+		*ptr++ = txrx(0x00);
 	}
 	deassert_cs();
 }
