@@ -35,6 +35,13 @@ namespace AI {
 					World world;
 
 					/**
+					 * If index of i is true, then the robot of pattern index i is enabled. 
+					 * If a robot is enabled it is considered by the play executor to be 
+					 * within the pool of available players. 
+					 */
+					std::vector<bool> players_enabled;
+
+					/**
 					 * \brief Idle tactics to use when other tactics have not yet been selected.
 					 */
 					Tactic::Tactic::Ptr idle_tactics[TEAM_MAX_SIZE];

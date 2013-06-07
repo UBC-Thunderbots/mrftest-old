@@ -18,7 +18,6 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			Player _goalie;
-
 			size_t team_size = 0;
 		}
 	}
@@ -33,6 +32,20 @@ namespace {
 	BoolParam goalie_lowest("Goalie is lowest index", "STP/Goalie", true);
 	IntParam goalie_pattern_index("Goalie pattern index", "STP/Goalie", 0, 0, 11);
 #endif
+
+	BoolParam enable0("enable robot 0", "STP/PlayExecutor", true);
+	BoolParam enable1("enable robot 1", "STP/PlayExecutor", true);
+	BoolParam enable2("enable robot 2", "STP/PlayExecutor", true);
+	BoolParam enable3("enable robot 3", "STP/PlayExecutor", true);
+	BoolParam enable4("enable robot 4", "STP/PlayExecutor", true);
+	BoolParam enable5("enable robot 5", "STP/PlayExecutor", true);
+	BoolParam enable6("enable robot 6", "STP/PlayExecutor", true);
+	BoolParam enable7("enable robot 7", "STP/PlayExecutor", true);
+	BoolParam enable8("enable robot 8", "STP/PlayExecutor", true);
+	BoolParam enable9("enable robot 9", "STP/PlayExecutor", true);
+	BoolParam enable10("enable robot 10", "STP/PlayExecutor", true);
+	BoolParam enable11("enable robot 11", "STP/PlayExecutor", true);
+
 	BoolParam high_priority_always("If higher priority play exists, switch", "STP/PlayExecutor", true);
 	IntParam playbook_index("Current Playbook, use bitwise operations", "STP/PlayExecutor", 0, 0, 9);
 }
@@ -148,7 +161,7 @@ void PlayExecutor::role_assignment() {
 	} else {
 		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 			Player p = world.friendly_team().get(i);
-			if (p.pattern() == static_cast<unsigned int>(goalie_pattern_index)) {
+			if (p.pattern() == static_cast<unsigned int>(goalie_pattern_index) && players_enabled[i]) {
 				goalie = p;
 			}
 		}
@@ -173,7 +186,7 @@ void PlayExecutor::role_assignment() {
 	std::set<Player> players;
 	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 		Player p = world.friendly_team().get(i);
-		if (goalie && p == goalie) {
+		if ((goalie && p == goalie) || !players_enabled[i]) {
 			continue;
 		}
 		players.insert(p);
@@ -309,8 +322,33 @@ void PlayExecutor::execute_tactics() {
 void PlayExecutor::tick() {
 	tick_eval(world);
 
+	FriendlyTeam friendly = world.friendly_team();
+	std::vector<Player> players;
+
+	const bool enabled[] = {
+		enable0,
+		enable1,
+		enable2,
+		enable3,
+		enable4,
+		enable5,
+		enable6,
+		enable7,
+		enable8,
+		enable9,
+		enable10,
+		enable11,
+	};
+	players_enabled.insert(players_enabled.begin(), enabled, enabled+12);
+
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		if (enabled[friendly.get(i).pattern()]) {
+			players.push_back(friendly.get(i));
+		}
+	}
+
 	// override halt completely
-	if (world.friendly_team().size() == 0 || world.playtype() == AI::Common::PlayType::HALT) {
+	if (players.empty() || /* world.friendly_team().size() == 0 || */ world.playtype() == AI::Common::PlayType::HALT) {
 		curr_play = 0;
 		return;
 	}

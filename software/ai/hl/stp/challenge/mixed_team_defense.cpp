@@ -181,6 +181,12 @@ namespace {
 				stop2->set_player(players[2]);
 				stop2->execute();
 			}
+
+			if (players.size() > 3) {
+				auto stop3 = Tactic::move_stop(world, 3);
+				stop3->set_player(players[3]);
+				stop3->execute();
+			}
 		}
 
 		void penalty(std::vector<Player> &players) {
@@ -196,6 +202,10 @@ namespace {
 
 			if (players.size() == 3) {
 				Action::move(world, players[2], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, -6 * Robot::MAX_RADIUS));
+			}
+
+			if (players.size() == 4) {
+				Action::move(world, players[3], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 3 * Robot::MAX_RADIUS));
 			}
 		}
 
@@ -254,7 +264,6 @@ namespace {
 
 				return;
 			} else {
-
 
 				if (players.size() > 0) {
 					auto goalie = Tactic::lone_goalie(world);
