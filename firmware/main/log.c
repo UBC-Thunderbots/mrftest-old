@@ -155,7 +155,7 @@ void log_deinit(void) {
 
 static log_record_t *log_alloc_impl(void) {
 	// Sanity check.
-	if (state != LOG_STATE_OK) {
+	if (state != LOG_STATE_OK && state != LOG_STATE_OVERFLOW) {
 		return 0;
 	}
 
