@@ -132,7 +132,7 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 		std::size_t num_epochs;
 		{
 			const std::vector<uint8_t> &sector = sarray.get(nonblank_size() - 1);
-			num_epochs = sector[0] | (sector[1] << 8);
+			num_epochs = decode_u16_le(&sector[4]);
 		}
 
 		// Find locations of epochs.
