@@ -363,6 +363,14 @@ bool sd_init(void) {
 		return false;
 	}
 
+	// Set multiblock write erase length.
+	if (!send_command_r1(APP_CMD, 0)) {
+		return false;
+	}
+	if (!send_command_r1(SET_WR_BLK_ERASE_COUNT, 256)) {
+		return false;
+	}
+
 	// Read the card specific data register and compute the number of sectors on the card.
 	{
 		uint8_t csd[16];
