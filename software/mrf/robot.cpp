@@ -154,7 +154,8 @@ MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) :
 		charge_timeout_message(Glib::ustring::compose(u8"Bot %1 charge timeout", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
 		breakout_missing_message(Glib::ustring::compose(u8"Bot %1 breakout missing", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
 		chicker_missing_message(Glib::ustring::compose(u8"Bot %1 chicker missing", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
-		interlocks_overridden_message(Glib::ustring::compose(u8"Bot %1 interlocks overridden", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH) {
+		interlocks_overridden_message(Glib::ustring::compose(u8"Bot %1 interlocks overridden", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
+		low_capacitor_message(Glib::ustring::compose(u8"Bot %1 low caps (fuse blown?)", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH) {
 	for (unsigned int i = 0; i < 8; ++i) {
 		hall_sensor_stuck_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 wheel %2 Hall sensor stuck %3", index, i / 2, (i % 2) == 0 ? u8"low" : u8"high"), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
 	}
@@ -198,8 +199,10 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 					charge_timeout_message.active(!!(bptr[8] & 0x04));
 					bool breakout_present = !!(bptr[8] & 0x08);
 					breakout_missing_message.active(!breakout_present);
-					chicker_missing_message.active(!(bptr[8] & 0x10));
+					bool chicker_present = !!(bptr[8] & 0x10);
+					chicker_missing_message.active(!chicker_present);
 					interlocks_overridden_message.active(!!(bptr[8] & 0x40));
+					low_capacitor_message.active(chicker_present && capacitor_voltage < 5);
 					for (unsigned int bit = 0; bit < 8; ++bit) {
 						hall_sensor_stuck_messages[bit]->active(!!(bptr[9] & (1 << bit)) && breakout_present);
 					}
@@ -246,6 +249,7 @@ bool MRFRobot::handle_feedback_timeout() {
 	breakout_missing_message.active(false);
 	chicker_missing_message.active(false);
 	interlocks_overridden_message.active(false);
+	low_capacitor_message.active(false);
 	for (auto &i : hall_sensor_stuck_messages) {
 		i->active(false);
 	}
