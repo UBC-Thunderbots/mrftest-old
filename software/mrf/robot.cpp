@@ -34,7 +34,7 @@ namespace {
 		{ u8"Bot %1 logger uninitialized", Annunciator::Message::Severity::HIGH },
 		{ 0, Annunciator::Message::Severity::LOW },
 		{ u8"Bot %1 SD card full", Annunciator::Message::Severity::HIGH },
-		{ u8"Bot %1 log buffer overflow", Annunciator::Message::Severity::HIGH },
+		{ u8"Bot %1 log buffer overflow", Annunciator::Message::Severity::LOW },
 	};
 }
 
