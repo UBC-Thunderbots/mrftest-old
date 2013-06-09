@@ -65,6 +65,24 @@ namespace {
 		scale[3] = 0;
 	}
 
+	void on_update_zaxis(Gtk::HScale(&controls)[4], Drive::Robot &robot, bool controlled) {
+		static const double vector[4] = { -0.4558, 0.5406, -0.5406, 0.4558 };
+		double scalar = controls[0].get_value();
+		double output[G_N_ELEMENTS(vector)];
+		for (unsigned int i = 0; i < G_N_ELEMENTS(output); ++i) {
+			output[i] = scalar * vector[i];
+		}
+		int w[G_N_ELEMENTS(output)];
+		for (unsigned int i = 0; i < G_N_ELEMENTS(w); ++i) {
+			w[i] = clamp_symmetric(static_cast<int>(output[i]), 1023);
+		}
+		robot.drive(w, controlled);
+	}
+
+	void get_low_sensitivity_scale_factors_zaxis(double (&scale)[4]) {
+		scale[0] = scale[1] = scale[2] = scale[3] = 0.1;
+	}
+
 	struct Mode {
 		const char *name;
 		unsigned int sensitive_mask;
@@ -81,6 +99,7 @@ namespace {
 		{ u8"Brake", 0x0, false, 1, 0.1, 0.5, 0, &on_update_brake, &get_low_sensitivity_scale_factors_brake },
 		{ u8"Per-motor", 0xF, false, 1023, 1, 25, 0, &on_update_permotor, &get_low_sensitivity_scale_factors_permotor },
 		{ u8"Matrix", 0x7, false, 20, 0.1, 3, 1, &on_update_matrix, &get_low_sensitivity_scale_factors_matrix },
+		{ u8"Z axis", 0x1, false, 2047, 1, 25, 0, &on_update_zaxis, &get_low_sensitivity_scale_factors_zaxis },
 	};
 
 	const Mode MODES_COAST[] = {
@@ -88,6 +107,7 @@ namespace {
 		{ u8"Brake", 0x0, false, 1, 0.1, 0.5, 0, &on_update_brake, &get_low_sensitivity_scale_factors_brake },
 		{ u8"Per-motor", 0xF, false, 1023, 1, 25, 0, &on_update_permotor, &get_low_sensitivity_scale_factors_permotor },
 		{ u8"Matrix", 0x7, false, 20, 0.1, 3, 1, &on_update_matrix, &get_low_sensitivity_scale_factors_matrix },
+		{ u8"Z axis", 0x1, false, 2047, 1, 25, 0, &on_update_zaxis, &get_low_sensitivity_scale_factors_zaxis },
 	};
 }
 
