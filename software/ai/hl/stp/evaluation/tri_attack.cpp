@@ -15,11 +15,17 @@
 using namespace AI::HL::W;
 using namespace AI::HL::STP::Evaluation;
 
+#define GRID_X 20.0
+#define GRID_Y 15.0
+
 namespace {
 	std::array<Point, MAX_ATTACKERS> waypoints;
 
 	std::array<Point, MAX_ATTACKERS> compute(World world) {
 		const Field &field = world.field();
+		for (std::size_t i = 0; i < MAX_ATTACKERS; ++i){
+			waypoints[i] = field.enemy_goal();
+		}
 		return waypoints;
 	}
 }
@@ -28,8 +34,9 @@ void AI::HL::STP::Evaluation::tick_tri_attack(World world) {
 	waypoints = compute(world);
 }
 
-#define GRID_X 20.0
-#define GRID_Y 15.0
+const std::array<Point, MAX_ATTACKERS> AI::HL::STP::Evaluation::evaluate_tri_attack() {
+	return waypoints;
+}
 
 Point AI::HL::STP::Evaluation::tri_attack_evaluation(World world) {
 

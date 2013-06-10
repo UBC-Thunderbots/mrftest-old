@@ -74,10 +74,11 @@ namespace {
 	}
 
 	void TriAttack2::execute() {
-		Point destination = AI::HL::STP::Evaluation::tri_attack_evaluation(world);
-		destination = destination + Point(0.3, 0.3);
-		Action::move(world, player, destination);
-		}
+		auto waypoints = Evaluation::evaluate_tri_attack();
+		//Point destination = AI::HL::STP::Evaluation::tri_attack_evaluation(world);
+		//destination = destination + Point(0.3, 0.3);
+		Action::move(world, player, waypoints[1]);
+	}
 
 	class TriAttack3 : public Tactic {
 		public:
@@ -98,12 +99,11 @@ namespace {
 	}
 
 	void TriAttack3::execute() {
+		auto waypoints = Evaluation::evaluate_tri_attack();
 		Point destination = AI::HL::STP::Evaluation::tri_attack_evaluation(world);
 		destination = destination - Point(0.3, 0.3);
-		Action::move(world, player, destination);
+		Action::move(world, player, waypoints[2]);
 	}
-
-
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::tri_attack_primary(AI::HL::W::World world) {

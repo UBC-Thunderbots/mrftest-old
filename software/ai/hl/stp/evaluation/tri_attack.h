@@ -22,7 +22,7 @@ namespace AI {
 				 * 2 - attacker tertiary
 				 * 3 - attacker-extra (for diamond formation)
 				 */
-				const std::array<Point, MAX_ATTACKERS> evaluate_attack();
+				const std::array<Point, MAX_ATTACKERS> evaluate_tri_attack();
 
 				/**
 				 * return point to where player needs to go in a tri-attack
