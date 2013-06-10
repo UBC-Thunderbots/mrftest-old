@@ -13,6 +13,8 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
+				void tick_tri_attack(World world);
+
 				/**
 				 * Locations:
 				 * 0 - active tactic attacker

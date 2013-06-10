@@ -3,6 +3,7 @@
 #include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/defense.h"
+#include "ai/hl/stp/evaluation/tri_attack.h"
 
 using namespace AI::HL::STP;
 
@@ -18,6 +19,7 @@ void AI::HL::STP::tick_eval(World world) {
 	Evaluation::tick_ball(world);
 	Evaluation::tick_offense(world);
 	Evaluation::tick_defense(world);
+	//Evaluation::tick_tri_attack(world);
 }
 
 void AI::HL::STP::draw_ui(World world, Cairo::RefPtr<Cairo::Context> ctx) {
