@@ -23,7 +23,9 @@ namespace {
 
 	std::array<Point, MAX_ATTACKERS> compute(World world) {
 		const Field &field = world.field();
-		for (std::size_t i = 0; i < MAX_ATTACKERS; ++i){
+		Point ball_pos = world.ball().position();
+		waypoints[0] = ball_pos;
+		for (std::size_t i = 1; i < MAX_ATTACKERS; ++i){
 			waypoints[i] = field.enemy_goal();
 		}
 		return waypoints;
