@@ -4,6 +4,7 @@
 #include "debug.h"
 #include "device_dna.h"
 #include "flash.h"
+#include "globals.h"
 #include "io.h"
 #include "led.h"
 #include "log.h"
@@ -398,6 +399,9 @@ static void handle_tick(void) {
 		MOTOR_INDEX = 4;
 		rec->tick.dribbler_hall_sensors_failed = MOTOR_STATUS;
 
+		rec->tick.cpu_used_since_last_tick = cpu_usage;
+		cpu_usage = 0;
+
 		log_commit();
 	} else if (log_state() == LOG_STATE_OVERFLOW) {
 		log_overflow_feedback_report_pending = true;
@@ -472,13 +476,16 @@ static void avr_main(void) {
 			if (now - last_control_loop_time >= (F_CPU / CONTROL_LOOP_HZ)) {
 				last_control_loop_time = now;
 				handle_tick();
+				cpu_usage += rdtsc() - now;
 			}
 		}
 
 		// Check if a radio packet has been received.
 		if (mrf_rx_poll()) {
+			uint32_t start = rdtsc();
 			radio_led_blink();
 			handle_radio_receive();
+			cpu_usage += rdtsc() - start;
 		}
 
 		// How the radio transmit path works is that packets that need transmitting go through three different states:
@@ -495,18 +502,24 @@ static void avr_main(void) {
 		// Check if we should assemble a packet now.
 		if (mrf_tx_buffer_free()) {
 			if (feedback_pending) {
+				uint32_t start = rdtsc();
 				prepare_feedback_packet();
 				feedback_pending = false;
+				cpu_usage += rdtsc() - start;
 			} else if (autokick_fired_pending) {
+				uint32_t start = rdtsc();
 				prepare_autokick_packet();
 				autokick_fired_pending = false;
+				cpu_usage += rdtsc() - start;
 			}
 		}
 
 		// Check if a packet has been prepared and the MRF transmit path is ready to transmit it.
 		if (radio_tx_packet_prepared && mrf_tx_path_free()) {
+			uint32_t start = rdtsc();
 			mrf_tx_start(radio_tx_packet_reliable);
 			radio_tx_packet_prepared = false;
+			cpu_usage += rdtsc() - start;
 		}
 
 		// Update the LEDs.
@@ -524,6 +537,7 @@ static void avr_main(void) {
 		// Check if more than a second has passed since we last received a fresh drive packet.
 		if (rdtsc() - last_drive_packet_time > F_CPU) {
 			// Time out and stop driving.
+			uint32_t start = rdtsc();
 			for (uint8_t i = 0; i < sizeof(wheels_setpoints) / sizeof(*wheels_setpoints); ++i) {
 				wheels_setpoints[i] = 0;
 			}
@@ -531,16 +545,19 @@ static void avr_main(void) {
 			motor_set_dribbler(MOTOR_MODE_MANUAL_COMMUTATION, 0);
 			set_charge_mode(false);
 			set_discharge_mode(false);
+			cpu_usage += rdtsc() - start;
 		}
 
 		// Check if the board temperature is over 100°C and interlocks are enabled.
 		if (read_main_adc(TEMPERATURE) < HIGH_TEMPERATURE_THRESHOLD && !interlocks_overridden()) {
 			// Turn off all the motors.
+			uint32_t start = rdtsc();
 			for (uint8_t i = 0; i < sizeof(wheels_setpoints) / sizeof(*wheels_setpoints); ++i) {
 				wheels_setpoints[i] = 0;
 			}
 			wheels_mode = WHEELS_MODE_MANUAL_COMMUTATION;
 			motor_scram();
+			cpu_usage += rdtsc() - start;
 		}
 	}
 }

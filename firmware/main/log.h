@@ -23,6 +23,8 @@ typedef struct {
 	uint8_t encoders_failed;
 	uint8_t wheels_hall_sensors_failed;
 	uint8_t dribbler_hall_sensors_failed;
+
+	uint32_t cpu_used_since_last_tick;
 } log_tick_t;
 
 /**

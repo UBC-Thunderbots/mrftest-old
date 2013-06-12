@@ -1,7 +1,9 @@
 #include "mrf.h"
 #include "dma.h"
+#include "globals.h"
 #include "io.h"
 #include "sleep.h"
+#include "tsc.h"
 
 typedef enum {
 	// The receiver is doing nothing.
@@ -138,6 +140,7 @@ void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short
 
 static void poll_interrupts(void) {
 	if (get_interrupt()) {
+		uint32_t start = rdtsc();
 		uint8_t intstat = read_short(MRF_REG_SHORT_INTSTAT);
 		if (intstat & 0x01) {
 			tx_done_pending = true;
@@ -145,10 +148,13 @@ static void poll_interrupts(void) {
 		if (intstat & 0x08) {
 			rx_packet_pending = true;
 		}
+		cpu_usage += rdtsc() - start;
 	}
 }
 
 bool mrf_rx_poll(void) {
+	uint32_t start;
+
 	// If the DMA engine is currently active in either direction (transmit or receive) or the transceiver is busy, it is unsafe to touch the bus, so do nothing.
 	if (dma_running(DMA_READ_CHANNEL_MRF) || dma_running(DMA_WRITE_CHANNEL_MRF) || (MRF_CTL & 0x80)) {
 		return false;
@@ -160,6 +166,7 @@ bool mrf_rx_poll(void) {
 			// Check if a packet has been received and is waiting in the radio.
 			poll_interrupts();
 			if (rx_packet_pending) {
+				start = rdtsc();
 				// Clear pending interrupt.
 				rx_packet_pending = false;
 				// Disable reception of further packets from the air.
@@ -173,16 +180,19 @@ bool mrf_rx_poll(void) {
 				dma_write_start(DMA_WRITE_CHANNEL_MRF, mrf_rx_buffer + 1, packet_length);
 				// Record state change.
 				rx_state = RX_STATE_COPYING;
+				cpu_usage += rdtsc() - start;
 			}
 			return false;
 
 		case RX_STATE_COPYING:
+			start = rdtsc();
 			// We were using the DMA engine to copy a received packet into the receive buffer, but since we got here, the DMA engine must be idle.
 			// Therefore, the packet is now finished being copied.
 			// Re-enable reception of packets from the air into the radio.
 			write_short(MRF_REG_SHORT_BBREG1, 0x00); // RXDECINV = 0; stop inverting receiver and allow further reception
 			// Record state change and hand the packet to the application.
 			rx_state = RX_STATE_IDLE;
+			cpu_usage += rdtsc() - start;
 			return true;
 	}
 
@@ -190,6 +200,8 @@ bool mrf_rx_poll(void) {
 }
 
 static void mrf_tx_poll(void) {
+	uint32_t start;
+
 	// If the DMA engine is currently active in either direction (transmit or receive) or the transceiver is busy, it is unsafe to touch the bus, so do nothing.
 	if (dma_running(DMA_READ_CHANNEL_MRF) || dma_running(DMA_WRITE_CHANNEL_MRF) || (MRF_CTL & 0x80)) {
 		return;
@@ -203,10 +215,12 @@ static void mrf_tx_poll(void) {
 		case TX_STATE_COPYING:
 			// We were using the DMA engine to copy a new packet into the transmit buffer, but since we got here, the DMA engine must be idle.
 			// Therefore, the packet is now finished being copied.
+			start = rdtsc();
 			// Start the radio transmitting the packet.
 			write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
 			// Record state change.
 			tx_state = TX_STATE_SENDING;
+			cpu_usage += rdtsc() - start;
 			return;
 
 		case TX_STATE_SENDING:
@@ -214,6 +228,7 @@ static void mrf_tx_poll(void) {
 			// See if that has finished yet.
 			poll_interrupts();
 			if (tx_done_pending) {
+				start = rdtsc();
 				// Clear pending interrupt.
 				tx_done_pending = false;
 				// Check status of transmission.
@@ -227,6 +242,7 @@ static void mrf_tx_poll(void) {
 					// Either way, the transmit path is now free.
 					tx_state = TX_STATE_IDLE;
 				}
+				cpu_usage += rdtsc() - start;
 			}
 			return;
 	}
@@ -248,6 +264,8 @@ bool mrf_tx_path_free(void) {
 }
 
 void mrf_tx_start(bool reliable) {
+	uint32_t start = rdtsc();
+
 	// Record reliability flag.
 	tx_reliable = reliable;
 
@@ -258,5 +276,7 @@ void mrf_tx_start(bool reliable) {
 
 	// Record state.
 	tx_state = TX_STATE_COPYING;
+
+	cpu_usage += rdtsc() - start;
 }
 

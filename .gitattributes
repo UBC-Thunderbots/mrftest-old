@@ -58,6 +58,8 @@ firmware/main/encoder.h -text
 firmware/main/entry.c -text
 firmware/main/flash.c -text
 firmware/main/flash.h -text
+firmware/main/globals.c -text
+firmware/main/globals.h -text
 firmware/main/io.h -text
 firmware/main/led.h -text
 firmware/main/log.c -text
