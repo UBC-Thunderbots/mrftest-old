@@ -249,6 +249,7 @@ namespace USB {
 			DeviceHandle &device;
 			libusb_transfer *transfer;
 			bool submitted_, done_;
+			unsigned int stall_retries_left;
 
 			static void handle_completed_transfer_trampoline(libusb_transfer *transfer);
 			Transfer(DeviceHandle &dev);

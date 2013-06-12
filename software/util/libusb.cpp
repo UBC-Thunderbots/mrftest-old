@@ -12,6 +12,8 @@
 #include <glibmm/main.h>
 #include <glibmm/ustring.h>
 
+#define STALL_RETRIES 3
+
 #warning needs Doxygen
 
 namespace {
@@ -446,6 +448,7 @@ void USB::Transfer::submit() {
 	check_fn("libusb_submit_transfer", libusb_submit_transfer(transfer), transfer->endpoint);
 	submitted_ = true;
 	done_ = false;
+	stall_retries_left = 3;
 	++device.submitted_transfer_count;
 }
 
@@ -469,7 +472,7 @@ void USB::Transfer::handle_completed_transfer_trampoline(libusb_transfer *transf
 	}
 }
 
-USB::Transfer::Transfer(DeviceHandle &dev) : device(dev), transfer(libusb_alloc_transfer(0)), submitted_(false), done_(false) {
+USB::Transfer::Transfer(DeviceHandle &dev) : device(dev), transfer(libusb_alloc_transfer(0)), submitted_(false), done_(false), stall_retries_left(0) {
 	if (!transfer) {
 		throw std::bad_alloc();
 	}
@@ -483,6 +486,13 @@ USB::Transfer::Transfer(DeviceHandle &dev) : device(dev), transfer(libusb_alloc_
 }
 
 void USB::Transfer::handle_completed_transfer() {
+	if (transfer->status == LIBUSB_TRANSFER_STALL && stall_retries_left) {
+		LOG_INFO(u8"Retrying stalled transfer.");
+		--stall_retries_left;
+		check_fn("libusb_submit_transfer", libusb_submit_transfer(transfer), transfer->endpoint);
+		++device.submitted_transfer_count;
+		return;
+	}
 	done_ = true;
 	submitted_ = false;
 	signal_done.emit(*this);
