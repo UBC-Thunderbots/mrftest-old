@@ -58,6 +58,8 @@ static bool autokick_fired_pending = false;
 static bool drivetrain_power_forced_on = false;
 static uint32_t last_drive_packet_time = 0;
 static uint16_t battery_average;
+static uint8_t last_dribbler_speed = 0;
+static uint8_t dribbler_ticks = 0;
 static bool radio_tx_packet_prepared = false, radio_tx_packet_reliable;
 static bool dribbler_enabled = false;
 static bool log_overflow_feedback_report_pending = false;
@@ -93,7 +95,7 @@ static void prepare_mrf_mhr(uint8_t payload_length) {
 }
 
 static void prepare_feedback_packet(void) {
-	prepare_mrf_mhr(13);
+	prepare_mrf_mhr(14);
 
 #define payload (&mrf_tx_buffer[11])
 	payload[0] = 0x00; // General robot status update
@@ -149,6 +151,7 @@ static void prepare_feedback_packet(void) {
 	} else {
 		payload[12] = (log_state() << 4) | sd_status();
 	}
+	payload[13] = last_dribbler_speed;
 #undef payload
 
 	radio_tx_packet_reliable = false;
@@ -357,6 +360,13 @@ static void handle_tick(void) {
 	if (battery_average < LOW_BATTERY_THRESHOLD && !interlocks_overridden()) {
 		puts("Shutting down due to low battery.");
 		shutdown_sequence();
+	}
+
+	// Measure dribbler speed, if time to do so.
+	if (++dribbler_ticks == 8) {
+		dribbler_ticks = 0;
+		DRIBBLER_SPEED = 0;
+		last_dribbler_speed = DRIBBLER_SPEED;
 	}
 
 	// Write a log record if possible.

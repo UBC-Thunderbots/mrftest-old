@@ -188,7 +188,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 				// General robot status update
 				++bptr;
 				--len;
-				if (len == 12) {
+				if (len == 13) {
 					alive = true;
 					battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 20000);
 					capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 200000);
@@ -224,6 +224,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 							logger_messages[i]->active(sd_status == 0 && logger_status == i);
 						}
 					}
+					dribbler_speed = bptr[12] * 25U * 60U / 6U;
 					feedback_timeout_connection.disconnect();
 					feedback_timeout_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &MRFRobot::handle_feedback_timeout), 3);
 				} else {

@@ -182,6 +182,14 @@
 #define ENCODER_FAIL IO_PORT(0x0B)
 
 /**
+ * \brief Reports dribbler speed measured by Hall sensors.
+ *
+ * A write to this register latches the current count and resets the counter.
+ * A read from this register returns the most recent latched value.
+ */
+#define DRIBBLER_SPEED IO_PORT(0x0C)
+
+/**
  * \brief Reports mainboard analogue-to-digital converter readings
  *
  * A write to this register selects a channel (0–7) and snapshots the most recent conversion result for the channel.

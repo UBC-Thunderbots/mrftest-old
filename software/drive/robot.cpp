@@ -12,6 +12,7 @@ Drive::Robot::Robot(unsigned int index) :
 		capacitor_voltage(0),
 		break_beam_reading(0),
 		dribbler_temperature(0),
+		dribbler_speed(0),
 		board_temperature(0),
 		low_battery_message(Glib::ustring::compose(u8"Bot %1 low battery", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
 		high_board_temperature_message(Glib::ustring::compose(u8"Bot %1 board hot", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH) {
