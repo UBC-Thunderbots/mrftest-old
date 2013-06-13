@@ -122,8 +122,9 @@ void PlayExecutor::calc_play() {
 }
 
 void PlayExecutor::role_assignment() {
-	// this must be reset every tick
+	// these must be reset every tick
 	curr_active = 0;
+	_goalie = AI::HL::W::Player();
 
 	for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
 		if (curr_role_step < curr_roles[i].size()) {
@@ -151,7 +152,7 @@ void PlayExecutor::role_assignment() {
 	#warning This removes the safety check of must having a goalie to execute a play. 
 	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 		Player p = world.friendly_team().get(i);
-		if (p.pattern() == world.friendly_team().goalie()) {
+		if (p.pattern() == world.friendly_team().goalie() && players_enabled[i]) {
 			goalie = p;
 		}
 	}
