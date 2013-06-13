@@ -1,36 +1,52 @@
-#include "ai/hl/stp/tactic/penalty_shoot.h"
-#include "ai/hl/stp/tactic/wait_playtype.h"
-#include "ai/hl/stp/tactic/move.h"
-#include "ai/hl/stp/tactic/defend_solo.h"
-#include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/hl.h"
+#include "ai/hl/util.h"
+#include "ai/hl/stp/stp.h"
+#include "ai/hl/stp/ui.h"
 #include "ai/hl/stp/tactic/shooting_challenge.h"
+#include "geom/util.h"
+#include "util/param.h"
 
+namespace Flags = AI::Flags;
+
+using namespace AI::HL;
+using namespace AI::HL::STP;
 using namespace AI::HL::W;
-namespace Predicates = AI::HL::STP::Predicates;
+
 
 namespace {
+	class ShootingChallenge : public HighLevel {
+		public:
+			ShootingChallenge(World world) : world(world) {
+			}
+
+		private:
+			World world;
+
+			HighLevelFactory &factory() const;
+
+			Gtk::Widget *ui_controls() {
+				return 0;
+			}
+
+			void tick() {
+
+				tick_eval(world);
+
+				FriendlyTeam friendly = world.friendly_team();
+				if (friendly.size() == 0) {
+					return;
+				}
+
+				auto shooter = Tactic::shooting_challenge(world, 2.0);
+				shooter->set_player(friendly.get(0));
+				shooter->execute();
+			}
+
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+				draw_shoot(world, ctx);
+			}
+	};
 }
 
-/**
- * Condition:
- * - Playtype Execute/Prepare Direct Free Kick Friendly
- *
- * Objective:
- * - move to the position of the ball, wait until the path to goal is clear, then shoot ball
- */
-BEGIN_PLAY(Shooting_challenge)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_PENALTY_FRIENDLY)) && Predicates::our_team_size_at_least(world, 1))
-APPLICABLE(true)
-DONE(Predicates::goal(world))
-FAIL(false)
-BEGIN_ASSIGN()
-//NO GOALIE ROLE!
-// GOALIE (LONE)
-//goalie_role.push_back(lone_goalie(world));
+HIGH_LEVEL_REGISTER(ShootingChallenge)
 
-// ROLE 1
-roles[0].push_back(move(world, Point(world.ball().position())));
-roles[0].push_back(shooting_challenge(world, 2.0));
-
-END_ASSIGN()
-END_PLAY()
