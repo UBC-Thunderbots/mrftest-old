@@ -11,9 +11,9 @@
 using namespace AI::HL::STP;
 
 namespace {
-	DoubleParam friendly_pass_width("Friendly pass checking width (robot radius)", "STP/pass", 1, 0, 9);
+	DoubleParam friendly_pass_width("Friendly pass checking width (robot radius)", "STP/Pass", 1, 0, 9);
 
-	DoubleParam enemy_pass_width("Enemy pass checking width (robot radius)", "STP/pass", 1, 0, 9);
+	DoubleParam enemy_pass_width("Enemy pass checking width (robot radius)", "STP/Pass", 1, 0, 9);
 
 	bool can_pass_check(const Point p1, const Point p2, const std::vector<Point> &obstacles, double tol) {
 		// auto allowance = AI::HL::Util::calc_best_shot_target(passer.position(), obstacles, passee.position(), 1).second;

@@ -19,11 +19,21 @@ using namespace AI::HL::STP::Evaluation;
 #define GRID_Y 15.0
 
 namespace {
+	BoolParam attack_follow_enemy_baller("attack going against enemy baller", "STP/tri_attack", true);
+
 	std::array<Point, MAX_ATTACKERS> waypoints;
 
 	std::array<Point, MAX_ATTACKERS> compute(World world) {
 		const Field &field = world.field();
 		Point ball_pos = world.ball().position();
+		if (attack_follow_enemy_baller) {
+			Robot robot = calc_enemy_baller(world);
+			if (robot) {
+				ball_pos = robot.position();
+			}
+		}
+
+
 		waypoints[0] = ball_pos;
 		for (std::size_t i = 1; i < MAX_ATTACKERS; ++i){
 			waypoints[i] = field.enemy_goal();
