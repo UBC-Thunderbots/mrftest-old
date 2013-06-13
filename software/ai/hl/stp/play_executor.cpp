@@ -24,14 +24,14 @@ namespace AI {
 }
 
 namespace {
+	BoolParam test_goalie("Goalie selection by lowest or user assigned", "STP/Goalie", false);
+
 	// One of the changes from the technical committee this year (2013) is that the
 	// referee box will send the pattern number of the goalie for each team.
 	// You can retrieve this with the goalie() function on a Team object.
-	// Therefore use the following goalie code only for testing. 
-#ifdef TEST_GOALIE
+	// Therefore the following goalie code can only be used when the test_goalie param is turned on (for testing). 
 	BoolParam goalie_lowest("Goalie is lowest index", "STP/Goalie", true);
 	IntParam goalie_pattern_index("Goalie pattern index", "STP/Goalie", 0, 0, 11);
-#endif
 
 	BoolParam enable0("enable robot 0", "STP/PlayExecutor", true);
 	BoolParam enable1("enable robot 1", "STP/PlayExecutor", true);
@@ -155,24 +155,24 @@ void PlayExecutor::role_assignment() {
 			goalie = p;
 		}
 	}
-#ifdef TEST_GOALIE
-	if (goalie_lowest) {
-		goalie = world.friendly_team().get(0);
-	} else {
-		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-			Player p = world.friendly_team().get(i);
-			if (p.pattern() == static_cast<unsigned int>(goalie_pattern_index) && players_enabled[i]) {
-				goalie = p;
+	if(test_goalie){
+		if (goalie_lowest) {
+			goalie = world.friendly_team().get(0);
+		} else {
+			for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
+				Player p = world.friendly_team().get(i);
+				if (p.pattern() == static_cast<unsigned int>(goalie_pattern_index) && players_enabled[i]) {
+					goalie = p;
+				}
 			}
-		}
-	} 
+		} 
 
-	if (!goalie) {
-		LOG_ERROR("No goalie with the desired pattern");
-		curr_play = 0;
-		return;
+		if (!goalie) {
+			LOG_INFO("No goalie with the desired pattern");
+			curr_play = 0;
+			return;
+		}
 	}
-#endif
 	if (goalie) {
 		AI::HL::STP::_goalie = goalie;
 
