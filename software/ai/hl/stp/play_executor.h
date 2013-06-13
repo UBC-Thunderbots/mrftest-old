@@ -100,6 +100,11 @@ namespace AI {
 					void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
 
 					void clear_assignments();
+					
+					/**
+					 * used to init players_enabled
+					 */
+					void enable_players();
 			};
 		};
 	}

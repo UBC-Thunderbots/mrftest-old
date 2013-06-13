@@ -106,6 +106,7 @@ namespace {
 
 			void tick() {
 				tick_eval(world);
+				enable_players();
 
 				// override halt completely
 				if (world.friendly_team().size() == 0 || world.playtype() == AI::Common::PlayType::HALT) {

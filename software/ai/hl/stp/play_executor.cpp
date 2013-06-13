@@ -322,28 +322,13 @@ void PlayExecutor::execute_tactics() {
 
 void PlayExecutor::tick() {
 	tick_eval(world);
+	enable_players();
 
 	FriendlyTeam friendly = world.friendly_team();
 	std::vector<Player> players;
 
-	const bool enabled[] = {
-		enable0,
-		enable1,
-		enable2,
-		enable3,
-		enable4,
-		enable5,
-		enable6,
-		enable7,
-		enable8,
-		enable9,
-		enable10,
-		enable11,
-	};
-	players_enabled.insert(players_enabled.begin(), enabled, enabled+12);
-
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if (enabled[friendly.get(i).pattern()]) {
+		if (players_enabled[friendly.get(i).pattern()]) {
 			players.push_back(friendly.get(i));
 		}
 	}
@@ -461,3 +446,20 @@ void PlayExecutor::clear_assignments() {
 	}
 }
 
+void PlayExecutor::enable_players() {
+	const bool enabled[] = {
+		enable0,
+		enable1,
+		enable2,
+		enable3,
+		enable4,
+		enable5,
+		enable6,
+		enable7,
+		enable8,
+		enable9,
+		enable10,
+		enable11,
+	};
+	players_enabled.insert(players_enabled.begin(), enabled, enabled+12);
+}
