@@ -5,21 +5,19 @@
 #include "util/dprint.h"
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
 #include <cstring>
 #include <stdexcept>
+#include <string>
 #include <unistd.h>
 #include <unordered_map>
 #include <glibmm/convert.h>
 #include <glibmm/main.h>
 #include <glibmm/ustring.h>
 
-#ifndef CHANNEL
-#define CHANNEL 20
-#endif
-
-#ifndef PAN_ID
-#define PAN_ID 0x1846
-#endif
+#define DEFAULT_CHANNEL 20
+#define DEFAULT_SYMBOL_RATE 250
+#define DEFAULT_PAN 0x1846
 
 namespace {
 	const unsigned int ANNUNCIATOR_BEEP_LENGTH = 750;
@@ -84,7 +82,7 @@ MRFDongle::SendReliableMessageOperation::ClearChannelError::ClearChannelError() 
 
 
 
-MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_PID), mdr_transfer(device, 1, 8, false, 0), message_transfer(device, 2, 103, false, 0), status_transfer(device, 3, 1, true, 0), drive_dirty(false), pending_beep_length(0) {
+MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_PID, std::getenv("MRF_SERIAL")), mdr_transfer(device, 1, 8, false, 0), message_transfer(device, 2, 103, false, 0), status_transfer(device, 3, 1, true, 0), drive_dirty(false), pending_beep_length(0) {
 	for (unsigned int i = 0; i < 8; ++i) {
 		robots[i].reset(new MRFRobot(*this, i));
 	}
@@ -95,9 +93,42 @@ MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_P
 	device.set_configuration(1);
 	{
 		USB::InterfaceClaimer temp_interface_claimer(device, 0);
-		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_CHANNEL, CHANNEL, 0, 0);
-		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_SYMBOL_RATE, 0, 0, 0);
-		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_PAN_ID, PAN_ID, 0, 0);
+		uint16_t channel = DEFAULT_CHANNEL;
+		{
+			const char *channel_string = std::getenv("MRF_CHANNEL");
+			if (channel_string) {
+				int i = std::stoi(channel_string, 0, 0);
+				if (i < 0x0B || i > 0x1A) {
+					throw std::out_of_range("Channel number must be between 0x0B (11) and 0x1A (26).");
+				}
+				channel = static_cast<uint16_t>(i);
+			}
+		}
+		int symbol_rate = DEFAULT_SYMBOL_RATE;
+		{
+			const char *symbol_rate_string = std::getenv("MRF_SYMBOL_RATE");
+			if (symbol_rate_string) {
+				int i = std::stoi(symbol_rate_string, 0, 0);
+				if (i != 250 && i != 625) {
+					throw std::out_of_range("Symbol rate must be 250 or 625.");
+				}
+				symbol_rate = i;
+			}
+		}
+		uint16_t pan = DEFAULT_PAN;
+		{
+			const char *pan_string = std::getenv("MRF_CHANNEL");
+			if (pan_string) {
+				int i = std::stoi(pan_string, 0, 0);
+				if (i < 0 || i > 0xFFFE) {
+					throw std::out_of_range("PAN must be between 0x0000 (0) and 0xFFFE (65,534).");
+				}
+				pan = static_cast<uint16_t>(i);
+			}
+		}
+		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_CHANNEL, channel, 0, 0);
+		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_SYMBOL_RATE, symbol_rate == 625 ? 1 : 0, 0, 0);
+		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_PAN_ID, pan, 0, 0);
 		static const uint64_t MAC = UINT64_C(0x20cb13bd834ab817);
 		device.control_out(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_MAC_ADDRESS, 0, 0, &MAC, sizeof(MAC), 0);
 	}

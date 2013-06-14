@@ -3,6 +3,7 @@
 #include "util/libusb.h"
 #include "util/string.h"
 #include <chrono>
+#include <cstdlib>
 #include <ctime>
 #include <fstream>
 #include <iostream>
@@ -28,9 +29,9 @@ int app_main(int argc, char **argv) {
 	std::locale::global(std::locale(""));
 
 	// Parse command-line arguments
-	if (argc != 7 && argc != 8) {
+	if (argc != 7) {
 		std::cerr << "Usage:\n";
-		std::cerr << argv[0] << " <channel> <symbol-rate> <pan-id> <mac-address> <capture-flags> <capture-file> [<dongle-serial#>]\n";
+		std::cerr << argv[0] << " <channel> <symbol-rate> <pan-id> <mac-address> <capture-flags> <capture-file>\n";
 		std::cerr << '\n';
 		std::cerr << "  <channel> is the channel on which to capture, a number from 0x0B to 0x1A\n";
 		std::cerr << "  <symbol-rate> is the bit rate at which to capture, either 250 or 625\n";
@@ -38,7 +39,6 @@ int app_main(int argc, char **argv) {
 		std::cerr << "  <mac-address> is the station’s local MAC address, a 64-bit number excluding 0, 0xFFFF, and 0xFFFFFFFFFFFFFFFF\n";
 		std::cerr << "  <capture-flags> is a numerical combination of capture flags described at <http://trac.thecube.ca/trac/thunderbots/wiki/Electrical/RadioProtocol/2012/USB#SetPromiscuousFlags>\n";
 		std::cerr << "  <capture-file> is the name of the .pcap file to write the captured packets into\n";
-		std::cerr << "  <dongle-serial#> is the serial number of the radio dongle to enable for capture\n";
 		return 1;
 	}
 	uint8_t channel = static_cast<uint8_t>(convert_number(argv[1]));
@@ -51,13 +51,12 @@ int app_main(int argc, char **argv) {
 	uint16_t pan_id = static_cast<uint16_t>(convert_number(argv[3]));
 	uint64_t mac_address = static_cast<uint64_t>(convert_number(argv[4]));
 	uint16_t capture_flags = static_cast<uint16_t>(convert_number(argv[5]));
-	const char *dongle_serial = argc == 8 ? argv[7] : 0;
 
 	// Open the dongle
 	std::cout << "Addressing dongle… ";
 	std::cout.flush();
 	USB::Context ctx;
-	USB::DeviceHandle devh(ctx, MRF_DONGLE_VID, MRF_DONGLE_PID, dongle_serial);
+	USB::DeviceHandle devh(ctx, MRF_DONGLE_VID, MRF_DONGLE_PID, std::getenv("MRF_SERIAL"));
 	std::cout << "OK\n";
 
 	// Set configuration 1 to enter parameters
