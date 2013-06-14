@@ -500,7 +500,7 @@ software/mrf/dongle.cpp -text
 software/mrf/dongle.h -text
 software/mrf/robot.cpp -text
 software/mrf/robot.h -text
-software/mrfcap/main.cpp -text
+software/mrfcap.cpp -text
 software/project.mk -text
 software/proto/grSim_Commands.proto -text
 software/proto/grSim_Packet.proto -text
