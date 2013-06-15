@@ -117,7 +117,7 @@ MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_P
 		}
 		uint16_t pan = DEFAULT_PAN;
 		{
-			const char *pan_string = std::getenv("MRF_CHANNEL");
+			const char *pan_string = std::getenv("MRF_PAN");
 			if (pan_string) {
 				int i = std::stoi(pan_string, 0, 0);
 				if (i < 0 || i > 0xFFFE) {
