@@ -24,8 +24,10 @@ void control_process_new_setpoints(const int16_t setpoints[4]);
  * This function should read from \ref wheels_setpoints, \ref wheels_encoder_counts, and the controller’s internal state, and write to \ref wheels_drives.
  * This function may also modify \ref wheels_setpoints.
  * This function may assume that the value it finds in \ref wheels_setpoints was placed there either by \ref control_process_new_setpoints or \ref control_tick.
+ *
+ * \param battery the battery voltage
  */
-void control_tick(void);
+void control_tick(float battery);
 
 #endif
 

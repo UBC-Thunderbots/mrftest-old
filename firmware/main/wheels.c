@@ -13,7 +13,7 @@ wheels_setpoints_t wheels_setpoints;
 int16_t wheels_encoder_counts[4] = { 0, 0, 0, 0 };
 int16_t wheels_drives[4] = { 0, 0, 0, 0 };
 
-void wheels_tick() {
+void wheels_tick(float battery) {
 	// Read optical encoders.
 	for (uint8_t i = 0; i < 4; ++i) {
 		wheels_encoder_counts[i] = read_encoder(i);
@@ -54,7 +54,7 @@ void wheels_tick() {
 			break;
 
 		case WHEELS_MODE_CLOSED_LOOP:
-			control_tick();
+			control_tick(battery);
 			uint8_t encoders_fail = ENCODER_FAIL;
 			for (uint8_t i = 0; i < 4; ++i) {
 				if (encoders_fail & 1) {

@@ -358,7 +358,7 @@ static void handle_radio_receive(void) {
 
 static void handle_tick(void) {
 	// Run the wheels.
-	wheels_tick();
+	wheels_tick(battery_average * BATTERY_VOLTS_PER_LSB);
 
 	// Update IIR filter on battery voltage and check for low battery.
 	battery_average = (battery_average * (BATTERY_AVERAGE_FACTOR - 1) + read_main_adc(BATT_VOLT) + (BATTERY_AVERAGE_FACTOR / 2)) / BATTERY_AVERAGE_FACTOR;

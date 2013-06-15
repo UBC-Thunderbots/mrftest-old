@@ -45,8 +45,10 @@ extern int16_t wheels_drives[4];
  * \brief Updates the wheels.
  *
  * This function updates \ref wheel_encoder_counts as well as running the control loop (if needed) and sending new power levels to the wheel motors.
+ *
+ * \param battery the battery voltage
  */
-void wheels_tick(void);
+void wheels_tick(float battery);
 
 #endif
 

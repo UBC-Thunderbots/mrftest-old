@@ -87,7 +87,7 @@ void control_process_new_setpoints(const int16_t setpoints[4]) {
 	speed4_to_speed3(setpoints, wheels_setpoints.robot);
 }
 
-void control_tick(void) {
+void control_tick(float battery) {
 	float Velocity[3];
 	float Veldiff[3];
 	float Accels[4];
