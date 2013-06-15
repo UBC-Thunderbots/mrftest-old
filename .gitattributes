@@ -273,6 +273,8 @@ software/ai/hl/stp/play/kickoff_enemy.cpp -text
 software/ai/hl/stp/play/kickoff_friendly.cpp -text
 software/ai/hl/stp/play/kickoff_friendly_chip.cpp -text
 software/ai/hl/stp/play/lone_2_player.cpp -text
+software/ai/hl/stp/play/mixed_team_defense.cpp -text
+software/ai/hl/stp/play/mixed_team_defensive_block.cpp -text
 software/ai/hl/stp/play/offensive_block.cpp -text
 software/ai/hl/stp/play/offensive_naive.cpp -text
 software/ai/hl/stp/play/our_corner_chip.cpp -text
