@@ -26,7 +26,11 @@
 #define DEFAULT_INDEX 0
 
 #define BATTERY_AVERAGE_FACTOR 8
-#define LOW_BATTERY_THRESHOLD ((unsigned int) (12.5 / (10.0e3 * 2 + 2.2e3) * 2.2e3 / 3.3 * 1024.0))
+#define BATTERY_DIVIDER_TOP 20000.0
+#define BATTERY_DIVIDER_BOTTOM 2200.0
+#define BATTERY_VOLTS_PER_LSB (3.3 / 1024.0 / BATTERY_DIVIDER_BOTTOM * (BATTERY_DIVIDER_TOP + BATTERY_DIVIDER_BOTTOM))
+#define BATTERY_LOW_THRESHOLD 12.5
+
 #define HIGH_TEMPERATURE_THRESHOLD 401 /* See software/util/thermal.cpp for why this is equivalent to 100°C. */
 #define BREAKBEAM_DIFF_THRESHOLD 15
 
@@ -358,7 +362,7 @@ static void handle_tick(void) {
 
 	// Update IIR filter on battery voltage and check for low battery.
 	battery_average = (battery_average * (BATTERY_AVERAGE_FACTOR - 1) + read_main_adc(BATT_VOLT) + (BATTERY_AVERAGE_FACTOR / 2)) / BATTERY_AVERAGE_FACTOR;
-	if (battery_average < LOW_BATTERY_THRESHOLD && !interlocks_overridden()) {
+	if (battery_average < (unsigned int) (BATTERY_LOW_THRESHOLD / BATTERY_VOLTS_PER_LSB) && !interlocks_overridden()) {
 		puts("Shutting down due to low battery.");
 		shutdown_sequence();
 	}
