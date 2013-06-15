@@ -14,14 +14,22 @@ typedef enum {
 } wheels_mode_t;
 
 /**
+ * \brief The type of a collection of setpoints.
+ */
+typedef union {
+	int16_t wheels[4];
+	float robot[3];
+} wheels_setpoints_t;
+
+/**
  * \brief The current mode of the wheels.
  */
 extern wheels_mode_t wheels_mode;
 
 /**
- * \brief The wheel speed setpoints currently applying.
+ * \brief The wheel speed or robot velocity setpoints currently applying.
  */
-extern int16_t wheels_setpoints[4];
+extern wheels_setpoints_t wheels_setpoints;
 
 /**
  * \brief The most recently read wheel optical encoder counts.

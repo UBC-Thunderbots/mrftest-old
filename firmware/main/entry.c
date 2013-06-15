@@ -220,7 +220,7 @@ static void handle_radio_receive(void) {
 						if (wheels_mode == WHEELS_MODE_CLOSED_LOOP) {
 							control_process_new_setpoints(new_setpoints);
 						} else {
-							memcpy(wheels_setpoints, new_setpoints, sizeof(new_setpoints));
+							memcpy(wheels_setpoints.wheels, new_setpoints, sizeof(new_setpoints));
 						}
 					}
 
@@ -380,8 +380,15 @@ static void handle_tick(void) {
 			rec->tick.adc_channels[i] = read_main_adc(i);
 		}
 
-		for (uint8_t i = 0; i < sizeof(rec->tick.wheels_setpoints) / sizeof(*rec->tick.wheels_setpoints); ++i) {
-			rec->tick.wheels_setpoints[i] = wheels_setpoints[i];
+		if (wheels_mode == WHEELS_MODE_CLOSED_LOOP) {
+			for (uint8_t i = 0; i < 3; ++i) {
+				rec->tick.wheels_setpoints[i] = wheels_setpoints.robot[i];
+			}
+			rec->tick.wheels_setpoints[3] = 0;
+		} else {
+			for (uint8_t i = 0; i < 4; ++i) {
+				rec->tick.wheels_setpoints[i] = wheels_setpoints.wheels[i];
+			}
 		}
 		for (uint8_t i = 0; i < sizeof(rec->tick.wheels_encoder_counts) / sizeof(*rec->tick.wheels_encoder_counts); ++i) {
 			rec->tick.wheels_encoder_counts[i] = wheels_encoder_counts[i];
@@ -538,9 +545,7 @@ static void avr_main(void) {
 		if (rdtsc() - last_drive_packet_time > F_CPU) {
 			// Time out and stop driving.
 			uint32_t start = rdtsc();
-			for (uint8_t i = 0; i < sizeof(wheels_setpoints) / sizeof(*wheels_setpoints); ++i) {
-				wheels_setpoints[i] = 0;
-			}
+			memset(&wheels_setpoints, 0, sizeof(wheels_setpoints));
 			wheels_mode = WHEELS_MODE_MANUAL_COMMUTATION;
 			motor_set_dribbler(MOTOR_MODE_MANUAL_COMMUTATION, 0);
 			set_charge_mode(false);
@@ -552,9 +557,7 @@ static void avr_main(void) {
 		if (read_main_adc(TEMPERATURE) < HIGH_TEMPERATURE_THRESHOLD && !interlocks_overridden()) {
 			// Turn off all the motors.
 			uint32_t start = rdtsc();
-			for (uint8_t i = 0; i < sizeof(wheels_setpoints) / sizeof(*wheels_setpoints); ++i) {
-				wheels_setpoints[i] = 0;
-			}
+			memset(&wheels_setpoints, 0, sizeof(wheels_setpoints));
 			wheels_mode = WHEELS_MODE_MANUAL_COMMUTATION;
 			motor_scram();
 			cpu_usage += rdtsc() - start;

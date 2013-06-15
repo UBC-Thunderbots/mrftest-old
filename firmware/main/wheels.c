@@ -6,9 +6,10 @@
 #include "mac.h"
 #include "motor.h"
 #include "mrf.h"
+#include "sdcard.h"
 
 wheels_mode_t wheels_mode = WHEELS_MODE_MANUAL_COMMUTATION;
-int16_t wheels_setpoints[4] = { 0, 0, 0, 0 };
+wheels_setpoints_t wheels_setpoints;
 int16_t wheels_encoder_counts[4] = { 0, 0, 0, 0 };
 int16_t wheels_drives[4] = { 0, 0, 0, 0 };
 
@@ -23,7 +24,7 @@ void wheels_tick() {
 		case WHEELS_MODE_MANUAL_COMMUTATION:
 			control_clear();
 			for (uint8_t i = 0; i < 4; ++i) {
-				motor_set_wheel(i, MOTOR_MODE_MANUAL_COMMUTATION, wheels_setpoints[i]);
+				motor_set_wheel(i, MOTOR_MODE_MANUAL_COMMUTATION, wheels_setpoints.wheels[i]);
 			}
 			break;
 
@@ -37,7 +38,7 @@ void wheels_tick() {
 		case WHEELS_MODE_OPEN_LOOP:
 			control_clear();
 			for (uint8_t i = 0; i < 4; ++i) {
-				int16_t output = wheels_setpoints[i];
+				int16_t output = wheels_setpoints.wheels[i];
 				if (output < -255) {
 					output = -255;
 				} else if (output > 255) {
