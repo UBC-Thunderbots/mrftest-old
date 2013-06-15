@@ -39,18 +39,7 @@ void motor_scram(void);
  * \param[in] pwm_level the PWM duty cycle to send
  *
  */
-void motor_set_wheel(uint8_t motor_num, motor_mode_t mode, uint8_t pwm_level);
-
-/**
- * \brief Sets the configuration of the dribbler.
- *
- * \param[in] direction dribbler direction to set
- *
- * \param[in] pwm_level level to set dribbler speed
- */
-static inline void motor_set_dribbler(motor_mode_t mode, uint8_t pwm_level) {
-	motor_set_wheel(4, mode, pwm_level);
-}
+void motor_set(uint8_t motor_num, motor_mode_t mode, uint8_t pwm_level);
 
 #endif
 

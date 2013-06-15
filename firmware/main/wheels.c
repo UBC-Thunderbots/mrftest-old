@@ -3,6 +3,7 @@
 #include "encoder.h"
 #include "motor.h"
 #include "power.h"
+#include <math.h>
 #include <stdbool.h>
 #include <string.h>
 
@@ -10,6 +11,11 @@ wheels_mode_t wheels_mode = WHEELS_MODE_MANUAL_COMMUTATION;
 wheels_setpoints_t wheels_setpoints;
 int16_t wheels_encoder_counts[4] = { 0, 0, 0, 0 };
 int16_t wheels_drives[4] = { 0, 0, 0, 0 };
+float wheels_energy[4] = { 0, 0, 0, 0 };
+
+static float update_thermal_model(float old, float new) {
+	return old + new - (old / WHEEL_THERMAL_CAPACITANCE / WHEEL_THERMAL_RESISTANCE / CONTROL_LOOP_HZ);
+}
 
 void wheels_tick(float battery) {
 	// Read optical encoders.
@@ -28,13 +34,16 @@ void wheels_tick(float battery) {
 				// Safety interlocks normally prevent it from ever appearing outside the chip, but if interlocks are overridden, manual commutation can send PWM to a phase.
 				motor_mode_t mmode = wheels_mode == WHEELS_MODE_MANUAL_COMMUTATION ? MOTOR_MODE_MANUAL_COMMUTATION : MOTOR_MODE_BRAKE;
 				for (uint8_t i = 0; i < 4; ++i) {
-					motor_set_wheel(i, mmode, wheels_setpoints.wheels[i]);
+					motor_set(i, mmode, wheels_setpoints.wheels[i]);
 				}
 
 				// For reporting purposes, the drive levels are considered to be zero here.
 				memset(wheels_drives, 0, sizeof(wheels_drives));
 
-#warning TODO update thermal model
+				// Update thermal models.
+				for (uint8_t i = 0; i < 4; ++i) {
+					wheels_energy[i] = update_thermal_model(wheels_energy[i], 0);
+				}
 			}
 			break;
 
@@ -66,18 +75,31 @@ void wheels_tick(float battery) {
 					drive_mask &= ~ENCODER_FAIL;
 				}
 
-#warning TODO safety interlock: update thermal model and disable hot motors
+				// Safety interlock: if a motor is too hot, coast it until it cools down.
+				for (uint8_t i = 0; i < 4; ++i) {
+					uint8_t bm = 1 << i;
+					if (((drive_mask & bm) && wheels_energy[i] < WHEEL_THERMAL_MAX_ENERGY) || interlocks_overridden()) {
+						float applied_delta_voltage = wheels_drives[i] / 255.0 * battery - wheels_encoder_counts[i] * WHEEL_VOLTS_PER_ENCODER_COUNT;
+						float current = applied_delta_voltage / (WHEEL_PHASE_RESISTANCE + WHEEL_SWITCH_RESISTANCE);
+						float power = current * current * WHEEL_PHASE_RESISTANCE;
+						float energy = power / CONTROL_LOOP_HZ;
+						wheels_energy[i] = update_thermal_model(wheels_energy[i], energy);
+					} else {
+						drive_mask &= ~bm;
+						wheels_energy[i] = update_thermal_model(wheels_energy[i], 0);
+					}
+				}
 
 				// Drive the motors.
 				for (uint8_t i = 0; i < 4; ++i) {
 					if (drive_mask & 1) {
 						if (wheels_drives[i] >= 0) {
-							motor_set_wheel(i, MOTOR_MODE_FORWARD, wheels_drives[i]);
+							motor_set(i, MOTOR_MODE_FORWARD, wheels_drives[i]);
 						} else {
-							motor_set_wheel(i, MOTOR_MODE_BACKWARD, -wheels_drives[i]);
+							motor_set(i, MOTOR_MODE_BACKWARD, -wheels_drives[i]);
 						}
 					} else {
-						motor_set_wheel(i, MOTOR_MODE_MANUAL_COMMUTATION, 0);
+						motor_set(i, MOTOR_MODE_MANUAL_COMMUTATION, 0);
 					}
 					drive_mask >>= 1;
 				}

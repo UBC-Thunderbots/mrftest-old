@@ -6,11 +6,11 @@ uint8_t motor_manual_commutation_patterns[5] = { 0, 0, 0, 0, 0 };
 void motor_scram(void) {
 	for (uint8_t index = 0; index < 5; ++index) {
 		motor_manual_commutation_patterns[index] = 0;
-		motor_set_wheel(index, MOTOR_MODE_MANUAL_COMMUTATION, 0);
+		motor_set(index, MOTOR_MODE_MANUAL_COMMUTATION, 0);
 	}
 }
 
-void motor_set_wheel(uint8_t wheel_num, motor_mode_t mode, uint8_t pwm_level) {
+void motor_set(uint8_t wheel_num, motor_mode_t mode, uint8_t pwm_level) {
 	MOTOR_INDEX = wheel_num;
 	if (mode == MOTOR_MODE_MANUAL_COMMUTATION) {
 		MOTOR_CTL = motor_manual_commutation_patterns[wheel_num];

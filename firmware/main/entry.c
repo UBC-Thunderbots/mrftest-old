@@ -3,6 +3,7 @@
 #include "control.h"
 #include "debug.h"
 #include "device_dna.h"
+#include "dribbler.h"
 #include "flash.h"
 #include "globals.h"
 #include "io.h"
@@ -18,8 +19,6 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
-
-#define CONTROL_LOOP_HZ 200U
 
 #define DEFAULT_CHANNEL 20
 #define DEFAULT_PAN 0x1846
@@ -63,10 +62,7 @@ static bool autokick_fired_pending = false;
 static bool drivetrain_power_forced_on = false;
 static uint32_t last_drive_packet_time = 0;
 static uint16_t battery_average;
-static uint8_t last_dribbler_speed = 0;
-static uint8_t dribbler_ticks = 0;
 static bool radio_tx_packet_prepared = false, radio_tx_packet_reliable;
-static bool dribbler_enabled = false;
 static bool log_overflow_feedback_report_pending = false;
 
 static void shutdown_sequence(void) __attribute__((noreturn));
@@ -156,7 +152,7 @@ static void prepare_feedback_packet(void) {
 	} else {
 		payload[12] = (log_state() << 4) | sd_status();
 	}
-	payload[13] = last_dribbler_speed;
+	payload[13] = dribbler_speed;
 #undef payload
 
 	radio_tx_packet_reliable = false;
@@ -254,13 +250,6 @@ static void handle_radio_receive(void) {
 					} else {
 						power_disable_motors();
 					}
-
-					// Turn dribbler on or off as requested.
-					if (dribbler_enabled) {
-						motor_set_dribbler(MOTOR_MODE_FORWARD, 180);
-					} else {
-						motor_set_dribbler(MOTOR_MODE_MANUAL_COMMUTATION, 0);
-					}
 				}
 			} else if (frame_length >= HEADER_LENGTH + 1 + FOOTER_LENGTH) {
 				// Non-broadcast frame contains a message specifically for this robot
@@ -357,21 +346,20 @@ static void handle_radio_receive(void) {
 }
 
 static void handle_tick(void) {
+	// Compute battery voltage in actual volts.
+	float battery_volts = battery_average * BATTERY_VOLTS_PER_LSB;
+
 	// Run the wheels.
-	wheels_tick(battery_average * BATTERY_VOLTS_PER_LSB);
+	wheels_tick(battery_volts);
+
+	// Run the dribbler.
+	dribbler_tick(battery_volts);
 
 	// Update IIR filter on battery voltage and check for low battery.
 	battery_average = (battery_average * (BATTERY_AVERAGE_FACTOR - 1) + read_main_adc(BATT_VOLT) + (BATTERY_AVERAGE_FACTOR / 2)) / BATTERY_AVERAGE_FACTOR;
 	if (battery_average < (unsigned int) (BATTERY_LOW_THRESHOLD / BATTERY_VOLTS_PER_LSB) && !interlocks_overridden()) {
 		puts("Shutting down due to low battery.");
 		shutdown_sequence();
-	}
-
-	// Measure dribbler speed, if time to do so.
-	if (++dribbler_ticks == 8) {
-		dribbler_ticks = 0;
-		DRIBBLER_SPEED = 0;
-		last_dribbler_speed = DRIBBLER_SPEED;
 	}
 
 	// Write a log record if possible.
@@ -551,7 +539,7 @@ static void avr_main(void) {
 			uint32_t start = rdtsc();
 			memset(&wheels_setpoints, 0, sizeof(wheels_setpoints));
 			wheels_mode = WHEELS_MODE_MANUAL_COMMUTATION;
-			motor_set_dribbler(MOTOR_MODE_MANUAL_COMMUTATION, 0);
+			dribbler_enabled = false;
 			set_charge_mode(false);
 			set_discharge_mode(false);
 			cpu_usage += rdtsc() - start;
@@ -563,6 +551,7 @@ static void avr_main(void) {
 			uint32_t start = rdtsc();
 			memset(&wheels_setpoints, 0, sizeof(wheels_setpoints));
 			wheels_mode = WHEELS_MODE_MANUAL_COMMUTATION;
+			dribbler_enabled = false;
 			motor_scram();
 			cpu_usage += rdtsc() - start;
 		}

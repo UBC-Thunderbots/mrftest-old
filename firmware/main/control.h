@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define CONTROL_LOOP_HZ 200U
+
 /**
  * \brief Invoked once per tick when the control loop is not enabled to clear accumulated state.
  */
