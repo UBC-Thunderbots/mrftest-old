@@ -12,6 +12,7 @@
 #include <gtkmm/label.h>
 #include <gtkmm/scale.h>
 #include <gtkmm/table.h>
+#include <sigc++/connection.h>
 
 /**
  * \brief A panel that allows the user to edit the operational parameters of a robot
@@ -19,13 +20,18 @@
 class ParamsPanel : public Gtk::Table {
 	public:
 		/**
-		 * \brief Constructs a new ParamsPanel
+		 * \brief Constructs a new ParamsPanel.
 		 *
 		 * \param[in] dongle the dongle talking to the robot
 		 *
 		 * \param[in] robot the robot whose parameters should be edited
 		 */
 		ParamsPanel(MRFDongle &dongle, MRFRobot &robot);
+
+		/**
+		 * \brief Destroys a ParamsPanel.
+		 */
+		~ParamsPanel();
 
 	private:
 		MRFDongle &dongle;
@@ -41,12 +47,14 @@ class ParamsPanel : public Gtk::Table {
 		Gtk::Button set, reboot, shut_down;
 		std::unique_ptr<MRFDongle::SendReliableMessageOperation> message;
 		bool rebooting, shutting_down;
+		sigc::connection reset_button_connection;
 
 		void activate_controls(bool act = true);
 		void send_params();
 		void reboot_robot();
 		void shut_down_robot();
 		void check_result(AsyncOperation<void> &op);
+		void reset_button_text();
 };
 
 #endif

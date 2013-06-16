@@ -5,7 +5,10 @@
 #include <iomanip>
 #include <locale>
 #include <sstream>
+#include <glibmm/main.h>
 #include <gtkmm/messagedialog.h>
+#include <sigc++/bind_return.h>
+#include <sigc++/functors/mem_fun.h>
 
 namespace {
 	Glib::ustring format_channel(unsigned int ch) {
@@ -13,7 +16,9 @@ namespace {
 	}
 }
 
-ParamsPanel::ParamsPanel(MRFDongle &dongle, MRFRobot &robot) : Gtk::Table(4, 2), dongle(dongle), robot(robot), channel_label(u8"Channel:"), index_label(u8"Index:"), pan_label(u8"PAN (hex):"), set(u8"Set"), reboot(u8"Reboot"), shut_down(u8"Shut Down") {
+ParamsPanel::ParamsPanel(MRFDongle &dongle, MRFRobot &robot) : Gtk::Table(4, 2), dongle(dongle), robot(robot), channel_label(u8"Channel:"), index_label(u8"Index:"), pan_label(u8"PAN (hex):") {
+	reset_button_text();
+
 	for (unsigned int ch = 0x0B; ch <= 0x1A; ++ch) {
 		channel_chooser.append_text(format_channel(ch));
 	}
@@ -39,6 +44,10 @@ ParamsPanel::ParamsPanel(MRFDongle &dongle, MRFRobot &robot) : Gtk::Table(4, 2),
 	attach(hbb, 0, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 }
 
+ParamsPanel::~ParamsPanel() {
+	reset_button_connection.disconnect();
+}
+
 void ParamsPanel::activate_controls(bool act) {
 	channel_chooser.set_sensitive(act);
 	index_chooser.set_sensitive(act);
@@ -50,6 +59,9 @@ void ParamsPanel::activate_controls(bool act) {
 
 void ParamsPanel::send_params() {
 	if (channel_chooser.get_active_row_number() >= 0 && index_chooser.get_active_row_number() >= 0) {
+		reset_button_connection.disconnect();
+		reset_button_text();
+
 		uint8_t channel = static_cast<uint8_t>(channel_chooser.get_active_row_number() + 0x0B);
 		uint8_t index = static_cast<uint8_t>(index_chooser.get_active_row_number());
 		std::wistringstream iss(ustring2wstring(pan_entry.get_text()));
@@ -77,6 +89,9 @@ void ParamsPanel::send_params() {
 }
 
 void ParamsPanel::reboot_robot() {
+	reset_button_connection.disconnect();
+	reset_button_text();
+
 	uint8_t packet[1];
 	packet[0] = 0x08;
 	reboot.set_label(u8"Sending…");
@@ -88,6 +103,9 @@ void ParamsPanel::reboot_robot() {
 }
 
 void ParamsPanel::shut_down_robot() {
+	reset_button_connection.disconnect();
+	reset_button_text();
+
 	uint8_t packet[1];
 	packet[0] = 0x0C;
 	shut_down.set_label(u8"Sending…");
@@ -112,5 +130,12 @@ void ParamsPanel::check_result(AsyncOperation<void> &op) {
 	}
 	message.reset();
 	activate_controls(true);
+	reset_button_connection = Glib::signal_timeout().connect_seconds(sigc::bind_return(sigc::mem_fun(this, &ParamsPanel::reset_button_text), false), 3U);
+}
+
+void ParamsPanel::reset_button_text() {
+	set.set_label(u8"Set");
+	reboot.set_label(u8"Reboot");
+	shut_down.set_label(u8"Shut Down");
 }
 
