@@ -33,7 +33,7 @@ roles[3].push_back(tdefend_line(world, Coordinate(world, Point(-1.1, 0.35), Coor
 
 // ROLE 5 (optional)
 // offend
-roles[4].push_back(offend(world));
+roles[4].push_back(defend_duo_extra1(world));
 
 END_ASSIGN()
 END_PLAY()
