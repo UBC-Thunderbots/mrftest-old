@@ -40,7 +40,6 @@ static void update_thermal_model(float added_winding_energy) {
 	dribbler_winding_energy = dribbler_winding_energy - energy_winding_to_housing + added_winding_energy;
 }
 
-#include <stdio.h>
 void dribbler_tick(float battery) {
 	// Run the controller only at the proper frequency.
 	if (++tick_count != CONTROL_TICKS_PER_DRIBBLER_TICK) {
@@ -51,14 +50,6 @@ void dribbler_tick(float battery) {
 	// Measure the dribbler speed.
 	DRIBBLER_SPEED = 0;
 	dribbler_speed = DRIBBLER_SPEED;
-
-	static uint8_t foo = 0;
-	if (++foo == 25) {
-		foo = 0;
-	}
-	if (!foo) {
-//		printf("Winding: %" PRIu16 "\tHousing: %" PRIu16 "\n", (uint16_t) ((dribbler_winding_energy / THERMAL_CAPACITANCE_WINDING + THERMAL_AMBIENT) * 100), (uint16_t) ((dribbler_housing_energy / THERMAL_CAPACITANCE_HOUSING + THERMAL_AMBIENT) * 100));
-	}
 
 	// Decide whether to run or not.
 	if ((dribbler_winding_energy < THERMAL_MAX_ENERGY_WINDING || interlocks_overridden()) && dribbler_enabled) {
@@ -71,9 +62,6 @@ void dribbler_tick(float battery) {
 			pwm = max_pwm;
 		} else if (pwm < min_pwm) {
 			pwm = min_pwm;
-		}
-		if (!foo) {
-//			printf("Speed: %" PRIu8 ", BEMF: %" PRIu16 ", min PWM: %" PRIu8 ", max PWM: %" PRIu8 "\n", dribbler_speed, (uint16_t) (back_emf * 1000), min_pwm, max_pwm);
 		}
 		motor_set(4, MOTOR_MODE_FORWARD, pwm);
 		float applied_voltage = battery * pwm / 255.0;
