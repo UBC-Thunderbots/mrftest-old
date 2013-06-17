@@ -276,7 +276,7 @@ namespace {
 		std::ofstream ofs;
 		ofs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
 		ofs.open(args[1], std::ios_base::out | std::ios_base::trunc);
-		ofs << "Epoch\tTime (s)\tBreakbeam\tCapacitor (V)\tBattery (V)\tBoard Temperature (°C)\tLPS\tEncoder 0\tEncoder 1\tEncoder 2\tEncoder 3\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tMotor 0\tMotor 1\tMotor 2\tMotor 3\tMotor 4\tCPU (%)\n";
+		ofs << "Epoch\tTime (s)\tBreakbeam\tCapacitor (V)\tBattery (V)\tBoard Temperature (°C)\tLPS\tEncoder 0\tEncoder 1\tEncoder 2\tEncoder 3\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tMotor 0\tMotor 1\tMotor 2\tMotor 3\tCPU (%)\n";
 		uint64_t last_tsc = 0;
 		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
 			const std::vector<uint8_t> &buffer = sdcard.get(sector);
@@ -308,7 +308,7 @@ namespace {
 					/*bool dribbler_enabled = !!decode_u8_le(ptr);*/ ptr += 1;
 					uint8_t encoders_failed = decode_u8_le(ptr); ptr += 1;
 					uint8_t wheels_hall_sensors_failed = decode_u8_le(ptr); ptr += 1;
-					uint8_t dribbler_hall_sensors_failed = decode_u8_le(ptr); ptr += 1;
+					/*uint8_t dribbler_hall_sensors_failed = decode_u8_le(ptr);*/ ptr += 1;
 					uint32_t cpu_used_since_last_tick = decode_u32_le(ptr); ptr += 4;
 
 					double capacitor_voltage = adc_channels[0] / 1024.0 * 3.3 / 2200 * (2200 + 200000);
@@ -326,8 +326,8 @@ namespace {
 					for (unsigned int i = 0; i < 4; ++i) {
 						ofs << '\t' << wheels_setpoints[i];
 					}
-					for (unsigned int i = 0; i < 5; ++i) {
-						bool failed = i == 4 ? !!(dribbler_hall_sensors_failed & 3) : !!((wheels_hall_sensors_failed >> (2 * i)) & 3);
+					for (unsigned int i = 0; i < 4; ++i) {
+						bool failed = !!((wheels_hall_sensors_failed >> (2 * i)) & 3);
 						if (failed) {
 							ofs << "\tNaN";
 						} else {
