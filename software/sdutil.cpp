@@ -241,7 +241,7 @@ namespace {
 				} while(file_offset < scan_result.nonblank_size()*512);
 
 			} else {
-				throw SystemError("ioctl(BLKDISCARDS)", errno);
+				throw SystemError("ioctl(BLKDISCARD)", errno);
 			}
 		}
 		std::cout << "OK.\n";
