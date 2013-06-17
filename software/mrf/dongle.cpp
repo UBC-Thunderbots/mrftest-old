@@ -14,6 +14,9 @@
 #include <glibmm/convert.h>
 #include <glibmm/main.h>
 #include <glibmm/ustring.h>
+#include <sigc++/bind.h>
+#include <sigc++/reference_wrapper.h>
+#include <sigc++/functors/mem_fun.h>
 
 #define DEFAULT_CHANNEL 20
 #define DEFAULT_SYMBOL_RATE 250
@@ -82,7 +85,7 @@ MRFDongle::SendReliableMessageOperation::ClearChannelError::ClearChannelError() 
 
 
 
-MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_PID, std::getenv("MRF_SERIAL")), mdr_transfer(device, 1, 8, false, 0), message_transfer(device, 2, 103, false, 0), status_transfer(device, 3, 1, true, 0), drive_dirty(false), pending_beep_length(0) {
+MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_PID, std::getenv("MRF_SERIAL")), mdr_transfer(device, 1, 8, false, 0), status_transfer(device, 3, 1, true, 0), drive_dirty(false), pending_beep_length(0) {
 	for (unsigned int i = 0; i < 8; ++i) {
 		robots[i].reset(new MRFRobot(*this, i));
 	}
@@ -138,8 +141,11 @@ MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_P
 	mdr_transfer.signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_mdrs));
 	mdr_transfer.submit();
 
-	message_transfer.signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_message));
-	message_transfer.submit();
+	for (auto &i : message_transfers) {
+		i.reset(new USB::InterruptInTransfer(device, 2, 103, false, 0));
+		i->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::handle_message), sigc::ref(*i.get())));
+		i->submit();
+	}
 
 	status_transfer.signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_status));
 	status_transfer.submit();
@@ -188,13 +194,13 @@ void MRFDongle::handle_mdrs(AsyncOperation<void> &) {
 	mdr_transfer.submit();
 }
 
-void MRFDongle::handle_message(AsyncOperation<void> &) {
-	message_transfer.result();
-	if (message_transfer.size()) {
-		unsigned int robot = message_transfer.data()[0];
-		robots[robot]->handle_message(message_transfer.data() + 1, message_transfer.size() - 1);
+void MRFDongle::handle_message(AsyncOperation<void> &, USB::InterruptInTransfer &transfer) {
+	transfer.result();
+	if (transfer.size()) {
+		unsigned int robot = transfer.data()[0];
+		robots[robot]->handle_message(transfer.data() + 1, transfer.size() - 1);
 	}
-	message_transfer.submit();
+	transfer.submit();
 }
 
 void MRFDongle::handle_status(AsyncOperation<void> &) {

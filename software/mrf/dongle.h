@@ -82,7 +82,8 @@ class MRFDongle : public Drive::Dongle {
 		std::unique_ptr<USB::ConfigurationSetter> config_setter;
 		std::unique_ptr<USB::InterfaceClaimer> interface_claimer;
 		USB::BulkInTransfer mdr_transfer;
-		USB::InterruptInTransfer message_transfer, status_transfer;
+		std::array<std::unique_ptr<USB::InterruptInTransfer>, 4> message_transfers;
+		USB::InterruptInTransfer status_transfer;
 		std::unique_ptr<USB::InterruptOutTransfer> drive_transfer;
 		std::list<std::unique_ptr<USB::InterruptOutTransfer>> unreliable_messages;
 		std::unique_ptr<MRFRobot> robots[8];
@@ -98,7 +99,7 @@ class MRFDongle : public Drive::Dongle {
 		uint8_t alloc_message_id();
 		void free_message_id(uint8_t id);
 		void handle_mdrs(AsyncOperation<void> &);
-		void handle_message(AsyncOperation<void> &);
+		void handle_message(AsyncOperation<void> &, USB::InterruptInTransfer &transfer);
 		void handle_status(AsyncOperation<void> &);
 		void dirty_drive();
 		bool submit_drive_transfer();
