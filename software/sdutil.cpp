@@ -276,7 +276,7 @@ namespace {
 		std::ofstream ofs;
 		ofs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
 		ofs.open(args[1], std::ios_base::out | std::ios_base::trunc);
-		ofs << "Epoch\tTime (s)\tBreakbeam\tCapacitor (V)\tBattery (V)\tBoard Temperature (°C)\tLPS\tEncoder 0\tEncoder 1\tEncoder 2\tEncoder 3\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tMotor 0\tMotor 1\tMotor 2\tMotor 3\tCPU (%)\n";
+		ofs << "Epoch\tTime (s)\tBreakbeam\tCapacitor (V)\tBattery (V)\tBoard Temperature (°C)\tLPS\tEncoder 0 (¼°/t)\tEncoder 1 (¼°/t)\tEncoder 2 (¼°/t)\tEncoder 3 (¼°/t)\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tMotor 0 (/255)\tMotor 1 (/255)\tMotor 2 (/255)\tMotor 3 (/255)\tCPU (%)\n";
 		uint64_t last_tsc = 0;
 		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
 			const std::vector<uint8_t> &buffer = sdcard.get(sector);
