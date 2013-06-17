@@ -21,9 +21,9 @@ using namespace AI::HL::STP::Evaluation;
 namespace {
 	BoolParam attack_follow_enemy_baller("attack going against enemy baller", "STP/tri_attack", true);
 
-	std::array<Point, MAX_ATTACKERS> waypoints;
+	std::array<std::pair<Point, Point>, MAX_ATTACKERS> waypoints;
 
-	std::array<Point, MAX_ATTACKERS> compute(World world) {
+	std::array<std::pair<Point, Point>, MAX_ATTACKERS> compute(World world) {
 		const Field &field = world.field();
 		Point ball_pos = world.ball().position();
 		if (attack_follow_enemy_baller) {
@@ -33,10 +33,8 @@ namespace {
 			}
 		}
 
-
-		waypoints[0] = ball_pos;
-		for (std::size_t i = 1; i < MAX_ATTACKERS; ++i){
-			waypoints[i] = field.enemy_goal();
+		for (std::size_t i = 0; i < MAX_ATTACKERS; ++i){
+			waypoints[i] = std::make_pair(field.enemy_goal(), field.enemy_goal());
 		}
 		return waypoints;
 	}
@@ -46,7 +44,7 @@ void AI::HL::STP::Evaluation::tick_tri_attack(World world) {
 	waypoints = compute(world);
 }
 
-const std::array<Point, MAX_ATTACKERS> AI::HL::STP::Evaluation::evaluate_tri_attack() {
+const std::array<std::pair<Point, Point>, MAX_ATTACKERS> AI::HL::STP::Evaluation::evaluate_tri_attack() {
 	return waypoints;
 }
 

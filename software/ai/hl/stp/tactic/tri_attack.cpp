@@ -2,11 +2,14 @@
 #include "ai/hl/stp/evaluation/tri_attack.h"
 #include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/action/defend.h"
 #include "ai/hl/stp/action/dribble.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
 #include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/stp/predicates.h"
+
+#include <utility>
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::STP::Predicates;
@@ -77,7 +80,7 @@ namespace {
 		auto waypoints = Evaluation::evaluate_tri_attack();
 		//Point destination = AI::HL::STP::Evaluation::tri_attack_evaluation(world);
 		//destination = destination + Point(0.3, 0.3);
-		Action::move(world, player, waypoints[1]);
+		Action::defender_move(world, player, waypoints[1].first);
 	}
 
 	class TriAttack3 : public Tactic {
@@ -102,7 +105,7 @@ namespace {
 		auto waypoints = Evaluation::evaluate_tri_attack();
 		Point destination = AI::HL::STP::Evaluation::tri_attack_evaluation(world);
 		destination = destination - Point(0.3, 0.3);
-		Action::move(world, player, waypoints[2]);
+		Action::defender_move(world, player, waypoints[2].first);
 	}
 }
 

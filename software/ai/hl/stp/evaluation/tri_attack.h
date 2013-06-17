@@ -4,9 +4,11 @@
 #include "ai/hl/stp/world.h"
 
 #include <array>
+#include <utility>
 
 namespace {
-	const unsigned int MAX_ATTACKERS = 4;
+	// not counting the active tactic
+	const unsigned int MAX_ATTACKERS = 3;
 }
 
 namespace AI {
@@ -17,12 +19,11 @@ namespace AI {
 
 				/**
 				 * Locations:
-				 * 0 - active tactic attacker
-				 * 1 - attacker secondary
-				 * 2 - attacker tertiary
-				 * 3 - attacker-extra (for diamond formation)
+				 * 0 - attacker secondary
+				 * 1 - attacker tertiary
+				 * 2 - attacker-extra (for diamond formation)
 				 */
-				const std::array<Point, MAX_ATTACKERS> evaluate_tri_attack();
+				const std::array<std::pair<Point, Point>, MAX_ATTACKERS> evaluate_tri_attack();
 
 				/**
 				 * return point to where player needs to go in a tri-attack
