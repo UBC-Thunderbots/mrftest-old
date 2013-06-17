@@ -398,6 +398,8 @@ static void handle_tick(void) {
 		MOTOR_INDEX = 4;
 		rec->tick.dribbler_hall_sensors_failed = MOTOR_STATUS;
 
+		rec->tick.dribbler_speed = dribbler_speed;
+
 		rec->tick.cpu_used_since_last_tick = cpu_usage;
 		cpu_usage = 0;
 
