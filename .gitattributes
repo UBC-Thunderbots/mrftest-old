@@ -380,6 +380,7 @@ software/ai/hl/stp/test/test_pivot.cpp -text
 software/ai/hl/stp/test/test_repel.cpp -text
 software/ai/hl/stp/test/test_shoot.cpp -text
 software/ai/hl/stp/test/test_spin.cpp -text
+software/ai/hl/stp/test/test_tattack.cpp -text
 software/ai/hl/stp/test/test_tdefend.cpp -text
 software/ai/hl/stp/ui.cpp -text
 software/ai/hl/stp/ui.h -text
