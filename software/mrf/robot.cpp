@@ -174,6 +174,10 @@ MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) :
 			logger_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(LOGGER_MESSAGES[i].pattern, index), Annunciator::Message::TriggerMode::LEVEL, LOGGER_MESSAGES[i].severity));
 		}
 	}
+	for (std::size_t i = 0; i < 4; ++i) {
+		hot_motor_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 wheel %2 motor hot", index, i), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
+	}
+	hot_motor_messages[4].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 dribbler motor hot", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
 }
 
 MRFRobot::~MRFRobot() {
@@ -188,7 +192,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 				// General robot status update
 				++bptr;
 				--len;
-				if (len == 13) {
+				if (len == 14) {
 					alive = true;
 					battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 20000);
 					capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 200000);
@@ -225,6 +229,9 @@ void MRFRobot::handle_message(const void *data, std::size_t len) {
 						}
 					}
 					dribbler_speed = bptr[12] * 25U * 60U / 6U;
+					for (std::size_t i = 0; i < hot_motor_messages.size(); ++i) {
+						hot_motor_messages[i]->active(!!(bptr[13] & (1 << i)));
+					}
 					feedback_timeout_connection.disconnect();
 					feedback_timeout_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &MRFRobot::handle_feedback_timeout), 3);
 				} else {
@@ -266,6 +273,9 @@ bool MRFRobot::handle_feedback_timeout() {
 		if (i) {
 			i->active(false);
 		}
+	}
+	for (auto &i : hot_motor_messages) {
+		i->active(false);
 	}
 	return false;
 }

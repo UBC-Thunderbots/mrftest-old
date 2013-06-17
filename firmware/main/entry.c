@@ -96,7 +96,7 @@ static void prepare_mrf_mhr(uint8_t payload_length) {
 }
 
 static void prepare_feedback_packet(void) {
-	prepare_mrf_mhr(14);
+	prepare_mrf_mhr(15);
 
 #define payload (&mrf_tx_buffer[11])
 	payload[0] = 0x00; // General robot status update
@@ -153,6 +153,7 @@ static void prepare_feedback_packet(void) {
 		payload[12] = (log_state() << 4) | sd_status();
 	}
 	payload[13] = dribbler_speed;
+	payload[14] = wheels_hot | (dribbler_hot ? 1 << 4 : 0);
 #undef payload
 
 	radio_tx_packet_reliable = false;
@@ -388,6 +389,11 @@ static void handle_tick(void) {
 		for (uint8_t i = 0; i < sizeof(rec->tick.wheels_drives) / sizeof(*rec->tick.wheels_drives); ++i) {
 			rec->tick.wheels_drives[i] = wheels_drives[i];
 		}
+		for (uint8_t i = 0; i < sizeof(rec->tick.wheels_temperatures) / sizeof(*rec->tick.wheels_temperatures); ++i) {
+			rec->tick.wheels_temperatures[i] = (uint8_t) (wheels_energy[i] / WHEEL_THERMAL_CAPACITANCE + WHEEL_THERMAL_AMBIENT);
+		}
+
+		rec->tick.dribbler_temperature = (uint8_t) (dribbler_winding_energy / DRIBBLER_THERMAL_CAPACITANCE_WINDING + DRIBBLER_THERMAL_AMBIENT);
 
 		rec->tick.encoders_failed = ENCODER_FAIL;
 		rec->tick.wheels_hall_sensors_failed = 0;

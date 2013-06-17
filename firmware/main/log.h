@@ -17,8 +17,10 @@ typedef struct {
 	float wheels_setpoints[4];
 	int16_t wheels_encoder_counts[4];
 	int16_t wheels_drives[4];
+	uint8_t wheels_temperatures[4];
 
 	uint8_t dribbler_speed;
+	uint8_t dribbler_temperature;
 
 	uint8_t encoders_failed;
 	uint8_t wheels_hall_sensors_failed;

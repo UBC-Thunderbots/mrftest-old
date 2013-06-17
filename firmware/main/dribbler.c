@@ -7,18 +7,6 @@
 #define DRIBBLER_TICK_HZ 25U
 #define CONTROL_TICKS_PER_DRIBBLER_TICK (CONTROL_LOOP_HZ / DRIBBLER_TICK_HZ)
 
-#define THERMAL_TIME_CONSTANT_WINDING 1.97 // seconds—EC16 datasheet
-#define THERMAL_RESISTANCE_WINDING 1.68 // kelvins per Watt—EC16 datasheet (winding to housing)
-#define THERMAL_CAPACITANCE_WINDING (THERMAL_TIME_CONSTANT_WINDING / THERMAL_RESISTANCE_WINDING) // joules per kelvin
-
-#define THERMAL_TIME_CONSTANT_HOUSING 240.0 // seconds—EC16 datasheet
-#define THERMAL_RESISTANCE_HOUSING 16.3 // kelvins per Watt—EC16 datasheet (housing to ambient)
-#define THERMAL_CAPACITANCE_HOUSING (THERMAL_TIME_CONSTANT_HOUSING / THERMAL_RESISTANCE_HOUSING) // joules per kelvin
-
-#define THERMAL_AMBIENT 40.0 // °C—empirically estimated based on motor casing heatsinking to chassis
-#define THERMAL_MAX_TEMPERATURE_WINDING 155.0 // °C—EC16 datasheet
-#define THERMAL_MAX_ENERGY_WINDING ((THERMAL_MAX_TEMPERATURE_WINDING - THERMAL_AMBIENT) * THERMAL_CAPACITANCE_WINDING)
-
 #define SPEED_CONSTANT 3760.0 // rpm per volt—EC16 datasheet
 #define VOLTS_PER_RPM (1.0 / SPEED_CONSTANT) // volts per rpm
 #define VOLTS_PER_RPT (VOLTS_PER_RPM * 60.0 * DRIBBLER_TICK_HZ) // volts per rpt, rpt=revolutions per tick
@@ -33,11 +21,17 @@ static uint8_t tick_count = 0;
 bool dribbler_enabled = false;
 uint8_t dribbler_speed = 0;
 float dribbler_winding_energy = 0, dribbler_housing_energy = 0;
+bool dribbler_hot = false;
 
 static void update_thermal_model(float added_winding_energy) {
-	float energy_winding_to_housing = (dribbler_winding_energy / THERMAL_CAPACITANCE_WINDING - dribbler_housing_energy / THERMAL_CAPACITANCE_HOUSING) / THERMAL_RESISTANCE_WINDING / DRIBBLER_TICK_HZ;
-	dribbler_housing_energy = dribbler_housing_energy + energy_winding_to_housing - dribbler_housing_energy / THERMAL_CAPACITANCE_HOUSING / THERMAL_RESISTANCE_HOUSING / DRIBBLER_TICK_HZ;
+	float energy_winding_to_housing = (dribbler_winding_energy / DRIBBLER_THERMAL_CAPACITANCE_WINDING - dribbler_housing_energy / DRIBBLER_THERMAL_CAPACITANCE_HOUSING) / DRIBBLER_THERMAL_RESISTANCE_WINDING / DRIBBLER_TICK_HZ;
+	dribbler_housing_energy = dribbler_housing_energy + energy_winding_to_housing - dribbler_housing_energy / DRIBBLER_THERMAL_CAPACITANCE_HOUSING / DRIBBLER_THERMAL_RESISTANCE_HOUSING / DRIBBLER_TICK_HZ;
 	dribbler_winding_energy = dribbler_winding_energy - energy_winding_to_housing + added_winding_energy;
+	if (dribbler_winding_energy > DRIBBLER_THERMAL_WARNING_START_ENERGY_WINDING) {
+		dribbler_hot = true;
+	} else if (dribbler_winding_energy < DRIBBLER_THERMAL_WARNING_STOP_ENERGY_WINDING) {
+		dribbler_hot = false;
+	}
 }
 
 void dribbler_tick(float battery) {
@@ -52,7 +46,7 @@ void dribbler_tick(float battery) {
 	dribbler_speed = DRIBBLER_SPEED;
 
 	// Decide whether to run or not.
-	if ((dribbler_winding_energy < THERMAL_MAX_ENERGY_WINDING || interlocks_overridden()) && dribbler_enabled) {
+	if ((dribbler_winding_energy < DRIBBLER_THERMAL_MAX_ENERGY_WINDING || interlocks_overridden()) && dribbler_enabled) {
 		float back_emf = dribbler_speed * VOLTS_PER_SPEED_UNIT;
 		uint16_t back_emf_pwm = (uint16_t) (back_emf / battery * 255.0);
 		uint8_t min_pwm = back_emf_pwm <= MAX_DELTA_PWM ? 0 : (uint8_t) (back_emf_pwm - MAX_DELTA_PWM);

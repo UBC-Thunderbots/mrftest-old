@@ -12,9 +12,20 @@ wheels_setpoints_t wheels_setpoints;
 int16_t wheels_encoder_counts[4] = { 0, 0, 0, 0 };
 int16_t wheels_drives[4] = { 0, 0, 0, 0 };
 float wheels_energy[4] = { 0, 0, 0, 0 };
+uint8_t wheels_hot = 0;
 
 static float update_thermal_model(float old, float new) {
 	return old + new - (old / WHEEL_THERMAL_CAPACITANCE / WHEEL_THERMAL_RESISTANCE / CONTROL_LOOP_HZ);
+}
+
+static void update_wheels_hot(void) {
+	for (uint8_t i = 0, bm = 1; i != 4; ++i, bm <<= 1) {
+		if (wheels_energy[i] > WHEEL_THERMAL_WARNING_START_ENERGY) {
+			wheels_hot |= bm;
+		} else if (wheels_energy[i] < WHEEL_THERMAL_WARNING_STOP_ENERGY) {
+			wheels_hot &= ~bm;
+		}
+	}
 }
 
 void wheels_tick(float battery) {
@@ -44,6 +55,7 @@ void wheels_tick(float battery) {
 				for (uint8_t i = 0; i < 4; ++i) {
 					wheels_energy[i] = update_thermal_model(wheels_energy[i], 0);
 				}
+				update_wheels_hot();
 			}
 			break;
 
@@ -89,6 +101,7 @@ void wheels_tick(float battery) {
 						wheels_energy[i] = update_thermal_model(wheels_energy[i], 0);
 					}
 				}
+				update_wheels_hot();
 
 				// Drive the motors.
 				for (uint8_t i = 0; i < 4; ++i) {

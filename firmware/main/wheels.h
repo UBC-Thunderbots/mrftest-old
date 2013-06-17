@@ -8,7 +8,11 @@
 #define WHEEL_THERMAL_CAPACITANCE (WHEEL_THERMAL_TIME_CONSTANT / WHEEL_THERMAL_RESISTANCE) // joules per kelvin—estimated by binaryblade 2013-06-14
 #define WHEEL_THERMAL_AMBIENT 40.0 // °C—empirically estimated based on motor casing heatsinking to chassis
 #define WHEEL_THERMAL_MAX_TEMPERATURE 125.0 // °C—EC45 datasheet
-#define WHEEL_THERMAL_MAX_ENERGY ((WHEEL_THERMAL_MAX_TEMPERATURE - WHEEL_THERMAL_AMBIENT) * WHEEL_THERMAL_CAPACITANCE)
+#define WHEEL_THERMAL_MAX_ENERGY ((WHEEL_THERMAL_MAX_TEMPERATURE - WHEEL_THERMAL_AMBIENT) * WHEEL_THERMAL_CAPACITANCE) // joules
+#define WHEEL_THERMAL_WARNING_START_TEMPERATURE (WHEEL_THERMAL_MAX_TEMPERATURE - 10.0) // °C—chead
+#define WHEEL_THERMAL_WARNING_START_ENERGY ((WHEEL_THERMAL_WARNING_START_TEMPERATURE - WHEEL_THERMAL_AMBIENT) * WHEEL_THERMAL_CAPACITANCE) // joules
+#define WHEEL_THERMAL_WARNING_STOP_TEMPERATURE (WHEEL_THERMAL_WARNING_START_TEMPERATURE - 10.0) // °C—chead
+#define WHEEL_THERMAL_WARNING_STOP_ENERGY ((WHEEL_THERMAL_WARNING_STOP_TEMPERATURE - WHEEL_THERMAL_AMBIENT) * WHEEL_THERMAL_CAPACITANCE) // joules
 
 #define WHEEL_SPEED_CONSTANT 374.0 // rpm per volt—EC45 datasheet
 #define WHEEL_VOLTS_PER_RPM (1.0 / WHEEL_SPEED_CONSTANT) // volts per rpm
@@ -59,6 +63,15 @@ extern int16_t wheels_drives[4];
  * \brief The estimated thermal energy of the wheel motor windings, in joules.
  */
 extern float wheels_energy[4];
+
+/**
+ * \brief Whether each wheel is at warning temperature.
+ *
+ * This is a bitmask with one bit per wheel.
+ *
+ * Hysteresis is incorporated into this variable.
+ */
+extern uint8_t wheels_hot;
 
 /**
  * \brief Updates the wheels.
