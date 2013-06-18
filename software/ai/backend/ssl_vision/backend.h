@@ -185,6 +185,9 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 					// Compute the probability of this ball being the wanted one.
 					const SSL_DetectionBall &b(detections[i].first.balls(j));
 					Point detection_position(b.x() / 1000.0, b.y() / 1000.0);
+					if (defending_end() == FieldEnd::EAST) {
+						detection_position = -detection_position;
+					}
 					Point distance_from_estimate = detection_position - estimated_position;
 					double x_prob = std::exp(-std::pow(distance_from_estimate.x / estimated_stdev.x, 2.0));
 					double y_prob = std::exp(-std::pow(distance_from_estimate.y / estimated_stdev.y, 2.0));
@@ -200,7 +203,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 
 			// Keep the detection if it is good enough.
 			if (best_prob >= BALL_FILTER_THRESHOLD) {
-				ball_.add_field_data(defending_end() == FieldEnd::EAST ? -best_pos : best_pos, best_time);
+				ball_.add_field_data(best_pos, best_time);
 			}
 		}
 
