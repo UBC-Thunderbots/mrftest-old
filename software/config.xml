@@ -41,7 +41,7 @@
     </category>
     <category name="Backend">
       <category name="Hybrid">
-        <double name="Ball Decay Constant">99.0</double>
+        <double name="Ball Decay Constant">2.7</double>
         <double name="Loop Delay">0.000</double>
         <double name="Robot Angular Decay Constant">99.0</double>
         <double name="Robot Linear Decay Constant">99.0</double>
