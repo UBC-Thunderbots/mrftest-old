@@ -42,6 +42,13 @@ namespace {
 				auto attack2 = Tactic::tdefend_line(world, Coordinate(world, Point(-1.1, 0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-0.7, -0.5), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 1.5);
 				attack2->set_player(friendly.get(2));
 				attack2->execute();
+
+				// test diamond formation
+				if (friendly.size() == 4) {
+					auto attack3 = Tactic::tdefend_line(world, Coordinate(world, Point(-1.6, 0.45), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-1.2, -0.5), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 1.5);
+					attack3->set_player(friendly.get(3));
+					attack3->execute();
+				}
 			}
 
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
