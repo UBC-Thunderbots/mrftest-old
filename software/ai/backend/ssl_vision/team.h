@@ -6,6 +6,7 @@
 #include "util/box_array.h"
 #include "util/dprint.h"
 #include <algorithm>
+#include <cassert>
 #include <vector>
 
 namespace {
@@ -168,17 +169,16 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::u
 	for (std::size_t i = 0; i < members.SIZE; ++i) {
 		typename T::Ptr bot = members[i];
 		if (bot) {
-			if (bot->pattern() < NUM_PATTERNS) {
-				if (!seen_this_frame[bot->pattern()]) {
-					++vision_failures[bot->pattern()];
-				} else {
-					vision_failures[bot->pattern()] = 0;
-				}
-				seen_this_frame[bot->pattern()] = false;
-				if (vision_failures[bot->pattern()] >= MAX_VISION_FAILURES) {
-					members.destroy(i);
-					membership_changed = true;
-				}
+			assert(bot->pattern() < NUM_PATTERNS);
+			if (!seen_this_frame[bot->pattern()]) {
+				++vision_failures[bot->pattern()];
+			} else {
+				vision_failures[bot->pattern()] = 0;
+			}
+			seen_this_frame[bot->pattern()] = false;
+			if (vision_failures[bot->pattern()] >= MAX_VISION_FAILURES) {
+				members.destroy(i);
+				membership_changed = true;
 			}
 		}
 	}
