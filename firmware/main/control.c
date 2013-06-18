@@ -3,37 +3,22 @@
 #include <string.h>
 #include <math.h>
 
-//All wheels good
-static const float speed4_to_speed3_mat[5][3][4]=
-{
-	{ 
-		{-0.34847, -0.29380,0.29380,0.34847},
-    {0.39944,-0.39944,-0.39944, 0.39944},
-    {0.28245, 0.21755, 0.21755, 0.28245}
-	},
-	{
-		{0, -0.70710,  0.70710, 0},
-		{0,  0.07432, -0.87320, 0.79888},
-		{0,  0.55255, -0.11745, 0.05649}
-	},
-	{ 
-		{-0.59618, 0, 0, 0.59618},
-		{ 0.06266, 0, -0.7988, 0.073622},
-		{ 0.46587, 0, 0.43510, 0.099024}
-	},
-	{
-		{-0.59618, 0, 0, 0.59618},
-    {0.73622, -0.79888, 0, 0.062659},
-    {0.099024, 0.43510, 0, 0.46587}
-	},
-	{
-		{0, -0.70710, 0.70710, 0},
-    {0.7988, -0.87320, 0.074317, 0},
-		{0.5649, -0.11745, 0.55255, 0}
-	}
-};
+#define QUARTERDEGREE_TO_MS 0.0114f
+#define ROBOT_RADIUS 0.08f
+#define TICK_TIME (1.0f / CONTROL_LOOP_HZ)
+#define DELTA_VOLTAGE_LIMIT 8.0f  //Voltage where wheel slips
+#define ROBOT_MASS 2.48f
+#define INERTIAL_CONSTANT 0.282f
+#define AGGRESSIVENESS 0.08f
+#define INPUT_NOISE 0.02f //noise of speed in m/s (measured value)
 
-static const  float slip_vector[4] = {-0.45580, 0.54060, -0.54060, 0.45580};
+//All wheels good
+static const float speed4_to_speed3_mat[3][4]=
+{
+	{-0.34847, -0.29380,0.29380,0.34847},
+	{0.39944,-0.39944,-0.39944, 0.39944},
+	{0.28245, 0.21755, 0.21755, 0.28245}
+};
 
 static const float speed3_to_speed4_mat[4][3] =
 	{ 
@@ -43,32 +28,55 @@ static const float speed3_to_speed4_mat[4][3] =
     {0.83867, 0.54464, 1.00000}
 	};
 
-#define QUARTERDEGREE_TO_MS 0.0114f
-#define ROBOT_RADIUS 0.08f
-#define TICK_TIME 0.005f
-#define DELTA_VOLTAGE_LIMIT 4.706f  //Voltage where wheel slips
-#define VOLTAGE_FROM_ENCODER 0.0223f
-#define VOLTAGE 16.0f
-#define AGGRESSIVENESS 1.0f
-#define AGGRESSIVENESS_MAX 10.0f
-#define INPUT_NOISE 0.02f //noise of speed in m/s (measured value)
+static const float rescale_vector[] = {AGGRESSIVENESS, AGGRESSIVENESS, AGGRESSIVENESS };
+static const float slip_vector[4] = {-0.45580, 0.54060, -0.54060, 0.45580};
+#if 0
+static const float filter_gain = 0.0362;
+static const float filter_B[] = {1, 1.2857, 1.2857, 1};
+static const float filter_A[] = {1.0, -1.7137, 1.1425, -0.2639};
+#define FILTER_ORDER 3
+static float input_filter_states[4][FILTER_ORDER];
+#else
+static const float filter_gain = 0.0246;
+static const float filter_B[] = {1, 0.66667, 1};
+static const float filter_A[] = {1.0, -1.6079, 0.6735};
+#define FILTER_ORDER 2
+static float input_filter_states[4][FILTER_ORDER];
+#endif
 
-//convert quarter degree 4 speeds to m/s 3 speed
-static void speed4_to_speed3(const int16_t speed4[4], float speed3[3]) {
+static float runDF2(float input,float gain,const float* num,const float* den, float* state, size_t order) {
+	float accum=0;
+	for(size_t i=0;i<order;++i) {
+		input -= state[i]*den[i+1];
+	}
+	input /= den[0];
+
+	for(size_t i=order-1;i!=0;--i) {
+		accum += state[i]*num[i+1];
+		state[i]=state[i-1];
+	}
+		state[0]=input;
+		accum += input*num[0];
+	return gain*accum;
+}
+
+
+//convert 4 speeds to 3 speed
+static void speed4_to_speed3(const float speed4[4], float speed3[3]) {
 	for(uint8_t j=0;j<3;++j) {
 		speed3[j]=0;
 		for(uint8_t i=0;i<4;++i) {
-			speed3[j]+=QUARTERDEGREE_TO_MS*speed4_to_speed3_mat[0][j][i]*speed4[i];
+			speed3[j]+= speed4_to_speed3_mat[j][i]*speed4[i];
 		}
 	}
 }
 
-//convert m/s 3speed to quarter degree 4 speed
+//convert 3 speed to 4 speed
 static void speed3_to_speed4(const float speed3[3], float speed4[4]) {
 	for(uint8_t j=0;j<4;++j) {
 		speed4[j]=0;
 		for(uint8_t i=0;i<3;++i) {
-			speed4[j] += (1.0f/QUARTERDEGREE_TO_MS) * speed3_to_speed4_mat[j][i]*speed3[i]; 
+			speed4[j] +=  speed3_to_speed4_mat[j][i]*speed3[i]; 
 		}
 	}
 }
@@ -84,7 +92,11 @@ void control_clear() {
 }
 
 void control_process_new_setpoints(const int16_t setpoints[4]) {
-	speed4_to_speed3(setpoints, wheels_setpoints.robot);
+	float temp[4];
+	for(uint8_t i=0;i<4;++i) {
+		temp[i]= QUARTERDEGREE_TO_MS*setpoints[i];
+	}
+	speed4_to_speed3(temp, wheels_setpoints.robot);
 }
 
 void control_tick(float battery) {
@@ -93,25 +105,27 @@ void control_tick(float battery) {
 	float Accels[4];
 	float max_accel=-10;
 	float min_rescale_factor=1;
-	
+	float filtered_encoders[4];
+	for(size_t i=0;i<4;++i) {
+		filtered_encoders[i] = runDF2(wheels_encoder_counts[i],filter_gain,filter_B,filter_A,input_filter_states[i],FILTER_ORDER);
+	}
+
 	//Convert the measurements to the 3 velocity
-	speed4_to_speed3(wheels_encoder_counts, Velocity);
+	speed4_to_speed3(filtered_encoders, Velocity);
 	//This needs to be changed to the state updater
 
 	//Update the setpoint by the current rotational speed
-	rotate_velocity(wheels_setpoints.robot,-Velocity[2]/ROBOT_RADIUS*TICK_TIME);
+	rotate_velocity(wheels_setpoints.robot,-Velocity[2]/ROBOT_RADIUS*QUARTERDEGREE_TO_MS*TICK_TIME);
 
 	//Get the control error
 	for(uint8_t i=0;i<3;++i) {
-		Veldiff[i]=wheels_setpoints.robot[i]-Velocity[i];
+		Veldiff[i]=(wheels_setpoints.robot[i]-Velocity[i]*QUARTERDEGREE_TO_MS)*(DELTA_VOLTAGE_LIMIT/INPUT_NOISE)*rescale_vector[i]; //Should be desired Acceleration
 	}
 
 	//convert that control error in the 4 wheel accel direction
 	speed3_to_speed4(Veldiff,Accels);
 	
 	for(uint8_t i=0;i<4;++i) {
-		//accel from vel related by motor constant
-		Accels[i] = AGGRESSIVENESS*(DELTA_VOLTAGE_LIMIT/AGGRESSIVENESS_MAX)*Accels[i]/(INPUT_NOISE / QUARTERDEGREE_TO_MS); 		
 		if(fabsf(Accels[i]) > max_accel) {
 			max_accel = fabsf(Accels[i]);
 		}
@@ -124,21 +138,14 @@ void control_tick(float battery) {
 	}
 	
 	for(uint8_t i=0;i<4;++i) {
-		if(fabsf((VOLTAGE - wheels_encoder_counts[i]*VOLTAGE_FROM_ENCODER)/Accels[i]) < min_rescale_factor) {
-			min_rescale_factor = fabsf((VOLTAGE - wheels_encoder_counts[i]*VOLTAGE_FROM_ENCODER)/Accels[i]);
+		if(fabsf((battery - wheels_encoder_counts[i]*WHEEL_VOLTS_PER_ENCODER_COUNT)/Accels[i]) < min_rescale_factor) {
+			min_rescale_factor = fabsf((battery - wheels_encoder_counts[i]*WHEEL_VOLTS_PER_ENCODER_COUNT)/Accels[i]);
 		}
 	}
 
 	for(uint8_t i=0;i<4;++i) {
-		float	temp = (wheels_encoder_counts[i]*VOLTAGE_FROM_ENCODER+ min_rescale_factor*Accels[i])/VOLTAGE*255;
-		if(temp > 255) {
-			wheels_drives[i] = 255;
-		} else {
-			if(temp < -255) {
-				wheels_drives[i] = -255;
-			} else {
-				wheels_drives[i] = temp;
-			}
-		}
+		float	temp = (wheels_encoder_counts[i]*WHEEL_VOLTS_PER_ENCODER_COUNT+ min_rescale_factor*Accels[i])/battery*255;
+		//because I can
+		wheels_drives[i] = (temp > 255)?255:(temp<-255)?-255:temp;
 	}
 }
