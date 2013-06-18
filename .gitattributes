@@ -250,7 +250,6 @@ software/ai/hl/stp/play/ball_towards_enemy.cpp -text
 software/ai/hl/stp/play/corner_kick_friendly.cpp -text
 software/ai/hl/stp/play/defense_basic_2block.cpp -text
 software/ai/hl/stp/play/defense_basic_corner.cpp -text
-software/ai/hl/stp/play/defense_naive.cpp -text
 software/ai/hl/stp/play/defensive_block.cpp -text
 software/ai/hl/stp/play/frantic_defense.cpp -text
 software/ai/hl/stp/play/free_kick_corner_chip.cpp -text
@@ -278,7 +277,6 @@ software/ai/hl/stp/play/lone_2_player.cpp -text
 software/ai/hl/stp/play/mixed_team_defense.cpp -text
 software/ai/hl/stp/play/mixed_team_defensive_block.cpp -text
 software/ai/hl/stp/play/offensive_block.cpp -text
-software/ai/hl/stp/play/offensive_naive.cpp -text
 software/ai/hl/stp/play/our_corner_chip.cpp -text
 software/ai/hl/stp/play/our_corner_play.cpp -text
 software/ai/hl/stp/play/our_corner_shoot.cpp -text
@@ -295,7 +293,8 @@ software/ai/hl/stp/play/simple_play.h -text
 software/ai/hl/stp/play/stop.cpp -text
 software/ai/hl/stp/play/their_corner_chip.cpp -text
 software/ai/hl/stp/play/their_corner_play.cpp -text
-software/ai/hl/stp/play/tri_offence.cpp -text
+software/ai/hl/stp/play/tri_attack_defensive.cpp -text
+software/ai/hl/stp/play/tri_attack_offensive.cpp -text
 software/ai/hl/stp/play_executor.cpp -text
 software/ai/hl/stp/play_executor.h -text
 software/ai/hl/stp/predicates.cpp -text

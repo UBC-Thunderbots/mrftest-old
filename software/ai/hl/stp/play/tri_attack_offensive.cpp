@@ -5,7 +5,7 @@
 
 using AI::HL::STP::Coordinate;
 
-BEGIN_PLAY(ONaive)
+BEGIN_PLAY(TriAttackOff)
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3) && baller_can_shoot(world))
 APPLICABLE(offensive(world) && !ball_in_their_corner(world))
 DONE(goal(world))
