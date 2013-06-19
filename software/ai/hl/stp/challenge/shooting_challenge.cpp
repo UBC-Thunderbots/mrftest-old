@@ -5,6 +5,8 @@
 #include "ai/hl/stp/tactic/shooting_challenge.h"
 #include "geom/util.h"
 #include "util/param.h"
+#include "ai/common/playtype.h"
+
 
 namespace Flags = AI::Flags;
 
@@ -36,10 +38,12 @@ namespace {
 				if (friendly.size() == 0) {
 					return;
 				}
+				if (world.playtype() == AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) {
+					auto shooter = Tactic::shooting_challenge(world, 2.0);
+					shooter->set_player(friendly.get(0));
+					shooter->execute();
+				}
 
-				auto shooter = Tactic::shooting_challenge(world, 2.0);
-				shooter->set_player(friendly.get(0));
-				shooter->execute();
 			}
 
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
