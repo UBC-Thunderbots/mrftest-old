@@ -156,6 +156,8 @@ namespace {
 			}
 
 			switch (world.playtype()) {
+				case AI::Common::PlayType::HALT:
+					return;
 				case AI::Common::PlayType::STOP:
 					stop(goalie, players);
 					break;
@@ -218,27 +220,6 @@ namespace {
 				auto stop3 = Tactic::move_stop(world, 3);
 				stop3->set_player(players[3]);
 				stop3->execute();
-			}
-		}
-
-		void penalty(Player goalie, std::vector<Player> &players) {
-			if (goalie) {
-				auto g = Tactic::penalty_goalie(world);
-				g->set_player(goalie);
-				g->execute();
-			}
-			if (players.size() == 1) {
-				return;
-			}
-
-			Action::move(world, players[1], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
-
-			if (players.size() == 3) {
-				Action::move(world, players[2], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, -6 * Robot::MAX_RADIUS));
-			}
-
-			if (players.size() == 4) {
-				Action::move(world, players[3], Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 3 * Robot::MAX_RADIUS));
 			}
 		}
 

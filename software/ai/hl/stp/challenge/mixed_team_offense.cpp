@@ -133,6 +133,8 @@ namespace {
 			}
 
 			switch (world.playtype()) {
+				case AI::Common::PlayType::HALT:
+					return;
 				case AI::Common::PlayType::STOP:
 					stop(players);
 					break;
