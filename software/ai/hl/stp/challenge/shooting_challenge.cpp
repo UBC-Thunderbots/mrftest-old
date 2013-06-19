@@ -43,6 +43,9 @@ namespace {
 					shooter->set_player(friendly.get(0));
 					shooter->execute();
 				}
+//				if (world.playtype() == AI::Common::PlayType::STOP) {
+//					auto shooter = Tactic::move(world, Point(0,0));
+//				}
 
 			}
 
