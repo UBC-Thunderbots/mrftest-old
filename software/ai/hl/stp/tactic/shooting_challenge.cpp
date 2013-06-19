@@ -14,12 +14,12 @@ using namespace AI::HL::W;
 namespace {
 	class ShootingChallenge : public Tactic {
 		public:
-			ShootingChallenge(World world, double speed_ratio) : Tactic(world, true), goal_point(world.field().enemy_goal()), player_to_ball(player.position() - world.ball().position()), to_target((world.ball().position() - goal_point).orientation() - player_to_ball.orientation()), speed_ratio(speed_ratio) {
+			ShootingChallenge(World world, double speed_ratio) : Tactic(world, true), goal_point(world.field().enemy_goal()), shooter(player.position() - world.ball().position()), to_target((world.ball().position() - goal_point).orientation() - shooter.orientation()), speed_ratio(speed_ratio) {
 			}
 
 		private:
 			Point goal_point;
-			Point player_to_ball;
+			Point shooter;
 			Angle to_target;
 			double speed_ratio;
 			bool done() const {
@@ -31,7 +31,7 @@ namespace {
 			}
 
 			void execute() {
-					Angle to_target = ((world.ball().position() - goal_point).orientation()) - player_to_ball.orientation();
+					Angle to_target = ((world.ball().position() - goal_point).orientation()) - shooter.orientation();
 					player.move(player.position(), to_target, Point());
 						if (player.has_ball() == true && obstacle(player, goal_point) == false) {
 							player.autokick(speed_ratio);

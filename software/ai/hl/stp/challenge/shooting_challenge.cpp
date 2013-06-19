@@ -53,10 +53,7 @@ namespace {
 				}
 
 				else if (world.playtype() == AI::Common::PlayType::HALT) {
-					auto shooter = Tactic::idle(world);
-					shooter->set_player(friendly.get(0));
-					shooter->execute();
-
+					return;
 				}
 
 
