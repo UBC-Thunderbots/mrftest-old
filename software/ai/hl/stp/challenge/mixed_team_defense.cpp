@@ -19,6 +19,7 @@
 #include "ai/hl/stp/tactic/tdefend.h"
 #include "geom/util.h"
 #include "util/param.h"
+#include "util/dprint.h"
 
 using AI::HL::STP::PlayExecutor;
 
@@ -46,6 +47,7 @@ namespace {
 	BoolParam do_draw("draw", "MixedTeamDefense", true);
 
 	const double RESTRICTED_ZONE_LENGTH = 1.15;
+	const double DIST_FROM_PENALTY_MARK = 0.4;
 
 	struct MixedTeamDefense : public HighLevel {
 		World world;
@@ -93,6 +95,31 @@ namespace {
 				return;
 			}
 
+			Player goalie;
+			for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
+				Player p = world.friendly_team().get(i);
+				if (p.pattern() == world.friendly_team().goalie() && enabled[p.pattern()]) {
+					goalie = p;
+				}
+			}
+
+			if (!goalie) {
+				LOG_ERROR("No goalie with the desired pattern!!");
+			} else {
+				players.push_back(goalie);
+			}
+
+			for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
+				Player p = world.friendly_team().get(i);
+				if (goalie && p == goalie) {
+					// this is our goalie
+					continue;
+				} else if (!enabled[p.pattern()]) {
+					other_players.push_back(friendly.get(i));
+				}
+				players.push_back(p);
+			}
+
 			unsigned int default_flags = Flags::FLAG_AVOID_FRIENDLY_DEFENSE;
 			switch (world.playtype()) {
 				case AI::Common::PlayType::STOP:
@@ -130,32 +157,37 @@ namespace {
 
 			switch (world.playtype()) {
 				case AI::Common::PlayType::STOP:
-					stop(players);
+					stop(goalie, players);
 					break;
 
 				case AI::Common::PlayType::PREPARE_PENALTY_ENEMY:
 				case AI::Common::PlayType::EXECUTE_PENALTY_ENEMY:
-					penalty(players);
+					penalty_enemy(goalie, players);
+					break;
+				case AI::Common::PlayType::PREPARE_PENALTY_FRIENDLY:
+				case AI::Common::PlayType::EXECUTE_PENALTY_FRIENDLY:
+					penalty_friendly(goalie, players);
 					break;
 
 				case AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY:
 				case AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY:
 					if (take_free_kick) {
-						free_kick_friendly(players, other_players);
+						free_kick_friendly(goalie, players, other_players);
 					} else {
-						play(players);
+						play(goalie, players);
 					}
 					break;
 
 				default:
-					play(players);
+					play(goalie, players);
 					break;
 			}
 		}
 
-		void free_kick_friendly(std::vector<Player> &players, std::vector<Player> &other_players) {
-			Action::move(world, players[0], Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, 0));
-
+		void free_kick_friendly(Player goalie, std::vector<Player> &players, std::vector<Player> &other_players) {
+			if (goalie) {
+				Action::move(world, goalie, Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, 0));
+			}
 			if (players.size() > 1) {
 				double largest_x = -3;
 				std::size_t index = 0;
@@ -189,11 +221,12 @@ namespace {
 			}
 		}
 
-		void penalty(std::vector<Player> &players) {
-			auto goalie = Tactic::penalty_goalie(world);
-			goalie->set_player(players[0]);
-			goalie->execute();
-
+		void penalty(Player goalie, std::vector<Player> &players) {
+			if (goalie) {
+				auto g = Tactic::penalty_goalie(world);
+				g->set_player(goalie);
+				g->execute();
+			}
 			if (players.size() == 1) {
 				return;
 			}
@@ -209,9 +242,47 @@ namespace {
 			}
 		}
 
-		void stop(std::vector<Player> &players) {
-			Action::move(world, players[0], Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, 0));
+		void penalty_enemy(Player goalie, std::vector<Player> &players) {
+			if (goalie) {
+				auto g = Tactic::penalty_goalie(world);
+				g->set_player(goalie);
+				g->execute();
+			}
+			if (players.size() > 1) {
+				Action::move(world, players[1], Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + 4 * Robot::MAX_RADIUS, 0 * Robot::MAX_RADIUS));
+			}
+			if (players.size() > 2) {
+				Action::move(world, players[2], Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
+			}
+			//check magic numbers. what do they mean?
+			if (players.size() > 3) {
+				Action::move(world, players[3], Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 8 * Robot::MAX_RADIUS));
+			}
+		}
 
+		void penalty_friendly(Player goalie, std::vector<Player> &players) {
+			if (goalie) {
+				auto g = Tactic::penalty_goalie(world);
+				g->set_player(goalie);
+				g->execute();
+			}
+			if (players.size() > 1) {
+				Action::move(world, players[1], Point(world.field().penalty_enemy().x - DIST_FROM_PENALTY_MARK - Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
+			}
+			if (players.size() > 2) {
+				Action::move(world, players[2], Point(world.field().penalty_enemy().x - DIST_FROM_PENALTY_MARK - Robot::MAX_RADIUS, -6 * Robot::MAX_RADIUS));
+			}
+			//again clarify on magic numbers!
+			if (players.size() > 3) {
+				Action::move(world, players[3], Point(world.field().penalty_enemy().x - DIST_FROM_PENALTY_MARK - Robot::MAX_RADIUS, 8 * Robot::MAX_RADIUS));
+			}
+
+		}
+
+		void stop(Player goalie, std::vector<Player> &players) {
+			if (goalie) {
+				Action::move(world, goalie, Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, 0));
+			}
 			if (players.size() > 1) {
 				auto stop1 = Tactic::move_stop(world, 1);
 				stop1->set_player(players[1]);
@@ -231,25 +302,26 @@ namespace {
 			}
 		}
 
-		void play(std::vector<Player> &players) {
+		void play(Player goalie, std::vector<Player> &players) {
 			//auto waypoints = Evaluation::evaluate_defense();
-			if (players.size() == 1) {
-				auto goalie = Tactic::lone_goalie(world);
-				goalie->set_player(players[0]);
-				goalie->execute();
-				return;
+			if (goalie) {
+				auto g = Tactic::lone_goalie(world);
+				g->set_player(goalie);
+				g->execute();
 			}
 
 
 			if (use_simon) {
-				auto goalie = Tactic::defend_duo_goalie(world);
-				goalie->set_player(players[0]);
-				goalie->execute();
-
-				auto defend1 = Tactic::defend_duo_defender(world);
-				defend1->set_player(players[1]);
-				defend1->execute();
-
+				if (goalie) {
+					auto g = Tactic::defend_duo_goalie(world);
+					g->set_player(goalie);
+					g->execute();
+				}
+				if (players.size() > 1) {
+					auto defend1 = Tactic::defend_duo_defender(world);
+					defend1->set_player(players[1]);
+					defend1->execute();
+				}
 				if (players.size() > 2) {
 					auto defend2 = Tactic::defend_duo_extra1(world);
 					defend2->set_player(players[2]);
@@ -264,12 +336,6 @@ namespace {
 
 				return;
 			} else {
-
-				if (players.size() > 0) {
-					auto goalie = Tactic::lone_goalie(world);
-					goalie->set_player(players[0]);
-					goalie->execute();
-				}
 				if (players.size() > 1) {
 					auto defend1 = Tactic::tdefender1(world);
 					defend1->set_player(players[1]);

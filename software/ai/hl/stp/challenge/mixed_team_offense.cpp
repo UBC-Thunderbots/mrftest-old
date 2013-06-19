@@ -128,20 +128,8 @@ namespace {
 					break;
 			}
 			
-			if (players.size() == 1) {
-				players[0].flags(default_flags);
-			}
-
-			if (players.size() > 1) {
-				players[1].flags(default_flags);
-			}
-
-			if (players.size() > 2) {
-				players[2].flags(default_flags);
-			}
-
-			if (players.size() >3) {
-				players[3].flags(default_flags);
+			for (std::size_t i = 0 ; i < players.size() ; i++) {
+				players[i].flags(default_flags);
 			}
 
 			switch (world.playtype()) {
@@ -208,23 +196,21 @@ namespace {
 
 		void penalty_enemy(std::vector<Player> &players) {
 			if (players.size() > 0){
-				Action::move(world, players[0], Point(world.field().penalty_enemy().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
+				Action::move(world, players[0], Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
 			}
 			if (players.size() > 1) {
-				Action::move(world, players[1], Point(world.field().penalty_enemy().x + DIST_FROM_PENALTY_MARK + 4 * Robot::MAX_RADIUS, 0 * Robot::MAX_RADIUS));
+				Action::move(world, players[1], Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + 4 * Robot::MAX_RADIUS, 0 * Robot::MAX_RADIUS));
 			}
 			if (players.size() > 2) {
-				Action::move(world, players[2], Point(world.field().penalty_enemy().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
+				Action::move(world, players[2], Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 6 * Robot::MAX_RADIUS));
 			}
 			//check magic numbers. what do they mean?
 			if (players.size() > 3) {
-				Action::move(world, players[3], Point(world.field().penalty_enemy().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 8 * Robot::MAX_RADIUS));
+				Action::move(world, players[3], Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 8 * Robot::MAX_RADIUS));
 			}
 		}
 
 		void prepare_penalty_friendly(std::vector<Player> &players) {
-			// sort the players by dist to ball
-			//std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(world.ball().position()));
 			if (players.size() > 0) {
 				Action::move(world, players[0], Point(world.field().penalty_enemy().x - Robot::MAX_RADIUS, 0));
 			}
@@ -242,8 +228,6 @@ namespace {
 		}
 		
 		void execute_penalty_friendly(std::vector<Player> &players) {
-			// sort the players by dist to ball
-			//std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(world.ball().position()));
 			if (players.size() > 0) {
 				auto shooter = Tactic::penalty_shoot(world);
 				shooter->set_player(players[0]);
