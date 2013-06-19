@@ -253,7 +253,7 @@ namespace {
 			if (players.size() > 2) {
 				Action::move(world, players[2], Point(world.field().penalty_enemy().x - DIST_FROM_PENALTY_MARK - Robot::MAX_RADIUS, -6 * Robot::MAX_RADIUS));
 			}
-			//again clarify on magic numbers!
+			
 			if (players.size() > 3) {
 				Action::move(world, players[3], Point(world.field().penalty_enemy().x - DIST_FROM_PENALTY_MARK - Robot::MAX_RADIUS, 8 * Robot::MAX_RADIUS));
 			}

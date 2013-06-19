@@ -130,8 +130,14 @@ namespace AI {
 						 */
 						PlayFactory(const char *name);
 
+						/** 
+						 * \brief Used to enable and disable a play. 
+						 */ 
 						BoolParam enable;
 
+						/** 
+						 * \brief Used to specify the priority / weight of a play. 
+						 */ 
 						IntParam priority;
 						
 						/** 
