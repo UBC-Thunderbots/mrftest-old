@@ -3,6 +3,8 @@
 #include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/ui.h"
 #include "ai/hl/stp/tactic/shooting_challenge.h"
+#include "ai/hl/stp/tactic/idle.h"
+#include "ai/hl/stp/tactic/move.h"
 #include "geom/util.h"
 #include "util/param.h"
 #include "ai/common/playtype.h"
@@ -38,14 +40,25 @@ namespace {
 				if (friendly.size() == 0) {
 					return;
 				}
+
 				if (world.playtype() == AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) {
 					auto shooter = Tactic::shooting_challenge(world, 2.0);
 					shooter->set_player(friendly.get(0));
 					shooter->execute();
 				}
-//				if (world.playtype() == AI::Common::PlayType::STOP) {
-//					auto shooter = Tactic::move(world, Point(0,0));
-//				}
+				else if (world.playtype() == AI::Common::PlayType::STOP) {
+					auto shooter = Tactic::move(world, Point(0,0));
+					shooter->set_player(friendly.get(0));
+					shooter->execute();
+				}
+
+				else if (world.playtype() == AI::Common::PlayType::HALT) {
+					auto shooter = Tactic::idle(world);
+					shooter->set_player(friendly.get(0));
+					shooter->execute();
+
+				}
+
 
 			}
 
