@@ -133,7 +133,16 @@ namespace AI {
 						BoolParam enable;
 
 						IntParam priority;
-
+						
+						/** 
+						 * \brief Used to determine the playbook this play belongs to (use with bitmask)
+						 * Playbook 1 is standard play
+						 * Playbook 2 is mixed team defense
+						 * Playbook 3 is mixed team offense
+						 * ...
+						 * If you want a particular play to be available in all playbooks, simply set it 
+						 * to the maximum bitmask value (currently set to 1023 to allow a total of 10 playbooks.) 
+						 */
 						IntParam playbook;
 				};
 
