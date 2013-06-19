@@ -52,8 +52,6 @@ namespace {
 	BoolParam enable11("enable robot 11", "MixedTeamOffense", true);
 	BoolParam do_draw("draw", "MixedTeamOffense", true);
 
-	const double DIST_FROM_PENALTY_MARK = 0.4;
-
 	struct MixedTeamOffense : public HighLevel {
 		World world;
 

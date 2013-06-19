@@ -46,9 +46,6 @@ namespace {
 	BoolParam use_simon("use simon", "MixedTeamDefense", true);
 	BoolParam do_draw("draw", "MixedTeamDefense", true);
 
-	const double RESTRICTED_ZONE_LENGTH = 1.15;
-	const double DIST_FROM_PENALTY_MARK = 0.4;
-
 	struct MixedTeamDefense : public HighLevel {
 		World world;
 

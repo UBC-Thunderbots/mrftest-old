@@ -17,6 +17,7 @@ using namespace AI::HL::STP::Predicates;
 using namespace AI::HL::STP::Tactic;
 
 using AI::HL::STP::TEAM_MAX_SIZE;
+using AI::HL::STP::DIST_FROM_PENALTY_MARK;
 
 #define BEGIN_PLAY(cls) \
 	namespace { \
