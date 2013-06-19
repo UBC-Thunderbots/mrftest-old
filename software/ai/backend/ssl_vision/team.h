@@ -80,7 +80,7 @@ namespace AI {
 					 *
 					 * \param[in] ts the times at which the packets were received.
 					 */
-					void update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec (&ts)[2]);
+					void update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<timespec> &ts);
 
 					/**
 					 * \brief Locks a time for prediction across all players on the team.
@@ -128,14 +128,14 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::c
 	AI::BE::Team<TSuper>::signal_membership_changed().emit();
 }
 
-template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec (&ts)[2]) {
+template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<timespec> &ts) {
 	bool membership_changed = false;
 
 	// Update existing robots and create new robots.
-	std::vector<bool> used_data[2];
+	std::vector<bool> used_data[packets.size()]; 
 	bool seen_this_frame[NUM_PATTERNS];
 	std::fill_n(seen_this_frame, NUM_PATTERNS, false);
-	for (std::size_t i = 0; i < 2; ++i) {
+	for (std::size_t i = 0; i < packets.size(); ++i) {
 		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> &rep(*packets[i]);
 		used_data[i].resize(static_cast<std::size_t>(rep.size()), false);
 		for (std::size_t j = 0; j < static_cast<std::size_t>(rep.size()); ++j) {

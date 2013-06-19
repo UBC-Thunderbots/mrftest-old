@@ -37,7 +37,7 @@ namespace {
 	 */
 	class MRFBackend : public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
 		public:
-			explicit MRFBackend(MRFDongle &dongle, unsigned int camera_mask, int multicast_interface);
+			explicit MRFBackend(const std::vector<bool> &disable_cameras, MRFDongle &dongle, int multicast_interface);
 			BackendFactory &factory() const;
 			FriendlyTeam &friendly_team();
 			const FriendlyTeam &friendly_team() const;
@@ -52,7 +52,7 @@ namespace {
 	class MRFBackendFactory : public BackendFactory {
 		public:
 			explicit MRFBackendFactory();
-			void create_backend(const std::string &, unsigned int camera_mask, int multicast_interface, std::function<void(Backend &)> cb) const;
+			void create_backend(const std::vector<bool> &disable_cameras, const std::string &, int multicast_interface, std::function<void(Backend &)> cb) const;
 	};
 }
 
@@ -74,7 +74,7 @@ void EnemyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, pattern);
 }
 
-MRFBackend::MRFBackend(MRFDongle &dongle, unsigned int camera_mask, int multicast_interface) : Backend(camera_mask, multicast_interface, "10002"), friendly(*this, dongle), enemy(*this) {
+MRFBackend::MRFBackend(const std::vector<bool> &disable_cameras, MRFDongle &dongle, int multicast_interface) : Backend(disable_cameras, multicast_interface, "10002"), friendly(*this, dongle), enemy(*this) {
 }
 
 BackendFactory &MRFBackend::factory() const {
@@ -100,9 +100,9 @@ const EnemyTeam &MRFBackend::enemy_team() const {
 MRFBackendFactory::MRFBackendFactory() : BackendFactory("mrf") {
 }
 
-void MRFBackendFactory::create_backend(const std::string &, unsigned int camera_mask, int multicast_interface, std::function<void(Backend &)> cb) const {
+void MRFBackendFactory::create_backend(const std::vector<bool> &disable_cameras, const std::string &, int multicast_interface, std::function<void(Backend &)> cb) const {
 	MRFDongle dongle;
-	MRFBackend be(dongle, camera_mask, multicast_interface);
+	MRFBackend be(disable_cameras, dongle, multicast_interface);
 	cb(be);
 }
 

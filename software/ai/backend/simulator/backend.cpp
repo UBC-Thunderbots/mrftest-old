@@ -417,7 +417,7 @@ void AI::BE::Simulator::Backend::on_state_file_save_clicked() {
 AI::BE::Simulator::BackendFactory::BackendFactory() : AI::BE::BackendFactory("Simulator") {
 }
 
-void AI::BE::Simulator::BackendFactory::create_backend(const std::string &load_filename, unsigned int, int, std::function<void(AI::BE::Backend &)> cb) const {
+void AI::BE::Simulator::BackendFactory::create_backend(const std::vector<bool> &, const std::string &load_filename, int, std::function<void(AI::BE::Backend &)> cb) const {
 	Backend be(load_filename);
 	cb(be);
 }

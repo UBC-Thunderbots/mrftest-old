@@ -44,7 +44,7 @@ namespace {
 	 */
 	class HybridBackend : public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
 		public:
-			explicit HybridBackend(XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle, unsigned int camera_mask, int multicast_interface);
+			explicit HybridBackend(const std::vector<bool> &disable_cameras, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle, int multicast_interface);
 			BackendFactory &factory() const;
 			FriendlyTeam &friendly_team();
 			const FriendlyTeam &friendly_team() const;
@@ -59,7 +59,7 @@ namespace {
 	class HybridBackendFactory : public BackendFactory {
 		public:
 			explicit HybridBackendFactory();
-			void create_backend(const std::string &, unsigned int camera_mask, int multicast_interface, std::function<void(Backend &)> cb) const;
+			void create_backend(const std::vector<bool> &disable_cameras, const std::string &, int multicast_interface, std::function<void(Backend &)> cb) const;
 	};
 }
 
@@ -83,7 +83,7 @@ void EnemyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, pattern);
 }
 
-HybridBackend::HybridBackend(XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle, unsigned int camera_mask, int multicast_interface) : Backend(camera_mask, multicast_interface, "10002"), friendly(*this, xbee_dongle, mrf_dongle), enemy(*this) {
+HybridBackend::HybridBackend(const std::vector<bool> &disable_cameras, XBeeDongle &xbee_dongle, MRFDongle &mrf_dongle, int multicast_interface) : Backend(disable_cameras, multicast_interface, "10002"), friendly(*this, xbee_dongle, mrf_dongle), enemy(*this) {
 }
 
 BackendFactory &HybridBackend::factory() const {
@@ -109,11 +109,11 @@ const EnemyTeam &HybridBackend::enemy_team() const {
 HybridBackendFactory::HybridBackendFactory() : BackendFactory("hybrid") {
 }
 
-void HybridBackendFactory::create_backend(const std::string &, unsigned int camera_mask, int multicast_interface, std::function<void(Backend &)> cb) const {
+void HybridBackendFactory::create_backend(const std::vector<bool> &disable_cameras, const std::string &, int multicast_interface, std::function<void(Backend &)> cb) const {
 	XBeeDongle xbee_dongle;
 	xbee_dongle.enable();
 	MRFDongle mrf_dongle;
-	HybridBackend be(xbee_dongle, mrf_dongle, camera_mask, multicast_interface);
+	HybridBackend be(disable_cameras, xbee_dongle, mrf_dongle, multicast_interface);
 	cb(be);
 }
 

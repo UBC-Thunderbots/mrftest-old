@@ -13,6 +13,7 @@
 #include "util/timestep.h"
 #include <algorithm>
 #include <cerrno>
+#include <cstdint>
 #include <exception>
 #include <functional>
 #include <iostream>
@@ -165,13 +166,6 @@ int app_main(int argc, char **argv) {
 	std::string load_filename;
 	option_group.add_entry_filename(load_entry, load_filename);
 
-	Glib::OptionEntry camera_mask_entry;
-	camera_mask_entry.set_long_name("cameras");
-	camera_mask_entry.set_description("Accepts vision packets only from camera indices set in a bitmask");
-	camera_mask_entry.set_arg_description("MASK");
-	int camera_mask = 3;
-	option_group.add_entry(camera_mask_entry, camera_mask);
-
 	Glib::OptionEntry multicast_interface_entry;
 	multicast_interface_entry.set_long_name("interface");
 	multicast_interface_entry.set_description("Overrides the kernel's default choice of network interface on which to receive multicast packets");
@@ -185,6 +179,13 @@ int app_main(int argc, char **argv) {
 	backend_entry.set_arg_description("BACKEND");
 	Glib::ustring backend_name;
 	option_group.add_entry(backend_entry, backend_name);
+
+	Glib::OptionEntry disable_camera_entry;
+	disable_camera_entry.set_long_name("disable-camera");
+	disable_camera_entry.set_description("Disables reception fo packets from a particular camera");
+	disable_camera_entry.set_arg_description("ID");
+	std::vector<Glib::ustring> disable_camera_strings;
+	option_group.add_entry(disable_camera_entry, disable_camera_strings);
 
 	Glib::OptionEntry high_level_entry;
 	high_level_entry.set_long_name("hl");
@@ -255,9 +256,18 @@ int app_main(int argc, char **argv) {
 		return 0;
 	}
 
-	if (argc != 1 || (east && west) || (yellow && blue) || (camera_mask < 0)) {
+	if (argc != 1 || (east && west) || (yellow && blue)) {
 		std::cerr << option_context.get_help();
 		return 1;
+	}
+
+	std::vector<bool> disable_cameras;
+	for (auto &i : disable_camera_strings) {
+		unsigned long ul = std::stoul(Glib::locale_from_utf8(i), 0, 0);
+		if (disable_cameras.size() <= ul) {
+			disable_cameras.resize(ul + 1, false);
+		}
+		disable_cameras[ul] = true;
 	}
 
 	// Initialize the parameters.
@@ -298,7 +308,7 @@ int app_main(int argc, char **argv) {
 	if (be == bem.end()) {
 		throw std::runtime_error(Glib::ustring::compose("There is no backend '%1'.", backend_name));
 	}
-	be->second->create_backend(load_filename, static_cast<unsigned int>(camera_mask), multicast_interface_index, [setup, minimize](AI::BE::Backend &be) { app_main_with_backend(be, setup, minimize); });
+	be->second->create_backend(disable_cameras, load_filename, multicast_interface_index, [setup, minimize](AI::BE::Backend &be) { app_main_with_backend(be, setup, minimize); });
 
 	return 0;
 }

@@ -19,7 +19,7 @@ namespace AI {
 			class BackendFactory : public AI::BE::BackendFactory {
 				public:
 					BackendFactory();
-					void create_backend(const std::string &, unsigned int camera_mask, int multicast_interface, std::function<void(Backend &)> cb) const;
+					void create_backend(const std::vector<bool> &disable_cameras, const std::string &, int multicast_interface, std::function<void(Backend &)> cb) const;
 			};
 
 			extern BackendFactory grsim_backend_factory_instance;
@@ -46,7 +46,7 @@ namespace {
 
 	class Backend : public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
 		public:
-			Backend(unsigned int camera_mask, int multicast_interface);
+			Backend(const std::vector<bool> &disable_cameras, int multicast_interface);
 			AI::BE::GRSim::BackendFactory &factory() const;
 			FriendlyTeam &friendly_team();
 			const FriendlyTeam &friendly_team() const;
@@ -65,8 +65,8 @@ namespace {
 AI::BE::GRSim::BackendFactory::BackendFactory() : AI::BE::BackendFactory("grSim") {
 }
 
-void AI::BE::GRSim::BackendFactory::create_backend(const std::string &, unsigned int camera_mask, int multicast_interface, std::function<void(Backend &)> cb) const {
-	::Backend backend(camera_mask, multicast_interface);
+void AI::BE::GRSim::BackendFactory::create_backend(const std::vector<bool> &disable_cameras, const std::string &, int multicast_interface, std::function<void(Backend &)> cb) const {
+	::Backend backend(disable_cameras, multicast_interface);
 	cb(backend);
 }
 
@@ -86,7 +86,7 @@ void EnemyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, pattern);
 }
 
-Backend::Backend(unsigned int camera_mask, int multicast_interface) : AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>(camera_mask, multicast_interface, "10020"), friendly(*this), enemy(*this), grsim_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
+Backend::Backend(const std::vector<bool> &disable_cameras, int multicast_interface) : AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>(disable_cameras, multicast_interface, "10020"), friendly(*this), enemy(*this), grsim_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
 	addrinfo hints;
 	std::memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;

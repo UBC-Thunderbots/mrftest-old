@@ -12,9 +12,9 @@
 #include "util/param.h"
 #include "util/time.h"
 #include <cmath>
-#include <stdexcept>
 #include <tuple>
 #include <utility>
+#include <vector>
 
 namespace AI {
 	namespace BE {
@@ -41,13 +41,13 @@ namespace AI {
 					/**
 					 * \brief Constructs a new SSL-Vision-based backend.
 					 *
-					 * \param[in] camera_mask the bitmask of cameras whose data should be accepted.
+					 * \param[in] disable_cameras a bitmask indicating which cameras should be ignored
 					 *
 					 * \param[in] multicast_interface the index of the network interface on which to join multicast groups.
 					 *
 					 * \param[in] vision_port the port on which SSL-Vision data is delivered.
 					 */
-					explicit Backend(unsigned int camera_mask, int multicast_interface, const std::string &vision_port);
+					explicit Backend(const std::vector<bool> &disable_cameras, int multicast_interface, const std::string &vision_port);
 
 					virtual FriendlyTeam &friendly_team() = 0;
 					const FriendlyTeam &friendly_team() const = 0;
@@ -55,13 +55,13 @@ namespace AI {
 					const EnemyTeam &enemy_team() const = 0;
 
 				private:
+					const std::vector<bool> &disable_cameras;
 					AI::BE::RefBox refbox;
-					unsigned int camera_mask;
 					AI::BE::Clock::Monotonic clock;
 					AI::BE::SSLVision::VisionSocket vision_rx;
 					timespec playtype_time;
 					Point playtype_arm_ball_position;
-					std::pair<SSL_DetectionFrame, timespec> detections[2];
+					std::vector<std::pair<SSL_DetectionFrame, timespec>> detections;
 
 					void tick();
 					void handle_vision_packet(const SSL_WrapperPacket &packet);
@@ -80,11 +80,7 @@ namespace AI {
 
 template<typename FriendlyTeam, typename EnemyTeam> const double AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::BALL_FREE_DISTANCE = 0.09;
 
-template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::Backend(unsigned int camera_mask, int multicast_interface, const std::string &vision_port) : refbox(multicast_interface), camera_mask(camera_mask), vision_rx(multicast_interface, vision_port) {
-	if (!(1 <= camera_mask && camera_mask <= 3)) {
-		throw std::runtime_error("Invalid camera bitmask (must be 1–3)");
-	}
-
+template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::Backend(const std::vector<bool> &disable_cameras, int multicast_interface, const std::string &vision_port) : disable_cameras(disable_cameras), refbox(multicast_interface), vision_rx(multicast_interface, vision_port) {
 	friendly_colour().signal_changed().connect(sigc::mem_fun(this, &Backend::on_friendly_colour_changed));
 	playtype_override().signal_changed().connect(sigc::mem_fun(this, &Backend::update_playtype));
 	refbox.signal_packet.connect(sigc::mem_fun(this, &Backend::on_refbox_packet));
@@ -154,18 +150,15 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 	if (packet.has_detection()) {
 		const SSL_DetectionFrame &det(packet.detection());
 
-		// Check for a sensible camera ID number.
-		if (det.camera_id() >= 2) {
-			LOG_WARN(Glib::ustring::compose("Received SSL-Vision packet for unknown camera %1.", det.camera_id()));
-			return;
-		}
-
-		// Check for an accepted camera ID number.
-		if (!(camera_mask & (1U << det.camera_id()))) {
+		// Drop packets we are ignoring.
+		if (disable_cameras.size() > det.camera_id() && disable_cameras[det.camera_id()]) {
 			return;
 		}
 
 		// Keep a local copy of all detection frames with timestamps.
+		if (detections.size() <= det.camera_id()) {
+			detections.resize(det.camera_id() + 1);
+		}
 		detections[det.camera_id()].first.CopyFrom(det);
 		detections[det.camera_id()].second = clock.now();
 
@@ -176,14 +169,14 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 			double best_prob = 0.0;
 			Point best_pos;
 			timespec best_time;
-			for (unsigned int i = 0; i < 2; ++i) {
+			for (auto &i : detections) {
 				// Estimate the ball’s position at the camera frame’s timestamp.
-				double time_delta = timespec_to_double(timespec_sub(detections[i].second, ball_.lock_time()));
+				double time_delta = timespec_to_double(timespec_sub(i.second, ball_.lock_time()));
 				Point estimated_position = ball_.position(time_delta);
 				Point estimated_stdev = ball_.position_stdev(time_delta);
-				for (int j = 0; j < detections[i].first.balls_size(); ++j) {
+				for (int j = 0; j < i.first.balls_size(); ++j) {
 					// Compute the probability of this ball being the wanted one.
-					const SSL_DetectionBall &b(detections[i].first.balls(j));
+					const SSL_DetectionBall &b(i.first.balls(j));
 					Point detection_position(b.x() / 1000.0, b.y() / 1000.0);
 					if (defending_end() == FieldEnd::EAST) {
 						detection_position = -detection_position;
@@ -196,7 +189,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 						found = true;
 						best_prob = prob;
 						best_pos = detection_position;
-						best_time = detections[i].second;
+						best_time = i.second;
 					}
 				}
 			}
@@ -208,9 +201,15 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 		}
 
 		// Update the robots.
-		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *yellow_packets[2] = { &detections[0].first.robots_yellow(), &detections[1].first.robots_yellow() };
-		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *blue_packets[2] = { &detections[0].first.robots_blue(), &detections[1].first.robots_blue() };
-		const timespec packet_timestamps[2] = { detections[0].second, detections[1].second };
+		std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> yellow_packets(detections.size());
+		std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> blue_packets(detections.size());
+		std::vector<timespec> packet_timestamps;
+		for (std::size_t i = 0; i < detections.size(); i++) {
+			yellow_packets[i] = &detections[i].first.robots_yellow();
+			blue_packets[i] = &detections[i].first.robots_blue();
+			packet_timestamps.push_back(detections[i].second);
+		}
+
 		if (friendly_colour() == AI::Common::Colour::YELLOW) {
 			friendly_team().update(yellow_packets, packet_timestamps);
 			enemy_team().update(blue_packets, packet_timestamps);

@@ -37,7 +37,7 @@ namespace {
 	 */
 	class XBeeBackend : public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
 		public:
-			explicit XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, int multicast_interface);
+			explicit XBeeBackend(const std::vector<bool> &disable_cameras, XBeeDongle &dongle, int multicast_interface);
 			BackendFactory &factory() const;
 			FriendlyTeam &friendly_team();
 			const FriendlyTeam &friendly_team() const;
@@ -52,7 +52,7 @@ namespace {
 	class XBeeBackendFactory : public BackendFactory {
 		public:
 			explicit XBeeBackendFactory();
-			void create_backend(const std::string &, unsigned int camera_mask, int multicast_interface, std::function<void(Backend &)> cb) const;
+			void create_backend(const std::vector<bool> &disable_cameras, const std::string &, int multicast_interface, std::function<void(Backend &)> cb) const;
 	};
 }
 
@@ -72,7 +72,7 @@ void EnemyTeam::create_member(unsigned int pattern) {
 	members.create(pattern, pattern);
 }
 
-XBeeBackend::XBeeBackend(XBeeDongle &dongle, unsigned int camera_mask, int multicast_interface) : Backend(camera_mask, multicast_interface, "10002"), friendly(*this, dongle), enemy(*this) {
+XBeeBackend::XBeeBackend(const std::vector<bool> &disable_cameras, XBeeDongle &dongle, int multicast_interface) : Backend(disable_cameras, multicast_interface, "10002"), friendly(*this, dongle), enemy(*this) {
 }
 
 BackendFactory &XBeeBackend::factory() const {
@@ -98,10 +98,10 @@ const EnemyTeam &XBeeBackend::enemy_team() const {
 XBeeBackendFactory::XBeeBackendFactory() : BackendFactory("xbee") {
 }
 
-void XBeeBackendFactory::create_backend(const std::string &, unsigned int camera_mask, int multicast_interface, std::function<void(Backend &)> cb) const {
+void XBeeBackendFactory::create_backend(const std::vector<bool> &disable_cameras, const std::string &, int multicast_interface, std::function<void(Backend &)> cb) const {
 	XBeeDongle dongle;
 	dongle.enable();
-	XBeeBackend be(dongle, camera_mask, multicast_interface);
+	XBeeBackend be(disable_cameras, dongle, multicast_interface);
 	cb(be);
 }
 

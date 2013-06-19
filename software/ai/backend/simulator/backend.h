@@ -277,7 +277,7 @@ namespace AI {
 					 */
 					explicit BackendFactory();
 
-					void create_backend(const std::string &load_filename, unsigned int, int, std::function<void(AI::BE::Backend &)> cb) const;
+					void create_backend(const std::vector<bool> &, const std::string &load_filename, int, std::function<void(AI::BE::Backend &)> cb) const;
 			};
 		}
 	}
