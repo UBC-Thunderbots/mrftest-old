@@ -8,7 +8,10 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
-			namespace HACK {
+			/**
+			 * These values should purely be used to record the active tactics used. 
+			 */
+			namespace Active {
 				extern Player active_player;
 				extern Player last_kicked;
 			}

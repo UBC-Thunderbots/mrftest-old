@@ -11,8 +11,8 @@
 using AI::HL::STP::PlayExecutor;
 using namespace AI::HL::STP;
 
-Player AI::HL::STP::HACK::active_player;
-Player AI::HL::STP::HACK::last_kicked;
+Player AI::HL::STP::Active::active_player;
+Player AI::HL::STP::Active::last_kicked;
 
 namespace AI {
 	namespace HL {
@@ -211,7 +211,7 @@ void PlayExecutor::role_assignment() {
 		curr_tactic[i]->set_player(curr_assignment[i]);
 		if (curr_tactic[i]->active()) {
 			active_assigned = true;
-			HACK::active_player = curr_assignment[i];
+			Active::active_player = curr_assignment[i];
 		}
 	}
 

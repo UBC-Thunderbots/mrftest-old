@@ -18,10 +18,13 @@ namespace AI {
 				void tick_tri_attack(World world);
 
 				/**
-				 * Locations:
+				 * Location pair indices:
 				 * 0 - attacker secondary
 				 * 1 - attacker tertiary
 				 * 2 - attacker-extra (for diamond formation)
+				 * 
+				 * These Point pairs should be used for the points required by Tactic::tdefend_line.
+				 * (In place of hard coded (although still legit) values). 
 				 */
 				const std::array<std::pair<Point, Point>, MAX_ATTACKERS> evaluate_tri_attack();
 
