@@ -8,10 +8,10 @@ using AI::HL::STP::Enemy;
 namespace Predicates = AI::HL::STP::Predicates;
 
 /**
- * Mixed team defense
+ * Mixed team defense Defensive Block
  * four players
  */
-BEGIN_PLAY(MixedTeamDefensiveBlock)
+BEGIN_PLAY(MTDDefensiveBlock)
 INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && !Predicates::enemy_baller_can_shoot(world) && Predicates::enemy_baller_can_pass(world))
 APPLICABLE(Predicates::their_ball(world) && (Predicates::ball_midfield(world) || Predicates::ball_on_our_side(world)))
 DONE(!Predicates::their_ball(world) || Predicates::ball_on_their_side(world))
