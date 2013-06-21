@@ -11,6 +11,8 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
+	DoubleParam pos_dis_threshold_sd("pos distance threshold shooting def", "NC", 0.05, 0, 1.0);
+
 	class ShootingDefChallenge : public HighLevel {
 		public:
 			ShootingDefChallenge(World world) : world(world), time_steps(0) {
@@ -55,7 +57,7 @@ namespace {
 				for (std::size_t i = 0 ; i < 4 ; i++){
 					const Point diff_pos = defenders[i].position() - tasks[i][done[i]%4].first;
 
-					if (diff_pos.len() < pos_dis_threshold_nav) {
+					if (diff_pos.len() < pos_dis_threshold_sd) {
 						if (done[i] == 0) {
 							time_steps = 0;
 						}
