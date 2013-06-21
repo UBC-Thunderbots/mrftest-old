@@ -5,6 +5,8 @@
 #include "ai/hl/stp/tactic/shooting_challenge.h"
 #include "ai/hl/stp/tactic/idle.h"
 #include "ai/hl/stp/tactic/move.h"
+#include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/action/move.h"
 #include "geom/util.h"
 #include "util/param.h"
 #include "ai/common/playtype.h"
@@ -41,15 +43,12 @@ namespace {
 					return;
 				}
 				if (friendly.size() > 0) {
-					if (world.playtype() == AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) {
-						auto shooter = Tactic::shooting_challenge(world, 2.0);
-						shooter->set_player(friendly.get(0));
-						shooter->execute();
+					if (world.playtype() == AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY || world.playtype() == AI::Common::PlayType::PLAY) {
+						friendly.get(0).flags(0);
+						AI::HL::STP::Action::shoot_goal(world, friendly.get(0), true);
 					}
 					else if (world.playtype() == AI::Common::PlayType::STOP) {
-						auto shooter = Tactic::move(world, Point(0,0));
-						shooter->set_player(friendly.get(0));
-						shooter->execute();
+						Action::move(world, friendly.get(0), Point((-2*Robot::MAX_RADIUS),0));
 					}
 
 					else if (world.playtype() == AI::Common::PlayType::HALT) {
