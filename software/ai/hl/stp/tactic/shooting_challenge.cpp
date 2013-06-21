@@ -1,4 +1,5 @@
 #include "ai/hl/stp/tactic/shooting_challenge.h"
+#include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/util.h"
 #include "ai/hl/stp/tactic/util.h"
@@ -31,12 +32,14 @@ namespace {
 			}
 
 			void execute() {
-					Angle to_target = ((world.ball().position() - goal_point).orientation()) - shooter.orientation();
-					player.move(player.position(), to_target, Point());
-						if (player.has_ball() == true && obstacle(player, goal_point) == false) {
-							player.autokick(speed_ratio);
-						}
-					}
+				AI::HL::STP::Action::shoot_goal(world, player, true);
+
+				//					Angle to_target = ((world.ball().position() - goal_point).orientation()) - shooter.orientation();
+//					player.move(player.position(), to_target, Point());
+//						if (player.has_ball() == true && obstacle(player, goal_point) == false) {
+//							player.autokick(speed_ratio);
+//	/					}
+				}
 
 			bool obstacle(Player Passer, Point Destination) {
 					std::size_t size_enemy = world.enemy_team().size();

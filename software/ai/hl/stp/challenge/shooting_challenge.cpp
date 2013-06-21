@@ -40,22 +40,22 @@ namespace {
 				if (friendly.size() == 0) {
 					return;
 				}
+				if (friendly.size() > 0) {
+					if (world.playtype() == AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) {
+						auto shooter = Tactic::shooting_challenge(world, 2.0);
+						shooter->set_player(friendly.get(0));
+						shooter->execute();
+					}
+					else if (world.playtype() == AI::Common::PlayType::STOP) {
+						auto shooter = Tactic::move(world, Point(0,0));
+						shooter->set_player(friendly.get(0));
+						shooter->execute();
+					}
 
-				if (world.playtype() == AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) {
-					auto shooter = Tactic::shooting_challenge(world, 2.0);
-					shooter->set_player(friendly.get(0));
-					shooter->execute();
+					else if (world.playtype() == AI::Common::PlayType::HALT) {
+						return;
+					}
 				}
-				else if (world.playtype() == AI::Common::PlayType::STOP) {
-					auto shooter = Tactic::move(world, Point(0,0));
-					shooter->set_player(friendly.get(0));
-					shooter->execute();
-				}
-
-				else if (world.playtype() == AI::Common::PlayType::HALT) {
-					return;
-				}
-
 
 			}
 
