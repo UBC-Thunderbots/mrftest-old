@@ -36,19 +36,6 @@
 #define SPI_FLASH_SIZE (16UL / 8UL * 1024UL * 1024UL)
 #define SPI_FLASH_PARAMETERS_ADDRESS (SPI_FLASH_SIZE - 4096UL)
 
-static unsigned char stack[1024] __attribute__((section(".stack"), used));
-
-static void entry(void) __attribute__((section(".entry"), used, naked));
-static void entry(void) {
-	// Initialize the stack pointer and jump to avr_main
-	asm volatile(
-		"ldi r16, 0xFF\n\t"
-		"out 0x3D, r16\n\t"
-		"ldi r16, 0x0C\n\t"
-		"out 0x3E, r16\n\t"
-		"jmp avr_main\n\t");
-}
-
 static uint8_t channel = DEFAULT_CHANNEL, index = DEFAULT_INDEX;
 static uint16_t pan = DEFAULT_PAN;
 static bool feedback_pending = false;
@@ -416,7 +403,7 @@ static void handle_tick(void) {
 	}
 }
 
-static void avr_main(void) __attribute__((noreturn, used));
+static void avr_main(void) __attribute__((section(".entry"), noreturn, used));
 static void avr_main(void) {
 	// Initialize the debug port.
 	debug_init();
