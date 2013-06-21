@@ -181,6 +181,7 @@ software/ai/hl/hl.cpp -text
 software/ai/hl/hl.h -text
 software/ai/hl/kalman_intersect_test/kalman_intersect_test.cpp -text
 software/ai/hl/movement_benchmark/movement_benchmark_hl.cpp -text
+software/ai/hl/navigation_challenge/nav_challenge2013.cpp -text
 software/ai/hl/navigation_challenge/navigation_challenge.cpp -text
 software/ai/hl/pass_and_shoot_challenge/pass_and_shoot_challenge.cpp -text
 software/ai/hl/pass_and_shoot_challenge/pass_and_shoot_challenge_enemy_tester.cpp -text
