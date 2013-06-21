@@ -11,11 +11,7 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	DoubleParam pos_dis_threshold("pos distance threshold", "NC", 0.05, 0, 1.0);
-	DoubleParam x_diff("distance in the x direction to set the navigation points", "NC", 0.3, 0, 1.0);
-	DoubleParam y_diff("distance in the y direction to set the navigation points", "NC", 0.5, 0, 1.0);
-	
-	
+	DoubleParam pos_dis_threshold_nav("pos distance threshold nav 2013", "NC", 0.05, 0, 1.0);
 
 	class NCHL2013 : public HighLevel {
 		public:
@@ -29,26 +25,18 @@ namespace {
 
 				const Field &f = world.field();
 				const std::pair<Point, Angle> tasks[3][3] = {
-					{std::make_pair(Point(-f.length()+0.1, f.width()-0.1), Angle::ZERO),
+					{std::make_pair(Point(-f.length()/2+0.1, f.width()/2-0.1), Angle::ZERO),
 					std::make_pair(Point(0, 0), Angle::ZERO),
-					std::make_pair(Point(f.length()-0.1, -f.width()+0.1), Angle::ZERO)},
+					std::make_pair(Point(f.length()/2-0.1, -f.width()/2+0.1), Angle::ZERO)},
 					{std::make_pair(f.penalty_friendly(), Angle::ZERO),
 					std::make_pair(Point(0, 0), Angle::ZERO),
 					std::make_pair(f.penalty_enemy(), Angle::ZERO)},
-					{std::make_pair(Point(-f.length()+0.1, -f.width()+0.1), Angle::ZERO),
+					{std::make_pair(Point(-f.length()/2+0.1, -f.width()/2+0.1), Angle::ZERO),
 					std::make_pair(Point(0, 0), Angle::ZERO),
-					std::make_pair(Point(f.length()-0.1, f.width()-0.1), Angle::ZERO)},
+					std::make_pair(Point(f.length()/2-0.1, f.width()/2-0.1), Angle::ZERO)},
 				};
 
-				for (std::size_t i = 0 ; i < 3 ; i++){
-					if (done[i] > 3) {
-						return;
-					}
-				}
-
 				FriendlyTeam friendly = world.friendly_team();
-				
-				
 
 				if (friendly.size() !=3 || !(world.playtype() == PlayType::PLAY)) {
 					return;
@@ -56,14 +44,18 @@ namespace {
 
 				Player runners[] = {friendly.get(0), friendly.get(1), friendly.get(2)};
 
-				if (!runners[0] || !runners[1] || runners[1]) {
+				if (!runners[0] || !runners[1] || !runners[2]) {
 					return;
 				}
 
 				for (std::size_t i = 0 ; i < 3 ; i++){
+					if (done[i] > 3) {
+						continue;
+					}
+
 					const Point diff_pos = runners[i].position() - tasks[i][done[i]].first;
 
-					if (diff_pos.len() < pos_dis_threshold) {
+					if (diff_pos.len() < pos_dis_threshold_nav) {
 						if (done[i] == 0) {
 							time_steps = 0;
 						}
