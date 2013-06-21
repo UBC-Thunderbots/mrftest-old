@@ -16,7 +16,7 @@ namespace {
 	class ShootingDefChallenge : public HighLevel {
 		public:
 			ShootingDefChallenge(World world) : world(world), time_steps(0) {
-				for (int i = 0 ; i < 4 ; i++) done[i] = 0;
+				for (int i = 0 ; i < 5 ; i++) done[i] = 0;
 			}
 
 			HighLevelFactory &factory() const;
@@ -24,43 +24,53 @@ namespace {
 			void tick() {
 
 				const Field &f = world.field();
+				/** 
+				 * 0 - goalie
+				 * 1-4 defenders
+				 */
+
+				double x1 = f.friendly_goal().x+f.defense_area_radius()+ Robot::MAX_RADIUS;
+
 				const std::pair<Point, Angle> tasks[5][4] = {
-					{std::make_pair(Point(-f.length()/2+(0.1+Robot::MAX_RADIUS), f.width()/2-(0.1+Robot::MAX_RADIUS)), Angle::ZERO),
-					std::make_pair(Point(0, 0), Angle::ZERO),
-					std::make_pair(Point(f.length()/2-(0.1+Robot::MAX_RADIUS), -f.width()/2+(0.1+Robot::MAX_RADIUS)), Angle::ZERO)},
-					{std::make_pair(f.penalty_friendly(), Angle::ZERO),
-					std::make_pair(Point(0, 0), Angle::ZERO),
-					std::make_pair(f.penalty_enemy(), Angle::ZERO)},
-					{std::make_pair(Point(-f.length()/2+(0.1+Robot::MAX_RADIUS), -f.width()/2+(0.1+Robot::MAX_RADIUS)), Angle::ZERO),
-					std::make_pair(Point(0, 0), Angle::ZERO),
-					std::make_pair(Point(f.length()/2-(0.1+Robot::MAX_RADIUS), f.width()/2-(0.1+Robot::MAX_RADIUS)), Angle::ZERO)},
-					{std::make_pair(Point(-f.length()/2+(0.1+Robot::MAX_RADIUS), -f.width()/2+(0.1+Robot::MAX_RADIUS)), Angle::ZERO),
-					std::make_pair(Point(0, 0), Angle::ZERO),
-					std::make_pair(Point(f.length()/2-(0.1+Robot::MAX_RADIUS), f.width()/2-(0.1+Robot::MAX_RADIUS)), Angle::ZERO)},
-					{std::make_pair(Point(-f.length()/2+(0.1+Robot::MAX_RADIUS), -f.width()/2+(0.1+Robot::MAX_RADIUS)), Angle::ZERO),
-					std::make_pair(Point(0, 0), Angle::ZERO),
-					std::make_pair(Point(f.length()/2-(0.1+Robot::MAX_RADIUS), f.width()/2-(0.1+Robot::MAX_RADIUS)), Angle::ZERO)}
+					{std::make_pair(Point(f.friendly_goal().x+ Robot::MAX_RADIUS, -0.2), Angle::ZERO),
+					std::make_pair(Point(f.friendly_goal().x+ Robot::MAX_RADIUS, 0), Angle::ZERO),
+					std::make_pair(Point(f.friendly_goal().x+ Robot::MAX_RADIUS, 0.2), Angle::ZERO),
+					std::make_pair(Point(f.friendly_goal().x+ Robot::MAX_RADIUS, 0), Angle::ZERO)},
+
+					{std::make_pair(Point(x1, -0.6-Robot::MAX_RADIUS), Angle::ZERO),
+					std::make_pair(Point(x1-f.defense_area_radius()/2, -1.0-Robot::MAX_RADIUS), Angle::ZERO),
+					std::make_pair(Point(f.friendly_goal().x+ Robot::MAX_RADIUS, -1.4-Robot::MAX_RADIUS), Angle::ZERO),
+					std::make_pair(Point(x1-f.defense_area_radius()/2, -1.0-Robot::MAX_RADIUS), Angle::ZERO)},
+					{std::make_pair(Point(x1, -0.4-Robot::MAX_RADIUS), Angle::ZERO),
+					std::make_pair(Point(x1, -0.2-Robot::MAX_RADIUS), Angle::ZERO),
+					std::make_pair(Point(x1, 0-Robot::MAX_RADIUS), Angle::ZERO),
+					std::make_pair(Point(x1, -0.2-Robot::MAX_RADIUS), Angle::ZERO)},
+					{std::make_pair(Point(x1, 0.4+Robot::MAX_RADIUS), Angle::ZERO),
+					std::make_pair(Point(x1, 0.2+Robot::MAX_RADIUS), Angle::ZERO),
+					std::make_pair(Point(x1, 0+Robot::MAX_RADIUS), Angle::ZERO),
+					std::make_pair(Point(x1, 0.2+Robot::MAX_RADIUS), Angle::ZERO)},
+					{std::make_pair(Point(x1, 0.6+Robot::MAX_RADIUS), Angle::ZERO),
+					std::make_pair(Point(x1-f.defense_area_radius()/2, 1.0+Robot::MAX_RADIUS), Angle::ZERO),
+					std::make_pair(Point(f.friendly_goal().x+ Robot::MAX_RADIUS, 1.4+Robot::MAX_RADIUS), Angle::ZERO),
+					std::make_pair(Point(x1-f.defense_area_radius()/2, 1.0+Robot::MAX_RADIUS), Angle::ZERO)},
 				};
 
 				FriendlyTeam friendly = world.friendly_team();
 
-				if (friendly.size() !=4 || !(world.playtype() == PlayType::PLAY)) {
+				if (friendly.size() !=5) {
 					return;
 				}
 
-				Player defenders[] = {friendly.get(0), friendly.get(1), friendly.get(2), friendly.get(3)};
+				Player defenders[] = {friendly.get(0), friendly.get(1), friendly.get(2), friendly.get(3), friendly.get(4)};
 
-				if (!defenders[0] || !defenders[1] || !defenders[2] || !defenders[3]) {
+				if (!defenders[0] || !defenders[1] || !defenders[2] || !defenders[3] || !defenders[4]) {
 					return;
 				}
 
-				for (std::size_t i = 0 ; i < 4 ; i++){
+				for (std::size_t i = 0 ; i < 5 ; i++){
 					const Point diff_pos = defenders[i].position() - tasks[i][done[i]%4].first;
 
 					if (diff_pos.len() < pos_dis_threshold_sd) {
-						if (done[i] == 0) {
-							time_steps = 0;
-						}
 						++done[i];
 					}
 
@@ -69,10 +79,10 @@ namespace {
 						world.enemy_team().get(i).avoid_distance(AI::Flags::AvoidDistance::MEDIUM);
 					}
 
-					defenders[i].flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE);
+					//defenders[i].flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE);
 					defenders[i].type(AI::Flags::MoveType::NORMAL);
 					defenders[i].prio(AI::Flags::MovePrio::HIGH);
-					defenders[i].move(tasks[i][done[i]%4].first, tasks[i][done[i]%4].second, Point());
+					defenders[i].move(tasks[i][done[i]%4].first, (world.ball().position() - defenders[i].position()).orientation(), Point());
 				}
 			}
 
@@ -82,9 +92,8 @@ namespace {
 
 		private:
 			World world;
-			std::vector<std::pair<Point, Angle> > tasks[4];
 			int time_steps;
-			std::size_t done[4];
+			std::size_t done[5];
 	};
 }
 
