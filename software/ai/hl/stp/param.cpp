@@ -24,16 +24,4 @@ BoolParam AI::HL::STP::Tactic::random_penalty_goalie("Whether the penalty goalie
 
 DegreeParam AI::HL::STP::Tactic::separation_angle("stop: angle to separate players (degrees) for pass challenge", "STP/Tactic", 60, 60, 90);
 
-BoolParam AI::HL::STP::Test::enable0("enable robot 0", "Test/Robot", true);
-BoolParam AI::HL::STP::Test::enable1("enable robot 1", "Test/Robot", true);
-BoolParam AI::HL::STP::Test::enable2("enable robot 2", "Test/Robot", true);
-BoolParam AI::HL::STP::Test::enable3("enable robot 3", "Test/Robot", true);
-BoolParam AI::HL::STP::Test::enable4("enable robot 4", "Test/Robot", true);
-BoolParam AI::HL::STP::Test::enable5("enable robot 5", "Test/Robot", true);
-BoolParam AI::HL::STP::Test::enable6("enable robot 6", "Test/Robot", true);
-BoolParam AI::HL::STP::Test::enable7("enable robot 7", "Test/Robot", true);
-BoolParam AI::HL::STP::Test::enable8("enable robot 8", "Test/Robot", true);
-BoolParam AI::HL::STP::Test::enable9("enable robot 9", "Test/Robot", true);
-BoolParam AI::HL::STP::Test::enable10("enable robot 10", "Test/Robot", true);
-BoolParam AI::HL::STP::Test::enable11("enable robot 11", "Test/Robot", true);
 

@@ -2,7 +2,6 @@
 #include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/action/block.h"
 #include "ai/hl/stp/test/test.h"
-#include "ai/hl/stp/param.h"
 
 using namespace AI::HL;
 using namespace AI::HL::STP;
@@ -30,10 +29,8 @@ namespace {
 				if (friendly.size() == 0 || enemy.size() == 0) {
 					return;
 				}
-				if (Test::robot_enabled[friendly.get(0).pattern()]) {
-					Action::block_goal(world, friendly.get(0), enemy.get(0));
-				}
-				
+
+				Action::block_goal(world, friendly.get(0), enemy.get(0));
 			}
 	};
 }
