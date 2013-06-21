@@ -152,7 +152,7 @@ void PlayExecutor::role_assignment() {
 	#warning This removes the safety check of must having a goalie to execute a play. 
 	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 		Player p = world.friendly_team().get(i);
-		if (p.pattern() == world.friendly_team().goalie() && players_enabled[i]) {
+		if (p.pattern() == world.friendly_team().goalie() && players_enabled[p.pattern()]) {
 			goalie = p;
 		}
 	}
@@ -162,7 +162,7 @@ void PlayExecutor::role_assignment() {
 		} else {
 			for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 				Player p = world.friendly_team().get(i);
-				if (p.pattern() == static_cast<unsigned int>(goalie_pattern_index) && players_enabled[i]) {
+				if (p.pattern() == static_cast<unsigned int>(goalie_pattern_index) && players_enabled[p.pattern()]) {
 					goalie = p;
 				}
 			}
@@ -187,7 +187,7 @@ void PlayExecutor::role_assignment() {
 	std::set<Player> players;
 	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 		Player p = world.friendly_team().get(i);
-		if ((goalie && p == goalie) || !players_enabled[i]) {
+		if ((goalie && p == goalie) || !players_enabled[p.pattern()]) {
 			continue;
 		}
 		players.insert(p);

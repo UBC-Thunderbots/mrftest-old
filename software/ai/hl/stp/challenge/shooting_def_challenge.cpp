@@ -11,8 +11,6 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	DoubleParam pos_dis_threshold_nav("pos distance threshold nav 2013", "NC", 0.05, 0, 1.0);
-
 	class ShootingDefChallenge : public HighLevel {
 		public:
 			ShootingDefChallenge(World world) : world(world), time_steps(0) {
