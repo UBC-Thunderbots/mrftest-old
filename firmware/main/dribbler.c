@@ -4,7 +4,6 @@
 #include "motor.h"
 #include "power.h"
 
-#define DRIBBLER_TICK_HZ 25U
 #define CONTROL_TICKS_PER_DRIBBLER_TICK (CONTROL_LOOP_HZ / DRIBBLER_TICK_HZ)
 
 #define SPEED_CONSTANT 3760.0 // rpm per volt—EC16 datasheet
@@ -14,11 +13,13 @@
 #define PHASE_RESISTANCE 0.403 // ohms—EC16 datasheet
 #define SWITCH_RESISTANCE 0.6 // ohms—L6234 datasheet
 
-#define TARGET_PWM 180
+#define TARGET_PWM_FAST 180
+#define TARGET_PWM_SLOW 40
 #define MAX_DELTA_PWM 50
 
 static uint8_t tick_count = 0;
 bool dribbler_enabled = false;
+bool dribbler_fast = true;
 uint8_t dribbler_speed = 0;
 float dribbler_winding_energy = 0, dribbler_housing_energy = 0;
 bool dribbler_hot = false;
@@ -51,7 +52,7 @@ void dribbler_tick(float battery) {
 		uint16_t back_emf_pwm = (uint16_t) (back_emf / battery * 255.0);
 		uint8_t min_pwm = back_emf_pwm <= MAX_DELTA_PWM ? 0 : (uint8_t) (back_emf_pwm - MAX_DELTA_PWM);
 		uint8_t max_pwm = back_emf_pwm >= 255 - MAX_DELTA_PWM ? 255 : (uint8_t) (back_emf_pwm + MAX_DELTA_PWM);
-		uint8_t pwm = TARGET_PWM;
+		uint8_t pwm = dribbler_fast ? TARGET_PWM_FAST : TARGET_PWM_SLOW;
 		if (pwm > max_pwm) {
 			pwm = max_pwm;
 		} else if (pwm < min_pwm) {

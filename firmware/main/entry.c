@@ -354,6 +354,7 @@ static void handle_tick(void) {
 	wheels_tick(battery_volts);
 
 	// Run the dribbler.
+	dribbler_fast = !(autokick_armed && autokick_device);
 	dribbler_tick(battery_volts);
 
 	// Update IIR filter on battery voltage and check for low battery.
@@ -466,7 +467,7 @@ static void avr_main(void) {
 	uint32_t last_control_loop_time = rdtsc();
 	for(;;) {
 		// Check if an autokick needs to fire.
-		if (autokick_armed && read_breakbeam_diff() < BREAKBEAM_DIFF_THRESHOLD) {
+		if (autokick_armed && read_breakbeam_diff() < BREAKBEAM_DIFF_THRESHOLD && (!autokick_device || dribbler_speed < DRIBBLER_SLOW_MAX_SPEED)) {
 			set_chick_pulse(autokick_pulse_width);
 			if (autokick_device) {
 				fire_chipper();
