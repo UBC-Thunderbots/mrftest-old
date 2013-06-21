@@ -29,13 +29,15 @@ namespace {
 				tick_eval(world);
 
 				FriendlyTeam friendly = world.friendly_team();
-				if (friendly.size() < 2) {
+				if (friendly.size() < 3) {
 					return;
 				}
 
 				auto waypoints = Evaluation::evaluate_defense();
 				Action::goalie_move(world, friendly.get(0), waypoints[0]);
 				Action::defender_move(world, friendly.get(1), waypoints[1]);
+				Action::defender_move(world, friendly.get(2), waypoints[2]);
+				
 			}
 
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {

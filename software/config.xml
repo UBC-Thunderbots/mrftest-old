@@ -187,10 +187,10 @@
           <double name="block threshold distance in terms of robot radius">3.000</double>
         </category>
         <category name="defend">
-          <double name="Distance the defender should repel the ball in robot radius">3.000</double>
+          <double name="Distance the defender should repel the ball in robot radius">2.000</double>
         </category>
         <category name="Goalie">
-          <double name="Distance the goalie should repel the ball in robot radius">4.000</double>
+          <double name="Distance the goalie should repel the ball in robot radius">3.000</double>
           <double name="Lone Goalie: distance to goal post (m)">0.300</double>
         </category>
         <category name="repel">

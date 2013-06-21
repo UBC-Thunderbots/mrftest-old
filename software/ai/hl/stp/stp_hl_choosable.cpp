@@ -80,9 +80,8 @@ namespace {
 				assert(curr_play);
 
 				if (!curr_play->invariant() || curr_play->done() || curr_play->fail()) {
+					// only warn but still execute
 					LOG_WARN("play not valid");
-					// curr_play = 0;
-					// return;
 				}
 
 				// assign the players
