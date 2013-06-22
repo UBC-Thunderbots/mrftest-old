@@ -21,6 +21,8 @@ class MRFDongle;
  */
 class MRFRobot : public Drive::Robot {
 	public:
+		Drive::Dongle &dongle();
+		const Drive::Dongle &dongle() const;
 		void drive(const int(&wheels)[4], bool controlled = true);
 		bool can_coast() const;
 		void drive_coast_or_manual(const int(&wheels)[4]);
@@ -35,7 +37,7 @@ class MRFRobot : public Drive::Robot {
 	private:
 		friend class MRFDongle;
 
-		MRFDongle &dongle;
+		MRFDongle &dongle_;
 		Annunciator::Message charge_timeout_message, breakout_missing_message, chicker_missing_message, interlocks_overridden_message, low_capacitor_message;
 		std::array<std::unique_ptr<Annunciator::Message>, 10> hall_sensor_stuck_messages;
 		std::array<std::unique_ptr<Annunciator::Message>, 4> optical_encoder_not_commutating_messages;

@@ -38,6 +38,14 @@ namespace {
 	};
 }
 
+Drive::Dongle &MRFRobot::dongle() {
+	return dongle_;
+}
+
+const Drive::Dongle &MRFRobot::dongle() const {
+	return dongle_;
+}
+
 void MRFRobot::drive(const int(&wheels)[4], bool controlled) {
 	for (unsigned int i = 0; i < 4; ++i) {
 		unsigned int level_u = static_cast<unsigned int>(std::abs(wheels[i]));
@@ -48,17 +56,17 @@ void MRFRobot::drive(const int(&wheels)[4], bool controlled) {
 		if (wheels[i] < 0) {
 			level_u |= 0x400;
 		}
-		dongle.drive_packet[index][i] &= static_cast<uint16_t>(~0x7FF);
-		dongle.drive_packet[index][i] |= static_cast<uint16_t>(level_u);
+		dongle_.drive_packet[index][i] &= static_cast<uint16_t>(~0x7FF);
+		dongle_.drive_packet[index][i] |= static_cast<uint16_t>(level_u);
 	}
 
-	dongle.drive_packet[index][0] |= 1 << 14;
-	dongle.drive_packet[index][0] &= static_cast<uint16_t>(~(1 << 13));
+	dongle_.drive_packet[index][0] |= 1 << 14;
+	dongle_.drive_packet[index][0] &= static_cast<uint16_t>(~(1 << 13));
 	if (controlled) {
-		dongle.drive_packet[index][0] |= 1 << 13;
+		dongle_.drive_packet[index][0] |= 1 << 13;
 	}
 
-	dongle.dirty_drive();
+	dongle_.dirty_drive();
 }
 
 bool MRFRobot::can_coast() const {
@@ -72,41 +80,41 @@ void MRFRobot::drive_coast_or_manual(const int(&wheels)[4]) {
 			LOG_ERROR(u8"Wheel PWM duty cycle out of range");
 			level_u = 255;
 		}
-		dongle.drive_packet[index][i] &= static_cast<uint16_t>(~0x7FF);
-		dongle.drive_packet[index][i] |= static_cast<uint16_t>(level_u);
+		dongle_.drive_packet[index][i] &= static_cast<uint16_t>(~0x7FF);
+		dongle_.drive_packet[index][i] |= static_cast<uint16_t>(level_u);
 	}
 
-	dongle.drive_packet[index][0] &= static_cast<uint16_t>(~(3 << 13));
-	dongle.dirty_drive();
+	dongle_.drive_packet[index][0] &= static_cast<uint16_t>(~(3 << 13));
+	dongle_.dirty_drive();
 }
 
 void MRFRobot::drive_brake() {
-	dongle.drive_packet[index][0] &= static_cast<uint16_t>(~(3 << 13));
-	dongle.drive_packet[index][0] |= 1 << 13;
-	dongle.dirty_drive();
+	dongle_.drive_packet[index][0] &= static_cast<uint16_t>(~(3 << 13));
+	dongle_.drive_packet[index][0] |= 1 << 13;
+	dongle_.dirty_drive();
 }
 
 void MRFRobot::dribble(bool active) {
-	dongle.drive_packet[index][0] &= static_cast<uint16_t>(~(1 << 12));
+	dongle_.drive_packet[index][0] &= static_cast<uint16_t>(~(1 << 12));
 	if (active) {
-		dongle.drive_packet[index][0] |= 1 << 12;
+		dongle_.drive_packet[index][0] |= 1 << 12;
 	}
-	dongle.dirty_drive();
+	dongle_.dirty_drive();
 }
 
 void MRFRobot::set_charger_state(ChargerState state) {
-	dongle.drive_packet[index][1] &= static_cast<uint16_t>(~(0b11 << 14));
+	dongle_.drive_packet[index][1] &= static_cast<uint16_t>(~(0b11 << 14));
 	switch (state) {
 		case ChargerState::FLOAT:
 			break;
 		case ChargerState::DISCHARGE:
-			dongle.drive_packet[index][1] |= 0b01 << 14;
+			dongle_.drive_packet[index][1] |= 0b01 << 14;
 			break;
 		case ChargerState::CHARGE:
-			dongle.drive_packet[index][1] |= 0b10 << 14;
+			dongle_.drive_packet[index][1] |= 0b10 << 14;
 			break;
 	}
-	dongle.dirty_drive();
+	dongle_.dirty_drive();
 }
 
 double MRFRobot::kick_pulse_maximum() const {
@@ -126,7 +134,7 @@ void MRFRobot::kick(bool chip, double pulse_width) {
 	buffer[2] = static_cast<uint8_t>(clamped);
 	buffer[3] = static_cast<uint8_t>(clamped >> 8);
 
-	dongle.send_unreliable(index, buffer, sizeof(buffer));
+	dongle_.send_unreliable(index, buffer, sizeof(buffer));
 }
 
 void MRFRobot::autokick(bool chip, double pulse_width) {
@@ -139,18 +147,18 @@ void MRFRobot::autokick(bool chip, double pulse_width) {
 		buffer[2] = static_cast<uint8_t>(clamped);
 		buffer[3] = static_cast<uint8_t>(clamped >> 8);
 
-		dongle.send_unreliable(index, buffer, sizeof(buffer));
+		dongle_.send_unreliable(index, buffer, sizeof(buffer));
 	} else {
 		uint8_t buffer[1];
 		buffer[0] = 0x02;
 
-		dongle.send_unreliable(index, buffer, sizeof(buffer));
+		dongle_.send_unreliable(index, buffer, sizeof(buffer));
 	}
 }
 
 MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) :
 		Drive::Robot(index),
-		dongle(dongle),
+		dongle_(dongle),
 		charge_timeout_message(Glib::ustring::compose(u8"Bot %1 charge timeout", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
 		breakout_missing_message(Glib::ustring::compose(u8"Bot %1 breakout missing", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
 		chicker_missing_message(Glib::ustring::compose(u8"Bot %1 chicker missing", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),

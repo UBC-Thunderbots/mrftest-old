@@ -6,6 +6,8 @@
 #include "util/property.h"
 
 namespace Drive {
+	class Dongle;
+
 	/**
 	 * \brief A generic driveable robot.
 	 */
@@ -90,6 +92,20 @@ namespace Drive {
 			 * \brief Destroys a \code Robot.
 			 */
 			virtual ~Robot();
+
+			/**
+			 * \brief Returns the dongle controlling the robot.
+			 *
+			 * \return the dongle
+			 */
+			virtual Drive::Dongle &dongle() = 0;
+
+			/**
+			 * \brief Returns the dongle controlling the robot.
+			 *
+			 * \return the dongle
+			 */
+			virtual const Drive::Dongle &dongle() const = 0;
 
 			/**
 			 * \brief Sets the speeds of the robot’s wheels.

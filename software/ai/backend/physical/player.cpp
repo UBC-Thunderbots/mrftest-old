@@ -1,4 +1,5 @@
 #include "ai/backend/physical/player.h"
+#include "drive/dongle.h"
 #include "drive/robot.h"
 #include "geom/angle.h"
 #include "util/algorithm.h"
@@ -107,7 +108,7 @@ void Player::on_autokick_fired() {
 
 void Player::tick(bool halt) {
 	// Check for emergency conditions.
-	if (!bot.alive) {
+	if (!bot.alive || bot.dongle().estop_state != Drive::Dongle::EStopState::RUN) {
 		halt = true;
 	}
 

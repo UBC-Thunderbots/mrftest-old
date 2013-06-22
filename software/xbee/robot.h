@@ -100,6 +100,8 @@ class XBeeRobot : public Drive::Robot {
 		 */
 		class FirmwareReadBuildSignaturesOperation;
 
+		Drive::Dongle &dongle();
+		const Drive::Dongle &dongle() const;
 		void drive(const int(&wheels)[4], bool controlled = true);
 		bool can_coast() const;
 		void drive_coast_or_manual(const int(&)[4]);
@@ -128,7 +130,7 @@ class XBeeRobot : public Drive::Robot {
 	private:
 		friend class XBeeDongle;
 
-		XBeeDongle &dongle;
+		XBeeDongle &dongle_;
 		XBeePackets::Drive drive_block, last_drive_block;
 		Annunciator::Message encoder_1_stuck_message, encoder_2_stuck_message, encoder_3_stuck_message, encoder_4_stuck_message;
 		Annunciator::Message hall_stuck_message;
