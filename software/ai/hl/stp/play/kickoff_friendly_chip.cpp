@@ -38,9 +38,11 @@ BEGIN_ASSIGN()
 // GOALIE
 goalie_role.push_back(goalie_dynamic(world, 1));
 
-// ROLE 1
+// ROLE 1 
+// chip at half power
 roles[0].push_back(wait_playtype(world, move(world, kicker_position), AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY));
-roles[0].push_back(free_kick_pass(world, world.field().enemy_goal(), true));
+//roles[0].push_back(free_kick_pass(world, world.field().enemy_goal(), true));
+roles[0].push_back(free_kick_pass(world, world.field().enemy_goal(), true, 0.67));
 
 // ROLE 2
 roles[1].push_back(defend_duo_defender(world));
