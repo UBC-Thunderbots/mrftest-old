@@ -43,7 +43,7 @@ roles[3].push_back(block_ball(world, Enemy::closest_ball(world, 0)));
 
 // ROLE 5 (optional)
 // offend
-roles[4].push_back(offend(world));
+roles[4].push_back(defend_duo_extra2(world));
 
 END_ASSIGN()
 END_PLAY()

@@ -22,6 +22,6 @@ void AI::HL::STP::Action::defender_move(World world, Player player, const Point 
 	}
 	player.move(dest, (world.ball().position() - player.position()).orientation(), Point());
 	player.type(AI::Flags::MoveType::NORMAL);
-	player.flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE);
+	//player.flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE);
 }
 
