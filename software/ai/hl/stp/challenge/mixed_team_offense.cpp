@@ -17,7 +17,6 @@
 #include "ai/hl/stp/tactic/idle.h"
 #include "ai/hl/stp/tactic/move_stop.h"
 #include "ai/hl/stp/tactic/penalty_goalie.h"
-#include "ai/hl/stp/tactic/tdefend.h"
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/penalty_shoot.h"
 #include "ai/hl/stp/tactic/shadow_kickoff.h"
@@ -27,8 +26,10 @@
 #include "ai/hl/stp/predicates.h"
 #include "geom/util.h"
 #include "util/param.h"
+#include "ai/hl/stp/tactic/tdefend.h"
 
 using AI::HL::STP::PlayExecutor;
+using AI::HL::STP::Coordinate;
 
 namespace Flags = AI::Flags;
 
@@ -36,6 +37,7 @@ using namespace AI::HL;
 using namespace AI::HL::STP;
 using namespace AI::HL::W;
 using namespace AI::HL::STP::Predicates;
+
 
 namespace {
 	BoolParam enable0("enable robot 0", "MixedTeamOffense", true);
@@ -121,7 +123,6 @@ namespace {
 					default_flags |= Flags::FLAG_AVOID_BALL_STOP;
 					default_flags |= Flags::FLAG_AVOID_ENEMY_DEFENSE;
 					default_flags |= Flags::FLAG_PENALTY_KICK_ENEMY;
-
 				default:
 					break;
 			}
@@ -162,6 +163,8 @@ namespace {
 					break;
 				case AI::Common::PlayType::PLAY:
 					play(players);
+                                        tri_attack_diamond(players);
+                                        back_up_stell(players);
 				default:
 					return;
 					break;
@@ -388,6 +391,60 @@ namespace {
 				auto block2 = Tactic::block_ball(world, Enemy::closest_ball(world, 2));
 				block2->set_player(players[3]);
 				block2->execute();
+			}			
+
+		}
+                
+                void tri_attack_diamond(std::vector<Player> &players) {
+			// sort the players by dist to ball
+			std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(world.ball().position()));
+			if (players.size() > 0) {
+				auto active = Tactic::shoot_goal(world, true);
+				active->set_player(players[0]);
+				active->execute();
+			}
+
+			if (players.size() > 1) {
+				auto dline1 = Tactic::tdefend_line(world, Coordinate(world, Point(-1.1, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-0.7, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 1.5);
+				dline1->set_player(players[1]);
+				dline1->execute();
+			}
+			if (players.size() > 2) {
+				auto dline2 = Tactic::tdefend_line(world, Coordinate(world, Point(-1.1, 0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-0.7, -0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 1.5);
+				dline2->set_player(players[2]);
+				dline2->execute();
+			}
+			if (players.size() > 3) {
+				auto dline3 = Tactic::tdefend_line(world, Coordinate(world, Point(-1.6, 0.45), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-1.2, -0.5), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 1.5);
+				dline3->set_player(players[3]);
+				dline3->execute();
+			}			
+
+		}
+
+                void back_up_stell(std::vector<Player> &players) {
+			// sort the players by dist to ball
+			std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(world.ball().position()));
+			if (players.size() > 0) {
+				auto steal = Tactic::back_up_steal(world);				
+				steal->set_player(players[0]);
+				steal->execute();
+			}
+
+			if (players.size() > 1) {
+				auto offend = Tactic::offend(world);
+				offend->set_player(players[1]);
+				offend->execute();
+			}
+			if (players.size() > 2) {
+				auto offend2 = Tactic::offend_secondary(world);
+				offend2->set_player(players[2]);
+				offend2->execute();
+			}
+			if (players.size() > 3) {
+				auto block = Tactic::block_ball(world, Enemy::closest_ball(world, 1));
+				block->set_player(players[3]);
+				block->execute();
 			}			
 
 		}
