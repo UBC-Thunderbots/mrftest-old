@@ -43,9 +43,11 @@ namespace AI {
 					/**
 					 * \brief Drives one tick of time through the RobotController and to the radio.
 					 *
-					 * \param[in] halt \c true if the current play type is halt, or \c false if not.
+					 * \param[in] halt \c true if the current play type is halt, or \c false if not
+					 *
+					 * \param[in] stop \c true if the current play type is stop, or \c false if not
 					 */
-					void tick(bool halt);
+					void tick(bool halt, bool stop);
 
 					bool has_ball() const;
 					bool chicker_ready() const;

@@ -19,7 +19,7 @@ namespace AI {
 					bool has_ball() const;
 					bool chicker_ready() const;
 					bool autokick_fired() const;
-					void tick(bool halt);
+					void tick(bool halt, bool stop);
 					void encode_orders(grSim_Robot_Command &packet);
 
 				protected:

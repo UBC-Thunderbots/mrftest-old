@@ -115,7 +115,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 
 	// Do post-AI stuff (pushing data to the radios and updating predictors).
 	for (std::size_t i = 0; i < friendly_team().size(); ++i) {
-		friendly_team().get_backend_robot(i)->tick(playtype() == AI::Common::PlayType::HALT);
+		friendly_team().get_backend_robot(i)->tick(playtype() == AI::Common::PlayType::HALT, playtype() == AI::Common::PlayType::STOP);
 		friendly_team().get_backend_robot(i)->update_predictor(monotonic_time_);
 	}
 

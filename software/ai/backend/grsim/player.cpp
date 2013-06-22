@@ -46,14 +46,14 @@ bool Player::autokick_fired() const {
 	return autokick_fired_;
 }
 
-void Player::tick(bool halt) {
+void Player::tick(bool halt, bool stop) {
 	if (halt) {
 		std::fill_n(wheel_speeds_, 4, 0);
 		dribble = false;
 		chick_mode = ChickMode::IDLE;
 		chick_power = 0.0;
 	} else {
-		dribble = true;
+		dribble = !stop;
 	}
 }
 

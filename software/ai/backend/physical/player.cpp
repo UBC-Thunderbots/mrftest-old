@@ -106,7 +106,7 @@ void Player::on_autokick_fired() {
 	autokick_fired_ = true;
 }
 
-void Player::tick(bool halt) {
+void Player::tick(bool halt, bool stop) {
 	// Check for emergency conditions.
 	if (!bot.alive || bot.dongle().estop_state != Drive::Dongle::EStopState::RUN) {
 		halt = true;
@@ -141,8 +141,8 @@ void Player::tick(bool halt) {
 	}
 	controlled = false;
 
-	// Dribbler should always run except in halt.
-	bot.dribble(!halt);
+	// Dribbler should always run except in halt or stop.
+	bot.dribble(!halt && !stop);
 
 	// Kicker should always charge except in halt.
 	bot.set_charger_state(halt ? Drive::Robot::ChargerState::FLOAT : Drive::Robot::ChargerState::CHARGE);
