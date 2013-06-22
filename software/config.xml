@@ -142,6 +142,8 @@
       <double name="distance in the x direction to set the navigation points">0.400</double>
       <double name="distance in the y direction to set the navigation points">0.500</double>
       <double name="pos distance threshold">0.200</double>
+      <double name="pos distance threshold nav 2013">0.050</double>
+      <double name="pos distance threshold shooting def">0.050</double>
     </category>
     <category name="RC">
       <category name="Circle">
@@ -221,7 +223,7 @@
         <boolean name="goalie hug switch">false</boolean>
         <double name="max goalie dist from goal (robot radius)">5.00</double>
         <boolean name="open net enemy is dangerous">true</boolean>
-        <double name="shrink robot radius">0.900</double>
+        <double name="shrink robot radius">0.800</double>
       </category>
       <category name="draw">
         <boolean name="draw ray">false</boolean>
@@ -307,8 +309,9 @@
           <boolean name="KickoffFriendly">false</boolean>
           <boolean name="KickoffFriendlyChip">true</boolean>
           <boolean name="Lone2Player">true</boolean>
-          <boolean name="MixedTeamDefense">true</boolean>
-          <boolean name="MixedTeamDefensiveBlock">true</boolean>
+          <boolean name="MTDDefensive">true</boolean>
+          <boolean name="MTDDefensiveBlock">true</boolean>
+          <boolean name="MTOJustShoot">true</boolean>
           <boolean name="OffensiveBlock">true</boolean>
           <boolean name="OurCornerChip">false</boolean>
           <boolean name="OurCornerPlay">true</boolean>
@@ -357,8 +360,9 @@
           <integer name="KickoffFriendly">1023</integer>
           <integer name="KickoffFriendlyChip">1023</integer>
           <integer name="Lone2Player">1023</integer>
-          <integer name="MixedTeamDefense">2</integer>
-          <integer name="MixedTeamDefensiveBlock">2</integer>
+          <integer name="MTDDefensive">1023</integer>
+          <integer name="MTDDefensiveBlock">1023</integer>
+          <integer name="MTOJustShoot">1023</integer>
           <integer name="OffensiveBlock">1023</integer>
           <integer name="OurCornerChip">1023</integer>
           <integer name="OurCornerPlay">1023</integer>
@@ -407,8 +411,9 @@
           <integer name="KickoffFriendly">5</integer>
           <integer name="KickoffFriendlyChip">5</integer>
           <integer name="Lone2Player">5</integer>
-          <integer name="MixedTeamDefense">5</integer>
-          <integer name="MixedTeamDefensiveBlock">5</integer>
+          <integer name="MTDDefensive">5</integer>
+          <integer name="MTDDefensiveBlock">5</integer>
+          <integer name="MTOJustShoot">5</integer>
           <integer name="OffensiveBlock">5</integer>
           <integer name="OurCornerChip">5</integer>
           <integer name="OurCornerPlay">5</integer>
