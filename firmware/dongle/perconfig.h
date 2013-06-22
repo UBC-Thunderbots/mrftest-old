@@ -39,7 +39,7 @@ typedef struct normal_in_packet {
 typedef struct {
 	normal_out_packet_t out_packets[128];
 	normal_in_packet_t in_packets[64];
-	uint8_t drive_packet[64];
+	uint8_t drive_packet[65];
 } normal_perconfig_t;
 
 /**

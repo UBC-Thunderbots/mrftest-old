@@ -51,6 +51,7 @@ static uint32_t last_drive_packet_time = 0;
 static uint16_t battery_average;
 static bool radio_tx_packet_prepared = false, radio_tx_packet_reliable;
 static bool log_overflow_feedback_report_pending = false;
+static uint8_t last_drive_data_serial = 0xFF;
 
 static void shutdown_sequence(void) __attribute__((noreturn));
 static void shutdown_sequence(void) {
@@ -175,8 +176,8 @@ static void handle_radio_receive(void) {
 			static const uint8_t HEADER_LENGTH = 2 /* Frame control */ + 1 /* Seq# */ + 2 /* Dest PAN */ + 2 /* Dest */ + 2 /* Src */;
 			static const uint8_t FOOTER_LENGTH = 2;
 			if (dest_address == 0xFFFF) {
-				// Broadcast frame must contain drive packet, which must be 64 bytes long
-				if (frame_length == HEADER_LENGTH + 64 + FOOTER_LENGTH) {
+				// Broadcast frame must contain drive packet, which must be 65 bytes long
+				if (frame_length == HEADER_LENGTH + 65 + FOOTER_LENGTH) {
 					// Construct the individual 16-bit words sent from the host.
 					last_drive_packet_time = rdtsc();
 					const uint8_t offset = 1 + HEADER_LENGTH + 8 * index;
@@ -186,6 +187,9 @@ static void handle_radio_receive(void) {
 						words[i] <<= 8;
 						words[i] |= mrf_rx_buffer[offset + i * 2];
 					}
+
+					// Pull out the serial number at the end.
+					uint8_t drive_data_serial = mrf_rx_buffer[1 + HEADER_LENGTH + 64];
 
 					// Check for feedback request.
 					feedback_pending = !!(words[0] & 0x8000);
@@ -206,11 +210,14 @@ static void handle_radio_receive(void) {
 							case 0b11: wheels_mode = WHEELS_MODE_CLOSED_LOOP; break;
 						}
 						if (wheels_mode == WHEELS_MODE_CLOSED_LOOP) {
-							control_process_new_setpoints(new_setpoints);
+							if (drive_data_serial != last_drive_data_serial) {
+								control_process_new_setpoints(new_setpoints);
+							}
 						} else {
 							memcpy(wheels_setpoints.wheels, new_setpoints, sizeof(new_setpoints));
 						}
 					}
+					last_drive_data_serial = drive_data_serial;
 
 					// Set new dribbler mode.
 					// Delay sending new mode to motors until after evaluating drivetrain power to avoid possible latchup in motor drivers if drivetrain is unpowered.

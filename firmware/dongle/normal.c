@@ -114,7 +114,7 @@ static void send_drive_packet(void) {
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 10, 0x01); // Source address MSB
 	const uint8_t *bptr = (const uint8_t *) perconfig.normal.drive_packet;
 	if (estop_read() != ESTOP_RUN) {
-		for (size_t i = 0; i < sizeof(perconfig.normal.drive_packet); i += 8) {
+		for (size_t i = 0; i < sizeof(perconfig.normal.drive_packet) - 1; i += 8) {
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 1, (i == poll_index * sizeof(perconfig.normal.drive_packet) / 8) ? 0b10000000 : 0b00000000);
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 0, 0x00);
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 3, 0b01000000);
@@ -124,6 +124,7 @@ static void send_drive_packet(void) {
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 7, 0x00);
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 6, 0x00);
 		}
+		mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + sizeof(perconfig.normal.drive_packet) - 1, perconfig.normal.drive_packet[sizeof(perconfig.normal.drive_packet) - 1]);
 	} else {
 		for (size_t i = 0; i < sizeof(perconfig.normal.drive_packet); ++i) {
 			uint8_t mask = 0;
@@ -457,6 +458,9 @@ static void on_ep1_out_packet(size_t bcnt) {
 		if (legal) {
 			// Copy to final buffer.
 			memcpy(perconfig.normal.drive_packet, temp, sizeof(temp));
+
+			// Increment drive data counter.
+			++perconfig.normal.drive_packet[sizeof(perconfig.normal.drive_packet) - 1];
 		} else {
 			// Halt the endpoint later.
 			drive_packet_halt_pending = true;
