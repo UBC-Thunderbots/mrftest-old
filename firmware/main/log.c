@@ -5,55 +5,30 @@
 #include <string.h>
 
 #define SECTOR_SIZE 512U
+#define BUFFER_SECTORS 4U
 #define RECORDS_PER_SECTOR (SECTOR_SIZE / LOG_RECORD_SIZE)
 
 typedef int LOG_RECORD_T_IS_TOO_FAT[sizeof(log_record_t) == LOG_RECORD_SIZE ? 1 : -1];
 typedef int LOG_RECORD_T_IS_NOT_DIVISIBLE_BY_SECTOR_SIZE[SECTOR_SIZE % LOG_RECORD_SIZE == 0 ? 1 : -1];
 
-static log_record_t buffers[2][RECORDS_PER_SECTOR];
+static log_record_t buffers[BUFFER_SECTORS][RECORDS_PER_SECTOR];
 static log_state_t state = LOG_STATE_UNINITIALIZED;
-static uint8_t next_alloc_buffer, next_alloc_record;
+static uint8_t next_write_buffer, next_alloc_buffer, next_alloc_record;
 static uint16_t epoch;
 static uint32_t next_write_sector;
 static uint32_t last_time_lsb = 0, last_time_msb = 0;
 
-// State machine:
+// next_write_buffer is the index of the next buffer to write to the card.
+// If a write operation is ongoing, the write operation is writing buffer next_write_buffer-1.
 //
-// (1) If next_alloc_record < LOG_RECORDS_PER_SECTOR, then:
-//   (1a) If no DMA operation is in progress, then:
-//     buffers[next_alloc_buffer][0 … next_alloc_record-1] are used
-//     buffers[next_alloc_buffer][next_alloc_record … RECORDS_PER_SECTOR-1] are free and will be used next
-//     buffers[!next_alloc_buffer] are free and will be used later
-//     when buffers[next_alloc_buffer][RECORDS_PER_SECTOR-1] is committed:
-//       buffers[next_alloc_buffer] is sent to DMA,
-//       next_alloc_buffer is set to !next_alloc_buffer, and
-//       next_alloc_record is set to zero, yielding state (1b)
+// next_alloc_buffer is usually the index of the buffer in which the next record is allocated.
+// However, if next_alloc_record is RECORDS_PER_SECTOR, then next_alloc_buffer the next allocation will be in next_alloc_buffer+1.
 //
-//   (1b) If a DMA operation is in progress, then:
-//     buffers[next_alloc_buffer][0 … next_alloc_record-1] are used
-//     buffers[next_alloc_buffer][next_alloc_record … RECORDS_PER_SECTOR-1] are free and will be used next
-//     buffers[!next_alloc_buffer] are being written to card
-//     when the DMA finishes:
-//       buffers[!next_alloc_buffer] are no longer needed and, with no further action, state (1a) applies
-//     when buffers[next_alloc_buffer][RECORDS_PER_SECTOR-1] is committed:
-//       next_alloc_record is set to RECORDS_PER_SECTOR, yielding state (2b)
+// In all cases, records [next_write_buffer][0] through [next_alloc_buffer][next_alloc_record-1] are used.
+// If a write is ongoing, then [next_write_buffer-1][0…RECORDS_PER_SECTOR-1] are also used.
 //
-// (2) If next_alloc_record == RECORDS_PER_SECTOR, then:
-//   (2a) If no DMA operation is in progress, then:
-//     buffers[next_alloc_buffer] are used
-//     buffers[!next_alloc_buffer] are free and will be used next,
-//     when an allocation requests occurs:
-//       buffers[next_alloc_buffer] is sent to DMA,
-//       next_alloc_buffer is set to !next_alloc_buffer,
-//       next_alloc_record is set to zero, yielding state (1b), and
-//       the allocation is handled as always, returning the new buffers[next_alloc_buffer][next_alloc_record]
-//
-//   (2b) If a DMA operation is in progress, then:
-//     buffers[next_alloc_buffer] are used
-//     buffers[!next_alloc_buffer] are being written to card
-//     allocations fail because no records are free
-//     when the DMA finishes:
-//       buffers[!next_alloc_buffer] are no longer needed and, with on further action, state (2a) applies
+// If next_alloc_record = RECORDS_PER_SECTOR then [next_write_buffer][0…RECORDS_PER_SECTOR-1] are used.
+// If next_alloc_record = 0 then [next_write_buffer][0…RECORDS_PER_SECTOR-1] are free or being written.
 
 log_state_t log_state(void) {
 	return state;
@@ -108,6 +83,7 @@ bool log_init(void) {
 	}
 
 	printf("LOG: Start epoch %" PRIu16 " at sector %" PRIu32 "\n", epoch, next_write_sector);
+	next_write_buffer = 0;
 	next_alloc_buffer = 0;
 	next_alloc_record = 0;
 	state = LOG_STATE_OK;
@@ -126,9 +102,22 @@ void log_deinit(void) {
 		return;
 	}
 
+	// Flush out any full buffers.
+	while (next_write_buffer != next_alloc_buffer) {
+		if (!sd_write_multi_sector(&buffers[next_write_buffer])) {
+			state = LOG_STATE_SD_ERROR;
+			return;
+		}
+		next_write_buffer = (next_write_buffer + 1) % BUFFER_SECTORS;
+		while (sd_write_multi_busy());
+		if (sd_status() != SD_STATUS_OK) {
+			return;
+		}
+	}
+
 	// If some records have been committed to the current sector, we must wipe the rest of the records and write out the sector.
 	if (next_alloc_record) {
-		while (next_alloc_record < RECORDS_PER_SECTOR) {
+		while (next_alloc_record != RECORDS_PER_SECTOR) {
 			memset(&buffers[next_alloc_buffer][next_alloc_record], 0, sizeof(log_record_t));
 			++next_alloc_record;
 		}
@@ -153,6 +142,15 @@ void log_deinit(void) {
 	state = LOG_STATE_UNINITIALIZED;
 }
 
+static void try_start_write(void) {
+	if (!sd_write_multi_busy()) {
+		if (next_write_buffer != next_alloc_buffer || next_alloc_record == RECORDS_PER_SECTOR) {
+			sd_write_multi_sector(&buffers[next_write_buffer]);
+			next_write_buffer = (next_write_buffer + 1) % BUFFER_SECTORS;
+		}
+	}
+}
+
 static log_record_t *log_alloc_impl(void) {
 	// Sanity check.
 	if (state != LOG_STATE_OK && state != LOG_STATE_OVERFLOW) {
@@ -166,27 +164,32 @@ static log_record_t *log_alloc_impl(void) {
 		return 0;
 	}
 
-	// Check if we can do this the easy way, described by cases 1 in the state machine.
-	if (next_alloc_record < RECORDS_PER_SECTOR) {
-		return &buffers[next_alloc_buffer][next_alloc_record];
+	// See if we can fix up next_alloc_record == RECORDS_PER_SECTOR by stepping to the next buffer.
+	// If a write is active, then next_write_buffer-1 is being written.
+	// So, we cannot step next_alloc_buffer to next_write_buffer-1 as then we would allocate from the sector being written.
+	// This is the case when, currently, next_alloc_buffer+1 == next_write_buffer-1, or equivalently, next_alloc_buffer+2 == next_write_buffer.
+	// If a write is not active, it is always safe to step this up.
+	// It is not possible that a write is not active but the buffers are full, because then we would have started a write just above.
+	if (next_alloc_record == RECORDS_PER_SECTOR) {
+		if (!sd_write_multi_busy() || ((next_alloc_buffer + 2) % BUFFER_SECTORS) != next_write_buffer) {
+			next_alloc_buffer = (next_alloc_buffer + 1) % BUFFER_SECTORS;
+			next_alloc_record = 0;
+		}
 	}
 
-	// Check for case 2a in the state machine.
-	if (!sd_write_multi_busy()) {
-		if (!sd_write_multi_sector(buffers[next_alloc_buffer])) {
-			state = LOG_STATE_SD_ERROR;
-			return 0;
-		}
-		next_alloc_buffer = !next_alloc_buffer;
-		next_alloc_record = 0;
-		++next_write_sector;
+	// Try starting a write.
+	try_start_write();
+
+	// Try to allocate a record.
+	// The buffer is full if next_alloc_record == RECORDS_PER_SECTOR.
+	// This cannot be true in any other case because, if it were, it would have been fixed above.
+	if (next_alloc_record == RECORDS_PER_SECTOR) {
+		state = LOG_STATE_OVERFLOW;
+		return 0;
+	} else {
 		state = LOG_STATE_OK;
 		return &buffers[next_alloc_buffer][next_alloc_record];
 	}
-
-	// Buffer is full.
-	state = LOG_STATE_OVERFLOW;
-	return 0;
 }
 
 log_record_t *log_alloc(void) {
@@ -213,27 +216,8 @@ void log_commit(void) {
 		return;
 	}
 
-	// If the current sector is not yet full, accept the record but do nothing special with it.
-	if (++next_alloc_record < RECORDS_PER_SECTOR) {
-		return;
-	}
-
-	if (sd_write_multi_busy()) {
-		// DMA transfer already in progress, presumably for the other sector buffer.
-		// We must therefore have been in state 1b before, and now we are in state 2b.
-		// There is nothing to do at all until the DMA transfer finishes.
-		return;
-	} else {
-		// DMA transfer not in progress.
-		// We must therefore have been in state 1a before, and we can start a DMA transfer for the just-finished sector, moving to state 1b.
-		if (!sd_write_multi_sector(buffers[next_alloc_buffer])) {
-			state = LOG_STATE_SD_ERROR;
-			return;
-		}
-		next_alloc_buffer = !next_alloc_buffer;
-		next_alloc_record = 0;
-		++next_write_sector;
-		return;
-	}
+	// Commit the record and try starting a write operation.
+	++next_alloc_record;
+	try_start_write();
 }
 
