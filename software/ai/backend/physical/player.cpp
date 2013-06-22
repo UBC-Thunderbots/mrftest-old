@@ -136,6 +136,7 @@ void Player::tick(bool halt) {
 		bot.drive(wheel_speeds_);
 	} else {
 		bot.drive_brake();
+		std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 	}
 	controlled = false;
 
