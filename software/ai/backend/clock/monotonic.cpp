@@ -52,9 +52,7 @@ bool Monotonic::on_readable(Glib::IOCondition) {
 		overflow_message.fire();
 	}
 
-	while (ticks--) {
-		signal_tick.emit();
-	}
+	signal_tick.emit();
 
 	return true;
 }
