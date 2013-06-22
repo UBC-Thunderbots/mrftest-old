@@ -144,7 +144,7 @@ void Player::tick(bool halt) {
 	bot.dribble(!halt);
 
 	// Kicker should always charge except in halt.
-	bot.set_charger_state(halt ? Drive::Robot::ChargerState::DISCHARGE : Drive::Robot::ChargerState::CHARGE);
+	bot.set_charger_state(halt ? Drive::Robot::ChargerState::FLOAT : Drive::Robot::ChargerState::CHARGE);
 }
 
 Player::AutokickParams::AutokickParams() : chip(false), pulse(0) {
