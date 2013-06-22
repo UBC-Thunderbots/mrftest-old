@@ -84,20 +84,20 @@ void Player::autokick_impl(double speed) {
 	}
 }
 
-void Player::chip_impl(double) {
+void Player::chip_impl(double power) {
 	if (bot.alive) {
 		if (bot.capacitor_charged) {
-			bot.kick(true, 4000);
+			bot.kick(true, 3000 * power);
 		} else {
 			LOG_ERROR(Glib::ustring::compose("Bot %1 chip when not ready", pattern()));
 		}
 	}
 }
 
-void Player::autochip_impl(double) {
+void Player::autochip_impl(double power) {
 	if (bot.alive) {
 		autokick_params.chip = true;
-		autokick_params.pulse = 4000;
+		autokick_params.pulse = 3000 * power;
 	}
 }
 
