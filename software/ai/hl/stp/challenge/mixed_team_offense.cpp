@@ -163,8 +163,6 @@ namespace {
 					break;
 				case AI::Common::PlayType::PLAY:
 					play(players);
-                                        tri_attack_diamond(players);
-                                        back_up_stell(players);
 				default:
 					return;
 					break;
