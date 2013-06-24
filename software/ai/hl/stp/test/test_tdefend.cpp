@@ -27,7 +27,7 @@ namespace {
 				tick_eval(world);
 
 				FriendlyTeam friendly = world.friendly_team();
-				if (friendly.size() < 3) {
+				if (friendly.size() < 4) {
 					return;
 				}
 
@@ -42,6 +42,14 @@ namespace {
 				auto defend2 = Tactic::tdefender2(world);
 				defend2->set_player(friendly.get(2));
 				defend2->execute();
+
+				auto defend3 = Tactic::tdefender3(world);
+				defend3->set_player(friendly.get(3));
+				defend3->execute();
+
+				for (std::size_t i = 0 ; i < 4 ; i++){
+					friendly.get(i).flags(0x0008);
+				}
 			}
 
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {

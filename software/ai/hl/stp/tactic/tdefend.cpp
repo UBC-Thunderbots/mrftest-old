@@ -135,6 +135,11 @@ Tactic::Ptr AI::HL::STP::Tactic::tdefender2(AI::HL::W::World world) {
 	return p;
 }
 
+Tactic::Ptr AI::HL::STP::Tactic::tdefender3(AI::HL::W::World world) {
+	Tactic::Ptr p(new TDefender(world, 3));
+	return p;
+}
+
 Tactic::Ptr AI::HL::STP::Tactic::tdefend_line(World world, Coordinate p1_, Coordinate p2_, double dist_min_, double dist_max_) {
 	Tactic::Ptr p(new TDefendLine(world, p1_, p2_, dist_min_, dist_max_));
 	return p;

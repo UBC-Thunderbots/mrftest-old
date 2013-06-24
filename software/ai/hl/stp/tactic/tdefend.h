@@ -26,6 +26,11 @@ namespace AI {
 				 * A tactic for Terence defender 2. Guards inner layer, outer layer, and our side of the field.
 				 */
 				Tactic::Ptr tdefender2(World world);
+
+				/**
+				 * A tactic for Terence defender 3. Guards same layer as tdefender1.
+				 */
+				Tactic::Ptr tdefender3(World world);
 				
 				/**
 				 * Defend a line

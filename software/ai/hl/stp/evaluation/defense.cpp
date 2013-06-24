@@ -2,7 +2,9 @@
 #include "ai/hl/stp/evaluation/enemy.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/ball_threat.h"
+#include "ai/hl/stp/param.h"
 #include "ai/hl/util.h"
+#include "ai/util.h"
 #include "geom/util.h"
 #include "util/algorithm.h"
 #include "util/dprint.h"
@@ -13,6 +15,7 @@
 
 using namespace AI::HL::W;
 using namespace AI::HL::STP::Evaluation;
+using namespace AI::HL::STP;
 
 namespace {
 	BoolParam defense_follow_enemy_baller("defense protect against baller", "STP/defense", true);
@@ -26,6 +29,13 @@ namespace {
 
 	BoolParam open_net_dangerous("open net enemy is dangerous", "STP/defense", true);
 
+	// The closest distance players allowed to the ball
+	// DO NOT make this EXACT, instead, add a little tolerance!
+	const double AVOIDANCE_DIST = AI::Util::BALL_STOP_DIST + Robot::MAX_RADIUS + Ball::RADIUS + 0.005;
+
+	// in ball avoidance, angle between center of 2 robots, as seen from the ball
+	const Angle AVOIDANCE_ANGLE = 2.0 * Angle::of_radians(std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST));
+	
 	/**
 	 * ssshh... global state
 	 * DO NOT TOUCH THIS unless you know what you are doing.
@@ -188,18 +198,22 @@ namespace {
 		Point dirToGoal, target;
 		dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
 		target = world.field().friendly_goal() - (6 * (index + 1) * Robot::MAX_RADIUS * dirToGoal);
+		if (index == 3) {
+			// same defense layer as tdefender1
+			target = world.field().friendly_goal() - (6 * (1.6) * Robot::MAX_RADIUS * dirToGoal);
+		}
 		Point t = target;
 		if (world.ball().position().y < 0.0) {
-			if (index == 2) {
-				target = Point(t.x, t.y + 2 * Robot::MAX_RADIUS);
+			if (index < 2) {
+				target = Point(t.x, t.y + 2.5 * Robot::MAX_RADIUS);
 			} else {
-				target = Point(t.x, t.y - 2 * Robot::MAX_RADIUS);
+				target = Point(t.x, t.y - 2.5 * Robot::MAX_RADIUS);
 			}
 		} else {
-			if (index == 2) {
-				target = Point(t.x, t.y - 2 * Robot::MAX_RADIUS);
+			if (index < 2) {
+				target = Point(t.x, t.y - 2.5 * Robot::MAX_RADIUS);
 			} else {
-				target = Point(t.x, t.y + 2 * Robot::MAX_RADIUS);
+				target = Point(t.x, t.y + 2.5 * Robot::MAX_RADIUS);
 			}
 		}
 		return target;
@@ -208,7 +222,11 @@ namespace {
 	Point tdefender_block_enemy(World world, Point r, const unsigned index) {
 		Point dirToGoal;
 		dirToGoal = (world.field().friendly_goal() - r).norm();
-		return world.field().friendly_goal() - (6 * (index + 1) * Robot::MAX_RADIUS * dirToGoal);
+		Point block = world.field().friendly_goal() - (6 * (index + 1) * Robot::MAX_RADIUS * dirToGoal);
+		if (index == 3) {
+			block = world.field().friendly_goal() - (6 * (1.6) * Robot::MAX_RADIUS * dirToGoal);
+		}
+		return block;
 	}
 }
 
