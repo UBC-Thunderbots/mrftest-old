@@ -1,6 +1,8 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/tactic/chip.h"
+#include "ai/hl/stp/tactic/intercept.h"
+#include "ai/hl/stp/tactic/move_wait_playtype.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::Coordinate;
@@ -25,15 +27,18 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // kicker
-roles[0].push_back(chip_target(world, world.field().enemy_goal()));
-
+//roles[0].push_back(chip_target(world, world.field().enemy_goal()));
+roles[0].push_back(AI::HL::STP::Tactic::shoot_target(world, Point(world.field().enemy_goal())));
 // ROLE 2
 // defend
 roles[1].push_back(defend_duo_defender(world));
 
 // ROLE 3
 // offend
-roles[2].push_back(offend(world));
+if (world.ball().position().y < 0) roles[2].push_back(move_wait_playtype(world, Point(5.5, -2), AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY));
+else roles[2].push_back(move_wait_playtype(world, Point(5.5, -2), AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY));
+
+//roles[2].push_back(intercept(world, world.ball().position()));
 
 // ROLE 4
 // offend
