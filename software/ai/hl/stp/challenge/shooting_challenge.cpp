@@ -10,7 +10,7 @@
 #include "geom/util.h"
 #include "util/param.h"
 #include "ai/common/playtype.h"
-
+#include "ai/hl/stp/tactic/move_stop.h"
 
 namespace Flags = AI::Flags;
 
@@ -48,7 +48,9 @@ namespace {
 						AI::HL::STP::Action::shoot_goal(world, friendly.get(0), true);
 					}
 					else if (world.playtype() == AI::Common::PlayType::STOP) {
-						Action::move(world, friendly.get(0), Point((-2*Robot::MAX_RADIUS),0));
+						auto Stopped_Player = AI::HL::STP::Tactic::move_stop(world, 2);
+						Stopped_Player->set_player(friendly.get(0));
+						Stopped_Player->execute();
 					}
 
 					else if (world.playtype() == AI::Common::PlayType::HALT) {
