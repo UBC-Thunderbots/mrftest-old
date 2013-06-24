@@ -11,6 +11,69 @@
 #include <sigc++/functors/mem_fun.h>
 
 namespace {
+	struct RSSITableEntry {
+		int rssi;
+		int db;
+	};
+	const struct RSSITableEntry RSSI_TABLE[] = {
+		{ 255, -35 },
+		{ 254, -36 },
+		{ 253, -37 },
+		{ 250, -38 },
+		{ 245, -39 },
+		{ 239, -40 },
+		{ 233, -41 },
+		{ 228, -42 },
+		{ 225, -43 },
+		{ 221, -44 },
+		{ 216, -45 },
+		{ 212, -46 },
+		{ 207, -47 },
+		{ 203, -48 },
+		{ 198, -49 },
+		{ 193, -50 },
+		{ 188, -51 },
+		{ 183, -52 },
+		{ 176, -53 },
+		{ 170, -54 },
+		{ 165, -55 },
+		{ 159, -56 },
+		{ 153, -57 },
+		{ 148, -58 },
+		{ 143, -59 },
+		{ 138, -60 },
+		{ 133, -61 },
+		{ 129, -62 },
+		{ 125, -63 },
+		{ 121, -64 },
+		{ 117, -65 },
+		{ 111, -66 },
+		{ 107, -67 },
+		{ 100, -68 },
+		{ 95, -69 },
+		{ 89, -70 },
+		{ 83, -71 },
+		{ 78, -72 },
+		{ 73, -73 },
+		{ 68, -74 },
+		{ 63, -75 },
+		{ 58, -76 },
+		{ 53, -77 },
+		{ 48, -78 },
+		{ 43, -79 },
+		{ 37, -80 },
+		{ 32, -81 },
+		{ 27, -82 },
+		{ 23, -83 },
+		{ 18, -84 },
+		{ 13, -85 },
+		{ 9, -86 },
+		{ 5, -87 },
+		{ 2, -88 },
+		{ 1, -89 },
+		{ 0, -90 },
+	};
+
 	struct MessageTemplate {
 		const char *pattern;
 		Annunciator::Message::Severity severity;
@@ -192,7 +255,21 @@ MRFRobot::~MRFRobot() {
 	feedback_timeout_connection.disconnect();
 }
 
-void MRFRobot::handle_message(const void *data, std::size_t len) {
+void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, uint8_t rssi) {
+	link_quality = lqi / 255.0;
+	{
+		bool found = false;
+		for (std::size_t i = 0; !found && i < sizeof(RSSI_TABLE) / sizeof(*RSSI_TABLE); ++i) {
+			if (RSSI_TABLE[i].rssi < rssi) {
+				received_signal_strength = RSSI_TABLE[i].db;
+				found = true;
+			}
+		}
+		if (!found) {
+			received_signal_strength = -90;
+		}
+	}
+
 	const uint8_t *bptr = static_cast<const uint8_t *>(data);
 	if (len) {
 		switch (bptr[0]) {

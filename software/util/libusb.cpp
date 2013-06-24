@@ -448,7 +448,7 @@ void USB::Transfer::submit() {
 	check_fn("libusb_submit_transfer", libusb_submit_transfer(transfer), transfer->endpoint);
 	submitted_ = true;
 	done_ = false;
-	stall_retries_left = 3;
+	stall_retries_left = 30;
 	++device.submitted_transfer_count;
 }
 

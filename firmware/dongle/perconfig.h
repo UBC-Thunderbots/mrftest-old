@@ -30,7 +30,7 @@ typedef struct normal_out_packet {
 typedef struct normal_in_packet {
 	struct normal_in_packet *next;
 	uint8_t length;
-	uint8_t data[103];
+	uint8_t data[105];
 } normal_in_packet_t;
 
 /**

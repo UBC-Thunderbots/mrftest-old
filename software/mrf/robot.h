@@ -9,6 +9,7 @@
 #include "util/property.h"
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <stdint.h>
@@ -50,7 +51,7 @@ class MRFRobot : public Drive::Robot {
 	public:
 		~MRFRobot(); // Public only for std::unique_ptr.
 	private:
-		void handle_message(const void *data, std::size_t len);
+		void handle_message(const void *data, std::size_t len, uint8_t lqi, uint8_t rssi);
 		bool handle_feedback_timeout();
 };
 

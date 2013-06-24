@@ -84,6 +84,16 @@ namespace Drive {
 			Property<double> board_temperature;
 
 			/**
+			 * \brief The link quality of the last received packet, from 0 to 1.
+			 */
+			Property<double> link_quality;
+
+			/**
+			 * \brief The received signal strength of the last received packet, in decibels.
+			 */
+			Property<int> received_signal_strength;
+
+			/**
 			 * \brief Emitted when the autokick mechanism causes the robot to kick.
 			 */
 			sigc::signal<void> signal_autokick_fired;

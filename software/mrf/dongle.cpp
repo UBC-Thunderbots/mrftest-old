@@ -142,7 +142,7 @@ MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_P
 	mdr_transfer.submit();
 
 	for (auto &i : message_transfers) {
-		i.reset(new USB::InterruptInTransfer(device, 2, 103, false, 0));
+		i.reset(new USB::InterruptInTransfer(device, 2, 105, false, 0));
 		i->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::handle_message), sigc::ref(*i.get())));
 		i->submit();
 	}
@@ -196,9 +196,9 @@ void MRFDongle::handle_mdrs(AsyncOperation<void> &) {
 
 void MRFDongle::handle_message(AsyncOperation<void> &, USB::InterruptInTransfer &transfer) {
 	transfer.result();
-	if (transfer.size()) {
+	if (transfer.size() > 2) {
 		unsigned int robot = transfer.data()[0];
-		robots[robot]->handle_message(transfer.data() + 1, transfer.size() - 1);
+		robots[robot]->handle_message(transfer.data() + 1, transfer.size() - 3, transfer.data()[transfer.size() - 2], transfer.data()[transfer.size() - 1]);
 	}
 	transfer.submit();
 }

@@ -93,7 +93,7 @@ void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short
 		{ MRF_REG_LONG_SLPCON0, 0x03 },
 		{ MRF_REG_LONG_SLPCON1, 0x21 },
 		{ MRF_REG_SHORT_RXFLUSH, 0x61 },
-		{ MRF_REG_SHORT_BBREG2, 0x80 },
+		{ MRF_REG_SHORT_BBREG2, 0xB8 },
 		{ MRF_REG_SHORT_CCAEDTH, 0x60 },
 		{ MRF_REG_SHORT_BBREG6, 0x40 },
 	};
@@ -110,6 +110,7 @@ void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short
 
 	// Initialize per-configuration stuff.
 	write_long(MRF_REG_LONG_RFCON0, ((channel - 0x0B) << 4) | 0x03);
+	write_long(MRF_REG_LONG_RFCON3, 0x03);
 	write_short(MRF_REG_SHORT_RFCTL, 0x04);
 	write_short(MRF_REG_SHORT_RFCTL, 0x00);
 	sleep_short();

@@ -348,11 +348,13 @@ static void exti12_interrupt_vector(void) {
 						packet->next = 0;
 
 						// Fill in the packet buffer.
-						packet->length = 1 /* Source robot index */ + (rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH) /* 802.15.4 packet payload */;
+						packet->length = 1 /* Source robot index */ + (rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH) /* 802.15.4 packet payload */ + 2;
 						packet->data[0] = source_address;
 						for (uint8_t i = 0; i < rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH; ++i) {
 							packet->data[i + 1] = mrf_read_long(MRF_REG_LONG_RXFIFO + 1 + HEADER_LENGTH + i);
 						}
+						packet->data[1 + rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH] = mrf_read_long(MRF_REG_LONG_RXFIFO + 1 + rxfifo_frame_length); // LQI
+						packet->data[1 + rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH + 1] = mrf_read_long(MRF_REG_LONG_RXFIFO + 1 + rxfifo_frame_length + 1); // RSSI
 
 						// Push the packet on the receive queue.
 						if (last_in_pending) {

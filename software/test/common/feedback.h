@@ -26,8 +26,8 @@ class TesterFeedbackPanel : public Gtk::Table {
 	private:
 		Drive::Dongle &dongle;
 		Drive::Robot &robot;
-		Gtk::Label battery_voltage_label, capacitor_voltage_label, dribbler_temperature_label, board_temperature_label, break_beam_reading_label;
-		Gtk::ProgressBar battery_voltage, capacitor_voltage, dribbler_temperature, dribbler_speed, board_temperature, break_beam_reading;
+		Gtk::Label battery_voltage_label, capacitor_voltage_label, dribbler_temperature_label, board_temperature_label, break_beam_reading_label, lqi_label, rssi_label;
+		Gtk::ProgressBar battery_voltage, capacitor_voltage, dribbler_temperature, dribbler_speed, board_temperature, break_beam_reading, lqi_reading, rssi_reading;
 		Gtk::HBox cb_hbox1, cb_hbox2;
 		Gtk::CheckButton alive, estop, ball_in_beam, capacitor_charged;
 
@@ -37,6 +37,8 @@ class TesterFeedbackPanel : public Gtk::Table {
 		void on_dribbler_speed_changed();
 		void on_board_temperature_changed();
 		void on_break_beam_reading_changed();
+		void on_lqi_changed();
+		void on_rssi_changed();
 		void on_alive_changed();
 		void on_estop_changed();
 		void on_ball_in_beam_changed();

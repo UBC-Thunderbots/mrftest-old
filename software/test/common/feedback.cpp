@@ -2,7 +2,7 @@
 #include "util/algorithm.h"
 #include <iomanip>
 
-TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &robot) : Gtk::Table(8, 2), dongle(dongle), robot(robot), battery_voltage_label(u8"Battery:"), capacitor_voltage_label(u8"Capacitor:"), dribbler_temperature_label(u8"Dribbler:"), board_temperature_label(u8"Board:"), break_beam_reading_label(u8"Break Beam:"), alive(u8"Alive"), estop(u8"EStop Run"), ball_in_beam(u8"Ball in Beam"), capacitor_charged(u8"Capacitor Charged") {
+TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &robot) : Gtk::Table(10, 2), dongle(dongle), robot(robot), battery_voltage_label(u8"Battery:"), capacitor_voltage_label(u8"Capacitor:"), dribbler_temperature_label(u8"Dribbler:"), board_temperature_label(u8"Board:"), break_beam_reading_label(u8"Break Beam:"), lqi_label(u8"LQI:"), rssi_label(u8"RSSI:"), alive(u8"Alive"), estop(u8"EStop Run"), ball_in_beam(u8"Ball in Beam"), capacitor_charged(u8"Capacitor Charged") {
 	attach(battery_voltage_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(battery_voltage, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(capacitor_voltage_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -14,6 +14,10 @@ TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &ro
 	attach(board_temperature, 1, 2, 4, 5, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(break_beam_reading_label, 0, 1, 5, 6, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(break_beam_reading, 1, 2, 5, 6, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(lqi_label, 0, 1, 6, 7, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(lqi_reading, 1, 2, 6, 7, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(rssi_label, 0, 1, 7, 8, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(rssi_reading, 1, 2, 7, 8, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	alive.set_sensitive(false);
 	estop.set_sensitive(false);
@@ -21,10 +25,10 @@ TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &ro
 	capacitor_charged.set_sensitive(false);
 	cb_hbox1.pack_start(alive, Gtk::PACK_EXPAND_WIDGET);
 	cb_hbox1.pack_start(estop, Gtk::PACK_EXPAND_WIDGET);
-	attach(cb_hbox1, 0, 2, 6, 7, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(cb_hbox1, 0, 2, 8, 9, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	cb_hbox2.pack_start(ball_in_beam, Gtk::PACK_EXPAND_WIDGET);
 	cb_hbox2.pack_start(capacitor_charged, Gtk::PACK_EXPAND_WIDGET);
-	attach(cb_hbox2, 0, 2, 7, 8, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(cb_hbox2, 0, 2, 9, 10, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	robot.battery_voltage.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_battery_voltage_changed));
 	robot.capacitor_voltage.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_capacitor_voltage_changed));
@@ -32,6 +36,8 @@ TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &ro
 	robot.dribbler_speed.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_dribbler_speed_changed));
 	robot.board_temperature.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_board_temperature_changed));
 	robot.break_beam_reading.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_break_beam_reading_changed));
+	robot.link_quality.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_lqi_changed));
+	robot.received_signal_strength.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_rssi_changed));
 	robot.alive.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_alive_changed));
 	dongle.estop_state.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_estop_changed));
 	robot.ball_in_beam.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_ball_in_beam_changed));
@@ -43,6 +49,8 @@ TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &ro
 	on_dribbler_speed_changed();
 	on_board_temperature_changed();
 	on_break_beam_reading_changed();
+	on_lqi_changed();
+	on_rssi_changed();
 	on_alive_changed();
 	on_estop_changed();
 	on_ball_in_beam_changed();
@@ -107,6 +115,16 @@ void TesterFeedbackPanel::on_break_beam_reading_changed() {
 		break_beam_reading.set_fraction(0);
 		break_beam_reading.set_text(u8"No Data");
 	}
+}
+
+void TesterFeedbackPanel::on_lqi_changed() {
+	lqi_reading.set_fraction(robot.link_quality);
+	lqi_reading.set_text(Glib::ustring::format(robot.link_quality));
+}
+
+void TesterFeedbackPanel::on_rssi_changed() {
+	rssi_reading.set_fraction((robot.received_signal_strength + 90) / (90.0 - 35.0));
+	rssi_reading.set_text(Glib::ustring::compose(u8"%1 dB", robot.received_signal_strength));
 }
 
 void TesterFeedbackPanel::on_alive_changed() {
