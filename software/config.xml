@@ -42,6 +42,7 @@
     <category name="Backend">
       <double name="Ball Decay Constant">99.0</double>
       <double name="Ball detection probability threshold">0.250</double>
+      <boolean name="Enable Kalman control inputs">true</boolean>
       <double name="Loop Delay">0.080</double>
     </category>
     <category name="MB">
@@ -223,7 +224,7 @@
         <boolean name="goalie hug switch">false</boolean>
         <double name="max goalie dist from goal (robot radius)">5.00</double>
         <boolean name="open net enemy is dangerous">true</boolean>
-        <double name="shrink robot radius">0.800</double>
+        <double name="shrink robot radius">0.900</double>
       </category>
       <category name="draw">
         <boolean name="draw ray">false</boolean>

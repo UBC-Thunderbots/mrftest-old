@@ -16,7 +16,9 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace Action = AI::HL::STP::Action;
 
 namespace {
-	BoolParam tdefend("Whether or not Terence Defense should take the place of normal defense", "STP/Tactic/defend", false);
+	BoolParam tdefend_goalie("Whether or not Terence Defense should take the place of normal goalie", "STP/Tactic/defend", false);
+	BoolParam tdefend_defender1("Whether or not Terence Defense should take the place of normal defender 1", "STP/Tactic/defend", false);
+	BoolParam tdefend_defender2("Whether or not Terence Defense should take the place of normal defender 2", "STP/Tactic/defend", false);
 
 	/**
 	 * Goalie in a team of N robots.
@@ -94,7 +96,7 @@ namespace {
 	}
 
 	void Goalie2::execute() {
-		if (tdefend) {
+		if (tdefend_goalie) {
 			Point dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
 			Point dest = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
 			Action::goalie_move(world, player, dest);
@@ -113,10 +115,10 @@ namespace {
 	void Goalie::execute() {
 		auto waypoints = Evaluation::evaluate_defense();
 		Point dest = waypoints[0];
-		if (tdefend) {
+		if (tdefend_goalie) {
 			AI::HL::STP::Action::lone_goalie(world, player);
 			return;
-		}	else if (dangerous(world, player)){
+		} else if (dangerous(world, player)){
 			AI::HL::STP::Action::lone_goalie(world, player);
 		}
 		Action::goalie_move(world, player, dest);
@@ -125,7 +127,9 @@ namespace {
 	Player Defender::select(const std::set<Player> &players) const {
 		auto waypoints = Evaluation::evaluate_defense();
 		Point dest = waypoints[index];
-		if (tdefend && index > 0 && index < 3) {
+		if (tdefend_defender1 && index == 1) {
+			dest = Evaluation::evaluate_tdefense(world, index);
+		} else if (tdefend_defender2 && index == 2) {
 			dest = Evaluation::evaluate_tdefense(world, index);
 		}
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest));
@@ -134,7 +138,9 @@ namespace {
 	void Defender::execute() {
 		auto waypoints = Evaluation::evaluate_defense();
 		Point dest = waypoints[index];
-		if (tdefend && index > 0 && index < 3 && !Evaluation::ball_on_net(world)) {
+		if (tdefend_defender1 && index == 1) {
+			dest = Evaluation::evaluate_tdefense(world, index);
+		} else if (tdefend_defender2 && index == 2) {
 			dest = Evaluation::evaluate_tdefense(world, index);
 		}
 		Action::defender_move(world, player, dest);
