@@ -115,7 +115,7 @@ static void send_drive_packet(void) {
 	const uint8_t *bptr = (const uint8_t *) perconfig.normal.drive_packet;
 	if (estop_read() != ESTOP_RUN) {
 		for (size_t i = 0; i < sizeof(perconfig.normal.drive_packet) - 1; i += 8) {
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 1, (i == poll_index * sizeof(perconfig.normal.drive_packet) / 8) ? 0b10000000 : 0b00000000);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 1, (i == poll_index * (sizeof(perconfig.normal.drive_packet) - 1) / 8) ? 0b10000000 : 0b00000000);
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 0, 0x00);
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 3, 0b01000000);
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11 + i + 2, 0x00);
@@ -443,7 +443,7 @@ static void exti12_interrupt_vector(void) {
 }
 
 static void on_ep1_out_packet(size_t bcnt) {
-	if (bcnt == sizeof(perconfig.normal.drive_packet)) {
+	if (bcnt == sizeof(perconfig.normal.drive_packet) - 1) {
 		// Copy the received data into the temporary packet buffer.
 		uint16_t temp[8][4];
 		usb_bi_out_read(1, temp, sizeof(temp));
@@ -476,7 +476,7 @@ static void start_ep1_out_transfer(void) {
 		usb_bi_out_halt(1);
 		drive_packet_halt_pending = false;
 	} else if (usb_bi_out_get_state(1) != USB_BI_OUT_STATE_HALTED) {
-		usb_bi_out_start_transfer(1, sizeof(perconfig.normal.drive_packet), &start_ep1_out_transfer, &on_ep1_out_packet);
+		usb_bi_out_start_transfer(1, sizeof(perconfig.normal.drive_packet) - 1, &start_ep1_out_transfer, &on_ep1_out_packet);
 	}
 }
 
