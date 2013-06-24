@@ -325,7 +325,7 @@ namespace {
 					defend2->execute();
 				}
 				if (players.size() > 3) {
-					auto defend3 = Tactic::tdefender2(world);
+					auto defend3 = Tactic::tdefender3(world);
 					defend3->set_player(players[3]);
 					defend3->execute();
 				}
