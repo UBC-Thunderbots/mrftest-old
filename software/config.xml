@@ -40,9 +40,9 @@
       </category>
     </category>
     <category name="Backend">
-      <double name="Ball Decay Constant">99.0</double>
+      <double name="Ball Decay Constant">2.7</double>
       <double name="Ball detection probability threshold">0.250</double>
-      <boolean name="Enable Kalman control inputs">true</boolean>
+      <boolean name="Enable Kalman control inputs">false</boolean>
       <double name="Loop Delay">0.080</double>
     </category>
     <category name="MB">
@@ -312,7 +312,6 @@
           <boolean name="Lone2Player">true</boolean>
           <boolean name="MTDDefensive">true</boolean>
           <boolean name="MTDDefensiveBlock">true</boolean>
-          <boolean name="MTOJustShoot">true</boolean>
           <boolean name="OffensiveBlock">true</boolean>
           <boolean name="OurCornerChip">false</boolean>
           <boolean name="OurCornerPlay">true</boolean>
@@ -363,7 +362,6 @@
           <integer name="Lone2Player">1023</integer>
           <integer name="MTDDefensive">1023</integer>
           <integer name="MTDDefensiveBlock">1023</integer>
-          <integer name="MTOJustShoot">1023</integer>
           <integer name="OffensiveBlock">1023</integer>
           <integer name="OurCornerChip">1023</integer>
           <integer name="OurCornerPlay">1023</integer>
@@ -414,7 +412,6 @@
           <integer name="Lone2Player">5</integer>
           <integer name="MTDDefensive">5</integer>
           <integer name="MTDDefensiveBlock">5</integer>
-          <integer name="MTOJustShoot">5</integer>
           <integer name="OffensiveBlock">5</integer>
           <integer name="OurCornerChip">5</integer>
           <integer name="OurCornerPlay">5</integer>
@@ -469,6 +466,7 @@
         <category name="defend">
           <boolean name="Whether or not Terence Defense should take the place of normal defender 1">false</boolean>
           <boolean name="Whether or not Terence Defense should take the place of normal defender 2">false</boolean>
+          <boolean name="Whether or not Terence Defense should take the place of normal defender 3">false</boolean>
           <boolean name="Whether or not Terence Defense should take the place of normal goalie">false</boolean>
         </category>
         <category name="pass">
