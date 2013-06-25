@@ -332,6 +332,16 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 				signal_autokick_fired.emit();
 				break;
 
+			case 0x04:
+				// Robot has ball
+				ball_in_beam = true;
+				break;
+
+			case 0x05:
+				// Robot does not have ball
+				ball_in_beam = false;
+				break;
+
 			default:
 				LOG_ERROR(u8"Received packet from robot with unknown message type");
 				break;

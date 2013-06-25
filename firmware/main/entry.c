@@ -52,6 +52,7 @@ static uint16_t battery_average;
 static bool radio_tx_packet_prepared = false, radio_tx_packet_reliable;
 static bool log_overflow_feedback_report_pending = false;
 static uint8_t last_drive_data_serial = 0xFF;
+static bool last_breakbeam_report = false;
 
 static void shutdown_sequence(void) __attribute__((noreturn));
 static void shutdown_sequence(void) {
@@ -153,6 +154,17 @@ static void prepare_autokick_packet(void) {
 
 #define payload (&mrf_tx_buffer[11])
 	payload[0] = 0x01; // Autokick fired
+#undef payload
+
+	radio_tx_packet_reliable = true;
+	radio_tx_packet_prepared = true;
+}
+
+static void prepare_breakbeam_packet(bool status) {
+	prepare_mrf_mhr(1);
+
+#define payload (&mrf_tx_buffer[11])
+	payload[0] = status ? 0x04 : 0x05;
 #undef payload
 
 	radio_tx_packet_reliable = true;
@@ -503,7 +515,13 @@ static void avr_main(void) {
 
 		// Check if we should assemble a packet now.
 		if (mrf_tx_buffer_free()) {
-			if (feedback_pending) {
+			bool breakbeam = read_breakbeam_diff() < BREAKBEAM_DIFF_THRESHOLD;
+			if (breakbeam != last_breakbeam_report) {
+				uint32_t start = rdtsc();
+				prepare_breakbeam_packet(breakbeam);
+				last_breakbeam_report = breakbeam;
+				cpu_usage += rdtsc() - start;
+			} else if (feedback_pending) {
 				uint32_t start = rdtsc();
 				prepare_feedback_packet();
 				feedback_pending = false;
