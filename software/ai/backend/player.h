@@ -36,6 +36,7 @@ namespace AI {
 				void autokick(double speed);
 				void chip(double power);
 				void autochip(double power);
+				virtual void dribble_slow() = 0;
 				Point target_velocity() const;
 				bool has_path() const;
 				const std::vector<std::pair<std::pair<Point, Angle>, timespec>> &path() const;

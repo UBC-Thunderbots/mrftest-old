@@ -150,7 +150,7 @@ int TesterWindow::key_snoop(Widget *, GdkEventKey *event) {
 }
 
 void TesterWindow::on_dribble_toggled() {
-	robot.dribble(dribble_button.get_active());
+	robot.dribble(dribble_button.get_active(), true);
 }
 
 void TesterWindow::on_joystick_chooser_changed() {

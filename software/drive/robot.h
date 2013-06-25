@@ -151,8 +151,10 @@ namespace Drive {
 			 * \brief Turns the dribbler motor on or off.
 			 *
 			 * \param[in] active \c true to turn the motor on, or \c false to turn it off
+			 *
+			 * \param[in] fast \c true to run the dribbler fast, or \c false to run it slowly
 			 */
-			virtual void dribble(bool active = true) = 0;
+			virtual void dribble(bool active, bool fast) = 0;
 
 			/**
 			 * \brief Sets the state of the capacitor charger.

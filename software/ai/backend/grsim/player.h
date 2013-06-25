@@ -16,6 +16,7 @@ namespace AI {
 					typedef BoxPtr<Player> Ptr;
 
 					explicit Player(unsigned int pattern, const AI::BE::Ball &ball);
+					void dribble_slow();
 					bool has_ball() const;
 					bool chicker_ready() const;
 					bool autokick_fired() const;

@@ -327,7 +327,7 @@ void XBeeRobot::drive_brake() {
 	flush_drive();
 }
 
-void XBeeRobot::dribble(bool active) {
+void XBeeRobot::dribble(bool active, bool) {
 	drive_block.enable_dribbler = active;
 	flush_drive();
 }

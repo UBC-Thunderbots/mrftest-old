@@ -157,10 +157,13 @@ void MRFRobot::drive_brake() {
 	dongle_.dirty_drive();
 }
 
-void MRFRobot::dribble(bool active) {
-	dongle_.drive_packet[index][0] &= static_cast<uint16_t>(~(1 << 12));
+void MRFRobot::dribble(bool active, bool fast) {
+	dongle_.drive_packet[index][0] &= static_cast<uint16_t>(~((1 << 12) | (1 << 11)));
 	if (active) {
 		dongle_.drive_packet[index][0] |= 1 << 12;
+	}
+	if (!fast) {
+		dongle_.drive_packet[index][0] |= 1 << 11;
 	}
 	dongle_.dirty_drive();
 }

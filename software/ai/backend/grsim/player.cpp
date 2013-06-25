@@ -27,6 +27,9 @@ namespace {
 Player::Player(unsigned int pattern, const AI::BE::Ball &ball) : AI::BE::Player(pattern), ball(ball), dribble(false), autokick_fired_(false), had_ball(false), chick_mode(ChickMode::IDLE), chick_power(0.0), last_chick_time(steady_clock::now()) {
 }
 
+void Player::dribble_slow() {
+}
+
 bool Player::has_ball() const {
 	Point ball_contact_point = ball.position() - Point::of_angle(orientation(0.0)) * BALL_DIAMETER / 2.0;
 	Angle contact_point_offset_angle = (ball_contact_point - position(0.0)).orientation().angle_diff(orientation(0.0));

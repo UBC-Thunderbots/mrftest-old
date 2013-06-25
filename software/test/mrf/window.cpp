@@ -90,7 +90,28 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 		}
 };
 
-TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) : mapped_joysticks(MappedJoysticksModel::create()), robot(robot), manual_commutation_window(dongle, robot.index), feedback_frame(u8"Feedback"), feedback_panel(dongle, robot), drive_frame(u8"Drive"), drive_panel(robot, &manual_commutation_window), dribble_button(u8"Dribble"), kicker_frame(u8"Kicker"), kicker_panel(robot), leds_frame(u8"LEDs"), leds_panel(dongle, robot.index), params_frame(u8"Parameters"), params_panel(dongle, robot), power_frame(u8"Power"), power_panel(dongle, robot.index), joystick_frame(u8"Joystick"), joystick_sensitivity_high_button(joystick_sensitivity_group, u8"High Sensitivity"), joystick_sensitivity_low_button(joystick_sensitivity_group, u8"Low Sensitivity"), joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks)) {
+TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) :
+		mapped_joysticks(MappedJoysticksModel::create()),
+		robot(robot),
+		manual_commutation_window(dongle, robot.index),
+		feedback_frame(u8"Feedback"),
+		feedback_panel(dongle, robot),
+		drive_frame(u8"Drive"),
+		drive_panel(robot, &manual_commutation_window),
+		dribble_button(u8"Dribble"),
+		dribble_fast_button(u8"Fast"),
+		kicker_frame(u8"Kicker"),
+		kicker_panel(robot),
+		leds_frame(u8"LEDs"),
+		leds_panel(dongle, robot.index),
+		params_frame(u8"Parameters"),
+		params_panel(dongle, robot),
+		power_frame(u8"Power"),
+		power_panel(dongle, robot.index),
+		joystick_frame(u8"Joystick"),
+		joystick_sensitivity_high_button(joystick_sensitivity_group, u8"High Sensitivity"),
+		joystick_sensitivity_low_button(joystick_sensitivity_group, u8"Low Sensitivity"),
+		joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks)) {
 	set_title(Glib::ustring::compose(u8"Tester (%1)", robot.index));
 
 	feedback_frame.add(feedback_panel);
@@ -100,7 +121,10 @@ TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) : mapped_joystick
 	vbox1.pack_start(drive_frame, Gtk::PACK_SHRINK);
 
 	dribble_button.signal_toggled().connect(sigc::mem_fun(this, &TesterWindow::on_dribble_toggled));
-	vbox1.pack_start(dribble_button, Gtk::PACK_SHRINK);
+	dribble_fast_button.signal_toggled().connect(sigc::mem_fun(this, &TesterWindow::on_dribble_toggled));
+	dribble_hbox.pack_start(dribble_button, Gtk::PACK_EXPAND_WIDGET);
+	dribble_hbox.pack_start(dribble_fast_button, Gtk::PACK_EXPAND_WIDGET);
+	vbox1.pack_start(dribble_hbox, Gtk::PACK_SHRINK);
 
 	hbox.pack_start(vbox1, Gtk::PACK_EXPAND_WIDGET);
 
@@ -156,7 +180,7 @@ int TesterWindow::key_snoop(Widget *, GdkEventKey *event) {
 }
 
 void TesterWindow::on_dribble_toggled() {
-	robot.dribble(dribble_button.get_active());
+	robot.dribble(dribble_button.get_active(), dribble_fast_button.get_active());
 }
 
 void TesterWindow::on_joystick_chooser_changed() {

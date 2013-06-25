@@ -168,6 +168,13 @@ namespace AI {
 					 * \param[in] power the power of the chip, from 0 to 1 in arbitrary units
 					 */
 					void autochip(double power);
+
+					/**
+					 * \brief Slows down the dribbler.
+					 *
+					 * This function must be called on every tick in order to remain slow; failing to invoke this function will speed up the dribbler.
+					 */
+					void dribble_slow();
 			};
 
 			/**
@@ -345,6 +352,10 @@ inline void AI::HL::W::Player::chip(double power) {
 
 inline void AI::HL::W::Player::autochip(double power) {
 	AI::Common::Player::impl->autochip(power);
+}
+
+inline void AI::HL::W::Player::dribble_slow() {
+	AI::Common::Player::impl->dribble_slow();
 }
 
 inline AI::HL::W::World::World(AI::BE::Backend &impl) : impl(impl) {

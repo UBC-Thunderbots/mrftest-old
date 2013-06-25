@@ -22,7 +22,7 @@ Player::Player(unsigned int pattern, Drive::Robot &bot) : AI::BE::Player(pattern
 Player::~Player() {
 	static const int ZEROES[4] = { 0, 0, 0, 0 };
 	bot.drive_coast_or_manual(ZEROES);
-	bot.dribble(false);
+	bot.dribble(false, false);
 	bot.autokick(false, 0);
 	bot.set_charger_state(Drive::Robot::ChargerState::DISCHARGE);
 }
@@ -102,6 +102,10 @@ void Player::autochip_impl(double power) {
 	}
 }
 
+void AI::BE::Physical::Player::dribble_slow() {
+	dribble_slow_ = true;
+}
+
 void Player::on_autokick_fired() {
 	autokick_fired_ = true;
 }
@@ -142,7 +146,8 @@ void Player::tick(bool halt, bool stop) {
 	controlled = false;
 
 	// Dribbler should always run except in halt or stop.
-	bot.dribble(!halt && !stop);
+	bot.dribble(!halt && !stop, !dribble_slow_);
+	dribble_slow_ = false;
 
 	// Kicker should always charge except in halt.
 	bot.set_charger_state(halt ? Drive::Robot::ChargerState::FLOAT : Drive::Robot::ChargerState::CHARGE);

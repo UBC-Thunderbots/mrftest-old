@@ -28,6 +28,9 @@ bool AI::BE::Simulator::Player::highlight() const {
 	return AI::BE::Player::highlight() || dragging_;
 }
 
+void AI::BE::Simulator::Player::dribble_slow() {
+}
+
 bool AI::BE::Simulator::Player::has_ball() const {
 	return has_ball_;
 }

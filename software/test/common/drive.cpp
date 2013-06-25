@@ -98,7 +98,7 @@ namespace {
 	const Mode MODES_NO_COAST[] = {
 		{ u8"Brake", 0x0, false, 1, 0.1, 0.5, 0, &on_update_brake, &get_low_sensitivity_scale_factors_brake },
 		{ u8"Per-motor", 0xF, false, 1023, 1, 25, 0, &on_update_permotor, &get_low_sensitivity_scale_factors_permotor },
-		{ u8"Matrix", 0x7, false, 20, 0.1, 3, 1, &on_update_matrix, &get_low_sensitivity_scale_factors_matrix },
+		{ u8"Matrix", 0x7, false, 20, 0.1, 1, 1, &on_update_matrix, &get_low_sensitivity_scale_factors_matrix },
 		{ u8"Z axis", 0x1, false, 2047, 1, 25, 0, &on_update_zaxis, &get_low_sensitivity_scale_factors_zaxis },
 	};
 
@@ -106,7 +106,7 @@ namespace {
 		{ u8"Coast/Manual Commutation", 0x0, true, 255, 1, 25, 0, &on_update_coast, &get_low_sensitivity_scale_factors_coast },
 		{ u8"Brake", 0x0, false, 1, 0.1, 0.5, 0, &on_update_brake, &get_low_sensitivity_scale_factors_brake },
 		{ u8"Per-motor", 0xF, false, 1023, 1, 25, 0, &on_update_permotor, &get_low_sensitivity_scale_factors_permotor },
-		{ u8"Matrix", 0x7, false, 20, 0.1, 3, 1, &on_update_matrix, &get_low_sensitivity_scale_factors_matrix },
+		{ u8"Matrix", 0x7, false, 20, 0.1, 1, 1, &on_update_matrix, &get_low_sensitivity_scale_factors_matrix },
 		{ u8"Z axis", 0x1, false, 2047, 1, 25, 0, &on_update_zaxis, &get_low_sensitivity_scale_factors_zaxis },
 	};
 }

@@ -14,7 +14,7 @@
 #define SWITCH_RESISTANCE 0.6 // ohms—L6234 datasheet
 
 #define TARGET_PWM_FAST 180
-#define TARGET_PWM_SLOW 40
+#define TARGET_PWM_SLOW 80
 #define MAX_DELTA_PWM 50
 
 static uint8_t tick_count = 0;

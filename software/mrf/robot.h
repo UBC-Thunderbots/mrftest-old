@@ -28,7 +28,7 @@ class MRFRobot : public Drive::Robot {
 		bool can_coast() const;
 		void drive_coast_or_manual(const int(&wheels)[4]);
 		void drive_brake();
-		void dribble(bool active = true);
+		void dribble(bool active, bool fast);
 		void set_charger_state(ChargerState state);
 		double kick_pulse_maximum() const;
 		double kick_pulse_resolution() const;

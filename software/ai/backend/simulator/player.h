@@ -50,6 +50,7 @@ namespace AI {
 					void stop_drag() { dragging_ = false; }
 
 					bool highlight() const;
+					void dribble_slow();
 					bool has_ball() const;
 					bool chicker_ready() const;
 					void kick_impl(double speed);

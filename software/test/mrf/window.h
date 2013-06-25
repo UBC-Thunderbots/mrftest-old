@@ -58,7 +58,8 @@ class TesterWindow : public Gtk::Window {
 		Gtk::Frame drive_frame;
 		DrivePanel drive_panel;
 
-		Gtk::ToggleButton dribble_button;
+		Gtk::HBox dribble_hbox;
+		Gtk::ToggleButton dribble_button, dribble_fast_button;
 
 		Gtk::VBox vbox2;
 
