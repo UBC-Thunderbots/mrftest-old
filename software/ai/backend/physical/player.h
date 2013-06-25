@@ -2,6 +2,7 @@
 #define AI_BACKEND_PHYSICAL_PLAYER_H
 
 #include "ai/backend/player.h"
+#include "util/annunciator.h"
 #include "util/box_ptr.h"
 #include <ctime>
 #include <utility>
@@ -63,6 +64,7 @@ namespace AI {
 
 				private:
 					Drive::Robot &bot;
+					Annunciator::Message robot_dead_message;
 					bool autokick_fired_;
 					bool dribble_slow_;
 					struct AutokickParams {

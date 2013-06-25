@@ -11,10 +11,15 @@
 #include <locale>
 #include <sstream>
 #include <stdexcept>
+#include <glibmm/ustring.h>
 
 using AI::BE::Physical::Player;
 
-Player::Player(unsigned int pattern, Drive::Robot &bot) : AI::BE::Player(pattern), bot(bot), autokick_fired_(false) {
+Player::Player(unsigned int pattern, Drive::Robot &bot) :
+		AI::BE::Player(pattern),
+		bot(bot),
+		robot_dead_message(Glib::ustring::compose(u8"Bot %1 dead", pattern), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
+		autokick_fired_(false) {
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 	bot.signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
 }
@@ -111,6 +116,9 @@ void Player::on_autokick_fired() {
 }
 
 void Player::tick(bool halt, bool stop) {
+	// Show a message if the robot is dead.
+	robot_dead_message.active(!bot.alive);
+
 	// Check for emergency conditions.
 	if (!bot.alive || bot.dongle().estop_state != Drive::Dongle::EStopState::RUN) {
 		halt = true;
