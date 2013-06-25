@@ -10,7 +10,9 @@
 #include "ai/hl/stp/test/test.h"
 #include "ai/hl/stp/action/chip.h"
 #include "ai/hl/stp/coordinate.h"
-#include "ai/hl/stp/tactic/intercept.h"
+#include "ai/hl/stp/action/intercept.h"
+#include "ai/hl/stp/action/dribble.h"
+#include "ai/hl/stp/predicates.h"
 
 using namespace AI::HL;
 using namespace AI::HL::STP;
@@ -40,27 +42,16 @@ namespace {
 				FriendlyTeam friendly = world.friendly_team();
 				std::vector<Player> players;
 
-//				Point::Point NW(-5.5,3.75);
-//				Point::Point SW(-5.5,-3.75);
-//				Point NE(-0.5, 3,75);
-//				Point SW(-0.5, -3.75);
-
 				if (friendly.size() == 0) {
 					return;
 				}
 
-				for (std::size_t i = 0; i < friendly.size(); ++i) {
-					players.push_back(friendly.get(i));
+				if(AI::HL::STP::Predicates::our_ball(world)) {
+					Action::dribble(world, friendly.get(0), Point(0, -1.5));
+				} else {
+					Action::intercept(friendly.get(0), world.field().friendly_goal());
 				}
-
-				if (world.friendly_team().size() > 0) {
-					auto baller = AI::HL::STP::Tactic::intercept(world, world.ball().position());
-					baller->set_player(players[0]);
-					baller->execute();
-				}
-//				Action::chip_target(world, friendly.get(0), world.field().enemy_goal());
 			}
-
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 				draw_shoot(world, ctx);
 			}
