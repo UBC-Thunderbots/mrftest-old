@@ -37,8 +37,6 @@ namespace {
 
 			void tick() {
 				tick_eval(world);
-				bool north = false;
-				bool south = false;
 				FriendlyTeam friendly = world.friendly_team();
 				std::vector<Player> players;
 
@@ -46,11 +44,11 @@ namespace {
 					return;
 				}
 
-				//if(AI::HL::STP::Predicates::our_ball(world)) {
-			//		Action::dribble(world, friendly.get(0), Point(0, 1.5));
-			//	} else {
+				if(friendly.get(0).has_ball()) {
+					Action::dribble(world, friendly.get(0), friendly.get(0).position());
+				} else {
 					Action::intercept(friendly.get(0), world.ball().position());
-			//	}
+				}
 			}
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 				draw_shoot(world, ctx);

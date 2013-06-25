@@ -43,7 +43,7 @@
       <double name="Ball Decay Constant">2.7</double>
       <double name="Ball detection probability threshold">0.250</double>
       <boolean name="Enable Kalman control inputs">false</boolean>
-      <double name="Loop Delay">0.080</double>
+      <double name="Loop Delay">0.050</double>
     </category>
     <category name="MB">
       <radians name="ori distance threshold (radians)">0.100</radians>
@@ -111,8 +111,8 @@
         <double name="New Pivot: travel angle, need proper unit, (n*M_PI)">0.200</double>
         <double name="New Pivot: travel radius">0.2000</double>
         <integer name="Number of iterations to go through before we give best partial path">200</integer>
-        <degrees name="Pivot: offset angle (degrees)">10</degrees>
-        <degrees name="Pivot: orientation offset (degrees)">10</degrees>
+        <degrees name="Pivot: offset angle (degrees)">5</degrees>
+        <degrees name="Pivot: orientation offset (degrees)">5</degrees>
       </category>
       <category name="Util">
         <double name="Additional offense area buffer for friendly kick (rule=0.2) ">0.200</double>
@@ -456,6 +456,7 @@
       <category name="Shoot">
         <radians name="Angle threshold that defines shoot accuracy, bigger is more accurate (radians)">0.0</radians>
         <double name="big reduced radius for calculating best shot (robot radius ratio)">0.800</double>
+        <double name="Default Shooting Speed">8.00</double>
         <double name="Shoot accuracy (for various purposes)">5.0</double>
         <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
       </category>
