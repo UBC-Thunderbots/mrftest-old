@@ -46,11 +46,11 @@ namespace {
 					return;
 				}
 
-				if(AI::HL::STP::Predicates::our_ball(world)) {
-					Action::dribble(world, friendly.get(0), Point(0, -1.5));
-				} else {
-					Action::intercept(friendly.get(0), world.field().friendly_goal());
-				}
+				//if(AI::HL::STP::Predicates::our_ball(world)) {
+			//		Action::dribble(world, friendly.get(0), Point(0, 1.5));
+			//	} else {
+					Action::intercept(friendly.get(0), world.ball().position());
+			//	}
 			}
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 				draw_shoot(world, ctx);
