@@ -111,8 +111,8 @@
         <double name="New Pivot: travel angle, need proper unit, (n*M_PI)">0.200</double>
         <double name="New Pivot: travel radius">0.2000</double>
         <integer name="Number of iterations to go through before we give best partial path">200</integer>
-        <degrees name="Pivot: offset angle (degrees)">30</degrees>
-        <degrees name="Pivot: orientation offset (degrees)">30</degrees>
+        <degrees name="Pivot: offset angle (degrees)">10</degrees>
+        <degrees name="Pivot: orientation offset (degrees)">10</degrees>
       </category>
       <category name="Util">
         <double name="Additional offense area buffer for friendly kick (rule=0.2) ">0.200</double>
@@ -190,7 +190,7 @@
           <double name="block threshold distance in terms of robot radius">3.000</double>
         </category>
         <category name="defend">
-          <double name="Distance the defender should repel the ball in robot radius">2.000</double>
+          <double name="Distance the defender should repel the ball in robot radius">3.000</double>
         </category>
         <category name="Goalie">
           <double name="Distance the goalie should repel the ball in robot radius">3.000</double>
@@ -467,7 +467,9 @@
       </category>
       <category name="Tactic">
         <category name="defend">
-          <boolean name="Whether or not Terence Defense should take the place of normal defense">false</boolean>
+          <boolean name="Whether or not Terence Defense should take the place of normal defender 1">false</boolean>
+          <boolean name="Whether or not Terence Defense should take the place of normal defender 2">false</boolean>
+          <boolean name="Whether or not Terence Defense should take the place of normal goalie">false</boolean>
         </category>
         <category name="pass">
           <double name="dist from target when passee hack is applicable (meters)">0.100</double>
