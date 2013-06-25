@@ -20,7 +20,7 @@ using namespace AI::HL::STP;
 
 namespace {
 	const double FAST = 100.0;
-	DoubleParam FAST_BALL("Default Shooting Speed", "STP/Shoot", 8.0, 0.0, 32.0);
+//	DoubleParam FAST_BALL("Default Shooting Speed", "STP/Shoot", 8.0, 0.0, 32.0);
 }
 
 bool AI::HL::STP::Action::shoot_goal(World world, Player player, bool use_reduced_radius) {
@@ -44,7 +44,9 @@ bool AI::HL::STP::Action::shoot_goal(World world, Player player, bool use_reduce
 		}
 		LOG_INFO("autokick");
 		intercept(player, shoot_data.target);
-		player.autokick(FAST_BALL);
+//replace this with FAST_BALL to use PARAM FAST_BALL
+//		player.autokick(FAST_BALL);
+		player.autokick(BALL_MAX_SPEED);
 		return true;
 	} else {
 		intercept_pivot(world, player, shoot_data.target);
@@ -74,7 +76,9 @@ bool AI::HL::STP::Action::shoot_target(World world, Player player, const Point t
 	}
 
 	LOG_INFO("autokick");
-	player.autokick(BALL_MAX_SPEED);
+	player.autokick(velocity);
+//replaces with following line to use DoublePara
+//	player.autokick(BALL_MAX_SPEED);
 	return true;
 }
 
