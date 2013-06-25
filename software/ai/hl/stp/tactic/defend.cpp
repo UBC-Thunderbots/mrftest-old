@@ -19,6 +19,7 @@ namespace {
 	BoolParam tdefend_goalie("Whether or not Terence Defense should take the place of normal goalie", "STP/Tactic/defend", false);
 	BoolParam tdefend_defender1("Whether or not Terence Defense should take the place of normal defender 1", "STP/Tactic/defend", false);
 	BoolParam tdefend_defender2("Whether or not Terence Defense should take the place of normal defender 2", "STP/Tactic/defend", false);
+	BoolParam tdefend_defender3("Whether or not Terence Defense should take the place of normal defender 3", "STP/Tactic/defend", false);
 
 	/**
 	 * Goalie in a team of N robots.
@@ -70,6 +71,7 @@ namespace {
 			unsigned index;
 			Player select(const std::set<Player> &players) const;
 			void execute();
+			Point calc_defend_pos(unsigned index) const;
 			Glib::ustring description() const {
 				return "extra defender";
 			}
@@ -125,25 +127,27 @@ namespace {
 	}
 
 	Player Defender::select(const std::set<Player> &players) const {
-		auto waypoints = Evaluation::evaluate_defense();
-		Point dest = waypoints[index];
-		if (tdefend_defender1 && index == 1) {
-			dest = Evaluation::evaluate_tdefense(world, index);
-		} else if (tdefend_defender2 && index == 2) {
-			dest = Evaluation::evaluate_tdefense(world, index);
-		}
+		Point dest = calc_defend_pos(index);
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest));
 	}
 
 	void Defender::execute() {
+		Point dest = calc_defend_pos(index);
+		Action::defender_move(world, player, dest);
+	}
+
+	Point Defender::calc_defend_pos(unsigned index) const {
 		auto waypoints = Evaluation::evaluate_defense();
 		Point dest = waypoints[index];
+		// tdefend switch
 		if (tdefend_defender1 && index == 1) {
 			dest = Evaluation::evaluate_tdefense(world, index);
 		} else if (tdefend_defender2 && index == 2) {
 			dest = Evaluation::evaluate_tdefense(world, index);
+		} else if (tdefend_defender3 && index == 3) {
+			dest = Evaluation::evaluate_tdefense(world, index);
 		}
-		Action::defender_move(world, player, dest);
+		return dest;
 	}
 }
 
