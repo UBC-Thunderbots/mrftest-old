@@ -15,7 +15,7 @@
 
 #define TARGET_PWM_FAST 180
 #define TARGET_PWM_SLOW 80
-#define MAX_DELTA_PWM 50
+#define MAX_DELTA_PWM 255
 
 static uint8_t tick_count = 0;
 bool dribbler_enabled = false;
