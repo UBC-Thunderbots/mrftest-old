@@ -19,15 +19,9 @@ SECTIONS {
 	} >rom_region
 
 	/* Data lives in RAM; no initialization is needed for initialized data because RAM is preloaded in the bitstream */
-	.rodata : {
-		*(.rodata .rodata.*)
-	} >ram_region
 	.data : {
+		*(.rodata .rodata.*)
 		*(.data .data.*)
-	} >ram_region
-
-	/* Uninitialized data just sits after initialized data in RAM */
-	.bss : {
 		*(.bss .bss.*)
 	} >ram_region
 }
