@@ -161,8 +161,12 @@ namespace {
 				case AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY:
 					free_kick_friendly(players);
 					break;
-				case AI::Common::PlayType::PLAY:
-					play(players);
+				case AI::Common::PlayType::PLAY: 
+					if (offensive(world) && !ball_in_their_corner(world))  { tri_attack_diamond(players);
+                                        }  else {   if (fight_ball(world)) { back_up_stell(players);
+                                           }    else play(players);
+                                        }
+                                        break;
 				default:
 					return;
 					break;
