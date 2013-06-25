@@ -52,6 +52,8 @@ static uint16_t battery_average;
 static bool radio_tx_packet_prepared = false, radio_tx_packet_reliable;
 static bool log_overflow_feedback_report_pending = false;
 static uint8_t last_drive_data_serial = 0xFF;
+static uint8_t motors_status[5] = {0,0,0,0,0};
+static uint8_t motors_status_radio_latch[5] = {0,0,0,0,0};
 static bool last_breakbeam_report = false;
 
 static void shutdown_sequence(void) __attribute__((noreturn));
@@ -122,17 +124,14 @@ static void prepare_feedback_packet(void) {
 	payload[9] = flags; // Flags
 	flags = 0;
 	for (uint8_t wheel = 0; wheel < 4; ++wheel) {
-		MOTOR_INDEX = wheel;
-		uint8_t status = MOTOR_STATUS;
-		MOTOR_STATUS = ~status;
-		flags |= status << (wheel * 2);
+		flags |= motors_status_radio_latch[wheel] << (wheel * 2);
+		motors_status_radio_latch[wheel] = 0;
 	}
 	payload[10] = flags; // Wheel motor Hall sensors stuck
-	MOTOR_INDEX = 4;
 	{
-		uint8_t motor_status = MOTOR_STATUS;
-		MOTOR_STATUS = ~motor_status;
-		flags = motor_status | (ENCODER_FAIL << 2);
+		uint8_t m = 4;
+		flags = motors_status_radio_latch[m] | (ENCODER_FAIL << 2);
+		motors_status_radio_latch[m] = 0;
 	}
 	payload[11] = flags; // Dribbler Hall sensors stuck and optical encoders not commutating
 	if (log_overflow_feedback_report_pending) {
@@ -368,6 +367,13 @@ static void handle_tick(void) {
 	if (battery_average < (unsigned int) (BATTERY_LOW_THRESHOLD / BATTERY_VOLTS_PER_LSB) && !interlocks_overridden()) {
 		puts("Shutting down due to low battery.");
 		shutdown_sequence();
+	}
+
+	// update hall failure status
+	for (uint8_t i = 0; i < 5; i++) {
+		MOTOR_INDEX = i;
+		motors_status[i] = MOTOR_STATUS;
+		motors_status_radio_latch[i] = motors_status_radio_latch[i] | motors_status[i];
 	}
 
 	// Write a log record if possible.
