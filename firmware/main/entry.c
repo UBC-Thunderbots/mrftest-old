@@ -479,7 +479,8 @@ static void avr_main(void) {
 	uint32_t last_control_loop_time = rdtsc();
 	for(;;) {
 		// Check if an autokick needs to fire.
-		if (autokick_armed && read_breakbeam_diff() < BREAKBEAM_DIFF_THRESHOLD) {
+		// Autokick should fire if it is armed, if the breakbeam is interrupted, and if, for autochip, the dribbler is slow.
+		if (autokick_armed && read_breakbeam_diff() < BREAKBEAM_DIFF_THRESHOLD && (!autokick_device || dribbler_speed < 4)) {
 			set_chick_pulse(autokick_pulse_width);
 			if (autokick_device) {
 				fire_chipper();
@@ -581,6 +582,11 @@ static void avr_main(void) {
 			dribbler_enabled = false;
 			motor_scram();
 			cpu_usage += rdtsc() - start;
+		}
+
+		// Do not dribble if autochip is armed; this makes the chipper more effective.
+		if (autokick_armed && autokick_device) {
+			dribbler_enabled = false;
 		}
 	}
 }
