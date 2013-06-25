@@ -182,8 +182,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 						detection_position = -detection_position;
 					}
 					Point distance_from_estimate = detection_position - estimated_position;
-					double x_prob = std::exp(-std::pow(distance_from_estimate.x / estimated_stdev.x, 2.0));
-					double y_prob = std::exp(-std::pow(distance_from_estimate.y / estimated_stdev.y, 2.0));
+					double x_prob = 1.0f / (std::pow(distance_from_estimate.x / estimated_stdev.x, 2.0) + 1.0f);
+					double y_prob = 1.0f / (std::pow(distance_from_estimate.y / estimated_stdev.y, 2.0) + 1.0f);
 					double prob = x_prob * y_prob * b.confidence();
 					if (prob > best_prob || !found) {
 						found = true;
