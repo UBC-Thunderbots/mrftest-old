@@ -18,7 +18,7 @@
 #include <sigc++/reference_wrapper.h>
 #include <sigc++/functors/mem_fun.h>
 
-#define DEFAULT_CHANNEL 20
+#define DEFAULT_CHANNEL 11
 #define DEFAULT_SYMBOL_RATE 250
 #define DEFAULT_PAN 0x1846
 
