@@ -90,7 +90,7 @@ namespace {
 				enable10,
 				enable11,
 			};
-
+/*
 			for (std::size_t i = 0; i < friendly.size(); ++i) {
 				if (!enabled[friendly.get(i).pattern()]) {
 					other_players.push_back(friendly.get(i));
@@ -102,7 +102,7 @@ namespace {
 			if (players.empty()) {
 				return;
 			}
-
+*/
 			Player goalie;
 			for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 				Player p = world.friendly_team().get(i);
@@ -124,8 +124,13 @@ namespace {
 					continue;
 				} else if (!enabled[p.pattern()]) {
 					other_players.push_back(friendly.get(i));
+					continue;
 				}
 				players.push_back(p);
+			}
+
+			if (players.empty()) {
+				return;
 			}
 
 			unsigned int default_flags = Flags::FLAG_AVOID_FRIENDLY_DEFENSE;
@@ -293,7 +298,7 @@ namespace {
 
 		void play(Player goalie, std::vector<Player> &players, std::vector<Player> &other_players) {
 			// our mixed friendly team should be getting the ball
-			bool mixed_friendly_ball = false;
+			bool mixed_friendly_ball = true;
 
 			double our_dist = 0.0;
 			for (std::size_t i = 0; i < players.size(); ++i) {
@@ -310,6 +315,9 @@ namespace {
 			}
 			// they are closer to the ball than us
 			mixed_friendly_ball = our_dist > their_dist;
+			if (other_players.empty()){
+				mixed_friendly_ball = false;
+			}
 
 			if (goalie) {
 				auto g = Tactic::defend_duo_goalie(world);
