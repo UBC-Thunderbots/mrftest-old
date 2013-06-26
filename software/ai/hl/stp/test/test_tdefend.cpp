@@ -47,6 +47,7 @@ namespace {
 				defend3->set_player(friendly.get(3));
 				defend3->execute();
 
+				// don't go into friendly defense area
 				for (std::size_t i = 1 ; i < 4 ; i++){
 					friendly.get(i).flags(0x0008);
 				}
