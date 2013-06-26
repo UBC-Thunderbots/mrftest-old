@@ -11,15 +11,20 @@
 #include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/hl/stp/evaluation/defense.h"
 #include "ai/hl/stp/evaluation/offense.h"
+#include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/defend_solo.h"
 #include "ai/hl/stp/tactic/idle.h"
+#include "ai/hl/stp/tactic/ball.h"
 #include "ai/hl/stp/tactic/move_stop.h"
 #include "ai/hl/stp/tactic/penalty_goalie.h"
 #include "ai/hl/stp/tactic/tdefend.h"
+#include "ai/hl/stp/tactic/shoot.h"
+#include "ai/hl/stp/tactic/block.h"
 #include "geom/util.h"
 #include "util/param.h"
 #include "util/dprint.h"
+#include "ai/hl/stp/predicates.h"
 
 using AI::HL::STP::PlayExecutor;
 
@@ -28,6 +33,8 @@ namespace Flags = AI::Flags;
 using namespace AI::HL;
 using namespace AI::HL::STP;
 using namespace AI::HL::W;
+
+using namespace AI::HL::STP::Predicates;
 
 namespace {
 	BoolParam enable0("enable robot 0", "MixedTeamDefense", true);
@@ -43,8 +50,10 @@ namespace {
 	BoolParam enable10("enable robot 10", "MixedTeamDefense", true);
 	BoolParam enable11("enable robot 11", "MixedTeamDefense", true);
 	BoolParam take_free_kick("take the free kicks and attempt to pass to the other team", "MixedTeamDefense", false);
-	BoolParam use_simon("use simon", "MixedTeamDefense", true);
 	BoolParam do_draw("draw", "MixedTeamDefense", true);
+	
+	BoolParam three_def_one_atk("3 defender 1 attacker", "MixedTeamDefense", true);
+	BoolParam two_def_two_atk("2 defender 2 attacker", "MixedTeamDefense", false);
 
 	struct MixedTeamDefense : public HighLevel {
 		World world;
@@ -173,12 +182,12 @@ namespace {
 					if (take_free_kick) {
 						free_kick_friendly(goalie, players, other_players);
 					} else {
-						play(goalie, players);
+						play(goalie, players, other_players);
 					}
 					break;
 
 				default:
-					play(goalie, players);
+					play(goalie, players, other_players);
 					break;
 			}
 		}
@@ -280,57 +289,71 @@ namespace {
 			}
 		}
 
-		void play(Player goalie, std::vector<Player> &players) {
-			//auto waypoints = Evaluation::evaluate_defense();
+		void play(Player goalie, std::vector<Player> &players, std::vector<Player> &other_players) {
+			// our mixed friendly team has the ball
+			bool mixed_friendly_ball = false;
+			for (std::size_t i = 0; i < other_players.size(); ++i) {
+				if (Evaluation::possess_ball(world, other_players[i])) {
+					mixed_friendly_ball = true;
+				}
+			}
+
 			if (goalie) {
-				auto g = Tactic::lone_goalie(world);
+				auto g = Tactic::defend_duo_goalie(world);
 				g->set_player(goalie);
 				g->execute();
 			}
-
-
-			if (use_simon) {
-				if (goalie) {
-					auto g = Tactic::defend_duo_goalie(world);
-					g->set_player(goalie);
-					g->execute();
-				}
-				if (players.size() > 1) {
-					auto defend1 = Tactic::defend_duo_defender(world);
-					defend1->set_player(players[1]);
-					defend1->execute();
-				}
-				if (players.size() > 2) {
+			if (players.size() > 1) {
+				auto defend1 = Tactic::defend_duo_defender(world);
+				defend1->set_player(players[1]);
+				defend1->execute();
+			}
+			if (players.size() > 2) {
+				if (two_def_two_atk) {
+					if (!mixed_friendly_ball) {
+						auto active = Tactic::shoot_goal(world, true);
+						if (fight_ball(world) || their_ball(world)){
+							active = Tactic::spin_steal(world);
+						}
+						active->set_player(players[2]);
+						active->execute();
+					} else {
+						auto offend = Tactic::offend(world);
+						offend->set_player(players[2]);
+						offend->execute();
+					}
+				} else {
 					auto defend2 = Tactic::defend_duo_extra1(world);
 					defend2->set_player(players[2]);
 					defend2->execute();
 				}
+			}
 
-				if (players.size() > 3) {
+			if (players.size() > 3) {
+				if (three_def_one_atk) {
+					if (!mixed_friendly_ball) {
+						auto active = Tactic::shoot_goal(world, true);
+						if (fight_ball(world) || their_ball(world)){
+							active = Tactic::spin_steal(world);
+						}
+						active->set_player(players[2]);
+						active->execute();
+					} else {
+						auto offend = Tactic::offend(world);
+						offend->set_player(players[3]);
+						offend->execute();
+					}
+				} else if (two_def_two_atk) {
+					auto offend2 = Tactic::offend_secondary(world);
+					offend2->set_player(players[3]);
+					offend2->execute();
+				} else {
 					auto defend3 = Tactic::defend_duo_extra2(world);
 					defend3->set_player(players[3]);
 					defend3->execute();
 				}
-
-				return;
-			} else {
-				if (players.size() > 1) {
-					auto defend1 = Tactic::tdefender1(world);
-					defend1->set_player(players[1]);
-					defend1->execute();
-				}
-				if (players.size() > 2) {
-					auto defend2 = Tactic::tdefender2(world);
-					defend2->set_player(players[2]);
-					defend2->execute();
-				}
-				if (players.size() > 3) {
-					auto defend3 = Tactic::tdefender3(world);
-					defend3->set_player(players[3]);
-					defend3->execute();
-				}
-
 			}
+
 		}
 
 		void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
