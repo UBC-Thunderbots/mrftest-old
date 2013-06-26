@@ -42,8 +42,7 @@ void KickerPanel::scram() {
 }
 
 void KickerPanel::fire() {
-	unsigned int pw = static_cast<unsigned int>(pulse_width.get_value() + 0.1);
-	robot.kick(chipper_button.get_active(), pw);
+	robot.kick(chipper_button.get_active(), pulse_width.get_value());
 }
 
 void KickerPanel::on_alive_changed() {
