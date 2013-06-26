@@ -312,6 +312,7 @@
           <boolean name="Lone2Player">true</boolean>
           <boolean name="MTDDefensive">true</boolean>
           <boolean name="MTDDefensiveBlock">true</boolean>
+          <boolean name="MTOJustShoot">true</boolean>
           <boolean name="OffensiveBlock">true</boolean>
           <boolean name="OurCornerChip">false</boolean>
           <boolean name="OurCornerPlay">true</boolean>
@@ -362,6 +363,7 @@
           <integer name="Lone2Player">1023</integer>
           <integer name="MTDDefensive">1023</integer>
           <integer name="MTDDefensiveBlock">1023</integer>
+          <integer name="MTOJustShoot">1023</integer>
           <integer name="OffensiveBlock">1023</integer>
           <integer name="OurCornerChip">1023</integer>
           <integer name="OurCornerPlay">1023</integer>
@@ -412,6 +414,7 @@
           <integer name="Lone2Player">5</integer>
           <integer name="MTDDefensive">5</integer>
           <integer name="MTDDefensiveBlock">5</integer>
+          <integer name="MTOJustShoot">5</integer>
           <integer name="OffensiveBlock">5</integer>
           <integer name="OurCornerChip">5</integer>
           <integer name="OurCornerPlay">5</integer>
@@ -456,12 +459,12 @@
       <category name="Shoot">
         <radians name="Angle threshold that defines shoot accuracy, bigger is more accurate (radians)">0.0</radians>
         <double name="big reduced radius for calculating best shot (robot radius ratio)">0.800</double>
-        <double name="Default Shooting Speed">8.00</double>
         <double name="Shoot accuracy (for various purposes)">5.0</double>
         <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
       </category>
       <category name="Stop">
         <double name="goalie stop dist">0.180</double>
+        <degrees name="stop: angle to separate players (degrees)">15.0</degrees>
       </category>
       <category name="Tactic">
         <category name="defend">
@@ -484,7 +487,6 @@
         <category name="penalty_goalie">
           <boolean name="Whether the penalty goalie should choose random points">true</boolean>
         </category>
-        <degrees name="stop: angle to separate players (degrees) for pass challenge">60.00</degrees>
       </category>
       <category name="test_pass">
         <degrees name=" angle tolerance that the passer needs to be with respect to the passee (degrees)">20.0</degrees>
