@@ -271,19 +271,19 @@ namespace {
 				Action::move(world, goalie, Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, 0));
 			}
 			if (players.size() > 1) {
-				auto stop1 = Tactic::move_stop(world, 1);
+				auto stop1 = Tactic::move_stop(world, 0);
 				stop1->set_player(players[1]);
 				stop1->execute();
 			}
 
 			if (players.size() > 2) {
-				auto stop2 = Tactic::move_stop(world, 2);
+				auto stop2 = Tactic::move_stop(world, 1);
 				stop2->set_player(players[2]);
 				stop2->execute();
 			}
 
 			if (players.size() > 3) {
-				auto stop3 = Tactic::move_stop(world, 3);
+				auto stop3 = Tactic::move_stop(world, 2);
 				stop3->set_player(players[3]);
 				stop3->execute();
 			}
@@ -336,7 +336,7 @@ namespace {
 						if (fight_ball(world) || their_ball(world)){
 							active = Tactic::spin_steal(world);
 						}
-						active->set_player(players[2]);
+						active->set_player(players[3]);
 						active->execute();
 					} else {
 						auto offend = Tactic::offend(world);
