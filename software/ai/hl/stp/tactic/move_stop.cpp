@@ -82,9 +82,9 @@ std::vector<Point> StopLocations::compute(World world) {
 		start = ball_pos + ray * AVOIDANCE_DIST;
 
 		Point def1 = def;
-		def1.y += Robot::MAX_RADIUS * 1.25;
+		def1.y += Robot::MAX_RADIUS * 1.5;
 		Point def2 = def;
-		def2.y -= Robot::MAX_RADIUS * 1.25;
+		def2.y -= Robot::MAX_RADIUS * 1.5;
 		
 		positions.push_back(def1);
 		positions.push_back(def2);
