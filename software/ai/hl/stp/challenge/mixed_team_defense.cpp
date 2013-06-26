@@ -295,9 +295,6 @@ namespace {
 			// our mixed friendly team should be getting the ball
 			bool mixed_friendly_ball = false;
 
-			// sort the other players by dist to ball
-			std::sort(other_players.begin(), other_players.end(), AI::HL::Util::CmpDist<Player>(world.ball().position()));
-
 			double our_dist = 0.0;
 			for (std::size_t i = 0; i < players.size(); ++i) {
 				if ((players[i].position() - world.ball().position()).len() > our_dist){
