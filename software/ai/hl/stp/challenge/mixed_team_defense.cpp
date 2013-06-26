@@ -26,6 +26,8 @@
 #include "util/dprint.h"
 #include "ai/hl/stp/predicates.h"
 
+#include <cmath>
+
 using AI::HL::STP::PlayExecutor;
 
 namespace Flags = AI::Flags;
@@ -290,13 +292,22 @@ namespace {
 		}
 
 		void play(Player goalie, std::vector<Player> &players, std::vector<Player> &other_players) {
-			// our mixed friendly team has the ball
+			// our mixed friendly team should be getting the ball
 			bool mixed_friendly_ball = false;
-			for (std::size_t i = 0; i < other_players.size(); ++i) {
-				if (Evaluation::possess_ball(world, other_players[i])) {
-					mixed_friendly_ball = true;
-				}
+			double our_dist = 0.0;
+			for (std::size_t i = 0; i < players.size(); ++i) {
+				if ((players[i].position() - world.ball().position()).len() > our_dist){
+					our_dist = (players[i].position() - world.ball().position()).len();
+				} 
 			}
+
+			double their_dist = 0.0;
+			for (std::size_t i = 0; i < other_players.size(); ++i) {
+				if ((other_players[i].position() - world.ball().position()).len() > their_dist){
+					their_dist = (other_players[i].position() - world.ball().position()).len();
+				} 
+			}
+			mixed_friendly_ball = our_dist > their_dist;
 
 			if (goalie) {
 				auto g = Tactic::defend_duo_goalie(world);
