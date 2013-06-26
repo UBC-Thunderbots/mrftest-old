@@ -42,7 +42,7 @@ void KickerPanel::scram() {
 }
 
 void KickerPanel::fire() {
-	unsigned int pw = static_cast<unsigned int>(pulse_width.get_value() * 4 + 0.1);
+	unsigned int pw = static_cast<unsigned int>(pulse_width.get_value() + 0.1);
 	robot.kick(chipper_button.get_active(), pw);
 }
 
@@ -68,7 +68,7 @@ void KickerPanel::on_autokick_changed() {
 	kicker_button.set_sensitive(!autokick.get_active());
 	chipper_button.set_sensitive(!autokick.get_active());
 	if (autokick.get_active()) {
-		unsigned int pw = static_cast<unsigned int>(pulse_width.get_value() * 4 + 0.1);
+		unsigned int pw = static_cast<unsigned int>(pulse_width.get_value() + 0.1);
 		robot.autokick(chipper_button.get_active(), pw);
 	} else {
 		robot.autokick(false, 0);
