@@ -67,8 +67,7 @@ void KickerPanel::on_autokick_changed() {
 	kicker_button.set_sensitive(!autokick.get_active());
 	chipper_button.set_sensitive(!autokick.get_active());
 	if (autokick.get_active()) {
-		unsigned int pw = static_cast<unsigned int>(pulse_width.get_value() + 0.1);
-		robot.autokick(chipper_button.get_active(), pw);
+		robot.autokick(chipper_button.get_active(), pulse_width.get_value());
 	} else {
 		robot.autokick(false, 0);
 	}
