@@ -125,6 +125,11 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), fos(fd.
 	ai.backend.signal_post_tick().connect(sigc::mem_fun(this, &AI::Logger::on_tick));
 	ai.high_level.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_high_level_changed));
 
+	// Field geometry may already be valid and consequently may not ever change; thus, if the geometry is already valid, log it.
+	if (ai.backend.field().valid()) {
+		on_field_changed();
+	}
+
 	instance = this;
 }
 
