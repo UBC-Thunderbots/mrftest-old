@@ -335,6 +335,8 @@ software/ai/hl/stp/tactic/mark_offside.cpp -text
 software/ai/hl/stp/tactic/mark_offside.h -text
 software/ai/hl/stp/tactic/move.cpp -text
 software/ai/hl/stp/tactic/move.h -text
+software/ai/hl/stp/tactic/move_active.cpp -text
+software/ai/hl/stp/tactic/move_active.h -text
 software/ai/hl/stp/tactic/move_stop.cpp -text
 software/ai/hl/stp/tactic/move_stop.h -text
 software/ai/hl/stp/tactic/move_wait_playtype.cpp -text

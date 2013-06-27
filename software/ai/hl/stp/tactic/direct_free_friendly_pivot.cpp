@@ -35,7 +35,7 @@ namespace {
 	};
 
 	bool DirectFreeFriendlyPivot::done() const {
-		return player /* && kick_attempted */ && player.autokick_fired();
+		return player.autokick_fired();
 	}
 
 	Player DirectFreeFriendlyPivot::select(const std::set<Player> &players) const {

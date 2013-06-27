@@ -2,6 +2,7 @@
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/tactic/direct_free_friendly_pivot.h"
 #include "ai/hl/stp/tactic/wait_playtype.h"
+#include "ai/hl/stp/tactic/move_active.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::Coordinate;
@@ -30,7 +31,7 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // kicker
-roles[0].push_back(wait_playtype(world, move(world, drop_point), AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY));
+roles[0].push_back(move_active(world, drop_point, (world.ball().position() - drop_point).orientation()));
 roles[0].push_back(direct_free_friendly_pivot(world));
 
 // ROLE 2
