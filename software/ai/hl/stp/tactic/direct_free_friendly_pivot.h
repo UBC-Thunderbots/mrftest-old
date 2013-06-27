@@ -10,7 +10,7 @@ namespace AI {
 			namespace Tactic {
 
 				/**
-				 * Chip at a specified target.
+				 * Approaches a target with autochip on. Used for direct free friendlies.
 				 */
 				Tactic::Ptr direct_free_friendly_pivot(World world);
 			}

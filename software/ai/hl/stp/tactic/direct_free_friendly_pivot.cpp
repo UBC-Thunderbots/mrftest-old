@@ -39,20 +39,13 @@ namespace {
 	}
 
 	Player DirectFreeFriendlyPivot::select(const std::set<Player> &players) const {
-//		// if a player attempted to shoot, keep the player
-//		Player player_c = player;
-//		if (players.count(player) && Evaluation::possess_ball(world, player_c) && player.has_chipper()) {
-//			return player;
-//		}
-//		if (kick_attempted && players.count(player)) {
-//			return player;
-//		}
 		return select_baller(world, players, player);
 	}
 
 	void DirectFreeFriendlyPivot::player_changed() {
 	}
 
+	//run at ball with auto chip on. when it passes sensors, it auto chips
 	void DirectFreeFriendlyPivot::execute() {
 		player.move(world.ball().position(), (world.ball().position() - player.position()).orientation(), Point());
 		player.autochip(BALL_MAX_SPEED);
