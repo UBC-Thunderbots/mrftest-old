@@ -52,6 +52,8 @@
       <double name="pos velocity threshold">0.030</double>
     </category>
     <category name="MixedTeamDefense">
+      <boolean name="2 defender 2 attacker">false</boolean>
+      <boolean name="3 defender 1 attacker">true</boolean>
       <boolean name="draw">true</boolean>
       <boolean name="enable robot 0">true</boolean>
       <boolean name="enable robot 1">true</boolean>
@@ -66,7 +68,6 @@
       <boolean name="enable robot 8">true</boolean>
       <boolean name="enable robot 9">true</boolean>
       <boolean name="take the free kicks and attempt to pass to the other team">false</boolean>
-      <boolean name="use simon">true</boolean>
     </category>
     <category name="MixedTeamOffense">
       <boolean name="draw">true</boolean>
@@ -190,7 +191,8 @@
           <double name="block threshold distance in terms of robot radius">3.000</double>
         </category>
         <category name="defend">
-          <double name="Distance the defender should repel the ball in robot radius">3.000</double>
+          <double name="Distance the defender should repel the ball in robot radius">4.000</double>
+          <boolean name="Whether the defender shoot_goal (otherwise repels)">true</boolean>
         </category>
         <category name="Goalie">
           <double name="Distance the goalie should repel the ball in robot radius">3.000</double>
@@ -212,7 +214,7 @@
         <boolean name="Calc baller always return">true</boolean>
         <double name="circle radius in front of enemy robot to consider possession (meters)">0.100</double>
         <double name="circle radius in front of robot to enable pivot (meters)">0.100</double>
-        <boolean name="Smart possess ball (instead of has ball only)">true</boolean>
+        <boolean name="Smart possess ball (instead of has ball only)">false</boolean>
       </category>
       <category name="Challenge">
         <degrees name="CHALLENGE: angle to separate players (degrees)">120.0</degrees>
@@ -288,12 +290,12 @@
           <boolean name="DBasic2Block">true</boolean>
           <boolean name="DBasicCorner">true</boolean>
           <boolean name="DefensiveBlock">true</boolean>
-          <boolean name="FranticDefense">false</boolean>
+          <boolean name="FranticDefense">true</boolean>
           <boolean name="FreeKickEnemy">true</boolean>
           <boolean name="FreeKickEnemyDefend">false</boolean>
           <boolean name="FreeKickEnemyMarkDefend">true</boolean>
           <boolean name="FreeKickFriendly">false</boolean>
-          <boolean name="FreeKickFriendlyChip">false</boolean>
+          <boolean name="FreeKickFriendlyChip">true</boolean>
           <boolean name="FreeKickFriendlyPass">false</boolean>
           <boolean name="FreeKickFriendlyRay">false</boolean>
           <boolean name="FreeKickFriendlyRepel">false</boolean>
@@ -310,9 +312,9 @@
           <boolean name="KickoffFriendly">false</boolean>
           <boolean name="KickoffFriendlyChip">true</boolean>
           <boolean name="Lone2Player">true</boolean>
-          <boolean name="MTDDefensive">true</boolean>
-          <boolean name="MTDDefensiveBlock">true</boolean>
-          <boolean name="MTOJustShoot">true</boolean>
+          <boolean name="MTDDefensive">false</boolean>
+          <boolean name="MTDDefensiveBlock">false</boolean>
+          <boolean name="MTOJustShoot">false</boolean>
           <boolean name="OffensiveBlock">true</boolean>
           <boolean name="OurCornerChip">false</boolean>
           <boolean name="OurCornerPlay">true</boolean>
@@ -487,6 +489,9 @@
         <category name="penalty_goalie">
           <boolean name="Whether the penalty goalie should choose random points">true</boolean>
         </category>
+      </category>
+      <category name="tdefend">
+        <double name="Distance between the tdefenders">2.500</double>
       </category>
       <category name="test_pass">
         <degrees name=" angle tolerance that the passer needs to be with respect to the passee (degrees)">20.0</degrees>

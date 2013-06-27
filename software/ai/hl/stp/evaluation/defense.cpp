@@ -29,6 +29,8 @@ namespace {
 
 	BoolParam open_net_dangerous("open net enemy is dangerous", "STP/defense", true);
 
+	DoubleParam tdefend_dist("Distance between the tdefenders", "STP/tdefend", 2.25, 1.0, 3.0);
+
 	// The closest distance players allowed to the ball
 	// DO NOT make this EXACT, instead, add a little tolerance!
 	const double AVOIDANCE_DIST = AI::Util::BALL_STOP_DIST + Robot::MAX_RADIUS + Ball::RADIUS + 0.005;
@@ -205,15 +207,15 @@ namespace {
 		Point t = target;
 		if (world.ball().position().y < 0.0) {
 			if (index < 2) {
-				target = Point(t.x, t.y + 1.6 * Robot::MAX_RADIUS);
+				target = Point(t.x, t.y + tdefend_dist * Robot::MAX_RADIUS);
 			} else {
-				target = Point(t.x, t.y - 1.6 * Robot::MAX_RADIUS);
+				target = Point(t.x, t.y - tdefend_dist * Robot::MAX_RADIUS);
 			}
 		} else {
 			if (index < 2) {
-				target = Point(t.x, t.y - 1.6 * Robot::MAX_RADIUS);
+				target = Point(t.x, t.y - tdefend_dist * Robot::MAX_RADIUS);
 			} else {
-				target = Point(t.x, t.y + 1.6 * Robot::MAX_RADIUS);
+				target = Point(t.x, t.y + tdefend_dist * Robot::MAX_RADIUS);
 			}
 		}
 		return target;
