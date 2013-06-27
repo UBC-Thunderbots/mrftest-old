@@ -14,7 +14,7 @@ namespace AI {
 				 *
 				 * \return true if the player autokick is fired.
 				 */
-				bool chip_target(World world, Player player, const Point target, double power = 0.8);
+				bool chip_target(World world, Player player, const Point target, double power = 0.6);
 				
 			}
 		}

@@ -74,10 +74,10 @@ namespace {
 	// this structure determines how far away to stay from a prohibited point or line-segment
 	struct distance_keepout {
 		static double play_area(AI::Nav::W::Player player) {
-			return (player.MAX_RADIUS) + PLAY_AREA_BUFFER;
+			return (2 * player.MAX_RADIUS) + PLAY_AREA_BUFFER;
 		}
 		static double total_bounds_area(AI::Nav::W::Player player) {
-			return (player.MAX_RADIUS) + PLAY_AREA_BUFFER;
+			return (2 * player.MAX_RADIUS) + PLAY_AREA_BUFFER;
 		}
 		static double enemy(AI::Nav::W::World world, AI::Nav::W::Robot player) {
 			if (world.enemy_team().size() <= 0) {
