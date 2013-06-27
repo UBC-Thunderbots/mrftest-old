@@ -26,26 +26,24 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // kicker
-//roles[0].push_back(chip_target(world, world.field().enemy_goal()));
-roles[0].push_back(AI::HL::STP::Tactic::shoot_target(world, Point(world.field().enemy_goal())));
+roles[0].push_back(chip_target(world, world.field().enemy_goal()));
+//roles[0].push_back(AI::HL::STP::Tactic::shoot_target(world, Point(world.field().enemy_goal())));
+
 // ROLE 2
 // defend
 roles[1].push_back(defend_duo_defender(world));
 
 // ROLE 3
 // offend
-if (world.ball().position().y < 0) roles[2].push_back(move_wait_playtype(world, Point(5.5, -2), AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY));
-else roles[2].push_back(move_wait_playtype(world, Point(5.5, -2), AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY));
-
-//roles[2].push_back(intercept(world, world.ball().position()));
+roles[2].push_back(defend_duo_extra1(world));
 
 // ROLE 4
 // offend
-roles[3].push_back(offend_secondary(world));
+roles[3].push_back(offend(world));
 
 // ROLE 5
 // extra defender
-roles[4].push_back(defend_duo_extra1(world));
+roles[4].push_back(defend_duo_extra2(world));
 END_ASSIGN()
 END_PLAY()
 
