@@ -79,8 +79,6 @@ bool AI::HL::STP::Action::shoot_target(World world, Player player, const Point t
 
 	LOG_INFO("autokick");
 	player.autokick(velocity);
-//replaces with following line to use DoublePara
-//	player.autokick(BALL_MAX_SPEED);
 	return true;
 }
 

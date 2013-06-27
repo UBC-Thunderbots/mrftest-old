@@ -205,15 +205,15 @@ namespace {
 		Point t = target;
 		if (world.ball().position().y < 0.0) {
 			if (index < 2) {
-				target = Point(t.x, t.y + 2.5 * Robot::MAX_RADIUS);
+				target = Point(t.x, t.y + 1.6 * Robot::MAX_RADIUS);
 			} else {
-				target = Point(t.x, t.y - 2.5 * Robot::MAX_RADIUS);
+				target = Point(t.x, t.y - 1.6 * Robot::MAX_RADIUS);
 			}
 		} else {
 			if (index < 2) {
-				target = Point(t.x, t.y - 2.5 * Robot::MAX_RADIUS);
+				target = Point(t.x, t.y - 1.6 * Robot::MAX_RADIUS);
 			} else {
-				target = Point(t.x, t.y + 2.5 * Robot::MAX_RADIUS);
+				target = Point(t.x, t.y + 1.6 * Robot::MAX_RADIUS);
 			}
 		}
 		return target;
