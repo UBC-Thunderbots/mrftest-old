@@ -46,7 +46,6 @@ namespace {
 
 	void MoveStop::execute() {
 		std::vector<Point> positions = stop_locations(world);
-
 		Action::move(world, player, positions[player_index]);
 	}
 }
@@ -86,6 +85,17 @@ std::vector<Point> StopLocations::compute(World world) {
 		Point def2 = def;
 		def2.y -= Robot::MAX_RADIUS * 1.5;
 		
+		// ball in our corner!
+		if (world.ball().position().x <= -world.field().length() / 4 && std::fabs(world.ball().position().y) > world.field().goal_width() / 2 + world.field().defense_area_radius()) {
+			if (world.ball().position().y < 0) {
+				def1.y -= Robot::MAX_RADIUS * 3;
+				def1.x += Robot::MAX_RADIUS * 3;
+			} else {
+				def2.y += Robot::MAX_RADIUS * 3;
+				def2.x += Robot::MAX_RADIUS * 3;
+			}
+		}
+
 		positions.push_back(def1);
 		positions.push_back(def2);
 	}
