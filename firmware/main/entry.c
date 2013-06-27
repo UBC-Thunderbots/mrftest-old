@@ -128,11 +128,8 @@ static void prepare_feedback_packet(void) {
 		motors_status_radio_latch[wheel] = 0;
 	}
 	payload[10] = flags; // Wheel motor Hall sensors stuck
-	{
-		uint8_t m = 4;
-		flags = motors_status_radio_latch[m] | (ENCODER_FAIL << 2);
-		motors_status_radio_latch[m] = 0;
-	}
+	flags = motors_status_radio_latch[4] | (ENCODER_FAIL << 2);
+	motors_status_radio_latch[4] = 0;
 	payload[11] = flags; // Dribbler Hall sensors stuck and optical encoders not commutating
 	if (log_overflow_feedback_report_pending) {
 		payload[12] = (LOG_STATE_OVERFLOW << 4) | SD_STATUS_OK;
@@ -372,8 +369,9 @@ static void handle_tick(void) {
 	// update hall failure status
 	for (uint8_t i = 0; i < 5; i++) {
 		MOTOR_INDEX = i;
-		motors_status[i] = MOTOR_STATUS;
-		motors_status_radio_latch[i] = motors_status_radio_latch[i] | motors_status[i];
+		uint8_t status = MOTOR_STATUS;
+		motors_status[i] = status;
+		motors_status_radio_latch[i] |= status;
 	}
 
 	// Write a log record if possible.
@@ -411,11 +409,9 @@ static void handle_tick(void) {
 		rec->tick.encoders_failed = ENCODER_FAIL;
 		rec->tick.wheels_hall_sensors_failed = 0;
 		for (uint8_t wheel = 0; wheel < 4; ++wheel) {
-			MOTOR_INDEX = wheel;
-			rec->tick.wheels_hall_sensors_failed |= MOTOR_STATUS << (2 * wheel);
+			rec->tick.wheels_hall_sensors_failed |= motors_status[wheel] << (2 * wheel);
 		}
-		MOTOR_INDEX = 4;
-		rec->tick.dribbler_hall_sensors_failed = MOTOR_STATUS;
+		rec->tick.dribbler_hall_sensors_failed = motors_status[4];
 
 		rec->tick.dribbler_speed = dribbler_speed;
 
