@@ -78,7 +78,7 @@ bool AI::HL::STP::Action::shoot_target(World world, Player player, const Point t
 	}
 
 	LOG_INFO("autokick");
-//	player.autokick(velocity);
+	player.autokick(velocity);
 	return true;
 }
 
