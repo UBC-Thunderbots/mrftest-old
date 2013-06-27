@@ -144,7 +144,7 @@
       <double name="distance in the x direction to set the navigation points">0.400</double>
       <double name="distance in the y direction to set the navigation points">0.500</double>
       <double name="pos distance threshold">0.200</double>
-      <double name="pos distance threshold nav 2013">0.050</double>
+      <double name="pos distance threshold nav 2013">0.100</double>
       <double name="pos distance threshold shooting def">0.050</double>
     </category>
     <category name="RC">
@@ -461,6 +461,7 @@
       <category name="Shoot">
         <radians name="Angle threshold that defines shoot accuracy, bigger is more accurate (radians)">0.0</radians>
         <double name="big reduced radius for calculating best shot (robot radius ratio)">0.800</double>
+        <double name="Default Shooting Speed">8.00</double>
         <double name="Shoot accuracy (for various purposes)">5.0</double>
         <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
       </category>

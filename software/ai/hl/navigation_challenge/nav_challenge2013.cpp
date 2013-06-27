@@ -25,20 +25,20 @@ namespace {
 
 				const Field &f = world.field();
 				const std::pair<Point, Angle> tasks[3][3] = {
-					{std::make_pair(Point(-f.length()/2+(0.1+Robot::MAX_RADIUS), f.width()/2-(0.1+Robot::MAX_RADIUS)), Angle::ZERO),
+					{std::make_pair(Point(-f.length()/2+(Robot::MAX_RADIUS), f.width()/2-(Robot::MAX_RADIUS)), Angle::ZERO),
 					std::make_pair(Point(0, 0), Angle::ZERO),
-					std::make_pair(Point(f.length()/2-(0.1+Robot::MAX_RADIUS), -f.width()/2+(0.1+Robot::MAX_RADIUS)), Angle::ZERO)},
+					std::make_pair(Point(f.length()/2-(Robot::MAX_RADIUS), -f.width()/2+(Robot::MAX_RADIUS)), Angle::ZERO)},
 					{std::make_pair(f.penalty_friendly(), Angle::ZERO),
 					std::make_pair(Point(0, 0), Angle::ZERO),
 					std::make_pair(f.penalty_enemy(), Angle::ZERO)},
-					{std::make_pair(Point(-f.length()/2+(0.1+Robot::MAX_RADIUS), -f.width()/2+(0.1+Robot::MAX_RADIUS)), Angle::ZERO),
+					{std::make_pair(Point(-f.length()/2+(Robot::MAX_RADIUS), -f.width()/2+(Robot::MAX_RADIUS)), Angle::ZERO),
 					std::make_pair(Point(0, 0), Angle::ZERO),
-					std::make_pair(Point(f.length()/2-(0.1+Robot::MAX_RADIUS), f.width()/2-(0.1+Robot::MAX_RADIUS)), Angle::ZERO)}
+					std::make_pair(Point(f.length()/2-(Robot::MAX_RADIUS), f.width()/2-(Robot::MAX_RADIUS)), Angle::ZERO)}
 				};
 
 				FriendlyTeam friendly = world.friendly_team();
 
-				if (friendly.size() !=3 || !(world.playtype() == PlayType::PLAY)) {
+				if (friendly.size() !=3 || !(world.playtype() == PlayType::PLAY || world.playtype() == PlayType::STOP)) {
 					return;
 				}
 
@@ -47,6 +47,16 @@ namespace {
 				if (!runners[0] || !runners[1] || !runners[2]) {
 					return;
 				}
+
+				if (world.playtype() == PlayType::STOP) {
+					for (std::size_t i = 0 ; i < 3 ; i++){
+						runners[i].move(tasks[i][0].first, tasks[i][0].second, Point());
+						done[i] = 0;
+					}
+					return;
+				}				
+
+				time_steps++;
 
 				for (std::size_t i = 0 ; i < 3 ; i++){
 					if (done[i] > 3) {
@@ -70,7 +80,7 @@ namespace {
 
 					// set avoidance distance based on whether the robot is moving
 					for (std::size_t j = 0; j < world.enemy_team().size(); ++j) {
-						world.enemy_team().get(i).avoid_distance(AI::Flags::AvoidDistance::MEDIUM);
+						world.enemy_team().get(j).avoid_distance(AI::Flags::AvoidDistance::MEDIUM);
 					}
 
 					runners[i].flags(0);
