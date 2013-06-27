@@ -33,9 +33,9 @@ roles[0].push_back(wait_playtype(world, move_stop(world, 0), AI::Common::PlayTyp
 
 roles[1].push_back(move_stop(world, 1));
 
-roles[2].push_back(shadow_enemy(world));
+roles[2].push_back(shadow_enemy(world, 0));
 
-roles[3].push_back(shadow_enemy(world));
+roles[3].push_back(shadow_enemy(world, 1));
 
 roles[4].push_back(offend(world));
 
