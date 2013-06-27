@@ -2,6 +2,7 @@
 #include "ai/hl/stp/tactic/wait_playtype.h"
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/free_kick_pass.h"
+#include "ai/hl/stp/tactic/chip.h"
 
 using namespace AI::HL::W;
 namespace Predicates = AI::HL::STP::Predicates;
@@ -42,8 +43,8 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 // chip at half power
 roles[0].push_back(wait_playtype(world, move(world, kicker_position), AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY));
 //roles[0].push_back(free_kick_pass(world, world.field().enemy_goal(), true));
-roles[0].push_back(free_kick_pass(world, world.field().enemy_goal(), true, 0.67));
-
+//roles[0].push_back(free_kick_pass(world, world.field().enemy_goal(), true, 0.67));
+roles[0].push_back(chip_target(world, world.field().enemy_goal()));
 // ROLE 2
 roles[1].push_back(defend_duo_defender(world));
 
