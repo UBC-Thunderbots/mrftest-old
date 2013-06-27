@@ -55,7 +55,7 @@ namespace {
 	// this is by how much we should stay away from the playing boundry
 	DoubleParam PLAY_AREA_BUFFER("Buffer for staying away from play area boundary ", "Nav/Util", 0.0, 0.0, 1.0);
 	DoubleParam OWN_HALF_BUFFER("Buffer for staying on own half ", "Nav/Util", 0.0, 0.0, 1.0);
-	DoubleParam TOTAL_BOUNDS_BUFFER("Buffer for staying away from referee area boundary ", "Nav/Util", 0.0, -1.0, 1.0);
+	DoubleParam TOTAL_BOUNDS_BUFFER("Buffer for staying away from referee area boundary ", "Nav/Util", -0.18, -1.0, 1.0);
 
 	DoubleParam PENALTY_KICK_BUFFER("Amount behind ball during Penalty kick (rule=0.4) ", "Nav/Util", 0.4, 0.0, 1.0);
 
@@ -74,10 +74,10 @@ namespace {
 	// this structure determines how far away to stay from a prohibited point or line-segment
 	struct distance_keepout {
 		static double play_area(AI::Nav::W::Player player) {
-			return (2 * player.MAX_RADIUS) + PLAY_AREA_BUFFER;
+			return /*(2 * player.MAX_RADIUS)*/ + PLAY_AREA_BUFFER;
 		}
 		static double total_bounds_area(AI::Nav::W::Player player) {
-			return (2 * player.MAX_RADIUS) + PLAY_AREA_BUFFER;
+			return TOTAL_BOUNDS_BUFFER;
 		}
 		static double enemy(AI::Nav::W::World world, AI::Nav::W::Robot player) {
 			if (world.enemy_team().size() <= 0) {

@@ -128,7 +128,7 @@
         <double name="Buffer for higher priority friendly robot (meters)">0.050</double>
         <double name="Buffer for lower priority friendly robot (meters)">0.020</double>
         <double name="Buffer for staying away from play area boundary ">0.000</double>
-        <double name="Buffer for staying away from referee area boundary ">0.000</double>
+        <double name="Buffer for staying away from referee area boundary ">-0.18</double>
         <double name="Buffer for staying on own half ">0.000</double>
         <boolean name="enforce that robots stay on own half ">false</boolean>
         <double name="The amount centre of robot must stay out of net">0.0623</double>
