@@ -255,6 +255,7 @@ software/ai/hl/stp/play/corner_kick_friendly.cpp -text
 software/ai/hl/stp/play/defense_basic_2block.cpp -text
 software/ai/hl/stp/play/defense_basic_corner.cpp -text
 software/ai/hl/stp/play/defensive_block.cpp -text
+software/ai/hl/stp/play/direct_kick_friendly_pivot.cpp -text
 software/ai/hl/stp/play/frantic_defense.cpp -text
 software/ai/hl/stp/play/free_kick_corner_chip.cpp -text
 software/ai/hl/stp/play/free_kick_enemy.cpp -text
@@ -322,6 +323,8 @@ software/ai/hl/stp/tactic/defend.cpp -text
 software/ai/hl/stp/tactic/defend.h -text
 software/ai/hl/stp/tactic/defend_solo.cpp -text
 software/ai/hl/stp/tactic/defend_solo.h -text
+software/ai/hl/stp/tactic/direct_free_friendly_pivot.cpp -text
+software/ai/hl/stp/tactic/direct_free_friendly_pivot.h -text
 software/ai/hl/stp/tactic/free_kick_pass.cpp -text
 software/ai/hl/stp/tactic/free_kick_pass.h -text
 software/ai/hl/stp/tactic/idle.cpp -text
