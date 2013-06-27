@@ -14,13 +14,13 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class ShadowEnemy : public Tactic {
 		public:
-			ShadowEnemy(World world) : Tactic(world) {
+			ShadowEnemy(World world, int index) : Tactic(world), index(index) {
 			}
 
 		private:
 			Coordinate dest;
 			Player select(const std::set<Player> &players) const;
-
+			int index;
 			void execute();
 			Glib::ustring description() const {
 				return "shadow_enemy";
@@ -32,7 +32,7 @@ namespace {
 	}
 
 	void ShadowEnemy::execute() {
-		Point enemy = Enemy::closest_ball(world, 0)->evaluate().position();
+		Point enemy = Enemy::closest_ball(world, index)->evaluate().position();
 		Point ball = world.ball().position();
 		Point destination = ball - enemy;
 		destination = destination.norm() * (AI::Util::BALL_STOP_DIST + Robot::MAX_RADIUS + Ball::RADIUS);
@@ -42,7 +42,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::shadow_enemy(World world) {
-	Tactic::Ptr p(new ShadowEnemy(world));
+Tactic::Ptr AI::HL::STP::Tactic::shadow_enemy(World world, int index) {
+	Tactic::Ptr p(new ShadowEnemy(world, index));
 	return p;
 }
