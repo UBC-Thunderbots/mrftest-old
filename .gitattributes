@@ -293,6 +293,7 @@ software/ai/hl/stp/play/play.h -text
 software/ai/hl/stp/play/shoot_goal.cpp -text
 software/ai/hl/stp/play/simple_play.h -text
 software/ai/hl/stp/play/stop.cpp -text
+software/ai/hl/stp/play/stop_shadow.cpp -text
 software/ai/hl/stp/play/their_corner_chip.cpp -text
 software/ai/hl/stp/play/their_corner_play.cpp -text
 software/ai/hl/stp/play/tri_attack_defensive.cpp -text
