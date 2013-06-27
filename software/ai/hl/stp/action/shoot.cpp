@@ -7,10 +7,12 @@
 #include "ai/hl/stp/evaluation/team.h"
 #include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/stp/evaluation/player.h"
-#include "ai/flags.h"
 #include "ai/hl/util.h"
+#include "ai/flags.h"
 #include "geom/util.h"
 #include "geom/angle.h"
+#include "geom/rect.h"
+#include "util/param.h"
 #include "util/dprint.h"
 #include <algorithm>
 #include <cmath>

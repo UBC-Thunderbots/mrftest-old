@@ -1,6 +1,7 @@
+#include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/action/chip.h"
 #include "ai/hl/stp/action/defend.h"
 #include "ai/hl/stp/action/repel.h"
-#include "ai/hl/stp/action/chip.h"
 #include "ai/flags.h"
 #include "util/param.h"
 
@@ -8,6 +9,7 @@ using namespace AI::HL::STP;
 
 namespace {
 	DoubleParam repel_dist("Distance the defender should repel the ball in robot radius", "STP/Action/defend", 3.0, 2.0, 6.0);
+	BoolParam shoot_not_repel("Whether the defender shoot_goal (otherwise repels)", "STP/Action/defend", true);
 }
 
 void AI::HL::STP::Action::defender_move(World world, Player player, const Point dest) {
@@ -16,7 +18,11 @@ void AI::HL::STP::Action::defender_move(World world, Player player, const Point 
 		if ((world.ball().position() - world.field().friendly_goal()).len() < repel_dist * 3) {
 			chip_target(world, player, Point(0,0));
 		} else {
-			corner_repel(world, player);
+			if (shoot_not_repel) {
+				shoot_goal(world, player);
+			} else {
+				corner_repel(world, player);
+			}
 		}
 		return;
 	}

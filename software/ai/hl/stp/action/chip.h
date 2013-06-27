@@ -1,10 +1,7 @@
-#ifndef AI_HL_STP_ACTION_SHOOT_H
-#define AI_HL_STP_ACTION_SHOOT_H
+#ifndef AI_HL_STP_ACTION_CHIP_H
+#define AI_HL_STP_ACTION_CHIP_H
 
 #include "ai/hl/stp/world.h"
-#include "geom/rect.h"
-#include "util/param.h"
-#include "ai/hl/util.h"
 
 namespace AI {
 	namespace HL {

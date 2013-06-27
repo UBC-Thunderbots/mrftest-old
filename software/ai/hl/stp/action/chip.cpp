@@ -1,5 +1,4 @@
 #include "ai/hl/stp/action/chip.h"
-#include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/action/intercept.h"
 #include "ai/hl/stp/action/pivot.h"
 #include "ai/hl/stp/action/ram.h"

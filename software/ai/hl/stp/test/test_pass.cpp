@@ -8,6 +8,7 @@
 #include "geom/param.h"
 #include "geom/util.h"
 #include "util/param.h"
+#include "ai/hl/util.h"
 
 using namespace AI::HL;
 using namespace AI::HL::STP;
