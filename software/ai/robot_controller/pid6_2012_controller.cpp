@@ -21,29 +21,22 @@ namespace {
 		public:
 			double direction[4];
 
+			Vector4() {
+				for (int i = 0; i < 4; i++) {
+					direction[i] = 0.0f;
+				}
+			}
+
+			Vector4(const Vector4& temp) {
+				for (int i = 0; i < 4; i++) {
+					direction[i] = temp.direction[i];
+				}
+			}
+
 			void get(int *vector) const {
 				for (int i = 0; i < 4; i++) {
 					vector[i] = static_cast<int>(direction[i]);
 				}
-			}
-
-			Vector4 limit(const double &limit_val) {
-				double max = -1.0 / 0.0;
-				for (int i = 0; i < 4; i++) {
-					max = std::max(max, std::abs(direction[i]));
-				}
-
-				if (max < limit_val) {
-					return *this;
-				}
-
-				double ratio = limit_val / max;
-
-				Vector4 temp;
-				for (int i = 0; i < 4; i++) {
-					temp.direction[i] = direction[i] * ratio;
-				}
-				return temp;
 			}
 
 			Vector4 operator*(const double &scale) const {
@@ -72,6 +65,22 @@ namespace {
 					temp.direction[i] = direction[i] - other.direction[i];
 				}
 				return temp;
+			}
+			
+
+			Vector4 limit(const double &limit_val) {
+				double max = -1.0 / 0.0;
+				for (int i = 0; i < 4; i++) {
+					max = std::max(max, std::abs(direction[i]));
+				}
+
+				if (max < limit_val) {
+					return *this;
+				}
+
+				double ratio = limit_val / max;
+
+				return *this * ratio;
 			}
 
 			Vector4 map(std::function<double(const double &)> x) {
