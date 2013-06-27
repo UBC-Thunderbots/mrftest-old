@@ -71,7 +71,7 @@ bool AI::HL::STP::Action::corner_repel(World world, Player player) {
 	const Point diff = ball - player.position();
 
 	// if ball not in corner then just repel
-	if (Predicates::ball_in_our_corner(world) || Predicates::ball_in_their_corner(world)) {
+	if (!Predicates::ball_in_our_corner(world) || !Predicates::ball_in_their_corner(world)) {
 		return repel(world, player);
 	}
 
