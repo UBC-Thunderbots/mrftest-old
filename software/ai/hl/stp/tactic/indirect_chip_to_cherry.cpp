@@ -28,13 +28,12 @@ namespace {
 		private:
 			bool done() const;
 			Player select(const std::set<Player> &players) const;
-			Point destination();
+			Point destination;
 			void execute();
 			void player_changed();
 			Glib::ustring description() const {
 				return "auto-chipped";
 			}
-
 	};
 
 	bool IndirectChipToCherry::done() const {
@@ -42,14 +41,23 @@ namespace {
 	}
 
 	Player IndirectChipToCherry::select(const std::set<Player> &players) const {
+
 		return select_baller(world, players, player);
 	}
 
 	void IndirectChipToCherry::player_changed() {
 	}
 	void IndirectChipToCherry::execute() {
+
 		Point destination = Evaluation::cherry_pivot(world);
-		Action::move(world, player, destination);
+		bool close = false;
+		for (std::size_t i = 0 ; i < world.friendly_team().size() ; i++){
+			if ((world.friendly_team().get(i).position() - destination).len() < Robot::MAX_RADIUS)
+				close = true;
+		}
+		if (close) {
+			Action::move(world, player, destination);
+		}
 	}
 }
 

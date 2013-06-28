@@ -48,7 +48,7 @@ namespace {
 	//run at ball with auto chip on. when it passes sensors, it auto chips
 	void DirectFreeFriendlyPivot::execute() {
 		player.move(world.ball().position(), (world.ball().position() - player.position()).orientation(), Point());
-		player.autochip(BALL_MAX_SPEED);
+		player.autochip(0.7);
 	}
 }
 

@@ -191,7 +191,7 @@
           <double name="block threshold distance in terms of robot radius">3.000</double>
         </category>
         <category name="defend">
-          <double name="Distance the defender should repel the ball in robot radius">4.000</double>
+          <double name="Distance the defender should repel the ball in robot radius">3.000</double>
           <boolean name="Whether the defender shoot_goal (otherwise repels)">true</boolean>
         </category>
         <category name="Goalie">
@@ -244,9 +244,6 @@
         <integer name="Goalie pattern index">4</integer>
         <boolean name="Goalie selection by lowest or user assigned">false</boolean>
       </category>
-      <category name="Kickoff">
-        <degrees name="kickoff: angle to separate players (degrees)">20.0</degrees>
-      </category>
       <category name="offense">
         <double name="Dont block increase multiplier">2.00</double>
         <double name="enemy avoidance distance (robot radius)">2.50</double>
@@ -293,20 +290,21 @@
           <boolean name="DirectKickFriendlyPivot">true</boolean>
           <boolean name="FranticDefense">true</boolean>
           <boolean name="FreeKickEnemy">true</boolean>
-          <boolean name="FreeKickEnemyDefend">false</boolean>
+          <boolean name="FreeKickEnemyDefend">true</boolean>
           <boolean name="FreeKickEnemyMarkDefend">true</boolean>
-          <boolean name="FreeKickFriendly">false</boolean>
+          <boolean name="FreeKickFriendly">true</boolean>
           <boolean name="FreeKickFriendlyChip">true</boolean>
           <boolean name="FreeKickFriendlyPass">false</boolean>
           <boolean name="FreeKickFriendlyRay">false</boolean>
-          <boolean name="FreeKickFriendlyRepel">false</boolean>
-          <boolean name="FreeKickPass">true</boolean>
-          <boolean name="GoalKickFriendly">true</boolean>
+          <boolean name="FreeKickFriendlyRepel">true</boolean>
+          <boolean name="FreeKickPass">false</boolean>
+          <boolean name="GoalKickFriendly">false</boolean>
           <boolean name="GrabBallDefensive">true</boolean>
           <boolean name="GrabBallOffensive">true</boolean>
+          <boolean name="IndirectKickFriendlyPivot">false</boolean>
           <boolean name="JustChip">false</boolean>
           <boolean name="JustGoalie">true</boolean>
-          <boolean name="JustRepel">true</boolean>
+          <boolean name="JustRepel">false</boolean>
           <boolean name="JustShoot">true</boolean>
           <boolean name="JustSpin">false</boolean>
           <boolean name="KickoffEnemy">true</boolean>
@@ -326,8 +324,8 @@
           <boolean name="PenaltyEnemy">true</boolean>
           <boolean name="PenaltyFriendly">true</boolean>
           <boolean name="ShootGoal">true</boolean>
-          <boolean name="Stop">false</boolean>
-          <boolean name="StopShadow">true</boolean>
+          <boolean name="Stop">true</boolean>
+          <boolean name="StopShadow">false</boolean>
           <boolean name="TheirCornerChip">false</boolean>
           <boolean name="TheirCornerPlay">true</boolean>
           <boolean name="TriAttackDef">true</boolean>
@@ -356,6 +354,7 @@
           <integer name="GoalKickFriendly">1023</integer>
           <integer name="GrabBallDefensive">1023</integer>
           <integer name="GrabBallOffensive">1023</integer>
+          <integer name="IndirectKickFriendlyPivot">1023</integer>
           <integer name="JustChip">1023</integer>
           <integer name="JustGoalie">1023</integer>
           <integer name="JustRepel">1023</integer>
@@ -394,12 +393,12 @@
           <integer name="DBasic2Block">5</integer>
           <integer name="DBasicCorner">5</integer>
           <integer name="DefensiveBlock">5</integer>
-          <integer name="DirectKickFriendlyPivot">5</integer>
+          <integer name="DirectKickFriendlyPivot">10</integer>
           <integer name="FranticDefense">10</integer>
           <integer name="FreeKickEnemy">5</integer>
           <integer name="FreeKickEnemyDefend">5</integer>
           <integer name="FreeKickEnemyMarkDefend">5</integer>
-          <integer name="FreeKickFriendly">10</integer>
+          <integer name="FreeKickFriendly">5</integer>
           <integer name="FreeKickFriendlyChip">5</integer>
           <integer name="FreeKickFriendlyPass">5</integer>
           <integer name="FreeKickFriendlyRay">5</integer>
@@ -408,6 +407,7 @@
           <integer name="GoalKickFriendly">5</integer>
           <integer name="GrabBallDefensive">5</integer>
           <integer name="GrabBallOffensive">5</integer>
+          <integer name="IndirectKickFriendlyPivot">5</integer>
           <integer name="JustChip">5</integer>
           <integer name="JustGoalie">5</integer>
           <integer name="JustRepel">0</integer>

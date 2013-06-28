@@ -33,11 +33,11 @@ roles[0].push_back(direct_free_friendly_pivot(world));
 
 // ROLE 2
 // defend
-roles[1].push_back(defend_duo_defender(world));
+roles[1].push_back(offend(world));
 
 // ROLE 3
 // offend
-roles[2].push_back(offend(world));
+roles[2].push_back(defend_duo_defender(world));
 
 // ROLE 4
 // offend
