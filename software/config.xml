@@ -313,7 +313,7 @@
           <boolean name="Lone2Player">true</boolean>
           <boolean name="MTDDefensive">false</boolean>
           <boolean name="MTDDefensiveBlock">false</boolean>
-          <boolean name="MTOJustShoot">true</boolean>
+          <boolean name="MTOJustShoot">false</boolean>
           <boolean name="OffensiveBlock">true</boolean>
           <boolean name="OurCornerChip">false</boolean>
           <boolean name="OurCornerPlay">true</boolean>
