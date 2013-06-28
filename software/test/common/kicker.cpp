@@ -74,7 +74,11 @@ void KickerPanel::on_autokick_changed() {
 }
 
 void KickerPanel::on_autokick_fired() {
+	// Update and display the counter.
 	++autokick_count;
 	autokick_count_value_label.set_text(Glib::ustring::format(autokick_count));
+
+	// Autokick is implicitly disarmed once it has fired; rearm it.
+	on_autokick_changed();
 }
 
