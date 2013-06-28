@@ -12,7 +12,7 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class MoveActive : public Tactic {
 		public:
-			MoveActive(World world, const Point dest, const Angle orientation) : Tactic(world), dest(dest), orientation(orientation) {
+			MoveActive(World world, const Point dest, const Angle orientation) : Tactic(world, true), dest(dest), orientation(orientation) {
 				arrived = false;
 			}
 
