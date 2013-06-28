@@ -35,15 +35,10 @@ namespace {
 
 	bool MoveActive::done() const {
 		return (player.position() - dest).len() <= Robot::MAX_RADIUS;
-		//return false;
 	}
-//	bool DirectFreeFriendlyPivot::done() const {
-//		return player.autokick_fired();
-//	}
 
 	void MoveActive::player_changed() {
 	}
-
 
 	void MoveActive::execute() {
 		Action::move(player, orientation, dest);
