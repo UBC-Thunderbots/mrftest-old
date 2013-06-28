@@ -26,6 +26,8 @@ Point start_point(3.05, 2.04);
 
 if (world.ball().position().y < 0) start_point.y *= -1;
 if (world.ball().position().x < 0) start_point.x *= -1;
+#warning this offset needs to be tweaked. Consider adding a param.
+if (world.ball().position().x > 0) start_point.x -= 0.3;
 // GOALIE
 goalie_role.push_back(goalie_dynamic(world, 1));
 
