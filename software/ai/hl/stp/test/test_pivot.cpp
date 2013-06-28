@@ -53,7 +53,7 @@ namespace {
 				}
 				time++;
 
-				Action::pivot(world, player, target);
+				Action::pivot(world, player, target, 0.15);
 			}
 	};
 }

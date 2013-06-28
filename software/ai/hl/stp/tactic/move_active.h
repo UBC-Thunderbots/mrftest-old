@@ -13,7 +13,7 @@ namespace AI {
 				 *
 				 * \param[in] dest the location to move to.
 				 */
-				Tactic::Ptr move_active(World world, const Point dest, const Angle orientation);
+				Tactic::Ptr move_active(World world, const Point dest, const Angle orientation, const bool pivot);
 			}
 		}
 	}

@@ -280,10 +280,10 @@
       </category>
       <category name="Play">
         <category name="Enable">
-          <boolean name="BackUpSteal">true</boolean>
+          <boolean name="BackUpSteal">false</boolean>
           <boolean name="BallTowardsEnemy">false</boolean>
           <boolean name="CornerChip">false</boolean>
-          <boolean name="CornerKickFriendly">true</boolean>
+          <boolean name="CornerKickFriendly">false</boolean>
           <boolean name="DBasic2Block">true</boolean>
           <boolean name="DBasicCorner">true</boolean>
           <boolean name="DefensiveBlock">true</boolean>

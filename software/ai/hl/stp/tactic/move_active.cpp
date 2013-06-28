@@ -2,6 +2,7 @@
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/util.h"
 #include "ai/hl/stp/tactic/util.h"
+#include "ai/hl/stp/action/pivot.h"
 #include <algorithm>
 
 using namespace AI::HL::STP::Tactic;
@@ -12,7 +13,7 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class MoveActive : public Tactic {
 		public:
-			MoveActive(World world, const Point dest, const Angle orientation) : Tactic(world, true), dest(dest), orientation(orientation) {
+			MoveActive(World world, const Point dest, const Angle orientation, const bool pivot) : Tactic(world, true), dest(dest), orientation(orientation), pivot(pivot) {
 				arrived = false;
 			}
 
@@ -24,6 +25,7 @@ namespace {
 			bool done() const;
 			void player_changed();
 			bool arrived;
+			bool pivot;
 			Glib::ustring description() const {
 				return "move-active";
 			}
@@ -41,12 +43,13 @@ namespace {
 	}
 
 	void MoveActive::execute() {
-		Action::move(player, orientation, dest);
+		if (pivot) Action::pivot(world, player, dest, 0.15);
+		else Action::move(player, orientation, dest);
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::move_active(World world, const Point dest, const Angle orientation) {
-	Tactic::Ptr p(new MoveActive(world, dest, orientation));
+Tactic::Ptr AI::HL::STP::Tactic::move_active(World world, const Point dest, const Angle orientation, const bool pivot) {
+	Tactic::Ptr p(new MoveActive(world, dest, orientation, pivot));
 	return p;
 }
 
