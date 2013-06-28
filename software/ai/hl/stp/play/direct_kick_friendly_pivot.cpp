@@ -16,22 +16,22 @@ using AI::HL::STP::Coordinate;
  * - Handle Friendly Free Kick by simply shooting at the enemy goal.
  */
 BEGIN_PLAY(DirectKickFriendlyPivot)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2))
+INVARIANT(Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) && Predicates::our_team_size_at_least(world, 2))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
 
-Point drop_point(3.05, 2.04);
+Point start_point(3.05, 2.04);
 
-if (world.ball().position().y < 0) drop_point.y *= -1;
-
+if (world.ball().position().y < 0) start_point.y *= -1;
+if (world.ball().position().x < 0) start_point.x *= -1;
 // GOALIE
 goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // kicker
-roles[0].push_back(move_active(world, drop_point, (world.ball().position() - drop_point).orientation()));
+roles[0].push_back(move_active(world, start_point, (world.ball().position() - start_point).orientation()));
 roles[0].push_back(direct_free_friendly_pivot(world));
 
 // ROLE 2
