@@ -2,7 +2,7 @@
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/tactic/direct_free_friendly_pivot.h"
 #include "ai/hl/stp/tactic/wait_playtype.h"
-#include "ai/hl/stp/tactic/move_active.h"]
+#include "ai/hl/stp/tactic/move_active.h"
 #include "ai/hl/stp/tactic/indirect_chip_to_cherry.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
