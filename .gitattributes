@@ -331,6 +331,8 @@ software/ai/hl/stp/tactic/free_kick_pass.cpp -text
 software/ai/hl/stp/tactic/free_kick_pass.h -text
 software/ai/hl/stp/tactic/idle.cpp -text
 software/ai/hl/stp/tactic/idle.h -text
+software/ai/hl/stp/tactic/indirect_chip_to_cherry.cpp -text
+software/ai/hl/stp/tactic/indirect_chip_to_cherry.h -text
 software/ai/hl/stp/tactic/intercept.cpp -text
 software/ai/hl/stp/tactic/intercept.h -text
 software/ai/hl/stp/tactic/mark_offside.cpp -text
