@@ -9,10 +9,6 @@ using namespace AI::HL::STP::Play;
 using namespace AI::HL::W;
 namespace Predicates = AI::HL::STP::Predicates;
 
-namespace {
-	//DoubleParam goalie_stop_dist("goalie stop dist", "STP/Stop", 0.09, 0.0, 1.0);
-}
-
 /**
  * Condition:
  * - It is the stop play
@@ -21,7 +17,7 @@ namespace {
  * - Handle the stop play
  */
 BEGIN_PLAY(StopShadow)
-INVARIANT(Predicates::playtype(world, AI::Common::PlayType::STOP))
+INVARIANT(Predicates::playtype(world, AI::Common::PlayType::STOP) && Predicates::their_team_size_at_least(world, 2) && Predicates::ball_in_our_corner(world))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
