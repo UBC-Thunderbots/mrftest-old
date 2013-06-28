@@ -14,6 +14,11 @@ namespace Predicates = AI::HL::STP::Predicates;
 namespace {
 	// the distance we want the players to the ball
 	const double AVOIDANCE_DIST = 0.50 + Ball::RADIUS + Robot::MAX_RADIUS + 0.005;
+
+	// in ball avoidance, angle between center of 2 robots, as seen from the ball 
+	const Angle AVOIDANCE_ANGLE = 2.0 * Angle::of_radians(std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST)); 
+	 	 
+	DegreeParam kickoff_separation_angle("kickoff: angle to separate players (degrees)", "STP/Kickoff", 20, 0, 80); 
 }
 
 /**
@@ -30,8 +35,6 @@ DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
 
-EnemyTeam enemy = world.enemy_team();
-
 // GOALIE
 goalie_role.push_back(wait_playtype(world, defend_duo_goalie(world), AI::Common::PlayType::PLAY));
 
@@ -39,29 +42,27 @@ goalie_role.push_back(wait_playtype(world, defend_duo_goalie(world), AI::Common:
 // defend
 roles[0].push_back(defend_duo_defender(world));
 
+// calculate angle between robots 
+const Angle delta_angle = AVOIDANCE_ANGLE + kickoff_separation_angle; 
+	 	 
+// a ray that shoots from the center to friendly goal. 
+const Point shoot = Point(-1, 0) * AVOIDANCE_DIST; 
+
 // ROLE 2
 // move to offender position 1
-roles[1].push_back(move(world, Point(-(world.field().centre_circle_radius() + Robot::MAX_RADIUS), 0)));
+roles[1].push_back(move(world, shoot));
 
 // ROLE 3
 // shadowing
-if (enemy.size() > 1){
-	roles[2].push_back(move(world, Point(-(world.field().centre_circle_radius() + Robot::MAX_RADIUS), Enemy::closest_ball(world, 1)->evaluate().position().y)));
-} else {
-	roles[2].push_back(move(world, Point(-2*Robot::MAX_RADIUS, world.field().centre_circle_radius() + Robot::MAX_RADIUS)));
-}
+roles[2].push_back(shadow_kickoff(world, Enemy::closest_ball(world, 1), shoot.rotate(delta_angle))); 
 
 // ROLE 4
 // shadowing
-if (enemy.size() > 2){
-	roles[3].push_back(move(world, Point(-(world.field().centre_circle_radius() + Robot::MAX_RADIUS), Enemy::closest_ball(world, 2)->evaluate().position().y)));
-} else {
-	roles[3].push_back(move(world, Point(-2*Robot::MAX_RADIUS, -world.field().centre_circle_radius() - Robot::MAX_RADIUS)));
-}
+roles[3].push_back(shadow_kickoff(world, Enemy::closest_ball(world, 2), shoot.rotate(-delta_angle))); 
 
 // ROLE 5
 // defend
-roles[4].push_back(move(world, Point(-2*(world.field().centre_circle_radius() + Robot::MAX_RADIUS), 0)));
+roles[4].push_back(move(world, Point(-2*(world.field().centre_circle_radius() + 2*Robot::MAX_RADIUS), 0)));
 
 END_ASSIGN()
 END_PLAY()
