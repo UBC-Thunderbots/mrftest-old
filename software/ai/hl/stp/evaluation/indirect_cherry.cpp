@@ -11,33 +11,26 @@
 
 using namespace AI::HL::STP;
 
-namespace {
 
-
-}
-Point AI::HL::STP::Evaluation::cherry_pivot(World world, Player player) {
-	double distance = 100;
+Point AI::HL::STP::Evaluation::cherry_pivot(World world) {
+	FriendlyTeam friendly = world.friendly_team();
+	std::vector<Player> players;
 	Point destination = Point();
-		for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
-			int best_offender;
-			Player test = world.friendly_team().get(i);
-			double player_distance = (test.position() - world.field().enemy_goal()).len();
-			if (player_distance < distance) {
-				distance = player_distance;
-				best_offender = i;
-			}
 
-			Player cherry_picker = world.friendly_team().get(best_offender);
-			double magnitude = (world.ball().position() - cherry_picker.position()).lensq() + 0.15;
-			Point norm = (world.ball().position() - cherry_picker.position()).norm();
-			norm*=magnitude;
-			return destination = world.ball().position() + norm;
-		}
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		players.push_back(friendly.get(i));
+	}
+	std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(world.ball().position()));
 
+	Player cherry_picker = players[0];
+	double magnitude = (world.ball().position() - cherry_picker.position()).lensq() + 0.15;
+	Point norm = (world.ball().position() - cherry_picker.position()).norm();
+	norm*=magnitude;
+	return destination = world.ball().position() + norm;
 }
 
 bool AI::HL::STP::Evaluation::cherry_at_point(World world, Player player) {
-	return ((player.position() - cherry_pivot(world, player)).lensq() < Robot::MAX_RADIUS);
+	return ((player.position() - cherry_pivot(world)).lensq() < Robot::MAX_RADIUS);
 }
 
 

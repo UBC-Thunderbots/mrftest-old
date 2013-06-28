@@ -48,7 +48,7 @@ namespace {
 	void IndirectChipToCherry::player_changed() {
 	}
 	void IndirectChipToCherry::execute() {
-		Point destination = Evaluation::cherry_pivot(world, player);
+		Point destination = Evaluation::cherry_pivot(world);
 		Action::move(world, player, destination);
 	}
 }

@@ -11,7 +11,7 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-				Point cherry_pivot(World world, Player player);
+				Point cherry_pivot(World world);
 
 				bool cherry_at_point(World world, Player player);
 
