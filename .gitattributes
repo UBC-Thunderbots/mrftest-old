@@ -233,6 +233,8 @@ software/ai/hl/stp/evaluation/enemy.cpp -text
 software/ai/hl/stp/evaluation/enemy.h -text
 software/ai/hl/stp/evaluation/evaluation.cpp -text
 software/ai/hl/stp/evaluation/evaluation.h -text
+software/ai/hl/stp/evaluation/indirect_cherry.cpp -text
+software/ai/hl/stp/evaluation/indirect_cherry.h -text
 software/ai/hl/stp/evaluation/offense.cpp -text
 software/ai/hl/stp/evaluation/offense.h -text
 software/ai/hl/stp/evaluation/pass.cpp -text

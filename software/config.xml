@@ -128,7 +128,7 @@
         <double name="Buffer for higher priority friendly robot (meters)">0.050</double>
         <double name="Buffer for lower priority friendly robot (meters)">0.020</double>
         <double name="Buffer for staying away from play area boundary ">0.000</double>
-        <double name="Buffer for staying away from referee area boundary ">-0.18</double>
+        <double name="Buffer for staying away from referee area boundary ">-0.180</double>
         <double name="Buffer for staying on own half ">0.000</double>
         <boolean name="enforce that robots stay on own half ">false</boolean>
         <double name="The amount centre of robot must stay out of net">0.0623</double>
@@ -290,6 +290,7 @@
           <boolean name="DBasic2Block">true</boolean>
           <boolean name="DBasicCorner">true</boolean>
           <boolean name="DefensiveBlock">true</boolean>
+          <boolean name="DirectKickFriendlyPivot">true</boolean>
           <boolean name="FranticDefense">true</boolean>
           <boolean name="FreeKickEnemy">true</boolean>
           <boolean name="FreeKickEnemyDefend">false</boolean>
@@ -314,7 +315,6 @@
           <boolean name="Lone2Player">true</boolean>
           <boolean name="MTDDefensive">false</boolean>
           <boolean name="MTDDefensiveBlock">false</boolean>
-          <boolean name="MTOJustShoot">false</boolean>
           <boolean name="OffensiveBlock">true</boolean>
           <boolean name="OurCornerChip">false</boolean>
           <boolean name="OurCornerPlay">true</boolean>
@@ -326,7 +326,8 @@
           <boolean name="PenaltyEnemy">true</boolean>
           <boolean name="PenaltyFriendly">true</boolean>
           <boolean name="ShootGoal">true</boolean>
-          <boolean name="Stop">true</boolean>
+          <boolean name="Stop">false</boolean>
+          <boolean name="StopShadow">true</boolean>
           <boolean name="TheirCornerChip">false</boolean>
           <boolean name="TheirCornerPlay">true</boolean>
           <boolean name="TriAttackDef">true</boolean>
@@ -341,6 +342,7 @@
           <integer name="DBasic2Block">1023</integer>
           <integer name="DBasicCorner">1023</integer>
           <integer name="DefensiveBlock">1023</integer>
+          <integer name="DirectKickFriendlyPivot">1023</integer>
           <integer name="FranticDefense">1023</integer>
           <integer name="FreeKickEnemy">1023</integer>
           <integer name="FreeKickEnemyDefend">1023</integer>
@@ -365,7 +367,6 @@
           <integer name="Lone2Player">1023</integer>
           <integer name="MTDDefensive">1023</integer>
           <integer name="MTDDefensiveBlock">1023</integer>
-          <integer name="MTOJustShoot">1023</integer>
           <integer name="OffensiveBlock">1023</integer>
           <integer name="OurCornerChip">1023</integer>
           <integer name="OurCornerPlay">1023</integer>
@@ -378,6 +379,7 @@
           <integer name="PenaltyFriendly">1023</integer>
           <integer name="ShootGoal">1023</integer>
           <integer name="Stop">1023</integer>
+          <integer name="StopShadow">1023</integer>
           <integer name="TheirCornerChip">1023</integer>
           <integer name="TheirCornerPlay">1023</integer>
           <integer name="TriAttackDef">1023</integer>
@@ -392,6 +394,7 @@
           <integer name="DBasic2Block">5</integer>
           <integer name="DBasicCorner">5</integer>
           <integer name="DefensiveBlock">5</integer>
+          <integer name="DirectKickFriendlyPivot">5</integer>
           <integer name="FranticDefense">10</integer>
           <integer name="FreeKickEnemy">5</integer>
           <integer name="FreeKickEnemyDefend">5</integer>
@@ -416,7 +419,6 @@
           <integer name="Lone2Player">5</integer>
           <integer name="MTDDefensive">5</integer>
           <integer name="MTDDefensiveBlock">5</integer>
-          <integer name="MTOJustShoot">5</integer>
           <integer name="OffensiveBlock">5</integer>
           <integer name="OurCornerChip">5</integer>
           <integer name="OurCornerPlay">5</integer>
@@ -429,6 +431,7 @@
           <integer name="PenaltyFriendly">5</integer>
           <integer name="ShootGoal">10</integer>
           <integer name="Stop">5</integer>
+          <integer name="StopShadow">5</integer>
           <integer name="TheirCornerChip">5</integer>
           <integer name="TheirCornerPlay">5</integer>
           <integer name="TriAttackDef">5</integer>

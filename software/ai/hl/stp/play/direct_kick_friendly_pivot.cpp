@@ -22,6 +22,7 @@ DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
 
+Point way_point(3.05, 1.7);
 Point start_point(3.05, 2.04);
 
 if (world.ball().position().y < 0) start_point.y *= -1;
@@ -34,6 +35,7 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 // ROLE 1
 // kicker
 roles[0].push_back(move_active(world, start_point, (world.ball().position() - start_point).orientation()));
+roles[0].push_back(move_active(world, way_point, (world.ball().position() - way_point).orientation()));
 roles[0].push_back(direct_free_friendly_pivot(world));
 
 // ROLE 2
