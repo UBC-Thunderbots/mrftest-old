@@ -313,6 +313,7 @@
           <boolean name="Lone2Player">true</boolean>
           <boolean name="MTDDefensive">false</boolean>
           <boolean name="MTDDefensiveBlock">false</boolean>
+          <boolean name="MTOJustShoot">true</boolean>
           <boolean name="OffensiveBlock">true</boolean>
           <boolean name="OurCornerChip">false</boolean>
           <boolean name="OurCornerPlay">true</boolean>
@@ -366,6 +367,7 @@
           <integer name="Lone2Player">1023</integer>
           <integer name="MTDDefensive">1023</integer>
           <integer name="MTDDefensiveBlock">1023</integer>
+          <integer name="MTOJustShoot">1023</integer>
           <integer name="OffensiveBlock">1023</integer>
           <integer name="OurCornerChip">1023</integer>
           <integer name="OurCornerPlay">1023</integer>
@@ -419,6 +421,7 @@
           <integer name="Lone2Player">5</integer>
           <integer name="MTDDefensive">5</integer>
           <integer name="MTDDefensiveBlock">5</integer>
+          <integer name="MTOJustShoot">5</integer>
           <integer name="OffensiveBlock">5</integer>
           <integer name="OurCornerChip">5</integer>
           <integer name="OurCornerPlay">5</integer>

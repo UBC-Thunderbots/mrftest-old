@@ -29,6 +29,9 @@ APPLICABLE(true)
 DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
+
+EnemyTeam enemy = world.enemy_team();
+
 // GOALIE
 goalie_role.push_back(wait_playtype(world, defend_duo_goalie(world), AI::Common::PlayType::PLAY));
 
@@ -42,15 +45,23 @@ roles[1].push_back(move(world, Point(-(world.field().centre_circle_radius() + Ro
 
 // ROLE 3
 // shadowing
-roles[2].push_back(move(world, Point(-2 * Robot::MAX_RADIUS, Enemy::closest_ball(world, 1)->evaluate().position().y)));
+if (enemy.size() > 1){
+	roles[2].push_back(move(world, Point(-(world.field().centre_circle_radius() + Robot::MAX_RADIUS), Enemy::closest_ball(world, 1)->evaluate().position().y)));
+} else {
+	roles[2].push_back(move(world, Point(-2*Robot::MAX_RADIUS, world.field().centre_circle_radius() + Robot::MAX_RADIUS)));
+}
 
 // ROLE 4
 // shadowing
-roles[3].push_back(move(world, Point(-2 * Robot::MAX_RADIUS, Enemy::closest_ball(world, 2)->evaluate().position().y)));
+if (enemy.size() > 2){
+	roles[3].push_back(move(world, Point(-(world.field().centre_circle_radius() + Robot::MAX_RADIUS), Enemy::closest_ball(world, 2)->evaluate().position().y)));
+} else {
+	roles[3].push_back(move(world, Point(-2*Robot::MAX_RADIUS, -world.field().centre_circle_radius() - Robot::MAX_RADIUS)));
+}
 
 // ROLE 5
 // defend
-roles[4].push_back(defend_duo_extra1(world));
+roles[4].push_back(move(world, Point(-2*(world.field().centre_circle_radius() + Robot::MAX_RADIUS), 0)));
 
 END_ASSIGN()
 END_PLAY()
