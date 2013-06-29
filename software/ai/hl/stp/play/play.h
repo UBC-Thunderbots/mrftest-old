@@ -152,7 +152,7 @@ namespace AI {
 						IntParam playbook;
 
 						/** 
-						 * \brief Used to enable and disable a play. 
+						 * \brief Used to set a play to have static or dynamic role assignments. 
 						 */ 
 						BoolParam static_play;
 				};
