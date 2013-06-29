@@ -4,6 +4,7 @@
 #include "ai/hl/stp/evaluation/offense.h"
 #include "util/dprint.h"
 #include <cmath>
+#include <glibmm/ustring.h>
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>
 #include <gtkmm/textview.h>
@@ -35,7 +36,9 @@ namespace {
 
 			void tick() {
 				PlayExecutor::tick();
-				text_view.get_buffer()->set_text(info());
+				const Glib::ustring &i = info();
+				text_view.get_buffer()->set_text(i);
+				ai_notes = i;
 			}
 
 			Gtk::Widget *ui_controls() {

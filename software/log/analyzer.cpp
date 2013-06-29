@@ -658,6 +658,12 @@ namespace {
 				// Instead, the contents of the field's message should become the top-level nodes in the tree.
 				build_decoded_tree_toplevel(refl.GetMessage(record, &fd), ts, cols);
 				return;
+			} else if (fd.is_optional() && fd.type() == google::protobuf::FieldDescriptor::TYPE_STRING && refl.HasField(record, &fd)) {
+				// This record contains a string.
+				// Show a tree node for the string.
+				Gtk::TreeRow row = cols.append_kv(ts, Glib::ustring::compose("Value", i));
+				build_decoded_tree_field_singular(record, fd, ts, cols, row);
+				return;
 			} else if (fd.is_repeated() && fd.type() == google::protobuf::FieldDescriptor::TYPE_MESSAGE && refl.FieldSize(record, &fd)) {
 				// This record contains a repeated field.
 				// Show a tree node for each instance.

@@ -124,6 +124,7 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), fos(fd.
 	ai.backend.enemy_team().score.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_score_changed));
 	ai.backend.signal_post_tick().connect(sigc::mem_fun(this, &AI::Logger::on_tick));
 	ai.high_level.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_high_level_changed));
+	ai.signal_ai_notes_changed.connect(sigc::mem_fun(this, &AI::Logger::on_ai_notes_changed));
 
 	// Field geometry may already be valid and consequently may not ever change; thus, if the geometry is already valid, log it.
 	if (ai.backend.field().valid()) {
@@ -295,6 +296,9 @@ void AI::Logger::on_high_level_changed() {
 		config_record.mutable_config()->clear_high_level();
 	}
 	write_record(config_record);
+	Log::Record empty_ai_notes_record;
+	empty_ai_notes_record.set_ai_notes(u8"");
+	write_record(empty_ai_notes_record);
 }
 
 void AI::Logger::on_robot_controller_factory_changed() {
@@ -310,6 +314,12 @@ void AI::Logger::on_score_changed() {
 	Log::Record record;
 	record.mutable_scores()->set_friendly(ai.backend.friendly_team().score);
 	record.mutable_scores()->set_enemy(ai.backend.enemy_team().score);
+	write_record(record);
+}
+
+void AI::Logger::on_ai_notes_changed(const Glib::ustring &notes) {
+	Log::Record record;
+	record.set_ai_notes(notes);
 	write_record(record);
 }
 

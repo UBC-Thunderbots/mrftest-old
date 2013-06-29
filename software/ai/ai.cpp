@@ -31,6 +31,7 @@ AIPackage::AIPackage(Backend &backend) : backend(backend), high_level(std::uniqu
 	backend.friendly_team().signal_membership_changed().connect(sigc::mem_fun(this, &AIPackage::attach_robot_controllers));
 	robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &AIPackage::robot_controller_factory_changed));
 	high_level.signal_changed().connect(sigc::mem_fun(this, &AIPackage::save_setup));
+	high_level.signal_changed().connect(sigc::mem_fun(this, &AIPackage::init_ai_notes));
 	navigator.signal_changed().connect(sigc::mem_fun(this, &AIPackage::save_setup));
 	robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &AIPackage::save_setup));
 	backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &AIPackage::save_setup));
@@ -86,6 +87,17 @@ void AIPackage::robot_controller_factory_changed() {
 			state->robot_controller = robot_controller_factory->create_controller(AI::RC::W::World(backend), AI::RC::W::Player(plr));
 		}
 	}
+}
+
+void AIPackage::init_ai_notes() {
+	if (high_level.get()) {
+		high_level->ai_notes.signal_changed().connect(sigc::mem_fun(this, &AIPackage::ai_notes_changed));
+	}
+	signal_ai_notes_changed.emit(u8"");
+}
+
+void AIPackage::ai_notes_changed() {
+	signal_ai_notes_changed.emit(high_level->ai_notes);
 }
 
 void AIPackage::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {

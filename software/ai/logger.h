@@ -93,6 +93,7 @@ namespace AI {
 			void on_high_level_changed();
 			void on_robot_controller_factory_changed();
 			void on_score_changed();
+			void on_ai_notes_changed(const Glib::ustring &notes);
 			void on_tick(unsigned int compute_time);
 
 			friend void ::ai_logger_signal_handler_thunk(int sig);

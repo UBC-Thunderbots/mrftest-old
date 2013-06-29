@@ -7,6 +7,8 @@
 #include "ai/robot_controller/robot_controller.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
+#include <glibmm/ustring.h>
+#include <sigc++/signal.h>
 
 namespace AI {
 	/**
@@ -35,6 +37,11 @@ namespace AI {
 			Property<AI::RC::RobotControllerFactory *> robot_controller_factory;
 
 			/**
+			 * \brief Fired whenever the AI notes change.
+			 */
+			mutable sigc::signal<void, Glib::ustring> signal_ai_notes_changed;
+
+			/**
 			 * \brief Whether or not the overlay mechanism should render the high-level overlay.
 			 */
 			bool show_hl_overlay;
@@ -60,6 +67,8 @@ namespace AI {
 			void tick();
 			void attach_robot_controllers();
 			void robot_controller_factory_changed();
+			void init_ai_notes();
+			void ai_notes_changed();
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
 			void save_setup() const;
 	};

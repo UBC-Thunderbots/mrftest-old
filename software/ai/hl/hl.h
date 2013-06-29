@@ -3,6 +3,7 @@
 
 #include "ai/hl/world.h"
 #include "util/noncopyable.h"
+#include "util/property.h"
 #include "util/registerable.h"
 #include <cairomm/context.h>
 #include <cairomm/refptr.h>
@@ -22,6 +23,11 @@ namespace AI {
 		 */
 		class HighLevel : public NonCopyable {
 			public:
+				/**
+				 * \brief Textual information about the current high level.
+				 */
+				Property<Glib::ustring> ai_notes;
+
 				/**
 				 * \brief Destroys the HighLevel.
 				 */
@@ -57,6 +63,12 @@ namespace AI {
 				 * \param[in] ctx the Cairo context onto which to draw.
 				 */
 				virtual void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
+
+			protected:
+				/**
+				 * \brief Constructs a new high level.
+				 */
+				HighLevel();
 		};
 
 		/**

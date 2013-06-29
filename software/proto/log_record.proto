@@ -49,6 +49,9 @@ message Record {
 
 	// Stores an activation or deactivation of an annunciator panel message.
 	optional AnnunciatorMessage annunciator_message = 5;
+
+	// Stores notes provided by the current high level, e.g. an STP play and role list.
+	optional string ai_notes = 6;
 }
 
 message Config {
