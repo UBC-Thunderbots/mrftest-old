@@ -46,7 +46,6 @@ namespace {
 					if (world.playtype() == AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY || world.playtype() == AI::Common::PlayType::PLAY) {
 						friendly.get(0).flags(0);
 						AI::HL::STP::Action::shoot_goal(world, friendly.get(0), true);
-						AI::HL::STP::Action::move(world, friendly.get(0), world.ball().position());
 					} else if (world.playtype() == AI::Common::PlayType::STOP) {
 						auto Stopped_Player = AI::HL::STP::Tactic::move_stop(world, 2);
 						Stopped_Player->set_player(friendly.get(0));
