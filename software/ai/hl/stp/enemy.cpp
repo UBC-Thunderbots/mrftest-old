@@ -68,18 +68,19 @@ namespace {
 
 	class ClosestRobot : public Enemy {
 		public:
-			ClosestRobot(World w, unsigned int i) : world(w), index(i) {
+			ClosestRobot(World w, unsigned int robot, unsigned int i) : world(w), robot(robot), index(i) {
 			}
 
 		private:
 			World world;
+			unsigned int robot;
 			unsigned int index;
 			Robot evaluate() const {
 				// Remember that the closest robot to robot of index i is that robot itself. 
 				if (world.enemy_team().size() > index) {
-					robots = AI::HL::Util::get_robots(world.enemy_team());
-					std::sort(robots.begin(), robots.end(), AI::HL::Util::CmpDist<Robot>(world.enemy_team().get(i).position()));
-					return passees[index];
+					auto robots = AI::HL::Util::get_robots(world.enemy_team());
+					std::sort(robots.begin(), robots.end(), AI::HL::Util::CmpDist<Robot>(world.enemy_team().get(robot).position()));
+					return robots[index];
 				} 
 				return Robot();
 			}
@@ -119,8 +120,8 @@ Enemy::Ptr AI::HL::STP::Enemy::closest_ball(World world, unsigned int i) {
 	return std::make_shared<ClosestBall>(world, i);
 }
 
-Enemy::Ptr AI::HL::STP::Enemy::closest_pass(World world, unsigned int i) {
-	return std::make_shared<ClosestPass>(world, i);
+Enemy::Ptr AI::HL::STP::Enemy::closest_robot(World world, unsigned int robot, unsigned int i) {
+	return std::make_shared<ClosestRobot>(world, robot, i);
 }
 
 Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_player(World world, Player player, unsigned int i) {

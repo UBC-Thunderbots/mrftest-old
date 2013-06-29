@@ -55,7 +55,7 @@ namespace AI {
 					/**
 					 * \brief Closest to enemy having the ball, by passing.
 					 */
-					static Enemy::Ptr closest_pass(World world, unsigned int i);
+					static Enemy::Ptr closest_robot(World world, unsigned int robot, unsigned int i);
 
 					/**
 					 * \brief Order by distance to a friendly player.
