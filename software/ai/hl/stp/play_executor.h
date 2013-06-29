@@ -78,6 +78,9 @@ namespace AI {
 					// current player assignment
 					AI::HL::W::Player curr_assignment[TEAM_MAX_SIZE];
 
+					// previous player assignment
+					AI::HL::W::Player prev_assignment[TEAM_MAX_SIZE];
+
 					/**
 					 * List of all the available plays
 					 */

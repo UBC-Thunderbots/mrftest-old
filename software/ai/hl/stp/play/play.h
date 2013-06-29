@@ -150,6 +150,11 @@ namespace AI {
 						 * to the maximum bitmask value (currently set to 1023 to allow a total of 10 playbooks.) 
 						 */
 						IntParam playbook;
+
+						/** 
+						 * \brief Used to enable and disable a play. 
+						 */ 
+						BoolParam static_play;
 				};
 
 				/**

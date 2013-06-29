@@ -144,12 +144,11 @@ void PlayExecutor::role_assignment() {
 
 	// we cannot have less than 1 active tactic.
 	assert(curr_active);
-
+	
 	std::fill(curr_assignment, curr_assignment + TEAM_MAX_SIZE, Player());
-
 	
 	Player goalie;
-	#warning This removes the safety check of must having a goalie to execute a play. 
+	// This removes the safety check of must having a goalie to execute a play. 
 	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 		Player p = world.friendly_team().get(i);
 		if (p.pattern() == world.friendly_team().goalie() && players_enabled[p.pattern()]) {
@@ -174,6 +173,7 @@ void PlayExecutor::role_assignment() {
 			return;
 		}
 	}
+
 	if (goalie) {
 		AI::HL::STP::_goalie = goalie;
 
@@ -183,6 +183,7 @@ void PlayExecutor::role_assignment() {
 	} else {
 		LOG_ERROR("No goalie with the desired pattern");
 	}
+
 	// pool of available people
 	std::set<Player> players;
 	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
@@ -203,7 +204,17 @@ void PlayExecutor::role_assignment() {
 		if (players.empty()) {
 			break;
 		}
-		curr_assignment[i] = curr_tactic[i]->select(players);
+
+		// If the play is not set to select players statically
+		// or there is no previous assignment, then let the
+		// tactic pick its player. 
+		if (!curr_play->factory().static_play || !prev_assignment[i]) {
+			curr_assignment[i] = curr_tactic[i]->select(players);
+		} else if (prev_assignment[i]) {
+			// use the previous saved assignment
+			curr_assignment[i] = prev_assignment[i];
+		}
+
 		// assignment cannot be empty
 		assert(curr_assignment[i]);
 		assert(players.find(curr_assignment[i]) != players.end());
@@ -220,6 +231,11 @@ void PlayExecutor::role_assignment() {
 		LOG_ERROR("Active tactic not assigned");
 		curr_play = 0;
 		return;
+	}
+
+	// save the current assignment
+	for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
+		prev_assignment[i] = curr_assignment[i];
 	}
 }
 
@@ -255,6 +271,7 @@ void PlayExecutor::execute_tactics() {
 			}
 
 			// initially, subsequent tactics for a role should default to the players assigned to the earlier roles
+			// This doesn't fix the problem of instant role switching though as it happens for roles in the same step.
 			for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
 				if (curr_role_step < curr_roles[i].size()) {
 					Player old_player = curr_roles[i][curr_role_step - 1]->get_player();
@@ -456,6 +473,7 @@ void PlayExecutor::clear_assignments() {
 	for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
 		curr_tactic[i] = 0;
 		curr_assignment[i] = AI::HL::W::Player();
+		prev_assignment[i] = AI::HL::W::Player();
 		curr_roles[i].clear();
 	}
 }
