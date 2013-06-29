@@ -42,8 +42,8 @@ namespace {
 			//Point block_position = line_intersect(enemy->evaluate().position(), world.field().friendly_goal(), Point(-0.2, 2), Point(-0.2, -2));
 			Point block_position = Point();
 			Point enemy_pos = enemy->evaluate().position();
-			if (std::fabs(enemy_pos.y) < world.field().centre_circle_radius() + 2*Robot::MAX_RADIUS){
-				block_position = Point(-world.field().centre_circle_radius() -Robot::MAX_RADIUS, enemy_pos.y);
+			if (std::fabs(enemy_pos.y) < world.field().centre_circle_radius() + 4*Robot::MAX_RADIUS){
+				block_position = Point(-world.field().centre_circle_radius() -2*Robot::MAX_RADIUS, enemy_pos.y);
 			} else {
 				block_position = Point(-2*Robot::MAX_RADIUS, enemy_pos.y);
 			}
