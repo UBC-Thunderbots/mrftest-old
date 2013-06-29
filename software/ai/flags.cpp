@@ -9,7 +9,8 @@ const unsigned int AI::Flags::FLAGS_VALID =
     FLAG_AVOID_ENEMY_DEFENSE |
     FLAG_STAY_OWN_HALF |
     FLAG_PENALTY_KICK_FRIENDLY |
-    FLAG_PENALTY_KICK_ENEMY;
+    FLAG_PENALTY_KICK_ENEMY |
+	FLAG_CAREFUL;
 
 unsigned int AI::Flags::calc_flags(AI::Common::PlayType pt) {
 	// All robots want to avoid the defence area (except for the goalie).

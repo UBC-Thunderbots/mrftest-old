@@ -57,6 +57,11 @@ namespace AI {
 			 * Stay more than 40cm outside the penalty mark line as required for non-goalies in penalty kick rules.
 			 */
 			FLAG_PENALTY_KICK_ENEMY = 0x0080,
+
+			/**
+			 * \brief Drive carefully instead of quickly.
+			 */
+			FLAG_CAREFUL = 0x0100,
 		};
 
 		/**

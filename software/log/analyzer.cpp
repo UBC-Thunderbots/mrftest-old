@@ -86,6 +86,7 @@ namespace {
 		{ AI::Flags::FLAG_STAY_OWN_HALF, "Stay on own half" },
 		{ AI::Flags::FLAG_PENALTY_KICK_FRIENDLY, "Non-kicker in friendly penalty kick" },
 		{ AI::Flags::FLAG_PENALTY_KICK_ENEMY, "Non-kicker in enemy penalty kick" },
+		{ AI::Flags::FLAG_CAREFUL, "Careful" },
 	};
 
 	/**
