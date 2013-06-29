@@ -13,7 +13,7 @@ using AI::HL::STP::Enemy;
  * - just repel the ball to the enemy side
  */
 BEGIN_PLAY(JustRepel)
-INVARIANT(!playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) && !playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY) && our_team_size_at_least(world, 2))
+INVARIANT(playtype(world, AI::Common::PlayType::PLAY) && our_team_size_at_least(world, 2))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
