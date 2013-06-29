@@ -25,7 +25,7 @@ BEGIN_ASSIGN()
 goalie_role.push_back(lone_goalie(world));
 
 // ROLE 1
-roles[0].push_back(wait_playtype(world, move(world, Point(world.field().penalty_enemy().x - Robot::MAX_RADIUS, 0)), AI::Common::PlayType::EXECUTE_PENALTY_FRIENDLY));
+roles[0].push_back(wait_playtype(world, move(world, Point(world.field().penalty_enemy().x - 3 * Robot::MAX_RADIUS, 0)), AI::Common::PlayType::EXECUTE_PENALTY_FRIENDLY));
 roles[0].push_back(penalty_shoot(world));
 
 // ROLE 2
