@@ -135,12 +135,6 @@ namespace AI {
 			 * Orients towards the target, but ignores target velocity.
 			 */
 			PIVOT,
-
-			/**
-			 * Pivot around the ball.
-			 * Orients towards the target, but ignores target velocity.
-			 */
-			MOVE_CAREFUL,
 		};			
 
 		/**
