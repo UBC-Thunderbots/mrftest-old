@@ -33,6 +33,7 @@ namespace AI {
 			DoubleParam new_pivot_travel_angle("New Pivot: travel angle, need proper unit, (n*M_PI)", "Nav/RRT", 0.2, -0.5, 0.5);
 			DoubleParam new_pivot_hyster_angle("New Pivot: Hysterisis angle, one side, (n*M_PI)", "Nav/RRT", 0.2, 0.01, 0.2);
 			DoubleParam new_pivot_thresh_angle("New Pivot: Threshold angle, one side, (n*M_PI)", "Nav/RRT", 0.2, 0.01, 0.2);
+			DoubleParam careful_max_speed("Careful max speed (m/s)", "Nav/RRT", 0.1, 0.75, 3.0);
 
 			class PlayerData : public ObjectStore::Element {
 				public:
@@ -179,7 +180,13 @@ void RRTNavigator::tick() {
 		} else if (valid_path(player.position(), player.destination().first, world, player)) {
 			// if we're not trying to catch the ball and there are no obstacles in our way then go
 			// to the exact location, skipping all of the tree creation
-			path.push_back(std::make_pair(player.destination(), world.monotonic_time()));
+			timespec ts = world.monotonic_time();
+			if (player.flags() & AI::Flags::FLAG_CAREFUL) {
+				Point delta = player.destination().first - player.position();
+				double distance = delta.len();
+				timespec_add(ts, double_to_timespec(distance / careful_max_speed), ts);
+			}
+			path.push_back(std::make_pair(player.destination(), ts));
 			player.path(path);
 			continue;
 		} else {
@@ -210,6 +217,8 @@ void RRTNavigator::tick() {
 			if (player.type() == AI::Flags::MoveType::DRIBBLE) {
 				timespec time_to_add = double_to_timespec(dist / player.MAX_LINEAR_VELOCITY / DRIBBLE_SPEED);
 				timespec_add(working_time, time_to_add, working_time);
+			} else if (player.flags() & AI::Flags::FLAG_CAREFUL) {
+				timespec_add(working_time, double_to_timespec(dist / careful_max_speed), working_time);
 			}
 
 			path.push_back(std::make_pair(std::make_pair(path_points[j], dest_orientation), working_time));
