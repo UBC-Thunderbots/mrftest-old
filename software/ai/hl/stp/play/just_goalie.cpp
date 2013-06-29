@@ -12,7 +12,7 @@ namespace Predicates = AI::HL::STP::Predicates;
  * - have the goalie defend the goal
  */
 BEGIN_PLAY(JustGoalie)
-INVARIANT(Predicates::our_team_size_exactly(world, 1) && !Predicates::playtype(world, AI::Common::PlayType::PREPARE_PENALTY_ENEMY) && !Predicates::playtype(world, AI::Common::PlayType::EXECUTE_PENALTY_ENEMY)))
+INVARIANT(Predicates::our_team_size_exactly(world, 1) && !Predicates::playtype(world, AI::Common::PlayType::PREPARE_PENALTY_ENEMY) && !Predicates::playtype(world, AI::Common::PlayType::EXECUTE_PENALTY_ENEMY))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
