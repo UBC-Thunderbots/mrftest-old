@@ -66,32 +66,22 @@ namespace {
 			}
 	};
 
-	class ClosestPass : public Enemy {
+	class ClosestRobot : public Enemy {
 		public:
-			ClosestPass(World w, unsigned int i) : world(w), index(i) {
+			ClosestRobot(World w, unsigned int i) : world(w), index(i) {
 			}
 
 		private:
 			World world;
 			unsigned int index;
 			Robot evaluate() const {
+				// Remember that the closest robot to robot of index i is that robot itself. 
+				if (world.enemy_team().size() > index) {
+					robots = AI::HL::Util::get_robots(world.enemy_team());
+					std::sort(robots.begin(), robots.end(), AI::HL::Util::CmpDist<Robot>(world.enemy_team().get(i).position()));
+					return passees[index];
+				} 
 				return Robot();
-				// TODO: redo this
-				/*
-				   std::vector<Robot> passees = Evaluation::get_passees(world, robot);
-
-				   if (passees.size() <= index) {
-				   if (world.enemy_team().size() > index) {
-				   passees = AI::HL::Util::get_robots(world.enemy_team());
-				   std::sort(passees.begin(), passees.end(), AI::HL::Util::CmpDist<Robot>(world.ball().position()));
-				   return passees[index];
-				   } else {
-				   return Robot();
-				   }
-				   }
-
-				   return passees[index];
-				 */
 			}
 	};
 
