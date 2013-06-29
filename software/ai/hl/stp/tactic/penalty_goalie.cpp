@@ -47,8 +47,8 @@ namespace {
 			player.type(AI::Flags::MoveType::RAM_BALL);
 			player.prio(AI::Flags::MovePrio::HIGH);
 		} else {
-			const Point p1(world.field().friendly_goal().x + Robot::MAX_RADIUS, -0.2);
-			const Point p2(world.field().friendly_goal().x + Robot::MAX_RADIUS, 0.2);
+			const Point p1(world.field().friendly_goal().x + Robot::MAX_RADIUS/2, -0.2);
+			const Point p2(world.field().friendly_goal().x + Robot::MAX_RADIUS/2, 0.2);
 			if ((player.position() - p1).len() < AI::HL::Util::POS_CLOSE) {
 				goto_target1 = false;
 			} else if ((player.position() - p2).len() < AI::HL::Util::POS_CLOSE) {
