@@ -22,7 +22,7 @@ DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
 
-Point way_point(3.2, 2.3);
+Point way_point(3.1, 2.3);
 Point intermediate (2.9, 1.9);
 Point start_point(1.5, 2.3);
 
