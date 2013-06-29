@@ -41,7 +41,7 @@
     </category>
     <category name="Backend">
       <double name="Ball Decay Constant">2.7</double>
-      <double name="Ball detection probability threshold">0.250</double>
+      <double name="Ball detection probability threshold">0.500</double>
       <boolean name="Enable Kalman control inputs">false</boolean>
       <double name="Loop Delay">0.050</double>
     </category>
@@ -100,6 +100,7 @@
         <double name="pivot radius">1.00</double>
       </category>
       <category name="RRT">
+        <double name="Careful max speed">0.500</double>
         <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
         <double name="Distance to extend the tree on each step (m)">0.100</double>
         <boolean name="New Pivot: enable">false</boolean>
@@ -112,7 +113,7 @@
         <double name="New Pivot: travel angle, need proper unit, (n*M_PI)">0.200</double>
         <double name="New Pivot: travel radius">0.2000</double>
         <integer name="Number of iterations to go through before we give best partial path">200</integer>
-        <degrees name="Pivot: offset angle (degrees)">10</degrees>
+        <degrees name="Pivot: offset angle (degrees)">5</degrees>
         <degrees name="Pivot: orientation offset (degrees)">10</degrees>
       </category>
       <category name="Util">
@@ -290,13 +291,13 @@
           <boolean name="DBasic2Block">true</boolean>
           <boolean name="DBasicCorner">true</boolean>
           <boolean name="DefensiveBlock">true</boolean>
-          <boolean name="DirectKickFriendlyPivot">true</boolean>
+          <boolean name="DirectKickFriendlyPivot">false</boolean>
           <boolean name="FranticDefense">true</boolean>
           <boolean name="FreeKickEnemy">true</boolean>
           <boolean name="FreeKickEnemyDefend">true</boolean>
           <boolean name="FreeKickEnemyMarkDefend">true</boolean>
           <boolean name="FreeKickFriendly">true</boolean>
-          <boolean name="FreeKickFriendlyChip">true</boolean>
+          <boolean name="FreeKickFriendlyChip">false</boolean>
           <boolean name="FreeKickFriendlyPass">false</boolean>
           <boolean name="FreeKickFriendlyRay">false</boolean>
           <boolean name="FreeKickFriendlyRepel">true</boolean>
@@ -469,7 +470,7 @@
       </category>
       <category name="Shoot">
         <radians name="Angle threshold that defines shoot accuracy, bigger is more accurate (radians)">0.0</radians>
-        <double name="big reduced radius for calculating best shot (robot radius ratio)">0.800</double>
+        <double name="big reduced radius for calculating best shot (robot radius ratio)">0.500</double>
         <double name="Default Shooting Speed">8.00</double>
         <double name="Shoot accuracy (for various purposes)">5.0</double>
         <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
@@ -497,7 +498,7 @@
           <degrees name="when passer within this angle tol passee responds to passer direction (degrees)">30.0</degrees>
         </category>
         <category name="penalty_goalie">
-          <boolean name="Whether the penalty goalie should choose random points">true</boolean>
+          <boolean name="Whether the penalty goalie should choose random points">false</boolean>
         </category>
       </category>
       <category name="tdefend">
