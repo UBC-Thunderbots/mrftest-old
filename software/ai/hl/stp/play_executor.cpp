@@ -254,6 +254,16 @@ void PlayExecutor::execute_tactics() {
 				return;
 			}
 
+			// initially, subsequent tactics for a role should default to the players assigned to the earlier roles
+			for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
+				if (curr_role_step < curr_roles[i].size()) {
+					Player old_player = curr_roles[i][curr_role_step - 1]->get_player();
+					if (old_player) {
+						curr_roles[i][curr_role_step]->set_player(old_player);
+					}
+				}
+			}
+
 			continue;
 		}
 
