@@ -72,6 +72,13 @@ namespace AI {
 						virtual Player select(const std::set<Player> &players) const = 0;
 
 						/**
+						 * \brief Returns the player currently associated with this tactic.
+						 *
+						 * \return the player
+						 */
+						Player get_player() const;
+
+						/**
 						 * \brief Changes the player associated with this tactic.
 						 */
 						void set_player(Player p);
