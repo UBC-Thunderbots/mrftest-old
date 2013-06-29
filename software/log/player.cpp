@@ -257,7 +257,24 @@ namespace {
 
 class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 	public:
-		Impl(Gtk::Window &parent, const std::string &pathname) : records(LogLoader::load(pathname)), top_info_table(10, 2, false), ball_filter_label("Ball Filter:"), strategy_label("Strategy:"), backend_label("Backend:"), high_level_label("HL:"), robot_controller_label("Controller:"), friendly_colour_label("Colour:"), ticks_per_second_label("Tick Rate:"), play_type_label("Play Type:"), friendly_score_label("Points Us:"), enemy_score_label("Points Them:"), visualizer(*this), full_screen_button(Gtk::Stock::FULLSCREEN), start_button(Gtk::Stock::MEDIA_PREVIOUS), play_button(Gtk::Stock::MEDIA_PLAY), end_button(Gtk::Stock::MEDIA_NEXT) {
+		Impl(Gtk::Window &parent, const std::string &pathname) :
+				records(LogLoader::load(pathname)),
+				top_info_table(11, 2, false),
+				ball_filter_label("Ball Filter:"),
+				strategy_label("Strategy:"),
+				backend_label("Backend:"),
+				high_level_label("HL:"),
+				robot_controller_label("Controller:"),
+				friendly_colour_label("Colour:"),
+				ticks_per_second_label("Tick Rate:"),
+				play_type_label("Play Type:"),
+				friendly_score_label("Points Us:"),
+				enemy_score_label("Points Them:"),
+				visualizer(*this),
+				full_screen_button(Gtk::Stock::FULLSCREEN),
+				start_button(Gtk::Stock::MEDIA_PREVIOUS),
+				play_button(Gtk::Stock::MEDIA_PLAY),
+				end_button(Gtk::Stock::MEDIA_NEXT) {
 			for (std::size_t i = 0; i < players_.SIZE; ++i) {
 				player_ptrs[i] = players_[i];
 			}
@@ -285,6 +302,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			play_type_frame.set_shadow_type(Gtk::SHADOW_IN);
 			friendly_score_frame.set_shadow_type(Gtk::SHADOW_IN);
 			enemy_score_frame.set_shadow_type(Gtk::SHADOW_IN);
+			ai_notes_frame.set_shadow_type(Gtk::SHADOW_IN);
 
 			ticks_per_second_value.set_text(Glib::ustring::format(ticks_per_second));
 
@@ -298,6 +316,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			play_type_frame.add(play_type_value);
 			friendly_score_frame.add(friendly_score_value);
 			enemy_score_frame.add(enemy_score_value);
+			ai_notes_frame.add(ai_notes_value);
 
 			top_info_table.attach(ball_filter_label, 0, 1, 0, 1);
 			top_info_table.attach(ball_filter_frame, 1, 2, 0, 1);
@@ -319,6 +338,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			top_info_table.attach(friendly_score_frame, 1, 2, 8, 9);
 			top_info_table.attach(enemy_score_label, 0, 1, 9, 10);
 			top_info_table.attach(enemy_score_frame, 1, 2, 9, 10);
+			top_info_table.attach(ai_notes_frame, 0, 2, 10, 11);
 
 			top_info_vbox.pack_start(top_info_table, Gtk::PACK_SHRINK);
 
@@ -428,6 +448,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 		std::vector<std::vector<Log::Record>::const_iterator> field_records_by_tick;
 		std::vector<std::vector<Log::Record>::const_iterator> config_records_by_tick;
 		std::vector<std::vector<Log::Record>::const_iterator> scores_records_by_tick;
+		std::vector<std::vector<Log::Record>::const_iterator> ai_notes_records_by_tick;
 		unsigned int ticks_per_second;
 		timespec game_start_monotonic;
 		Field field_;
@@ -443,8 +464,8 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 		Gtk::VBox top_info_vbox;
 		Gtk::Table top_info_table;
 		Gtk::Label ball_filter_label, strategy_label, backend_label, high_level_label, robot_controller_label, friendly_colour_label, ticks_per_second_label, play_type_label, friendly_score_label, enemy_score_label;
-		Gtk::Frame ball_filter_frame, strategy_frame, backend_frame, high_level_frame, robot_controller_frame, friendly_colour_frame, ticks_per_second_frame, play_type_frame, friendly_score_frame, enemy_score_frame;
-		Gtk::Label ball_filter_value, strategy_value, backend_value, high_level_value, robot_controller_value, friendly_colour_value, ticks_per_second_value, play_type_value, friendly_score_value, enemy_score_value;
+		Gtk::Frame ball_filter_frame, strategy_frame, backend_frame, high_level_frame, robot_controller_frame, friendly_colour_frame, ticks_per_second_frame, play_type_frame, friendly_score_frame, enemy_score_frame, ai_notes_frame;
+		Gtk::Label ball_filter_value, strategy_value, backend_value, high_level_value, robot_controller_value, friendly_colour_value, ticks_per_second_value, play_type_value, friendly_score_value, enemy_score_value, ai_notes_value;
 		Visualizer visualizer;
 
 		Gtk::HBox lower_hbox;
@@ -467,7 +488,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 		}
 
 		void scan_records() {
-			std::vector<Log::Record>::const_iterator field_iter = records.end(), config_iter = records.end(), scores_iter = records.end();
+			std::vector<Log::Record>::const_iterator field_iter = records.end(), config_iter = records.end(), scores_iter = records.end(), ai_notes_iter = records.end();
 			for (auto i = records.begin(), iend = records.end(); i != iend; ++i) {
 				const Log::Record &record = *i;
 				if (record.has_field()) {
@@ -476,11 +497,14 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 					config_iter = i;
 				} else if (record.has_scores()) {
 					scores_iter = i;
+				} else if (record.has_ai_notes()) {
+					ai_notes_iter = i;
 				} else if (record.has_tick() && field_iter != records.end() && config_iter != records.end() && scores_iter != records.end()) {
 					tick_records.push_back(i);
 					field_records_by_tick.push_back(field_iter);
 					config_records_by_tick.push_back(config_iter);
 					scores_records_by_tick.push_back(scores_iter);
+					ai_notes_records_by_tick.push_back(ai_notes_iter);
 				}
 			}
 			if (field_iter == records.end()) {
@@ -561,6 +585,8 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			const Log::Field &field = field_records_by_tick[position]->field();
 			const Log::Config &config = config_records_by_tick[position]->config();
 			const Log::Scores &scores = scores_records_by_tick[position]->scores();
+			auto ai_notes_iter = ai_notes_records_by_tick[position];
+			const Glib::ustring &ai_notes = ai_notes_iter != records.end() ? ai_notes_iter->ai_notes() : u8"";
 
 			timespec ts = timespec_sub(timespec_of_log(tick.start_time()), game_start_monotonic);
 			unsigned int milliseconds = static_cast<unsigned int>(ts.tv_nsec / 1000000);
@@ -628,6 +654,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			play_type_value.set_text(AI::Common::PlayTypeInfo::to_string(Log::Util::PlayType::of_protobuf(tick.play_type())));
 			friendly_score_value.set_text(Glib::ustring::format(scores.friendly()));
 			enemy_score_value.set_text(Glib::ustring::format(scores.enemy()));
+			ai_notes_value.set_text(ai_notes);
 
 			signal_tick_.emit();
 		}
