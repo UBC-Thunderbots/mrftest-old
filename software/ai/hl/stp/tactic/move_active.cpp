@@ -44,7 +44,8 @@ namespace {
 	}
 
 	void MoveActive::execute() {
-		if (pivot) Action::pivot(world, player, dest, 0.15);
+		//if (pivot) Action::pivot(world, player, dest, 0.15);
+		if (careful) Action::move_careful(world, player, dest);
 		else Action::move(player, orientation, dest);
 	}
 }
