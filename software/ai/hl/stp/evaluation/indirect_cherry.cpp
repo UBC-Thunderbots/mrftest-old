@@ -23,7 +23,7 @@ Point AI::HL::STP::Evaluation::cherry_pivot(World world) {
 	std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(world.ball().position()));
 
 	Player cherry_picker = players[0];
-	double magnitude = (world.ball().position() - cherry_picker.position()).lensq() + 0.15;
+	double magnitude = (world.ball().position() - cherry_picker.position()).len() + 0.15;
 	Point norm = (world.ball().position() - cherry_picker.position()).norm();
 	norm*=magnitude;
 	return destination = world.ball().position() + norm;

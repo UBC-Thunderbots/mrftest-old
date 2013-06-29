@@ -43,11 +43,11 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // kicker
-roles[0].push_back(move_active(world, start_point, (world.ball().position() - start_point).orientation(), false));
+roles[0].push_back(move_active(world, start_point, (world.ball().position() - start_point).orientation(), false, true));
 //roles[0].push_back(move_active(world, start_point, (world.ball().position() - start_point).orientation(), false));
 //roles[0].push_back(move_active(world, intermediate, (world.ball().position() - intermediate).orientation(), false));
-roles[0].push_back(move_active(world, way_point, (world.ball().position() - way_point).orientation(), false));
-roles[0].push_back(move_active(world, intermediate, (world.ball().position() - way_point).orientation(), false));
+roles[0].push_back(move_active(world, way_point, (world.ball().position() - way_point).orientation(), false, true));
+roles[0].push_back(move_active(world, intermediate, (world.ball().position() - way_point).orientation(), false, true));
 roles[0].push_back(direct_free_friendly_pivot(world));
 
 // ROLE 2

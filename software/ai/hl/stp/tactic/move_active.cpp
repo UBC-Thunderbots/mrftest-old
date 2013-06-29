@@ -13,7 +13,7 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class MoveActive : public Tactic {
 		public:
-			MoveActive(World world, const Point dest, const Angle orientation, const bool pivot) : Tactic(world, true), dest(dest), orientation(orientation), pivot(pivot) {
+			MoveActive(World world, const Point dest, const Angle orientation, const bool careful, const bool pivot) : Tactic(world, true), dest(dest), orientation(orientation), pivot(pivot), careful(careful) {
 				arrived = false;
 			}
 
@@ -26,6 +26,7 @@ namespace {
 			void player_changed();
 			bool arrived;
 			bool pivot;
+			bool careful;
 			Glib::ustring description() const {
 				return "move-active";
 			}
@@ -48,8 +49,8 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::move_active(World world, const Point dest, const Angle orientation, const bool pivot) {
-	Tactic::Ptr p(new MoveActive(world, dest, orientation, pivot));
+Tactic::Ptr AI::HL::STP::Tactic::move_active(World world, const Point dest, const Angle orientation, const bool pivot, const bool careful) {
+	Tactic::Ptr p(new MoveActive(world, dest, orientation, pivot, careful));
 	return p;
 }
 

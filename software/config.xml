@@ -179,7 +179,7 @@
       </category>
       <category name="PID6_2012">
         <double name="Aggressiveness of the controller">0.001</double>
-        <double name="Limit wheel accel (quarter degree per firmware tick squared)">75</double>
+        <double name="Limit wheel accel (quarter degree per firmware tick squared)">120</double>
         <double name="Limit wheel speed (quarter degree per firmware tick)">214</double>
         <double name="Tick rate of firmware control loop in s^-1">200</double>
       </category>
@@ -243,6 +243,9 @@
         <boolean name="Goalie is lowest index">true</boolean>
         <integer name="Goalie pattern index">4</integer>
         <boolean name="Goalie selection by lowest or user assigned">false</boolean>
+      </category>
+      <category name="Kickoff">
+        <degrees name="kickoff: angle to separate players (degrees)">20.0</degrees>
       </category>
       <category name="offense">
         <double name="Dont block increase multiplier">2.00</double>

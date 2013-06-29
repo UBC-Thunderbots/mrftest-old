@@ -32,6 +32,12 @@ namespace AI {
 				 * and ending in desired velocity.
 				 */
 				void move(Player player, const Angle orientation, const Point dest, const Point vel);
+
+				/**
+				 * Move to a particular location and stop.
+				 * Orient the player towards the ball.
+				 */
+				void move_careful(World world, Player player, const Point dest);
 			}
 		}
 	}

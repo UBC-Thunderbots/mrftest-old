@@ -135,7 +135,13 @@ namespace AI {
 			 * Orients towards the target, but ignores target velocity.
 			 */
 			PIVOT,
-		};
+
+			/**
+			 * Pivot around the ball.
+			 * Orients towards the target, but ignores target velocity.
+			 */
+			MOVE_CAREFUL,
+		};			
 
 		/**
 		 * Movement priorities indicating which robots should give way so other robots can drive in a straight line.

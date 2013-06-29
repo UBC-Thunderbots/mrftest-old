@@ -23,3 +23,8 @@ void AI::HL::STP::Action::move(Player player, const Angle orientation, const Poi
 	player.type(AI::Flags::MoveType::NORMAL);
 }
 
+void AI::HL::STP::Action::move_careful(World world, Player player, const Point dest) {
+	player.move(dest, (world.ball().position() - player.position()).orientation(), Point());
+	player.type(AI::Flags::MoveType::MOVE_CAREFUL);
+}
+
