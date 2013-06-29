@@ -33,7 +33,7 @@ namespace AI {
 			DoubleParam new_pivot_travel_angle("New Pivot: travel angle, need proper unit, (n*M_PI)", "Nav/RRT", 0.2, -0.5, 0.5);
 			DoubleParam new_pivot_hyster_angle("New Pivot: Hysterisis angle, one side, (n*M_PI)", "Nav/RRT", 0.2, 0.01, 0.2);
 			DoubleParam new_pivot_thresh_angle("New Pivot: Threshold angle, one side, (n*M_PI)", "Nav/RRT", 0.2, 0.01, 0.2);
-			DoubleParam careful_max_speed("Careful max speed (m/s)", "Nav/RRT", 0.1, 0.75, 3.0);
+			DoubleParam careful_max_speed("Careful max speed", "Nav/RRT", 0.75, 0.1, 3.0);
 
 			class PlayerData : public ObjectStore::Element {
 				public:
