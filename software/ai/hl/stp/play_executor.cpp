@@ -288,7 +288,7 @@ void PlayExecutor::execute_tactics() {
 
 			case AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY:
 			case AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY:
-				default_flags |= Flags::FLAG_AVOID_ENEMY_DEFENSE;
+				default_flags |= Flags::FLAG_AVOID_ENEMY_DEFENSE | Flags::FLAG_CAREFUL;
 				break;
 
 			case AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY:
@@ -300,6 +300,9 @@ void PlayExecutor::execute_tactics() {
 
 			default:
 				break;
+		}
+		if (world.playtype() == AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY || world.playtype() == AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY) {
+			default_flags |= Flags::FLAG_CAREFUL;
 		}
 		curr_assignment[i].flags(default_flags);
 	}
