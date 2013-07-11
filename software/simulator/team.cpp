@@ -24,7 +24,6 @@ void Simulator::Team::add_connection(Connection::Ptr &&conn) {
 	conn->signal_packet().connect(sigc::mem_fun(this, &Team::on_packet));
 	connection = std::move(conn);
 	ready_ = true;
-	Glib::signal_idle().connect_once(sigc::mem_fun(this, &Team::send_speed_mode));
 	Glib::signal_idle().connect_once(signal_ready().make_slot());
 }
 
@@ -99,16 +98,6 @@ void Simulator::Team::send_tick(const timespec &ts) {
 
 		// Having sent the tick packet, we are no longer ready and must wait for an A2S_PACKET_PLAYERS.
 		ready_ = false;
-	}
-}
-
-void Simulator::Team::send_speed_mode() {
-	if (connection) {
-		Proto::S2APacket packet;
-		std::memset(&packet, 0, sizeof(packet));
-		packet.type = Proto::S2APacketType::SPEED_MODE;
-		packet.speed_mode = sim.speed_mode();
-		connection->send(packet);
 	}
 }
 
@@ -244,10 +233,6 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet, std::shared_ptr<
 				return;
 			}
 			to_remove.push_back(packet.pattern);
-			return;
-
-		case Proto::A2SPacketType::SET_SPEED:
-			sim.speed_mode(packet.speed_mode);
 			return;
 
 		case Proto::A2SPacketType::DRAG_BALL:

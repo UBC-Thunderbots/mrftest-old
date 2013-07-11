@@ -35,36 +35,6 @@ namespace AI {
 			class SecondaryUIControls {
 				public:
 					/**
-					 * A label for speed_hbox.
-					 */
-					Gtk::Label speed_label;
-
-					/**
-					 * A box to contain speed_normal and speed_fast.
-					 */
-					Gtk::HBox speed_hbox;
-
-					/**
-					 * A radio group to contain speed_normal and speed_fast.
-					 */
-					Gtk::RadioButtonGroup speed_group;
-
-					/**
-					 * A radio button to set the simulator to run at normal speed.
-					 */
-					Gtk::RadioButton speed_normal;
-
-					/**
-					 * A radio button to set the simulator to run in fast mode.
-					 */
-					Gtk::RadioButton speed_fast;
-
-					/**
-					 * A radio button to set the simulator to run in slow mode.
-					 */
-					Gtk::RadioButton speed_slow;
-
-					/**
 					 * A label for players_hbox.
 					 */
 					Gtk::Label players_label;
@@ -228,12 +198,6 @@ namespace AI {
 					 * Examines the current play type override and calculates the effective play type.
 					 */
 					void update_playtype();
-
-					/**
-					 * Invoked when the user selects a new speed mode radio button.
-					 * Sends the new selected speed mode to the simulator.
-					 */
-					void on_speed_toggled();
 
 					/**
 					 * Invoked when the user clicks the add player button.

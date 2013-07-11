@@ -60,7 +60,7 @@ namespace {
 	}
 }
 
-Simulator::Simulator::Simulator(SimulatorEngine &engine) : engine(engine), listen_socket(create_listen_socket()), team1(*this, &team2, false), team2(*this, &team1, true), speed_mode_(::Simulator::Proto::SpeedMode::NORMAL), tick_scheduled(false), frame_count(0), spinner_index(0) {
+Simulator::Simulator::Simulator(SimulatorEngine &engine) : engine(engine), listen_socket(create_listen_socket()), team1(*this, &team2, false), team2(*this, &team1, true), tick_scheduled(false), frame_count(0), spinner_index(0) {
 	next_tick_game_monotonic_time.tv_sec = 0;
 	next_tick_game_monotonic_time.tv_nsec = 0;
 	next_tick_phys_monotonic_time.tv_sec = 0;
@@ -71,18 +71,6 @@ Simulator::Simulator::Simulator(SimulatorEngine &engine) : engine(engine), liste
 	team2.signal_ready().connect(sigc::mem_fun(this, &Simulator::Simulator::check_tick));
 	Glib::signal_io().connect(sigc::mem_fun(this, &Simulator::Simulator::on_ai_connecting), listen_socket.fd(), Glib::IO_IN);
 	std::cout << "Simulator up and running\n";
-}
-
-::Simulator::Proto::SpeedMode Simulator::Simulator::speed_mode() const {
-	return speed_mode_;
-}
-
-void Simulator::Simulator::speed_mode(::Simulator::Proto::SpeedMode mode) {
-	if (speed_mode_ != mode) {
-		speed_mode_ = mode;
-		team1.send_speed_mode();
-		team2.send_speed_mode();
-	}
 }
 
 void Simulator::Simulator::encode_ball_state(Proto::S2ABallInfo &state, bool invert) {
@@ -167,30 +155,20 @@ void Simulator::Simulator::check_tick() {
 		return;
 	}
 
-	switch (speed_mode_) {
-		case ::Simulator::Proto::SpeedMode::NORMAL:
-		case ::Simulator::Proto::SpeedMode::SLOW:
-			// In normal-speed mode and slow mode, we first determine whether we've passed the deadline.
-			timespec now;
-			if (clock_gettime(CLOCK_MONOTONIC, &now) < 0) {
-				throw SystemError(u8"clock_gettime(CLOCK_MONOTONIC)", errno);
-			}
-			if (timespec_cmp(now, next_tick_phys_monotonic_time) >= 0) {
-				// It's time to tick.
-				tick();
-			} else {
-				// Wait a bit before ticking.
-				timespec diff;
-				timespec_sub(next_tick_phys_monotonic_time, now, diff);
-				Glib::signal_timeout().connect_once(sigc::mem_fun(this, &Simulator::Simulator::tick), timespec_to_millis(diff));
-				tick_scheduled = true;
-			}
-			break;
-
-		case ::Simulator::Proto::SpeedMode::FAST:
-			// In fast mode, we tick immediately.
-			tick();
-			break;
+	// We first determine whether we've passed the deadline.
+	timespec now;
+	if (clock_gettime(CLOCK_MONOTONIC, &now) < 0) {
+		throw SystemError(u8"clock_gettime(CLOCK_MONOTONIC)", errno);
+	}
+	if (timespec_cmp(now, next_tick_phys_monotonic_time) >= 0) {
+		// It's time to tick.
+		tick();
+	} else {
+		// Wait a bit before ticking.
+		timespec diff;
+		timespec_sub(next_tick_phys_monotonic_time, now, diff);
+		Glib::signal_timeout().connect_once(sigc::mem_fun(this, &Simulator::Simulator::tick), timespec_to_millis(diff));
+		tick_scheduled = true;
 	}
 }
 
@@ -223,14 +201,10 @@ void Simulator::Simulator::tick() {
 	team2.send_tick(next_tick_game_monotonic_time);
 
 	// Update the game monotonic time by exactly the size of a timestep.
-	timespec step_normal;
-	step_normal.tv_sec = 1 / TIMESTEPS_PER_SECOND;
-	step_normal.tv_nsec = 1000000000L / TIMESTEPS_PER_SECOND - 1 / TIMESTEPS_PER_SECOND * 1000000000L;
-	timespec step_slow;
-	step_slow.tv_sec = 1 / SLOW_TIMESTEPS_PER_SECOND;
-	step_slow.tv_nsec = 1000000000L / SLOW_TIMESTEPS_PER_SECOND - 1 / SLOW_TIMESTEPS_PER_SECOND * 1000000000L;
-	const timespec step = speed_mode_ == ::Simulator::Proto::SpeedMode::SLOW ? step_slow : step_normal;
-	timespec_add(next_tick_game_monotonic_time, step_normal, next_tick_game_monotonic_time);
+	timespec step;
+	step.tv_sec = 1 / TIMESTEPS_PER_SECOND;
+	step.tv_nsec = 1000000000L / TIMESTEPS_PER_SECOND - 1 / TIMESTEPS_PER_SECOND * 1000000000L;
+	timespec_add(next_tick_game_monotonic_time, step, next_tick_game_monotonic_time);
 
 	// Update the physical monotonic tick deadline to be as close as possible to one timestep forward from the previous tick.
 	// However, clamp it to lie between the curren time and one timestep in the future.

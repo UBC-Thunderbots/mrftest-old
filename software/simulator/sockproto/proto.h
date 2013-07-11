@@ -68,26 +68,6 @@ namespace Simulator {
 		};
 
 		/**
-		 * The possible speed modes.
-		 */
-		enum class SpeedMode {
-			/**
-			 * The simulator is running at real-time speed.
-			 */
-			NORMAL,
-
-			/**
-			 * The simulator is running as quickly as possible.
-			 */
-			FAST,
-
-			/**
-			 * The simulator is running more slowly than real time.
-			 */
-			SLOW,
-		};
-
-		/**
 		 * The possible packet types that can be sent from the AI to the simulator.
 		 */
 		enum class A2SPacketType {
@@ -111,12 +91,6 @@ namespace Simulator {
 			 * Packets of this type, A2S_PACKET_ADD_PLAYER, and A2S_SET_STATE should be limited to one per S2A_PACKET_TICK.
 			 */
 			REMOVE_PLAYER,
-
-			/**
-			 * Requests that the simulator switch to a new speed mode.
-			 * This may be sent at any time.
-			 */
-			SET_SPEED,
 
 			/**
 			 * Requests that the simulator drag the ball to a new position.
@@ -166,11 +140,6 @@ namespace Simulator {
 				 * in the case of A2S_PACKET_ADD_PLAYER or A2S_PACKET_REMOVE_PLAYER.
 				 */
 				unsigned int pattern;
-
-				/**
-				 * The speed mode, in the case of A2S_PACKET_SPEED_MDOE.
-				 */
-				SpeedMode speed_mode;
 
 				/**
 				 * Information about dragging an object, in the case of A2S_PACKET_DRAG_BALL or A2S_PACKET_DRAG_PLAYER.
@@ -243,12 +212,6 @@ namespace Simulator {
 			 * Carries the state of the world and orders the AI to begin a time tick.
 			 */
 			TICK,
-
-			/**
-			 * Indicates which speed mode is currently active.
-			 * This packet is sent when the client connects and whenever the speed mode changes.
-			 */
-			SPEED_MODE,
 		};
 
 		/**
@@ -295,11 +258,6 @@ namespace Simulator {
 					 */
 					unsigned int enemy_score;
 				} world_state;
-
-				/**
-				 * The current speed mode, in the case of S2A_PACKET_SPEED_MODE.
-				 */
-				SpeedMode speed_mode;
 			};
 		};
 	}

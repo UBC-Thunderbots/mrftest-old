@@ -32,20 +32,6 @@ namespace Simulator {
 			Simulator(SimulatorEngine &engine);
 
 			/**
-			 * \brief Returns the speed mode of the simulator.
-			 *
-			 * \return the current speed mode.
-			 */
-			::Simulator::Proto::SpeedMode speed_mode() const;
-
-			/**
-			 * \brief Sets the speed mode of the simulator.
-			 *
-			 * \param[in] mode the speed mode to run in.
-			 */
-			void speed_mode(::Simulator::Proto::SpeedMode mode);
-
-			/**
 			 * \brief Stores the current state of the ball into a state block.
 			 *
 			 * \param[out] state the state block to fill.
@@ -98,11 +84,6 @@ namespace Simulator {
 			 * \brief The time of the last status line update in physical monotonic time.
 			 */
 			timespec last_fps_report_time;
-
-			/**
-			 * \brief The simulator's current speed mode.
-			 */
-			::Simulator::Proto::SpeedMode speed_mode_;
 
 			/**
 			 * \brief Whether a call to tick() has been scheduled on a timer but not yet executed.

@@ -12,14 +12,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-AI::BE::Simulator::SecondaryUIControls::SecondaryUIControls(const std::string &load_filename) : speed_label("Speed:"), speed_normal(speed_group, "Normal"), speed_fast(speed_group, "Fast"), speed_slow(speed_group, "Slow"), players_label("Players:"), players_hbox(Gtk::BUTTONBOX_SPREAD), players_add("+"), players_remove("−"), state_file_name(load_filename), state_file_label("State:"), state_file_button("…"), state_file_hbox(Gtk::BUTTONBOX_SPREAD), state_file_load_button("Load"), state_file_save_button("Save") {
-	speed_normal.set_sensitive(false);
-	speed_fast.set_sensitive(false);
-	speed_slow.set_sensitive(false);
-	speed_hbox.pack_start(speed_normal, Gtk::PACK_EXPAND_WIDGET);
-	speed_hbox.pack_start(speed_fast, Gtk::PACK_EXPAND_WIDGET);
-	speed_hbox.pack_start(speed_slow, Gtk::PACK_EXPAND_WIDGET);
-
+AI::BE::Simulator::SecondaryUIControls::SecondaryUIControls(const std::string &load_filename) : players_label("Players:"), players_hbox(Gtk::BUTTONBOX_SPREAD), players_add("+"), players_remove("−"), state_file_name(load_filename), state_file_label("State:"), state_file_button("…"), state_file_hbox(Gtk::BUTTONBOX_SPREAD), state_file_load_button("Load"), state_file_save_button("Save") {
 	players_add.set_sensitive(false);
 	players_remove.set_sensitive(false);
 	players_hbox.pack_start(players_add);
@@ -52,18 +45,16 @@ void AI::BE::Simulator::SecondaryUIControls::on_state_file_button_clicked() {
 }
 
 unsigned int AI::BE::Simulator::SecondaryUIControls::rows() const {
-	return 4;
+	return 3;
 }
 
 void AI::BE::Simulator::SecondaryUIControls::attach(Gtk::Table &t, unsigned int row) {
-	t.attach(speed_label, 0, 1, row + 0, row + 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	t.attach(speed_hbox, 1, 3, row + 0, row + 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	t.attach(players_label, 0, 1, row + 1, row + 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	t.attach(players_hbox, 1, 3, row + 1, row + 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	t.attach(state_file_label, 0, 1, row + 2, row + 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	t.attach(state_file_entry, 1, 2, row + 2, row + 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	t.attach(state_file_button, 2, 3, row + 2, row + 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	t.attach(state_file_hbox, 1, 3, row + 3, row + 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	t.attach(players_label, 0, 1, row + 0, row + 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	t.attach(players_hbox, 1, 3, row + 0, row + 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	t.attach(state_file_label, 0, 1, row + 1, row + 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	t.attach(state_file_entry, 1, 2, row + 1, row + 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	t.attach(state_file_button, 2, 3, row + 1, row + 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	t.attach(state_file_hbox, 1, 3, row + 2, row + 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 }
 
 FileDescriptor AI::BE::Simulator::connect_to_simulator() {
@@ -102,9 +93,6 @@ FileDescriptor AI::BE::Simulator::connect_to_simulator() {
 }
 
 AI::BE::Simulator::Backend::Backend(const std::string &load_filename) : sock(connect_to_simulator()), friendly_(*this), enemy_(*this), secondary_controls(load_filename), dragging_ball(false), dragging_pattern(std::numeric_limits<unsigned int>::max()) {
-	secondary_controls.speed_normal.signal_toggled().connect(sigc::mem_fun(this, &Backend::on_speed_toggled));
-	secondary_controls.speed_fast.signal_toggled().connect(sigc::mem_fun(this, &Backend::on_speed_toggled));
-	secondary_controls.speed_slow.signal_toggled().connect(sigc::mem_fun(this, &Backend::on_speed_toggled));
 	secondary_controls.players_add.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_players_add_clicked));
 	secondary_controls.players_remove.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_players_remove_clicked));
 	secondary_controls.state_file_load_button.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_state_file_load_clicked));
@@ -308,28 +296,6 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 			secondary_controls.state_file_load_button.set_sensitive(!secondary_controls.state_file_name.empty());
 			return true;
 		}
-
-		case ::Simulator::Proto::S2APacketType::SPEED_MODE:
-			// Update the UI controls.
-			switch (packet.speed_mode) {
-				case ::Simulator::Proto::SpeedMode::NORMAL:
-					secondary_controls.speed_normal.set_active();
-					break;
-
-				case ::Simulator::Proto::SpeedMode::FAST:
-					secondary_controls.speed_fast.set_active();
-					break;
-
-				case ::Simulator::Proto::SpeedMode::SLOW:
-					secondary_controls.speed_slow.set_active();
-					break;
-			}
-
-			// Make both radio buttons sensitive.
-			secondary_controls.speed_normal.set_sensitive();
-			secondary_controls.speed_fast.set_sensitive();
-			secondary_controls.speed_slow.set_sensitive();
-			return true;
 	}
 
 	throw std::runtime_error("Simulator sent bad packet type");
@@ -349,20 +315,6 @@ void AI::BE::Simulator::Backend::update_playtype() {
 	} else {
 		playtype_rw() = AI::Common::PlayType::HALT;
 	}
-}
-
-void AI::BE::Simulator::Backend::on_speed_toggled() {
-	::Simulator::Proto::A2SPacket packet;
-	std::memset(&packet, 0, sizeof(packet));
-	packet.type = ::Simulator::Proto::A2SPacketType::SET_SPEED;
-	if (secondary_controls.speed_fast.get_active()) {
-		packet.speed_mode = ::Simulator::Proto::SpeedMode::FAST;
-	} else if (secondary_controls.speed_slow.get_active()) {
-		packet.speed_mode = ::Simulator::Proto::SpeedMode::SLOW;
-	} else {
-		packet.speed_mode = ::Simulator::Proto::SpeedMode::NORMAL;
-	}
-	send_packet(packet);
 }
 
 void AI::BE::Simulator::Backend::on_players_add_clicked() {

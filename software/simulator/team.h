@@ -78,11 +78,6 @@ namespace Simulator {
 			void send_tick(const timespec &ts);
 
 			/**
-			 * Sends a packet to the AI with the current speed mode.
-			 */
-			void send_speed_mode();
-
-			/**
 			 * Loads a team state from a file.
 			 *
 			 * \param[in] fd the file to load from.
