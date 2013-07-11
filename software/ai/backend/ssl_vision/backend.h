@@ -201,6 +201,26 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 			// Keep the detection if it is good enough.
 			if (best_prob >= BALL_FILTER_THRESHOLD) {
 				ball_.add_field_data(best_pos, best_time);
+			} else {
+				// No useful detection from camera; instead, see if a robot has the ball.
+				std::vector<Point> has_ball_inputs;
+				for (std::size_t i = 0; i < friendly_team().size(); ++i) {
+					Player::Ptr player = friendly_team().get(i);
+					if (player->has_ball()) {
+						player->lock_time(now);
+						Point pos = player->position(0);
+						pos += Point::of_angle(player->orientation(0)) * ROBOT_CENTRE_TO_FRONT_DISTANCE;
+						has_ball_inputs.push_back(pos);
+					}
+				}
+				if (!has_ball_inputs.empty()) {
+					Point avg;
+					for (auto i : has_ball_inputs) {
+						avg += i;
+					}
+					avg /= static_cast<double>(has_ball_inputs.size());
+					ball_.add_field_data(avg, now);
+				}
 			}
 		}
 
