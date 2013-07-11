@@ -35,7 +35,7 @@ sigc::signal<void> &Simulator::Team::signal_ready() const {
 	return signal_ready_;
 }
 
-void Simulator::Team::send_tick(const timespec &ts) {
+void Simulator::Team::send_tick() {
 	// Actually remove any robots we were asked to remove in the past time period.
 	for (std::vector<unsigned int>::const_iterator i = to_remove.begin(), iend = to_remove.end(); i != iend; ++i) {
 		std::vector<PlayerInfo>::iterator j = std::find_if(players.begin(), players.end(), [&i](PlayerInfo p) { return p.pattern == *i; });
@@ -91,7 +91,6 @@ void Simulator::Team::send_tick(const timespec &ts) {
 				packet.world_state.enemy[i].pattern = std::numeric_limits<unsigned int>::max();
 			}
 		}
-		packet.world_state.stamp = ts;
 		packet.world_state.friendly_score = 0;
 		packet.world_state.enemy_score = 0;
 		connection->send(packet);

@@ -61,8 +61,6 @@ namespace {
 }
 
 Simulator::Simulator::Simulator(SimulatorEngine &engine) : engine(engine), listen_socket(create_listen_socket()), team1(*this, &team2, false), team2(*this, &team1, true), tick_scheduled(false), frame_count(0), spinner_index(0) {
-	next_tick_game_monotonic_time.tv_sec = 0;
-	next_tick_game_monotonic_time.tv_nsec = 0;
 	next_tick_phys_monotonic_time.tv_sec = 0;
 	next_tick_phys_monotonic_time.tv_nsec = 0;
 	last_fps_report_time.tv_sec = 0;
@@ -197,14 +195,13 @@ void Simulator::Simulator::tick() {
 	engine.tick();
 
 	// Update clients with the new world state.
-	team1.send_tick(next_tick_game_monotonic_time);
-	team2.send_tick(next_tick_game_monotonic_time);
+	team1.send_tick();
+	team2.send_tick();
 
 	// Update the game monotonic time by exactly the size of a timestep.
 	timespec step;
 	step.tv_sec = 1 / TIMESTEPS_PER_SECOND;
 	step.tv_nsec = 1000000000L / TIMESTEPS_PER_SECOND - 1 / TIMESTEPS_PER_SECOND * 1000000000L;
-	timespec_add(next_tick_game_monotonic_time, step, next_tick_game_monotonic_time);
 
 	// Update the physical monotonic tick deadline to be as close as possible to one timestep forward from the previous tick.
 	// However, clamp it to lie between the curren time and one timestep in the future.

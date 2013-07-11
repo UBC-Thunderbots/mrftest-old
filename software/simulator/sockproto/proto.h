@@ -244,11 +244,6 @@ namespace Simulator {
 					S2ARobotInfo enemy[MAX_PLAYERS_PER_TEAM];
 
 					/**
-					 * The monotonic timestamp of the tick.
-					 */
-					timespec stamp;
-
-					/**
 					 * The friendly team's score.
 					 */
 					unsigned int friendly_score;

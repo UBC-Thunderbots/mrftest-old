@@ -72,10 +72,8 @@ namespace Simulator {
 
 			/**
 			 * Sends a packet to the AI with the world state.
-			 *
-			 * \param[in] ts the game monotonic timestamp of the tick.
 			 */
-			void send_tick(const timespec &ts);
+			void send_tick();
 
 			/**
 			 * Loads a team state from a file.

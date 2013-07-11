@@ -255,13 +255,12 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 		case ::Simulator::Proto::S2APacketType::TICK:
 		{
 			// Record the current in-world monotonic time.
-			monotonic_time_ = packet.world_state.stamp;
-
-			// Record the current physical monotonic time.
-			timespec before;
-			if (clock_gettime(CLOCK_MONOTONIC, &before) < 0) {
+			if (clock_gettime(CLOCK_MONOTONIC, &monotonic_time_) < 0) {
 				throw SystemError(u8"clock_gettime(CLOCK_MONOTONIC)", errno);
 			}
+
+			// Record the current physical monotonic time.
+			timespec before = monotonic_time_;
 
 			// Update the objects with the newly-received data and lock in their predictors.
 			ball_.add_field_data({packet.world_state.ball.x, packet.world_state.ball.y}, monotonic_time_);

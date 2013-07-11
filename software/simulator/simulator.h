@@ -71,11 +71,6 @@ namespace Simulator {
 			Team team2;
 
 			/**
-			 * \brief The time of the next tick in game monotonic time.
-			 */
-			timespec next_tick_game_monotonic_time;
-
-			/**
 			 * \brief The time of the next tick in physical monotonic time.
 			 */
 			timespec next_tick_phys_monotonic_time;
