@@ -276,7 +276,7 @@ Point &operator/=(Point &p, double s);
 /**
  * \brief Prints a vector to a stream
  *
- * \param[in] os the stream to print to
+ * \param[in] s the stream to print to
  *
  * \param[in] p the Point to print
  *

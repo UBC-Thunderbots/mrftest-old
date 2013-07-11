@@ -168,13 +168,13 @@ class Predictor3 {
 		 *
 		 * \param[in] measure_std_linear the expected standard deviation of the measurement noise on each linear axis.
 		 *
-		 * \param[in] accel_std _linearthe standard deviation of noise equivalent to unknown object acceleration on each linear axis.
+		 * \param[in] accel_std_linear the standard deviation of noise equivalent to unknown object acceleration on each linear axis.
 		 *
 		 * \param[in] decay_time_constant_linear rate of linear velocity decay.
 		 *
 		 * \param[in] measure_std_angular the expected standard deviation of the measurement noise for rotation.
 		 *
-		 * \param[in] accel_std _angularthe standard deviation of noise equivalent to unknown object angular acceleration.
+		 * \param[in] accel_std_angular the standard deviation of noise equivalent to unknown object angular acceleration.
 		 *
 		 * \param[in] decay_time_constant_angular rate of angular velocity decay.
 		 */

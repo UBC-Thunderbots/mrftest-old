@@ -136,6 +136,8 @@ class MRFDongle::SendReliableMessageOperation : public AsyncOperation<void>, pub
 		 *
 		 * \param[in] dongle the dongle on which to send the message
 		 *
+		 * \param[in] robot the robot index to which to send the message
+		 *
 		 * \param[in] data the data to send (the data is copied into an internal buffer)
 		 *
 		 * \param[in] len the length of the data, including the header

@@ -39,7 +39,7 @@ namespace Drive {
 			Property<EStopState> estop_state;
 
 			/**
-			 * \brief Destroys a \code Dongle
+			 * \brief Destroys a Dongle
 			 */
 			virtual ~Dongle();
 
@@ -54,7 +54,7 @@ namespace Drive {
 
 		protected:
 			/**
-			 * \brief Constructs a new \code Dongle
+			 * \brief Constructs a new Dongle
 			 */
 			Dongle();
 

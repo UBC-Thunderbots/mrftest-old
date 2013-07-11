@@ -14,7 +14,7 @@
 class PowerPanel : public Gtk::Table {
 	public:
 		/**
-		 * \brief Constructs a new \code PowerPanel
+		 * \brief Constructs a new PowerPanel
 		 *
 		 * \param[in] dongle the dongle to send messages over
 		 *

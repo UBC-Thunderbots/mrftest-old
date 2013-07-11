@@ -46,7 +46,7 @@ class FileNotFoundError : public SystemError {
 };
 
 /**
- * \brief An exception that corresponds to a \code getaddrinfo or \code getnameinfo failure code.
+ * \brief An exception that corresponds to a \c getaddrinfo or \c getnameinfo failure code.
  */
 class EAIError : public std::runtime_error {
 	public:

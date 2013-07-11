@@ -103,7 +103,7 @@ class Rect {
 		/**
 		 * Checks whether a point is within the boundries of the rectangle
 		 *
-		 * \param[in] Point to test
+		 * \param[in] p the point to test
 		 *
 		 * \return bool whether the point is inside the boundry of the rectangle
 		 */
@@ -114,7 +114,7 @@ class Rect {
 		 * while keeping the location of the centre of the rectangle the same the rectangle
 		 * will not shrink to something smaller than a point
 		 *
-		 * \param[in] the amount to shrink the recatngle by on all sides (positive or negative numbers ok)
+		 * \param[in] amount the amount to shrink the recatngle by on all sides (positive or negative numbers ok)
 		 *
 		 * \return bool whether it was possible to expand/shrink the rectangle by amount requested
 		 */
@@ -123,7 +123,7 @@ class Rect {
 		/**
 		 * Gives the distance between a point and the nearest point on the rectangle boundry
 		 *
-		 * \param[in] Point to test
+		 * \param[in] p the point to test
 		 *
 		 * \return double
 		 */

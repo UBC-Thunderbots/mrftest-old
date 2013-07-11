@@ -99,9 +99,9 @@ namespace AI {
 			/**
 			 * Calculate the best position to intersect the ball
 			 * 
-			 * \param[in] the world, passed into rrt_planner in the code
+			 * \param[in] world the world, passed into rrt_planner in the code
 			 *
-			 * \param[in] the robot that performing the intersection
+			 * \param[in] player the robot that performing the intersection
 			 */
 			bool intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::Player player);
 

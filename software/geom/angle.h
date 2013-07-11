@@ -135,8 +135,6 @@ class Angle {
 		/**
 		 * \brief Computes the sine of this angle.
 		 *
-		 * \param[in] angle the angle.
-		 *
 		 * \return the sine of this angle.
 		 */
 		double sin() const;
@@ -144,16 +142,12 @@ class Angle {
 		/**
 		 * \brief Computes the cosine of this angle.
 		 *
-		 * \param[in] angle the angle.
-		 *
 		 * \return the cosine of this angle.
 		 */
 		double cos() const;
 
 		/**
 		 * \brief Computes the tangent of this angle.
-		 *
-		 * \param[in] angle the angle.
 		 *
 		 * \return teh tangent of this angle.
 		 */

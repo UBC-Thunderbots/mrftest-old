@@ -458,6 +458,8 @@ inline Matrix operator!(Matrix &&m) {
  *
  * \param[in] stream the stream to write to.
  *
+ * \param[in] m the matrix to write
+ *
  * \return the stream.
  */
 std::ostream &operator<<(std::ostream &stream, const Matrix &m);

@@ -32,7 +32,7 @@ namespace Log {
 			/**
 			 * \brief Converts an AI play type to a Protobuf play type.
 			 *
-			 * \param[in] clr the AI play type to convert.
+			 * \param[in] pt the AI play type to convert.
 			 *
 			 * \return the Protobuf play type.
 			 */
@@ -41,7 +41,7 @@ namespace Log {
 			/**
 			 * \brief Converts a Protobuf play type to an AI play type.
 			 *
-			 * \param[in] clr the Protobuf play type to convert.
+			 * \param[in] pt the Protobuf play type to convert.
 			 *
 			 * \return the AI play type.
 			 */
@@ -52,40 +52,40 @@ namespace Log {
 			/**
 			 * \brief Converts an AI movement type to a Protobuf movement type.
 			 *
-			 * \param[in] clr the AI movement type to convert.
+			 * \param[in] mt the AI movement type to convert.
 			 *
 			 * \return the Protobuf movement type.
 			 */
-			Log::MoveType to_protobuf(AI::Flags::MoveType pt);
+			Log::MoveType to_protobuf(AI::Flags::MoveType mt);
 
 			/**
 			 * \brief Converts a Protobuf movement type to an AI movement type.
 			 *
-			 * \param[in] clr the Protobuf movement type to convert.
+			 * \param[in] mt the Protobuf movement type to convert.
 			 *
 			 * \return the AI movement type.
 			 */
-			AI::Flags::MoveType of_protobuf(Log::MoveType pt);
+			AI::Flags::MoveType of_protobuf(Log::MoveType mt);
 		}
 
 		namespace MovePrio {
 			/**
 			 * \brief Converts an AI movement priority to a Protobuf movement priority.
 			 *
-			 * \param[in] clr the AI movement priority to convert.
+			 * \param[in] mp the AI movement priority to convert.
 			 *
 			 * \return the Protobuf movement priority.
 			 */
-			Log::MovePrio to_protobuf(AI::Flags::MovePrio pt);
+			Log::MovePrio to_protobuf(AI::Flags::MovePrio mp);
 
 			/**
 			 * \brief Converts a Protobuf movement priority to an AI movement priority.
 			 *
-			 * \param[in] clr the Protobuf movement priority to convert.
+			 * \param[in] mp the Protobuf movement priority to convert.
 			 *
 			 * \return the AI movement priority.
 			 */
-			AI::Flags::MovePrio of_protobuf(Log::MovePrio pt);
+			AI::Flags::MovePrio of_protobuf(Log::MovePrio mp);
 		}
 	}
 }

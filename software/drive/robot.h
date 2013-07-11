@@ -99,7 +99,7 @@ namespace Drive {
 			sigc::signal<void> signal_autokick_fired;
 
 			/**
-			 * \brief Destroys a \code Robot.
+			 * \brief Destroys a Robot.
 			 */
 			virtual ~Robot();
 
@@ -199,7 +199,7 @@ namespace Drive {
 
 		protected:
 			/**
-			 * \brief Constructs a new \code Robot.
+			 * \brief Constructs a new Robot.
 			 *
 			 * \param[in] index the pattern index of the robot
 			 */

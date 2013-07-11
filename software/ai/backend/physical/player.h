@@ -28,8 +28,6 @@ namespace AI {
 					/**
 					 * \brief Constructs a new Player object.
 					 *
-					 * \param[in] name the robot's name.
-					 *
 					 * \param[in] pattern the index of the vision pattern associated with the player.
 					 *
 					 * \param[in] bot the robot being driven.

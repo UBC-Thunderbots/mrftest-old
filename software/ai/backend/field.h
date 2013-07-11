@@ -17,7 +17,7 @@ namespace AI {
 				explicit Field();
 
 				/**
-				 * \brief Updates the Field object with new geometry data from SSL-Vision or the simulator
+				 * \brief Updates the Field object with new geometry data from SSL-Vision or the simulator.
 				 *
 				 * \param[in] length the length of the field
 				 *
@@ -26,6 +26,8 @@ namespace AI {
 				 * \param[in] width the width of the field
 				 *
 				 * \param[in] total_width the width of the field including boundary and referee area
+				 *
+				 * \param[in] goal_width the width of the goal between the goalposts
 				 *
 				 * \param[in] centre_circle_radius the radius of the centre circle
 				 *

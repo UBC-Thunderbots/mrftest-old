@@ -9,12 +9,12 @@
 #include <sys/un.h>
 
 /**
- * \brief Stores a set of address information structures returned from a \code getaddrinfo query.
+ * \brief Stores a set of address information structures returned from a \c getaddrinfo query.
  */
 class AddrInfoSet : public NonCopyable {
 	public:
 		/**
-		 * \brief Invokes \code getaddrinfo and stores the result.
+		 * \brief Invokes \c getaddrinfo and stores the result.
 		 *
 		 * \param[in] node the node name to look up.
 		 *
@@ -25,7 +25,7 @@ class AddrInfoSet : public NonCopyable {
 		AddrInfoSet(const char *node, const char *service, const addrinfo *hints);
 
 		/**
-		 * \brief Invokes \code freeaddrinfo.
+		 * \brief Invokes \c freeaddrinfo.
 		 */
 		~AddrInfoSet();
 
