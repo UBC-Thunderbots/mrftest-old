@@ -1,5 +1,0 @@
-// The test class (general mode of testing).
-BITCODEC_DATA_U(uint8_t, test_class, 0, 8, 0)
-
-// The test index (a specific parameter within the class).
-BITCODEC_DATA_U(uint8_t, test_index, 8, 8, 0)
