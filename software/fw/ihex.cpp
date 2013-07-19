@@ -146,7 +146,7 @@ void Firmware::IntelHex::load(const std::string &filename) {
 			if (data_length != 2 || record_address != 0) {
 				throw MalformedHexFileError();
 			}
-			address_base = (record_data[1] * 256 + record_data[0]) * 16;
+			address_base = (record_data[0] * 256 + record_data[1]) * 16;
 		} else if (record_type == 0x03) {
 			// Start Segment Address record. Ignored.
 		} else if (record_type == 0x04) {
@@ -154,7 +154,7 @@ void Firmware::IntelHex::load(const std::string &filename) {
 			if (data_length != 2 || record_address != 0) {
 				throw MalformedHexFileError();
 			}
-			address_base = (record_data[1] * 256 + record_data[0]) * 256;
+			address_base = (record_data[0] * 256 + record_data[1]) * 65536;
 		} else if (record_type == 0x05) {
 			// Start Linear Address record. Ignored.
 		} else {
