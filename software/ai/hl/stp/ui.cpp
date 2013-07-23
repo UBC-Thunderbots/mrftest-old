@@ -239,7 +239,7 @@ void AI::HL::STP::draw_velocity(World world, Cairo::RefPtr<Cairo::Context> ctx) 
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		const Player player = friendly.get(i);
 		double vel_direction = atan(player.velocity().y / player.velocity().x);
-		double vel_mag = std::sqrt(player.velocity().y * player.velocity().y + player.velocity().x * player.velocity().x);
+		double vel_mag = player.velocity().len();
 		// std::cout << vel_direction << "  " << vel_mag <<std::endl;
 		ctx->set_source_rgba(0.0, 0.0, 0.0, 0.2);
 		ctx->arc(player.position().x, player.position().y, vel_mag, vel_direction, vel_direction + 1.0);

@@ -380,7 +380,7 @@ inline double Point::lensq() const {
 }
 
 inline double Point::len() const {
-	return std::sqrt(lensq());
+	return std::hypot(x, y);
 }
 
 inline Point Point::norm() const {
