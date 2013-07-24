@@ -76,14 +76,14 @@ FriendlyTeam::FriendlyTeam(AI::BE::Backend &backend) : AI::BE::SSLVision::Team<A
 }
 
 void FriendlyTeam::create_member(unsigned int pattern) {
-	members.create(pattern, pattern, std::ref(backend.ball()));
+	members[pattern].create(pattern, std::ref(backend.ball()));
 }
 
 EnemyTeam::EnemyTeam(AI::BE::Backend &backend) : AI::BE::SSLVision::Team<AI::BE::Robot, AI::BE::Robot>(backend) {
 }
 
 void EnemyTeam::create_member(unsigned int pattern) {
-	members.create(pattern, pattern);
+	members[pattern].create(pattern);
 }
 
 Backend::Backend(const std::vector<bool> &disable_cameras, int multicast_interface) : AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>(disable_cameras, multicast_interface, "10020"), friendly(*this), enemy(*this), grsim_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {

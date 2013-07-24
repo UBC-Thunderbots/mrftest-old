@@ -6,7 +6,7 @@
 #include <functional>
 
 template<typename T> class BoxPtr;
-template<typename T, std::size_t N> class BoxArray;
+template<typename T> class Box;
 
 namespace std {
 	/**
@@ -57,6 +57,9 @@ template<typename T> bool operator!=(const BoxPtr<T> &x, const BoxPtr<T> &y);
 /**
  * \brief A pointer to a boxed object.
  *
+ * Unlike normal pointers which must not be used following destruction of the pointed-to object, a box pointer is safe to use following destruction of its target object.
+ * However, a box pointer must not be used following the destruction of the associated box.
+ *
  * \tparam T the type of object.
  */
 template<typename T> class BoxPtr {
@@ -106,7 +109,7 @@ template<typename T> class BoxPtr {
 		BoxPtr(T *p, const bool *valid);
 
 		template<typename U> friend class BoxPtr;
-		template<typename U, std::size_t N> friend class BoxArray;
+		template<typename U> friend class Box;
 		friend struct std::less<BoxPtr<T>>;
 		friend bool operator==<>(const BoxPtr<T> &, const BoxPtr<T> &);
 		friend bool operator!=<>(const BoxPtr<T> &, const BoxPtr<T> &);

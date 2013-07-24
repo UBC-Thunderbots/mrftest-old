@@ -4,10 +4,12 @@
 #include "ai/backend/backend.h"
 #include "ai/backend/simulator/player.h"
 #include "simulator/sockproto/proto.h"
-#include "util/box_array.h"
+#include "util/box.h"
+#include "util/box_ptr.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <iterator>
 #include <limits>
@@ -34,8 +36,8 @@ namespace AI {
 					 * \param[in] args the constructor arguments
 					 */
 					template<typename ... Args> void create(unsigned int pattern, Args ... args) {
-						assert(pattern < members.SIZE);
-						members.create(pattern, args...);
+						assert(pattern < members.size());
+						members[pattern].create(args...);
 						populate_pointers();
 						emit_membership_changed();
 					}
@@ -46,8 +48,8 @@ namespace AI {
 					 * \param[in] pattern the pattern index to destroy.
 					 */
 					void destroy(unsigned int pattern) {
-						assert(pattern < members.SIZE);
-						members.destroy(pattern);
+						assert(pattern < members.size());
+						members[pattern].destroy();
 						populate_pointers();
 						emit_membership_changed();
 					}
@@ -64,8 +66,7 @@ namespace AI {
 					/**
 					 * \brief The members of the team.
 					 */
-					BoxArray<T, 16> members;
-
+					std::array<Box<T>, 16> members;
 					std::vector<BoxPtr<T>> member_ptrs;
 
 					/**
@@ -73,9 +74,9 @@ namespace AI {
 					 */
 					void populate_pointers() {
 						member_ptrs.clear();
-						for (std::size_t i = 0; i < members.SIZE; ++i) {
-							const BoxPtr<T> &p = members[i];
-							if (p) {
+						for (std::size_t i = 0; i < members.size(); ++i) {
+							if (members[i]) {
+								const BoxPtr<T> &p = members[i].ptr();
 								member_ptrs.push_back(p);
 							}
 						}

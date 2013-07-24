@@ -63,7 +63,7 @@ FriendlyTeam::FriendlyTeam(Backend &backend, MRFDongle &dongle) : AI::BE::SSLVis
 
 void FriendlyTeam::create_member(unsigned int pattern) {
 	if (pattern < 8) {
-		members.create(pattern, pattern, std::ref(dongle.robot(pattern)));
+		members[pattern].create(pattern, std::ref(dongle.robot(pattern)));
 	}
 }
 
@@ -71,7 +71,7 @@ EnemyTeam::EnemyTeam(Backend &backend) : AI::BE::SSLVision::Team<AI::BE::Robot, 
 }
 
 void EnemyTeam::create_member(unsigned int pattern) {
-	members.create(pattern, pattern);
+	members[pattern].create(pattern);
 }
 
 MRFBackend::MRFBackend(const std::vector<bool> &disable_cameras, MRFDongle &dongle, int multicast_interface) : Backend(disable_cameras, multicast_interface, "10002"), friendly(*this, dongle), enemy(*this) {

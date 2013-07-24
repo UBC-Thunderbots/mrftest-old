@@ -3,9 +3,10 @@
 
 #include "ai/backend/backend.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
-#include "util/box_array.h"
+#include "util/box.h"
 #include "util/dprint.h"
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <vector>
 
@@ -91,7 +92,7 @@ namespace AI {
 
 				protected:
 					AI::BE::Backend &backend;
-					BoxArray<T, NUM_PATTERNS> members;
+					std::array<Box<T>, NUM_PATTERNS> members;
 					std::vector<typename T::Ptr> member_ptrs;
 					unsigned int vision_failures[NUM_PATTERNS];
 
@@ -121,8 +122,8 @@ template<typename T, typename TSuper> typename TSuper::Ptr AI::BE::SSLVision::Te
 }
 
 template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::clear() {
-	for (std::size_t i = 0; i < members.SIZE; ++i) {
-		members.destroy(i);
+	for (std::size_t i = 0; i < members.size(); ++i) {
+		members[i].destroy();
 	}
 	member_ptrs.clear();
 	AI::BE::Team<TSuper>::signal_membership_changed().emit();
@@ -143,7 +144,7 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::u
 			if (detbot.has_robot_id()) {
 				unsigned int pattern = detbot.robot_id();
 				if (pattern < NUM_PATTERNS) {
-					typename T::Ptr bot = members[pattern];
+					const typename T::Ptr &bot = members[pattern].ptr();
 					if (!bot) {
 						create_member(pattern);
 						membership_changed = true;
@@ -166,9 +167,9 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::u
 	}
 
 	// Count failures.
-	for (std::size_t i = 0; i < members.SIZE; ++i) {
-		typename T::Ptr bot = members[i];
-		if (bot) {
+	for (std::size_t i = 0; i < members.size(); ++i) {
+		if (members[i]) {
+			const typename T::Ptr &bot = members[i].ptr();
 			assert(bot->pattern() < NUM_PATTERNS);
 			if (!seen_this_frame[bot->pattern()]) {
 				++vision_failures[bot->pattern()];
@@ -177,7 +178,7 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::u
 			}
 			seen_this_frame[bot->pattern()] = false;
 			if (vision_failures[bot->pattern()] >= MAX_VISION_FAILURES) {
-				members.destroy(i);
+				members[i].destroy();
 				membership_changed = true;
 			}
 		}
@@ -198,9 +199,9 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::l
 
 template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::populate_pointers() {
 	member_ptrs.clear();
-	for (std::size_t i = 0; i < members.SIZE; ++i) {
-		typename T::Ptr p = members[i];
-		if (p) {
+	for (std::size_t i = 0; i < members.size(); ++i) {
+		if (members[i]) {
+			const typename T::Ptr &p = members[i].ptr();
 			member_ptrs.push_back(p);
 		}
 	}

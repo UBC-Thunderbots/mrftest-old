@@ -4,10 +4,11 @@
 #include "log/shared/enums.h"
 #include "proto/log_record.pb.h"
 #include "util/algorithm.h"
-#include "util/box_array.h"
+#include "util/box.h"
 #include "util/noncopyable.h"
 #include "util/string.h"
 #include "util/time.h"
+#include <array>
 #include <cstdlib>
 #include <iterator>
 #include <vector>
@@ -275,12 +276,6 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 				start_button(Gtk::Stock::MEDIA_PREVIOUS),
 				play_button(Gtk::Stock::MEDIA_PLAY),
 				end_button(Gtk::Stock::MEDIA_NEXT) {
-			for (std::size_t i = 0; i < players_.SIZE; ++i) {
-				player_ptrs[i] = players_[i];
-			}
-			for (std::size_t i = 0; i < robots_.SIZE; ++i) {
-				robot_ptrs[i] = robots_[i];
-			}
 
 			find_ticks_per_second();
 			scan_records();
@@ -408,15 +403,15 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 		}
 
 		std::size_t visualizable_num_robots() const {
-			return G_N_ELEMENTS(player_ptrs) + G_N_ELEMENTS(robot_ptrs);
+			return players_.size() + robots_.size();
 		}
 
 		Visualizable::Robot::Ptr visualizable_robot(std::size_t index) const {
 			assert(index < visualizable_num_robots());
-			if (index < G_N_ELEMENTS(player_ptrs)) {
-				return player_ptrs[index];
+			if (index < players_.size()) {
+				return players_[index].ptr();
 			} else {
-				return robot_ptrs[index - G_N_ELEMENTS(player_ptrs)];
+				return robots_[index - players_.size()].ptr();
 			}
 		}
 
@@ -453,10 +448,8 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 		timespec game_start_monotonic;
 		Field field_;
 		Ball ball_;
-		BoxArray<Player, 16> players_;
-		BoxArray<Robot, 16> robots_;
-		Player::Ptr player_ptrs[16];
-		Robot::Ptr robot_ptrs[16];
+		std::array< ::Box<Player>, 16> players_;
+		std::array< ::Box<Robot>, 16> robots_;
 		sigc::connection play_timer_connection;
 		mutable sigc::signal<void> signal_tick_;
 
@@ -602,37 +595,37 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			ball_.update(tick.ball());
 
 			{
-				bool seen[players_.SIZE];
+				bool seen[players_.size()];
 				std::fill(seen, seen + G_N_ELEMENTS(seen), false);
 				for (int i = 0; i < tick.friendly_robots_size(); ++i) {
 					const Log::Tick::FriendlyRobot &bot = tick.friendly_robots(i);
 					if (!players_[bot.pattern()]) {
-						players_.create(bot.pattern());
+						players_[bot.pattern()].create();
 					}
-					players_[bot.pattern()]->update(bot);
+					players_[bot.pattern()].value().update(bot);
 					seen[bot.pattern()] = true;
 				}
 				for (std::size_t i = 0; i < G_N_ELEMENTS(seen); ++i) {
 					if (!seen[i]) {
-						players_.destroy(i);
+						players_[i].destroy();
 					}
 				}
 			}
 
 			{
-				bool seen[robots_.SIZE];
+				bool seen[robots_.size()];
 				std::fill(seen, seen + G_N_ELEMENTS(seen), false);
 				for (int i = 0; i < tick.enemy_robots_size(); ++i) {
 					const Log::Tick::EnemyRobot &bot = tick.enemy_robots(i);
 					if (!robots_[bot.pattern()]) {
-						robots_.create(bot.pattern());
+						robots_[bot.pattern()].create();
 					}
-					robots_[bot.pattern()]->update(bot);
+					robots_[bot.pattern()].value().update(bot);
 					seen[bot.pattern()] = true;
 				}
 				for (std::size_t i = 0; i < G_N_ELEMENTS(seen); ++i) {
 					if (!seen[i]) {
-						robots_.destroy(i);
+						robots_[i].destroy();
 					}
 				}
 			}
