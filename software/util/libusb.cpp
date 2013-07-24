@@ -14,8 +14,6 @@
 
 #define STALL_RETRIES 3
 
-#warning needs Doxygen
-
 namespace {
 	long check_fn(const char *call, long err, unsigned int endpoint) {
 		if (err >= 0) {
