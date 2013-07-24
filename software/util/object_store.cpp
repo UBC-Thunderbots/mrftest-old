@@ -1,18 +1,9 @@
 #include "util/object_store.h"
 
-namespace {
-	bool compare_typeinfos(const std::type_info *x, const std::type_info *y) {
-		return x->before(*y);
-	}
-}
-
 ObjectStore::Element::~Element() = default;
 
-ObjectStore::ObjectStore() : data(&compare_typeinfos) {
-}
-
 ObjectStore::Element::Ptr &ObjectStore::operator[](const std::type_info &tid) {
-	return data[&tid];
+	return data[std::type_index(tid)];
 }
 
 void ObjectStore::clear() {

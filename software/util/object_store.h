@@ -2,19 +2,19 @@
 #define UTIL_OBJECT_STORE_H
 
 #include "util/noncopyable.h"
-#include <map>
 #include <memory>
+#include <typeindex>
 #include <typeinfo>
+#include <unordered_map>
 
 /**
- * \brief An ObjectStore allows multiple clients to store arbitrary objects attached to another object,
- * without the holder knowing a priori the details of the stored objects,
- * and without multiple clients overwriting each others' stored objects.
+ * \brief An ObjectStore allows multiple clients to store arbitrary objects attached to another object, without the holder knowing a priori the details of the stored objects, and without multiple clients overwriting each others’ stored objects.
  */
 class ObjectStore : public NonCopyable {
 	public:
 		/**
 		 * \brief The type of an element in an ObjectStore.
+		 *
 		 * Clients should subclass this class to add their own data.
 		 */
 		class Element : public NonCopyable {
@@ -31,16 +31,11 @@ class ObjectStore : public NonCopyable {
 		};
 
 		/**
-		 * \brief Constructs a new ObjectStore containing no objects.
-		 */
-		ObjectStore();
-
-		/**
 		 * \brief Fetches an object from the ObjectStore, creating it if it does not yet exist.
 		 *
-		 * \param[in] tid the key identifying the specific client (generally <code>typeid(*this)</code> in the client).
+		 * \param[in] tid the key identifying the specific client (generally <code>typeid(*this)</code> in the client)
 		 *
-		 * \return the object associated with the client.
+		 * \return the object associated with the client
 		 */
 		Element::Ptr &operator[](const std::type_info &tid);
 
@@ -50,7 +45,7 @@ class ObjectStore : public NonCopyable {
 		void clear();
 
 	private:
-		std::map<const std::type_info *, Element::Ptr, bool (*)(const std::type_info *, const std::type_info *)> data;
+		std::unordered_map<std::type_index, Element::Ptr> data;
 };
 
 #endif
