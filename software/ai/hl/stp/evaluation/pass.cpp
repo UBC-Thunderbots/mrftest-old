@@ -124,11 +124,11 @@ bool Evaluation::can_shoot_ray(World world, Player player, Angle orientation) {
 
 std::pair<bool, Angle> Evaluation::best_shoot_ray(World world, const Player player) {
 	if (!Evaluation::possess_ball(world, player)) {
-		return std::make_pair(false, Angle::ZERO);
+		return std::make_pair(false, Angle::zero());
 	}
 
 	Angle best_diff = Angle::of_radians(1e99);
-	Angle best_angle = Angle::ZERO;
+	Angle best_angle = Angle::zero();
 
 	// draw rays for ray shooting
 
@@ -161,7 +161,7 @@ std::pair<bool, Angle> Evaluation::best_shoot_ray(World world, const Player play
 
 	// cant find good angle
 	if (best_diff > Angle::of_radians(1e50)) {
-		return std::make_pair(false, Angle::ZERO);
+		return std::make_pair(false, Angle::zero());
 	}
 
 	return std::make_pair(true, best_angle);

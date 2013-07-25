@@ -477,7 +477,6 @@ software/fw/fb/fb.h -text
 software/fw/ihex.cpp -text
 software/fw/ihex.h -text
 software/fw/main.cpp -text
-software/geom/angle.cpp -text
 software/geom/angle.h -text
 software/geom/kalman/kalman.cpp -text
 software/geom/kalman/kalman.h -text

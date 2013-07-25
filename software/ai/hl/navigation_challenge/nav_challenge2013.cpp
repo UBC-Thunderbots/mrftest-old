@@ -25,15 +25,15 @@ namespace {
 
 				const Field &f = world.field();
 				const std::pair<Point, Angle> tasks[3][3] = {
-					{std::make_pair(Point(-f.length()/2+(Robot::MAX_RADIUS), f.width()/2-(Robot::MAX_RADIUS)), Angle::ZERO),
-					std::make_pair(Point(0, 0), Angle::ZERO),
-					std::make_pair(Point(f.length()/2-(Robot::MAX_RADIUS), -f.width()/2+(Robot::MAX_RADIUS)), Angle::ZERO)},
-					{std::make_pair(f.penalty_friendly(), Angle::ZERO),
-					std::make_pair(Point(0, 0), Angle::ZERO),
-					std::make_pair(f.penalty_enemy(), Angle::ZERO)},
-					{std::make_pair(Point(-f.length()/2+(Robot::MAX_RADIUS), -f.width()/2+(Robot::MAX_RADIUS)), Angle::ZERO),
-					std::make_pair(Point(0, 0), Angle::ZERO),
-					std::make_pair(Point(f.length()/2-(Robot::MAX_RADIUS), f.width()/2-(Robot::MAX_RADIUS)), Angle::ZERO)}
+					{std::make_pair(Point(-f.length()/2+(Robot::MAX_RADIUS), f.width()/2-(Robot::MAX_RADIUS)), Angle::zero()),
+					std::make_pair(Point(0, 0), Angle::zero()),
+					std::make_pair(Point(f.length()/2-(Robot::MAX_RADIUS), -f.width()/2+(Robot::MAX_RADIUS)), Angle::zero())},
+					{std::make_pair(f.penalty_friendly(), Angle::zero()),
+					std::make_pair(Point(0, 0), Angle::zero()),
+					std::make_pair(f.penalty_enemy(), Angle::zero())},
+					{std::make_pair(Point(-f.length()/2+(Robot::MAX_RADIUS), -f.width()/2+(Robot::MAX_RADIUS)), Angle::zero()),
+					std::make_pair(Point(0, 0), Angle::zero()),
+					std::make_pair(Point(f.length()/2-(Robot::MAX_RADIUS), f.width()/2-(Robot::MAX_RADIUS)), Angle::zero())}
 				};
 
 				FriendlyTeam friendly = world.friendly_team();

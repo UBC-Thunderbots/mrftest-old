@@ -64,7 +64,7 @@ namespace {
 					double distance_to_cover = location_diff.len();
 
 					double dir = 1.0;
-					if (orientation_diff < Angle::ZERO) {
+					if (orientation_diff < Angle::zero()) {
 						dir = -1.0;
 					}
 					double distance_from_line = 0.5 * location_diff.len() / (orientation_diff / 2.0).tan();
@@ -72,14 +72,14 @@ namespace {
 					// std::cout<<distance_from_line<< ' '<< location_diff<<' '<<orientation_diff<< std::endl;
 					// vector taking the centre of the line seg (dest - cur_location)
 					// to the centre of the pivot point
-					Point line_to_centre = dir * distance_from_line * location_diff.norm().rotate(Angle::QUARTER);
+					Point line_to_centre = dir * distance_from_line * location_diff.norm().rotate(Angle::quarter());
 					Point pivot_centre = centre_of_line + line_to_centre;
 					double pivot_radius = (pivot_centre - player.position()).len();
 
 					distance_to_cover = orientation_diff.to_radians() * pivot_radius;
 
 					// std::cout<<distance_to_cover<<' ';
-					direction = ((player.position() - pivot_centre).rotate(dir * Angle::QUARTER)).norm();
+					direction = ((player.position() - pivot_centre).rotate(dir * Angle::quarter())).norm();
 					// std::cout<<direction<<std::endl;
 
 					robot_vel = distance_to_cover * direction;

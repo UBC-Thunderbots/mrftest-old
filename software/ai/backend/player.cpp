@@ -149,7 +149,7 @@ Visualizable::Colour Player::highlight_colour() const {
 	}
 }
 
-Player::Player(unsigned int pattern) : AI::BE::Robot(pattern), moved(false), destination_(Point(), Angle::ZERO), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
+Player::Player(unsigned int pattern) : AI::BE::Robot(pattern), moved(false), destination_(Point(), Angle::zero()), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 }
 

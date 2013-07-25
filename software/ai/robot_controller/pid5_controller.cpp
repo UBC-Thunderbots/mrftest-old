@@ -137,8 +137,8 @@ namespace {
 		Angle new_da = (new_orientation - current_orientation).angle_mod();
 		const Point &new_dir = (new_position - current_position).rotate(-current_orientation);
 
-		if (new_da > Angle::HALF) {
-			new_da -= Angle::FULL;
+		if (new_da > Angle::half()) {
+			new_da -= Angle::full();
 		}
 
 		const double px = new_dir.x;

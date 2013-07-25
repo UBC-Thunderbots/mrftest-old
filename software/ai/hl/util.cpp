@@ -116,7 +116,7 @@ std::pair<Point, Angle> AI::HL::Util::calc_best_shot(World world, const Player p
 	std::pair<Point, Angle> best_shot = calc_best_shot(world.field(), obstacles, player.position(), radius);
 	// if there is no good shot at least make the
 	// target within the goal area
-	if (best_shot.second <= Angle::ZERO) {
+	if (best_shot.second <= Angle::zero()) {
 		Point temp = Point(world.field().length() / 2.0, 0.0);
 		best_shot.first = temp;
 	}

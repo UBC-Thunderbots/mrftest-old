@@ -28,7 +28,7 @@ namespace {
 template<> Predictor<double>::Predictor(double measure_std, double accel_std, double decay_time_constant) : filter(false, measure_std, accel_std, decay_time_constant), zero_value(0, 0) {
 }
 
-template<> Predictor<Angle>::Predictor(Angle measure_std, Angle accel_std, double decay_time_constant) : filter(true, measure_std.to_radians(), accel_std.to_radians(), decay_time_constant), zero_value(Angle::ZERO, Angle::ZERO) {
+template<> Predictor<Angle>::Predictor(Angle measure_std, Angle accel_std, double decay_time_constant) : filter(true, measure_std.to_radians(), accel_std.to_radians(), decay_time_constant), zero_value(Angle::zero(), Angle::zero()) {
 }
 
 template<typename T> std::pair<T, T> Predictor<T>::value(double delta, unsigned int deriv, bool ignore_cache) const {

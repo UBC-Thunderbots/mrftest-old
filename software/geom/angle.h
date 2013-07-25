@@ -14,27 +14,27 @@ class Angle {
 		/**
 		 * \brief The zero angle.
 		 */
-		static const Angle ZERO;
+		static constexpr Angle zero();
 
 		/**
 		 * \brief The quarter-turn angle (90°).
 		 */
-		static const Angle QUARTER;
+		static constexpr Angle quarter();
 
 		/**
 		 * \brief The half-turn angle (180°).
 		 */
-		static const Angle HALF;
+		static constexpr Angle half();
 
 		/**
 		 * \brief The three-quarter turn angle (270°).
 		 */
-		static const Angle THREE_QUARTER;
+		static constexpr Angle three_quarter();
 
 		/**
 		 * \brief The full-turn angle (360°).
 		 */
-		static const Angle FULL;
+		static constexpr Angle full();
 
 		/**
 		 * \brief Constructs an angle from a value in radians.
@@ -43,7 +43,7 @@ class Angle {
 		 *
 		 * \return the angle.
 		 */
-		static Angle of_radians(double t);
+		static constexpr Angle of_radians(double t);
 
 		/**
 		 * \brief Constructs an angle from a value in degrees.
@@ -52,7 +52,7 @@ class Angle {
 		 *
 		 * \return the angle.
 		 */
-		static Angle of_degrees(double t);
+		static constexpr Angle of_degrees(double t);
 
 		/**
 		 * \brief Computes the arc sine of a value.
@@ -61,7 +61,7 @@ class Angle {
 		 *
 		 * \return the angle.
 		 */
-		static Angle asin(double x);
+		static constexpr Angle asin(double x);
 
 		/**
 		 * \brief Computes the arc cosine of a value.
@@ -70,7 +70,7 @@ class Angle {
 		 *
 		 * \return the angle.
 		 */
-		static Angle acos(double x);
+		static constexpr Angle acos(double x);
 
 		/**
 		 * \brief Computes the arc tangent of a value.
@@ -79,26 +79,26 @@ class Angle {
 		 *
 		 * \return the angle.
 		 */
-		static Angle atan(double x);
+		static constexpr Angle atan(double x);
 
 		/**
 		 * \brief Constructs the "zero" angle.
 		 */
-		Angle();
+		constexpr Angle();
 
 		/**
 		 * \brief Converts this angle to a value in radians.
 		 *
 		 * \return the number of radians in this angle.
 		 */
-		double to_radians() const;
+		constexpr double to_radians() const;
 
 		/**
 		 * \brief Converts this angle to a value in degrees.
 		 *
 		 * \return the number of degrees in this angle.
 		 */
-		double to_degrees() const;
+		constexpr double to_degrees() const;
 
 		/**
 		 * \brief Computes the modulus of a division between this angle and another angle.
@@ -107,7 +107,7 @@ class Angle {
 		 *
 		 * \return the modulus of \c *this ÷ \p divisor.
 		 */
-		Angle mod(Angle divisor) const;
+		constexpr Angle mod(Angle divisor) const;
 
 		/**
 		 * \brief Computes the remainder of a division between this angle and another angle.
@@ -116,14 +116,14 @@ class Angle {
 		 *
 		 * \return the remainder of \c *this ÷ \p divisor.
 		 */
-		Angle remainder(Angle divisor) const;
+		constexpr Angle remainder(Angle divisor) const;
 
 		/**
 		 * \brief Computes the absolute value of this angle.
 		 *
 		 * \return the absolute value of this angle.
 		 */
-		Angle abs() const;
+		constexpr Angle abs() const;
 
 		/**
 		 * \brief Checks whether the angle is finite.
@@ -137,21 +137,21 @@ class Angle {
 		 *
 		 * \return the sine of this angle.
 		 */
-		double sin() const;
+		constexpr double sin() const;
 
 		/**
 		 * \brief Computes the cosine of this angle.
 		 *
 		 * \return the cosine of this angle.
 		 */
-		double cos() const;
+		constexpr double cos() const;
 
 		/**
 		 * \brief Computes the tangent of this angle.
 		 *
 		 * \return teh tangent of this angle.
 		 */
-		double tan() const;
+		constexpr double tan() const;
 
 		/**
 		 * \brief Limits this angle to [−π, π].
@@ -160,7 +160,7 @@ class Angle {
 		 *
 		 * \return the clamped angle.
 		 */
-		Angle angle_mod() const;
+		constexpr Angle angle_mod() const;
 
 		/**
 		 * Returns the smallest possible rotational difference between this angle and another angle.
@@ -169,12 +169,12 @@ class Angle {
 		 *
 		 * \return the angle between \c *this and \p other, in the range [0, π].
 		 */
-		Angle angle_diff(Angle other) const;
+		constexpr Angle angle_diff(Angle other) const;
 
 	private:
 		double rads;
 
-		Angle(double rads);
+		constexpr Angle(double rads);
 };
 
 /**
@@ -184,7 +184,7 @@ class Angle {
  *
  * \return −\p angle.
  */
-Angle operator-(Angle angle);
+constexpr Angle operator-(Angle angle);
 
 /**
  * \brief Adds two angles.
@@ -195,7 +195,7 @@ Angle operator-(Angle angle);
  *
  * \return the sum \p x + \p y.
  */
-Angle operator+(Angle x, Angle y);
+constexpr Angle operator+(Angle x, Angle y);
 
 /**
  * \brief Subtracts two angles.
@@ -206,7 +206,7 @@ Angle operator+(Angle x, Angle y);
  *
  * \return the difference \p x − \p y.
  */
-Angle operator-(Angle x, Angle y);
+constexpr Angle operator-(Angle x, Angle y);
 
 /**
  * \brief Multiplies an angle by a scalar factor.
@@ -217,7 +217,7 @@ Angle operator-(Angle x, Angle y);
  *
  * \return the product \p angle × \p scale.
  */
-Angle operator*(Angle angle, double scale);
+constexpr Angle operator*(Angle angle, double scale);
 
 /**
  * \brief Multiplies an angle by a scalar factor.
@@ -228,7 +228,7 @@ Angle operator*(Angle angle, double scale);
  *
  * \return the product \p scale × \p angle.
  */
-Angle operator*(double scale, Angle angle);
+constexpr Angle operator*(double scale, Angle angle);
 
 /**
  * \brief Divides an angle by a scalar divisor.
@@ -239,7 +239,7 @@ Angle operator*(double scale, Angle angle);
  *
  * \return the quotient \p angle ÷ \p divisor.
  */
-Angle operator/(Angle angle, double divisor);
+constexpr Angle operator/(Angle angle, double divisor);
 
 /**
  * \brief Divides two angles.
@@ -250,7 +250,7 @@ Angle operator/(Angle angle, double divisor);
  *
  * \return the quotient \p x ÷ \p y.
  */
-double operator/(Angle x, Angle y);
+constexpr double operator/(Angle x, Angle y);
 
 /**
  * \brief Adds an angle to an angle.
@@ -305,7 +305,7 @@ Angle &operator/=(Angle &angle, double divisor);
  *
  * \return \c true if \p x < \p y, or \c false if not.
  */
-bool operator<(Angle x, Angle y);
+constexpr bool operator<(Angle x, Angle y);
 
 /**
  * \brief Compares two angles.
@@ -316,7 +316,7 @@ bool operator<(Angle x, Angle y);
  *
  * \return \c true if \p x > \p y, or \c false if not.
  */
-bool operator>(Angle x, Angle y);
+constexpr bool operator>(Angle x, Angle y);
 
 /**
  * \brief Compares two angles.
@@ -327,7 +327,7 @@ bool operator>(Angle x, Angle y);
  *
  * \return \c true if \p x ≤ \p y, or \c false if not.
  */
-bool operator<=(Angle x, Angle y);
+constexpr bool operator<=(Angle x, Angle y);
 
 /**
  * \brief Compares two angles.
@@ -338,7 +338,7 @@ bool operator<=(Angle x, Angle y);
  *
  * \return \c true if \p x ≥ \p y, or \c false if not.
  */
-bool operator>=(Angle x, Angle y);
+constexpr bool operator>=(Angle x, Angle y);
 
 /**
  * \brief Compares two angles.
@@ -349,7 +349,7 @@ bool operator>=(Angle x, Angle y);
  *
  * \return \c true if \p x = \p y, or \c false if not.
  */
-bool operator==(Angle x, Angle y);
+constexpr bool operator==(Angle x, Angle y);
 
 /**
  * \brief Compares two angles.
@@ -360,7 +360,7 @@ bool operator==(Angle x, Angle y);
  *
  * \return \c true if \p x ≠ \p y, or \c false if not.
  */
-bool operator!=(Angle x, Angle y);
+constexpr bool operator!=(Angle x, Angle y);
 
 /**
  * \brief Converts an angle to a string representation.
@@ -377,46 +377,66 @@ template<typename CharT, typename Traits> std::basic_ostream<CharT, Traits> &ope
 
 
 
-inline Angle Angle::of_radians(double t) {
+inline constexpr Angle Angle::zero() {
+	return Angle();
+}
+
+inline constexpr Angle Angle::quarter() {
+	return Angle(M_PI / 2.0);
+}
+
+inline constexpr Angle Angle::half() {
+	return Angle(M_PI);
+}
+
+inline constexpr Angle Angle::three_quarter() {
+	return Angle(3.0 / 2.0 * M_PI);
+}
+
+inline constexpr Angle Angle::full() {
+	return Angle(2.0 * M_PI);
+}
+
+inline constexpr Angle Angle::of_radians(double t) {
 	return Angle(t);
 }
 
-inline Angle Angle::of_degrees(double t) {
+inline constexpr Angle Angle::of_degrees(double t) {
 	return Angle(t / 180.0 * M_PI);
 }
 
-inline Angle Angle::asin(double x) {
+inline constexpr Angle Angle::asin(double x) {
 	return Angle::of_radians(std::asin(x));
 }
 
-inline Angle Angle::acos(double x) {
+inline constexpr Angle Angle::acos(double x) {
 	return Angle::of_radians(std::acos(x));
 }
 
-inline Angle Angle::atan(double x) {
+inline constexpr Angle Angle::atan(double x) {
 	return Angle::of_radians(std::atan(x));
 }
 
-inline Angle::Angle() : rads(0.0) {
+inline constexpr Angle::Angle() : rads(0.0) {
 }
 
-inline double Angle::to_radians() const {
+inline constexpr double Angle::to_radians() const {
 	return rads;
 }
 
-inline double Angle::to_degrees() const {
+inline constexpr double Angle::to_degrees() const {
 	return rads / M_PI * 180.0;
 }
 
-inline Angle Angle::mod(Angle divisor) const {
+inline constexpr Angle Angle::mod(Angle divisor) const {
 	return Angle::of_radians(std::fmod(to_radians(), divisor.to_radians()));
 }
 
-inline Angle Angle::remainder(Angle divisor) const {
+inline constexpr Angle Angle::remainder(Angle divisor) const {
 	return Angle::of_radians(std::remainder(to_radians(), divisor.to_radians()));
 }
 
-inline Angle Angle::abs() const {
+inline constexpr Angle Angle::abs() const {
 	return Angle::of_radians(std::fabs(to_radians()));
 }
 
@@ -424,54 +444,54 @@ inline bool Angle::isfinite() const {
 	return std::isfinite(to_radians());
 }
 
-inline double Angle::sin() const {
+inline constexpr double Angle::sin() const {
 	return std::sin(to_radians());
 }
 
-inline double Angle::cos() const {
+inline constexpr double Angle::cos() const {
 	return std::cos(to_radians());
 }
 
-inline double Angle::tan() const {
+inline constexpr double Angle::tan() const {
 	return std::tan(to_radians());
 }
 
-inline Angle Angle::angle_mod() const {
-	return remainder(Angle::FULL);
+inline constexpr Angle Angle::angle_mod() const {
+	return remainder(Angle::full());
 }
 
-inline Angle Angle::angle_diff(Angle other) const {
+inline constexpr Angle Angle::angle_diff(Angle other) const {
 	return (*this - other).angle_mod().abs();
 }
 
-inline Angle::Angle(double rads) : rads(rads) {
+inline constexpr Angle::Angle(double rads) : rads(rads) {
 }
 
-inline Angle operator-(Angle angle) {
+inline constexpr Angle operator-(Angle angle) {
 	return Angle::of_radians(-angle.to_radians());
 }
 
-inline Angle operator+(Angle x, Angle y) {
+inline constexpr Angle operator+(Angle x, Angle y) {
 	return Angle::of_radians(x.to_radians() + y.to_radians());
 }
 
-inline Angle operator-(Angle x, Angle y) {
+inline constexpr Angle operator-(Angle x, Angle y) {
 	return Angle::of_radians(x.to_radians() - y.to_radians());
 }
 
-inline Angle operator*(Angle angle, double scale) {
+inline constexpr Angle operator*(Angle angle, double scale) {
 	return Angle::of_radians(angle.to_radians() * scale);
 }
 
-inline Angle operator*(double scale, Angle angle) {
+inline constexpr Angle operator*(double scale, Angle angle) {
 	return Angle::of_radians(scale * angle.to_radians());
 }
 
-inline Angle operator/(Angle angle, double divisor) {
+inline constexpr Angle operator/(Angle angle, double divisor) {
 	return Angle::of_radians(angle.to_radians() / divisor);
 }
 
-inline double operator/(Angle x, Angle y) {
+inline constexpr double operator/(Angle x, Angle y) {
 	return x.to_radians() / y.to_radians();
 }
 
@@ -491,27 +511,27 @@ inline Angle &operator/=(Angle &angle, double divisor) {
 	return angle = angle / divisor;
 }
 
-inline bool operator<(Angle x, Angle y) {
+inline constexpr bool operator<(Angle x, Angle y) {
 	return x.to_radians() < y.to_radians();
 }
 
-inline bool operator>(Angle x, Angle y) {
+inline constexpr bool operator>(Angle x, Angle y) {
 	return x.to_radians() > y.to_radians();
 }
 
-inline bool operator<=(Angle x, Angle y) {
+inline constexpr bool operator<=(Angle x, Angle y) {
 	return x.to_radians() <= y.to_radians();
 }
 
-inline bool operator>=(Angle x, Angle y) {
+inline constexpr bool operator>=(Angle x, Angle y) {
 	return x.to_radians() >= y.to_radians();
 }
 
-inline bool operator==(Angle x, Angle y) {
+inline constexpr bool operator==(Angle x, Angle y) {
 	return x.to_radians() == y.to_radians();
 }
 
-inline bool operator!=(Angle x, Angle y) {
+inline constexpr bool operator!=(Angle x, Angle y) {
 	return x.to_radians() != y.to_radians();
 }
 

@@ -87,7 +87,7 @@ std::vector<std::pair<Point, Angle> > angle_sweep_circles_all(const Point &src, 
 
 	std::vector<std::pair<Angle, int> > events;
 	events.reserve(2 * obstacles.size() + 2);
-	events.push_back(std::make_pair(Angle::ZERO, 1)); // p1 becomes angle 0
+	events.push_back(std::make_pair(Angle::zero(), 1)); // p1 becomes angle 0
 	events.push_back(std::make_pair(((p2 - src).orientation() - offangle).angle_mod(), -1));
 	for (std::size_t i = 0; i < obstacles.size(); ++i) {
 		Point diff = obstacles[i] - src;
@@ -102,7 +102,7 @@ std::vector<std::pair<Point, Angle> > angle_sweep_circles_all(const Point &src, 
 		const Angle range2 = cent + span;
 
 #warning hack should work
-		if (range1 < -Angle::HALF || range2 > Angle::HALF) {
+		if (range1 < -Angle::half() || range2 > Angle::half()) {
 			continue;
 		}
 		events.push_back(std::make_pair(range1, -1));
@@ -110,7 +110,7 @@ std::vector<std::pair<Point, Angle> > angle_sweep_circles_all(const Point &src, 
 	}
 	// do angle sweep for largest angle
 	std::sort(events.begin(), events.end());
-	Angle sum = Angle::ZERO;
+	Angle sum = Angle::zero();
 	Angle start = events[0].first;
 	int cnt = 0;
 	for (std::size_t i = 0; i + 1 < events.size(); ++i) {
@@ -125,7 +125,7 @@ std::vector<std::pair<Point, Angle> > angle_sweep_circles_all(const Point &src, 
 
 			ret.push_back(std::make_pair(inter, sum));
 
-			sum = Angle::ZERO;
+			sum = Angle::zero();
 			start = events[i + 1].first;
 		}
 	}
@@ -140,18 +140,18 @@ std::pair<Point, Angle> angle_sweep_circles(const Point &src, const Point &p1, c
 		// std::cerr << "geom: collinear " << src << " " << p1 << " " << p2 << std::endl;
 		// std::cerr << (p1 - src) << " " << (p2 - src) << std::endl;
 		// std::cerr << (p1 - src).cross(p2 - src) << std::endl;
-		return std::make_pair(bestshot, Angle::ZERO);
+		return std::make_pair(bestshot, Angle::zero());
 	}
 	std::vector<std::pair<Angle, int> > events;
 	events.reserve(2 * obstacles.size() + 2);
-	events.push_back(std::make_pair(Angle::ZERO, 1)); // p1 becomes angle 0
+	events.push_back(std::make_pair(Angle::zero(), 1)); // p1 becomes angle 0
 	events.push_back(std::make_pair(((p2 - src).orientation() - offangle).angle_mod(), -1));
 	for (std::size_t i = 0; i < obstacles.size(); ++i) {
 		Point diff = obstacles[i] - src;
 		// warning: temporarily reduced
 		if (diff.len() < radius) {
 			// std::cerr << "geom: inside" << std::endl;
-			return std::make_pair(bestshot, Angle::ZERO);
+			return std::make_pair(bestshot, Angle::zero());
 		}
 		const Angle cent = (diff.orientation() - offangle).angle_mod();
 		const Angle span = Angle::asin(radius / diff.len());
@@ -180,7 +180,7 @@ std::pair<Point, Angle> angle_sweep_circles(const Point &src, const Point &p1, c
 		 */
 
 #warning hack should work
-		if (range1 < -Angle::HALF || range2 > Angle::HALF) {
+		if (range1 < -Angle::half() || range2 > Angle::half()) {
 			continue;
 		}
 		events.push_back(std::make_pair(range1, -1));
@@ -188,8 +188,8 @@ std::pair<Point, Angle> angle_sweep_circles(const Point &src, const Point &p1, c
 	}
 	// do angle sweep for largest angle
 	std::sort(events.begin(), events.end());
-	Angle best = Angle::ZERO;
-	Angle sum = Angle::ZERO;
+	Angle best = Angle::zero();
+	Angle sum = Angle::zero();
 	Angle start = events[0].first;
 	int cnt = 0;
 	for (std::size_t i = 0; i + 1 < events.size(); ++i) {
@@ -207,7 +207,7 @@ std::pair<Point, Angle> angle_sweep_circles(const Point &src, const Point &p1, c
 				bestshot = inter;
 			}
 		} else {
-			sum = Angle::ZERO;
+			sum = Angle::zero();
 			start = events[i + 1].first;
 		}
 	}
@@ -226,7 +226,7 @@ std::vector<Point> seg_buffer_boundaries(const Point &a, const Point &b, double 
 	double total_travelled = 0.0;
 	double step_len = total_dist / num_points;
 	Point add1(0.0, 0.0);
-	Point add2 = buffer * ((a - b)).rotate(Angle::QUARTER).norm();
+	Point add2 = buffer * ((a - b)).rotate(Angle::quarter()).norm();
 	Point seg_direction = (b - a).norm();
 	bool swapped = false;
 
@@ -283,7 +283,7 @@ std::vector<Point> seg_buffer_boundaries(const Point &a, const Point &b, double 
 }
 
 std::vector<Point> circle_boundaries(const Point &centre, double radius, int num_points) {
-	Angle rotate_amount = Angle::FULL / num_points;
+	Angle rotate_amount = Angle::full() / num_points;
 	std::vector<Point> ans;
 	Point bound(radius, 0.0);
 	for (int i = 0; i < num_points; i++) {
@@ -610,7 +610,7 @@ Point reflect(const Point &v, const Point &n) {
 Point reflect(const Point &a, const Point &b, const Point &p) {
 	// Make a as origin.
 	// Rotate by 90 degrees, does not matter which direction?
-	Point n = (b - a).rotate(Angle::QUARTER);
+	Point n = (b - a).rotate(Angle::quarter());
 	return a + reflect(p - a, n);
 }
 
@@ -745,6 +745,6 @@ bool point_in_front_vector(Point offset, Point dir, Point p) {
 	Angle a1 = dir.orientation();
 	Angle a2 = (p - offset).orientation();
 	Angle diff = (a1 - a2).angle_mod();
-	return diff < Angle::QUARTER && diff > -Angle::QUARTER;
+	return diff < Angle::quarter() && diff > -Angle::quarter();
 }
 

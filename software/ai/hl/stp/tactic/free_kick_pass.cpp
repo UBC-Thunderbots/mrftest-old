@@ -57,14 +57,14 @@ namespace {
 					case ROTATE_BOT:
 					// Rotate below to a 30 degree angle
 						pivot(world, player, world.ball().position() + Point(0, DISTANCE_FROM_BALL), DISTANCE_FROM_BALL);
-						if (player_to_ball.orientation() >= Angle::of_degrees(-ROT_ANGLE) && player_to_ball.orientation() <= Angle::ZERO) {
+						if (player_to_ball.orientation() >= Angle::of_degrees(-ROT_ANGLE) && player_to_ball.orientation() <= Angle::zero()) {
 							state = ROTATE_TOP;
 						}
 						break;
 					// Rotate above to a 30 degree angle
 					case ROTATE_TOP:
 						pivot(world, player,world.ball().position() - Point(0, DISTANCE_FROM_BALL), DISTANCE_FROM_BALL);
-						if (player_to_ball.orientation() <= Angle::of_degrees(ROT_ANGLE) && player_to_ball.orientation() >= Angle::ZERO) {
+						if (player_to_ball.orientation() <= Angle::of_degrees(ROT_ANGLE) && player_to_ball.orientation() >= Angle::zero()) {
 							state = ROTATE_MID;
 						}
 						break;

@@ -75,7 +75,7 @@ void Simulator::Team::send_tick() {
 				packet.world_state.friendly[i].robot_info.pattern = players[i].pattern;
 				packet.world_state.friendly[i].robot_info.x = players[i].player->position().x * (invert ? -1.0 : 1.0);
 				packet.world_state.friendly[i].robot_info.y = players[i].player->position().y * (invert ? -1.0 : 1.0);
-				packet.world_state.friendly[i].robot_info.orientation = (players[i].player->orientation() + (invert ? Angle::HALF : Angle::ZERO)).to_radians();
+				packet.world_state.friendly[i].robot_info.orientation = (players[i].player->orientation() + (invert ? Angle::half() : Angle::zero())).to_radians();
 				packet.world_state.friendly[i].has_ball = players[i].player->has_ball();
 			} else {
 				packet.world_state.friendly[i].robot_info.pattern = std::numeric_limits<unsigned int>::max();
@@ -86,7 +86,7 @@ void Simulator::Team::send_tick() {
 				packet.world_state.enemy[i].pattern = other->players[i].pattern;
 				packet.world_state.enemy[i].x = other->players[i].player->position().x * (invert ? -1.0 : 1.0);
 				packet.world_state.enemy[i].y = other->players[i].player->position().y * (invert ? -1.0 : 1.0);
-				packet.world_state.enemy[i].orientation = (other->players[i].player->orientation() + (invert ? Angle::HALF : Angle::ZERO)).to_radians();
+				packet.world_state.enemy[i].orientation = (other->players[i].player->orientation() + (invert ? Angle::half() : Angle::zero())).to_radians();
 			} else {
 				packet.world_state.enemy[i].pattern = std::numeric_limits<unsigned int>::max();
 			}

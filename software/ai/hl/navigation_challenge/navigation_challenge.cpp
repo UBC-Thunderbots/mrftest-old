@@ -135,7 +135,7 @@ namespace {
 					runner.flags(0);
 					runner.type(AI::Flags::MoveType::NORMAL);
 					runner.prio(AI::Flags::MovePrio::HIGH);
-					runner.move(des, Angle::ZERO, Point());
+					runner.move(des, Angle::zero(), Point());
 				}
 			}
 

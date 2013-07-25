@@ -19,7 +19,7 @@ namespace {
 
 	class ShootGoal : public Tactic {
 		public:
-			ShootGoal(World world, bool force) : Tactic(world, true), kick_attempted(false), force(force), shoot_score(Angle::ZERO) {
+			ShootGoal(World world, bool force) : Tactic(world, true), kick_attempted(false), force(force), shoot_score(Angle::zero()) {
 				// world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &ShootGoal::on_player_removed));
 			}
 
@@ -84,7 +84,7 @@ namespace {
 			kick_attempted = true;
 		}
 		Angle cur_shoot_score = AI::HL::STP::Evaluation::get_shoot_score(world, player);
-		if (new_shoot && ((cur_shoot_score < shoot_score + Angle::of_radians(1e-9) && shoot_score > Angle::ZERO) || cur_shoot_score > shoot_thresh)) {
+		if (new_shoot && ((cur_shoot_score < shoot_score + Angle::of_radians(1e-9) && shoot_score > Angle::zero()) || cur_shoot_score > shoot_thresh)) {
 			player.autokick(BALL_MAX_SPEED);
 		}
 		shoot_score = cur_shoot_score;

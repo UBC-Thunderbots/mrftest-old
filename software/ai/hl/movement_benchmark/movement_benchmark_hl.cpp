@@ -16,36 +16,34 @@ namespace {
 	RadianParam ori_dis_threshold("ori distance threshold (radians)", "MB", 0.1, 0, 1.0);
 	RadianParam ori_vel_threshold("ori velocity threshold (radians)", "MB", 0.03, 0, 1.0);
 
-	const double PI = M_PI;
-
 	const std::pair<Point, Angle> tasks_default[] = {
 		std::make_pair(Point(1.2, 0), Angle::of_radians(0)),
-		std::make_pair(Point(1.5, 0), Angle::of_radians(-PI / 2)),
+		std::make_pair(Point(1.5, 0), Angle::of_radians(-M_PI / 2)),
 		std::make_pair(Point(1.2, 0.3), Angle::of_radians(0)),
-		std::make_pair(Point(1.2, -0.3), Angle::of_radians(PI)),
+		std::make_pair(Point(1.2, -0.3), Angle::of_radians(M_PI)),
 		std::make_pair(Point(1.2, 0), Angle::of_radians(0)),
-		std::make_pair(Point(1.2, -0.3), Angle::of_radians(PI)),
+		std::make_pair(Point(1.2, -0.3), Angle::of_radians(M_PI)),
 		std::make_pair(Point(1.2, 0), Angle::of_radians(0)),
-		std::make_pair(Point(0.5, 0), Angle::of_radians(PI)),
+		std::make_pair(Point(0.5, 0), Angle::of_radians(M_PI)),
 		std::make_pair(Point(2.5, 0), Angle::of_radians(0)),
-		std::make_pair(Point(0.5, 1.2), Angle::of_radians(PI)),
+		std::make_pair(Point(0.5, 1.2), Angle::of_radians(M_PI)),
 		std::make_pair(Point(1, -0.6), Angle::of_radians(0)),
-		std::make_pair(Point(2, 0.6), Angle::of_radians(PI / 2)),
-		std::make_pair(Point(1, -0.6), Angle::of_radians(-PI / 2)),
+		std::make_pair(Point(2, 0.6), Angle::of_radians(M_PI / 2)),
+		std::make_pair(Point(1, -0.6), Angle::of_radians(-M_PI / 2)),
 		std::make_pair(Point(0.5, 0), Angle::of_radians(0)),
-		std::make_pair(Point(2.5, 0.6), Angle::of_radians(-PI / 2))
+		std::make_pair(Point(2.5, 0.6), Angle::of_radians(-M_PI / 2))
 	};
 
 	const std::pair<Point, Angle> tasks_square[] = {
-		std::make_pair(Point(2.0, 0.6), Angle::ZERO),
-		std::make_pair(Point(2.0, -0.6), Angle::ZERO),
-		std::make_pair(Point(0.5, -0.6), Angle::ZERO),
-		std::make_pair(Point(0.5, 0.6), Angle::ZERO),
-		std::make_pair(Point(2.0, 0.6), Angle::ZERO),
-		std::make_pair(Point(2.0, -0.6), Angle::ZERO),
-		std::make_pair(Point(0.5, -0.6), Angle::ZERO),
-		std::make_pair(Point(0.5, 0.6), Angle::ZERO),
-		std::make_pair(Point(2.0, 0.6), Angle::ZERO),
+		std::make_pair(Point(2.0, 0.6), Angle::zero()),
+		std::make_pair(Point(2.0, -0.6), Angle::zero()),
+		std::make_pair(Point(0.5, -0.6), Angle::zero()),
+		std::make_pair(Point(0.5, 0.6), Angle::zero()),
+		std::make_pair(Point(2.0, 0.6), Angle::zero()),
+		std::make_pair(Point(2.0, -0.6), Angle::zero()),
+		std::make_pair(Point(0.5, -0.6), Angle::zero()),
+		std::make_pair(Point(0.5, 0.6), Angle::zero()),
+		std::make_pair(Point(2.0, 0.6), Angle::zero()),
 	};
 
 

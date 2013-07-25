@@ -30,7 +30,7 @@ Angle Evaluation::get_shoot_score(World world, Player player, bool use_reduced_r
 		}
 		return std::min(ang_1.angle_diff(centre_ang), ang_2.angle_diff(centre_ang));
 	}
-	return Angle::ZERO;
+	return Angle::zero();
 }
 
 /*
@@ -90,7 +90,7 @@ Evaluation::ShootData Evaluation::evaluate_shoot(World world, Player player, boo
 	data.target = shot.first;
 	data.angle = shot.second;
 	data.can_shoot = data.accuracy_diff < -shoot_accuracy;
-	data.blocked = shot.second == Angle::ZERO;
+	data.blocked = shot.second == Angle::zero();
 
 #warning a fix to other parts of the code for now
 	if (data.blocked) {

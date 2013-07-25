@@ -110,7 +110,7 @@ PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, dReal 
 
 	for (int index = 0; index < 4; index++) {
 		wheel_position[index] = Point(1, 0).rotate(ANGLES[index]) * ROBOT_RADIUS;
-		force_direction[index] = Point(wheel_position[index].rotate(Angle::QUARTER).norm());
+		force_direction[index] = Point(wheel_position[index].rotate(Angle::quarter()).norm());
 	}
 }
 

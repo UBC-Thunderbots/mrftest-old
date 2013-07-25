@@ -80,7 +80,7 @@ void RRTNavigator::pivot(Player player) {
 
 		Angle difference = (to_ball_orientation - player.destination().second).angle_mod();
 
-		if (difference > Angle::ZERO) {
+		if (difference > Angle::zero()) {
 			angle = -angle;
 			orientation_temp = -orientation_temp;
 		}
@@ -106,18 +106,18 @@ void RRTNavigator::pivot(Player player) {
 		Angle dest_orient;
 
 		// decide on ccw or cw
-		if (diff > new_pivot_hyster_angle * Angle::HALF) {
+		if (diff > new_pivot_hyster_angle * Angle::half()) {
 			is_ccw = true;
-		} else if (diff < -new_pivot_hyster_angle * Angle::HALF) {
+		} else if (diff < -new_pivot_hyster_angle * Angle::half()) {
 			is_ccw = false;
 		}
 
 		// decide on how to get there fast
-		if (diff.abs() > new_pivot_thresh_angle * Angle::HALF) {
-			rel_orient = new_pivot_travel_angle * Angle::HALF * (is_ccw ? 1 : -1);
+		if (diff.abs() > new_pivot_thresh_angle * Angle::half()) {
+			rel_orient = new_pivot_travel_angle * Angle::half() * (is_ccw ? 1 : -1);
 			rel_orient *= new_pivot_angular_sfactor;
 			polar_pos = zero_pos - zero_pos.rotate(rel_orient);
-			rel_pos = polar_pos.rotate(player.orientation() + Angle::QUARTER * (is_ccw ? 1 : -1) * (new_pivot_go_backward ? -1 : 1));
+			rel_pos = polar_pos.rotate(player.orientation() + Angle::quarter() * (is_ccw ? 1 : -1) * (new_pivot_go_backward ? -1 : 1));
 			rel_pos *= new_pivot_linear_sfactor;
 			dest_pos = player.position() + rel_pos;
 			dest_orient = player.orientation() + rel_orient;
@@ -126,7 +126,7 @@ void RRTNavigator::pivot(Player player) {
 			rel_orient = diff;
 			rel_orient *= new_pivot_angular_sfactor;
 			polar_pos = zero_pos - zero_pos.rotate(rel_orient);
-			rel_pos = polar_pos.rotate(player.orientation() + Angle::QUARTER);
+			rel_pos = polar_pos.rotate(player.orientation() + Angle::quarter());
 			rel_pos *= new_pivot_linear_sfactor;
 			dest_pos = player.position() + rel_pos;
 			dest_orient = (world.ball().position() - player.destination().first).orientation();

@@ -24,11 +24,11 @@ namespace {
 }
 
 void AngleTest::test_statics() {
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(0, Angle::ZERO.to_degrees(), 0.1);
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(90, Angle::QUARTER.to_degrees(), 0.1);
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(180, Angle::HALF.to_degrees(), 0.1);
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(270, Angle::THREE_QUARTER.to_degrees(), 0.1);
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(360, Angle::FULL.to_degrees(), 0.1);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(0, Angle::zero().to_degrees(), 0.1);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(90, Angle::quarter().to_degrees(), 0.1);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(180, Angle::half().to_degrees(), 0.1);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(270, Angle::three_quarter().to_degrees(), 0.1);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(360, Angle::full().to_degrees(), 0.1);
 }
 
 void AngleTest::test_of_radians() {

@@ -107,7 +107,7 @@ namespace {
 			Angle angular_direction;
 			static const double WHEEL_MATRIX[4][3];
 
-			explicit Vector3() : cartesian_direction(0, 0), angular_direction(Angle::ZERO) {
+			explicit Vector3() : cartesian_direction(0, 0), angular_direction(Angle::zero()) {
 			}
 
 			explicit Vector3(const Point &cart, const Angle &angle) : cartesian_direction(cart), angular_direction(angle) {}

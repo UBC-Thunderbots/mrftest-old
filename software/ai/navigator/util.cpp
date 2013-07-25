@@ -452,9 +452,9 @@ namespace {
 
 		// if the robot is in behind the ball, then move up to it from the far side to the target
 		if (target_ball_offset_angle.to_degrees() > 0.0) {
-			dest_pos = world.ball().position() + ball_norm.rotate(Angle::QUARTER) * AVOID_DIST + ball_vel * DELTA_TIME;
+			dest_pos = world.ball().position() + ball_norm.rotate(Angle::quarter()) * AVOID_DIST + ball_vel * DELTA_TIME;
 		} else {
-			dest_pos = world.ball().position() + ball_norm.rotate(Angle::THREE_QUARTER) * AVOID_DIST + ball_vel * DELTA_TIME;
+			dest_pos = world.ball().position() + ball_norm.rotate(Angle::three_quarter()) * AVOID_DIST + ball_vel * DELTA_TIME;
 		}
 
 		// make the robot face against the ball direction
@@ -470,8 +470,8 @@ namespace {
 		const Point ball_pos = world.ball().position();
 
 		Point radial_norm = (player_pos - ball_pos).norm();
-		Angle angle_diff = (radial_norm.orientation() - (Angle::HALF + dest_ang).angle_mod()).angle_mod();
-		ccw = angle_diff > Angle::ZERO;
+		Angle angle_diff = (radial_norm.orientation() - (Angle::half() + dest_ang).angle_mod()).angle_mod();
+		ccw = angle_diff > Angle::zero();
 
 		// when we are rotating, angle the movement inward slightly by this amount
 		// this is because we start rotating around the ball at a certain distance and can move slightly out of that distance
@@ -479,13 +479,13 @@ namespace {
 		Angle rotate_offset_angle = Angle::of_degrees(10);
 		Point tangential_norm;
 		if (ccw) {
-			tangential_norm = radial_norm.rotate(Angle::THREE_QUARTER - rotate_offset_angle);
+			tangential_norm = radial_norm.rotate(Angle::three_quarter() - rotate_offset_angle);
 		} else {
-			tangential_norm = radial_norm.rotate(Angle::QUARTER + rotate_offset_angle);
+			tangential_norm = radial_norm.rotate(Angle::quarter() + rotate_offset_angle);
 		}
 
 		const double tangential_scale = 0.2;
-		if (angle_diff.angle_diff(Angle::ZERO) > Angle::of_degrees(10)) {
+		if (angle_diff.angle_diff(Angle::zero()) > Angle::of_degrees(10)) {
 			dest_pos = player_pos + tangential_norm * tangential_scale;
 		} else {
 			dest_pos = ball_pos;

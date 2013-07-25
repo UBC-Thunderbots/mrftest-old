@@ -93,7 +93,7 @@ namespace {
 			const Point ball2side = goal_side - ball_pos;
 			const Point touch_vec = -ball2side.norm(); // side to ball
 			const double touch_dist = std::min(-ball2side.x * ball2side_ratio, max_goalie_dist * Robot::MAX_RADIUS);
-			const Point perp = (goalie_top) ? touch_vec.rotate(-Angle::QUARTER) : touch_vec.rotate(Angle::QUARTER);
+			const Point perp = (goalie_top) ? touch_vec.rotate(-Angle::quarter()) : touch_vec.rotate(Angle::quarter());
 			waypoint_goalie = goal_side + touch_vec * touch_dist + perp * radius;
 
 			// prevent the goalie from entering the goal area

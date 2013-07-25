@@ -43,7 +43,7 @@ Point Region::random_sample() const {
 		return v0 + (v1 - v0).norm(l) + (v1 - v0).perp().norm(w);
 	} else {
 		double r = std::sqrt(std::rand() / static_cast<double>(RAND_MAX)) * radius_;
-		Angle a = std::rand() / static_cast<double>(RAND_MAX) * Angle::FULL;
+		Angle a = std::rand() / static_cast<double>(RAND_MAX) * Angle::full();
 
 		return p1.position() + Point(r, 0).rotate(a);
 	}

@@ -28,12 +28,12 @@ class Point {
 		 *
 		 * \return the Point
 		 */
-		static Point of_angle(Angle angle);
+		static constexpr Point of_angle(Angle angle);
 
 		/**
 		 * \brief Creates the origin
 		 */
-		Point();
+		constexpr Point();
 
 		/**
 		 * \brief Creates a Point at arbitrary coordinates
@@ -42,35 +42,35 @@ class Point {
 		 *
 		 * \param[in] y the <var>y</var> value of the Point
 		 */
-		Point(double x, double y);
+		constexpr Point(double x, double y);
 
 		/**
 		 * \brief Creates a copy of a Point
 		 *
 		 * \param[in] p the Point to duplicate
 		 */
-		Point(const Point &p);
+		constexpr Point(const Point &p);
 
 		/**
 		 * \brief Returns the square of the length of the Point
 		 *
 		 * \return the square of the length of the Point
 		 */
-		double lensq() const __attribute__((warn_unused_result));
+		constexpr double lensq() const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Returns the length of the Point
 		 *
 		 * \return the length of the Point
 		 */
-		double len() const __attribute__((warn_unused_result));
+		constexpr double len() const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Returns the unit vector in the same direction as this Point
 		 *
 		 * \return a unit vector in the same direction as this Point, or a zero-length Point if this Point is zero
 		 */
-		Point norm() const __attribute__((warn_unused_result));
+		constexpr Point norm() const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Returns a scaled normalized vector in the same direction as this Point
@@ -79,14 +79,14 @@ class Point {
 		 *
 		 * \return a vector in the same direction as this Point and with length \p l, or a zero-length Point if this Point is zero
 		 */
-		Point norm(double l) const __attribute__((warn_unused_result));
+		constexpr Point norm(double l) const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Returns the vector perpendicular to this Point
 		 *
 		 * \return a vector perpendicular to this Point
 		 */
-		Point perp() const __attribute__((warn_unused_result));
+		constexpr Point perp() const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Rotates this Point by an angle
@@ -95,7 +95,7 @@ class Point {
 		 *
 		 * \return the Point rotated by rot
 		 */
-		Point rotate(Angle rot) const __attribute__((warn_unused_result));
+		constexpr Point rotate(Angle rot) const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Projects this vector onto another vector
@@ -104,7 +104,7 @@ class Point {
 		 *
 		 * \return the component of \p this that is in the same direction as \p n
 		 */
-		Point project(const Point &n) const __attribute__((warn_unused_result));
+		constexpr Point project(const Point &n) const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Takes the dot product of two vectors
@@ -113,7 +113,7 @@ class Point {
 		 *
 		 * \return the dot product of the points
 		 */
-		double dot(const Point &other) const __attribute__((warn_unused_result));
+		constexpr double dot(const Point &other) const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Takes the cross product of two vectors
@@ -122,7 +122,7 @@ class Point {
 		 *
 		 * \return the <var>z</var> component of the 3-dimensional cross product \p *this × \p other
 		 */
-		double cross(const Point &other) const __attribute__((warn_unused_result));
+		constexpr double cross(const Point &other) const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Assigns one vector to another
@@ -139,21 +139,21 @@ class Point {
 		 * \return the direction of this vector, in the range [-π, π], with 0 being the positive <var>x</var> direction, π/2 being up, etc.
 		 * (in actuality, this is <code>std::atan2(y, x)</code>)
 		 */
-		Angle orientation() const __attribute__((warn_unused_result));
+		constexpr Angle orientation() const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Checks whether this Point contains NaN in either coordinate
 		 *
 		 * \return \c true if either coordinate is NaN, or \c false if not
 		 */
-		bool isnan() const;
+		constexpr bool isnan() const;
 
 		/**
 		 * \brief Checks whether this Point is close to another Point, where “close” is defined as 1.0e-9
 		 *
 		 * \param[in] other the other point to check against
 		 */
-		bool close(const Point &other) const;
+		constexpr bool close(const Point &other) const;
 
 		/**
 		 * \brief Checks whether this Point is close to another Point
@@ -162,7 +162,7 @@ class Point {
 		 *
 		 * \param[in] dist the distance to check against
 		 */
-		bool close(const Point &other, double dist) const;
+		constexpr bool close(const Point &other, double dist) const;
 };
 
 /**
@@ -174,7 +174,7 @@ class Point {
  *
  * \return the vector-sum of the two points
  */
-Point operator+(const Point &p, const Point &q) __attribute__((warn_unused_result));
+constexpr Point operator+(const Point &p, const Point &q) __attribute__((warn_unused_result));
 
 /**
  * \brief Adds an offset to a Point
@@ -194,7 +194,7 @@ Point &operator+=(Point &p, const Point &q);
  *
  * \return \c −p
  */
-Point operator-(const Point &p) __attribute__((warn_unused_result));
+constexpr Point operator-(const Point &p) __attribute__((warn_unused_result));
 
 /**
  * \brief Subtracts two points
@@ -205,7 +205,7 @@ Point operator-(const Point &p) __attribute__((warn_unused_result));
  *
  * \return the vector-difference of the two points
  */
-Point operator-(const Point &p, const Point &q) __attribute__((warn_unused_result));
+constexpr Point operator-(const Point &p, const Point &q) __attribute__((warn_unused_result));
 
 /**
  * \brief Subtracts an offset from a Point
@@ -227,7 +227,7 @@ Point &operator-=(Point &p, const Point &q);
  *
  * \return the scaled vector
  */
-Point operator*(double s, const Point &p) __attribute__((warn_unused_result));
+constexpr Point operator*(double s, const Point &p) __attribute__((warn_unused_result));
 
 /**
  * \brief Multiplies a vector by a scalar
@@ -238,7 +238,7 @@ Point operator*(double s, const Point &p) __attribute__((warn_unused_result));
  *
  * \return the scaled vector
  */
-Point operator*(const Point &p, double s) __attribute__((warn_unused_result));
+constexpr Point operator*(const Point &p, double s) __attribute__((warn_unused_result));
 
 /**
  * \brief Scales a vector by a scalar
@@ -260,7 +260,7 @@ Point &operator*=(Point &p, double s);
  *
  * \return the scaled vector
  */
-Point operator/(const Point &p, double s) __attribute__((warn_unused_result));
+constexpr Point operator/(const Point &p, double s) __attribute__((warn_unused_result));
 
 /**
  * \brief Scales a vector by a scalar
@@ -293,7 +293,7 @@ template<typename CharT, typename Traits> std::basic_ostream<CharT, Traits> &ope
  *
  * \return \c true if \p p and \p q represent the same point, or \c false otherwise
  */
-bool operator==(const Point &p, const Point &q);
+constexpr bool operator==(const Point &p, const Point &q);
 
 /**
  * \brief Compares two vectors for inequality
@@ -304,7 +304,7 @@ bool operator==(const Point &p, const Point &q);
  *
  * \return \c true if \p p and \p q represent different points, or \c false otherwise
  */
-bool operator!=(const Point &p, const Point &q);
+constexpr bool operator!=(const Point &p, const Point &q);
 
 /**
  * \brief Orders two vectors suitably for sorting
@@ -317,7 +317,7 @@ bool operator!=(const Point &p, const Point &q);
  *
  * \return \c true if \p p < \p q, or \c false otherwise
  */
-bool operator<(const Point &p, const Point &q);
+constexpr bool operator<(const Point &p, const Point &q);
 
 /**
  * \brief Orders two vectors suitably for sorting
@@ -330,7 +330,7 @@ bool operator<(const Point &p, const Point &q);
  *
  * \return \c true if \p p > \p q, or \c false otherwise
  */
-bool operator>(const Point &p, const Point &q);
+constexpr bool operator>(const Point &p, const Point &q);
 
 /**
  * \brief Orders two vectors suitably for sorting
@@ -343,7 +343,7 @@ bool operator>(const Point &p, const Point &q);
  *
  * \return \c true if \p p ≤ \p q, or \c false otherwise
  */
-bool operator<=(const Point &p, const Point &q);
+constexpr bool operator<=(const Point &p, const Point &q);
 
 /**
  * \brief Orders two vectors suitably for sorting
@@ -356,70 +356,58 @@ bool operator<=(const Point &p, const Point &q);
  *
  * \return \c true if \p p ≥ \p q, or \c false otherwise
  */
-bool operator>=(const Point &p, const Point &q);
+constexpr bool operator>=(const Point &p, const Point &q);
 
 
 
 
 
-inline Point Point::of_angle(Angle angle) {
+inline constexpr Point Point::of_angle(Angle angle) {
 	return Point(angle.cos(), angle.sin());
 }
 
-inline Point::Point() : x(0.0), y(0.0) {
+inline constexpr Point::Point() : x(0.0), y(0.0) {
 }
 
-inline Point::Point(double x, double y) : x(x), y(y) {
+inline constexpr Point::Point(double x, double y) : x(x), y(y) {
 }
 
-inline Point::Point(const Point &p) : x(p.x), y(p.y) {
+inline constexpr Point::Point(const Point &p) : x(p.x), y(p.y) {
 }
 
-inline double Point::lensq() const {
+inline constexpr double Point::lensq() const {
 	return x * x + y * y;
 }
 
-inline double Point::len() const {
+inline constexpr double Point::len() const {
 	return std::hypot(x, y);
 }
 
-inline Point Point::norm() const {
-	const double l = len();
-	if (l < 1.0e-9) {
-		return Point();
-	} else {
-		return Point(x / l, y / l);
-	}
+inline constexpr Point Point::norm() const {
+	return len() < 1.0e-9 ? Point() : Point(x / len(), y / len());
 }
 
-inline Point Point::norm(double l) const {
-	double nl = l / len();
-	if (len() < 1.0e-9) {
-		return Point();
-	} else {
-		return Point(x * nl, y * nl);
-	}
+inline constexpr Point Point::norm(double l) const {
+	return len() < 1.0e-9 ? Point() : Point(x * l / len(), y * l / len());
 }
 
-inline Point Point::perp() const {
+inline constexpr Point Point::perp() const {
 	return Point(-y, x);
 }
 
-inline Point Point::rotate(Angle rot) const {
-	double s = rot.sin();
-	double c = rot.cos();
-	return Point(x * c - y * s, x * s + y * c);
+inline constexpr Point Point::rotate(Angle rot) const {
+	return Point(x * rot.cos() - y * rot.sin(), x * rot.sin() + y * rot.cos());
 }
 
-inline Point Point::project(const Point &n) const {
+inline constexpr Point Point::project(const Point &n) const {
 	return dot(n) / n.lensq() * n;
 }
 
-inline double Point::dot(const Point &other) const {
+inline constexpr double Point::dot(const Point &other) const {
 	return x * other.x + y * other.y;
 }
 
-inline double Point::cross(const Point &other) const {
+inline constexpr double Point::cross(const Point &other) const {
 	return x * other.y - y * other.x;
 }
 
@@ -429,23 +417,23 @@ inline Point &Point::operator=(const Point &q) {
 	return *this;
 }
 
-inline Angle Point::orientation() const {
+inline constexpr Angle Point::orientation() const {
 	return Angle::of_radians(std::atan2(y, x));
 }
 
-inline bool Point::isnan() const {
-	return std::isnan(x) || std::isnan(y);
+inline constexpr bool Point::isnan() const {
+	return x != x || y != y;
 }
 
-inline bool Point::close(const Point &other) const {
-	return (*this - other).lensq() < 1e-18;
+inline constexpr bool Point::close(const Point &other) const {
+	return Point(x - other.x, y - other.y).lensq() < 1e-18;
 }
 
-inline bool Point::close(const Point &other, double dist) const {
-	return (*this - other).len() < dist;
+inline constexpr bool Point::close(const Point &other, double dist) const {
+	return Point(x - other.x, y - other.y).lensq() < dist * dist;
 }
 
-inline Point operator+(const Point &p, const Point &q) {
+inline constexpr Point operator+(const Point &p, const Point &q) {
 	return Point(p.x + q.x, p.y + q.y);
 }
 
@@ -455,11 +443,11 @@ inline Point &operator+=(Point &p, const Point &q) {
 	return p;
 }
 
-inline Point operator-(const Point &p) {
+inline constexpr Point operator-(const Point &p) {
 	return Point(-p.x, -p.y);
 }
 
-inline Point operator-(const Point &p, const Point &q) {
+inline constexpr Point operator-(const Point &p, const Point &q) {
 	return Point(p.x - q.x, p.y - q.y);
 }
 
@@ -469,11 +457,11 @@ inline Point &operator-=(Point &p, const Point &q) {
 	return p;
 }
 
-inline Point operator*(double s, const Point &p) {
+inline constexpr Point operator*(double s, const Point &p) {
 	return Point(p.x * s, p.y * s);
 }
 
-inline Point operator*(const Point &p, double s) {
+inline constexpr Point operator*(const Point &p, double s) {
 	return Point(p.x * s, p.y * s);
 }
 
@@ -483,7 +471,7 @@ inline Point &operator*=(Point &p, double s) {
 	return p;
 }
 
-inline Point operator/(const Point &p, double s) {
+inline constexpr Point operator/(const Point &p, double s) {
 	return Point(p.x / s, p.y / s);
 }
 
@@ -498,31 +486,27 @@ template<typename CharT, typename Traits> inline std::basic_ostream<CharT, Trait
 	return s;
 }
 
-inline bool operator==(const Point &p, const Point &q) {
+inline constexpr bool operator==(const Point &p, const Point &q) {
 	return p.x == q.x && p.y == q.y;
 }
 
-inline bool operator!=(const Point &p, const Point &q) {
+inline constexpr bool operator!=(const Point &p, const Point &q) {
 	return !(p == q);
 }
 
-inline bool operator<(const Point &p, const Point &q) {
-	if (p.x != q.x) {
-		return p.x < q.x;
-	} else {
-		return p.y < q.y;
-	}
+inline constexpr bool operator<(const Point &p, const Point &q) {
+	return p.x != q.x ? p.x < q.x : p.y < q.y;
 }
 
-inline bool operator>(const Point &p, const Point &q) {
+inline constexpr bool operator>(const Point &p, const Point &q) {
 	return !(p < q || p == q);
 }
 
-inline bool operator<=(const Point &p, const Point &q) {
+inline constexpr bool operator<=(const Point &p, const Point &q) {
 	return p < q || p == q;
 }
 
-inline bool operator>=(const Point &p, const Point &q) {
+inline constexpr bool operator>=(const Point &p, const Point &q) {
 	return !(p < q);
 }
 

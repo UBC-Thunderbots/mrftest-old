@@ -55,9 +55,9 @@ void PivotNavigatorAram::tick() {
 		// targetPosition = Point(0, 0); // try to reach centre of field
 
 		if (diff.cross(currentVelocity) > 0) {
-			turnCentre = currentPosition + turnRadius * currentVelocity.rotate(Angle::QUARTER);
+			turnCentre = currentPosition + turnRadius * currentVelocity.rotate(Angle::quarter());
 		} else {
-			turnCentre = currentPosition + turnRadius * currentVelocity.rotate(-Angle::QUARTER);
+			turnCentre = currentPosition + turnRadius * currentVelocity.rotate(-Angle::quarter());
 		}
 
 		if ((world.ball().position() - turnCentre).len() > turnRadius + pivot_radius) {
