@@ -37,16 +37,16 @@ int app_main(int, char **) {
 					return 1;
 				}
 				if (errors & 0x08) {
-					std::cerr << "\n\nSerial overrun error detected.\n\n";
+					std::cerr << "<SO>";
 				}
 				if (errors & 0x04) {
-					std::cerr << "\n\nUSB overrun error detected.\n\n";
+					std::cerr << "<UO>";
 				}
 				if (errors & 0x01) {
-					std::cerr << "\n\nFraming error detected on next byte.\n\n";
+					std::cerr << "<FE>";
 				}
 				if (errors & 0x02) {
-					std::cerr << "\n\nNoise detected on next byte.\n\n";
+					std::cerr << "<ND>";
 				}
 			} catch (const USB::TransferStallError &) {
 				// Catch this exception and print a more informative message; this should never happen.
