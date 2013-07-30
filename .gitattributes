@@ -172,6 +172,7 @@ software/ai/common/predictable.h -text
 software/ai/common/robot.cpp -text
 software/ai/common/robot.h -text
 software/ai/common/team.h -text
+software/ai/common/time.h -text
 software/ai/common/world.h -text
 software/ai/flags.cpp -text
 software/ai/flags.h -text

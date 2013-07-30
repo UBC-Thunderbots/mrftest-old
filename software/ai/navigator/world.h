@@ -66,7 +66,7 @@ namespace AI {
 					/**
 					 * \brief The type of a single point in a path
 					 */
-					typedef std::pair<std::pair<Point, Angle>, timespec> PathPoint;
+					typedef std::pair<std::pair<Point, Angle>, AI::Timestamp> PathPoint;
 
 					/**
 					 * \brief The type of a complete path
@@ -221,12 +221,12 @@ namespace AI {
 					 *
 					 * Monotonic time is a way of representing "game time", which always moves forward
 					 * Monotonic time is consistent within the game world, and may or may not be linked to real time
-					 * A navigator should \em always use this function to retrieve monotonic time, not one of the functions in util/time.h!
+					 * A navigator should \em always use this function to retrieve monotonic time!
 					 * The AI will not generally have any use for real time
 					 *
 					 * \return the current monotonic time
 					 */
-					timespec monotonic_time() const;
+					Timestamp monotonic_time() const;
 
 				private:
 					AI::BE::Backend &impl;
@@ -342,7 +342,7 @@ inline AI::Nav::W::EnemyTeam AI::Nav::W::World::enemy_team() const {
 	return EnemyTeam(impl.enemy_team());
 }
 
-inline timespec AI::Nav::W::World::monotonic_time() const {
+inline AI::Timestamp AI::Nav::W::World::monotonic_time() const {
 	return impl.monotonic_time();
 }
 

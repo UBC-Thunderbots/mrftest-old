@@ -4,11 +4,18 @@
 
 using AI::BE::Robot;
 
-Robot::Robot(unsigned int pattern) : pred(1.3e-3, 2, 99.0, Angle::of_radians(1.3e-3), Angle::of_radians(2), 99.0), pattern_(pattern), avoid_distance_(AI::Flags::AvoidDistance::MEDIUM) {
+namespace {
+	const Predictor<double>::Timediff TIME_CONSTANT(std::chrono::duration_cast<Predictor<double>::Timediff>(std::chrono::duration<double>(99.0)));
 }
 
-void Robot::add_field_data(Point pos, Angle ori, timespec ts) {
-	pred.add_measurement(pos, ori, timespec_sub(ts, double_to_timespec(AI::BE::LOOP_DELAY)));
+Robot::Robot(unsigned int pattern) :
+		pred(1.3e-3, 2, TIME_CONSTANT, Angle::of_radians(1.3e-3), Angle::of_radians(2), TIME_CONSTANT),
+		pattern_(pattern),
+		avoid_distance_(AI::Flags::AvoidDistance::MEDIUM) {
+}
+
+void Robot::add_field_data(Point pos, Angle ori, AI::Timestamp ts) {
+	pred.add_measurement(pos, ori, ts - std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(AI::BE::LOOP_DELAY)));
 }
 
 ObjectStore &Robot::object_store() const {
@@ -63,7 +70,7 @@ bool Robot::has_path() const {
 	return false;
 }
 
-const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &Robot::path() const {
+const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &Robot::path() const {
 	throw std::logic_error("This robot has no path");
 }
 
@@ -71,7 +78,7 @@ void Robot::pre_tick() {
 	avoid_distance_ = AI::Flags::AvoidDistance::MEDIUM;
 }
 
-void Robot::lock_time(timespec now) {
+void Robot::lock_time(AI::Timestamp now) {
 	pred.lock_time(now);
 }
 

@@ -95,11 +95,11 @@ bool Player::has_path() const {
 	return true;
 }
 
-const std::vector<std::pair<std::pair<Point, Angle>, timespec>> &Player::path() const {
+const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &Player::path() const {
 	return path_;
 }
 
-void Player::path(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p) {
+void Player::path(const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &p) {
 	for (auto i = p.begin(), iend = p.end(); i != iend; ++i) {
 		if (!std::isfinite(i->first.first.x) || !std::isfinite(i->first.first.y)) {
 			LOG_ERROR("NaN or ±∞ position in path element");
@@ -121,7 +121,7 @@ void Player::pre_tick() {
 	move_prio_ = AI::Flags::MovePrio::MEDIUM;
 }
 
-void Player::update_predictor(timespec ts) {
+void Player::update_predictor(AI::Timestamp ts) {
 	if (kalman_control_inputs) {
 		double prediction_vector[3] = { 0, 0, 0 };
 		for (unsigned int row = 0; row < 3; ++row) {

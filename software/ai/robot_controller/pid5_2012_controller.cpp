@@ -5,6 +5,7 @@
 #include "util/algorithm.h"
 #include "util/noncopyable.h"
 #include "util/param.h"
+#include "util/string.h"
 #include "util/timestep.h"
 #include <cmath>
 #include <vector>

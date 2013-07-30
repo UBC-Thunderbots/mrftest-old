@@ -6,7 +6,7 @@
 AI::BE::Simulator::Player::Player(Backend &be, unsigned int pattern) : AI::BE::Player(pattern), be(be), has_ball_(false), kick_(false), chick_power_(0.0), autokick_fired_(false), autokick_pre_fired_(false), dragging_(false) {
 }
 
-void AI::BE::Simulator::Player::pre_tick(const ::Simulator::Proto::S2APlayerInfo &state, const timespec &ts) {
+void AI::BE::Simulator::Player::pre_tick(const ::Simulator::Proto::S2APlayerInfo &state, const AI::Timestamp &ts) {
 	add_field_data({state.robot_info.x, state.robot_info.y}, Angle::of_radians(state.robot_info.orientation), ts);
 	AI::BE::Player::pre_tick();
 	AI::BE::Player::lock_time(ts);

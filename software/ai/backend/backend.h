@@ -7,6 +7,7 @@
 #include "ai/backend/robot.h"
 #include "ai/backend/team.h"
 #include "ai/common/team.h"
+#include "ai/common/time.h"
 #include "geom/predictor.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "proto/referee.pb.h"
@@ -105,16 +106,25 @@ namespace AI {
 				virtual const Team<Robot> &enemy_team() const = 0;
 
 				/**
+				 * \brief Returns the monotonic time at system startup.
+				 *
+				 * This can be used to calculate for how long the AI has been running.
+				 *
+				 * \return the monotonic time at system startup
+				 */
+				Timestamp monotonic_start_time() const;
+
+				/**
 				 * \brief Returns the current monotonic time.
 				 *
-				 * Monotonic time is a way of representing "game time", which always moves forward.
+				 * Monotonic time is a way of representing “game time”, which always moves forward.
 				 * Monotonic time is consistent within the game world, and may or may not be linked to real time.
-				 * A navigator should \em always use this function to retrieve monotonic time, not one of the functions in util/time.h!
+				 * AI should \em always use this function to retrieve monotonic time!
 				 * The AI will not generally have any use for real time.
 				 *
 				 * \return the current monotonic time.
 				 */
-				timespec monotonic_time() const;
+				Timestamp monotonic_time() const;
 
 				/**
 				 * \brief Returns the number of table rows the backend's main tab UI controls will consume.
@@ -228,21 +238,21 @@ namespace AI {
 				 *
 				 * \return the post-tick signal.
 				 */
-				sigc::signal<void, unsigned int> &signal_post_tick() const;
+				sigc::signal<void, AI::Timediff> &signal_post_tick() const;
 
 				/**
 				 * \brief Returns a signal that fires when an SSL-Vision packet is received.
 				 *
 				 * \return the vision signal.
 				 */
-				sigc::signal<void, timespec, const SSL_WrapperPacket &> &signal_vision() const;
+				sigc::signal<void, AI::Timestamp, const SSL_WrapperPacket &> &signal_vision() const;
 
 				/**
 				 * \brief Returns a signal that fires when a referee box packet is received.
 				 *
 				 * \return the referee box signal.
 				 */
-				sigc::signal<void, timespec, const SSL_Referee &> &signal_refbox() const;
+				sigc::signal<void, AI::Timestamp, const SSL_Referee &> &signal_refbox() const;
 
 				/**
 				 * \brief Returns a signal that fires when the visualizer needs an overlay to be drawn.
@@ -263,9 +273,14 @@ namespace AI {
 				Ball ball_;
 
 				/**
+				 * \brief The monotonic time at system startup.
+				 */
+				Timestamp monotonic_start_time_;
+
+				/**
 				 * \brief The current monotonic time
 				 */
-				timespec monotonic_time_;
+				Timestamp monotonic_time_;
 
 				/**
 				 * \brief Constructs a new Backend.
@@ -286,9 +301,9 @@ namespace AI {
 				Property<AI::Common::Colour> friendly_colour_;
 				Property<AI::Common::PlayType> playtype_, playtype_override_;
 				mutable sigc::signal<void> signal_tick_;
-				mutable sigc::signal<void, unsigned int> signal_post_tick_;
-				mutable sigc::signal<void, timespec, const SSL_WrapperPacket &> signal_vision_;
-				mutable sigc::signal<void, timespec, const SSL_Referee &> signal_refbox_;
+				mutable sigc::signal<void, AI::Timediff> signal_post_tick_;
+				mutable sigc::signal<void, AI::Timestamp, const SSL_WrapperPacket &> signal_vision_;
+				mutable sigc::signal<void, AI::Timestamp, const SSL_Referee &> signal_refbox_;
 				mutable sigc::signal<void, Cairo::RefPtr<Cairo::Context> > signal_draw_overlay_;
 
 				void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
@@ -325,7 +340,11 @@ namespace AI {
 
 
 
-inline timespec AI::BE::Backend::monotonic_time() const {
+inline AI::Timestamp AI::BE::Backend::monotonic_start_time() const {
+	return monotonic_start_time_;
+}
+
+inline AI::Timestamp AI::BE::Backend::monotonic_time() const {
 	return monotonic_time_;
 }
 
@@ -345,15 +364,15 @@ inline Property<AI::Common::PlayType> &AI::BE::Backend::playtype_override() {
 	return playtype_override_;
 }
 
-inline sigc::signal<void, unsigned int> &AI::BE::Backend::signal_post_tick() const {
+inline sigc::signal<void, AI::Timediff> &AI::BE::Backend::signal_post_tick() const {
 	return signal_post_tick_;
 }
 
-inline sigc::signal<void, timespec, const SSL_WrapperPacket &> &AI::BE::Backend::signal_vision() const {
+inline sigc::signal<void, AI::Timestamp, const SSL_WrapperPacket &> &AI::BE::Backend::signal_vision() const {
 	return signal_vision_;
 }
 
-inline sigc::signal<void, timespec, const SSL_Referee &> &AI::BE::Backend::signal_refbox() const {
+inline sigc::signal<void, AI::Timestamp, const SSL_Referee &> &AI::BE::Backend::signal_refbox() const {
 	return signal_refbox_;
 }
 

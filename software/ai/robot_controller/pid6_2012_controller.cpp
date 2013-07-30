@@ -151,7 +151,7 @@ namespace {
 	class PID6_2012Controller : public RobotController {
 		public:
 			void tick();
-			void move(const Point &new_position, Angle new_orientation, timespec time_of_arrival, int(&wheel_speeds)[4]);
+			void move(const Point &new_position, Angle new_orientation, AI::Timestamp time_of_arrival, int(&wheel_speeds)[4]);
 			void clear();
 			explicit PID6_2012Controller(World world, Player plr);
 
@@ -188,13 +188,13 @@ namespace {
 //			return distance * aggressiveness;
 	}
 
-	void PID6_2012Controller::move(const Point &new_point, Angle new_orientation, timespec time_of_arrival, int(&wheel_speeds)[4]) {
+	void PID6_2012Controller::move(const Point &new_point, Angle new_orientation, AI::Timestamp time_of_arrival, int(&wheel_speeds)[4]) {
 		// This is the difference between where we are and where we are going rotated to robot coordinates
 		Vector3 current_position = Vector3(player.position(),player.orientation());
 		Vector3 new_position = Vector3(new_point,new_orientation);
 		Vector3 position_delta = new_position.rebase(current_position);
 
-		double time_deadline = timespec_to_double(timespec_sub(time_of_arrival, world.monotonic_time()));
+		double time_deadline = std::chrono::duration_cast<std::chrono::duration<double>>(time_of_arrival - world.monotonic_time()).count();
 
 		time_deadline = (time_deadline < 1.0 / TIMESTEPS_PER_SECOND) ? 1.0 / TIMESTEPS_PER_SECOND : time_deadline;
 

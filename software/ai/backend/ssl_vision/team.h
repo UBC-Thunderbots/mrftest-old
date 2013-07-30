@@ -81,14 +81,14 @@ namespace AI {
 					 *
 					 * \param[in] ts the times at which the packets were received.
 					 */
-					void update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<timespec> &ts);
+					void update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<AI::Timestamp> &ts);
 
 					/**
 					 * \brief Locks a time for prediction across all players on the team.
 					 *
 					 * \param[in] now the time to lock as time zero.
 					 */
-					void lock_time(const timespec &now);
+					void lock_time(const AI::Timestamp &now);
 
 				protected:
 					AI::BE::Backend &backend;
@@ -129,7 +129,7 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::c
 	AI::BE::Team<TSuper>::signal_membership_changed().emit();
 }
 
-template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<timespec> &ts) {
+template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<AI::Timestamp> &ts) {
 	bool membership_changed = false;
 
 	// Update existing robots and create new robots.
@@ -191,7 +191,7 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::u
 	}
 }
 
-template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::lock_time(const timespec &now) {
+template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::lock_time(const AI::Timestamp &now) {
 	for (auto i = member_ptrs.begin(), iend = member_ptrs.end(); i != iend; ++i) {
 		(*i)->lock_time(now);
 	}

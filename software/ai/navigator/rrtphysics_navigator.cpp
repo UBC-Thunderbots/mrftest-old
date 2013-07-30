@@ -39,7 +39,7 @@ RRTPhysicsNavigator::RRTPhysicsNavigator(World world) : Navigator(world), planne
 }
 
 void RRTPhysicsNavigator::tick() {
-	struct timespec currentTime;
+	AI::Timestamp currentTime;
 	Player::Path path;
 	std::vector<Point> pathPoints;
 
@@ -48,10 +48,8 @@ void RRTPhysicsNavigator::tick() {
 		Player player = world.friendly_team().get(i);
 		currentTime = world.monotonic_time();
 		const double dist = (player.position() - player.destination().first).len();
-		struct timespec timeToAdd = double_to_timespec(dist / MAX_SPEED);
-		struct timespec finalTime;
+		AI::Timestamp finalTime = currentTime + std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(dist / MAX_SPEED));
 
-		timespec_add(currentTime, timeToAdd, finalTime);
 		pathPoints.clear();
 		pathPoints = planner.plan(player, player.destination().first);
 

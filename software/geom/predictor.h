@@ -14,6 +14,16 @@
 template<typename T> class Predictor {
 	public:
 		/**
+		 * \brief The type of a timestamp used to record control inputs, measurements, and estimations.
+		 */
+		typedef std::chrono::steady_clock::time_point Timestamp;
+
+		/**
+		 * \brief The type of the difference to two timestamps.
+		 */
+		typedef std::chrono::steady_clock::duration Timediff;
+
+		/**
 		 * \brief Constructs a new Predictor.
 		 *
 		 * \param[in] measure_std the expected standard deviation of the measurement noise.
@@ -22,7 +32,7 @@ template<typename T> class Predictor {
 		 *
 		 * \param[in] decay_time_constant rate of velocity decay.
 		 */
-		Predictor(T measure_std, T accel_std, double decay_time_constant);
+		Predictor(T measure_std, T accel_std, Timediff decay_time_constant);
 
 		/**
 		 * \brief Gets the predicted value some length of time into the future (or past).
@@ -42,14 +52,14 @@ template<typename T> class Predictor {
 		 *
 		 * \param[in] ts the timestamp.
 		 */
-		void lock_time(timespec ts);
+		void lock_time(Timestamp ts);
 
 		/**
 		 * \brief Returns the most recent locked timestamp.
 		 *
 		 * \return the lock timestamp.
 		 */
-		timespec lock_time() const;
+		Timestamp lock_time() const;
 
 		/**
 		 * \brief Pushes a new measurement into the prediction engine.
@@ -58,7 +68,7 @@ template<typename T> class Predictor {
 		 *
 		 * \param[in] ts the timestamp at which the value was sampled.
 		 */
-		void add_measurement(T value, timespec ts);
+		void add_measurement(T value, Timestamp ts);
 
 		/**
 		 * \brief Pushes a new control value into the prediction engine.
@@ -67,7 +77,7 @@ template<typename T> class Predictor {
 		 *
 		 * \param[in] ts the timestamp at which the control input will take effect.
 		 */
-		void add_control(T value, timespec ts);
+		void add_control(T value, Timestamp ts);
 
 		/**
 		 * \brief Clears the accumulated history of the predictor.
@@ -79,7 +89,7 @@ template<typename T> class Predictor {
 		void clear();
 
 	private:
-		timespec lock_timestamp;
+		Timestamp lock_timestamp;
 		Kalman filter;
 		std::pair<T, T> zero_value, zero_first_deriv;
 };
@@ -98,7 +108,7 @@ class Predictor2 {
 		 *
 		 * \param[in] decay_time_constant rate of velocity decay.
 		 */
-		Predictor2(double measure_std, double accel_std, double decay_time_constant);
+		Predictor2(double measure_std, double accel_std, Predictor<double>::Timediff decay_time_constant);
 
 		/**
 		 * \brief Gets the predicted value some length of time into the future (or past).
@@ -118,14 +128,14 @@ class Predictor2 {
 		 *
 		 * \param[in] ts the timestamp.
 		 */
-		void lock_time(timespec ts);
+		void lock_time(Predictor<double>::Timestamp ts);
 
 		/**
 		 * \brief Returns the most recent locked timestamp.
 		 *
 		 * \return the lock timestamp.
 		 */
-		timespec lock_time() const;
+		Predictor<double>::Timestamp lock_time() const;
 
 		/**
 		 * \brief Pushes a new measurement into the prediction engine.
@@ -134,7 +144,7 @@ class Predictor2 {
 		 *
 		 * \param[in] ts the timestamp at which the value was sampled.
 		 */
-		void add_measurement(Point value, timespec ts);
+		void add_measurement(Point value, Predictor<double>::Timestamp ts);
 
 		/**
 		 * \brief Pushes a new control input into the prediction engine.
@@ -143,7 +153,7 @@ class Predictor2 {
 		 *
 		 * \param[in] ts the timestamp at which the control input will take effect.
 		 */
-		void add_control(Point value, timespec ts);
+		void add_control(Point value, Predictor<double>::Timestamp ts);
 
 		/**
 		 * \brief Clears the accumulated history of the predictor.
@@ -178,7 +188,7 @@ class Predictor3 {
 		 *
 		 * \param[in] decay_time_constant_angular rate of angular velocity decay.
 		 */
-		Predictor3(double measure_std_linear, double accel_std_linear, double decay_time_constant_linear, Angle measure_std_angular, Angle accel_std_angular, double decay_time_constant_angular);
+		Predictor3(double measure_std_linear, double accel_std_linear, Predictor<double>::Timediff decay_time_constant_linear, Angle measure_std_angular, Angle accel_std_angular, Predictor<double>::Timediff decay_time_constant_angular);
 
 		/**
 		 * \brief Gets the predicted value some length of time into the future (or past).
@@ -198,14 +208,14 @@ class Predictor3 {
 		 *
 		 * \param[in] ts the timestamp.
 		 */
-		void lock_time(timespec ts);
+		void lock_time(Predictor<double>::Timestamp ts);
 
 		/**
 		 * \brief Returns the most recent locked timestamp.
 		 *
 		 * \return the lock timestamp.
 		 */
-		timespec lock_time() const;
+		Predictor<double>::Timestamp lock_time() const;
 
 		/**
 		 * \brief Pushes a new measurement into the prediction engine.
@@ -216,7 +226,7 @@ class Predictor3 {
 		 *
 		 * \param[in] ts the timestamp at which the value was sampled.
 		 */
-		void add_measurement(Point linear_value, Angle orientation, timespec ts);
+		void add_measurement(Point linear_value, Angle orientation, Predictor<double>::Timestamp ts);
 
 		/**
 		 * \brief Pushes a new control input into the prediction engine.
@@ -227,7 +237,7 @@ class Predictor3 {
 		 *
 		 * \param[in] ts the timestamp at which the control input will take effect.
 		 */
-		void add_control(Point linear_value, Angle angular_value, timespec ts);
+		void add_control(Point linear_value, Angle angular_value, Predictor<double>::Timestamp ts);
 
 		/**
 		 * \brief Clears the accumulated history of the predictor.

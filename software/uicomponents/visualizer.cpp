@@ -164,7 +164,7 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 					ctx->set_source_rgb(1.0, 0.0, 1.0);
 					ctx->begin_new_path();
 					ctx->move_to(bot->position().x, bot->position().y);
-					const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path = bot->path();
+					const std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> &path = bot->path();
 					for (auto j = path.begin(), jend = path.end(); j != jend; ++j) {
 						ctx->line_to(j->first.first.x, j->first.first.y);
 					}

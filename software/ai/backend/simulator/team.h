@@ -114,7 +114,7 @@ namespace AI {
 					 *
 					 * \param[in] ts the timestamp at which the ball was in this position.
 					 */
-					void pre_tick(const ::Simulator::Proto::S2APlayerInfo(&state)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM], unsigned int score, const timespec &ts) {
+					void pre_tick(const ::Simulator::Proto::S2APlayerInfo(&state)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM], unsigned int score, const AI::Timestamp &ts) {
 						// Record new score.
 						this->score = score;
 
@@ -216,7 +216,7 @@ namespace AI {
 					 *
 					 * \param[in] ts the timestamp at which the ball was in this position.
 					 */
-					void pre_tick(const ::Simulator::Proto::S2ARobotInfo(&state)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM], unsigned int score, const timespec &ts) {
+					void pre_tick(const ::Simulator::Proto::S2ARobotInfo(&state)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM], unsigned int score, const AI::Timestamp &ts) {
 						// Record new score.
 						this->score = score;
 

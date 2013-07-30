@@ -86,15 +86,15 @@ namespace AI {
 			void on_annunciator_message_deactivated(std::size_t i);
 			void on_annunciator_message_reactivated(std::size_t i);
 			void on_param_changed(const Param *p);
-			void on_vision_packet(timespec ts, const SSL_WrapperPacket &vision_packet);
-			void on_refbox_packet(timespec ts, const SSL_Referee &packet);
+			void on_vision_packet(AI::Timestamp ts, const SSL_WrapperPacket &vision_packet);
+			void on_refbox_packet(AI::Timestamp ts, const SSL_Referee &packet);
 			void on_field_changed();
 			void on_friendly_colour_changed();
 			void on_high_level_changed();
 			void on_robot_controller_factory_changed();
 			void on_score_changed();
 			void on_ai_notes_changed(const Glib::ustring &notes);
-			void on_tick(unsigned int compute_time);
+			void on_tick(AI::Timediff compute_time);
 
 			friend void ::ai_logger_signal_handler_thunk(int sig);
 	};

@@ -4,6 +4,7 @@
 #include "geom/angle.h"
 #include "geom/point.h"
 #include "util/box_ptr.h"
+#include "util/time.h"
 #include <gtkmm/drawingarea.h>
 
 namespace Visualizable {
@@ -244,7 +245,7 @@ namespace Visualizable {
 			 *
 			 * \return the path the robot should follow.
 			 */
-			virtual const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path() const = 0;
+			virtual const std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> &path() const = 0;
 
 			/**
 			 * \brief Returns the number of bar graphs the robot can display.

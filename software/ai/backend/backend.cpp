@@ -62,8 +62,7 @@ void Backend::mouse_moved(Point) {
 }
 
 Backend::Backend() : defending_end_(FieldEnd::WEST), friendly_colour_(AI::Common::Colour::YELLOW), playtype_(AI::Common::PlayType::HALT), playtype_override_(AI::Common::PlayType::NONE) {
-	monotonic_time_.tv_sec = 0;
-	monotonic_time_.tv_nsec = 0;
+	monotonic_time_ = monotonic_start_time_ = std::chrono::steady_clock::now();
 }
 
 void Backend::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {

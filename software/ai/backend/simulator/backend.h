@@ -2,6 +2,7 @@
 #define AI_BACKEND_SIMULATOR_H
 
 #include "ai/backend/backend.h"
+#include "ai/backend/clock/monotonic.h"
 #include "ai/backend/simulator/player.h"
 #include "ai/backend/simulator/team.h"
 #include "simulator/sockproto/proto.h"
@@ -163,6 +164,11 @@ namespace AI {
 					 * The UNIX-domain socket connected to the server.
 					 */
 					FileDescriptor sock;
+
+					/**
+					 * \brief The clock source.
+					 */
+					AI::BE::Clock::Monotonic clock;
 
 					/**
 					 * The friendly team.

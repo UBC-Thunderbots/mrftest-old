@@ -8,18 +8,18 @@ namespace {
 	DoubleParam BALL_DECAY_CONSTANT("Ball Decay Constant", "Backend", 99.0, 0.0, 100.0);
 }
 
-Ball::Ball() : should_highlight(false), pred(1.3e-3, 2, BALL_DECAY_CONSTANT) {
+Ball::Ball() : should_highlight(false), pred(1.3e-3, 2, std::chrono::duration_cast<Predictor<double>::Timediff>(std::chrono::duration<double>(BALL_DECAY_CONSTANT))) {
 }
 
-void Ball::add_field_data(Point pos, timespec ts) {
-	pred.add_measurement(pos, timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
+void Ball::add_field_data(Point pos, AI::Timestamp ts) {
+	pred.add_measurement(pos, ts + std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(LOOP_DELAY)));
 }
 
-void Ball::lock_time(timespec now) {
+void Ball::lock_time(AI::Timestamp now) {
 	pred.lock_time(now);
 }
 
-timespec Ball::lock_time() const {
+AI::Timestamp Ball::lock_time() const {
 	return pred.lock_time();
 }
 

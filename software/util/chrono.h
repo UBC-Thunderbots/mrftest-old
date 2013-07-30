@@ -8,7 +8,7 @@
 #if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 7)
 namespace std {
 	namespace chrono {
-		typedef std::chrono::monotonic_clock steady_clock;
+		typedef std::chrono::steady_clock steady_clock;
 	}
 }
 #endif

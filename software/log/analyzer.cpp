@@ -8,7 +8,6 @@
 #include "util/codec.h"
 #include "util/noncopyable.h"
 #include "util/string.h"
-#include "util/time.h"
 #include <cassert>
 #include <cstdlib>
 #include <ctime>
@@ -90,17 +89,37 @@ namespace {
 	};
 
 	/**
-	 * \brief Converts a Log::MonotonicTimeSpec to an actual timespec structure.
+	 * \brief Converts a Log::MonotonicTimeSpec to a printable form suitable for human consumption.
 	 *
-	 * \param[in] ts the time to convert.
+	 * \param[in] ts the time to convert
 	 *
-	 * \return the converted time.
+	 * \return the printable form
 	 */
-	timespec timespec_of_log(const Log::MonotonicTimeSpec &ts) {
-		timespec res;
-		res.tv_sec = ts.seconds();
-		res.tv_nsec = ts.nanoseconds();
-		return res;
+	Glib::ustring timespec_to_string(const Log::MonotonicTimeSpec &ts) {
+		if (ts.seconds() >= 0) {
+			return Glib::ustring::compose("%1.%2", ts.seconds(), todecu(static_cast<unsigned long>(ts.nanoseconds()), 9));
+		} else if (ts.nanoseconds() == 0) {
+			return Glib::ustring::compose("-%1.000000000", -ts.seconds());
+		} else {
+			return Glib::ustring::compose("-%1.%2", -(ts.seconds() + 1), todecu(1000000000UL - static_cast<unsigned long>(ts.nanoseconds()), 9));
+		}
+	}
+
+	/**
+	 * \brief Converts a Log::MonotonicTimeSpec to a printable form suitable for inclusion in a TSV.
+	 *
+	 * \param[in] ts the time to convert
+	 *
+	 * \return the printable form
+	 */
+	Glib::ustring timespec_to_string_machine(const Log::MonotonicTimeSpec &ts) {
+		if (ts.seconds() >= 0) {
+			return Glib::ustring::compose("%1.%2", todecu(static_cast<uintmax_t>(ts.seconds()), 0), todecu(static_cast<unsigned long>(ts.nanoseconds()), 9));
+		} else if (ts.nanoseconds() == 0) {
+			return Glib::ustring::compose("-%1.000000000", todecu(static_cast<uintmax_t>(-ts.seconds()), 0));
+		} else {
+			return Glib::ustring::compose("-%1.%2", todecu(static_cast<uintmax_t>(-(ts.seconds() + 1)), 0), todecu(1000000000UL - static_cast<unsigned long>(ts.nanoseconds()), 9));
+		}
 	}
 
 	void tsv_writer_ball(std::ostream &os, const std::vector<Log::Record> &records, Gtk::Window &) {
@@ -110,7 +129,7 @@ namespace {
 				const Log::Tick &tick = record.tick();
 				const Log::Tick::Ball &ball = tick.ball();
 				os << "Tick";
-				os << '\t' << timespec_to_string_machine(timespec_of_log(tick.start_time()));
+				os << '\t' << timespec_to_string_machine(tick.start_time());
 				os << '\t' << (ball.position().x() / 1000000.0);
 				os << '\t' << (ball.position().y() / 1000000.0);
 				os << '\t' << (ball.velocity().x() / 1000000.0);
@@ -124,7 +143,7 @@ namespace {
 					for (int j = 0; j < frame.balls_size(); ++j) {
 						const SSL_DetectionBall &ball = frame.balls(j);
 						os << "Vision";
-						os << '\t' << timespec_to_string_machine(timespec_of_log(vision.timestamp()));
+						os << '\t' << timespec_to_string_machine(vision.timestamp());
 						os << '\t' << (ball.x() / 1000.0);
 						os << '\t' << (ball.y() / 1000.0);
 						os << "\tX";
@@ -169,7 +188,7 @@ namespace {
 					const Log::Tick::FriendlyRobot &bot = tick.friendly_robots(j);
 					if (bot.pattern() == pattern) {
 						os << "Tick";
-						os << '\t' << timespec_to_string_machine(timespec_of_log(tick.start_time()));
+						os << '\t' << timespec_to_string_machine(tick.start_time());
 						os << '\t' << (bot.position().x() / 1000000.0);
 						os << '\t' << (bot.position().y() / 1000000.0);
 						os << '\t' << (bot.position().t() / 1000000.0);
@@ -200,7 +219,7 @@ namespace {
 						const SSL_DetectionRobot &bot = (frame.*fp)(j);
 						if (bot.has_robot_id() && bot.has_orientation() && bot.robot_id() == pattern) {
 							os << "Vision";
-							os << '\t' << timespec_to_string_machine(timespec_of_log(vision.timestamp()));
+							os << '\t' << timespec_to_string_machine(vision.timestamp());
 							os << '\t' << (bot.x() / 1000.0);
 							os << '\t' << (bot.y() / 1000.0);
 							os << '\t' << (bot.orientation() / 1000.0);
@@ -222,11 +241,11 @@ namespace {
 		for (auto i = records.begin(), iend = records.end(); i != iend; ++i) {
 			const Log::Record &record = *i;
 			if (record.has_tick()) {
-				os << "Tick\t" << timespec_to_string_machine(timespec_of_log(record.tick().start_time())) << '\n';
+				os << "Tick\t" << timespec_to_string_machine(record.tick().start_time()) << '\n';
 			} else if (record.has_vision()) {
-				os << "Vision\t" << timespec_to_string_machine(timespec_of_log(record.vision().timestamp())) << '\n';
+				os << "Vision\t" << timespec_to_string_machine(record.vision().timestamp()) << '\n';
 			} else if (record.has_refbox()) {
-				os << "Refbox\t" << timespec_to_string_machine(timespec_of_log(record.refbox().timestamp())) << '\n';
+				os << "Refbox\t" << timespec_to_string_machine(record.refbox().timestamp()) << '\n';
 			}
 		}
 	}
@@ -627,10 +646,7 @@ namespace {
 	void build_decoded_tree_nontoplevel(const google::protobuf::Message &message, Glib::RefPtr<Gtk::TreeStore> ts, PacketDecodedTreeColumns &cols, Gtk::TreeRow parent) {
 		if (dynamic_cast<const Log::MonotonicTimeSpec *>(&message)) {
 			const Log::MonotonicTimeSpec &mts = dynamic_cast<const Log::MonotonicTimeSpec &>(message);
-			timespec ts;
-			ts.tv_sec = mts.seconds();
-			ts.tv_nsec = mts.nanoseconds();
-			parent[cols.value] = timespec_to_string(ts);
+			parent[cols.value] = timespec_to_string(mts);
 			return;
 		} else if (dynamic_cast<const Log::Vector2 *>(&message)) {
 			const Log::Vector2 &v = dynamic_cast<const Log::Vector2 &>(message);

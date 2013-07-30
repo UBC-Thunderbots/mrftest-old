@@ -4,7 +4,6 @@
 #include "ai/navigator/world.h"
 #include "geom/point.h"
 #include "geom/util.h"
-#include "util/time.h"
 #include <utility>
 #include <vector>
 #include <cairomm/context.h>
@@ -21,7 +20,7 @@ namespace AI {
 			/**
 			 * Finds where to go and when to get there in order to intercept the moving ball along the route to dst
 			 */
-			std::pair<Point, timespec> get_ramball_location(Point dst, AI::Nav::W::World world, AI::Nav::W::Player player);
+			std::pair<Point, AI::Timestamp> get_ramball_location(Point dst, AI::Nav::W::World world, AI::Nav::W::Player player);
 
 			// bool has_ramball_location(Point dst, AI::Nav::W::World world, AI::Nav::W::Player player);
 
@@ -88,7 +87,7 @@ namespace AI {
 			 *
 			 * \param[in] target_velocity the desired velocity we want when we get there
 			 */
-			timespec get_next_ts(timespec now, Point &p1, Point &p2, Point target_velocity);
+			AI::Timestamp get_next_ts(AI::Timestamp now, Point &p1, Point &p2, Point target_velocity);
 
 			/**
 			 * handle the cases where ball is not moving or, moving towards target slowly (when robot push the ball away)

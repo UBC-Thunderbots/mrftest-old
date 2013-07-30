@@ -58,7 +58,7 @@ namespace {
 			EnemyTeam enemy;
 			FileDescriptor grsim_socket;
 
-			void send_packet(unsigned int);
+			void send_packet(AI::Timediff);
 	};
 }
 
@@ -137,7 +137,7 @@ const EnemyTeam &Backend::enemy_team() const {
 	return enemy;
 }
 
-void Backend::send_packet(unsigned int) {
+void Backend::send_packet(AI::Timediff) {
 	grSim_Packet packet;
 	grSim_Commands *commands = packet.mutable_commands();
 	commands->set_timestamp(0.0);

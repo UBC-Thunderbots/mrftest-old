@@ -24,7 +24,7 @@ SimpleNavigator::SimpleNavigator(World world) : Navigator(world) {
 
 void SimpleNavigator::tick() {
 	FriendlyTeam fteam = world.friendly_team();
-	timespec ts;
+	AI::Timestamp ts;
 
 	Player player;
 	Player::Path path;

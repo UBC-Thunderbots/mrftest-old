@@ -149,7 +149,7 @@ void RRTNavigator::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 }
 
 void RRTNavigator::tick() {
-	timespec working_time;
+	AI::Timestamp working_time;
 	Player::Path path;
 	std::vector<Point> path_points;
 
@@ -173,18 +173,18 @@ void RRTNavigator::tick() {
 			continue;
 		} else if (player.type() == AI::Flags::MoveType::RAM_BALL) {
 			Point cur_position = player.position(), dest_position = player.destination().first;
-			timespec ts = get_next_ts(world.monotonic_time(), cur_position, dest_position, player.target_velocity());
+			AI::Timestamp ts = get_next_ts(world.monotonic_time(), cur_position, dest_position, player.target_velocity());
 			path.push_back(std::make_pair(std::make_pair(dest_position, dest_orientation), ts));
 			player.path(path);
 			continue;
 		} else if (valid_path(player.position(), player.destination().first, world, player)) {
 			// if we're not trying to catch the ball and there are no obstacles in our way then go
 			// to the exact location, skipping all of the tree creation
-			timespec ts = world.monotonic_time();
+			AI::Timestamp ts = world.monotonic_time();
 			if (player.flags() & AI::Flags::FLAG_CAREFUL) {
 				Point delta = player.destination().first - player.position();
 				double distance = delta.len();
-				timespec_add(ts, double_to_timespec(distance / careful_max_speed), ts);
+				ts += std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(distance / careful_max_speed));
 			}
 			path.push_back(std::make_pair(player.destination(), ts));
 			player.path(path);
@@ -215,10 +215,9 @@ void RRTNavigator::tick() {
 
 			// dribble at a different speed
 			if (player.type() == AI::Flags::MoveType::DRIBBLE) {
-				timespec time_to_add = double_to_timespec(dist / player.MAX_LINEAR_VELOCITY / DRIBBLE_SPEED);
-				timespec_add(working_time, time_to_add, working_time);
+				working_time += std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(dist / player.MAX_LINEAR_VELOCITY / DRIBBLE_SPEED));
 			} else if (player.flags() & AI::Flags::FLAG_CAREFUL) {
-				timespec_add(working_time, double_to_timespec(dist / careful_max_speed), working_time);
+				working_time += std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(dist / careful_max_speed));
 			}
 
 			path.push_back(std::make_pair(std::make_pair(path_points[j], dest_orientation), working_time));

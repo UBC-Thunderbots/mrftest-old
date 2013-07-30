@@ -6,7 +6,7 @@
 #include "simulator/engines/engine.h"
 #include "util/fd.h"
 #include "util/noncopyable.h"
-#include "util/time.h"
+#include <chrono>
 #include <cstddef>
 #include <memory>
 #include <vector>
@@ -73,12 +73,12 @@ namespace Simulator {
 			/**
 			 * \brief The time of the next tick in physical monotonic time.
 			 */
-			timespec next_tick_phys_monotonic_time;
+			std::chrono::steady_clock::time_point next_tick_phys_monotonic_time;
 
 			/**
 			 * \brief The time of the last status line update in physical monotonic time.
 			 */
-			timespec last_fps_report_time;
+			std::chrono::steady_clock::time_point last_fps_report_time;
 
 			/**
 			 * \brief Whether a call to tick() has been scheduled on a timer but not yet executed.

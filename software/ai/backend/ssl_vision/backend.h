@@ -10,7 +10,7 @@
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "util/dprint.h"
 #include "util/param.h"
-#include "util/time.h"
+#include <chrono>
 #include <cmath>
 #include <tuple>
 #include <utility>
@@ -63,9 +63,9 @@ namespace AI {
 					AI::BE::RefBox refbox;
 					AI::BE::Clock::Monotonic clock;
 					AI::BE::SSLVision::VisionSocket vision_rx;
-					timespec playtype_time;
+					AI::Timestamp playtype_time;
 					Point playtype_arm_ball_position;
-					std::vector<std::pair<SSL_DetectionFrame, timespec>> detections;
+					std::vector<std::pair<SSL_DetectionFrame, AI::Timestamp>> detections;
 
 					void tick();
 					void handle_vision_packet(const SSL_WrapperPacket &packet);
@@ -93,7 +93,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::SSLVision::Ba
 
 	vision_rx.signal_vision_data.connect(sigc::mem_fun(this, &Backend::handle_vision_packet));
 
-	playtype_time = clock.now();
+	playtype_time = std::chrono::steady_clock::now();
 }
 
 template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::tick() {
@@ -103,7 +103,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 	}
 
 	// Do pre-AI stuff (locking predictors).
-	monotonic_time_ = clock.now();
+	monotonic_time_ = std::chrono::steady_clock::now();
 	ball_.lock_time(monotonic_time_);
 	friendly_team().lock_time(monotonic_time_);
 	enemy_team().lock_time(monotonic_time_);
@@ -124,15 +124,15 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 	}
 
 	// Notify anyone interested in the finish of a tick.
-	timespec after;
-	after = clock.now();
-	signal_post_tick().emit(timespec_to_nanos(timespec_sub(after, monotonic_time_)));
+	AI::Timestamp after;
+	after = std::chrono::steady_clock::now();
+	signal_post_tick().emit(after - monotonic_time_);
 }
 
 template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::handle_vision_packet(const SSL_WrapperPacket &packet) {
 	// Pass it to any attached listeners.
-	timespec now;
-	now = clock.now();
+	AI::Timestamp now;
+	now = std::chrono::steady_clock::now();
 	signal_vision().emit(now, packet);
 
 	// If it contains geometry data, update the field shape.
@@ -164,7 +164,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 			detections.resize(det.camera_id() + 1);
 		}
 		detections[det.camera_id()].first.CopyFrom(det);
-		detections[det.camera_id()].second = clock.now();
+		detections[det.camera_id()].second = now;
 
 		// Update the ball.
 		{
@@ -172,10 +172,10 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 			bool found = false;
 			double best_prob = 0.0;
 			Point best_pos;
-			timespec best_time;
+			AI::Timestamp best_time;
 			for (auto &i : detections) {
 				// Estimate the ball’s position at the camera frame’s timestamp.
-				double time_delta = timespec_to_double(timespec_sub(i.second, ball_.lock_time()));
+				double time_delta = std::chrono::duration_cast<std::chrono::duration<double>>(i.second - ball_.lock_time()).count();
 				Point estimated_position = ball_.position(time_delta);
 				Point estimated_stdev = ball_.position_stdev(time_delta);
 				for (int j = 0; j < i.first.balls_size(); ++j) {
@@ -227,7 +227,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 		// Update the robots.
 		std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> yellow_packets(detections.size());
 		std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> blue_packets(detections.size());
-		std::vector<timespec> packet_timestamps;
+		std::vector<AI::Timestamp> packet_timestamps;
 		for (std::size_t i = 0; i < detections.size(); i++) {
 			yellow_packets[i] = &detections[i].first.robots_yellow();
 			blue_packets[i] = &detections[i].first.robots_blue();
@@ -253,8 +253,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 	update_goalies();
 	update_scores();
 	update_playtype();
-	timespec now;
-	now = clock.now();
+	AI::Timestamp now;
+	now = std::chrono::steady_clock::now();
 	signal_refbox().emit(now, refbox.packet);
 }
 
@@ -274,7 +274,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 	}
 	if (new_pt != playtype()) {
 		playtype_rw() = new_pt;
-		playtype_time = clock.now();
+		playtype_time = std::chrono::steady_clock::now();
 	}
 }
 

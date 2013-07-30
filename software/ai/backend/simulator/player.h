@@ -37,7 +37,7 @@ namespace AI {
 					 *
 					 * \param[in] ts the timestamp at which the robot was in this position
 					 */
-					void pre_tick(const ::Simulator::Proto::S2APlayerInfo &state, const timespec &ts);
+					void pre_tick(const ::Simulator::Proto::S2APlayerInfo &state, const AI::Timestamp &ts);
 
 					/**
 					 * \brief Encodes the robot's current orders into a packet for transmission to the simulator

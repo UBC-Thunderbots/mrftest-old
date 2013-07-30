@@ -8,6 +8,7 @@
 #include "ai/common/playtype.h"
 #include "ai/common/predictable.h"
 #include "ai/common/robot.h"
+#include "ai/common/time.h"
 
 #endif
 

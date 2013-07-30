@@ -37,7 +37,7 @@ PROJECT_LDFLAGS := -pthread -Wl,--as-needed -Wl,-O1 -g
 #
 # The library flags to pass to the linker after all object files.
 #
-PROJECT_LIBS := -lbz2 -lrt
+PROJECT_LIBS := -lbz2
 
 #
 # The flags to pass to the C++ compiler.

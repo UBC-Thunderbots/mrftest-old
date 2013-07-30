@@ -3,6 +3,7 @@
 
 #include "ai/flags.h"
 #include "ai/backend/robot.h"
+#include "ai/common/time.h"
 #include "geom/angle.h"
 #include "geom/point.h"
 #include "util/box_ptr.h"
@@ -39,12 +40,12 @@ namespace AI {
 				virtual void dribble_slow() = 0;
 				Point target_velocity() const;
 				bool has_path() const;
-				const std::vector<std::pair<std::pair<Point, Angle>, timespec>> &path() const;
-				void path(const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &p);
+				const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &path() const;
+				void path(const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &p);
 				void drive(const int (&w)[4]);
 				const int(&wheel_speeds() const)[4];
 				void pre_tick();
-				void update_predictor(timespec ts);
+				void update_predictor(AI::Timestamp ts);
 
 				Visualizable::Colour visualizer_colour() const;
 				bool highlight() const;
@@ -71,7 +72,7 @@ namespace AI {
 				unsigned int flags_;
 				AI::Flags::MoveType move_type_;
 				AI::Flags::MovePrio move_prio_;
-				std::vector<std::pair<std::pair<Point, Angle>, timespec>> path_;
+				std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> path_;
 		};
 	}
 }

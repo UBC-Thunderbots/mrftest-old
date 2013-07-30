@@ -2,6 +2,7 @@
 #define AI_BACKEND_ROBOT_H
 
 #include "ai/flags.h"
+#include "ai/common/time.h"
 #include "geom/angle.h"
 #include "geom/predictor.h"
 #include "geom/point.h"
@@ -33,7 +34,7 @@ namespace AI {
 				 *
 				 * \param[in] ts the time at which the robot was in the given position
 				 */
-				void add_field_data(Point pos, Angle ori, timespec ts);
+				void add_field_data(Point pos, Angle ori, AI::Timestamp ts);
 
 				ObjectStore &object_store() const;
 				unsigned int pattern() const;
@@ -48,11 +49,11 @@ namespace AI {
 				bool has_destination() const;
 				std::pair<Point, Angle> destination() const;
 				bool has_path() const;
-				const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path() const;
+				const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &path() const;
 				void avoid_distance(AI::Flags::AvoidDistance dist) const;
 				AI::Flags::AvoidDistance avoid_distance() const;
 				void pre_tick();
-				void lock_time(timespec now);
+				void lock_time(AI::Timestamp now);
 
 				Visualizable::Colour visualizer_colour() const;
 				Glib::ustring visualizer_label() const;

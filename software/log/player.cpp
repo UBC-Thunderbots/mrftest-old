@@ -7,7 +7,7 @@
 #include "util/box.h"
 #include "util/noncopyable.h"
 #include "util/string.h"
-#include "util/time.h"
+#include <chrono>
 #include <array>
 #include <cstdlib>
 #include <iterator>
@@ -29,11 +29,10 @@
 #include <sigc++/functors/mem_fun.h>
 
 namespace {
-	timespec timespec_of_log(const Log::MonotonicTimeSpec &ts) {
-		timespec ret;
-		ret.tv_sec = ts.seconds();
-		ret.tv_nsec = ts.nanoseconds();
-		return ret;
+	std::chrono::steady_clock::time_point make_monotonic_time(const Log::MonotonicTimeSpec &target, const Log::MonotonicTimeSpec &reference) {
+		std::chrono::duration<intmax_t, std::nano> target_nanos(static_cast<intmax_t>(target.seconds()) * 1000000000 + target.nanoseconds());
+		std::chrono::duration<intmax_t, std::nano> reference_nanos(static_cast<intmax_t>(reference.seconds()) * 1000000000 + target.nanoseconds());
+		return std::chrono::steady_clock::time_point(std::chrono::duration_cast<std::chrono::steady_clock::duration>(target_nanos - reference_nanos));
 	}
 
 	double decode_micros(int32_t x) {
@@ -189,7 +188,7 @@ namespace {
 				return false;
 			}
 
-			const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path() const {
+			const std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> &path() const {
 				std::abort();
 			}
 
@@ -215,7 +214,7 @@ namespace {
 		public:
 			typedef BoxPtr<Player> Ptr;
 
-			void update(const Log::Tick::FriendlyRobot &bot) {
+			void update(const Log::MonotonicTimeSpec &reference_time, const Log::Tick::FriendlyRobot &bot) {
 				Robot::update(bot.pattern(), bot.position(), bot.velocity());
 				destination_.first.x = decode_micros(bot.target().x());
 				destination_.first.y = decode_micros(bot.target().y());
@@ -225,8 +224,7 @@ namespace {
 					double x = decode_micros(i->point().x());
 					double y = decode_micros(i->point().y());
 					Angle t = Angle::of_radians(decode_micros(i->point().t()));
-					timespec ts = timespec_of_log(i->timestamp());
-					path_.push_back(std::make_pair(std::make_pair(Point(x, y), t), ts));
+					path_.push_back(std::make_pair(std::make_pair(Point(x, y), t), make_monotonic_time(i->timestamp(), reference_time)));
 				}
 			}
 
@@ -246,13 +244,13 @@ namespace {
 				return true;
 			}
 
-			const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path() const {
+			const std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> &path() const {
 				return path_;
 			}
 
 		private:
 			std::pair<Point, Angle> destination_;
-			std::vector<std::pair<std::pair<Point, Angle>, timespec> > path_;
+			std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> path_;
 	};
 }
 
@@ -283,7 +281,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			if (tick_records.empty()) {
 				throw std::runtime_error("No ticks in this log.");
 			}
-			game_start_monotonic = timespec_of_log(tick_records[0]->tick().start_time());
+			game_start_monotonic = tick_records[0]->tick().start_time();
 
 			ball_filter_value.set_width_chars(25);
 
@@ -445,7 +443,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 		std::vector<std::vector<Log::Record>::const_iterator> scores_records_by_tick;
 		std::vector<std::vector<Log::Record>::const_iterator> ai_notes_records_by_tick;
 		unsigned int ticks_per_second;
-		timespec game_start_monotonic;
+		Log::MonotonicTimeSpec game_start_monotonic;
 		Field field_;
 		Ball ball_;
 		std::array< ::Box<Player>, 16> players_;
@@ -581,11 +579,12 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			auto ai_notes_iter = ai_notes_records_by_tick[position];
 			const Glib::ustring &ai_notes = ai_notes_iter != records.end() ? ai_notes_iter->ai_notes() : u8"";
 
-			timespec ts = timespec_sub(timespec_of_log(tick.start_time()), game_start_monotonic);
-			unsigned int milliseconds = static_cast<unsigned int>(ts.tv_nsec / 1000000);
-			unsigned int seconds = static_cast<unsigned int>(ts.tv_sec % 60);
-			unsigned int minutes = static_cast<unsigned int>((ts.tv_sec / 60) % 60);
-			unsigned int hours = static_cast<unsigned int>(ts.tv_sec / 3600);
+			std::chrono::steady_clock::time_point tick_time = make_monotonic_time(tick.start_time(), game_start_monotonic);
+			std::chrono::duration<intmax_t, std::nano> nanos_from_game_start = std::chrono::duration_cast<std::chrono::duration<intmax_t, std::nano>>(tick_time.time_since_epoch());
+			unsigned int milliseconds = static_cast<unsigned int>(nanos_from_game_start.count() / 1000000);
+			unsigned int seconds = static_cast<unsigned int>((nanos_from_game_start.count() / 1000000000) % 60);
+			unsigned int minutes = static_cast<unsigned int>(((nanos_from_game_start.count() / 1000000000) / 60) % 60);
+			unsigned int hours = static_cast<unsigned int>((nanos_from_game_start.count() / 1000000000) / 3600);
 			timestamp_label.set_text(Glib::ustring::compose("%1:%2:%3.%4", todecu(hours, 2), todecu(minutes, 2), todecu(seconds, 2), todecu(milliseconds, 3)));
 
 			packet_label.set_text(Glib::ustring::format(std::distance(static_cast<const std::vector<Log::Record> &>(records).begin(), tick_records[position])));
@@ -602,7 +601,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 					if (!players_[bot.pattern()]) {
 						players_[bot.pattern()].create();
 					}
-					players_[bot.pattern()].value().update(bot);
+					players_[bot.pattern()].value().update(game_start_monotonic, bot);
 					seen[bot.pattern()] = true;
 				}
 				for (std::size_t i = 0; i < G_N_ELEMENTS(seen); ++i) {

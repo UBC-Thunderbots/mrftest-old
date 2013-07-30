@@ -575,7 +575,7 @@ std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World worl
 	return ans;
 }
 
-std::pair<Point, timespec> AI::Nav::Util::get_ramball_location(Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
+std::pair<Point, AI::Timestamp> AI::Nav::Util::get_ramball_location(Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
 	Point ball_dir = world.ball().velocity();
 
 	if (ball_dir.lensq() < EPS) {
@@ -586,8 +586,8 @@ std::pair<Point, timespec> AI::Nav::Util::get_ramball_location(Point dst, AI::Na
 
 	if (unique_line_intersect(player.position(), dst, world.ball().position(), world.ball().position() + ball_dir)) {
 		Point location = line_intersect(player.position(), dst, world.ball().position(), world.ball().position() + ball_dir);
-		timespec intersect = world.monotonic_time();
-		timespec_add(intersect, double_to_timespec((location - world.ball().position()).len() / world.ball().velocity().len()), intersect);
+		AI::Timestamp intersect = world.monotonic_time();
+		intersect += std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>((location - world.ball().position()).len() / world.ball().velocity().len()));
 
 		Point vec1 = location - player.position();
 		Point vec2 = dst - player.position();
@@ -603,11 +603,12 @@ std::pair<Point, timespec> AI::Nav::Util::get_ramball_location(Point dst, AI::Na
 	return std::make_pair(player.position(), world.monotonic_time());
 }
 
-timespec AI::Nav::Util::get_next_ts(timespec now, Point &p1, Point &p2, Point target_velocity) {
+AI::Timestamp AI::Nav::Util::get_next_ts(AI::Timestamp now, Point &p1, Point &p2, Point target_velocity) {
 	double velocity, distance;
 	velocity = target_velocity.len();
 	distance = (p1 - p2).len();
-	return timespec_add(now, double_to_timespec(velocity * distance));
+#warning unit cancellation says this is not time, should be distance divided by velocity!
+	return now + std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(velocity * distance));
 }
 
 double AI::Nav::Util::estimate_action_duration(std::vector<std::pair<Point, Angle> > path_points) {
@@ -655,7 +656,7 @@ bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World wor
 	step_points.push_back(ball_pos);
 
 	AI::Nav::W::Player::Path path;
-	timespec working_time = world.monotonic_time();
+	AI::Timestamp working_time = world.monotonic_time();
 
 	for(std::size_t i = 0; i < step_points.size(); i++){
 		path.push_back(std::make_pair(std::make_pair(step_points[i], target_orient), working_time));
@@ -742,7 +743,7 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 		if (AI::Nav::Util::estimate_action_duration(path_points_with_angle) < (interval_time * i) || (i == points_to_check) || ball.velocity().len() < CATCH_BALL_VELOCITY_THRESH) {
 			// prepare for assigning the path to the robot
 			AI::Nav::W::Player::Path path;
-			timespec working_time = world.monotonic_time();
+			AI::Timestamp working_time = world.monotonic_time();
 
 			// if we're within a certain threshold then skip this and just move towards the ball's future position
 			if (line_pt_dist(move_to_point, ball_future_pos, player.position()) > CATCH_BALL_THRESHOLD) {

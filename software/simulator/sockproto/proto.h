@@ -1,8 +1,6 @@
 #ifndef SIMULATOR_SOCKPROTO_PROTO_H
 #define SIMULATOR_SOCKPROTO_PROTO_H
 
-#include "util/time.h"
-
 /**
  * The filename of the socket, in the user's cache directory.
  */

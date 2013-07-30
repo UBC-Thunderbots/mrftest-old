@@ -61,10 +61,6 @@ namespace {
 }
 
 Simulator::Simulator::Simulator(SimulatorEngine &engine) : engine(engine), listen_socket(create_listen_socket()), team1(*this, &team2, false), team2(*this, &team1, true), tick_scheduled(false), frame_count(0), spinner_index(0) {
-	next_tick_phys_monotonic_time.tv_sec = 0;
-	next_tick_phys_monotonic_time.tv_nsec = 0;
-	last_fps_report_time.tv_sec = 0;
-	last_fps_report_time.tv_nsec = 0;
 	team1.signal_ready().connect(sigc::mem_fun(this, &Simulator::Simulator::check_tick));
 	team2.signal_ready().connect(sigc::mem_fun(this, &Simulator::Simulator::check_tick));
 	Glib::signal_io().connect(sigc::mem_fun(this, &Simulator::Simulator::on_ai_connecting), listen_socket.fd(), Glib::IO_IN);
@@ -154,18 +150,14 @@ void Simulator::Simulator::check_tick() {
 	}
 
 	// We first determine whether we've passed the deadline.
-	timespec now;
-	if (clock_gettime(CLOCK_MONOTONIC, &now) < 0) {
-		throw SystemError(u8"clock_gettime(CLOCK_MONOTONIC)", errno);
-	}
-	if (timespec_cmp(now, next_tick_phys_monotonic_time) >= 0) {
+	std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+	if (now >= next_tick_phys_monotonic_time) {
 		// It's time to tick.
 		tick();
 	} else {
 		// Wait a bit before ticking.
-		timespec diff;
-		timespec_sub(next_tick_phys_monotonic_time, now, diff);
-		Glib::signal_timeout().connect_once(sigc::mem_fun(this, &Simulator::Simulator::tick), timespec_to_millis(diff));
+		std::chrono::steady_clock::duration wait_time = next_tick_phys_monotonic_time - now;
+		Glib::signal_timeout().connect_once(sigc::mem_fun(this, &Simulator::Simulator::tick), std::chrono::duration_cast<std::chrono::duration<unsigned int, std::milli>>(wait_time).count());
 		tick_scheduled = true;
 	}
 }
@@ -199,35 +191,26 @@ void Simulator::Simulator::tick() {
 	team2.send_tick();
 
 	// Update the game monotonic time by exactly the size of a timestep.
-	timespec step;
-	step.tv_sec = 1 / TIMESTEPS_PER_SECOND;
-	step.tv_nsec = 1000000000L / TIMESTEPS_PER_SECOND - 1 / TIMESTEPS_PER_SECOND * 1000000000L;
+	std::chrono::steady_clock::duration step = std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<unsigned long, std::nano>(1000000000UL / TIMESTEPS_PER_SECOND));
 
 	// Update the physical monotonic tick deadline to be as close as possible to one timestep forward from the previous tick.
 	// However, clamp it to lie between the curren time and one timestep in the future.
 	// The min-clamp prevents overloads from accumulating tick backlogs.
 	// The max-clamp prevents fast-mode from pushing the deadline way into the future.
-	timespec now;
-	if (clock_gettime(CLOCK_MONOTONIC, &now) < 0) {
-		throw SystemError(u8"clock_gettime(CLOCK_MONOTONIC)", errno);
-	}
-	timespec_add(next_tick_phys_monotonic_time, step, next_tick_phys_monotonic_time);
-	if (timespec_cmp(next_tick_phys_monotonic_time, now) < 0) {
+	std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+	next_tick_phys_monotonic_time += step;
+	if (next_tick_phys_monotonic_time < now) {
 		next_tick_phys_monotonic_time = now;
 	}
-	timespec now_plus_step;
-	timespec_add(now, step, now_plus_step);
-	if (timespec_cmp(next_tick_phys_monotonic_time, now_plus_step) > 0) {
-		next_tick_phys_monotonic_time = now_plus_step;
+	if (next_tick_phys_monotonic_time > now + step) {
+		next_tick_phys_monotonic_time = now + step;
 	}
 
 	// Display status line if half a second has passed since last report.
 	++frame_count;
-	timespec diff;
-	timespec_sub(now, last_fps_report_time, diff);
-	if (timespec_to_millis(diff) >= 500) {
+	if (std::chrono::duration_cast<std::chrono::duration<unsigned int, std::milli>>(now - last_fps_report_time).count() >= 500) {
 		static const char SPINNER_CHARACTERS[] = "-\\|/";
-		unsigned fps = (frame_count * 1000 + 500) / timespec_to_millis(diff);
+		unsigned fps = (frame_count * 1000 + 500) / std::chrono::duration_cast<std::chrono::duration<unsigned int, std::milli>>(now - last_fps_report_time).count();
 		frame_count = 0;
 		last_fps_report_time = now;
 		std::cout << SPINNER_CHARACTERS[spinner_index++] << " [" << (team1.has_connection() ? '+' : ' ') << (team2.has_connection() ? '+' : ' ') << "] " << fps << "fps   \r";

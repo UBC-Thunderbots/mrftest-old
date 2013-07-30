@@ -6,7 +6,6 @@
 #include "util/dprint.h"
 #include "util/exception.h"
 #include "util/param.h"
-#include "util/time.h"
 #include "util/timestep.h"
 #include <cerrno>
 #include <chrono>
@@ -15,6 +14,7 @@
 #include <fcntl.h>
 #include <limits>
 #include <locale>
+#include <ratio>
 #include <sstream>
 #include <stdint.h>
 #include <glibmm/convert.h>
@@ -56,9 +56,11 @@ namespace {
 		return static_cast<uint32_t>(encode_micros(in));
 	}
 
-	void timespec_to_log(const timespec &src, Log::MonotonicTimeSpec &dest) {
-		dest.set_seconds(static_cast<int64_t>(src.tv_sec));
-		dest.set_nanoseconds(static_cast<int32_t>(src.tv_nsec));
+	void timestamp_to_log(const AI::Timestamp &src, const AI::Timestamp &ref, Log::MonotonicTimeSpec &dest) {
+		AI::Timediff diff = src - ref;
+		intmax_t nanos = std::chrono::duration_cast<std::chrono::duration<intmax_t, std::nano>>(diff).count();
+		dest.set_seconds(static_cast<int64_t>(nanos / 1000000000));
+		dest.set_nanoseconds(static_cast<int32_t>(nanos % 1000000000));
 	}
 
 	AI::Logger *instance = 0;
@@ -256,16 +258,16 @@ void AI::Logger::on_param_changed(const Param *p) {
 	write_record(record);
 }
 
-void AI::Logger::on_vision_packet(timespec ts, const SSL_WrapperPacket &vision_packet) {
+void AI::Logger::on_vision_packet(AI::Timestamp ts, const SSL_WrapperPacket &vision_packet) {
 	Log::Record record;
-	timespec_to_log(ts, *record.mutable_vision()->mutable_timestamp());
+	timestamp_to_log(ts, ai.backend.monotonic_start_time(), *record.mutable_vision()->mutable_timestamp());
 	record.mutable_vision()->mutable_data()->CopyFrom(vision_packet);
 	write_record(record);
 }
 
-void AI::Logger::on_refbox_packet(timespec ts, const SSL_Referee &packet) {
+void AI::Logger::on_refbox_packet(AI::Timestamp ts, const SSL_Referee &packet) {
 	Log::Record record;
-	timespec_to_log(ts, *record.mutable_refbox()->mutable_timestamp());
+	timestamp_to_log(ts, ai.backend.monotonic_start_time(), *record.mutable_refbox()->mutable_timestamp());
 	*record.mutable_refbox()->mutable_new_data() = packet;
 	write_record(record);
 }
@@ -323,12 +325,12 @@ void AI::Logger::on_ai_notes_changed(const Glib::ustring &notes) {
 	write_record(record);
 }
 
-void AI::Logger::on_tick(unsigned int compute_time) {
+void AI::Logger::on_tick(AI::Timediff compute_time) {
 	Log::Record record;
 	Log::Tick &tick = *record.mutable_tick();
 	tick.set_play_type(Log::Util::PlayType::to_protobuf(ai.backend.playtype()));
-	timespec_to_log(ai.backend.monotonic_time(), *tick.mutable_start_time());
-	tick.set_compute_time(compute_time);
+	timestamp_to_log(ai.backend.monotonic_time(), ai.backend.monotonic_start_time(), *tick.mutable_start_time());
+	tick.set_compute_time(std::chrono::duration_cast<std::chrono::duration<unsigned int, std::nano>>(compute_time).count());
 	{
 		Log::Tick::Ball &ball = *tick.mutable_ball();
 		const AI::BE::Ball &b = ai.backend.ball();
@@ -354,13 +356,13 @@ void AI::Logger::on_tick(unsigned int compute_time) {
 		player.set_movement_flags(p->flags());
 		player.set_movement_type(Log::Util::MoveType::to_protobuf(p->type()));
 		player.set_movement_priority(Log::Util::MovePrio::to_protobuf(p->prio()));
-		const std::vector<std::pair<std::pair<Point, Angle>, timespec> > &path = p->path();
+		const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &path = p->path();
 		for (auto j = path.begin(), jend = path.end(); j != jend; ++j) {
 			Log::Tick::FriendlyRobot::PathElement &path_element = *player.add_path();
 			path_element.mutable_point()->set_x(encode_micros(j->first.first.x));
 			path_element.mutable_point()->set_y(encode_micros(j->first.first.y));
 			path_element.mutable_point()->set_t(encode_micros(j->first.second.to_radians()));
-			timespec_to_log(j->second, *path_element.mutable_timestamp());
+			timestamp_to_log(j->second, ai.backend.monotonic_start_time(), *path_element.mutable_timestamp());
 		}
 		const int(&wheel_speeds)[4] = p->wheel_speeds();
 		for (unsigned int j = 0; j < 4; ++j) {

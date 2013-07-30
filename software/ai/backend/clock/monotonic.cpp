@@ -33,14 +33,6 @@ Monotonic::Monotonic() : tfd(create_timerfd(CLOCK_MONOTONIC)), overflow_message(
 	Glib::signal_io().connect(sigc::mem_fun(this, &Monotonic::on_readable), tfd.fd(), Glib::IO_IN);
 }
 
-timespec Monotonic::now() const {
-	timespec result;
-	if (clock_gettime(CLOCK_MONOTONIC, &result) < 0) {
-		throw SystemError(u8"clock_gettime(CLOCK_MONOTONIC)", errno);
-	}
-	return result;
-}
-
 bool Monotonic::on_readable(Glib::IOCondition) {
 	uint64_t ticks;
 

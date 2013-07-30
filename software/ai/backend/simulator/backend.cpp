@@ -3,6 +3,7 @@
 #include "util/exception.h"
 #include "util/fd.h"
 #include "util/misc.h"
+#include <chrono>
 #include <cstring>
 #include <fcntl.h>
 #include <limits>
@@ -255,12 +256,10 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 		case ::Simulator::Proto::S2APacketType::TICK:
 		{
 			// Record the current in-world monotonic time.
-			if (clock_gettime(CLOCK_MONOTONIC, &monotonic_time_) < 0) {
-				throw SystemError(u8"clock_gettime(CLOCK_MONOTONIC)", errno);
-			}
+			monotonic_time_ = std::chrono::steady_clock::now();
 
 			// Record the current physical monotonic time.
-			timespec before = monotonic_time_;
+			AI::Timestamp before = monotonic_time_;
 
 			// Update the objects with the newly-received data and lock in their predictors.
 			ball_.add_field_data({packet.world_state.ball.x, packet.world_state.ball.y}, monotonic_time_);
@@ -280,14 +279,10 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 			}
 
 			// Compute time taken.
-			timespec after;
-			if (clock_gettime(CLOCK_MONOTONIC, &after) < 0) {
-				throw SystemError(u8"clock_gettime(CLOCK_MONOTONIC)", errno);
-			}
-			unsigned int compute_time = timespec_to_nanos(timespec_sub(after, before));
+			AI::Timestamp after = std::chrono::steady_clock::now();
 
 			// Notify anyone interested in the finish of a tick.
-			signal_post_tick().emit(compute_time);
+			signal_post_tick().emit(after - before);
 
 			// Update sensitivities of player add/remove buttons.
 			secondary_controls.players_add.set_sensitive(friendly_.size() < ::Simulator::Proto::MAX_PLAYERS_PER_TEAM);
