@@ -4,7 +4,6 @@
 #include "ai/backend/player.h"
 #include "proto/grSim_Commands.pb.h"
 #include "util/box_ptr.h"
-#include "util/chrono.h"
 
 namespace AI {
 	namespace BE {

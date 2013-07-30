@@ -591,7 +591,6 @@ software/util/cacheable.cpp -text
 software/util/cacheable.h -text
 software/util/chdir.cpp -text
 software/util/chdir.h -text
-software/util/chrono.h -text
 software/util/codec.cpp -text
 software/util/codec.h -text
 software/util/config.cpp -text
