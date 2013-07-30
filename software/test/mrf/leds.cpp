@@ -1,5 +1,5 @@
 #include "test/mrf/leds.h"
-#include <stdint.h>
+#include <cstdint>
 
 namespace {
 	struct LEDMode {

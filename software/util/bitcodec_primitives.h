@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <stdint.h>
+#include <cstdint>
 
 namespace BitcodecPrimitives {
 	/**

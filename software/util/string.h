@@ -1,7 +1,7 @@
 #ifndef UTIL_STRING_H
 #define UTIL_STRING_H
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 #include <glibmm/ustring.h>
 

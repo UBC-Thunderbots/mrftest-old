@@ -5,12 +5,12 @@
 #include "util/noncopyable.h"
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <glib.h>
 #include <libusb.h>
 #include <list>
 #include <memory>
 #include <stdexcept>
-#include <stdint.h>
 #include <string>
 #include <unordered_map>
 #include <sigc++/connection.h>

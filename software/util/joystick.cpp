@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <cassert>
 #include <cerrno>
+#include <cstdint>
 #include <fcntl.h>
-#include <stdint.h>
 #include <string>
 #include <unistd.h>
 #include <utility>

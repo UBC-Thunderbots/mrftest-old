@@ -1,5 +1,5 @@
 #include "util/bitcodec_primitives.h"
-#include <inttypes.h>
+#include <cinttypes>
 #include <cppunit/TestFixture.h>
 #include <cppunit/extensions/HelperMacros.h>
 

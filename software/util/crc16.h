@@ -2,7 +2,7 @@
 #define UTIL_CRC16_H
 
 #include <cstddef>
-#include <stdint.h>
+#include <cstdint>
 
 namespace CRC16 {
 	/**

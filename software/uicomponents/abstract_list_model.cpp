@@ -1,6 +1,6 @@
 #include "uicomponents/abstract_list_model.h"
 #include <cassert>
-#include <stdint.h>
+#include <cstdint>
 #include <gtkmm/treepath.h>
 
 namespace {

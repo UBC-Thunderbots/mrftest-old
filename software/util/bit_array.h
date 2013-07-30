@@ -3,7 +3,7 @@
 
 #include <cassert>
 #include <cstddef>
-#include <stdint.h>
+#include <cstdint>
 
 /**
  * An array of bits that is also accessible as a C-style array of bytes.

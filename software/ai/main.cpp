@@ -19,7 +19,6 @@
 #include <iostream>
 #include <locale>
 #include <stdexcept>
-#include <stdint.h>
 #include <vector>
 #include <glibmm/exception.h>
 #include <gtkmm/comboboxtext.h>

@@ -1,10 +1,10 @@
 #include "fw/ihex.h"
 #include <algorithm>
 #include <cctype>
+#include <cstdint>
 #include <fstream>
 #include <numeric>
 #include <stdexcept>
-#include <stdint.h>
 #include <string>
 
 namespace {

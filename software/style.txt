@@ -102,7 +102,7 @@ Avoid std::string for storing strings that are related to user input or output. 
 
 Ask around before implementing something that feels like it should have been implemented by someone else already. It might already have been.
 
-If you're doing something that relies on variables having specific sizes, use the C99-style types provided in <stdint.h>: int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, and uint64_t.
+If you're doing something that relies on variables having specific sizes, use the C99-style types provided in <cstdint>: int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, and uint64_t.
 
 If you're converting between integers and pointers, don't. If you're still converting between integers and pointers, use uintptr_t or intptr_t on the integer side. Note that it's still illegal to store pointers to functions or pointers to class members in these (just as it's illegal to store pointers to functions or pointers to class members in variables of type void*).
 

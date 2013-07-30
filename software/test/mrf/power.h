@@ -2,8 +2,8 @@
 #define TEST_MRF_POWER_H
 
 #include "mrf/dongle.h"
+#include <cstdint>
 #include <memory>
-#include <stdint.h>
 #include <gtkmm/button.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/table.h>

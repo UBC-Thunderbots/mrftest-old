@@ -3,8 +3,8 @@
 #include "util/codec.h"
 #include "util/exception.h"
 #include <cerrno>
+#include <cstdint>
 #include <iostream>
-#include <stdint.h>
 #include <unistd.h>
 
 /*

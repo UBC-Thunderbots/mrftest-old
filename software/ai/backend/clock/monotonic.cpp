@@ -2,7 +2,7 @@
 #include "util/exception.h"
 #include "util/timestep.h"
 #include <cerrno>
-#include <stdint.h>
+#include <cstdint>
 #include <unistd.h>
 #include <sys/timerfd.h>
 

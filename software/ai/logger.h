@@ -9,8 +9,8 @@
 #include "util/param.h"
 #include "util/signal.h"
 #include <cstddef>
+#include <cstdint>
 #include <fstream>
-#include <stdint.h>
 #include <string>
 #include <unordered_map>
 #include <google/protobuf/io/zero_copy_stream_impl.h>

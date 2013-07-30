@@ -3,7 +3,7 @@
 
 #include "util/noncopyable.h"
 #include <bzlib.h>
-#include <stdint.h>
+#include <cstdint>
 #include <google/protobuf/io/zero_copy_stream.h>
 
 namespace BZip2 {

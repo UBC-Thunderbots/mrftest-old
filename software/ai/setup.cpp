@@ -1,9 +1,9 @@
 #include "ai/setup.h"
 #include "util/codec.h"
+#include <cinttypes>
 #include <cstddef>
+#include <cstdint>
 #include <fstream>
-#include <inttypes.h>
-#include <stdint.h>
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>

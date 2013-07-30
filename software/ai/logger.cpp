@@ -10,13 +10,13 @@
 #include <cerrno>
 #include <chrono>
 #include <csignal>
+#include <cstdint>
 #include <cstring>
 #include <fcntl.h>
 #include <limits>
 #include <locale>
 #include <ratio>
 #include <sstream>
-#include <stdint.h>
 #include <glibmm/convert.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/ustring.h>
