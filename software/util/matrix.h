@@ -171,7 +171,8 @@ inline Matrix::Matrix(Matrix &&moveref) : m(moveref.m) {
 }
 
 inline void Matrix::swap(Matrix &b) {
-	std::swap(m, b.m);
+	using std::swap;
+	swap(m, b.m);
 }
 
 inline Matrix &Matrix::operator=(Matrix b) {
@@ -464,17 +465,15 @@ inline Matrix operator!(Matrix &&m) {
  */
 std::ostream &operator<<(std::ostream &stream, const Matrix &m);
 
-namespace std {
-	/**
-	 * Swaps two matrices.
-	 *
-	 * \param[in, out] a the first matrix.
-	 *
-	 * \param[in, out] b the second matrix.
-	 */
-	inline void swap(Matrix &a, Matrix &b) {
-		a.swap(b);
-	}
+/**
+ * Swaps two matrices.
+ *
+ * \param[in, out] a the first matrix.
+ *
+ * \param[in, out] b the second matrix.
+ */
+inline void swap(Matrix &a, Matrix &b) {
+	a.swap(b);
 }
 
 #endif

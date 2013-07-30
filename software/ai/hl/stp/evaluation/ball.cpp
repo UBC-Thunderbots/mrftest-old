@@ -32,8 +32,9 @@ namespace {
 		for (unsigned i = 0; i < enemies.size(); ++i) {
 			for (unsigned j = i + 1; j < enemies.size(); ++j) {
 				if (score[i] > score[j]) {
-					std::swap(enemies[i], enemies[j]);
-					std::swap(score[i], score[j]);
+					using std::swap;
+					swap(enemies[i], enemies[j]);
+					swap(score[i], score[j]);
 				}
 			}
 		}

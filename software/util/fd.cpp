@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <string>
 #include <unistd.h>
+#include <utility>
 #include <vector>
 #include <glibmm/miscutils.h>
 #include <sys/socket.h>
@@ -48,7 +49,8 @@ FileDescriptor &FileDescriptor::operator=(FileDescriptor &&moveref) {
 }
 
 void FileDescriptor::swap(FileDescriptor &other) {
-	std::swap(fd_, other.fd_);
+	using std::swap;
+	swap(fd_, other.fd_);
 }
 
 void FileDescriptor::close() {
@@ -124,7 +126,7 @@ FileDescriptor::FileDescriptor(const char *pattern) {
 	}
 }
 
-void std::swap(FileDescriptor &x, FileDescriptor &y) {
+void swap(FileDescriptor &x, FileDescriptor &y) {
 	x.swap(y);
 }
 

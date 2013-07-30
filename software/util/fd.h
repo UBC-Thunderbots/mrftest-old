@@ -122,9 +122,7 @@ class FileDescriptor : public NonCopyable {
 		FileDescriptor(const char *pattern);
 };
 
-namespace std {
-	void swap(FileDescriptor &x, FileDescriptor &y);
-}
+void swap(FileDescriptor &x, FileDescriptor &y);
 
 #endif
 

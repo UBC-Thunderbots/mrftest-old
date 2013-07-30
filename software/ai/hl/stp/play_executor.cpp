@@ -114,9 +114,10 @@ void PlayExecutor::calc_play() {
 		std::vector<Tactic::Tactic::Ptr> goalie_role;
 		std::vector<Tactic::Tactic::Ptr> normal_roles[TEAM_MAX_SIZE-1]; // minus goalie
 		curr_play->assign(goalie_role, normal_roles);
-		std::swap(goalie_role, curr_roles[0]);
+		using std::swap;
+		swap(goalie_role, curr_roles[0]);
 		for (std::size_t j = 1; j < TEAM_MAX_SIZE; ++j) {
-			std::swap(normal_roles[j - 1], curr_roles[j]);
+			swap(normal_roles[j - 1], curr_roles[j]);
 		}
 	}
 }
