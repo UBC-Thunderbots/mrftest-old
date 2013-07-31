@@ -130,8 +130,8 @@ USB::Context::Context() {
 USB::Context::~Context() {
 	libusb_exit(context);
 	context = 0;
-	for (auto i = fd_connections.begin(), iend = fd_connections.end(); i != iend; ++i) {
-		i->second.disconnect();
+	for (auto &i : fd_connections) {
+		i.second.disconnect();
 	}
 }
 

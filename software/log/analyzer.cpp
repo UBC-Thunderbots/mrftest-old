@@ -123,8 +123,7 @@ namespace {
 	}
 
 	void tsv_writer_ball(std::ostream &os, const std::vector<Log::Record> &records, Gtk::Window &) {
-		for (auto i = records.begin(), iend = records.end(); i != iend; ++i) {
-			const Log::Record &record = *i;
+		for (const Log::Record &record : records) {
 			if (record.has_tick()) {
 				const Log::Tick &tick = record.tick();
 				const Log::Tick::Ball &ball = tick.ball();
@@ -178,8 +177,7 @@ namespace {
 			throw std::runtime_error("No config record where it ought to be.");
 		}
 		Log::Colour friendly_colour = records[1].config().friendly_colour();
-		for (auto i = records.begin(), iend = records.end(); i != iend; ++i) {
-			const Log::Record &record = *i;
+		for (const Log::Record &record : records) {
 			if (record.has_config()) {
 				friendly_colour = record.config().friendly_colour();
 			} else if (record.has_tick()) {
@@ -238,8 +236,7 @@ namespace {
 	}
 
 	void tsv_writer_stamps(std::ostream &os, const std::vector<Log::Record> &records, Gtk::Window &) {
-		for (auto i = records.begin(), iend = records.end(); i != iend; ++i) {
-			const Log::Record &record = *i;
+		for (const Log::Record &record : records) {
 			if (record.has_tick()) {
 				os << "Tick\t" << timespec_to_string_machine(record.tick().start_time()) << '\n';
 			} else if (record.has_vision()) {
@@ -251,8 +248,7 @@ namespace {
 	}
 
 	void tsv_writer_compute_times(std::ostream &os, const std::vector<Log::Record> &records, Gtk::Window &) {
-		for (auto i = records.begin(), iend = records.end(); i != iend; ++i) {
-			const Log::Record &record = *i;
+		for (const Log::Record &record : records) {
 			if (record.has_tick()) {
 				os << record.tick().compute_time() << '\n';
 			}
@@ -416,11 +412,11 @@ namespace {
 			case google::protobuf::FieldDescriptor::TYPE_BYTES:
 			{
 				Glib::ustring ustr;
-				for (auto i = data.begin(), iend = data.end(); i != iend; ++i) {
+				for (char ch : data) {
 					if (!ustr.empty()) {
 						ustr.append(" ");
 					}
-					ustr.append(ustr.format(std::hex, std::setw(2), std::setfill(L'0'), std::uppercase, static_cast<unsigned int>(static_cast<uint8_t>(*i))));
+					ustr.append(tohex(ch, 2));
 				}
 				return ustr;
 			}
@@ -463,10 +459,10 @@ namespace {
 			assert(fd.type() == google::protobuf::FieldDescriptor::TYPE_FIXED64);
 			uint64_t flags = refl.GetUInt64(message, &fd);
 			row[cols.value] = tohex(flags, 16);
-			for (std::size_t i = 0; i < G_N_ELEMENTS(MOVE_FLAG_MAPPING); ++i) {
-				if (flags & MOVE_FLAG_MAPPING[i].mask) {
-					flags &= ~MOVE_FLAG_MAPPING[i].mask;
-					cols.append_kv(ts, row, MOVE_FLAG_MAPPING[i].description, tohex(MOVE_FLAG_MAPPING[i].mask, 16));
+			for (const auto &i : MOVE_FLAG_MAPPING) {
+				if (flags & i.mask) {
+					flags &= ~i.mask;
+					cols.append_kv(ts, row, i.description, tohex(i.mask, 16));
 				}
 			}
 			if (flags) {
@@ -480,9 +476,9 @@ namespace {
 				throw std::runtime_error("Bad refbox packet size.");
 			}
 			bool found = false;
-			for (std::size_t i = 0; i < G_N_ELEMENTS(REFBOX_MAPPING); ++i) {
-				if (REFBOX_MAPPING[i].command == data[0]) {
-					cols.append_kv(ts, row, "Command", Glib::ustring::compose("%1 (%2)", REFBOX_MAPPING[i].description, data[0]));
+			for (const auto &i : REFBOX_MAPPING) {
+				if (i.command == data[0]) {
+					cols.append_kv(ts, row, "Command", Glib::ustring::compose("%1 (%2)", i.description, data[0]));
 					found = true;
 				}
 			}

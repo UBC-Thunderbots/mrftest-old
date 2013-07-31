@@ -220,11 +220,11 @@ namespace {
 				destination_.first.y = decode_micros(bot.target().y());
 				destination_.second = Angle::of_radians(decode_micros(bot.target().t()));
 				path_.clear();
-				for (auto i = bot.path().begin(), iend = bot.path().end(); i != iend; ++i) {
-					double x = decode_micros(i->point().x());
-					double y = decode_micros(i->point().y());
-					Angle t = Angle::of_radians(decode_micros(i->point().t()));
-					path_.push_back(std::make_pair(std::make_pair(Point(x, y), t), make_monotonic_time(i->timestamp(), reference_time)));
+				for (const Log::Tick::FriendlyRobot::PathElement &i : bot.path()) {
+					double x = decode_micros(i.point().x());
+					double y = decode_micros(i.point().y());
+					Angle t = Angle::of_radians(decode_micros(i.point().t()));
+					path_.push_back(std::make_pair(std::make_pair(Point(x, y), t), make_monotonic_time(i.timestamp(), reference_time)));
 				}
 			}
 
@@ -596,8 +596,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			{
 				bool seen[players_.size()];
 				std::fill(seen, seen + G_N_ELEMENTS(seen), false);
-				for (int i = 0; i < tick.friendly_robots_size(); ++i) {
-					const Log::Tick::FriendlyRobot &bot = tick.friendly_robots(i);
+				for (const Log::Tick::FriendlyRobot &bot : tick.friendly_robots()) {
 					if (!players_[bot.pattern()]) {
 						players_[bot.pattern()].create();
 					}
@@ -614,8 +613,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			{
 				bool seen[robots_.size()];
 				std::fill(seen, seen + G_N_ELEMENTS(seen), false);
-				for (int i = 0; i < tick.enemy_robots_size(); ++i) {
-					const Log::Tick::EnemyRobot &bot = tick.enemy_robots(i);
+				for (const Log::Tick::EnemyRobot &bot : tick.enemy_robots()) {
 					if (!robots_[bot.pattern()]) {
 						robots_[bot.pattern()].create();
 					}

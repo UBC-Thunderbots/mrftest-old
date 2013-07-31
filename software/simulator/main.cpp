@@ -33,8 +33,8 @@ namespace {
 			return i->second->create_engine();
 		} else {
 			std::cerr << "There is no engine named '" << name << "'. The available engines are:\n";
-			for (SimulatorEngineFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-				std::cerr << i->second->name() << '\n';
+			for (const auto &i : m) {
+				std::cerr << i.second->name() << '\n';
 			}
 			return std::unique_ptr<SimulatorEngine>();
 		}

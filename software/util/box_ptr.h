@@ -86,6 +86,13 @@ template<typename T> class BoxPtr {
 		/**
 		 * \brief Dereferences the pointer.
 		 *
+		 * \return the underlying object.
+		 */
+		T &operator*() const;
+
+		/**
+		 * \brief Dereferences the pointer.
+		 *
 		 * \return the underlying pointer.
 		 */
 		T *operator->() const;
@@ -139,6 +146,10 @@ template<typename T> BoxPtr<T> &BoxPtr<T>::operator=(const BoxPtr<T> &assgref) {
 	ptr = assgref.ptr;
 	valid = assgref.valid;
 	return *this;
+}
+
+template<typename T> T &BoxPtr<T>::operator*() const {
+	return *ptr;
 }
 
 template<typename T> T *BoxPtr<T>::operator->() const {

@@ -54,8 +54,8 @@ Point AI::HL::Util::crop_point_to_field(const Field &field, const Point p) {
 bool AI::HL::Util::path_check(const Point &begin, const Point &end, const std::vector<Point> &obstacles, const double thresh) {
 	const Point direction = (end - begin).norm();
 	const double dist = (end - begin).len();
-	for (std::size_t i = 0; i < obstacles.size(); ++i) {
-		const Point ray = obstacles[i] - begin;
+	for (Point i : obstacles) {
+		const Point ray = i - begin;
 		const double proj = ray.dot(direction);
 		const double perp = fabs(ray.cross(direction));
 		if (proj <= 0) {
@@ -72,8 +72,8 @@ bool AI::HL::Util::path_check(const Point &begin, const Point &end, const std::v
 bool AI::HL::Util::path_check(const Point &begin, const Point &end, const std::vector<Robot> &robots, const double thresh) {
 	const Point direction = (end - begin).norm();
 	const double dist = (end - begin).len();
-	for (std::size_t i = 0; i < robots.size(); ++i) {
-		const Point ray = robots[i].position() - begin;
+	for (const Robot &i : robots) {
+		const Point ray = i.position() - begin;
 		const double proj = ray.dot(direction);
 		const double perp = fabs(ray.cross(direction));
 		if (proj <= 0) {

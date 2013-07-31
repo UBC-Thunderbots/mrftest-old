@@ -42,8 +42,8 @@ JoystickMapping::JoystickMapping(const xmlpp::Element *elt) : name_(elt->get_att
 	std::fill(axes, axes + N_AXES, -1);
 	std::fill(buttons, buttons + N_BUTTONS, -1);
 	const xmlpp::Node::NodeList &group_elts = elt->get_children();
-	for (auto i = group_elts.begin(), iend = group_elts.end(); i != iend; ++i) {
-		const xmlpp::Element *group_elt = dynamic_cast<const xmlpp::Element *>(*i);
+	for (const xmlpp::Node *group_elt_node : group_elts) {
+		const xmlpp::Element *group_elt = dynamic_cast<const xmlpp::Element *>(group_elt_node);
 		if (group_elt) {
 			int *mappings;
 			unsigned int n_mappings;
@@ -60,8 +60,8 @@ JoystickMapping::JoystickMapping(const xmlpp::Element *elt) : name_(elt->get_att
 				std::abort();
 			}
 			const xmlpp::Node::NodeList &mapping_elts = group_elt->get_children();
-			for (auto j = mapping_elts.begin(), jend = mapping_elts.end(); j != jend; ++j) {
-				const xmlpp::Element *mapping_elt = dynamic_cast<const xmlpp::Element *>(*j);
+			for (const xmlpp::Node *mapping_elt_node : mapping_elts) {
+				const xmlpp::Element *mapping_elt = dynamic_cast<const xmlpp::Element *>(mapping_elt_node);
 				if (mapping_elt) {
 					assert(mapping_elt->get_name() == u8"mapping");
 					const Glib::ustring &logs = mapping_elt->get_attribute_value(u8"logical");

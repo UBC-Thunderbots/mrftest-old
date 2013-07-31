@@ -120,9 +120,9 @@ DrivePanel::DrivePanel(Drive::Robot &robot, Gtk::Window *manual_commutation_wind
 	coast();
 	mode_chooser.signal_changed().connect(sigc::mem_fun(this, &DrivePanel::on_mode_changed));
 	pack_start(mode_chooser, Gtk::PACK_SHRINK);
-	for (unsigned int i = 0; i < G_N_ELEMENTS(controls); ++i) {
-		controls[i].get_adjustment()->signal_value_changed().connect(sigc::mem_fun(this, &DrivePanel::on_update));
-		pack_start(controls[i], Gtk::PACK_SHRINK);
+	for (Gtk::HScale &control : controls) {
+		control.get_adjustment()->signal_value_changed().connect(sigc::mem_fun(this, &DrivePanel::on_update));
+		pack_start(control, Gtk::PACK_SHRINK);
 	}
 	controllers_checkbox.set_active();
 	controllers_checkbox.signal_toggled().connect(sigc::mem_fun(this, &DrivePanel::on_update));
@@ -136,8 +136,8 @@ DrivePanel::DrivePanel(Drive::Robot &robot, Gtk::Window *manual_commutation_wind
 }
 
 void DrivePanel::zero() {
-	for (unsigned int i = 0; i < G_N_ELEMENTS(controls); ++i) {
-		controls[i].get_adjustment()->set_value(0);
+	for (Gtk::HScale &control : controls) {
+		control.get_adjustment()->set_value(0);
 	}
 }
 

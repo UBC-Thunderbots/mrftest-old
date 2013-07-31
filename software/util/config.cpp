@@ -55,8 +55,8 @@ namespace {
 	void clean_whitespace(xmlpp::Element *e) {
 		const xmlpp::Node::NodeList &children = e->get_children();
 		std::vector<xmlpp::Node *> to_remove;
-		for (auto i = children.begin(), iend = children.end(); i != iend; ++i) {
-			xmlpp::TextNode *t = dynamic_cast<xmlpp::TextNode *>(*i);
+		for (xmlpp::Node *i : e->get_children()) {
+			xmlpp::TextNode *t = dynamic_cast<xmlpp::TextNode *>(i);
 			if (t) {
 				const Glib::ustring &text = t->get_content();
 				bool found = false;

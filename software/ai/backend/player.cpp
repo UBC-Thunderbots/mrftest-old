@@ -100,12 +100,12 @@ const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &Player::pa
 }
 
 void Player::path(const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &p) {
-	for (auto i = p.begin(), iend = p.end(); i != iend; ++i) {
-		if (!std::isfinite(i->first.first.x) || !std::isfinite(i->first.first.y)) {
+	for (const std::pair<std::pair<Point, Angle>, AI::Timestamp> &i : p) {
+		if (!std::isfinite(i.first.first.x) || !std::isfinite(i.first.first.y)) {
 			LOG_ERROR("NaN or ±∞ position in path element");
 			return;
 		}
-		if (!i->first.second.isfinite()) {
+		if (!i.first.second.isfinite()) {
 			LOG_ERROR("NaN or ±∞ orientation in path element");
 			return;
 		}

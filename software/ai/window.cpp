@@ -71,9 +71,8 @@ namespace {
 			explicit HighLevelControls(AI::AIPackage &ai) : Gtk::Frame("High Level"), ai(ai), table(2, 2), custom_controls(0) {
 				high_level_chooser.append_text("<Choose High Level>");
 				typedef AI::HL::HighLevelFactory::Map Map;
-				const Map &m = AI::HL::HighLevelFactory::all();
-				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					high_level_chooser.append_text(i->second->name());
+				for (const Map::value_type &i : AI::HL::HighLevelFactory::all()) {
+					high_level_chooser.append_text(i.second->name());
 				}
 				table.attach(high_level_chooser, 0, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				high_level_chooser.signal_changed().connect(sigc::mem_fun(this, &HighLevelControls::on_high_level_chooser_changed));
@@ -131,9 +130,8 @@ namespace {
 			explicit NavigatorControls(AI::AIPackage &ai) : Gtk::Frame("Navigator"), ai(ai), table(3, 2), custom_controls(0) {
 				navigator_chooser.append_text("<Choose Navigator>");
 				typedef AI::Nav::NavigatorFactory::Map Map;
-				const Map &m = AI::Nav::NavigatorFactory::all();
-				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					navigator_chooser.append_text(i->second->name());
+				for (const Map::value_type &i : AI::Nav::NavigatorFactory::all()) {
+					navigator_chooser.append_text(i.second->name());
 				}
 
 				table.attach(navigator_chooser, 0, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -192,9 +190,8 @@ namespace {
 			explicit RobotControllerControls(AI::AIPackage &ai) : Gtk::Frame("Robot Controller"), ai(ai), table(3, 2), custom_controls(0) {
 				rc_chooser.append_text("<Choose Robot Controller>");
 				typedef AI::RC::RobotControllerFactory::Map Map;
-				const Map &m = AI::RC::RobotControllerFactory::all();
-				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					rc_chooser.append_text(i->second->name());
+				for (const Map::value_type &i : AI::RC::RobotControllerFactory::all()) {
+					rc_chooser.append_text(i.second->name());
 				}
 				table.attach(rc_chooser, 0, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				rc_chooser.signal_changed().connect(sigc::mem_fun(this, &RobotControllerControls::on_rc_chooser_changed));

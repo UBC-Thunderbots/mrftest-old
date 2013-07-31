@@ -70,10 +70,10 @@ void ManualCommutationWindow::check_result(AsyncOperation<void> &op) {
 }
 
 void ManualCommutationWindow::set_controls_sensitive(bool sensitive) {
-	for (unsigned int motor = 0; motor < 5; ++motor) {
-		for (unsigned int phase = 0; phase < 3; ++phase) {
-			for (unsigned int mode = 0; mode < 4; ++mode) {
-				phase_buttons[motor][phase][mode].set_sensitive(sensitive);
+	for (auto &motor : phase_buttons) {
+		for (auto &phase : motor) {
+			for (auto &mode : phase) {
+				mode.set_sensitive(sensitive);
 			}
 		}
 	}

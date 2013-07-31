@@ -77,14 +77,14 @@ void CodecTest::test_normals() {
 		{ 0.037382401525974273681640625f, (UINT32_C(0) << 31) | (UINT32_C(0x7A) << 23) | UINT32_C(1646154) },
 	};
 
-	for (std::size_t i = 0; i < sizeof(DOUBLE_VALUES) / sizeof(*DOUBLE_VALUES); ++i) {
-		CPPUNIT_ASSERT_EQUAL(DOUBLE_VALUES[i].u64, encode_double_to_u64(DOUBLE_VALUES[i].d));
-		CPPUNIT_ASSERT_EQUAL(DOUBLE_VALUES[i].d, decode_u64_to_double(DOUBLE_VALUES[i].u64));
+	for (const auto &i : DOUBLE_VALUES) {
+		CPPUNIT_ASSERT_EQUAL(i.u64, encode_double_to_u64(i.d));
+		CPPUNIT_ASSERT_EQUAL(i.d, decode_u64_to_double(i.u64));
 	}
 
-	for (std::size_t i = 0; i < sizeof(FLOAT_VALUES) / sizeof(*FLOAT_VALUES); ++i) {
-		CPPUNIT_ASSERT_EQUAL(FLOAT_VALUES[i].u32, encode_float_to_u32(FLOAT_VALUES[i].fl));
-		CPPUNIT_ASSERT_EQUAL(FLOAT_VALUES[i].fl, decode_u32_to_float(FLOAT_VALUES[i].u32));
+	for (const auto &i : FLOAT_VALUES) {
+		CPPUNIT_ASSERT_EQUAL(i.u32, encode_float_to_u32(i.fl));
+		CPPUNIT_ASSERT_EQUAL(i.fl, decode_u32_to_float(i.u32));
 	}
 }
 
@@ -106,14 +106,14 @@ void CodecTest::test_subnormals() {
 		{ -0.0000000000000000000000000000000000000037157586781207584853831912444f, (UINT32_C(1) << 31) | (UINT32_C(0) << 23) | UINT32_C(2651654) },
 	};
 
-	for (std::size_t i = 0; i < sizeof(DOUBLE_VALUES) / sizeof(*DOUBLE_VALUES); ++i) {
-		CPPUNIT_ASSERT_EQUAL(DOUBLE_VALUES[i].u64, encode_double_to_u64(DOUBLE_VALUES[i].d));
-		CPPUNIT_ASSERT_EQUAL(DOUBLE_VALUES[i].d, decode_u64_to_double(DOUBLE_VALUES[i].u64));
+	for (const auto &i : DOUBLE_VALUES) {
+		CPPUNIT_ASSERT_EQUAL(i.u64, encode_double_to_u64(i.d));
+		CPPUNIT_ASSERT_EQUAL(i.d, decode_u64_to_double(i.u64));
 	}
 
-	for (std::size_t i = 0; i < sizeof(FLOAT_VALUES) / sizeof(*FLOAT_VALUES); ++i) {
-		CPPUNIT_ASSERT_EQUAL(FLOAT_VALUES[i].u32, encode_float_to_u32(FLOAT_VALUES[i].fl));
-		CPPUNIT_ASSERT_EQUAL(FLOAT_VALUES[i].fl, decode_u32_to_float(FLOAT_VALUES[i].u32));
+	for (const auto &i : FLOAT_VALUES) {
+		CPPUNIT_ASSERT_EQUAL(i.u32, encode_float_to_u32(i.fl));
+		CPPUNIT_ASSERT_EQUAL(i.fl, decode_u32_to_float(i.u32));
 	}
 }
 

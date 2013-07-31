@@ -54,8 +54,8 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 				const xmlpp::Node::NodeList &to_remove = joysticks_elt->get_children();
 				std::for_each(to_remove.begin(), to_remove.end(), [joysticks_elt](xmlpp::Node *n) { joysticks_elt->remove_child(n); });
 			}
-			for (auto i = mappings.begin(), iend = mappings.end(); i != iend; ++i) {
-				i->save(joysticks_elt->add_child(u8"joystick"));
+			for (JoystickMapping &mapping : mappings) {
+				mapping.save(joysticks_elt->add_child(u8"joystick"));
 			}
 			Config::save();
 		}
@@ -105,8 +105,7 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 
 			const xmlpp::Element *joysticks_elt = Config::joysticks();
 			const xmlpp::Node::NodeList &joystick_elts = joysticks_elt->get_children();
-			for (auto i = joystick_elts.begin(), iend = joystick_elts.end(); i != iend; ++i) {
-				const xmlpp::Node *n = *i;
+			for (const xmlpp::Node *n : joystick_elts) {
 				const xmlpp::Element *e = dynamic_cast<const xmlpp::Element *>(n);
 				if (e) {
 					if (e->get_name() != u8"joystick") {

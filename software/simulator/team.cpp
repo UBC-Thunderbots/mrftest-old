@@ -37,10 +37,10 @@ sigc::signal<void> &Simulator::Team::signal_ready() const {
 
 void Simulator::Team::send_tick() {
 	// Actually remove any robots we were asked to remove in the past time period.
-	for (std::vector<unsigned int>::const_iterator i = to_remove.begin(), iend = to_remove.end(); i != iend; ++i) {
-		std::vector<PlayerInfo>::iterator j = std::find_if(players.begin(), players.end(), [&i](PlayerInfo p) { return p.pattern == *i; });
+	for (unsigned int i : to_remove) {
+		std::vector<PlayerInfo>::iterator j = std::find_if(players.begin(), players.end(), [&i](PlayerInfo p) { return p.pattern == i; });
 		if (j == players.end()) {
-			std::cout << "AI asked to remove nonexistent robot pattern " << *i << '\n';
+			std::cout << "AI asked to remove nonexistent robot pattern " << i << '\n';
 			close_connection();
 			return;
 		}
@@ -51,15 +51,15 @@ void Simulator::Team::send_tick() {
 	to_remove.clear();
 
 	// Actually add any robots we were asked to add in the past time period.
-	for (std::vector<unsigned int>::const_iterator i = to_add.begin(), iend = to_add.end(); i != iend; ++i) {
-		if (std::find_if(players.begin(), players.end(), [&i](PlayerInfo p) { return p.pattern == *i; }) != players.end()) {
-			std::cout << "AI asked to add robot pattern " << *i << " twice\n";
+	for (unsigned int i : to_add) {
+		if (std::find_if(players.begin(), players.end(), [&i](PlayerInfo p) { return p.pattern == i; }) != players.end()) {
+			std::cout << "AI asked to add robot pattern " << i << " twice\n";
 			close_connection();
 			return;
 		}
 		PlayerInfo pi;
 		pi.player = sim.engine.add_player();
-		pi.pattern = *i;
+		pi.pattern = i;
 		players.push_back(pi);
 	}
 	to_add.clear();
@@ -158,16 +158,16 @@ void Simulator::Team::save_state(const FileDescriptor &fd) const {
 	}
 
 	// Write the robots.
-	for (std::vector<PlayerInfo>::const_iterator i = players.begin(), iend = players.end(); i != iend; ++i) {
+	for (const PlayerInfo &i : players) {
 		// Write the lid pattern.
 		uint8_t buffer[sizeof(uint32_t)];
-		encode_u32_be(buffer, static_cast<uint32_t>(i->pattern));
+		encode_u32_be(buffer, static_cast<uint32_t>(i.pattern));
 		if (write(fd.fd(), buffer, sizeof(buffer)) != sizeof(buffer)) {
 			throw SystemError("write", errno);
 		}
 
 		// Save engine data.
-		i->player->save_state(fd);
+		i.player->save_state(fd);
 	}
 }
 
@@ -180,11 +180,11 @@ void Simulator::Team::close_connection() {
 	Glib::signal_idle().connect_once(signal_ready().make_slot());
 
 	// Stop all our robots from kicking, chipping, or moving.
-	for (auto i = players.begin(), iend = players.end(); i != iend; ++i) {
-		i->player->orders.kick = false;
-		i->player->orders.chip = false;
-		i->player->orders.chick_power = 0.0;
-		std::fill(&i->player->orders.wheel_speeds[0], &i->player->orders.wheel_speeds[4], 0);
+	for (PlayerInfo &i : players) {
+		i.player->orders.kick = false;
+		i.player->orders.chip = false;
+		i.player->orders.chick_power = 0.0;
+		std::fill(&i.player->orders.wheel_speeds[0], &i.player->orders.wheel_speeds[4], 0);
 	}
 }
 
@@ -199,15 +199,15 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet, std::shared_ptr<
 			}
 
 			// Stash the robots' orders into their Player objects for the engine to examine.
-			for (std::size_t i = 0; i < G_N_ELEMENTS(packet.players); ++i) {
-				if (packet.players[i].pattern != std::numeric_limits<unsigned int>::max()) {
-					std::vector<PlayerInfo>::iterator j = std::find_if(players.begin(), players.end(), [&packet, i](PlayerInfo p) { return p.pattern == packet.players[i].pattern; });
+			for (const Proto::A2SPlayerInfo &i : packet.players) {
+				if (i.pattern != std::numeric_limits<unsigned int>::max()) {
+					std::vector<PlayerInfo>::iterator j = std::find_if(players.begin(), players.end(), [&i](PlayerInfo p) { return p.pattern == i.pattern; });
 					if (j == players.end()) {
-						std::cout << "AI sent orders to nonexistent robot pattern " << packet.players[i].pattern << '\n';
+						std::cout << "AI sent orders to nonexistent robot pattern " << i.pattern << '\n';
 						close_connection();
 						return;
 					}
-					j->player->orders = packet.players[i];
+					j->player->orders = i;
 				}
 			}
 

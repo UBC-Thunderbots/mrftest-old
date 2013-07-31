@@ -40,9 +40,9 @@ class ParamTreeInternalNode : public ParamTreeNode {
 					component.assign(path);
 				}
 				ParamTreeInternalNode *child = 0;
-				for (auto i = children.begin(), iend = children.end(); i != iend; ++i) {
-					if ((*i)->name() == component) {
-						child = dynamic_cast<ParamTreeInternalNode *>(*i);
+				for (ParamTreeNode *i : children) {
+					if (i->name() == component) {
+						child = dynamic_cast<ParamTreeInternalNode *>(i);
 						if (!child) {
 							throw std::invalid_argument(Glib::ustring::compose("Duplicate name \"%1\" in parameter tree path \"%2\" (both parameter and category)", component, this->path()));
 						}
@@ -92,9 +92,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 
 			// Make a mapping from an XML child element's name's collation key to the node.
 			std::unordered_map<std::string, const xmlpp::Element *> child_elts_byname;
-			const xmlpp::Node::NodeList &child_elts = elt->get_children();
-			for (auto i = child_elts.begin(), iend = child_elts.end(); i != iend; ++i) {
-				const xmlpp::Node *child_node = *i;
+			for (const xmlpp::Node *child_node : elt->get_children()) {
 				const xmlpp::Element *child_elt = dynamic_cast<const xmlpp::Element *>(child_node);
 				if (child_elt) {
 					const xmlpp::Attribute *name_attr = child_elt->get_attribute("name");
@@ -105,10 +103,10 @@ class ParamTreeInternalNode : public ParamTreeNode {
 			}
 
 			// Go through the child nodes in the parameter tree and apply values to them.
-			for (auto i = children.begin(), iend = children.end(); i != iend; ++i) {
-				auto iter = child_elts_byname.find((*i)->name().collate_key());
+			for (ParamTreeNode *i : children) {
+				auto iter = child_elts_byname.find(i->name().collate_key());
 				if (iter != child_elts_byname.end()) {
-					(*i)->load(iter->second);
+					i->load(iter->second);
 				}
 			}
 		}
@@ -120,9 +118,9 @@ class ParamTreeInternalNode : public ParamTreeNode {
 			} else {
 				assert(elt->get_name() == "params");
 			}
-			for (auto i = children.begin(), iend = children.end(); i != iend; ++i) {
+			for (const ParamTreeNode *i : children) {
 				xmlpp::Element *child_elt = elt->add_child("x");
-				(*i)->save(child_elt);
+				i->save(child_elt);
 			}
 		}
 

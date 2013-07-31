@@ -1,6 +1,7 @@
 #ifndef UTIL_REGISTERABLE_H
 #define UTIL_REGISTERABLE_H
 
+#include "util/algorithm.h"
 #include "util/noncopyable.h"
 #include <map>
 #include <stdexcept>
@@ -30,10 +31,8 @@ template<typename T> class Registerable : public NonCopyable {
 				precache() = obj->precache_next;
 				obj->precache_next = 0;
 				obj->name_ = Glib::locale_to_utf8(obj->name_raw);
-				for (Glib::ustring::const_iterator i = obj->name_.begin(), iend = obj->name_.end(); i != iend; ++i) {
-					if (*i == '/') {
-						throw std::invalid_argument("Invalid name: " + obj->name() + " (must not contain a slash)");
-					}
+				if (exists(obj->name_.begin(), obj->name_.end(), static_cast<gunichar>('/'))) {
+					throw std::invalid_argument("Invalid name: " + obj->name() + " (must not contain a slash)");
 				}
 				const std::string &key = obj->name().collate_key();
 				if (objects().count(key)) {

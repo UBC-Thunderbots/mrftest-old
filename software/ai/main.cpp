@@ -92,9 +92,8 @@ namespace {
 		dlg.get_vbox()->pack_start(label, Gtk::PACK_SHRINK);
 		Gtk::ComboBoxText combo;
 		typedef AI::BE::BackendFactory::Map Map;
-		const Map &m = AI::BE::BackendFactory::all();
-		for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-			combo.append_text(i->second->name());
+		for (const Map::value_type &i : AI::BE::BackendFactory::all()) {
+			combo.append_text(i.second->name());
 		}
 		dlg.get_vbox()->pack_start(combo, Gtk::PACK_SHRINK);
 		dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
@@ -219,36 +218,32 @@ int app_main(int argc, char **argv) {
 		{
 			std::cerr << "The following backends are available:\n";
 			typedef AI::BE::BackendFactory::Map Map;
-			const Map &m = AI::BE::BackendFactory::all();
-			for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-				std::cerr << i->second->name() << '\n';
+			for (const Map::value_type &i : AI::BE::BackendFactory::all()) {
+				std::cerr << i.second->name() << '\n';
 			}
 			std::cerr << '\n';
 		}
 		{
 			std::cerr << "The following high levels are available:\n";
 			typedef AI::HL::HighLevelFactory::Map Map;
-			const Map &m = AI::HL::HighLevelFactory::all();
-			for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-				std::cerr << i->second->name() << '\n';
+			for (const Map::value_type &i : AI::HL::HighLevelFactory::all()) {
+				std::cerr << i.second->name() << '\n';
 			}
 			std::cerr << '\n';
 		}
 		{
 			std::cerr << "The following navigators are available:\n";
 			typedef AI::Nav::NavigatorFactory::Map Map;
-			const Map &m = AI::Nav::NavigatorFactory::all();
-			for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-				std::cerr << i->second->name() << '\n';
+			for (const Map::value_type &i : AI::Nav::NavigatorFactory::all()) {
+				std::cerr << i.second->name() << '\n';
 			}
 			std::cerr << '\n';
 		}
 		{
 			std::cerr << "The following robot controllers are available:\n";
 			typedef AI::RC::RobotControllerFactory::Map Map;
-			const Map &m = AI::RC::RobotControllerFactory::all();
-			for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-				std::cerr << i->second->name() << '\n';
+			for (const Map::value_type &i : AI::RC::RobotControllerFactory::all()) {
+				std::cerr << i.second->name() << '\n';
 			}
 			std::cerr << '\n';
 		}

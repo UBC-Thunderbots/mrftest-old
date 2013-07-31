@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <functional>
 #include <vector>
 
 namespace {
@@ -122,9 +123,7 @@ template<typename T, typename TSuper> typename TSuper::Ptr AI::BE::SSLVision::Te
 }
 
 template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::clear() {
-	for (std::size_t i = 0; i < members.size(); ++i) {
-		members[i].destroy();
-	}
+	std::for_each(members.begin(), members.end(), std::mem_fn(&Box<T>::destroy));
 	member_ptrs.clear();
 	AI::BE::Team<TSuper>::signal_membership_changed().emit();
 }
@@ -167,9 +166,9 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::u
 	}
 
 	// Count failures.
-	for (std::size_t i = 0; i < members.size(); ++i) {
-		if (members[i]) {
-			const typename T::Ptr &bot = members[i].ptr();
+	for (Box<T> &i : members) {
+		if (i) {
+			const typename T::Ptr &bot = i.ptr();
 			assert(bot->pattern() < NUM_PATTERNS);
 			if (!seen_this_frame[bot->pattern()]) {
 				++vision_failures[bot->pattern()];
@@ -178,7 +177,7 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::u
 			}
 			seen_this_frame[bot->pattern()] = false;
 			if (vision_failures[bot->pattern()] >= MAX_VISION_FAILURES) {
-				members[i].destroy();
+				i.destroy();
 				membership_changed = true;
 			}
 		}
@@ -192,17 +191,14 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::u
 }
 
 template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::lock_time(const AI::Timestamp &now) {
-	for (auto i = member_ptrs.begin(), iend = member_ptrs.end(); i != iend; ++i) {
-		(*i)->lock_time(now);
-	}
+	std::for_each(member_ptrs.begin(), member_ptrs.end(), std::bind(std::mem_fn(&T::lock_time), std::placeholders::_1, now));
 }
 
 template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::populate_pointers() {
 	member_ptrs.clear();
-	for (std::size_t i = 0; i < members.size(); ++i) {
-		if (members[i]) {
-			const typename T::Ptr &p = members[i].ptr();
-			member_ptrs.push_back(p);
+	for (Box<T> &i : members) {
+		if (i) {
+			member_ptrs.push_back(i.ptr());
 		}
 	}
 }

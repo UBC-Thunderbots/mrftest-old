@@ -8,6 +8,7 @@
 #include "geom/point.h"
 #include "util/box_ptr.h"
 #include "util/object_store.h"
+#include <algorithm>
 #include <utility>
 #include <vector>
 
@@ -104,9 +105,7 @@ inline bool AI::BE::Player::has_chipper() const {
 }
 
 inline void AI::BE::Player::drive(const int (&w)[4]) {
-	for (unsigned int i = 0; i < 4; ++i) {
-		wheel_speeds_[i] = w[i];
-	}
+	std::copy(w, w + sizeof(w) / sizeof(*w), wheel_speeds_);
 	controlled = true;
 }
 

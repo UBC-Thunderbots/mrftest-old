@@ -64,9 +64,7 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 			alm_column_record.add(name_column);
 
 			const xmlpp::Element *joysticks_elt = Config::joysticks();
-			const xmlpp::Node::NodeList &joystick_elts = joysticks_elt->get_children();
-			for (auto i = joystick_elts.begin(), iend = joystick_elts.end(); i != iend; ++i) {
-				const xmlpp::Node *n = *i;
+			for (const xmlpp::Node *n : joysticks_elt->get_children()) {
 				const xmlpp::Element *e = dynamic_cast<const xmlpp::Element *>(n);
 				if (e) {
 					if (e->get_name() != u8"joystick") {

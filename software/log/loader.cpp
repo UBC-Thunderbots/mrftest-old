@@ -24,7 +24,7 @@ namespace {
 	std::vector<Log::Record> load(google::protobuf::io::ZeroCopyInputStream &zcis) {
 		Log::Record record;
 		std::vector<Log::Record> records;
-		for (;; ) {
+		for (;;) {
 			google::protobuf::io::CodedInputStream cis(&zcis);
 			uint32_t record_size;
 			if (!cis.ReadVarint32(&record_size)) {

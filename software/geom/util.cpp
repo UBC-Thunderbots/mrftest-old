@@ -89,8 +89,8 @@ std::vector<std::pair<Point, Angle> > angle_sweep_circles_all(const Point &src, 
 	events.reserve(2 * obstacles.size() + 2);
 	events.push_back(std::make_pair(Angle::zero(), 1)); // p1 becomes angle 0
 	events.push_back(std::make_pair(((p2 - src).orientation() - offangle).angle_mod(), -1));
-	for (std::size_t i = 0; i < obstacles.size(); ++i) {
-		Point diff = obstacles[i] - src;
+	for (Point i : obstacles) {
+		Point diff = i - src;
 		// warning: temporarily reduced
 		if (diff.len() < radius) {
 			// std::cerr << "geom: inside" << std::endl;
@@ -146,8 +146,8 @@ std::pair<Point, Angle> angle_sweep_circles(const Point &src, const Point &p1, c
 	events.reserve(2 * obstacles.size() + 2);
 	events.push_back(std::make_pair(Angle::zero(), 1)); // p1 becomes angle 0
 	events.push_back(std::make_pair(((p2 - src).orientation() - offangle).angle_mod(), -1));
-	for (std::size_t i = 0; i < obstacles.size(); ++i) {
-		Point diff = obstacles[i] - src;
+	for (Point i : obstacles) {
+		Point diff = i - src;
 		// warning: temporarily reduced
 		if (diff.len() < radius) {
 			// std::cerr << "geom: inside" << std::endl;
@@ -413,9 +413,9 @@ Point vector_rect_intersect(const Rect &r, const Point &vecA, const Point &vecB)
 	   std::cout << "fail \n";
 	   return r.centre();  // return the center of the rectangle, if no valid answer is found*/
 	std::vector<Point> points = line_rect_intersect(r, vecA, (vecB - vecA) * 100 + vecA);
-	for (unsigned int i = 0; i < points.size(); i++) {
-		if (point_in_vec(points[i], vecA, vecB)) {
-			return points[i];
+	for (Point i : points) {
+		if (point_in_vec(i, vecA, vecB)) {
+			return i;
 		}
 	}
 	return Point();
@@ -510,11 +510,11 @@ namespace {
 		std::vector<Point> ans;
 		std::vector<Point> poss = line_circle_intersect(centre, radius, segA, segB);
 
-		for (std::size_t i = 0; i < poss.size(); i++) {
-			bool x_ok = poss[i].x <= std::max(segA.x, segB.x) + EPS && poss[i].x >= std::min(segA.x, segB.x) - EPS;
-			bool y_ok = poss[i].y <= std::max(segA.y, segB.y) + EPS && poss[i].y >= std::min(segA.y, segB.y) - EPS;
+		for (Point i : poss) {
+			bool x_ok = i.x <= std::max(segA.x, segB.x) + EPS && i.x >= std::min(segA.x, segB.x) - EPS;
+			bool y_ok = i.y <= std::max(segA.y, segB.y) + EPS && i.y >= std::min(segA.y, segB.y) - EPS;
 			if (x_ok && y_ok) {
-				ans.push_back(poss[i]);
+				ans.push_back(i);
 			}
 		}
 		return ans;

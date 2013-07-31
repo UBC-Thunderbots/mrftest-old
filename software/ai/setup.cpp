@@ -38,11 +38,11 @@ AI::Setup::Setup() : defending_end(AI::BE::Backend::FieldEnd::WEST), friendly_co
 			return;
 		}
 
-		for (std::size_t i = 0; i < G_N_ELEMENTS(STRINGS); ++i) {
+		for (Glib::ustring AI::Setup::*i : STRINGS) {
 			ifs.read(u32buf, sizeof(u32buf));
 			char buffer[decode_u32_be(u32buf)];
 			ifs.read(buffer, static_cast<std::streamsize>(sizeof(buffer)));
-			(this->*STRINGS[i]).assign(buffer, sizeof(buffer));
+			(this->*i).assign(buffer, sizeof(buffer));
 		}
 
 		ifs.read(&ch, 1);
@@ -65,10 +65,10 @@ void AI::Setup::save() {
 	encode_u32_be(u32buf, VERSION);
 	ofs.write(u32buf, sizeof(u32buf));
 
-	for (std::size_t i = 0; i < G_N_ELEMENTS(STRINGS); ++i) {
-		encode_u32_be(u32buf, static_cast<uint32_t>((this->*STRINGS[i]).bytes()));
+	for (Glib::ustring AI::Setup::*i : STRINGS) {
+		encode_u32_be(u32buf, static_cast<uint32_t>((this->*i).bytes()));
 		ofs.write(u32buf, sizeof(u32buf));
-		ofs.write((this->*STRINGS[i]).data(), static_cast<std::streamsize>((this->*STRINGS[i]).bytes()));
+		ofs.write((this->*i).data(), static_cast<std::streamsize>((this->*i).bytes()));
 	}
 
 	ch = defending_end == AI::BE::Backend::FieldEnd::EAST;

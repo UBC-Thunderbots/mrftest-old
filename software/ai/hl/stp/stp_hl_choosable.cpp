@@ -28,9 +28,8 @@ namespace {
 
 			STPHLChoosable(World world) : PlayExecutor(world) {
 				combo.append_text(CHOOSE_PLAY_TEXT);
-				const Play::PlayFactory::Map &m = Play::PlayFactory::all();
-				for (Play::PlayFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					combo.append_text(i->second->name());
+				for (const auto &i : Play::PlayFactory::all()) {
+					combo.append_text(i.second->name());
 				}
 				combo.set_active_text(CHOOSE_PLAY_TEXT);
 				vbox.add(combo);
@@ -72,9 +71,9 @@ namespace {
 
 			void calc_play() {
 				curr_play = 0;
-				for (auto i = plays.cbegin(), iend = plays.cend(); i != iend; ++i) {
-					if ((*i)->factory().name() == combo.get_active_text()) {
-						curr_play = i->get();
+				for (const auto &i : plays) {
+					if (i->factory().name() == combo.get_active_text()) {
+						curr_play = i.get();
 					}
 				}
 				assert(curr_play);

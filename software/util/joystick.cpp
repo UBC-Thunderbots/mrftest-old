@@ -70,8 +70,7 @@ std::vector<std::unique_ptr<Joystick>> &Joystick::instances() {
 		Glib::Dir dir("/dev/input");
 		std::vector<std::string> names(dir.begin(), dir.end());
 		std::sort(names.begin(), names.end());
-		for (auto i = names.begin(), iend = names.end(); i != iend; ++i) {
-			const std::string &node = *i;
+		for (const std::string &node : names) {
 			if (node.size() > 2 && node[0] == 'j' && node[1] == 's') {
 				std::unique_ptr<Joystick> ptr(new Joystick(node));
 				sticks.push_back(std::move(ptr));

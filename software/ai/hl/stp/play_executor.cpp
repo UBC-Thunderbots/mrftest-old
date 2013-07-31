@@ -53,15 +53,15 @@ namespace {
 PlayExecutor::PlayExecutor(World w) : world(w), curr_play(0), curr_active(0) {
 	std::fill(curr_tactic, curr_tactic + TEAM_MAX_SIZE, static_cast<Tactic::Tactic *>(0));
 
-	for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
-		idle_tactics[i] = Tactic::idle(world);
+	for (auto &i : idle_tactics) {
+		i = Tactic::idle(world);
 	}
 
 	// initialize all plays
 	const Play::PlayFactory::Map &m = Play::PlayFactory::all();
 	assert(m.size() != 0);
-	for (Play::PlayFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-		plays.push_back(i->second->create(world));
+	for (const auto &i : m) {
+		plays.push_back(i.second->create(world));
 	}
 
 	world.friendly_team().signal_membership_changed().connect(sigc::mem_fun(this, &PlayExecutor::clear_assignments));
@@ -72,28 +72,28 @@ void PlayExecutor::calc_play() {
 
 	// find a valid play
 	std::random_shuffle(plays.begin(), plays.end());
-	for (std::size_t i = 0; i < plays.size(); ++i) {
-		if (!(plays[i]->factory().playbook & (1 << playbook_index))) {
+	for (auto &i : plays) {
+		if (!(i->factory().playbook & (1 << playbook_index))) {
 			continue;
 		}
-		if (!plays[i]->factory().enable) {
+		if (!i->factory().enable) {
 			continue;
 		}
-		if (!plays[i]->invariant()) {
+		if (!i->invariant()) {
 			continue;
 		}
-		if (!plays[i]->applicable()) {
+		if (!i->applicable()) {
 			continue;
 		}
-		if (plays[i]->done()) {
-			LOG_ERROR(Glib::ustring::compose("Play applicable but done: %1", plays[i]->factory().name()));
+		if (i->done()) {
+			LOG_ERROR(Glib::ustring::compose("Play applicable but done: %1", i->factory().name()));
 			continue;
 		}
 
-		LOG_DEBUG(Glib::ustring::compose("Play candidate: %1", plays[i]->factory().name()));
+		LOG_DEBUG(Glib::ustring::compose("Play candidate: %1", i->factory().name()));
 
-		if (!curr_play || plays[i]->factory().priority > curr_play->factory().priority) {
-			curr_play = plays[i].get();
+		if (!curr_play || i->factory().priority > curr_play->factory().priority) {
+			curr_play = i.get();
 		}
 	}
 
@@ -387,17 +387,17 @@ void PlayExecutor::tick() {
 			done = true;
 		}
 		if (high_priority_always && curr_play->can_give_up_safely()) {
-			for (std::size_t i = 0; i < plays.size(); ++i) {
-				if (!plays[i]->factory().enable) {
+			for (auto &i : plays) {
+				if (!i->factory().enable) {
 					continue;
 				}
-				if (!plays[i]->invariant()) {
+				if (!i->invariant()) {
 					continue;
 				}
-				if (!plays[i]->applicable()) {
+				if (!i->applicable()) {
 					continue;
 				}
-				if (plays[i]->factory().priority > curr_play->factory().priority) {
+				if (i->factory().priority > curr_play->factory().priority) {
 					LOG_INFO("higher priority play exist");
 					done = true;
 					break;

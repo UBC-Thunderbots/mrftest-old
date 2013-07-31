@@ -356,17 +356,15 @@ void AI::Logger::on_tick(AI::Timediff compute_time) {
 		player.set_movement_flags(p->flags());
 		player.set_movement_type(Log::Util::MoveType::to_protobuf(p->type()));
 		player.set_movement_priority(Log::Util::MovePrio::to_protobuf(p->prio()));
-		const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &path = p->path();
-		for (auto j = path.begin(), jend = path.end(); j != jend; ++j) {
+		for (const std::pair<std::pair<Point, Angle>, AI::Timestamp> &j : p->path()) {
 			Log::Tick::FriendlyRobot::PathElement &path_element = *player.add_path();
-			path_element.mutable_point()->set_x(encode_micros(j->first.first.x));
-			path_element.mutable_point()->set_y(encode_micros(j->first.first.y));
-			path_element.mutable_point()->set_t(encode_micros(j->first.second.to_radians()));
-			timestamp_to_log(j->second, ai.backend.monotonic_start_time(), *path_element.mutable_timestamp());
+			path_element.mutable_point()->set_x(encode_micros(j.first.first.x));
+			path_element.mutable_point()->set_y(encode_micros(j.first.first.y));
+			path_element.mutable_point()->set_t(encode_micros(j.first.second.to_radians()));
+			timestamp_to_log(j.second, ai.backend.monotonic_start_time(), *path_element.mutable_timestamp());
 		}
-		const int(&wheel_speeds)[4] = p->wheel_speeds();
-		for (unsigned int j = 0; j < 4; ++j) {
-			player.add_wheel_setpoints(wheel_speeds[j]);
+		for (int j : p->wheel_speeds()) {
+			player.add_wheel_setpoints(j);
 		}
 	}
 

@@ -19,12 +19,12 @@ namespace {
 		Gtk::Button reset_button;
 
 		RCTester2(World world) : world(world) {
-			for (int i = 0; i < 3; ++i) {
-				vbox.add(controls[i]);
+			for (Gtk::HScale &i : controls) {
+				vbox.add(i);
 				// params are
 				// min, max, step, intervals
-				controls[i].get_adjustment()->configure(0, -5, 5, 0.1, 100, 0);
-				controls[i].set_digits(2);
+				i.get_adjustment()->configure(0, -5, 5, 0.1, 100, 0);
+				i.set_digits(2);
 			}
 
 			controls[0].get_adjustment()->configure(0, -3, 3, 0.1, 100, 0);
@@ -45,8 +45,8 @@ namespace {
 		}
 
 		void reset() {
-			for (int i = 0; i < 3; ++i) {
-				controls[i].set_value(0);
+			for (Gtk::HScale &i : controls) {
+				i.set_value(0);
 			}
 			offsets_x.set_value(0);
 			offsets_y.set_value(0);

@@ -162,8 +162,8 @@ namespace {
 		Point C(-world.field().length() / 2.0, world.field().goal_width() / 2.0);
 		Point D(-world.field().length() / 2.0, -world.field().goal_width() / 2.0);
 		Point pts[4] = { A, B, C, D };
-		for (unsigned int i = 0; i < 4; i++) {
-			double dist = lineseg_point_dist(pts[i], cur, dst);
+		for (Point i : pts) {
+			double dist = lineseg_point_dist(i, cur, dst);
 			violate = std::max(violate, circle_radius - dist);
 		}
 		return violate;
@@ -415,9 +415,9 @@ namespace {
 		int n_tot = num_points * static_cast<int>(std::ceil(TS2 / TS));
 		std::vector<Point> temp = seg_buffer_boundaries(segA, segB, radius, n_tot);
 
-		for (std::vector<Point>::const_iterator it = temp.begin(); it != temp.end(); ++it) {
-			if (AI::Nav::Util::valid_dst(*it, world, player)) {
-				ans.push_back(*it);
+		for (Point i : temp) {
+			if (AI::Nav::Util::valid_dst(i, world, player)) {
+				ans.push_back(i);
 			}
 		}
 	}
@@ -434,8 +434,8 @@ namespace {
 			path_points = planner.plan(player, dest.first, added_flags);
 		}
 
-		for(unsigned int i = 0; i < path_points.size(); i++) {
-			path.push_back(std::make_pair(std::make_pair(path_points[i], dest.second), world.monotonic_time()));
+		for (Point i : path_points) {
+			path.push_back(std::make_pair(std::make_pair(i, dest.second), world.monotonic_time()));
 		}
 		return path;
 	}
@@ -611,9 +611,9 @@ AI::Timestamp AI::Nav::Util::get_next_ts(AI::Timestamp now, Point &p1, Point &p2
 	return now + std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(velocity * distance));
 }
 
-double AI::Nav::Util::estimate_action_duration(std::vector<std::pair<Point, Angle> > path_points) {
+double AI::Nav::Util::estimate_action_duration(std::vector<std::pair<Point, Angle>> path_points) {
 	double total_time = 0;
-	for (unsigned int i = 0; i < path_points.size() - 1; ++i) {
+	for (std::size_t i = 0; i < path_points.size() - 1; ++i) {
 		double dist = (path_points[i].first - path_points[i + 1].first).len();
 		total_time += dist / Player::MAX_LINEAR_VELOCITY;
 	}
@@ -646,7 +646,7 @@ bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World wor
 	
 	std::vector<Point> step_points;
 	// i starts with 1 because the first step point is not robot position
-	for(int i = 1; i < seg_number; i++){
+	for (int i = 1; i < seg_number; i++) {
 		Point radial_pos = Point((radial_dist-radial_step*i).len(),0);
 		Angle angular_pos = bot_angle-angular_step*i;
 		// in every step robot get closer to the ball by 1 radial_step, and get closer lining up the robot with target by 1 angular_step
@@ -658,8 +658,8 @@ bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World wor
 	AI::Nav::W::Player::Path path;
 	AI::Timestamp working_time = world.monotonic_time();
 
-	for(std::size_t i = 0; i < step_points.size(); i++){
-		path.push_back(std::make_pair(std::make_pair(step_points[i], target_orient), working_time));
+	for (Point i : step_points) {
+		path.push_back(std::make_pair(std::make_pair(i, target_orient), working_time));
 	}
 	player.path(path);
 	return true;
@@ -730,13 +730,13 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 
 		// now plan out the path
 		path_points = planner.plan(player, move_to_point, flags);
-		std::vector<std::pair<Point, Angle> > path_points_with_angle;
+		std::vector<std::pair<Point, Angle>> path_points_with_angle;
 
 		// face the final direction the whole time
 		Angle path_orientation = (dir_from_target * -1).orientation();
 		path_points_with_angle.push_back(std::make_pair(player.position(), path_orientation));
-		for(unsigned int j = 0; j < path_points.size(); ++j) {
-			path_points_with_angle.push_back(std::make_pair(path_points[j], path_orientation));
+		for (Point j : path_points) {
+			path_points_with_angle.push_back(std::make_pair(j, path_orientation));
 		}
 
 		// check if the robot can make it

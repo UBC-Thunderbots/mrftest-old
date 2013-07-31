@@ -101,9 +101,9 @@ LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyz
 		}
 
 		// Check which files need compressing.
-		for (auto i = files.begin(), iend = files.end(); i != iend; ++i) {
-			if (LogLoader::needs_compressing(filename_to_pathname(*i))) {
-				files_to_compress.push_back(*i);
+		for (const std::string &i : files) {
+			if (LogLoader::needs_compressing(filename_to_pathname(i))) {
+				files_to_compress.push_back(i);
 			}
 		}
 
@@ -132,8 +132,8 @@ void LogLauncher::populate() {
 	compress_progress_bar.set_fraction(0);
 
 	get_filenames(files);
-	for (auto i = files.begin(), iend = files.end(); i != iend; ++i) {
-		log_list.append_text(Glib::filename_display_basename(filename_to_pathname(*i)));
+	for (const std::string &i : files) {
+		log_list.append_text(Glib::filename_display_basename(filename_to_pathname(i)));
 	}
 }
 
@@ -141,9 +141,9 @@ void LogLauncher::start_compressing() {
 	// Join and erase any threads that are finished.
 	{
 		std::lock_guard<std::mutex> lock(compress_threads_done_mutex);
-		for (auto i = compress_threads_done.begin(), iend = compress_threads_done.end(); i != iend; ++i) {
+		for (std::thread::id i : compress_threads_done) {
 			for (auto j = compress_threads.begin(), jend = compress_threads.end(); j != jend; ++j) {
-				if (j->get_id() == *i) {
+				if (j->get_id() == i) {
 					j->join();
 					compress_threads.erase(j);
 					break;
@@ -264,9 +264,9 @@ void LogLauncher::on_log_list_selection_changed() {
 
 void LogLauncher::on_analyzer_clicked() {
 	const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
-	for (auto i = selected.begin(), iend = selected.end(); i != iend; ++i) {
+	for (const Gtk::TreeModel::Path &i : selected) {
 		try {
-			new LogAnalyzer(*this, filename_to_pathname(files[static_cast<std::size_t>((*i)[0])]));
+			new LogAnalyzer(*this, filename_to_pathname(files[static_cast<std::size_t>(i[0])]));
 		} catch (const std::runtime_error &exp) {
 			Gtk::MessageDialog md(*this, exp.what(), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
 			md.run();
@@ -276,9 +276,9 @@ void LogLauncher::on_analyzer_clicked() {
 
 void LogLauncher::on_player_clicked() {
 	const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
-	for (auto i = selected.begin(), iend = selected.end(); i != iend; ++i) {
+	for (const Gtk::TreeModel::Path &i : selected) {
 		try {
-			new LogPlayer(*this, filename_to_pathname(files[static_cast<std::size_t>((*i)[0])]));
+			new LogPlayer(*this, filename_to_pathname(files[static_cast<std::size_t>(i[0])]));
 		} catch (const std::runtime_error &exp) {
 			Gtk::MessageDialog md(*this, exp.what(), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
 			md.run();
@@ -327,8 +327,8 @@ void LogLauncher::on_delete_clicked() {
 	int resp = md.run();
 	if (resp == Gtk::RESPONSE_YES) {
 		const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
-		for (Gtk::TreeSelection::ListHandle_Path::const_iterator i = selected.begin(), iend = selected.end(); i != iend; ++i) {
-			const std::string &pathname = filename_to_pathname(files[static_cast<std::size_t>((*i)[0])]);
+		for (const Gtk::TreeModel::Path &i : selected) {
+			const std::string &pathname = filename_to_pathname(files[static_cast<std::size_t>(i[0])]);
 			try {
 				if (std::remove(pathname.c_str()) < 0) {
 					throw SystemError("remove", errno);
@@ -360,9 +360,7 @@ void LogLauncher::on_import_clicked() {
 	fcd.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 	fcd.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
 	if (fcd.run() == Gtk::RESPONSE_OK) {
-		const auto &files = fcd.get_files();
-		for (auto i = files.begin(), iend = files.end(); i != iend; ++i) {
-			Glib::RefPtr<Gio::File> source = *i;
+		for (Glib::RefPtr<Gio::File> source : fcd.get_files()) {
 			Glib::RefPtr<Gio::File> dest = Gio::File::create_for_path(filename_to_pathname(source->get_basename()));
 			try {
 				source->copy(dest, Gio::FILE_COPY_NONE);

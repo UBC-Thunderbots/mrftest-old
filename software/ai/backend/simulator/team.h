@@ -74,10 +74,9 @@ namespace AI {
 					 */
 					void populate_pointers() {
 						member_ptrs.clear();
-						for (std::size_t i = 0; i < members.size(); ++i) {
-							if (members[i]) {
-								const BoxPtr<T> &p = members[i].ptr();
-								member_ptrs.push_back(p);
+						for (Box<T> &i : members) {
+							if (i) {
+								member_ptrs.push_back(i.ptr());
 							}
 						}
 					}
@@ -132,27 +131,27 @@ namespace AI {
 						}
 
 						// Add any newly-created robots.
-						for (std::size_t i = 0; i < G_N_ELEMENTS(state); ++i) {
-							if (state[i].robot_info.pattern != std::numeric_limits<unsigned int>::max()) {
+						for (const ::Simulator::Proto::S2APlayerInfo &i : state) {
+							if (i.robot_info.pattern != std::numeric_limits<unsigned int>::max()) {
 								bool found = false;
 								for (std::size_t j = 0; j < size() && !found; ++j) {
-									if (state[i].robot_info.pattern == get(j)->pattern()) {
+									if (i.robot_info.pattern == get(j)->pattern()) {
 										found = true;
 									}
 								}
 								if (!found) {
-									create(state[i].robot_info.pattern, std::ref(be), state[i].robot_info.pattern);
+									create(i.robot_info.pattern, std::ref(be), i.robot_info.pattern);
 								}
 							}
 						}
 
 						// Update positions and lock in predictors for all robots.
-						for (std::size_t i = 0; i < G_N_ELEMENTS(state); ++i) {
-							if (state[i].robot_info.pattern != std::numeric_limits<unsigned int>::max()) {
+						for (const ::Simulator::Proto::S2APlayerInfo &i : state) {
+							if (i.robot_info.pattern != std::numeric_limits<unsigned int>::max()) {
 								for (std::size_t j = 0; j < size(); ++j) {
 									Player::Ptr plr = get_impl(j);
-									if (state[i].robot_info.pattern == plr->pattern()) {
-										plr->pre_tick(state[i], ts);
+									if (i.robot_info.pattern == plr->pattern()) {
+										plr->pre_tick(i, ts);
 									}
 								}
 							}
@@ -234,27 +233,27 @@ namespace AI {
 						}
 
 						// Add any newly-created robots.
-						for (std::size_t i = 0; i < G_N_ELEMENTS(state); ++i) {
-							if (state[i].pattern != std::numeric_limits<unsigned int>::max()) {
+						for (const ::Simulator::Proto::S2ARobotInfo &i : state) {
+							if (i.pattern != std::numeric_limits<unsigned int>::max()) {
 								bool found = false;
 								for (std::size_t j = 0; j < size() && !found; ++j) {
-									if (state[i].pattern == get(j)->pattern()) {
+									if (i.pattern == get(j)->pattern()) {
 										found = true;
 									}
 								}
 								if (!found) {
-									create(state[i].pattern, state[i].pattern);
+									create(i.pattern, i.pattern);
 								}
 							}
 						}
 
 						// Update positions and lock in predictors for all robots.
-						for (std::size_t i = 0; i < G_N_ELEMENTS(state); ++i) {
-							if (state[i].pattern != std::numeric_limits<unsigned int>::max()) {
+						for (const ::Simulator::Proto::S2ARobotInfo &i : state) {
+							if (i.pattern != std::numeric_limits<unsigned int>::max()) {
 								for (std::size_t j = 0; j < size(); ++j) {
 									AI::BE::Robot::Ptr bot = get_impl(j);
-									if (state[i].pattern == bot->pattern()) {
-										bot->add_field_data({state[i].x, state[i].y}, Angle::of_radians(state[i].orientation), ts);
+									if (i.pattern == bot->pattern()) {
+										bot->add_field_data({i.x, i.y}, Angle::of_radians(i.orientation), ts);
 										bot->pre_tick();
 										bot->lock_time(ts);
 									}

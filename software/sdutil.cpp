@@ -290,24 +290,24 @@ namespace {
 				if (magic == LOG_MAGIC_TICK && record_epoch == epoch_index) {
 					int16_t breakbeam_diff = decode_u16_le(ptr); ptr += 2;
 					uint16_t adc_channels[8];
-					for (std::size_t i = 0; i < sizeof(adc_channels) / sizeof(*adc_channels); ++i) {
-						adc_channels[i] = decode_u16_le(ptr); ptr += 2;
+					for (uint16_t &value : adc_channels) {
+						value = decode_u16_le(ptr); ptr += 2;
 					}
 					float wheels_setpoints[4];
-					for (std::size_t i = 0; i < sizeof(wheels_setpoints) / sizeof(*wheels_setpoints); ++i) {
-						wheels_setpoints[i] = decode_float_le(ptr); ptr += 4;
+					for (float &value : wheels_setpoints) {
+						value = decode_float_le(ptr); ptr += 4;
 					}
 					int16_t wheels_encoder_counts[4];
-					for (std::size_t i = 0; i < sizeof(wheels_encoder_counts) / sizeof(*wheels_encoder_counts); ++i) {
-						wheels_encoder_counts[i] = decode_u16_le(ptr); ptr += 2;
+					for (int16_t &value : wheels_encoder_counts) {
+						value = decode_u16_le(ptr); ptr += 2;
 					}
 					int16_t wheels_drives[4];
-					for (std::size_t i = 0; i < sizeof(wheels_drives) / sizeof(*wheels_drives); ++i) {
-						wheels_drives[i] = decode_u16_le(ptr); ptr += 2;
+					for (int16_t &value : wheels_drives) {
+						value = decode_u16_le(ptr); ptr += 2;
 					}
 					unsigned int wheels_temperatures[4];
-					for (std::size_t i = 0; i < sizeof(wheels_temperatures) / sizeof(*wheels_temperatures); ++i) {
-						wheels_temperatures[i] = decode_u8_le(ptr); ptr += 1;
+					for (unsigned int &value : wheels_temperatures) {
+						value = decode_u8_le(ptr); ptr += 1;
 					}
 					unsigned int dribbler_speed = decode_u8_le(ptr) * 25U * 60U / 6U; ptr += 1;
 					unsigned int dribbler_temperature = decode_u8_le(ptr); ptr += 1;
@@ -328,8 +328,8 @@ namespace {
 							ofs << '\t' << wheels_encoder_counts[i];
 						}
 					}
-					for (unsigned int i = 0; i < 4; ++i) {
-						ofs << '\t' << wheels_setpoints[i];
+					for (float sp : wheels_setpoints) {
+						ofs << '\t' << sp;
 					}
 					for (unsigned int i = 0; i < 4; ++i) {
 						bool failed = !!((wheels_hall_sensors_failed >> (2 * i)) & 3);
@@ -339,8 +339,8 @@ namespace {
 							ofs << '\t' << wheels_drives[i];
 						}
 					}
-					for (unsigned int i = 0; i < 4; ++i) {
-						ofs << '\t' << wheels_temperatures[i];
+					for (unsigned int temp : wheels_temperatures) {
+						ofs << '\t' << temp;
 					}
 					ofs << '\t' << dribbler_speed;
 					ofs << '\t' << dribbler_temperature;
@@ -372,9 +372,9 @@ namespace {
 	};
 
 	const Command *find_command(const char *command) {
-		for (std::size_t i = 0; i < sizeof(COMMANDS) / sizeof(*COMMANDS); ++i) {
-			if (COMMANDS[i].command == command) {
-				return &COMMANDS[i];
+		for (const Command &i : COMMANDS) {
+			if (i.command == command) {
+				return &i;
 			}
 		}
 		return 0;
@@ -385,8 +385,8 @@ namespace {
 		std::cerr << app << " disk command [args…]\n";
 		std::cerr << '\n';
 		std::cerr << "Possible commands are:\n";
-		for (std::size_t i = 0; i < sizeof(COMMANDS) / sizeof(*COMMANDS); ++i) {
-			std::cout << COMMANDS[i].command << '\n';
+		for (const Command &i : COMMANDS) {
+			std::cout << i.command << '\n';
 		}
 	}
 }

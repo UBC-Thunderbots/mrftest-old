@@ -178,9 +178,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 				double time_delta = std::chrono::duration_cast<std::chrono::duration<double>>(i.second - ball_.lock_time()).count();
 				Point estimated_position = ball_.position(time_delta);
 				Point estimated_stdev = ball_.position_stdev(time_delta);
-				for (int j = 0; j < i.first.balls_size(); ++j) {
+				for (const SSL_DetectionBall &b : i.first.balls()) {
 					// Compute the probability of this ball being the wanted one.
-					const SSL_DetectionBall &b(i.first.balls(j));
 					Point detection_position(b.x() / 1000.0, b.y() / 1000.0);
 					if (defending_end() == FieldEnd::EAST) {
 						detection_position = -detection_position;
