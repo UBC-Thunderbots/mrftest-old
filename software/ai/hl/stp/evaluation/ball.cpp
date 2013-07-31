@@ -21,10 +21,10 @@ namespace {
 		enemies = AI::HL::Util::get_robots(world.enemy_team());
 		std::vector<double> score;
 
-		for (unsigned i = 0; i < enemies.size(); ++i) {
+		for (Robot i : enemies) {
 			Point dest;
-			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), enemies[i].position(), dest);
-			double dist = (enemies[i].position() - dest).len();
+			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), i.position(), dest);
+			double dist = (i.position() - dest).len();
 			score.push_back(dist);
 		}
 

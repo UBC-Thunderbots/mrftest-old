@@ -88,10 +88,8 @@ namespace {
 	}
 
 	void MarkOffside::execute() {
-		std::vector<AI::HL::W::Robot> enemies = AI::HL::Util::get_robots(world.enemy_team());
-
-		if (enemies.size() != 0) {
-			Action::block_ball(world, player, player_to_mark(enemies));
+		if (world.enemy_team().size() != 0) {
+			Action::block_ball(world, player, player_to_mark(AI::HL::Util::get_robots(world.enemy_team())));
 		} else {
 			Action::move(player, (player.position() - world.ball().position()).orientation(), Point(world.ball().position().x, -world.ball().position().y));
 		}

@@ -61,9 +61,9 @@ namespace {
 				if (players.empty() || players.size() > 2 || world.playtype() != AI::Common::PlayType::PLAY) {
 					return;
 				}
-				for (std::size_t i = 0; i < players.size(); ++i) {
-					players[i].autokick(AI::HL::STP::BALL_MAX_SPEED);
-					players[i].flags(AI::Flags::FLAG_STAY_OWN_HALF);
+				for (AI::HL::W::Player i : players) {
+					i.autokick(AI::HL::STP::BALL_MAX_SPEED);
+					i.flags(AI::Flags::FLAG_STAY_OWN_HALF);
 				}
 
 				const Robot baller = Evaluation::calc_enemy_baller(world);

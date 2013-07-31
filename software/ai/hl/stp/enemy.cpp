@@ -3,6 +3,7 @@
 #include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/evaluation/enemy.h"
 #include "ai/hl/stp/evaluation/ball.h"
+#include <algorithm>
 
 using namespace AI::HL::W;
 using AI::HL::STP::Enemy;
@@ -41,7 +42,7 @@ namespace {
 
 				// sort enemies by distance to own goal
 				// TODO: cache this
-				std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot>(world.field().friendly_goal()));
+				std::nth_element(enemies.begin(), enemies.begin() + index, enemies.end(), AI::HL::Util::CmpDist<Robot>(world.field().friendly_goal()));
 
 				return enemies[index];
 			}
@@ -79,7 +80,7 @@ namespace {
 				// Remember that the closest robot to robot of index i is that robot itself. 
 				if (world.enemy_team().size() > index) {
 					auto robots = AI::HL::Util::get_robots(world.enemy_team());
-					std::sort(robots.begin(), robots.end(), AI::HL::Util::CmpDist<Robot>(world.enemy_team()[robot].position()));
+					std::nth_element(robots.begin(), robots.begin() + index, robots.end(), AI::HL::Util::CmpDist<Robot>(world.enemy_team()[robot].position()));
 					return robots[index];
 				} 
 				return Robot();
@@ -104,7 +105,7 @@ namespace {
 
 				// sort enemies by distance to own goal
 				// TODO: cache this
-				std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot>(player.position()));
+				std::nth_element(enemies.begin(), enemies.begin() + index, enemies.end(), AI::HL::Util::CmpDist<Robot>(player.position()));
 
 				return enemies[index];
 			}

@@ -75,8 +75,6 @@ namespace {
 
 				std::vector<AI::HL::W::Player> players = AI::HL::Util::get_players(world.friendly_team());
 
-				std::vector<AI::HL::W::Robot> enemies = AI::HL::Util::get_robots(world.enemy_team());
-
 				if (world.playtype() == AI::Common::PlayType::STOP) {
 					return stop(players);
 				}
@@ -85,8 +83,8 @@ namespace {
 					return;
 				}
 
-				for (std::size_t i = 0; i < players.size(); ++i) {
-					players[i].flags(AI::Flags::FLAG_STAY_OWN_HALF);
+				for (AI::HL::W::Player i : players) {
+					i.flags(AI::Flags::FLAG_STAY_OWN_HALF);
 					//world.friendly_team().get(i).avoid_distance(AI::Flags::AvoidDistance::LONG);
 				}
 
@@ -108,8 +106,8 @@ namespace {
 					const Point shoot = (start - ball_pos);
 
 					bool pass = true;
-					for (std::size_t i = 0; i < enemies.size(); ++i) {
-						if ((enemies[i].position() - (ball_pos - shoot)).len() < 10 * Robot::MAX_RADIUS) {
+					for (Robot i : world.enemy_team()) {
+						if ((i.position() - (ball_pos - shoot)).len() < 10 * Robot::MAX_RADIUS) {
 							pass = false;
 							break;
 						}

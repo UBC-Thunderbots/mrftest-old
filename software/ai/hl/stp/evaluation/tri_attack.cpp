@@ -55,7 +55,6 @@ Point AI::HL::STP::Evaluation::tri_attack_evaluation(World world) {
 	int shooting_angle_importance = 20;
 	double danger_zone = 0.4, distance, danger_level, less_danger_position = 1e8, angle;
 	//size_t enemy_team_size = world.enemy_team().size();
-	std::vector<Robot> enemies = AI::HL::Util::get_robots(world.enemy_team());
 //			Evaluation::enemies_by_grab_ball_dist();
 
 	Point p = Point(0,0);
@@ -73,9 +72,9 @@ Point AI::HL::STP::Evaluation::tri_attack_evaluation(World world) {
 			p.y = y;
 			ball_dist = (world.ball().position() - p).len() / 10.0;
 
-			for (size_t k = 0 ; k < enemies.size() ; k++) {
+			for (const Robot k : world.enemy_team()) {
 				// Calculate how many enemies are within the danger_zone
-				distance = (p - enemies[k].position()).len();
+				distance = (p - k.position()).len();
 				if(distance < danger_zone) { robot_count++; }			
 			} 
 
