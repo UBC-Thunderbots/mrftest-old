@@ -88,22 +88,20 @@ StraightNavigator::StraightNavigator(World world) : Navigator(world) {
 }
 
 std::vector<Player> StraightNavigator::getMovePrioPlayers(AI::Flags::MovePrio prio) {
-	FriendlyTeam fteam = world.friendly_team();
 	std::vector<Player> interested_players;
-	for (std::size_t i = 0; i < fteam.size(); i++) {
-		if (fteam.get(i).prio() == prio) {
-			interested_players.push_back(fteam.get(i));
+	for (const Player i : world.friendly_team()) {
+		if (i.prio() == prio) {
+			interested_players.push_back(i);
 		}
 	}
 	return interested_players;
 }
 
 std::vector<Player> StraightNavigator::getMoveTypePlayers(AI::Flags::MoveType type) {
-	FriendlyTeam fteam = world.friendly_team();
 	std::vector<Player> interested_players;
-	for (std::size_t i = 0; i < fteam.size(); i++) {
-		if (fteam.get(i).type() == type) {
-			interested_players.push_back(fteam.get(i));
+	for (const Player i : world.friendly_team()) {
+		if (i.type() == type) {
+			interested_players.push_back(i);
 		}
 	}
 	return interested_players;
@@ -114,22 +112,21 @@ std::vector<Player> StraightNavigator::getUnhappyPlayers() {
 	std::vector<Player> interested_players;
 	for (std::size_t i = 0; i < fteam.size(); i++) {
 		if (!player_happiness[i]) {
-			interested_players.push_back(fteam.get(i));
+			interested_players.push_back(fteam[i]);
 		}
 	}
 	return interested_players;
 }
 
 void StraightNavigator::teamUpdater() {
-	FriendlyTeam fteam = world.friendly_team();
 	player_happiness.clear();
-	player_happiness.resize(fteam.size(), false);
+	player_happiness.resize(world.friendly_team().size(), false);
 
 	movetype_array.clear();
 	moveprio_array.clear();
-	for (std::size_t i = 0; i < fteam.size(); i++) {
-		movetype_array.push_back(fteam.get(i).type());
-		moveprio_array.push_back(fteam.get(i).prio());
+	for (Player i : world.friendly_team()) {
+		movetype_array.push_back(i.type());
+		moveprio_array.push_back(i.prio());
 	}
 }
 
@@ -170,25 +167,15 @@ void StraightNavigator::dealWithPath() {
 }
 
 void StraightNavigator::tick() {
-	FriendlyTeam fteam = world.friendly_team();
-	AI::Timestamp ts;
+	for (Player player : world.friendly_team()) {
+		Point currentPosition = player.position();
+		Angle currentOrientation = player.orientation();
+		Point destinationPosition = player.destination().first;
+		Angle destinationOrientation = player.destination().second;
 
-	Player player;
-	Player::Path path;
+		AI::Timestamp ts = get_next_ts(world.monotonic_time(), currentPosition, destinationPosition, player.target_velocity());
 
-	Point currentPosition, destinationPosition;
-	Angle currentOrientation, destinationOrientation;
-
-	for (std::size_t i = 0; i < fteam.size(); i++) {
-		path.clear();
-		player = fteam.get(i);
-		currentPosition = player.position();
-		currentOrientation = player.orientation();
-		destinationPosition = player.destination().first;
-		destinationOrientation = player.destination().second;
-
-		ts = get_next_ts(world.monotonic_time(), currentPosition, destinationPosition, player.target_velocity());
-
+		Player::Path path;
 		path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), ts));
 		player.path(path);
 	}

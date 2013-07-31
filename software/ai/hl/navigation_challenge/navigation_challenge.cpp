@@ -54,17 +54,17 @@ namespace {
 
 				if (world.enemy_team().size() >= 2) {
 					Point leftmost(0, 0);
-					unsigned int leftmostIndex = 0;
+					Robot leftmostRobot;
 					Point rightmost(0, 0);
-					unsigned int rightmostIndex = 0;
-					for (unsigned int i = 0; i < world.enemy_team().size(); ++i) {
-						Point location = world.enemy_team().get(i).position();
+					Robot rightmostRobot;
+					for (Robot i : world.enemy_team()) {
+						Point location = i.position();
 						if (location.x < leftmost.x) {
 							leftmost = location;
-							leftmostIndex = i;
+							leftmostRobot = i;
 						} else if (location.x > rightmost.x) {
 							rightmost = location;
-							rightmostIndex = i;
+							rightmostRobot = i;
 						}
 					}
 
@@ -77,11 +77,11 @@ namespace {
 					tasks[5] = std::make_pair(Point(rightmost.x, rightmost.y + y_diff), 0);
 
 					// set avoidance distance based on whether the robot is moving
-					for (unsigned int i = 0; i < world.enemy_team().size(); ++i) {
-						if (i == leftmostIndex || i == rightmostIndex) {
-							world.enemy_team().get(i).avoid_distance(AI::Flags::AvoidDistance::MEDIUM);
+					for (Robot i : world.enemy_team()) {
+						if (i == leftmostRobot || i == rightmostRobot) {
+							i.avoid_distance(AI::Flags::AvoidDistance::MEDIUM);
 						} else {
-							world.enemy_team().get(i).avoid_distance(AI::Flags::AvoidDistance::LONG);
+							i.avoid_distance(AI::Flags::AvoidDistance::LONG);
 						}
 					}
 				}
@@ -89,8 +89,8 @@ namespace {
 				time_steps++;
 
 				// Set up to three players
-				for (unsigned int robotIndex = 0; robotIndex < friendly.size() && robotIndex < 3; ++robotIndex) {
-					Player runner = friendly.get(robotIndex);
+				for (std::size_t robotIndex = 0; robotIndex < friendly.size() && robotIndex < 3; ++robotIndex) {
+					Player runner = friendly[robotIndex];
 
 					const Point diff_pos = runner.position() - tasks[done[robotIndex]].first;
 
@@ -117,7 +117,7 @@ namespace {
 
 				// Set moving obstacles
 				if (friendly.size() >= 4) {
-					Player runner = friendly.get(3);
+					Player runner = friendly[3];
 					Point des;
 					if (obstacleIndex == 0) {
 						des = Point(0, 1);

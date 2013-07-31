@@ -139,8 +139,7 @@ void RRTNavigator::pivot(Player player) {
 
 void RRTNavigator::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 	ctx->set_source_rgb(1.0, 1.0, 1.0);
-	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-		Player player = world.friendly_team().get(i);
+	for (const Player player : world.friendly_team()) {
 		ctx->begin_new_path();
 		ctx->set_line_width(1);
 		ctx->move_to(world.ball().position().x, world.ball().position().y);
@@ -149,14 +148,7 @@ void RRTNavigator::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 }
 
 void RRTNavigator::tick() {
-	AI::Timestamp working_time;
-	Player::Path path;
-	std::vector<Point> path_points;
-
-	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-		path.clear();
-		Player player = world.friendly_team().get(i);
-
+	for (Player player : world.friendly_team()) {
 		if (!std::dynamic_pointer_cast<PlayerData>(player.object_store()[typeid(*this)])) {
 			player.object_store()[typeid(*this)] = std::make_shared<PlayerData>();
 		}
@@ -164,6 +156,7 @@ void RRTNavigator::tick() {
 
 		Point dest;
 		Angle dest_orientation = player.destination().second;
+		Player::Path path;
 		if (player.type() == AI::Flags::MoveType::INTERCEPT) {
 			// refer to this function in util.cpp
 			intercept_flag_handler(world, player);
@@ -194,11 +187,10 @@ void RRTNavigator::tick() {
 		}
 		unsigned int flags = std::dynamic_pointer_cast<PlayerData>(player.object_store()[typeid(*this)])->added_flags;
 		// calculate a path
-		path_points.clear();
-		path_points = planner.plan(player, dest, flags);
+		std::vector<Point> path_points = planner.plan(player, dest, flags);
 
 		double dist = 0.0;
-		working_time = world.monotonic_time();
+		AI::Timestamp working_time = world.monotonic_time();
 
 		for (std::size_t j = 0; j < path_points.size(); ++j) {
 			// the last point will just use whatever the last orientation was

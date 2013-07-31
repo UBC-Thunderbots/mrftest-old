@@ -38,12 +38,12 @@ namespace {
 		void tick() {
 			FriendlyTeam friendly = world.friendly_team();
 
-			for (uint robotIndex = 0; robotIndex < friendly.size(); robotIndex++) {
+			for (std::size_t robotIndex = 0; robotIndex < friendly.size(); robotIndex++) {
 				Point des(dest_control.get_value(), 0);
-				double radius = 0.2 * robotIndex + 0.2;
-				Angle offset_angle = Angle::of_radians(0.7 + robotIndex * 1.1);
-				Player runner = friendly.get(robotIndex);
-				Point diff = (des - friendly.get(0).position()).rotate(offset_angle);
+				double radius = 0.2 * static_cast<double>(robotIndex) + 0.2;
+				Angle offset_angle = Angle::of_radians(0.7 + static_cast<double>(robotIndex) * 1.1);
+				Player runner = friendly[robotIndex];
+				Point diff = (des - friendly[0].position()).rotate(offset_angle);
 				Point dest = des - radius * (diff / diff.len());
 
 				runner.flags(0);

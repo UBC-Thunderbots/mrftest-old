@@ -150,18 +150,16 @@ void PlayExecutor::role_assignment() {
 	
 	Player goalie;
 	// This removes the safety check of must having a goalie to execute a play. 
-	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-		Player p = world.friendly_team().get(i);
+	for (const Player p : world.friendly_team()) {
 		if (p.pattern() == world.friendly_team().goalie() && players_enabled[p.pattern()]) {
 			goalie = p;
 		}
 	}
 	if(test_goalie){
 		if (goalie_lowest) {
-			goalie = world.friendly_team().get(0);
+			goalie = world.friendly_team()[0];
 		} else {
-			for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-				Player p = world.friendly_team().get(i);
+			for (const Player p : world.friendly_team()) {
 				if (p.pattern() == static_cast<unsigned int>(goalie_pattern_index) && players_enabled[p.pattern()]) {
 					goalie = p;
 				}
@@ -187,8 +185,7 @@ void PlayExecutor::role_assignment() {
 
 	// pool of available people
 	std::set<Player> players;
-	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-		Player p = world.friendly_team().get(i);
+	for (const Player p : world.friendly_team()) {
 		if ((goalie && p == goalie) || !players_enabled[p.pattern()]) {
 			continue;
 		}
@@ -356,12 +353,10 @@ void PlayExecutor::tick() {
 	tick_eval(world);
 	enable_players();
 
-	FriendlyTeam friendly = world.friendly_team();
 	std::vector<Player> players;
-
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if (players_enabled[friendly.get(i).pattern()]) {
-			players.push_back(friendly.get(i));
+	for (const Player i : world.friendly_team()) {
+		if (players_enabled[i.pattern()]) {
+			players.push_back(i);
 		}
 	}
 

@@ -34,7 +34,7 @@ namespace {
 				}
 				// this wont work (not implemented) in the ode simulator
 				// use a real robot or grsim instead 
-				Action::chip_target(world, friendly.get(0), world.field().enemy_goal());
+				Action::chip_target(world, friendly[0], world.field().enemy_goal());
 			}
 
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {

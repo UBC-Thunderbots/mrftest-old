@@ -30,7 +30,7 @@ namespace {
 					return;
 				}
 
-				Action::repel(world, friendly.get(0));
+				Action::repel(world, friendly[0]);
 			}
 	};
 }

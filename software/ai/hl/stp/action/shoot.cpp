@@ -107,11 +107,9 @@ bool AI::HL::STP::Action::shoot_pass(World world, Player player, const Point tar
 	double distance_tol = (target - player.position()).len() * angle_tol.sin() + AI::HL::STP::Action::target_region_param;
 	bool ok = false;
 
-	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
-		Player p = player;
-		if (world.friendly_team().get(i) != p) {
-			bool curr_ok = (target - world.friendly_team().get(i).position()).len() < distance_tol
-			               && Evaluation::passee_facing_passer(player, world.friendly_team().get(i));
+	for (const Player i : world.friendly_team()) {
+		if (i != player) {
+			bool curr_ok = (target - i.position()).len() < distance_tol && Evaluation::passee_facing_passer(player, i);
 			ok = ok || curr_ok;
 		}
 	}

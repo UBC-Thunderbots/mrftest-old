@@ -72,7 +72,6 @@ namespace {
 		void tick() {
 			tick_eval(world);
 
-			FriendlyTeam friendly = world.friendly_team();
 			std::vector<Player> players;
 			std::vector<Player> other_players;
 
@@ -104,8 +103,7 @@ namespace {
 			}
 */
 			Player goalie;
-			for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-				Player p = world.friendly_team().get(i);
+			for (const Player p : world.friendly_team()) {
 				if (p.pattern() == world.friendly_team().goalie() && enabled[p.pattern()]) {
 					goalie = p;
 				}
@@ -117,13 +115,12 @@ namespace {
 				players.push_back(goalie);
 			}
 
-			for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-				Player p = world.friendly_team().get(i);
+			for (const Player p : world.friendly_team()) {
 				if (goalie && p == goalie) {
 					// this is our goalie
 					continue;
 				} else if (!enabled[p.pattern()]) {
-					other_players.push_back(friendly.get(i));
+					other_players.push_back(p);
 					continue;
 				}
 				players.push_back(p);

@@ -31,7 +31,7 @@ namespace {
 					return;
 				}
 
-				Action::shoot_goal(world, friendly.get(0));
+				Action::shoot_goal(world, friendly[0]);
 			}
 
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {

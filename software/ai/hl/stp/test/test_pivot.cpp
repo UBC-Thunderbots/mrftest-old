@@ -34,7 +34,7 @@ namespace {
 					return;
 				}
 
-				Player player = friendly.get(0);
+				Player player = friendly[0];
 
 				Point target;
 

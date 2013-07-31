@@ -29,27 +29,17 @@ PivotNavigator2::PivotNavigator2(World world) : Navigator(world) {
 }
 
 void PivotNavigator2::tick() {
-	FriendlyTeam fteam = world.friendly_team();
-
-	Player player;
-	Player::Path path;
-
-	Point currentPosition, destinationPosition;
-	Angle currentOrientation, destinationOrientation;
-
-	for (std::size_t i = 0; i < fteam.size(); i++) {
-		path.clear();
-		player = fteam.get(i);
-		currentPosition = player.position();
-		currentOrientation = player.orientation();
+	for (Player player : world.friendly_team()) {
+		Point currentPosition = player.position();
+		Angle currentOrientation = player.orientation();
 
 		Point diff = (world.ball().position() - currentPosition).rotate(offset_angle);
 
-		destinationPosition = world.ball().position() - offset_distance * diff.norm();
-		destinationOrientation = (world.ball().position() - currentPosition).orientation() + orientation_offset;
+		Point destinationPosition = world.ball().position() - offset_distance * diff.norm();
+		Angle destinationOrientation = (world.ball().position() - currentPosition).orientation() + orientation_offset;
 
+		Player::Path path;
 		path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
-
 		player.path(path);
 	}
 }

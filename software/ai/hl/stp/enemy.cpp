@@ -79,7 +79,7 @@ namespace {
 				// Remember that the closest robot to robot of index i is that robot itself. 
 				if (world.enemy_team().size() > index) {
 					auto robots = AI::HL::Util::get_robots(world.enemy_team());
-					std::sort(robots.begin(), robots.end(), AI::HL::Util::CmpDist<Robot>(world.enemy_team().get(robot).position()));
+					std::sort(robots.begin(), robots.end(), AI::HL::Util::CmpDist<Robot>(world.enemy_team()[robot].position()));
 					return robots[index];
 				} 
 				return Robot();

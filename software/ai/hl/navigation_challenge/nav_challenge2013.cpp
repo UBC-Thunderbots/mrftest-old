@@ -42,7 +42,7 @@ namespace {
 					return;
 				}
 
-				Player runners[] = {friendly.get(0), friendly.get(1), friendly.get(2)};
+				Player runners[] = {friendly[0], friendly[1], friendly[2]};
 
 				if (!runners[0] || !runners[1] || !runners[2]) {
 					return;
@@ -79,8 +79,8 @@ namespace {
 					}
 
 					// set avoidance distance based on whether the robot is moving
-					for (std::size_t j = 0; j < world.enemy_team().size(); ++j) {
-						world.enemy_team().get(j).avoid_distance(AI::Flags::AvoidDistance::MEDIUM);
+					for (Robot j : world.enemy_team()) {
+						j.avoid_distance(AI::Flags::AvoidDistance::MEDIUM);
 					}
 
 					runners[i].flags(0);

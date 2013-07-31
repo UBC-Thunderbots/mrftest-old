@@ -51,10 +51,10 @@ public:
       return;
     }
     
-    Player player0 = friendly.get(0);
-    Player player1 = friendly.get(1);
-    Player player2 = friendly.get(2);
-    Player player3 = friendly.get(3);
+    Player player0 = friendly[0];
+    Player player1 = friendly[1];
+    Player player2 = friendly[2];
+    Player player3 = friendly[3];
     
     switch(current_state){
     case INITIAL:{

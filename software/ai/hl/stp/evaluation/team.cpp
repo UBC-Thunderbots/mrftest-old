@@ -6,10 +6,10 @@ Player AI::HL::STP::Evaluation::nearest_friendly(World world, Point target) {
 	Player plr;
 	double dist = 0;
 
-	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
-		double d = (target - world.friendly_team().get(i).position()).len();
+	for (const Player i : world.friendly_team()) {
+		double d = (target - i.position()).len();
 		if (!plr || d < dist) {
-			plr = world.friendly_team().get(i);
+			plr = i;
 			dist = d;
 		}
 	}
@@ -21,10 +21,10 @@ Robot AI::HL::STP::Evaluation::nearest_enemy(World world, Point target) {
 	Robot bot;
 	double dist = 0;
 
-	for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
-		double d = (target - world.enemy_team().get(i).position()).len();
+	for (const Robot i : world.enemy_team()) {
+		double d = (target - i.position()).len();
 		if (!bot || d < dist) {
-			bot = world.enemy_team().get(i);
+			bot = i;
 			dist = d;
 		}
 	}

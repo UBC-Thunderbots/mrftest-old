@@ -44,10 +44,10 @@ namespace {
 					return;
 				}
 
-				if(friendly.get(0).has_ball()) {
-					Action::dribble(world, friendly.get(0), friendly.get(0).position());
+				if(friendly[0].has_ball()) {
+					Action::dribble(world, friendly[0], friendly[0].position());
 				} else {
-					Action::intercept(friendly.get(0), world.ball().position());
+					Action::intercept(friendly[0], world.ball().position());
 				}
 			}
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {

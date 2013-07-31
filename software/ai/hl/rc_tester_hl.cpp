@@ -42,9 +42,7 @@ namespace {
 				return;
 			}
 
-			for (std::size_t i = 0; i < friendly.size(); ++i) {
-				Player runner = friendly.get(i);
-
+			for (Player runner : friendly) {
 				const double px = runner.position().x + controls[0].get_value();
 				const double py = runner.position().y + controls[1].get_value();
 				const Angle pz = runner.orientation() + Angle::of_radians(controls[2].get_value());

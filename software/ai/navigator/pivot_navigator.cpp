@@ -29,19 +29,9 @@ PivotNavigator::PivotNavigator(World world) : Navigator(world) {
 }
 
 void PivotNavigator::tick() {
-	FriendlyTeam fteam = world.friendly_team();
-
-	Player player;
-	Player::Path path;
-
-	Point currentPosition, destinationPosition;
-	Angle currentOrientation, destinationOrientation;
-
-	for (std::size_t i = 0; i < fteam.size(); i++) {
-		path.clear();
-		player = fteam.get(i);
-		currentPosition = player.position();
-		currentOrientation = player.orientation();
+	for (Player player : world.friendly_team()) {
+		Point currentPosition = player.position();
+		Angle currentOrientation = player.orientation();
 
 		// tunable magic numbers BEWARE!!!
 		// double offset_angle = 80.0;
@@ -50,6 +40,9 @@ void PivotNavigator::tick() {
 
 		Point diff = (world.ball().position() - currentPosition);
 
+		Point destinationPosition;
+		Angle destinationOrientation;
+		Player::Path path;
 		if ((diff.len() < 0.3 && diff.len() > 0.1) && player.velocity().len() < 0.3 && (world.ball().position() - currentPosition).orientation().angle_diff(player.orientation()) < Angle::of_radians(1.2)) {
 			destinationPosition = player.position() + offset_distance * Point::of_angle(player.orientation() - offset_angle);
 			destinationOrientation = player.orientation() + orientation_offset;

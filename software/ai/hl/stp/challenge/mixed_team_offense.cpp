@@ -69,7 +69,6 @@ namespace {
 		void tick() {
 			tick_eval(world);
 
-			FriendlyTeam friendly = world.friendly_team();
 			std::vector<Player> players;
 
 			const bool enabled[] = {
@@ -87,11 +86,11 @@ namespace {
 				enable11,
 			};
 
-			for (std::size_t i = 0; i < friendly.size(); ++i) {
-				if (!enabled[friendly.get(i).pattern()]) {
+			for (const Player i : world.friendly_team()) {
+				if (!enabled[i.pattern()]) {
 					continue;
 				}
-				players.push_back(friendly.get(i));
+				players.push_back(i);
 			}
 
 			if (players.empty()) {

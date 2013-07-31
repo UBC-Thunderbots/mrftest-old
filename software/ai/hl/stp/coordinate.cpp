@@ -28,8 +28,8 @@ Point Coordinate::position() const {
 			break;
 
 		case YType::OUR_SIDE_STRONG:
-			for (std::size_t i = 0; i < world->friendly_team().size(); i++) {
-				center += world->friendly_team().get(i).position().y;
+			for (const Player i : world->friendly_team()) {
+				center += i.position().y;
 			}
 			if (center < 0.0) {
 				p.y *= -1;
@@ -37,8 +37,8 @@ Point Coordinate::position() const {
 			break;
 
 		case YType::THEIR_SIDE_STRONG:
-			for (std::size_t i = 0; i < world->enemy_team().size(); i++) {
-				center += world->enemy_team().get(i).position().y;
+			for (const Robot i : world->enemy_team()) {
+				center += i.position().y;
 			}
 			if (center < 0.0) {
 				p.y *= -1;

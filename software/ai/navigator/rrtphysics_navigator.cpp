@@ -39,21 +39,15 @@ RRTPhysicsNavigator::RRTPhysicsNavigator(World world) : Navigator(world), planne
 }
 
 void RRTPhysicsNavigator::tick() {
-	AI::Timestamp currentTime;
-	Player::Path path;
-	std::vector<Point> pathPoints;
-
-	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-		path.clear();
-		Player player = world.friendly_team().get(i);
-		currentTime = world.monotonic_time();
+	const AI::Timestamp currentTime = world.monotonic_time();
+	for (Player player : world.friendly_team()) {
 		const double dist = (player.position() - player.destination().first).len();
 		AI::Timestamp finalTime = currentTime + std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(dist / MAX_SPEED));
 
-		pathPoints.clear();
-		pathPoints = planner.plan(player, player.destination().first);
+		std::vector<Point> pathPoints = planner.plan(player, player.destination().first);
 
 		Angle destOrientation = player.destination().second;
+		Player::Path path;
 		for (std::size_t j = 0; j < pathPoints.size(); ++j) {
 			// the last point will just use whatever the last orientation was
 			if (j + 1 != pathPoints.size()) {

@@ -74,7 +74,7 @@ void ParameterTuningNavigator::tick() {
 	Player::Path path;
 
 	path.clear();
-	player = fteam.get(0);
+	player = fteam[0];
 	Point currentPosition = player.position();
 	if ((currentPosition - tasks[taskIndex].first).len() < pos_dis_threshold
 		&& player.velocity().len() < pos_vel_threshold
@@ -90,7 +90,7 @@ void ParameterTuningNavigator::tick() {
 		taskIndex = 0;
 		std::cout << "Parameters: ";
 		std::vector<double> params = tc->get_params();
-		for (uint i = 0; i < params.size(); i++) {
+		for (std::vector<double>::size_type i = 0; i < params.size(); i++) {
 			std::cout << params[i] << " ";
 		}
 		std::cout << "Time steps taken: " << time;
@@ -103,7 +103,7 @@ void ParameterTuningNavigator::tick() {
 		sls.hill_climb();
 		std::cout << " Best parameters: ";
 		params = sls.get_best_params();
-		for (uint i = 0; i < params.size(); i++) {
+		for (std::vector<double>::size_type i = 0; i < params.size(); i++) {
 			std::cout << params[i] << " ";
 		}
 		std::cout << std::endl;

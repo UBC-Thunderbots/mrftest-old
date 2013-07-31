@@ -83,13 +83,10 @@ std::pair<Point, Angle> Evaluation::calc_enemy_best_shot_goal(const Field &f, co
 
 std::pair<Point, Angle> Evaluation::calc_enemy_best_shot_goal(World world, const Robot enemy, const double radius) {
 	std::vector<Point> obstacles;
-	const FriendlyTeam friendly = world.friendly_team();
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		obstacles.push_back(friendly.get(i).position());
+	for (const Player i : world.friendly_team()) {
+		obstacles.push_back(i.position());
 	}
-	EnemyTeam enemies = world.enemy_team();
-	for (std::size_t i = 0; i < enemies.size(); ++i) {
-		const Robot erob = enemies.get(i);
+	for (const Robot erob : world.enemy_team()) {
 		if (erob == enemy) {
 			continue;
 		}
@@ -99,16 +96,14 @@ std::pair<Point, Angle> Evaluation::calc_enemy_best_shot_goal(World world, const
 }
 
 std::vector<Robot> AI::HL::STP::Evaluation::get_passees(World world, Robot robot) {
-	EnemyTeam enemy = world.enemy_team();
-
 	// don't count this robot
 	std::vector<Robot> passees;
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		if (robot == enemy.get(i)) {
+	for (const Robot i : world.enemy_team()) {
+		if (robot == i) {
 			continue;
 		}
-		if (enemy_can_pass(world, robot, enemy.get(i))) {
-			passees.push_back(enemy.get(i));
+		if (enemy_can_pass(world, robot, i)) {
+			passees.push_back(i);
 		}
 	}
 	return passees;
@@ -120,7 +115,7 @@ int AI::HL::STP::Evaluation::calc_enemy_pass(World world, const Robot robot) {
 	auto threats = calc_enemy_threat(world);
 
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		if (enemy.get(i) != robot) {
+		if (enemy[i] != robot) {
 			continue;
 		}
 
@@ -169,17 +164,17 @@ std::vector<Evaluation::Threat> AI::HL::STP::Evaluation::calc_enemy_threat(World
 
 	std::vector<Evaluation::Threat> threats(enemy.size());
 	for (size_t i = 0; i < enemy.size(); ++i) {
-		threats[i].goal_angle = calc_enemy_best_shot_goal(world, enemy.get(i)).second;
-		threats[i].can_shoot_goal = enemy_can_shoot_goal(world, enemy.get(i));
+		threats[i].goal_angle = calc_enemy_best_shot_goal(world, enemy[i]).second;
+		threats[i].can_shoot_goal = enemy_can_shoot_goal(world, enemy[i]);
 		threats[i].passes_reach = 5;
 		threats[i].passes_goal = 5;
-		threats[i].robot = enemy.get(i);
+		threats[i].robot = enemy[i];
 
-		if (enemy.get(i) == enemy_baller) {
+		if (enemy[i] == enemy_baller) {
 			threats[i].passes_reach = 0;
 		}
 
-		if (possess_ball(world, enemy.get(i))) {
+		if (possess_ball(world, enemy[i])) {
 			threats[i].passes_reach = 0;
 		}
 		if (threats[i].can_shoot_goal) {
@@ -194,7 +189,7 @@ std::vector<Evaluation::Threat> AI::HL::STP::Evaluation::calc_enemy_threat(World
 				if (i == j) {
 					continue;
 				}
-				if (!enemy_can_pass(world, enemy.get(i), enemy.get(j))) {
+				if (!enemy_can_pass(world, enemy[i], enemy[j])) {
 					continue;
 				}
 
@@ -202,12 +197,12 @@ std::vector<Evaluation::Threat> AI::HL::STP::Evaluation::calc_enemy_threat(World
 
 				if (threats[j].passes_reach > threats[i].passes_reach + 1) {
 					threats[j].passes_reach = threats[i].passes_reach + 1;
-					threats[j].passer = enemy.get(i);
+					threats[j].passer = enemy[i];
 				}
 
 				if (threats[i].passes_goal > threats[j].passes_goal + 1) {
 					threats[i].passes_goal = threats[j].passes_goal + 1;
-					threats[i].passee = enemy.get(j);
+					threats[i].passee = enemy[j];
 				}
 			}
 		}

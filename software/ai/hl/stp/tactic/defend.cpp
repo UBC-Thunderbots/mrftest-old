@@ -88,9 +88,9 @@ namespace {
 			return true;
 		}
 		// check if there are any defenders close by
-		for (size_t i = 0; i < world.friendly_team().size(); i++) {
-			bool close_to_block_formation = seg_pt_dist(world.ball().position(), world.field().friendly_goal(), world.friendly_team().get(i).position()) < danger_dist;
-			bool goalie = world.friendly_team().get(i).position().close(player.position(), 0.1);
+		for (const Player i : world.friendly_team()) {
+			bool close_to_block_formation = seg_pt_dist(world.ball().position(), world.field().friendly_goal(), i.position()) < danger_dist;
+			bool goalie = i.position().close(player.position(), 0.1);
 			if (close_to_block_formation && !goalie)
 				return false;
 		}

@@ -53,8 +53,8 @@ bool AI::HL::STP::Action::repel(World world, Player player) {
 
 	std::vector<Point> obstacles;
 	EnemyTeam enemy = world.enemy_team();
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		obstacles.push_back(enemy.get(i).position());
+	for (const Robot i : enemy) {
+		obstacles.push_back(i.position());
 	}
 
 	// vertical line at the enemy goal area
@@ -92,8 +92,8 @@ bool AI::HL::STP::Action::corner_repel(World world, Player player) {
 
 	std::vector<Point> obstacles;
 	EnemyTeam enemy = world.enemy_team();
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		obstacles.push_back(enemy.get(i).position());
+	for (const Robot i : enemy) {
+		obstacles.push_back(i.position());
 	}
 
 	// check circle in the middle and the centre line and find the best open spot to shoot at

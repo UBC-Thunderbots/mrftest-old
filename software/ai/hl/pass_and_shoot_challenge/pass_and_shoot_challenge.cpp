@@ -106,15 +106,15 @@ class PASCHL : public HighLevel {
 					return;
 				}
 
-				Player player0 = friendly.get(0);
-				Player player1 = friendly.get(1);
-				Player player2 = friendly.get(2);
-				Player player3 = friendly.get(3);
+				Player player0 = friendly[0];
+				Player player1 = friendly[1];
+				Player player2 = friendly[2];
+				Player player3 = friendly[3];
 
 				switch (current_state) {
 				case INITIAL_POSITION:{
 					for (unsigned int i = 1; i < min_team_size; i++) {
-						friendly.get(i).move(robot_positions[i].first, robot_positions[i].second, Point());
+						friendly[i].move(robot_positions[i].first, robot_positions[i].second, Point());
 					}
 
 				    bool bot0_is_init = intercept_and_move(0);
@@ -212,8 +212,8 @@ Point PASCHL::horizontal_intercept(Player player) {
 
 void PASCHL::robot_pass(std::size_t passer_num, std::size_t receiver_num, state next_state) {
 	// we are assuming that we have the ball here
-	Player passer = world.friendly_team().get(passer_num);
-	Player receiver = world.friendly_team().get(receiver_num);
+	Player passer = world.friendly_team()[passer_num];
+	Player receiver = world.friendly_team()[receiver_num];
 	Angle passer_orientation = (passer.position() - receiver.position()).orientation();
 
 
@@ -276,7 +276,7 @@ bool PASCHL::ball_out_of_play() {
 }
 
 bool PASCHL::intercept_and_move(std::size_t idx) {
-  Player intercepter = world.friendly_team().get(idx);
+  Player intercepter = world.friendly_team()[idx];
 
   if (!intercepter.has_ball())
     intercepter.move(world.ball().position(), (world.ball().position() - intercepter.position()).orientation(), Point());

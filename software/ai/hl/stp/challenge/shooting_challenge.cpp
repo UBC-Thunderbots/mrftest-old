@@ -39,22 +39,18 @@ namespace {
 				tick_eval(world);
 
 				FriendlyTeam friendly = world.friendly_team();
-				if (friendly.size() == 0) {
-					return;
-				}
 				if (friendly.size() > 0) {
 					if (world.playtype() == AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY || world.playtype() == AI::Common::PlayType::PLAY) {
-						friendly.get(0).flags(0);
-						AI::HL::STP::Action::shoot_goal(world, friendly.get(0), true);
+						friendly[0].flags(0);
+						AI::HL::STP::Action::shoot_goal(world, friendly[0], true);
 					} else if (world.playtype() == AI::Common::PlayType::STOP) {
 						auto Stopped_Player = AI::HL::STP::Tactic::move_stop(world, 2);
-						Stopped_Player->set_player(friendly.get(0));
+						Stopped_Player->set_player(friendly[0]);
 						Stopped_Player->execute();
 					} else if (world.playtype() == AI::Common::PlayType::HALT) {
 						return;
 					}
 				}
-
 			}
 
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {

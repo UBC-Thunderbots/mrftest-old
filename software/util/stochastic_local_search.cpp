@@ -51,7 +51,7 @@ void StochasticLocalSearch::hill_climb() {
    void StochasticLocalSearch::random_restart() {
     int index = rand()%param_cur.size();
     param_cur[index] = drand48()*(param_max[index]-param_min[index]) + param_min[index];
-    for (uint i = 0; i < param_min.size(); i++) param_cur[i] = drand48()*(param_max[i]-param_min[i]) + param_min[i];
+    for (std::vector<double>::size_type i = 0; i < param_min.size(); i++) param_cur[i] = drand48()*(param_max[i]-param_min[i]) + param_min[i];
    }
  */
 

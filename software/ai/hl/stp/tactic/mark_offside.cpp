@@ -69,10 +69,10 @@ namespace {
 	//return nearest friendly from the pool of non-marker players
 	Player MarkOffside::nearest_friendly(Point target) const{
 		std::vector<Player> team_pool;
-		for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
+		for (Player i : world.friendly_team()) {
 			// filter out the player
-			if (!world.friendly_team().get(i).position().close(player.position(), 0.01)) {
-				team_pool.push_back(world.friendly_team().get(i));
+			if (!i.position().close(player.position(), 0.01)) {
+				team_pool.push_back(i);
 			}
 		}
 		Player closest;

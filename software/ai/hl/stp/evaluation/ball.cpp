@@ -43,19 +43,19 @@ namespace {
 	void update_baller(World world) {
 		const FriendlyTeam friendly = world.friendly_team();
 		// use has ball
-		for (std::size_t i = 0; i < friendly.size(); ++i) {
-			if (get_goalie() == friendly.get(i)) {
+		for (const Player i : friendly) {
+			if (get_goalie() == i) {
 				continue;
 			}
-			if (friendly.get(i).has_ball()) {
-				baller = friendly.get(i);
+			if (i.has_ball()) {
+				baller = i;
 				return;
 			}
 		}
 		// use possess ball
-		for (std::size_t i = 0; i < friendly.size(); ++i) {
-			if (Evaluation::possess_ball(world, friendly.get(i))) {
-				baller = friendly.get(i);
+		for (const Player i : friendly) {
+			if (Evaluation::possess_ball(world, i)) {
+				baller = i;
 				return;
 			}
 		}
@@ -68,12 +68,11 @@ namespace {
 		Player best;
 
 		double min_dist = 1e99;
-		for (std::size_t i = 0; i < friendly.size(); ++i) {
-			Player player = friendly.get(i);
-			Point dest = Evaluation::calc_fastest_grab_ball_dest(world, player);
-			if (!best || min_dist > (dest - player.position()).len()) {
-				min_dist = (dest - player.position()).len();
-				best = player;
+		for (const Player i : friendly) {
+			Point dest = Evaluation::calc_fastest_grab_ball_dest(world, i);
+			if (!best || min_dist > (dest - i.position()).len()) {
+				min_dist = (dest - i.position()).len();
+				best = i;
 			}
 		}
 
@@ -113,19 +112,18 @@ Player Evaluation::calc_friendly_baller() {
 }
 
 Robot Evaluation::calc_enemy_baller(World world) {
-	EnemyTeam enemy = world.enemy_team();
 	Robot robot;
 	double best_dist = 1e99;
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		if (possess_ball(world, enemy.get(i))) {
-			return enemy.get(i);
+	for (const Robot i : world.enemy_team()) {
+		if (possess_ball(world, i)) {
+			return i;
 		}
 		Point dest;
-		AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), enemy.get(i).position(), dest);
-		double dist = (enemy.get(i).position() - dest).len();
+		AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), i.position(), dest);
+		double dist = (i.position() - dest).len();
 		if (!robot || dist < best_dist) {
 			best_dist = dist;
-			robot = enemy.get(i);
+			robot = i;
 		}
 	}
 	return robot;

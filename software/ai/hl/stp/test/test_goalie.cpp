@@ -29,7 +29,7 @@ namespace {
 					return;
 				}
 
-				Action::lone_goalie(world, friendly.get(0));
+				Action::lone_goalie(world, friendly[0]);
 			}
 	};
 }

@@ -172,8 +172,7 @@ namespace {
 	double get_enemy_trespass(Point cur, Point dst, AI::Nav::W::World world) {
 		double violate = 0.0;
 		// avoid enemy robots
-		for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
-			AI::Nav::W::Robot rob = world.enemy_team().get(i);
+		for (AI::Nav::W::Robot rob : world.enemy_team()) {
 			double circle_radius = distance_keepout::enemy(world, rob);
 			double dist = lineseg_point_dist(rob.position(), cur, dst);
 			if (USE_ENEMY_MOVEMENT_FACTOR) {
@@ -218,8 +217,7 @@ namespace {
 	double get_friendly_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
 		double violate = 0.0;
 		// avoid enemy robots
-		for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
-			AI::Nav::W::Player rob = world.friendly_team().get(i);
+		for (AI::Nav::W::Player rob : world.friendly_team()) {
 			if (rob == player) {
 				continue;
 			}
@@ -556,8 +554,7 @@ std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World worl
 		process_obstacle(ans, world, player, world.ball().position(), world.ball().position(), distance_keepout::ball_tiny(player), POINTS_PER_OBSTACLE);
 	}
 
-	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
-		AI::Nav::W::Player rob = world.friendly_team().get(i);
+	for (AI::Nav::W::Player rob : world.friendly_team()) {
 		if (rob == player) {
 			// points around self may help with trying to escape when stuck
 			// that is why there are double the number of points here
@@ -567,8 +564,7 @@ std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World worl
 		process_obstacle(ans, world, player, rob.position(), rob.position(), distance_keepout::friendly(player), POINTS_PER_OBSTACLE);
 	}
 
-	for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
-		AI::Nav::W::Robot rob = world.enemy_team().get(i);
+	for (AI::Nav::W::Robot rob : world.enemy_team()) {
 		process_obstacle(ans, world, player, rob.position(), rob.position(), distance_keepout::enemy(world, player), POINTS_PER_OBSTACLE);
 	}
 

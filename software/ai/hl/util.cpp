@@ -1,5 +1,6 @@
 #include "ai/hl/util.h"
 #include "geom/angle.h"
+#include "geom/point.h"
 #include "geom/util.h"
 #include "util/algorithm.h"
 #include "util/dprint.h"
@@ -103,11 +104,10 @@ std::pair<Point, Angle> AI::HL::Util::calc_best_shot(World world, const Player p
 	EnemyTeam enemy = world.enemy_team();
 	FriendlyTeam friendly = world.friendly_team();
 	obstacles.reserve(enemy.size() + friendly.size());
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		obstacles.push_back(enemy.get(i).position());
+	for (const Robot i : enemy) {
+		obstacles.push_back(i.position());
 	}
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		const Player fpl = friendly.get(i);
+	for (const Player fpl : friendly) {
 		if (fpl == player) {
 			continue;
 		}
@@ -128,11 +128,10 @@ std::vector<std::pair<Point, Angle> > AI::HL::Util::calc_best_shot_all(World wor
 	EnemyTeam enemy = world.enemy_team();
 	FriendlyTeam friendly = world.friendly_team();
 	obstacles.reserve(enemy.size() + friendly.size());
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		obstacles.push_back(enemy.get(i).position());
+	for (const Robot i : enemy) {
+		obstacles.push_back(i.position());
 	}
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		const Player fpl = friendly.get(i);
+	for (const Player fpl : friendly) {
 		if (fpl == player) {
 			continue;
 		}
@@ -142,18 +141,10 @@ std::vector<std::pair<Point, Angle> > AI::HL::Util::calc_best_shot_all(World wor
 }
 
 std::vector<Player> AI::HL::Util::get_players(FriendlyTeam friendly) {
-	std::vector<Player> players;
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		players.push_back(friendly.get(i));
-	}
-	return players;
+	return std::vector<Player>(friendly.begin(), friendly.end());
 }
 
 std::vector<Robot> AI::HL::Util::get_robots(EnemyTeam enemy) {
-	std::vector<Robot> robots;
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		robots.push_back(enemy.get(i));
-	}
-	return robots;
+	return std::vector<Robot>(enemy.begin(), enemy.end());
 }
 

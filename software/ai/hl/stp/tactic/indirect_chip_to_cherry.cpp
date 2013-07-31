@@ -51,8 +51,8 @@ namespace {
 
 		Point destination = Evaluation::cherry_pivot(world);
 		bool close = false;
-		for (std::size_t i = 0 ; i < world.friendly_team().size() ; i++){
-			if ((world.friendly_team().get(i).position() - destination).len() < Robot::MAX_RADIUS)
+		for (const Player i : world.friendly_team()) {
+			if ((i.position() - destination).len() < Robot::MAX_RADIUS)
 				close = true;
 		}
 		if (close) {

@@ -134,8 +134,8 @@ void SpinSteal::execute() {
 	none = false;
 	EnemyTeam enemy = world.enemy_team();
 	Point dirToBall = (world.ball().position() - player.position()).norm();
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		if (Evaluation::possess_ball(world, enemy.get(i))) {
+	for (const Robot i : enemy) {
+		if (Evaluation::possess_ball(world, i)) {
 			Action::move_spin(player, world.ball().position() + Robot::MAX_RADIUS * dirToBall);
 			return;
 		}
@@ -166,9 +166,9 @@ void TActiveDef::execute() {
 	finished = false;
 	EnemyTeam enemy = world.enemy_team();
 
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		if (Evaluation::possess_ball(world, enemy.get(i))) {
-			Point dirToBall = (world.ball().position() - enemy.get(i).position()).norm();
+	for (const Robot i : enemy) {
+		if (Evaluation::possess_ball(world, i)) {
+			Point dirToBall = (world.ball().position() - i.position()).norm();
 			Action::move_spin(player, world.ball().position() + 0.75 * Robot::MAX_RADIUS * dirToBall);
 			return;
 		}

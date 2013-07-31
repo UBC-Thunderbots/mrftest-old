@@ -34,9 +34,8 @@ bool Predicates::Playtype::compute(World world, AI::Common::PlayType playtype) {
 Predicates::Playtype Predicates::playtype;
 
 bool Predicates::OurBall::compute(World world) {
-	const FriendlyTeam friendly = world.friendly_team();
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if (Evaluation::possess_ball(world, friendly.get(i))) {
+	for (const Player i : world.friendly_team()) {
+		if (Evaluation::possess_ball(world, i)) {
 			return true;
 		}
 	}
@@ -46,9 +45,8 @@ bool Predicates::OurBall::compute(World world) {
 Predicates::OurBall Predicates::our_ball;
 
 bool Predicates::TheirBall::compute(World world) {
-	EnemyTeam enemy = world.enemy_team();
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		if (Evaluation::possess_ball(world, enemy.get(i))) {
+	for (const Robot i : world.enemy_team()) {
+		if (Evaluation::possess_ball(world, i)) {
 			return true;
 		}
 	}
@@ -160,9 +158,8 @@ bool Predicates::BallerCanChip::compute(World world) {
 	
 	if (shoot_anyway > std::rand()%10) return true;
 
-	EnemyTeam enemies = world.enemy_team();
-	for (std::size_t i = 0; i < enemies.size(); ++i) {
-		if ((baller.position() - enemies.get(i).position()).len() <= near_thresh * AI::HL::W::Robot::MAX_RADIUS) {
+	for (const Robot i : world.enemy_team()) {
+		if ((baller.position() - i.position()).len() <= near_thresh * AI::HL::W::Robot::MAX_RADIUS) {
 			return false;
 		}
 	}
@@ -200,9 +197,8 @@ bool Predicates::BallerUnderThreat::compute(World world) {
 		return false;
 	}
 	int enemy_cnt = 0;
-	EnemyTeam enemies = world.enemy_team();
-	for (std::size_t i = 0; i < enemies.size(); ++i) {
-		if ((baller.position() - enemies.get(i).position()).len() <= near_thresh * AI::HL::W::Robot::MAX_RADIUS) {
+	for (const Robot i : world.enemy_team()) {
+		if ((baller.position() - i.position()).len() <= near_thresh * AI::HL::W::Robot::MAX_RADIUS) {
 			enemy_cnt++;
 		}
 	}
@@ -256,9 +252,8 @@ Predicates::Defensive Predicates::defensive;
 
 bool Predicates::NumOfEnemiesOnOurSideAtLeast::compute(World world, const unsigned int n) {
 	unsigned int cnt = 0;
-	EnemyTeam enemies = world.enemy_team();
-	for (std::size_t i = 0; i < enemies.size(); ++i) {
-		if (enemies.get(i).position().x < 0) {
+	for (const Robot i : world.enemy_team()) {
+		if (i.position().x < 0) {
 			cnt++;
 		}
 	}
@@ -292,9 +287,7 @@ bool Predicates::FightBall::compute(World world) {
 Predicates::FightBall Predicates::fight_ball;
 
 bool Predicates::CanShootRay::compute(World world) {
-	const FriendlyTeam friendly = world.friendly_team();
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		const Player player = friendly.get(i);
+	for (const Player player : world.friendly_team()) {
 		if (!Evaluation::possess_ball(world, player)) {
 			continue;
 		}
@@ -310,16 +303,14 @@ Predicates::CanShootRay Predicates::can_shoot_ray;
 bool Predicates::BallInsideRobot::compute(World world) {
 	const Point ball = world.ball().position();
 
-	const FriendlyTeam friendly = world.friendly_team();
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if ((friendly.get(i).position() - ball).len() < AI::HL::Util::POS_CLOSE) {
+	for (const Player i : world.friendly_team()) {
+		if ((i.position() - ball).len() < AI::HL::Util::POS_CLOSE) {
 			return true;
 		}
 	}
 
-	EnemyTeam enemies = world.enemy_team();
-	for (std::size_t i = 0; i < enemies.size(); ++i) {
-		if ((enemies.get(i).position() - ball).len() < AI::HL::Util::POS_CLOSE) {
+	for (const Robot i : world.enemy_team()) {
+		if ((i.position() - ball).len() < AI::HL::Util::POS_CLOSE) {
 			return true;
 		}
 	}
@@ -329,9 +320,8 @@ bool Predicates::BallInsideRobot::compute(World world) {
 Predicates::BallInsideRobot Predicates::ball_inside_robot;
 
 bool Predicates::EnemyBreakDefenseDuo::compute(World world) {
-	EnemyTeam enemies = world.enemy_team();
-	for (std::size_t i = 0; i < enemies.size(); ++i) {
-		if (Evaluation::enemy_break_defense_duo(world, enemies.get(i))) {
+	for (const Robot i : world.enemy_team()) {
+		if (Evaluation::enemy_break_defense_duo(world, i)) {
 			return true;
 		}
 	}
@@ -341,8 +331,7 @@ bool Predicates::EnemyBreakDefenseDuo::compute(World world) {
 Predicates::EnemyBreakDefenseDuo Predicates::enemy_break_defense_duo;
 
 bool Predicates::BallTowardsEnemy::compute(World world) {
-	EnemyTeam enemies = world.enemy_team();
-	for (std::size_t i = 0; i < enemies.size(); ++i) {
+	for (const Robot i : world.enemy_team()) {
 		if (Evaluation::evaluate_ball_threat(world).activate_steal) {
 			return true;
 		}

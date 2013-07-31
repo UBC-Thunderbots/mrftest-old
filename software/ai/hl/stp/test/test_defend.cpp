@@ -34,13 +34,13 @@ namespace {
 				}
 
 				auto waypoints = Evaluation::evaluate_defense();
-				Action::goalie_move(world, friendly.get(0), waypoints[0]);
-				Action::defender_move(world, friendly.get(1), waypoints[1]);
-				Action::defender_move(world, friendly.get(2), waypoints[2]);
+				Action::goalie_move(world, friendly[0], waypoints[0]);
+				Action::defender_move(world, friendly[1], waypoints[1]);
+				Action::defender_move(world, friendly[2], waypoints[2]);
 				
 				// don't go into friendly defense area
 				for (std::size_t i = 1 ; i < 3 ; i++){
-					friendly.get(i).flags(0x0008);
+					friendly[i].flags(0x0008);
 				}
 			}
 

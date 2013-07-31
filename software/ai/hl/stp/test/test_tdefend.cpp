@@ -32,24 +32,24 @@ namespace {
 				}
 
 				auto goalie = Tactic::tgoalie(world, 2);
-				goalie->set_player(friendly.get(0));
+				goalie->set_player(friendly[0]);
 				goalie->execute();
 
 				auto defend1 = Tactic::tdefender1(world);
-				defend1->set_player(friendly.get(1));
+				defend1->set_player(friendly[1]);
 				defend1->execute();
 
 				auto defend2 = Tactic::tdefender2(world);
-				defend2->set_player(friendly.get(2));
+				defend2->set_player(friendly[2]);
 				defend2->execute();
 
 				auto defend3 = Tactic::tdefender3(world);
-				defend3->set_player(friendly.get(3));
+				defend3->set_player(friendly[3]);
 				defend3->execute();
 
 				// don't go into friendly defense area
 				for (std::size_t i = 1 ; i < 4 ; i++){
-					friendly.get(i).flags(0x0008);
+					friendly[i].flags(0x0008);
 				}
 			}
 

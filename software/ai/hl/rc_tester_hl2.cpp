@@ -64,7 +64,7 @@ namespace {
 			const Angle pz = Angle::of_radians(controls[2].get_value());
 
 			for (std::size_t i = 0; i < friendly.size(); ++i) {
-				Player runner = friendly.get(i);
+				Player runner = friendly[i];
 
 				const double ix = px + offsets_x.get_value() * static_cast<double>(i);
 				const double iy = py + offsets_y.get_value() * static_cast<double>(i);

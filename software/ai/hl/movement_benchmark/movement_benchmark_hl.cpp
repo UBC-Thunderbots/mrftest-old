@@ -104,9 +104,9 @@ namespace {
 
 				Player runner;
 
-				for (std::size_t i = 0; i < friendly.size(); ++i) {
-					if (friendly.get(i).pattern() == index) {
-						runner = friendly.get(i);
+				for (const Player i : friendly) {
+					if (i.pattern() == index) {
+						runner = i;
 					}
 				}
 				if (!runner) {

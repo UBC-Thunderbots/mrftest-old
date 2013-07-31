@@ -77,16 +77,12 @@ bool Evaluation::can_shoot_ray(World world, Player player, Angle orientation) {
 		return false;
 	}
 
-	const FriendlyTeam friendly = world.friendly_team();
-	EnemyTeam enemy = world.enemy_team();
-
 	double closest_enemy = 1e99;
 	double closest_friendly = 1e99;
 
 	Point ball_vel = Point::of_angle(orientation) * ball_pass_velocity;
 
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		Player fptr = friendly.get(i);
+	for (const Player fptr : world.friendly_team()) {
 		if (fptr == player) {
 			continue;
 		}
@@ -104,9 +100,7 @@ bool Evaluation::can_shoot_ray(World world, Player player, Angle orientation) {
 		closest_friendly = std::min(closest_friendly, dist);
 	}
 
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		Robot robot = enemy.get(i);
-
+	for (const Robot robot : world.enemy_team()) {
 		double dist;
 		if (pass_ray_use_calc_fastest) {
 			Point dest;
@@ -169,9 +163,8 @@ std::pair<bool, Angle> Evaluation::best_shoot_ray(World world, const Player play
 
 bool Evaluation::enemy_can_pass(World world, const Robot passer, const Robot passee) {
 	std::vector<Point> obstacles;
-	const FriendlyTeam friendly = world.friendly_team();
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		obstacles.push_back(friendly.get(i).position());
+	for (const Player i : world.friendly_team()) {
+		obstacles.push_back(i.position());
 	}
 
 	return can_pass_check(passer.position(), passee.position(), obstacles, enemy_pass_width);
@@ -179,19 +172,17 @@ bool Evaluation::enemy_can_pass(World world, const Robot passer, const Robot pas
 
 bool Evaluation::can_pass(World world, Player passer, Player passee) {
 	std::vector<Point> obstacles;
-	EnemyTeam enemy = world.enemy_team();
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		obstacles.push_back(enemy.get(i).position());
+	for (const Robot i : world.enemy_team()) {
+		obstacles.push_back(i.position());
 	}
-	const FriendlyTeam friendly = world.friendly_team();
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if (friendly.get(i) == passer) {
+	for (const Player i : world.friendly_team()) {
+		if (i == passer) {
 			continue;
 		}
-		if (friendly.get(i) == passee) {
+		if (i == passee) {
 			continue;
 		}
-		obstacles.push_back(friendly.get(i).position());
+		obstacles.push_back(i.position());
 	}
 
 	return can_pass_check(passer.position(), passee.position(), obstacles, friendly_pass_width);
@@ -199,9 +190,8 @@ bool Evaluation::can_pass(World world, Player passer, Player passee) {
 
 bool Evaluation::can_pass(World world, const Point p1, const Point p2) {
 	std::vector<Point> obstacles;
-	EnemyTeam enemy = world.enemy_team();
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		obstacles.push_back(enemy.get(i).position());
+	for (const Robot i : world.enemy_team()) {
+		obstacles.push_back(i.position());
 	}
 
 	return can_pass_check(p1, p2, obstacles, friendly_pass_width);
@@ -251,21 +241,20 @@ namespace {
 }
 
 Player Evaluation::select_passee(World world) {
-	const FriendlyTeam friendly = world.friendly_team();
 	std::vector<Player> candidates;
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		if (possess_ball(world, friendly.get(i))) {
+	for (const Player i : world.friendly_team()) {
+		if (possess_ball(world, i)) {
 			continue;
 		}
-		if (!passee_suitable(world, friendly.get(i))) {
+		if (!passee_suitable(world, i)) {
 			continue;
 		}
 
-		if (friendly.get(i) == previous_passee) {
-			return friendly.get(i);
+		if (i == previous_passee) {
+			return i;
 		}
 
-		candidates.push_back(friendly.get(i));
+		candidates.push_back(i);
 	}
 	if (candidates.empty()) {
 		return Player();

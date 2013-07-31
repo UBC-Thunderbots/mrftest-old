@@ -69,8 +69,8 @@ namespace {
 
 		double closest_friendly = 1e99;
 		const FriendlyTeam friendly = world.friendly_team();
-		for (size_t i = 0; i < friendly.size(); ++i) {
-			double dist = (friendly.get(i).position() - dest).len();
+		for (const Player i : friendly) {
+			double dist = (i.position() - dest).len();
 			closest_friendly = std::min(closest_friendly, dist);
 		}
 
@@ -262,8 +262,8 @@ namespace {
 
 		EnemyTeam enemy = world.enemy_team();
 		std::vector<Point> enemy_pos;
-		for (size_t i = 0; i < enemy.size(); ++i) {
-			enemy_pos.push_back(enemy.get(i).position());
+		for (const Robot i : enemy) {
+			enemy_pos.push_back(i.position());
 		}
 
 		// don't block ball, and the others

@@ -29,8 +29,8 @@ namespace {
 				if (friendly.size() == 0) {
 					return;
 				}
-				Point dirToBall = (world.ball().position() - friendly.get(0).position()).norm();
-				Action::move_spin(friendly.get(0), world.ball().position() + Robot::MAX_RADIUS * dirToBall);
+				Point dirToBall = (world.ball().position() - friendly[0].position()).norm();
+				Action::move_spin(friendly[0], world.ball().position() + Robot::MAX_RADIUS * dirToBall);
 			}
 	};
 }

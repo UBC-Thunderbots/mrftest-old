@@ -39,40 +39,37 @@ namespace {
 //						if (player.has_ball() == true && obstacle(player, goal_point) == false) {
 //							player.autokick(speed_ratio);
 //	/					}
-				}
-
-			bool obstacle(Player Passer, Point Destination) {
-					std::size_t size_enemy = world.enemy_team().size();
-					std::size_t size_friendly = world.friendly_team().size();
-					double tolerance = Robot::MAX_RADIUS/2;
-					Point rectangle[4];
-					Point norm_passer = (Passer.position() - Destination).norm();
-					//rectangle drawn by getting normal vector. then the 4 points are chosen by tolerance
-					rectangle[0] = Passer.position() + (norm_passer * tolerance) ;
-					rectangle[1] = Passer.position() - (norm_passer * tolerance);
-					rectangle[2] = Destination + (norm_passer * tolerance);
-					rectangle[3] = Destination - (norm_passer * tolerance);
-
-					//check if any enemies are in the rectangle
-					for (std::size_t i = 0; i < size_enemy; i++) {
-
-						if (point_in_rectangle(world.enemy_team().get(i).position(), rectangle) == true)
-							return true;
-						}
-					//check if any friendlies are in the rectangle
-					for (std::size_t i = 0; i < size_friendly; i++) {
-
-						if (point_in_rectangle(world.friendly_team().get(i).position(), rectangle) == true)
-							return true;
-					}
-					//return false if rectangle is clear of obstacles
-					return false;
-				}
-
-			Glib::ustring description() const {
-			return "Shooting Challenge";
 			}
 
+			bool obstacle(Player Passer, Point Destination) {
+				double tolerance = Robot::MAX_RADIUS/2;
+				Point rectangle[4];
+				Point norm_passer = (Passer.position() - Destination).norm();
+				//rectangle drawn by getting normal vector. then the 4 points are chosen by tolerance
+				rectangle[0] = Passer.position() + (norm_passer * tolerance) ;
+				rectangle[1] = Passer.position() - (norm_passer * tolerance);
+				rectangle[2] = Destination + (norm_passer * tolerance);
+				rectangle[3] = Destination - (norm_passer * tolerance);
+
+				//check if any enemies are in the rectangle
+				for (const Robot i : world.enemy_team()) {
+					if (point_in_rectangle(i.position(), rectangle)) {
+						return true;
+					}
+				}
+				//check if any friendlies are in the rectangle
+				for (const Player i : world.friendly_team()) {
+					if (point_in_rectangle(i.position(), rectangle)) {
+						return true;
+					}
+				}
+				//return false if rectangle is clear of obstacles
+				return false;
+			}
+
+			Glib::ustring description() const {
+				return "Shooting Challenge";
+			}
 	};
 }
 

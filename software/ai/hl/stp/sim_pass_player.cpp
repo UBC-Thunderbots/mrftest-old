@@ -37,7 +37,7 @@ namespace {
 				if (friendly.size() == 0) {
 					return;
 				} else if (friendly.size() >= 1) {
-					Player receiver = friendly.get(0);
+					Player receiver = friendly[0];
 					Point receiver_pos = receiver.position();
 					Point ball_pos = world.ball().position();
 					Point ball_vel = world.ball().velocity();

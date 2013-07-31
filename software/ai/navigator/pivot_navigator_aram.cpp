@@ -27,38 +27,29 @@ PivotNavigatorAram::PivotNavigatorAram(World world) : Navigator(world) {
 }
 
 void PivotNavigatorAram::tick() {
-	FriendlyTeam fteam = world.friendly_team();
-
-	Player player;
-	Player::Path path;
-
-	Point currentPosition, currentVelocity, destinationPosition, targetPosition, turnCentre, diff;
-	Angle currentOrientation, destinationOrientation;
-	double turnRadius;
-
-	for (std::size_t i = 0; i < fteam.size(); i++) {
-		path.clear();
-		player = fteam.get(i);
-		currentPosition = player.position();
-		currentVelocity = player.velocity();
-		currentOrientation = player.orientation();
+	for (Player player : world.friendly_team()) {
+		Point currentPosition = player.position();
+		Point currentVelocity = player.velocity();
+		Angle currentOrientation = player.orientation();
 
 		if (currentVelocity.lensq() < 0.0001) {
 			currentVelocity = Point(0.0, 0.01).rotate(currentOrientation);
 		}
 
-		diff = world.ball().position() - currentPosition;
-		turnRadius = currentVelocity.lensq() / acceleration;
+		Point diff = world.ball().position() - currentPosition;
+		double turnRadius = currentVelocity.lensq() / acceleration;
 
-		targetPosition = world.ball().position() + diff; // try to reach opposite side of ball
+		Point targetPosition = world.ball().position() + diff; // try to reach opposite side of ball
 		// targetPosition = Point(0, 0); // try to reach centre of field
 
+		Point turnCentre;
 		if (diff.cross(currentVelocity) > 0) {
 			turnCentre = currentPosition + turnRadius * currentVelocity.rotate(Angle::quarter());
 		} else {
 			turnCentre = currentPosition + turnRadius * currentVelocity.rotate(-Angle::quarter());
 		}
 
+		Point destinationPosition;
 		if ((world.ball().position() - turnCentre).len() > turnRadius + pivot_radius) {
 			destinationPosition = targetPosition;
 		} else if (diff.len() > pivot_radius) {
@@ -69,10 +60,10 @@ void PivotNavigatorAram::tick() {
 		// if ((world.ball().position() - destinationPosition).len() < pivot_radius)
 		// destinationPosition = world.ball().position() + pivot_radius*(destinationPosition - world.ball().position()).norm();
 
-		destinationOrientation = (world.ball().position() - destinationPosition).orientation();
+		Angle destinationOrientation = (world.ball().position() - destinationPosition).orientation();
 
+		Player::Path path;
 		path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
-
 		player.path(path);
 	}
 }
