@@ -1,33 +1,37 @@
 #ifndef UTIL_BIT_ARRAY_H
 #define UTIL_BIT_ARRAY_H
 
+#include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
 
 /**
- * An array of bits that is also accessible as a C-style array of bytes.
+ * \brief An array of bits that is also accessible as a C-style array of bytes.
  *
- * \tparam N the number of bits.
+ * \tparam N the number of bits
  */
 template<std::size_t N> class BitArray {
 	public:
 		/**
-		 * The data.
+		 * \brief The data.
 		 */
-		uint8_t bytes[(N + 7) / 8];
+		std::array<uint8_t, (N + 7) / 8> bytes;
 
 		/**
-		 * Constructs a new BitArray.
+		 * \brief Constructs a new BitArray.
 		 */
 		BitArray() {
 			zero();
 		}
 
 		/**
-		 * Gets the value of a bit.
+		 * \brief Gets the value of a bit.
 		 *
-		 * \param[in] i the index of the bit.
+		 * \param[in] i the index of the bit
+		 *
+		 * \return \c true if the bit is set, or \c false if it is cleared
 		 */
 		bool get(std::size_t i) const {
 			assert(i < N);
@@ -35,11 +39,11 @@ template<std::size_t N> class BitArray {
 		}
 
 		/**
-		 * Sets the value of a bit.
+		 * \brief Sets the value of a bit.
 		 *
-		 * \param[in] i the index of the bit.
+		 * \param[in] i the index of the bit
 		 *
-		 * \param[in] v the value to set the bit to.
+		 * \param[in] v the value to set the bit to
 		 */
 		void set(std::size_t i, bool v) {
 			assert(i < N);
@@ -51,44 +55,10 @@ template<std::size_t N> class BitArray {
 		}
 
 		/**
-		 * Sets all the bits to zero.
+		 * \brief Sets all the bits to zero.
 		 */
 		void zero() {
-			for (std::size_t i = 0; i < sizeof(bytes); ++i) {
-				bytes[i] = 0;
-			}
-		}
-
-		/**
-		 * Compares two BitArrays for equality.
-		 *
-		 * \param[in] other the array to compare.
-		 *
-		 * \return \c true if the contents of the arrays are the same, or \c false if not.
-		 */
-		bool operator==(const BitArray<N> &other) const {
-			for (std::size_t i = 0; i < sizeof(bytes); ++i) {
-				if (bytes[i] != other.bytes[i]) {
-					return false;
-				}
-			}
-			return true;
-		}
-
-		/**
-		 * Compares two BitArrays for inequality.
-		 *
-		 * \param[in] other the array to compare.
-		 *
-		 * \return \c false if the contents of the arrays are the same, or \c true if not.
-		 */
-		bool operator!=(const BitArray<N> &other) const {
-			for (std::size_t i = 0; i < sizeof(bytes); ++i) {
-				if (bytes[i] != other.bytes[i]) {
-					return true;
-				}
-			}
-			return false;
+			std::fill(bytes.begin(), bytes.end(), static_cast<uint8_t>(0));
 		}
 };
 
