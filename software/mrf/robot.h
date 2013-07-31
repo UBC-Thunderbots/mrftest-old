@@ -4,7 +4,6 @@
 #include "drive/robot.h"
 #include "util/annunciator.h"
 #include "util/async_operation.h"
-#include "util/bit_array.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
 #include <array>
