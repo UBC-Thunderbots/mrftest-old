@@ -34,8 +34,9 @@ namespace AI {
 				void move(Player player, const Angle orientation, const Point dest, const Point vel);
 
 				/**
-				 * Move to a particular location and stop.
+				 * Move to a particular location with a low velocity and stop.
 				 * Orient the player towards the ball.
+				 * MOVE_CAREFUL flag is set.
 				 */
 				void move_careful(World world, Player player, const Point dest);
 			}

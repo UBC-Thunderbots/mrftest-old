@@ -29,6 +29,11 @@ bool AI::HL::STP::Action::chip_target(World world, Player player, const Point ta
 	if (!Evaluation::player_within_angle_thresh(player, target, passer_angle_threshold)) {
 		return false;
 	}
+/**
+*	Due to navigator navigating at an offset of ~10 degrees, ball is never hitting directly on chipper.
+*	This results in the player continously ramming the ball, which is bad for kickoffs. 
+*	The following code will be uncommented once pivotting properly works.
+*/
 
 	// angle is right but chicker not ready, ram the ball and get closer to target
 	if (!player.chicker_ready()) {
