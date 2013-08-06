@@ -61,7 +61,7 @@ class Angle {
 		 *
 		 * \return the angle.
 		 */
-		static constexpr Angle asin(double x);
+		static Angle asin(double x);
 
 		/**
 		 * \brief Computes the arc cosine of a value.
@@ -70,7 +70,7 @@ class Angle {
 		 *
 		 * \return the angle.
 		 */
-		static constexpr Angle acos(double x);
+		static Angle acos(double x);
 
 		/**
 		 * \brief Computes the arc tangent of a value.
@@ -79,7 +79,7 @@ class Angle {
 		 *
 		 * \return the angle.
 		 */
-		static constexpr Angle atan(double x);
+		static Angle atan(double x);
 
 		/**
 		 * \brief Constructs the "zero" angle.
@@ -137,21 +137,21 @@ class Angle {
 		 *
 		 * \return the sine of this angle.
 		 */
-		constexpr double sin() const;
+		double sin() const;
 
 		/**
 		 * \brief Computes the cosine of this angle.
 		 *
 		 * \return the cosine of this angle.
 		 */
-		constexpr double cos() const;
+		double cos() const;
 
 		/**
 		 * \brief Computes the tangent of this angle.
 		 *
 		 * \return teh tangent of this angle.
 		 */
-		constexpr double tan() const;
+		double tan() const;
 
 		/**
 		 * \brief Limits this angle to [−π, π].
@@ -405,15 +405,15 @@ inline constexpr Angle Angle::of_degrees(double t) {
 	return Angle(t / 180.0 * M_PI);
 }
 
-inline constexpr Angle Angle::asin(double x) {
+inline Angle Angle::asin(double x) {
 	return Angle::of_radians(std::asin(x));
 }
 
-inline constexpr Angle Angle::acos(double x) {
+inline Angle Angle::acos(double x) {
 	return Angle::of_radians(std::acos(x));
 }
 
-inline constexpr Angle Angle::atan(double x) {
+inline Angle Angle::atan(double x) {
 	return Angle::of_radians(std::atan(x));
 }
 
@@ -429,30 +429,30 @@ inline constexpr double Angle::to_degrees() const {
 }
 
 inline constexpr Angle Angle::mod(Angle divisor) const {
-	return Angle::of_radians(std::fmod(to_radians(), divisor.to_radians()));
+	return Angle::of_radians(to_radians() - static_cast<double>(static_cast<long>(to_radians() / divisor.to_radians())) * divisor.to_radians());
 }
 
 inline constexpr Angle Angle::remainder(Angle divisor) const {
-	return Angle::of_radians(std::remainder(to_radians(), divisor.to_radians()));
+	return Angle::of_radians(to_radians() - static_cast<double>(static_cast<long>((to_radians() / divisor.to_radians()) >= 0 ? (to_radians() / divisor.to_radians() + 0.5) : (to_radians() / divisor.to_radians() - 0.5))) * divisor.to_radians());
 }
 
 inline constexpr Angle Angle::abs() const {
-	return Angle::of_radians(std::fabs(to_radians()));
+	return Angle::of_radians(to_radians() < 0 ? -to_radians() : to_radians());
 }
 
 inline bool Angle::isfinite() const {
 	return std::isfinite(to_radians());
 }
 
-inline constexpr double Angle::sin() const {
+inline double Angle::sin() const {
 	return std::sin(to_radians());
 }
 
-inline constexpr double Angle::cos() const {
+inline double Angle::cos() const {
 	return std::cos(to_radians());
 }
 
-inline constexpr double Angle::tan() const {
+inline double Angle::tan() const {
 	return std::tan(to_radians());
 }
 

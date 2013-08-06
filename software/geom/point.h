@@ -28,7 +28,7 @@ class Point {
 		 *
 		 * \return the Point
 		 */
-		static constexpr Point of_angle(Angle angle);
+		static Point of_angle(Angle angle);
 
 		/**
 		 * \brief Creates the origin
@@ -63,14 +63,14 @@ class Point {
 		 *
 		 * \return the length of the Point
 		 */
-		constexpr double len() const __attribute__((warn_unused_result));
+		double len() const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Returns the unit vector in the same direction as this Point
 		 *
 		 * \return a unit vector in the same direction as this Point, or a zero-length Point if this Point is zero
 		 */
-		constexpr Point norm() const __attribute__((warn_unused_result));
+		Point norm() const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Returns a scaled normalized vector in the same direction as this Point
@@ -79,7 +79,7 @@ class Point {
 		 *
 		 * \return a vector in the same direction as this Point and with length \p l, or a zero-length Point if this Point is zero
 		 */
-		constexpr Point norm(double l) const __attribute__((warn_unused_result));
+		Point norm(double l) const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Returns the vector perpendicular to this Point
@@ -95,7 +95,7 @@ class Point {
 		 *
 		 * \return the Point rotated by rot
 		 */
-		constexpr Point rotate(Angle rot) const __attribute__((warn_unused_result));
+		Point rotate(Angle rot) const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Projects this vector onto another vector
@@ -139,7 +139,7 @@ class Point {
 		 * \return the direction of this vector, in the range [-π, π], with 0 being the positive <var>x</var> direction, π/2 being up, etc.
 		 * (in actuality, this is <code>std::atan2(y, x)</code>)
 		 */
-		constexpr Angle orientation() const __attribute__((warn_unused_result));
+		Angle orientation() const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Checks whether this Point contains NaN in either coordinate
@@ -362,7 +362,7 @@ constexpr bool operator>=(const Point &p, const Point &q);
 
 
 
-inline constexpr Point Point::of_angle(Angle angle) {
+inline Point Point::of_angle(Angle angle) {
 	return Point(angle.cos(), angle.sin());
 }
 
@@ -379,15 +379,15 @@ inline constexpr double Point::lensq() const {
 	return x * x + y * y;
 }
 
-inline constexpr double Point::len() const {
+inline double Point::len() const {
 	return std::hypot(x, y);
 }
 
-inline constexpr Point Point::norm() const {
+inline Point Point::norm() const {
 	return len() < 1.0e-9 ? Point() : Point(x / len(), y / len());
 }
 
-inline constexpr Point Point::norm(double l) const {
+inline Point Point::norm(double l) const {
 	return len() < 1.0e-9 ? Point() : Point(x * l / len(), y * l / len());
 }
 
@@ -395,7 +395,7 @@ inline constexpr Point Point::perp() const {
 	return Point(-y, x);
 }
 
-inline constexpr Point Point::rotate(Angle rot) const {
+inline Point Point::rotate(Angle rot) const {
 	return Point(x * rot.cos() - y * rot.sin(), x * rot.sin() + y * rot.cos());
 }
 
@@ -417,7 +417,7 @@ inline Point &Point::operator=(const Point &q) {
 	return *this;
 }
 
-inline constexpr Angle Point::orientation() const {
+inline Angle Point::orientation() const {
 	return Angle::of_radians(std::atan2(y, x));
 }
 
