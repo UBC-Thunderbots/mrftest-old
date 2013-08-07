@@ -19,9 +19,9 @@ Angle Evaluation::get_shoot_score(World world, Player player, bool use_reduced_r
 		radius = reduced_radius_big;
 	}
 
-	std::vector<std::pair<Point, Angle> > openings = AI::HL::Util::calc_best_shot_all(world, player, radius);
+	std::vector<std::pair<Point, Angle>> openings = AI::HL::Util::calc_best_shot_all(world, player, radius);
 
-	for (std::vector<std::pair<Point, Angle> >::iterator it = openings.begin(); it != openings.end(); ++it) {
+	for (std::vector<std::pair<Point, Angle>>::iterator it = openings.begin(); it != openings.end(); ++it) {
 		Angle centre_ang = player.orientation();
 		Angle ang_1 = (it->first - player.position()).orientation() + it->second / 2.0;
 		Angle ang_2 = (it->first - player.position()).orientation() - it->second / 2.0;
@@ -35,8 +35,8 @@ Angle Evaluation::get_shoot_score(World world, Player player, bool use_reduced_r
 
 /*
    Point Evaluation::get_best_shoot_target(World world, Player player) {
-    //			std::vector<std::pair<Point, double> > calc_best_shot_all(AI::HL::W::World world, AI::HL::W::Player player, double radius = 1.0);
-    std::vector<std::pair<Point, double> > openings = AI::HL::Util::calc_best_shot_all(world, player);
+    //			std::vector<std::pair<Point, double>> calc_best_shot_all(AI::HL::W::World world, AI::HL::W::Player player, double radius = 1.0);
+    std::vector<std::pair<Point, double>> openings = AI::HL::Util::calc_best_shot_all(world, player);
 
     double ans = 0.0;
     Point post_low(world.field().length()/2.0, -world.field().goal_width()/2.0);
@@ -50,7 +50,7 @@ Angle Evaluation::get_shoot_score(World world, Player player, bool use_reduced_r
     }
 
     std::pair<Point, double> best = *(openings.begin());
-    for(std::vector<std::pair<Point, double> >::iterator it = openings.begin(); it!= openings.end(); it++){
+    for(std::vector<std::pair<Point, double>>::iterator it = openings.begin(); it!= openings.end(); it++){
         if( it->second > best.second){
             best = *it;
         }

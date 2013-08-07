@@ -16,7 +16,7 @@ void log_impl(const char *file, unsigned int line, const char *function, const G
 	std::time(&stamp);
 	std::wostringstream timestring;
 	static const wchar_t TIME_PATTERN[] = L"%F %T";
-	std::use_facet<std::time_put<wchar_t> >(std::locale()).put(timestring, timestring, L' ', std::localtime(&stamp), TIME_PATTERN, TIME_PATTERN + std::wcslen(TIME_PATTERN));
+	std::use_facet<std::time_put<wchar_t>>(std::locale()).put(timestring, timestring, L' ', std::localtime(&stamp), TIME_PATTERN, TIME_PATTERN + std::wcslen(TIME_PATTERN));
 	const char *level_name;
 	switch (level) {
 		case Log::DEBUG_MESSAGE_LEVEL_INFO:

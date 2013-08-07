@@ -49,9 +49,9 @@ namespace {
 	DoubleParam weight_ori_diff("Scoring weight for baller angle (-ve)", "STP/offense", 20.0, 0.0, 999.0);
 
 	// TODO: explore updating the offensive function only ONCE
-	std::vector<std::vector<double> > score1;
-	std::vector<std::vector<double> > score2;
-	std::vector<std::vector<bool> > good;
+	std::vector<std::vector<double>> score1;
+	std::vector<std::vector<double>> score2;
+	std::vector<std::vector<bool>> good;
 
 	std::array<Point, 2> best_positions;
 

@@ -47,7 +47,7 @@ namespace Firmware {
 			 *
 			 * \return an array of section data blocks
 			 */
-			const std::vector<std::vector<unsigned char> > &data() const {
+			const std::vector<std::vector<unsigned char>> &data() const {
 				return the_data;
 			}
 
@@ -70,7 +70,7 @@ namespace Firmware {
 			};
 
 			std::vector<Section> sections;
-			std::vector<std::vector<unsigned char> > the_data;
+			std::vector<std::vector<unsigned char>> the_data;
 	};
 }
 

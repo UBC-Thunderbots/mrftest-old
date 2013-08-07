@@ -106,11 +106,11 @@ inline sigc::signal<void> &Joystick::signal_changed() const {
 	return signal_changed_;
 }
 
-inline const std::vector<Property<double> > &Joystick::axes() const {
+inline const std::vector<Property<double>> &Joystick::axes() const {
 	return axes_;
 }
 
-inline const std::vector<Property<bool> > &Joystick::buttons() const {
+inline const std::vector<Property<bool>> &Joystick::buttons() const {
 	return buttons_;
 }
 

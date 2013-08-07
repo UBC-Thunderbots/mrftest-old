@@ -137,7 +137,7 @@ namespace AI {
 			 */
 			std::pair<Point, Angle> calc_best_shot(const AI::HL::W::Field &f, const std::vector<Point> &obstacles, const Point &p, double radius = 1.0);
 
-			std::vector<std::pair<Point, Angle> > calc_best_shot_all(const AI::HL::W::Field &f, const std::vector<Point> &obstacles, const Point &p, double radius = 1.0);
+			std::vector<std::pair<Point, Angle>> calc_best_shot_all(const AI::HL::W::Field &f, const std::vector<Point> &obstacles, const Point &p, double radius = 1.0);
 
 			/**
 			 * Finds the length of the largest continuous interval (angle-wise) of the enemy goal that can be seen from a point.
@@ -155,7 +155,7 @@ namespace AI {
 			 */
 			std::pair<Point, Angle> calc_best_shot(AI::HL::W::World world, AI::HL::W::Player player, double radius = 1.0);
 
-			std::vector<std::pair<Point, Angle> > calc_best_shot_all(AI::HL::W::World world, AI::HL::W::Player player, double radius = 1.0);
+			std::vector<std::pair<Point, Angle>> calc_best_shot_all(AI::HL::W::World world, AI::HL::W::Player player, double radius = 1.0);
 
 			/**
 			 * Converts a friendly team into a vector of players.

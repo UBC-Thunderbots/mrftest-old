@@ -15,7 +15,7 @@ namespace AI {
 			/**
 			 * Estimates the time taken by a robot moving through each point in sequence.
 			 */
-			double estimate_action_duration(std::vector<std::pair<Point, Angle> > path_points);
+			double estimate_action_duration(std::vector<std::pair<Point, Angle>> path_points);
 
 			/**
 			 * Finds where to go and when to get there in order to intercept the moving ball along the route to dst

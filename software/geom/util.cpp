@@ -74,8 +74,8 @@ bool triangle_circle_intersect(const Point p1, const Point p2, const Point p3, c
 	return point_in_triangle(p1, p2, p3, c) || seg_pt_dist(p1, p2, c) < radius || seg_pt_dist(p2, p3, c) < radius || seg_pt_dist(p3, p1, c) < radius;
 }
 
-std::vector<std::pair<Point, Angle> > angle_sweep_circles_all(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius) {
-	std::vector<std::pair<Point, Angle> > ret;
+std::vector<std::pair<Point, Angle>> angle_sweep_circles_all(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius) {
+	std::vector<std::pair<Point, Angle>> ret;
 
 	const Angle offangle = (p1 - src).orientation();
 	if (collinear(src, p1, p2)) {
@@ -85,7 +85,7 @@ std::vector<std::pair<Point, Angle> > angle_sweep_circles_all(const Point &src, 
 		return ret;
 	}
 
-	std::vector<std::pair<Angle, int> > events;
+	std::vector<std::pair<Angle, int>> events;
 	events.reserve(2 * obstacles.size() + 2);
 	events.push_back(std::make_pair(Angle::zero(), 1)); // p1 becomes angle 0
 	events.push_back(std::make_pair(((p2 - src).orientation() - offangle).angle_mod(), -1));
@@ -142,7 +142,7 @@ std::pair<Point, Angle> angle_sweep_circles(const Point &src, const Point &p1, c
 		// std::cerr << (p1 - src).cross(p2 - src) << std::endl;
 		return std::make_pair(bestshot, Angle::zero());
 	}
-	std::vector<std::pair<Angle, int> > events;
+	std::vector<std::pair<Angle, int>> events;
 	events.reserve(2 * obstacles.size() + 2);
 	events.push_back(std::make_pair(Angle::zero(), 1)); // p1 becomes angle 0
 	events.push_back(std::make_pair(((p2 - src).orientation() - offangle).angle_mod(), -1));

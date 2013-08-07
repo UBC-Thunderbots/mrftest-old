@@ -122,7 +122,7 @@ Predictor3::Predictor3(double measure_std_linear, double accel_std_linear, Predi
 		t(measure_std_angular, accel_std_angular, decay_time_constant_angular) {
 }
 
-std::pair<std::pair<Point, Angle>, std::pair<Point, Angle> > Predictor3::value(double delta, unsigned int deriv, bool ignore_cache) const {
+std::pair<std::pair<Point, Angle>, std::pair<Point, Angle>> Predictor3::value(double delta, unsigned int deriv, bool ignore_cache) const {
 	const std::pair<double, double> &vx = x.value(delta, deriv, ignore_cache);
 	const std::pair<double, double> &vy = y.value(delta, deriv, ignore_cache);
 	const std::pair<Angle, Angle> &vt = t.value(delta, deriv, ignore_cache);

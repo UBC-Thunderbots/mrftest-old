@@ -259,7 +259,7 @@ namespace AI {
 				 *
 				 * \return the signal.
 				 */
-				sigc::signal<void, Cairo::RefPtr<Cairo::Context> > &signal_draw_overlay() const;
+				sigc::signal<void, Cairo::RefPtr<Cairo::Context>> &signal_draw_overlay() const;
 
 			protected:
 				/**
@@ -304,7 +304,7 @@ namespace AI {
 				mutable sigc::signal<void, AI::Timediff> signal_post_tick_;
 				mutable sigc::signal<void, AI::Timestamp, const SSL_WrapperPacket &> signal_vision_;
 				mutable sigc::signal<void, AI::Timestamp, const SSL_Referee &> signal_refbox_;
-				mutable sigc::signal<void, Cairo::RefPtr<Cairo::Context> > signal_draw_overlay_;
+				mutable sigc::signal<void, Cairo::RefPtr<Cairo::Context>> signal_draw_overlay_;
 
 				void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
 		};
@@ -376,7 +376,7 @@ inline sigc::signal<void, AI::Timestamp, const SSL_Referee &> &AI::BE::Backend::
 	return signal_refbox_;
 }
 
-inline sigc::signal<void, Cairo::RefPtr<Cairo::Context> > &AI::BE::Backend::signal_draw_overlay() const {
+inline sigc::signal<void, Cairo::RefPtr<Cairo::Context>> &AI::BE::Backend::signal_draw_overlay() const {
 	return signal_draw_overlay_;
 }
 

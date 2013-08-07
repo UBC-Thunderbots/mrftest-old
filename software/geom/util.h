@@ -111,7 +111,7 @@ std::pair<Point, Angle> angle_sweep_circles(const Point &src, const Point &p1, c
  *
  * \returns a vector of all possible pairs of directions and angles to a target area. An empty vector is returned if the preconditions aren't satisfied.
  */
-std::vector<std::pair<Point, Angle> > angle_sweep_circles_all(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius);
+std::vector<std::pair<Point, Angle>> angle_sweep_circles_all(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius);
 
 /**
  * Checks whether a line segment intersects a rectangle.

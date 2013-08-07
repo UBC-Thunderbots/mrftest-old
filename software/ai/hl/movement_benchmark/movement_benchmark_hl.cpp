@@ -141,7 +141,7 @@ namespace {
 
 		private:
 			World world;
-			std::vector<std::pair<Point, Angle> > tasks;
+			std::vector<std::pair<Point, Angle>> tasks;
 			int time_steps;
 			std::size_t done;
 	};

@@ -201,7 +201,7 @@ class Predictor3 {
 		 *
 		 * \return the value and its standard deviation.
 		 */
-		std::pair<std::pair<Point, Angle>, std::pair<Point, Angle> > value(double delta, unsigned int deriv = 0, bool ignore_cache = false) const __attribute__((warn_unused_result));
+		std::pair<std::pair<Point, Angle>, std::pair<Point, Angle>> value(double delta, unsigned int deriv = 0, bool ignore_cache = false) const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Locks in a timestamp to consider as the current time.

@@ -93,7 +93,7 @@ std::pair<Point, Angle> AI::HL::Util::calc_best_shot(const Field &f, const std::
 	return angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
 }
 
-std::vector<std::pair<Point, Angle> > AI::HL::Util::calc_best_shot_all(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
+std::vector<std::pair<Point, Angle>> AI::HL::Util::calc_best_shot_all(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
 	const Point p1 = Point(f.length() / 2.0, -f.goal_width() / 2.0);
 	const Point p2 = Point(f.length() / 2.0, f.goal_width() / 2.0);
 	return angle_sweep_circles_all(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
@@ -123,7 +123,7 @@ std::pair<Point, Angle> AI::HL::Util::calc_best_shot(World world, const Player p
 	return best_shot;
 }
 
-std::vector<std::pair<Point, Angle> > AI::HL::Util::calc_best_shot_all(World world, const Player player, const double radius) {
+std::vector<std::pair<Point, Angle>> AI::HL::Util::calc_best_shot_all(World world, const Player player, const double radius) {
 	std::vector<Point> obstacles;
 	EnemyTeam enemy = world.enemy_team();
 	FriendlyTeam friendly = world.friendly_team();

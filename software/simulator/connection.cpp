@@ -17,7 +17,7 @@ sigc::signal<void> &Simulator::Connection::signal_closed() const {
 	return signal_closed_;
 }
 
-sigc::signal<void, const Simulator::Proto::A2SPacket &, std::shared_ptr<FileDescriptor> > &Simulator::Connection::signal_packet() const {
+sigc::signal<void, const Simulator::Proto::A2SPacket &, std::shared_ptr<FileDescriptor>> &Simulator::Connection::signal_packet() const {
 	return signal_packet_;
 }
 
