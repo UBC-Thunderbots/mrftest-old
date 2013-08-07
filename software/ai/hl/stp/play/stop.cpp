@@ -9,7 +9,7 @@ using namespace AI::HL::W;
 namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
-	DoubleParam goalie_stop_dist("goalie stop dist", "STP/Stop", 0.09, 0.0, 1.0);
+	DoubleParam goalie_stop_dist(u8"goalie stop dist", u8"STP/Stop", 0.09, 0.0, 1.0);
 }
 
 /**

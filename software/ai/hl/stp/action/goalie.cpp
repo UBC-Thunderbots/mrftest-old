@@ -16,8 +16,8 @@ using AI::HL::STP::Evaluation::BallThreat;
 
 namespace {
 	const double FAST = 100.0;
-	DoubleParam lone_goalie_dist("Lone Goalie: distance to goal post (m)", "STP/Action/Goalie", 0.30, 0.05, 1.0);
-	DoubleParam goalie_repel_dist("Distance the goalie should repel the ball in robot radius", "STP/Action/Goalie", 4.0, 1.0, 6.0);
+	DoubleParam lone_goalie_dist(u8"Lone Goalie: distance to goal post (m)", u8"STP/Action/Goalie", 0.30, 0.05, 1.0);
+	DoubleParam goalie_repel_dist(u8"Distance the goalie should repel the ball in robot radius", u8"STP/Action/Goalie", 4.0, 1.0, 6.0);
 }
 
 //goalie moves in the direction towards the ball within the lone_goalie_dist from the goal post

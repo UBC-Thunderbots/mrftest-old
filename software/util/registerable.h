@@ -30,13 +30,13 @@ template<typename T> class Registerable : public NonCopyable {
 				T *obj = dynamic_cast<T *>(precache());
 				precache() = obj->precache_next;
 				obj->precache_next = nullptr;
-				obj->name_ = Glib::locale_to_utf8(obj->name_raw);
-				if (exists(obj->name_.begin(), obj->name_.end(), static_cast<gunichar>('/'))) {
-					throw std::invalid_argument("Invalid name: " + obj->name() + " (must not contain a slash)");
+				obj->name_ = obj->name_raw;
+				if (exists(obj->name_.begin(), obj->name_.end(), 47 /* slash */)) {
+					throw std::invalid_argument(Glib::locale_from_utf8(Glib::ustring::compose(u8"Invalid name: %1 (must not contain a slash)", obj->name())));
 				}
 				const std::string &key = obj->name().collate_key();
 				if (objects().count(key)) {
-					throw std::invalid_argument("Duplicate name: " + obj->name());
+					throw std::invalid_argument(Glib::locale_from_utf8(Glib::ustring::compose(u8"Duplicate name: %1", obj->name())));
 				}
 				objects()[key] = obj;
 			}

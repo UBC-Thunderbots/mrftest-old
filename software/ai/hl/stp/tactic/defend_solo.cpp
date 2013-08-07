@@ -19,7 +19,7 @@ namespace {
 				assert(false);
 			}
 			Glib::ustring description() const {
-				return "goalie (all alone)";
+				return u8"goalie (all alone)";
 			}
 	};
 

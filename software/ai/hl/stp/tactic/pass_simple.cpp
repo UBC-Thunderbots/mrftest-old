@@ -60,7 +60,7 @@ namespace {
 
 		void execute() {
 			if (!target) {
-				LOG_ERROR("no target");
+				LOG_ERROR(u8"no target");
 				// should fail
 				return;
 			}
@@ -73,7 +73,7 @@ namespace {
 		}
 
 		Glib::ustring description() const {
-			return "passer-simple";
+			return u8"passer-simple";
 		}
 	};
 
@@ -109,7 +109,7 @@ namespace {
 		}
 
 		Glib::ustring description() const {
-			return "passee-simple";
+			return u8"passee-simple";
 		}
 	};
 
@@ -140,7 +140,7 @@ namespace {
 		}
 
 		Glib::ustring description() const {
-			return "follow-baller";
+			return u8"follow-baller";
 		}
 	};
 }

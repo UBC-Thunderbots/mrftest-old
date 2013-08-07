@@ -33,7 +33,7 @@ namespace {
 			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
-				return "TriAttackPrime";
+				return u8"TriAttackPrime";
 			}
 	};
 
@@ -67,7 +67,7 @@ namespace {
 			Player select(const std::set<Player> &players) const;
 			void execute();
 				Glib::ustring description() const {
-				return "TriAttack2";
+				return u8"TriAttack2";
 			}
 	};
 
@@ -92,7 +92,7 @@ namespace {
 			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
-				return "TriAttack3";
+				return u8"TriAttack3";
 			}
 	};
 

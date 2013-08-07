@@ -35,7 +35,7 @@ void log_impl(const char *file, unsigned int line, const char *function, const G
 			level_name = nullptr;
 			break;
 	}
-	const Glib::ustring &composed = Glib::ustring::compose("[%1] [%2:%3] [%4] %5", timestring.str(), file, line, function, msg);
+	const Glib::ustring &composed = Glib::ustring::compose(u8"[%1] [%2:%3] [%4] %5", timestring.str(), file, line, function, msg);
 	if (level_name) {
 		std::cout << level_name << ' ' << composed << '\n';
 	}

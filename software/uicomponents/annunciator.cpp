@@ -97,15 +97,15 @@ namespace {
 		rt->property_text() = iter->get_value(MessagesALM::instance()->message_column);
 		bool active = iter->get_value(MessagesALM::instance()->active_column);
 		Annunciator::Message::Severity severity = iter->get_value(MessagesALM::instance()->severity_column);
-		rt->property_foreground() = active && severity == Annunciator::Message::Severity::HIGH ? "white" : "black";
-		rt->property_background() = active ? (severity == Annunciator::Message::Severity::HIGH ? "red" : "yellow") : "white";
+		rt->property_foreground() = active && severity == Annunciator::Message::Severity::HIGH ? u8"white" : u8"black";
+		rt->property_background() = active ? (severity == Annunciator::Message::Severity::HIGH ? u8"red" : u8"yellow") : u8"white";
 	}
 }
 
 GUIAnnunciator::GUIAnnunciator() : view(MessagesALM::instance()) {
 	view.get_selection()->set_mode(Gtk::SELECTION_SINGLE);
-	view.append_column("Age", MessagesALM::instance()->age_column);
-	int message_colnum = view.append_column("Message", message_renderer) - 1;
+	view.append_column(u8"Age", MessagesALM::instance()->age_column);
+	int message_colnum = view.append_column(u8"Message", message_renderer) - 1;
 	Gtk::TreeViewColumn *message_column = view.get_column(message_colnum);
 	message_column->set_cell_data_func(message_renderer, &message_cell_data_func);
 	add(view);

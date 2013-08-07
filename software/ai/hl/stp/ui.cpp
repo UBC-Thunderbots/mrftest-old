@@ -15,7 +15,7 @@ using AI::HL::STP::Evaluation::grid_x;
 using AI::HL::STP::Evaluation::grid_y;
 
 namespace {
-	BoolParam draw_ray("draw ray", "STP/draw", false);
+	BoolParam draw_ray(u8"draw ray", u8"STP/draw", false);
 }
 
 void AI::HL::STP::draw_player_status(World world, Cairo::RefPtr<Cairo::Context> ctx) {

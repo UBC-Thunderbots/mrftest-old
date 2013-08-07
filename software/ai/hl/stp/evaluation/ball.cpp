@@ -7,11 +7,11 @@
 using namespace AI::HL::STP;
 
 namespace {
-	BoolParam calc_baller_always_return("Calc baller always return", "STP/ball", true);
+	BoolParam calc_baller_always_return(u8"Calc baller always return", u8"STP/ball", true);
 
-	BoolParam smart_possess_ball("Smart possess ball (instead of has ball only)", "STP/ball", true);
+	BoolParam smart_possess_ball(u8"Smart possess ball (instead of has ball only)", u8"STP/ball", true);
 
-	DoubleParam enemy_pivot_threshold("circle radius in front of enemy robot to consider possession (meters)", "STP/ball", 0.1, 0.0, 1.0);
+	DoubleParam enemy_pivot_threshold(u8"circle radius in front of enemy robot to consider possession (meters)", u8"STP/ball", 0.1, 0.0, 1.0);
 
 	Player baller;
 
@@ -80,7 +80,7 @@ namespace {
 	}
 }
 
-DoubleParam Evaluation::pivot_threshold("circle radius in front of robot to enable pivot (meters)", "STP/ball", 0.1, 0.0, 1.0);
+DoubleParam Evaluation::pivot_threshold(u8"circle radius in front of robot to enable pivot (meters)", u8"STP/ball", 0.1, 0.0, 1.0);
 
 bool Evaluation::ball_in_pivot_thresh(World world, Player player) {
 	Point unit_vector = Point::of_angle(player.orientation());

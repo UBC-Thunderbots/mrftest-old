@@ -77,7 +77,7 @@ void AIPackage::attach_robot_controllers() {
 }
 
 void AIPackage::robot_controller_factory_changed() {
-	LOG_DEBUG(Glib::ustring::compose("Changing robot controller to %1.", robot_controller_factory ? robot_controller_factory->name() : "<None>"));
+	LOG_DEBUG(Glib::ustring::compose(u8"Changing robot controller to %1.", robot_controller_factory ? robot_controller_factory->name() : u8"<None>"));
 	for (std::size_t i = 0; i < backend.friendly_team().size(); ++i) {
 		AI::BE::Player::Ptr plr = backend.friendly_team().get(i);
 		PrivateState::Ptr state = std::dynamic_pointer_cast<PrivateState>(plr->object_store()[typeid(*this)]);
@@ -124,9 +124,9 @@ void AIPackage::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
 
 void AIPackage::save_setup() const {
 	AI::Setup setup;
-	setup.high_level_name = high_level.get() ? high_level->factory().name() : "";
-	setup.navigator_name = navigator.get() ? navigator->factory().name() : "";
-	setup.robot_controller_name = robot_controller_factory ? robot_controller_factory->name() : "";
+	setup.high_level_name = high_level.get() ? high_level->factory().name() : u8"";
+	setup.navigator_name = navigator.get() ? navigator->factory().name() : u8"";
+	setup.robot_controller_name = robot_controller_factory ? robot_controller_factory->name() : u8"";
 	setup.defending_end = backend.defending_end();
 	setup.friendly_colour = backend.friendly_colour();
 	setup.save();

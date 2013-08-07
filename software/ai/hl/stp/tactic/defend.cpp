@@ -16,10 +16,10 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace Action = AI::HL::STP::Action;
 
 namespace {
-	BoolParam tdefend_goalie("Whether or not Terence Defense should take the place of normal goalie", "STP/Tactic/defend", false);
-	BoolParam tdefend_defender1("Whether or not Terence Defense should take the place of normal defender 1", "STP/Tactic/defend", false);
-	BoolParam tdefend_defender2("Whether or not Terence Defense should take the place of normal defender 2", "STP/Tactic/defend", false);
-	BoolParam tdefend_defender3("Whether or not Terence Defense should take the place of normal defender 3", "STP/Tactic/defend", false);
+	BoolParam tdefend_goalie(u8"Whether or not Terence Defense should take the place of normal goalie", u8"STP/Tactic/defend", false);
+	BoolParam tdefend_defender1(u8"Whether or not Terence Defense should take the place of normal defender 1", u8"STP/Tactic/defend", false);
+	BoolParam tdefend_defender2(u8"Whether or not Terence Defense should take the place of normal defender 2", u8"STP/Tactic/defend", false);
+	BoolParam tdefend_defender3(u8"Whether or not Terence Defense should take the place of normal defender 3", u8"STP/Tactic/defend", false);
 
 	/**
 	 * Goalie in a team of N robots.
@@ -37,9 +37,9 @@ namespace {
 			}
 			Glib::ustring description() const {
 				if (world.friendly_team().size() > defender_role + 1) {
-					return "goalie-dynamic duo";
+					return u8"goalie-dynamic duo";
 				} else {
-					return "goalie-dynamic lone";
+					return u8"goalie-dynamic lone";
 				}
 			}
 	};
@@ -58,7 +58,7 @@ namespace {
 				assert(false);
 			}
 			Glib::ustring description() const {
-				return "goalie (helped by defender)";
+				return u8"goalie (helped by defender)";
 			}
 	};
 
@@ -73,7 +73,7 @@ namespace {
 			void execute();
 			Point calc_defend_pos(unsigned index) const;
 			Glib::ustring description() const {
-				return "extra defender";
+				return u8"extra defender";
 			}
 	};
 

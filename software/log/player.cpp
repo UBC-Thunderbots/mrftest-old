@@ -259,16 +259,16 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 		Impl(Gtk::Window &parent, const std::string &pathname) :
 				records(LogLoader::load(pathname)),
 				top_info_table(11, 2, false),
-				ball_filter_label("Ball Filter:"),
-				strategy_label("Strategy:"),
-				backend_label("Backend:"),
-				high_level_label("HL:"),
-				robot_controller_label("Controller:"),
-				friendly_colour_label("Colour:"),
-				ticks_per_second_label("Tick Rate:"),
-				play_type_label("Play Type:"),
-				friendly_score_label("Points Us:"),
-				enemy_score_label("Points Them:"),
+				ball_filter_label(u8"Ball Filter:"),
+				strategy_label(u8"Strategy:"),
+				backend_label(u8"Backend:"),
+				high_level_label(u8"HL:"),
+				robot_controller_label(u8"Controller:"),
+				friendly_colour_label(u8"Colour:"),
+				ticks_per_second_label(u8"Tick Rate:"),
+				play_type_label(u8"Play Type:"),
+				friendly_score_label(u8"Points Us:"),
+				enemy_score_label(u8"Points Them:"),
 				visualizer(*this),
 				full_screen_button(Gtk::Stock::FULLSCREEN),
 				start_button(Gtk::Stock::MEDIA_PREVIOUS),
@@ -343,16 +343,16 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 
 			time_slider.set_digits(0);
 			time_slider.set_draw_value();
-			time_slider.set_tooltip_text("Tick Index");
+			time_slider.set_tooltip_text(u8"Tick Index");
 			time_slider.get_adjustment()->configure(0, 0, static_cast<double>(tick_records.size() - 1), 1, ticks_per_second, 0);
 			time_slider.get_adjustment()->signal_value_changed().connect(sigc::mem_fun(this, &Impl::update_with_tick));
 
 			lower_hbox.pack_start(time_slider, Gtk::PACK_EXPAND_WIDGET);
 
-			full_screen_button.set_tooltip_text("Toggle Full-Screen Mode");
-			start_button.set_tooltip_text("Seek to Start of Log");
-			play_button.set_tooltip_text("Play Log");
-			end_button.set_tooltip_text("Seek to End of Log");
+			full_screen_button.set_tooltip_text(u8"Toggle Full-Screen Mode");
+			start_button.set_tooltip_text(u8"Seek to Start of Log");
+			play_button.set_tooltip_text(u8"Play Log");
+			end_button.set_tooltip_text(u8"Seek to End of Log");
 			full_screen_button.signal_toggled().connect(sigc::mem_fun(this, &Impl::toggle_full_screen));
 			start_button.signal_clicked().connect(sigc::mem_fun(this, &Impl::seek_to_start));
 			play_button.signal_clicked().connect(sigc::mem_fun(this, &Impl::play_or_stop));
@@ -367,14 +367,14 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			lower_hbox.pack_start(media_toolbar, Gtk::PACK_SHRINK);
 
 			timestamp_label.set_width_chars(15);
-			timestamp_label.set_tooltip_text("Time from Start of Log");
+			timestamp_label.set_tooltip_text(u8"Time from Start of Log");
 			timestamp_frame.set_shadow_type(Gtk::SHADOW_IN);
 			timestamp_frame.add(timestamp_label);
 
 			lower_hbox.pack_start(timestamp_frame, Gtk::PACK_SHRINK);
 
 			packet_label.set_width_chars(8);
-			packet_label.set_tooltip_text("Packet Index of Tick Record");
+			packet_label.set_tooltip_text(u8"Packet Index of Tick Record");
 			packet_frame.set_shadow_type(Gtk::SHADOW_IN);
 			packet_frame.add(packet_label);
 
@@ -383,7 +383,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			pack_start(upper_hbox, Gtk::PACK_EXPAND_WIDGET);
 			pack_start(lower_hbox, Gtk::PACK_SHRINK);
 
-			full_screen_window.set_title(Glib::ustring::compose("Thunderbots Log Tools - Player - %1", Glib::filename_display_basename(pathname)));
+			full_screen_window.set_title(Glib::ustring::compose(u8"Thunderbots Log Tools - Player - %1", Glib::filename_display_basename(pathname)));
 			full_screen_window.set_transient_for(parent);
 			full_screen_window.set_modal();
 			full_screen_window.signal_delete_event().connect(sigc::bind_return(sigc::hide(sigc::bind(sigc::mem_fun(full_screen_button, &Gtk::ToggleToolButton::set_active), false)), true));
@@ -542,13 +542,13 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			play_timer_connection.disconnect();
 			play_timer_connection = Glib::signal_timeout().connect(sigc::mem_fun(this, &Impl::step_time), (1000 + ticks_per_second / 2) / ticks_per_second);
 			play_button.set_stock_id(Gtk::Stock::MEDIA_PAUSE);
-			play_button.set_tooltip_text("Stop Playback");
+			play_button.set_tooltip_text(u8"Stop Playback");
 		}
 
 		void stop() {
 			play_timer_connection.disconnect();
 			play_button.set_stock_id(Gtk::Stock::MEDIA_PLAY);
-			play_button.set_tooltip_text("Play Log");
+			play_button.set_tooltip_text(u8"Play Log");
 		}
 
 		bool check_for_full_screen_escape(GdkEventKey *evt) {
@@ -585,7 +585,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			unsigned int seconds = static_cast<unsigned int>((nanos_from_game_start.count() / 1000000000) % 60);
 			unsigned int minutes = static_cast<unsigned int>(((nanos_from_game_start.count() / 1000000000) / 60) % 60);
 			unsigned int hours = static_cast<unsigned int>((nanos_from_game_start.count() / 1000000000) / 3600);
-			timestamp_label.set_text(Glib::ustring::compose("%1:%2:%3.%4", todecu(hours, 2), todecu(minutes, 2), todecu(seconds, 2), todecu(milliseconds, 3)));
+			timestamp_label.set_text(Glib::ustring::compose(u8"%1:%2:%3.%4", todecu(hours, 2), todecu(minutes, 2), todecu(seconds, 2), todecu(milliseconds, 3)));
 
 			packet_label.set_text(Glib::ustring::format(std::distance(static_cast<const std::vector<Log::Record> &>(records).begin(), tick_records[position])));
 
@@ -627,18 +627,18 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 				}
 			}
 
-			ball_filter_value.set_text(config.has_ball_filter() ? config.ball_filter() : "<None>");
-			strategy_value.set_text(config.has_strategy() ? config.strategy() : "<None>");
+			ball_filter_value.set_text(config.has_ball_filter() ? config.ball_filter() : u8"<None>");
+			strategy_value.set_text(config.has_strategy() ? config.strategy() : u8"<None>");
 			backend_value.set_text(config.backend());
-			high_level_value.set_text(config.has_high_level() ? config.high_level() : "<None>");
-			robot_controller_value.set_text(config.has_robot_controller() ? config.robot_controller() : "<None>");
+			high_level_value.set_text(config.has_high_level() ? config.high_level() : u8"<None>");
+			robot_controller_value.set_text(config.has_robot_controller() ? config.robot_controller() : u8"<None>");
 			switch (config.friendly_colour()) {
 				case Log::COLOUR_YELLOW:
-					friendly_colour_value.set_text("Yellow");
+					friendly_colour_value.set_text(u8"Yellow");
 					break;
 
 				case Log::COLOUR_BLUE:
-					friendly_colour_value.set_text("Blue");
+					friendly_colour_value.set_text(u8"Blue");
 					break;
 			}
 			play_type_value.set_text(AI::Common::PlayTypeInfo::to_string(Log::Util::PlayType::of_protobuf(tick.play_type())));
@@ -651,7 +651,7 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 };
 
 LogPlayer::LogPlayer(Gtk::Window &parent, const std::string &pathname) : impl(new Impl(*this, pathname)) {
-	set_title(Glib::ustring::compose("Thunderbots Log Tools - Player - %1", Glib::filename_display_basename(pathname)));
+	set_title(Glib::ustring::compose(u8"Thunderbots Log Tools - Player - %1", Glib::filename_display_basename(pathname)));
 	set_transient_for(parent);
 	set_modal(false);
 	set_size_request(500, 500);

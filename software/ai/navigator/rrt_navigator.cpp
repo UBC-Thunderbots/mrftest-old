@@ -21,19 +21,19 @@ namespace AI {
 			// fraction of the maximum speed that the robot will try to dribble at
 			const double DRIBBLE_SPEED = 1.0;
 
-			DegreeParam offset_angle("Pivot: offset angle (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
-			DegreeParam orientation_offset("Pivot: orientation offset (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
+			DegreeParam offset_angle(u8"Pivot: offset angle (degrees)", u8"Nav/RRT", 30.0, -1000.0, 1000.0);
+			DegreeParam orientation_offset(u8"Pivot: orientation offset (degrees)", u8"Nav/RRT", 30.0, -1000.0, 1000.0);
 
-			BoolParam use_new_pivot("New Pivot: enable", "Nav/RRT", false);
-			DoubleParam new_pivot_linear_sfactor("New Pivot [PID]: linear", "Nav/RRT", 1.0, 0.01, 50.0);
-			DoubleParam new_pivot_angular_sfactor("New Pivot [PID]: angular", "Nav/RRT", 1.0, 0.01, 50.0);
-			DoubleParam new_pivot_radius("New Pivot: travel radius", "Nav/RRT", 0.3, 0.01, 0.5);
-			BoolParam new_pivot_go_backward("New Pivot: go backward", "Nav/RRT", false);
-			RadianParam new_pivot_offset_angle("New Pivot: offset angle (radians)", "Nav/RRT", 0.1, 0, 0.5);
-			DoubleParam new_pivot_travel_angle("New Pivot: travel angle, need proper unit, (n*M_PI)", "Nav/RRT", 0.2, -0.5, 0.5);
-			DoubleParam new_pivot_hyster_angle("New Pivot: Hysterisis angle, one side, (n*M_PI)", "Nav/RRT", 0.2, 0.01, 0.2);
-			DoubleParam new_pivot_thresh_angle("New Pivot: Threshold angle, one side, (n*M_PI)", "Nav/RRT", 0.2, 0.01, 0.2);
-			DoubleParam careful_max_speed("Careful max speed", "Nav/RRT", 0.75, 0.1, 3.0);
+			BoolParam use_new_pivot(u8"New Pivot: enable", u8"Nav/RRT", false);
+			DoubleParam new_pivot_linear_sfactor(u8"New Pivot [PID]: linear", u8"Nav/RRT", 1.0, 0.01, 50.0);
+			DoubleParam new_pivot_angular_sfactor(u8"New Pivot [PID]: angular", u8"Nav/RRT", 1.0, 0.01, 50.0);
+			DoubleParam new_pivot_radius(u8"New Pivot: travel radius", u8"Nav/RRT", 0.3, 0.01, 0.5);
+			BoolParam new_pivot_go_backward(u8"New Pivot: go backward", u8"Nav/RRT", false);
+			RadianParam new_pivot_offset_angle(u8"New Pivot: offset angle (radians)", u8"Nav/RRT", 0.1, 0, 0.5);
+			DoubleParam new_pivot_travel_angle(u8"New Pivot: travel angle, need proper unit, (n*M_PI)", u8"Nav/RRT", 0.2, -0.5, 0.5);
+			DoubleParam new_pivot_hyster_angle(u8"New Pivot: Hysterisis angle, one side, (n*M_PI)", u8"Nav/RRT", 0.2, 0.01, 0.2);
+			DoubleParam new_pivot_thresh_angle(u8"New Pivot: Threshold angle, one side, (n*M_PI)", u8"Nav/RRT", 0.2, 0.01, 0.2);
+			DoubleParam careful_max_speed(u8"Careful max speed", u8"Nav/RRT", 0.75, 0.1, 3.0);
 
 			class PlayerData : public ObjectStore::Element {
 				public:
@@ -97,7 +97,7 @@ void RRTNavigator::pivot(Player player) {
 
 		Angle diff = ((world.ball().position() - player.destination().first).orientation() - (player.orientation() + (is_ccw ? 1 : -1) * new_pivot_offset_angle)).angle_mod();
 		// LOG_INFO( diff );
-		LOG_INFO("NEWpivot!");
+		LOG_INFO(u8"NEWpivot!");
 		Point zero_pos(new_pivot_radius, 0.0);
 		Point polar_pos;
 		Point rel_pos;

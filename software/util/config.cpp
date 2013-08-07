@@ -83,8 +83,8 @@ void Config::load() {
 	parser().parse_stream(ifs);
 	const xmlpp::Document *document = parser().get_document();
 	xmlpp::Element *root_elt = document->get_root_node();
-	if (root_elt->get_name() != "thunderbots") {
-		throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose("Malformed config.xml (expected root element of type thunderbots, found %1)", root_elt->get_name())));
+	if (root_elt->get_name() != u8"thunderbots") {
+		throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Malformed config.xml (expected root element of type thunderbots, found %1)", root_elt->get_name())));
 	}
 	clean_whitespace(root_elt);
 }
@@ -100,9 +100,9 @@ void Config::save() {
 xmlpp::Element *Config::params() {
 	xmlpp::Document *doc = parser().get_document();
 	xmlpp::Element *root_elt = doc->get_root_node();
-	const xmlpp::Node::NodeList &params_elts = root_elt->get_children("params");
+	const xmlpp::Node::NodeList &params_elts = root_elt->get_children(u8"params");
 	if (params_elts.size() != 1) {
-		throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose("Malformed config.xml (expected exactly one params element, found %1)", params_elts.size())));
+		throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Malformed config.xml (expected exactly one params element, found %1)", params_elts.size())));
 	}
 	return dynamic_cast<xmlpp::Element *>(*params_elts.begin());
 }
@@ -110,9 +110,9 @@ xmlpp::Element *Config::params() {
 xmlpp::Element *Config::joysticks() {
 	xmlpp::Document *doc = parser().get_document();
 	xmlpp::Element *root_elt = doc->get_root_node();
-	const xmlpp::Node::NodeList &joysticks_elts = root_elt->get_children("joysticks");
+	const xmlpp::Node::NodeList &joysticks_elts = root_elt->get_children(u8"joysticks");
 	if (joysticks_elts.size() != 1) {
-		throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose("Malformed config.xml (expected exactly one joysticks element, found %1)", joysticks_elts.size())));
+		throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Malformed config.xml (expected exactly one joysticks element, found %1)", joysticks_elts.size())));
 	}
 	return dynamic_cast<xmlpp::Element *>(*joysticks_elts.begin());
 }

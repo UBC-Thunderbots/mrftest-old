@@ -31,7 +31,7 @@ namespace {
 			Robot player_to_mark(std::vector<AI::HL::W::Robot> enemies) const;
 			Player nearest_friendly(Point target) const;
 			Glib::ustring description() const {
-				return "MarkOffside";
+				return u8"MarkOffside";
 			}
 	};
 

@@ -23,18 +23,18 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-	DoubleParam pid_xy_prop("xy +proportional", "RC/PID5", 25.0, 0.0, 100.0);
-	DoubleParam pid_xy_diff("xy -differential", "RC/PID5", 0.0, -100.0, 10.0);
+	DoubleParam pid_xy_prop(u8"xy +proportional", u8"RC/PID5", 25.0, 0.0, 100.0);
+	DoubleParam pid_xy_diff(u8"xy -differential", u8"RC/PID5", 0.0, -100.0, 10.0);
 
-	DoubleParam pid_a_prop("angular +proportional", "RC/PID5", 30.0, 0.0, 100);
-	DoubleParam pid_a_diff("angular -differential", "RC/PID5", 0.2, -100, 100);
+	DoubleParam pid_a_prop(u8"angular +proportional", u8"RC/PID5", 30.0, 0.0, 100);
+	DoubleParam pid_a_diff(u8"angular -differential", u8"RC/PID5", 0.2, -100, 100);
 
-	DoubleParam pid_xy_ratio("x to y ratio", "RC/PID5", 0.81, 0.0, 2.0);
+	DoubleParam pid_xy_ratio(u8"x to y ratio", u8"RC/PID5", 0.81, 0.0, 2.0);
 
-	DoubleParam pid_ya_ratio("YA ratio", "RC/PID5", 0.08, -10.0, 10.0);
+	DoubleParam pid_ya_ratio(u8"YA ratio", u8"RC/PID5", 0.08, -10.0, 10.0);
 
-	DoubleParam wheel_max_speed("Limit wheel speed", "RC/PID5", 100.0, 0, 8888);
-	DoubleParam wheel_max_accel("Limit wheel accel", "RC/PID5", 5.0, 0, 8888);
+	DoubleParam wheel_max_speed(u8"Limit wheel speed", u8"RC/PID5", 100.0, 0, 8888);
+	DoubleParam wheel_max_accel(u8"Limit wheel accel", u8"RC/PID5", 5.0, 0, 8888);
 	
 	class PID5ControllerFactory;
 
@@ -168,7 +168,7 @@ namespace {
 
 	class PID5ControllerFactory : public RobotControllerFactory {
 		public:
-			explicit PID5ControllerFactory() : RobotControllerFactory("PID 5") {
+			explicit PID5ControllerFactory() : RobotControllerFactory(u8"PID 5") {
 			}
 
 			std::unique_ptr<RobotController> create_controller(World world, Player plr) const {
@@ -183,7 +183,7 @@ namespace {
 		private:
 			
 			Gtk::Widget &get_widget(){
-				static Gtk::Expander expander("Kalman Monitor");
+				static Gtk::Expander expander(u8"Kalman Monitor");
 				expander.add( get_table() );
 				return expander;
 			}

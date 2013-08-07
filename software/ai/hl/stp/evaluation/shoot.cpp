@@ -6,9 +6,9 @@
 using namespace AI::HL::STP;
 
 namespace {
-	DoubleParam reduced_radius_small("small reduced radius for calculating best shot (robot radius ratio)", "STP/Shoot", 0.4, 0.0, 1.1);
+	DoubleParam reduced_radius_small(u8"small reduced radius for calculating best shot (robot radius ratio)", u8"STP/Shoot", 0.4, 0.0, 1.1);
 
-	DoubleParam reduced_radius_big("big reduced radius for calculating best shot (robot radius ratio)", "STP/Shoot", 0.8, 0.0, 1.1);
+	DoubleParam reduced_radius_big(u8"big reduced radius for calculating best shot (robot radius ratio)", u8"STP/Shoot", 0.8, 0.0, 1.1);
 }
 
 Angle Evaluation::get_shoot_score(World world, Player player, bool use_reduced_radius) {

@@ -22,7 +22,7 @@ namespace {
 			void execute();
 			const Point target;
 			Glib::ustring description() const {
-				return "intercept";
+				return u8"intercept";
 			}
 			// void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
 	};

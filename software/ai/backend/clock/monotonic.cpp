@@ -12,13 +12,13 @@ namespace {
 	FileDescriptor create_timerfd(int clockid) {
 		int fd = timerfd_create(clockid, 0);
 		if (fd < 0) {
-			throw SystemError(u8"timerfd_create", errno);
+			throw SystemError("timerfd_create", errno);
 		}
 		return FileDescriptor::create_from_fd(fd);
 	}
 }
 
-Monotonic::Monotonic() : tfd(create_timerfd(CLOCK_MONOTONIC)), overflow_message("Timer overflow!", Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::LOW) {
+Monotonic::Monotonic() : tfd(create_timerfd(CLOCK_MONOTONIC)), overflow_message(u8"Timer overflow!", Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::LOW) {
 	const uint64_t nanoseconds = (UINT64_C(1000000000) + TIMESTEPS_PER_SECOND / 2) / TIMESTEPS_PER_SECOND;
 	tfd.set_blocking(false);
 	itimerspec tspec;
@@ -27,7 +27,7 @@ Monotonic::Monotonic() : tfd(create_timerfd(CLOCK_MONOTONIC)), overflow_message(
 	tspec.it_value.tv_sec = 1;
 	tspec.it_value.tv_nsec = 0;
 	if (timerfd_settime(tfd.fd(), 0, &tspec, nullptr) < 0) {
-		throw SystemError(u8"timerfd_settime", errno);
+		throw SystemError("timerfd_settime", errno);
 	}
 
 	Glib::signal_io().connect(sigc::mem_fun(this, &Monotonic::on_readable), tfd.fd(), Glib::IO_IN);
@@ -37,7 +37,7 @@ bool Monotonic::on_readable(Glib::IOCondition) {
 	uint64_t ticks;
 
 	if (read(tfd.fd(), &ticks, sizeof(ticks)) != sizeof(ticks)) {
-		throw SystemError(u8"read(timerfd)", errno);
+		throw SystemError("read(timerfd)", errno);
 	}
 
 	if (ticks > 1) {

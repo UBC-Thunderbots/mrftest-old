@@ -83,7 +83,7 @@ namespace AI {
 			};
 
 			/**
-			 * The team containing \ref Player "Players" that the AI can control.
+			 * The team containing players that the AI can control.
 			 */
 			class FriendlyTeam : public AI::BE::Team<AI::BE::Player>, public GenericTeam<Player> {
 				public:
@@ -185,7 +185,7 @@ namespace AI {
 			};
 
 			/**
-			 * The team containing \ref Robot "Robots" that are controlled by another AI.
+			 * The team containing tobots that are controlled by another AI.
 			 */
 			class EnemyTeam : public AI::BE::Team<AI::BE::Robot>, public GenericTeam<Robot> {
 				public:

@@ -52,9 +52,9 @@ namespace USB {
 			 *
 			 * \param[in] endpoint the endpoint number, with bit 7 used to indicate direction
 			 *
-			 * \param[in] msg a detail message explaining the error
+			 * \param[in] msg a detail message explaining the error (UTF-8 encoded)
 			 */
-			TransferError(unsigned int endpoint, const std::string &msg);
+			TransferError(unsigned int endpoint, const char *msg);
 	};
 
 	/**

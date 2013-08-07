@@ -21,7 +21,7 @@ namespace Action = AI::HL::STP::Action;
 namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
-	DegreeParam small_pass_ray_angle("Small ray shoot rotation (degrees)", "STP/PassRay", 20, 0, 180);
+	DegreeParam small_pass_ray_angle(u8"Small ray shoot rotation (degrees)", u8"STP/PassRay", 20, 0, 180);
 
 	struct PasserRay : public Tactic {
 		bool kick_attempted;
@@ -67,7 +67,7 @@ namespace {
 		}
 
 		Glib::ustring description() const {
-			return "passer-ray";
+			return u8"passer-ray";
 		}
 	};
 }

@@ -23,7 +23,7 @@ namespace {
 			int index;
 			void execute();
 			Glib::ustring description() const {
-				return "shadow_enemy";
+				return u8"shadow_enemy";
 			}
 	};
 

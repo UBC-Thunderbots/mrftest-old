@@ -21,7 +21,7 @@ namespace {
 			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
-				return "move-wait-playtype";
+				return u8"move-wait-playtype";
 			}
 	};
 

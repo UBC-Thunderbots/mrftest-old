@@ -39,23 +39,23 @@ using namespace AI::HL::W;
 using namespace AI::HL::STP::Predicates;
 
 namespace {
-	BoolParam enable0("enable robot 0", "MixedTeamDefense", true);
-	BoolParam enable1("enable robot 1", "MixedTeamDefense", true);
-	BoolParam enable2("enable robot 2", "MixedTeamDefense", true);
-	BoolParam enable3("enable robot 3", "MixedTeamDefense", true);
-	BoolParam enable4("enable robot 4", "MixedTeamDefense", true);
-	BoolParam enable5("enable robot 5", "MixedTeamDefense", true);
-	BoolParam enable6("enable robot 6", "MixedTeamDefense", true);
-	BoolParam enable7("enable robot 7", "MixedTeamDefense", true);
-	BoolParam enable8("enable robot 8", "MixedTeamDefense", true);
-	BoolParam enable9("enable robot 9", "MixedTeamDefense", true);
-	BoolParam enable10("enable robot 10", "MixedTeamDefense", true);
-	BoolParam enable11("enable robot 11", "MixedTeamDefense", true);
-	BoolParam take_free_kick("take the free kicks and attempt to pass to the other team", "MixedTeamDefense", false);
-	BoolParam do_draw("draw", "MixedTeamDefense", true);
+	BoolParam enable0(u8"enable robot 0", u8"MixedTeamDefense", true);
+	BoolParam enable1(u8"enable robot 1", u8"MixedTeamDefense", true);
+	BoolParam enable2(u8"enable robot 2", u8"MixedTeamDefense", true);
+	BoolParam enable3(u8"enable robot 3", u8"MixedTeamDefense", true);
+	BoolParam enable4(u8"enable robot 4", u8"MixedTeamDefense", true);
+	BoolParam enable5(u8"enable robot 5", u8"MixedTeamDefense", true);
+	BoolParam enable6(u8"enable robot 6", u8"MixedTeamDefense", true);
+	BoolParam enable7(u8"enable robot 7", u8"MixedTeamDefense", true);
+	BoolParam enable8(u8"enable robot 8", u8"MixedTeamDefense", true);
+	BoolParam enable9(u8"enable robot 9", u8"MixedTeamDefense", true);
+	BoolParam enable10(u8"enable robot 10", u8"MixedTeamDefense", true);
+	BoolParam enable11(u8"enable robot 11", u8"MixedTeamDefense", true);
+	BoolParam take_free_kick(u8"take the free kicks and attempt to pass to the other team", u8"MixedTeamDefense", false);
+	BoolParam do_draw(u8"draw", u8"MixedTeamDefense", true);
 	
-	BoolParam three_def_one_atk("3 defender 1 attacker", "MixedTeamDefense", true);
-	BoolParam two_def_two_atk("2 defender 2 attacker", "MixedTeamDefense", false);
+	BoolParam three_def_one_atk(u8"3 defender 1 attacker", u8"MixedTeamDefense", true);
+	BoolParam two_def_two_atk(u8"2 defender 2 attacker", u8"MixedTeamDefense", false);
 
 	struct MixedTeamDefense : public HighLevel {
 		World world;
@@ -110,7 +110,7 @@ namespace {
 			}
 
 			if (!goalie) {
-				LOG_ERROR("No goalie with the desired pattern!!");
+				LOG_ERROR(u8"No goalie with the desired pattern!!");
 			} else {
 				players.push_back(goalie);
 			}

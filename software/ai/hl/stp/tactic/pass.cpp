@@ -25,14 +25,14 @@ using AI::HL::STP::Coordinate;
 using AI::HL::STP::min_pass_dist;
 
 namespace {
-	DegreeParam passer_tol_target("when passer within this angle tol passee responds to passer direction (degrees)", "STP/Tactic/pass", 30.0, 0.0, 180.0);
-	DoubleParam fast_velocity("velocity of pass threshold", "STP/Tactic/pass", 1.0, 0.0, 1.0);
-	DoubleParam negligible_velocity("velocity to ignore", "STP/Tactic/pass", 0.05, 0.0, 1.0);
-	DoubleParam passee_hack_dist("Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)", "STP/Tactic/pass", 0.0, 0.0, 1.0);
-	DoubleParam passee_hack_appl("dist from target when passee hack is applicable (meters)", "STP/Tactic/pass", 0.1, 0.001, 1.0);
-	DoubleParam ball_region_param(" the radius (meters) in which passer must be with repect to ball before valid ", "STP/Tactic/pass", 1.0, 0.0, 5.0);
-	BoolParam passer_depends_baller_can_shoot(" shot on net avaiable means that Passer should fail ", "STP/Tactic/pass", true);
-	BoolParam passer_depends_calc_best_shot_target(" pass blocked means that Passer should fail ", "STP/Tactic/pass", true);
+	DegreeParam passer_tol_target(u8"when passer within this angle tol passee responds to passer direction (degrees)", u8"STP/Tactic/pass", 30.0, 0.0, 180.0);
+	DoubleParam fast_velocity(u8"velocity of pass threshold", u8"STP/Tactic/pass", 1.0, 0.0, 1.0);
+	DoubleParam negligible_velocity(u8"velocity to ignore", u8"STP/Tactic/pass", 0.05, 0.0, 1.0);
+	DoubleParam passee_hack_dist(u8"Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)", u8"STP/Tactic/pass", 0.0, 0.0, 1.0);
+	DoubleParam passee_hack_appl(u8"dist from target when passee hack is applicable (meters)", u8"STP/Tactic/pass", 0.1, 0.001, 1.0);
+	DoubleParam ball_region_param(u8" the radius (meters) in which passer must be with repect to ball before valid ", u8"STP/Tactic/pass", 1.0, 0.0, 5.0);
+	BoolParam passer_depends_baller_can_shoot(u8" shot on net avaiable means that Passer should fail ", u8"STP/Tactic/pass", true);
+	BoolParam passer_depends_calc_best_shot_target(u8" pass blocked means that Passer should fail ", u8"STP/Tactic/pass", true);
 
 	struct kick_info {
 		Point kicker_location;
@@ -96,7 +96,7 @@ namespace {
 
 			Glib::ustring description() const {
 #warning TODO give more information
-				return "passer-shoot";
+				return u8"passer-shoot";
 			}
 	};
 
@@ -189,7 +189,7 @@ namespace {
 			}
 
 			Glib::ustring description() const {
-				return "passee-move";
+				return u8"passee-move";
 			}
 	};
 
@@ -249,7 +249,7 @@ namespace {
 			}
 
 			Glib::ustring description() const {
-				return "passee-recieve";
+				return u8"passee-recieve";
 			}
 	};
 }

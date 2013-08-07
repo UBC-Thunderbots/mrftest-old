@@ -22,7 +22,7 @@ using AI::HL::STP::DIST_FROM_PENALTY_MARK;
 #define BEGIN_PLAY(cls) \
 	namespace { \
 		class cls; \
-		AI::HL::STP::Play::PlayFactoryImpl<cls> factory_instance(# cls); \
+		AI::HL::STP::Play::PlayFactoryImpl<cls> factory_instance(u8 ## # cls); \
 		class cls : public AI::HL::STP::Play::Play { \
 			public: \
 				cls(AI::HL::W::World world) : AI::HL::STP::Play::Play(world) { \

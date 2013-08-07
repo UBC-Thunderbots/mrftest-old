@@ -22,7 +22,7 @@ using namespace AI::HL::STP;
 
 namespace {
 	const double FAST = 100.0;
-	DoubleParam FAST_BALL("Default Shooting Speed", "STP/Shoot", 8.0, 0.0, 32.0);
+	DoubleParam FAST_BALL(u8"Default Shooting Speed", u8"STP/Shoot", 8.0, 0.0, 32.0);
 }
 
 bool AI::HL::STP::Action::shoot_goal(World world, Player player, bool use_reduced_radius) {
@@ -36,7 +36,7 @@ bool AI::HL::STP::Action::shoot_goal(World world, Player player, bool use_reduce
 
 	if (shoot_data.can_shoot) {
 		if (!player.chicker_ready()) {
-			LOG_INFO("chicker not ready");
+			LOG_INFO(u8"chicker not ready");
 			// angle is right but chicker not ready, ram the ball and get closer to target, only use in normal play
 			if (world.playtype() == AI::Common::PlayType::PLAY) {
 				const Point diff = world.ball().position() - player.position();
@@ -44,7 +44,7 @@ bool AI::HL::STP::Action::shoot_goal(World world, Player player, bool use_reduce
 			}
 			return false;
 		}
-		LOG_INFO("autokick");
+		LOG_INFO(u8"autokick");
 		intercept(player, shoot_data.target);
 //replace this with FAST_BALL to use PARAM FAST_BALL
 		//player.autokick(FAST_BALL);
@@ -68,7 +68,7 @@ bool AI::HL::STP::Action::shoot_target(World world, Player player, const Point t
 
 	// angle is right but chicker not ready, ram the ball and get closer to target
 	if (!player.chicker_ready()) {
-		LOG_INFO("chicker not ready");
+		LOG_INFO(u8"chicker not ready");
 		// angle is right but chicker not ready, ram the ball and get closer to target, only use in normal play
 		if (world.playtype() == AI::Common::PlayType::PLAY) {
 			const Point diff = world.ball().position() - player.position();
@@ -77,7 +77,7 @@ bool AI::HL::STP::Action::shoot_target(World world, Player player, const Point t
 		return false;
 	}
 
-	LOG_INFO("autokick");
+	LOG_INFO(u8"autokick");
 	player.autokick(velocity);
 	return true;
 }
@@ -99,7 +99,7 @@ bool AI::HL::STP::Action::shoot_pass(World world, Player player, const Point tar
 	}
 
 	if (player.has_ball() && !player.chicker_ready()) {
-		LOG_INFO("chicker not ready");
+		LOG_INFO(u8"chicker not ready");
 		return false;
 	}
 

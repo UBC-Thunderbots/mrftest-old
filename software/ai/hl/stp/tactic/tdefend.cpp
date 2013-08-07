@@ -34,9 +34,9 @@ namespace {
 			}
 			Glib::ustring description() const {
 				if (world.friendly_team().size() > defender_role + 1) {
-					return "tgoalie";
+					return u8"tgoalie";
 				} else {
-					return "tgoalie lone";
+					return u8"tgoalie lone";
 				}
 			}
 	};
@@ -51,7 +51,7 @@ namespace {
 			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
-				return "tdefender";
+				return u8"tdefender";
 			}
 	};
 
@@ -93,7 +93,7 @@ namespace {
 			void execute();
 
 			Glib::ustring description() const {
-				return "tdefend_line";
+				return u8"tdefend_line";
 			}
 	};
 

@@ -238,7 +238,7 @@ namespace AI {
 			};
 
 			/**
-			 * A factory for creating \ref Backend "Backends".
+			 * A factory for creating backends.
 			 */
 			class BackendFactory : public AI::BE::BackendFactory {
 				public:

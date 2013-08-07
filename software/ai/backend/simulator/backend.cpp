@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-AI::BE::Simulator::SecondaryUIControls::SecondaryUIControls(const std::string &load_filename) : players_label("Players:"), players_hbox(Gtk::BUTTONBOX_SPREAD), players_add("+"), players_remove("−"), state_file_name(load_filename), state_file_label("State:"), state_file_button("…"), state_file_hbox(Gtk::BUTTONBOX_SPREAD), state_file_load_button("Load"), state_file_save_button("Save") {
+AI::BE::Simulator::SecondaryUIControls::SecondaryUIControls(const std::string &load_filename) : players_label(u8"Players:"), players_hbox(Gtk::BUTTONBOX_SPREAD), players_add(u8"+"), players_remove(u8"−"), state_file_name(load_filename), state_file_label(u8"State:"), state_file_button(u8"…"), state_file_hbox(Gtk::BUTTONBOX_SPREAD), state_file_load_button(u8"Load"), state_file_save_button(u8"Save") {
 	players_add.set_sensitive(false);
 	players_remove.set_sensitive(false);
 	players_hbox.pack_start(players_add);
@@ -31,7 +31,7 @@ AI::BE::Simulator::SecondaryUIControls::SecondaryUIControls(const std::string &l
 
 void AI::BE::Simulator::SecondaryUIControls::on_state_file_button_clicked() {
 	Gtk::Window *win = dynamic_cast<Gtk::Window *>(state_file_button.get_toplevel());
-	Gtk::FileChooserDialog fc(*win, "Choose State File", Gtk::FILE_CHOOSER_ACTION_SAVE);
+	Gtk::FileChooserDialog fc(*win, u8"Choose State File", Gtk::FILE_CHOOSER_ACTION_SAVE);
 	if (!state_file_name.empty()) {
 		fc.set_filename(state_file_name);
 	}
@@ -360,7 +360,7 @@ void AI::BE::Simulator::Backend::on_state_file_save_clicked() {
 	send_packet(packet, fd);
 }
 
-AI::BE::Simulator::BackendFactory::BackendFactory() : AI::BE::BackendFactory("Simulator") {
+AI::BE::Simulator::BackendFactory::BackendFactory() : AI::BE::BackendFactory(u8"Simulator") {
 }
 
 void AI::BE::Simulator::BackendFactory::create_backend(const std::vector<bool> &, const std::string &load_filename, int, std::function<void(AI::BE::Backend &)> cb) const {

@@ -1,4 +1,4 @@
-	#include "ai/hl/stp/tactic/free_kick_pass.h"
+#include "ai/hl/stp/tactic/free_kick_pass.h"
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/util.h"
 #include "ai/hl/stp/tactic/util.h"
@@ -114,7 +114,7 @@ namespace {
 				return false;
 			}
 			Glib::ustring description() const {
-				return "free kick pass";
+				return u8"free kick pass";
 			}
 	};
 }

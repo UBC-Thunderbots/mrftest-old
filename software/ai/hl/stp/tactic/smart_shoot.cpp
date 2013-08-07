@@ -120,7 +120,7 @@ namespace {
 			}
 
 			Glib::ustring description() const {
-				return "smart shoot";
+				return u8"smart shoot";
 			}
 	};
 }

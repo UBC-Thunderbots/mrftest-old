@@ -17,7 +17,7 @@ namespace {
 
 	class KalmanIntersectTest : public HighLevel {
 		public:
-			KalmanIntersectTest(World world) : world(world), lbl_xposition("XPosition"), adj_xposition(0.0, -4.0, 4.0, 0.1, 1.0), hsb_xposition(adj_xposition), lbl_yposition("YPosition"), adj_yposition(0.0, -2.0, 2.0, 0.1, 0.5), hsb_yposition(adj_yposition), lbl_oposition("OPosition"), adj_oposition(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_oposition(adj_oposition), lbl_kick_power("KPower"), adj_kick_power(0.0, 0.0, 10.0, 0.5, 1.0), hsb_kick_power(adj_kick_power), isect_robot_dst(0, 0), xposition(0.0), yposition(0.0), oposition(Angle::zero()), to_run(false), to_dribble(false), to_kick(false) {
+			KalmanIntersectTest(World world) : world(world), lbl_xposition(u8"XPosition"), adj_xposition(0.0, -4.0, 4.0, 0.1, 1.0), hsb_xposition(adj_xposition), lbl_yposition(u8"YPosition"), adj_yposition(0.0, -2.0, 2.0, 0.1, 0.5), hsb_yposition(adj_yposition), lbl_oposition(u8"OPosition"), adj_oposition(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_oposition(adj_oposition), lbl_kick_power(u8"KPower"), adj_kick_power(0.0, 0.0, 10.0, 0.5, 1.0), hsb_kick_power(adj_kick_power), isect_robot_dst(0, 0), xposition(0.0), yposition(0.0), oposition(Angle::zero()), to_run(false), to_dribble(false), to_kick(false) {
 				adj_xposition.signal_value_changed().connect(sigc::mem_fun(*this, &KalmanIntersectTest::on_xposition_value_changed));
 				ui_box.add(lbl_xposition);
 				ui_box.add(hsb_xposition);
@@ -31,16 +31,16 @@ namespace {
 				ui_box.add(hsb_kick_power);
 
 
-				dribble_btn.set_label("dribble");
+				dribble_btn.set_label(u8"dribble");
 				dribble_btn.signal_clicked().connect(sigc::mem_fun(*this, &KalmanIntersectTest::on_dribble_btn_clicked));
 
-				kick_btn.set_label("kick");
+				kick_btn.set_label(u8"kick");
 				kick_btn.signal_clicked().connect(sigc::mem_fun(*this, &KalmanIntersectTest::on_kick_btn_clicked));
 
-				run_btn.set_label("Run bot");
+				run_btn.set_label(u8"Run bot");
 				run_btn.signal_clicked().connect(sigc::mem_fun(*this, &KalmanIntersectTest::on_run_btn_clicked));
 
-				reset_btn.set_label("Reset");
+				reset_btn.set_label(u8"Reset");
 				reset_btn.signal_clicked().connect(sigc::mem_fun(*this, &KalmanIntersectTest::on_reset_btn_clicked));
 				ui_box.add(reset_btn);
 				ui_box.add(run_btn);
@@ -54,7 +54,7 @@ namespace {
 				// sample ball position once per tick
 				Point new_path_point = world.ball().position();
 				// path_points.push_back( new_path_point );
-				// std::cout << "(" << new_path_point.x << ", " << new_path_point.y <<")\n";
+				// std::cout << new_path_point.x << '\n';
 				Point ball_velocity = world.ball().velocity();
 				// this position should take into account of the velocity of the robot and ball PROPERLY, subject to change
 				isect_robot_dst = new_path_point + ball_velocity *ball_velocity.len();
@@ -148,10 +148,10 @@ namespace {
 			void on_run_btn_clicked() {
 				if (!to_run) {
 					to_run = true;
-					run_btn.set_label("Stop bot");
+					run_btn.set_label(u8"Stop bot");
 				} else {
 					to_run = false;
-					run_btn.set_label("Run bot");
+					run_btn.set_label(u8"Run bot");
 				}
 			}
 

@@ -21,7 +21,7 @@ namespace {
 			void player_changed();
 			void execute();
 			Glib::ustring description() const {
-				return Glib::ustring::compose("wait-playtype, %1", tactic->description());
+				return Glib::ustring::compose(u8"wait-playtype, %1", tactic->description());
 			}
 	};
 

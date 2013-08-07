@@ -1,6 +1,7 @@
 #include "util/exception.h"
 #include "util/misc.h"
 #include <cerrno>
+#include <cstring>
 #include <netdb.h>
 #include <string>
 #include <string.h>
@@ -9,7 +10,7 @@
 #include <sys/types.h>
 
 namespace {
-	std::string get_system_error_string(const std::string &call, int err) {
+	std::string get_system_error_string(const char *call, int err) {
 		std::vector<char> buffer(32);
 		while (xsi_strerror_r(err, &buffer[0], buffer.size()) < 0) {
 			int foo = errno;
@@ -20,11 +21,22 @@ namespace {
 				throw ErrorMessageError();
 			}
 		}
-		return call + ": " + std::string(&buffer[0]);
+		std::string s;
+		s.reserve(std::strlen(call) + 2 + std::strlen(&buffer[0]));
+		s.append(call);
+		s.append(": ");
+		s.append(&buffer[0]);
+		return s;
 	}
 
-	std::string get_eai_error_string(const std::string &call, int err) {
-		return call + ": " + gai_strerror(err);
+	std::string get_eai_error_string(const char *call, int err) {
+		const char *msg = gai_strerror(err);
+		std::string s;
+		s.reserve(std::strlen(call) + 2 + std::strlen(msg));
+		s.append(call);
+		s.append(": ");
+		s.append(msg);
+		return s;
 	}
 }
 

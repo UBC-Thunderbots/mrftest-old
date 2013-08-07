@@ -30,7 +30,7 @@ using namespace AI::RC::W;
 namespace {
 	class KalmanController : public RobotController {
 		public:
-			explicit KalmanController(World world, Player player) : RobotController(world, player), lbl_ramp_time("T ramp"), lbl_plateau_time("T plateau"), lbl_terminal_velocity("V terminal"), lbl_direction("Direction"), lbl_rotate_speed("Rotation"), lbl_pivot_radius("Pivot Radius"), adj_ramp_time(0.0, 0.0, 2.0, 0.1, 0.5, 1.0), adj_plateau_time(0.0, 0.0, 4.0, 0.2, 1.0, 1.0), adj_terminal_velocity(0.0, 0.0, 10.0, 0.1, 0.2, 0.2), adj_direction(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI, 1.0), adj_rotate_speed(0.0, -20 * M_PI, 20 * M_PI, 0.05 * M_PI, 0.1 * M_PI, 0.0), adj_pivot_radius(0.1, 0.1, 10.0, 0.1, 1.0, 0.0), hsb_ramp_time(adj_ramp_time), hsb_plateau_time(adj_plateau_time), hsb_terminal_velocity(adj_terminal_velocity), hsb_direction(adj_direction), hsb_rotate_speed(adj_rotate_speed), hsb_pivot_radius(adj_pivot_radius), enable_pivot_radius(true), velocity_inc(0.0, 0.0), to_be_ramp_time(0.0), to_be_plateau_time(0.0), to_be_terminal_velocity(0.0), to_be_velocity(0.0, 0.0), to_be_direction(Angle::zero()), to_be_rotate_speed(Angle::zero()), to_be_pivot_radius(0.1), state(State::IDLE) {
+			explicit KalmanController(World world, Player player) : RobotController(world, player), lbl_ramp_time(u8"T ramp"), lbl_plateau_time(u8"T plateau"), lbl_terminal_velocity(u8"V terminal"), lbl_direction(u8"Direction"), lbl_rotate_speed(u8"Rotation"), lbl_pivot_radius(u8"Pivot Radius"), adj_ramp_time(0.0, 0.0, 2.0, 0.1, 0.5, 1.0), adj_plateau_time(0.0, 0.0, 4.0, 0.2, 1.0, 1.0), adj_terminal_velocity(0.0, 0.0, 10.0, 0.1, 0.2, 0.2), adj_direction(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI, 1.0), adj_rotate_speed(0.0, -20 * M_PI, 20 * M_PI, 0.05 * M_PI, 0.1 * M_PI, 0.0), adj_pivot_radius(0.1, 0.1, 10.0, 0.1, 1.0, 0.0), hsb_ramp_time(adj_ramp_time), hsb_plateau_time(adj_plateau_time), hsb_terminal_velocity(adj_terminal_velocity), hsb_direction(adj_direction), hsb_rotate_speed(adj_rotate_speed), hsb_pivot_radius(adj_pivot_radius), enable_pivot_radius(true), velocity_inc(0.0, 0.0), to_be_ramp_time(0.0), to_be_plateau_time(0.0), to_be_terminal_velocity(0.0), to_be_velocity(0.0, 0.0), to_be_direction(Angle::zero()), to_be_rotate_speed(Angle::zero()), to_be_pivot_radius(0.1), state(State::IDLE) {
 				enable_pivot_radius_tgl.signal_toggled().connect(sigc::mem_fun(*this, &KalmanController::on_enable_pivot_radius_toggled));
 
 				// param bar
@@ -40,10 +40,10 @@ namespace {
 				adj_direction.signal_value_changed().connect(sigc::mem_fun(*this, &KalmanController::on_adj_direction_changed));
 				adj_rotate_speed.signal_value_changed().connect(sigc::mem_fun(*this, &KalmanController::on_adj_rotate_speed_changed));
 				adj_pivot_radius.signal_value_changed().connect(sigc::mem_fun(*this, &KalmanController::on_adj_pivot_radius_changed));
-				// hsb_ramp_time.set_label("T ramp");
-				// hsb_plateau_time.set_label("T plateau");
-				// hsb_terminal_velocity.set_label("v terminal");
-				// hsb_direction.set_label("direction");
+				// hsb_ramp_time.set_label(u8"T ramp");
+				// hsb_plateau_time.set_label(u8"T plateau");
+				// hsb_terminal_velocity.set_label(u8"v terminal");
+				// hsb_direction.set_label(u8"direction");
 				ui_box.add(lbl_terminal_velocity);
 				ui_box.add(hsb_terminal_velocity);
 				ui_box.add(lbl_direction);
@@ -58,11 +58,11 @@ namespace {
 				ui_box.add(hsb_pivot_radius);
 
 
-				enable_pivot_radius_tgl.set_label("Enable pivot");
+				enable_pivot_radius_tgl.set_label(u8"Enable pivot");
 				ui_box.add(enable_pivot_radius_tgl);
 
 				// setup test drive button
-				test_drive_btn.set_label("Drive me.");
+				test_drive_btn.set_label(u8"Drive me.");
 				test_drive_btn.signal_clicked().connect(sigc::mem_fun(*this, &KalmanController::on_test_drive_btn_clicked));
 				ui_box.add(test_drive_btn);
 
@@ -75,7 +75,7 @@ namespace {
 
 				if (state != State::IDLE) {
 					convert_to_wheels(to_be_velocity, to_be_rotate_speed, wheel_speeds);
-					LOG_INFO(Glib::ustring::compose("%1\t%2\t%3 %4 (%5, %6, %7, %8)", to_be_pivot_radius, to_be_terminal_velocity, to_be_velocity, to_be_rotate_speed, wheel_speeds[0], wheel_speeds[1], wheel_speeds[2], wheel_speeds[3]));
+					LOG_INFO(Glib::ustring::compose(u8"%1\t%2\t%3 %4 (%5, %6, %7, %8)", to_be_pivot_radius, to_be_terminal_velocity, to_be_velocity, to_be_rotate_speed, wheel_speeds[0], wheel_speeds[1], wheel_speeds[2], wheel_speeds[3]));
 				}
 				player.drive(wheel_speeds);
 
@@ -154,14 +154,14 @@ namespace {
 						state = State::PIVOT;
 						to_be_velocity = Point::of_angle(player.orientation()) * to_be_terminal_velocity;
 						to_be_rotate_speed = Angle::of_radians(to_be_terminal_velocity / to_be_pivot_radius);
-						test_drive_btn.set_label("Stop Pivot");
+						test_drive_btn.set_label(u8"Stop Pivot");
 					} else {
 						state = State::RUN;
-						test_drive_btn.set_label("Stop");
+						test_drive_btn.set_label(u8"Stop");
 					}
 				} else {
 					state = State::IDLE;
-					test_drive_btn.set_label("Drive");
+					test_drive_btn.set_label(u8"Drive");
 				}
 			}
 

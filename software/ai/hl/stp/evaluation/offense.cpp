@@ -13,8 +13,8 @@ using namespace AI::HL::STP;
 // using AI::HL::STP::Evaluation::OffenseData;
 // using AI::HL::STP::Evaluation::EvaluateOffense;
 
-IntParam AI::HL::STP::Evaluation::grid_x("grid x size", "STP/offense", 25, 1, 100);
-IntParam AI::HL::STP::Evaluation::grid_y("grid y size", "STP/offense", 25, 1, 100);
+IntParam AI::HL::STP::Evaluation::grid_x(u8"grid x size", u8"STP/offense", 25, 1, 100);
+IntParam AI::HL::STP::Evaluation::grid_y(u8"grid y size", u8"STP/offense", 25, 1, 100);
 
 using AI::HL::STP::Evaluation::grid_x;
 using AI::HL::STP::Evaluation::grid_y;
@@ -22,31 +22,31 @@ using AI::HL::STP::Evaluation::grid_y;
 namespace {
 	// const double DEG_2_RAD = 1.0 / 180.0 * M_PI;
 
-	// BoolParam use_area_metric("use area metric", "STP/offense", true);
+	// BoolParam use_area_metric(u8"use area metric", u8"STP/offense", true);
 
-	BoolParam use_empty_dont_block("Triangle check", "STP/offense", true);
+	BoolParam use_empty_dont_block(u8"Triangle check", u8"STP/offense", true);
 
-	DoubleParam dont_block_factor("Dont block increase multiplier", "STP/offense", 1.1, 0, 10);
+	DoubleParam dont_block_factor(u8"Dont block increase multiplier", u8"STP/offense", 1.1, 0, 10);
 
-	DoubleParam increased_radius("Offensive friendly avoidance increase radius (robot radius)", "STP/offense", 1.1, 0, 10);
+	DoubleParam increased_radius(u8"Offensive friendly avoidance increase radius (robot radius)", u8"STP/offense", 1.1, 0, 10);
 
-	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/offense", 2.5, 1.0, 10.0);
+	DoubleParam near_thresh(u8"enemy avoidance distance (robot radius)", u8"STP/offense", 2.5, 1.0, 10.0);
 
-	DoubleParam weight_total("Scoring weight for everything", "STP/offense", 1.0, 0.0, 99999999.0);
+	DoubleParam weight_total(u8"Scoring weight for everything", u8"STP/offense", 1.0, 0.0, 99999999.0);
 
-	DoubleParam weight_goal_angle("Scoring weight for angle to goal (POWER, careful)", "STP/offense", 1.0, 0.0, 99.0);
+	DoubleParam weight_goal_angle(u8"Scoring weight for angle to goal (POWER, careful)", u8"STP/offense", 1.0, 0.0, 99.0);
 
-	DoubleParam weight_progress("Scoring weight for ball progress (+ve)", "STP/offense", 1.0, 0.0, 99.0);
+	DoubleParam weight_progress(u8"Scoring weight for ball progress (+ve)", u8"STP/offense", 1.0, 0.0, 99.0);
 
-	DoubleParam weight_ball_angle("Scoring weight for angle from ball to goal at robot (-ve)", "STP/offense", 1.0, 0.0, 99.0);
+	DoubleParam weight_ball_angle(u8"Scoring weight for angle from ball to goal at robot (-ve)", u8"STP/offense", 1.0, 0.0, 99.0);
 
-	DoubleParam weight_ball_dist("Scoring weight for distance to ball (-ve)", "STP/offense", 1.0, 0.0, 99.0);
+	DoubleParam weight_ball_dist(u8"Scoring weight for distance to ball (-ve)", u8"STP/offense", 1.0, 0.0, 99.0);
 
-	DoubleParam weight_enemy("Scoring weight for nearest enemy (+ve)", "STP/offense", 1.0, 0.0, 99.0);
+	DoubleParam weight_enemy(u8"Scoring weight for nearest enemy (+ve)", u8"STP/offense", 1.0, 0.0, 99.0);
 
-	DoubleParam weight_goal_dist("Scoring weight for distance to enemy goal (-ve)", "STP/offense", 1.0, 0.0, 99.0);
+	DoubleParam weight_goal_dist(u8"Scoring weight for distance to enemy goal (-ve)", u8"STP/offense", 1.0, 0.0, 99.0);
 
-	DoubleParam weight_ori_diff("Scoring weight for baller angle (-ve)", "STP/offense", 20.0, 0.0, 999.0);
+	DoubleParam weight_ori_diff(u8"Scoring weight for baller angle (-ve)", u8"STP/offense", 20.0, 0.0, 999.0);
 
 	// TODO: explore updating the offensive function only ONCE
 	std::vector<std::vector<double>> score1;

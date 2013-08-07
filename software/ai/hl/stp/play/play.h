@@ -7,6 +7,7 @@
 #include "util/registerable.h"
 #include "util/param.h"
 #include <memory>
+#include <glibmm/ustring.h>
 
 namespace AI {
 	namespace HL {
@@ -126,7 +127,7 @@ namespace AI {
 						 *
 						 * Subclasses should call this constructor from their own constructors.
 						 *
-						 * \param[in] name a human-readable name for this Play.
+						 * \param[in] name a human-readable name for this Play, which must be encoded in UTF-8
 						 */
 						PlayFactory(const char *name);
 
@@ -161,7 +162,7 @@ namespace AI {
 				 * \brief An easy way to create a factory.
 				 *
 				 * For example:
-				 * PlayFactoryImpl<GrabBall> factory_instance("Grab Ball");
+				 * PlayFactoryImpl<GrabBall> factory_instance(u8"Grab Ball");
 				 */
 				template<class P> class PlayFactoryImpl : public PlayFactory {
 					public:

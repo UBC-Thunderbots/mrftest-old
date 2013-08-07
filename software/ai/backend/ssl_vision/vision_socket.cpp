@@ -37,7 +37,7 @@ VisionSocket::VisionSocket(int multicast_interface, const std::string &port) : s
 	mcreq.imr_address.s_addr = get_inaddr_any();
 	mcreq.imr_ifindex = multicast_interface;
 	if (setsockopt(sock.fd(), IPPROTO_IP, IP_ADD_MEMBERSHIP, &mcreq, sizeof(mcreq)) < 0) {
-		LOG_INFO("Cannot join multicast group 224.5.23.2 for vision data.");
+		LOG_INFO(u8"Cannot join multicast group 224.5.23.2 for vision data.");
 	}
 
 	conn = Glib::signal_io().connect(sigc::mem_fun(this, &VisionSocket::receive_packet), sock.fd(), Glib::IO_IN);
@@ -53,7 +53,7 @@ bool VisionSocket::receive_packet(Glib::IOCondition) {
 	ssize_t len = recv(sock.fd(), buffer, sizeof(buffer), 0);
 	if (len < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
-			LOG_WARN("Cannot receive packet from SSL-Vision.");
+			LOG_WARN(u8"Cannot receive packet from SSL-Vision.");
 		}
 		return true;
 	}
@@ -61,7 +61,7 @@ bool VisionSocket::receive_packet(Glib::IOCondition) {
 	// Decode it.
 	SSL_WrapperPacket packet;
 	if (!packet.ParseFromArray(buffer, static_cast<int>(len))) {
-		LOG_WARN("Received malformed SSL-Vision packet.");
+		LOG_WARN(u8"Received malformed SSL-Vision packet.");
 		return true;
 	}
 

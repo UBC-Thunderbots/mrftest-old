@@ -35,7 +35,7 @@ namespace {
 			void execute();
 
 			Glib::ustring description() const {
-				return "spin-steal";
+				return u8"spin-steal";
 			}
 	};
 
@@ -65,7 +65,7 @@ namespace {
 				void execute();
 
 				Glib::ustring description() const {
-					return "backup-steal";
+					return u8"backup-steal";
 				}
 	};
 
@@ -85,7 +85,7 @@ namespace {
 			void execute();
 
 			Glib::ustring description() const {
-				return "tactive-def";
+				return u8"tactive-def";
 			}
 	};
 
@@ -105,7 +105,7 @@ namespace {
 			void execute();
 
 			Glib::ustring description() const {
-				return "tdribble-to-region";
+				return u8"tdribble-to-region";
 			}
 	};
 
@@ -125,7 +125,7 @@ namespace {
 			void execute();
 
 			Glib::ustring description() const {
-				return "tspin-to-region";
+				return u8"tspin-to-region";
 			}
 	};
 }

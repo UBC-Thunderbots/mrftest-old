@@ -18,18 +18,18 @@ using namespace AI::HL::STP::Evaluation;
 using namespace AI::HL::STP;
 
 namespace {
-	BoolParam defense_follow_enemy_baller("defense protect against baller", "STP/defense", true);
+	BoolParam defense_follow_enemy_baller(u8"defense protect against baller", u8"STP/defense", true);
 
-	BoolParam goalie_hug_switch("goalie hug switch", "STP/defense", true);
+	BoolParam goalie_hug_switch(u8"goalie hug switch", u8"STP/defense", true);
 
-	DoubleParam max_goalie_dist("max goalie dist from goal (robot radius)", "STP/defense", 3.0, 0.0, 10.0);
+	DoubleParam max_goalie_dist(u8"max goalie dist from goal (robot radius)", u8"STP/defense", 3.0, 0.0, 10.0);
 
-	DoubleParam robot_shrink("shrink robot radius", "STP/defense", 1.1, 0.1, 2.0);
-	DoubleParam ball2side_ratio("ball2side ratio", "STP/defense", 0.7, 0, 10);
+	DoubleParam robot_shrink(u8"shrink robot radius", u8"STP/defense", 1.1, 0.1, 2.0);
+	DoubleParam ball2side_ratio(u8"ball2side ratio", u8"STP/defense", 0.7, 0, 10);
 
-	BoolParam open_net_dangerous("open net enemy is dangerous", "STP/defense", true);
+	BoolParam open_net_dangerous(u8"open net enemy is dangerous", u8"STP/defense", true);
 
-	DoubleParam tdefend_dist("Distance between the tdefenders", "STP/tdefend", 2.25, 1.0, 3.0);
+	DoubleParam tdefend_dist(u8"Distance between the tdefenders", u8"STP/tdefend", 2.25, 1.0, 3.0);
 
 	// The closest distance players allowed to the ball
 	// DO NOT make this EXACT, instead, add a little tolerance!

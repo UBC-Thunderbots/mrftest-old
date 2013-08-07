@@ -47,13 +47,6 @@ namespace AI {
 			 */
 			void end_with_exception(const Glib::ustring &msg);
 
-			/**
-			 * Records termination of the application due to an exception.
-			 *
-			 * \param[in] msg a message describing the exception.
-			 */
-			void end_with_exception(const char *msg);
-
 		private:
 			const AI::AIPackage &ai;
 			const FileDescriptor fd;

@@ -27,11 +27,11 @@ namespace {
 
 		const int one = 1;
 		if (setsockopt(fd.fd(), SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
-			throw SystemError(u8"setsockopt(SO_REUSEADDR)", errno);
+			throw SystemError("setsockopt(SO_REUSEADDR)", errno);
 		}
 
 		if (bind(fd.fd(), ai.first()->ai_addr, ai.first()->ai_addrlen) < 0) {
-			throw SystemError(u8"bind(:10001)", errno);
+			throw SystemError("bind(:10001)", errno);
 		}
 
 		ip_mreqn mcreq;

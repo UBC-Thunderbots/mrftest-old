@@ -221,7 +221,7 @@ namespace {
 					if (np) {
 						v.set(Glib::ustring::format(std::fixed, std::setprecision(static_cast<int>(np->fractional_digits())), np->adjustment()->get_value()));
 					} else {
-						v.set("");
+						v.set(u8"");
 					}
 					value.init(numeric_value_column.type());
 					value = v;
@@ -250,24 +250,24 @@ namespace {
 
 	class ParamTreeView : public Gtk::TreeView {
 		public:
-			explicit ParamTreeView() : model(ParamTreeModel::create()), name_column("Name"), value_column("Value") {
+			explicit ParamTreeView() : model(ParamTreeModel::create()), name_column(u8"Name"), value_column(u8"Value") {
 				set_model(model);
 
 				name_column.pack_start(name_renderer);
-				name_column.add_attribute(name_renderer, "text", model->name_column);
+				name_column.add_attribute(name_renderer, u8"text", model->name_column);
 				append_column(name_column);
 
 				value_bool_renderer.set_activatable();
 				value_bool_renderer.signal_toggled().connect(sigc::mem_fun(this, &ParamTreeView::on_value_bool_toggled));
 				value_column.pack_start(value_bool_renderer);
-				value_column.add_attribute(value_bool_renderer, "visible", model->has_bool_column);
-				value_column.add_attribute(value_bool_renderer, "active", model->bool_column);
+				value_column.add_attribute(value_bool_renderer, u8"visible", model->has_bool_column);
+				value_column.add_attribute(value_bool_renderer, u8"active", model->bool_column);
 				value_spin_renderer.property_editable() = true;
 				value_column.pack_start(value_spin_renderer);
-				value_column.add_attribute(value_spin_renderer, "visible", model->has_numeric_column);
-				value_column.add_attribute(value_spin_renderer, "adjustment", model->numeric_adjustment_column);
-				value_column.add_attribute(value_spin_renderer, "text", model->numeric_value_column);
-				value_column.add_attribute(value_spin_renderer, "digits", model->numeric_digits_column);
+				value_column.add_attribute(value_spin_renderer, u8"visible", model->has_numeric_column);
+				value_column.add_attribute(value_spin_renderer, u8"adjustment", model->numeric_adjustment_column);
+				value_column.add_attribute(value_spin_renderer, u8"text", model->numeric_value_column);
+				value_column.add_attribute(value_spin_renderer, u8"digits", model->numeric_digits_column);
 				append_column(value_column);
 			}
 
@@ -287,7 +287,7 @@ namespace {
 	};
 
 	void on_load_params_clicked() {
-		Gtk::MessageDialog dlg("Loading parameter values from file will discard any unsaved changes. Continue?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO);
+		Gtk::MessageDialog dlg(u8"Loading parameter values from file will discard any unsaved changes. Continue?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO);
 		if (dlg.run() == Gtk::RESPONSE_YES) {
 			emit_numeric_row_changed = true;
 			Config::load();
@@ -297,7 +297,7 @@ namespace {
 	}
 
 	void on_default_params_clicked() {
-		Gtk::MessageDialog dlg("Setting default parameter values will discard all edited values. Continue?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO);
+		Gtk::MessageDialog dlg(u8"Setting default parameter values will discard all edited values. Continue?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO);
 		if (dlg.run() == Gtk::RESPONSE_YES) {
 			emit_numeric_row_changed = true;
 			ParamTreeNode::default_all();

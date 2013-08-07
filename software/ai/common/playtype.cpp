@@ -14,52 +14,52 @@ AI::Common::PlayType AI::Common::PlayTypeInfo::of_int(unsigned int pt) {
 Glib::ustring AI::Common::PlayTypeInfo::to_string(PlayType pt) {
 	switch (pt) {
 		case PlayType::HALT:
-			return "Halt";
+			return u8"Halt";
 
 		case PlayType::STOP:
-			return "Stop";
+			return u8"Stop";
 
 		case PlayType::PLAY:
-			return "Play";
+			return u8"Play";
 
 		case PlayType::PREPARE_KICKOFF_FRIENDLY:
-			return "Prep Kickoff Friendly";
+			return u8"Prep Kickoff Friendly";
 
 		case PlayType::EXECUTE_KICKOFF_FRIENDLY:
-			return "Kickoff Friendly";
+			return u8"Kickoff Friendly";
 
 		case PlayType::PREPARE_KICKOFF_ENEMY:
-			return "Prep Kickoff Enemy";
+			return u8"Prep Kickoff Enemy";
 
 		case PlayType::EXECUTE_KICKOFF_ENEMY:
-			return "Kickoff Enemy";
+			return u8"Kickoff Enemy";
 
 		case PlayType::PREPARE_PENALTY_FRIENDLY:
-			return "Prep Penalty Friendly";
+			return u8"Prep Penalty Friendly";
 
 		case PlayType::EXECUTE_PENALTY_FRIENDLY:
-			return "Penalty Friendly";
+			return u8"Penalty Friendly";
 
 		case PlayType::PREPARE_PENALTY_ENEMY:
-			return "Prep Penalty Enemy";
+			return u8"Prep Penalty Enemy";
 
 		case PlayType::EXECUTE_PENALTY_ENEMY:
-			return "Penalty Enemy";
+			return u8"Penalty Enemy";
 
 		case PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY:
-			return "Direct Free Friendly";
+			return u8"Direct Free Friendly";
 
 		case PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY:
-			return "Indirect Free Friendly";
+			return u8"Indirect Free Friendly";
 
 		case PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY:
-			return "Direct Free Enemy";
+			return u8"Direct Free Enemy";
 
 		case PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
-			return "Indirect Free Enemy";
+			return u8"Indirect Free Enemy";
 
 		case PlayType::NONE:
-			return "None";
+			return u8"None";
 	}
 
 	std::abort();

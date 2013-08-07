@@ -11,7 +11,7 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	DoubleParam pos_dis_threshold_nav("pos distance threshold nav 2013", "NC", 0.05, 0, 1.0);
+	DoubleParam pos_dis_threshold_nav(u8"pos distance threshold nav 2013", u8"NC", 0.05, 0, 1.0);
 
 	class NCHL2013 : public HighLevel {
 		public:
@@ -73,7 +73,7 @@ namespace {
 					}
 
 					if (done[i] == 3) {
-						LOG_INFO(Glib::ustring::compose("time steps taken: %1", time_steps));
+						LOG_INFO(Glib::ustring::compose(u8"time steps taken: %1", time_steps));
 						++done[i];
 						return;
 					}

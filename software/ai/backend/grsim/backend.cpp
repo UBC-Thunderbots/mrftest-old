@@ -62,7 +62,7 @@ namespace {
 	};
 }
 
-AI::BE::GRSim::BackendFactory::BackendFactory() : AI::BE::BackendFactory("grSim") {
+AI::BE::GRSim::BackendFactory::BackendFactory() : AI::BE::BackendFactory(u8"grSim") {
 }
 
 void AI::BE::GRSim::BackendFactory::create_backend(const std::vector<bool> &disable_cameras, const std::string &, int multicast_interface, std::function<void(Backend &)> cb) const {

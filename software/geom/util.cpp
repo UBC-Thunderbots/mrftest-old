@@ -35,7 +35,7 @@ double seg_pt_dist(const Point a, const Point b, const Point p) {
 std::vector<std::size_t> dist_matching(const std::vector<Point> &v1, const std::vector<Point> &v2) {
 	if (v1.size() > 5) {
 #warning TODO: use hungarian matching
-		LOG_ERROR("hungarian not used yet");
+		LOG_ERROR(u8"hungarian not used yet");
 	}
 	std::vector<std::size_t> order(v2.size());
 	for (std::size_t i = 0; i < v2.size(); ++i) {
@@ -376,7 +376,7 @@ namespace {
 				return false;
 			}
 		} else {
-			LOG_ERROR("not collinear");
+			LOG_ERROR(u8"not collinear");
 			return false;
 		}
 	}
@@ -389,7 +389,7 @@ namespace {
 				return false;
 			}
 		} else {
-			LOG_ERROR("not collinear");
+			LOG_ERROR(u8"not collinear");
 			return false;
 		}
 	}
@@ -600,7 +600,7 @@ bool point_in_rectangle(const Point &pointA, const Point recA[4]) {
 
 Point reflect(const Point &v, const Point &n) {
 	if (n.len() < EPS) {
-		LOG_ERROR("zero length");
+		LOG_ERROR(u8"zero length");
 		return v;
 	}
 	Point normal = n.norm();
@@ -617,7 +617,7 @@ Point reflect(const Point &a, const Point &b, const Point &p) {
 // ported code
 Point calc_block_cone(const Point &a, const Point &b, const double &radius) {
 	if (a.len() < EPS || b.len() < EPS) {
-		LOG_ERROR("block cone zero vectors");
+		LOG_ERROR(u8"block cone zero vectors");
 	}
 	// unit vector and bisector
 	Point au = a / a.len();

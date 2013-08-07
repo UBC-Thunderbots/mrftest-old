@@ -12,7 +12,7 @@
 
 namespace {
 	Glib::ustring format_channel(unsigned int ch) {
-		return Glib::ustring::compose("%1 (%2)", tohex(ch, 2), ch);
+		return Glib::ustring::compose(u8"%1 (%2)", tohex(ch, 2), ch);
 	}
 }
 

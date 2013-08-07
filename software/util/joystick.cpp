@@ -39,7 +39,7 @@ namespace {
 				throw SystemError("ioctl(JSIOCGNAME)", errno);
 			}
 			if (!len) {
-				return "";
+				return u8"";
 			}
 		} while (len == static_cast<int>(buffer.size()));
 		return Glib::locale_to_utf8(std::string(&buffer[0], static_cast<std::size_t>(len) - 1));

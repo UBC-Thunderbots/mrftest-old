@@ -38,36 +38,36 @@ namespace {
 		char command;
 		const char *description;
 	} REFBOX_MAPPING[] = {
-		{ 'H', "Halt" },
-		{ 'S', "Stop" },
-		{ ' ', "Ready" },
-		{ 's', "Force start" },
-		{ '1', "Begin first half" },
-		{ 'h', "Begin half time" },
-		{ '2', "Begin second half" },
-		{ 'o', "Begin overtime half 1" },
-		{ 'O', "Begin overtime half 2" },
-		{ 'a', "Begin penalty shootout" },
-		{ 'k', "Kick off yellow" },
-		{ 'K', "Kick off blue" },
-		{ 'p', "Penalty kick yellow" },
-		{ 'P', "Penalty kick blue" },
-		{ 'f', "Direct free kick yellow" },
-		{ 'F', "Direct free kick blue" },
-		{ 'i', "Indirect free kick yellow" },
-		{ 'I', "Indirect free kick blue" },
-		{ 't', "Timeout yellow" },
-		{ 'T', "Timeout blue" },
-		{ 'z', "Timeout end" },
-		{ 'g', "Goal yellow" },
-		{ 'G', "Goal blue" },
-		{ 'd', "Ungoal yellow" },
-		{ 'D', "Ungoal blue" },
-		{ 'y', "Yellow card yellow" },
-		{ 'Y', "Yellow card blue" },
-		{ 'r', "Red card yellow" },
-		{ 'R', "Red card blue" },
-		{ 'c', "Cancel" },
+		{ 'H', u8"Halt" },
+		{ 'S', u8"Stop" },
+		{ ' ', u8"Ready" },
+		{ 's', u8"Force start" },
+		{ '1', u8"Begin first half" },
+		{ 'h', u8"Begin half time" },
+		{ '2', u8"Begin second half" },
+		{ 'o', u8"Begin overtime half 1" },
+		{ 'O', u8"Begin overtime half 2" },
+		{ 'a', u8"Begin penalty shootout" },
+		{ 'k', u8"Kick off yellow" },
+		{ 'K', u8"Kick off blue" },
+		{ 'p', u8"Penalty kick yellow" },
+		{ 'P', u8"Penalty kick blue" },
+		{ 'f', u8"Direct free kick yellow" },
+		{ 'F', u8"Direct free kick blue" },
+		{ 'i', u8"Indirect free kick yellow" },
+		{ 'I', u8"Indirect free kick blue" },
+		{ 't', u8"Timeout yellow" },
+		{ 'T', u8"Timeout blue" },
+		{ 'z', u8"Timeout end" },
+		{ 'g', u8"Goal yellow" },
+		{ 'G', u8"Goal blue" },
+		{ 'd', u8"Ungoal yellow" },
+		{ 'D', u8"Ungoal blue" },
+		{ 'y', u8"Yellow card yellow" },
+		{ 'Y', u8"Yellow card blue" },
+		{ 'r', u8"Red card yellow" },
+		{ 'R', u8"Red card blue" },
+		{ 'c', u8"Cancel" },
 	};
 
 	/**
@@ -77,15 +77,15 @@ namespace {
 		uint64_t mask;
 		const char *description;
 	} MOVE_FLAG_MAPPING[] = {
-		{ AI::Flags::FLAG_CLIP_PLAY_AREA, "Clip play area" },
-		{ AI::Flags::FLAG_AVOID_BALL_STOP, "Avoid ball (stop)" },
-		{ AI::Flags::FLAG_AVOID_BALL_TINY, "Avoid ball (tiny)" },
-		{ AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE, "Avoid friendly defense area" },
-		{ AI::Flags::FLAG_AVOID_ENEMY_DEFENSE, "Avoid enemy defense area" },
-		{ AI::Flags::FLAG_STAY_OWN_HALF, "Stay on own half" },
-		{ AI::Flags::FLAG_PENALTY_KICK_FRIENDLY, "Non-kicker in friendly penalty kick" },
-		{ AI::Flags::FLAG_PENALTY_KICK_ENEMY, "Non-kicker in enemy penalty kick" },
-		{ AI::Flags::FLAG_CAREFUL, "Careful" },
+		{ AI::Flags::FLAG_CLIP_PLAY_AREA, u8"Clip play area" },
+		{ AI::Flags::FLAG_AVOID_BALL_STOP, u8"Avoid ball (stop)" },
+		{ AI::Flags::FLAG_AVOID_BALL_TINY, u8"Avoid ball (tiny)" },
+		{ AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE, u8"Avoid friendly defense area" },
+		{ AI::Flags::FLAG_AVOID_ENEMY_DEFENSE, u8"Avoid enemy defense area" },
+		{ AI::Flags::FLAG_STAY_OWN_HALF, u8"Stay on own half" },
+		{ AI::Flags::FLAG_PENALTY_KICK_FRIENDLY, u8"Non-kicker in friendly penalty kick" },
+		{ AI::Flags::FLAG_PENALTY_KICK_ENEMY, u8"Non-kicker in enemy penalty kick" },
+		{ AI::Flags::FLAG_CAREFUL, u8"Careful" },
 	};
 
 	/**
@@ -97,11 +97,11 @@ namespace {
 	 */
 	Glib::ustring timespec_to_string(const Log::MonotonicTimeSpec &ts) {
 		if (ts.seconds() >= 0) {
-			return Glib::ustring::compose("%1.%2", ts.seconds(), todecu(static_cast<unsigned long>(ts.nanoseconds()), 9));
+			return Glib::ustring::compose(u8"%1.%2", ts.seconds(), todecu(static_cast<unsigned long>(ts.nanoseconds()), 9));
 		} else if (ts.nanoseconds() == 0) {
-			return Glib::ustring::compose("-%1.000000000", -ts.seconds());
+			return Glib::ustring::compose(u8"-%1.000000000", -ts.seconds());
 		} else {
-			return Glib::ustring::compose("-%1.%2", -(ts.seconds() + 1), todecu(1000000000UL - static_cast<unsigned long>(ts.nanoseconds()), 9));
+			return Glib::ustring::compose(u8"-%1.%2", -(ts.seconds() + 1), todecu(1000000000UL - static_cast<unsigned long>(ts.nanoseconds()), 9));
 		}
 	}
 
@@ -114,11 +114,11 @@ namespace {
 	 */
 	Glib::ustring timespec_to_string_machine(const Log::MonotonicTimeSpec &ts) {
 		if (ts.seconds() >= 0) {
-			return Glib::ustring::compose("%1.%2", todecu(static_cast<uintmax_t>(ts.seconds()), 0), todecu(static_cast<unsigned long>(ts.nanoseconds()), 9));
+			return Glib::ustring::compose(u8"%1.%2", todecu(static_cast<uintmax_t>(ts.seconds()), 0), todecu(static_cast<unsigned long>(ts.nanoseconds()), 9));
 		} else if (ts.nanoseconds() == 0) {
-			return Glib::ustring::compose("-%1.000000000", todecu(static_cast<uintmax_t>(-ts.seconds()), 0));
+			return Glib::ustring::compose(u8"-%1.000000000", todecu(static_cast<uintmax_t>(-ts.seconds()), 0));
 		} else {
-			return Glib::ustring::compose("-%1.%2", todecu(static_cast<uintmax_t>(-(ts.seconds() + 1)), 0), todecu(1000000000UL - static_cast<unsigned long>(ts.nanoseconds()), 9));
+			return Glib::ustring::compose(u8"-%1.%2", todecu(static_cast<uintmax_t>(-(ts.seconds() + 1)), 0), todecu(1000000000UL - static_cast<unsigned long>(ts.nanoseconds()), 9));
 		}
 	}
 
@@ -157,11 +157,11 @@ namespace {
 	void tsv_writer_friendly_player(std::ostream &os, const std::vector<Log::Record> &records, Gtk::Window &parent) {
 		unsigned int pattern;
 		{
-			Gtk::Dialog dlg("Save to TSV", parent, true);
+			Gtk::Dialog dlg(u8"Save to TSV", parent, true);
 			dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
 			dlg.set_default_response(Gtk::RESPONSE_OK);
 			Gtk::HBox hb;
-			Gtk::Label label("Player index:");
+			Gtk::Label label(u8"Player index:");
 			hb.pack_start(label, Gtk::PACK_SHRINK);
 			Gtk::SpinButton spin;
 			spin.get_adjustment()->configure(0, 0, 15, 1, 5, 0);
@@ -262,10 +262,10 @@ namespace {
 		std::function<void(std::ostream &, const std::vector<Log::Record> &, Gtk::Window &)> fn;
 		const char *description;
 	} TSV_WRITERS[] = {
-		{ &tsv_writer_ball, "Ball position/velocity (predicted and vision)" },
-		{ &tsv_writer_friendly_player, "Friendly player position/velocity (predicted and vision)" },
-		{ &tsv_writer_stamps, "Tick/vision/refbox timestamps" },
-		{ &tsv_writer_compute_times, "Tick computation times" },
+		{ &tsv_writer_ball, u8"Ball position/velocity (predicted and vision)" },
+		{ &tsv_writer_friendly_player, u8"Friendly player position/velocity (predicted and vision)" },
+		{ &tsv_writer_stamps, u8"Tick/vision/refbox timestamps" },
+		{ &tsv_writer_compute_times, u8"Tick computation times" },
 	};
 
 	/**
@@ -322,7 +322,7 @@ namespace {
 			 *
 			 * \return the new row.
 			 */
-			Gtk::TreeRow append_kv(Glib::RefPtr<Gtk::TreeStore> store, const Glib::ustring &k, const Glib::ustring &v = "") const;
+			Gtk::TreeRow append_kv(Glib::RefPtr<Gtk::TreeStore> store, const Glib::ustring &k, const Glib::ustring &v = u8"") const;
 
 			/**
 			 * \brief Adds a key-value pair to a tree.
@@ -337,7 +337,7 @@ namespace {
 			 *
 			 * \return the new row.
 			 */
-			Gtk::TreeRow append_kv(Glib::RefPtr<Gtk::TreeStore> store, const Gtk::TreeRow &parent, const Glib::ustring &k, const Glib::ustring &v = "") const;
+			Gtk::TreeRow append_kv(Glib::RefPtr<Gtk::TreeStore> store, const Gtk::TreeRow &parent, const Glib::ustring &k, const Glib::ustring &v = u8"") const;
 	};
 
 	PacketDecodedTreeColumns::PacketDecodedTreeColumns() {
@@ -414,7 +414,7 @@ namespace {
 				Glib::ustring ustr;
 				for (char ch : data) {
 					if (!ustr.empty()) {
-						ustr.append(" ");
+						ustr.append(u8" ");
 					}
 					ustr.append(tohex(ch, 2));
 				}
@@ -449,7 +449,7 @@ namespace {
 
 		if (dynamic_cast<const Log::UNIXTimeSpec *>(&message) && fd.name() == "seconds") {
 			assert(fd.type() == google::protobuf::FieldDescriptor::TYPE_INT64);
-			row[cols.key] = "date/time";
+			row[cols.key] = u8"date/time";
 			char buffer[4096];
 			std::time_t t = static_cast<std::time_t>(refl.GetInt64(message, &fd));
 			std::strftime(buffer, sizeof(buffer), "%c", std::localtime(&t));
@@ -466,7 +466,7 @@ namespace {
 				}
 			}
 			if (flags) {
-				cols.append_kv(ts, row, "Unknown Flags", tohex(flags, 16));
+				cols.append_kv(ts, row, u8"Unknown Flags", tohex(flags, 16));
 			}
 			return;
 		} else if (dynamic_cast<const Log::Refbox *>(&message) && fd.name() == "legacy_data") {
@@ -478,17 +478,17 @@ namespace {
 			bool found = false;
 			for (const auto &i : REFBOX_MAPPING) {
 				if (i.command == data[0]) {
-					cols.append_kv(ts, row, "Command", Glib::ustring::compose("%1 (%2)", i.description, data[0]));
+					cols.append_kv(ts, row, u8"Command", Glib::ustring::compose(u8"%1 (%2)", i.description, data[0]));
 					found = true;
 				}
 			}
 			if (!found) {
-				cols.append_kv(ts, row, "Command", Glib::ustring::compose("Unknown (%1)", data[0]));
+				cols.append_kv(ts, row, u8"Command", Glib::ustring::compose(u8"Unknown (%1)", data[0]));
 			}
-			cols.append_kv(ts, row, "Counter", Glib::ustring::format(static_cast<unsigned int>(static_cast<uint8_t>(data[1]))));
-			cols.append_kv(ts, row, "Goals Blue", Glib::ustring::format(static_cast<unsigned int>(static_cast<uint8_t>(data[2]))));
-			cols.append_kv(ts, row, "Goals Yellow", Glib::ustring::format(static_cast<unsigned int>(static_cast<uint8_t>(data[3]))));
-			cols.append_kv(ts, row, "Seconds Left", Glib::ustring::format(decode_u16_be(&data.data()[4])));
+			cols.append_kv(ts, row, u8"Counter", Glib::ustring::format(static_cast<unsigned int>(static_cast<uint8_t>(data[1]))));
+			cols.append_kv(ts, row, u8"Goals Blue", Glib::ustring::format(static_cast<unsigned int>(static_cast<uint8_t>(data[2]))));
+			cols.append_kv(ts, row, u8"Goals Yellow", Glib::ustring::format(static_cast<unsigned int>(static_cast<uint8_t>(data[3]))));
+			cols.append_kv(ts, row, u8"Seconds Left", Glib::ustring::format(decode_u16_be(&data.data()[4])));
 		}
 
 		switch (fd.cpp_type()) {
@@ -517,7 +517,7 @@ namespace {
 				return;
 
 			case google::protobuf::FieldDescriptor::CPPTYPE_BOOL:
-				row[cols.value] = refl.GetBool(message, &fd) ? "True" : "False";
+				row[cols.value] = refl.GetBool(message, &fd) ? u8"True" : u8"False";
 				return;
 
 			case google::protobuf::FieldDescriptor::CPPTYPE_ENUM:
@@ -563,7 +563,7 @@ namespace {
 				return;
 
 			case google::protobuf::FieldDescriptor::CPPTYPE_BOOL:
-				row[cols.value] = refl.GetRepeatedBool(message, &fd, index) ? "true" : "false";
+				row[cols.value] = refl.GetRepeatedBool(message, &fd, index) ? u8"true" : u8"false";
 				return;
 
 			case google::protobuf::FieldDescriptor::CPPTYPE_ENUM:
@@ -588,15 +588,15 @@ namespace {
 		if (dynamic_cast<const Log::Parameter *>(&message)) {
 			const Log::Parameter &param = dynamic_cast<const Log::Parameter &>(message);
 			if (param.has_bool_value()) {
-				append_kv(param.name(), param.bool_value() ? "true" : "false");
+				append_kv(param.name(), param.bool_value() ? u8"true" : u8"false");
 			} else if (param.has_int_value()) {
 				append_kv(param.name(), Glib::ustring::format(param.int_value()));
 			} else if (param.has_double_value()) {
 				append_kv(param.name(), Glib::ustring::format(param.double_value()));
 			} else if (param.has_radian_value()) {
-				append_kv(param.name(), Glib::ustring::compose("%1r", param.radian_value()));
+				append_kv(param.name(), Glib::ustring::compose(u8"%1r", param.radian_value()));
 			} else if (param.has_degree_value()) {
-				append_kv(param.name(), Glib::ustring::compose("%1°", param.degree_value()));
+				append_kv(param.name(), Glib::ustring::compose(u8"%1°", param.degree_value()));
 			} else {
 				std::abort();
 			}
@@ -613,7 +613,7 @@ namespace {
 					if (refl.HasField(message, &fd)) {
 						build_decoded_tree_field_singular(message, fd, ts, cols, row);
 					} else {
-						row[cols.value] = "<No Data>";
+						row[cols.value] = u8"<No Data>";
 					}
 					break;
 
@@ -624,9 +624,9 @@ namespace {
 
 				case google::protobuf::FieldDescriptor::LABEL_REPEATED:
 					ok = true;
-					row[cols.value] = Glib::ustring::compose("%1 instances", refl.FieldSize(message, &fd));
+					row[cols.value] = Glib::ustring::compose(u8"%1 instances", refl.FieldSize(message, &fd));
 					for (int i = 0; i < refl.FieldSize(message, &fd); ++i) {
-						Gtk::TreeRow child = cols.append_kv(ts, row, Glib::ustring::compose("Element %1", i));
+						Gtk::TreeRow child = cols.append_kv(ts, row, Glib::ustring::compose(u8"Element %1", i));
 						build_decoded_tree_field_repeated(message, fd, i, ts, cols, child);
 					}
 					break;
@@ -646,11 +646,11 @@ namespace {
 			return;
 		} else if (dynamic_cast<const Log::Vector2 *>(&message)) {
 			const Log::Vector2 &v = dynamic_cast<const Log::Vector2 &>(message);
-			parent[cols.value] = Glib::ustring::compose("(%1, %2)", v.x() / 1000000.0, v.y() / 1000000.0);
+			parent[cols.value] = Glib::ustring::compose(u8"(%1, %2)", v.x() / 1000000.0, v.y() / 1000000.0);
 			return;
 		} else if (dynamic_cast<const Log::Vector3 *>(&message)) {
 			const Log::Vector3 &v = dynamic_cast<const Log::Vector3 &>(message);
-			parent[cols.value] = Glib::ustring::compose("(%1, %2, %3)", v.x() / 1000000.0, v.y() / 1000000.0, v.t() / 1000000.0);
+			parent[cols.value] = Glib::ustring::compose(u8"(%1, %2, %3)", v.x() / 1000000.0, v.y() / 1000000.0, v.t() / 1000000.0);
 			return;
 		}
 
@@ -674,14 +674,14 @@ namespace {
 			} else if (fd.is_optional() && fd.type() == google::protobuf::FieldDescriptor::TYPE_STRING && refl.HasField(record, &fd)) {
 				// This record contains a string.
 				// Show a tree node for the string.
-				Gtk::TreeRow row = cols.append_kv(ts, Glib::ustring::compose("Value", i));
+				Gtk::TreeRow row = cols.append_kv(ts, Glib::ustring::compose(u8"Value", i));
 				build_decoded_tree_field_singular(record, fd, ts, cols, row);
 				return;
 			} else if (fd.is_repeated() && fd.type() == google::protobuf::FieldDescriptor::TYPE_MESSAGE && refl.FieldSize(record, &fd)) {
 				// This record contains a repeated field.
 				// Show a tree node for each instance.
 				for (int i = 0; i < refl.FieldSize(record, &fd); ++i) {
-					Gtk::TreeRow row = cols.append_kv(ts, Glib::ustring::compose("Element %1", i));
+					Gtk::TreeRow row = cols.append_kv(ts, Glib::ustring::compose(u8"Element %1", i));
 					build_decoded_tree_nontoplevel(refl.GetRepeatedMessage(record, &fd, i), ts, cols, row);
 				}
 				return;
@@ -704,14 +704,14 @@ class LogAnalyzer::Impl : public NonCopyable {
 		}
 };
 
-LogAnalyzer::LogAnalyzer(Gtk::Window &parent, const std::string &pathname) : impl(new Impl(pathname)), pane_fixed(false), packets_list_view(impl->alm), to_tsv_button("To TSV") {
-	set_title(Glib::ustring::compose("Thunderbots Log Tools - Analyzer - %1", Glib::filename_display_basename(pathname)));
+LogAnalyzer::LogAnalyzer(Gtk::Window &parent, const std::string &pathname) : impl(new Impl(pathname)), pane_fixed(false), packets_list_view(impl->alm), to_tsv_button(u8"To TSV") {
+	set_title(Glib::ustring::compose(u8"Thunderbots Log Tools - Analyzer - %1", Glib::filename_display_basename(pathname)));
 	set_transient_for(parent);
 	set_modal(false);
 	set_size_request(400, 400);
 
-	packets_list_view.append_column("Index", impl->alm->index_column);
-	packets_list_view.append_column("Packet Type", impl->alm->type_column);
+	packets_list_view.append_column(u8"Index", impl->alm->index_column);
+	packets_list_view.append_column(u8"Packet Type", impl->alm->type_column);
 	packets_list_view.get_selection()->set_mode(Gtk::SELECTION_SINGLE);
 	packets_list_view.get_selection()->signal_changed().connect(sigc::mem_fun(this, &LogAnalyzer::on_packets_list_view_selection_changed));
 	packets_list_scroller.add(packets_list_view);
@@ -719,9 +719,9 @@ LogAnalyzer::LogAnalyzer(Gtk::Window &parent, const std::string &pathname) : imp
 	packets_list_frame.add(packets_list_scroller);
 	hpaned.pack1(packets_list_frame, Gtk::EXPAND | Gtk::FILL);
 
-	packet_decoded_tree.append_column("Field", impl->packet_decoded_tree_columns.key);
+	packet_decoded_tree.append_column(u8"Field", impl->packet_decoded_tree_columns.key);
 	packet_decoded_tree.get_column(0)->set_resizable();
-	packet_decoded_tree.append_column("Value", impl->packet_decoded_tree_columns.value);
+	packet_decoded_tree.append_column(u8"Value", impl->packet_decoded_tree_columns.value);
 	packet_decoded_tree.get_column(1)->set_resizable();
 	packet_decoded_scroller.add(packet_decoded_tree);
 	packet_decoded_frame.set_shadow_type(Gtk::SHADOW_IN);
@@ -763,7 +763,7 @@ void LogAnalyzer::on_packets_list_view_selection_changed() {
 }
 
 void LogAnalyzer::on_to_tsv_clicked() {
-	Gtk::Dialog dlg("Save to TSV", *this, true);
+	Gtk::Dialog dlg(u8"Save to TSV", *this, true);
 	dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
 	dlg.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 	dlg.set_default_response(Gtk::RESPONSE_OK);
@@ -776,13 +776,13 @@ void LogAnalyzer::on_to_tsv_clicked() {
 		radio_buttons[i].show();
 	}
 	if (dlg.run() == Gtk::RESPONSE_OK) {
-		Gtk::FileChooserDialog fc(*this, "Save to TSV", Gtk::FILE_CHOOSER_ACTION_SAVE);
+		Gtk::FileChooserDialog fc(*this, u8"Save to TSV", Gtk::FILE_CHOOSER_ACTION_SAVE);
 		fc.set_local_only();
 		fc.set_select_multiple(false);
 		fc.set_do_overwrite_confirmation();
 		Gtk::FileFilter ff;
-		ff.set_name("TSV Files");
-		ff.add_pattern("*.tsv");
+		ff.set_name(u8"TSV Files");
+		ff.add_pattern(u8"*.tsv");
 		fc.add_filter(ff);
 		fc.add_button(Gtk::Stock::SAVE, Gtk::RESPONSE_OK);
 		fc.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);

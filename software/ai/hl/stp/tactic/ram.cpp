@@ -27,7 +27,7 @@ namespace {
 				ram(world, player, world.ball().position(), Point());
 			}
 			Glib::ustring description() const {
-				return "ram";
+				return u8"ram";
 			}
 	};
 }

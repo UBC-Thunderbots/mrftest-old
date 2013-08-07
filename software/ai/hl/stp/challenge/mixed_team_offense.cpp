@@ -40,19 +40,19 @@ using namespace AI::HL::STP::Predicates;
 
 
 namespace {
-	BoolParam enable0("enable robot 0", "MixedTeamOffense", true);
-	BoolParam enable1("enable robot 1", "MixedTeamOffense", true);
-	BoolParam enable2("enable robot 2", "MixedTeamOffense", true);
-	BoolParam enable3("enable robot 3", "MixedTeamOffense", true);
-	BoolParam enable4("enable robot 4", "MixedTeamOffense", true);
-	BoolParam enable5("enable robot 5", "MixedTeamOffense", true);
-	BoolParam enable6("enable robot 6", "MixedTeamOffense", true);
-	BoolParam enable7("enable robot 7", "MixedTeamOffense", true);
-	BoolParam enable8("enable robot 8", "MixedTeamOffense", true);
-	BoolParam enable9("enable robot 9", "MixedTeamOffense", true);
-	BoolParam enable10("enable robot 10", "MixedTeamOffense", true);
-	BoolParam enable11("enable robot 11", "MixedTeamOffense", true);
-	BoolParam do_draw("draw", "MixedTeamOffense", true);
+	BoolParam enable0(u8"enable robot 0", u8"MixedTeamOffense", true);
+	BoolParam enable1(u8"enable robot 1", u8"MixedTeamOffense", true);
+	BoolParam enable2(u8"enable robot 2", u8"MixedTeamOffense", true);
+	BoolParam enable3(u8"enable robot 3", u8"MixedTeamOffense", true);
+	BoolParam enable4(u8"enable robot 4", u8"MixedTeamOffense", true);
+	BoolParam enable5(u8"enable robot 5", u8"MixedTeamOffense", true);
+	BoolParam enable6(u8"enable robot 6", u8"MixedTeamOffense", true);
+	BoolParam enable7(u8"enable robot 7", u8"MixedTeamOffense", true);
+	BoolParam enable8(u8"enable robot 8", u8"MixedTeamOffense", true);
+	BoolParam enable9(u8"enable robot 9", u8"MixedTeamOffense", true);
+	BoolParam enable10(u8"enable robot 10", u8"MixedTeamOffense", true);
+	BoolParam enable11(u8"enable robot 11", u8"MixedTeamOffense", true);
+	BoolParam do_draw(u8"draw", u8"MixedTeamOffense", true);
 
 	struct MixedTeamOffense : public HighLevel {
 		World world;

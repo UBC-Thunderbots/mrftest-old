@@ -24,7 +24,7 @@ namespace {
 				text_view.set_editable(false);
 				vbox.add(reset_button);
 				vbox.add(text_view);
-				reset_button.set_label("reset");
+				reset_button.set_label(u8"reset");
 				reset_button.signal_clicked().connect(sigc::bind(&STPHL::reset, sigc::ref(*this)));
 			}
 

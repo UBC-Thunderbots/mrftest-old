@@ -13,7 +13,7 @@ void RadianParam::encode_value_to_log(Log::Parameter &param) const {
 }
 
 void RadianParam::load(const xmlpp::Element *elt) {
-	if (elt->get_name() == "radians") {
+	if (elt->get_name() == u8"radians") {
 		const xmlpp::TextNode *text_node = elt->get_child_text();
 		std::wistringstream iss(ustring2wstring(text_node->get_content()));
 		iss.imbue(std::locale("C"));
@@ -24,8 +24,8 @@ void RadianParam::load(const xmlpp::Element *elt) {
 }
 
 void RadianParam::save(xmlpp::Element *elt) const {
-	elt->set_name("radians");
-	elt->set_attribute("name", name());
+	elt->set_name(u8"radians");
+	elt->set_attribute(u8"name", name());
 	std::wostringstream oss;
 	oss.imbue(std::locale("C"));
 	oss << std::fixed << std::setprecision(static_cast<int>(fractional_digits())) << adjustment()->get_value();
@@ -40,7 +40,7 @@ void DegreeParam::encode_value_to_log(Log::Parameter &param) const {
 }
 
 void DegreeParam::load(const xmlpp::Element *elt) {
-	if (elt->get_name() == "degrees") {
+	if (elt->get_name() == u8"degrees") {
 		const xmlpp::TextNode *text_node = elt->get_child_text();
 		std::wistringstream iss(ustring2wstring(text_node->get_content()));
 		iss.imbue(std::locale("C"));
@@ -51,8 +51,8 @@ void DegreeParam::load(const xmlpp::Element *elt) {
 }
 
 void DegreeParam::save(xmlpp::Element *elt) const {
-	elt->set_name("degrees");
-	elt->set_attribute("name", name());
+	elt->set_name(u8"degrees");
+	elt->set_attribute(u8"name", name());
 	std::wostringstream oss;
 	oss.imbue(std::locale("C"));
 	oss << std::fixed << std::setprecision(static_cast<int>(fractional_digits())) << adjustment()->get_value();

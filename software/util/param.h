@@ -145,7 +145,7 @@ class ParamTreeNode : public NonCopyable {
 		 *
 		 * \return the internal node found at \p path.
 		 */
-		virtual ParamTreeInternalNode *internal_node(const char *path) = 0;
+		virtual ParamTreeInternalNode *internal_node(const Glib::ustring &path) = 0;
 
 		/**
 		 * \brief Returns a string consisting of slash-separated components constituting the full path to the node.
@@ -256,7 +256,7 @@ class Param : public ParamTreeNode {
 		 *
 		 * \return the internal node found at \p path.
 		 */
-		ParamTreeInternalNode *internal_node(const char *path);
+		ParamTreeInternalNode *internal_node(const Glib::ustring &path);
 
 		/**
 		 * \brief Returns a signal fired when the value of the parameter changes.
@@ -282,7 +282,7 @@ class Param : public ParamTreeNode {
 		 *
 		 * \param[in] location the location in the parameter tree of the parameter.
 		 */
-		Param(const char *name, const char *location);
+		Param(const Glib::ustring &name, const Glib::ustring &location);
 
 		/**
 		 * \brief Initializes the structure of this node and any child nodes.
@@ -332,7 +332,7 @@ class BoolParam : public Param {
 		 *
 		 * \param[in] def the default value of the parameter.
 		 */
-		BoolParam(const char *name, const char *location, bool def);
+		BoolParam(const Glib::ustring &name, const Glib::ustring &location, bool def);
 
 		/**
 		 * \brief Returns the value of the parameter.
@@ -456,7 +456,7 @@ class NumericParam : public Param {
 		 *
 		 * \param[in] integer \c true if the parameter should take integer values, or \c false if it may take non-integer values.
 		 */
-		NumericParam(const char *name, const char *location, double def, double min, double max, bool integer);
+		NumericParam(const Glib::ustring &name, const Glib::ustring &location, double def, double min, double max, bool integer);
 
 	private:
 		const double def, min, max;
@@ -495,7 +495,7 @@ class IntParam : public NumericParam {
 		 *
 		 * \param[in] max the maximum value of the parameter.
 		 */
-		IntParam(const char *name, const char *location, int def, int min, int max);
+		IntParam(const Glib::ustring &name, const Glib::ustring &location, int def, int min, int max);
 
 		/**
 		 * \brief Returns the value of the parameter.
@@ -558,7 +558,7 @@ class DoubleParam : public NumericParam {
 		 *
 		 * \param[in] max the maximum value of the parameter.
 		 */
-		DoubleParam(const char *name, const char *location, double def, double min, double max);
+		DoubleParam(const Glib::ustring &name, const Glib::ustring &location, double def, double min, double max);
 
 		/**
 		 * \brief Returns the value of the parameter.

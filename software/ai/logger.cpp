@@ -157,10 +157,6 @@ void AI::Logger::end_with_exception(const Glib::ustring &msg) {
 	ended = true;
 }
 
-void AI::Logger::end_with_exception(const char *msg) {
-	end_with_exception(Glib::locale_to_utf8(msg));
-}
-
 void AI::Logger::write_record(const Log::Record &record) {
 	assert(record.IsInitialized());
 	google::protobuf::io::CodedOutputStream cos(&fos);

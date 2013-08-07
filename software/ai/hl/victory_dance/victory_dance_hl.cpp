@@ -25,7 +25,7 @@ namespace {
 			dest_control.set_digits(2);
 		
 			vbox.add(reset_button);
-			reset_button.set_label("reset");
+			reset_button.set_label(u8"reset");
 			reset_button.signal_clicked().connect(sigc::bind(&VDHL::reset, sigc::ref(*this)));
 		}
 		

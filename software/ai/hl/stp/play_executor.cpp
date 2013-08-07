@@ -24,30 +24,30 @@ namespace AI {
 }
 
 namespace {
-	BoolParam test_goalie("Goalie selection by lowest or user assigned", "STP/Goalie", false);
+	BoolParam test_goalie(u8"Goalie selection by lowest or user assigned", u8"STP/Goalie", false);
 
 	// One of the changes from the technical committee this year (2013) is that the
 	// referee box will send the pattern number of the goalie for each team.
 	// You can retrieve this with the goalie() function on a Team object.
 	// Therefore the following goalie code can only be used when the test_goalie param is turned on (for testing). 
-	BoolParam goalie_lowest("Goalie is lowest index", "STP/Goalie", true);
-	IntParam goalie_pattern_index("Goalie pattern index", "STP/Goalie", 0, 0, 11);
+	BoolParam goalie_lowest(u8"Goalie is lowest index", u8"STP/Goalie", true);
+	IntParam goalie_pattern_index(u8"Goalie pattern index", u8"STP/Goalie", 0, 0, 11);
 
-	BoolParam enable0("enable robot 0", "STP/PlayExecutor", true);
-	BoolParam enable1("enable robot 1", "STP/PlayExecutor", true);
-	BoolParam enable2("enable robot 2", "STP/PlayExecutor", true);
-	BoolParam enable3("enable robot 3", "STP/PlayExecutor", true);
-	BoolParam enable4("enable robot 4", "STP/PlayExecutor", true);
-	BoolParam enable5("enable robot 5", "STP/PlayExecutor", true);
-	BoolParam enable6("enable robot 6", "STP/PlayExecutor", true);
-	BoolParam enable7("enable robot 7", "STP/PlayExecutor", true);
-	BoolParam enable8("enable robot 8", "STP/PlayExecutor", true);
-	BoolParam enable9("enable robot 9", "STP/PlayExecutor", true);
-	BoolParam enable10("enable robot 10", "STP/PlayExecutor", true);
-	BoolParam enable11("enable robot 11", "STP/PlayExecutor", true);
+	BoolParam enable0(u8"enable robot 0", u8"STP/PlayExecutor", true);
+	BoolParam enable1(u8"enable robot 1", u8"STP/PlayExecutor", true);
+	BoolParam enable2(u8"enable robot 2", u8"STP/PlayExecutor", true);
+	BoolParam enable3(u8"enable robot 3", u8"STP/PlayExecutor", true);
+	BoolParam enable4(u8"enable robot 4", u8"STP/PlayExecutor", true);
+	BoolParam enable5(u8"enable robot 5", u8"STP/PlayExecutor", true);
+	BoolParam enable6(u8"enable robot 6", u8"STP/PlayExecutor", true);
+	BoolParam enable7(u8"enable robot 7", u8"STP/PlayExecutor", true);
+	BoolParam enable8(u8"enable robot 8", u8"STP/PlayExecutor", true);
+	BoolParam enable9(u8"enable robot 9", u8"STP/PlayExecutor", true);
+	BoolParam enable10(u8"enable robot 10", u8"STP/PlayExecutor", true);
+	BoolParam enable11(u8"enable robot 11", u8"STP/PlayExecutor", true);
 
-	BoolParam high_priority_always("If higher priority play exists, switch", "STP/PlayExecutor", true);
-	IntParam playbook_index("Current Playbook, use bitwise operations", "STP/PlayExecutor", 0, 0, 9);
+	BoolParam high_priority_always(u8"If higher priority play exists, switch", u8"STP/PlayExecutor", true);
+	IntParam playbook_index(u8"Current Playbook, use bitwise operations", u8"STP/PlayExecutor", 0, 0, 9);
 }
 
 PlayExecutor::PlayExecutor(World w) : world(w), curr_play(nullptr), curr_active(nullptr) {
@@ -86,11 +86,11 @@ void PlayExecutor::calc_play() {
 			continue;
 		}
 		if (i->done()) {
-			LOG_ERROR(Glib::ustring::compose("Play applicable but done: %1", i->factory().name()));
+			LOG_ERROR(Glib::ustring::compose(u8"Play applicable but done: %1", i->factory().name()));
 			continue;
 		}
 
-		LOG_DEBUG(Glib::ustring::compose("Play candidate: %1", i->factory().name()));
+		LOG_DEBUG(Glib::ustring::compose(u8"Play candidate: %1", i->factory().name()));
 
 		if (!curr_play || i->factory().priority > curr_play->factory().priority) {
 			curr_play = i.get();
@@ -101,7 +101,7 @@ void PlayExecutor::calc_play() {
 		return;
 	}
 
-	LOG_INFO(Glib::ustring::compose("Play chosen: %1", curr_play->factory().name()));
+	LOG_INFO(Glib::ustring::compose(u8"Play chosen: %1", curr_play->factory().name()));
 
 	curr_role_step = 0;
 	for (std::size_t j = 0; j < TEAM_MAX_SIZE; ++j) {
@@ -167,7 +167,7 @@ void PlayExecutor::role_assignment() {
 		} 
 
 		if (!goalie) {
-			LOG_INFO("No goalie with the desired pattern");
+			LOG_INFO(u8"No goalie with the desired pattern");
 			curr_play = nullptr;
 			return;
 		}
@@ -180,7 +180,7 @@ void PlayExecutor::role_assignment() {
 		curr_tactic[0]->set_player(goalie);
 		curr_assignment[0] = goalie;
 	} else {
-		LOG_ERROR("No goalie with the desired pattern");
+		LOG_ERROR(u8"No goalie with the desired pattern");
 	}
 
 	// pool of available people
@@ -226,7 +226,7 @@ void PlayExecutor::role_assignment() {
 
 	// can't assign active tactic to anyone
 	if (!active_assigned) {
-		LOG_ERROR("Active tactic not assigned");
+		LOG_ERROR(u8"Active tactic not assigned");
 		curr_play = nullptr;
 		return;
 	}
@@ -252,7 +252,7 @@ void PlayExecutor::execute_tactics() {
 		}
 
 		if (curr_active->fail()) {
-			LOG_INFO(Glib::ustring::compose("%1: active tactic failed", curr_play->factory().name()));
+			LOG_INFO(Glib::ustring::compose(u8"%1: active tactic failed", curr_play->factory().name()));
 			curr_play = nullptr;
 			return;
 		}
@@ -263,7 +263,7 @@ void PlayExecutor::execute_tactics() {
 
 			// when the play runs out of tactics, they are done!
 			if (curr_role_step >= max_role_step) {
-				LOG_INFO(Glib::ustring::compose("%1: all tactics done", curr_play->factory().name()));
+				LOG_INFO(Glib::ustring::compose(u8"%1: all tactics done", curr_play->factory().name()));
 				curr_play = nullptr;
 				return;
 			}
@@ -331,7 +331,7 @@ void PlayExecutor::execute_tactics() {
 	}
 
 	if (curr_active->fail()) {
-		LOG_INFO(Glib::ustring::compose("%1: active tactic failed", curr_play->factory().name()));
+		LOG_INFO(Glib::ustring::compose(u8"%1: active tactic failed", curr_play->factory().name()));
 		curr_play = nullptr;
 		return;
 	}
@@ -342,7 +342,7 @@ void PlayExecutor::execute_tactics() {
 
 		// when the play runs out of tactics, they are done!
 		if (curr_role_step >= max_role_step) {
-			LOG_INFO(Glib::ustring::compose("%1: all tactics done", curr_play->factory().name()));
+			LOG_INFO(Glib::ustring::compose(u8"%1: all tactics done", curr_play->factory().name()));
 			curr_play = nullptr;
 			return;
 		}
@@ -370,15 +370,15 @@ void PlayExecutor::tick() {
 	if (curr_play) {
 		bool done = false;
 		if (!curr_play->invariant()) {
-			LOG_INFO("play invariant no longer holds");
+			LOG_INFO(u8"play invariant no longer holds");
 			done = true;
 		}
 		if (curr_play->done()) {
-			LOG_INFO("play done is true");
+			LOG_INFO(u8"play done is true");
 			done = true;
 		}
 		if (curr_play->fail()) {
-			LOG_INFO("play failed");
+			LOG_INFO(u8"play failed");
 			done = true;
 		}
 		if (high_priority_always && curr_play->can_give_up_safely()) {
@@ -393,7 +393,7 @@ void PlayExecutor::tick() {
 					continue;
 				}
 				if (i->factory().priority > curr_play->factory().priority) {
-					LOG_INFO("higher priority play exist");
+					LOG_INFO(u8"higher priority play exist");
 					done = true;
 					break;
 				}
@@ -401,7 +401,7 @@ void PlayExecutor::tick() {
 		}
 
 		if (done) {
-			LOG_INFO(Glib::ustring::compose("%1: play tactic failed", curr_play->factory().name()));
+			LOG_INFO(Glib::ustring::compose(u8"%1: play tactic failed", curr_play->factory().name()));
 			curr_play = nullptr;
 		}
 	}
@@ -410,7 +410,7 @@ void PlayExecutor::tick() {
 	if (!curr_play) {
 		calc_play();
 		if (!curr_play) {
-			LOG_ERROR("calc play failed");
+			LOG_ERROR(u8"calc play failed");
 			return;
 		}
 	}
@@ -421,17 +421,17 @@ void PlayExecutor::tick() {
 Glib::ustring PlayExecutor::info() const {
 	Glib::ustring text;
 	if (curr_play) {
-		text += Glib::ustring::compose("play: %1\nstep: %2", curr_play->factory().name(), curr_role_step);
+		text += Glib::ustring::compose(u8"play: %1\nstep: %2", curr_play->factory().name(), curr_role_step);
 		// std::size_t imax = std::min((std::size_t)5, world.friendly_team().size());
 		for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
 			if (!curr_assignment[i]) {
-				// LOG_ERROR("curr-assignment empty");
+				// LOG_ERROR(u8"curr-assignment empty");
 				continue;
 			}
-			text += Glib::ustring::compose("\n%1: %2%3", curr_assignment[i].pattern(), curr_tactic[i]->active() ? '*' : ' ', curr_tactic[i]->description());
+			text += Glib::ustring::compose(u8"\n%1: %2%3", curr_assignment[i].pattern(), curr_tactic[i]->active() ? '*' : ' ', curr_tactic[i]->description());
 		}
 	} else {
-		text = "No Play";
+		text = u8"No Play";
 	}
 	return text;
 }
@@ -460,7 +460,7 @@ void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 }
 
 void PlayExecutor::clear_assignments() {
-	LOG_INFO("Team membership changed, reset play");
+	LOG_INFO(u8"Team membership changed, reset play");
 
 	_goalie = AI::HL::W::Player();
 

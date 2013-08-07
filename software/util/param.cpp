@@ -27,24 +27,24 @@ namespace {
 
 class ParamTreeInternalNode : public ParamTreeNode {
 	public:
-		ParamTreeInternalNode *internal_node(const char *path) {
-			if (path) {
-				if (!path[0] || path[0] == '/') {
+		ParamTreeInternalNode *internal_node(const Glib::ustring &path) {
+			if (!path.empty()) {
+				if (path[0] == 47 /* slash */) {
 					throw std::invalid_argument("Path component in parameter tree path is empty");
 				}
-				const char *pch = std::strchr(path, '/');
+				Glib::ustring::size_type index_of_slash = path.find(static_cast<gunichar>(47) /* slash */);
 				Glib::ustring component;
-				if (pch) {
-					component.assign(path, static_cast<std::size_t>(pch - path));
+				if (index_of_slash != Glib::ustring::npos) {
+					component.assign(path, 0, index_of_slash);
 				} else {
-					component.assign(path);
+					component = path;
 				}
 				ParamTreeInternalNode *child = nullptr;
 				for (ParamTreeNode *i : children) {
 					if (i->name() == component) {
 						child = dynamic_cast<ParamTreeInternalNode *>(i);
 						if (!child) {
-							throw std::invalid_argument(Glib::ustring::compose("Duplicate name \"%1\" in parameter tree path \"%2\" (both parameter and category)", component, this->path()));
+							throw std::invalid_argument(Glib::locale_from_utf8(Glib::ustring::compose(u8"Duplicate name “%1” in parameter tree path “%2” (both parameter and category)", component, this->path())));
 						}
 						break;
 					}
@@ -53,7 +53,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 					child = Allocator::instance().alloc(component);
 					children.push_back(child);
 				}
-				return child->internal_node(pch ? pch + 1 : nullptr);
+				return child->internal_node(index_of_slash != Glib::ustring::npos ? path.substr(index_of_slash + 1) : Glib::ustring());
 			} else {
 				return this;
 			}
@@ -62,7 +62,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 		void add_child(ParamTreeNode *child) {
 			const std::string &ck = child->name().collate_key();
 			if (children_name_ck.count(ck)) {
-				throw std::invalid_argument(Glib::ustring::compose("Duplicate name \"%1\" in parameter tree path \"%2\"", child->name(), this->path()));
+				throw std::invalid_argument(Glib::locale_from_utf8(Glib::ustring::compose(u8"Duplicate name “%1” in parameter tree path “%2”", child->name(), this->path())));
 			}
 			children_name_ck.insert(ck);
 			children.push_back(child);
@@ -83,11 +83,11 @@ class ParamTreeInternalNode : public ParamTreeNode {
 
 		void load(const xmlpp::Element *elt) {
 			// Check whether the XML element is appropriate.
-			if (name() == "<<<ROOT>>>") {
-				assert(elt->get_name() == "params");
+			if (name() == u8"<<<ROOT>>>") {
+				assert(elt->get_name() == u8"params");
 			} else {
-				assert(elt->get_name() == "category");
-				assert(elt->get_attribute_value("name") == name());
+				assert(elt->get_name() == u8"category");
+				assert(elt->get_attribute_value(u8"name") == name());
 			}
 
 			// Make a mapping from an XML child element's name's collation key to the node.
@@ -95,7 +95,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 			for (const xmlpp::Node *child_node : elt->get_children()) {
 				const xmlpp::Element *child_elt = dynamic_cast<const xmlpp::Element *>(child_node);
 				if (child_elt) {
-					const xmlpp::Attribute *name_attr = child_elt->get_attribute("name");
+					const xmlpp::Attribute *name_attr = child_elt->get_attribute(u8"name");
 					if (name_attr) {
 						child_elts_byname[name_attr->get_value().collate_key()] = child_elt;
 					}
@@ -112,14 +112,14 @@ class ParamTreeInternalNode : public ParamTreeNode {
 		}
 
 		void save(xmlpp::Element *elt) const {
-			if (name() != "<<<ROOT>>>") {
-				elt->set_name("category");
-				elt->set_attribute("name", name());
+			if (name() != u8"<<<ROOT>>>") {
+				elt->set_name(u8"category");
+				elt->set_attribute(u8"name", name());
 			} else {
-				assert(elt->get_name() == "params");
+				assert(elt->get_name() == u8"params");
 			}
 			for (const ParamTreeNode *i : children) {
-				xmlpp::Element *child_elt = elt->add_child("x");
+				xmlpp::Element *child_elt = elt->add_child(u8"x");
 				i->save(child_elt);
 			}
 		}
@@ -168,7 +168,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 };
 
 ParamTreeNode *ParamTreeNode::root() {
-	static ParamTreeInternalNode obj("<<<ROOT>>>");
+	static ParamTreeInternalNode obj(u8"<<<ROOT>>>");
 	return &obj;
 }
 
@@ -194,7 +194,7 @@ ParamTreeNode::ParamTreeNode(const Glib::ustring &name) : name_(name), index_(st
 		throw std::invalid_argument("Illegal parameter name (must be nonempty)");
 	}
 	if (exists(name_.begin(), name_.end(), '/')) {
-		throw std::invalid_argument(Glib::ustring::compose("Illegal parameter name \"%1\" (must not contain a slash)", name_));
+		throw std::invalid_argument(Glib::locale_from_utf8(Glib::ustring::compose(u8"Illegal parameter name “%1” (must not contain a slash)", name_)));
 	}
 }
 
@@ -264,11 +264,11 @@ void ParamTreeNode::link(std::size_t index, ParamTreeNode *next, ParamTreeNode *
 	this->parent_ = parent;
 }
 
-ParamTreeInternalNode *Param::internal_node(const char *) {
+ParamTreeInternalNode *Param::internal_node(const Glib::ustring &) {
 	throw std::logic_error("Leaf nodes cannot have children");
 }
 
-Param::Param(const char *name, const char *location) : ParamTreeNode(name) {
+Param::Param(const Glib::ustring &name, const Glib::ustring &location) : ParamTreeNode(name) {
 	assert(location[0]);
 	ParamTreeInternalNode *parent = ParamTreeNode::root()->internal_node(location);
 	parent->add_child(this);
@@ -289,7 +289,7 @@ ParamTreeNode *Param::child(std::size_t) {
 	return nullptr;
 }
 
-BoolParam::BoolParam(const char *name, const char *location, bool def) : Param(name, location), value_(def), default_(def) {
+BoolParam::BoolParam(const Glib::ustring &name, const Glib::ustring &location, bool def) : Param(name, location), value_(def), default_(def) {
 }
 
 void BoolParam::encode_value_to_log(Log::Parameter &param) const {
@@ -301,18 +301,18 @@ void BoolParam::set_default() {
 }
 
 void BoolParam::load(const xmlpp::Element *elt) {
-	if (elt->get_name() == "boolean") {
+	if (elt->get_name() == u8"boolean") {
 		const xmlpp::TextNode *text_node = elt->get_child_text();
 		if (text_node) {
-			value_ = text_node->get_content().find("true") != Glib::ustring::npos;
+			value_ = text_node->get_content().find(u8"true") != Glib::ustring::npos;
 		}
 	}
 }
 
 void BoolParam::save(xmlpp::Element *elt) const {
-	elt->set_name("boolean");
-	elt->set_attribute("name", name());
-	elt->set_child_text(value_ ? "true" : "false");
+	elt->set_name(u8"boolean");
+	elt->set_attribute(u8"name", name());
+	elt->set_child_text(value_ ? u8"true" : u8"false");
 }
 
 unsigned int NumericParam::fractional_digits() const {
@@ -329,9 +329,9 @@ unsigned int NumericParam::fractional_digits() const {
 	}
 }
 
-NumericParam::NumericParam(const char *name, const char *location, double def, double min, double max, bool integer) : Param(name, location), def(def), min(min), max(max), integer(integer), adjustment_() {
+NumericParam::NumericParam(const Glib::ustring &name, const Glib::ustring &location, double def, double min, double max, bool integer) : Param(name, location), def(def), min(min), max(max), integer(integer), adjustment_() {
 	if (!(min <= def && def <= max)) {
-		throw std::invalid_argument(Glib::locale_from_utf8(Glib::ustring::compose("Parameter default value for %1/%2 out of valid range.", location, name)));
+		throw std::invalid_argument(Glib::locale_from_utf8(Glib::ustring::compose(u8"Parameter default value for %1/%2 out of valid range.", location, name)));
 	}
 }
 
@@ -345,7 +345,7 @@ void NumericParam::initialize() {
 	adjustment_->signal_value_changed().connect(signal_changed_reflector.make_slot());
 }
 
-IntParam::IntParam(const char *name, const char *location, int def, int min, int max) : NumericParam(name, location, def, min, max, true) {
+IntParam::IntParam(const Glib::ustring &name, const Glib::ustring &location, int def, int min, int max) : NumericParam(name, location, def, min, max, true) {
 }
 
 void IntParam::encode_value_to_log(Log::Parameter &param) const {
@@ -353,7 +353,7 @@ void IntParam::encode_value_to_log(Log::Parameter &param) const {
 }
 
 void IntParam::load(const xmlpp::Element *elt) {
-	if (elt->get_name() == "integer") {
+	if (elt->get_name() == u8"integer") {
 		const xmlpp::TextNode *text_node = elt->get_child_text();
 		std::wistringstream iss(ustring2wstring(text_node->get_content()));
 		iss.imbue(std::locale("C"));
@@ -364,12 +364,12 @@ void IntParam::load(const xmlpp::Element *elt) {
 }
 
 void IntParam::save(xmlpp::Element *elt) const {
-	elt->set_name("integer");
-	elt->set_attribute("name", name());
+	elt->set_name(u8"integer");
+	elt->set_attribute(u8"name", name());
 	elt->set_child_text(todecs(static_cast<int>(adjustment()->get_value())));
 }
 
-DoubleParam::DoubleParam(const char *name, const char *location, double def, double min, double max) : NumericParam(name, location, def, min, max, false) {
+DoubleParam::DoubleParam(const Glib::ustring &name, const Glib::ustring &location, double def, double min, double max) : NumericParam(name, location, def, min, max, false) {
 }
 
 void DoubleParam::encode_value_to_log(Log::Parameter &param) const {
@@ -377,7 +377,7 @@ void DoubleParam::encode_value_to_log(Log::Parameter &param) const {
 }
 
 void DoubleParam::load(const xmlpp::Element *elt) {
-	if (elt->get_name() == "double") {
+	if (elt->get_name() == u8"double") {
 		const xmlpp::TextNode *text_node = elt->get_child_text();
 		std::wistringstream iss(ustring2wstring(text_node->get_content()));
 		iss.imbue(std::locale("C"));
@@ -388,8 +388,8 @@ void DoubleParam::load(const xmlpp::Element *elt) {
 }
 
 void DoubleParam::save(xmlpp::Element *elt) const {
-	elt->set_name("double");
-	elt->set_attribute("name", name());
+	elt->set_name(u8"double");
+	elt->set_attribute(u8"name", name());
 	std::wostringstream oss;
 	oss.imbue(std::locale("C"));
 	oss << std::fixed << std::setprecision(static_cast<int>(fractional_digits())) << adjustment()->get_value();

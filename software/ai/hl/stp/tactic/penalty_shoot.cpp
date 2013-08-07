@@ -18,7 +18,7 @@ namespace {
 			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
-				return "penalty-shoot";
+				return u8"penalty-shoot";
 			}
 	};
 

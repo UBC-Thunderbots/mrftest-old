@@ -32,7 +32,7 @@ namespace {
 			void execute();
 			void player_changed();
 			Glib::ustring description() const {
-				return "auto-chipped";
+				return u8"auto-chipped";
 			}
 	};
 

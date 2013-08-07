@@ -81,14 +81,14 @@ namespace {
 			logger.end_with_exception(exp.what());
 			throw;
 		} catch (...) {
-			logger.end_with_exception("Unknown exception");
+			logger.end_with_exception(u8"Unknown exception");
 			throw;
 		}
 	}
 
 	Glib::ustring choose_backend() {
-		Gtk::Dialog dlg("Thunderbots AI", true);
-		Gtk::Label label("Select a backend:");
+		Gtk::Dialog dlg(u8"Thunderbots AI", true);
+		Gtk::Label label(u8"Select a backend:");
 		dlg.get_vbox()->pack_start(label, Gtk::PACK_SHRINK);
 		Gtk::ComboBoxText combo;
 		typedef AI::BE::BackendFactory::Map Map;
@@ -102,7 +102,7 @@ namespace {
 		dlg.show_all();
 		const int resp = dlg.run();
 		if (resp != Gtk::RESPONSE_OK) {
-			return "";
+			return u8"";
 		}
 		return combo.get_active_text();
 	}
@@ -118,95 +118,95 @@ int app_main(int argc, char **argv) {
 	// Parse the command-line arguments.
 	AI::Setup setup;
 	Glib::OptionContext option_context;
-	option_context.set_summary("Runs the Thunderbots control process.");
+	option_context.set_summary(u8"Runs the Thunderbots control process.");
 
-	Glib::OptionGroup option_group("thunderbots", "Control Process Options", "Show Control Process Options");
+	Glib::OptionGroup option_group(u8"thunderbots", u8"Control Process Options", u8"Show Control Process Options");
 
 	Glib::OptionEntry list_entry;
-	list_entry.set_long_name("list");
+	list_entry.set_long_name(u8"list");
 	list_entry.set_short_name('l');
-	list_entry.set_description("Lists available components of each type");
+	list_entry.set_description(u8"Lists available components of each type");
 	bool list = false;
 	option_group.add_entry(list_entry, list);
 
 	Glib::OptionEntry blue_entry;
-	blue_entry.set_long_name("blue");
+	blue_entry.set_long_name(u8"blue");
 	blue_entry.set_short_name('b');
-	blue_entry.set_description("Controls blue robots (default is same as last time)");
+	blue_entry.set_description(u8"Controls blue robots (default is same as last time)");
 	bool blue = false;
 	option_group.add_entry(blue_entry, blue);
 
 	Glib::OptionEntry yellow_entry;
-	yellow_entry.set_long_name("yellow");
+	yellow_entry.set_long_name(u8"yellow");
 	yellow_entry.set_short_name('y');
-	yellow_entry.set_description("Controls yellow robots (default is same as last time)");
+	yellow_entry.set_description(u8"Controls yellow robots (default is same as last time)");
 	bool yellow = false;
 	option_group.add_entry(yellow_entry, yellow);
 
 	Glib::OptionEntry east_entry;
-	east_entry.set_long_name("east");
+	east_entry.set_long_name(u8"east");
 	east_entry.set_short_name('e');
-	east_entry.set_description("Defends east goal (default is same as last time)");
+	east_entry.set_description(u8"Defends east goal (default is same as last time)");
 	bool east = false;
 	option_group.add_entry(east_entry, east);
 
 	Glib::OptionEntry west_entry;
-	west_entry.set_long_name("west");
+	west_entry.set_long_name(u8"west");
 	west_entry.set_short_name('w');
-	west_entry.set_description("Defends west goal (default is same as last time)");
+	west_entry.set_description(u8"Defends west goal (default is same as last time)");
 	bool west = false;
 	option_group.add_entry(west_entry, west);
 
 	Glib::OptionEntry load_entry;
-	load_entry.set_long_name("load");
-	load_entry.set_description("Loads a simulator state file at startup");
-	load_entry.set_arg_description("FILENAME");
+	load_entry.set_long_name(u8"load");
+	load_entry.set_description(u8"Loads a simulator state file at startup");
+	load_entry.set_arg_description(u8"FILENAME");
 	std::string load_filename;
 	option_group.add_entry_filename(load_entry, load_filename);
 
 	Glib::OptionEntry multicast_interface_entry;
-	multicast_interface_entry.set_long_name("interface");
-	multicast_interface_entry.set_description("Overrides the kernel's default choice of network interface on which to receive multicast packets");
-	multicast_interface_entry.set_arg_description("IFNAME");
+	multicast_interface_entry.set_long_name(u8"interface");
+	multicast_interface_entry.set_description(u8"Overrides the kernel's default choice of network interface on which to receive multicast packets");
+	multicast_interface_entry.set_arg_description(u8"IFNAME");
 	Glib::ustring multicast_interface_name;
 	option_group.add_entry(multicast_interface_entry, multicast_interface_name);
 
 	Glib::OptionEntry backend_entry;
-	backend_entry.set_long_name("backend");
-	backend_entry.set_description("Selects which backend should be used");
-	backend_entry.set_arg_description("BACKEND");
+	backend_entry.set_long_name(u8"backend");
+	backend_entry.set_description(u8"Selects which backend should be used");
+	backend_entry.set_arg_description(u8"BACKEND");
 	Glib::ustring backend_name;
 	option_group.add_entry(backend_entry, backend_name);
 
 	Glib::OptionEntry disable_camera_entry;
-	disable_camera_entry.set_long_name("disable-camera");
-	disable_camera_entry.set_description("Disables reception fo packets from a particular camera");
-	disable_camera_entry.set_arg_description("ID");
+	disable_camera_entry.set_long_name(u8"disable-camera");
+	disable_camera_entry.set_description(u8"Disables reception fo packets from a particular camera");
+	disable_camera_entry.set_arg_description(u8"ID");
 	std::vector<Glib::ustring> disable_camera_strings;
 	option_group.add_entry(disable_camera_entry, disable_camera_strings);
 
 	Glib::OptionEntry high_level_entry;
-	high_level_entry.set_long_name("hl");
-	high_level_entry.set_description("Selects which high level should be selected at startup");
-	high_level_entry.set_arg_description("HIGHLEVEL");
+	high_level_entry.set_long_name(u8"hl");
+	high_level_entry.set_description(u8"Selects which high level should be selected at startup");
+	high_level_entry.set_arg_description(u8"HIGHLEVEL");
 	option_group.add_entry(high_level_entry, setup.high_level_name);
 
 	Glib::OptionEntry navigator_entry;
-	navigator_entry.set_long_name("nav");
-	navigator_entry.set_description("Selects which navigator should be selected at startup");
-	navigator_entry.set_arg_description("NAVIGATOR");
+	navigator_entry.set_long_name(u8"nav");
+	navigator_entry.set_description(u8"Selects which navigator should be selected at startup");
+	navigator_entry.set_arg_description(u8"NAVIGATOR");
 	option_group.add_entry(navigator_entry, setup.navigator_name);
 
 	Glib::OptionEntry robot_controller_entry;
-	robot_controller_entry.set_long_name("controller");
-	robot_controller_entry.set_description("Selects which robot controller should be selected at startup");
-	robot_controller_entry.set_arg_description("CONTROLLER");
+	robot_controller_entry.set_long_name(u8"controller");
+	robot_controller_entry.set_description(u8"Selects which robot controller should be selected at startup");
+	robot_controller_entry.set_arg_description(u8"CONTROLLER");
 	option_group.add_entry(robot_controller_entry, setup.robot_controller_name);
 
 	Glib::OptionEntry minimize_entry;
-	minimize_entry.set_long_name("minimize");
+	minimize_entry.set_long_name(u8"minimize");
 	minimize_entry.set_short_name('m');
-	minimize_entry.set_description("Starts with the control window minimized");
+	minimize_entry.set_description(u8"Starts with the control window minimized");
 	bool minimize = false;
 	option_group.add_entry(minimize_entry, minimize);
 
@@ -286,7 +286,7 @@ int app_main(int argc, char **argv) {
 	if (!multicast_interface_name.empty()) {
 		multicast_interface_index = static_cast<int>(if_nametoindex(Glib::locale_from_utf8(multicast_interface_name).c_str()));
 		if (!multicast_interface_index) {
-			throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Interface \"%1\" not found", multicast_interface_name)).c_str());
+			throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Interface “%1” not found.", multicast_interface_name)).c_str());
 		}
 	}
 	setup.save();
@@ -300,7 +300,7 @@ int app_main(int argc, char **argv) {
 	const Map &bem = AI::BE::BackendFactory::all();
 	const Map::const_iterator &be = bem.find(backend_name.collate_key());
 	if (be == bem.end()) {
-		throw std::runtime_error(Glib::ustring::compose("There is no backend '%1'.", backend_name));
+		throw std::runtime_error(Glib::ustring::compose(u8"There is no backend “%1”.", backend_name));
 	}
 	be->second->create_backend(disable_cameras, load_filename, multicast_interface_index, [setup, minimize](AI::BE::Backend &be) { app_main_with_backend(be, setup, minimize); });
 

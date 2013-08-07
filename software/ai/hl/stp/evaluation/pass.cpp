@@ -11,9 +11,9 @@
 using namespace AI::HL::STP;
 
 namespace {
-	DoubleParam friendly_pass_width("Friendly pass checking width (robot radius)", "STP/Pass", 1, 0, 9);
+	DoubleParam friendly_pass_width(u8"Friendly pass checking width (robot radius)", u8"STP/Pass", 1, 0, 9);
 
-	DoubleParam enemy_pass_width("Enemy pass checking width (robot radius)", "STP/Pass", 1, 0, 9);
+	DoubleParam enemy_pass_width(u8"Enemy pass checking width (robot radius)", u8"STP/Pass", 1, 0, 9);
 
 	bool can_pass_check(const Point p1, const Point p2, const std::vector<Point> &obstacles, double tol) {
 		// auto allowance = AI::HL::Util::calc_best_shot_target(passer.position(), obstacles, passee.position(), 1).second;
@@ -47,17 +47,17 @@ namespace {
 		return false;
 	}
 
-	DoubleParam pass_ray_threat_mult("Ray pass threat multiplier", "STP/PassRay", 2, 1, 99);
+	DoubleParam pass_ray_threat_mult(u8"Ray pass threat multiplier", u8"STP/PassRay", 2, 1, 99);
 
-	BoolParam pass_ray_use_calc_fastest("Ray pass use calc fastest", "STP/PassRay", true);
+	BoolParam pass_ray_use_calc_fastest(u8"Ray pass use calc fastest", u8"STP/PassRay", true);
 }
 
 
-DoubleParam Evaluation::ball_pass_velocity("Average ball pass velocity (HACK)", "STP/Pass", 2.0, 0, 99);
+DoubleParam Evaluation::ball_pass_velocity(u8"Average ball pass velocity (HACK)", u8"STP/Pass", 2.0, 0, 99);
 
-DegreeParam Evaluation::max_pass_ray_angle("Max ray shoot rotation (degrees)", "STP/PassRay", 75, 0, 180);
+DegreeParam Evaluation::max_pass_ray_angle(u8"Max ray shoot rotation (degrees)", u8"STP/PassRay", 75, 0, 180);
 
-IntParam Evaluation::ray_intervals("Ray # of intervals", "STP/PassRay", 30, 0, 80);
+IntParam Evaluation::ray_intervals(u8"Ray # of intervals", u8"STP/PassRay", 30, 0, 80);
 
 bool Evaluation::can_shoot_ray(World world, Player player, Angle orientation) {
 	const Point p1 = player.position();
@@ -207,7 +207,7 @@ bool Evaluation::passee_facing_passer(Player passer, Player passee) {
 
 bool Evaluation::passee_suitable(World world, Player passee) {
 	if (!passee) {
-		LOG_ERROR("Passee is null");
+		LOG_ERROR(u8"Passee is null");
 		return false;
 	}
 

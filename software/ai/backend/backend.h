@@ -310,7 +310,7 @@ namespace AI {
 		};
 
 		/**
-		 * \brief A factory for creating \ref Backend "Backends".
+		 * \brief A factory for creating backends.
 		 */
 		class BackendFactory : public Registerable<BackendFactory> {
 			public:

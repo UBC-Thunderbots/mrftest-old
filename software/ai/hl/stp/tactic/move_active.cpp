@@ -28,7 +28,7 @@ namespace {
 			bool pivot;
 			bool careful;
 			Glib::ustring description() const {
-				return "move-active";
+				return u8"move-active";
 			}
 	};
 

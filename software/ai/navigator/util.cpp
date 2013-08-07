@@ -16,50 +16,50 @@ using namespace AI::Nav::W;
 namespace {
 	constexpr double EPS = 1e-9;
 	
-	DoubleParam INTERCEPT_ANGLE_STEP_SIZE("angle increment in approaching the ball, in degrees", "Nav/Util", 10.0, 0.1, 30.0);
+	DoubleParam INTERCEPT_ANGLE_STEP_SIZE(u8"angle increment in approaching the ball, in degrees", u8"Nav/Util", 10.0, 0.1, 30.0);
 
-	BoolParam OWN_HALF_OVERRIDE("enforce that robots stay on own half ", "Nav/Util", false);
+	BoolParam OWN_HALF_OVERRIDE(u8"enforce that robots stay on own half ", u8"Nav/Util", false);
 
 	// small value to ensure non-equivilance with floating point math
 	// but too small to make a difference in the actual game
 	constexpr double SMALL_BUFFER = 0.0001;
 
-	BoolParam USE_ENEMY_MOVEMENT_FACTOR("use enemy's future position", "Nav/Util", false);
-	BoolParam USE_FRIENDLY_MOVEMENT_FACTOR("use friendly's future position", "Nav/Util", false);
+	BoolParam USE_ENEMY_MOVEMENT_FACTOR(u8"use enemy's future position", u8"Nav/Util", false);
+	BoolParam USE_FRIENDLY_MOVEMENT_FACTOR(u8"use friendly's future position", u8"Nav/Util", false);
 
-	DoubleParam ENEMY_MOVEMENT_FACTOR("amount of time (s) to avoid enemy's future position", "Nav/Util", 0.0, 0.0, 2.0);
-	DoubleParam FRIENDLY_MOVEMENT_FACTOR("amount of time (s) to avoid friendly's future position", "Nav/Util", 0.0, 0.0, 2.0);
-	DoubleParam GOAL_POST_BUFFER("The amount robots should stay away from goal post", "Nav/Util", 0.0, -0.2, 0.2);
-	DoubleParam ROBOT_NET_ALLOWANCE("The amount centre of robot must stay out of net", "Nav/Util", 0.0, -0.1, 0.2);
+	DoubleParam ENEMY_MOVEMENT_FACTOR(u8"amount of time (s) to avoid enemy's future position", u8"Nav/Util", 0.0, 0.0, 2.0);
+	DoubleParam FRIENDLY_MOVEMENT_FACTOR(u8"amount of time (s) to avoid friendly's future position", u8"Nav/Util", 0.0, 0.0, 2.0);
+	DoubleParam GOAL_POST_BUFFER(u8"The amount robots should stay away from goal post", u8"Nav/Util", 0.0, -0.2, 0.2);
+	DoubleParam ROBOT_NET_ALLOWANCE(u8"The amount centre of robot must stay out of net", u8"Nav/Util", 0.0, -0.1, 0.2);
 	// zero lets them brush
 	// positive enforces amount meters away
 	// negative lets them bump
 	// const double ENEMY_BUFFER = 0.1;
-	DoubleParam ENEMY_BUFFER_SHORT("The amount of distance to maintain from enemy robots that we are willing to bump", "Nav/Util", -0.05, -1.0, 1.0);
-	DoubleParam ENEMY_BUFFER("The amount of distance to maintain from enemy robots usually", "Nav/Util", 0.1, -1.0, 1.0);
-	DoubleParam ENEMY_BUFFER_LONG("The amount of distance to maintain from enemy robots of high priority", "Nav/Util", 0.2, -1.0, 1.0);
+	DoubleParam ENEMY_BUFFER_SHORT(u8"The amount of distance to maintain from enemy robots that we are willing to bump", u8"Nav/Util", -0.05, -1.0, 1.0);
+	DoubleParam ENEMY_BUFFER(u8"The amount of distance to maintain from enemy robots usually", u8"Nav/Util", 0.1, -1.0, 1.0);
+	DoubleParam ENEMY_BUFFER_LONG(u8"The amount of distance to maintain from enemy robots of high priority", u8"Nav/Util", 0.2, -1.0, 1.0);
 	// zero lets them brush
 	// positive enforces amount meters away
 	// negative lets them bump
-	DoubleParam FRIENDLY_BUFFER("Buffer for equal priority friendly robot (meters)", "Nav/Util", 0.1, -1.0, 1.0);
-	DoubleParam FRIENDLY_BUFFER_HIGH("Buffer for higher priority friendly robot (meters)", "Nav/Util", 0.2, -1.0, 1.0);
-	DoubleParam FRIENDLY_BUFFER_LOW("Buffer for lower priority friendly robot (meters)", "Nav/Util", 0.1, -1.0, 1.0);
-	DoubleParam PASS_CHALLENGE_BUFFER("Buffer for friendly robots in the pass intercept challenge (meters)", "Nav/Util", 1.0, 0.1, 2.0);
+	DoubleParam FRIENDLY_BUFFER(u8"Buffer for equal priority friendly robot (meters)", u8"Nav/Util", 0.1, -1.0, 1.0);
+	DoubleParam FRIENDLY_BUFFER_HIGH(u8"Buffer for higher priority friendly robot (meters)", u8"Nav/Util", 0.2, -1.0, 1.0);
+	DoubleParam FRIENDLY_BUFFER_LOW(u8"Buffer for lower priority friendly robot (meters)", u8"Nav/Util", 0.1, -1.0, 1.0);
+	DoubleParam PASS_CHALLENGE_BUFFER(u8"Buffer for friendly robots in the pass intercept challenge (meters)", u8"Nav/Util", 1.0, 0.1, 2.0);
 
 	// This buffer is in addition to the robot radius
-	DoubleParam BALL_TINY_BUFFER("Buffer avoid ball tiny (meters)", "Nav/Util", 0.05, -1.0, 1.0);
+	DoubleParam BALL_TINY_BUFFER(u8"Buffer avoid ball tiny (meters)", u8"Nav/Util", 0.05, -1.0, 1.0);
 
 	// This buffer is in addition to the robot radius
-	DoubleParam DEFENSE_AREA_BUFFER("Buffer avoid defense area (meters)", "Nav/Util", 0.0, -1.0, 1.0);
+	DoubleParam DEFENSE_AREA_BUFFER(u8"Buffer avoid defense area (meters)", u8"Nav/Util", 0.0, -1.0, 1.0);
 
 	// this is by how much we should stay away from the playing boundry
-	DoubleParam PLAY_AREA_BUFFER("Buffer for staying away from play area boundary ", "Nav/Util", 0.0, 0.0, 1.0);
-	DoubleParam OWN_HALF_BUFFER("Buffer for staying on own half ", "Nav/Util", 0.0, 0.0, 1.0);
-	DoubleParam TOTAL_BOUNDS_BUFFER("Buffer for staying away from referee area boundary ", "Nav/Util", -0.18, -1.0, 1.0);
+	DoubleParam PLAY_AREA_BUFFER(u8"Buffer for staying away from play area boundary ", u8"Nav/Util", 0.0, 0.0, 1.0);
+	DoubleParam OWN_HALF_BUFFER(u8"Buffer for staying on own half ", u8"Nav/Util", 0.0, 0.0, 1.0);
+	DoubleParam TOTAL_BOUNDS_BUFFER(u8"Buffer for staying away from referee area boundary ", u8"Nav/Util", -0.18, -1.0, 1.0);
 
-	DoubleParam PENALTY_KICK_BUFFER("Amount behind ball during Penalty kick (rule=0.4) ", "Nav/Util", 0.4, 0.0, 1.0);
+	DoubleParam PENALTY_KICK_BUFFER(u8"Amount behind ball during Penalty kick (rule=0.4) ", u8"Nav/Util", 0.4, 0.0, 1.0);
 
-	DoubleParam FRIENDLY_KICK_BUFFER("Additional offense area buffer for friendly kick (rule=0.2) ", "Nav/Util", 0.2, 0.0, 1.0);
+	DoubleParam FRIENDLY_KICK_BUFFER(u8"Additional offense area buffer for friendly kick (rule=0.2) ", u8"Nav/Util", 0.2, 0.0, 1.0);
 
 	constexpr double RAM_BALL_ALLOWANCE = 0.05;
 

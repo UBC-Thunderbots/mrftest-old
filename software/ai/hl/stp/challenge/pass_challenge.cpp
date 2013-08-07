@@ -40,9 +40,9 @@ namespace {
 	const Angle AVOIDANCE_ANGLE = 2.0 * Angle::of_radians(std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST));
 
 	// how far apart the passees should be separated
-	DegreeParam pass_separation_angle("CHALLENGE: angle to separate players (degrees)", "STP/Challenge", 120.0, 30.0, 120.0);
+	DegreeParam pass_separation_angle(u8"CHALLENGE: angle to separate players (degrees)", u8"STP/Challenge", 120.0, 30.0, 120.0);
 	// how fast the baller should spin
-	RadianParam baller_spin_delta("CHALLENGE: change in orientation every time tick for move spin (radians)", "STP/Challenge", 1.0, 1.0, 5.0);
+	RadianParam baller_spin_delta(u8"CHALLENGE: change in orientation every time tick for move spin (radians)", u8"STP/Challenge", 1.0, 1.0, 5.0);
 
 	class PassChallenge: public HighLevel {
 		public:

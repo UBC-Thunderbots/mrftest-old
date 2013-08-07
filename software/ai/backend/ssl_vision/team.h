@@ -156,7 +156,7 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::u
 							Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::half() : Angle::zero())).angle_mod();
 							bot->add_field_data(pos, ori, ts[i]);
 						} else {
-							LOG_WARN("Vision packet has robot with no orientation.");
+							LOG_WARN(u8"Vision packet has robot with no orientation.");
 						}
 					}
 					used_data[i][j] = true;

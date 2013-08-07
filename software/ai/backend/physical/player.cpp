@@ -78,7 +78,7 @@ void Player::kick_impl(double speed) {
 		if (bot.capacitor_charged) {
 			bot.kick(false, speed / 8.0 * 825.0 * 4);
 		} else {
-			LOG_ERROR(Glib::ustring::compose("Bot %1 kick when not ready", pattern()));
+			LOG_ERROR(Glib::ustring::compose(u8"Bot %1 kick when not ready", pattern()));
 		}
 	}
 }
@@ -95,7 +95,7 @@ void Player::chip_impl(double power) {
 		if (bot.capacitor_charged) {
 			bot.kick(true, 800 * power * 4);
 		} else {
-			LOG_ERROR(Glib::ustring::compose("Bot %1 chip when not ready", pattern()));
+			LOG_ERROR(Glib::ustring::compose(u8"Bot %1 chip when not ready", pattern()));
 		}
 	}
 }

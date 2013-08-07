@@ -16,7 +16,7 @@ namespace {
 	/**
 	 * The name of the default simulation engine to pick of no engine is chosen on the command line.
 	 */
-	const Glib::ustring DEFAULT_ENGINE("Open Dynamics Engine Simulator");
+	const Glib::ustring DEFAULT_ENGINE(u8"Open Dynamics Engine Simulator");
 
 	/**
 	 * Creates an engine.
@@ -58,13 +58,13 @@ int app_main(int argc, char **argv) {
 	Random::seed();
 
 	Glib::OptionContext option_context;
-	option_context.set_summary("Runs the Thunderbots simulator.");
-	Glib::OptionGroup option_group("thunderbots", "Simulator Options", "Show Simulator Options");
+	option_context.set_summary(u8"Runs the Thunderbots simulator.");
+	Glib::OptionGroup option_group(u8"thunderbots", u8"Simulator Options", u8"Show Simulator Options");
 	Glib::OptionEntry engine_name_entry;
-	engine_name_entry.set_long_name("engine");
+	engine_name_entry.set_long_name(u8"engine");
 	engine_name_entry.set_short_name('e');
-	engine_name_entry.set_description("Chooses which engine to use rather than the default (if no valid engine provided, displays a list)");
-	engine_name_entry.set_arg_description("ENGINE");
+	engine_name_entry.set_description(u8"Chooses which engine to use rather than the default (if no valid engine provided, displays a list)");
+	engine_name_entry.set_arg_description(u8"ENGINE");
 	Glib::ustring engine_name = DEFAULT_ENGINE;
 	option_group.add_entry(engine_name_entry, engine_name);
 	option_context.set_main_group(option_group);

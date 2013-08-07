@@ -328,7 +328,7 @@ namespace {
 	 */
 	class SimEngineFactory : public SimulatorEngineFactory {
 		public:
-			SimEngineFactory() : SimulatorEngineFactory("Open Dynamics Engine Simulator") {
+			SimEngineFactory() : SimulatorEngineFactory(u8"Open Dynamics Engine Simulator") {
 			}
 
 			std::unique_ptr<SimulatorEngine> create_engine() {

@@ -19,8 +19,8 @@ namespace {
 			NavigatorFactory &factory() const;
 	};
 
-	DoubleParam pivot_radius("pivot radius", "Nav/PivotAram", 1.0, 0.0, 10.0);
-	DoubleParam acceleration("max acceleration", "Nav/PivotAram", 10.0, 0.0, 1000.0);
+	DoubleParam pivot_radius(u8"pivot radius", u8"Nav/PivotAram", 1.0, 0.0, 10.0);
+	DoubleParam acceleration(u8"max acceleration", u8"Nav/PivotAram", 10.0, 0.0, 1000.0);
 }
 
 PivotNavigatorAram::PivotNavigatorAram(World world) : Navigator(world) {

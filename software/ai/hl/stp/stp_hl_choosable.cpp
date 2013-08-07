@@ -16,7 +16,7 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	const Glib::ustring CHOOSE_PLAY_TEXT = "<Choose Play>";
+	const Glib::ustring CHOOSE_PLAY_TEXT = u8"<Choose Play>";
 
 	class STPHLChoosable : public PlayExecutor, public HighLevel {
 		public:
@@ -37,8 +37,8 @@ namespace {
 				vbox.add(stop_button);
 				vbox.add(text_status);
 				text_status.set_editable(false);
-				start_button.set_label("start");
-				stop_button.set_label("stop");
+				start_button.set_label(u8"start");
+				stop_button.set_label(u8"stop");
 
 				start_button.signal_clicked().connect(sigc::bind(&STPHLChoosable::start, sigc::ref(*this)));
 				stop_button.signal_clicked().connect(sigc::bind(&STPHLChoosable::stop, sigc::ref(*this)));
@@ -47,7 +47,7 @@ namespace {
 			HighLevelFactory &factory() const;
 
 			void start() {
-				LOG_INFO("start");
+				LOG_INFO(u8"start");
 
 				// check if curr is valid
 				if (curr_play) {
@@ -62,7 +62,7 @@ namespace {
 			}
 
 			void stop() {
-				LOG_INFO("stop");
+				LOG_INFO(u8"stop");
 
 				curr_play = nullptr;
 			}
@@ -78,7 +78,7 @@ namespace {
 
 				if (!curr_play->invariant() || curr_play->done() || curr_play->fail()) {
 					// only warn but still execute
-					LOG_WARN("play not valid");
+					LOG_WARN(u8"play not valid");
 				}
 
 				// assign the players
@@ -97,7 +97,7 @@ namespace {
 						swap(normal_roles[j - 1], curr_roles[j]);
 					}
 				}
-				LOG_INFO("reassigned");
+				LOG_INFO(u8"reassigned");
 			}
 
 			void tick() {
@@ -120,7 +120,7 @@ namespace {
 
 				/*
 				   if (curr_play && (!curr_play->invariant() || curr_play->done() || curr_play->fail())) {
-				    LOG_INFO("play done/no longer valid");
+				    LOG_INFO(u8"play done/no longer valid");
 				    curr_play = nullptr;
 				   }
 				 */
@@ -138,7 +138,7 @@ namespace {
 					text << info();
 				}
 
-				text_status.get_buffer()->set_text(text.str());
+				text_status.get_buffer()->set_text(Glib::locale_to_utf8(text.str()));
 			}
 
 			Gtk::Widget *ui_controls() {

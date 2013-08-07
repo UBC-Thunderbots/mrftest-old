@@ -68,7 +68,7 @@ namespace {
 			}
 
 			Glib::ustring description() const {
-				return "Shooting Challenge";
+				return u8"Shooting Challenge";
 			}
 	};
 }

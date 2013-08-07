@@ -16,36 +16,36 @@ int app_main(int argc, char **argv) {
 
 	// Parse the command-line arguments.
 	Glib::OptionContext option_context;
-	option_context.set_summary("Updates the firmware on a robot.");
+	option_context.set_summary(u8"Updates the firmware on a robot.");
 
-	Glib::OptionGroup option_group("thunderbots", "Firmware Updater Options", "Show Firmware Updater Options");
+	Glib::OptionGroup option_group(u8"thunderbots", u8"Firmware Updater Options", u8"Show Firmware Updater Options");
 
 	Glib::OptionEntry mode_option;
-	mode_option.set_long_name("mode");
-	mode_option.set_description("Chooses what type of file to upload and over what medium");
+	mode_option.set_long_name(u8"mode");
+	mode_option.set_description(u8"Chooses what type of file to upload and over what medium");
 	Glib::ustring mode_string;
 	option_group.add_entry(mode_option, mode_string);
 
 	Glib::OptionEntry robot_option;
-	robot_option.set_long_name("robot");
+	robot_option.set_long_name(u8"robot");
 	robot_option.set_short_name('r');
-	robot_option.set_description("Selects the robot to update");
-	robot_option.set_arg_description("ROBOT");
+	robot_option.set_description(u8"Selects the robot to update");
+	robot_option.set_arg_description(u8"ROBOT");
 	int robot = -1;
 	option_group.add_entry(robot_option, robot);
 
 	Glib::OptionEntry signature_option;
-	signature_option.set_long_name("signature");
+	signature_option.set_long_name(u8"signature");
 	signature_option.set_short_name('s');
-	signature_option.set_description("Displays the build signature of the hex file (in addition to, or instead of, uploading)");
+	signature_option.set_description(u8"Displays the build signature of the hex file (in addition to, or instead of, uploading)");
 	bool signature = false;
 	option_group.add_entry(signature_option, signature);
 
 	Glib::OptionEntry hex_option;
-	hex_option.set_long_name("hex");
+	hex_option.set_long_name(u8"hex");
 	hex_option.set_short_name('h');
-	hex_option.set_description("Selects the file to upload");
-	hex_option.set_arg_description("FILE");
+	hex_option.set_description(u8"Selects the file to upload");
+	hex_option.set_arg_description(u8"FILE");
 	std::string hex_filename;
 	option_group.add_entry_filename(hex_option, hex_filename);
 

@@ -8,9 +8,9 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	DoubleParam pos_dis_threshold("pos distance threshold", "NC", 0.2, 0, 1.0);
-	DoubleParam x_diff("distance in the x direction to set the navigation points", "NC", 0.3, 0, 1.0);
-	DoubleParam y_diff("distance in the y direction to set the navigation points", "NC", 0.5, 0, 1.0);
+	DoubleParam pos_dis_threshold(u8"pos distance threshold", u8"NC", 0.2, 0, 1.0);
+	DoubleParam x_diff(u8"distance in the x direction to set the navigation points", u8"NC", 0.3, 0, 1.0);
+	DoubleParam y_diff(u8"distance in the y direction to set the navigation points", u8"NC", 0.5, 0, 1.0);
 
 	const std::pair<Point, double> default_tasks[] = {
 		std::make_pair(Point(-2.7, 0.5), 0),
@@ -102,7 +102,7 @@ namespace {
 					}
 
 					if (done[robotIndex] >= tasks.size()) {
-						LOG_INFO(Glib::ustring::compose("time steps taken: %1", time_steps));
+						LOG_INFO(Glib::ustring::compose(u8"time steps taken: %1", time_steps));
 						time_steps = 0;
 						done[robotIndex] = 0;
 						return;

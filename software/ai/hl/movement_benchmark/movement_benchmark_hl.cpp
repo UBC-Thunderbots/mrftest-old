@@ -11,10 +11,10 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	DoubleParam pos_dis_threshold("pos distance threshold", "MB", 0.05, 0, 1.0);
-	DoubleParam pos_vel_threshold("pos velocity threshold", "MB", 0.03, 0, 1.0);
-	RadianParam ori_dis_threshold("ori distance threshold (radians)", "MB", 0.1, 0, 1.0);
-	RadianParam ori_vel_threshold("ori velocity threshold (radians)", "MB", 0.03, 0, 1.0);
+	DoubleParam pos_dis_threshold(u8"pos distance threshold", u8"MB", 0.05, 0, 1.0);
+	DoubleParam pos_vel_threshold(u8"pos velocity threshold", u8"MB", 0.03, 0, 1.0);
+	RadianParam ori_dis_threshold(u8"ori distance threshold (radians)", u8"MB", 0.1, 0, 1.0);
+	RadianParam ori_vel_threshold(u8"ori velocity threshold (radians)", u8"MB", 0.03, 0, 1.0);
 
 	const std::pair<Point, Angle> tasks_default[] = {
 		std::make_pair(Point(1.2, 0), Angle::of_radians(0)),
@@ -73,8 +73,8 @@ namespace {
 
 				vbox.add(button_normal);
 				vbox.add(button_square);
-				button_normal.set_label("normal");
-				button_square.set_label("square");
+				button_normal.set_label(u8"normal");
+				button_square.set_label(u8"square");
 
 				button_normal.signal_clicked().connect(sigc::bind(&MBHL::start_normal, sigc::ref(*this)));
 				button_square.signal_clicked().connect(sigc::bind(&MBHL::start_square, sigc::ref(*this)));
@@ -94,8 +94,7 @@ namespace {
 
 				FriendlyTeam friendly = world.friendly_team();
 				if (friendly.size() < 1) {
-					// LOG_INFO("error: must have at exactly one robot on the field!");
-					LOG_INFO("error: must have at least one robot on the field!");
+					LOG_INFO(u8"error: must have at least one robot on the field!");
 					return;
 				}
 				time_steps++;
@@ -124,7 +123,7 @@ namespace {
 				}
 
 				if (done == tasks.size()) {
-					LOG_INFO(Glib::ustring::compose("time steps taken: %1", time_steps));
+					LOG_INFO(Glib::ustring::compose(u8"time steps taken: %1", time_steps));
 					++done;
 					return;
 				}

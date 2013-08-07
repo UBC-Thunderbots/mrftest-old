@@ -48,13 +48,13 @@ namespace {
 	}
 }
 
-LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyzer_button("Analyzer"), player_button("Player"), rename_button("Rename"), delete_button("Delete"), export_button("Export"), import_button("Import"), exit_pending(false) {
-	set_title("Thunderbots Log Tools");
+LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyzer_button(u8"Analyzer"), player_button(u8"Player"), rename_button(u8"Rename"), delete_button(u8"Delete"), export_button(u8"Export"), import_button(u8"Import"), exit_pending(false) {
+	set_title(u8"Thunderbots Log Tools");
 	set_size_request(400, 400);
 
 	populate();
 
-	log_list.set_column_title(0, "Log File");
+	log_list.set_column_title(0, u8"Log File");
 	scroller.add(log_list);
 	hbox.pack_start(scroller, Gtk::PACK_EXPAND_WIDGET);
 
@@ -155,7 +155,7 @@ void LogLauncher::start_compressing() {
 
 	// Update progress bar to show # of files completely finished (excludes those left to compress *and* those currently compressing).
 	std::size_t files_done = static_cast<std::size_t>(std::distance(static_cast<const std::vector<std::string> &>(files_to_compress).begin(), next_file_to_compress)) - compress_threads.size();
-	compress_progress_bar.set_text(Glib::ustring::compose("Compressed %1 / %2", files_done, files_to_compress.size()));
+	compress_progress_bar.set_text(Glib::ustring::compose(u8"Compressed %1 / %2", files_done, files_to_compress.size()));
 	compress_progress_bar.set_fraction(static_cast<double>(files_done) / static_cast<double>(files_to_compress.size()));
 
 	// Fork more threads as long as we're supposed to.
@@ -197,7 +197,7 @@ void LogLauncher::compress_thread_proc(const std::string &filename) {
 		const MappedFile src_mapping(filename_to_pathname(filename));
 
 		// BZip2 compression states:
-		// "To guarantee that the compressed data will fit in its buffer, allocate an output buffer of size 1% larger than the uncompressed data, plus six hundred extra bytes."
+		// “To guarantee that the compressed data will fit in its buffer, allocate an output buffer of size 1% larger than the uncompressed data, plus six hundred extra bytes.”
 		// We do this by truncating the file and then mapping it.
 		if (ftruncate(dst_fd.fd(), static_cast<off_t>(src_mapping.size() + (src_mapping.size() + 99) / 100 + 600)) < 0) {
 			throw SystemError("ftruncate", errno);
@@ -287,9 +287,9 @@ void LogLauncher::on_player_clicked() {
 }
 
 void LogLauncher::on_rename_clicked() {
-	Gtk::Dialog dlg("Thunderbots Log Tools - Rename Log", *this, true);
+	Gtk::Dialog dlg(u8"Thunderbots Log Tools - Rename Log", *this, true);
 	Gtk::HBox hbox;
-	Gtk::Label label("Enter new name for log:");
+	Gtk::Label label(u8"Enter new name for log:");
 	hbox.pack_start(label, Gtk::PACK_SHRINK);
 	Gtk::Entry new_name_entry;
 	new_name_entry.set_activates_default();
@@ -323,7 +323,7 @@ void LogLauncher::on_rename_clicked() {
 
 void LogLauncher::on_delete_clicked() {
 	int num = log_list.get_selection()->count_selected_rows();
-	Gtk::MessageDialog md(*this, Glib::ustring::compose("Are you sure you wish to delete %1 %2 log%3?", num == 1 ? "this" : "these", num, num == 1 ? "" : "s"), false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true);
+	Gtk::MessageDialog md(*this, Glib::ustring::compose(u8"Are you sure you wish to delete %1 %2 log%3?", num == 1 ? u8"this" : u8"these", num, num == 1 ? u8"" : u8"s"), false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true);
 	int resp = md.run();
 	if (resp == Gtk::RESPONSE_YES) {
 		const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
@@ -344,7 +344,7 @@ void LogLauncher::on_delete_clicked() {
 
 void LogLauncher::on_export_clicked() {
 	const std::string &original_name = files[static_cast<std::size_t>(log_list.get_selected()[0])];
-	Gtk::FileChooserDialog fcd(*this, "Export Log", Gtk::FILE_CHOOSER_ACTION_SAVE);
+	Gtk::FileChooserDialog fcd(*this, u8"Export Log", Gtk::FILE_CHOOSER_ACTION_SAVE);
 	fcd.set_do_overwrite_confirmation();
 	fcd.set_current_name(Glib::filename_display_basename(original_name));
 	fcd.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
@@ -355,7 +355,7 @@ void LogLauncher::on_export_clicked() {
 }
 
 void LogLauncher::on_import_clicked() {
-	Gtk::FileChooserDialog fcd(*this, "Import Log", Gtk::FILE_CHOOSER_ACTION_OPEN);
+	Gtk::FileChooserDialog fcd(*this, u8"Import Log", Gtk::FILE_CHOOSER_ACTION_OPEN);
 	fcd.set_select_multiple();
 	fcd.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 	fcd.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
@@ -366,7 +366,7 @@ void LogLauncher::on_import_clicked() {
 				source->copy(dest, Gio::FILE_COPY_NONE);
 			} catch (const Gio::Error &err) {
 				if (err.code() == Gio::Error::EXISTS) {
-					Gtk::MessageDialog md(*this, Glib::ustring::compose("A log file named “%1” already exists. Replace it?", dest->query_info(G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME)->get_attribute_string(G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME)), false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true);
+					Gtk::MessageDialog md(*this, Glib::ustring::compose(u8"A log file named “%1” already exists. Replace it?", dest->query_info(G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME)->get_attribute_string(G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME)), false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true);
 					if (md.run() == Gtk::RESPONSE_YES) {
 						source->copy(dest, Gio::FILE_COPY_OVERWRITE);
 					}

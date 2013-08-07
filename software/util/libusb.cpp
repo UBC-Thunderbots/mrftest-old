@@ -8,6 +8,7 @@
 #include <cstring>
 #include <limits>
 #include <poll.h>
+#include <string>
 #include <glibmm/convert.h>
 #include <glibmm/main.h>
 #include <glibmm/ustring.h>
@@ -77,11 +78,16 @@ namespace {
 			default:
 				throw ErrorMessageError();
 		}
-		throw USB::Error(Glib::locale_from_utf8(Glib::ustring::compose("%1: %2", call, msg)));
+		std::string s;
+		s.reserve(std::strlen(call) + 2 + std::strlen(msg));
+		s.append(call);
+		s.append(": ");
+		s.append(msg);
+		throw USB::Error(s);
 	}
 
-	Glib::ustring make_transfer_error_message(unsigned int endpoint, const Glib::ustring &msg) {
-		return Glib::ustring::compose("%1 on %2 endpoint %3", msg, (endpoint & 0x80) ? "IN" : "OUT", endpoint & 0x7F);
+	std::string make_transfer_error_message(unsigned int endpoint, const char *msg /* UTF8 */) {
+		return Glib::locale_from_utf8(Glib::ustring::compose(u8"%1 on %2 endpoint %3", msg, (endpoint & 0x80) ? u8"IN" : u8"OUT", endpoint & 0x7F));
 	}
 
 	bool matches_vid_pid_serial(const USB::Device &device, unsigned int vendor_id, unsigned int product_id, const char *serial_number) {
@@ -158,16 +164,16 @@ void USB::usb_transfer_handle_completed_transfer_trampoline(libusb_transfer *tra
 USB::Error::Error(const std::string &msg) : std::runtime_error(msg) {
 }
 
-USB::TransferError::TransferError(unsigned int endpoint, const std::string &msg) : Error(make_transfer_error_message(endpoint, msg)) {
+USB::TransferError::TransferError(unsigned int endpoint, const char *msg) : Error(make_transfer_error_message(endpoint, msg)) {
 }
 
-USB::TransferTimeoutError::TransferTimeoutError(unsigned int endpoint) : TransferError(endpoint, "Transfer timed out") {
+USB::TransferTimeoutError::TransferTimeoutError(unsigned int endpoint) : TransferError(endpoint, u8"Transfer timed out") {
 }
 
-USB::TransferStallError::TransferStallError(unsigned int endpoint) : TransferError(endpoint, "Transfer stalled") {
+USB::TransferStallError::TransferStallError(unsigned int endpoint) : TransferError(endpoint, u8"Transfer stalled") {
 }
 
-USB::TransferCancelledError::TransferCancelledError(unsigned int endpoint) : TransferError(endpoint, "Transfer cancelled") {
+USB::TransferCancelledError::TransferCancelledError(unsigned int endpoint) : TransferError(endpoint, u8"Transfer cancelled") {
 }
 
 
@@ -383,7 +389,7 @@ void USB::DeviceHandle::interrupt_out(unsigned char endpoint, const void *data, 
 	int transferred;
 	check_fn("libusb_interrupt_transfer", libusb_interrupt_transfer(handle, endpoint | LIBUSB_ENDPOINT_OUT, const_cast<unsigned char *>(static_cast<const unsigned char *>(data)), static_cast<int>(length), &transferred, timeout), endpoint | LIBUSB_ENDPOINT_OUT);
 	if (transferred != static_cast<int>(length)) {
-		throw TransferError(1, "Device accepted wrong amount of data");
+		throw TransferError(1, u8"Device accepted wrong amount of data");
 	}
 }
 
@@ -425,7 +431,7 @@ USB::Transfer::~Transfer() {
 		// Initiate transfer cancellation.
 		// Instead of waiting for cancellation to complete, "disown" the transfer object.
 		// It will be freed by the trampoline.
-		LOG_ERROR(Glib::ustring::compose(u8"Destroying in-progress transfer to USB %1 endpoint %2; this is unreliable and may be a problem if not happening during system shutdown!", ((transfer->endpoint & LIBUSB_ENDPOINT_DIR_MASK) == LIBUSB_ENDPOINT_IN ? "in" : "out"), static_cast<unsigned int>(transfer->endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK)));
+		LOG_ERROR(Glib::ustring::compose(u8"Destroying in-progress transfer to USB %1 endpoint %2; this is unreliable and may be a problem if not happening during system shutdown!", ((transfer->endpoint & LIBUSB_ENDPOINT_DIR_MASK) == LIBUSB_ENDPOINT_IN ? u8"in" : u8"out"), static_cast<unsigned int>(transfer->endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK)));
 		libusb_cancel_transfer(transfer);
 		TransferMetadata::get(transfer)->disown();
 	} else {
@@ -443,7 +449,7 @@ void USB::Transfer::result() const {
 			return;
 
 		case LIBUSB_TRANSFER_ERROR:
-			throw TransferError(transfer->endpoint, "Transfer error");
+			throw TransferError(transfer->endpoint, u8"Transfer error");
 
 		case LIBUSB_TRANSFER_TIMED_OUT:
 			throw TransferTimeoutError(transfer->endpoint);
@@ -455,10 +461,10 @@ void USB::Transfer::result() const {
 			throw TransferStallError(transfer->endpoint);
 
 		case LIBUSB_TRANSFER_NO_DEVICE:
-			throw TransferError(transfer->endpoint, "Device was disconnected");
+			throw TransferError(transfer->endpoint, u8"Device was disconnected");
 
 		case LIBUSB_TRANSFER_OVERFLOW:
-			throw TransferError(transfer->endpoint, "Device sent more data than requested");
+			throw TransferError(transfer->endpoint, u8"Device sent more data than requested");
 
 		default:
 			throw ErrorMessageError();

@@ -25,7 +25,7 @@ namespace {
 				i.set_digits(2);
 			}
 			vbox.add(reset_button);
-			reset_button.set_label("reset");
+			reset_button.set_label(u8"reset");
 			reset_button.signal_clicked().connect(sigc::bind(&RCTester::reset, sigc::ref(*this)));
 		}
 
@@ -38,7 +38,7 @@ namespace {
 		void tick() {
 			FriendlyTeam friendly = world.friendly_team();
 			if (friendly.size() < 1) {
-				LOG_INFO("error: must have at least one robot on the field!");
+				LOG_INFO(u8"error: must have at least one robot on the field!");
 				return;
 			}
 

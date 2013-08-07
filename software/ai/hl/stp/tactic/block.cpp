@@ -21,7 +21,7 @@ namespace {
 			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
-				return "block-goal";
+				return u8"block-goal";
 			}
 	};
 
@@ -50,7 +50,7 @@ namespace {
 			Player select(const std::set<Player> &players) const;
 			void execute();
 			Glib::ustring description() const {
-				return "block-ball";
+				return u8"block-ball";
 			}
 	};
 

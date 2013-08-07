@@ -97,7 +97,7 @@ const EnemyTeam &MRFBackend::enemy_team() const {
 	return enemy;
 }
 
-MRFBackendFactory::MRFBackendFactory() : BackendFactory("mrf") {
+MRFBackendFactory::MRFBackendFactory() : BackendFactory(u8"mrf") {
 }
 
 void MRFBackendFactory::create_backend(const std::vector<bool> &disable_cameras, const std::string &, int multicast_interface, std::function<void(Backend &)> cb) const {

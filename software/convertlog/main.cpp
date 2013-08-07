@@ -12,13 +12,13 @@ int app_main(int argc, char **argv) {
 
 	// Parse the command-line arguments.
 	Glib::OptionContext option_context;
-	option_context.set_summary("Runs the Thunderbots log version converter.");
+	option_context.set_summary(u8"Runs the Thunderbots log version converter.");
 
-	Glib::OptionGroup option_group("thunderbots", "Log Converter Options", "Show Log Converter Options");
+	Glib::OptionGroup option_group(u8"thunderbots", u8"Log Converter Options", u8"Show Log Converter Options");
 
 	Glib::OptionEntry v1v2_entry;
-	v1v2_entry.set_long_name("v1v2");
-	v1v2_entry.set_description("Converts logs from version 1 to version 2");
+	v1v2_entry.set_long_name(u8"v1v2");
+	v1v2_entry.set_description(u8"Converts logs from version 1 to version 2");
 	bool v1v2 = false;
 	option_group.add_entry(v1v2_entry, v1v2);
 

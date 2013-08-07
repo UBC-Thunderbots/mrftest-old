@@ -23,7 +23,7 @@ namespace {
 				assert(false);
 			}
 			Glib::ustring description() const {
-				return "penalty-goalie";
+				return u8"penalty-goalie";
 			}
 	};
 
