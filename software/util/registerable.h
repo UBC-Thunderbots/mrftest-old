@@ -29,7 +29,7 @@ template<typename T> class Registerable : public NonCopyable {
 			while (precache()) {
 				T *obj = dynamic_cast<T *>(precache());
 				precache() = obj->precache_next;
-				obj->precache_next = 0;
+				obj->precache_next = nullptr;
 				obj->name_ = Glib::locale_to_utf8(obj->name_raw);
 				if (exists(obj->name_.begin(), obj->name_.end(), static_cast<gunichar>('/'))) {
 					throw std::invalid_argument("Invalid name: " + obj->name() + " (must not contain a slash)");

@@ -22,14 +22,14 @@ namespace {
 			HighLevelFactory &factory() const;
 
 			Gtk::Widget *ui_controls() {
-				return 0;
+				return nullptr;
 			}
 
 			void tick() {
 				tick_eval(world);
 
 				FriendlyTeam friendly = world.friendly_team();
-				if (friendly.size() == 0) {
+				if (!friendly.size()) {
 					return;
 				}
 				// this wont work (not implemented) in the ode simulator

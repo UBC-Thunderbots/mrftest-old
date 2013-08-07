@@ -114,7 +114,7 @@ namespace {
 			}
 
 			void disown() {
-				transfer_ = 0;
+				transfer_ = nullptr;
 			}
 
 		private:
@@ -187,7 +187,7 @@ USB::Context::Context() {
 
 USB::Context::~Context() {
 	libusb_exit(context);
-	context = 0;
+	context = nullptr;
 	for (auto &i : fd_connections) {
 		i.second.disconnect();
 	}
@@ -353,7 +353,7 @@ void USB::DeviceHandle::clear_halt_out(unsigned char endpoint) {
 
 void USB::DeviceHandle::control_no_data(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout) {
 	assert((request_type & LIBUSB_ENDPOINT_DIR_MASK) == 0);
-	check_fn("libusb_control_transfer", libusb_control_transfer(handle, request_type | LIBUSB_ENDPOINT_OUT, request, value, index, 0, 0, timeout), 0);
+	check_fn("libusb_control_transfer", libusb_control_transfer(handle, request_type | LIBUSB_ENDPOINT_OUT, request, value, index, nullptr, 0, timeout), 0);
 }
 
 std::size_t USB::DeviceHandle::control_in(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, void *buffer, std::size_t len, unsigned int timeout) {

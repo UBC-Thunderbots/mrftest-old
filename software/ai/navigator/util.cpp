@@ -760,3 +760,4 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 	// guess we have't found a possible intersecting point
 	return false;
 }
+

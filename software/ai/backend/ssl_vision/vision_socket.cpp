@@ -19,7 +19,7 @@ VisionSocket::VisionSocket(int multicast_interface, const std::string &port) : s
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_protocol = IPPROTO_UDP;
 	hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
-	AddrInfoSet ai(0, port.c_str(), &hints);
+	AddrInfoSet ai(nullptr, port.c_str(), &hints);
 
 	sock.set_blocking(false);
 

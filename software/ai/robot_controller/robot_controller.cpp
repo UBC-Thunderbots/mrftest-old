@@ -40,7 +40,7 @@ RobotController::RobotController(AI::RC::W::World world, AI::RC::W::Player playe
 }
 
 Gtk::Widget *RobotControllerFactory::ui_controls() {
-	return 0;
+	return nullptr;
 }
 
 RobotControllerFactory::RobotControllerFactory(const char *name) : Registerable<RobotControllerFactory>(name) {

@@ -16,7 +16,7 @@ namespace {
 			bool done() const;
 			void execute();
 			Player select(const std::set<Player> &) const {
-				assert(0);
+				assert(false);
 			}
 			Glib::ustring description() const {
 				return "goalie (all alone)";

@@ -13,15 +13,15 @@ using namespace AI::Flags;
 using namespace Glib;
 
 namespace {
-	const double MAX_SPEED = 2.0;
-	const double THRESHOLD = 0.07;
+	constexpr double MAX_SPEED = 2.0;
+	constexpr double THRESHOLD = 0.07;
 // const double STEP_DISTANCE = 0.3;
-	const double TIMESTEP = 1.0 / static_cast<double>(TIMESTEPS_PER_SECOND);
-	const double VALID_REGION = 0.3 * (9 / 8) * TIMESTEP * TIMESTEP;
+	constexpr double TIMESTEP = 1.0 / TIMESTEPS_PER_SECOND;
+	constexpr double VALID_REGION = 0.3 * (9 / 8) * TIMESTEP * TIMESTEP;
 	// probability that we will take a step towards the goal
-	const double GOAL_PROB = 0.1;
-	const double WAYPOINT_PROB = 0.6;
-	const double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
+	constexpr double GOAL_PROB = 0.1;
+	constexpr double WAYPOINT_PROB = 0.6;
+	constexpr double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
 
 
 	class RRTPhysicsNavigator : public Navigator {

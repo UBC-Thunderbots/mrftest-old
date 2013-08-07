@@ -18,12 +18,12 @@ MappedFile::MappedFile(const FileDescriptor &fd, int prot, int flags) {
 	}
 	size_ = static_cast<std::size_t>(st.st_size);
 	if (size_) {
-		data_ = mmap(0, size_, prot, flags, fd.fd(), 0);
+		data_ = mmap(nullptr, size_, prot, flags, fd.fd(), 0);
 		if (data_ == get_map_failed()) {
 			throw SystemError("mmap", errno);
 		}
 	} else {
-		data_ = 0;
+		data_ = nullptr;
 	}
 }
 
@@ -38,12 +38,12 @@ MappedFile::MappedFile(const std::string &filename, int prot, int flags) {
 	}
 	size_ = static_cast<std::size_t>(st.st_size);
 	if (size_) {
-		data_ = mmap(0, size_, prot, flags, fd.fd(), 0);
+		data_ = mmap(nullptr, size_, prot, flags, fd.fd(), 0);
 		if (data_ == get_map_failed()) {
 			throw SystemError("mmap", errno);
 		}
 	} else {
-		data_ = 0;
+		data_ = nullptr;
 	}
 }
 

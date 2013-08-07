@@ -32,7 +32,7 @@ void log_impl(const char *file, unsigned int line, const char *function, const G
 			break;
 
 		default:
-			level_name = 0;
+			level_name = nullptr;
 			break;
 	}
 	const Glib::ustring &composed = Glib::ustring::compose("[%1] [%2:%3] [%4] %5", timestring.str(), file, line, function, msg);

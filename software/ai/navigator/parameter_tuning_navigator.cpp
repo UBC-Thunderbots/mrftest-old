@@ -10,10 +10,10 @@ using AI::RC::TunableController;
 using namespace AI::Nav::W;
 
 namespace {
-	const double pos_dis_threshold = 0.1;
-	const double pos_vel_threshold = 0.05;
-	const Angle ori_dis_threshold = Angle::of_radians(0.175);
-	const Angle ori_vel_threshold = Angle::of_radians(0.05);
+	constexpr double pos_dis_threshold = 0.1;
+	constexpr double pos_vel_threshold = 0.05;
+	constexpr Angle ori_dis_threshold = Angle::of_radians(0.175);
+	constexpr Angle ori_vel_threshold = Angle::of_radians(0.05);
 
 	/**
 	 * Parameter Tuning
@@ -29,11 +29,11 @@ namespace {
 			StochasticLocalSearch sls;
 	};
 
-	const double PI = M_PI;
+	constexpr double PI = M_PI;
 	int taskIndex = 0;
-	int numTasks = 15;
+	constexpr int numTasks = 15;
 	int time = 0;
-	int limit = 1000;
+	constexpr int limit = 1000;
 	int best = limit;
 
 	const std::pair<Point, Angle> tasks[] = {

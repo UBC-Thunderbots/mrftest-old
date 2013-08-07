@@ -34,7 +34,7 @@ namespace {
 
 			void tick() {
 				FriendlyTeam friendly = world.friendly_team();
-				if (friendly.size() == 0) {
+				if (!friendly.size()) {
 					return;
 				} else if (friendly.size() >= 1) {
 					Player receiver = friendly[0];

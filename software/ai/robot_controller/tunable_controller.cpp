@@ -10,7 +10,7 @@ namespace {
 
 TunableController *TunableController::get_instance() {
 	if (instances.empty()) {
-		return 0;
+		return nullptr;
 	}
 	return *instances.begin();
 }

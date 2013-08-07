@@ -50,8 +50,8 @@ namespace {
 	IntParam playbook_index("Current Playbook, use bitwise operations", "STP/PlayExecutor", 0, 0, 9);
 }
 
-PlayExecutor::PlayExecutor(World w) : world(w), curr_play(0), curr_active(0) {
-	std::fill(curr_tactic, curr_tactic + TEAM_MAX_SIZE, static_cast<Tactic::Tactic *>(0));
+PlayExecutor::PlayExecutor(World w) : world(w), curr_play(nullptr), curr_active(nullptr) {
+	std::fill(curr_tactic, curr_tactic + TEAM_MAX_SIZE, nullptr);
 
 	for (auto &i : idle_tactics) {
 		i = Tactic::idle(world);
@@ -68,7 +68,7 @@ PlayExecutor::PlayExecutor(World w) : world(w), curr_play(0), curr_active(0) {
 }
 
 void PlayExecutor::calc_play() {
-	curr_play = 0;
+	curr_play = nullptr;
 
 	// find a valid play
 	std::random_shuffle(plays.begin(), plays.end());
@@ -124,7 +124,7 @@ void PlayExecutor::calc_play() {
 
 void PlayExecutor::role_assignment() {
 	// these must be reset every tick
-	curr_active = 0;
+	curr_active = nullptr;
 	_goalie = AI::HL::W::Player();
 
 	for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
@@ -168,7 +168,7 @@ void PlayExecutor::role_assignment() {
 
 		if (!goalie) {
 			LOG_INFO("No goalie with the desired pattern");
-			curr_play = 0;
+			curr_play = nullptr;
 			return;
 		}
 	}
@@ -227,7 +227,7 @@ void PlayExecutor::role_assignment() {
 	// can't assign active tactic to anyone
 	if (!active_assigned) {
 		LOG_ERROR("Active tactic not assigned");
-		curr_play = 0;
+		curr_play = nullptr;
 		return;
 	}
 
@@ -253,7 +253,7 @@ void PlayExecutor::execute_tactics() {
 
 		if (curr_active->fail()) {
 			LOG_INFO(Glib::ustring::compose("%1: active tactic failed", curr_play->factory().name()));
-			curr_play = 0;
+			curr_play = nullptr;
 			return;
 		}
 
@@ -264,7 +264,7 @@ void PlayExecutor::execute_tactics() {
 			// when the play runs out of tactics, they are done!
 			if (curr_role_step >= max_role_step) {
 				LOG_INFO(Glib::ustring::compose("%1: all tactics done", curr_play->factory().name()));
-				curr_play = 0;
+				curr_play = nullptr;
 				return;
 			}
 
@@ -332,7 +332,7 @@ void PlayExecutor::execute_tactics() {
 
 	if (curr_active->fail()) {
 		LOG_INFO(Glib::ustring::compose("%1: active tactic failed", curr_play->factory().name()));
-		curr_play = 0;
+		curr_play = nullptr;
 		return;
 	}
 
@@ -343,7 +343,7 @@ void PlayExecutor::execute_tactics() {
 		// when the play runs out of tactics, they are done!
 		if (curr_role_step >= max_role_step) {
 			LOG_INFO(Glib::ustring::compose("%1: all tactics done", curr_play->factory().name()));
-			curr_play = 0;
+			curr_play = nullptr;
 			return;
 		}
 	}
@@ -362,7 +362,7 @@ void PlayExecutor::tick() {
 
 	// override halt completely
 	if (players.empty() || /* world.friendly_team().size() == 0 || */ world.playtype() == AI::Common::PlayType::HALT) {
-		curr_play = 0;
+		curr_play = nullptr;
 		return;
 	}
 
@@ -402,7 +402,7 @@ void PlayExecutor::tick() {
 
 		if (done) {
 			LOG_INFO(Glib::ustring::compose("%1: play tactic failed", curr_play->factory().name()));
-			curr_play = 0;
+			curr_play = nullptr;
 		}
 	}
 
@@ -464,8 +464,8 @@ void PlayExecutor::clear_assignments() {
 
 	_goalie = AI::HL::W::Player();
 
-	curr_play = 0;
-	curr_active = 0;
+	curr_play = nullptr;
+	curr_active = nullptr;
 	for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
 		curr_tactic[i] = 0;
 		curr_assignment[i] = AI::HL::W::Player();

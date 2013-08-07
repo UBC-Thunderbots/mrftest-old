@@ -67,7 +67,7 @@ namespace {
 			HighLevelFactory &factory() const;
 
 			Gtk::Widget *ui_controls() {
-				return 0;
+				return nullptr;
 			}
 
 			void tick() {

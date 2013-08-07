@@ -257,7 +257,7 @@ int app_main(int argc, char **argv) {
 
 	std::vector<bool> disable_cameras;
 	for (auto &i : disable_camera_strings) {
-		unsigned long ul = std::stoul(Glib::locale_from_utf8(i), 0, 0);
+		unsigned long ul = std::stoul(Glib::locale_from_utf8(i), nullptr, 0);
 		if (disable_cameras.size() <= ul) {
 			disable_cameras.resize(ul + 1, false);
 		}

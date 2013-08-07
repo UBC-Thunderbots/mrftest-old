@@ -80,7 +80,7 @@ namespace {
 	};
 
 	const MessageTemplate SD_MESSAGES[] = {
-		{ 0, Annunciator::Message::Severity::LOW },
+		{ nullptr, Annunciator::Message::Severity::LOW },
 		{ u8"Bot %1 SD card uninitialized", Annunciator::Message::Severity::HIGH },
 		{ u8"Bot %1 SD card missing", Annunciator::Message::Severity::LOW },
 		{ u8"Bot %1 SD card incompatible", Annunciator::Message::Severity::HIGH },
@@ -93,9 +93,9 @@ namespace {
 	};
 
 	const MessageTemplate LOGGER_MESSAGES[] = {
-		{ 0, Annunciator::Message::Severity::LOW },
+		{ nullptr, Annunciator::Message::Severity::LOW },
 		{ u8"Bot %1 logger uninitialized", Annunciator::Message::Severity::HIGH },
-		{ 0, Annunciator::Message::Severity::LOW },
+		{ nullptr, Annunciator::Message::Severity::LOW },
 		{ u8"Bot %1 SD card full", Annunciator::Message::Severity::HIGH },
 		{ u8"Bot %1 log buffer overflow", Annunciator::Message::Severity::LOW },
 	};

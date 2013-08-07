@@ -88,7 +88,7 @@ namespace {
 	}
 
 	void MarkOffside::execute() {
-		if (world.enemy_team().size() != 0) {
+		if (world.enemy_team().size()) {
 			Action::block_ball(world, player, player_to_mark(AI::HL::Util::get_robots(world.enemy_team())));
 		} else {
 			Action::move(player, (player.position() - world.ball().position()).orientation(), Point(world.ball().position().x, -world.ball().position().y));

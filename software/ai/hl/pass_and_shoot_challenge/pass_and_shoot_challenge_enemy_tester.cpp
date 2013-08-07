@@ -137,7 +137,7 @@ public:
 
 
     Gtk::Widget *ui_controls() {
-      return 0;
+      return nullptr;
     }
   
   private:

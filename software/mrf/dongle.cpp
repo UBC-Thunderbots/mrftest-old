@@ -100,7 +100,7 @@ MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_P
 		{
 			const char *channel_string = std::getenv("MRF_CHANNEL");
 			if (channel_string) {
-				int i = std::stoi(channel_string, 0, 0);
+				int i = std::stoi(channel_string, nullptr, 0);
 				if (i < 0x0B || i > 0x1A) {
 					throw std::out_of_range("Channel number must be between 0x0B (11) and 0x1A (26).");
 				}
@@ -111,7 +111,7 @@ MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_P
 		{
 			const char *symbol_rate_string = std::getenv("MRF_SYMBOL_RATE");
 			if (symbol_rate_string) {
-				int i = std::stoi(symbol_rate_string, 0, 0);
+				int i = std::stoi(symbol_rate_string, nullptr, 0);
 				if (i != 250 && i != 625) {
 					throw std::out_of_range("Symbol rate must be 250 or 625.");
 				}
@@ -122,7 +122,7 @@ MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_P
 		{
 			const char *pan_string = std::getenv("MRF_PAN");
 			if (pan_string) {
-				int i = std::stoi(pan_string, 0, 0);
+				int i = std::stoi(pan_string, nullptr, 0);
 				if (i < 0 || i > 0xFFFE) {
 					throw std::out_of_range("PAN must be between 0x0000 (0) and 0xFFFE (65,534).");
 				}

@@ -16,7 +16,7 @@ Matrix::Matrix(std::size_t num_rows, std::size_t num_cols, const double *data) {
 			}
 		}
 	} else {
-		m = 0;
+		m = nullptr;
 	}
 }
 
@@ -33,7 +33,7 @@ Matrix::Matrix(std::size_t num_rows, std::size_t num_cols, InitFlag flag) {
 				break;
 		}
 	} else {
-		m = 0;
+		m = nullptr;
 	}
 }
 
@@ -42,7 +42,7 @@ Matrix::Matrix(const Matrix &copyref) {
 		m = gsl_matrix_alloc(copyref.m->size1, copyref.m->size2);
 		gsl_matrix_memcpy(m, copyref.m);
 	} else {
-		m = 0;
+		m = nullptr;
 	}
 }
 

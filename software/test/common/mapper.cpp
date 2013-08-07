@@ -149,7 +149,7 @@ class MapperWindow::PreviewDevicesModel : public Glib::Object, public AbstractLi
 		}
 
 		const Joystick *get_device(std::size_t index) const {
-			return index > 0 ? devices[index - 1] : 0;
+			return index > 0 ? devices[index - 1] : nullptr;
 		}
 
 		std::size_t alm_rows() const {

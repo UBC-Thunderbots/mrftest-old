@@ -34,7 +34,7 @@ void PowerPanel::check_result(AsyncOperation<void> &op) {
 	}
 
 	message.reset();
-	current_operation_status_entry = 0;
+	current_operation_status_entry = nullptr;
 
 	drivetrain_button.set_sensitive();
 }

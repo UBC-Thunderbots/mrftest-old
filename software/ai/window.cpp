@@ -68,7 +68,7 @@ namespace {
 
 	class HighLevelControls : public Gtk::Frame {
 		public:
-			explicit HighLevelControls(AI::AIPackage &ai) : Gtk::Frame("High Level"), ai(ai), table(2, 2), custom_controls(0) {
+			explicit HighLevelControls(AI::AIPackage &ai) : Gtk::Frame("High Level"), ai(ai), table(2, 2), custom_controls(nullptr) {
 				high_level_chooser.append_text("<Choose High Level>");
 				typedef AI::HL::HighLevelFactory::Map Map;
 				for (const Map::value_type &i : AI::HL::HighLevelFactory::all()) {
@@ -107,7 +107,7 @@ namespace {
 			void on_high_level_changing() {
 				if (custom_controls) {
 					table.remove(*custom_controls);
-					custom_controls = 0;
+					custom_controls = nullptr;
 				}
 			}
 
@@ -117,7 +117,7 @@ namespace {
 				} else {
 					high_level_chooser.set_active_text("<Choose High Level>");
 				}
-				custom_controls = ai.high_level.get() ? ai.high_level->ui_controls() : 0;
+				custom_controls = ai.high_level.get() ? ai.high_level->ui_controls() : nullptr;
 				if (custom_controls) {
 					table.attach(*custom_controls, 0, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 					custom_controls->show_all();
@@ -127,7 +127,7 @@ namespace {
 
 	class NavigatorControls : public Gtk::Frame {
 		public:
-			explicit NavigatorControls(AI::AIPackage &ai) : Gtk::Frame("Navigator"), ai(ai), table(3, 2), custom_controls(0) {
+			explicit NavigatorControls(AI::AIPackage &ai) : Gtk::Frame("Navigator"), ai(ai), table(3, 2), custom_controls(nullptr) {
 				navigator_chooser.append_text("<Choose Navigator>");
 				typedef AI::Nav::NavigatorFactory::Map Map;
 				for (const Map::value_type &i : AI::Nav::NavigatorFactory::all()) {
@@ -167,7 +167,7 @@ namespace {
 			void on_navigator_changing() {
 				if (custom_controls) {
 					table.remove(*custom_controls);
-					custom_controls = 0;
+					custom_controls = nullptr;
 				}
 			}
 
@@ -177,7 +177,7 @@ namespace {
 				} else {
 					navigator_chooser.set_active_text("<Choose Navigator>");
 				}
-				custom_controls = ai.navigator.get() ? ai.navigator->ui_controls() : 0;
+				custom_controls = ai.navigator.get() ? ai.navigator->ui_controls() : nullptr;
 				if (custom_controls) {
 					table.attach(*custom_controls, 0, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 					custom_controls->show_all();
@@ -187,7 +187,7 @@ namespace {
 
 	class RobotControllerControls : public Gtk::Frame {
 		public:
-			explicit RobotControllerControls(AI::AIPackage &ai) : Gtk::Frame("Robot Controller"), ai(ai), table(3, 2), custom_controls(0) {
+			explicit RobotControllerControls(AI::AIPackage &ai) : Gtk::Frame("Robot Controller"), ai(ai), table(3, 2), custom_controls(nullptr) {
 				rc_chooser.append_text("<Choose Robot Controller>");
 				typedef AI::RC::RobotControllerFactory::Map Map;
 				for (const Map::value_type &i : AI::RC::RobotControllerFactory::all()) {
@@ -217,14 +217,14 @@ namespace {
 				if (i != m.end()) {
 					ai.robot_controller_factory = i->second;
 				} else {
-					ai.robot_controller_factory = 0;
+					ai.robot_controller_factory = nullptr;
 				}
 			}
 
 			void on_rc_changing() {
 				if (custom_controls) {
 					table.remove(*custom_controls);
-					custom_controls = 0;
+					custom_controls = nullptr;
 				}
 			}
 
@@ -235,7 +235,7 @@ namespace {
 				} else {
 					rc_chooser.set_active_text("<Choose Robot Controller>");
 				}
-				custom_controls = rcf ? rcf->ui_controls() : 0;
+				custom_controls = rcf ? rcf->ui_controls() : nullptr;
 				if (custom_controls) {
 					table.attach(*custom_controls, 0, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 					custom_controls->show_all();
@@ -374,18 +374,18 @@ namespace {
 	};
 
 	const VisualizerControls::ControlInfo VisualizerControls::CONTROLS[12] = {
-		{ "Field", &Visualizer::show_field, 0, 0 },
-		{ "Ball", &Visualizer::show_ball, 0, 1 },
-		{ "Velocity", &Visualizer::show_ball_v, 0, 0 },
-		{ "Robots", &Visualizer::show_robots, 0, 4 },
-		{ "Velocity", &Visualizer::show_robots_v, 0, 0 },
-		{ "Destination", &Visualizer::show_robots_dest, 0, 0 },
-		{ "Path", &Visualizer::show_robots_path, 0, 0 },
-		{ "Graphs", &Visualizer::show_robots_graphs, 0, 0 },
-		{ "AI Overlays", &Visualizer::show_overlay, 0, 3 },
-		{ "High-Level", 0, &AI::AIPackage::show_hl_overlay, 0 },
-		{ "Navigator", 0, &AI::AIPackage::show_nav_overlay, 0 },
-		{ "Robot Controller", 0, &AI::AIPackage::show_rc_overlay, 0 },
+		{ "Field", &Visualizer::show_field, nullptr, 0 },
+		{ "Ball", &Visualizer::show_ball, nullptr, 1 },
+		{ "Velocity", &Visualizer::show_ball_v, nullptr, 0 },
+		{ "Robots", &Visualizer::show_robots, nullptr, 4 },
+		{ "Velocity", &Visualizer::show_robots_v, nullptr, 0 },
+		{ "Destination", &Visualizer::show_robots_dest, nullptr, 0 },
+		{ "Path", &Visualizer::show_robots_path, nullptr, 0 },
+		{ "Graphs", &Visualizer::show_robots_graphs, nullptr, 0 },
+		{ "AI Overlays", &Visualizer::show_overlay, nullptr, 3 },
+		{ "High-Level", nullptr, &AI::AIPackage::show_hl_overlay, 0 },
+		{ "Navigator", nullptr, &AI::AIPackage::show_nav_overlay, 0 },
+		{ "Robot Controller", nullptr, &AI::AIPackage::show_rc_overlay, 0 },
 	};
 
 	class VisualizerCoordinatesBar : public Gtk::Statusbar {

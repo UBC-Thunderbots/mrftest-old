@@ -39,7 +39,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 				} else {
 					component.assign(path);
 				}
-				ParamTreeInternalNode *child = 0;
+				ParamTreeInternalNode *child = nullptr;
 				for (ParamTreeNode *i : children) {
 					if (i->name() == component) {
 						child = dynamic_cast<ParamTreeInternalNode *>(i);
@@ -53,7 +53,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 					child = Allocator::instance().alloc(component);
 					children.push_back(child);
 				}
-				return child->internal_node(pch ? pch + 1 : 0);
+				return child->internal_node(pch ? pch + 1 : nullptr);
 			} else {
 				return this;
 			}
@@ -75,7 +75,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 
 			// Link my children with respect to sibling and parent relationships.
 			for (std::size_t i = 0; i < children.size(); ++i) {
-				children[i]->link(i, i < (children.size() - 1) ? children[i + 1] : 0, i ? children[i - 1] : 0, this);
+				children[i]->link(i, i < (children.size() - 1) ? children[i + 1] : nullptr, i ? children[i - 1] : nullptr, this);
 				children[i]->initialize();
 				children[i]->collate_key_clear();
 			}
@@ -129,11 +129,11 @@ class ParamTreeInternalNode : public ParamTreeNode {
 		}
 
 		const ParamTreeNode *child(std::size_t index) const {
-			return index < num_children() ? children[index] : 0;
+			return index < num_children() ? children[index] : nullptr;
 		}
 
 		ParamTreeNode *child(std::size_t index) {
-			return index < num_children() ? children[index] : 0;
+			return index < num_children() ? children[index] : nullptr;
 		}
 
 		void set_default() {
@@ -189,7 +189,7 @@ void ParamTreeNode::save_all() {
 	root()->save(params_elt);
 }
 
-ParamTreeNode::ParamTreeNode(const Glib::ustring &name) : name_(name), index_(static_cast<std::size_t>(-1)), next(0), prev(0), parent_(0) {
+ParamTreeNode::ParamTreeNode(const Glib::ustring &name) : name_(name), index_(static_cast<std::size_t>(-1)), next(nullptr), prev(nullptr), parent_(nullptr) {
 	if (name_.empty()) {
 		throw std::invalid_argument("Illegal parameter name (must be nonempty)");
 	}
@@ -282,11 +282,11 @@ std::size_t Param::num_children() const {
 }
 
 const ParamTreeNode *Param::child(std::size_t) const {
-	return 0;
+	return nullptr;
 }
 
 ParamTreeNode *Param::child(std::size_t) {
-	return 0;
+	return nullptr;
 }
 
 BoolParam::BoolParam(const char *name, const char *location, bool def) : Param(name, location), value_(def), default_(def) {

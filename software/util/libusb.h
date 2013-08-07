@@ -246,7 +246,7 @@ namespace USB {
 			 *
 			 * \param[in] serial_number the serial number of the device to open, or null to open a device with matching vendor and product ID but any serial number
 			 */
-			DeviceHandle(Context &context, unsigned int vendor_id, unsigned int product_id, const char *serial_number = 0);
+			DeviceHandle(Context &context, unsigned int vendor_id, unsigned int product_id, const char *serial_number = nullptr);
 
 			/**
 			 * \brief Opens a handle to a specific device.

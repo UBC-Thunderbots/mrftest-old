@@ -47,7 +47,7 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 		}
 
 		const Joystick *get_device(std::size_t index) {
-			return index > 0 ? sticks[index - 1] : 0;
+			return index > 0 ? sticks[index - 1] : nullptr;
 		}
 
 		const JoystickMapping &get_mapping(const Joystick &stick) {

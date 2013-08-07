@@ -11,19 +11,19 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-	const int P = 5;
+	constexpr int P = 5;
 	// a lower value means higher accuracy, higher is less accurate but faster
 	// valid values are 0 to infinity
-	const double ACCURACY_TRADEOFF = 0.5;
+	constexpr double ACCURACY_TRADEOFF = 0.5;
 
-	const double arr_min[P] = { 3.0, 0.0, 0.0, 3.0, 3.0 };
-	const double arr_max[P] = { 6.0, 2.0, 2.0, 6.0, 6.0 };
+	constexpr double arr_min[P] = { 3.0, 0.0, 0.0, 3.0, 3.0 };
+	constexpr double arr_max[P] = { 6.0, 2.0, 2.0, 6.0, 6.0 };
 	/*
 	   // robot parameters
 	   const double arr_def[P] = { 6.0, .855, .385, 6.0, 6.0 };
 	 */
 	// simulator parameters
-	const double arr_def[P] = { 8.71043, 1.95671, 1.08009, 4.59125, 9.40896 };
+	constexpr double arr_def[P] = { 8.71043, 1.95671, 1.08009, 4.59125, 9.40896 };
 
 	const std::vector<double> param_min(arr_min, arr_min + P);
 	const std::vector<double> param_max(arr_max, arr_max + P);
@@ -61,12 +61,12 @@ namespace {
 
 				Point linear_velocity = (new_position - current_position).rotate(-current_orientation);
 
-				if (linear_velocity.len() != 0) {
+				if (linear_velocity.len()) {
 					linear_velocity = linear_velocity / linear_velocity.len() * distance_factor * param[0];
 				}
 
 				Point stopping_velocity = (-player.velocity()).rotate(-current_orientation);
-				if (stopping_velocity.len() != 0) {
+				if (stopping_velocity.len()) {
 					stopping_velocity = stopping_velocity / stopping_velocity.len() * param[0];
 				}
 
@@ -115,3 +115,4 @@ namespace {
 }
 
 ROBOT_CONTROLLER_REGISTER(PathController)
+

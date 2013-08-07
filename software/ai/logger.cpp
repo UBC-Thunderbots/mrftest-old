@@ -63,7 +63,7 @@ namespace {
 		dest.set_nanoseconds(static_cast<int32_t>(nanos % 1000000000));
 	}
 
-	AI::Logger *instance = 0;
+	AI::Logger *instance = nullptr;
 }
 
 
@@ -137,7 +137,7 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), fos(fd.
 }
 
 AI::Logger::~Logger() {
-	instance = 0;
+	instance = nullptr;
 	if (!ended) {
 		try {
 			Log::Record record;

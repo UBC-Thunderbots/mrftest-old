@@ -25,7 +25,7 @@ namespace {
 	};
 }
 
-AIPackage::AIPackage(Backend &backend) : backend(backend), high_level(std::unique_ptr<AI::HL::HighLevel>()), navigator(AI::Nav::Navigator::Ptr()), robot_controller_factory(0), show_hl_overlay(true), show_nav_overlay(true), show_rc_overlay(true) {
+AIPackage::AIPackage(Backend &backend) : backend(backend), high_level(std::unique_ptr<AI::HL::HighLevel>()), navigator(AI::Nav::Navigator::Ptr()), robot_controller_factory(nullptr), show_hl_overlay(true), show_nav_overlay(true), show_rc_overlay(true) {
 	backend.signal_tick().connect(sigc::mem_fun(this, &AIPackage::tick));
 	backend.signal_draw_overlay().connect(sigc::mem_fun(this, &AIPackage::draw_overlay));
 	backend.friendly_team().signal_membership_changed().connect(sigc::mem_fun(this, &AIPackage::attach_robot_controllers));

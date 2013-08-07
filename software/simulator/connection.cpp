@@ -42,7 +42,7 @@ bool Simulator::Connection::on_readable(Glib::IOCondition) {
 	char ancillary[cmsg_space(sizeof(int))];
 
 	msghdr mh;
-	mh.msg_name = 0;
+	mh.msg_name = nullptr;
 	mh.msg_namelen = 0;
 	mh.msg_iov = &iov;
 	mh.msg_iovlen = 1;

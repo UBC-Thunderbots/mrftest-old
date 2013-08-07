@@ -33,7 +33,7 @@ namespace {
 			size_t defender_role;
 			void execute();
 			Player select(const std::set<Player> &) const {
-				assert(0);
+				assert(false);
 			}
 			Glib::ustring description() const {
 				if (world.friendly_team().size() > defender_role + 1) {
@@ -55,7 +55,7 @@ namespace {
 		private:
 			void execute();
 			Player select(const std::set<Player> &) const {
-				assert(0);
+				assert(false);
 			}
 			Glib::ustring description() const {
 				return "goalie (helped by defender)";

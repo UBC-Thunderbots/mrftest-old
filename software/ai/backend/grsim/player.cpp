@@ -9,19 +9,19 @@ using std::chrono::steady_clock;
 
 namespace {
 #warning The robot geometry here should be updated to match our own once we have a custom grSim INI file.
-	const steady_clock::duration CHICKER_CHARGE_TIME = std::chrono::seconds(2);
-	const double ROBOT_DISTANCE_TO_FRONT = 0.073;
-	const double BALL_DIAMETER = 0.043;
-	const double HAS_BALL_THRESHOLD = 0.01;
-	const double DRIBBLER_WIDTH = 0.08;
-	const double HALF_DRIBBLER_WIDTH = DRIBBLER_WIDTH / 2.0;
+	constexpr steady_clock::duration CHICKER_CHARGE_TIME = std::chrono::seconds(2);
+	constexpr double ROBOT_DISTANCE_TO_FRONT = 0.073;
+	constexpr double BALL_DIAMETER = 0.043;
+	constexpr double HAS_BALL_THRESHOLD = 0.01;
+	constexpr double DRIBBLER_WIDTH = 0.08;
+	constexpr double HALF_DRIBBLER_WIDTH = DRIBBLER_WIDTH / 2.0;
 	const Angle HALF_DRIBBLER_ARC = Angle::atan(HALF_DRIBBLER_WIDTH / ROBOT_DISTANCE_TO_FRONT);
-	const Angle HALF_DRIBBLER_ARC_MARGIN = Angle::of_degrees(-2.0);
-	const double MAX_CHIP_SPEED = 3.603f;
-	const double CHIP_ANGLE = 51.483f;
+	constexpr Angle HALF_DRIBBLER_ARC_MARGIN = Angle::of_degrees(-2.0);
+	constexpr double MAX_CHIP_SPEED = 3.603f;
+	constexpr double CHIP_ANGLE = 51.483f;
 	const double SINE_CHIP_ANGLE = std::sin(CHIP_ANGLE);
 	const double COSINE_CHIP_ANGLE = std::cos(CHIP_ANGLE);
-	const double RADIANS_PER_SECOND__PER__QUARTER_DEGREES_PER_FIVE_MILLISECONDS = 200 /* 5ms / s */ * 0.25 /* degrees per quarter thereof */ * M_PI / 180.0 /* radians per degree */;
+	constexpr double RADIANS_PER_SECOND__PER__QUARTER_DEGREES_PER_FIVE_MILLISECONDS = 200 /* 5ms / s */ * 0.25 /* degrees per quarter thereof */ * M_PI / 180.0 /* radians per degree */;
 }
 
 Player::Player(unsigned int pattern, const AI::BE::Ball &ball) : AI::BE::Player(pattern), ball(ball), dribble(false), autokick_fired_(false), had_ball(false), chick_mode(ChickMode::IDLE), chick_power(0.0), last_chick_time(steady_clock::now()) {

@@ -29,7 +29,7 @@ namespace {
 			}
 
 			void reset() {
-				curr_play = 0;
+				curr_play = nullptr;
 			}
 
 			HighLevelFactory &factory() const;

@@ -53,7 +53,6 @@ namespace {
 	 * \param[in] elt the element from which text nodes should be clean.
 	 */
 	void clean_whitespace(xmlpp::Element *e) {
-		const xmlpp::Node::NodeList &children = e->get_children();
 		std::vector<xmlpp::Node *> to_remove;
 		for (xmlpp::Node *i : e->get_children()) {
 			xmlpp::TextNode *t = dynamic_cast<xmlpp::TextNode *>(i);

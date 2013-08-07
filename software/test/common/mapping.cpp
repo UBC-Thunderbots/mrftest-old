@@ -53,7 +53,7 @@ JoystickMapping::JoystickMapping(const xmlpp::Element *elt) : name_(elt->get_att
 			if (group_elt->get_name() == u8"axes") {
 				mappings = axes;
 				n_mappings = N_AXES;
-				xml_names = 0;
+				xml_names = nullptr;
 			} else if (group_elt->get_name() == u8"buttons") {
 				mappings = buttons;
 				n_mappings = N_BUTTONS;
@@ -138,7 +138,7 @@ void JoystickMapping::save(xmlpp::Element *elt) const {
 		const int *mappings;
 		const char *const *xml_names;
 	} groups[] = {
-		{ u8"axes", N_AXES, axes, 0 },
+		{ u8"axes", N_AXES, axes, nullptr },
 		{ u8"buttons", N_BUTTONS, buttons, BUTTON_XML_NAMES },
 	};
 	for (std::size_t i = 0; i < G_N_ELEMENTS(groups); ++i) {

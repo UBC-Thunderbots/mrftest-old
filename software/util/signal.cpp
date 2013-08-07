@@ -13,7 +13,7 @@ SignalHandlerScopedRegistration::SignalHandlerScopedRegistration(int sig, Signal
 }
 
 SignalHandlerScopedRegistration::~SignalHandlerScopedRegistration() {
-	sigaction(sig, &old, 0);
+	sigaction(sig, &old, nullptr);
 }
 
 SignalStackScopedRegistration::SignalStackScopedRegistration(void *stk, std::size_t len) {
@@ -27,6 +27,6 @@ SignalStackScopedRegistration::SignalStackScopedRegistration(void *stk, std::siz
 }
 
 SignalStackScopedRegistration::~SignalStackScopedRegistration() {
-	sigaltstack(&old, 0);
+	sigaltstack(&old, nullptr);
 }
 

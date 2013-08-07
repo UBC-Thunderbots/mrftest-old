@@ -32,7 +32,7 @@ namespace {
 			HighLevelFactory &factory() const;
 
 			Gtk::Widget *ui_controls() {
-				return 0;
+				return nullptr;
 			}
 
 			void tick() {
@@ -40,7 +40,7 @@ namespace {
 				FriendlyTeam friendly = world.friendly_team();
 				std::vector<Player> players;
 
-				if (friendly.size() == 0) {
+				if (!friendly.size()) {
 					return;
 				}
 

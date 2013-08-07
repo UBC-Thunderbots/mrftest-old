@@ -4,18 +4,18 @@
 #include <stdexcept>
 
 BZip2::InputStream::InputStream(google::protobuf::io::ZeroCopyInputStream *input) : error(false), eof(false), input(input), output_backed_up(0) {
-	bzs.next_in = 0;
+	bzs.next_in = nullptr;
 	bzs.avail_in = 0;
 	bzs.total_in_lo32 = 0;
 	bzs.total_in_hi32 = 0;
-	bzs.next_out = 0;
+	bzs.next_out = nullptr;
 	bzs.avail_out = 0;
 	bzs.total_out_lo32 = 0;
 	bzs.total_out_hi32 = 0;
-	bzs.state = 0;
-	bzs.bzalloc = 0;
-	bzs.bzfree = 0;
-	bzs.opaque = 0;
+	bzs.state = nullptr;
+	bzs.bzalloc = nullptr;
+	bzs.bzfree = nullptr;
+	bzs.opaque = nullptr;
 	if (BZ2_bzDecompressInit(&bzs, 0, 0) != BZ_OK) {
 		throw std::runtime_error("Failed to initialize BZip2.");
 	}

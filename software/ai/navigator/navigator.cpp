@@ -5,7 +5,7 @@ using AI::Nav::NavigatorFactory;
 using namespace AI::Nav::W;
 
 Gtk::Widget *Navigator::ui_controls() {
-	return 0;
+	return nullptr;
 }
 
 void Navigator::draw_overlay(Cairo::RefPtr<Cairo::Context>) {

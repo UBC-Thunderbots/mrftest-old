@@ -35,7 +35,7 @@ namespace {
 			void tick() {
 				FriendlyTeam friendly = world.friendly_team();
 
-				if (friendly.size() == 0) {
+				if (!friendly.size()) {
 					return;
 				}
 
@@ -140,7 +140,7 @@ namespace {
 			}
 
 			Gtk::Widget *ui_controls() {
-				return 0;
+				return nullptr;
 			}
 
 		private:

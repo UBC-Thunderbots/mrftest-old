@@ -554,7 +554,7 @@ namespace {
 				case ConvertLogV1V2::T_PATH_ELEMENT:
 				{
 					// Add the path element to the FriendlyRobot message.
-					Log::Tick::FriendlyRobot *bot = 0;
+					Log::Tick::FriendlyRobot *bot = nullptr;
 					for (int i = 0; !bot && i < tick_record.mutable_tick()->friendly_robots_size(); ++i) {
 						if (tick_record.tick().friendly_robots(i).pattern() == payload[0]) {
 							bot = tick_record.mutable_tick()->mutable_friendly_robots(i);

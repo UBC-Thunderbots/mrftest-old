@@ -114,11 +114,11 @@ void AI::BE::Simulator::Backend::send_packet(const ::Simulator::Proto::A2SPacket
 	iov.iov_len = sizeof(packet);
 
 	msghdr msgh;
-	msgh.msg_name = 0;
+	msgh.msg_name = nullptr;
 	msgh.msg_namelen = 0;
 	msgh.msg_iov = &iov;
 	msgh.msg_iovlen = 1;
-	msgh.msg_control = 0;
+	msgh.msg_control = nullptr;
 	msgh.msg_controllen = 0;
 	msgh.msg_flags = 0;
 
@@ -231,11 +231,11 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 	iov.iov_len = sizeof(packet);
 
 	msghdr mh;
-	mh.msg_name = 0;
+	mh.msg_name = nullptr;
 	mh.msg_namelen = 0;
 	mh.msg_iov = &iov;
 	mh.msg_iovlen = 1;
-	mh.msg_control = 0;
+	mh.msg_control = nullptr;
 	mh.msg_controllen = 0;
 	mh.msg_flags = 0;
 

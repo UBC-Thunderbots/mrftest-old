@@ -181,7 +181,7 @@ class PASCHL : public HighLevel {
 			}
 
 			Gtk::Widget *ui_controls() {
-				return 0;
+				return nullptr;
 			}
 
 		private:

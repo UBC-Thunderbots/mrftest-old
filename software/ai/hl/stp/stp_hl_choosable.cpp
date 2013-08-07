@@ -55,7 +55,7 @@ namespace {
 				}
 				// check what play is in use
 				if (combo.get_active_text() == CHOOSE_PLAY_TEXT) {
-					curr_play = 0;
+					curr_play = nullptr;
 					return;
 				}
 				calc_play();
@@ -64,13 +64,11 @@ namespace {
 			void stop() {
 				LOG_INFO("stop");
 
-				if (curr_play) {
-					curr_play = 0;
-				}
+				curr_play = nullptr;
 			}
 
 			void calc_play() {
-				curr_play = 0;
+				curr_play = nullptr;
 				for (const auto &i : plays) {
 					if (i->factory().name() == combo.get_active_text()) {
 						curr_play = i.get();
@@ -108,22 +106,22 @@ namespace {
 
 				// override halt completely
 				if (world.friendly_team().size() == 0 || world.playtype() == AI::Common::PlayType::HALT) {
-					curr_play = 0;
+					curr_play = nullptr;
 				}
 
 				// check what play is in use
 				if (combo.get_active_text() == CHOOSE_PLAY_TEXT) {
-					curr_play = 0;
+					curr_play = nullptr;
 				}
 
 				if (curr_play && combo.get_active_text() != Glib::ustring(curr_play->factory().name())) {
-					curr_play = 0;
+					curr_play = nullptr;
 				}
 
 				/*
 				   if (curr_play && (!curr_play->invariant() || curr_play->done() || curr_play->fail())) {
 				    LOG_INFO("play done/no longer valid");
-				    curr_play = 0;
+				    curr_play = nullptr;
 				   }
 				 */
 

@@ -100,7 +100,7 @@ bool Simulator::Simulator::on_ai_connecting(Glib::IOCondition) {
 	}
 
 	// Find a free team slot to put the AI into.
-	Team *team = 0;
+	Team *team = nullptr;
 	if (!team1.has_connection()) {
 		team = &team1;
 	} else if (!team2.has_connection()) {

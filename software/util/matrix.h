@@ -41,7 +41,7 @@ class Matrix {
 		 *
 		 * \param[in] data the data to fill in the the matrix with, in row-major order (defaults to 0 for an uninitialized matrix).
 		 */
-		Matrix(std::size_t num_rows, std::size_t num_cols = 1, const double *data = 0);
+		Matrix(std::size_t num_rows, std::size_t num_cols = 1, const double *data = nullptr);
 
 		/**
 		 * Constructs a matrix initialized to a common pattern.
@@ -163,11 +163,11 @@ class Matrix {
 		friend Matrix operator~(const Matrix &m);
 };
 
-inline Matrix::Matrix() : m(0) {
+inline Matrix::Matrix() : m(nullptr) {
 }
 
 inline Matrix::Matrix(Matrix &&moveref) : m(moveref.m) {
-	moveref.m = 0;
+	moveref.m = nullptr;
 }
 
 inline void Matrix::swap(Matrix &b) {

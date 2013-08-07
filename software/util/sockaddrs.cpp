@@ -6,7 +6,7 @@
 #include <sys/types.h>
 
 AddrInfoSet::AddrInfoSet(const char *node, const char *service, const addrinfo *hints) {
-	info = 0;
+	info = nullptr;
 	int rc = getaddrinfo(node, service, hints, &info);
 	if (rc != 0) {
 		throw EAIError("getaddrinfo", rc);

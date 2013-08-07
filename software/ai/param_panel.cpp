@@ -60,7 +60,7 @@ namespace {
 					return true;
 				} else {
 					iter.gobj()->stamp = 0;
-					iter.gobj()->user_data = 0;
+					iter.gobj()->user_data = nullptr;
 					return false;
 				}
 			}
@@ -210,7 +210,7 @@ namespace {
 					if (np) {
 						v.set(np->adjustment());
 					} else {
-						v.set(0);
+						v.set(nullptr);
 					}
 					value.init(numeric_adjustment_column.type());
 					value = v;

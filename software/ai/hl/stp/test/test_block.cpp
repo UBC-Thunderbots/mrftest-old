@@ -19,14 +19,14 @@ namespace {
 			HighLevelFactory &factory() const;
 
 			Gtk::Widget *ui_controls() {
-				return 0;
+				return nullptr;
 			}
 
 			void tick() {
 				tick_eval(world);
 				FriendlyTeam friendly = world.friendly_team();
 				EnemyTeam enemy = world.enemy_team();
-				if (friendly.size() == 0 || enemy.size() == 0) {
+				if (!friendly.size() || !enemy.size()) {
 					return;
 				}
 

@@ -133,7 +133,7 @@ void AbstractListModel::make_iter_valid(iterator &iter, std::size_t index) const
 
 void AbstractListModel::make_iter_invalid(iterator &iter) {
 	iter.set_stamp(0);
-	iter.gobj()->user_data = 0;
+	iter.gobj()->user_data = nullptr;
 }
 
 void AbstractListModel::get_value_vfunc(const iterator &iter, int col, Glib::ValueBase &value) const {

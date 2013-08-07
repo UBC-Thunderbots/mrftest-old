@@ -26,7 +26,7 @@ Monotonic::Monotonic() : tfd(create_timerfd(CLOCK_MONOTONIC)), overflow_message(
 	tspec.it_interval.tv_nsec = static_cast<long>(nanoseconds % UINT64_C(1000000000));
 	tspec.it_value.tv_sec = 1;
 	tspec.it_value.tv_nsec = 0;
-	if (timerfd_settime(tfd.fd(), 0, &tspec, 0) < 0) {
+	if (timerfd_settime(tfd.fd(), 0, &tspec, nullptr) < 0) {
 		throw SystemError(u8"timerfd_settime", errno);
 	}
 

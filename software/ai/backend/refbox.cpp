@@ -19,7 +19,7 @@ namespace {
 		hints.ai_socktype = SOCK_DGRAM;
 		hints.ai_protocol = 0;
 		hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
-		AddrInfoSet ai(0, "10003", &hints);
+		AddrInfoSet ai(nullptr, "10003", &hints);
 
 		FileDescriptor fd(FileDescriptor::create_socket(ai.first()->ai_family, ai.first()->ai_socktype, ai.first()->ai_protocol));
 

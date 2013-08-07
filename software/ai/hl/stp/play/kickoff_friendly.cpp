@@ -8,14 +8,14 @@ namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
 	// the distance we want the players to the ball
-	const double AVOIDANCE_DIST = Ball::RADIUS + Robot::MAX_RADIUS + 0.005;
+	constexpr double AVOIDANCE_DIST = Ball::RADIUS + Robot::MAX_RADIUS + 0.005;
 
 	// distance for the offenders to be positioned away from the kicker
-	const double SEPARATION_DIST = 10 * Robot::MAX_RADIUS;
+	constexpr double SEPARATION_DIST = 10 * Robot::MAX_RADIUS;
 
 	// hard coded positions for the kicker, and 2 offenders
-	Point kicker_position = Point(-0.5 - Ball::RADIUS - Robot::MAX_RADIUS, 0);
-	Point ready_positions[2] = { Point(-AVOIDANCE_DIST, -SEPARATION_DIST), Point(-AVOIDANCE_DIST, SEPARATION_DIST) };
+	constexpr Point kicker_position(-0.5 - Ball::RADIUS - Robot::MAX_RADIUS, 0);
+	constexpr Point ready_positions[2] = { Point(-AVOIDANCE_DIST, -SEPARATION_DIST), Point(-AVOIDANCE_DIST, SEPARATION_DIST) };
 }
 
 /**

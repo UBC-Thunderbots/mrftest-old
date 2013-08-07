@@ -136,7 +136,7 @@ template<typename T> bool operator!=(const BoxPtr<T> &x, const BoxPtr<T> &y) {
 	return x.ptr != y.ptr;
 }
 
-template<typename T> BoxPtr<T>::BoxPtr() : ptr(0), valid(0) {
+template<typename T> BoxPtr<T>::BoxPtr() : ptr(nullptr), valid(nullptr) {
 }
 
 template<typename T> template<typename U> BoxPtr<T>::BoxPtr(const BoxPtr<U> &copyref) : ptr(copyref.ptr), valid(copyref.valid) {
@@ -157,8 +157,8 @@ template<typename T> T *BoxPtr<T>::operator->() const {
 }
 
 template<typename T> void BoxPtr<T>::reset() {
-	ptr = 0;
-	valid = 0;
+	ptr = nullptr;
+	valid = nullptr;
 }
 
 template<typename T> BoxPtr<T>::operator bool() const {

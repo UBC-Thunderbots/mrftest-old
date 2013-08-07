@@ -228,7 +228,7 @@ namespace {
 				ScanResult scan_result(sdcard);
 				const off_t WRITE_AMOUNT = 4*1024*1024;
 				uint8_t blank_data[WRITE_AMOUNT];
-				std::memset(blank_data, 0,WRITE_AMOUNT); //4 megs of nothing
+				std::memset(blank_data, 0, WRITE_AMOUNT); //4 megs of nothing
 				std::size_t write_size;
 				off_t file_offset = 0; 
 				do  {
