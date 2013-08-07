@@ -17,6 +17,19 @@
 
 namespace USB {
 	/**
+	 * \cond
+	 * These are for internal use only.
+	 */
+	extern "C" {
+		void usb_context_pollfd_add_trampoline(int fd, short events, void *user_data);
+		void usb_context_pollfd_remove_trampoline(int fd, void *user_data);
+		void usb_transfer_handle_completed_transfer_trampoline(libusb_transfer *transfer);
+	}
+	/**
+	 * \endcond
+	 */
+
+	/**
 	 * \brief An error that occurs in a libusb library function.
 	 */
 	class Error : public std::runtime_error {
@@ -103,12 +116,12 @@ namespace USB {
 		private:
 			friend class DeviceList;
 			friend class DeviceHandle;
+			friend void usb_context_pollfd_add_trampoline(int fd, short events, void *user_data);
+			friend void usb_context_pollfd_remove_trampoline(int fd, void *user_data);
 
 			libusb_context *context;
 			std::unordered_map<int, sigc::connection> fd_connections;
 
-			static void pollfd_add_trampoline(int fd, short events, void *user_data);
-			static void pollfd_remove_trampoline(int fd, void *user_data);
 			void add_pollfd(int fd, short events);
 			void remove_pollfd(int fd);
 			void handle_usb_fds();
@@ -421,6 +434,7 @@ namespace USB {
 			friend class InterruptInTransfer;
 			friend class BulkOutTransfer;
 			friend class BulkInTransfer;
+			friend void usb_transfer_handle_completed_transfer_trampoline(libusb_transfer *transfer);
 
 			libusb_context *context;
 			libusb_device_handle *handle;
@@ -500,12 +514,13 @@ namespace USB {
 			void submit();
 
 		protected:
+			friend void usb_transfer_handle_completed_transfer_trampoline(libusb_transfer *transfer);
+
 			DeviceHandle &device;
 			libusb_transfer *transfer;
 			bool submitted_, done_;
 			unsigned int stall_retries_left;
 
-			static void handle_completed_transfer_trampoline(libusb_transfer *transfer);
 			Transfer(DeviceHandle &dev);
 			void handle_completed_transfer();
 	};

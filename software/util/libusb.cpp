@@ -95,7 +95,65 @@ namespace {
 
 		return device.serial_number() == serial_number;
 	}
+
+	class TransferMetadata : public NonCopyable {
+		public:
+			static TransferMetadata *get(libusb_transfer *transfer) {
+				return static_cast<TransferMetadata *>(transfer->user_data);
+			}
+
+			TransferMetadata(USB::Transfer &transfer, USB::DeviceHandle &device) : transfer_(&transfer), device_(device) {
+			}
+
+			USB::Transfer *transfer() const {
+				return transfer_;
+			}
+
+			USB::DeviceHandle &device() const {
+				return device_;
+			}
+
+			void disown() {
+				transfer_ = 0;
+			}
+
+		private:
+			USB::Transfer *transfer_;
+			USB::DeviceHandle &device_;
+	};
 }
+
+
+
+void USB::usb_context_pollfd_add_trampoline(int fd, short events, void *user_data) {
+	static_cast<Context *>(user_data)->add_pollfd(fd, events);
+}
+
+void USB::usb_context_pollfd_remove_trampoline(int fd, void *user_data) {
+	static_cast<Context *>(user_data)->remove_pollfd(fd);
+}
+
+void USB::usb_transfer_handle_completed_transfer_trampoline(libusb_transfer *transfer) {
+	try {
+		TransferMetadata *md = TransferMetadata::get(transfer);
+		--md->device().submitted_transfer_count;
+		if (md->transfer()) {
+			md->transfer()->handle_completed_transfer();
+		} else {
+			// This happens if the Transfer object has been destroyed but the transfer was submitted at the time.
+			// The disowned libusb_transfer needs to be allowed to finish cancelling before being freed.
+			delete md;
+			delete [] transfer->buffer;
+			libusb_free_transfer(transfer);
+		}
+	} catch (...) {
+		// libusb is C code, so exception cannot safely propagate through it doing a normal stack unwind.
+		// Save the exception in the main loop and do a normal return, which will let libusb unwind itself properly before the exception continues unwinding.
+		MainLoop::quit_with_current_exception();
+	}
+}
+
+
 
 USB::Error::Error(const std::string &msg) : std::runtime_error(msg) {
 }
@@ -124,7 +182,7 @@ USB::Context::Context() {
 		add_pollfd((*i)->fd, (*i)->events);
 	}
 	std::free(pfds);
-	libusb_set_pollfd_notifiers(context, &Context::pollfd_add_trampoline, &Context::pollfd_remove_trampoline, this);
+	libusb_set_pollfd_notifiers(context, &usb_context_pollfd_add_trampoline, &usb_context_pollfd_remove_trampoline, this);
 }
 
 USB::Context::~Context() {
@@ -133,14 +191,6 @@ USB::Context::~Context() {
 	for (auto &i : fd_connections) {
 		i.second.disconnect();
 	}
-}
-
-void USB::Context::pollfd_add_trampoline(int fd, short events, void *user_data) {
-	static_cast<Context *>(user_data)->add_pollfd(fd, events);
-}
-
-void USB::Context::pollfd_remove_trampoline(int fd, void *user_data) {
-	static_cast<Context *>(user_data)->remove_pollfd(fd);
 }
 
 void USB::Context::add_pollfd(int fd, short events) {
@@ -369,32 +419,6 @@ USB::InterfaceClaimer::~InterfaceClaimer() {
 
 
 
-class TransferMetadata : public NonCopyable {
-	public:
-		static TransferMetadata *get(libusb_transfer *transfer) {
-			return static_cast<TransferMetadata *>(transfer->user_data);
-		}
-
-		TransferMetadata(USB::Transfer &transfer, USB::DeviceHandle &device) : transfer_(&transfer), device_(device) {
-		}
-
-		USB::Transfer *transfer() const {
-			return transfer_;
-		}
-
-		USB::DeviceHandle &device() const {
-			return device_;
-		}
-
-		void disown() {
-			transfer_ = 0;
-		}
-
-	private:
-		USB::Transfer *transfer_;
-		USB::DeviceHandle &device_;
-};
-
 USB::Transfer::~Transfer() {
 	if (submitted_) {
 		// The transfer is submitted.
@@ -450,26 +474,6 @@ void USB::Transfer::submit() {
 	++device.submitted_transfer_count;
 }
 
-void USB::Transfer::handle_completed_transfer_trampoline(libusb_transfer *transfer) {
-	try {
-		TransferMetadata *md = TransferMetadata::get(transfer);
-		--md->device().submitted_transfer_count;
-		if (md->transfer()) {
-			md->transfer()->handle_completed_transfer();
-		} else {
-			// This happens if the Transfer object has been destroyed but the transfer was submitted at the time.
-			// The disowned libusb_transfer needs to be allowed to finish cancelling before being freed.
-			delete md;
-			delete [] transfer->buffer;
-			libusb_free_transfer(transfer);
-		}
-	} catch (...) {
-		// libusb is C code, so exception cannot safely propagate through it doing a normal stack unwind.
-		// Save the exception in the main loop and do a normal return, which will let libusb unwind itself properly before the exception continues unwinding.
-		MainLoop::quit_with_current_exception();
-	}
-}
-
 USB::Transfer::Transfer(DeviceHandle &dev) : device(dev), transfer(libusb_alloc_transfer(0)), submitted_(false), done_(false), stall_retries_left(0) {
 	if (!transfer) {
 		throw std::bad_alloc();
@@ -499,7 +503,7 @@ void USB::Transfer::handle_completed_transfer() {
 
 
 USB::ControlNoDataTransfer::ControlNoDataTransfer(DeviceHandle &dev, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout) : Transfer(dev) {
-	libusb_fill_control_transfer(transfer, dev.handle, new unsigned char[8], &Transfer::handle_completed_transfer_trampoline, transfer->user_data, timeout);
+	libusb_fill_control_transfer(transfer, dev.handle, new unsigned char[8], &usb_transfer_handle_completed_transfer_trampoline, transfer->user_data, timeout);
 	libusb_fill_control_setup(transfer->buffer, request_type, request, value, index, 0);
 }
 
@@ -507,7 +511,7 @@ USB::ControlNoDataTransfer::ControlNoDataTransfer(DeviceHandle &dev, uint8_t req
 
 USB::InterruptInTransfer::InterruptInTransfer(DeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout) : Transfer(dev) {
 	assert((endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK) == endpoint);
-	libusb_fill_interrupt_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_IN, new unsigned char[len], static_cast<int>(len), &Transfer::handle_completed_transfer_trampoline, transfer->user_data, timeout);
+	libusb_fill_interrupt_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_IN, new unsigned char[len], static_cast<int>(len), &usb_transfer_handle_completed_transfer_trampoline, transfer->user_data, timeout);
 	if (exact_len) {
 		transfer->flags |= LIBUSB_TRANSFER_SHORT_NOT_OK;
 	}
@@ -517,7 +521,7 @@ USB::InterruptInTransfer::InterruptInTransfer(DeviceHandle &dev, unsigned char e
 
 USB::InterruptOutTransfer::InterruptOutTransfer(DeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, std::size_t max_len, unsigned int timeout) : Transfer(dev) {
 	assert((endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK) == endpoint);
-	libusb_fill_interrupt_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_OUT, new unsigned char[len], static_cast<int>(len), &Transfer::handle_completed_transfer_trampoline, transfer->user_data, timeout);
+	libusb_fill_interrupt_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_OUT, new unsigned char[len], static_cast<int>(len), &usb_transfer_handle_completed_transfer_trampoline, transfer->user_data, timeout);
 	if (!max_len || len != max_len) {
 		transfer->flags |= LIBUSB_TRANSFER_ADD_ZERO_PACKET;
 	}
@@ -528,7 +532,7 @@ USB::InterruptOutTransfer::InterruptOutTransfer(DeviceHandle &dev, unsigned char
 
 USB::BulkInTransfer::BulkInTransfer(DeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout) : Transfer(dev) {
 	assert((endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK) == endpoint);
-	libusb_fill_bulk_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_IN, new unsigned char[len], static_cast<int>(len), &Transfer::handle_completed_transfer_trampoline, transfer->user_data, timeout);
+	libusb_fill_bulk_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_IN, new unsigned char[len], static_cast<int>(len), &usb_transfer_handle_completed_transfer_trampoline, transfer->user_data, timeout);
 	if (exact_len) {
 		transfer->flags |= LIBUSB_TRANSFER_SHORT_NOT_OK;
 	}
@@ -538,7 +542,7 @@ USB::BulkInTransfer::BulkInTransfer(DeviceHandle &dev, unsigned char endpoint, s
 
 USB::BulkOutTransfer::BulkOutTransfer(DeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, std::size_t max_len, unsigned int timeout) : Transfer(dev) {
 	assert((endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK) == endpoint);
-	libusb_fill_bulk_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_OUT, new unsigned char[len], static_cast<int>(len), &Transfer::handle_completed_transfer_trampoline, transfer->user_data, timeout);
+	libusb_fill_bulk_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_OUT, new unsigned char[len], static_cast<int>(len), &usb_transfer_handle_completed_transfer_trampoline, transfer->user_data, timeout);
 	if (!max_len || len != max_len) {
 		transfer->flags |= LIBUSB_TRANSFER_ADD_ZERO_PACKET;
 	}
