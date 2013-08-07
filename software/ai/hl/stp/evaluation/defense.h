@@ -5,14 +5,12 @@
 
 #include <array>
 
-namespace {
-	const unsigned int MAX_DEFENDERS = 3;
-}
-
 namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
+				constexpr unsigned int MAX_DEFENDERS = 3;
+
 				void tick_defense(World world);
 
 				/**

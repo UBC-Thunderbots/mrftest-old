@@ -11,17 +11,17 @@ namespace AI {
 			/**
 			 * The max number of players we can assign roles
 			 */
-			const unsigned int TEAM_MAX_SIZE = 6; 
+			constexpr unsigned int TEAM_MAX_SIZE = 6; 
 			
 			/**
 			 * The max speed the ball can be kicked
 			 */
-			const double BALL_MAX_SPEED = 8.0; 
+			constexpr double BALL_MAX_SPEED = 8.0; 
 
 			/**
 			 * Distance from the penalty mark
 			 */
-			const double DIST_FROM_PENALTY_MARK = 0.4;
+			constexpr double DIST_FROM_PENALTY_MARK = 0.4;
 		}
 	}
 }

@@ -3,9 +3,9 @@
 using AI::Nav::W::Robot;
 using AI::Nav::W::Player;
 
-const double Robot::MAX_RADIUS = 0.09;
-const double Player::MAX_LINEAR_VELOCITY = 2;
-const double Player::MAX_LINEAR_ACCELERATION = 3.5;
-const Angle Player::MAX_ANGULAR_VELOCITY = Angle::of_radians(38);
-const Angle Player::MAX_ANGULAR_ACCELERATION = Angle::of_radians(77.7);
+constexpr double Robot::MAX_RADIUS;
+constexpr double Player::MAX_LINEAR_VELOCITY;
+constexpr double Player::MAX_LINEAR_ACCELERATION;
+constexpr Angle Player::MAX_ANGULAR_VELOCITY;
+constexpr Angle Player::MAX_ANGULAR_ACCELERATION;
 

@@ -35,10 +35,14 @@ namespace BitcodecPrimitives {
 			static_assert(sizeof(T) * 8 >= Length, "value must be large enough to hold \"Length\" bits!");
 			static_assert(Length, "Length must be nonzero!");
 
-			static const std::size_t BITS_THIS = Length < 8 - (Offset % 8) ? Length : 8 - (Offset % 8);
-			static const std::size_t VALUE_SHIFT = Length - BITS_THIS;
-			static const T MASK = (static_cast<T>(1U) << BITS_THIS) - static_cast<T>(1U);
+			static constexpr std::size_t BITS_THIS = Length < 8 - (Offset % 8) ? Length : 8 - (Offset % 8);
+			static constexpr std::size_t VALUE_SHIFT = Length - BITS_THIS;
+			static constexpr T MASK = (static_cast<T>(1U) << BITS_THIS) - static_cast<T>(1U);
 	};
+
+	template<typename T, std::size_t Offset, std::size_t Length> constexpr std::size_t Encoder<T, Offset, Length>::BITS_THIS;
+	template<typename T, std::size_t Offset, std::size_t Length> constexpr std::size_t Encoder<T, Offset, Length>::VALUE_SHIFT;
+	template<typename T, std::size_t Offset, std::size_t Length> constexpr T Encoder<T, Offset, Length>::MASK;
 
 	/** \cond */
 	template<typename T, std::size_t Offset> class Encoder<T, Offset, 0> {
@@ -77,9 +81,12 @@ namespace BitcodecPrimitives {
 			static_assert(sizeof(T) * 8 >= Length, "value must be large enough to hold \"Length\" bits!");
 			static_assert(Length, "Length must be nonzero!");
 
-			static const std::size_t BITS_THIS = Length < 8 - (Offset % 8) ? Length : 8 - (Offset % 8);
-			static const T MASK = (static_cast<T>(1U) << BITS_THIS) - static_cast<T>(1U);
+			static constexpr std::size_t BITS_THIS = Length < 8 - (Offset % 8) ? Length : 8 - (Offset % 8);
+			static constexpr T MASK = (static_cast<T>(1U) << BITS_THIS) - static_cast<T>(1U);
 	};
+
+	template<typename T, std::size_t Offset, std::size_t Length> constexpr std::size_t Decoder<T, Offset, Length>::BITS_THIS;
+	template<typename T, std::size_t Offset, std::size_t Length> constexpr T Decoder<T, Offset, Length>::MASK;
 
 	/** \cond */
 	template<typename T, std::size_t Offset> class Decoder<T, Offset, 0> {
@@ -109,8 +116,10 @@ namespace BitcodecPrimitives {
 		/**
 		 * \brief \c true if none of the intervals overlap, or \c false if some intervals do overlap.
 		 */
-		static const bool OK = (Offset2 >= Offset1 + Length1) && OverlapChecker<Offset2, Length2, Tail ...>::OK;
+		static constexpr bool OK = (Offset2 >= Offset1 + Length1) && OverlapChecker<Offset2, Length2, Tail ...>::OK;
 	};
+
+	template<std::size_t Offset1, std::size_t Length1, std::size_t Offset2, std::size_t Length2, std::size_t ... Tail> constexpr bool OverlapChecker<Offset1, Length1, Offset2, Length2, Tail ...>::OK;
 
 	/**
 	 * \brief Checks, at compile time, for overlap among an ascending sequence of intervals.
@@ -123,8 +132,10 @@ namespace BitcodecPrimitives {
 		/**
 		 * \brief \c true, because a single interval cannot have an overlap.
 		 */
-		static const bool OK = true;
+		static constexpr bool OK = true;
 	};
+
+	template<std::size_t Offset, std::size_t Length> constexpr bool OverlapChecker<Offset, Length>::OK;
 
 	/**
 	 * \brief Checks, at compile time, for overlap among an ascending sequence of intervals.
@@ -133,7 +144,7 @@ namespace BitcodecPrimitives {
 		/**
 		 * \brief \c true, because a list of zero intervals cannot have an overlap.
 		 */
-		static const bool OK = true;
+		static constexpr bool OK = true;
 	};
 
 	template<std::size_t ... Elements> struct LengthCalculator;
@@ -151,8 +162,10 @@ namespace BitcodecPrimitives {
 		/**
 		 * \brief The number of bytes needed to hold all the elements.
 		 */
-		static const std::size_t BYTES = LengthCalculator<Tail ...>::BYTES;
+		static constexpr std::size_t BYTES = LengthCalculator<Tail ...>::BYTES;
 	};
+
+	template<std::size_t Offset, std::size_t Length, std::size_t ... Tail> constexpr std::size_t LengthCalculator<Offset, Length, Tail ...>::BYTES;
 
 	/**
 	 * \brief Computes, at compile time, the length in bytes of the buffer required to store a sequence of bitfield elements.
@@ -165,8 +178,10 @@ namespace BitcodecPrimitives {
 		/**
 		 * \brief The number of bytes needed to hold the element.
 		 */
-		static const std::size_t BYTES = (Offset + Length + 7) / 8;
+		static constexpr std::size_t BYTES = (Offset + Length + 7) / 8;
 	};
+
+	template<std::size_t Offset, std::size_t Length> constexpr std::size_t LengthCalculator<Offset, Length>::BYTES;
 
 	/**
 	 * \brief Computes, at compile time, the length in bytes of the buffer required to store a sequence of bitfield elements.
@@ -175,7 +190,7 @@ namespace BitcodecPrimitives {
 		/**
 		 * \brief 0, because a sequence of no elements takes no space to store.
 		 */
-		static const std::size_t BYTES = 0;
+		static constexpr std::size_t BYTES = 0;
 	};
 
 	/**
@@ -195,11 +210,8 @@ namespace BitcodecPrimitives {
 		 *
 		 * \return the converted value.
 		 */
-		T operator()(U x) {
-			if (x & static_cast<U>(static_cast<U>(1) << (Length - 1))) {
-				x |= static_cast<U>(static_cast<U>(-1) << Length);
-			}
-			return static_cast<T>(x);
+		constexpr T operator()(U x) {
+			return (x & static_cast<U>(static_cast<U>(1) << (Length - 1))) ? static_cast<T>(x | static_cast<U>(static_cast<U>(-1) << Length)) : static_cast<T>(x);
 		}
 	};
 }

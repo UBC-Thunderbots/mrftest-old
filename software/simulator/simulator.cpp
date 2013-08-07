@@ -17,11 +17,6 @@
 
 namespace {
 	/**
-	 * The number of timesteps per second to simulate at in slow mode.
-	 */
-	const unsigned int SLOW_TIMESTEPS_PER_SECOND = 2;
-
-	/**
 	 * Creates the socket that listens for incoming connections from AI clients.
 	 *
 	 * \return the listening socket.

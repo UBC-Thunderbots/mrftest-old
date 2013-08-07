@@ -79,7 +79,7 @@
 #if defined BITCODEC_GEN_HEADER
 BITCODEC_NS_BEGIN
 	struct BITCODEC_STRUCT_NAME {
-		static const std::size_t BUFFER_SIZE = BitcodecPrimitives::LengthCalculator<0, 0
+		static constexpr std::size_t BUFFER_SIZE = BitcodecPrimitives::LengthCalculator<0, 0
 #define BITCODEC_DATA_U(type, name, offset, length, def) \
 			, offset, length
 #define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
@@ -133,7 +133,7 @@ namespace {
 #endif
 
 #if defined BITCODEC_GEN_SOURCE || defined BITCODEC_ANON_NAMESPACE
-const std::size_t BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME::BUFFER_SIZE;
+constexpr std::size_t BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME::BUFFER_SIZE;
 
 BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME::BITCODEC_STRUCT_NAME() {
 #define BITCODEC_DATA_U(type, name, offset, length, def) \

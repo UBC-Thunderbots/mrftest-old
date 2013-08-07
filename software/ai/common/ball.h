@@ -13,7 +13,7 @@ namespace AI {
 				/**
 				 * The approximate radius of the ball.
 				 */
-				static const double RADIUS;
+				static constexpr double RADIUS = 0.0215;
 		};
 	}
 }

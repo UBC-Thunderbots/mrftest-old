@@ -16,20 +16,18 @@ namespace {
 	DoubleParam step_distance("Distance to extend the tree on each step (m)", "Nav/RRT", 0.1, 0, 1.0);
 
 	// probability that we will take a step towards the goal
-	const double GOAL_PROB = 0.2;
-	const double WAYPOINT_PROB = 0.5;
-	const double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
-	const bool POST_PROCESS = true;
-	const double EPS = 1e-9;
+	constexpr double GOAL_PROB = 0.2;
+	constexpr double WAYPOINT_PROB = 0.5;
+	constexpr double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
+	constexpr bool POST_PROCESS = true;
+	constexpr double EPS = 1e-9;
 
 	bool is_empty_state(Point to_check) {
 		return (to_check - RRTPlanner::empty_state()).lensq() < EPS;
 	}
 }
 
-Point RRTPlanner::empty_state() {
-	return Point(-10000, -10000);
-}
+constexpr std::size_t Waypoints::NUM_WAYPOINTS;
 
 double RRTPlanner::distance(Glib::NodeTree<Point> *node, Point goal) {
 	return (node->data() - goal).len();

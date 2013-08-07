@@ -33,7 +33,7 @@ template<> class CacheableTupleBuilder<0> {
 	public:
 		typedef std::tuple<> Tuple;
 
-		static Tuple build_tuple() {
+		static constexpr Tuple build_tuple() {
 			return Tuple();
 		}
 };
@@ -42,7 +42,7 @@ template<typename Head, typename ... Tail> class CacheableTupleBuilder<0, Head, 
 	public:
 		typedef std::tuple<Head, Tail ...> Tuple;
 
-		static Tuple build_tuple(const Head &head, const Tail & ... tail) {
+		static constexpr Tuple build_tuple(const Head &head, const Tail & ... tail) {
 			return Tuple(head, tail ...);
 		}
 };
@@ -51,7 +51,7 @@ template<std::size_t DROP_FIRST, typename Head, typename ... Tail> class Cacheab
 	public:
 		typedef typename CacheableTupleBuilder<DROP_FIRST - 1, Tail ...>::Tuple Tuple;
 
-		static Tuple build_tuple(const Head &, const Tail & ... tail) {
+		static constexpr Tuple build_tuple(const Head &, const Tail & ... tail) {
 			return CacheableTupleBuilder<DROP_FIRST - 1, Tail ...>::build_tuple(tail ...);
 		}
 };
@@ -59,19 +59,19 @@ template<std::size_t DROP_FIRST, typename Head, typename ... Tail> class Cacheab
 template<std::size_t OFFSET, typename K, typename ... Args> struct CacheableTupleHasherImpl;
 
 template<std::size_t OFFSET, typename ... Args> struct CacheableTupleHasherImpl<OFFSET, CacheableKeyArgs<Args ...>> {
-	static std::size_t hash(const std::tuple<Args ...> &) {
+	static constexpr std::size_t hash(const std::tuple<Args ...> &) {
 		return 0;
 	}
 };
 
 template<std::size_t OFFSET, typename ... Args, typename First, typename ... Rest> struct CacheableTupleHasherImpl<OFFSET, CacheableKeyArgs<Args ...>, First, Rest ...> {
-	static std::size_t hash(const std::tuple<Args ...> &t) {
+	static constexpr std::size_t hash(const std::tuple<Args ...> &t) {
 		return std::hash<First>()(std::get<OFFSET>(t)) * 17 + CacheableTupleHasherImpl<OFFSET + 1, CacheableKeyArgs<Args ...>, Rest ...>::hash(t);
 	}
 };
 
 template<typename ... Args> struct CacheableTupleHasher {
-	std::size_t operator()(const std::tuple<Args ...> &t) const {
+	constexpr std::size_t operator()(const std::tuple<Args ...> &t) const {
 		return CacheableTupleHasherImpl<0, CacheableKeyArgs<Args ...>, Args ...>::hash(t);
 	}
 };

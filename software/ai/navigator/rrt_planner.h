@@ -14,7 +14,7 @@ namespace AI {
 		class Waypoints : public ObjectStore::Element {
 			public:
 				typedef std::shared_ptr<Waypoints> Ptr;
-				static const std::size_t NUM_WAYPOINTS = 50;
+				static constexpr std::size_t NUM_WAYPOINTS = 50;
 				Point points[NUM_WAYPOINTS];
 				unsigned int added_flags;
 				PlayerData data;
@@ -25,7 +25,7 @@ namespace AI {
 				RRTPlanner(AI::Nav::W::World world);
 				virtual std::vector<Point> plan(AI::Nav::W::Player player, Point goal, unsigned int added_flags = 0);
 
-				static Point empty_state();
+				static constexpr Point empty_state();
 
 			protected:
 				/**
@@ -52,5 +52,9 @@ namespace AI {
 				std::vector<Point> rrt_plan(AI::Nav::W::Player player, Point goal, bool post_process = true, unsigned int added_flags = 0);
 		};
 	}
+}
+
+inline constexpr Point AI::Nav::RRTPlanner::empty_state() {
+	return Point(-10000, -10000);
 }
 

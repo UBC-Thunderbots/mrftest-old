@@ -11,19 +11,17 @@
 #include <functional>
 #include <vector>
 
-namespace {
-	/**
-	 * \brief The number of vision failures to tolerate before assuming the robot is gone and removing it from the system.
-	 *
-	 * Note that this should be fairly high because the failure count includes instances of a packet arriving from a camera that cannot see the robot
-	 * (this is expected to cause a failure to be counted which will then be zeroed out a moment later as the other camera sends its packet).
-	 */
-	const unsigned int MAX_VISION_FAILURES = 120;
-}
-
 namespace AI {
 	namespace BE {
 		namespace SSLVision {
+			/**
+			 * \brief The number of vision failures to tolerate before assuming the robot is gone and removing it from the system.
+			 *
+			 * Note that this should be fairly high because the failure count includes instances of a packet arriving from a camera that cannot see the robot
+			 * (this is expected to cause a failure to be counted which will then be zeroed out a moment later as the other camera sends its packet).
+			 */
+			constexpr unsigned int MAX_VISION_FAILURES = 120;
+
 			/**
 			 * \brief A generic team.
 			 *
@@ -36,7 +34,7 @@ namespace AI {
 					/**
 					 * \brief The maximum number of patterns on a team.
 					 */
-					static const std::size_t NUM_PATTERNS = 16;
+					static constexpr std::size_t NUM_PATTERNS = 16;
 
 					/**
 					 * \brief Constructs a new Team.
@@ -105,6 +103,8 @@ namespace AI {
 }
 
 
+
+template<typename T, typename TSuper> constexpr std::size_t AI::BE::SSLVision::Team<T, TSuper>::NUM_PATTERNS;
 
 template<typename T, typename TSuper> AI::BE::SSLVision::Team<T, TSuper>::Team(AI::BE::Backend &backend) : backend(backend) {
 	std::fill_n(vision_failures, NUM_PATTERNS, 0U);

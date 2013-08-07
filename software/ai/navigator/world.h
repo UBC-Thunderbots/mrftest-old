@@ -29,7 +29,7 @@ namespace AI {
 					/**
 					 * \brief The largest possible radius of a robot, in metres
 					 */
-					static const double MAX_RADIUS;
+					static constexpr double MAX_RADIUS = 0.09;
 
 					/**
 					 * \brief Constructs a nonexistent Robot
@@ -76,22 +76,22 @@ namespace AI {
 					/**
 					 * \brief The maximum linear velocity of the robot, in metres per second
 					 */
-					static const double MAX_LINEAR_VELOCITY;
+					static constexpr double MAX_LINEAR_VELOCITY = 2;
 
 					/**
 					 * \brief The maximum linear acceleration of the robot, in metres per second squared
 					 */
-					static const double MAX_LINEAR_ACCELERATION;
+					static constexpr double MAX_LINEAR_ACCELERATION = 3.5;
 
 					/**
 					 * \brief The maximum angular velocity of the robot per second
 					 */
-					static const Angle MAX_ANGULAR_VELOCITY;
+					static constexpr Angle MAX_ANGULAR_VELOCITY = Angle::of_radians(38);
 
 					/**
 					 * \brief The maximum angular acceleration of the robot per second squared
 					 */
-					static const Angle MAX_ANGULAR_ACCELERATION;
+					static constexpr Angle MAX_ANGULAR_ACCELERATION = Angle::of_radians(77.7);
 
 					/**
 					 * \brief Constructs a nonexistent Player

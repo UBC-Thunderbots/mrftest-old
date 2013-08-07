@@ -8,14 +8,6 @@
 
 using namespace AI::HL::W;
 
-const double AI::HL::Util::POS_CLOSE = AI::HL::W::Robot::MAX_RADIUS / 4.0;
-
-const double AI::HL::Util::POS_EPS = 1e-12;
-
-const double AI::HL::Util::VEL_CLOSE = 1e-2;
-
-const double AI::HL::Util::VEL_EPS = 1e-12;
-
 bool AI::HL::Util::point_in_friendly_defense(const Field &field, const Point p) {
 	const double defense_stretch = field.defense_area_stretch();
 	const double defense_radius = field.defense_area_radius();

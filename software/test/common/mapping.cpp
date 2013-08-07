@@ -31,6 +31,8 @@ const char *const JoystickMapping::BUTTON_LABELS[] = {
 };
 static_assert(G_N_ELEMENTS(JoystickMapping::BUTTON_LABELS) == JoystickMapping::N_BUTTONS, u8"BUTTON_LABELS array must be same size as N_BUTTONS enumeration element");
 
+constexpr unsigned int JoystickMapping::N_AXES;
+
 JoystickMapping::JoystickMapping(const Glib::ustring &name) : name_(name), name_collate(name_.collate_key()) {
 	std::fill(axes, axes + N_AXES, -1);
 	std::fill(buttons, buttons + N_BUTTONS, -1);

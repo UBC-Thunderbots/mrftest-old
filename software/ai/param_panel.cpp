@@ -51,7 +51,7 @@ namespace {
 			}
 
 		private:
-			static const int STAMP = 123498723;
+			static constexpr int STAMP = 123498723;
 
 			static bool make_iter(ParamTreeNode *node, iterator &iter) {
 				if (node) {
@@ -245,6 +245,8 @@ namespace {
 				return iter.gobj()->stamp == STAMP && iter.gobj()->user_data;
 			}
 	};
+
+	constexpr int ParamTreeModel::STAMP;
 
 	class ParamTreeView : public Gtk::TreeView {
 		public:

@@ -43,7 +43,7 @@ class JoystickMapping {
 		/**
 		 * \brief The number of axes to map.
 		 */
-		static const unsigned int N_AXES = 4;
+		static constexpr unsigned int N_AXES = 4;
 
 		/**
 		 * \brief Constructs a new mapping.

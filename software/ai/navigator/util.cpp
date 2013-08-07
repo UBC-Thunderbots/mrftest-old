@@ -14,7 +14,7 @@ using namespace AI::Flags;
 using namespace AI::Nav::W;
 
 namespace {
-	const double EPS = 1e-9;
+	constexpr double EPS = 1e-9;
 	
 	DoubleParam INTERCEPT_ANGLE_STEP_SIZE("angle increment in approaching the ball, in degrees", "Nav/Util", 10.0, 0.1, 30.0);
 
@@ -22,7 +22,7 @@ namespace {
 
 	// small value to ensure non-equivilance with floating point math
 	// but too small to make a difference in the actual game
-	const double SMALL_BUFFER = 0.0001;
+	constexpr double SMALL_BUFFER = 0.0001;
 
 	BoolParam USE_ENEMY_MOVEMENT_FACTOR("use enemy's future position", "Nav/Util", false);
 	BoolParam USE_FRIENDLY_MOVEMENT_FACTOR("use friendly's future position", "Nav/Util", false);
@@ -61,15 +61,15 @@ namespace {
 
 	DoubleParam FRIENDLY_KICK_BUFFER("Additional offense area buffer for friendly kick (rule=0.2) ", "Nav/Util", 0.2, 0.0, 1.0);
 
-	const double RAM_BALL_ALLOWANCE = 0.05;
+	constexpr double RAM_BALL_ALLOWANCE = 0.05;
 
-	const double BALL_STOP = 0.05;
+	constexpr double BALL_STOP = 0.05;
 	// distance from the ball's future position before we start heading towards the ball
-	const double CATCH_BALL_THRESHOLD = 0.1;
+	constexpr double CATCH_BALL_THRESHOLD = 0.1;
 	// distance behind the ball's future position that we should aim for when catching the ball
-	const double CATCH_BALL_DISTANCE_AWAY = 0.1;
+	constexpr double CATCH_BALL_DISTANCE_AWAY = 0.1;
 	// if the ball velocity is below this value then act as if it isn't moving
-	const double CATCH_BALL_VELOCITY_THRESH = 0.05;
+	constexpr double CATCH_BALL_VELOCITY_THRESH = 0.05;
 
 	// this structure determines how far away to stay from a prohibited point or line-segment
 	struct distance_keepout {

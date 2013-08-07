@@ -42,7 +42,7 @@ namespace AI {
 				/**
 				 * \brief The largest possible radius of a robot, in metres
 				 */
-				static const double MAX_RADIUS;
+				static constexpr double MAX_RADIUS = 0.09;
 
 				/**
 				 * \brief Constructs a nonexistent Robot

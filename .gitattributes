@@ -582,6 +582,7 @@ software/util/annunciator.h -text
 software/util/async_operation.h -text
 software/util/bit_array.h -text
 software/util/bitcodec.h -text
+software/util/bitcodec_primitives.cpp -text
 software/util/bitcodec_primitives.h -text
 software/util/box.h -text
 software/util/box_ptr.h -text

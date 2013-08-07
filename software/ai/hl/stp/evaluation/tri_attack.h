@@ -6,15 +6,13 @@
 #include <array>
 #include <utility>
 
-namespace {
-	// not counting the active tactic
-	const unsigned int MAX_ATTACKERS = 3;
-}
-
 namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
+				// not counting the active tactic
+				constexpr unsigned int MAX_ATTACKERS = 3;
+
 				void tick_tri_attack(World world);
 
 				/**

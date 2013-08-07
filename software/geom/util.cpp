@@ -6,13 +6,13 @@
 #include <cmath>
 
 namespace {
-	const double EPS = 1e-9;
+	constexpr double EPS = 1e-9;
 
 	// used for lensq only
-	const double EPS2 = EPS * EPS;
+	constexpr double EPS2 = EPS * EPS;
 
 	// ported code
-	int sign(double n) {
+	constexpr int sign(double n) {
 		return n > EPS ? 1 : (n < -EPS ? -1 : 0);
 	}
 }

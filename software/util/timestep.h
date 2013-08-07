@@ -1,11 +1,11 @@
-#ifndef WORLD_TIMESTEP_H
-#define WORLD_TIMESTEP_H
+#ifndef UTIL_TIMESTEP_H
+#define UTIL_TIMESTEP_H
 
 namespace {
 	/**
 	 * The number of AI timesteps per second.
 	 */
-	const unsigned int TIMESTEPS_PER_SECOND = 30;
+	constexpr unsigned int TIMESTEPS_PER_SECOND = 30;
 }
 
 #endif

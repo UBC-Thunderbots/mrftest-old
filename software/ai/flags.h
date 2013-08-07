@@ -67,7 +67,16 @@ namespace AI {
 		/**
 		 * The union of all existent flags.
 		 */
-		extern const unsigned int FLAGS_VALID;
+		constexpr unsigned int FLAGS_VALID =
+			FLAG_CLIP_PLAY_AREA |
+			FLAG_AVOID_BALL_STOP |
+			FLAG_AVOID_BALL_TINY |
+			FLAG_AVOID_FRIENDLY_DEFENSE |
+			FLAG_AVOID_ENEMY_DEFENSE |
+			FLAG_STAY_OWN_HALF |
+			FLAG_PENALTY_KICK_FRIENDLY |
+			FLAG_PENALTY_KICK_ENEMY |
+			FLAG_CAREFUL;
 
 		/**
 		 * Returns the correct flags for a common player,

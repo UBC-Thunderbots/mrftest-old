@@ -34,7 +34,7 @@ namespace AI {
 					 *
 					 * \param[in] dest the target point the distance to which to sort by.
 					 */
-					CmpDist(const Point &dest) : dest(dest) {
+					constexpr CmpDist(const Point &dest) : dest(dest) {
 					}
 
 					/**
@@ -46,34 +46,34 @@ namespace AI {
 					 *
 					 * \return \c true if \p x precedes \p y, or \c false if not.
 					 */
-					bool operator()(const T &x, const T &y) const {
+					constexpr bool operator()(const T &x, const T &y) const {
 						return (x.position() - dest).lensq() < (y.position() - dest).lensq();
 					}
 
 				private:
-					const Point &dest;
+					Point dest;
 			};
 
 			/**
 			 * Somewhat close.
 			 */
-			extern const double POS_CLOSE;
+			constexpr double POS_CLOSE = AI::HL::W::Robot::MAX_RADIUS / 4.0;
 
 			/**
 			 * Really really really close.
 			 * As in, we don't want division by zero.
 			 */
-			extern const double POS_EPS;
+			constexpr double POS_EPS = 1e-12;
 
 			/**
 			 * Somewhat stationary.
 			 */
-			extern const double VEL_CLOSE;
+			constexpr double VEL_CLOSE = 1e-2;
 
 			/**
 			 * Super stationary.
 			 */
-			extern const double VEL_EPS;
+			constexpr double VEL_EPS = 1e-12;
 
 			/**
 			 * Checks if a point lies inside the friendly defense area.

@@ -16,10 +16,6 @@
 #include <utility>
 #include <vector>
 
-namespace {
-	const double ROBOT_CENTRE_TO_FRONT_DISTANCE = 0.087;
-}
-
 namespace AI {
 	namespace BE {
 		namespace SSLVision {
@@ -27,6 +23,11 @@ namespace AI {
 			 * \brief The minimum probability above which the best ball detection will be accepted.
 			 */
 			extern DoubleParam BALL_FILTER_THRESHOLD;
+
+			/**
+			 * \brief The distance from the centre of the robot to the centre of the ball when touching the dribbler.
+			 */
+			constexpr double ROBOT_CENTRE_TO_FRONT_DISTANCE = 0.087;
 
 			/**
 			 * \brief A backend whose input comes from SSL-Vision and the Referee Box (or another tool that uses the same protocol).
@@ -40,7 +41,7 @@ namespace AI {
 					/**
 					 * \brief The number of metres the ball must move from a kickoff or similar until we consider that the ball is free to be approached by either team.
 					 */
-					static const double BALL_FREE_DISTANCE;
+					static constexpr double BALL_FREE_DISTANCE = 0.09;
 
 					/**
 					 * \brief Constructs a new SSL-Vision-based backend.
@@ -82,7 +83,7 @@ namespace AI {
 
 
 
-template<typename FriendlyTeam, typename EnemyTeam> const double AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::BALL_FREE_DISTANCE = 0.09;
+template<typename FriendlyTeam, typename EnemyTeam> constexpr double AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::BALL_FREE_DISTANCE;
 
 template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::Backend(const std::vector<bool> &disable_cameras, int multicast_interface, const std::string &vision_port) : disable_cameras(disable_cameras), refbox(multicast_interface), vision_rx(multicast_interface, vision_port) {
 	friendly_colour().signal_changed().connect(sigc::mem_fun(this, &Backend::on_friendly_colour_changed));
