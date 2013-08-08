@@ -331,10 +331,8 @@ bool Predicates::EnemyBreakDefenseDuo::compute(World world) {
 Predicates::EnemyBreakDefenseDuo Predicates::enemy_break_defense_duo;
 
 bool Predicates::BallTowardsEnemy::compute(World world) {
-	for (const Robot i : world.enemy_team()) {
-		if (Evaluation::evaluate_ball_threat(world).activate_steal) {
-			return true;
-		}
+	if (Evaluation::evaluate_ball_threat(world).activate_steal) {
+		return true;
 	}
 
 	return false;
