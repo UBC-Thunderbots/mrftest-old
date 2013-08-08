@@ -59,25 +59,6 @@ size_t cmsg_len(size_t length);
 void *cmsg_data(cmsghdr *cmsg);
 
 /**
- * Executes the system macro \c WIFEXITED without provoking warnings about old C-style casts,
- * and also converting the return type to \c bool.
- *
- * \param[in] status the exist status as returned by \c waitpid().
- *
- * \return \c true if the status indicates that the process terminated normally, or \c false if not.
- */
-bool wifexited(int status);
-
-/**
- * Executes the system macro \c WEXITSTATUS without provoking warnings about old C-style casts.
- *
- * \param[in] status the exist status as returned by \c waitpid().
- *
- * \return the exit code from the process.
- */
-int wexitstatus(int status);
-
-/**
  * Executes the XSI version of the \c strerror_r function.
  *
  * \param[in] err the error code to translate.

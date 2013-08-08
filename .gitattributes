@@ -168,7 +168,6 @@ software/ai/common/field.h -text
 software/ai/common/player.h -text
 software/ai/common/playtype.cpp -text
 software/ai/common/playtype.h -text
-software/ai/common/predictable.h -text
 software/ai/common/robot.cpp -text
 software/ai/common/robot.h -text
 software/ai/common/team.h -text
@@ -456,7 +455,6 @@ software/convertlog/main.cpp -text
 software/convertlog/v1v2/convert.cpp -text
 software/convertlog/v1v2/convert.h -text
 software/convertlog/v1v2/tags.h -text
-software/cppcheck.suppress -text
 software/cppunit/geom/angle.cpp -text
 software/cppunit/geom/util.cpp -text
 software/cppunit/main.cpp -text
@@ -574,13 +572,10 @@ software/uicomponents/annunciator.cpp -text
 software/uicomponents/annunciator.h -text
 software/uicomponents/visualizer.cpp -text
 software/uicomponents/visualizer.h -text
-software/uncrustify-exceptions.patch -text
-software/uncrustify.cfg -text
 software/util/algorithm.h -text
 software/util/annunciator.cpp -text
 software/util/annunciator.h -text
 software/util/async_operation.h -text
-software/util/bit_array.h -text
 software/util/bitcodec.h -text
 software/util/bitcodec_primitives.cpp -text
 software/util/bitcodec_primitives.h -text

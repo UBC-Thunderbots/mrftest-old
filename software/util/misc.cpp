@@ -35,14 +35,6 @@ void *cmsg_data(cmsghdr *cmsg) {
 	return CMSG_DATA(cmsg);
 }
 
-bool wifexited(int status) {
-	return !!WIFEXITED(status);
-}
-
-int wexitstatus(int status) {
-	return WEXITSTATUS(status);
-}
-
 int xsi_strerror_r(int err, char *buf, size_t buflen) {
 	return strerror_r(err, buf, buflen);
 }

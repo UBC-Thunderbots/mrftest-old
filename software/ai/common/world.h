@@ -6,7 +6,6 @@
 #include "ai/common/team.h"
 #include "ai/common/player.h"
 #include "ai/common/playtype.h"
-#include "ai/common/predictable.h"
 #include "ai/common/robot.h"
 #include "ai/common/time.h"
 
