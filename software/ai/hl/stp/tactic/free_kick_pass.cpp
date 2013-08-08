@@ -88,6 +88,9 @@ namespace {
 				}
 			}
 
+			/**
+			*	Draws a rectangle. If there is an obstacle in the rectangle, returns true. Else returns false.
+			*/
 			bool obstacle(Player Passer, Point Destination) {
 				double tolerance = Robot::MAX_RADIUS/2;
 				Point rectangle[4];

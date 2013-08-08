@@ -11,6 +11,7 @@ namespace AI {
 
 				/**
 				 * Approaches a target with autochip on. Used for direct free friendlies.
+				 * This should be changed to properly use the new pivot once it comes in/
 				 */
 				Tactic::Ptr direct_free_friendly_pivot(World world);
 			}

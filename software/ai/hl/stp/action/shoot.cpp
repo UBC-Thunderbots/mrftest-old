@@ -76,7 +76,7 @@ bool AI::HL::STP::Action::shoot_target(World world, Player player, const Point t
 		}
 		return false;
 	}
-
+//make sure velocity is updated for 2013
 	LOG_INFO(u8"autokick");
 	player.autokick(velocity);
 	return true;

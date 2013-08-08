@@ -11,6 +11,7 @@ namespace AI {
 
 				/**
 				 * Chip ball to a cherry picker.
+				 * This is a stopgap hack for some things in RoboCup. Need to refactor this code soon.
 				 */
 				Tactic::Ptr indirect_chip_to_cherry(World world);
 			}

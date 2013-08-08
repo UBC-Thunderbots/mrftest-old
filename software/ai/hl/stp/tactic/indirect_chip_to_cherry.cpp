@@ -48,7 +48,7 @@ namespace {
 	void IndirectChipToCherry::player_changed() {
 	}
 	void IndirectChipToCherry::execute() {
-
+		//see evaluation file for details
 		Point destination = Evaluation::cherry_pivot(world);
 		bool close = false;
 		for (const Player i : world.friendly_team()) {
