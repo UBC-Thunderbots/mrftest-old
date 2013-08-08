@@ -127,6 +127,8 @@ void mrf_write_long(mrf_reg_long_t reg, uint8_t value) {
 void mrf_common_init(void) {
 	mrf_write_short(MRF_REG_SHORT_SOFTRST, 0x07);
 	mrf_write_short(MRF_REG_SHORT_PACON2, 0x98);
+	mrf_write_short(MRF_REG_SHORT_TXPEND, 0x7C);
+	mrf_write_short(MRF_REG_SHORT_TXTIME, 0x38);
 	mrf_write_short(MRF_REG_SHORT_TXSTBL, 0x95);
 	mrf_write_long(MRF_REG_LONG_RFCON0, 0x03);
 	mrf_write_long(MRF_REG_LONG_RFCON1, 0x02);
