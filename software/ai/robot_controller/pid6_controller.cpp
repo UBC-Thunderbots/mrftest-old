@@ -75,7 +75,7 @@ namespace {
 			Vector4 map(std::function<double(double)> x) {
 				Vector4 temp;
 				for (int i = 0; i < 4; i++) {
-					temp.direction[i] = x(temp.direction[i]);
+					temp.direction[i] = x(direction[i]);
 				}
 				return temp;
 			}
