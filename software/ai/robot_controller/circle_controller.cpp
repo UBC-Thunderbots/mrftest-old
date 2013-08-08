@@ -61,7 +61,6 @@ namespace {
 				if (location_diff.len() > DIST_TOL && angle_change) {
 					// std::cout<<robot_vel<<' '<<robot_ang_vel;
 					Point direction = location_diff.norm();
-					double distance_to_cover = location_diff.len();
 
 					double dir = 1.0;
 					if (orientation_diff < Angle::zero()) {
@@ -76,7 +75,7 @@ namespace {
 					Point pivot_centre = centre_of_line + line_to_centre;
 					double pivot_radius = (pivot_centre - player.position()).len();
 
-					distance_to_cover = orientation_diff.to_radians() * pivot_radius;
+					double distance_to_cover = orientation_diff.to_radians() * pivot_radius;
 
 					// std::cout<<distance_to_cover<<' ';
 					direction = ((player.position() - pivot_centre).rotate(dir * Angle::quarter())).norm();
