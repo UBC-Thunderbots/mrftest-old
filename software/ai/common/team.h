@@ -416,6 +416,8 @@ template<typename T, typename U> inline AI::Common::TeamIterator<T, U> &AI::Comm
 template<typename T, typename U> inline void AI::Common::TeamIterator<T, U>::update_obj() {
 	if (pos < static_cast<typename TeamIterator<T, U>::difference_type>(team->size())) {
 		obj = (*team)[pos];
+	} else {
+		obj = T();
 	}
 }
 
