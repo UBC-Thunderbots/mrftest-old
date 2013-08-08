@@ -61,12 +61,12 @@ namespace {
 
 				Point linear_velocity = (new_position - current_position).rotate(-current_orientation);
 
-				if (linear_velocity.len()) {
+				if (linear_velocity.len() != 0.0) {
 					linear_velocity = linear_velocity / linear_velocity.len() * distance_factor * param[0];
 				}
 
 				Point stopping_velocity = (-player.velocity()).rotate(-current_orientation);
-				if (stopping_velocity.len()) {
+				if (stopping_velocity.len() != 0.0) {
 					stopping_velocity = stopping_velocity / stopping_velocity.len() * param[0];
 				}
 

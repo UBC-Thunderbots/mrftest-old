@@ -73,10 +73,10 @@ namespace {
 
 	// this structure determines how far away to stay from a prohibited point or line-segment
 	struct distance_keepout {
-		static double play_area(AI::Nav::W::Player player) {
-			return /*(2 * player.MAX_RADIUS)*/ + PLAY_AREA_BUFFER;
+		static double play_area() {
+			return /*(2 * AI::Nav::W::Player::MAX_RADIUS)*/ + PLAY_AREA_BUFFER;
 		}
-		static double total_bounds_area(AI::Nav::W::Player player) {
+		static double total_bounds_area() {
 			return TOTAL_BOUNDS_BUFFER;
 		}
 		static double enemy(AI::Nav::W::World world, AI::Nav::W::Robot player) {
@@ -144,7 +144,7 @@ namespace {
 		}
 	};
 
-	double get_net_tresspass(Point cur, Point dst, AI::Nav::W::World world) {
+	double get_net_trespass(Point cur, Point dst, AI::Nav::W::World world) {
 		double violate = 0.0;
 		double circle_radius = world.field().total_length() / 2.0 - world.field().length() / 2.0;
 		Point A(-world.field().total_length() / 2.0, world.field().goal_width() / 2.0);
@@ -154,7 +154,7 @@ namespace {
 		return violate;
 	}
 
-	double get_goal_post_tresspass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
+	double get_goal_post_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
 		double violate = 0.0;
 		double circle_radius = distance_keepout::goal_post(player);
 		Point A(world.field().length() / 2.0, world.field().goal_width() / 2.0);
@@ -184,11 +184,11 @@ namespace {
 		return violate;
 	}
 
-	double get_play_area_boundary_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
+	double get_play_area_boundary_trespass(Point cur, Point dst, AI::Nav::W::World world) {
 		const Field &f = world.field();
 		Point sw_corner(-f.length() / 2, -f.width() / 2);
 		Rect bounds(sw_corner, f.length(), f.width());
-		bounds.expand(-distance_keepout::play_area(player));
+		bounds.expand(-distance_keepout::play_area());
 		double violation = 0.0;
 		if (!bounds.point_inside(cur)) {
 			violation = std::max(violation, bounds.dist_to_boundary(cur));
@@ -199,11 +199,11 @@ namespace {
 		return violation;
 	}
 
-	double get_total_bounds_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
+	double get_total_bounds_trespass(Point cur, Point dst, AI::Nav::W::World world) {
 		const Field &f = world.field();
 		Point sw_corner(-f.total_length() / 2, -f.total_width() / 2);
 		Rect bounds(sw_corner, f.total_length(), f.total_width());
-		bounds.expand(-distance_keepout::total_bounds_area(player));
+		bounds.expand(-distance_keepout::total_bounds_area());
 		double violation = 0.0;
 		if (!bounds.point_inside(cur)) {
 			violation = std::max(violation, bounds.dist_to_boundary(cur));
@@ -317,13 +317,13 @@ namespace {
 		void set_violation_amount(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
 			friendly = get_friendly_trespass(cur, dst, world, player);
 			enemy = get_enemy_trespass(cur, dst, world);
-			goal_post = get_goal_post_tresspass(cur, dst, world, player);
-			total_bounds = get_total_bounds_trespass(cur, dst, world, player);
-			net_allowance = get_net_tresspass(cur, dst, world);
+			goal_post = get_goal_post_trespass(cur, dst, world, player);
+			total_bounds = get_total_bounds_trespass(cur, dst, world);
+			net_allowance = get_net_trespass(cur, dst, world);
 			unsigned int flags = player.flags() | extra_flags;
 
 			if (flags & FLAG_CLIP_PLAY_AREA) {
-				play_area = get_play_area_boundary_trespass(cur, dst, world, player);
+				play_area = get_play_area_boundary_trespass(cur, dst, world);
 			}
 			if (flags & FLAG_AVOID_BALL_STOP) {
 				ball_stop = get_ball_stop_trespass(cur, dst, world, player);

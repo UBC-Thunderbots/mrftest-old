@@ -121,12 +121,7 @@ namespace {
 			Gtk::Button test_drive_btn;
 
 			bool enable_pivot_radius;
-			unsigned int frame_count;
-			unsigned int ramp_frame;
-			unsigned int plateau_frame;
-			double terminal_speed;
 			Point current_tick_velocity;
-			double current_tick_rotate_velocity;
 			Point velocity_inc;
 
 			double to_be_ramp_time;

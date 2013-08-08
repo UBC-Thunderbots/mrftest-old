@@ -35,8 +35,6 @@ class CompoPlayerGeom : public PlayerGeom {
 		dGeomID dribblerBar;
 
 		// dBodyID dribbler;
-		dJointGroupID jGroup;
-		dJointID hinge;
 
 		/**
 		 * Used to determine whether the player has ball
