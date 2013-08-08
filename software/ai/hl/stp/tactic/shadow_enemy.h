@@ -12,7 +12,7 @@ namespace AI {
 				/**
 				 * Follows the enemy, index is used to determine which closest enemy. 0 is closest, 1 is second closest, so forth.
 				 */
-				Tactic::Ptr shadow_enemy(World world, int index);
+				Tactic::Ptr shadow_enemy(World world, unsigned int index);
 			}
 		}
 	}

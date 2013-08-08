@@ -14,13 +14,13 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class ShadowEnemy : public Tactic {
 		public:
-			ShadowEnemy(World world, int index) : Tactic(world), index(index) {
+			ShadowEnemy(World world, unsigned int index) : Tactic(world), index(index) {
 			}
 
 		private:
 			Coordinate dest;
 			Player select(const std::set<Player> &players) const;
-			int index;
+			unsigned int index;
 			void execute();
 			Glib::ustring description() const {
 				return u8"shadow_enemy";
@@ -42,7 +42,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::shadow_enemy(World world, int index) {
+Tactic::Ptr AI::HL::STP::Tactic::shadow_enemy(World world, unsigned int index) {
 	Tactic::Ptr p(new ShadowEnemy(world, index));
 	return p;
 }

@@ -31,7 +31,6 @@ PivotNavigator::PivotNavigator(World world) : Navigator(world) {
 void PivotNavigator::tick() {
 	for (Player player : world.friendly_team()) {
 		Point currentPosition = player.position();
-		Angle currentOrientation = player.orientation();
 
 		// tunable magic numbers BEWARE!!!
 		// double offset_angle = 80.0;

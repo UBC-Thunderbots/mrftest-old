@@ -131,7 +131,7 @@ void Player::tick(bool halt, bool stop) {
 	}
 
 	// Only if the current request has changed or the system needs rearming is a packet needed.
-	if ((autokick_params != autokick_params_old) || (autokick_params.pulse && autokick_fired_)) {
+	if ((autokick_params != autokick_params_old) || (autokick_params.pulse != 0.0 && autokick_fired_)) {
 		bot.autokick(autokick_params.chip, autokick_params.pulse);
 		autokick_params_old = autokick_params;
 	}

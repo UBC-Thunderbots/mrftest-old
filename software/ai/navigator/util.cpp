@@ -590,7 +590,7 @@ std::pair<Point, AI::Timestamp> AI::Nav::Util::get_ramball_location(Point dst, A
 
 		Point ball_vec = location - world.ball().position();
 
-		if (vec1.dot(vec2) > 0 && ball_dir.dot(ball_vec)) {
+		if (vec1.dot(vec2) > 0 && ball_dir.dot(ball_vec) != 0.0) {
 			return std::make_pair(location, intersect);
 		}
 	}

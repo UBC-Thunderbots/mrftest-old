@@ -146,7 +146,7 @@ namespace AI {
 				 *
 				 * \param[in] pos the index of the robot to point to
 				 */
-				TeamIterator(const Team<T, U> *team, typename TeamIterator<T, U>::difference_type pos);
+				TeamIterator(const Team<T, U> *team, std::size_t pos);
 
 				/**
 				 * \brief Returns the current object.
@@ -223,7 +223,7 @@ namespace AI {
 				friend void swap<T, U>(TeamIterator &, TeamIterator &);
 
 				const Team<T, U> *team;
-				typename TeamIterator<T, U>::difference_type pos;
+				std::size_t pos;
 				T obj;
 
 				void update_obj();
@@ -355,7 +355,7 @@ template<typename T, typename U> inline AI::Common::TeamIterator<T, U> AI::Commo
 }
 
 template<typename T, typename U> inline typename AI::Common::TeamIterator<T, U>::difference_type AI::Common::operator-(const TeamIterator<T, U> &x, const TeamIterator<T, U> &y) {
-	return y.pos - x.pos;
+	return static_cast<typename AI::Common::TeamIterator<T, U>::difference_type>(y.pos - x.pos);
 }
 
 template<typename T, typename U> inline void AI::Common::swap(TeamIterator<T, U> &x, TeamIterator<T, U> &y) {
@@ -365,7 +365,7 @@ template<typename T, typename U> inline void AI::Common::swap(TeamIterator<T, U>
 	swap(x.obj, y.obj);
 }
 
-template<typename T, typename U> inline AI::Common::TeamIterator<T, U>::TeamIterator(const Team<T, U> *team, typename TeamIterator<T, U>::difference_type pos) : team(team), pos(pos) {
+template<typename T, typename U> inline AI::Common::TeamIterator<T, U>::TeamIterator(const Team<T, U> *team, std::size_t pos) : team(team), pos(pos) {
 	update_obj();
 }
 
@@ -392,7 +392,7 @@ template<typename T, typename U> inline AI::Common::TeamIterator<T, U> AI::Commo
 }
 
 template<typename T, typename U> inline AI::Common::TeamIterator<T, U> &AI::Common::TeamIterator<T, U>::operator+=(typename TeamIterator<T, U>::difference_type n) {
-	pos += n;
+	pos = static_cast<std::size_t>(static_cast<typename AI::Common::TeamIterator<T, U>::difference_type>(pos) + n);
 	update_obj();
 	return *this;
 }
@@ -408,13 +408,13 @@ template<typename T, typename U> inline AI::Common::TeamIterator<T, U> AI::Commo
 }
 
 template<typename T, typename U> inline AI::Common::TeamIterator<T, U> &AI::Common::TeamIterator<T, U>::operator-=(typename TeamIterator<T, U>::difference_type n) {
-	pos -= n;
+	pos = static_cast<std::size_t>(static_cast<typename AI::Common::TeamIterator<T, U>::difference_type>(pos) - n);
 	update_obj();
 	return *this;
 }
 
 template<typename T, typename U> inline void AI::Common::TeamIterator<T, U>::update_obj() {
-	if (pos < static_cast<typename TeamIterator<T, U>::difference_type>(team->size())) {
+	if (pos < team->size()) {
 		obj = (*team)[pos];
 	} else {
 		obj = T();

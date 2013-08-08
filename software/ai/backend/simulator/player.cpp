@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cstring>
 
-AI::BE::Simulator::Player::Player(Backend &be, unsigned int pattern) : AI::BE::Player(pattern), be(be), has_ball_(false), kick_(false), chick_power_(0.0), autokick_fired_(false), autokick_pre_fired_(false), dragging_(false) {
+AI::BE::Simulator::Player::Player(unsigned int pattern) : AI::BE::Player(pattern), has_ball_(false), kick_(false), chick_power_(0.0), autokick_fired_(false), autokick_pre_fired_(false), dragging_(false) {
 }
 
 void AI::BE::Simulator::Player::pre_tick(const ::Simulator::Proto::S2APlayerInfo &state, const AI::Timestamp &ts) {

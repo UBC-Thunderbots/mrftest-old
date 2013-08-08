@@ -139,14 +139,14 @@ template<typename T> void Box<T>::destroy() {
 		data.value.~T();
 		valid = false;
 		// By zeroing memory, we assure that future attempts to invoke virtual functions on the object will segfault when dereferencing the vtable pointer.
-		std::memset(&data.value, 0, sizeof(data.value));
+		std::memset(static_cast<void *>(&data.value), 0, sizeof(data.value));
 	}
 }
 
 
 
 template<typename T> Box<T>::Union::Union() {
-	std::memset(&value, 0, sizeof(value));
+	std::memset(static_cast<void *>(&value), 0, sizeof(value));
 }
 
 template<typename T> Box<T>::Union::~Union() {

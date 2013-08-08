@@ -225,7 +225,6 @@ namespace USB {
 			Device operator[](const std::size_t i) const;
 
 		private:
-			libusb_context *context;
 			std::size_t size_;
 			libusb_device **devices;
 	};

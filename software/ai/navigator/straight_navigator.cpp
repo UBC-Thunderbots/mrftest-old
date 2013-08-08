@@ -169,7 +169,6 @@ void StraightNavigator::dealWithPath() {
 void StraightNavigator::tick() {
 	for (Player player : world.friendly_team()) {
 		Point currentPosition = player.position();
-		Angle currentOrientation = player.orientation();
 		Point destinationPosition = player.destination().first;
 		Angle destinationOrientation = player.destination().second;
 

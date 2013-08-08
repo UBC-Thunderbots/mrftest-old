@@ -16,7 +16,7 @@ int app_main(int, char **) {
 			// Try receiving one transfer, which contains up to 256 bytes of received serial data.
 			char buffer[256];
 			std::size_t bytes_received = usb_handle.bulk_in(1, buffer, sizeof(buffer), 0);
-			std::cout.write(buffer, bytes_received);
+			std::cout.write(buffer, static_cast<std::streamsize>(bytes_received));
 			std::cout.flush();
 		} catch (const USB::TransferStallError &) {
 			// An endpoint halt is not fatal; rather, it indicates that there is a reportable error which needs to be retrieved and displayed.

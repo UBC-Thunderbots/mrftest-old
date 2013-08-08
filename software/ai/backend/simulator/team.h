@@ -88,14 +88,6 @@ namespace AI {
 			class FriendlyTeam : public AI::BE::Team<AI::BE::Player>, public GenericTeam<Player> {
 				public:
 					/**
-					 * Constructs a new FriendlyTeam.
-					 *
-					 * \param[in] be the backend under which the team lives.
-					 */
-					explicit FriendlyTeam(Backend &be) : be(be) {
-					}
-
-					/**
 					 * Retrieves a Player from the team.
 					 *
 					 * \param[in] i the index of the Player to retrieve.
@@ -140,7 +132,7 @@ namespace AI {
 									}
 								}
 								if (!found) {
-									create(i.robot_info.pattern, std::ref(be), i.robot_info.pattern);
+									create(i.robot_info.pattern, i.robot_info.pattern);
 								}
 							}
 						}
@@ -176,12 +168,6 @@ namespace AI {
 					std::size_t size() const { return GenericTeam<Player>::size(); }
 					AI::BE::Player::Ptr get(std::size_t i) const { return get_impl(i); }
 					void emit_membership_changed() const { signal_membership_changed().emit(); }
-
-				private:
-					/**
-					 * \brief The backend under which the team lives.
-					 */
-					Backend &be;
 			};
 
 			/**
@@ -189,14 +175,6 @@ namespace AI {
 			 */
 			class EnemyTeam : public AI::BE::Team<AI::BE::Robot>, public GenericTeam<Robot> {
 				public:
-					/**
-					 * Constructs a new EnemyTeam.
-					 *
-					 * \param[in] be the backend under which the team lives.
-					 */
-					explicit EnemyTeam(Backend &be) : be(be) {
-					}
-
 					/**
 					 * Retrieves a Robot from the team.
 					 *
@@ -265,12 +243,6 @@ namespace AI {
 					std::size_t size() const { return GenericTeam<Robot>::size(); }
 					AI::BE::Robot::Ptr get(std::size_t i) const { return get_impl(i); }
 					void emit_membership_changed() const { signal_membership_changed().emit(); }
-
-				private:
-					/**
-					 * \brief The backend under which the team lives.
-					 */
-					Backend &be;
 			};
 		}
 	}

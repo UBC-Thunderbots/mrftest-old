@@ -23,7 +23,6 @@ FollowBallNavigator::FollowBallNavigator(World world) : Navigator(world) {
 void FollowBallNavigator::tick() {
 	for (Player player : world.friendly_team()) {
 		Point currentPosition = player.position();
-		Angle currentOrientation = player.orientation();
 		Point diff = (world.ball().position() - currentPosition);
 		Point destinationPosition = world.ball().position() - 0.3 * (diff / diff.len());
 		Angle destinationOrientation = (world.ball().position() - currentPosition).orientation();

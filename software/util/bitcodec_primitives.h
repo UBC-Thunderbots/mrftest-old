@@ -210,7 +210,7 @@ namespace BitcodecPrimitives {
 		 *
 		 * \return the converted value.
 		 */
-		constexpr T operator()(U x) {
+		constexpr T operator()(U x) const {
 			return (x & static_cast<U>(static_cast<U>(1) << (Length - 1))) ? static_cast<T>(x | static_cast<U>(static_cast<U>(-1) << Length)) : static_cast<T>(x);
 		}
 	};

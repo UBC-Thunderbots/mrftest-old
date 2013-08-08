@@ -31,7 +31,6 @@ PivotNavigator2::PivotNavigator2(World world) : Navigator(world) {
 void PivotNavigator2::tick() {
 	for (Player player : world.friendly_team()) {
 		Point currentPosition = player.position();
-		Angle currentOrientation = player.orientation();
 
 		Point diff = (world.ball().position() - currentPosition).rotate(offset_angle);
 

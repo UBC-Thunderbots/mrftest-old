@@ -132,12 +132,10 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::u
 	bool membership_changed = false;
 
 	// Update existing robots and create new robots.
-	std::vector<std::vector<bool>> used_data(packets.size());
 	bool seen_this_frame[NUM_PATTERNS];
 	std::fill_n(seen_this_frame, NUM_PATTERNS, false);
 	for (std::size_t i = 0; i < packets.size(); ++i) {
 		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> &rep(*packets[i]);
-		used_data[i].resize(static_cast<std::size_t>(rep.size()), false);
 		for (std::size_t j = 0; j < static_cast<std::size_t>(rep.size()); ++j) {
 			const SSL_DetectionRobot &detbot = rep.Get(static_cast<int>(j));
 			if (detbot.has_robot_id()) {
@@ -159,7 +157,6 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::u
 							LOG_WARN(u8"Vision packet has robot with no orientation.");
 						}
 					}
-					used_data[i][j] = true;
 				}
 			}
 		}

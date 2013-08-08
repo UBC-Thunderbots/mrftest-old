@@ -25,11 +25,11 @@
 #include <sys/types.h>
 
 namespace {
-	const unsigned long CPU_FREQUENCY = 40000000UL;
-	const std::size_t SECTOR_SIZE = 512;
-	const std::size_t LOG_RECORD_SIZE = 128;
-	const std::size_t RECORDS_PER_SECTOR = SECTOR_SIZE / LOG_RECORD_SIZE;
-	const uint32_t LOG_MAGIC_TICK = UINT32_C(0xE2468842);
+	constexpr unsigned long CPU_FREQUENCY = 40000000UL;
+	constexpr off_t SECTOR_SIZE = 512;
+	constexpr off_t LOG_RECORD_SIZE = 128;
+	constexpr off_t RECORDS_PER_SECTOR = SECTOR_SIZE / LOG_RECORD_SIZE;
+	constexpr uint32_t LOG_MAGIC_TICK = UINT32_C(0xE2468842);
 
 	class SectorArray : public NonCopyable {
 		public:
@@ -65,12 +65,12 @@ std::vector<uint8_t> SectorArray::get(off_t i) const {
 		std::size_t len = SECTOR_SIZE;
 		off_t off = i * SECTOR_SIZE;
 		while (len) {
-			ssize_t rc = pread(fd.fd(), ptr, len, off);
+			ssize_t rc = pread(fd.fd(), ptr, static_cast<std::size_t>(len), off);
 			if (rc < 0) {
 				throw SystemError("pread", errno);
 			}
 			ptr += rc;
-			len -= rc;
+			len -= static_cast<std::size_t>(rc);
 			off += rc;
 		}
 	}
@@ -90,7 +90,7 @@ void SectorArray::zero(off_t i) {
 				throw SystemError("pwrite", errno);
 			}
 			ptr += rc;
-			len -= rc;
+			len -= static_cast<std::size_t>(rc);
 			off += rc;
 		}
 	}
@@ -144,7 +144,7 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 			while (low + 1 < high) {
 				off_t pos = (low + high - 1) / 2;
 				const std::vector<uint8_t> &sector = sarray.get(pos);
-				std::size_t sector_epoch = sector[4] | (sector[5] << 8);
+				std::size_t sector_epoch = static_cast<uint16_t>(sector[4] | (sector[5] << 8));
 				if (sector_epoch >= epoch) {
 					high = pos + 1;
 				} else {
@@ -158,7 +158,7 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 			while (low + 1 < high) {
 				off_t pos = (low + high - 1) / 2;
 				const std::vector<uint8_t> &sector = sarray.get(pos);
-				std::size_t sector_epoch = sector[4] | (sector[5] << 8);
+				std::size_t sector_epoch = static_cast<uint16_t>(sector[4] | (sector[5] << 8));
 				if (sector_epoch > epoch) {
 					high = pos + 1;
 				} else {
@@ -207,7 +207,7 @@ namespace {
 					throw SystemError("write", errno);
 				}
 				ptr += rc;
-				len -= rc;
+				len -= static_cast<std::size_t>(rc);
 			}
 		}
 		fd.close();
@@ -226,19 +226,19 @@ namespace {
 			if (errno == EOPNOTSUPP) {
 				std::cout << "Well your card reader dun sucks so I card scans and manual overwrite" << std::endl;
 				ScanResult scan_result(sdcard);
-				const off_t WRITE_AMOUNT = 4*1024*1024;
+				const std::size_t WRITE_AMOUNT = 4 * 1024 * 1024;
 				uint8_t blank_data[WRITE_AMOUNT];
 				std::memset(blank_data, 0, WRITE_AMOUNT); //4 megs of nothing
 				std::size_t write_size;
 				off_t file_offset = 0; 
-				do  {
-					write_size = std::min(WRITE_AMOUNT, scan_result.nonblank_size()*512 - file_offset);
-					ssize_t ret_val = pwrite(sdcard.fd.fd(),blank_data,write_size,file_offset);
+				do {
+					write_size = std::min(WRITE_AMOUNT, static_cast<std::size_t>(scan_result.nonblank_size() * SECTOR_SIZE - file_offset));
+					ssize_t ret_val = pwrite(sdcard.fd.fd(), blank_data, write_size, file_offset);
 					if (ret_val < 0) {
 						throw SystemError("pwrite", errno);
 					}
 					file_offset += ret_val;
-				} while(file_offset < scan_result.nonblank_size()*512);
+				} while (file_offset < scan_result.nonblank_size() * SECTOR_SIZE);
 
 			} else {
 				throw SystemError("ioctl(BLKDISCARD)", errno);
@@ -288,7 +288,7 @@ namespace {
 				uint16_t record_epoch = decode_u16_le(ptr); ptr += 2;
 				uint64_t tsc = decode_u64_le(ptr); ptr += 8;
 				if (magic == LOG_MAGIC_TICK && record_epoch == epoch_index) {
-					int16_t breakbeam_diff = decode_u16_le(ptr); ptr += 2;
+					int16_t breakbeam_diff = static_cast<int16_t>(decode_u16_le(ptr)); ptr += 2;
 					uint16_t adc_channels[8];
 					for (uint16_t &value : adc_channels) {
 						value = decode_u16_le(ptr); ptr += 2;
@@ -299,11 +299,11 @@ namespace {
 					}
 					int16_t wheels_encoder_counts[4];
 					for (int16_t &value : wheels_encoder_counts) {
-						value = decode_u16_le(ptr); ptr += 2;
+						value = static_cast<int16_t>(decode_u16_le(ptr)); ptr += 2;
 					}
 					int16_t wheels_drives[4];
 					for (int16_t &value : wheels_drives) {
-						value = decode_u16_le(ptr); ptr += 2;
+						value = static_cast<int16_t>(decode_u16_le(ptr)); ptr += 2;
 					}
 					unsigned int wheels_temperatures[4];
 					for (unsigned int &value : wheels_temperatures) {

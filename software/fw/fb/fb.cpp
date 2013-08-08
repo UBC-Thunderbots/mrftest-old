@@ -31,7 +31,7 @@ namespace {
 	uint32_t read_jedec_id(USB::DeviceHandle &dev) {
 		uint8_t jedec[3];
 		dev.control_in(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, CONTROL_REQUEST_JEDEC_ID, 0, 0, jedec, sizeof(jedec), 250);
-		return (jedec[0] << 16) | (jedec[1] << 8) | jedec[2];
+		return static_cast<uint32_t>((jedec[0] << 16) | (jedec[1] << 8) | jedec[2]);
 	}
 
 	uint8_t read_status_register(USB::DeviceHandle &dev) {
@@ -118,7 +118,7 @@ void Firmware::fb_upload(const IntelHex &hex, bool onboard, bool leave_powered) 
 		} else {
 			std::array<uint8_t, PAGE_SIZE> stage;
 			stage.fill(0xFF);
-			std::copy(hex.data()[0].begin() + i, hex.data()[0].end(), stage.begin());
+			std::copy(hex.data()[0].begin() + static_cast<std::vector<uint8_t>::iterator::difference_type>(i), hex.data()[0].end(), stage.begin());
 			write_page(handle, static_cast<uint16_t>(i / PAGE_SIZE), &stage[0]);
 		}
 		std::cout << "\rWriting data… " << std::min(i + PAGE_SIZE, hex.data()[0].size()) << '/' << hex.data()[0].size();

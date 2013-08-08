@@ -192,7 +192,7 @@ double MRFRobot::kick_pulse_resolution() const {
 }
 
 void MRFRobot::kick(bool chip, double pulse_width) {
-	unsigned int clamped = clamp(static_cast<int>(pulse_width * 4.0 + 0.1), 0, 65535);
+	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width * 4.0 + 0.1), 0, 65535));
 
 	uint8_t buffer[4];
 	buffer[0] = 0x00;
@@ -204,7 +204,7 @@ void MRFRobot::kick(bool chip, double pulse_width) {
 }
 
 void MRFRobot::autokick(bool chip, double pulse_width) {
-	unsigned int clamped = clamp(static_cast<int>(pulse_width * 4.0 + 0.1), 0, 65535);
+	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width * 4.0 + 0.1), 0, 65535));
 
 	if (clamped) {
 		uint8_t buffer[4];

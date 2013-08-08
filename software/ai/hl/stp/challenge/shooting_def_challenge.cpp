@@ -15,7 +15,7 @@ namespace {
 
 	class ShootingDefChallenge : public HighLevel {
 		public:
-			ShootingDefChallenge(World world) : world(world), time_steps(0) {
+			ShootingDefChallenge(World world) : world(world) {
 				for (int i = 0 ; i < 5 ; i++) done[i] = 0;
 			}
 
@@ -92,7 +92,6 @@ namespace {
 
 		private:
 			World world;
-			int time_steps;
 			std::size_t done[5];
 	};
 }

@@ -24,11 +24,9 @@ namespace AI {
 					/**
 					 * \brief Constructs a new Player
 					 *
-					 * \param[in] be the backend under which the player lives
-					 *
 					 * \param[in] pattern the pattern index of the robot
 					 */
-					explicit Player(Backend &be, unsigned int pattern);
+					explicit Player(unsigned int pattern);
 
 					/**
 					 * \brief Updates the state of the player and locks in its predictors
@@ -60,11 +58,6 @@ namespace AI {
 					bool autokick_fired() const;
 
 				private:
-					/**
-					 * \brief The backend under which the player lives
-					 */
-					Backend &be;
-
 					/**
 					 * \brief Whether or not this player is holding the ball on its dribbler
 					 */

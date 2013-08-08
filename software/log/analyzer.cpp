@@ -416,7 +416,7 @@ namespace {
 					if (!ustr.empty()) {
 						ustr.append(u8" ");
 					}
-					ustr.append(tohex(ch, 2));
+					ustr.append(tohex(static_cast<unsigned>(ch), 2));
 				}
 				return ustr;
 			}

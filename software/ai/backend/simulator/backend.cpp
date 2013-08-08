@@ -93,7 +93,11 @@ FileDescriptor AI::BE::Simulator::connect_to_simulator() {
 	return sock;
 }
 
-AI::BE::Simulator::Backend::Backend(const std::string &load_filename) : sock(connect_to_simulator()), friendly_(*this), enemy_(*this), secondary_controls(load_filename), dragging_ball(false), dragging_pattern(std::numeric_limits<unsigned int>::max()) {
+AI::BE::Simulator::Backend::Backend(const std::string &load_filename) :
+		sock(connect_to_simulator()),
+		secondary_controls(load_filename),
+		dragging_ball(false),
+		dragging_pattern(std::numeric_limits<unsigned int>::max()) {
 	secondary_controls.players_add.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_players_add_clicked));
 	secondary_controls.players_remove.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_players_remove_clicked));
 	secondary_controls.state_file_load_button.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_state_file_load_clicked));
