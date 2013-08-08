@@ -71,7 +71,7 @@ namespace {
 		std::vector<Player> team_pool;
 		for (Player i : world.friendly_team()) {
 			// filter out the player
-			if (!i.position().close(player.position(), 0.01)) {
+			if (i == player) {
 				team_pool.push_back(i);
 			}
 		}
