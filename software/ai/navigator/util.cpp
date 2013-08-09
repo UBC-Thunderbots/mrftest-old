@@ -72,13 +72,13 @@ namespace {
 	constexpr double CATCH_BALL_VELOCITY_THRESH = 0.05;
 
 	// this structure determines how far away to stay from a prohibited point or line-segment
-	static double play_area() {
+	double play_area() {
 		return /*(2 * AI::Nav::W::Player::MAX_RADIUS)*/ + PLAY_AREA_BUFFER;
 	}
-	static double total_bounds_area() {
+	double total_bounds_area() {
 		return TOTAL_BOUNDS_BUFFER;
 	}
-	static double enemy(AI::Nav::W::World world, AI::Nav::W::Robot player) {
+	double enemy(AI::Nav::W::World world, AI::Nav::W::Robot player) {
 		if (world.enemy_team().size() <= 0) {
 			return 0.0;
 		}
@@ -101,11 +101,11 @@ namespace {
 		return player.MAX_RADIUS + buffer;
 	}
 
-	static double goal_post(AI::Nav::W::Player player) {
+	double goal_post(AI::Nav::W::Player player) {
 		return Ball::RADIUS + player.MAX_RADIUS + GOAL_POST_BUFFER;
 	}
 
-	static double friendly(AI::Nav::W::Player player, MovePrio obs_prio = MovePrio::MEDIUM) {
+	double friendly(AI::Nav::W::Player player, MovePrio obs_prio = MovePrio::MEDIUM) {
 		MovePrio player_prio = player.prio();
 		double buffer = FRIENDLY_BUFFER;
 		if (obs_prio < player_prio) {
@@ -120,25 +120,25 @@ namespace {
 
 		return player.MAX_RADIUS + buffer;
 	}
-	static double ball_stop(AI::Nav::W::Player player) {
+	double ball_stop(AI::Nav::W::Player player) {
 		return Ball::RADIUS + player.MAX_RADIUS + AI::Util::BALL_STOP_DIST;
 	}
-	static double ball_tiny(AI::Nav::W::Player player) {
+	double ball_tiny(AI::Nav::W::Player player) {
 		return Ball::RADIUS + player.MAX_RADIUS + BALL_TINY_BUFFER;
 	}
-	static double friendly_defense(AI::Nav::W::World world, AI::Nav::W::Player player) {
+	double friendly_defense(AI::Nav::W::World world, AI::Nav::W::Player player) {
 		return world.field().defense_area_radius() + player.MAX_RADIUS + DEFENSE_AREA_BUFFER;
 	}
-	static double friendly_kick(AI::Nav::W::World world, AI::Nav::W::Player player) {
+	double friendly_kick(AI::Nav::W::World world, AI::Nav::W::Player player) {
 		return world.field().defense_area_radius() + player.MAX_RADIUS + FRIENDLY_KICK_BUFFER;
 	}
-	static double own_half(AI::Nav::W::Player player) {
+	double own_half(AI::Nav::W::Player player) {
 		return player.MAX_RADIUS + OWN_HALF_BUFFER;
 	}
-	static double penalty_kick_friendly(AI::Nav::W::Player player) {
+	double penalty_kick_friendly(AI::Nav::W::Player player) {
 		return player.MAX_RADIUS + PENALTY_KICK_BUFFER + Ball::RADIUS;
 	}
-	static double penalty_kick_enemy(AI::Nav::W::Player player) {
+	double penalty_kick_enemy(AI::Nav::W::Player player) {
 		return player.MAX_RADIUS + PENALTY_KICK_BUFFER + Ball::RADIUS;
 	}
 
