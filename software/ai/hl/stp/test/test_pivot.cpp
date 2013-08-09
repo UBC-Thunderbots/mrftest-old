@@ -10,7 +10,6 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	int time;
 
 	class TestPivot : public HighLevel {
 		public:
@@ -21,6 +20,7 @@ namespace {
 		private:
 			World world;
 			bool target_enemy;
+			int time;
 
 			HighLevelFactory &factory() const;
 
