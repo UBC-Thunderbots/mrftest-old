@@ -19,11 +19,13 @@ namespace {
 			bool goto_target1;
 			bool done() const;
 			void execute();
+//better implementation of chip power required. perhaps make a namespace variable for power?
+			double power = 0.6;
 			Player select(const std::set<Player> &) const {
 				assert(false);
 			}
 			Glib::ustring description() const {
-				return u8"penalty-goalie";
+				return "penalty-goalie";
 			}
 	};
 
@@ -61,12 +63,15 @@ namespace {
 			} else {
 				target = p2;
 			}
-
 			// just orient towards the "front"
 			player.move(target, Angle::zero(), Point());
 			player.type(AI::Flags::MoveType::RAM_BALL);
 			player.prio(AI::Flags::MovePrio::HIGH);
 		}
+
+		if (player.has_ball())
+				player.autochip(power);
+
 	}
 }
 
