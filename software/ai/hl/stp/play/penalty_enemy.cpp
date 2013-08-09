@@ -13,7 +13,7 @@ namespace Predicates = AI::HL::STP::Predicates;
  * - move to Penalty positions and shoot the ball to enemy goal
  */
 BEGIN_PLAY(PenaltyEnemy)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::PREPARE_PENALTY_ENEMY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_PENALTY_ENEMY)) && Predicates::our_team_size_at_least(world, 1))
+INVARIANT((Predicates::playtype(world, AI::Common::PlayType::PREPARE_PENALTY_ENEMY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_PENALTY_ENEMY)))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
