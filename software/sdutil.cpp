@@ -280,7 +280,7 @@ namespace {
 		uint64_t last_tsc = 0;
 		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
 			const std::vector<uint8_t> &buffer = sdcard.get(sector);
-			for (std::size_t record = 0; record < RECORDS_PER_SECTOR; ++record) {
+			for (std::size_t record = 0; record < static_cast<std::size_t>(RECORDS_PER_SECTOR); ++record) {
 				const uint8_t *ptr = &buffer[record * LOG_RECORD_SIZE];
 
 				// Decode the record.
