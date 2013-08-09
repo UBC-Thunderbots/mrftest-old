@@ -38,5 +38,14 @@ enum {
 	SELECT_TARGET_STATUS_UNRECOGNIZED_JEDEC_ID = 1,
 };
 
+enum {
+	PIN_MOSI = 1,
+	PIN_MISO = 2,
+	PIN_CLOCK = 4,
+	PIN_CS = 8,
+	PIN_POWER = 16,
+	PIN_PROGRAM_B = 32,
+};
+
 #endif
 

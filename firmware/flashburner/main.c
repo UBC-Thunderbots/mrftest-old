@@ -1,6 +1,7 @@
 #include "autonomous.h"
 #include "constants.h"
 #include "exti.h"
+#include "gpio.h"
 #include "host_controlled.h"
 #include "idle.h"
 #include "spi.h"
@@ -127,7 +128,9 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 		// Initialize or deinitialize the configuration handler module depending on the assigned address.
 		if (pkt->value) {
 			usb_configs_init(CONFIGURATIONS);
+			gpio_push_ep0_cbs();
 		} else {
+			gpio_remove_ep0_cbs();
 			usb_configs_deinit();
 		}
 

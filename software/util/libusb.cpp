@@ -476,11 +476,11 @@ void USB::Transfer::submit() {
 	check_fn("libusb_submit_transfer", libusb_submit_transfer(transfer), transfer->endpoint);
 	submitted_ = true;
 	done_ = false;
-	stall_retries_left = 30;
+	stall_retries_left = retry_on_stall_ ? 30 : 0;
 	++device.submitted_transfer_count;
 }
 
-USB::Transfer::Transfer(DeviceHandle &dev) : device(dev), transfer(libusb_alloc_transfer(0)), submitted_(false), done_(false), stall_retries_left(0) {
+USB::Transfer::Transfer(DeviceHandle &dev) : device(dev), transfer(libusb_alloc_transfer(0)), submitted_(false), done_(false), retry_on_stall_(true), stall_retries_left(0) {
 	if (!transfer) {
 		throw std::bad_alloc();
 	}
@@ -509,8 +509,20 @@ void USB::Transfer::handle_completed_transfer() {
 
 
 USB::ControlNoDataTransfer::ControlNoDataTransfer(DeviceHandle &dev, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout) : Transfer(dev) {
-	libusb_fill_control_transfer(transfer, dev.handle, new unsigned char[8], &usb_transfer_handle_completed_transfer_trampoline, transfer->user_data, timeout);
-	libusb_fill_control_setup(transfer->buffer, request_type, request, value, index, 0);
+	unsigned char *buffer = new unsigned char[8];
+	libusb_fill_control_setup(buffer, request_type, request, value, index, 0);
+	libusb_fill_control_transfer(transfer, dev.handle, buffer, &usb_transfer_handle_completed_transfer_trampoline, transfer->user_data, timeout);
+}
+
+
+
+USB::ControlInTransfer::ControlInTransfer(DeviceHandle &dev, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, std::size_t len, bool exact_len, unsigned int timeout) : Transfer(dev) {
+	unsigned char *buffer = new unsigned char[8 + len];
+	libusb_fill_control_setup(buffer, request_type | LIBUSB_ENDPOINT_IN, request, value, index, static_cast<uint16_t>(len));
+	libusb_fill_control_transfer(transfer, dev.handle, buffer, &usb_transfer_handle_completed_transfer_trampoline, transfer->user_data, timeout);
+	if (exact_len) {
+		transfer->flags |= LIBUSB_TRANSFER_SHORT_NOT_OK;
+	}
 }
 
 

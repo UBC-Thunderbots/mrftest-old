@@ -429,6 +429,7 @@ namespace USB {
 		private:
 			friend class Transfer;
 			friend class ControlNoDataTransfer;
+			friend class ControlInTransfer;
 			friend class InterruptOutTransfer;
 			friend class InterruptInTransfer;
 			friend class BulkOutTransfer;
@@ -501,6 +502,17 @@ namespace USB {
 			virtual ~Transfer();
 
 			/**
+			 * \brief Sets whether stalled transfers will be retried.
+			 *
+			 * By default, stalled transfers are retried a number of times before failing as transfers can very occasionally stall spuriously.
+			 *
+			 * \param[in] retry \c true to retry stalled transfers, or \c false to fail on the first stall
+			 */
+			void retry_on_stall(bool retry) {
+				retry_on_stall_ = retry;
+			}
+
+			/**
 			 * \brief Checks the outcome of the transfer.
 			 *
 			 * If the transfer failed, a corresponding exception will be thrown.
@@ -518,6 +530,7 @@ namespace USB {
 			DeviceHandle &device;
 			libusb_transfer *transfer;
 			bool submitted_, done_;
+			bool retry_on_stall_;
 			unsigned int stall_retries_left;
 
 			Transfer(DeviceHandle &dev);
@@ -545,6 +558,53 @@ namespace USB {
 			 * \param[in] timeout the maximum length of time to let the transfer run, in milliseconds, or zero for no timeout
 			 */
 			ControlNoDataTransfer(DeviceHandle &dev, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout);
+	};
+
+	/**
+	 * \brief A libusb control transfer with inbound data.
+	 */
+	class ControlInTransfer : public Transfer {
+		public:
+			/**
+			 * \brief Constructs a new transfer.
+			 *
+			 * \param[in] dev the device to which to send the request
+			 *
+			 * \param[in] request_type the request type field of the setup transaction
+			 *
+			 * \param[in] request the request field of the setup transaction
+			 *
+			 * \param[in] value the value field of the setup transaction
+			 *
+			 * \param[in] index the index field of the setup transaction
+			 *
+			 * \param[in] len the maximum number of bytes to receive
+			 *
+			 * \param[in] exact_len \c true to consider the transfer a failure if it transfers fewer than the requested number of bytes, or \c false to consider such a result successful
+			 *
+			 * \param[in] timeout the maximum length of time to let the transfer run, in milliseconds, or zero for no timeout
+			 */
+			ControlInTransfer(DeviceHandle &dev, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, std::size_t len, bool exact_len, unsigned int timeout);
+
+			/**
+			 * \brief Returns the received data.
+			 *
+			 * \return the received data
+			 */
+			const uint8_t *data() const {
+				assert(done_);
+				return libusb_control_transfer_get_data(transfer);
+			}
+
+			/**
+			 * \brief Returns the number of received bytes.
+			 *
+			 * \return the size of the data
+			 */
+			std::size_t size() const {
+				assert(done_);
+				return static_cast<std::size_t>(transfer->actual_length);
+			}
 	};
 
 	/**

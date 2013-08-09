@@ -15,15 +15,6 @@
 #define READ_BLOCK_SIZE 4096
 
 namespace {
-	enum {
-		PIN_MOSI = 1,
-		PIN_MISO = 2,
-		PIN_CLOCK = 4,
-		PIN_CS = 8,
-		PIN_POWER = 16,
-		PIN_PROGRAM_B = 32,
-	};
-
 	void write_io(USB::DeviceHandle &dev, uint8_t levels, uint8_t directions) {
 		dev.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, CONTROL_REQUEST_WRITE_IO, static_cast<uint16_t>((directions << 8) | levels), 0, 250);
 	}
