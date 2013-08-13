@@ -2,6 +2,7 @@
 #include "util/dprint.h"
 #include "util/exception.h"
 #include "util/main_loop.h"
+#include <algorithm>
 #include <cassert>
 #include <cerrno>
 #include <cstdlib>
@@ -257,7 +258,7 @@ std::string USB::Device::serial_number() const {
 	std::string value;
 	{
 		DeviceHandle devh(*this);
-		value = devh.get_string_descriptor(device_descriptor.iSerialNumber);
+		value = devh.string_descriptor(device_descriptor.iSerialNumber);
 	}
 	return value;
 }
@@ -283,6 +284,7 @@ USB::Device USB::DeviceList::operator[](const std::size_t i) const {
 
 USB::DeviceHandle::DeviceHandle(const Device &device) : context(device.context), submitted_transfer_count(0) {
 	check_fn("libusb_open", libusb_open(device.device, &handle), 0);
+	init_descriptors();
 }
 
 USB::DeviceHandle::DeviceHandle(Context &context, unsigned int vendor_id, unsigned int product_id, const char *serial_number) : context(context.context), submitted_transfer_count(0) {
@@ -298,6 +300,7 @@ USB::DeviceHandle::DeviceHandle(Context &context, unsigned int vendor_id, unsign
 			}
 
 			check_fn("libusb_open", libusb_open(device.device, &handle), 0);
+			init_descriptors();
 			return;
 		}
 	}
@@ -316,7 +319,24 @@ void USB::DeviceHandle::reset() {
 	check_fn("libusb_reset_device", libusb_reset_device(handle), 0);
 }
 
-std::string USB::DeviceHandle::get_string_descriptor(uint8_t index) const {
+const libusb_device_descriptor &USB::DeviceHandle::device_descriptor() const {
+	return device_descriptor_;
+}
+
+const libusb_config_descriptor &USB::DeviceHandle::configuration_descriptor(uint8_t index) const {
+	return *config_descriptors[index];
+}
+
+const libusb_config_descriptor &USB::DeviceHandle::configuration_descriptor_by_value(uint8_t value) const {
+	for (const auto &i : config_descriptors) {
+		if (i->bConfigurationValue == value) {
+			return *i;
+		}
+	}
+	throw std::runtime_error("No such configuration.");
+}
+
+std::string USB::DeviceHandle::string_descriptor(uint8_t index) const {
 	std::vector<unsigned char> buf(8);
 	int rc;
 	do {
@@ -400,6 +420,16 @@ std::size_t USB::DeviceHandle::bulk_in(unsigned char endpoint, void *data, std::
 	check_fn("libusb_bulk_transfer", libusb_bulk_transfer(handle, endpoint | LIBUSB_ENDPOINT_IN, static_cast<unsigned char *>(data), static_cast<uint16_t>(length), &transferred, timeout), endpoint | LIBUSB_ENDPOINT_IN);
 	assert(transferred >= 0);
 	return static_cast<std::size_t>(transferred);
+}
+
+void USB::DeviceHandle::init_descriptors() {
+	check_fn("libusb_get_device_descriptor", libusb_get_device_descriptor(libusb_get_device(handle), &device_descriptor_), 0);
+	for (uint8_t i = 0; i < device_descriptor_.bNumConfigurations; ++i) {
+		libusb_config_descriptor *desc = 0;
+		check_fn("libusb_get_configuration_descriptor", libusb_get_config_descriptor(libusb_get_device(handle), i, &desc), 0);
+		std::unique_ptr<libusb_config_descriptor, void (*)(libusb_config_descriptor *)> ptr(desc, &libusb_free_config_descriptor);
+		config_descriptors.push_back(std::move(ptr));
+	}
 }
 
 

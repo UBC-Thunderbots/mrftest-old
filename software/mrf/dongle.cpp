@@ -86,6 +86,12 @@ MRFDongle::SendReliableMessageOperation::ClearChannelError::ClearChannelError() 
 
 
 MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_PID, std::getenv("MRF_SERIAL")), mdr_transfer(device, 1, 8, false, 0), status_transfer(device, 3, 1, true, 0), drive_dirty(false), pending_beep_length(0) {
+	{
+		const libusb_config_descriptor &desc = device.configuration_descriptor_by_value(2);
+		if (desc.bNumInterfaces < 1 || desc.interface[0].num_altsetting < 1 || desc.interface[0].altsetting[0].bInterfaceSubClass != MRF_DONGLE_NORMAL_SUBCLASS || desc.interface[0].altsetting[0].bInterfaceProtocol != MRF_DONGLE_NORMAL_PROTOCOL) {
+			throw std::runtime_error("Wrong USB descriptors (version mismatch between burner module and software?).");
+		}
+	}
 	for (unsigned int i = 0; i < 8; ++i) {
 		robots[i].reset(new MRFRobot(*this, i));
 	}

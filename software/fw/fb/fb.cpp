@@ -54,7 +54,15 @@ void Firmware::fb_upload(const IntelHex &hex, bool onboard, bool leave_powered) 
 	std::cout.flush();
 	USB::Context context;
 	USB::DeviceHandle handle(context, FLASH_BURNER_VID, FLASH_BURNER_PID);
-	USB::ConfigurationSetter config_setter(handle, onboard ? 3 : 2);
+	uint8_t configuration = onboard ? 3 : 2;
+	{
+		uint8_t subclass = onboard ? FLASH_BURNER_INTERRUPT_ONBOARD_SUBCLASS : FLASH_BURNER_INTERRUPT_TARGET_SUBCLASS;
+		const libusb_config_descriptor &desc = handle.configuration_descriptor_by_value(configuration);
+		if (desc.bNumInterfaces < 1 || desc.interface[0].num_altsetting < 2 || desc.interface[0].altsetting[1].bInterfaceSubClass != subclass || desc.interface[0].altsetting[0].bInterfaceProtocol != FLASH_BURNER_BURN_PROTOCOL) {
+			throw std::runtime_error("Wrong USB descriptors (version mismatch between burner module and software?).");
+		}
+	}
+	USB::ConfigurationSetter config_setter(handle, configuration);
 	USB::InterfaceClaimer interface_claimer(handle, 0);
 	handle.set_interface_alt_setting(0, 1);
 	std::cout << "OK.\n";

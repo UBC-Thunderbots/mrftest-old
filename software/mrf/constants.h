@@ -12,6 +12,30 @@
 #define MRF_DONGLE_PID 0x497C
 
 /**
+ * \brief The interface subclass number used by the dongle in normal mode.
+ */
+#define MRF_DONGLE_NORMAL_SUBCLASS 0
+
+/**
+ * \brief The interface subclass number used by the dongle in promiscuous mode.
+ */
+#define MRF_DONGLE_PROMISCUOUS_SUBCLASS 0
+
+/**
+ * \brief The interface protocol number used by the burner in normal mode.
+ *
+ * This number acts as a version number and will change if incompatible protocol changes are made, thus ensuring software and firmware match capabilities.
+ */
+#define MRF_DONGLE_NORMAL_PROTOCOL 0
+
+/**
+ * \brief The interface protocol number used by the burner in promiscuous mode.
+ *
+ * This number acts as a version number and will change if incompatible protocol changes are made, thus ensuring software and firmware match capabilities.
+ */
+#define MRF_DONGLE_PROMISCUOUS_PROTOCOL 0
+
+/**
  * \brief The string indices understood by a GET DESCRIPTOR(String) request.
  */
 enum {

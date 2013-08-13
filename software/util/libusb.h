@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <vector>
 #include <sigc++/connection.h>
 
 namespace USB {
@@ -269,13 +270,38 @@ namespace USB {
 			void reset();
 
 			/**
+			 * \brief Returns the device descriptor from the device.
+			 *
+			 * \return the device descriptor
+			 */
+			const libusb_device_descriptor &device_descriptor() const;
+
+			/**
+			 * \brief Returns a configuration descriptor from the device.
+			 *
+			 * \param[in] index the zero-based index of the descriptor to return
+			 *
+			 * \return the configuration descriptor
+			 */
+			const libusb_config_descriptor &configuration_descriptor(uint8_t index) const;
+
+			/**
+			 * \brief Returns a configuration descriptor from the device.
+			 *
+			 * \param[in] value the configuration value for the descriptor
+			 *
+			 * \return the configuration descriptor
+			 */
+			const libusb_config_descriptor &configuration_descriptor_by_value(uint8_t value) const;
+
+			/**
 			 * \brief Reads a string descriptor from the device.
 			 *
 			 * \param[in] index the index of the string descriptor to read
 			 *
 			 * \return the descriptor
 			 */
-			std::string get_string_descriptor(uint8_t index) const;
+			std::string string_descriptor(uint8_t index) const;
 
 			/**
 			 * \brief Returns the current configuration number.
@@ -438,7 +464,11 @@ namespace USB {
 
 			libusb_context *context;
 			libusb_device_handle *handle;
+			libusb_device_descriptor device_descriptor_;
+			std::vector<std::unique_ptr<libusb_config_descriptor, void (*)(libusb_config_descriptor *)>> config_descriptors;
 			unsigned int submitted_transfer_count;
+
+			void init_descriptors();
 	};
 
 	/**

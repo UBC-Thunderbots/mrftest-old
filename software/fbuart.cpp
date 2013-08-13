@@ -54,6 +54,12 @@ namespace {
 					start_release_power_transfer(usb_handle, LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, CONTROL_REQUEST_WRITE_IO, 0, 0, 250),
 					kill_transfer(usb_handle, LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, CONTROL_REQUEST_WRITE_IO, PIN_POWER << 8, 0, 250),
 					kill_release_power_transfer(usb_handle, LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, CONTROL_REQUEST_WRITE_IO, 0, 0, 250) {
+				{
+					const libusb_config_descriptor &desc = usb_handle.configuration_descriptor_by_value(4);
+					if (desc.bNumInterfaces < 1 || desc.interface[0].num_altsetting < 1 || desc.interface[0].altsetting[0].bInterfaceSubClass != FLASH_BURNER_UART_SUBCLASS || desc.interface[0].altsetting[0].bInterfaceProtocol != FLASH_BURNER_UART_PROTOCOL) {
+						throw std::runtime_error("Wrong USB descriptors (version mismatch between burner module and software?).");
+					}
+				}
 				Glib::signal_io().connect(sigc::mem_fun(this, &UARTReceiver::handle_sigint), sigfd.fd(), Glib::IO_IN);
 				serial_data_transfer.signal_done.connect(sigc::mem_fun(this, &UARTReceiver::handle_serial_data));
 				errors_transfer.signal_done.connect(sigc::mem_fun(this, &UARTReceiver::handle_errors));

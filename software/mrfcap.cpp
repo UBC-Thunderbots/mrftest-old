@@ -57,6 +57,12 @@ int app_main(int argc, char **argv) {
 	std::cout.flush();
 	USB::Context ctx;
 	USB::DeviceHandle devh(ctx, MRF_DONGLE_VID, MRF_DONGLE_PID, std::getenv("MRF_SERIAL"));
+	{
+		const libusb_config_descriptor &desc = devh.configuration_descriptor_by_value(3);
+		if (desc.bNumInterfaces < 1 || desc.interface[0].num_altsetting < 1 || desc.interface[0].altsetting[0].bInterfaceSubClass != MRF_DONGLE_PROMISCUOUS_SUBCLASS || desc.interface[0].altsetting[0].bInterfaceProtocol != MRF_DONGLE_PROMISCUOUS_PROTOCOL) {
+			throw std::runtime_error("Wrong USB descriptors (version mismatch between burner module and software?).");
+		}
+	}
 	std::cout << "OK\n";
 
 	// Set configuration 1 to enter parameters

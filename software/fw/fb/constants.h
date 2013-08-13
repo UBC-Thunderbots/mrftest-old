@@ -2,14 +2,53 @@
 #define FW_FB_CONSTANTS_H
 
 /**
- * \brief The vendor ID used by the dongle.
+ * \brief The vendor ID used by the burner.
  */
 #define FLASH_BURNER_VID 0x0483
 
 /**
- * \brief The product ID used by the dongle.
+ * \brief The product ID used by the burner.
  */
 #define FLASH_BURNER_PID 0x497D
+
+/**
+ * \brief The interface subclass number used by the burner in target mode using polled writes.
+ */
+#define FLASH_BURNER_POLLED_TARGET_SUBCLASS 0
+
+/**
+ * \brief The interface subclass number used by the burner in target mode using interrupt-completed writes.
+ */
+#define FLASH_BURNER_INTERRUPT_TARGET_SUBCLASS 0
+
+/**
+ * \brief The interface subclass number used by the burner in on-board mode using polled writes.
+ */
+#define FLASH_BURNER_POLLED_ONBOARD_SUBCLASS 0
+
+/**
+ * \brief The interface subclass number used by the burner in on-board mode using interrupt-completed writes.
+ */
+#define FLASH_BURNER_INTERRUPT_ONBOARD_SUBCLASS 0
+
+/**
+ * \brief The interface subclass number used by the burner in UART mode.
+ */
+#define FLASH_BURNER_UART_SUBCLASS 0
+
+/**
+ * \brief The interface protocol number used by the burner in burn mode (on-board or target).
+ *
+ * This number acts as a version number and will change if incompatible protocol changes are made, thus ensuring software and firmware match capabilities.
+ */
+#define FLASH_BURNER_BURN_PROTOCOL 0xFF
+
+/**
+ * \brief The interface protocol number used by the burner in UART mode.
+ *
+ * This number acts as a version number and will change if incompatible protocol changes are made, thus ensuring software and firmware match capabilities.
+ */
+#define FLASH_BURNER_UART_PROTOCOL 0xFF
 
 enum {
 	STRING_INDEX_ZERO = 0,

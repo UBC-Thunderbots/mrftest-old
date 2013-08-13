@@ -31,8 +31,8 @@ const uint8_t UART_CONFIGURATION_DESCRIPTOR[] = {
 	0, // bAlternateSetting
 	1, // bNumEndpoints
 	0xFF, // bInterfaceClass
-	0, // bInterfaceSubClass
-	0xFF, // bInterfaceProtocol
+	FLASH_BURNER_UART_SUBCLASS, // bInterfaceSubClass
+	FLASH_BURNER_UART_PROTOCOL, // bInterfaceProtocol
 	0, // iInterface
 
 	7, // bLength

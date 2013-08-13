@@ -36,8 +36,8 @@ const uint8_t NORMAL_CONFIGURATION_DESCRIPTOR[] = {
 	0, // bAlternateSetting
 	6, // bNumEndpoints
 	0xFF, // bInterfaceClass
-	0x00, // bInterfaceSubClass
-	0, // bInterfaceProtocol
+	MRF_DONGLE_NORMAL_SUBCLASS, // bInterfaceSubClass
+	MRF_DONGLE_NORMAL_PROTOCOL, // bInterfaceProtocol
 	0, // iInterface
 
 	7, // bLength

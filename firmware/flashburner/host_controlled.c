@@ -36,8 +36,8 @@ const uint8_t TARGET_CONFIGURATION_DESCRIPTOR[] = {
 	0, // bAlternateSetting
 	0, // bNumEndpoints
 	0xFF, // bInterfaceClass
-	0, // bInterfaceSubClass
-	0xFF, // bInterfaceProtocol
+	FLASH_BURNER_POLLED_TARGET_SUBCLASS, // bInterfaceSubClass
+	FLASH_BURNER_BURN_PROTOCOL, // bInterfaceProtocol
 	0, // iInterface
 
 	9, // bLength
@@ -46,8 +46,8 @@ const uint8_t TARGET_CONFIGURATION_DESCRIPTOR[] = {
 	1, // bAlternateSetting
 	1, // bNumEndpoints
 	0xFF, // bInterfaceClass
-	0, // bInterfaceSubClass
-	0xFF, // bInterfaceProtocol
+	FLASH_BURNER_INTERRUPT_TARGET_SUBCLASS, // bInterfaceSubClass
+	FLASH_BURNER_BURN_PROTOCOL, // bInterfaceProtocol
 	0, // iInterface
 
 	7, // bLength
@@ -76,8 +76,8 @@ const uint8_t ONBOARD_CONFIGURATION_DESCRIPTOR[] = {
 	0, // bAlternateSetting
 	0, // bNumEndpoints
 	0xFF, // bInterfaceClass
-	0, // bInterfaceSubClass
-	0xFF, // bInterfaceProtocol
+	FLASH_BURNER_POLLED_ONBOARD_SUBCLASS, // bInterfaceSubClass
+	FLASH_BURNER_BURN_PROTOCOL, // bInterfaceProtocol
 	0, // iInterface
 
 	9, // bLength
@@ -86,8 +86,8 @@ const uint8_t ONBOARD_CONFIGURATION_DESCRIPTOR[] = {
 	1, // bAlternateSetting
 	1, // bNumEndpoints
 	0xFF, // bInterfaceClass
-	0, // bInterfaceSubClass
-	0xFF, // bInterfaceProtocol
+	FLASH_BURNER_INTERRUPT_ONBOARD_SUBCLASS, // bInterfaceSubClass
+	FLASH_BURNER_BURN_PROTOCOL, // bInterfaceProtocol
 	0, // iInterface
 
 	7, // bLength
