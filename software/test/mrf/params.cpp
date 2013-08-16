@@ -22,11 +22,14 @@ ParamsPanel::ParamsPanel(MRFDongle &dongle, MRFRobot &robot) : Gtk::Table(4, 2),
 	for (unsigned int ch = 0x0B; ch <= 0x1A; ++ch) {
 		channel_chooser.append_text(format_channel(ch));
 	}
+	channel_chooser.set_active_text(format_channel(dongle.channel()));
 	for (unsigned int i = 0; i <= 7; ++i) {
 		index_chooser.append_text(Glib::ustring::format(i));
 	}
+	index_chooser.set_active_text(Glib::ustring::format(robot.index));
 	pan_entry.set_width_chars(4);
 	pan_entry.set_max_length(4);
+	pan_entry.set_text(tohex(dongle.pan(), 4));
 	set.signal_clicked().connect(sigc::mem_fun(this, &ParamsPanel::send_params));
 	reboot.signal_clicked().connect(sigc::mem_fun(this, &ParamsPanel::reboot_robot));
 	shut_down.signal_clicked().connect(sigc::mem_fun(this, &ParamsPanel::shut_down_robot));

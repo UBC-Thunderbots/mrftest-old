@@ -4,7 +4,7 @@
 /**
  * \file
  *
- * \brief Provides access to an MRF24J40 dongle
+ * \brief Provides access to an MRF24J40 dongle.
  */
 
 #include "drive/dongle.h"
@@ -15,6 +15,7 @@
 #include "util/property.h"
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <queue>
 #include <utility>
@@ -24,17 +25,17 @@
 #include <sigc++/trackable.h>
 
 /**
- * \brief The dongle
+ * \brief The dongle.
  */
 class MRFDongle : public Drive::Dongle {
 	public:
 		/**
-		 * \brief An operation to send a reliable message
+		 * \brief An operation to send a reliable message.
 		 */
 		class SendReliableMessageOperation;
 
 		/**
-		 * \brief Emitted when a message is received
+		 * \brief Emitted when a message is received.
 		 *
 		 * \param[in] robot the robot who sent the message
 		 *
@@ -45,17 +46,17 @@ class MRFDongle : public Drive::Dongle {
 		sigc::signal<void, unsigned int, const void *, std::size_t> signal_message_received;
 
 		/**
-		 * \brief Constructs a new MRFDongle
+		 * \brief Constructs a new MRFDongle.
 		 */
 		MRFDongle();
 
 		/**
-		 * \brief Destroys an MRFDongle
+		 * \brief Destroys an MRFDongle.
 		 */
 		~MRFDongle();
 
 		/**
-		 * \brief Fetches an individual robot proxy
+		 * \brief Fetches an individual robot proxy.
 		 *
 		 * \param[in] i the robot number
 		 *
@@ -67,11 +68,21 @@ class MRFDongle : public Drive::Dongle {
 		}
 
 		/**
-		 * \brief Generates an audible beep on the dongle
+		 * \brief Generates an audible beep on the dongle.
 		 *
 		 * \param[in] length the length of the beep, in milliseconds (0 to 65,535)
 		 */
 		void beep(unsigned int length);
+
+		/**
+		 * \brief Returns the channel number on which the dongle is communicating.
+		 */
+		uint8_t channel() const;
+
+		/**
+		 * \brief Returns the PAN ID on which the dongle is communicating.
+		 */
+		uint16_t pan() const;
 
 	private:
 		friend class MRFRobot;
@@ -81,6 +92,8 @@ class MRFDongle : public Drive::Dongle {
 		USB::DeviceHandle device;
 		std::unique_ptr<USB::ConfigurationSetter> config_setter;
 		std::unique_ptr<USB::InterfaceClaimer> interface_claimer;
+		uint8_t channel_;
+		uint16_t pan_;
 		USB::BulkInTransfer mdr_transfer;
 		std::array<std::unique_ptr<USB::InterruptInTransfer>, 4> message_transfers;
 		USB::InterruptInTransfer status_transfer;
@@ -117,22 +130,22 @@ class MRFDongle : public Drive::Dongle {
 class MRFDongle::SendReliableMessageOperation : public AsyncOperation<void>, public sigc::trackable {
 	public:
 		/**
-		 * \brief Thrown if a message cannot be delivered because the recipient robot was not associated
+		 * \brief Thrown if a message cannot be delivered because the recipient robot was not associated.
 		 */
 		class NotAssociatedError;
 
 		/**
-		 * \brief Thrown if a message cannot be delivered because it was not acknowledged by its recipient
+		 * \brief Thrown if a message cannot be delivered because it was not acknowledged by its recipient.
 		 */
 		class NotAcknowledgedError;
 
 		/**
-		 * \brief Thrown if a message cannot be delivered because a clear channel could not be found
+		 * \brief Thrown if a message cannot be delivered because a clear channel could not be found.
 		 */
 		class ClearChannelError;
 
 		/**
-		 * \brief Queues a message for transmission
+		 * \brief Queues a message for transmission.
 		 *
 		 * \param[in] dongle the dongle on which to send the message
 		 *
@@ -145,7 +158,7 @@ class MRFDongle::SendReliableMessageOperation : public AsyncOperation<void>, pub
 		SendReliableMessageOperation(MRFDongle &dongle, unsigned int robot, const void *data, std::size_t len);
 
 		/**
-		 * \brief Checks for the success of the operation
+		 * \brief Checks for the success of the operation.
 		 *
 		 * If the operation failed, this function throws the relevant exception
 		 */
@@ -166,7 +179,7 @@ class MRFDongle::SendReliableMessageOperation : public AsyncOperation<void>, pub
 class MRFDongle::SendReliableMessageOperation::NotAssociatedError : public std::runtime_error {
 	public:
 		/**
-		 * \brief Contructs a NotAssociatedError
+		 * \brief Contructs a NotAssociatedError.
 		 */
 		NotAssociatedError();
 };
@@ -176,7 +189,7 @@ class MRFDongle::SendReliableMessageOperation::NotAssociatedError : public std::
 class MRFDongle::SendReliableMessageOperation::NotAcknowledgedError : public std::runtime_error {
 	public:
 		/**
-		 * \brief Contructs a NotAcknowledgedError
+		 * \brief Contructs a NotAcknowledgedError.
 		 */
 		NotAcknowledgedError();
 };
@@ -186,10 +199,20 @@ class MRFDongle::SendReliableMessageOperation::NotAcknowledgedError : public std
 class MRFDongle::SendReliableMessageOperation::ClearChannelError : public std::runtime_error {
 	public:
 		/**
-		 * \brief Contructs a ClearChannelError
+		 * \brief Contructs a ClearChannelError.
 		 */
 		ClearChannelError();
 };
+
+
+
+inline uint8_t MRFDongle::channel() const {
+	return channel_;
+}
+
+inline uint16_t MRFDongle::pan() const {
+	return pan_;
+}
 
 #endif
 

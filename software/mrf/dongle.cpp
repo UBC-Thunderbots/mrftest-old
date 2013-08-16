@@ -102,7 +102,7 @@ MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_P
 	device.set_configuration(1);
 	{
 		USB::InterfaceClaimer temp_interface_claimer(device, 0);
-		uint16_t channel = DEFAULT_CHANNEL;
+		channel_ = DEFAULT_CHANNEL;
 		{
 			const char *channel_string = std::getenv("MRF_CHANNEL");
 			if (channel_string) {
@@ -110,7 +110,7 @@ MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_P
 				if (i < 0x0B || i > 0x1A) {
 					throw std::out_of_range("Channel number must be between 0x0B (11) and 0x1A (26).");
 				}
-				channel = static_cast<uint16_t>(i);
+				channel_ = static_cast<uint8_t>(i);
 			}
 		}
 		int symbol_rate = DEFAULT_SYMBOL_RATE;
@@ -124,7 +124,7 @@ MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_P
 				symbol_rate = i;
 			}
 		}
-		uint16_t pan = DEFAULT_PAN;
+		pan_ = DEFAULT_PAN;
 		{
 			const char *pan_string = std::getenv("MRF_PAN");
 			if (pan_string) {
@@ -132,12 +132,12 @@ MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_P
 				if (i < 0 || i > 0xFFFE) {
 					throw std::out_of_range("PAN must be between 0x0000 (0) and 0xFFFE (65,534).");
 				}
-				pan = static_cast<uint16_t>(i);
+				pan_ = static_cast<uint16_t>(i);
 			}
 		}
-		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_CHANNEL, channel, 0, 0);
+		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_CHANNEL, channel_, 0, 0);
 		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_SYMBOL_RATE, symbol_rate == 625 ? 1 : 0, 0, 0);
-		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_PAN_ID, pan, 0, 0);
+		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_PAN_ID, pan_, 0, 0);
 		static const uint64_t MAC = UINT64_C(0x20cb13bd834ab817);
 		device.control_out(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_MAC_ADDRESS, 0, 0, &MAC, sizeof(MAC), 0);
 	}
