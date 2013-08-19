@@ -355,7 +355,7 @@ template<typename T, typename U> inline AI::Common::TeamIterator<T, U> AI::Commo
 }
 
 template<typename T, typename U> inline typename AI::Common::TeamIterator<T, U>::difference_type AI::Common::operator-(const TeamIterator<T, U> &x, const TeamIterator<T, U> &y) {
-	return static_cast<typename AI::Common::TeamIterator<T, U>::difference_type>(y.pos - x.pos);
+	return static_cast<typename AI::Common::TeamIterator<T, U>::difference_type>(x.pos - y.pos);
 }
 
 template<typename T, typename U> inline void AI::Common::swap(TeamIterator<T, U> &x, TeamIterator<T, U> &y) {
