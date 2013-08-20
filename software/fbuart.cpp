@@ -157,7 +157,7 @@ namespace {
 
 			void handle_kill_done(AsyncOperation<void> &) {
 				kill_transfer.result();
-				release_timeout_conn = Glib::signal_timeout().connect(sigc::mem_fun(this, &UARTReceiver::handle_kill_delay), 300);
+				release_timeout_conn = Glib::signal_timeout().connect(sigc::mem_fun(this, &UARTReceiver::handle_kill_delay), 750);
 			}
 
 			bool handle_kill_delay() {
