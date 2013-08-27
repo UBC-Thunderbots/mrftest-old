@@ -31,8 +31,8 @@ namespace {
 		return status;
 	}
 
-	void erase_chip(USB::DeviceHandle &dev) {
-		dev.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, CONTROL_REQUEST_ERASE, 0, 0, 250);
+	void erase_64k_block(USB::DeviceHandle &dev, uint16_t page) {
+		dev.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, CONTROL_REQUEST_ERASE, page, 0, 250);
 		uint8_t byte;
 		dev.interrupt_in(1, &byte, sizeof(byte), 15000);
 	}
@@ -48,7 +48,7 @@ namespace {
 	}
 }
 
-void Firmware::fb_upload(const IntelHex &hex, bool onboard, bool leave_powered) {
+void Firmware::fb_upload(const IntelHex &hex, bool onboard, bool leave_powered, uint16_t start_page) {
 	// Find and open the burner module.
 	std::cout << "Finding and activating burner module… ";
 	std::cout.flush();
@@ -102,10 +102,12 @@ void Firmware::fb_upload(const IntelHex &hex, bool onboard, bool leave_powered) 
 		std::cout << " (OK).\n";
 	}
 
-	// Erase the chip.
-	std::cout << "Erasing chip… ";
+	// Erase the target pages.
+	std::cout << "Erasing target region… ";
 	std::cout.flush();
-	erase_chip(handle);
+	for (std::size_t i = 0; i < 1024 * 1024; i += 65536) {
+		erase_64k_block(handle, static_cast<uint16_t>(i / PAGE_SIZE + start_page));
+	}
 	std::cout << "OK.\n";
 
 	// Write the data.
@@ -113,12 +115,12 @@ void Firmware::fb_upload(const IntelHex &hex, bool onboard, bool leave_powered) 
 	std::cout.flush();
 	for (std::size_t i = 0; i < hex.data()[0].size(); i += PAGE_SIZE) {
 		if (i + PAGE_SIZE <= hex.data()[0].size()) {
-			write_page(handle, static_cast<uint16_t>(i / PAGE_SIZE), &hex.data()[0][i]);
+			write_page(handle, static_cast<uint16_t>(i / PAGE_SIZE + start_page), &hex.data()[0][i]);
 		} else {
 			std::array<uint8_t, PAGE_SIZE> stage;
 			stage.fill(0xFF);
 			std::copy(hex.data()[0].begin() + static_cast<std::vector<uint8_t>::iterator::difference_type>(i), hex.data()[0].end(), stage.begin());
-			write_page(handle, static_cast<uint16_t>(i / PAGE_SIZE), &stage[0]);
+			write_page(handle, static_cast<uint16_t>(i / PAGE_SIZE + start_page), &stage[0]);
 		}
 		std::cout << "\rWriting data… " << std::min(i + PAGE_SIZE, hex.data()[0].size()) << '/' << hex.data()[0].size();
 		std::cout.flush();
@@ -131,7 +133,7 @@ void Firmware::fb_upload(const IntelHex &hex, bool onboard, bool leave_powered) 
 	for (std::size_t i = 0; i < hex.data()[0].size(); i += READ_BLOCK_SIZE) {
 		std::array<uint8_t, READ_BLOCK_SIZE> buffer;
 		std::size_t bytes_read;
-		if ((bytes_read = read_data(handle, static_cast<uint16_t>(i / PAGE_SIZE), &buffer[0], buffer.size())) != buffer.size()) {
+		if ((bytes_read = read_data(handle, static_cast<uint16_t>(i / PAGE_SIZE + start_page), &buffer[0], buffer.size())) != buffer.size()) {
 			std::cout << "\rReading and comparing data… ";
 			throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Read block request issued for %1 bytes but returned only %2!", buffer.size(), bytes_read)));
 		}

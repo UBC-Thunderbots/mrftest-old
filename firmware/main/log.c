@@ -1,6 +1,7 @@
 #include "log.h"
+#include "io.h"
 #include "sdcard.h"
-#include "tsc.h"
+#include "syscalls.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -17,6 +18,8 @@ static uint8_t next_write_buffer, next_alloc_buffer, next_alloc_record;
 static uint16_t epoch;
 static uint32_t next_write_sector;
 static uint32_t last_time_lsb = 0, last_time_msb = 0;
+
+static char CARD_FULL_MESSAGE[] = "LOG: Card full\n";
 
 // next_write_buffer is the index of the next buffer to write to the card.
 // If a write operation is ongoing, the write operation is writing buffer next_write_buffer-1.
@@ -60,7 +63,7 @@ bool log_init(void) {
 
 	// Check if the card is completely full.
 	if (next_write_sector == sd_sector_count()) {
-		puts("LOG: Card full");
+		syscall_debug_puts(CARD_FULL_MESSAGE);
 		state = LOG_STATE_CARD_FULL;
 		return false;
 	}
@@ -82,7 +85,11 @@ bool log_init(void) {
 		return false;
 	}
 
-	printf("LOG: Start epoch %" PRIu16 " at sector %" PRIu32 "\n", epoch, next_write_sector);
+	{
+		char buffer[48];
+		siprintf(buffer, "LOG: Start epoch %" PRIu16 " at sector %" PRIu32 "\n", epoch, next_write_sector);
+		syscall_debug_puts(buffer);
+	}
 	next_write_buffer = 0;
 	next_alloc_buffer = 0;
 	next_alloc_record = 0;
@@ -159,8 +166,8 @@ static log_record_t *log_alloc_impl(void) {
 
 	// Check for full card.
 	if (next_write_sector == sd_sector_count()) {
+		syscall_debug_puts(CARD_FULL_MESSAGE);
 		state = LOG_STATE_CARD_FULL;
-		puts("LOG: Card full");
 		return 0;
 	}
 
@@ -196,7 +203,7 @@ log_record_t *log_alloc(void) {
 	log_record_t *rec = log_alloc_impl();
 
 	if (rec) {
-		uint32_t now = rdtsc();
+		uint32_t now = IO_SYSCTL.tsc;
 		if (now < last_time_lsb) {
 			++last_time_msb;
 		}

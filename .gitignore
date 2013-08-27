@@ -1,3 +1,5 @@
+firmware/bios/bios.elf
+firmware/bios/bios.map
 firmware/dongle/dongle.bin
 firmware/dongle/dongle.elf
 firmware/dongle/dongle.map
@@ -8,6 +10,7 @@ firmware/flashburner/flashburner.map
 firmware/flashburner/html
 firmware/main/main.elf
 firmware/main/main.map
+firmware/main/main.mcs
 firmware/speedsensor/dongle.bin
 firmware/speedsensor/dongle.elf
 firmware/speedsensor/dongle.map

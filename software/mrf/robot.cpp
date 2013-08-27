@@ -184,15 +184,15 @@ void MRFRobot::set_charger_state(ChargerState state) {
 }
 
 double MRFRobot::kick_pulse_maximum() const {
-	return 16383.0;
+	return 65535.0;
 }
 
 double MRFRobot::kick_pulse_resolution() const {
-	return 0.25;
+	return 1.0;
 }
 
 void MRFRobot::kick(bool chip, double pulse_width) {
-	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width * 4.0 + 0.1), 0, 65535));
+	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width + 0.1), 0, 65535));
 
 	uint8_t buffer[4];
 	buffer[0] = 0x00;
@@ -204,7 +204,7 @@ void MRFRobot::kick(bool chip, double pulse_width) {
 }
 
 void MRFRobot::autokick(bool chip, double pulse_width) {
-	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width * 4.0 + 0.1), 0, 65535));
+	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width + 0.1), 0, 65535));
 
 	if (clamped) {
 		uint8_t buffer[4];
@@ -280,7 +280,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 				// General robot status update
 				++bptr;
 				--len;
-				if (len == 14) {
+				if (len == 15) {
 					alive = true;
 					battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 20000);
 					capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 200000);
@@ -316,9 +316,9 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 							logger_messages[i]->active(sd_status == 0 && logger_status == i);
 						}
 					}
-					dribbler_speed = bptr[12] * 25U * 60U / 6U;
+					dribbler_speed = (bptr[12] | (bptr[13] << 8)) * 25U * 60U / 6U;
 					for (std::size_t i = 0; i < hot_motor_messages.size(); ++i) {
-						hot_motor_messages[i]->active(!!(bptr[13] & (1 << i)));
+						hot_motor_messages[i]->active(!!(bptr[14] & (1 << i)));
 					}
 					feedback_timeout_connection.disconnect();
 					feedback_timeout_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &MRFRobot::handle_feedback_timeout), 3);

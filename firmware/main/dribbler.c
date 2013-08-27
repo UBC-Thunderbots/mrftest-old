@@ -2,7 +2,6 @@
 #include "control.h"
 #include "io.h"
 #include "motor.h"
-#include "power.h"
 
 #define CONTROL_TICKS_PER_DRIBBLER_TICK (CONTROL_LOOP_HZ / DRIBBLER_TICK_HZ)
 
@@ -20,7 +19,7 @@
 static uint8_t tick_count = 0;
 bool dribbler_enabled = false;
 bool dribbler_fast = true;
-uint8_t dribbler_speed = 0;
+uint16_t dribbler_speed = 0;
 float dribbler_winding_energy = 0, dribbler_housing_energy = 0;
 bool dribbler_hot = false;
 
@@ -43,11 +42,10 @@ void dribbler_tick(float battery) {
 	tick_count = 0;
 
 	// Measure the dribbler speed.
-	DRIBBLER_SPEED = 0;
-	dribbler_speed = DRIBBLER_SPEED;
+	dribbler_speed = motor_speed(4);
 
 	// Decide whether to run or not.
-	if ((dribbler_winding_energy < DRIBBLER_THERMAL_MAX_ENERGY_WINDING || interlocks_overridden()) && dribbler_enabled) {
+	if ((dribbler_winding_energy < DRIBBLER_THERMAL_MAX_ENERGY_WINDING || !IO_SYSCTL.csr.software_interlock) && dribbler_enabled) {
 		float back_emf = dribbler_speed * VOLTS_PER_SPEED_UNIT;
 		uint16_t back_emf_pwm = (uint16_t) (back_emf / battery * 255.0);
 		uint8_t min_pwm = back_emf_pwm <= MAX_DELTA_PWM ? 0 : (uint8_t) (back_emf_pwm - MAX_DELTA_PWM);

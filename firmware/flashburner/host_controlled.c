@@ -173,8 +173,8 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 	stop_read();
 
 	if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == CONTROL_REQUEST_ERASE) {
-		// This request must have value set to zero.
-		if (pkt->value) {
+		// This request must have value set to a legal page number.
+		if (pkt->value >= NUM_PAGES) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
 
@@ -196,9 +196,12 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 		spi->transceive_byte(0x06);
 		spi->deassert_cs();
 
-		// Issue the CHIP ERASE instruction.
+		// Issue the BLOCK ERASE 64KB instruction.
 		spi->assert_cs();
-		spi->transceive_byte(0xC7);
+		spi->transceive_byte(0xD8);
+		spi->transceive_byte(pkt->value >> 8);
+		spi->transceive_byte(pkt->value);
+		spi->transceive_byte(0);
 		spi->deassert_cs();
 
 		// The chip must become busy as a result of the erase starting.

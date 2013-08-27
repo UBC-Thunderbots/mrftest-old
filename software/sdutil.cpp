@@ -25,7 +25,7 @@
 #include <sys/types.h>
 
 namespace {
-	constexpr unsigned long CPU_FREQUENCY = 40000000UL;
+	constexpr unsigned long CPU_FREQUENCY = 48000000UL;
 	constexpr off_t SECTOR_SIZE = 512;
 	constexpr off_t LOG_RECORD_SIZE = 128;
 	constexpr off_t RECORDS_PER_SECTOR = SECTOR_SIZE / LOG_RECORD_SIZE;
@@ -132,7 +132,7 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 		std::size_t num_epochs;
 		{
 			const std::vector<uint8_t> &sector = sarray.get(nonblank_size() - 1);
-			num_epochs = decode_u16_le(&sector[4]);
+			num_epochs = decode_u32_be(&sector[4]);
 		}
 
 		// Find locations of epochs.
@@ -144,7 +144,7 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 			while (low + 1 < high) {
 				off_t pos = (low + high - 1) / 2;
 				const std::vector<uint8_t> &sector = sarray.get(pos);
-				std::size_t sector_epoch = static_cast<uint16_t>(sector[4] | (sector[5] << 8));
+				std::size_t sector_epoch = decode_u32_be(&sector[4]);
 				if (sector_epoch >= epoch) {
 					high = pos + 1;
 				} else {
@@ -158,7 +158,7 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 			while (low + 1 < high) {
 				off_t pos = (low + high - 1) / 2;
 				const std::vector<uint8_t> &sector = sarray.get(pos);
-				std::size_t sector_epoch = static_cast<uint16_t>(sector[4] | (sector[5] << 8));
+				std::size_t sector_epoch = decode_u32_be(&sector[4]);
 				if (sector_epoch > epoch) {
 					high = pos + 1;
 				} else {
@@ -276,7 +276,7 @@ namespace {
 		std::ofstream ofs;
 		ofs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
 		ofs.open(args[1], std::ios_base::out | std::ios_base::trunc);
-		ofs << "Epoch\tTime (s)\tBreakbeam\tCapacitor (V)\tBattery (V)\tBoard Temperature (°C)\tLPS\tEncoder 0 (¼°/t)\tEncoder 1 (¼°/t)\tEncoder 2 (¼°/t)\tEncoder 3 (¼°/t)\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tMotor 0 (/255)\tMotor 1 (/255)\tMotor 2 (/255)\tMotor 3 (/255)\tMotor 0 (°C)\tMotor 1 (°C)\tMotor 2 (°C)\tMotor 3 (°C)\tDribbler (rpm)\tDribbler (°C)\tCPU (%)\n";
+		ofs << "Epoch\tTime (s)\tBreakbeam\tCapacitor (V)\tBattery (V)\tBoard Temperature (°C)\tEncoder 0 (¼°/t)\tEncoder 1 (¼°/t)\tEncoder 2 (¼°/t)\tEncoder 3 (¼°/t)\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tMotor 0 (/255)\tMotor 1 (/255)\tMotor 2 (/255)\tMotor 3 (/255)\tMotor 0 (°C)\tMotor 1 (°C)\tMotor 2 (°C)\tMotor 3 (°C)\tDribbler (rpm)\tDribbler (°C)\tCPU (%)\n";
 		uint64_t last_tsc = 0;
 		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
 			const std::vector<uint8_t> &buffer = sdcard.get(sector);
@@ -284,43 +284,41 @@ namespace {
 				const uint8_t *ptr = &buffer[record * LOG_RECORD_SIZE];
 
 				// Decode the record.
-				uint32_t magic = decode_u32_le(ptr); ptr += 4;
-				uint16_t record_epoch = decode_u16_le(ptr); ptr += 2;
-				uint64_t tsc = decode_u64_le(ptr); ptr += 8;
+				uint32_t magic = decode_u32_be(ptr); ptr += 4;
+				uint32_t record_epoch = decode_u32_be(ptr); ptr += 4;
+				uint64_t tsc = decode_u64_be(ptr); ptr += 8;
 				if (magic == LOG_MAGIC_TICK && record_epoch == epoch_index) {
-					int16_t breakbeam_diff = static_cast<int16_t>(decode_u16_le(ptr)); ptr += 2;
-					uint16_t adc_channels[8];
-					for (uint16_t &value : adc_channels) {
-						value = decode_u16_le(ptr); ptr += 2;
-					}
+					int16_t breakbeam_diff = static_cast<int16_t>(decode_u16_be(ptr)); ptr += 2;
+					uint16_t battery_voltage_raw = decode_u16_be(ptr); ptr += 2;
+					uint16_t capacitor_voltage_raw = decode_u16_be(ptr); ptr += 2;
+					uint16_t board_temperature_raw = decode_u16_be(ptr); ptr += 2;
 					float wheels_setpoints[4];
 					for (float &value : wheels_setpoints) {
-						value = decode_float_le(ptr); ptr += 4;
+						value = decode_float_be(ptr); ptr += 4;
 					}
 					int16_t wheels_encoder_counts[4];
 					for (int16_t &value : wheels_encoder_counts) {
-						value = static_cast<int16_t>(decode_u16_le(ptr)); ptr += 2;
+						value = static_cast<int16_t>(decode_u16_be(ptr)); ptr += 2;
 					}
 					int16_t wheels_drives[4];
 					for (int16_t &value : wheels_drives) {
-						value = static_cast<int16_t>(decode_u16_le(ptr)); ptr += 2;
+						value = static_cast<int16_t>(decode_u16_be(ptr)); ptr += 2;
 					}
 					unsigned int wheels_temperatures[4];
 					for (unsigned int &value : wheels_temperatures) {
-						value = decode_u8_le(ptr); ptr += 1;
+						value = decode_u8_be(ptr); ptr += 1;
 					}
-					unsigned int dribbler_speed = decode_u8_le(ptr) * 25U * 60U / 6U; ptr += 1;
-					unsigned int dribbler_temperature = decode_u8_le(ptr); ptr += 1;
-					uint8_t encoders_failed = decode_u8_le(ptr); ptr += 1;
-					uint8_t wheels_hall_sensors_failed = decode_u8_le(ptr); ptr += 1;
-					/*uint8_t dribbler_hall_sensors_failed = decode_u8_le(ptr);*/ ptr += 1;
-					uint32_t cpu_used_since_last_tick = decode_u32_le(ptr); ptr += 4;
+					unsigned int dribbler_speed = decode_u8_be(ptr) * 25U * 60U / 6U; ptr += 1;
+					unsigned int dribbler_temperature = decode_u8_be(ptr); ptr += 1;
+					uint8_t encoders_failed = decode_u8_be(ptr); ptr += 1;
+					uint8_t wheels_hall_sensors_failed = decode_u8_be(ptr); ptr += 1;
+					/*uint8_t dribbler_hall_sensors_failed = decode_u8_be(ptr);*/ ptr += 1;
+					uint32_t cpu_used_since_last_tick = decode_u32_be(ptr); ptr += 4;
 
-					double capacitor_voltage = adc_channels[0] / 1024.0 * 3.3 / 2200 * (2200 + 200000);
-					double battery_voltage = adc_channels[1] / 1024.0 * 3.3 / 2200 * (2200 + 20000);
-					double board_temperature = adc_voltage_to_board_temp(adc_channels[5] / 1024.0 * 3.3);
-					unsigned int lps_reading = adc_channels[6];
-					ofs << epoch_index << '\t' << (static_cast<long double>(tsc) / static_cast<long double>(CPU_FREQUENCY)) << '\t' << breakbeam_diff << '\t' << capacitor_voltage << '\t' << battery_voltage << '\t' << board_temperature << '\t' << lps_reading;
+					double capacitor_voltage = capacitor_voltage_raw / 1024.0 * 3.3 / 2200 * (2200 + 200000);
+					double battery_voltage = battery_voltage_raw / 1024.0 * 3.3 / 2200 * (2200 + 20000);
+					double board_temperature = adc_voltage_to_board_temp(board_temperature_raw / 1024.0 * 3.3);
+					ofs << epoch_index << '\t' << (static_cast<long double>(tsc) / static_cast<long double>(CPU_FREQUENCY)) << '\t' << breakbeam_diff << '\t' << capacitor_voltage << '\t' << battery_voltage << '\t' << board_temperature;
 					for (unsigned int i = 0; i < 4; ++i) {
 						if (encoders_failed & (1 << i)) {
 							ofs << "\tNaN";

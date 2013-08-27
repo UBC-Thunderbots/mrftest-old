@@ -1,8 +1,7 @@
 #include "wheels.h"
 #include "control.h"
-#include "encoder.h"
+#include "io.h"
 #include "motor.h"
-#include "power.h"
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
@@ -28,10 +27,10 @@ static void update_wheels_hot(void) {
 	}
 }
 
-void wheels_tick(float battery) {
+void wheels_tick(float battery, const uint8_t sensor_failures[4]) {
 	// Read optical encoders.
-	for (uint8_t i = 0; i < 4; ++i) {
-		wheels_encoder_counts[i] = read_encoder(i);
+	for (unsigned int i = 0; i < 4; ++i) {
+		wheels_encoder_counts[i] = motor_speed(i);
 	}
 
 	switch (wheels_mode) {
@@ -44,7 +43,7 @@ void wheels_tick(float battery) {
 				// In these modes, we send the PWM duty cycle given in the setpoint.
 				// Safety interlocks normally prevent it from ever appearing outside the chip, but if interlocks are overridden, manual commutation can send PWM to a phase.
 				motor_mode_t mmode = wheels_mode == WHEELS_MODE_MANUAL_COMMUTATION ? MOTOR_MODE_MANUAL_COMMUTATION : MOTOR_MODE_BRAKE;
-				for (uint8_t i = 0; i < 4; ++i) {
+				for (unsigned int i = 0; i < 4; ++i) {
 					motor_set(i, mmode, wheels_setpoints.wheels[i]);
 				}
 
@@ -52,7 +51,7 @@ void wheels_tick(float battery) {
 				memset(wheels_drives, 0, sizeof(wheels_drives));
 
 				// Update thermal models.
-				for (uint8_t i = 0; i < 4; ++i) {
+				for (unsigned int i = 0; i < 4; ++i) {
 					wheels_energy[i] = update_thermal_model(wheels_energy[i], 0);
 				}
 				update_wheels_hot();
@@ -71,7 +70,7 @@ void wheels_tick(float battery) {
 				}
 
 				// Clamp all drive levels to ±255.
-				for (uint8_t i = 0; i < 4; ++i) {
+				for (unsigned int i = 0; i < 4; ++i) {
 					if (wheels_drives[i] < -255) {
 						wheels_drives[i] = -255;
 					} else if (wheels_drives[i] > 255) {
@@ -80,17 +79,21 @@ void wheels_tick(float battery) {
 				}
 
 				// Construct a bitmask of which motors we will drive (by default, all of them).
-				uint8_t drive_mask = 0x0F;
+				unsigned int drive_mask = 0x0F;
 
 				// Safety interlock: if an optical encoder fails, we must coast that motor as there is no provably safe duty cycle that will avoid over-current.
-				if (!interlocks_overridden()) {
-					drive_mask &= ~ENCODER_FAIL;
+				if (IO_SYSCTL.csr.software_interlock) {
+					for (unsigned int i = 0; i < 4; ++i) {
+						if (sensor_failures[i] & 4) {
+							drive_mask &= ~(1 << i);
+						}
+					}
 				}
 
 				// Safety interlock: if a motor is too hot, coast it until it cools down.
-				for (uint8_t i = 0; i < 4; ++i) {
-					uint8_t bm = 1 << i;
-					if (((drive_mask & bm) && wheels_energy[i] < WHEEL_THERMAL_MAX_ENERGY) || interlocks_overridden()) {
+				for (unsigned int i = 0; i < 4; ++i) {
+					unsigned int bm = 1 << i;
+					if (((drive_mask & bm) && wheels_energy[i] < WHEEL_THERMAL_MAX_ENERGY) || !IO_SYSCTL.csr.software_interlock) {
 						float applied_delta_voltage = wheels_drives[i] / 255.0 * battery - wheels_encoder_counts[i] * WHEEL_VOLTS_PER_ENCODER_COUNT;
 						float current = applied_delta_voltage / (WHEEL_PHASE_RESISTANCE + WHEEL_SWITCH_RESISTANCE);
 						float power = current * current * WHEEL_PHASE_RESISTANCE;
@@ -104,7 +107,7 @@ void wheels_tick(float battery) {
 				update_wheels_hot();
 
 				// Drive the motors.
-				for (uint8_t i = 0; i < 4; ++i) {
+				for (unsigned int i = 0; i < 4; ++i) {
 					if (drive_mask & 1) {
 						if (wheels_drives[i] >= 0) {
 							motor_set(i, MOTOR_MODE_FORWARD, wheels_drives[i]);

@@ -7,6 +7,8 @@
  * \brief Functions for operating motors.
  */
 
+#include "io.h"
+#include <stdbool.h>
 #include <stdint.h>
 
 /**
@@ -39,7 +41,29 @@ void motor_scram(void);
  * \param[in] pwm_level the PWM duty cycle to send
  *
  */
-void motor_set(uint8_t motor_num, motor_mode_t mode, uint8_t pwm_level);
+void motor_set(unsigned int motor_num, motor_mode_t mode, uint8_t pwm_level);
+
+/**
+ * \brief Returns the distance the motor has turned since this function was last called.
+ *
+ * For wheels, this is an optical encoder reading; for the dribbler, a Hall sensor reading.
+ *
+ * \param[in] motor_num the motor number, 0–3 for a wheel or 4 for the dribbler
+ *
+ * \return the motor speed
+ */
+int16_t motor_speed(unsigned int motor_num);
+
+/**
+ * \brief Checks for sensor failures in a motor.
+ *
+ * Any failures reported are cleared.
+ *
+ * \param[in] motor_num the motor number, 0–3 for a wheel or 4 for the dribbler
+ *
+ * \return a bitmask, with bit 0 indicating Hall sensors stuck low, bit 1 indicating Hall sensors stuck high, and bit 2 indicating encoder not commutating
+ */
+uint8_t motor_sensor_failed(unsigned int motor_num);
 
 #endif
 

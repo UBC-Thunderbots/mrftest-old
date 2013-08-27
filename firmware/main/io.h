@@ -5,453 +5,679 @@
  * \file
  *
  * \brief Provides access to hardware I/O ports
- *
- * For each port, the purpose of each bit is defined.
- * Reserved bits should be maintained at zero.
- * The value in square brackets is the power-up default value.
- *
- * Legend:
- * R - bit is readable
- * W - bit is generally writeable
- * S - bit is writeable to 1 in software; writing 0 has no effect
- * C - bit is writeable to 0 in software; writing 1 has no effect
  */
+
+
 
 #include <stdint.h>
 
-#define IO_PORT(x) (*(volatile uint8_t *) ((x) + 32))
+
 
 /**
- * \brief Controls the operation of the LEDs on the mainboard
- *
- * Bits:
- * 7 (R/W) [0]: Radio LED control; 1 = on, 0 = off
- * 6 (R/S) [0]: Radio LED blink; 1 = blink, 0 = no blink; cleared by hardware
- * 5 (R/W) [1]: Test LED signal source; 1 = direct software control, 0 = hardware source
- * 4–0 [00000]: (R/W): Test LED value:
- *   If bit 5 = 1:
- *     4–3: Reserved
- *     2–0: Test LED values, 1 = LED on, 0 = LED off
- *   If bit 5 = 0:
- *     00000 = LEDs display Hall sensors for wheel 0
- *     00001 = LEDs display Hall sensors for wheel 1
- *     00010 = LEDs display Hall sensors for wheel 2
- *     00011 = LEDs display Hall sensors for wheel 3
- *     00100 = LEDs display Hall sensors for dribbler
- *     00101 = LEDs display optical encoder for wheel 0
- *     00110 = LEDs display optical encoder for wheel 1
- *     00111 = LEDs display optical encoder for wheel 2
- *     01000 = LEDs display optical encoder for wheel 3
- *     Others: Reserved
+ * \brief The base address of the AHB I/O area.
  */
-#define LED_CTL IO_PORT(0x00)
+#define IO_AHB_BASE 0xA0000000
 
 /**
- * \brief Controls power to various parts of the robot
- *
- * Bits:
- * 7–5: Reserved
- * 4 (R): Breakout board present; 1 = present, 0 = absent
- * 3 (R/W) [0]: Laser power; 1 = lit, 0 = unlit
- * 2 (R): Interlocks overridden; 1 = overridden, 0 = not overridden
- * 1 (R/W) [0]: Motor power; 1 = run, 0 = power down
- * 0 (R/W) [1]: Logic power; 1 = run, 0 = power down
+ * \brief The base address of the APB I/O area.
  */
-#define POWER_CTL IO_PORT(0x01)
+#define IO_APB_BASE 0xC0000000
+
+
 
 /**
- * \brief A real-time counter counting CPU clock cycles.
- *
- * A write to this register latches the value of the counter.
- * Four consecutive reads from this register following a write return the 32-bit tick count, MSB first.
+ * \brief The type of the control and status register in the system control module.
  */
-#define TSC IO_PORT(0x02)
+typedef struct {
+	unsigned : 21;
+
+	/**
+	 * \brief Performs an AMBA reset when set.
+	 *
+	 * An AMBA reset reboots the CPU and resets all peripherals, but does not reload the FPGA configuration bitstream.
+	 */
+	unsigned amba_reset : 1;
+
+	/**
+	 * \brief Whether or not the device DNA is ready to read.
+	 */
+	unsigned device_dna_ready : 1;
+
+	/**
+	 * \brief The states of the test LEDs.
+	 *
+	 * Initialized to 000 at startup.
+	 */
+	unsigned test_leds : 3;
+
+	/**
+	 * \brief The state of the radio LED.
+	 *
+	 * Initialized to 0 at startup.
+	 */
+	unsigned radio_led : 1;
+
+	/**
+	 * \brief Whether or not the breakout board is present.
+	 *
+	 * Read-only.
+	 */
+	unsigned breakout_present : 1;
+
+	/**
+	 * \brief Whether or not safety interlocks are applied.
+	 *
+	 * Initialized to 1 at startup.
+	 * Can only be set to 0 if hardware_interlock is 0.
+	 */
+	unsigned software_interlock : 1;
+
+	/**
+	 * \brief Whether or not the hardware interlock override jumper requires interlocks to be applied.
+	 */
+	unsigned hardware_interlock : 1;
+
+	/**
+	 * \brief Whether or not power is sent to the motor drivers.
+	 *
+	 * Initialized to 0 at startup.
+	 */
+	unsigned motor_power : 1;
+
+	/**
+	 * \brief Whether or not power is sent to the logic components.
+	 *
+	 * Initialized to 1 at startup.
+	 */
+	unsigned logic_power : 1;
+} io_sysctl_csr_t;
 
 /**
- * \brief Selects which motor will be controlled.
- *
- * The value in this register controls which registers are viewed by the MOTOR_CTL, MOTOR_STATUS, and MOTOR_PWM locations.
- *
- * Bits:
- * 7–0 (R/W) [00000000]: Motor index
- *
- * Values:
- * 0: Motor registers control wheel 0
- * 1: Motor registers control wheel 1
- * 2: Motor registers control wheel 2
- * 3: Motor registers control wheel 3
- * 4: Motor registers control dribbler
+ * \brief The type of the registers in the system control module.
  */
-#define MOTOR_INDEX IO_PORT(0x03)
+typedef struct {
+	/**
+	 * \brief The system control and status register.
+	 */
+	io_sysctl_csr_t csr;
+
+	/**
+	 * \brief The upper 32 bits of the device DNA.
+	 */
+	const unsigned device_dna_high;
+
+	/**
+	 * \brief The lower 32 bits of the device DNA.
+	 */
+	const unsigned device_dna_low;
+
+	/**
+	 * \brief A counter of clock cycles passed since system boot.
+	 */
+	const unsigned tsc;
+
+	/**
+	 * \brief The battery voltage, as an ADC reading from 0 to 1023.
+	 */
+	const unsigned battery_voltage;
+
+	/**
+	 * \brief The thermistor voltage, as an ADC reading from 0 to 1023.
+	 */
+	const unsigned thermistor_voltage;
+
+	/**
+	 * \brief The laser difference, as an ADC reading difference in the range ±1023.
+	 */
+	const int laser_difference;
+} io_sysctl_t;
 
 /**
- * \brief Controls the overall operation of the motor.
- *
- * Bits:
- * 7–6 (R/W) [00]: Phase 2 control
- * 5–4 (R/W) [00]: Phase 1 control
- * 3–2 (R/W) [00]: Phase 0 control
- * 1 (R/W) [0]: Automatic commutation
- * 0 (R/W) [0]: Direction
- *
- * When automatic commutation is enabled, the Direction bit controls the direction of motor power and the Phase bits are ignored.
- * When automatic commutation is disabled, the Direction bit is ignored and the Phase bits control the motor phases directly.
- *
- * Direction values:
- * 0: Forward
- * 1: Reverse
- *
- * Phase values:
- * 00: Float
- * 01: PWM
- * 10: Low
- * 11: High
- *
- * Unless interlocks are overridden, the upper six bits can only be 000000 or 101010.
- * Any write that does not satisfy this constraint will result in these bits being set to 000000.
- * The same will happen if interlocks are re-enabled while an illegal value is set.
+ * \brief The system control module.
  */
-#define MOTOR_CTL IO_PORT(0x04)
+#define IO_SYSCTL (*(volatile io_sysctl_t *) (IO_APB_BASE + 0x00000))
+
+
 
 /**
- * \brief Reports the status of the motor.
- *
- * Bits:
- * 7–2: Reserved
- * 1 (R) [0]: Hall sensors observed all high; 1 = failure observed, 0 = failure not observed
- * 0 (R) [0]: Hall sensors observed all low; 1 = failure observed, 0 = failure not observed
+ * \brief The type of the debug serial port’s control and status register.
  */
-#define MOTOR_STATUS IO_PORT(0x05)
+typedef struct {
+		const unsigned : 30;
+
+		/**
+		 * \brief Whether or not a transmission is currently occurring.
+		 */
+		const unsigned busy : 1;
+
+		/**
+		 * \brief Whether or not the port is enabled.
+		 *
+		 * Initialized to 0 at startup.
+		 */
+		unsigned enabled : 1;
+} io_debug_port_csr_t;
 
 /**
- * \brief The PWM duty cycle for the motor.
- *
- * Bits:
- * 7–0 (R/W) [00]: Duty cycle
+ * \brief The type of the registers controlling the debug serial port.
  */
-#define MOTOR_PWM IO_PORT(0x06)
+typedef struct {
+	/**
+	 * \brief Reports the status of and controls the operation of the register.
+	 */
+	io_debug_port_csr_t csr;
+
+	/**
+	 * \brief Sends data to the serial port.
+	 *
+	 * Only the lower 8 bits of the written value are transmitted.
+	 * This register should only be written when the port is not busy.
+	 * This register should not be read.
+	 */
+	unsigned data;
+} io_debug_port_t;
 
 /**
- * \brief Used in simulation only to move magic values from firmware to testbench
- *
- * A write sets the magic value.
- * A read returns the most recently written value.
+ * \brief The debug serial port.
  */
-#define SIM_MAGIC IO_PORT(0x07)
+#define IO_DEBUG_PORT (*(volatile io_debug_port_t *) (IO_APB_BASE + 0x00100))
+
+
 
 /**
- * \brief Controls and reports status of the Secure Digital card
- *
- * Bits:
- * 7–6: Reserved
- * 5 (R) [0]: Indicates whether a past DMA-driven multiblock write encountered a malformed data response token from the card.
- * 4 (R) [0]: Indicates whether a past DMA-driven multiblock write encountered a write error in a data response token from the card.
- * 3 (R) [0]: Indicates whether a past DMA-driven multiblock write encountered a CRC error in a data response token from the card.
- * 2 (R/W) [1]: Sets the level on the /CS pin
- * 1 (R): Indicates whether a card is present according to the card detection switch; 1 = present, 0 = absent
- * 0 (R) [0]: Indicates whether an SPI transaction is in progress; 1 = busy, 0 = idle
+ * \brief The type of the MRF SPI port’s control and status register.
  */
-#define SD_CTL IO_PORT(0x08)
+typedef struct {
+	unsigned : 24;
+
+	/**
+	 * \brief Whether or not the last DMA operation ended due to an error.
+	 *
+	 * Initialized to 0 at startup and when dma_active is written to 1.
+	 */
+	unsigned dma_error : 1;
+
+	/**
+	 * \brief Whether a DMA operation is in progress.
+	 *
+	 * Initialized to 0 at startup.
+	 * A write to 1 starts a DMA transfer.
+	 * A write to 0 aborts an in-progress DMA transfer.
+	 * A read returns 1 when a DMA transfer is in progress, or 0 if no transfer has been started or if the last transfer has finished.
+	 *
+	 * In case of a write, this field may clear while spi_active is still set.
+	 * Software may overwrite the DMA buffer at this time, but must not start bus activity until spi_active also clears.
+	 */
+	unsigned dma_active : 1;
+
+	/**
+	 * \brief Whether the next register access is short (0) or long (1).
+	 */
+	unsigned long_address : 1;
+
+	/**
+	 * \brief Whether to read (0) or write (1) the next register access.
+	 */
+	unsigned write : 1;
+
+	/**
+	 * \brief Whether or not a transaction is being executed on the SPI bus.
+	 *
+	 * Initialized to 0 at startup.
+	 * A write to 1 starts a transaction.
+	 */
+	unsigned spi_active : 1;
+
+	/**
+	 * \brief Whether or not interrupt is asserted.
+	 */
+	unsigned interrupt : 1;
+
+	/**
+	 * \brief Whether or not wake is asserted.
+	 *
+	 * Initialized to 0 at startup.
+	 */
+	unsigned wake : 1;
+
+	/**
+	 * \brief Whether or not reset is asserted.
+	 *
+	 * Initialized to 0 at startup.
+	 */
+	unsigned reset : 1;
+} io_mrf_csr_t;
 
 /**
- * \brief Reads and writes data on the Secure Digital SPI bus
- *
- * On write, starts an SPI transaction outputting the written byte
- * On read (when SD_CTL<0> = 0), returns the most recent byte read from the bus
+ * \brief The type of the registers controlling the MRF SPI port.
  */
-#define SD_DATA IO_PORT(0x09)
+typedef struct {
+	/**
+	 * \brief The control and status register.
+	 *
+	 * This register should not be written while DMA is active except to abort the transfer.
+	 */
+	io_mrf_csr_t csr;
+
+	/**
+	 * \brief The transmit/receive buffer.
+	 *
+	 * On a write, the lower 8 bits are stored for sending on next write to csr.spi_active.
+	 * On a read, the last byte received in a transfer is returned.
+	 */
+	unsigned data;
+
+	/**
+	 * \brief Selects the register address that will be read or written on the next transaction.
+	 *
+	 * This register should not be written while DMA is active.
+	 */
+	unsigned address;
+
+	/**
+	 * \brief Selects the memory location for the next DMA transfer.
+	 *
+	 * This register should not be written while DMA is active.
+	 */
+	void *dma_address;
+
+	/**
+	 * \brief Selects the number of bytes left in DMA transfers.
+	 *
+	 * This register should not be written while DMA is active.
+	 */
+	unsigned dma_length;
+} io_mrf_t;
 
 /**
- * \brief Reports the accumulated count of optical encoder ticks
- *
- * A write to this register selects an optical encoder (0–3) and simultaneously snapshots and clears the accumulated count.
- * Two consecutive reads from this register following a write return first the MSB then the LSB of the snapshot value.
+ * \brief The MRF SPI port.
  */
-#define ENCODER_DATA IO_PORT(0x0A)
+#define IO_MRF (*(volatile io_mrf_t *) (IO_APB_BASE + 0x00200))
+
+
 
 /**
- * \brief Reports encoder commutation failures
- *
- * Bits:
- * 7–4: Reserved
- * 3 (R) [0]: Encoder 3 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
- * 2 (R) [0]: Encoder 2 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
- * 1 (R) [0]: Encoder 1 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
- * 0 (R) [0]: Encoder 0 not commutating during wheel rotation; 1 = failure observed, 0 = failure not observed
+ * \brief The type of the control and status register for a motor.
  */
-#define ENCODER_FAIL IO_PORT(0x0B)
+typedef struct {
+	unsigned : 26;
+
+	/**
+	 * \brief Clears all sensor failure latches when written to 1.
+	 *
+	 * This bit is write-only and instantly clears.
+	 */
+	unsigned clear_failures : 1;
+
+	/**
+	 * \brief Reports whether the motor’s associated optical encoder, if any, is failing to commutate.
+	 *
+	 * This bit is read-only.
+	 */
+	unsigned encoder_failed : 1;
+
+	/**
+	 * \brief Reports whether the motor’s Hall sensors are currently stuck high.
+	 *
+	 * This bit is read-only.
+	 */
+	unsigned hall_stuck_high : 1;
+
+	/**
+	 * \brief Reports whether the motor’s Hall sensors are currently stuck low.
+	 *
+	 * This bit is read-only.
+	 */
+	unsigned hall_stuck_low : 1;
+
+	/**
+	 * \brief Selects the mode in which the motor is driven.
+	 *
+	 * Possible values are 0 (manual commutation), 1 (brake), 2 (forward), and 3 (reverse).
+	 * These bits are read-write and initialized to 0 at startup.
+	 */
+	unsigned mode : 2;
+} io_motor_csr_t;
 
 /**
- * \brief Reports dribbler speed measured by Hall sensors.
- *
- * A write to this register latches the current count and resets the counter.
- * A read from this register returns the most recent latched value.
+ * \brief The type of the registers controlling a motor.
  */
-#define DRIBBLER_SPEED IO_PORT(0x0C)
+typedef struct {
+	/**
+	 * \brief The control and status register.
+	 */
+	io_motor_csr_t csr;
+
+	/**
+	 * \brief The manual commutation control register.
+	 *
+	 * The bottom six bits of this register are implemented, two bits per motor phase.
+	 * Possible values for each two bits are 0 (float), 1 (PWM), 2 (fixed low), and 3 (fixed high).
+	 * Initialized to 0 at startup.
+	 * This register is always forced to 0 if interlocks are enabled.
+	 */
+	unsigned manual_commutation_pattern;
+
+	/**
+	 * \brief The PWM duty cycle applied to the motor.
+	 *
+	 * The bottom eight bits of this register are implemented.
+	 * Initialized to 0 at startup.
+	 */
+	unsigned pwm;
+
+	/**
+	 * \brief The accumulated position of the motor, based on whatever positional feedback is available (optical encoder or Hall sensors).
+	 *
+	 * The bottom 16 bits of this register are implemented.
+	 * This register is read-only.
+	 */
+	unsigned position;
+
+	/**
+	 * \brief The raw sensor values from all available sensors.
+	 *
+	 * The bottom 3 bits show the Hall sensors.
+	 * The next 2 bits show the optical encoder lines, if implemented.
+	 */
+	unsigned sensors;
+} io_motor_t;
 
 /**
- * \brief Reports mainboard analogue-to-digital converter readings
- *
- * A write to this register selects a channel (0–7) and snapshots the most recent conversion result for the channel.
- * A read from this register returns the LSB of the snapshot value.
+ * \brief The control registers for the motors, indexed by motor number.
  */
-#define ADC_LSB IO_PORT(0x0D)
+#define IO_MOTOR(N) (*(volatile io_motor_t *) (IO_APB_BASE + (0x00300 + ((N) << 8))))
+
+
 
 /**
- * \brief Reports mainboard analogue-to-digital converter readings
- *
- * A read from this register reports the MSB of the snapshot value taken by a write to \ref ADC_LSB.
+ * \brief The type of the control and status register for the chicker.
  */
-#define ADC_MSB IO_PORT(0x0E)
+typedef struct {
+	unsigned : 25;
+
+	/**
+	 * \brief Whether or not the chicker board is present.
+	 *
+	 * This bit is read-only.
+	 */
+	unsigned present : 1;
+
+	/**
+	 * \brief Whether or not a chip pulse is currently executing.
+	 *
+	 * This bit is read-write and initialized to 0.
+	 */
+	unsigned chip : 1;
+
+	/**
+	 * \brief Whether or not a kick pulse is currently executing.
+	 *
+	 * This bit is read-write and initialized to 0.
+	 */
+	unsigned kick : 1;
+
+	/**
+	 * \brief Whether a charge timeout has occurred.
+	 *
+	 * This bit is read-only and initialized to 0.
+	 */
+	unsigned charge_timeout : 1;
+
+	/**
+	 * \brief Whether charging is complete.
+	 *
+	 * This bit is read-only and initialized to 0.
+	 */
+	unsigned charge_done : 1;
+
+	/**
+	 * \brief Whether safe discharge is enabled.
+	 *
+	 * This bit is read-write and initialized to 1.
+	 */
+	unsigned discharge : 1;
+
+	/**
+	 * \brief Whether charging is enabled.
+	 *
+	 * This bit is read-write and initialized to 0.
+	 */
+	unsigned charge : 1;
+} io_chicker_csr_t;
 
 /**
- * \brief Controls and reports on the chicker subsystem
- *
- * Bits:
- * 7: Reserved
- * 6 (R): Indicates whether the chicker board is present; 1 = present, 0 = absent
- * 5 (R/W) [0]: Activates the safe discharge circuit to discharge the capacitors; 1 = enabled, 0 = disabled
- * 4 (R) [0]: Indicates whether the capacitors are fully charged; 1 = charged, 0 = not charged
- * 3 (R) [0]: Indicates whether charging timed out; 1 = timeout detected, 0 = timeout not detected
- * 2 (R/S) [0]: Fires the chipper; 1 = fire, 0 = do not fire, cleared in hardware at end of pulse
- * 1 (R/S) [0]: Fires the kicker; 1 = fire, 0 = do not fire, cleared in hardware at end of pulse
- * 0 (R/W) [0]: Enables the charger; 1 = charge, 0 = do not charge
+ * \brief The type of the registers controlling the chicker.
  */
-#define CHICKER_CTL IO_PORT(0x0F)
+typedef struct {
+	/**
+	 * \brief The control and status register.
+	 */
+	io_chicker_csr_t csr;
+
+	/**
+	 * \brief The capacitor voltage, in ADC units.
+	 */
+	const unsigned capacitor_voltage;
+
+	/**
+	 * \brief The width of pulse to send to the kicker or chipper when firing, in microseconds.
+	 */
+	unsigned pulse_width;
+} io_chicker_t;
 
 /**
- * \brief Sets the chicker firing pulse width
- *
- * The actual width of the generated pulse is (N + 1) ÷ 4 microseconds, where N is the value loaded into the registers.
- *
- * Bits:
- * 7–0 (R/W) [00000000]: LSB of pulse width setting
+ * \brief The control registers for the chicker.
  */
-#define CHICKER_PULSE_LSB IO_PORT(0x10)
+#define IO_CHICKER (*(volatile io_chicker_t *) (IO_APB_BASE + 0x00800))
+
+
 
 /**
- * \brief Sets the chicker firing pulse width
- *
- * Bits:
- * 7–0 (R/W) [00000000]: MSB of pulse width setting
+ * \brief The type of the control and status register in the SD host controller.
  */
-#define CHICKER_PULSE_MSB IO_PORT(0x11)
+typedef struct {
+	unsigned : 24;
+
+	/**
+	 * \brief Whether a DMA operation is occurring.
+	 *
+	 * This bit is read-write and initialized to 0.
+	 */
+	unsigned dma_enable : 1;
+
+	/**
+	 * \brief Whether an AHB error occurred during the last DMA transfer, which will thus not have completed.
+	 *
+	 * This bit is also set if a DMA transfer is enabled with an improper length.
+	 *
+	 * This bit is read-only and initialized to 0 every time dma_enable is written to 1.
+	 */
+	unsigned ahb_error : 1;
+
+	/**
+	 * \brief Whether a malformed data response token was seen during DMA.
+	 *
+	 * This bit is read-only and initialized to 0 every time dma_enable is written to 1.
+	 */
+	unsigned malformed_drt : 1;
+
+	/**
+	 * \brief Whether the SD card reported an internal error in a data response token during DMA.
+	 *
+	 * This bit is read-only and initialized to 0 every time dma_enable is written to 1.
+	 */
+	unsigned internal_error : 1;
+
+	/**
+	 * \brief Whether the SD card reported a CRC error in a data response token during DMA.
+	 *
+	 * This bit is read-only and initialized to 0 every time dma_enable is written to 1.
+	 */
+	unsigned crc_error : 1;
+
+	/**
+	 * \brief Controls the chip select wire to the SD card.
+	 *
+	 * This bit is read-write and initialized to 1.
+	 */
+	unsigned cs : 1;
+
+	/**
+	 * \brief Whether or not the SD card is present.
+	 *
+	 * This bit is read-only.
+	 */
+	unsigned present : 1;
+
+	/**
+	 * \brief Whether the SPI bus is busy.
+	 *
+	 * This bit is read-only and initialized to 0.
+	 */
+	unsigned busy : 1;
+} io_sd_csr_t;
 
 /**
- * \brief Controls and reports status of the SPI Flash
- *
- * The chip select pin must not be asserted unless the debug port is disabled.
- *
- * Bits:
- * 7–2: Reserved
- * 1 (R/W) [1]: Sets the level on the /CS pin
- * 0 (R) [0]: Indicates whether an SPI transaction is in progress; 1 = busy, 0 = idle
+ * \brief The type of the control registers for the Secure Digital host controller.
  */
-#define FLASH_CTL IO_PORT(0x12)
+typedef struct {
+	/**
+	 * \brief The control and status register.
+	 */
+	io_sd_csr_t csr;
+
+	/**
+	 * \brief The data register.
+	 *
+	 * A read returns the data from the most recent bus transaction.
+	 * A write initiates a bus transaction sending the low 8 bits of the written data.
+	 */
+	unsigned data;
+
+	/**
+	 * \brief The address of the next byte to send to the card when DMA is being used.
+	 */
+	const void *dma_address;
+
+	/**
+	 * \brief The number of bytes remaining to send to the card in a DMA operation.
+	 *
+	 * This must currently always be set to 512 when starting a DMA operation.
+	 */
+	unsigned dma_length;
+} io_sd_t;
 
 /**
- * \brief Reads and writes data on the SPI Flash bus
- *
- * A transaction must not be started unless the debug port is disabled.
- *
- * On write, starts an SPI transaction outputting the written byte
- * On read (when FLASH_CTL<0> = 0), returns the most recent byte read from the bus
+ * \brief The control registers for the Secure Digital host controller.
  */
-#define FLASH_DATA IO_PORT(0x13)
+#define IO_SD (*(volatile io_sd_t *) (IO_APB_BASE + 0x00900))
+
+
 
 /**
- * \brief Controls and reports status of the MRF24J40
- *
- * Bits:
- * 7 (R): Indicates whether an operation is currently executing; 1 = busy, 0 = idle
- * 6 (S): Starts a long-address register write on set
- * 5 (S): Starts a short-address register write on set
- * 4 (S): Starts a long-address register read on set
- * 3 (S): Starts a short-address register read on set
- * 2 (R): Reports the level on the INT pin
- * 1 (R/W) [0]: Sets the level on the WAKE pin
- * 0 (R/W) [1]: Sets the level on the /RESET pin
+ * \brief The type of an identification register in the AHB or APB configuration space.
  */
-#define MRF_CTL IO_PORT(0x14)
+typedef struct {
+	/**
+	 * \brief The vendor ID.
+	 */
+	unsigned vendor_id : 8;
+
+	/**
+	 * \brief The device ID.
+	 */
+	unsigned device_id : 12;
+
+	/**
+	 * \brief The version number of the configuration data record.
+	 */
+	unsigned config_version : 2;
+
+	/**
+	 * \brief The version number of the device.
+	 */
+	unsigned version : 5;
+
+	/**
+	 * \brief The number of the first interrupt line the device uses, if any.
+	 */
+	unsigned irq : 5;
+} io_pnp_devid_t;
 
 /**
- * \brief Provides access to the register value.
- *
- * On write, sets the value that will be written in a register write.
- * On read, returns the value most recently read by a register read.
+ * \brief The type of a base address register in the AHB or APB configuration space.
  */
-#define MRF_DATA IO_PORT(0x15)
+typedef struct {
+	/**
+	 * \brief The address bits (either the top 12 bits, for an AHB memory BAR, or the next 12 bits, for an AHB or APB I/O BAR).
+	 */
+	unsigned address : 12;
+
+	unsigned : 2;
+
+	/**
+	 * \brief Whether or not these addresses are prefetchable.
+	 */
+	unsigned int prefetchable : 1;
+
+	/**
+	 * \brief Whether or not these addresses are cacheable.
+	 */
+	unsigned int cacheable : 1;
+
+	/**
+	 * \brief Which bits of address must match to address the device.
+	 */
+	unsigned mask : 12;
+
+	/**
+	 * \brief The type of address range (1 for APB I/O, 2 for AHB memory, or 3 for AHB I/O).
+	 */
+	unsigned type : 4;
+} io_pnp_bar_t;
 
 /**
- * \brief Sets the address of the register to be accessed in the MRF24J40.
- *
- * On write, transfers the previous written byte to the MSB of the address and writes the new value to the LSB.
- * On read, returns an unspecified value.
+ * \brief The type of a complete AHB plug-and-play data record.
  */
-#define MRF_ADDR IO_PORT(0x16)
+typedef struct {
+	io_pnp_devid_t devid;
+	unsigned int user1;
+	unsigned int user2;
+	unsigned int user3;
+	io_pnp_bar_t bars[4];
+} io_pnp_ahb_device_t;
 
 /**
- * \brief Controls the lateral position sensor
- *
- * Bits:
- * 7–4: Reserved
- * 3–0 (R/W) [0]: Drive LPS LEDs; 1 = LED lit, 0 = LED dark
+ * \brief The type of the full set of AHB plug-and-play records.
  */
-#define LPS_CTL IO_PORT(0x17)
+typedef struct {
+	io_pnp_ahb_device_t masters[64];
+	io_pnp_ahb_device_t slaves[64];
+} io_pnp_ahb_t;
 
 /**
- * \brief Holds the least significant byte of the device DNA.
- *
- * Bits:
- * 7–0 (R): The byte
+ * \brief The type of a complete APB plug-and-play data record.
  */
-#define DEVICE_ID0 IO_PORT(0x18)
-#define DEVICE_ID1 IO_PORT(0x19)
-#define DEVICE_ID2 IO_PORT(0x1A)
-#define DEVICE_ID3 IO_PORT(0x1B)
-#define DEVICE_ID4 IO_PORT(0x1C)
-#define DEVICE_ID5 IO_PORT(0x1D)
-#define DEVICE_ID6 IO_PORT(0x1E)
+typedef struct {
+	io_pnp_devid_t devid;
+	io_pnp_bar_t bar;
+} io_pnp_apb_device_t;
 
 /**
- * \brief Status of the device dna registers
- *
- * 7-1: Reserved
- * 0 (R) [0]: Valid ID; 1 = Device DNA is valid, 0 = Device DNA not ready
+ * \brief The type of a full set of APB plug-and-play records.
  */
-#define DEVICE_ID_STATUS IO_PORT(0x1F)
+typedef io_pnp_apb_device_t io_pnp_apb_t[512];
 
 /**
- * \brief Linear feedback shift register control register
- *
- * 7-1: Reserved
- * 0 (R/W) [1]: A write produces an increment of the LFSR, a read provides the LSb of its current value
+ * \brief The AHB plug-and-play configuration data.
  */
-#define LFSR IO_PORT(0x20)
+#define IO_AHB_PNP_DATA (*(const io_pnp_ahb_t *) (IO_AHB_BASE + 0xFF000))
 
 /**
- * \brief Controls and reports the status of the debug port
- *
- * The debug port must not be enabled unless the flash memory SPI port is idle and chip select is deasserted.
- *
- * 7–2: Reserved
- * 1 (R) [0]: Indicates whether a debug port transaction is in progress; 1 = busy, 0 = idle
- * 0 (R/W) [0]: Controls whether the debug port is enabled; 1 = enabled, 0 = idle
+ * \brief The APB plug-and-play configuration data.
  */
-#define DEBUG_CTL IO_PORT(0x21)
-
-/**
- * \brief Starts a transaction on the debug port
- *
- * A write to this register sends the written value over the debug port.
- *
- * The debug port must be enabled before starting a transaction.
- * Writes to this register while the port is either disabled or busy will be discarded.
- */
-#define DEBUG_DATA IO_PORT(0x22)
-
-/**
- * \brief Controls and reports the status of the internal configuration access port
- *
- * 7–1: Reserved
- * 0 (R) [0]: Indicates whether the ICAP is busy; 1 = busy, 0 = idle
- */
-#define ICAP_CTL IO_PORT(0x23)
-
-/**
- * \brief Starts a transaction on the FPGA’s internal configuration access port
- *
- * A write to this register initiates a transaction using the written value along with the value most recently written to \ref ICAP_MSB.
- * A read returns the most recently written value.
- */
-#define ICAP_LSB IO_PORT(0x24)
-
-/**
- * \brief Buffers the MSB of the next ICAP transaction
- *
- * A write sets the buffer value.
- * A read returns the most recently written value.
- */
-#define ICAP_MSB IO_PORT(0x25)
-
-/**
- * \brief Holds the channel number of the DMA channel whose control registers are currently visible on the other DMA ports
- *
- * This register has an unspecified value at startup.
- * A write to this register exposes a new set of control registers.
- * A read returns the most recently written value.
- */
-#define DMA_CHANNEL IO_PORT(0x26)
-
-/**
- * \brief Sets the address of the next byte to be read or written by the selected DMA channel.
- *
- * As a memory address is 16 bits wide, it is necessary to write to this register twice to set the complete address.
- * The first write operation sets the MSB of the address and the second sets the LSB.
- * Reading the register returns an unspecified value.
- *
- * This register must not be written to when the channel is enabled.
- *
- * Addresses used by the DMA controller must lie only within data memory and are therefore 96 bytes smaller than the same address used in CPU code.
- */
-#define DMA_PTR IO_PORT(0x27)
-
-/**
- * \brief Sets the length of the next transfer on the selected DMA channel.
- *
- * As DMA transfers can be more than 256 byte slong, it is necessary to write to this register twice to set the complete byte count.
- * The first write operation sets the MSB of the count and the second sets the LSB.
- * Reading the register returns an unspecified value.
- *
- * This register must not be written to when the channel is enabled.
- */
-#define DMA_COUNT IO_PORT(0x28)
-
-/**
- * \brief Holds the enable bit of the selected DMA channel
- *
- * 7–1: Reserved
- * 0 [R/S] (0): Indicates whether the DMA channel is enabled; 1 = enabled, 0 = disabled
- *
- * To execute a DMA block transfer on a channel, the software must first, with the channel disabled, ensure that \ref DMA_PTRL, \ref DMA_PTRH, and \ref DMA_COUNT are set properly.
- * Software must also ensure the peripheral is ready to execute a DMA transfer.
- * Software must then write a 1 to the enable bit in this register to start the transfer.
- * Once the transfer is enabled, software must not write to the \ref DMA_PTRL, \ref DMA_PTRH, or \ref DMA_COUNT registers, nor rely on a value read from them.
- * Once the transfer completes, hardware clears the enable bit automatically.
- * When this happens, \ref DMA_PTRL and \ref DMA_PTRH point to the first byte after the transferred block, and \ref DMA_COUNT is zero.
- * Completion of the DMA transfer may or may not imply completion of the peripheral activities related to the transfer; this is peripheral-specific.
- */
-#define DMA_CTL IO_PORT(0x29)
-
-/**
- * \brief Reports break beam voltage difference
- * 
- * A write to this register records the voltage difference
- * A read from this register returns the LSB of the snapshot value
- */
-#define BREAKBEAM_DIFF_L IO_PORT(0x2A)
-
-/**
- * \brief Reports break beam voltage difference
- * 
- * A read from this register returns the MSB of the snapshot value
- */
-#define BREAKBEAM_DIFF_H IO_PORT(0x2B)
-
-/**
- * \brief The LSB of the stack pointer
- */
-#define SP_LSB IO_PORT(0x3D)
-
-/**
- * \brief The MSB of the stack pointer
- */
-#define SP_MSB IO_PORT(0x3E)
-
-/**
- * \brief The status register
- */
-#define SREG IO_PORT(0x3F)
+#define IO_APB_PNP_DATA (*(const io_pnp_apb_t *) (IO_APB_BASE + 0xFF000))
 
 #endif
 

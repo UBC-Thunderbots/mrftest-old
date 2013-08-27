@@ -306,15 +306,15 @@ static void on_enter(void) {
 	// APB2 clock is 84 MHz.
 	// We want 1 Mbps.
 	// Equation for baud rate from datasheet: baud = fCK / (8 × (2 - OVER8) × USARTDIV)
-	// 1e6 = 84e6 / (8 × (2 - 0) × USARTDIV)
-	// USARTDIV = 5.25
-	// Mantissa part is 5
-	// Fractional part, since OVER8 = 0, is 0.25 × 16 = 4
+	// 250000 = 84e6 / (8 × (2 - 0) × USARTDIV)
+	// USARTDIV = 21
+	// Mantissa part is 21
+	// Fractional part, since OVER8 = 0, is 0.0 × 16 = 0
 	rcc_enable(APB2, 4);
 	USART1_CR1 = UE;
 	USART1_CR2 = STOP(0) /* One stop bit */;
 	USART1_CR3 = 0;
-	USART1_BRR = DIV_Mantissa(5) | DIV_Fraction(4);
+	USART1_BRR = DIV_Mantissa(21) | DIV_Fraction(0);
 	USART1_CR1 |= USART_RXNEIE | RE; // Enable receiver and receiver interrupts
 	(void) USART1_SR; // Read the status register to prepare to clear any pending error sources, etc.
 	(void) USART1_DR; // Read the data register to actually clear any pending error sources, etc.

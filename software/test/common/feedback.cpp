@@ -2,7 +2,21 @@
 #include "util/algorithm.h"
 #include <iomanip>
 
-TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &robot) : Gtk::Table(10, 2), dongle(dongle), robot(robot), battery_voltage_label(u8"Battery:"), capacitor_voltage_label(u8"Capacitor:"), dribbler_temperature_label(u8"Dribbler:"), board_temperature_label(u8"Board:"), break_beam_reading_label(u8"Break Beam:"), lqi_label(u8"LQI:"), rssi_label(u8"RSSI:"), alive(u8"Alive"), estop(u8"EStop Run"), ball_in_beam(u8"Ball in Beam"), capacitor_charged(u8"Capacitor Charged") {
+TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &robot) :
+		Gtk::Table(10, 2),
+		dongle(dongle),
+		robot(robot),
+		battery_voltage_label(u8"Battery:"),
+		capacitor_voltage_label(u8"Capacitor:"),
+		dribbler_temperature_label(u8"Dribbler:"),
+		board_temperature_label(u8"Board:"),
+		break_beam_reading_label(u8"Break Beam:"),
+		lqi_label(u8"LQI:"),
+		rssi_label(u8"RSSI:"),
+		alive(u8"Alive"),
+		estop(u8"EStop Run"),
+		ball_in_beam(u8"Ball in Beam"),
+		capacitor_charged(u8"Capacitor Charged") {
 	attach(battery_voltage_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(battery_voltage, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(capacitor_voltage_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -89,7 +103,7 @@ void TesterFeedbackPanel::on_dribbler_temperature_changed() {
 
 void TesterFeedbackPanel::on_dribbler_speed_changed() {
 	if (robot.alive) {
-		dribbler_speed.set_fraction(clamp(robot.dribbler_speed / 30000.0, 0.0, 1.0));
+		dribbler_speed.set_fraction(clamp(robot.dribbler_speed / 50000.0, 0.0, 1.0));
 		dribbler_speed.set_text(Glib::ustring::compose(u8"%1 rpm", Glib::ustring::format(robot.dribbler_speed)));
 	} else {
 		dribbler_speed.set_fraction(0);

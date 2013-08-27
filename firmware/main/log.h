@@ -10,9 +10,11 @@
 /**
  * \brief The type of payload associatd with a tick-type log record.
  */
-typedef struct {
+typedef struct __attribute__((packed)) {
 	int16_t breakbeam_diff;
-	uint16_t adc_channels[8];
+	uint16_t battery_voltage;
+	uint16_t capacitor_voltage;
+	uint16_t board_temperature;
 
 	float wheels_setpoints[4];
 	int16_t wheels_encoder_counts[4];
@@ -34,12 +36,12 @@ typedef struct {
  */
 typedef struct {
 	uint32_t magic;
-	uint16_t epoch;
-	uint32_t time_lsb;
+	uint32_t epoch;
 	uint32_t time_msb;
+	uint32_t time_lsb;
 	union {
 		log_tick_t tick;
-		uint8_t padding[LOG_RECORD_SIZE - 4 - 2 - 4 - 4];
+		uint8_t padding[LOG_RECORD_SIZE - 4 - 4 - 4 - 4];
 	};
 } log_record_t;
 

@@ -40,9 +40,10 @@ namespace {
 
 	class UARTReceiver : public NonCopyable {
 		public:
-			UARTReceiver(bool start, bool kill) :
+			UARTReceiver(bool start, bool kill, bool quiet) :
 					start(start),
 					kill(kill),
+					quiet(quiet),
 					sigfd(create_sigint_fd()),
 					usb_context(),
 					usb_handle(usb_context, FLASH_BURNER_VID, FLASH_BURNER_PID),
@@ -80,7 +81,7 @@ namespace {
 			}
 
 		private:
-			bool start, kill;
+			bool start, kill, quiet;
 			FileDescriptor sigfd;
 			USB::Context usb_context;
 			USB::DeviceHandle usb_handle;
@@ -126,10 +127,10 @@ namespace {
 				if (errors & 0x04) {
 					std::cerr << "<UO>";
 				}
-				if (errors & 0x01) {
+				if ((errors & 0x01) && !quiet) {
 					std::cerr << "<FE>";
 				}
-				if (errors & 0x02) {
+				if ((errors & 0x02) && !quiet) {
 					std::cerr << "<ND>";
 				}
 				std::cerr.flush();
@@ -196,6 +197,13 @@ int app_main(int argc, char **argv) {
 	bool kill = false;
 	option_group.add_entry(kill_entry, kill);
 
+	Glib::OptionEntry quiet_entry;
+	quiet_entry.set_long_name(u8"quiet");
+	quiet_entry.set_short_name('q');
+	quiet_entry.set_description(u8"Hides framing errors and detected noise");
+	bool quiet = false;
+	option_group.add_entry(quiet_entry, quiet);
+
 	option_context.set_main_group(option_group);
 
 	if (!option_context.parse(argc, argv)) {
@@ -204,7 +212,7 @@ int app_main(int argc, char **argv) {
 	}
 
 	// Create and run the main handler state machine object.
-	UARTReceiver rx(start, kill);
+	UARTReceiver rx(start, kill, quiet);
 	MainLoop::run();
 	return 0;
 }

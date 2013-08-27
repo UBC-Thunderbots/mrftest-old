@@ -35,7 +35,7 @@ extern bool dribbler_fast;
 /**
  * \brief The speed of the dribbler.
  */
-extern uint8_t dribbler_speed;
+extern uint16_t dribbler_speed;
 
 /**
  * \brief The estimated thermal energy of the dribbler winding, in joules.
@@ -58,6 +58,8 @@ extern bool dribbler_hot;
  * \brief Updates the dribbler.
  *
  * \param battery the battery voltage
+ *
+ * \param sensor_failures a mask of sensor failures detected on the dribbler motor
  */
 void dribbler_tick(float battery);
 

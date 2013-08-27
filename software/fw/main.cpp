@@ -58,23 +58,35 @@ int app_main(int argc, char **argv) {
 
 	enum {
 		MODE_2013_FB_FPGA,
+		MODE_2013_FB_FIRMWARE,
 	} mode;
 	bool onboard = false;
 	bool leave_powered = false;
-	if (mode_string == u8"2013-fb-fpga" || mode_string.empty()) {
+	if (mode_string == u8"2013-fb-fpga") {
 		mode = MODE_2013_FB_FPGA;
 	} else if (mode_string == u8"2013-fb-fpga-power") {
 		mode = MODE_2013_FB_FPGA;
 		leave_powered = true;
-	} else if (mode_string == u8"2013-fb-onboard") {
+	} else if (mode_string == u8"2013-fb-fpga-onboard") {
 		mode = MODE_2013_FB_FPGA;
+		onboard = true;
+	} else if (mode_string == u8"2013-fb-fw") {
+		mode = MODE_2013_FB_FIRMWARE;
+	} else if (mode_string == u8"2013-fb-fw-power") {
+		mode = MODE_2013_FB_FIRMWARE;
+		leave_powered = true;
+	} else if (mode_string == u8"2013-fb-fw-onboard") {
+		mode = MODE_2013_FB_FIRMWARE;
 		onboard = true;
 	} else {
 		std::cerr << "Unrecognized mode string " << mode_string << ".\n";
 		std::cerr << "Valid modes are:\n";
 		std::cerr << "2013-fb-fpga: FPGA bitstream for 2013 robots is burnt into SPI Flash using the dedicated Flash burner board.\n";
 		std::cerr << "2013-fb-fpga-power: FPGA bitstream for 2013 robots is burnt into SPI Flash using the dedicated Flash burner board, leaving the robot powered afterwards.\n";
-		std::cerr << "2013-fb-onboard: FPGA bitstream for 2013 robots is burnt into onboard storage of the dedicated Flash burner board, for later autonomous burning.\n";
+		std::cerr << "2013-fb-fpga-onboard: FPGA bitstream for 2013 robots is burnt into onboard storage of the dedicated Flash burner board, for later autonomous burning.\n";
+		std::cerr << "2013-fb-fw: Firmware for 2013 robots is burnt into SPI Flash using the dedicated Flash burner board.\n";
+		std::cerr << "2013-fb-fw-power: Firmware for 2013 robots is burnt into SPI Flash using the dedicated Flash burner board, leaving the robot powered afterwards.\n";
+		std::cerr << "2013-fb-fw-onboard: Firmware for 2013 robots is burnt into onboard storage of the dedicated Flash burner board, for later autonomous burning.\n";
 		return 1;
 	}
 	if (!hex_filename.size()) {
@@ -85,7 +97,10 @@ int app_main(int argc, char **argv) {
 	Firmware::IntelHex hex;
 	switch (mode) {
 		case MODE_2013_FB_FPGA:
-			hex.add_section(0, 2 * 1024 * 1024);
+			hex.add_section(0, 1024 * 1024);
+			break;
+		case MODE_2013_FB_FIRMWARE:
+			hex.add_section(0x60000000 + 1024 * 1024, 1024 * 1024);
 			break;
 	}
 	hex.load(hex_filename);
@@ -98,9 +113,10 @@ int app_main(int argc, char **argv) {
 		std::size_t signature_len;
 		switch (mode) {
 			case MODE_2013_FB_FPGA:
+			case MODE_2013_FB_FIRMWARE:
 				signature_type = SIGNATURE_TYPE_CRC32;
 				signature_section = &hex.data()[0];
-				signature_len = 2 * 1024 * 1024;
+				signature_len = 1024 * 1024;
 				break;
 		}
 		switch (signature_type) {
@@ -113,7 +129,8 @@ int app_main(int argc, char **argv) {
 
 	switch (mode) {
 		case MODE_2013_FB_FPGA:
-			Firmware::fb_upload(hex, onboard, leave_powered);
+		case MODE_2013_FB_FIRMWARE:
+			Firmware::fb_upload(hex, onboard, leave_powered, mode == MODE_2013_FB_FPGA ? 0 : static_cast<uint16_t>(1024 * 1024 / 256));
 			break;
 	}
 

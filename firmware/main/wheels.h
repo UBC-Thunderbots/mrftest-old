@@ -79,8 +79,10 @@ extern uint8_t wheels_hot;
  * This function updates \ref wheel_encoder_counts as well as running the control loop (if needed) and sending new power levels to the wheel motors.
  *
  * \param battery the battery voltage
+ *
+ * \param sensor_failures a pointer to an array of four bytes indicating whether sensors for the wheels have failed
  */
-void wheels_tick(float battery);
+void wheels_tick(float battery, const uint8_t sensor_failures[4]);
 
 #endif
 

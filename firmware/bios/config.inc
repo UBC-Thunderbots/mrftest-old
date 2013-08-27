@@ -1,0 +1,5 @@
+.equiv NUM_WINDOWS, 8
+.equiv RAM_SIZE_SHIFT, 14
+.equiv RAM_SIZE, (1 << RAM_SIZE_SHIFT)
+.equiv STACK_SIZE_SHIFT, 12
+.equiv STACK_SIZE, (1 << STACK_SIZE_SHIFT)

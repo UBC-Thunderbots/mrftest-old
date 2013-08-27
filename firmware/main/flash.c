@@ -1,83 +1,114 @@
 #include "flash.h"
-#include "io.h"
-#include <stdint.h>
+#include "syscalls.h"
+#include <string.h>
 
-static void assert_cs(void) {
-	FLASH_CTL = 0x00;
-}
+#define FLASH_SIZE (16UL / 8UL * 1024UL * 1024UL)
+#define SECTOR_SIZE 4096UL
+#define PARAMETERS_OFFSET (FLASH_SIZE - SECTOR_SIZE)
+#define PARAMETERS_ADDRESS (0x60000000 + PARAMETERS_OFFSET)
 
-static void deassert_cs(void) {
-	FLASH_CTL = 0x02;
-}
+const volatile uint8_t * const flash_params_block = (const volatile uint8_t *) PARAMETERS_ADDRESS;
 
-static void tx(uint8_t b) {
-	FLASH_DATA = b;
-	while (FLASH_CTL & 0x01);
-}
+/**
+ * \brief The possible Flash virtual machine operations.
+ */
+typedef enum {
+	/**
+	 * \brief Marks the end of a VM program.
+	 *
+	 * This opcode takes no parameters.
+	 */
+	FLASH_OP_END = 0,
 
-static uint8_t txrx(uint8_t b) {
-	tx(b);
-	return FLASH_DATA;
-}
+	/**
+	 * \brief Writes a value to the control and status register.
+	 *
+	 * This opcode takes one parameter byte, the value to write.
+	 */
+	FLASH_OP_WCSR = 1,
 
-static void write_enable(void) {
-	assert_cs();
-	tx(0x06);
-	deassert_cs();
-}
+	/**
+	 * \brief Transceives one or more bytes, with the bytes to send being stored as literals in the VM code.
+	 *
+	 * This opcode takes a variable number of parameter bytes, the first being the number of bytes to send and the following being those bytes.
+	 */
+	FLASH_OP_XC_LIT = 2,
 
-static void wait_not_busy(void) {
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
+	/**
+	 * \brief Transceives one or more bytes, with the bytes to send being stored in a separate buffer.
+	 *
+	 * This opcode takes five parameter bytes, the first being the number of bytes to send and the next four being a pointer to the buffer.
+	 */
+	FLASH_OP_XC_BUF = 3,
 
-	assert_cs();
-	tx(0x05);
-	while (txrx(0x00) & 0x01);
-	deassert_cs();
-}
+	/**
+	 * \brief Conditionally branches to a different address.
+	 *
+	 * This opcode takes six parameter bytes, the first being the value to AND with the most recently received byte, the second being the value to XOR with the result, and the remaining four being the address to jump to if the result of the AND followed by the XOR is nonzero.
+	 */
+	FLASH_OP_BRANCH = 4,
+} vm_op_t;
 
-void flash_erase_sector(uint32_t address) {
-	write_enable();
+static uint8_t vm_buffer[] = {
+	// Exit continuous mode
+	/* 0 */ FLASH_OP_WCSR, 3,
+	/* 2 */ FLASH_OP_XC_LIT, 4, 0xFF, 0xFF, 0xFF, 0xFF,
+	/* 8 */ FLASH_OP_WCSR, 2,
 
-	assert_cs();
-	tx(0x20);
-	tx((uint8_t) (address >> 16));
-	tx((uint8_t) (address >> 8));
-	tx((uint8_t) address);
-	deassert_cs();
+	// Write enable
+	/* 10 */ FLASH_OP_WCSR, 3,
+	/* 12 */ FLASH_OP_XC_LIT, 1, 0x06,
+	/* 15 */ FLASH_OP_WCSR, 2,
 
-	wait_not_busy();
-}
+	// Sector erase
+	/* 17 */ FLASH_OP_WCSR, 3,
+	/* 19 */ FLASH_OP_XC_LIT, 4, 0x20, PARAMETERS_OFFSET >> 16, (uint8_t) (PARAMETERS_OFFSET >> 8), (uint8_t) PARAMETERS_OFFSET,
+	/* 25 */ FLASH_OP_WCSR, 2,
 
-void flash_page_program(uint16_t page, const void *data, uint8_t length) {
-	write_enable();
+	// Read status register loop
+	/* 27 */ FLASH_OP_WCSR, 3,
+	/* 29 */ FLASH_OP_XC_LIT, 2, 0x05, 0x05,
+	/* 33 */ FLASH_OP_BRANCH, 0x01, 0x00, 0, 0, 0, 0,
+	/* 40 */ FLASH_OP_WCSR, 2,
 
-	assert_cs();
-	tx(0x02);
-	tx(page >> 8);
-	tx(page);
-	tx(0x00);
-	const uint8_t *p = data;
-	do {
-		tx(*p++);
-	} while (--length);
-	deassert_cs();
+	// Write enable
+	/* 42 */ FLASH_OP_WCSR, 3,
+	/* 44 */ FLASH_OP_XC_LIT, 1, 0x06,
+	/* 47 */ FLASH_OP_WCSR, 2,
 
-	wait_not_busy();
-}
+	// Page program
+	/* 49 */ FLASH_OP_WCSR, 3,
+	/* 51 */ FLASH_OP_XC_LIT, 4, 0x02, PARAMETERS_OFFSET >> 16, (uint8_t) (PARAMETERS_OFFSET >> 8), (uint8_t) PARAMETERS_OFFSET,
+	/* 57 */ FLASH_OP_XC_BUF, 4, 0, 0, 0, 0,
+	/* 63 */ FLASH_OP_WCSR, 2,
 
-void flash_read(uint32_t address, void *data, uint8_t length) {
-	assert_cs();
-	tx(0x03);
-	tx(address >> 16);
-	tx(address >> 8);
-	tx(address);
-	uint8_t *ptr = data;
-	while (length--) {
-		*ptr++ = txrx(0x00);
-	}
-	deassert_cs();
+	// Read status register loop
+	/* 65 */ FLASH_OP_WCSR, 3,
+	/* 67 */ FLASH_OP_XC_LIT, 2, 0x05, 0x05,
+	/* 71 */ FLASH_OP_BRANCH, 0x01, 0x00, 0, 0, 0, 0,
+	/* 78 */ FLASH_OP_WCSR, 2,
+
+	/* 80 */ FLASH_OP_END
+};
+
+void flash_write_params(const void *params, size_t len) {
+	const void *ptr;
+
+	// Point the first jump.
+	ptr = &vm_buffer[29];
+	memcpy(&vm_buffer[36], &ptr, sizeof(ptr));
+
+	// Fill in the length.
+	vm_buffer[58] = (uint8_t) len;
+
+	// Fill in the data pointer.
+	memcpy(&vm_buffer[59], &params, sizeof(params));
+
+	// Point the second jump.
+	ptr = &vm_buffer[67];
+	memcpy(&vm_buffer[74], &ptr, sizeof(ptr));
+
+	// Execute the operation.
+	syscall_flash_vm_execute(vm_buffer);
 }
 

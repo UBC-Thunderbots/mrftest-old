@@ -1,28 +1,41 @@
-#include "adc.h"
-#include "chicker.h"
 #include "control.h"
-#include "debug.h"
 #include "device_dna.h"
 #include "dribbler.h"
 #include "flash.h"
 #include "globals.h"
 #include "io.h"
-#include "led.h"
 #include "log.h"
 #include "motor.h"
 #include "mrf.h"
-#include "power.h"
 #include "sdcard.h"
 #include "sleep.h"
-#include "tsc.h"
+#include "syscalls.h"
 #include "wheels.h"
 #include <inttypes.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
+int main(void);
+extern char linker_data_vma_start;
+extern char linker_data_vma_end;
+extern char linker_data_lma_start;
+extern char linker_bss_vma_start;
+extern char linker_bss_vma_end;
+
+static void * const VECTORS[] __attribute__((section(".vectors"), used)) = {
+	(void *) 0x55AA9966,
+	&main,
+	&linker_data_vma_start,
+	&linker_data_vma_end,
+	&linker_data_lma_start,
+	&linker_bss_vma_start,
+	&linker_bss_vma_end,
+};
+
 #define DEFAULT_CHANNEL 11
-#define DEFAULT_PAN 0x1846
 #define DEFAULT_INDEX 0
+#define DEFAULT_PAN 0x1846
 
 #define BATTERY_AVERAGE_FACTOR 8
 #define BATTERY_DIVIDER_TOP 20000.0
@@ -33,10 +46,7 @@
 #define HIGH_TEMPERATURE_THRESHOLD 401 /* See software/util/thermal.cpp for why this is equivalent to 100°C. */
 #define BREAKBEAM_DIFF_THRESHOLD 15
 
-#define SPI_FLASH_SIZE (16UL / 8UL * 1024UL * 1024UL)
-#define SPI_FLASH_PARAMETERS_ADDRESS (SPI_FLASH_SIZE - 4096UL)
-
-static uint8_t channel = DEFAULT_CHANNEL, index = DEFAULT_INDEX;
+static uint8_t channel = DEFAULT_CHANNEL, robot_index = DEFAULT_INDEX;
 static uint16_t pan = DEFAULT_PAN;
 static bool feedback_pending = false;
 static uint8_t tx_seqnum = 0;
@@ -49,25 +59,30 @@ static bool autokick_fired_pending = false;
 static bool drivetrain_power_forced_on = false;
 static uint32_t last_drive_packet_time = 0;
 static uint16_t battery_average;
-static bool radio_tx_packet_prepared = false, radio_tx_packet_reliable;
+static bool radio_tx_packet_prepared = false, radio_tx_packet_reliable, radio_has_prepared_feedback = false, radio_was_sending_feedback = false;
 static bool log_overflow_feedback_report_pending = false;
 static uint8_t last_drive_data_serial = 0xFF;
-static uint8_t motors_status[5] = {0,0,0,0,0};
-static uint8_t motors_status_radio_latch[5] = {0,0,0,0,0};
 static bool last_breakbeam_report = false;
+static uint8_t radio_pending_motor_sensor_failures[5], radio_reporting_motor_sensor_failures[5];
+static unsigned int radio_last_blink_time;
 
-static void shutdown_sequence(void) __attribute__((noreturn));
-static void shutdown_sequence(void) {
-	set_charge_mode(false);
-	set_discharge_mode(true);
+static void shutdown_sequence(bool reboot) __attribute__((noreturn));
+static void shutdown_sequence(bool reboot) {
+	{
+		io_chicker_csr_t csr = { 0 };
+		csr.discharge = true;
+		IO_CHICKER.csr = csr;
+	}
 	motor_scram();
 	log_deinit();
 	sleep_1s();
+	IO_SYSCTL.csr.motor_power = 0;
 	sleep_1s();
-	sleep_1s();
-	POWER_CTL = 0x01;
-	sleep_1s();
-	POWER_CTL = 0x00;
+	if (reboot) {
+		IO_SYSCTL.csr.amba_reset = 1;
+	} else {
+		IO_SYSCTL.csr.logic_power = 0;
+	}
 	for (;;);
 }
 
@@ -82,67 +97,83 @@ static void prepare_mrf_mhr(uint8_t payload_length) {
 	mrf_tx_buffer[6] = pan >> 8; // Destination PAN ID MSB
 	mrf_tx_buffer[7] = 0x00; // Destination address LSB
 	mrf_tx_buffer[8] = 0x01; // Destination address MSB
-	mrf_tx_buffer[9] = index; // Source address LSB
+	mrf_tx_buffer[9] = robot_index; // Source address LSB
 	mrf_tx_buffer[10] = 0; // Source address MSB
 }
 
 static void prepare_feedback_packet(void) {
-	prepare_mrf_mhr(15);
+	prepare_mrf_mhr(16);
 
 #define payload (&mrf_tx_buffer[11])
 	payload[0] = 0x00; // General robot status update
+
 	payload[1] = battery_average; // Battery voltage LSB
 	payload[2] = battery_average >> 8; // Battery voltage MSB
-	uint16_t adc_value = read_main_adc(CHICKER);
+
+	uint16_t adc_value = IO_CHICKER.capacitor_voltage;
 	payload[3] = adc_value; // Capacitor voltage LSB
 	payload[4] = adc_value >> 8; // Capacitor voltage MSB
-	int16_t breakbeam_diff = read_breakbeam_diff();
+
+	int16_t breakbeam_diff = IO_SYSCTL.laser_difference;
 	payload[5] = breakbeam_diff; // Break beam reading LSB
 	payload[6] = breakbeam_diff >> 8; // Break beam reading MSB
-	adc_value = read_main_adc(TEMPERATURE);
+
+	adc_value = IO_SYSCTL.thermistor_voltage;
 	payload[7] = adc_value; // Board temperature LSB
 	payload[8] = adc_value >> 8; // Board temperature MSB
+
 	uint8_t flags = 0;
 	if (breakbeam_diff < BREAKBEAM_DIFF_THRESHOLD) {
 		flags |= 0x01;
 	}
-	if (is_charged()) {
+	io_chicker_csr_t chicker_csr = IO_CHICKER.csr;
+	if (chicker_csr.charge_done) {
 		flags |= 0x02;
 	}
-	if (is_charge_timeout()) {
+	if (chicker_csr.charge_timeout) {
 		flags |= 0x04;
 	}
-	if (POWER_CTL & 0x10 /* Breakout present */) {
+	if (IO_SYSCTL.csr.breakout_present) {
 		flags |= 0x08;
 	}
-	if (CHICKER_CTL & 0x40 /* Chicker present */) {
+	if (chicker_csr.present) {
 		flags |= 0x10;
 	}
-	if (interlocks_overridden()) {
+	if (!IO_SYSCTL.csr.hardware_interlock) {
 		flags |= 0x40;
 	}
 	payload[9] = flags; // Flags
+
 	flags = 0;
-	for (uint8_t wheel = 0; wheel < 4; ++wheel) {
-		flags |= motors_status_radio_latch[wheel] << (wheel * 2);
-		motors_status_radio_latch[wheel] = 0;
+	memcpy(radio_reporting_motor_sensor_failures, radio_pending_motor_sensor_failures, sizeof(radio_reporting_motor_sensor_failures));
+	memset(radio_pending_motor_sensor_failures, 0, sizeof(radio_pending_motor_sensor_failures));
+	for (unsigned int wheel = 0; wheel < 4; ++wheel) {
+		flags |= (radio_reporting_motor_sensor_failures[wheel] & 3) << (wheel * 2);
 	}
 	payload[10] = flags; // Wheel motor Hall sensors stuck
-	flags = motors_status_radio_latch[4] | (ENCODER_FAIL << 2);
-	motors_status_radio_latch[4] = 0;
+
+	flags = radio_reporting_motor_sensor_failures[4] & 3;
+	for (unsigned int wheel = 0; wheel < 4; ++wheel) {
+		flags |= (radio_reporting_motor_sensor_failures[wheel] & 4) << wheel;
+	}
 	payload[11] = flags; // Dribbler Hall sensors stuck and optical encoders not commutating
+
 	if (log_overflow_feedback_report_pending) {
 		payload[12] = (LOG_STATE_OVERFLOW << 4) | SD_STATUS_OK;
 		log_overflow_feedback_report_pending = false;
 	} else {
 		payload[12] = (log_state() << 4) | sd_status();
 	}
+
 	payload[13] = dribbler_speed;
-	payload[14] = wheels_hot | (dribbler_hot ? 1 << 4 : 0);
+	payload[14] = dribbler_speed >> 8;
+
+	payload[15] = wheels_hot | (dribbler_hot ? 1 << 4 : 0);
 #undef payload
 
 	radio_tx_packet_reliable = false;
 	radio_tx_packet_prepared = true;
+	radio_has_prepared_feedback = true;
 }
 
 static void prepare_autokick_packet(void) {
@@ -187,8 +218,8 @@ static void handle_radio_receive(void) {
 				// Broadcast frame must contain drive packet, which must be 65 bytes long
 				if (frame_length == HEADER_LENGTH + 65 + FOOTER_LENGTH) {
 					// Construct the individual 16-bit words sent from the host.
-					last_drive_packet_time = rdtsc();
-					const uint8_t offset = 1 + HEADER_LENGTH + 8 * index;
+					last_drive_packet_time = IO_SYSCTL.tsc;
+					const uint8_t offset = 1 + HEADER_LENGTH + 8 * robot_index;
 					uint16_t words[4];
 					for (uint8_t i = 0; i < 4; ++i) {
 						words[i] = mrf_rx_buffer[offset + i * 2 + 1];
@@ -233,26 +264,30 @@ static void handle_radio_receive(void) {
 					dribbler_fast = !(words[0] & (1 << 11));
 
 					// Set new chicker mode.
-					switch ((words[1] >> 14) & 3) {
-						case 0b00:
-							set_charge_mode(false);
-							set_discharge_mode(false);
-							break;
-						case 0b01:
-							set_charge_mode(false);
-							set_discharge_mode(true);
-							break;
-						case 0b10:
-							set_discharge_mode(false);
-							set_charge_mode(true);
-							break;
+					{
+						io_chicker_csr_t csr = IO_CHICKER.csr;
+						switch ((words[1] >> 14) & 3) {
+							case 0b00:
+								csr.charge = false;
+								csr.discharge = false;
+								break;
+							case 0b01:
+								csr.charge = false;
+								csr.discharge = true;
+								break;
+							case 0b10:
+								csr.charge = true;
+								csr.discharge = false;
+								break;
+						}
+						IO_CHICKER.csr = csr;
 					}
 
 					// Turn drivetrain power on or off if needed.
 					if (drivetrain_power_forced_on || wheels_mode != WHEELS_MODE_MANUAL_COMMUTATION || dribbler_enabled) {
-						power_enable_motors();
+						IO_SYSCTL.csr.motor_power = 1;
 					} else {
-						power_disable_motors();
+						IO_SYSCTL.csr.motor_power = 0;
 					}
 				}
 			} else if (frame_length >= HEADER_LENGTH + 1 + FOOTER_LENGTH) {
@@ -266,11 +301,13 @@ static void handle_radio_receive(void) {
 							uint16_t width = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + 2];
 							width <<= 8;
 							width |= mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + 1];
-							set_chick_pulse(width);
-							if (which) {
-								fire_chipper();
-							} else {
-								fire_kicker();
+							IO_CHICKER.pulse_width = width;
+							{
+								if (which) {
+									IO_CHICKER.csr.chip = 1;
+								} else {
+									IO_CHICKER.csr.kick = 1;
+								}
 							}
 						}
 						break;
@@ -294,19 +331,14 @@ static void handle_radio_receive(void) {
 					case 0x03: // Set LED mode
 						if (frame_length == HEADER_LENGTH + 2 + FOOTER_LENGTH) {
 							led_mode = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR];
-							if (led_mode <= 0x1F) {
-								LED_CTL = (LED_CTL & 0x80) | led_mode;
-							} else if (led_mode == 0x21) {
-								set_test_leds(USER_MODE, 7);
-							} else {
-								set_test_leds(USER_MODE, 0);
-							}
 						}
 						break;
 
 					case 0x08: // Reboot
 						if (frame_length == HEADER_LENGTH + 1 + FOOTER_LENGTH) {
-							power_reboot();
+							static char MESSAGE[] = "Rebooting at user request.\n";
+							syscall_debug_puts(MESSAGE);
+							shutdown_sequence(true);
 						}
 						break;
 
@@ -316,27 +348,22 @@ static void handle_radio_receive(void) {
 
 					case 0x0B: // Set bootup radio parameters
 						if (frame_length == HEADER_LENGTH + 5 + FOOTER_LENGTH) {
-							// Extract the new data from the radio
-							uint8_t buffer[4];
-							for (uint8_t i = 0; i < sizeof(buffer); ++i) {
-								buffer[i] = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + i];
-							}
-
 							// Erase and rewrite the sector
-							flash_erase_sector(SPI_FLASH_PARAMETERS_ADDRESS);
-							flash_page_program(SPI_FLASH_PARAMETERS_ADDRESS >> 8, buffer, sizeof(buffer));
+							flash_write_params(&mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR], 4);
 
-							puts("Parameters rewritten.");
+							static char MESSAGE[] = "Parameters rewritten.\n";
+							syscall_debug_puts(MESSAGE);
 						}
 						break;
 
 					case 0x0C: // Shut down
 						{
-							puts("Shutting down at operator request.");
-							shutdown_sequence();
+							static char MESSAGE[] = "Shutting down at operator request.\n";
+							syscall_debug_puts(MESSAGE);
+							shutdown_sequence(false);
 						}
 
-					case 0x0D: // Manually commutate motors
+					case 0x0D: // Manually commute motors
 						if (frame_length == HEADER_LENGTH + 6 + FOOTER_LENGTH) {
 							for (uint8_t i = 0; i < 5; ++i) {
 								motor_manual_commutation_patterns[i] = mrf_rx_buffer[MESSAGE_PAYLOAD_ADDR + i] & 0b11111100;
@@ -353,36 +380,37 @@ static void handle_tick(void) {
 	// Compute battery voltage in actual volts.
 	float battery_volts = battery_average * BATTERY_VOLTS_PER_LSB;
 
+	// Update IIR filter on battery voltage and check for low battery.
+	battery_average = (battery_average * (BATTERY_AVERAGE_FACTOR - 1) + IO_SYSCTL.battery_voltage + (BATTERY_AVERAGE_FACTOR / 2)) / BATTERY_AVERAGE_FACTOR;
+	if (battery_average < (unsigned int) (BATTERY_LOW_THRESHOLD / BATTERY_VOLTS_PER_LSB) && IO_SYSCTL.csr.software_interlock) {
+		static char MESSAGE[] = "Shutting down due to low battery.\n";
+		syscall_debug_puts(MESSAGE);
+		shutdown_sequence(false);
+	}
+
+	// Scan for motor sensor failures and record them both locally and in the pending feedback report buffer.
+	uint8_t sensor_failures[5];
+	for (unsigned int i = 0; i < 5; ++i) {
+		uint8_t status = motor_sensor_failed(i);
+		sensor_failures[i] = status;
+		radio_pending_motor_sensor_failures[i] |= status;
+	}
+
 	// Run the wheels.
-	wheels_tick(battery_volts);
+	wheels_tick(battery_volts, sensor_failures);
 
 	// Run the dribbler.
 	dribbler_tick(battery_volts);
-
-	// Update IIR filter on battery voltage and check for low battery.
-	battery_average = (battery_average * (BATTERY_AVERAGE_FACTOR - 1) + read_main_adc(BATT_VOLT) + (BATTERY_AVERAGE_FACTOR / 2)) / BATTERY_AVERAGE_FACTOR;
-	if (battery_average < (unsigned int) (BATTERY_LOW_THRESHOLD / BATTERY_VOLTS_PER_LSB) && !interlocks_overridden()) {
-		puts("Shutting down due to low battery.");
-		shutdown_sequence();
-	}
-
-	// update hall failure status
-	for (uint8_t i = 0; i < 5; i++) {
-		MOTOR_INDEX = i;
-		uint8_t status = MOTOR_STATUS;
-		motors_status[i] = status;
-		motors_status_radio_latch[i] |= status;
-	}
 
 	// Write a log record if possible.
 	log_record_t *rec = log_alloc();
 	if (rec) {
 		rec->magic = LOG_MAGIC_TICK;
 
-		rec->tick.breakbeam_diff = read_breakbeam_diff();
-		for (uint8_t i = 0; i < sizeof(rec->tick.adc_channels) / sizeof(*rec->tick.adc_channels); ++i) {
-			rec->tick.adc_channels[i] = read_main_adc(i);
-		}
+		rec->tick.breakbeam_diff = IO_SYSCTL.laser_difference;
+		rec->tick.battery_voltage = IO_SYSCTL.battery_voltage;
+		rec->tick.capacitor_voltage = IO_CHICKER.capacitor_voltage;
+		rec->tick.board_temperature = IO_SYSCTL.thermistor_voltage;
 
 		if (wheels_mode == WHEELS_MODE_CLOSED_LOOP) {
 			for (uint8_t i = 0; i < 3; ++i) {
@@ -406,12 +434,23 @@ static void handle_tick(void) {
 
 		rec->tick.dribbler_temperature = (uint8_t) (dribbler_winding_energy / DRIBBLER_THERMAL_CAPACITANCE_WINDING + DRIBBLER_THERMAL_AMBIENT);
 
-		rec->tick.encoders_failed = ENCODER_FAIL;
-		rec->tick.wheels_hall_sensors_failed = 0;
-		for (uint8_t wheel = 0; wheel < 4; ++wheel) {
-			rec->tick.wheels_hall_sensors_failed |= motors_status[wheel] << (2 * wheel);
+		{
+			uint8_t acc = 0;
+			for (unsigned int wheel = 0; wheel < 4; ++wheel) {
+				acc |= (sensor_failures[wheel] >> 2) << wheel;
+			}
+			rec->tick.encoders_failed = acc;
 		}
-		rec->tick.dribbler_hall_sensors_failed = motors_status[4];
+
+		{
+			uint8_t acc = 0;
+			for (unsigned int wheel = 0; wheel < 4; ++wheel) {
+				acc |= (sensor_failures[wheel] & 3) << (2 * wheel);
+			}
+			rec->tick.wheels_hall_sensors_failed = acc;
+		}
+
+		rec->tick.dribbler_hall_sensors_failed = sensor_failures[4];
 
 		rec->tick.dribbler_speed = dribbler_speed;
 
@@ -424,37 +463,133 @@ static void handle_tick(void) {
 	}
 }
 
-static void avr_main(void) __attribute__((section(".entry"), noreturn, used));
-static void avr_main(void) {
-	// Initialize the debug port.
-	debug_init();
+static void lookup_vid_did(unsigned int vid, unsigned int did, const char **vendor, const char **device) {
+	switch (vid) {
+		case 0x01:
+			*vendor = "Gaisler Research";
+			switch (did) {
+				case 3: *device = "LEON3"; break;
+				case 6: *device = "APB Bridge"; break;
+				case 14: *device = "AHB RAM"; break;
+				default: *device = "Unknown"; break;
+			}
+			break;
+
+		case 0xFF:
+			*vendor = "Thunderbots";
+			switch (did) {
+				case 1: *device = "AHB ROM"; break;
+				case 2: *device = "UART debug port"; break;
+				case 3: *device = "SPI Flash"; break;
+				case 4: *device = "System controller"; break;
+				case 5: *device = "MRF24J40 interface"; break;
+				case 6: *device = "Motor controller"; break;
+				case 7: *device = "Chicker controller"; break;
+				case 8: *device = "Secure Digital host controller"; break;
+				default: *device = "Unknown"; break;
+			}
+			break;
+
+		default:
+			*vendor = "Unknown";
+			*device = "Unknown";
+			break;
+	}
+}
+
+static void print_pnp_devid(unsigned int i, const io_pnp_devid_t *devid) {
+	if (devid->vendor_id) {
+		char buffer[128];
+		if (devid->config_version != 0) {
+			siprintf(buffer, "[%u]: Unknown config record version %u\n", i, (unsigned int) devid->config_version);
+		} else {
+			const char *vendor, *device;
+			lookup_vid_did(devid->vendor_id, devid->device_id, &vendor, &device);
+			siprintf(buffer, "[%u]: Vendor %u (%s), device %u (%s), version %u, IRQ %u\n", i, (unsigned int) devid->vendor_id, vendor, (unsigned int) devid->device_id, device, (unsigned int) devid->version, (unsigned int) devid->irq);
+		}
+		syscall_debug_puts(buffer);
+	}
+}
+
+static void print_pnp_bar(unsigned int address_base, const io_pnp_bar_t *bar) {
+	const char *type;
+	unsigned int address_shift;
+	switch (bar->type) {
+		case 1: type = "APB I/O"; address_shift = 8; break;
+		case 2: type = "AHB memory"; address_shift = 20; break;
+		case 3: type = "AHB I/O"; address_shift = 8; break;
+		default: type = 0; address_shift = 0; break;
+	}
+	if (type) {
+		char buffer[64];
+		unsigned int bar_base = address_base + (bar->address << address_shift);
+		unsigned int bar_top = address_base + (((bar->address | ~bar->mask) + 1) << address_shift) - 1;
+		siprintf(buffer, "\t%s BAR: %p–%p [%c%c]\n", type, (void *) bar_base, (void *) bar_top, bar->prefetchable ? 'P' : 'p', bar->cacheable ? 'C' : 'c');
+		syscall_debug_puts(buffer);
+	}
+}
+
+int main(void) {
+	// Print an application startup message.
+	{
+		static char MESSAGE[] = "APP INIT\n";
+		syscall_debug_puts(MESSAGE);
+	}
+
+	// Print the plug-and-play data on the debug port.
+	{
+		static char MESSAGE[] = "== AHB masters ==\n";
+		syscall_debug_puts(MESSAGE);
+		for (unsigned int i = 0; i < 16; ++i) {
+			print_pnp_devid(i, &IO_AHB_PNP_DATA.masters[i].devid);
+			for (unsigned int j = 0; j < 4; ++j) {
+				print_pnp_bar(0, &IO_AHB_PNP_DATA.masters[i].bars[j]);
+			}
+		}
+	}
+	{
+		static char MESSAGE[] = "== AHB slaves ==\n";
+		syscall_debug_puts(MESSAGE);
+		for (unsigned int i = 0; i < 16; ++i) {
+			print_pnp_devid(i, &IO_AHB_PNP_DATA.slaves[i].devid);
+			for (unsigned int j = 0; j < 4; ++j) {
+				print_pnp_bar(0, &IO_AHB_PNP_DATA.slaves[i].bars[j]);
+			}
+		}
+	}
+	{
+		static char MESSAGE[] = "== APB slaves ==\n";
+		syscall_debug_puts(MESSAGE);
+		for (unsigned int i = 0; i < 16; ++i) {
+			print_pnp_devid(i, &IO_APB_PNP_DATA[i].devid);
+			print_pnp_bar(IO_APB_BASE, &IO_APB_PNP_DATA[i].bar);
+		}
+	}
 
 	// Print the device DNA on the debug port.
 	{
 		uint64_t device_dna = device_dna_read();
-		sleep_short();
-		printf("\n\nDevice DNA: %06" PRIX32 "%08" PRIX32 "\n", (uint32_t) (device_dna >> 32), (uint32_t) device_dna);
+		char buffer[32];
+		siprintf(buffer, "\n\nDevice DNA: %014" PRIX64 "\n", device_dna);
+		syscall_debug_puts(buffer);
 	}
 
 	// Read the parameters from the end of the SPI flash.
 	{
-		uint8_t buffer[4];
-		flash_read(SPI_FLASH_PARAMETERS_ADDRESS, buffer, sizeof(buffer));
-		fputs("Parameters block:", stdout);
-		for (uint8_t i = 0; i < sizeof(buffer); ++i) {
-			printf("0x%" PRIX8 " ", buffer[i]);
-		}
-		putchar('\n');
-		if ((0x0B <= buffer[0] && buffer[0] <= 0x1A) && (buffer[1] <= 7) && ((buffer[2] != 0xFF) || (buffer[3] != 0xFF))) {
-			puts("Parameters OK.");
-			channel = buffer[0];
-			index = buffer[1];
-			pan = buffer[3];
-			pan <<= 8;
-			pan |= buffer[2];
+		channel = flash_params_block[0];
+		robot_index = flash_params_block[1];
+		pan = (flash_params_block[2] << 8) | flash_params_block[3];
+		if (0x0B <= channel && channel <= 0x1A && robot_index <= 7 && pan != 0xFFFF) {
+			// Parameters OK.
 		} else {
-			puts("Invalid parameters; using defaults.");
+			// Parameters invalid.
+			channel = DEFAULT_CHANNEL;
+			robot_index = DEFAULT_INDEX;
+			pan = DEFAULT_PAN;
 		}
+		char buffer[64];
+		siprintf(buffer, "Radio: channel %" PRIu8 ", index %" PRIu8 ", PAN 0x%04" PRIX16 "\n", channel, robot_index, pan);
+		syscall_debug_puts(buffer);
 	}
 
 	// Initialize the SD card and the logging layer.
@@ -463,25 +598,25 @@ static void avr_main(void) {
 	}
 
 	// Initialize the radio.
-	mrf_init(channel, false, pan, index, UINT64_C(0xec89d61e8ffd409b));
+	mrf_init(channel, false, pan, robot_index, UINT64_C(0xec89d61e8ffd409b));
 
 	// Turn on the radio LED.
-	radio_led_ctl(true);
+	IO_SYSCTL.csr.radio_led = 1;
 
 	// Initialize the battery average to the current level.
-	battery_average = read_main_adc(BATT_VOLT);
+	battery_average = IO_SYSCTL.battery_voltage;
 
 	// Initialize a tick count.
-	uint32_t last_control_loop_time = rdtsc();
+	unsigned int last_control_loop_time = radio_last_blink_time = IO_SYSCTL.tsc;
 	for(;;) {
 		// Check if an autokick needs to fire.
 		// Autokick should fire if it is armed, if the breakbeam is interrupted, and if, for autochip, the dribbler is slow.
-		if (autokick_armed && read_breakbeam_diff() < BREAKBEAM_DIFF_THRESHOLD && (!autokick_device || dribbler_speed < 4)) {
-			set_chick_pulse(autokick_pulse_width);
+		if (autokick_armed && IO_SYSCTL.laser_difference < BREAKBEAM_DIFF_THRESHOLD && (!autokick_device || dribbler_speed < 4)) {
+			IO_CHICKER.pulse_width = autokick_pulse_width;
 			if (autokick_device) {
-				fire_chipper();
+				IO_CHICKER.csr.chip = 1;
 			} else {
-				fire_kicker();
+				IO_CHICKER.csr.kick = 1;
 			}
 			autokick_armed = false;
 			autokick_fired_pending = true;
@@ -489,20 +624,26 @@ static void avr_main(void) {
 
 		// Check if a tick has passed; if so, iterate the control loop, update average battery level, and log a tick record.
 		{
-			uint32_t now = rdtsc();
+			unsigned int now = IO_SYSCTL.tsc;
 			if (now - last_control_loop_time >= (F_CPU / CONTROL_LOOP_HZ)) {
 				last_control_loop_time = now;
 				handle_tick();
-				cpu_usage += rdtsc() - now;
+				cpu_usage += IO_SYSCTL.tsc - now;
 			}
 		}
 
 		// Check if a radio packet has been received.
 		if (mrf_rx_poll()) {
-			uint32_t start = rdtsc();
-			radio_led_blink();
+			unsigned int start = radio_last_blink_time = IO_SYSCTL.tsc;
+			IO_SYSCTL.csr.radio_led = !IO_SYSCTL.csr.radio_led;
 			handle_radio_receive();
-			cpu_usage += rdtsc() - start;
+			cpu_usage += IO_SYSCTL.tsc - start;
+		}
+
+		// Check if it’s time to turn the radio LED on after it was blinking.
+		if (IO_SYSCTL.tsc - radio_last_blink_time > F_CPU / 5) {
+			IO_SYSCTL.csr.radio_led = 1;
+			radio_last_blink_time = IO_SYSCTL.tsc;
 		}
 
 		// How the radio transmit path works is that packets that need transmitting go through three different states:
@@ -515,69 +656,96 @@ static void avr_main(void) {
 		// 3. When the transmit path in the radio is free, the PREPARED packet becomes TRANSMITTING:
 		//     A radio transmit operation is started.
 		//     The radio_tx_packet_prepared variable is set to false.
+		// 4. For feedback packets, when the path becomes free again, we check the transmission status to determine whether we must retain some error reports for next time.
 
 		// Check if we should assemble a packet now.
-		if (mrf_tx_buffer_free()) {
-			bool breakbeam = read_breakbeam_diff() < BREAKBEAM_DIFF_THRESHOLD;
+		if (mrf_tx_buffer_free() && !radio_tx_packet_prepared) {
+			bool breakbeam = IO_SYSCTL.laser_difference < BREAKBEAM_DIFF_THRESHOLD;
 			if (breakbeam != last_breakbeam_report) {
-				uint32_t start = rdtsc();
+				unsigned int start = IO_SYSCTL.tsc;
 				prepare_breakbeam_packet(breakbeam);
 				last_breakbeam_report = breakbeam;
-				cpu_usage += rdtsc() - start;
+				cpu_usage += IO_SYSCTL.tsc - start;
 			} else if (feedback_pending) {
-				uint32_t start = rdtsc();
+				unsigned int start = IO_SYSCTL.tsc;
 				prepare_feedback_packet();
 				feedback_pending = false;
-				cpu_usage += rdtsc() - start;
+				cpu_usage += IO_SYSCTL.tsc - start;
 			} else if (autokick_fired_pending) {
-				uint32_t start = rdtsc();
+				unsigned int start = IO_SYSCTL.tsc;
 				prepare_autokick_packet();
 				autokick_fired_pending = false;
-				cpu_usage += rdtsc() - start;
+				cpu_usage += IO_SYSCTL.tsc - start;
 			}
 		}
 
-		// Check if a packet has been prepared and the MRF transmit path is ready to transmit it.
-		if (radio_tx_packet_prepared && mrf_tx_path_free()) {
-			uint32_t start = rdtsc();
-			mrf_tx_start(radio_tx_packet_reliable);
-			radio_tx_packet_prepared = false;
-			cpu_usage += rdtsc() - start;
+		// Check if the transmit path is free, in which case we are able to (1) check the status of a prior transmission, and (2) start a new transmission.
+		if (mrf_tx_path_free()) {
+			// Check whether the last packet we were sending was a feedback packet.
+			if (radio_was_sending_feedback) {
+				// A feedback packet was sent.
+				// Check whether it was delivered successfully.
+				if (!mrf_tx_successful()) {
+					// Delivery failed.
+					// Accumulate the errors we were trying to report back into the pending set so they will be reported in the next feedback.
+					for (unsigned int i = 0; i < sizeof(radio_pending_motor_sensor_failures) / sizeof(*radio_pending_motor_sensor_failures); ++i) {
+						radio_pending_motor_sensor_failures[i] |= radio_reporting_motor_sensor_failures[i];
+					}
+				}
+				radio_was_sending_feedback = false;
+			}
+
+			// Check if a packet has been prepared and the MRF transmit path is ready to transmit it.
+			if (radio_tx_packet_prepared) {
+				unsigned int start = IO_SYSCTL.tsc;
+				mrf_tx_start(radio_tx_packet_reliable);
+				radio_tx_packet_prepared = false;
+				radio_was_sending_feedback = radio_has_prepared_feedback;
+				radio_has_prepared_feedback = false;
+				cpu_usage += IO_SYSCTL.tsc - start;
+			}
 		}
 
 		// Update the LEDs.
-		if (led_mode == 0x20) {
+		if (led_mode <= 4) {
+			IO_SYSCTL.csr.test_leds = IO_MOTOR(led_mode).sensors & 7;
+		} else if (led_mode <= 8) {
+			IO_SYSCTL.csr.test_leds = IO_MOTOR(led_mode - 5).sensors >> 3;
+		} else if (led_mode == 0x20) {
 			uint8_t flags = 0;
-			if (read_breakbeam_diff() < BREAKBEAM_DIFF_THRESHOLD) {
+			if (IO_SYSCTL.laser_difference < BREAKBEAM_DIFF_THRESHOLD) {
 				flags |= 0x01;
 			}
 			if (autokick_armed) {
 				flags |= 0x04;
 			}
-			set_test_leds(USER_MODE, flags);
+			IO_SYSCTL.csr.test_leds = flags;
+		} else if (led_mode == 0x21) {
+			IO_SYSCTL.csr.test_leds = 7;
+		} else {
+			IO_SYSCTL.csr.test_leds = 0;
 		}
 
 		// Check if more than a second has passed since we last received a fresh drive packet.
-		if (rdtsc() - last_drive_packet_time > F_CPU) {
+		if (IO_SYSCTL.tsc - last_drive_packet_time > F_CPU) {
 			// Time out and stop driving.
-			uint32_t start = rdtsc();
+			unsigned int start = IO_SYSCTL.tsc;
 			memset(&wheels_setpoints, 0, sizeof(wheels_setpoints));
 			wheels_mode = WHEELS_MODE_MANUAL_COMMUTATION;
 			dribbler_enabled = false;
-			set_charge_mode(false);
-			set_discharge_mode(false);
-			cpu_usage += rdtsc() - start;
+			IO_CHICKER.csr.charge = 0;
+			cpu_usage += IO_SYSCTL.tsc - start;
 		}
 
 		// Check if the board temperature is over 100°C and interlocks are enabled.
-		if (read_main_adc(TEMPERATURE) < HIGH_TEMPERATURE_THRESHOLD && !interlocks_overridden()) {
+		if (IO_SYSCTL.thermistor_voltage < HIGH_TEMPERATURE_THRESHOLD && IO_SYSCTL.csr.software_interlock) {
 			// Turn off all the motors.
-			uint32_t start = rdtsc();
+			unsigned int start = IO_SYSCTL.tsc;
 			memset(&wheels_setpoints, 0, sizeof(wheels_setpoints));
 			wheels_mode = WHEELS_MODE_MANUAL_COMMUTATION;
 			dribbler_enabled = false;
 			motor_scram();
-			cpu_usage += rdtsc() - start;
+			cpu_usage += IO_SYSCTL.tsc - start;
 		}
 
 		// Do not dribble if autochip is armed; this makes the chipper more effective.

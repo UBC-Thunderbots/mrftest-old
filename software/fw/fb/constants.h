@@ -41,7 +41,7 @@
  *
  * This number acts as a version number and will change if incompatible protocol changes are made, thus ensuring software and firmware match capabilities.
  */
-#define FLASH_BURNER_BURN_PROTOCOL 0xFF
+#define FLASH_BURNER_BURN_PROTOCOL 1
 
 /**
  * \brief The interface protocol number used by the burner in UART mode.

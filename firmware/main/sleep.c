@@ -1,13 +1,13 @@
 #include "sleep.h"
-#include "tsc.h"
+#include "io.h"
 
 void sleep_short(void) {
-	uint32_t start = rdtsc();
-	while (rdtsc() - start < F_CPU / 200U);
+	unsigned int start = IO_SYSCTL.tsc;
+	while (IO_SYSCTL.tsc - start < F_CPU / 200U);
 }
 
 void sleep_1s(void) {
-	uint32_t start = rdtsc();
-	while (rdtsc() - start < F_CPU);
+	unsigned int start = IO_SYSCTL.tsc;
+	while (IO_SYSCTL.tsc - start < F_CPU);
 }
 
