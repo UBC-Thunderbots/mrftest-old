@@ -316,7 +316,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 							logger_messages[i]->active(sd_status == 0 && logger_status == i);
 						}
 					}
-					dribbler_speed = (bptr[12] | (bptr[13] << 8)) * 25U * 60U / 6U;
+					dribbler_speed = static_cast<int16_t>(static_cast<uint16_t>(bptr[12] | (bptr[13] << 8))) * 25 * 60 / 6;
 					for (std::size_t i = 0; i < hot_motor_messages.size(); ++i) {
 						hot_motor_messages[i]->active(!!(bptr[14] & (1 << i)));
 					}

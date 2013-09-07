@@ -76,7 +76,7 @@ namespace Drive {
 			/**
 			 * \brief The speed of the robot’s dribbler motor, in revolutions per minute.
 			 */
-			Property<unsigned int> dribbler_speed;
+			Property<int> dribbler_speed;
 
 			/**
 			 * \brief The temperature of the robot’s mainboard, in degrees Celsius.
