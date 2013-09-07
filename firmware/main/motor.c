@@ -4,6 +4,12 @@
 uint8_t motor_manual_commutation_patterns[5] = { 0, 0, 0, 0, 0 };
 static uint16_t old_positions[5];
 
+void motor_init(void) {
+	for (unsigned int i = 0; i < 5; ++i) {
+		old_positions[i] = IO_MOTOR(i).position;
+	}
+}
+
 void motor_scram(void) {
 	for (unsigned int index = 0; index < 5; ++index) {
 		motor_manual_commutation_patterns[index] = 0;

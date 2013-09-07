@@ -27,6 +27,11 @@ typedef enum {
 extern uint8_t motor_manual_commutation_patterns[5];
 
 /**
+ * \brief Initializes the motor subsystem.
+ */
+void motor_init(void);
+
+/**
  * \brief Coasts all motors immediately.
  */
 void motor_scram(void);

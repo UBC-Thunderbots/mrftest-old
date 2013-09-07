@@ -606,6 +606,9 @@ int main(void) {
 	// Initialize the battery average to the current level.
 	battery_average = IO_SYSCTL.battery_voltage * BATTERY_VOLTS_PER_LSB;
 
+	// Initialize the motors.
+	motor_init();
+
 	// Initialize a tick count.
 	unsigned int last_control_loop_time = radio_last_blink_time = IO_SYSCTL.tsc;
 	for(;;) {
