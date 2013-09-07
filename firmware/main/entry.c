@@ -37,7 +37,7 @@ static void * const VECTORS[] __attribute__((section(".vectors"), used)) = {
 #define DEFAULT_INDEX 0
 #define DEFAULT_PAN 0x1846
 
-#define BATTERY_AVERAGE_FACTOR 8
+#define BATTERY_AVERAGE_FACTOR 200
 #define BATTERY_DIVIDER_TOP 20000.0
 #define BATTERY_DIVIDER_BOTTOM 2200.0
 #define BATTERY_VOLTS_PER_LSB (3.3 / 1024.0 / BATTERY_DIVIDER_BOTTOM * (BATTERY_DIVIDER_TOP + BATTERY_DIVIDER_BOTTOM))
@@ -58,7 +58,7 @@ static bool autokick_armed = false;
 static bool autokick_fired_pending = false;
 static bool drivetrain_power_forced_on = false;
 static uint32_t last_drive_packet_time = 0;
-static uint16_t battery_average;
+static float battery_average;
 static bool radio_tx_packet_prepared = false, radio_tx_packet_reliable, radio_has_prepared_feedback = false, radio_was_sending_feedback = false;
 static bool log_overflow_feedback_report_pending = false;
 static uint8_t last_drive_data_serial = 0xFF;
@@ -107,8 +107,8 @@ static void prepare_feedback_packet(void) {
 #define payload (&mrf_tx_buffer[11])
 	payload[0] = 0x00; // General robot status update
 
-	payload[1] = battery_average; // Battery voltage LSB
-	payload[2] = battery_average >> 8; // Battery voltage MSB
+	payload[1] = battery_average / BATTERY_VOLTS_PER_LSB; // Battery voltage LSB
+	payload[2] = ((unsigned int) (battery_average / BATTERY_VOLTS_PER_LSB)) >> 8; // Battery voltage MSB
 
 	uint16_t adc_value = IO_CHICKER.capacitor_voltage;
 	payload[3] = adc_value; // Capacitor voltage LSB
@@ -377,12 +377,9 @@ static void handle_radio_receive(void) {
 }
 
 static void handle_tick(void) {
-	// Compute battery voltage in actual volts.
-	float battery_volts = battery_average * BATTERY_VOLTS_PER_LSB;
-
 	// Update IIR filter on battery voltage and check for low battery.
-	battery_average = (battery_average * (BATTERY_AVERAGE_FACTOR - 1) + IO_SYSCTL.battery_voltage + (BATTERY_AVERAGE_FACTOR / 2)) / BATTERY_AVERAGE_FACTOR;
-	if (battery_average < (unsigned int) (BATTERY_LOW_THRESHOLD / BATTERY_VOLTS_PER_LSB) && IO_SYSCTL.csr.software_interlock) {
+	battery_average = (battery_average * (BATTERY_AVERAGE_FACTOR - 1) + IO_SYSCTL.battery_voltage * BATTERY_VOLTS_PER_LSB) / BATTERY_AVERAGE_FACTOR;
+	if (battery_average < BATTERY_LOW_THRESHOLD && IO_SYSCTL.csr.software_interlock) {
 		static char MESSAGE[] = "Shutting down due to low battery.\n";
 		syscall_debug_puts(MESSAGE);
 		shutdown_sequence(false);
@@ -395,6 +392,9 @@ static void handle_tick(void) {
 		sensor_failures[i] = status;
 		radio_pending_motor_sensor_failures[i] |= status;
 	}
+
+	// Compute instantaneous battery voltage in actual volts.
+	float battery_volts = IO_SYSCTL.battery_voltage * BATTERY_VOLTS_PER_LSB;
 
 	// Run the wheels.
 	wheels_tick(battery_volts, sensor_failures);
@@ -604,7 +604,7 @@ int main(void) {
 	IO_SYSCTL.csr.radio_led = 1;
 
 	// Initialize the battery average to the current level.
-	battery_average = IO_SYSCTL.battery_voltage;
+	battery_average = IO_SYSCTL.battery_voltage * BATTERY_VOLTS_PER_LSB;
 
 	// Initialize a tick count.
 	unsigned int last_control_loop_time = radio_last_blink_time = IO_SYSCTL.tsc;
