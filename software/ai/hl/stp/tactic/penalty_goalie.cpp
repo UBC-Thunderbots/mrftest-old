@@ -20,7 +20,7 @@ namespace {
 			bool done() const;
 			void execute();
 //better implementation of chip power required. perhaps make a namespace variable for power?
-			double power = 0.6;
+			double power;
 			Player select(const std::set<Player> &) const {
 				assert(false);
 			}
@@ -29,7 +29,7 @@ namespace {
 			}
 	};
 
-	PenaltyGoalie::PenaltyGoalie(World world) : Tactic(world, true), goto_target1(false) {
+	PenaltyGoalie::PenaltyGoalie(World world) : Tactic(world, true), goto_target1(false), power(0.6) {
 		old_des = Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, -0.8 * Robot::MAX_RADIUS);
 	}
 
