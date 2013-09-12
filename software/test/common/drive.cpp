@@ -1,5 +1,7 @@
 #include "test/common/drive.h"
 #include "util/algorithm.h"
+#include <sigc++/bind_return.h>
+#include <sigc++/functors/mem_fun.h>
 
 namespace {
 	void on_update_coast(Gtk::HScale(&controls)[4], Drive::Robot &robot, bool) {
@@ -133,6 +135,7 @@ DrivePanel::DrivePanel(Drive::Robot &robot, Gtk::Window *manual_commutation_wind
 		manual_commutation_window->signal_delete_event().connect(sigc::mem_fun(this, &DrivePanel::on_manual_commutation_window_closed));
 	}
 	on_mode_changed();
+	Glib::signal_timeout().connect(sigc::bind_return(sigc::mem_fun(this, &DrivePanel::on_update), true), 1000 / 30);
 }
 
 void DrivePanel::zero() {
