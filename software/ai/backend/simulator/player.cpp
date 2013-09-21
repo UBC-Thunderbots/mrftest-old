@@ -31,6 +31,9 @@ bool AI::BE::Simulator::Player::highlight() const {
 void AI::BE::Simulator::Player::dribble_slow() {
 }
 
+void AI::BE::Simulator::Player::dribble_stop() {
+}
+
 bool AI::BE::Simulator::Player::has_ball() const {
 	return has_ball_;
 }

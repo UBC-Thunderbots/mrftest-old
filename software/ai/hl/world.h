@@ -175,6 +175,13 @@ namespace AI {
 					 * This function must be called on every tick in order to remain slow; failing to invoke this function will speed up the dribbler.
 					 */
 					void dribble_slow();
+
+					/**
+					 * \brief Stops the dribbler.
+					 *
+					 * This function must be called on every tick in order to remain stopped; failing to invoke this function will start the dribbler.
+					 */
+					void dribble_stop();
 			};
 
 			/**
@@ -356,6 +363,10 @@ inline void AI::HL::W::Player::autochip(double power) {
 
 inline void AI::HL::W::Player::dribble_slow() {
 	AI::Common::Player::impl->dribble_slow();
+}
+
+inline void AI::HL::W::Player::dribble_stop() {
+	AI::Common::Player::impl->dribble_stop();
 }
 
 inline AI::HL::W::World::World(AI::BE::Backend &impl) : impl(impl) {

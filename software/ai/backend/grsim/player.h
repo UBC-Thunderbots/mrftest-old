@@ -16,6 +16,7 @@ namespace AI {
 
 					explicit Player(unsigned int pattern, const AI::BE::Ball &ball);
 					void dribble_slow();
+					void dribble_stop();
 					bool has_ball() const;
 					bool chicker_ready() const;
 					bool autokick_fired() const;
@@ -38,7 +39,7 @@ namespace AI {
 					};
 
 					const AI::BE::Ball &ball;
-					bool dribble;
+					bool dribble_stop_, dribble;
 					bool autokick_fired_;
 					bool had_ball;
 					ChickMode chick_mode;

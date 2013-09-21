@@ -24,10 +24,23 @@ namespace {
 	constexpr double RADIANS_PER_SECOND__PER__QUARTER_DEGREES_PER_FIVE_MILLISECONDS = 200 /* 5ms / s */ * 0.25 /* degrees per quarter thereof */ * M_PI / 180.0 /* radians per degree */;
 }
 
-Player::Player(unsigned int pattern, const AI::BE::Ball &ball) : AI::BE::Player(pattern), ball(ball), dribble(false), autokick_fired_(false), had_ball(false), chick_mode(ChickMode::IDLE), chick_power(0.0), last_chick_time(steady_clock::now()) {
+Player::Player(unsigned int pattern, const AI::BE::Ball &ball) :
+		AI::BE::Player(pattern),
+		ball(ball),
+		dribble_stop_(false),
+		dribble(false),
+		autokick_fired_(false),
+		had_ball(false),
+		chick_mode(ChickMode::IDLE),
+		chick_power(0.0),
+		last_chick_time(steady_clock::now()) {
 }
 
 void Player::dribble_slow() {
+}
+
+void Player::dribble_stop() {
+	dribble_stop_ = true;
 }
 
 bool Player::has_ball() const {
@@ -56,8 +69,9 @@ void Player::tick(bool halt, bool stop) {
 		chick_mode = ChickMode::IDLE;
 		chick_power = 0.0;
 	} else {
-		dribble = !stop;
+		dribble = !stop && !dribble_stop_;
 	}
+	dribble_stop_ = false;
 }
 
 void Player::encode_orders(grSim_Robot_Command &packet) {

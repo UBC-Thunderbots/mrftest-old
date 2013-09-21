@@ -49,6 +49,7 @@ namespace AI {
 
 					bool highlight() const;
 					void dribble_slow();
+					void dribble_stop();
 					bool has_ball() const;
 					bool chicker_ready() const;
 					void kick_impl(double speed);

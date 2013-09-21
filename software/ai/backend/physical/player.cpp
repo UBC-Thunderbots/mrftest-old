@@ -19,7 +19,9 @@ Player::Player(unsigned int pattern, Drive::Robot &bot) :
 		AI::BE::Player(pattern),
 		bot(bot),
 		robot_dead_message(Glib::ustring::compose(u8"Bot %1 dead", pattern), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
-		autokick_fired_(false) {
+		autokick_fired_(false),
+		dribble_slow_(false),
+		dribble_stop_(false) {
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 	bot.signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
 }
@@ -111,6 +113,10 @@ void AI::BE::Physical::Player::dribble_slow() {
 	dribble_slow_ = true;
 }
 
+void AI::BE::Physical::Player::dribble_stop() {
+	dribble_stop_ = true;
+}
+
 void Player::on_autokick_fired() {
 	autokick_fired_ = true;
 }
@@ -153,9 +159,10 @@ void Player::tick(bool halt, bool stop) {
 	}
 	controlled = false;
 
-	// Dribbler should always run except in halt or stop.
-	bot.dribble(!halt && !stop, !dribble_slow_);
+	// Dribbler should always run except in halt or stop or when asked not to.
+	bot.dribble(!halt && !stop && !dribble_stop_, !dribble_slow_);
 	dribble_slow_ = false;
+	dribble_stop_ = false;
 
 	// Kicker should always charge except in halt.
 	bot.set_charger_state(halt ? Drive::Robot::ChargerState::FLOAT : Drive::Robot::ChargerState::CHARGE);
