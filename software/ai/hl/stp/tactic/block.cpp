@@ -35,6 +35,7 @@ namespace {
 	void BlockGoal::execute() {
 		if (!enemy->evaluate()) {
 			Action::stop(world, player);
+//			player.dribble_stop();
 			return;
 		}
 		AI::HL::STP::Action::block_goal(world, player, enemy->evaluate());
@@ -64,6 +65,7 @@ namespace {
 	void BlockBall::execute() {
 		if (!enemy->evaluate()) {
 			Action::stop(world, player);
+			player.dribble_stop();
 			return;
 		}
 

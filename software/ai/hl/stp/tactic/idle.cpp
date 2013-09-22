@@ -25,6 +25,7 @@ namespace {
 
 	void Idle::execute() {
 		Action::stop(world, player);
+		player.dribble_stop();
 	}
 }
 

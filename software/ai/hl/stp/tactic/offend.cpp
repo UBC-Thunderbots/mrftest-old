@@ -43,6 +43,7 @@ namespace {
 		auto dest = AI::HL::STP::Evaluation::offense_positions();
 		Action::move(world, player, dest[0]);
 		player.prio(AI::Flags::MovePrio::LOW);
+		player.dribble_stop();
 	}
 
 	Player Secondary::select(const std::set<Player> &players) const {
@@ -54,6 +55,7 @@ namespace {
 		auto dest = AI::HL::STP::Evaluation::offense_positions();
 		Action::move(world, player, dest[1]);
 		player.prio(AI::Flags::MovePrio::LOW);
+		player.dribble_stop();
 	}
 }
 

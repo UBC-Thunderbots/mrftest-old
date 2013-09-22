@@ -29,6 +29,7 @@ namespace {
 
 	void Move::execute() {
 		Action::move(world, player, dest.position(), dest.velocity());
+		player.dribble_stop();
 	}
 }
 
