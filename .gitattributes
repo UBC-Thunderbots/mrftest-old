@@ -93,6 +93,7 @@ firmware/speedsensor/format.h -text
 firmware/speedsensor/main.c -text
 firmware/stm32lib/Doxyfile -text
 firmware/stm32lib/Makefile -text
+firmware/stm32lib/Makefile.common -text
 firmware/stm32lib/deferred.c -text
 firmware/stm32lib/exception.c -text
 firmware/stm32lib/exti.c -text

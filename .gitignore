@@ -11,11 +11,10 @@ firmware/flashburner/html
 firmware/main/main.elf
 firmware/main/main.map
 firmware/main/main.mcs
-firmware/speedsensor/dongle.bin
-firmware/speedsensor/dongle.elf
-firmware/speedsensor/dongle.map
-firmware/speedsensor/enter-dfu-mode
-firmware/speedsensor/exit-dfu-mode
+firmware/speedsensor/html
+firmware/speedsensor/speedsensor.bin
+firmware/speedsensor/speedsensor.elf
+firmware/speedsensor/speedsensor.map
 firmware/stm32lib/html
 firmware/stm32lib/stm32lib.a
 software/.cproject

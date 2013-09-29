@@ -1,0 +1,52 @@
+ABI := arm-linux-gnueabi
+CC := $(ABI)-gcc
+LD := $(ABI)-ld
+OBJCOPY := $(ABI)-objcopy
+LINKER_SCRIPT := ../stm32lib/stm32f405.ld
+override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -mlittle-endian -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -nostdinc -nostdlib -g -fno-common -ffunction-sections -fdata-sections -isystem ../stm32lib/include
+override LDFLAGS := $(LDFLAGS) -T$(LINKER_SCRIPT) --gc-sections
+override LDLIBS := $(LDLIBS) ../stm32lib/stm32lib.a
+
+SOURCES := $(wildcard *.c)
+HEADERS := $(wildcard *.h ../stm32lib/include/*.h)
+OBJS := $(patsubst %.c,%.o,$(SOURCES))
+
+.PHONY : world
+ifeq ($(BUILDING_STM32LIB),1)
+world : $(PROJECT).a
+else
+world : $(PROJECT).bin
+endif
+
+%.bin : %.elf
+	@echo " OBJCOPY   $@"
+	@$(OBJCOPY) -O binary $+ $@
+
+$(PROJECT).elf : $(OBJS) ../stm32lib/stm32lib.a $(LINKER_SCRIPT)
+	@echo " LD        $@"
+	@$(LD) $(LDFLAGS) -o$@ -Map=$(PROJECT).map $(OBJS) $(LDLIBS)
+
+$(OBJS) : $(HEADERS) Makefile ../stm32lib/Makefile.common
+
+$(OBJS) : %.o : %.c
+	@echo " CC        $@"
+	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $<
+
+ifeq ($(BUILDING_STM32LIB),1)
+$(PROJECT).a : $(OBJS)
+	@echo " AR        $@"
+	@$(RM) $@
+	@$(AR) rsc $@ $+
+else
+../stm32lib/stm32lib.a : $(wildcard ../stm32lib/*.o ../stm32lib/*.c ../stm32lib/*.h ../stm32lib/include/*.h) ../stm32lib/Makefile ../stm32lib/Makefile.common
+	$(MAKE) -C ../stm32lib
+endif
+
+.PHONY : clean
+clean :
+	$(RM) $(PROJECT).a $(PROJECT).bin $(PROJECT).elf $(PROJECT).map *.o
+	$(RM) -r html
+
+.PHONY : doc
+doc :
+	doxygen
