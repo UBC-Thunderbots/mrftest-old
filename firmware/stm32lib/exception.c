@@ -1,6 +1,6 @@
 #include <exception.h>
+#include <abort.h>
 #include <registers.h>
-#include <stdlib.h>
 
 void exception_init(void) {
 	// We will run as follows:

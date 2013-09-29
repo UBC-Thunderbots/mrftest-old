@@ -9,7 +9,7 @@
 #ifdef NDEBUG
 #define assert(cond)
 #else
-#include <stdlib.h>
+#include <abort.h>
 #define assert(cond) do { \
 	if (!(cond)) { \
 		abort_cause.cause = ABORT_CAUSE_ASSERTION_FAILURE; \

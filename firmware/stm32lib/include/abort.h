@@ -1,5 +1,5 @@
-#ifndef STM32LIB_STDLIB_H
-#define STM32LIB_STDLIB_H
+#ifndef STM32LIB_ABORT_H
+#define STM32LIB_ABORT_H
 
 /**
  * \file
@@ -9,6 +9,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 /**
  * \brief The general classes of aborts.
@@ -41,11 +42,6 @@ typedef struct {
  * \brief The cause of an abort.
  */
 extern abort_cause_t abort_cause;
-
-/**
- * \brief Aborts execution and locks up the system.
- */
-void abort(void);
 
 #endif
 

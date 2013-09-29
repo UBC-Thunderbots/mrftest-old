@@ -3,8 +3,8 @@ CC := $(ABI)-gcc
 LD := $(ABI)-ld
 OBJCOPY := $(ABI)-objcopy
 LINKER_SCRIPT := ../stm32lib/stm32f405.ld
-override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -mlittle-endian -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -nostdinc -nostdlib -g -fno-common -ffunction-sections -fdata-sections -isystem ../stm32lib/include
-override LDFLAGS := $(LDFLAGS) -T$(LINKER_SCRIPT) --gc-sections
+override CFLAGS := $(CFLAGS) -Wall -Wextra -std=gnu99 -O2 -mlittle-endian -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -g -fno-common -ffunction-sections -fdata-sections -isystem ../stm32lib/include -static
+override LDFLAGS := $(LDFLAGS) -Wl,-T$(LINKER_SCRIPT) -Wl,--gc-sections $(CFLAGS)
 override LDLIBS := $(LDLIBS) ../stm32lib/stm32lib.a
 
 SOURCES := $(wildcard *.c)
@@ -24,7 +24,7 @@ endif
 
 $(PROJECT).elf : $(OBJS) ../stm32lib/stm32lib.a $(LINKER_SCRIPT)
 	@echo " LD        $@"
-	@$(LD) $(LDFLAGS) -o$@ -Map=$(PROJECT).map $(OBJS) $(LDLIBS)
+	@$(CC) $(LDFLAGS) -o$@ -Wl,-Map=$(PROJECT).map $(OBJS) $(LDLIBS)
 
 $(OBJS) : $(HEADERS) Makefile ../stm32lib/Makefile.common
 
@@ -38,7 +38,7 @@ $(PROJECT).a : $(OBJS)
 	@$(RM) $@
 	@$(AR) rsc $@ $+
 else
-../stm32lib/stm32lib.a : $(wildcard ../stm32lib/*.o ../stm32lib/*.c ../stm32lib/*.h ../stm32lib/include/*.h) ../stm32lib/Makefile ../stm32lib/Makefile.common
+../stm32lib/stm32lib.a : $(wildcard ../stm32lib/*.c ../stm32lib/*.h ../stm32lib/include/*.h) ../stm32lib/Makefile ../stm32lib/Makefile.common
 	$(MAKE) -C ../stm32lib
 endif
 

@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <abort.h>
 #include <registers.h>
 #include <sleep.h>
 
@@ -55,6 +55,7 @@ static void show_byte(uint8_t byte) {
 	show_bits(byte);
 }
 
+// This overrides the standard library’s abort function.
 void abort(void) {
 	// Scramble and disable every interrupt.
 	for (unsigned int i = 0; i < 16; ++i) {
