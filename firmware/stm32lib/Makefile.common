@@ -1,4 +1,4 @@
-ABI := arm-linux-gnueabi
+ABI := arm-none-eabi
 CC := $(ABI)-gcc
 LD := $(ABI)-ld
 OBJCOPY := $(ABI)-objcopy
