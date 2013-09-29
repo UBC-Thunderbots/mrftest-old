@@ -203,15 +203,15 @@ void PlayExecutor::role_assignment() {
 			break;
 		}
 
-		// If the play is not set to select players statically
-		// or there is no previous assignment, then let the
-		// tactic pick its player. 
-		if (!curr_play->factory().static_play || !prev_assignment[i]) {
+		// If the play is set to select players statically
+		// and there is a previously saved assignment, then 
+		// use the previous saved assignment. 
+		if (curr_play->factory().static_play && prev_assignment[i]) {
+			curr_assignment[i] = prev_assignment[i];			
+		} else {
+			// let the tactic pick its player
 			curr_assignment[i] = curr_tactic[i]->select(players);
-		} else if (prev_assignment[i]) {
-			// use the previous saved assignment
-			curr_assignment[i] = prev_assignment[i];
-		}
+		} 
 
 		// assignment cannot be empty
 		assert(curr_assignment[i]);
