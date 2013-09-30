@@ -26,26 +26,10 @@ static void show_sweeper(void) {
 }
 
 static void show_bits(uint8_t bits) {
-#if 0
-	// Show the bottom two bits on LEDs 2 and 3, and raise LED 1 (“clock”).
-	GPIOB_BSRR = GPIO_BS(12) | ((bits & 2) ? GPIO_BS(13) : GPIO_BR(13)) | ((bits & 1) ? GPIO_BS(14) : GPIO_BR(14));
-	sleep_ms(500);
-	// Turn off LED 1.
-	GPIOB_BSRR = GPIO_BR(12);
-	sleep_ms(500);
-#elif 0
-	GPIOB_BSRR = GPIO_BR(12) | ((bits & 2) ? GPIO_BS(13) : GPIO_BR(13)) | ((bits & 1) ? GPIO_BS(14) : GPIO_BR(14));
-	sleep_ms(333);
-	GPIOB_BSRR = GPIO_BS(12);
-	sleep_ms(333);
-	GPIOB_BSRR = GPIO_BR(12);
-	sleep_ms(333);
-#else
 	GPIOB_BSRR = GPIO_BS(12) | ((bits & 2) ? GPIO_BS(13) : GPIO_BR(13)) | ((bits & 1) ? GPIO_BS(14) : GPIO_BR(14));
 	sleep_ms(100);
 	GPIOB_BSRR = GPIO_BR(12);
 	sleep_ms(900);
-#endif
 }
 
 static void show_byte(uint8_t byte) {
