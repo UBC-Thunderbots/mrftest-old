@@ -309,8 +309,15 @@ USB::DeviceHandle::DeviceHandle(Context &context, unsigned int vendor_id, unsign
 }
 
 USB::DeviceHandle::~DeviceHandle() {
-	while (submitted_transfer_count) {
-		check_fn("libusb_handle_events", libusb_handle_events(context), 0);
+	try {
+		while (submitted_transfer_count) {
+			check_fn("libusb_handle_events", libusb_handle_events(context), 0);
+		}
+	} catch (const std::exception &exp) {
+		try {
+			LOG_ERROR(Glib::locale_to_utf8(exp.what()));
+		} catch (...) {
+		}
 	}
 	libusb_close(handle);
 }
@@ -440,7 +447,14 @@ USB::ConfigurationSetter::ConfigurationSetter(DeviceHandle &device, int configur
 }
 
 USB::ConfigurationSetter::~ConfigurationSetter() {
-	device.set_configuration(original_configuration ? original_configuration : -1);
+	try {
+		device.set_configuration(original_configuration ? original_configuration : -1);
+	} catch (const std::exception &exp) {
+		try {
+			LOG_ERROR(Glib::locale_to_utf8(exp.what()));
+		} catch (...) {
+		}
+	}
 }
 
 
@@ -450,25 +464,39 @@ USB::InterfaceClaimer::InterfaceClaimer(DeviceHandle &device, int interface) : d
 }
 
 USB::InterfaceClaimer::~InterfaceClaimer() {
-	device.release_interface(interface);
+	try {
+		device.release_interface(interface);
+	} catch (const std::exception &exp) {
+		try {
+			LOG_ERROR(Glib::locale_to_utf8(exp.what()));
+		} catch (...) {
+		}
+	}
 }
 
 
 
 USB::Transfer::~Transfer() {
-	if (submitted_) {
-		// The transfer is submitted.
-		// Initiate transfer cancellation.
-		// Instead of waiting for cancellation to complete, "disown" the transfer object.
-		// It will be freed by the trampoline.
-		LOG_ERROR(Glib::ustring::compose(u8"Destroying in-progress transfer to USB %1 endpoint %2; this is unreliable and may be a problem if not happening during system shutdown!", ((transfer->endpoint & LIBUSB_ENDPOINT_DIR_MASK) == LIBUSB_ENDPOINT_IN ? u8"in" : u8"out"), static_cast<unsigned int>(transfer->endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK)));
-		libusb_cancel_transfer(transfer);
-		TransferMetadata::get(transfer)->disown();
-	} else {
-		// The transfer is not submitted and therefore can safely be freed.
-		delete TransferMetadata::get(transfer);
-		delete [] transfer->buffer;
-		libusb_free_transfer(transfer);
+	try {
+		if (submitted_) {
+			// The transfer is submitted.
+			// Initiate transfer cancellation.
+			// Instead of waiting for cancellation to complete, "disown" the transfer object.
+			// It will be freed by the trampoline.
+			LOG_ERROR(Glib::ustring::compose(u8"Destroying in-progress transfer to USB %1 endpoint %2; this is unreliable and may be a problem if not happening during system shutdown!", ((transfer->endpoint & LIBUSB_ENDPOINT_DIR_MASK) == LIBUSB_ENDPOINT_IN ? u8"in" : u8"out"), static_cast<unsigned int>(transfer->endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK)));
+			libusb_cancel_transfer(transfer);
+			TransferMetadata::get(transfer)->disown();
+		} else {
+			// The transfer is not submitted and therefore can safely be freed.
+			delete TransferMetadata::get(transfer);
+			delete [] transfer->buffer;
+			libusb_free_transfer(transfer);
+		}
+	} catch (const std::exception &exp) {
+		try {
+			LOG_ERROR(Glib::locale_to_utf8(exp.what()));
+		} catch (...) {
+		}
 	}
 }
 
