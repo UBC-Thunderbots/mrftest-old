@@ -101,59 +101,7 @@ static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	STRING_INDEX_MANUFACTURER, // iManufacturer
 	STRING_INDEX_PRODUCT, // iProduct
 	STRING_INDEX_SERIAL, // iSerialNumber
-	5, // bNumConfigurations
-};
-
-static const uint8_t PACKET_GENERATOR_CONFIGURATION_DESCRIPTOR[] = {
-	9, // bLength
-	USB_DTYPE_CONFIGURATION, // bDescriptorType
-	18, // wTotalLength LSB
-	0, // wTotalLength MSB
-	1, // bNumInterfaces
-	4, // bConfigurationValue
-	STRING_INDEX_CONFIG4, // iConfiguration
-	0x80, // bmAttributes
-	150, // bMaxPower
-
-	9, // bLength
-	USB_DTYPE_INTERFACE, // bDescriptorType
-	0, // bInterfaceNumber
-	0, // bAlternateSetting
-	0, // bNumEndpoints
-	0xFF, // bInterfaceClass
-	0x00, // bInterfaceSubClass
-	0, // bInterfaceProtocol
-	0, // iInterface
-};
-
-static const uint8_t PACKET_RECEIVER_CONFIGURATION_DESCRIPTOR[] = {
-	9, // bLength
-	USB_DTYPE_CONFIGURATION, // bDescriptorType
-	25, // wTotalLength LSB
-	0, // wTotalLength MSB
-	1, // bNumInterfaces
-	5, // bConfigurationValue
-	STRING_INDEX_CONFIG5, // iConfiguration
-	0x80, // bmAttributes
-	50, // bMaxPower
-
-	9, // bLength
-	USB_DTYPE_INTERFACE, // bDescriptorType
-	0, // bInterfaceNumber
-	0, // bAlternateSetting
-	1, // bNumEndpoints
-	0xFF, // bInterfaceClass
-	0x00, // bInterfaceSubClass
-	0, // bInterfaceProtocol
-	0, // iInterface
-
-	7, // bLength
-	USB_DTYPE_ENDPOINT, // bDescriptorType
-	0x81, // bEndpointAddress
-	0x03, // bmAttributes
-	20, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	1, // bInterval
+	3, // bNumConfigurations
 };
 
 static const uint8_t STRING_ZERO[4] = {
@@ -166,8 +114,6 @@ static const usb_configs_config_t * const CONFIGURATIONS[] = {
 	&RADIO_SLEEP_CONFIGURATION,
 	&NORMAL_CONFIGURATION,
 	&PROMISCUOUS_CONFIGURATION,
-	/*&PACKET_GENERATOR_CONFIGURATION,*/
-	/*&PACKET_RECEIVER_CONFIGURATION,*/
 	0
 };
 
@@ -249,8 +195,6 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 					case 0: descriptor = RADIO_SLEEP_CONFIGURATION_DESCRIPTOR; break;
 					case 1: descriptor = NORMAL_CONFIGURATION_DESCRIPTOR; break;
 					case 2: descriptor = PROMISCUOUS_CONFIGURATION_DESCRIPTOR; break;
-					case 3: descriptor = PACKET_GENERATOR_CONFIGURATION_DESCRIPTOR; break;
-					case 4: descriptor = PACKET_RECEIVER_CONFIGURATION_DESCRIPTOR; break;
 				}
 				if (descriptor) {
 					size_t total_length = descriptor[2] | (descriptor[3] << 8);
@@ -275,8 +219,6 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 						case STRING_INDEX_CONFIG1: string = u8"Radio Sleep/Pre-DFU"; break;
 						case STRING_INDEX_CONFIG2: string = u8"Normal Operation"; break;
 						case STRING_INDEX_CONFIG3: string = u8"Promiscuous Mode"; break;
-						case STRING_INDEX_CONFIG4: string = u8"Packet Generator"; break;
-						case STRING_INDEX_CONFIG5: string = u8"Packet Receiver"; break;
 						case STRING_INDEX_SERIAL:
 							formathex32((char *) stash_buffer + 0, U_ID_H);
 							formathex32((char *) stash_buffer + 8, U_ID_M);
