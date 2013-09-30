@@ -62,7 +62,7 @@ typedef struct {
  * \brief Initializes the configuration management module.
  *
  * This should be invoked as a result of setting a nonzero device address.
- * Initializing the module when it is already initialized re-initializes the current configuration to zero and replaces the available configuration set.
+ * Initializing the module when it is already initialized re-initializes the current configuration to zero and replaces the available configuration set; the on-exit handler for the current configuration is \em not invoked..
  *
  * \param configs a pointer to an array of pointers to configuration structures, one per configuration, ending with a null pointer
  */
