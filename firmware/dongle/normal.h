@@ -2,10 +2,9 @@
 #define NORMAL_H
 
 #include <stdint.h>
-#include <usb_configs.h>
+#include <usb_altsettings.h>
 
-extern const uint8_t NORMAL_CONFIGURATION_DESCRIPTOR[];
-extern const usb_configs_config_t NORMAL_CONFIGURATION;
+extern const usb_altsettings_altsetting_t NORMAL_ALTSETTING;
 
 #endif
 

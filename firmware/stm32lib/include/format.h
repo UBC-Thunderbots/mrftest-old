@@ -1,5 +1,5 @@
-#ifndef FORMAT_H
-#define FORMAT_H
+#ifndef STM32LIB_FORMAT_H
+#define STM32LIB_FORMAT_H
 
 /**
  * \file

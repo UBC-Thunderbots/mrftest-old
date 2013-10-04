@@ -27,6 +27,8 @@ firmware/dongle/buzzer.h -text
 firmware/dongle/config.c -text
 firmware/dongle/config.h -text
 firmware/dongle/constants.h -text
+firmware/dongle/enabled.c -text
+firmware/dongle/enabled.h -text
 firmware/dongle/estop.c -text
 firmware/dongle/estop.h -text
 firmware/dongle/main.c -text
@@ -38,8 +40,8 @@ firmware/dongle/perconfig.c -text
 firmware/dongle/perconfig.h -text
 firmware/dongle/promiscuous.c -text
 firmware/dongle/promiscuous.h -text
-firmware/dongle/radio_sleep.c -text
-firmware/dongle/radio_sleep.h -text
+firmware/dongle/radio_off.c -text
+firmware/dongle/radio_off.h -text
 firmware/dongle/timers.txt -text
 firmware/flashburner/Makefile -text
 firmware/flashburner/autonomous.c -text
@@ -110,6 +112,7 @@ firmware/stm32lib/include/rcc.h -text
 firmware/stm32lib/include/registers.h -text
 firmware/stm32lib/include/sleep.h -text
 firmware/stm32lib/include/unused.h -text
+firmware/stm32lib/include/usb_altsettings.h -text
 firmware/stm32lib/include/usb_bi_in.h -text
 firmware/stm32lib/include/usb_bi_out.h -text
 firmware/stm32lib/include/usb_configs.h -text
@@ -119,6 +122,7 @@ firmware/stm32lib/include/usb_fifo.h -text
 firmware/stm32lib/include/usb_ll.h -text
 firmware/stm32lib/sleep.c -text
 firmware/stm32lib/stm32f405.ld -text
+firmware/stm32lib/usb_altsettings.c -text
 firmware/stm32lib/usb_bi_in.c -text
 firmware/stm32lib/usb_bi_out.c -text
 firmware/stm32lib/usb_configs.c -text

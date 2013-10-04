@@ -15,36 +15,6 @@
 #include <usb_ep0_sources.h>
 #include <usb_fifo.h>
 
-const uint8_t PROMISCUOUS_CONFIGURATION_DESCRIPTOR[] = {
-	9, // bLength
-	USB_DTYPE_CONFIGURATION, // bDescriptorType
-	25, // wTotalLength LSB
-	0, // wTotalLength MSB
-	1, // bNumInterfaces
-	3, // bConfigurationValue
-	STRING_INDEX_CONFIG3, // iConfiguration
-	0x80, // bmAttributes
-	150, // bMaxPower
-
-	9, // bLength
-	USB_DTYPE_INTERFACE, // bDescriptorType
-	0, // bInterfaceNumber
-	0, // bAlternateSetting
-	1, // bNumEndpoints
-	0xFF, // bInterfaceClass
-	MRF_DONGLE_PROMISCUOUS_SUBCLASS, // bInterfaceSubClass
-	MRF_DONGLE_PROMISCUOUS_PROTOCOL, // bInterfaceProtocol
-	0, // iInterface
-
-	7, // bLength
-	USB_DTYPE_ENDPOINT, // bDescriptorType
-	0x81, // bEndpointAddress
-	0x02, // bmAttributes
-	64, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	0, // bInterval
-};
-
 static uint16_t promisc_flags;
 static promisc_packet_t *first_free_packet, *first_captured_packet, *last_captured_packet;
 static bool packet_dropped;
@@ -144,9 +114,9 @@ static void handle_ep1_clear_halt(unsigned int UNUSED(ep)) {
 }
 
 static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
-	if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_SET_PROMISCUOUS_FLAGS) {
-		// This request must have value using only bits 0 through 7 and index set to zero.
-		if (pkt->value & 0xFF00 || pkt->index) {
+	if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && pkt->index == INTERFACE_RADIO && pkt->request == CONTROL_REQUEST_SET_PROMISCUOUS_FLAGS) {
+		// This request must have value using only bits 0 through 7.
+		if (pkt->value & 0xFF00) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
 
@@ -215,73 +185,15 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 
 static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_source_t **source, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
 	static usb_ep0_memory_source_t mem_src;
-	static uint8_t stash_buffer[2];
 
-	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_CHANNEL) {
-		// This request must have value and index set to zero.
-		if (pkt->value || pkt->index) {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
-
-		// Return the channel number.
-		*source = usb_ep0_memory_source_init(&mem_src, &config.channel, sizeof(config.channel));
-		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_SYMBOL_RATE) {
-		// This request must have value and index set to zero.
-		if (pkt->value || pkt->index) {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
-
-		// Return the symbol rate.
-		*source = usb_ep0_memory_source_init(&mem_src, &config.symbol_rate, sizeof(config.symbol_rate));
-		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_PAN_ID) {
-		// This request must have value and index set to zero.
-		if (pkt->value || pkt->index) {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
-
-		// Return the PAN ID.
-		*source = usb_ep0_memory_source_init(&mem_src, &config.pan_id, sizeof(config.pan_id));
-		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_MAC_ADDRESS) {
-		// This request must have value and index set to zero.
-		if (pkt->value || pkt->index) {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
-
-		// Return the MAC address.
-		*source = usb_ep0_memory_source_init(&mem_src, &config.mac_address, sizeof(config.mac_address));
-		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_PROMISCUOUS_FLAGS) {
-		// This request must have value and index set to zero.
-		if (pkt->value || pkt->index) {
+	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && pkt->index == INTERFACE_RADIO && pkt->request == CONTROL_REQUEST_GET_PROMISCUOUS_FLAGS) {
+		// This request must have value set to zero.
+		if (pkt->value) {
 			return USB_EP0_DISPOSITION_REJECT;
 		}
 
 		// Return the promiscuous flags.
 		*source = usb_ep0_memory_source_init(&mem_src, &promisc_flags, sizeof(promisc_flags));
-		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == USB_REQ_GET_INTERFACE) {
-		// This request must have value set to zero.
-		if (pkt->value) {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
-
-		// Return the alternate setting number, which is always zero.
-		stash_buffer[0] = 0;
-		*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
-		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_STATUS) {
-		// This request must have value set to zero.
-		if (pkt->value) {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
-
-		// Interface status is always all zeroes.
-		stash_buffer[0] = 0;
-		stash_buffer[1] = 0;
-		*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 2);
 		return USB_EP0_DISPOSITION_ACCEPT;
 	} else {
 		return USB_EP0_DISPOSITION_NONE;
@@ -358,8 +270,7 @@ static void on_exit(void) {
 	mrf_init();
 }
 
-const usb_configs_config_t PROMISCUOUS_CONFIGURATION = {
-	.configuration = 3,
+const usb_altsettings_altsetting_t PROMISCUOUS_ALTSETTING = {
 	.on_enter = &on_enter,
 	.on_exit = &on_exit,
 };

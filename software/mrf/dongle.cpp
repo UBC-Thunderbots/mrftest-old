@@ -7,6 +7,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
+#include <exception>
 #include <stdexcept>
 #include <string>
 #include <unistd.h>
@@ -45,10 +46,10 @@ MRFDongle::SendReliableMessageOperation::SendReliableMessageOperation(MRFDongle 
 void MRFDongle::SendReliableMessageOperation::result() const {
 	transfer->result();
 	switch (delivery_status) {
-		case MDR_STATUS_OK: break;
-		case MDR_STATUS_NOT_ASSOCIATED: throw NotAssociatedError();
-		case MDR_STATUS_NOT_ACKNOWLEDGED: throw NotAcknowledgedError();
-		case MDR_STATUS_NO_CLEAR_CHANNEL: throw ClearChannelError();
+		case MRF::MDR_STATUS_OK: break;
+		case MRF::MDR_STATUS_NOT_ASSOCIATED: throw NotAssociatedError();
+		case MRF::MDR_STATUS_NOT_ACKNOWLEDGED: throw NotAcknowledgedError();
+		case MRF::MDR_STATUS_NO_CLEAR_CHANNEL: throw ClearChannelError();
 		default: throw std::logic_error("Unknown delivery status");
 	}
 }
@@ -85,23 +86,44 @@ MRFDongle::SendReliableMessageOperation::ClearChannelError::ClearChannelError() 
 
 
 
-MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_PID, std::getenv("MRF_SERIAL")), mdr_transfer(device, 1, 8, false, 0), status_transfer(device, 3, 1, true, 0), drive_dirty(false), pending_beep_length(0) {
+MRFDongle::MRFDongle() : context(), device(context, MRF::VENDOR_ID, MRF::PRODUCT_ID, std::getenv("MRF_SERIAL")), radio_interface(-1), configuration_altsetting(-1), normal_altsetting(-1), mdr_transfer(device, 1, 8, false, 0), status_transfer(device, 3, 1, true, 0), drive_dirty(false), pending_beep_length(0) {
+	// Sanity-check the dongle by looking for an interface with the appropriate subclass and alternate settings with the appropriate protocols.
+	// While doing so, discover which interface number is used for the radio and which alternate settings are for configuration-setting and normal operation.
 	{
-		const libusb_config_descriptor &desc = device.configuration_descriptor_by_value(2);
-		if (desc.bNumInterfaces < 1 || desc.interface[0].num_altsetting < 1 || desc.interface[0].altsetting[0].bInterfaceSubClass != 0 || desc.interface[0].altsetting[0].bInterfaceProtocol != 0) {
+		const libusb_config_descriptor &desc = device.configuration_descriptor_by_value(1);
+		for (int i = 0; i < desc.bNumInterfaces; ++i) {
+			const libusb_interface &intf = desc.interface[i];
+			if (intf.num_altsetting && intf.altsetting[0].bInterfaceClass == 0xFF && intf.altsetting[1].bInterfaceSubClass == MRF::SUBCLASS) {
+				radio_interface = i;
+				for (int j = 0; j < intf.num_altsetting; ++j) {
+					const libusb_interface_descriptor &as = intf.altsetting[j];
+					if (as.bInterfaceClass == 0xFF && as.bInterfaceSubClass == MRF::SUBCLASS) {
+						if (as.bInterfaceProtocol == MRF::PROTOCOL_OFF) {
+							configuration_altsetting = j;
+						} else if (as.bInterfaceProtocol == MRF::PROTOCOL_NORMAL) {
+							normal_altsetting = j;
+						}
+					}
+				}
+				break;
+			}
+		}
+		if (radio_interface < 0 || configuration_altsetting < 0 || normal_altsetting < 0) {
 			throw std::runtime_error("Wrong USB descriptors (protocol mismatch between burner module and software?).");
 		}
 	}
-	for (unsigned int i = 0; i < 8; ++i) {
-		robots[i].reset(new MRFRobot(*this, i));
+
+	// Move the dongle into configuration 1 (it will nearly always already be there).
+	if (device.get_configuration() != 1) {
+		device.set_configuration(1);
 	}
-	std::memset(drive_packet, 0, sizeof(drive_packet));
-	for (unsigned int i = 0; i < 256; ++i) {
-		free_message_ids.push(static_cast<uint8_t>(i));
-	}
-	device.set_configuration(1);
+
+	// Claim the radio interface.
+	interface_claimer.reset(new USB::InterfaceClaimer(device, radio_interface));
+
+	// Switch to configuration mode and configure the radio parameters.
+	device.set_interface_alt_setting(radio_interface, configuration_altsetting);
 	{
-		USB::InterfaceClaimer temp_interface_claimer(device, 0);
 		channel_ = DEFAULT_CHANNEL;
 		{
 			const char *channel_string = std::getenv("MRF_CHANNEL");
@@ -135,32 +157,51 @@ MRFDongle::MRFDongle() : context(), device(context, MRF_DONGLE_VID, MRF_DONGLE_P
 				pan_ = static_cast<uint16_t>(i);
 			}
 		}
-		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_CHANNEL, channel_, 0, 0);
-		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_SYMBOL_RATE, symbol_rate == 625 ? 1 : 0, 0, 0);
-		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_PAN_ID, pan_, 0, 0);
+		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, MRF::CONTROL_REQUEST_SET_CHANNEL, channel_, static_cast<uint16_t>(radio_interface), 0);
+		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, MRF::CONTROL_REQUEST_SET_SYMBOL_RATE, symbol_rate == 625 ? 1 : 0, static_cast<uint16_t>(radio_interface), 0);
+		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, MRF::CONTROL_REQUEST_SET_PAN_ID, pan_, static_cast<uint16_t>(radio_interface), 0);
 		static const uint64_t MAC = UINT64_C(0x20cb13bd834ab817);
-		device.control_out(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, CONTROL_REQUEST_SET_MAC_ADDRESS, 0, 0, &MAC, sizeof(MAC), 0);
+		device.control_out(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, MRF::CONTROL_REQUEST_SET_MAC_ADDRESS, 0, static_cast<uint16_t>(radio_interface), &MAC, sizeof(MAC), 0);
 	}
-	config_setter.reset(new USB::ConfigurationSetter(device, 2));
-	interface_claimer.reset(new USB::InterfaceClaimer(device, 0));
 
+	// Switch to normal mode.
+	device.set_interface_alt_setting(radio_interface, normal_altsetting);
+
+	// Create the robots.
+	for (unsigned int i = 0; i < 8; ++i) {
+		robots[i].reset(new MRFRobot(*this, i));
+	}
+
+	// Clear the drive packet.
+	std::memset(drive_packet, 0, sizeof(drive_packet));
+
+	// Prepare the available message IDs for allocation.
+	for (unsigned int i = 0; i < 256; ++i) {
+		free_message_ids.push(static_cast<uint8_t>(i));
+	}
+
+	// Submit the message delivery report transfer.
 	mdr_transfer.signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_mdrs));
 	mdr_transfer.submit();
 
+	// Submit the received message transfers.
 	for (auto &i : message_transfers) {
 		i.reset(new USB::InterruptInTransfer(device, 2, 105, false, 0));
 		i->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::handle_message), sigc::ref(*i.get())));
 		i->submit();
 	}
 
+	// Submit the estop transfer.
 	status_transfer.signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_status));
 	status_transfer.submit();
 
+	// Connect signals to beep the dongle when an annunciator message occurs.
 	annunciator_beep_connections[0] = Annunciator::signal_message_activated.connect(sigc::mem_fun(this, &MRFDongle::handle_annunciator_message_activated));
 	annunciator_beep_connections[1] = Annunciator::signal_message_reactivated.connect(sigc::mem_fun(this, &MRFDongle::handle_annunciator_message_reactivated));
 }
 
 MRFDongle::~MRFDongle() {
+	// Disconnect signals.
 	annunciator_beep_connections[0].disconnect();
 	annunciator_beep_connections[1].disconnect();
 	drive_submit_connection.disconnect();
@@ -169,7 +210,7 @@ MRFDongle::~MRFDongle() {
 void MRFDongle::beep(unsigned int length) {
 	pending_beep_length = std::max(length, pending_beep_length);
 	if (!beep_transfer && pending_beep_length) {
-		beep_transfer.reset(new USB::ControlNoDataTransfer(device, LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, CONTROL_REQUEST_BEEP, static_cast<uint16_t>(pending_beep_length), 0, 0));
+		beep_transfer.reset(new USB::ControlNoDataTransfer(device, LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, MRF::CONTROL_REQUEST_BEEP, static_cast<uint16_t>(pending_beep_length), static_cast<uint16_t>(radio_interface), 0));
 		beep_transfer->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_beep_done));
 		beep_transfer->submit();
 		pending_beep_length = 0;

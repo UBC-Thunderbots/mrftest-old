@@ -1,10 +1,8 @@
 #include "buzzer.h"
 #include "constants.h"
+#include "enabled.h"
 #include "estop.h"
 #include "mrf.h"
-#include "normal.h"
-#include "promiscuous.h"
-#include "radio_sleep.h"
 #include <deferred.h>
 #include <exception.h>
 #include <format.h>
@@ -88,20 +86,20 @@ static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	USB_DTYPE_DEVICE, // bDescriptorType
 	0, // bcdUSB LSB
 	2, // bcdUSB MSB
-	0xFF, // bDeviceClass
+	0, // bDeviceClass
 	0, // bDeviceSubClass
 	0, // bDeviceProtocol
 	8, // bMaxPacketSize0
-	(uint8_t) MRF_DONGLE_VID, // idVendor LSB
-	MRF_DONGLE_VID >> 8, // idVendor MSB
-	(uint8_t) MRF_DONGLE_PID, // idProduct LSB
-	MRF_DONGLE_PID >> 8, // idProduct MSB
-	0, // bcdDevice LSB
+	(uint8_t) VENDOR_ID, // idVendor LSB
+	VENDOR_ID >> 8, // idVendor MSB
+	(uint8_t) PRODUCT_ID, // idProduct LSB
+	PRODUCT_ID >> 8, // idProduct MSB
+	1, // bcdDevice LSB
 	1, // bcdDevice MSB
 	STRING_INDEX_MANUFACTURER, // iManufacturer
 	STRING_INDEX_PRODUCT, // iProduct
 	STRING_INDEX_SERIAL, // iSerialNumber
-	3, // bNumConfigurations
+	1, // bNumConfigurations
 };
 
 static const uint8_t STRING_ZERO[4] = {
@@ -111,24 +109,12 @@ static const uint8_t STRING_ZERO[4] = {
 };
 
 static const usb_configs_config_t * const CONFIGURATIONS[] = {
-	&RADIO_SLEEP_CONFIGURATION,
-	&NORMAL_CONFIGURATION,
-	&PROMISCUOUS_CONFIGURATION,
+	&ENABLED_CONFIGURATION,
 	0
 };
 
 static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
-	if (pkt->request_type == (USB_REQ_TYPE_OUT | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_BEEP) {
-		// This request must have index set to zero.
-		if (pkt->index) {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
-
-		// Start the buzzer.
-		buzzer_start(pkt->value);
-
-		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_OUT | USB_REQ_TYPE_STD | USB_REQ_TYPE_DEVICE) && pkt->request == USB_REQ_SET_ADDRESS) {
+	if (pkt->request_type == (USB_REQ_TYPE_OUT | USB_REQ_TYPE_STD | USB_REQ_TYPE_DEVICE) && pkt->request == USB_REQ_SET_ADDRESS) {
 		// This request must have a valid address as its value, an index of zero, and occur while the device is unconfigured.
 		if (pkt->value > 127 || pkt->index || usb_configs_get_current()) {
 			return USB_EP0_DISPOSITION_REJECT;
@@ -192,9 +178,7 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 
 				const uint8_t *descriptor = 0;
 				switch (index) {
-					case 0: descriptor = RADIO_SLEEP_CONFIGURATION_DESCRIPTOR; break;
-					case 1: descriptor = NORMAL_CONFIGURATION_DESCRIPTOR; break;
-					case 2: descriptor = PROMISCUOUS_CONFIGURATION_DESCRIPTOR; break;
+					case 0: descriptor = ENABLED_CONFIGURATION_DESCRIPTOR; break;
 				}
 				if (descriptor) {
 					size_t total_length = descriptor[2] | (descriptor[3] << 8);
@@ -216,9 +200,9 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 					switch (index) {
 						case STRING_INDEX_MANUFACTURER: string = u8"UBC Thunderbots Small Size Team"; break;
 						case STRING_INDEX_PRODUCT: string = u8"Radio Base Station"; break;
-						case STRING_INDEX_CONFIG1: string = u8"Radio Sleep/Pre-DFU"; break;
-						case STRING_INDEX_CONFIG2: string = u8"Normal Operation"; break;
-						case STRING_INDEX_CONFIG3: string = u8"Promiscuous Mode"; break;
+						case STRING_INDEX_RADIO_OFF: string = u8"Radio Off"; break;
+						case STRING_INDEX_NORMAL: string = u8"Normal Mode"; break;
+						case STRING_INDEX_PROMISCUOUS: string = u8"Promiscuous Mode"; break;
 						case STRING_INDEX_SERIAL:
 							formathex32((char *) stash_buffer + 0, U_ID_H);
 							formathex32((char *) stash_buffer + 8, U_ID_M);

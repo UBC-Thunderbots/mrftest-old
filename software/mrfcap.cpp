@@ -37,7 +37,7 @@ int app_main(int argc, char **argv) {
 		std::cerr << "  <symbol-rate> is the bit rate at which to capture, either 250 or 625\n";
 		std::cerr << "  <pan-id> is the PAN ID to capture (if PAN ID filtering is enabled), a number from 0x0001 to 0xFFFE\n";
 		std::cerr << "  <mac-address> is the station’s local MAC address, a 64-bit number excluding 0, 0xFFFF, and 0xFFFFFFFFFFFFFFFF\n";
-		std::cerr << "  <capture-flags> is a numerical combination of capture flags described at <http://trac.thecube.ca/trac/thunderbots/wiki/Electrical/RadioProtocol/2012/USB#SetPromiscuousFlags>\n";
+		std::cerr << "  <capture-flags> is a numerical combination of capture flags described at <http://trac.thecube.ca/trac/thunderbots/wiki/Electrical/RadioProtocol/2013/USB#SetPromiscuousFlags>\n";
 		std::cerr << "  <capture-file> is the name of the .pcap file to write the captured packets into\n";
 		return 1;
 	}
@@ -56,44 +56,70 @@ int app_main(int argc, char **argv) {
 	std::cout << "Addressing dongle… ";
 	std::cout.flush();
 	USB::Context ctx;
-	USB::DeviceHandle devh(ctx, MRF_DONGLE_VID, MRF_DONGLE_PID, std::getenv("MRF_SERIAL"));
+	USB::DeviceHandle devh(ctx, MRF::VENDOR_ID, MRF::PRODUCT_ID, std::getenv("MRF_SERIAL"));
+
+	// Sanity-check the dongle by looking for an interface with the appropriate subclass and alternate settings with the appropriate protocols.
+	// While doing so, discover which interface number is used for the radio and which alternate settings are for configuration-setting and normal operation.
+	int radio_interface = -1, configuration_altsetting = -1, promiscuous_altsetting = -1;
 	{
-		const libusb_config_descriptor &desc = devh.configuration_descriptor_by_value(3);
-		if (desc.bNumInterfaces < 1 || desc.interface[0].num_altsetting < 1 || desc.interface[0].altsetting[0].bInterfaceSubClass != MRF_DONGLE_PROMISCUOUS_SUBCLASS || desc.interface[0].altsetting[0].bInterfaceProtocol != MRF_DONGLE_PROMISCUOUS_PROTOCOL) {
-			throw std::runtime_error("Wrong USB descriptors (version mismatch between burner module and software?).");
+		const libusb_config_descriptor &desc = devh.configuration_descriptor_by_value(1);
+		for (int i = 0; i < desc.bNumInterfaces; ++i) {
+			const libusb_interface &intf = desc.interface[i];
+			if (intf.num_altsetting && intf.altsetting[0].bInterfaceClass == 0xFF && intf.altsetting[1].bInterfaceSubClass == MRF::SUBCLASS) {
+				radio_interface = i;
+				for (int j = 0; j < intf.num_altsetting; ++j) {
+					const libusb_interface_descriptor &as = intf.altsetting[j];
+					if (as.bInterfaceClass == 0xFF && as.bInterfaceSubClass == MRF::SUBCLASS) {
+						if (as.bInterfaceProtocol == MRF::PROTOCOL_OFF) {
+							configuration_altsetting = j;
+						} else if (as.bInterfaceProtocol == MRF::PROTOCOL_PROMISCUOUS) {
+							promiscuous_altsetting = j;
+						}
+					}
+				}
+				break;
+			}
+		}
+		if (radio_interface < 0 || configuration_altsetting < 0 || promiscuous_altsetting < 0) {
+			throw std::runtime_error("Wrong USB descriptors (protocol mismatch between burner module and software?).");
 		}
 	}
-	std::cout << "OK\n";
 
-	// Set configuration 1 to enter parameters
-	devh.set_configuration(1);
+	// Move the dongle into configuration 1 (it will nearly always already be there).
+	if (devh.get_configuration() != 1) {
+		devh.set_configuration(1);
+	}
+
+	// Claim the radio interface.
+	USB::InterfaceClaimer interface_claimer(devh, 0);
+
+	// Switch to configuration mode.
+	devh.set_interface_alt_setting(radio_interface, configuration_altsetting);
 
 	// Set parameters
 	{
-		USB::InterfaceClaimer interface_claimer(devh, 0);
 		std::cout << "Setting channel 0x" << tohex(channel, 2) << "… ";
 		std::cout.flush();
-		devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR, 0x01, channel, 0, 0);
+		devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, MRF::CONTROL_REQUEST_SET_CHANNEL, channel, static_cast<uint16_t>(radio_interface), 0);
 		std::cout << "OK\nSetting symbol rate " << (symbol_rate_encoded ? 625 : 250) << " kb/s… ";
 		std::cout.flush();
-		devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR, 0x03, symbol_rate_encoded, 0, 0);
+		devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, MRF::CONTROL_REQUEST_SET_SYMBOL_RATE, symbol_rate_encoded, static_cast<uint16_t>(radio_interface), 0);
 		std::cout << "OK\nSetting PAN ID 0x" << tohex(pan_id, 4) << "… ";
 		std::cout.flush();
-		devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR, 0x05, pan_id, 0, 0);
+		devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, MRF::CONTROL_REQUEST_SET_PAN_ID, pan_id, static_cast<uint16_t>(radio_interface), 0);
 		std::cout << "OK\nSetting MAC address 0x" << tohex(mac_address, 16) << "… ";
 		std::cout.flush();
-		devh.control_out(LIBUSB_REQUEST_TYPE_VENDOR, 0x07, 0, 0, &mac_address, sizeof(mac_address), 0);
+		devh.control_out(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, MRF::CONTROL_REQUEST_SET_MAC_ADDRESS, 0, static_cast<uint16_t>(radio_interface), &mac_address, sizeof(mac_address), 0);
 		std::cout << "OK\n";
 	}
 
-	// Set configuration 3 to enter promiscuous mode
-	USB::ConfigurationSetter config_setter(devh, 3);
-	USB::InterfaceClaimer interface_claimer(devh, 0);
+	// Switch to promiscuous mode.
+	devh.set_interface_alt_setting(radio_interface, promiscuous_altsetting);
 
 	// Set capture flags
 	std::cout << "Setting capture flags… ";
 	std::cout.flush();
-	devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR, 0x0B, capture_flags, 0, 0);
+	devh.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, MRF::CONTROL_REQUEST_SET_PROMISCUOUS_FLAGS, capture_flags, static_cast<uint16_t>(radio_interface), 0);
 	std::cout << "OK\n";
 
 	// Open the capture file

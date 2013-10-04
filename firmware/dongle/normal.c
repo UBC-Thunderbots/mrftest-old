@@ -19,76 +19,6 @@
 #include <usb_ep0_sources.h>
 #include <usb_fifo.h>
 
-const uint8_t NORMAL_CONFIGURATION_DESCRIPTOR[] = {
-	9, // bLength
-	USB_DTYPE_CONFIGURATION, // bDescriptorType
-	60, // wTotalLength LSB
-	0, // wTotalLength MSB
-	1, // bNumInterfaces
-	2, // bConfigurationValue
-	STRING_INDEX_CONFIG2, // iConfiguration
-	0x80, // bmAttributes
-	150, // bMaxPower
-
-	9, // bLength
-	USB_DTYPE_INTERFACE, // bDescriptorType
-	0, // bInterfaceNumber
-	0, // bAlternateSetting
-	6, // bNumEndpoints
-	0xFF, // bInterfaceClass
-	MRF_DONGLE_NORMAL_SUBCLASS, // bInterfaceSubClass
-	MRF_DONGLE_NORMAL_PROTOCOL, // bInterfaceProtocol
-	0, // iInterface
-
-	7, // bLength
-	USB_DTYPE_ENDPOINT, // bDescriptorType
-	0x01, // bEndpointAddress
-	0x03, // bmAttributes
-	64, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	5, // bInterval
-
-	7, // bLength
-	USB_DTYPE_ENDPOINT, // bDescriptorType
-	0x02, // bEndpointAddress
-	0x03, // bmAttributes
-	64, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	5, // bInterval
-
-	7, // bLength
-	USB_DTYPE_ENDPOINT, // bDescriptorType
-	0x03, // bEndpointAddress
-	0x03, // bmAttributes
-	64, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	5, // bInterval
-
-	7, // bLength
-	USB_DTYPE_ENDPOINT, // bDescriptorType
-	0x81, // bEndpointAddress
-	0x02, // bmAttributes
-	8, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	0, // bInterval
-
-	7, // bLength
-	USB_DTYPE_ENDPOINT, // bDescriptorType
-	0x82, // bEndpointAddress
-	0x03, // bmAttributes
-	64, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	5, // bInterval
-
-	7, // bLength
-	USB_DTYPE_ENDPOINT, // bDescriptorType
-	0x83, // bEndpointAddress
-	0x03, // bmAttributes
-	1, // wMaxPacketSize LSB
-	0, // wMaxPacketSize MSB
-	10, // bInterval
-};
-
 #define PKT_FLAG_RELIABLE 0x01
 
 static bool drive_packet_pending, drive_packet_halt_pending, mrf_tx_active;
@@ -619,76 +549,6 @@ static void handle_ep3i_clear_halt(unsigned int UNUSED(ep)) {
 	push_estop();
 }
 
-static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_source_t **source, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
-	static uint8_t stash_buffer[2];
-	static usb_ep0_memory_source_t mem_src;
-
-	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_CHANNEL) {
-		// This request must have value and index set to zero.
-		if (pkt->value || pkt->index) {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
-
-		// Return the channel number.
-		*source = usb_ep0_memory_source_init(&mem_src, &config.channel, sizeof(config.channel));
-		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_SYMBOL_RATE) {
-		// This request must have value and index set to zero.
-		if (pkt->value || pkt->index) {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
-
-		// Return the symbol rate.
-		*source = usb_ep0_memory_source_init(&mem_src, &config.symbol_rate, sizeof(config.symbol_rate));
-		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_PAN_ID) {
-		// This request must have value and index set to zero.
-		if (pkt->value || pkt->index) {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
-
-		// Return the PAN ID.
-		*source = usb_ep0_memory_source_init(&mem_src, &config.pan_id, sizeof(config.pan_id));
-		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_GET_MAC_ADDRESS) {
-		// This request must have value and index set to zero.
-		if (pkt->value || pkt->index) {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
-
-		// Return the MAC address.
-		*source = usb_ep0_memory_source_init(&mem_src, &config.mac_address, sizeof(config.mac_address));
-		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && !pkt->index && pkt->request == USB_REQ_GET_INTERFACE) {
-		// This request must have value set to zero.
-		if (pkt->value) {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
-
-		// Return the alternate setting number, which is always zero.
-		stash_buffer[0] = 0;
-		*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 1);
-		return USB_EP0_DISPOSITION_ACCEPT;
-	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_STD | USB_REQ_TYPE_INTERFACE) && pkt->request == USB_REQ_GET_STATUS) {
-		// This request must have value set to zero.
-		if (pkt->value) {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
-
-		// Interface status is always all zeroes.
-		stash_buffer[0] = 0;
-		stash_buffer[1] = 0;
-		*source = usb_ep0_memory_source_init(&mem_src, stash_buffer, 2);
-		return USB_EP0_DISPOSITION_ACCEPT;
-	} else {
-		return USB_EP0_DISPOSITION_NONE;
-	}
-}
-
-static const usb_ep0_cbs_t EP0_CBS = {
-	.on_in_request = &on_in_request,
-};
-
 static bool can_enter(void) {
 	return config.pan_id != 0xFFFF;
 }
@@ -837,15 +697,9 @@ static void on_enter(void) {
 	TIM6_ARR = 1439;
 	TIM6_CNT = 0;
 	NVIC_ISER[54 / 32] = 1 << (54 % 32); // SETENA54 = 1; enable timer 6 interrupt
-
-	// Register endpoints callbacks.
-	usb_ep0_cbs_push(&EP0_CBS);
 }
 
 static void on_exit(void) {
-	// Unregister endpoints callbacks.
-	usb_ep0_cbs_remove(&EP0_CBS);
-
 	// Turn off timer 6.
 	TIM6_CR1 = 0; // Disable counter
 	NVIC_ICER[54 / 32] = 1 << (54 % 32); // CLRENA54 = 1; disable timer 6 interrupt
@@ -879,8 +733,7 @@ static void on_exit(void) {
 	mrf_init();
 }
 
-const usb_configs_config_t NORMAL_CONFIGURATION = {
-	.configuration = 2,
+const usb_altsettings_altsetting_t NORMAL_ALTSETTING = {
 	.can_enter = &can_enter,
 	.on_enter = &on_enter,
 	.on_exit = &on_exit,

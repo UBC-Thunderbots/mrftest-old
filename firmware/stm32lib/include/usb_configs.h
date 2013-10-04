@@ -1,10 +1,12 @@
-#ifndef USB_CONFIGS_H
-#define USB_CONFIGS_H
+#ifndef STM32LIB_USB_CONFIGS_H
+#define STM32LIB_USB_CONFIGS_H
 
 /**
  * \file
  *
  * \brief Provides a layer that handles switching between configurations.
+ *
+ * When this module is enabled, it handles the GET CONFIGURATION and SET CONFIGURATION control requests.
  */
 
 #include <stdbool.h>

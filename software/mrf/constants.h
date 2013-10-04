@@ -1,81 +1,66 @@
 #ifndef MRF_CONSTANTS_H
 #define MRF_CONSTANTS_H
 
-/**
- * \brief The vendor ID used by the dongle.
- */
-#define MRF_DONGLE_VID 0x0483
+#include <stdint.h>
 
-/**
- * \brief The product ID used by the dongle.
- */
-#define MRF_DONGLE_PID 0x497C
+namespace MRF {
+	/**
+	 * \brief The vendor ID used by the dongle.
+	 */
+	constexpr uint16_t VENDOR_ID = 0x0483;
 
-/**
- * \brief The interface subclass number used by the dongle in normal mode.
- */
-#define MRF_DONGLE_NORMAL_SUBCLASS 0
+	/**
+	 * \brief The product ID used by the dongle.
+	 */
+	constexpr uint16_t PRODUCT_ID = 0x497C;
 
-/**
- * \brief The interface subclass number used by the dongle in promiscuous mode.
- */
-#define MRF_DONGLE_PROMISCUOUS_SUBCLASS 0
+	/**
+	 * \brief The interface subclass number used by the radio interface.
+	 */
+	constexpr uint8_t SUBCLASS = 0x01;
 
-/**
- * \brief The interface protocol number used by the burner in normal mode.
- *
- * This number acts as a version number and will change if incompatible protocol changes are made, thus ensuring software and firmware match capabilities.
- */
-#define MRF_DONGLE_NORMAL_PROTOCOL 0
+	/**
+	 * \brief The interface protocol number used by the dongle in radio off mode.
+	 */
+	constexpr uint8_t PROTOCOL_OFF = 0x01;
 
-/**
- * \brief The interface protocol number used by the burner in promiscuous mode.
- *
- * This number acts as a version number and will change if incompatible protocol changes are made, thus ensuring software and firmware match capabilities.
- */
-#define MRF_DONGLE_PROMISCUOUS_PROTOCOL 0
+	/**
+	 * \brief The interface protocol number used by the dongle in normal mode.
+	 */
+	constexpr uint8_t PROTOCOL_NORMAL = 0x41;
 
-/**
- * \brief The string indices understood by a GET DESCRIPTOR(String) request.
- */
-enum {
-	STRING_INDEX_ZERO = 0,
-	STRING_INDEX_MANUFACTURER,
-	STRING_INDEX_PRODUCT,
-	STRING_INDEX_CONFIG1,
-	STRING_INDEX_CONFIG2,
-	STRING_INDEX_CONFIG3,
-	STRING_INDEX_SERIAL,
-};
+	/**
+	 * \brief The interface protocol number used by the dongle in promiscuous mode.
+	 */
+	constexpr uint8_t PROTOCOL_PROMISCUOUS = 0x81;
 
-/**
- * \brief The vendor-specific control requests understood by the dongle.
- */
-enum {
-	CONTROL_REQUEST_GET_CHANNEL = 0,
-	CONTROL_REQUEST_SET_CHANNEL,
-	CONTROL_REQUEST_GET_SYMBOL_RATE,
-	CONTROL_REQUEST_SET_SYMBOL_RATE,
-	CONTROL_REQUEST_GET_PAN_ID,
-	CONTROL_REQUEST_SET_PAN_ID,
-	CONTROL_REQUEST_GET_MAC_ADDRESS,
-	CONTROL_REQUEST_SET_MAC_ADDRESS,
-	CONTROL_REQUEST_GET_ADDRESS_MAP_ENTRY,
-	CONTROL_REQUEST_SET_ADDRESS_MAP_ENTRY,
-	CONTROL_REQUEST_GET_PROMISCUOUS_FLAGS,
-	CONTROL_REQUEST_SET_PROMISCUOUS_FLAGS,
-	CONTROL_REQUEST_BEEP,
-};
+	/**
+	 * \brief The vendor-specific control requests understood by the radio interface.
+	 */
+	enum {
+		CONTROL_REQUEST_GET_CHANNEL = 0x00,
+		CONTROL_REQUEST_SET_CHANNEL = 0x01,
+		CONTROL_REQUEST_GET_SYMBOL_RATE = 0x02,
+		CONTROL_REQUEST_SET_SYMBOL_RATE = 0x03,
+		CONTROL_REQUEST_GET_PAN_ID = 0x04,
+		CONTROL_REQUEST_SET_PAN_ID = 0x05,
+		CONTROL_REQUEST_GET_MAC_ADDRESS = 0x06,
+		CONTROL_REQUEST_SET_MAC_ADDRESS = 0x07,
+		CONTROL_REQUEST_GET_PROMISCUOUS_FLAGS = 0x0A,
+		CONTROL_REQUEST_SET_PROMISCUOUS_FLAGS = 0x0B,
+		CONTROL_REQUEST_BEEP = 0x0C,
+	};
 
-/**
- * The delivery status codes reported in message delivery reports.
- */
-enum {
-	MDR_STATUS_OK,
-	MDR_STATUS_NOT_ASSOCIATED,
-	MDR_STATUS_NOT_ACKNOWLEDGED,
-	MDR_STATUS_NO_CLEAR_CHANNEL,
-};
+	/**
+	 * The delivery status codes reported in message delivery reports.
+	 */
+	enum {
+		MDR_STATUS_OK,
+		MDR_STATUS_NOT_ASSOCIATED,
+		MDR_STATUS_NOT_ACKNOWLEDGED,
+		MDR_STATUS_NO_CLEAR_CHANNEL,
+	};
+}
 
 #endif
 

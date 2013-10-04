@@ -1,5 +1,5 @@
-#ifndef EXCEPTION_H
-#define EXCEPTION_H
+#ifndef STM32LIB_EXCEPTION_H
+#define STM32LIB_EXCEPTION_H
 
 /**
  * \file

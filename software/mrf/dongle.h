@@ -90,7 +90,7 @@ class MRFDongle : public Drive::Dongle {
 
 		USB::Context context;
 		USB::DeviceHandle device;
-		std::unique_ptr<USB::ConfigurationSetter> config_setter;
+		int radio_interface, configuration_altsetting, normal_altsetting;
 		std::unique_ptr<USB::InterfaceClaimer> interface_claimer;
 		uint8_t channel_;
 		uint16_t pan_;
