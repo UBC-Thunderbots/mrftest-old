@@ -302,6 +302,7 @@ software/ai/hl/stp/play/shoot_goal.cpp -text
 software/ai/hl/stp/play/simple_play.h -text
 software/ai/hl/stp/play/stop.cpp -text
 software/ai/hl/stp/play/stop_shadow.cpp -text
+software/ai/hl/stp/play/testshootspeed.cpp -text
 software/ai/hl/stp/play/their_corner_chip.cpp -text
 software/ai/hl/stp/play/their_corner_play.cpp -text
 software/ai/hl/stp/play/tri_attack_defensive.cpp -text
@@ -380,6 +381,8 @@ software/ai/hl/stp/tactic/tactic.cpp -text
 software/ai/hl/stp/tactic/tactic.h -text
 software/ai/hl/stp/tactic/tdefend.cpp -text
 software/ai/hl/stp/tactic/tdefend.h -text
+software/ai/hl/stp/tactic/testshootspeed.cpp -text
+software/ai/hl/stp/tactic/testshootspeed.h -text
 software/ai/hl/stp/tactic/tri_attack.cpp -text
 software/ai/hl/stp/tactic/tri_attack.h -text
 software/ai/hl/stp/tactic/util.cpp -text
