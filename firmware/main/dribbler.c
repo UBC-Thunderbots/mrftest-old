@@ -20,6 +20,7 @@ static uint8_t tick_count = 0;
 bool dribbler_enabled = false;
 bool dribbler_fast = true;
 uint16_t dribbler_speed = 0;
+uint8_t dribbler_pwm = 0;
 float dribbler_winding_energy = 0, dribbler_housing_energy = 0;
 bool dribbler_hot = false;
 
@@ -56,6 +57,9 @@ void dribbler_tick(float battery) {
 		} else if (pwm < min_pwm) {
 			pwm = min_pwm;
 		}
+
+		dribbler_pwm = pwm;
+
 		motor_set(4, MOTOR_MODE_FORWARD, pwm);
 		float applied_voltage = battery * pwm / 255.0;
 		float delta_voltage = applied_voltage - back_emf;
@@ -64,6 +68,7 @@ void dribbler_tick(float battery) {
 		float energy = power / DRIBBLER_TICK_HZ;
 		update_thermal_model(energy);
 	} else {
+		dribbler_pwm = 0;
 		motor_set(4, MOTOR_MODE_MANUAL_COMMUTATION, 0);
 		update_thermal_model(0);
 	}

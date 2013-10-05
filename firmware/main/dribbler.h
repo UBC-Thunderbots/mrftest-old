@@ -63,5 +63,10 @@ extern bool dribbler_hot;
  */
 void dribbler_tick(float battery);
 
+/**
+ * \brief Reports pwm value of the dribbler.
+ */
+extern uint8_t dribbler_pwm;
+
 #endif
 

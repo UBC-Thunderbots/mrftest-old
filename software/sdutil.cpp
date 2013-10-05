@@ -276,7 +276,7 @@ namespace {
 		std::ofstream ofs;
 		ofs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
 		ofs.open(args[1], std::ios_base::out | std::ios_base::trunc);
-		ofs << "Epoch\tTime (s)\tBreakbeam\tCapacitor (V)\tBattery (V)\tBoard Temperature (°C)\tEncoder 0 (¼°/t)\tEncoder 1 (¼°/t)\tEncoder 2 (¼°/t)\tEncoder 3 (¼°/t)\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tMotor 0 (/255)\tMotor 1 (/255)\tMotor 2 (/255)\tMotor 3 (/255)\tMotor 0 (°C)\tMotor 1 (°C)\tMotor 2 (°C)\tMotor 3 (°C)\tDribbler (rpm)\tDribbler (°C)\tCPU (%)\n";
+		ofs << "Epoch\tTime (s)\tBreakbeam\tCapacitor (V)\tBattery (V)\tBoard Temperature (°C)\tEncoder 0 (¼°/t)\tEncoder 1 (¼°/t)\tEncoder 2 (¼°/t)\tEncoder 3 (¼°/t)\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tMotor 0 (/255)\tMotor 1 (/255)\tMotor 2 (/255)\tMotor 3 (/255)\tMotor 0 (°C)\tMotor 1 (°C)\tMotor 2 (°C)\tMotor 3 (°C)\tDribbler (rpm)\tDribbler PWM (/255)\tDribbler (°C)\tCPU (%)\n";
 		uint64_t last_tsc = 0;
 		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
 			const std::vector<uint8_t> &buffer = sdcard.get(sector);
@@ -314,6 +314,7 @@ namespace {
 					uint8_t wheels_hall_sensors_failed = decode_u8_be(ptr); ptr += 1;
 					/*uint8_t dribbler_hall_sensors_failed = decode_u8_be(ptr);*/ ptr += 1;
 					uint32_t cpu_used_since_last_tick = decode_u32_be(ptr); ptr += 4;
+					uint8_t dribbler_pwm = decode_u8_be(ptr); ptr += 1;
 
 					double capacitor_voltage = capacitor_voltage_raw / 1024.0 * 3.3 / 2200 * (2200 + 200000);
 					double battery_voltage = battery_voltage_raw / 1024.0 * 3.3 / 2200 * (2200 + 20000);
@@ -341,6 +342,7 @@ namespace {
 						ofs << '\t' << temp;
 					}
 					ofs << '\t' << dribbler_speed;
+					ofs << '\t' << dribbler_pwm;
 					ofs << '\t' << dribbler_temperature;
 					ofs << '\t' << (static_cast<double>(cpu_used_since_last_tick) / static_cast<double>(tsc - last_tsc) * 100.0);
 					ofs << '\n';

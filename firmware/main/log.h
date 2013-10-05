@@ -29,6 +29,8 @@ typedef struct __attribute__((packed)) {
 	uint8_t dribbler_hall_sensors_failed;
 
 	uint32_t cpu_used_since_last_tick;
+
+	uint8_t dribbler_pwm;
 } log_tick_t;
 
 /**

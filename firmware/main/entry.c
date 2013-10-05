@@ -457,6 +457,8 @@ static void handle_tick(void) {
 		rec->tick.cpu_used_since_last_tick = cpu_usage;
 		cpu_usage = 0;
 
+		rec->tick.dribbler_pwm = dribbler_pwm;
+
 		log_commit();
 	} else if (log_state() == LOG_STATE_OVERFLOW) {
 		log_overflow_feedback_report_pending = true;
