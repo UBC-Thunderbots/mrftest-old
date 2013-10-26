@@ -9,17 +9,23 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
+				 * Passer Simple
+				 * Active Tactic
 				 * Just toss the ball to someone in front.
 				 */
 				Tactic::Ptr passer_simple(World world);
 
 				/**
+				 * Passee Simple
+				 * Not Active Tactic
 				 * Stay at position and wait for pass.
 				 * number: first passee is 0, second is 1 etc
 				 */
 				Tactic::Ptr passee_simple(World world, unsigned number);
 
 				/**
+				 * Follow Baller
+				 * Not Active Tactic
 				 * Look at where the ball is heading,
 				 * and catch it.
 				 */

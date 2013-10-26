@@ -9,30 +9,41 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
+				 * 
 				 * Layered defense by Terence. Must have one of tgoalie or tdefender1
 				 */
 
 				/**
+				 * TGoalie
+				 * Not Active Tactic
 				 * A tactic for Terence goalie. Guards defense area (and some portion of the inner layer).
 				 */
 				Tactic::Ptr tgoalie(World world, const size_t defender_role);
 
 				/**
+				 * TDefender1
+				 * Not Active Tactic
 				 * A tactic for Terence defender 1. Guards defense area, inner layer, and outer layer.
 				 */
 				Tactic::Ptr tdefender1(World world);
 
 				/**
+				 * TDefender2
+				 * Not Active Tactic
 				 * A tactic for Terence defender 2. Guards inner layer, outer layer, and our side of the field.
 				 */
 				Tactic::Ptr tdefender2(World world);
 
 				/**
+				 * TDefender3
+				 * Not Active Tactic
 				 * A tactic for Terence defender 3. Guards same layer as tdefender1.
 				 */
 				Tactic::Ptr tdefender3(World world);
 				
 				/**
+				 * TDefend Line
+				 * Not Active Tactic
 				 * Defend a line
 				 * If p1_ == p2_ it'll be equivalent as defending a point
 				 */

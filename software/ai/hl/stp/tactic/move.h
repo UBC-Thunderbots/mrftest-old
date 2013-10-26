@@ -9,6 +9,8 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
+				 * Move
+				 * Not Active Tactic
 				 * Move to a location specified by dest.
 				 *
 				 * \param[in] dest the location to move to.

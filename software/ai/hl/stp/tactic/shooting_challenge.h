@@ -8,6 +8,8 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
+				 * Shooting Challenge
+				 * Active Tactic
 				 * Waits in position until the angle to the goal is clear of enemies. If it's clear of enemies, it shoots.
 				 */
 				Tactic::Ptr shooting_challenge(AI::HL::W::World world, double speed_ratio = 1.0);

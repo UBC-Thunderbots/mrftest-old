@@ -8,8 +8,9 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
-				 * intercepts the ball
+				 * Intercept
 				 * Active tactic.
+				 * intercepts the ball
 				 * target defaults to enemy goal
 				 */
 				Tactic::Ptr intercept(World world, Point target = Point(3.025, 0));

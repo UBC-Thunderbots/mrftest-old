@@ -10,6 +10,8 @@ namespace AI {
 			namespace Tactic {
 
 				/**
+				 * Mark Offside
+				 * Not Active Tactic
 				 * Marks the offside player to defend against one time plays
 				 *
 				 * \input[in] target - the enemy player to target

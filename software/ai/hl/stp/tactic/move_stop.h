@@ -10,6 +10,8 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
+				 * Move Stop
+				 * Active Tactic
 				 * Move to correct stopping location for the specified player index.
 				 *
 				 * \param[in] player_index goes from 0 to 3 and is used for calculating a robot's relative

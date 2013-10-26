@@ -8,8 +8,9 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
-				 * Runs another tactic and waits for a playtype to happen.
+				 * Wait Play Type
 				 * Active tactic.
+				 * Runs another tactic and waits for a playtype to happen.
 				 *
 				 * \param[in] tactic the tactic to run.
 				 *

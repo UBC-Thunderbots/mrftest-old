@@ -9,6 +9,7 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
+				 * Move Wait Playtype
 				 * Active tactic.
 				 * Move to position, and waits for a particular playtype.
 				 *

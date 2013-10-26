@@ -8,6 +8,8 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
+				 * Idle
+				 * Not Active Tactic
 				 * Stay at the same position and do nothing.
 				 */
 				Tactic::Ptr idle(World world);

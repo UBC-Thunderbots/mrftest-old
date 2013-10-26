@@ -9,7 +9,9 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
-				 * Pass using ray.
+				 * Passer Ray
+				 * Active Tactic
+				 * Pass using ray; A tactic that uses the best_shoot_ray() evaluation to determine the best passing angle and shoots with that angle. 
 				 */
 				Tactic::Ptr passer_ray(World world);
 			}

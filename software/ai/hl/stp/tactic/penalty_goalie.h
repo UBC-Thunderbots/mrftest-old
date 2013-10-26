@@ -8,8 +8,9 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
+				 * Penalty Goalie
+				 * Active Tactic (But it's never done)
 				 * Only to be used for defending against penalty kicks.
-				 * Active Tactic.
 				 */
 				Tactic::Ptr penalty_goalie(World world);
 			}

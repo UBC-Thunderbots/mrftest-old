@@ -8,6 +8,8 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/*
+				 * Smart Shoot
+				 * Active Tactic
 				 * The play checks to see if it is clear to shoot or not.
 				 * If the path to the destination is clear, it shoots. If there is an obstacle, it will chip if the ball will clear.
 				 * Otherwise, it will attempt to move back until it can clear.

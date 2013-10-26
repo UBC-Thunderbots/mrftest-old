@@ -10,6 +10,8 @@ namespace AI {
 			namespace Tactic {
 
 				/**
+				 * Indirect Chip to Cherry
+				 * Active Tactic
 				 * Chip ball to a cherry picker.
 				 * This is a stopgap hack for some things in RoboCup. Need to refactor this code soon.
 				 */

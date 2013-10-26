@@ -8,7 +8,9 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
-				 * Ram to ball.
+				 * Ram
+				 * Active Tactic
+				 * Ram to ball; A tactic that implements the Ram action which gets the robot to run into the ball. 
 				 */
 				Tactic::Ptr ram(AI::HL::W::World world);
 			}

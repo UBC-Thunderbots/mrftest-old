@@ -8,6 +8,11 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Tactic {
+				/*
+				* Test Shoot Speed
+				* Active Tactic
+				* A tactic implemented to test the ball shooting speed
+				*/
 				Tactic::Ptr test_shoot_speed(World world, bool force = false);
 
 			}
