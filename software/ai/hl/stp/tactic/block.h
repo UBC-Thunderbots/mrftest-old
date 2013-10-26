@@ -9,12 +9,18 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
+				 * Block Goal
+				 * Non Active tactic
 				 * Blocks against an enemy from view of our goal.
+				 * Uses the block goal action
 				 */
 				Tactic::Ptr block_goal(World world, Enemy::Ptr enemy);
 
 				/**
+				 * Block Ball
+				 * Non Active Tactic
 				 * Blocks against an enemy from the ball / passing.
+				 * Uses the block ball action
 				 */
 				Tactic::Ptr block_ball(World world, Enemy::Ptr enemy);
 			}

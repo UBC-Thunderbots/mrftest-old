@@ -10,6 +10,8 @@ namespace AI {
 			namespace Tactic {
 
 				/**
+				 * Direct Free Friendly Pivot
+				 * Active Tactic
 				 * Approaches a target with autochip on. Used for direct free friendlies.
 				 * This should be changed to properly use the new pivot once it comes in/
 				 */

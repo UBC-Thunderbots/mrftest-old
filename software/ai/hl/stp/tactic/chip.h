@@ -10,6 +10,8 @@ namespace AI {
 			namespace Tactic {
 				
 				/**
+				 * Chip Targer
+				 * Active Tactic
 				 * Chip at a specified target.
 				 */
 				Tactic::Ptr chip_target(World world, const Coordinate target);
