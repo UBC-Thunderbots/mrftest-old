@@ -62,16 +62,5 @@ void abort(void) {
 			}
 		}
 	}
-
-	// Turn the three LEDs on.
-	GPIOB_BSRR = GPIO_BS(14) | GPIO_BS(13) | GPIO_BS(12);
-
-	// Flash the LEDs forever.
-	for (;;) {
-		sleep_ms(1000);
-		GPIOB_BSRR = GPIO_BR(14) | GPIO_BR(13) | GPIO_BR(12);
-		sleep_ms(1000);
-		GPIOB_BSRR = GPIO_BS(14) | GPIO_BS(13) | GPIO_BS(12);
-	}
 }
 
