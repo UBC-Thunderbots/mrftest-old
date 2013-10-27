@@ -3,6 +3,8 @@
 
 #include "geom/rect.h"
 #include "ai/hl/stp/coordinate.h"
+#include <cstddef>
+#include <functional>
 
 namespace AI {
 	namespace HL {
@@ -17,7 +19,7 @@ namespace AI {
 			 */
 			class Region {
 				public:
-					enum Type {
+					enum class Type {
 						RECTANGLE,
 						CIRCLE,
 					};
@@ -78,6 +80,10 @@ namespace AI {
 
 					Region &operator=(const Region &r);
 
+					bool operator==(const Region &other) const;
+
+					std::size_t hash() const;
+
 				protected:
 					Type type_;
 					Coordinate p1, p2;
@@ -90,6 +96,17 @@ namespace AI {
 			};
 		}
 	}
+}
+
+namespace std {
+	template<> struct hash<AI::HL::STP::Region> {
+		typedef AI::HL::STP::Region argument_type;
+		typedef std::size_t result_type;
+
+		std::size_t operator()(const AI::HL::STP::Region &r) const {
+			return r.hash();
+		}
+	};
 }
 
 #endif

@@ -75,3 +75,16 @@ Region &Region::operator=(const Region &r) {
 	return *this;
 }
 
+bool Region::operator==(const Region &other) const {
+	return type_ == other.type_ && p1 == other.p1 && p2 == other.p2 && radius_ == other.radius_;
+}
+
+std::size_t Region::hash() const {
+	std::size_t acc = 5;
+	acc = acc * 17 + std::hash<unsigned int>()(static_cast<unsigned int>(type_));
+	acc = acc * 17 + std::hash<Coordinate>()(p1);
+	acc = acc * 17 + std::hash<Coordinate>()(p2);
+	acc = acc * 17 + std::hash<double>()(radius_);
+	return acc;
+}
+

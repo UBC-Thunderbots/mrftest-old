@@ -3,6 +3,8 @@
 
 #include "geom/point.h"
 #include "ai/hl/stp/world.h"
+#include <cstddef>
+#include <functional>
 #include <memory>
 
 namespace AI {
@@ -90,6 +92,10 @@ namespace AI {
 
 					Coordinate &operator=(const Coordinate &c);
 
+					bool operator==(const Coordinate &other) const;
+
+					std::size_t hash() const;
+
 				protected:
 					std::unique_ptr<World> world;
 					YType y_type;
@@ -98,6 +104,17 @@ namespace AI {
 			};
 		}
 	}
+}
+
+namespace std {
+	template<> struct hash<AI::HL::STP::Coordinate> {
+		typedef AI::HL::STP::Coordinate argument_type;
+		typedef std::size_t result_type;
+
+		std::size_t operator()(const AI::HL::STP::Coordinate &c) const {
+			return c.hash();
+		}
+	};
 }
 
 #endif

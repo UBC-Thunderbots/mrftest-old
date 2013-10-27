@@ -78,3 +78,22 @@ Coordinate &Coordinate::operator=(const Coordinate &c) {
 	return *this;
 }
 
+bool Coordinate::operator==(const Coordinate &other) const {
+	if (!(y_type == other.y_type && o_type == other.o_type && pos == other.pos)) {
+		return false;
+	}
+	if (world) {
+		return other.world && (*world.get() == *other.world.get());
+	} else {
+		return !other.world;
+	}
+}
+
+std::size_t Coordinate::hash() const {
+	std::size_t acc = 5;
+	acc = acc * 17 + std::hash<unsigned int>()(static_cast<unsigned int>(y_type));
+	acc = acc * 17 + std::hash<unsigned int>()(static_cast<unsigned int>(o_type));
+	acc = acc * 17 + std::hash<Point>()(pos);
+	return acc;
+}
+

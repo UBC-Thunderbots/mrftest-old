@@ -214,6 +214,15 @@ namespace AI {
 					World(const World &copyref);
 
 					/**
+					 * \brief Compares two world for equality.
+					 *
+					 * \param[in] w the world to compare to
+					 *
+					 * \return \c true if this world is equal to \p w, or \c false if not
+					 */
+					bool operator==(const World &w) const;
+
+					/**
 					 * \brief Returns the field
 					 *
 					 * \return the field
@@ -388,6 +397,10 @@ inline AI::HL::W::FriendlyTeam AI::HL::W::World::friendly_team() const {
 
 inline AI::HL::W::EnemyTeam AI::HL::W::World::enemy_team() const {
 	return EnemyTeam(impl.enemy_team());
+}
+
+inline bool AI::HL::W::World::operator==(const World &w) const {
+	return &impl == &w.impl;
 }
 
 inline const Property<AI::Common::PlayType> &AI::HL::W::World::playtype() const {
