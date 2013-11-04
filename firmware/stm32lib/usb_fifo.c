@@ -128,6 +128,6 @@ size_t usb_fifo_get_size(unsigned int fifo) {
 	assert(fifo < NUM_FIFOS);
 
 	// Do it.
-	return OTG_FS_DIEPTXF[fifo].INEPTXFD;
+	return OTG_FS_DIEPTXF[fifo].INEPTXFD * 4;
 }
 
