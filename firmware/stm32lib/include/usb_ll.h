@@ -1,9 +1,8 @@
 #ifndef STM32LIB_USB_LL_H
 #define STM32LIB_USB_LL_H
 
+#include <registers/otg_fs.h>
 #include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
 
 /**
  * \file
@@ -103,7 +102,7 @@ typedef void (*usb_ll_in_cb_t)(unsigned int ep);
  *
  * \param pattern the pattern to handle
  */
-typedef void (*usb_ll_out_cb_t)(unsigned int ep, uint32_t pattern);
+typedef void (*usb_ll_out_cb_t)(unsigned int ep, OTG_FS_GRXSTSR_device_t pattern);
 
 /**
  * \brief The type of callback the application provides to be notified when global NAK occurs.

@@ -7,66 +7,54 @@
  * \brief Provides utilities for doing various operations on the reset and clock control registers.
  */
 
-#include <registers.h>
-#include <stdint.h>
-
-// This function is an implementation detail and should not be called directly.
-static inline void rcc_enable_(uint32_t mask, volatile uint32_t *rstr, volatile uint32_t *enr) __attribute__((unused));
-static inline void rcc_enable_(uint32_t mask, volatile uint32_t *rstr, volatile uint32_t *enr) {
-	*rstr |= mask;
-	asm volatile("dsb");
-	asm volatile("nop");
-	*enr |= mask;
-	asm volatile("dsb");
-	asm volatile("nop");
-	*rstr &= ~mask;
-	asm volatile("dsb");
-	asm volatile("nop");
-}
-
-// This function is an implementation detail and should not be called directly.
-static inline void rcc_disable_(uint32_t mask, volatile uint32_t *enr) __attribute__((unused));
-static inline void rcc_disable_(uint32_t mask, volatile uint32_t *enr) {
-	asm volatile("dsb");
-	asm volatile("nop");
-	*enr &= ~mask;
-}
+#include <registers/rcc.h>
 
 /**
- * \brief Resets and enables a module.
+ * \brief Enables a module.
  *
  * \param bus the bus the module is attached to, one of AHB1, AHB2, AHB3, APB1, or APB2 (based on the name of the RCC registers controlling it)
  *
- * \param bit the bit number of the module to enable
+ * \param module the name of the module (the prefix of the control bits in the controlling RCC registers)
  */
-#define rcc_enable(bus, bit) rcc_enable_(1 << (bit), &(RCC_ ## bus ## RSTR), &(RCC_ ## bus ## ENR))
+#define rcc_enable(bus, module) \
+	do { \
+		RCC_ ## bus ## ENR . module ## EN = 1; \
+		asm volatile("dsb"); \
+		asm volatile("nop"); \
+	} while (0)
 
 /**
- * \brief Resets and enables multiple modules on the same bus.
+ * \brief Resets a module.
+ *
+ * The module should already be enabled.
  *
  * \param bus the bus the module is attached to, one of AHB1, AHB2, AHB3, APB1, or APB2 (based on the name of the RCC registers controlling it)
  *
- * \param mask the bit mask of the modules to enable
+ * \param module the name of the module (the prefix of the control bits in the controlling RCC registers)
  */
-#define rcc_enable_multi(bus, mask) rcc_enable_((mask), &(RCC_ ## bus ## RSTR), &(RCC_ ## bus ## ENR))
+#define rcc_reset(bus, module) \
+	do { \
+		RCC_ ## bus ## RSTR . module ## RST = 1; \
+		asm volatile("dsb"); \
+		asm volatile("nop"); \
+		RCC_ ## bus ## RSTR . module ## RST = 0; \
+		asm volatile("dsb"); \
+		asm volatile("nop"); \
+	} while (0)
 
 /**
  * \brief Disables a module.
  *
  * \param bus the bus the module is attached to, one of AHB1, AHB2, AHB3, APB1, or APB2 (based on the name of the RCC registers controlling it)
  *
- * \param bit the bit number of the module to disable
+ * \param module the name of the module (the prefix of the control bits in the controlling RCC registers)
  */
-#define rcc_disable(bus, bit) rcc_disable_(1 << (bit), &(RCC_ ## bus ## ENR))
-
-/**
- * \brief Disables multiple modules on the same bus.
- *
- * \param bus the bus the module is attached to, one of AHB1, AHB2, AHB3, APB1, or APB2 (based on the name of the RCC registers controlling it)
- *
- * \param mask the bit mask of the modules to disable
- */
-#define rcc_disable_multi(bus, mask) rcc_disable_((mask), &(RCC_ ## bus ## ENR))
+#define rcc_disable(bus, module) \
+	do { \
+		asm volatile("dsb"); \
+		asm volatile("nop"); \
+		RCC_ ## bus ## ENR . module ## EN = 0; \
+	} while (0)
 
 #endif
 

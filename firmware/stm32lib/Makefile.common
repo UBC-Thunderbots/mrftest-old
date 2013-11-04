@@ -8,7 +8,7 @@ override LDFLAGS := $(LDFLAGS) -Wl,-T$(LINKER_SCRIPT) -Wl,--gc-sections $(CFLAGS
 override LDLIBS := $(LDLIBS) ../stm32lib/stm32lib.a
 
 SOURCES := $(wildcard *.c)
-HEADERS := $(wildcard *.h ../stm32lib/include/*.h)
+HEADERS := $(shell find . -name '*.h') $(shell find ../stm32lib/include -name '*.h')
 OBJS := $(patsubst %.c,%.o,$(SOURCES))
 
 .PHONY : world

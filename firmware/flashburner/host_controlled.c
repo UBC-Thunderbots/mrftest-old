@@ -4,9 +4,9 @@
 #include "gpio.h"
 #include "spi.h"
 #include <deferred.h>
+#include <gpio.h>
 #include <minmax.h>
 #include <rcc.h>
-#include <registers.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -478,7 +478,7 @@ static void on_enter_common(void) {
 	read_bytes_left = 0;
 
 	// Turn on LED 2.
-	GPIOB_BSRR = GPIO_BS(13);
+	gpio_set(GPIOB, 13);
 
 	// Set up endpoint 1 IN with a 64-byte FIFO, large enough for any transfer (thus we never need to use the on_space callback).
 	usb_fifo_enable(1, 64);
@@ -512,7 +512,7 @@ static void on_exit_common(void) {
 	usb_fifo_disable(1);
 
 	// Turn off LEDs 2 and 3.
-	GPIOB_BSRR = GPIO_BR(13) | GPIO_BR(14);
+	gpio_set_reset_mask(GPIOB, 0, 3 << 13);
 }
 
 static void on_exit_target(void) {

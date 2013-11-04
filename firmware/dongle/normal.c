@@ -5,8 +5,11 @@
 #include "mrf.h"
 #include "perconfig.h"
 #include <exti.h>
+#include <gpio.h>
 #include <rcc.h>
-#include <registers.h>
+#include <registers/exti.h>
+#include <registers/nvic.h>
+#include <registers/timer.h>
 #include <sleep.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -72,12 +75,15 @@ static void send_drive_packet(void) {
 	drive_packet_pending = false;
 
 	// Blink the transmit light.
-	GPIOB_ODR ^= 1 << 13;
+	gpio_toggle(GPIOB, 13);
 }
 
 void timer6_interrupt_vector(void) {
 	// Clear interrupt flag.
-	TIM6_SR = 0;
+	{
+		TIM_basic_SR_t tmp = { 0 };
+		TIM6.SR = tmp;
+	}
 
 	// Check if a packet is currently being transmitted.
 	if (!mrf_tx_active) {
@@ -246,7 +252,7 @@ static void exti12_interrupt_vector(void) {
 	// Clear the interrupt.
 	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
 
-	while (GPIOC_IDR & (1 << 12) /* PC12 */) {
+	while (mrf_get_interrupt()) {
 		// Check outstanding interrupts.
 		uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
 		if (intstat & (1 << 3)) {
@@ -267,7 +273,7 @@ static void exti12_interrupt_vector(void) {
 					uint8_t sequence_number = mrf_read_long(MRF_REG_LONG_RXFIFO + 3);
 					if (source_address < 8 && sequence_number != mrf_rx_seqnum[source_address]) {
 						// Blink the receive light.
-						GPIOB_ODR ^= 1 << 14;
+						gpio_toggle(GPIOB, 14);
 
 						// Update sequence number.
 						mrf_rx_seqnum[source_address] = sequence_number;
@@ -398,7 +404,7 @@ static void on_ep1_out_packet(size_t bcnt) {
 			drive_packet_halt_pending = true;
 		}
 		// Enable the timer that generates drive packets on the radio.
-		TIM6_CR1 |= CEN; // Enable counter now
+		TIM6.CR1.CEN = 1; // Enable counter now
 	}
 }
 
@@ -586,7 +592,7 @@ static void on_enter(void) {
 	mrf_release_reset();
 	sleep_us(300);
 	mrf_common_init();
-	while (GPIOC_IDR & (1 << 12));
+	while (mrf_get_interrupt());
 	mrf_write_short(MRF_REG_SHORT_SADRH, 0x01);
 	mrf_write_short(MRF_REG_SHORT_SADRL, 0x00);
 	mrf_analogue_txrx();
@@ -632,7 +638,7 @@ static void on_enter(void) {
 #endif
 
 	// Turn on LED 1.
-	GPIOB_BSRR = GPIO_BS(12);
+	gpio_set(GPIOB, 12);
 
 	// Enable external interrupt on MRF INT rising edge.
 	exti_set_handler(12, &exti12_interrupt_vector);
@@ -689,21 +695,39 @@ static void on_enter(void) {
 	// Timer 6 input is 72 MHz from the APB.
 	// Need to count to 1,440,000 for each overflow.
 	// Set prescaler to 1,000, auto-reload to 1,440.
-	rcc_enable(APB1, 4);
-	TIM6_CR1 = 0 // Auto reload not buffered, counter runs continuously (not just for one pulse), updates not disabled, counter disabled for now
-		| URS; // Only overflow generates an interrupt
-	TIM6_DIER = UIE; // Update interrupt enabled
-	TIM6_PSC = 999;
-	TIM6_ARR = 1439;
-	TIM6_CNT = 0;
+	rcc_enable(APB1, TIM6);
+	rcc_reset(APB1, TIM6);
+	{
+		TIM_basic_CR1_t tmp = {
+			.ARPE = 0, // ARR is not buffered.
+			.OPM = 0, // Counter counters forever.
+			.URS = 1, // Update interrupts and DMA requests generated only at counter overflow.
+			.UDIS = 0, // Updates not inhibited.
+			.CEN = 0, // Timer not currently enabled.
+		};
+		TIM6.CR1 = tmp;
+	}
+	{
+		TIM_basic_DIER_t tmp = {
+			.UDE = 0, // DMA disabled.
+			.UIE = 1, // Interrupt enabled.
+		};
+		TIM6.DIER = tmp;
+	}
+	TIM6.PSC = 999;
+	TIM6.ARR = 1439;
+	TIM6.CNT = 0;
 	NVIC_ISER[54 / 32] = 1 << (54 % 32); // SETENA54 = 1; enable timer 6 interrupt
 }
 
 static void on_exit(void) {
 	// Turn off timer 6.
-	TIM6_CR1 = 0; // Disable counter
+	{
+		TIM_basic_CR1_t tmp = { 0 };
+		TIM6.CR1 = tmp; // Disable counter
+	}
 	NVIC_ICER[54 / 32] = 1 << (54 % 32); // CLRENA54 = 1; disable timer 6 interrupt
-	rcc_disable(APB1, 4);
+	rcc_disable(APB1, TIM6);
 
 	// Stop receiving estop notifications.
 	estop_set_change_callback(0);
@@ -727,7 +751,7 @@ static void on_exit(void) {
 	exti_set_handler(12, 0);
 
 	// Turn off all LEDs.
-	GPIOB_BSRR = GPIO_BR(12) | GPIO_BR(13) | GPIO_BR(14);
+	gpio_set_reset_mask(GPIOB, 0, 7 << 12);
 
 	// Reset the radio.
 	mrf_init();

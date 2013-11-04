@@ -1,7 +1,7 @@
 #include <usb_bi_in.h>
 #include <assert.h>
 #include <minmax.h>
-#include <registers.h>
+#include <registers/otg_fs.h>
 #include <unused.h>
 #include <usb_ep0.h>
 #include <usb_ep0_sources.h>
@@ -88,11 +88,6 @@ struct ep_info {
 };
 
 
-
-static volatile uint32_t * const OTG_FS_DIEPCTL[] = { &OTG_FS_DIEPCTL0, &OTG_FS_DIEPCTL1, &OTG_FS_DIEPCTL2, &OTG_FS_DIEPCTL3 };
-static volatile uint32_t * const OTG_FS_DIEPINT[] = { &OTG_FS_DIEPINT0, &OTG_FS_DIEPINT1, &OTG_FS_DIEPINT2, &OTG_FS_DIEPINT3 };
-static volatile uint32_t * const OTG_FS_DIEPTSIZ[] = { &OTG_FS_DIEPTSIZ0, &OTG_FS_DIEPTSIZ1, &OTG_FS_DIEPTSIZ2, &OTG_FS_DIEPTSIZ3 };
-static volatile uint32_t * const OTG_FS_DTXFSTS[] = { &OTG_FS_DTXFSTS0, &OTG_FS_DTXFSTS1, &OTG_FS_DTXFSTS2, &OTG_FS_DTXFSTS3 };
 
 static struct ep_info ep_info[4] = {
 	{ .state = USB_BI_IN_STATE_UNINITIALIZED, .standard_halt_handling = false, },
@@ -188,12 +183,24 @@ static void start_physical_transfer(unsigned int ep) {
 		size_t bytes_this_transfer = MIN(ep_info[ep].transfer_bytes_left_to_enable, (ep_info[ep].eight_packet_workaround ? 8 : 1023) * ep_info[ep].max_packet);
 
 		// Set up the endpoint.
-		*OTG_FS_DIEPTSIZ[ep] = PKTCNT((bytes_this_transfer + ep_info[ep].max_packet - 1) / ep_info[ep].max_packet) | XFRSIZ(bytes_this_transfer);
-		*OTG_FS_DIEPCTL[ep] = (*OTG_FS_DIEPCTL[ep] | EPENA | CNAK) & ~DIEPCTL_STALL;
+		{
+			OTG_FS_DIEPTSIZx_t tmp = {
+				.PKTCNT = (bytes_this_transfer + ep_info[ep].max_packet - 1) / ep_info[ep].max_packet,
+				.XFRSIZ = bytes_this_transfer,
+			};
+			OTG_FS_DIEP[ep].DIEPTSIZ = tmp;
+		}
+		{
+			OTG_FS_DIEPCTLx_t tmp = OTG_FS_DIEP[ep].DIEPCTL;
+			tmp.EPENA = 1;
+			tmp.CNAK = 1;
+			tmp.STALL = 0;
+			OTG_FS_DIEP[ep].DIEPCTL = tmp;
+		}
 
 		// Enable the “space available” interrupt if the application has registered a callback for it.
 		if (ep_info[ep].on_space) {
-			OTG_FS_DIEPEMPMSK |= INEPTXFEM(1 << ep);
+			OTG_FS_DIEPEMPMSK.INEPTXFEM |= 1 << ep;
 		}
 
 		// Update accounting info.
@@ -202,8 +209,17 @@ static void start_physical_transfer(unsigned int ep) {
 	} else if (ep_info[ep].zlp_pending) {
 		// There are no bytes remaining in the logical transfer, but we must send a ZLP.
 		// Set up the endpoint.
-		*OTG_FS_DIEPTSIZ[ep] = PKTCNT(1) | XFRSIZ(0);
-		*OTG_FS_DIEPCTL[ep] = (*OTG_FS_DIEPCTL[ep] | EPENA | CNAK) & ~DIEPCTL_STALL;
+		{
+			OTG_FS_DIEPTSIZx_t tmp = { .PKTCNT = 1, .XFRSIZ = 0 };
+			OTG_FS_DIEP[ep].DIEPTSIZ = tmp;
+		}
+		{
+			OTG_FS_DIEPCTLx_t tmp = OTG_FS_DIEP[ep].DIEPCTL;
+			tmp.EPENA = 1;
+			tmp.CNAK = 1;
+			tmp.STALL = 0;
+			OTG_FS_DIEP[ep].DIEPCTL = tmp;
+		}
 
 		// Update accounting info.
 		ep_info[ep].zlp_pending = false;
@@ -211,10 +227,14 @@ static void start_physical_transfer(unsigned int ep) {
 }
 
 static void handle_ep_interrupt(unsigned int ep) {
-	if (*OTG_FS_DIEPINT[ep] & XFRC) {
+	OTG_FS_DIEPINTx_t epint = OTG_FS_DIEP[ep].DIEPINT;
+	if (epint.XFRC) {
 		// The current physical transfer is complete.
 		// Clear the interrupt.
-		*OTG_FS_DIEPINT[ep] = XFRC;
+		{
+			OTG_FS_DIEPINTx_t tmp = { .XFRC = 1 };
+			OTG_FS_DIEP[ep].DIEPINT = tmp;
+		}
 
 		// Check if we need to start another physical transfer or if we should report completion of the logical transfer to the application.
 		if (ep_info[ep].transfer_bytes_left_to_enable || ep_info[ep].zlp_pending) {
@@ -224,7 +244,7 @@ static void handle_ep_interrupt(unsigned int ep) {
 		} else {
 			// The logical transfer is now completely finished.
 			// Disable FIFO space interrupts, if they were enabled.
-			OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << ep);
+			OTG_FS_DIEPEMPMSK.INEPTXFEM &= ~(1 << ep);
 
 			// Update accounting.
 			ep_info[ep].state = USB_BI_IN_STATE_IDLE;
@@ -234,7 +254,7 @@ static void handle_ep_interrupt(unsigned int ep) {
 				ep_info[ep].on_complete();
 			}
 		}
-	} else if ((*OTG_FS_DIEPINT[ep] & TXFE) && ep_info[ep].transfer_bytes_left_to_push && ep_info[ep].on_space) {
+	} else if (epint.TXFE && ep_info[ep].transfer_bytes_left_to_push && ep_info[ep].on_space) {
 		// There is space in the FIFO, and there are bytes remaining to push in the current physical transfer.
 		// Call the application so the bytes can be pushed.
 		ep_info[ep].on_space();
@@ -275,19 +295,32 @@ void usb_bi_in_init(unsigned int ep, size_t max_packet, usb_bi_in_ep_type_t type
 	ep_info[ep].post_exit_halt_cb = 0;
 
 	// Clear any pending transfer complete interrupt on this endpoint.
-	*OTG_FS_DIEPINT[ep] = XFRC;
+	{
+		OTG_FS_DIEPINTx_t tmp = { .XFRC = 1 };
+		OTG_FS_DIEP[ep].DIEPINT = tmp;
+	}
 
 	// Do not, at this time, take FIFO empty interrupts for this endpoint.
-	OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << ep);
+	OTG_FS_DIEPEMPMSK.INEPTXFEM &= ~(1 << ep);
 
 	// Enable interrupts in general for this endpoint.
-	OTG_FS_DAINTMSK |= IEPM(1 << ep);
+	OTG_FS_DAINTMSK.IEPM |= 1 << ep;
 
 	// Enable the endpoint.
-	*OTG_FS_DIEPCTL[ep] = SD0PID | SNAK | DIEPCTL_TXFNUM(ep) | EPTYP(type) | USBAEP | MPSIZ(max_packet);
+	{
+		OTG_FS_DIEPCTLx_t tmp = {
+			.SD0PID_SEVNFRM = 1,
+			.SNAK = 1,
+			.TXFNUM = ep,
+			.EPTYP = type,
+			.USBAEP = 1,
+			.MPSIZ = max_packet,
+		};
+		OTG_FS_DIEP[ep].DIEPCTL = tmp;
+	}
 
 	// Wait until NAK status is effective.
-	while (!(*OTG_FS_DIEPCTL[ep] & NAKSTS));
+	while (!OTG_FS_DIEP[ep].DIEPCTL.NAKSTS);
 
 	// Register a callback to handle endpoint interrupts for this endpoint.
 	usb_ll_in_set_cb(ep, &handle_ep_interrupt);
@@ -320,11 +353,14 @@ void usb_bi_in_deinit(unsigned int ep) {
 	}
 
 	// Disable all interrupts for the endpoint.
-	OTG_FS_DAINTMSK &= ~IEPM(1 << ep);
-	OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << ep);
+	OTG_FS_DAINTMSK.IEPM &= ~(1 << ep);
+	OTG_FS_DIEPEMPMSK.INEPTXFEM &= ~(1 << ep);
 
 	// Deconfigure the endpoint.
-	*OTG_FS_DIEPCTL[ep] = 0;
+	{
+		OTG_FS_DIEPCTLx_t tmp = { 0 };
+		OTG_FS_DIEP[ep].DIEPCTL = tmp;
+	}
 
 	// Unregister the callback.
 	usb_ll_in_set_cb(ep, 0);
@@ -360,7 +396,7 @@ void usb_bi_in_halt(unsigned int ep) {
 	assert(ep_info[ep].state == USB_BI_IN_STATE_IDLE);
 
 	// Do it.
-	*OTG_FS_DIEPCTL[ep] |= DIEPCTL_STALL;
+	OTG_FS_DIEP[ep].DIEPCTL.STALL = 1;
 	ep_info[ep].state = USB_BI_IN_STATE_HALTED;
 }
 
@@ -371,7 +407,7 @@ void usb_bi_in_clear_halt(unsigned int ep) {
 	assert(ep_info[ep].state == USB_BI_IN_STATE_HALTED);
 
 	// Do it.
-	*OTG_FS_DIEPCTL[ep] &= ~DIEPCTL_STALL;
+	OTG_FS_DIEP[ep].DIEPCTL.STALL = 0;
 	ep_info[ep].state = USB_BI_IN_STATE_IDLE;
 }
 
@@ -382,7 +418,7 @@ void usb_bi_in_reset_pid(unsigned int ep) {
 	assert(ep_info[ep].state == USB_BI_IN_STATE_IDLE);
 
 	// Do it.
-	*OTG_FS_DIEPCTL[ep] |= SD0PID;
+	OTG_FS_DIEP[ep].DIEPCTL.SD0PID_SEVNFRM = 1;
 }
 
 void usb_bi_in_start_transfer(unsigned int ep, size_t length, size_t max_length, void (*on_complete)(void), void (*on_space)(void)) {
@@ -419,22 +455,38 @@ void usb_bi_in_abort_transfer(unsigned int ep) {
 	assert(ep_info[ep].state == USB_BI_IN_STATE_ACTIVE);
 
 	// First get to the point where we are NAKing.
-	*OTG_FS_DIEPINT[ep] = INEPNE;
-	*OTG_FS_DIEPCTL[ep] = (*OTG_FS_DIEPCTL[ep] | SNAK) & ~CNAK;
-	while (!(*OTG_FS_DIEPINT[ep] & INEPNE));
+	{
+		OTG_FS_DIEPINTx_t tmp = { .INEPNE = 1 };
+		OTG_FS_DIEP[ep].DIEPINT = tmp;
+	}
+	{
+		OTG_FS_DIEPCTLx_t tmp = OTG_FS_DIEP[ep].DIEPCTL;
+		tmp.SNAK = 1;
+		tmp.CNAK = 0;
+		OTG_FS_DIEP[ep].DIEPCTL = tmp;
+	}
+	while (!(OTG_FS_DIEP[ep].DIEPINT.INEPNE));
 
 	// Now shut down the transfer altogether.
-	*OTG_FS_DIEPCTL[ep] |= EPDIS | SNAK;
-	while (*OTG_FS_DIEPCTL[ep] & EPENA);
+	{
+		OTG_FS_DIEPCTLx_t tmp = OTG_FS_DIEP[ep].DIEPCTL;
+		tmp.EPDIS = 1;
+		tmp.SNAK = 1;
+		OTG_FS_DIEP[ep].DIEPCTL = tmp;
+	}
+	while (OTG_FS_DIEP[ep].DIEPCTL.EPENA);
 
 	// It’s possible that before we entered this function, or while we were in the process of aborting, the current physical transfer finished.
 	// Getting into the transfer complete interrupt handler with an idle endpoint would be bad.
 	// Presumably the transfer complete interrupt should not be getting set right now, at this point, since the endpoint is presently disabled.
 	// Thus, just in case the interrupt was already set before we got here, clear it now.
-	*OTG_FS_DIEPINT[ep] = XFRC;
+	{
+		OTG_FS_DIEPINTx_t tmp = { .XFRC = 1 };
+		OTG_FS_DIEP[ep].DIEPINT = tmp;
+	}
 
 	// In case they were enabled, disable FIFO space available interrupts for this endpoint.
-	OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << ep);
+	OTG_FS_DIEPEMPMSK.INEPTXFEM &= ~(1 << ep);
 
 	// Update accounting.
 	ep_info[ep].state = USB_BI_IN_STATE_IDLE;
@@ -463,7 +515,7 @@ size_t usb_bi_in_push(unsigned int ep, const void *data, size_t length) {
 		} else if (!ep_info[ep].transfer_bytes_left_to_push) {
 			// The current physical transfer is fully satisfied with data in the FIFO.
 			// Do not take FIFO-space-available interrupts any more for this endpoint; the FIFO will drain until transfer complete.
-			OTG_FS_DIEPEMPMSK &= ~INEPTXFEM(1 << ep);
+			OTG_FS_DIEPEMPMSK.INEPTXFEM &= ~(1 << ep);
 			// The application will have to try again later, after the transfer complete interrupt has been taken and a new physical transfer has started (if applicable).
 			// We can do nothing more.
 			return ret;
@@ -471,7 +523,7 @@ size_t usb_bi_in_push(unsigned int ep, const void *data, size_t length) {
 			// We are not currently filling a packet, but we do need to add more packets to finish the current physical transfer.
 			// Because we are not in the middle of a packet, it is OK to read OTG_FS_DTXFSTS.
 			// We should do that now, to check if there is space in the FIFO for a whole packet.
-			size_t fifo_space = INEPTFSAV_X(*OTG_FS_DTXFSTS[ep]) * 4;
+			size_t fifo_space = OTG_FS_DIEP[ep].DTXFSTS.INEPTFSAV * 4;
 			if (fifo_space < ep_info[ep].max_packet) {
 				// There isn’t enough FIFO space for a single packet.
 				// The application will have to try again later, probably in response to an on_space callback.

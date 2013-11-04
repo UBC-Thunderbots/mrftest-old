@@ -1,6 +1,7 @@
 #include <exti.h>
 #include <assert.h>
-#include <registers.h>
+#include <registers/exti.h>
+#include <registers/syscfg.h>
 
 static exti_handler_t handlers[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 

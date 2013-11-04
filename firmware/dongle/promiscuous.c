@@ -4,8 +4,10 @@
 #include "mrf.h"
 #include "perconfig.h"
 #include <exti.h>
+#include <gpio.h>
 #include <rcc.h>
-#include <registers.h>
+#include <registers/exti.h>
+#include <registers/nvic.h>
 #include <sleep.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -57,7 +59,7 @@ static void exti12_interrupt_vector(void) {
 	// Clear the interrupt.
 	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
 
-	while (GPIOC_IDR & (1 << 12) /* PC12 */) {
+	while (mrf_get_interrupt()) {
 		// Check outstanding interrupts.
 		uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
 		if (intstat & (1 << 3)) {
@@ -97,7 +99,7 @@ static void exti12_interrupt_vector(void) {
 			}
 			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00); // RXDECINV = 0; stop inverting receiver and allow further reception
 			// Toggle LED 3 to show reception.
-			GPIOB_ODR ^= 1 << 14;
+			gpio_toggle(GPIOB, 14);
 		}
 	}
 }
@@ -166,7 +168,7 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 			// Enable interrupt on receive.
 			mrf_write_short(MRF_REG_SHORT_INTCON, 0xF7);
 			// Turn on LED 2 to indicate capture is enabled.
-			GPIOB_BSRR = GPIO_BS(13);
+			gpio_set(GPIOB, 13);
 		} else {
 			// Shut down the radio.
 			mrf_write_short(MRF_REG_SHORT_RXMCR, 0x20);
@@ -174,7 +176,7 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 			mrf_write_short(MRF_REG_SHORT_INTCON, 0xFF);
 			mrf_analogue_off();
 			// Turn off LED 2 to indicate capture is disabled.
-			GPIOB_BSRR = GPIO_BR(13);
+			gpio_reset(GPIOB, 13);
 		}
 
 		return USB_EP0_DISPOSITION_ACCEPT;
@@ -225,10 +227,10 @@ static void on_enter(void) {
 	sleep_us(100);
 	mrf_release_reset();
 	mrf_common_init();
-	while (GPIOC_IDR & (1 << 12));
+	while (mrf_get_interrupt());
 
 	// Turn on LED 1.
-	GPIOB_BSRR = GPIO_BS(12);
+	gpio_set(GPIOB, 12);
 
 	// Enable external interrupt on MRF INT rising edge.
 	exti_set_handler(12, &exti12_interrupt_vector);
@@ -264,7 +266,7 @@ static void on_exit(void) {
 	exti_set_handler(12, 0);
 
 	// Turn off all LEDs.
-	GPIOB_BSRR = GPIO_BR(12) | GPIO_BR(13) | GPIO_BR(14);
+	gpio_set_reset_mask(GPIOB, 0, 7 << 12);
 
 	// Reset the radio.
 	mrf_init();

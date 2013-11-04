@@ -1,7 +1,7 @@
 #include <usb_bi_out.h>
 #include <assert.h>
 #include <minmax.h>
-#include <registers.h>
+#include <registers/otg_fs.h>
 #include <unused.h>
 #include <usb_ep0.h>
 #include <usb_ep0_sources.h>
@@ -59,10 +59,6 @@ struct ep_info {
 };
 
 
-
-static volatile uint32_t * const OTG_FS_DOEPCTL[] = { &OTG_FS_DOEPCTL0, &OTG_FS_DOEPCTL1, &OTG_FS_DOEPCTL2, &OTG_FS_DOEPCTL3 };
-static volatile uint32_t * const OTG_FS_DOEPINT[] = { &OTG_FS_DOEPINT0, &OTG_FS_DOEPINT1, &OTG_FS_DOEPINT2, &OTG_FS_DOEPINT3 };
-static volatile uint32_t * const OTG_FS_DOEPTSIZ[] = { &OTG_FS_DOEPTSIZ0, &OTG_FS_DOEPTSIZ1, &OTG_FS_DOEPTSIZ2, &OTG_FS_DOEPTSIZ3 };
 
 static struct ep_info ep_info[4] = {
 	{ .state = USB_BI_OUT_STATE_UNINITIALIZED, .standard_halt_handling = false, },
@@ -157,43 +153,52 @@ static void start_physical_transfer(unsigned int ep) {
 	size_t expected_max_bytes = MIN(max_bytes, ep_info[ep].transfer_bytes_left_to_enable);
 
 	// Set up the endpoint.
-	*OTG_FS_DOEPTSIZ[ep] = PKTCNT(num_packets) | XFRSIZ(max_bytes);
-	*OTG_FS_DOEPCTL[ep] |= EPENA | CNAK;
+	{
+		OTG_FS_DOEPTSIZx_t tmp = {
+			.PKTCNT = num_packets,
+			.XFRSIZ = max_bytes,
+		};
+		OTG_FS_DOEP[ep].DOEPTSIZ = tmp;
+	}
+	{
+		OTG_FS_DOEPCTLx_t tmp = OTG_FS_DOEP[ep].DOEPCTL;
+		tmp.EPENA = 1;
+		tmp.CNAK = 1;
+		OTG_FS_DOEP[ep].DOEPCTL = tmp;
+	}
 
 	// Update accounting.
 	ep_info[ep].transfer_bytes_left_to_enable -= expected_max_bytes;
 	ep_info[ep].transfer_bytes_left_to_read = expected_max_bytes;
 }
 
-static void handle_ep_pattern(unsigned int ep, uint32_t pattern) {
+static void handle_ep_pattern(unsigned int ep, OTG_FS_GRXSTSR_device_t pattern) {
 	assert(ep_info[ep].state == USB_BI_OUT_STATE_ACTIVE);
 
-	if (PKTSTS_X(pattern) == 0b0010) {
+	if (pattern.PKTSTS == 0b0010) {
 		// A data packet arrived.
-		size_t packet_size = BCNT_X(pattern);
-
 		// ZLPs should not be passed to the application; it is notified of end-of-transfer by a separate mechanism.
-		if (packet_size) {
+		if (pattern.BCNT) {
 			// Pass the packet to the application, truncating to the expected transfer size in case the host sent more than we expected.
 			// We do not need to include transfer_bytes_left_to_enable here, because all non-final physical transfers are enabled as a multiple of max packet.
-			// Therefore, the final packet in a non-final physical transfer will see transfer_bytes_left_to_read == max_packet, and packet_size cannot be any larger than that.
-			size_t expected_packet_size = MIN(packet_size, ep_info[ep].transfer_bytes_left_to_read);
-			ep_info[ep].packet_fifo_bytes_left = packet_size;
+			// Therefore, the final packet in a non-final physical transfer will see transfer_bytes_left_to_read == max_packet, and pattern.BCNT cannot be any larger than that.
+			size_t expected_packet_size = MIN(pattern.BCNT, ep_info[ep].transfer_bytes_left_to_read);
+			ep_info[ep].packet_fifo_bytes_left = pattern.BCNT;
 			ep_info[ep].on_packet(expected_packet_size);
 
 			// Throw away any data the application didn’t care about, including any data the host sent beyond the expected transfer size.
 			usb_bi_out_discard(ep, ep_info[ep].packet_fifo_bytes_left + ep_info[ep].buffer_word_bytes_left);
 		}
 
-		if (packet_size != ep_info[ep].max_packet) {
+		if (pattern.BCNT != ep_info[ep].max_packet) {
 			// This is a short packet; mark that we should not run any more physical transfers in this logical transfer.
 			ep_info[ep].transfer_bytes_left_to_read = 0;
 			ep_info[ep].transfer_bytes_left_to_enable = 0;
 		} else {
 			// Update accounting.
-			ep_info[ep].transfer_bytes_left_to_read -= packet_size;
+			ep_info[ep].transfer_bytes_left_to_read -= pattern.BCNT;
 		}
-	} else if (PKTSTS_X(pattern) == 0b0011) {
+	} else if (pattern.PKTSTS == 0b0011) {
 		// A physical transfer is complete.
 		if (ep_info[ep].transfer_bytes_left_to_enable) {
 			// More bytes are left, so we need another physical transfer.
@@ -240,10 +245,19 @@ void usb_bi_out_init(unsigned int ep, size_t max_packet, usb_bi_out_ep_type_t ty
 	ep_info[ep].post_exit_halt_cb = 0;
 
 	// Enable the endpoint.
-	*OTG_FS_DOEPCTL[ep] = SD0PID | SNAK | EPTYP(type) | USBAEP | MPSIZ(max_packet);
+	{
+		OTG_FS_DOEPCTLx_t tmp = {
+			.SD0PID_SEVENFRM = 1,
+			.SNAK = 1,
+			.EPTYP = type,
+			.USBAEP = 1,
+			.MPSIZ = max_packet,
+		};
+		OTG_FS_DOEP[ep].DOEPCTL = tmp;
+	}
 
 	// Wait until NAK status is effective.
-	while (!(*OTG_FS_DOEPCTL[ep] & NAKSTS));
+	while (!(OTG_FS_DOEP[ep].DOEPCTL.NAKSTS));
 
 	// Register a callback to handle endpoint patterns for this endpoint.
 	usb_ll_out_set_cb(ep, &handle_ep_pattern);
@@ -276,7 +290,10 @@ void usb_bi_out_deinit(unsigned int ep) {
 	}
 
 	// Deconfigure the endpoint.
-	*OTG_FS_DOEPCTL[ep] = 0;
+	{
+		OTG_FS_DOEPCTLx_t tmp = { 0 };
+		OTG_FS_DOEP[ep].DOEPCTL = tmp;
+	}
 
 	// Unregister the callback.
 	usb_ll_out_set_cb(ep, 0);
@@ -312,7 +329,7 @@ void usb_bi_out_halt(unsigned int ep) {
 	assert(ep_info[ep].state == USB_BI_OUT_STATE_IDLE);
 
 	// Do it.
-	*OTG_FS_DOEPCTL[ep] |= DOEPCTL_STALL;
+	OTG_FS_DOEP[ep].DOEPCTL.STALL = 1;
 	ep_info[ep].state = USB_BI_OUT_STATE_HALTED;
 }
 
@@ -323,7 +340,7 @@ void usb_bi_out_clear_halt(unsigned int ep) {
 	assert(ep_info[ep].state == USB_BI_OUT_STATE_HALTED);
 
 	// Do it.
-	*OTG_FS_DOEPCTL[ep] &= ~DOEPCTL_STALL;
+	OTG_FS_DOEP[ep].DOEPCTL.STALL = 0;
 	ep_info[ep].state = USB_BI_OUT_STATE_IDLE;
 }
 
@@ -334,7 +351,11 @@ void usb_bi_out_reset_pid(unsigned int ep, unsigned int pid) {
 	assert(pid <= 1);
 
 	// Do it.
-	*OTG_FS_DOEPCTL[ep] |= pid ? SD1PID : SD0PID;
+	if (pid) {
+		OTG_FS_DOEP[ep].DOEPCTL.SODDFRM_SD1PID = 1;
+	} else {
+		OTG_FS_DOEP[ep].DOEPCTL.SD0PID_SEVENFRM = 1;
+	}
 }
 
 void usb_bi_out_start_transfer(unsigned int ep, size_t max_length, void (*on_complete)(void), void (*on_packet)(size_t)) {
@@ -367,12 +388,22 @@ void usb_bi_out_abort_transfer(unsigned int ep) {
 	assert(ep_info[ep].state == USB_BI_OUT_STATE_ACTIVE);
 
 	// First get to the point where we are NAKing.
-	*OTG_FS_DOEPCTL[ep] = (*OTG_FS_DOEPCTL[ep] | SNAK) & ~CNAK;
-	while (!(*OTG_FS_DOEPCTL[ep] & NAKSTS));
+	{
+		OTG_FS_DOEPCTLx_t tmp = OTG_FS_DOEP[ep].DOEPCTL;
+		tmp.SNAK = 1;
+		tmp.CNAK = 0;
+		OTG_FS_DOEP[ep].DOEPCTL = tmp;
+	}
+	while (!(OTG_FS_DOEP[ep].DOEPCTL.NAKSTS));
 
 	// Now shut down the transfer altogether.
-	*OTG_FS_DOEPCTL[ep] |= EPDIS | SNAK;
-	while (*OTG_FS_DOEPCTL[ep] & EPENA);
+	{
+		OTG_FS_DOEPCTLx_t tmp = OTG_FS_DOEP[ep].DOEPCTL;
+		tmp.EPDIS = 1;
+		tmp.SNAK = 1;
+		OTG_FS_DOEP[ep].DOEPCTL = tmp;
+	}
+	while (OTG_FS_DOEP[ep].DOEPCTL.EPENA);
 
 	// Update accounting.
 	ep_info[ep].state = USB_BI_OUT_STATE_IDLE;

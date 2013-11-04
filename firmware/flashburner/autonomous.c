@@ -2,8 +2,10 @@
 #include "spi.h"
 #include <assert.h>
 #include <deferred.h>
+#include <gpio.h>
 #include <rcc.h>
-#include <registers.h>
+#include <registers/nvic.h>
+#include <registers/timer.h>
 #include <sleep.h>
 #include <unused.h>
 
@@ -18,30 +20,33 @@ static unsigned int next_page;
 static void stop(bool successful) {
 	// On failure, light up the error LED.
 	if (!successful) {
-		GPIOB_BSRR = GPIO_BS(14);
+		gpio_set(GPIOB, 14);
 	}
 
 	// Deassert chip select.
 	spi_external_ops.deassert_cs();
 
 	// Tristate MOSI, MISO, clock, and chip select.
-	GPIOA_MODER &= ~MODER_MSK(15);
-	GPIOB_MODER &= ~MODER_MSK(5) & ~MODER_MSK(4) & ~MODER_MSK(3) & ~MODER_MSK(2);
+	gpio_set_mode(GPIOA, 15, GPIO_MODE_IN);
+	gpio_set_mode(GPIOB, 2, GPIO_MODE_IN);
+	gpio_set_mode(GPIOB, 3, GPIO_MODE_IN);
+	gpio_set_mode(GPIOB, 4, GPIO_MODE_IN);
+	gpio_set_mode(GPIOB, 5, GPIO_MODE_IN);
 
 	if (successful && boot_after) {
 		// Boot the FPGA by tristating PROGRAM_B.
-		GPIOA_MODER &= ~MODER_MSK(14);
+		gpio_set_mode(GPIOA, 14, GPIO_MODE_IN);
 	} else {
 		// Power down the board by grounding power control.
-		GPIOD_BSRR = GPIO_BR(2);
+		gpio_reset(GPIOD, 2);
 	}
 
 	// Account.
 	stopping = true;
 
 	// Start the timer.
-	TIM5_CNT = 50000; // Set count.
-	TIM5_CR1 |= CEN; // Enable timer.
+	TIM5.CNT = 50000; // Set count.
+	TIM5.CR1.CEN = 1; // Enable timer.
 }
 
 static uint8_t read_status_register(void) {
@@ -159,18 +164,21 @@ bool autonomous_is_running(void) {
 
 void timer5_interrupt_vector(void) {
 	// Clear interrupt.
-	TIM5_SR = 0;
+	{
+		TIM2_5_SR_t tmp = { 0 };
+		TIM5.SR = tmp;
+	}
 
 	if (stopping) {
 		// Power down timer 5.
-		rcc_disable(APB1, 3);
+		rcc_disable(APB1, TIM5);
 
 		// Tristate PROGRAM_B and power control.
-		GPIOA_MODER &= ~MODER_MSK(14);
-		GPIOD_MODER &= ~MODER_MSK(2);
+		gpio_set_mode(GPIOA, 14, GPIO_MODE_IN);
+		gpio_set_mode(GPIOD, 2, GPIO_MODE_IN);
 
 		// Turn off the activity LED, but not the error LED if it is on.
-		GPIOB_BSRR = GPIO_BR(13);
+		gpio_reset(GPIOB, 13);
 
 		// Account.
 		running = false;
@@ -225,33 +233,55 @@ void autonomous_start(bool boot) {
 	boot_after = boot;
 
 	// Enable activity LED and disable error LED.
-	GPIOB_BSRR = GPIO_BS(13) | GPIO_BR(14);
+	gpio_set_reset_mask(GPIOB, 1 << 13, 1 << 14);
 
 	// Assert PROGRAM_B and power control.
-	GPIOA_BSRR = GPIO_BR(14);
-	GPIOA_MODER = (GPIOA_MODER & ~MODER_MSK(14)) | MODER(14, 1);
-	GPIOD_BSRR = GPIO_BS(2);
-	GPIOD_MODER = (GPIOD_MODER & ~MODER_MSK(2)) | MODER(2, 1);
+	gpio_reset(GPIOA, 14);
+	gpio_set_mode(GPIOA, 14, GPIO_MODE_OUT);
+	gpio_set(GPIOD, 2);
+	gpio_set_mode(GPIOD, 2, GPIO_MODE_OUT);
 
 	// Configure timer 5 to count down 100 milliseconds, until the power is on.
 	// Timer 5 is on APB1, which runs at 36 MHz.
 	// APB1 is divided, so timers run at 2× speed, or 72 MHz.
 	// Divide by 720 to get tens of microseconds, and count down from 10,000.
-	rcc_enable(APB1, 3);
-	TIM5_CR1 = 0 // Auto reload not buffered, in one direction, updates not disabled, counter disabled for now
-		| DIR // Counter counts down
-		| OPM // Counter counts once, not continuously
-		| URS; // Only underflow generates an interrupt
-	TIM5_SMCR = 0; // Slave mode disabled
-	TIM5_DIER = UIE; // Enable interrupt on timer update
-	TIM5_CNT = 0; // Clear timer
-	TIM5_PSC = 719; // Set prescale 1:720
-	TIM5_ARR = 1; // An auto-reload value of zero does not work; a value of 1, however, makes sure TIM5_CNT is very small when the counter stops, so it is less than future requests
-	TIM5_CR1 |= CEN; // Enable counter for one tick after which an interrupt will be delivered (not doing this appears to break the first enablement of the timer by instantly delivering an interrupt for no apparent reason)
-	while (!(TIM5_SR & UIF)); // Wait for interrupt
-	TIM5_SR = 0; // Clear interrupt
-	TIM5_CNT = 9999; // Set count.
-	TIM5_CR1 |= CEN; // Enable timer.
+	rcc_enable(APB1, TIM5);
+	rcc_reset(APB1, TIM5);
+	{
+		TIM2_5_CR1_t tmp = {
+			.CKD = 0, // Timer runs at full clock frequency.
+			.ARPE = 0, // Auto-reload register is not buffered.
+			.CMS = 0, // Counter counts in one direction.
+			.DIR = 1, // Counter counts down.
+			.OPM = 1, // Counter counts once.
+			.URS = 1, // Counter overflow generates an interrupt; other activities do not.
+			.UDIS = 0, // Updates to control registers are allowed.
+			.CEN = 0, // Counter is not counting right now.
+		};
+		TIM5.CR1 = tmp;
+	}
+	{
+		TIM2_5_SMCR_t tmp = { 0 }; // No external triggers or slave synchronization.
+		TIM5.SMCR = tmp;
+	}
+	{
+		TIM2_5_DIER_t tmp = {
+			.UIE = 1, // Enable interrupt on timer update
+		};
+		TIM5.DIER = tmp; // Enable interrupt on timer update
+	}
+	TIM5.CNT = 0; // Clear timer.
+	TIM5.PSC = 719; // Set prescale 1:720.
+	TIM5.ARR = 1; // An auto-reload value of zero does not work; a value of 1, however, makes sure TIM5_CNT is very small when the counter stops, so it is less than future requests.
+	TIM5.CR1.CEN = 1; // Enable counter for one tick after which an interrupt will be delivered (not doing this appears to break the first enablement of the timer by instantly delivering an interrupt for no apparent reason).
+	while (!(TIM5.SR.UIF)); // Wait for interrupt.
+	// Clear interrupt.
+	{
+		TIM2_5_SR_t tmp = { 0 };
+		TIM5.SR = tmp;
+	}
+	TIM5.CNT = 9999; // Set count.
+	TIM5.CR1.CEN = 1; // Enable timer.
 	NVIC_ICPR[50 / 32] = 1 << (50 % 32); // Clear pending interrupt in NVIC
 	NVIC_ISER[50 / 32] = 1 << (50 % 32); // SETENA50 = 1; enable timer 5 interrupt
 }

@@ -1,16 +1,16 @@
 #include <usb_fifo.h>
 #include <assert.h>
-#include <registers.h>
+#include <registers/otg_fs.h>
 
 #define FIFO_MIN_SIZE (16 * 4)
 #define TOTAL_FIFO_SPACE (1024 * 5 / 4)
 #define NUM_FIFOS 4
-static volatile uint32_t * const TX_FIFO_REGISTERS[NUM_FIFOS] = { &OTG_FS_DIEPTXF0, &OTG_FS_DIEPTXF1, &OTG_FS_DIEPTXF2, &OTG_FS_DIEPTXF3 };
 
 static size_t total_fifo_space_used(void) {
-	size_t acc = RXFD_X(OTG_FS_GRXFSIZ);
-	for (unsigned int i = 0; i < NUM_FIFOS; ++i) {
-		acc += INEPTXFD_X(*TX_FIFO_REGISTERS[i]);
+	size_t acc = OTG_FS_GRXFSIZ.RXFD;
+	acc += OTG_FS_DIEPTXF0.TX0FD;
+	for (unsigned int i = 1; i < NUM_FIFOS; ++i) {
+		acc += OTG_FS_DIEPTXF[i].INEPTXFD;
 	}
 	return acc * 4;
 }
@@ -18,13 +18,16 @@ static size_t total_fifo_space_used(void) {
 static void usb_fifo_rx_flush(void) {
 	// We assume that a relevant NAK is effective, because this is a precondition.
 	// The other requirement is that the AHB be idle; wait for that now.
-	while (!(OTG_FS_GRSTCTL & AHBIDL));
+	while (!OTG_FS_GRSTCTL.AHBIDL);
 
 	// Flush the FIFO.
-	OTG_FS_GRSTCTL = RXFFLSH;
+	{
+		OTG_FS_GRSTCTL_t tmp = { .RXFFLSH = 1 };
+		OTG_FS_GRSTCTL = tmp;
+	}
 
 	// Wait until the flush is finished.
-	while (OTG_FS_GRSTCTL & RXFFLSH);
+	while (OTG_FS_GRSTCTL.RXFFLSH);
 }
 
 void usb_fifo_init(size_t rx_size, size_t tx0_size) {
@@ -36,14 +39,24 @@ void usb_fifo_init(size_t rx_size, size_t tx0_size) {
 	assert(rx_size + tx0_size <= TOTAL_FIFO_SPACE);
 
 	// Set receive FIFO to proper size.
-	OTG_FS_GRXFSIZ = RXFD(rx_size / 4);
+	{
+		OTG_FS_GRXFSIZ_t tmp = { .RXFD = rx_size / 4 };
+		OTG_FS_GRXFSIZ = tmp;
+	}
 
 	// Set transmit FIFO 0 to proper size, immediately after receive FIFO.
-	OTG_FS_DIEPTXF0 = TX0FD(tx0_size / 4) | TX0FSA(rx_size / 4);
+	{
+		OTG_FS_DIEPTXF0_t tmp = {
+			.TX0FD = tx0_size / 4,
+			.TX0FSA = rx_size / 4,
+		};
+		OTG_FS_DIEPTXF0 = tmp;
+	}
 
 	// Zero out the rest of the FIFOs.
 	for (unsigned int i = 1; i < NUM_FIFOS; ++i) {
-		*TX_FIFO_REGISTERS[i] = 0;
+		OTG_FS_DIEPTXFx_t tmp = { 0 };
+		OTG_FS_DIEPTXF[i] = tmp;
 	}
 
 	// Flush the FIFOs we actually created.
@@ -57,15 +70,24 @@ void usb_fifo_enable(unsigned int fifo, size_t size) {
 	assert(fifo < NUM_FIFOS);
 	assert(size >= FIFO_MIN_SIZE);
 	assert(!(size % 4));
-	assert(!*TX_FIFO_REGISTERS[fifo]);
-	assert(*TX_FIFO_REGISTERS[fifo - 1]);
+	assert(!OTG_FS_DIEPTXF[fifo].INEPTXFD);
+	assert(!OTG_FS_DIEPTXF[fifo].INEPTXSA);
+	if (fifo > 1) {
+		assert(OTG_FS_DIEPTXF[fifo - 1].INEPTXFD);
+	}
 
 	// Check for available space.
 	size_t used = total_fifo_space_used();
 	assert(used + size <= TOTAL_FIFO_SPACE);
 
 	// Enable and flush the FIFO.
-	*TX_FIFO_REGISTERS[fifo] = INEPTXFD(size / 4) | INEPTXSA(used / 4);
+	{
+		OTG_FS_DIEPTXFx_t tmp = {
+			.INEPTXFD = size / 4,
+			.INEPTXSA = used / 4,
+		};
+		OTG_FS_DIEPTXF[fifo] = tmp;
+	}
 	usb_fifo_flush(fifo);
 }
 
@@ -73,29 +95,39 @@ void usb_fifo_disable(unsigned int fifo) {
 	// Sanity checks.
 	assert(fifo);
 	assert(fifo < NUM_FIFOS);
-	assert(fifo == NUM_FIFOS - 1 || !*TX_FIFO_REGISTERS[fifo + 1]);
+	assert(fifo == NUM_FIFOS - 1 || !OTG_FS_DIEPTXF[fifo + 1].INEPTXFD);
 
 	// Disable the FIFO.
-	*TX_FIFO_REGISTERS[fifo] = 0;
+	{
+		OTG_FS_DIEPTXFx_t tmp = { 0 };
+		OTG_FS_DIEPTXF[fifo] = tmp;
+	}
 }
 
 void usb_fifo_flush(unsigned int fifo) {
 	// We assume that a relevant NAK is effective, because this is a precondition.
 	// The other requirement is that the AHB be idle; wait for that now.
-	while (!(OTG_FS_GRSTCTL & AHBIDL));
+	while (!OTG_FS_GRSTCTL.AHBIDL);
 
 	// Flush the FIFO.
-	OTG_FS_GRSTCTL = GRSTCTL_TXFNUM(fifo) | TXFFLSH;
+	{
+		OTG_FS_GRSTCTL_t tmp = {
+			.TXFNUM = fifo,
+			.TXFFLSH = 1,
+		};
+		OTG_FS_GRSTCTL = tmp;
+	}
 
 	// Wait until the flush is finished.
-	while (OTG_FS_GRSTCTL & TXFFLSH);
+	while (OTG_FS_GRSTCTL.TXFFLSH);
 }
 
 size_t usb_fifo_get_size(unsigned int fifo) {
 	// Sanity check.
+	assert(fifo);
 	assert(fifo < NUM_FIFOS);
 
 	// Do it.
-	return INEPTXFD_X(*TX_FIFO_REGISTERS[fifo]);
+	return OTG_FS_DIEPTXF[fifo].INEPTXFD;
 }
 

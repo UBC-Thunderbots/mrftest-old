@@ -9,8 +9,17 @@
 #include <deferred.h>
 #include <exception.h>
 #include <format.h>
+#include <gpio.h>
 #include <rcc.h>
-#include <registers.h>
+#include <registers/exti.h>
+#include <registers/flash.h>
+#include <registers/id.h>
+#include <registers/mpu.h>
+#include <registers/nvic.h>
+#include <registers/otg_fs.h>
+#include <registers/scb.h>
+#include <registers/syscfg.h>
+#include <registers/systick.h>
 #include <sleep.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -123,7 +132,7 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 		}
 
 		// Lock in the address; the hardware knows to stay on address zero until the status stage is complete and, in fact, *FAILS* if the address is locked in later!
-		OTG_FS_DCFG = (OTG_FS_DCFG & ~DCFG_DAD_MSK) | DCFG_DAD(pkt->value);
+		OTG_FS_DCFG.DAD = pkt->value;
 
 		// Initialize or deinitialize the configuration handler module depending on the assigned address.
 		if (pkt->value) {
@@ -212,9 +221,9 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 						case STRING_INDEX_CONFIG3: string = u8"Host-Controlled to Onboard Memory"; break;
 						case STRING_INDEX_CONFIG4: string = u8"UART Receiver"; break;
 						case STRING_INDEX_SERIAL:
-							formathex32((char *) stash_buffer + 0, U_ID_H);
-							formathex32((char *) stash_buffer + 8, U_ID_M);
-							formathex32((char *) stash_buffer + 16, U_ID_L);
+							formathex32((char *) stash_buffer + 0, U_ID.H);
+							formathex32((char *) stash_buffer + 8, U_ID.M);
+							formathex32((char *) stash_buffer + 16, U_ID.L);
 							((char *) stash_buffer)[24] = '\0';
 							string = (const char *) stash_buffer;
 							break;
@@ -293,7 +302,7 @@ static void handle_usb_unplug(void) {
 
 	// Maybe there was a race condition or contact bounce and actually VBus is present right now.
 	// Just in case that happened, check VBus; if it’s high, reattach.
-	if (GPIOA_IDR & (1 << 9)) {
+	if (gpio_get_input(GPIOA, 9)) {
 		// VBus detected; initialize USB now.
 		usb_ll_attach(&handle_usb_reset, &handle_usb_enumeration_done, &handle_usb_unplug);
 		NVIC_ISER[67 / 32] = 1 << (67 % 32); // SETENA67 = 1; enable USB FS interrupt
@@ -317,7 +326,7 @@ static void handle_usb_plug(void) {
 
 	// Maybe there was a race condition or contact bounce and actually VBus is not present yet.
 	// In that case, do not attach now; we will take another interrupt later and attach then.
-	if (!(GPIOA_IDR & (1 << 9))) {
+	if (!gpio_get_input(GPIOA, 9)) {
 		return;
 	}
 
@@ -362,10 +371,10 @@ extern unsigned char linker_bss_vma_end;
 
 static void stm32_main(void) {
 	// Check if we're supposed to go to the bootloader.
-	uint32_t rcc_csr_shadow = RCC_CSR; // Keep a copy of RCC_CSR
-	RCC_CSR |= RMVF; // Clear reset flags
-	RCC_CSR &= ~RMVF; // Stop clearing reset flags
-	if ((rcc_csr_shadow & SFTRSTF) && bootload_flag == UINT64_C(0xFE228106195AD2B0)) {
+	RCC_CSR_t rcc_csr_shadow = RCC_CSR; // Keep a copy of RCC_CSR
+	RCC_CSR.RMVF = 1; // Clear reset flags
+	RCC_CSR.RMVF = 0; // Stop clearing reset flags
+	if (rcc_csr_shadow.SFTRSTF && bootload_flag == UINT64_C(0xFE228106195AD2B0)) {
 		bootload_flag = 0;
 		asm volatile(
 			"mov sp, %[stack]\n\t"
@@ -381,10 +390,15 @@ static void stm32_main(void) {
 	memset(&linker_bss_vma_start, 0, &linker_bss_vma_end - &linker_bss_vma_start);
 
 	// Always 8-byte-align the stack pointer on entry to an interrupt handler (as ARM recommends).
-	SCS_CCR |= STKALIGN; // Guarantee 8-byte alignment
+	CCR.STKALIGN = 1; // Guarantee 8-byte alignment
 
 	// Set the interrupt system to set priorities as having the upper two bits for group priorities and the rest as subpriorities.
-	SCS_AIRCR = (SCS_AIRCR & ~VECTKEY(0xFFFF)) | VECTKEY(0x05FA) | PRIGROUP(5);
+	{
+		AIRCR_t tmp = AIRCR;
+		tmp.VECTKEY = 0x05FA;
+		tmp.PRIGROUP = 5;
+		AIRCR = tmp;
+	}
 
 	// Set up interrupt handling.
 	exception_init();
@@ -409,69 +423,95 @@ static void stm32_main(void) {
 	//   So set the bottommost 7 subregions as present, and the top 1 subregion as absent.
 	// The private peripheral bus (0xE0000000 length 1 MiB) always uses the system memory map, so no region is needed for it.
 	// We set up the regions first, then enable the MPU.
-	MPU_RNR = 0;
-	MPU_RBAR = 0x08000000;
-	MPU_RASR = MPU_RASR_AP(0b111) | MPU_RASR_TEX(0b000) | MPU_RASR_C | MPU_RASR_SRD(0) | MPU_RASR_SIZE(19) | MPU_RASR_ENABLE;
-	MPU_RNR = 1;
-	MPU_RBAR = 0x10000000;
-	MPU_RASR = MPU_RASR_XN | MPU_RASR_AP(0b011) | MPU_RASR_TEX(0b001) | MPU_RASR_C | MPU_RASR_B | MPU_RASR_SRD(0) | MPU_RASR_SIZE(15) | MPU_RASR_ENABLE;
-	MPU_RNR = 2;
-	MPU_RBAR = 0x1FFF7A00;
-	MPU_RASR = MPU_RASR_XN | MPU_RASR_AP(0b111) | MPU_RASR_TEX(0b010) | MPU_RASR_SRD(0) | MPU_RASR_SIZE(5) | MPU_RASR_ENABLE;
-	MPU_RNR = 3;
-	MPU_RBAR = 0x20000000;
-	MPU_RASR = MPU_RASR_XN | MPU_RASR_AP(0b011) | MPU_RASR_TEX(0b001) | MPU_RASR_C | MPU_RASR_B | MPU_RASR_SRD(0) | MPU_RASR_SIZE(16) | MPU_RASR_ENABLE;
-	MPU_RNR = 4;
-	MPU_RBAR = 0x40000000;
-	MPU_RASR = MPU_RASR_XN | MPU_RASR_AP(0b011) | MPU_RASR_TEX(0b010) | MPU_RASR_SRD(0) | MPU_RASR_SIZE(14) | MPU_RASR_ENABLE;
-	MPU_RNR = 5;
-	MPU_RBAR = 0x40010000;
-	MPU_RASR = MPU_RASR_XN | MPU_RASR_AP(0b011) | MPU_RASR_TEX(0b010) | MPU_RASR_SRD(0b11000000) | MPU_RASR_SIZE(14) | MPU_RASR_ENABLE;
-	MPU_RNR = 6;
-	MPU_RBAR = 0x40020000;
-	MPU_RASR = MPU_RASR_XN | MPU_RASR_AP(0b011) | MPU_RASR_TEX(0b010) | MPU_RASR_SRD(0) | MPU_RASR_SIZE(18) | MPU_RASR_ENABLE;
-	MPU_RNR = 7;
-	MPU_RBAR = 0x50000000;
-	MPU_RASR = MPU_RASR_XN | MPU_RASR_AP(0b011) | MPU_RASR_TEX(0b010) | MPU_RASR_SRD(0b10000000) | MPU_RASR_SIZE(18) | MPU_RASR_ENABLE;
-	MPU_CTRL = MPU_CTRL_ENABLE;
+	{
+		static const struct {
+			uint32_t address;
+			MPU_RASR_t rasr;
+		} REGIONS[] = {
+			{ 0x08000000, { .XN = 0, .AP = 0b111, .TEX = 0b000, .S = 0, .C = 1, .B = 0, .SRD = 0, .SIZE = 19, .ENABLE = 1 } },
+			{ 0x10000000, { .XN = 1, .AP = 0b011, .TEX = 0b001, .S = 0, .C = 1, .B = 1, .SRD = 0, .SIZE = 15, .ENABLE = 1 } },
+			{ 0x1FFF7A00, { .XN = 1, .AP = 0b111, .TEX = 0b010, .S = 0, .C = 0, .B = 0, .SRD = 0, .SIZE = 5, .ENABLE = 1 } },
+			{ 0x20000000, { .XN = 1, .AP = 0b011, .TEX = 0b001, .S = 0, .C = 1, .B = 1, .SRD = 0, .SIZE = 16, .ENABLE = 1 } },
+			{ 0x40000000, { .XN = 1, .AP = 0b011, .TEX = 0b010, .S = 0, .C = 0, .B = 0, .SRD = 0, .SIZE = 14, .ENABLE = 1 } },
+			{ 0x40010000, { .XN = 1, .AP = 0b011, .TEX = 0b010, .S = 0, .C = 0, .B = 0, .SRD = 0b11000000, .SIZE = 14, .ENABLE = 1 } },
+			{ 0x40020000, { .XN = 1, .AP = 0b011, .TEX = 0b010, .S = 0, .C = 0, .B = 0, .SRD = 0, .SIZE = 18, .ENABLE = 1 } },
+			{ 0x50000000, { .XN = 1, .AP = 0b011, .TEX = 0b010, .S = 0, .C = 0, .B = 0, .SRD = 0b10000000, .SIZE = 18, .ENABLE = 1 } },
+		};
+		for (unsigned int i = 0; i < sizeof(REGIONS) / sizeof(*REGIONS); ++i) {
+			MPU_RNR_t rnr = { .REGION = i };
+			MPU_RNR = rnr;
+			MPU_RBAR.ADDR = REGIONS[i].address >> 5;
+			MPU_RASR = REGIONS[i].rasr;
+		}
+	}
+	{
+		MPU_CTRL_t tmp = {
+			.PRIVDEFENA = 0, // Background region is disabled even in privileged mode.
+			.HFNMIENA = 0, // Protection unit disables itself when taking hard faults, memory faults, and NMIs.
+			.ENABLE = 1, // Enable MPU.
+		};
+		MPU_CTRL = tmp;
+	}
 	asm volatile("dsb");
 	asm volatile("isb");
 
 	// Enable the SYSCFG module.
-	rcc_enable(APB2, 14);
+	rcc_enable(APB2, SYSCFG);
+	rcc_reset(APB2, SYSCFG);
 
 	// Enable the I/O compensation cell because we will be using some GPIOs at 50+ MHz.
-	SYSCFG_CMPCR = CMP_PD;
-	while (!(SYSCFG_CMPCR & READY));
+	{
+		SYSCFG_CMPCR_t tmp = { .CMP_PD = 1 };
+		SYSCFG_CMPCR = tmp;
+	}
+	while (!SYSCFG_CMPCR.READY);
 
 	// Enable the HSE (8 MHz crystal) oscillator.
-	RCC_CR =
-		HSEON // Enable HSE oscillator
-		| HSITRIM(16) // Trim HSI oscillator to midpoint
-		| HSION; // Enable HSI oscillator for now as we're still using it
+	{
+		RCC_CR_t tmp = {
+			.PLLI2SON = 0, // I²S PLL off.
+			.PLLON = 0, // Main PLL off.
+			.CSSON = 0, // Clock security system off.
+			.HSEBYP = 0, // HSE oscillator in circuit.
+			.HSEON = 1, // HSE oscillator enabled.
+			.HSITRIM = 16, // HSI oscillator trimmed to midpoint.
+			.HSION = 1, // HSI oscillator enabled (still using it at this point).
+		};
+		RCC_CR = tmp;
+	}
 	// Wait for the HSE oscillator to be ready.
-	while (!(RCC_CR & HSERDY));
+	while (!RCC_CR.HSERDY);
 	// Configure the PLL.
-	RCC_PLLCFGR = PLLQ(7) // Divide 336 MHz VCO output by 7 to get 48 MHz USB, SDIO, and RNG clock
-		| PLLSRC // Use HSE for PLL input
-		| PLLP(0) // Divide 336 MHz VCO output by 2 to get 168 MHz SYSCLK
-		| PLLN(168) // Multiply 2 MHz VCO input by 168 to get 336 MHz VCO output
-		| PLLM(4); // Divide 8 MHz HSE by 4 to get 2 MHz VCO input
+	{
+		RCC_PLLCFGR_t tmp = {
+			.PLLQ = 7, // Divide 336 MHz VCO output by 7 to get 48 MHz USB, SDIO, and RNG clock
+			.PLLSRC = 1, // Use HSE for PLL input
+			.PLLP = 0, // Divide 336 MHz VCO output by 2 to get 168 MHz SYSCLK
+			.PLLN = 168, // Multiply 2 MHz VCO input by 168 to get 336 MHz VCO output
+			.PLLM = 4, // Divide 8 MHz HSE by 4 to get 2 MHz VCO input
+		};
+		RCC_PLLCFGR = tmp;
+	}
 	// Enable the PLL.
-	RCC_CR |= PLLON; // Enable PLL
+	RCC_CR.PLLON = 1; // Enable PLL
 	// Wait for the PLL to lock.
-	while (!(RCC_CR & PLLRDY));
+	while (!RCC_CR.PLLRDY);
 	// Set up bus frequencies.
-	RCC_CFGR = MCO2(2) // MCO2 pin outputs HSE
-		| MCO2PRE(0) // Divide 8 MHz HSE by 1 to get 8 MHz MCO2 (must be ≤ 100 MHz)
-		| MCO1PRE(0) // Divide 8 MHz HSE by 1 to get 8 MHz MCO1 (must be ≤ 100 MHz)
-		| 0 // I2SSRC = 0; I2S module gets clock from PLLI2X
-		| MCO1(2) // MCO1 pin outputs HSE
-		| RTCPRE(8) // Divide 8 MHz HSE by 8 to get 1 MHz RTC clock (must be 1 MHz)
-		| PPRE2(4) // Divide 168 MHz AHB clock by 2 to get 84 MHz APB2 clock (must be ≤ 84 MHz)
-		| PPRE1(5) // Divide 168 MHz AHB clock by 4 to get 42 MHz APB1 clock (must be ≤ 42 MHz)
-		| HPRE(0) // Divide 168 MHz SYSCLK by 1 to get 168 MHz AHB clock (must be ≤ 168 MHz)
-		| SW(0); // Use HSI for SYSCLK for now, until everything else is ready
+	{
+		RCC_CFGR_t tmp = {
+			.MCO2 = 2, // MCO2 pin outputs HSE
+			.MCO2PRE = 0, // Divide 8 MHz HSE by 1 to get 8 MHz MCO2 (must be ≤ 100 MHz)
+			.MCO1PRE = 0, // Divide 8 MHz HSE by 1 to get 8 MHz MCO1 (must be ≤ 100 MHz)
+			.I2SSRC = 0, // I²S module gets clock from PLLI2X
+			.MCO1 = 2, // MCO1 pin outputs HSE
+			.RTCPRE = 8, // Divide 8 MHz HSE by 8 to get 1 MHz RTC clock (must be 1 MHz)
+			.PPRE2 = 4, // Divide 144 MHz AHB clock by 2 to get 72 MHz APB2 clock (must be ≤ 84 MHz)
+			.PPRE1 = 5, // Divide 144 MHz AHB clock by 4 to get 36 MHz APB1 clock (must be ≤ 42 MHz)
+			.HPRE = 0, // Divide 144 MHz SYSCLK by 1 to get 144 MHz AHB clock (must be ≤ 168 MHz)
+			.SW = 0, // Use HSI for SYSCLK for now, until everything else is ready
+		};
+		RCC_CFGR = tmp;
+	}
 	// Wait 16 AHB cycles for the new prescalers to settle.
 	asm volatile("nop");
 	asm volatile("nop");
@@ -489,38 +529,73 @@ static void stm32_main(void) {
 	asm volatile("nop");
 	asm volatile("nop");
 	asm volatile("nop");
-	// Set Flash access latency to 5 wait states.
-	FLASH_ACR = LATENCY(5); // Five wait states (acceptable for 150 ≤ HCLK ≤ 168)
-	// Flash access latency change may not be immediately effective; wait until it's locked in.
-	while (LATENCY_X(FLASH_ACR) != 5);
+	// Set Flash access latency to 4 wait states.
+	{
+		FLASH_ACR_t tmp = {
+			.DCRST = 0, // Do not clear data cache at this time.
+			.ICRST = 0, // Do not clear instruction cache at this time.
+			.DCEN = 0, // Do not enable data cache at this time.
+			.ICEN = 0, // Do not enable instruction cache at this time.
+			.PRFTEN = 0, // Do not enable prefetcher at this time.
+			.LATENCY = 5, // Five wait states (acceptable for 150 ≤ HCLK ≤ 168)
+		};
+		FLASH_ACR = tmp;
+	}
+	// Flash access latency change may not be immediately effective; wait until it’s locked in.
+	while (FLASH_ACR.LATENCY != 5);
 	// Actually initiate the clock switch.
-	RCC_CFGR = (RCC_CFGR & ~SW_MSK) | SW(2); // Use PLL for SYSCLK
+	RCC_CFGR.SW = 2; // Use PLL for SYSCLK
 	// Wait for the clock switch to complete.
-	while (SWS_X(RCC_CFGR) != 2);
-	// Turn off the HSI now that it's no longer needed.
-	RCC_CR &= ~HSION; // Disable HSI
+	while (RCC_CFGR.SWS != 2);
+	// Turn off the HSI now that it’s no longer needed.
+	RCC_CR.HSION = 0; // Disable HSI
 
 	// Flush any data in the CPU caches (which are not presently enabled).
-	FLASH_ACR |= DCRST // Reset data cache
-		| ICRST; // Reset instruction cache
-	FLASH_ACR &= ~DCRST // Stop resetting data cache
-		& ~ICRST; // Stop resetting instruction cache
+	{
+		FLASH_ACR_t tmp = FLASH_ACR;
+		tmp.DCRST = 1; // Reset data cache.
+		tmp.ICRST = 1; // Reset instruction cache.
+		FLASH_ACR = tmp;
+	}
+	{
+		FLASH_ACR_t tmp = FLASH_ACR;
+		tmp.DCRST = 0; // Stop resetting data cache.
+		tmp.ICRST = 0; // Stop resetting instruction cache.
+		FLASH_ACR = tmp;
+	}
 
-	// Turn on the caches. There is an errata that says prefetching doesn't work on some silicon, but it seems harmless to enable the flag even so.
-	FLASH_ACR |= DCEN // Enable data cache
-		| ICEN // Enable instruction cache
-		| PRFTEN; // Enable prefetching
+	// Turn on the caches.
+	// There is an errata that says prefetching doesn’t work on some silicon, but it seems harmless to enable the flag even so.
+	{
+		FLASH_ACR_t tmp = FLASH_ACR;
+		tmp.DCEN = 1; // Enable data cache
+		tmp.ICEN = 1; // Enable instruction cache
+		tmp.PRFTEN = 1; // Enable prefetching
+		FLASH_ACR = tmp;
+	}
 
 	// Set SYSTICK to divide by 168 so it overflows every microsecond.
-	SCS_STRVR = 168 - 1;
+	SYST_RVR.RELOAD = 168 - 1;
 	// Set SYSTICK to run with the core AHB clock.
-	SCS_STCSR = CLKSOURCE // Use core clock
-		| SCS_STCSR_ENABLE; // Counter is running
+	{
+		SYST_CSR_t tmp = {
+			.CLKSOURCE = 1, // Use core clock
+			.ENABLE = 1, // Counter is running
+		};
+		SYST_CSR = tmp;
+	}
 	// Reset the counter.
-	SCS_STCVR = 0;
+	SYST_CVR.CURRENT = 0;
 
 	// Set up pins.
-	rcc_enable_multi(AHB1, 0x0000000F); // Enable GPIOA, GPIOB, GPIOC, and GPIOD modules
+	rcc_enable(AHB1, GPIOA);
+	rcc_enable(AHB1, GPIOB);
+	rcc_enable(AHB1, GPIOC);
+	rcc_enable(AHB1, GPIOD);
+	rcc_reset(AHB1, GPIOA);
+	rcc_reset(AHB1, GPIOB);
+	rcc_reset(AHB1, GPIOC);
+	rcc_reset(AHB1, GPIOD);
 	// PA15 = external Flash /CS, input with no resistors until needed
 	// PA14 = PROGRAM_B, input with no resistors until needed
 	// PA13 = N/C, driven low
@@ -533,13 +608,13 @@ static void stm32_main(void) {
 	// PA3 = shorted to VSS, driven low
 	// PA2 = N/C, driven low
 	// PA1/PA0 = shorted to VDD, driven high
-	GPIOA_ODR = 0b0000000000110011;
-	GPIOA_OTYPER = 0b0000000000000000;
-	GPIOA_OSPEEDR = 0b01000001010000000000000100000000;
-	GPIOA_PUPDR = 0b00000000000010000000000000000000;
-	GPIOA_AFRH = 0b00000000000010101010000000000000;
-	GPIOA_AFRL = 0b00000000000000000000000000000000;
-	GPIOA_MODER = 0b00000110100100010101010101010101;
+	GPIOA.ODR = 0b0000000000110011;
+	GPIOA.OTYPER = 0b0000000000000000;
+	GPIOA.OSPEEDR = 0b01000001010000000000000100000000;
+	GPIOA.PUPDR = 0b00000000000010000000000000000000;
+	GPIOA.AFRH = 0b00000000000010101010000000000000;
+	GPIOA.AFRL = 0b00000000000000000000000000000000;
+	GPIOA.MODER = 0b00000110100100010101010101010101;
 	// PB15 = N/C, driven low
 	// PB14 = LED 3, start high (on)
 	// PB13 = LED 2, start high (on)
@@ -553,13 +628,13 @@ static void stm32_main(void) {
 	// PB3 = external Flash SCK, input with no resistors until needed
 	// PB2 = BOOT1, hardwired low
 	// PB1/PB0 = N/C, driven low
-	GPIOB_ODR = 0b0111000000000000;
-	GPIOB_OTYPER = 0b0000000000000000;
-	GPIOB_OSPEEDR = 0b00000000000000000000100010000000;
-	GPIOB_PUPDR = 0b00000000000000000000000000000000;
-	GPIOB_AFRH = 0b00000000000000000000000000000000;
-	GPIOB_AFRL = 0b01110000010101010101000000000000;
-	GPIOB_MODER = 0b01010101010101011001000000010101;
+	GPIOB.ODR = 0b0111000000000000;
+	GPIOB.OTYPER = 0b0000000000000000;
+	GPIOB.OSPEEDR = 0b00000000000000000000100010000000;
+	GPIOB.PUPDR = 0b00000000000000000000000000000000;
+	GPIOB.AFRH = 0b00000000000000000000000000000000;
+	GPIOB.AFRL = 0b01110000010101010101000000000000;
+	GPIOB.MODER = 0b01010101010101011001000000010101;
 	// PC15 = switch SW2 to ground (input with pull-up)
 	// PC14 = switch SW3 to ground (input with pull-up)
 	// PC13 = N/C, driven low
@@ -567,23 +642,23 @@ static void stm32_main(void) {
 	// PC11 = alternate function internal Flash (SPI3) MISO
 	// PC10 = alternate function internal Flash (SPI3) SCK
 	// PC9/PC8/PC7/PC6/PC5/PC4/PC3/PC2/PC1/PC0 = N/C, driven low
-	GPIOC_ODR = 0b0000000000000000;
-	GPIOC_OTYPER = 0b0000000000000000;
-	GPIOC_OSPEEDR = 0b00000010101000000000000000000000;
-	GPIOC_PUPDR = 0b01010000000000000000000000000000;
-	GPIOC_AFRH = 0b00000000000001100110011000000000;
-	GPIOC_AFRL = 0b00000000000000000000000000000000;
-	GPIOC_MODER = 0b00000110101001010101010101010101;
+	GPIOC.ODR = 0b0000000000000000;
+	GPIOC.OTYPER = 0b0000000000000000;
+	GPIOC.OSPEEDR = 0b00000010101000000000000000000000;
+	GPIOC.PUPDR = 0b01010000000000000000000000000000;
+	GPIOC.AFRH = 0b00000000000001100110011000000000;
+	GPIOC.AFRL = 0b00000000000000000000000000000000;
+	GPIOC.MODER = 0b00000110101001010101010101010101;
 	// PD15/PD14/PD13/PD12/PD11/PD10/PD9/PD8/PD7/PD6/PD5/PD4/PD3 = unimplemented on package
 	// PD2 = external power control, input with no resistors until needed
 	// PD1/PD0 = unimplemented on package
-	GPIOD_ODR = 0b0000000000000000;
-	GPIOD_OTYPER = 0b0000000000000000;
-	GPIOD_OSPEEDR = 0b00000000000000000000000000000000;
-	GPIOD_PUPDR = 0b00000000000000000000000000000000;
-	GPIOD_AFRH = 0b00000000000000000000000000000000;
-	GPIOD_AFRL = 0b00000000000000000000000000000000;
-	GPIOD_MODER = 0b01010101010101010101010101000101;
+	GPIOD.ODR = 0b0000000000000000;
+	GPIOD.OTYPER = 0b0000000000000000;
+	GPIOD.OSPEEDR = 0b00000000000000000000000000000000;
+	GPIOD.PUPDR = 0b00000000000000000000000000000000;
+	GPIOD.AFRH = 0b00000000000000000000000000000000;
+	GPIOD.AFRL = 0b00000000000000000000000000000000;
+	GPIOD.MODER = 0b01010101010101010101010101000101;
 	// PE/PF/PG = unimplemented on this package
 	// PH15/PH14/PH13/PH12/PH11/PH10/PH9/PH8/PH7/PH6/PH5/PH4/PH3/PH2 = unimplemented on this package
 	// PH1 = OSC_OUT (not configured via GPIO registers)
@@ -595,13 +670,13 @@ static void stm32_main(void) {
 	sleep_ms(100);
 
 	// Turn off LEDs 2 and 3.
-	GPIOB_BSRR = GPIO_BR(13) | GPIO_BR(14);
+	gpio_set_reset_mask(GPIOB, 0, 3 << 13);
 
 	// Enable the SPI transceiver modules.
 	spi_init();
 
 	// Determine whether to enable USB now depending on the state of VBus.
-	if (GPIOA_IDR & (1 << 9)) {
+	if (gpio_get_input(GPIOA, 9)) {
 		// VBus detected; initialize USB now.
 		usb_ll_attach(&handle_usb_reset, &handle_usb_enumeration_done, &handle_usb_unplug);
 		NVIC_ISER[67 / 32] = 1 << (67 % 32); // SETENA67 = 1; enable USB FS interrupt
@@ -627,7 +702,7 @@ static void stm32_main(void) {
 
 	// All activity from now on happens in interrupt handlers.
 	// Therefore, enable the mode where the chip automatically goes to sleep on return from an interrupt handler.
-	SCS_SCR |= SLEEPONEXIT;
+	SCR.SLEEPONEXIT = 1;
 	asm volatile("dsb");
 	asm volatile("isb");
 

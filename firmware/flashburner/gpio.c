@@ -1,31 +1,29 @@
 #include "gpio.h"
 #include "constants.h"
-#include <registers.h>
+#include <gpio.h>
 #include <unused.h>
 #include <usb_configs.h>
 #include <usb_ep0.h>
 #include <usb_ep0_sources.h>
 
 typedef struct {
-	volatile uint32_t *idr;
-	volatile uint32_t *odr;
-	volatile uint32_t *moder;
+	volatile GPIO_t *gpio;
 	unsigned int bit;
 } target_io_pin_info_t;
 
 static const target_io_pin_info_t TARGET_IO_PIN_INFO[] = {
 	// PB5 = external Flash MOSI
-	{ &GPIOB_IDR, &GPIOB_ODR, &GPIOB_MODER, 5 },
+	{ &GPIOB, 5 },
 	// PB4 = external Flash MISO
-	{ &GPIOB_IDR, &GPIOB_ODR, &GPIOB_MODER, 4 },
+	{ &GPIOB, 4 },
 	// PB3 = external Flash SCK
-	{ &GPIOB_IDR, &GPIOB_ODR, &GPIOB_MODER, 3 },
+	{ &GPIOB, 3 },
 	// PA15 = external Flash /CS
-	{ &GPIOA_IDR, &GPIOA_ODR, &GPIOA_MODER, 15 },
+	{ &GPIOA, 15 },
 	// PD2 = external power control
-	{ &GPIOD_IDR, &GPIOD_ODR, &GPIOD_MODER, 2 },
+	{ &GPIOD, 2 },
 	// PA14 = PROGRAM_B
-	{ &GPIOA_IDR, &GPIOA_ODR, &GPIOA_MODER, 14 },
+	{ &GPIOA, 14 },
 };
 
 static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
@@ -45,14 +43,11 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 		// Apply the requested states.
 		for (unsigned int i = 0; i < sizeof(TARGET_IO_PIN_INFO) / sizeof(*TARGET_IO_PIN_INFO); ++i) {
 			if (pkt->value & (1 << (i + 8))) {
-				if (pkt->value & (1 << i)) {
-					*TARGET_IO_PIN_INFO[i].odr |= 1 << TARGET_IO_PIN_INFO[i].bit;
-				} else {
-					*TARGET_IO_PIN_INFO[i].odr &= ~(1 << TARGET_IO_PIN_INFO[i].bit);
-				}
-				*TARGET_IO_PIN_INFO[i].moder = (*TARGET_IO_PIN_INFO[i].moder & ~(3 << (TARGET_IO_PIN_INFO[i].bit * 2))) | (1 << (TARGET_IO_PIN_INFO[i].bit * 2));
+				unsigned int mask = 1 << TARGET_IO_PIN_INFO[i].bit;
+				gpio_set_reset_mask(*TARGET_IO_PIN_INFO[i].gpio, (pkt->value & (1 << i)) ? mask : 0, mask);
+				gpio_set_mode(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit, GPIO_MODE_OUT);
 			} else {
-				*TARGET_IO_PIN_INFO[i].moder = (*TARGET_IO_PIN_INFO[i].moder & ~(3 << (TARGET_IO_PIN_INFO[i].bit * 2)));
+				gpio_set_mode(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit, GPIO_MODE_IN);
 			}
 		}
 
@@ -84,19 +79,19 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 		// Second byte indicates 1=driven, 0=tristated.
 		// Read out the current states.
 		for (unsigned int i = 0; i < sizeof(TARGET_IO_PIN_INFO) / sizeof(*TARGET_IO_PIN_INFO); ++i) {
-			unsigned int mode = ((*TARGET_IO_PIN_INFO[i].moder) >> (TARGET_IO_PIN_INFO[i].bit * 2)) & 3;
-			if (mode == 0) {
+			GPIO_MODE_t mode = gpio_get_mode(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit);
+			if (mode == GPIO_MODE_IN) {
 				// This pin is a GP input.
-				if ((*TARGET_IO_PIN_INFO[i].idr) & (1 << TARGET_IO_PIN_INFO[i].bit)) {
+				if (gpio_get_input(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit)) {
 					stash_buffer[0] |= 1 << i;
 				}
-			} else if (mode == 1) {
+			} else if (mode == GPIO_MODE_OUT) {
 				// This pin is a GP output.
-				if ((*TARGET_IO_PIN_INFO[i].odr) & (1 << TARGET_IO_PIN_INFO[i].bit)) {
+				if (gpio_get_output(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit)) {
 					stash_buffer[0] |= 1 << i;
 				}
 				stash_buffer[1] |= 1 << i;
-			} else if (mode == 2) {
+			} else if (mode == GPIO_MODE_AF) {
 				// This pin is an alternate function.
 			}
 		}
@@ -124,7 +119,7 @@ void gpio_remove_ep0_cbs(void) {
 
 void gpio_tristate_all(void) {
 	for (unsigned int i = 0; i < sizeof(TARGET_IO_PIN_INFO) / sizeof(*TARGET_IO_PIN_INFO); ++i) {
-		*TARGET_IO_PIN_INFO[i].moder = (*TARGET_IO_PIN_INFO[i].moder & ~(3 << (TARGET_IO_PIN_INFO[i].bit * 2)));
+		gpio_set_mode(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit, GPIO_MODE_IN);
 	}
 }
 

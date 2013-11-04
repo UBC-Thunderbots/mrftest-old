@@ -1,7 +1,7 @@
 #include "idle.h"
 #include "constants.h"
 #include <deferred.h>
-#include <registers.h>
+#include <registers/scb.h>
 #include <stdint.h>
 #include <unused.h>
 #include <usb_configs.h>
@@ -61,7 +61,12 @@ static void dfu_detach_reboot(void *UNUSED(cookie)) {
 	asm volatile("isb");
 
 	// Request the reboot.
-	SCS_AIRCR = (SCS_AIRCR & ~VECTKEY(0xFFFF)) | VECTKEY(0x05FA) | SYSRESETREQ;
+	{
+		AIRCR_t tmp = AIRCR;
+		tmp.VECTKEY = 0x05FA;
+		tmp.SYSRESETREQ = 1;
+		AIRCR = tmp;
+	}
 	asm volatile("dsb");
 
 	// Wait forever until the reboot happens.

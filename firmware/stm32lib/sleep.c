@@ -1,12 +1,15 @@
-#include <registers.h>
+#include <registers/systick.h>
 #include <sleep.h>
 #include <stdint.h>
 
 void sleep_systick_overflows(unsigned long ticks) {
-	SCS_STCVR = 0;
-	(void) SCS_STCSR;
+	{
+//		SYST_CVR_t tmp = { 0 };
+//		SYST_CVR = tmp;
+	}
+//	(void) SYST_CSR;
 	while (ticks--) {
-		while (!(SCS_STCSR & COUNTFLAG));
+		while (!SYST_CSR.COUNTFLAG);
 	}
 }
 

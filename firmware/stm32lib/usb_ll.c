@@ -1,9 +1,11 @@
 #include <usb_ll.h>
 #include <assert.h>
 #include <rcc.h>
-#include <registers.h>
+#include <registers/otg_fs.h>
 #include <sleep.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 
 static volatile usb_ll_state_t device_state = USB_LL_STATE_DETACHED;
 static usb_ll_reset_cb_t reset_cb;
@@ -30,17 +32,49 @@ static void handle_reset_gnak(void) {
 	// Update state.
 	device_state = USB_LL_STATE_ENUMERATING;
 
-	// Enable enumeration complete and reset interrupts only, and clear any pending interrupts.
-	OTG_FS_DIEPMSK = 0;
-	OTG_FS_DOEPMSK = 0;
-	OTG_FS_DAINTMSK = 0;
-	OTG_FS_DIEPEMPMSK = 0;
-	OTG_FS_DOEPINT0 = B2BSTUP | OTEPDIS | STUP | EPDISD | XFRC;
-	OTG_FS_DOEPINT1 = B2BSTUP | OTEPDIS | STUP | EPDISD | XFRC;
-	OTG_FS_DOEPINT2 = B2BSTUP | OTEPDIS | STUP | EPDISD | XFRC;
-	OTG_FS_DOEPINT3 = B2BSTUP | OTEPDIS | STUP | EPDISD | XFRC;
-	OTG_FS_GINTMSK = USBRSTM | ENUMDNEM | GONAKEFFM | GINAKEFFM | RXFLVLM | OTGINT;
-	OTG_FS_GINTSTS = OTG_FS_GINTSTS & ~ENUMDNE;
+	// Enable enumeration complete and reset interrupts only, and clear any pending interrupts (except enumeration complete itself, which might have happened in the intervening time).
+	{
+		OTG_FS_DIEPMSK_t tmp = { 0 };
+		OTG_FS_DIEPMSK = tmp;
+	}
+	{
+		OTG_FS_DOEPMSK_t tmp = { 0 };
+		OTG_FS_DOEPMSK = tmp;
+	}
+	{
+		OTG_FS_DAINTMSK_t tmp = { 0 };
+		OTG_FS_DAINTMSK = tmp;
+	}
+	{
+		OTG_FS_DIEPEMPMSK_t tmp = { 0 };
+		OTG_FS_DIEPEMPMSK = tmp;
+	}
+	for (unsigned int i = 0; i <= 3; ++i) {
+		OTG_FS_DOEPINTx_t tmp = {
+			.B2BSTUP = 1,
+			.OTEPDIS = 1,
+			.STUP = 1,
+			.EPDISD = 1,
+			.XFRC = 1,
+		};
+		OTG_FS_DOEP[i].DOEPINT = tmp;
+	}
+	{
+		OTG_FS_GINTMSK_t tmp = {
+			.USBRST = 1,
+			.ENUMDNEM = 1,
+			.GONAKEFFM = 1,
+			.GINAKEFFM = 1,
+			.RXFLVLM = 1,
+			.OTGINT = 1,
+		};
+		OTG_FS_GINTMSK = tmp;
+	}
+	{
+		OTG_FS_GINTSTS_t tmp = OTG_FS_GINTSTS;
+		tmp.ENUMDNE = 0;
+		OTG_FS_GINTSTS = tmp;
+	}
 }
 
 static void handle_reset(void) {
@@ -54,11 +88,14 @@ static void handle_enumeration_done(void) {
 	device_state = USB_LL_STATE_ACTIVE;
 
 	// Enable interrupts on IN transfer complete and receive FIFO non-empty.
-	OTG_FS_DIEPMSK |= XFRCM;
-	OTG_FS_GINTMSK |= GINTMSK_IEPINT;
-
 	// Disable enumeration complete interrupt; this shouldn’t happen any more.
-	OTG_FS_GINTMSK &= ~ENUMDNEM;
+	OTG_FS_DIEPMSK.XFRCM = 1;
+	{
+		OTG_FS_GINTMSK_t tmp = OTG_FS_GINTMSK;
+		tmp.IEPINT = 1;
+		tmp.ENUMDNEM = 0;
+		OTG_FS_GINTMSK = tmp;
+	}
 
 	// Notify the application.
 	if (enumeration_done_cb) {
@@ -91,21 +128,25 @@ void usb_ll_attach(usb_ll_reset_cb_t the_reset_cb, usb_ll_enumeration_done_cb_t 
 	ginak_requested = false;
 
 	// Reset the module and enable the clock
-	rcc_enable(AHB2, 7);
-
+	rcc_enable(AHB2, OTGFS);
+	rcc_reset(AHB2, OTGFS);
 	// Reset the USB core and configure device-wide parameters
-	OTG_FS_GUSBCFG =
-		0 // CTXPKT = 0; this bit should never be set
-		| FDMOD // Force to device mode (no cable ID used)
-		| 0 // FHMOD = 0; do not force to host mode
-		| TRDT(5) // Turnaround time 5 PHY clocks to synchronize (there is a formula in the datasheet, but the STM32 library ignores it and just uses 5)
-		| 0 // HNPCAP = 0; not host-negotiation-protocol capable
-		| 0 // SRPCAP = 0; not session-request-protocol capable
-		| PHYSEL // This bit is always set
-		| TOCAL(0); // Do not add additional bit times to interpacket timeout (the STMicro library leaves this at zero; I assume this is fine for the on-chip PHY)
-	while (!(OTG_FS_GRSTCTL & AHBIDL)); // Wait until AHB is idle
-	OTG_FS_GRSTCTL |= CSRST; // CSRST = 1; core soft reset
-	while (OTG_FS_GRSTCTL & CSRST); // Wait for reset to be complete
+	{
+		OTG_FS_GUSBCFG_t tmp = {
+			.CTXPKT = 0, // This bit should never be set
+			.FDMOD = 1, // Force to device mode (no cable ID used)
+			.FHMOD = 0, // Do not force to host mode
+			.TRDT = 5, // Turnaround time 5 PHY clocks to synchronize (there is a formula in the datasheet, but the STM32 library ignores it and just uses 5)
+			.HNPCAP = 0, // Not host-negotiation-protocol capable
+			.SRPCAP = 0, // Not session-request-protocol capable
+			.PHYSEL = 1, // This bit is always set
+			.TOCAL = 0, // Do not add additional bit times to interpacket timeout (the STMicro library leaves this at zero; I assume this is fine for the on-chip PHY)
+		};
+		OTG_FS_GUSBCFG = tmp;
+	}
+	while (!OTG_FS_GRSTCTL.AHBIDL); // Wait until AHB is idle
+	OTG_FS_GRSTCTL.CSRST = 1; // Core soft reset
+	while (OTG_FS_GRSTCTL.CSRST); // Wait for reset to be complete
 	// Wait at least 3 PHY clocks (would be 62.5 ns)
 	asm volatile("nop");
 	asm volatile("nop");
@@ -127,45 +168,89 @@ void usb_ll_attach(usb_ll_reset_cb_t the_reset_cb, usb_ll_enumeration_done_cb_t 
 	asm volatile("nop");
 	asm volatile("nop");
 	asm volatile("nop");
-	while (!(OTG_FS_GRSTCTL & AHBIDL)); // Wait until AHB is idle
-	OTG_FS_GCCFG =
-		NOVBUSSENS // VBUS sensing is not done
-		| 0 // SOFOUTEN = 0; do not output SOF pulses to I/O pin
-		| VBUSBSEN // VBUS sensing B device enabled
-		| 0 // VBUSASEN = 0; VBUS sensing A device disabled
-		| PWRDWN; // Transceiver active
-	OTG_FS_GAHBCFG =
-		0 // PTXFELVL = 0; only used in host mode
-		| 0 // TXFELVL = 0; interrupt on TX FIFO half empty
-		| 0; // GINTMSK = 0; no interrupts
+	while (!OTG_FS_GRSTCTL.AHBIDL); // Wait until AHB is idle
+	{
+		OTG_FS_GCCFG_t tmp = {
+			.NOVBUSSENS = 1, // VBUS sensing is not done
+			.SOFOUTEN = 0, // Do not output SOF pulses to I/O pin
+			.VBUSBSEN = 1, // VBUS sensing B device enabled
+			.VBUSASEN = 0, // VBUS sensing A device disabled
+			.PWRDWN = 1, // Transceiver active
+		};
+		OTG_FS_GCCFG = tmp;
+	}
+	{
+		OTG_FS_GAHBCFG_t tmp = {
+			.PTXFELVL = 0, // Only used in host mode
+			.TXFELVL = 0, // Interrupt on TX FIFO half empty
+			.GINTMSK = 0, // No interrupts
+		};
+		OTG_FS_GAHBCFG = tmp;
+	}
 	sleep_ms(25); // The application must wait at least 25 ms before a change to FDMOD takes effect
-	OTG_FS_DCFG =
-		0 // PFIVL = 0; end of periodic frame notification occurs at 80% of complete frame
-		| 0 // DAD = 0; device does not yet have an address
-		| NZLSOHSK // Send STALL on receipt of non-zero-length status transaction
-		| DSPD(3); // Run at full speed
-	OTG_FS_GOTGCTL =
-		0 // DHNPEN = 0; host negotiation protocol disabled
-		| 0 // HSHNPEN = 0; host negotiation protocol has not been enabled on the peer
-		| 0 // HNPRQ = 0; do not issue host negotiation protocol request
-		| 0; // SRQ = 0; do not issue session request
-	OTG_FS_DCTL =
-		CGONAK // CGONAK = 1; do not do OUT NAKs
-		| CGINAK; // CGINAK = 1; do not do IN NAKs
+	{
+		OTG_FS_DCFG_t tmp = {
+			.PFIVL = 0, // End of periodic frame notification occurs at 80% of complete frame
+			.DAD = 0, // Device does not yet have an address
+			.NZLSOHSK = 1, // Send STALL on receipt of non-zero-length status transaction
+			.DSPD = 3, // Run at full speed
+		};
+		OTG_FS_DCFG = tmp;
+	}
+	{
+		OTG_FS_GOTGCTL_t tmp = {
+			.DHNPEN = 0, // Host negotiation protocol disabled
+			.HSHNPEN = 0, // Host negotiation protocol has not been enabled on the peer
+			.HNPRQ = 0, // Do not issue host negotiation protocol request
+			.SRQ = 0, // Do not issue session request
+		};
+		OTG_FS_GOTGCTL = tmp;
+	}
+	{
+		OTG_FS_DCTL_t tmp = {
+			.POPRGDNE = 0, // Not waking from power-down mode right now
+			.CGONAK = 1, // Do not do OUT NAKs
+			.SGONAK = 0, // Do not do OUT NAKs
+			.CGINAK = 1, // Do not do IN NAKs
+			.SGINAK = 0, // Do not do IN NAKs
+			.TCTL = 0, // Do not enable any test modes
+			.SDIS = 0, // Do not disconnect from bus
+			.RWUSIG = 0, // Do not generate remote wakeup signalling
+		};
+		OTG_FS_DCTL = tmp;
+	}
 
 	// Clear pending OTG interrupts.
-	OTG_FS_GOTGINT = ADTOCHG | HNGDET | HNSSCHG | SRSSCHG | SEDET;
+	{
+		OTG_FS_GOTGINT_t tmp = {
+			.ADTOCHG = 1,
+			.HNGDET = 1,
+			.HNSSCHG = 1,
+			.SRSSCHG = 1,
+			.SEDET = 1,
+		};
+		OTG_FS_GOTGINT = tmp;
+	}
 
-	// Enable interrupts on USB reset, bus unplug, and RX FIFO activity.
-	OTG_FS_GINTMSK = USBRSTM | GONAKEFFM | GINAKEFFM | RXFLVLM | OTGINT;
-	OTG_FS_GAHBCFG |= GINTMSK;
+	// Enable interrupts on USB reset, global NAK effective, bus unplug, and RX FIFO activity.
+	{
+		OTG_FS_GINTMSK_t tmp = {
+			.USBRST = 1,
+			.GONAKEFFM = 1,
+			.GINAKEFFM = 1,
+			.RXFLVLM = 1,
+			.OTGINT = 1,
+		};
+		OTG_FS_GINTMSK = tmp;
+	}
+	OTG_FS_GAHBCFG.GINTMSK = 1;
 }
 
 void usb_ll_detach(void) {
-	OTG_FS_DCTL |= SDIS; // Soft disconnect from bus
-	OTG_FS_GAHBCFG &= ~GINTMSK; // Disable USB interrupts globally
-	OTG_FS_GCCFG &= ~PWRDWN; // Transceiver inactive
-	rcc_disable(AHB2, 7); // Power down the module
+	OTG_FS_DCTL.SDIS = 1; // Soft disconnect from bus
+	OTG_FS_GAHBCFG.GINTMSK = 0; // Disable USB interrupts globally
+	OTG_FS_GCCFG.PWRDWN = 0; // Transceiver inactive
+	rcc_disable(AHB2, OTGFS); // Power down the module
 	device_state = USB_LL_STATE_DETACHED;
 }
 
@@ -173,9 +258,9 @@ void usb_ll_detach(void) {
 
 static void handle_in_endpoint(void) {
 	// Find out which endpoint had the interrupt and dispatch to its registered callback.
-	uint32_t daint = OTG_FS_DAINT;
+	unsigned int mask = OTG_FS_DAINT.IEPINT;
 	for (unsigned int i = 0; i <= 3; ++i) {
-		if (DAINT_IEPINT_X(daint) & (1 << i)) {
+		if (mask & (1 << i)) {
 			in_endpoint_callbacks[i](i);
 			return;
 		}
@@ -189,9 +274,9 @@ void usb_ll_in_set_cb(unsigned int ep, usb_ll_in_cb_t cb) {
 
 static void handle_receive_fifo_nonempty(void) {
 	// Pop a status word from the FIFO.
-	uint32_t status_word = OTG_FS_GRXSTSP & (FRMNUM_MSK | PKTSTS_MSK | GRXSTSP_DPID_MSK | BCNT_MSK | GRXSTSP_EPNUM_MSK);
+	OTG_FS_GRXSTSR_device_t status_word = OTG_FS_GRXSTSP.device;
 
-	if (PKTSTS_X(status_word) == 0x1) {
+	if (status_word.PKTSTS == 0x1) {
 		// This is a notification of global OUT NAK effectiveness.
 		// We actually don’t do anything here, because the engine automatically sets an interrupt flag when we pop this pattern.
 		// We will handle the situation through that interrupt.
@@ -199,9 +284,8 @@ static void handle_receive_fifo_nonempty(void) {
 	} else {
 		// This is an endpoint-specific pattern.
 		// Deliver it to the callback for the endpoint.
-		unsigned int endpoint = GRXSTSP_EPNUM_X(status_word);
-		if (out_endpoint_callbacks[endpoint]) {
-			out_endpoint_callbacks[endpoint](endpoint, status_word);
+		if (out_endpoint_callbacks[status_word.EPNUM]) {
+			out_endpoint_callbacks[status_word.EPNUM](status_word.EPNUM, status_word);
 		}
 	}
 }
@@ -215,11 +299,11 @@ void usb_ll_out_set_cb(unsigned int ep, usb_ll_out_cb_t cb) {
 
 static void handle_gnak_effective(void) {
 	// We need a single, atomic read of this register or else our logic will get confused.
-	uint32_t gintsts = OTG_FS_GINTSTS;
+	OTG_FS_GINTSTS_t gintsts = OTG_FS_GINTSTS;
 
 	if (gnak_requests_head) {
 		// There are queued requests for global NAK.
-		if ((gintsts & GOUTNAKEFF) && (gintsts & GINAKEFF)) {
+		if ((gintsts.GOUTNAKEFF) && (gintsts.GINAKEFF)) {
 			// Both IN and OUT NAK are effective.
 			gonak_requested = false;
 			ginak_requested = false;
@@ -237,36 +321,51 @@ static void handle_gnak_effective(void) {
 				}
 			}
 			// We no longer have any requests, so disable global NAK.
-			OTG_FS_DCTL |= CGONAK | CGINAK;
+			{
+				OTG_FS_DCTL_t tmp = OTG_FS_DCTL;
+				tmp.CGONAK = 1;
+				tmp.CGINAK = 1;
+				OTG_FS_DCTL = tmp;
+			}
 			// We want to be notified of any other global NAK effectivenesses occurring later.
-			OTG_FS_GINTMSK |= GONAKEFFM | GINAKEFFM;
+			{
+				OTG_FS_GINTMSK_t tmp = OTG_FS_GINTMSK;
+				tmp.GONAKEFFM = 1;
+				tmp.GINAKEFFM = 1;
+				OTG_FS_GINTMSK = tmp;
+			}
 		} else {
 			// Global NAK has been requested, but not all global NAKs have become effective yet.
 			// We must disable the interrupt for the specific direction that has become effective (to avoid endless interrupts).
 			// Then we must return and wait for the other direction that is not yet effective to become effective.
-			if (gintsts & GOUTNAKEFF) {
+			if (gintsts.GOUTNAKEFF) {
 				gonak_requested = false;
-				OTG_FS_GINTMSK &= ~GONAKEFFM;
+				OTG_FS_GINTMSK.GONAKEFFM = 0;
 			}
-			if (gintsts & GINAKEFF) {
+			if (gintsts.GINAKEFF) {
 				ginak_requested = false;
-				OTG_FS_GINTMSK &= ~GINAKEFFM;
+				OTG_FS_GINTMSK.GINAKEFFM = 0;
 			}
 		}
 	} else {
 		// There are no queued requests for global NAK.
 		// This is spurious, perhaps caused by an old request.
 		// We should cancel whatever global NAK is effective.
-		if (gintsts & GOUTNAKEFF) {
+		if (gintsts.GOUTNAKEFF) {
 			gonak_requested = false;
-			OTG_FS_DCTL |= CGONAK;
+			OTG_FS_DCTL.CGONAK = 1;
 		}
-		if (gintsts & GINAKEFF) {
+		if (gintsts.GINAKEFF) {
 			ginak_requested = false;
-			OTG_FS_DCTL |= CGINAK;
+			OTG_FS_DCTL.CGINAK = 1;
 		}
 		// We want to be notified of any other global NAK effectivenesses occurring later.
-		OTG_FS_GINTMSK |= GONAKEFFM | GINAKEFFM;
+		{
+			OTG_FS_GINTMSK_t tmp = OTG_FS_GINTMSK;
+			tmp.GONAKEFFM = 1;
+			tmp.GINAKEFFM = 1;
+			OTG_FS_GINTMSK = tmp;
+		}
 	}
 }
 
@@ -286,12 +385,12 @@ void usb_ll_set_gnak(usb_ll_gnak_req_t *req, usb_ll_gnak_cb_t cb) {
 			gnak_requests_head = gnak_requests_tail = req;
 		}
 		// If any direction’s global NAK is neither effective nor requested, request it now.
-		if (!gonak_requested && !(OTG_FS_GINTSTS & GOUTNAKEFF)) {
-			OTG_FS_DCTL |= SGONAK;
+		if (!gonak_requested && !OTG_FS_GINTSTS.GOUTNAKEFF) {
+			OTG_FS_DCTL.SGONAK = 1;
 			gonak_requested = true;
 		}
-		if (!ginak_requested && !(OTG_FS_GINTSTS & GINAKEFF)) {
-			OTG_FS_DCTL |= SGINAK;
+		if (!ginak_requested && !OTG_FS_GINTSTS.GINAKEFF) {
+			OTG_FS_DCTL.SGINAK = 1;
 			ginak_requested = true;
 		}
 	}
@@ -300,10 +399,9 @@ void usb_ll_set_gnak(usb_ll_gnak_req_t *req, usb_ll_gnak_cb_t cb) {
 
 
 static void handle_otg_interrupt(void) {
-	uint32_t otgint = OTG_FS_GOTGINT;
+	OTG_FS_GOTGINT_t otgint = OTG_FS_GOTGINT;
 	OTG_FS_GOTGINT = otgint;
-	if (otgint & SEDET) {
-		OTG_FS_GOTGINT = SEDET;
+	if (otgint.SEDET) {
 		if (unplug_cb) {
 			unplug_cb();
 		}
@@ -311,23 +409,40 @@ static void handle_otg_interrupt(void) {
 }
 
 void usb_ll_process(void) {
-	uint32_t mask = OTG_FS_GINTSTS & OTG_FS_GINTMSK;
-	if (mask & USBRST) {
-		OTG_FS_GINTSTS = USBRST;
+	// We rely here on the fact that GINTSTS and GINTMSK have parallel layouts, so we can AND their bits together to get something useful.
+	// This gives us only those interrupts that are both true and interesting.
+	OTG_FS_GINTSTS_t mask;
+	{
+		OTG_FS_GINTSTS_t gintsts = OTG_FS_GINTSTS;
+		OTG_FS_GINTMSK_t gintmsk = OTG_FS_GINTMSK;
+		uint32_t gintsts32, gintmsk32;
+		memcpy(&gintsts32, &gintsts, sizeof(uint32_t));
+		memcpy(&gintmsk32, &gintmsk, sizeof(uint32_t));
+		uint32_t final = gintsts32 & gintmsk32;
+		memcpy(&mask, &final, sizeof(uint32_t));
+	}
+	if (mask.USBRST) {
+		{
+			OTG_FS_GINTSTS_t tmp = { .USBRST = 1 };
+			OTG_FS_GINTSTS = tmp;
+		}
 		handle_reset();
-	} else if (mask & ENUMDNE) {
-		OTG_FS_GINTSTS = ENUMDNE;
+	} else if (mask.ENUMDNE) {
+		{
+			OTG_FS_GINTSTS_t tmp = { .ENUMDNE = 1 };
+			OTG_FS_GINTSTS = tmp;
+		}
 		handle_enumeration_done();
-	} else if (mask & RXFLVL) {
+	} else if (mask.RXFLVL) {
 		// This interrupt is level-sensitive; it clears automatically when the FIFO is read.
 		handle_receive_fifo_nonempty();
-	} else if (mask & GINTSTS_IEPINT) {
+	} else if (mask.IEPINT) {
 		// This interrupt is level-sensitive; it clears automatically when the more specific interrupt bit is cleared.
 		handle_in_endpoint();
-	} else if ((mask & GINAKEFF) || (mask & GOUTNAKEFF)) {
+	} else if (mask.GINAKEFF || mask.GOUTNAKEFF) {
 		// These interrupts are level-sensitive; the handler will disable the mask if they need to be ignored for a while.
 		handle_gnak_effective();
-	} else if (mask & OTGINT) {
+	} else if (mask.OTGINT) {
 		// This interrupt is level-sensitive; it clears automatically when the more specific interrupt bit is cleared.
 		handle_otg_interrupt();
 	}
