@@ -28,7 +28,7 @@ static void show_sweeper(void) {
 }
 
 static void show_bits(uint8_t bits) {
-	gpio_set_reset_mask(GPIOB, ((bits & 2) ? (1 << 13) : 0) | ((bits & 1) ? (1 << 14) : 0), 7 << 12);
+	gpio_set_reset_mask(GPIOB, (1 << 12) | ((bits & 2) ? (1 << 13) : 0) | ((bits & 1) ? (1 << 14) : 0), 7 << 12);
 	sleep_ms(100);
 	gpio_reset(GPIOB, 12);
 	sleep_ms(900);
