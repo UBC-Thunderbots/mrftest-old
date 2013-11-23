@@ -109,7 +109,7 @@ MRFDongle::MRFDongle() : context(), device(context, MRF::VENDOR_ID, MRF::PRODUCT
 			}
 		}
 		if (radio_interface < 0 || configuration_altsetting < 0 || normal_altsetting < 0) {
-			throw std::runtime_error("Wrong USB descriptors (protocol mismatch between burner module and software?).");
+			throw std::runtime_error("Wrong USB descriptors (protocol mismatch between dongle and software?).");
 		}
 	}
 
