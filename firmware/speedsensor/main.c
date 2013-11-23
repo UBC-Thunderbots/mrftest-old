@@ -37,7 +37,7 @@ static void tic(void);
 static void toc(void);
 
 
-static char stack[65536] __attribute__((section(".stack")));
+static char stack[32768] __attribute__((section(".mstack")));
 
 typedef void (*fptr)(void);
 static const fptr exception_vectors[16] __attribute__((used, section(".exception_vectors"))) = {

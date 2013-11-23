@@ -32,6 +32,11 @@ SECTIONS {
 		*(.data .data.*)
 	} >sram_region AT>flash_region
 
+	/* Allocate the last 256 kiB (two sectors) of Flash for a core dump */
+	.coredump 0x080C0000 (NOLOAD) : {
+		*(.coredump)
+	} >flash_region
+
 	/* Zero-initialized data can live entirely in SRAM and be wiped on boot */
 	.bss : {
 		*(.bss .bss.*)
@@ -39,7 +44,8 @@ SECTIONS {
 
 	/* The stack can go in core-coupled memory for speed */
 	.stack (NOLOAD) : {
-		*(.stack)
+		*(.pstack)
+		*(.mstack)
 	} >ccm_region AT>ccm_region
 }
 

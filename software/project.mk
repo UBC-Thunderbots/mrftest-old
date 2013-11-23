@@ -1,7 +1,7 @@
 #
 # The executables to compile.
 #
-EXECUTABLES := ai convertlog cppunit fbuart fw hall2phase log mrfcap mrftest sdutil simulator
+EXECUTABLES := ai convertlog cppunit fbuart fw getcore hall2phase log mrfcap mrftest sdutil simulator
 
 #
 # The subset of the above that should not be built by the world target.
@@ -17,6 +17,7 @@ SOURCES_convertlog := ai/common convertlog log/shared main.cpp proto util
 SOURCES_cppunit := cppunit geom util
 SOURCES_fbuart := fbuart.cpp main.cpp util
 SOURCES_fw := fw main.cpp util
+SOURCES_getcore := getcore.cpp main.cpp util
 SOURCES_hall2phase := hall2phase
 SOURCES_log := ai/common geom log main.cpp proto uicomponents util
 SOURCES_mrfcap := main.cpp mrfcap.cpp util

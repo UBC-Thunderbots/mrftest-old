@@ -97,12 +97,16 @@ firmware/stm32lib/Doxyfile -text
 firmware/stm32lib/Makefile -text
 firmware/stm32lib/Makefile.common -text
 firmware/stm32lib/abort.c -text
+firmware/stm32lib/core_progmem.c -text
 firmware/stm32lib/deferred.c -text
 firmware/stm32lib/exception.c -text
 firmware/stm32lib/exti.c -text
 firmware/stm32lib/format.c -text
-firmware/stm32lib/include/abort.h -text
+firmware/stm32lib/gdb/arm-m-profile.xml -text
+firmware/stm32lib/gdb/arm-vfpv2.xml -text
+firmware/stm32lib/gdb/arm-with-m-vfp-d16.xml -text
 firmware/stm32lib/include/assert.h -text
+firmware/stm32lib/include/core_progmem.h -text
 firmware/stm32lib/include/deferred.h -text
 firmware/stm32lib/include/exception.h -text
 firmware/stm32lib/include/exti.h -text
@@ -512,6 +516,7 @@ software/geom/rect.cpp -text
 software/geom/rect.h -text
 software/geom/util.cpp -text
 software/geom/util.h -text
+software/getcore.cpp -text
 software/hall2phase/main.cpp -text
 software/log/analyzer.cpp -text
 software/log/analyzer.h -text

@@ -3,6 +3,7 @@
 #include "enabled.h"
 #include "estop.h"
 #include "mrf.h"
+#include <core_progmem.h>
 #include <deferred.h>
 #include <exception.h>
 #include <format.h>
@@ -28,7 +29,7 @@
 #include <usb_fifo.h>
 #include <usb_ll.h>
 
-static void stm32_main(void) __attribute__((noreturn));
+static void stm32_main(void) __attribute__((naked, noreturn));
 static void nmi_vector(void);
 static void service_call_vector(void);
 static void system_tick_vector(void);
@@ -44,11 +45,12 @@ void timer5_interrupt_vector(void);
 void timer6_interrupt_vector(void);
 void timer7_interrupt_vector(void);
 
-static char stack[65536] __attribute__((section(".stack")));
+static char mstack[32768] __attribute__((section(".mstack")));
+static char pstack[32768] __attribute__((section(".pstack"), used));
 
 typedef void (*fptr)(void);
 static const fptr exception_vectors[16] __attribute__((used, section(".exception_vectors"))) = {
-	[0] = (fptr) (stack + sizeof(stack)),
+	[0] = (fptr) (mstack + sizeof(mstack)),
 	[1] = &stm32_main,
 	[2] = &nmi_vector,
 	[3] = &exception_hard_fault_vector,
@@ -277,6 +279,29 @@ static void handle_usb_enumeration_done(void) {
 	usb_ep0_cbs_push(&GLOBAL_CBS);
 }
 
+static void app_exception_early(void) {
+	// Power down the USB engine to disconnect from the host.
+	OTG_FS_GCCFG.PWRDWN = 0;
+
+	// Turn the three LEDs on.
+	gpio_set_reset_mask(GPIOB, 7 << 12, 0);
+}
+
+static void app_exception_late(bool core_written) {
+	// Show flashing lights.
+	for (;;) {
+		gpio_set_reset_mask(GPIOB, 0, 7 << 12);
+		sleep_ms(500);
+		gpio_set_reset_mask(GPIOB, core_written ? (7 << 12) : (1 << 12), 0);
+		sleep_ms(500);
+	}
+}
+
+static const exception_app_cbs_t APP_EXCEPTION_CBS = {
+	.early = &app_exception_early,
+	.late = &app_exception_late,
+};
+
 extern unsigned char linker_data_vma_start;
 extern unsigned char linker_data_vma_end;
 extern const unsigned char linker_data_lma_start;
@@ -284,6 +309,19 @@ extern unsigned char linker_bss_vma_start;
 extern unsigned char linker_bss_vma_end;
 
 static void stm32_main(void) {
+	asm volatile(
+			"mov r0, #pstack\n\t"
+			"movt r0, #:upper16:pstack\n\t"
+			"add r0, #32768\n\t"
+			"msr psp, r0\n\t"
+			"mov r0, #2\n\t"
+			"msr control, r0\n\t"
+			"isb\n\t"
+			"b main\n\t");
+	for (;;);
+}
+
+int main(void) {
 	// Check if we’re supposed to go to the bootloader.
 	RCC_CSR_t rcc_csr_shadow = RCC_CSR; // Keep a copy of RCC_CSR
 	RCC_CSR.RMVF = 1; // Clear reset flags
@@ -291,12 +329,15 @@ static void stm32_main(void) {
 	if (rcc_csr_shadow.SFTRSTF && bootload_flag == UINT64_C(0xFE228106195AD2B0)) {
 		bootload_flag = 0;
 		asm volatile(
-			"mov sp, %[stack]\n\t"
+			"msr control, %[control]\n\t"
+			"isb\n\t"
+			"msr msp, %[stack]\n\t"
 			"mov pc, %[vector]"
 			:
-			: [stack] "r" (*(const volatile uint32_t *) 0x1FFF0000), [vector] "r" (*(const volatile uint32_t *) 0x1FFF0004));
+			: [control] "r" (0), [stack] "r" (*(const volatile uint32_t *) 0x1FFF0000), [vector] "r" (*(const volatile uint32_t *) 0x1FFF0004));
 	}
 	bootload_flag = 0;
+
 	// Copy initialized globals and statics from ROM to RAM.
 	memcpy(&linker_data_vma_start, &linker_data_lma_start, &linker_data_vma_end - &linker_data_vma_start);
 	// Scrub the BSS section in RAM.
@@ -314,40 +355,51 @@ static void stm32_main(void) {
 	}
 
 	// Set up interrupt handling.
-	exception_init();
+	exception_init(&core_progmem_writer, &APP_EXCEPTION_CBS);
 
 	// Set up the memory protection unit to catch bad pointer dereferences.
-	// We define the following regions:
-	// Region 0: 0x08000000 length 1 MiB: Flash memory (normal, read-only, write-through cache, executable)
-	// Region 1: 0x10000000 length 64 kiB: CCM (normal, read-write, write-back write-allocate cache, not executable)
-	// Region 2: 0x1FFF7A00 length 64 bytes: U_ID and F_SIZE (device, read-only, not executable) (this should be 0x1FFF7A10 length 12 plus 0x1FFF7A22 length 4, but this is all we can do)
-	// Region 3: 0x20000000 length 128 kiB: SRAM (normal, read-write, write-back write-allocate cache, not executable)
-	// Region 4: 0x40000000 length 32 kiB: APB1 peripherals (device, read-write, not executable)
-	// Region 5: 0x40010000 length 32 kiB: APB2 peripherals (device, read-write, not executable) using subregions:
-	//   This should be 22,258 bytes.
-	//   Regions must be powers of 2, so we set 32 kiB.
-	//   The closest eight divsion we can get is ¾; ⅝ would be too small.
-	//   So set the bottommost 6 subregions as present, and the top 2 subregions as absent.
-	// Region 6: 0x40020000 length 512 kiB: AHB1 peripherals (device, read-write, not executable)
-	// Region 7: 0x50000000 length 512 kiB: AHB2 peripherals (device, read-write, not executable)
-	//   This should be 396,288 bytes.
-	//   Regions must be powers of 2, so we set 512 kiB.
-	//   The closest eight division we can get is ⅞; ¾ is too small.
-	//   So set the bottommost 7 subregions as present, and the top 1 subregion as absent.
-	// The private peripheral bus (0xE0000000 length 1 MiB) always uses the system memory map, so no region is needed for it.
+	// The private peripheral bus (0xE0000000 length 1 MiB) always uses the system memory map, so no region is needed for it.
 	// We set up the regions first, then enable the MPU.
 	{
 		static const struct {
 			uint32_t address;
 			MPU_RASR_t rasr;
 		} REGIONS[] = {
+			// 0x08000000–0x080FFFFF (length 1 MiB): Flash memory (normal, read-only, write-through cache, executable)
 			{ 0x08000000, { .XN = 0, .AP = 0b111, .TEX = 0b000, .S = 0, .C = 1, .B = 0, .SRD = 0, .SIZE = 19, .ENABLE = 1 } },
-			{ 0x10000000, { .XN = 1, .AP = 0b011, .TEX = 0b001, .S = 0, .C = 1, .B = 1, .SRD = 0, .SIZE = 15, .ENABLE = 1 } },
-			{ 0x1FFF7A00, { .XN = 1, .AP = 0b111, .TEX = 0b010, .S = 0, .C = 0, .B = 0, .SRD = 0, .SIZE = 5, .ENABLE = 1 } },
+
+			// 0x10000000–0x10007FFF (length 32 kiB): CCM bottom half (pstack) (normal, read-write, write-back write-allocate cache, not executable)
+			{ 0x10000000, { .XN = 1, .AP = 0b011, .TEX = 0b001, .S = 0, .C = 1, .B = 1, .SRD = 0, .SIZE = 14, .ENABLE = 1 } },
+
+			// 0x10008000–0x1000FFFF (length 32 kiB): CCM top half (mstack) (normal, read-write, write-back write-allocate cache, not executable, privileged-only):
+			{ 0x10008000, { .XN = 1, .AP = 0b001, .TEX = 0b001, .S = 0, .C = 1, .B = 1, .SRD = 0, .SIZE = 14, .ENABLE = 1 } },
+
+			// 0x1FFF0000–0x1FFF7FFF (length 32 kiB): System memory including U_ID and F_SIZE (normal, read-only, write-through cache, not executable)
+			{ 0x1FFF0000, { .XN = 1, .AP = 0b111, .TEX = 0b000, .S = 0, .C = 1, .B = 0, .SRD = 0, .SIZE = 14, .ENABLE = 1 } },
+
+			// 0x20000000–0x2001FFFF (length 128 kiB): SRAM (normal, read-write, write-back write-allocate cache, not executable)
 			{ 0x20000000, { .XN = 1, .AP = 0b011, .TEX = 0b001, .S = 0, .C = 1, .B = 1, .SRD = 0, .SIZE = 16, .ENABLE = 1 } },
-			{ 0x40000000, { .XN = 1, .AP = 0b011, .TEX = 0b010, .S = 0, .C = 0, .B = 0, .SRD = 0, .SIZE = 14, .ENABLE = 1 } },
-			{ 0x40010000, { .XN = 1, .AP = 0b011, .TEX = 0b010, .S = 0, .C = 0, .B = 0, .SRD = 0b11000000, .SIZE = 14, .ENABLE = 1 } },
-			{ 0x40020000, { .XN = 1, .AP = 0b011, .TEX = 0b010, .S = 0, .C = 0, .B = 0, .SRD = 0, .SIZE = 18, .ENABLE = 1 } },
+
+			// 0x40000000–0x4007FFFF (length 512 kiB): Peripherals (device, read-write, not executable) using subregions:
+			// Subregion 0 (0x40000000–0x4000FFFF): Enabled (contains APB1)
+			// Subregion 1 (0x40010000–0x4001FFFF): Enabled (contains APB2)
+			// Subregion 2 (0x40020000–0x4002FFFF): Enabled (contains AHB1)
+			// Subregion 3 (0x40030000–0x4003FFFF): Disabled
+			// Subregion 4 (0x40040000–0x4004FFFF): Disabled
+			// Subregion 5 (0x40050000–0x4005FFFF): Disabled
+			// Subregion 6 (0x40060000–0x4006FFFF): Disabled
+			// Subregion 7 (0x40070000–0x4007FFFF): Disabled
+			{ 0x40000000, { .XN = 1, .AP = 0b011, .TEX = 0b010, .S = 0, .C = 0, .B = 0, .SRD = 0b11111000, .SIZE = 18, .ENABLE = 1 } },
+
+			// 0x50000000–0x5007FFFF (length 512 kiB): Peripherals (device, read-write, not executable) using subregions:
+			// Subregion 0 (0x50000000–0x5000FFFF): Enabled (contains AHB2)
+			// Subregion 1 (0x50010000–0x5001FFFF): Enabled (contains AHB2)
+			// Subregion 2 (0x50020000–0x5002FFFF): Enabled (contains AHB2)
+			// Subregion 3 (0x50030000–0x5003FFFF): Enabled (contains AHB2)
+			// Subregion 4 (0x50040000–0x5004FFFF): Enabled (contains AHB2)
+			// Subregion 5 (0x50050000–0x5005FFFF): Enabled (contains AHB2)
+			// Subregion 6 (0x50060000–0x5006FFFF): Enabled (contains AHB2)
+			// Subregion 7 (0x50070000–0x5007FFFF): Disabled
 			{ 0x50000000, { .XN = 1, .AP = 0b011, .TEX = 0b010, .S = 0, .C = 0, .B = 0, .SRD = 0b10000000, .SIZE = 18, .ENABLE = 1 } },
 		};
 		for (unsigned int i = 0; i < sizeof(REGIONS) / sizeof(*REGIONS); ++i) {
@@ -585,11 +637,13 @@ static void stm32_main(void) {
 	usb_ll_attach(&handle_usb_reset, &handle_usb_enumeration_done, 0);
 	NVIC_ISER[67 / 32] = 1 << (67 % 32); // SETENA67 = 1; enable USB FS interrupt
 
-	// All activity from now on happens in interrupt handlers.
-	// Therefore, enable the mode where the chip automatically goes to sleep on return from an interrupt handler.
-	SCR.SLEEPONEXIT = 1;
-	asm volatile("dsb");
-	asm volatile("isb");
+	// Switch to unprivileged mode.
+	asm volatile(
+			"msr control, %[control_value]\n\t"
+			"dsb\n\t"
+			"isb\n\t"
+			:
+			: [control_value] "r" (0b011 /* FPCA = 0, SPSEL = 1, nPRIV = 1 */));
 
 	// Now wait forever handling activity in interrupt handlers.
 	for (;;) {

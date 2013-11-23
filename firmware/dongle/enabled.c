@@ -5,6 +5,7 @@
 #include "normal.h"
 #include "radio_off.h"
 #include "promiscuous.h"
+#include <core_progmem.h>
 #include <deferred.h>
 #include <registers/scb.h>
 #include <unused.h>
@@ -261,6 +262,16 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 
 		// Return the MAC address.
 		*source = usb_ep0_memory_source_init(&mem_src, &config.mac_address, sizeof(config.mac_address));
+		return USB_EP0_DISPOSITION_ACCEPT;
+	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_DEVICE) && pkt->request == CONTROL_REQUEST_READ_CORE) {
+		// This request reads a 1-kibibyte block.
+		// The value field identifies which block to read.
+		if (pkt->value >= 256) {
+			return USB_EP0_DISPOSITION_REJECT;
+		}
+
+		// Return the data.
+		*source = usb_ep0_memory_source_init(&mem_src, &core_progmem_dump[pkt->value * 1024U / 4U], 1024);
 		return USB_EP0_DISPOSITION_ACCEPT;
 	} else if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE) && pkt->index == INTERFACE_DFU && pkt->request == DFU_GETSTATUS) {
 		// This request must have value set to zero.
