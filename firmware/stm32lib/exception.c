@@ -312,7 +312,7 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 		const hw_basic_stack_frame_t *hwframe;
 		if (swframe->lr & 4) {
 			// This means we were running on the process stack.
-			elf_notes.prstatus.pr_reg_sp = swframe->psp;
+			elf_notes.prstatus.pr_reg_sp = swframe->psp + sizeof(hw_basic_stack_frame_t);
 
 			// However, there might have been an error while stacking the exception frame.
 			// This could be caused by e.g. a stack overflow, leaving no space for the frame.
@@ -327,6 +327,11 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 				// The hardware frame was the last thing pushed onto the process stack.
 				// It must therefore be pointed to by PSP.
 				hwframe = (const hw_basic_stack_frame_t *) swframe->psp;
+			}
+
+			if (hwframe && hwframe->xpsr & (1U << 9)) {
+				// Stack pointer was adjusted by 4 to achieve 8-byte alignment.
+				elf_notes.prstatus.pr_reg_sp += 4;
 			}
 
 			// We call userspace PID 1.
