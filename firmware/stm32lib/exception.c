@@ -417,7 +417,7 @@ static void common_fault_handler(const sw_stack_frame_t *sp, unsigned int cause)
 				"b common_fault_handler\n\t" \
 				: \
 				: [cause_constant] "i" (cause)); \
-		for (;;); \
+		__builtin_unreachable(); \
 	}
 
 GEN_FAULT_HANDLER(hard, 3)

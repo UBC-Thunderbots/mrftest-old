@@ -3,6 +3,6 @@
 // This overrides the abort function from newlib.
 void abort(void) {
 	asm volatile("bkpt");
-	for (;;);
+	__builtin_unreachable();
 }
 

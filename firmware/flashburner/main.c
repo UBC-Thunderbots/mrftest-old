@@ -404,7 +404,7 @@ static void stm32_main(void) {
 			"msr control, r0\n\t"
 			"isb\n\t"
 			"b main\n\t");
-	for (;;);
+	__builtin_unreachable();
 }
 
 int main(void) {
