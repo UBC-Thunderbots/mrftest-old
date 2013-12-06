@@ -33,7 +33,7 @@
 #include <usb_fifo.h>
 #include <usb_ll.h>
 
-static void stm32_main(void) __attribute__((naked, noreturn));
+static void stm32_main(void) __attribute__((noreturn));
 static void nmi_vector(void);
 static void service_call_vector(void);
 static void system_tick_vector(void);
@@ -48,11 +48,11 @@ void timer5_interrupt_vector(void);
 void usart1_interrupt_vector(void);
 
 static char mstack[32768] __attribute__((section(".mstack")));
-static char pstack[32768] __attribute__((section(".pstack"), used));
+static char pstack[32768] __attribute__((section(".pstack")));
 
 typedef void (*fptr)(void);
 static const fptr exception_vectors[16] __attribute__((used, section(".exception_vectors"))) = {
-	[0] = (fptr) (mstack + sizeof(mstack)),
+	[0] = (fptr) (pstack + sizeof(pstack)),
 	[1] = &stm32_main,
 	[2] = &nmi_vector,
 	[3] = &exception_hard_fault_vector,
@@ -395,19 +395,6 @@ extern unsigned char linker_bss_vma_start;
 extern unsigned char linker_bss_vma_end;
 
 static void stm32_main(void) {
-	asm volatile(
-			"mov r0, #pstack\n\t"
-			"movt r0, #:upper16:pstack\n\t"
-			"add r0, #32768\n\t"
-			"msr psp, r0\n\t"
-			"mov r0, #2\n\t"
-			"msr control, r0\n\t"
-			"isb\n\t"
-			"b main\n\t");
-	__builtin_unreachable();
-}
-
-int main(void) {
 	// Check if we’re supposed to go to the bootloader.
 	RCC_CSR_t rcc_csr_shadow = RCC_CSR; // Keep a copy of RCC_CSR
 	RCC_CSR.RMVF = 1; // Clear reset flags
@@ -421,8 +408,28 @@ int main(void) {
 			"mov pc, %[vector]"
 			:
 			: [control] "r" (0), [stack] "r" (*(const volatile uint32_t *) 0x1FFF0000), [vector] "r" (*(const volatile uint32_t *) 0x1FFF0004));
+		__builtin_unreachable();
 	}
 	bootload_flag = 0;
+
+	// Copy the main stack pointer (MSP) to the process stack pointer (PSP) and start using the process stack.
+	asm volatile(
+			"mrs r0, msp\n\t"
+			"msr psp, r0\n\t"
+			"mov r0, #2\n\t"
+			"msr control, r0\n\t"
+			"isb"
+			:
+			:
+			: "cc", "r0");
+
+	// Point main stack pointer (MSP) at the main stack.
+	asm volatile(
+			"msr msp, %[new_msp]\n\t"
+			"isb"
+			:
+			: [new_msp] "r" (mstack + sizeof(mstack) / sizeof(*mstack))
+			: "cc");
 
 	// Copy initialized globals and statics from ROM to RAM.
 	memcpy(&linker_data_vma_start, &linker_data_lma_start, &linker_data_vma_end - &linker_data_vma_start);
