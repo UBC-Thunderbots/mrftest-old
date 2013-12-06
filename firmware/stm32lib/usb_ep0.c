@@ -137,17 +137,6 @@ static void handle_setup_stage_done_no_data(void) {
 		// Request was rejected, so stall the IN endpoint.
 		OTG_FS_DIEPCTL0.STALL = 1;
 	}
-
-	// Allow the OUT endpoint to take up to three SETUP packets for the next transfer.
-	// The endpoint does not need to be enabled in order to accept SETUP packets.
-	{
-		OTG_FS_DOEPTSIZ0_t tmp = {
-			.STUPCNT = 3,
-			.PKTCNT = 0,
-			.XFRSIZ = 0,
-		};
-		OTG_FS_DOEPTSIZ0 = tmp;
-	}
 }
 
 static void handle_setup_stage_done_in_data(void) {
@@ -175,7 +164,6 @@ static void handle_setup_stage_done_in_data(void) {
 		// (2) In general, if the last IN transaction in the data stage suffers a lost ACK, the host will try to start the status stage while the device believes the data stage is still running; should this happen, the correct outcome is that the status stage starts (this being an IN data stage, the device shouldn’t care whether it actually knows the data was delivered or not).
 		{
 			OTG_FS_DOEPTSIZ0_t tmp = {
-				.STUPCNT = 3, // Allow up to 3 back-to-back SETUP data packets.
 				.PKTCNT = 1, // Accept one packet.
 				.XFRSIZ = 0, // Accept zero bytes.
 			};
@@ -220,7 +208,6 @@ static void handle_setup_stage_done_out_data(void) {
 		// This also allows the postdata callback to reject the transfer by stalling the status stage.
 		{
 			OTG_FS_DOEPTSIZ0_t tmp = {
-				.STUPCNT = 3, // Allow up to 3 back-to-back SETUP packets.
 				.PKTCNT = 1, // Accept one packet.
 				.XFRSIZ = MIN(ep0_max_packet, data_requested), // Accept min{max-packet|data-requested} bytes.
 			};
@@ -328,7 +315,6 @@ static void handle_receive_pattern(unsigned int UNUSED(ep), OTG_FS_GRXSTSR_devic
 					// There is more data to transfer.
 					{
 						OTG_FS_DOEPTSIZ0_t tmp = {
-							.STUPCNT = 3, // Allow up to 3 back-to-back SETUP data packets.
 							.PKTCNT = 1, // Accept one packet.
 							.XFRSIZ = MIN(ep0_max_packet, data_requested), // Accept min{max-packet|data-requested} bytes.
 						};
@@ -372,9 +358,6 @@ static void handle_receive_pattern(unsigned int UNUSED(ep), OTG_FS_GRXSTSR_devic
 					(void) OTG_FS_FIFO[0][0];
 				}
 			}
-
-			// Reinitialize maximum setup packet count.
-			OTG_FS_DOEPTSIZ0.STUPCNT = 3;
 			break;
 	}
 }
@@ -451,17 +434,6 @@ void usb_ep0_init(size_t max_packet) {
 
 	// Enable interrupts to this endpoint.
 	OTG_FS_DAINTMSK.IEPM |= 1 << 0; // Take an interrupt on IN endpoint 0 event.
-
-	// Enable OUT endpoint 0 to receive SETUP packets.
-	// SETUP packets are always accepted, so we do not need to actually enable the endpoint.
-	{
-		OTG_FS_DOEPTSIZ0_t tmp = {
-			.STUPCNT = 3, // Allow up to 3 back-to-back SETUP data packets.
-			.PKTCNT = 0, // No non-SETUP packets should be issued.
-			.XFRSIZ = 0, // No non-SETUP transfer is occurring.
-		};
-		OTG_FS_DOEPTSIZ0 = tmp;
-	}
 }
 
 void usb_ep0_deinit(void) {
