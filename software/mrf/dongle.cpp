@@ -205,6 +205,9 @@ MRFDongle::~MRFDongle() {
 	annunciator_beep_connections[0].disconnect();
 	annunciator_beep_connections[1].disconnect();
 	drive_submit_connection.disconnect();
+
+	// Mark USB device as shutting down to squelch cancelled transfer warnings.
+	device.mark_shutting_down();
 }
 
 void MRFDongle::beep(unsigned int length) {

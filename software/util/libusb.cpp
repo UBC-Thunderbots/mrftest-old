@@ -282,12 +282,12 @@ USB::Device USB::DeviceList::operator[](const std::size_t i) const {
 
 
 
-USB::DeviceHandle::DeviceHandle(const Device &device) : context(device.context), submitted_transfer_count(0) {
+USB::DeviceHandle::DeviceHandle(const Device &device) : context(device.context), submitted_transfer_count(0), shutting_down(false) {
 	check_fn("libusb_open", libusb_open(device.device, &handle), 0);
 	init_descriptors();
 }
 
-USB::DeviceHandle::DeviceHandle(Context &context, unsigned int vendor_id, unsigned int product_id, const char *serial_number) : context(context.context), submitted_transfer_count(0) {
+USB::DeviceHandle::DeviceHandle(Context &context, unsigned int vendor_id, unsigned int product_id, const char *serial_number) : context(context.context), submitted_transfer_count(0), shutting_down(false) {
 	DeviceList lst(context);
 	for (std::size_t i = 0; i < lst.size(); ++i) {
 		const Device &device = lst[i];
@@ -429,6 +429,10 @@ std::size_t USB::DeviceHandle::bulk_in(unsigned char endpoint, void *data, std::
 	return static_cast<std::size_t>(transferred);
 }
 
+void USB::DeviceHandle::mark_shutting_down() {
+	shutting_down = true;
+}
+
 void USB::DeviceHandle::init_descriptors() {
 	check_fn("libusb_get_device_descriptor", libusb_get_device_descriptor(libusb_get_device(handle), &device_descriptor_), 0);
 	for (uint8_t i = 0; i < device_descriptor_.bNumConfigurations; ++i) {
@@ -483,7 +487,14 @@ USB::Transfer::~Transfer() {
 			// Initiate transfer cancellation.
 			// Instead of waiting for cancellation to complete, "disown" the transfer object.
 			// It will be freed by the trampoline.
-			LOG_ERROR(Glib::ustring::compose(u8"Destroying in-progress transfer to USB %1 endpoint %2; this is unreliable and may be a problem if not happening during system shutdown!", ((transfer->endpoint & LIBUSB_ENDPOINT_DIR_MASK) == LIBUSB_ENDPOINT_IN ? u8"in" : u8"out"), static_cast<unsigned int>(transfer->endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK)));
+			//
+			// There is a libusb bug where cancelling transfers sometimes makes the endpoint completely unresponsive in future.
+			// It’s not a USB bug; libusb actually never submits future transfers for that endpoint!
+			// We should show a warning if a transfer is cancelled.
+			// However, cancelling transfers at shutdown would result in unnecessary spam, so squelch those.
+			if (!device.shutting_down) {
+				LOG_ERROR(Glib::ustring::compose(u8"Destroying in-progress transfer to USB %1 endpoint %2; this is unreliable and may be a problem if not happening during system shutdown!", ((transfer->endpoint & LIBUSB_ENDPOINT_DIR_MASK) == LIBUSB_ENDPOINT_IN ? u8"in" : u8"out"), static_cast<unsigned int>(transfer->endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK)));
+			}
 			libusb_cancel_transfer(transfer);
 			TransferMetadata::get(transfer)->disown();
 		} else {

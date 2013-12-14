@@ -452,6 +452,11 @@ namespace USB {
 			 */
 			std::size_t bulk_in(unsigned char endpoint, void *data, std::size_t length, unsigned int timeout);
 
+			/**
+			 * \brief Mark the device as shutting down, so cancelled transfers will not issue warnings.
+			 */
+			void mark_shutting_down();
+
 		private:
 			friend class Transfer;
 			friend class ControlNoDataTransfer;
@@ -467,6 +472,7 @@ namespace USB {
 			libusb_device_descriptor device_descriptor_;
 			std::vector<std::unique_ptr<libusb_config_descriptor, void (*)(libusb_config_descriptor *)>> config_descriptors;
 			unsigned int submitted_transfer_count;
+			bool shutting_down;
 
 			void init_descriptors();
 	};
