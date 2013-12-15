@@ -8,6 +8,7 @@
 #include <exception.h>
 #include <format.h>
 #include <gpio.h>
+#include <init.h>
 #include <rcc.h>
 #include <registers/flash.h>
 #include <registers/id.h>
@@ -33,6 +34,8 @@ static void stm32_main(void) __attribute__((noreturn));
 static void nmi_vector(void);
 static void service_call_vector(void);
 static void system_tick_vector(void);
+static void app_exception_early(void);
+static void app_exception_late(bool core_written);
 void adc_interrupt_vector(void);
 void exti_dispatcher_0(void);
 void exti_dispatcher_1(void);
@@ -45,7 +48,6 @@ void timer5_interrupt_vector(void);
 void timer6_interrupt_vector(void);
 void timer7_interrupt_vector(void);
 
-static char mstack[32768] __attribute__((section(".mstack")));
 static char pstack[32768] __attribute__((section(".pstack")));
 
 typedef void (*fptr)(void);
@@ -89,8 +91,6 @@ static void system_tick_vector(void) {
 	for (;;);
 }
 
-volatile uint64_t bootload_flag;
-
 static const uint8_t DEVICE_DESCRIPTOR[18] = {
 	18, // bLength
 	USB_DTYPE_DEVICE, // bDescriptorType
@@ -121,6 +121,21 @@ static const uint8_t STRING_ZERO[4] = {
 static const usb_configs_config_t * const CONFIGURATIONS[] = {
 	&ENABLED_CONFIGURATION,
 	0
+};
+
+static const init_specs_t INIT_SPECS = {
+	.hse_crystal = true,
+	.hse_frequency = 8,
+	.pll_frequency = 288,
+	.sys_frequency = 144,
+	.cpu_frequency = 144,
+	.apb1_frequency = 36,
+	.apb2_frequency = 72,
+	.exception_core_writer = &core_progmem_writer,
+	.exception_app_cbs = {
+		.early = &app_exception_early,
+		.late = &app_exception_late,
+	},
 };
 
 static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
@@ -297,11 +312,6 @@ static void app_exception_late(bool core_written) {
 	}
 }
 
-static const exception_app_cbs_t APP_EXCEPTION_CBS = {
-	.early = &app_exception_early,
-	.late = &app_exception_late,
-};
-
 extern unsigned char linker_data_vma_start;
 extern unsigned char linker_data_vma_end;
 extern const unsigned char linker_data_lma_start;
@@ -309,254 +319,7 @@ extern unsigned char linker_bss_vma_start;
 extern unsigned char linker_bss_vma_end;
 
 static void stm32_main(void) {
-	// Check if we’re supposed to go to the bootloader.
-	RCC_CSR_t rcc_csr_shadow = RCC_CSR; // Keep a copy of RCC_CSR
-	RCC_CSR.RMVF = 1; // Clear reset flags
-	RCC_CSR.RMVF = 0; // Stop clearing reset flags
-	if (rcc_csr_shadow.SFTRSTF && bootload_flag == UINT64_C(0xFE228106195AD2B0)) {
-		bootload_flag = 0;
-		asm volatile(
-			"msr control, %[control]\n\t"
-			"isb\n\t"
-			"msr msp, %[stack]\n\t"
-			"mov pc, %[vector]"
-			:
-			: [control] "r" (0), [stack] "r" (*(const volatile uint32_t *) 0x1FFF0000), [vector] "r" (*(const volatile uint32_t *) 0x1FFF0004));
-		__builtin_unreachable();
-	}
-	bootload_flag = 0;
-
-	// Copy the main stack pointer (MSP) to the process stack pointer (PSP) and start using the process stack.
-	asm volatile(
-			"mrs r0, msp\n\t"
-			"msr psp, r0\n\t"
-			"mov r0, #2\n\t"
-			"msr control, r0\n\t"
-			"isb"
-			:
-			:
-			: "cc", "r0");
-
-	// Point main stack pointer (MSP) at the main stack.
-	asm volatile(
-			"msr msp, %[new_msp]\n\t"
-			"isb"
-			:
-			: [new_msp] "r" (mstack + sizeof(mstack) / sizeof(*mstack))
-			: "cc");
-
-	// Copy initialized globals and statics from ROM to RAM.
-	memcpy(&linker_data_vma_start, &linker_data_lma_start, &linker_data_vma_end - &linker_data_vma_start);
-	// Scrub the BSS section in RAM.
-	memset(&linker_bss_vma_start, 0, &linker_bss_vma_end - &linker_bss_vma_start);
-
-	// Always 8-byte-align the stack pointer on entry to an interrupt handler (as ARM recommends).
-	CCR.STKALIGN = 1; // Guarantee 8-byte alignment
-
-	// Set the interrupt system to set priorities as having the upper two bits for group priorities and the rest as subpriorities.
-	{
-		AIRCR_t tmp = AIRCR;
-		tmp.VECTKEY = 0x05FA;
-		tmp.PRIGROUP = 5;
-		AIRCR = tmp;
-	}
-
-	// Set up interrupt handling.
-	exception_init(&core_progmem_writer, &APP_EXCEPTION_CBS);
-
-	// Set up the memory protection unit to catch bad pointer dereferences.
-	// The private peripheral bus (0xE0000000 length 1 MiB) always uses the system memory map, so no region is needed for it.
-	// We set up the regions first, then enable the MPU.
-	{
-		static const struct {
-			uint32_t address;
-			MPU_RASR_t rasr;
-		} REGIONS[] = {
-			// 0x08000000–0x080FFFFF (length 1 MiB): Flash memory (normal, read-only, write-through cache, executable)
-			{ 0x08000000, { .XN = 0, .AP = 0b111, .TEX = 0b000, .S = 0, .C = 1, .B = 0, .SRD = 0, .SIZE = 19, .ENABLE = 1 } },
-
-			// 0x10000000–0x10007FFF (length 32 kiB): CCM bottom half (pstack) (normal, read-write, write-back write-allocate cache, not executable)
-			{ 0x10000000, { .XN = 1, .AP = 0b011, .TEX = 0b001, .S = 0, .C = 1, .B = 1, .SRD = 0, .SIZE = 14, .ENABLE = 1 } },
-
-			// 0x10008000–0x1000FFFF (length 32 kiB): CCM top half (mstack) (normal, read-write, write-back write-allocate cache, not executable, privileged-only):
-			{ 0x10008000, { .XN = 1, .AP = 0b001, .TEX = 0b001, .S = 0, .C = 1, .B = 1, .SRD = 0, .SIZE = 14, .ENABLE = 1 } },
-
-			// 0x1FFF0000–0x1FFF7FFF (length 32 kiB): System memory including U_ID and F_SIZE (normal, read-only, write-through cache, not executable)
-			{ 0x1FFF0000, { .XN = 1, .AP = 0b111, .TEX = 0b000, .S = 0, .C = 1, .B = 0, .SRD = 0, .SIZE = 14, .ENABLE = 1 } },
-
-			// 0x20000000–0x2001FFFF (length 128 kiB): SRAM (normal, read-write, write-back write-allocate cache, not executable)
-			{ 0x20000000, { .XN = 1, .AP = 0b011, .TEX = 0b001, .S = 0, .C = 1, .B = 1, .SRD = 0, .SIZE = 16, .ENABLE = 1 } },
-
-			// 0x40000000–0x4007FFFF (length 512 kiB): Peripherals (device, read-write, not executable) using subregions:
-			// Subregion 0 (0x40000000–0x4000FFFF): Enabled (contains APB1)
-			// Subregion 1 (0x40010000–0x4001FFFF): Enabled (contains APB2)
-			// Subregion 2 (0x40020000–0x4002FFFF): Enabled (contains AHB1)
-			// Subregion 3 (0x40030000–0x4003FFFF): Disabled
-			// Subregion 4 (0x40040000–0x4004FFFF): Disabled
-			// Subregion 5 (0x40050000–0x4005FFFF): Disabled
-			// Subregion 6 (0x40060000–0x4006FFFF): Disabled
-			// Subregion 7 (0x40070000–0x4007FFFF): Disabled
-			{ 0x40000000, { .XN = 1, .AP = 0b011, .TEX = 0b010, .S = 0, .C = 0, .B = 0, .SRD = 0b11111000, .SIZE = 18, .ENABLE = 1 } },
-
-			// 0x50000000–0x5007FFFF (length 512 kiB): Peripherals (device, read-write, not executable) using subregions:
-			// Subregion 0 (0x50000000–0x5000FFFF): Enabled (contains AHB2)
-			// Subregion 1 (0x50010000–0x5001FFFF): Enabled (contains AHB2)
-			// Subregion 2 (0x50020000–0x5002FFFF): Enabled (contains AHB2)
-			// Subregion 3 (0x50030000–0x5003FFFF): Enabled (contains AHB2)
-			// Subregion 4 (0x50040000–0x5004FFFF): Enabled (contains AHB2)
-			// Subregion 5 (0x50050000–0x5005FFFF): Enabled (contains AHB2)
-			// Subregion 6 (0x50060000–0x5006FFFF): Enabled (contains AHB2)
-			// Subregion 7 (0x50070000–0x5007FFFF): Disabled
-			{ 0x50000000, { .XN = 1, .AP = 0b011, .TEX = 0b010, .S = 0, .C = 0, .B = 0, .SRD = 0b10000000, .SIZE = 18, .ENABLE = 1 } },
-		};
-		for (unsigned int i = 0; i < sizeof(REGIONS) / sizeof(*REGIONS); ++i) {
-			MPU_RNR_t rnr = { .REGION = i };
-			MPU_RNR = rnr;
-			MPU_RBAR.ADDR = REGIONS[i].address >> 5;
-			MPU_RASR = REGIONS[i].rasr;
-		}
-	}
-	{
-		MPU_CTRL_t tmp = {
-			.PRIVDEFENA = 0, // Background region is disabled even in privileged mode.
-			.HFNMIENA = 0, // Protection unit disables itself when taking hard faults, memory faults, and NMIs.
-			.ENABLE = 1, // Enable MPU.
-		};
-		MPU_CTRL = tmp;
-	}
-	asm volatile("dsb");
-	asm volatile("isb");
-
-	// Enable the SYSCFG module.
-	rcc_enable(APB2, SYSCFG);
-	rcc_reset(APB2, SYSCFG);
-
-	// Enable the HSE (8 MHz crystal) oscillator.
-	{
-		RCC_CR_t tmp = {
-			.PLLI2SON = 0, // I²S PLL off.
-			.PLLON = 0, // Main PLL off.
-			.CSSON = 0, // Clock security system off.
-			.HSEBYP = 0, // HSE oscillator in circuit.
-			.HSEON = 1, // HSE oscillator enabled.
-			.HSITRIM = 16, // HSI oscillator trimmed to midpoint.
-			.HSION = 1, // HSI oscillator enabled (still using it at this point).
-		};
-		RCC_CR = tmp;
-	}
-	// Wait for the HSE oscillator to be ready.
-	while (!RCC_CR.HSERDY);
-	// Configure the PLL.
-	{
-		RCC_PLLCFGR_t tmp = {
-			.PLLQ = 6, // Divide 288 MHz VCO output by 6 to get 48 MHz USB, SDIO, and RNG clock
-			.PLLSRC = 1, // Use HSE for PLL input
-			.PLLP = 0, // Divide 288 MHz VCO output by 2 to get 144 MHz SYSCLK
-			.PLLN = 144, // Multiply 2 MHz VCO input by 144 to get 288 MHz VCO output
-			.PLLM = 4, // Divide 8 MHz HSE by 4 to get 2 MHz VCO input
-		};
-		RCC_PLLCFGR = tmp;
-	}
-	// Enable the PLL.
-	RCC_CR.PLLON = 1; // Enable PLL
-	// Wait for the PLL to lock.
-	while (!RCC_CR.PLLRDY);
-	// Set up bus frequencies.
-	{
-		RCC_CFGR_t tmp = {
-			.MCO2 = 2, // MCO2 pin outputs HSE
-			.MCO2PRE = 0, // Divide 8 MHz HSE by 1 to get 8 MHz MCO2 (must be ≤ 100 MHz)
-			.MCO1PRE = 0, // Divide 8 MHz HSE by 1 to get 8 MHz MCO1 (must be ≤ 100 MHz)
-			.I2SSRC = 0, // I²S module gets clock from PLLI2X
-			.MCO1 = 2, // MCO1 pin outputs HSE
-			.RTCPRE = 8, // Divide 8 MHz HSE by 8 to get 1 MHz RTC clock (must be 1 MHz)
-			.PPRE2 = 4, // Divide 144 MHz AHB clock by 2 to get 72 MHz APB2 clock (must be ≤ 84 MHz)
-			.PPRE1 = 5, // Divide 144 MHz AHB clock by 4 to get 36 MHz APB1 clock (must be ≤ 42 MHz)
-			.HPRE = 0, // Divide 144 MHz SYSCLK by 1 to get 144 MHz AHB clock (must be ≤ 168 MHz)
-			.SW = 0, // Use HSI for SYSCLK for now, until everything else is ready
-		};
-		RCC_CFGR = tmp;
-	}
-	// Wait 16 AHB cycles for the new prescalers to settle.
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	// Set Flash access latency to 4 wait states.
-	{
-		FLASH_ACR_t tmp = {
-			.DCRST = 0, // Do not clear data cache at this time.
-			.ICRST = 0, // Do not clear instruction cache at this time.
-			.DCEN = 0, // Do not enable data cache at this time.
-			.ICEN = 0, // Do not enable instruction cache at this time.
-			.PRFTEN = 0, // Do not enable prefetcher at this time.
-			.LATENCY = 4, // Four wait states (acceptable for 120 ≤ HCLK ≤ 150)
-		};
-		FLASH_ACR = tmp;
-	}
-	// Flash access latency change may not be immediately effective; wait until it’s locked in.
-	while (FLASH_ACR.LATENCY != 4);
-	// Actually initiate the clock switch.
-	RCC_CFGR.SW = 2; // Use PLL for SYSCLK
-	// Wait for the clock switch to complete.
-	while (RCC_CFGR.SWS != 2);
-	// Turn off the HSI now that it’s no longer needed.
-	RCC_CR.HSION = 0; // Disable HSI
-
-	// Flush any data in the CPU caches (which are not presently enabled).
-	{
-		FLASH_ACR_t tmp = FLASH_ACR;
-		tmp.DCRST = 1; // Reset data cache.
-		tmp.ICRST = 1; // Reset instruction cache.
-		FLASH_ACR = tmp;
-	}
-	{
-		FLASH_ACR_t tmp = FLASH_ACR;
-		tmp.DCRST = 0; // Stop resetting data cache.
-		tmp.ICRST = 0; // Stop resetting instruction cache.
-		FLASH_ACR = tmp;
-	}
-
-	// Turn on the caches.
-	// There is an errata that says prefetching doesn’t work on some silicon, but it seems harmless to enable the flag even so.
-	{
-		FLASH_ACR_t tmp = FLASH_ACR;
-		tmp.DCEN = 1; // Enable data cache
-		tmp.ICEN = 1; // Enable instruction cache
-		tmp.PRFTEN = 1; // Enable prefetching
-		FLASH_ACR = tmp;
-	}
-
-	// Set SYSTICK to divide by 144 so it overflows every microsecond.
-	SYST_RVR.RELOAD = 144 - 1;
-	// Set SYSTICK to run with the core AHB clock.
-	{
-		SYST_CSR_t tmp = {
-			.CLKSOURCE = 1, // Use core clock
-			.ENABLE = 1, // Counter is running
-		};
-		SYST_CSR = tmp;
-	}
-	// Reset the counter.
-	SYST_CVR.CURRENT = 0;
-
-	// As we will be running at 144 MHz, switch to the lower-power voltage regulator mode (compatible only up to 144 MHz).
-	rcc_enable(APB1, PWR);
-	rcc_reset(APB1, PWR);
-	PWR_CR.VOS = 2; // Set regulator scale 2
-	rcc_disable(APB1, PWR);
+	init_chip(&INIT_SPECS);
 
 	// Initialize subsystems.
 	buzzer_init();

@@ -112,6 +112,7 @@ firmware/stm32lib/include/exception.h -text
 firmware/stm32lib/include/exti.h -text
 firmware/stm32lib/include/format.h -text
 firmware/stm32lib/include/gpio.h -text
+firmware/stm32lib/include/init.h -text
 firmware/stm32lib/include/minmax.h -text
 firmware/stm32lib/include/rcc.h -text
 firmware/stm32lib/include/registers/adc.h -text
@@ -140,6 +141,7 @@ firmware/stm32lib/include/usb_ep0.h -text
 firmware/stm32lib/include/usb_ep0_sources.h -text
 firmware/stm32lib/include/usb_fifo.h -text
 firmware/stm32lib/include/usb_ll.h -text
+firmware/stm32lib/init.c -text
 firmware/stm32lib/sleep.c -text
 firmware/stm32lib/stm32f405.ld -text
 firmware/stm32lib/usb_altsettings.c -text

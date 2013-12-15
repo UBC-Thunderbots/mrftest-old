@@ -2,6 +2,7 @@
 #include "constants.h"
 #include <core_progmem.h>
 #include <deferred.h>
+#include <init.h>
 #include <registers/scb.h>
 #include <stdint.h>
 #include <unused.h>
@@ -54,26 +55,7 @@ const uint8_t IDLE_CONFIGURATION_DESCRIPTOR[] = {
 extern volatile uint64_t bootload_flag;
 
 static void dfu_detach_reboot(void *UNUSED(cookie)) {
-	// Mark that we should go to the bootloader on next reboot.
-	bootload_flag = UINT64_C(0xFE228106195AD2B0);
-
-	// Disable all interrupts.
-	asm volatile("cpsid i");
-	asm volatile("isb");
-
-	// Request the reboot.
-	{
-		AIRCR_t tmp = AIRCR;
-		tmp.VECTKEY = 0x05FA;
-		tmp.SYSRESETREQ = 1;
-		AIRCR = tmp;
-	}
-	asm volatile("dsb");
-
-	// Wait forever until the reboot happens.
-	for (;;) {
-		asm volatile("wfi");
-	}
+	init_bootload();
 }
 
 static void dfu_detach_gnak2(void) {
