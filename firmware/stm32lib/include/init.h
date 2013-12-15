@@ -20,9 +20,9 @@ typedef struct {
 	bool hse_crystal;
 
 	/**
-	 * \brief The frequency of the HSE crystal, in megahertz.
+	 * \brief The frequency of the HSE crystal or oscillator, in megahertz.
 	 *
-	 * This number must be even.
+	 * This must be an even number between 2 and 50.
 	 */
 	unsigned int hse_frequency;
 

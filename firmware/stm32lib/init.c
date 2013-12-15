@@ -1,4 +1,5 @@
 #include <init.h>
+#include <assert.h>
 #include <inttypes.h>
 #include <rcc.h>
 #include <registers/flash.h>
@@ -22,6 +23,7 @@ extern unsigned char linker_bss_vma_start;
 extern unsigned char linker_bss_vma_end;
 
 static unsigned int compute_ahb_prescale(unsigned int sys, unsigned int cpu) {
+	assert(!(sys % cpu));
 	switch (sys / cpu) {
 		case 1: return 0;
 		case 2: return 8;
@@ -37,6 +39,7 @@ static unsigned int compute_ahb_prescale(unsigned int sys, unsigned int cpu) {
 }
 
 static unsigned int compute_apb_prescale(unsigned int cpu, unsigned int apb) {
+	assert(!(cpu % apb));
 	switch (cpu / apb) {
 		case 1: return 0;
 		case 2: return 4;
@@ -200,13 +203,19 @@ void init_chip(const init_specs_t *specs) {
 		};
 
 		// Divide HSE frequency to get 2 MHz input to PLL.
+		assert(!(specs->hse_frequency % 2));
+		assert(2 <= specs->hse_frequency && specs->hse_frequency <= 50);
 		tmp.PLLM = specs->hse_frequency / 2;
 
 		// Multiply 2 MHz input to get PLL output frequency.
+		assert(!(specs->pll_frequency % 2));
+		assert(192 <= specs->pll_frequency && specs->pll_frequency <= 432);
 		tmp.PLLN = specs->pll_frequency / 2;
 
-		// Divide PLL output to get CPU freqency.
-		switch (specs->pll_frequency / specs->cpu_frequency) {
+		// Divide PLL output to get system freqency.
+		assert(specs->sys_frequency <= 168);
+		assert(!(specs->pll_frequency % specs->sys_frequency));
+		switch (specs->pll_frequency / specs->sys_frequency) {
 			case 2: tmp.PLLP = 0; break;
 			case 4: tmp.PLLP = 1; break;
 			case 6: tmp.PLLP = 2; break;
@@ -215,6 +224,7 @@ void init_chip(const init_specs_t *specs) {
 		}
 
 		// Divide PLL output to get 48 MHz USB/SDIO/RNG clock.
+		assert(!(specs->pll_frequency % 48));
 		tmp.PLLQ = specs->pll_frequency / 48;
 		
 		RCC_PLLCFGR = tmp;
@@ -231,20 +241,18 @@ void init_chip(const init_specs_t *specs) {
 			.MCO1PRE = 0, // Divide HSE by 1 to get MCO1 (must be ≤ 100 MHz)
 			.I2SSRC = 0, // I²S module gets clock from PLLI2X
 			.MCO1 = 2, // MCO1 pin outputs HSE
-			.PPRE2 = 4, // Divide 144 MHz AHB clock by 2 to get 72 MHz APB2 clock (must be ≤ 84 MHz)
-			.PPRE1 = 5, // Divide 144 MHz AHB clock by 4 to get 36 MHz APB1 clock (must be ≤ 42 MHz)
-			.HPRE = 0, // Divide 144 MHz SYSCLK by 1 to get 144 MHz AHB clock (must be ≤ 168 MHz)
+			.RTCPRE = 0, // RTC clock disabled
 			.SW = 0, // Use HSI for SYSCLK for now, until everything else is ready
 		};
 
-		// Divide HSE frequency to get 1 MHz input to RTC.
-		tmp.RTCPRE = specs->hse_frequency;
-
 		// Divide system clock frequency to get CPU frequency.
+		assert(specs->cpu_frequency <= 168);
 		tmp.HPRE = compute_ahb_prescale(specs->sys_frequency, specs->cpu_frequency);
 
 		// Divide CPU frequency to get APB1 and APB2 frequency.
+		assert(specs->apb1_frequency <= 42);
 		tmp.PPRE1 = compute_apb_prescale(specs->cpu_frequency, specs->apb1_frequency);
+		assert(specs->apb2_frequency <= 84);
 		tmp.PPRE2 = compute_apb_prescale(specs->cpu_frequency, specs->apb2_frequency);
 
 		RCC_CFGR = tmp;
