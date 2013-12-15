@@ -312,12 +312,6 @@ static void app_exception_late(bool core_written) {
 	}
 }
 
-extern unsigned char linker_data_vma_start;
-extern unsigned char linker_data_vma_end;
-extern const unsigned char linker_data_lma_start;
-extern unsigned char linker_bss_vma_start;
-extern unsigned char linker_bss_vma_end;
-
 static void stm32_main(void) {
 	init_chip(&INIT_SPECS);
 
