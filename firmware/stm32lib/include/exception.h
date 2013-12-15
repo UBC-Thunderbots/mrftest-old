@@ -44,6 +44,8 @@ typedef struct {
 	 * \brief Invoked almost immediately when an exception is taken.
 	 *
 	 * This callback should safe any dangerous hardware, perhaps display a preliminary indication, and return.
+	 *
+	 * This may be null to not execute an early callback.
 	 */
 	void (*early)(void);
 
@@ -52,6 +54,8 @@ typedef struct {
 	 *
 	 * This callback should display an indication to the user indefinitely.
 	 * It should generally not return.
+	 *
+	 * This may be null to just lock up forever with no further activity.
 	 *
 	 * \param[in] core_written \c true if a core dump was written, or \c false if not
 	 */
