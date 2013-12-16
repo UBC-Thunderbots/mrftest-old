@@ -14,8 +14,6 @@
 volatile uint64_t bootload_flag;
 #define BOOTLOAD_FLAG_VALUE UINT64_C(0xFE228106195AD2B0)
 
-static char mstack[32768] __attribute__((section(".mstack")));
-
 extern unsigned char linker_data_vma;
 extern const unsigned char linker_data_lma;
 extern unsigned char linker_data_size;
@@ -75,25 +73,6 @@ void init_chip(const init_specs_t *specs) {
 	}
 	bootload_flag = 0;
 
-	// Copy the main stack pointer (MSP) to the process stack pointer (PSP) and start using the process stack.
-	asm volatile(
-			"mrs r0, msp\n\t"
-			"msr psp, r0\n\t"
-			"mov r0, #2\n\t"
-			"msr control, r0\n\t"
-			"isb"
-			:
-			:
-			: "cc", "r0");
-
-	// Point main stack pointer (MSP) at the main stack.
-	asm volatile(
-			"msr msp, %[new_msp]\n\t"
-			"isb"
-			:
-			: [new_msp] "r" (mstack + sizeof(mstack) / sizeof(*mstack))
-			: "cc");
-
 	// Copy initialized globals and statics from ROM to RAM.
 	memcpy(&linker_data_vma, &linker_data_lma, (size_t) &linker_data_size /* Yes, there should be an & here! */);
 	// Scrub the BSS section in RAM.
@@ -124,11 +103,8 @@ void init_chip(const init_specs_t *specs) {
 			// 0x08000000–0x080FFFFF (length 1 MiB): Flash memory (normal, read-only, write-through cache, executable)
 			{ 0x08000000, { .XN = 0, .AP = 0b111, .TEX = 0b000, .S = 0, .C = 1, .B = 0, .SRD = 0, .SIZE = 19, .ENABLE = 1 } },
 
-			// 0x10000000–0x10007FFF (length 32 kiB): CCM bottom half (pstack) (normal, read-write, write-back write-allocate cache, not executable)
-			{ 0x10000000, { .XN = 1, .AP = 0b011, .TEX = 0b001, .S = 0, .C = 1, .B = 1, .SRD = 0, .SIZE = 14, .ENABLE = 1 } },
-
-			// 0x10008000–0x1000FFFF (length 32 kiB): CCM top half (mstack) (normal, read-write, write-back write-allocate cache, not executable, privileged-only):
-			{ 0x10008000, { .XN = 1, .AP = 0b001, .TEX = 0b001, .S = 0, .C = 1, .B = 1, .SRD = 0, .SIZE = 14, .ENABLE = 1 } },
+			// 0x10000000–0x1000FFFF (length 64 kiB): CCM (stack) (normal, read-write, write-back write-allocate cache, not executable)
+			{ 0x10000000, { .XN = 1, .AP = 0b011, .TEX = 0b001, .S = 0, .C = 1, .B = 1, .SRD = 0, .SIZE = 15, .ENABLE = 1 } },
 
 			// 0x1FFF0000–0x1FFF7FFF (length 32 kiB): System memory including U_ID and F_SIZE (normal, read-only, write-through cache, not executable)
 			{ 0x1FFF0000, { .XN = 1, .AP = 0b111, .TEX = 0b000, .S = 0, .C = 1, .B = 0, .SRD = 0, .SIZE = 14, .ENABLE = 1 } },

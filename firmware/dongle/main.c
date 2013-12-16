@@ -48,11 +48,11 @@ void timer5_interrupt_vector(void);
 void timer6_interrupt_vector(void);
 void timer7_interrupt_vector(void);
 
-static char pstack[32768] __attribute__((section(".pstack")));
+static char mstack[65536] __attribute__((section(".mstack")));
 
 typedef void (*fptr)(void);
 static const fptr exception_vectors[16] __attribute__((used, section(".exception_vectors"))) = {
-	[0] = (fptr) (pstack + sizeof(pstack)),
+	[0] = (fptr) (mstack + sizeof(mstack)),
 	[1] = &stm32_main,
 	[2] = &nmi_vector,
 	[3] = &exception_hard_fault_vector,
@@ -400,14 +400,6 @@ static void stm32_main(void) {
 	// Initialize USB.
 	usb_ll_attach(&handle_usb_reset, &handle_usb_enumeration_done, 0);
 	NVIC_ISER[67 / 32] = 1 << (67 % 32); // SETENA67 = 1; enable USB FS interrupt
-
-	// Switch to unprivileged mode.
-	asm volatile(
-			"msr control, %[control_value]\n\t"
-			"dsb\n\t"
-			"isb\n\t"
-			:
-			: [control_value] "r" (0b011 /* FPCA = 0, SPSEL = 1, nPRIV = 1 */));
 
 	// Now wait forever handling activity in interrupt handlers.
 	for (;;) {

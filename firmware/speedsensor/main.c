@@ -38,12 +38,12 @@ static void tic(void);
 static void toc(void);
 
 
-static char pstack[32768] __attribute__((section(".pstack")));
+static char mstack[65536] __attribute__((section(".mstack")));
 
 typedef void (*fptr)(void);
 static const fptr exception_vectors[16] __attribute__((used, section(".exception_vectors"))) = {
 	// Vector 0 contains the reset stack pointer
-	[0] = (fptr) (pstack + sizeof(pstack)),
+	[0] = (fptr) (mstack + sizeof(mstack)),
 	// Vector 1 contains the reset vector
 	[1] = &stm32_main,
 	// Vector 2 contains the NMI vector

@@ -50,11 +50,11 @@ void exti_dispatcher_15_10(void);
 void timer5_interrupt_vector(void);
 void usart1_interrupt_vector(void);
 
-static char pstack[32768] __attribute__((section(".pstack")));
+static char mstack[65536] __attribute__((section(".mstack")));
 
 typedef void (*fptr)(void);
 static const fptr exception_vectors[16] __attribute__((used, section(".exception_vectors"))) = {
-	[0] = (fptr) (pstack + sizeof(pstack)),
+	[0] = (fptr) (mstack + sizeof(mstack)),
 	[1] = &stm32_main,
 	[2] = &nmi_vector,
 	[3] = &exception_hard_fault_vector,
@@ -520,14 +520,6 @@ static void stm32_main(void) {
 	EXTI_FTSR |= (1 << 14) | (1 << 15);
 	EXTI_IMR |= (1 << 14) | (1 << 15);
 	NVIC_ISER[40 / 32] = 1 << (40 % 32); // SETENA40 = 1; enable EXTI 15 through 10 interrupts
-
-	// Switch to unprivileged mode.
-	asm volatile(
-			"msr control, %[control_value]\n\t"
-			"dsb\n\t"
-			"isb\n\t"
-			:
-			: [control_value] "r" (0b011 /* FPCA = 0, SPSEL = 1, nPRIV = 1 */));
 
 	// Now wait forever handling activity in interrupt handlers.
 	for (;;) {

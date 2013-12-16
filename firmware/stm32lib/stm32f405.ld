@@ -51,7 +51,6 @@ SECTIONS {
 
 	/* The stack can go in core-coupled memory for speed */
 	.stack (NOLOAD) : {
-		*(.pstack)
 		*(.mstack)
 	} >ccm_region AT>ccm_region
 }
