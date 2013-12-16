@@ -337,7 +337,7 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 			// We call userspace PID 1.
 			elf_notes.prstatus.pr_pid = 1;
 		} else {
-			// This means we were running on the process stack.
+			// This means we were running on the main stack.
 			// We assume the main stack is always OK.
 			// It must be, because we’re using it right now!
 			// Point the hardware frame pointer at the frame on the main stack.
