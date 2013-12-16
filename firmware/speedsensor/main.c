@@ -1,5 +1,6 @@
 #include "format.h"
 #include <gpio.h>
+#include <init.h>
 #include <rcc.h>
 #include <registers/exti.h>
 #include <registers/flash.h>
@@ -37,12 +38,12 @@ static void tic(void);
 static void toc(void);
 
 
-static char stack[32768] __attribute__((section(".mstack")));
+static char pstack[32768] __attribute__((section(".pstack")));
 
 typedef void (*fptr)(void);
 static const fptr exception_vectors[16] __attribute__((used, section(".exception_vectors"))) = {
 	// Vector 0 contains the reset stack pointer
-	[0] = (fptr) (stack + sizeof(stack)),
+	[0] = (fptr) (pstack + sizeof(pstack)),
 	// Vector 1 contains the reset vector
 	[1] = &stm32_main,
 	// Vector 2 contains the NMI vector
@@ -130,12 +131,20 @@ static void external_interrupt_15_10_vector(void){
 	
 }
 
-extern unsigned char linker_data_vma_start;
-extern unsigned char linker_data_vma_end;
-extern const unsigned char linker_data_lma_start;
-extern unsigned char linker_bss_vma_start;
-extern unsigned char linker_bss_vma_end;
-
+static const init_specs_t INIT_SPECS = {
+	.hse_crystal = true,
+	.hse_frequency = 8,
+	.pll_frequency = 288,
+	.sys_frequency = 144,
+	.cpu_frequency = 144,
+	.apb1_frequency = 36,
+	.apb2_frequency = 72,
+	.exception_core_writer = 0,
+	.exception_app_cbs = {
+		.early = 0,
+		.late = 0,
+	},
+};
 
 /***********************************************************
  *    		 	Timing Functions		   *
@@ -433,140 +442,8 @@ static void stm32_main(void) {
 	int* ptr = 0;	
 	uint32_t test_num = 123456;
 
-	// Copy initialized globals and statics from ROM to RAM
-	memcpy(&linker_data_vma_start, &linker_data_lma_start, &linker_data_vma_end - &linker_data_vma_start);
-	// Scrub the BSS section in RAM
-	memset(&linker_bss_vma_start, 0, &linker_bss_vma_end - &linker_bss_vma_start);
-
-	// Always 8-byte-align the stack pointer on entry to an interrupt handler (as ARM recommends)
-	CCR.STKALIGN = 1; // Guarantee 8-byte alignment
-
-	// Enable the HSE (8 MHz crystal) oscillator.
-	{
-		RCC_CR_t tmp = {
-			.PLLI2SON = 0, // I²S PLL off.
-			.PLLON = 0, // Main PLL off.
-			.CSSON = 0, // Clock security system off.
-			.HSEBYP = 0, // HSE oscillator in circuit.
-			.HSEON = 1, // HSE oscillator enabled.
-			.HSITRIM = 16, // HSI oscillator trimmed to midpoint.
-			.HSION = 1, // HSI oscillator enabled (still using it at this point).
-		};
-		RCC_CR = tmp;
-	}
-	// Wait for the HSE oscillator to be ready.
-	while (!RCC_CR.HSERDY);
-	// Configure the PLL.
-	{
-		RCC_PLLCFGR_t tmp = {
-			.PLLQ = 6, // Divide 288 MHz VCO output by 6 to get 48 MHz USB, SDIO, and RNG clock
-			.PLLSRC = 1, // Use HSE for PLL input
-			.PLLP = 0, // Divide 288 MHz VCO output by 2 to get 144 MHz SYSCLK
-			.PLLN = 144, // Multiply 2 MHz VCO input by 144 to get 288 MHz VCO output
-			.PLLM = 4, // Divide 8 MHz HSE by 4 to get 2 MHz VCO input
-		};
-		RCC_PLLCFGR = tmp;
-	}
-	// Enable the PLL.
-	RCC_CR.PLLON = 1; // Enable PLL
-	// Wait for the PLL to lock.
-	while (!RCC_CR.PLLRDY);
-	// Set up bus frequencies.
-	{
-		RCC_CFGR_t tmp = {
-			.MCO2 = 2, // MCO2 pin outputs HSE
-			.MCO2PRE = 0, // Divide 8 MHz HSE by 1 to get 8 MHz MCO2 (must be ≤ 100 MHz)
-			.MCO1PRE = 0, // Divide 8 MHz HSE by 1 to get 8 MHz MCO1 (must be ≤ 100 MHz)
-			.I2SSRC = 0, // I²S module gets clock from PLLI2X
-			.MCO1 = 2, // MCO1 pin outputs HSE
-			.RTCPRE = 8, // Divide 8 MHz HSE by 8 to get 1 MHz RTC clock (must be 1 MHz)
-			.PPRE2 = 4, // Divide 144 MHz AHB clock by 2 to get 72 MHz APB2 clock (must be ≤ 84 MHz)
-			.PPRE1 = 5, // Divide 144 MHz AHB clock by 4 to get 36 MHz APB1 clock (must be ≤ 42 MHz)
-			.HPRE = 0, // Divide 144 MHz SYSCLK by 1 to get 144 MHz AHB clock (must be ≤ 168 MHz)
-			.SW = 0, // Use HSI for SYSCLK for now, until everything else is ready
-		};
-		RCC_CFGR = tmp;
-	}
-	// Wait 16 AHB cycles for the new prescalers to settle.
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	asm volatile("nop");
-	// Set Flash access latency to 4 wait states.
-	{
-		FLASH_ACR_t tmp = {
-			.DCRST = 0, // Do not clear data cache at this time.
-			.ICRST = 0, // Do not clear instruction cache at this time.
-			.DCEN = 0, // Do not enable data cache at this time.
-			.ICEN = 0, // Do not enable instruction cache at this time.
-			.PRFTEN = 0, // Do not enable prefetcher at this time.
-			.LATENCY = 4, // Four wait states (acceptable for 120 ≤ HCLK ≤ 150)
-		};
-		FLASH_ACR = tmp;
-	}
-	// Flash access latency change may not be immediately effective; wait until it’s locked in.
-	while (FLASH_ACR.LATENCY != 4);
-	// Actually initiate the clock switch.
-	RCC_CFGR.SW = 2; // Use PLL for SYSCLK
-	// Wait for the clock switch to complete.
-	while (RCC_CFGR.SWS != 2);
-	// Turn off the HSI now that it’s no longer needed.
-	RCC_CR.HSION = 0; // Disable HSI
-
-	// Flush any data in the CPU caches (which are not presently enabled).
-	{
-		FLASH_ACR_t tmp = FLASH_ACR;
-		tmp.DCRST = 1; // Reset data cache.
-		tmp.ICRST = 1; // Reset instruction cache.
-		FLASH_ACR = tmp;
-	}
-	{
-		FLASH_ACR_t tmp = FLASH_ACR;
-		tmp.DCRST = 0; // Stop resetting data cache.
-		tmp.ICRST = 0; // Stop resetting instruction cache.
-		FLASH_ACR = tmp;
-	}
-
-	// Turn on the caches.
-	// There is an errata that says prefetching doesn’t work on some silicon, but it seems harmless to enable the flag even so.
-	{
-		FLASH_ACR_t tmp = FLASH_ACR;
-		tmp.DCEN = 1; // Enable data cache
-		tmp.ICEN = 1; // Enable instruction cache
-		tmp.PRFTEN = 1; // Enable prefetching
-		FLASH_ACR = tmp;
-	}
-
-	// Set SYSTICK to divide by 144 so it overflows every microsecond.
-	SYST_RVR.RELOAD = 144 - 1;
-	// Set SYSTICK to run with the core AHB clock.
-	{
-		SYST_CSR_t tmp = {
-			.CLKSOURCE = 1, // Use core clock
-			.ENABLE = 1, // Counter is running
-		};
-		SYST_CSR = tmp;
-	}
-	// Reset the counter.
-	SYST_CVR.CURRENT = 0;
-
-	// As we will be running at 144 MHz, switch to the lower-power voltage regulator mode (compatible only up to 144 MHz).
-	rcc_enable(APB1, PWR);
-	rcc_reset(APB1, PWR);
-	PWR_CR.VOS = 2; // Set regulator scale 2
-	rcc_disable(APB1, PWR);
+	// Initialize chip
+	init_chip(&INIT_SPECS);
 
 	// Set up pins
 	rcc_enable(AHB1, GPIOA);
