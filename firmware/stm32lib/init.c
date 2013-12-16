@@ -186,11 +186,11 @@ void init_chip(const init_specs_t *specs) {
 			.PLLI2SON = 0, // I²S PLL off.
 			.PLLON = 0, // Main PLL off.
 			.CSSON = 0, // Clock security system off.
-			.HSEBYP = 0, // HSE oscillator in circuit.
 			.HSEON = 1, // HSE oscillator enabled.
 			.HSITRIM = 16, // HSI oscillator trimmed to midpoint.
 			.HSION = 1, // HSI oscillator enabled (still using it at this point).
 		};
+		tmp.HSEBYP = !specs->hse_crystal;
 		RCC_CR = tmp;
 	}
 	// Wait for the HSE oscillator to be ready.
