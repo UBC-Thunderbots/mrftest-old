@@ -16,11 +16,11 @@ volatile uint64_t bootload_flag;
 
 static char mstack[32768] __attribute__((section(".mstack")));
 
-extern unsigned char linker_data_vma_start;
-extern unsigned char linker_data_vma_end;
-extern const unsigned char linker_data_lma_start;
-extern unsigned char linker_bss_vma_start;
-extern unsigned char linker_bss_vma_end;
+extern unsigned char linker_data_vma;
+extern const unsigned char linker_data_lma;
+extern unsigned char linker_data_size;
+extern unsigned char linker_bss_vma;
+extern unsigned char linker_bss_size;
 
 static unsigned int compute_ahb_prescale(unsigned int sys, unsigned int cpu) {
 	assert(!(sys % cpu));
@@ -95,9 +95,9 @@ void init_chip(const init_specs_t *specs) {
 			: "cc");
 
 	// Copy initialized globals and statics from ROM to RAM.
-	memcpy(&linker_data_vma_start, &linker_data_lma_start, &linker_data_vma_end - &linker_data_vma_start);
+	memcpy(&linker_data_vma, &linker_data_lma, (size_t) &linker_data_size /* Yes, there should be an & here! */);
 	// Scrub the BSS section in RAM.
-	memset(&linker_bss_vma_start, 0, &linker_bss_vma_end - &linker_bss_vma_start);
+	memset(&linker_bss_vma, 0, (size_t) &linker_bss_size /* Yes, there should be an & here! */);
 
 	// Always 8-byte-align the stack pointer on entry to an interrupt handler (as ARM recommends).
 	CCR.STKALIGN = 1; // Guarantee 8-byte alignment
@@ -198,7 +198,6 @@ void init_chip(const init_specs_t *specs) {
 	// Configure the PLL.
 	{
 		RCC_PLLCFGR_t tmp = {
-			.PLLQ = 7, // Divide 336 MHz VCO output by 7 to get 48 MHz USB, SDIO, and RNG clock
 			.PLLSRC = 1, // Use HSE for PLL input
 		};
 

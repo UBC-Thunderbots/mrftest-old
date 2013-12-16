@@ -42,6 +42,13 @@ SECTIONS {
 		*(.bss .bss.*)
 	} >sram_region AT>sram_region
 
+	/* Heap lives after BSS, 8-byte aligned, and fills all of the rest of RAM */
+	. = ALIGN(8);
+	linker_heap_size = 128K - (. - 0x20000000);
+	.heap : ALIGN(8) {
+		. = linker_heap_size;
+	} >sram_region AT>sram_region
+
 	/* The stack can go in core-coupled memory for speed */
 	.stack (NOLOAD) : {
 		*(.pstack)
@@ -50,8 +57,12 @@ SECTIONS {
 }
 
 /* Provide symbols that the startup code uses to find the various sections in memory to initialize the data and wipe the bss */
-linker_data_vma_start = ADDR(.data);
-linker_data_vma_end = ADDR(.data) + SIZEOF(.data);
-linker_data_lma_start = LOADADDR(.data);
-linker_bss_vma_start = ADDR(.bss);
-linker_bss_vma_end = ADDR(.bss) + SIZEOF(.bss);
+linker_data_vma = ADDR(.data);
+linker_data_lma = LOADADDR(.data);
+linker_data_size = SIZEOF(.data);
+
+linker_bss_vma = ADDR(.bss);
+linker_bss_size = SIZEOF(.bss);
+
+linker_heap_vma = ADDR(.heap);
+linker_heap_vma_end = ADDR(.heap) + SIZEOF(.heap);
