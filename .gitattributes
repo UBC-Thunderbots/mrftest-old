@@ -126,6 +126,7 @@ firmware/stm32lib/include/registers/otg_fs.h -text
 firmware/stm32lib/include/registers/power.h -text
 firmware/stm32lib/include/registers/rcc.h -text
 firmware/stm32lib/include/registers/scb.h -text
+firmware/stm32lib/include/registers/sdio.h -text
 firmware/stm32lib/include/registers/spi.h -text
 firmware/stm32lib/include/registers/syscfg.h -text
 firmware/stm32lib/include/registers/systick.h -text
