@@ -1,7 +1,7 @@
 #
 # The executables to compile.
 #
-EXECUTABLES := ai convertlog cppunit fbuart fw getcore hall2phase log mrfcap mrftest sdutil simulator
+EXECUTABLES := ai convertlog cppunit fbuart fw getcore hall2phase log mrfcap mrftest sdutil
 
 #
 # The subset of the above that should not be built by the world target.
@@ -23,7 +23,6 @@ SOURCES_log := ai/common geom log main.cpp proto uicomponents util
 SOURCES_mrfcap := main.cpp mrfcap.cpp util
 SOURCES_mrftest := drive main.cpp mrf test/common test/mrf uicomponents util
 SOURCES_sdutil := main.cpp sdutil.cpp util
-SOURCES_simulator := ai/common/playtype.cpp geom main.cpp simulator util
 
 #
 # All the pkg-config packages used.
