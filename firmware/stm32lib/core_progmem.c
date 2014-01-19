@@ -43,6 +43,9 @@ static void start(void) {
 
 	// Set up the pointer.
 	pointer = core_progmem_dump;
+
+	// Ensure all writes to the control registers occur before any writes to the memory.
+	__sync_synchronize();
 }
 
 static void write(const void *data, size_t length) {
@@ -61,6 +64,9 @@ static void write(const void *data, size_t length) {
 }
 
 static bool end(void) {
+	// Ensure all writes to the memory finish before touching the control registers.
+	__sync_synchronize();
+
 	// Check if anything failed.
 	bool failed = !!FLASH_SR.PGSERR || !!FLASH_SR.PGPERR || !!FLASH_SR.PGAERR || !!FLASH_SR.WRPERR;
 
