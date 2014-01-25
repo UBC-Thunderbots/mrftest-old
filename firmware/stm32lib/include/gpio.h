@@ -243,5 +243,26 @@
  */
 #define gpio_set_output(port, bit, level) gpio_set_reset_mask(port, (level) ? (1 << (bit)) : 0, 1 << (bit))
 
+/**
+ * \brief Describes the initial state of a single I/O pin.
+ */
+typedef struct __attribute__((packed)) {
+	GPIO_MODE_t mode : 2;
+	GPIO_OTYPE_t otype : 1;
+	GPIO_OSPEED_t ospeed : 2;
+	GPIO_PUPD_t pupd : 2;
+	unsigned od : 1;
+	unsigned af : 4;
+} gpio_init_pin_t;
+
+/**
+ * \brief Initializes all I/O ports.
+ *
+ * Once this function returns, all I/O pins are in their specified states and all ports are enabled in the RCC.
+ *
+ * \param[in] specs the specifications of the pins, indexed first by port and then by pin
+ */
+void gpio_init(const gpio_init_pin_t specs[4U][16U]);
+
 #endif
 

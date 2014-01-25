@@ -105,6 +105,7 @@ firmware/stm32lib/format.c -text
 firmware/stm32lib/gdb/arm-m-profile.xml -text
 firmware/stm32lib/gdb/arm-vfpv2.xml -text
 firmware/stm32lib/gdb/arm-with-m-vfp-d16.xml -text
+firmware/stm32lib/gpio.c -text
 firmware/stm32lib/include/assert.h -text
 firmware/stm32lib/include/core_progmem.h -text
 firmware/stm32lib/include/deferred.h -text

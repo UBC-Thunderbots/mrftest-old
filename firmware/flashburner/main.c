@@ -409,83 +409,145 @@ static void stm32_main(void) {
 	while (!SYSCFG_CMPCR.READY);
 
 	// Set up pins.
-	rcc_enable(AHB1, GPIOA);
-	rcc_enable(AHB1, GPIOB);
-	rcc_enable(AHB1, GPIOC);
-	rcc_enable(AHB1, GPIOD);
-	rcc_reset(AHB1, GPIOA);
-	rcc_reset(AHB1, GPIOB);
-	rcc_reset(AHB1, GPIOC);
-	rcc_reset(AHB1, GPIOD);
-	// PA15 = external Flash /CS, input with no resistors until needed
-	// PA14 = PROGRAM_B, input with no resistors until needed
-	// PA13 = N/C, driven low
-	// PA12/PA11 = alternate function OTG FS
-	// PA10 = N/C, driven low
-	// PA9 = OTG FS VBUS, input with weak pull-down
-	// PA8/PA7/PA6 = N/C
-	// PA5 = shorted to VDD, driven high
-	// PA4 = internal Flash /CS, start deasserted (high)
-	// PA3 = shorted to VSS, driven low
-	// PA2 = N/C, driven low
-	// PA1/PA0 = shorted to VDD, driven high
-	GPIOA.ODR = 0b0000000000110011;
-	GPIOA.OTYPER = 0b0000000000000000;
-	GPIOA.OSPEEDR = 0b01000001010000000000000100000000;
-	GPIOA.PUPDR = 0b00000000000010000000000000000000;
-	GPIOA.AFRH = 0b00000000000010101010000000000000;
-	GPIOA.AFRL = 0b00000000000000000000000000000000;
-	GPIOA.MODER = 0b00000110100100010101010101010101;
-	// PB15 = N/C, driven low
-	// PB14 = LED 3, start high (on)
-	// PB13 = LED 2, start high (on)
-	// PB12 = LED 1, start high (on)
-	// PB11/PB10 = N/C, driven low
-	// PB9/PB8 = shorted to VSS, driven low
-	// PB7 = alternate function USART 1 receive
-	// PB6 = N/C, driven low
-	// PB5 = external Flash MOSI, input with no resistors until needed
-	// PB4 = external Flash MISO, input with no resistors until needed
-	// PB3 = external Flash SCK, input with no resistors until needed
-	// PB2 = BOOT1, hardwired low
-	// PB1/PB0 = N/C, driven low
-	GPIOB.ODR = 0b0111000000000000;
-	GPIOB.OTYPER = 0b0000000000000000;
-	GPIOB.OSPEEDR = 0b00000000000000000000100010000000;
-	GPIOB.PUPDR = 0b00000000000000000000000000000000;
-	GPIOB.AFRH = 0b00000000000000000000000000000000;
-	GPIOB.AFRL = 0b01110000010101010101000000000000;
-	GPIOB.MODER = 0b01010101010101011001000000010101;
-	// PC15 = switch SW2 to ground (input with pull-up)
-	// PC14 = switch SW3 to ground (input with pull-up)
-	// PC13 = N/C, driven low
-	// PC12 = alternate function internal Flash (SPI3) MOSI
-	// PC11 = alternate function internal Flash (SPI3) MISO
-	// PC10 = alternate function internal Flash (SPI3) SCK
-	// PC9/PC8/PC7/PC6/PC5/PC4/PC3/PC2/PC1/PC0 = N/C, driven low
-	GPIOC.ODR = 0b0000000000000000;
-	GPIOC.OTYPER = 0b0000000000000000;
-	GPIOC.OSPEEDR = 0b00000010101000000000000000000000;
-	GPIOC.PUPDR = 0b01010000000000000000000000000000;
-	GPIOC.AFRH = 0b00000000000001100110011000000000;
-	GPIOC.AFRL = 0b00000000000000000000000000000000;
-	GPIOC.MODER = 0b00000110101001010101010101010101;
-	// PD15/PD14/PD13/PD12/PD11/PD10/PD9/PD8/PD7/PD6/PD5/PD4/PD3 = unimplemented on package
-	// PD2 = external power control, input with no resistors until needed
-	// PD1/PD0 = unimplemented on package
-	GPIOD.ODR = 0b0000000000000000;
-	GPIOD.OTYPER = 0b0000000000000000;
-	GPIOD.OSPEEDR = 0b00000000000000000000000000000000;
-	GPIOD.PUPDR = 0b00000000000000000000000000000000;
-	GPIOD.AFRH = 0b00000000000000000000000000000000;
-	GPIOD.AFRL = 0b00000000000000000000000000000000;
-	GPIOD.MODER = 0b01010101010101010101010101000101;
-	// PE/PF/PG = unimplemented on this package
-	// PH15/PH14/PH13/PH12/PH11/PH10/PH9/PH8/PH7/PH6/PH5/PH4/PH3/PH2 = unimplemented on this package
-	// PH1 = OSC_OUT (not configured via GPIO registers)
-	// PH0 = OSC_IN (not configured via GPIO registers)
-	// PI15/PI14/PI13/PI12 = unimplemented
-	// PI11/PI10/PI9/PI8/PI7/PI6/PI5/PI4/PI3/PI2/PI1/PI0 = unimplemented on this package
+	static const gpio_init_pin_t GPIO_INIT_PINS[4U][16U] = {
+		{
+			// PA0 = shorted to VDD, driven high
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 1, .af = 0 },
+			// PA1 = shorted to VDD, driven high
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 1, .af = 0 },
+			// PA2 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PA3 = shorted to VSS, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PA4 = internal Flash /CS, start deasserted (high)
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_25, .pupd = GPIO_PUPD_NONE, .od = 1, .af = 0 },
+			// PA5 = shorted to VDD, driven high
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 1, .af = 0 },
+			// PA6 = N/C
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PA7 = N/C
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PA8 = N/C
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PA9 = OTG FS VBUS, input with weak pull-down
+			{ .mode = GPIO_MODE_IN, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_PD, .od = 0, .af = 0 },
+			// PA10 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PA11 = alternate function OTG FS
+			{ .mode = GPIO_MODE_AF, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_25, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 10 },
+			// PA12 = alternate function OTG FS
+			{ .mode = GPIO_MODE_AF, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_25, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 10 },
+			// PA13 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PA14 = PROGRAM_B, input with no resistors until needed
+			{ .mode = GPIO_MODE_IN, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PA15 = external Flash /CS, input with no resistors until needed
+			{ .mode = GPIO_MODE_IN, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_25, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+		},
+		{
+			// PB0 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PB1 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PB2 = BOOT1, hardwired low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PB3 = external Flash SCK, input with no resistors until needed
+			{ .mode = GPIO_MODE_IN, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_50, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 5 },
+			// PB4 = external Flash MISO, input with no resistors until needed
+			{ .mode = GPIO_MODE_IN, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 5 },
+			// PB5 = external Flash MOSI, input with no resistors until needed
+			{ .mode = GPIO_MODE_IN, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_50, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 5 },
+			// PB6 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PB7 = alternate function USART 1 receive
+			{ .mode = GPIO_MODE_AF, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 7 },
+			// PB8 = shorted to VSS, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PB9 = shorted to VSS, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PB10 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PB11 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PB12 = LED 1, start high (on)
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 1, .af = 0 },
+			// PB13 = LED 2, start high (on)
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 1, .af = 0 },
+			// PB14 = LED 3, start high (on)
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 1, .af = 0 },
+			// PB15 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+		},
+		{
+			// PC0 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PC1 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PC2 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PC3 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PC4 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PC5 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PC6 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PC7 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PC8 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PC9 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PC10 = alternate function internal Flash (SPI3) SCK
+			{ .mode = GPIO_MODE_AF, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_50, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 6 },
+			// PC11 = alternate function internal Flash (SPI3) MISO
+			{ .mode = GPIO_MODE_AF, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_50, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 6 },
+			// PC12 = alternate function internal Flash (SPI3) MOSI
+			{ .mode = GPIO_MODE_AF, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_50, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 6 },
+			// PC13 = N/C, driven low
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PC14 = switch SW3 to ground (input with pull-up)
+			{ .mode = GPIO_MODE_IN, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_PU, .od = 0, .af = 0 },
+			// PC15 = switch SW2 to ground (input with pull-up)
+			{ .mode = GPIO_MODE_IN, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_PU, .od = 0, .af = 0 },
+		},
+		{
+			// PD0 = unimplemented on package
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PD1 = unimplemented on package
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PD2 = external power control, input with no resistors until needed
+			{ .mode = GPIO_MODE_IN, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PD3 = unimplemented on package
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PD4 = unimplemented on package
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PD5 = unimplemented on package
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PD6 = unimplemented on package
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PD7 = unimplemented on package
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PD8 = unimplemented on package
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PD9 = unimplemented on package
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PD10 = unimplemented on package
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PD11 = unimplemented on package
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PD12 = unimplemented on package
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PD13 = unimplemented on package
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PD14 = unimplemented on package
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+			// PD15 = unimplemented on package
+			{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
+		},
+	};
+	gpio_init(GPIO_INIT_PINS);
 
 	// Wait a bit.
 	sleep_ms(100);
