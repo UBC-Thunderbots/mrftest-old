@@ -18,7 +18,7 @@ namespace {
 }
 
 bool AI::HL::STP::Action::repel(World world, Player player) {
-	// bool kicked = false;
+	bool kicked = false;
 	const Field &f = world.field();
 	const Point ball = world.ball().position();
 	const Point diff = ball - player.position();
@@ -32,9 +32,9 @@ bool AI::HL::STP::Action::repel(World world, Player player) {
 		ram(world, player, dest, diff.norm() * FAST);
 		return false;
 	}
-	/*
+
 	   // just shoot as long as it's not in backwards direction
-	   if (player.orientation() < M_PI / 2 && player.orientation() > -M_PI / 2) {
+	   if (player.position().orientation().to_radians() < M_PI / 2 && player.position().orientation().to_radians() > -M_PI / 2) {
 	    player.autokick(10.0);
 	    kicked = true;
 	   }
@@ -43,7 +43,7 @@ bool AI::HL::STP::Action::repel(World world, Player player) {
 	   player.prio(AI::Flags::MovePrio::HIGH);
 
 	   return kicked;
-	 */
+
 	// all enemies are obstacles
 
 	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
