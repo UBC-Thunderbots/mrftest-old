@@ -402,13 +402,15 @@ bool goalie_block_goal_post(const Point &a, const Point &b, const Point &c, cons
  *
  * \pre the goalie is between the two goal posts, as seen from the ball.
  *
- * \param[in] a ??? goal post position
+ * \param[in] a right goal post position, from goalie's perspective
  *
- * \param[in] b ??? other goal post position
+ * \param[in] b other goal post position
  *
  * \param[in] c ball position
  *
  * \param[in] g goalie position
+ *
+ * \param[in] r radius of defending robot
  */
 Point calc_block_cone_defender(const Point &a, const Point &b, const Point &c, const Point &g, const double &r);
 

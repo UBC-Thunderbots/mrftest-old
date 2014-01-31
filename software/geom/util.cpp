@@ -604,7 +604,7 @@ Point reflect(const Point &v, const Point &n) {
 		return v;
 	}
 	Point normal = n.norm();
-	return 2 * v.dot(normal) * normal - v;
+	return v - 2 * v.dot(normal) * normal;
 }
 
 Point reflect(const Point &a, const Point &b, const Point &p) {
@@ -644,20 +644,20 @@ Point calc_block_cone(const Point &a, const Point &b, const Point &p, const doub
 #warning Doxygenize this in geom/util.h
 #warning what is the "goal post side" (parameter a)?
 Point calc_block_other_ray(const Point &a, const Point &c, const Point &g) {
-	return reflect(a - c, g - c);
+	return reflect(c - a, g - c); //this, and the next two instances, were changed from a - c since reflect() was fixed 
 }
 
 // ported code
 #warning TODO: figure out what this actually do and write better comments
 bool goalie_block_goal_post(const Point &a, const Point &b, const Point &c, const Point &g) {
-	Point R = reflect(a - c, g - c);
-	return R.cross(b - c) < -EPS;
+	Point R = reflect(c - a, g - c);
+	return fabs(R.cross(b - c)) < EPS; 
 }
 
 // ported code
 #warning figure out a, b, and r
 Point calc_block_cone_defender(const Point &a, const Point &b, const Point &c, const Point &g, const double &r) {
-	Point R = reflect(a - c, g - c);
+	Point R = reflect(c - a, g - c); 
 	// std::cout << (R + c) << std::endl;
 	return calc_block_cone(R + c, b, c, r);
 }
