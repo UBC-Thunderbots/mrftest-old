@@ -28,14 +28,13 @@ namespace {
 			score.push_back(dist);
 		}
 
-		// BUBBLE SORT ROTFLOL
-		for (unsigned i = 0; i < enemies.size(); ++i) {
-			for (unsigned j = i + 1; j < enemies.size(); ++j) {
-				if (score[i] > score[j]) {
-					using std::swap;
-					swap(enemies[i], enemies[j]);
-					swap(score[i], score[j]);
-				}
+		int j;
+		for (unsigned i = 1; i < enemies.size(); i++){
+			j = i;
+			while (j > 0 && score[j-1] > score[j]){
+				std::swap(score[j-1], score[j]);
+				std::swap(enemies[j-1], enemies[j]);
+				j--;
 			}
 		}
 	}
