@@ -28,7 +28,6 @@ static void stop(bool successful) {
 
 	// Tristate MOSI, MISO, clock, and chip select.
 	gpio_set_mode(GPIOA, 15, GPIO_MODE_IN);
-	gpio_set_mode(GPIOB, 2, GPIO_MODE_IN);
 	gpio_set_mode(GPIOB, 3, GPIO_MODE_IN);
 	gpio_set_mode(GPIOB, 4, GPIO_MODE_IN);
 	gpio_set_mode(GPIOB, 5, GPIO_MODE_IN);
