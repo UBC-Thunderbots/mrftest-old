@@ -7,6 +7,7 @@
  * \brief Provides utility functions for working with general purpose I/O ports.
  */
 
+#include <stdbool.h>
 #include <registers/gpio.h>
 
 /**
@@ -253,6 +254,7 @@ typedef struct __attribute__((packed)) {
 	GPIO_PUPD_t pupd : 2;
 	unsigned od : 1;
 	unsigned af : 4;
+	bool unlock : 1;
 } gpio_init_pin_t;
 
 /**
