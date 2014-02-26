@@ -56,7 +56,7 @@ typedef struct {
 	uint32_t LCKR;
 	uint32_t AFRL;
 	uint32_t AFRH;
-	uint32_t pad[0x400 / 4 - 10];
+	uint32_t pad[0x400U / 4U - 10U];
 } GPIO_t;
 
 typedef GPIO_t GPIOS_t[9];
