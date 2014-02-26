@@ -117,6 +117,8 @@ firmware/stm32lib/include/init.h -text
 firmware/stm32lib/include/minmax.h -text
 firmware/stm32lib/include/rcc.h -text
 firmware/stm32lib/include/registers/adc.h -text
+firmware/stm32lib/include/registers/crc.h -text
+firmware/stm32lib/include/registers/dma.h -text
 firmware/stm32lib/include/registers/exti.h -text
 firmware/stm32lib/include/registers/flash.h -text
 firmware/stm32lib/include/registers/gpio.h -text
@@ -126,6 +128,7 @@ firmware/stm32lib/include/registers/nvic.h -text
 firmware/stm32lib/include/registers/otg_fs.h -text
 firmware/stm32lib/include/registers/power.h -text
 firmware/stm32lib/include/registers/rcc.h -text
+firmware/stm32lib/include/registers/rng.h -text
 firmware/stm32lib/include/registers/scb.h -text
 firmware/stm32lib/include/registers/sdio.h -text
 firmware/stm32lib/include/registers/spi.h -text
