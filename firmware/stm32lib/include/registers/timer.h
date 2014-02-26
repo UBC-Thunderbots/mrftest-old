@@ -653,5 +653,8 @@ typedef struct {
 	uint32_t DMAR;
 } TIM_act_t;
 
+#define TIM1 (*(volatile TIM_act_t *) 0x40010000)
+#define TIM8 (*(volatile TIM_act_t *) 0x40010400)
+
 #endif
 
