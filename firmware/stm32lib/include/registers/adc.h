@@ -10,10 +10,7 @@
 #include <stdint.h>
 
 #define ADC_BASE 0x40012000
-#define ADC1_BASE (ADC_BASE + 0x000)
-#define ADC2_BASE (ADC_BASE + 0x100)
-#define ADC3_BASE (ADC_BASE + 0x200)
-#define ADCC_BASE (ADC_BASE + 0x300)
+#define ADC_COMMON_BASE (ADC_BASE + 0x300)
 
 typedef struct {
 	unsigned AWD : 1;
@@ -196,7 +193,7 @@ typedef struct {
 	unsigned OVR3 : 1;
 	unsigned : 10;
 } ADC_CSR_t;
-#define ADC_CSR (*(volatile ADC_CSR_t *) (ADC_BASE + 0x300 + 0x00))
+#define ADC_CSR (*(volatile ADC_CSR_t *) (ADC_COMMON_BASE + 0x00))
 
 typedef struct {
 	unsigned MULTI : 5;
@@ -211,13 +208,13 @@ typedef struct {
 	unsigned TSVREFE : 1;
 	unsigned : 8;
 } ADC_CCR_t;
-#define ADC_CCR (*(volatile ADC_CCR_t *) (ADC_BASE + 0x300 + 0x04))
+#define ADC_CCR (*(volatile ADC_CCR_t *) (ADC_COMMON_BASE + 0x04))
 
 typedef struct {
 	unsigned DATA1 : 16;
 	unsigned DATA2 : 16;
 } ADC_CDR_t;
-#define ADC_CDR (*(volatile ADC_CDR_t *) (ADC_BASE + 0x300 + 0x08))
+#define ADC_CDR (*(volatile ADC_CDR_t *) (ADC_COMMON_BASE + 0x08))
 
 #endif
 
