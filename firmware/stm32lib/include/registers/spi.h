@@ -28,6 +28,7 @@ typedef struct {
 	unsigned BIDIMODE : 1;
 	unsigned : 16;
 } SPI_CR1_t;
+_Static_assert(sizeof(SPI_CR1_t) == 4U, "SPI_CR1_t is wrong size");
 
 typedef struct {
 	unsigned RXDMAEN : 1;
@@ -40,6 +41,7 @@ typedef struct {
 	unsigned TXEIE : 1;
 	unsigned : 24;
 } SPI_CR2_t;
+_Static_assert(sizeof(SPI_CR2_t) == 4U, "SPI_CR2_t is wrong size");
 
 typedef struct {
 	unsigned RXNE : 1;
@@ -53,6 +55,7 @@ typedef struct {
 	unsigned FRE : 1;
 	unsigned : 23;
 } SPI_SR_t;
+_Static_assert(sizeof(SPI_SR_t) == 4U, "SPI_SR_t is wrong size");
 
 typedef struct {
 	unsigned CHLEN : 1;
@@ -66,6 +69,7 @@ typedef struct {
 	unsigned I2SMOD : 1;
 	unsigned : 20;
 } SPI_I2SCFGR_t;
+_Static_assert(sizeof(SPI_I2SCFGR_t) == 4U, "SPI_I2SCFGR_t is wrong size");
 
 typedef struct {
 	unsigned I2SDIV : 8;
@@ -73,6 +77,7 @@ typedef struct {
 	unsigned MCKOE : 1;
 	unsigned : 22;
 } SPI_I2SPR_t;
+_Static_assert(sizeof(SPI_I2SPR_t) == 4U, "SPI_I2SPR_t is wrong size");
 
 typedef struct {
 	SPI_CR1_t CR1;
@@ -85,6 +90,7 @@ typedef struct {
 	SPI_I2SCFGR_t I2SCFGR;
 	SPI_I2SPR_t I2SPR;
 } SPI_t;
+_Static_assert(sizeof(SPI_t) == 0x24U, "SPI_t is wrong size");
 
 #define SPI1 (*(volatile SPI_t *) SPI1_BASE)
 #define SPI2 (*(volatile SPI_t *) SPI2_BASE)

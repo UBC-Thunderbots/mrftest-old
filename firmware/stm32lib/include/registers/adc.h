@@ -21,6 +21,7 @@ typedef struct {
 	unsigned OVR : 1;
 	unsigned : 26;
 } ADC_SR_t;
+_Static_assert(sizeof(ADC_SR_t) == 4U, "ADC_SR_t is wrong size");
 
 typedef struct {
 	unsigned AWDCH : 5;
@@ -40,6 +41,7 @@ typedef struct {
 	unsigned OVRIE : 1;
 	unsigned : 5;
 } ADC_CR1_t;
+_Static_assert(sizeof(ADC_CR1_t) == 4U, "ADC_CR1_t is wrong size");
 
 typedef struct {
 	unsigned ADON : 1;
@@ -59,6 +61,7 @@ typedef struct {
 	unsigned SWSTART : 1;
 	unsigned : 1;
 } ADC_CR2_t;
+_Static_assert(sizeof(ADC_CR2_t) == 4U, "ADC_CR2_t is wrong size");
 
 typedef struct {
 	unsigned SMP10 : 3;
@@ -72,6 +75,7 @@ typedef struct {
 	unsigned SMP18 : 3;
 	unsigned : 5;
 } ADC_SMPR1_t;
+_Static_assert(sizeof(ADC_SMPR1_t) == 4U, "ADC_SMPR1_t is wrong size");
 
 typedef struct {
 	unsigned SMP0 : 3;
@@ -86,21 +90,25 @@ typedef struct {
 	unsigned SMP9 : 3;
 	unsigned : 2;
 } ADC_SMPR2_t;
+_Static_assert(sizeof(ADC_SMPR2_t) == 4U, "ADC_SMPR2_t is wrong size");
 
 typedef struct {
 	unsigned JOFFSET : 12;
 	unsigned : 20;
 } ADC_JOFR_t;
+_Static_assert(sizeof(ADC_JOFR_t) == 4U, "ADC_JOFR_t is wrong size");
 
 typedef struct {
 	unsigned HT : 12;
 	unsigned : 20;
 } ADC_HTR_t;
+_Static_assert(sizeof(ADC_HTR_t) == 4U, "ADC_HTR_t is wrong size");
 
 typedef struct {
 	unsigned LT : 12;
 	unsigned : 20;
 } ADC_LTR_t;
+_Static_assert(sizeof(ADC_LTR_t) == 4U, "ADC_LTR_t is wrong size");
 
 typedef struct {
 	unsigned SQ13 : 5;
@@ -110,6 +118,7 @@ typedef struct {
 	unsigned L : 4;
 	unsigned : 8;
 } ADC_SQR1_t;
+_Static_assert(sizeof(ADC_SQR1_t) == 4U, "ADC_SQR1_t is wrong size");
 
 typedef struct {
 	unsigned SQ7 : 5;
@@ -120,6 +129,7 @@ typedef struct {
 	unsigned SQ12 : 5;
 	unsigned : 2;
 } ADC_SQR2_t;
+_Static_assert(sizeof(ADC_SQR2_t) == 4U, "ADC_SQR2_t is wrong size");
 
 typedef struct {
 	unsigned SQ1 : 5;
@@ -130,6 +140,7 @@ typedef struct {
 	unsigned SQ6 : 5;
 	unsigned : 2;
 } ADC_SQR3_t;
+_Static_assert(sizeof(ADC_SQR3_t) == 4U, "ADC_SQR3_t is wrong size");
 
 typedef struct {
 	unsigned JSQ1 : 5;
@@ -139,11 +150,13 @@ typedef struct {
 	unsigned JL : 2;
 	unsigned : 10;
 } ADC_JSQR_t;
+_Static_assert(sizeof(ADC_JSQR_t) == 4U, "ADC_JSQR_t is wrong size");
 
 typedef struct {
 	unsigned DATA : 16;
 	unsigned : 16;
 } ADC_DR_t;
+_Static_assert(sizeof(ADC_DR_t) == 4U, "ADC_DR_t is wrong size");
 
 typedef struct {
 	ADC_SR_t SR;
@@ -162,6 +175,7 @@ typedef struct {
 	ADC_DR_t DR;
 	uint32_t pad[0x100 / 4 - 20];
 } ADC_t;
+_Static_assert(sizeof(ADC_t) == 0x100U, "ADC_t is wrong size");
 
 typedef ADC_t ADCs_t[3];
 
@@ -193,6 +207,7 @@ typedef struct {
 	unsigned OVR3 : 1;
 	unsigned : 10;
 } ADC_CSR_t;
+_Static_assert(sizeof(ADC_CSR_t) == 4U, "ADC_CSR_t is wrong size");
 #define ADC_CSR (*(volatile ADC_CSR_t *) (ADC_COMMON_BASE + 0x00))
 
 typedef struct {
@@ -208,12 +223,14 @@ typedef struct {
 	unsigned TSVREFE : 1;
 	unsigned : 8;
 } ADC_CCR_t;
+_Static_assert(sizeof(ADC_CCR_t) == 4U, "ADC_CCR_t is wrong size");
 #define ADC_CCR (*(volatile ADC_CCR_t *) (ADC_COMMON_BASE + 0x04))
 
 typedef struct {
 	unsigned DATA1 : 16;
 	unsigned DATA2 : 16;
 } ADC_CDR_t;
+_Static_assert(sizeof(ADC_CDR_t) == 4U, "ADC_CDR_t is wrong size");
 #define ADC_CDR (*(volatile ADC_CDR_t *) (ADC_COMMON_BASE + 0x08))
 
 #endif

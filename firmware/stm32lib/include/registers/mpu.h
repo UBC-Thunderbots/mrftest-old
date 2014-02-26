@@ -16,6 +16,7 @@ typedef struct {
 	unsigned IREGION : 8;
 	unsigned : 8;
 } MPU_TYPE_t;
+_Static_assert(sizeof(MPU_TYPE_t) == 4U, "MPU_TYPE_t is wrong size");
 #define MPU_TYPE (*(const volatile MPU_TYPE_t *) (MPU_BASE + 0x00))
 
 typedef struct {
@@ -24,12 +25,14 @@ typedef struct {
 	unsigned PRIVDEFENA : 1;
 	unsigned : 29;
 } MPU_CTRL_t;
+_Static_assert(sizeof(MPU_CTRL_t) == 4U, "MPU_CTRL_t is wrong size");
 #define MPU_CTRL (*(volatile MPU_CTRL_t *) (MPU_BASE + 0x04))
 
 typedef struct {
 	unsigned REGION : 8;
 	unsigned : 24;
 } MPU_RNR_t;
+_Static_assert(sizeof(MPU_RNR_t) == 4U, "MPU_RNR_t is wrong size");
 #define MPU_RNR (*(volatile MPU_RNR_t *) (MPU_BASE + 0x08))
 
 typedef struct {
@@ -37,6 +40,7 @@ typedef struct {
 	unsigned VALID : 1;
 	unsigned ADDR : 27;
 } MPU_RBAR_t;
+_Static_assert(sizeof(MPU_RBAR_t) == 4U, "MPU_RBAR_t is wrong size");
 #define MPU_RBAR (*(volatile MPU_RBAR_t *) (MPU_BASE + 0x0C))
 
 typedef struct {
@@ -54,6 +58,7 @@ typedef struct {
 	unsigned XN : 1;
 	unsigned : 3;
 } MPU_RASR_t;
+_Static_assert(sizeof(MPU_RASR_t) == 4U, "MPU_RASR_t is wrong size");
 #define MPU_RASR (*(volatile MPU_RASR_t *) (MPU_BASE + 0x10))
 
 #endif

@@ -15,6 +15,7 @@ typedef struct {
 	unsigned BS : 16;
 	unsigned BR : 16;
 } GPIO_BSRR_t;
+_Static_assert(sizeof(GPIO_BSRR_t) == 4U, "GPIO_BSRR_t is wrong size");
 
 typedef enum {
 	GPIO_MODE_IN,
@@ -58,6 +59,7 @@ typedef struct {
 	uint32_t AFRH;
 	uint32_t pad[0x400U / 4U - 10U];
 } GPIO_t;
+_Static_assert(sizeof(GPIO_t) == 0x400U, "GPIO_t is wrong size");
 
 typedef GPIO_t GPIOS_t[9];
 

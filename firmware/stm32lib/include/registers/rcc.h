@@ -26,6 +26,7 @@ typedef struct {
 	unsigned PLLI2SRDY : 1;
 	unsigned : 4;
 } RCC_CR_t;
+_Static_assert(sizeof(RCC_CR_t) == 4U, "RCC_CR_t is wrong size");
 #define RCC_CR (*(volatile RCC_CR_t *) (RCC_BASE + 0x00))
 
 typedef struct {
@@ -39,6 +40,7 @@ typedef struct {
 	unsigned PLLQ : 4;
 	unsigned : 4;
 } RCC_PLLCFGR_t;
+_Static_assert(sizeof(RCC_PLLCFGR_t) == 4U, "RCC_PLLCFGR_t is wrong size");
 #define RCC_PLLCFGR (*(volatile RCC_PLLCFGR_t *) (RCC_BASE + 0x04))
 
 typedef struct {
@@ -55,6 +57,7 @@ typedef struct {
 	unsigned MCO2PRE : 3;
 	unsigned MCO2 : 2;
 } RCC_CFGR_t;
+_Static_assert(sizeof(RCC_CFGR_t) == 4U, "RCC_CFGR_t is wrong size");
 #define RCC_CFGR (*(volatile RCC_CFGR_t *) (RCC_BASE + 0x08))
 
 typedef struct {
@@ -83,6 +86,7 @@ typedef struct {
 	unsigned CSSC : 1;
 	unsigned : 8;
 } RCC_CIR_t;
+_Static_assert(sizeof(RCC_CIR_t) == 4U, "RCC_CIR_t is wrong size");
 #define RCC_CIR (*(volatile RCC_CIR_t *) (RCC_BASE + 0x0C))
 
 typedef struct {
@@ -106,6 +110,7 @@ typedef struct {
 	unsigned OTGHSRST : 1;
 	unsigned : 2;
 } RCC_AHB1RSTR_t;
+_Static_assert(sizeof(RCC_AHB1RSTR_t) == 4U, "RCC_AHB1RSTR_t is wrong size");
 #define RCC_AHB1RSTR (*(volatile RCC_AHB1RSTR_t *) (RCC_BASE + 0x10))
 
 typedef struct {
@@ -117,12 +122,14 @@ typedef struct {
 	unsigned OTGFSRST : 1;
 	unsigned : 24;
 } RCC_AHB2RSTR_t;
+_Static_assert(sizeof(RCC_AHB2RSTR_t) == 4U, "RCC_AHB2RSTR_t is wrong size");
 #define RCC_AHB2RSTR (*(volatile RCC_AHB2RSTR_t *) (RCC_BASE + 0x14))
 
 typedef struct {
 	unsigned FSMCRST : 1;
 	unsigned : 31;
 } RCC_AHB3RSTR_t;
+_Static_assert(sizeof(RCC_AHB3RSTR_t) == 4U, "RCC_AHB3RSTR_t is wrong size");
 #define RCC_AHB3RSTR (*(volatile RCC_AHB3RSTR_t *) (RCC_BASE + 0x18))
 
 typedef struct {
@@ -157,6 +164,7 @@ typedef struct {
 	unsigned UART7RST : 1;
 	unsigned UART8RST : 1;
 } RCC_APB1RSTR_t;
+_Static_assert(sizeof(RCC_APB1RSTR_t) == 4U, "RCC_APB1RSTR_t is wrong size");
 #define RCC_APB1RSTR (*(volatile RCC_APB1RSTR_t *) (RCC_BASE + 0x20))
 
 typedef struct {
@@ -181,6 +189,7 @@ typedef struct {
 	unsigned SPI6RST : 1;
 	unsigned : 10;
 } RCC_APB2RSTR_t;
+_Static_assert(sizeof(RCC_APB2RSTR_t) == 4U, "RCC_APB2RSTR_t is wrong size");
 #define RCC_APB2RSTR (*(volatile RCC_APB2RSTR_t *) (RCC_BASE + 0x24))
 
 typedef struct {
@@ -210,6 +219,7 @@ typedef struct {
 	unsigned OTGHSULPIEN : 1;
 	unsigned : 1;
 } RCC_AHB1ENR_t;
+_Static_assert(sizeof(RCC_AHB1ENR_t) == 4U, "RCC_AHB1ENR_t is wrong size");
 #define RCC_AHB1ENR (*(volatile RCC_AHB1ENR_t *) (RCC_BASE + 0x30))
 
 typedef struct {
@@ -221,12 +231,14 @@ typedef struct {
 	unsigned OTGFSEN : 1;
 	unsigned : 24;
 } RCC_AHB2ENR_t;
+_Static_assert(sizeof(RCC_AHB2ENR_t) == 4U, "RCC_AHB2ENR_t is wrong size");
 #define RCC_AHB2ENR (*(volatile RCC_AHB2ENR_t *) (RCC_BASE + 0x34))
 
 typedef struct {
 	unsigned FSMCEN : 1;
 	unsigned : 31;
 } RCC_AHB3ENR_t;
+_Static_assert(sizeof(RCC_AHB3ENR_t) == 4U, "RCC_AHB3ENR_t is wrong size");
 #define RCC_AHB3ENR (*(volatile RCC_AHB3ENR_t *) (RCC_BASE + 0x38))
 
 typedef struct {
@@ -261,6 +273,7 @@ typedef struct {
 	unsigned UART7EN : 1;
 	unsigned UART8EN : 1;
 } RCC_APB1ENR_t;
+_Static_assert(sizeof(RCC_APB1ENR_t) == 4U, "RCC_APB1ENR_t is wrong size");
 #define RCC_APB1ENR (*(volatile RCC_APB1ENR_t *) (RCC_BASE + 0x40))
 
 typedef struct {
@@ -286,6 +299,7 @@ typedef struct {
 	unsigned SPI6EN : 1;
 	unsigned : 10;
 } RCC_APB2ENR_t;
+_Static_assert(sizeof(RCC_APB2ENR_t) == 4U, "RCC_APB2ENR_t is wrong size");
 #define RCC_APB2ENR (*(volatile RCC_APB2ENR_t *) (RCC_BASE + 0x44))
 
 typedef struct {
@@ -318,6 +332,7 @@ typedef struct {
 	unsigned OTGHSULPILPEN : 1;
 	unsigned : 1;
 } RCC_AHB1LPENR_t;
+_Static_assert(sizeof(RCC_AHB1LPENR_t) == 4U, "RCC_AHB1LPENR_t is wrong size");
 #define RCC_AHB1LPENR (*(volatile RCC_AHB1LPENR_t *) (RCC_BASE + 0x50))
 
 typedef struct {
@@ -329,12 +344,14 @@ typedef struct {
 	unsigned OTGFSLPEN : 1;
 	unsigned : 24;
 } RCC_AHB2LPENR_t;
+_Static_assert(sizeof(RCC_AHB2LPENR_t) == 4U, "RCC_AHB2LPENR_t is wrong size");
 #define RCC_AHB2LPENR (*(volatile RCC_AHB2LPENR_t *) (RCC_BASE + 0x54))
 
 typedef struct {
 	unsigned FSMCLPEN : 1;
 	unsigned : 31;
 } RCC_AHB3LPENR_t;
+_Static_assert(sizeof(RCC_AHB3LPENR_t) == 4U, "RCC_AHB3LPENR_t is wrong size");
 #define RCC_AHB3LPENR (*(volatile RCC_AHB3LPENR_t *) (RCC_BASE + 0x58))
 
 typedef struct {
@@ -369,6 +386,7 @@ typedef struct {
 	unsigned UART7LPEN : 1;
 	unsigned UART8LPEN : 1;
 } RCC_APB1LPENR_t;
+_Static_assert(sizeof(RCC_APB1LPENR_t) == 4U, "RCC_APB1LPENR_t is wrong size");
 #define RCC_APB1LPENR (*(volatile RCC_APB1LPENR_t *) (RCC_BASE + 0x60))
 
 typedef struct {
@@ -394,6 +412,7 @@ typedef struct {
 	unsigned SPI6LPEN : 1;
 	unsigned : 10;
 } RCC_APB2LPENR_t;
+_Static_assert(sizeof(RCC_APB2LPENR_t) == 4U, "RCC_APB2LPENR_t is wrong size");
 #define RCC_APB2LPENR (*(volatile RCC_APB2LPENR_t *) (RCC_BASE + 0x64))
 
 typedef struct {
@@ -407,6 +426,7 @@ typedef struct {
 	unsigned BDRST : 1;
 	unsigned : 15;
 } RCC_BDCR_t;
+_Static_assert(sizeof(RCC_BDCR_t) == 4U, "RCC_BDCR_t is wrong size");
 #define RCC_BDCR (*(volatile RCC_BDCR_t *) (RCC_BASE + 0x70))
 
 typedef struct {
@@ -422,6 +442,7 @@ typedef struct {
 	unsigned WWDGRSTF : 1;
 	unsigned LPWRRSTF : 1;
 } RCC_CSR_t;
+_Static_assert(sizeof(RCC_CSR_t) == 4U, "RCC_CSR_t is wrong size");
 #define RCC_CSR (*(volatile RCC_CSR_t *) (RCC_BASE + 0x74))
 
 typedef struct {
@@ -431,6 +452,7 @@ typedef struct {
 	unsigned SPREADSEL : 1;
 	unsigned SSCGEN : 1;
 } RCC_SSCGR_t;
+_Static_assert(sizeof(RCC_SSCGR_t) == 4U, "RCC_SSCGR_t is wrong size");
 #define RCC_SSCGR (*(volatile RCC_SSCGR_t *) (RCC_BASE + 0x80))
 
 typedef struct {
@@ -440,6 +462,7 @@ typedef struct {
 	unsigned PLLI2SR : 3;
 	unsigned : 1;
 } RCC_PLLI2SCFGR_t;
+_Static_assert(sizeof(RCC_PLLI2SCFGR_t) == 4U, "RCC_PLLI2SCFGR_t is wrong size");
 #define RCC_PLLI2SCFGR (*(volatile RCC_PLLI2SCFGR_t *) (RCC_BASE + 0x84))
 
 typedef struct {
@@ -447,6 +470,7 @@ typedef struct {
 	unsigned TIMPRE : 1;
 	unsigned : 7;
 } RCC_DCKCFGR_t;
+_Static_assert(sizeof(RCC_DCKCFGR_t) == 4U, "RCC_DCKCFGR_t is wrong size");
 #define RCC_DCKCFGR (*(volatile RCC_DCKCFGR_t *) (RCC_BASE + 0x8C))
 
 #endif

@@ -15,6 +15,7 @@ typedef struct {
 	unsigned MEM_MODE : 2;
 	unsigned : 30;
 } SYSCFG_MEMRMP_t;
+_Static_assert(sizeof(SYSCFG_MEMRMP_t) == 4U, "SYSCFG_MEMRMP_t is wrong size");
 #define SYSCFG_MEMRMP (*(volatile SYSCFG_MEMRMP_t *) (SYSCFG_BASE + 0x00))
 
 typedef struct {
@@ -22,6 +23,7 @@ typedef struct {
 	unsigned MII_RMII_SEL : 1;
 	unsigned : 8;
 } SYSCFG_PMC_t;
+_Static_assert(sizeof(SYSCFG_PMC_t) == 4U, "SYSCFG_PMC_t is wrong size");
 #define SYSCFG_PMC (*(volatile SYSCFG_PMC_t *) (SYSCFG_BASE + 0x04))
 
 typedef uint32_t SYSCFG_EXTICR_t[4];
@@ -33,6 +35,7 @@ typedef struct {
 	unsigned READY : 1;
 	unsigned : 23;
 } SYSCFG_CMPCR_t;
+_Static_assert(sizeof(SYSCFG_CMPCR_t) == 4U, "SYSCFG_CMPCR_t is wrong size");
 #define SYSCFG_CMPCR (*(volatile SYSCFG_CMPCR_t *) (SYSCFG_BASE + 0x20))
 
 #endif

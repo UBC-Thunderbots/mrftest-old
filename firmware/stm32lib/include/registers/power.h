@@ -20,6 +20,7 @@ typedef struct {
 	unsigned VOS : 2;
 	unsigned : 16;
 } PWR_CR_t;
+_Static_assert(sizeof(PWR_CR_t) == 4U, "PWR_CR_t is wrong size");
 #define PWR_CR (*(volatile PWR_CR_t *) 0x40007000)
 
 #endif

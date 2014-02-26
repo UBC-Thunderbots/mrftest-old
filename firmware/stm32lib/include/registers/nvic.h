@@ -23,6 +23,7 @@ typedef struct {
 	unsigned INTID : 9;
 	unsigned : 23;
 } STIR_t;
+_Static_assert(sizeof(STIR_t) == 4U, "STIR_t is wrong size");
 #define STIR (*(volatile STIR_t *) 0xE000EF00)
 
 #endif

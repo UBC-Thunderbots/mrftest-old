@@ -20,6 +20,7 @@ typedef struct {
 	unsigned CTS : 1;
 	unsigned : 22;
 } USART_SR_t;
+_Static_assert(sizeof(USART_SR_t) == 4U, "USART_SR_t is wrong size");
 
 typedef struct {
 	unsigned PE : 1;
@@ -33,12 +34,14 @@ typedef struct {
 	unsigned LBD : 1;
 	unsigned : 23;
 } UART_SR_t;
+_Static_assert(sizeof(UART_SR_t) == 4U, "UART_SR_t is wrong size");
 
 typedef struct {
 	unsigned DIV_Fraction : 4;
 	unsigned DIV_Mantissa : 12;
 	unsigned : 16;
 } USART_BRR_t;
+_Static_assert(sizeof(USART_BRR_t) == 4U, "USART_BRR_t is wrong size");
 
 typedef struct {
 	unsigned SBK : 1;
@@ -59,6 +62,7 @@ typedef struct {
 	unsigned OVER8 : 1;
 	unsigned : 16;
 } USART_CR1_t;
+_Static_assert(sizeof(USART_CR1_t) == 4U, "USART_CR1_t is wrong size");
 
 typedef struct {
 	unsigned ADD : 4;
@@ -74,6 +78,7 @@ typedef struct {
 	unsigned LINEN : 1;
 	unsigned : 17;
 } USART_CR2_t;
+_Static_assert(sizeof(USART_CR2_t) == 4U, "USART_CR2_t is wrong size");
 
 typedef struct {
 	unsigned ADD : 4;
@@ -85,6 +90,7 @@ typedef struct {
 	unsigned LINEN : 1;
 	unsigned : 17;
 } UART_CR2_t;
+_Static_assert(sizeof(UART_CR2_t) == 4U, "UART_CR2_t is wrong size");
 
 typedef struct {
 	unsigned EIE : 1;
@@ -101,6 +107,7 @@ typedef struct {
 	unsigned ONEBIT : 1;
 	unsigned : 20;
 } USART_CR3_t;
+_Static_assert(sizeof(USART_CR3_t) == 4U, "USART_CR3_t is wrong size");
 
 typedef struct {
 	unsigned EIE : 1;
@@ -114,12 +121,14 @@ typedef struct {
 	unsigned ONEBIT : 1;
 	unsigned : 20;
 } UART_CR3_t;
+_Static_assert(sizeof(UART_CR3_t) == 4U, "UART_CR3_t is wrong size");
 
 typedef struct {
 	unsigned PSC : 8;
 	unsigned GT : 8;
 	unsigned : 16;
 } USART_GTPR_t;
+_Static_assert(sizeof(USART_GTPR_t) == 4U, "USART_GTPR_t is wrong size");
 
 typedef struct {
 	USART_SR_t SR;
@@ -130,6 +139,7 @@ typedef struct {
 	USART_CR3_t CR3;
 	USART_GTPR_t GTPR;
 } USART_t;
+_Static_assert(sizeof(USART_t) == 0x1CU, "USART_t is wrong size");
 
 typedef struct {
 	UART_SR_t SR;
@@ -139,6 +149,7 @@ typedef struct {
 	UART_CR2_t CR2;
 	UART_CR3_t CR3;
 } UART_t;
+_Static_assert(sizeof(UART_t) == 0x18U, "UART_t is wrong size");
 
 #define USART1 (*(volatile USART_t *) 0x40011000)
 #define USART2 (*(volatile USART_t *) 0x40004400)

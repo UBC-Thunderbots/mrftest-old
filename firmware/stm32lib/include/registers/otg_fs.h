@@ -26,6 +26,7 @@ typedef struct {
 	unsigned BSVLD : 1;
 	unsigned : 12;
 } OTG_FS_GOTGCTL_t;
+_Static_assert(sizeof(OTG_FS_GOTGCTL_t) == 4U, "OTG_FS_GOTGCTL_t is wrong size");
 #define OTG_FS_GOTGCTL (*(volatile OTG_FS_GOTGCTL_t *) (OTG_FS_BASE + 0x000))
 
 typedef struct {
@@ -40,6 +41,7 @@ typedef struct {
 	unsigned DBCDNE : 1;
 	unsigned : 12;
 } OTG_FS_GOTGINT_t;
+_Static_assert(sizeof(OTG_FS_GOTGINT_t) == 4U, "OTG_FS_GOTGINT_t is wrong size");
 #define OTG_FS_GOTGINT (*(volatile OTG_FS_GOTGINT_t *) (OTG_FS_BASE + 0x004))
 
 typedef struct {
@@ -49,6 +51,7 @@ typedef struct {
 	unsigned PTXFELVL : 1;
 	unsigned : 23;
 } OTG_FS_GAHBCFG_t;
+_Static_assert(sizeof(OTG_FS_GAHBCFG_t) == 4U, "OTG_FS_GAHBCFG_t is wrong size");
 #define OTG_FS_GAHBCFG (*(volatile OTG_FS_GAHBCFG_t *) (OTG_FS_BASE + 0x008))
 
 typedef struct {
@@ -64,6 +67,7 @@ typedef struct {
 	unsigned FDMOD : 1;
 	unsigned CTXPKT : 1;
 } OTG_FS_GUSBCFG_t;
+_Static_assert(sizeof(OTG_FS_GUSBCFG_t) == 4U, "OTG_FS_GUSBCFG_t is wrong size");
 #define OTG_FS_GUSBCFG (*(volatile OTG_FS_GUSBCFG_t *) (OTG_FS_BASE + 0x00C))
 
 typedef struct {
@@ -77,6 +81,7 @@ typedef struct {
 	unsigned : 20;
 	unsigned AHBIDL : 1;
 } OTG_FS_GRSTCTL_t;
+_Static_assert(sizeof(OTG_FS_GRSTCTL_t) == 4U, "OTG_FS_GRSTCTL_t is wrong size");
 #define OTG_FS_GRSTCTL (*(volatile OTG_FS_GRSTCTL_t *) (OTG_FS_BASE + 0x010))
 
 typedef struct {
@@ -110,6 +115,7 @@ typedef struct {
 	unsigned SRQINT : 1;
 	unsigned WKUINT : 1;
 } OTG_FS_GINTSTS_t;
+_Static_assert(sizeof(OTG_FS_GINTSTS_t) == 4U, "OTG_FS_GINTSTS_t is wrong size");
 #define OTG_FS_GINTSTS (*(volatile OTG_FS_GINTSTS_t *) (OTG_FS_BASE + 0x014))
 
 typedef struct {
@@ -144,6 +150,7 @@ typedef struct {
 	unsigned SRQIM : 1;
 	unsigned WKUIM : 1;
 } OTG_FS_GINTMSK_t;
+_Static_assert(sizeof(OTG_FS_GINTMSK_t) == 4U, "OTG_FS_GINTMSK_t is wrong size");
 #define OTG_FS_GINTMSK (*(volatile OTG_FS_GINTMSK_t *) (OTG_FS_BASE + 0x018))
 
 typedef struct {
@@ -153,6 +160,7 @@ typedef struct {
 	unsigned PKTSTS : 4;
 	unsigned : 11;
 } OTG_FS_GRXSTSR_host_t;
+_Static_assert(sizeof(OTG_FS_GRXSTSR_host_t) == 4U, "OTG_FS_GRXSTSR_host_t is wrong size");
 typedef struct {
 	unsigned EPNUM : 4;
 	unsigned BCNT : 11;
@@ -161,10 +169,12 @@ typedef struct {
 	unsigned FRMNUM : 4;
 	unsigned : 7;
 } OTG_FS_GRXSTSR_device_t;
+_Static_assert(sizeof(OTG_FS_GRXSTSR_device_t) == 4U, "OTG_FS_GRXSTSR_device_t is wrong size");
 typedef union {
 	OTG_FS_GRXSTSR_host_t host;
 	OTG_FS_GRXSTSR_device_t device;
 } OTG_FS_GRXSTSR_t;
+_Static_assert(sizeof(OTG_FS_GRXSTSR_t) == 4U, "OTG_FS_GRXSTSR_t is wrong size");
 #define OTG_FS_GRXSTSR (*(volatile OTG_FS_GRXSTSR_t *) (OTG_FS_BASE + 0x01C))
 #define OTG_FS_GRXSTSP (*(volatile OTG_FS_GRXSTSR_t *) (OTG_FS_BASE + 0x020))
 
@@ -172,18 +182,21 @@ typedef struct {
 	unsigned RXFD : 16;
 	unsigned : 16;
 } OTG_FS_GRXFSIZ_t;
+_Static_assert(sizeof(OTG_FS_GRXFSIZ_t) == 4U, "OTG_FS_GRXFSIZ_t is wrong size");
 #define OTG_FS_GRXFSIZ (*(volatile OTG_FS_GRXFSIZ_t *) (OTG_FS_BASE + 0x024))
 
 typedef struct {
 	unsigned NPTXFSA : 16;
 	unsigned NPTXFD : 16;
 } OTG_FS_HNPTXFSIZ_t;
+_Static_assert(sizeof(OTG_FS_HNPTXFSIZ_t) == 4U, "OTG_FS_HNPTXFSIZ_t is wrong size");
 #define OTG_FS_HNPTXFSIZ (*(volatile OTG_FS_HNPTXFSIZ_t *) (OTG_FS_BASE + 0x028))
 
 typedef struct {
 	unsigned TX0FSA : 16;
 	unsigned TX0FD : 16;
 } OTG_FS_DIEPTXF0_t;
+_Static_assert(sizeof(OTG_FS_DIEPTXF0_t) == 4U, "OTG_FS_DIEPTXF0_t is wrong size");
 #define OTG_FS_DIEPTXF0 (*(volatile OTG_FS_DIEPTXF0_t *) (OTG_FS_BASE + 0x028))
 
 typedef struct {
@@ -192,6 +205,7 @@ typedef struct {
 	unsigned NPTXQTOP : 7;
 	unsigned : 1;
 } OTG_FS_HNPTXSTS_t;
+_Static_assert(sizeof(OTG_FS_HNPTXSTS_t) == 4U, "OTG_FS_HNPTXSTS_t is wrong size");
 #define OTG_FS_HNPTXSTS (*(volatile OTG_FS_HNPTXSTS_t *) (OTG_FS_BASE + 0x02C))
 
 typedef struct {
@@ -204,6 +218,7 @@ typedef struct {
 	unsigned NOVBUSSENS : 1;
 	unsigned : 10;
 } OTG_FS_GCCFG_t;
+_Static_assert(sizeof(OTG_FS_GCCFG_t) == 4U, "OTG_FS_GCCFG_t is wrong size");
 #define OTG_FS_GCCFG (*(volatile OTG_FS_GCCFG_t *) (OTG_FS_BASE + 0x038))
 
 #define OTG_FS_CID (*(volatile uint32_t *) (OTG_FS_BASE + 0x03C))
@@ -212,12 +227,14 @@ typedef struct {
 	unsigned PTXSA : 16;
 	unsigned PTXFSIZ : 16;
 } OTG_FS_HPTXFSIZ_t;
+_Static_assert(sizeof(OTG_FS_HPTXFSIZ_t) == 4U, "OTG_FS_HPTXFSIZ_t is wrong size");
 #define OTG_FS_HPTXFSIZ (*(volatile OTG_FS_HPTXFSIZ_t *) (OTG_FS_BASE + 0x100))
 
 typedef struct {
 	unsigned INEPTXSA : 16;
 	unsigned INEPTXFD : 16;
 } OTG_FS_DIEPTXFx_t;
+_Static_assert(sizeof(OTG_FS_DIEPTXFx_t) == 4U, "OTG_FS_DIEPTXFx_t is wrong size");
 // this array is one-based and therefore the first element is at 0x104
 #define OTG_FS_DIEPTXF ((volatile OTG_FS_DIEPTXFx_t *) (OTG_FS_BASE + 0x100))
 
@@ -229,6 +246,7 @@ typedef struct {
 	unsigned PFIVL : 2;
 	unsigned : 19;
 } OTG_FS_DCFG_t;
+_Static_assert(sizeof(OTG_FS_DCFG_t) == 4U, "OTG_FS_DCFG_t is wrong size");
 #define OTG_FS_DCFG (*(volatile OTG_FS_DCFG_t *) (OTG_FS_BASE + 0x800))
 
 typedef struct {
@@ -244,6 +262,7 @@ typedef struct {
 	unsigned POPRGDNE : 1;
 	unsigned : 20;
 } OTG_FS_DCTL_t;
+_Static_assert(sizeof(OTG_FS_DCTL_t) == 4U, "OTG_FS_DCTL_t is wrong size");
 #define OTG_FS_DCTL (*(volatile OTG_FS_DCTL_t *) (OTG_FS_BASE + 0x804))
 
 typedef struct {
@@ -254,6 +273,7 @@ typedef struct {
 	unsigned FNSOF : 14;
 	unsigned : 10;
 } OTG_FS_DSTS_t;
+_Static_assert(sizeof(OTG_FS_DSTS_t) == 4U, "OTG_FS_DSTS_t is wrong size");
 #define OTG_FS_DSTS (*(volatile OTG_FS_DSTS_t *) (OTG_FS_BASE + 0x808))
 
 typedef struct {
@@ -266,6 +286,7 @@ typedef struct {
 	unsigned INEPNEM : 1;
 	unsigned : 25;
 } OTG_FS_DIEPMSK_t;
+_Static_assert(sizeof(OTG_FS_DIEPMSK_t) == 4U, "OTG_FS_DIEPMSK_t is wrong size");
 #define OTG_FS_DIEPMSK (*(volatile OTG_FS_DIEPMSK_t *) (OTG_FS_BASE + 0x810))
 
 typedef struct {
@@ -276,36 +297,42 @@ typedef struct {
 	unsigned OTEPDM : 1;
 	unsigned : 27;
 } OTG_FS_DOEPMSK_t;
+_Static_assert(sizeof(OTG_FS_DOEPMSK_t) == 4U, "OTG_FS_DOEPMSK_t is wrong size");
 #define OTG_FS_DOEPMSK (*(volatile OTG_FS_DOEPMSK_t *) (OTG_FS_BASE + 0x814))
 
 typedef struct {
 	unsigned IEPINT : 16;
 	unsigned OEPINT : 16;
 } OTG_FS_DAINT_t;
+_Static_assert(sizeof(OTG_FS_DAINT_t) == 4U, "OTG_FS_DAINT_t is wrong size");
 #define OTG_FS_DAINT (*(volatile OTG_FS_DAINT_t *) (OTG_FS_BASE + 0x818))
 
 typedef struct {
 	unsigned IEPM : 16;
 	unsigned OEPM : 16;
 } OTG_FS_DAINTMSK_t;
+_Static_assert(sizeof(OTG_FS_DAINTMSK_t) == 4U, "OTG_FS_DAINTMSK_t is wrong size");
 #define OTG_FS_DAINTMSK (*(volatile OTG_FS_DAINTMSK_t *) (OTG_FS_BASE + 0x81C))
 
 typedef struct {
 	unsigned VBUSDT : 16;
 	unsigned : 16;
 } OTG_FS_DVBUSDIS_t;
+_Static_assert(sizeof(OTG_FS_DVBUSDIS_t) == 4U, "OTG_FS_DVBUSDIS_t is wrong size");
 #define OTG_FS_DVBUSDIS (*(volatile OTG_FS_DVBUSDIS_t *) (OTG_FS_BASE + 0x828))
 
 typedef struct {
 	unsigned DVBUSP : 12;
 	unsigned : 20;
 } OTG_FS_DVBUSPULSE_t;
+_Static_assert(sizeof(OTG_FS_DVBUSPULSE_t) == 4U, "OTG_FS_DVBUSPULSE_t is wrong size");
 #define OTG_FS_DVBUSPULSE (*(volatile OTG_FS_DVBUSPULSE_t *) (OTG_FS_BASE + 0x82C))
 
 typedef struct {
 	unsigned INEPTXFEM : 16;
 	unsigned : 16;
 } OTG_FS_DIEPEMPMSK_t;
+_Static_assert(sizeof(OTG_FS_DIEPEMPMSK_t) == 4U, "OTG_FS_DIEPEMPMSK_t is wrong size");
 #define OTG_FS_DIEPEMPMSK (*(volatile OTG_FS_DIEPEMPMSK_t *) (OTG_FS_BASE + 0x834))
 
 typedef struct {
@@ -324,6 +351,7 @@ typedef struct {
 	unsigned EPDIS : 1;
 	unsigned EPENA : 1;
 } OTG_FS_DIEPCTL0_t;
+_Static_assert(sizeof(OTG_FS_DIEPCTL0_t) == 4U, "OTG_FS_DIEPCTL0_t is wrong size");
 #define OTG_FS_DIEPCTL0 (*(volatile OTG_FS_DIEPCTL0_t *) (OTG_FS_BASE + 0x900))
 
 typedef struct {
@@ -332,6 +360,7 @@ typedef struct {
 	unsigned PKTCNT : 2;
 	unsigned : 11;
 } OTG_FS_DIEPTSIZ0_t;
+_Static_assert(sizeof(OTG_FS_DIEPTSIZ0_t) == 4U, "OTG_FS_DIEPTSIZ0_t is wrong size");
 #define OTG_FS_DIEPTSIZ0 (*(volatile OTG_FS_DIEPTSIZ0_t *) (OTG_FS_BASE + 0x910))
 
 typedef struct {
@@ -351,6 +380,7 @@ typedef struct {
 	unsigned EPDIS : 1;
 	unsigned EPENA : 1;
 } OTG_FS_DIEPCTLx_t;
+_Static_assert(sizeof(OTG_FS_DIEPCTLx_t) == 4U, "OTG_FS_DIEPCTLx_t is wrong size");
 typedef struct {
 	unsigned XFRC : 1;
 	unsigned EPDISD : 1;
@@ -362,16 +392,19 @@ typedef struct {
 	unsigned TXFE : 1;
 	unsigned : 24;
 } OTG_FS_DIEPINTx_t;
+_Static_assert(sizeof(OTG_FS_DIEPINTx_t) == 4U, "OTG_FS_DIEPINTx_t is wrong size");
 typedef struct {
 	unsigned XFRSIZ : 19;
 	unsigned PKTCNT : 10;
 	unsigned MCNT : 2;
 	unsigned : 1;
 } OTG_FS_DIEPTSIZx_t;
+_Static_assert(sizeof(OTG_FS_DIEPTSIZx_t) == 4U, "OTG_FS_DIEPTSIZx_t is wrong size");
 typedef struct {
 	unsigned INEPTFSAV : 16;
 	unsigned : 16;
 } OTG_FS_DTXFSTSx_t;
+_Static_assert(sizeof(OTG_FS_DTXFSTSx_t) == 4U, "OTG_FS_DTXFSTSx_t is wrong size");
 typedef struct {
 	OTG_FS_DIEPCTLx_t DIEPCTL;
 	uint32_t res1;
@@ -382,6 +415,7 @@ typedef struct {
 	OTG_FS_DTXFSTSx_t DTXFSTS;
 	uint32_t res7;
 } OTG_FS_DIEPx_wrapper_t;
+_Static_assert(sizeof(OTG_FS_DIEPx_wrapper_t) == 0x20U, "OTG_FS_DIEPx_wrapper_t is wrong size");
 // this array is one-based and therefore the first element is at 0x920
 #define OTG_FS_DIEP ((volatile OTG_FS_DIEPx_wrapper_t *) (OTG_FS_BASE + 0x900))
 
@@ -401,6 +435,7 @@ typedef struct {
 	unsigned EPDIS : 1;
 	unsigned EPENA : 1;
 } OTG_FS_DOEPCTL0_t;
+_Static_assert(sizeof(OTG_FS_DOEPCTL0_t) == 4U, "OTG_FS_DOEPCTL0_t is wrong size");
 #define OTG_FS_DOEPCTL0 (*(volatile OTG_FS_DOEPCTL0_t *) (OTG_FS_BASE + 0xB00))
 
 typedef struct {
@@ -411,6 +446,7 @@ typedef struct {
 	unsigned STUPCNT : 2;
 	unsigned : 1;
 } OTG_FS_DOEPTSIZ0_t;
+_Static_assert(sizeof(OTG_FS_DOEPTSIZ0_t) == 4U, "OTG_FS_DOEPTSIZ0_t is wrong size");
 #define OTG_FS_DOEPTSIZ0 (*(volatile OTG_FS_DOEPTSIZ0_t *) (OTG_FS_BASE + 0xB10))
 
 typedef struct {
@@ -430,6 +466,7 @@ typedef struct {
 	unsigned EPDIS : 1;
 	unsigned EPENA : 1;
 } OTG_FS_DOEPCTLx_t;
+_Static_assert(sizeof(OTG_FS_DOEPCTLx_t) == 4U, "OTG_FS_DOEPCTLx_t is wrong size");
 typedef struct {
 	unsigned XFRC : 1;
 	unsigned EPDISD : 1;
@@ -440,12 +477,14 @@ typedef struct {
 	unsigned B2BSTUP : 1;
 	unsigned : 25;
 } OTG_FS_DOEPINTx_t;
+_Static_assert(sizeof(OTG_FS_DOEPINTx_t) == 4U, "OTG_FS_DOEPINTx_t is wrong size");
 typedef struct {
 	unsigned XFRSIZ : 19;
 	unsigned PKTCNT : 10;
 	unsigned RXDPID_STUPCNT : 2;
 	unsigned : 1;
 } OTG_FS_DOEPTSIZx_t;
+_Static_assert(sizeof(OTG_FS_DOEPTSIZx_t) == 4U, "OTG_FS_DOEPTSIZx_t is wrong size");
 typedef struct {
 	OTG_FS_DOEPCTLx_t DOEPCTL;
 	uint32_t reserved1;
@@ -456,6 +495,7 @@ typedef struct {
 	uint32_t reserved6;
 	uint32_t reserved7;
 } OTG_FS_DOEPx_wrapper_t;
+_Static_assert(sizeof(OTG_FS_DOEPx_wrapper_t) == 0x20U, "OTG_FS_DOEPx_wrapper_t is wrong size");
 // this array is one-based and therefore the first element is at 0xB20
 #define OTG_FS_DOEP ((volatile OTG_FS_DOEPx_wrapper_t *) (OTG_FS_BASE + 0xB00))
 
@@ -466,6 +506,7 @@ typedef struct {
 	unsigned PHYSUSP : 1;
 	unsigned : 27;
 } OTG_FS_PCGCCTL_t;
+_Static_assert(sizeof(OTG_FS_PCGCCTL_t) == 4U, "OTG_FS_PCGCCTL_t is wrong size");
 #define OTG_FS_PCGCCTL (*(volatile OTG_FS_PCGCCTL_t *) (OTG_FS_BASE + 0xE00))
 
 typedef uint32_t OTG_FS_FIFO_t[0x1000 / 4];

@@ -18,12 +18,14 @@ typedef struct {
 	unsigned ARPE : 1;
 	unsigned : 24;
 } TIM_basic_CR1_t;
+_Static_assert(sizeof(TIM_basic_CR1_t) == 4U, "TIM_basic_CR1_t is wrong size");
 
 typedef struct {
 	unsigned : 4;
 	unsigned MMS : 3;
 	unsigned : 25;
 } TIM_basic_CR2_t;
+_Static_assert(sizeof(TIM_basic_CR2_t) == 4U, "TIM_basic_CR2_t is wrong size");
 
 typedef struct {
 	unsigned UIE : 1;
@@ -31,16 +33,19 @@ typedef struct {
 	unsigned UDE : 1;
 	unsigned : 23;
 } TIM_basic_DIER_t;
+_Static_assert(sizeof(TIM_basic_DIER_t) == 4U, "TIM_basic_DIER_t is wrong size");
 
 typedef struct {
 	unsigned UIF : 1;
 	unsigned : 31;
 } TIM_basic_SR_t;
+_Static_assert(sizeof(TIM_basic_SR_t) == 4U, "TIM_basic_SR_t is wrong size");
 
 typedef struct {
 	unsigned UG : 1;
 	unsigned : 31;
 } TIM_basic_EGR_t;
+_Static_assert(sizeof(TIM_basic_EGR_t) == 4U, "TIM_basic_EGR_t is wrong size");
 
 typedef struct {
 	TIM_basic_CR1_t CR1;
@@ -54,6 +59,7 @@ typedef struct {
 	uint32_t PSC;
 	uint32_t ARR;
 } TIM_basic_t;
+_Static_assert(sizeof(TIM_basic_t) == 0x30U, "TIM_basic_t is wrong size");
 
 #define TIM6 (*(volatile TIM_basic_t *) 0x40001000)
 #define TIM7 (*(volatile TIM_basic_t *) 0x40001400)
@@ -68,6 +74,7 @@ typedef struct {
 	unsigned CKD : 2;
 	unsigned : 22;
 } TIM9_12_CR1_t;
+_Static_assert(sizeof(TIM9_12_CR1_t) == 4U, "TIM9_12_CR1_t is wrong size");
 
 typedef struct {
 	unsigned CEN : 1;
@@ -78,12 +85,14 @@ typedef struct {
 	unsigned CKD : 2;
 	unsigned : 22;
 } TIM10_14_CR1_t;
+_Static_assert(sizeof(TIM10_14_CR1_t) == 4U, "TIM10_14_CR1_t is wrong size");
 
 typedef struct {
 	unsigned : 4;
 	unsigned MMS : 3;
 	unsigned : 25;
 } TIM9_12_CR2_t;
+_Static_assert(sizeof(TIM9_12_CR2_t) == 4U, "TIM9_12_CR2_t is wrong size");
 
 typedef struct {
 	unsigned SMS : 3;
@@ -92,6 +101,7 @@ typedef struct {
 	unsigned MSM : 1;
 	unsigned : 24;
 } TIM9_12_SMCR_t;
+_Static_assert(sizeof(TIM9_12_SMCR_t) == 4U, "TIM9_12_SMCR_t is wrong size");
 
 typedef struct {
 	unsigned UIE : 1;
@@ -101,12 +111,14 @@ typedef struct {
 	unsigned TIE : 1;
 	unsigned : 25;
 } TIM9_12_DIER_t;
+_Static_assert(sizeof(TIM9_12_DIER_t) == 4U, "TIM9_12_DIER_t is wrong size");
 
 typedef struct {
 	unsigned UIE : 1;
 	unsigned CC1IE : 1;
 	unsigned : 30;
 } TIM10_14_DIER_t;
+_Static_assert(sizeof(TIM10_14_DIER_t) == 4U, "TIM10_14_DIER_t is wrong size");
 
 typedef struct {
 	unsigned UIF : 1;
@@ -119,6 +131,7 @@ typedef struct {
 	unsigned CC2OF : 1;
 	unsigned : 21;
 } TIM9_12_SR_t;
+_Static_assert(sizeof(TIM9_12_SR_t) == 4U, "TIM9_12_SR_t is wrong size");
 
 typedef struct {
 	unsigned UIF : 1;
@@ -127,6 +140,7 @@ typedef struct {
 	unsigned CC1OF : 1;
 	unsigned : 22;
 } TIM10_14_SR_t;
+_Static_assert(sizeof(TIM10_14_SR_t) == 4U, "TIM10_14_SR_t is wrong size");
 
 typedef struct {
 	unsigned UG : 1;
@@ -136,12 +150,14 @@ typedef struct {
 	unsigned TG : 1;
 	unsigned : 25;
 } TIM9_12_EGR_t;
+_Static_assert(sizeof(TIM9_12_EGR_t) == 4U, "TIM9_12_EGR_t is wrong size");
 
 typedef struct {
 	unsigned UG : 1;
 	unsigned CC1G : 1;
 	unsigned : 30;
 } TIM10_14_EGR_t;
+_Static_assert(sizeof(TIM10_14_EGR_t) == 4U, "TIM10_14_EGR_t is wrong size");
 
 typedef struct {
 	unsigned CC1S : 2;
@@ -155,6 +171,7 @@ typedef struct {
 	unsigned OC2M : 3;
 	unsigned : 17;
 } TIM9_12_CCMR1_output_t;
+_Static_assert(sizeof(TIM9_12_CCMR1_output_t) == 4U, "TIM9_12_CCMR1_output_t is wrong size");
 
 typedef struct {
 	unsigned CC1S : 2;
@@ -163,6 +180,7 @@ typedef struct {
 	unsigned OC1M : 3;
 	unsigned : 25;
 } TIM10_14_CCMR1_output_t;
+_Static_assert(sizeof(TIM10_14_CCMR1_output_t) == 4U, "TIM10_14_CCMR1_output_t is wrong size");
 
 typedef struct {
 	unsigned CC1S : 2;
@@ -173,6 +191,7 @@ typedef struct {
 	unsigned IC2F : 4;
 	unsigned : 16;
 } TIM9_12_CCMR1_input_t;
+_Static_assert(sizeof(TIM9_12_CCMR1_input_t) == 4U, "TIM9_12_CCMR1_input_t is wrong size");
 
 typedef struct {
 	unsigned CC1S : 2;
@@ -180,16 +199,19 @@ typedef struct {
 	unsigned IC1F : 4;
 	unsigned : 24;
 } TIM10_14_CCMR1_input_t;
+_Static_assert(sizeof(TIM10_14_CCMR1_input_t) == 4U, "TIM10_14_CCMR1_input_t is wrong size");
 
 typedef union {
 	TIM9_12_CCMR1_output_t O;
 	TIM9_12_CCMR1_input_t I;
 } TIM9_12_CCMR1_t;
+_Static_assert(sizeof(TIM9_12_CCMR1_t) == 4U, "TIM9_12_CCMR1_t is wrong size");
 
 typedef union {
 	TIM10_14_CCMR1_output_t O;
 	TIM10_14_CCMR1_input_t I;
 } TIM10_14_CCMR1_t;
+_Static_assert(sizeof(TIM10_14_CCMR1_t) == 4U, "TIM10_14_CCMR1_t is wrong size");
 
 typedef struct {
 	unsigned CC1E : 1;
@@ -202,6 +224,7 @@ typedef struct {
 	unsigned CC2NP : 1;
 	unsigned : 24;
 } TIM9_12_CCER_t;
+_Static_assert(sizeof(TIM9_12_CCER_t) == 4U, "TIM9_12_CCER_t is wrong size");
 
 typedef struct {
 	unsigned CC1E : 1;
@@ -210,11 +233,13 @@ typedef struct {
 	unsigned CC1NP : 1;
 	unsigned : 28;
 } TIM10_14_CCER_t;
+_Static_assert(sizeof(TIM10_14_CCER_t) == 4U, "TIM10_14_CCER_t is wrong size");
 
 typedef struct {
 	unsigned TI1_RMP : 2;
 	unsigned : 30;
 } TIM11_OR_t;
+_Static_assert(sizeof(TIM11_OR_t) == 4U, "TIM11_OR_t is wrong size");
 
 typedef struct {
 	TIM10_14_CR1_t CR1;
@@ -233,6 +258,7 @@ typedef struct {
 	uint32_t reserved4[6];
 	TIM11_OR_t OR;
 } TIM11_t;
+_Static_assert(sizeof(TIM11_t) == 0x54U, "TIM11_t is wrong size");
 
 typedef struct {
 	TIM9_12_CR1_t CR1;
@@ -251,6 +277,7 @@ typedef struct {
 	uint32_t CCR1;
 	uint32_t CCR2;
 } TIM9_12_t;
+_Static_assert(sizeof(TIM9_12_t) == 0x3CU, "TIM9_12_t is wrong size");
 
 typedef struct {
 	TIM10_14_CR1_t CR1;
@@ -267,6 +294,7 @@ typedef struct {
 	uint32_t reserved3;
 	uint32_t CCR1;
 } TIM10_14_t;
+_Static_assert(sizeof(TIM10_14_t) == 0x38U, "TIM10_14_t is wrong size");
 
 #define TIM9 (*(volatile TIM9_12_t *) 0x40014000)
 #define TIM10 (*(volatile TIM10_14_t *) 0x40014400)
@@ -286,6 +314,7 @@ typedef struct {
 	unsigned CKD : 2;
 	unsigned : 22;
 } TIM2_5_CR1_t;
+_Static_assert(sizeof(TIM2_5_CR1_t) == 4U, "TIM2_5_CR1_t is wrong size");
 
 typedef struct {
 	unsigned : 3;
@@ -294,6 +323,7 @@ typedef struct {
 	unsigned TI1S : 1;
 	unsigned : 24;
 } TIM2_5_CR2_t;
+_Static_assert(sizeof(TIM2_5_CR2_t) == 4U, "TIM2_5_CR2_t is wrong size");
 
 typedef struct {
 	unsigned SMS : 3;
@@ -306,6 +336,7 @@ typedef struct {
 	unsigned ETP : 1;
 	unsigned : 16;
 } TIM2_5_SMCR_t;
+_Static_assert(sizeof(TIM2_5_SMCR_t) == 4U, "TIM2_5_SMCR_t is wrong size");
 
 typedef struct {
 	unsigned UIE : 1;
@@ -325,6 +356,7 @@ typedef struct {
 	unsigned TDE : 1;
 	unsigned : 17;
 } TIM2_5_DIER_t;
+_Static_assert(sizeof(TIM2_5_DIER_t) == 4U, "TIM2_5_DIER_t is wrong size");
 
 typedef struct {
 	unsigned UIF : 1;
@@ -341,6 +373,7 @@ typedef struct {
 	unsigned CC4OF : 1;
 	unsigned : 19;
 } TIM2_5_SR_t;
+_Static_assert(sizeof(TIM2_5_SR_t) == 4U, "TIM2_5_SR_t is wrong size");
 
 typedef struct {
 	unsigned UG : 1;
@@ -352,6 +385,7 @@ typedef struct {
 	unsigned TG : 1;
 	unsigned : 25;
 } TIM2_5_EGR_t;
+_Static_assert(sizeof(TIM2_5_EGR_t) == 4U, "TIM2_5_EGR_t is wrong size");
 
 typedef struct {
 	unsigned CC1S : 2;
@@ -366,6 +400,7 @@ typedef struct {
 	unsigned OC2CE : 1;
 	unsigned : 16;
 } TIM2_5_CCMR1_output_t;
+_Static_assert(sizeof(TIM2_5_CCMR1_output_t) == 4U, "TIM2_5_CCMR1_output_t is wrong size");
 
 typedef struct {
 	unsigned CC1S : 2;
@@ -376,11 +411,13 @@ typedef struct {
 	unsigned IC2F : 4;
 	unsigned : 16;
 } TIM2_5_CCMR1_input_t;
+_Static_assert(sizeof(TIM2_5_CCMR1_input_t) == 4U, "TIM2_5_CCMR1_input_t is wrong size");
 
 typedef union {
 	TIM2_5_CCMR1_output_t O;
 	TIM2_5_CCMR1_input_t I;
 } TIM2_5_CCMR1_t;
+_Static_assert(sizeof(TIM2_5_CCMR1_t) == 4U, "TIM2_5_CCMR1_t is wrong size");
 
 typedef struct {
 	unsigned CC3S : 2;
@@ -395,6 +432,7 @@ typedef struct {
 	unsigned OC4CE : 1;
 	unsigned : 16;
 } TIM2_5_CCMR2_output_t;
+_Static_assert(sizeof(TIM2_5_CCMR2_output_t) == 4U, "TIM2_5_CCMR2_output_t is wrong size");
 
 typedef struct {
 	unsigned CC3S : 2;
@@ -405,11 +443,13 @@ typedef struct {
 	unsigned IC4F : 4;
 	unsigned : 16;
 } TIM2_5_CCMR2_input_t;
+_Static_assert(sizeof(TIM2_5_CCMR2_input_t) == 4U, "TIM2_5_CCMR2_input_t is wrong size");
 
 typedef union {
 	TIM2_5_CCMR2_output_t O;
 	TIM2_5_CCMR2_input_t I;
 } TIM2_5_CCMR2_t;
+_Static_assert(sizeof(TIM2_5_CCMR2_t) == 4U, "TIM2_5_CCMR2_t is wrong size");
 
 typedef struct {
 	unsigned CC1E : 1;
@@ -430,6 +470,7 @@ typedef struct {
 	unsigned CC4NP : 1;
 	unsigned : 16;
 } TIM2_5_CCER_t;
+_Static_assert(sizeof(TIM2_5_CCER_t) == 4U, "TIM2_5_CCER_t is wrong size");
 
 typedef struct {
 	unsigned DBA : 5;
@@ -437,18 +478,21 @@ typedef struct {
 	unsigned DBL : 5;
 	unsigned : 19;
 } TIM2_5_DCR_t;
+_Static_assert(sizeof(TIM2_5_DCR_t) == 4U, "TIM2_5_DCR_t is wrong size");
 
 typedef struct {
 	unsigned : 10;
 	unsigned ITR1_RMP : 2;
 	unsigned : 20;
 } TIM2_OR_t;
+_Static_assert(sizeof(TIM2_OR_t) == 4U, "TIM2_OR_t is wrong size");
 
 typedef struct {
 	unsigned : 6;
 	unsigned TI4_RMP : 2;
 	unsigned : 24;
 } TIM5_OR_t;
+_Static_assert(sizeof(TIM5_OR_t) == 4U, "TIM5_OR_t is wrong size");
 
 typedef struct {
 	TIM2_5_CR1_t CR1;
@@ -473,6 +517,7 @@ typedef struct {
 	uint32_t DMAR;
 	TIM2_OR_t OR;
 } TIM2_t;
+_Static_assert(sizeof(TIM2_t) == 0x54U, "TIM2_t is wrong size");
 
 typedef struct {
 	TIM2_5_CR1_t CR1;
@@ -497,6 +542,7 @@ typedef struct {
 	uint32_t DMAR;
 	TIM5_OR_t OR;
 } TIM5_t;
+_Static_assert(sizeof(TIM5_t) == 0x54U, "TIM5_t is wrong size");
 
 typedef struct {
 	TIM2_5_CR1_t CR1;
@@ -520,6 +566,7 @@ typedef struct {
 	TIM2_5_DCR_t DCR;
 	uint32_t DMAR;
 } TIM2_5_t;
+_Static_assert(sizeof(TIM2_5_t) == 0x50U, "TIM2_5_t is wrong size");
 
 #define TIM2 (*(volatile TIM2_t *) 0x40000000)
 #define TIM3 (*(volatile TIM2_5_t *) 0x40000400)
@@ -544,6 +591,7 @@ typedef struct {
 	unsigned OIS4 : 1;
 	unsigned : 17;
 } TIM_act_CR2_t;
+_Static_assert(sizeof(TIM_act_CR2_t) == 4U, "TIM_act_CR2_t is wrong size");
 
 typedef TIM2_5_SMCR_t TIM_act_SMCR_t;
 
@@ -565,6 +613,7 @@ typedef struct {
 	unsigned TDE : 1;
 	unsigned : 17;
 } TIM_act_DIER_t;
+_Static_assert(sizeof(TIM_act_DIER_t) == 4U, "TIM_act_DIER_t is wrong size");
 
 typedef struct {
 	unsigned UIF : 1;
@@ -582,6 +631,7 @@ typedef struct {
 	unsigned CC4OF : 1;
 	unsigned : 19;
 } TIM_act_SR_t;
+_Static_assert(sizeof(TIM_act_SR_t) == 4U, "TIM_act_SR_t is wrong size");
 
 typedef struct {
 	unsigned UG : 1;
@@ -594,6 +644,7 @@ typedef struct {
 	unsigned BG : 1;
 	unsigned : 24;
 } TIM_act_EGR_t;
+_Static_assert(sizeof(TIM_act_EGR_t) == 4U, "TIM_act_EGR_t is wrong size");
 
 typedef TIM2_5_CCMR1_t TIM_act_CCMR1_t;
 typedef TIM2_5_CCMR2_t TIM_act_CCMR2_t;
@@ -615,6 +666,7 @@ typedef struct {
 	unsigned CC4P : 1;
 	unsigned : 18;
 } TIM_act_CCER_t;
+_Static_assert(sizeof(TIM_act_CCER_t) == 4U, "TIM_act_CCER_t is wrong size");
 
 typedef struct {
 	unsigned DTG : 8;
@@ -627,6 +679,7 @@ typedef struct {
 	unsigned MOE : 1;
 	unsigned : 16;
 } TIM_act_BDTR_t;
+_Static_assert(sizeof(TIM_act_BDTR_t) == 4U, "TIM_act_BDTR_t is wrong size");
 
 typedef TIM2_5_DCR_t TIM_act_DCR_t;
 
@@ -652,6 +705,7 @@ typedef struct {
 	TIM_act_DCR_t DCR;
 	uint32_t DMAR;
 } TIM_act_t;
+_Static_assert(sizeof(TIM_act_t) == 0x50U, "TIM_act_t is wrong size");
 
 #define TIM1 (*(volatile TIM_act_t *) 0x40010000)
 #define TIM8 (*(volatile TIM_act_t *) 0x40010400)
