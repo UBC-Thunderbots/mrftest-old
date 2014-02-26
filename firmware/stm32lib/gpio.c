@@ -23,21 +23,22 @@ void gpio_init(const gpio_init_pin_t specs[4U][16U]) {
 			if (!specs[port][pin].unlock) {
 				lock |= 1U << pin;
 			}
+		}
 
-			GPIO[port].ODR = odr;
-			GPIO[port].OSPEEDR = ospeedr;
-			GPIO[port].PUPDR = pupdr;
-			GPIO[port].AFRL = afr[0U];
-			GPIO[port].AFRH = afr[1U];
-			GPIO[port].OTYPER = otyper;
-			GPIO[port].MODER = moder;
-			if (lock) {
-				GPIO[port].LCKR = lock | 0x10000U;
-				GPIO[port].LCKR = lock;
-				GPIO[port].LCKR = lock | 0x10000U;
-				(void) GPIO[port].LCKR;
-				assert(GPIO[port].LCKR & 0x10000U);
-			}
+		GPIO[port].ODR = odr;
+		GPIO[port].OSPEEDR = ospeedr;
+		GPIO[port].PUPDR = pupdr;
+		GPIO[port].AFRL = afr[0U];
+		GPIO[port].AFRH = afr[1U];
+		GPIO[port].OTYPER = otyper;
+		GPIO[port].MODER = moder;
+		if (lock) {
+			GPIO[port].LCKR = lock;
+			GPIO[port].LCKR = lock | 0x10000U;
+			GPIO[port].LCKR = lock;
+			GPIO[port].LCKR = lock | 0x10000U;
+			(void) GPIO[port].LCKR;
+			assert(GPIO[port].LCKR & 0x10000U);
 		}
 	}
 }
