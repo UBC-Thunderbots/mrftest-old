@@ -310,6 +310,14 @@ namespace AI {
 				};
 
 				extern BallOnEnemyNet ball_on_enemy_net;
+
+				class LooseBall : public Cacheable<bool,
+CacheableNonKeyArgs<World>, CacheableKeyArgs<>> {
+					protected:
+						bool compute(World world);
+				};
+				
+				extern LooseBall loose_ball;
 			}
 		}
 	}
