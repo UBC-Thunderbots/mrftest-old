@@ -18,6 +18,9 @@ namespace {
 	DoubleParam near_thresh(u8"enemy avoidance distance (robot radius)", u8"STP/predicates", 3.0, 1.0, 10.0);
 	DoubleParam fight_thresh(u8"dist thresh to start fight ball with enemy (robot radius)", u8"STP/predicates", 2.0, 0.1, 4.0);
 
+	DoubleParam looseBall_thresh(u8"distance to trigger loose_ball predicate", u8"STP/predicates", 1.0, 0.5, 6.0);
+
+
 	BoolParam new_fight(u8"new fight", u8"STP/predicates", true);
 }
 
@@ -345,4 +348,22 @@ bool Predicates::BallOnEnemyNet::compute(World world) {
 }
 
 Predicates::BallOnEnemyNet Predicates::ball_on_enemy_net;
+
+bool Predicates::LooseBall::compute(World world)
+{
+	double dist = 0.00000001;
+	//const double thresh = 20;
+	const Point ball = world.ball().position();
+	for(const Robot i : world.enemy_team())
+	{
+		if(dist < (i.position() - ball).len()) dist = (i.position() - ball).len();
+	}
+	for(const Robot i : world.friendly_team())
+	{
+		if(dist - (i.position() - ball).len() > looseBall_thresh) return true;
+	}
+	return false;
+}
+
+Predicates::LooseBall Predicates::loose_ball;
 
