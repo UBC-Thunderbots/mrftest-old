@@ -123,6 +123,8 @@ message Tick {
 	message Ball {
 		required Vector2 position = 1;
 		required Vector2 velocity = 2;
+		optional Vector2 position_stdev	= 3;
+		optional Vector2 velocity_stdev	= 4;
 	}
 	required Ball ball = 5;
 

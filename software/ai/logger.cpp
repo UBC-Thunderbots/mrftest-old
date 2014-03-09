@@ -334,6 +334,10 @@ void AI::Logger::on_tick(AI::Timediff compute_time) {
 		ball.mutable_position()->set_y(encode_micros(b.position(0).y));
 		ball.mutable_velocity()->set_x(encode_micros(b.velocity(0).x));
 		ball.mutable_velocity()->set_y(encode_micros(b.velocity(0).y));
+		ball.mutable_position_stdev()->set_x(encode_micros(b.position_stdev(0).x));
+		ball.mutable_position_stdev()->set_y(encode_micros(b.position_stdev(0).y));
+		ball.mutable_velocity_stdev()->set_x(encode_micros(b.velocity_stdev(0).x));
+		ball.mutable_velocity_stdev()->set_y(encode_micros(b.velocity_stdev(0).y));
 	}
 
 	for (std::size_t i = 0; i < ai.backend.friendly_team().size(); ++i) {
