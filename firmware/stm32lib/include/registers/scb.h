@@ -176,6 +176,49 @@ _Static_assert(sizeof(HFSR_t) == 4U, "HFSR_t is wrong size");
 #define BFAR (*(void * volatile *) 0xE000ED38)
 #define AFSR (*(volatile uint32_t *) 0xE000ED3C)
 
+typedef struct {
+	unsigned CP0 : 2;
+	unsigned CP1 : 2;
+	unsigned CP2 : 2;
+	unsigned CP3 : 2;
+	unsigned CP4 : 2;
+	unsigned CP5 : 2;
+	unsigned CP6 : 2;
+	unsigned CP7 : 2;
+	unsigned : 4;
+	unsigned CP10 : 2;
+	unsigned CP11 : 2;
+	unsigned : 8;
+} CPACR_t;
+#define CPACR (*(volatile CPACR_t *) 0xE000ED88)
+
+typedef struct {
+	unsigned LSPACT : 1;
+	unsigned USER : 1;
+	unsigned : 1;
+	unsigned THREAD : 1;
+	unsigned HFRDY : 1;
+	unsigned MMRDY : 1;
+	unsigned BFRDY : 1;
+	unsigned : 1;
+	unsigned MONRDY : 1;
+	unsigned : 21;
+	unsigned LSPEN : 1;
+	unsigned ASPEN : 1;
+} FPCCR_t;
+#define FPCCR (*(volatile FPCCR_t *) 0xE000EF34)
+
+#define FPCAR (*(volatile uint32_t *) 0xE000EF38)
+
+typedef struct {
+	unsigned : 22;
+	unsigned RMode : 2;
+	unsigned FZ : 1;
+	unsigned DN : 1;
+	unsigned AHP : 1;
+	unsigned : 5;
+} FPDSCR_t;
+#define FPDSCR (*(volatile FPDSCR_t *) 0xE000EF3C)
 
 #endif
 

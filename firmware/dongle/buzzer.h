@@ -30,5 +30,12 @@ void buzzer_start(unsigned long millis);
  */
 void buzzer_stop(void);
 
+/**
+ * \brief Handles timer 5 interrupts.
+ *
+ * This function should be registered in the interrupt vector table at position 50.
+ */
+void timer5_isr(void);
+
 #endif
 

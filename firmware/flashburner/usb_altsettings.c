@@ -1,9 +1,9 @@
-#include <usb_altsettings.h>
+#include "usb_altsettings.h"
 #include <assert.h>
 #include <stddef.h>
 #include <unused.h>
-#include <usb_ep0.h>
-#include <usb_ep0_sources.h>
+#include "usb_ep0.h"
+#include "usb_ep0_sources.h"
 
 static const usb_altsettings_altsetting_t * const *altsettings[USB_ALTSETTINGS_MAX_INTERFACES] = { 0 };
 static uint8_t num_altsettings[USB_ALTSETTINGS_MAX_INTERFACES] = { 0 };

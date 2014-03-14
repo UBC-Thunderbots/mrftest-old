@@ -61,7 +61,10 @@ void init_chip(const init_specs_t *specs) {
 		bootload_flag = 0;
 		rcc_enable(APB2, SYSCFG);
 		rcc_reset(APB2, SYSCFG);
+		asm volatile("dsb");
 		SYSCFG_MEMRMP.MEM_MODE = 1;
+		asm volatile("dsb");
+		asm volatile("isb");
 		asm volatile(
 			"msr control, %[control]\n\t"
 			"isb\n\t"
@@ -81,21 +84,13 @@ void init_chip(const init_specs_t *specs) {
 	// Always 8-byte-align the stack pointer on entry to an interrupt handler (as ARM recommends).
 	CCR.STKALIGN = 1; // Guarantee 8-byte alignment
 
-	// Set the interrupt system to set priorities as having the upper two bits for group priorities and the rest as subpriorities.
-	{
-		AIRCR_t tmp = AIRCR;
-		tmp.VECTKEY = 0x05FA;
-		tmp.PRIGROUP = 5;
-		AIRCR = tmp;
-	}
-
 	// Set up interrupt handling.
 	exception_init(specs->exception_core_writer, &specs->exception_app_cbs);
 
-	// Set up the memory protection unit to catch bad pointer dereferences.
-	// The private peripheral bus (0xE0000000 length 1 MiB) always uses the system memory map, so no region is needed for it.
-	// We set up the regions first, then enable the MPU.
-	{
+	if (!specs->flags.freertos) {
+		// Set up the memory protection unit to catch bad pointer dereferences.
+		// The private peripheral bus (0xE0000000 length 1 MiB) always uses the system memory map, so no region is needed for it.
+		// We set up the regions first, then enable the MPU.
 		static const struct {
 			uint32_t address;
 			MPU_RASR_t rasr;
@@ -110,7 +105,7 @@ void init_chip(const init_specs_t *specs) {
 			{ 0x1FFF0000, { .XN = 1, .AP = 0b111, .TEX = 0b000, .S = 0, .C = 1, .B = 0, .SRD = 0, .SIZE = 14, .ENABLE = 1 } },
 
 			// 0x20000000–0x2001FFFF (length 128 kiB): SRAM (normal, read-write, write-back write-allocate cache, not executable)
-			{ 0x20000000, { .XN = 1, .AP = 0b011, .TEX = 0b001, .S = 0, .C = 1, .B = 1, .SRD = 0, .SIZE = 16, .ENABLE = 1 } },
+			{ 0x20000000, { .XN = 1, .AP = 0b011, .TEX = 0b001, .S = 1, .C = 1, .B = 1, .SRD = 0, .SIZE = 16, .ENABLE = 1 } },
 
 			// 0x40000000–0x4007FFFF (length 512 kiB): Peripherals (device, read-write, not executable) using subregions:
 			// Subregion 0 (0x40000000–0x4000FFFF): Enabled (contains APB1)
@@ -140,17 +135,15 @@ void init_chip(const init_specs_t *specs) {
 			MPU_RBAR.ADDR = REGIONS[i].address >> 5;
 			MPU_RASR = REGIONS[i].rasr;
 		}
-	}
-	{
 		MPU_CTRL_t tmp = {
 			.PRIVDEFENA = 0, // Background region is disabled even in privileged mode.
 			.HFNMIENA = 0, // Protection unit disables itself when taking hard faults, memory faults, and NMIs.
 			.ENABLE = 1, // Enable MPU.
 		};
 		MPU_CTRL = tmp;
+		asm volatile("dsb");
+		asm volatile("isb");
 	}
-	asm volatile("dsb");
-	asm volatile("isb");
 
 	// Enable the SYSCFG module.
 	rcc_enable(APB2, SYSCFG);
@@ -166,7 +159,7 @@ void init_chip(const init_specs_t *specs) {
 			.HSITRIM = 16, // HSI oscillator trimmed to midpoint.
 			.HSION = 1, // HSI oscillator enabled (still using it at this point).
 		};
-		tmp.HSEBYP = !specs->hse_crystal;
+		tmp.HSEBYP = !specs->flags.hse_crystal;
 		RCC_CR = tmp;
 	}
 	// Wait for the HSE oscillator to be ready.
@@ -295,18 +288,20 @@ void init_chip(const init_specs_t *specs) {
 		FLASH_ACR = tmp;
 	}
 
-	// Set SYSTICK to divide by cpu_frequency so it overflows every microsecond.
-	SYST_RVR.RELOAD = specs->cpu_frequency - 1;
-	// Set SYSTICK to run with the core AHB clock.
-	{
-		SYST_CSR_t tmp = {
-			.CLKSOURCE = 1, // Use core clock
-			.ENABLE = 1, // Counter is running
-		};
-		SYST_CSR = tmp;
+	if (!specs->flags.freertos) {
+		// Set SYSTICK to divide by cpu_frequency so it overflows every microsecond.
+		SYST_RVR.RELOAD = specs->cpu_frequency - 1;
+		// Set SYSTICK to run with the core AHB clock.
+		{
+			SYST_CSR_t tmp = {
+				.CLKSOURCE = 1, // Use core clock
+				.ENABLE = 1, // Counter is running
+			};
+			SYST_CSR = tmp;
+		}
+		// Reset the counter.
+		SYST_CVR.CURRENT = 0;
 	}
-	// Reset the counter.
-	SYST_CVR.CURRENT = 0;
 
 	// If we will be running at at most 144 MHz, switch to the lower-power voltage regulator mode.
 	if (specs->cpu_frequency <= 144) {
@@ -323,7 +318,9 @@ void init_bootload(void) {
 
 	// Disable all interrupts.
 	asm volatile("cpsid i");
-	asm volatile("isb");
+
+	// Ensure all pending memory writes have finished.
+	asm volatile("dsb");
 
 	// Request the reboot.
 	{
@@ -332,11 +329,8 @@ void init_bootload(void) {
 		tmp.SYSRESETREQ = 1;
 		AIRCR = tmp;
 	}
-	asm volatile("dsb");
 
 	// Wait forever until the reboot happens.
-	for (;;) {
-		asm volatile("wfi");
-	}
+	for (;;);
 }
 

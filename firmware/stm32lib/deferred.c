@@ -4,6 +4,7 @@
 static deferred_fn_t *head = 0, *tail = 0;
 
 void deferred_fn_register(deferred_fn_t *deferred, void (*fn)(void *), void *cookie) {
+	SHPR3.PRI_14 = 0x7FU;
 	deferred->fn = fn;
 	deferred->cookie = cookie;
 	if (!deferred->next) {

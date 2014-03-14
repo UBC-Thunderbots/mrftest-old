@@ -7,6 +7,9 @@
  * \brief Reads the emergency stop switch.
  */
 
+#include <FreeRTOS.h>
+#include <semphr.h>
+
 /**
  * \brief The states the switch can be in.
  */
@@ -28,17 +31,14 @@ typedef enum {
 } estop_t;
 
 /**
- * \brief The type of a callback invoked when the state of the emergency stop switch changes.
- */
-typedef void (*estop_change_callback_t)(void);
-
-/**
  * \brief Starts reading the emergency stop switch.
  *
  * This function is intended to be called once at application startup.
  * The emergency stop switch will be read continuously from that point forward on a timer.
+ *
+ * \param[in] priority the interrupt priority for the timer and ADC ISRs
  */
-void estop_init(void);
+void estop_init(unsigned int priority);
 
 /**
  * \brief Returns the most recently sampled state of the switch.
@@ -48,11 +48,18 @@ void estop_init(void);
 estop_t estop_read(void);
 
 /**
- * \brief Sets a callback that will be invoked every time the state of the emergency stop switch changes.
+ * \brief Sets the semaphore that will be notified when the switch changes state.
  *
- * \param cb the callback to invoke on switch state change
+ * \param[in] sem the semaphore to give
  */
-void estop_set_change_callback(estop_change_callback_t cb);
+void estop_set_sem(SemaphoreHandle_t sem);
+
+/**
+ * \brief Handles ADC interrupts.
+ *
+ * This function should be registered in the interrupt vector table at position 18.
+ */
+void adc_isr(void);
 
 #endif
 

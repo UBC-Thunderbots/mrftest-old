@@ -35,5 +35,54 @@ void exti_map(unsigned int line, unsigned int port);
  */
 void exti_set_handler(unsigned int line, exti_handler_t handler);
 
+/**
+ * \brief Handles EXTI0 interrupts.
+ *
+ * This function should be registered in the application’s interrupt vector table at position 6.
+ */
+void exti0_isr(void);
+
+/**
+ * \brief Handles EXTI1 interrupts.
+ *
+ * This function should be registered in the application’s interrupt vector table at position 7.
+ */
+void exti1_isr(void);
+
+/**
+ * \brief Handles EXTI2 interrupts.
+ *
+ * This function should be registered in the application’s interrupt vector table at position 8.
+ */
+void exti2_isr(void);
+
+/**
+ * \brief Handles EXTI3 interrupts.
+ *
+ * This function should be registered in the application’s interrupt vector table at position 9.
+ */
+void exti3_isr(void);
+
+/**
+ * \brief Handles EXTI4 interrupts.
+ *
+ * This function should be registered in the application’s interrupt vector table at position 10.
+ */
+void exti4_isr(void);
+
+/**
+ * \brief Handles EXTI5 through EXTI9 interrupts.
+ *
+ * This function should be registered in the application’s interrupt vector table at position 23.
+ */
+void exti5_9_isr(void);
+
+/**
+ * \brief Handles EXTI10 through EXTI15 interrupts.
+ *
+ * This function should be registered in the application’s interrupt vector table at position 40.
+ */
+void exti10_15_isr(void);
+
 #endif
 

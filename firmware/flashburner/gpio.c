@@ -2,9 +2,9 @@
 #include "constants.h"
 #include <gpio.h>
 #include <unused.h>
-#include <usb_configs.h>
-#include <usb_ep0.h>
-#include <usb_ep0_sources.h>
+#include "usb_configs.h"
+#include "usb_ep0.h"
+#include "usb_ep0_sources.h"
 
 typedef struct {
 	volatile GPIO_t *gpio;

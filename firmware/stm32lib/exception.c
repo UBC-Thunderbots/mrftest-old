@@ -9,17 +9,26 @@ static const exception_core_writer_t *core_writer = 0;
 static const exception_app_cbs_t *app_cbs = 0;
 
 void exception_init(const exception_core_writer_t *cw, const exception_app_cbs_t *acbs) {
-	// We will run as follows:
-	// CPU exceptions (UsageFault, BusFault, MemManage) will be priority 0, subpriority 0 and thus preempt everything else.
-	// Hardware interrupts will be priority 1, subpriority 0.
-	// PendSV exceptions will be priority 1, subpriority 0x3F so they neither preempt nor are preempted by hardware interrupts but are taken at less priority.
-	// Set hardware interrupt priorities.
-	for (size_t i = 0; i < sizeof(NVIC_IPR) / sizeof(*NVIC_IPR); ++i) {
-		NVIC_IPR[i] = 0x40404040;
+	// Set the interrupt system to set priorities as having the upper three bits for group priorities and the rest as subpriorities.
+	{
+		AIRCR_t tmp = AIRCR;
+		tmp.VECTKEY = 0x05FA;
+		tmp.PRIGROUP = 7U - EXCEPTION_GROUP_PRIO_BITS;
+		AIRCR = tmp;
 	}
 
-	// Set PendSV (exception 14) priority.
-	SHPR3.PRI_14 = 0x7F;
+	// We will run as follows:
+	// CPU exceptions (UsageFault, BusFault, MemManage) will be priority 0.0 and thus preempt everything else.
+	// Critical hardware interrupts that do not call FreeRTOS API functions will be priority 1.0 through 3.N.
+	// Normal hardware interrupts that may call FreeRTOS API functions will be priority 4.0 through 6.N.
+	// FreeRTOS itself (i.e. SVC, PendSV and SysTick exceptions) will be priority 7.0.
+	// Set hardware interrupt priorities.
+	for (size_t i = 0; i < sizeof(NVIC_IPR) / sizeof(*NVIC_IPR); ++i) {
+		NVIC_IPR[i] = (EXCEPTION_MKPRIO(6U, 0U) << 24U) | (EXCEPTION_MKPRIO(6U, 0U) << 16U) | (EXCEPTION_MKPRIO(6U, 0U) << 8U) | EXCEPTION_MKPRIO(6U, 0U);
+	}
+
+	// FreeRTOS sets the PendSV and SysTick exceptions’ priorities itself, so there is no need to do so here.
+	// Non-FreeRTOS firmware doesn’t use these exceptions.
 
 	// Enable Usage, Bus, and MemManage faults to be taken as such rather than escalating to HardFaults.
 	{
@@ -242,6 +251,12 @@ typedef struct __attribute__((packed)) {
 	uint32_t xpsr;
 } hw_basic_stack_frame_t;
 
+typedef struct __attribute__((packed)) {
+	hw_basic_stack_frame_t basic;
+	uint32_t fpregs[16];
+	uint32_t fpscr;
+} hw_extended_stack_frame_t;
+
 static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause) {
 	// Fill out the signal info based on the exception number and fault status registers.
 	switch (cause) {
@@ -362,6 +377,49 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 			elf_notes.prstatus.pr_reg_xpsr = hwframe->xpsr;
 		} else {
 			elf_notes.prstatus.pr_reg_xpsr = swframe->xpsr;
+		}
+
+		// Sort out the floating point registers.
+		if (CPACR.CP11 != 0 && CPACR.CP10 != 0 && hwframe) {
+			if (swframe->lr & 16) {
+				// The hardware pushed a basic frame.
+				if (FPCCR.ASPEN) {
+					// Automatic preservation is enabled.
+					// If we had been using FP, the hardware would have pushed an extended frame.
+					// That it pushed a basic frame means no FP was happening.
+					// Wipe the note.
+					elf_notes.arm_vfp_nheader.n_type = 0;
+				} else {
+					// Automatic preservation is disabled.
+					// We really don’t know whether any FP was happening or not.
+					// The hardware will always push a basic frame in this state.
+					// Just to be safe, write out all the FP registers from their current values.
+					// If the application wasn’t using FP, the data can be ignored.
+					asm volatile("vstm %[dest], {s0-s31}" :: [dest] "r" (&elf_notes.arm_vfp.sregs) : "memory");
+					asm("vmrs %[dest], fpscr" : [dest] "=r" (elf_notes.arm_vfp.fpscr));
+				}
+			} else {
+				// The hardware pushed an extended frame.
+				const hw_extended_stack_frame_t *hweframe = (const hw_extended_stack_frame_t *) hwframe;
+				if (FPCCR.LSPEN) {
+					// Lazy state preservation has applied here.
+					// There is no data in the frame yet.
+					// Execute an arbitrary floating-point instruction to force the state out to RAM.
+					asm volatile("vmov.f32 s0, #1.0" ::: "s0");
+				}
+				// The first 16 registers and FPSCR are in the stack frame.
+				// The second 16 registers are not preserved anywhere yet and can be grabbed directly.
+				memcpy(&elf_notes.arm_vfp.sregs, &hweframe->fpregs, sizeof(hweframe->fpregs));
+				asm volatile("vstm %[dest], {s16-s31}" :: [dest] "r" (&elf_notes.arm_vfp.sregs[16]) : "memory");
+				elf_notes.arm_vfp.fpscr = hweframe->fpscr;
+			}
+		} else {
+			// The coprocessor is disabled or no hardware frame was pushed (due to a fault during stacking).
+			// If no hardware frame was pushed, we can’t differentiate between whether the frame that wasn’t pushed would have been basic or extended.
+			// If the frame would have been extended, then the bottom 16 FP registers (and FPSCR) would have had indeterminate values after pushing.
+			// Therefore, it’s not safe to just copy the current values of the FP registers from the register file.
+			// Wipe the note.
+			elf_notes.arm_vfp_nheader.n_type = 0;
 		}
 	}
 

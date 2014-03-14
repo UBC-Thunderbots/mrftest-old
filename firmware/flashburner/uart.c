@@ -11,10 +11,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <unused.h>
-#include <usb_bi_in.h>
-#include <usb_ep0.h>
-#include <usb_ep0_sources.h>
-#include <usb_fifo.h>
+#include "usb_bi_in.h"
+#include "usb_ep0.h"
+#include "usb_ep0_sources.h"
+#include "usb_fifo.h"
 
 const uint8_t UART_CONFIGURATION_DESCRIPTOR[] = {
 	9, // bLength

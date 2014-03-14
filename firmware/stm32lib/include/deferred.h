@@ -5,6 +5,8 @@
  * \file
  *
  * \brief Provides a framework for handling CPU exceptions and setting up deferred functions.
+ *
+ * \warning The services in this file are only for use by non-FreeRTOS-enabled applications!
  */
 
 /**

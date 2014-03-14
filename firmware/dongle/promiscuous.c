@@ -2,278 +2,287 @@
 #include "config.h"
 #include "constants.h"
 #include "mrf.h"
-#include "perconfig.h"
+#include <FreeRTOS.h>
+#include <errno.h>
 #include <exti.h>
 #include <gpio.h>
+#include <minmax.h>
+#include <queue.h>
 #include <rcc.h>
-#include <registers/exti.h>
-#include <registers/nvic.h>
-#include <sleep.h>
+#include <semphr.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <unused.h>
-#include <usb_bi_in.h>
-#include <usb_ep0.h>
-#include <usb_ep0_sources.h>
-#include <usb_fifo.h>
+#include <usb.h>
+#include <registers/exti.h>
 
+typedef struct {
+	uint8_t length;
+	uint8_t data[1U + 1U + 127U]; // Flags + channel + data (RX FIFO is 128 bytes long, of which 1 is used for frame length)
+} packet_t;
+
+#define NUM_PACKETS 256U
+
+static QueueHandle_t free_queue, receive_queue;
+static SemaphoreHandle_t event_sem, init_shutdown_sem;
 static uint16_t promisc_flags;
-static promisc_packet_t *first_free_packet, *first_captured_packet, *last_captured_packet;
-static bool packet_dropped;
+static bool shutting_down;
 
-static void push_data(void) {
-	// If the received message endpoint already has data queued or is halted, don’t try to send more data.
-	// We will get back here later when the transfer complete notification occurs for this endpoint and we can push more messages.
-	usb_bi_in_state_t state = usb_bi_in_get_state(1);
-	if (state == USB_BI_IN_STATE_ACTIVE || state == USB_BI_IN_STATE_HALTED) {
-		return;
+static void exti12_isr(void) {
+	// Clear the interrupt and give the semaphore.
+	EXTI_PR = 1U << 12U; // PR12 = 1; clear pending EXTI12 interrupt
+	BaseType_t yield = pdFALSE;
+	xSemaphoreGiveFromISR(event_sem, &yield);
+	if (yield) {
+		portYIELD_FROM_ISR();
 	}
-
-	// If there are no received messages waiting to be sent, do nothing.
-	// We will get back here later when an MRF interrupt leads to a received message being queued and we can then push the message.
-	if (!first_captured_packet) {
-		return;
-	}
-
-	// Pop a packet from the queue.
-	promisc_packet_t *packet = first_captured_packet;
-	first_captured_packet = packet->next;
-	if (!first_captured_packet) {
-		last_captured_packet = 0;
-	}
-	packet->next = 0;
-
-	// Start a transfer.
-	// Received message transfers are variable length up to a known maximum size.
-	usb_bi_in_start_transfer(1, packet->length, sizeof(packet->data), &push_data, 0);
-
-	// Push the data for this transfer.
-	usb_bi_in_push(1, packet->data, packet->length);
-
-	// Push this consumed packet buffer into the free list.
-	packet->next = first_free_packet;
-	first_free_packet = packet;
 }
 
-static void exti12_interrupt_vector(void) {
-	// Clear the interrupt.
-	EXTI_PR = 1 << 12; // PR12 = 1; clear pending EXTI12 interrupt
+static void radio_task(void *UNUSED(param)) {
+	// Initialize the radio.
+	mrf_init();
+	vTaskDelay(1U);
+	mrf_release_reset();
+	vTaskDelay(1U);
+	mrf_common_init();
+	while (mrf_get_interrupt());
 
-	while (mrf_get_interrupt()) {
-		// Check outstanding interrupts.
-		uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
-		if (intstat & (1 << 3)) {
-			// RXIF = 1; packet received.
-			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04); // RXDECINV = 1; invert receiver symbol sign to prevent further packet reception
-			uint8_t rxfifo_frame_length = mrf_read_long(MRF_REG_LONG_RXFIFO); // Need to read this here even if no packet buffer because this read also re-enables the receiver
+	// Turn on LED 1.
+	gpio_set(GPIOB, 12U);
 
-			static const size_t BUFFER_OVERHEAD = 1 /* Flags */ + 1 /* Channel */ + 1 /* LQI */ + 1 /* RSSI */;
+	// Enable external interrupt on MRF INT rising edge.
+	exti_set_handler(12U, &exti12_isr);
+	exti_map(12U, 2U); // Map PC12 to EXTI12
+	EXTI_RTSR |= 1U << 12U; // TR12 = 1; enable rising edge trigger on EXTI12
+	EXTI_FTSR &= ~(1U << 12U); // TR12 = 0; disable falling edge trigger on EXTI12
+	EXTI_IMR |= 1U << 12U; // MR12 = 1; enable interrupt on EXTI12 trigger
+	portENABLE_HW_INTERRUPT(40U, EXCEPTION_MKPRIO(6U, 0U));
 
-			// Sanitize the frame length to avoid buffer overruns.
-			if (rxfifo_frame_length > sizeof(first_free_packet->data) - BUFFER_OVERHEAD) {
-				rxfifo_frame_length = sizeof(first_free_packet->data) - BUFFER_OVERHEAD;
-			}
+	// Notify on_enter that initialization is finished.
+	xSemaphoreGive(init_shutdown_sem);
 
-			// Allocate a packet.
-			promisc_packet_t *packet = first_free_packet;
-			if (packet) {
+	// Run the main operation.
+	bool packet_dropped = false;
+	while (!__atomic_load_n(&shutting_down, __ATOMIC_RELAXED)) {
+		while (mrf_get_interrupt()) {
+			// Check outstanding interrupts.
+			uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
+			if (intstat & (1U << 3U)) {
+				// RXIF = 1; packet received.
+				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04U); // RXDECINV = 1; invert receiver symbol sign to prevent further packet reception.
+				uint8_t rxfifo_frame_length = mrf_read_long(MRF_REG_LONG_RXFIFO); // Need to read this here even if no packet buffer because this read also re-enables the receiver.
+
+				// Sanitize the frame length to avoid buffer overruns.
+				rxfifo_frame_length = MIN(rxfifo_frame_length, 128U /* RX FIFO size */ - 1U /* Length */ - 1U /* LQI */ - 1U /* RSSI */);
+
 #warning proper packet filtering when radio filters do not match capture flags exactly
-				first_free_packet = packet->next;
-				packet->next = 0;
-				packet->length = 1 /* Flags */ + 1 /* Channel */ + rxfifo_frame_length /* MAC header + data + FCS */ + 1 /* LQI */ + 1 /* RSSI */;
-				packet->data[0] = packet_dropped ? 0x01 : 0x00;
-				packet_dropped = false;
-				packet->data[1] = config.channel;
-				for (size_t i = 0; i < rxfifo_frame_length + 2U /* LQI + RSSI */; ++i) {
-					packet->data[2 + i] = mrf_read_long(MRF_REG_LONG_RXFIFO + i + 1);
-				}
-				if (last_captured_packet) {
-					last_captured_packet->next = packet;
-					last_captured_packet = packet;
+
+				// Allocate a packet.
+				packet_t *packet;
+				if (xQueueReceive(free_queue, &packet, 0U)) {
+					packet->length = 1U /* Flags */ + 1U /* Channel */ + rxfifo_frame_length /* MAC header + data + FCS */ + 1U /* LQI */ + 1U /* RSSI */;
+					packet->data[0U] = packet_dropped ? 0x01U : 0x00U;
+					packet_dropped = false;
+					packet->data[1U] = config.channel;
+					for (size_t i = 0U; i < rxfifo_frame_length + 2U /* LQI + RSSI */; ++i) {
+						packet->data[2U + i] = mrf_read_long(MRF_REG_LONG_RXFIFO + i + 1U);
+					}
+					xQueueSend(receive_queue, &packet, portMAX_DELAY);
 				} else {
-					first_captured_packet = last_captured_packet = packet;
+					packet_dropped = true;
 				}
-				push_data();
-			} else {
-				packet_dropped = true;
+				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00U); // RXDECINV = 0; stop inverting receiver and allow further reception
+				// Toggle LED 3 to show reception.
+				gpio_toggle(GPIOB, 14U);
 			}
-			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00); // RXDECINV = 0; stop inverting receiver and allow further reception
-			// Toggle LED 3 to show reception.
-			gpio_toggle(GPIOB, 14);
+		}
+
+		xSemaphoreTake(event_sem, portMAX_DELAY);
+	}
+
+	// Disable the external interrupt on MRF INT.
+	portDISABLE_HW_INTERRUPT(40U);
+	EXTI_IMR &= ~(1U << 12U); // MR12 = 0; disable interrupt on EXTI12 trigger
+	exti_set_handler(12U, 0);
+
+	// Turn off all LEDs.
+	gpio_set_reset_mask(GPIOB, 0U, 7U << 12U);
+
+	// Reset the radio.
+	mrf_deinit();
+
+	// Done.
+	xSemaphoreGive(init_shutdown_sem);
+	vTaskDelete(0);
+}
+
+static void usb_task(void *UNUSED(param)) {
+	for (;;) {
+		// Get a received packet.
+		packet_t *packet;
+		xQueueReceive(receive_queue, &packet, portMAX_DELAY);
+		if (packet) {
+			// Send the packet over USB.
+			bool ok = uep_write(0x81U, packet->data, packet->length, true);
+			int error_code = errno;
+			xQueueSend(free_queue, &packet, portMAX_DELAY);
+			if (!ok && error_code == ECONNRESET) {
+				// Shutdown signal.
+				break;
+			}
+			// In case of EPIPE (endpoint halt status), drop packets on the floor until the host changes its mind.
+		} else {
+			// Pushing a null pointer into the queue signals shutdown.
+			break;
 		}
 	}
+
+	xSemaphoreGive(init_shutdown_sem);
+	vTaskDelete(0);
 }
 
-static void handle_ep1_clear_halt(unsigned int UNUSED(ep)) {
-	// Free all the queued packets.
-	while (first_captured_packet) {
-		promisc_packet_t *packet = first_captured_packet;
-		first_captured_packet = packet->next;
-		packet->next = first_free_packet;
-		first_free_packet = packet;
+void promiscuous_on_enter(void) {
+	// Initialize data structures and clear flags.
+	free_queue = xQueueCreate(NUM_PACKETS, sizeof(packet_t *));
+	receive_queue = xQueueCreate(NUM_PACKETS + 1U /* Signalling NULL */, sizeof(packet_t *));
+	event_sem = xSemaphoreCreateBinary();
+	init_shutdown_sem = xSemaphoreCreateCounting(2U /* Two tasks */, 0U);
+	assert(free_queue && receive_queue && event_sem && init_shutdown_sem);
+	promisc_flags = 0U;
+	shutting_down = false;
+
+	// Allocate packet buffers.
+	for (unsigned int i = 0U; i < NUM_PACKETS; ++i) {
+		packet_t *packet = malloc(sizeof(packet_t));
+		assert(packet);
+		xQueueSend(free_queue, &packet, portMAX_DELAY);
 	}
-	last_captured_packet = 0;
+
+	// Start tasks.
+	BaseType_t ret = xTaskCreate(&radio_task, "prom_radio", 1024U, 0, 6U, 0);
+	assert(ret == pdPASS);
+	ret = xTaskCreate(&usb_task, "prom_usb", 1024U, 0, 5U, 0);
+	assert(ret == pdPASS);
+
+	// Wait until the task has finished initializing the radio.
+	// We must do this because we need to prevent SET PROMISCUOUS FLAGS from arriving and poking things during initialization.
+	// During initialization, this could be avoided by the task taking the bus mutex.
+	// However, that would leave a race where SET PROMISCUOUS FLAGS arrives before the task gets around to taking said mutex.
+	// This would be safe as far as mutual exclusion on the bus is concerned.
+	// However, it would have a different problem: the promiscuous flags would be destroyed by the initialization routine.
+	//
+	// One might think this could be avoided by taking the mutex here and passing ownership of it into the task.
+	// However, FreeRTOS semaphores can be given and taken by different tasks, but mutexes cannot.
+	// A mutex must always be given by the same task that takes it.
+	// So, we can’t do that.
+	// Instead, we implement this initialization-waiter mechanism.
+	xSemaphoreTake(init_shutdown_sem, portMAX_DELAY);
 }
 
-static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
-	if (pkt->request_type == (USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && pkt->index == INTERFACE_RADIO && pkt->request == CONTROL_REQUEST_SET_PROMISCUOUS_FLAGS) {
+void promiscuous_on_exit(void) {
+	// Shut down tasks.
+	__atomic_store_n(&shutting_down, true, __ATOMIC_RELAXED);
+	__atomic_signal_fence(__ATOMIC_RELEASE);
+	xSemaphoreGive(event_sem);
+	static packet_t * const null_packet = 0;
+	xQueueSend(receive_queue, &null_packet, portMAX_DELAY);
+	xSemaphoreTake(init_shutdown_sem, portMAX_DELAY);
+	xSemaphoreTake(init_shutdown_sem, portMAX_DELAY);
+
+	// Free packet buffers.
+	packet_t *packet;
+	while (xQueueReceive(free_queue, &packet, 0U)) {
+		free(packet);
+	}
+	while (xQueueReceive(receive_queue, &packet, 0U)) {
+		free(packet);
+	}
+
+	// Destroy data structures.
+	vQueueDelete(free_queue);
+	vQueueDelete(receive_queue);
+	vSemaphoreDelete(event_sem);
+	vSemaphoreDelete(init_shutdown_sem);
+	free_queue = 0;
+	receive_queue = 0;
+	event_sem = 0;
+	init_shutdown_sem = 0;
+
+	// Give the timer task some time to free task stacks.
+	vTaskDelay(1U);
+}
+
+bool promiscuous_control_handler(const usb_setup_packet_t *pkt) {
+	if (pkt->bmRequestType.direction && pkt->bmRequestType.recipient == USB_RECIPIENT_INTERFACE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_GET_PROMISCUOUS_FLAGS && !pkt->wValue) {
+		uep0_data_write(&promisc_flags, sizeof(promisc_flags));
+		return true;
+	} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_INTERFACE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_SET_PROMISCUOUS_FLAGS && !pkt->wLength) {
 		// This request must have value using only bits 0 through 7.
-		if (pkt->value & 0xFF00) {
-			return USB_EP0_DISPOSITION_REJECT;
+		if (pkt->wValue & 0xFF00U) {
+			return false;
 		}
 
 		// Check if the application actually wants *ANY* packets.
-		if (pkt->value & 0xF0) {
+		if (pkt->wValue & 0xF0U) {
 			// Sanity check: if flag 0 (acknowledge) is set and one of bits 4 through 7 (accept some type of frame) is set…
-			if ((pkt->value & 0x0001) && (pkt->value & 0xF0)) {
+			if ((pkt->wValue & 0x0001U) && (pkt->wValue & 0xF0U)) {
 				// … either exactly one or all three of bits 4 through 6 must be set to 1…
-				if ((pkt->value & 0x70) != 0x10 && (pkt->value & 0x70) != 0x20 && (pkt->value & 0x70) != 0x40 && (pkt->value & 0x70) != 0x70) {
-					return USB_EP0_DISPOSITION_REJECT;
+				if ((pkt->wValue & 0x70U) != 0x10U && (pkt->wValue & 0x70U) != 0x20U && (pkt->wValue & 0x70U) != 0x40U && (pkt->wValue & 0x70U) != 0x70U) {
+					return false;
 				}
 				// … either none or all of bits 1, 2, and 7 must be set to 1…
-				if ((pkt->value & 0x86) != 0x00 && (pkt->value & 0x86) != 0x86) {
-					return USB_EP0_DISPOSITION_REJECT;
+				if ((pkt->wValue & 0x86U) != 0x00U && (pkt->wValue & 0x86U) != 0x86U) {
+					return false;
 				}
 				// … and if bit 7 is set to 1, bits 4 through 6 must also all be set to 1
-				if ((pkt->value & 0x80) && (pkt->value & 0x70) != 0x70) {
-					return USB_EP0_DISPOSITION_REJECT;
+				if ((pkt->wValue & 0x80U) && (pkt->wValue & 0x70U) != 0x70U) {
+					return false;
 				}
 			}
 			// This set of flags is acceptable; save.
-			promisc_flags = pkt->value;
+			promisc_flags = pkt->wValue;
 			// Disable all packet reception.
-			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04);
+			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04U);
 			// Install the new flags.
 			mrf_write_short(MRF_REG_SHORT_RXMCR,
-					((pkt->value & (1 << 0)) ? 0 : (1 << 5))
-					| ((pkt->value & (1 << 3)) ? (1 << 1) : 0)
-					| ((pkt->value & 0x86) ? (1 << 0) : 0));
-			if ((pkt->value & 0xF0) == 0x10) {
-				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x64);
-			} else if ((pkt->value & 0xF0) == 0x20) {
-				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x68);
-			} else if ((pkt->value & 0xF0) == 0x40) {
-				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x62);
+					((pkt->wValue & (1U << 0U)) ? 0U : (1U << 5U))
+					| ((pkt->wValue & (1U << 3U)) ? (1U << 1U) : 0U)
+					| ((pkt->wValue & 0x86U) ? (1U << 0U) : 0U));
+			if ((pkt->wValue & 0xF0U) == 0x10U) {
+				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x64U);
+			} else if ((pkt->wValue & 0xF0U) == 0x20U) {
+				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x68U);
+			} else if ((pkt->wValue & 0xF0U) == 0x40U) {
+				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x62U);
 			} else {
-				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x60);
+				mrf_write_short(MRF_REG_SHORT_RXFLUSH, 0x60U);
 			}
 			// Set analogue path appropriately based on whether ACKs are being generated and whether any packets are desired.
-			if (pkt->value & 0x01) {
+			if (pkt->wValue & 0x01U) {
 				mrf_analogue_txrx();
 			} else {
 				mrf_analogue_rx();
 			}
 			// Re-enable packet reception.
-			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00);
+			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00U);
 			// Enable interrupt on receive.
-			mrf_write_short(MRF_REG_SHORT_INTCON, 0xF7);
+			mrf_write_short(MRF_REG_SHORT_INTCON, 0xF7U);
 			// Turn on LED 2 to indicate capture is enabled.
-			gpio_set(GPIOB, 13);
+			gpio_set(GPIOB, 13U);
 		} else {
 			// Shut down the radio.
-			mrf_write_short(MRF_REG_SHORT_RXMCR, 0x20);
-			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04);
-			mrf_write_short(MRF_REG_SHORT_INTCON, 0xFF);
+			mrf_write_short(MRF_REG_SHORT_RXMCR, 0x20U);
+			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04U);
+			mrf_write_short(MRF_REG_SHORT_INTCON, 0xFFU);
 			mrf_analogue_off();
 			// Turn off LED 2 to indicate capture is disabled.
-			gpio_reset(GPIOB, 13);
+			gpio_reset(GPIOB, 13U);
 		}
 
-		return USB_EP0_DISPOSITION_ACCEPT;
-	} else {
-		return USB_EP0_DISPOSITION_NONE;
+		return true;
 	}
+
+	return false;
 }
-
-static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, usb_ep0_source_t **source, usb_ep0_poststatus_cb_t *UNUSED(poststatus)) {
-	static usb_ep0_memory_source_t mem_src;
-
-	if (pkt->request_type == (USB_REQ_TYPE_IN | USB_REQ_TYPE_VENDOR | USB_REQ_TYPE_INTERFACE) && pkt->index == INTERFACE_RADIO && pkt->request == CONTROL_REQUEST_GET_PROMISCUOUS_FLAGS) {
-		// This request must have value set to zero.
-		if (pkt->value) {
-			return USB_EP0_DISPOSITION_REJECT;
-		}
-
-		// Return the promiscuous flags.
-		*source = usb_ep0_memory_source_init(&mem_src, &promisc_flags, sizeof(promisc_flags));
-		return USB_EP0_DISPOSITION_ACCEPT;
-	} else {
-		return USB_EP0_DISPOSITION_NONE;
-	}
-}
-
-static const usb_ep0_cbs_t EP0_CBS = {
-	.on_zero_request = &on_zero_request,
-	.on_in_request = &on_in_request,
-};
-
-static void on_enter(void) {
-	// Clear promiscuous mode flags.
-	promisc_flags = 0;
-
-	// Initialize the packet buffers.
-	for (size_t i = 0; i < sizeof(perconfig.promisc_packets) / sizeof(*perconfig.promisc_packets) - 1; ++i) {
-		perconfig.promisc_packets[i].next = &perconfig.promisc_packets[i + 1];
-	}
-	perconfig.promisc_packets[sizeof(perconfig.promisc_packets) / sizeof(*perconfig.promisc_packets) - 1].next = 0;
-	first_free_packet = &perconfig.promisc_packets[0];
-	first_captured_packet = last_captured_packet = 0;
-
-	// Clear the dropped-packet flag.
-	packet_dropped = false;
-
-	// Initialize the radio.
-	mrf_init();
-	sleep_us(100);
-	mrf_release_reset();
-	mrf_common_init();
-	while (mrf_get_interrupt());
-
-	// Turn on LED 1.
-	gpio_set(GPIOB, 12);
-
-	// Enable external interrupt on MRF INT rising edge.
-	exti_set_handler(12, &exti12_interrupt_vector);
-	exti_map(12, 2); // Map PC12 to EXTI12
-	EXTI_RTSR |= 1 << 12; // TR12 = 1; enable rising edge trigger on EXTI12
-	EXTI_FTSR &= ~(1 << 12); // TR12 = 0; disable falling edge trigger on EXTI12
-	EXTI_IMR |= 1 << 12; // MR12 = 1; enable interrupt on EXTI12 trigger
-	NVIC_ISER[40 / 32] = 1 << (40 % 32); // SETENA40 = 1; enable EXTI15…10 interrupt
-
-	// Set up endpoint 1 with a 512-byte FIFO, large enough for any transfer (thus we never need to use the on_space callback).
-	usb_fifo_enable(1, 512);
-	usb_fifo_flush(1);
-	usb_bi_in_init(1, 64, USB_BI_IN_EP_TYPE_BULK);
-	usb_bi_in_set_std_halt(1, 0, 0, &handle_ep1_clear_halt);
-
-	// Register endpoints callbacks.
-	usb_ep0_cbs_push(&EP0_CBS);
-}
-
-static void on_exit(void) {
-	// Unregister endpoints callbacks.
-	usb_ep0_cbs_remove(&EP0_CBS);
-
-	// Shut down IN endpoint 1.
-	usb_bi_in_deinit(1);
-
-	// Deallocate FIFOs.
-	usb_fifo_disable(1);
-
-	// Disable the external interrupt on MRF INT.
-	NVIC_ICER[40 / 32] = 1 << (40 % 32); // CLRENA40 = 1; disable EXTI15…10 interrupt
-	EXTI_IMR &= ~(1 << 12); // MR12 = 0; disable interrupt on EXTI12 trigger
-	exti_set_handler(12, 0);
-
-	// Turn off all LEDs.
-	gpio_set_reset_mask(GPIOB, 0, 7 << 12);
-
-	// Reset the radio.
-	mrf_init();
-}
-
-const usb_altsettings_altsetting_t PROMISCUOUS_ALTSETTING = {
-	.on_enter = &on_enter,
-	.on_exit = &on_exit,
-};
 

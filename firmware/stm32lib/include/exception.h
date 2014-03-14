@@ -102,5 +102,40 @@ void exception_bus_fault_vector(void) __attribute__((naked, noreturn));
  */
 void exception_usage_fault_vector(void) __attribute__((naked, noreturn));
 
+/**
+ * \brief The number of bits used for group priority.
+ */
+#define EXCEPTION_GROUP_PRIO_BITS 3U
+
+/**
+ * \brief The number of bits used for subprioroity.
+ */
+#define EXCEPTION_SUB_PRIO_BITS 1U
+
+/**
+ * \brief Generates an exception priority byte from a group priority and a subpriority.
+ *
+ * \param[in] group the group priority
+ * \param[in] sub the subpriority
+ * \return the priority byte
+ */
+#define EXCEPTION_MKPRIO(group, sub) ((((group) << EXCEPTION_SUB_PRIO_BITS) | (sub)) << (8U - EXCEPTION_GROUP_PRIO_BITS - EXCEPTION_SUB_PRIO_BITS))
+
+/**
+ * \brief Extracts the group priority from an exception priority.
+ *
+ * \param[in] prio the priority byte
+ * \return the group priority
+ */
+#define EXCEPTION_GROUP_PRIO(prio) ((prio) >> (8U - EXCEPTION_GROUP_PRIO_BITS))
+
+/**
+ * \brief Extracts the subpriority from an exception priority.
+ *
+ * \param[in] prio the priority byte
+ * \return the subpriority
+ */
+#define EXCEPTION_SUB_PRIO(prio) (((prio) >> (8U - EXCEPTION_GROUP_PRIO_BITS - EXCEPTION_SUB_PRIO_BITS)) & ((1U << EXCEPTION_SUB_PRIO_BITS) - 1U))
+
 #endif
 

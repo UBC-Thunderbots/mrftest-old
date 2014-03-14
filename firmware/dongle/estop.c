@@ -1,16 +1,18 @@
 #include "estop.h"
-#include <rcc.h>
+#include <FreeRTOS.h>
 #include <gpio.h>
+#include <rcc.h>
+#include <semphr.h>
+#include <stdlib.h>
+#include <timers.h>
+#include <unused.h>
 #include <registers/adc.h>
-#include <registers/nvic.h>
-#include <registers/timer.h>
-#include <sleep.h>
 
-#define NOT_BROKEN_THRESHOLD 200
+#define NOT_BROKEN_THRESHOLD 200U
 
+static SemaphoreHandle_t notify_sem;
 static unsigned int not_broken_count = NOT_BROKEN_THRESHOLD;
 static estop_t value = ESTOP_BROKEN;
-static estop_change_callback_t change_cb = 0;
 
 static void estop_start_sample(void) {
 	ADC1.CR2.SWSTART = 1; // Start conversion
@@ -41,29 +43,15 @@ static void estop_finish_sample(void) {
 	}
 }
 
-void timer7_interrupt_vector(void) {
-	{
-		TIM_basic_SR_t tmp = { 0 };
-		TIM7.SR = tmp; // Clear interrupt flag
-	}
+static void tick(TimerHandle_t UNUSED(timer)) {
 	estop_start_sample();
 }
 
-void adc_interrupt_vector(void) {
-	estop_t old = value;
-	estop_finish_sample();
-	if (value == ESTOP_BROKEN) {
-		not_broken_count = 0;
-	} else if (not_broken_count < NOT_BROKEN_THRESHOLD) {
-		++not_broken_count;
-		value = ESTOP_BROKEN;
-	}
-	if (value != old && change_cb) {
-		change_cb();
-	}
-}
+void estop_init(unsigned int priority) {
+	// Initialize the notification source.
+	__atomic_store_n(&notify_sem, 0, __ATOMIC_RELAXED);
+	__atomic_signal_fence(__ATOMIC_ACQ_REL);
 
-void estop_init(void) {
 	// Send power to the switch
 	gpio_set(GPIOB, 0);
 
@@ -99,54 +87,60 @@ void estop_init(void) {
 		};
 		ADC1.CR2 = tmp;
 	}
-	sleep_us(3);
-	ADC1.SMPR2.SMP9 = 1; // Sample time on channel 9 is 15 cycles.
-	ADC1.SQR1.L = 0; // Regular conversion sequence has one channel.
-	ADC1.SQR3.SQ1 = 9; // First regular channel to convert is 9.
+	vTaskDelay(1U);
+	ADC1.SMPR2.SMP9 = 1U; // Sample time on channel 9 is 15 cycles.
+	ADC1.SQR1.L = 0U; // Regular conversion sequence has one channel.
+	ADC1.SQR3.SQ1 = 9U; // First regular channel to convert is 9.
 
 	// Take one sample now
 	estop_start_sample();
-	while (!ADC1.SR.EOC);
+	while (!ADC1.SR.EOC) {
+		vTaskDelay(1U);
+	}
 	estop_finish_sample();
 
 	// Enable ADC completion interrupts
 	ADC1.CR1.EOCIE = 1; // Enable interrupt on end of conversion
-	NVIC_ISER[18 / 32] = 1 << (18 % 32); // SETENA18 = 1; enable ADC interrupt
+	portENABLE_HW_INTERRUPT(18U, priority);
 
-	// Set up timer 7 to overflow every 10 milliseconds for sampling the emergency stop
-	// Timer 7 input is 72 MHz from the APB
-	// Need to count to 720,000 for each overflow
-	// Set prescaler to 1,000, auto-reload to 720
-	rcc_enable(APB1, TIM7);
-	rcc_reset(APB1, TIM7);
-	{
-		TIM_basic_CR1_t tmp = {
-			.ARPE = 0, // Auto-reload register is not buffered.
-			.OPM = 0, // Counter counts forever.
-			.URS = 1, // Only overflow generates and interrupt.
-			.UDIS = 0, // Updates to control registers are allowed.
-			.CEN = 0, // Counter is not counting right now.
-		};
-		TIM7.CR1 = tmp;
+	// Set up a 50 ms timer to run the ADC.
+	TimerHandle_t timer = xTimerCreate("estop", 50U / portTICK_PERIOD_MS, pdTRUE, 0, &tick);
+	if (!timer) {
+		abort();
 	}
-	{
-		TIM_basic_DIER_t tmp = {
-			.UIE = 1, // Update interrupt enabled.
-		};
-		TIM7.DIER = tmp;
+	if (!xTimerStart(timer, portMAX_DELAY)) {
+		abort();
 	}
-	TIM7.PSC = 999;
-	TIM7.ARR = 719;
-	TIM7.CNT = 0;
-	TIM7.CR1.CEN = 1; // Enable counter.
-	NVIC_ISER[55 / 32] = 1 << (55 % 32); // SETENA55 = 1; enable timer 7 interrupt.
 }
 
 estop_t estop_read(void) {
-	return value;
+	return __atomic_load_n(&value, __ATOMIC_RELAXED);
 }
 
-void estop_set_change_callback(estop_change_callback_t cb) {
-	change_cb = cb;
+void estop_set_sem(SemaphoreHandle_t sem) {
+	__atomic_signal_fence(__ATOMIC_ACQ_REL);
+	__atomic_store_n(&notify_sem, sem, __ATOMIC_RELAXED);
+	__atomic_signal_fence(__ATOMIC_ACQ_REL);
+}
+
+void adc_isr(void) {
+	estop_t old = value;
+	estop_finish_sample();
+	if (value == ESTOP_BROKEN) {
+		not_broken_count = 0U;
+	} else if (not_broken_count < NOT_BROKEN_THRESHOLD) {
+		++not_broken_count;
+		value = ESTOP_BROKEN;
+	}
+	if (value != old && notify_sem) {
+		BaseType_t yield = pdFALSE;
+		BaseType_t ok = xSemaphoreGiveFromISR(notify_sem, &yield);
+		if (!ok) {
+			abort();
+		}
+		if (yield) {
+			portYIELD_FROM_ISR();
+		}
+	}
 }
 

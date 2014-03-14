@@ -10,14 +10,28 @@
 #include <exception.h>
 #include <stdbool.h>
 
+typedef struct {
+	/**
+	 * \brief \c true if a crystal is attached to the HSE pins, or \c false if a canned oscillator is attached.
+	 */
+	bool hse_crystal : 1;
+
+	/**
+	 * \brief \c true if FreeRTOS will be used, or \c false if not.
+	 *
+	 * If FreeRTOS is used, it is given control over the MPU and Systick modules; if not, they are configured appropriately by this module.
+	 */
+	bool freertos : 1;
+} init_specs_flags_t;
+
 /**
  * \brief Provides details on what configuration the application wants.
  */
 typedef struct {
 	/**
-	 * \brief \c true if a crystal is attached to the HSE pins, or \c false if a canned oscillator is attached.
+	 * \brief Various flags controlling options.
 	 */
-	bool hse_crystal;
+	init_specs_flags_t flags;
 
 	/**
 	 * \brief The frequency of the HSE crystal or oscillator, in megahertz.

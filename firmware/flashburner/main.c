@@ -28,11 +28,11 @@
 #include <stdint.h>
 #include <string.h>
 #include <unused.h>
-#include <usb_configs.h>
-#include <usb_ep0.h>
-#include <usb_ep0_sources.h>
-#include <usb_fifo.h>
-#include <usb_ll.h>
+#include "usb_configs.h"
+#include "usb_ep0.h"
+#include "usb_ep0_sources.h"
+#include "usb_fifo.h"
+#include "usb_ll.h"
 
 static void stm32_main(void) __attribute__((noreturn));
 static void nmi_vector(void);
@@ -127,7 +127,10 @@ static const usb_configs_config_t * const CONFIGURATIONS[] = {
 };
 
 static const init_specs_t INIT_SPECS = {
-	.hse_crystal = true,
+	.flags = {
+		.hse_crystal = true,
+		.freertos = false,
+	},
 	.hse_frequency = 8,
 	.pll_frequency = 336,
 	.sys_frequency = 168,

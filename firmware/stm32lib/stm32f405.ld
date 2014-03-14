@@ -49,8 +49,8 @@ SECTIONS {
 		. = linker_heap_size;
 	} >sram_region AT>sram_region
 
-	/* The stack can go in core-coupled memory for speed */
-	.stack (NOLOAD) : {
+	/* The initial stack will go in core-coupled memory and will later turn into an interrupt stack, while the rest of CCM will be used for task stacks */
+	.mstack (NOLOAD) : {
 		*(.mstack)
 	} >ccm_region AT>ccm_region
 }
@@ -65,3 +65,6 @@ linker_bss_size = SIZEOF(.bss);
 
 linker_heap_vma = ADDR(.heap);
 linker_heap_vma_end = ADDR(.heap) + SIZEOF(.heap);
+
+linker_mstack_vma = ADDR(.mstack);
+linker_mstack_vma_end = ADDR(.mstack) + SIZEOF(.mstack);

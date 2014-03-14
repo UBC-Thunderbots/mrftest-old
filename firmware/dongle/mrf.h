@@ -139,6 +139,11 @@ typedef enum {
 void mrf_init(void);
 
 /**
+ * \brief Resets the radio and deinitializes the radio module.
+ */
+void mrf_deinit(void);
+
+/**
  * \brief Releases the radio from reset.
  */
 void mrf_release_reset(void);
@@ -205,6 +210,13 @@ void mrf_analogue_rx(void);
  * \brief Sets the analogue path on the MRF to allow both transmission and reception.
  */
 void mrf_analogue_txrx(void);
+
+/**
+ * \brief Handles DMA2 stream 0 interrupts.
+ *
+ * This function should be registered in the interrupt vector table at position 56.
+ */
+void dma2_stream0_isr(void);
 
 #endif
 

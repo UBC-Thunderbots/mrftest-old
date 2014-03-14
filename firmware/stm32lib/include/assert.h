@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #define assert(cond) do { \
 	if (!(cond)) { \
+		volatile unsigned int aborted_line_number __attribute__((unused)) = __LINE__; \
 		abort(); \
 	} \
 } while(0)

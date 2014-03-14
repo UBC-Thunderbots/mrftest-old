@@ -1,10 +1,12 @@
 #ifndef NORMAL_H
 #define NORMAL_H
 
-#include <stdint.h>
-#include <usb_altsettings.h>
+#include <stdbool.h>
 
-extern const usb_altsettings_altsetting_t NORMAL_ALTSETTING;
+bool normal_can_enter(void);
+void normal_on_enter(void);
+void normal_on_exit(void);
+void timer6_isr(void);
 
 #endif
 

@@ -6,10 +6,10 @@
 #include <registers/scb.h>
 #include <stdint.h>
 #include <unused.h>
-#include <usb_configs.h>
-#include <usb_ep0.h>
-#include <usb_ep0_sources.h>
-#include <usb_ll.h>
+#include "usb_configs.h"
+#include "usb_ep0.h"
+#include "usb_ep0_sources.h"
+#include "usb_ll.h"
 
 enum {
 	DFU_DETACH = 0,

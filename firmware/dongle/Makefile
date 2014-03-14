@@ -1,4 +1,7 @@
 PROJECT := dongle
+USE_STM32LIB := 1
+USE_FREERTOS := 1
+USE_USB := 1
 
 include ../stm32lib/Makefile.common
 

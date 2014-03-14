@@ -158,9 +158,9 @@
 	do { \
 		unsigned int shift_dist = (bit) <= 7 ? 4 * (bit) : 4 * ((bit) - 8); \
 		if ((bit) <= 7) { \
-			(port).AFRL = ((port).AFRL & ~(((uint32_t) 16) << shift_dist)) | ((af) << shift_dist); \
+			(port).AFRL = ((port).AFRL & ~(((uint32_t) 15) << shift_dist)) | ((af) << shift_dist); \
 		} else { \
-			(port).AFRH = ((port).AFRH & ~(((uint32_t) 16) << shift_dist)) | ((af) << shift_dist); \
+			(port).AFRH = ((port).AFRH & ~(((uint32_t) 15) << shift_dist)) | ((af) << shift_dist); \
 		} \
 	} while (0)
 

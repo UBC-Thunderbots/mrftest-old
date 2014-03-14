@@ -1,9 +1,9 @@
-#include <usb_configs.h>
+#include "usb_configs.h"
 #include <assert.h>
 #include <stddef.h>
 #include <unused.h>
-#include <usb_ep0.h>
-#include <usb_ep0_sources.h>
+#include "usb_ep0.h"
+#include "usb_ep0_sources.h"
 
 static const usb_configs_config_t * const *configs = 0;
 static uint8_t current_config = 0;

@@ -1,5 +1,5 @@
 #include <string.h>
-#include <usb_ep0_sources.h>
+#include "usb_ep0_sources.h"
 
 static size_t memory_source_generate(void *opaque, void *buffer, size_t length) {
 	usb_ep0_memory_source_t *source = opaque;

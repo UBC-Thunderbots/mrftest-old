@@ -132,7 +132,10 @@ static void external_interrupt_15_10_vector(void){
 }
 
 static const init_specs_t INIT_SPECS = {
-	.hse_crystal = true,
+	.flags = {
+		.hse_crystal = true,
+		.freertos = false,
+	},
 	.hse_frequency = 8,
 	.pll_frequency = 288,
 	.sys_frequency = 144,

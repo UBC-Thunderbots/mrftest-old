@@ -1,9 +1,9 @@
 #include "buzzer.h"
+#include <FreeRTOS.h>
 #include <rcc.h>
-#include <registers/nvic.h>
 #include <registers/timer.h>
 
-void timer5_interrupt_vector(void) {
+void timer5_isr(void) {
 	// The interrupt occurs when the buzzer should turn off.
 	buzzer_stop();
 	{
@@ -89,7 +89,7 @@ void buzzer_init(void) {
 	TIM5.PSC = 35999; // Set prescale 1:36,000, yielding two ticks per millisecond
 	TIM5.ARR = 1; // An auto-reload value of zero does not work; a value of 1, however, makes sure TIM5_CNT is very small when the counter stops, so it is less than future requests
 	TIM5.CR1.CEN = 1; // Enable counter for one tick after which an interrupt will be delivered (not doing this appears to break the first enablement of the timer by instantly delivering an interrupt for no apparent reason)
-	NVIC_ISER[50 / 32] = 1 << (50 % 32); // SETENA50 = 1; enable timer 5 interrupt
+	portENABLE_HW_INTERRUPT(50U, EXCEPTION_MKPRIO(6U, 0U));
 }
 
 void buzzer_start(unsigned long millis) {

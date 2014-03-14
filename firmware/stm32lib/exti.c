@@ -5,27 +5,27 @@
 
 static exti_handler_t handlers[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-void exti_dispatcher_0(void) {
+void exti0_isr(void) {
 	handlers[0]();
 }
 
-void exti_dispatcher_1(void) {
+void exti1_isr(void) {
 	handlers[1]();
 }
 
-void exti_dispatcher_2(void) {
+void exti2_isr(void) {
 	handlers[2]();
 }
 
-void exti_dispatcher_3(void) {
+void exti3_isr(void) {
 	handlers[3]();
 }
 
-void exti_dispatcher_4(void) {
+void exti4_isr(void) {
 	handlers[4]();
 }
 
-void exti_dispatcher_9_5(void) {
+void exti5_9_isr(void) {
 	for (unsigned int i = 5; i <= 9; ++i) {
 		if (EXTI_PR & (1 << i)) {
 			handlers[i]();
@@ -34,7 +34,7 @@ void exti_dispatcher_9_5(void) {
 	}
 }
 
-void exti_dispatcher_15_10(void) {
+void exti10_15_isr(void) {
 	for (unsigned int i = 10; i <= 15; ++i) {
 		if (EXTI_PR & (1 << i)) {
 			handlers[i]();

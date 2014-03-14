@@ -1,9 +1,12 @@
 #ifndef PROMISCUOUS_H
 #define PROMISCUOUS_H
 
-#include <usb_altsettings.h>
+#include <stdbool.h>
+#include <usb.h>
 
-extern const usb_altsettings_altsetting_t PROMISCUOUS_ALTSETTING;
+void promiscuous_on_enter(void);
+void promiscuous_on_exit(void);
+bool promiscuous_control_handler(const usb_setup_packet_t *pkt);
 
 #endif
 

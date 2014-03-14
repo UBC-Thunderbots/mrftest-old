@@ -1,9 +1,21 @@
 #include "mrf.h"
 #include "config.h"
+#include <FreeRTOS.h>
+#include <assert.h>
 #include <gpio.h>
 #include <rcc.h>
+#include <semphr.h>
+#include <string.h>
+#include <task.h>
+#include <registers/dma.h>
 #include <registers/spi.h>
-#include <sleep.h>
+
+#define DMA_STREAM_RX 0U
+#define DMA_STREAM_TX 3U
+#define DMA_CHANNEL 3U
+
+static uint8_t txbuf[3U], rxbuf[3U];
+static SemaphoreHandle_t dma_int_sem, bus_mutex;
 
 static inline void sleep_50ns(void) {
 	asm volatile("nop");
@@ -17,34 +29,41 @@ static inline void sleep_50ns(void) {
 }
 
 void mrf_init(void) {
-	// Set bus to reset state
-	// PA15 = MRF /CS = 1; deassert chip select
+	// Create semaphore and mutex.
+	dma_int_sem = xSemaphoreCreateBinary();
+	bus_mutex = xSemaphoreCreateMutex();
+	assert(dma_int_sem && bus_mutex);
+
+	// Set bus to reset state.
+	// PA15 = MRF /CS = 1; deassert chip select.
 	gpio_set(GPIOA, 15);
 	// PB6 = MRF wake = 0; deassert wake.
 	// PB7 = MRF /reset = 0; assert reset.
 	gpio_set_reset_mask(GPIOB, (1 << 6) | (1 << 7), 0);
 
-	// Reset the module and enable the clock
+	// Reset the module and enable the clock.
+	rcc_enable(AHB1, DMA2);
 	rcc_enable(APB2, SPI1);
+	rcc_reset(AHB1, DMA2);
 	rcc_reset(APB2, SPI1);
 
 	if (SPI1.CR1.SPE) {
-		// Wait for SPI module to be idle
+		// Wait for SPI module to be idle.
 		while (!SPI1.SR.TXE || SPI1.SR.BSY) {
 			if (SPI1.SR.RXNE) {
 				(void) SPI1.DR;
 			}
 		}
 
-		// Disable SPI module
+		// Disable SPI module.
 		SPI1.CR1.SPE = 0; // Disable module
 	}
 
-	// Configure the SPI module
+	// Configure the SPI module.
 	{
 		SPI_CR2_t tmp = {
-			.RXDMAEN = 0, // Receive DMA disabled.
-			.TXDMAEN = 0, // Transmit DMA disabled.
+			.RXDMAEN = 1, // Receive DMA disabled.
+			.TXDMAEN = 1, // Transmit DMA disabled.
 			.SSOE = 0, // Do not output hardware slave select; we will use a GPIO for this purpose as we need to toggle it frequently.
 			.FRF = 0, // Motorola frame format.
 			.ERRIE = 0, // Error interrupt disabled.
@@ -71,6 +90,46 @@ void mrf_init(void) {
 		};
 		SPI1.CR1 = tmp;
 	}
+
+	// Enable the DMA interrupt.
+	portENABLE_HW_INTERRUPT(56U, EXCEPTION_MKPRIO(4U, 0U));
+}
+
+void mrf_deinit(void) {
+	// Disable the DMA interrupt.
+	portDISABLE_HW_INTERRUPT(56U);
+
+	// Wait for DMA channels to be idle.
+	while (DMA2.streams[DMA_STREAM_TX].CR.EN);
+	while (DMA2.streams[DMA_STREAM_RX].CR.EN);
+
+	// Wait for SPI module to be idle and disable.
+	if (SPI1.CR1.SPE) {
+		// Wait for SPI module to be idle.
+		while (!SPI1.SR.TXE || SPI1.SR.BSY) {
+			if (SPI1.SR.RXNE) {
+				(void) SPI1.DR;
+			}
+		}
+
+		// Disable SPI module.
+		SPI1.CR1.SPE = 0; // Disable module
+	}
+
+	// Disable the SPI module.
+	rcc_disable(APB2, SPI1);
+	rcc_disable(AHB1, DMA2);
+
+	// Set bus to reset state.
+	// PA15 = MRF /CS = 1; deassert chip select
+	gpio_set(GPIOA, 15);
+	// PB6 = MRF wake = 0; deassert wake.
+	// PB7 = MRF /reset = 0; assert reset.
+	gpio_set_reset_mask(GPIOB, (1 << 6) | (1 << 7), 0);
+
+	// Destroy semaphore and mutex.
+	vSemaphoreDelete(bus_mutex);
+	vSemaphoreDelete(dma_int_sem);
 }
 
 void mrf_release_reset(void) {
@@ -82,74 +141,137 @@ bool mrf_get_interrupt(void) {
 	return gpio_get_input(GPIOC, 12);
 }
 
+static void execute_transfer(size_t length) {
+	// Lock the bus.
+	xSemaphoreTake(bus_mutex, portMAX_DELAY);
+
+	// Assert chip select.
+	gpio_reset(GPIOA, 15U);
+	sleep_50ns();
+
+	// Clear old DMA interrupts.
+	{
+		_Static_assert(DMA_STREAM_RX == 0U, "LIFCR needs rewriting to the proper stream number!");
+		_Static_assert(DMA_STREAM_TX == 3U, "LIFCR needs rewriting to the proper stream number!");
+		DMA_LIFCR_t lifcr = {
+			.CFEIF0 = 1U, // Clear FIFO error interrupt flag
+			.CDMEIF0 = 1U, // Clear direct mode error interrupt flag
+			.CTEIF0 = 1U, // Clear transfer error interrupt flag
+			.CHTIF0 = 1U, // Clear half transfer interrupt flag
+			.CTCIF0 = 1U, // Clear transfer complete interrupt flag
+			.CFEIF3 = 1U, // Clear FIFO error interrupt flag
+			.CDMEIF3 = 1U, // Clear direct mode error interrupt flag
+			.CTEIF3 = 1U, // Clear transfer error interrupt flag
+			.CHTIF3 = 1U, // Clear half transfer interrupt flag
+			.CTCIF3 = 1U, // Clear transfer complete interrupt flag
+		};
+		DMA2.LIFCR = lifcr;
+	}
+
+	// Set up receive DMA.
+	{
+		DMA_SxFCR_t fcr = {
+			.FTH = DMA_FIFO_THRESHOLD_HALF, // Threshold
+			.DMDIS = 1U, // Use the FIFO.
+		};
+		DMA2.streams[DMA_STREAM_RX].FCR = fcr;
+		DMA2.streams[DMA_STREAM_RX].PAR = &SPI1.DR;
+		DMA2.streams[DMA_STREAM_RX].M0AR = rxbuf;
+		DMA2.streams[DMA_STREAM_RX].NDTR = length;
+		DMA_SxCR_t scr = {
+			.EN = 1U, // Enable DMA engine
+			.TCIE = 1U, // Enable transfer complete interrupt
+			.PFCTRL = 0U, // DMA engine controls data length
+			.DIR = DMA_DIR_P2M,
+			.CIRC = 0U, // No circular buffer mode
+			.PINC = 0U, // Do not increment peripheral address
+			.MINC = 1U, // Increment memory address
+			.PSIZE = DMA_DSIZE_BYTE,
+			.MSIZE = DMA_DSIZE_BYTE,
+			.PINCOS = 0U, // No special peripheral address increment mode
+			.PL = 1U, // Priority 1 (medium)
+			.DBM = 0U, // No double-buffer mode
+			.CT = 0U, // Use memory pointer zero
+			.PBURST = DMA_BURST_SINGLE,
+			.MBURST = DMA_BURST_SINGLE,
+			.CHSEL = DMA_CHANNEL,
+		};
+		DMA2.streams[DMA_STREAM_RX].CR = scr;
+	}
+
+	// Set up transmit DMA.
+	{
+		DMA_SxFCR_t fcr = {
+			.FTH = DMA_FIFO_THRESHOLD_HALF, // Threshold
+			.DMDIS = 1U, // Use the FIFO.
+		};
+		DMA2.streams[DMA_STREAM_TX].FCR = fcr;
+		DMA2.streams[DMA_STREAM_TX].PAR = &SPI1.DR;
+		DMA2.streams[DMA_STREAM_TX].M0AR = txbuf;
+		DMA2.streams[DMA_STREAM_TX].NDTR = length;
+		DMA_SxCR_t scr = {
+			.EN = 1U, // Enable DMA engine
+			.PFCTRL = 0U, // DMA engine controls data length
+			.DIR = DMA_DIR_M2P,
+			.CIRC = 0U, // No circular buffer mode
+			.PINC = 0U, // Do not increment peripheral address
+			.MINC = 1U, // Increment memory address
+			.PSIZE = DMA_DSIZE_BYTE,
+			.MSIZE = DMA_DSIZE_BYTE,
+			.PINCOS = 0U, // No special peripheral address increment mode
+			.PL = 1U, // Priority 1 (medium)
+			.DBM = 0U, // No double-buffer mode
+			.CT = 0U, // Use memory pointer zero
+			.PBURST = DMA_BURST_SINGLE,
+			.MBURST = DMA_BURST_SINGLE,
+			.CHSEL = DMA_CHANNEL,
+		};
+		DMA2.streams[DMA_STREAM_TX].CR = scr;
+	}
+
+	// Wait for transfer complete.
+	_Static_assert(DMA_STREAM_RX == 0U, "LISR needs rewriting to the proper stream number!");
+	while (!DMA2.LISR.TCIF0) {
+		xSemaphoreTake(dma_int_sem, portMAX_DELAY);
+	}
+
+	// Wait for SPI module to be idle.
+	while (SPI1.SR.BSY);
+
+	// Deassert CS.
+	sleep_50ns();
+	gpio_set(GPIOA, 15U);
+
+	// Unlock the bus.
+	xSemaphoreGive(bus_mutex);
+}
+
 uint8_t mrf_read_short(mrf_reg_short_t reg) {
-	gpio_reset(GPIOA, 15); // PA15 = MRF /CS = 0; assert chip select.
-	sleep_50ns();
-	SPI1.DR = reg << 1; // Load first byte to send
-	while (!SPI1.SR.TXE); // Wait for space in TX buffer (should be almost immediate, 1 byte in shift reg + 1 byte in data reg)
-	SPI1.DR = 0; // Load second byte to send
-	while (!SPI1.SR.RXNE); // Wait for first inbound byte to be received
-	(void) SPI1.DR; // Discard first received byte
-	while (!SPI1.SR.RXNE); // Wait for second inbound byte to be received
-	uint8_t value = SPI1.DR; // Grab second received byte
-	while (SPI1.SR.BSY); // Wait for bus to be fully idle
-	sleep_50ns();
-	gpio_set(GPIOA, 15); // PA15 = MRF /CS = 1; deassert chip select.
-	return value;
+	txbuf[0U] = reg << 1U;
+	txbuf[1U] = 0U;
+	execute_transfer(2U);
+	return rxbuf[1U];
 }
 
 void mrf_write_short(mrf_reg_short_t reg, uint8_t value) {
-	gpio_reset(GPIOA, 15); // PA15 = MRF /CS = 0; assert chip select.
-	sleep_50ns();
-	SPI1.DR = (reg << 1) | 0x01; // Load first byte to send
-	while (!SPI1.SR.TXE); // Wait for space in TX buffer (should be almost immediate, 1 byte in shift reg + 1 byte in data reg)
-	SPI1.DR = value; // Load second byte to send
-	while (!SPI1.SR.RXNE); // Wait for first inbound byte to be received
-	(void) SPI1.DR; // Discard first received byte
-	while (!SPI1.SR.RXNE); // Wait for second inbound byte to be received
-	(void) SPI1.DR; // Discard second received byte
-	while (SPI1.SR.BSY); // Wait for bus to be fully idle
-	sleep_50ns();
-	gpio_set(GPIOA, 15); // PA15 = MRF /CS = 1; deassert chip select.
+	txbuf[0U] = (reg << 1U) | 0x01U;
+	txbuf[1U] = value;
+	execute_transfer(2U);
 }
 
 uint8_t mrf_read_long(mrf_reg_long_t reg) {
-	gpio_reset(GPIOA, 15); // PA15 = MRF /CS = 0; assert chip select.
-	sleep_50ns();
-	SPI1.DR = (reg >> 3) | 0x80; // Load first byte to send (TX count 0→1)
-	while (!SPI1.SR.TXE); // Wait for space in TX buffer (TX count 1, RX count 0, should be immediate)
-	SPI1.DR = (reg << 5); // Load second byte to send (TX count 1→2)
-	while (!SPI1.SR.RXNE); // Wait for first inbound byte to be received (TX count 2→1.1, RX count 0→1)
-	(void) SPI1.DR; // Discard first received byte (RX count 1→0)
-	while (!SPI1.SR.TXE); // Wait for space in TX buffer (TX count 1.1→1, RX count 0→0.1, should be quite fast)
-	SPI1.DR = 0; // Load third byte to send (TX count 1→2)
-	while (!SPI1.SR.RXNE); // Wait for second inbound byte to be received (TX count 2→1.1, RX count 0.1→1)
-	(void) SPI1.DR; // Discard second received byte (RX count 1→0)
-	while (!SPI1.SR.RXNE); // Wait for third inbound byte to be received (TX count 1.1→0, RX count 0→1)
-	uint8_t value = SPI1.DR; // Grab third received byte (RX count 1→0)
-	while (SPI1.SR.BSY); // Wait for bus to be fully idle
-	sleep_50ns();
-	gpio_set(GPIOA, 15); // PA15 = MRF /CS = 1; deassert chip select.
-	return value;
+	txbuf[0U] = (reg >> 3U) | 0x80U;
+	txbuf[1U] = reg << 5U;
+	txbuf[2U] = 0U;
+	execute_transfer(3U);
+	return rxbuf[2U];
 }
 
 void mrf_write_long(mrf_reg_long_t reg, uint8_t value) {
-	gpio_reset(GPIOA, 15); // PA15 = MRF /CS = 0; assert chip select.
-	sleep_50ns();
-	SPI1.DR = (reg >> 3) | 0x80; // Load first byte to send (TX count 0→1)
-	while (!SPI1.SR.TXE); // Wait for space in TX buffer (TX count 1, RX count 0, should be immediate)
-	SPI1.DR = (reg << 5) | 0x10; // Load second byte to send (TX count 1→2)
-	while (!SPI1.SR.RXNE); // Wait for first inbound byte to be received (TX count 2→1.1, RX count 0→1)
-	(void) SPI1.DR; // Discard first received byte (RX count 1→0)
-	while (!SPI1.SR.TXE); // Wait for space in TX buffer (TX count 1.1→1, RX count 0→0.1, should be quite fast)
-	SPI1.DR = value; // Load third byte to send (TX count 1→2)
-	while (!SPI1.SR.RXNE); // Wait for second inbound byte to be received (TX count 2→1.1, RX count 0.1→1)
-	(void) SPI1.DR; // Discard second received byte (RX count 1→0)
-	while (!SPI1.SR.RXNE); // Wait for third inbound byte to be received (TX count 1.1→0, RX count 0→1)
-	(void) SPI1.DR; // Discard third received byte (RX count 1→0)
-	while (SPI1.SR.BSY); // Wait for bus to be fully idle
-	sleep_50ns();
-	gpio_set(GPIOA, 15); // PA15 = MRF /CS = 1; deassert chip select.
+	txbuf[0U] = (reg >> 3U) | 0x80U;
+	txbuf[1U] = (reg << 5U) | 0x10U;
+	txbuf[2U] = value;
+	execute_transfer(3U);
 }
 
 void mrf_common_init(void) {
@@ -174,7 +296,7 @@ void mrf_common_init(void) {
 	mrf_write_long(MRF_REG_LONG_RFCON3, 0x28);
 	mrf_write_short(MRF_REG_SHORT_RFCTL, 0x04);
 	mrf_write_short(MRF_REG_SHORT_RFCTL, 0x00);
-	sleep_us(200);
+	vTaskDelay(1U);
 	if (config.symbol_rate) {
 		mrf_write_short(MRF_REG_SHORT_BBREG0, 0x01);
 		mrf_write_short(MRF_REG_SHORT_BBREG3, 0x34);
@@ -208,5 +330,15 @@ void mrf_analogue_rx(void) {
 void mrf_analogue_txrx(void) {
 	mrf_write_short(MRF_REG_SHORT_GPIO, 0x08);
 	mrf_write_long(MRF_REG_LONG_TESTMODE, 0x0F);
+}
+
+void dma2_stream0_isr(void) {
+	DMA2.streams[0U].CR.TCIE = 0U;
+	BaseType_t yield = pdFALSE;
+	BaseType_t ok = xSemaphoreGiveFromISR(dma_int_sem, &yield);
+	assert(ok);
+	if (yield) {
+		portYIELD_FROM_ISR();
+	}
 }
 
