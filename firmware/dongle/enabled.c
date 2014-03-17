@@ -302,7 +302,6 @@ static const udev_interface_info_t RADIO_INTERFACE_INFO = {
 
 static void dfu_detach_poststatus(void) {
 	udev_detach();
-	portRAISE_PRIVILEGE(); // init_bootload crashes without CPU privileges (needs to write to system configuration block)
 	init_bootload();
 }
 

@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <registers/nvic.h>
 #include <registers/scb.h>
 
 // The type of words in a stack.
@@ -32,31 +33,20 @@ typedef unsigned long TickType_t;
 #define portTASK_FUNCTION_PROTO(fn, params) void fn(void *params)
 #define portTASK_FUNCTION portTASK_FUNCTION_PROTO
 
-// The possible system call codes.
-typedef enum {
-	PORT_SYSCALL_YIELD,
-	PORT_SYSCALL_DISABLE_INTERRUPTS,
-	PORT_SYSCALL_ENABLE_INTERRUPTS,
-	PORT_SYSCALL_RAISE_PRIVILEGE,
-	PORT_SYSCALL_ENABLE_HW_INTERRUPT,
-	PORT_SYSCALL_DISABLE_HW_INTERRUPT,
-	PORT_SYSCALL_START_SCHEDULER,
-} portSyscallType;
-
 // Functions related to yielding tasks.
 static void portYIELD(void) {
-	// Yielding from userspace is done with an ordinary system call.
-	asm volatile("svc %[code]" :: [code] "i" (PORT_SYSCALL_YIELD));
-}
-#define portYIELD_WITHIN_API portYIELD
-static void portYIELD_FROM_ISR(void) {
-	// Yielding from an ISR is done by pending the PendSV interrupt and returning, causing a priority de-escalation followed by PendSV handler invocation.
+	// Whether in an ISR or not, yielding is done by pending the PendSV interrupt.
+	// In an ISR, this will be at lower priority, so on exception return, priority will de-escalate.
+	// In a task, this will be taken immediately.
 	ICSR_t tmp = { .PENDSVSET = 1 };
 	ICSR = tmp;
 	// DSB ensures the write completes in a timely manner and won’t return to userspace and execute more instructions before taking the PendSV.
 	asm volatile("dsb");
-	// ISB is not necessary as exception return implicitly contains an ISB.
+	// ISB ensures no further instructions execute until after the effects of the PendSV occur.
+	asm volatile("isb");
 }
+#define portYIELD_WITHIN_API portYIELD
+#define portYIELD_FROM_ISR portYIELD
 
 // Functions related to allocating and freeing task stacks.
 void *pvPortMallocAligned(size_t size, void *buffer);
@@ -64,32 +54,8 @@ void vPortFreeAligned(void *buffer);
 #define pvPortMallocAligned pvPortMallocAligned
 #define vPortFreeAligned vPortFreeAligned
 
-// These functions enable and disable interrupts from non-ISR code; they need privilege and are therefore syscalls.
-static void portENABLE_INTERRUPTS(void) { __atomic_signal_fence(__ATOMIC_RELEASE); asm volatile("svc %[code]" :: [code] "i" (PORT_SYSCALL_ENABLE_INTERRUPTS)); }
-static void portDISABLE_INTERRUPTS(void) { asm volatile("svc %[code]" :: [code] "i" (PORT_SYSCALL_DISABLE_INTERRUPTS)); __atomic_signal_fence(__ATOMIC_ACQUIRE); }
-
-// These functions are basically nestable variants of the functions above, which just maintain a counter and call those functions.
-void portENTER_CRITICAL(void);
-void portEXIT_CRITICAL(void);
-
-// These functions enable and disable interrupts from an ISR; ISRs are always privileged and therefore these are implemented directly.
-// Also, we do not need to save a prior value of BASEPRI.
-// Exception entry does not modify BASEPRI, so it will normally be zero.
-// Actual execution priority is determined from the lesser of the values implied by BASEPRI, PRIMASK, FAULTMASK, and the active exception set.
-// So, ISR entry just modifies the active exception set and that modifies the execution priority of the CPU and prevents inappropriate preemption.
-// What this means for us is that we can disable unwanted interrupts by setting BASEPRI to an appropriate value, then re-enable them by setting it to zero.
-// We won’t reenter ourself, because the active exception set takes care of that (and is, in fact, the usual mechanism for doing so).
-// Therefore no old mask value needs to be saved at all!
-static unsigned long portSET_INTERRUPT_MASK_FROM_ISR(void) {
-	asm volatile("msr basepri, %[newpri]" :: [newpri] "r" (configMAX_SYSCALL_INTERRUPT_PRIORITY));
-	// ARMv7-M manual section B5.2.3 states:
-	// “If execution of a MSR instruction increases the execution priority, the MSR execution serializes that change to the instruction stream.”
-	// Consequently, no ISB is needed, as we are increasing execution priority.
-	// However, we must force the compiler not to reorder subsequent memory operations backwards past the disable, so a fence is needed.
-	__atomic_signal_fence(__ATOMIC_ACQUIRE);
-	return 0UL;
-}
-static void portCLEAR_INTERRUPT_MASK_FROM_ISR(unsigned long old __attribute__((unused))) {
+// These functions enable and disable interrupts from ISR or non-ISR code.
+static inline void portENABLE_INTERRUPTS(void) {
 	// Force the compiler not to reorder prior memory operations past the enable.
 	__atomic_signal_fence(__ATOMIC_RELEASE);
 	asm volatile("msr basepri, %[zero]" :: [zero] "r" (0UL));
@@ -102,33 +68,52 @@ static void portCLEAR_INTERRUPT_MASK_FROM_ISR(unsigned long old __attribute__((u
 	// So, just issue the ISB to be safe.
 	asm volatile("isb");
 }
+static inline void portDISABLE_INTERRUPTS(void) {
+	asm volatile("msr basepri, %[newpri]" :: [newpri] "r" (configMAX_SYSCALL_INTERRUPT_PRIORITY));
+	// ARMv7-M manual section B5.2.3 states:
+	// “If execution of a MSR instruction increases the execution priority, the MSR execution serializes that change to the instruction stream.”
+	// Consequently, no ISB is needed, as we are increasing execution priority.
+	// However, we must force the compiler not to reorder subsequent memory operations backwards past the disable, so a fence is needed.
+	__atomic_signal_fence(__ATOMIC_ACQUIRE);
+}
+
+// These functions are basically nestable variants of the functions above, which just maintain a counter and call those functions.
+void portENTER_CRITICAL(void);
+void portEXIT_CRITICAL(void);
+
+// These functions enable and disable interrupts from an ISR.
+// We do not need to save a prior value of BASEPRI.
+// Exception entry does not modify BASEPRI, so it will normally be zero.
+// Actual execution priority is determined from the lesser of the values implied by BASEPRI, PRIMASK, FAULTMASK, and the active exception set.
+// So, ISR entry just modifies the active exception set and that modifies the execution priority of the CPU and prevents inappropriate preemption.
+// What this means for us is that we can disable unwanted interrupts by setting BASEPRI to an appropriate value, then re-enable them by setting it to zero.
+// We won’t reenter ourself, because the active exception set takes care of that (and is, in fact, the usual mechanism for doing so).
+// Therefore no old mask value needs to be saved at all!
+static unsigned long portSET_INTERRUPT_MASK_FROM_ISR(void) {
+	portDISABLE_INTERRUPTS();
+	return 0UL;
+}
+static void portCLEAR_INTERRUPT_MASK_FROM_ISR(unsigned long old __attribute__((unused))) {
+	portENABLE_INTERRUPTS();
+}
 #define portSET_INTERRUPT_MASK_FROM_ISR portSET_INTERRUPT_MASK_FROM_ISR
 #define portCLEAR_INTERRUPT_MASK_FROM_ISR portCLEAR_INTERRUPT_MASK_FROM_ISR
 
 // These functions turn a specific hardware interrupt on and off.
 static void portENABLE_HW_INTERRUPT(unsigned int irq, unsigned int priority) {
-	register unsigned int i asm("r0") = irq;
-	register unsigned int j asm("r1") = priority;
-	asm volatile("svc %[service]" :: [service] "i" (PORT_SYSCALL_ENABLE_HW_INTERRUPT), "r" (i), "r" (j));
+	NVIC_IPR[irq / 32U] = (NVIC_IPR[irq / 4U] & ~(0xFFU << (irq % 4U))) | (priority << ((irq % 4U) * 8U));
+	// We must barrier to ensure the priority is set before the interrupt is enabled.
+	// However, we do not need a synchronization barrier because we don’t care *when*, specifically, in instruction stream order, the effects become visible, as long as they do so in the right order.
+	asm volatile("dmb");
+	NVIC_ISER[irq / 32U] = 1U << (irq % 32U);
 }
 static void portDISABLE_HW_INTERRUPT(unsigned int irq) {
-	register unsigned int i asm("r0") = irq;
-	asm volatile("svc %[service]" :: [service] "i" (PORT_SYSCALL_DISABLE_HW_INTERRUPT), "r" (i));
-}
-
-// These functions take and drop privileges.
-static void portRAISE_PRIVILEGE(void) {
-	asm volatile("svc %[service]" :: [service] "i" (PORT_SYSCALL_RAISE_PRIVILEGE));
-}
-static void portDROP_PRIVILEGE(void) {
-	unsigned long control;
-	asm("mrs %[control], control" : [control] "=r" (control));
-	asm volatile("msr control, %[control]" :: [control] "r" (control | 1U));
-}
-static bool portHAS_PRIVILEGE(void) {
-	unsigned long control;
-	asm("mrs %[control], control" : [control] "=r" (control));
-	return !(control & 1U);
+	NVIC_ICER[irq / 32U] = 1U << (irq % 32U);
+	// The caller may expect that the interrupt cannot possibly happen once the call is complete.
+	// DSB ensures the write is completed before proceeding.
+	asm volatile("dsb");
+	// ISB ensures no subsequent instructions are acted on with the interrupt still enabled.
+	asm volatile("isb");
 }
 
 // Interrupt handlers which the application must wire into the vector table.

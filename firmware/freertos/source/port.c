@@ -144,11 +144,7 @@ void *pvPortMallocAligned(size_t size, void *buffer) {
 	// Round up to nearest multiple of block header size (to keep all block headers aligned), then add block header size to have space for this block’s header.
 	size_t needed_size = (size + CCM_BLOCK_HEADER_SIZE - 1U) / CCM_BLOCK_HEADER_SIZE * CCM_BLOCK_HEADER_SIZE + CCM_BLOCK_HEADER_SIZE;
 
-	// Take privileges, disable interrupts, and enable access to guard region while manipulating data structures.
-	bool old_priv = portHAS_PRIVILEGE();
-	if (!old_priv) {
-		portRAISE_PRIVILEGE();
-	}
+	// Disable interrupts and enable access to guard region while manipulating data structures.
 	unsigned long old_imask = portSET_INTERRUPT_MASK_FROM_ISR();
 	MPU_RASR_t old_rasr = MPU_RASR;
 	MPU_RASR = ZERO_RASR;
@@ -184,12 +180,9 @@ void *pvPortMallocAligned(size_t size, void *buffer) {
 		buffer = CCM_HEADER_GET_DATA(best);
 	}
 
-	// Restore the guard region, interrupts, and privilege level.
+	// Restore the guard region and interrupts.
 	MPU_RASR = old_rasr;
 	portCLEAR_INTERRUPT_MASK_FROM_ISR(old_imask);
-	if (!old_priv) {
-		portDROP_PRIVILEGE();
-	}
 
 	// Defer to the main allocator if we are out of CCM.
 	if (!buffer) {
@@ -201,11 +194,7 @@ void *pvPortMallocAligned(size_t size, void *buffer) {
 
 void vPortFreeAligned(void *buffer) {
 	if (CCM_DATA_IS_CCM(buffer)) {
-		// Take privileges, disable interrupts, and enable access to guard region while manipulating data structures.
-		bool old_priv = portHAS_PRIVILEGE();
-		if (!old_priv) {
-			portRAISE_PRIVILEGE();
-		}
+		// Disable interrupts and enable access to guard region while manipulating data structures.
 		unsigned long old_imask = portSET_INTERRUPT_MASK_FROM_ISR();
 		MPU_RASR_t old_rasr = MPU_RASR;
 		MPU_RASR = ZERO_RASR;
@@ -234,23 +223,16 @@ void vPortFreeAligned(void *buffer) {
 			h->size += next->size;
 		}
 
-		// Restore the guard region, interrupts, and privilege level.
+		// Restore the guard region and interrupts.
 		MPU_RASR = old_rasr;
 		portCLEAR_INTERRUPT_MASK_FROM_ISR(old_imask);
-		if (!old_priv) {
-			portDROP_PRIVILEGE();
-		}
 	} else {
 		vPortFree(buffer);
 	}
 }
 
 static ccm_block_header_t *ccm_find_header(void *data) {
-	// Take privileges, disable interrupts, and enable access to guard region while manipulating data structures.
-	bool old_priv = portHAS_PRIVILEGE();
-	if (!old_priv) {
-		portRAISE_PRIVILEGE();
-	}
+	// Disable interrupts and enable access to guard region while manipulating data structures.
 	unsigned long old_imask = portSET_INTERRUPT_MASK_FROM_ISR();
 	MPU_RASR_t old_rasr = MPU_RASR;
 	MPU_RASR = ZERO_RASR;
@@ -265,12 +247,9 @@ static ccm_block_header_t *ccm_find_header(void *data) {
 		}
 	}
 
-	// Restore the guard region, interrupts, and privilege level.
+	// Restore the guard region and interrupts.
 	MPU_RASR = old_rasr;
 	portCLEAR_INTERRUPT_MASK_FROM_ISR(old_imask);
-	if (!old_priv) {
-		portDROP_PRIVILEGE();
-	}
 
 	return best;
 }
@@ -298,7 +277,7 @@ unsigned long *pxPortInitialiseStack(unsigned long *tos, TaskFunction_t code, vo
 	hwf->xpsr = 0x01000000UL;
 	swf->r4 = swf->r5 = swf->r6 = swf->r7 = swf->r8 = swf->r9 = swf->r10 = swf->r11 = 0UL;
 	swf->lr = 0xFFFFFFFDUL; // Return to thread mode, process stack, basic frame
-	swf->control = 3; // Run unprivileged on process stack
+	swf->control = 2; // Run privileged on process stack
 
 	// Compute where the stack overflow guard region should be.
 	// This will be the bottom bytes of the stack region.
@@ -350,51 +329,30 @@ void vPortFree(void *pv) {
 
 
 long xPortStartScheduler(void) {
-	// Set SVC, PendSV, and systick priorities.
-	SHPR2.PRI_11 = configKERNEL_INTERRUPT_PRIORITY;
+	// Set SVCall, PendSV, and systick priorities.
+	// SVCall is used to start the scheduler, but is invoked following portDISABLE_INTERRUPTS in vTaskStartScheduler.
+	// In ARM, even synchronous interrupts obey the masking registers; in order not to be escalated to hard fault, SVCall must be of an unmasked priority.
+	// We never use it for anythign else, so just give it priority above maximum syscall interrupt priority.
+	// The others, PendSV and systick, are the normal kernel workhorse interrupts.
+	SHPR2.PRI_11 = EXCEPTION_MKPRIO(EXCEPTION_GROUP_PRIO(configMAX_SYSCALL_INTERRUPT_PRIORITY) - 1U, (1U << EXCEPTION_SUB_PRIO_BITS) - 1U);
 	SHPR3.PRI_15 = configKERNEL_INTERRUPT_PRIORITY;
 	SHPR3.PRI_14 = configKERNEL_INTERRUPT_PRIORITY;
 
-	// This is implemented as a system call.
-	// However, the SVC handler expects all system calls to be made from thread mode with the process stack active.
-	// We are *currently* running in thread mode, but with the main stack active!
-	// If we just issued the SVC, the SVC handler would look on the wrong stack for the PC value which it needs to find the service number.
-	// So, what we do is:
-	// 1. Keep the current stack contents but treat them as the process stack, by setting PSP=MSP and adjusting CONTROL.SPSEL.
-	// 2. Adjust MSP down by sizeof(basic_hw_frame_t)+4, so that any stack space used by the SVC handler won’t overlap with the space where the CPU will write the frame (the +4 is needed in case 8-byte stack alignment burns an extra word).
-	// 3. Issue the SVC, which will write the frame into the empty space between PSP and MSP.
-	// 4. In the SVC handler, for this specific service call, once we no longer need anything on the startup stack, reset MSP make the whole stack available for ISR.
-	asm volatile(
-			"mrs r0, msp\n\t"
-			"msr psp, r0\n\t"
-			"sub r0, %[msp_adjust]\n\t"
-			"msr msp, r0\n\t"
-			"mov r0, #2\n\t"
-			"msr control, r0\n\t"
-			"isb\n\t"
-			"svc %[service]\n\t"
-			:
-			: [msp_adjust] "i" (sizeof(basic_hw_frame_t) + 4U), [service] "i" (PORT_SYSCALL_START_SCHEDULER));
+	// We are currently running in process mode on the main stack.
+	// What we want to be doing is running a task in process mode on the task stack, with the main stack pointer reset to its initial value ready to handle interrupts.
+	// What pxPortInitializeStack builds on the process stack is an exception return frame, as would be built by a PendSV.
+	// The easiest way to take advantage of that stack structure to get the first task running is… to perform an exception return!
+	// We can’t use PendSV, as that expects to be able to save the current context somewhere first, before loading the new context.
+	// It also won’t fix up MSP to clean up the main stack.
+	// Use SVCall instead, and let the SVCall handler get everything ready, clean up MSP, and then do an exception return into the first task.
+	asm volatile("svc 0");
 	__builtin_unreachable();
 }
 
 
 
 void portENTER_CRITICAL(void) {
-	// This does not need to be atomic, nor does it constitute a dangerous race condition between the test and the function call.
-	// There are two cases:
-	// (1) critical_section_nesting = 0:
-	// 		In this case, we might be interrupted at some point during or after the variable load and test.
-	// 		This might even result in yielding, and other tasks running.
-	// 		However, should any of those tasks modify critical_section_nesting, by definition, they must disable interrupts before doing so.
-	// 		They must then restore it to zero before re-enabling interrupts, which must happen before this task can resume execution.
-	// 		Therefore, no matter where we were interrupted, critical_section_nesting was zero before, and was not *observably* modified from zero.
-	// (2) critical_section_nesting ≠ 0:
-	// 		In this case, we are already in a critical section, which means we have already disabled interrupts at a prior critical section entry.
-	// 		Therefore, we cannot possibly be rescheduled, and the straight-line code with no atomics is safe and race-free.
-	if (!critical_section_nesting) {
-		portDISABLE_INTERRUPTS();
-	}
+	portDISABLE_INTERRUPTS();
 	++critical_section_nesting;
 }
 
@@ -406,179 +364,119 @@ void portEXIT_CRITICAL(void) {
 
 
 
-void vPortSVCHandlerImpl(basic_hw_frame_t *bhwframe) {
-	const uint8_t *pc = (const uint8_t *) bhwframe->return_address;
-	portSyscallType call = pc[-2];
+void vPortSVCHandler(void) {
+	// These variables must be held in exactly these registers, as they are used below in the inline assembly block.
 	register unsigned long tos asm("r0");
 	register unsigned long init_stack asm("r1");
 
-	switch(call) {
-		case PORT_SYSCALL_YIELD:
-			portYIELD_FROM_ISR();
-			break;
+	// Initialize critical section nesting count.
+	critical_section_nesting = 0U;
 
-		case PORT_SYSCALL_DISABLE_INTERRUPTS:
-			// Disable interrupts.
-			portSET_INTERRUPT_MASK_FROM_ISR();
-			// We disable interrupts by raising BASEPRI.
-			// If we just left it like that, the caller would never be able to get interrupts enabled again!
-			// This is because BASEPRI would inhibit the taking of SVC interrupts.
-			// Thus, the system call to enable interrupts would fail and be escaled to a hard fault.
-			// So, we increase the priority of SVC just enough that it can be invoked anyway.
-			// This doesn’t harm our usual priority scheme, because none of the other interrupts are going to be trying to run (that’s the whole point of making this syscall in the first place).
-			SHPR2.PRI_11 = EXCEPTION_MKPRIO(EXCEPTION_GROUP_PRIO(configMAX_SYSCALL_INTERRUPT_PRIORITY) - 1U, (1U << EXCEPTION_SUB_PRIO_BITS) - 1U);
-			// Need a memory barrier to ensure a subsequent SVC after we return is taken at the proper priority.
-			asm volatile("dsb");
-			break;
-
-		case PORT_SYSCALL_ENABLE_INTERRUPTS:
-			// Undo the priority adjustment we made after disabling interrupts.
-			// This might result in an interrupt being taken before we return from the SVC.
-			// Who cares? It really doesn’t actually matter.
-			SHPR2.PRI_11 = configKERNEL_INTERRUPT_PRIORITY;
-			// Need a memory barrier to ensure a subsequent SVC after we return is taken at the proper priority.
-			asm volatile("dsb");
-			portCLEAR_INTERRUPT_MASK_FROM_ISR(0UL);
-			break;
-
-		case PORT_SYSCALL_RAISE_PRIVILEGE:
-			// Set nPRIV=0 to make thread mode be privileged.
-			// Set SPSEL=0 because it is always 0 in handler mode, which we are currently in.
-			// Set FPCA=0 because we don’t use the floating point instructions in the SVC handler.
-			asm volatile("msr control, %[control]" :: [control] "r" (0U));
-			// No ISB needed here because the exception return implies it.
-			break;
-
-		case PORT_SYSCALL_ENABLE_HW_INTERRUPT:
-			NVIC_IPR[bhwframe->r0 / 32U] = (NVIC_IPR[bhwframe->r0 / 4U] & ~(0xFFU << (bhwframe->r0 % 4U))) | (bhwframe->r1 << ((bhwframe->r0 % 4U) * 8U));
-			// We must barrier to ensure the priority is set before the interrupt is enabled.
-			// However, we do not need a synchronization barrier because we don’t care *when*, specifically, in instruction stream order, the effects become visible, as long as they do so in the right order.
-			asm volatile("dmb");
-			NVIC_ISER[bhwframe->r0 / 32U] = 1U << (bhwframe->r0 % 32U);
-			break;
-
-		case PORT_SYSCALL_DISABLE_HW_INTERRUPT:
-			NVIC_ICER[bhwframe->r0 / 32U] = 1U << (bhwframe->r0 % 32U);
-			break;
-
-		case PORT_SYSCALL_START_SCHEDULER:
-			// Initialize critical section nesting count.
-			critical_section_nesting = 0U;
-
-			// Enable system timer.
-			{
-				SYST_RVR_t tmp = { .RELOAD = configCPU_CLOCK_HZ / configTICK_RATE_HZ - 1U };
-				SYST_RVR = tmp;
-			}
-			{
-				SYST_CSR_t tmp = { .ENABLE = 1, .TICKINT = 1, .CLKSOURCE = 1 };
-				SYST_CSR = tmp;
-			}
-
-			// Enable FPU and set up automatic lazy state preservation.
-			//
-			// Here’s how it will go down:
-			//
-			// In a task not using the FPU, CONTROL.FPCA will be zero, and on interrupt entry, a basic frame will be stacked.
-			// If the ISR uses the FPU, CONTROL.FPCA will be set during that usage, which will also prepare a default context from FPDSCR for the ISR.
-			// When the ISR returns, the exception return code will cause CONTROL.FPCA to go back to zero for the task as expected.
-			// If the ISR doesn’t use the FPU, CONTROL.FPCA will remain zero throughout, and the exception return will work the same way.
-			//
-			// In a task using the FPU, on first access, CONTROL.FPCA will be set and a default context will be prepared from FPDSCR.
-			// From that moment onward, because CONTROL.FPCA=1 and FPCCR.ASPEN=1, interrupts in that task will always stack extended frames.
-			// However, because LSPEN=1, the extended frames will not be immediately populated; rather, on interrupt entry, LSPACT will be set.
-			// If the ISR doesn’t use the FPU, LSPACT will remain set throughout.
-			// When the ISR returns, the exception return code will indicate an extended frame, but LSPACT=1 will elide restoration of registers.
-			// If the ISR does use the FPU, then on first access, the frame will be populated and LSPACT will be cleared, allowing activity to proceed.
-			// In that case, on exception return, LSPACT=0 will trigger restoration of registers.
-			//
-			// Thus, time is spent saving and restoring the FP registers only in the case that both the task *and* the ISR actually use them.
-			//
-			// This explains ISRs, but what happens during a task switch?
-			//
-			// When a task not using the FPU takes a PendSV, CONTROL.FPCA will be zero, and on interrupt entry, a basic hardware frame will be stacked.
-			// The PendSV ISR will observe that the link register indicates a basic frame, and will not touch the FP registers, stacking only a basic software frame.
-			//
-			// When a task not using the FPU is being resumed, the PendSV ISR will first load the link register from the basic software frame.
-			// Observing that the link register indicates a basic hardware frame, it will conclude that the software frame is also basic and will not touch the FP registers.
-			// The exception return will unstack the basic hardware frame and leave CONTROL.FPCA=0.
-			//
-			// When a task using the FPU takes a PendSV, CONTROL.FPCA will be one, and on interrupt entry, an extended hardware frame will be stacked (though not populated).
-			// Because the extended hardware frame is not populated, LSPACT will be set.
-			// The PendSV ISR will observe that the link register indicates an extended frame, and will stack the callee-saved FP registers into an extended software frame.
-			// The VSTM instruction used to do this is itself an FP instruction, which thus causes the extended hardware frame to be populated and LSPACT to be cleared.
-			// Thus, by the time the stack switch occurs, all FP registers will have been placed on the stack (half in the hardware frame and half in the software frame), and LSPACT=0.
-			//
-			// When a task using the FPU is being resumed, the PendSV ISR will first load the link register from the basic software frame at the beginning of the extended software frame.
-			// The PendSV ISR will observe that the link register indicates an extended frame, and will reload the callee-saved FP registers from the extended software frame.
-			// The subsequent exception return will unstack the extended hardware frame (restoring the remaining FP registers, since LSPACT=0) and leave CONTROL.FPCA=1.
-			{
-				FPCCR_t fpccr = { .LSPEN = 1, .ASPEN = 1 };
-				FPCCR = fpccr;
-				CPACR_t cpacr = CPACR;
-				cpacr.CP10 = cpacr.CP11 = 3;
-				CPACR = cpacr;
-			}
-			// Without this, future FP instructions could fail due to not observing the coprocessor enabled yet.
-			asm volatile("dsb");
-			// An ISB is also necessary, but is omitted here as there is one shortly below.
-
-			// Enable MPU and drop in the common regions.
-			for (size_t i = 0; i < sizeof(COMMON_MPU_REGIONS) / sizeof(*COMMON_MPU_REGIONS); ++i) {
-				MPU_RNR_t rnr = { .REGION = i };
-				MPU_RNR = rnr;
-				MPU_RBAR_t rbar = { .REGION = 0, .VALID = 0, .ADDR = COMMON_MPU_REGIONS[i].address >> 5 };
-				MPU_RBAR = rbar;
-				MPU_RASR = COMMON_MPU_REGIONS[i].rasr;
-			}
-			{
-				MPU_CTRL_t ctrl = {
-					.PRIVDEFENA = 0,
-					.HFNMIENA = 0,
-					.ENABLE = 1,
-				};
-				MPU_CTRL = ctrl;
-			}
-
-			// Leave MPU_RNR set to the CCM stack guard region number.
-			// This will be used by the task switcher.
-			{
-				MPU_RNR_t rnr = { .REGION = STACK_GUARD_MPU_REGION };
-				MPU_RNR = rnr;
-			}
-
-			// No need to handle an extended software frame here.
-			// Because the scheduler is just starting, no tasks have run yet.
-			// Every task is always created, initially, with only basic frames.
-			// We must also reset the MSP to the start of the main stack (see explanation in xPortStartScheduler).
-			tos = *pxCurrentTCB;
-			init_stack = *(const unsigned long *) 0x08000000;
-			asm volatile(
-					// Fix up MSP.
-					"msr msp, r1\n\t"
-					// Restore software frame and MPU settings.
-					"ldmia r0!, {r1-r11, lr}\n\t"
-					"msr control, r1\n\t"
-					"ldr r1, =0xE000ED9C\n\t" // MPU_RBAR
-					"stm r1, {r2-r3}\n\t"
-					"dsb\n\t"
-					// Fix up PSP and start running the task.
-					"msr psp, r0\n\t"
-					"isb\n\t"
-					"bx lr\n\t"
-					:
-					: "r" (tos), "r" (init_stack));
-			__builtin_unreachable();
+	// Enable system timer.
+	{
+		SYST_RVR_t tmp = { .RELOAD = configCPU_CLOCK_HZ / configTICK_RATE_HZ - 1U };
+		SYST_RVR = tmp;
 	}
-}
+	{
+		SYST_CSR_t tmp = { .ENABLE = 1, .TICKINT = 1, .CLKSOURCE = 1 };
+		SYST_CSR = tmp;
+	}
 
-void vPortSVCHandler(void) __attribute__((naked));
-void vPortSVCHandler(void) {
+	// Enable FPU and set up automatic lazy state preservation.
+	//
+	// Here’s how it will go down:
+	//
+	// In a task not using the FPU, CONTROL.FPCA will be zero, and on interrupt entry, a basic frame will be stacked.
+	// If the ISR uses the FPU, CONTROL.FPCA will be set during that usage, which will also prepare a default context from FPDSCR for the ISR.
+	// When the ISR returns, the exception return code will cause CONTROL.FPCA to go back to zero for the task as expected.
+	// If the ISR doesn’t use the FPU, CONTROL.FPCA will remain zero throughout, and the exception return will work the same way.
+	//
+	// In a task using the FPU, on first access, CONTROL.FPCA will be set and a default context will be prepared from FPDSCR.
+	// From that moment onward, because CONTROL.FPCA=1 and FPCCR.ASPEN=1, interrupts in that task will always stack extended frames.
+	// However, because LSPEN=1, the extended frames will not be immediately populated; rather, on interrupt entry, LSPACT will be set.
+	// If the ISR doesn’t use the FPU, LSPACT will remain set throughout.
+	// When the ISR returns, the exception return code will indicate an extended frame, but LSPACT=1 will elide restoration of registers.
+	// If the ISR does use the FPU, then on first access, the frame will be populated and LSPACT will be cleared, allowing activity to proceed.
+	// In that case, on exception return, LSPACT=0 will trigger restoration of registers.
+	//
+	// Thus, time is spent saving and restoring the FP registers only in the case that both the task *and* the ISR actually use them.
+	//
+	// This explains ISRs, but what happens during a task switch?
+	//
+	// When a task not using the FPU takes a PendSV, CONTROL.FPCA will be zero, and on interrupt entry, a basic hardware frame will be stacked.
+	// The PendSV ISR will observe that the link register indicates a basic frame, and will not touch the FP registers, stacking only a basic software frame.
+	//
+	// When a task not using the FPU is being resumed, the PendSV ISR will first load the link register from the basic software frame.
+	// Observing that the link register indicates a basic hardware frame, it will conclude that the software frame is also basic and will not touch the FP registers.
+	// The exception return will unstack the basic hardware frame and leave CONTROL.FPCA=0.
+	//
+	// When a task using the FPU takes a PendSV, CONTROL.FPCA will be one, and on interrupt entry, an extended hardware frame will be stacked (though not populated).
+	// Because the extended hardware frame is not populated, LSPACT will be set.
+	// The PendSV ISR will observe that the link register indicates an extended frame, and will stack the callee-saved FP registers into an extended software frame.
+	// The VSTM instruction used to do this is itself an FP instruction, which thus causes the extended hardware frame to be populated and LSPACT to be cleared.
+	// Thus, by the time the stack switch occurs, all FP registers will have been placed on the stack (half in the hardware frame and half in the software frame), and LSPACT=0.
+	//
+	// When a task using the FPU is being resumed, the PendSV ISR will first load the link register from the basic software frame at the beginning of the extended software frame.
+	// The PendSV ISR will observe that the link register indicates an extended frame, and will reload the callee-saved FP registers from the extended software frame.
+	// The subsequent exception return will unstack the extended hardware frame (restoring the remaining FP registers, since LSPACT=0) and leave CONTROL.FPCA=1.
+	{
+		FPCCR_t fpccr = { .LSPEN = 1, .ASPEN = 1 };
+		FPCCR = fpccr;
+		CPACR_t cpacr = CPACR;
+		cpacr.CP10 = cpacr.CP11 = 3;
+		CPACR = cpacr;
+	}
+	// Without this, future FP instructions could fail due to not observing the coprocessor enabled yet.
+	asm volatile("dsb");
+	// An ISB is also necessary, but is omitted here as there is one shortly below.
+
+	// Enable MPU and drop in the common regions.
+	for (size_t i = 0; i < sizeof(COMMON_MPU_REGIONS) / sizeof(*COMMON_MPU_REGIONS); ++i) {
+		MPU_RNR_t rnr = { .REGION = i };
+		MPU_RNR = rnr;
+		MPU_RBAR_t rbar = { .REGION = 0, .VALID = 0, .ADDR = COMMON_MPU_REGIONS[i].address >> 5 };
+		MPU_RBAR = rbar;
+		MPU_RASR = COMMON_MPU_REGIONS[i].rasr;
+	}
+	{
+		MPU_CTRL_t ctrl = {
+			.PRIVDEFENA = 0,
+			.HFNMIENA = 0,
+			.ENABLE = 1,
+		};
+		MPU_CTRL = ctrl;
+	}
+
+	// Leave MPU_RNR set to the CCM stack guard region number.
+	// This will be used by the task switcher.
+	{
+		MPU_RNR_t rnr = { .REGION = STACK_GUARD_MPU_REGION };
+		MPU_RNR = rnr;
+	}
+
+	// No need to handle an extended software frame here.
+	// Because the scheduler is just starting, no tasks have run yet.
+	// Every task is always created, initially, with only basic frames.
+	// We must also reset the MSP to the start of the main stack (see explanation in xPortStartScheduler).
+	tos = *pxCurrentTCB;
+	init_stack = *(const unsigned long *) 0x08000000;
 	asm volatile(
-			"mrs r0, psp\n\t"
-			"b %[handler]\n\t"
+			// Fix up MSP.
+			"msr msp, r1\n\t"
+			// Restore software frame and MPU settings.
+			"ldmia r0!, {r1-r11, lr}\n\t"
+			"msr control, r1\n\t"
+			"ldr r1, =0xE000ED9C\n\t" // MPU_RBAR
+			"stm r1, {r2-r3}\n\t"
+			"dsb\n\t"
+			// Fix up PSP and start running the task.
+			"msr psp, r0\n\t"
+			"isb\n\t"
+			"bx lr\n\t"
 			:
-			: [handler] "i" (&vPortSVCHandlerImpl));
+			// Note that these variables do not need placeholders in the text; they are fixed in r0 and r1 respectively by their asm constraints above.
+			: "r" (tos), "r" (init_stack));
+	__builtin_unreachable();
 }
 
 void vPortPendSVHandler(void) __attribute__((naked));
