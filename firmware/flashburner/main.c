@@ -40,13 +40,13 @@ static void service_call_vector(void);
 static void system_tick_vector(void);
 static void app_exception_early(void);
 static void app_exception_late(bool core_written);
-void exti_dispatcher_0(void);
-void exti_dispatcher_1(void);
-void exti_dispatcher_2(void);
-void exti_dispatcher_3(void);
-void exti_dispatcher_4(void);
-void exti_dispatcher_9_5(void);
-void exti_dispatcher_15_10(void);
+void exti0_isr(void);
+void exti1_isr(void);
+void exti2_isr(void);
+void exti3_isr(void);
+void exti4_isr(void);
+void exti5_9_isr(void);
+void exti10_15_isr(void);
 void timer5_interrupt_vector(void);
 void usart1_interrupt_vector(void);
 
@@ -67,14 +67,14 @@ static const fptr exception_vectors[16] __attribute__((used, section(".exception
 };
 
 static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt_vectors"))) = {
-	[6] = &exti_dispatcher_0,
-	[7] = &exti_dispatcher_1,
-	[8] = &exti_dispatcher_2,
-	[9] = &exti_dispatcher_3,
-	[10] = &exti_dispatcher_4,
-	[23] = &exti_dispatcher_9_5,
+	[6] = &exti0_isr,
+	[7] = &exti1_isr,
+	[8] = &exti2_isr,
+	[9] = &exti3_isr,
+	[10] = &exti4_isr,
+	[23] = &exti5_9_isr,
 	[37] = &usart1_interrupt_vector,
-	[40] = &exti_dispatcher_15_10,
+	[40] = &exti10_15_isr,
 	[50] = &timer5_interrupt_vector,
 	[67] = &usb_ll_process,
 };
