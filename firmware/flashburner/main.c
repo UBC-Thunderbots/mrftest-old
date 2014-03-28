@@ -1,9 +1,9 @@
 #include "autonomous.h"
 #include "constants.h"
 #include "exti.h"
-#include "gpio.h"
 #include "host_controlled.h"
 #include "idle.h"
+#include "io.h"
 #include "spi.h"
 #include "uart.h"
 #include <core_progmem.h>

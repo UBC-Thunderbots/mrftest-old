@@ -44,12 +44,12 @@ firmware/flashburner/Makefile -text
 firmware/flashburner/autonomous.c -text
 firmware/flashburner/autonomous.h -text
 firmware/flashburner/constants.h -text
-firmware/flashburner/gpio.c -text
-firmware/flashburner/gpio.h -text
 firmware/flashburner/host_controlled.c -text
 firmware/flashburner/host_controlled.h -text
 firmware/flashburner/idle.c -text
 firmware/flashburner/idle.h -text
+firmware/flashburner/io.c -text
+firmware/flashburner/io.h -text
 firmware/flashburner/main.c -text
 firmware/flashburner/spi.c -text
 firmware/flashburner/spi.h -text

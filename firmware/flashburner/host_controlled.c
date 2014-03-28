@@ -1,7 +1,7 @@
 #include "host_controlled.h"
 #include "autonomous.h"
 #include "constants.h"
-#include "gpio.h"
+#include "io.h"
 #include "spi.h"
 #include <deferred.h>
 #include <gpio.h>

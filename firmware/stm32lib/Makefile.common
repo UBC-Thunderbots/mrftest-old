@@ -7,40 +7,31 @@ override LDFLAGS := $(LDFLAGS) -Wl,--gc-sections $(CFLAGS)
 
 
 
-PROJECT_SOURCES := $(shell find . -name '*.c')
-PROJECT_SOURCES := $(PROJECT_SOURCES:./%.c=%.c)
-PROJECT_OBJS := $(PROJECT_SOURCES:%.c=obj/%.o)
-PROJECT_HEADERS := $(shell find . -name '*.h')
+# Collect all source files for the project and libraries.
+# Special case: FreeRTOS source files are in the source/ subdirectory.
+# For everything else, we collect from the top-level directory.
+SOURCE_DIRS := $(PROJECT) $(filter-out freertos,$(LIBRARIES)) $(if $(filter freertos,$(LIBRARIES)),freertos/source)
+SOURCES := $(shell find $(SOURCE_DIRS:%=../%) -name '*.c')
 
-ifeq ($(USE_FREERTOS),1)
-FREERTOS_SOURCES := $(wildcard ../freertos/source/*.c)
-FREERTOS_OBJS := $(FREERTOS_SOURCES:../freertos/source/%.c=obj/freertos/%.o)
-FREERTOS_HEADERS := $(wildcard ../freertos/include/*.h)
-FREERTOS_CFLAGS := -isystem ../freertos/include -I.
-endif
+# Collect all header files used in compiling the project and libraries.
+# We include all headers here, public and private, because they all need to spur recompilation of source files.
+# Special case: FreeRTOS must not search its entire vendor/ tree for headers, only include/.
+HEADER_DIRS := $(PROJECT) $(filter-out freertos,$(LIBRARIES)) $(if $(filter freertos,$(LIBRARIES)),freertos/include)
+HEADERS := $(shell find $(HEADER_DIRS:%=../%) -name '*.h')
 
-ifeq ($(USE_STM32LIB),1)
-STM32LIB_SOURCES := $(wildcard ../stm32lib/*.c)
-STM32LIB_OBJS := $(STM32LIB_SOURCES:../stm32lib/%.c=obj/stm32lib/%.o)
-STM32LIB_HEADERS := $(shell find ../stm32lib/include -name '*.h')
-STM32LIB_CFLAGS := -isystem ../stm32lib/include
+# Collect system include directories based on used libraries.
+SYS_INC_DIRS := $(LIBRARIES:%=../%/include)
+
+# The linker script.
 LINKER_SCRIPT := ../stm32lib/stm32f405.ld
-endif
 
-ifeq ($(USE_USB),1)
-USB_SOURCES := $(shell find ../usb -name '*.c')
-USB_OBJS := $(USB_SOURCES:../usb/%.c=obj/usb/%.o)
-USB_HEADERS := $(shell find ../usb -name '*.h')
-USB_CFLAGS := -isystem ../usb/include
-endif
+# Compute the object files we will build.
+OBJS := $(SOURCES:../%.c=obj/%.o)
 
 
 
-BUILD_OBJS := $(PROJECT_OBJS) $(FREERTOS_OBJS) $(STM32LIB_OBJS) $(USB_OBJS)
-BUILD_LDLIBS := $(PROJECT_LDLIBS) $(FREERTOS_LDLIBS) $(STM32LIB_LDLIBS) $(USB_LDLIBS)
-DEP_HEADERS := $(PROJECT_HEADERS) $(FREERTOS_HEADERS) $(STM32LIB_HEADERS) $(USB_HEADERS)
-override CFLAGS := $(CFLAGS) $(PROJECT_CFLAGS) $(FREERTOS_CFLAGS) $(STM32LIB_CFLAGS) $(USB_CFLAGS)
-override LDLIBS := $(LDLIBS) $(PROJECT_LDLIBS) $(FREERTOS_LDLIBS) $(STM32LIB_LDLIBS) $(USB_LDLIBS) -lm
+override CFLAGS := $(CFLAGS) $(LIBRARIES:%=-isystem ../%/include) -I.
+override LDLIBS := $(LDLIBS) -lm
 override LDFLAGS := $(LDFLAGS) -Wl,-T$(LINKER_SCRIPT)
 
 
@@ -54,37 +45,16 @@ world : $(PROJECT).bin
 	@echo " OBJCOPY   $@"
 	@$(OBJCOPY) -O binary $+ $@
 
-$(PROJECT).elf : $(BUILD_OBJS) $(EXTRA_OBJS) $(BUILD_LDLIBS) $(LINKER_SCRIPT)
+$(PROJECT).elf : $(OBJS) $(LINKER_SCRIPT)
 	@echo " LD        $@"
-	@$(CC) $(LDFLAGS) -o$@ -Wl,-Map=$(PROJECT).map $(BUILD_OBJS) $(EXTRA_OBJS) $(LDLIBS)
+	@$(CC) $(LDFLAGS) -o$@ -Wl,-Map=$(PROJECT).map $(OBJS) $(LDLIBS)
 
-$(BUILD_OBJS) : $(DEP_HEADERS) Makefile ../stm32lib/Makefile.common
+$(OBJS) : $(HEADERS) Makefile ../stm32lib/Makefile.common
 
-$(PROJECT_OBJS) : obj/%.o : %.c
+$(OBJS) : obj/%.o : ../%.c
 	@mkdir -p $(shell dirname $@)
 	@echo " CC        $@"
 	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
-
-ifeq ($(USE_FREERTOS),1)
-$(FREERTOS_OBJS) : obj/freertos/%.o : ../freertos/source/%.c FreeRTOSConfig.h $(FREERTOS_HEADERS)
-	@mkdir -p $(shell dirname $@)
-	@echo " CC        $@"
-	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
-endif
-
-ifeq ($(USE_STM32LIB),1)
-$(STM32LIB_OBJS) : obj/stm32lib/%.o : ../stm32lib/%.c $(STM32LIB_HEADERS)
-	@mkdir -p $(shell dirname $@)
-	@echo " CC        $@"
-	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
-endif
-
-ifeq ($(USE_USB),1)
-$(USB_OBJS) : obj/usb/%.o : ../usb/%.c $(USB_HEADERS)
-	@mkdir -p $(shell dirname $@)
-	@echo " CC        $@"
-	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
-endif
 
 .PHONY : clean
 clean :

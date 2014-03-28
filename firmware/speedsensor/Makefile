@@ -1,7 +1,5 @@
 PROJECT := speedsensor
-USE_STM32LIB := 1
-USE_FREERTOS := 0
-USE_USB := 0
+LIBRARIES := stm32lib
 
 include ../stm32lib/Makefile.common
 
