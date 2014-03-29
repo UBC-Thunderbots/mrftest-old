@@ -319,6 +319,8 @@ software/ai/hl/stp/play/direct_kick_friendly_pivot.cpp -text
 software/ai/hl/stp/play/frantic_defense.cpp -text
 software/ai/hl/stp/play/free_kick_corner_chip.cpp -text
 software/ai/hl/stp/play/free_kick_enemy_defend.cpp -text
+software/ai/hl/stp/play/free_kick_enemy_direct.cpp -text
+software/ai/hl/stp/play/free_kick_enemy_indirect.cpp -text
 software/ai/hl/stp/play/free_kick_enemy_mark_defend.cpp -text
 software/ai/hl/stp/play/free_kick_friendly.cpp -text
 software/ai/hl/stp/play/free_kick_friendly_chip.cpp -text
