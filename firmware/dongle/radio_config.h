@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef RADIO_CONFIG_H
+#define RADIO_CONFIG_H
 
 /**
  * \file
@@ -12,7 +12,7 @@
 /**
  * \brief The configuration parameters.
  */
-extern struct config {
+extern struct radio_config {
 	/**
 	 * \brief The radio channel.
 	 */
@@ -32,7 +32,7 @@ extern struct config {
 	 * \brief The station’s MAC address.
 	 */
 	uint64_t mac_address;
-} config;
+} radio_config;
 
 #endif
 

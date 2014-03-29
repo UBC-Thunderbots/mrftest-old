@@ -1,8 +1,8 @@
 #include "normal.h"
-#include "config.h"
 #include "constants.h"
 #include "estop.h"
 #include "mrf.h"
+#include "radio_config.h"
 #include <FreeRTOS.h>
 #include <errno.h>
 #include <event_groups.h>
@@ -209,8 +209,8 @@ static void send_drive_packet(const void *packet, uint8_t counter) {
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 2U, 0b01000001U); // Frame control LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 3U, 0b10001000U); // Frame control MSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 4U, ++mrf_tx_seqnum); // Sequence number
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 5U, config.pan_id); // Destination PAN ID LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 6U, config.pan_id >> 8U); // Destination PAN ID MSB
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 5U, radio_config.pan_id); // Destination PAN ID LSB
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 6U, radio_config.pan_id >> 8U); // Destination PAN ID MSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 7U, 0xFFU); // Destination address LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 8U, 0xFFU); // Destination address MSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 9U, 0x00U); // Source address LSB
@@ -610,8 +610,8 @@ static void prep_send_message_packet(const packet_t *packet) {
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 2U, 0b01100001U); // Frame control LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 3U, 0b10001000U); // Frame control MSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 4U, ++mrf_tx_seqnum); // Sequence number
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 5U, config.pan_id); // Destination PAN ID LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 6U, config.pan_id >> 8U); // Destination PAN ID MSB
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 5U, radio_config.pan_id); // Destination PAN ID LSB
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 6U, radio_config.pan_id >> 8U); // Destination PAN ID MSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 7U, packet->data[0U] & 0xFU); // Destination address LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 8U, 0x00U); // Destination address MSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 9U, 0x00U); // Source address LSB
@@ -751,7 +751,7 @@ static void rdrx_task(void *UNUSED(param)) {
 }
 
 bool normal_can_enter(void) {
-	return config.pan_id != 0xFFFFU;
+	return radio_config.pan_id != 0xFFFFU;
 }
 
 void normal_on_enter(void) {

@@ -1,9 +1,9 @@
 #include "enabled.h"
 #include "buzzer.h"
-#include "config.h"
 #include "constants.h"
 #include "normal.h"
 #include "promiscuous.h"
+#include "radio_config.h"
 #include <FreeRTOS.h>
 #include <core_progmem.h>
 #include <init.h>
@@ -236,16 +236,16 @@ static const struct __attribute__((packed)) {
 
 static bool radio_control_handler(const usb_setup_packet_t *pkt) {
 	if (pkt->bmRequestType.recipient == USB_RECIPIENT_INTERFACE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_GET_CHANNEL && !pkt->wValue) {
-		uep0_data_write(&config.channel, sizeof(config.channel));
+		uep0_data_write(&radio_config.channel, sizeof(radio_config.channel));
 		return true;
 	} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_INTERFACE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_GET_SYMBOL_RATE && !pkt->wValue) {
-		uep0_data_write(&config.symbol_rate, sizeof(config.symbol_rate));
+		uep0_data_write(&radio_config.symbol_rate, sizeof(radio_config.symbol_rate));
 		return true;
 	} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_INTERFACE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_GET_PAN_ID && !pkt->wValue) {
-		uep0_data_write(&config.pan_id, sizeof(config.pan_id));
+		uep0_data_write(&radio_config.pan_id, sizeof(radio_config.pan_id));
 		return true;
 	} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_INTERFACE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_GET_MAC_ADDRESS && !pkt->wValue) {
-		uep0_data_write(&config.mac_address, sizeof(config.mac_address));
+		uep0_data_write(&radio_config.mac_address, sizeof(radio_config.mac_address));
 		return true;
 	} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_INTERFACE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_BEEP && !pkt->wLength) {
 		buzzer_start(pkt->wValue);
@@ -256,16 +256,16 @@ static bool radio_control_handler(const usb_setup_packet_t *pkt) {
 
 static bool radio_off_control_handler(const usb_setup_packet_t *pkt) {
 	if (pkt->bmRequestType.recipient == USB_RECIPIENT_INTERFACE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_SET_CHANNEL && 0x0BU <= pkt->wValue && pkt->wValue <= 0x1AU && !pkt->wLength) {
-		config.channel = pkt->wValue;
+		radio_config.channel = pkt->wValue;
 		return true;
 	} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_INTERFACE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_SET_SYMBOL_RATE && pkt->wValue <= 1U && !pkt->wLength) {
-		config.symbol_rate = pkt->wValue;
+		radio_config.symbol_rate = pkt->wValue;
 		return true;
 	} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_INTERFACE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_SET_PAN_ID && pkt->wValue != 0xFFFFU && !pkt->wLength) {
-		config.pan_id = pkt->wValue;
+		radio_config.pan_id = pkt->wValue;
 		return true;
-	} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_INTERFACE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_SET_MAC_ADDRESS && !pkt->wValue && pkt->wLength == sizeof(config.mac_address)) {
-		return uep0_data_read(&config.mac_address);
+	} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_INTERFACE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_SET_MAC_ADDRESS && !pkt->wValue && pkt->wLength == sizeof(radio_config.mac_address)) {
+		return uep0_data_read(&radio_config.mac_address);
 	}
 	return false;
 }

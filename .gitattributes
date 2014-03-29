@@ -25,8 +25,6 @@ firmware/dongle/FreeRTOSConfig.h -text
 firmware/dongle/Makefile -text
 firmware/dongle/buzzer.c -text
 firmware/dongle/buzzer.h -text
-firmware/dongle/config.c -text
-firmware/dongle/config.h -text
 firmware/dongle/constants.h -text
 firmware/dongle/enabled.c -text
 firmware/dongle/enabled.h -text
@@ -39,6 +37,8 @@ firmware/dongle/normal.c -text
 firmware/dongle/normal.h -text
 firmware/dongle/promiscuous.c -text
 firmware/dongle/promiscuous.h -text
+firmware/dongle/radio_config.c -text
+firmware/dongle/radio_config.h -text
 firmware/dongle/timers.txt -text
 firmware/flashburner/Makefile -text
 firmware/flashburner/autonomous.c -text

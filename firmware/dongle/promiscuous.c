@@ -1,7 +1,7 @@
 #include "promiscuous.h"
-#include "config.h"
 #include "constants.h"
 #include "mrf.h"
+#include "radio_config.h"
 #include <FreeRTOS.h>
 #include <errno.h>
 #include <exti.h>
@@ -84,7 +84,7 @@ static void radio_task(void *UNUSED(param)) {
 					packet->length = 1U /* Flags */ + 1U /* Channel */ + rxfifo_frame_length /* MAC header + data + FCS */ + 1U /* LQI */ + 1U /* RSSI */;
 					packet->data[0U] = packet_dropped ? 0x01U : 0x00U;
 					packet_dropped = false;
-					packet->data[1U] = config.channel;
+					packet->data[1U] = radio_config.channel;
 					for (size_t i = 0U; i < rxfifo_frame_length + 2U /* LQI + RSSI */; ++i) {
 						packet->data[2U + i] = mrf_read_long(MRF_REG_LONG_RXFIFO + i + 1U);
 					}
