@@ -270,8 +270,7 @@ static void drive_task(void *UNUSED(param)) {
 	// Timer 6 input is 72 MHz from the APB.
 	// Need to count to 1,440,000 for each overflow.
 	// Set prescaler to 1,000, auto-reload to 1,440.
-	rcc_enable(APB1, TIM6);
-	rcc_reset(APB1, TIM6);
+	rcc_enable_reset(APB1, TIM6);
 	{
 		TIM_basic_CR1_t tmp = {
 			.ARPE = 0, // ARR is not buffered.

@@ -14,10 +14,8 @@ void timer5_isr(void) {
 
 void buzzer_init(void) {
 	// Power up the modules
-	rcc_enable(APB1, TIM2);
-	rcc_reset(APB1, TIM2);
-	rcc_enable(APB1, TIM5);
-	rcc_reset(APB1, TIM5);
+	rcc_enable_reset(APB1, TIM2);
+	rcc_enable_reset(APB1, TIM5);
 
 	// Configure timer 2 to drive the buzzer itself in PWM mode
 	{

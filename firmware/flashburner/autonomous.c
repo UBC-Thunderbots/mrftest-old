@@ -244,8 +244,7 @@ void autonomous_start(bool boot) {
 	// Timer 5 is on APB1, which runs at 36 MHz.
 	// APB1 is divided, so timers run at 2× speed, or 72 MHz.
 	// Divide by 720 to get tens of microseconds, and count down from 10,000.
-	rcc_enable(APB1, TIM5);
-	rcc_reset(APB1, TIM5);
+	rcc_enable_reset(APB1, TIM5);
 	{
 		TIM2_5_CR1_t tmp = {
 			.CKD = 0, // Timer runs at full clock frequency.

@@ -128,8 +128,7 @@ void usb_ll_attach(usb_ll_reset_cb_t the_reset_cb, usb_ll_enumeration_done_cb_t 
 	ginak_requested = false;
 
 	// Reset the module and enable the clock
-	rcc_enable(AHB2, OTGFS);
-	rcc_reset(AHB2, OTGFS);
+	rcc_enable_reset(AHB2, OTGFS);
 	// Reset the USB core and configure device-wide parameters
 	{
 		OTG_FS_GUSBCFG_t tmp = {

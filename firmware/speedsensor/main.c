@@ -157,8 +157,7 @@ static const init_specs_t INIT_SPECS = {
 volatile uint32_t wrap_count;
 
 static void tic_toc_setup(void){
-	rcc_enable(APB1, TIM2);
-	rcc_reset(APB1, TIM2);
+	rcc_enable_reset(APB1, TIM2);
 
 	{
 		TIM2_5_CR1_t tmp = {
@@ -590,8 +589,7 @@ static void stm32_main(void) {
 	gpio_init(GPIO_INIT_PINS);
 
 	// setup interrupt
-	rcc_enable(APB2, SYSCFG);
-	rcc_reset(APB2, SYSCFG);
+	rcc_enable_reset(APB2, SYSCFG);
 	SYSCFG_EXTICR[3] = 0b0001000100010001;
 	rcc_disable(APB2, SYSCFG);
 	//           ooo|ooo|ooo|ooo|

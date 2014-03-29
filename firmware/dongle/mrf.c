@@ -42,10 +42,8 @@ void mrf_init(void) {
 	gpio_set_reset_mask(GPIOB, (1 << 6) | (1 << 7), 0);
 
 	// Reset the module and enable the clock.
-	rcc_enable(AHB1, DMA2);
-	rcc_enable(APB2, SPI1);
-	rcc_reset(AHB1, DMA2);
-	rcc_reset(APB2, SPI1);
+	rcc_enable_reset(AHB1, DMA2);
+	rcc_enable_reset(APB2, SPI1);
 
 	if (SPI1.CR1.SPE) {
 		// Wait for SPI module to be idle.

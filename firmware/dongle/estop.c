@@ -55,7 +55,8 @@ void estop_init(unsigned int priority) {
 	// Send power to the switch
 	gpio_set(GPIOB, 0);
 
-	// Configure the ADC
+	// Configure the ADC.
+	// Reset signalling is directed to all three ADCs simultaneously.
 	rcc_enable(APB2, ADC1);
 	rcc_reset(APB2, ADC);
 	{

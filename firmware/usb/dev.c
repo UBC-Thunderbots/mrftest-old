@@ -120,8 +120,7 @@ static void udev_task(void *UNUSED(param)) {
 	}
 
 	// Reset the module and enable the clock
-	rcc_enable(AHB2, OTGFS);
-	rcc_reset(AHB2, OTGFS);
+	rcc_enable_reset(AHB2, OTGFS);
 
 	// Reset the USB core and configure device-wide parameters.
 	{

@@ -3,14 +3,10 @@
 #include <rcc.h>
 
 void gpio_init(const gpio_init_pin_t specs[4U][16U]) {
-	rcc_enable(AHB1, GPIOA);
-	rcc_enable(AHB1, GPIOB);
-	rcc_enable(AHB1, GPIOC);
-	rcc_enable(AHB1, GPIOD);
-	rcc_reset(AHB1, GPIOA);
-	rcc_reset(AHB1, GPIOB);
-	rcc_reset(AHB1, GPIOC);
-	rcc_reset(AHB1, GPIOD);
+	rcc_enable_reset(AHB1, GPIOA);
+	rcc_enable_reset(AHB1, GPIOB);
+	rcc_enable_reset(AHB1, GPIOC);
+	rcc_enable_reset(AHB1, GPIOD);
 	for (unsigned int port = 0U; port < 4U; ++port) {
 		uint32_t moder = 0U, otyper = 0U, ospeedr = 0U, pupdr = 0U, odr = 0U, afr[2U] = { 0U, 0U }, lock = 0U;
 		for (unsigned int pin = 0U; pin < 16U; ++pin) {

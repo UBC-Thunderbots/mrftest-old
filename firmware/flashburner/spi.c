@@ -6,8 +6,7 @@
 
 void spi_init(void) {
 	// Reset and enable the SPI module.
-	rcc_enable(APB2, SPI1);
-	rcc_reset(APB2, SPI1);
+	rcc_enable_reset(APB2, SPI1);
 
 	// Configure the SPI module for the target.
 	{
@@ -42,8 +41,7 @@ void spi_init(void) {
 	}
 
 	// Reset and enable the SPI module.
-	rcc_enable(APB1, SPI3);
-	rcc_reset(APB1, SPI3);
+	rcc_enable_reset(APB1, SPI3);
 
 	// Configure the SPI module for the onboard memory.
 	{

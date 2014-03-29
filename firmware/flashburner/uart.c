@@ -312,8 +312,7 @@ static void on_enter(void) {
 	// USARTDIV = 21
 	// Mantissa part is 21
 	// Fractional part, since OVER8 = 0, is 0.0 × 16 = 0
-	rcc_enable(APB2, USART1);
-	rcc_reset(APB2, USART1);
+	rcc_enable_reset(APB2, USART1);
 	{
 		USART_CR1_t tmp = {
 			.SBK = 0, // Do not send break signal.

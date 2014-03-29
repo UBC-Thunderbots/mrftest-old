@@ -59,12 +59,12 @@ void init_chip(const init_specs_t *specs) {
 	RCC_CSR.RMVF = 0; // Stop clearing reset flags
 	if (rcc_csr_shadow.SFTRSTF && bootload_flag == BOOTLOAD_FLAG_VALUE) {
 		bootload_flag = 0;
-		rcc_enable(APB2, SYSCFG);
-		rcc_reset(APB2, SYSCFG);
+		rcc_enable_reset(APB2, SYSCFG);
 		asm volatile("dsb");
 		SYSCFG_MEMRMP.MEM_MODE = 1;
 		asm volatile("dsb");
 		asm volatile("isb");
+		rcc_disable(APB2, SYSCFG);
 		asm volatile(
 			"msr control, %[control]\n\t"
 			"isb\n\t"
@@ -146,8 +146,7 @@ void init_chip(const init_specs_t *specs) {
 	}
 
 	// Enable the SYSCFG module.
-	rcc_enable(APB2, SYSCFG);
-	rcc_reset(APB2, SYSCFG);
+	rcc_enable_reset(APB2, SYSCFG);
 
 	// Enable the HSE oscillator.
 	{
@@ -305,11 +304,13 @@ void init_chip(const init_specs_t *specs) {
 
 	// If we will be running at at most 144 MHz, switch to the lower-power voltage regulator mode.
 	if (specs->cpu_frequency <= 144) {
-		rcc_enable(APB1, PWR);
-		rcc_reset(APB1, PWR);
+		rcc_enable_reset(APB1, PWR);
 		PWR_CR.VOS = 2; // Set regulator scale 2
 		rcc_disable(APB1, PWR);
 	}
+
+	// Done initializing; disable SYSCFG module.
+	rcc_disable(APB2, SYSCFG);
 }
 
 void init_bootload(void) {
