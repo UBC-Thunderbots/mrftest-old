@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGSCB System control block
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_SCB_H
 #define STM32LIB_REGISTERS_SCB_H
-
-/**
- * \file
- *
- * \brief Defines the system control block registers.
- */
 
 typedef struct {
 	unsigned DISMCYCNT : 1;
@@ -221,4 +220,8 @@ typedef struct {
 #define FPDSCR (*(volatile FPDSCR_t *) 0xE000EF3C)
 
 #endif
+
+/**
+ * @}
+ */
 

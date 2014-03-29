@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGSYSTICK System timer
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_SYSTICK_H
 #define STM32LIB_REGISTERS_SYSTICK_H
-
-/**
- * \file
- *
- * \brief Defines the system timer registers.
- */
 
 typedef struct {
 	unsigned ENABLE : 1;
@@ -42,4 +41,8 @@ _Static_assert(sizeof(SYST_CALIB_t) == 4U, "SYST_CALIB_t is wrong size");
 #define SYST_CALIB (*(volatile SYST_CALIB_t *) (0xE000E01C))
 
 #endif
+
+/**
+ * @}
+ */
 

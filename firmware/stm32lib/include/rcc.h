@@ -1,11 +1,10 @@
+/**
+ * \defgroup RCC Reset and clock control utility macros
+ * @{
+ */
+
 #ifndef STM32LIB_RCC_H
 #define STM32LIB_RCC_H
-
-/**
- * \file
- *
- * \brief Provides utilities for doing various operations on the reset and clock control registers.
- */
 
 #include <registers/rcc.h>
 
@@ -77,4 +76,8 @@
 	} while (0)
 
 #endif
+
+/**
+ * @}
+ */
 

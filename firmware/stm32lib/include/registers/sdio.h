@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGSDIO Secure digital I/O interface
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_SDIO_H
 #define STM32LIB_REGISTERS_SDIO_H
-
-/**
- * \file
- *
- * \brief Defines the secure digital I/O interface registers.
- */
 
 #include <stdint.h>
 
@@ -158,4 +157,8 @@ _Static_assert(sizeof(SDIO_MASK_t) == 4U, "SDIO_MASK_t is wrong size");
 #define SDIO_FIFO (*(volatile uint32_t *) (SDIO_BASE + 0x80))
 
 #endif
+
+/**
+ * @}
+ */
 

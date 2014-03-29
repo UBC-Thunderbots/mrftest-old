@@ -6,14 +6,11 @@
 #include "normal.h"
 #include <FreeRTOS.h>
 #include <core_progmem.h>
-#include <deferred.h>
 #include <exception.h>
-#include <exti.h>
 #include <format.h>
 #include <gpio.h>
 #include <init.h>
 #include <rcc.h>
-#include <sleep.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -31,23 +28,17 @@ typedef void (*fptr)(void);
 static const fptr exception_vectors[16U] __attribute__((used, section(".exception_vectors"))) = {
 	[0U] = (fptr) (mstack + sizeof(mstack) / sizeof(*mstack)),
 	[1U] = &stm32_main,
-	[3U] = &exception_hard_fault_vector,
-	[4U] = &exception_memory_manage_fault_vector,
-	[5U] = &exception_bus_fault_vector,
-	[6U] = &exception_usage_fault_vector,
+	[3U] = &exception_hard_fault_isr,
+	[4U] = &exception_memory_manage_fault_isr,
+	[5U] = &exception_bus_fault_isr,
+	[6U] = &exception_usage_fault_isr,
 	[11U] = &vPortSVCHandler,
 	[14U] = &vPortPendSVHandler,
 	[15U] = &vPortSysTickHandler,
 };
 
 static const fptr interrupt_vectors[82U] __attribute__((used, section(".interrupt_vectors"))) = {
-	[6U] = &exti0_isr,
-	[7U] = &exti1_isr,
-	[8U] = &exti2_isr,
-	[9U] = &exti3_isr,
-	[10U] = &exti4_isr,
 	[18U] = &adc_isr,
-	[23U] = &exti5_9_isr,
 	[40U] = &exti10_15_isr,
 	[50U] = &timer5_isr,
 	[54U] = &timer6_isr,
@@ -64,8 +55,8 @@ static void app_exception_early(void) {
 }
 
 static void app_exception_late(bool core_written) {
-	// Set SYSTICK to divide by 144 so it overflows every microsecond.
-	SYST_RVR.RELOAD = 144U - 1U;
+	// Set SYSTICK to divide by 144,000 so it overflows every millisecond.
+	SYST_RVR.RELOAD = 144000U - 1U;
 	// Set SYSTICK to run with the core AHB clock.
 	{
 		SYST_CSR_t tmp = {
@@ -80,9 +71,13 @@ static void app_exception_late(bool core_written) {
 	// Show flashing lights.
 	for (;;) {
 		gpio_set_reset_mask(GPIOB, 0U, 7U << 12U);
-		sleep_ms(500U);
+		for (unsigned int i = 0U; i < 500U; ++i) {
+			while (!SYST_CSR.COUNTFLAG);
+		}
 		gpio_set_reset_mask(GPIOB, core_written ? (7U << 12U) : (1U << 12U), 0U);
-		sleep_ms(500U);
+		for (unsigned int i = 0U; i < 500U; ++i) {
+			while (!SYST_CSR.COUNTFLAG);
+		}
 	}
 }
 

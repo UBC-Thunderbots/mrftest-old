@@ -1,11 +1,10 @@
+/**
+ * \addtogroup GPIO
+ * @{
+ */
+
 #ifndef STM32LIB_GPIO_H
 #define STM32LIB_GPIO_H
-
-/**
- * \file
- *
- * \brief Provides utility functions for working with general purpose I/O ports.
- */
 
 #include <stdbool.h>
 #include <registers/gpio.h>
@@ -248,23 +247,20 @@
  * \brief Describes the initial state of a single I/O pin.
  */
 typedef struct __attribute__((packed)) {
-	GPIO_MODE_t mode : 2;
-	GPIO_OTYPE_t otype : 1;
-	GPIO_OSPEED_t ospeed : 2;
-	GPIO_PUPD_t pupd : 2;
-	unsigned od : 1;
-	unsigned af : 4;
-	bool unlock : 1;
+	GPIO_MODE_t mode : 2; ///< The mode
+	GPIO_OTYPE_t otype : 1; ///< The type of output driver
+	GPIO_OSPEED_t ospeed : 2; ///< The speed of the output driver
+	GPIO_PUPD_t pupd : 2; ///< The pull-up/pull-down configuration
+	unsigned od : 1; ///< The initial level in the output driver
+	unsigned af : 4; ///< The alternate function number
+	bool unlock : 1; ///< Whether to leave the pin configuration unlocked when locking the ports
 } gpio_init_pin_t;
 
-/**
- * \brief Initializes all I/O ports.
- *
- * Once this function returns, all I/O pins are in their specified states and all ports are enabled in the RCC.
- *
- * \param[in] specs the specifications of the pins, indexed first by port and then by pin
- */
 void gpio_init(const gpio_init_pin_t specs[4U][16U]);
 
 #endif
+
+/**
+ * @}
+ */
 

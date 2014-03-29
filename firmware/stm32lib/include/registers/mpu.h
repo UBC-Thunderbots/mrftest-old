@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGMPU Memory protection unit
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_MPU_H
 #define STM32LIB_REGISTERS_MPU_H
-
-/**
- * \file
- *
- * \brief Defines the memory protection unit registers.
- */
 
 #define MPU_BASE 0xE000ED90
 
@@ -62,4 +61,8 @@ _Static_assert(sizeof(MPU_RASR_t) == 4U, "MPU_RASR_t is wrong size");
 #define MPU_RASR (*(volatile MPU_RASR_t *) (MPU_BASE + 0x10))
 
 #endif
+
+/**
+ * @}
+ */
 

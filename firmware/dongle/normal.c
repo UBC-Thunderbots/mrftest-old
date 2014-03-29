@@ -6,7 +6,6 @@
 #include <FreeRTOS.h>
 #include <errno.h>
 #include <event_groups.h>
-#include <exti.h>
 #include <gpio.h>
 #include <queue.h>
 #include <rcc.h>
@@ -137,7 +136,7 @@ static SemaphoreHandle_t estop_sem;
 /**
  * \brief A semaphore given whenever EXTI12 fires.
  */
-static SemaphoreHandle_t exti12_sem;
+static SemaphoreHandle_t mrf_int_sem;
 
 /**
  * \brief A mutex that must be held whenever a task is using the radio to transmit a frame.
@@ -162,13 +161,10 @@ static SemaphoreHandle_t shutdown_sem;
 /**
  * \brief Handles rising edge interrupts on the MRF interrupt line.
  */
-static void exti12_isr(void) {
-	// Clear the interrupt.
-	EXTI_PR = 1U << 12U; // PR12 = 1; clear pending EXTI12 interrupt
-
+static void mrf_int_isr(void) {
 	// Notify the task.
 	BaseType_t yield = pdFALSE;
-	xSemaphoreGiveFromISR(exti12_sem, &yield);
+	xSemaphoreGiveFromISR(mrf_int_sem, &yield);
 	if (yield) {
 		portYIELD_FROM_ISR();
 	}
@@ -683,7 +679,7 @@ static void rdrx_task(void *UNUSED(param)) {
 
 	for (;;) {
 		// Wait for an interrupt to occur.
-		xSemaphoreTake(exti12_sem, portMAX_DELAY);
+		xSemaphoreTake(mrf_int_sem, portMAX_DELAY);
 		if (__atomic_load_n(&rdrx_shutting_down, __ATOMIC_RELAXED)) {
 			break;
 		}
@@ -761,12 +757,12 @@ void normal_on_enter(void) {
 	receive_queue = xQueueCreate(NUM_PACKETS + 1U, sizeof(packet_t *));
 	mdr_queue = xQueueCreate(NUM_PACKETS + 1U, sizeof(mdr_t));
 	estop_sem = xSemaphoreCreateBinary();
-	exti12_sem = xSemaphoreCreateBinary();
+	mrf_int_sem = xSemaphoreCreateBinary();
 	transmit_mutex = xSemaphoreCreateMutex();
 	transmit_complete_sem = xSemaphoreCreateBinary();
 	drive_event_group = xEventGroupCreate();
 	shutdown_sem = xSemaphoreCreateCounting(8U /* Eight tasks */, 0U);
-	assert(free_queue && transmit_queue && receive_queue && mdr_queue && estop_sem && exti12_sem && transmit_mutex && transmit_complete_sem && drive_event_group && shutdown_sem);
+	assert(free_queue && transmit_queue && receive_queue && mdr_queue && estop_sem && mrf_int_sem && transmit_mutex && transmit_complete_sem && drive_event_group && shutdown_sem);
 
 	// Allocate packet buffers.
 	for (unsigned int i = 0U; i < NUM_PACKETS; ++i) {
@@ -790,12 +786,7 @@ void normal_on_enter(void) {
 	gpio_set(GPIOB, 12U);
 
 	// Enable external interrupt on MRF INT rising edge.
-	exti_set_handler(12U, &exti12_isr);
-	exti_map(12U, 2U); // Map PC12 to EXTI12
-	EXTI_RTSR |= 1U << 12U; // TR12 = 1; enable rising edge trigger on EXTI12
-	EXTI_FTSR &= ~(1U << 12U); // TR12 = 0; disable falling edge trigger on EXTI12
-	EXTI_IMR |= 1U << 12U; // MR12 = 1; enable interrupt on EXTI12 trigger
-	portENABLE_HW_INTERRUPT(40U, EXCEPTION_MKPRIO(6U, 0U));
+	mrf_enable_interrupt(&mrf_int_isr, EXCEPTION_MKPRIO(6U, 0U));
 
 	// Start tasks.
 	BaseType_t ret = xTaskCreate(&drive_task, "norm_drive", 1024U, 0, 7U, 0);
@@ -825,7 +816,7 @@ void normal_on_exit(void) {
 	xQueueSend(mdr_queue, &null_mdr, portMAX_DELAY);
 	xSemaphoreGive(estop_sem);
 	__atomic_store_n(&rdrx_shutting_down, true, __ATOMIC_RELAXED);
-	xSemaphoreGive(exti12_sem);
+	xSemaphoreGive(mrf_int_sem);
 
 	// Wait for the tasks to terminate.
 	for (unsigned int i = 0U; i != 8U; ++i) {
@@ -833,9 +824,7 @@ void normal_on_exit(void) {
 	}
 
 	// Disable the external interrupt on MRF INT.
-	portDISABLE_HW_INTERRUPT(40U);
-	EXTI_IMR &= ~(1U << 12U); // MR12 = 0; disable interrupt on EXTI12 trigger
-	exti_set_handler(12U, 0);
+	mrf_disable_interrupt();
 
 	// Turn off all LEDs.
 	gpio_set_reset_mask(GPIOB, 0U, 7U << 12U);
@@ -861,7 +850,7 @@ void normal_on_exit(void) {
 	vSemaphoreDelete(shutdown_sem);
 	vEventGroupDelete(drive_event_group);
 	vSemaphoreDelete(transmit_complete_sem);
-	vSemaphoreDelete(exti12_sem);
+	vSemaphoreDelete(mrf_int_sem);
 	vSemaphoreDelete(transmit_mutex);
 	vSemaphoreDelete(estop_sem);
 	vQueueDelete(mdr_queue);

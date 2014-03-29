@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGGPIO General purpose I/O
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_GPIO_H
 #define STM32LIB_REGISTERS_GPIO_H
-
-/**
- * \file
- *
- * \brief Defines the general purpose I/O registers.
- */
 
 #include <stdint.h>
 
@@ -75,4 +74,8 @@ typedef GPIO_t GPIOS_t[9];
 #define GPIOI (GPIO[8])
 
 #endif
+
+/**
+ * @}
+ */
 

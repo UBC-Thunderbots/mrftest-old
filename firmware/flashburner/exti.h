@@ -1,5 +1,5 @@
-#ifndef STM32LIB_EXTI_H
-#define STM32LIB_EXTI_H
+#ifndef EXTI_H
+#define EXTI_H
 
 /**
  * \file

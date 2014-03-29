@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGNVIC Nested vectored interrupt controller
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_NVIC_H
 #define STM32LIB_REGISTERS_NVIC_H
-
-/**
- * \file
- *
- * \brief Defines the nested vectored interrupt controller registers.
- */
 
 #include <stdint.h>
 
@@ -27,4 +26,8 @@ _Static_assert(sizeof(STIR_t) == 4U, "STIR_t is wrong size");
 #define STIR (*(volatile STIR_t *) 0xE000EF00)
 
 #endif
+
+/**
+ * @}
+ */
 

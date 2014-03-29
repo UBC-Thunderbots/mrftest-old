@@ -1,7 +1,6 @@
 #include "uart.h"
 #include "autonomous.h"
 #include "constants.h"
-#include <deferred.h>
 #include <gpio.h>
 #include <minmax.h>
 #include <rcc.h>

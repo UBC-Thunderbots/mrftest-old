@@ -1,5 +1,6 @@
-#include <exti.h>
+#include "exti.h"
 #include <assert.h>
+#include <rcc.h>
 #include <registers/exti.h>
 #include <registers/syscfg.h>
 
@@ -48,7 +49,9 @@ void exti_map(unsigned int line, unsigned int port) {
 	assert(port <= 8);
 	unsigned int cr = line / 4;
 	unsigned int shift = (line % 4) * 4;
+	rcc_enable(APB2, SYSCFG);
 	SYSCFG_EXTICR[cr] = (SYSCFG_EXTICR[cr] & ~(0xF << shift)) | (port << shift);
+	rcc_disable(APB2, SYSCFG);
 }
 
 void exti_set_handler(unsigned int line, exti_handler_t handler) {

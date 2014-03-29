@@ -1,5 +1,5 @@
-#ifndef STM32LIB_DEFERRED_H
-#define STM32LIB_DEFERRED_H
+#ifndef DEFERRED_H
+#define DEFERRED_H
 
 /**
  * \file

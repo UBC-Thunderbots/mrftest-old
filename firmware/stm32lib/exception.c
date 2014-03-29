@@ -1,3 +1,17 @@
+/**
+ * \defgroup EXC Exception handling functions
+ *
+ * \brief These functions handle crashes.
+ *
+ * When running code crashes, four things happen:
+ * \li An application-provided early callback is invoked, if provided; this can be used to ensure the system is safe.
+ * \li A core dump is generated and handed off to a core dump writer, if provided.
+ * \li An application-provided late callback is invoked, if provided; this can be used to display something to the user announcing the crash.
+ * \li If the late callback returns, the system is locked up forever.
+ *
+ * @{
+ */
+
 #include <exception.h>
 #include <registers/mpu.h>
 #include <registers/nvic.h>
@@ -5,9 +19,22 @@
 #include <sleep.h>
 #include <string.h>
 
+/**
+ * \cond INTERNAL
+ */
 static const exception_core_writer_t *core_writer = 0;
 static const exception_app_cbs_t *app_cbs = 0;
+/**
+ * \endcond
+ */
 
+/**
+ * \brief Initializes the exception handling subsystem.
+ *
+ * \param[in] cw the core dump writer module, or null to not write core dumps
+ *
+ * \param[in] acbs the application-specific callbacks invoked when a crash occurs, or null to omit
+ */
 void exception_init(const exception_core_writer_t *cw, const exception_app_cbs_t *acbs) {
 	// Set the interrupt system to set priorities as having the upper three bits for group priorities and the rest as subpriorities.
 	{
@@ -47,6 +74,9 @@ void exception_init(const exception_core_writer_t *cw, const exception_app_cbs_t
 	app_cbs = acbs;
 }
 
+/**
+ * \cond INTERNAL
+ */
 typedef struct __attribute__((packed)) {
 	char ei_mag[4];
 	uint8_t ei_class;
@@ -427,8 +457,8 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 	elf_notes.prstatus.pr_reg_orig_r0 = elf_notes.prstatus.pr_gpregs[0];
 }
 
-static void common_fault_handler(const sw_stack_frame_t *sp, unsigned int cause) __attribute__((noreturn, used));
-static void common_fault_handler(const sw_stack_frame_t *sp, unsigned int cause) {
+static void common_fault_isr(const sw_stack_frame_t *sp, unsigned int cause) __attribute__((noreturn, used));
+static void common_fault_isr(const sw_stack_frame_t *sp, unsigned int cause) {
 	// Call the early application callbacks.
 	if (app_cbs && app_cbs->early) {
 		app_cbs->early();
@@ -463,28 +493,65 @@ static void common_fault_handler(const sw_stack_frame_t *sp, unsigned int cause)
 	}
 }
 
-#define GEN_FAULT_HANDLER(name, cause) \
-	void exception_ ## name ## _fault_vector(void) { \
-		asm volatile( \
-				"push {r0-r12, lr}\n\t" \
-				"mrs r0, xpsr\n\t" \
-				"mrs r1, msp\n\t" \
-				"mrs r2, psp\n\t" \
-				"mrs r3, primask\n\t" \
-				"mrs r4, basepri\n\t" \
-				"mrs r5, faultmask\n\t" \
-				"mrs r6, control\n\t" \
-				"push {r0-r6}\n\t" \
-				"mov r0, sp\n\t" \
-				"mov r1, %[cause_constant]\n\t" \
-				"b common_fault_handler\n\t" \
-				: \
-				: [cause_constant] "i" (cause)); \
-		__builtin_unreachable(); \
-	}
+#define GEN_FAULT_HANDLER(cause) \
+	asm volatile( \
+			"push {r0-r12, lr}\n\t" \
+			"mrs r0, xpsr\n\t" \
+			"mrs r1, msp\n\t" \
+			"mrs r2, psp\n\t" \
+			"mrs r3, primask\n\t" \
+			"mrs r4, basepri\n\t" \
+			"mrs r5, faultmask\n\t" \
+			"mrs r6, control\n\t" \
+			"push {r0-r6}\n\t" \
+			"mov r0, sp\n\t" \
+			"mov r1, %[cause_constant]\n\t" \
+			"b common_fault_isr\n\t" \
+			: \
+			: [cause_constant] "i" (cause)); \
+	__builtin_unreachable();
 
-GEN_FAULT_HANDLER(hard, 3)
-GEN_FAULT_HANDLER(memory_manage, 4)
-GEN_FAULT_HANDLER(bus, 5)
-GEN_FAULT_HANDLER(usage, 6)
+/**
+ * \endcond
+ */
+
+/**
+ * \brief An interrupt handler that handles hard faults.
+ *
+ * This function must be inserted as element 3 in the application’s CPU exception vector table.
+ */
+void exception_hard_fault_isr(void) {
+	GEN_FAULT_HANDLER(3);
+}
+
+/**
+ * \brief An interrupt handler that handles memory manage faults.
+ *
+ * This function must be inserted as element 4 in the application’s CPU exception vector table.
+ */
+void exception_memory_manage_fault_isr(void) {
+	GEN_FAULT_HANDLER(4);
+}
+
+/**
+ * \brief An interrupt handler that handles bus faults.
+ *
+ * This function must be inserted as element 5 in the application’s CPU exception vector table.
+ */
+void exception_bus_fault_isr(void) {
+	GEN_FAULT_HANDLER(5);
+}
+
+/**
+ * \brief An interrupt handler that handles usage faults.
+ *
+ * This function must be inserted as element 6 in the application’s CPU exception vector table.
+ */
+void exception_usage_fault_isr(void) {
+	GEN_FAULT_HANDLER(6);
+}
+
+/**
+ * @}
+ */
 

@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGPWR Power control
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_POWER_H
 #define STM32LIB_REGISTERS_POWER_H
-
-/**
- * \file
- *
- * \brief Defines the power control registers.
- */
 
 typedef struct {
 	unsigned LPDS : 1;
@@ -24,4 +23,8 @@ _Static_assert(sizeof(PWR_CR_t) == 4U, "PWR_CR_t is wrong size");
 #define PWR_CR (*(volatile PWR_CR_t *) 0x40007000)
 
 #endif
+
+/**
+ * @}
+ */
 

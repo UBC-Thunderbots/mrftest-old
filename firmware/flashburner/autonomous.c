@@ -1,7 +1,7 @@
 #include "autonomous.h"
+#include "deferred.h"
 #include "spi.h"
 #include <assert.h>
-#include <deferred.h>
 #include <gpio.h>
 #include <rcc.h>
 #include <registers/nvic.h>

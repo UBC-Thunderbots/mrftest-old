@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGCRC CRC calculation unit
+ * @{
+ */
 #ifndef STM32LIB_INCLUDE_REGISTERS_CRC_H
 #define STM32LIB_INCLUDE_REGISTERS_CRC_H
-
-/**
- * \file
- *
- * \brief Defines the CRC calculation unit registers.
- */
 
 #include <stdint.h>
 
@@ -23,4 +22,8 @@ _Static_assert(sizeof(CRC_CR_t) == 4U, "CRC_CR_t is wrong size");
 #define CRC_CR (*(volatile CRC_CR_t *) (CRC_BASE + 0x08))
 
 #endif
+
+/**
+ * @}
+ */
 

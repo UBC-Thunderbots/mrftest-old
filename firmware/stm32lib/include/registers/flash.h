@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGFLASH Embedded Flash memory interface
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_FLASH_H
 #define STM32LIB_REGISTERS_FLASH_H
-
-/**
- * \file
- *
- * \brief Defines the embedded Flash memory interface registers.
- */
 
 #include <stdint.h>
 
@@ -84,4 +83,8 @@ _Static_assert(sizeof(FLASH_OPTCR1_t) == 4U, "FLASH_OPTCR1_t is wrong size");
 #define FLASH_OPTCR1 (*(volatile FLASH_OPTCR1_t *) (FLASH_BASE + 0x18))
 
 #endif
+
+/**
+ * @}
+ */
 

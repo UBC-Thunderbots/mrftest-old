@@ -1,5 +1,6 @@
 #include "autonomous.h"
 #include "constants.h"
+#include "deferred.h"
 #include "exti.h"
 #include "host_controlled.h"
 #include "idle.h"
@@ -7,7 +8,6 @@
 #include "spi.h"
 #include "uart.h"
 #include <core_progmem.h>
-#include <deferred.h>
 #include <exception.h>
 #include <format.h>
 #include <gpio.h>
@@ -57,10 +57,10 @@ static const fptr exception_vectors[16] __attribute__((used, section(".exception
 	[0] = (fptr) (mstack + sizeof(mstack)),
 	[1] = &stm32_main,
 	[2] = &nmi_vector,
-	[3] = &exception_hard_fault_vector,
-	[4] = &exception_memory_manage_fault_vector,
-	[5] = &exception_bus_fault_vector,
-	[6] = &exception_usage_fault_vector,
+	[3] = &exception_hard_fault_isr,
+	[4] = &exception_memory_manage_fault_isr,
+	[5] = &exception_bus_fault_isr,
+	[6] = &exception_usage_fault_isr,
 	[11] = &service_call_vector,
 	[14] = &deferred_fn_pendsv_handler,
 	[15] = &system_tick_vector,

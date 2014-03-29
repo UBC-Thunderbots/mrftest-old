@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGDMA DMA controller
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_DMA_H
 #define STM32LIB_REGISTERS_DMA_H
-
-/**
- * \file
- *
- * \brief Defines the DMA controller registers.
- */
 
 #include <stdint.h>
 
@@ -225,4 +224,8 @@ _Static_assert(sizeof(DMA_t) == 0xD0U, "DMA_t is wrong size");
 #define DMA2 (*(volatile DMA_t *) DMA2_BASE)
 
 #endif
+
+/**
+ * @}
+ */
 

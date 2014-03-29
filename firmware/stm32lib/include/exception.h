@@ -1,11 +1,9 @@
+/**
+ * \addtogroup EXC
+ * @{
+ */
 #ifndef STM32LIB_EXCEPTION_H
 #define STM32LIB_EXCEPTION_H
-
-/**
- * \file
- *
- * \brief Provides a framework for handling CPU exceptions.
- */
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -62,45 +60,11 @@ typedef struct {
 	void (*late)(bool);
 } exception_app_cbs_t;
 
-/**
- * \brief Initializes the exception handling subsystem.
- *
- * This function sets up interrupt priorities and enables the various internal CPU exceptions.
- * It also chooses how core dumps will be saved.
- *
- * \param[in] writer the writer to use, which may be null to omit core dumping altogether
- *
- * \param[in] the application callbacks, which may be null to omit application callbacks altogether
- */
 void exception_init(const exception_core_writer_t *core_writer, const exception_app_cbs_t *app_cbs);
-
-/**
- * \brief An interrupt handler that handles hard faults.
- *
- * This function must be inserted as element 3 in the application’s CPU exception vector table.
- */
-void exception_hard_fault_vector(void) __attribute__((naked, noreturn));
-
-/**
- * \brief An interrupt handler that handles memory manage faults.
- *
- * This function must be inserted as element 4 in the application’s CPU exception vector table.
- */
-void exception_memory_manage_fault_vector(void) __attribute__((naked, noreturn));
-
-/**
- * \brief An interrupt handler that handles bus faults.
- *
- * This function must be inserted as element 5 in the application’s CPU exception vector table.
- */
-void exception_bus_fault_vector(void) __attribute__((naked, noreturn));
-
-/**
- * \brief An interrupt handler that handles usage faults.
- *
- * This function must be inserted as element 6 in the application’s CPU exception vector table.
- */
-void exception_usage_fault_vector(void) __attribute__((naked, noreturn));
+void exception_hard_fault_isr(void) __attribute__((naked, noreturn));
+void exception_memory_manage_fault_isr(void) __attribute__((naked, noreturn));
+void exception_bus_fault_isr(void) __attribute__((naked, noreturn));
+void exception_usage_fault_isr(void) __attribute__((naked, noreturn));
 
 /**
  * \brief The number of bits used for group priority.
@@ -138,4 +102,8 @@ void exception_usage_fault_vector(void) __attribute__((naked, noreturn));
 #define EXCEPTION_SUB_PRIO(prio) (((prio) >> (8U - EXCEPTION_GROUP_PRIO_BITS - EXCEPTION_SUB_PRIO_BITS)) & ((1U << EXCEPTION_SUB_PRIO_BITS) - 1U))
 
 #endif
+
+/**
+ * @}
+ */
 

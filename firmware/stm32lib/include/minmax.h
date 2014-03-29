@@ -1,11 +1,10 @@
+/**
+ * \defgroup MINMAX Minimum and maximum macros
+ * @{
+ */
+
 #ifndef STM32LIB_MINMAX_H
 #define STM32LIB_MINMAX_H
-
-/**
- * \file
- *
- * \brief Provides definitions of the \ref MIN and \ref MAX macros.
- */
 
 /**
  * \brief Returns the smaller of two elements.
@@ -30,4 +29,8 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 #endif
+
+/**
+ * @}
+ */
 

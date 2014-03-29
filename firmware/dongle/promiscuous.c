@@ -4,7 +4,6 @@
 #include "radio_config.h"
 #include <FreeRTOS.h>
 #include <errno.h>
-#include <exti.h>
 #include <gpio.h>
 #include <minmax.h>
 #include <queue.h>
@@ -29,7 +28,7 @@ static SemaphoreHandle_t event_sem, init_shutdown_sem;
 static uint16_t promisc_flags;
 static bool shutting_down;
 
-static void exti12_isr(void) {
+static void mrf_int_isr(void) {
 	// Clear the interrupt and give the semaphore.
 	EXTI_PR = 1U << 12U; // PR12 = 1; clear pending EXTI12 interrupt
 	BaseType_t yield = pdFALSE;
@@ -52,12 +51,7 @@ static void radio_task(void *UNUSED(param)) {
 	gpio_set(GPIOB, 12U);
 
 	// Enable external interrupt on MRF INT rising edge.
-	exti_set_handler(12U, &exti12_isr);
-	exti_map(12U, 2U); // Map PC12 to EXTI12
-	EXTI_RTSR |= 1U << 12U; // TR12 = 1; enable rising edge trigger on EXTI12
-	EXTI_FTSR &= ~(1U << 12U); // TR12 = 0; disable falling edge trigger on EXTI12
-	EXTI_IMR |= 1U << 12U; // MR12 = 1; enable interrupt on EXTI12 trigger
-	portENABLE_HW_INTERRUPT(40U, EXCEPTION_MKPRIO(6U, 0U));
+	mrf_enable_interrupt(&mrf_int_isr, EXCEPTION_MKPRIO(6U, 0U));
 
 	// Notify on_enter that initialization is finished.
 	xSemaphoreGive(init_shutdown_sem);
@@ -102,9 +96,7 @@ static void radio_task(void *UNUSED(param)) {
 	}
 
 	// Disable the external interrupt on MRF INT.
-	portDISABLE_HW_INTERRUPT(40U);
-	EXTI_IMR &= ~(1U << 12U); // MR12 = 0; disable interrupt on EXTI12 trigger
-	exti_set_handler(12U, 0);
+	mrf_disable_interrupt();
 
 	// Turn off all LEDs.
 	gpio_set_reset_mask(GPIOB, 0U, 7U << 12U);

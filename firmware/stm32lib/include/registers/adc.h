@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGADC Analogue-to-digital converter
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_ADC_H
 #define STM32LIB_REGISTERS_ADC_H
-
-/**
- * \file
- *
- * \brief Defines the analogue-to-digital converter registers.
- */
 
 #include <stdint.h>
 
@@ -234,4 +233,8 @@ _Static_assert(sizeof(ADC_CDR_t) == 4U, "ADC_CDR_t is wrong size");
 #define ADC_CDR (*(volatile ADC_CDR_t *) (ADC_COMMON_BASE + 0x08))
 
 #endif
+
+/**
+ * @}
+ */
 

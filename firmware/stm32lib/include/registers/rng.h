@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGRNG Random number generator
+ * @{
+ */
 #ifndef STM32LIB_INCLUDE_REGISTERS_RNG_H
 #define STM32LIB_INCLUDE_REGISTERS_RNG_H
-
-/**
- * \file
- *
- * \brief Defines the random number generator registers.
- */
 
 #include <stdint.h>
 
@@ -35,4 +34,8 @@ _Static_assert(sizeof(RNG_SR_t) == 4U, "RNG_SR_t is wrong size");
 #define RNG_DR (*(volatile uint32_t *) (RNG_BASE + 0x08))
 
 #endif
+
+/**
+ * @}
+ */
 

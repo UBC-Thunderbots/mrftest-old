@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGRCC Reset and clock control
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_RCC_H
 #define STM32LIB_REGISTERS_RCC_H
-
-/**
- * \file
- *
- * \brief Defines the reset and clock control registers.
- */
 
 #define RCC_BASE 0x40023800
 
@@ -474,4 +473,8 @@ _Static_assert(sizeof(RCC_DCKCFGR_t) == 4U, "RCC_DCKCFGR_t is wrong size");
 #define RCC_DCKCFGR (*(volatile RCC_DCKCFGR_t *) (RCC_BASE + 0x8C))
 
 #endif
+
+/**
+ * @}
+ */
 

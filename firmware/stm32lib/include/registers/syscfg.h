@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGSYSCFG System configuration controller
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_SYSCFG_H
 #define STM32LIB_REGISTERS_SYSCFG_H
-
-/**
- * \file
- *
- * \brief Defines the system configuration controller registers.
- */
 
 #include <stdint.h>
 
@@ -39,4 +38,8 @@ _Static_assert(sizeof(SYSCFG_CMPCR_t) == 4U, "SYSCFG_CMPCR_t is wrong size");
 #define SYSCFG_CMPCR (*(volatile SYSCFG_CMPCR_t *) (SYSCFG_BASE + 0x20))
 
 #endif
+
+/**
+ * @}
+ */
 

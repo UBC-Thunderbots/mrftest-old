@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGTMR Timer
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_TIMER_H
 #define STM32LIB_REGISTERS_TIMER_H
-
-/**
- * \file
- *
- * \brief Defines the timer registers.
- */
 
 #include <stdint.h>
 
@@ -711,4 +710,8 @@ _Static_assert(sizeof(TIM_act_t) == 0x50U, "TIM_act_t is wrong size");
 #define TIM8 (*(volatile TIM_act_t *) 0x40010400)
 
 #endif
+
+/**
+ * @}
+ */
 

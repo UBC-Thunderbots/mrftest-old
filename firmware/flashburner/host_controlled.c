@@ -1,9 +1,9 @@
 #include "host_controlled.h"
 #include "autonomous.h"
+#include "deferred.h"
 #include "constants.h"
 #include "io.h"
 #include "spi.h"
-#include <deferred.h>
 #include <gpio.h>
 #include <minmax.h>
 #include <rcc.h>

@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGEXTI External interrupt/event controller
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_EXTI_H
 #define STM32LIB_REGISTERS_EXTI_H
-
-/**
- * \file
- *
- * \brief Defines the external interrupt/event controller registers.
- */
 
 #include <stdint.h>
 
@@ -19,4 +18,8 @@
 #define EXTI_PR (*(volatile uint32_t *) (EXTI_BASE + 0x14))
 
 #endif
+
+/**
+ * @}
+ */
 

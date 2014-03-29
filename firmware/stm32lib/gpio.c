@@ -1,7 +1,25 @@
+/**
+ * \defgroup GPIO General-purpose I/O port utility functions and macros
+ *
+ * An I/O pin is represented by two values, a port and a bit number.
+ * For example, pin PB12 is bit 12 of port B.
+ * The macros in this function represent a port as one of the memory mapped structure instances given names in the registers header file.
+ * For example, PB12 would be represented as <code>GPIOB, 12</code>.
+ *
+ * @{
+ */
+
 #include <gpio.h>
 #include <assert.h>
 #include <rcc.h>
 
+/**
+ * \brief Initializes all I/O ports.
+ *
+ * Once this function returns, all I/O pins are in their specified states and all ports are enabled in the RCC.
+ *
+ * \param[in] specs the specifications of the pins, indexed first by port and then by pin
+ */
 void gpio_init(const gpio_init_pin_t specs[4U][16U]) {
 	rcc_enable_reset(AHB1, GPIOA);
 	rcc_enable_reset(AHB1, GPIOB);
@@ -38,4 +56,8 @@ void gpio_init(const gpio_init_pin_t specs[4U][16U]) {
 		}
 	}
 }
+
+/**
+ * @}
+ */
 

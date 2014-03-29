@@ -1,7 +1,7 @@
 #include "idle.h"
 #include "constants.h"
+#include "deferred.h"
 #include <core_progmem.h>
-#include <deferred.h>
 #include <init.h>
 #include <registers/scb.h>
 #include <stdint.h>

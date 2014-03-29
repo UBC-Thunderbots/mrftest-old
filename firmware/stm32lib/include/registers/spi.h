@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGSPI Serial peripheral interface
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_SPI_H
 #define STM32LIB_REGISTERS_SPI_H
-
-/**
- * \file
- *
- * \brief Defines the serial peripheral interface registers.
- */
 
 #define SPI1_BASE 0x40013000
 #define SPI2_BASE 0x40003800
@@ -97,4 +96,8 @@ _Static_assert(sizeof(SPI_t) == 0x24U, "SPI_t is wrong size");
 #define SPI3 (*(volatile SPI_t *) SPI3_BASE)
 
 #endif
+
+/**
+ * @}
+ */
 

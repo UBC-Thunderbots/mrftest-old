@@ -1,3 +1,9 @@
+/**
+ * \defgroup INIT Chip initialization functions
+ *
+ * @{
+ */
+
 #include <init.h>
 #include <assert.h>
 #include <inttypes.h>
@@ -52,6 +58,27 @@ static unsigned int compute_flash_wait_states(unsigned int cpu) {
 	return (cpu - 1) / 30;
 }
 
+/**
+ * \brief Initializes the chip.
+ *
+ * The following initializations are done:
+ * \li The bootloader is entered, if requested.
+ * \li The system stacks are initialized properly.
+ * \li The data section is filled from ROM.
+ * \li The BSS section is wiped.
+ * \li Interrupt handling is configured.
+ * \li The memory protection unit is initialized.
+ * \li The HSE oscillator is enabled.
+ * \li The PLL is enabled and configured.
+ * \li Flash access latency is set.
+ * \li The system clock is switched to the PLL.
+ * \li CPU caches are cleared and enabled.
+ * \li The systick timer is configured to overflow once per microsecond.
+ *
+ * A call to this function should usually be the first statement in the main function.
+ *
+ * \param[in] specs the specifications for how to initialize the chip
+ */
 void init_chip(const init_specs_t *specs) {
 	// Check if we’re supposed to go to the bootloader.
 	RCC_CSR_t rcc_csr_shadow = RCC_CSR; // Keep a copy of RCC_CSR
@@ -313,6 +340,11 @@ void init_chip(const init_specs_t *specs) {
 	rcc_disable(APB2, SYSCFG);
 }
 
+/**
+ * \brief Marks a request to enter the bootloader and reboots the chip.
+ *
+ * The subsequent call to \ref init_chip will actually enter the bootloader.
+ */
 void init_bootload(void) {
 	// Mark that we should go to the bootloader on next reboot.
 	bootload_flag = BOOTLOAD_FLAG_VALUE;
@@ -334,4 +366,8 @@ void init_bootload(void) {
 	// Wait forever until the reboot happens.
 	for (;;);
 }
+
+/**
+ * @}
+ */
 

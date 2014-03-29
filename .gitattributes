@@ -44,6 +44,10 @@ firmware/flashburner/Makefile -text
 firmware/flashburner/autonomous.c -text
 firmware/flashburner/autonomous.h -text
 firmware/flashburner/constants.h -text
+firmware/flashburner/deferred.c -text
+firmware/flashburner/deferred.h -text
+firmware/flashburner/exti.c -text
+firmware/flashburner/exti.h -text
 firmware/flashburner/host_controlled.c -text
 firmware/flashburner/host_controlled.h -text
 firmware/flashburner/idle.c -text
@@ -133,9 +137,7 @@ firmware/stm32lib/Makefile -text
 firmware/stm32lib/Makefile.common -text
 firmware/stm32lib/abort.c -text
 firmware/stm32lib/core_progmem.c -text
-firmware/stm32lib/deferred.c -text
 firmware/stm32lib/exception.c -text
-firmware/stm32lib/exti.c -text
 firmware/stm32lib/format.c -text
 firmware/stm32lib/gdb/arm-m-profile.xml -text
 firmware/stm32lib/gdb/arm-vfpv2.xml -text
@@ -143,9 +145,7 @@ firmware/stm32lib/gdb/arm-with-m-vfp-d16.xml -text
 firmware/stm32lib/gpio.c -text
 firmware/stm32lib/include/assert.h -text
 firmware/stm32lib/include/core_progmem.h -text
-firmware/stm32lib/include/deferred.h -text
 firmware/stm32lib/include/exception.h -text
-firmware/stm32lib/include/exti.h -text
 firmware/stm32lib/include/format.h -text
 firmware/stm32lib/include/gpio.h -text
 firmware/stm32lib/include/init.h -text
@@ -176,6 +176,7 @@ firmware/stm32lib/include/uchar.h -text
 firmware/stm32lib/include/unused.h -text
 firmware/stm32lib/init.c -text
 firmware/stm32lib/libcsupport.c -text
+firmware/stm32lib/registers.dox -text
 firmware/stm32lib/sleep.c -text
 firmware/stm32lib/stm32f405.ld -text
 firmware/usb/Doxyfile.common -text

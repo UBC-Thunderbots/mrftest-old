@@ -1,4 +1,4 @@
-#include <deferred.h>
+#include "deferred.h"
 #include <registers/scb.h>
 
 static deferred_fn_t *head = 0, *tail = 0;

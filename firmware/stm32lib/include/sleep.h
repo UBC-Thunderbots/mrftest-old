@@ -1,16 +1,17 @@
+/**
+ * \defgroup SLEEP Busy-wait functions
+ *
+ * These functions are only for use in non-FreeRTOS-based code.
+ * They assume that the system tick timer is set to overflow every microsecond.
+ *
+ * @{
+ */
+
 #ifndef STM32LIB_SLEEP_H
 #define STM32LIB_SLEEP_H
 
 /**
- * \file
- *
- * \brief Provides the ability to busy-wait for periods of time.
- *
- * The functions in this module assume that the system tick timer has been initialized to one overflow per microsecond.
- */
-
-/**
- * \cond INTERNAL_SYMBOLS
+ * \cond INTERNAL
  */
 void sleep_systick_overflows(unsigned long ticks);
 /**
@@ -32,4 +33,8 @@ void sleep_systick_overflows(unsigned long ticks);
 #define sleep_us(x) sleep_systick_overflows((x))
 
 #endif
+
+/**
+ * @}
+ */
 

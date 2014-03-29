@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGID Device electronic signature
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_ID_H
 #define STM32LIB_REGISTERS_ID_H
-
-/**
- * \file
- *
- * \brief Defines the device electronic signature registers.
- */
 
 #include <stdint.h>
 
@@ -20,4 +19,8 @@ _Static_assert(sizeof(U_ID_t) == 12U, "U_ID_t is wrong size");
 #define F_ID (*(volatile uint16_t *) 0x1FFF7A22)
 
 #endif
+
+/**
+ * @}
+ */
 

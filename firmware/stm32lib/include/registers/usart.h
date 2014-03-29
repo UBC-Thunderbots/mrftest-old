@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGUSART Universal synchronous asynchronous receiver transmitter
+ * @{
+ */
 #ifndef STM32LIB_INCLUDE_REGISTERS_USART_H
 #define STM32LIB_INCLUDE_REGISTERS_USART_H
-
-/**
- * \file
- *
- * \brief Defines the universal synchronous asynchronous receiver transmitter registers.
- */
 
 typedef struct {
 	unsigned PE : 1;
@@ -164,4 +163,8 @@ _Static_assert(sizeof(UART_t) == 0x18U, "UART_t is wrong size");
 #define USART11 (*(volatile USART_t *) 0x)
 
 #endif
+
+/**
+ * @}
+ */
 

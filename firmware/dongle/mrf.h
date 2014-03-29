@@ -135,6 +135,8 @@ typedef enum {
 
 /**
  * \brief Initializes the interface to the radio and places the radio in reset.
+ *
+ * \param[in] isr the function to call on rising edge of MRF interrupt line
  */
 void mrf_init(void);
 
@@ -154,6 +156,20 @@ void mrf_release_reset(void);
  * \return \c true if the interrupt line is high, or \c false if low
  */
 bool mrf_get_interrupt(void);
+
+/**
+ * \brief Enables taking an interrupt on rising edge of the MRF interrupt pin.
+ *
+ * \param[in] isr the service routine that will handle the interrupt
+ *
+ * \param[in] priority the priority
+ */
+void mrf_enable_interrupt(void (*isr)(void), unsigned int priority);
+
+/**
+ * \brief Disables taking an interrupt on rising edge of the MRF interrupt pin.
+ */
+void mrf_disable_interrupt(void);
 
 /**
  * \brief Reads a short-address register.
@@ -217,6 +233,13 @@ void mrf_analogue_txrx(void);
  * This function should be registered in the interrupt vector table at position 56.
  */
 void dma2_stream0_isr(void);
+
+/**
+ * \brief Handles EXTI 10 through 15 interrupts.
+ *
+ * This function should be registered in the interrupt vector table at position 40.
+ */
+void exti10_15_isr(void);
 
 #endif
 

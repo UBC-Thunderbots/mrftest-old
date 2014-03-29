@@ -1,15 +1,17 @@
+/**
+ * \addtogroup INIT
+ * @{
+ */
+
 #ifndef STM32LIB_INIT_H
 #define STM32LIB_INIT_h
-
-/**
- * \file
- *
- * \brief Provides useful functionality for bringing up the STM32F4.
- */
 
 #include <exception.h>
 #include <stdbool.h>
 
+/**
+ * \brief Flags used as part of the specifications block.
+ */
 typedef struct {
 	/**
 	 * \brief \c true if a crystal is attached to the HSE pins, or \c false if a canned oscillator is attached.
@@ -88,33 +90,12 @@ typedef struct {
 	exception_app_cbs_t exception_app_cbs;
 } init_specs_t;
 
-/**
- * \brief Initializes the chip.
- *
- * The following initializations are done:
- * \li The bootloader is entered, if requested.
- * \li The system stacks are initialized properly.
- * \li The data section is filled from ROM.
- * \li The BSS section is wiped.
- * \li Interrupt handling is configured.
- * \li The memory protection unit is initialized.
- * \li The HSE oscillator is enabled.
- * \li The PLL is enabled and configured.
- * \li Flash access latency is set.
- * \li The system clock is switched to the PLL.
- * \li CPU caches are cleared and enabled.
- * \li The systick timer is configured to overflow once per microsecond.
- *
- * A call to this function should be the first statement in the main function.
- */
 void init_chip(const init_specs_t *specs);
-
-/**
- * \brief Marks a request to enter the bootloader and reboots the chip.
- *
- * The subsequent call to \ref init_chip will actually enter the bootloader.
- */
 void init_bootload(void);
 
 #endif
+
+/**
+ * @}
+ */
 

@@ -8,7 +8,9 @@
 #include <string.h>
 #include <task.h>
 #include <registers/dma.h>
+#include <registers/exti.h>
 #include <registers/spi.h>
+#include <registers/syscfg.h>
 
 #define DMA_STREAM_RX 0U
 #define DMA_STREAM_TX 3U
@@ -16,6 +18,7 @@
 
 static uint8_t txbuf[3U], rxbuf[3U];
 static SemaphoreHandle_t dma_int_sem, bus_mutex;
+static void (*mrf_isr)(void);
 
 static inline void sleep_50ns(void) {
 	asm volatile("nop");
@@ -91,6 +94,14 @@ void mrf_init(void) {
 
 	// Enable the DMA interrupt.
 	portENABLE_HW_INTERRUPT(56U, EXCEPTION_MKPRIO(4U, 0U));
+
+	// Configure the external interrupt, but do not actually enable it yet.
+	rcc_enable(APB2, SYSCFG);
+	SYSCFG_EXTICR[12U / 4U] = (SYSCFG_EXTICR[12U / 4U] & ~(0xFU << (12U % 4U * 4U))) | (2U << (12U % 4U * 4U));
+	rcc_disable(APB2, SYSCFG);
+	EXTI_RTSR |= 1U << 12U; // TR12 = 1; enable rising edge trigger on EXTI12
+	EXTI_FTSR &= ~(1U << 12U); // TR12 = 0; disable falling edge trigger on EXTI12
+	EXTI_IMR |= 1U << 12U; // MR12 = 1; enable interrupt on EXTI12 trigger
 }
 
 void mrf_deinit(void) {
@@ -137,6 +148,17 @@ void mrf_release_reset(void) {
 
 bool mrf_get_interrupt(void) {
 	return gpio_get_input(GPIOC, 12);
+}
+
+void mrf_enable_interrupt(void (*isr)(void), unsigned int priority) {
+	mrf_disable_interrupt();
+	mrf_isr = isr;
+	portENABLE_HW_INTERRUPT(40U, priority);
+}
+
+void mrf_disable_interrupt(void) {
+	portDISABLE_HW_INTERRUPT(40U);
+	mrf_isr = 0;
 }
 
 static void execute_transfer(size_t length) {
@@ -338,5 +360,13 @@ void dma2_stream0_isr(void) {
 	if (yield) {
 		portYIELD_FROM_ISR();
 	}
+}
+
+void exti10_15_isr(void) {
+	// Clear the interrupt.
+	EXTI_PR = 1U << 12U; // PR12 = 1; clear pending EXTI12 interrupt
+
+	// Call the application handler.
+	mrf_isr();
 }
 

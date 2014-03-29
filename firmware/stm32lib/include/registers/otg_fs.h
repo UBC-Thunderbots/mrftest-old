@@ -1,11 +1,10 @@
+/**
+ * \ingroup REG
+ * \defgroup REGOTGFS USB on-the-go full speed
+ * @{
+ */
 #ifndef STM32LIB_REGISTERS_OTG_FS_H
 #define STM32LIB_REGISTERS_OTG_FS_H
-
-/**
- * \file
- *
- * \brief Defines the USB on-the-go full speed registers.
- */
 
 #include <stdint.h>
 
@@ -514,4 +513,8 @@ typedef OTG_FS_FIFO_t OTG_FS_FIFOS_t[4];
 #define OTG_FS_FIFO (*(volatile OTG_FS_FIFOS_t *) (OTG_FS_BASE + 0x1000))
 
 #endif
+
+/**
+ * @}
+ */
 
