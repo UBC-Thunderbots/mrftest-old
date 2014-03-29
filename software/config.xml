@@ -33,8 +33,8 @@
       <category name="STP">
         <category name="Tactic">
           <category name="shoot">
-            <degrees name="Above this shoot score shoot (degrees)">5.0</degrees>
-            <boolean name="Jason's shoot code">true</boolean>
+            <degrees name="ShootGoal: threshold (degrees)">5.0</degrees>
+            <boolean name="ShootGoal: enable autokick threshold">true</boolean>
           </category>
         </category>
       </category>
