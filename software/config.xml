@@ -40,8 +40,8 @@
       </category>
     </category>
     <category name="Backend">
-      <double name="Ball Decay Constant">2.7</double>
-      <double name="Ball detection probability threshold">0.500</double>
+      <double name="Ball Decay Constant">0.8</double>
+      <double name="Ball detection probability threshold">0.100</double>
       <boolean name="Enable Kalman control inputs">false</boolean>
       <double name="Loop Delay">0.050</double>
     </category>
@@ -331,6 +331,7 @@
           <boolean name="ShootGoal">true</boolean>
           <boolean name="Stop">true</boolean>
           <boolean name="StopShadow">false</boolean>
+          <boolean name="TestShootSpeed">true</boolean>
           <boolean name="TheirCornerChip">false</boolean>
           <boolean name="TheirCornerPlay">true</boolean>
           <boolean name="TriAttackDef">true</boolean>
@@ -385,6 +386,7 @@
           <integer name="ShootGoal">1023</integer>
           <integer name="Stop">1023</integer>
           <integer name="StopShadow">1023</integer>
+          <integer name="TestShootSpeed">1023</integer>
           <integer name="TheirCornerChip">1023</integer>
           <integer name="TheirCornerPlay">1023</integer>
           <integer name="TriAttackDef">1023</integer>
@@ -439,11 +441,67 @@
           <integer name="ShootGoal">10</integer>
           <integer name="Stop">5</integer>
           <integer name="StopShadow">5</integer>
+          <integer name="TestShootSpeed">5</integer>
           <integer name="TheirCornerChip">5</integer>
           <integer name="TheirCornerPlay">5</integer>
           <integer name="TriAttackDef">5</integer>
           <integer name="TriAttackDiamond">5</integer>
           <integer name="TriAttackOff">5</integer>
+        </category>
+        <category name="StaticRoleAssignment">
+          <boolean name="BackUpSteal">false</boolean>
+          <boolean name="BallTowardsEnemy">false</boolean>
+          <boolean name="CornerChip">false</boolean>
+          <boolean name="CornerKickFriendly">false</boolean>
+          <boolean name="DBasic2Block">false</boolean>
+          <boolean name="DBasicCorner">false</boolean>
+          <boolean name="DefensiveBlock">false</boolean>
+          <boolean name="DirectKickFriendlyPivot">false</boolean>
+          <boolean name="FranticDefense">false</boolean>
+          <boolean name="FreeKickEnemy">false</boolean>
+          <boolean name="FreeKickEnemyDefend">false</boolean>
+          <boolean name="FreeKickEnemyMarkDefend">false</boolean>
+          <boolean name="FreeKickFriendly">false</boolean>
+          <boolean name="FreeKickFriendlyChip">false</boolean>
+          <boolean name="FreeKickFriendlyPass">false</boolean>
+          <boolean name="FreeKickFriendlyRay">false</boolean>
+          <boolean name="FreeKickFriendlyRepel">false</boolean>
+          <boolean name="FreeKickPass">false</boolean>
+          <boolean name="GoalKickFriendly">false</boolean>
+          <boolean name="GrabBallDefensive">false</boolean>
+          <boolean name="GrabBallOffensive">false</boolean>
+          <boolean name="IndirectKickFriendlyPivot">false</boolean>
+          <boolean name="JustChip">false</boolean>
+          <boolean name="JustGoalie">false</boolean>
+          <boolean name="JustRepel">false</boolean>
+          <boolean name="JustShoot">false</boolean>
+          <boolean name="JustSpin">false</boolean>
+          <boolean name="KickoffEnemy">false</boolean>
+          <boolean name="KickoffFriendly">false</boolean>
+          <boolean name="KickoffFriendlyChip">false</boolean>
+          <boolean name="Lone2Player">false</boolean>
+          <boolean name="MTDDefensive">false</boolean>
+          <boolean name="MTDDefensiveBlock">false</boolean>
+          <boolean name="MTOJustShoot">false</boolean>
+          <boolean name="OffensiveBlock">false</boolean>
+          <boolean name="OurCornerChip">false</boolean>
+          <boolean name="OurCornerPlay">false</boolean>
+          <boolean name="OurCornerShoot">false</boolean>
+          <boolean name="PassDefensive">false</boolean>
+          <boolean name="PassOffensive">false</boolean>
+          <boolean name="PassRay">false</boolean>
+          <boolean name="PassSimple">false</boolean>
+          <boolean name="PenaltyEnemy">false</boolean>
+          <boolean name="PenaltyFriendly">false</boolean>
+          <boolean name="ShootGoal">false</boolean>
+          <boolean name="Stop">false</boolean>
+          <boolean name="StopShadow">false</boolean>
+          <boolean name="TestShootSpeed">false</boolean>
+          <boolean name="TheirCornerChip">false</boolean>
+          <boolean name="TheirCornerPlay">false</boolean>
+          <boolean name="TriAttackDef">false</boolean>
+          <boolean name="TriAttackDiamond">false</boolean>
+          <boolean name="TriAttackOff">false</boolean>
         </category>
       </category>
       <category name="PlayExecutor">
