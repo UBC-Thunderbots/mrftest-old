@@ -66,12 +66,6 @@ static bool last_breakbeam_report = false;
 static uint8_t radio_pending_motor_sensor_failures[5], radio_reporting_motor_sensor_failures[5];
 static unsigned int radio_last_blink_time;
 
-//Dribbler Control Records
-static double dribbler_LastInput;
-static double dribbler_LastLastInput;
-static double dribbler_LastOutput;
-static double dribbler_LastLastOutput;
-
 static void shutdown_sequence(bool reboot) __attribute__((noreturn));
 static void shutdown_sequence(bool reboot) {
 	{
@@ -406,15 +400,7 @@ static void handle_tick(void) {
 	wheels_tick(battery_volts, sensor_failures);
 
 	// Run the dribbler.
-	
-	float TempLastLastOutput = LastOutput;	
-	//assuming I get a new value for input at the start of entry.c
-	LastOutput = dribbler_tick(battery_volts,LastInput,LastLastInput, 
-					LastOutput, LastLastOutput);
-	LastLastOutput = TempLastLastOutput;
-	LastLastInput = LastInput;
-	LastInput = CurrentInput;
-	
+	dribbler_tick(battery_volts);
 
 	// Write a log record if possible.
 	log_record_t *rec = log_alloc();

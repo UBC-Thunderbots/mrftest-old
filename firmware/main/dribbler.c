@@ -16,19 +16,6 @@
 #define TARGET_PWM_SLOW 80
 #define MAX_DELTA_PWM 255
 
-//Control Constants and Variables
-#define INERTIA 8.36*(10^-6)	//Kgm^2
-#define R	0.403+0.6	//ohm
-#define Kt 	0.0089154	//Nm/A
-#define NFreq	36		//rad/s
-#define Damping	0.7		
-#define Kv	3760/60/(27/5)*(40/26)	//1/sV
-
-#define B1 	0.0538
-#define B2	-0.003866
-#define A1	-1.133
-#define A2 	0.1332
-
 static uint8_t tick_count = 0;
 bool dribbler_enabled = false;
 bool dribbler_fast = true;
@@ -36,10 +23,6 @@ uint16_t dribbler_speed = 0;
 uint8_t dribbler_pwm = 0;
 float dribbler_winding_energy = 0, dribbler_housing_energy = 0;
 bool dribbler_hot = false;
-
-//Control Variable
-float Output
-float Output_pwm
 
 static void update_thermal_model(float added_winding_energy) {
 	float energy_winding_to_housing = (dribbler_winding_energy / DRIBBLER_THERMAL_CAPACITANCE_WINDING - dribbler_housing_energy / DRIBBLER_THERMAL_CAPACITANCE_HOUSING) / DRIBBLER_THERMAL_RESISTANCE_WINDING / DRIBBLER_TICK_HZ;
@@ -52,7 +35,7 @@ static void update_thermal_model(float added_winding_energy) {
 	}
 }
 
-uint8_t dribbler_tick(float battery, float LastInput, float LastLastInput, float LastOutput, float LastLastOutput) {
+void dribbler_tick(float battery) {
 	// Run the controller only at the proper frequency.
 	if (++tick_count != CONTROL_TICKS_PER_DRIBBLER_TICK) {
 		return;
@@ -66,8 +49,7 @@ uint8_t dribbler_tick(float battery, float LastInput, float LastLastInput, float
 	if ((dribbler_winding_energy < DRIBBLER_THERMAL_MAX_ENERGY_WINDING || !IO_SYSCTL.csr.software_interlock) && dribbler_enabled) {
 		float back_emf = dribbler_speed * VOLTS_PER_SPEED_UNIT;
 		uint16_t back_emf_pwm = (uint16_t) (back_emf / battery * 255.0);
-
-/*		uint8_t min_pwm = back_emf_pwm <= MAX_DELTA_PWM ? 0 : (uint8_t) (back_emf_pwm - MAX_DELTA_PWM);
+		uint8_t min_pwm = back_emf_pwm <= MAX_DELTA_PWM ? 0 : (uint8_t) (back_emf_pwm - MAX_DELTA_PWM);
 		uint8_t max_pwm = back_emf_pwm >= 255 - MAX_DELTA_PWM ? 255 : (uint8_t) (back_emf_pwm + MAX_DELTA_PWM);
 		uint8_t pwm = dribbler_fast ? TARGET_PWM_FAST : TARGET_PWM_SLOW;
 		if (pwm > max_pwm) {
@@ -75,12 +57,8 @@ uint8_t dribbler_tick(float battery, float LastInput, float LastLastInput, float
 		} else if (pwm < min_pwm) {
 			pwm = min_pwm;
 		}
-*/
-		
-		Output = B1 * LastInput + B2 * LastLastInput - A1 * LastOutput - A2 * LastLastOutput ;
-		Output_pwm = (uint16_t) (Output / battery * 255.0);
- 
-		dribbler_pwm = back_emf_pwm + Output_pwm;
+
+		dribbler_pwm = pwm;
 
 		motor_set(4, MOTOR_MODE_FORWARD, pwm);
 		float applied_voltage = battery * pwm / 255.0;
@@ -90,14 +68,9 @@ uint8_t dribbler_tick(float battery, float LastInput, float LastLastInput, float
 		float energy = power / DRIBBLER_TICK_HZ;
 		update_thermal_model(energy);
 	} else {
-
-		Output = 0;
-
 		dribbler_pwm = 0;
 		motor_set(4, MOTOR_MODE_MANUAL_COMMUTATION, 0);
-		update_thermal_model(0);	
+		update_thermal_model(0);
 	}
-
-	return Output;
 }
 
