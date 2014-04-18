@@ -101,7 +101,9 @@ static void portCLEAR_INTERRUPT_MASK_FROM_ISR(unsigned long old __attribute__((u
 
 // These functions turn a specific hardware interrupt on and off.
 static void portENABLE_HW_INTERRUPT(unsigned int irq, unsigned int priority) {
-	NVIC_IPR[irq / 32U] = (NVIC_IPR[irq / 4U] & ~(0xFFU << (irq % 4U))) | (priority << ((irq % 4U) * 8U));
+	unsigned int ipr_index = irq / 4U;
+	unsigned int ipr_shift_dist = (irq % 4U) * 8U;
+	NVIC_IPR[ipr_index] = (NVIC_IPR[ipr_index] & ~(0xFFU << ipr_shift_dist)) | (priority << ipr_shift_dist);
 	// We must barrier to ensure the priority is set before the interrupt is enabled.
 	// However, we do not need a synchronization barrier because we don’t care *when*, specifically, in instruction stream order, the effects become visible, as long as they do so in the right order.
 	asm volatile("dmb");
