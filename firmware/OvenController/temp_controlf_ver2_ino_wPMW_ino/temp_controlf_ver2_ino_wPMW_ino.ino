@@ -4,13 +4,15 @@ const int SSB_PIN = 10;
 
 //int max_time = 370000; //6 min 10 sec
 
-const int stage1End = 100;
-const int stage2End = 150;
+const int stage1End = 120;
+const int stage2End = 170;
 const int stage3End = 245;
 
 const unsigned long stage1Time = 50000UL;
 const unsigned long stage2Time = stage1Time + 90000UL;
 const unsigned long stage3Time = stage2Time + 105000UL;
+const unsigned long max_stage2_time = 120000;
+const unsigned long max_stage3_time = 100000;
 double roomTemp = 20; //assumption
   
 const int period = 1000;
@@ -33,8 +35,10 @@ void loop()
 { 
   float currentTemp = readTemp(  );
 
-  
-  float stage_duty_cycles[3] = { 1, 0.2, 1 };
+  unsigned long stage_1_endtime;
+  unsigned long stage_2_endtime;
+  boolean first_time = true;
+  float stage_duty_cycles[3] = { 1, 0.38, 1 };
   
   while ( currentTemp < stage1End )
   {
@@ -45,6 +49,8 @@ void loop()
     currentTemp = readTemp( );
     Serial.println( currentTemp );
   }
+  stage_1_endtime = millis();
+  Serial.println ( stage_1_endtime);
   while ( currentTemp < stage2End )
   {
     digitalWrite ( output, HIGH );
@@ -53,8 +59,9 @@ void loop()
     delay ( period * (1 - stage_duty_cycles[1]) );
     currentTemp = readTemp( );
     Serial.println( currentTemp );
+    if ( millis() > (stage_1_endtime + max_stage2_time) ) break;
   }
-  
+
   while ( currentTemp < stage3End )
   {
     digitalWrite ( output, HIGH );
@@ -63,6 +70,13 @@ void loop()
     delay ( period * (1 - stage_duty_cycles[2]) );
     currentTemp = readTemp(  );
     Serial.println( currentTemp );
+    if ( currentTemp > 217 && first_time ) 
+    {
+        stage_2_endtime = millis();
+        first_time = false;
+    }
+    if ( currentTemp > 217 && millis() > stage_2_endtime + max_stage3_time )
+      break;
   }
    
   //turns off oven at time limit to avoid overheating the board in case 
