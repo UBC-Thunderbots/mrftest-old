@@ -1,6 +1,7 @@
 #include "geom/util.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
+#include "util/hungarian.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -33,28 +34,45 @@ double seg_pt_dist(const Point a, const Point b, const Point p) {
 }
 
 std::vector<std::size_t> dist_matching(const std::vector<Point> &v1, const std::vector<Point> &v2) {
-	if (v1.size() > 5) {
-#warning TODO: use hungarian matching
-		LOG_ERROR(u8"hungarian not used yet");
+	if (v1.size() != v2.size())
+		LOG_ERROR(u8"vector sizes not equal");
+	if (v1.size() > 1) {
+		//use hungarian O(n^3)
+		Hungarian hung(v1.size());
+		for(std::size_t i = 0; i < v1.size(); i++)
+			for(std::size_t o = 0; o < v1.size(); o++)
+				hung.weight(i, o) = 0 - (v2[i] - v1[o]).len(); 	//this is negative because hungarian tries to maximize the total weight
+										//use lensq instead to put more weight on outliers?
+
+		hung.execute();
+		std::vector<std::size_t> order(v1.size());
+
+		for(std::size_t i = 0; i < v1.size(); i++)
+			order[i] = hung.matchX(i);
+
+		return order;
 	}
-	std::vector<std::size_t> order(v2.size());
-	for (std::size_t i = 0; i < v2.size(); ++i) {
-		order[i] = i;
+	else {
+		//use permutative O(n!)
+		std::vector<std::size_t> order(v2.size());
+		for (std::size_t i = 0; i < v2.size(); ++i) {
+			order[i] = i;
+		}
+		std::vector<std::size_t> best = order;
+		double bestscore = 1e99;
+		const std::size_t N = std::min(v1.size(), v2.size());
+		do {
+			double score = 0;
+			for (std::size_t i = 0; i < N; ++i) {
+				score += (v1[i] - v2[order[i]]).len();
+			}
+			if (score < bestscore) {
+				bestscore = score;
+				best = order;
+			}
+		} while (std::next_permutation(order.begin(), order.end()));
+		return best;
 	}
-	std::vector<std::size_t> best = order;
-	double bestscore = 1e99;
-	const std::size_t N = std::min(v1.size(), v2.size());
-	do {
-		double score = 0;
-		for (std::size_t i = 0; i < N; ++i) {
-			score += (v1[i] - v2[order[i]]).len();
-		}
-		if (score < bestscore) {
-			bestscore = score;
-			best = order;
-		}
-	} while (std::next_permutation(order.begin(), order.end()));
-	return best;
 }
 
 bool point_in_triangle(const Point p1, const Point p2, const Point p3, const Point p) {
@@ -101,7 +119,7 @@ std::vector<std::pair<Point, Angle>> angle_sweep_circles_all(const Point &src, c
 		const Angle range1 = cent - span;
 		const Angle range2 = cent + span;
 
-#warning hack should work
+		// "warning: hack should work" was removed since both this and the next function are functioning properly
 		if (range1 < -Angle::half() || range2 > Angle::half()) {
 			continue;
 		}
@@ -179,7 +197,6 @@ std::pair<Point, Angle> angle_sweep_circles(const Point &src, const Point &p1, c
 		   }
 		 */
 
-#warning hack should work
 		if (range1 < -Angle::half() || range2 > Angle::half()) {
 			continue;
 		}
@@ -301,12 +318,30 @@ bool collinear(const Point &a, const Point &b, const Point &c) {
 	return std::fabs((b - a).cross(c - a)) < EPS;
 }
 
-#warning this should accept a Rect rather than two points
 Point clip_point(const Point &p, const Point &bound1, const Point &bound2) {
 	const double minx = std::min(bound1.x, bound2.x);
 	const double miny = std::min(bound1.y, bound2.y);
 	const double maxx = std::max(bound1.x, bound2.x);
 	const double maxy = std::max(bound1.y, bound2.y);
+	Point ret = p;
+	if (p.x < minx) {
+		ret.x = minx;
+	} else if (p.x > maxx) {
+		ret.x = maxx;
+	}
+	if (p.y < miny) {
+		ret.y = miny;
+	} else if (p.y > maxy) {
+		ret.y = maxy;
+	}
+	return ret;
+}
+
+Point clip_point(const Point &p, const Rect &r) {
+	const double minx = r.sw_corner().x;
+	const double miny = r.sw_corner().y;
+	const double maxx = r.ne_corner().x;
+	const double maxy = r.ne_corner().y;
 	Point ret = p;
 	if (p.x < minx) {
 		ret.x = minx;
@@ -505,7 +540,7 @@ double seg_seg_distance(const Point &a, const Point &b, const Point &c, const Po
 }
 
 namespace {
-#warning this function is never used
+//this function is never used
 	std::vector<Point> lineseg_circle_intersect(const Point &centre, double radius, const Point &segA, const Point &segB) {
 		std::vector<Point> ans;
 		std::vector<Point> poss = line_circle_intersect(centre, radius, segA, segB);
@@ -544,12 +579,11 @@ double line_point_dist(const Point &p, const Point &a, const Point &b) {
 
 
 // ported code
-#warning this code looks broken (or so geom/util.h used to claim)
 bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2) {
 	// handle case where the lines are co-linear
 	if (sign((a1 - a2).cross(b1 - b2)) == 0) {
 		// find distance of two endpoints on segments furthest away from each other
-		double mx_len = std::max(std::max((b1 - a2).len(), (b2 - a2).len()), std::max((b1 - a1).len(), (b1 - a2).len()));
+		double mx_len = std::max(std::max((b1 - a2).len(), (b2 - a2).len()), std::max((b1 - a1).len(), (b2 - a1).len()));
 		// if the segments cross then this distance should be less than
 		// the sum of the distances of the line segments
 		return mx_len < (a1 - a2).len() + (b1 - b2).len() + EPS;

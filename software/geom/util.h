@@ -230,6 +230,17 @@ Point vector_rect_intersect(const Rect &r, const Point &segA, const Point &segB)
 Point clip_point(const Point &p, const Point &bound1, const Point &bound2);
 
 /**
+ * Clips a point to a rectangle boundary.
+ *
+ * \param[in] p the point to clip.
+ *
+ * \param[in] r the rectangle.
+ *
+ * \return the closest point to \p p that lies within the rectangle.
+ */
+Point clip_point(const Point &p, const Rect &r);
+
+/**
  * Computes whether there is a unique intersection of two lines.
  *
  * \param[in] a a point on the first line.

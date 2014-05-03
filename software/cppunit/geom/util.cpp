@@ -58,6 +58,7 @@ namespace {
 		CPPUNIT_TEST(test_angle_sweep_circles);
 		CPPUNIT_TEST(test_angle_sweep_circles_all);
 		CPPUNIT_TEST(test_dist_matching);
+		CPPUNIT_TEST(test_clip_point2);
 		CPPUNIT_TEST_SUITE_END();
 
 		public:
@@ -98,6 +99,7 @@ namespace {
 			void test_intersection();
 			void test_vertex_angle();
 			void test_closest_point_time();
+			void test_clip_point2();
 	};
 	CPPUNIT_TEST_SUITE_REGISTRATION(GeomUtilTest);
 }
@@ -292,7 +294,7 @@ void GeomUtilTest::test_dist_matching() {
 	v2.push_back(Point(-1, -3));
 	v2.push_back(Point(-1, -6));
 
-	std::vector<long unsigned int> match = dist_matching(v1, v2);
+	std::vector<std::size_t> match = dist_matching(v1, v2);
 
 	CPPUNIT_ASSERT(match[0] == 0);
 	CPPUNIT_ASSERT(match[1] == 1);
@@ -534,6 +536,14 @@ void GeomUtilTest::test_clip_point() {
 	CPPUNIT_ASSERT((clip_point(Point(1, 1), rect1, rect2) - Point(1, 1)).len() < 0.00001);
 	CPPUNIT_ASSERT((clip_point(Point(3, 1), rect1, rect2) - Point(2, 1)).len() < 0.00001);
 	CPPUNIT_ASSERT((clip_point(Point(3, 2), rect1, rect2) - Point(2, 1)).len() < 0.00001);
+}
+
+void GeomUtilTest::test_clip_point2() {
+	Rect r(Point(-2, -1), Point(2, 1));
+
+	CPPUNIT_ASSERT((clip_point(Point(1, 1), r) - Point(1, 1)).len() < 0.00001);
+	CPPUNIT_ASSERT((clip_point(Point(3, 1), r) - Point(2, 1)).len() < 0.00001);
+	CPPUNIT_ASSERT((clip_point(Point(3, 2), r) - Point(2, 1)).len() < 0.00001);
 }
 
 void GeomUtilTest::test_unique_line_intersect() {
