@@ -42,7 +42,7 @@ void mrf_init(void) {
 	gpio_set(GPIOA, 15);
 	// PB6 = MRF wake = 0; deassert wake.
 	// PB7 = MRF /reset = 0; assert reset.
-	gpio_set_reset_mask(GPIOB, (1 << 6) | (1 << 7), 0);
+	gpio_set_reset_mask(GPIOB, 0, (1 << 6) | (1 << 7));
 
 	// Reset the module and enable the clock.
 	rcc_enable_reset(AHB1, DMA2);
@@ -63,8 +63,8 @@ void mrf_init(void) {
 	// Configure the SPI module.
 	{
 		SPI_CR2_t tmp = {
-			.RXDMAEN = 1, // Receive DMA disabled.
-			.TXDMAEN = 1, // Transmit DMA disabled.
+			.RXDMAEN = 1, // Receive DMA enabled.
+			.TXDMAEN = 1, // Transmit DMA enabled.
 			.SSOE = 0, // Do not output hardware slave select; we will use a GPIO for this purpose as we need to toggle it frequently.
 			.FRF = 0, // Motorola frame format.
 			.ERRIE = 0, // Error interrupt disabled.
@@ -134,7 +134,7 @@ void mrf_deinit(void) {
 	gpio_set(GPIOA, 15);
 	// PB6 = MRF wake = 0; deassert wake.
 	// PB7 = MRF /reset = 0; assert reset.
-	gpio_set_reset_mask(GPIOB, (1 << 6) | (1 << 7), 0);
+	gpio_set_reset_mask(GPIOB, 0, (1 << 6) | (1 << 7));
 
 	// Destroy semaphore and mutex.
 	vSemaphoreDelete(bus_mutex);
