@@ -24,6 +24,13 @@ typedef struct {
 	 * If FreeRTOS is used, it is given control over the MPU and Systick modules; if not, they are configured appropriately by this module.
 	 */
 	bool freertos : 1;
+
+	/**
+	 * \brief \c true if the high-speed I/O compensation cell should be enabled, or \c false if not.
+	 *
+	 * The compensation cell should be used if any I/O pin will run at more than 50 MHz.
+	 */
+	bool io_compensation_cell : 1;
 } init_specs_flags_t;
 
 /**

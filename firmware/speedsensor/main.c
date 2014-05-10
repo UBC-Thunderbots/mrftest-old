@@ -135,6 +135,7 @@ static const init_specs_t INIT_SPECS = {
 	.flags = {
 		.hse_crystal = true,
 		.freertos = false,
+		.io_compensation_cell = false,
 	},
 	.hse_frequency = 8,
 	.pll_frequency = 288,

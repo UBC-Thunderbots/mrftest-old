@@ -336,6 +336,13 @@ void init_chip(const init_specs_t *specs) {
 		rcc_disable(APB1, PWR);
 	}
 
+	// If requested, enable the I/O compensation cell.
+	if (specs->flags.io_compensation_cell) {
+		SYSCFG_CMPCR_t cmpcr = { .CMP_PD = 1 };
+		SYSCFG_CMPCR = cmpcr;
+		while (!SYSCFG_CMPCR.READY);
+	}
+
 	// Done initializing; disable SYSCFG module.
 	rcc_disable(APB2, SYSCFG);
 }

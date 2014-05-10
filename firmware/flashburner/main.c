@@ -130,6 +130,7 @@ static const init_specs_t INIT_SPECS = {
 	.flags = {
 		.hse_crystal = true,
 		.freertos = false,
+		.io_compensation_cell = true,
 	},
 	.hse_frequency = 8,
 	.pll_frequency = 336,
@@ -403,13 +404,6 @@ static void app_exception_late(bool core_written) {
 
 static void stm32_main(void) {
 	init_chip(&INIT_SPECS);
-
-	// Enable the I/O compensation cell because we will be using some GPIOs at 50+ MHz.
-	{
-		SYSCFG_CMPCR_t tmp = { .CMP_PD = 1 };
-		SYSCFG_CMPCR = tmp;
-	}
-	while (!SYSCFG_CMPCR.READY);
 
 	// Set up pins.
 	static const gpio_init_pin_t GPIO_INIT_PINS[4U][16U] = {
