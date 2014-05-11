@@ -3,6 +3,7 @@
 #include <registers/spi.h>
 #include <sleep.h>
 #include "spi.h"
+#include "pins.h"
 
 void spi_init(void) {
 	// Reset and enable the SPI module.
@@ -92,14 +93,14 @@ static void int_drive_bus(void) {
 
 static void int_assert_cs(void) {
 	sleep_50ns();
-	gpio_reset(GPIOA, 4);
+	gpio_reset(PIN_INT_CS);
 	sleep_50ns();
 }
 
 static void int_deassert_cs(void) {
 	while (SPI3.SR.BSY); // Wait until no activity
 	sleep_50ns();
-	gpio_set(GPIOA, 4);
+	gpio_set(PIN_INT_CS);
 }
 
 static uint8_t int_transceive_byte(uint8_t byte) {
@@ -150,25 +151,25 @@ const struct spi_ops spi_internal_ops = {
 
 static void ext_drive_bus(void) {
 	// Switch the MOSI (PB5), MISO (PB4), and Clock (PB3) into alternate function mode.
-	gpio_set_mode(GPIOB, 3, GPIO_MODE_AF);
-	gpio_set_mode(GPIOB, 4, GPIO_MODE_AF);
-	gpio_set_mode(GPIOB, 5, GPIO_MODE_AF);
+	gpio_set_mode(PIN_EXT_CLOCK, GPIO_MODE_AF);
+	gpio_set_mode(PIN_EXT_MOSI, GPIO_MODE_AF);
+	gpio_set_mode(PIN_EXT_MISO, GPIO_MODE_AF);
 
 	// Switch /CS (PA15) to output high.
-	gpio_set(GPIOA, 15);
-	gpio_set_mode(GPIOA, 15, GPIO_MODE_OUT);
+	gpio_set(PIN_EXT_CS);
+	gpio_set_mode(PIN_EXT_CS, GPIO_MODE_OUT);
 }
 
 static void ext_assert_cs(void) {
 	sleep_50ns();
-	gpio_reset(GPIOA, 15);
+	gpio_reset(PIN_EXT_CS);
 	sleep_50ns();
 }
 
 static void ext_deassert_cs(void) {
 	while (SPI1.SR.BSY); // Wait until no activity
 	sleep_50ns();
-	gpio_set(GPIOA, 15);
+	gpio_set(PIN_EXT_CS);
 }
 
 static uint8_t ext_transceive_byte(uint8_t byte) {

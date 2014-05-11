@@ -1,6 +1,7 @@
 #include "promiscuous.h"
 #include "constants.h"
 #include "mrf.h"
+#include "pins.h"
 #include "radio_config.h"
 #include <FreeRTOS.h>
 #include <errno.h>
@@ -48,7 +49,7 @@ static void radio_task(void *UNUSED(param)) {
 	while (mrf_get_interrupt());
 
 	// Turn on LED 1.
-	gpio_set(GPIOB, 12U);
+	gpio_set(PIN_LED_POWER);
 
 	// Enable external interrupt on MRF INT rising edge.
 	mrf_enable_interrupt(&mrf_int_isr, EXCEPTION_MKPRIO(6U, 0U));
@@ -88,7 +89,7 @@ static void radio_task(void *UNUSED(param)) {
 				}
 				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00U); // RXDECINV = 0; stop inverting receiver and allow further reception
 				// Toggle LED 3 to show reception.
-				gpio_toggle(GPIOB, 14U);
+				gpio_toggle(PIN_LED_RX);
 			}
 		}
 
@@ -99,7 +100,9 @@ static void radio_task(void *UNUSED(param)) {
 	mrf_disable_interrupt();
 
 	// Turn off all LEDs.
-	gpio_set_reset_mask(GPIOB, 0U, 7U << 12U);
+	gpio_reset(PIN_LED_POWER);
+	gpio_reset(PIN_LED_TX);
+	gpio_reset(PIN_LED_RX);
 
 	// Reset the radio.
 	mrf_deinit();
@@ -261,7 +264,7 @@ bool promiscuous_control_handler(const usb_setup_packet_t *pkt) {
 			// Enable interrupt on receive.
 			mrf_write_short(MRF_REG_SHORT_INTCON, 0xF7U);
 			// Turn on LED 2 to indicate capture is enabled.
-			gpio_set(GPIOB, 13U);
+			gpio_set(PIN_LED_TX);
 		} else {
 			// Shut down the radio.
 			mrf_write_short(MRF_REG_SHORT_RXMCR, 0x20U);
@@ -269,7 +272,7 @@ bool promiscuous_control_handler(const usb_setup_packet_t *pkt) {
 			mrf_write_short(MRF_REG_SHORT_INTCON, 0xFFU);
 			mrf_analogue_off();
 			// Turn off LED 2 to indicate capture is disabled.
-			gpio_reset(GPIOB, 13U);
+			gpio_reset(PIN_LED_TX);
 		}
 
 		return true;

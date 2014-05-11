@@ -35,6 +35,8 @@ firmware/dongle/mrf.c -text
 firmware/dongle/mrf.h -text
 firmware/dongle/normal.c -text
 firmware/dongle/normal.h -text
+firmware/dongle/pins.c -text
+firmware/dongle/pins.h -text
 firmware/dongle/promiscuous.c -text
 firmware/dongle/promiscuous.h -text
 firmware/dongle/radio_config.c -text
@@ -55,6 +57,8 @@ firmware/flashburner/idle.h -text
 firmware/flashburner/io.c -text
 firmware/flashburner/io.h -text
 firmware/flashburner/main.c -text
+firmware/flashburner/pins.c -text
+firmware/flashburner/pins.h -text
 firmware/flashburner/spi.c -text
 firmware/flashburner/spi.h -text
 firmware/flashburner/stm32f405.ld -text
@@ -130,6 +134,8 @@ firmware/speedsensor/Makefile -text
 firmware/speedsensor/format.c -text
 firmware/speedsensor/format.h -text
 firmware/speedsensor/main.c -text
+firmware/speedsensor/pins.c -text
+firmware/speedsensor/pins.h -text
 firmware/stm32lib/Doxyfile.common -text
 firmware/stm32lib/Doxyfile.internal -text
 firmware/stm32lib/Doxyfile.public -text

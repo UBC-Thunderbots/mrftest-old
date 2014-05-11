@@ -1,5 +1,6 @@
 #include "autonomous.h"
 #include "deferred.h"
+#include "pins.h"
 #include "spi.h"
 #include <assert.h>
 #include <gpio.h>
@@ -20,24 +21,24 @@ static unsigned int next_page;
 static void stop(bool successful) {
 	// On failure, light up the error LED.
 	if (!successful) {
-		gpio_set(GPIOB, 14);
+		gpio_set(PIN_LED_ERROR);
 	}
 
 	// Deassert chip select.
 	spi_external_ops.deassert_cs();
 
-	// Tristate MOSI, MISO, clock, and chip select.
-	gpio_set_mode(GPIOA, 15, GPIO_MODE_IN);
-	gpio_set_mode(GPIOB, 3, GPIO_MODE_IN);
-	gpio_set_mode(GPIOB, 4, GPIO_MODE_IN);
-	gpio_set_mode(GPIOB, 5, GPIO_MODE_IN);
+	// Tristate external SPI pins.
+	gpio_set_mode(PIN_EXT_CS, GPIO_MODE_IN);
+	gpio_set_mode(PIN_EXT_CLOCK, GPIO_MODE_IN);
+	gpio_set_mode(PIN_EXT_MOSI, GPIO_MODE_IN);
+	gpio_set_mode(PIN_EXT_MISO, GPIO_MODE_IN);
 
 	if (successful && boot_after) {
 		// Boot the FPGA by tristating PROGRAM_B.
-		gpio_set_mode(GPIOA, 14, GPIO_MODE_IN);
+		gpio_set_mode(PIN_EXT_NPROGRAM_B, GPIO_MODE_IN);
 	} else {
 		// Power down the board by grounding power control.
-		gpio_reset(GPIOD, 2);
+		gpio_reset(PIN_EXT_POWER);
 	}
 
 	// Account.
@@ -173,11 +174,11 @@ void timer5_interrupt_vector(void) {
 		rcc_disable(APB1, TIM5);
 
 		// Tristate PROGRAM_B and power control.
-		gpio_set_mode(GPIOA, 14, GPIO_MODE_IN);
-		gpio_set_mode(GPIOD, 2, GPIO_MODE_IN);
+		gpio_set_mode(PIN_EXT_NPROGRAM_B, GPIO_MODE_IN);
+		gpio_set_mode(PIN_EXT_POWER, GPIO_MODE_IN);
 
 		// Turn off the activity LED, but not the error LED if it is on.
-		gpio_reset(GPIOB, 13);
+		gpio_reset(PIN_LED_ACTIVITY);
 
 		// Account.
 		running = false;
@@ -232,13 +233,14 @@ void autonomous_start(bool boot) {
 	boot_after = boot;
 
 	// Enable activity LED and disable error LED.
-	gpio_set_reset_mask(GPIOB, 1 << 13, 1 << 14);
+	gpio_set(PIN_LED_ACTIVITY);
+	gpio_reset(PIN_LED_ERROR);
 
 	// Assert PROGRAM_B and power control.
-	gpio_reset(GPIOA, 14);
-	gpio_set_mode(GPIOA, 14, GPIO_MODE_OUT);
-	gpio_set(GPIOD, 2);
-	gpio_set_mode(GPIOD, 2, GPIO_MODE_OUT);
+	gpio_reset(PIN_EXT_NPROGRAM_B);
+	gpio_set_mode(PIN_EXT_NPROGRAM_B, GPIO_MODE_OUT);
+	gpio_set(PIN_EXT_POWER);
+	gpio_set_mode(PIN_EXT_POWER, GPIO_MODE_OUT);
 
 	// Configure timer 5 to count down 100 milliseconds, until the power is on.
 	// Timer 5 is on APB1, which runs at 36 MHz.

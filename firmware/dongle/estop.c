@@ -1,4 +1,5 @@
 #include "estop.h"
+#include "pins.h"
 #include <FreeRTOS.h>
 #include <gpio.h>
 #include <rcc.h>
@@ -53,7 +54,7 @@ void estop_init(unsigned int priority) {
 	__atomic_signal_fence(__ATOMIC_ACQ_REL);
 
 	// Send power to the switch
-	gpio_set(GPIOB, 0);
+	gpio_set(PIN_ESTOP_SUPPLY);
 
 	// Configure the ADC.
 	// Reset signalling is directed to all three ADCs simultaneously.

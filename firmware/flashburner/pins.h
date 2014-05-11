@@ -1,0 +1,26 @@
+#ifndef PINS_H
+#define PINS_H
+
+#include <gpio.h>
+
+extern const gpio_init_pin_t PINS_INIT[4U][16U];
+
+#define PIN_INT_CS GPIOA, 4U
+
+#define PIN_EXT_CS GPIOA, 15U
+#define PIN_EXT_CLOCK GPIOB, 3U
+#define PIN_EXT_MOSI GPIOB, 5U
+#define PIN_EXT_MISO GPIOB, 4U
+#define PIN_EXT_NPROGRAM_B GPIOA, 14U
+#define PIN_EXT_POWER GPIOD, 2U
+#define PIN_EXT_UART_RX GPIOB, 7U
+
+#define PIN_LED_POWER GPIOB, 12U
+#define PIN_LED_ACTIVITY GPIOB, 13U
+#define PIN_LED_ERROR GPIOB, 14U
+
+#define PIN_BUTTON_NBURN_BOOT GPIOC, 14U
+#define PIN_BUTTON_NBURN_OFF GPIOC, 15U
+
+#endif
+

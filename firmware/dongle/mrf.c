@@ -38,11 +38,9 @@ void mrf_init(void) {
 	assert(dma_int_sem && bus_mutex);
 
 	// Set bus to reset state.
-	// PA15 = MRF /CS = 1; deassert chip select.
-	gpio_set(GPIOA, 15);
-	// PB6 = MRF wake = 0; deassert wake.
-	// PB7 = MRF /reset = 0; assert reset.
-	gpio_set_reset_mask(GPIOB, 0, (1 << 6) | (1 << 7));
+	gpio_set(PIN_MRF_CS);
+	gpio_reset(PIN_MRF_WAKE);
+	gpio_reset(PIN_MRF_NRESET);
 
 	// Reset the module and enable the clock.
 	rcc_enable_reset(AHB1, DMA2);
@@ -130,24 +128,13 @@ void mrf_deinit(void) {
 	rcc_disable(AHB1, DMA2);
 
 	// Set bus to reset state.
-	// PA15 = MRF /CS = 1; deassert chip select
-	gpio_set(GPIOA, 15);
-	// PB6 = MRF wake = 0; deassert wake.
-	// PB7 = MRF /reset = 0; assert reset.
-	gpio_set_reset_mask(GPIOB, 0, (1 << 6) | (1 << 7));
+	gpio_set(PIN_MRF_CS);
+	gpio_reset(PIN_MRF_WAKE);
+	gpio_reset(PIN_MRF_NRESET);
 
 	// Destroy semaphore and mutex.
 	vSemaphoreDelete(bus_mutex);
 	vSemaphoreDelete(dma_int_sem);
-}
-
-void mrf_release_reset(void) {
-	// PB7 = MRF /reset = 1; release reset.
-	gpio_set(GPIOB, 7);
-}
-
-bool mrf_get_interrupt(void) {
-	return gpio_get_input(GPIOC, 12);
 }
 
 void mrf_enable_interrupt(void (*isr)(void), unsigned int priority) {
@@ -166,7 +153,7 @@ static void execute_transfer(size_t length) {
 	xSemaphoreTake(bus_mutex, portMAX_DELAY);
 
 	// Assert chip select.
-	gpio_reset(GPIOA, 15U);
+	gpio_reset(PIN_MRF_CS);
 	sleep_50ns();
 
 	// Clear old DMA interrupts.
@@ -260,7 +247,7 @@ static void execute_transfer(size_t length) {
 
 	// Deassert CS.
 	sleep_50ns();
-	gpio_set(GPIOA, 15U);
+	gpio_set(PIN_MRF_CS);
 
 	// Unlock the bus.
 	xSemaphoreGive(bus_mutex);

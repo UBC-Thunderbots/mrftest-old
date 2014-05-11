@@ -9,6 +9,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "pins.h"
 
 /**
  * \brief The possible short register addresses.
@@ -148,14 +149,14 @@ void mrf_deinit(void);
 /**
  * \brief Releases the radio from reset.
  */
-void mrf_release_reset(void);
+#define mrf_release_reset() gpio_set(PIN_MRF_NRESET)
 
 /**
  * \brief Checks the radio’s interrupt line.
  *
  * \return \c true if the interrupt line is high, or \c false if low
  */
-bool mrf_get_interrupt(void);
+#define mrf_get_interrupt() gpio_get_input(PIN_MRF_INT)
 
 /**
  * \brief Enables taking an interrupt on rising edge of the MRF interrupt pin.

@@ -45,9 +45,9 @@ static usb_ep0_disposition_t on_zero_request(const usb_ep0_setup_packet_t *pkt, 
 			if (pkt->value & (1 << (i + 8))) {
 				unsigned int mask = 1 << TARGET_IO_PIN_INFO[i].bit;
 				gpio_set_reset_mask(*TARGET_IO_PIN_INFO[i].gpio, (pkt->value & (1 << i)) ? mask : 0, mask);
-				gpio_set_mode(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit, GPIO_MODE_OUT);
+				gpio_set_mode_raw(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit, GPIO_MODE_OUT);
 			} else {
-				gpio_set_mode(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit, GPIO_MODE_IN);
+				gpio_set_mode_raw(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit, GPIO_MODE_IN);
 			}
 		}
 
@@ -79,15 +79,15 @@ static usb_ep0_disposition_t on_in_request(const usb_ep0_setup_packet_t *pkt, us
 		// Second byte indicates 1=driven, 0=tristated.
 		// Read out the current states.
 		for (unsigned int i = 0; i < sizeof(TARGET_IO_PIN_INFO) / sizeof(*TARGET_IO_PIN_INFO); ++i) {
-			GPIO_MODE_t mode = gpio_get_mode(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit);
+			GPIO_MODE_t mode = gpio_get_mode_raw(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit);
 			if (mode == GPIO_MODE_IN) {
 				// This pin is a GP input.
-				if (gpio_get_input(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit)) {
+				if (gpio_get_input_raw(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit)) {
 					stash_buffer[0] |= 1 << i;
 				}
 			} else if (mode == GPIO_MODE_OUT) {
 				// This pin is a GP output.
-				if (gpio_get_output(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit)) {
+				if (gpio_get_output_raw(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit)) {
 					stash_buffer[0] |= 1 << i;
 				}
 				stash_buffer[1] |= 1 << i;
@@ -119,7 +119,7 @@ void gpio_remove_ep0_cbs(void) {
 
 void gpio_tristate_all(void) {
 	for (unsigned int i = 0; i < sizeof(TARGET_IO_PIN_INFO) / sizeof(*TARGET_IO_PIN_INFO); ++i) {
-		gpio_set_mode(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit, GPIO_MODE_IN);
+		gpio_set_mode_raw(*TARGET_IO_PIN_INFO[i].gpio, TARGET_IO_PIN_INFO[i].bit, GPIO_MODE_IN);
 	}
 }
 

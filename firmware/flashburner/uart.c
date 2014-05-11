@@ -1,6 +1,7 @@
 #include "uart.h"
 #include "autonomous.h"
 #include "constants.h"
+#include "pins.h"
 #include <gpio.h>
 #include <minmax.h>
 #include <rcc.h>
@@ -184,7 +185,7 @@ void usart1_interrupt_vector(void) {
 	uint8_t data = USART1.DR;
 
 	// If chip select is asserted, the FPGA is talking to the SPI Flash, so we should not consider this as useful information.
-	if (!gpio_get_input(GPIOA, 15)) {
+	if (!gpio_get_input(PIN_EXT_CS)) {
 		return;
 	}
 
@@ -288,10 +289,10 @@ static void on_enter(void) {
 	usb_overrun_pending = false;
 
 	// Turn on LED 2.
-	gpio_set(GPIOB, 13);
+	gpio_set(PIN_LED_ACTIVITY);
 
 	// Put a pull-up resistor on PB7 (UART receive).
-	gpio_set_pupd(GPIOB, 7, GPIO_PUPD_PU);
+	gpio_set_pupd(PIN_EXT_UART_RX, GPIO_PUPD_PU);
 
 	// Set up endpoint 1 IN with a 512-byte FIFO, large enough to hold any transfer.
 	usb_fifo_enable(1, 512);
@@ -392,10 +393,11 @@ static void on_exit(void) {
 	usb_fifo_disable(1);
 
 	// Remove the pull-up resistor from PB7 (UART receive).
-	gpio_set_pupd(GPIOB, 7, GPIO_PUPD_NONE);
+	gpio_set_pupd(PIN_EXT_UART_RX, GPIO_PUPD_NONE);
 
 	// Turn off LEDs 2 and 3.
-	gpio_set_reset_mask(GPIOB, 0, 3 << 13);
+	gpio_reset(PIN_LED_ACTIVITY);
+	gpio_reset(PIN_LED_ERROR);
 }
 
 const usb_configs_config_t UART_CONFIGURATION = {

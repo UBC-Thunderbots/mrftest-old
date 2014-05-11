@@ -2,6 +2,7 @@
 #include "constants.h"
 #include "estop.h"
 #include "mrf.h"
+#include "pins.h"
 #include "radio_config.h"
 #include <FreeRTOS.h>
 #include <errno.h>
@@ -239,7 +240,7 @@ static void send_drive_packet(const void *packet, uint8_t counter) {
 	mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000001U);
 
 	// Blink the transmit light.
-	gpio_toggle(GPIOB, 13U);
+	gpio_toggle(PIN_LED_TX);
 }
 
 /**
@@ -706,7 +707,7 @@ static void rdrx_task(void *UNUSED(param)) {
 						uint8_t sequence_number = mrf_read_long(MRF_REG_LONG_RXFIFO + 3U);
 						if (source_address < 8U && sequence_number != seqnum[source_address]) {
 							// Blink the receive light.
-							gpio_toggle(GPIOB, 14U);
+							gpio_toggle(PIN_LED_RX);
 
 							// Update sequence number.
 							seqnum[source_address] = sequence_number;
@@ -783,7 +784,7 @@ void normal_on_enter(void) {
 	mrf_write_short(MRF_REG_SHORT_INTCON, 0b11110110);
 
 	// Turn on LED 1.
-	gpio_set(GPIOB, 12U);
+	gpio_set(PIN_LED_POWER);
 
 	// Enable external interrupt on MRF INT rising edge.
 	mrf_enable_interrupt(&mrf_int_isr, EXCEPTION_MKPRIO(6U, 0U));
@@ -827,7 +828,9 @@ void normal_on_exit(void) {
 	mrf_disable_interrupt();
 
 	// Turn off all LEDs.
-	gpio_set_reset_mask(GPIOB, 0U, 7U << 12U);
+	gpio_reset(PIN_LED_POWER);
+	gpio_reset(PIN_LED_TX);
+	gpio_reset(PIN_LED_RX);
 
 	// Reset the radio.
 	mrf_deinit();
