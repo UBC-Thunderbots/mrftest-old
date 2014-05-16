@@ -174,20 +174,39 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 			double best_prob = 0.0;
 			Point best_pos;
 			AI::Timestamp best_time;
+			static const float inv_sqrt_2pi = 0.3989422804014327;
+			float a;
+
 			for (auto &i : detections) {
 				// Estimate the ball’s position at the camera frame’s timestamp.
 				double time_delta = std::chrono::duration_cast<std::chrono::duration<double>>(i.second - ball_.lock_time()).count();
 				Point estimated_position = ball_.position(time_delta);
 				Point estimated_stdev = ball_.position_stdev(time_delta);
+				double x_prob, y_prob;
+				
 				for (const SSL_DetectionBall &b : i.first.balls()) {
 					// Compute the probability of this ball being the wanted one.
 					Point detection_position(b.x() / 1000.0, b.y() / 1000.0);
 					if (defending_end() == FieldEnd::EAST) {
 						detection_position = -detection_position;
 					}
+
+
+					/* old formulae 
 					Point distance_from_estimate = detection_position - estimated_position;
-					double x_prob = 1.0f / (std::pow(distance_from_estimate.x / estimated_stdev.x, 2.0) + 1.0f);
-					double y_prob = 1.0f / (std::pow(distance_from_estimate.y / estimated_stdev.y, 2.0) + 1.0f);
+					x_prob = 1.0f / (std::pow(distance_from_estimate.x / estimated_stdev.x, 2.0) + 1.0f);
+					y_prob = 1.0f / (std::pow(distance_from_estimate.y / estimated_stdev.y, 2.0) + 1.0f); */
+					
+					/*new formulae*/
+					a = (detection_position.x - estimated_position.x) / estimated_stdev.x;
+					x_prob = std::exp(-0.5f * a * a);
+
+					a = (detection_position.y - estimated_position.y) / estimated_stdev.y;
+					y_prob = std::exp(-0.5f * a * a);
+					 
+
+					
+
 					double prob = x_prob * y_prob * b.confidence();
 					if (prob > best_prob || !found) {
 						found = true;
