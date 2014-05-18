@@ -11,6 +11,7 @@ Drive::Robot::Robot(unsigned int index) :
 		battery_voltage(0),
 		capacitor_voltage(0),
 		break_beam_reading(0),
+		break_beam_scale(1),
 		dribbler_temperature(0),
 		dribbler_speed(0),
 		board_temperature(0),

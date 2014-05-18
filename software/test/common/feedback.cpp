@@ -123,7 +123,7 @@ void TesterFeedbackPanel::on_board_temperature_changed() {
 
 void TesterFeedbackPanel::on_break_beam_reading_changed() {
 	if (robot.alive) {
-		break_beam_reading.set_fraction(clamp(robot.break_beam_reading / 100.0, 0.0, 1.0));
+		break_beam_reading.set_fraction(clamp(robot.break_beam_reading / robot.break_beam_scale, 0.0, 1.0));
 		break_beam_reading.set_text(Glib::ustring::format(robot.break_beam_reading));
 	} else {
 		break_beam_reading.set_fraction(0);

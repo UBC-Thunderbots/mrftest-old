@@ -64,9 +64,14 @@ namespace Drive {
 			Property<double> capacitor_voltage;
 
 			/**
-			 * \brief The raw analogue-to-digital converter reading of the robot’s laser sensor.
+			 * \brief The reading of the robot’s laser sensor.
 			 */
-			Property<int> break_beam_reading;
+			Property<double> break_beam_reading;
+
+			/**
+			 * \brief The rough maximum full-scale deflection of the laser sensor.
+			 */
+			Property<double> break_beam_scale;
 
 			/**
 			 * \brief The temperature of the robot’s dribbler motor, in degrees Celsius.

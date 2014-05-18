@@ -282,10 +282,19 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 				--len;
 				if (len == 15) {
 					alive = true;
-					battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 20000);
-					capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 200000);
-					break_beam_reading = static_cast<int16_t>(static_cast<uint16_t>(bptr[4] | static_cast<unsigned int>(bptr[5] << 8)));
-					board_temperature = adc_voltage_to_board_temp((bptr[6] | static_cast<unsigned int>(bptr[7] << 8)) / 1024.0 * 3.3);
+					if (bptr[8] & 0x80) {
+						battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1000.0;
+						capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 100.0;
+						break_beam_reading = (bptr[4] | static_cast<unsigned int>(bptr[5] << 8)) / 1000.0;
+						break_beam_scale = 0.3;
+						board_temperature = (bptr[6] | static_cast<unsigned int>(bptr[7] << 8)) / 100.0;
+					} else {
+						battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 20000);
+						capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 200000);
+						break_beam_reading = static_cast<int16_t>(static_cast<uint16_t>(bptr[4] | static_cast<unsigned int>(bptr[5] << 8)));
+						break_beam_scale = 100.0;
+						board_temperature = adc_voltage_to_board_temp((bptr[6] | static_cast<unsigned int>(bptr[7] << 8)) / 1024.0 * 3.3);
+					}
 					ball_in_beam = !!(bptr[8] & 0x01);
 					capacitor_charged = !!(bptr[8] & 0x02);
 					charge_timeout_message.active(!!(bptr[8] & 0x04));
