@@ -19,6 +19,7 @@
 namespace AI {
 	namespace BE {
 		namespace SSLVision {
+			extern BoolParam USE_KALMAN_FILTER;
 			/**
 			 * \brief The minimum probability above which the best ball detection will be accepted.
 			 */
@@ -191,7 +192,6 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 						detection_position = -detection_position;
 					}
 
-
 					/* old formulae 
 					Point distance_from_estimate = detection_position - estimated_position;
 					x_prob = 1.0f / (std::pow(distance_from_estimate.x / estimated_stdev.x, 2.0) + 1.0f);
@@ -203,11 +203,12 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 
 					a = (detection_position.y - estimated_position.y) / estimated_stdev.y;
 					y_prob = std::exp(-0.5f * a * a);
-					 
-
 					
-
-					double prob = x_prob * y_prob * b.confidence();
+					double prob;
+					if(USE_KALMAN_FILTER)
+						prob = x_prob * y_prob * b.confidence();
+					else
+						prob = b.confidence();
 					if (prob > best_prob || !found) {
 						found = true;
 						best_prob = prob;
