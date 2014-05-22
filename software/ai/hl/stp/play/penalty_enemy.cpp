@@ -1,5 +1,5 @@
 #include "ai/hl/stp/tactic/move.h"
-#include "ai/hl/stp/tactic/penalty_goalie.h"
+#include "ai/hl/stp/tactic/penalty_goalie_new.h"
 #include "ai/hl/stp/play/simple_play.h"
 
 using namespace AI::HL::W;
@@ -19,7 +19,7 @@ DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
 // GOALIE
-goalie_role.push_back(penalty_goalie(world));
+goalie_role.push_back(penalty_goalie_new(world));
 
 // ROLE 1
 // move to penalty position 1

@@ -423,6 +423,8 @@ software/ai/hl/stp/tactic/pass_simple.cpp -text
 software/ai/hl/stp/tactic/pass_simple.h -text
 software/ai/hl/stp/tactic/penalty_goalie.cpp -text
 software/ai/hl/stp/tactic/penalty_goalie.h -text
+software/ai/hl/stp/tactic/penalty_goalie_new.cpp -text
+software/ai/hl/stp/tactic/penalty_goalie_new.h -text
 software/ai/hl/stp/tactic/penalty_shoot.cpp -text
 software/ai/hl/stp/tactic/penalty_shoot.h -text
 software/ai/hl/stp/tactic/ram.cpp -text
