@@ -7,6 +7,7 @@
 #include "ai/hl/stp/evaluation/team.h"
 #include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/stp/evaluation/player.h"
+#include "ai/hl/stp/action/move.h"
 #include "ai/hl/util.h"
 #include "ai/flags.h"
 #include "geom/util.h"
@@ -21,6 +22,8 @@
 using namespace AI::HL::STP;
 
 namespace {
+	BoolParam AUTO_ORIENT(u8"Orient self towards enemy goal at all times", u8"Cyprus", true);
+	BoolParam REPOSITION(u8"Use repositioning algorithm to find openings in defense (overrides autoorientation if true)", u8"Cyprus", true);
 	const double FAST = 100.0;
 	DoubleParam FAST_BALL(u8"Default Shooting Speed", u8"STP/Shoot", 8.0, 0.0, 32.0);
 }
@@ -32,6 +35,23 @@ bool AI::HL::STP::Action::shoot_goal(World world, Player player, bool use_reduce
 	if (!Evaluation::possess_ball(world, pc)) {
 		intercept_pivot(world, player, shoot_data.target);
 		return false;
+	}
+	
+	if (AUTO_ORIENT && !REPOSITION) {
+		if (player.orientation().to_degrees() - (world.field().enemy_goal() - player.position()).orientation().to_degrees() > 4)
+			move(player, (world.field().enemy_goal() - player.position()).orientation(), player.position());
+	}
+	else if (REPOSITION) {
+		std::vector<Point> positions; 
+		Point behind_goal = world.field().enemy_goal() + (world.field().enemy_goal() - player.position())/(world.field().enemy_goal() - player.position()).len();
+
+		for(auto i : world.enemy_team())
+			positions.push_back(i.position());
+		Point destination = closest_lineseg_point(player.position(), angle_sweep_circles(behind_goal, Point(0,2), Point(0,-2), positions, Robot::MAX_RADIUS).first, behind_goal);
+
+		if (fabs(line_point_dist(player.position(), behind_goal, destination)) > 0.05)
+			move(player, angle_sweep_circles(player.position(), world.field().enemy_goal_boundary().second, world.field().enemy_goal_boundary().first, 
+						positions, Robot::MAX_RADIUS).second , destination);
 	}
 
 	if (shoot_data.can_shoot) {
