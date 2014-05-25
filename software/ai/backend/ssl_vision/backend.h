@@ -175,8 +175,6 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 			double best_prob = 0.0;
 			Point best_pos;
 			AI::Timestamp best_time;
-			static const float inv_sqrt_2pi = 0.3989422804014327;
-			float a;
 
 			for (auto &i : detections) {
 				// Estimate the ball’s position at the camera frame’s timestamp.
@@ -198,11 +196,11 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 					y_prob = 1.0f / (std::pow(distance_from_estimate.y / estimated_stdev.y, 2.0) + 1.0f); */
 					
 					/*new formulae*/
-					a = (detection_position.x - estimated_position.x) / estimated_stdev.x;
-					x_prob = std::exp(-0.5f * a * a);
+					double a = (detection_position.x - estimated_position.x) / estimated_stdev.x;
+					x_prob = std::exp(-0.5 * a * a);
 
 					a = (detection_position.y - estimated_position.y) / estimated_stdev.y;
-					y_prob = std::exp(-0.5f * a * a);
+					y_prob = std::exp(-0.5 * a * a);
 					
 					double prob;
 					if(USE_KALMAN_FILTER)
