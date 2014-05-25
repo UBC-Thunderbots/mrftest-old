@@ -228,6 +228,7 @@ MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) :
 		charge_timeout_message(Glib::ustring::compose(u8"Bot %1 charge timeout", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
 		breakout_missing_message(Glib::ustring::compose(u8"Bot %1 breakout missing", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
 		chicker_missing_message(Glib::ustring::compose(u8"Bot %1 chicker missing", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
+		crc_error_message(Glib::ustring::compose(u8"Bot %1 ICB CRC error", index), Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::HIGH),
 		interlocks_overridden_message(Glib::ustring::compose(u8"Bot %1 interlocks overridden", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
 		low_capacitor_message(Glib::ustring::compose(u8"Bot %1 low caps (fuse blown?)", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH) {
 	for (unsigned int i = 0; i < 8; ++i) {
@@ -302,6 +303,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 					breakout_missing_message.active(!breakout_present);
 					bool chicker_present = !!(bptr[8] & 0x10);
 					chicker_missing_message.active(!chicker_present);
+					crc_error_message.active(!!(bptr[8] & 0x20));
 					interlocks_overridden_message.active(!!(bptr[8] & 0x40));
 					low_capacitor_message.active(chicker_present && capacitor_voltage < 5);
 					for (unsigned int bit = 0; bit < 8; ++bit) {
