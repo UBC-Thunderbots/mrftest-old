@@ -281,7 +281,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 				// General robot status update
 				++bptr;
 				--len;
-				if (len == 15) {
+				if (len >= 15) {
 					alive = true;
 					if (bptr[8] & 0x80) {
 						battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1000.0;
@@ -303,7 +303,9 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 					breakout_missing_message.active(!breakout_present);
 					bool chicker_present = !!(bptr[8] & 0x10);
 					chicker_missing_message.active(!chicker_present);
-					crc_error_message.active(!!(bptr[8] & 0x20));
+					if (bptr[8] & 0x20) {
+						crc_error_message.fire();
+					}
 					interlocks_overridden_message.active(!!(bptr[8] & 0x40));
 					low_capacitor_message.active(chicker_present && capacitor_voltage < 5);
 					for (unsigned int bit = 0; bit < 8; ++bit) {
@@ -330,6 +332,9 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 					dribbler_speed = static_cast<int16_t>(static_cast<uint16_t>(bptr[12] | (bptr[13] << 8))) * 25 * 60 / 6;
 					for (std::size_t i = 0; i < hot_motor_messages.size(); ++i) {
 						hot_motor_messages[i]->active(!!(bptr[14] & (1 << i)));
+					}
+					if (len >= 16) {
+						dribbler_temperature = bptr[15];
 					}
 					feedback_timeout_connection.disconnect();
 					feedback_timeout_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &MRFRobot::handle_feedback_timeout), 3);
