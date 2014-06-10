@@ -179,15 +179,6 @@ class ParamTreeNode : public NonCopyable {
 		virtual void save(xmlpp::Element *elt) const = 0;
 
 		/**
-		 * \brief Compares two nodes using a case-sensitive comparison of their names.
-		 *
-		 * \param[in] other the other object to compare to.
-		 *
-		 * \return \c true if \c this is less than \p other, or \c false if not.
-		 */
-		bool operator<(const ParamTreeNode &other) const;
-
-		/**
 		 * \brief Fetches a collation key for this node's name.
 		 *
 		 * \return the collation key.

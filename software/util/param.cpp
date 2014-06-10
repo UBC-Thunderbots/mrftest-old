@@ -60,18 +60,23 @@ class ParamTreeInternalNode : public ParamTreeNode {
 		}
 
 		void add_child(ParamTreeNode *child) {
-			const std::string &ck = child->name().collate_key();
-			if (children_name_ck.count(ck)) {
-				throw std::invalid_argument(Glib::locale_from_utf8(Glib::ustring::compose(u8"Duplicate name “%1” in parameter tree path “%2”", child->name(), this->path())));
-			}
-			children_name_ck.insert(ck);
 			children.push_back(child);
 		}
 
 		void initialize() {
 			// Sort all of my children by name.
-			std::sort(children.begin(), children.end(), [](const ParamTreeNode *n1, const ParamTreeNode *n2) { return *n1 < *n2; });
+			std::sort(children.begin(), children.end(), [](const ParamTreeNode *n1, const ParamTreeNode *n2) { return n1->collate_key() < n2->collate_key(); });
+
+			// The cached collation keys are no longer needed.
 			std::for_each(children.begin(), children.end(), [](ParamTreeNode *n) { n->collate_key_clear(); });
+
+			// Check for duplicates.
+			{
+				auto i = std::adjacent_find(children.begin(), children.end(), [](const ParamTreeNode *n1, const ParamTreeNode *n2) { return n1->name() == n2->name(); });
+				if (i != children.end()) {
+					throw std::invalid_argument(Glib::locale_from_utf8(Glib::ustring::compose(u8"Duplicate name “%1” in parameter tree path “%2”", (*i)->name(), path())));
+				}
+			}
 
 			// Link my children with respect to sibling and parent relationships.
 			for (std::size_t i = 0; i < children.size(); ++i) {
@@ -159,7 +164,6 @@ class ParamTreeInternalNode : public ParamTreeNode {
 		};
 
 		std::vector<ParamTreeNode *> children;
-		std::unordered_set<std::string> children_name_ck;
 
 		ParamTreeInternalNode(const Glib::ustring &name) : ParamTreeNode(name) {
 		}
@@ -239,10 +243,6 @@ Glib::ustring ParamTreeNode::path() const {
 	} else {
 		return name();
 	}
-}
-
-bool ParamTreeNode::operator<(const ParamTreeNode &other) const {
-	return collate_key() < other.collate_key();
 }
 
 const std::string &ParamTreeNode::collate_key() const {
