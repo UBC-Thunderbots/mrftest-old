@@ -136,10 +136,10 @@ void adc_isr(void) {
 	}
 	if (value != old && notify_sem) {
 		BaseType_t yield = pdFALSE;
-		BaseType_t ok = xSemaphoreGiveFromISR(notify_sem, &yield);
-		if (!ok) {
-			abort();
-		}
+		// No need to check return value.
+		// If semaphore was already given, an update will happen in due time.
+		// Resulting estop value will be eventually consistent.
+		xSemaphoreGiveFromISR(notify_sem, &yield);
 		if (yield) {
 			portYIELD_FROM_ISR();
 		}
