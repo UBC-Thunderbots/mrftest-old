@@ -86,7 +86,17 @@ MRFDongle::SendReliableMessageOperation::ClearChannelError::ClearChannelError() 
 
 
 
-MRFDongle::MRFDongle() : context(), device(context, MRF::VENDOR_ID, MRF::PRODUCT_ID, std::getenv("MRF_SERIAL")), radio_interface(-1), configuration_altsetting(-1), normal_altsetting(-1), mdr_transfer(device, 1, 8, false, 0), status_transfer(device, 3, 1, true, 0), drive_dirty(false), pending_beep_length(0) {
+MRFDongle::MRFDongle() :
+		context(),
+		device(context, MRF::VENDOR_ID, MRF::PRODUCT_ID, std::getenv("MRF_SERIAL")),
+		radio_interface(-1),
+		configuration_altsetting(-1),
+		normal_altsetting(-1),
+		mdr_transfer(device, 1, 8, false, 0),
+		status_transfer(device, 3, 1, true, 0),
+		rx_fcs_fail_message(u8"Dongle receive FCS fail", Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::HIGH),
+		drive_dirty(false),
+		pending_beep_length(0) {
 	// Sanity-check the dongle by looking for an interface with the appropriate subclass and alternate settings with the appropriate protocols.
 	// While doing so, discover which interface number is used for the radio and which alternate settings are for configuration-setting and normal operation.
 	{
@@ -255,7 +265,10 @@ void MRFDongle::handle_message(AsyncOperation<void> &, USB::InterruptInTransfer 
 
 void MRFDongle::handle_status(AsyncOperation<void> &) {
 	status_transfer.result();
-	estop_state = static_cast<EStopState>(status_transfer.data()[0]);
+	estop_state = static_cast<EStopState>(status_transfer.data()[0] & 3U);
+	if (status_transfer.data()[0U] & 4U) {
+		rx_fcs_fail_message.fire();
+	}
 	status_transfer.submit();
 }
 

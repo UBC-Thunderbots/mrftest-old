@@ -26,6 +26,8 @@ firmware/dongle/Makefile -text
 firmware/dongle/buzzer.c -text
 firmware/dongle/buzzer.h -text
 firmware/dongle/constants.h -text
+firmware/dongle/crc.c -text
+firmware/dongle/crc.h -text
 firmware/dongle/enabled.c -text
 firmware/dongle/enabled.h -text
 firmware/dongle/estop.c -text

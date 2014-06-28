@@ -1,5 +1,6 @@
 #include "normal.h"
 #include "constants.h"
+#include "crc.h"
 #include "estop.h"
 #include "mrf.h"
 #include "pins.h"
@@ -104,6 +105,11 @@ static unsigned int poll_index;
 static bool rdrx_shutting_down;
 
 /**
+ * \brief Whether a corrupt packet has been received.
+ */
+static bool rx_fcs_error;
+
+/**
  * \brief A queue of pointers to free packet buffers available for use.
  */
 static QueueHandle_t free_queue;
@@ -132,7 +138,7 @@ static QueueHandle_t mdr_queue;
 /**
  * \brief A semaphore given whenever the hardware run switch changes state.
  */
-static SemaphoreHandle_t estop_sem;
+static SemaphoreHandle_t dongle_status_sem;
 
 /**
  * \brief A semaphore given whenever EXTI12 fires.
@@ -559,17 +565,17 @@ static void usbrx_task(void *UNUSED(param)) {
 }
 
 /**
- * \brief Sends hardware run switch state changes to IN endpoint 3.
+ * \brief Sends dongle status changes to IN endpoint 3.
  */
-static void estop_task(void *UNUSED(param)) {
-	// Set the notification semaphore.
-	estop_set_sem(estop_sem);
+static void dongle_status_task(void *UNUSED(param)) {
+	// Set the emergency stop update semaphore.
+	estop_set_sem(dongle_status_sem);
 
 	// Run.
 	bool shutting_down = false;
 	while (!shutting_down) {
 		// Send the state first.
-		uint8_t state = estop_read();
+		uint8_t state = estop_read() | (__atomic_exchange_n(&rx_fcs_error, false, __ATOMIC_RELAXED) ? 0x04U : 0x00U);
 		bool ok;
 		while (!(ok = uep_write(0x83U, &state, sizeof(state), false)) && errno == EPIPE) {
 			if (!uep_halt_wait(0x83U)) {
@@ -582,7 +588,7 @@ static void estop_task(void *UNUSED(param)) {
 
 		// Wait for the next change of state.
 		if (!shutting_down) {
-			xSemaphoreTake(estop_sem, portMAX_DELAY);
+			xSemaphoreTake(dongle_status_sem, portMAX_DELAY);
 		}
 	}
 
@@ -691,48 +697,103 @@ static void rdrx_task(void *UNUSED(param)) {
 			if (intstat & (1U << 3U)) {
 				// RXIF = 1; packet received.
 				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04U); // RXDECINV = 1; invert receiver symbol sign to prevent further packet reception
-				// Read out the frame length byte and frame control word.
-				uint8_t rxfifo_frame_length = mrf_read_long(MRF_REG_LONG_RXFIFO);
-				uint16_t frame_control = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 2U) << 8U);
-				// Sanity-check the frame control word.
-				if (((frame_control >> 0U) & 7U) == 1U /* Data packet */ && ((frame_control >> 3U) & 1U) == 0U /* No security */ && ((frame_control >> 6U) & 1U) == 1U /* Intra-PAN */ && ((frame_control >> 10U) & 3U) == 2U /* 16-bit destination address */ && ((frame_control >> 14U) & 3U) == 2U /* 16-bit source address */) {
-					static const uint8_t HEADER_LENGTH = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
-					static const uint8_t FOOTER_LENGTH = 2U /* Frame check sequence */;
 
-					// Sanity-check the total frame length.
-					packet_t *buffer;
-					if (HEADER_LENGTH + FOOTER_LENGTH <= rxfifo_frame_length && rxfifo_frame_length <= HEADER_LENGTH + sizeof(buffer->data) - 1U /* Robot index */ - 1U /* LQI */ - 1U /* RSSI */ + FOOTER_LENGTH) {
-						// Read out and check the source address and sequence number.
-						uint16_t source_address = mrf_read_long(MRF_REG_LONG_RXFIFO + 8U) | (mrf_read_long(MRF_REG_LONG_RXFIFO + 9U) << 8U);
-						uint8_t sequence_number = mrf_read_long(MRF_REG_LONG_RXFIFO + 3U);
-						if (source_address < 8U && sequence_number != seqnum[source_address]) {
-							// Blink the receive light.
-							gpio_toggle(PIN_LED_RX);
+				// See ticket #1338, the radio does not always return intact data when reading the receive buffer.
+				// We will detect this by checking FCS and, on failure, starting the read over from the top.
+				unsigned int tries = 8U;
+				uint16_t crc;
 
-							// Update sequence number.
-							seqnum[source_address] = sequence_number;
+				do {
+					// Initialize CRC.
+					crc = 0U;
 
-							// Allocate a packet buffer.
-							xQueueReceive(free_queue, &buffer, portMAX_DELAY);
+					// Read out the frame length byte and frame control word.
+					unsigned int rxfifo_frame_length = mrf_read_long(MRF_REG_LONG_RXFIFO);
+					uint8_t frame_control_lsb = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U);
+					crc = crc_update(crc, frame_control_lsb);
+					uint8_t frame_control_msb = mrf_read_long(MRF_REG_LONG_RXFIFO + 2U);
+					crc = crc_update(crc, frame_control_msb);
+					uint16_t frame_control = frame_control_lsb | (frame_control_msb << 8U);
 
-							// Fill in the packet buffer.
-							buffer->message_id = 0U;
-							buffer->reliable = false;
-							buffer->data_offset = 1U;
-							buffer->length = 1U /* Robot index */ + (rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH) /* 802.15.4 packet payload */ + 1U /* LQI */ + 1U /* RSSI */;
-							buffer->data[0U] = source_address;
-							for (uint8_t i = 0U; i < rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH; ++i) {
-								buffer->data[1U + i] = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + HEADER_LENGTH + i);
+					// Sanity-check the frame control word.
+					if (((frame_control >> 0U) & 7U) == 1U /* Data packet */ && ((frame_control >> 3U) & 1U) == 0U /* No security */ && ((frame_control >> 6U) & 1U) == 1U /* Intra-PAN */ && ((frame_control >> 10U) & 3U) == 2U /* 16-bit destination address */ && ((frame_control >> 14U) & 3U) == 2U /* 16-bit source address */) {
+						static const unsigned int HEADER_LENGTH = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
+						static const unsigned int FOOTER_LENGTH = 2U /* Frame check sequence */;
+
+						// Sanity-check the total frame length.
+						packet_t *buffer;
+						if (HEADER_LENGTH + FOOTER_LENGTH <= rxfifo_frame_length && rxfifo_frame_length <= HEADER_LENGTH + sizeof(buffer->data) - 1U /* Robot index */ - 1U /* LQI */ - 1U /* RSSI */ + FOOTER_LENGTH) {
+							// Read the sequence number.
+							uint8_t sequence_number = mrf_read_long(MRF_REG_LONG_RXFIFO + 3U);
+							crc = crc_update(crc, sequence_number);
+
+							// Read out and ignore, but CRC, the rest of the header excluding the source address.
+							for (unsigned int i = 4U; i != 8U; ++i) {
+								crc = crc_update(crc, mrf_read_long(MRF_REG_LONG_RXFIFO + i));
 							}
-							buffer->data[1U + rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH] = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + rxfifo_frame_length); // LQI
-							buffer->data[1U + rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH + 1U] = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + rxfifo_frame_length + 1U); // RSSI
 
-							// Push the packet on the receive queue.
-							xQueueSend(receive_queue, &buffer, portMAX_DELAY);
+							// Read out and check the source address and sequence number.
+							uint8_t source_address_lsb = mrf_read_long(MRF_REG_LONG_RXFIFO + 8U);
+							crc = crc_update(crc, source_address_lsb);
+							uint8_t source_address_msb = mrf_read_long(MRF_REG_LONG_RXFIFO + 9U);
+							crc = crc_update(crc, source_address_msb);
+							uint16_t source_address = source_address_lsb | (source_address_msb << 8U);
+							if (source_address < 8U && sequence_number != seqnum[source_address]) {
+								// Blink the receive light.
+								gpio_toggle(PIN_LED_RX);
+
+								// Update sequence number.
+								seqnum[source_address] = sequence_number;
+
+								// Allocate a packet buffer.
+								xQueueReceive(free_queue, &buffer, portMAX_DELAY);
+
+								// Fill in the packet buffer.
+								buffer->message_id = 0U;
+								buffer->reliable = false;
+								buffer->data_offset = 1U;
+								buffer->length = 1U /* Robot index */ + (rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH) /* 802.15.4 packet payload */ + 1U /* LQI */ + 1U /* RSSI */;
+								buffer->data[0U] = source_address;
+								for (unsigned int i = 0U; i < rxfifo_frame_length - HEADER_LENGTH; ++i) {
+									uint8_t byte = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + HEADER_LENGTH + i);
+									crc = crc_update(crc, byte);
+									if (i < rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH) {
+										buffer->data[1U + i] = byte;
+									}
+								}
+
+								if (crc == 0U) {
+									// Read LQI and RSSI.
+									buffer->data[1U + rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH] = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + rxfifo_frame_length); // LQI
+									buffer->data[1U + rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH + 1U] = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + rxfifo_frame_length + 1U); // RSSI
+
+									// Push the packet on the receive queue.
+									xQueueSend(receive_queue, &buffer, portMAX_DELAY);
+								} else {
+									// Packet is broken; give up.
+									xQueueSend(free_queue, &buffer, portMAX_DELAY);
+								}
+							} else {
+								// Duplicate sequence number or wrong source address.
+								// Read in the packet to make sure it is indeed true, and not corrupt, and to zero out CRC.
+								for (unsigned int i = 0U; i < rxfifo_frame_length - HEADER_LENGTH; ++i) {
+									uint8_t byte = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + HEADER_LENGTH + i);
+									crc = crc_update(crc, byte);
+								}
+							}
 						}
 					}
-				}
+				} while (crc != 0U && --tries);
+
 				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00U); // RXDECINV = 0; stop inverting receiver and allow further reception
+
+				if (crc != 0U) {
+					__atomic_store_n(&rx_fcs_error, true, __ATOMIC_RELAXED);
+					// No need to check return value.
+					// If semaphore was already given, an update will happen in due time.
+					// Resulting report will be eventually consistent.
+					xSemaphoreGive(dongle_status_sem);
+				}
 			}
 			if (intstat & (1 << 0)) {
 				// TXIF = 1; transmission complete (successful or failed).
@@ -753,17 +814,18 @@ bool normal_can_enter(void) {
 void normal_on_enter(void) {
 	// Initialize data structures.
 	rdrx_shutting_down = false;
+	rx_fcs_error = false;
 	free_queue = xQueueCreate(NUM_PACKETS, sizeof(packet_t *));
 	transmit_queue = xQueueCreate(NUM_PACKETS + 1U, sizeof(packet_t *));
 	receive_queue = xQueueCreate(NUM_PACKETS + 1U, sizeof(packet_t *));
 	mdr_queue = xQueueCreate(NUM_PACKETS + 1U, sizeof(mdr_t));
-	estop_sem = xSemaphoreCreateBinary();
+	dongle_status_sem = xSemaphoreCreateBinary();
 	mrf_int_sem = xSemaphoreCreateBinary();
 	transmit_mutex = xSemaphoreCreateMutex();
 	transmit_complete_sem = xSemaphoreCreateBinary();
 	drive_event_group = xEventGroupCreate();
 	shutdown_sem = xSemaphoreCreateCounting(8U /* Eight tasks */, 0U);
-	assert(free_queue && transmit_queue && receive_queue && mdr_queue && estop_sem && mrf_int_sem && transmit_mutex && transmit_complete_sem && drive_event_group && shutdown_sem);
+	assert(free_queue && transmit_queue && receive_queue && mdr_queue && dongle_status_sem && mrf_int_sem && transmit_mutex && transmit_complete_sem && drive_event_group && shutdown_sem);
 
 	// Allocate packet buffers.
 	for (unsigned int i = 0U; i < NUM_PACKETS; ++i) {
@@ -800,7 +862,7 @@ void normal_on_enter(void) {
 	assert(ret == pdPASS);
 	ret = xTaskCreate(&usbrx_task, "norm_usbrx", 1024U, 0, 6U, 0);
 	assert(ret == pdPASS);
-	ret = xTaskCreate(&estop_task, "norm_estop", 1024U, 0, 5U, 0);
+	ret = xTaskCreate(&dongle_status_task, "norm_dstatus", 1024U, 0, 5U, 0);
 	assert(ret == pdPASS);
 	ret = xTaskCreate(&rdtx_task, "norm_rdtx", 1024U, 0, 7U, 0);
 	assert(ret == pdPASS);
@@ -815,7 +877,7 @@ void normal_on_exit(void) {
 	xQueueSend(receive_queue, &null_packet, portMAX_DELAY);
 	static const mdr_t null_mdr = { 0xFFU, 0xFFU };
 	xQueueSend(mdr_queue, &null_mdr, portMAX_DELAY);
-	xSemaphoreGive(estop_sem);
+	xSemaphoreGive(dongle_status_sem);
 	__atomic_store_n(&rdrx_shutting_down, true, __ATOMIC_RELAXED);
 	xSemaphoreGive(mrf_int_sem);
 
@@ -855,7 +917,7 @@ void normal_on_exit(void) {
 	vSemaphoreDelete(transmit_complete_sem);
 	vSemaphoreDelete(mrf_int_sem);
 	vSemaphoreDelete(transmit_mutex);
-	vSemaphoreDelete(estop_sem);
+	vSemaphoreDelete(dongle_status_sem);
 	vQueueDelete(mdr_queue);
 	vQueueDelete(receive_queue);
 	vQueueDelete(transmit_queue);
