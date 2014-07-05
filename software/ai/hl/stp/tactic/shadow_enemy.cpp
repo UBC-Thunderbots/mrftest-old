@@ -36,7 +36,7 @@ namespace {
 		Point ball = world.ball().position();
 		Point destination = ball - enemy;
 		destination = destination.norm() * (AI::Util::BALL_STOP_DIST + Robot::MAX_RADIUS + Ball::RADIUS);
-		destination = ball + destination;
+		destination = ball - destination;
 		dest = destination;
 		Action::move(world, player, dest.position(), dest.velocity());
 		player.dribble_stop();
