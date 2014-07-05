@@ -18,7 +18,7 @@ namespace AI {
 				 */
 				Tactic::Ptr spin_steal(World world);
 
-				/*
+				/**
 				 * Back up to steal the ball
 				 * Active Tactic
 				 * Go up to the ball and attempt to steal, once the ball has
