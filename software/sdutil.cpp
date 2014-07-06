@@ -2,7 +2,6 @@
 #include "util/codec.h"
 #include "util/exception.h"
 #include "util/fd.h"
-#include "util/thermal.h"
 #include <algorithm>
 #include <cassert>
 #include <cerrno>
@@ -27,9 +26,9 @@
 namespace {
 	constexpr unsigned long CPU_FREQUENCY = 48000000UL;
 	constexpr off_t SECTOR_SIZE = 512;
-	constexpr off_t LOG_RECORD_SIZE = 128;
+	constexpr off_t LOG_RECORD_SIZE = 512;
 	constexpr off_t RECORDS_PER_SECTOR = SECTOR_SIZE / LOG_RECORD_SIZE;
-	constexpr uint32_t LOG_MAGIC_TICK = UINT32_C(0xE2468842);
+	constexpr uint32_t LOG_MAGIC_TICK = UINT32_C(0xE2468843);
 
 	class SectorArray : public NonCopyable {
 		public:
@@ -132,7 +131,7 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 		std::size_t num_epochs;
 		{
 			const std::vector<uint8_t> &sector = sarray.get(nonblank_size() - 1);
-			num_epochs = decode_u32_be(&sector[4]);
+			num_epochs = decode_u32_le(&sector[4]);
 		}
 
 		// Find locations of epochs.
@@ -144,7 +143,7 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 			while (low + 1 < high) {
 				off_t pos = (low + high - 1) / 2;
 				const std::vector<uint8_t> &sector = sarray.get(pos);
-				std::size_t sector_epoch = decode_u32_be(&sector[4]);
+				std::size_t sector_epoch = decode_u32_le(&sector[4]);
 				if (sector_epoch >= epoch) {
 					high = pos + 1;
 				} else {
@@ -158,7 +157,7 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 			while (low + 1 < high) {
 				off_t pos = (low + high - 1) / 2;
 				const std::vector<uint8_t> &sector = sarray.get(pos);
-				std::size_t sector_epoch = decode_u32_be(&sector[4]);
+				std::size_t sector_epoch = decode_u32_le(&sector[4]);
 				if (sector_epoch > epoch) {
 					high = pos + 1;
 				} else {
@@ -276,59 +275,56 @@ namespace {
 		std::ofstream ofs;
 		ofs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
 		ofs.open(args[1], std::ios_base::out | std::ios_base::trunc);
-		ofs << "Epoch\tTime (s)\tBreakbeam\tCapacitor (V)\tBattery (V)\tBoard Temperature (°C)\tEncoder 0 (¼°/t)\tEncoder 1 (¼°/t)\tEncoder 2 (¼°/t)\tEncoder 3 (¼°/t)\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tMotor 0 (/255)\tMotor 1 (/255)\tMotor 2 (/255)\tMotor 3 (/255)\tMotor 0 (°C)\tMotor 1 (°C)\tMotor 2 (°C)\tMotor 3 (°C)\tDribbler (rpm)\tDribbler PWM (/255)\tDribbler (°C)\tCPU (%)\n";
-		uint64_t last_tsc = 0;
+		ofs << "Epoch\tTime (ticks)\tBreakbeam\tBattery (V)\tCapacitor (V)\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tEncoder 0 (¼°/t)\tEncoder 1 (¼°/t)\tEncoder 2 (¼°/t)\tEncoder 3 (¼°/t)\tMotor 0 (/255)\tMotor 1 (/255)\tMotor 2 (/255)\tMotor 3 (/255)\tMotor 0 (°C)\tMotor 1 (°C)\tMotor 2 (°C)\tMotor 3 (°C)\tDribbler Ticked?\tDribbler (/255)\tDribbler (rpm)\tDribbler (°C)\n";
 		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
 			const std::vector<uint8_t> &buffer = sdcard.get(sector);
 			for (std::size_t record = 0; record < static_cast<std::size_t>(RECORDS_PER_SECTOR); ++record) {
 				const uint8_t *ptr = &buffer[record * LOG_RECORD_SIZE];
 
 				// Decode the record.
-				uint32_t magic = decode_u32_be(ptr); ptr += 4;
-				uint32_t record_epoch = decode_u32_be(ptr); ptr += 4;
-				uint64_t tsc = decode_u64_be(ptr); ptr += 8;
+				uint32_t magic = decode_u32_le(ptr); ptr += 4;
+				uint32_t record_epoch = decode_u32_le(ptr); ptr += 4;
+				uint32_t ticks = decode_u32_le(ptr); ptr += 4;
 				if (magic == LOG_MAGIC_TICK && record_epoch == epoch_index) {
-					int16_t breakbeam_diff = static_cast<int16_t>(decode_u16_be(ptr)); ptr += 2;
-					uint16_t battery_voltage_raw = decode_u16_be(ptr); ptr += 2;
-					uint16_t capacitor_voltage_raw = decode_u16_be(ptr); ptr += 2;
-					uint16_t board_temperature_raw = decode_u16_be(ptr); ptr += 2;
-					float wheels_setpoints[4];
-					for (float &value : wheels_setpoints) {
-						value = decode_float_be(ptr); ptr += 4;
+					float breakbeam_diff = decode_float_le(ptr); ptr += 4;
+					float battery_voltage = decode_float_le(ptr); ptr += 4;
+					float capacitor_voltage = decode_float_le(ptr); ptr += 4;
+
+					int16_t wheels_setpoints[4];
+					for (int16_t &value : wheels_setpoints) {
+						value = static_cast<int16_t>(decode_u16_le(ptr)); ptr += 2;
 					}
 					int16_t wheels_encoder_counts[4];
 					for (int16_t &value : wheels_encoder_counts) {
-						value = static_cast<int16_t>(decode_u16_be(ptr)); ptr += 2;
+						value = static_cast<int16_t>(decode_u16_le(ptr)); ptr += 2;
 					}
 					int16_t wheels_drives[4];
 					for (int16_t &value : wheels_drives) {
-						value = static_cast<int16_t>(decode_u16_be(ptr)); ptr += 2;
+						value = static_cast<int16_t>(decode_u16_le(ptr)); ptr += 2;
 					}
-					unsigned int wheels_temperatures[4];
-					for (unsigned int &value : wheels_temperatures) {
-						value = decode_u8_be(ptr); ptr += 1;
+					uint8_t wheels_temperatures[4];
+					for (uint8_t &value : wheels_temperatures) {
+						value = decode_u8_le(ptr); ptr += 1;
 					}
-					unsigned int dribbler_speed = decode_u8_be(ptr) * 25U * 60U / 6U; ptr += 1;
-					unsigned int dribbler_temperature = decode_u8_be(ptr); ptr += 1;
-					uint8_t encoders_failed = decode_u8_be(ptr); ptr += 1;
-					uint8_t wheels_hall_sensors_failed = decode_u8_be(ptr); ptr += 1;
-					/*uint8_t dribbler_hall_sensors_failed = decode_u8_be(ptr);*/ ptr += 1;
-					uint32_t cpu_used_since_last_tick = decode_u32_be(ptr); ptr += 4;
-					uint8_t dribbler_pwm = decode_u8_be(ptr); ptr += 1;
+					uint8_t wheels_encoders_failed = decode_u8_le(ptr); ptr += 1;
+					uint8_t wheels_hall_sensors_failed = decode_u8_le(ptr); ptr += 1;
 
-					double capacitor_voltage = capacitor_voltage_raw / 1024.0 * 3.3 / 2200 * (2200 + 200000);
-					double battery_voltage = battery_voltage_raw / 1024.0 * 3.3 / 2200 * (2200 + 20000);
-					double board_temperature = adc_voltage_to_board_temp(board_temperature_raw / 1024.0 * 3.3);
-					ofs << epoch_index << '\t' << (static_cast<long double>(tsc) / static_cast<long double>(CPU_FREQUENCY)) << '\t' << breakbeam_diff << '\t' << capacitor_voltage << '\t' << battery_voltage << '\t' << board_temperature;
+					bool dribbler_ticked = decode_u8_le(ptr) != 0; ptr += 1;
+					uint8_t dribbler_pwm = decode_u8_le(ptr); ptr += 1;
+					uint8_t dribbler_speed = decode_u8_le(ptr); ptr += 1;
+					uint8_t dribbler_temperature = decode_u8_le(ptr); ptr += 1;
+					uint8_t dribbler_hall_sensors_failed = decode_u8_le(ptr); ptr += 1;
+
+					ofs << epoch_index << '\t' << ticks << '\t' << breakbeam_diff << '\t' << battery_voltage << '\t' << capacitor_voltage;
+					for (int16_t sp : wheels_setpoints) {
+						ofs << '\t' << sp;
+					}
 					for (unsigned int i = 0; i < 4; ++i) {
-						if (encoders_failed & (1 << i)) {
+						if (wheels_encoders_failed & (1 << i)) {
 							ofs << "\tNaN";
 						} else {
 							ofs << '\t' << wheels_encoder_counts[i];
 						}
-					}
-					for (float sp : wheels_setpoints) {
-						ofs << '\t' << sp;
 					}
 					for (unsigned int i = 0; i < 4; ++i) {
 						bool failed = !!((wheels_hall_sensors_failed >> (2 * i)) & 3);
@@ -341,12 +337,14 @@ namespace {
 					for (unsigned int temp : wheels_temperatures) {
 						ofs << '\t' << temp;
 					}
-					ofs << '\t' << dribbler_speed;
-					ofs << '\t' << dribbler_pwm;
-					ofs << '\t' << dribbler_temperature;
-					ofs << '\t' << (static_cast<double>(cpu_used_since_last_tick) / static_cast<double>(tsc - last_tsc) * 100.0);
+					ofs << '\t' << (dribbler_ticked ? '1' : '0');
+					if (dribbler_hall_sensors_failed) {
+						ofs << "\tNaN\tNaN";
+					} else {
+						ofs << '\t' << static_cast<unsigned int>(dribbler_pwm) << '\t' << static_cast<unsigned int>(dribbler_speed);
+					}
+					ofs << '\t' << static_cast<unsigned int>(dribbler_temperature);
 					ofs << '\n';
-					last_tsc = tsc;
 				}
 			}
 		}

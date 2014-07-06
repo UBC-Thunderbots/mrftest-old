@@ -2,7 +2,6 @@
 #include "mrf/dongle.h"
 #include "util/algorithm.h"
 #include "util/dprint.h"
-#include "util/thermal.h"
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
@@ -97,7 +96,6 @@ namespace {
 		{ u8"Bot %1 logger uninitialized", Annunciator::Message::Severity::HIGH },
 		{ nullptr, Annunciator::Message::Severity::LOW },
 		{ u8"Bot %1 SD card full", Annunciator::Message::Severity::HIGH },
-		{ u8"Bot %1 log buffer overflow", Annunciator::Message::Severity::LOW },
 	};
 }
 
@@ -230,7 +228,8 @@ MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) :
 		chicker_missing_message(Glib::ustring::compose(u8"Bot %1 chicker missing", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
 		crc_error_message(Glib::ustring::compose(u8"Bot %1 ICB CRC error", index), Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::HIGH),
 		interlocks_overridden_message(Glib::ustring::compose(u8"Bot %1 interlocks overridden", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
-		low_capacitor_message(Glib::ustring::compose(u8"Bot %1 low caps (fuse blown?)", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH) {
+		low_capacitor_message(Glib::ustring::compose(u8"Bot %1 low caps (fuse blown?)", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
+		receive_fcs_fail_message(Glib::ustring::compose(u8"Bot %1 receive FCS fail", index), Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::HIGH) {
 	for (unsigned int i = 0; i < 8; ++i) {
 		hall_sensor_stuck_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 wheel %2 Hall sensor stuck %3", index, i / 2, (i % 2) == 0 ? u8"low" : u8"high"), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
 	}
@@ -294,7 +293,16 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 						capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 1024.0 * 3.3 / 2200 * (2200 + 200000);
 						break_beam_reading = static_cast<int16_t>(static_cast<uint16_t>(bptr[4] | static_cast<unsigned int>(bptr[5] << 8)));
 						break_beam_scale = 100.0;
-						board_temperature = adc_voltage_to_board_temp((bptr[6] | static_cast<unsigned int>(bptr[7] << 8)) / 1024.0 * 3.3);
+						double thermistor_voltage = (bptr[6] | static_cast<unsigned int>(bptr[7] << 8)) / 1024.0 * 3.3;
+						// For V being ADC voltage and R being thermistor voltage:
+						// V = 3.3 / (10,000 + R) * R
+						// 10,000 V + VR = 3.3 R
+						// (3.3 - V) R = 10,000 V
+						// R = 10,000 V / (3.3 - V)
+						double thermistor_resistance = 10000 * thermistor_voltage / (3.3 - thermistor_voltage);
+						// Magic math from binaryblade
+						double ltemp = std::log(thermistor_resistance);
+						board_temperature = 1.6648 * ltemp * ltemp - 61.3664 * ltemp + 510.18;
 					}
 					ball_in_beam = !!(bptr[8] & 0x01);
 					capacitor_charged = !!(bptr[8] & 0x02);
@@ -316,6 +324,9 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 					}
 					for (unsigned int wheel = 0; wheel < 4; ++wheel) {
 						optical_encoder_not_commutating_messages[wheel]->active(!!(bptr[10] & (1 << (wheel + 2))) && breakout_present);
+					}
+					if (bptr[10] & (1 << 6)) {
+						receive_fcs_fail_message.fire();
 					}
 					unsigned int sd_status = bptr[11] & 0x0F;
 					unsigned int logger_status = bptr[11] >> 4;

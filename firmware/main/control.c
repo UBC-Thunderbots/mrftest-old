@@ -1,4 +1,5 @@
 #include "control.h"
+#include "adc.h"
 #include "wheels.h"
 #include <string.h>
 #include <math.h>
@@ -43,6 +44,7 @@ static const float filter_A[] = {1.0, -1.6079, 0.6735};
 #define FILTER_ORDER 2
 static float input_filter_states[4][FILTER_ORDER];
 #endif
+static float setpoints[3U];
 
 static float runDF2(float input,float gain,const float* num,const float* den, float* state, size_t order) {
 	float accum=0;
@@ -63,9 +65,9 @@ static float runDF2(float input,float gain,const float* num,const float* den, fl
 
 //convert 4 speeds to 3 speed
 static void speed4_to_speed3(const float speed4[4], float speed3[3]) {
-	for(uint8_t j=0;j<3;++j) {
+	for(unsigned int j=0;j<3;++j) {
 		speed3[j]=0;
-		for(uint8_t i=0;i<4;++i) {
+		for(unsigned int i=0;i<4;++i) {
 			speed3[j]+= speed4_to_speed3_mat[j][i]*speed4[i];
 		}
 	}
@@ -75,15 +77,15 @@ static void speed4_to_speed3(const float speed4[4], float speed3[3]) {
 static void speed3_to_speed4(const float speed3[3], float speed4[4]) {
 	for(uint8_t j=0;j<4;++j) {
 		speed4[j]=0;
-		for(uint8_t i=0;i<3;++i) {
+		for(unsigned int i=0;i<3;++i) {
 			speed4[j] +=  speed3_to_speed4_mat[j][i]*speed3[i]; 
 		}
 	}
 }
 
 static void rotate_velocity(float speed[3], float angle) {
-	float temp = cos(angle)*speed[0] - sin(angle)*speed[1];
-	speed[1] = sin(angle)*speed[0] + cos(angle)*speed[1];
+	float temp = cosf(angle)*speed[0] - sinf(angle)*speed[1];
+	speed[1] = sinf(angle)*speed[0] + cosf(angle)*speed[1];
 	speed[0]=temp;
 }
 
@@ -91,15 +93,15 @@ void control_clear() {
 	//current controller has no persistent other than setpoint state
 }
 
-void control_process_new_setpoints(const int16_t setpoints[4]) {
+void control_process_new_setpoints(const int16_t wheel_setpoints[4]) {
 	float temp[4];
-	for(uint8_t i=0;i<4;++i) {
-		temp[i]= QUARTERDEGREE_TO_MS*setpoints[i];
+	for(unsigned int i=0;i<4;++i) {
+		temp[i]= QUARTERDEGREE_TO_MS*wheel_setpoints[i];
 	}
-	speed4_to_speed3(temp, wheels_setpoints.robot);
+	speed4_to_speed3(temp, setpoints);
 }
 
-void control_tick(float battery) {
+void control_tick(const int16_t feedback[4U], int16_t drive[4U]) {
 	float Velocity[3];
 	float Veldiff[3];
 	float Accels[4];
@@ -107,7 +109,7 @@ void control_tick(float battery) {
 	float min_rescale_factor=1;
 	float filtered_encoders[4];
 	for(size_t i=0;i<4;++i) {
-		filtered_encoders[i] = runDF2(wheels_encoder_counts[i],filter_gain,filter_B,filter_A,input_filter_states[i],FILTER_ORDER);
+		filtered_encoders[i] = runDF2(feedback[i],filter_gain,filter_B,filter_A,input_filter_states[i],FILTER_ORDER);
 	}
 
 	//Convert the measurements to the 3 velocity
@@ -115,11 +117,11 @@ void control_tick(float battery) {
 	//This needs to be changed to the state updater
 
 	//Update the setpoint by the current rotational speed
-	rotate_velocity(wheels_setpoints.robot,-Velocity[2]/ROBOT_RADIUS*QUARTERDEGREE_TO_MS*TICK_TIME);
+	rotate_velocity(setpoints,-Velocity[2]/ROBOT_RADIUS*QUARTERDEGREE_TO_MS*TICK_TIME);
 
 	//Get the control error
 	for(uint8_t i=0;i<3;++i) {
-		Veldiff[i]=(wheels_setpoints.robot[i]-Velocity[i]*QUARTERDEGREE_TO_MS)*(DELTA_VOLTAGE_LIMIT/INPUT_NOISE)*rescale_vector[i]; //Should be desired Acceleration
+		Veldiff[i]=(setpoints[i]-Velocity[i]*QUARTERDEGREE_TO_MS)*(DELTA_VOLTAGE_LIMIT/INPUT_NOISE)*rescale_vector[i]; //Should be desired Acceleration
 	}
 
 	//convert that control error in the 4 wheel accel direction
@@ -137,15 +139,16 @@ void control_tick(float battery) {
 		}
 	}
 	
+	float battery = adc_battery();
 	for(uint8_t i=0;i<4;++i) {
-		if(fabsf((battery - wheels_encoder_counts[i]*WHEEL_VOLTS_PER_ENCODER_COUNT)/Accels[i]) < min_rescale_factor) {
-			min_rescale_factor = fabsf((battery - wheels_encoder_counts[i]*WHEEL_VOLTS_PER_ENCODER_COUNT)/Accels[i]);
+		if(fabsf((battery - feedback[i]*WHEELS_VOLTS_PER_ENCODER_COUNT)/Accels[i]) < min_rescale_factor) {
+			min_rescale_factor = fabsf((battery - feedback[i]*WHEELS_VOLTS_PER_ENCODER_COUNT)/Accels[i]);
 		}
 	}
 
 	for(uint8_t i=0;i<4;++i) {
-		float	temp = (wheels_encoder_counts[i]*WHEEL_VOLTS_PER_ENCODER_COUNT+ min_rescale_factor*Accels[i])/battery*255;
+		float	temp = (feedback[i]*WHEELS_VOLTS_PER_ENCODER_COUNT+ min_rescale_factor*Accels[i])/battery*255;
 		//because I can
-		wheels_drives[i] = (temp > 255)?255:(temp<-255)?-255:temp;
+		drive[i] = (temp > 255)?255:(temp<-255)?-255:temp;
 	}
 }

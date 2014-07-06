@@ -1,16 +1,33 @@
-static void syscalls_impl(void) __attribute__((used));
-static void syscalls_impl(void) {
-	asm volatile(
-			".global syscall_debug_puts\n\t"
-			".type syscall_debug_puts, function\n\t"
-			"syscall_debug_puts:\n\t"
-			"retl\n\t"
-			"ta 0\n\t"
-			"\n\t"
-			".global syscall_flash_vm_execute\n\t"
-			".type syscall_flash_vm_execute, function\n\t"
-			"syscall_flash_vm_execute:\n\t"
-			"retl\n\t"
-			"ta 1\n\t");
+#include <cdcacm.h>
+#include <errno.h>
+#include <reent.h>
+#include <unused.h>
+#include <sys/types.h>
+
+ssize_t _read_r(struct _reent *UNUSED(r), int UNUSED(fd), void *UNUSED(buf), size_t UNUSED(len)) {
+	return 0;
+}
+
+ssize_t _write_r(struct _reent *UNUSED(r), int UNUSED(fd), const void *buf, size_t len) {
+	cdcacm_write(buf, len);
+	return (ssize_t) len;
+}
+
+off_t _lseek_r(struct _reent *r, int UNUSED(fd), off_t UNUSED(off), int UNUSED(whence)) {
+	r->_errno = ESPIPE;
+	return (off_t) -1;
+}
+
+int _close_r(struct _reent *UNUSED(r), int UNUSED(fd)) {
+	return 0;
+}
+
+int _fstat_r(struct _reent *r, int UNUSED(fd), struct stat *UNUSED(st)) {
+	r->_errno = ENOSYS;
+	return -1;
+}
+
+int _isatty_r(struct _reent *UNUSED(r), int UNUSED(fd)) {
+	return 1;
 }
 

@@ -1,10 +1,56 @@
+/**
+ * \defgroup MRF MRF24J40 functions
+ *
+ * \brief These functions handle initializing the radio and sending and receiving raw frames.
+ *
+ * The MRF24J40 radio communicates via SPI.
+ * However, the protocol it uses is not very amenable to high-performance operation with an advanced microcontroller, such as the STM32F4.
+ * The protocol is defined in terms of register reads and writes, with each register being one byte long.
+ * A read or write is a complete SPI transaction, comprising one or two bytes of control data (indicating read or write and address) followed by one byte of data.
+ * There is no documented capability to read or write a block of consecutive addresses in a single transaction, even though this would significantly ease access to the frame data buffers.
+ * This means that a separate SPI transaction must be carried out for each byte of a received or transmitted frame.
+ * Because chip select must be toggled between each of these transactions, firmware must be involved—it is impossible to set up the SPI peripheral to run the sequence of transactions using DMA.
+ *
+ * As a result of the above limitations, rather than connect the radio to the microcontroller, it is instead connected to the FPGA.
+ * The FPGA, with its massive parallelism, can easily issue the multiple SPI transactions in quick succession without compromising the performance of other parts of the system.
+ *
+ * The FPGA’s MRF subsystem exposes two ways for the microcontroller to operate the radio.
+ * In \em direct-access mode, the microcontroller uses ICB transactions to start and finish individual single-register read and write operations, effectively providing a slower version of what the microcontroller would do with the radio directly connected.
+ * In \em offload mode, the FPGA communicates with the radio to send and receive frames, packing and unpacking them in internal buffers and allowing a whole frame at a time to be transported over the ICB.
+ * At power-up, the subsystem is in direct-access mode.
+ * The microcontroller uses the direct access ICB transactions to configure the radio, then instructs the FPGA to enable the offload engines.
+ * From that point forward, direct-access mode is no longer used and all communication occurs through the offload engines.
+ *
+ * The receive offload engine handles frames arriving over the air.
+ * As soon as a frame arrives, it is stored in the MRF24J40’s receive buffer and a receive interrupt is asserted.
+ * The offload engine observes the interrupt flag and reads the frame from the MRF24J40’s receive buffer into a second receive buffer in the FPGA.
+ * Once this transfer is complete, the offload engine asserts an ICB IRQ, indicating that a received frame is ready to be provided to the microcontroller.
+ * The microcontroller then, at its leisure, issues an ICB transaction to retrieve the length of the frame, then a second transaction to retrieve the frame.
+ * The FPGA will only read out a second received frame from the MRF24J40 once the microcontroller has finished retrieving the first frame.
+ * However, the MRF24J40 can receive a second frame as soon as the first frame reaches the FPGA’s internal buffer, so the window for dropped frames is very small and does not depend on microcontroller latency.
+ *
+ * The transmit offload engine handles frames being sent over the air.
+ * When the FPGA wishes to send a frame, it issues an ICB command to copy the frame data into a buffer in the FPGA.
+ * The FPGA then copies the frame over the slower bus to the MRF24J40’s transmit buffer.
+ * Once the frame is fully copied into its final location, the FPGA automatically sets the transmit flag, thus sending the frame.
+ * When the MRF24J40 is finished trying to transmit, it asserts an interrupt, which the FPGA observes.
+ * At this time, the FPGA automatically reads the transmit status register and asserts an ICB IRQ indicating the fact.
+ * The microcontroller can then use another ICB transaction to read the retrieved transmit status register value if desired, and begin sending another frame.
+ *
+ * Both offload engines are activated simultaneously by a single ICB transaction.
+ * Internally, the FPGA contains an arbiter which ensures the offload engines coexist and share the SPI bus.
+ * As long as the microcontroller obeys the protocol for talking to each offload engine individually, the system will operate properly.
+ *
+ * @{
+ */
+
 #include "mrf.h"
-#include "globals.h"
-#include "io.h"
-#include "sleep.h"
-#include "syscalls.h"
+#include "icb.h"
+#include <FreeRTOS.h>
+#include <assert.h>
+#include <event_groups.h>
 #include <inttypes.h>
-#include <stdio.h>
+#include <task.h>
 
 typedef enum {
 	MRF_REG_SHORT_RXMCR,
@@ -124,89 +170,113 @@ typedef enum {
 } mrf_reg_long_t;
 
 typedef enum {
-	// The receiver is doing nothing.
-	RX_STATE_IDLE,
-	// The receiver is running a DMA transfer to bring in a packet from the radio.
-	RX_STATE_COPYING,
-} rx_state_t;
+	RX_EVENT_IRQ = 0x01,
+	RX_EVENT_CANCEL = 0x02,
+} rx_event_t;
 
-typedef enum {
-	// The transmitter is doing nothing.
-	TX_STATE_IDLE,
-	// The transmitter is running a DMA transfer to copy a packet from the buffer to the radio.
-	TX_STATE_COPYING,
-	// The transmitter is pushing a packet in the radio out over the air.
-	TX_STATE_SENDING,
-} tx_state_t;
+static SemaphoreHandle_t da_irq_sem, tx_irq_sem, tx_mutex;
+static EventGroupHandle_t rx_event_group;
+static uint16_t saved_pan_id, saved_short_address;
+static bool rx_fcs_fail;
 
-uint8_t mrf_rx_buffer[128], mrf_tx_buffer[128];
-static rx_state_t rx_state = RX_STATE_IDLE;
-static tx_state_t tx_state = TX_STATE_IDLE;
-static bool rx_packet_pending = false, tx_done_pending = false;
-static bool tx_reliable, tx_successful;
+static void da_isr(void) {
+	xSemaphoreGive(da_irq_sem);
+}
+
+static void tx_isr(void) {
+	xSemaphoreGive(tx_irq_sem);
+}
+
+static void rx_isr(void) {
+	xEventGroupSetBits(rx_event_group, RX_EVENT_IRQ);
+}
+
+static void rx_fcs_fail_isr(void) {
+	__atomic_store_n(&rx_fcs_fail, true, __ATOMIC_RELAXED);
+}
 
 static void reset(void) {
-	IO_MRF.csr.reset = true;
+	static const uint8_t PARAM = 0x00U;
+	icb_send(ICB_COMMAND_MRF_DA_SET_AUX, &PARAM, sizeof(PARAM));
 }
 
 static void release_reset(void) {
-	IO_MRF.csr.reset = false;
-}
-
-static bool get_interrupt(void) {
-	return IO_MRF.csr.interrupt;
+	static const uint8_t PARAM = 0x01U;
+	icb_send(ICB_COMMAND_MRF_DA_SET_AUX, &PARAM, sizeof(PARAM));
 }
 
 static uint8_t read_short(uint8_t reg) {
-	IO_MRF.address = reg;
-
-	io_mrf_csr_t csr = { 0 };
-	csr.spi_active = 1;
-	IO_MRF.csr = csr;
-	while (IO_MRF.csr.spi_active);
-	return IO_MRF.data;
+	static uint8_t param;
+	param = reg;
+	icb_send(ICB_COMMAND_MRF_DA_READ_SHORT, &param, sizeof(param));
+	xSemaphoreTake(da_irq_sem, portMAX_DELAY);
+	static uint8_t ret;
+	icb_receive(ICB_COMMAND_MRF_DA_GET_DATA, &ret, sizeof(ret));
+	return ret;
 }
 
 static void write_short(uint8_t reg, uint8_t value) {
-	IO_MRF.address = reg;
-	IO_MRF.data = value;
-
-	io_mrf_csr_t csr = { 0 };
-	csr.write = 1;
-	csr.spi_active = 1;
-	IO_MRF.csr = csr;
-	while (IO_MRF.csr.spi_active);
+	static uint8_t param[2U];
+	param[0U] = reg;
+	param[1U] = value;
+	icb_send(ICB_COMMAND_MRF_DA_WRITE_SHORT, param, sizeof(param));
+	xSemaphoreTake(da_irq_sem, portMAX_DELAY);
 }
 
 static uint8_t read_long(uint16_t reg) {
-	IO_MRF.address = reg;
-
-	io_mrf_csr_t csr = { 0 };
-	csr.long_address = 1;
-	csr.spi_active = 1;
-	IO_MRF.csr = csr;
-	while (IO_MRF.csr.spi_active);
-	return IO_MRF.data;
+	static uint8_t param[2U];
+	param[0U] = reg >> 8U;
+	param[1U] = reg & 0xFFU;
+	icb_send(ICB_COMMAND_MRF_DA_READ_LONG, param, sizeof(param));
+	xSemaphoreTake(da_irq_sem, portMAX_DELAY);
+	static uint8_t ret;
+	icb_receive(ICB_COMMAND_MRF_DA_GET_DATA, &ret, sizeof(ret));
+	return ret;
 }
 
 static void write_long(uint16_t reg, uint8_t value) {
-	IO_MRF.address = reg;
-	IO_MRF.data = value;
-
-	io_mrf_csr_t csr = { 0 };
-	csr.write = 1;
-	csr.long_address = 1;
-	csr.spi_active = 1;
-	IO_MRF.csr = csr;
-	while (IO_MRF.csr.spi_active);
+	static uint8_t param[3U];
+	param[0U] = reg >> 8U;
+	param[1U] = reg & 0xFFU;
+	param[2U] = value;
+	icb_send(ICB_COMMAND_MRF_DA_WRITE_LONG, param, sizeof(param));
+	xSemaphoreTake(da_irq_sem, portMAX_DELAY);
 }
 
+/**
+ * \brief Initializes the radio.
+ *
+ * \param[in] channel the channel to operate on, from 11 to 26 inclusive
+ *
+ * \param[in] symbol_rate \c true to run at 625 kb/s, or \c false to run at 250 kb/s
+ *
+ * \param[in] short_address the 16-bit address to use
+ *
+ * \param[in] pan_id the PAN ID to communicate on, from 0 to 0xFFFE
+ *
+ * \param[in] mac_address the node’s MAC address
+ */
 void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short_address, uint64_t mac_address) {
+	// Save parameters.
+	saved_pan_id = pan_id;
+	saved_short_address = short_address;
+
+	// Create semaphores.
+	da_irq_sem = xSemaphoreCreateBinary();
+	tx_irq_sem = xSemaphoreCreateBinary();
+	rx_event_group = xEventGroupCreate();
+	tx_mutex = xSemaphoreCreateMutex();
+	assert(da_irq_sem && tx_irq_sem && rx_event_group && tx_mutex);
+	icb_irq_set_vector(ICB_IRQ_MRF_DA, &da_isr);
+	icb_irq_set_vector(ICB_IRQ_MRF_TX, &tx_isr);
+	icb_irq_set_vector(ICB_IRQ_MRF_RX, &rx_isr);
+	icb_irq_set_vector(ICB_IRQ_MRF_RX_FCS_FAIL, &rx_fcs_fail_isr);
+
 	// Reset the chip.
 	reset();
-	sleep_short();
+	vTaskDelay(1U);
 	release_reset();
-	sleep_short();
+	vTaskDelay(1U);
 
 	// Write a pile of fixed register values.
 	static const struct init_elt_long {
@@ -234,7 +304,7 @@ void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short
 		{ MRF_REG_SHORT_CCAEDTH, 0xC6 },
 		{ MRF_REG_SHORT_BBREG6, 0x40 },
 	};
-	for (uint8_t i = 0; i < sizeof(INIT_ELTS) / sizeof(*INIT_ELTS); ++i) {
+	for (size_t i = 0; i < sizeof(INIT_ELTS) / sizeof(*INIT_ELTS); ++i) {
 		if (INIT_ELTS[i].address >= 0x200) {
 			write_long(INIT_ELTS[i].address, INIT_ELTS[i].data);
 		} else {
@@ -243,14 +313,19 @@ void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short
 	}
 
 	// Wait for interrupt line to be low, as we have just switched its active polarity.
-	while (get_interrupt());
+	{
+		static uint8_t status;
+		do {
+			icb_receive(ICB_COMMAND_MRF_DA_GET_INT, &status, sizeof(status));
+		} while (status);
+	}
 
 	// Initialize per-configuration stuff.
 	write_long(MRF_REG_LONG_RFCON0, ((channel - 0x0B) << 4) | 0x03);
 	write_long(MRF_REG_LONG_RFCON3, 0x18);
 	write_short(MRF_REG_SHORT_RFCTL, 0x04);
 	write_short(MRF_REG_SHORT_RFCTL, 0x00);
-	sleep_short();
+	vTaskDelay(1U);
 	if (symbol_rate) {
 		write_short(MRF_REG_SHORT_BBREG0, 0x01);
 		write_short(MRF_REG_SHORT_BBREG3, 0x34);
@@ -274,189 +349,163 @@ void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short
 
 	// Enable interrupts on receive and transmit complete.
 	write_short(MRF_REG_SHORT_INTCON, 0b11110110);
+
+	// Enable the offload engines.
+	icb_send(ICB_COMMAND_MRF_OFFLOAD, 0, 0U);
 }
 
-static void poll_interrupts(void) {
-	if (get_interrupt()) {
-		unsigned int start = IO_SYSCTL.tsc;
-		uint8_t intstat = read_short(MRF_REG_SHORT_INTSTAT);
-		if (intstat & 0x01) {
-			tx_done_pending = true;
+/**
+ * \brief Shuts down the radio.
+ */
+void mrf_shutdown(void) {
+	// Disable the offload engines.
+	icb_send(ICB_COMMAND_MRF_OFFLOAD_DISABLE, 0, 0U);
+
+	// Put the radio in reset.
+	static const uint8_t PARAM = 0b00; // WAKE = 0, /RESET = 0
+	icb_send(ICB_COMMAND_MRF_DA_SET_AUX, &PARAM, sizeof(PARAM));
+}
+
+/**
+ * \brief Returns the PAN ID.
+ *
+ * \return the PAN ID
+ */
+uint16_t mrf_pan_id(void) {
+	return saved_pan_id;
+}
+
+/**
+ * \brief Returns the short address.
+ *
+ * \return the short address
+ */
+uint16_t mrf_short_address(void) {
+	return saved_short_address;
+}
+
+/**
+ * \brief Allocates a sequence number for a transmitted frame.
+ *
+ * \return a fresh sequence number
+ */
+uint8_t mrf_alloc_seqnum(void) {
+	static uint8_t seqnum = 0x37U;
+	return seqnum++;
+}
+
+/**
+ * \brief Transmits a frame.
+ *
+ * \param[in] frame the frame to transmit, whose first two bytes must be the header length and total frame length (as required by the MRF24J40)
+ *
+ * \retval MRF_TX_OK if the frame was sent and acknowledged
+ * \retval MRF_TX_NO_ACK if the frame was sent but not acknowledged
+ * \retval MRF_TX_CCA_FAIL if the frame was not sent because the channel was too busy
+ *
+ * \pre The radio must have been initialized.
+ */
+mrf_tx_result_t mrf_transmit(const void *frame) {
+	// Only one task can transmit at a time.
+	xSemaphoreTake(tx_mutex, portMAX_DELAY);
+
+	// Send the frame.
+	size_t frame_length = ((const uint8_t *) frame)[1U];
+	icb_send(ICB_COMMAND_MRF_TX_PUSH, frame, frame_length + 2U);
+
+	// Wait until transmit complete.
+	xSemaphoreTake(tx_irq_sem, portMAX_DELAY);
+
+	// Get transmit status.
+	static uint8_t txstat_icb;
+	uint8_t txstat;
+	icb_receive(ICB_COMMAND_MRF_TX_GET_STATUS, &txstat_icb, sizeof(txstat_icb));
+	txstat = txstat_icb;
+
+	// Done transmitting.
+	xSemaphoreGive(tx_mutex);
+
+	// Check transmit status.
+	if (!(txstat & (1U << 0U))) {
+		return MRF_TX_OK;
+	} else if (txstat & (1U << 5U)) {
+		return MRF_TX_CCA_FAIL;
+	} else {
+		return MRF_TX_NO_ACK;
+	}
+}
+
+/**
+ * \brief Receives a frame.
+ *
+ * \param[out] buffer the buffer into which to store the frame
+ *
+ * \return the number of bytes stored into the buffer, or 0 if the receive was cancelled
+ *
+ * \pre The radio must have been initialized.
+ *
+ * \post The buffer contains the 802.15.4 header, followed by the data payload, followed by the FCS, LQI, and RSSI.
+ *
+ * \warning This function must only be entered by one caller at a time; it is not thread-safe.
+ * It does not make sense to try to use it from multiple threads; there is no control over which frame went to which caller.
+ */
+size_t mrf_receive(void *buffer) {
+	// Wait until receive complete or cancelled.
+	EventBits_t bits = xEventGroupWaitBits(rx_event_group, RX_EVENT_IRQ | RX_EVENT_CANCEL, pdTRUE, pdFALSE, portMAX_DELAY);
+	if (bits & RX_EVENT_IRQ) {
+		// No mutex is needed because only one task will take the receive IRQ event bit.
+		// A second ICB IRQ is not issued until after ICB_COMMAND_MRF_RX_READ is roughly complete.
+		// Therefore, the second task cannot see RX_EVENT_IRQ until the first task has finished receiving and everything is stable again.
+
+		// If a cancellation and a receive IRQ occurred simultaneously, stash the cancellation to take next time.
+		if (bits & RX_EVENT_CANCEL) {
+			xEventGroupSetBits(rx_event_group, RX_EVENT_CANCEL);
 		}
-		if (intstat & 0x08) {
-			rx_packet_pending = true;
-		}
-		cpu_usage += IO_SYSCTL.tsc - start;
+
+		// Get frame length.
+		static uint8_t length;
+		icb_receive(ICB_COMMAND_MRF_RX_GET_SIZE, &length, sizeof(length));
+		assert(length);
+
+		// Copy out the frame.
+		icb_receive(ICB_COMMAND_MRF_RX_READ, buffer, length);
+
+		return length;
+	} else {
+		// Cancellation event.
+		return 0U;
 	}
 }
 
-static void check_dma_error(void) {
-	if (IO_MRF.csr.dma_error) {
-		// Report the problem.
-#define MESSAGE "MRF DMA error at address %p for register %u!\n"
-		char buffer[sizeof(MESSAGE) + 20];
-		siprintf(buffer, MESSAGE, IO_MRF.dma_address, IO_MRF.address);
-#undef MESSAGE
-		syscall_debug_puts(buffer);
-
-		// Crash!
-		*((volatile unsigned int *) 0) = 27;
-	}
+/**
+ * \brief Cancels an in-progress or future receive.
+ *
+ * \pre Only one cancel can be pending at a time; if this function has been called in the past, \ref mrf_receive must have reported the cancellation by returning zero before calling this function again.
+ *
+ * \post At some point in the future, \ref mrf_receive will return zero, unless it is never called again.
+ * \post No invocation of \ref mrf_receive will block until after the cancellation has been delivered.
+ */
+void mrf_receive_cancel(void) {
+	xEventGroupSetBits(rx_event_group, RX_EVENT_CANCEL);
 }
 
-bool mrf_rx_poll(void) {
-	unsigned int start;
-
-	// If the DMA engine is currently active in either direction (transmit or receive) or the transceiver is busy, it is unsafe to touch the bus, so do nothing.
-	{
-		io_mrf_csr_t csr = IO_MRF.csr;
-		if (csr.dma_active || csr.spi_active) {
-			return false;
-		}
-	}
-
-	// If an error occurred, report it.
-	check_dma_error();
-
-	switch (rx_state) {
-		case RX_STATE_IDLE:
-			// No packet is currently outstanding.
-			// Check if a packet has been received and is waiting in the radio.
-			poll_interrupts();
-			if (rx_packet_pending) {
-				start = IO_SYSCTL.tsc;
-				// Clear pending interrupt.
-				rx_packet_pending = false;
-				// Disable reception of further packets from the air.
-				write_short(MRF_REG_SHORT_BBREG1, 0x04); // RXDECINV = 1; invert receiver symbol sign to prevent further packet reception
-				// Read the length of the packet from the receive buffer’s first byte.
-				uint8_t packet_length = read_long(MRF_REG_LONG_RXFIFO);
-				mrf_rx_buffer[0] = packet_length;
-				// Start a DMA data copy to bring the packet into the receive buffer.
-				IO_MRF.address = MRF_REG_LONG_RXFIFO + 1;
-				IO_MRF.dma_address = &mrf_rx_buffer[1];
-				IO_MRF.dma_length = packet_length;
-				io_mrf_csr_t csr = { 0 };
-				csr.dma_active = 1;
-				csr.long_address = 1;
-				IO_MRF.csr = csr;
-				// Record state change.
-				rx_state = RX_STATE_COPYING;
-				cpu_usage += IO_SYSCTL.tsc - start;
-			}
-			return false;
-
-		case RX_STATE_COPYING:
-			start = IO_SYSCTL.tsc;
-			// We were using the DMA engine to copy a received packet into the receive buffer, but since we got here, the DMA engine must be idle.
-			// Therefore, the packet is now finished being copied.
-			// Re-enable reception of packets from the air into the radio.
-			write_short(MRF_REG_SHORT_BBREG1, 0x00); // RXDECINV = 0; stop inverting receiver and allow further reception
-			// Record state change and hand the packet to the application.
-			rx_state = RX_STATE_IDLE;
-			cpu_usage += IO_SYSCTL.tsc - start;
-			__sync_synchronize();
-			return true;
-	}
-
-	return false;
+/**
+ * \brief Checks and clears the FCS failed flag.
+ *
+ * The FCS failed flag is set if a frame arrives in the radio with an incorrect frame check sequence.
+ * This should \em never happen, because the radio should filter out such frames before accepting them.
+ * Nevertheless, defense in depth dictates that we check the FCS and report failures.
+ *
+ * Such frames are not received as normal receivable frames.
+ *
+ * \retval true a bad FCS has happened since the last call to this function
+ * \retval false no bad FCSs have happened
+ */
+bool mrf_receive_fcs_fail_check_clear(void) {
+	return __atomic_exchange_n(&rx_fcs_fail, false, __ATOMIC_RELAXED);
 }
 
-static void mrf_tx_poll(void) {
-	unsigned int start;
-
-	// If the DMA engine is currently active in either direction (transmit or receive) or the transceiver is busy, it is unsafe to touch the bus, so do nothing.
-	{
-		io_mrf_csr_t csr = IO_MRF.csr;
-		if (csr.dma_active || csr.spi_active) {
-			return;
-		}
-	}
-
-	// If an error occurred, report it.
-	check_dma_error();
-
-	switch (tx_state) {
-		case TX_STATE_IDLE:
-			// There is nothing to do here until the application asks us to act.
-			return;
-
-		case TX_STATE_COPYING:
-			// We were using the DMA engine to copy a new packet into the transmit buffer, but since we got here, the DMA engine must be idle.
-			// Therefore, the packet is now finished being copied.
-			start = IO_SYSCTL.tsc;
-			// Start the radio transmitting the packet.
-			write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
-			// Record state change.
-			tx_state = TX_STATE_SENDING;
-			cpu_usage += IO_SYSCTL.tsc - start;
-			return;
-
-		case TX_STATE_SENDING:
-			// A packet was being sent over the air.
-			// See if that has finished yet.
-			poll_interrupts();
-			if (tx_done_pending) {
-				start = IO_SYSCTL.tsc;
-				// Clear pending interrupt.
-				tx_done_pending = false;
-				// Check status of transmission.
-				uint8_t txstat = read_short(MRF_REG_SHORT_TXSTAT);
-				if ((txstat & 0x01) && tx_reliable) {
-					// The packet was to be reliable and the transmission failed.
-					// Resubmit the same packet with no change in system status.
-					write_short(MRF_REG_SHORT_TXNCON, 0b00000101);
-				} else {
-					// Transmission succeeded or the packet was declared unreliable.
-					// Either way, the transmit path is now free.
-					tx_state = TX_STATE_IDLE;
-					// Record the outcome.
-					tx_successful = !(txstat & 0x01);
-				}
-				cpu_usage += IO_SYSCTL.tsc - start;
-			}
-			return;
-	}
-}
-
-bool mrf_tx_buffer_free(void) {
-	// We allow the application to write into the buffer if the transmit path is idle or transmitting.
-	// Transmitting is OK because at that point, the packet has been copied into the radio and transmission is independent of the local RAM buffer.
-	mrf_tx_poll();
-	return tx_state != TX_STATE_COPYING;
-}
-
-bool mrf_tx_path_free(void) {
-	// It is unsafe to start a transmission if the transmit path is copying or transmitting a packet, obviously.
-	// It is unsafe to start a transmission if the receive path DMA engine is running, because only one direction of DMA may occur at a time.
-	mrf_tx_poll();
-	io_mrf_csr_t csr = IO_MRF.csr;
-	return tx_state == TX_STATE_IDLE && !csr.dma_active && !csr.spi_active;
-}
-
-void mrf_tx_start(bool reliable) {
-	unsigned int start = IO_SYSCTL.tsc;
-
-	// Record reliability flag.
-	tx_reliable = reliable;
-
-	// Start a DMA transfer to copy the packet buffer into the radio transmit buffer.
-	IO_MRF.address = MRF_REG_LONG_TXNFIFO;
-	IO_MRF.dma_address = mrf_tx_buffer;
-	IO_MRF.dma_length = mrf_tx_buffer[1] + 2;
-	io_mrf_csr_t csr = { 0 };
-	csr.dma_active = 1;
-	csr.long_address = 1;
-	csr.write = 1;
-	__sync_synchronize();
-	IO_MRF.csr = csr;
-
-	// Record state.
-	tx_state = TX_STATE_COPYING;
-	cpu_usage += IO_SYSCTL.tsc - start;
-}
-
-bool mrf_tx_successful(void) {
-	return tx_successful;
-}
+/**
+ * @}
+ */
 

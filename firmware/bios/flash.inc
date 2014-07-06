@@ -1,5 +1,0 @@
-.equiv FLASH_OP_END, 0
-.equiv FLASH_OP_WCSR, 1
-.equiv FLASH_OP_XC_LIT, 2
-.equiv FLASH_OP_XC_BUF, 3
-.equiv FLASH_OP_BRANCH, 4

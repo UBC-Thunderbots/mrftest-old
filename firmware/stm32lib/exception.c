@@ -46,10 +46,8 @@ void exception_init(const exception_core_writer_t *cw, const exception_app_cbs_t
 
 	// We will run as follows:
 	// CPU exceptions (UsageFault, BusFault, MemManage) will be priority 0.0 and thus preempt everything else.
-	// Critical hardware interrupts that do not call FreeRTOS API functions will be priority 1.0 through 3.N.
-	// Normal hardware interrupts that may call FreeRTOS API functions will be priority 4.0 through 6.N.
-	// FreeRTOS itself (i.e. SVC, PendSV and SysTick exceptions) will be priority 7.0.
-	// Set hardware interrupt priorities.
+	// Other priorities are defined elsewhere.
+	// Give all hardware interrupts a default priority of 6.0 in case some application fails to set a priority.
 	for (size_t i = 0; i < sizeof(NVIC_IPR) / sizeof(*NVIC_IPR); ++i) {
 		NVIC_IPR[i] = (EXCEPTION_MKPRIO(6U, 0U) << 24U) | (EXCEPTION_MKPRIO(6U, 0U) << 16U) | (EXCEPTION_MKPRIO(6U, 0U) << 8U) | EXCEPTION_MKPRIO(6U, 0U);
 	}

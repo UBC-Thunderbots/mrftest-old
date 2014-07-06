@@ -78,7 +78,29 @@ typedef enum {
 	USB_DTYPE_DEVICE_QUALIFIER = 6,
 	USB_DTYPE_OTHER_SPEED_CONFIGURATION = 7,
 	USB_DTYPE_INTERFACE_POWER = 8,
+	USB_DTYPE_INTERFACE_ASSOCIATION = 11,
 } usb_dtype_t;
+
+/**
+ * \brief Standard class numbers.
+ */
+typedef enum {
+	USB_CLASS_MISC = 0xEF, ///< The miscellaneous device class
+} usb_class_t;
+
+/**
+ * \brief Standard subclass numbers.
+ */
+typedef enum {
+	USB_SUBCLASS_IAD = 0x02, ///< The device subclass for a device using interface association descriptors
+} usb_subclass_t;
+
+/**
+ * \brief Standard protocol numbers.
+ */
+typedef enum {
+	USB_PROTOCOL_IAD = 0x01, ///< The device protocol for a device using interface association descriptors
+} usb_protocol_t;
 
 /**
  * \brief Standard feature identifiers used in CLEAR FEATURE and SET FEATURE requests.
@@ -210,6 +232,20 @@ typedef struct __attribute__((packed)) {
 } usb_string_zero_descriptor_t;
 
 /**
+ * \brief The type of an interface association descriptor.
+ */
+typedef struct __attribute__((packed)) {
+	uint8_t bLength; ///< The length of this descriptor (\c sizeof(usb_interface_association_descriptor_t))
+	uint8_t bDescriptorType; ///< The type of this descriptor (\ref usb_dtype_t "USB_DTYPE_INTERFACE_ASSOCIATION")
+	uint8_t bFirstInterface; ///< The first interface number in the association
+	uint8_t bInterfaceCount; ///< The number of interfaces in the association
+	uint8_t bFunctionClass; ///< The class of the function in the association
+	uint8_t bFunctionSubClass; ///< The subclass of the function in the association
+	uint8_t bFunctionProtocol; ///< The protocol of the function in the association
+	uint8_t iFunction; ///< The string index of the function’s name, or 0 to omit
+} usb_interface_association_descriptor_t;
+
+/**
  * \brief The payload of a SETUP transaction.
  */
 typedef struct __attribute__((packed)) {
@@ -245,6 +281,7 @@ _Static_assert(sizeof(usb_interface_descriptor_t) == 9, "usb_interface_descripto
 _Static_assert(sizeof(usb_endpoint_descriptor_t) == 7, "usb_endpoint_descriptor_t wrong size");
 _Static_assert(sizeof(usb_string_descriptor_t) == 2, "usb_string_descriptor_t wrong size");
 _Static_assert(sizeof(usb_string_zero_descriptor_t) == 2, "usb_string_zero_descriptor_t wrong size");
+_Static_assert(sizeof(usb_interface_association_descriptor_t) == 8, "usb_interface_association_descriptor_t wrong size");
 _Static_assert(sizeof(usb_setup_packet_t) == 8, "usb_setup_packet_t wrong size");
 /**
  * \endcond

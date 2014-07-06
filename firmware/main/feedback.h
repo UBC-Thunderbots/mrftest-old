@@ -1,0 +1,11 @@
+#ifndef FEEDBACK_H
+#define FEEDBACK_H
+
+void feedback_init(void);
+void feedback_shutdown(void);
+void feedback_pend_normal(void);
+void feedback_pend_has_ball(void);
+void feedback_pend_autokick(void);
+
+#endif
+

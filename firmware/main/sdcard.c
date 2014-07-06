@@ -1,17 +1,26 @@
 #include "sdcard.h"
-#include "syscalls.h"
-#include "io.h"
+#include "dma.h"
+#include "pins.h"
+#include "priority.h"
+#include <FreeRTOS.h>
 #include <inttypes.h>
+#include <rcc.h>
+#include <semphr.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <task.h>
+#include <registers/dma.h>
+#include <registers/sdio.h>
 
 typedef enum {
 	GO_IDLE_STATE = 0,
-	SEND_OP_COND = 1,
-	SWITCH_FUNC = 6, 
+	ALL_SEND_CID = 2,
+	SEND_RELATIVE_ADDR = 3,
+	SWITCH_FUNC = 6,
+	SELECT_CARD = 7,
 	SEND_IF_COND = 8,
-	SEND_CSD = 9,    
-	SEND_CID = 10,   
+	SEND_CSD = 9,
+	SEND_CID = 10,
 	STOP_TRANSMISSION = 12,
 	SEND_STATUS = 13,
 	SET_BLOCKLEN = 16,
@@ -29,11 +38,10 @@ typedef enum {
 	LOCK_UNLOCK = 42,
 	APP_CMD = 55,
 	GEN_CMD = 56,
-	READ_OCR = 58,
-	CRC_ON_OFF = 59,
 } sd_cmd_t;
 
 typedef enum {
+	SET_BUS_WIDTH = 6,
 	SD_STATUS = 13,
 	SEND_NUM_WR_BLOCKS = 22,
 	SET_WR_BLK_ERASE_COUNT = 23,
@@ -42,374 +50,490 @@ typedef enum {
 	SEND_SCR = 51,
 } sd_acmd_t;
 
-#define START_BLOCK_TOKEN 0b11111110
-#define START_BLOCK_MULTI_TOKEN 0b11111100
-#define STOP_TRAN_TOKEN 0b11111101
-#define LINE_IDLE_STATE 0xFF
+typedef enum {
+	COMMAND_FLAG_NO_RESPONSE = 0x01,
+	COMMAND_FLAG_IGNORE_CRC = 0x02,
+	COMMAND_FLAG_LONG_RESPONSE = 0x04,
+	COMMAND_FLAG_IGNORE_RESPCMD = 0x08,
+} sd_command_flags_t;
 
+#define STATE_IDLE 0
+#define STATE_READY 1
+#define STATE_IDENT 2
+#define STATE_STBY 3
+#define STATE_TRAN 4
+#define STATE_DATA 5
+#define STATE_RCV 6
+#define STATE_PRG 7
 
+#define DATA_TIMEOUT_TIME 65535U
+#define DATA_LENGTH 512U
+#define CLOCK 48000000U
+
+#define SD_DMA_STREAM 6U
+#define SD_DMA_CHANNEL 4U
+
+static SemaphoreHandle_t int_semaphore = NULL;
+static SemaphoreHandle_t dma_semaphore = NULL;
 
 typedef struct {
 	sd_status_t status;
 	uint32_t sector_count;
-	bool expect_idle;
 	bool sdhc;
-	bool write_multi_active;
 } sd_ctx_t;
 
 static sd_ctx_t card_state = {
 	.status = SD_STATUS_UNINITIALIZED,
 };
 
-static char MALFORMED_DRT_MESSAGE[] = "SD: write multi saw malformed DRT\n";
-static char INTERNAL_ERROR_MESSAGE[] = "SD: write multi saw I/O error in DRT\n";
-static char CRC_ERROR_MESSAGE[] = "SD: write multi saw CRC error in DRT\n";
-static char AHB_ERROR_MESSAGE[] = "SD: DMA AHB error\n";
-
-
-
-static void spi_assert_cs(void) {
-	IO_SD.csr.cs = 0;
+/**
+ * \brief Handles SD card interrupts.
+ *
+ * This function should be registered in the application’s interrupt vector table at position 49.
+ */
+void sd_isr(void) {
+	// clear the mask
+	
+	SDIO_MASK_t mask_temp = { 0 };
+	SDIO_MASK = mask_temp;
+	BaseType_t yield = pdFALSE;
+	xSemaphoreGiveFromISR(int_semaphore, &yield);
+	if (yield) {
+		portYIELD_FROM_ISR();
+	}
 }
 
-static void spi_deassert_cs(void) {
-	IO_SD.csr.cs = 1;
+/**
+ * \brief Handles DMA controller 2 stream 6 interrupts.
+ *
+ * This function should be registered in the interrupt vector table at position 69.
+ */
+void dma2_stream6_isr(void) {
+	_Static_assert(SD_DMA_STREAM == 6U, "Function needs rewriting to the proper stream number!");
+
+	DMA_HISR_t temp_hisr = DMA2.HISR;
+	DMA_HIFCR_t temp_hifcr = {
+		.CFEIF6 = temp_hisr.FEIF6,
+		.CDMEIF6 = temp_hisr.DMEIF6,
+		.CTEIF6 = temp_hisr.TEIF6,
+		.CHTIF6 = temp_hisr.HTIF6,
+		.CTCIF6 = temp_hisr.TCIF6,
+	};
+
+	assert(!temp_hisr.DMEIF6 && !temp_hisr.TEIF6);
+
+	DMA2.HIFCR = temp_hifcr;
+
+	BaseType_t yield = pdFALSE;
+	xSemaphoreGiveFromISR(dma_semaphore, &yield);
+	if (yield) {
+		portYIELD_FROM_ISR();
+	}
 }
-
-static void spi_transmit(uint8_t send) {
-	IO_SD.data = send;
-	while (IO_SD.csr.busy);
-}
-
-static uint8_t spi_transceive(uint8_t send) {
-	spi_transmit(send);
-	return IO_SD.data;
-}
-
-
 
 static bool card_present(void) {
-	return IO_SD.csr.present;
+	return gpio_get_input(PIN_SD_PRESENT);
 }
 
-static void nop8(void) {
-	spi_transmit(LINE_IDLE_STATE);
-}
-
-static uint8_t nop8r(void) {
-	return spi_transceive(LINE_IDLE_STATE);
-}
-
-static uint32_t nop32r(void) {
-	uint32_t acc = 0;
-	uint8_t bits = 4;
-	do {
-		acc <<= 8;
-		acc |= spi_transceive(LINE_IDLE_STATE);
-	} while (--bits);
-	return acc;
-}
-
-static uint8_t crc7(const void *data, size_t len) {
-	const uint8_t *pdata = data;
-	uint8_t crc = 0;
-
-	do {
-		uint8_t byte = *pdata++;
-		uint8_t bits = 8;
-		do {
-			crc <<= 1;
-			if ((byte & 0x80) ^ (crc & 0x80)) {
-				crc ^= 0x09;
-			}
-			byte <<= 1;
-		} while (--bits);
-	} while (--len);
-
-	return crc;
-}
-
-static uint16_t crc16(const void *data, size_t len) {
-	const uint8_t *pdata = data;
-	uint16_t crc = 0;
-
-	do {
-		uint8_t s = *pdata++ ^ (crc >> 8);
-		uint8_t t = s ^ (s >> 4);
-		crc = (crc << 8) ^ t ^ (t << 5) ^ (t << 12);
-	} while (--len);
-
-	return crc;
-}
-
-static void close_transaction(void) {
-	spi_deassert_cs();
-	nop8();
-}
-
-static bool read_data_token(void) {
-	uint8_t token;
-	do {
-		token = nop8r();
-	} while (token == LINE_IDLE_STATE);
-	if (token == START_BLOCK_TOKEN) {
-		return true;
-	}
+static float convert_TAAC ( uint8_t TAAC )
+{
+	uint8_t multiplier = TAAC & 0b00000111;
+	uint8_t value = TAAC>>3;
+	float TAAC_in_nanosecs;
+	value &= 0b00001111;
+	if ( value == 1)
+		TAAC_in_nanosecs = 1.0;
+	else if ( value == 2 )
+		TAAC_in_nanosecs = 1.2;
+	else if ( value == 3)
+		TAAC_in_nanosecs = 1.3;
+	else if ( value == 4 )
+		TAAC_in_nanosecs = 1.5;
+	else if ( value == 5 )
+		TAAC_in_nanosecs = 2.0;
+	else if ( value == 6 )
+		TAAC_in_nanosecs = 2.5;
+	else if ( value == 7 )
+		TAAC_in_nanosecs = 3.0;
+	else if ( value == 8 )
+		TAAC_in_nanosecs = 3.5;
+	else if ( value == 9 )
+		TAAC_in_nanosecs = 4.0;
+	else if ( value == 10 )
+		TAAC_in_nanosecs = 4.5;
+	else if ( value == 11 )
+		TAAC_in_nanosecs = 5.0;
+	else if ( value == 12 )
+		TAAC_in_nanosecs = 5.5;
+	else if ( value == 13 )
+		TAAC_in_nanosecs = 6.0;
+	else if ( value == 14 )
+		TAAC_in_nanosecs = 7.0;
+	else if ( value == 15 )
+		TAAC_in_nanosecs = 8.0;
+	else 
 	{
-		char buffer[48];
-		siprintf(buffer, "SD: Illegal or data error token 0x%" PRIX8 "\n", token);
-		syscall_debug_puts(buffer);
+		printf ("Error: time value = 0 (reserved)\r\n");
+		TAAC_in_nanosecs = 0;
 	}
-	if (token & 0xF0) {
-		card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
-	} else if (token & 0x08) {
-		card_state.status = SD_STATUS_LOGICAL_ERROR;
+	for ( int i = 0; i<(int)multiplier; i++ )
+	{
+		TAAC_in_nanosecs *= 10;
+	}
+	return TAAC_in_nanosecs;
+}
+
+static void clear_cpsm_interrupts(void) {
+	// Clear the flags.
+	SDIO_ICR_t temp = {
+		.CMDSENTC = 1,
+		.CMDRENDC = 1,
+		.CTIMEOUTC = 1,
+		.CCRCFAILC = 1,
+	};
+	SDIO_ICR = temp;
+
+	// A dummy read appears to be necessary to delay the CPU long enough for the SDIO_STA flags to actually show as clear.
+	(void) SDIO_ICR;
+}
+
+static void clear_dpsm_interrupts(void) {
+	// Clear the flags.
+	SDIO_ICR_t temp = {
+		.DBCKENDC = 1,
+		.STBITERRC = 1,
+		.DATAENDC = 1,
+		.RXOVERRC = 1,
+		.TXUNDERRC = 1,
+		.DTIMEOUTC = 1,
+		.DCRCFAILC = 1,
+	};
+	SDIO_ICR = temp;
+
+	// A dummy read appears to be necessary to delay the CPU long enough for the SDIO_STA flags to actually show as clear.
+	(void) SDIO_ICR;
+}
+
+static bool send_command(uint8_t command, uint32_t argument, unsigned int flags) {
+	// All long responses do not contain a response command field.
+	if (flags & COMMAND_FLAG_LONG_RESPONSE) {
+		flags |= COMMAND_FLAG_IGNORE_RESPCMD;
+	}
+
+	// Clear all old interrupts.
+	clear_cpsm_interrupts();
+
+	// Enable interrupts based on type of command.
+	if (flags & COMMAND_FLAG_NO_RESPONSE) {
+		SDIO_MASK_t temp = { .CMDSENTIE = 1 };
+		SDIO_MASK = temp;
 	} else {
-		card_state.status = SD_STATUS_CARD_INTERNAL_ERROR;
+		SDIO_MASK_t temp = { .CTIMEOUTIE = 1, .CMDRENDIE = 1, .CCRCFAILIE = 1 };
+		SDIO_MASK = temp;
 	}
-	return false;
+
+	// Start up command path state machine.
+	SDIO_ARG = argument;
+	SDIO_CMD_t cmd_temp = {
+		.CPSMEN = 1,
+		.CMDINDEX = command,
+	};
+	if (flags & COMMAND_FLAG_NO_RESPONSE) {
+		cmd_temp.WAITRESP = 0b00;
+	} else if (flags & COMMAND_FLAG_LONG_RESPONSE) {
+		cmd_temp.WAITRESP = 0b11;
+	} else {
+		cmd_temp.WAITRESP = 0b01;
+	}
+	SDIO_CMD = cmd_temp;
+
+	// Wait for operation to finish.
+	xSemaphoreTake(int_semaphore, portMAX_DELAY);
+
+	// Check what happened.
+	if (SDIO_STA.CMDREND) {
+		// Response received with correct CRC.
+		if ((flags & COMMAND_FLAG_IGNORE_RESPCMD) || SDIO_RESPCMD == command) {
+			// Response was for the same command.
+			return true;
+		} else {
+			iprintf("SD: Command %" PRIu8 " had different response command %" PRIu8 ".\r\n", command, (uint8_t) SDIO_RESPCMD);
+			card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
+			return false;
+		}
+	} else if ((flags & COMMAND_FLAG_NO_RESPONSE) && SDIO_STA.CMDSENT) {
+		// Command sent, and no response expected.
+		return true;
+	} else if (SDIO_STA.CCRCFAIL) {
+		// CRC failed.
+		if (flags & COMMAND_FLAG_IGNORE_CRC) {
+			return true;
+		} else {
+			iprintf("SD: Command %" PRIu8 " CRC error.\r\n", command);
+			card_state.status = SD_STATUS_CRC_ERROR;
+			return false;
+		}
+	} else if (SDIO_STA.CTIMEOUT) {
+		// Timeout waiting for response.
+		iprintf("SD: Command %" PRIu8 " response timeout.\r\n", command);
+		card_state.status = SD_STATUS_COMMAND_RESPONSE_TIMEOUT;
+		return false;
+	} else {
+		// No idea how we got here.
+		iprintf("SD: Command %" PRIu8 " host controller logic error.\r\n", command);
+		card_state.status = SD_STATUS_LOGICAL_ERROR;
+		return false;
+	}
 }
 
-static bool send_command_r1_nc(uint8_t command, uint32_t argument) {
-	uint8_t buffer[6];
-	buffer[0] = command | 0x40;
-	buffer[1] = argument >> 24;
-	buffer[2] = argument >> 16;
-	buffer[3] = argument >> 8;
-	buffer[4] = argument;
-	buffer[5] = (crc7(buffer, 5) << 1) | 1;
-
-	spi_assert_cs();
-	for (uint8_t i = 0; i < 6; ++i) {
-		spi_transmit(buffer[i]);
+//send command in response 1 - no close
+static bool send_command_r1(uint8_t command, uint32_t argument, uint8_t state_expected) {
+	if (!send_command(command, argument, 0U)) {
+		return false;
 	}
-	uint8_t r1;
-	do {
-		r1 = nop8r();
-	} while (r1 == LINE_IDLE_STATE);
-	if (r1 == card_state.expect_idle ? 0x01 : 0x00) {
+
+	//grab the card response gained by sending command	
+	uint32_t r1 = SDIO_RESP [0];
+
+	uint8_t current_state = (r1 >> 9)&0x0F;
+	r1 &= 0xFFF9E008;//zero everything that doesn't need to be checked. 
+
+	if ( current_state != state_expected ) {
+		iprintf("SD: Command %" PRIu8 ": Incorrect starting state %" PRIu8 ", expected %" PRIu8 ".\r\n", command, current_state, state_expected);
+		card_state.status = SD_STATUS_ILLEGAL_STATE;
+		return false;
+	} 
+
+	if (!r1) {	//no error occured on card's side. 
 		return true;
 	}
-
-	{
-		char buffer[48];
-		siprintf(buffer, "SD: Command %" PRIu8 ": Bad R1: 0x%" PRIX8 "\n", command, r1);
-		syscall_debug_puts(buffer);
-	}
-	if (r1 & 0x80) {
-		card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
-	} else if (r1 & 0x08) {
-		card_state.status = SD_STATUS_CRC_ERROR;
-	} else if (r1 & 0x04) {
+	else if ( r1 >> 31 & 0x01 ) {
+		card_state.status = SD_STATUS_OUT_OF_RANGE;
+	} else if ( r1 >> 30 & 0x01 ) {
+		card_state.status = SD_STATUS_ADDRESS_MISALIGN;
+	} else if ( r1 >> 29 & 0x01 )  {
+		card_state.status = SD_STATUS_BLOCK_LEN_ERROR;
+	} else if ( r1 >> 28 & 0x01 ) {
+		card_state.status = SD_STATUS_ERASE_SEQ_ERROR;
+	} else if ( r1 >> 27 & 0x01 )  {
+		card_state.status = SD_STATUS_ERASE_PARAM;
+	} else if ( r1 >> 26 & 0x01 )  {
+		card_state.status = SD_STATUS_WP_VIOLATION;
+	} else if ( r1 >> 25 & 0x01 )  {
+		card_state.status = SD_STATUS_CARD_IS_LOCKED;
+	} else if ( r1 >> 24 & 0x01 )  {
+		card_state.status = SD_STATUS_LOCK_UNLOCK_FAILED;
+	} else if ( r1 >> 23 & 0x01 )  {
+		card_state.status = SD_STATUS_COM_CRC_ERROR;
+	} else if ( r1 >> 22 & 0x01 )  {
 		card_state.status = SD_STATUS_ILLEGAL_COMMAND;
-	} else if ((r1 & 0x01) != (card_state.expect_idle ? 0x01 : 0x00)) {
-		card_state.status = SD_STATUS_ILLEGAL_IDLE;
-	} else {
-		card_state.status = SD_STATUS_LOGICAL_ERROR;
+	} else if ( r1 >> 21 & 0x01 )  {
+		card_state.status = SD_STATUS_CARD_ECC_FAILED;
+	} else if ( r1 >> 20 & 0x01 )  {
+		card_state.status = SD_STATUS_CC_ERROR;
+	} else if ( r1 >> 19 & 0x01 )  {
+		card_state.status = SD_STATUS_ERROR;
+	} else if ( r1 >> 16 & 0x01 )  {
+		card_state.status = SD_STATUS_CSD_OVERWRITE;
+	} else if ( r1 >> 15 & 0x01 )  {
+		card_state.status = SD_STATUS_WP_ERASE_SKIP;
+	} else if ( r1 >> 14 & 0x01 )  {
+		card_state.status = SD_STATUS_CARD_ECC_DISABLED;
+	} else if ( r1 >> 13 & 0x01 )  {
+		card_state.status = SD_STATUS_ERASE_RESET;
+	} else if ( r1 >> 3 & 0x01 )  {
+		card_state.status = SD_STATUS_AKE_SEQ_ERROR;
 	}
+
+	printf("SD: Command %" PRIu8 " failed (R1 = 0x%" PRIX32 ").\r\n", command, SDIO_RESP[0U]);
+
 	return false;
 }
 
-static bool send_command_r1(uint8_t command, uint32_t argument) {
-	bool ret = send_command_r1_nc(command, argument);
-	close_transaction();
-	return ret;
-}
+static bool send_command_r6 (uint8_t command, uint32_t argument,  uint16_t * RCA, uint8_t state_expected )
+{
+	if (!send_command(command, argument, 0U)) {
+		return false;
+	}
 
-static bool send_command_r1_x32(uint8_t command, uint32_t argument, uint32_t *extra_response) {
-	bool ret = send_command_r1_nc(command, argument);
-	if (ret) {
-		*extra_response = nop32r();
-	}
-	close_transaction();
-	return ret;
-}
+	//grab the card response  gained by sending command	
+	uint32_t r6 = SDIO_RESP [0];
+	*RCA = r6 >> 16;
 
-static bool send_command_r1_data_read(uint8_t command, uint32_t argument, void *buffer, size_t length) {
-	if (!send_command_r1_nc(command, argument)) {
-		close_transaction();
+	uint8_t current_state = (r6 >> 9)&0x0F;
+	r6 &= 0x0000E008;//zero everything that doesn't need to be checked. 
+
+	if ( current_state != state_expected ) {
+		iprintf("SD: Command %" PRIu8 ": Incorrect starting state %" PRIu8 ", expected %" PRIu8 ".\r\n", command, current_state, state_expected);
+		card_state.status = SD_STATUS_ILLEGAL_STATE;
 		return false;
 	}
-	if (!read_data_token()) {
-		close_transaction();
-		return false;
+
+	if ( !r6 ) {
+		return true;  
+	} else if ( r6 >> 15 & 0x01 ) {
+		card_state.status = SD_STATUS_COM_CRC_ERROR;
+	} else if ( r6 >> 14 & 0x01 ) {
+		card_state.status = SD_STATUS_ILLEGAL_COMMAND;
+	} else if ( r6 >> 13 & 0x01 ) {
+		card_state.status = SD_STATUS_ERROR;
+	} else if ( r6 >> 3 & 0x01 ) {
+		card_state.status = SD_STATUS_AKE_SEQ_ERROR;
 	}
-	uint8_t *ptr = buffer;
-	size_t bytes_left = length;
-	do {
-		*ptr++ = nop8r();
-	} while (--bytes_left);
-	uint16_t received_crc = 0;
-	received_crc |= nop8r();
-	received_crc <<= 8;
-	received_crc |= nop8r();
-	close_transaction();
-	uint16_t calculated_crc = crc16(buffer, length);
-	if (received_crc != calculated_crc) {
-		char buffer[48];
-		siprintf(buffer, "SD: RX data CRC error (calc %" PRIX16 ", RX %" PRIX16 ")\n", calculated_crc, received_crc);
-		syscall_debug_puts(buffer);
-		card_state.status = SD_STATUS_CRC_ERROR;
-		return false;
-	}
-	return true;
+
+	printf("SD: Command %" PRIu8 " failed (R6 = 0x%" PRIX32 ").\r\n", command, SDIO_RESP[0U]);
+
+	return false;
 }
 
 
-
+/**
+ * \brief Returns the current status of the SD card.
+ *
+ * \return the current status, including the last error if an operation failed
+ */
 sd_status_t sd_status(void) {
 	return card_state.status;
 }
 
+/**
+ * \brief Initializes the SD card.
+ *
+ * \retval true initialization succeeded
+ * \retval false an error occurred
+ */
 bool sd_init(void) {
-	// Reset status.
+
 	card_state.status = SD_STATUS_UNINITIALIZED;
 
 	// Check for card.
 	if (!card_present()) {
-		static char MESSAGE[] = "SD: No card\n";
-		syscall_debug_puts(MESSAGE);
+		printf( "SD: No card\r\n" );
 		card_state.status = SD_STATUS_NO_CARD;
 		return false;
 	}
 
-	// Reset bus.
+	// Enable the SD host controller.
+	rcc_enable_reset(APB2, SDIO);
+	
+	//Initialize the STM32 SD card registers
+	SDIO_POWER.PWRCTRL = 0b11;
 	{
-		spi_deassert_cs();
-		uint8_t count = 80;
-		do {
-			nop8();
-		} while (--count);
+		SDIO_CLKCR_t tmp = {
+			.HWFC_EN = 0, // Errata: hardware flow control doesn’t work.
+			.NEGEDGE = 0, // Clock output pin matches rising edge of internal clock signal.
+			.WIDBUS = 0U, // One-bit bus mode.
+			.BYPASS = 0, // Do not bypass clock divider.
+			.PWRSAV = 0, // Output clock always, not only when accessing card.
+			.CLKEN = 1, // Enable clock.
+			.CLKDIV = 118, // 48M/400k = 120 = 118 + 2.
+		};
+		SDIO_CLKCR = tmp;
 	}
 
-	// Reset card and enter idle state in SPI mode.
-	{
-		card_state.expect_idle = true;
-		if (!send_command_r1(GO_IDLE_STATE, 0)) {
-			return false;
-		}
-	}
+	// Setting up interrupts and related things.
+	int_semaphore = xSemaphoreCreateBinary();
+	dma_semaphore = xSemaphoreCreateBinary();
+
+	// Unmask interrupts.
+	portENABLE_HW_INTERRUPT(49U, PRIO_EXCEPTION_SD);
+	portENABLE_HW_INTERRUPT(69U, PRIO_EXCEPTION_SD_DMA);
+
+	vTaskDelay(1000U / portTICK_PERIOD_MS);
+
+	// Reset card and enter idle state in SD mode.
+	send_command(GO_IDLE_STATE, 0U, COMMAND_FLAG_NO_RESPONSE);
 
 	// Check interface condition and whether card is version 1 or version 2.
 	bool v2;
 	{
 		uint32_t r7;
-		bool ret = send_command_r1_x32(SEND_IF_COND, (0b0001 << 8) | 0x5A, &r7);
+		bool ret = send_command(SEND_IF_COND, (0b0001 << 8) | 0x5A, 0U);
+		r7 = SDIO_RESP[0];
 		if (ret) {
 			// Command was accepted, so this must be a version 2 card.
 			v2 = true;
 			// Check the interface condition.
 			uint8_t check_pattern = r7 & 0xFF;
 			if (check_pattern != 0x5A) {
-				char buffer[48];
-				siprintf(buffer, "SD: Bad R7: 0x%" PRIX32 ", expected LSB 0x5A\n", r7);
-				syscall_debug_puts(buffer);
+				printf( "SD: Bad R7: 0x%" PRIX32 ", expected LSB 0x5A\r\n", r7);
 				card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
 				return false;
 			}
 			uint8_t voltage_mask = (r7 >> 8) & 0x0F;
 			if (voltage_mask != 0x1) {
-				char buffer[64];
-				siprintf(buffer, "SD: Bad R7: accepted voltage mask=0x%" PRIX8 ", expected 0x1\n", voltage_mask);
-				syscall_debug_puts(buffer);
+				printf( "SD: Bad R7: accepted voltage mask=0x%" PRIX8 ", expected 0x1\r\n", voltage_mask);
 				card_state.status = SD_STATUS_INCOMPATIBLE_CARD;
 				return false;
 			}
 		} else {
-			if (card_state.status == SD_STATUS_ILLEGAL_COMMAND) {
-				// Illegal command indicates this is a version 1 card, and is not actually an error.
-				v2 = false;
+			if (card_state.status == SD_STATUS_COMMAND_RESPONSE_TIMEOUT) {
+				// Command response timeout indicates this is a version 1 card, and is not actually an error.
+				v2 = false;  
 			} else {
 				// Command failed for some other reason which should not happen.
 				return false;
-			}
+ 			}
 		}
 	}
 	{
-		char buffer[32];
-		siprintf(buffer, "SD: V%u card, interface OK\n", v2 ? 2U : 1U);
-		syscall_debug_puts(buffer);
+		printf("SD: V%u card, interface OK\r\n", v2 ? 2U : 1U);
 	}
 
-	// Enable CRC protection of transactions.
-	if (!send_command_r1(CRC_ON_OFF, 1)) {
+	//30th bit is HCS -> set it for v2 cards
+	uint32_t arg = v2 ? (UINT32_C(1) << 30 | 0x00300000 ) : 0x00300000; // Only V2 cards are allowed to see an SDHC host.
+
+//SD mode specific ACMD41 routine
+//need to be able to time for 1 second. During 1 second, repeatedly send ACMD41 until bit 31 (busy bit) in response to ACMD41 is no longer 0.
+	for (;;) // since it's apparently pointless to count 1 second
+	{	  	
+		if (!send_command_r1(APP_CMD, 0, STATE_IDLE) && card_state.status != SD_STATUS_ILLEGAL_STATE) {
+			return false; 
+		// when busy bit = 1, initialization complete
+		}
+		if (!send_command(SD_SEND_OP_COND, arg, COMMAND_FLAG_IGNORE_CRC)) {
+			return false;
+		} else if (SDIO_RESP[0]>>31) {
+			break;
+		}
+		vTaskDelay(1U);
+	}
+
+	if ( !( SDIO_RESP[0] >> 20 & 0x01 || SDIO_RESP[0] >> 21 & 0x01 )) {
+		printf ("Unacceptable voltage.");
 		return false;
 	}
 
-	// Check OCR for compatible voltage range.
-	{
-		uint32_t ocr;
-		if (!send_command_r1_x32(READ_OCR, 0, &ocr)) {
-			return false;
-		}
-		if (!(ocr & (UINT32_C(3) << 20))) {
-			char buffer[64];
-			siprintf(buffer, "SD: OCR=0x%" PRIX32 ", 3.2 to 3.4 volts not supported\n", ocr);
-			syscall_debug_puts(buffer);
-			card_state.status = SD_STATUS_INCOMPATIBLE_CARD;
-			return false;
-		}
-	}
-
-	// Initialize the card.
-	{
-		card_state.expect_idle = false;
-		uint32_t arg = v2 ? (UINT32_C(1) << 30) : 0; // Only V2 cards are allowed to see an SDHC host.
-		for (;;) {
-			if (!send_command_r1(APP_CMD, 0) && card_state.status != SD_STATUS_ILLEGAL_IDLE) {
-				return false;
-			}
-			if (send_command_r1(SD_SEND_OP_COND, arg)) {
-				break;
-			} else if (card_state.status != SD_STATUS_ILLEGAL_IDLE) {
-				return false;
-			}
-		}
-		card_state.status = SD_STATUS_UNINITIALIZED;
-	}
-
+	card_state.status = SD_STATUS_UNINITIALIZED;	
 	// Determine card capacity class (SDSC vs SDHC/SDXC).
 	if (v2) {
-		uint32_t ocr;
-		if (!send_command_r1_x32(READ_OCR, 0, &ocr)) {
-			return false;
-		}
-		if (!(ocr & (UINT32_C(1) << 31))) {
-			char buffer[48];
-			siprintf(buffer, "SD: OCR=0x%" PRIX32 ", power up not done\n", ocr);
-			syscall_debug_puts(buffer);
-			card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
-			return false;
-		}
-		card_state.sdhc = !!(ocr & (UINT32_C(1) << 30));
+		card_state.sdhc =  ((SDIO_RESP[0] >> 30) & 0x02) ? true : false;   
 	} else {
 		card_state.sdhc = false;
 	}
 	{
-		char buffer[32];
-		siprintf(buffer, "SD: SD%cC init OK\n", card_state.sdhc ? 'H' : 'S');
-		syscall_debug_puts(buffer);
+		printf("SD: SD%cC init OK\r\n", card_state.sdhc ? 'H' : 'S');
 	}
+	
+	//CMD2 and CMD3 to finish in SD mode
+	if ( !send_command( ALL_SEND_CID, 0, COMMAND_FLAG_LONG_RESPONSE ) ) return false; 
+	uint16_t RCA;
+	if ( !send_command_r6( SEND_RELATIVE_ADDR, 0, &RCA, STATE_IDENT ) ) return false;
 
-	// Set block length to 512 bytes (this is ignored in all the ways we care about for SDHC/SDXC, as they always use a 512 byte block length, but harmless).
-	if (!send_command_r1(SET_BLOCKLEN, 512)) {
-		return false;
-	}
-
-	// Set multiblock write erase length.
-	if (!send_command_r1(APP_CMD, 0)) {
-		return false;
-	}
-	if (!send_command_r1(SET_WR_BLK_ERASE_COUNT, 256)) {
-		return false;
-	}
-
-	// Read the card specific data register and compute the number of sectors on the card.
 	{
 		uint8_t csd[16];
-		if (!send_command_r1_data_read(SEND_CSD, 0, csd, sizeof(csd))) {
+		if (!send_command(SEND_CSD, RCA << 16U, COMMAND_FLAG_LONG_RESPONSE)) {
 			return false;
 		}
+
+		for ( int i = 0; i<4 ; i++ )
+		{
+			for (int k = 0; k<4; k++ )
+			{
+				csd[i*4+k] = SDIO_RESP[i] >> (4-k-1)*8;
+			}
+		}
+
 		uint8_t csd_structure = csd[0] >> 6;
 		if (csd_structure == 0) {
 			// CSD structure version 1.0
@@ -426,166 +550,299 @@ bool sd_init(void) {
 			uint32_t c_size = (((uint32_t) (csd[7] & 0x3F)) << 16) | (((uint32_t) csd[8]) << 8) | csd[9];
 			card_state.sector_count = (c_size + 1) * 1024; // bytes = (c_size + 1) * 512 kB
 		} else {
-			char buffer[48];
-			siprintf(buffer, "SD: CSD_STRUCTURE=%" PRIu8 " (expected 0 or 1)\n", (uint8_t) (csd[0] >> 6));
-			syscall_debug_puts(buffer);
+			printf("SD: CSD_STRUCTURE=%" PRIu8 " (expected 0 or 1)\r\n", (uint8_t) (csd[0] >> 6));
 			card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
 			return false;
 		}
+	
+	
+		printf("SD: %" PRIu32 " sectors\r\n", card_state.sector_count);
+	
+	// Compute the timeout times using CSD data
+	// TAAC = csd[1], NSAC = csd[2]
+	
+		float Data_timeout = ( convert_TAAC(csd[1])*10e-9F/(1.0F/CLOCK) + csd[2] * 100 ) * 100 ;
+		float Hundredms = 0.1F/(1.0F/CLOCK);
+		if ( Data_timeout < Hundredms )
+			SDIO_DTIMER = (uint32_t)Data_timeout;
+		else SDIO_DTIMER = (uint32_t) Hundredms;
 	}
-	{
-		char buffer[32];
-		siprintf(buffer, "SD: %" PRIu32 " sectors\n", card_state.sector_count);
-		syscall_debug_puts(buffer);
+
+	if (!send_command_r1(SELECT_CARD, RCA << 16U, STATE_STBY)) return false;
+
+	// Set block length to 512 bytes (this is ignored in all the ways we care about for SDHC/SDXC, as they always use a 512 byte block length, but harmless).
+	if ( !send_command_r1(SET_BLOCKLEN, 512, STATE_TRAN)) {
+		return false;
 	}
+	
+	//TODO: UHS-I specific. 
+
+	// Read the card specific data register and compute the number of sectors on the card.
+	SDIO_DLEN = (uint32_t) 512;
 
 	card_state.status = SD_STATUS_OK;
-	card_state.write_multi_active = false;
+
+	// Detach pull-up resistor from DATA3.
+	if (!send_command_r1(APP_CMD, RCA << 16U, STATE_TRAN)) {
+		return false;
+	}
+	if (!send_command_r1(SET_CLR_CARD_DETECT, 0U, STATE_TRAN)) {
+		return false;
+	}
+
+	// Set bus width.
+	SDIO_CLKCR_t clkcr_tmp = SDIO_CLKCR;
+	if (!send_command_r1(APP_CMD, RCA << 16U, STATE_TRAN)) {
+		return false;
+	}
+	if (!send_command_r1(SET_BUS_WIDTH, 2U, STATE_TRAN)) {
+		printf("SD: 4-bit wide bus not supported.\r\n");
+	} else {
+		clkcr_tmp.WIDBUS = 0b01;
+	}
+
+	// Increase clock frequency.
+	// Note, this and the above WIDBUS change are rolled into one register write because it is not permitted to write to SDIO_CLKCR twice in quick succession.
+	clkcr_tmp.CLKDIV = 0;
+	SDIO_CLKCR = clkcr_tmp;
+
 	return true;
 }
 
-uint32_t sd_sector_count(void) {
-	return card_state.status == SD_STATUS_OK ? card_state.sector_count : UINT32_C(0);
-}
-
+/**
+ * \brief Reads a sector from the SD card.
+ *
+ * \param[in] sector the sector to read
+ *
+ * \param[out] buffer a 512-byte buffer in which to store the sector data
+ *
+ * \retval true read completed successfully
+ * \retval false an error occurred
+ */
 bool sd_read(uint32_t sector, void *buffer) {
 	// Sanity check.
-	if (card_state.status != SD_STATUS_OK) {
-		return false;
+	assert(dma_check(buffer, 512U));
+	assert(!(((uintptr_t) buffer) & 15U));
+
+	// Clear pending DMA interrupts.
+	DMA_HIFCR_t temp_hifcr = {
+		.CFEIF6 = 1U,
+		.CDMEIF6 = 1U,
+		.CTEIF6 = 1U,
+		.CHTIF6 = 1U,
+		.CTCIF6 = 1U,
+	};
+	DMA2.HIFCR = temp_hifcr;
+
+	// Initialize DMA engine.
+	DMA2.streams[SD_DMA_STREAM].M0AR = buffer;
+	DMA2.streams[SD_DMA_STREAM].PAR = &SDIO_FIFO;
+	DMA_SxFCR_t temp_FCR = {
+		.FTH = DMA_FIFO_THRESHOLD_FULL,
+		.DMDIS = 1,
+		.FEIE = 0,
+	};
+	DMA2.streams[SD_DMA_STREAM].FCR = temp_FCR;
+	DMA_SxCR_t temp_CR = {
+		.EN = 1,
+		.DMEIE = 1,
+		.TEIE = 1,
+		.TCIE = 1,
+		.PFCTRL = 1,
+		.DIR = DMA_DIR_P2M,
+		.CIRC = 0,
+		.PINC = 0,
+		.MINC = 1,
+		.PSIZE = DMA_DSIZE_WORD,
+		.MSIZE = DMA_DSIZE_WORD,
+		.PINCOS = 0,
+		.PL = 0, 
+		.DBM = 0,
+		.CT = 0,
+		.PBURST = DMA_BURST_INCR4,
+		.MBURST = DMA_BURST_INCR4,
+		.CHSEL = SD_DMA_CHANNEL,
+	};
+	DMA2.streams[SD_DMA_STREAM].CR = temp_CR;
+
+	// Clear old DPSM interrupts.
+	clear_dpsm_interrupts();
+
+	// Enable the DPSM before sending the command, because the card may start sending back data at any time.
+	SDIO_DCTRL_t dctrl_temp = { .DTEN = 1, .DTDIR = 1, .DTMODE = 0, .DMAEN = 1, .DBLOCKSIZE = 9 };
+	SDIO_DCTRL = dctrl_temp;
+
+	// Send the command.
+	if (!send_command_r1( READ_SINGLE_BLOCK, sector, STATE_TRAN)) {
+		return false; 
 	}
-	if (card_state.write_multi_active) {
-		card_state.status = SD_STATUS_LOGICAL_ERROR;
-		static char MESSAGE[] = "SD: read during write multi\n";
-		syscall_debug_puts(MESSAGE);
+
+	// Now that the CPSM is finished, wait for the DPSM to also finish.
+	SDIO_MASK_t mask_temp = { .DBCKENDIE = 1, .DCRCFAILIE = 1, .DTIMEOUTIE = 1 };
+	SDIO_MASK = mask_temp;
+	xSemaphoreTake(int_semaphore, portMAX_DELAY);
+
+	// SD error handling.
+	if (SDIO_STA.DTIMEOUT) {
+		// Disable the DMA stream.
+		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
+		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
+		fputs("SD: Data timeout\r\n", stdout);
+		return false;
+	} else if (SDIO_STA.DCRCFAIL) {
+		// Disable the DMA stream.
+		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
+		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
+		fputs("SD: Data CRC failure\r\n", stdout);
 		return false;
 	}
 
-	// Execute operation.
-	return send_command_r1_data_read(READ_SINGLE_BLOCK, card_state.sdhc ? sector : sector * 512U, buffer, 512);
-}
+	// Data block ended successfully; wait for the DMA controller to shut down.
+	xSemaphoreTake(dma_semaphore, portMAX_DELAY);
 
-bool sd_write_multi_active(void) {
-	return card_state.status == SD_STATUS_OK && card_state.write_multi_active;
-}
-
-bool sd_write_multi_start(uint32_t sector) {
-	// Sanity check.
-	if (card_state.status != SD_STATUS_OK) {
-		return false;
-	}
-	if (card_state.write_multi_active) {
-		card_state.status = SD_STATUS_LOGICAL_ERROR;
-		static char MESSAGE[] = "SD: write multi start during write multi";
-		syscall_debug_puts(MESSAGE);
-		return false;
-	}
-
-	// Send the command to start the operation.
-	if (!send_command_r1_nc(WRITE_MULTIPLE_BLOCK, card_state.sdhc ? sector : sector * 512U)) {
-		return false;
-	}
-
-	card_state.write_multi_active = true;
 	return true;
 }
 
-bool sd_write_multi_busy(void) {
-	return IO_SD.csr.dma_enable;
-}
-
-bool sd_write_multi_sector(const void *data) {
+/**
+ * \brief Writes a sector to the SD card.
+ *
+ * \param[in] sector the sector to write
+ *
+ * \param[in] data the data to write
+ *
+ * \retval true write completed successfully
+ * \retval false an error occurred
+ */
+bool sd_write(uint32_t sector, const void *data) {
 	// Sanity check.
-	if (card_state.status != SD_STATUS_OK) {
-		return false;
-	}
-	if (!card_state.write_multi_active) {
-		card_state.status = SD_STATUS_LOGICAL_ERROR;
-		static char MESSAGE[] = "SD: write multi sector outside write multi\n";
-		syscall_debug_puts(MESSAGE);
-		return false;
-	}
-	if (sd_write_multi_busy()) {
-		card_state.status = SD_STATUS_LOGICAL_ERROR;
-		static char MESSAGE[] = "SD: write multi sector while busy\n";
-		syscall_debug_puts(MESSAGE);
-		return false;
-	}
-	{
-		io_sd_csr_t csr = IO_SD.csr;
-		if (csr.malformed_drt) {
-			card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
-			syscall_debug_puts(MALFORMED_DRT_MESSAGE);
-			return false;
-		} else if (csr.internal_error) {
-			card_state.status = SD_STATUS_CARD_INTERNAL_ERROR;
-			syscall_debug_puts(INTERNAL_ERROR_MESSAGE);
-			return false;
-		} else if (csr.crc_error) {
-			card_state.status = SD_STATUS_CRC_ERROR;
-			syscall_debug_puts(CRC_ERROR_MESSAGE);
-			return false;
-		} else if (csr.ahb_error) {
-			card_state.status = SD_STATUS_LOGICAL_ERROR;
-			syscall_debug_puts(AHB_ERROR_MESSAGE);
-			return false;
-		}
+	assert(dma_check(data, 512U));
+	assert(!(((uintptr_t) data) & 15U));
+
+	// Clear pending DMA interrupts.
+	DMA_HIFCR_t temp_hifcr = {
+		.CFEIF6 = 1U,
+		.CDMEIF6 = 1U,
+		.CTEIF6 = 1U,
+		.CHTIF6 = 1U,
+		.CTCIF6 = 1U,
+	};
+	DMA2.HIFCR = temp_hifcr;
+
+	// Initialize the DMA engine.
+	DMA2.streams[SD_DMA_STREAM].M0AR = (void *) data;
+	DMA2.streams[SD_DMA_STREAM].PAR = &SDIO_FIFO;
+	DMA_SxFCR_t temp_FCR = {
+		.FTH = DMA_FIFO_THRESHOLD_FULL,
+		.DMDIS = 1,
+		.FEIE = 0,
+	};
+	DMA2.streams[SD_DMA_STREAM].FCR = temp_FCR;
+	DMA_SxCR_t temp_CR = {
+		.EN = 1,
+		.DMEIE = 1,
+		.TEIE = 1,
+		.TCIE = 1,
+		.PFCTRL = 1,
+		.DIR = DMA_DIR_M2P,
+		.CIRC = 0,
+		.PINC = 0,
+		.MINC = 1,
+		.PSIZE = DMA_DSIZE_WORD,
+		.MSIZE = DMA_DSIZE_WORD,
+		.PINCOS = 0,
+		.PL = 0, 
+		.DBM = 0,
+		.CT = 0,
+		.PBURST = DMA_BURST_INCR4,
+		.MBURST = DMA_BURST_INCR4,
+		.CHSEL = SD_DMA_CHANNEL,
+	};
+	DMA2.streams[SD_DMA_STREAM].CR = temp_CR;
+
+	// Clear old DPSM interrupts.
+	clear_dpsm_interrupts();
+
+	// Send the command.
+	if (!send_command_r1(WRITE_BLOCK, sector, STATE_TRAN)) {
+		return false; 
 	}
 
-	// Start the DMA transfer.
-	IO_SD.dma_address = data;
-	IO_SD.dma_length = 512;
-	__sync_synchronize();
-	IO_SD.csr.dma_enable = 1;
+	// Enable the DPSM and transfer the data.
+	SDIO_DCTRL_t dctrl_temp = { .DTEN = 1, .DTDIR = 0, .DTMODE = 0, .DMAEN = 1, .DBLOCKSIZE = 9 };
+	SDIO_DCTRL = dctrl_temp;
+	SDIO_MASK_t mask_temp = { .DBCKENDIE = 1, .DCRCFAILIE = 1, .DTIMEOUTIE = 1 };
+	SDIO_MASK = mask_temp;
+
+	// Wait for SD controller to interrupt with error/transfer complete.
+	xSemaphoreTake(int_semaphore, portMAX_DELAY);
+
+	// SD error handling.
+	if (SDIO_STA.DTIMEOUT) {
+		// Disable the DMA stream.
+		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
+		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
+		fputs("SD: Data timeout\r\n", stdout);
+		return false;
+	} else if (SDIO_STA.DCRCFAIL) {
+		// Disable the DMA stream.
+		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
+		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
+		fputs("SD: Data CRC failure\r\n", stdout);
+		return false;
+	}
+
+	// Data block ended successfully; wait for the DMA controller to shut down.
+	xSemaphoreTake(dma_semaphore, portMAX_DELAY);
+
+	// Wait for DPSM to disable.
+	// This is where we wait until SDIO_D0 goes high, indicating the card is no longer busy.
+	// Unfortunately there is no way to do this with an interrupt.
+	// TXACT, TXFIFOE, and TXFIFOHE all go from 1 to 0 when the DPSM goes idle.
+	// However, the host controller only generates interrupts when a status flag goes high, not low.
+	// So, busy-wait instead.
+	while (SDIO_STA.TXACT) {
+		taskYIELD();
+	}
+
 	return true;
 }
 
-bool sd_write_multi_end(void) {
+/**
+ * \brief Erases a sequence of sectors on the SD card.
+ *
+ * \param[in] sector the address of the first sector to erase
+ * \param[in] count the number of sectors to erase
+ * \retval true erase completed successfully
+ * \retval false an error occurred
+ */
+bool sd_erase(uint32_t sector, size_t count) {
 	// Sanity check.
-	if (card_state.status != SD_STATUS_OK) {
+	assert(count != 0U);
+	assert(sector + count <= sd_sector_count());
+
+	// Send the commands.
+	if (!send_command_r1(ERASE_WR_BLK_START_ADDR, sector, STATE_TRAN)) {
 		return false;
 	}
-	if (!card_state.write_multi_active) {
-		card_state.status = SD_STATUS_LOGICAL_ERROR;
-		static char MESSAGE[] = "SD: write multi end outside write multi\n";
-		syscall_debug_puts(MESSAGE);
+	if (!send_command_r1(ERASE_WR_BLK_END_ADDR, sector + count - 1U, STATE_TRAN)) {
+		return false;
+	}
+	if (!send_command_r1(ERASE, 0U, STATE_TRAN)) {
 		return false;
 	}
 
-	// Wait for non-busy status.
-	while (sd_write_multi_busy());
-	while (IO_SD.csr.busy);
+	// Wait until the card is no longer busy.
+	while (!gpio_get_input(PIN_SD_D0));
 
-	// Check for any errors in the final sector.
-	bool ret = true;
-	{
-		io_sd_csr_t csr = IO_SD.csr;
-		if (csr.malformed_drt) {
-			card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
-			syscall_debug_puts(MALFORMED_DRT_MESSAGE);
-			ret = false;
-		} else if (csr.internal_error) {
-			card_state.status = SD_STATUS_CARD_INTERNAL_ERROR;
-			syscall_debug_puts(INTERNAL_ERROR_MESSAGE);
-			ret = false;
-		} else if (csr.crc_error) {
-			card_state.status = SD_STATUS_CRC_ERROR;
-			syscall_debug_puts(CRC_ERROR_MESSAGE);
-			ret = false;
-		} else if (csr.ahb_error) {
-			card_state.status = SD_STATUS_LOGICAL_ERROR;
-			syscall_debug_puts(AHB_ERROR_MESSAGE);
-			ret = false;
-		}
-	}
+	return true;
+}
 
-	// Shut down the multi-sector write.
-	nop8();
-	spi_transmit(STOP_TRAN_TOKEN);
-	nop8();
-	while (!nop8r());
-	close_transaction();
-	card_state.write_multi_active = false;
-
-	return ret;
+/**
+ * \brief Returns the number of sectors on the SD card.
+ *
+ * \return the number of sectors, or 0 on failure
+ */
+uint32_t sd_sector_count(void) {
+	return card_state.status == SD_STATUS_OK ? card_state.sector_count : UINT32_C(0);
 }
 

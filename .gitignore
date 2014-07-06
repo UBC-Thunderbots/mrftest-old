@@ -1,5 +1,3 @@
-firmware/bios/bios.elf
-firmware/bios/bios.map
 firmware/dongle/dongle.bin
 firmware/dongle/dongle.elf
 firmware/dongle/dongle.map
@@ -10,9 +8,11 @@ firmware/flashburner/flashburner.elf
 firmware/flashburner/flashburner.map
 firmware/flashburner/html
 firmware/flashburner/obj
+firmware/main/html
+firmware/main/main.bin
 firmware/main/main.elf
 firmware/main/main.map
-firmware/main/main.mcs
+firmware/main/obj
 firmware/speedsensor/html
 firmware/speedsensor/obj
 firmware/speedsensor/speedsensor.bin
@@ -20,10 +20,12 @@ firmware/speedsensor/speedsensor.elf
 firmware/speedsensor/speedsensor.map
 firmware/stm32lib/internal
 firmware/stm32lib/public
+firmware/stm32lib/stm32lib.tag
 firmware/stm32lib/tags
 firmware/usb/internal
 firmware/usb/public
 firmware/usb/tags
+firmware/usb/usb.tag
 software/.cproject
 software/.metadata
 software/.project

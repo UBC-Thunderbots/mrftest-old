@@ -1,59 +1,108 @@
+/**
+ * \defgroup LOG Data Logging Functions
+ *
+ * \brief These functions handle queueing up log records and writing them to the SD card for later review.
+ *
+ * A logging client calls \ref log_alloc which allocates a log buffer, if one is avaiable.
+ * The client then fills the buffer before submitting it with \ref log_queue.
+ * The log buffers are written to the SD card in order of submission.
+ * Neither \ref log_alloc nor \ref log_queue will ever block.
+ *
+ * @{
+ */
+
 #include "log.h"
-#include "io.h"
+#include "dma.h"
 #include "sdcard.h"
-#include "syscalls.h"
+#include <FreeRTOS.h>
+#include <assert.h>
+#include <queue.h>
+#include <stddef.h>
 #include <stdio.h>
-#include <string.h>
+#include <task.h>
+#include <unused.h>
 
-#define SECTOR_SIZE 512U
-#define BUFFER_SECTORS 4U
-#define RECORDS_PER_SECTOR (SECTOR_SIZE / LOG_RECORD_SIZE)
+#define NUM_BUFFERS 16U
 
-typedef int LOG_RECORD_T_IS_TOO_FAT[sizeof(log_record_t) == LOG_RECORD_SIZE ? 1 : -1];
-typedef int LOG_RECORD_T_IS_NOT_DIVISIBLE_BY_SECTOR_SIZE[SECTOR_SIZE % LOG_RECORD_SIZE == 0 ? 1 : -1];
+_Static_assert(sizeof(log_record_t) == LOG_RECORD_SIZE, "log_record_t is not LOG_RECORD_SIZE!");
+_Static_assert(LOG_RECORD_SIZE == 512U, "log_record_t is not 512 bytes (one SD card sector) long!");
 
-static log_record_t buffers[BUFFER_SECTORS][RECORDS_PER_SECTOR];
 static log_state_t state = LOG_STATE_UNINITIALIZED;
-static uint8_t next_write_buffer, next_alloc_buffer, next_alloc_record;
 static uint16_t epoch;
-static uint32_t next_write_sector;
-static uint32_t last_time_lsb = 0, last_time_msb = 0;
+static QueueHandle_t free_queue, write_queue;
+static dma_memory_handle_t buffer_handles[NUM_BUFFERS];
 
-static char CARD_FULL_MESSAGE[] = "LOG: Card full\n";
+static void log_writeout_task(void *param) {
+	// Shovel records.
+	uint32_t sector = (uint32_t) param;
+	log_record_t *record;
+	do {
+		// Receive a submitted record.
+		BaseType_t rc = xQueueReceive(write_queue, &record, portMAX_DELAY);
+		assert(rc == pdTRUE); // Receive can never fail because we wait forever.
 
-// next_write_buffer is the index of the next buffer to write to the card.
-// If a write operation is ongoing, the write operation is writing buffer next_write_buffer-1.
-//
-// next_alloc_buffer is usually the index of the buffer in which the next record is allocated.
-// However, if next_alloc_record is RECORDS_PER_SECTOR, then next_alloc_buffer the next allocation will be in next_alloc_buffer+1.
-//
-// In all cases, records [next_write_buffer][0] through [next_alloc_buffer][next_alloc_record-1] are used.
-// If a write is ongoing, then [next_write_buffer-1][0…RECORDS_PER_SECTOR-1] are also used.
-//
-// If next_alloc_record = RECORDS_PER_SECTOR then [next_write_buffer][0…RECORDS_PER_SECTOR-1] are used.
-// If next_alloc_record = 0 then [next_write_buffer][0…RECORDS_PER_SECTOR-1] are free or being written.
+		// If this was a real record (not the null pointer signifying shutdown) and nothing has failed yet, write it out to the SD card.
+		if (record && state /* Non-atomic OK because only this task writes */ == LOG_STATE_OK) {
+			if (sd_write(sector, record)) {
+				++sector;
+				if (sector == sd_sector_count()) {
+					__atomic_store_n(&state, LOG_STATE_CARD_FULL, __ATOMIC_RELAXED);
+				}
+			} else {
+				__atomic_store_n(&state, LOG_STATE_SD_ERROR, __ATOMIC_RELAXED);
+				iprintf("Log: SD error writing sector %" PRIu32 "\r\n", sector);
+			}
+		}
 
-log_state_t log_state(void) {
-	return state;
+		// Put the record back on the free queue.
+		rc = xQueueSend(free_queue, &record, 0U);
+		assert(rc == pdTRUE); // Send can never fail because free_queue is NUM_BUFFERS long or, in case of null, log_deinit has already sucked out all the real buffers.
+	} while (record);
+
+	// We have been asked to shut down, by means of a null pointer being sent over the write queue.
+	// We have already replied by putting the null pointer back on the free queue, so just die.
+	vTaskDelete(0);
 }
 
+/**
+ * \brief Returns the current state of the logging subsystem.
+ *
+ * \return the current state
+ */
+log_state_t log_state(void) {
+	return __atomic_load_n(&state, __ATOMIC_RELAXED);
+}
+
+/**
+ * \brief Initializes the logging subsystem.
+ *
+ * \pre The SD card must already be initialized.
+ *
+ * \retval true initialization succeeded and the logging subsystem is ready to log data
+ * \retval false initialization failed and \ref log_alloc will always return null
+ */
 bool log_init(void) {
-	// Sanity check.
-	if (state != LOG_STATE_UNINITIALIZED) {
-		return false;
+	// Allocate the log buffers.
+	for (unsigned int i = 0U; i != NUM_BUFFERS; ++i) {
+		buffer_handles[i] = dma_alloc(sizeof(log_record_t));
 	}
 
+	// Sanity check.
+	assert(state == LOG_STATE_UNINITIALIZED);
+
 	// Binary search for the first empty sector.
+	uint32_t next_write_sector;
 	{
-		uint32_t low = 0, high = sd_sector_count();
+		uint32_t low = 0U, high = sd_sector_count();
 		while (low != high && sd_status() == SD_STATUS_OK) {
-			uint32_t probe = (low + high) / 2;
-			if (!sd_read(probe, &buffers[0])) {
+			uint32_t probe = (low + high) / 2U;
+			log_record_t *buffer = dma_get_buffer(buffer_handles[0U]);
+			if (!sd_read(probe, buffer)) {
 				state = LOG_STATE_SD_ERROR;
 				return false;
 			}
-			if (buffers[0][0].magic == LOG_MAGIC_TICK) {
-				low = probe + 1;
+			if (buffer->magic == LOG_MAGIC_TICK) {
+				low = probe + 1U;
 			} else {
 				high = probe;
 			}
@@ -63,168 +112,135 @@ bool log_init(void) {
 
 	// Check if the card is completely full.
 	if (next_write_sector == sd_sector_count()) {
-		syscall_debug_puts(CARD_FULL_MESSAGE);
 		state = LOG_STATE_CARD_FULL;
 		return false;
 	}
 
 	// Compute the epoch: previous sector’s epoch + 1 (if first empty sector is not first sector), or 1 (if first empty sector is first sector).
-	if (next_write_sector > 0) {
-		if (!sd_read(next_write_sector - 1, &buffers[0])) {
+	if (next_write_sector > 0U) {
+		log_record_t *buffer = dma_get_buffer(buffer_handles[0U]);
+		if (!sd_read(next_write_sector - 1U, buffer)) {
 			state = LOG_STATE_SD_ERROR;
 			return false;
 		}
-		epoch = buffers[0][0].epoch + 1;
+		epoch = buffer->epoch + 1U;
 	} else {
-		epoch = 1;
+		epoch = 1U;
 	}
 
-	// Start the write operation.
-	if (!sd_write_multi_start(next_write_sector)) {
-		state = LOG_STATE_SD_ERROR;
+	// Erase the card from the start sector to the end of the card.
+	// Do this ahead of time so we won’t get stuck doing a long erase as part of the first write when time actually matters.
+	if (!sd_erase(next_write_sector, sd_sector_count() - next_write_sector)) {
 		return false;
 	}
 
-	{
-		char buffer[48];
-		siprintf(buffer, "LOG: Start epoch %" PRIu16 " at sector %" PRIu32 "\n", epoch, next_write_sector);
-		syscall_debug_puts(buffer);
+	// Create all the FreeRTOS IPC objects.
+	free_queue = xQueueCreate(NUM_BUFFERS, sizeof(log_record_t *));
+	write_queue = xQueueCreate(NUM_BUFFERS, sizeof(log_record_t *));
+	assert(free_queue && write_queue);
+
+	// Push all the buffers into the free queue.
+	for (size_t i = 0U; i != NUM_BUFFERS; ++i) {
+		log_record_t *buffer = dma_get_buffer(buffer_handles[i]);
+		BaseType_t rc = xQueueSend(free_queue, &buffer, 0U);
+		assert(rc == pdTRUE); // Send can never fail because we are sending NUM_BUFFERS into a fresh NUM_BUFFERS-sized queue.
 	}
-	next_write_buffer = 0;
-	next_alloc_buffer = 0;
-	next_alloc_record = 0;
+
+	// Report status.
+	printf("Start epoch %" PRIu16 " at sector %" PRIu32 " ", epoch, next_write_sector);
 	state = LOG_STATE_OK;
+
+	// Launch the writeout task.
+	{
+		BaseType_t rc = xTaskCreate(&log_writeout_task, "log-writeout", 512U, (void *) next_write_sector, PRIO_TASK_LOG_WRITEOUT, 0);
+		assert(rc == pdPASS);
+	}
+
 	return true;
 }
 
-void log_deinit(void) {
+/**
+ * \brief Deinitializes the logging subsystem.
+ */
+void log_shutdown(void) {
 	// Sanity check.
 	if (state != LOG_STATE_OK && state != LOG_STATE_CARD_FULL) {
 		return;
 	}
 
-	// Wait for any running transfer to finish.
-	while (sd_write_multi_busy());
-	if (sd_status() != SD_STATUS_OK) {
-		return;
+	// Remove all the free buffers from the queue.
+	for (size_t i = 0U; i != NUM_BUFFERS; ++i) {
+		log_record_t *ptr;
+		BaseType_t rc = xQueueReceive(free_queue, &ptr, portMAX_DELAY);
+		assert(rc == pdTRUE); // Receive can never fail because we wait forever.
 	}
 
-	// Flush out any full buffers.
-	while (next_write_buffer != next_alloc_buffer) {
-		if (!sd_write_multi_sector(&buffers[next_write_buffer])) {
-			state = LOG_STATE_SD_ERROR;
-			return;
-		}
-		next_write_buffer = (next_write_buffer + 1) % BUFFER_SECTORS;
-		while (sd_write_multi_busy());
-		if (sd_status() != SD_STATUS_OK) {
-			return;
-		}
+	// Free all the buffers.
+	for (size_t i = 0U; i != NUM_BUFFERS; ++i) {
+		dma_free(buffer_handles[i]);
+		buffer_handles[i] = 0;
 	}
 
-	// If some records have been committed to the current sector, we must wipe the rest of the records and write out the sector.
-	if (next_alloc_record) {
-		while (next_alloc_record != RECORDS_PER_SECTOR) {
-			memset(&buffers[next_alloc_buffer][next_alloc_record], 0, sizeof(log_record_t));
-			++next_alloc_record;
-		}
-		if (!sd_write_multi_sector(&buffers[next_alloc_buffer])) {
-			state = LOG_STATE_SD_ERROR;
-			return;
-		}
-		while (sd_write_multi_busy());
-		if (sd_status() != SD_STATUS_OK) {
-			return;
-		}
+	// Send a null pointer into the write queue, signalling the writeout task to terminate.
+	{
+		log_record_t *null = 0;
+		BaseType_t rc = xQueueSend(write_queue, &null, 0U);
+		assert(rc == pdTRUE); // Send can never fail because we have eaten all the buffers, so nothing can possibly be in either queue.
 	}
 
-	// Stop the SD operation, if any is running.
-	if (sd_write_multi_active()) {
-		if (!sd_write_multi_end()) {
-			state = LOG_STATE_SD_ERROR;
-			return;
-		}
+	// Wait for the writeout task to send the null pointer back on the free queue, signalling that it is terminating.
+	{
+		log_record_t *ptr;
+		BaseType_t rc = xQueueReceive(free_queue, &ptr, portMAX_DELAY);
+		assert(rc == pdTRUE); // Receive can never fail because we wait forever.
+		assert(!ptr);
 	}
 
+	// Destroy the FreeRTOS IPC objects.
+	vQueueDelete(free_queue);
+	vQueueDelete(write_queue);
+
+	// Update state.
 	state = LOG_STATE_UNINITIALIZED;
 }
 
-static void try_start_write(void) {
-	if (!sd_write_multi_busy()) {
-		if (next_write_buffer != next_alloc_buffer || next_alloc_record == RECORDS_PER_SECTOR) {
-			sd_write_multi_sector(&buffers[next_write_buffer]);
-			next_write_buffer = (next_write_buffer + 1) % BUFFER_SECTORS;
-		}
-	}
-}
-
-static log_record_t *log_alloc_impl(void) {
-	// Sanity check.
-	if (state != LOG_STATE_OK && state != LOG_STATE_OVERFLOW) {
-		return 0;
-	}
-
-	// Check for full card.
-	if (next_write_sector == sd_sector_count()) {
-		syscall_debug_puts(CARD_FULL_MESSAGE);
-		state = LOG_STATE_CARD_FULL;
-		return 0;
-	}
-
-	// See if we can fix up next_alloc_record == RECORDS_PER_SECTOR by stepping to the next buffer.
-	// If a write is active, then next_write_buffer-1 is being written.
-	// So, we cannot step next_alloc_buffer to next_write_buffer-1 as then we would allocate from the sector being written.
-	// This is the case when, currently, next_alloc_buffer+1 == next_write_buffer-1, or equivalently, next_alloc_buffer+2 == next_write_buffer.
-	// If a write is not active, it is always safe to step this up.
-	// It is not possible that a write is not active but the buffers are full, because then we would have started a write just above.
-	if (next_alloc_record == RECORDS_PER_SECTOR) {
-		if (!sd_write_multi_busy() || ((next_alloc_buffer + 2) % BUFFER_SECTORS) != next_write_buffer) {
-			next_alloc_buffer = (next_alloc_buffer + 1) % BUFFER_SECTORS;
-			next_alloc_record = 0;
-		}
-	}
-
-	// Try starting a write.
-	try_start_write();
-
-	// Try to allocate a record.
-	// The buffer is full if next_alloc_record == RECORDS_PER_SECTOR.
-	// This cannot be true in any other case because, if it were, it would have been fixed above.
-	if (next_alloc_record == RECORDS_PER_SECTOR) {
-		state = LOG_STATE_OVERFLOW;
-		return 0;
-	} else {
-		state = LOG_STATE_OK;
-		return &buffers[next_alloc_buffer][next_alloc_record];
-	}
-}
-
+/**
+ * \brief Allocates a log record for the application to write into.
+ *
+ * The newly allocated record will have its epoch and timestamp fields filled in before it is returned.
+ * The application must fill the magic field and any record-type-specific data.
+ *
+ * \return the log record, or null on failure
+ */
 log_record_t *log_alloc(void) {
-	log_record_t *rec = log_alloc_impl();
+	if (log_state() != LOG_STATE_OK) {
+		return 0;
+	}
 
-	if (rec) {
-		uint32_t now = IO_SYSCTL.tsc;
-		if (now < last_time_lsb) {
-			++last_time_msb;
-		}
-		last_time_lsb = now;
+	log_record_t *rec;
+	BaseType_t rc = xQueueReceive(free_queue, &rec, 0U);
 
+	if (rc == pdTRUE) {
 		rec->epoch = epoch;
-		rec->time_lsb = last_time_lsb;
-		rec->time_msb = last_time_msb;
+		rec->time = xTaskGetTickCount();
+		return rec;
+	} else {
+		fputs("Log: out of buffers.\r\n", stdout);
+		return 0;
 	}
-
-	return rec;
 }
 
-void log_commit(void) {
-	// Sanity check.
-	if (state != LOG_STATE_OK) {
-		return;
-	}
-
-	// Commit the record and try starting a write operation.
-	++next_alloc_record;
-	try_start_write();
+/**
+ * \brief Submits a log record for writeout.
+ *
+ * \param[in] record the log record, which must have previously been allocated with \ref log_alloc
+ */
+void log_queue(log_record_t *record) {
+	BaseType_t rc = xQueueSend(write_queue, &record, 0U);
+	assert(rc == pdTRUE); // Send can never fail because we only ever allocate NUM_BUFFERS buffers, and write_queue is NUM_BUFFERS long.
 }
+
+/**
+ * @}
+ */
 

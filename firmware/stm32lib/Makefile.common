@@ -47,14 +47,14 @@ world : $(PROJECT).bin
 
 $(PROJECT).elf : $(OBJS) $(LINKER_SCRIPT)
 	@echo " LD        $@"
-	@$(CC) $(LDFLAGS) -o$@ -Wl,-Map=$(PROJECT).map $(OBJS) $(LDLIBS)
+	@$(CC) $(LDFLAGS) -o$@ -Wl,-Map=$(PROJECT).map $(sort $(OBJS)) $(LDLIBS)
 
 $(OBJS) : $(HEADERS) Makefile ../stm32lib/Makefile.common
 
 $(OBJS) : obj/%.o : ../%.c
 	@mkdir -p $(shell dirname $@)
 	@echo " CC        $@"
-	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CPPFLAGS) $(CFLAGS) -frandom-seed=$@ -c $< -o $@
 
 .PHONY : clean
 clean :

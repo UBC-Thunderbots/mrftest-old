@@ -11,25 +11,19 @@
 void control_clear(void);
 
 /**
- * \brief Invoked when new setpoints are received from the host.
+ * \brief Updates the internal state of the controller when new setpoints are received from the host.
  *
- * This function should read the new setpoints and write them into \ref wheels_setpoints in an appropriate internal format.
- * This function must not assume anything about the value of \ref wheels_setpoints.
- *
- * \param setpoints the new setpoints
+ * \param[in] setpoints the new setpoints
  */
-void control_process_new_setpoints(const int16_t setpoints[4]);
+void control_process_new_setpoints(const int16_t setpoints[4U]);
 
 /**
- * \brief Invoked once per tick when the control loop is enabled.
+ * \brief Updates the internal state of the controller as time passes and computes new output drive levels.
  *
- * This function should read from \ref wheels_setpoints, \ref wheels_encoder_counts, and the controller’s internal state, and write to \ref wheels_drives.
- * This function may also modify \ref wheels_setpoints.
- * This function may assume that the value it finds in \ref wheels_setpoints was placed there either by \ref control_process_new_setpoints or \ref control_tick.
- *
- * \param battery the battery voltage
+ * \param[in] feedback the current measured speeds of the wheels
+ * \param[out] drive the drive levels to send to the motors
  */
-void control_tick(float battery);
+void control_tick(const int16_t feedback[4U], int16_t drive[4U]);
 
 #endif
 
