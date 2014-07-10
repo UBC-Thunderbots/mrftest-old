@@ -135,7 +135,7 @@ void motor_tick(void) {
 	static uint8_t new_stuck[2U];
 	icb_receive(ICB_COMMAND_MOTORS_GET_CLEAR_STUCK_HALLS, new_stuck, sizeof(new_stuck));
 	for (unsigned int i = 0U; i != sizeof(new_stuck) / sizeof(*new_stuck); ++i) {
-		stuck_halls[i] |= new_stuck[i];
+		__atomic_or_fetch(&stuck_halls[i], new_stuck[i], __ATOMIC_RELAXED);
 	}
 }
 
