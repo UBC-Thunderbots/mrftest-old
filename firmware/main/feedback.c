@@ -140,8 +140,6 @@ static void feedback_task(void *UNUSED(param)) {
 				flags |= 0x20U;
 			}
 			flags |= 0x80U; // New units of measure.
-#warning implement capacitor charge timeout detection and flag reporting
-#warning implement interlock reporting
 			frame[20U] = flags;
 			flags = 0U;
 			for (unsigned int i = 0U; i < 4U; ++i) {
