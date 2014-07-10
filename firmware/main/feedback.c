@@ -136,7 +136,8 @@ static void feedback_task(void *UNUSED(param)) {
 			if (charger_timeout()) {
 				flags |= 0x04U;
 			}
-			if (icb_crc_error_check()) {
+			bool icb_crc_error_reported = icb_crc_error_check();
+			if (icb_crc_error_reported) {
 				flags |= 0x20U;
 			}
 			flags |= 0x80U; // New units of measure.
@@ -197,7 +198,9 @@ static void feedback_task(void *UNUSED(param)) {
 			mrf_tx_result_t result = mrf_transmit(frame);
 			if (result == MRF_TX_OK) {
 				motor_hall_stuck_clear();
-				icb_crc_error_clear();
+				if (icb_crc_error_reported) {
+					icb_crc_error_clear();
+				}
 			}
 		}
 	}
