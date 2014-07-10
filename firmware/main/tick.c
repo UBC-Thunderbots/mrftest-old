@@ -85,6 +85,7 @@ static void normal_task(void *UNUSED(param)) {
 		}
 
 		// Run the stuff.
+		receive_tick();
 		adc_tick(record);
 		leds_tick();
 		breakbeam_tick();
@@ -105,7 +106,7 @@ static void normal_task(void *UNUSED(param)) {
 			record->tick.dribbler_hall_sensors_failed = 0U;
 		}
 		charger_tick(drive->charger_enabled);
-		chicker_discharge(drive->discharger_enabled && adc_capacitor() > CHICKER_DISCHARGE_THRESHOLD);
+		chicker_discharge((receive_drive_timeout() || drive->discharger_enabled) && adc_capacitor() > CHICKER_DISCHARGE_THRESHOLD);
 		chicker_tick();
 		receive_release_drive();
 		motor_tick();

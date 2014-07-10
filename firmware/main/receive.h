@@ -26,8 +26,10 @@ struct receive_drive_struct {
 
 void receive_init(unsigned int index);
 void receive_shutdown(void);
+void receive_tick(void);
 const receive_drive_t *receive_lock_latest_drive(void);
 void receive_release_drive(void);
+bool receive_drive_timeout(void);
 
 #endif
 

@@ -4,6 +4,7 @@
  **/
 
 #include "adc.h"
+#include "receive.h"
 #include <FreeRTOS.h>
 #include <gpio.h>
 #include <rcc.h>
@@ -168,6 +169,10 @@ void charger_mark_fired(void) {
 void charger_tick(bool charger_enabled) {
 	float vcap = adc_capacitor();
 	float vbat = adc_battery_unfiltered();
+
+	if (receive_drive_timeout()) {
+		charger_enabled = false;
+	}
 
 	if (!charger_enabled) {
 		__atomic_store_n(&full, false, __ATOMIC_RELAXED); // If we are not charging at all, then we instantly drain a bit.

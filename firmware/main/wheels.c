@@ -87,10 +87,12 @@ static void set_nominal_drive(unsigned int index, motor_mode_t mode, int16_t dri
  * \param[out] record the log record whose wheel-related fields will be filled
  */
 void wheels_tick(const receive_drive_t *drive, log_record_t *record) {
+	bool drive_timeout = receive_drive_timeout();
+
 	if (record) {
 		record->tick.wheels_hall_sensors_failed = 0U;
 		for (unsigned int i = 0U; i != NUM_WHEELS; ++i) {
-			record->tick.wheels_setpoints[i] = drive->setpoints[i];
+			record->tick.wheels_setpoints[i] = drive_timeout ? 0 : drive->setpoints[i];
 			record->tick.wheels_encoder_counts[i] = encoder_speed(i);
 			if (motor_hall_stuck_low(i)) {
 				record->tick.wheels_hall_sensors_failed |= 1U << (i * 2U);
@@ -102,7 +104,8 @@ void wheels_tick(const receive_drive_t *drive, log_record_t *record) {
 		record->tick.wheels_encoders_failed = 0U;
 	}
 
-	if (drive->wheels_mode == WHEELS_MODE_CLOSED_LOOP) {
+	wheels_mode_t wmode = drive_timeout ? WHEELS_MODE_BRAKE : drive->wheels_mode;
+	if (wmode == WHEELS_MODE_CLOSED_LOOP) {
 #warning check for optical encoder failures
 		// If new setpoints were sent, deliver them to the controller.
 		if (drive->data_serial != last_data_serial) {
@@ -129,7 +132,7 @@ void wheels_tick(const receive_drive_t *drive, log_record_t *record) {
 
 		// Send the PWM values to the motors.
 		motor_mode_t mmode;
-		switch (drive->wheels_mode) {
+		switch (wmode) {
 			case WHEELS_MODE_BRAKE: mmode = MOTOR_MODE_BRAKE; break;
 			case WHEELS_MODE_OPEN_LOOP: mmode = MOTOR_MODE_FORWARD; break;
 			default: mmode = MOTOR_MODE_MANUAL_COMMUTATION; break;

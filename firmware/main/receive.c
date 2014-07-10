@@ -40,6 +40,7 @@ static receive_drive_t buffers[3U] = {
 static tbuf_t buffers_ctl = TBUF_INIT;
 static unsigned int current_read_buffer;
 static SemaphoreHandle_t shutdown_sem;
+static unsigned int timeout_ticks;
 
 static void receive_task(void *UNUSED(param)) {
 	uint16_t last_sequence_number = 0xFFFFU;
@@ -111,6 +112,9 @@ static void receive_task(void *UNUSED(param)) {
 
 						// Put the written buffer back.
 						tbuf_write_put(&buffers_ctl, target_index);
+
+						// Reset timeout.
+						__atomic_store_n(&timeout_ticks, 1000U / portTICK_PERIOD_MS, __ATOMIC_RELAXED);
 					}
 				} else if (frame_length >= HEADER_LENGTH + 1U + FOOTER_LENGTH) {
 					// Non-broadcast frame contains a message specifically for this robot
@@ -223,6 +227,18 @@ void receive_shutdown(void) {
 }
 
 /**
+ * \brief Ticks the receiver.
+ */
+void receive_tick(void) {
+	// Decrement timeout tick counter if nonzero.
+	unsigned int old, new;
+	do {
+		old = __atomic_load_n(&timeout_ticks, __ATOMIC_RELAXED);
+		new = old ? old - 1U : old;
+	} while (!__atomic_compare_exchange_n(&timeout_ticks, &old, new, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
+}
+
+/**
  * \brief Locks and returns a pointer to the most recent drive data.
  *
  * While the drive data is locked, it will not be modified.
@@ -241,6 +257,16 @@ const receive_drive_t *receive_lock_latest_drive(void) {
  */
 void receive_release_drive(void) {
 	tbuf_read_put(&buffers_ctl, current_read_buffer);
+}
+
+/**
+ * \brief Checks whether there has been a receive timeout indicating that the host is no longer sending orders.
+ *
+ * \retval true if a timeout has occurred
+ * \retval false if a timeout has not occurred
+ */
+bool receive_drive_timeout(void) {
+	return !__atomic_load_n(&timeout_ticks, __ATOMIC_RELAXED);
 }
 
 /**
