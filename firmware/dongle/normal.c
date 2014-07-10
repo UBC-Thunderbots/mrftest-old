@@ -223,7 +223,7 @@ static void send_drive_packet(const void *packet, uint8_t counter) {
 		for (size_t i = 0U; i < DRIVE_PACKET_DATA_SIZE; i += 8U) {
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i + 1U, (i == poll_index * DRIVE_PACKET_DATA_SIZE / 8U) ? 0b10000000U : 0b00000000U);
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i + 0U, 0x00U);
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i + 3U, 0b01000000U);
+			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i + 3U, 0b01000000U & bptr[i+3U]);
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i + 2U, 0x00U);
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i + 5U, 0x00U);
 			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i + 4U, 0x00U);
