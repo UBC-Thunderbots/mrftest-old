@@ -75,6 +75,9 @@ static void normal_task(void *UNUSED(param)) {
 			--dribbler_tick_counter;
 		}
 
+		// Sanity check: the FPGA must not have experienced a post-configuration CRC failure.
+		assert(gpio_get_input(PIN_FPGA_INIT_B));
+
 		// Try to get a data logger record.
 		log_record_t *record = log_alloc();
 		if (record) {
