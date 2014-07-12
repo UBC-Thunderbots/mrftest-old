@@ -147,6 +147,23 @@ namespace {
 
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 				draw_ui(world, ctx);
+				if (world.playtype() == AI::Common::PlayType::STOP) {
+					ctx->set_source_rgb(1.0, 0.5, 0.5);
+					ctx->arc(world.ball().position().x, world.ball().position().y, 0.5, 0.0, 2 * M_PI);
+					ctx->stroke();
+				}
+				if(!curr_play)
+					return;
+				curr_play->draw_overlay(ctx);
+				for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
+					if (!curr_assignment[i]) {
+						continue;
+					}
+					const std::vector<Tactic::Tactic::Ptr> &role = curr_roles[i];
+					for (std::size_t t = 0; t < role.size(); ++t) {
+						role[t]->draw_overlay(ctx);
+					}
+				}
 			}
 	};
 }
