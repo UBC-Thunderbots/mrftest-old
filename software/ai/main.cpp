@@ -180,7 +180,7 @@ int app_main(int argc, char **argv) {
 
 	Glib::OptionEntry disable_camera_entry;
 	disable_camera_entry.set_long_name(u8"disable-camera");
-	disable_camera_entry.set_description(u8"Disables reception fo packets from a particular camera");
+	disable_camera_entry.set_description(u8"Disables reception of packets from a particular camera");
 	disable_camera_entry.set_arg_description(u8"ID");
 	std::vector<Glib::ustring> disable_camera_strings;
 	option_group.add_entry(disable_camera_entry, disable_camera_strings);
