@@ -13,7 +13,7 @@
 #include <FreeRTOS.h>
 #include <gpio.h>
 
-#define THRESHOLD 0.05f
+#define THRESHOLD 0.01f
 static bool laser_active = false, interrupted = false;
 static float off_reading = 0.0f, on_reading = 0.0f;
 
