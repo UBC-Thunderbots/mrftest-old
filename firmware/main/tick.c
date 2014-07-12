@@ -85,6 +85,7 @@ static void normal_task(void *UNUSED(param)) {
 		}
 
 		// Run the stuff.
+		feedback_tick();
 		receive_tick();
 		adc_tick(record);
 		leds_tick();

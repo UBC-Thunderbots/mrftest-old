@@ -26,6 +26,8 @@
 #include <math.h>
 #include <unused.h>
 
+#define HAS_BALL_MIN_PERIOD (10U / portTICK_PERIOD_MS)
+
 typedef enum {
 	EVENT_SEND_NORMAL = 0x01,
 	EVENT_SEND_HAS_BALL = 0x02,
@@ -35,6 +37,8 @@ typedef enum {
 } event_t;
 
 static EventGroupHandle_t event_group;
+static unsigned int has_ball_antispam_ticks = 0U;
+static bool has_ball_after_antispam = false;
 
 static void feedback_task(void *UNUSED(param)) {
 	static uint8_t nullary_frame[] = {
@@ -57,28 +61,6 @@ static void feedback_task(void *UNUSED(param)) {
 		if (bits & EVENT_SHUTDOWN) {
 			xEventGroupSetBits(event_group, EVENT_SHUTDOWN_COMPLETE);
 			vTaskDelete(0);
-		}
-		if (bits & EVENT_SEND_HAS_BALL) {
-			nullary_frame[4U] = mrf_alloc_seqnum();
-			uint16_t u16 = mrf_pan_id();
-			nullary_frame[5U] = u16;
-			nullary_frame[6U] = u16 >> 8U;
-			u16 = mrf_short_address();
-			nullary_frame[9U] = u16;
-			nullary_frame[10U] = u16 >> 8U;
-			nullary_frame[11U] = breakbeam_interrupted() ? 0x04U : 0x05U;
-			mrf_transmit(nullary_frame);
-		}
-		if (bits & EVENT_SEND_AUTOKICK) {
-			nullary_frame[4U] = mrf_alloc_seqnum();
-			uint16_t u16 = mrf_pan_id();
-			nullary_frame[5U] = u16;
-			nullary_frame[6U] = u16 >> 8U;
-			u16 = mrf_short_address();
-			nullary_frame[9U] = u16;
-			nullary_frame[10U] = u16 >> 8U;
-			nullary_frame[11U] = 0x01U;
-			mrf_transmit(nullary_frame);
 		}
 		if (bits & EVENT_SEND_NORMAL) {
 			static uint8_t frame[] = {
@@ -201,6 +183,38 @@ static void feedback_task(void *UNUSED(param)) {
 				if (icb_crc_error_reported) {
 					icb_crc_error_clear();
 				}
+				// We no longer need to send a has-ball update, because the information it would convey is in the feedback packet.
+				bits &= ~EVENT_SEND_HAS_BALL;
+			}
+		}
+		if (bits & EVENT_SEND_HAS_BALL) {
+			nullary_frame[4U] = mrf_alloc_seqnum();
+			uint16_t u16 = mrf_pan_id();
+			nullary_frame[5U] = u16;
+			nullary_frame[6U] = u16 >> 8U;
+			u16 = mrf_short_address();
+			nullary_frame[9U] = u16;
+			nullary_frame[10U] = u16 >> 8U;
+			nullary_frame[11U] = breakbeam_interrupted() ? 0x04U : 0x05U;
+			// No need to check for failure.
+			// If the frame is not delivered, the next feedback packet will give the host fully up-to-date information.
+			mrf_transmit(nullary_frame);
+		}
+		if (bits & EVENT_SEND_AUTOKICK) {
+			nullary_frame[4U] = mrf_alloc_seqnum();
+			uint16_t u16 = mrf_pan_id();
+			nullary_frame[5U] = u16;
+			nullary_frame[6U] = u16 >> 8U;
+			u16 = mrf_short_address();
+			nullary_frame[9U] = u16;
+			nullary_frame[10U] = u16 >> 8U;
+			nullary_frame[11U] = 0x01U;
+			if (mrf_transmit(nullary_frame) != MRF_TX_OK) {
+				// Delivery failed.
+				// This message absolutely must go through.
+				// If not, the host may believe autokick is still armed even though it isn’t!
+				// So, try delivering the message again later.
+				xEventGroupSetBits(event_group, EVENT_SEND_AUTOKICK);
 			}
 		}
 	}
@@ -239,7 +253,14 @@ void feedback_pend_normal(void) {
  * The feedback task will send a has-ball message as soon as possible after this function is called.
  */
 void feedback_pend_has_ball(void) {
-	xEventGroupSetBits(event_group, EVENT_SEND_HAS_BALL);
+	taskENTER_CRITICAL();
+	if (has_ball_antispam_ticks) {
+		has_ball_after_antispam = true;
+	} else {
+		xEventGroupSetBits(event_group, EVENT_SEND_HAS_BALL);
+		has_ball_antispam_ticks = HAS_BALL_MIN_PERIOD;
+	}
+	taskEXIT_CRITICAL();
 }
 
 /**
@@ -249,6 +270,21 @@ void feedback_pend_has_ball(void) {
  */
 void feedback_pend_autokick(void) {
 	xEventGroupSetBits(event_group, EVENT_SEND_AUTOKICK);
+}
+
+/**
+ * \brief Ticks the feedback module.
+ */
+void feedback_tick(void) {
+	taskENTER_CRITICAL();
+	if (has_ball_antispam_ticks) {
+		--has_ball_antispam_ticks;
+	}
+	if (!has_ball_antispam_ticks && has_ball_after_antispam) {
+		xEventGroupSetBits(event_group, EVENT_SEND_HAS_BALL);
+		has_ball_after_antispam = false;
+	}
+	taskEXIT_CRITICAL();
 }
 
 /**
