@@ -3,10 +3,25 @@
 #include "ai/backend/ssl_vision/team.h"
 #include "mrf/dongle.h"
 #include "mrf/robot.h"
+#include <cstdlib>
 
 using namespace AI::BE;
 
 namespace {
+	/**
+	 * \brief Returns the port number to use for SSL-Vision data.
+	 *
+	 * \return the port number, as a string
+	 */
+	const char *vision_port() {
+		const char *evar = std::getenv("SSL_VISION_PORT");
+		if (evar) {
+			return evar;
+		} else {
+			return "10002";
+		}
+	}
+
 	/**
 	 * \brief The friendly team.
 	 */
@@ -74,7 +89,7 @@ void EnemyTeam::create_member(unsigned int pattern) {
 	members[pattern].create(pattern);
 }
 
-MRFBackend::MRFBackend(const std::vector<bool> &disable_cameras, MRFDongle &dongle, int multicast_interface) : Backend(disable_cameras, multicast_interface, "10002"), friendly(*this, dongle), enemy(*this) {
+MRFBackend::MRFBackend(const std::vector<bool> &disable_cameras, MRFDongle &dongle, int multicast_interface) : Backend(disable_cameras, multicast_interface, vision_port()), friendly(*this, dongle), enemy(*this) {
 }
 
 BackendFactory &MRFBackend::factory() const {
