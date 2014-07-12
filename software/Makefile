@@ -19,9 +19,10 @@ include project.mk
 #
 # Build a full CXXFLAGS, LDFLAGS, and LIBS.
 #
-override CXXFLAGS := $(PROJECT_CXXFLAGS) $(shell pkg-config --cflags $(PACKAGES) | sed 's/-I/-isystem /g') $(CXXFLAGS)
-override LDFLAGS := $(PROJECT_LDFLAGS) $(shell pkg-config --libs-only-other --libs-only-L $(PACKAGES)) $(LDFLAGS)
-override LIBS := $(PROJECT_LIBS) $(shell pkg-config --libs-only-l $(PACKAGES)) $(LIBS)
+PKG_CONFIG ?= pkg-config
+override CXXFLAGS := $(PROJECT_CXXFLAGS) $(shell $(PKG_CONFIG) --cflags $(PACKAGES) | sed 's/-I/-isystem /g') $(CXXFLAGS)
+override LDFLAGS := $(PROJECT_LDFLAGS) $(shell $(PKG_CONFIG) --libs-only-other --libs-only-L $(PACKAGES)) $(LDFLAGS)
+override LIBS := $(PROJECT_LIBS) $(shell $(PKG_CONFIG) --libs-only-l $(PACKAGES)) $(LIBS)
 
 #
 # The target to build everything.
@@ -67,7 +68,7 @@ PROTOBUF_HS := $(PROTOBUF_INPUTS:.proto=.pb.h)
 $(addprefix bin/,$(EXECUTABLES)) : bin/% : $$(addprefix obj/,$$(subst .cc,.o,$$(subst .cpp,.o,$$(shell find $$(SOURCES_%) -name .svn -prune -o -name '*.cpp' -print) $$(if $$(filter proto,$$(SOURCES_%)),$(PROTOBUF_CCS)))))
 	echo "  LD	$@"
 	mkdir -p bin
-	$(CXX) $(LDFLAGS) $(if $(PACKAGES_$(notdir $@)),$(shell pkg-config --libs-only-other --libs-only-L $(PACKAGES_$(notdir $@)))) -o$@ $+ $(LIBS) $(if $(PACKAGES_$(notdir $@)),$(shell pkg-config --libs-only-l $(PACKAGES_$(notdir $@))))
+	$(CXX) $(LDFLAGS) $(if $(PACKAGES_$(notdir $@)),$(shell $(PKG_CONFIG) --libs-only-other --libs-only-L $(PACKAGES_$(notdir $@)))) -o$@ $+ $(LIBS) $(if $(PACKAGES_$(notdir $@)),$(shell $(PKG_CONFIG) --libs-only-l $(PACKAGES_$(notdir $@))))
 
 #
 # Rule to make a .d file and a .o file from a .cpp file.
