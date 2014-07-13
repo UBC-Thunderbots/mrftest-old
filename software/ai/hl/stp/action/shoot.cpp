@@ -56,18 +56,19 @@ bool AI::HL::STP::Action::shoot_goal(World world, Player player, bool use_reduce
 					positions.push_back(i.position());
 		Point destination = closest_lineseg_point(player.position(), angle_sweep_circles(behind_goal, Point(-1.5,2), Point(-1.5,-2), positions, Robot::MAX_RADIUS).first, behind_goal);
 
-		if ((destination - player.position()).len() > 0.45) { //if it will dribble for more than 45 cm
+		/* if ((destination - player.position()).len() > 0.45) { //if it will dribble for more than 45 cm
 			if ((player.position() - world.field().enemy_goal()).len() > 0.5) { //and it is more than 50 cm away from the goal
 				move(player, (world.field().enemy_goal() - player.position()).orientation(), (destination - player.position()).norm(0.3));
 				Action::chip_target(world, player, world.field().enemy_goal(), 0.4);
 			}
 		}	
-		else
-		if (fabs(line_point_dist(player.position(), behind_goal, destination)) > 0.05)
-			move(player, (angle_sweep_circles(player.position(), world.field().enemy_goal_boundary().second, world.field().enemy_goal_boundary().first, 
-						positions, Robot::MAX_RADIUS).first - player.position()).orientation(), destination);
-	}
+		else */
+		if (fabs(line_point_dist(player.position(), behind_goal, destination)) > 0.05) {
+			//move(player, (angle_sweep_circles(player.position(), world.field().enemy_goal_boundary().second, world.field().enemy_goal_boundary().first, positions, Robot::MAX_RADIUS).first - player.position()).orientation(), destination);
+			shoot_target(world, player, angle_sweep_circles(player.position(), world.field().enemy_goal_boundary().second, world.field().enemy_goal_boundary().first, positions, Robot::MAX_RADIUS).first, BALL_MAX_SPEED);
+		}
 
+	}
 	if (shoot_data.can_shoot) {
 		if (!player.chicker_ready()) {
 			LOG_INFO(u8"chicker not ready");
