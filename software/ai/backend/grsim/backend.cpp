@@ -19,7 +19,7 @@ namespace AI {
 			class BackendFactory : public AI::BE::BackendFactory {
 				public:
 					BackendFactory();
-					void create_backend(const std::vector<bool> &disable_cameras, const std::string &, int multicast_interface, std::function<void(Backend &)> cb) const;
+					void create_backend(const std::vector<bool> &disable_cameras, int multicast_interface, std::function<void(Backend &)> cb) const;
 			};
 
 			extern BackendFactory grsim_backend_factory_instance;
@@ -65,7 +65,7 @@ namespace {
 AI::BE::GRSim::BackendFactory::BackendFactory() : AI::BE::BackendFactory(u8"grSim") {
 }
 
-void AI::BE::GRSim::BackendFactory::create_backend(const std::vector<bool> &disable_cameras, const std::string &, int multicast_interface, std::function<void(Backend &)> cb) const {
+void AI::BE::GRSim::BackendFactory::create_backend(const std::vector<bool> &disable_cameras, int multicast_interface, std::function<void(Backend &)> cb) const {
 	::Backend backend(disable_cameras, multicast_interface);
 	cb(backend);
 }

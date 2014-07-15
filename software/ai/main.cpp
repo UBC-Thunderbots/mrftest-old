@@ -157,13 +157,6 @@ int app_main(int argc, char **argv) {
 	bool west = false;
 	option_group.add_entry(west_entry, west);
 
-	Glib::OptionEntry load_entry;
-	load_entry.set_long_name(u8"load");
-	load_entry.set_description(u8"Loads a simulator state file at startup");
-	load_entry.set_arg_description(u8"FILENAME");
-	std::string load_filename;
-	option_group.add_entry_filename(load_entry, load_filename);
-
 	Glib::OptionEntry multicast_interface_entry;
 	multicast_interface_entry.set_long_name(u8"interface");
 	multicast_interface_entry.set_description(u8"Overrides the kernel's default choice of network interface on which to receive multicast packets");
@@ -302,7 +295,7 @@ int app_main(int argc, char **argv) {
 	if (be == bem.end()) {
 		throw std::runtime_error(Glib::ustring::compose(u8"There is no backend “%1”.", backend_name));
 	}
-	be->second->create_backend(disable_cameras, load_filename, multicast_interface_index, [setup, minimize](AI::BE::Backend &be) { app_main_with_backend(be, setup, minimize); });
+	be->second->create_backend(disable_cameras, multicast_interface_index, [setup, minimize](AI::BE::Backend &be) { app_main_with_backend(be, setup, minimize); });
 
 	return 0;
 }

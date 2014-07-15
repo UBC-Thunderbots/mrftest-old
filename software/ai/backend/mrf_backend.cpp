@@ -67,7 +67,7 @@ namespace {
 	class MRFBackendFactory : public BackendFactory {
 		public:
 			explicit MRFBackendFactory();
-			void create_backend(const std::vector<bool> &disable_cameras, const std::string &, int multicast_interface, std::function<void(Backend &)> cb) const;
+			void create_backend(const std::vector<bool> &disable_cameras, int multicast_interface, std::function<void(Backend &)> cb) const;
 	};
 }
 
@@ -115,7 +115,7 @@ const EnemyTeam &MRFBackend::enemy_team() const {
 MRFBackendFactory::MRFBackendFactory() : BackendFactory(u8"mrf") {
 }
 
-void MRFBackendFactory::create_backend(const std::vector<bool> &disable_cameras, const std::string &, int multicast_interface, std::function<void(Backend &)> cb) const {
+void MRFBackendFactory::create_backend(const std::vector<bool> &disable_cameras, int multicast_interface, std::function<void(Backend &)> cb) const {
 	MRFDongle dongle;
 	MRFBackend be(disable_cameras, dongle, multicast_interface);
 	cb(be);

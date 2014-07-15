@@ -83,7 +83,7 @@ namespace {
 	class ROBackendFactory : public AI::BE::BackendFactory {
 		public:
 			explicit ROBackendFactory();
-			void create_backend(const std::vector<bool> &disable_cameras, const std::string &load_filename, int multicast_interface, std::function<void(AI::BE::Backend &)> cb) const;
+			void create_backend(const std::vector<bool> &disable_cameras, int multicast_interface, std::function<void(AI::BE::Backend &)> cb) const;
 	};
 }
 
@@ -172,7 +172,7 @@ const EnemyTeam &ROBackend::enemy_team() const {
 ROBackendFactory::ROBackendFactory() : BackendFactory(u8"ro") {
 }
 
-void ROBackendFactory::create_backend(const std::vector<bool> &disable_cameras, const std::string &, int multicast_interface, std::function<void(AI::BE::Backend &)> cb) const {
+void ROBackendFactory::create_backend(const std::vector<bool> &disable_cameras, int multicast_interface, std::function<void(AI::BE::Backend &)> cb) const {
 	ROBackend be(disable_cameras, multicast_interface);
 	cb(be);
 }

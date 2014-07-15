@@ -319,13 +319,11 @@ namespace AI {
 				 *
 				 * \param[in] disable_cameras a bitmask indicating which cameras should be ignored
 				 *
-				 * \param[in] load_filename the filename of a simulator state file to restore
-				 *
 				 * \param[in] multicast_interface the index of the interface on which to join multicast groups, or zero to use the kernel's default choice
 				 *
 				 * \param[in] cb a function to invoke passing the constructed Backend
 				 */
-				virtual void create_backend(const std::vector<bool> &disable_cameras, const std::string &load_filename, int multicast_interface, std::function<void(Backend &)> cb) const = 0;
+				virtual void create_backend(const std::vector<bool> &disable_cameras, int multicast_interface, std::function<void(Backend &)> cb) const = 0;
 
 			protected:
 				/**
