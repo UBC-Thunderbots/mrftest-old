@@ -18,6 +18,7 @@
 #include "util/property.h"
 #include "util/registerable.h"
 #include <functional>
+#include <memory>
 #include <vector>
 #include <gtkmm/table.h>
 #include <sigc++/signal.h>
@@ -53,6 +54,11 @@ namespace AI {
 					WEST,
 					EAST,
 				};
+
+				/**
+				 * \brief Destroys the Backend.
+				 */
+				virtual ~Backend();
 
 				/**
 				 * \brief Returns the factory that created this Backend.
@@ -321,9 +327,9 @@ namespace AI {
 				 *
 				 * \param[in] multicast_interface the index of the interface on which to join multicast groups, or zero to use the kernel's default choice
 				 *
-				 * \param[in] cb a function to invoke passing the constructed Backend
+				 * \return a pointer to the created backend
 				 */
-				virtual void create_backend(const std::vector<bool> &disable_cameras, int multicast_interface, std::function<void(Backend &)> cb) const = 0;
+				virtual std::unique_ptr<Backend> create_backend(const std::vector<bool> &disable_cameras, int multicast_interface) const = 0;
 
 			protected:
 				/**

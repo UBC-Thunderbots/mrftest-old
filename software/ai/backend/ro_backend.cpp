@@ -4,6 +4,8 @@
 #include "ai/backend/ssl_vision/team.h"
 #include <cstdlib>
 
+using namespace AI::BE;
+
 namespace {
 	/**
 	 * \brief Returns the port number to use for SSL-Vision data.
@@ -22,7 +24,7 @@ namespace {
 	/**
 	 * \brief A player that cannot be controlled, only viewed.
 	 */
-	class ROPlayer : public AI::BE::Player {
+	class ROPlayer : public Player {
 		public:
 			typedef BoxPtr<ROPlayer> Ptr;
 			ROPlayer(unsigned int pattern);
@@ -41,9 +43,9 @@ namespace {
 	/**
 	 * \brief A friendly team in the read-only backend.
 	 */
-	class FriendlyTeam : public AI::BE::SSLVision::Team<ROPlayer, AI::BE::Player> {
+	class FriendlyTeam : public AI::BE::SSLVision::Team<ROPlayer, Player> {
 		public:
-			FriendlyTeam(AI::BE::Backend &backend);
+			FriendlyTeam(Backend &backend);
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -52,9 +54,9 @@ namespace {
 	/**
 	 * \brief An enemy team in the read-only backend.
 	 */
-	class EnemyTeam : public AI::BE::SSLVision::Team<AI::BE::Robot, AI::BE::Robot> {
+	class EnemyTeam : public AI::BE::SSLVision::Team<Robot, Robot> {
 		public:
-			EnemyTeam(AI::BE::Backend &backend);
+			EnemyTeam(Backend &backend);
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -66,7 +68,7 @@ namespace {
 	class ROBackend : public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
 		public:
 			explicit ROBackend(const std::vector<bool> &disable_cameras, int multicast_interface);
-			AI::BE::BackendFactory &factory() const;
+			BackendFactory &factory() const;
 			FriendlyTeam &friendly_team();
 			const FriendlyTeam &friendly_team() const;
 			EnemyTeam &enemy_team();
@@ -80,10 +82,10 @@ namespace {
 	/**
 	 * \brief A factory for creating \ref ROBackend instances.
 	 */
-	class ROBackendFactory : public AI::BE::BackendFactory {
+	class ROBackendFactory : public BackendFactory {
 		public:
 			explicit ROBackendFactory();
-			void create_backend(const std::vector<bool> &disable_cameras, int multicast_interface, std::function<void(AI::BE::Backend &)> cb) const;
+			std::unique_ptr<Backend> create_backend(const std::vector<bool> &disable_cameras, int multicast_interface) const;
 	};
 }
 
@@ -97,7 +99,7 @@ namespace AI {
 
 ROBackendFactory AI::BE::RO::ro_backend_factory_instance;
 
-ROPlayer::ROPlayer(unsigned int pattern) : AI::BE::Player(pattern) {
+ROPlayer::ROPlayer(unsigned int pattern) : Player(pattern) {
 }
 
 void ROPlayer::dribble_slow() {
@@ -140,14 +142,14 @@ void ROPlayer::tick(bool, bool) {
 	// Do nothing.
 }
 
-FriendlyTeam::FriendlyTeam(AI::BE::Backend &backend) : AI::BE::SSLVision::Team<ROPlayer, AI::BE::Player>(backend) {
+FriendlyTeam::FriendlyTeam(Backend &backend) : AI::BE::SSLVision::Team<ROPlayer, Player>(backend) {
 }
 
 void FriendlyTeam::create_member(unsigned int pattern) {
 	members[pattern].create(pattern);
 }
 
-EnemyTeam::EnemyTeam(AI::BE::Backend &backend) : AI::BE::SSLVision::Team<AI::BE::Robot, AI::BE::Robot>(backend) {
+EnemyTeam::EnemyTeam(Backend &backend) : AI::BE::SSLVision::Team<Robot, Robot>(backend) {
 }
 
 void EnemyTeam::create_member(unsigned int pattern) {
@@ -157,7 +159,7 @@ void EnemyTeam::create_member(unsigned int pattern) {
 ROBackend::ROBackend(const std::vector<bool> &disable_cameras, int multicast_interface) : Backend(disable_cameras, multicast_interface, vision_port()), friendly(*this), enemy(*this) {
 }
 
-AI::BE::BackendFactory &ROBackend::factory() const {
+BackendFactory &ROBackend::factory() const {
 	return AI::BE::RO::ro_backend_factory_instance;
 }
 
@@ -180,12 +182,12 @@ const EnemyTeam &ROBackend::enemy_team() const {
 ROBackendFactory::ROBackendFactory() : BackendFactory(u8"ro") {
 }
 
-void ROBackendFactory::create_backend(const std::vector<bool> &disable_cameras, int multicast_interface, std::function<void(AI::BE::Backend &)> cb) const {
-	ROBackend be(disable_cameras, multicast_interface);
-	cb(be);
+std::unique_ptr<Backend> ROBackendFactory::create_backend(const std::vector<bool> &disable_cameras, int multicast_interface) const {
+	std::unique_ptr<Backend> be(new ROBackend(disable_cameras, multicast_interface));
+	return be;
 }
 
-AI::BE::BackendFactory &AI::BE::RO::get_factory() {
+BackendFactory &AI::BE::RO::get_factory() {
 	return ro_backend_factory_instance;
 }
 

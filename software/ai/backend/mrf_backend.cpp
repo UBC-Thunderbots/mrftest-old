@@ -27,13 +27,13 @@ namespace {
 	 */
 	class FriendlyTeam : public AI::BE::SSLVision::Team<AI::BE::Physical::Player, AI::BE::Player> {
 		public:
-			explicit FriendlyTeam(Backend &backend, MRFDongle &dongle);
+			explicit FriendlyTeam(Backend &backend);
 
 		protected:
 			void create_member(unsigned int pattern);
 
 		private:
-			MRFDongle &dongle;
+			MRFDongle dongle;
 	};
 
 	/**
@@ -52,7 +52,7 @@ namespace {
 	 */
 	class MRFBackend : public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
 		public:
-			explicit MRFBackend(const std::vector<bool> &disable_cameras, MRFDongle &dongle, int multicast_interface);
+			explicit MRFBackend(const std::vector<bool> &disable_cameras, int multicast_interface);
 			BackendFactory &factory() const;
 			FriendlyTeam &friendly_team();
 			const FriendlyTeam &friendly_team() const;
@@ -67,13 +67,13 @@ namespace {
 	class MRFBackendFactory : public BackendFactory {
 		public:
 			explicit MRFBackendFactory();
-			void create_backend(const std::vector<bool> &disable_cameras, int multicast_interface, std::function<void(Backend &)> cb) const;
+			std::unique_ptr<Backend> create_backend(const std::vector<bool> &disable_cameras, int multicast_interface) const;
 	};
 }
 
 MRFBackendFactory mrf_backend_factory_instance;
 
-FriendlyTeam::FriendlyTeam(Backend &backend, MRFDongle &dongle) : AI::BE::SSLVision::Team<AI::BE::Physical::Player, AI::BE::Player>(backend), dongle(dongle) {
+FriendlyTeam::FriendlyTeam(Backend &backend) : AI::BE::SSLVision::Team<AI::BE::Physical::Player, AI::BE::Player>(backend) {
 }
 
 void FriendlyTeam::create_member(unsigned int pattern) {
@@ -89,7 +89,7 @@ void EnemyTeam::create_member(unsigned int pattern) {
 	members[pattern].create(pattern);
 }
 
-MRFBackend::MRFBackend(const std::vector<bool> &disable_cameras, MRFDongle &dongle, int multicast_interface) : Backend(disable_cameras, multicast_interface, vision_port()), friendly(*this, dongle), enemy(*this) {
+MRFBackend::MRFBackend(const std::vector<bool> &disable_cameras, int multicast_interface) : Backend(disable_cameras, multicast_interface, vision_port()), friendly(*this), enemy(*this) {
 }
 
 BackendFactory &MRFBackend::factory() const {
@@ -115,9 +115,8 @@ const EnemyTeam &MRFBackend::enemy_team() const {
 MRFBackendFactory::MRFBackendFactory() : BackendFactory(u8"mrf") {
 }
 
-void MRFBackendFactory::create_backend(const std::vector<bool> &disable_cameras, int multicast_interface, std::function<void(Backend &)> cb) const {
-	MRFDongle dongle;
-	MRFBackend be(disable_cameras, dongle, multicast_interface);
-	cb(be);
+std::unique_ptr<Backend> MRFBackendFactory::create_backend(const std::vector<bool> &disable_cameras, int multicast_interface) const {
+	std::unique_ptr<Backend> be(new MRFBackend(disable_cameras, multicast_interface));
+	return be;
 }
 

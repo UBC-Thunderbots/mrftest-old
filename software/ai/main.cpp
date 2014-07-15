@@ -33,57 +33,6 @@
 
 namespace {
 	void app_main_with_backend(AI::BE::Backend &backend, const AI::Setup &setup, bool minimize) {
-		backend.defending_end() = setup.defending_end;
-		backend.friendly_colour() = setup.friendly_colour;
-
-		AI::AIPackage ai(backend);
-
-		if (!setup.high_level_name.empty()) {
-			typedef AI::HL::HighLevelFactory::Map Map;
-			const Map &m = AI::HL::HighLevelFactory::all();
-			const Map::const_iterator &i = m.find(setup.high_level_name.collate_key());
-			if (i != m.end()) {
-				ai.high_level = i->second->create_high_level(AI::HL::W::World(backend));
-			}
-		}
-
-		if (!setup.navigator_name.empty()) {
-			typedef AI::Nav::NavigatorFactory::Map Map;
-			const Map &m = AI::Nav::NavigatorFactory::all();
-			const Map::const_iterator &i = m.find(setup.navigator_name.collate_key());
-			if (i != m.end()) {
-				ai.navigator = i->second->create_navigator(AI::Nav::W::World(backend));
-			}
-		}
-
-		if (!setup.robot_controller_name.empty()) {
-			typedef AI::RC::RobotControllerFactory::Map Map;
-			const Map &m = AI::RC::RobotControllerFactory::all();
-			const Map::const_iterator &i = m.find(setup.robot_controller_name.collate_key());
-			if (i != m.end()) {
-				ai.robot_controller_factory = i->second;
-			}
-		}
-
-		AI::Logger logger(ai);
-		try {
-			AI::Window win(ai);
-
-			if (minimize) {
-				win.iconify();
-			}
-
-			MainLoop::run(win);
-		} catch (const Glib::Exception &exp) {
-			logger.end_with_exception(exp.what());
-			throw;
-		} catch (const std::exception &exp) {
-			logger.end_with_exception(exp.what());
-			throw;
-		} catch (...) {
-			logger.end_with_exception(u8"Unknown exception");
-			throw;
-		}
 	}
 
 	Glib::ustring choose_backend() {
@@ -295,7 +244,64 @@ int app_main(int argc, char **argv) {
 	if (be == bem.end()) {
 		throw std::runtime_error(Glib::ustring::compose(u8"There is no backend “%1”.", backend_name));
 	}
-	be->second->create_backend(disable_cameras, multicast_interface_index, [setup, minimize](AI::BE::Backend &be) { app_main_with_backend(be, setup, minimize); });
+	const std::unique_ptr<AI::BE::Backend> &beptr = be->second->create_backend(disable_cameras, multicast_interface_index);
+	AI::BE::Backend &backend = *beptr.get();
+
+	// Bring in configuration parameters.
+	backend.defending_end() = setup.defending_end;
+	backend.friendly_colour() = setup.friendly_colour;
+
+	// Instantiate the AI.
+	AI::AIPackage ai(backend);
+
+	// Select the last selected high level, navigator, and controller.
+	if (!setup.high_level_name.empty()) {
+		typedef AI::HL::HighLevelFactory::Map Map;
+		const Map &m = AI::HL::HighLevelFactory::all();
+		const Map::const_iterator &i = m.find(setup.high_level_name.collate_key());
+		if (i != m.end()) {
+			ai.high_level = i->second->create_high_level(AI::HL::W::World(backend));
+		}
+	}
+	if (!setup.navigator_name.empty()) {
+		typedef AI::Nav::NavigatorFactory::Map Map;
+		const Map &m = AI::Nav::NavigatorFactory::all();
+		const Map::const_iterator &i = m.find(setup.navigator_name.collate_key());
+		if (i != m.end()) {
+			ai.navigator = i->second->create_navigator(AI::Nav::W::World(backend));
+		}
+	}
+	if (!setup.robot_controller_name.empty()) {
+		typedef AI::RC::RobotControllerFactory::Map Map;
+		const Map &m = AI::RC::RobotControllerFactory::all();
+		const Map::const_iterator &i = m.find(setup.robot_controller_name.collate_key());
+		if (i != m.end()) {
+			ai.robot_controller_factory = i->second;
+		}
+	}
+
+	// Start logging.
+	AI::Logger logger(ai);
+
+	// Run the AI.
+	try {
+		AI::Window win(ai);
+
+		if (minimize) {
+			win.iconify();
+		}
+
+		MainLoop::run(win);
+	} catch (const Glib::Exception &exp) {
+		logger.end_with_exception(exp.what());
+		throw;
+	} catch (const std::exception &exp) {
+		logger.end_with_exception(exp.what());
+		throw;
+	} catch (...) {
+		logger.end_with_exception(u8"Unknown exception");
+		throw;
+	}
 
 	return 0;
 }
