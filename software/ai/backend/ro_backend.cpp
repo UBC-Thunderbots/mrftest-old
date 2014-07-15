@@ -87,7 +87,15 @@ namespace {
 	};
 }
 
-ROBackendFactory ro_backend_factory_instance;
+namespace AI {
+	namespace BE {
+		namespace RO {
+			extern ROBackendFactory ro_backend_factory_instance;
+		}
+	}
+}
+
+ROBackendFactory AI::BE::RO::ro_backend_factory_instance;
 
 ROPlayer::ROPlayer(unsigned int pattern) : AI::BE::Player(pattern) {
 }
@@ -150,7 +158,7 @@ ROBackend::ROBackend(const std::vector<bool> &disable_cameras, int multicast_int
 }
 
 AI::BE::BackendFactory &ROBackend::factory() const {
-	return ro_backend_factory_instance;
+	return AI::BE::RO::ro_backend_factory_instance;
 }
 
 FriendlyTeam &ROBackend::friendly_team() {
