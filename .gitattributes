@@ -240,6 +240,8 @@ software/ai/backend/player.cpp -text
 software/ai/backend/player.h -text
 software/ai/backend/refbox.cpp -text
 software/ai/backend/refbox.h -text
+software/ai/backend/ro_backend.cpp -text
+software/ai/backend/ro_backend.h -text
 software/ai/backend/robot.cpp -text
 software/ai/backend/robot.h -text
 software/ai/backend/ssl_vision/backend.cpp -text
