@@ -5,6 +5,7 @@
 #include "ai/hl/stp/evaluation/player.h"
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/param.h"
+#include "geom/util.h"
 #include "geom/angle.h"
 
 using AI::HL::STP::BALL_MAX_SPEED;
@@ -38,9 +39,11 @@ namespace {
 
 
 			bool done() const;
+			Point target;
 			Player select(const std::set<Player> &players) const;
 			void execute();
 			void player_changed();
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
 			Glib::ustring description() const {
 				return u8"shoot-goal";
 			}
@@ -80,7 +83,17 @@ namespace {
 	}
 
 	void ShootGoal::execute() {
-		if (AI::HL::STP::Action::shoot_goal(world, player, force)) {
+		std::vector<Point> positions; 
+
+		for(auto i : world.enemy_team())
+			positions.push_back(i.position());
+		for(auto i : world.friendly_team())
+			if((i.position() - player.position()).len() > 0.1)
+				positions.push_back(i.position());
+
+		target = angle_sweep_circles(player.position(), world.field().enemy_goal_boundary().first, world.field().enemy_goal_boundary().second, positions, Robot::MAX_RADIUS).first;
+
+		if (AI::HL::STP::Action::shoot_target(world, player, target, BALL_MAX_SPEED)) {
 			kick_attempted = true;
 		}
 		Angle cur_shoot_score = AI::HL::STP::Evaluation::get_shoot_score(world, player);
@@ -88,6 +101,18 @@ namespace {
 			player.autokick(BALL_MAX_SPEED);
 		}
 		shoot_score = cur_shoot_score;
+	}
+
+	void ShootGoal::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
+		if((target - Point(0,0)).len() < 0.2)
+			return;
+
+		ctx->set_source_rgba(1.0, 0.0, 0.0, 1.0);
+		ctx->set_line_width(0.02);
+
+		ctx->move_to(player.position().x, player.position().y);
+		ctx->line_to(target.x, target.y);
+		ctx->stroke();
 	}
 
 	bool ShootTarget::done() const {
