@@ -545,6 +545,13 @@ software/ai/util.cpp -text
 software/ai/util.h -text
 software/ai/window.cpp -text
 software/ai/window.h -text
+software/autoref/app_main.cpp -text
+software/autoref/autoref.cpp -text
+software/autoref/autoref.h -text
+software/autoref/param.cpp -text
+software/autoref/param_panel.h -text
+software/autoref/setup.cpp -text
+software/autoref/setup.h -text
 software/config.xml -text
 software/convertlog/main.cpp -text
 software/convertlog/v1v2/convert.cpp -text
