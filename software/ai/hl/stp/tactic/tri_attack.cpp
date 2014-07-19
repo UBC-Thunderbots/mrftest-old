@@ -79,7 +79,7 @@ namespace {
 	void TriAttack2::execute() {
 		auto waypoints = Evaluation::evaluate_tri_attack();
 		//Point destination = AI::HL::STP::Evaluation::tri_attack_evaluation(world);
-		//destination = destination + Point(0.3, 0.3);
+		//destination = destination + Point(Robot::MAX_RADIUS, Robot::MAX_RADIUS);
 		Action::defender_move(world, player, waypoints[1].first);
 	}
 
@@ -104,7 +104,7 @@ namespace {
 	void TriAttack3::execute() {
 		auto waypoints = Evaluation::evaluate_tri_attack();
 		Point destination = AI::HL::STP::Evaluation::tri_attack_evaluation(world);
-		destination = destination - Point(0.3, 0.3);
+		destination = destination - Point(Robot::MAX_RADIUS, Robot::MAX_RADIUS);
 		Action::defender_move(world, player, waypoints[2].first);
 	}
 }
