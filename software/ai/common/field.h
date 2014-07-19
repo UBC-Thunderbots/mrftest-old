@@ -103,6 +103,27 @@ namespace AI {
 				Point penalty_friendly() const;
 
 				/**
+				 * Gets the position of our corner with the positive y-axis
+				 */
+				Point friendly_corner_pos() const;
+
+				/**
+				 * Gets the position of our corner with the negative y-axis
+				 */
+				Point friendly_corner_neg() const;
+
+				/**
+				 * Gets the position of their corner with the positive y-axis
+				 */
+				Point enemy_corner_pos() const;
+
+				/**
+				 * Gets the position of their corner with the positive y-axis
+				 */
+				Point enemy_corner_neg() const;
+
+
+				/**
 				 * Gets the positions of the friendly goalposts.
 				 *
 				 * \return the goalpost positions, top and bottom.
