@@ -34,7 +34,7 @@ namespace {
 
 			void execute() {
 				Point dest;
-				const double DISTANCE_FROM_BALL = 2 * Robot::MAX_RADIUS; // Keep robot this far away from the ball
+				const double DISTANCE_FROM_BALL = 2.5 * Robot::MAX_RADIUS; // Keep robot this far away from the ball
 				const double TOLERANCE = 0.1; // Speed tolerance
 				const double ROT_ANGLE = 150; // rotate to this angle
 				const double ANGLE_TOL = 3.0; // Be within this angle before shooting
@@ -47,6 +47,7 @@ namespace {
 					case TO_BALL:
 						dest = world.ball().position() - Point(DISTANCE_FROM_BALL, 0);
 						player.flags(AI::Flags::FLAG_AVOID_BALL_TINY);
+
 						move(world, player, dest, Point(0, 0));
 
 						if (player_to_ball.len() - DISTANCE_FROM_BALL < TOLERANCE && player.velocity().len() < TOLERANCE) {
