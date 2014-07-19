@@ -15,12 +15,14 @@ namespace {
 		public:
 			Intercept(World world, const Point target) : Tactic(world, true), target(target) {
 			}
-
+			Intercept(World world) : Tactic(world, true) {
+				target = world.field().enemy_goal();
+			}
 		private:
 			bool done() const;
 			Player select(const std::set<Player> &players) const;
 			void execute();
-			const Point target;
+			Point target;
 			Glib::ustring description() const {
 				return u8"intercept";
 			}
@@ -52,3 +54,7 @@ Tactic::Ptr AI::HL::STP::Tactic::intercept(World world, const Point target) {
 	return p;
 }
 
+Tactic::Ptr AI::HL::STP::Tactic::intercept(World world) {
+	Tactic::Ptr p(new Intercept(world));
+	return p;
+}
