@@ -29,6 +29,14 @@ static const float speed3_to_speed4_mat[4][3] =
     {0.83867, 0.54464, 1.00000}
 	};
 
+static const float WHEEL_CORR_MAT[4][4] =
+	{
+		{0.3283, 0.3064, -0.2306, 0.6762},
+		{0.3333, -0.0039, 0.3755, -0.1820},
+		{-0.2880, 0.5643, -0.0350, 0.3345},
+		{0.5563, -0.3302, 0.2770, 0.4442},
+	};
+
 static const float rescale_vector[] = {AGGRESSIVENESS, AGGRESSIVENESS, AGGRESSIVENESS };
 static const float slip_vector[4] = {-0.45580, 0.54060, -0.54060, 0.45580};
 #if 0
@@ -62,6 +70,20 @@ static float runDF2(float input,float gain,const float* num,const float* den, fl
 	return gain*accum;
 }
 
+static void correct_sp(float input[4]) {
+	float output[4];
+	for(unsigned int i=0;i<4;++i) {
+		float temp = 0;
+		for(unsigned int j=0;j<4;++j) {
+			temp += WHEEL_CORR_MAT[i][j] * input[j];
+		}
+		output[i] = temp;
+	}
+	
+	for(unsigned int k=0;k<4;++k) {
+		input[k] = output[k];
+	}
+}
 
 //convert 4 speeds to 3 speed
 static void speed4_to_speed3(const float speed4[4], float speed3[3]) {
@@ -126,6 +148,8 @@ void control_tick(const int16_t feedback[4U], int16_t drive[4U]) {
 
 	//convert that control error in the 4 wheel accel direction
 	speed3_to_speed4(Veldiff,Accels);
+
+	correct_sp(Accels);
 	
 	for(uint8_t i=0;i<4;++i) {
 		if(fabsf(Accels[i]) > max_accel) {
