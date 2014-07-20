@@ -19,6 +19,7 @@ KickerPanel::KickerPanel(Drive::Robot &robot) : Gtk::Table(5, 2), robot(robot), 
 	solenoid_box.pack_start(chipper_button, Gtk::PACK_EXPAND_WIDGET);
 	attach(solenoid_box, 0, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
+	pulse_width.get_adjustment()->signal_value_changed().connect(sigc::mem_fun(this, &KickerPanel::on_pulse_width_changed));
 	pulse_width.get_adjustment()->configure(0, 0, robot.kick_pulse_maximum(), robot.kick_pulse_resolution(), robot.kick_pulse_resolution() * 100, 0);
 	pulse_width.set_digits(2);
 	attach(pulse_width_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -46,7 +47,7 @@ void KickerPanel::fire() {
 }
 
 void KickerPanel::on_alive_changed() {
-	kick.set_sensitive(robot.alive);
+	update_sensitive();
 }
 
 void KickerPanel::on_charge_changed() {
@@ -57,6 +58,10 @@ void KickerPanel::on_charge_changed() {
 	} else {
 		robot.set_charger_state(Drive::Robot::ChargerState::DISCHARGE);
 	}
+}
+
+void KickerPanel::on_pulse_width_changed() {
+	update_sensitive();
 }
 
 void KickerPanel::on_kick() {
@@ -80,5 +85,11 @@ void KickerPanel::on_autokick_fired() {
 
 	// Autokick is implicitly disarmed once it has fired; rearm it.
 	on_autokick_changed();
+}
+
+void KickerPanel::update_sensitive() {
+	bool pulse_ok = pulse_width.get_value() >= 1.0;
+	kick.set_sensitive(robot.alive && pulse_ok);
+	autokick.set_sensitive(pulse_ok);
 }
 

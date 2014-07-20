@@ -52,9 +52,11 @@ class KickerPanel : public Gtk::Table {
 
 		void on_alive_changed();
 		void on_charge_changed();
+		void on_pulse_width_changed();
 		void on_kick();
 		void on_autokick_changed();
 		void on_autokick_fired();
+		void update_sensitive();
 };
 
 #endif
