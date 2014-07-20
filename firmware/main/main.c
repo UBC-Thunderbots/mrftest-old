@@ -378,7 +378,16 @@ static void main_task(void *UNUSED(param)) {
 	icb_irq_init();
 	chicker_init();
 	charger_init();
-	mrf_init((switches[1U] & 1U) ? 13U : 11U, false, (switches[1U] & 1U) ? 0x1847U : 0x1846U, switches[0U], UINT64_C(0xec89d61e8ffd409b));
+	static const struct {
+		uint8_t channel;
+		bool symbol_rate;
+		uint16_t pan;
+	} mrf_profiles[2] = {
+		{ 24, false, 0x1846U },
+		{ 25, false, 0x1847U },
+	};
+	unsigned int profile = switches[1U] & 1U;
+	mrf_init(mrf_profiles[profile].channel, mrf_profiles[profile].symbol_rate, mrf_profiles[profile].pan, switches[0U], UINT64_C(0xec89d61e8ffd409b));
 	feedback_init();
 	motor_init();
 	encoder_init();
