@@ -347,6 +347,7 @@ void PlayExecutor::execute_tactics() {
 			return;
 		}
 	}
+
 }
 
 void PlayExecutor::tick() {
@@ -358,6 +359,11 @@ void PlayExecutor::tick() {
 		if (players_enabled[i.pattern()]) {
 			players.push_back(i);
 		}
+	}
+
+	for (Player i : world.friendly_team()) {
+		if(!i.has_ball())
+			i.dribble_slow();
 	}
 
 	// override halt completely
