@@ -688,7 +688,7 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 //	}
 
 	// only start rotating around the stationary ball when we're within a certain distance
-	const double dist_to_rotate = 0.2;
+	const double dist_to_rotate = 0.25;
 	if (ball_vel.len() < 0.4 && (robot_pos - ball_pos).len() < dist_to_rotate) {
 		player.path(get_path_around_ball(world, player, robot_pos, target_pos, true));
 		return true;
@@ -707,7 +707,7 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 	}
 
 	// set up the resolution that we should check at
-	int points_to_check = 20;
+	int points_to_check = 60;
 	Point interval = (-ball_pos + ball_bounded_pos) * (1.0 / points_to_check);
 	// set up how much the ball travels in each interval that we check, assume no decay
 	double interval_time = interval.len() / ball.velocity().len();
