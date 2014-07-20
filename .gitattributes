@@ -576,6 +576,10 @@ software/geom/kalman/kalman.cpp -text
 software/geom/kalman/kalman.h -text
 software/geom/param.cpp -text
 software/geom/param.h -text
+software/geom/particle/ParticleFilter.cpp -text
+software/geom/particle/ParticleFilter.h -text
+software/geom/particle/ParticleFilter2D.cpp -text
+software/geom/particle/ParticleFilter2D.h -text
 software/geom/point.h -text
 software/geom/predictor.cpp -text
 software/geom/predictor.h -text
