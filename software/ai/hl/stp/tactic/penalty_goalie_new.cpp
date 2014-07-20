@@ -16,14 +16,16 @@ namespace {
 	class PenaltyGoalieNew : public Tactic {
 		public:
 			PenaltyGoalieNew(World world);
-
 		private:
 			bool done() const;
 			void execute();
 			double power;
+			Robot shooter;
+			Point predicted;
 			Player select(const std::set<Player> &) const {
 				assert(false);
 			}
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> context) const;
 			Glib::ustring description() const {
 				return "penalty-goalie-new";
 			}
@@ -38,18 +40,29 @@ namespace {
 	}
 
 	void PenaltyGoalieNew::execute() {
-		std::vector<Point> goalie_vec;
-		   Robot shooter;
-		   for(auto i : world.enemy_team()) {
-			   goalie_vec.push_back(i.position());
-			   shooter = i;
-		   }
+		double goalie_range = 0.5 * (world.field().friendly_goal_boundary().second - world.field().friendly_goal_boundary().first).y - Robot::MAX_RADIUS - 0.10;
 
-		   AI::HL::STP::Action::move(player, Angle::quarter(), clip_point(line_intersect(world.field().friendly_goal_boundary().first, world.field().friendly_goal_boundary().second, Point(shooter.orientation().cos(), shooter.orientation().sin()), shooter.position()), world.field().friendly_goal_boundary().first + Point(0, 0.13), world.field().friendly_goal_boundary().second - Point(0.00001, 0.13)) + Point(0.03, 0));
+		double best_distance = 99; //to determine which robot is shooting
+		for(auto i : world.enemy_team()) {
+			if((i.position() - world.ball().position()).len() < best_distance) {
+				shooter = i;
+				best_distance = (shooter.position() - world.ball().position()).len();
+			}
+		}
 
+		predicted = shooter.position() + shooter.velocity() * 0.05;
+
+		AI::HL::STP::Action::move(player, (world.ball().position() - player.position()).orientation(), clip_point(line_intersect(world.field().friendly_goal_boundary().first, world.field().friendly_goal_boundary().second, world.ball().position(), predicted), world.field().friendly_goal_boundary().first + Point(0, goalie_range), world.field().friendly_goal_boundary().second - Point(0.00001, goalie_range)) + Point(Robot::MAX_RADIUS, 0));
 
 		if (player.has_ball())
-				player.autochip(power);
+			player.autochip(power);
+	}
+
+	void PenaltyGoalieNew::draw_overlay(Cairo::RefPtr<Cairo::Context> context) const {
+		context->set_line_width(0.02);
+		context->set_source_rgb(1.0, 0, 1.0);
+		context->arc(shooter.position().x, shooter.position().y, Robot::MAX_RADIUS * 1.2, 0.0, 2 * M_PI);
+		context->stroke();
 	}
 }
 
