@@ -15,7 +15,12 @@ using AI::HL::STP::Evaluation::grid_x;
 using AI::HL::STP::Evaluation::grid_y;
 
 namespace {
-	BoolParam draw_ray(u8"draw ray", u8"STP/draw", false);
+	BoolParam draw_ray(u8"draw ray", u8"Overlay/STP", false);
+	BoolParam DRAW_FRIENDLY_PASS(u8"Draw friendly pass lines", u8"Overlay/STP", false);
+	BoolParam DRAW_ENEMY_PASS(u8"Draw enemy pass lines", u8"Overlay/STP", false);
+	BoolParam DRAW_SHOOT(u8"Draw shoot lines", u8"Overlay/STP", false);
+	BoolParam DRAW_OFFENSE(u8"Draw offense circles", u8"Overlay/STP", false);
+	BoolParam DRAW_DEFENSE(u8"Draw defense circles", u8"Overlay/STP", false);
 }
 
 void AI::HL::STP::draw_player_status(World world, Cairo::RefPtr<Cairo::Context> ctx) {
@@ -31,6 +36,7 @@ void AI::HL::STP::draw_player_status(World world, Cairo::RefPtr<Cairo::Context> 
 }
 
 void AI::HL::STP::draw_friendly_pass(World world, Cairo::RefPtr<Cairo::Context> ctx) {
+	if(!DRAW_FRIENDLY_PASS) return;
 	if (Predicates::our_ball(world)) {
 		for (const Player i : world.friendly_team()) {
 			if (Evaluation::passee_suitable(world, i)) {
@@ -45,6 +51,7 @@ void AI::HL::STP::draw_friendly_pass(World world, Cairo::RefPtr<Cairo::Context> 
 }
 
 void AI::HL::STP::draw_enemy_pass(World world, Cairo::RefPtr<Cairo::Context> ctx) {
+	if(!DRAW_ENEMY_PASS) return;
 	auto threats = Evaluation::calc_enemy_threat(world);
 	EnemyTeam enemy = world.enemy_team();
 
@@ -76,6 +83,7 @@ void AI::HL::STP::draw_enemy_pass(World world, Cairo::RefPtr<Cairo::Context> ctx
 }
 
 void AI::HL::STP::draw_shoot(World world, Cairo::RefPtr<Cairo::Context> ctx) {
+	if(!DRAW_SHOOT) return;
 	for (const Player player : world.friendly_team()) {
 		Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
 
@@ -142,6 +150,7 @@ void AI::HL::STP::draw_shoot(World world, Cairo::RefPtr<Cairo::Context> ctx) {
 }
 
 void AI::HL::STP::draw_offense(World world, Cairo::RefPtr<Cairo::Context> ctx) {
+	if(!DRAW_OFFENSE) return;
 	// draw blue circles for offense
 	{
 		// divide up into grids
@@ -199,6 +208,7 @@ void AI::HL::STP::draw_offense(World world, Cairo::RefPtr<Cairo::Context> ctx) {
 }
 
 void AI::HL::STP::draw_defense(World world, Cairo::RefPtr<Cairo::Context> ctx) {
+	if(!DRAW_DEFENSE) return;
 	const Field &field = world.field();
 
 	const Point goal1 = Point(-field.length() / 2, field.goal_width() / 2);

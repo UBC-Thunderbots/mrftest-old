@@ -33,8 +33,8 @@
       <category name="STP">
         <category name="Tactic">
           <category name="shoot">
-            <degrees name="ShootGoal: threshold (degrees)">5.0</degrees>
             <boolean name="ShootGoal: enable autokick threshold">true</boolean>
+            <degrees name="ShootGoal: threshold (degrees)">5.0</degrees>
           </category>
         </category>
       </category>
@@ -42,8 +42,16 @@
     <category name="Backend">
       <double name="Ball Decay Constant">2.7</double>
       <double name="Ball detection probability threshold">0.500</double>
+      <boolean name="Disables the Kalman filter if unchecked.">false</boolean>
       <boolean name="Enable Kalman control inputs">false</boolean>
       <double name="Loop Delay">0.050</double>
+    </category>
+    <category name="Cyprus">
+      <category name="Shoot">
+        <boolean name="Orient self towards enemy goal at all times">true</boolean>
+        <boolean name="Use repositioning algorithm to find openings in defense (overrides autoorientation if true)">true</boolean>
+        <boolean name="Use teammate locations in openings as well">true</boolean>
+      </category>
     </category>
     <category name="MB">
       <radians name="ori distance threshold (radians)">0.100</radians>
@@ -148,6 +156,16 @@
       <double name="pos distance threshold nav 2013">0.100</double>
       <double name="pos distance threshold shooting def">0.050</double>
     </category>
+    <category name="Overlay">
+      <category name="STP">
+        <boolean name="Draw defense circles">false</boolean>
+        <boolean name="Draw enemy pass lines">false</boolean>
+        <boolean name="Draw friendly pass lines">false</boolean>
+        <boolean name="Draw offense circles">false</boolean>
+        <boolean name="draw ray">false</boolean>
+        <boolean name="Draw shoot lines">false</boolean>
+      </category>
+    </category>
     <category name="RC">
       <category name="Circle">
         <double name="amount to scale controller velocities by">2.00</double>
@@ -229,9 +247,6 @@
         <boolean name="open net enemy is dangerous">true</boolean>
         <double name="shrink robot radius">0.900</double>
       </category>
-      <category name="draw">
-        <boolean name="draw ray">false</boolean>
-      </category>
       <category name="enemy">
         <boolean name="enemy closest use grab ball position">true</boolean>
         <degrees name="Enemy shoot accuracy (degrees)">1.0</degrees>
@@ -293,8 +308,9 @@
           <boolean name="DefensiveBlock">true</boolean>
           <boolean name="DirectKickFriendlyPivot">false</boolean>
           <boolean name="FranticDefense">true</boolean>
-          <boolean name="FreeKickEnemy">true</boolean>
           <boolean name="FreeKickEnemyDefend">true</boolean>
+          <boolean name="FreeKickEnemyDirect">true</boolean>
+          <boolean name="FreeKickEnemyIndirect">true</boolean>
           <boolean name="FreeKickEnemyMarkDefend">true</boolean>
           <boolean name="FreeKickFriendly">true</boolean>
           <boolean name="FreeKickFriendlyChip">false</boolean>
@@ -331,6 +347,7 @@
           <boolean name="ShootGoal">true</boolean>
           <boolean name="Stop">true</boolean>
           <boolean name="StopShadow">false</boolean>
+          <boolean name="TestShootSpeed">true</boolean>
           <boolean name="TheirCornerChip">false</boolean>
           <boolean name="TheirCornerPlay">true</boolean>
           <boolean name="TriAttackDef">true</boolean>
@@ -347,8 +364,9 @@
           <integer name="DefensiveBlock">1023</integer>
           <integer name="DirectKickFriendlyPivot">1023</integer>
           <integer name="FranticDefense">1023</integer>
-          <integer name="FreeKickEnemy">1023</integer>
           <integer name="FreeKickEnemyDefend">1023</integer>
+          <integer name="FreeKickEnemyDirect">1023</integer>
+          <integer name="FreeKickEnemyIndirect">1023</integer>
           <integer name="FreeKickEnemyMarkDefend">1023</integer>
           <integer name="FreeKickFriendly">1023</integer>
           <integer name="FreeKickFriendlyChip">1023</integer>
@@ -385,6 +403,7 @@
           <integer name="ShootGoal">1023</integer>
           <integer name="Stop">1023</integer>
           <integer name="StopShadow">1023</integer>
+          <integer name="TestShootSpeed">1023</integer>
           <integer name="TheirCornerChip">1023</integer>
           <integer name="TheirCornerPlay">1023</integer>
           <integer name="TriAttackDef">1023</integer>
@@ -401,8 +420,9 @@
           <integer name="DefensiveBlock">5</integer>
           <integer name="DirectKickFriendlyPivot">10</integer>
           <integer name="FranticDefense">10</integer>
-          <integer name="FreeKickEnemy">5</integer>
           <integer name="FreeKickEnemyDefend">5</integer>
+          <integer name="FreeKickEnemyDirect">5</integer>
+          <integer name="FreeKickEnemyIndirect">5</integer>
           <integer name="FreeKickEnemyMarkDefend">5</integer>
           <integer name="FreeKickFriendly">5</integer>
           <integer name="FreeKickFriendlyChip">5</integer>
@@ -439,11 +459,68 @@
           <integer name="ShootGoal">10</integer>
           <integer name="Stop">5</integer>
           <integer name="StopShadow">5</integer>
+          <integer name="TestShootSpeed">5</integer>
           <integer name="TheirCornerChip">5</integer>
           <integer name="TheirCornerPlay">5</integer>
           <integer name="TriAttackDef">5</integer>
           <integer name="TriAttackDiamond">5</integer>
           <integer name="TriAttackOff">5</integer>
+        </category>
+        <category name="StaticRoleAssignment">
+          <boolean name="BackUpSteal">false</boolean>
+          <boolean name="BallTowardsEnemy">false</boolean>
+          <boolean name="CornerChip">false</boolean>
+          <boolean name="CornerKickFriendly">false</boolean>
+          <boolean name="DBasic2Block">false</boolean>
+          <boolean name="DBasicCorner">false</boolean>
+          <boolean name="DefensiveBlock">false</boolean>
+          <boolean name="DirectKickFriendlyPivot">false</boolean>
+          <boolean name="FranticDefense">false</boolean>
+          <boolean name="FreeKickEnemyDefend">false</boolean>
+          <boolean name="FreeKickEnemyDirect">false</boolean>
+          <boolean name="FreeKickEnemyIndirect">false</boolean>
+          <boolean name="FreeKickEnemyMarkDefend">false</boolean>
+          <boolean name="FreeKickFriendly">false</boolean>
+          <boolean name="FreeKickFriendlyChip">false</boolean>
+          <boolean name="FreeKickFriendlyPass">false</boolean>
+          <boolean name="FreeKickFriendlyRay">false</boolean>
+          <boolean name="FreeKickFriendlyRepel">false</boolean>
+          <boolean name="FreeKickPass">false</boolean>
+          <boolean name="GoalKickFriendly">false</boolean>
+          <boolean name="GrabBallDefensive">false</boolean>
+          <boolean name="GrabBallOffensive">false</boolean>
+          <boolean name="IndirectKickFriendlyPivot">false</boolean>
+          <boolean name="JustChip">false</boolean>
+          <boolean name="JustGoalie">false</boolean>
+          <boolean name="JustRepel">false</boolean>
+          <boolean name="JustShoot">false</boolean>
+          <boolean name="JustSpin">false</boolean>
+          <boolean name="KickoffEnemy">false</boolean>
+          <boolean name="KickoffFriendly">false</boolean>
+          <boolean name="KickoffFriendlyChip">false</boolean>
+          <boolean name="Lone2Player">false</boolean>
+          <boolean name="MTDDefensive">false</boolean>
+          <boolean name="MTDDefensiveBlock">false</boolean>
+          <boolean name="MTOJustShoot">false</boolean>
+          <boolean name="OffensiveBlock">false</boolean>
+          <boolean name="OurCornerChip">false</boolean>
+          <boolean name="OurCornerPlay">false</boolean>
+          <boolean name="OurCornerShoot">false</boolean>
+          <boolean name="PassDefensive">false</boolean>
+          <boolean name="PassOffensive">false</boolean>
+          <boolean name="PassRay">false</boolean>
+          <boolean name="PassSimple">false</boolean>
+          <boolean name="PenaltyEnemy">false</boolean>
+          <boolean name="PenaltyFriendly">false</boolean>
+          <boolean name="ShootGoal">false</boolean>
+          <boolean name="Stop">false</boolean>
+          <boolean name="StopShadow">false</boolean>
+          <boolean name="TestShootSpeed">false</boolean>
+          <boolean name="TheirCornerChip">false</boolean>
+          <boolean name="TheirCornerPlay">false</boolean>
+          <boolean name="TriAttackDef">false</boolean>
+          <boolean name="TriAttackDiamond">false</boolean>
+          <boolean name="TriAttackOff">false</boolean>
         </category>
       </category>
       <category name="PlayExecutor">
@@ -463,6 +540,7 @@
         <boolean name="If higher priority play exists, switch">true</boolean>
       </category>
       <category name="predicates">
+        <double name="distance to trigger loose_ball predicate">1.000</double>
         <double name="dist thresh to start fight ball with enemy (robot radius)">2.000</double>
         <double name="enemy avoidance distance (robot radius)">3.00</double>
         <boolean name="new fight">true</boolean>
