@@ -234,6 +234,11 @@ void chicker_fire(chicker_device_t device, unsigned int width) {
 		return;
 	}
 
+	// A pulse width of zero is meaningless.
+	if (!width) {
+		return;
+	}
+
 	if (device == CHICKER_KICK) {
 		// Force output off in case it was already firing.
 		TIM10_14_CCMR1_t ccmr1 = {
