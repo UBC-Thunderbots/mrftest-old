@@ -16,7 +16,7 @@ void AI::HL::STP::Action::defender_move(World world, Player player, const Point 
 	// if the ball is too close we repel or chip
 	if ((world.ball().position() - player.position()).len() < repel_dist * Robot::MAX_RADIUS) {
 		if ((world.ball().position() - world.field().friendly_goal()).len() < repel_dist * 3) {
-			chip_target(world, player, Point(0,0)); // chipping to orgin should be okay to not chip across midline
+			chip_target(world, player, Point(0,0));
 		} else {
 			if (shoot_not_repel) {
 				shoot_goal(world, player);

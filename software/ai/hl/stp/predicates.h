@@ -156,7 +156,7 @@ namespace AI {
 				 */
 				class BallerCanChip : public Cacheable<bool, CacheableNonKeyArgs<World>, CacheableKeyArgs<>> {
 					protected:
-						bool compute(World world, bool towardsEnemy);
+						bool compute(World world);
 				};
 
 				extern BallerCanChip baller_can_chip;
