@@ -31,7 +31,7 @@ namespace {
 			}
 	};
 
-	PenaltyGoalieNew::PenaltyGoalieNew(World world) : Tactic(world, true) {
+	PenaltyGoalieNew::PenaltyGoalieNew(World world) : Tactic(world, true), predicted(Point(0, 0)) {
 	}
 
 	bool PenaltyGoalieNew::done() const {
@@ -43,14 +43,20 @@ namespace {
 		double goalie_range = 0.5 * (world.field().friendly_goal_boundary().second - world.field().friendly_goal_boundary().first).y - Robot::MAX_RADIUS - 0.10;
 
 		double best_distance = 99; //to determine which robot is shooting
+
+		if(world.enemy_team().size() < 1)
+			return;
+
 		for(auto i : world.enemy_team()) {
 			if((i.position() - world.ball().position()).len() < best_distance) {
 				shooter = i;
 				best_distance = (shooter.position() - world.ball().position()).len();
+				predicted = shooter.position() + shooter.velocity() * 0.05;
 			}
 		}
 
-		predicted = shooter.position() + shooter.velocity() * 0.05;
+		
+
 
 		AI::HL::STP::Action::move(player, (world.ball().position() - player.position()).orientation(), clip_point(line_intersect(world.field().friendly_goal_boundary().first, world.field().friendly_goal_boundary().second, world.ball().position(), predicted), world.field().friendly_goal_boundary().first + Point(0, goalie_range), world.field().friendly_goal_boundary().second - Point(0.00001, goalie_range)) + Point(Robot::MAX_RADIUS, 0));
 

@@ -113,6 +113,8 @@
         <double name="Careful max speed">0.500</double>
         <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
         <double name="Distance to extend the tree on each step (m)">0.100</double>
+        <integer name="Divide by how much?">2</integer>
+        <integer name="Jon Hysteris Hack">2</integer>
         <boolean name="New Pivot: enable">false</boolean>
         <boolean name="New Pivot: go backward">false</boolean>
         <double name="New Pivot: Hysterisis angle, one side, (n*M_PI)">0.2000</double>

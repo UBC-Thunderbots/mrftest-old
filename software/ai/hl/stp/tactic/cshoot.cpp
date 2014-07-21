@@ -84,6 +84,7 @@ namespace {
 		else if(timer <= 10 && player.has_ball()) {
 			timer++;
 		}
+
 		best_score = std::make_pair(Point(0,0), std::make_pair(Point(0,0), Angle::zero()));
 
 		if((world.ball().position() - player.position()).len() > Robot::MAX_RADIUS + 0.02)
@@ -94,7 +95,6 @@ namespace {
 			position_reset = false;
 		}
 
-		scores.clear();
 		obstacles.clear();
 		scores.clear();
 		
@@ -162,8 +162,7 @@ namespace {
 			Robot::MAX_RADIUS
 			).first;
 
-		if(timer < 10)
-			return;
+		//intercept(player, target);
 
 		/*
 
@@ -180,21 +179,18 @@ namespace {
 
 				*/
 
-		std::cout << (player.orientation() - (best_score.second.first - player.position()).orientation()).to_degrees() << '\n';
-		move(player, player.orientation() - (best_score.second.first - player.position()).orientation(), best_score.first);
+		if((best_score.first - player.position()).len() < 0.05)
+			move(player, (best_score.second.first - player.position()).orientation(), best_score.first);
 
-		if(((best_score.first - player.position()).len() < 0.05) && 
-				((player.orientation() - (best_score.second.first - player.position()).orientation()).to_degrees() < 2.0))
-			if (cshoot_target(world, player, target, BALL_MAX_SPEED)) {
-				kick_attempted = true;
-		}
+		if (cshoot_target(world, player, target, BALL_MAX_SPEED))
+			kick_attempted = true;
 	}
 
 	void CShootGoal::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
 		ctx->set_line_width(0.025);
 		for(auto i : scores) {
 			ctx->set_source_rgba(i.second.second.to_degrees() / 15, i.second.second.to_degrees() / 15, i.second.second.to_degrees() / 15, 0.5);
-			ctx->arc(i.first.x, i.first.y, 0.01, 0.0, 2*M_PI);
+			ctx->arc(i.first.x, i.first.y, 0.02, 0.0, 2*M_PI);
 			ctx->fill();
 		}
 		ctx->set_source_rgba(1.0, 0.0, 0.0, 1.0);
