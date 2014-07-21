@@ -259,6 +259,10 @@
         <double name="speed goalie should ignore direction of ball">1.000</double>
         <double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>
       </category>
+      <category name="freekick">
+        <double name="Ball close to enemy defence area during free kick">1.000</double>
+        <boolean name="Enable ball close to enemy defence area">false</boolean>
+      </category>
       <category name="Goalie">
         <boolean name="Goalie is lowest index">true</boolean>
         <integer name="Goalie pattern index">4</integer>
