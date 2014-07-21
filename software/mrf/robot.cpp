@@ -81,7 +81,7 @@ namespace {
 	const MessageTemplate SD_MESSAGES[] = {
 		{ nullptr, Annunciator::Message::Severity::LOW },
 		{ u8"Bot %1 SD card uninitialized", Annunciator::Message::Severity::HIGH },
-		{ u8"Bot %1 SD card missing", Annunciator::Message::Severity::LOW },
+		{ nullptr, Annunciator::Message::Severity::LOW },
 		{ u8"Bot %1 SD card incompatible", Annunciator::Message::Severity::HIGH },
 		{ u8"Bot %1 SD card sent illegal response", Annunciator::Message::Severity::HIGH },
 		{ u8"Bot %1 SD layer logical error", Annunciator::Message::Severity::HIGH },
