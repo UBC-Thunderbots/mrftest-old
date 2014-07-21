@@ -278,6 +278,8 @@ software/ai/hl/stp/action/block.cpp -text
 software/ai/hl/stp/action/block.h -text
 software/ai/hl/stp/action/chip.cpp -text
 software/ai/hl/stp/action/chip.h -text
+software/ai/hl/stp/action/cshoot.cpp -text
+software/ai/hl/stp/action/cshoot.h -text
 software/ai/hl/stp/action/defend.cpp -text
 software/ai/hl/stp/action/defend.h -text
 software/ai/hl/stp/action/dribble.cpp -text
@@ -387,6 +389,7 @@ software/ai/hl/stp/play/shoot_goal.cpp -text
 software/ai/hl/stp/play/simple_play.h -text
 software/ai/hl/stp/play/stop.cpp -text
 software/ai/hl/stp/play/stop_shadow.cpp -text
+software/ai/hl/stp/play/testcshoot.cpp -text
 software/ai/hl/stp/play/testshootspeed.cpp -text
 software/ai/hl/stp/play/their_corner_chip.cpp -text
 software/ai/hl/stp/play/their_corner_play.cpp -text
@@ -412,6 +415,8 @@ software/ai/hl/stp/tactic/block.cpp -text
 software/ai/hl/stp/tactic/block.h -text
 software/ai/hl/stp/tactic/chip.cpp -text
 software/ai/hl/stp/tactic/chip.h -text
+software/ai/hl/stp/tactic/cshoot.cpp -text
+software/ai/hl/stp/tactic/cshoot.h -text
 software/ai/hl/stp/tactic/defend.cpp -text
 software/ai/hl/stp/tactic/defend.h -text
 software/ai/hl/stp/tactic/defend_solo.cpp -text
