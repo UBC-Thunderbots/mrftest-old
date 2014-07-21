@@ -5,19 +5,12 @@
 
 namespace AI {
 	namespace Nav {
-		// Blank struct that
-		// can be subclasses to store information
-		// in Waypoints
-		struct PlayerData {
-		};
-
 		class Waypoints : public ObjectStore::Element {
 			public:
 				typedef std::shared_ptr<Waypoints> Ptr;
 				static constexpr std::size_t NUM_WAYPOINTS = 50;
 				Point points[NUM_WAYPOINTS];
 				unsigned int added_flags;
-				PlayerData data;
 		};
 
 		class RRTPlanner : public Plan {
