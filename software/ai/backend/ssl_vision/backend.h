@@ -159,7 +159,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 
 	if (pFilter_ == NULL && field_.valid())
 	{
-		pFilter_ = new ParticleFilter2D(field_.length(), field_.width(), -1*field_.length()/2.0, -1*field_.width()/2.0, 100);
+		pFilter_ = new ParticleFilter2D(field_.length()+0.5, field_.width()+0.5, -1*((field_.length()/2.0) + 0.25), -1*((field_.width()/2.0) + 0.25), 100);
 	}
 
 	// If it contains ball and robot data, update the ball and the teams.
@@ -185,7 +185,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 			double best_prob = 0.0;
 			Point best_pos;
 			AI::Timestamp best_time = now;
-
+			int ballsAdded = 0;
 			//for (auto &i : detections) {
 				// Estimate the ball’s position at the camera frame’s timestamp.
 				double time_delta = std::chrono::duration_cast<std::chrono::duration<double>>(now - ball_.lock_time()).count();
@@ -227,14 +227,15 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 						*/
 
 						/* Particle Filter */
-						std::cout << "\tX: " << detection_position.x << "; Y: " << detection_position.y << std::endl;
+						std::cout << "X: " << detection_position.x << "; Y: " << detection_position.y << std::endl;
 						pFilter_->add(detection_position.x, detection_position.y, (unsigned int)(b.confidence()*500));
+						ballsAdded = 0;
 					}
 				}
 
 				best_pos.x = pFilter_->getXEstimate();
 				best_pos.y = pFilter_->getYEstimate();
-				std::cout << "X: " << best_pos.x << "; Y: " << best_pos.y << std::endl;
+				std::cout << "ADDING TO KALMAN - X: " << best_pos.x << " Y: " << best_pos.y << std::endl;
 
 				pFilter_->update(time_delta);
 			//}

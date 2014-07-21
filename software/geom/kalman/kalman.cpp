@@ -1,7 +1,6 @@
 #include "geom/kalman/kalman.h"
 #include "geom/angle.h"
 #include <cmath>
-#include <iostream>
 
 Kalman::ControlInput::ControlInput(Timestamp t, double v) : time(t), value(v) {
 }

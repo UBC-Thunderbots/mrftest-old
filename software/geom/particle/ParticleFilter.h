@@ -24,6 +24,7 @@ class ParticleFilter {
 		double getEstimate();
 		unsigned int getLength();
 		double getOffset();
+		int getNumParticles();
 		void toString();
 
 	private:
@@ -39,6 +40,8 @@ class ParticleFilter {
 		double length_;
 		double offset_;
 		bool estimateValid_;
+		bool prevEstimateValid_;
+		bool velocityValid_;
 		double *weight_;
 };
 

@@ -24,9 +24,9 @@ void ParticleFilter2D::update(double timeDelta)
 
 void ParticleFilter2D::add(double valueX, double valueY, unsigned int numParticles)
 {
-	std::cout << "ADDING TO X FILTER - ";
+	//std::cout << "ADDING TO X FILTER - ";
 	xFilter->add(valueX, numParticles, false);
-	std::cout << "ADDING TO Y FILTER - ";
+	//std::cout << "ADDING TO Y FILTER - ";
 	yFilter->add(valueY, numParticles, false);
 }
 

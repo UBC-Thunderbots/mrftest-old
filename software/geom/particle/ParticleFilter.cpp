@@ -203,10 +203,10 @@ void ParticleFilter::add(double input, unsigned int numParticles, bool debug)
 		}
 	}
 
-	std::cout << count << " out of " << numParticles << " placed" << std::endl;
-
 	if (debug)
 	{
+		std::cout << count << " out of " << numParticles << " placed" << std::endl;
+
 		toString();
 	}
 
