@@ -2,6 +2,7 @@
 #include "ai/hl/stp/action/cshoot.h"
 #include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/stp/action/intercept.h"
+#include "ai/hl/stp/action/pivot.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/player.h"
 #include "ai/hl/stp/evaluation/shoot.h"
@@ -61,7 +62,8 @@ namespace {
 	};
 
 	bool CShootGoal::done() const {
-		return player /* && kick_attempted*/ && player.autokick_fired();
+		return false;
+		//return player /* && kick_attempted*/ && player.autokick_fired();
 	}
 
 	Player CShootGoal::select(const std::set<Player> &players) const {
@@ -125,6 +127,8 @@ namespace {
 									)
 								)
 							);
+					scores[scores.size() - 1].second.second += Angle::of_degrees(1 - (Point(x, y) - player.position()).len());
+					scores[scores.size() - 1].second.second += Angle::of_degrees(player.position().x - x);
 				}
 			}
 		}
@@ -162,9 +166,12 @@ namespace {
 			Robot::MAX_RADIUS
 			).first;
 
-		//intercept(player, target);
+		if(!player.has_ball()) {
+			intercept_pivot(world, player, target);
+			return;
+		}
 
-		/*
+		if(timer < 10) return;
 
 		if(((best_score.first - player.position()).len() > 0.05) || 
 				((player.orientation() - (best_score.second.first - player.position()).orientation()).to_degrees() > 2.0)) {
@@ -172,18 +179,18 @@ namespace {
 					-1 : 1) * 6) + player.orientation(), 
 					player.position() + (best_score.first - player.position()).norm(0.2));
 			//player.flags(AI::Flags::FLAG_CAREFUL);
-			player.dribble_slow();
 			player.type(AI::Flags::MoveType::DRIBBLE);
 			return;
 		}
 
-				*/
-
-		if((best_score.first - player.position()).len() < 0.05)
+		/* if(((best_score.first - player.position()).len() > 0.05) || 
+				((player.orientation() - (best_score.second.first - player.position()).orientation()).to_degrees() > 2.0)) {
 			move(player, (best_score.second.first - player.position()).orientation(), best_score.first);
+			
+			return;
+		} */
 
-		if (cshoot_target(world, player, target, BALL_MAX_SPEED))
-			kick_attempted = true;
+		player.autokick(BALL_MAX_SPEED);
 	}
 
 	void CShootGoal::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {

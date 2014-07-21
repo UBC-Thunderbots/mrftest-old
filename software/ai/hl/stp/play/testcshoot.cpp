@@ -1,5 +1,6 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/block.h"
+#include "ai/hl/stp/tactic/idle.h"
 #include "ai/hl/stp/tactic/cshoot.h"
 
 using AI::HL::STP::Enemy;
@@ -13,7 +14,7 @@ FAIL(their_ball(world))
 BEGIN_ASSIGN()
 
 // GOALIE
-goalie_role.push_back(goalie_dynamic(world, 1));
+goalie_role.push_back(idle(world));
 
 // ROLE 1
 // shoot
