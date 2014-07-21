@@ -23,6 +23,9 @@
 using namespace AI::HL::STP;
 
 namespace {
+	BoolParam AUTO_ORIENT(u8"Orient self towards enemy goal at all times", u8"Cyprus/Shoot", true);
+	BoolParam REPOSITION(u8"Use repositioning algorithm to find openings in defense (overrides autoorientation if true)", u8"Cyprus/Shoot", true);
+	BoolParam TEAMMATE_CHECK(u8"Use teammate locations in openings as well", u8"Cyprus/Shoot", true);
 	const double FAST = 100.0;
 	DoubleParam FAST_BALL(u8"Default Shooting Speed", u8"STP/Shoot", 8.0, 0.0, 32.0);
 }
@@ -37,6 +40,37 @@ bool AI::HL::STP::Action::shoot_goal(World world, Player player, bool use_reduce
 		intercept_pivot(world, player, shoot_data.target);
 		return false;
 	}
+        
+        if (AUTO_ORIENT && !REPOSITION) {
+                if (player.orientation().to_degrees() - (world.field().enemy_goal() - player.position()).orientation().to_degrees() > 4)
+                        move(player, (world.field().enemy_goal() - player.position()).orientation(), player.position());
+        }
+        else if (REPOSITION) {
+                std::vector<Point> positions; 
+                Point behind_goal = world.field().enemy_goal() + (world.field().enemy_goal() - player.position()).norm(2.0);
+ 
+                for(auto i : world.enemy_team())
+                        positions.push_back(i.position());
+                if(TEAMMATE_CHECK)
+                        for(auto i : world.friendly_team())
+                                if((i.position() - player.position()).len() > 0.1)
+                                        positions.push_back(i.position());
+                Point destination = closest_lineseg_point(player.position(), angle_sweep_circles(behind_goal, Point(-0.25*world.field().length(), 0.5*world.field().length()), Point(-0.25*world.field().length(),-0.5*world.field().length()), positions, Robot::MAX_RADIUS).first, behind_goal);
+
+                /* if ((destination - player.position()).len() > 0.45) { //if it will dribble for more than 45 cm
+                        if ((player.position() - world.field().enemy_goal()).len() > 0.5) { //and it is more than 50 cm away from the goal
+                                move(player, (world.field().enemy_goal() - player.position()).orientation(), (destination - player.position()).norm(0.3));
+                                Action::chip_target(world, player, world.field().enemy_goal(), 0.4);
+                        }
+                }       
+                else */
+                if (fabs(line_point_dist(player.position(), behind_goal, destination)) > 0.05) {
+                        //move(player, (angle_sweep_circles(player.position(), world.field().enemy_goal_boundary().second, world.field().enemy_goal_boundary().first, positions, Robot::MAX_RADIUS).first - player.position()).orientation(), destination);
+                        shoot_target(world, player, angle_sweep_circles(player.position(), world.field().enemy_goal_boundary().first, world.field().enemy_goal_boundary().second, positions, Robot::MAX_RADIUS).first, BALL_MAX_SPEED);
+                }
+
+        }
+
 
 	if (shoot_data.can_shoot) {
 		if (!player.chicker_ready()) {
