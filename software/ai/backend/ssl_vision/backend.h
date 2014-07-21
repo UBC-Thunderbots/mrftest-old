@@ -227,7 +227,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 						*/
 
 						/* Particle Filter */
-						std::cout << "X: " << detection_position.x << "; Y: " << detection_position.y << std::endl;
+						//std::cout << "X: " << detection_position.x << "; Y: " << detection_position.y << std::endl;
 						pFilter_->add(detection_position.x, detection_position.y, (unsigned int)(b.confidence()*500));
 						ballsAdded = 0;
 					}
@@ -235,7 +235,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 
 				best_pos.x = pFilter_->getXEstimate();
 				best_pos.y = pFilter_->getYEstimate();
-				std::cout << "ADDING TO KALMAN - X: " << best_pos.x << " Y: " << best_pos.y << std::endl;
+				//std::cout << "ADDING TO KALMAN - X: " << best_pos.x << " Y: " << best_pos.y << std::endl;
 
 				pFilter_->update(time_delta);
 			//}

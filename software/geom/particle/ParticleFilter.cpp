@@ -28,7 +28,7 @@ ParticleFilter::ParticleFilter(double length, double offset, unsigned int numPar
 	length_ = length;
 	offset_ = offset; // starting offset from 0 (ie length goes from -2 to 2 -> offset = -2)
 
-	std::cout << "Length: " << length_ << "; Offset: " << offset_ << "; numPartitions: " << numPartitions_ << std::endl;
+	//std::cout << "Length: " << length_ << "; Offset: " << offset_ << "; numPartitions: " << numPartitions_ << std::endl;
 
 	add(0, 100, false);
 }
@@ -87,7 +87,7 @@ void ParticleFilter::update(double timeDelta, bool debug)
 		// blank out the section in the back where we don't think the ball was
 		if (numPartitions_ + 1 < abs(estimatedVelocity*timeDelta/partitionSize))
 		{
-			std::cout << "LARGE NEGATIVE VELOCITY - CLEARING FIELD" << std::endl;
+			//std::cout << "LARGE NEGATIVE VELOCITY - CLEARING FIELD" << std::endl;
 			//assert(numPartitions_ + 1 >= estimatedVelocity*timeDelta);
 
 			clearWeights(0, numPartitions_);
@@ -108,7 +108,7 @@ void ParticleFilter::update(double timeDelta, bool debug)
 		// blank out everything in the front where we don't think the ball was
 		if (estimatedVelocity*timeDelta/partitionSize > numPartitions_)
 		{
-			std::cout << "LARGE POSITIVE VELOCITY - CLEARING FIELD" << std::endl;
+			//std::cout << "LARGE POSITIVE VELOCITY - CLEARING FIELD" << std::endl;
 			//assert(estimatedVelocity*timeDelta <= numPartitions_);
 
 			clearWeights(0, numPartitions_);
