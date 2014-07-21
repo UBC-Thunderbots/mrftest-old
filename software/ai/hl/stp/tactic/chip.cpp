@@ -55,7 +55,9 @@ namespace {
 
 	void ChipTarget::execute() {
 		if (AI::HL::STP::Action::chip_target(world, player, target.position())) {
+			player.dribble_stop();
 			kick_attempted = true;
+
 		}
 	}
 }
