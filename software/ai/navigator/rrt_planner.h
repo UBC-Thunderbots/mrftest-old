@@ -11,6 +11,7 @@ namespace AI {
 				static constexpr std::size_t NUM_WAYPOINTS = 50;
 				Point points[NUM_WAYPOINTS];
 				unsigned int added_flags;
+
 		};
 
 		class RRTPlanner : public Plan {

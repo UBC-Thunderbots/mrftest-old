@@ -1,12 +1,10 @@
+#include "ai/navigator/rrt_navigator.h"
 #include "ai/navigator/navigator.h"
 #include "ai/navigator/rrt_planner.h"
-#include "ai/navigator/util.h"
-#include "ai/param.h"
-#include "ai/util.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
 #include "ai/hl/stp/param.h"
-#include <memory>
+#include "ai/navigator/util.h"
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
@@ -14,6 +12,9 @@ using namespace AI::Nav::W;
 using namespace AI::Nav::Util;
 using namespace AI::Flags;
 using namespace Glib;
+
+
+
 
 namespace AI {
 	namespace Nav {
@@ -35,11 +36,8 @@ namespace AI {
 			DoubleParam new_pivot_thresh_angle(u8"New Pivot: Threshold angle, one side, (n*M_PI)", u8"Nav/RRT", 0.2, 0.01, 0.2);
 			DoubleParam careful_max_speed(u8"Careful max speed", u8"Nav/RRT", 0.75, 0.1, 3.0);
 
-			class PlayerData : public ObjectStore::Element {
-				public:
-					typedef std::shared_ptr<PlayerData> Ptr;
-					unsigned int added_flags;
-			};
+			IntParam jon_hysteris_hack(u8"Jon Hysteris Hack", u8"Nav/RRT", 2, 1, 10);
+
 
 			class RRTNavigator : public Navigator {
 				public:
@@ -152,14 +150,15 @@ void RRTNavigator::tick() {
 		if (!std::dynamic_pointer_cast<PlayerData>(player.object_store()[typeid(*this)])) {
 			player.object_store()[typeid(*this)] = std::make_shared<PlayerData>();
 		}
-		std::dynamic_pointer_cast<PlayerData>(player.object_store()[typeid(*this)])->added_flags = 0;
-
+		PlayerData::Ptr player_data = std::dynamic_pointer_cast<PlayerData>(player.object_store()[typeid(*this)]);
+		player_data->added_flags = 0;
 		Point dest;
 		Angle dest_orientation = player.destination().second;
 		Player::Path path;
+
 		if (player.type() == AI::Flags::MoveType::INTERCEPT) {
 			// refer to this function in util.cpp
-			intercept_flag_handler(world, player);
+			intercept_flag_handler(world, player, player_data);
 			continue;
 		} else if (player.type() == AI::Flags::MoveType::PIVOT) {
 			pivot(player);
@@ -184,38 +183,44 @@ void RRTNavigator::tick() {
 			continue;
 		} else {
 			dest = player.destination().first;
+
+			if (player_data->prev_move_type == player.type() && player_data->prev_move_prio == player.prio() && player_data->prev_avoid_distance == player.avoid_distance()) {
+				dest = (player_data->previous_dest + dest )/jon_hysteris_hack;
+			}
+
+			unsigned int flags = std::dynamic_pointer_cast<PlayerData>(player.object_store()[typeid(*this)])->added_flags;
+			// calculate a path
+			std::vector<Point> path_points = planner.plan(player, dest, flags);
+
+			double dist = 0.0;
+			AI::Timestamp working_time = world.monotonic_time();
+
+			for (std::size_t j = 0; j < path_points.size(); ++j) {
+				// the last point will just use whatever the last orientation was
+				if (j + 1 != path_points.size()) {
+					dest_orientation = (path_points[j + 1] - path_points[j]).orientation();
+				}
+
+				// get distance between last two points
+				if (j == 0) {
+					dist = (player.position() - path_points[0]).len();
+				} else {
+					dist = (path_points[j] - path_points[j - 1]).len();
+				}
+
+				// dribble at a different speed
+				if (player.type() == AI::Flags::MoveType::DRIBBLE) {
+					working_time += std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(dist / player.MAX_LINEAR_VELOCITY / DRIBBLE_SPEED));
+				} else if (player.flags() & AI::Flags::FLAG_CAREFUL) {
+					working_time += std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(dist / careful_max_speed));
+				}
+
+				path.push_back(std::make_pair(std::make_pair(path_points[j], dest_orientation), working_time));
+			}
+
+			player.path(path);
 		}
-		unsigned int flags = std::dynamic_pointer_cast<PlayerData>(player.object_store()[typeid(*this)])->added_flags;
-		// calculate a path
-		std::vector<Point> path_points = planner.plan(player, dest, flags);
 
-		double dist = 0.0;
-		AI::Timestamp working_time = world.monotonic_time();
-
-		for (std::size_t j = 0; j < path_points.size(); ++j) {
-			// the last point will just use whatever the last orientation was
-			if (j + 1 != path_points.size()) {
-				dest_orientation = (path_points[j + 1] - path_points[j]).orientation();
-			}
-
-			// get distance between last two points
-			if (j == 0) {
-				dist = (player.position() - path_points[0]).len();
-			} else {
-				dist = (path_points[j] - path_points[j - 1]).len();
-			}
-
-			// dribble at a different speed
-			if (player.type() == AI::Flags::MoveType::DRIBBLE) {
-				working_time += std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(dist / player.MAX_LINEAR_VELOCITY / DRIBBLE_SPEED));
-			} else if (player.flags() & AI::Flags::FLAG_CAREFUL) {
-				working_time += std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(dist / careful_max_speed));
-			}
-
-			path.push_back(std::make_pair(std::make_pair(path_points[j], dest_orientation), working_time));
-		}
-
-		player.path(path);
 	}
 }
 

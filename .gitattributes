@@ -510,6 +510,7 @@ software/ai/navigator/pivot_navigator_aram.cpp -text
 software/ai/navigator/plan.cpp -text
 software/ai/navigator/plan.h -text
 software/ai/navigator/rrt_navigator.cpp -text
+software/ai/navigator/rrt_navigator.h -text
 software/ai/navigator/rrt_physics_planner.cpp -text
 software/ai/navigator/rrt_physics_planner.h -text
 software/ai/navigator/rrt_planner.cpp -text

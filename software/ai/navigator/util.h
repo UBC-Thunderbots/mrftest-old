@@ -4,10 +4,12 @@
 #include "ai/navigator/world.h"
 #include "geom/point.h"
 #include "geom/util.h"
+#include "ai/navigator/rrt_navigator.h"
 #include <utility>
 #include <vector>
 #include <cairomm/context.h>
 #include <cairomm/refptr.h>
+
 
 namespace AI {
 	namespace Nav {
@@ -102,7 +104,7 @@ namespace AI {
 			 *
 			 * \param[in] player the robot that performing the intersection
 			 */
-			bool intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::Player player);
+			bool intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::Player player, AI::Nav::RRT::PlayerData::Ptr player_data);
 
 			
 			/**

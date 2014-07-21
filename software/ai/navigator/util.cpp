@@ -61,6 +61,8 @@ namespace {
 
 	DoubleParam FRIENDLY_KICK_BUFFER(u8"Additional offense area buffer for friendly kick (rule=0.2) ", u8"Nav/Util", 0.2, 0.0, 1.0);
 
+	extern IntParam jon_hysteris_hack(u8"Divide by how much?", u8"Nav/RRT", 2, 1, 10);
+
 	constexpr double RAM_BALL_ALLOWANCE = 0.05;
 
 	constexpr double BALL_STOP = 0.05;
@@ -659,14 +661,14 @@ bool AI::Nav::Util::intercept_flag_stationary_ball_handler(AI::Nav::W::World wor
 	return true;
 }
 
-bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::Player player) {
+bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::Player player,  AI::Nav::RRT::PlayerData::Ptr player_data) {
 	// need to confirm that the player has proper flag
 
 	// need to confirm that the ball is moving at all
 
 	// extract data from the player
 	const Field &field = world.field();
-	const Point target_pos = player.destination().first;
+	Point target_pos = player.destination().first;
 	const Point robot_pos = player.position();
 
 	// extract information from the ball
@@ -677,6 +679,11 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 	const Point ball_norm = ball_vel.norm();
 	const Point ball_bounded_pos = vector_rect_intersect(field_rec, ball_pos, ball_pos + ball_norm);
 	const Angle target_ball_offset_angle = vertex_angle(ball_pos + ball_vel, ball_pos, target_pos).angle_mod();
+
+	if (player_data->prev_move_type == player.type() && player_data->prev_move_prio == player.prio() && player_data->prev_avoid_distance == player.avoid_distance()) {
+		target_pos = (player_data->previous_dest + target_pos ) / jon_hysteris_hack;
+	}
+
 
 	std::vector<Point> path_points;
 	AI::Nav::RRTPlanner planner(world);
