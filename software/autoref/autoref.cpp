@@ -35,15 +35,16 @@
 
 
 
- AI::AutoRef* AI::AutoRef::instance = 0;
-
-
+AI::AutoRef* AI::AutoRef::instance = 0;
+//define the velocity of what constitutes a violent collision
+#define VIOLENT_VELOCITY 3.0
+//this offset is used for determining if robots are next to one another
+#define ROBOT_OFFSET 0.001
 
 AI::AutoRef::AutoRef(const AI::AIPackage &ai, const AI::HL::W::World &world) : ai(ai), world(world), old_time(std::chrono::steady_clock::now()),FT(world.friendly_team()), ET(world.enemy_team()),ball_is_out_of_play(
 		false), print_ball_out_of_play(true), last_touch(NO_TEAM), enemy_in_defense_circle(false), friendly_in_defense_circle(false),partial_violation_e(false), full_violation_e(false), partial_violation_f(false),
 		full_violation_f(false), print_partial_violation_f(false), print_full_violation_f(false),print_partial_violation_e(false), print_full_violation_e(false),throwaway(0), print_ball_velocity(true),
-		velocity_greater_than_eight(false),print_velocity_message(false), print_last_team_to_touch_ball(false), verbose(false){
-
+		velocity_greater_than_eight(false),print_velocity_message(false), print_last_team_to_touch_ball(false), verbose(false), update_enemy_past(false),update_friendly_past(false){
 	//connect to the signals that fire when receiving packets
 	ai.backend.signal_vision().connect(sigc::mem_fun(this, &AI::AutoRef::on_vision_packet));
 	ai.backend.signal_refbox().connect(sigc::mem_fun(this, &AI::AutoRef::on_refbox_packet));
@@ -53,6 +54,7 @@ AI::AutoRef::AutoRef(const AI::AIPackage &ai, const AI::HL::W::World &world) : a
 
 
 	old_point = new Point(0,0);
+
 
 }
 
@@ -71,21 +73,134 @@ AI::AutoRef::~AutoRef(){
 
 void AI::AutoRef::tick(){
 
+	//update the past positions once every tick
+	update_enemy_past = false;
+	update_friendly_past = false;
+
 	//throwaway first 16 packets.
 	//why not
 	while(throwaway<16){
+
+		//15 packets in and we should have the following data initialized to resize these vectors
+		if(throwaway==15){
+			FP.resize(6);
+			EP.resize(6);
+		}
 		throwaway++;
 		return;
 	}
 
-	//print if ball velocity is greater than 8
+
+	/*print if ball velocity is greater than 8*/
 	print_ball_velocity = true;
 
-	//print if ball has left field and by which team
+	/*print if ball has left field and by which team*/
 	ball_has_left();
 
-	//print if multiple defender rule is violated
+	/*print if multiple defender rule is violated*/
 	multiple_defenders();
+
+	/*print if a violent collision has occured*/
+	violent_collision();
+
+}
+
+//look at the past and see which team collided with the other team.
+//Possible return values are NO_TEAM, FRIEND_TEAM, ENEMY_TEAM
+AI::Team AI::AutoRef::analyze_the_past(unsigned int id_f, unsigned int id_e){
+
+	double avg_velocity_e = 0;
+	double avg_velocity_f = 0;
+	double distance_1;
+	double distance_2;
+	double time_1;
+	double time_2;
+	double velocity_1;
+	double velocity_2;
+
+	//calculate the average velocity that the robot moved over the last max(i) data points
+	for(int i = 0; i<2;i++){
+
+		distance_1 = std::sqrt(std::pow(FP[id_f].at(i).first.x-FP[id_f].at(i+1).first.x,2)+std::pow(FP[id_f].at(i).first.y-FP[id_f].at(i+1).first.y,2)) ;
+		distance_2 = std::sqrt(std::pow(EP[id_e].at(i).first.x-EP[id_e].at(i+1).first.x,2)+std::pow(EP[id_e].at(i).first.y-EP[id_e].at(i+1).first.y,2)) ;
+
+		time_1 = double((FP[id_f].at(i).second - FP[id_f].at(i+1).second).count()) * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
+		time_2 = double((EP[id_e].at(i).second - EP[id_e].at(i+1).second).count()) * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
+
+
+		velocity_1 = distance_1 /time_1;
+		velocity_2 = distance_2 /time_2;
+		avg_velocity_e = avg_velocity_e + velocity_2;
+		avg_velocity_f = avg_velocity_f + velocity_1;
+	}
+
+	//I actually have no idea what the velocity of a violent collision is
+	if(avg_velocity_f>VIOLENT_VELOCITY){
+		printf("Friendly team has collided with Enemy team\n");
+		return FRIENDLY_TEAM;
+	}else if(avg_velocity_e>VIOLENT_VELOCITY){
+		printf("Enemy Team has collided with Friendly Team\n");
+		return ENEMY_TEAM;
+	}
+
+	return NO_TEAM;
+
+
+}
+void AI::AutoRef::violent_collision() {
+
+	AI::Common::TeamIterator<AI::HL::W::Player, AI::BE::Player> FTI = FT.begin();
+	bool update_done = false;
+
+
+	//Sweet Jesus of Nazareth its an n^2 algorithms :o
+	//dont hate
+	for (unsigned int i = 0; i < FT.size(); i++) {
+
+		std::pair<Point, AI::Timestamp> fp;
+		AI::HL::W::Robot current_f = *FTI;
+
+		AI::Common::TeamIterator<AI::HL::W::Robot, AI::BE::Robot> ETI = ET.begin();
+		for(unsigned int j = 0; j<ET.size(); j++){
+			std::pair<Point, AI::Timestamp> ep;
+			AI::HL::W::Robot current_e = *ETI;
+
+			//calcualte distance between robots
+			double distance = std::sqrt( std::pow(current_f.position().x - current_e.position().x, 2) + std::pow(current_f.position().y - current_e.position().y, 2)  );
+
+
+			if(!update_enemy_past){
+				ep.first = current_e.position();
+				ep.second = std::chrono::steady_clock::now();
+				EP[current_e.pattern()].push_front(ep);
+				EP[current_e.pattern()].resize(10);
+
+			}
+
+			if(distance <= 2*current_f.MAX_RADIUS + ROBOT_OFFSET){
+				//These robots are touching so check if they collided violently by looking at past data
+				analyze_the_past(current_f.pattern(), current_e.pattern());
+
+			}
+
+			ETI++;
+
+		}
+
+		update_enemy_past = true;
+
+		if(!update_friendly_past){
+			fp.first = current_f.position();
+			fp.second = std::chrono::steady_clock::now();
+			FP[current_f.pattern()].push_front(fp);
+			FP[current_f.pattern()].resize(10);
+		}
+
+		FTI++;
+	}
+
+	update_friendly_past = true;
+
 }
 
 bool AI::AutoRef::right_side_of_field(double x, Team t){
@@ -141,6 +256,12 @@ void AI::AutoRef::multiple_defenders() {
 
 	for (unsigned int i = 0; i < ET.size(); i++) {
 		AI::HL::W::Robot current = *ETI;
+
+		//goalie doesn't count
+		if(current.pattern() == world.enemy_team().goalie()){
+			ETI++;
+			continue;
+		}
 
 		//this case for if the robot may be in the top arc
 		if ((current.position().y > enemy_centre_of_top_arc->y)
@@ -238,6 +359,12 @@ void AI::AutoRef::multiple_defenders() {
 	AI::Common::TeamIterator<AI::HL::W::Player, AI::BE::Player> FTI = FT.begin();
 	for (unsigned int i = 0; i < FT.size(); i++) {
 			AI::HL::W::Robot current = *FTI;
+
+			//goalie doesn't count
+			if(current.pattern() == world.friendly_team().goalie()){
+				FTI++;
+				continue;
+			}
 
 			//this case for if the robot may be in the top arc
 			if ((current.position().y > friendly_centre_of_top_arc->y) & right_side_of_field(current.position().x, FRIENDLY_TEAM))

@@ -35,18 +35,18 @@ enum Team {
 
 
  	 public:
-
+	 	 	 	~AutoRef();
 	 	 	 	static AutoRef* getInstance(const AI::AIPackage &ai, const AI::HL::W::World &world);
 
 
-
-				~AutoRef();
 
 				static  AI::AutoRef *instance;
 				void multiple_defenders();
 				void last_team_to_touch();
 				void ball_has_left();
 				void display();
+				void violent_collision();
+				//void push_without_collision();
 				void tick();
 
 
@@ -59,6 +59,9 @@ enum Team {
 				Point* old_point;
 				AI::Common::Team<AI::HL::W::Player, AI::BE::Player> FT;
 				AI::Common::Team<AI::HL::W::Robot, AI::BE::Robot> ET;
+
+				std::vector<std::deque<std::pair<Point, AI::Timestamp>>> FP;
+				std::vector<std::deque<std::pair<Point, AI::Timestamp>>> EP;
 
 				//this offset is when checking if a player has the ball. A player has the ball if the distance
 				//from the center of the robot to the ball< robot.max_radius + offset
@@ -104,9 +107,14 @@ enum Team {
 				//set this to true in the constructor if you want more detail about certain processes.
 				bool verbose;
 
+				bool update_enemy_past;
+				bool update_friendly_past;
+
+
 				void on_vision_packet(AI::Timestamp ts, const SSL_WrapperPacket &vision_packet);
 				void on_refbox_packet(AI::Timestamp ts, const SSL_Referee &packet);
 				bool right_side_of_field(double x, Team t);
+				Team analyze_the_past(unsigned int id_f, unsigned int id_e);
 
 
 };
