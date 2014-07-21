@@ -45,6 +45,8 @@
       <boolean name="Disables the Kalman filter if unchecked.">false</boolean>
       <boolean name="Enable Kalman control inputs">false</boolean>
       <double name="Loop Delay">0.050</double>
+      <double name="Particle Filter Decay Rate">0.300</double>
+      <double name="Particle Filter Standard Deviation">0.100</double>
     </category>
     <category name="Cyprus">
       <category name="Shoot">
@@ -347,7 +349,8 @@
           <boolean name="ShootGoal">true</boolean>
           <boolean name="Stop">true</boolean>
           <boolean name="StopShadow">false</boolean>
-          <boolean name="TestShootSpeed">true</boolean>
+          <boolean name="TestCShoot">false</boolean>
+          <boolean name="TestShootSpeed">false</boolean>
           <boolean name="TheirCornerChip">false</boolean>
           <boolean name="TheirCornerPlay">true</boolean>
           <boolean name="TriAttackDef">true</boolean>
@@ -403,6 +406,7 @@
           <integer name="ShootGoal">1023</integer>
           <integer name="Stop">1023</integer>
           <integer name="StopShadow">1023</integer>
+          <integer name="TestCShoot">1023</integer>
           <integer name="TestShootSpeed">1023</integer>
           <integer name="TheirCornerChip">1023</integer>
           <integer name="TheirCornerPlay">1023</integer>
@@ -459,6 +463,7 @@
           <integer name="ShootGoal">10</integer>
           <integer name="Stop">5</integer>
           <integer name="StopShadow">5</integer>
+          <integer name="TestCShoot">5</integer>
           <integer name="TestShootSpeed">5</integer>
           <integer name="TheirCornerChip">5</integer>
           <integer name="TheirCornerPlay">5</integer>
@@ -515,6 +520,7 @@
           <boolean name="ShootGoal">false</boolean>
           <boolean name="Stop">false</boolean>
           <boolean name="StopShadow">false</boolean>
+          <boolean name="TestCShoot">false</boolean>
           <boolean name="TestShootSpeed">false</boolean>
           <boolean name="TheirCornerChip">false</boolean>
           <boolean name="TheirCornerPlay">false</boolean>
