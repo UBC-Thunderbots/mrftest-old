@@ -28,7 +28,7 @@ BEGIN_ASSIGN()
 goalie_role.push_back(defend_duo_goalie(world));
 
 // ROLE 1
-// Chip towards the midfield (diagonally to our corner)
+// Chip towards the midfield (diagonally to our corner) - should be okay to not chip across midline
 roles[0].push_back(chip_target(world, Point(-world.ball().position().x, -world.ball().position().y)));
 
 // ROLE 2

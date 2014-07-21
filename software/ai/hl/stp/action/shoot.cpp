@@ -57,7 +57,9 @@ bool AI::HL::STP::Action::shoot_goal(World world, Player player, bool use_reduce
                                         positions.push_back(i.position());
                 Point destination = closest_lineseg_point(player.position(), angle_sweep_circles(behind_goal, Point(-0.25*world.field().length(), 0.5*world.field().length()), Point(-0.25*world.field().length(),-0.5*world.field().length()), positions, Robot::MAX_RADIUS).first, behind_goal);
 
-                /* if ((destination - player.position()).len() > 0.45) { //if it will dribble for more than 45 cm
+                /* IF RE-ENABLING ENSURE WE ARE COMPLIENT WITH CHIP RULES
+                 *
+                 * if ((destination - player.position()).len() > 0.45) { //if it will dribble for more than 45 cm
                         if ((player.position() - world.field().enemy_goal()).len() > 0.5) { //and it is more than 50 cm away from the goal
                                 move(player, (world.field().enemy_goal() - player.position()).orientation(), (destination - player.position()).norm(0.3));
                                 Action::chip_target(world, player, world.field().enemy_goal(), 0.4);

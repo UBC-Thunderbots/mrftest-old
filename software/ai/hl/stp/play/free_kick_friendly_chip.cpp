@@ -16,7 +16,10 @@ using AI::HL::STP::Coordinate;
  * - Handle Friendly Free Kick by chipping to enemy goal. 
  */
 BEGIN_PLAY(FreeKickFriendlyChip)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2) && !Predicates::ball_in_our_corner(world) && !Predicates::ball_in_their_corner(world))
+INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY)
+	|| Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY))
+	&& Predicates::our_team_size_at_least(world, 2) && !Predicates::ball_in_our_corner(world)
+	&& !Predicates::ball_in_their_corner(world) && Predicates::baller_can_chip(world, true))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
@@ -27,7 +30,6 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 // ROLE 1
 // kicker
 roles[0].push_back(chip_target(world, world.field().enemy_goal()));
-//roles[0].push_back(AI::HL::STP::Tactic::shoot_target(world, Point(world.field().enemy_goal())));
 
 // ROLE 2
 // defend
