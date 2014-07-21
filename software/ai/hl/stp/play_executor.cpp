@@ -495,6 +495,6 @@ void PlayExecutor::enable_players() {
 		enable10,
 		enable11,
 	};
-	players_enabled.clear();
+//	players_enabled.clear();
 	players_enabled.insert(players_enabled.begin(), enabled, enabled+12);
 }
