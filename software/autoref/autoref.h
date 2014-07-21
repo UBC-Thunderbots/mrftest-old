@@ -46,7 +46,6 @@ enum Team {
 				void ball_has_left();
 				void display();
 				void violent_collision();
-				//void push_without_collision();
 				void tick();
 
 

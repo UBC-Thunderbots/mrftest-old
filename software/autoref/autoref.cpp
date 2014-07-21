@@ -36,10 +36,14 @@
 
 
 AI::AutoRef* AI::AutoRef::instance = 0;
-//define the velocity of what constitutes a violent collision
+//define the velocity of what constitutes a violent collision.
+//If the collision message is being printed too much, raise this value.
+//If the collision message is not being printed enough, lower this value.
 #define VIOLENT_VELOCITY 3.0
 //this offset is used for determining if robots are next to one another
-#define ROBOT_OFFSET 0.001
+//if the autrof thinks that they are together when they are not, raise this value
+//If the autoref think that they are not together when they are, lower this value.
+#define ROBOT_OFFSET 0.02
 
 AI::AutoRef::AutoRef(const AI::AIPackage &ai, const AI::HL::W::World &world) : ai(ai), world(world), old_time(std::chrono::steady_clock::now()),FT(world.friendly_team()), ET(world.enemy_team()),ball_is_out_of_play(
 		false), print_ball_out_of_play(true), last_touch(NO_TEAM), enemy_in_defense_circle(false), friendly_in_defense_circle(false),partial_violation_e(false), full_violation_e(false), partial_violation_f(false),
@@ -91,7 +95,7 @@ void AI::AutoRef::tick(){
 	}
 
 
-	/*print if ball velocity is greater than 8*/
+	/*print if ball velocity is greater than 8 when true*/
 	print_ball_velocity = true;
 
 	/*print if ball has left field and by which team*/
@@ -102,6 +106,10 @@ void AI::AutoRef::tick(){
 
 	/*print if a violent collision has occured*/
 	violent_collision();
+
+	/*print if a robot is pushing against another without a collision*/
+	//this is actually done within analyze_the_past()
+
 
 }
 
@@ -141,16 +149,39 @@ AI::Team AI::AutoRef::analyze_the_past(unsigned int id_f, unsigned int id_e){
 	}else if(avg_velocity_e>VIOLENT_VELOCITY){
 		printf("Enemy Team has collided with Friendly Team\n");
 		return ENEMY_TEAM;
+	}else{
+
+		/*This is for determining if robots are pushing against each other */
+
+		//calculate distance between friendly robot in newest time frame and the enemy robot in the next newest time frame.
+		//and calculate the distance between enemy robot in newest time frame and the friendly robot in the next newest time frame.
+		double d_f_e = std::sqrt(std::pow(FP[id_f].at(0).first.x - EP[id_e].at(1).first.x,2) + std::pow(FP[id_f].at(0).first.y - EP[id_e].at(1).first.y,2));
+		double d_e_f = std::sqrt(std::pow(FP[id_f].at(1).first.x - EP[id_e].at(0).first.x,2) + std::pow(FP[id_f].at(1).first.y - EP[id_e].at(0).first.y,2));
+
+		//if the distance between the current friendly robot and the last enemy robot is farther than the current enemy is to the last friendly
+		//then this means that the current enemy robot is closer to the position of the last friendly robot ie, it pushed the friendly robot out of the way
+		if(d_f_e > d_e_f && (std::fabs(d_f_e-d_e_f)>0.04)){
+
+			printf("Enemy Robot is pushing against Friendly Robot\n");
+		}else if(d_f_e < d_e_f && (std::fabs(d_f_e-d_e_f)>0.04)){
+
+			printf("Friendly Robot is pushing against Enemy Robot\n");
+
+
+		}
+
 	}
+
 
 	return NO_TEAM;
 
 
 }
+
+
 void AI::AutoRef::violent_collision() {
 
 	AI::Common::TeamIterator<AI::HL::W::Player, AI::BE::Player> FTI = FT.begin();
-	bool update_done = false;
 
 
 	//Sweet Jesus of Nazareth its an n^2 algorithms :o
