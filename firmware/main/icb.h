@@ -240,7 +240,7 @@ typedef enum {
 	/**
 	 * \brief Read the Gyro Data
 	 *
-	 * \return 6 bytes, 3 16-bit integer values one for each axis
+	 * \return 7 bytes, 1 byte status (00 = no data yet, 01 = data available) plus 3 16-bit integer values one for each axis
 	 */
 	ICB_COMMAND_SENSORS_GET_GYRO = 0x41,
 } icb_command_t;
