@@ -85,7 +85,12 @@ void dribbler_tick(dribbler_mode_t mode, log_record_t *record) {
 		uint16_t back_emf_pwm = (uint16_t) (back_emf / battery * 255.0f);
 		uint8_t min_pwm = back_emf_pwm <= MAX_DELTA_PWM ? 0 : (uint8_t) (back_emf_pwm - MAX_DELTA_PWM);
 		uint8_t max_pwm = back_emf_pwm >= 255 - MAX_DELTA_PWM ? 255 : (uint8_t) (back_emf_pwm + MAX_DELTA_PWM);
-		uint8_t pwm = mode == DRIBBLER_MODE_FAST ? TARGET_PWM_FAST : TARGET_PWM_SLOW;
+		uint8_t pwm;
+		switch (mode) {
+			case DRIBBLER_MODE_FAST: pwm = TARGET_PWM_FAST; break;
+			case DRIBBLER_MODE_SLOW: pwm = TARGET_PWM_SLOW; break;
+			default: pwm = 0U; break;
+		}
 		if (pwm > max_pwm) {
 			pwm = max_pwm;
 		} else if (pwm < min_pwm) {

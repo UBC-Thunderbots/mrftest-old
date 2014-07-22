@@ -93,7 +93,7 @@ static void receive_task(void *UNUSED(param)) {
 							case 0b11: target->wheels_mode = WHEELS_MODE_CLOSED_LOOP; break;
 						}
 						if (!(words[0U] & (1U << 12U))) {
-							target->dribbler_mode = DRIBBLER_MODE_OFF;
+							target->dribbler_mode = DRIBBLER_MODE_BRAKE;
 						} else if (words[0U] & (1U << 11U)) {
 							target->dribbler_mode = DRIBBLER_MODE_SLOW;
 						} else {

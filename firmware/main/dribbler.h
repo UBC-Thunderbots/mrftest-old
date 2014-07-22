@@ -18,6 +18,7 @@
  */
 typedef enum {
 	DRIBBLER_MODE_OFF, ///< The dribbler is not spinning.
+	DRIBBLER_MODE_BRAKE, ///< The dribbler is dynamic braking.
 	DRIBBLER_MODE_SLOW, ///< The dribbler is spinning slowly.
 	DRIBBLER_MODE_FAST, ///< The dribbler is spinning fast.
 } dribbler_mode_t;
