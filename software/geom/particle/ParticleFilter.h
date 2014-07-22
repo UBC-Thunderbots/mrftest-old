@@ -17,12 +17,12 @@ class ParticleFilter {
 		ParticleFilter(double length, double offset, unsigned int numPartitions);
 		~ParticleFilter();
 
-		void update(double timeDelta, bool debug);
+		void update(double timeDelta);
 
-		void add(double value, unsigned int numParticles, bool debug);
+		void add(double value, unsigned int numParticles);
 
 		double getEstimate();
-		unsigned int getLength();
+		double getLength();
 		double getOffset();
 		int getNumParticles();
 		void toString();
@@ -42,7 +42,7 @@ class ParticleFilter {
 		bool estimateValid_;
 		bool prevEstimateValid_;
 		bool velocityValid_;
-		double *weight_;
+		unsigned int *weight_;
 };
 
 bool pairCompare(const std::pair<int, int>& a, const std::pair<int, int>& b);

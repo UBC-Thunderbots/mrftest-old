@@ -12,7 +12,7 @@ DoubleParam PARTICLE_FILTER_DECAYRATE(u8"Particle Filter Decay Rate", u8"Backend
 
 ParticleFilter::ParticleFilter(double length, double offset, unsigned int numPartitions)
 {
-	weight_ = new double[numPartitions]; // weight of the partitions
+	weight_ = new unsigned int[numPartitions]; // weight of the partitions
 
 	for (unsigned int i = 0; i < numPartitions; i++)
 	{
@@ -30,7 +30,7 @@ ParticleFilter::ParticleFilter(double length, double offset, unsigned int numPar
 
 	//std::cout << "Length: " << length_ << "; Offset: " << offset_ << "; numPartitions: " << numPartitions_ << std::endl;
 
-	add(0, 100, false);
+	add(0, 100);
 }
 
 ParticleFilter::~ParticleFilter()
@@ -38,7 +38,7 @@ ParticleFilter::~ParticleFilter()
 	delete[] weight_;
 }
 
-void ParticleFilter::update(double timeDelta, bool debug)
+void ParticleFilter::update(double timeDelta)
 {
 	// uniform random generator - use timestamp as seed
 	unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -56,31 +56,9 @@ void ParticleFilter::update(double timeDelta, bool debug)
 	// MOVE REMAINING PARTICLES
 	updateEstimatedPartition();
 
-	if (debug)
-	{
-		std::cout << "Time Delta: " << timeDelta << std::endl;
-		std::cout << "Num Partitions: " << numPartitions_ << std::endl;
-		std::cout << "Cur Estimate: " << estimate_ << std::endl;
-		std::cout << "Prev Estimate: " << prevEstimate_ << std::endl;
-	}
-
 	double curVelocity = (estimate_ - prevEstimate_)/timeDelta; // find out how "fast" we are going
-
-	if (debug)
-	{
-		std::cout << "Cur Velocity: " << curVelocity << std::endl;
-		std::cout << "Prev Velocty: " << velocity_ << std::endl;
-	}
-
 	double acceleration = (curVelocity - velocity_)/timeDelta;
-
 	double estimatedVelocity = curVelocity - accel_*timeDelta; // use previous acceleration and current velocity to find estimated velocity
-
-	if (debug)
-	{
-		std::cout << "Acceleration: " << acceleration << std::endl;
-		std::cout << "Estimated Velocity: " << estimatedVelocity << std::endl;
-	}
 
 	if (estimatedVelocity < 0)
 	{
@@ -162,17 +140,11 @@ void ParticleFilter::toString()
 	std::cout << " - " << sum << " particles " << std::endl;
 }
 
-void ParticleFilter::add(double input, unsigned int numParticles, bool debug)
+void ParticleFilter::add(double input, unsigned int numParticles)
 {
 	// uniform random generator - use timestamp as seed
 	unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator (seed);
-
-	if (debug)
-	{
-		std::cout << input << "// offset into field: " << input - offset_ << std::endl;
-		//toString();
-	}
 
 	std::normal_distribution<double> normal(input - offset_, PARTICLE_FILTER_STDDEV);
 	double value;
@@ -191,23 +163,11 @@ void ParticleFilter::add(double input, unsigned int numParticles, bool debug)
 			// calculate which partition the particle falls in
 			partition = value/partitionSize;
 
-			if (debug)
-			{
-				std::cout << value << " // " << partition << " - ";
-			}
-
 			assert(partition >= 0);
-			assert(partition < numPartitions_);
+			assert(partition < (int)numPartitions_);
 			weight_[partition] += 1;
 			count++;
 		}
-	}
-
-	if (debug)
-	{
-		std::cout << count << " out of " << numParticles << " placed" << std::endl;
-
-		toString();
 	}
 
 	// ESTIMATE IS NO LONGER VALID
@@ -218,10 +178,10 @@ double ParticleFilter::getEstimate()
 {
 	updateEstimatedPartition();
 	//return estimate_;
-	return offset_ + (estimate_ + 0.5)*((double)length_/numPartitions_);
+	return offset_ + (estimate_ + 0.5)*(length_/numPartitions_);
 }
 
-unsigned int ParticleFilter::getLength()
+double ParticleFilter::getLength()
 {
 	return length_;
 }
@@ -264,7 +224,7 @@ void ParticleFilter::clearWeights(unsigned int startIndex, unsigned int endIndex
 		assert(0);
 	}
 
-	for (int i = startIndex; i < endIndex; i++)
+	for (unsigned int i = startIndex; i < endIndex; i++)
 	{
 		weight_[i] = 0;
 	}

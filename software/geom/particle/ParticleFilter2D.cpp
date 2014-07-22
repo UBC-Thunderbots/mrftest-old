@@ -2,9 +2,7 @@
 
 ParticleFilter2D::ParticleFilter2D(double lengthX, double lengthY, double offsetX, double offsetY, unsigned int numPartitions)
 {
-	std::cout << "CREATING X FILTER" << std::endl;
 	xFilter = new ParticleFilter(lengthX, offsetX, numPartitions);
-	std::cout << "CREATING Y FILTER" << std::endl;
 	yFilter = new ParticleFilter(lengthY, offsetY, numPartitions);
 }
 
@@ -16,18 +14,14 @@ ParticleFilter2D::~ParticleFilter2D()
 
 void ParticleFilter2D::update(double timeDelta)
 {
-	//std::cout << "UPDATING X Filter" << std::endl;
-	xFilter->update(timeDelta, false);
-	//std::cout << "UPDATING Y Filter" << std::endl;
-	yFilter->update(timeDelta, false);
+	xFilter->update(timeDelta);
+	yFilter->update(timeDelta);
 }
 
 void ParticleFilter2D::add(double valueX, double valueY, unsigned int numParticles)
 {
-	//std::cout << "ADDING TO X FILTER - ";
-	xFilter->add(valueX, numParticles, false);
-	//std::cout << "ADDING TO Y FILTER - ";
-	yFilter->add(valueY, numParticles, false);
+	xFilter->add(valueX, numParticles);
+	yFilter->add(valueY, numParticles);
 }
 
 void ParticleFilter2D::toString()
