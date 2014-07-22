@@ -1,6 +1,7 @@
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/tactic/wait_playtype.h"
 #include "ai/hl/stp/tactic/free_kick_pass.h"
+#include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/play/simple_play.h"
 
 using namespace AI::HL::W;
@@ -25,8 +26,8 @@ namespace {
  * Objective:
  * - Pass the ball to a friendly player without double touching the ball
  */
-BEGIN_PLAY(KickoffFriendly)
-INVARIANT(Predicates::our_team_size_at_least(world, 2) && Predicates::their_team_size_at_least(world, 3) && (Predicates::playtype(world, AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY)))
+BEGIN_PLAY(KickOffEnemySmall)
+INVARIANT(Predicates::our_team_size_at_least(world, 2) && Predicates::their_team_size_at_most(world, 3) && (Predicates::playtype(world, AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY)))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
@@ -37,7 +38,7 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 roles[0].push_back(wait_playtype(world, move(world, kicker_position), AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY));
-roles[0].push_back(free_kick_pass(world, world.field().enemy_goal()));
+roles[0].push_back(shoot_goal(world, true));
 
 // ROLE 2
 roles[1].push_back(defend_duo_defender(world));
@@ -53,4 +54,5 @@ roles[4].push_back(defend_duo_extra1(world));
 
 END_ASSIGN()
 END_PLAY()
+
 
