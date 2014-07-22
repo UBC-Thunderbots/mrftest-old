@@ -1,6 +1,7 @@
 #include "control.h"
 #include "adc.h"
 #include "wheels.h"
+#include "sensors.h"
 #include <string.h>
 #include <math.h>
 
@@ -12,6 +13,14 @@
 #define INERTIAL_CONSTANT 0.282f
 #define AGGRESSIVENESS 0.08f
 #define INPUT_NOISE 0.02f //noise of speed in m/s (measured value)
+
+#define PI 3.141596254f
+
+//gyro running at 2000/second and in integers such that 32767 is 2000
+//61.0 millidegrees/second / LSB
+#define DEGREES_PER_GYRO (61.0f/1000.0f)
+#define MS_PER_DEGREE (2.0f*PI*ROBOT_RADIUS/360.0f)
+#define MS_PER_GYRO MS_PER_DEGREE*DEGREES_PER_GYRO
 
 //All wheels good
 static const float speed4_to_speed3_mat[3][4]=
@@ -65,9 +74,14 @@ static float runDF2(float input,float gain,const float* num,const float* den, fl
 		accum += state[i]*num[i+1];
 		state[i]=state[i-1];
 	}
+	accum += state[0]*num[1];
 		state[0]=input;
 		accum += input*num[0];
 	return gain*accum;
+}
+
+static float runEncoderFilter(float input,float* filter_states) {
+	return runDF2(input,filter_gain,filter_B,filter_A,filter_states,FILTER_ORDER);
 }
 
 static void correct_sp(float input[4]) {
@@ -123,6 +137,7 @@ void control_process_new_setpoints(const int16_t wheel_setpoints[4]) {
 	speed4_to_speed3(temp, setpoints);
 }
 
+#include <stdio.h>
 void control_tick(const int16_t feedback[4U], int16_t drive[4U]) {
 	float Velocity[3];
 	float Veldiff[3];
@@ -130,8 +145,9 @@ void control_tick(const int16_t feedback[4U], int16_t drive[4U]) {
 	float max_accel=-10;
 	float min_rescale_factor=1;
 	float filtered_encoders[4];
+
 	for(size_t i=0;i<4;++i) {
-		filtered_encoders[i] = runDF2(feedback[i],filter_gain,filter_B,filter_A,input_filter_states[i],FILTER_ORDER);
+		filtered_encoders[i] = runEncoderFilter(feedback[i],input_filter_states[i]);
 	}
 
 	//Convert the measurements to the 3 velocity
@@ -140,6 +156,10 @@ void control_tick(const int16_t feedback[4U], int16_t drive[4U]) {
 
 	//Update the setpoint by the current rotational speed
 	rotate_velocity(setpoints,-Velocity[2]/ROBOT_RADIUS*QUARTERDEGREE_TO_MS*TICK_TIME);
+	sensors_gyro_data_t gyrodata = sensors_get_gyro();	
+	if(gyrodata.status) {
+		Velocity[2] = MS_PER_GYRO*gyrodata.data.reading.z/QUARTERDEGREE_TO_MS;
+	}
 
 	//Get the control error
 	for(uint8_t i=0;i<3;++i) {
