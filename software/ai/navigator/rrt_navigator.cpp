@@ -64,6 +64,8 @@ RRTNavigator::RRTNavigator(AI::Nav::W::World world) : Navigator(world), planner(
 void RRTNavigator::pivot(Player player) {
 	double offset_distance = (player.destination().first - world.ball().position()).len();
 
+	PlayerData::Ptr player_data = std::dynamic_pointer_cast<PlayerData>(player.object_store()[typeid(*this)]);
+
 	if (!use_new_pivot || !player.has_ball()) {
 		Player::Path path;
 		Point dest;
@@ -87,6 +89,13 @@ void RRTNavigator::pivot(Player player) {
 
 		dest = world.ball().position() - offset_distance * diff.norm();
 		dest_orientation = (world.ball().position() - current_position).orientation() + orientation_temp;
+
+		if (player_data->prev_move_type == player.type() && player_data->prev_move_prio == player.prio() && player_data->prev_avoid_distance == player.avoid_distance()) {
+			dest = (player_data->previous_dest + dest ) / jon_hysteris_hack;
+			player_data->previous_dest = dest;
+			dest_orientation = (player_data->previous_orient + dest_orientation) / jon_hysteris_hack;
+			player_data->previous_orient = dest_orientation;
+		}
 
 		path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));
 		player.path(path);
@@ -130,6 +139,13 @@ void RRTNavigator::pivot(Player player) {
 			dest_orient = (world.ball().position() - player.destination().first).orientation();
 		}
 
+		if (player_data->prev_move_type == player.type() && player_data->prev_move_prio == player.prio() && player_data->prev_avoid_distance == player.avoid_distance()) {
+			dest_pos = (player_data->previous_dest + dest_pos ) / jon_hysteris_hack;
+			player_data->previous_dest = dest_pos;
+			dest_orient = (player_data->previous_orient + dest_orient) / jon_hysteris_hack;
+			player_data->previous_orient = dest_orient;
+		}
+
 		path.push_back(std::make_pair(std::make_pair(dest_pos, dest_orient), world.monotonic_time()));
 		player.path(path);
 	}
@@ -166,8 +182,19 @@ void RRTNavigator::tick() {
 		} else if (player.type() == AI::Flags::MoveType::RAM_BALL) {
 			Point cur_position = player.position(), dest_position = player.destination().first;
 			AI::Timestamp ts = get_next_ts(world.monotonic_time(), cur_position, dest_position, player.target_velocity());
-			path.push_back(std::make_pair(std::make_pair(dest_position, dest_orientation), ts));
+
+			if (player_data->prev_move_type == player.type() && player_data->prev_move_prio == player.prio() && player_data->prev_avoid_distance == player.avoid_distance()) {
+				dest_position = (player_data->previous_dest + dest_position ) / jon_hysteris_hack;
+				player_data->previous_dest = cur_position;
+				dest_orientation = (player_data->previous_orient + dest_orientation) / jon_hysteris_hack;
+				player_data->previous_orient = dest_orientation;
+
+			}
+
+				path.push_back(std::make_pair(std::make_pair(dest_position, dest_orientation), ts));
 			player.path(path);
+
+
 			continue;
 		} else if (valid_path(player.position(), player.destination().first, world, player)) {
 			// if we're not trying to catch the ball and there are no obstacles in our way then go
@@ -182,10 +209,15 @@ void RRTNavigator::tick() {
 			player.path(path);
 			continue;
 		} else {
+
+			//this saves next destination passed from the HL to add hystersis in the average filter.
 			dest = player.destination().first;
 
 			if (player_data->prev_move_type == player.type() && player_data->prev_move_prio == player.prio() && player_data->prev_avoid_distance == player.avoid_distance()) {
-				dest = (player_data->previous_dest + dest )/jon_hysteris_hack;
+				dest = (player_data->previous_dest + dest ) / jon_hysteris_hack;
+				player_data->previous_dest = dest;
+				dest_orientation = (player_data->previous_orient + dest_orientation) / jon_hysteris_hack;
+				player_data->previous_orient = dest_orientation;
 			}
 
 			unsigned int flags = std::dynamic_pointer_cast<PlayerData>(player.object_store()[typeid(*this)])->added_flags;

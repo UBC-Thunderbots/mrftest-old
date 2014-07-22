@@ -671,6 +671,7 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 	Point target_pos = player.destination().first;
 	const Point robot_pos = player.position();
 
+	Angle dest_orientation = player.destination().second;
 	// extract information from the ball
 	const Ball &ball = world.ball();
 	const Rect field_rec({ field.length() / 2, field.width() / 2 }, { -field.length() / 2, -field.width() / 2 });
@@ -682,6 +683,9 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 
 	if (player_data->prev_move_type == player.type() && player_data->prev_move_prio == player.prio() && player_data->prev_avoid_distance == player.avoid_distance()) {
 		target_pos = (player_data->previous_dest + target_pos ) / jon_hysteris_hack;
+		player_data->previous_dest = target_pos;
+		dest_orientation = (player_data->previous_orient + dest_orientation) / jon_hysteris_hack;
+		player_data->previous_orient = dest_orientation;
 	}
 
 

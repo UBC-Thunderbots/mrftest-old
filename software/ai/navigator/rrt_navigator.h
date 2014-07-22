@@ -21,6 +21,7 @@ namespace AI {
 					AI::Flags::MovePrio prev_move_prio;
 					AI::Flags::AvoidDistance prev_avoid_distance;
 					Point previous_dest;
+					Angle previous_orient;
 			};
 		}
 	}
