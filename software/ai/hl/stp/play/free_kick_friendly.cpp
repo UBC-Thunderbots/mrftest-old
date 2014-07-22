@@ -30,21 +30,23 @@ goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // kicker
-if(world.ball().position().x < 0) {
-	//roles[0].push_back(shoot_goal(world));
-//	roles[0].push_back(chip_target(world, world.field().enemy_goal()));
-			roles[0].push_back(chip_target(world, world.field().enemy_goal()));
-//	}
-//	else
-//		roles[0].push_back(chip_target(world, world.field().enemy_corner_neg()));
-	}
-else if(PARAM_free_kick_defence_enable && world.ball().position().x > world.field().width()/2-PARAM_free_kick_at_defence_zone )
+if((world.ball().position().x < 0) && baller_can_chip(world, true))
+{
+//	roles[0].push_back(shoot_goal(world));
+//	roles[0].push_back(chip_target(world, world.field().enemy_corner_neg()));
+
+    roles[0].push_back(chip_target(world, world.field().enemy_goal()));
+}
+else if(PARAM_free_kick_defence_enable
+		&& world.ball().position().x > world.field().width()/2-PARAM_free_kick_at_defence_zone
+		&& baller_can_chip(world, true))
 {
 	roles[0].push_back(chip_target(world, world.field().enemy_goal() - Point(world.field().defense_area_radius()/2,0)));
 }
- else {
-	//roles[0].push_back(shoot_target(world, world.field().enemy_goal() - Point(-0.3, 0) ));
-	roles[0].push_back(chip_target(world, world.field().enemy_goal()));
+else
+{
+//	roles[0].push_back(shoot_target(world, world.field().enemy_goal() - Point(-0.3, 0) ));
+	roles[0].push_back(shoot_target(world, world.field().enemy_goal()));
 }
 
 // ROLE 2

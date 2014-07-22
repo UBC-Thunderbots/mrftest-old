@@ -14,12 +14,12 @@ using namespace AI::HL::STP;
 
 namespace {
 	/* shoot_anyway should be adjusted when facing different teams. */
-        IntParam shoot_anyway(u8"randomize factor that the baller will shoot even if blocked", u8"STP/predicates", 5, 1, 10);
-	DoubleParam near_thresh(u8"enemy avoidance distance (robot radius)", u8"STP/predicates", 3.0, 1.0, 10.0);
+    IntParam    shoot_anyway(u8"randomize factor that the baller will shoot even if blocked", u8"STP/predicates", 5, 1, 10);
+
+    DoubleParam near_thresh(u8"enemy avoidance distance (robot radius)", u8"STP/predicates", 3.0, 1.0, 10.0);
+    DoubleParam chip_estimate(u8"estimate of our chip distance (m)", u8"STP/predicates", 1.0, 0.0, 3.0);
 	DoubleParam fight_thresh(u8"dist thresh to start fight ball with enemy (robot radius)", u8"STP/predicates", 2.0, 0.1, 4.0);
-
 	DoubleParam looseBall_thresh(u8"distance to trigger loose_ball predicate", u8"STP/predicates", 1.0, 0.5, 6.0);
-
 
 	BoolParam new_fight(u8"new fight", u8"STP/predicates", true);
 }
@@ -153,12 +153,18 @@ bool Predicates::BallerCanShoot::compute(World world) {
 
 Predicates::BallerCanShoot Predicates::baller_can_shoot;
 
-bool Predicates::BallerCanChip::compute(World world) {
+bool Predicates::BallerCanChip::compute(World world, bool towardsEnemy) {
 	const Player baller = Evaluation::calc_friendly_baller();
 	if (!baller || !Evaluation::possess_ball(world, baller) || !baller.has_chipper()) {
 		return false;
 	}
-	
+
+	// Not allowed to chip over midline
+	if ((fabs(world.ball().position().x) < chip_estimate) && (ball_on_our_side(world) == towardsEnemy))
+	{
+		return false;
+	}
+
 	if (shoot_anyway > std::rand()%10) return true;
 
 	for (const Robot i : world.enemy_team()) {
@@ -177,7 +183,7 @@ bool Predicates::BallerCanPassTarget::compute(World world, const Point target) {
 	if (!baller || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
-#warning something is wierd
+#warning something is weird
 	if (shoot_anyway > std::rand()%10) return true;
 	return Evaluation::can_pass(world, baller.position(), target);
 }

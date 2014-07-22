@@ -555,6 +555,7 @@
         <double name="distance to trigger loose_ball predicate">1.000</double>
         <double name="dist thresh to start fight ball with enemy (robot radius)">2.000</double>
         <double name="enemy avoidance distance (robot radius)">3.00</double>
+        <double name="estimate of our chip distance (m)">1.00</double>
         <boolean name="new fight">true</boolean>
         <integer name="randomize factor that the baller will shoot even if blocked">5</integer>
       </category>

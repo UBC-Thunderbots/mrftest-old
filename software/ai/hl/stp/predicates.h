@@ -6,6 +6,10 @@
 #include "util/cacheable.h"
 #include <functional>
 
+namespace {
+    extern DoubleParam chip_estimate;
+}
+
 namespace AI {
 	namespace HL {
 		namespace STP {
@@ -154,9 +158,9 @@ namespace AI {
 				/**
 				 * player with the ball can chip
 				 */
-				class BallerCanChip : public Cacheable<bool, CacheableNonKeyArgs<World>, CacheableKeyArgs<>> {
+				class BallerCanChip : public Cacheable<bool, CacheableNonKeyArgs<World>, CacheableKeyArgs<bool>> {
 					protected:
-						bool compute(World world);
+						bool compute(World world, bool towardsEnemy);
 				};
 
 				extern BallerCanChip baller_can_chip;
