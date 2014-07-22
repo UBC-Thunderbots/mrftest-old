@@ -302,6 +302,8 @@ software/ai/hl/stp/action/shoot.cpp -text
 software/ai/hl/stp/action/shoot.h -text
 software/ai/hl/stp/action/stop.cpp -text
 software/ai/hl/stp/action/stop.h -text
+software/ai/hl/stp/action/strafe.cpp -text
+software/ai/hl/stp/action/strafe.h -text
 software/ai/hl/stp/challenge/intercept_challenge.cpp -text
 software/ai/hl/stp/challenge/mixed_team_defense.cpp -text
 software/ai/hl/stp/challenge/mixed_team_offense.cpp -text

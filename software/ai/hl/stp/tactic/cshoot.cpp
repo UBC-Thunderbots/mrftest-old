@@ -1,5 +1,6 @@
 #include "ai/hl/stp/tactic/cshoot.h"
 #include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/action/strafe.h"
 #include "ai/hl/stp/action/cshoot.h"
 #include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/stp/action/intercept.h"
@@ -10,6 +11,7 @@
 #include "ai/hl/stp/param.h"
 #include "ai/hl/stp/action/move.h"
 #include "geom/util.h"
+#include "util/dprint.h"
 #include "geom/angle.h"
 #include <iostream>
 
@@ -130,10 +132,10 @@ namespace {
 							shoot_score = 0.0;
 					}
 
-					if((Point(x, y) - world.field().enemy_goal()).len() < 0.3)
-						shoot_score -= (0.3 - (Point(x, y) - world.field().enemy_goal()).len())*40;
+					if(lineseg_point_dist(Point(x, y), enemy_goal_negative, enemy_goal_positive) < 0.3)
+						shoot_score *= 0.1;
 
-					shoot_score += (8 - (Point(x, y) - player.position()).len() * 8);
+					//shoot_score += (8 - (Point(x, y) - player.position()).len() * 8);
 
 					scores.push_back(std::make_tuple(Point(x, y), sweep_score.first, shoot_score));
 				}
@@ -169,12 +171,15 @@ namespace {
 			Robot::MAX_RADIUS
 			).first;
 
-		if(!player.has_ball()) {
-			intercept(player, target);
+		if(!player.has_ball() && timer < 0) {
+			intercept_pivot(world, player, target);
 			return;
 		}
 
-		if(timer < 10) return;
+		//if(timer < 10) {
+		//	LOG_INFO(Glib::ustring::compose(u8"cancelled: timer", time));
+		//	return;
+		//}
 
 		/*
 		if(((std::get<0>best_score - player.position()).len() > 0.05) || 
@@ -189,12 +194,13 @@ namespace {
 
 		if(((std::get<0>(best_score) - player.position()).len() > 0.05) || 
 				((player.orientation() - (std::get<1>(best_score) - player.position()).orientation()).to_degrees() > 2.0)) {
-			player.dribble_slow();
-			move(player, (std::get<1>(best_score) - player.position()).orientation(), std::get<0>(best_score), Point(0.01, 0.01));
+			//player.type(AI::Flags::MoveType::DRIBBLE);
+			//move(player, (std::get<1>(best_score) - player.position()).orientation(), std::get<0>(best_score));
+			strafe(player, std::get<0>(best_score), std::get<1>(best_score));
 			return;
 		}
 
-		player.autokick(BALL_MAX_SPEED);
+		player.autokick(BALL_MAX_SPEED * 0.5);
 	}
 
 	void CShootGoal::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
