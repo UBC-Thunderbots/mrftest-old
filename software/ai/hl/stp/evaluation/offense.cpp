@@ -51,7 +51,7 @@ namespace {
 	// TODO: explore updating the offensive function only ONCE
 	std::vector<std::vector<double>> score1;
 	std::vector<std::vector<double>> score2;
-	std::vector<std::vector<bool>> good;
+	//std::vector<std::vector<bool>> good;
 
 	std::array<Point, 2> best_positions;
 
@@ -199,6 +199,7 @@ namespace {
 		const double dx = (x2 - x1) / (grid_x + 1) / 2;
 		const double dy = (y2 - y1) / (grid_y + 1) / 2;
 		double best_score = -1e50;
+		bool inEnemyDefenseArea;
 
 		best_pos = Point();
 
@@ -212,11 +213,10 @@ namespace {
 				// ensures that we do not get too close to the enemy defense area.
 				const double goal_dist = (pos - world.field().enemy_goal()).len();
 				if (goal_dist < world.field().goal_width()) {
-					good[i][j] = false;
-					continue;
+					inEnemyDefenseArea = true;
 				}
 
-				if (!good[i][j]) {
+				if (inEnemyDefenseArea) {
 					if (idx) {
 						score1[i][j] = -1e99;
 					} else {
@@ -226,10 +226,6 @@ namespace {
 				}
 
 				double score = scoring_function(world, enemy_pos, pos, dont_block);
-
-				if (score < 0) {
-					good[i][j] = false;
-				}
 
 				if (idx) {
 					score1[i][j] = score;
@@ -250,14 +246,13 @@ namespace {
 	void update(World world) {
 		score1.clear();
 		score2.clear();
-		good.clear();
+
 		score1.resize(2 * static_cast<unsigned int>(grid_y) + 2);
 		score2.resize(2 * static_cast<unsigned int>(grid_y) + 2);
-		good.resize(2 * static_cast<unsigned int>(grid_y) + 2);
+
 		for (std::size_t i = 0; i < 2 * static_cast<unsigned int>(grid_y) + 2; ++i) {
 			score1[i].resize(2 * static_cast<unsigned int>(grid_x) + 2, -1e99);
 			score2[i].resize(2 * static_cast<unsigned int>(grid_x) + 2, -1e99);
-			good[i].resize(2 * static_cast<unsigned int>(grid_x) + 2, true);
 		}
 
 		EnemyTeam enemy = world.enemy_team();
