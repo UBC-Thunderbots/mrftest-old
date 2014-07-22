@@ -42,7 +42,7 @@ class ParticleFilter {
 		bool estimateValid_;
 		bool prevEstimateValid_;
 		bool velocityValid_;
-		unsigned int *weight_;
+		double *weight_;
 };
 
 bool pairCompare(const std::pair<int, int>& a, const std::pair<int, int>& b);

@@ -12,7 +12,7 @@ DoubleParam PARTICLE_FILTER_DECAYRATE(u8"Particle Filter Decay Rate", u8"Backend
 
 ParticleFilter::ParticleFilter(double length, double offset, unsigned int numPartitions)
 {
-	weight_ = new unsigned int[numPartitions]; // weight of the partitions
+	weight_ = new double[numPartitions]; // weight of the partitions
 
 	for (unsigned int i = 0; i < numPartitions; i++)
 	{
