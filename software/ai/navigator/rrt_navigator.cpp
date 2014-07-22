@@ -20,7 +20,7 @@ namespace AI {
 	namespace Nav {
 		namespace RRT {
 			// fraction of the maximum speed that the robot will try to dribble at
-			const double DRIBBLE_SPEED = 1.0;
+			const double DRIBBLE_SPEED = 0.4;
 
 			DegreeParam offset_angle(u8"Pivot: offset angle (degrees)", u8"Nav/RRT", 30.0, -1000.0, 1000.0);
 			DegreeParam orientation_offset(u8"Pivot: orientation offset (degrees)", u8"Nav/RRT", 30.0, -1000.0, 1000.0);
