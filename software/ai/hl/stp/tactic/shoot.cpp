@@ -23,8 +23,7 @@ namespace {
 
 	class ShootGoal : public Tactic {
 		public:
-			ShootGoal(World world, bool force) : Tactic(world, true), kick_attempted(false), force(force), shoot_score(Angle::zero()),
-			position_reset(true), timer(0), best_score(std::make_pair(Point(0, 0), std::make_pair(Point(0, 0), Angle::zero())))
+			ShootGoal(World world, bool force) : Tactic(world, true), kick_attempted(false), force(force), shoot_score(Angle::zero())
 			{
 				// world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &ShootGoal::on_player_removed));
 			}
@@ -52,14 +51,8 @@ namespace {
 				return u8"shoot-goal";
 			}
 
-			bool position_reset;
-			int timer;
-			Point enemy_goal_positive, enemy_goal_negative;
-			Point initial_position;
-			Point target;
-			std::vector<std::pair<Point, std::pair<Point, Angle>>> scores;
-			std::pair<Point, std::pair<Point, Angle>> best_score;
 			std::vector<Point> obstacles;
+			Point target;
 	};
 
 	class ShootTarget : public Tactic {
@@ -92,31 +85,22 @@ namespace {
 	}
 
 	void ShootGoal::player_changed() {
-		initial_position = player.position();
 		kick_attempted = false;
 	}
 
 	void ShootGoal::execute() {
-		scores.clear();
 		obstacles.clear();
-		scores.clear();
 		
-		//first: find the best location to shoot at in a circle centered at the baller with a radius of 0.5m
-		enemy_goal_positive = world.field().enemy_goal_boundary().first.x > 0.0 ? 
-			world.field().enemy_goal_boundary().first : world.field().enemy_goal_boundary().second;
-		enemy_goal_negative = world.field().enemy_goal_boundary().first.x < 0.0 ?
-			world.field().enemy_goal_boundary().first : world.field().enemy_goal_boundary().second;
-
 		for(auto i : world.enemy_team())
 			obstacles.push_back(i.position());
 		for(auto i : world.friendly_team())
 			if((i.position() - player.position()).len() > 0.1)
 				obstacles.push_back(i.position());
 
+		target = angle_sweep_circles(player.position(), world.field().enemy_goal_boundary().first, world.field().enemy_goal_boundary().second, obstacles, Robot::MAX_RADIUS).first;
+
 		shoot_goal(world, player);
 		
-		//shoot_target(world, player, target, BALL_MAX_SPEED);
-
 		/* don't know what this does
 		if (AI::HL::STP::Action::shoot_target(world, player, target, BALL_MAX_SPEED)) {
 			kick_attempted = true;
@@ -134,6 +118,11 @@ _score + Angle::of_radians(1e-9) && shoot_score > Angle::zero()) || cur_shoot_sc
 	}
 
 	void ShootGoal::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
+		ctx->set_source_rgb(1.0, 0.2, 0.2);
+		ctx->set_line_width(0.02);
+		ctx->move_to(player.position().x, player.position().y);
+		ctx->line_to(target.x, target.y);
+		ctx->stroke();
 	}
 
 	bool ShootTarget::done() const {
