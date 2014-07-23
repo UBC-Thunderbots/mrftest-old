@@ -92,7 +92,7 @@ namespace {
 
 		best_score = std::make_tuple(Point(0,0), Point(0,0), 0.0);
 
-		if((world.ball().position() - player.position()).len() > Robot::MAX_RADIUS + 0.02)
+		if((world.ball().position() - player.position()).len() > Robot::MAX_RADIUS + 0.02 && timer > 4)
 			position_reset = true;
 
 		if(position_reset) {
@@ -200,7 +200,7 @@ namespace {
 			return;
 		}
 
-		player.autokick(BALL_MAX_SPEED * 0.5);
+		player.autokick(BALL_MAX_SPEED);
 	}
 
 	void CShootGoal::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
