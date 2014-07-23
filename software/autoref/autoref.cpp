@@ -6,6 +6,7 @@
 #include "ai/backend/backend.h"
 #include "ai/common/world.h"
 #include "ai/common/team.h"
+#include "ai/hl/stp/predicates.h"
 #include "log/shared/enums.h"
 #include "log/shared/magic.h"
 #include "util/algorithm.h"
@@ -33,6 +34,8 @@
 #include <sys/types.h>
 #include <string>
 
+using AI::Common::PlayType;
+using AI::HL::STP::Predicates::playtype;
 
 
 AI::AutoRef* AI::AutoRef::instance = 0;
@@ -45,21 +48,17 @@ AI::AutoRef* AI::AutoRef::instance = 0;
 //If the autoref think that they are not together when they are, lower this value.
 #define ROBOT_OFFSET 0.02
 
-AI::AutoRef::AutoRef(const AI::AIPackage &ai, const AI::HL::W::World &world) : ai(ai), world(world), old_time(std::chrono::steady_clock::now()),FT(world.friendly_team()), ET(world.enemy_team()),ball_is_out_of_play(
+AI::AutoRef::AutoRef(const AI::AIPackage &ai, const AI::HL::W::World &world) : ai(ai), world(world), FT(world.friendly_team()), ET(world.enemy_team()),ball_is_out_of_play(
 		false), print_ball_out_of_play(true), last_touch(NO_TEAM), enemy_in_defense_circle(false), friendly_in_defense_circle(false),partial_violation_e(false), full_violation_e(false), partial_violation_f(false),
 		full_violation_f(false), print_partial_violation_f(false), print_full_violation_f(false),print_partial_violation_e(false), print_full_violation_e(false),throwaway(0), print_ball_velocity(true),
 		velocity_greater_than_eight(false),print_velocity_message(false), print_last_team_to_touch_ball(false), verbose(false), update_enemy_past(false),update_friendly_past(false){
+
 	//connect to the signals that fire when receiving packets
 	ai.backend.signal_vision().connect(sigc::mem_fun(this, &AI::AutoRef::on_vision_packet));
 	ai.backend.signal_refbox().connect(sigc::mem_fun(this, &AI::AutoRef::on_refbox_packet));
 
 	//connect to the software tick signal
 	ai.backend.signal_tick().connect(sigc::mem_fun(this, &AI::AutoRef::tick));
-
-
-	old_point = new Point(0,0);
-
-
 }
 
 AI::AutoRef* AI::AutoRef::getInstance(const AI::AIPackage &ai, const AI::HL::W::World &world){
@@ -87,8 +86,8 @@ void AI::AutoRef::tick(){
 
 		//15 packets in and we should have the following data initialized to resize these vectors
 		if(throwaway==15){
-			FP.resize(6);
-			EP.resize(6);
+			FP.resize(12);
+			EP.resize(12);
 		}
 		throwaway++;
 		return;
@@ -183,7 +182,6 @@ void AI::AutoRef::violent_collision() {
 
 	AI::Common::TeamIterator<AI::HL::W::Player, AI::BE::Player> FTI = FT.begin();
 
-
 	//Sweet Jesus of Nazareth its an n^2 algorithms :o
 	//dont hate
 	for (unsigned int i = 0; i < FT.size(); i++) {
@@ -203,19 +201,17 @@ void AI::AutoRef::violent_collision() {
 			if(!update_enemy_past){
 				ep.first = current_e.position();
 				ep.second = std::chrono::steady_clock::now();
+				assert(current_e.pattern() < EP.size());
 				EP[current_e.pattern()].push_front(ep);
 				EP[current_e.pattern()].resize(10);
-
 			}
 
 			if(distance <= 2*current_f.MAX_RADIUS + ROBOT_OFFSET){
 				//These robots are touching so check if they collided violently by looking at past data
 				analyze_the_past(current_f.pattern(), current_e.pattern());
-
 			}
 
 			ETI++;
-
 		}
 
 		update_enemy_past = true;
@@ -231,7 +227,6 @@ void AI::AutoRef::violent_collision() {
 	}
 
 	update_friendly_past = true;
-
 }
 
 bool AI::AutoRef::right_side_of_field(double x, Team t){
@@ -252,9 +247,6 @@ bool AI::AutoRef::right_side_of_field(double x, Team t){
 			return (x>0);
 		}
 	}
-
-
-
 }
 
 
@@ -274,9 +266,6 @@ void AI::AutoRef::multiple_defenders() {
 
 	Point* enemy_centre_of_top_arc = new Point(- friendly_centre_of_top_arc->x,friendly_centre_of_top_arc->y);
 	Point* enemy_centre_of_bottom_arc = new Point(- friendly_centre_of_bottom_arc->x,friendly_centre_of_bottom_arc->y);
-
-
-
 
 	//iteratre through the enemy robots to see if they violate the rule
 	AI::Common::TeamIterator<AI::HL::W::Robot, AI::BE::Robot> ETI = ET.begin();
@@ -335,8 +324,6 @@ void AI::AutoRef::multiple_defenders() {
 				enemy_in_defense_circle = true;
 				partial_violation_e = true;
 			}
-
-
 		}
 		//this case for if the robot is in between the arcs
 		else if ((current.position().y > enemy_centre_of_bottom_arc->y)
@@ -380,8 +367,6 @@ void AI::AutoRef::multiple_defenders() {
 		print_partial_violation_e = false;
 		print_full_violation_e = false;
 	}
-
-
 
 	friendly_in_defense_circle = false;
 	partial_violation_f = false;
@@ -591,38 +576,21 @@ void AI::AutoRef::ball_has_left() {
 
 void AI::AutoRef::on_vision_packet(AI::Timestamp ts, const SSL_WrapperPacket &vision_packet){
 
-	Point current_point;
+	if(print_ball_velocity && ((world.playtype() != PlayType::STOP) || (world.playtype() !=PlayType::HALT)))
+	{
+		double velocity = world.ball().velocity().len();
 
-		current_point = world.ball().position();
-
-		if(print_ball_velocity)
-		{
-			//calcualte distance between last packet and this one. Use Pythagorean theorem
-			double distance = std::sqrt( std::pow(current_point.x - old_point->x,2) + std::pow(current_point.y - old_point->y,2));
-
-			//calcualte time between this packet and last one
-			std::chrono::steady_clock::duration time_span = ts-old_time;
-			double nseconds = double(time_span.count()) * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
-
-			double velocity = distance/ nseconds;
-
-			if(velocity>8){
-				if(!print_velocity_message){
-					print_velocity_message = true;
-					velocity_greater_than_eight = true;
-					std::cout<<"Velocity is greater than 8. Velocity is  "<<velocity<<"m/s \n";
-				}
-			}else{
-					print_velocity_message = false;
-					velocity_greater_than_eight = false;
+		if(velocity>8){
+			if(!print_velocity_message){
+				print_velocity_message = true;
+				velocity_greater_than_eight = true;
+				std::cout << "Velocity is greater than 8. Velocity is  " << velocity << "m/s \n";
 			}
-
+		}else{
+				print_velocity_message = false;
+				velocity_greater_than_eight = false;
 		}
-
-		old_time = ts;
-
-		*old_point = current_point;
-
+	}
 }
 
 void AI::AutoRef::on_refbox_packet(AI::Timestamp ts, const SSL_Referee &vision_packet){

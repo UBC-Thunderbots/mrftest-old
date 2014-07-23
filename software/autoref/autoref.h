@@ -27,7 +27,6 @@
 namespace AI {
 enum Team {
  	FRIENDLY_TEAM, ENEMY_TEAM, NO_TEAM
-
  };
 
 
@@ -54,8 +53,6 @@ enum Team {
 				AutoRef(const AI::AIPackage &ai, const AI::HL::W::World &world);
 				const AI::AIPackage &ai;
 				const AI::HL::W::World &world;
-				AI::Timestamp old_time;
-				Point* old_point;
 				AI::Common::Team<AI::HL::W::Player, AI::BE::Player> FT;
 				AI::Common::Team<AI::HL::W::Robot, AI::BE::Robot> ET;
 
