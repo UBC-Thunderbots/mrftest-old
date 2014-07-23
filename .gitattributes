@@ -458,6 +458,8 @@ software/ai/hl/stp/tactic/penalty_goalie.cpp -text
 software/ai/hl/stp/tactic/penalty_goalie.h -text
 software/ai/hl/stp/tactic/penalty_goalie_new.cpp -text
 software/ai/hl/stp/tactic/penalty_goalie_new.h -text
+software/ai/hl/stp/tactic/penalty_goalie_random.cpp -text
+software/ai/hl/stp/tactic/penalty_goalie_random.h -text
 software/ai/hl/stp/tactic/penalty_shoot.cpp -text
 software/ai/hl/stp/tactic/penalty_shoot.h -text
 software/ai/hl/stp/tactic/ram.cpp -text
