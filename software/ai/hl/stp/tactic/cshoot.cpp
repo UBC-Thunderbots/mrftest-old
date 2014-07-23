@@ -26,7 +26,7 @@ namespace {
 	class CShootGoal : public Tactic {
 		public:
 			CShootGoal(World world, bool force) : Tactic(world, true), kick_attempted(false), force(force),
-			position_reset(true), timer(0), best_score(std::make_tuple(Point(0, 0), Point(0, 0), 0))
+			timer(0), best_score(std::make_tuple(Point(0, 0), Point(0, 0), 0))
 			{
 				// world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &ShootGoal::on_player_removed));
 			}
@@ -54,7 +54,6 @@ namespace {
 				return u8"cshoot-goal";
 			}
 
-			bool position_reset;
 			int timer;
 			Point enemy_goal_positive, enemy_goal_negative;
 			Point initial_position;
@@ -92,12 +91,8 @@ namespace {
 
 		best_score = std::make_tuple(Point(0,0), Point(0,0), 0.0);
 
-		if((world.ball().position() - player.position()).len() > Robot::MAX_RADIUS + 0.02 && timer > 4)
-			position_reset = true;
-
-		if(position_reset) {
+		if((world.ball().position() - player.position()).len() > Robot::MAX_RADIUS + 0.02) {
 			initial_position = player.position();
-			position_reset = false;
 		}
 
 		obstacles.clear();
@@ -132,10 +127,10 @@ namespace {
 							shoot_score = 0.0;
 					}
 
-					if(lineseg_point_dist(Point(x, y), enemy_goal_negative, enemy_goal_positive) < 0.3)
+					if(lineseg_point_dist(Point(x, y), enemy_goal_negative, enemy_goal_positive) < 0.4)
 						shoot_score *= 0.1;
 
-					//shoot_score += (8 - (Point(x, y) - player.position()).len() * 8);
+					shoot_score += (8 - (Point(x, y) - player.position()).len() * 8);
 
 					scores.push_back(std::make_tuple(Point(x, y), sweep_score.first, shoot_score));
 				}
@@ -171,7 +166,7 @@ namespace {
 			Robot::MAX_RADIUS
 			).first;
 
-		if(!player.has_ball() && timer < 0) {
+		if(!player.has_ball() && timer < 2) {
 			intercept_pivot(world, player, target);
 			return;
 		}
@@ -192,8 +187,9 @@ namespace {
 		}
 		*/
 
+		
 		if(((std::get<0>(best_score) - player.position()).len() > 0.05) || 
-				((player.orientation() - (std::get<1>(best_score) - player.position()).orientation()).to_degrees() > 2.0)) {
+				(fabs((player.orientation() - (std::get<1>(best_score) - player.position()).orientation()).to_degrees()) > 2.0)) {
 			//player.type(AI::Flags::MoveType::DRIBBLE);
 			//move(player, (std::get<1>(best_score) - player.position()).orientation(), std::get<0>(best_score));
 			strafe(player, std::get<0>(best_score), std::get<1>(best_score));
