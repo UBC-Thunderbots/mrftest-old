@@ -9,12 +9,8 @@ using namespace AI::HL::W;
 using namespace AI::HL::STP::Tactic;
 
 namespace {
-	DoubleParam PARAM_penalty_stdev(u8"standard deviation for goalie movement (sec/30)", u8"AI/penalty", 0.1, 0.0, 10.0);
-	DoubleParam PARAM_penalty_travel(u8"travel width for goalie movement (Robot width)", u8"AI/penalty", 2.0, 0.0, 10.0);
-
-
-
-
+	DoubleParam PARAM_penalty_stdev(u8"standard deviation for goalie movement (sec divided by 30)", u8"AI/penalty", 0.1, 0.0, 10.0);
+	DoubleParam PARAM_penalty_travel(u8"travel width for goalie movement (robot width)", u8"AI/penalty", 2.0, 0.0, 10.0);
 
 	Point old_des;
 
@@ -30,7 +26,6 @@ namespace {
 			double power;
 			Player select(const std::set<Player> &) const {
 				assert(false);
-			
 			}
 
 			int counter;
@@ -40,7 +35,7 @@ namespace {
 
 			Robot shooter;
 			Glib::ustring description() const {
-				return "penalty-goalie";
+				return u8"penalty-goalie-random";
 			}
 	};
 }
@@ -127,4 +122,3 @@ Tactic::Ptr AI::HL::STP::Tactic::penalty_goalie_random(World world) {
 	Tactic::Ptr p(new PenaltyGoalieRandom(world));
 	return p;
 }
-
