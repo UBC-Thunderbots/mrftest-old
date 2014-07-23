@@ -9,6 +9,13 @@ using namespace AI::HL::W;
 using namespace AI::HL::STP::Tactic;
 
 namespace {
+	DoubleParam PARAM_penalty_stdev(u8"standard deviation for goalie movement (sec/30)", u8"AI/penalty", 0.1, 0.0, 10.0);
+	DoubleParam PARAM_penalty_travel(u8"travel width for goalie movement (Robot width)", u8"AI/penalty", 2.0, 0.0, 10.0);
+
+
+
+
+
 	Point old_des;
 
 	class PenaltyGoalieRandom : public Tactic {
@@ -23,7 +30,13 @@ namespace {
 			double power;
 			Player select(const std::set<Player> &) const {
 				assert(false);
+			
 			}
+
+			int counter;
+			bool is_left;
+			Point left_target;
+			Point right_target;
 
 			Robot shooter;
 			Glib::ustring description() const {
@@ -34,6 +47,10 @@ namespace {
 
 	PenaltyGoalieRandom::PenaltyGoalieRandom(World world) : Tactic(world, true), goto_target1(false), power(0.6) {
 		old_des = Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, -0.8 * Robot::MAX_RADIUS);
+		counter = 0;
+		is_left=true;
+		left_target = Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, PARAM_penalty_travel*Robot::MAX_RADIUS);
+		right_target = Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, -1*PARAM_penalty_travel*Robot::MAX_RADIUS);
 	}
 
 	bool PenaltyGoalieRandom::done() const {
@@ -73,6 +90,33 @@ namespace {
 
 //			// just orient towards the "front"
 //			player.move(next_point, Angle::zero(), Point());
+
+    		// uniform random generator - use timestamp as seed
+			counter--;
+
+			if(is_left){
+				player.move(left_target,Angle::zero(), Point());
+			}
+			else {
+				player.move(right_target,Angle::zero(), Point());
+			}
+
+			if( counter == 0 ){
+
+				unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
+				std::default_random_engine generator (seed);
+				std::normal_distribution<double> normal(0, PARAM_penalty_stdev);
+				double time = normal(generator);
+
+				counter = (int)(time*30);
+
+				if( is_left ){
+					is_left = false;
+				}else{
+					is_left = true;
+				}
+
+			}
 			player.type(AI::Flags::MoveType::RAM_BALL);
 			player.prio(AI::Flags::MovePrio::HIGH);
 		if (player.has_ball())
