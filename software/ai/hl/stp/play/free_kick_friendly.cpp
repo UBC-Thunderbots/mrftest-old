@@ -13,41 +13,33 @@ using namespace AI::HL::STP::Play;
  * - Handle Friendly Free Kick by simply shooting at the enemy goal. 
  */
 
-namespace{
+namespace {
 DoubleParam PARAM_free_kick_at_defence_zone(u8"Ball close to enemy defence area during free kick", u8"STP/freekick", 0.2, 0.0, 1.0);
-BoolParam PARAM_free_kick_defence_enable(u8"Enable ball close to enemy defence area", u8"STP/freekick", false);
+BoolParam PARAM_free_kick_defence_enable(u8"Enable ball close to enemy defence area", u8"STP/freekick", true);
 }
 
 BEGIN_PLAY(FreeKickFriendly)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2))
-APPLICABLE(true)
-DONE(false)
-FAIL(false)
-BEGIN_ASSIGN()
+	INVARIANT((Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2))
+	APPLICABLE(true)
+	DONE(false)
+	FAIL(false)
+	BEGIN_ASSIGN()
 
 // GOALIE
 goalie_role.push_back(goalie_dynamic(world, 1));
 
 // ROLE 1
 // kicker
-if((world.ball().position().x < 0) && baller_can_chip(world, true))
-{
-//	roles[0].push_back(shoot_goal(world));
-//	roles[0].push_back(chip_target(world, world.field().enemy_corner_neg()));
-
-    roles[0].push_back(chip_target(world, world.field().enemy_goal()));
-}
-else if(PARAM_free_kick_defence_enable
-		&& world.ball().position().x > world.field().width()/2-PARAM_free_kick_at_defence_zone
-		&& baller_can_chip(world, true))
-{
-	roles[0].push_back(chip_target(world, world.field().enemy_goal() - Point(world.field().defense_area_radius()/2,0)));
-}
-else
-{
+	if ((world.ball().position().x < 0) && baller_can_chip(world, true)) {
+		//	roles[0].push_back(shoot_goal(world));
+		//	roles[0].push_back(chip_target(world, world.field().enemy_corner_neg()));
+			roles[0].push_back(chip_target(world, world.field().enemy_goal()));
+	} else if (PARAM_free_kick_defence_enable && world.ball().position().x > world.field().width() / 2 - PARAM_free_kick_at_defence_zone && baller_can_chip(world, true)) {
+		roles[0].push_back(chip_target(world, world.field().enemy_goal()- Point(world.field().defense_area_radius() / 2, 0)));
+	} else {
 //	roles[0].push_back(shoot_target(world, world.field().enemy_goal() - Point(-0.3, 0) ));
-	roles[0].push_back(shoot_target(world, world.field().enemy_goal()));
-}
+		roles[0].push_back(chip_target(world, world.field().enemy_goal()));
+		}
 
 // ROLE 2
 // defend
