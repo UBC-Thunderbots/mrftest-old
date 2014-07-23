@@ -67,7 +67,7 @@ namespace {
 	void PenaltyGoalieNew::draw_overlay(Cairo::RefPtr<Cairo::Context> context) const {
 		context->set_line_width(0.02);
 		context->set_source_rgb(1.0, 0, 1.0);
-		context->arc(shooter.position().x, shooter.position().y, Robot::MAX_RADIUS * 1.2, 0.0, 2 * M_PI);
+		context->arc(predicted.x, predicted.y, Robot::MAX_RADIUS * 1.2, 0.0, 2 * M_PI);
 		context->stroke();
 	}
 }
