@@ -232,6 +232,9 @@
         <category name="spin">
           <radians name="change in orientation every time tick for move spin (radians)">3.000</radians>
         </category>
+        <category name="Strafe">
+          <double name="strafing increment">0.171</double>
+        </category>
       </category>
       <category name="ball">
         <boolean name="Calc baller always return">true</boolean>
@@ -264,9 +267,9 @@
         <boolean name="Enable ball close to enemy defence area">false</boolean>
       </category>
       <category name="Goalie">
-        <boolean name="Goalie is lowest index">true</boolean>
-        <integer name="Goalie pattern index">4</integer>
-        <boolean name="Goalie selection by lowest or user assigned">false</boolean>
+        <boolean name="Goalie is lowest index">false</boolean>
+        <integer name="Goalie pattern index">6</integer>
+        <boolean name="Goalie selection by lowest or user assigned">true</boolean>
       </category>
       <category name="Kickoff">
         <degrees name="kickoff: angle to separate players (degrees)">20.0</degrees>
@@ -309,12 +312,14 @@
         <category name="Enable">
           <boolean name="BackUpSteal">false</boolean>
           <boolean name="BallTowardsEnemy">false</boolean>
-          <boolean name="CornerChip">false</boolean>
+          <boolean name="CircularShoot">true</boolean>
+          <boolean name="CornerChip">true</boolean>
           <boolean name="CornerKickFriendly">false</boolean>
           <boolean name="DBasic2Block">true</boolean>
           <boolean name="DBasicCorner">true</boolean>
           <boolean name="DefensiveBlock">true</boolean>
           <boolean name="DirectKickFriendlyPivot">false</boolean>
+          <boolean name="EasyWin">false</boolean>
           <boolean name="FranticDefense">true</boolean>
           <boolean name="FreeKickEnemyDefend">true</boolean>
           <boolean name="FreeKickEnemyDirect">true</boolean>
@@ -324,7 +329,7 @@
           <boolean name="FreeKickFriendlyChip">false</boolean>
           <boolean name="FreeKickFriendlyPass">false</boolean>
           <boolean name="FreeKickFriendlyRay">false</boolean>
-          <boolean name="FreeKickFriendlyRepel">true</boolean>
+          <boolean name="FreeKickFriendlyRepel">false</boolean>
           <boolean name="FreeKickPass">false</boolean>
           <boolean name="GoalKickFriendly">false</boolean>
           <boolean name="GrabBallDefensive">true</boolean>
@@ -336,6 +341,7 @@
           <boolean name="JustShoot">true</boolean>
           <boolean name="JustSpin">false</boolean>
           <boolean name="KickoffEnemy">true</boolean>
+          <boolean name="KickOffEnemySmall">true</boolean>
           <boolean name="KickoffFriendly">false</boolean>
           <boolean name="KickoffFriendlyChip">true</boolean>
           <boolean name="Lone2Player">true</boolean>
@@ -352,7 +358,7 @@
           <boolean name="PassSimple">false</boolean>
           <boolean name="PenaltyEnemy">true</boolean>
           <boolean name="PenaltyFriendly">true</boolean>
-          <boolean name="ShootGoal">true</boolean>
+          <boolean name="ShootGoal">false</boolean>
           <boolean name="Stop">true</boolean>
           <boolean name="StopShadow">false</boolean>
           <boolean name="TestCShoot">false</boolean>
@@ -366,12 +372,14 @@
         <category name="Playbook">
           <integer name="BackUpSteal">1023</integer>
           <integer name="BallTowardsEnemy">1023</integer>
+          <integer name="CircularShoot">1023</integer>
           <integer name="CornerChip">1023</integer>
           <integer name="CornerKickFriendly">1023</integer>
           <integer name="DBasic2Block">1023</integer>
           <integer name="DBasicCorner">1023</integer>
           <integer name="DefensiveBlock">1023</integer>
           <integer name="DirectKickFriendlyPivot">1023</integer>
+          <integer name="EasyWin">1023</integer>
           <integer name="FranticDefense">1023</integer>
           <integer name="FreeKickEnemyDefend">1023</integer>
           <integer name="FreeKickEnemyDirect">1023</integer>
@@ -393,6 +401,7 @@
           <integer name="JustShoot">1023</integer>
           <integer name="JustSpin">1023</integer>
           <integer name="KickoffEnemy">1023</integer>
+          <integer name="KickOffEnemySmall">1023</integer>
           <integer name="KickoffFriendly">1023</integer>
           <integer name="KickoffFriendlyChip">1023</integer>
           <integer name="Lone2Player">1023</integer>
@@ -423,12 +432,14 @@
         <category name="Priority 0=low, 10=hi, 5=default">
           <integer name="BackUpSteal">5</integer>
           <integer name="BallTowardsEnemy">5</integer>
+          <integer name="CircularShoot">5</integer>
           <integer name="CornerChip">5</integer>
           <integer name="CornerKickFriendly">5</integer>
           <integer name="DBasic2Block">5</integer>
           <integer name="DBasicCorner">5</integer>
           <integer name="DefensiveBlock">5</integer>
           <integer name="DirectKickFriendlyPivot">10</integer>
+          <integer name="EasyWin">5</integer>
           <integer name="FranticDefense">10</integer>
           <integer name="FreeKickEnemyDefend">5</integer>
           <integer name="FreeKickEnemyDirect">5</integer>
@@ -450,6 +461,7 @@
           <integer name="JustShoot">8</integer>
           <integer name="JustSpin">10</integer>
           <integer name="KickoffEnemy">5</integer>
+          <integer name="KickOffEnemySmall">5</integer>
           <integer name="KickoffFriendly">5</integer>
           <integer name="KickoffFriendlyChip">5</integer>
           <integer name="Lone2Player">5</integer>
@@ -480,12 +492,14 @@
         <category name="StaticRoleAssignment">
           <boolean name="BackUpSteal">false</boolean>
           <boolean name="BallTowardsEnemy">false</boolean>
+          <boolean name="CircularShoot">false</boolean>
           <boolean name="CornerChip">false</boolean>
           <boolean name="CornerKickFriendly">false</boolean>
           <boolean name="DBasic2Block">false</boolean>
           <boolean name="DBasicCorner">false</boolean>
           <boolean name="DefensiveBlock">false</boolean>
           <boolean name="DirectKickFriendlyPivot">false</boolean>
+          <boolean name="EasyWin">false</boolean>
           <boolean name="FranticDefense">false</boolean>
           <boolean name="FreeKickEnemyDefend">false</boolean>
           <boolean name="FreeKickEnemyDirect">false</boolean>
@@ -507,6 +521,7 @@
           <boolean name="JustShoot">false</boolean>
           <boolean name="JustSpin">false</boolean>
           <boolean name="KickoffEnemy">false</boolean>
+          <boolean name="KickOffEnemySmall">false</boolean>
           <boolean name="KickoffFriendly">false</boolean>
           <boolean name="KickoffFriendlyChip">false</boolean>
           <boolean name="Lone2Player">false</boolean>
@@ -555,7 +570,7 @@
         <double name="distance to trigger loose_ball predicate">1.000</double>
         <double name="dist thresh to start fight ball with enemy (robot radius)">2.000</double>
         <double name="enemy avoidance distance (robot radius)">3.00</double>
-        <double name="estimate of our chip distance (m)">1.00</double>
+        <double name="estimate of our chip distance (m)">1.000</double>
         <boolean name="new fight">true</boolean>
         <integer name="randomize factor that the baller will shoot even if blocked">5</integer>
       </category>
@@ -589,7 +604,7 @@
           <degrees name="when passer within this angle tol passee responds to passer direction (degrees)">30.0</degrees>
         </category>
         <category name="penalty_goalie">
-          <boolean name="Whether the penalty goalie should choose random points">false</boolean>
+          <boolean name="Whether the penalty goalie should choose random points">true</boolean>
         </category>
       </category>
       <category name="tdefend">
