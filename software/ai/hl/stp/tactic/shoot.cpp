@@ -120,9 +120,8 @@ _score + Angle::of_radians(1e-9) && shoot_score > Angle::zero()) || cur_shoot_sc
 	void ShootGoal::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
 		ctx->set_source_rgb(1.0, 0.2, 0.2);
 		ctx->set_line_width(0.02);
-		ctx->move_to(player.position().x, player.position().y);
-		ctx->line_to(target.x, target.y);
-		ctx->stroke();
+		ctx->arc(target.x, target.y, 0.02, 0, 2*M_PI);
+		ctx->fill();
 	}
 
 	bool ShootTarget::done() const {
