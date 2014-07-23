@@ -344,6 +344,7 @@ software/ai/hl/stp/play/2_mixed_team_defense/mtd_defensive.cpp -text
 software/ai/hl/stp/play/2_mixed_team_defense/mtd_defensive_block.cpp -text
 software/ai/hl/stp/play/3_mixed_team_offense/mto_just_shoot.cpp -text
 software/ai/hl/stp/play/CircularShoot.cpp -text
+software/ai/hl/stp/play/EasyWin.cpp -text
 software/ai/hl/stp/play/backup_steal.cpp -text
 software/ai/hl/stp/play/ball_towards_enemy.cpp -text
 software/ai/hl/stp/play/corner_kick_friendly.cpp -text
