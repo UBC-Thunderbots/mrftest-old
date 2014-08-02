@@ -122,7 +122,7 @@ static void feedback_task(void *UNUSED(param)) {
 			if (icb_crc_error_reported) {
 				flags |= 0x20U;
 			}
-			flags |= 0x80U; // New units of measure.
+			flags |= 0x80U; // For compatibility with pre-2014-08-01 software.
 			frame[20U] = flags;
 			flags = 0U;
 			for (unsigned int i = 0U; i < 4U; ++i) {
