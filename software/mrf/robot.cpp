@@ -10,6 +10,9 @@
 #include <sigc++/functors/mem_fun.h>
 
 namespace {
+	const unsigned int DRIBBLE_POWER_BITS = 5U;
+	const unsigned int DRIBBLE_POWER_MAX = (1U << DRIBBLE_POWER_BITS) - 1U;
+
 	struct RSSITableEntry {
 		int rssi;
 		int db;
@@ -155,14 +158,10 @@ void MRFRobot::drive_brake() {
 	dongle_.dirty_drive();
 }
 
-void MRFRobot::dribble(bool active, bool fast) {
-	dongle_.drive_packet[index][0] &= static_cast<uint16_t>(~((1 << 12) | (1 << 11)));
-	if (active) {
-		dongle_.drive_packet[index][0] |= 1 << 12;
-	}
-	if (!fast) {
-		dongle_.drive_packet[index][0] |= 1 << 11;
-	}
+void MRFRobot::dribble(unsigned int power) {
+	power = clamp(power, 0U, DRIBBLE_POWER_MAX);
+	dongle_.drive_packet[index][2U] &= static_cast<uint16_t>(~(DRIBBLE_POWER_MAX << 11U));
+	dongle_.drive_packet[index][2U] |= static_cast<uint16_t>(power << 11U);
 	dongle_.dirty_drive();
 }
 
@@ -221,7 +220,7 @@ void MRFRobot::autokick(bool chip, double pulse_width) {
 }
 
 MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) :
-		Drive::Robot(index),
+		Drive::Robot(index, DRIBBLE_POWER_MAX),
 		dongle_(dongle),
 		charge_timeout_message(Glib::ustring::compose(u8"Bot %1 charge timeout", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
 		breakout_missing_message(Glib::ustring::compose(u8"Bot %1 breakout missing", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),

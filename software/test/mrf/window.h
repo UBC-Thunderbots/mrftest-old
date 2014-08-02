@@ -3,6 +3,7 @@
 
 #include "mrf/dongle.h"
 #include "mrf/robot.h"
+#include "test/common/dribble.h"
 #include "test/common/drive.h"
 #include "test/common/feedback.h"
 #include "test/common/kicker.h"
@@ -15,7 +16,6 @@
 #include <gtkmm/box.h>
 #include <gtkmm/combobox.h>
 #include <gtkmm/frame.h>
-#include <gtkmm/togglebutton.h>
 #include <gtkmm/window.h>
 
 /**
@@ -58,8 +58,8 @@ class TesterWindow : public Gtk::Window {
 		Gtk::Frame drive_frame;
 		DrivePanel drive_panel;
 
-		Gtk::HBox dribble_hbox;
-		Gtk::ToggleButton dribble_button, dribble_fast_button;
+		Gtk::Frame dribble_frame;
+		DribblePanel dribble_panel;
 
 		Gtk::VBox vbox2;
 
@@ -86,7 +86,6 @@ class TesterWindow : public Gtk::Window {
 
 		void scram();
 		int key_snoop(Widget *, GdkEventKey *event);
-		void on_dribble_toggled();
 		void on_joystick_chooser_changed();
 		void on_joystick_drive_axis_changed();
 		void on_joystick_dribble_changed();

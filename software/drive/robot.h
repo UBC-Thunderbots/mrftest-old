@@ -39,6 +39,11 @@ namespace Drive {
 			const unsigned int index;
 
 			/**
+			 * \brief The maximum power level understood by the \ref dribble function.
+			 */
+			const unsigned int dribble_max_power;
+
+			/**
 			 * \brief Whether or not the robot is currently responding to radio communication.
 			 */
 			Property<bool> alive;
@@ -153,13 +158,11 @@ namespace Drive {
 			virtual void drive_brake() = 0;
 
 			/**
-			 * \brief Turns the dribbler motor on or off.
+			 * \brief Controls the dribbler motor.
 			 *
-			 * \param[in] active \c true to turn the motor on, or \c false to turn it off
-			 *
-			 * \param[in] fast \c true to run the dribbler fast, or \c false to run it slowly
+			 * \param[in] power the power level to use, with 0 meaning stop and a maximum value given by \ref dribble_max_power
 			 */
-			virtual void dribble(bool active, bool fast) = 0;
+			virtual void dribble(unsigned int power) = 0;
 
 			/**
 			 * \brief Sets the state of the capacitor charger.
@@ -207,8 +210,9 @@ namespace Drive {
 			 * \brief Constructs a new Robot.
 			 *
 			 * \param[in] index the pattern index of the robot
+			 * \param[in] dribble_max_power the maximum power level understood by the \ref dribble function
 			 */
-			Robot(unsigned int index);
+			Robot(unsigned int index, unsigned int dribble_max_power);
 
 		private:
 			Annunciator::Message low_battery_message, high_board_temperature_message;

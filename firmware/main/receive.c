@@ -31,7 +31,7 @@ static uint8_t *dma_buffer;
 static receive_drive_t buffers[3U] = {
 	[0U ... 2U] = {
 		.wheels_mode = MOTOR_MODE_MANUAL_COMMUTATION,
-		.dribbler_mode = DRIBBLER_MODE_OFF,
+		.dribbler_power = 0U,
 		.charger_enabled = false,
 		.discharger_enabled = false,
 		.setpoints = { 0, 0, 0, 0 },
@@ -92,13 +92,7 @@ static void receive_task(void *UNUSED(param)) {
 							case 0b10: target->wheels_mode = WHEELS_MODE_OPEN_LOOP; break;
 							case 0b11: target->wheels_mode = WHEELS_MODE_CLOSED_LOOP; break;
 						}
-						if (!(words[0U] & (1U << 12U))) {
-							target->dribbler_mode = DRIBBLER_MODE_BRAKE;
-						} else if (words[0U] & (1U << 11U)) {
-							target->dribbler_mode = DRIBBLER_MODE_SLOW;
-						} else {
-							target->dribbler_mode = DRIBBLER_MODE_FAST;
-						}
+						target->dribbler_power = 255U * (words[2U] >> 11U) / 31U;
 						target->charger_enabled = !!(words[1U] & (1U << 15U));
 						target->discharger_enabled = !!(words[1U] & (1U << 14U));
 						for (unsigned int i = 0U; i < 4U; ++i) {

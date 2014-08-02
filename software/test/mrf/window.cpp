@@ -96,8 +96,8 @@ TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) :
 		feedback_panel(dongle, robot),
 		drive_frame(u8"Drive"),
 		drive_panel(robot, &manual_commutation_window),
-		dribble_button(u8"Dribble"),
-		dribble_fast_button(u8"Fast"),
+		dribble_frame(u8"Dribble"),
+		dribble_panel(robot),
 		kicker_frame(u8"Kicker"),
 		kicker_panel(robot),
 		leds_frame(u8"LEDs"),
@@ -118,11 +118,8 @@ TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) :
 	drive_frame.add(drive_panel);
 	vbox1.pack_start(drive_frame, Gtk::PACK_SHRINK);
 
-	dribble_button.signal_toggled().connect(sigc::mem_fun(this, &TesterWindow::on_dribble_toggled));
-	dribble_fast_button.signal_toggled().connect(sigc::mem_fun(this, &TesterWindow::on_dribble_toggled));
-	dribble_hbox.pack_start(dribble_button, Gtk::PACK_EXPAND_WIDGET);
-	dribble_hbox.pack_start(dribble_fast_button, Gtk::PACK_EXPAND_WIDGET);
-	vbox1.pack_start(dribble_hbox, Gtk::PACK_SHRINK);
+	dribble_frame.add(dribble_panel);
+	vbox1.pack_start(dribble_frame, Gtk::PACK_SHRINK);
 
 	hbox.pack_start(vbox1, Gtk::PACK_EXPAND_WIDGET);
 
@@ -164,7 +161,7 @@ TesterWindow::~TesterWindow() = default;
 
 void TesterWindow::scram() {
 	drive_panel.coast();
-	dribble_button.set_active(false);
+	dribble_panel.stop();
 	kicker_panel.scram();
 }
 
@@ -172,13 +169,9 @@ int TesterWindow::key_snoop(Widget *, GdkEventKey *event) {
 	if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_Z || event->keyval == GDK_z)) {
 		// Z letter sets all controls to zero.
 		drive_panel.zero();
-		dribble_button.set_active(false);
+		dribble_panel.stop();
 	}
 	return 0;
-}
-
-void TesterWindow::on_dribble_toggled() {
-	robot.dribble(dribble_button.get_active(), dribble_fast_button.get_active());
 }
 
 void TesterWindow::on_joystick_chooser_changed() {
@@ -232,7 +225,7 @@ void TesterWindow::on_joystick_dribble_changed() {
 	const Joystick &stick = *mapped_joysticks->get_device(static_cast<std::size_t>(joystick_chooser.get_active_row_number()));
 	const JoystickMapping &m = mapped_joysticks->get_mapping(stick);
 	if (m.has_button(JoystickMapping::BUTTON_DRIBBLE) && stick.buttons()[m.button(JoystickMapping::BUTTON_DRIBBLE)]) {
-		dribble_button.set_active(!dribble_button.get_active());
+		dribble_panel.toggle();
 	}
 }
 

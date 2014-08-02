@@ -98,7 +98,7 @@ static void normal_task(void *UNUSED(param)) {
 		const receive_drive_t *drive = receive_lock_latest_drive();
 		wheels_tick(drive, record);
 		if (is_dribbler_tick) {
-			dribbler_tick(receive_drive_timeout() ? DRIBBLER_MODE_OFF : drive->dribbler_mode, record);
+			dribbler_tick(receive_drive_timeout() ? 0U : drive->dribbler_power, record);
 		} else if (record) {
 			record->tick.dribbler_ticked = 0U;
 			record->tick.dribbler_pwm = 0U;

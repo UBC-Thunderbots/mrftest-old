@@ -29,7 +29,7 @@ Player::Player(unsigned int pattern, Drive::Robot &bot) :
 Player::~Player() {
 	static const int ZEROES[4] = { 0, 0, 0, 0 };
 	bot.drive_coast_or_manual(ZEROES);
-	bot.dribble(false, false);
+	bot.dribble(0U);
 	bot.autokick(false, 0);
 	bot.set_charger_state(Drive::Robot::ChargerState::DISCHARGE);
 }
@@ -160,7 +160,8 @@ void Player::tick(bool halt, bool stop) {
 	controlled = false;
 
 	// Dribbler should always run except in halt or stop or when asked not to.
-	bot.dribble(!halt && !stop && !dribble_stop_, !dribble_slow_);
+	double dribble_fraction = (halt || stop || dribble_stop_) ? 0.0 : dribble_slow_ ? 0.33 : 0.70;
+	bot.dribble(static_cast<unsigned int>(dribble_fraction * bot.dribble_max_power));
 	dribble_slow_ = false;
 	dribble_stop_ = false;
 

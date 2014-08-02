@@ -3,8 +3,9 @@
 
 Drive::Robot::~Robot() = default;
 
-Drive::Robot::Robot(unsigned int index) :
+Drive::Robot::Robot(unsigned int index, unsigned int dribble_max_power) :
 		index(index),
+		dribble_max_power(dribble_max_power),
 		alive(false),
 		ball_in_beam(false),
 		capacitor_charged(false),

@@ -34,8 +34,6 @@
 #define THERMAL_WARNING_STOP_TEMPERATURE_WINDING (THERMAL_WARNING_START_TEMPERATURE_WINDING - 15.0f) // °C—chead
 #define THERMAL_WARNING_STOP_ENERGY_WINDING ((THERMAL_WARNING_STOP_TEMPERATURE_WINDING - THERMAL_AMBIENT) * THERMAL_CAPACITANCE_WINDING) // joules
 
-#define TARGET_PWM_FAST 180
-#define TARGET_PWM_SLOW 80
 #define MAX_DELTA_PWM 255
 
 static float winding_energy = 0.0f, housing_energy = 0.0f;
@@ -57,11 +55,11 @@ static void update_thermal_model(float added_winding_energy) {
 /**
  * \brief Updates the dribbler.
  *
- * \param[in] mode the dribbler mode
+ * \param[in] pwm the power level of the dribbler
  *
  * \param[out] record the log record whose dribbler-related fields will be updated
  */
-void dribbler_tick(dribbler_mode_t mode, log_record_t *record) {
+void dribbler_tick(uint8_t pwm, log_record_t *record) {
 	// Measure the dribbler speed.
 	int16_t dribbler_speed = hall_speed(4U);
 
@@ -79,18 +77,12 @@ void dribbler_tick(dribbler_mode_t mode, log_record_t *record) {
 	}
 
 	// Decide whether to run or not.
-	if (!receive_drive_timeout() && winding_energy < THERMAL_MAX_ENERGY_WINDING && mode != DRIBBLER_MODE_OFF) {
+	if (!receive_drive_timeout() && winding_energy < THERMAL_MAX_ENERGY_WINDING) {
 		float battery = adc_battery();
 		float back_emf = dribbler_speed * VOLTS_PER_SPEED_UNIT;
 		uint16_t back_emf_pwm = (uint16_t) (back_emf / battery * 255.0f);
 		uint8_t min_pwm = back_emf_pwm <= MAX_DELTA_PWM ? 0 : (uint8_t) (back_emf_pwm - MAX_DELTA_PWM);
 		uint8_t max_pwm = back_emf_pwm >= 255 - MAX_DELTA_PWM ? 255 : (uint8_t) (back_emf_pwm + MAX_DELTA_PWM);
-		uint8_t pwm;
-		switch (mode) {
-			case DRIBBLER_MODE_FAST: pwm = TARGET_PWM_FAST; break;
-			case DRIBBLER_MODE_SLOW: pwm = TARGET_PWM_SLOW; break;
-			default: pwm = 0U; break;
-		}
 		if (pwm > max_pwm) {
 			pwm = max_pwm;
 		} else if (pwm < min_pwm) {

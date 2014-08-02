@@ -4,7 +4,6 @@
 struct receive_drive_struct;
 typedef struct receive_drive_struct receive_drive_t;
 
-#include "dribbler.h"
 #include "motor.h"
 #include "wheels.h"
 #include <stdbool.h>
@@ -17,7 +16,7 @@ typedef struct receive_drive_struct receive_drive_t;
  */
 struct receive_drive_struct {
 	wheels_mode_t wheels_mode; ///< The mode to run the wheels.
-	dribbler_mode_t dribbler_mode; ///< The mode to run the dribbler.
+	unsigned int dribbler_power; ///< The PWM level to run the dribbler.
 	bool charger_enabled; ///< Whether to charge the capacitors.
 	bool discharger_enabled; ///< Whether to discharge the capacitors.
 	int16_t setpoints[4U]; ///< The drive setpoints.
