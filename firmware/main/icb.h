@@ -197,18 +197,7 @@ typedef enum {
 	 * The first byte specifies the mode.
 	 * The second byte specifies the PWM duty cycle.
 	 *
-	 * The mode byte is divided into bits as follows:
-	 *
-	 * <table>
-	 * <tr><td>Bit</td><td>Purpose</td></tr>
-	 * <tr><td>7</td><td>Commutation data source (0 = MCU, 1 = Hall sensors)</td></tr>
-	 * <tr><td>6</td><td>Hall sensor commutation direction (0 = forward, 1 = reverse) (ignored if bit 7 is 0)</td></tr>
-	 * <tr><td>5–4</td><td>Phase 2 drive mode (ignored if bit 7 is 1): 00 = float, 01 = PWM, 10 = drive low, 11 = drive high</td></tr>
-	 * <tr><td>3–2</td><td>Phase 1 drive mode</td></tr>
-	 * <tr><td>1–0</td><td>Phase 0 drive mode</td></tr>
-	 * </table>
-	 *
-	 * Note that when safety interlocks are applied, only floating and driving low are possible in MCU-commutated mode; PWM and driving high are prohibited.
+	 * The mode byte is either 0 for coasting, 1 for braking, 2 for driving forward, or 3 for driving backward.
 	 *
 	 * \param motors 10 bytes, 5 motor parameter blocks
 	 */

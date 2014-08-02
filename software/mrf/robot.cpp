@@ -137,18 +137,8 @@ bool MRFRobot::can_coast() const {
 	return true;
 }
 
-void MRFRobot::drive_coast_or_manual(const int(&wheels)[4]) {
-	for (unsigned int i = 0; i < 4; ++i) {
-		unsigned int level_u = static_cast<unsigned int>(std::abs(wheels[i]));
-		if (level_u > 255) {
-			LOG_ERROR(u8"Wheel PWM duty cycle out of range");
-			level_u = 255;
-		}
-		dongle_.drive_packet[index][i] &= static_cast<uint16_t>(~0x7FF);
-		dongle_.drive_packet[index][i] |= static_cast<uint16_t>(level_u);
-	}
-
-	dongle_.drive_packet[index][0] &= static_cast<uint16_t>(~(3 << 13));
+void MRFRobot::drive_coast() {
+	dongle_.drive_packet[index][0U] &= static_cast<uint16_t>(~(3U << 13U));
 	dongle_.dirty_drive();
 }
 

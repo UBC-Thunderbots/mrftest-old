@@ -91,11 +91,10 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) :
 		mapped_joysticks(MappedJoysticksModel::create()),
 		robot(robot),
-		manual_commutation_window(dongle, robot.index),
 		feedback_frame(u8"Feedback"),
 		feedback_panel(dongle, robot),
 		drive_frame(u8"Drive"),
-		drive_panel(robot, &manual_commutation_window),
+		drive_panel(robot),
 		dribble_frame(u8"Dribble"),
 		dribble_panel(robot),
 		kicker_frame(u8"Kicker"),

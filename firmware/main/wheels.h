@@ -21,7 +21,7 @@ typedef struct receive_drive_struct receive_drive_t;
  * \brief The modes the wheels can be in.
  */
 typedef enum {
-	WHEELS_MODE_MANUAL_COMMUTATION, ///< The commutation pattern is controlled by the user.
+	WHEELS_MODE_COAST, ///< The commutation pattern is controlled by the user.
 	WHEELS_MODE_BRAKE, ///< All low-side drivers are on while all high-side drivers are off, thus regeneratively braking.
 	WHEELS_MODE_OPEN_LOOP, ///< Motor commutation is controlled by Hall sensors, with the user providing PWM values.
 	WHEELS_MODE_CLOSED_LOOP, ///< Motor commutation is controlled by Hall sensors, and PWM values are provided by the control loop.

@@ -101,7 +101,7 @@ void dribbler_tick(uint8_t pwm, log_record_t *record) {
 			record->tick.dribbler_pwm = pwm;
 		}
 	} else {
-		motor_set(4U, MOTOR_MODE_MANUAL_COMMUTATION, 0U);
+		motor_set(4U, MOTOR_MODE_COAST, 0U);
 		update_thermal_model(0.0f);
 		if (record) {
 			record->tick.dribbler_pwm = 0U;

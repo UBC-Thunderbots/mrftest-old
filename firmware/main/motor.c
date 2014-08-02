@@ -6,7 +6,6 @@
 #include <registers/timer.h>
 
 static uint8_t motor_packet[10U];
-static uint8_t manual_commutation_patterns[5U] = { 0U, 0U, 0U, 0U, 0U };
 static bool force_power = false;
 static uint8_t stuck_halls[2U];
 
@@ -24,10 +23,9 @@ void motor_init(void) {
  * \brief Stops all the motors.
  */
 void motor_shutdown(void) {
-	// Set them all to floating manual-commutation.
+	// Set them all to coasting.
 	for (unsigned int index = 0U; index < 5U; ++index) {
-		motor_packet[index * 2U] = 0U;
-		motor_set(index, MOTOR_MODE_MANUAL_COMMUTATION, 0U);
+		motor_set(index, MOTOR_MODE_COAST, 0U);
 	}
 	motor_tick();
 }
@@ -42,37 +40,8 @@ void motor_shutdown(void) {
  * \param[in] pwm_level the PWM duty cycle to send
  */
 void motor_set(unsigned int wheel_num, motor_mode_t mode, uint8_t pwm_level) {
-	// Set the new mode, driving phases appropriately.
-	switch (mode) {
-		case MOTOR_MODE_MANUAL_COMMUTATION:
-			motor_packet[wheel_num * 2U] = manual_commutation_patterns[wheel_num];
-			break;
-
-		case MOTOR_MODE_BRAKE:
-			motor_packet[wheel_num * 2U] = 0b00101010;
-			break;
-
-		case MOTOR_MODE_FORWARD:
-			motor_packet[wheel_num * 2U] = 0b10000000;
-			break;
-
-		case MOTOR_MODE_BACKWARD:
-			motor_packet[wheel_num * 2U] = 0b11000000;
-			break;
-	}
-
-	// Record PWM level.
+	motor_packet[wheel_num * 2U + 0U] = mode;
 	motor_packet[wheel_num * 2U + 1U] = pwm_level;
-}
-
-/**
- * \brief Sets the manual commutation pattern for a motor.
- *
- * \param[in] motor the index of the motor to adjust
- * \param[in] the 6-bit manual commutation pattern to apply
- */
-void motor_set_manual_commutation_pattern(unsigned int motor, uint8_t pattern) {
-	__atomic_store_n(&manual_commutation_patterns[motor], pattern & 0x3FU, __ATOMIC_RELAXED);
 }
 
 /**
@@ -125,7 +94,7 @@ void motor_tick(void) {
 	// Never disable it once enabled.
 	bool power = __atomic_load_n(&force_power, __ATOMIC_RELAXED);
 	for (unsigned int i = 0U; i != 5U; ++i) {
-		power = power || (motor_packet[i * 2U] != 0U || motor_packet[i * 2U + 1] != 0U);
+		power = power || (motor_packet[i * 2U] != MOTOR_MODE_COAST && motor_packet[i * 2U] != MOTOR_MODE_BRAKE);
 	}
 	if (power) {
 		gpio_set_output(PIN_POWER_HV, power);

@@ -8,7 +8,6 @@
 #include "test/common/feedback.h"
 #include "test/common/kicker.h"
 #include "test/mrf/leds.h"
-#include "test/mrf/manual_commutation_window.h"
 #include "test/mrf/params.h"
 #include "test/mrf/power.h"
 #include <vector>
@@ -43,8 +42,6 @@ class TesterWindow : public Gtk::Window {
 		Glib::RefPtr<MappedJoysticksModel> mapped_joysticks;
 
 		MRFRobot &robot;
-
-		ManualCommutationWindow manual_commutation_window;
 
 		Gtk::VBox outer_vbox;
 

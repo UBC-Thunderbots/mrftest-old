@@ -30,7 +30,7 @@ static unsigned int robot_index;
 static uint8_t *dma_buffer;
 static receive_drive_t buffers[3U] = {
 	[0U ... 2U] = {
-		.wheels_mode = MOTOR_MODE_MANUAL_COMMUTATION,
+		.wheels_mode = WHEELS_MODE_COAST,
 		.dribbler_power = 0U,
 		.charger_enabled = false,
 		.discharger_enabled = false,
@@ -87,7 +87,7 @@ static void receive_task(void *UNUSED(param)) {
 
 						// Decode the drive packet.
 						switch ((words[0U] >> 13U) & 0b11) {
-							case 0b00: target->wheels_mode = WHEELS_MODE_MANUAL_COMMUTATION; break;
+							case 0b00: target->wheels_mode = WHEELS_MODE_COAST; break;
 							case 0b01: target->wheels_mode = WHEELS_MODE_BRAKE; break;
 							case 0b10: target->wheels_mode = WHEELS_MODE_OPEN_LOOP; break;
 							case 0b11: target->wheels_mode = WHEELS_MODE_CLOSED_LOOP; break;
@@ -171,14 +171,6 @@ static void receive_task(void *UNUSED(param)) {
 						case 0x0CU: // Shut down
 							if (frame_length == HEADER_LENGTH + 1U + FOOTER_LENGTH) {
 								main_shutdown(false);
-							}
-							break;
-
-						case 0x0DU: // Manually commute motors
-							if (frame_length == HEADER_LENGTH + 6U + FOOTER_LENGTH) {
-								for (unsigned int i = 0U; i != 5U; ++i) {
-									motor_set_manual_commutation_pattern(i, dma_buffer[MESSAGE_PAYLOAD_ADDR + i]);
-								}
 							}
 							break;
 					}

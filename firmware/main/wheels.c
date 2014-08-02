@@ -54,7 +54,7 @@ static void set_nominal_drive(unsigned int index, motor_mode_t mode, int16_t dri
 			record->tick.wheels_drives[index] = mode == MOTOR_MODE_BACKWARD ? -drive : drive;
 		}
 	} else {
-		motor_set(index, MOTOR_MODE_MANUAL_COMMUTATION, 0U);
+		motor_set(index, MOTOR_MODE_COAST, 0U);
 		if (record) {
 			record->tick.wheels_drives[index] = 0;
 		}
@@ -62,7 +62,7 @@ static void set_nominal_drive(unsigned int index, motor_mode_t mode, int16_t dri
 
 	// Update the thermal model.
 	float added_energy;
-	if (critical_temp || mode == MOTOR_MODE_MANUAL_COMMUTATION || mode == MOTOR_MODE_BRAKE) {
+	if (critical_temp || mode == MOTOR_MODE_COAST || mode == MOTOR_MODE_BRAKE) {
 		added_energy = 0.0f;
 	} else {
 		float applied_delta_voltage = drive / 255.0f * adc_battery() - encoder_speed(index) * WHEELS_VOLTS_PER_ENCODER_COUNT;
@@ -135,7 +135,7 @@ void wheels_tick(const receive_drive_t *drive, log_record_t *record) {
 		switch (wmode) {
 			case WHEELS_MODE_BRAKE: mmode = MOTOR_MODE_BRAKE; break;
 			case WHEELS_MODE_OPEN_LOOP: mmode = MOTOR_MODE_FORWARD; break;
-			default: mmode = MOTOR_MODE_MANUAL_COMMUTATION; break;
+			default: mmode = MOTOR_MODE_COAST; break;
 		}
 		for (unsigned int i = 0U; i != NUM_WHEELS; ++i) {
 			set_nominal_drive(i, mmode, drive->setpoints[i], record);

@@ -147,10 +147,8 @@ namespace Drive {
 			 * \brief Coasts the robot’s wheels.
 			 *
 			 * If the robot cannot coast its wheels (as indicated by \ref can_coast() returning \c false), it brakes instead.
-			 *
-			 * \param[in] wheels the PWM levels of the wheels, in case manual commutation is active
 			 */
-			virtual void drive_coast_or_manual(const int(&wheels)[4]) = 0;
+			virtual void drive_coast() = 0;
 
 			/**
 			 * \brief Brakes the robot’s wheels.
