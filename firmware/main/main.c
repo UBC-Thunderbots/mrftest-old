@@ -387,7 +387,10 @@ static void main_task(void *UNUSED(param)) {
 		{ 25, false, 0x1847U },
 	};
 	unsigned int profile = switches[1U] & 1U;
+	fputs("MRF init: ", stdout);
+	fflush(stdout);
 	mrf_init(mrf_profiles[profile].channel, mrf_profiles[profile].symbol_rate, mrf_profiles[profile].pan, switches[0U], UINT64_C(0xec89d61e8ffd409b));
+	fputs("OK\r\n", stdout);
 	feedback_init();
 	motor_init();
 	encoder_init();
