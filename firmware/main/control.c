@@ -137,7 +137,6 @@ void control_process_new_setpoints(const int16_t wheel_setpoints[4]) {
 	speed4_to_speed3(temp, setpoints);
 }
 
-#include <stdio.h>
 void control_tick(const int16_t feedback[4U], int16_t drive[4U]) {
 	float Velocity[3];
 	float Veldiff[3];
