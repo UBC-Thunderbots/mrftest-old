@@ -65,7 +65,7 @@ namespace {
 	void BlockBall::execute() {
 		if (!enemy->evaluate()) {
 			Action::stop(world, player);
-			player.dribble_stop();
+			player.dribble(AI::BE::Player::DribbleMode::STOP);
 			return;
 		}
 

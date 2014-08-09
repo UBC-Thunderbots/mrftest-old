@@ -55,8 +55,7 @@ namespace AI {
 					void chip_impl(double speed);
 					void autochip_impl(double speed);
 					bool autokick_fired() const { return autokick_fired_; }
-					void dribble_slow();
-					void dribble_stop();
+					void dribble(DribbleMode mode);
 					unsigned int num_bar_graphs() const;
 					double bar_graph_value(unsigned int) const;
 					Visualizable::Colour bar_graph_colour(unsigned int) const;
@@ -65,7 +64,7 @@ namespace AI {
 					Drive::Robot &bot;
 					Annunciator::Message robot_dead_message;
 					bool autokick_fired_;
-					bool dribble_slow_, dribble_stop_;
+					DribbleMode dribble_mode_;
 					struct AutokickParams {
 						bool chip;
 						double pulse;

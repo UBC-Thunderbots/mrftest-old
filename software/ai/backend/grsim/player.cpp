@@ -27,8 +27,8 @@ namespace {
 Player::Player(unsigned int pattern, const AI::BE::Ball &ball) :
 		AI::BE::Player(pattern),
 		ball(ball),
-		dribble_stop_(false),
-		dribble(false),
+		dribble_requested(false),
+		dribble_active(false),
 		autokick_fired_(false),
 		had_ball(false),
 		chick_mode(ChickMode::IDLE),
@@ -36,11 +36,8 @@ Player::Player(unsigned int pattern, const AI::BE::Ball &ball) :
 		last_chick_time(steady_clock::now()) {
 }
 
-void Player::dribble_slow() {
-}
-
-void Player::dribble_stop() {
-	dribble_stop_ = true;
+void Player::dribble(DribbleMode mode) {
+	dribble_requested = mode != DribbleMode::STOP;
 }
 
 bool Player::has_ball() const {
@@ -65,13 +62,13 @@ bool Player::autokick_fired() const {
 void Player::tick(bool halt, bool stop) {
 	if (halt) {
 		std::fill_n(wheel_speeds_, 4, 0);
-		dribble = false;
+		dribble_active = false;
 		chick_mode = ChickMode::IDLE;
 		chick_power = 0.0;
 	} else {
-		dribble = !stop && !dribble_stop_;
+		dribble_active = !stop && dribble_requested;
 	}
-	dribble_stop_ = false;
+	dribble_requested = false;
 }
 
 void Player::encode_orders(grSim_Robot_Command &packet) {
@@ -79,7 +76,7 @@ void Player::encode_orders(grSim_Robot_Command &packet) {
 	packet.set_veltangent(0.0);
 	packet.set_velnormal(0.0);
 	packet.set_velangular(0.0);
-	packet.set_spinner(dribble);
+	packet.set_spinner(dribble_active);
 	packet.set_wheelsspeed(true);
 
 	autokick_fired_ = false;

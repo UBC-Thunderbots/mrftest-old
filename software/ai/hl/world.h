@@ -62,6 +62,11 @@ namespace AI {
 			class Player : public Robot, public AI::Common::Player {
 				public:
 					/**
+					 * \brief The modes for the dribbler.
+					 */
+					typedef AI::BE::Player::DribbleMode DribbleMode;
+
+					/**
 					 * \brief Constructs a nonexistent Player
 					 */
 					explicit Player();
@@ -170,18 +175,13 @@ namespace AI {
 					void autochip(double power);
 
 					/**
-					 * \brief Slows down the dribbler.
+					 * \brief Controls the dribbler.
 					 *
-					 * This function must be called on every tick in order to remain slow; failing to invoke this function will speed up the dribbler.
-					 */
-					void dribble_slow();
-
-					/**
-					 * \brief Stops the dribbler.
+					 * If this function is not called in a tick, the dribbler stops.
 					 *
-					 * This function must be called on every tick in order to remain stopped; failing to invoke this function will start the dribbler.
+					 * \param[in] mode the mode in which to run the dribbler
 					 */
-					void dribble_stop();
+					void dribble(DribbleMode mode);
 			};
 
 			/**
@@ -370,12 +370,8 @@ inline void AI::HL::W::Player::autochip(double power) {
 	AI::Common::Player::impl->autochip(power);
 }
 
-inline void AI::HL::W::Player::dribble_slow() {
-	AI::Common::Player::impl->dribble_slow();
-}
-
-inline void AI::HL::W::Player::dribble_stop() {
-	AI::Common::Player::impl->dribble_stop();
+inline void AI::HL::W::Player::dribble(DribbleMode mode) {
+	AI::Common::Player::impl->dribble(mode);
 }
 
 inline AI::HL::W::World::World(AI::BE::Backend &impl) : impl(impl) {

@@ -363,7 +363,7 @@ void PlayExecutor::tick() {
 
 	for (Player i : world.friendly_team()) {
 		if(!i.has_ball())
-			i.dribble_slow();
+			i.dribble(AI::BE::Player::DribbleMode::CATCH);
 	}
 
 	// override halt completely

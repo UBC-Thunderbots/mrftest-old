@@ -24,6 +24,31 @@ namespace AI {
 				 */
 				typedef BoxPtr<Player> Ptr;
 
+				/**
+				 * \brief The possible ways a robot can dribble.
+				 */
+				enum class DribbleMode {
+					/**
+					 * \brief The dribbler is off.
+					 */
+					STOP,
+
+					/**
+					 * \brief The dribbler is running to catch an incoming ball.
+					 */
+					CATCH,
+
+					/**
+					 * \brief The dribbler is running to pick up a loose ball.
+					 */
+					INTERCEPT,
+
+					/**
+					 * \brief The dribbler is running to carry a possessed ball.
+					 */
+					CARRY,
+				};
+
 				void move(Point dest, Angle ori, Point vel);
 				unsigned int flags() const;
 				void flags(unsigned int flags);
@@ -38,8 +63,7 @@ namespace AI {
 				void autokick(double speed);
 				void chip(double power);
 				void autochip(double power);
-				virtual void dribble_slow() = 0;
-				virtual void dribble_stop() = 0;
+				virtual void dribble(DribbleMode mode) = 0;
 				Point target_velocity() const;
 				bool has_path() const;
 				const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &path() const;

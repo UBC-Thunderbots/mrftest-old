@@ -20,8 +20,7 @@ Player::Player(unsigned int pattern, Drive::Robot &bot) :
 		bot(bot),
 		robot_dead_message(Glib::ustring::compose(u8"Bot %1 dead", pattern), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
 		autokick_fired_(false),
-		dribble_slow_(false),
-		dribble_stop_(false) {
+		dribble_mode_(DribbleMode::STOP) {
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 	bot.signal_autokick_fired.connect(sigc::mem_fun(this, &Player::on_autokick_fired));
 }
@@ -108,12 +107,8 @@ void Player::autochip_impl(double power) {
 	}
 }
 
-void AI::BE::Physical::Player::dribble_slow() {
-	dribble_slow_ = true;
-}
-
-void AI::BE::Physical::Player::dribble_stop() {
-	dribble_stop_ = true;
+void AI::BE::Physical::Player::dribble(DribbleMode mode) {
+	dribble_mode_ = mode;
 }
 
 void Player::on_autokick_fired() {
@@ -159,10 +154,18 @@ void Player::tick(bool halt, bool stop) {
 	controlled = false;
 
 	// Dribbler should always run except in halt or stop or when asked not to.
-	double dribble_fraction = (halt || stop || dribble_stop_) ? 0.0 : dribble_slow_ ? 0.33 : 0.70;
+	if (halt || stop) {
+		dribble_mode_ = DribbleMode::STOP;
+	}
+	double dribble_fraction = 0.0;
+	switch (dribble_mode_) {
+		case DribbleMode::STOP: dribble_fraction = 0.0; break;
+		case DribbleMode::CATCH: dribble_fraction = 0.70; break;
+		case DribbleMode::INTERCEPT: dribble_fraction = 0.33; break;
+		case DribbleMode::CARRY: dribble_fraction = 0.33; break;
+	}
 	bot.dribble(static_cast<unsigned int>(dribble_fraction * bot.dribble_max_power));
-	dribble_slow_ = false;
-	dribble_stop_ = false;
+	dribble_mode_ = DribbleMode::STOP;
 
 	// Kicker should always charge except in halt.
 	bot.set_charger_state(halt ? Drive::Robot::ChargerState::FLOAT : Drive::Robot::ChargerState::CHARGE);

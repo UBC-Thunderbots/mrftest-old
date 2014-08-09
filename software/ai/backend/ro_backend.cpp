@@ -28,8 +28,7 @@ namespace {
 		public:
 			typedef BoxPtr<ROPlayer> Ptr;
 			ROPlayer(unsigned int pattern);
-			void dribble_slow();
-			void dribble_stop();
+			void dribble(DribbleMode mode);
 			bool has_ball() const;
 			bool chicker_ready() const;
 			bool autokick_fired() const;
@@ -102,11 +101,7 @@ ROBackendFactory AI::BE::RO::ro_backend_factory_instance;
 ROPlayer::ROPlayer(unsigned int pattern) : Player(pattern) {
 }
 
-void ROPlayer::dribble_slow() {
-	// Do nothing.
-}
-
-void ROPlayer::dribble_stop() {
+void ROPlayer::dribble(DribbleMode) {
 	// Do nothing.
 }
 

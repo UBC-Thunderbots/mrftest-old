@@ -15,6 +15,6 @@ void AI::HL::STP::Action::dribble(World world, Player player, const Point dest) 
 
 void AI::HL::STP::Action::dribble(World world, Player player) {
 	dribble(world, player, player.position());
-	player.dribble_slow();
+	player.dribble(AI::BE::Player::DribbleMode::CATCH);
 }
 
