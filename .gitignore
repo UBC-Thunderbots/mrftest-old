@@ -3,11 +3,6 @@ firmware/dongle/dongle.elf
 firmware/dongle/dongle.map
 firmware/dongle/html
 firmware/dongle/obj
-firmware/flashburner/flashburner.bin
-firmware/flashburner/flashburner.elf
-firmware/flashburner/flashburner.map
-firmware/flashburner/html
-firmware/flashburner/obj
 firmware/main/html
 firmware/main/main.bin
 firmware/main/main.elf
