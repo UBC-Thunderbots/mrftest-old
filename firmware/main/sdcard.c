@@ -95,7 +95,7 @@ void sd_isr(void) {
 	// clear the mask
 	
 	SDIO_MASK_t mask_temp = { 0 };
-	SDIO_MASK = mask_temp;
+	SDIO.MASK = mask_temp;
 	BaseType_t yield = pdFALSE;
 	xSemaphoreGiveFromISR(int_semaphore, &yield);
 	if (yield) {
@@ -191,10 +191,10 @@ static void clear_cpsm_interrupts(void) {
 		.CTIMEOUTC = 1,
 		.CCRCFAILC = 1,
 	};
-	SDIO_ICR = temp;
+	SDIO.ICR = temp;
 
-	// A dummy read appears to be necessary to delay the CPU long enough for the SDIO_STA flags to actually show as clear.
-	(void) SDIO_ICR;
+	// A dummy read appears to be necessary to delay the CPU long enough for the SDIO.STA flags to actually show as clear.
+	(void) SDIO.ICR;
 }
 
 static void clear_dpsm_interrupts(void) {
@@ -208,10 +208,10 @@ static void clear_dpsm_interrupts(void) {
 		.DTIMEOUTC = 1,
 		.DCRCFAILC = 1,
 	};
-	SDIO_ICR = temp;
+	SDIO.ICR = temp;
 
-	// A dummy read appears to be necessary to delay the CPU long enough for the SDIO_STA flags to actually show as clear.
-	(void) SDIO_ICR;
+	// A dummy read appears to be necessary to delay the CPU long enough for the SDIO.STA flags to actually show as clear.
+	(void) SDIO.ICR;
 }
 
 static bool send_command(uint8_t command, uint32_t argument, unsigned int flags) {
@@ -226,14 +226,14 @@ static bool send_command(uint8_t command, uint32_t argument, unsigned int flags)
 	// Enable interrupts based on type of command.
 	if (flags & COMMAND_FLAG_NO_RESPONSE) {
 		SDIO_MASK_t temp = { .CMDSENTIE = 1 };
-		SDIO_MASK = temp;
+		SDIO.MASK = temp;
 	} else {
 		SDIO_MASK_t temp = { .CTIMEOUTIE = 1, .CMDRENDIE = 1, .CCRCFAILIE = 1 };
-		SDIO_MASK = temp;
+		SDIO.MASK = temp;
 	}
 
 	// Start up command path state machine.
-	SDIO_ARG = argument;
+	SDIO.ARG = argument;
 	SDIO_CMD_t cmd_temp = {
 		.CPSMEN = 1,
 		.CMDINDEX = command,
@@ -245,26 +245,26 @@ static bool send_command(uint8_t command, uint32_t argument, unsigned int flags)
 	} else {
 		cmd_temp.WAITRESP = 0b01;
 	}
-	SDIO_CMD = cmd_temp;
+	SDIO.CMD = cmd_temp;
 
 	// Wait for operation to finish.
 	xSemaphoreTake(int_semaphore, portMAX_DELAY);
 
 	// Check what happened.
-	if (SDIO_STA.CMDREND) {
+	if (SDIO.STA.CMDREND) {
 		// Response received with correct CRC.
-		if ((flags & COMMAND_FLAG_IGNORE_RESPCMD) || SDIO_RESPCMD == command) {
+		if ((flags & COMMAND_FLAG_IGNORE_RESPCMD) || SDIO.RESPCMD == command) {
 			// Response was for the same command.
 			return true;
 		} else {
-			iprintf("SD: Command %" PRIu8 " had different response command %" PRIu8 ".\r\n", command, (uint8_t) SDIO_RESPCMD);
+			iprintf("SD: Command %" PRIu8 " had different response command %" PRIu8 ".\r\n", command, (uint8_t) SDIO.RESPCMD);
 			card_state.status = SD_STATUS_ILLEGAL_RESPONSE;
 			return false;
 		}
-	} else if ((flags & COMMAND_FLAG_NO_RESPONSE) && SDIO_STA.CMDSENT) {
+	} else if ((flags & COMMAND_FLAG_NO_RESPONSE) && SDIO.STA.CMDSENT) {
 		// Command sent, and no response expected.
 		return true;
-	} else if (SDIO_STA.CCRCFAIL) {
+	} else if (SDIO.STA.CCRCFAIL) {
 		// CRC failed.
 		if (flags & COMMAND_FLAG_IGNORE_CRC) {
 			return true;
@@ -273,7 +273,7 @@ static bool send_command(uint8_t command, uint32_t argument, unsigned int flags)
 			card_state.status = SD_STATUS_CRC_ERROR;
 			return false;
 		}
-	} else if (SDIO_STA.CTIMEOUT) {
+	} else if (SDIO.STA.CTIMEOUT) {
 		// Timeout waiting for response.
 		iprintf("SD: Command %" PRIu8 " response timeout.\r\n", command);
 		card_state.status = SD_STATUS_COMMAND_RESPONSE_TIMEOUT;
@@ -293,7 +293,7 @@ static bool send_command_r1(uint8_t command, uint32_t argument, uint8_t state_ex
 	}
 
 	//grab the card response gained by sending command	
-	uint32_t r1 = SDIO_RESP [0];
+	uint32_t r1 = SDIO.RESP[0];
 
 	uint8_t current_state = (r1 >> 9)&0x0F;
 	r1 &= 0xFFF9E008;//zero everything that doesn't need to be checked. 
@@ -345,7 +345,7 @@ static bool send_command_r1(uint8_t command, uint32_t argument, uint8_t state_ex
 		card_state.status = SD_STATUS_AKE_SEQ_ERROR;
 	}
 
-	printf("SD: Command %" PRIu8 " failed (R1 = 0x%" PRIX32 ").\r\n", command, SDIO_RESP[0U]);
+	printf("SD: Command %" PRIu8 " failed (R1 = 0x%" PRIX32 ").\r\n", command, SDIO.RESP[0U]);
 
 	return false;
 }
@@ -357,7 +357,7 @@ static bool send_command_r6 (uint8_t command, uint32_t argument,  uint16_t * RCA
 	}
 
 	//grab the card response  gained by sending command	
-	uint32_t r6 = SDIO_RESP [0];
+	uint32_t r6 = SDIO.RESP[0];
 	*RCA = r6 >> 16;
 
 	uint8_t current_state = (r6 >> 9)&0x0F;
@@ -381,7 +381,7 @@ static bool send_command_r6 (uint8_t command, uint32_t argument,  uint16_t * RCA
 		card_state.status = SD_STATUS_AKE_SEQ_ERROR;
 	}
 
-	printf("SD: Command %" PRIu8 " failed (R6 = 0x%" PRIX32 ").\r\n", command, SDIO_RESP[0U]);
+	printf("SD: Command %" PRIu8 " failed (R6 = 0x%" PRIX32 ").\r\n", command, SDIO.RESP[0U]);
 
 	return false;
 }
@@ -417,7 +417,7 @@ bool sd_init(void) {
 	rcc_enable_reset(APB2, SDIO);
 	
 	//Initialize the STM32 SD card registers
-	SDIO_POWER.PWRCTRL = 0b11;
+	SDIO.POWER.PWRCTRL = 0b11;
 	{
 		SDIO_CLKCR_t tmp = {
 			.HWFC_EN = 0, // Errata: hardware flow control doesn’t work.
@@ -428,7 +428,7 @@ bool sd_init(void) {
 			.CLKEN = 1, // Enable clock.
 			.CLKDIV = 118, // 48M/400k = 120 = 118 + 2.
 		};
-		SDIO_CLKCR = tmp;
+		SDIO.CLKCR = tmp;
 	}
 
 	// Setting up interrupts and related things.
@@ -449,7 +449,7 @@ bool sd_init(void) {
 	{
 		uint32_t r7;
 		bool ret = send_command(SEND_IF_COND, (0b0001 << 8) | 0x5A, 0U);
-		r7 = SDIO_RESP[0];
+		r7 = SDIO.RESP[0];
 		if (ret) {
 			// Command was accepted, so this must be a version 2 card.
 			v2 = true;
@@ -493,13 +493,13 @@ bool sd_init(void) {
 		}
 		if (!send_command(SD_SEND_OP_COND, arg, COMMAND_FLAG_IGNORE_CRC)) {
 			return false;
-		} else if (SDIO_RESP[0]>>31) {
+		} else if (SDIO.RESP[0]>>31) {
 			break;
 		}
 		vTaskDelay(1U);
 	}
 
-	if ( !( SDIO_RESP[0] >> 20 & 0x01 || SDIO_RESP[0] >> 21 & 0x01 )) {
+	if ( !( SDIO.RESP[0] >> 20 & 0x01 || SDIO.RESP[0] >> 21 & 0x01 )) {
 		printf ("Unacceptable voltage.");
 		return false;
 	}
@@ -507,7 +507,7 @@ bool sd_init(void) {
 	card_state.status = SD_STATUS_UNINITIALIZED;	
 	// Determine card capacity class (SDSC vs SDHC/SDXC).
 	if (v2) {
-		card_state.sdhc =  ((SDIO_RESP[0] >> 30) & 0x02) ? true : false;   
+		card_state.sdhc =  ((SDIO.RESP[0] >> 30) & 0x02) ? true : false;   
 	} else {
 		card_state.sdhc = false;
 	}
@@ -530,7 +530,7 @@ bool sd_init(void) {
 		{
 			for (int k = 0; k<4; k++ )
 			{
-				csd[i*4+k] = SDIO_RESP[i] >> (4-k-1)*8;
+				csd[i*4+k] = SDIO.RESP[i] >> (4-k-1)*8;
 			}
 		}
 
@@ -564,8 +564,8 @@ bool sd_init(void) {
 		float Data_timeout = ( convert_TAAC(csd[1])*10e-9F/(1.0F/CLOCK) + csd[2] * 100 ) * 100 ;
 		float Hundredms = 0.1F/(1.0F/CLOCK);
 		if ( Data_timeout < Hundredms )
-			SDIO_DTIMER = (uint32_t)Data_timeout;
-		else SDIO_DTIMER = (uint32_t) Hundredms;
+			SDIO.DTIMER = (uint32_t)Data_timeout;
+		else SDIO.DTIMER = (uint32_t) Hundredms;
 	}
 
 	if (!send_command_r1(SELECT_CARD, RCA << 16U, STATE_STBY)) return false;
@@ -578,7 +578,7 @@ bool sd_init(void) {
 	//TODO: UHS-I specific. 
 
 	// Read the card specific data register and compute the number of sectors on the card.
-	SDIO_DLEN = (uint32_t) 512;
+	SDIO.DLEN = (uint32_t) 512;
 
 	card_state.status = SD_STATUS_OK;
 
@@ -591,7 +591,7 @@ bool sd_init(void) {
 	}
 
 	// Set bus width.
-	SDIO_CLKCR_t clkcr_tmp = SDIO_CLKCR;
+	SDIO_CLKCR_t clkcr_tmp = SDIO.CLKCR;
 	if (!send_command_r1(APP_CMD, RCA << 16U, STATE_TRAN)) {
 		return false;
 	}
@@ -602,9 +602,9 @@ bool sd_init(void) {
 	}
 
 	// Increase clock frequency.
-	// Note, this and the above WIDBUS change are rolled into one register write because it is not permitted to write to SDIO_CLKCR twice in quick succession.
+	// Note, this and the above WIDBUS change are rolled into one register write because it is not permitted to write to SDIO.CLKCR twice in quick succession.
 	clkcr_tmp.CLKDIV = 0;
-	SDIO_CLKCR = clkcr_tmp;
+	SDIO.CLKCR = clkcr_tmp;
 
 	return true;
 }
@@ -636,7 +636,7 @@ bool sd_read(uint32_t sector, void *buffer) {
 
 	// Initialize DMA engine.
 	DMA2.streams[SD_DMA_STREAM].M0AR = buffer;
-	DMA2.streams[SD_DMA_STREAM].PAR = &SDIO_FIFO;
+	DMA2.streams[SD_DMA_STREAM].PAR = &SDIO.FIFO;
 	DMA_SxFCR_t temp_FCR = {
 		.FTH = DMA_FIFO_THRESHOLD_FULL,
 		.DMDIS = 1,
@@ -670,7 +670,7 @@ bool sd_read(uint32_t sector, void *buffer) {
 
 	// Enable the DPSM before sending the command, because the card may start sending back data at any time.
 	SDIO_DCTRL_t dctrl_temp = { .DTEN = 1, .DTDIR = 1, .DTMODE = 0, .DMAEN = 1, .DBLOCKSIZE = 9 };
-	SDIO_DCTRL = dctrl_temp;
+	SDIO.DCTRL = dctrl_temp;
 
 	// Send the command.
 	if (!send_command_r1( READ_SINGLE_BLOCK, sector, STATE_TRAN)) {
@@ -679,17 +679,17 @@ bool sd_read(uint32_t sector, void *buffer) {
 
 	// Now that the CPSM is finished, wait for the DPSM to also finish.
 	SDIO_MASK_t mask_temp = { .DBCKENDIE = 1, .DCRCFAILIE = 1, .DTIMEOUTIE = 1 };
-	SDIO_MASK = mask_temp;
+	SDIO.MASK = mask_temp;
 	xSemaphoreTake(int_semaphore, portMAX_DELAY);
 
 	// SD error handling.
-	if (SDIO_STA.DTIMEOUT) {
+	if (SDIO.STA.DTIMEOUT) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
 		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
 		fputs("SD: Data timeout\r\n", stdout);
 		return false;
-	} else if (SDIO_STA.DCRCFAIL) {
+	} else if (SDIO.STA.DCRCFAIL) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
 		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
@@ -730,7 +730,7 @@ bool sd_write(uint32_t sector, const void *data) {
 
 	// Initialize the DMA engine.
 	DMA2.streams[SD_DMA_STREAM].M0AR = (void *) data;
-	DMA2.streams[SD_DMA_STREAM].PAR = &SDIO_FIFO;
+	DMA2.streams[SD_DMA_STREAM].PAR = &SDIO.FIFO;
 	DMA_SxFCR_t temp_FCR = {
 		.FTH = DMA_FIFO_THRESHOLD_FULL,
 		.DMDIS = 1,
@@ -769,21 +769,21 @@ bool sd_write(uint32_t sector, const void *data) {
 
 	// Enable the DPSM and transfer the data.
 	SDIO_DCTRL_t dctrl_temp = { .DTEN = 1, .DTDIR = 0, .DTMODE = 0, .DMAEN = 1, .DBLOCKSIZE = 9 };
-	SDIO_DCTRL = dctrl_temp;
+	SDIO.DCTRL = dctrl_temp;
 	SDIO_MASK_t mask_temp = { .DBCKENDIE = 1, .DCRCFAILIE = 1, .DTIMEOUTIE = 1 };
-	SDIO_MASK = mask_temp;
+	SDIO.MASK = mask_temp;
 
 	// Wait for SD controller to interrupt with error/transfer complete.
 	xSemaphoreTake(int_semaphore, portMAX_DELAY);
 
 	// SD error handling.
-	if (SDIO_STA.DTIMEOUT) {
+	if (SDIO.STA.DTIMEOUT) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
 		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
 		fputs("SD: Data timeout\r\n", stdout);
 		return false;
-	} else if (SDIO_STA.DCRCFAIL) {
+	} else if (SDIO.STA.DCRCFAIL) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
 		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
@@ -800,7 +800,7 @@ bool sd_write(uint32_t sector, const void *data) {
 	// TXACT, TXFIFOE, and TXFIFOHE all go from 1 to 0 when the DPSM goes idle.
 	// However, the host controller only generates interrupts when a status flag goes high, not low.
 	// So, busy-wait instead.
-	while (SDIO_STA.TXACT) {
+	while (SDIO.STA.TXACT) {
 		taskYIELD();
 	}
 

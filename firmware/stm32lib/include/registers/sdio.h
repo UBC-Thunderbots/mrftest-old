@@ -8,14 +8,11 @@
 
 #include <stdint.h>
 
-#define SDIO_BASE 0x40012C00
-
 typedef struct {
 	unsigned PWRCTRL : 2;
 	unsigned : 30;
 } SDIO_POWER_t;
 _Static_assert(sizeof(SDIO_POWER_t) == 4U, "SDIO_POWER_t is wrong size");
-#define SDIO_POWER (*(volatile SDIO_POWER_t *) (SDIO_BASE + 0x00))
 
 typedef struct {
 	unsigned CLKDIV : 8;
@@ -28,9 +25,6 @@ typedef struct {
 	unsigned : 17;
 } SDIO_CLKCR_t;
 _Static_assert(sizeof(SDIO_CLKCR_t) == 4U, "SDIO_CLKCR_t is wrong size");
-#define SDIO_CLKCR (*(volatile SDIO_CLKCR_t *) (SDIO_BASE + 0x04))
-
-#define SDIO_ARG (*(volatile uint32_t *) (SDIO_BASE + 0x08))
 
 typedef struct {
 	unsigned CMDINDEX : 6;
@@ -45,15 +39,6 @@ typedef struct {
 	unsigned : 17;
 } SDIO_CMD_t;
 _Static_assert(sizeof(SDIO_CMD_t) == 4U, "SDIO_CMD_t is wrong size");
-#define SDIO_CMD (*(volatile SDIO_CMD_t *) (SDIO_BASE + 0x0C))
-
-#define SDIO_RESPCMD (*(const volatile uint32_t *) (SDIO_BASE + 0x10))
-
-#define SDIO_RESP ((const volatile uint32_t *) (SDIO_BASE + 0x14))
-
-#define SDIO_DTIMER (*(volatile uint32_t *) (SDIO_BASE + 0x24))
-
-#define SDIO_DLEN (*(volatile uint32_t *) (SDIO_BASE + 0x28))
 
 typedef struct {
 	unsigned DTEN : 1;
@@ -68,9 +53,6 @@ typedef struct {
 	unsigned : 20;
 } SDIO_DCTRL_t;
 _Static_assert(sizeof(SDIO_DCTRL_t) == 4U, "SDIO_DCTRL_t is wrong size");
-#define SDIO_DCTRL (*(volatile SDIO_DCTRL_t *) (SDIO_BASE + 0x2C))
-
-#define SDIO_DCOUNT (*(const volatile uint32_t *) (SDIO_BASE + 0x30))
 
 typedef struct {
 	unsigned CCRCFAIL : 1;
@@ -100,7 +82,6 @@ typedef struct {
 	unsigned : 8;
 } SDIO_STA_t;
 _Static_assert(sizeof(SDIO_STA_t) == 4U, "SDIO_STA_t is wrong size");
-#define SDIO_STA (*(const volatile SDIO_STA_t *) (SDIO_BASE + 0x34))
 
 typedef struct {
 	unsigned CCRCFAILC : 1;
@@ -120,7 +101,6 @@ typedef struct {
 	unsigned : 8;
 } SDIO_ICR_t;
 _Static_assert(sizeof(SDIO_ICR_t) == 4U, "SDIO_ICR_t is wrong size");
-#define SDIO_ICR (*(volatile SDIO_ICR_t *) (SDIO_BASE + 0x38))
 
 typedef struct {
 	unsigned CCRCFAILIE : 1;
@@ -150,11 +130,30 @@ typedef struct {
 	unsigned : 8;
 } SDIO_MASK_t;
 _Static_assert(sizeof(SDIO_MASK_t) == 4U, "SDIO_MASK_t is wrong size");
-#define SDIO_MASK (*(volatile SDIO_MASK_t *) (SDIO_BASE + 0x3C))
 
-#define SDIO_FIFOCNT (*(const volatile uint32_t *) (SDIO_BASE + 0x48))
+typedef struct {
+	SDIO_POWER_t POWER;
+	SDIO_CLKCR_t CLKCR;
+	uint32_t ARG;
+	SDIO_CMD_t CMD;
+	uint32_t RESPCMD;
+	uint32_t RESP[4U];
+	uint32_t DTIMER;
+	uint32_t DLEN;
+	SDIO_DCTRL_t DCTRL;
+	uint32_t DCOUNT;
+	SDIO_STA_t STA;
+	SDIO_ICR_t ICR;
+	SDIO_MASK_t MASK;
+	unsigned int pad1;
+	unsigned int pad2;
+	uint32_t FIFOCNT;
+	unsigned int pad3[(0x80U - 0x4CU) / 4U];
+	uint32_t FIFO;
+} SDIO_t;
+_Static_assert(sizeof(SDIO_t) == 0x84U, "SDIO_t is wrong size");
 
-#define SDIO_FIFO (*(volatile uint32_t *) (SDIO_BASE + 0x80))
+extern volatile SDIO_t SDIO;
 
 #endif
 

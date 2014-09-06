@@ -8,14 +8,11 @@
 
 #include <stdint.h>
 
-#define SYSCFG_BASE 0x40013800
-
 typedef struct {
 	unsigned MEM_MODE : 2;
 	unsigned : 30;
 } SYSCFG_MEMRMP_t;
 _Static_assert(sizeof(SYSCFG_MEMRMP_t) == 4U, "SYSCFG_MEMRMP_t is wrong size");
-#define SYSCFG_MEMRMP (*(volatile SYSCFG_MEMRMP_t *) (SYSCFG_BASE + 0x00))
 
 typedef struct {
 	unsigned : 23;
@@ -23,10 +20,6 @@ typedef struct {
 	unsigned : 8;
 } SYSCFG_PMC_t;
 _Static_assert(sizeof(SYSCFG_PMC_t) == 4U, "SYSCFG_PMC_t is wrong size");
-#define SYSCFG_PMC (*(volatile SYSCFG_PMC_t *) (SYSCFG_BASE + 0x04))
-
-typedef uint32_t SYSCFG_EXTICR_t[4];
-#define SYSCFG_EXTICR (*(volatile SYSCFG_EXTICR_t *) (SYSCFG_BASE + 0x08))
 
 typedef struct {
 	unsigned CMP_PD : 1;
@@ -35,7 +28,18 @@ typedef struct {
 	unsigned : 23;
 } SYSCFG_CMPCR_t;
 _Static_assert(sizeof(SYSCFG_CMPCR_t) == 4U, "SYSCFG_CMPCR_t is wrong size");
-#define SYSCFG_CMPCR (*(volatile SYSCFG_CMPCR_t *) (SYSCFG_BASE + 0x20))
+
+typedef struct {
+	SYSCFG_MEMRMP_t MEMRMP;
+	SYSCFG_PMC_t PMC;
+	uint32_t EXTICR[4U];
+	unsigned int pad1;
+	unsigned int pad2;
+	SYSCFG_CMPCR_t CMPCR;
+} SYSCFG_t;
+_Static_assert(sizeof(SYSCFG_t) == 0x24U, "SYSCFG_t is wrong size");
+
+extern volatile SYSCFG_t SYSCFG;
 
 #endif
 

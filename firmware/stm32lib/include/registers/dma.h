@@ -220,8 +220,8 @@ typedef struct {
 } DMA_t;
 _Static_assert(sizeof(DMA_t) == 0xD0U, "DMA_t is wrong size");
 
-#define DMA1 (*(volatile DMA_t *) DMA1_BASE)
-#define DMA2 (*(volatile DMA_t *) DMA2_BASE)
+extern volatile DMA_t DMA1;
+extern volatile DMA_t DMA2;
 
 #endif
 

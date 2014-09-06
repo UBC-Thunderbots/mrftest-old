@@ -642,12 +642,12 @@ static void icb_crc_error_isr(void) {
 void icb_irq_init(void) {
 	// Map EXTI0 to PB0.
 	rcc_enable(APB2, SYSCFG);
-	SYSCFG_EXTICR[0U] = (SYSCFG_EXTICR[0U] & ~(0xFU << 0U)) | (0b0001 << 0U);
+	SYSCFG.EXTICR[0U] = (SYSCFG.EXTICR[0U] & ~(0xFU << 0U)) | (0b0001 << 0U);
 	rcc_disable(APB2, SYSCFG);
 
 	// Enable rising edge interrupts on EXTI0.
-	EXTI_IMR |= 1U;
-	EXTI_RTSR |= 1U;
+	EXTI.IMR |= 1U;
+	EXTI.RTSR |= 1U;
 
 	// Set up a handler for the ICB CRC error IRQ.
 	icb_irq_set_vector(ICB_IRQ_ICB_CRC, &icb_crc_error_isr);
@@ -662,7 +662,7 @@ void icb_irq_init(void) {
  */
 void icb_irq_shutdown(void) {
 	// Disable rising edge interrupts on EXTI0.
-	EXTI_IMR &= ~1U;
+	EXTI.IMR &= ~1U;
 }
 
 /**
@@ -957,7 +957,7 @@ void dma2_stream3_isr(void) {
  */
 void exti0_isr(void) {
 	// Clear pending interrupt.
-	EXTI_PR = 1U;
+	EXTI.PR = 1U;
 
 	// Give semaphore.
 	BaseType_t yield = pdFALSE;

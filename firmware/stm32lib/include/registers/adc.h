@@ -8,9 +8,6 @@
 
 #include <stdint.h>
 
-#define ADC_BASE 0x40012000
-#define ADC_COMMON_BASE (ADC_BASE + 0x300)
-
 typedef struct {
 	unsigned AWD : 1;
 	unsigned EOC : 1;
@@ -178,7 +175,7 @@ _Static_assert(sizeof(ADC_t) == 0x100U, "ADC_t is wrong size");
 
 typedef ADC_t ADCs_t[3];
 
-#define ADC (*(volatile ADCs_t *) (ADC_BASE))
+extern volatile ADCs_t ADC;
 #define ADC1 (ADC[0])
 #define ADC2 (ADC[1])
 #define ADC3 (ADC[2])
@@ -207,7 +204,6 @@ typedef struct {
 	unsigned : 10;
 } ADC_CSR_t;
 _Static_assert(sizeof(ADC_CSR_t) == 4U, "ADC_CSR_t is wrong size");
-#define ADC_CSR (*(volatile ADC_CSR_t *) (ADC_COMMON_BASE + 0x00))
 
 typedef struct {
 	unsigned MULTI : 5;
@@ -223,14 +219,21 @@ typedef struct {
 	unsigned : 8;
 } ADC_CCR_t;
 _Static_assert(sizeof(ADC_CCR_t) == 4U, "ADC_CCR_t is wrong size");
-#define ADC_CCR (*(volatile ADC_CCR_t *) (ADC_COMMON_BASE + 0x04))
 
 typedef struct {
 	unsigned DATA1 : 16;
 	unsigned DATA2 : 16;
 } ADC_CDR_t;
 _Static_assert(sizeof(ADC_CDR_t) == 4U, "ADC_CDR_t is wrong size");
-#define ADC_CDR (*(volatile ADC_CDR_t *) (ADC_COMMON_BASE + 0x08))
+
+typedef struct {
+	ADC_CSR_t CSR;
+	ADC_CCR_t CCR;
+	ADC_CDR_t CDR;
+} ADC_Common_t;
+_Static_assert(sizeof(ADC_Common_t) == 12U, "ADC_Common_t is wrong size");
+
+extern volatile ADC_Common_t ADC_Common;
 
 #endif
 

@@ -77,10 +77,10 @@ static const fptr interrupt_vectors[82U] __attribute__((used, section(".interrup
 
 static void app_exception_early(void) {
 	// Kick the hardware watchdogs.
-	IWDG_KR = 0xAAAAU;
+	IWDG.KR = 0xAAAAU;
 
 	// Power down the USB engine to disconnect from the host.
-	OTG_FS_GCCFG.PWRDWN = 0;
+	OTG_FS.GCCFG.PWRDWN = 0;
 
 	// Turn the LEDs on, except for Charged.
 	gpio_set(PIN_LED_STATUS);
@@ -96,25 +96,25 @@ static void app_exception_early(void) {
 
 static void app_exception_late(bool core_written) {
 	// Set SYSTICK to divide by 168 so it overflows every microsecond.
-	SYST_RVR.RELOAD = 168U - 1U;
+	SYSTICK.RVR.RELOAD = 168U - 1U;
 	// Set SYSTICK to run with the core AHB clock.
 	{
 		SYST_CSR_t tmp = {
 			.CLKSOURCE = 1, // Use core clock
 			.ENABLE = 1, // Counter is running
 		};
-		SYST_CSR = tmp;
+		SYSTICK.CSR = tmp;
 	}
 	// Reset the counter.
-	SYST_CVR.CURRENT = 0U;
+	SYSTICK.CVR.CURRENT = 0U;
 
 	// Show flashing lights.
 	for (;;) {
-		IWDG_KR = 0xAAAAU;
+		IWDG.KR = 0xAAAAU;
 		gpio_reset(PIN_LED_STATUS);
 		gpio_reset(PIN_LED_LINK);
 		sleep_ms(500U);
-		IWDG_KR = 0xAAAAU;
+		IWDG.KR = 0xAAAAU;
 		gpio_set(PIN_LED_STATUS);
 		if (core_written) {
 			gpio_set(PIN_LED_LINK);
@@ -366,13 +366,13 @@ static void main_task(void *UNUSED(param)) {
 	iprintf("Switches: Robot index %" PRIu8 ", channel %s, safety interlocks %s\r\n", switches[0U], (switches[1U] & 1U) ? "alternate" : "primary", (switches[1U] & 2U) ? "active" : "overridden");
 
 	// Enable independent watchdog.
-	while (IWDG_SR.PVU);
-	IWDG_KR = 0x5555U;
-	IWDG_PR = 3U; // Divide by 32.
-	while (IWDG_SR.RVU);
-	IWDG_KR = 0x5555U;
-	IWDG_RLR = 0xFFFU; // Reload value maximum, roughly 4096 millisecond period.
-	IWDG_KR = 0xCCCCU;
+	while (IWDG.SR.PVU);
+	IWDG.KR = 0x5555U;
+	IWDG.PR = 3U; // Divide by 32.
+	while (IWDG.SR.RVU);
+	IWDG.KR = 0x5555U;
+	IWDG.RLR = 0xFFFU; // Reload value maximum, roughly 4096 millisecond period.
+	IWDG.KR = 0xCCCCU;
 
 	// Bring up lots of stuff.
 	icb_irq_init();
@@ -413,7 +413,7 @@ static void main_task(void *UNUSED(param)) {
 			assert(__atomic_load_n(&wdt_sources, __ATOMIC_RELAXED) == (1U << MAIN_WDT_SOURCE_COUNT) - 1U);
 			__atomic_store_n(&wdt_sources, 0U, __ATOMIC_RELAXED);
 			// Kick the hardware watchdogs.
-			IWDG_KR = 0xAAAAU;
+			IWDG.KR = 0xAAAAU;
 		}
 	}
 
@@ -458,10 +458,10 @@ static void main_task(void *UNUSED(param)) {
 		asm volatile("cpsid i");
 		asm volatile("dsb");
 		{
-			AIRCR_t tmp = AIRCR;
+			AIRCR_t tmp = SCB.AIRCR;
 			tmp.VECTKEY = 0x05FA;
 			tmp.SYSRESETREQ = 1;
-			AIRCR = tmp;
+			SCB.AIRCR = tmp;
 		}
 	} else {
 		asm volatile("cpsid i");

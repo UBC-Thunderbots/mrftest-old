@@ -60,9 +60,6 @@ typedef struct {
 } TIM_basic_t;
 _Static_assert(sizeof(TIM_basic_t) == 0x30U, "TIM_basic_t is wrong size");
 
-#define TIM6 (*(volatile TIM_basic_t *) 0x40001000)
-#define TIM7 (*(volatile TIM_basic_t *) 0x40001400)
-
 typedef struct {
 	unsigned CEN : 1;
 	unsigned UDIS : 1;
@@ -294,13 +291,6 @@ typedef struct {
 	uint32_t CCR1;
 } TIM10_14_t;
 _Static_assert(sizeof(TIM10_14_t) == 0x38U, "TIM10_14_t is wrong size");
-
-#define TIM9 (*(volatile TIM9_12_t *) 0x40014000)
-#define TIM10 (*(volatile TIM10_14_t *) 0x40014400)
-#define TIM11 (*(volatile TIM11_t *) 0x40014800)
-#define TIM12 (*(volatile TIM9_12_t *) 0x40001800)
-#define TIM13 (*(volatile TIM10_14_t *) 0x40001C00)
-#define TIM14 (*(volatile TIM10_14_t *) 0x40002000)
 
 typedef struct {
 	unsigned CEN : 1;
@@ -567,11 +557,6 @@ typedef struct {
 } TIM2_5_t;
 _Static_assert(sizeof(TIM2_5_t) == 0x50U, "TIM2_5_t is wrong size");
 
-#define TIM2 (*(volatile TIM2_t *) 0x40000000)
-#define TIM3 (*(volatile TIM2_5_t *) 0x40000400)
-#define TIM4 (*(volatile TIM2_5_t *) 0x40000800)
-#define TIM5 (*(volatile TIM5_t *) 0x40000C00)
-
 typedef TIM2_5_CR1_t TIM_act_CR1_t;
 
 typedef struct {
@@ -706,8 +691,20 @@ typedef struct {
 } TIM_act_t;
 _Static_assert(sizeof(TIM_act_t) == 0x50U, "TIM_act_t is wrong size");
 
-#define TIM1 (*(volatile TIM_act_t *) 0x40010000)
-#define TIM8 (*(volatile TIM_act_t *) 0x40010400)
+extern volatile TIM_act_t TIM1;
+extern volatile TIM2_t TIM2;
+extern volatile TIM2_5_t TIM3;
+extern volatile TIM2_5_t TIM4;
+extern volatile TIM5_t TIM5;
+extern volatile TIM_basic_t TIM6;
+extern volatile TIM_basic_t TIM7;
+extern volatile TIM_act_t TIM8;
+extern volatile TIM9_12_t TIM9;
+extern volatile TIM10_14_t TIM10;
+extern volatile TIM11_t TIM11;
+extern volatile TIM9_12_t TIM12;
+extern volatile TIM10_14_t TIM13;
+extern volatile TIM10_14_t TIM14;
 
 #endif
 

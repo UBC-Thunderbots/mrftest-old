@@ -6,8 +6,6 @@
 #ifndef STM32LIB_REGISTERS_RCC_H
 #define STM32LIB_REGISTERS_RCC_H
 
-#define RCC_BASE 0x40023800
-
 typedef struct {
 	unsigned HSION : 1;
 	unsigned HSIRDY : 1;
@@ -26,7 +24,6 @@ typedef struct {
 	unsigned : 4;
 } RCC_CR_t;
 _Static_assert(sizeof(RCC_CR_t) == 4U, "RCC_CR_t is wrong size");
-#define RCC_CR (*(volatile RCC_CR_t *) (RCC_BASE + 0x00))
 
 typedef struct {
 	unsigned PLLM : 6;
@@ -40,7 +37,6 @@ typedef struct {
 	unsigned : 4;
 } RCC_PLLCFGR_t;
 _Static_assert(sizeof(RCC_PLLCFGR_t) == 4U, "RCC_PLLCFGR_t is wrong size");
-#define RCC_PLLCFGR (*(volatile RCC_PLLCFGR_t *) (RCC_BASE + 0x04))
 
 typedef struct {
 	unsigned SW : 2;
@@ -57,7 +53,6 @@ typedef struct {
 	unsigned MCO2 : 2;
 } RCC_CFGR_t;
 _Static_assert(sizeof(RCC_CFGR_t) == 4U, "RCC_CFGR_t is wrong size");
-#define RCC_CFGR (*(volatile RCC_CFGR_t *) (RCC_BASE + 0x08))
 
 typedef struct {
 	unsigned LSIRDYF : 1;
@@ -86,7 +81,6 @@ typedef struct {
 	unsigned : 8;
 } RCC_CIR_t;
 _Static_assert(sizeof(RCC_CIR_t) == 4U, "RCC_CIR_t is wrong size");
-#define RCC_CIR (*(volatile RCC_CIR_t *) (RCC_BASE + 0x0C))
 
 typedef struct {
 	unsigned GPIOARST : 1;
@@ -110,7 +104,6 @@ typedef struct {
 	unsigned : 2;
 } RCC_AHB1RSTR_t;
 _Static_assert(sizeof(RCC_AHB1RSTR_t) == 4U, "RCC_AHB1RSTR_t is wrong size");
-#define RCC_AHB1RSTR (*(volatile RCC_AHB1RSTR_t *) (RCC_BASE + 0x10))
 
 typedef struct {
 	unsigned DCMIRST : 1;
@@ -122,14 +115,12 @@ typedef struct {
 	unsigned : 24;
 } RCC_AHB2RSTR_t;
 _Static_assert(sizeof(RCC_AHB2RSTR_t) == 4U, "RCC_AHB2RSTR_t is wrong size");
-#define RCC_AHB2RSTR (*(volatile RCC_AHB2RSTR_t *) (RCC_BASE + 0x14))
 
 typedef struct {
 	unsigned FSMCRST : 1;
 	unsigned : 31;
 } RCC_AHB3RSTR_t;
 _Static_assert(sizeof(RCC_AHB3RSTR_t) == 4U, "RCC_AHB3RSTR_t is wrong size");
-#define RCC_AHB3RSTR (*(volatile RCC_AHB3RSTR_t *) (RCC_BASE + 0x18))
 
 typedef struct {
 	unsigned TIM2RST : 1;
@@ -164,7 +155,6 @@ typedef struct {
 	unsigned UART8RST : 1;
 } RCC_APB1RSTR_t;
 _Static_assert(sizeof(RCC_APB1RSTR_t) == 4U, "RCC_APB1RSTR_t is wrong size");
-#define RCC_APB1RSTR (*(volatile RCC_APB1RSTR_t *) (RCC_BASE + 0x20))
 
 typedef struct {
 	unsigned TIM1RST : 1;
@@ -189,7 +179,6 @@ typedef struct {
 	unsigned : 10;
 } RCC_APB2RSTR_t;
 _Static_assert(sizeof(RCC_APB2RSTR_t) == 4U, "RCC_APB2RSTR_t is wrong size");
-#define RCC_APB2RSTR (*(volatile RCC_APB2RSTR_t *) (RCC_BASE + 0x24))
 
 typedef struct {
 	unsigned GPIOAEN : 1;
@@ -219,7 +208,6 @@ typedef struct {
 	unsigned : 1;
 } RCC_AHB1ENR_t;
 _Static_assert(sizeof(RCC_AHB1ENR_t) == 4U, "RCC_AHB1ENR_t is wrong size");
-#define RCC_AHB1ENR (*(volatile RCC_AHB1ENR_t *) (RCC_BASE + 0x30))
 
 typedef struct {
 	unsigned DCMIEN : 1;
@@ -231,14 +219,12 @@ typedef struct {
 	unsigned : 24;
 } RCC_AHB2ENR_t;
 _Static_assert(sizeof(RCC_AHB2ENR_t) == 4U, "RCC_AHB2ENR_t is wrong size");
-#define RCC_AHB2ENR (*(volatile RCC_AHB2ENR_t *) (RCC_BASE + 0x34))
 
 typedef struct {
 	unsigned FSMCEN : 1;
 	unsigned : 31;
 } RCC_AHB3ENR_t;
 _Static_assert(sizeof(RCC_AHB3ENR_t) == 4U, "RCC_AHB3ENR_t is wrong size");
-#define RCC_AHB3ENR (*(volatile RCC_AHB3ENR_t *) (RCC_BASE + 0x38))
 
 typedef struct {
 	unsigned TIM2EN : 1;
@@ -273,7 +259,6 @@ typedef struct {
 	unsigned UART8EN : 1;
 } RCC_APB1ENR_t;
 _Static_assert(sizeof(RCC_APB1ENR_t) == 4U, "RCC_APB1ENR_t is wrong size");
-#define RCC_APB1ENR (*(volatile RCC_APB1ENR_t *) (RCC_BASE + 0x40))
 
 typedef struct {
 	unsigned TIM1EN : 1;
@@ -299,7 +284,6 @@ typedef struct {
 	unsigned : 10;
 } RCC_APB2ENR_t;
 _Static_assert(sizeof(RCC_APB2ENR_t) == 4U, "RCC_APB2ENR_t is wrong size");
-#define RCC_APB2ENR (*(volatile RCC_APB2ENR_t *) (RCC_BASE + 0x44))
 
 typedef struct {
 	unsigned GPIOALPEN : 1;
@@ -332,7 +316,6 @@ typedef struct {
 	unsigned : 1;
 } RCC_AHB1LPENR_t;
 _Static_assert(sizeof(RCC_AHB1LPENR_t) == 4U, "RCC_AHB1LPENR_t is wrong size");
-#define RCC_AHB1LPENR (*(volatile RCC_AHB1LPENR_t *) (RCC_BASE + 0x50))
 
 typedef struct {
 	unsigned DCMILPEN : 1;
@@ -344,14 +327,12 @@ typedef struct {
 	unsigned : 24;
 } RCC_AHB2LPENR_t;
 _Static_assert(sizeof(RCC_AHB2LPENR_t) == 4U, "RCC_AHB2LPENR_t is wrong size");
-#define RCC_AHB2LPENR (*(volatile RCC_AHB2LPENR_t *) (RCC_BASE + 0x54))
 
 typedef struct {
 	unsigned FSMCLPEN : 1;
 	unsigned : 31;
 } RCC_AHB3LPENR_t;
 _Static_assert(sizeof(RCC_AHB3LPENR_t) == 4U, "RCC_AHB3LPENR_t is wrong size");
-#define RCC_AHB3LPENR (*(volatile RCC_AHB3LPENR_t *) (RCC_BASE + 0x58))
 
 typedef struct {
 	unsigned TIM2LPEN : 1;
@@ -386,7 +367,6 @@ typedef struct {
 	unsigned UART8LPEN : 1;
 } RCC_APB1LPENR_t;
 _Static_assert(sizeof(RCC_APB1LPENR_t) == 4U, "RCC_APB1LPENR_t is wrong size");
-#define RCC_APB1LPENR (*(volatile RCC_APB1LPENR_t *) (RCC_BASE + 0x60))
 
 typedef struct {
 	unsigned TIM1LPEN : 1;
@@ -412,7 +392,6 @@ typedef struct {
 	unsigned : 10;
 } RCC_APB2LPENR_t;
 _Static_assert(sizeof(RCC_APB2LPENR_t) == 4U, "RCC_APB2LPENR_t is wrong size");
-#define RCC_APB2LPENR (*(volatile RCC_APB2LPENR_t *) (RCC_BASE + 0x64))
 
 typedef struct {
 	unsigned LSEON : 1;
@@ -426,7 +405,6 @@ typedef struct {
 	unsigned : 15;
 } RCC_BDCR_t;
 _Static_assert(sizeof(RCC_BDCR_t) == 4U, "RCC_BDCR_t is wrong size");
-#define RCC_BDCR (*(volatile RCC_BDCR_t *) (RCC_BASE + 0x70))
 
 typedef struct {
 	unsigned LSION : 1;
@@ -442,7 +420,6 @@ typedef struct {
 	unsigned LPWRRSTF : 1;
 } RCC_CSR_t;
 _Static_assert(sizeof(RCC_CSR_t) == 4U, "RCC_CSR_t is wrong size");
-#define RCC_CSR (*(volatile RCC_CSR_t *) (RCC_BASE + 0x74))
 
 typedef struct {
 	unsigned MODPER : 13;
@@ -452,7 +429,6 @@ typedef struct {
 	unsigned SSCGEN : 1;
 } RCC_SSCGR_t;
 _Static_assert(sizeof(RCC_SSCGR_t) == 4U, "RCC_SSCGR_t is wrong size");
-#define RCC_SSCGR (*(volatile RCC_SSCGR_t *) (RCC_BASE + 0x80))
 
 typedef struct {
 	unsigned : 6;
@@ -462,7 +438,16 @@ typedef struct {
 	unsigned : 1;
 } RCC_PLLI2SCFGR_t;
 _Static_assert(sizeof(RCC_PLLI2SCFGR_t) == 4U, "RCC_PLLI2SCFGR_t is wrong size");
-#define RCC_PLLI2SCFGR (*(volatile RCC_PLLI2SCFGR_t *) (RCC_BASE + 0x84))
+
+typedef struct {
+	unsigned : 6;
+	unsigned PLLSAIN : 9;
+	unsigned : 9;
+	unsigned PLLSAIQ : 4;
+	unsigned PLLSAIR : 3;
+	unsigned : 1;
+} RCC_PLLSAICFGR_t;
+_Static_assert(sizeof(RCC_PLLSAICFGR_t) == 4U, "RCC_PLLSAICFGR_t is wrong size");
 
 typedef struct {
 	unsigned : 24;
@@ -470,7 +455,44 @@ typedef struct {
 	unsigned : 7;
 } RCC_DCKCFGR_t;
 _Static_assert(sizeof(RCC_DCKCFGR_t) == 4U, "RCC_DCKCFGR_t is wrong size");
-#define RCC_DCKCFGR (*(volatile RCC_DCKCFGR_t *) (RCC_BASE + 0x8C))
+
+typedef struct {
+	RCC_CR_t CR;
+	RCC_PLLCFGR_t PLLCFGR;
+	RCC_CFGR_t CFGR;
+	RCC_CIR_t CIR;
+	RCC_AHB1RSTR_t AHB1RSTR;
+	RCC_AHB2RSTR_t AHB2RSTR;
+	RCC_AHB3RSTR_t AHB3RSTR;
+	unsigned int pad1;
+	RCC_APB1RSTR_t APB1RSTR;
+	RCC_APB2RSTR_t APB2RSTR;
+	unsigned int pad2[2U];
+	RCC_AHB1ENR_t AHB1ENR;
+	RCC_AHB2ENR_t AHB2ENR;
+	RCC_AHB3ENR_t AHB3ENR;
+	unsigned int pad3;
+	RCC_APB1ENR_t APB1ENR;
+	RCC_APB2ENR_t APB2ENR;
+	unsigned int pad4[2U];
+	RCC_AHB1LPENR_t AHB1LPENR;
+	RCC_AHB2LPENR_t AHB2LPENR;
+	RCC_AHB3LPENR_t AHB3LPENR;
+	unsigned int pad5;
+	RCC_APB1LPENR_t APB1LPENR;
+	RCC_APB2LPENR_t APB2LPENR;
+	unsigned int pad6[2U];
+	RCC_BDCR_t BDCR;
+	RCC_CSR_t CSR;
+	unsigned int pad7[2U];
+	RCC_SSCGR_t SSCGR;
+	RCC_PLLI2SCFGR_t PLLI2SCFGR;
+	RCC_PLLSAICFGR_t PLLSAICFGR;
+	RCC_DCKCFGR_t DCKCFGR;
+} RCC_t;
+_Static_assert(sizeof(RCC_t) == 0x90U, "RCC_t is wrong size");
+
+extern volatile RCC_t RCC;
 
 #endif
 

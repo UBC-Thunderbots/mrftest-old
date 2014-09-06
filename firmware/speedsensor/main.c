@@ -110,8 +110,8 @@ static void external_interrupt_15_10_vector(void){
 	// Take one of the interrupt to clear every thing and start the timer, set status_timer_on to on.
 	// Take the other interrupt to stop the timer and update display
 
-	if( EXTI_PR & (1<<12)){
-		EXTI_PR = 1<<12;
+	if( EXTI.PR & (1<<12)){
+		EXTI.PR = 1<<12;
 		gpio_toggle(PIN_LED_LEFT);
 		if( G_status == 0 ){
 			G_status = 1;
@@ -120,8 +120,8 @@ static void external_interrupt_15_10_vector(void){
 		//tic();
 	}
 
-	if( EXTI_PR & (1<<13)){
-		EXTI_PR = 1<<13;
+	if( EXTI.PR & (1<<13)){
+		EXTI.PR = 1<<13;
 		gpio_toggle(PIN_LED_RIGHT);
 		if( G_status == 1 ){
 			G_status = 2;
@@ -200,7 +200,7 @@ static void tic_toc_setup(void){
 	
 	TIM2.ARR = 0x40;
 	
-	NVIC_ISER[28 / 32] = 1 << (28 % 32);
+	NVIC.ISER[28 / 32] = 1 << (28 % 32);
 }
 
 static void timer2_wrap_interrupt(void){
@@ -449,12 +449,12 @@ static void stm32_main(void) {
 
 	// setup interrupt
 	rcc_enable_reset(APB2, SYSCFG);
-	SYSCFG_EXTICR[3] = 0b0001000100010001;
+	SYSCFG.EXTICR[3] = 0b0001000100010001;
 	rcc_disable(APB2, SYSCFG);
 	//           ooo|ooo|ooo|ooo|
-	EXTI_IMR = 0b0011000000000000;
-	EXTI_FTSR= 0b0011000000000000;
-	NVIC_ISER[40 / 32] = 1 << (40 % 32); 
+	EXTI.IMR = 0b0011000000000000;
+	EXTI.FTSR= 0b0011000000000000;
+	NVIC.ISER[40 / 32] = 1 << (40 % 32); 
 
 // SETENA67 = 1; enable USB FS interrupt
 

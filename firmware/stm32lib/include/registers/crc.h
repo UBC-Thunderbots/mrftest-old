@@ -8,18 +8,20 @@
 
 #include <stdint.h>
 
-#define CRC_BASE 0x40023000
-
-#define CRC_DR (*(volatile uint32_t *) (CRC_BASE + 0x00))
-
-#define CRC_IDR (*(volatile uint8_t *) (CRC_BASE + 0x04))
-
 typedef struct {
 	unsigned RESET : 1;
 	unsigned : 31;
 } CRC_CR_t;
 _Static_assert(sizeof(CRC_CR_t) == 4U, "CRC_CR_t is wrong size");
-#define CRC_CR (*(volatile CRC_CR_t *) (CRC_BASE + 0x08))
+
+typedef struct {
+	uint32_t DR;
+	uint8_t IDR;
+	CRC_CR_t CR;
+} CRC_t;
+_Static_assert(sizeof(CRC_t) == 12U, "CRC_t is wrong size");
+
+extern volatile CRC_t CRC;
 
 #endif
 

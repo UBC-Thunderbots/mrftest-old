@@ -8,8 +8,6 @@
 
 #include <stdint.h>
 
-#define RNG_BASE 0x50060800
-
 typedef struct {
 	unsigned : 2;
 	unsigned RNGEN : 1;
@@ -17,7 +15,6 @@ typedef struct {
 	unsigned : 28;
 } RNG_CR_t;
 _Static_assert(sizeof(RNG_CR_t) == 4U, "RNG_CR_t is wrong size");
-#define RNG_CR (*(volatile RNG_CR_t *) (RNG_BASE + 0x00))
 
 typedef struct {
 	unsigned DRDY : 1;
@@ -29,9 +26,15 @@ typedef struct {
 	unsigned : 25;
 } RNG_SR_t;
 _Static_assert(sizeof(RNG_SR_t) == 4U, "RNG_SR_t is wrong size");
-#define RNG_SR (*(volatile RNG_SR_t *) (RNG_BASE + 0x04))
 
-#define RNG_DR (*(volatile uint32_t *) (RNG_BASE + 0x08))
+typedef struct {
+	RNG_CR_t CR;
+	RNG_SR_t SR;
+	uint32_t DR;
+} RNG_t;
+_Static_assert(sizeof(RNG_t) == 12U, "RNG_t is wrong size");
+
+extern volatile RNG_t RNG;
 
 #endif
 

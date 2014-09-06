@@ -31,7 +31,7 @@ static bool shutting_down;
 
 static void mrf_int_isr(void) {
 	// Clear the interrupt and give the semaphore.
-	EXTI_PR = 1U << 12U; // PR12 = 1; clear pending EXTI12 interrupt
+	EXTI.PR = 1U << 12U; // PR12 = 1; clear pending EXTI12 interrupt
 	BaseType_t yield = pdFALSE;
 	xSemaphoreGiveFromISR(event_sem, &yield);
 	if (yield) {

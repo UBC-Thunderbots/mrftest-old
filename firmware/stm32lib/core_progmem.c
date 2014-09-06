@@ -6,12 +6,12 @@ static volatile uint32_t *pointer;
 
 static void start(void) {
 	// Enable Flash writing.
-	FLASH_KEYR = 0x45670123;
-	FLASH_KEYR = 0xCDEF89AB;
+	FLASH.KEYR = 0x45670123;
+	FLASH.KEYR = 0xCDEF89AB;
 
 	// Clear any pending errors.
-	while (FLASH_SR.BSY);
-	FLASH_SR = FLASH_SR;
+	while (FLASH.SR.BSY);
+	FLASH.SR = FLASH.SR;
 
 	// Erase sectors 10 and 11 which are where we keep core dumps.
 	{
@@ -26,20 +26,20 @@ static void start(void) {
 			.SER = 1,
 			.PG = 0,
 		};
-		FLASH_CR = tmp;
+		FLASH.CR = tmp;
 		tmp.STRT = 1;
-		FLASH_CR = tmp;
-		while (FLASH_SR.BSY);
+		FLASH.CR = tmp;
+		while (FLASH.SR.BSY);
 		tmp.STRT = 0;
 		tmp.SNB = 11;
-		FLASH_CR = tmp;
+		FLASH.CR = tmp;
 		tmp.STRT = 1;
-		FLASH_CR = tmp;
-		while (FLASH_SR.BSY);
+		FLASH.CR = tmp;
+		while (FLASH.SR.BSY);
 	}
 
 	// Enable Flash programming.
-	FLASH_CR.PG = 1;
+	FLASH.CR.PG = 1;
 
 	// Set up the pointer.
 	pointer = core_progmem_dump;
@@ -52,7 +52,7 @@ static void write(const void *data, size_t length) {
 	const uint32_t *source = data;
 	while (length) {
 		*pointer = *source;
-		while (FLASH_SR.BSY);
+		while (FLASH.SR.BSY);
 		if (length > 4) {
 			length -= 4;
 		} else {
@@ -68,7 +68,7 @@ static bool end(void) {
 	__sync_synchronize();
 
 	// Check if anything failed.
-	bool failed = !!FLASH_SR.PGSERR || !!FLASH_SR.PGPERR || !!FLASH_SR.PGAERR || !!FLASH_SR.WRPERR;
+	bool failed = !!FLASH.SR.PGSERR || !!FLASH.SR.PGPERR || !!FLASH.SR.PGAERR || !!FLASH.SR.WRPERR;
 
 	// Relock the Flash programming interface.
 	{
@@ -83,7 +83,7 @@ static bool end(void) {
 			.SER = 0,
 			.PG = 0,
 		};
-		FLASH_CR = tmp;
+		FLASH.CR = tmp;
 	}
 
 	return !failed;

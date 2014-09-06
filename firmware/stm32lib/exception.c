@@ -38,18 +38,18 @@ static const exception_app_cbs_t *app_cbs = 0;
 void exception_init(const exception_core_writer_t *cw, const exception_app_cbs_t *acbs) {
 	// Set the interrupt system to set priorities as having the upper three bits for group priorities and the rest as subpriorities.
 	{
-		AIRCR_t tmp = AIRCR;
+		AIRCR_t tmp = SCB.AIRCR;
 		tmp.VECTKEY = 0x05FA;
 		tmp.PRIGROUP = 7U - EXCEPTION_GROUP_PRIO_BITS;
-		AIRCR = tmp;
+		SCB.AIRCR = tmp;
 	}
 
 	// We will run as follows:
 	// CPU exceptions (UsageFault, BusFault, MemManage) will be priority 0.0 and thus preempt everything else.
 	// Other priorities are defined elsewhere.
 	// Give all hardware interrupts a default priority of 6.0 in case some application fails to set a priority.
-	for (size_t i = 0; i < sizeof(NVIC_IPR) / sizeof(*NVIC_IPR); ++i) {
-		NVIC_IPR[i] = (EXCEPTION_MKPRIO(6U, 0U) << 24U) | (EXCEPTION_MKPRIO(6U, 0U) << 16U) | (EXCEPTION_MKPRIO(6U, 0U) << 8U) | EXCEPTION_MKPRIO(6U, 0U);
+	for (size_t i = 0; i < sizeof(NVIC.IPR) / sizeof(*NVIC.IPR); ++i) {
+		NVIC.IPR[i] = (EXCEPTION_MKPRIO(6U, 0U) << 24U) | (EXCEPTION_MKPRIO(6U, 0U) << 16U) | (EXCEPTION_MKPRIO(6U, 0U) << 8U) | EXCEPTION_MKPRIO(6U, 0U);
 	}
 
 	// FreeRTOS sets the PendSV and SysTick exceptions’ priorities itself, so there is no need to do so here.
@@ -57,15 +57,15 @@ void exception_init(const exception_core_writer_t *cw, const exception_app_cbs_t
 
 	// Enable Usage, Bus, and MemManage faults to be taken as such rather than escalating to HardFaults.
 	{
-		SHCSR_t tmp = SHCSR;
+		SHCSR_t tmp = SCB.SHCSR;
 		tmp.USGFAULTENA = 1;
 		tmp.BUSFAULTENA = 1;
 		tmp.MEMFAULTENA = 1;
-		SHCSR = tmp;
+		SCB.SHCSR = tmp;
 	}
 
 	// Enable trap on divide by zero.
-	CCR.DIV_0_TRP = 1;
+	SCB.CCR.DIV_0_TRP = 1;
 
 	// Register the core dump writer and application callbacks.
 	core_writer = cw;
@@ -289,7 +289,7 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 	// Fill out the signal info based on the exception number and fault status registers.
 	switch (cause) {
 		case 3: // Hard fault
-			if (HFSR.DEBUGEVT) {
+			if (SCB.HFSR.DEBUGEVT) {
 				elf_notes.pr_siginfo.si_signum = 6; // SIGABRT
 				elf_notes.pr_siginfo.si_code = -6; // Sent by tkill (what abort()/assert() do)
 			} else {
@@ -300,8 +300,8 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 
 		case 4: // Memory manage fault
 			elf_notes.pr_siginfo.si_signum = 11; // SIGSEGV
-			if (CFSR.MMARVALID) {
-				elf_notes.pr_siginfo.si_addr = (uint32_t) MMFAR;
+			if (SCB.CFSR.MMARVALID) {
+				elf_notes.pr_siginfo.si_addr = (uint32_t) SCB.MMFAR;
 			}
 			// We don’t bother figuring out whether we had SEGV_MAPERR or SEGV_ACCERR.
 			// So, leave si_code at zero.
@@ -309,29 +309,29 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 
 		case 5: // Bus fault
 			elf_notes.pr_siginfo.si_signum = 7; // SIGBUS
-			if (CFSR.BFARVALID) {
-				elf_notes.pr_siginfo.si_addr = (uint32_t) BFAR;
+			if (SCB.CFSR.BFARVALID) {
+				elf_notes.pr_siginfo.si_addr = (uint32_t) SCB.BFAR;
 			}
 			elf_notes.pr_siginfo.si_code = 3; // BUS_OBJERR
 			break;
 
 		case 6: // Usage fault
-			if (CFSR.DIVBYZERO) {
+			if (SCB.CFSR.DIVBYZERO) {
 				elf_notes.pr_siginfo.si_signum = 8; // SIGFPE
 				elf_notes.pr_siginfo.si_code = 1; // FPE_INTDIV
-			} else if (CFSR.UNALIGNED) {
+			} else if (SCB.CFSR.UNALIGNED) {
 				elf_notes.pr_siginfo.si_signum = 7; // SIGBUS
 				elf_notes.pr_siginfo.si_code = 1; // BUS_ADRALN
-			} else if (CFSR.NOCP) {
+			} else if (SCB.CFSR.NOCP) {
 				elf_notes.pr_siginfo.si_signum = 4; // SIGILL
 				elf_notes.pr_siginfo.si_code = 7; // ILL_COPROC
-			} else if (CFSR.INVPC) {
+			} else if (SCB.CFSR.INVPC) {
 				elf_notes.pr_siginfo.si_signum = 4; // SIGILL
 				elf_notes.pr_siginfo.si_code = 2; // ILL_ILLOPN
-			} else if (CFSR.INVSTATE) {
+			} else if (SCB.CFSR.INVSTATE) {
 				elf_notes.pr_siginfo.si_signum = 4; // SIGILL
 				elf_notes.pr_siginfo.si_code = 2; // ILL_ILLOPN
-			} else if (CFSR.UNDEFINSTR) {
+			} else if (SCB.CFSR.UNDEFINSTR) {
 				elf_notes.pr_siginfo.si_signum = 4; // SIGILL
 				elf_notes.pr_siginfo.si_code = 1; // ILL_ILLOPC
 			}
@@ -362,7 +362,7 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 			// In that case, we don’t want to go poking around there!
 			// We might take another fault, and anyway the values we get would be useless.
 			// So check if we faulted while stacking the exception frame before using it.
-			if (CFSR.MSTKERR || CFSR.STKERR) {
+			if (SCB.CFSR.MSTKERR || SCB.CFSR.STKERR) {
 				// A stacking error occurred.
 				hwframe = 0;
 			} else {
@@ -411,7 +411,7 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 		if (CPACR.CP11 != 0 && CPACR.CP10 != 0 && hwframe) {
 			if (swframe->lr & 16) {
 				// The hardware pushed a basic frame.
-				if (FPCCR.ASPEN) {
+				if (FP.CCR.ASPEN) {
 					// Automatic preservation is enabled.
 					// If we had been using FP, the hardware would have pushed an extended frame.
 					// That it pushed a basic frame means no FP was happening.
@@ -429,7 +429,7 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 			} else {
 				// The hardware pushed an extended frame.
 				const hw_extended_stack_frame_t *hweframe = (const hw_extended_stack_frame_t *) hwframe;
-				if (FPCCR.LSPEN) {
+				if (FP.CCR.LSPEN) {
 					// Lazy state preservation has applied here.
 					// There is no data in the frame yet.
 					// Execute an arbitrary floating-point instruction to force the state out to RAM.
@@ -463,7 +463,7 @@ static void common_fault_isr(const sw_stack_frame_t *sp, unsigned int cause) {
 	}
 
 	// Turn off the memory protection unit.
-	MPU_CTRL.ENABLE = 0;
+	MPU.CTRL.ENABLE = 0;
 	asm volatile("dsb");
 	asm volatile("isb");
 

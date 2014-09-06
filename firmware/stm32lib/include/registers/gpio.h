@@ -8,8 +8,6 @@
 
 #include <stdint.h>
 
-#define GPIO_BASE 0x40020000
-
 typedef struct {
 	unsigned BS : 16;
 	unsigned BR : 16;
@@ -62,7 +60,8 @@ _Static_assert(sizeof(GPIO_t) == 0x400U, "GPIO_t is wrong size");
 
 typedef GPIO_t GPIOS_t[9];
 
-#define GPIO (*(volatile GPIOS_t *) GPIO_BASE)
+extern volatile GPIOS_t GPIO;
+
 #define GPIOA (GPIO[0])
 #define GPIOB (GPIO[1])
 #define GPIOC (GPIO[2])

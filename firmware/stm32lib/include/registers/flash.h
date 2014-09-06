@@ -8,8 +8,6 @@
 
 #include <stdint.h>
 
-#define FLASH_BASE 0x40023C00
-
 typedef struct {
 	unsigned LATENCY : 3;
 	unsigned : 5;
@@ -21,10 +19,6 @@ typedef struct {
 	unsigned : 19;
 } FLASH_ACR_t;
 _Static_assert(sizeof(FLASH_ACR_t) == 4U, "FLASH_ACR_t is wrong size");
-#define FLASH_ACR (*(volatile FLASH_ACR_t *) (FLASH_BASE + 0x00))
-
-#define FLASH_KEYR (*(volatile uint32_t *) (FLASH_BASE + 0x04))
-#define FLASH_OPTKEYR (*(volatile uint32_t *) (FLASH_BASE + 0x08))
 
 typedef struct {
 	unsigned EOP : 1;
@@ -39,7 +33,6 @@ typedef struct {
 	unsigned : 15;
 } FLASH_SR_t;
 _Static_assert(sizeof(FLASH_SR_t) == 4U, "FLASH_SR_t is wrong size");
-#define FLASH_SR (*(volatile FLASH_SR_t *) (FLASH_BASE + 0x0C))
 
 typedef struct {
 	unsigned PG : 1;
@@ -57,7 +50,6 @@ typedef struct {
 	unsigned LOCK : 1;
 } FLASH_CR_t;
 _Static_assert(sizeof(FLASH_CR_t) == 4U, "FLASH_CR_t is wrong size");
-#define FLASH_CR (*(volatile FLASH_CR_t *) (FLASH_BASE + 0x10))
 
 typedef struct {
 	unsigned OPTLOCK : 1;
@@ -72,7 +64,6 @@ typedef struct {
 	unsigned : 4;
 } FLASH_OPTCR_t;
 _Static_assert(sizeof(FLASH_OPTCR_t) == 4U, "FLASH_OPTCR_t is wrong size");
-#define FLASH_OPTCR (*(volatile FLASH_OPTCR_t *) (FLASH_BASE + 0x14))
 
 typedef struct {
 	unsigned : 16;
@@ -80,7 +71,19 @@ typedef struct {
 	unsigned : 4;
 } FLASH_OPTCR1_t;
 _Static_assert(sizeof(FLASH_OPTCR1_t) == 4U, "FLASH_OPTCR1_t is wrong size");
-#define FLASH_OPTCR1 (*(volatile FLASH_OPTCR1_t *) (FLASH_BASE + 0x18))
+
+typedef struct {
+	FLASH_ACR_t ACR;
+	uint32_t KEYR;
+	uint32_t OPTKEYR;
+	FLASH_SR_t SR;
+	FLASH_CR_t CR;
+	FLASH_OPTCR_t OPTCR;
+	FLASH_OPTCR1_t OPTCR1;
+} FLASH_t;
+_Static_assert(sizeof(FLASH_t) == 28U, "FLASH_t is wrong size");
+
+extern volatile FLASH_t FLASH;
 
 #endif
 

@@ -6,10 +6,6 @@
 #ifndef STM32LIB_REGISTERS_SPI_H
 #define STM32LIB_REGISTERS_SPI_H
 
-#define SPI1_BASE 0x40013000
-#define SPI2_BASE 0x40003800
-#define SPI3_BASE 0x40003C00
-
 typedef struct {
 	unsigned CPHA : 1;
 	unsigned CPOL : 1;
@@ -91,9 +87,7 @@ typedef struct {
 } SPI_t;
 _Static_assert(sizeof(SPI_t) == 0x24U, "SPI_t is wrong size");
 
-#define SPI1 (*(volatile SPI_t *) SPI1_BASE)
-#define SPI2 (*(volatile SPI_t *) SPI2_BASE)
-#define SPI3 (*(volatile SPI_t *) SPI3_BASE)
+extern volatile SPI_t SPI1, SPI2, SPI3;
 
 #endif
 

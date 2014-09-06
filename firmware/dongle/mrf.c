@@ -95,11 +95,11 @@ void mrf_init(void) {
 
 	// Configure the external interrupt, but do not actually enable it yet.
 	rcc_enable(APB2, SYSCFG);
-	SYSCFG_EXTICR[12U / 4U] = (SYSCFG_EXTICR[12U / 4U] & ~(0xFU << (12U % 4U * 4U))) | (2U << (12U % 4U * 4U));
+	SYSCFG.EXTICR[12U / 4U] = (SYSCFG.EXTICR[12U / 4U] & ~(0xFU << (12U % 4U * 4U))) | (2U << (12U % 4U * 4U));
 	rcc_disable(APB2, SYSCFG);
-	EXTI_RTSR |= 1U << 12U; // TR12 = 1; enable rising edge trigger on EXTI12
-	EXTI_FTSR &= ~(1U << 12U); // TR12 = 0; disable falling edge trigger on EXTI12
-	EXTI_IMR |= 1U << 12U; // MR12 = 1; enable interrupt on EXTI12 trigger
+	EXTI.RTSR |= 1U << 12U; // TR12 = 1; enable rising edge trigger on EXTI12
+	EXTI.FTSR &= ~(1U << 12U); // TR12 = 0; disable falling edge trigger on EXTI12
+	EXTI.IMR |= 1U << 12U; // MR12 = 1; enable interrupt on EXTI12 trigger
 }
 
 void mrf_deinit(void) {
@@ -351,7 +351,7 @@ void dma2_stream0_isr(void) {
 
 void exti10_15_isr(void) {
 	// Clear the interrupt.
-	EXTI_PR = 1U << 12U; // PR12 = 1; clear pending EXTI12 interrupt
+	EXTI.PR = 1U << 12U; // PR12 = 1; clear pending EXTI12 interrupt
 
 	// Call the application handler.
 	mrf_isr();

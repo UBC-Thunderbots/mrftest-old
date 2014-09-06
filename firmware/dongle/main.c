@@ -49,7 +49,7 @@ static const fptr interrupt_vectors[82U] __attribute__((used, section(".interrup
 
 static void app_exception_early(void) {
 	// Power down the USB engine to disconnect from the host.
-	OTG_FS_GCCFG.PWRDWN = 0;
+	OTG_FS.GCCFG.PWRDWN = 0;
 
 	// Turn the three LEDs on.
 	gpio_set(PIN_LED_POWER);
@@ -59,17 +59,17 @@ static void app_exception_early(void) {
 
 static void app_exception_late(bool core_written) {
 	// Set SYSTICK to divide by 144,000 so it overflows every millisecond.
-	SYST_RVR.RELOAD = 144000U - 1U;
+	SYSTICK.RVR.RELOAD = 144000U - 1U;
 	// Set SYSTICK to run with the core AHB clock.
 	{
 		SYST_CSR_t tmp = {
 			.CLKSOURCE = 1, // Use core clock
 			.ENABLE = 1, // Counter is running
 		};
-		SYST_CSR = tmp;
+		SYSTICK.CSR = tmp;
 	}
 	// Reset the counter.
-	SYST_CVR.CURRENT = 0U;
+	SYSTICK.CVR.CURRENT = 0U;
 
 	// Show flashing lights.
 	for (;;) {
@@ -77,7 +77,7 @@ static void app_exception_late(bool core_written) {
 		gpio_reset(PIN_LED_TX);
 		gpio_reset(PIN_LED_RX);
 		for (unsigned int i = 0U; i < 500U; ++i) {
-			while (!SYST_CSR.COUNTFLAG);
+			while (!SYSTICK.CSR.COUNTFLAG);
 		}
 		gpio_set(PIN_LED_POWER);
 		if (core_written) {
@@ -85,7 +85,7 @@ static void app_exception_late(bool core_written) {
 			gpio_set(PIN_LED_RX);
 		}
 		for (unsigned int i = 0U; i < 500U; ++i) {
-			while (!SYST_CSR.COUNTFLAG);
+			while (!SYSTICK.CSR.COUNTFLAG);
 		}
 	}
 }

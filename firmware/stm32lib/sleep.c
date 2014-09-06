@@ -4,7 +4,7 @@
 
 void sleep_systick_overflows(unsigned long ticks) {
 	while (ticks--) {
-		while (!SYST_CSR.COUNTFLAG);
+		while (!SYSTICK.CSR.COUNTFLAG);
 	}
 }
 

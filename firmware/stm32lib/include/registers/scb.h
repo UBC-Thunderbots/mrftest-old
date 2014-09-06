@@ -16,7 +16,8 @@ typedef struct {
 	unsigned : 22;
 } ACTLR_t;
 _Static_assert(sizeof(ACTLR_t) == 4U, "ACTLR_t is wrong size");
-#define ACTLR (*(volatile ACTLR_t *) 0xE000E008)
+
+extern volatile ACTLR_t ACTLR;
 
 typedef struct {
 	unsigned REVISION : 4;
@@ -26,7 +27,6 @@ typedef struct {
 	unsigned IMPLEMENTER : 8;
 } CPUID_t;
 _Static_assert(sizeof(CPUID_t) == 4U, "CPUID_t is wrong size");
-#define CPUID (*(volatile CPUID_t *) 0xE000ED00)
 
 typedef struct {
 	unsigned VECTACTIVE : 9;
@@ -43,9 +43,6 @@ typedef struct {
 	unsigned NMIPENDSET : 1;
 } ICSR_t;
 _Static_assert(sizeof(ICSR_t) == 4U, "ICSR_t is wrong size");
-#define ICSR (*(volatile ICSR_t *) 0xE000ED04)
-
-#define VTOR (*(void * volatile *) 0xE000ED08)
 
 typedef struct {
 	unsigned VECTRESET : 1;
@@ -58,7 +55,6 @@ typedef struct {
 	unsigned VECTKEY : 16;
 } AIRCR_t;
 _Static_assert(sizeof(AIRCR_t) == 4U, "AIRCR_t is wrong size");
-#define AIRCR (*(volatile AIRCR_t *) 0xE000ED0C)
 
 typedef struct {
 	unsigned : 1;
@@ -69,7 +65,6 @@ typedef struct {
 	unsigned : 27;
 } SCR_t;
 _Static_assert(sizeof(SCR_t) == 4U, "SCR_t is wrong size");
-#define SCR (*(volatile SCR_t *) 0xE000ED10)
 
 typedef struct {
 	unsigned NONBASETHRDENA : 1;
@@ -83,7 +78,6 @@ typedef struct {
 	unsigned : 22;
 } CCR_t;
 _Static_assert(sizeof(CCR_t) == 4U, "CCR_t is wrong size");
-#define CCR (*(volatile CCR_t *) 0xE000ED14)
 
 typedef struct {
 	unsigned PRI_4 : 8;
@@ -92,14 +86,12 @@ typedef struct {
 	unsigned : 8;
 } SHPR1_t;
 _Static_assert(sizeof(SHPR1_t) == 4U, "SHPR1_t is wrong size");
-#define SHPR1 (*(volatile SHPR1_t *) 0xE000ED18)
 
 typedef struct {
 	unsigned : 24;
 	unsigned PRI_11 : 8;
 } SHPR2_t;
 _Static_assert(sizeof(SHPR2_t) == 4U, "SHPR2_t is wrong size");
-#define SHPR2 (*(volatile SHPR2_t *) 0xE000ED1C)
 
 typedef struct {
 	unsigned : 16;
@@ -107,7 +99,6 @@ typedef struct {
 	unsigned PRI_15 : 8;
 } SHPR3_t;
 _Static_assert(sizeof(SHPR3_t) == 4U, "SHPR3_t is wrong size");
-#define SHPR3 (*(volatile SHPR3_t *) 0xE000ED20)
 
 typedef struct {
 	unsigned MEMFAULTACT : 1;
@@ -130,7 +121,6 @@ typedef struct {
 	unsigned : 13;
 } SHCSR_t;
 _Static_assert(sizeof(SHCSR_t) == 4U, "SHCSR_t is wrong size");
-#define SHCSR (*(volatile SHCSR_t *) 0xE000ED24)
 
 typedef struct {
 	unsigned IACCVIOL : 1;
@@ -159,7 +149,6 @@ typedef struct {
 	unsigned : 6;
 } CFSR_t;
 _Static_assert(sizeof(CFSR_t) == 4U, "CFSR_t is wrong size");
-#define CFSR (*(volatile CFSR_t *) 0xE000ED28)
 
 typedef struct {
 	unsigned : 1;
@@ -169,11 +158,28 @@ typedef struct {
 	unsigned DEBUGEVT : 1;
 } HFSR_t;
 _Static_assert(sizeof(HFSR_t) == 4U, "HFSR_t is wrong size");
-#define HFSR (*(volatile HFSR_t *) 0xE000ED2C)
 
-#define MMFAR (*(void * volatile *) 0xE000ED34)
-#define BFAR (*(void * volatile *) 0xE000ED38)
-#define AFSR (*(volatile uint32_t *) 0xE000ED3C)
+typedef struct {
+	CPUID_t CPUID;
+	ICSR_t ICSR;
+	const void *VTOR;
+	AIRCR_t AIRCR;
+	SCR_t SCR;
+	CCR_t CCR;
+	SHPR1_t SHPR1;
+	SHPR2_t SHPR2;
+	SHPR3_t SHPR3;
+	SHCSR_t SHCSR;
+	CFSR_t CFSR;
+	HFSR_t HFSR;
+	unsigned int pad;
+	void *MMFAR;
+	void *BFAR;
+	uint32_t AFSR;
+} SCB_t;
+_Static_assert(sizeof(SCB_t) == 0xED3CU - 0xED00U + 4U, "SCB_t is wrong size");
+
+extern volatile SCB_t SCB;
 
 typedef struct {
 	unsigned CP0 : 2;
@@ -189,7 +195,8 @@ typedef struct {
 	unsigned CP11 : 2;
 	unsigned : 8;
 } CPACR_t;
-#define CPACR (*(volatile CPACR_t *) 0xE000ED88)
+
+extern volatile CPACR_t CPACR;
 
 typedef struct {
 	unsigned LSPACT : 1;
@@ -205,9 +212,6 @@ typedef struct {
 	unsigned LSPEN : 1;
 	unsigned ASPEN : 1;
 } FPCCR_t;
-#define FPCCR (*(volatile FPCCR_t *) 0xE000EF34)
-
-#define FPCAR (*(volatile uint32_t *) 0xE000EF38)
 
 typedef struct {
 	unsigned : 22;
@@ -217,7 +221,15 @@ typedef struct {
 	unsigned AHP : 1;
 	unsigned : 5;
 } FPDSCR_t;
-#define FPDSCR (*(volatile FPDSCR_t *) 0xE000EF3C)
+
+typedef struct {
+	FPCCR_t CCR;
+	void *CAR;
+	FPDSCR_t DSCR;
+} FP_t;
+_Static_assert(sizeof(FP_t) == 12U, "FP_t is wrong size");
+
+extern volatile FP_t FP;
 
 #endif
 

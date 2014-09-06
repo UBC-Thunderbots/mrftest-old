@@ -91,11 +91,11 @@ static bool uep0_wait_out(void) {
 				// We must take GONAK in order to do that safely without races.
 				udev_gonak_take();
 				// Get NAK status on the endpoint.
-				if (OTG_FS_DOEPCTL0.EPENA) {
+				if (OTG_FS.DOEPCTL0.EPENA) {
 					// The endpoint is still enabled.
-					OTG_FS_DOEPCTL0.SNAK = 1;
+					OTG_FS.DOEPCTL0.SNAK = 1;
 					// Normally we wouldn’t spin, but this is an unusual case.
-					while (!OTG_FS_DOEPCTL0.NAKSTS);
+					while (!OTG_FS.DOEPCTL0.NAKSTS);
 				} else {
 					// The endpoint finished moving data and disabled itself due to XFRC while we were waiting for GONAKEFF.
 					// We don’t need to do anything.
@@ -163,9 +163,9 @@ bool uep0_data_read(void *buffer) {
 		size_t this = left > max_packet ? max_packet : left;
 		uep0_out_data_length = this;
 		OTG_FS_DOEPTSIZ0_t tsiz = { .PKTCNT = 1, .XFRSIZ = max_packet };
-		OTG_FS_DOEPTSIZ0 = tsiz;
+		OTG_FS.DOEPTSIZ0 = tsiz;
 		OTG_FS_DOEPCTL0_t ctl = { .EPENA = 1, .CNAK = 1 };
-		OTG_FS_DOEPCTL0 = ctl;
+		OTG_FS.DOEPCTL0 = ctl;
 
 		// Wait until the endpoint finishes, an interrupting SETUP packet arrives, or the device state is no longer enumerated.
 		if (!uep0_wait_out()) {
@@ -209,16 +209,16 @@ static bool uep0_wait_in(void) {
 				// We must disable it.
 				// To do that, we first establish local NAK.
 				xEventGroupClearBits(udev_event_group, UEP0_EVENT_IN_NAKEFF);
-				if (!OTG_FS_DIEPCTL0.NAKSTS) {
-					OTG_FS_DIEPCTL0.SNAK = 1;
+				if (!OTG_FS.DIEPCTL0.NAKSTS) {
+					OTG_FS.DIEPCTL0.SNAK = 1;
 					while (!(xEventGroupWaitBits(udev_event_group, UEP0_EVENT_IN_NAKEFF, pdTRUE, pdFALSE, portMAX_DELAY) & UEP0_EVENT_IN_NAKEFF));
 				}
-				assert(OTG_FS_DIEPCTL0.NAKSTS);
+				assert(OTG_FS.DIEPCTL0.NAKSTS);
 				// Next, we disable the endpoint, but only if it is currently enabled (disabling a disabled endpoint is documented as being A Bad Idea).
 				// There is no race condition between checking EPENA and setting EPDIS, because when NAKSTS=1 there can be no XFRC because no packets can ship.
 				// According to the manual, SETUP packet reception sets NAK status but does *not* clear EPENA (though it does for OUT endpoint 0), so that cannot race here.
-				if (OTG_FS_DIEPCTL0.EPENA) {
-					OTG_FS_DIEPCTL0.EPDIS = 1;
+				if (OTG_FS.DIEPCTL0.EPENA) {
+					OTG_FS.DIEPCTL0.EPDIS = 1;
 					while (!(xEventGroupWaitBits(udev_event_group, UEP0_EVENT_IN_DISD, pdTRUE, pdFALSE, portMAX_DELAY) & UEP0_EVENT_IN_DISD));
 				}
 				// Because we might have disabled the endpoint while data was still pending, flush the FIFO.
@@ -238,8 +238,8 @@ static bool uep0_wait_in(void) {
 			// Fully disable the endpoint, but only if it is currently enabled (disabling a disabled endpoint is documented as being A Bad Idea).
 			// There is no race condition between checking EPENA and setting EPDIS, because when NAKSTS=1 there can be no XFRC because no packets can ship.
 			// According to the manual, SETUP packet reception sets NAK status but does *not* clear EPENA (though it does for OUT endpoint 0), so that cannot race here.
-			if (OTG_FS_DIEPCTL0.EPENA) {
-				OTG_FS_DIEPCTL0.EPDIS = 1;
+			if (OTG_FS.DIEPCTL0.EPENA) {
+				OTG_FS.DIEPCTL0.EPDIS = 1;
 				while (!(xEventGroupWaitBits(udev_event_group, UEP0_EVENT_IN_DISD, pdTRUE, pdFALSE, portMAX_DELAY) & UEP0_EVENT_IN_DISD));
 			}
 			// Because we might have disabled the endpoint while data was still pending, flush the FIFO.
@@ -315,9 +315,9 @@ bool uep0_data_write(const void *data, size_t length) {
 	// We fix this by starting the status stage now.
 	{
 		OTG_FS_DOEPTSIZ0_t tsiz = { .PKTCNT = 1, .XFRSIZ = 0 };
-		OTG_FS_DOEPTSIZ0 = tsiz;
+		OTG_FS.DOEPTSIZ0 = tsiz;
 		OTG_FS_DOEPCTL0_t ctl = { .EPENA = 1, .CNAK = 1 };
-		OTG_FS_DOEPCTL0 = ctl;
+		OTG_FS.DOEPCTL0 = ctl;
 	}
 	const uint8_t *dptr = data;
 	while (length || need_zlp) {
@@ -331,16 +331,16 @@ bool uep0_data_write(const void *data, size_t length) {
 				tsiz.XFRSIZ = length;
 			}
 			tsiz.PKTCNT = (tsiz.XFRSIZ + udev_info->device_descriptor.bMaxPacketSize0 - 1U) / udev_info->device_descriptor.bMaxPacketSize0;
-			OTG_FS_DIEPTSIZ0 = tsiz;
+			OTG_FS.DIEPTSIZ0 = tsiz;
 			to_push = tsiz.XFRSIZ;
 		} else {
 			OTG_FS_DIEPTSIZ0_t tsiz = { .PKTCNT = 1, .XFRSIZ = 0 };
-			OTG_FS_DIEPTSIZ0 = tsiz;
+			OTG_FS.DIEPTSIZ0 = tsiz;
 			to_push = 0U;
 			need_zlp = false;
 		}
-		OTG_FS_DIEPCTL0_t ctl = { .EPENA = 1, .CNAK = 1, .TXFNUM = 0, .MPSIZ = OTG_FS_DIEPCTL0.MPSIZ };
-		OTG_FS_DIEPCTL0 = ctl;
+		OTG_FS_DIEPCTL0_t ctl = { .EPENA = 1, .CNAK = 1, .TXFNUM = 0, .MPSIZ = OTG_FS.DIEPCTL0.MPSIZ };
+		OTG_FS.DIEPCTL0 = ctl;
 		length -= to_push;
 
 		// The USB engine very strictly requires that all data for a whole packet be pushed into the FIFO at once.
@@ -399,9 +399,9 @@ void uep0_status_stage(void) {
 	if (!udev_setup_packet->bmRequestType.direction || !udev_setup_packet->wLength) {
 		// Data stage was OUT or not present, so status stage will be IN.
 		OTG_FS_DIEPTSIZ0_t tsiz = { .PKTCNT = 1, .XFRSIZ = 0 };
-		OTG_FS_DIEPTSIZ0 = tsiz;
-		OTG_FS_DIEPCTL0_t ctl = { .EPENA = 1, .CNAK = 1, .TXFNUM = 0, .MPSIZ = OTG_FS_DIEPCTL0.MPSIZ };
-		OTG_FS_DIEPCTL0 = ctl;
+		OTG_FS.DIEPTSIZ0 = tsiz;
+		OTG_FS_DIEPCTL0_t ctl = { .EPENA = 1, .CNAK = 1, .TXFNUM = 0, .MPSIZ = OTG_FS.DIEPCTL0.MPSIZ };
+		OTG_FS.DIEPCTL0 = ctl;
 
 		// Wait until transfer complete.
 		uep0_wait_in();
@@ -479,7 +479,7 @@ bool uep0_default_handler(const usb_setup_packet_t *pkt) {
 				uep0_data_write(&status, sizeof(status));
 				return true;
 			} else if (pkt->bRequest == USB_CREQ_SET_ADDRESS && pkt->wValue <= 127 && !pkt->wIndex && !pkt->wLength) {
-				OTG_FS_DCFG.DAD = pkt->wValue;
+				OTG_FS.DCFG.DAD = pkt->wValue;
 				return true;
 			} else if (pkt->bRequest == USB_CREQ_SET_CONFIGURATION && !pkt->wIndex && !pkt->wLength) {
 				const udev_config_info_t *new_config = 0;
@@ -583,16 +583,16 @@ bool uep0_default_handler(const usb_setup_packet_t *pkt) {
 										udev_flush_tx_fifo(pkt->wIndex);
 
 										// Clear halt condition in endpoint control.
-										OTG_FS_DIEPCTLx_t ctl = OTG_FS_DIEP[UEP_NUM(pkt->wIndex)].DIEPCTL;
+										OTG_FS_DIEPCTLx_t ctl = OTG_FS.DIEP[UEP_NUM(pkt->wIndex) - 1U].DIEPCTL;
 										ctl.STALL = 0;
 										ctl.SD0PID_SEVNFRM = 1;
-										OTG_FS_DIEP[UEP_NUM(pkt->wIndex)].DIEPCTL = ctl;
+										OTG_FS.DIEP[UEP_NUM(pkt->wIndex) - 1U].DIEPCTL = ctl;
 									} else {
 										// Clear halt condition in endpoint control.
-										OTG_FS_DOEPCTLx_t ctl = OTG_FS_DOEP[UEP_NUM(pkt->wIndex)].DOEPCTL;
+										OTG_FS_DOEPCTLx_t ctl = OTG_FS.DOEP[UEP_NUM(pkt->wIndex) - 1U].DOEPCTL;
 										ctl.STALL = 0;
 										ctl.SD0PID_SEVENFRM = 1;
-										OTG_FS_DOEP[UEP_NUM(pkt->wIndex)].DOEPCTL = ctl;
+										OTG_FS.DOEP[UEP_NUM(pkt->wIndex) - 1U].DOEPCTL = ctl;
 									}
 
 									// Update control block.
@@ -626,17 +626,17 @@ bool uep0_default_handler(const usb_setup_packet_t *pkt) {
 									// We will leave the control register looking exactly as we found it, safe for the other task to write into.
 									taskENTER_CRITICAL();
 									if (UEP_DIR(pkt->wIndex)) {
-										OTG_FS_DIEPCTLx_t ctl = OTG_FS_DIEP[UEP_NUM(pkt->wIndex)].DIEPCTL;
+										OTG_FS_DIEPCTLx_t ctl = OTG_FS.DIEP[UEP_NUM(pkt->wIndex) - 1U].DIEPCTL;
 										ctl.EPENA = 0;
 										ctl.EPDIS = 0;
 										ctl.SD0PID_SEVNFRM = 1;
-										OTG_FS_DIEP[UEP_NUM(pkt->wIndex)].DIEPCTL = ctl;
+										OTG_FS.DIEP[UEP_NUM(pkt->wIndex) - 1U].DIEPCTL = ctl;
 									} else {
-										OTG_FS_DOEPCTLx_t ctl = OTG_FS_DOEP[UEP_NUM(pkt->wIndex)].DOEPCTL;
+										OTG_FS_DOEPCTLx_t ctl = OTG_FS.DOEP[UEP_NUM(pkt->wIndex) - 1U].DOEPCTL;
 										ctl.EPENA = 0;
 										ctl.EPDIS = 0;
 										ctl.SD0PID_SEVENFRM = 1;
-										OTG_FS_DOEP[UEP_NUM(pkt->wIndex)].DOEPCTL = ctl;
+										OTG_FS.DOEP[UEP_NUM(pkt->wIndex) - 1U].DOEPCTL = ctl;
 									}
 									taskEXIT_CRITICAL();
 								}
@@ -694,9 +694,9 @@ bool uep0_default_handler(const usb_setup_packet_t *pkt) {
 
 						// Set the hardware.
 						if (UEP_DIR(pkt->wIndex)) {
-							OTG_FS_DIEP[UEP_NUM(pkt->wIndex)].DIEPCTL.STALL = 1;
+							OTG_FS.DIEP[UEP_NUM(pkt->wIndex) - 1U].DIEPCTL.STALL = 1;
 						} else {
-							OTG_FS_DOEP[UEP_NUM(pkt->wIndex)].DOEPCTL.STALL = 1;
+							OTG_FS.DOEP[UEP_NUM(pkt->wIndex) - 1U].DOEPCTL.STALL = 1;
 						}
 
 						// Release transfer mutex.
@@ -731,11 +731,11 @@ bool uep0_default_handler(const usb_setup_packet_t *pkt) {
 static void uep0_enter_configuration(void) {
 	if (uep0_current_configuration) {
 		// Configure all the nonzero transmit FIFOs.
-		OTG_FS_DIEPTXF0_t txf0 = OTG_FS_DIEPTXF0;
+		OTG_FS_DIEPTXF0_t txf0 = OTG_FS.DIEPTXF0;
 		unsigned int fifo_used = txf0.TX0FSA + txf0.TX0FD;
 		for (unsigned int ep = 1U; ep <= UEP_MAX_ENDPOINT; ++ep) {
 			OTG_FS_DIEPTXFx_t txf = { .INEPTXFD = MAX(16U, uep0_current_configuration->transmit_fifo_words[ep - 1U]), .INEPTXSA = fifo_used };
-			OTG_FS_DIEPTXF[ep] = txf;
+			OTG_FS.DIEPTXF[ep] = txf;
 			fifo_used += txf.INEPTXFD;
 		}
 		assert(fifo_used <= 320U);

@@ -150,17 +150,14 @@ typedef struct {
 } UART_t;
 _Static_assert(sizeof(UART_t) == 0x18U, "UART_t is wrong size");
 
-#define USART1 (*(volatile USART_t *) 0x40011000)
-#define USART2 (*(volatile USART_t *) 0x40004400)
-#define USART3 (*(volatile USART_t *) 0x40004800)
-#define UART4 (*(volatile UART_t *) 0x40004C00)
-#define UART5 (*(volatile UART_t *) 0x40005000)
-#define USART6 (*(volatile USART_t *) 0x40011400)
-#define USART7 (*(volatile USART_t *) 0x40007800)
-#define USART8 (*(volatile USART_t *) 0x40007C00)
-#define USART9 (*(volatile USART_t *) 0x)
-#define USART10 (*(volatile USART_t *) 0x)
-#define USART11 (*(volatile USART_t *) 0x)
+extern volatile USART_t USART1;
+extern volatile USART_t USART2;
+extern volatile USART_t USART3;
+extern volatile UART_t UART4;
+extern volatile UART_t UART5;
+extern volatile USART_t USART6;
+extern volatile USART_t USART7;
+extern volatile USART_t USART8;
 
 #endif
 

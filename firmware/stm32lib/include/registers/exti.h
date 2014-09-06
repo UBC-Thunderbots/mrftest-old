@@ -8,14 +8,17 @@
 
 #include <stdint.h>
 
-#define EXTI_BASE 0x40013C00
+typedef struct {
+	uint32_t IMR;
+	uint32_t EMR;
+	uint32_t RTSR;
+	uint32_t FTSR;
+	uint32_t SWIER;
+	uint32_t PR;
+} EXTI_t;
+_Static_assert(sizeof(EXTI_t) == 24U, "EXTI_t is wrong size");
 
-#define EXTI_IMR (*(volatile uint32_t *) (EXTI_BASE + 0x00))
-#define EXTI_ERM (*(volatile uint32_t *) (EXTI_BASE + 0x04))
-#define EXTI_RTSR (*(volatile uint32_t *) (EXTI_BASE + 0x08))
-#define EXTI_FTSR (*(volatile uint32_t *) (EXTI_BASE + 0x0C))
-#define EXTI_SWIER (*(volatile uint32_t *) (EXTI_BASE + 0x10))
-#define EXTI_PR (*(volatile uint32_t *) (EXTI_BASE + 0x14))
+extern volatile EXTI_t EXTI;
 
 #endif
 

@@ -81,14 +81,14 @@ static unsigned int compute_flash_wait_states(unsigned int cpu) {
  */
 void init_chip(const init_specs_t *specs) {
 	// Check if we’re supposed to go to the bootloader.
-	RCC_CSR_t rcc_csr_shadow = RCC_CSR; // Keep a copy of RCC_CSR
-	RCC_CSR.RMVF = 1; // Clear reset flags
-	RCC_CSR.RMVF = 0; // Stop clearing reset flags
+	RCC_CSR_t rcc_csr_shadow = RCC.CSR; // Keep a copy of RCC_CSR
+	RCC.CSR.RMVF = 1; // Clear reset flags
+	RCC.CSR.RMVF = 0; // Stop clearing reset flags
 	if (rcc_csr_shadow.SFTRSTF && bootload_flag == BOOTLOAD_FLAG_VALUE) {
 		bootload_flag = 0;
 		rcc_enable_reset(APB2, SYSCFG);
 		asm volatile("dsb");
-		SYSCFG_MEMRMP.MEM_MODE = 1;
+		SYSCFG.MEMRMP.MEM_MODE = 1;
 		asm volatile("dsb");
 		asm volatile("isb");
 		rcc_disable(APB2, SYSCFG);
@@ -109,7 +109,7 @@ void init_chip(const init_specs_t *specs) {
 	memset(&linker_bss_vma, 0, (size_t) &linker_bss_size /* Yes, there should be an & here! */);
 
 	// Always 8-byte-align the stack pointer on entry to an interrupt handler (as ARM recommends).
-	CCR.STKALIGN = 1; // Guarantee 8-byte alignment
+	SCB.CCR.STKALIGN = 1; // Guarantee 8-byte alignment
 
 	// Set up interrupt handling.
 	exception_init(specs->exception_core_writer, &specs->exception_app_cbs);
@@ -158,16 +158,16 @@ void init_chip(const init_specs_t *specs) {
 		};
 		for (unsigned int i = 0; i < sizeof(REGIONS) / sizeof(*REGIONS); ++i) {
 			MPU_RNR_t rnr = { .REGION = i };
-			MPU_RNR = rnr;
-			MPU_RBAR.ADDR = REGIONS[i].address >> 5;
-			MPU_RASR = REGIONS[i].rasr;
+			MPU.RNR = rnr;
+			MPU.RBAR.ADDR = REGIONS[i].address >> 5;
+			MPU.RASR = REGIONS[i].rasr;
 		}
 		MPU_CTRL_t tmp = {
 			.PRIVDEFENA = 0, // Background region is disabled even in privileged mode.
 			.HFNMIENA = 0, // Protection unit disables itself when taking hard faults, memory faults, and NMIs.
 			.ENABLE = 1, // Enable MPU.
 		};
-		MPU_CTRL = tmp;
+		MPU.CTRL = tmp;
 		asm volatile("dsb");
 		asm volatile("isb");
 	}
@@ -186,10 +186,10 @@ void init_chip(const init_specs_t *specs) {
 			.HSION = 1, // HSI oscillator enabled (still using it at this point).
 		};
 		tmp.HSEBYP = !specs->flags.hse_crystal;
-		RCC_CR = tmp;
+		RCC.CR = tmp;
 	}
 	// Wait for the HSE oscillator to be ready.
-	while (!RCC_CR.HSERDY);
+	while (!RCC.CR.HSERDY);
 	// Configure the PLL.
 	{
 		RCC_PLLCFGR_t tmp = {
@@ -221,12 +221,12 @@ void init_chip(const init_specs_t *specs) {
 		assert(!(specs->pll_frequency % 48));
 		tmp.PLLQ = specs->pll_frequency / 48;
 		
-		RCC_PLLCFGR = tmp;
+		RCC.PLLCFGR = tmp;
 	}
 	// Enable the PLL.
-	RCC_CR.PLLON = 1; // Enable PLL
+	RCC.CR.PLLON = 1; // Enable PLL
 	// Wait for the PLL to lock.
-	while (!RCC_CR.PLLRDY);
+	while (!RCC.CR.PLLRDY);
 	// Set up bus frequencies.
 	{
 		RCC_CFGR_t tmp = {
@@ -249,7 +249,7 @@ void init_chip(const init_specs_t *specs) {
 		assert(specs->apb2_frequency <= 84);
 		tmp.PPRE2 = compute_apb_prescale(specs->cpu_frequency, specs->apb2_frequency);
 
-		RCC_CFGR = tmp;
+		RCC.CFGR = tmp;
 	}
 	// Wait 16 AHB cycles for the new prescalers to settle.
 	asm volatile("nop");
@@ -279,54 +279,54 @@ void init_chip(const init_specs_t *specs) {
 			.PRFTEN = 0, // Do not enable prefetcher at this time.
 		};
 		tmp.LATENCY = flash_wait_states;
-		FLASH_ACR = tmp;
+		FLASH.ACR = tmp;
 	}
 	// Flash access latency change may not be immediately effective; wait until it’s locked in.
-	while (FLASH_ACR.LATENCY != flash_wait_states);
+	while (FLASH.ACR.LATENCY != flash_wait_states);
 	// Actually initiate the clock switch.
-	RCC_CFGR.SW = 2; // Use PLL for SYSCLK
+	RCC.CFGR.SW = 2; // Use PLL for SYSCLK
 	// Wait for the clock switch to complete.
-	while (RCC_CFGR.SWS != 2);
+	while (RCC.CFGR.SWS != 2);
 	// Turn off the HSI now that it’s no longer needed.
-	RCC_CR.HSION = 0; // Disable HSI
+	RCC.CR.HSION = 0; // Disable HSI
 
 	// Flush any data in the CPU caches (which are not presently enabled).
 	{
-		FLASH_ACR_t tmp = FLASH_ACR;
+		FLASH_ACR_t tmp = FLASH.ACR;
 		tmp.DCRST = 1; // Reset data cache.
 		tmp.ICRST = 1; // Reset instruction cache.
-		FLASH_ACR = tmp;
+		FLASH.ACR = tmp;
 	}
 	{
-		FLASH_ACR_t tmp = FLASH_ACR;
+		FLASH_ACR_t tmp = FLASH.ACR;
 		tmp.DCRST = 0; // Stop resetting data cache.
 		tmp.ICRST = 0; // Stop resetting instruction cache.
-		FLASH_ACR = tmp;
+		FLASH.ACR = tmp;
 	}
 
 	// Turn on the caches.
 	// There is an errata that says prefetching doesn’t work on some silicon, but it seems harmless to enable the flag even so.
 	{
-		FLASH_ACR_t tmp = FLASH_ACR;
+		FLASH_ACR_t tmp = FLASH.ACR;
 		tmp.DCEN = 1; // Enable data cache
 		tmp.ICEN = 1; // Enable instruction cache
 		tmp.PRFTEN = 1; // Enable prefetching
-		FLASH_ACR = tmp;
+		FLASH.ACR = tmp;
 	}
 
 	if (!specs->flags.freertos) {
 		// Set SYSTICK to divide by cpu_frequency so it overflows every microsecond.
-		SYST_RVR.RELOAD = specs->cpu_frequency - 1;
+		SYSTICK.RVR.RELOAD = specs->cpu_frequency - 1;
 		// Set SYSTICK to run with the core AHB clock.
 		{
 			SYST_CSR_t tmp = {
 				.CLKSOURCE = 1, // Use core clock
 				.ENABLE = 1, // Counter is running
 			};
-			SYST_CSR = tmp;
+			SYSTICK.CSR = tmp;
 		}
 		// Reset the counter.
-		SYST_CVR.CURRENT = 0;
+		SYSTICK.CVR.CURRENT = 0;
 	}
 
 	// If we will be running at at most 144 MHz, switch to the lower-power voltage regulator mode.
@@ -339,8 +339,8 @@ void init_chip(const init_specs_t *specs) {
 	// If requested, enable the I/O compensation cell.
 	if (specs->flags.io_compensation_cell) {
 		SYSCFG_CMPCR_t cmpcr = { .CMP_PD = 1 };
-		SYSCFG_CMPCR = cmpcr;
-		while (!SYSCFG_CMPCR.READY);
+		SYSCFG.CMPCR = cmpcr;
+		while (!SYSCFG.CMPCR.READY);
 	}
 
 	// Done initializing; disable SYSCFG module.
@@ -364,10 +364,10 @@ void init_bootload(void) {
 
 	// Request the reboot.
 	{
-		AIRCR_t tmp = AIRCR;
+		AIRCR_t tmp = SCB.AIRCR;
 		tmp.VECTKEY = 0x05FA;
 		tmp.SYSRESETREQ = 1;
-		AIRCR = tmp;
+		SCB.AIRCR = tmp;
 	}
 
 	// Wait forever until the reboot happens.

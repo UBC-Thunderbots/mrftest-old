@@ -17,7 +17,7 @@
  */
 #define rcc_enable(bus, module) \
 	do { \
-		RCC_ ## bus ## ENR . module ## EN = 1; \
+		RCC. bus ## ENR . module ## EN = 1; \
 		asm volatile("dsb"); \
 		asm volatile("nop"); \
 	} while (0)
@@ -33,10 +33,10 @@
  */
 #define rcc_reset(bus, module) \
 	do { \
-		RCC_ ## bus ## RSTR . module ## RST = 1; \
+		RCC. bus ## RSTR . module ## RST = 1; \
 		asm volatile("dsb"); \
 		asm volatile("nop"); \
-		RCC_ ## bus ## RSTR . module ## RST = 0; \
+		RCC. bus ## RSTR . module ## RST = 0; \
 		asm volatile("dsb"); \
 		asm volatile("nop"); \
 	} while (0)
@@ -50,13 +50,13 @@
  */
 #define rcc_enable_reset(bus, module) \
 	do { \
-		RCC_ ## bus ## ENR . module ## EN = 1; \
+		RCC. bus ## ENR . module ## EN = 1; \
 		asm volatile("dsb"); \
 		asm volatile("nop"); \
-		RCC_ ## bus ## RSTR . module ## RST = 1; \
+		RCC. bus ## RSTR . module ## RST = 1; \
 		asm volatile("dsb"); \
 		asm volatile("nop"); \
-		RCC_ ## bus ## RSTR . module ## RST = 0; \
+		RCC. bus ## RSTR . module ## RST = 0; \
 		asm volatile("dsb"); \
 		asm volatile("nop"); \
 	} while (0)
@@ -72,7 +72,7 @@
 	do { \
 		asm volatile("dsb"); \
 		asm volatile("nop"); \
-		RCC_ ## bus ## ENR . module ## EN = 0; \
+		RCC. bus ## ENR . module ## EN = 0; \
 	} while (0)
 
 #endif

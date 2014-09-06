@@ -39,7 +39,7 @@ static void portYIELD(void) {
 	// In an ISR, this will be at lower priority, so on exception return, priority will de-escalate.
 	// In a task, this will be taken immediately.
 	ICSR_t tmp = { .PENDSVSET = 1 };
-	ICSR = tmp;
+	SCB.ICSR = tmp;
 	// DSB ensures the write completes in a timely manner and won’t return to userspace and execute more instructions before taking the PendSV.
 	asm volatile("dsb");
 	// ISB ensures no further instructions execute until after the effects of the PendSV occur.
@@ -103,14 +103,14 @@ static void portCLEAR_INTERRUPT_MASK_FROM_ISR(unsigned long old __attribute__((u
 static void portENABLE_HW_INTERRUPT(unsigned int irq, unsigned int priority) {
 	unsigned int ipr_index = irq / 4U;
 	unsigned int ipr_shift_dist = (irq % 4U) * 8U;
-	NVIC_IPR[ipr_index] = (NVIC_IPR[ipr_index] & ~(0xFFU << ipr_shift_dist)) | (priority << ipr_shift_dist);
+	NVIC.IPR[ipr_index] = (NVIC.IPR[ipr_index] & ~(0xFFU << ipr_shift_dist)) | (priority << ipr_shift_dist);
 	// We must barrier to ensure the priority is set before the interrupt is enabled.
 	// However, we do not need a synchronization barrier because we don’t care *when*, specifically, in instruction stream order, the effects become visible, as long as they do so in the right order.
 	asm volatile("dmb");
-	NVIC_ISER[irq / 32U] = 1U << (irq % 32U);
+	NVIC.ISER[irq / 32U] = 1U << (irq % 32U);
 }
 static void portDISABLE_HW_INTERRUPT(unsigned int irq) {
-	NVIC_ICER[irq / 32U] = 1U << (irq % 32U);
+	NVIC.ICER[irq / 32U] = 1U << (irq % 32U);
 	// The caller may expect that the interrupt cannot possibly happen once the call is complete.
 	// DSB ensures the write is completed before proceeding.
 	asm volatile("dsb");

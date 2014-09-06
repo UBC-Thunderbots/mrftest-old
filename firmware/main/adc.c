@@ -178,7 +178,7 @@ void adc_init(void) {
 			.VBATE = 0, // Disable VBAT channel
 			.TSVREFE = 1, // Enable temperature sensor and voltage reference
 		};
-		ADC_CCR = ccr;
+		ADC_Common.CCR = ccr;
 
 		ADC_CR1_t cr1 = {
 			.EOCIE = 0, // Disable end-of-conversion interrupt

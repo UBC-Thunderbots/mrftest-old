@@ -146,8 +146,8 @@ void *pvPortMallocAligned(size_t size, void *buffer) {
 
 	// Disable interrupts and enable access to guard region while manipulating data structures.
 	unsigned long old_imask = portSET_INTERRUPT_MASK_FROM_ISR();
-	MPU_RASR_t old_rasr = MPU_RASR;
-	MPU_RASR = ZERO_RASR;
+	MPU_RASR_t old_rasr = MPU.RASR;
+	MPU.RASR = ZERO_RASR;
 
 	// Find best fit.
 	ccm_block_header_t *best = 0;
@@ -181,7 +181,7 @@ void *pvPortMallocAligned(size_t size, void *buffer) {
 	}
 
 	// Restore the guard region and interrupts.
-	MPU_RASR = old_rasr;
+	MPU.RASR = old_rasr;
 	portCLEAR_INTERRUPT_MASK_FROM_ISR(old_imask);
 
 	// Defer to the main allocator if we are out of CCM.
@@ -196,8 +196,8 @@ void vPortFreeAligned(void *buffer) {
 	if (CCM_DATA_IS_CCM(buffer)) {
 		// Disable interrupts and enable access to guard region while manipulating data structures.
 		unsigned long old_imask = portSET_INTERRUPT_MASK_FROM_ISR();
-		MPU_RASR_t old_rasr = MPU_RASR;
-		MPU_RASR = ZERO_RASR;
+		MPU_RASR_t old_rasr = MPU.RASR;
+		MPU.RASR = ZERO_RASR;
 
 		// Convert the data pointer into a header pointer.
 		ccm_block_header_t *h = CCM_DATA_GET_HEADER(buffer);
@@ -224,7 +224,7 @@ void vPortFreeAligned(void *buffer) {
 		}
 
 		// Restore the guard region and interrupts.
-		MPU_RASR = old_rasr;
+		MPU.RASR = old_rasr;
 		portCLEAR_INTERRUPT_MASK_FROM_ISR(old_imask);
 	} else {
 		vPortFree(buffer);
@@ -234,8 +234,8 @@ void vPortFreeAligned(void *buffer) {
 static ccm_block_header_t *ccm_find_header(void *data) {
 	// Disable interrupts and enable access to guard region while manipulating data structures.
 	unsigned long old_imask = portSET_INTERRUPT_MASK_FROM_ISR();
-	MPU_RASR_t old_rasr = MPU_RASR;
-	MPU_RASR = ZERO_RASR;
+	MPU_RASR_t old_rasr = MPU.RASR;
+	MPU.RASR = ZERO_RASR;
 
 	// Scan the headers until finding the right one.
 	ccm_block_header_t *best = 0;
@@ -248,7 +248,7 @@ static ccm_block_header_t *ccm_find_header(void *data) {
 	}
 
 	// Restore the guard region and interrupts.
-	MPU_RASR = old_rasr;
+	MPU.RASR = old_rasr;
 	portCLEAR_INTERRUPT_MASK_FROM_ISR(old_imask);
 
 	return best;
@@ -334,9 +334,9 @@ long xPortStartScheduler(void) {
 	// In ARM, even synchronous interrupts obey the masking registers; in order not to be escalated to hard fault, SVCall must be of an unmasked priority.
 	// We never use it for anythign else, so just give it priority above maximum syscall interrupt priority.
 	// The others, PendSV and systick, are the normal kernel workhorse interrupts.
-	SHPR2.PRI_11 = EXCEPTION_MKPRIO(EXCEPTION_GROUP_PRIO(configMAX_SYSCALL_INTERRUPT_PRIORITY) - 1U, (1U << EXCEPTION_SUB_PRIO_BITS) - 1U);
-	SHPR3.PRI_15 = configKERNEL_INTERRUPT_PRIORITY;
-	SHPR3.PRI_14 = configKERNEL_INTERRUPT_PRIORITY;
+	SCB.SHPR2.PRI_11 = EXCEPTION_MKPRIO(EXCEPTION_GROUP_PRIO(configMAX_SYSCALL_INTERRUPT_PRIORITY) - 1U, (1U << EXCEPTION_SUB_PRIO_BITS) - 1U);
+	SCB.SHPR3.PRI_15 = configKERNEL_INTERRUPT_PRIORITY;
+	SCB.SHPR3.PRI_14 = configKERNEL_INTERRUPT_PRIORITY;
 
 	// We are currently running in process mode on the main stack.
 	// What we want to be doing is running a task in process mode on the task stack, with the main stack pointer reset to its initial value ready to handle interrupts.
@@ -375,11 +375,11 @@ void vPortSVCHandler(void) {
 	// Enable system timer.
 	{
 		SYST_RVR_t tmp = { .RELOAD = configCPU_CLOCK_HZ / configTICK_RATE_HZ - 1U };
-		SYST_RVR = tmp;
+		SYSTICK.RVR = tmp;
 	}
 	{
 		SYST_CSR_t tmp = { .ENABLE = 1, .TICKINT = 1, .CLKSOURCE = 1 };
-		SYST_CSR = tmp;
+		SYSTICK.CSR = tmp;
 	}
 
 	// Enable FPU and set up automatic lazy state preservation.
@@ -421,7 +421,7 @@ void vPortSVCHandler(void) {
 	// The subsequent exception return will unstack the extended hardware frame (restoring the remaining FP registers, since LSPACT=0) and leave CONTROL.FPCA=1.
 	{
 		FPCCR_t fpccr = { .LSPEN = 1, .ASPEN = 1 };
-		FPCCR = fpccr;
+		FP.CCR = fpccr;
 		CPACR_t cpacr = CPACR;
 		cpacr.CP10 = cpacr.CP11 = 3;
 		CPACR = cpacr;
@@ -433,10 +433,10 @@ void vPortSVCHandler(void) {
 	// Enable MPU and drop in the common regions.
 	for (size_t i = 0; i < sizeof(COMMON_MPU_REGIONS) / sizeof(*COMMON_MPU_REGIONS); ++i) {
 		MPU_RNR_t rnr = { .REGION = i };
-		MPU_RNR = rnr;
+		MPU.RNR = rnr;
 		MPU_RBAR_t rbar = { .REGION = 0, .VALID = 0, .ADDR = COMMON_MPU_REGIONS[i].address >> 5 };
-		MPU_RBAR = rbar;
-		MPU_RASR = COMMON_MPU_REGIONS[i].rasr;
+		MPU.RBAR = rbar;
+		MPU.RASR = COMMON_MPU_REGIONS[i].rasr;
 	}
 	{
 		MPU_CTRL_t ctrl = {
@@ -444,14 +444,14 @@ void vPortSVCHandler(void) {
 			.HFNMIENA = 0,
 			.ENABLE = 1,
 		};
-		MPU_CTRL = ctrl;
+		MPU.CTRL = ctrl;
 	}
 
 	// Leave MPU_RNR set to the CCM stack guard region number.
 	// This will be used by the task switcher.
 	{
 		MPU_RNR_t rnr = { .REGION = STACK_GUARD_MPU_REGION };
-		MPU_RNR = rnr;
+		MPU.RNR = rnr;
 	}
 
 	// No need to handle an extended software frame here.
@@ -544,7 +544,7 @@ void vPortAssertIfInterruptPriorityInvalid(void) {
 		// This is a normal hardware interrupt, not a fault or special CPU interrupt.
 		// Check the priority.
 		current_interrupt -= 16U;
-		configASSERT((NVIC_IPR[current_interrupt / 4U] >> (current_interrupt % 4U)) >= configMAX_SYSCALL_INTERRUPT_PRIORITY);
+		configASSERT((NVIC.IPR[current_interrupt / 4U] >> (current_interrupt % 4U)) >= configMAX_SYSCALL_INTERRUPT_PRIORITY);
 	}
 }
 #endif

@@ -95,7 +95,7 @@ static SemaphoreHandle_t udev_gonak_mutex = 0;
 static SemaphoreHandle_t udev_detach_sem = 0;
 
 /**
- * \brief A mutex that must be held by any task that wishes to use \c OTG_FS_GRSTCTL (for example, to flush a FIFO).
+ * \brief A mutex that must be held by any task that wishes to use \c OTG_FS.GRSTCTL (for example, to flush a FIFO).
  */
 static SemaphoreHandle_t udev_grstctl_mutex = 0;
 
@@ -134,16 +134,16 @@ static void udev_task(void *UNUSED(param)) {
 			.PHYSEL = 1, // This bit is always set.
 			.TOCAL = 0, // Do not add additional bit times to interpacket timeout (the STMicro library leaves this at zero; I assume this is fine for the on-chip PHY).
 		};
-		OTG_FS_GUSBCFG = tmp;
+		OTG_FS.GUSBCFG = tmp;
 	}
-	while (!OTG_FS_GRSTCTL.AHBIDL); // Wait until AHB is idle.
-	OTG_FS_GRSTCTL.CSRST = 1; // Core soft reset.
-	while (OTG_FS_GRSTCTL.CSRST); // Wait for reset to be complete.
+	while (!OTG_FS.GRSTCTL.AHBIDL); // Wait until AHB is idle.
+	OTG_FS.GRSTCTL.CSRST = 1; // Core soft reset.
+	while (OTG_FS.GRSTCTL.CSRST); // Wait for reset to be complete.
 	// Wait:
 	// - at least 3 PHY clocks (would be 62.5 ns) after CSRST for the PHY to be ready
 	// - at least 25 milliseconds for a change to FDMOD to take effect
 	vTaskDelay((25U + portTICK_PERIOD_MS - 1U) / portTICK_PERIOD_MS);
-	while (!OTG_FS_GRSTCTL.AHBIDL); // Wait until AHB is idle.
+	while (!OTG_FS.GRSTCTL.AHBIDL); // Wait until AHB is idle.
 	{
 		OTG_FS_GCCFG_t tmp = {
 			.NOVBUSSENS = udev_info->flags.vbus_sensing ? 0 : 1, // VBUS sensing may or may not be done.
@@ -152,7 +152,7 @@ static void udev_task(void *UNUSED(param)) {
 			.VBUSASEN = 0, // VBUS sensing A device disabled.
 			.PWRDWN = 1, // Transceiver active.
 		};
-		OTG_FS_GCCFG = tmp;
+		OTG_FS.GCCFG = tmp;
 	}
 	{
 		OTG_FS_GAHBCFG_t tmp = {
@@ -160,14 +160,14 @@ static void udev_task(void *UNUSED(param)) {
 			.TXFELVL = udev_info->flags.minimize_interrupts ? 1 : 0, // Interrupt on TX FIFO half empty.
 			.GINTMSK = 1, // Enable interrupts.
 		};
-		OTG_FS_GAHBCFG = tmp;
+		OTG_FS.GAHBCFG = tmp;
 	}
 	{
-		OTG_FS_DCFG_t tmp = OTG_FS_DCFG; // This register may have nonzero reserved bits that must be maintained.
+		OTG_FS_DCFG_t tmp = OTG_FS.DCFG; // This register may have nonzero reserved bits that must be maintained.
 		tmp.DAD = 0, // Address is zero on initial attach.
 		tmp.NZLSOHSK = 1, // Send STALL on receipt of non-zero-length status transaction.
 		tmp.DSPD = 3, // Run at full speed.
-		OTG_FS_DCFG = tmp;
+		OTG_FS.DCFG = tmp;
 	}
 	{
 		OTG_FS_GOTGCTL_t tmp = {
@@ -176,7 +176,7 @@ static void udev_task(void *UNUSED(param)) {
 			.HNPRQ = 0, // Do not issue host negotiation protocol request.
 			.SRQ = 0, // Do not issue session request.
 		};
-		OTG_FS_GOTGCTL = tmp;
+		OTG_FS.GOTGCTL = tmp;
 	}
 
 	// Globally enable USB interrupts.
@@ -202,17 +202,17 @@ static void udev_task(void *UNUSED(param)) {
 
 			case UDEV_STATE_ATTACHED:
 				// Clear the device address.
-				OTG_FS_DCFG.DAD = 0U;
+				OTG_FS.DCFG.DAD = 0U;
 
 				// Wait until:
 				// - someone calls udev_detach, which will modify udev_state and give the semaphore
 				// - VBUS becomes valid, which causes SRQINT, which will modify udev_state and give the semaphore
 				{
 					OTG_FS_GINTMSK_t tmp = { .SRQIM = 1 };
-					OTG_FS_GINTMSK = tmp;
+					OTG_FS.GINTMSK = tmp;
 					xEventGroupWaitBits(udev_event_group, UDEV_EVENT_STATE_CHANGED, pdTRUE, pdFALSE, portMAX_DELAY);
 					tmp.SRQIM = 0;
-					OTG_FS_GINTMSK = tmp;
+					OTG_FS.GINTMSK = tmp;
 				}
 				break;
 
@@ -223,11 +223,11 @@ static void udev_task(void *UNUSED(param)) {
 				// - the host issues USB reset signalling, which causes USBRST, which will modify udev_state and give the semaphore
 				{
 					OTG_FS_GINTMSK_t tmp = { .USBRST = 1, .OTGINT = 1 };
-					OTG_FS_GINTMSK = tmp;
+					OTG_FS.GINTMSK = tmp;
 					xEventGroupWaitBits(udev_event_group, UDEV_EVENT_STATE_CHANGED, pdTRUE, pdFALSE, portMAX_DELAY);
 					tmp.USBRST = 0;
 					tmp.OTGINT = 0;
-					OTG_FS_GINTMSK = tmp;
+					OTG_FS.GINTMSK = tmp;
 				}
 				break;
 
@@ -236,7 +236,7 @@ static void udev_task(void *UNUSED(param)) {
 				assert(udev_info->receive_fifo_words >= 16U);
 				{
 					OTG_FS_GRXFSIZ_t tmp = { .RXFD = udev_info->receive_fifo_words };
-					OTG_FS_GRXFSIZ = tmp;
+					OTG_FS.GRXFSIZ = tmp;
 				}
 				{
 					// See uep0_data_write for why these values.
@@ -247,7 +247,7 @@ static void udev_task(void *UNUSED(param)) {
 						case 32U: tmp.TX0FD = 24U; break;
 						case 64U: tmp.TX0FD = 16U; break;
 					}
-					OTG_FS_DIEPTXF0 = tmp;
+					OTG_FS.DIEPTXF0 = tmp;
 				}
 				udev_flush_rx_fifo();
 				udev_flush_tx_fifo(0x80U);
@@ -256,10 +256,10 @@ static void udev_task(void *UNUSED(param)) {
 				// If this is not done, then on powerup, the endpoints are *disabled*, but they do *not* have local NAK status.
 				// In such a situation, an OUT transaction may be ACKed!
 				OTG_FS_DOEPCTL0_t ctl0 = { .SNAK = 1 };
-				OTG_FS_DOEPCTL0 = ctl0;
-				for (unsigned int i = 1; i <= UEP_MAX_ENDPOINT; ++i) {
+				OTG_FS.DOEPCTL0 = ctl0;
+				for (unsigned int i = 0U; i < UEP_MAX_ENDPOINT; ++i) {
 					OTG_FS_DOEPCTLx_t ctl = { .SNAK = 1 };
-					OTG_FS_DOEP[i].DOEPCTL = ctl;
+					OTG_FS.DOEP[i].DOEPCTL = ctl;
 				}
 
 				// Wait until:
@@ -268,11 +268,11 @@ static void udev_task(void *UNUSED(param)) {
 				// - enumeration completes, which causes ENUMDNE, which will modify udev_state and give the semaphore
 				{
 					OTG_FS_GINTMSK_t tmp = { .ENUMDNEM = 1, .OTGINT = 1 };
-					OTG_FS_GINTMSK = tmp;
+					OTG_FS.GINTMSK = tmp;
 					xEventGroupWaitBits(udev_event_group, UDEV_EVENT_STATE_CHANGED, pdTRUE, pdFALSE, portMAX_DELAY);
 					tmp.ENUMDNEM = 0;
 					tmp.OTGINT = 0;
-					OTG_FS_GINTMSK = tmp;
+					OTG_FS.GINTMSK = tmp;
 				}
 				break;
 
@@ -280,11 +280,11 @@ static void udev_task(void *UNUSED(param)) {
 				// Configure endpoint 0 to handle control transfers.
 				{
 					OTG_FS_DIEPINTx_t tmp = { .INEPNE = 1, .EPDISD = 1, .XFRC = 1, };
-					OTG_FS_DIEP[0].DIEPINT = tmp;
+					OTG_FS.DIEPINT0 = tmp;
 				}
 				{
 					OTG_FS_DOEPINTx_t tmp = { .EPDISD = 1, };
-					OTG_FS_DOEP[0].DOEPINT = tmp;
+					OTG_FS.DOEPINT0 = tmp;
 				}
 				{
 					OTG_FS_DIEPCTL0_t tmp = { 0 };
@@ -295,25 +295,25 @@ static void udev_task(void *UNUSED(param)) {
 						case 64: tmp.MPSIZ = 0b00; break;
 						default: abort();
 					}
-					OTG_FS_DIEPCTL0 = tmp;
+					OTG_FS.DIEPCTL0 = tmp;
 				}
 				{
 					OTG_FS_DOEPCTL0_t tmp = { 0 };
-					OTG_FS_DOEPCTL0 = tmp;
+					OTG_FS.DOEPCTL0 = tmp;
 				}
 				{
 					OTG_FS_DAINTMSK_t tmp = { .IEPM = (1U << (UEP_MAX_ENDPOINT + 1U)) - 1U, .OEPM = (1U << (UEP_MAX_ENDPOINT + 1U)) - 1U };
-					OTG_FS_DAINTMSK = tmp;
+					OTG_FS.DAINTMSK = tmp;
 				}
 
 				// Configure applicable interrupts.
 				{
 					OTG_FS_DIEPMSK_t tmp = { .INEPNEM = 1, .EPDM = 1, .XFRCM = 1, };
-					OTG_FS_DIEPMSK = tmp;
+					OTG_FS.DIEPMSK = tmp;
 				}
 				{
 					OTG_FS_DOEPMSK_t tmp = { .EPDM = 1, };
-					OTG_FS_DOEPMSK = tmp;
+					OTG_FS.DOEPMSK = tmp;
 				}
 
 				// Clear other endpoints.
@@ -327,7 +327,7 @@ static void udev_task(void *UNUSED(param)) {
 				// - the host issues USB reset signalling, which causes USBRST, which will modify udev_state and give the semaphore
 				{
 					OTG_FS_GINTMSK_t tmp = { .OEPINT = 1, .IEPINT = 1, .USBRST = 1, .RXFLVLM = 1, .OTGINT = 1 };
-					OTG_FS_GINTMSK = tmp;
+					OTG_FS.GINTMSK = tmp;
 				}
 				while (__atomic_load_n(&udev_state, __ATOMIC_RELAXED) == UDEV_STATE_ENUMERATED) {
 					// Wait for activity.
@@ -369,10 +369,10 @@ static void udev_task(void *UNUSED(param)) {
 								// There’s probably a small race condition around SETUP packets arriving, but the hardware gives us no way to avoid that.
 								// It won’t be too bad anyway, as the host should try the transfer three times.
 								// Also, the host just plain shouldn’t *be* trying to start another control transfer right after the previous one without doing status first!
-								OTG_FS_DOEPCTL0.STALL = 1;
-								OTG_FS_DIEPCTL0.STALL = 1;
+								OTG_FS.DOEPCTL0.STALL = 1;
+								OTG_FS.DIEPCTL0.STALL = 1;
 								if (xEventGroupGetBits(udev_event_group) & UEP0_EVENT_SETUP) {
-									if (OTG_FS_DOEPCTL0.STALL || OTG_FS_DIEPCTL0.STALL) {
+									if (OTG_FS.DOEPCTL0.STALL || OTG_FS.DIEPCTL0.STALL) {
 										// A SETUP packet arrived, but we accidentally stalled after that happened.
 										// We can’t usefully handle this control transfer, so just abort it.
 										xEventGroupClearBits(udev_event_group, UEP0_EVENT_SETUP);
@@ -386,7 +386,7 @@ static void udev_task(void *UNUSED(param)) {
 				uep0_exit_configuration();
 				{
 					OTG_FS_GINTMSK_t tmp = {0};
-					OTG_FS_GINTMSK = tmp;
+					OTG_FS.GINTMSK = tmp;
 				}
 				break;
 		}
@@ -399,23 +399,23 @@ static void udev_task(void *UNUSED(param)) {
 void udev_gonak_take(void) {
 	xSemaphoreTake(udev_gonak_mutex, portMAX_DELAY);
 	assert(!(xEventGroupGetBits(udev_event_group) & UDEV_EVENT_GONAKEFF));
-	assert(!OTG_FS_GINTSTS.GOUTNAKEFF);
-	if (!OTG_FS_GINTSTS.GOUTNAKEFF) {
-		assert(!OTG_FS_DCTL.GONSTS);
-		OTG_FS_DCTL.SGONAK = 1;
+	assert(!OTG_FS.GINTSTS.GOUTNAKEFF);
+	if (!OTG_FS.GINTSTS.GOUTNAKEFF) {
+		assert(!OTG_FS.DCTL.GONSTS);
+		OTG_FS.DCTL.SGONAK = 1;
 		while (!(xEventGroupWaitBits(udev_event_group, UDEV_EVENT_GONAKEFF, pdTRUE, pdFALSE, portMAX_DELAY) & UDEV_EVENT_GONAKEFF));
 	}
-	assert(OTG_FS_GINTSTS.GOUTNAKEFF);
-	assert(OTG_FS_DCTL.GONSTS);
+	assert(OTG_FS.GINTSTS.GOUTNAKEFF);
+	assert(OTG_FS.DCTL.GONSTS);
 }
 
 /**
  * \brief Releases global OUT NAK status.
  */
 void udev_gonak_release(void) {
-	OTG_FS_DCTL.CGONAK = 1;
-	assert(!OTG_FS_GINTSTS.GOUTNAKEFF);
-	assert(!OTG_FS_DCTL.GONSTS);
+	OTG_FS.DCTL.CGONAK = 1;
+	assert(!OTG_FS.GINTSTS.GOUTNAKEFF);
+	assert(!OTG_FS.DCTL.GONSTS);
 	xSemaphoreGive(udev_gonak_mutex);
 }
 
@@ -424,11 +424,11 @@ void udev_gonak_release(void) {
  */
 void udev_flush_rx_fifo(void) {
 	xSemaphoreTake(udev_grstctl_mutex, portMAX_DELAY);
-	while (!OTG_FS_GRSTCTL.AHBIDL);
+	while (!OTG_FS.GRSTCTL.AHBIDL);
 	OTG_FS_GRSTCTL_t ctl = { .RXFFLSH = 1U };
-	OTG_FS_GRSTCTL = ctl;
-	while (OTG_FS_GRSTCTL.RXFFLSH);
-	while (!OTG_FS_GRSTCTL.AHBIDL);
+	OTG_FS.GRSTCTL = ctl;
+	while (OTG_FS.GRSTCTL.RXFFLSH);
+	while (!OTG_FS.GRSTCTL.AHBIDL);
 	xSemaphoreGive(udev_grstctl_mutex);
 }
 
@@ -441,11 +441,11 @@ void udev_flush_tx_fifo(unsigned int ep) {
 	assert(UEP_DIR(ep));
 	assert(UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
 	xSemaphoreTake(udev_grstctl_mutex, portMAX_DELAY);
-	while (!OTG_FS_GRSTCTL.AHBIDL);
+	while (!OTG_FS.GRSTCTL.AHBIDL);
 	OTG_FS_GRSTCTL_t ctl = { .TXFNUM = UEP_NUM(ep), .TXFFLSH = 1U };
-	OTG_FS_GRSTCTL = ctl;
-	while (OTG_FS_GRSTCTL.TXFFLSH);
-	while (!OTG_FS_GRSTCTL.AHBIDL);
+	OTG_FS.GRSTCTL = ctl;
+	while (OTG_FS.GRSTCTL.TXFFLSH);
+	while (!OTG_FS.GRSTCTL.AHBIDL);
 	xSemaphoreGive(udev_grstctl_mutex);
 }
 
@@ -531,9 +531,9 @@ static void udev_tx_copy_in(volatile uint32_t *dest, const void *source, size_t 
  * It also means that the tasks become more closely involved in unusual situations, such as uenxpected disabling of an endpoint; this is acceptable because these unusual situations are not in performance-critical paths and introduce a lot of complexity which does not belong in an ISR.
  */
 void udev_isr(void) {
-	OTG_FS_GINTMSK_t msk = OTG_FS_GINTMSK;
-	OTG_FS_GINTSTS_t sts = OTG_FS_GINTSTS;
-	OTG_FS_GOTGINT_t otg = OTG_FS_GOTGINT;
+	OTG_FS_GINTMSK_t msk = OTG_FS.GINTMSK;
+	OTG_FS_GINTSTS_t sts = OTG_FS.GINTSTS;
+	OTG_FS_GOTGINT_t otg = OTG_FS.GOTGINT;
 	EventBits_t udev_bits_to_set = 0U;
 	EventBits_t oep_bits_to_set[UEP_MAX_ENDPOINT] = { 0U };
 	BaseType_t ok;
@@ -542,7 +542,7 @@ void udev_isr(void) {
 	// Handle OUT endpoints.
 	if (msk.RXFLVLM && sts.RXFLVL) {
 		do {
-			OTG_FS_GRXSTSR_device_t elt = OTG_FS_GRXSTSP.device;
+			OTG_FS_GRXSTSR_device_t elt = OTG_FS.GRXSTSP.device;
 			switch (elt.PKTSTS) {
 				case 0b0001:
 					// Global OUT NAK effective.
@@ -599,17 +599,17 @@ void udev_isr(void) {
 				default:
 					abort();
 			}
-		} while (OTG_FS_GINTSTS.RXFLVL);
+		} while (OTG_FS.GINTSTS.RXFLVL);
 	}
 	if (msk.OEPINT && sts.OEPINT) {
-		unsigned int epmsk = OTG_FS_DAINT.OEPINT;
+		unsigned int epmsk = OTG_FS.DAINT.OEPINT;
 		// Endpoint zero never exhibits EPDISD because it can never be disabled under application request.
 		for (unsigned int ep = 1U; ep <= UEP_MAX_ENDPOINT; ++ep) {
 			if (epmsk & (1U << ep)) {
-				OTG_FS_DOEPINTx_t doepint = OTG_FS_DOEP[ep].DOEPINT;
+				OTG_FS_DOEPINTx_t doepint = OTG_FS.DOEP[ep - 1U].DOEPINT;
 				if (doepint.EPDISD) {
 					OTG_FS_DOEPINTx_t tmp = { .EPDISD = 1 };
-					OTG_FS_DOEP[ep].DOEPINT = tmp;
+					OTG_FS.DOEP[ep - 1U].DOEPINT = tmp;
 					oep_bits_to_set[ep - 1U] |= UEP_EVENT_DISD;
 				}
 			}
@@ -628,10 +628,10 @@ void udev_isr(void) {
 
 	// Handle IN endpoints.
 	if (msk.IEPINT && sts.IEPINT) {
-		unsigned int epint = OTG_FS_DAINT.IEPINT;
+		unsigned int epint = OTG_FS.DAINT.IEPINT;
 		if (epint & 1U) {
-			OTG_FS_DIEPINTx_t diepint = OTG_FS_DIEP[0U].DIEPINT;
-			OTG_FS_DIEP[0U].DIEPINT = diepint;
+			OTG_FS_DIEPINTx_t diepint = OTG_FS.DIEPINT0;
+			OTG_FS.DIEPINT0 = diepint;
 			if (diepint.INEPNE) {
 				udev_bits_to_set |= UEP0_EVENT_IN_NAKEFF;
 			}
@@ -642,18 +642,18 @@ void udev_isr(void) {
 				udev_bits_to_set |= UEP0_EVENT_IN_XFRC;
 			}
 		}
-		OTG_FS_DIEPEMPMSK_t empmsk = OTG_FS_DIEPEMPMSK;
+		OTG_FS_DIEPEMPMSK_t empmsk = OTG_FS.DIEPEMPMSK;
 		for (unsigned int ep = 1U; ep <= UEP_MAX_ENDPOINT; ++ep) {
 			if (epint & (1U << ep)) {
-				OTG_FS_DIEPINTx_t diepint = OTG_FS_DIEP[ep].DIEPINT;
+				OTG_FS_DIEPINTx_t diepint = OTG_FS.DIEP[ep - 1U].DIEPINT;
 				uep_ep_t *ctx = &uep_eps[UEP_IDX(0x80 | ep)];
 
 				// Shovel a packet at a time until either:
 				// (1) there is not enough space in the FIFO for another packet,
 				// (2) the physical transfer is finished
-				size_t ep_max_packet = OTG_FS_DIEP[ep].DIEPCTL.MPSIZ;
+				size_t ep_max_packet = OTG_FS.DIEP[ep - 1U].DIEPCTL.MPSIZ;
 				size_t ep_max_packet_words = (ep_max_packet + 3U) / 4U;
-				while (ctx->pxfr_bytes_left && OTG_FS_DIEP[ep].DTXFSTS.INEPTFSAV >= ep_max_packet_words) {
+				while (ctx->pxfr_bytes_left && OTG_FS.DIEP[ep - 1U].DTXFSTS.INEPTFSAV >= ep_max_packet_words) {
 					size_t this_packet_bytes = MIN(ep_max_packet, ctx->pxfr_bytes_left);
 					udev_tx_copy_in(&OTG_FS_FIFO[ep][0U], ctx->data.in, this_packet_bytes);
 					ctx->bytes_left -= this_packet_bytes;
@@ -683,7 +683,7 @@ void udev_isr(void) {
 					to_clear.XFRC = 1;
 					to_set |= UEP_EVENT_XFRC;
 				}
-				OTG_FS_DIEP[ep].DIEPINT = to_clear;
+				OTG_FS.DIEP[ep - 1U].DIEPINT = to_clear;
 
 				// Post events.
 				if (to_set) {
@@ -695,14 +695,14 @@ void udev_isr(void) {
 				}
 			}
 		}
-		OTG_FS_DIEPEMPMSK = empmsk;
+		OTG_FS.DIEPEMPMSK = empmsk;
 	}
 
 	// Handle global, non-endpoint-related activity.
 	if (msk.SRQIM && sts.SRQINT) {
 		// This interrupt arrives when VBUS rises.
 		OTG_FS_GINTSTS_t tmp = { .SRQINT = 1 };
-		OTG_FS_GINTSTS = tmp;
+		OTG_FS.GINTSTS = tmp;
 		if (udev_state != UDEV_STATE_DETACHED) {
 			udev_state = UDEV_STATE_POWERED;
 		}
@@ -712,7 +712,7 @@ void udev_isr(void) {
 		if (otg.SEDET) {
 			// This interrupt arrives when VBUS falls.
 			OTG_FS_GOTGINT_t tmp = { .SEDET = 1 };
-			OTG_FS_GOTGINT = tmp;
+			OTG_FS.GOTGINT = tmp;
 			if (udev_state != UDEV_STATE_DETACHED) {
 				udev_state = UDEV_STATE_ATTACHED;
 			}
@@ -724,7 +724,7 @@ void udev_isr(void) {
 	if (msk.USBRST && sts.USBRST) {
 		// This interrupt arrives when USB reset signalling starts.
 		OTG_FS_GINTSTS_t tmp = { .USBRST = 1 };
-		OTG_FS_GINTSTS = tmp;
+		OTG_FS.GINTSTS = tmp;
 		if (udev_state != UDEV_STATE_DETACHED) {
 			udev_state = UDEV_STATE_RESET;
 		}
@@ -735,7 +735,7 @@ void udev_isr(void) {
 	if (msk.ENUMDNEM && sts.ENUMDNE) {
 		// This interrupt arrives a short time after reset signalling completes.
 		OTG_FS_GINTSTS_t tmp = { .ENUMDNE = 1 };
-		OTG_FS_GINTSTS = tmp;
+		OTG_FS.GINTSTS = tmp;
 		if (udev_state != UDEV_STATE_DETACHED) {
 			udev_state = UDEV_STATE_ENUMERATED;
 		}
@@ -807,8 +807,8 @@ void udev_init(const udev_info_t *info) {
 		case UDEV_STATE_DETACHED:
 			// Only change the configuration table and a few global control flags.
 			udev_info = info;
-			OTG_FS_GCCFG.NOVBUSSENS = info->flags.vbus_sensing ? 0U : 1U;
-			OTG_FS_GAHBCFG.TXFELVL = info->flags.minimize_interrupts ? 1U : 0U;
+			OTG_FS.GCCFG.NOVBUSSENS = info->flags.vbus_sensing ? 0U : 1U;
+			OTG_FS.GAHBCFG.TXFELVL = info->flags.minimize_interrupts ? 1U : 0U;
 			break;
 
 		default:
@@ -830,7 +830,7 @@ void udev_init(const udev_info_t *info) {
 void udev_attach(void) {
 	udev_state_t old = __atomic_exchange_n(&udev_state, UDEV_STATE_ATTACHED, __ATOMIC_RELAXED);
 	assert(old == UDEV_STATE_DETACHED);
-	OTG_FS_DCTL.SDIS = 0;
+	OTG_FS.DCTL.SDIS = 0;
 	xEventGroupSetBits(udev_event_group, UDEV_EVENT_STATE_CHANGED);
 }
 
@@ -866,7 +866,7 @@ void udev_detach(void) {
 	} else {
 		xSemaphoreTake(udev_detach_sem, portMAX_DELAY);
 	}
-	OTG_FS_DCTL.SDIS = 1;
+	OTG_FS.DCTL.SDIS = 1;
 	vTaskDelay(1U);
 }
 

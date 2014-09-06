@@ -6,8 +6,6 @@
 #ifndef STM32LIB_REGISTERS_MPU_H
 #define STM32LIB_REGISTERS_MPU_H
 
-#define MPU_BASE 0xE000ED90
-
 typedef struct {
 	unsigned SEPARATE : 1;
 	unsigned : 7;
@@ -16,7 +14,6 @@ typedef struct {
 	unsigned : 8;
 } MPU_TYPE_t;
 _Static_assert(sizeof(MPU_TYPE_t) == 4U, "MPU_TYPE_t is wrong size");
-#define MPU_TYPE (*(const volatile MPU_TYPE_t *) (MPU_BASE + 0x00))
 
 typedef struct {
 	unsigned ENABLE : 1;
@@ -25,14 +22,12 @@ typedef struct {
 	unsigned : 29;
 } MPU_CTRL_t;
 _Static_assert(sizeof(MPU_CTRL_t) == 4U, "MPU_CTRL_t is wrong size");
-#define MPU_CTRL (*(volatile MPU_CTRL_t *) (MPU_BASE + 0x04))
 
 typedef struct {
 	unsigned REGION : 8;
 	unsigned : 24;
 } MPU_RNR_t;
 _Static_assert(sizeof(MPU_RNR_t) == 4U, "MPU_RNR_t is wrong size");
-#define MPU_RNR (*(volatile MPU_RNR_t *) (MPU_BASE + 0x08))
 
 typedef struct {
 	unsigned REGION : 4;
@@ -40,7 +35,6 @@ typedef struct {
 	unsigned ADDR : 27;
 } MPU_RBAR_t;
 _Static_assert(sizeof(MPU_RBAR_t) == 4U, "MPU_RBAR_t is wrong size");
-#define MPU_RBAR (*(volatile MPU_RBAR_t *) (MPU_BASE + 0x0C))
 
 typedef struct {
 	unsigned ENABLE : 1;
@@ -58,7 +52,17 @@ typedef struct {
 	unsigned : 3;
 } MPU_RASR_t;
 _Static_assert(sizeof(MPU_RASR_t) == 4U, "MPU_RASR_t is wrong size");
-#define MPU_RASR (*(volatile MPU_RASR_t *) (MPU_BASE + 0x10))
+
+typedef struct {
+	MPU_TYPE_t TYPE;
+	MPU_CTRL_t CTRL;
+	MPU_RNR_t RNR;
+	MPU_RBAR_t RBAR;
+	MPU_RASR_t RASR;
+} MPU_t;
+_Static_assert(sizeof(MPU_t) == 20U, "MPU_t is wrong size");
+
+extern volatile MPU_t MPU;
 
 #endif
 

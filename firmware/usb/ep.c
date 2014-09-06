@@ -103,7 +103,7 @@ static bool uep_read_impl(unsigned int ep, void *buffer, size_t max_length, size
 	}
 
 	// Sanity check.
-	assert(OTG_FS_DOEP[UEP_NUM(ep)].DOEPCTL.USBAEP);
+	assert(OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL.USBAEP);
 
 	// Set up the control structure.
 	ctx->data.out = buffer;
@@ -113,7 +113,7 @@ static bool uep_read_impl(unsigned int ep, void *buffer, size_t max_length, size
 	ctx->flags.overflow = false;
 
 	// Grab maximum packet size.
-	size_t max_packet = OTG_FS_DOEP[UEP_NUM(ep)].DOEPCTL.MPSIZ;
+	size_t max_packet = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL.MPSIZ;
 
 	// A transfer is complete when:
 	// (1) the expected number of bytes has been received,
@@ -128,14 +128,14 @@ static bool uep_read_impl(unsigned int ep, void *buffer, size_t max_length, size
 		pxfr_packets = MIN(pxfr_packets, OUT_PXFR_MAX_PACKETS);
 		pxfr_packets = MIN(pxfr_packets, OUT_PXFR_MAX_BYTES / max_packet);
 		OTG_FS_DOEPTSIZx_t tsiz = { .PKTCNT = pxfr_packets, .XFRSIZ = pxfr_packets * max_packet };
-		OTG_FS_DOEP[UEP_NUM(ep)].DOEPTSIZ = tsiz;
-		OTG_FS_DOEPCTLx_t ctl = OTG_FS_DOEP[UEP_NUM(ep)].DOEPCTL;
+		OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPTSIZ = tsiz;
+		OTG_FS_DOEPCTLx_t ctl = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL;
 		assert(!ctl.EPENA);
 		ctl.EPENA = 1;
 		ctl.CNAK = 1;
 		ctl.STALL = 0;
 		__atomic_signal_fence(__ATOMIC_ACQ_REL); // Prevent writes to context block from being sunk below this point, nor the write to CTL from being hoisted, which could break the ISR.
-		OTG_FS_DOEP[UEP_NUM(ep)].DOEPCTL = ctl;
+		OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL = ctl;
 
 		// Wait for something to happen.
 		do {
@@ -147,13 +147,13 @@ static bool uep_read_impl(unsigned int ep, void *buffer, size_t max_length, size
 			// Begin by taking global OUT NAK.
 			udev_gonak_take();
 			// Check the status of the endpoint.
-			ctl = OTG_FS_DOEP[UEP_NUM(ep)].DOEPCTL;
+			ctl = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL;
 			if (ctl.EPENA) {
 				// Endpoint is still enabled.
 				// Force-disable it.
 				ctl.EPDIS = 1;
 				ctl.SNAK = 1;
-				OTG_FS_DOEP[UEP_NUM(ep)].DOEPCTL = ctl;
+				OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL = ctl;
 				while (!(xEventGroupWaitBits(ctx->event_group, UEP_EVENT_DISD, pdTRUE, pdFALSE, portMAX_DELAY) & UEP_EVENT_DISD));
 			}
 			// Release global OUT NAK.
@@ -237,7 +237,7 @@ static void uep_write_pxfr_start(unsigned int ep) {
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
 
 	// Grab the control register, sanity check, and extract max packet size.
-	OTG_FS_DIEPCTLx_t ctl = OTG_FS_DIEP[UEP_NUM(ep)].DIEPCTL;
+	OTG_FS_DIEPCTLx_t ctl = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL;
 	assert(!ctl.EPENA);
 	size_t max_packet = ctl.MPSIZ;
 
@@ -273,17 +273,17 @@ static void uep_write_pxfr_start(unsigned int ep) {
 		tsiz.PKTCNT = 1U;
 		ctx->flags.zlp = false;
 	}
-	OTG_FS_DIEP[UEP_NUM(ep)].DIEPTSIZ = tsiz;
+	OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPTSIZ = tsiz;
 	ctl.EPENA = 1;
 	ctl.CNAK = 1;
 	ctl.STALL = 0;
-	OTG_FS_DIEP[UEP_NUM(ep)].DIEPCTL = ctl;
+	OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL = ctl;
 	__atomic_signal_fence(__ATOMIC_RELEASE); // Prevent prior writes from being sunk below pxfr_bytes_left write.
 	__atomic_store_n(&ctx->pxfr_bytes_left, pxfr_bytes, __ATOMIC_RELAXED);
 	__atomic_signal_fence(__ATOMIC_ACQUIRE); // Prevent subsequent writes from being hoisted above pxfr_bytes_left write.
 	if (pxfr_bytes) {
 		taskENTER_CRITICAL();
-		OTG_FS_DIEPEMPMSK.INEPTXFEM |= 1U << UEP_NUM(ep);
+		OTG_FS.DIEPEMPMSK.INEPTXFEM |= 1U << UEP_NUM(ep);
 		taskEXIT_CRITICAL();
 	}
 }
@@ -307,20 +307,20 @@ static void uep_write_pxfr_abort(unsigned int ep) {
 
 	// Obtain local NAK status.
 	xEventGroupClearBits(ctx->event_group, UEP_IN_EVENT_NAKEFF);
-	OTG_FS_DIEPCTLx_t ctl = OTG_FS_DIEP[UEP_NUM(ep)].DIEPCTL;
+	OTG_FS_DIEPCTLx_t ctl = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL;
 	if (!ctl.NAKSTS) {
 		ctl.SNAK = 1;
-		OTG_FS_DIEP[UEP_NUM(ep)].DIEPCTL = ctl;
+		OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL = ctl;
 		while (!(xEventGroupWaitBits(ctx->event_group, UEP_IN_EVENT_NAKEFF, pdTRUE, pdFALSE, portMAX_DELAY) & UEP_IN_EVENT_NAKEFF));
 	}
 
 	// Check the status of the endpoint.
-	ctl = OTG_FS_DIEP[UEP_NUM(ep)].DIEPCTL;
+	ctl = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL;
 	if (ctl.EPENA) {
 		// Endpoint is still enabled.
 		// Force-disable it.
 		ctl.EPDIS = 1;
-		OTG_FS_DIEP[UEP_NUM(ep)].DIEPCTL = ctl;
+		OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL = ctl;
 		while (!(xEventGroupWaitBits(ctx->event_group, UEP_EVENT_DISD, pdTRUE, pdFALSE, portMAX_DELAY) & UEP_EVENT_DISD));
 	}
 }
@@ -336,10 +336,10 @@ static bool uep_write_impl(unsigned int ep, const void *data, size_t length, boo
 	}
 
 	// Sanity check.
-	assert(OTG_FS_DIEP[UEP_NUM(ep)].DIEPCTL.USBAEP);
+	assert(OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL.USBAEP);
 
 	// Grab the maximum packet size.
-	size_t max_packet = OTG_FS_DIEP[UEP_NUM(ep)].DIEPCTL.MPSIZ;
+	size_t max_packet = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL.MPSIZ;
 
 	// Decide whether we need a ZLP.
 	ctx->flags.zlp = zlp && !(length % max_packet);
@@ -443,7 +443,7 @@ bool uep_halt_wait(unsigned int ep) {
  */
 static void uep_async_read_start_pxfr(unsigned int ep) {
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
-	size_t max_packet = OTG_FS_DOEP[UEP_NUM(ep)].DOEPCTL.MPSIZ;
+	size_t max_packet = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL.MPSIZ;
 
 	// Start a physical transfer.
 	// The byte count field must always be set to a multiple of the maximum packet size for an OUT endpoint.
@@ -452,13 +452,13 @@ static void uep_async_read_start_pxfr(unsigned int ep) {
 	pxfr_packets = MIN(pxfr_packets, OUT_PXFR_MAX_PACKETS);
 	pxfr_packets = MIN(pxfr_packets, OUT_PXFR_MAX_BYTES / max_packet);
 	OTG_FS_DOEPTSIZx_t tsiz = { .PKTCNT = pxfr_packets, .XFRSIZ = pxfr_packets * max_packet };
-	OTG_FS_DOEP[UEP_NUM(ep)].DOEPTSIZ = tsiz;
-	OTG_FS_DOEPCTLx_t ctl = OTG_FS_DOEP[UEP_NUM(ep)].DOEPCTL;
+	OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPTSIZ = tsiz;
+	OTG_FS_DOEPCTLx_t ctl = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL;
 	assert(!ctl.EPENA);
 	ctl.EPENA = 1;
 	ctl.CNAK = 1;
 	ctl.STALL = 0;
-	OTG_FS_DOEP[UEP_NUM(ep)].DOEPCTL = ctl;
+	OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL = ctl;
 }
 /**
  * \endcond
@@ -502,7 +502,7 @@ bool uep_async_read_start(unsigned int ep, void *buffer, size_t max_length, Even
 	xSemaphoreTake(ctx->transfer_mutex, portMAX_DELAY);
 
 	// Sanity check.
-	assert(OTG_FS_DOEP[UEP_NUM(ep)].DOEPCTL.USBAEP);
+	assert(OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL.USBAEP);
 
 	// Set up the control structures.
 	ctx->data.out = buffer;
@@ -565,13 +565,13 @@ bool uep_async_read_finish(unsigned int ep, size_t *length) {
 		// Begin by taking global OUT NAK.
 		udev_gonak_take();
 		// Check the status of the endpoint.
-		OTG_FS_DOEPCTLx_t ctl = OTG_FS_DOEP[UEP_NUM(ep)].DOEPCTL;
+		OTG_FS_DOEPCTLx_t ctl = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL;
 		if (ctl.EPENA) {
 			// Endpoint is still enabled.
 			// Force-disable it.
 			ctl.EPDIS = 1;
 			ctl.SNAK = 1;
-			OTG_FS_DOEP[UEP_NUM(ep)].DOEPCTL = ctl;
+			OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL = ctl;
 			while (!(xEventGroupWaitBits(ctx->event_group, UEP_EVENT_DISD, pdTRUE, pdFALSE, portMAX_DELAY) & UEP_EVENT_DISD));
 		}
 		// Release global OUT NAK.
@@ -592,7 +592,7 @@ bool uep_async_read_finish(unsigned int ep, size_t *length) {
 		// (2) a short packet is received
 		//
 		// A short packet is always either a packet which is not a multiple of max packet size or a ZLP.
-		size_t max_packet = OTG_FS_DOEP[UEP_NUM(ep)].DOEPCTL.MPSIZ;
+		size_t max_packet = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL.MPSIZ;
 		if (ctx->bytes_left && !(ctx->bytes_transferred % max_packet) && ctx->flags.zlp) {
 			// The logical transfer is not finished yet.
 			uep_async_read_start_pxfr(ep);
@@ -660,10 +660,10 @@ bool uep_async_write_start(unsigned int ep, const void *data, size_t length, boo
 	xSemaphoreTake(ctx->transfer_mutex, portMAX_DELAY);
 
 	// Sanity check.
-	assert(OTG_FS_DIEP[UEP_NUM(ep)].DIEPCTL.USBAEP);
+	assert(OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL.USBAEP);
 
 	// Grab the maximum packet size.
-	size_t max_packet = OTG_FS_DIEP[UEP_NUM(ep)].DIEPCTL.MPSIZ;
+	size_t max_packet = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL.MPSIZ;
 
 	// Set up the control structure.
 	ctx->data.in = data;
@@ -851,9 +851,9 @@ static void uep_halt_impl(unsigned int ep) {
 
 	// Set the hardware.
 	if (UEP_DIR(ep)) {
-		OTG_FS_DIEP[UEP_NUM(ep)].DIEPCTL.STALL = 1;
+		OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL.STALL = 1;
 	} else {
-		OTG_FS_DOEP[UEP_NUM(ep)].DOEPCTL.STALL = 1;
+		OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL.STALL = 1;
 	}
 
 	// Release transfer mutex.
@@ -917,7 +917,7 @@ static void uep_activate_impl(const usb_endpoint_descriptor_t *edesc, unsigned i
 		} else {
 			fifo_words = MAX(16U, MIN(alloc_words, max_packet_words * 7U));
 		}
-		OTG_FS_DIEPTXF[UEP_NUM(edesc->bEndpointAddress)].INEPTXFD = fifo_words;
+		OTG_FS.DIEPTXF[UEP_NUM(edesc->bEndpointAddress)].INEPTXFD = fifo_words;
 
 		// The FIFO must be large enough to contain at least one packet.
 		assert(fifo_words >= max_packet_words);
@@ -926,7 +926,7 @@ static void uep_activate_impl(const usb_endpoint_descriptor_t *edesc, unsigned i
 		udev_flush_tx_fifo(edesc->bEndpointAddress);
 
 		// Activate endpoint.
-		assert(!OTG_FS_DIEP[UEP_NUM(edesc->bEndpointAddress)].DIEPCTL.USBAEP);
+		assert(!OTG_FS.DIEP[UEP_NUM(edesc->bEndpointAddress) - 1U].DIEPCTL.USBAEP);
 		OTG_FS_DIEPCTLx_t ctl = {
 			.SD0PID_SEVNFRM = 1,
 			.TXFNUM = UEP_NUM(edesc->bEndpointAddress),
@@ -934,17 +934,17 @@ static void uep_activate_impl(const usb_endpoint_descriptor_t *edesc, unsigned i
 			.USBAEP = 1,
 			.MPSIZ = edesc->wMaxPacketSize,
 		};
-		OTG_FS_DIEP[UEP_NUM(edesc->bEndpointAddress)].DIEPCTL = ctl;
+		OTG_FS.DIEP[UEP_NUM(edesc->bEndpointAddress) - 1U].DIEPCTL = ctl;
 	} else {
 		// Activate endpoint.
-		assert(!OTG_FS_DOEP[UEP_NUM(edesc->bEndpointAddress)].DOEPCTL.USBAEP);
+		assert(!OTG_FS.DOEP[UEP_NUM(edesc->bEndpointAddress) - 1U].DOEPCTL.USBAEP);
 		OTG_FS_DOEPCTLx_t ctl = {
 			.SD0PID_SEVENFRM = 1,
 			.EPTYP = edesc->bmAttributes.type,
 			.USBAEP = 1,
 			.MPSIZ = edesc->wMaxPacketSize,
 		};
-		OTG_FS_DOEP[UEP_NUM(edesc->bEndpointAddress)].DOEPCTL = ctl;
+		OTG_FS.DOEP[UEP_NUM(edesc->bEndpointAddress) - 1U].DOEPCTL = ctl;
 	}
 }
 
@@ -979,13 +979,13 @@ static void uep_deactivate_impl(const usb_endpoint_descriptor_t *edesc) {
 
 	// Disable the endpoint hardware.
 	if (UEP_DIR(edesc->bEndpointAddress)) {
-		assert(!OTG_FS_DIEP[UEP_NUM(edesc->bEndpointAddress)].DIEPCTL.EPENA);
+		assert(!OTG_FS.DIEP[UEP_NUM(edesc->bEndpointAddress) - 1U].DIEPCTL.EPENA);
 		OTG_FS_DIEPCTLx_t ctl = { 0 };
-		OTG_FS_DIEP[UEP_NUM(edesc->bEndpointAddress)].DIEPCTL = ctl;
+		OTG_FS.DIEP[UEP_NUM(edesc->bEndpointAddress) - 1U].DIEPCTL = ctl;
 	} else {
-		assert(!OTG_FS_DOEP[UEP_NUM(edesc->bEndpointAddress)].DOEPCTL.EPENA);
+		assert(!OTG_FS.DOEP[UEP_NUM(edesc->bEndpointAddress) - 1U].DOEPCTL.EPENA);
 		OTG_FS_DOEPCTLx_t ctl = { 0 };
-		OTG_FS_DOEP[UEP_NUM(edesc->bEndpointAddress)].DOEPCTL = ctl;
+		OTG_FS.DOEP[UEP_NUM(edesc->bEndpointAddress) - 1U].DOEPCTL = ctl;
 	}
 
 	// Clear the state block and release the transfer mutex.
