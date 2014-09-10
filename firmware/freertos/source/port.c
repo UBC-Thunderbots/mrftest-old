@@ -354,6 +354,17 @@ long xPortStartScheduler(void) {
 void portENTER_CRITICAL(void) {
 	portDISABLE_INTERRUPTS();
 	++critical_section_nesting;
+	
+	/* This is not the interrupt safe version of the enter critical function so
+	assert() if it is being called from an interrupt context.  Only API 
+	functions that end in "FromISR" can be used in an interrupt.  Only assert if
+	the critical nesting count is 1 to protect against recursive calls if the
+	assert function also uses a critical section. */
+	if (critical_section_nesting == 1U) {
+		unsigned int xpsr;
+		asm volatile("mrs %[xpsr], xpsr\n\t" : [xpsr] "=r" (xpsr));
+		configASSERT(!(xpsr & 0xFFU));
+	}
 }
 
 void portEXIT_CRITICAL(void) {

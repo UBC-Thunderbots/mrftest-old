@@ -124,6 +124,10 @@ void vPortPendSVHandler(void);
 void vPortSysTickHandler(void);
 
 // Functionality used by tasks.c to optimize task selection if requested.
+// If not otherwise specified, we will enable optimized task selection.
+#ifndef configUSE_PORT_OPTIMISED_TASK_SELECTION
+#define configUSE_PORT_OPTIMIZED_TASK_SELECTION 1
+#endif
 #if configUSE_PORT_OPTIMISED_TASK_SELECTION == 1
 #if configMAX_PRIORITIES > 32
 #error Cannot use optimized task selection with more than 32 priorities!
