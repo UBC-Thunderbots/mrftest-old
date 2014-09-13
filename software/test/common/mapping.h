@@ -1,6 +1,7 @@
 #ifndef TEST_COMMON_MAPPING_H
 #define TEST_COMMON_MAPPING_H
 
+#include "util/joystick.h"
 #include <string>
 #include <glibmm/ustring.h>
 #include <libxml++/libxml++.h>
@@ -48,28 +49,28 @@ class JoystickMapping {
 		/**
 		 * \brief Constructs a new mapping.
 		 *
-		 * \param[in] name the name of the joystick to map.
+		 * \param[in] identifier identifying information about the joystick
 		 */
-		JoystickMapping(const Glib::ustring &name);
+		JoystickMapping(const Joystick::Identifier &identifier);
 
 		/**
 		 * \brief Constructs a new mapping from an XML element.
 		 *
-		 * \param[in] elt the element.
+		 * \param[in] elt the element
 		 */
 		JoystickMapping(const xmlpp::Element *elt);
 
 		/**
-		 * \brief Returns the name of the joystick handled by this mapping.
+		 * \breif Returns the identifying information of the joystick handled by this mapping.
 		 *
-		 * \return the name of the joystick.
+		 * \return the identifying information.
 		 */
-		const Glib::ustring &name() const;
+		const Joystick::Identifier &identifier() const;
 
 		/**
 		 * \brief Checks if a logical axis has a mapping.
 		 *
-		 * \param[in] axis the logical axis to check.
+		 * \param[in] axis the logical axis to check
 		 *
 		 * \return \c true if \p axis has a corresponding physical mapping, or \c false if not.
 		 */
@@ -78,7 +79,7 @@ class JoystickMapping {
 		/**
 		 * \brief Returns the mapping of an axis.
 		 *
-		 * \param[in] axis the logical axis to fetch.
+		 * \param[in] axis the logical axis to fetch
 		 *
 		 * \return the physical axes corresponding to the logical axis.
 		 *
@@ -89,23 +90,23 @@ class JoystickMapping {
 		/**
 		 * \brief Removes the mapping for an axis.
 		 *
-		 * \param[in] axis the logical axis to unmap.
+		 * \param[in] axis the logical axis to unmap
 		 */
 		void clear_axis(unsigned int axis);
 
 		/**
 		 * \brief Sets the mapping for an axis.
 		 *
-		 * \param[in] logical the logical axis to map.
+		 * \param[in] logical the logical axis to map
 		 *
-		 * \param[in] physical the physical axis to map to.
+		 * \param[in] physical the physical axis to map to
 		 */
 		void set_axis(unsigned int logical, unsigned int physical);
 
 		/**
 		 * \brief Checks if a logical button has a mapping.
 		 *
-		 * \param[in] button the logical button to check.
+		 * \param[in] button the logical button to check
 		 *
 		 * \return \c true if \p button has a corresponding physical mapping, or \c false if not.
 		 */
@@ -114,7 +115,7 @@ class JoystickMapping {
 		/**
 		 * \brief Returns the mapping of an button.
 		 *
-		 * \param[in] button the logical button to fetch.
+		 * \param[in] button the logical button to fetch
 		 *
 		 * \return the physical axes corresponding to the logical button.
 		 *
@@ -125,48 +126,52 @@ class JoystickMapping {
 		/**
 		 * \brief Removes the mapping for an button.
 		 *
-		 * \param[in] button the logical button to unmap.
+		 * \param[in] button the logical button to unmap
 		 */
 		void clear_button(unsigned int button);
 
 		/**
 		 * \brief Sets the mapping for an button.
 		 *
-		 * \param[in] logical the logical button to map.
+		 * \param[in] logical the logical button to map
 		 *
-		 * \param[in] physical the physical button to map to.
+		 * \param[in] physical the physical button to map to
 		 */
 		void set_button(unsigned int logical, unsigned int physical);
 
 		/**
 		 * \brief Encodes this joystick mapping into an XML element.
 		 *
-		 * \param[out] elt the element to save to.
+		 * \param[out] elt the element to save to
 		 */
 		void save(xmlpp::Element *elt) const;
 
 	private:
-		Glib::ustring name_;
+		Joystick::Identifier identifier_;
 		std::string name_collate;
 		int axes[N_AXES];
 		int buttons[N_BUTTONS];
-
-		friend bool operator<(const JoystickMapping &, const JoystickMapping &);
 };
+
+
 
 /**
  * \brief Compares two JoystickMapping objects.
  *
- * \param[in] m1 the first object.
+ * \param[in] m1 the first object
  *
- * \param[in] m2 the second object.
+ * \param[in] m2 the second object
  *
  * \return \c true if \p m1 is ordered before \p m2, or \c false if not.
  */
-bool operator<(const JoystickMapping &m1, const JoystickMapping &m2);
+inline bool operator<(const JoystickMapping &m1, const JoystickMapping &m2) {
+	return m1.identifier() < m2.identifier();
+}
 
-inline const Glib::ustring &JoystickMapping::name() const {
-	return name_;
+
+
+inline const Joystick::Identifier &JoystickMapping::identifier() const {
+	return identifier_;
 }
 
 #endif

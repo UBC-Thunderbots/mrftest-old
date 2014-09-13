@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <locale>
 #include <sstream>
+#include <string>
 
 namespace {
 	const char *const BUTTON_XML_NAMES[] = {
@@ -33,14 +34,22 @@ static_assert(G_N_ELEMENTS(JoystickMapping::BUTTON_LABELS) == JoystickMapping::N
 
 constexpr unsigned int JoystickMapping::N_AXES;
 
-JoystickMapping::JoystickMapping(const Glib::ustring &name) : name_(name), name_collate(name_.collate_key()) {
+JoystickMapping::JoystickMapping(const Joystick::Identifier &identifier) : identifier_(identifier), name_collate(identifier_.name.collate_key()) {
 	std::fill(axes, axes + N_AXES, -1);
 	std::fill(buttons, buttons + N_BUTTONS, -1);
 }
 
-JoystickMapping::JoystickMapping(const xmlpp::Element *elt) : name_(elt->get_attribute_value(u8"name")), name_collate(name_.collate_key()) {
+JoystickMapping::JoystickMapping(const xmlpp::Element *elt) :
+		identifier_{
+			elt->get_attribute_value(u8"name"),
+			static_cast<uint16_t>(std::stoul(elt->get_attribute_value(u8"bus_type"))),
+			static_cast<uint16_t>(std::stoul(elt->get_attribute_value(u8"vendor_id"))),
+			static_cast<uint16_t>(std::stoul(elt->get_attribute_value(u8"product_id"))),
+			static_cast<uint16_t>(std::stoul(elt->get_attribute_value(u8"version"))),
+		},
+		name_collate(identifier_.name.collate_key()) {
 	assert(elt->get_name() == u8"joystick");
-	assert(!name_.empty());
+	assert(!identifier_.name.empty());
 	std::fill(axes, axes + N_AXES, -1);
 	std::fill(buttons, buttons + N_BUTTONS, -1);
 	const xmlpp::Node::NodeList &group_elts = elt->get_children();
@@ -131,7 +140,11 @@ void JoystickMapping::set_button(unsigned int logical, unsigned int physical) {
 
 void JoystickMapping::save(xmlpp::Element *elt) const {
 	assert(elt->get_name() == u8"joystick");
-	elt->set_attribute(u8"name", name_);
+	elt->set_attribute(u8"name", identifier_.name);
+	elt->set_attribute(u8"bus_type", std::to_string(identifier_.bus_type));
+	elt->set_attribute(u8"vendor_id", std::to_string(identifier_.vendor_id));
+	elt->set_attribute(u8"product_id", std::to_string(identifier_.product_id));
+	elt->set_attribute(u8"version", std::to_string(identifier_.version));
 	const struct {
 		const char *elt_name;
 		unsigned int n_mappings;
@@ -151,9 +164,5 @@ void JoystickMapping::save(xmlpp::Element *elt) const {
 			}
 		}
 	}
-}
-
-bool operator<(const JoystickMapping &m1, const JoystickMapping &m2) {
-	return m1.name_collate < m2.name_collate;
 }
 

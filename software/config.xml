@@ -20,6 +20,10 @@
 <!ATTLIST degrees name CDATA #REQUIRED>
 <!ATTLIST radians name CDATA #REQUIRED>
 <!ATTLIST joystick name CDATA #REQUIRED>
+<!ATTLIST joystick bus_type CDATA #REQUIRED>
+<!ATTLIST joystick vendor_id CDATA #REQUIRED>
+<!ATTLIST joystick product_id CDATA #REQUIRED>
+<!ATTLIST joystick version CDATA #REQUIRED>
 <!ATTLIST mapping logical CDATA #REQUIRED>
 <!ATTLIST mapping physical CDATA #REQUIRED>
 ]>
@@ -625,53 +629,28 @@
     </category>
   </params>
   <joysticks>
-    <joystick name="Generic X-Box pad">
+    <joystick name="Xbox 360 Wireless Receiver (XBOX)" bus_type="3" vendor_id="1118" product_id="657" version="263">
       <axes>
-        <mapping logical="0" physical="4"/>
-        <mapping logical="1" physical="3"/>
-        <mapping logical="2" physical="0"/>
-        <mapping logical="3" physical="1"/>
+        <mapping logical="0" physical="1"/>
+        <mapping logical="1" physical="0"/>
+        <mapping logical="2" physical="3"/>
+        <mapping logical="3" physical="4"/>
+      </axes>
+      <buttons>
+        <mapping logical="dribble" physical="2"/>
+        <mapping logical="kick" physical="0"/>
+      </buttons>
+    </joystick>
+    <joystick name="Logitech Logitech Dual Action" bus_type="3" vendor_id="1133" product_id="49686" version="272">
+      <axes>
+        <mapping logical="0" physical="1"/>
+        <mapping logical="1" physical="0"/>
+        <mapping logical="2" physical="2"/>
+        <mapping logical="3" physical="3"/>
       </axes>
       <buttons>
         <mapping logical="dribble" physical="0"/>
-        <mapping logical="kick" physical="3"/>
-      </buttons>
-    </joystick>
-    <joystick name="Logitech Logitech Dual Action">
-      <axes>
-        <mapping logical="0" physical="3"/>
-        <mapping logical="1" physical="2"/>
-        <mapping logical="2" physical="0"/>
-        <mapping logical="3" physical="1"/>
-      </axes>
-      <buttons>
-        <mapping logical="dribble" physical="1"/>
-        <mapping logical="kick" physical="3"/>
-        <mapping logical="scram" physical="2"/>
-      </buttons>
-    </joystick>
-    <joystick name="Xbox 360 Wireless Receiver">
-      <axes>
-        <mapping logical="0" physical="4"/>
-        <mapping logical="1" physical="3"/>
-        <mapping logical="2" physical="0"/>
-        <mapping logical="3" physical="1"/>
-      </axes>
-      <buttons>
-        <mapping logical="dribble" physical="0"/>
-        <mapping logical="kick" physical="3"/>
-      </buttons>
-    </joystick>
-    <joystick name="Xbox 360 Wireless Receiver (XBOX)">
-      <axes>
-        <mapping logical="0" physical="4"/>
-        <mapping logical="1" physical="3"/>
-        <mapping logical="2" physical="0"/>
-        <mapping logical="3" physical="1"/>
-      </axes>
-      <buttons>
-        <mapping logical="dribble" physical="0"/>
-        <mapping logical="kick" physical="3"/>
+        <mapping logical="kick" physical="1"/>
       </buttons>
     </joystick>
   </joysticks>

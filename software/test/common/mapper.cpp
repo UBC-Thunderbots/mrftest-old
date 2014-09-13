@@ -1,5 +1,6 @@
 #include "test/common/mapper.h"
 #include "uicomponents/abstract_list_model.h"
+#include "util/algorithm.h"
 #include "util/config.h"
 #include <algorithm>
 #include <cassert>
@@ -8,7 +9,7 @@
 #include <vector>
 #include <glibmm/object.h>
 #include <glibmm/refptr.h>
-#include <gtkmm/comboboxentrytext.h>
+#include <gtkmm/comboboxtext.h>
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/stock.h>
 
@@ -42,6 +43,7 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 		std::vector<JoystickMapping> mappings;
 
 		Gtk::TreeModelColumn<Glib::ustring> name_column;
+		Gtk::TreeModelColumn<unsigned int> bus_type_column, vendor_id_column, product_id_column, version_column;
 
 		static Glib::RefPtr<MappingsListModel> create() {
 			Glib::RefPtr<MappingsListModel> p(new MappingsListModel);
@@ -68,8 +70,32 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 			if (col == static_cast<unsigned int>(name_column.index())) {
 				Glib::Value<Glib::ustring> v;
 				v.init(name_column.type());
-				v.set(mappings[row].name());
+				v.set(mappings[row].identifier().name);
 				value.init(name_column.type());
+				value = v;
+			} else if (col == static_cast<unsigned int>(bus_type_column.index())) {
+				Glib::Value<unsigned int> v;
+				v.init(bus_type_column.type());
+				v.set(mappings[row].identifier().bus_type);
+				value.init(bus_type_column.type());
+				value = v;
+			} else if (col == static_cast<unsigned int>(vendor_id_column.index())) {
+				Glib::Value<unsigned int> v;
+				v.init(vendor_id_column.type());
+				v.set(mappings[row].identifier().vendor_id);
+				value.init(vendor_id_column.type());
+				value = v;
+			} else if (col == static_cast<unsigned int>(product_id_column.index())) {
+				Glib::Value<unsigned int> v;
+				v.init(product_id_column.type());
+				v.set(mappings[row].identifier().product_id);
+				value.init(product_id_column.type());
+				value = v;
+			} else if (col == static_cast<unsigned int>(version_column.index())) {
+				Glib::Value<unsigned int> v;
+				v.init(version_column.type());
+				v.set(mappings[row].identifier().version);
+				value.init(version_column.type());
 				value = v;
 			} else {
 				std::abort();
@@ -79,14 +105,14 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 		void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) {
 		}
 
-		bool has_mapping(const Glib::ustring &name) const {
-			return std::binary_search(mappings.begin(), mappings.end(), JoystickMapping(name));
+		bool has_mapping(const Joystick::Identifier &ident) const {
+			return std::binary_search(mappings.begin(), mappings.end(), JoystickMapping(ident));
 		}
 
-		std::size_t add_mapping(const Glib::ustring &name) {
-			JoystickMapping m(name);
+		std::size_t add_mapping(const Joystick::Identifier &ident) {
+			JoystickMapping m(ident);
 			auto iter = std::lower_bound(mappings.begin(), mappings.end(), m);
-			assert(!(iter != mappings.end() && iter->name() == name));
+			assert(!(iter != mappings.end() && iter->identifier() == ident));
 			std::size_t index = static_cast<std::size_t>(iter - mappings.begin());
 			mappings.insert(iter, m);
 			alm_row_inserted(index);
@@ -102,6 +128,10 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 	private:
 		MappingsListModel() : Glib::ObjectBase(typeid(MappingsListModel)) {
 			alm_column_record.add(name_column);
+			alm_column_record.add(bus_type_column);
+			alm_column_record.add(vendor_id_column);
+			alm_column_record.add(product_id_column);
+			alm_column_record.add(version_column);
 
 			const xmlpp::Element *joysticks_elt = Config::joysticks();
 			const xmlpp::Node::NodeList &joystick_elts = joysticks_elt->get_children();
@@ -116,8 +146,8 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 			}
 			std::sort(mappings.begin(), mappings.end());
 			for (auto i = mappings.begin(), iend = mappings.end(); i != iend; ++i) {
-				if (i + 1 != iend && i->name() == (i + 1)->name()) {
-					throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Malformed config.xml (duplicate joystick type %1)", i->name())));
+				if (i + 1 != iend && i->identifier() == (i + 1)->identifier()) {
+					throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Malformed config.xml (duplicate joystick type %1)", i->identifier().name)));
 				}
 			}
 		}
@@ -132,18 +162,20 @@ class MapperWindow::PreviewDevicesModel : public Glib::Object, public AbstractLi
 			return p;
 		}
 
-		void present(const Glib::ustring &model = Glib::ustring()) {
+		void present() {
 			while (!devices.empty()) {
 				std::size_t sz = devices.size();
 				devices.erase(devices.begin() + static_cast<std::vector<const Joystick *>::difference_type>(sz - 1));
 				alm_row_deleted(sz);
 			}
-			if (!model.empty()) {
-				for (std::size_t i = 0; i < Joystick::count(); ++i) {
-					if (Joystick::get(i).name() == model) {
-						devices.push_back(&Joystick::get(i));
-						alm_row_inserted(devices.size());
-					}
+		}
+
+		void present(const Joystick::Identifier &ident) {
+			present();
+			for (std::size_t i = 0; i < Joystick::count(); ++i) {
+				if (Joystick::get(i).identifier() == ident) {
+					devices.push_back(&Joystick::get(i));
+					alm_row_inserted(devices.size());
 				}
 			}
 		}
@@ -161,7 +193,7 @@ class MapperWindow::PreviewDevicesModel : public Glib::Object, public AbstractLi
 				Glib::Value<Glib::ustring> v;
 				v.init(name_column.type());
 				if (row > 0) {
-					v.set(Glib::filename_to_utf8(devices[row - 1]->node()));
+					v.set(Glib::ustring::compose(u8"%1 on %2", devices[row - 1]->identifier().name, devices[row - 1]->physical_location()));
 				} else {
 					v.set(u8"<No Preview Device>");
 				}
@@ -187,6 +219,10 @@ MapperWindow::MapperWindow() : mappings(MappingsListModel::create()), preview_de
 	set_title(u8"Joystick Mapper");
 
 	name_chooser.append_column(u8"Model", mappings->name_column);
+	name_chooser.append_column(u8"Bus Type", mappings->bus_type_column);
+	name_chooser.append_column(u8"Vendor ID", mappings->vendor_id_column);
+	name_chooser.append_column(u8"Product ID", mappings->product_id_column);
+	name_chooser.append_column(u8"Version", mappings->version_column);
 	name_chooser.get_selection()->set_mode(Gtk::SELECTION_SINGLE);
 	conns.push_back(name_chooser.get_selection()->signal_changed().connect(sigc::mem_fun(this, &MapperWindow::on_name_chooser_sel_changed)));
 	name_chooser_scroll.add(name_chooser);
@@ -247,31 +283,29 @@ MapperWindow::~MapperWindow() {
 
 void MapperWindow::on_add_clicked() {
 	Gtk::MessageDialog md(*this, u8"Which joystick do you want to map?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_OK_CANCEL);
-	Gtk::ComboBoxEntryText cbet;
-	std::unordered_set<std::string> names_used;
+	Gtk::ComboBoxText cbt;
+	std::vector<Joystick::Identifier> identifiers;
 	for (std::size_t i = 0; i < Joystick::count(); ++i) {
 		const Joystick &js = Joystick::get(i);
-		const std::string &ck = js.name().collate_key();
-		if (!mappings->has_mapping(js.name()) && !names_used.count(ck)) {
-			cbet.append_text(js.name());
-			names_used.insert(ck);
+		if (!mappings->has_mapping(js.identifier()) && !exists(identifiers.begin(), identifiers.end(), js.identifier())) {
+			cbt.append(js.identifier().name);
+			identifiers.push_back(js.identifier());
 		}
 	}
-	md.get_vbox()->pack_start(cbet, Gtk::PACK_SHRINK);
-	cbet.show();
+	md.get_vbox()->pack_start(cbt, Gtk::PACK_SHRINK);
+	cbt.show();
 	int rc = md.run();
-	if (rc == Gtk::RESPONSE_OK) {
-		const Glib::ustring &name = cbet.get_entry()->get_text();
-		if (!name.empty()) {
-			if (mappings->has_mapping(name)) {
-				Gtk::MessageDialog md2(*this, u8"A mapping already exists for that joystick.", false, Gtk::MESSAGE_ERROR);
-				md2.run();
-			} else {
-				std::size_t pos = mappings->add_mapping(name);
-				Gtk::TreePath p;
-				p.push_back(static_cast<int>(pos));
-				name_chooser.get_selection()->select(p);
-			}
+	int row = cbt.get_active_row_number();
+	if (rc == Gtk::RESPONSE_OK && row != -1) {
+		const Joystick::Identifier &ident = identifiers[row];
+		if (mappings->has_mapping(ident)) {
+			Gtk::MessageDialog md2(*this, u8"A mapping already exists for that joystick.", false, Gtk::MESSAGE_ERROR);
+			md2.run();
+		} else {
+			std::size_t pos = mappings->add_mapping(ident);
+			Gtk::TreePath p;
+			p.push_back(static_cast<int>(pos));
+			name_chooser.get_selection()->select(p);
 		}
 	}
 }
@@ -279,7 +313,7 @@ void MapperWindow::on_add_clicked() {
 void MapperWindow::on_del_clicked() {
 	if (has_selected_row(name_chooser)) {
 		std::size_t row = get_selected_row(name_chooser);
-		Gtk::MessageDialog md(*this, Glib::ustring::compose(u8"Delete the joystick %1?", mappings->mappings[row].name()), false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO);
+		Gtk::MessageDialog md(*this, Glib::ustring::compose(u8"Delete the joystick %1?", mappings->mappings[row].identifier().name), false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO);
 		int rc = md.run();
 		if (rc == Gtk::RESPONSE_YES) {
 			mappings->remove_mapping(row);
@@ -307,7 +341,7 @@ void MapperWindow::on_name_chooser_sel_changed() {
 				button_spinners[i].set_value(-1);
 			}
 		}
-		preview_devices->present(m.name());
+		preview_devices->present(m.identifier());
 		preview_device_chooser.set_sensitive();
 	} else {
 		del_button.set_sensitive(false);

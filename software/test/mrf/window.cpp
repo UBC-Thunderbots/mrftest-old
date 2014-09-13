@@ -15,7 +15,7 @@
 
 class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractListModel {
 	public:
-		Gtk::TreeModelColumn<Glib::ustring> node_column, name_column;
+		Gtk::TreeModelColumn<Glib::ustring> name_column;
 
 		static Glib::RefPtr<MappedJoysticksModel> create() {
 			Glib::RefPtr<MappedJoysticksModel> p(new MappedJoysticksModel);
@@ -27,15 +27,11 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 		}
 
 		void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const {
-			if (col == static_cast<unsigned int>(node_column.index()) || col == static_cast<unsigned int>(name_column.index())) {
+			if (col == static_cast<unsigned int>(name_column.index())) {
 				Glib::Value<Glib::ustring> v;
-				v.init(node_column.type());
-				if (row == 0) {
-					v.set(col == static_cast<unsigned int>(node_column.index()) ? u8"<None>" : u8"");
-				} else {
-					v.set(col == static_cast<unsigned int>(node_column.index()) ? Glib::filename_to_utf8(sticks[row - 1]->node()) : sticks[row - 1]->name());
-				}
-				value.init(node_column.type());
+				v.init(name_column.type());
+				v.set(row == 0 ? Glib::ustring(u8"<None>") : Glib::ustring::compose(u8"%1 on %2", sticks[row - 1]->identifier().name, sticks[row - 1]->physical_location()));
+				value.init(name_column.type());
 				value = v;
 			} else {
 				std::abort();
@@ -51,16 +47,15 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 		}
 
 		const JoystickMapping &get_mapping(const Joystick &stick) {
-			return mappings.find(stick.name().collate_key())->second;
+			return mappings.find(stick.identifier())->second;
 		}
 
 	private:
 		std::vector<const Joystick *> sticks;
 
-		std::unordered_map<std::string, JoystickMapping> mappings;
+		std::unordered_map<Joystick::Identifier, JoystickMapping> mappings;
 
 		MappedJoysticksModel() : Glib::ObjectBase(typeid(MappedJoysticksModel)) {
-			alm_column_record.add(node_column);
 			alm_column_record.add(name_column);
 
 			const xmlpp::Element *joysticks_elt = Config::joysticks();
@@ -71,17 +66,16 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 						throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Malformed config.xml (expected element of type joystick, found %1)", e->get_name())));
 					}
 					JoystickMapping m(e);
-					const std::string &ck = m.name().collate_key();
-					if (mappings.count(ck)) {
-						throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Malformed config.xml (duplicate joystick type %1)", m.name())));
+					if (mappings.count(m.identifier())) {
+						throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose(u8"Malformed config.xml (duplicate joystick type %1)", m.identifier().name)));
 					}
-					mappings.insert(std::make_pair(ck, m));
+					mappings.insert(std::make_pair(m.identifier(), m));
 				}
 			}
 
 			for (std::size_t i = 0; i < Joystick::count(); ++i) {
 				const Joystick &stick = Joystick::get(i);
-				if (mappings.count(stick.name().collate_key())) {
+				if (mappings.count(stick.identifier())) {
 					sticks.push_back(&stick);
 				}
 			}
@@ -141,7 +135,6 @@ TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) :
 	joystick_sensitivity_hbox.pack_start(joystick_sensitivity_high_button, Gtk::PACK_SHRINK);
 	joystick_sensitivity_hbox.pack_start(joystick_sensitivity_low_button, Gtk::PACK_SHRINK);
 	joystick_vbox.pack_start(joystick_sensitivity_hbox, Gtk::PACK_SHRINK);
-	joystick_chooser.pack_start(mapped_joysticks->node_column);
 	joystick_chooser.pack_start(mapped_joysticks->name_column);
 	joystick_chooser.set_active(0);
 	joystick_chooser.signal_changed().connect(sigc::mem_fun(this, &TesterWindow::on_joystick_chooser_changed));
