@@ -16,7 +16,7 @@ namespace {
 		Gtk::Button reset_button;
 		Gtk::HScale controls[3];
 
-		RCTester(World world) : world(world) {
+		explicit RCTester(World world) : world(world) {
 			for (Gtk::HScale &i : controls) {
 				vbox.add(i);
 				// params are

@@ -20,7 +20,7 @@ class MappedFile : public NonCopyable {
 		 *
 		 * \param[in] flags the mapping flags to use.
 		 */
-		MappedFile(const FileDescriptor &fd, int prot = PROT_READ, int flags = MAP_SHARED | MAP_FILE);
+		explicit MappedFile(const FileDescriptor &fd, int prot = PROT_READ, int flags = MAP_SHARED | MAP_FILE);
 
 		/**
 		 * \brief Maps in a file.
@@ -31,7 +31,7 @@ class MappedFile : public NonCopyable {
 		 *
 		 * \param[in] flags the mapping flags to use.
 		 */
-		MappedFile(const std::string &filename, int prot = PROT_READ, int flags = MAP_SHARED | MAP_FILE);
+		explicit MappedFile(const std::string &filename, int prot = PROT_READ, int flags = MAP_SHARED | MAP_FILE);
 
 		/**
 		 * \brief Unmaps the file.

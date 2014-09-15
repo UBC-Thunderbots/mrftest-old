@@ -16,7 +16,7 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class ShadowEnemy : public Tactic {
 		public:
-			ShadowEnemy(World world, unsigned int index) : Tactic(world), index(index) {
+			explicit ShadowEnemy(World world, unsigned int index) : Tactic(world), index(index) {
 			}
 
 		private:

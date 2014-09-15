@@ -47,7 +47,7 @@ namespace AI {
 					static Role::Ptr goalie(World world);
 
 				protected:
-					Role();
+					explicit Role();
 			};
 		}
 	}

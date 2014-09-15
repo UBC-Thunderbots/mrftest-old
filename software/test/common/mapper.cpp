@@ -126,7 +126,7 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 		}
 
 	private:
-		MappingsListModel() : Glib::ObjectBase(typeid(MappingsListModel)) {
+		explicit MappingsListModel() : Glib::ObjectBase(typeid(MappingsListModel)) {
 			alm_column_record.add(name_column);
 			alm_column_record.add(bus_type_column);
 			alm_column_record.add(vendor_id_column);
@@ -210,7 +210,7 @@ class MapperWindow::PreviewDevicesModel : public Glib::Object, public AbstractLi
 	private:
 		std::vector<const Joystick *> devices;
 
-		PreviewDevicesModel() : Glib::ObjectBase(typeid(PreviewDevicesModel)) {
+		explicit PreviewDevicesModel() : Glib::ObjectBase(typeid(PreviewDevicesModel)) {
 			alm_column_record.add(name_column);
 		}
 };

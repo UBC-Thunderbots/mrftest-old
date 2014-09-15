@@ -50,7 +50,7 @@ enum Team {
 
 
  	 private:
-				AutoRef(const AI::AIPackage &ai, const AI::HL::W::World &world);
+				explicit AutoRef(const AI::AIPackage &ai, const AI::HL::W::World &world);
 				const AI::AIPackage &ai;
 				const AI::HL::W::World &world;
 				AI::Common::Team<AI::HL::W::Player, AI::BE::Player> FT;

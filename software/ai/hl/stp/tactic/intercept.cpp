@@ -13,9 +13,9 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace {
 	class Intercept : public Tactic {
 		public:
-			Intercept(World world, const Point target) : Tactic(world, true), target(target) {
+			explicit Intercept(World world, const Point target) : Tactic(world, true), target(target) {
 			}
-			Intercept(World world) : Tactic(world, true) {
+			explicit Intercept(World world) : Tactic(world, true) {
 				target = world.field().enemy_goal();
 			}
 		private:

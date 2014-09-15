@@ -21,7 +21,7 @@ namespace {
 	 */
 	class ParameterTuningNavigator : public Navigator {
 		public:
-			ParameterTuningNavigator(World world);
+			explicit ParameterTuningNavigator(World world);
 			void tick();
 			NavigatorFactory &factory() const;
 

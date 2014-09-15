@@ -50,7 +50,7 @@ class ParamTreeNode : public NonCopyable {
 		 *
 		 * \param[in] name the name of the node.
 		 */
-		ParamTreeNode(const Glib::ustring &name);
+		explicit ParamTreeNode(const Glib::ustring &name);
 
 		/**
 		 * \brief Destroys a ParamTreeNode.
@@ -273,7 +273,7 @@ class Param : public ParamTreeNode {
 		 *
 		 * \param[in] location the location in the parameter tree of the parameter.
 		 */
-		Param(const Glib::ustring &name, const Glib::ustring &location);
+		explicit Param(const Glib::ustring &name, const Glib::ustring &location);
 
 		/**
 		 * \brief Initializes the structure of this node and any child nodes.
@@ -323,7 +323,7 @@ class BoolParam : public Param {
 		 *
 		 * \param[in] def the default value of the parameter.
 		 */
-		BoolParam(const Glib::ustring &name, const Glib::ustring &location, bool def);
+		explicit BoolParam(const Glib::ustring &name, const Glib::ustring &location, bool def);
 
 		/**
 		 * \brief Returns the value of the parameter.
@@ -447,7 +447,7 @@ class NumericParam : public Param {
 		 *
 		 * \param[in] integer \c true if the parameter should take integer values, or \c false if it may take non-integer values.
 		 */
-		NumericParam(const Glib::ustring &name, const Glib::ustring &location, double def, double min, double max, bool integer);
+		explicit NumericParam(const Glib::ustring &name, const Glib::ustring &location, double def, double min, double max, bool integer);
 
 	private:
 		const double def, min, max;
@@ -486,7 +486,7 @@ class IntParam : public NumericParam {
 		 *
 		 * \param[in] max the maximum value of the parameter.
 		 */
-		IntParam(const Glib::ustring &name, const Glib::ustring &location, int def, int min, int max);
+		explicit IntParam(const Glib::ustring &name, const Glib::ustring &location, int def, int min, int max);
 
 		/**
 		 * \brief Returns the value of the parameter.
@@ -549,7 +549,7 @@ class DoubleParam : public NumericParam {
 		 *
 		 * \param[in] max the maximum value of the parameter.
 		 */
-		DoubleParam(const Glib::ustring &name, const Glib::ustring &location, double def, double min, double max);
+		explicit DoubleParam(const Glib::ustring &name, const Glib::ustring &location, double def, double min, double max);
 
 		/**
 		 * \brief Returns the value of the parameter.

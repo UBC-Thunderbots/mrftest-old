@@ -56,7 +56,7 @@ namespace Drive {
 			/**
 			 * \brief Constructs a new Dongle
 			 */
-			Dongle();
+			explicit Dongle();
 
 		private:
 			Annunciator::Message estop_broken_message;

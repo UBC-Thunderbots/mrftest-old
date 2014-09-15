@@ -25,7 +25,7 @@ using AI::HL::STP::DIST_FROM_PENALTY_MARK;
 		AI::HL::STP::Play::PlayFactoryImpl<cls> factory_instance(u8 ## # cls); \
 		class cls : public AI::HL::STP::Play::Play { \
 			public: \
-				cls(AI::HL::W::World world) : AI::HL::STP::Play::Play(world) { \
+				explicit cls(AI::HL::W::World world) : AI::HL::STP::Play::Play(world) { \
 				} \
  \
 				AI::HL::STP::Play::PlayFactory &factory() const { \

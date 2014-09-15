@@ -10,7 +10,7 @@ using namespace AI::HL::W;
 namespace {
 	class TestLoneGoalie : public HighLevel {
 		public:
-			TestLoneGoalie(World world) : world(world) {
+			explicit TestLoneGoalie(World world) : world(world) {
 			}
 
 		private:

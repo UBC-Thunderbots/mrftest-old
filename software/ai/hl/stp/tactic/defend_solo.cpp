@@ -9,7 +9,7 @@ using namespace AI::HL::W;
 namespace {
 	class LoneGoalie : public Tactic {
 		public:
-			LoneGoalie(World world, bool active) : Tactic(world, active) {
+			explicit LoneGoalie(World world, bool active) : Tactic(world, active) {
 			}
 
 		private:

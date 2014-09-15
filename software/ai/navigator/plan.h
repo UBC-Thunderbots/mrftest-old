@@ -8,7 +8,7 @@ namespace AI {
 				AI::Nav::W::World world;
 
 			public:
-				Plan(AI::Nav::W::World world);
+				explicit Plan(AI::Nav::W::World world);
 				virtual std::vector<Point> plan(AI::Nav::W::Player player, Point goal, unsigned int added_flags = 0) = 0;
 		};
 	}

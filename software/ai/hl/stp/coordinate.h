@@ -57,7 +57,7 @@ namespace AI {
 						BALL,
 					};
 
-					Coordinate();
+					explicit Coordinate();
 
 					/**
 					 * Implicit conversion.
@@ -78,7 +78,7 @@ namespace AI {
 					 *
 					 * \param [in] o_type determines the origin.
 					 */
-					Coordinate(World world, Point pos, YType y_type, OriginType o_type);
+					explicit Coordinate(World world, Point pos, YType y_type, OriginType o_type);
 
 					/**
 					 * Evaluates the absolute position.

@@ -20,7 +20,7 @@ class PowerPanel : public Gtk::Table {
 		 *
 		 * \param[in] index the index of the robot to control
 		 */
-		PowerPanel(MRFDongle &dongle, unsigned int index);
+		explicit PowerPanel(MRFDongle &dongle, unsigned int index);
 
 	private:
 		MRFDongle &dongle;

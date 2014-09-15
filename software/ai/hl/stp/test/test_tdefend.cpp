@@ -11,7 +11,7 @@ using namespace AI::HL::W;
 namespace {
 	class TestTDefend : public HighLevel {
 		public:
-			TestTDefend(World world) : world(world) {
+			explicit TestTDefend(World world) : world(world) {
 			}
 
 		private:

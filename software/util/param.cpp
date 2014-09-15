@@ -165,7 +165,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 
 		std::vector<ParamTreeNode *> children;
 
-		ParamTreeInternalNode(const Glib::ustring &name) : ParamTreeNode(name) {
+		explicit ParamTreeInternalNode(const Glib::ustring &name) : ParamTreeNode(name) {
 		}
 
 		friend ParamTreeNode *ParamTreeNode::root();

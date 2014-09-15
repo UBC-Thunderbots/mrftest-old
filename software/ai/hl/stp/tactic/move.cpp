@@ -11,7 +11,7 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class Move : public Tactic {
 		public:
-			Move(World world, const Coordinate dest) : Tactic(world), dest(dest) {
+			explicit Move(World world, const Coordinate dest) : Tactic(world), dest(dest) {
 			}
 
 		private:

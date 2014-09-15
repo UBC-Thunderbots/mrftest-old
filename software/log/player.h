@@ -15,7 +15,7 @@ class LogPlayer : public Gtk::Window {
 		 *
 		 * \param[in] pathname the path to the log file to play.
 		 */
-		LogPlayer(Gtk::Window &parent, const std::string &pathname);
+		explicit LogPlayer(Gtk::Window &parent, const std::string &pathname);
 
 	private:
 		class Impl;

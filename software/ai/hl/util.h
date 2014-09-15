@@ -34,7 +34,7 @@ namespace AI {
 					 *
 					 * \param[in] dest the target point the distance to which to sort by.
 					 */
-					constexpr CmpDist(const Point &dest) : dest(dest) {
+					explicit constexpr CmpDist(const Point &dest) : dest(dest) {
 					}
 
 					/**

@@ -309,7 +309,7 @@ namespace {
 			/**
 			 * \brief Constructs a new PacketDecodedTreeColumns.
 			 */
-			PacketDecodedTreeColumns();
+			explicit PacketDecodedTreeColumns();
 
 			/**
 			 * \brief Adds a key-value pair to a tree.
@@ -373,7 +373,7 @@ namespace {
 		private:
 			const std::vector<Log::Record> &records;
 
-			RecordsALM(const std::vector<Log::Record> &records) : Glib::ObjectBase(typeid(RecordsALM)), Glib::Object(), AbstractListModel(), records(records) {
+			explicit RecordsALM(const std::vector<Log::Record> &records) : Glib::ObjectBase(typeid(RecordsALM)), Glib::Object(), AbstractListModel(), records(records) {
 				alm_column_record.add(index_column);
 				alm_column_record.add(type_column);
 			}
@@ -699,7 +699,7 @@ class LogAnalyzer::Impl : public NonCopyable {
 		RecordsALM::Ptr alm;
 		PacketDecodedTreeColumns packet_decoded_tree_columns;
 
-		Impl(const std::string &pathname) : records(LogLoader::load(pathname)) {
+		explicit Impl(const std::string &pathname) : records(LogLoader::load(pathname)) {
 			alm = RecordsALM::create(records);
 		}
 };

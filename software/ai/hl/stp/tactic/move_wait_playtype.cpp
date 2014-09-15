@@ -11,7 +11,7 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class MoveWaitPlaytype : public Tactic {
 		public:
-			MoveWaitPlaytype(World world, Coordinate dest, AI::Common::PlayType playtype) : Tactic(world, true), dest(dest), playtype(playtype) {
+			explicit MoveWaitPlaytype(World world, Coordinate dest, AI::Common::PlayType playtype) : Tactic(world, true), dest(dest), playtype(playtype) {
 			}
 
 		private:

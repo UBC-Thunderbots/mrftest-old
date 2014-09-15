@@ -32,7 +32,7 @@ class RadianParam : public NumericParam {
 		 *
 		 * \param[in] max the maximum value of the parameter.
 		 */
-		RadianParam(const char *name, const char *location, double def, double min, double max);
+		explicit RadianParam(const char *name, const char *location, double def, double min, double max);
 
 		/**
 		 * \brief Returns the value of the parameter.
@@ -95,7 +95,7 @@ class DegreeParam : public NumericParam {
 		 *
 		 * \param[in] max the maximum value of the parameter.
 		 */
-		DegreeParam(const char *name, const char *location, double def, double min, double max);
+		explicit DegreeParam(const char *name, const char *location, double def, double min, double max);
 
 		/**
 		 * \brief Returns the value of the parameter.

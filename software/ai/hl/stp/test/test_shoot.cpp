@@ -11,7 +11,7 @@ using namespace AI::HL::W;
 namespace {
 	class TestShoot : public HighLevel {
 		public:
-			TestShoot(World world) : world(world) {
+			explicit TestShoot(World world) : world(world) {
 			}
 
 		private:

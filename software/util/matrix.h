@@ -30,7 +30,7 @@ class Matrix {
 		/**
 		 * Constructs a zero-by-zero matrix.
 		 */
-		Matrix();
+		explicit Matrix();
 
 		/**
 		 * Constructs a matrix.
@@ -41,7 +41,7 @@ class Matrix {
 		 *
 		 * \param[in] data the data to fill in the the matrix with, in row-major order (defaults to 0 for an uninitialized matrix).
 		 */
-		Matrix(std::size_t num_rows, std::size_t num_cols = 1, const double *data = nullptr);
+		explicit Matrix(std::size_t num_rows, std::size_t num_cols = 1, const double *data = nullptr);
 
 		/**
 		 * Constructs a matrix initialized to a common pattern.
@@ -52,7 +52,7 @@ class Matrix {
 		 *
 		 * \param[in] flag the pattern to fill with.
 		 */
-		Matrix(std::size_t num_rows, std::size_t num_cols, InitFlag flag);
+		explicit Matrix(std::size_t num_rows, std::size_t num_cols, InitFlag flag);
 
 		/**
 		 * Constructs a copy of an existing matrix.

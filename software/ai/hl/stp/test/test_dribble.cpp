@@ -23,7 +23,7 @@ using AI::HL::STP::Coordinate;
 namespace {
 	class TestDribble: public HighLevel {
 		public:
-			TestDribble(World world) : world(world) {
+			explicit TestDribble(World world) : world(world) {
 			}
 
 		private:

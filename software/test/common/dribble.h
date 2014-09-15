@@ -16,7 +16,7 @@ class DribblePanel : public Gtk::VBox {
 		 *
 		 * \param[in] robot the robot to control
 		 */
-		DribblePanel(Drive::Robot &robot);
+		explicit DribblePanel(Drive::Robot &robot);
 
 		/**
 		 * \brief Stops the dribbler.

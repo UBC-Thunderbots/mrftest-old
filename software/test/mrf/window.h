@@ -29,7 +29,7 @@ class TesterWindow : public Gtk::Window {
 		 *
 		 * \param[in] robot the robot to talk to.
 		 */
-		TesterWindow(MRFDongle &dongle, MRFRobot &robot);
+		explicit TesterWindow(MRFDongle &dongle, MRFRobot &robot);
 
 		/**
 		 * \brief Destroys a TesterWindow.

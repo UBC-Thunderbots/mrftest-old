@@ -15,7 +15,7 @@ namespace {
 
 	class PenaltyGoalieNew : public Tactic {
 		public:
-			PenaltyGoalieNew(World world);
+			explicit PenaltyGoalieNew(World world);
 		private:
 			bool done() const;
 			void execute();

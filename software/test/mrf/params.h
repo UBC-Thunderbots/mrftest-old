@@ -26,7 +26,7 @@ class ParamsPanel : public Gtk::Table {
 		 *
 		 * \param[in] robot the robot whose parameters should be edited
 		 */
-		ParamsPanel(MRFDongle &dongle, MRFRobot &robot);
+		explicit ParamsPanel(MRFDongle &dongle, MRFRobot &robot);
 
 		/**
 		 * \brief Destroys a ParamsPanel.

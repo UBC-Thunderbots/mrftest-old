@@ -22,7 +22,7 @@ namespace {
 
 	class IndirectChipToCherry : public Tactic {
 		public:
-			IndirectChipToCherry(World world) : Tactic(world, true) {
+			explicit IndirectChipToCherry(World world) : Tactic(world, true) {
 			}
 
 		private:

@@ -16,7 +16,7 @@ using namespace AI::HL::W;
 namespace {
 	class SmartShoot : public Tactic {
 		public:
-			SmartShoot(World world, const Point target, double speed_ratio) : Tactic(world, true), target(target), speed_ratio(speed_ratio) {
+			explicit SmartShoot(World world, const Point target, double speed_ratio) : Tactic(world, true), target(target), speed_ratio(speed_ratio) {
 			}
 
 		private:

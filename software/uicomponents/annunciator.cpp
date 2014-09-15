@@ -21,7 +21,7 @@ namespace {
 			}
 
 		private:
-			MessagesALM() : Glib::ObjectBase(typeid(MessagesALM)) {
+			explicit MessagesALM() : Glib::ObjectBase(typeid(MessagesALM)) {
 				alm_column_record.add(age_column);
 				alm_column_record.add(message_column);
 				alm_column_record.add(active_column);

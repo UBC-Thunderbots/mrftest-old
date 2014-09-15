@@ -28,7 +28,7 @@ class MapperWindow : public Gtk::Window {
 		/**
 		 * \brief Constructs a new MapperWindow.
 		 */
-		MapperWindow();
+		explicit MapperWindow();
 
 		/**
 		 * \brief Destroys a MapperWindow.

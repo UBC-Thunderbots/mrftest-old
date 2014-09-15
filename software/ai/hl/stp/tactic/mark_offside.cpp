@@ -21,7 +21,7 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace {
 	class MarkOffside : public Tactic {
 		public:
-			MarkOffside(World world) : Tactic(world) {
+			explicit MarkOffside(World world) : Tactic(world) {
 			}
 
 		private:

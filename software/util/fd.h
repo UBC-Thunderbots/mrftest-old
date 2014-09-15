@@ -57,7 +57,7 @@ class FileDescriptor : public NonCopyable {
 		/**
 		 * \brief Constructs a FileDescriptor with no associated descriptor.
 		 */
-		FileDescriptor();
+		explicit FileDescriptor();
 
 		/**
 		 * \brief Move-constructs a FileDescriptor.
@@ -116,10 +116,10 @@ class FileDescriptor : public NonCopyable {
 	private:
 		int fd_;
 
-		FileDescriptor(int fd);
-		FileDescriptor(const char *file, int flags, mode_t mode);
-		FileDescriptor(int pf, int type, int proto);
-		FileDescriptor(const char *pattern);
+		explicit FileDescriptor(int fd);
+		explicit FileDescriptor(const char *file, int flags, mode_t mode);
+		explicit FileDescriptor(int pf, int type, int proto);
+		explicit FileDescriptor(const char *pattern);
 };
 
 void swap(FileDescriptor &x, FileDescriptor &y);

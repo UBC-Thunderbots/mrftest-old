@@ -25,7 +25,7 @@ namespace {
 
 	class MoveStop : public Tactic {
 		public:
-			MoveStop(World world, std::size_t playerIndex) : Tactic(world), player_index(playerIndex) {
+			explicit MoveStop(World world, std::size_t playerIndex) : Tactic(world), player_index(playerIndex) {
 			}
 
 		private:

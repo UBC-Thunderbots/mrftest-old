@@ -18,7 +18,7 @@ namespace AI {
 					/**
 					 * \brief Constructs a new Monotonic.
 					 */
-					Monotonic();
+					explicit Monotonic();
 
 				private:
 					const FileDescriptor tfd;

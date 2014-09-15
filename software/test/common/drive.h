@@ -19,7 +19,7 @@ class DrivePanel : public Gtk::VBox {
 		 *
 		 * \param[in] robot the robot to control
 		 */
-		DrivePanel(Drive::Robot &robot);
+		explicit DrivePanel(Drive::Robot &robot);
 
 		/**
 		 * \brief Sets all speed selectors to their zero positions

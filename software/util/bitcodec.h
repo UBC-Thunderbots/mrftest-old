@@ -92,8 +92,8 @@ BITCODEC_NS_BEGIN
 #undef BITCODEC_DATA_BOOL
 			>::BYTES;
 
-		BITCODEC_STRUCT_NAME();
-		BITCODEC_STRUCT_NAME(const void *buffer);
+		explicit BITCODEC_STRUCT_NAME();
+		explicit BITCODEC_STRUCT_NAME(const void *buffer);
 		void encode(void *buffer) const;
 
 #define BITCODEC_DATA_U(type, name, offset, length, def) \

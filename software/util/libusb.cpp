@@ -109,7 +109,7 @@ namespace {
 				return static_cast<TransferMetadata *>(transfer->user_data);
 			}
 
-			TransferMetadata(USB::Transfer &transfer, USB::DeviceHandle &device) : transfer_(&transfer), device_(device) {
+			explicit TransferMetadata(USB::Transfer &transfer, USB::DeviceHandle &device) : transfer_(&transfer), device_(device) {
 			}
 
 			USB::Transfer *transfer() const {

@@ -26,7 +26,7 @@ namespace {
 			Gtk::TextView text_status;
 			Gtk::ComboBoxText combo;
 
-			STPHLChoosable(World world) : PlayExecutor(world) {
+			explicit STPHLChoosable(World world) : PlayExecutor(world) {
 				combo.append_text(CHOOSE_PLAY_TEXT);
 				for (const auto &i : Play::PlayFactory::all()) {
 					combo.append_text(i.second->name());

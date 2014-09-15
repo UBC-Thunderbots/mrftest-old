@@ -146,7 +146,7 @@ namespace AI {
 				 *
 				 * \param[in] pos the index of the robot to point to
 				 */
-				TeamIterator(const Team<T, U> *team, std::size_t pos);
+				explicit TeamIterator(const Team<T, U> *team, std::size_t pos);
 
 				/**
 				 * \brief Returns the current object.
@@ -248,7 +248,7 @@ namespace AI {
 				 *
 				 * \param[in] impl the backend implementation
 				 */
-				Team(const AI::BE::Team<U> &impl);
+				explicit Team(const AI::BE::Team<U> &impl);
 
 				/**
 				 * \brief Constructs a copy of a Team.

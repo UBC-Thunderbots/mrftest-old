@@ -23,7 +23,7 @@ namespace {
 
 	class ShootGoal : public Tactic {
 		public:
-			ShootGoal(World world, bool force) : Tactic(world, true), kick_attempted(false), force(force), shoot_score(Angle::zero())
+			explicit ShootGoal(World world, bool force) : Tactic(world, true), kick_attempted(false), force(force), shoot_score(Angle::zero())
 			{
 				// world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &ShootGoal::on_player_removed));
 			}
@@ -57,7 +57,7 @@ namespace {
 
 	class ShootTarget : public Tactic {
 		public:
-			ShootTarget(World world, const Coordinate target) : Tactic(world, true), target(target), kick_attempted(false) {
+			explicit ShootTarget(World world, const Coordinate target) : Tactic(world, true), target(target), kick_attempted(false) {
 			}
 
 		private:

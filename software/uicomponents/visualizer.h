@@ -37,7 +37,7 @@ namespace Visualizable {
 			 *
 			 * \param[in] blue the blue component, from 0 to 1.
 			 */
-			Colour(double red, double green, double blue) : red(red), green(green), blue(blue) {
+			explicit Colour(double red, double green, double blue) : red(red), green(green), blue(blue) {
 			}
 	};
 
@@ -409,7 +409,7 @@ class Visualizer : public Gtk::DrawingArea {
 		 *
 		 * \param[in] data the Visualizable data source to display.
 		 */
-		Visualizer(Visualizable::World &data);
+		explicit Visualizer(Visualizable::World &data);
 
 		/**
 		 * Redraws the Visualizer.

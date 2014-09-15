@@ -31,7 +31,7 @@ class Kalman {
 		 *
 		 * \param[in] decay_time_constant rate of velocity decay.
 		 */
-		Kalman(bool angle, double measure_std, double accel_std, Timediff decay_time_constant);
+		explicit Kalman(bool angle, double measure_std, double accel_std, Timediff decay_time_constant);
 
 		/**
 		 * \brief Predicts values at a given time.
@@ -64,7 +64,7 @@ class Kalman {
 
 	private:
 		struct ControlInput {
-			ControlInput(Timestamp t, double v);
+			explicit ControlInput(Timestamp t, double v);
 
 			Timestamp time;
 			double value;

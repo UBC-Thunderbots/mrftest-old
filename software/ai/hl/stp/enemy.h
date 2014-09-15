@@ -70,7 +70,7 @@ namespace AI {
 					static Enemy::Ptr closest_friendly_player(World world, Player player, unsigned int i);
 
 				protected:
-					Enemy();
+					explicit Enemy();
 			};
 		}
 	}

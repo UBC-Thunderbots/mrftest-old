@@ -22,7 +22,7 @@ class AddrInfoSet : public NonCopyable {
 		 *
 		 * \param[in] hints the hints structure to use.
 		 */
-		AddrInfoSet(const char *node, const char *service, const addrinfo *hints);
+		explicit AddrInfoSet(const char *node, const char *service, const addrinfo *hints);
 
 		/**
 		 * \brief Invokes \c freeaddrinfo.

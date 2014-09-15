@@ -13,7 +13,7 @@ class GUIAnnunciator : public Gtk::ScrolledWindow {
 		/**
 		 * \brief Constructs a new annunciator panel ready to add to a window.
 		 */
-		GUIAnnunciator();
+		explicit GUIAnnunciator();
 
 	private:
 		Gtk::TreeView view;

@@ -14,7 +14,7 @@ using namespace AI::HL::W;
 namespace {
 	class FreeKickPass : public Tactic {
 		public:
-			FreeKickPass(World world, const Point target, bool chip, double speed_ratio) : Tactic(world, true), target(target), chip(chip), speed_ratio(speed_ratio) {
+			explicit FreeKickPass(World world, const Point target, bool chip, double speed_ratio) : Tactic(world, true), target(target), chip(chip), speed_ratio(speed_ratio) {
 				state = TO_BALL;
 			}
 

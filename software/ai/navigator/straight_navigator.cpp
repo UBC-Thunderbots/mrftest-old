@@ -23,7 +23,7 @@ namespace {
 	 */
 	class StraightNavigator : public Navigator {
 		public:
-			StraightNavigator(World world);
+			explicit StraightNavigator(World world);
 			void tick();
 			NavigatorFactory &factory() const;
 

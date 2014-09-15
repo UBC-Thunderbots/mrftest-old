@@ -122,7 +122,6 @@ namespace AI {
 				 */
 				Point enemy_corner_neg() const;
 
-
 				/**
 				 * Gets the positions of the friendly goalposts.
 				 *

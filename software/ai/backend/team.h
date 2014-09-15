@@ -27,7 +27,7 @@ namespace AI {
 				/**
 				 * \brief Constructs a new Team.
 				 */
-				Team();
+				explicit Team();
 
 				/**
 				 * \brief Returns the size of the team.

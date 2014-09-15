@@ -35,7 +35,7 @@ namespace {
 
 	class InterceptChallenge: public HighLevel {
 		public:
-			InterceptChallenge(World world) :
+			explicit InterceptChallenge(World world) :
 					world(world) {
 			}
 

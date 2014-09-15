@@ -10,7 +10,7 @@ using namespace AI::HL::W;
 namespace {
 	class TestBlock : public HighLevel {
 		public:
-			TestBlock(World world) : world(world) {
+			explicit TestBlock(World world) : world(world) {
 			}
 
 		private:

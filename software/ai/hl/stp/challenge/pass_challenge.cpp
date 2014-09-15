@@ -46,7 +46,7 @@ namespace {
 
 	class PassChallenge: public HighLevel {
 		public:
-			PassChallenge(World world) :
+			explicit PassChallenge(World world) :
 					world(world) {
 				kicked_count = 0;
 				kicked = false;

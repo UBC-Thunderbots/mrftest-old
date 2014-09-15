@@ -21,7 +21,7 @@ class TesterFeedbackPanel : public Gtk::Table {
 		 *
 		 * \param[in] robot the robot whose information should be displayed.
 		 */
-		TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &robot);
+		explicit TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &robot);
 
 	private:
 		Drive::Dongle &dongle;

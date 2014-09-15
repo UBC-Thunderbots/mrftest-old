@@ -92,7 +92,7 @@ namespace AI {
 					/**
 					 * The actual constructor, hidden from public view.
 					 */
-					Region(Type type, Coordinate p1, Coordinate p2, double radius);
+					explicit Region(Type type, Coordinate p1, Coordinate p2, double radius);
 			};
 		}
 	}

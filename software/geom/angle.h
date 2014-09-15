@@ -84,7 +84,7 @@ class Angle {
 		/**
 		 * \brief Constructs the "zero" angle.
 		 */
-		constexpr Angle();
+		explicit constexpr Angle();
 
 		/**
 		 * \brief Converts this angle to a value in radians.
@@ -174,7 +174,7 @@ class Angle {
 	private:
 		double rads;
 
-		constexpr Angle(double rads);
+		explicit constexpr Angle(double rads);
 };
 
 /**

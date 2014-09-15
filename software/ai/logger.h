@@ -33,7 +33,7 @@ namespace AI {
 			 *
 			 * \param[in] ai the AI package to log.
 			 */
-			Logger(const AI::AIPackage &ai);
+			explicit Logger(const AI::AIPackage &ai);
 
 			/**
 			 * Destroys a Logger and closes the log.

@@ -13,7 +13,7 @@ using namespace AI::HL::W;
 namespace {
 	class TestTAttack : public HighLevel {
 		public:
-			TestTAttack(World world) : world(world) {
+			explicit TestTAttack(World world) : world(world) {
 			}
 
 		private:

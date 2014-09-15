@@ -13,7 +13,7 @@ namespace {
 
 	class PenaltyGoalie : public Tactic {
 		public:
-			PenaltyGoalie(World world);
+			explicit PenaltyGoalie(World world);
 
 		private:
 			bool goto_target1;

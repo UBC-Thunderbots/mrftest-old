@@ -11,7 +11,7 @@ namespace {
 	 */
 	class FollowBallNavigator : public Navigator {
 		public:
-			FollowBallNavigator(World world);
+			explicit FollowBallNavigator(World world);
 			void tick();
 			NavigatorFactory &factory() const;
 	};

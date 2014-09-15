@@ -15,7 +15,7 @@ namespace {
 
 	class ShootingDefChallenge : public HighLevel {
 		public:
-			ShootingDefChallenge(World world) : world(world) {
+			explicit ShootingDefChallenge(World world) : world(world) {
 				for (int i = 0 ; i < 5 ; i++) done[i] = 0;
 			}
 

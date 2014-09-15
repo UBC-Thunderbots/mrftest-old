@@ -98,3 +98,4 @@ Point AI::HL::STP::Evaluation::tri_attack_evaluation(World world) {
 
 	return best_point;
 }
+

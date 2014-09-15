@@ -13,7 +13,7 @@ namespace {
 
 	class TestPivot : public HighLevel {
 		public:
-			TestPivot(World world) : world(world), target_enemy(false) {
+			explicit TestPivot(World world) : world(world), target_enemy(false) {
 				time = 0;
 			}
 

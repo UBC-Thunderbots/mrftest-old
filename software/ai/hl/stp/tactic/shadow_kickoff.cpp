@@ -13,7 +13,7 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class ShadowKickoff : public Tactic {
 		public:
-			ShadowKickoff(World world, Enemy::Ptr enemy, const Coordinate default_loc) : Tactic(world), enemy(enemy), default_loc(default_loc) {
+			explicit ShadowKickoff(World world, Enemy::Ptr enemy, const Coordinate default_loc) : Tactic(world), enemy(enemy), default_loc(default_loc) {
 			}
 
 		private:
@@ -56,7 +56,7 @@ namespace {
 
 	class ShadowBall : public Tactic {
 		public:
-			ShadowBall(World world) : Tactic(world) {
+			explicit ShadowBall(World world) : Tactic(world) {
 			}
 
 		private:

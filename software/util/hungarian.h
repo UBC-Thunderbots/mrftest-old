@@ -35,7 +35,7 @@ class Hungarian {
 		 *
 		 * \param[in] size the number of elements in the left and right sets.
 		 */
-		Hungarian(std::size_t size);
+		explicit Hungarian(std::size_t size);
 
 		/**
 		 * Returns the dimension of the Hungarian matrix.

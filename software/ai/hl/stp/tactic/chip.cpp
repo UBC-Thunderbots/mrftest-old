@@ -18,7 +18,7 @@ namespace {
 
 	class ChipTarget : public Tactic {
 		public:
-			ChipTarget(World world, const Coordinate target) : Tactic(world, true), target(target), kick_attempted(false) {
+			explicit ChipTarget(World world, const Coordinate target) : Tactic(world, true), target(target), kick_attempted(false) {
 			}
 
 		private:

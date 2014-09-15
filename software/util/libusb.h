@@ -40,7 +40,7 @@ namespace USB {
 			 *
 			 * \param[in] msg a detail message explaining the error
 			 */
-			Error(const std::string &msg);
+			explicit Error(const std::string &msg);
 	};
 
 	/**
@@ -55,7 +55,7 @@ namespace USB {
 			 *
 			 * \param[in] msg a detail message explaining the error (UTF-8 encoded)
 			 */
-			TransferError(unsigned int endpoint, const char *msg);
+			explicit TransferError(unsigned int endpoint, const char *msg);
 	};
 
 	/**
@@ -68,7 +68,7 @@ namespace USB {
 			 *
 			 * \param[in] endpoint the endpoint number, with bit 7 used to indicate direction
 			 */
-			TransferTimeoutError(unsigned int endpoint);
+			explicit TransferTimeoutError(unsigned int endpoint);
 	};
 
 	/**
@@ -81,7 +81,7 @@ namespace USB {
 			 *
 			 * \param[in] endpoint the endpoint number, with bit 7 used to indicate direction
 			 */
-			TransferStallError(unsigned int endpoint);
+			explicit TransferStallError(unsigned int endpoint);
 	};
 
 	/**
@@ -94,7 +94,7 @@ namespace USB {
 			 *
 			 * \param[in] endpoint the endpoint number, with bit 7 used to indicate direction
 			 */
-			TransferCancelledError(unsigned int endpoint);
+			explicit TransferCancelledError(unsigned int endpoint);
 	};
 
 	/**
@@ -105,7 +105,7 @@ namespace USB {
 			/**
 			 * \brief Initializes the library and creates a context.
 			 */
-			Context();
+			explicit Context();
 
 			/**
 			 * \brief Deinitializes the library and destroys the context.
@@ -187,7 +187,7 @@ namespace USB {
 			libusb_device *device;
 			libusb_device_descriptor device_descriptor;
 
-			Device(libusb_device *device);
+			explicit Device(libusb_device *device);
 	};
 
 	/**
@@ -200,7 +200,7 @@ namespace USB {
 			 *
 			 * \param[in] context the library context in which to operate
 			 */
-			DeviceList(Context &context);
+			explicit DeviceList(Context &context);
 
 			/**
 			 * \brief Frees the list of devices.
@@ -246,14 +246,14 @@ namespace USB {
 			 *
 			 * \param[in] serial_number the serial number of the device to open, or null to open a device with matching vendor and product ID but any serial number
 			 */
-			DeviceHandle(Context &context, unsigned int vendor_id, unsigned int product_id, const char *serial_number = nullptr);
+			explicit DeviceHandle(Context &context, unsigned int vendor_id, unsigned int product_id, const char *serial_number = nullptr);
 
 			/**
 			 * \brief Opens a handle to a specific device.
 			 *
 			 * \param[in] device the device to open
 			 */
-			DeviceHandle(const Device &device);
+			explicit DeviceHandle(const Device &device);
 
 			/**
 			 * \brief Closes the device handle.
@@ -489,7 +489,7 @@ namespace USB {
 			 *
 			 * \param[in] configuration the configuration number to set
 			 */
-			ConfigurationSetter(DeviceHandle &device, int configuration);
+			explicit ConfigurationSetter(DeviceHandle &device, int configuration);
 
 			/**
 			 * \brief Resets the device to its original configuration.
@@ -513,7 +513,7 @@ namespace USB {
 			 *
 			 * \param[in] interface the interface to claim
 			 */
-			InterfaceClaimer(DeviceHandle &device, int interface);
+			explicit InterfaceClaimer(DeviceHandle &device, int interface);
 
 			/**
 			 * \brief Releases the interface.
@@ -569,7 +569,7 @@ namespace USB {
 			bool retry_on_stall_;
 			unsigned int stall_retries_left;
 
-			Transfer(DeviceHandle &dev);
+			explicit Transfer(DeviceHandle &dev);
 			void handle_completed_transfer();
 	};
 
@@ -593,7 +593,7 @@ namespace USB {
 			 *
 			 * \param[in] timeout the maximum length of time to let the transfer run, in milliseconds, or zero for no timeout
 			 */
-			ControlNoDataTransfer(DeviceHandle &dev, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout);
+			explicit ControlNoDataTransfer(DeviceHandle &dev, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout);
 	};
 
 	/**
@@ -620,7 +620,7 @@ namespace USB {
 			 *
 			 * \param[in] timeout the maximum length of time to let the transfer run, in milliseconds, or zero for no timeout
 			 */
-			ControlInTransfer(DeviceHandle &dev, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, std::size_t len, bool exact_len, unsigned int timeout);
+			explicit ControlInTransfer(DeviceHandle &dev, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, std::size_t len, bool exact_len, unsigned int timeout);
 
 			/**
 			 * \brief Returns the received data.
@@ -661,7 +661,7 @@ namespace USB {
 			 *
 			 * \param[in] timeout the maximum length of time to let the transfer run, in milliseconds, or zero for no timeout
 			 */
-			InterruptInTransfer(DeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout);
+			explicit InterruptInTransfer(DeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout);
 
 			/**
 			 * \brief Returns the received data.
@@ -704,7 +704,7 @@ namespace USB {
 			 *
 			 * \param[in] timeout the maximum length of time to let the transfer run, in milliseconds, or zero for no timeout
 			 */
-			InterruptOutTransfer(DeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, std::size_t max_len, unsigned int timeout);
+			explicit InterruptOutTransfer(DeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, std::size_t max_len, unsigned int timeout);
 	};
 
 	/**
@@ -725,7 +725,7 @@ namespace USB {
 			 *
 			 * \param[in] timeout the maximum length of time to let the transfer run, in milliseconds, or zero for no timeout
 			 */
-			BulkInTransfer(DeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout);
+			explicit BulkInTransfer(DeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout);
 
 			/**
 			 * \brief Returns the received data.
@@ -768,7 +768,7 @@ namespace USB {
 			 *
 			 * \param[in] timeout the maximum length of time to let the transfer run, in milliseconds, or zero for no timeout
 			 */
-			BulkOutTransfer(DeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, std::size_t max_len, unsigned int timeout);
+			explicit BulkOutTransfer(DeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, std::size_t max_len, unsigned int timeout);
 	};
 }
 

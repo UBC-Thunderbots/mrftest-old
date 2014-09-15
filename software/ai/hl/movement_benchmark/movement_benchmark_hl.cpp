@@ -68,7 +68,7 @@ namespace {
 				tasks.assign(tasks_square, tasks_square + tasks_square_n);
 			}
 
-			MBHL(World world) : world(world), time_steps(0) {
+			explicit MBHL(World world) : world(world), time_steps(0) {
 				done = 999;
 
 				vbox.add(button_normal);

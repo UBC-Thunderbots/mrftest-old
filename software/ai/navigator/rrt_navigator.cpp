@@ -41,7 +41,7 @@ namespace AI {
 
 			class RRTNavigator : public Navigator {
 				public:
-					RRTNavigator(World world);
+					explicit RRTNavigator(World world);
 					void tick();
 					void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
 					NavigatorFactory &factory() const;

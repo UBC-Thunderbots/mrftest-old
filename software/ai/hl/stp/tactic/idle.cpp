@@ -8,7 +8,7 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class Idle : public Tactic {
 		public:
-			Idle(World world) : Tactic(world) {
+			explicit Idle(World world) : Tactic(world) {
 			}
 
 		private:

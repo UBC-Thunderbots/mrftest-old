@@ -60,7 +60,7 @@ template<typename T> class Registerable : public NonCopyable {
 		 *
 		 * \param[in] name the name of the new object (encoded in UTF-8)
 		 */
-		Registerable(const char *name) : name_(name) {
+		explicit Registerable(const char *name) : name_(name) {
 			// Insert into the linked list of preconstructed objects.
 			precache_next = precache();
 			precache() = this;

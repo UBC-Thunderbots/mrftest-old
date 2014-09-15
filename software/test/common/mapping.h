@@ -51,14 +51,14 @@ class JoystickMapping {
 		 *
 		 * \param[in] identifier identifying information about the joystick
 		 */
-		JoystickMapping(const Joystick::Identifier &identifier);
+		explicit JoystickMapping(const Joystick::Identifier &identifier);
 
 		/**
 		 * \brief Constructs a new mapping from an XML element.
 		 *
 		 * \param[in] elt the element
 		 */
-		JoystickMapping(const xmlpp::Element *elt);
+		explicit JoystickMapping(const xmlpp::Element *elt);
 
 		/**
 		 * \breif Returns the identifying information of the joystick handled by this mapping.

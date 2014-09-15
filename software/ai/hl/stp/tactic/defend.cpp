@@ -26,7 +26,7 @@ namespace {
 	 */
 	class Goalie2 : public Tactic {
 		public:
-			Goalie2(World world, size_t defender_role) : Tactic(world), defender_role(defender_role) {
+			explicit Goalie2(World world, size_t defender_role) : Tactic(world), defender_role(defender_role) {
 			}
 
 		private:
@@ -49,7 +49,7 @@ namespace {
 	 */
 	class Goalie : public Tactic {
 		public:
-			Goalie(World world) : Tactic(world) {
+			explicit Goalie(World world) : Tactic(world) {
 			}
 
 		private:
@@ -64,7 +64,7 @@ namespace {
 
 	class Defender : public Tactic {
 		public:
-			Defender(World world, unsigned i) : Tactic(world), index(i) {
+			explicit Defender(World world, unsigned i) : Tactic(world), index(i) {
 			}
 
 		private:

@@ -26,7 +26,7 @@ namespace {
 
 	class RRTPhysicsNavigator : public Navigator {
 		public:
-			RRTPhysicsNavigator(World world);
+			explicit RRTPhysicsNavigator(World world);
 			void tick();
 			NavigatorFactory &factory() const;
 

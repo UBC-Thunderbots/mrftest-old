@@ -22,7 +22,7 @@ class LogLauncher : public Gtk::Window {
 		/**
 		 * Creates a new LogLauncher.
 		 */
-		LogLauncher();
+		explicit LogLauncher();
 
 	private:
 		Gtk::VBox vbox;

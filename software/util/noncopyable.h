@@ -9,7 +9,7 @@ class NonCopyable {
 		/**
 		 * Noncopyable objects can still be constructed.
 		 */
-		NonCopyable();
+		explicit NonCopyable();
 
 		/**
 		 * Prevents objects from being copied.

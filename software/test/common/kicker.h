@@ -21,7 +21,7 @@ class KickerPanel : public Gtk::Table {
 		 *
 		 * \param[in] robot the robot to control.
 		 */
-		KickerPanel(Drive::Robot &robot);
+		explicit KickerPanel(Drive::Robot &robot);
 
 		/**
 		 * \brief Shuts down the charger.

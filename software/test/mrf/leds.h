@@ -20,7 +20,7 @@ class LEDsPanel : public Gtk::VBox {
 		 *
 		 * \param[in] index the index of the robot to control
 		 */
-		LEDsPanel(MRFDongle &dongle, unsigned int index);
+		explicit LEDsPanel(MRFDongle &dongle, unsigned int index);
 
 	private:
 		MRFDongle &dongle;

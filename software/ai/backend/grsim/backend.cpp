@@ -18,7 +18,7 @@ namespace AI {
 		namespace GRSim {
 			class BackendFactory : public AI::BE::BackendFactory {
 				public:
-					BackendFactory();
+					explicit BackendFactory();
 					std::unique_ptr<AI::BE::Backend> create_backend(const std::vector<bool> &disable_cameras, int multicast_interface) const;
 			};
 
@@ -30,7 +30,7 @@ namespace AI {
 namespace {
 	class FriendlyTeam : public AI::BE::SSLVision::Team<AI::BE::GRSim::Player, AI::BE::Player> {
 		public:
-			FriendlyTeam(AI::BE::Backend &backend);
+			explicit FriendlyTeam(AI::BE::Backend &backend);
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -38,7 +38,7 @@ namespace {
 
 	class EnemyTeam : public AI::BE::SSLVision::Team<AI::BE::Robot, AI::BE::Robot> {
 		public:
-			EnemyTeam(AI::BE::Backend &backend);
+			explicit EnemyTeam(AI::BE::Backend &backend);
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -46,7 +46,7 @@ namespace {
 
 	class Backend : public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
 		public:
-			Backend(const std::vector<bool> &disable_cameras, int multicast_interface);
+			explicit Backend(const std::vector<bool> &disable_cameras, int multicast_interface);
 			AI::BE::GRSim::BackendFactory &factory() const;
 			FriendlyTeam &friendly_team();
 			const FriendlyTeam &friendly_team() const;

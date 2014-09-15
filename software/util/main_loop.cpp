@@ -11,7 +11,7 @@
 namespace {
 	class ScopedDisconnector : public NonCopyable {
 		public:
-			ScopedDisconnector(sigc::connection conn) : conn(conn) {
+			explicit ScopedDisconnector(sigc::connection conn) : conn(conn) {
 			}
 
 			~ScopedDisconnector() {

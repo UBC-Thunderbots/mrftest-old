@@ -45,7 +45,7 @@ namespace {
 
 	class Field : public NonCopyable, public Visualizable::Field {
 		public:
-			Field() : valid_(false) {
+			explicit Field() : valid_(false) {
 			}
 
 			bool valid() const {
@@ -256,7 +256,7 @@ namespace {
 
 class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 	public:
-		Impl(Gtk::Window &parent, const std::string &pathname) :
+		explicit Impl(Gtk::Window &parent, const std::string &pathname) :
 				records(LogLoader::load(pathname)),
 				top_info_table(11, 2, false),
 				ball_filter_label(u8"Ball Filter:"),

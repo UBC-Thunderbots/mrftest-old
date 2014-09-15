@@ -25,7 +25,7 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace {
 	class CShootGoal : public Tactic {
 		public:
-			CShootGoal(World world, bool force) : Tactic(world, true), kick_attempted(false), force(force),
+			explicit CShootGoal(World world, bool force) : Tactic(world, true), kick_attempted(false), force(force),
 			timer(0), best_score(std::make_tuple(Point(0, 0), Point(0, 0), 0))
 			{
 				// world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &ShootGoal::on_player_removed));

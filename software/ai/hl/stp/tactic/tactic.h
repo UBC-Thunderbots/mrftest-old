@@ -112,7 +112,7 @@ namespace AI {
 						 *
 						 * \param [in] active indicates if this is an active tactic.
 						 */
-						Tactic(World world, bool active = false);
+						explicit Tactic(World world, bool active = false);
 
 						/**
 						 * \brief Triggerred when the player associated changes.

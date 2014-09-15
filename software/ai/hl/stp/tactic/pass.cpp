@@ -43,12 +43,12 @@ namespace {
 
 	class PasserShoot : public Tactic {
 		public:
-			PasserShoot(World world) : Tactic(world, true), dynamic(true), target(Point(0, 0)) {
+			explicit PasserShoot(World world) : Tactic(world, true), dynamic(true), target(Point(0, 0)) {
 				kicked = false;
 				passer_info.kicked = false;
 			}
 
-			PasserShoot(World world, Coordinate target) : Tactic(world, true), dynamic(false), target(target) {
+			explicit PasserShoot(World world, Coordinate target) : Tactic(world, true), dynamic(false), target(target) {
 				kicked = false;
 				passer_info.kicked = false;
 			}
@@ -105,10 +105,10 @@ namespace {
 
 	class PasseeMove : public Tactic {
 		public:
-			PasseeMove(World world) : Tactic(world, false), dynamic(true) {
+			explicit PasseeMove(World world) : Tactic(world, false), dynamic(true) {
 			}
 
-			PasseeMove(World world, Coordinate target) : Tactic(world, false), dynamic(false), target(target) {
+			explicit PasseeMove(World world, Coordinate target) : Tactic(world, false), dynamic(false), target(target) {
 			}
 
 		private:
@@ -197,7 +197,7 @@ namespace {
 
 	class PasseeReceive : public Tactic {
 		public:
-			PasseeReceive(World world) : Tactic(world, true) {
+			explicit PasseeReceive(World world) : Tactic(world, true) {
 #warning find a good mechanism for passing
 			}
 

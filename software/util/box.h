@@ -21,7 +21,7 @@ template<typename T> class Box : public NonCopyable {
 		/**
 		 * \brief Constructs an empty box.
 		 */
-		Box();
+		explicit Box();
 
 		/**
 		 * \brief Destroys the box, destroying its contents as well if present.
@@ -89,7 +89,7 @@ template<typename T> class Box : public NonCopyable {
 		union Union {
 			Value value;
 
-			Union();
+			explicit Union();
 			~Union();
 		};
 

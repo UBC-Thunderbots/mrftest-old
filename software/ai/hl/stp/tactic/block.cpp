@@ -13,7 +13,7 @@ namespace {
 
 	class BlockGoal : public Tactic {
 		public:
-			BlockGoal(World world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
+			explicit BlockGoal(World world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
 			}
 
 		private:

@@ -10,7 +10,7 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class Primary : public Tactic {
 		public:
-			Primary(World world) : Tactic(world) {
+			explicit Primary(World world) : Tactic(world) {
 			}
 
 		private:
@@ -23,7 +23,7 @@ namespace {
 
 	class Secondary : public Tactic {
 		public:
-			Secondary(World world) : Tactic(world) {
+			explicit Secondary(World world) : Tactic(world) {
 			}
 
 		private:

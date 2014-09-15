@@ -349,17 +349,17 @@ namespace {
 		}
 
 		// default, no violation
-		violation() : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(0) {
+		explicit violation() : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(0) {
 		}
 
-		violation(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(0) {
+		explicit violation(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(0) {
 			if (OWN_HALF_OVERRIDE) {
 				extra_flags = extra_flags | FLAG_STAY_OWN_HALF;
 			}
 			set_violation_amount(cur, dst, world, player);
 		}
 
-		violation(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player, unsigned int added_flags) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(added_flags) {
+		explicit violation(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player, unsigned int added_flags) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(added_flags) {
 			if (OWN_HALF_OVERRIDE) {
 				extra_flags = extra_flags | FLAG_STAY_OWN_HALF;
 			}

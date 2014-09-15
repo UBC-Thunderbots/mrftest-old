@@ -23,7 +23,7 @@ namespace {
 	 */
 	class TGoalie : public Tactic {
 		public:
-			TGoalie(World world, size_t defender_role) : Tactic(world), defender_role(defender_role) {
+			explicit TGoalie(World world, size_t defender_role) : Tactic(world), defender_role(defender_role) {
 			}
 
 		private:
@@ -43,7 +43,7 @@ namespace {
 
 	class TDefender : public Tactic {
 		public:
-			TDefender(World world, unsigned i) : Tactic(world), index(i) {
+			explicit TDefender(World world, unsigned i) : Tactic(world), index(i) {
 			}
 
 		private:
@@ -79,7 +79,7 @@ namespace {
 	
 	class TDefendLine : public Tactic {
 		public:
-			TDefendLine(World world, Coordinate p1_, Coordinate p2_, double dist_min_, double dist_max_) : Tactic(world), p1(p1_), p2(p2_), dist_min(dist_min_), dist_max(dist_max_) {
+			explicit TDefendLine(World world, Coordinate p1_, Coordinate p2_, double dist_min_, double dist_max_) : Tactic(world), p1(p1_), p2(p2_), dist_min(dist_min_), dist_max(dist_max_) {
 			}
 
 		private:

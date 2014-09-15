@@ -27,7 +27,7 @@ namespace {
 	class ROPlayer : public Player {
 		public:
 			typedef BoxPtr<ROPlayer> Ptr;
-			ROPlayer(unsigned int pattern);
+			explicit ROPlayer(unsigned int pattern);
 			void dribble(DribbleMode mode);
 			bool has_ball() const;
 			bool chicker_ready() const;
@@ -44,7 +44,7 @@ namespace {
 	 */
 	class FriendlyTeam : public AI::BE::SSLVision::Team<ROPlayer, Player> {
 		public:
-			FriendlyTeam(Backend &backend);
+			explicit FriendlyTeam(Backend &backend);
 
 		protected:
 			void create_member(unsigned int pattern);
@@ -55,7 +55,7 @@ namespace {
 	 */
 	class EnemyTeam : public AI::BE::SSLVision::Team<Robot, Robot> {
 		public:
-			EnemyTeam(Backend &backend);
+			explicit EnemyTeam(Backend &backend);
 
 		protected:
 			void create_member(unsigned int pattern);

@@ -19,7 +19,7 @@ namespace {
 
 	class TestShootSpeed : public Tactic {
 		public:
-			TestShootSpeed(World world, bool force) : Tactic(world, true), kick_attempted(false), force(force), shoot_score(Angle::zero()){}
+			explicit TestShootSpeed(World world, bool force) : Tactic(world, true), kick_attempted(false), force(force), shoot_score(Angle::zero()){}
 
 		private: 
 			bool kick_attempted;

@@ -13,7 +13,7 @@ using AI::HL::STP::Coordinate;
 namespace {
 	class TestChip : public HighLevel {
 		public:
-			TestChip(World world) : world(world) {
+			explicit TestChip(World world) : world(world) {
 			}
 
 		private:

@@ -20,7 +20,7 @@ namespace {
 
 	class DirectFreeFriendlyPivot : public Tactic {
 		public:
-			DirectFreeFriendlyPivot(World world) : Tactic(world, true) {
+			explicit DirectFreeFriendlyPivot(World world) : Tactic(world, true) {
 			}
 
 		private:

@@ -61,7 +61,7 @@ namespace AI {
 			 *
 			 * \param[in] backend the Backend against which to run.
 			 */
-			AIPackage(AI::BE::Backend &backend);
+			explicit AIPackage(AI::BE::Backend &backend);
 
 		private:
 			void tick();

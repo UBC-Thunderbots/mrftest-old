@@ -33,10 +33,13 @@ class Point {
 		/**
 		 * \brief Creates the origin
 		 */
-		constexpr Point();
+		explicit constexpr Point();
 
 		/**
-		 * \brief Creates a Point at arbitrary coordinates
+		 * \brief Creates a Point at arbitrary coordinates.
+		 *
+		 * This can be used as an implicit type conersion from a braced initializer list.
+		 * For example, <tt>{1, 2}</tt> can be passed to a function expecting a \c Point.
 		 *
 		 * \param[in] x the <var>x</var> value of the Point
 		 *

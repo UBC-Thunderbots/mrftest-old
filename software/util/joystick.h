@@ -94,7 +94,7 @@ class Joystick : public NonCopyable, public sigc::trackable {
 		bool flushing_dropped;
 		static std::vector<std::unique_ptr<Joystick>> &instances();
 
-		Joystick(unsigned int index);
+		explicit Joystick(unsigned int index);
 		void on_readable();
 		void read_all_axes();
 		void read_all_buttons();

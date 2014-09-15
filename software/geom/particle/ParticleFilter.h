@@ -14,7 +14,7 @@ extern DoubleParam PARTICLE_FILTER_DECAYRATE;
  */
 class ParticleFilter {
 	public:
-		ParticleFilter(double length, double offset, unsigned int numPartitions);
+		explicit ParticleFilter(double length, double offset, unsigned int numPartitions);
 		~ParticleFilter();
 
 		void update(double timeDelta);

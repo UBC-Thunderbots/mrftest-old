@@ -14,7 +14,7 @@ class ScopedCHDir : public NonCopyable {
 		 *
 		 * \param[in] dir the directory to change to.
 		 */
-		ScopedCHDir(const char *dir);
+		explicit ScopedCHDir(const char *dir);
 
 		/**
 		 * Returns to the original directory.

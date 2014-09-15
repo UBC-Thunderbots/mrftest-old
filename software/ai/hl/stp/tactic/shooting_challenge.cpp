@@ -15,7 +15,7 @@ using namespace AI::HL::W;
 namespace {
 	class ShootingChallenge : public Tactic {
 		public:
-			ShootingChallenge(World world, double speed_ratio) : Tactic(world, true), goal_point(world.field().enemy_goal()), shooter(player.position() - world.ball().position()), to_target((world.ball().position() - goal_point).orientation() - shooter.orientation()), speed_ratio(speed_ratio) {
+			explicit ShootingChallenge(World world, double speed_ratio) : Tactic(world, true), goal_point(world.field().enemy_goal()), shooter(player.position() - world.ball().position()), to_target((world.ball().position() - goal_point).orientation() - shooter.orientation()), speed_ratio(speed_ratio) {
 			}
 
 		private:

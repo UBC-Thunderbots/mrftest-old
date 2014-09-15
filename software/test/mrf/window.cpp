@@ -55,7 +55,7 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 
 		std::unordered_map<Joystick::Identifier, JoystickMapping> mappings;
 
-		MappedJoysticksModel() : Glib::ObjectBase(typeid(MappedJoysticksModel)) {
+		explicit MappedJoysticksModel() : Glib::ObjectBase(typeid(MappedJoysticksModel)) {
 			alm_column_record.add(name_column);
 
 			const xmlpp::Element *joysticks_elt = Config::joysticks();

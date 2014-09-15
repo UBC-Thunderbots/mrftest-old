@@ -15,7 +15,7 @@ namespace {
 
 	class NCHL2013 : public HighLevel {
 		public:
-			NCHL2013(World world) : world(world), time_steps(0) {
+			explicit NCHL2013(World world) : world(world), time_steps(0) {
 				for (int i = 0 ; i < 3 ; i++) done[i] = 0;
 			}
 

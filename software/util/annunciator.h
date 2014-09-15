@@ -56,7 +56,7 @@ namespace Annunciator {
 			 *
 			 * \param[in] severity the severity of the message
 			 */
-			Message(const Glib::ustring &text, TriggerMode mode, Severity severity);
+			explicit Message(const Glib::ustring &text, TriggerMode mode, Severity severity);
 
 			/**
 			 * \brief Unregisters the message source.

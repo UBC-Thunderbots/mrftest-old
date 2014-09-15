@@ -25,7 +25,7 @@
 namespace {
 	class NotJoystickError : std::runtime_error {
 		public:
-			NotJoystickError() : std::runtime_error("Event node is not a joystick") {
+			explicit NotJoystickError() : std::runtime_error("Event node is not a joystick") {
 			}
 	};
 

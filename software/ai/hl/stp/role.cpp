@@ -6,7 +6,7 @@ using AI::HL::STP::Role;
 namespace {
 	class Fixed : public Role {
 		public:
-			Fixed(Player p) : player(p) {
+			explicit Fixed(Player p) : player(p) {
 			}
 
 		private:

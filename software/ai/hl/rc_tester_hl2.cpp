@@ -18,7 +18,7 @@ namespace {
 		Gtk::HScale offsets_y;
 		Gtk::Button reset_button;
 
-		RCTester2(World world) : world(world) {
+		explicit RCTester2(World world) : world(world) {
 			for (Gtk::HScale &i : controls) {
 				vbox.add(i);
 				// params are

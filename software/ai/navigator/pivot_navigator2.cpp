@@ -15,7 +15,7 @@ namespace {
 	 */
 	class PivotNavigator2 : public Navigator {
 		public:
-			PivotNavigator2(World world);
+			explicit PivotNavigator2(World world);
 			void tick();
 			NavigatorFactory &factory() const;
 	};

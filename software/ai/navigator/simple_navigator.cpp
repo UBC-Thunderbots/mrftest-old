@@ -13,7 +13,7 @@ namespace {
 	 */
 	class SimpleNavigator : public Navigator {
 		public:
-			SimpleNavigator(World world);
+			explicit SimpleNavigator(World world);
 			void tick();
 			NavigatorFactory &factory() const;
 	};

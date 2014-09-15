@@ -67,7 +67,7 @@ template<typename T> class BoxPtr {
 		/**
 		 * \brief Constructs a new, null pointer.
 		 */
-		BoxPtr();
+		explicit BoxPtr();
 
 		/**
 		 * \brief Copies an existing pointer.
@@ -113,7 +113,7 @@ template<typename T> class BoxPtr {
 		T *ptr;
 		const bool *valid;
 
-		BoxPtr(T *p, const bool *valid);
+		explicit BoxPtr(T *p, const bool *valid);
 
 		template<typename U> friend class BoxPtr;
 		template<typename U> friend class Box;

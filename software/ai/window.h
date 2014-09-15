@@ -22,7 +22,7 @@ namespace AI {
 			 *
 			 * \param[in] ai the AI to observe and control.
 			 */
-			Window(AIPackage &ai);
+			explicit Window(AIPackage &ai);
 
 		private:
 			Gtk::VBox outer_vbox;

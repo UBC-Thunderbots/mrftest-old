@@ -87,7 +87,7 @@ namespace AI {
 				 *
 				 * \param[in] world the World in which to navigate.
 				 */
-				Navigator(AI::Nav::W::World world);
+				explicit Navigator(AI::Nav::W::World world);
 
 				// hack should move this variable somewhere else later, koko
 				// save state for new_pivot
@@ -118,7 +118,7 @@ namespace AI {
 				 *
 				 * \param[in] name a human-readable name for this Navigator.
 				 */
-				NavigatorFactory(const char *name);
+				explicit NavigatorFactory(const char *name);
 		};
 	}
 }
@@ -127,7 +127,7 @@ namespace AI {
 	namespace { \
 		class cls##NavigatorFactory : public AI::Nav::NavigatorFactory { \
 			public: \
-				cls##NavigatorFactory(); \
+				explicit cls##NavigatorFactory(); \
 				std::unique_ptr<Navigator> create_navigator(AI::Nav::W::World) const; \
 		}; \
 	} \

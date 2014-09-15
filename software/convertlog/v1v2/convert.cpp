@@ -30,7 +30,7 @@
 namespace {
 	class ScopedFileDeleter : public NonCopyable {
 		public:
-			ScopedFileDeleter(const std::string &filename) : filename(filename) {
+			explicit ScopedFileDeleter(const std::string &filename) : filename(filename) {
 			}
 
 			~ScopedFileDeleter() {
@@ -43,7 +43,7 @@ namespace {
 
 	class NoAITicksException : public std::runtime_error {
 		public:
-			NoAITicksException() : std::runtime_error("No AI Ticks") {
+			explicit NoAITicksException() : std::runtime_error("No AI Ticks") {
 			}
 	};
 

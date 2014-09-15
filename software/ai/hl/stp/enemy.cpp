@@ -15,7 +15,7 @@ namespace {
 
 	class Fixed : public Enemy {
 		public:
-			Fixed(Robot r) : robot(r) {
+			explicit Fixed(Robot r) : robot(r) {
 			}
 
 		private:
@@ -27,7 +27,7 @@ namespace {
 
 	class ClosestFriendlyGoal : public Enemy {
 		public:
-			ClosestFriendlyGoal(World w, unsigned int i) : world(w), index(i) {
+			explicit ClosestFriendlyGoal(World w, unsigned int i) : world(w), index(i) {
 			}
 
 		private:
@@ -50,7 +50,7 @@ namespace {
 
 	class ClosestBall : public Enemy {
 		public:
-			ClosestBall(World w, unsigned int i) : world(w), index(i) {
+			explicit ClosestBall(World w, unsigned int i) : world(w), index(i) {
 			}
 
 		private:
@@ -69,7 +69,7 @@ namespace {
 
 	class ClosestRobot : public Enemy {
 		public:
-			ClosestRobot(World w, unsigned int robot, unsigned int i) : world(w), robot(robot), index(i) {
+			explicit ClosestRobot(World w, unsigned int robot, unsigned int i) : world(w), robot(robot), index(i) {
 			}
 
 		private:
@@ -89,7 +89,7 @@ namespace {
 
 	class ClosestFriendlyPlayer : public Enemy {
 		public:
-			ClosestFriendlyPlayer(World w, Player player, unsigned int i) : world(w), player(player), index(i) {
+			explicit ClosestFriendlyPlayer(World w, Player player, unsigned int i) : world(w), player(player), index(i) {
 			}
 
 		private:

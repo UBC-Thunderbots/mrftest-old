@@ -7,7 +7,6 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Action {
-
 				/**
 				 * 
 				 * Chips the ball to a target point with a double param power indicating the power to chip.

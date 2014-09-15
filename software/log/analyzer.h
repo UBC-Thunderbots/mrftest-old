@@ -20,7 +20,7 @@ class LogAnalyzer : public Gtk::Window {
 		 *
 		 * \param[in] pathname the path to the log file to analyze.
 		 */
-		LogAnalyzer(Gtk::Window &parent, const std::string &pathname);
+		explicit LogAnalyzer(Gtk::Window &parent, const std::string &pathname);
 
 	private:
 		class Impl;

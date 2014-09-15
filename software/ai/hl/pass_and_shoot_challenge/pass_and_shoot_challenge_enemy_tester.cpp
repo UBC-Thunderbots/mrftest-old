@@ -38,7 +38,7 @@ namespace {
 
 class PASCHL_ENEMIES : public HighLevel {
 public:
-  PASCHL_ENEMIES(World world) : world(world) {
+  explicit PASCHL_ENEMIES(World world) : world(world) {
     current_state=INITIAL;
   }
   

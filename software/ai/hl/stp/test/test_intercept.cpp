@@ -10,7 +10,7 @@ using namespace AI::HL::STP;
 namespace {
 	class TestIntercept : public HighLevel {
 		public:
-			TestIntercept(World world) : world(world) {
+			explicit TestIntercept(World world) : world(world) {
 			}
 
 		private:

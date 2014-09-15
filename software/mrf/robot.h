@@ -46,7 +46,7 @@ class MRFRobot : public Drive::Robot {
 		std::array<std::unique_ptr<Annunciator::Message>, 5> hot_motor_messages;
 		sigc::connection feedback_timeout_connection;
 
-		MRFRobot(MRFDongle &dongle, unsigned int index);
+		explicit MRFRobot(MRFDongle &dongle, unsigned int index);
 	public:
 		~MRFRobot(); // Public only for std::unique_ptr.
 	private:

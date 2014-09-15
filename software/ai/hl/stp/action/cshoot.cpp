@@ -22,9 +22,6 @@
 
 using namespace AI::HL::STP;
 
-namespace {
-}
-
 bool AI::HL::STP::Action::cshoot_target(World world, Player player, const Point target, double velocity) {
 	// Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot_target(world, player, target);
 	intercept(player, target);

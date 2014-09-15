@@ -66,7 +66,7 @@ template<typename T, typename Comp = std::less<T>> class IndexComparator {
 		 *
 		 * \param[in] comp the comparator to use (defaults to \c Comp()).
 		 */
-		IndexComparator(const std::vector<T> &tbl, Comp comp = Comp());
+		explicit IndexComparator(const std::vector<T> &tbl, Comp comp = Comp());
 
 		/**
 		 * \brief Executes a comparison.

@@ -22,7 +22,7 @@ using namespace AI::HL::W;
 namespace {
 	class ShootingChallenge : public HighLevel {
 		public:
-			ShootingChallenge(World world) : world(world) {
+			explicit ShootingChallenge(World world) : world(world) {
 			}
 
 		private:

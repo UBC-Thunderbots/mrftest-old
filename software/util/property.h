@@ -17,7 +17,7 @@ template<typename T> class Property : public NonCopyable {
 		 *
 		 * \param[in] value the value with which to initialize the Property.
 		 */
-		Property(const T &value) : value(value) {
+		explicit Property(const T &value) : value(value) {
 		}
 
 		/**
@@ -25,7 +25,7 @@ template<typename T> class Property : public NonCopyable {
 		 *
 		 * \param[in] value the value with which to initialize the Property.
 		 */
-		Property(T &&value) : value(std::move(value)) {
+		explicit Property(T &&value) : value(std::move(value)) {
 		}
 
 		/**

@@ -16,7 +16,7 @@ namespace {
 
 	class PenaltyGoalieRandom : public Tactic {
 		public:
-			PenaltyGoalieRandom(World world);
+			explicit PenaltyGoalieRandom(World world);
 
 		private:
 			bool goto_target1;

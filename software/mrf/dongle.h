@@ -48,7 +48,7 @@ class MRFDongle : public Drive::Dongle {
 		/**
 		 * \brief Constructs a new MRFDongle.
 		 */
-		MRFDongle();
+		explicit MRFDongle();
 
 		/**
 		 * \brief Destroys an MRFDongle.
@@ -156,7 +156,7 @@ class MRFDongle::SendReliableMessageOperation : public AsyncOperation<void>, pub
 		 *
 		 * \param[in] len the length of the data, including the header
 		 */
-		SendReliableMessageOperation(MRFDongle &dongle, unsigned int robot, const void *data, std::size_t len);
+		explicit SendReliableMessageOperation(MRFDongle &dongle, unsigned int robot, const void *data, std::size_t len);
 
 		/**
 		 * \brief Checks for the success of the operation.
@@ -182,7 +182,7 @@ class MRFDongle::SendReliableMessageOperation::NotAssociatedError : public std::
 		/**
 		 * \brief Contructs a NotAssociatedError.
 		 */
-		NotAssociatedError();
+		explicit NotAssociatedError();
 };
 
 
@@ -192,7 +192,7 @@ class MRFDongle::SendReliableMessageOperation::NotAcknowledgedError : public std
 		/**
 		 * \brief Contructs a NotAcknowledgedError.
 		 */
-		NotAcknowledgedError();
+		explicit NotAcknowledgedError();
 };
 
 
@@ -202,7 +202,7 @@ class MRFDongle::SendReliableMessageOperation::ClearChannelError : public std::r
 		/**
 		 * \brief Contructs a ClearChannelError.
 		 */
-		ClearChannelError();
+		explicit ClearChannelError();
 };
 
 

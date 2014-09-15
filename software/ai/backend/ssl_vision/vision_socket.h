@@ -16,7 +16,7 @@ namespace AI {
 				public:
 					sigc::signal<void, const SSL_WrapperPacket &> signal_vision_data;
 
-					VisionSocket(int multicast_interface, const std::string &port);
+					explicit VisionSocket(int multicast_interface, const std::string &port);
 					~VisionSocket();
 
 				private:

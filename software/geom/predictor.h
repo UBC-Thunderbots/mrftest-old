@@ -32,7 +32,7 @@ template<typename T> class Predictor {
 		 *
 		 * \param[in] decay_time_constant rate of velocity decay.
 		 */
-		Predictor(T measure_std, T accel_std, Timediff decay_time_constant);
+		explicit Predictor(T measure_std, T accel_std, Timediff decay_time_constant);
 
 		/**
 		 * \brief Gets the predicted value some length of time into the future (or past).
@@ -108,7 +108,7 @@ class Predictor2 {
 		 *
 		 * \param[in] decay_time_constant rate of velocity decay.
 		 */
-		Predictor2(double measure_std, double accel_std, Predictor<double>::Timediff decay_time_constant);
+		explicit Predictor2(double measure_std, double accel_std, Predictor<double>::Timediff decay_time_constant);
 
 		/**
 		 * \brief Gets the predicted value some length of time into the future (or past).
@@ -188,7 +188,7 @@ class Predictor3 {
 		 *
 		 * \param[in] decay_time_constant_angular rate of angular velocity decay.
 		 */
-		Predictor3(double measure_std_linear, double accel_std_linear, Predictor<double>::Timediff decay_time_constant_linear, Angle measure_std_angular, Angle accel_std_angular, Predictor<double>::Timediff decay_time_constant_angular);
+		explicit Predictor3(double measure_std_linear, double accel_std_linear, Predictor<double>::Timediff decay_time_constant_linear, Angle measure_std_angular, Angle accel_std_angular, Predictor<double>::Timediff decay_time_constant_angular);
 
 		/**
 		 * \brief Gets the predicted value some length of time into the future (or past).

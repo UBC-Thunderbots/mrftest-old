@@ -14,7 +14,7 @@ namespace {
 	 */
 	class PivotNavigatorAram : public Navigator {
 		public:
-			PivotNavigatorAram(World world);
+			explicit PivotNavigatorAram(World world);
 			void tick();
 			NavigatorFactory &factory() const;
 	};

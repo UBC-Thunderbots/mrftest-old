@@ -60,7 +60,7 @@ namespace {
 	struct MixedTeamDefense : public HighLevel {
 		World world;
 
-		MixedTeamDefense(World world) : world(world) {
+		explicit MixedTeamDefense(World world) : world(world) {
 		}
 
 		HighLevelFactory &factory() const;

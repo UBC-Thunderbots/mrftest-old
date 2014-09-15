@@ -22,6 +22,7 @@ namespace AI {
 	namespace BE {
 		namespace SSLVision {
 			extern BoolParam USE_KALMAN_FILTER;
+
 			/**
 			 * \brief The minimum probability above which the best ball detection will be accepted.
 			 */

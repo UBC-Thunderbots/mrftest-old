@@ -10,7 +10,7 @@ using namespace AI::HL::W;
 namespace {
 	class TestSpin : public HighLevel {
 		public:
-			TestSpin(World world) : world(world) {
+			explicit TestSpin(World world) : world(world) {
 			}
 
 		private:

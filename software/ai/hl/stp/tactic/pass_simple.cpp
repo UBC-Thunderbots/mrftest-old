@@ -29,7 +29,7 @@ namespace {
 		// HYSTERISIS
 		Player target;
 
-		PasserSimple(World world) : Tactic(world, true), kick_attempted(false) {
+		explicit PasserSimple(World world) : Tactic(world, true), kick_attempted(false) {
 		}
 
 		bool done() const {
@@ -80,7 +80,7 @@ namespace {
 	struct PasseeSimple : public Tactic {
 		const unsigned number;
 
-		PasseeSimple(World world, unsigned number) : Tactic(world, false), number(number) {
+		explicit PasseeSimple(World world, unsigned number) : Tactic(world, false), number(number) {
 		}
 
 		Player select(const std::set<Player> &players) const {
@@ -114,7 +114,7 @@ namespace {
 	};
 
 	struct FollowBaller : public Tactic {
-		FollowBaller(World world) : Tactic(world, false) {
+		explicit FollowBaller(World world) : Tactic(world, false) {
 		}
 
 		Player select(const std::set<Player> &players) const {

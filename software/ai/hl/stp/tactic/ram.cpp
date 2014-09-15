@@ -10,7 +10,7 @@ using namespace AI::HL::W;
 namespace {
 	class Ram : public Tactic {
 		public:
-			Ram(World world) : Tactic(world) {
+			explicit Ram(World world) : Tactic(world) {
 			}
 
 		private:

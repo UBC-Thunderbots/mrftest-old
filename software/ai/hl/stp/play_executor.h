@@ -22,7 +22,7 @@ namespace AI {
 			 
 			class PlayExecutor : public sigc::trackable {
 				public:
-					PlayExecutor(World w);
+					explicit PlayExecutor(World w);
 
 					/**
 					 * Runs every time step.

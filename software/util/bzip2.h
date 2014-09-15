@@ -9,7 +9,7 @@
 namespace BZip2 {
 	class InputStream : public google::protobuf::io::ZeroCopyInputStream, public NonCopyable {
 		public:
-			InputStream(google::protobuf::io::ZeroCopyInputStream *input);
+			explicit InputStream(google::protobuf::io::ZeroCopyInputStream *input);
 			~InputStream();
 			bool Next(const void **data, int *size);
 			void BackUp(int count);

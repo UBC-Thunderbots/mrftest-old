@@ -68,7 +68,7 @@ namespace AI {
 				/**
 				 * \brief Constructs a new high level.
 				 */
-				HighLevel();
+				explicit HighLevel();
 		};
 
 		/**
@@ -91,7 +91,7 @@ namespace AI {
 				 *
 				 * \param[in] name a human-readable name for this HighLevel.
 				 */
-				HighLevelFactory(const char *name) : Registerable<HighLevelFactory>(name) {
+				explicit HighLevelFactory(const char *name) : Registerable<HighLevelFactory>(name) {
 				}
 		};
 	}

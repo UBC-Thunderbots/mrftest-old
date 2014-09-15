@@ -25,7 +25,7 @@ namespace {
 
 	class NCHL : public HighLevel {
 		public:
-			NCHL(World world) : world(world), tasks(default_tasks, default_tasks + default_tasks_n), time_steps(0) {
+			explicit NCHL(World world) : world(world), tasks(default_tasks, default_tasks + default_tasks_n), time_steps(0) {
 				std::vector<std::size_t> done;
 				obstacleIndex = 0;
 			}

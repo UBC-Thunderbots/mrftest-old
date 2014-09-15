@@ -57,7 +57,7 @@ namespace {
 	struct MixedTeamOffense : public HighLevel {
 		World world;
 
-		MixedTeamOffense(World world) : world(world) {
+		explicit MixedTeamOffense(World world) : world(world) {
 		}
 
 		HighLevelFactory &factory() const;

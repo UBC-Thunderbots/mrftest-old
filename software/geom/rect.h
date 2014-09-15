@@ -17,7 +17,7 @@ class Rect {
 		 *
 		 * \param[in] point2 the corner diagonally-opposite to \p point1.
 		 */
-		constexpr Rect(const Point &point1, const Point &point2);
+		explicit constexpr Rect(const Point &point1, const Point &point2);
 
 		/**
 		 * Creates a new Rect from a corner and a size.
@@ -28,7 +28,7 @@ class Rect {
 		 *
 		 * \param[in] height the height of the rectangle.
 		 */
-		constexpr Rect(const Point &sw_corner, double width, double height);
+		explicit constexpr Rect(const Point &sw_corner, double width, double height);
 
 		/**
 		 * Returns the width of the rectangle.

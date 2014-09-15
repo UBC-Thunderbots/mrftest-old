@@ -12,7 +12,7 @@
  */
 class ParticleFilter2D {
 	public:
-		ParticleFilter2D(double lengthX, double lengthY, double offsetX, double offsetY, unsigned int numPartitions);
+		explicit ParticleFilter2D(double lengthX, double lengthY, double offsetX, double offsetY, unsigned int numPartitions);
 		~ParticleFilter2D();
 
 		void update(double timeDelta);

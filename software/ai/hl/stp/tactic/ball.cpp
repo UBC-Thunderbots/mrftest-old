@@ -21,7 +21,7 @@ namespace {
 
 	class SpinSteal : public Tactic {
 		public:
-			SpinSteal(World world) : Tactic(world, true), none(false) {}
+			explicit SpinSteal(World world) : Tactic(world, true), none(false) {}
 
 		private:
 			bool none;
@@ -41,7 +41,7 @@ namespace {
 
 	class BackUpSteal : public Tactic {
 			public:
-				BackUpSteal(World world) : Tactic(world, true), state(BACKING_UP), finished(false), backup_dist(4 * Robot::MAX_RADIUS) {}
+				explicit BackUpSteal(World world) : Tactic(world, true), state(BACKING_UP), finished(false), backup_dist(4 * Robot::MAX_RADIUS) {}
 
 			private:
 				enum state { BACKING_UP, GOING_FORWARD };
@@ -71,7 +71,7 @@ namespace {
 
 	class TActiveDef : public Tactic {
 		public:
-			TActiveDef(World world) : Tactic(world, true), finished(false) {}
+			explicit TActiveDef(World world) : Tactic(world, true), finished(false) {}
 
 		private:
 			bool finished;
@@ -91,7 +91,7 @@ namespace {
 
 	class TDribbleToRegion : public Tactic {
 		public:
-			TDribbleToRegion(World world, Region region_) : Tactic(world, true), region(region_) {}
+			explicit TDribbleToRegion(World world, Region region_) : Tactic(world, true), region(region_) {}
 
 		private:
 			Region region;
@@ -111,7 +111,7 @@ namespace {
 
 	class TSpinToRegion : public Tactic {
 		public:
-			TSpinToRegion(World world, Region region_) : Tactic(world, true), region(region_) {}
+			explicit TSpinToRegion(World world, Region region_) : Tactic(world, true), region(region_) {}
 
 		private:
 			Region region;

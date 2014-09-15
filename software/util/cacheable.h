@@ -13,7 +13,7 @@
  */
 class CacheableBase : public NonCopyable {
 	public:
-		CacheableBase();
+		explicit CacheableBase();
 		~CacheableBase();
 		static void flush_all();
 

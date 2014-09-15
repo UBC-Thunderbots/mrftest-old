@@ -30,7 +30,7 @@ class AbstractListModel : public Gtk::TreeModel {
 		 * Constructs a new AbstractListModel.
 		 * You are expected to call this constructor from your subclass.
 		 */
-		AbstractListModel();
+		explicit AbstractListModel();
 
 		/**
 		 * Destroys an AbstractListModel.

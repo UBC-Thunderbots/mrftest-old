@@ -107,7 +107,7 @@ namespace AI {
 						/**
 						 * \brief The constructor.
 						 */
-						Play(World world);
+						explicit Play(World world);
 				};
 
 				/**
@@ -129,7 +129,7 @@ namespace AI {
 						 *
 						 * \param[in] name a human-readable name for this Play, which must be encoded in UTF-8
 						 */
-						PlayFactory(const char *name);
+						explicit PlayFactory(const char *name);
 
 						/** 
 						 * \brief Used to enable and disable a play. 
@@ -166,7 +166,7 @@ namespace AI {
 				 */
 				template<class P> class PlayFactoryImpl : public PlayFactory {
 					public:
-						PlayFactoryImpl(const char *name) : PlayFactory(name) {
+						explicit PlayFactoryImpl(const char *name) : PlayFactory(name) {
 						}
 
 						std::unique_ptr<Play> create(World world) const {

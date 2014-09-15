@@ -22,7 +22,7 @@ class SignalHandlerScopedRegistration {
 		 *
 		 * \param[in] flags the flags to use while registering the handler.
 		 */
-		SignalHandlerScopedRegistration(int sig, SignalHandlerFunction handler, unsigned int flags);
+		explicit SignalHandlerScopedRegistration(int sig, SignalHandlerFunction handler, unsigned int flags);
 
 		/**
 		 * Unregisters the signal handler.
@@ -46,7 +46,7 @@ class SignalStackScopedRegistration {
 		 *
 		 * \param[in] len the size of the stack.
 		 */
-		SignalStackScopedRegistration(void *stk, std::size_t len);
+		explicit SignalStackScopedRegistration(void *stk, std::size_t len);
 
 		/**
 		 * Unregisters the alternate stack.

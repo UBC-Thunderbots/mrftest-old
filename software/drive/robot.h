@@ -210,7 +210,7 @@ namespace Drive {
 			 * \param[in] index the pattern index of the robot
 			 * \param[in] dribble_max_power the maximum power level understood by the \ref dribble function
 			 */
-			Robot(unsigned int index, unsigned int dribble_max_power);
+			explicit Robot(unsigned int index, unsigned int dribble_max_power);
 
 		private:
 			Annunciator::Message low_battery_message, high_board_temperature_message;

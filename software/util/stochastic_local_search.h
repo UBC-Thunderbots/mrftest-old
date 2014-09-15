@@ -57,7 +57,7 @@ class StochasticLocalSearch {
 		 *
 		 * \param[in] max The list of maximum values that each parameter can have.
 		 */
-		StochasticLocalSearch(const std::vector<double> &start, const std::vector<double> &min, const std::vector<double> &max);
+		explicit StochasticLocalSearch(const std::vector<double> &start, const std::vector<double> &min, const std::vector<double> &max);
 
 		/**
 		 * Get the current list of parameters being used.

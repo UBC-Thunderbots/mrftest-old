@@ -16,7 +16,7 @@ namespace AI {
 
 		class RRTPlanner : public Plan {
 			public:
-				RRTPlanner(AI::Nav::W::World world);
+				explicit RRTPlanner(AI::Nav::W::World world);
 				virtual std::vector<Point> plan(AI::Nav::W::Player player, Point goal, unsigned int added_flags = 0);
 
 				static constexpr Point empty_state();

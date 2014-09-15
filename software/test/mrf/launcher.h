@@ -21,7 +21,7 @@ class TesterLauncher : public Gtk::Window {
 		 *
 		 * \param[in] dongle the radio dongle to use to communicate with robots.
 		 */
-		TesterLauncher(MRFDongle &dongle);
+		explicit TesterLauncher(MRFDongle &dongle);
 
 	private:
 		MRFDongle &dongle;

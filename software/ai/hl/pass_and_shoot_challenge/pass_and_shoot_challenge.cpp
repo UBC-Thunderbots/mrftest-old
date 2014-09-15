@@ -85,7 +85,7 @@ namespace {
 
 class PASCHL : public HighLevel {
 		public:
-			PASCHL(World world) : world(world) {
+			explicit PASCHL(World world) : world(world) {
 				robot_positions.push_back(std::make_pair(bot0_initial, (bot1_initial - bot0_initial).orientation()));
 				robot_positions.push_back(std::make_pair(bot1_initial, (bot0_initial - bot1_initial).orientation()));
 				robot_positions.push_back(std::make_pair(bot2_initial, (bot1_initial - bot2_initial).orientation()));

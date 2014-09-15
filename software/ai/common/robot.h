@@ -47,14 +47,14 @@ namespace AI {
 				/**
 				 * \brief Constructs a nonexistent Robot
 				 */
-				Robot();
+				explicit Robot();
 
 				/**
 				 * \brief Constructs a new Robot
 				 *
 				 * \param[in] impl the backend implementation
 				 */
-				Robot(AI::BE::Robot::Ptr impl);
+				explicit Robot(AI::BE::Robot::Ptr impl);
 
 				/**
 				 * \brief Copies a Robot

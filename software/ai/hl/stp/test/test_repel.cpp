@@ -10,7 +10,7 @@ using namespace AI::HL::W;
 namespace {
 	class TestRepel : public HighLevel {
 		public:
-			TestRepel(World world) : world(world) {
+			explicit TestRepel(World world) : world(world) {
 			}
 
 		private:

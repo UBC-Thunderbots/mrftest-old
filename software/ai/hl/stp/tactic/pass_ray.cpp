@@ -30,7 +30,7 @@ namespace {
 		// HYSTERESIS
 		Angle ori_fix;
 
-		PasserRay(World world) : Tactic(world, true), kick_attempted(false) {
+		explicit PasserRay(World world) : Tactic(world, true), kick_attempted(false) {
 		}
 
 		bool done() const {

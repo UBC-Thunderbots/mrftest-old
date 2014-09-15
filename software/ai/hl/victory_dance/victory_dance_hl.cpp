@@ -17,7 +17,7 @@ namespace {
 		Gtk::Button reset_button;
 		Gtk::HScale dest_control;
 
-		VDHL(World world) : world(world) {
+		explicit VDHL(World world) : world(world) {
 			vbox.add(dest_control);
 			// params are
 			// min, max, step, intervals

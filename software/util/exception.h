@@ -11,7 +11,7 @@ class ErrorMessageError : public std::runtime_error {
 		/**
 		 * Constructs a new ErrorMessageError.
 		 */
-		ErrorMessageError();
+		explicit ErrorMessageError();
 };
 
 /**
@@ -31,7 +31,7 @@ class SystemError : public std::runtime_error {
 		 *
 		 * \param[in] err the error code.
 		 */
-		SystemError(const char *call, int err);
+		explicit SystemError(const char *call, int err);
 };
 
 /**
@@ -42,7 +42,7 @@ class FileNotFoundError : public SystemError {
 		/**
 		 * Constructs a new FileNotFoundError.
 		 */
-		FileNotFoundError();
+		explicit FileNotFoundError();
 };
 
 /**
@@ -62,7 +62,7 @@ class EAIError : public std::runtime_error {
 		 *
 		 * \param[in] err the error code.
 		 */
-		EAIError(const char *call, int err);
+		explicit EAIError(const char *call, int err);
 };
 
 #endif

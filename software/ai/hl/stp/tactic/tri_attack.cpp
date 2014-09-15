@@ -23,7 +23,7 @@ namespace {
 
 	class TriAttackPrime : public Tactic {
 		public:
-			TriAttackPrime(World world) : Tactic(world, true), attempted_shot(false) {
+			explicit TriAttackPrime(World world) : Tactic(world, true), attempted_shot(false) {
 			}
 
 		private:
@@ -60,7 +60,7 @@ namespace {
 
 	class TriAttack2 : public Tactic {
 		public:
-			TriAttack2(World world) : Tactic(world) {
+			explicit TriAttack2(World world) : Tactic(world) {
 			}
 
 		private:
@@ -85,7 +85,7 @@ namespace {
 
 	class TriAttack3 : public Tactic {
 		public:
-			TriAttack3(World world) : Tactic(world) {
+			explicit TriAttack3(World world) : Tactic(world) {
 			}
 
 		private:
