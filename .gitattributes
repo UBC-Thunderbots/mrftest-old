@@ -124,6 +124,7 @@ firmware/stm32lib/Makefile -text
 firmware/stm32lib/Makefile.common -text
 firmware/stm32lib/abort.c -text
 firmware/stm32lib/core_progmem.c -text
+firmware/stm32lib/crc32.c -text
 firmware/stm32lib/exception.c -text
 firmware/stm32lib/format.c -text
 firmware/stm32lib/gdb/arm-m-profile.xml -text
@@ -132,6 +133,7 @@ firmware/stm32lib/gdb/arm-with-m-vfp-d16.xml -text
 firmware/stm32lib/gpio.c -text
 firmware/stm32lib/include/assert.h -text
 firmware/stm32lib/include/core_progmem.h -text
+firmware/stm32lib/include/crc32.h -text
 firmware/stm32lib/include/exception.h -text
 firmware/stm32lib/include/format.h -text
 firmware/stm32lib/include/gpio.h -text
