@@ -1,5 +1,13 @@
 #include <crc32.h>
+#include <rcc.h>
 #include <registers/crc.h>
+
+/**
+ * \brief Initializes the CRC32 module.
+ */
+void crc32_init(void) {
+	rcc_enable_reset(AHB1, CRC);
+}
 
 /**
  * \brief Computes the CRC32 of a block of data.
@@ -10,11 +18,12 @@
  *
  * \param[in] data the data block to process
  * \param[in] length the number of bytes
+ * \param[in] initial the initial CRC to accumulate onto
  * \return the CRC32 value
  */
-uint32_t crc32_be(const void *data, size_t length) {
+uint32_t crc32_be(const void *data, size_t length, uint32_t initial) {
 	const CRC_CR_t reset_cr = { .RESET = 1 };
-	uint32_t acc = 0;
+	uint32_t acc = initial;
 	const uint8_t *bptr = data;
 
 	while (length && ((uintptr_t) bptr & 3U)) {
