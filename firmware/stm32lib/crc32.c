@@ -29,7 +29,7 @@ uint32_t crc32_be(const void *data, size_t length, uint32_t initial) {
 	// However, that code was designed for LSb-first operation.
 	// This code implements MSb-first operation.
 	const CRC_CR_t reset_cr = { .RESET = 1 };
-	uint32_t acc = initial;
+	uint32_t acc = ~initial;
 	const uint8_t *bptr = data;
 
 	// Consume single bytes until the data pointer is word-aligned.
@@ -71,5 +71,5 @@ uint32_t crc32_be(const void *data, size_t length, uint32_t initial) {
 		++bptr;
 	}
 
-	return acc;
+	return ~acc;
 }
