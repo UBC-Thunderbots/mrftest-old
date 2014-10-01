@@ -7,7 +7,6 @@
 #include <cmath>
 
 using AI::RC::RobotController;
-using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {

@@ -7,7 +7,6 @@
 
 using AI::RC::RobotController;
 using AI::RC::TunableController;
-using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {

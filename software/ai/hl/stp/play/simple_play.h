@@ -21,15 +21,17 @@ using AI::HL::STP::DIST_FROM_PENALTY_MARK;
 
 #define BEGIN_PLAY(cls) \
 	namespace { \
-		class cls; \
-		AI::HL::STP::Play::PlayFactoryImpl<cls> factory_instance(u8 ## # cls); \
-		class cls : public AI::HL::STP::Play::Play { \
+		class cls ## STPPlay; \
+	} \
+	AI::HL::STP::Play::PlayFactoryImpl<cls ## STPPlay> cls ## STPPlayFactory_instance(u8 ## # cls); \
+	namespace { \
+		class cls ## STPPlay : public AI::HL::STP::Play::Play { \
 			public: \
-				explicit cls(AI::HL::W::World world) : AI::HL::STP::Play::Play(world) { \
+				explicit cls ## STPPlay(AI::HL::W::World world) : AI::HL::STP::Play::Play(world) { \
 				} \
  \
 				AI::HL::STP::Play::PlayFactory &factory() const { \
-					return factory_instance; \
+					return cls ## STPPlayFactory_instance; \
 				}
 
 #define INVARIANT(expr) \

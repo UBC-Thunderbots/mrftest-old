@@ -24,7 +24,6 @@
 #include <gtkmm/window.h>
 
 using AI::RC::RobotController;
-using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {

@@ -139,7 +139,7 @@ namespace AI {
  */
 #define ROBOT_CONTROLLER_REGISTER(cls) \
 	namespace { \
-		class cls##ControllerFactory : public RobotControllerFactory { \
+		class cls##ControllerFactory : public AI::RC::RobotControllerFactory { \
 			public: \
 				explicit cls##ControllerFactory(); \
 				std::unique_ptr<RobotController> create_controller(World, Player) const; \
