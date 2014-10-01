@@ -61,7 +61,7 @@ namespace {
 
 	DoubleParam FRIENDLY_KICK_BUFFER(u8"Additional offense area buffer for friendly kick (rule=0.2) ", u8"Nav/Util", 0.2, 0.0, 1.0);
 
-	extern IntParam jon_hysteris_hack(u8"Divide by how much?", u8"Nav/RRT", 2, 1, 10);
+	extern IntParam jon_hysteris_hack;
 
 	constexpr double RAM_BALL_ALLOWANCE = 0.05;
 

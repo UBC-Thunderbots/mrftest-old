@@ -32,9 +32,6 @@
 #include <sys/types.h>
 
 namespace {
-	void app_main_with_backend(AI::BE::Backend &backend, const AI::Setup &setup, bool minimize) {
-	}
-
 	Glib::ustring choose_backend() {
 		Gtk::Dialog dlg(u8"Thunderbots AI", true);
 		Gtk::Label label(u8"Select a backend:");

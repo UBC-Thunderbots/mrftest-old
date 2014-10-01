@@ -98,12 +98,12 @@ namespace {
 
 			if( counter == 0 ){
 
-				unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
+				unsigned int seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
 				std::default_random_engine generator (seed);
 				std::normal_distribution<double> normal(0, PARAM_penalty_stdev);
 				double time = normal(generator);
 
-				counter = (int)(time*30);
+				counter = static_cast<int>(time * 30);
 
 				if( is_left ){
 					is_left = false;

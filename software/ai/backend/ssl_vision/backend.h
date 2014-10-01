@@ -229,7 +229,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 
 						/* Particle Filter */
 						//std::cout << "X: " << detection_position.x << "; Y: " << detection_position.y << std::endl;
-						pFilter_->add(detection_position.x, detection_position.y, (unsigned int)(b.confidence()*500));
+						pFilter_->add(detection_position.x, detection_position.y, static_cast<unsigned int>(b.confidence() * 500U));
 						ballsAdded = 0;
 					}
 				}
