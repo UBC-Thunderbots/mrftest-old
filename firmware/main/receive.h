@@ -4,7 +4,6 @@
 struct receive_drive_struct;
 typedef struct receive_drive_struct receive_drive_t;
 
-#include "motor.h"
 #include "wheels.h"
 #include <stdbool.h>
 #include <stdint.h>
