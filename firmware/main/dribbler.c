@@ -77,7 +77,7 @@ void dribbler_tick(uint8_t pwm, log_record_t *record) {
 	}
 
 	// Decide whether to run or not.
-	if (!receive_drive_timeout() && winding_energy < THERMAL_MAX_ENERGY_WINDING) {
+	if (winding_energy < THERMAL_MAX_ENERGY_WINDING) {
 		float battery = adc_battery();
 		float back_emf = dribbler_speed * VOLTS_PER_SPEED_UNIT;
 		uint16_t back_emf_pwm = (uint16_t) (back_emf / battery * 255.0f);

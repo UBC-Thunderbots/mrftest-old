@@ -72,6 +72,8 @@ firmware/main/dma.c -text
 firmware/main/dma.h -text
 firmware/main/dribbler.c -text
 firmware/main/dribbler.h -text
+firmware/main/drive.c -text
+firmware/main/drive.h -text
 firmware/main/encoder.c -text
 firmware/main/encoder.h -text
 firmware/main/feedback.c -text

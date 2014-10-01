@@ -35,6 +35,7 @@
 #include "chicker.h"
 #include "control.h"
 #include "dribbler.h"
+#include "drive.h"
 #include "encoder.h"
 #include "feedback.h"
 #include "hall.h"
@@ -58,6 +59,14 @@ _Static_assert(!(CONTROL_LOOP_HZ % DRIBBLER_TICK_HZ), "Dribbler period is not a 
 
 static bool shutdown = false;
 static SemaphoreHandle_t shutdown_sem;
+static const drive_t SCRAM_DRIVE_STRUCT = {
+	.wheels_mode = WHEELS_MODE_BRAKE,
+	.dribbler_power = 0U,
+	.charger_enabled = false,
+	.discharger_enabled = true,
+	.setpoints = { 0, 0, 0, 0 },
+	.data_serial = 0U,
+};
 
 static void normal_task(void *UNUSED(param)) {
 	unsigned int dribbler_tick_counter = 0U;
@@ -95,10 +104,11 @@ static void normal_task(void *UNUSED(param)) {
 		}
 		hall_tick(is_dribbler_tick);
 		encoder_tick();
-		const receive_drive_t *drive = receive_lock_latest_drive();
+		bool receive_timeout = receive_drive_packet_timeout();
+		const drive_t *drive = receive_timeout ? &SCRAM_DRIVE_STRUCT : drive_read_get();
 		wheels_tick(drive, record);
 		if (is_dribbler_tick) {
-			dribbler_tick(receive_drive_timeout() ? 0U : drive->dribbler_power, record);
+			dribbler_tick(drive->dribbler_power, record);
 		} else if (record) {
 			record->tick.dribbler_ticked = 0U;
 			record->tick.dribbler_pwm = 0U;
@@ -107,9 +117,12 @@ static void normal_task(void *UNUSED(param)) {
 			record->tick.dribbler_hall_sensors_failed = 0U;
 		}
 		charger_tick(drive->charger_enabled);
-		chicker_discharge((receive_drive_timeout() || drive->discharger_enabled) && adc_capacitor() > CHICKER_DISCHARGE_THRESHOLD);
+		chicker_discharge(drive->discharger_enabled && adc_capacitor() > CHICKER_DISCHARGE_THRESHOLD);
 		chicker_tick();
-		receive_release_drive();
+		if (!receive_timeout) {
+			drive_read_put();
+		}
+		drive = 0;
 		motor_tick();
 
 		// Submit the log record, if we filled one.

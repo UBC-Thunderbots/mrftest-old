@@ -14,12 +14,13 @@
 #include "receive.h"
 #include "chicker.h"
 #include "dma.h"
+#include "drive.h"
 #include "feedback.h"
 #include "leds.h"
 #include "main.h"
+#include "motor.h"
 #include "mrf.h"
 #include "priority.h"
-#include "tbuf.h"
 #include <FreeRTOS.h>
 #include <assert.h>
 #include <semphr.h>
@@ -28,17 +29,6 @@
 
 static unsigned int robot_index;
 static uint8_t *dma_buffer;
-static receive_drive_t buffers[3U] = {
-	[0U ... 2U] = {
-		.wheels_mode = WHEELS_MODE_COAST,
-		.dribbler_power = 0U,
-		.charger_enabled = false,
-		.discharger_enabled = false,
-		.setpoints = { 0, 0, 0, 0 },
-	}
-};
-static tbuf_t buffers_ctl = TBUF_INIT;
-static unsigned int current_read_buffer;
 static SemaphoreHandle_t shutdown_sem;
 static unsigned int timeout_ticks;
 
@@ -82,8 +72,7 @@ static void receive_task(void *UNUSED(param)) {
 						}
 
 						// Find the packet buffer to write into.
-						unsigned int target_index = tbuf_write_get(&buffers_ctl);
-						receive_drive_t *target = &buffers[target_index];
+						drive_t *target = drive_write_get();
 
 						// Decode the drive packet.
 						switch ((words[0U] >> 13U) & 0b11) {
@@ -105,7 +94,8 @@ static void receive_task(void *UNUSED(param)) {
 						target->data_serial = drive_data_serial;
 
 						// Put the written buffer back.
-						tbuf_write_put(&buffers_ctl, target_index);
+						drive_write_put();
+						target = 0;
 
 						// Reset timeout.
 						__atomic_store_n(&timeout_ticks, 1000U / portTICK_PERIOD_MS, __ATOMIC_RELAXED);
@@ -225,33 +215,12 @@ void receive_tick(void) {
 }
 
 /**
- * \brief Locks and returns a pointer to the most recent drive data.
- *
- * While the drive data is locked, it will not be modified.
- *
- * \return the data
- */
-const receive_drive_t *receive_lock_latest_drive(void) {
-	current_read_buffer = tbuf_read_get(&buffers_ctl);
-	return &buffers[current_read_buffer];
-}
-
-/**
- * \brief Releases the drive data lock taken by \ref receive_lock_latest_drive.
- *
- * Once the lock is released, the application should not access the data as it may be changing.
- */
-void receive_release_drive(void) {
-	tbuf_read_put(&buffers_ctl, current_read_buffer);
-}
-
-/**
  * \brief Checks whether there has been a receive timeout indicating that the host is no longer sending orders.
  *
  * \retval true if a timeout has occurred
  * \retval false if a timeout has not occurred
  */
-bool receive_drive_timeout(void) {
+bool receive_drive_packet_timeout(void) {
 	return !__atomic_load_n(&timeout_ticks, __ATOMIC_RELAXED);
 }
 

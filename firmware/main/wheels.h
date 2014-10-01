@@ -4,7 +4,7 @@
 #include "log.h"
 #include <stdint.h>
 
-typedef struct receive_drive_struct receive_drive_t;
+typedef struct drive_struct drive_t;
 
 #define WHEELS_ENCODER_COUNTS_PER_REV 1440U
 #define WHEELS_POLE_PAIRS 8U
@@ -27,7 +27,7 @@ typedef enum {
 	WHEELS_MODE_CLOSED_LOOP, ///< Motor commutation is controlled by Hall sensors, and PWM values are provided by the control loop.
 } wheels_mode_t;
 
-void wheels_tick(const receive_drive_t *drive, log_record_t *record);
+void wheels_tick(const drive_t *drive, log_record_t *record);
 uint8_t wheels_hot(void);
 
 #endif
