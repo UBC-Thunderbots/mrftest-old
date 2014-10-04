@@ -13,7 +13,7 @@
 using namespace AI::HL::STP;
 
 namespace {
-	/* shoot_anyway should be adjusted when facing different teams. */
+	// shoot_anyway should be adjusted when facing different teams.
     IntParam    shoot_anyway(u8"randomize factor that the baller will shoot even if blocked", u8"STP/predicates", 5, 1, 10);
 
     DoubleParam near_thresh(u8"enemy avoidance distance (robot radius)", u8"STP/predicates", 3.0, 1.0, 10.0);
@@ -144,10 +144,11 @@ Predicates::BallNearEnemyGoal Predicates::ball_near_enemy_goal;
 
 bool Predicates::BallerCanShoot::compute(World world) {
 	const Player baller = Evaluation::calc_friendly_baller();
-	if (!baller || !Evaluation::possess_ball(world, baller)) {
+	if (!baller || !Evaluation::possess_ball(world, baller))
 		return false;
-	}
-	if (shoot_anyway > std::rand()%10) return true;
+
+	if (shoot_anyway > std::rand() % 10) 
+		return true;
 	return Evaluation::evaluate_shoot(world, baller).angle >= min_shoot_region;
 }
 
@@ -165,7 +166,7 @@ bool Predicates::BallerCanChip::compute(World world, bool towardsEnemy) {
 		return false;
 	}
 
-	if (shoot_anyway > std::rand()%10) return true;
+	if (shoot_anyway > std::rand() % 10) return true;
 
 	for (const Robot i : world.enemy_team()) {
 		if ((baller.position() - i.position()).len() <= near_thresh * AI::HL::W::Robot::MAX_RADIUS) {
@@ -183,8 +184,7 @@ bool Predicates::BallerCanPassTarget::compute(World world, const Point target) {
 	if (!baller || !Evaluation::possess_ball(world, baller)) {
 		return false;
 	}
-#warning something is weird
-	if (shoot_anyway > std::rand()%10) return true;
+	if (shoot_anyway > std::rand() % 10) return true;
 	return Evaluation::can_pass(world, baller.position(), target);
 }
 
