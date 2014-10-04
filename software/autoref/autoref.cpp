@@ -229,24 +229,24 @@ void AI::AutoRef::violent_collision() {
 	update_friendly_past = true;
 }
 
-bool AI::AutoRef::right_side_of_field(double x, Team t){
-	if(t == FRIENDLY_TEAM ){
+bool AI::AutoRef::right_side_of_field(double x, Team t) {
+	if(t == FRIENDLY_TEAM) {
 		if(world.field().friendly_goal().x > 0){
 			return (x>0 );
 		}
-		else if (world.field().friendly_goal().x<0){
+		else if (world.field().friendly_goal().x < 0){
 			return (x<0);
 		}
 	}
-
-	if(t == ENEMY_TEAM){
-		if(world.field().friendly_goal().x > 0){
-			return x<0;
+	if(t == ENEMY_TEAM) {
+		if(world.field().friendly_goal().x > 0) {
+			return x < 0;
 		}
-		else if (world.field().friendly_goal().x<0){
-			return (x>0);
+		else if (world.field().friendly_goal().x < 0) {
+			return x > 0;
 		}
 	}
+	return false;
 }
 
 
