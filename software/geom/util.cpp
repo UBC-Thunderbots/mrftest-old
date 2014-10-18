@@ -36,6 +36,7 @@ double seg_pt_dist(const Point a, const Point b, const Point p) {
 std::vector<std::size_t> dist_matching(const std::vector<Point> &v1, const std::vector<Point> &v2) {
 	if (v1.size() != v2.size())
 		LOG_ERROR(u8"vector sizes not equal");
+
 	if (v1.size() > 1) {
 		//use hungarian O(n^3)
 		Hungarian hung(v1.size());
@@ -433,7 +434,6 @@ namespace {
 
 
 Point vector_rect_intersect(const Rect &r, const Point &vecA, const Point &vecB) {
-#warning lets use the proper invalid point stuff at some point
 	/*std::cout << vecA << vecB << r.ne_corner() << r.sw_corner();
 	   for (unsigned int i = 0; i < 4; i++) {
 	    unsigned int j = (i + 1)%4;
@@ -453,7 +453,7 @@ Point vector_rect_intersect(const Rect &r, const Point &vecA, const Point &vecB)
 			return i;
 		}
 	}
-	return Point();
+	return Point(1.0/0.0, 1.0/0.0); //no solution found, propagate infinity
 }
 
 

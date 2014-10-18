@@ -73,11 +73,10 @@ Evaluation::ShootData Evaluation::evaluate_shoot(World world, Player player, boo
 	ShootData data;
 
 	double radius;
-	if (use_reduced_radius) {
+	if (use_reduced_radius)
 		radius = reduced_radius_small;
-	} else {
+	else
 		radius = reduced_radius_big;
-	}
 
 	auto shot = AI::HL::Util::calc_best_shot(world, player, radius);
 
@@ -93,9 +92,8 @@ Evaluation::ShootData Evaluation::evaluate_shoot(World world, Player player, boo
 	data.blocked = shot.second == Angle::zero();
 
 #warning a fix to other parts of the code for now
-	if (data.blocked) {
+	if (data.blocked)
 		data.target = world.field().enemy_goal();
-	}
 
 	return data;
 }
