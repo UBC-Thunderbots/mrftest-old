@@ -620,17 +620,27 @@ bool line_seg_intersect_rectangle(const Point seg[2], const Point recA[4]) {
 	return intersect;
 }
 
-#warning you only need 2 points to define a rectangle, which can be in any orientation
-#warning if this is the computation for a non-axis aligned rectangle, then it is wrong
 bool point_in_rectangle(const Point &pointA, const Point recA[4]) {
+	/*
 	bool x_ok = pointA.x >= std::min(std::min(recA[0].x, recA[1].x), std::min(recA[2].x, recA[3].x));
 	x_ok = x_ok && pointA.x <= std::max(std::max(recA[0].x, recA[1].x), std::max(recA[2].x, recA[3].x));
 	bool y_ok = pointA.y >= std::min(std::min(recA[0].y, recA[1].y), std::min(recA[2].y, recA[3].y));
 	y_ok = y_ok && pointA.y <= std::max(std::max(recA[0].y, recA[1].y), std::max(recA[2].y, recA[3].y));
-
-	// was this missing here??
 	return x_ok && y_ok;
+	*/
+	Point rectA = Point(std::min(std::min(recA[0].x, recA[1].x), std::min(recA[2].x, recA[3].x)),
+				std::min(std::min(recA[0].y, recA[1].y), std::min(recA[2].y, recA[3].y)));
+	Point rectB = Point(std::max(std::max(recA[0].x, recA[1].x), std::max(recA[2].x, recA[3].x)),
+				std::max(std::max(recA[0].y, recA[1].y), std::max(recA[2].y, recA[3].y)));
+
+	return point_in_rectangle(pointA, rectA, rectB);
 }
+
+bool point_in_rectangle(const Point &pointA, const Point &cornerA, const Point &cornerB) {
+	return pointA.x >= std::min(cornerA.x, cornerB.x) && pointA.x <= std::max(cornerA.x, cornerB.x) &&
+		pointA.y >= std::min(cornerA.y, cornerB.y) && pointA.y <= std::max(cornerA.y, cornerB.y);
+}
+
 
 Point reflect(const Point &v, const Point &n) {
 	if (n.len() < EPS) {
@@ -663,8 +673,6 @@ Point calc_block_cone(const Point &a, const Point &b, const double &radius) {
 Point calc_block_cone(const Point &a, const Point &b, const Point &p, const double &radius) {
 	/*
 	   Point R = p + calc_block_cone(a - p, b - p, radius);
-	   #warning: THIS MAGIC THRESHOLD should be fixed after competition
-	   #warning TODO: Fix this magic number
 	   const double MIN_X = std::min(-2.5, (p.x + 3.025) / 2.0 - 3.025);
 	   if (R.x < MIN_X){
 	   R = (R - p) * ((MIN_X - p.x) / (R.x - p.x)) + p;
@@ -675,21 +683,17 @@ Point calc_block_cone(const Point &a, const Point &b, const Point &p, const doub
 }
 
 // ported code
-#warning Doxygenize this in geom/util.h
-#warning what is the "goal post side" (parameter a)?
 Point calc_block_other_ray(const Point &a, const Point &c, const Point &g) {
 	return reflect(c - a, g - c); //this, and the next two instances, were changed from a - c since reflect() was fixed 
 }
 
 // ported code
-#warning TODO: figure out what this actually do and write better comments
 bool goalie_block_goal_post(const Point &a, const Point &b, const Point &c, const Point &g) {
 	Point R = reflect(c - a, g - c);
 	return fabs(R.cross(b - c)) < EPS; 
 }
 
 // ported code
-#warning figure out a, b, and r
 Point calc_block_cone_defender(const Point &a, const Point &b, const Point &c, const Point &g, const double &r) {
 	Point R = reflect(c - a, g - c); 
 	// std::cout << (R + c) << std::endl;

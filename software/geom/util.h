@@ -125,7 +125,7 @@ std::vector<std::pair<Point, Angle>> angle_sweep_circles_all(const Point &src, c
 bool line_seg_intersect_rectangle(const Point seg[2], const Point recA[4]);
 
 /**
- * Checks whether a point lies inside a rectangle.
+ * Checks whether a point lies inside an axis-aligned rectangle.
  *
  * \param[in] pointA the point to check.
  *
@@ -134,6 +134,19 @@ bool line_seg_intersect_rectangle(const Point seg[2], const Point recA[4]);
  * \return \c true if \p pointA lies inside the rectangle, or \c false if it lies outside.
  */
 bool point_in_rectangle(const Point &pointA, const Point recA[4]);
+
+/**
+ * Checks whether a point lies inside an axis-aligned rectangle.
+ *
+ * \param[in] pointA the point to check.
+ *
+ * \param[in] cornerA one corner of the rectangle
+ *
+ * \param[in] cornerB the opposite-facing corner of the rectangle
+ *
+ * \return \c true if \p pointA lies inside the rectangle, or \c false if it lies outside.
+ */
+bool point_in_rectangle(const Point &pointA, const Point &cornerA, const Point &cornerB);
 
 /**
  * returns a list of points that lie exactle "buffer" distance awaw from the line seg
@@ -395,7 +408,7 @@ Point calc_block_other_ray(const Point &a, const Point &c, const Point &g);
 
 /**
  * Ported code
- * Checks if goalie blocks goal post.
+ * Checks whether the goalie is in the middle of both goal posts.
  *
  * \param[in] a goal post position
  *
@@ -409,7 +422,6 @@ bool goalie_block_goal_post(const Point &a, const Point &b, const Point &c, cons
 
 /**
  * Calculates a defender position to block the ball.
- * Warning: I don't know what orientation the goal posts have to be.
  *
  * \pre the goalie is between the two goal posts, as seen from the ball.
  *
