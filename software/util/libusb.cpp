@@ -23,9 +23,11 @@ namespace {
 		}
 
 		const char *msg;
+		const char *detail = 0;
 		switch (err) {
 			case LIBUSB_ERROR_IO:
 				msg = "Input/output error";
+				detail = std::strerror(errno);
 				break;
 
 			case LIBUSB_ERROR_INVALID_PARAM:
@@ -50,7 +52,6 @@ namespace {
 
 			case LIBUSB_ERROR_TIMEOUT:
 				throw USB::TransferTimeoutError(endpoint);
-				break;
 
 			case LIBUSB_ERROR_OVERFLOW:
 				msg = "Overflow";
@@ -58,7 +59,6 @@ namespace {
 
 			case LIBUSB_ERROR_PIPE:
 				throw USB::TransferStallError(endpoint);
-				break;
 
 			case LIBUSB_ERROR_INTERRUPTED:
 				msg = "System call interrupted (perhaps due to signal)";
@@ -66,7 +66,6 @@ namespace {
 
 			case LIBUSB_ERROR_NO_MEM:
 				throw std::bad_alloc();
-				break;
 
 			case LIBUSB_ERROR_NOT_SUPPORTED:
 				msg = "Operation not supported or unimplemented on this platform";
@@ -80,10 +79,15 @@ namespace {
 				throw ErrorMessageError();
 		}
 		std::string s;
-		s.reserve(std::strlen(call) + 2 + std::strlen(msg));
+		s.reserve(std::strlen(call) + 2 + std::strlen(msg) + (detail ? (3 + std::strlen(detail)) : 0));
 		s.append(call);
 		s.append(": ");
 		s.append(msg);
+		if (detail) {
+			s.append(" (");
+			s.append(detail);
+			s.append(")");
+		}
 		throw USB::Error(s);
 	}
 
