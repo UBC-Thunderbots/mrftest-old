@@ -23,7 +23,7 @@ namespace {
 		}
 
 		const char *msg;
-		const char *detail = 0;
+		const char *detail = nullptr;
 		switch (err) {
 			case LIBUSB_ERROR_IO:
 				msg = "Input/output error";
