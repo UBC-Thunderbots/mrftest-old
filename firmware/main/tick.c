@@ -59,6 +59,7 @@ _Static_assert(!(CONTROL_LOOP_HZ % DRIBBLER_TICK_HZ), "Dribbler period is not a 
 
 static bool shutdown = false;
 static SemaphoreHandle_t shutdown_sem;
+static unsigned int lps_counter = 0;
 static const drive_t SCRAM_DRIVE_STRUCT = {
 	.wheels_mode = WHEELS_MODE_BRAKE,
 	.dribbler_power = 0U,
@@ -98,6 +99,12 @@ static void normal_task(void *UNUSED(param)) {
 		receive_tick();
 		adc_tick(record);
 		leds_tick();
+	/*	lps_incr();
+		if( lps_counter >= 100 ){
+			lps_get();
+			lps_counter=0;
+		}
+		lps_counter++;*/
 		breakbeam_tick();
 		if (chicker_auto_fired_test_clear()) {
 			feedback_pend_autokick();

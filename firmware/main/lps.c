@@ -4,6 +4,7 @@
 #include <gpio.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 //LPS0 = PC0
 //LPS1 = PC1
@@ -26,10 +27,12 @@ void lps_init(){
  *
  */
 
+static lps_values updating_lps = {0,0,0,0};	
+static lps_adc adc_values = {0,0,0,0 ,0,0,0,0 ,0,0,0,0 ,0,0,0,0};
 
 void lps_incr(){
 	static unsigned int counter = 0;
-	static lps_values updating_lps = {0,0,0,0};	
+	//static lps_values updating_lps = {0,0,0,0};	
 	float adc_reading = adc_lps();
 	
 	for(unsigned int i = 0; i<LPS_ARRAY_SIZE; i++){
@@ -51,7 +54,12 @@ void lps_incr(){
 }
 
 int lps_get(){
-	
+	unsigned int i=0;
+	printf("adc[");
+	for(i=0; i< 16; i++){
+		printf("%f ", adc_values[i]);
+	}
+	printf("] lps(%f, %f, %f, %f)\r\n", updating_lps[0], updating_lps[1], updating_lps[2], updating_lps[3]);
 
 	return 0;
 }
