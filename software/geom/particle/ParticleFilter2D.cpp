@@ -1,9 +1,9 @@
 #include "geom/particle/ParticleFilter2D.h"
 
-ParticleFilter2D::ParticleFilter2D(double lengthX, double lengthY, double offsetX, double offsetY, unsigned int numPartitions)
+ParticleFilter2D::ParticleFilter2D(Point length, Point offset, unsigned int numPartitions)
 {
-	xFilter = new ParticleFilter(lengthX, offsetX, numPartitions);
-	yFilter = new ParticleFilter(lengthY, offsetY, numPartitions);
+	xFilter = new ParticleFilter(length.x, offset.x, numPartitions);
+	yFilter = new ParticleFilter(length.y, offset.y, numPartitions);
 }
 
 ParticleFilter2D::~ParticleFilter2D()
@@ -18,10 +18,10 @@ void ParticleFilter2D::update(double timeDelta)
 	yFilter->update(timeDelta);
 }
 
-void ParticleFilter2D::add(double valueX, double valueY, unsigned int numParticles)
+void ParticleFilter2D::add(Point p, unsigned int numParticles)
 {
-	xFilter->add(valueX, numParticles);
-	yFilter->add(valueY, numParticles);
+	xFilter->add(p.x, numParticles);
+	yFilter->add(p.y, numParticles);
 }
 
 void ParticleFilter2D::toString()

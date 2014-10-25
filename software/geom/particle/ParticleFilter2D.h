@@ -4,6 +4,7 @@
 #include "util/matrix.h"
 #include "util/time.h"
 #include "util/param.h"
+#include "geom/point.h"
 #include "ParticleFilter.h"
 #include <iostream>
 
@@ -12,12 +13,12 @@
  */
 class ParticleFilter2D {
 	public:
-		explicit ParticleFilter2D(double lengthX, double lengthY, double offsetX, double offsetY, unsigned int numPartitions);
+		explicit ParticleFilter2D(Point length, Point offset, unsigned int numPartitions);
 		~ParticleFilter2D();
 
 		void update(double timeDelta);
 
-		void add(double valueX, double valueY, unsigned int numParticles);
+		void add(Point p, unsigned int numParticles);
 		void toString();
 
 		double getXEstimate();
