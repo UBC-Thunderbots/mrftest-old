@@ -21,8 +21,7 @@ class ParticleFilter2D {
 		void add(Point p, unsigned int numParticles);
 		void toString();
 
-		double getXEstimate();
-		double getYEstimate();
+		Point getEstimate();
 
 	private:
 

@@ -182,11 +182,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 		// Update the ball.
 		{
 			// Compute the best ball position from the list of detections.
-			bool found = false;
-			double best_prob = 0.0;
 			Point best_pos;
 			AI::Timestamp best_time = now;
-			int ballsAdded = 0;
 			//for (auto &i : detections) {
 				// Estimate the ball’s position at the camera frame’s timestamp.
 				double time_delta = std::chrono::duration_cast<std::chrono::duration<double>>(now - ball_.lock_time()).count();
@@ -194,8 +191,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 				Point estimated_stdev = ball_.position_stdev(time_delta);
 				double x_prob, y_prob;*/
 
-				if (time_delta >= 0)
-				{
+				if (time_delta >= 0) {
 					for (const SSL_DetectionBall &b : det.balls()) {
 						// Compute the probability of this ball being the wanted one.
 						Point detection_position(b.x() / 1000.0, b.y() / 1000.0);
@@ -230,12 +226,10 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 						/* Particle Filter */
 						//std::cout << "X: " << detection_position.x << "; Y: " << detection_position.y << std::endl;
 						pFilter_->add(detection_position, static_cast<unsigned int>(b.confidence() * 500U));
-						ballsAdded = 0;
 					}
 				}
 
-				best_pos.x = pFilter_->getXEstimate();
-				best_pos.y = pFilter_->getYEstimate();
+				best_pos = pFilter_->getEstimate();
 				//std::cout << "ADDING TO KALMAN - X: " << best_pos.x << " Y: " << best_pos.y << std::endl;
 
 				pFilter_->update(time_delta);
