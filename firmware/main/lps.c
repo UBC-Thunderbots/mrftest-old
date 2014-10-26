@@ -34,32 +34,41 @@ void lps_incr(){
 	static unsigned int counter = 0;
 	//static lps_values updating_lps = {0,0,0,0};	
 	float adc_reading = adc_lps();
+	adc_values[counter%16]=adc_reading;
 	
 	for(unsigned int i = 0; i<LPS_ARRAY_SIZE; i++){
-		updating_lps[i]=((counter&(1<<i))?1:-1)*adc_reading;
+		updating_lps[i]+=((counter&(1<<i))?1:-1)*adc_reading;
 	}
-		
-	if((counter>>0)&1) {gpio_set(PIN_LPS_DRIVE0);} else {gpio_reset(PIN_LPS_DRIVE0);}
-	if((counter>>1)&1) {gpio_set(PIN_LPS_DRIVE1);} else {gpio_reset(PIN_LPS_DRIVE1);}
-	if((counter>>2)&1) {gpio_set(PIN_LPS_DRIVE2);} else {gpio_reset(PIN_LPS_DRIVE2);}
-	if((counter>>3)&1) {gpio_set(PIN_LPS_DRIVE3);} else {gpio_reset(PIN_LPS_DRIVE3);}
 
-	if( (counter%(1<<LPS_ARRAY_SIZE) ) ){
+	if( counter==0 ){
 		for(unsigned int i = 0; i<LPS_ARRAY_SIZE; i++){
 			lps_export[i] = updating_lps[i];
+			updating_lps[i]=0;
 		}
+		
 	}
 
-	counter++; //letting the number naturally roll over
+	counter++; 
+	counter=counter%16;
+		
+	if((counter>>0)&1) {gpio_set(PIN_LPS_DRIVE3);} else {gpio_reset(PIN_LPS_DRIVE3);}
+	if((counter>>1)&1) {gpio_set(PIN_LPS_DRIVE2);} else {gpio_reset(PIN_LPS_DRIVE2);}
+	if((counter>>2)&1) {gpio_set(PIN_LPS_DRIVE1);} else {gpio_reset(PIN_LPS_DRIVE1);}
+	if((counter>>3)&1) {gpio_set(PIN_LPS_DRIVE0);} else {gpio_reset(PIN_LPS_DRIVE0);}
 }
 
 int lps_get(){
 	unsigned int i=0;
+	unsigned int j=0;
 	printf("adc[");
-	for(i=0; i< 16; i++){
-		printf("%f ", adc_values[i]);
+	for(j=0; j< 4; j++){
+		for(i=0; i< 4; i++){
+			printf("%f ", adc_values[j*4+i]);
+		}
+		printf("\r\n");
 	}
-	printf("] lps(%f, %f, %f, %f)\r\n", updating_lps[0], updating_lps[1], updating_lps[2], updating_lps[3]);
+	printf("]\r\n");
+	printf("lps(%f, %f, %f, %f)\r\n", lps_export[0], lps_export[1], lps_export[2], lps_export[3]);
 
 	return 0;
 }

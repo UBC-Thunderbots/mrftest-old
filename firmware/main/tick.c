@@ -99,7 +99,7 @@ static void normal_task(void *UNUSED(param)) {
 		receive_tick();
 		adc_tick(record);
 		leds_tick();
-	/*	lps_incr();
+		/*lps_incr();
 		if( lps_counter >= 100 ){
 			lps_get();
 			lps_counter=0;
