@@ -95,7 +95,7 @@ const gpio_init_pin_t PINS_INIT[4U][16U] = {
 		// PC10 = alternate function SDIO D2
 		{ .mode = GPIO_MODE_AF, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_25, .pupd = GPIO_PUPD_PU, .od = 0, .af = 12 },
 		// PC11 = alternate function SDIO D3
-		{ .mode = GPIO_MODE_AF, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_25, .pupd = GPIO_PUPD_PU, .od = 0, .af = 12 },
+		{ .mode = GPIO_MODE_AF, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_25, .pupd = GPIO_PUPD_PU, .od = 0, .af = 12, .unlock = true },
 		// PC12 = alternate function SDIO clock
 		{ .mode = GPIO_MODE_AF, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_25, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 12 },
 		// PC13 = GPIO output HV power switch

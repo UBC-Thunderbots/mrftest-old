@@ -132,7 +132,26 @@ void dma2_stream6_isr(void) {
 }
 
 static bool card_present(void) {
-	return gpio_get_input(PIN_SD_PRESENT);
+	// When a card is inserted, it will apply a 50 kΩ pull-up resistor to D3.
+	// Because the STM32’s internal pull-ups are also on the order of 50 kΩ,
+	// they must be disabled. We will drive the pin low, then completely float
+	// it and wait a tick. If a card is present, the resistor should pull the
+	// pin high very quickly. If no card is present, pin capacitance should
+	// keep the pin low.
+	//
+	// The connector does have a physical card presence switch, but it
+	// occasionally fails. We might as well use D3-based detection instead,
+	// since if that fails, the card won’t work anyway.
+	gpio_reset(PIN_SD_D3);
+	gpio_set_mode(PIN_SD_D3, GPIO_MODE_OUT);
+	gpio_set_pupd(PIN_SD_D3, GPIO_PUPD_NONE);
+	vTaskDelay(1U);
+	gpio_set_mode(PIN_SD_D3, GPIO_MODE_IN);
+	vTaskDelay(1U);
+	bool present = gpio_get_input(PIN_SD_D3);
+	gpio_set_pupd(PIN_SD_D3, GPIO_PUPD_PU);
+	gpio_set_mode(PIN_SD_D3, GPIO_MODE_AF);
+	return present;
 }
 
 static float convert_TAAC ( uint8_t TAAC )
@@ -507,7 +526,7 @@ bool sd_init(void) {
 	card_state.status = SD_STATUS_UNINITIALIZED;	
 	// Determine card capacity class (SDSC vs SDHC/SDXC).
 	if (v2) {
-		card_state.sdhc =  ((SDIO.RESP[0] >> 30) & 0x02) ? true : false;   
+		card_state.sdhc = (SDIO.RESP[0] >> 30) & 0x01;
 	} else {
 		card_state.sdhc = false;
 	}
@@ -673,7 +692,12 @@ bool sd_read(uint32_t sector, void *buffer) {
 	SDIO.DCTRL = dctrl_temp;
 
 	// Send the command.
-	if (!send_command_r1( READ_SINGLE_BLOCK, sector, STATE_TRAN)) {
+	if (!send_command_r1( READ_SINGLE_BLOCK, card_state.sdhc ? sector : (sector * 512U), STATE_TRAN)) {
+		// Disable the DMA stream.
+		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
+		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
+		SDIO_DCTRL_t dctrl_temp = { .DTEN = 0 };
+		SDIO.DCTRL = dctrl_temp;
 		return false; 
 	}
 
@@ -763,7 +787,10 @@ bool sd_write(uint32_t sector, const void *data) {
 	clear_dpsm_interrupts();
 
 	// Send the command.
-	if (!send_command_r1(WRITE_BLOCK, sector, STATE_TRAN)) {
+	if (!send_command_r1(WRITE_BLOCK, card_state.sdhc ? sector : (sector * 512U), STATE_TRAN)) {
+		// Disable the DMA stream.
+		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
+		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
 		return false; 
 	}
 
@@ -821,10 +848,10 @@ bool sd_erase(uint32_t sector, size_t count) {
 	assert(sector + count <= sd_sector_count());
 
 	// Send the commands.
-	if (!send_command_r1(ERASE_WR_BLK_START_ADDR, sector, STATE_TRAN)) {
+	if (!send_command_r1(ERASE_WR_BLK_START_ADDR, card_state.sdhc ? sector : (sector * 512U), STATE_TRAN)) {
 		return false;
 	}
-	if (!send_command_r1(ERASE_WR_BLK_END_ADDR, sector + count - 1U, STATE_TRAN)) {
+	if (!send_command_r1(ERASE_WR_BLK_END_ADDR, (card_state.sdhc ? (sector + count) : ((sector + count) * 512U)) - 1U, STATE_TRAN)) {
 		return false;
 	}
 	if (!send_command_r1(ERASE, 0U, STATE_TRAN)) {
@@ -845,4 +872,3 @@ bool sd_erase(uint32_t sector, size_t count) {
 uint32_t sd_sector_count(void) {
 	return card_state.status == SD_STATUS_OK ? card_state.sector_count : UINT32_C(0);
 }
-

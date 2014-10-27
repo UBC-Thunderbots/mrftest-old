@@ -22,10 +22,13 @@
 #include "priority.h"
 #include <FreeRTOS.h>
 #include <assert.h>
+#include <crc32.h>
 #include <gpio.h>
 #include <minmax.h>
+#include <portmacro.h>
 #include <rcc.h>
 #include <semphr.h>
+#include <string.h>
 #include <task.h>
 #include <unused.h>
 #include <registers/dma.h>
@@ -55,14 +58,94 @@
 #define DMA_CHANNEL 3U
 
 /**
+ * \internal
+ *
+ * \brief The interrupt number for the EXTI0 interrupt.
+ */
+#define IRQ_EXTI0 6U
+
+/**
+ * \internal
+ *
+ * \brief The interrupt number for the receive DMA interrupt.
+ */
+#define IRQ_RX_DMA 56U
+
+/**
+ * \internal
+ *
+ * \brief The interrupt number for the transmit DMA interrupt.
+ */
+#define IRQ_TX_DMA 59U
+
+/**
+ * \brief The possible states the bus can be in.
+ */
+typedef enum {
+	/**
+	 * \brief No ICB activity is occurring.
+	 */
+	ICB_STATE_IDLE,
+
+	/**
+	 * \brief The command byte or parameter block of an OUT ICB transaction is being sent.
+	 */
+	ICB_STATE_OUT_HEADER_DATA,
+
+	/**
+	 * \brief The CRC32 of an OUT ICB transaction is being sent.
+	 */
+	ICB_STATE_OUT_CRC,
+
+	/**
+	 * \brief The command byte, CRC32, and padding of an IN ICB transaction is being sent.
+	 */
+	ICB_STATE_IN_HEADER,
+
+	/**
+	 * \brief The parameter block of an IN ICB transaction is being received.
+	 */
+	ICB_STATE_IN_DATA,
+
+	/**
+	 * \brief The CRC32 of the parameter block of an IN ICB transaction is being received.
+	 */
+	ICB_STATE_IN_CRC,
+} icb_state_t;
+
+/**
+ * \brief A byte that is always zero.
+ */
+static const uint8_t ZERO = 0U;
+
+/**
  * \brief A mutex protecting the bus from multiple simultaneous accesses.
  */
 static SemaphoreHandle_t bus_mutex;
 
 /**
- * \brief A semaphore used by the DMA ISRs to notify mainline code.
+ * \brief The current state of the bus.
  */
-static SemaphoreHandle_t dma_tc_sem;
+static icb_state_t state = ICB_STATE_IDLE;
+
+/**
+ * \brief The CRC32 of the current phase of the current transaction.
+ *
+ * For OUT transactions, this is the CRC32 of the command byte and parameter block.
+ * For IN transactions in ICB_STATE_IN_HEADER, this is the CRC32 of the command byte.
+ * For IN transactions after ICB_STATE_IN_CRC, this is where the CRC is received.
+ */
+static uint32_t crc;
+
+/**
+ * \brief A small buffer in which data can be collected.
+ */
+static uint8_t temp_buffer[6U];
+
+/**
+ * \brief A semaphore used by the ISRs to notify when a transaction is complete.
+ */
+static SemaphoreHandle_t transaction_complete_sem;
 
 /**
  * \brief A semaphore handle used by the EXTI ISR to notify the interrupt dispatcher task.
@@ -94,33 +177,6 @@ static void unlock_bus(void) {
 }
 
 /**
- * \brief Sets the chip select line to float with a pull-up resistor.
- */
-static void float_cs(void) {
-	gpio_set(PIN_ICB_CS);
-	gpio_set_pupd(PIN_ICB_CS, GPIO_PUPD_PU);
-	gpio_set_od(PIN_ICB_CS);
-}
-
-/**
- * \brief Asserts (drives low) the chip select line.
- */
-static void assert_cs(void) {
-	gpio_reset(PIN_ICB_CS);
-	gpio_set_pp(PIN_ICB_CS);
-	gpio_set_pupd(PIN_ICB_CS, GPIO_PUPD_NONE);
-}
-
-/**
- * \brief Deasserts (drives high) the chip select line.
- */
-static void deassert_cs(void) {
-	gpio_set(PIN_ICB_CS);
-	gpio_set_pp(PIN_ICB_CS);
-	gpio_set_pupd(PIN_ICB_CS, GPIO_PUPD_NONE);
-}
-
-/**
  * \brief Delays for roughly a bit time.
  */
 #define sleep_bit(void) \
@@ -130,6 +186,215 @@ static void deassert_cs(void) {
 		asm volatile("nop":::); \
 		asm volatile("nop":::); \
 	} while (0)
+
+/**
+ * \brief Enables the SPI module.
+ *
+ * This includes locking the bus and asserting chip select.
+ */
+void enable_spi(void) {
+	// Prevent simultaneous bus access.
+	lock_bus();
+
+	// Sanity check.
+	assert(state == ICB_STATE_IDLE);
+
+	// Enable the SPI module.
+	SPI_CR1_t cr1 = {
+		.CPHA = 0, // Capture on first clock transition, drive new data on second.
+		.CPOL = 0, // Clock idles low.
+		.MSTR = 1, // Master mode.
+		.BR = 0, // Transmission speed is 84 MHz (APB2) ÷ 2 = 42 MHz.
+		.SPE = 1, // SPI module now enabled.
+		.LSBFIRST = 0, // Most significant bit is sent first.
+		.SSI = 1, // Module should assume slave select is high → deasserted → no other master is using the bus.
+		.SSM = 1, // Module internal slave select logic is controlled by software (SSI bit).
+		.RXONLY = 0, // Transmit and receive.
+		.DFF = 0, // Frames are 8 bits wide.
+		.CRCNEXT = 0, // Do not transmit a CRC now.
+		.CRCEN = 0, // CRC calculation not used.
+		.BIDIMODE = 0, // 2-line bidirectional communication used.
+	};
+	SPI1.CR1 = cr1;
+
+	// Allow the clock pin to settle.
+	sleep_bit();
+
+	// Assert chip select.
+	gpio_reset(PIN_ICB_CS);
+
+	// Allow chip select to settle.
+	sleep_bit();
+}
+
+/**
+ * \brief Disables the SPI module.
+ *
+ * This includes deasserting chip select and unlocking the bus.
+ */
+void disable_spi(void) {
+	// Wait for bus idle.
+	while (!SPI1.SR.TXE);
+	while (SPI1.SR.BSY);
+
+	// Wait for final required interval.
+	sleep_bit();
+
+	// Deassert chip select.
+	gpio_set(PIN_ICB_CS);
+
+	// Allow chip select to settle.
+	sleep_bit();
+
+	// Disable transmit DMA.
+	SPI_CR2_t cr2 = { 0 };
+	SPI1.CR2 = cr2;
+
+	// Disable the SPI module.
+	SPI_CR1_t cr1 = { 0 };
+	SPI1.CR1 = cr1;
+
+	// Sanity check.
+	assert(state == ICB_STATE_IDLE);
+
+	// Allow subsequent bus accesses to other tasks.
+	unlock_bus();
+}
+
+/**
+ * \brief Configures the transmit DMA channel.
+ *
+ * \param[in] data the data to send
+ * \param[in] length the number of bytes
+ * \param[in] unmask_tcie whether or not to unmask transfer complete interrupts
+ * \param[in] minc whether or not to enable memory address incrementing
+ */
+void config_tx_dma(const void *data, size_t length, bool unmask_tcie, bool minc) {
+	// Clear old interrupts.
+	_Static_assert(DMA_STREAM_TX == 3U, "LIFCR needs rewriting to the proper stream number!");
+	DMA_LIFCR_t lifcr = {
+		.CFEIF3 = 1U, // Clear FIFO error interrupt flag.
+		.CDMEIF3 = 1U, // Clear direct mode error interrupt flag.
+		.CTEIF3 = 1U, // Clear transfer error interrupt flag.
+		.CHTIF3 = 1U, // Clear half transfer interrupt flag.
+		.CTCIF3 = 1U, // Clear transfer complete interrupt flag.
+	};
+	DMA2.LIFCR = lifcr;
+
+	// Enable the FIFO.
+	DMA_SxFCR_t fcr = {
+		.FTH = DMA_FIFO_THRESHOLD_HALF, // Threshold.
+		.DMDIS = 1, // Use the FIFO.
+	};
+	DMA2.streams[DMA_STREAM_TX].FCR = fcr;
+
+	// Set up the memory addresses and length.
+	DMA2.streams[DMA_STREAM_TX].PAR = &SPI1.DR;
+	DMA2.streams[DMA_STREAM_TX].M0AR = (void*) data; // Casting away constness is safe because this DMA stream will operate in memory-to-peripheral mode.
+	DMA2.streams[DMA_STREAM_TX].NDTR = length;
+
+	// Enable the channel.
+	DMA_SxCR_t scr = {
+		.EN = 1, // Enable DMA engine.
+		.DMEIE = 1, // Enable direct mode error interrupt.
+		.TEIE = 1, // Enable transfer error interrupt.
+		.TCIE = unmask_tcie, // Enable or dissable transfer complete interrupt.
+		.PFCTRL = 0, // DMA engine controls data length.
+		.DIR = DMA_DIR_M2P,
+		.CIRC = 0, // No circular buffer mode.
+		.PINC = 0, // Do not increment peripheral address.
+		.MINC = minc, // Increment or not memory address.
+		.PSIZE = DMA_DSIZE_BYTE,
+		.MSIZE = DMA_DSIZE_BYTE,
+		.PINCOS = 0, // No special peripheral address increment mode.
+		.PL = 1, // Priority 1 (medium).
+		.DBM = 0, // No double-buffer mode.
+		.CT = 0, // Use memory pointer zero.
+		.PBURST = DMA_BURST_SINGLE,
+		.MBURST = DMA_BURST_SINGLE,
+		.CHSEL = DMA_CHANNEL,
+	};
+	DMA2.streams[DMA_STREAM_TX].CR = scr;
+}
+
+/**
+ * \brief Configures the receive DMA channel.
+ *
+ * \param[in] buffer the data buffer to receive into
+ * \param[in] length the number of bytes
+ */
+void config_rx_dma(void *buffer, size_t length) {
+	// Clear old interrupts.
+	_Static_assert(DMA_STREAM_RX == 0U, "LIFCR needs rewriting to the proper stream number!");
+	DMA_LIFCR_t lifcr = {
+		.CFEIF0 = 1U, // Clear FIFO error interrupt flag.
+		.CDMEIF0 = 1U, // Clear direct mode error interrupt flag.
+		.CTEIF0 = 1U, // Clear transfer error interrupt flag.
+		.CHTIF0 = 1U, // Clear half transfer interrupt flag.
+		.CTCIF0 = 1U, // Clear transfer complete interrupt flag.
+	};
+	DMA2.LIFCR = lifcr;
+
+	// Enable the FIFO.
+	DMA_SxFCR_t fcr = {
+		.FTH = DMA_FIFO_THRESHOLD_HALF, // Threshold.
+		.DMDIS = 1, // Use the FIFO.
+	};
+	DMA2.streams[DMA_STREAM_RX].FCR = fcr;
+
+	// Set up the memory addresses and length.
+	DMA2.streams[DMA_STREAM_RX].PAR = &SPI1.DR;
+	DMA2.streams[DMA_STREAM_RX].M0AR = buffer;
+	DMA2.streams[DMA_STREAM_RX].NDTR = length;
+
+	// Enable the channel.
+	DMA_SxCR_t scr = {
+		.EN = 1, // Enable DMA engine.
+		.DMEIE = 1, // Enable direct mode error interrupt.
+		.TEIE = 1, // Enable transfer error interrupt.
+		.TCIE = 1, // Enable transfer complete interrupt.
+		.PFCTRL = 0, // DMA engine controls data length.
+		.DIR = DMA_DIR_P2M,
+		.CIRC = 0, // No circular buffer mode.
+		.PINC = 0, // Do not increment peripheral address.
+		.MINC = 1, // Increment memory address.
+		.PSIZE = DMA_DSIZE_BYTE,
+		.MSIZE = DMA_DSIZE_BYTE,
+		.PINCOS = 0, // No special peripheral address increment mode.
+		.PL = 1, // Priority 1 (medium).
+		.DBM = 0, // No double-buffer mode.
+		.CT = 0, // Use memory pointer zero.
+		.PBURST = DMA_BURST_SINGLE,
+		.MBURST = DMA_BURST_SINGLE,
+		.CHSEL = DMA_CHANNEL,
+	};
+	DMA2.streams[DMA_STREAM_RX].CR = scr;
+}
+
+/**
+ * \brief Starts a DMA transfer.
+ *
+ * \param[in] tx whether to enable transmit DMA
+ * \param[in] rx whether to enable receive DMA
+ */
+void start_dma(bool tx, bool rx) {
+	SPI_CR2_t cr2 = {
+		.TXDMAEN = tx,
+		.RXDMAEN = rx,
+	};
+	SPI1.CR2 = cr2;
+}
+
+/**
+ * \brief Disables DMA operation in the SPI engine.
+ */
+void stop_dma(void) {
+	SPI_CR2_t cr2 = {
+		.TXDMAEN = 0,
+		.RXDMAEN = 0,
+	};
+	SPI1.CR2 = cr2;
+}
 
 /**
  * \name Module initialization
@@ -143,18 +408,16 @@ static void deassert_cs(void) {
 void icb_init(void) {
 	// Create the FreeRTOS objects.
 	bus_mutex = xSemaphoreCreateMutex();
-	dma_tc_sem = xSemaphoreCreateBinary();
+	transaction_complete_sem = xSemaphoreCreateBinary();
 	irq_sem = xSemaphoreCreateBinary();
-	assert(bus_mutex && dma_tc_sem && irq_sem);
+	assert(bus_mutex && transaction_complete_sem && irq_sem);
 
 	// Enable clock and reset module.
 	rcc_enable_reset(APB2, SPI1);
 
-	// Enable the interrupts we will eventually use.
-	// Individual causes stay masked off in the peripherals until needed, but in the NVIC the interrupts stay enabled.
-	portENABLE_HW_INTERRUPT(6U, PRIO_EXCEPTION_ICB_IRQ);
-	portENABLE_HW_INTERRUPT(56U, PRIO_EXCEPTION_ICB_DMA);
-	portENABLE_HW_INTERRUPT(59U, PRIO_EXCEPTION_ICB_DMA);
+	// Enable the EXTI0 interrupt.
+	// Other interrupts will be enabled as needed.
+	portENABLE_HW_INTERRUPT(IRQ_EXTI0, PRIO_EXCEPTION_ICB_IRQ);
 }
 
 /**
@@ -172,69 +435,6 @@ void icb_init(void) {
 /**
  * \internal
  *
- * \brief Executes a microcontroller-to-FPGA ICB transaction with no parameters.
- *
- * \param[in] command the command to request
- */
-static void icb_send_nullary(icb_command_t command) {
-	// Prevent any simultaneous access to the bus.
-	lock_bus();
-
-	// Enable the SPI module for PIO.
-	SPI_CR1_t cr1 = {
-		.CPHA = 0, // Capture on first clock transition, drive new data on second.
-		.CPOL = 0, // Clock idles low.
-		.MSTR = 1, // Master mode.
-		.BR = 0, // Transmission speed is 84 MHz (APB2) ÷ 2 = 42 MHz.
-		.SPE = 1, // SPI module now enabled.
-		.LSBFIRST = 0, // Most significant bit is sent first.
-		.SSI = 1, // Module should assume slave select is high → deasserted → no other master is using the bus.
-		.SSM = 1, // Module internal slave select logic is controlled by software (SSI bit).
-		.RXONLY = 0, // Transmit and receive.
-		.DFF = 0, // Frames are 8 bits wide.
-		.CRCNEXT = 1, // The CRC will immediately accompany the command byte.
-		.CRCEN = 1, // CRC calculation enabled for this transaction.
-		.BIDIMODE = 0, // 2-line bidirectional communication used.
-	};
-	SPI1.CR1 = cr1;
-
-	// Allow the clock pin to settle.
-	sleep_bit();
-
-	// Assert chip select.
-	assert_cs();
-
-	// Allow chip select to settle.
-	sleep_bit();
-
-	// Send the command byte.
-	SPI1.DR = command;
-
-	// Wait for completion.
-	while (!SPI1.SR.TXE);
-	while (SPI1.SR.BSY);
-
-	// Wait for final required interval.
-	sleep_bit();
-
-	// Deassert chip select.
-	deassert_cs();
-
-	// Allow chip select to settle.
-	sleep_bit();
-
-	// Disable the SPI module.
-	cr1.SPE = 0;
-	cr1.CRCEN = 0;
-	SPI1.CR1 = cr1;
-
-	// Done.
-	unlock_bus();
-}
-
-/**
- * \internal
- *
  * \brief Executes a microcontroller-to-FPGA ICB transaction with a parameter block.
  *
  * \param[in] command the command to request
@@ -243,123 +443,91 @@ static void icb_send_nullary(icb_command_t command) {
  */
 static void icb_send_param(icb_command_t command, const void *data, size_t length) {
 	// Sanity check.
+	assert(!(command & 0x80U));
 	assert(dma_check(data, length));
 
-	// Prevent any simultaneous access to the bus.
-	lock_bus();
-
-	// Clear old DMA interrupts.
-	{
-		_Static_assert(DMA_STREAM_TX == 3U, "LIFCR needs rewriting to the proper stream number!");
-		DMA_LIFCR_t lifcr = {
-			.CFEIF3 = 1U, // Clear FIFO error interrupt flag.
-			.CDMEIF3 = 1U, // Clear direct mode error interrupt flag.
-			.CTEIF3 = 1U, // Clear transfer error interrupt flag.
-			.CHTIF3 = 1U, // Clear half transfer interrupt flag.
-			.CTCIF3 = 1U, // Clear transfer complete interrupt flag.
-		};
-		DMA2.LIFCR = lifcr;
-	}
-
-	// Set up the transmit DMA channel to send the parameter data block.
-	{
-		DMA_SxFCR_t fcr = {
-			.FTH = DMA_FIFO_THRESHOLD_HALF, // Threshold.
-			.DMDIS = 1, // Use the FIFO.
-		};
-		DMA2.streams[DMA_STREAM_TX].FCR = fcr;
-		DMA2.streams[DMA_STREAM_TX].PAR = &SPI1.DR;
-		DMA2.streams[DMA_STREAM_TX].M0AR = (void *) data; // Casting away constness is safe because this DMA stream will operate in memory-to-peripheral mode.
-		DMA2.streams[DMA_STREAM_TX].NDTR = length;
-		DMA_SxCR_t scr = {
-			.EN = 1, // Enable DMA engine.
-			.DMEIE = 1, // Enable direct mode error interrupt.
-			.TEIE = 1, // Enable transfer error interrupt.
-			.TCIE = 1, // Enable transfer complete interrupt.
-			.PFCTRL = 0, // DMA engine controls data length.
-			.DIR = DMA_DIR_M2P,
-			.CIRC = 0, // No circular buffer mode.
-			.PINC = 0, // Do not increment peripheral address.
-			.MINC = 1, // Increment memory address.
-			.PSIZE = DMA_DSIZE_BYTE,
-			.MSIZE = DMA_DSIZE_BYTE,
-			.PINCOS = 0, // No special peripheral address increment mode.
-			.PL = 1, // Priority 1 (medium).
-			.DBM = 0, // No double-buffer mode.
-			.CT = 0, // Use memory pointer zero.
-			.PBURST = DMA_BURST_SINGLE,
-			.MBURST = DMA_BURST_SINGLE,
-			.CHSEL = DMA_CHANNEL,
-		};
-		DMA2.streams[DMA_STREAM_TX].CR = scr;
-	}
-
-	// Enable the SPI module for PIO.
-	SPI_CR1_t cr1 = {
-		.CPHA = 0, // Capture on first clock transition, drive new data on second.
-		.CPOL = 0, // Clock idles low.
-		.MSTR = 1, // Master mode.
-		.BR = 0, // Transmission speed is 84 MHz (APB2) ÷ 2 = 42 MHz.
-		.SPE = 1, // SPI module now enabled.
-		.LSBFIRST = 0, // Most significant bit is sent first.
-		.SSI = 1, // Module should assume slave select is high → deasserted → no other master is using the bus.
-		.SSM = 1, // Module internal slave select logic is controlled by software (SSI bit).
-		.RXONLY = 0, // Transmit and receive.
-		.DFF = 0, // Frames are 8 bits wide.
-		.CRCNEXT = 0, // Do not transmit a CRC now.
-		.CRCEN = 1, // CRC calculation enabled for this transaction.
-		.BIDIMODE = 0, // 2-line bidirectional communication used.
-	};
-	SPI1.CR1 = cr1;
-
-	// Allow the clock pin to settle.
-	sleep_bit();
-
-	// Assert chip select.
-	assert_cs();
-
-	// Allow chip select to settle.
-	sleep_bit();
+	// Enable the bus.
+	enable_spi();
 
 	// Send the command byte.
 	SPI1.DR = command;
 
 	// Enable transmit DMA, which will take over with the parameter bytes once the command byte is done.
-	SPI_CR2_t cr2 = {
-		.TXDMAEN = 1, // Transmit DMA enabled.
-	};
-	SPI1.CR2 = cr2;
+	config_tx_dma(data, length, true, true);
+	start_dma(true, false);
 
-	// Wait for DMA transfer complete.
-	xSemaphoreTake(dma_tc_sem, portMAX_DELAY);
+	// Update state.
+	state = ICB_STATE_OUT_HEADER_DATA;
 
-	// The SPI module sends a CRC automatically and the end of a DMA transfer, when operating in DMA mode.
-	// There is no need to set CRCNEXT.
+	// Compute the CRC32 of the command byte and parameter block.
+	uint8_t command_byte = command;
+	crc = __builtin_bswap32(crc32_be(data, length, crc32_be(&command_byte, 1U, CRC32_EMPTY)));
 
-	// Wait for completion.
-	while (!SPI1.SR.TXE);
-	while (SPI1.SR.BSY);
+	// State and CRC have been locked in.
+	// We are now ready for the DMA transfer complete ISR to be run when the parameter block is done.
+	// Allow that to happen.
+	__atomic_signal_fence(__ATOMIC_RELEASE);
+	portENABLE_HW_INTERRUPT(IRQ_TX_DMA, PRIO_EXCEPTION_ICB_DMA);
 
-	// Wait for final required interval.
-	sleep_bit();
+	// Wait for the transaction to finish.
+	// This includes the CRC.
+	xSemaphoreTake(transaction_complete_sem, portMAX_DELAY);
 
-	// Deassert chip select.
-	deassert_cs();
+	// Sanity check.
+	assert(state == ICB_STATE_IDLE);
 
-	// Allow chip select to settle.
-	sleep_bit();
+	// Disable DMA interrupts.
+	portDISABLE_HW_INTERRUPT(IRQ_TX_DMA);
 
-	// Disable transmit DMA.
-	cr2.TXDMAEN = 0;
-	SPI1.CR2 = cr2;
+	// Disable the bus.
+	disable_spi();
+}
 
-	// Disable the SPI module.
-	cr1.SPE = 0;
-	cr1.CRCEN = 0;
-	SPI1.CR1 = cr1;
+/**
+ * \internal
+ *
+ * \brief Executes a microcontroller-to-FPGA ICB transaction with no parameter block.
+ *
+ * \param[in] command the command to request
+ */
+static void icb_send_nullary(icb_command_t command) {
+	// Sanity check.
+	assert(!(command & 0x80U));
 
-	// Done.
-	unlock_bus();
+	// Enable the bus.
+	enable_spi();
+
+	// Build the five-byte data block to transmit.
+	// Byte 0: command
+	// Bytes 1 through 4: CRC32
+	temp_buffer[0U] = command;
+	uint32_t local_crc = crc32_be(temp_buffer, 1U, CRC32_EMPTY);
+	local_crc = __builtin_bswap32(local_crc);
+	memcpy(&temp_buffer[1U], &local_crc, sizeof(local_crc));
+
+	// Enable transmit DMA.
+	config_tx_dma(temp_buffer, 5U, true, true);
+	start_dma(true, false);
+
+	// Update state.
+	state = ICB_STATE_OUT_CRC;
+
+	// We are now ready for the DMA transfer complete ISR to be run when the command+CRC block is done.
+	// Allow that to happen.
+	__atomic_signal_fence(__ATOMIC_RELEASE);
+	portENABLE_HW_INTERRUPT(IRQ_TX_DMA, PRIO_EXCEPTION_ICB_DMA);
+
+	// Wait for the transaction to finish.
+	xSemaphoreTake(transaction_complete_sem, portMAX_DELAY);
+
+	// Sanity check.
+	assert(state == ICB_STATE_IDLE);
+
+	// Disable DMA interrupts.
+	portDISABLE_HW_INTERRUPT(IRQ_TX_DMA);
+
+	// Disable the bus.
+	disable_spi();
 }
 
 /**
@@ -383,195 +551,103 @@ void icb_send(icb_command_t command, const void *data, size_t length) {
  * \param[in] command the command to request
  * \param[out] buffer the buffer into which to receive data
  * \param[in] length the number of bytes to receive
+ *
+ * \retval true the transaction completed successfully
+ * \retval false the transaction failed due to a CRC32 error
  */
-void icb_receive(icb_command_t command, void *buffer, size_t length) {
+bool icb_receive(icb_command_t command, void *buffer, size_t length) {
 	// Sanity check.
+	assert(command & 0x80U);
 	assert(length);
 	assert(dma_check(buffer, length));
 
-	// Prevent any simultaneous access to the bus.
-	lock_bus();
+	// Enable the bus.
+	enable_spi();
 
-	// Enable the SPI module for PIO.
-	SPI_CR1_t cr1 = {
-		.CPHA = 0, // Capture on first clock transition, drive new data on second.
-		.CPOL = 0, // Clock idles low.
-		.MSTR = 1, // Master mode.
-		.BR = 0, // Transmission speed is 84 MHz (APB2) ÷ 2 = 42 MHz.
-		.SPE = 1, // SPI module now enabled.
-		.LSBFIRST = 0, // Most significant bit is sent first.
-		.SSI = 1, // Module should assume slave select is high → deasserted → no other master is using the bus.
-		.SSM = 1, // Module internal slave select logic is controlled by software (SSI bit).
-		.RXONLY = 0, // Transmit and receive.
-		.DFF = 0, // Frames are 8 bits wide.
-		.CRCNEXT = 0, // We will not transmit a CRC with the command byte; instead, wait until the end of transaction and DMA will trigger it.
-		.CRCEN = 1, // CRC calculation enabled for this transaction.
-		.BIDIMODE = 0, // 2-line bidirectional communication used.
-	};
-	SPI1.CR1 = cr1;
+	// Build the six-byte data block to transmit.
+	// Byte 0: command
+	// Bytes 1 through 4: CRC32
+	// Byte 5: padding
+	temp_buffer[0U] = command;
+	uint32_t local_crc = crc32_be(temp_buffer, 1U, CRC32_EMPTY);
+	local_crc = __builtin_bswap32(local_crc);
+	memcpy(&temp_buffer[1U], &local_crc, sizeof(local_crc));
+	temp_buffer[5U] = 0U;
 
-	// Allow the clock pin to settle.
-	sleep_bit();
+	// Enable transmit DMA.
+	config_tx_dma(temp_buffer, 6U, true, true);
+	start_dma(true, false);
 
-	// Assert chip select.
-	assert_cs();
+	// Update state.
+	state = ICB_STATE_IN_HEADER;
 
-	// Allow chip select to settle.
-	sleep_bit();
+	// We are now ready for the DMA transfer complete ISR to be run when the command+CRC block is done.
+	// Allow that to happen.
+	__atomic_signal_fence(__ATOMIC_RELEASE);
+	portENABLE_HW_INTERRUPT(IRQ_TX_DMA, PRIO_EXCEPTION_ICB_DMA);
 
-	// Send the command byte and its CRC.
-	SPI1.DR = command;
+	// Wait for the transaction to finish.
+	xSemaphoreTake(transaction_complete_sem, portMAX_DELAY);
 
-	// Clear old DMA interrupts.
-	{
-		_Static_assert(DMA_STREAM_RX == 0U, "LIFCR needs rewriting to the proper stream number!");
-		_Static_assert(DMA_STREAM_TX == 3U, "LIFCR needs rewriting to the proper stream number!");
-		DMA_LIFCR_t lifcr = {
-			.CFEIF0 = 1U, // Clear FIFO error interrupt flag.
-			.CDMEIF0 = 1U, // Clear direct mode error interrupt flag.
-			.CTEIF0 = 1U, // Clear transfer error interrupt flag.
-			.CHTIF0 = 1U, // Clear half transfer interrupt flag.
-			.CTCIF0 = 1U, // Clear transfer complete interrupt flag.
-			.CFEIF3 = 1U, // Clear FIFO error interrupt flag.
-			.CDMEIF3 = 1U, // Clear direct mode error interrupt flag.
-			.CTEIF3 = 1U, // Clear transfer error interrupt flag.
-			.CHTIF3 = 1U, // Clear half transfer interrupt flag.
-			.CTCIF3 = 1U, // Clear transfer complete interrupt flag.
-		};
-		DMA2.LIFCR = lifcr;
-	}
+	// Sanity check.
+	assert(state == ICB_STATE_IN_DATA);
 
-	// Set up the transmit DMA channel to send a string of zeroes.
-	{
-		static const uint8_t ZERO = 0U;
-		DMA_SxFCR_t fcr = {
-			.FTH = DMA_FIFO_THRESHOLD_HALF, // Threshold.
-			.DMDIS = 1, // Use the FIFO.
-		};
-		DMA2.streams[DMA_STREAM_TX].FCR = fcr;
-		DMA2.streams[DMA_STREAM_TX].PAR = &SPI1.DR;
-		DMA2.streams[DMA_STREAM_TX].M0AR = (void*) &ZERO; // Casting away constness is safe because this DMA stream will operate in memory-to-peripheral mode.
-		DMA2.streams[DMA_STREAM_TX].NDTR = length;
-		DMA_SxCR_t scr = {
-			.EN = 1, // Enable DMA engine.
-			.DMEIE = 1, // Enable direct mode error interrupt.
-			.TEIE = 1, // Enable transfer error interrupt.
-			.TCIE = 0, // Disable transfer complete interrupt.
-			.PFCTRL = 0, // DMA engine controls data length.
-			.DIR = DMA_DIR_M2P,
-			.CIRC = 0, // No circular buffer mode.
-			.PINC = 0, // Do not increment peripheral address.
-			.MINC = 0, // Do not increment memory address.
-			.PSIZE = DMA_DSIZE_BYTE,
-			.MSIZE = DMA_DSIZE_BYTE,
-			.PINCOS = 0, // No special peripheral address increment mode.
-			.PL = 1, // Priority 1 (medium).
-			.DBM = 0, // No double-buffer mode.
-			.CT = 0, // Use memory pointer zero.
-			.PBURST = DMA_BURST_SINGLE,
-			.MBURST = DMA_BURST_SINGLE,
-			.CHSEL = DMA_CHANNEL,
-		};
-		DMA2.streams[DMA_STREAM_TX].CR = scr;
-	}
+	// Disable DMA interrupts.
+	portDISABLE_HW_INTERRUPT(IRQ_TX_DMA);
 
-	// Set up receive DMA channel to receive the parameter data block.
-	{
-		DMA_SxFCR_t fcr = {
-			.FTH = DMA_FIFO_THRESHOLD_HALF, // Threshold.
-			.DMDIS = 1, // Use the FIFO.
-		};
-		DMA2.streams[DMA_STREAM_RX].FCR = fcr;
-		DMA2.streams[DMA_STREAM_RX].PAR = &SPI1.DR;
-		DMA2.streams[DMA_STREAM_RX].M0AR = buffer;
-		DMA2.streams[DMA_STREAM_RX].NDTR = length;
-		DMA_SxCR_t scr = {
-			.EN = 1, // Enable DMA engine.
-			.DMEIE = 1, // Enable direct mode error interrupt.
-			.TEIE = 1, // Enable transfer error interrupt.
-			.TCIE = 1, // Enable transfer complete interrupt.
-			.PFCTRL = 0, // DMA engine controls data length.
-			.DIR = DMA_DIR_P2M,
-			.CIRC = 0, // No circular buffer mode.
-			.PINC = 0, // Do not increment peripheral address.
-			.MINC = 1, // Increment memory address.
-			.PSIZE = DMA_DSIZE_BYTE,
-			.MSIZE = DMA_DSIZE_BYTE,
-			.PINCOS = 0, // No special peripheral address increment mode.
-			.PL = 1, // Priority 1 (medium).
-			.DBM = 0, // No double-buffer mode.
-			.CT = 0, // Use memory pointer zero.
-			.PBURST = DMA_BURST_SINGLE,
-			.MBURST = DMA_BURST_SINGLE,
-			.CHSEL = DMA_CHANNEL,
-		};
-		DMA2.streams[DMA_STREAM_RX].CR = scr;
-	}
-
-	// Wait for free transmit buffer after command byte.
-	while (!SPI1.SR.TXE);
-
-	// Send a blank padding byte to give the slave time to sync up its response.
-	SPI1.DR = 0U;
-
-	// Wait for completion of padding byte.
+	// Wait for bus idle.
 	while (!SPI1.SR.TXE);
 	while (SPI1.SR.BSY);
 
-	// Clear garbage bytes received during command and padding transmission.
-	(void) SPI1.DR;
-	(void) SPI1.SR;
+	// Flush received data.
+	while (SPI1.SR.RXNE) {
+		(void) SPI1.DR;
+	}
 
-	// Enable DMA in both directions to run the parameter block.
-	SPI_CR2_t cr2 = {
-		.TXDMAEN = 1, // Enable transmit DMA
-		.RXDMAEN = 1, // Enable receive DMA
-	};
-	SPI1.CR2 = cr2;
+	// Set up the DMA channels.
+	// Transmit will send a string of zeroes while receive will receive the parameter data.
+	config_tx_dma(&ZERO, length, false, false);
+	config_rx_dma(buffer, length);
+	start_dma(true, true);
 
-	// Wait for DMA transfer complete (only the receive stream has it enabled).
-	xSemaphoreTake(dma_tc_sem, portMAX_DELAY);
+	// Enable both interrupts.
+	// Only receive has transfer complete unmasked.
+	// So, any error on either channel will be detected.
+	// However, only receive complete will finish the transfer.
+	portENABLE_HW_INTERRUPT(IRQ_TX_DMA, PRIO_EXCEPTION_ICB_DMA);
+	portENABLE_HW_INTERRUPT(IRQ_RX_DMA, PRIO_EXCEPTION_ICB_DMA);
 
-	// The SPI module receives and checks a CRC automatically at the end of a DMA transfer, when operating in DMA mode.
-	// There is no need to set CRCNEXT.
-	// However, it is not part of the DMAd data, so we must wait until it arrives before proceeding.
-	while (!SPI1.SR.RXNE);
+	// Wait for transaction complete.
+	xSemaphoreTake(transaction_complete_sem, portMAX_DELAY);
 
-	// Wait for completion.
-	while (!SPI1.SR.TXE);
-	while (SPI1.SR.BSY);
+	// Disable the interrupts.
+	portDISABLE_HW_INTERRUPT(IRQ_TX_DMA);
+	portDISABLE_HW_INTERRUPT(IRQ_RX_DMA);
 
-	// Check for CRC error.
-	if (SPI1.SR.CRCERR) {
-		// Clear error flag.
-		SPI_SR_t sr = { 0 };
-		SPI1.SR = sr;
+	// Sanity check.
+	assert(state == ICB_STATE_IDLE);
 
-		// Record error.
+	// As soon as we get here, the bus should be idle.
+	// Otherwise the receive DMA should not have been able to complete.
+	assert(SPI1.SR.TXE);
+	assert(!SPI1.SR.BSY);
+
+	// Grab a copy of the received CRC into a local variable to protect it from modification after unlocking the bus mutex.
+	local_crc = crc;
+
+	// Compute the CRC of the received data, before disabling the bus so we use the bus mutex to protect against multiple simultaneous accesses to the CRC module.
+	uint32_t computed_crc = crc32_be(buffer, length, CRC32_EMPTY);
+
+	// Disable bus.
+	disable_spi();
+
+	// Check CRC of received parameter block.
+	if (computed_crc == __builtin_bswap32(local_crc)) {
+		return true;
+	} else {
 		__atomic_store_n(&crc_error, true, __ATOMIC_RELAXED);
+		return false;
 	}
-
-	// Wait for final required interval.
-	sleep_bit();
-
-	// Deassert chip select.
-	deassert_cs();
-
-	// Allow chip select to settle.
-	sleep_bit();
-
-	// Disable DMA mode.
-	cr2.TXDMAEN = 0;
-	cr2.RXDMAEN = 0;
-	SPI1.CR2 = cr2;
-
-	// Disable the SPI module.
-	cr1.SPE = 0;
-	cr1.CRCEN = 0;
-	SPI1.CR1 = cr1;
-
-	// Done.
-	unlock_bus();
 }
 
 /**
@@ -705,7 +781,9 @@ icb_conf_result_t icb_conf_start(void) {
 	lock_bus();
 
 	// Float chip select, thus allowing the FPGA to drive it during configuration.
-	float_cs();
+	gpio_set(PIN_ICB_CS);
+	gpio_set_pupd(PIN_ICB_CS, GPIO_PUPD_PU);
+	gpio_set_od(PIN_ICB_CS);
 
 	// Force the FPGA into configuration mode by pulling PROGRAM_B low.
 	gpio_reset(PIN_FPGA_PROGRAM_B);
@@ -767,89 +845,20 @@ icb_conf_result_t icb_conf_start(void) {
 	return ICB_CONF_OK;
 }
 
-static void icb_conf_block_impl(const void *data, size_t length) {
-	// Sanity check.
-	assert(dma_check(data, length));
-
-	// Clear old DMA interrupts.
-	{
-		_Static_assert(DMA_STREAM_TX == 3U, "LIFCR needs rewriting to the proper stream number!");
-		DMA_LIFCR_t lifcr = {
-			.CFEIF3 = 1U, // Clear FIFO error interrupt flag.
-			.CDMEIF3 = 1U, // Clear direct mode error interrupt flag.
-			.CTEIF3 = 1U, // Clear transfer error interrupt flag.
-			.CHTIF3 = 1U, // Clear half transfer interrupt flag.
-			.CTCIF3 = 1U, // Clear transfer complete interrupt flag.
-		};
-		DMA2.LIFCR = lifcr;
-	}
-
-	// Set up the transmit DMA channel to send the bitstream block.
-	{
-		DMA_SxFCR_t fcr = {
-			.FTH = DMA_FIFO_THRESHOLD_HALF, // Threshold.
-			.DMDIS = 1, // Use the FIFO.
-		};
-		DMA2.streams[DMA_STREAM_TX].FCR = fcr;
-		DMA2.streams[DMA_STREAM_TX].PAR = &SPI1.DR;
-		DMA2.streams[DMA_STREAM_TX].M0AR = (void *) data; // Casting away constness is safe because this DMA stream will operate in memory-to-peripheral mode.
-		DMA2.streams[DMA_STREAM_TX].NDTR = length;
-		DMA_SxCR_t scr = {
-			.EN = 1, // Enable DMA engine.
-			.DMEIE = 1, // Enable direct mode error interrupt.
-			.TEIE = 1, // Enable transfer error interrupt.
-			.TCIE = 1, // Enable transfer complete interrupt.
-			.PFCTRL = 0, // DMA engine controls data length.
-			.DIR = DMA_DIR_M2P,
-			.CIRC = 0, // No circular buffer mode.
-			.PINC = 0, // Do not increment peripheral address.
-			.MINC = 1, // Increment memory address.
-			.PSIZE = DMA_DSIZE_BYTE,
-			.MSIZE = DMA_DSIZE_BYTE,
-			.PINCOS = 0, // No special peripheral address increment mode.
-			.PL = 1, // Priority 1 (medium).
-			.DBM = 0, // No double-buffer mode.
-			.CT = 0, // Use memory pointer zero.
-			.PBURST = DMA_BURST_SINGLE,
-			.MBURST = DMA_BURST_SINGLE,
-			.CHSEL = DMA_CHANNEL,
-		};
-		DMA2.streams[DMA_STREAM_TX].CR = scr;
-	}
-
-	// Enable transmit DMA.
-	SPI_CR2_t cr2 = {
-		.TXDMAEN = 1, // Transmit DMA enabled.
-	};
-	SPI1.CR2 = cr2;
-
-	// Wait for DMA transfer complete.
-	xSemaphoreTake(dma_tc_sem, portMAX_DELAY);
-
-	// Wait for completion.
-	while (!SPI1.SR.TXE);
-	while (SPI1.SR.BSY);
-
-	// Disable transmit DMA.
-	cr2.TXDMAEN = 0;
-	SPI1.CR2 = cr2;
-}
-
 /**
  * \brief Delivers a block of configuration bitstream to the FPGA.
  *
  * \pre The configuration process must have been started with \ref icb_conf_start.
  *
- * \param[in] data the block of bitstream to send, or null if no more bitstream is available
+ * \param[in] data the block of bitstream to send
  * \param[in] length the length of the bitstream block
  */
 void icb_conf_block(const void *data, size_t length) {
-	const uint8_t *dptr = data;
-	while (length) {
-		size_t frag_length = MIN(32768U, length);
-		icb_conf_block_impl(dptr, frag_length);
-		length -= frag_length;
-		dptr += frag_length;
+	// Send the data.
+	const uint8_t *data8 = data;
+	while (length--) {
+		SPI1.DR = *data8++;
+		while (!SPI1.SR.TXE);
 	}
 }
 
@@ -863,6 +872,9 @@ void icb_conf_block(const void *data, size_t length) {
  * \retval ICB_CONF_CRC_ERROR the INIT_B pin went low, indicating a bitstream CRC error
  */
 icb_conf_result_t icb_conf_end(void) {
+	// Wait for idle bus.
+	while (SPI1.SR.BSY);
+
 	// Disable the SPI module.
 	SPI_CR1_t cr1 = { 0 };
 	SPI1.CR1 = cr1;
@@ -877,6 +889,10 @@ icb_conf_result_t icb_conf_end(void) {
 			return ICB_CONF_CRC_ERROR;
 		}
 		if (gpio_get_input(PIN_FPGA_DONE)) {
+			// Drive chip select hard as FPGA should now have released it.
+			// It was already set as output high before.
+			gpio_set_pp(PIN_ICB_CS);
+			gpio_set_pupd(PIN_ICB_CS, GPIO_PUPD_NONE);
 			return ICB_CONF_OK;
 		}
 		vTaskDelay(1U);
@@ -917,7 +933,27 @@ void dma2_stream0_isr(void) {
 	DMA2.LIFCR = lifcr;
 	if (lisr.TCIF0) {
 		BaseType_t yield = pdFALSE;
-		xSemaphoreGiveFromISR(dma_tc_sem, &yield);
+		switch (state) {
+			case ICB_STATE_IN_DATA:
+				// Data is done. Receive CRC.
+				stop_dma();
+				config_tx_dma(&ZERO, sizeof(crc), false, false);
+				config_rx_dma(&crc, sizeof(crc));
+				start_dma(true, true);
+				state = ICB_STATE_IN_CRC;
+				break;
+
+			case ICB_STATE_IN_CRC:
+				// CRC is done. Hand back control.
+				stop_dma();
+				xSemaphoreGiveFromISR(transaction_complete_sem, &yield);
+				state = ICB_STATE_IDLE;
+				break;
+
+			default:
+				// These cases should not get here.
+				abort();
+		}
 		if (yield) {
 			portYIELD_FROM_ISR();
 		}
@@ -943,7 +979,33 @@ void dma2_stream3_isr(void) {
 	DMA2.LIFCR = lifcr;
 	if (lisr.TCIF3) {
 		BaseType_t yield = pdFALSE;
-		xSemaphoreGiveFromISR(dma_tc_sem, &yield);
+		switch (state) {
+			case ICB_STATE_OUT_HEADER_DATA:
+				// Data is done. Send CRC.
+				stop_dma();
+				config_tx_dma(&crc, sizeof(crc), true, true);
+				start_dma(true, false);
+				state = ICB_STATE_OUT_CRC;
+				break;
+
+			case ICB_STATE_OUT_CRC:
+				// CRC is done. Hand back control.
+				stop_dma();
+				xSemaphoreGiveFromISR(transaction_complete_sem, &yield);
+				state = ICB_STATE_IDLE;
+				break;
+
+			case ICB_STATE_IN_HEADER:
+				// Header is done. Hand back control.
+				stop_dma();
+				xSemaphoreGiveFromISR(transaction_complete_sem, &yield);
+				state = ICB_STATE_IN_DATA;
+				break;
+
+			default:
+				// These cases should not get here.
+				abort();
+		}
 		if (yield) {
 			portYIELD_FROM_ISR();
 		}

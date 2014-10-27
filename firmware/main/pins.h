@@ -17,6 +17,9 @@ extern const gpio_init_pin_t PINS_INIT[4U][16U];
 
 #define PIN_SD_PRESENT GPIOA, 8U
 #define PIN_SD_D0 GPIOC, 8U
+#define PIN_SD_D1 GPIOC, 9U
+#define PIN_SD_D2 GPIOC, 10U
+#define PIN_SD_D3 GPIOC, 11U
 
 #define PIN_OTG_FS_VBUS GPIOA, 9U
 

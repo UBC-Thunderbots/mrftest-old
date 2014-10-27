@@ -30,6 +30,7 @@
 #include <FreeRTOS.h>
 #include <cdcacm.h>
 #include <core_progmem.h>
+#include <crc32.h>
 #include <exception.h>
 #include <format.h>
 #include <gpio.h>
@@ -255,6 +256,9 @@ static void main_task(void *UNUSED(param)) {
 			STRING_SERIAL.bString[i] = temp[i];
 		}
 	}
+
+	// Initialize CRC32 calculator.
+	crc32_init();
 
 	// Initialize CDC ACM.
 	cdcacm_init(2U, PRIO_TASK_CDC_ACM);

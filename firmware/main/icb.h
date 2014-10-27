@@ -8,6 +8,28 @@
 /**
  * \ingroup ICB
  *
+ * \brief Produces the command number for an OUT ICB transaction.
+ *
+ * \param[in] x the command index, from 0 to 127
+ *
+ * \return the command byte
+ */
+#define ICB_OUT(x) (x)
+
+/**
+ * \ingroup ICB
+ *
+ * \brief Produces the command number for an IN ICB transaction.
+ *
+ * \param[in] x the command index, from 0 to 127
+ *
+ * \return the command byte
+ */
+#define ICB_IN(x) ((x) | 0x80U)
+
+/**
+ * \ingroup ICB
+ *
  * \brief The available ICB commands.
  */
 typedef enum {
@@ -16,7 +38,7 @@ typedef enum {
 	 *
 	 * \return 7 byte device DNA, LSB first
 	 */
-	ICB_COMMAND_READ_DNA = 0x00,
+	ICB_COMMAND_READ_DNA = ICB_IN(0x00),
 
 	/**
 	 * \brief Read configuration switches.
@@ -32,7 +54,7 @@ typedef enum {
 	 *
 	 * \return 1 byte robot index plus 1 byte flags
 	 */
-	ICB_COMMAND_READ_SWITCHES = 0x01,
+	ICB_COMMAND_READ_SWITCHES = ICB_IN(0x01),
 
 	/**
 	 * \brief Write LEDs.
@@ -48,14 +70,14 @@ typedef enum {
 	 * \param mode 1 byte
 	 * \param value 1 byte
 	 */
-	ICB_COMMAND_WRITE_LEDS = 0x02,
+	ICB_COMMAND_WRITE_LEDS = ICB_OUT(0x02),
 
 	/**
 	 * \brief Read and simultaneously clear interrupt flags.
 	 *
 	 * \return ceil(nIRQs/8) bytes IRQ flags, LSB first
 	 */
-	ICB_COMMAND_GET_CLEAR_IRQS = 0x10,
+	ICB_COMMAND_GET_CLEAR_IRQS = ICB_IN(0x10),
 
 	/**
 	 * \brief Start reading short-address MRF register.
@@ -64,7 +86,7 @@ typedef enum {
 	 *
 	 * \param address 1 byte register to read
 	 */
-	ICB_COMMAND_MRF_DA_READ_SHORT = 0x20,
+	ICB_COMMAND_MRF_DA_READ_SHORT = ICB_OUT(0x20),
 
 	/**
 	 * \brief Start writing short-address MRF register.
@@ -74,7 +96,7 @@ typedef enum {
 	 * \param address 1 byte register to write
 	 * \param data 1 byte data to write
 	 */
-	ICB_COMMAND_MRF_DA_WRITE_SHORT = 0x21,
+	ICB_COMMAND_MRF_DA_WRITE_SHORT = ICB_OUT(0x21),
 
 	/**
 	 * \brief Start reading long-address MRF register.
@@ -83,7 +105,7 @@ typedef enum {
 	 *
 	 * \param address 2 bytes register to read
 	 */
-	ICB_COMMAND_MRF_DA_READ_LONG = 0x22,
+	ICB_COMMAND_MRF_DA_READ_LONG = ICB_OUT(0x22),
 
 	/**
 	 * \brief Start writing long-address MRF register.
@@ -93,7 +115,7 @@ typedef enum {
 	 * \param address 2 bytes register to write
 	 * \param data 1 byte data to write
 	 */
-	ICB_COMMAND_MRF_DA_WRITE_LONG = 0x23,
+	ICB_COMMAND_MRF_DA_WRITE_LONG = ICB_OUT(0x23),
 
 	/**
 	 * \brief Read out data from last direct-access command.
@@ -102,21 +124,21 @@ typedef enum {
 	 *
 	 * \return 1 byte data
 	 */
-	ICB_COMMAND_MRF_DA_GET_DATA = 0x24,
+	ICB_COMMAND_MRF_DA_GET_DATA = ICB_IN(0x24),
 
 	/**
 	 * \brief Reads the hardware interrupt pin.
 	 *
 	 * \return 1 byte interrupt line status, 1 = high, 0 = low
 	 */
-	ICB_COMMAND_MRF_DA_GET_INT = 0x25,
+	ICB_COMMAND_MRF_DA_GET_INT = ICB_IN(0x25),
 
 	/**
 	 * \brief Writes the hardware auxiliary pins.
 	 *
 	 * \param data 1 byte auxiliary pin states (bit 0 = /RESET, bit 1 = WAKE)
 	 */
-	ICB_COMMAND_MRF_DA_SET_AUX = 0x26,
+	ICB_COMMAND_MRF_DA_SET_AUX = ICB_OUT(0x26),
 
 	/**
 	 * \brief Enables the MRF offload engines.
@@ -127,8 +149,7 @@ typedef enum {
 	 * \li The transmit offload engine is triggered by an ICB command and copies the frame into the transmit FIFO, triggers it, and retrieves transmit status when finished.
 	 *
 	 * At powerup, all offload engines are disabled.
-	 * Once the engines are enabled, they cannot be disabled.
-	 * Also, once the engines are enabled, the firmware should not use the direct access commands to read \c INTSTAT, as doing so may lock up the engines.
+	 * Once the engines are enabled, the firmware should not use the direct access commands to read \c INTSTAT, as doing so may lock up the engines.
 	 *
 	 * \pre The radio must be configured to use its hardware interrupt line in active-low mode.
 	 * \pre It must not be the case that a receive interrupt has been acknowledged (by reading \c INTSTAT) but the received frame has not been read out from the radio’s receive FIFO.
@@ -136,21 +157,21 @@ typedef enum {
 	 * \pre There must not be an unacknowledged transmit complete interrupt.
 	 * \pre The radio must be configured to include a link quality indication in the receive FIFO
 	 */
-	ICB_COMMAND_MRF_OFFLOAD = 0x27,
+	ICB_COMMAND_MRF_OFFLOAD = ICB_OUT(0x27),
 
 	/**
 	 * \brief Gets the size of the next frame in the MRF receive offload engine queue.
 	 *
 	 * \return 1 byte the length of the next frame, or zero if no frames are waiting
 	 */
-	ICB_COMMAND_MRF_RX_GET_SIZE = 0x28,
+	ICB_COMMAND_MRF_RX_GET_SIZE = ICB_IN(0x28),
 
 	/**
 	 * \brief Reads the next frame from the MRF receive offload engine queue.
 	 *
 	 * \return \p n bytes the frame data, which includes the 802.15.4 header, application payload, 2-byte FCS, 1-byte LQI, and 1-byte RSSI
 	 */
-	ICB_COMMAND_MRF_RX_READ = 0x29,
+	ICB_COMMAND_MRF_RX_READ = ICB_IN(0x29),
 
 	/**
 	 * \brief Pushes a frame to the MRF transmit offload engine queue.
@@ -162,7 +183,7 @@ typedef enum {
 	 *
 	 * \pre The transmit offload engine queue must have enough space available to hold the packet (the application is responsible for tracking space in the queue based on pushes and completions).
 	 */
-	ICB_COMMAND_MRF_TX_PUSH = 0x2A,
+	ICB_COMMAND_MRF_TX_PUSH = ICB_OUT(0x2A),
 
 	/**
 	 * \brief Retrieves a queued status code.
@@ -171,7 +192,7 @@ typedef enum {
 	 *
 	 * \pre A transmit complete interrupt must have occurred.
 	 */
-	ICB_COMMAND_MRF_TX_GET_STATUS = 0x2B,
+	ICB_COMMAND_MRF_TX_GET_STATUS = ICB_IN(0x2B),
 
 	/**
 	 * \brief Disables the MRF offload engines.
@@ -188,7 +209,7 @@ typedef enum {
 	 *
 	 * It is recommended that the radio be reset (using its hardware reset wire) before continued operation.
 	 */
-	ICB_COMMAND_MRF_OFFLOAD_DISABLE = 0x2C,
+	ICB_COMMAND_MRF_OFFLOAD_DISABLE = ICB_OUT(0x2C),
 
 	/**
 	 * \brief Sets the operational parameters of the motors.
@@ -201,14 +222,14 @@ typedef enum {
 	 *
 	 * \param motors 10 bytes, 5 motor parameter blocks
 	 */
-	ICB_COMMAND_MOTORS_SET = 0x30,
+	ICB_COMMAND_MOTORS_SET = ICB_OUT(0x30),
 
 	/**
 	 * \brief Reads the Hall-sensor-computed accumulated positions of the motors.
 	 *
 	 * \return 10 bytes, 5 16-bit integer accumulated counts of Hall sensor edges
 	 */
-	ICB_COMMAND_MOTORS_GET_HALL_COUNT = 0x31,
+	ICB_COMMAND_MOTORS_GET_HALL_COUNT = ICB_IN(0x31),
 
 	/**
 	 * \brief Reads a bitmask of which Hall sensors are stuck.
@@ -217,21 +238,21 @@ typedef enum {
 	 *
 	 * \return 2 bytes, the first of which is which motors have sensors stuck low, the second of which is the same for stuck high
 	 */
-	ICB_COMMAND_MOTORS_GET_CLEAR_STUCK_HALLS = 0x32,
+	ICB_COMMAND_MOTORS_GET_CLEAR_STUCK_HALLS = ICB_IN(0x32),
 
 	/**
 	 * \brief Read the Accelerometer data
 	 *
 	 * \return 6 bytes, 3 16-bit integer values one for each axis
 	 */
-	ICB_COMMAND_SENSORS_GET_ACCEL = 0x40,
+	ICB_COMMAND_SENSORS_GET_ACCEL = ICB_IN(0x40),
 
 	/**
 	 * \brief Read the Gyro Data
 	 *
 	 * \return 7 bytes, 1 byte status (00 = no data yet, 01 = data available) plus 3 16-bit integer values one for each axis
 	 */
-	ICB_COMMAND_SENSORS_GET_GYRO = 0x41,
+	ICB_COMMAND_SENSORS_GET_GYRO = ICB_IN(0x41),
 } icb_command_t;
 
 /**
@@ -264,7 +285,7 @@ typedef enum {
 
 void icb_init(void);
 void icb_send(icb_command_t command, const void *data, size_t length);
-void icb_receive(icb_command_t command, void *buffer, size_t length);
+bool icb_receive(icb_command_t command, void *buffer, size_t length);
 bool icb_crc_error_check(void);
 void icb_crc_error_clear(void);
 void icb_irq_init(void);
