@@ -285,7 +285,14 @@ typedef struct __attribute__((packed)) {
 	uint32_t fpscr;
 } hw_extended_stack_frame_t;
 
+const sw_stack_frame_t * volatile exception_sw_stack_frame;
+const hw_basic_stack_frame_t * volatile exception_hw_basic_stack_frame;
+const hw_extended_stack_frame_t * volatile exception_hw_extended_stack_frame;
+
 static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause) {
+	// Save for later inspection in the dump.
+	exception_sw_stack_frame = swframe;
+
 	// Fill out the signal info based on the exception number and fault status registers.
 	switch (cause) {
 		case 3: // Hard fault
@@ -411,6 +418,7 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 		if (CPACR.CP11 != 0 && CPACR.CP10 != 0 && hwframe) {
 			if (swframe->lr & 16) {
 				// The hardware pushed a basic frame.
+				exception_hw_basic_stack_frame = hwframe;
 				if (FP.CCR.ASPEN) {
 					// Automatic preservation is enabled.
 					// If we had been using FP, the hardware would have pushed an extended frame.
@@ -429,6 +437,7 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 			} else {
 				// The hardware pushed an extended frame.
 				const hw_extended_stack_frame_t *hweframe = (const hw_extended_stack_frame_t *) hwframe;
+				exception_hw_extended_stack_frame = hweframe;
 				if (FP.CCR.LSPEN) {
 					// Lazy state preservation has applied here.
 					// There is no data in the frame yet.
@@ -447,6 +456,7 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 			// If the frame would have been extended, then the bottom 16 FP registers (and FPSCR) would have had indeterminate values after pushing.
 			// Therefore, it’s not safe to just copy the current values of the FP registers from the register file.
 			// Wipe the note.
+			exception_hw_basic_stack_frame = hwframe;
 			elf_notes.arm_vfp_nheader.n_type = 0;
 		}
 	}
