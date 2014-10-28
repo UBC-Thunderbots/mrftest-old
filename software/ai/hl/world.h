@@ -53,7 +53,7 @@ namespace AI {
 					 *
 					 * \param[in] dist the avoidance distance
 					 */
-					void avoid_distance(AI::Flags::AvoidDistance dist) const;
+					void avoid_distance(AI::Flags::AvoidDistance dist);
 			};
 
 			/**
@@ -315,7 +315,7 @@ inline AI::HL::W::Robot::Robot(AI::BE::Robot::Ptr impl) : AI::Common::Robot(impl
 
 inline AI::HL::W::Robot::Robot(const Robot &) = default;
 
-inline void AI::HL::W::Robot::avoid_distance(AI::Flags::AvoidDistance dist) const {
+inline void AI::HL::W::Robot::avoid_distance(AI::Flags::AvoidDistance dist) {
 	impl->avoid_distance(dist);
 }
 
