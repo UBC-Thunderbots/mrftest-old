@@ -21,15 +21,15 @@ class CacheableBase : public NonCopyable {
 		virtual void flush() = 0;
 };
 
-template<typename ... T> struct CacheableKeyArgs {
+template<typename ... T> struct CacheableKeyArgs final {
 };
 
-template<typename ... T> class CacheableNonKeyArgs {
+template<typename ... T> class CacheableNonKeyArgs final {
 };
 
 template<std::size_t DROP_FIRST, typename ... Args> class CacheableTupleBuilder;
 
-template<> class CacheableTupleBuilder<0> {
+template<> class CacheableTupleBuilder<0> final {
 	public:
 		typedef std::tuple<> Tuple;
 
@@ -38,7 +38,7 @@ template<> class CacheableTupleBuilder<0> {
 		}
 };
 
-template<typename Head, typename ... Tail> class CacheableTupleBuilder<0, Head, Tail ...> {
+template<typename Head, typename ... Tail> class CacheableTupleBuilder<0, Head, Tail ...> final {
 	public:
 		typedef std::tuple<Head, Tail ...> Tuple;
 
@@ -47,7 +47,7 @@ template<typename Head, typename ... Tail> class CacheableTupleBuilder<0, Head, 
 		}
 };
 
-template<std::size_t DROP_FIRST, typename Head, typename ... Tail> class CacheableTupleBuilder<DROP_FIRST, Head, Tail ...> {
+template<std::size_t DROP_FIRST, typename Head, typename ... Tail> class CacheableTupleBuilder<DROP_FIRST, Head, Tail ...> final {
 	public:
 		typedef typename CacheableTupleBuilder<DROP_FIRST - 1, Tail ...>::Tuple Tuple;
 
@@ -58,19 +58,19 @@ template<std::size_t DROP_FIRST, typename Head, typename ... Tail> class Cacheab
 
 template<std::size_t OFFSET, typename K, typename ... Args> struct CacheableTupleHasherImpl;
 
-template<std::size_t OFFSET, typename ... Args> struct CacheableTupleHasherImpl<OFFSET, CacheableKeyArgs<Args ...>> {
+template<std::size_t OFFSET, typename ... Args> struct CacheableTupleHasherImpl<OFFSET, CacheableKeyArgs<Args ...>> final {
 	static constexpr std::size_t hash(const std::tuple<Args ...> &) {
 		return 0;
 	}
 };
 
-template<std::size_t OFFSET, typename ... Args, typename First, typename ... Rest> struct CacheableTupleHasherImpl<OFFSET, CacheableKeyArgs<Args ...>, First, Rest ...> {
+template<std::size_t OFFSET, typename ... Args, typename First, typename ... Rest> struct CacheableTupleHasherImpl<OFFSET, CacheableKeyArgs<Args ...>, First, Rest ...> final {
 	static constexpr std::size_t hash(const std::tuple<Args ...> &t) {
 		return std::hash<First>()(std::get<OFFSET>(t)) * 17 + CacheableTupleHasherImpl<OFFSET + 1, CacheableKeyArgs<Args ...>, Rest ...>::hash(t);
 	}
 };
 
-template<typename ... Args> struct CacheableTupleHasher {
+template<typename ... Args> struct CacheableTupleHasher final {
 	constexpr std::size_t operator()(const std::tuple<Args ...> &t) const {
 		return CacheableTupleHasherImpl<0, CacheableKeyArgs<Args ...>, Args ...>::hash(t);
 	}
@@ -175,7 +175,7 @@ template<typename R, typename NK, typename K> class Cacheable;
  */
 template<typename R, typename ... NK, typename ... K> class Cacheable<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>> : public CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>, NK ..., K ...>, public CacheableBase {
 	public:
-		void flush() {
+		void flush() override {
 			CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>, NK ..., K ...>::flush();
 		}
 };

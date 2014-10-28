@@ -6,15 +6,15 @@ using namespace AI::HL::W;
 namespace Action = AI::HL::STP::Action;
 
 namespace {
-	class Idle : public Tactic {
+	class Idle final : public Tactic {
 		public:
 			explicit Idle(World world) : Tactic(world) {
 			}
 
 		private:
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"idle";
 			}
 	};

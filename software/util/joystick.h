@@ -17,12 +17,12 @@
 /**
  * \brief Provides access to a joystick attached to the computer.
  */
-class Joystick : public NonCopyable, public sigc::trackable {
+class Joystick final : public NonCopyable, public sigc::trackable {
 	public:
 		/**
 		 * \brief The type of identifying metadata associated with a joystick.
 		 */
-		struct Identifier {
+		struct Identifier final {
 			Glib::ustring name;
 			uint16_t bus_type, vendor_id, product_id, version;
 		};
@@ -79,7 +79,7 @@ class Joystick : public NonCopyable, public sigc::trackable {
 		const std::vector<Property<bool>> &buttons() const;
 
 	private:
-		struct AxisMetadata {
+		struct AxisMetadata final {
 			int32_t minimum, maximum, flat;
 		};
 
@@ -157,7 +157,7 @@ namespace std {
 	/**
 	 * \brief Hashes a joystick identifier.
 	 */
-	template<> struct hash<Joystick::Identifier> {
+	template<> struct hash<Joystick::Identifier> final {
 		std::size_t operator()(const Joystick::Identifier &i) const {
 			std::hash<uint16_t> h;
 			return h(i.bus_type) * 65537U + h(i.vendor_id) * 257U + h(i.product_id) * 17U + h(i.version);

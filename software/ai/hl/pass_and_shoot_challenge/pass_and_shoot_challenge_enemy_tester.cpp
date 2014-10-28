@@ -36,15 +36,15 @@ namespace {
 
 };
 
-class PASCHL_ENEMIES : public HighLevel {
+class PASCHL_ENEMIES final : public HighLevel {
 public:
   explicit PASCHL_ENEMIES(World world) : world(world) {
     current_state=INITIAL;
   }
   
-  HighLevelFactory &factory() const;
+  HighLevelFactory &factory() const override;
   
-  void tick() {
+  void tick() override {
     FriendlyTeam friendly = world.friendly_team();
 
     if (friendly.size() < min_team_size) {
@@ -136,7 +136,7 @@ public:
   }
 
 
-    Gtk::Widget *ui_controls() {
+    Gtk::Widget *ui_controls() override {
       return nullptr;
     }
   

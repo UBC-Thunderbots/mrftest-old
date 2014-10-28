@@ -13,7 +13,7 @@
 #include <gtkmm/main.h>
 #include <gtkmm/treemodelcolumn.h>
 
-class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractListModel {
+class TesterWindow::MappedJoysticksModel final : public Glib::Object, public AbstractListModel {
 	public:
 		Gtk::TreeModelColumn<Glib::ustring> name_column;
 
@@ -22,11 +22,11 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 			return p;
 		}
 
-		std::size_t alm_rows() const {
+		std::size_t alm_rows() const override {
 			return sticks.size() + 1;
 		}
 
-		void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const {
+		void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const override {
 			if (col == static_cast<unsigned int>(name_column.index())) {
 				Glib::Value<Glib::ustring> v;
 				v.init(name_column.type());
@@ -38,7 +38,7 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 			}
 		}
 
-		void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) {
+		void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) override {
 			std::abort();
 		}
 

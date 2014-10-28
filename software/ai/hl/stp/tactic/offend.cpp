@@ -8,28 +8,28 @@ using namespace AI::HL::W;
 namespace Action = AI::HL::STP::Action;
 
 namespace {
-	class Primary : public Tactic {
+	class Primary final : public Tactic {
 		public:
 			explicit Primary(World world) : Tactic(world) {
 			}
 
 		private:
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"offender (primary)";
 			}
 	};
 
-	class Secondary : public Tactic {
+	class Secondary final : public Tactic {
 		public:
 			explicit Secondary(World world) : Tactic(world) {
 			}
 
 		private:
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"offender (secondary)";
 			}
 	};

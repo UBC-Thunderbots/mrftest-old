@@ -6,7 +6,7 @@
 #include <string>
 #include <gtkmm/window.h>
 
-class LogPlayer : public Gtk::Window {
+class LogPlayer final : public Gtk::Window {
 	public:
 		/**
 		 * \brief Creates a new LogPlayer.

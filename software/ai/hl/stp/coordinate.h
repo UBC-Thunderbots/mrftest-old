@@ -15,7 +15,7 @@ namespace AI {
 			 * Describes dynamically changing coordinate system.
 			 * For example, a location relative to a moving object.
 			 */
-			class Coordinate {
+			class Coordinate final {
 				public:
 					/**
 					 * Determines the y-coordinate.
@@ -107,7 +107,7 @@ namespace AI {
 }
 
 namespace std {
-	template<> struct hash<AI::HL::STP::Coordinate> {
+	template<> struct hash<AI::HL::STP::Coordinate> final {
 		typedef AI::HL::STP::Coordinate argument_type;
 		typedef std::size_t result_type;
 

@@ -314,7 +314,7 @@ namespace {
 		return violation;
 	}
 
-	struct violation {
+	struct violation final {
 		double enemy, friendly, play_area, ball_stop, ball_tiny, friendly_defense, enemy_defense, own_half, penalty_kick_friendly, penalty_kick_enemy, goal_post, total_bounds, net_allowance;
 
 		unsigned int extra_flags;

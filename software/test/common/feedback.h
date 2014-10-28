@@ -12,7 +12,7 @@
 /**
  * \brief A panel that lets the user view various pieces of information about a robot.
  */
-class TesterFeedbackPanel : public Gtk::Table {
+class TesterFeedbackPanel final : public Gtk::Table {
 	public:
 		/**
 		 * \brief Constructs a new TesterFeedbackPanel.

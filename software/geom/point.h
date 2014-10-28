@@ -9,7 +9,7 @@
 /**
  * \brief A point or vector in 2D space
  */
-class Point {
+class Point final {
 	public:
 		/**
 		 * \brief The X coordinate of the Point
@@ -514,7 +514,7 @@ inline constexpr bool operator>=(const Point &p, const Point &q) {
 }
 
 namespace std {
-	template<> struct hash<Point> {
+	template<> struct hash<Point> final {
 		std::size_t operator()(const Point &p) const {
 			std::hash<double> h;
 			return h(p.x) * 17 + h(p.y);

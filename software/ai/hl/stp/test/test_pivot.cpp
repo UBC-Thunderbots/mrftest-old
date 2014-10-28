@@ -11,7 +11,7 @@ using namespace AI::HL::W;
 
 namespace {
 
-	class TestPivot : public HighLevel {
+	class TestPivot final : public HighLevel {
 		public:
 			explicit TestPivot(World world) : world(world), target_enemy(false) {
 				time = 0;
@@ -22,13 +22,13 @@ namespace {
 			bool target_enemy;
 			int time;
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return nullptr;
 			}
 
-			void tick() {
+			void tick() override {
 				FriendlyTeam friendly = world.friendly_team();
 				if (!friendly.size()) {
 					return;

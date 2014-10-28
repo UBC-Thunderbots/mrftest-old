@@ -20,7 +20,7 @@
 /**
  * \brief A window that allows the user to control one robot for testing.
  */
-class TesterWindow : public Gtk::Window {
+class TesterWindow final : public Gtk::Window {
 	public:
 		/**
 		 * \brief Creates a new TesterWindow.

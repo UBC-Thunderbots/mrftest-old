@@ -24,11 +24,11 @@ namespace {
 	constexpr double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
 
 
-	class RRTPhysicsNavigator : public Navigator {
+	class RRTPhysicsNavigator final : public Navigator {
 		public:
 			explicit RRTPhysicsNavigator(World world);
-			void tick();
-			NavigatorFactory &factory() const;
+			void tick() override;
+			NavigatorFactory &factory() const override;
 
 		private:
 			PhysicsPlanner planner;

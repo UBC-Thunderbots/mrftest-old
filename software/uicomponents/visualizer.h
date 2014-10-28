@@ -11,7 +11,7 @@ namespace Visualizable {
 	/**
 	 * An encoding of the colour of a robot.
 	 */
-	class Colour {
+	class Colour final {
 		public:
 			/**
 			 * The red component, from 0 to 1.
@@ -357,7 +357,7 @@ namespace Visualizable {
 /**
  * Displays a view of the field.
  */
-class Visualizer : public Gtk::DrawingArea {
+class Visualizer final : public Gtk::DrawingArea {
 	public:
 		/**
 		 * Whether or not to draw the field lines
@@ -430,14 +430,14 @@ class Visualizer : public Gtk::DrawingArea {
 		sigc::connection update_connection;
 		mutable sigc::signal<void, Point> signal_mouse_moved_;
 
-		void on_show();
-		void on_hide();
-		void on_size_allocate(Gtk::Allocation &);
-		bool on_expose_event(GdkEventExpose *);
-		bool on_button_press_event(GdkEventButton *evt);
-		bool on_button_release_event(GdkEventButton *evt);
-		bool on_motion_notify_event(GdkEventMotion *evt);
-		bool on_leave_notify_event(GdkEventCrossing *evt);
+		void on_show() override;
+		void on_hide() override;
+		void on_size_allocate(Gtk::Allocation &) override;
+		bool on_expose_event(GdkEventExpose *) override;
+		bool on_button_press_event(GdkEventButton *evt) override;
+		bool on_button_release_event(GdkEventButton *evt) override;
+		bool on_motion_notify_event(GdkEventMotion *evt) override;
+		bool on_leave_notify_event(GdkEventCrossing *evt) override;
 
 		void compute_scales();
 		double xtow(double x) __attribute__((warn_unused_result)) { return (x - xtranslate) / scale; }

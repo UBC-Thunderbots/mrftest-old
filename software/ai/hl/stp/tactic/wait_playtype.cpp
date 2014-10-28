@@ -7,7 +7,7 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
 namespace {
-	class WaitPlaytype : public Tactic {
+	class WaitPlaytype final : public Tactic {
 		public:
 			explicit WaitPlaytype(World world, Tactic::Ptr &&tactic, const AI::Common::PlayType playtype) : Tactic(world, true), tactic(std::move(tactic)), playtype(playtype) {
 				assert(this->tactic);
@@ -16,11 +16,11 @@ namespace {
 		private:
 			Tactic::Ptr tactic;
 			const AI::Common::PlayType playtype;
-			bool done() const;
-			Player select(const std::set<Player> &players) const;
-			void player_changed();
-			void execute();
-			Glib::ustring description() const {
+			bool done() const override;
+			Player select(const std::set<Player> &players) const override;
+			void player_changed() override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return Glib::ustring::compose(u8"wait-playtype, %1", tactic->description());
 			}
 	};

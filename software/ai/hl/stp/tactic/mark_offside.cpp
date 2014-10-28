@@ -19,18 +19,18 @@ namespace Action = AI::HL::STP::Action;
 namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
-	class MarkOffside : public Tactic {
+	class MarkOffside final : public Tactic {
 		public:
 			explicit MarkOffside(World world) : Tactic(world) {
 			}
 
 		private:
-			Player select(const std::set<Player> &players) const;
-			void execute();
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
 			Coordinate dest;
 			Robot player_to_mark(std::vector<AI::HL::W::Robot> enemies) const;
 			Player nearest_friendly(Point target) const;
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return u8"MarkOffside";
 			}
 	};

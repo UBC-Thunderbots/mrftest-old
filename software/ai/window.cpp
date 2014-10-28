@@ -15,7 +15,7 @@
 using AI::Window;
 
 namespace {
-	class BasicControls : public Gtk::Frame {
+	class BasicControls final : public Gtk::Frame {
 		public:
 			explicit BasicControls(AI::AIPackage &ai) : Gtk::Frame(u8"Basics"), ai(ai), table(2 + ai.backend.main_ui_controls_table_rows(), 3), playtype_override_label(u8"Play type override:"), playtype_label(u8"Play type:") {
 				table.attach(playtype_override_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -66,7 +66,7 @@ namespace {
 			}
 	};
 
-	class HighLevelControls : public Gtk::Frame {
+	class HighLevelControls final : public Gtk::Frame {
 		public:
 			explicit HighLevelControls(AI::AIPackage &ai) : Gtk::Frame(u8"High Level"), ai(ai), table(2, 2), custom_controls(nullptr) {
 				high_level_chooser.append_text(u8"<Choose High Level>");
@@ -125,7 +125,7 @@ namespace {
 			}
 	};
 
-	class NavigatorControls : public Gtk::Frame {
+	class NavigatorControls final : public Gtk::Frame {
 		public:
 			explicit NavigatorControls(AI::AIPackage &ai) : Gtk::Frame(u8"Navigator"), ai(ai), table(3, 2), custom_controls(nullptr) {
 				navigator_chooser.append_text(u8"<Choose Navigator>");
@@ -185,7 +185,7 @@ namespace {
 			}
 	};
 
-	class RobotControllerControls : public Gtk::Frame {
+	class RobotControllerControls final : public Gtk::Frame {
 		public:
 			explicit RobotControllerControls(AI::AIPackage &ai) : Gtk::Frame(u8"Robot Controller"), ai(ai), table(3, 2), custom_controls(nullptr) {
 				rc_chooser.append_text(u8"<Choose Robot Controller>");
@@ -243,7 +243,7 @@ namespace {
 			}
 	};
 
-	class SecondaryBasicControls : public Gtk::Table {
+	class SecondaryBasicControls final : public Gtk::Table {
 		public:
 			explicit SecondaryBasicControls(AI::AIPackage &ai) : Gtk::Table(2 + ai.backend.secondary_ui_controls_table_rows(), 3), ai(ai), defending_end_label(u8"Defending:"), friendly_colour_label(u8"Colour:"), flip_end_button(u8"X"), flip_friendly_colour_button(u8"X") {
 				attach(defending_end_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -304,7 +304,7 @@ namespace {
 			}
 	};
 
-	class VisualizerControls : public Gtk::Table {
+	class VisualizerControls final : public Gtk::Table {
 		public:
 			explicit VisualizerControls(AI::AIPackage &ai, Visualizer &vis) : Gtk::Table(G_N_ELEMENTS(CONTROLS), 2), ai(ai), vis(vis) {
 				unsigned int children_left = 0;
@@ -333,7 +333,7 @@ namespace {
 			}
 
 		private:
-			struct ControlInfo {
+			struct ControlInfo final {
 				const char *title;
 				bool Visualizer::*vis_flag;
 				bool AI::AIPackage::*ai_flag;
@@ -388,7 +388,7 @@ namespace {
 		{ u8"Robot Controller", nullptr, &AI::AIPackage::show_rc_overlay, 0 },
 	};
 
-	class VisualizerCoordinatesBar : public Gtk::Statusbar {
+	class VisualizerCoordinatesBar final : public Gtk::Statusbar {
 		public:
 			explicit VisualizerCoordinatesBar(Visualizer &vis) {
 				vis.signal_mouse_moved().connect(sigc::mem_fun(this, &VisualizerCoordinatesBar::on_move));

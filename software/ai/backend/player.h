@@ -56,8 +56,8 @@ namespace AI {
 				void type(AI::Flags::MoveType type);
 				AI::Flags::MovePrio prio() const;
 				void prio(AI::Flags::MovePrio prio);
-				bool has_destination() const;
-				std::pair<Point, Angle> destination() const;
+				bool has_destination() const override;
+				std::pair<Point, Angle> destination() const override;
 				bool has_chipper() const;
 				void kick(double speed);
 				void autokick(double speed);
@@ -65,17 +65,17 @@ namespace AI {
 				void autochip(double power);
 				virtual void dribble(DribbleMode mode) = 0;
 				Point target_velocity() const;
-				bool has_path() const;
-				const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &path() const;
+				bool has_path() const override;
+				const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &path() const override;
 				void path(const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &p);
 				void drive(const int (&w)[4]);
 				const int(&wheel_speeds() const)[4];
 				void pre_tick();
 				void update_predictor(AI::Timestamp ts);
 
-				Visualizable::Colour visualizer_colour() const;
-				bool highlight() const;
-				Visualizable::Colour highlight_colour() const;
+				Visualizable::Colour visualizer_colour() const override;
+				bool highlight() const override;
+				Visualizable::Colour highlight_colour() const override;
 
 				virtual bool has_ball() const = 0;
 				virtual bool chicker_ready() const = 0;

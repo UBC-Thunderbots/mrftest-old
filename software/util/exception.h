@@ -6,7 +6,7 @@
 /**
  * An exception that indicates that an attempt to fetch an error message for an error code itself failed.
  */
-class ErrorMessageError : public std::runtime_error {
+class ErrorMessageError final : public std::runtime_error {
 	public:
 		/**
 		 * Constructs a new ErrorMessageError.
@@ -37,7 +37,7 @@ class SystemError : public std::runtime_error {
 /**
  * An exception that corresponds to an attempt to open a file that does not exist.
  */
-class FileNotFoundError : public SystemError {
+class FileNotFoundError final : public SystemError {
 	public:
 		/**
 		 * Constructs a new FileNotFoundError.
@@ -48,7 +48,7 @@ class FileNotFoundError : public SystemError {
 /**
  * \brief An exception that corresponds to a \c getaddrinfo or \c getnameinfo failure code.
  */
-class EAIError : public std::runtime_error {
+class EAIError final : public std::runtime_error {
 	public:
 		/**
 		 * The error code.

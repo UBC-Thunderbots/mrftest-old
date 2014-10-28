@@ -2,7 +2,7 @@
 #include <cstdint>
 
 namespace {
-	struct LEDMode {
+	struct LEDMode final {
 		const char *name;
 		uint8_t value;
 	};

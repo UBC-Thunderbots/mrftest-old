@@ -10,7 +10,7 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	struct VDHL : public HighLevel {
+	struct VDHL final : public HighLevel {
 		
 		World world;
 		Gtk::VBox vbox;
@@ -29,13 +29,13 @@ namespace {
 			reset_button.signal_clicked().connect(sigc::bind(&VDHL::reset, sigc::ref(*this)));
 		}
 		
-		HighLevelFactory &factory() const;
+		HighLevelFactory &factory() const override;
 		
 		void reset() {
 			dest_control.set_value(0);
 		}
 		
-		void tick() {
+		void tick() override {
 			FriendlyTeam friendly = world.friendly_team();
 
 			for (std::size_t robotIndex = 0; robotIndex < friendly.size(); robotIndex++) {
@@ -53,7 +53,7 @@ namespace {
 			}
 		}
 
-		Gtk::Widget *ui_controls() {
+		Gtk::Widget *ui_controls() override {
 			return &vbox;
 		}
 			

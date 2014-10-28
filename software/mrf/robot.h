@@ -19,20 +19,20 @@ class MRFDongle;
 /**
  * \brief A single robot addressable through a dongle
  */
-class MRFRobot : public Drive::Robot {
+class MRFRobot final : public Drive::Robot {
 	public:
-		Drive::Dongle &dongle();
-		const Drive::Dongle &dongle() const;
-		void drive(const int(&wheels)[4], bool controlled = true);
-		bool can_coast() const;
-		void drive_coast();
-		void drive_brake();
-		void dribble(unsigned int power);
-		void set_charger_state(ChargerState state);
-		double kick_pulse_maximum() const;
-		double kick_pulse_resolution() const;
-		void kick(bool chip, double pulse_width);
-		void autokick(bool chip, double pulse_width);
+		Drive::Dongle &dongle() override;
+		const Drive::Dongle &dongle() const override;
+		void drive(const int(&wheels)[4], bool controlled = true) override;
+		bool can_coast() const override;
+		void drive_coast() override;
+		void drive_brake() override;
+		void dribble(unsigned int power) override;
+		void set_charger_state(ChargerState state) override;
+		double kick_pulse_maximum() const override;
+		double kick_pulse_resolution() const override;
+		void kick(bool chip, double pulse_width) override;
+		void autokick(bool chip, double pulse_width) override;
 
 	private:
 		friend class MRFDongle;

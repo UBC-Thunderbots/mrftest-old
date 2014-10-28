@@ -11,7 +11,7 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	class TestDefend : public HighLevel {
+	class TestDefend final : public HighLevel {
 		public:
 			explicit TestDefend(World world) : world(world) {
 			}
@@ -19,13 +19,13 @@ namespace {
 		private:
 			World world;
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return nullptr;
 			}
 
-			void tick() {
+			void tick() override {
 				tick_eval(world);
 
 				FriendlyTeam friendly = world.friendly_team();
@@ -44,7 +44,7 @@ namespace {
 				}
 			}
 
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) override {
 				draw_defense(world, ctx);
 			}
 	};

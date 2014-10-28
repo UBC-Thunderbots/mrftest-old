@@ -21,18 +21,18 @@ namespace {
 	/**
 	 * Goalie in a team of N robots.
 	 */
-	class TGoalie : public Tactic {
+	class TGoalie final : public Tactic {
 		public:
 			explicit TGoalie(World world, size_t defender_role) : Tactic(world), defender_role(defender_role) {
 			}
 
 		private:
 			size_t defender_role;
-			void execute();
-			Player select(const std::set<Player> &) const {
+			void execute() override;
+			Player select(const std::set<Player> &) const override {
 				assert(false);
 			}
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				if (world.friendly_team().size() > defender_role + 1) {
 					return u8"tgoalie";
 				} else {
@@ -41,16 +41,16 @@ namespace {
 			}
 	};
 
-	class TDefender : public Tactic {
+	class TDefender final : public Tactic {
 		public:
 			explicit TDefender(World world, unsigned i) : Tactic(world), index(i) {
 			}
 
 		private:
 			unsigned index;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"tdefender";
 			}
 	};
@@ -77,7 +77,7 @@ namespace {
 		Action::defender_move(world, player, target);
 	}
 	
-	class TDefendLine : public Tactic {
+	class TDefendLine final : public Tactic {
 		public:
 			explicit TDefendLine(World world, Coordinate p1_, Coordinate p2_, double dist_min_, double dist_max_) : Tactic(world), p1(p1_), p2(p2_), dist_min(dist_min_), dist_max(dist_max_) {
 			}
@@ -86,13 +86,13 @@ namespace {
 			Coordinate p1, p2;
 			double dist_min, dist_max;
 
-			Player select(const std::set<Player> &players) const {
+			Player select(const std::set<Player> &players) const override {
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>((p1.position() + p2.position()) / 2));
 			}
 
-			void execute();
+			void execute() override;
 
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return u8"tdefend_line";
 			}
 	};

@@ -4,7 +4,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 namespace {
-	class CodecTest : public CppUnit::TestFixture {
+	class CodecTest final : public CppUnit::TestFixture {
 		CPPUNIT_TEST_SUITE(CodecTest);
 		CPPUNIT_TEST(test_zeroes);
 		CPPUNIT_TEST(test_nans);

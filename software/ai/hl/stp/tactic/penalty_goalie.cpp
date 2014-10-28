@@ -11,20 +11,20 @@ using namespace AI::HL::STP::Tactic;
 namespace {
 	Point old_des;
 
-	class PenaltyGoalie : public Tactic {
+	class PenaltyGoalie final : public Tactic {
 		public:
 			explicit PenaltyGoalie(World world);
 
 		private:
 			bool goto_target1;
-			bool done() const;
-			void execute();
+			bool done() const override;
+			void execute() override;
 //better implementation of chip power required. perhaps make a namespace variable for power?
 			double power;
-			Player select(const std::set<Player> &) const {
+			Player select(const std::set<Player> &) const override {
 				assert(false);
 			}
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return "penalty-goalie";
 			}
 	};

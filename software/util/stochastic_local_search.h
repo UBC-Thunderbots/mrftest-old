@@ -20,7 +20,7 @@
  * \li the LESSER the PARAMETERS, the faster the convergence
  * \li if the max of a parameter equals the min, then that parameter is ignored
  */
-class StochasticLocalSearch {
+class StochasticLocalSearch final {
 	private:
 		/**
 		 * The best (lowest) cost found so far by the search.

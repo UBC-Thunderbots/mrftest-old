@@ -47,12 +47,12 @@ namespace AI {
 				 */
 				AI::Timestamp lock_time() const;
 
-				Point position(double delta = 0.0) const;
-				Point velocity(double delta = 0.0) const;
-				Point position_stdev(double delta = 0.0) const;
-				Point velocity_stdev(double delta = 0.0) const;
-				bool highlight() const;
-				Visualizable::Colour highlight_colour() const;
+				Point position(double delta = 0.0) const override;
+				Point velocity(double delta = 0.0) const override;
+				Point position_stdev(double delta = 0.0) const override;
+				Point velocity_stdev(double delta = 0.0) const override;
+				bool highlight() const override;
+				Visualizable::Colour highlight_colour() const override;
 
 			private:
 				Predictor2 pred;

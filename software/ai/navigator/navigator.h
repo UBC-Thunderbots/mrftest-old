@@ -125,10 +125,10 @@ namespace AI {
 
 #define NAVIGATOR_REGISTER(cls) \
 	namespace { \
-		class cls##NavigatorFactory : public AI::Nav::NavigatorFactory { \
+		class cls##NavigatorFactory final : public AI::Nav::NavigatorFactory { \
 			public: \
 				explicit cls##NavigatorFactory(); \
-				std::unique_ptr<Navigator> create_navigator(AI::Nav::W::World) const; \
+				std::unique_ptr<Navigator> create_navigator(AI::Nav::W::World) const override; \
 		}; \
 	} \
 	\

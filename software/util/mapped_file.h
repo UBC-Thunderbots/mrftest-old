@@ -9,7 +9,7 @@
 /**
  * \brief A memory-mapped view of a file.
  */
-class MappedFile : public NonCopyable {
+class MappedFile final : public NonCopyable {
 	public:
 		/**
 		 * \brief Maps in a file.

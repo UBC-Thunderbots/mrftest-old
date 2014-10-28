@@ -8,7 +8,7 @@
 /**
  * A rectangle.
  */
-class Rect {
+class Rect final {
 	public:
 		/**
 		 * Creates a new Rect from two corners.

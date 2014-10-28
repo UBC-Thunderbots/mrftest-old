@@ -15,7 +15,7 @@ namespace BitcodecPrimitives {
 	 *
 	 * \tparam Length the number of bits to use to store the field.
 	 */
-	template<typename T, std::size_t Offset, std::size_t Length> class Encoder {
+	template<typename T, std::size_t Offset, std::size_t Length> class Encoder final {
 		public:
 			/**
 			 * \brief Executes the encoding operation.
@@ -45,7 +45,7 @@ namespace BitcodecPrimitives {
 	template<typename T, std::size_t Offset, std::size_t Length> constexpr T Encoder<T, Offset, Length>::MASK;
 
 	/** \cond */
-	template<typename T, std::size_t Offset> class Encoder<T, Offset, 0> {
+	template<typename T, std::size_t Offset> class Encoder<T, Offset, 0> final {
 		public:
 			void operator()(void *, T) const {
 			}
@@ -61,7 +61,7 @@ namespace BitcodecPrimitives {
 	 *
 	 * \tparam Length the number of bits to extract from the buffer.
 	 */
-	template<typename T, std::size_t Offset, std::size_t Length> class Decoder {
+	template<typename T, std::size_t Offset, std::size_t Length> class Decoder final {
 		public:
 			/**
 			 * \brief Executes the decoding operation.
@@ -89,7 +89,7 @@ namespace BitcodecPrimitives {
 	template<typename T, std::size_t Offset, std::size_t Length> constexpr T Decoder<T, Offset, Length>::MASK;
 
 	/** \cond */
-	template<typename T, std::size_t Offset> class Decoder<T, Offset, 0> {
+	template<typename T, std::size_t Offset> class Decoder<T, Offset, 0> final {
 		public:
 			T operator()(const void *) const {
 				return 0;
@@ -112,7 +112,7 @@ namespace BitcodecPrimitives {
 	 *
 	 * \tparam Tail the third and subsequent intervals, each consisting of a position followed by a length.
 	 */
-	template<std::size_t Offset1, std::size_t Length1, std::size_t Offset2, std::size_t Length2, std::size_t ... Tail> struct OverlapChecker<Offset1, Length1, Offset2, Length2, Tail ...> {
+	template<std::size_t Offset1, std::size_t Length1, std::size_t Offset2, std::size_t Length2, std::size_t ... Tail> struct OverlapChecker<Offset1, Length1, Offset2, Length2, Tail ...> final {
 		/**
 		 * \brief \c true if none of the intervals overlap, or \c false if some intervals do overlap.
 		 */
@@ -128,7 +128,7 @@ namespace BitcodecPrimitives {
 	 *
 	 * \tparam Length the size of the only interval.
 	 */
-	template<std::size_t Offset, std::size_t Length> struct OverlapChecker<Offset, Length> {
+	template<std::size_t Offset, std::size_t Length> struct OverlapChecker<Offset, Length> final {
 		/**
 		 * \brief \c true, because a single interval cannot have an overlap.
 		 */
@@ -140,7 +140,7 @@ namespace BitcodecPrimitives {
 	/**
 	 * \brief Checks, at compile time, for overlap among an ascending sequence of intervals.
 	 */
-	template<> struct OverlapChecker<> {
+	template<> struct OverlapChecker<> final {
 		/**
 		 * \brief \c true, because a list of zero intervals cannot have an overlap.
 		 */
@@ -158,7 +158,7 @@ namespace BitcodecPrimitives {
 	 *
 	 * \tparam Tail the remaining elements, each consiting of a starting offset followed by a length.
 	 */
-	template<std::size_t Offset, std::size_t Length, std::size_t ... Tail> struct LengthCalculator<Offset, Length, Tail ...> {
+	template<std::size_t Offset, std::size_t Length, std::size_t ... Tail> struct LengthCalculator<Offset, Length, Tail ...> final {
 		/**
 		 * \brief The number of bytes needed to hold all the elements.
 		 */
@@ -174,7 +174,7 @@ namespace BitcodecPrimitives {
 	 *
 	 * \tparam Length the number of bits used by the only first element.
 	 */
-	template<std::size_t Offset, std::size_t Length> struct LengthCalculator<Offset, Length> {
+	template<std::size_t Offset, std::size_t Length> struct LengthCalculator<Offset, Length> final {
 		/**
 		 * \brief The number of bytes needed to hold the element.
 		 */
@@ -186,7 +186,7 @@ namespace BitcodecPrimitives {
 	/**
 	 * \brief Computes, at compile time, the length in bytes of the buffer required to store a sequence of bitfield elements.
 	 */
-	template<> struct LengthCalculator<> {
+	template<> struct LengthCalculator<> final {
 		/**
 		 * \brief 0, because a sequence of no elements takes no space to store.
 		 */
@@ -202,7 +202,7 @@ namespace BitcodecPrimitives {
 	 *
 	 * \tparam Length the number of bits of \p U which are used to represent the value.
 	 */
-	template<typename T, typename U, std::size_t Length> struct SignExtender {
+	template<typename T, typename U, std::size_t Length> struct SignExtender final {
 		/**
 		 * \brief Performs sign extensions.
 		 *

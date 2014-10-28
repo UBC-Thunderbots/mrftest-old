@@ -9,7 +9,7 @@
  *
  * This class helps prevent accidentally combining values in degrees and radians without proper conversion.
  */
-class Angle {
+class Angle final {
 	public:
 		/**
 		 * \brief The zero angle.

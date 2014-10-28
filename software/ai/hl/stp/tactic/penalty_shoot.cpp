@@ -6,7 +6,7 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
 namespace {
-	class PenaltyShoot : public Tactic {
+	class PenaltyShoot final : public Tactic {
 		public:
 			explicit PenaltyShoot(World world) : Tactic(world, true), shoot_up(true), has_shot(false) {
 			}
@@ -14,10 +14,10 @@ namespace {
 		private:
 			bool shoot_up;
 			bool has_shot;
-			bool done() const;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			bool done() const override;
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"penalty-shoot";
 			}
 	};

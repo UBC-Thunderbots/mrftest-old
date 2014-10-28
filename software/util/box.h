@@ -11,7 +11,7 @@
  *
  * \tparam T the type of object to hold
  */
-template<typename T> class Box : public NonCopyable {
+template<typename T> class Box final : public NonCopyable {
 	public:
 		/**
 		 * \brief The type of object in the box.

@@ -38,13 +38,13 @@ namespace {
 	
 	class PID5_2012ControllerFactory;
 
-	class PID5_2012Controller : public RobotController {
+	class PID5_2012Controller final : public RobotController {
 		public:
 			explicit PID5_2012Controller(World world, Player plr, Gtk::Entry &std_entry);
 
 			~PID5_2012Controller();
 
-			void tick();
+			void tick() override;
 			void move(const Point &new_position, Angle new_orientation, Point &linear_velocity, Angle &angular_velocity);
 			void move(const Point &new_position, Angle new_orientation, int(&wheel_speeds)[4]);
 			void clear();
@@ -172,17 +172,17 @@ namespace {
 		std_entry.set_text(text);
 	}
 
-	class PID5_2012ControllerFactory : public RobotControllerFactory {
+	class PID5_2012ControllerFactory final : public RobotControllerFactory {
 		public:
 			explicit PID5_2012ControllerFactory() : RobotControllerFactory(u8"PID 5 2012") {
 			}
 
-			std::unique_ptr<RobotController> create_controller(World world, Player plr) const {
+			std::unique_ptr<RobotController> create_controller(World world, Player plr) const override {
 				std::unique_ptr<RobotController> p(new PID5_2012Controller(world, plr, get_std(plr.pattern())));
 				return p;
 			}
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return &get_widget();
 			}
 	

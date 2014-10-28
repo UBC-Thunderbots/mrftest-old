@@ -24,7 +24,7 @@ namespace {
 	/**
 	 * Goalie in a team of N robots.
 	 */
-	class Goalie2 : public Tactic {
+	class Goalie2 final : public Tactic {
 		public:
 			explicit Goalie2(World world, size_t defender_role) : Tactic(world), defender_role(defender_role) {
 			}
@@ -32,10 +32,10 @@ namespace {
 		private:
 			size_t defender_role;
 			void execute();
-			Player select(const std::set<Player> &) const {
+			Player select(const std::set<Player> &) const override {
 				assert(false);
 			}
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				if (world.friendly_team().size() > defender_role + 1) {
 					return u8"goalie-dynamic duo";
 				} else {
@@ -47,32 +47,32 @@ namespace {
 	/**
 	 * Goalie in a team of N robots.
 	 */
-	class Goalie : public Tactic {
+	class Goalie final : public Tactic {
 		public:
 			explicit Goalie(World world) : Tactic(world) {
 			}
 
 		private:
-			void execute();
-			Player select(const std::set<Player> &) const {
+			void execute() override;
+			Player select(const std::set<Player> &) const override {
 				assert(false);
 			}
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return u8"goalie (helped by defender)";
 			}
 	};
 
-	class Defender : public Tactic {
+	class Defender final : public Tactic {
 		public:
 			explicit Defender(World world, unsigned i) : Tactic(world), index(i) {
 			}
 
 		private:
 			unsigned index;
-			Player select(const std::set<Player> &players) const;
-			void execute();
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
 			Point calc_defend_pos(unsigned index) const;
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return u8"extra defender";
 			}
 	};

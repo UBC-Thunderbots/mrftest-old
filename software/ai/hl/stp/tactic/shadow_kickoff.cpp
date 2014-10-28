@@ -11,7 +11,7 @@ using AI::HL::STP::Coordinate;
 namespace Action = AI::HL::STP::Action;
 
 namespace {
-	class ShadowKickoff : public Tactic {
+	class ShadowKickoff final : public Tactic {
 		public:
 			explicit ShadowKickoff(World world, Enemy::Ptr enemy, const Coordinate default_loc) : Tactic(world), enemy(enemy), default_loc(default_loc) {
 			}
@@ -19,9 +19,9 @@ namespace {
 		private:
 			const Enemy::Ptr enemy;
 			const Coordinate default_loc;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"shadow kickoff";
 			}
 	};
@@ -54,15 +54,15 @@ namespace {
 		player.dribble(AI::BE::Player::DribbleMode::STOP);
 	}
 
-	class ShadowBall : public Tactic {
+	class ShadowBall final : public Tactic {
 		public:
 			explicit ShadowBall(World world) : Tactic(world) {
 			}
 
 		private:
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"shadow ball";
 			}
 	};

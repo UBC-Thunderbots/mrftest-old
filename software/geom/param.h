@@ -15,7 +15,7 @@ namespace xmlpp {
 /**
  * \brief A floating-point parameter representing an angle that can be edited by means of a text field showing the angle in radians.
  */
-class RadianParam : public NumericParam {
+class RadianParam final : public NumericParam {
 	public:
 		/**
 		 * \brief Constructs a new radian parameter.
@@ -57,7 +57,7 @@ class RadianParam : public NumericParam {
 		 *
 		 * \param[in, out] param the structure to write into.
 		 */
-		void encode_value_to_log(Log::Parameter &param) const;
+		void encode_value_to_log(Log::Parameter &param) const override;
 
 	private:
 		/**
@@ -65,20 +65,20 @@ class RadianParam : public NumericParam {
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
-		void load(const xmlpp::Element *elt);
+		void load(const xmlpp::Element *elt) override;
 
 		/**
 		 * \brief Stores the values of parameters into an XML tree.
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
-		void save(xmlpp::Element *elt) const;
+		void save(xmlpp::Element *elt) const override;
 };
 
 /**
  * \brief A floating-point parameter representing an angle that can be edited by means of a text field showing the angle in degrees.
  */
-class DegreeParam : public NumericParam {
+class DegreeParam final : public NumericParam {
 	public:
 		/**
 		 * \brief Constructs a new degree parameter.
@@ -120,7 +120,7 @@ class DegreeParam : public NumericParam {
 		 *
 		 * \param[in, out] param the structure to write into.
 		 */
-		void encode_value_to_log(Log::Parameter &param) const;
+		void encode_value_to_log(Log::Parameter &param) const override;
 
 	private:
 		/**
@@ -128,14 +128,14 @@ class DegreeParam : public NumericParam {
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
-		void load(const xmlpp::Element *elt);
+		void load(const xmlpp::Element *elt) override;
 
 		/**
 		 * \brief Stores the values of parameters into an XML tree.
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
-		void save(xmlpp::Element *elt) const;
+		void save(xmlpp::Element *elt) const override;
 };
 
 #endif

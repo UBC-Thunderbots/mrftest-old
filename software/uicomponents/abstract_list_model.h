@@ -103,22 +103,22 @@ class AbstractListModel : public Gtk::TreeModel {
 	private:
 		int stamp;
 
-		Gtk::TreeModelFlags get_flags_vfunc() const;
-		int get_n_columns_vfunc() const;
-		GType get_column_type_vfunc(int col) const;
-		bool iter_next_vfunc(const iterator &, iterator &) const;
-		bool get_iter_vfunc(const Path &, iterator &) const;
-		bool iter_children_vfunc(const iterator &, iterator &) const;
-		bool iter_parent_vfunc(const iterator &, iterator &) const;
-		bool iter_nth_child_vfunc(const iterator &, int, iterator &) const;
-		bool iter_nth_root_child_vfunc(int n, iterator &) const;
-		bool iter_has_child_vfunc(const iterator &) const;
-		int iter_n_children_vfunc(const iterator &) const;
-		int iter_n_root_children_vfunc() const;
-		Path get_path_vfunc(const iterator &) const;
-		bool iter_is_valid(const iterator &) const;
-		void get_value_vfunc(const iterator &, int, Glib::ValueBase &) const;
-		void set_value_impl(const iterator &, int, const Glib::ValueBase &);
+		Gtk::TreeModelFlags get_flags_vfunc() const override;
+		int get_n_columns_vfunc() const override;
+		GType get_column_type_vfunc(int col) const override;
+		bool iter_next_vfunc(const iterator &, iterator &) const override;
+		bool get_iter_vfunc(const Path &, iterator &) const override;
+		bool iter_children_vfunc(const iterator &, iterator &) const override;
+		bool iter_parent_vfunc(const iterator &, iterator &) const override;
+		bool iter_nth_child_vfunc(const iterator &, int, iterator &) const override;
+		bool iter_nth_root_child_vfunc(int n, iterator &) const override;
+		bool iter_has_child_vfunc(const iterator &) const override;
+		int iter_n_children_vfunc(const iterator &) const override;
+		int iter_n_root_children_vfunc() const override;
+		Path get_path_vfunc(const iterator &) const override;
+		bool iter_is_valid(const iterator &) const override;
+		void get_value_vfunc(const iterator &, int, Glib::ValueBase &) const override;
+		void set_value_impl(const iterator &, int, const Glib::ValueBase &) override;
 
 		void make_iter_valid(iterator &, std::size_t) const;
 		static void make_iter_invalid(iterator &);

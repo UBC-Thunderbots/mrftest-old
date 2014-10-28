@@ -17,7 +17,7 @@
 /**
  * A window from which the user can select recorded logs and launch tools on them.
  */
-class LogLauncher : public Gtk::Window {
+class LogLauncher final : public Gtk::Window {
 	public:
 		/**
 		 * Creates a new LogLauncher.

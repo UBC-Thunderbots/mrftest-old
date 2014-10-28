@@ -14,7 +14,7 @@
 /**
  * \brief A launcher window from which testers for individual robots can be launched.
  */
-class TesterLauncher : public Gtk::Window {
+class TesterLauncher final : public Gtk::Window {
 	public:
 		/**
 		 * \brief Constructs a new TesterLauncher.

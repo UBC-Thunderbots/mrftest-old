@@ -11,7 +11,7 @@
 /**
  * \brief A panel that lets the user control the LEDs
  */
-class LEDsPanel : public Gtk::VBox {
+class LEDsPanel final : public Gtk::VBox {
 	public:
 		/**
 		 * \brief Constructs a new LEDsPanel

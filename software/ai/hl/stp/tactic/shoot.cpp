@@ -21,7 +21,7 @@ namespace {
 	BoolParam new_shoot(u8"ShootGoal: enable autokick threshold", u8"AI/STP/Tactic/shoot", true);
 	DegreeParam shoot_thresh(u8"ShootGoal: threshold (degrees)", u8"AI/STP/Tactic/shoot", 5.0, 0.0, 90.0);
 
-	class ShootGoal : public Tactic {
+	class ShootGoal final : public Tactic {
 		public:
 			explicit ShootGoal(World world, bool force) : Tactic(world, true), kick_attempted(false), force(force), shoot_score(Angle::zero())
 			{
@@ -42,12 +42,12 @@ namespace {
 
 
 
-			bool done() const;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			void player_changed();
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
-			Glib::ustring description() const {
+			bool done() const override;
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			void player_changed() override;
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const override;
+			Glib::ustring description() const override {
 				return u8"shoot-goal";
 			}
 
@@ -55,7 +55,7 @@ namespace {
 			Point target;
 	};
 
-	class ShootTarget : public Tactic {
+	class ShootTarget final : public Tactic {
 		public:
 			explicit ShootTarget(World world, const Coordinate target) : Tactic(world, true), target(target), kick_attempted(false) {
 			}
@@ -63,11 +63,11 @@ namespace {
 		private:
 			Coordinate target;
 			bool kick_attempted;
-			bool done() const;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			void player_changed();
-			Glib::ustring description() const {
+			bool done() const override;
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			void player_changed() override;
+			Glib::ustring description() const override {
 				return u8"shoot-target";
 			}
 	};

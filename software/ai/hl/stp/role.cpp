@@ -4,14 +4,14 @@ using namespace AI::HL::W;
 using AI::HL::STP::Role;
 
 namespace {
-	class Fixed : public Role {
+	class Fixed final : public Role {
 		public:
 			explicit Fixed(Player p) : player(p) {
 			}
 
 		private:
 			Player player;
-			Player evaluate() const {
+			Player evaluate() const override {
 				return player;
 			}
 	};

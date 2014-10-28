@@ -10,7 +10,7 @@
 /**
  * A rectangular matrix.
  */
-class Matrix {
+class Matrix final {
 	public:
 		/**
 		 * Flags for how to initialize new matrices.

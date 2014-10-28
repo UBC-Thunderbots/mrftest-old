@@ -9,7 +9,7 @@
 #include <sigc++/connection.h>
 
 namespace {
-	class ScopedDisconnector : public NonCopyable {
+	class ScopedDisconnector final : public NonCopyable {
 		public:
 			explicit ScopedDisconnector(sigc::connection conn) : conn(conn) {
 			}

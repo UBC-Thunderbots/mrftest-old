@@ -99,10 +99,10 @@ namespace AI {
 
 #define HIGH_LEVEL_REGISTER(cls) \
 	namespace { \
-		class cls##HighLevelFactory : public AI::HL::HighLevelFactory { \
+		class cls##HighLevelFactory final : public AI::HL::HighLevelFactory { \
 			public: \
 				cls##HighLevelFactory(); \
-				std::unique_ptr<HighLevel> create_high_level(AI::HL::W::World) const; \
+				std::unique_ptr<HighLevel> create_high_level(AI::HL::W::World) const override; \
 		}; \
 	} \
 	\

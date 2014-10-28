@@ -13,7 +13,7 @@ namespace {
 	const unsigned int DRIBBLE_POWER_BITS = 5U;
 	const unsigned int DRIBBLE_POWER_MAX = (1U << DRIBBLE_POWER_BITS) - 1U;
 
-	struct RSSITableEntry {
+	struct RSSITableEntry final {
 		int rssi;
 		int db;
 	};
@@ -76,7 +76,7 @@ namespace {
 		{ 0, -90 },
 	};
 
-	struct MessageTemplate {
+	struct MessageTemplate final {
 		const char *pattern;
 		Annunciator::Message::Severity severity;
 	};

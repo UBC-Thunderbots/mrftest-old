@@ -22,6 +22,8 @@ class NonCopyable {
 		NonCopyable &operator=(const NonCopyable &) = delete;
 };
 
+
+
 inline NonCopyable::NonCopyable() = default;
 
 #endif

@@ -51,7 +51,7 @@ namespace {
 
 	const int tasks_square_n = G_N_ELEMENTS(tasks_square);
 
-	class MBHL : public HighLevel {
+	class MBHL final : public HighLevel {
 		public:
 			Gtk::VBox vbox;
 			Gtk::Button button_normal;
@@ -85,9 +85,9 @@ namespace {
 				vbox.add(rchoose);
 			}
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			void tick() {
+			void tick() override {
 				if (done > tasks.size()) {
 					return;
 				}
@@ -134,7 +134,7 @@ namespace {
 				runner.move(tasks[done].first, tasks[done].second, Point());
 			}
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return &vbox;
 			}
 

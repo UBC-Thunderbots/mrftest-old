@@ -57,7 +57,7 @@ template<typename T> T clamp_symmetric(const T &value, const T &limit);
  *
  * \tparam Comp the type of the comparator between lookup table elements (defaults to \c std::less<T>).
  */
-template<typename T, typename Comp = std::less<T>> class IndexComparator {
+template<typename T, typename Comp = std::less<T>> class IndexComparator final {
 	public:
 		/**
 		 * \brief Constructs a new IndexComparator.

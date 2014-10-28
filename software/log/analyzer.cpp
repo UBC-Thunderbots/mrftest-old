@@ -294,7 +294,7 @@ namespace {
 	/**
 	 * \brief A column record containing two columns, a key and a value, suitable for displaying decoded packet structures.
 	 */
-	class PacketDecodedTreeColumns : public Gtk::TreeModelColumnRecord {
+	class PacketDecodedTreeColumns final : public Gtk::TreeModelColumnRecord {
 		public:
 			/**
 			 * \brief The key column.
@@ -359,7 +359,7 @@ namespace {
 		return new_row;
 	}
 
-	class RecordsALM : public Glib::Object, public AbstractListModel {
+	class RecordsALM final : public Glib::Object, public AbstractListModel {
 		public:
 			typedef Glib::RefPtr<RecordsALM> Ptr;
 			Gtk::TreeModelColumn<std::size_t> index_column;
@@ -378,11 +378,11 @@ namespace {
 				alm_column_record.add(type_column);
 			}
 
-			std::size_t alm_rows() const {
+			std::size_t alm_rows() const override {
 				return records.size();
 			}
 
-			void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const {
+			void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const override {
 				if (col == static_cast<unsigned int>(index_column.index())) {
 					Glib::Value<std::size_t> v;
 					v.init(index_column.type());
@@ -398,7 +398,7 @@ namespace {
 				}
 			}
 
-			void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) {
+			void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) override {
 			}
 
 			friend class Glib::RefPtr<RecordsALM>;
@@ -693,7 +693,7 @@ namespace {
 	}
 }
 
-class LogAnalyzer::Impl : public NonCopyable {
+class LogAnalyzer::Impl final : public NonCopyable {
 	public:
 		std::vector<Log::Record> records;
 		RecordsALM::Ptr alm;

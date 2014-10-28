@@ -61,7 +61,7 @@ namespace AI {
 			/**
 			 * \brief A player, as seen by a Navigator
 			 */
-			class Player : public AI::Common::Player, public Robot {
+			class Player final : public AI::Common::Player, public Robot {
 				public:
 					/**
 					 * \brief The type of a single point in a path
@@ -172,7 +172,7 @@ namespace AI {
 			/**
 			 * \brief The world, as seen by a Navigator
 			 */
-			class World {
+			class World final {
 				public:
 					/**
 					 * \brief Constructs a new World
@@ -239,7 +239,7 @@ namespace std {
 	/**
 	 * \brief Provides a total ordering of Robot objects so they can be stored in STL ordered containers
 	 */
-	template<> struct less<AI::Nav::W::Robot> {
+	template<> struct less<AI::Nav::W::Robot> final {
 		public:
 			/**
 			 * \brief Compares two objects
@@ -259,7 +259,7 @@ namespace std {
 	/**
 	 * \brief Provides a total ordering of Player objects so they can be stored in STL ordered containers
 	 */
-	template<> struct less<AI::Nav::W::Player> {
+	template<> struct less<AI::Nav::W::Player> final {
 		public:
 			/**
 			 * \brief Compares two objects

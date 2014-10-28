@@ -17,7 +17,7 @@
 /**
  * \brief A panel that allows the user to edit the operational parameters of a robot
  */
-class ParamsPanel : public Gtk::Table {
+class ParamsPanel final : public Gtk::Table {
 	public:
 		/**
 		 * \brief Constructs a new ParamsPanel.

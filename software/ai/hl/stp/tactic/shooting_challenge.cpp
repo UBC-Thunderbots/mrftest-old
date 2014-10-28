@@ -13,7 +13,7 @@ using namespace AI::HL::STP::Action;
 using namespace AI::HL::W;
 
 namespace {
-	class ShootingChallenge : public Tactic {
+	class ShootingChallenge final : public Tactic {
 		public:
 			explicit ShootingChallenge(World world, double speed_ratio) : Tactic(world, true), goal_point(world.field().enemy_goal()), shooter(player.position() - world.ball().position()), to_target((world.ball().position() - goal_point).orientation() - shooter.orientation()), speed_ratio(speed_ratio) {
 			}
@@ -23,15 +23,15 @@ namespace {
 			Point shooter;
 			Angle to_target;
 			double speed_ratio;
-			bool done() const {
+			bool done() const override {
 				return player && player.autokick_fired();
 			}
 
-			Player select(const std::set<Player> &players) const {
+			Player select(const std::set<Player> &players) const override {
 				return select_baller(world, players, player);
 			}
 
-			void execute() {
+			void execute() override {
 				AI::HL::STP::Action::shoot_goal(world, player, true);
 
 				//					Angle to_target = ((world.ball().position() - goal_point).orientation()) - shooter.orientation();

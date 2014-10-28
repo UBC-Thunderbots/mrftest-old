@@ -6,7 +6,7 @@ namespace AI {
 	/**
 	 * \brief The basic setup of the AI.
 	 */
-	class Setup {
+	class Setup final {
 		public:
 			/**
 			 * \brief The name of the high level in use.

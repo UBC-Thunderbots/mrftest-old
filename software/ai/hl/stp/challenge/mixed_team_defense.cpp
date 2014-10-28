@@ -57,19 +57,19 @@ namespace {
 	BoolParam three_def_one_atk(u8"3 defender 1 attacker", u8"MixedTeamDefense", true);
 	BoolParam two_def_two_atk(u8"2 defender 2 attacker", u8"MixedTeamDefense", false);
 
-	struct MixedTeamDefense : public HighLevel {
+	struct MixedTeamDefense final : public HighLevel {
 		World world;
 
 		explicit MixedTeamDefense(World world) : world(world) {
 		}
 
-		HighLevelFactory &factory() const;
+		HighLevelFactory &factory() const override;
 
-		Gtk::Widget *ui_controls() {
+		Gtk::Widget *ui_controls() override {
 			return nullptr;
 		}
 
-		void tick() {
+		void tick() override {
 			tick_eval(world);
 
 			std::vector<Player> players;
@@ -374,7 +374,7 @@ namespace {
 
 		}
 
-		void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+		void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) override {
 			if (do_draw) {
 				draw_ui(world, ctx);
 			}

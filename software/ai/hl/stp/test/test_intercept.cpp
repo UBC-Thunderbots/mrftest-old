@@ -8,7 +8,7 @@ using namespace AI::HL::W;
 using namespace AI::HL::STP;
 
 namespace {
-	class TestIntercept : public HighLevel {
+	class TestIntercept final : public HighLevel {
 		public:
 			explicit TestIntercept(World world) : world(world) {
 			}
@@ -16,13 +16,13 @@ namespace {
 		private:
 			World world;
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return nullptr;
 			}
 
-			void tick() {
+			void tick() override {
 				FriendlyTeam friendly = world.friendly_team();
 				if (!friendly.size()) {
 					return;

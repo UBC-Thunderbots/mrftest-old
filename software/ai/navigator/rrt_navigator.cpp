@@ -39,12 +39,12 @@ namespace AI {
 			IntParam jon_hysteris_hack(u8"Jon Hysteris Hack", u8"Nav/RRT", 2, 1, 10);
 
 
-			class RRTNavigator : public Navigator {
+			class RRTNavigator final : public Navigator {
 				public:
 					explicit RRTNavigator(World world);
-					void tick();
-					void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
-					NavigatorFactory &factory() const;
+					void tick() override;
+					void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) override;
+					NavigatorFactory &factory() const override;
 
 				private:
 					void pivot(Player player);

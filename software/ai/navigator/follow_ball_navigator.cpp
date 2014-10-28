@@ -9,10 +9,10 @@ namespace {
 	 * Follow Ball Navigator
 	 * Used for testing robot controllers to match the ball's velocity.
 	 */
-	class FollowBallNavigator : public Navigator {
+	class FollowBallNavigator final : public Navigator {
 		public:
 			explicit FollowBallNavigator(World world);
-			void tick();
+			void tick() override;
 			NavigatorFactory &factory() const;
 	};
 }

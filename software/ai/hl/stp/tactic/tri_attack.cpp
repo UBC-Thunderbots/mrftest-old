@@ -21,18 +21,18 @@ using namespace AI::HL::Util;
 
 namespace {
 
-	class TriAttackPrime : public Tactic {
+	class TriAttackPrime final : public Tactic {
 		public:
 			explicit TriAttackPrime(World world) : Tactic(world, true), attempted_shot(false) {
 			}
 
 		private:
 			bool attempted_shot;
-			bool done() const;
-			bool fail() const;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			bool done() const override;
+			bool fail() const override;
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"TriAttackPrime";
 			}
 	};
@@ -58,14 +58,14 @@ namespace {
 		AI::HL::STP::Action::dribble(world, player, target_point);
 	}
 
-	class TriAttack2 : public Tactic {
+	class TriAttack2 final : public Tactic {
 		public:
 			explicit TriAttack2(World world) : Tactic(world) {
 			}
 
 		private:
-			Player select(const std::set<Player> &players) const;
-			void execute();
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
 				Glib::ustring description() const {
 				return u8"TriAttack2";
 			}
@@ -83,15 +83,15 @@ namespace {
 		Action::defender_move(world, player, waypoints[1].first);
 	}
 
-	class TriAttack3 : public Tactic {
+	class TriAttack3 final : public Tactic {
 		public:
 			explicit TriAttack3(World world) : Tactic(world) {
 			}
 
 		private:
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"TriAttack3";
 			}
 	};

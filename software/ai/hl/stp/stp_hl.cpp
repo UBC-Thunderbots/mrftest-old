@@ -14,7 +14,7 @@ using AI::HL::HighLevel;
 using namespace AI::HL::STP;
 
 namespace {
-	class STPHL : public PlayExecutor, public HighLevel {
+	class STPHL final : public PlayExecutor, public HighLevel {
 		public:
 			Gtk::VBox vbox;
 			Gtk::Button reset_button;
@@ -32,20 +32,20 @@ namespace {
 				curr_play = nullptr;
 			}
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			void tick() {
+			void tick() override {
 				PlayExecutor::tick();
 				const Glib::ustring &i = info();
 				text_view.get_buffer()->set_text(i);
 				ai_notes = i;
 			}
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return &vbox;
 			}
 
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) override {
 				PlayExecutor::draw_overlay(ctx);
 			}
 	};

@@ -11,7 +11,7 @@ using namespace AI::HL::W;
 using AI::HL::STP::Coordinate;
 
 namespace {
-	class TestChip : public HighLevel {
+	class TestChip final : public HighLevel {
 		public:
 			explicit TestChip(World world) : world(world) {
 			}
@@ -19,13 +19,13 @@ namespace {
 		private:
 			World world;
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return nullptr;
 			}
 
-			void tick() {
+			void tick() override {
 				tick_eval(world);
 
 				FriendlyTeam friendly = world.friendly_team();
@@ -37,7 +37,7 @@ namespace {
 				Action::chip_target(world, friendly[0], world.field().enemy_goal());
 			}
 
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) override {
 				draw_shoot(world, ctx);
 			}
 	};

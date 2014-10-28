@@ -8,7 +8,7 @@
 /**
  * A graphical panel that displays annunciator messages.
  */
-class GUIAnnunciator : public Gtk::ScrolledWindow {
+class GUIAnnunciator final : public Gtk::ScrolledWindow {
 	public:
 		/**
 		 * \brief Constructs a new annunciator panel ready to add to a window.

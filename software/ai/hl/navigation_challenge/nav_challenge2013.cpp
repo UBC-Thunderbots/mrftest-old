@@ -13,15 +13,15 @@ using namespace AI::HL::W;
 namespace {
 	DoubleParam pos_dis_threshold_nav(u8"pos distance threshold nav 2013", u8"NC", 0.05, 0, 1.0);
 
-	class NCHL2013 : public HighLevel {
+	class NCHL2013 final : public HighLevel {
 		public:
 			explicit NCHL2013(World world) : world(world), time_steps(0) {
 				for (int i = 0 ; i < 3 ; i++) done[i] = 0;
 			}
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			void tick() {
+			void tick() override {
 
 				const Field &f = world.field();
 				const std::pair<Point, Angle> tasks[3][3] = {
@@ -90,7 +90,7 @@ namespace {
 				}
 			}
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return nullptr;
 			}
 

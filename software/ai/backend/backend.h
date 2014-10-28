@@ -72,21 +72,21 @@ namespace AI {
 				 *
 				 * \return the field.
 				 */
-				const Field &field() const;
+				const Field &field() const override;
 
 				/**
 				 * \brief Returns the ball
 				 *
 				 * \return the ball
 				 */
-				const Ball &ball() const;
+				const Ball &ball() const override;
 
 				/**
 				 * Returns the number of robots in the world.
 				 *
 				 * \return the number of robots.
 				 */
-				std::size_t visualizable_num_robots() const;
+				std::size_t visualizable_num_robots() const override;
 
 				/**
 				 * Fetches a robot.
@@ -95,7 +95,7 @@ namespace AI {
 				 *
 				 * \return the Robot.
 				 */
-				Visualizable::Robot::Ptr visualizable_robot(std::size_t index) const;
+				Visualizable::Robot::Ptr visualizable_robot(std::size_t index) const override;
 
 				/**
 				 * \brief Returns the friendly team
@@ -207,7 +207,7 @@ namespace AI {
 				 *
 				 * \return the timer signal.
 				 */
-				sigc::signal<void> &signal_tick() const;
+				sigc::signal<void> &signal_tick() const override;
 
 				/**
 				 * Indicates that the mouse was pressed over the visualizer.
@@ -216,7 +216,7 @@ namespace AI {
 				 *
 				 * \param[in] btn the number of the button that was pressed.
 				 */
-				void mouse_pressed(Point p, unsigned int btn);
+				void mouse_pressed(Point p, unsigned int btn) override;
 
 				/**
 				 * Indicates that the mouse was released over the visualizer.
@@ -225,19 +225,19 @@ namespace AI {
 				 *
 				 * \param[in] btn the number of the button that was released.
 				 */
-				void mouse_released(Point p, unsigned int btn);
+				void mouse_released(Point p, unsigned int btn) override;
 
 				/**
 				 * Indicates that the mouse exited the area of the visualizer.
 				 */
-				void mouse_exited();
+				void mouse_exited() override;
 
 				/**
 				 * Indicates that the mouse was moved over the visualizer.
 				 *
 				 * \param[in] p the new position of the mouse pointer, in world coordinates.
 				 */
-				void mouse_moved(Point p);
+				void mouse_moved(Point p) override;
 
 				/**
 				 * \brief Returns a signal that fires at the very end of the AI's work each tick.
@@ -312,7 +312,7 @@ namespace AI {
 				mutable sigc::signal<void, AI::Timestamp, const SSL_Referee &> signal_refbox_;
 				mutable sigc::signal<void, Cairo::RefPtr<Cairo::Context>> signal_draw_overlay_;
 
-				void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
+				void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const override;
 		};
 
 		/**

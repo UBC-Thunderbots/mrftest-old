@@ -14,7 +14,7 @@
 /**
  * \brief A panel that lets the user manually control the kicking subsystem.
  */
-class KickerPanel : public Gtk::Table {
+class KickerPanel final : public Gtk::Table {
 	public:
 		/**
 		 * \brief Constructs a new KickerPanel.

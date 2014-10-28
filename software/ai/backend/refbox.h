@@ -12,7 +12,7 @@ namespace AI {
 		/**
 		 * \brief Provides the ability to receive referee box packets.
 		 */
-		class RefBox : public NonCopyable, public sigc::trackable {
+		class RefBox final : public NonCopyable, public sigc::trackable {
 			public:
 				/**
 				 * \brief The most recently received referee box packet.

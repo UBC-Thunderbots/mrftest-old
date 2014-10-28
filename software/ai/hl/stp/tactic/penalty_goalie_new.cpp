@@ -13,20 +13,20 @@ using namespace AI::HL::STP::Tactic;
 namespace {
 	Point old_des;
 
-	class PenaltyGoalieNew : public Tactic {
+	class PenaltyGoalieNew final : public Tactic {
 		public:
 			explicit PenaltyGoalieNew(World world);
 		private:
-			bool done() const;
-			void execute();
+			bool done() const override;
+			void execute() override;
 			double power;
 			Robot shooter;
 			Point predicted;
-			Player select(const std::set<Player> &) const {
+			Player select(const std::set<Player> &) const override {
 				assert(false);
 			}
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> context) const;
-			Glib::ustring description() const {
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> context) const override;
+			Glib::ustring description() const override {
 				return "penalty-goalie-new";
 			}
 	};

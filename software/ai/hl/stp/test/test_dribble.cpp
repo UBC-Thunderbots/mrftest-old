@@ -21,7 +21,7 @@ using AI::HL::STP::Coordinate;
 
 
 namespace {
-	class TestDribble: public HighLevel {
+	class TestDribble final : public HighLevel {
 		public:
 			explicit TestDribble(World world) : world(world) {
 			}
@@ -29,13 +29,13 @@ namespace {
 		private:
 			World world;
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return nullptr;
 			}
 
-			void tick() {
+			void tick() override {
 				tick_eval(world);
 				FriendlyTeam friendly = world.friendly_team();
 				std::vector<Player> players;
@@ -50,7 +50,7 @@ namespace {
 					Action::intercept(friendly[0], world.ball().position());
 				}
 			}
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) override {
 				draw_shoot(world, ctx);
 			}
 	};

@@ -44,7 +44,7 @@ namespace {
 	// how fast the baller should spin
 	RadianParam baller_spin_delta(u8"CHALLENGE: change in orientation every time tick for move spin (radians)", u8"STP/Challenge", 1.0, 1.0, 5.0);
 
-	class PassChallenge: public HighLevel {
+	class PassChallenge final : public HighLevel {
 		public:
 			explicit PassChallenge(World world) :
 					world(world) {
@@ -64,13 +64,13 @@ namespace {
 
 			int kicked_count;
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return nullptr;
 			}
 
-			void tick() {
+			void tick() override {
 				tick_eval(world);
 
 				std::vector<AI::HL::W::Player> players = AI::HL::Util::get_players(world.friendly_team());

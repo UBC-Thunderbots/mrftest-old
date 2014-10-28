@@ -6,7 +6,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 namespace {
-	class DecodeTest : public CppUnit::TestFixture {
+	class DecodeTest final : public CppUnit::TestFixture {
 		CPPUNIT_TEST_SUITE(DecodeTest);
 		CPPUNIT_TEST(test_byte);
 		CPPUNIT_TEST(test_byte_shifted1);

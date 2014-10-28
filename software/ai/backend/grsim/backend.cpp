@@ -16,10 +16,10 @@
 namespace AI {
 	namespace BE {
 		namespace GRSim {
-			class BackendFactory : public AI::BE::BackendFactory {
+			class BackendFactory final : public AI::BE::BackendFactory {
 				public:
 					explicit BackendFactory();
-					std::unique_ptr<AI::BE::Backend> create_backend(const std::vector<bool> &disable_cameras, int multicast_interface) const;
+					std::unique_ptr<AI::BE::Backend> create_backend(const std::vector<bool> &disable_cameras, int multicast_interface) const override;
 			};
 
 			extern BackendFactory grsim_backend_factory_instance;
@@ -28,30 +28,30 @@ namespace AI {
 }
 
 namespace {
-	class FriendlyTeam : public AI::BE::SSLVision::Team<AI::BE::GRSim::Player, AI::BE::Player> {
+	class FriendlyTeam final : public AI::BE::SSLVision::Team<AI::BE::GRSim::Player, AI::BE::Player> {
 		public:
 			explicit FriendlyTeam(AI::BE::Backend &backend);
 
 		protected:
-			void create_member(unsigned int pattern);
+			void create_member(unsigned int pattern) override;
 	};
 
-	class EnemyTeam : public AI::BE::SSLVision::Team<AI::BE::Robot, AI::BE::Robot> {
+	class EnemyTeam final : public AI::BE::SSLVision::Team<AI::BE::Robot, AI::BE::Robot> {
 		public:
 			explicit EnemyTeam(AI::BE::Backend &backend);
 
 		protected:
-			void create_member(unsigned int pattern);
+			void create_member(unsigned int pattern) override;
 	};
 
-	class Backend : public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
+	class Backend final : public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
 		public:
 			explicit Backend(const std::vector<bool> &disable_cameras, int multicast_interface);
-			AI::BE::GRSim::BackendFactory &factory() const;
-			FriendlyTeam &friendly_team();
-			const FriendlyTeam &friendly_team() const;
-			EnemyTeam &enemy_team();
-			const EnemyTeam &enemy_team() const;
+			AI::BE::GRSim::BackendFactory &factory() const override;
+			FriendlyTeam &friendly_team() override;
+			const FriendlyTeam &friendly_team() const override;
+			EnemyTeam &enemy_team() override;
+			const EnemyTeam &enemy_team() const override;
 
 		private:
 			FriendlyTeam friendly;

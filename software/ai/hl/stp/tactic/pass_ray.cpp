@@ -23,7 +23,7 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace {
 	DegreeParam small_pass_ray_angle(u8"Small ray shoot rotation (degrees)", u8"STP/PassRay", 20, 0, 180);
 
-	struct PasserRay : public Tactic {
+	struct PasserRay final : public Tactic {
 		bool kick_attempted;
 		Player target;
 
@@ -33,15 +33,15 @@ namespace {
 		explicit PasserRay(World world) : Tactic(world, true), kick_attempted(false) {
 		}
 
-		bool done() const {
+		bool done() const override {
 			return player && kick_attempted && player.autokick_fired();
 		}
 
-		void player_changed() {
+		void player_changed() override {
 			ori_fix = Evaluation::best_shoot_ray(world, player).second;
 		}
 
-		bool fail() const {
+		bool fail() const override {
 			Angle ori = Evaluation::best_shoot_ray(world, player).second;
 			if (ori.angle_diff(ori_fix) > small_pass_ray_angle) {
 				return true;
@@ -49,7 +49,7 @@ namespace {
 			return false;
 		}
 
-		Player select(const std::set<Player> &players) const {
+		Player select(const std::set<Player> &players) const override {
 			// if a player attempted to shoot, keep the player
 			if (kick_attempted && players.count(player)) {
 				return player;
@@ -57,7 +57,7 @@ namespace {
 			return select_baller(world, players, player);
 		}
 
-		void execute() {
+		void execute() override {
 			Angle ori = Evaluation::best_shoot_ray(world, player).second;
 
 			Point target = player.position() + 10 * Point::of_angle(ori);
@@ -66,7 +66,7 @@ namespace {
 			}
 		}
 
-		Glib::ustring description() const {
+		Glib::ustring description() const override {
 			return u8"passer-ray";
 		}
 	};

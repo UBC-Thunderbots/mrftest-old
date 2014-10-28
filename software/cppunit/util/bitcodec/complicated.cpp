@@ -16,7 +16,7 @@
 #undef BITCODEC_ANON_NAMESPACE
 
 namespace {
-	class ComplicatedTest : public CppUnit::TestFixture {
+	class ComplicatedTest final : public CppUnit::TestFixture {
 		CPPUNIT_TEST_SUITE(ComplicatedTest);
 		CPPUNIT_TEST(test_default_construction);
 		CPPUNIT_TEST(test_encoding);

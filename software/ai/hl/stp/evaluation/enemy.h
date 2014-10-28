@@ -12,7 +12,7 @@ namespace AI {
 				/**
 				 * How dangerous an enemy is
 				 */
-				struct Threat {
+				struct Threat final {
 					/**
 					 * How much it can see the goal.
 					 */

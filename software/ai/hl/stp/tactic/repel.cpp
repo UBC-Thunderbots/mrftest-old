@@ -7,17 +7,17 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
 namespace {
-	class Repel : public Tactic {
+	class Repel final : public Tactic {
 		public:
 			explicit Repel(World world) : Tactic(world, true), finished(false) {
 			}
 
 		private:
 			bool finished;
-			bool done() const;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			bool done() const override;
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"repel";
 			}
 	};
@@ -35,17 +35,17 @@ namespace {
 		finished = AI::HL::STP::Action::repel(world, player);
 	}
 
-	class CornerRepel : public Tactic {
+	class CornerRepel final : public Tactic {
 		public:
 			explicit CornerRepel(World world) : Tactic(world, true), finished(false) {
 			}
 
 		private:
 			bool finished;
-			bool done() const;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			bool done() const override;
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"corner_repel";
 			}
 	};

@@ -17,7 +17,7 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace {
 
 
-	class TestShootSpeed : public Tactic {
+	class TestShootSpeed final : public Tactic {
 		public:
 			explicit TestShootSpeed(World world, bool force) : Tactic(world, true), kick_attempted(false), force(force), shoot_score(Angle::zero()){}
 
@@ -26,10 +26,10 @@ namespace {
 			bool force;
 			Angle shoot_score;
 			
-			bool done() const;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const 
+			bool done() const override;
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override 
 			{
 				return u8"shoot-goal";		
 			}

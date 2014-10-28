@@ -23,7 +23,7 @@
 #include <sys/types.h>
 
 namespace {
-	class NotJoystickError : std::runtime_error {
+	class NotJoystickError final : std::runtime_error {
 		public:
 			explicit NotJoystickError() : std::runtime_error("Event node is not a joystick") {
 			}

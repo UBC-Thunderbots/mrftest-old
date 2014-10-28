@@ -23,7 +23,7 @@
 /**
  * \brief A window that allows the user to set up joystick mappings.
  */
-class MapperWindow : public Gtk::Window {
+class MapperWindow final : public Gtk::Window {
 	public:
 		/**
 		 * \brief Constructs a new MapperWindow.

@@ -18,7 +18,7 @@ namespace AI {
 			/**
 			 * \brief A player is a robot that can be driven.
 			 */
-			class Player : public AI::BE::Player {
+			class Player final : public AI::BE::Player {
 				public:
 					/**
 					 * \brief A pointer to a Player.
@@ -48,27 +48,27 @@ namespace AI {
 					 */
 					void tick(bool halt, bool stop);
 
-					bool has_ball() const;
-					bool chicker_ready() const;
-					void kick_impl(double speed);
-					void autokick_impl(double speed);
-					void chip_impl(double speed);
-					void autochip_impl(double speed);
-					bool autokick_fired() const { return autokick_fired_; }
-					void dribble(DribbleMode mode);
-					unsigned int num_bar_graphs() const;
-					double bar_graph_value(unsigned int) const;
-					Visualizable::Colour bar_graph_colour(unsigned int) const;
+					bool has_ball() const override;
+					bool chicker_ready() const override;
+					void kick_impl(double speed) override;
+					void autokick_impl(double speed) override;
+					void chip_impl(double speed) override;
+					void autochip_impl(double speed) override;
+					bool autokick_fired() const override { return autokick_fired_; }
+					void dribble(DribbleMode mode) override;
+					unsigned int num_bar_graphs() const override;
+					double bar_graph_value(unsigned int) const override;
+					Visualizable::Colour bar_graph_colour(unsigned int) const override;
 
 				private:
 					Drive::Robot &bot;
 					Annunciator::Message robot_dead_message;
 					bool autokick_fired_;
 					DribbleMode dribble_mode_;
-					struct AutokickParams {
+					struct AutokickParams final {
 						bool chip;
 						double pulse;
-						AutokickParams();
+						explicit AutokickParams();
 						bool operator==(const AutokickParams &other) const;
 						bool operator!=(const AutokickParams &other) const;
 					} autokick_params, autokick_params_old;

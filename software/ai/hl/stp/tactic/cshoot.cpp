@@ -23,7 +23,7 @@ using AI::HL::STP::Coordinate;
 namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
-	class CShootGoal : public Tactic {
+	class CShootGoal final : public Tactic {
 		public:
 			explicit CShootGoal(World world, bool force) : Tactic(world, true), kick_attempted(false), force(force),
 			timer(0), best_score(std::make_tuple(Point(0, 0), Point(0, 0), 0))
@@ -45,12 +45,12 @@ namespace {
 
 
 
-			bool done() const;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			void player_changed();
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
-			Glib::ustring description() const {
+			bool done() const override;
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			void player_changed() override;
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const override;
+			Glib::ustring description() const override {
 				return u8"cshoot-goal";
 			}
 

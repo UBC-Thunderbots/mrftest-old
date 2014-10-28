@@ -43,44 +43,44 @@ namespace {
 		return x / 1.0e6;
 	}
 
-	class Field : public NonCopyable, public Visualizable::Field {
+	class Field final : public NonCopyable, public Visualizable::Field {
 		public:
 			explicit Field() : valid_(false) {
 			}
 
-			bool valid() const {
+			bool valid() const override {
 				return valid_;
 			}
 
-			double length() const {
+			double length() const override {
 				return length_;
 			}
 
-			double total_length() const {
+			double total_length() const override {
 				return total_length_;
 			}
 
-			double width() const {
+			double width() const override {
 				return width_;
 			}
 
-			double total_width() const {
+			double total_width() const override {
 				return total_width_;
 			}
 
-			double goal_width() const {
+			double goal_width() const override {
 				return goal_width_;
 			}
 
-			double centre_circle_radius() const {
+			double centre_circle_radius() const override {
 				return centre_circle_radius_;
 			}
 
-			double defense_area_radius() const {
+			double defense_area_radius() const override {
 				return defense_area_radius_;
 			}
 
-			double defense_area_stretch() const {
+			double defense_area_stretch() const override {
 				return defense_area_stretch_;
 			}
 
@@ -102,21 +102,21 @@ namespace {
 			double length_, total_length_, width_, total_width_, goal_width_, centre_circle_radius_, defense_area_radius_, defense_area_stretch_;
 	};
 
-	class Ball : public NonCopyable, public Visualizable::Ball {
+	class Ball final : public NonCopyable, public Visualizable::Ball {
 		public:
-			Point position(double) const {
+			Point position(double) const override {
 				return position_;
 			}
 
-			Point velocity(double) const {
+			Point velocity(double) const override {
 				return velocity_;
 			}
 
-			bool highlight() const {
+			bool highlight() const override {
 				return false;
 			}
 
-			Visualizable::Colour highlight_colour() const {
+			Visualizable::Colour highlight_colour() const override {
 				std::abort();
 			}
 
@@ -148,59 +148,59 @@ namespace {
 				orientation_ = Angle::of_radians(decode_micros(position.t()));
 			}
 
-			Point position(double) const {
+			Point position(double) const override {
 				return position_;
 			}
 
-			Angle orientation(double) const {
+			Angle orientation(double) const override {
 				return orientation_;
 			}
 
-			Point velocity(double) const {
+			Point velocity(double) const override {
 				return velocity_;
 			}
 
-			Visualizable::Colour visualizer_colour() const {
+			Visualizable::Colour visualizer_colour() const override {
 				return Visualizable::Colour(1, 0, 0);
 			}
 
-			Glib::ustring visualizer_label() const {
+			Glib::ustring visualizer_label() const override {
 				return Glib::ustring::format(pattern_);
 			}
 
-			bool highlight() const {
+			bool highlight() const override {
 				return false;
 			}
 
-			Visualizable::Colour highlight_colour() const {
+			Visualizable::Colour highlight_colour() const override {
 				std::abort();
 			}
 
-			bool has_destination() const {
+			bool has_destination() const override {
 				return false;
 			}
 
-			std::pair<Point, Angle> destination() const {
+			std::pair<Point, Angle> destination() const override {
 				std::abort();
 			}
 
-			bool has_path() const {
+			bool has_path() const override {
 				return false;
 			}
 
-			const std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> &path() const {
+			const std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> &path() const override {
 				std::abort();
 			}
 
-			unsigned int num_bar_graphs() const {
+			unsigned int num_bar_graphs() const override {
 				return 0;
 			}
 
-			double bar_graph_value(unsigned int) const {
+			double bar_graph_value(unsigned int) const override {
 				std::abort();
 			}
 
-			Visualizable::Colour bar_graph_colour(unsigned int) const {
+			Visualizable::Colour bar_graph_colour(unsigned int) const override {
 				std::abort();
 			}
 
@@ -210,7 +210,7 @@ namespace {
 			Angle orientation_;
 	};
 
-	class Player : public Robot {
+	class Player final : public Robot {
 		public:
 			typedef BoxPtr<Player> Ptr;
 
@@ -228,23 +228,23 @@ namespace {
 				}
 			}
 
-			Visualizable::Colour visualizer_colour() const {
+			Visualizable::Colour visualizer_colour() const override {
 				return Visualizable::Colour(0, 1, 0);
 			}
 
-			bool has_destination() const {
+			bool has_destination() const override {
 				return true;
 			}
 
-			std::pair<Point, Angle> destination() const {
+			std::pair<Point, Angle> destination() const override {
 				return destination_;
 			}
 
-			bool has_path() const {
+			bool has_path() const override {
 				return true;
 			}
 
-			const std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> &path() const {
+			const std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> &path() const override {
 				return path_;
 			}
 
@@ -254,7 +254,7 @@ namespace {
 	};
 }
 
-class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
+class LogPlayer::Impl final : public Gtk::VBox, public Visualizable::World {
 	public:
 		explicit Impl(Gtk::Window &parent, const std::string &pathname) :
 				records(LogLoader::load(pathname)),
@@ -392,19 +392,19 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			update_with_tick();
 		}
 
-		const Visualizable::Field &field() const {
+		const Visualizable::Field &field() const override {
 			return field_;
 		}
 
-		const Visualizable::Ball &ball() const {
+		const Visualizable::Ball &ball() const override {
 			return ball_;
 		}
 
-		std::size_t visualizable_num_robots() const {
+		std::size_t visualizable_num_robots() const override {
 			return players_.size() + robots_.size();
 		}
 
-		Visualizable::Robot::Ptr visualizable_robot(std::size_t index) const {
+		Visualizable::Robot::Ptr visualizable_robot(std::size_t index) const override {
 			assert(index < visualizable_num_robots());
 			if (index < players_.size()) {
 				return players_[index].ptr();
@@ -413,26 +413,26 @@ class LogPlayer::Impl : public Gtk::VBox, public Visualizable::World {
 			}
 		}
 
-		sigc::signal<void> &signal_tick() const {
+		sigc::signal<void> &signal_tick() const override {
 			return signal_tick_;
 		}
 
-		void mouse_pressed(Point, unsigned int) {
+		void mouse_pressed(Point, unsigned int) override {
 			if (full_screen_button.get_active()) {
 				play_or_stop();
 			}
 		}
 
-		void mouse_released(Point, unsigned int) {
+		void mouse_released(Point, unsigned int) override {
 		}
 
-		void mouse_exited() {
+		void mouse_exited() override {
 		}
 
-		void mouse_moved(Point) {
+		void mouse_moved(Point) override {
 		}
 
-		void draw_overlay(Cairo::RefPtr<Cairo::Context> ) const {
+		void draw_overlay(Cairo::RefPtr<Cairo::Context> ) const override {
 		}
 
 	private:

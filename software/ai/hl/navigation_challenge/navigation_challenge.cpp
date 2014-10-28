@@ -23,16 +23,16 @@ namespace {
 
 	const int default_tasks_n = G_N_ELEMENTS(default_tasks);
 
-	class NCHL : public HighLevel {
+	class NCHL final : public HighLevel {
 		public:
 			explicit NCHL(World world) : world(world), tasks(default_tasks, default_tasks + default_tasks_n), time_steps(0) {
 				std::vector<std::size_t> done;
 				obstacleIndex = 0;
 			}
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			void tick() {
+			void tick() override {
 				FriendlyTeam friendly = world.friendly_team();
 
 				if (!friendly.size()) {
@@ -139,7 +139,7 @@ namespace {
 				}
 			}
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return nullptr;
 			}
 

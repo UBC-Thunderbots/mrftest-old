@@ -10,12 +10,12 @@ using AI::RC::RobotController;
 using namespace AI::RC::W;
 
 namespace {
-	class LazyController : public RobotController {
+	class LazyController final : public RobotController {
 		public:
 			explicit LazyController(World world, Player player) : RobotController(world, player) {
 			}
 
-			void tick() {
+			void tick() override {
 				int wheel_speeds[4] = { 0, 0, 0, 0 };
 				player.drive(wheel_speeds);
 			}

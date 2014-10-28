@@ -20,18 +20,18 @@ namespace Action = AI::HL::STP::Action;
 
 namespace {
 
-	class IndirectChipToCherry : public Tactic {
+	class IndirectChipToCherry final : public Tactic {
 		public:
 			explicit IndirectChipToCherry(World world) : Tactic(world, true) {
 			}
 
 		private:
-			bool done() const;
-			Player select(const std::set<Player> &players) const;
+			bool done() const override;
+			Player select(const std::set<Player> &players) const override;
 			Point destination;
-			void execute();
-			void player_changed();
-			Glib::ustring description() const {
+			void execute() override;
+			void player_changed() override;
+			Glib::ustring description() const override {
 				return u8"auto-chipped";
 			}
 	};

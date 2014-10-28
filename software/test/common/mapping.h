@@ -9,7 +9,7 @@
 /**
  * \brief A mapping between logical and physical axes and buttons.
  */
-class JoystickMapping {
+class JoystickMapping final {
 	public:
 		/**
 		 * \brief The button indices.

@@ -16,7 +16,7 @@ using AI::RC::RobotController;
 using namespace AI::RC::W;
 
 namespace {
-	class Vector4 {
+	class Vector4 final {
 		public:
 			double direction[4];
 
@@ -100,7 +100,7 @@ namespace {
 			}
 	};
 
-	class Vector3 {
+	class Vector3 final {
 		public:
 			Point cartesian_direction;
 			Angle angular_direction;
@@ -147,9 +147,9 @@ namespace {
 	DoubleParam wheel_max_accel(u8"Limit wheel accel (quarter degree per firmware tick squared)", u8"RC/PID6_2012", 75, 0, 1023);
 	DoubleParam aggressiveness(u8"Aggressiveness of the controller", u8"RC/PID6_2012", 0.8, 0, 1.0);
 
-	class PID6_2012Controller : public RobotController {
+	class PID6_2012Controller final : public RobotController {
 		public:
-			void tick();
+			void tick() override;
 			void move(const Point &new_position, Angle new_orientation, AI::Timestamp time_of_arrival, int(&wheel_speeds)[4]);
 			void clear();
 			explicit PID6_2012Controller(World world, Player plr);

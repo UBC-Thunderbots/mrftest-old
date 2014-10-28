@@ -78,7 +78,7 @@
 
 #if defined BITCODEC_GEN_HEADER
 BITCODEC_NS_BEGIN
-	struct BITCODEC_STRUCT_NAME {
+	struct BITCODEC_STRUCT_NAME final {
 		static constexpr std::size_t BUFFER_SIZE = BitcodecPrimitives::LengthCalculator<0, 0
 #define BITCODEC_DATA_U(type, name, offset, length, def) \
 			, offset, length

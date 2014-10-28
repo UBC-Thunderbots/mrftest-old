@@ -107,7 +107,7 @@ namespace {
 		return device.serial_number() == serial_number;
 	}
 
-	class TransferMetadata : public NonCopyable {
+	class TransferMetadata final : public NonCopyable {
 		public:
 			static TransferMetadata *get(libusb_transfer *transfer) {
 				return static_cast<TransferMetadata *>(transfer->user_data);

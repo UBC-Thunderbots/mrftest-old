@@ -14,7 +14,7 @@ namespace std {
 	/**
 	 * \brief Provides a total ordering of Player objects so they can be stored in STL ordered containers
 	 */
-	template<> struct less<AI::Common::Player> {
+	template<> struct less<AI::Common::Player> final {
 		public:
 			/**
 			 * \brief Compares two objects

@@ -19,7 +19,7 @@ namespace {
 	std::ostringstream dbgout;
 #endif
 
-	class GeomUtilTest : public CppUnit::TestFixture {
+	class GeomUtilTest final : public CppUnit::TestFixture {
 		CPPUNIT_TEST_SUITE(GeomUtilTest);
 		CPPUNIT_TEST(test_collinear);
 		CPPUNIT_TEST(test_line_intersect);

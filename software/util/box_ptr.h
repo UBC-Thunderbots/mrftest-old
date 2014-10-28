@@ -14,7 +14,7 @@ namespace std {
 	 *
 	 * \tparam T the type of object pointed to.
 	 */
-	template<typename T> struct less<BoxPtr<T>> {
+	template<typename T> struct less<BoxPtr<T>> final {
 		public:
 			/**
 			 * \brief Compares two pointers.
@@ -62,7 +62,7 @@ template<typename T> bool operator!=(const BoxPtr<T> &x, const BoxPtr<T> &y);
  *
  * \tparam T the type of object.
  */
-template<typename T> class BoxPtr {
+template<typename T> class BoxPtr final {
 	public:
 		/**
 		 * \brief Constructs a new, null pointer.

@@ -30,7 +30,7 @@ enum Team {
  };
 
 
- class AutoRef: public NonCopyable, public sigc::trackable {
+ class AutoRef final : public NonCopyable, public sigc::trackable {
 
 
  	 public:

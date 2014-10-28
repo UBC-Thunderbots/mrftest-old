@@ -17,7 +17,7 @@ namespace AI {
 			 * NOTE: class needs to be COPYABLE,
 			 * hence it is not subclassed.
 			 */
-			class Region {
+			class Region final {
 				public:
 					enum class Type {
 						RECTANGLE,
@@ -99,7 +99,7 @@ namespace AI {
 }
 
 namespace std {
-	template<> struct hash<AI::HL::STP::Region> {
+	template<> struct hash<AI::HL::STP::Region> final {
 		typedef AI::HL::STP::Region argument_type;
 		typedef std::size_t result_type;
 

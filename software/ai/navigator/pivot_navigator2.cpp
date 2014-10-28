@@ -13,11 +13,11 @@ namespace {
 	 * Pivot Navigator
 	 * The main functions that are required to be able to implement a navigator.
 	 */
-	class PivotNavigator2 : public Navigator {
+	class PivotNavigator2 final : public Navigator {
 		public:
 			explicit PivotNavigator2(World world);
-			void tick();
-			NavigatorFactory &factory() const;
+			void tick() override;
+			NavigatorFactory &factory() const override;
 	};
 
 	DegreeParam offset_angle(u8"offset angle (degrees)", u8"Nav/Pivot2", 30.0, -1000.0, 1000.0);

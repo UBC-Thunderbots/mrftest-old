@@ -164,12 +164,12 @@ namespace AI {
 				 * For example:
 				 * PlayFactoryImpl<GrabBall> factory_instance(u8"Grab Ball");
 				 */
-				template<class P> class PlayFactoryImpl : public PlayFactory {
+				template<class P> class PlayFactoryImpl final : public PlayFactory {
 					public:
 						explicit PlayFactoryImpl(const char *name) : PlayFactory(name) {
 						}
 
-						std::unique_ptr<Play> create(World world) const {
+						std::unique_ptr<Play> create(World world) const override {
 							std::unique_ptr<Play> p(new P(world));
 							return p;
 						}

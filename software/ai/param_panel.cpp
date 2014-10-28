@@ -25,7 +25,7 @@
 namespace {
 	bool emit_numeric_row_changed = false;
 
-	class ParamTreeModel : public Glib::Object, public Gtk::TreeModel {
+	class ParamTreeModel final : public Glib::Object, public Gtk::TreeModel {
 		public:
 			Gtk::TreeModelColumn<Glib::ustring> name_column;
 			Gtk::TreeModelColumn<bool> has_bool_column;
@@ -96,26 +96,26 @@ namespace {
 				}
 			}
 
-			Gtk::TreeModelFlags get_flags_vfunc() const {
+			Gtk::TreeModelFlags get_flags_vfunc() const override {
 				return Gtk::TREE_MODEL_ITERS_PERSIST;
 			}
 
-			int get_n_columns_vfunc() const {
+			int get_n_columns_vfunc() const override {
 				return static_cast<int>(column_record.size());
 			}
 
-			GType get_column_type_vfunc(int index) const {
+			GType get_column_type_vfunc(int index) const override {
 				assert(0 <= index && index < get_n_columns_vfunc());
 				return column_record.types()[index];
 			}
 
-			bool iter_next_vfunc(const iterator &iter, iterator &iter_next) const {
+			bool iter_next_vfunc(const iterator &iter, iterator &iter_next) const override {
 				assert(iter_is_valid(iter));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(iter.gobj()->user_data);
 				return make_iter(node->next_sibling(), iter_next);
 			}
 
-			bool get_iter_vfunc(const Gtk::TreePath &path, iterator &iter) const {
+			bool get_iter_vfunc(const Gtk::TreePath &path, iterator &iter) const override {
 				ParamTreeNode *node = ParamTreeNode::root();
 				for (auto i = path.begin(), iend = path.end(); node && i != iend; ++i) {
 					node = node->child(static_cast<std::size_t>(*i));
@@ -123,45 +123,45 @@ namespace {
 				return make_iter(node, iter);
 			}
 
-			bool iter_children_vfunc(const iterator &parent, iterator &iter) const {
+			bool iter_children_vfunc(const iterator &parent, iterator &iter) const override {
 				assert(iter_is_valid(parent));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(parent.gobj()->user_data);
 				return make_iter(node->child(0), iter);
 			}
 
-			bool iter_parent_vfunc(const iterator &child, iterator &iter) const {
+			bool iter_parent_vfunc(const iterator &child, iterator &iter) const override {
 				assert(iter_is_valid(child));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(child.gobj()->user_data);
 				return make_iter(node->parent(), iter);
 			}
 
-			bool iter_nth_child_vfunc(const iterator &parent, int n, iterator &iter) const {
+			bool iter_nth_child_vfunc(const iterator &parent, int n, iterator &iter) const override {
 				assert(iter_is_valid(parent));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(parent.gobj()->user_data);
 				return make_iter(node->child(static_cast<std::size_t>(n)), iter);
 			}
 
-			bool iter_nth_root_child_vfunc(int n, iterator &iter) const {
+			bool iter_nth_root_child_vfunc(int n, iterator &iter) const override {
 				return make_iter(ParamTreeNode::root()->child(static_cast<std::size_t>(n)), iter);
 			}
 
-			bool iter_has_child_vfunc(const iterator &iter) const {
+			bool iter_has_child_vfunc(const iterator &iter) const override {
 				assert(iter_is_valid(iter));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(iter.gobj()->user_data);
 				return node->num_children() > 0;
 			}
 
-			int iter_n_children_vfunc(const iterator &iter) const {
+			int iter_n_children_vfunc(const iterator &iter) const override {
 				assert(iter_is_valid(iter));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(iter.gobj()->user_data);
 				return static_cast<int>(node->num_children());
 			}
 
-			int iter_n_root_children_vfunc() const {
+			int iter_n_root_children_vfunc() const override {
 				return static_cast<int>(ParamTreeNode::root()->num_children());
 			}
 
-			Gtk::TreePath get_path_vfunc(const iterator &iter) const {
+			Gtk::TreePath get_path_vfunc(const iterator &iter) const override {
 				assert(iter_is_valid(iter));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(iter.gobj()->user_data);
 				Gtk::TreePath path;
@@ -172,7 +172,7 @@ namespace {
 				return path;
 			}
 
-			void get_value_vfunc(const iterator &iter, int column, Glib::ValueBase &value) const {
+			void get_value_vfunc(const iterator &iter, int column, Glib::ValueBase &value) const override {
 				assert(iter_is_valid(iter));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(iter.gobj()->user_data);
 
@@ -241,14 +241,14 @@ namespace {
 				}
 			}
 
-			bool iter_is_valid(const iterator &iter) const {
+			bool iter_is_valid(const iterator &iter) const override {
 				return iter.gobj()->stamp == STAMP && iter.gobj()->user_data;
 			}
 	};
 
 	constexpr int ParamTreeModel::STAMP;
 
-	class ParamTreeView : public Gtk::TreeView {
+	class ParamTreeView final : public Gtk::TreeView {
 		public:
 			explicit ParamTreeView() : model(ParamTreeModel::create()), name_column(u8"Name"), value_column(u8"Value") {
 				set_model(model);

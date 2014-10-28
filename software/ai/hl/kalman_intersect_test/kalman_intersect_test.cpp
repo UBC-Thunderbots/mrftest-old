@@ -11,7 +11,7 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	class KalmanIntersectTest : public HighLevel {
+	class KalmanIntersectTest final : public HighLevel {
 		public:
 			explicit KalmanIntersectTest(World world) : world(world), lbl_xposition(u8"XPosition"), adj_xposition(0.0, -4.0, 4.0, 0.1, 1.0), hsb_xposition(adj_xposition), lbl_yposition(u8"YPosition"), adj_yposition(0.0, -2.0, 2.0, 0.1, 0.5), hsb_yposition(adj_yposition), lbl_oposition(u8"OPosition"), adj_oposition(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_oposition(adj_oposition), lbl_kick_power(u8"KPower"), adj_kick_power(0.0, 0.0, 10.0, 0.5, 1.0), hsb_kick_power(adj_kick_power), isect_robot_dst(0, 0), xposition(0.0), yposition(0.0), oposition(Angle::zero()), to_run(false), to_dribble(false), to_kick(false) {
 				adj_xposition.signal_value_changed().connect(sigc::mem_fun(*this, &KalmanIntersectTest::on_xposition_value_changed));
@@ -44,9 +44,9 @@ namespace {
 				ui_box.add(dribble_btn);
 			}
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			void tick() {
+			void tick() override {
 				// sample ball position once per tick
 				Point new_path_point = world.ball().position();
 				// path_points.push_back( new_path_point );
@@ -73,11 +73,11 @@ namespace {
 				}
 			}
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return &ui_box;
 			}
 
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) override {
 				ctx->set_source_rgb(1, 0.5, 0.5);
 				if (!path_points.empty()) {
 					ctx->move_to(path_points.begin()->x, path_points.begin()->y);

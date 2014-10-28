@@ -28,7 +28,7 @@
  * or by calling matchY(std::size_t) const to determine which element in <var>X</var> matches with each element in <var>Y</var>.</li>
  * </ol>
  */
-class Hungarian {
+class Hungarian final {
 	public:
 		/**
 		 * Constructs a new Hungarian.

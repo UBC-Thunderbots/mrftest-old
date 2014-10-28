@@ -27,7 +27,7 @@
 /**
  * \brief The dongle.
  */
-class MRFDongle : public Drive::Dongle {
+class MRFDongle final : public Drive::Dongle {
 	public:
 		/**
 		 * \brief An operation to send a reliable message.
@@ -62,7 +62,7 @@ class MRFDongle : public Drive::Dongle {
 		 *
 		 * \return the robot proxy object that allows communication with the robot
 		 */
-		MRFRobot &robot(unsigned int i) {
+		MRFRobot &robot(unsigned int i) override {
 			assert(i < 8);
 			return *robots[i].get();
 		}
@@ -128,7 +128,7 @@ class MRFDongle : public Drive::Dongle {
 
 
 
-class MRFDongle::SendReliableMessageOperation : public AsyncOperation<void>, public sigc::trackable {
+class MRFDongle::SendReliableMessageOperation final : public AsyncOperation<void>, public sigc::trackable {
 	public:
 		/**
 		 * \brief Thrown if a message cannot be delivered because the recipient robot was not associated.
@@ -163,7 +163,7 @@ class MRFDongle::SendReliableMessageOperation : public AsyncOperation<void>, pub
 		 *
 		 * If the operation failed, this function throws the relevant exception
 		 */
-		void result() const;
+		void result() const override;
 
 	private:
 		MRFDongle &dongle;
@@ -177,7 +177,7 @@ class MRFDongle::SendReliableMessageOperation : public AsyncOperation<void>, pub
 
 
 
-class MRFDongle::SendReliableMessageOperation::NotAssociatedError : public std::runtime_error {
+class MRFDongle::SendReliableMessageOperation::NotAssociatedError final : public std::runtime_error {
 	public:
 		/**
 		 * \brief Contructs a NotAssociatedError.
@@ -187,7 +187,7 @@ class MRFDongle::SendReliableMessageOperation::NotAssociatedError : public std::
 
 
 
-class MRFDongle::SendReliableMessageOperation::NotAcknowledgedError : public std::runtime_error {
+class MRFDongle::SendReliableMessageOperation::NotAcknowledgedError final : public std::runtime_error {
 	public:
 		/**
 		 * \brief Contructs a NotAcknowledgedError.
@@ -197,7 +197,7 @@ class MRFDongle::SendReliableMessageOperation::NotAcknowledgedError : public std
 
 
 
-class MRFDongle::SendReliableMessageOperation::ClearChannelError : public std::runtime_error {
+class MRFDongle::SendReliableMessageOperation::ClearChannelError final : public std::runtime_error {
 	public:
 		/**
 		 * \brief Contructs a ClearChannelError.

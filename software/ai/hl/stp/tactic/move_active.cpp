@@ -11,7 +11,7 @@ using AI::HL::STP::Coordinate;
 namespace Action = AI::HL::STP::Action;
 
 namespace {
-	class MoveActive : public Tactic {
+	class MoveActive final : public Tactic {
 		public:
 			explicit MoveActive(World world, const Point dest, const Angle orientation, const bool careful, const bool pivot) : Tactic(world, true), dest(dest), orientation(orientation), pivot(pivot), careful(careful) {
 				arrived = false;
@@ -20,14 +20,14 @@ namespace {
 		private:
 			const Point dest;
 			const Angle orientation;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			bool done() const;
-			void player_changed();
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			bool done() const override;
+			void player_changed() override;
 			bool arrived;
 			bool pivot;
 			bool careful;
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return u8"move-active";
 			}
 	};

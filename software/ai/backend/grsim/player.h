@@ -10,23 +10,23 @@ namespace AI {
 		class Ball;
 
 		namespace GRSim {
-			class Player : public AI::BE::Player {
+			class Player final : public AI::BE::Player {
 				public:
 					typedef BoxPtr<Player> Ptr;
 
 					explicit Player(unsigned int pattern, const AI::BE::Ball &ball);
-					void dribble(DribbleMode mode);
-					bool has_ball() const;
-					bool chicker_ready() const;
-					bool autokick_fired() const;
+					void dribble(DribbleMode mode) override;
+					bool has_ball() const override;
+					bool chicker_ready() const override;
+					bool autokick_fired() const override;
 					void tick(bool halt, bool stop);
 					void encode_orders(grSim_Robot_Command &packet);
 
 				protected:
-					void kick_impl(double speed);
-					void autokick_impl(double speed);
-					void chip_impl(double power);
-					void autochip_impl(double power);
+					void kick_impl(double speed) override;
+					void autokick_impl(double speed) override;
+					void chip_impl(double power) override;
+					void autochip_impl(double power) override;
 
 				private:
 					enum class ChickMode {

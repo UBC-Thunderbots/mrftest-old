@@ -14,7 +14,7 @@ using namespace AI::HL::STP::Action;
 using namespace AI::HL::W;
 
 namespace {
-	class SmartShoot : public Tactic {
+	class SmartShoot final : public Tactic {
 		public:
 			explicit SmartShoot(World world, const Point target, double speed_ratio) : Tactic(world, true), target(target), speed_ratio(speed_ratio) {
 			}
@@ -22,15 +22,15 @@ namespace {
 		private:
 			Point target;
 			double speed_ratio;
-			bool done() const {
+			bool done() const override {
 				return player && player.autokick_fired();
 			}
 
-			Player select(const std::set<Player> &players) const {
+			Player select(const std::set<Player> &players) const override {
 				return select_baller(world, players, player);
 			}
 
-			void execute() {
+			void execute() override {
 				Point dest;
 				Point player_to_ball = player.position() - world.ball().position();
 				Point move_back_distance = Point(0.05, 0.05);

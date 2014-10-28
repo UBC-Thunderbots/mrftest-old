@@ -7,14 +7,14 @@
 #include <google/protobuf/io/zero_copy_stream.h>
 
 namespace BZip2 {
-	class InputStream : public google::protobuf::io::ZeroCopyInputStream, public NonCopyable {
+	class InputStream final : public google::protobuf::io::ZeroCopyInputStream, public NonCopyable {
 		public:
 			explicit InputStream(google::protobuf::io::ZeroCopyInputStream *input);
 			~InputStream();
-			bool Next(const void **data, int *size);
-			void BackUp(int count);
-			bool Skip(int count);
-			int64_t ByteCount() const;
+			bool Next(const void **data, int *size) override;
+			void BackUp(int count) override;
+			bool Skip(int count) override;
+			int64_t ByteCount() const override;
 
 		private:
 			bool error, eof;

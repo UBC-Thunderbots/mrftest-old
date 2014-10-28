@@ -23,7 +23,7 @@ using AI::HL::STP::Coordinate;
 using AI::HL::STP::min_pass_dist;
 
 namespace {
-	struct PasserSimple : public Tactic {
+	struct PasserSimple final : public Tactic {
 		bool kick_attempted;
 
 		// HYSTERISIS
@@ -32,15 +32,15 @@ namespace {
 		explicit PasserSimple(World world) : Tactic(world, true), kick_attempted(false) {
 		}
 
-		bool done() const {
+		bool done() const override {
 			return player && kick_attempted && player.autokick_fired();
 		}
 
-		void player_changed() {
+		void player_changed() override {
 			target = Evaluation::select_passee(world);
 		}
 
-		bool fail() const {
+		bool fail() const override {
 			if (!target) {
 				return false;
 			}
@@ -50,7 +50,7 @@ namespace {
 			return false;
 		}
 
-		Player select(const std::set<Player> &players) const {
+		Player select(const std::set<Player> &players) const override {
 			// if a player attempted to shoot, keep the player
 			if (kick_attempted && players.count(player)) {
 				return player;
@@ -58,7 +58,7 @@ namespace {
 			return select_baller(world, players, player);
 		}
 
-		void execute() {
+		void execute() override {
 			if (!target) {
 				LOG_ERROR(u8"no target");
 				// should fail
@@ -72,18 +72,18 @@ namespace {
 			player.flags(0);
 		}
 
-		Glib::ustring description() const {
+		Glib::ustring description() const override {
 			return u8"passer-simple";
 		}
 	};
 
-	struct PasseeSimple : public Tactic {
+	struct PasseeSimple final : public Tactic {
 		const unsigned number;
 
 		explicit PasseeSimple(World world, unsigned number) : Tactic(world, false), number(number) {
 		}
 
-		Player select(const std::set<Player> &players) const {
+		Player select(const std::set<Player> &players) const override {
 			// hysterysis.
 			if (player && players.count(player) && Evaluation::passee_suitable(world, player)) {
 				return player;
@@ -97,7 +97,7 @@ namespace {
 			return *players.begin();
 		}
 
-		void execute() {
+		void execute() override {
 			if (Evaluation::passee_suitable(world, player)) {
 				Action::move(world, player, player.position());
 			} else {
@@ -108,16 +108,16 @@ namespace {
 			}
 		}
 
-		Glib::ustring description() const {
+		Glib::ustring description() const override {
 			return u8"passee-simple";
 		}
 	};
 
-	struct FollowBaller : public Tactic {
+	struct FollowBaller final : public Tactic {
 		explicit FollowBaller(World world) : Tactic(world, false) {
 		}
 
-		Player select(const std::set<Player> &players) const {
+		Player select(const std::set<Player> &players) const override {
 			Player best;
 			double min_dist = 1e99;
 			for (auto it = players.begin(); it != players.end(); ++it) {
@@ -130,7 +130,7 @@ namespace {
 			return best;
 		}
 
-		void execute() {
+		void execute() override {
 			if (Evaluation::passee_suitable(world, player)) {
 				Action::move(world, player, player.position());
 			} else {
@@ -139,7 +139,7 @@ namespace {
 			}
 		}
 
-		Glib::ustring description() const {
+		Glib::ustring description() const override {
 			return u8"follow-baller";
 		}
 	};

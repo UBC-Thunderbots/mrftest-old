@@ -25,37 +25,37 @@ using AI::HL::STP::DIST_FROM_PENALTY_MARK;
 	} \
 	AI::HL::STP::Play::PlayFactoryImpl<cls ## STPPlay> cls ## STPPlayFactory_instance(u8 ## # cls); \
 	namespace { \
-		class cls ## STPPlay : public AI::HL::STP::Play::Play { \
+		class cls ## STPPlay final : public AI::HL::STP::Play::Play { \
 			public: \
 				explicit cls ## STPPlay(AI::HL::W::World world) : AI::HL::STP::Play::Play(world) { \
 				} \
  \
-				AI::HL::STP::Play::PlayFactory &factory() const { \
+				AI::HL::STP::Play::PlayFactory &factory() const override { \
 					return cls ## STPPlayFactory_instance; \
 				}
 
 #define INVARIANT(expr) \
-	bool invariant() const { \
+	bool invariant() const override { \
 		return expr; \
 	}
 
 #define APPLICABLE(expr) \
-	bool applicable() const { \
+	bool applicable() const override { \
 		return expr; \
 	}
 
 #define DONE(expr) \
-	bool done() const { \
+	bool done() const override { \
 		return expr; \
 	}
 
 #define FAIL(expr) \
-	bool fail() const { \
+	bool fail() const override { \
 		return expr; \
 	}
 
 #define BEGIN_ASSIGN() \
-	void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[TEAM_MAX_SIZE-1]) {
+	void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[TEAM_MAX_SIZE-1]) override {
 
 #define END_ASSIGN() \
 	}

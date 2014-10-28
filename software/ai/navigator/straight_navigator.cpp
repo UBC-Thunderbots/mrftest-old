@@ -21,11 +21,11 @@ namespace {
 	 * Staight Navigator
 	 * The main functions that are required to be able to implement a navigator.
 	 */
-	class StraightNavigator : public Navigator {
+	class StraightNavigator final : public Navigator {
 		public:
 			explicit StraightNavigator(World world);
-			void tick();
-			NavigatorFactory &factory() const;
+			void tick() override;
+			NavigatorFactory &factory() const override;
 
 		private:
 			void teamUpdater();
@@ -43,7 +43,7 @@ namespace {
 	typedef std::pair<Point, Point> SPath;
 	typedef std::pair<Point, double> Circle;
 
-	class PathModerator {
+	class PathModerator final {
 		public:
 			PathModerator();
 			void setPath(const std::vector<SPath> &all_path);

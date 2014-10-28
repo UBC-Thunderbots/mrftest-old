@@ -12,7 +12,7 @@ namespace {
 	/**
 	 * \brief The private per-player state maintained by the AIPackage.
 	 */
-	struct PrivateState : public ObjectStore::Element {
+	struct PrivateState final : public ObjectStore::Element {
 		/**
 		 * \brief A pointer to a PrivateState.
 		 */

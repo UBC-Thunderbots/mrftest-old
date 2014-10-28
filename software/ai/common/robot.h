@@ -14,7 +14,7 @@ namespace std {
 	/**
 	 * \brief Provides a total ordering of Robot objects so they can be stored in STL ordered containers
 	 */
-	template<> struct less<AI::Common::Robot> {
+	template<> struct less<AI::Common::Robot> final {
 		public:
 			/**
 			 * \brief Compares two objects

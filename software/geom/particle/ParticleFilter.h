@@ -12,7 +12,7 @@ extern DoubleParam PARTICLE_FILTER_DECAYRATE;
 /**
  * \brief Implements the basic mathematics of a Particle filter.
  */
-class ParticleFilter {
+class ParticleFilter final {
 	public:
 		explicit ParticleFilter(double length, double offset, unsigned int numPartitions);
 		~ParticleFilter();

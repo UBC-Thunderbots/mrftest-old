@@ -25,7 +25,7 @@ namespace {
 	}
 }
 
-class ParamTreeInternalNode : public ParamTreeNode {
+class ParamTreeInternalNode final : public ParamTreeNode {
 	public:
 		ParamTreeInternalNode *internal_node(const Glib::ustring &path) {
 			if (!path.empty()) {
@@ -86,7 +86,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 			}
 		}
 
-		void load(const xmlpp::Element *elt) {
+		void load(const xmlpp::Element *elt) override {
 			// Check whether the XML element is appropriate.
 			if (name() == u8"<<<ROOT>>>") {
 				assert(elt->get_name() == u8"params");
@@ -116,7 +116,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 			}
 		}
 
-		void save(xmlpp::Element *elt) const {
+		void save(xmlpp::Element *elt) const override {
 			if (name() != u8"<<<ROOT>>>") {
 				elt->set_name(u8"category");
 				elt->set_attribute(u8"name", name());
@@ -129,24 +129,24 @@ class ParamTreeInternalNode : public ParamTreeNode {
 			}
 		}
 
-		std::size_t num_children() const {
+		std::size_t num_children() const override {
 			return children.size();
 		}
 
-		const ParamTreeNode *child(std::size_t index) const {
+		const ParamTreeNode *child(std::size_t index) const override {
 			return index < num_children() ? children[index] : nullptr;
 		}
 
-		ParamTreeNode *child(std::size_t index) {
+		ParamTreeNode *child(std::size_t index) override {
 			return index < num_children() ? children[index] : nullptr;
 		}
 
-		void set_default() {
+		void set_default() override {
 			std::for_each(children.begin(), children.end(), [](ParamTreeNode *n) { n->set_default(); });
 		}
 
 	private:
-		class Allocator : public NonCopyable {
+		class Allocator final : public NonCopyable {
 			public:
 				static Allocator &instance() {
 					static Allocator obj;

@@ -18,7 +18,7 @@ using namespace AI::HL::W;
 namespace {
 	const Glib::ustring CHOOSE_PLAY_TEXT = u8"<Choose Play>";
 
-	class STPHLChoosable : public PlayExecutor, public HighLevel {
+	class STPHLChoosable final : public PlayExecutor, public HighLevel {
 		public:
 			Gtk::VBox vbox;
 			Gtk::Button stop_button;
@@ -67,7 +67,7 @@ namespace {
 				curr_play = nullptr;
 			}
 
-			void calc_play() {
+			void calc_play() override {
 				curr_play = nullptr;
 				for (const auto &i : plays) {
 					if (i->factory().name() == combo.get_active_text()) {
@@ -100,7 +100,7 @@ namespace {
 				LOG_INFO(u8"reassigned");
 			}
 
-			void tick() {
+			void tick() override {
 				tick_eval(world);
 				enable_players();
 
@@ -141,11 +141,11 @@ namespace {
 				text_status.get_buffer()->set_text(Glib::locale_to_utf8(text.str()));
 			}
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return &vbox;
 			}
 
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) override {
 				draw_ui(world, ctx);
 				if (world.playtype() == AI::Common::PlayType::STOP) {
 					ctx->set_source_rgb(1.0, 0.5, 0.5);

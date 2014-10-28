@@ -6,7 +6,7 @@
 #include <gtkmm/buttonbox.h>
 #include <gtkmm/scrolledwindow.h>
 
-class ParamPanel : public Gtk::VBox {
+class ParamPanel final : public Gtk::VBox {
 	public:
 		explicit ParamPanel();
 

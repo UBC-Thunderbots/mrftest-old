@@ -11,7 +11,7 @@ namespace AI {
 	namespace Nav {
 		namespace RRT {
 
-			class PlayerData : public ObjectStore::Element {
+			class PlayerData final : public ObjectStore::Element {
 				public:
 					typedef std::shared_ptr<PlayerData> Ptr;
 					unsigned int added_flags;

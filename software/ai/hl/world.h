@@ -59,7 +59,7 @@ namespace AI {
 			/**
 			 * \brief A player
 			 */
-			class Player : public Robot, public AI::Common::Player {
+			class Player final : public Robot, public AI::Common::Player {
 				public:
 					/**
 					 * \brief The modes for the dribbler.
@@ -197,7 +197,7 @@ namespace AI {
 			/**
 			 * \brief The world, as seen by a Strategy
 			 */
-			class World {
+			class World final {
 				public:
 					/**
 					 * \brief Constructs a new World
@@ -268,7 +268,7 @@ namespace std {
 	/**
 	 * \brief Provides a total ordering of Robot objects so they can be stored in STL ordered containers
 	 */
-	template<> struct less<AI::HL::W::Robot> {
+	template<> struct less<AI::HL::W::Robot> final {
 		public:
 			/**
 			 * \brief Compares two objects
@@ -288,7 +288,7 @@ namespace std {
 	/**
 	 * \brief Provides a total ordering of Player objects so they can be stored in STL ordered containers
 	 */
-	template<> struct less<AI::HL::W::Player> {
+	template<> struct less<AI::HL::W::Player> final {
 		public:
 			/**
 			 * \brief Compares two objects

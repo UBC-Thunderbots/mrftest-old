@@ -16,7 +16,7 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
 
-	class ChipTarget : public Tactic {
+	class ChipTarget final : public Tactic {
 		public:
 			explicit ChipTarget(World world, const Coordinate target) : Tactic(world, true), target(target), kick_attempted(false) {
 			}
@@ -24,11 +24,11 @@ namespace {
 		private:
 			Coordinate target;
 			bool kick_attempted;
-			bool done() const;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			void player_changed();
-			Glib::ustring description() const {
+			bool done() const override;
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			void player_changed() override;
+			Glib::ustring description() const override {
 				return u8"chip-target";
 			}
 	};

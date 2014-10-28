@@ -15,7 +15,7 @@ namespace Annunciator {
 	 *
 	 * It is expected that an object that wishes to announce messages will contain one or more instances of this class as members, one for each message, and will call \ref active to turn them on and off.
 	 */
-	class Message : public NonCopyable, public sigc::trackable {
+	class Message final : public NonCopyable, public sigc::trackable {
 		public:
 			/**
 			 * \brief The possible triggering modes for a message.

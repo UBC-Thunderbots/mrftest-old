@@ -25,12 +25,12 @@ namespace {
 	/**
 	 * \brief The friendly team.
 	 */
-	class FriendlyTeam : public AI::BE::SSLVision::Team<AI::BE::Physical::Player, AI::BE::Player> {
+	class FriendlyTeam final : public AI::BE::SSLVision::Team<AI::BE::Physical::Player, AI::BE::Player> {
 		public:
 			explicit FriendlyTeam(Backend &backend);
 
 		protected:
-			void create_member(unsigned int pattern);
+			void create_member(unsigned int pattern) override;
 
 		private:
 			MRFDongle dongle;
@@ -39,35 +39,35 @@ namespace {
 	/**
 	 * \brief The enemy team.
 	 */
-	class EnemyTeam : public AI::BE::SSLVision::Team<AI::BE::Robot, AI::BE::Robot> {
+	class EnemyTeam final : public AI::BE::SSLVision::Team<AI::BE::Robot, AI::BE::Robot> {
 		public:
 			explicit EnemyTeam(Backend &backend);
 
 		protected:
-			void create_member(unsigned int pattern);
+			void create_member(unsigned int pattern) override;
 	};
 
 	/**
 	 * \brief The backend.
 	 */
-	class MRFBackend : public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
+	class MRFBackend final : public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
 		public:
 			explicit MRFBackend(const std::vector<bool> &disable_cameras, int multicast_interface);
-			BackendFactory &factory() const;
-			FriendlyTeam &friendly_team();
-			const FriendlyTeam &friendly_team() const;
-			EnemyTeam &enemy_team();
-			const EnemyTeam &enemy_team() const;
+			BackendFactory &factory() const override;
+			FriendlyTeam &friendly_team() override;
+			const FriendlyTeam &friendly_team() const override;
+			EnemyTeam &enemy_team() override;
+			const EnemyTeam &enemy_team() const override;
 
 		private:
 			FriendlyTeam friendly;
 			EnemyTeam enemy;
 	};
 
-	class MRFBackendFactory : public BackendFactory {
+	class MRFBackendFactory final : public BackendFactory {
 		public:
 			explicit MRFBackendFactory();
-			std::unique_ptr<Backend> create_backend(const std::vector<bool> &disable_cameras, int multicast_interface) const;
+			std::unique_ptr<Backend> create_backend(const std::vector<bool> &disable_cameras, int multicast_interface) const override;
 	};
 }
 

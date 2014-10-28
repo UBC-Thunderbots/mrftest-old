@@ -11,16 +11,16 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	// should take into account of enemy velocity etc
 
-	class BlockGoal : public Tactic {
+	class BlockGoal final : public Tactic {
 		public:
 			explicit BlockGoal(World world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
 			}
 
 		private:
 			Enemy::Ptr enemy;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"block-goal";
 			}
 	};
@@ -41,16 +41,16 @@ namespace {
 		AI::HL::STP::Action::block_goal(world, player, enemy->evaluate());
 	}
 
-	class BlockBall : public Tactic {
+	class BlockBall final : public Tactic {
 		public:
 			BlockBall(World world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
 			}
 
 		private:
 			Enemy::Ptr enemy;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"block-ball";
 			}
 	};

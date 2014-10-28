@@ -8,7 +8,7 @@
 /**
  * \brief Implements the basic mathematics of a Kalman filter.
  */
-class Kalman {
+class Kalman final {
 	public:
 		/**
 		 * \brief The type of a timestamp used for measurements, control inputs, and estimates.
@@ -63,7 +63,7 @@ class Kalman {
 		void add_control(double input, Timestamp input_time);
 
 	private:
-		struct ControlInput {
+		struct ControlInput final {
 			explicit ControlInput(Timestamp t, double v);
 
 			Timestamp time;

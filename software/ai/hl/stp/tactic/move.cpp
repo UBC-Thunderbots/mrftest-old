@@ -9,16 +9,16 @@ using AI::HL::STP::Coordinate;
 namespace Action = AI::HL::STP::Action;
 
 namespace {
-	class Move : public Tactic {
+	class Move final : public Tactic {
 		public:
 			explicit Move(World world, const Coordinate dest) : Tactic(world), dest(dest) {
 			}
 
 		private:
 			const Coordinate dest;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"move";
 			}
 	};

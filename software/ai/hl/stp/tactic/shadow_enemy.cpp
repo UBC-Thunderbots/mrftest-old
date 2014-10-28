@@ -14,17 +14,17 @@ namespace Action = AI::HL::STP::Action;
 
 
 namespace {
-	class ShadowEnemy : public Tactic {
+	class ShadowEnemy final : public Tactic {
 		public:
 			explicit ShadowEnemy(World world, unsigned int index) : Tactic(world), index(index) {
 			}
 
 		private:
 			Coordinate dest;
-			Player select(const std::set<Player> &players) const;
+			Player select(const std::set<Player> &players) const override;
 			unsigned int index;
-			void execute();
-			Glib::ustring description() const {
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"shadow_enemy";
 			}
 	};

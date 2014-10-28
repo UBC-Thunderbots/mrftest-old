@@ -25,12 +25,12 @@ namespace {
 	const std::vector<double> param_max(arr_max, arr_max + P);
 	const std::vector<double> param_default(arr_def, arr_def + P);
 
-	class PointVelocityController : public RobotController, public TunableController {
+	class PointVelocityController final : public RobotController, public TunableController {
 		public:
 			explicit PointVelocityController(World world, Player player) : RobotController(world, player), param(param_default) {
 			}
 
-			void tick() {
+			void tick() override {
 				const Player::Path &path = player.path();
 				if (path.empty()) {
 					return;
@@ -83,23 +83,23 @@ namespace {
 				player.drive(wheel_speeds);
 			}
 
-			void set_params(const std::vector<double> &params) {
+			void set_params(const std::vector<double> &params) override {
 				this->param = params;
 			}
 
-			const std::vector<double> get_params() const {
+			const std::vector<double> get_params() const override {
 				return param;
 			}
 
-			const std::vector<double> get_params_default() const {
+			const std::vector<double> get_params_default() const override {
 				return param_default;
 			}
 
-			const std::vector<double> get_params_min() const {
+			const std::vector<double> get_params_min() const override {
 				return param_min;
 			}
 
-			const std::vector<double> get_params_max() const {
+			const std::vector<double> get_params_max() const override {
 				return param_max;
 			}
 

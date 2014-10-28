@@ -7,7 +7,7 @@
 /**
  * Allows a temporary change of directory for a bounded scope.
  */
-class ScopedCHDir : public NonCopyable {
+class ScopedCHDir final : public NonCopyable {
 	public:
 		/**
 		 * Changes to an alternate directory.

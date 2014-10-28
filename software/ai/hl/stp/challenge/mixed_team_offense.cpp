@@ -54,19 +54,19 @@ namespace {
 	BoolParam enable11(u8"enable robot 11", u8"MixedTeamOffense", true);
 	BoolParam do_draw(u8"draw", u8"MixedTeamOffense", true);
 
-	struct MixedTeamOffense : public HighLevel {
+	struct MixedTeamOffense final : public HighLevel {
 		World world;
 
 		explicit MixedTeamOffense(World world) : world(world) {
 		}
 
-		HighLevelFactory &factory() const;
+		HighLevelFactory &factory() const override;
 
-		Gtk::Widget *ui_controls() {
+		Gtk::Widget *ui_controls() override {
 			return nullptr;
 		}
 
-		void tick() {
+		void tick() override {
 			tick_eval(world);
 
 			std::vector<Player> players;
@@ -450,7 +450,7 @@ namespace {
 
 		}
 
-		void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+		void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) override {
 			if (do_draw) {
 				draw_ui(world, ctx);
 			}

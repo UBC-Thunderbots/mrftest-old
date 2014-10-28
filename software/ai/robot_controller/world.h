@@ -15,7 +15,7 @@ namespace AI {
 			/**
 			 * \brief A player
 			 */
-			class Player : public AI::Common::Player, public AI::Common::Robot {
+			class Player final : public AI::Common::Player, public AI::Common::Robot {
 				public:
 					/**
 					 * \brief The type of a single point in a path
@@ -94,7 +94,7 @@ namespace AI {
 			/**
 			 * \brief The world
 			 */
-			class World {
+			class World final {
 				public:
 					/**
 					 * \brief Constructs a new World

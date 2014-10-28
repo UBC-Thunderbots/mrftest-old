@@ -10,7 +10,7 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-				struct ShootData {
+				struct ShootData final {
 					bool blocked;
 					bool reduced_radius;
 					bool can_shoot;

@@ -61,7 +61,7 @@ namespace USB {
 	/**
 	 * \brief An error that occurs when a USB transfer times out.
 	 */
-	class TransferTimeoutError : public TransferError {
+	class TransferTimeoutError final : public TransferError {
 		public:
 			/**
 			 * \brief Constructs a new timeout error object.
@@ -74,7 +74,7 @@ namespace USB {
 	/**
 	 * \brief An error that occurs when a USB stall occurs.
 	 */
-	class TransferStallError : public TransferError {
+	class TransferStallError final : public TransferError {
 		public:
 			/**
 			 * \brief Constructs a new stall error object.
@@ -87,7 +87,7 @@ namespace USB {
 	/**
 	 * \brief An error that occurs when a USB transfer is cancelled.
 	 */
-	class TransferCancelledError : public TransferError {
+	class TransferCancelledError final : public TransferError {
 		public:
 			/**
 			 * \brief Constructs a new cancelled transfer error object.
@@ -100,7 +100,7 @@ namespace USB {
 	/**
 	 * \brief A libusb context.
 	 */
-	class Context : public NonCopyable {
+	class Context final : public NonCopyable {
 		public:
 			/**
 			 * \brief Initializes the library and creates a context.
@@ -131,7 +131,7 @@ namespace USB {
 	/**
 	 * \brief A collection of information about a USB device.
 	 */
-	class Device {
+	class Device final {
 		public:
 			/**
 			 * \brief Makes a copy of a device record.
@@ -193,7 +193,7 @@ namespace USB {
 	/**
 	 * \brief A list of USB devices.
 	 */
-	class DeviceList : public NonCopyable {
+	class DeviceList final : public NonCopyable {
 		public:
 			/**
 			 * \brief Constructs a list of all USB devices attached to the system.
@@ -233,7 +233,7 @@ namespace USB {
 	/**
 	 * \brief A libusb device handle which can be used to communicate with a device.
 	 */
-	class DeviceHandle : public NonCopyable {
+	class DeviceHandle final : public NonCopyable {
 		public:
 			/**
 			 * \brief Opens a handle to a device based on its vendor ID, product ID, and, optionally, serial number.
@@ -480,7 +480,7 @@ namespace USB {
 	/**
 	 * \brief An RAII-style way to set a configuration on a device.
 	 */
-	class ConfigurationSetter : public NonCopyable {
+	class ConfigurationSetter final : public NonCopyable {
 		public:
 			/**
 			 * \brief Sets a device’s configuration.
@@ -504,7 +504,7 @@ namespace USB {
 	/**
 	 * \brief An RAII-style way to claim an interface on a device.
 	 */
-	class InterfaceClaimer : public NonCopyable {
+	class InterfaceClaimer final : public NonCopyable {
 		public:
 			/**
 			 * \brief Claims an interface on a device.
@@ -553,7 +553,7 @@ namespace USB {
 			 *
 			 * If the transfer failed, a corresponding exception will be thrown.
 			 */
-			void result() const;
+			void result() const override;
 
 			/**
 			 * \brief Starts the transfer.
@@ -576,7 +576,7 @@ namespace USB {
 	/**
 	 * \brief A libusb control transfer with no data.
 	 */
-	class ControlNoDataTransfer : public Transfer {
+	class ControlNoDataTransfer final : public Transfer {
 		public:
 			/**
 			 * \brief Constructs a new transfer.
@@ -599,7 +599,7 @@ namespace USB {
 	/**
 	 * \brief A libusb control transfer with inbound data.
 	 */
-	class ControlInTransfer : public Transfer {
+	class ControlInTransfer final : public Transfer {
 		public:
 			/**
 			 * \brief Constructs a new transfer.
@@ -646,7 +646,7 @@ namespace USB {
 	/**
 	 * \brief A libusb inbound interrupt transfer.
 	 */
-	class InterruptInTransfer : public Transfer {
+	class InterruptInTransfer final : public Transfer {
 		public:
 			/**
 			 * \brief Constructs a new transfer.
@@ -687,7 +687,7 @@ namespace USB {
 	/**
 	 * \brief A libusb outbound interrupt transfer.
 	 */
-	class InterruptOutTransfer : public Transfer {
+	class InterruptOutTransfer final : public Transfer {
 		public:
 			/**
 			 * \brief Constructs a new transfer.
@@ -710,7 +710,7 @@ namespace USB {
 	/**
 	 * \brief A libusb inbound bulk transfer.
 	 */
-	class BulkInTransfer : public Transfer {
+	class BulkInTransfer final : public Transfer {
 		public:
 			/**
 			 * \brief Constructs a new transfer.
@@ -751,7 +751,7 @@ namespace USB {
 	/**
 	 * \brief A libusb outbound bulk transfer.
 	 */
-	class BulkOutTransfer : public Transfer {
+	class BulkOutTransfer final : public Transfer {
 		public:
 			/**
 			 * \brief Constructs a new transfer.

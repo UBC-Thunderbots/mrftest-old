@@ -13,19 +13,19 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace {
 	BoolParam use_grab_ball_pos(u8"enemy closest use grab ball position", u8"STP/enemy", true);
 
-	class Fixed : public Enemy {
+	class Fixed final : public Enemy {
 		public:
 			explicit Fixed(Robot r) : robot(r) {
 			}
 
 		private:
 			Robot robot;
-			Robot evaluate() const {
+			Robot evaluate() const override {
 				return robot;
 			}
 	};
 
-	class ClosestFriendlyGoal : public Enemy {
+	class ClosestFriendlyGoal final : public Enemy {
 		public:
 			explicit ClosestFriendlyGoal(World w, unsigned int i) : world(w), index(i) {
 			}
@@ -33,7 +33,7 @@ namespace {
 		private:
 			World world;
 			unsigned int index;
-			Robot evaluate() const {
+			Robot evaluate() const override {
 				if (world.enemy_team().size() <= index) {
 					return Robot();
 				}
@@ -48,7 +48,7 @@ namespace {
 			}
 	};
 
-	class ClosestBall : public Enemy {
+	class ClosestBall final : public Enemy {
 		public:
 			explicit ClosestBall(World w, unsigned int i) : world(w), index(i) {
 			}
@@ -56,7 +56,7 @@ namespace {
 		private:
 			World world;
 			unsigned int index;
-			Robot evaluate() const {
+			Robot evaluate() const override {
 				if (world.enemy_team().size() <= index) {
 					return Robot();
 				}
@@ -67,7 +67,7 @@ namespace {
 			}
 	};
 
-	class ClosestRobot : public Enemy {
+	class ClosestRobot final : public Enemy {
 		public:
 			explicit ClosestRobot(World w, unsigned int robot, unsigned int i) : world(w), robot(robot), index(i) {
 			}
@@ -76,7 +76,7 @@ namespace {
 			World world;
 			unsigned int robot;
 			unsigned int index;
-			Robot evaluate() const {
+			Robot evaluate() const override {
 				// Remember that the closest robot to robot of index i is that robot itself. 
 				if (world.enemy_team().size() > index) {
 					auto robots = AI::HL::Util::get_robots(world.enemy_team());
@@ -87,7 +87,7 @@ namespace {
 			}
 	};
 
-	class ClosestFriendlyPlayer : public Enemy {
+	class ClosestFriendlyPlayer final : public Enemy {
 		public:
 			explicit ClosestFriendlyPlayer(World w, Player player, unsigned int i) : world(w), player(player), index(i) {
 			}
@@ -96,7 +96,7 @@ namespace {
 			World world;
 			Player player;
 			unsigned int index;
-			Robot evaluate() const {
+			Robot evaluate() const override {
 				if (world.enemy_team().size() <= index) {
 					return Robot();
 				}

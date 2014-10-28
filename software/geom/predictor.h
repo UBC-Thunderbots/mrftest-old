@@ -11,7 +11,7 @@
  *
  * \tparam T the type of quantity to predict over.
  */
-template<typename T> class Predictor {
+template<typename T> class Predictor final {
 	public:
 		/**
 		 * \brief The type of a timestamp used to record control inputs, measurements, and estimations.
@@ -97,7 +97,7 @@ template<typename T> class Predictor {
 /**
  * \brief Combines two Predictor objects to perform prediction of X and Y coordinates.
  */
-class Predictor2 {
+class Predictor2 final {
 	public:
 		/**
 		 * \brief Constructs a new Predictor2.
@@ -171,7 +171,7 @@ class Predictor2 {
 /**
  * \brief Combines three Predictor objects to perform prediction of X, Y, and theta coordinates.
  */
-class Predictor3 {
+class Predictor3 final {
 	public:
 		/**
 		 * \brief Constructs a new Predictor2.

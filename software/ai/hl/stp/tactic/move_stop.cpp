@@ -23,7 +23,7 @@ namespace {
 	
 	const unsigned int NUM_PLAYERS = AI::HL::STP::TEAM_MAX_SIZE -1;
 
-	class MoveStop : public Tactic {
+	class MoveStop final : public Tactic {
 		public:
 			explicit MoveStop(World world, std::size_t playerIndex) : Tactic(world), player_index(playerIndex) {
 			}
@@ -31,9 +31,9 @@ namespace {
 		private:
 			const std::size_t player_index;
 			Player selected_player;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"move-stop";
 			}
 	};

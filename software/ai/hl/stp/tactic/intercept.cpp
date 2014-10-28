@@ -11,7 +11,7 @@ namespace Action = AI::HL::STP::Action;
 namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
-	class Intercept : public Tactic {
+	class Intercept final : public Tactic {
 		public:
 			explicit Intercept(World world, const Point target) : Tactic(world, true), target(target) {
 			}
@@ -19,11 +19,11 @@ namespace {
 				target = world.field().enemy_goal();
 			}
 		private:
-			bool done() const;
-			Player select(const std::set<Player> &players) const;
-			void execute();
+			bool done() const override;
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
 			Point target;
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return u8"intercept";
 			}
 			// void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;

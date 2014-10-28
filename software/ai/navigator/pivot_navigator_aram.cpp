@@ -12,11 +12,11 @@ namespace {
 	 * Pivot Navigator
 	 * The main functions that are required to be able to implement a navigator.
 	 */
-	class PivotNavigatorAram : public Navigator {
+	class PivotNavigatorAram final : public Navigator {
 		public:
 			explicit PivotNavigatorAram(World world);
-			void tick();
-			NavigatorFactory &factory() const;
+			void tick() override;
+			NavigatorFactory &factory() const override;
 	};
 
 	DoubleParam pivot_radius(u8"pivot radius", u8"Nav/PivotAram", 1.0, 0.0, 10.0);

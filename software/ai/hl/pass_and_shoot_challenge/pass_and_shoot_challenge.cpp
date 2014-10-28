@@ -83,7 +83,7 @@ namespace {
 };
 
 
-class PASCHL : public HighLevel {
+class PASCHL final : public HighLevel {
 		public:
 			explicit PASCHL(World world) : world(world) {
 				robot_positions.push_back(std::make_pair(bot0_initial, (bot1_initial - bot0_initial).orientation()));
@@ -97,9 +97,9 @@ class PASCHL : public HighLevel {
 
 			}
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			void tick() {
+			void tick() override {
 				FriendlyTeam friendly = world.friendly_team();
 
 				if (friendly.size() < min_team_size) {
@@ -180,7 +180,7 @@ class PASCHL : public HighLevel {
 				}
 			}
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return nullptr;
 			}
 

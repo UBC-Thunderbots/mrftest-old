@@ -9,7 +9,7 @@ using AI::HL::STP::Coordinate;
 namespace Action = AI::HL::STP::Action;
 
 namespace {
-	class MoveWaitPlaytype : public Tactic {
+	class MoveWaitPlaytype final : public Tactic {
 		public:
 			explicit MoveWaitPlaytype(World world, Coordinate dest, AI::Common::PlayType playtype) : Tactic(world, true), dest(dest), playtype(playtype) {
 			}
@@ -17,10 +17,10 @@ namespace {
 		private:
 			const Coordinate dest;
 			const AI::Common::PlayType playtype;
-			bool done() const;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			Glib::ustring description() const {
+			bool done() const override;
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			Glib::ustring description() const override {
 				return u8"move-wait-playtype";
 			}
 	};

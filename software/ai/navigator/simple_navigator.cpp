@@ -11,11 +11,11 @@ namespace {
 	 * Simple Navigator
 	 * The main functions that are required to be able to implement a navigator.
 	 */
-	class SimpleNavigator : public Navigator {
+	class SimpleNavigator final : public Navigator {
 		public:
 			explicit SimpleNavigator(World world);
-			void tick();
-			NavigatorFactory &factory() const;
+			void tick() override;
+			NavigatorFactory &factory() const override;
 	};
 }
 

@@ -24,54 +24,54 @@ namespace {
 	/**
 	 * \brief A player that cannot be controlled, only viewed.
 	 */
-	class ROPlayer : public Player {
+	class ROPlayer final : public Player {
 		public:
 			typedef BoxPtr<ROPlayer> Ptr;
 			explicit ROPlayer(unsigned int pattern);
-			void dribble(DribbleMode mode);
-			bool has_ball() const;
-			bool chicker_ready() const;
-			bool autokick_fired() const;
-			void kick_impl(double);
-			void autokick_impl(double);
-			void chip_impl(double);
-			void autochip_impl(double);
+			void dribble(DribbleMode mode) override;
+			bool has_ball() const override;
+			bool chicker_ready() const override;
+			bool autokick_fired() const override;
+			void kick_impl(double) override;
+			void autokick_impl(double) override;
+			void chip_impl(double) override;
+			void autochip_impl(double) override;
 			void tick(bool, bool);
 	};
 
 	/**
 	 * \brief A friendly team in the read-only backend.
 	 */
-	class FriendlyTeam : public AI::BE::SSLVision::Team<ROPlayer, Player> {
+	class FriendlyTeam final: public AI::BE::SSLVision::Team<ROPlayer, Player> {
 		public:
 			explicit FriendlyTeam(Backend &backend);
 
 		protected:
-			void create_member(unsigned int pattern);
+			void create_member(unsigned int pattern) override;
 	};
 
 	/**
 	 * \brief An enemy team in the read-only backend.
 	 */
-	class EnemyTeam : public AI::BE::SSLVision::Team<Robot, Robot> {
+	class EnemyTeam final: public AI::BE::SSLVision::Team<Robot, Robot> {
 		public:
 			explicit EnemyTeam(Backend &backend);
 
 		protected:
-			void create_member(unsigned int pattern);
+			void create_member(unsigned int pattern) override;
 	};
 
 	/**
 	 * \brief A backend which does not allow driving robots, but only viewing their states on the field.
 	 */
-	class ROBackend : public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
+	class ROBackend final: public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
 		public:
 			explicit ROBackend(const std::vector<bool> &disable_cameras, int multicast_interface);
-			BackendFactory &factory() const;
-			FriendlyTeam &friendly_team();
-			const FriendlyTeam &friendly_team() const;
-			EnemyTeam &enemy_team();
-			const EnemyTeam &enemy_team() const;
+			BackendFactory &factory() const override;
+			FriendlyTeam &friendly_team() override;
+			const FriendlyTeam &friendly_team() const override;
+			EnemyTeam &enemy_team() override;
+			const EnemyTeam &enemy_team() const override;
 
 		private:
 			FriendlyTeam friendly;
@@ -81,10 +81,10 @@ namespace {
 	/**
 	 * \brief A factory for creating \ref ROBackend instances.
 	 */
-	class ROBackendFactory : public BackendFactory {
+	class ROBackendFactory final: public BackendFactory {
 		public:
 			explicit ROBackendFactory();
-			std::unique_ptr<Backend> create_backend(const std::vector<bool> &disable_cameras, int multicast_interface) const;
+			std::unique_ptr<Backend> create_backend(const std::vector<bool> &disable_cameras, int multicast_interface) const override;
 	};
 }
 

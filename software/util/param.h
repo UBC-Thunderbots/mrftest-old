@@ -247,7 +247,7 @@ class Param : public ParamTreeNode {
 		 *
 		 * \return the internal node found at \p path.
 		 */
-		ParamTreeInternalNode *internal_node(const Glib::ustring &path);
+		ParamTreeInternalNode *internal_node(const Glib::ustring &path) override;
 
 		/**
 		 * \brief Returns a signal fired when the value of the parameter changes.
@@ -278,7 +278,7 @@ class Param : public ParamTreeNode {
 		/**
 		 * \brief Initializes the structure of this node and any child nodes.
 		 */
-		void initialize();
+		void initialize() override;
 
 	private:
 		/**
@@ -286,7 +286,7 @@ class Param : public ParamTreeNode {
 		 *
 		 * \return the number of children.
 		 */
-		std::size_t num_children() const;
+		std::size_t num_children() const override;
 
 		/**
 		 * \brief Returns a child of the node.
@@ -295,7 +295,7 @@ class Param : public ParamTreeNode {
 		 *
 		 * \return the child, or null if that child does not exist.
 		 */
-		const ParamTreeNode *child(std::size_t index) const;
+		const ParamTreeNode *child(std::size_t index) const override;
 
 		/**
 		 * \brief Returns a child of the node.
@@ -304,13 +304,13 @@ class Param : public ParamTreeNode {
 		 *
 		 * \return the child.
 		 */
-		ParamTreeNode *child(std::size_t index);
+		ParamTreeNode *child(std::size_t index) override;
 };
 
 /**
  * \brief A boolean parameter that can be edited by means of a checkbox.
  */
-class BoolParam : public Param {
+class BoolParam final : public Param {
 	public:
 		/**
 		 * \brief Constructs a new boolean parameter.
@@ -366,7 +366,7 @@ class BoolParam : public Param {
 		 *
 		 * \return the signal.
 		 */
-		sigc::signal<void> &signal_changed() const {
+		sigc::signal<void> &signal_changed() const override {
 			return value_.signal_changed();
 		}
 
@@ -375,7 +375,7 @@ class BoolParam : public Param {
 		 *
 		 * \param[in, out] param the structure to write into.
 		 */
-		void encode_value_to_log(Log::Parameter &param) const;
+		void encode_value_to_log(Log::Parameter &param) const override;
 
 	private:
 		Property<bool> value_;
@@ -384,21 +384,21 @@ class BoolParam : public Param {
 		/**
 		 * \brief Sets the values of the parameters to their defaults.
 		 */
-		void set_default();
+		void set_default() override;
 
 		/**
 		 * \brief Loads the values of parameters from an XML tree.
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
-		void load(const xmlpp::Element *elt);
+		void load(const xmlpp::Element *elt) override;
 
 		/**
 		 * \brief Stores the values of parameters into an XML tree.
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
-		void save(xmlpp::Element *elt) const;
+		void save(xmlpp::Element *elt) const override;
 };
 
 /**
@@ -411,7 +411,7 @@ class NumericParam : public Param {
 		 *
 		 * \return the signal.
 		 */
-		sigc::signal<void> &signal_changed() const {
+		sigc::signal<void> &signal_changed() const override {
 			return signal_changed_reflector;
 		}
 
@@ -458,18 +458,18 @@ class NumericParam : public Param {
 		/**
 		 * \brief Sets the values of the parameters to their defaults.
 		 */
-		void set_default();
+		void set_default() override;
 
 		/**
 		 * \brief Constructs the backing Gtk::Adjustment.
 		 */
-		void initialize();
+		void initialize() override;
 };
 
 /**
  * \brief An integer parameter that can be edited by means of a scale slider.
  */
-class IntParam : public NumericParam {
+class IntParam final : public NumericParam {
 	public:
 		/**
 		 * \brief Constructs a new integer parameter.
@@ -511,7 +511,7 @@ class IntParam : public NumericParam {
 		 *
 		 * \param[in, out] param the structure to write into.
 		 */
-		void encode_value_to_log(Log::Parameter &param) const;
+		void encode_value_to_log(Log::Parameter &param) const override;
 
 	private:
 		/**
@@ -519,20 +519,20 @@ class IntParam : public NumericParam {
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
-		void load(const xmlpp::Element *elt);
+		void load(const xmlpp::Element *elt) override;
 
 		/**
 		 * \brief Stores the values of parameters into an XML tree.
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
-		void save(xmlpp::Element *elt) const;
+		void save(xmlpp::Element *elt) const override;
 };
 
 /**
  * \brief A floating-point parameter that can be edited by means of a text field.
  */
-class DoubleParam : public NumericParam {
+class DoubleParam final : public NumericParam {
 	public:
 		/**
 		 * \brief Constructs a new double parameter.
@@ -574,7 +574,7 @@ class DoubleParam : public NumericParam {
 		 *
 		 * \param[in, out] param the structure to write into.
 		 */
-		void encode_value_to_log(Log::Parameter &param) const;
+		void encode_value_to_log(Log::Parameter &param) const override;
 
 	private:
 		/**
@@ -582,14 +582,14 @@ class DoubleParam : public NumericParam {
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
-		void load(const xmlpp::Element *elt);
+		void load(const xmlpp::Element *elt) override;
 
 		/**
 		 * \brief Stores the values of parameters into an XML tree.
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
-		void save(xmlpp::Element *elt) const;
+		void save(xmlpp::Element *elt) const override;
 };
 
 #endif

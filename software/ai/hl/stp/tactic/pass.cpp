@@ -41,7 +41,7 @@ namespace {
 		bool kicked;
 	};
 
-	class PasserShoot : public Tactic {
+	class PasserShoot final : public Tactic {
 		public:
 			explicit PasserShoot(World world) : Tactic(world, true), dynamic(true), target(Point(0, 0)) {
 				kicked = false;
@@ -59,12 +59,12 @@ namespace {
 			bool kicked;
 			Coordinate target;
 
-			bool done() const {
+			bool done() const override {
 #warning TODO allow more time, WTH how this works
 				return kicked || player.autokick_fired();
 			}
 
-			bool fail() const {
+			bool fail() const override {
 				Point dest = dynamic ? Evaluation::passee_position() : target.position();
 				return player
 				       // should fail when cannot pass to target,
@@ -75,11 +75,11 @@ namespace {
 				               && !AI::HL::STP::Predicates::baller_can_shoot(world)));
 			}
 
-			Player select(const std::set<Player> &players) const {
+			Player select(const std::set<Player> &players) const override {
 				return select_baller(world, players, player);
 			}
 
-			void execute() {
+			void execute() override {
 				Point dest = dynamic ? Evaluation::passee_position() : target.position();
 				kicked = kicked || player.autokick_fired();
 				if (!player.autokick_fired() && !kicked) {
@@ -94,7 +94,7 @@ namespace {
 				Action::shoot_pass(world, player, dest);
 			}
 
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 #warning TODO give more information
 				return u8"passer-shoot";
 			}
@@ -103,7 +103,7 @@ namespace {
 	kick_info PasserShoot::passer_info;
 	Player last_passee;
 
-	class PasseeMove : public Tactic {
+	class PasseeMove final : public Tactic {
 		public:
 			explicit PasseeMove(World world) : Tactic(world, false), dynamic(true) {
 			}
@@ -115,13 +115,13 @@ namespace {
 			bool dynamic;
 			Coordinate target;
 
-			Player select(const std::set<Player> &players) const {
+			Player select(const std::set<Player> &players) const override {
 				Point dest = dynamic ? Evaluation::passee_position() : target.position();
 				last_passee = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest));
 				return last_passee;
 			}
 
-			void execute() {
+			void execute() override {
 				kick_info passer_info = PasserShoot::passer_info;
 
 				// /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -188,21 +188,21 @@ namespace {
 				player.type(AI::Flags::MoveType::DRIBBLE);
 			}
 
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return u8"passee-move";
 			}
 	};
 
 
 
-	class PasseeReceive : public Tactic {
+	class PasseeReceive final : public Tactic {
 		public:
 			explicit PasseeReceive(World world) : Tactic(world, true) {
 #warning find a good mechanism for passing
 			}
 
 		private:
-			Player select(const std::set<Player> &players) const {
+			Player select(const std::set<Player> &players) const override {
 				// hard to calculate who is best to recieve the pass
 				// so use whoever last was assigned if they are still around
 				// closeness to "intended target" is a terrible way to choose
@@ -214,10 +214,10 @@ namespace {
 				const Point dest = PasserShoot::passer_info.kicker_location;
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest));
 			}
-			bool done() const {
+			bool done() const override {
 				return player && player.has_ball();
 			}
-			void execute() {
+			void execute() override {
 				const kick_info &passer_info = PasserShoot::passer_info;
 
 				bool fast_ball = world.ball().velocity().len() > fast_velocity;
@@ -248,7 +248,7 @@ namespace {
 				player.type(AI::Flags::MoveType::DRIBBLE);
 			}
 
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return u8"passee-recieve";
 			}
 	};

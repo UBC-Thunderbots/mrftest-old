@@ -59,9 +59,9 @@ namespace AI {
 					explicit Backend(const std::vector<bool> &disable_cameras, int multicast_interface, const std::string &vision_port);
 
 					virtual FriendlyTeam &friendly_team() = 0;
-					const FriendlyTeam &friendly_team() const = 0;
+					const FriendlyTeam &friendly_team() const override = 0;
 					virtual EnemyTeam &enemy_team() = 0;
-					const EnemyTeam &enemy_team() const = 0;
+					const EnemyTeam &enemy_team() const override = 0;
 
 				private:
 					const std::vector<bool> &disable_cameras;

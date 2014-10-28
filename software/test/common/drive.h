@@ -12,7 +12,7 @@
 /**
  * \brief A panel that lets the user manually control the wheels
  */
-class DrivePanel : public Gtk::VBox {
+class DrivePanel final : public Gtk::VBox {
 	public:
 		/**
 		 * \brief Constructs a new DrivePanel

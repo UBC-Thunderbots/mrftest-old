@@ -30,7 +30,7 @@ namespace {
 	constexpr off_t RECORDS_PER_SECTOR = SECTOR_SIZE / LOG_RECORD_SIZE;
 	constexpr uint32_t LOG_MAGIC_TICK = UINT32_C(0xE2468843);
 
-	class SectorArray : public NonCopyable {
+	class SectorArray final : public NonCopyable {
 		public:
 			const FileDescriptor &fd;
 
@@ -96,9 +96,9 @@ void SectorArray::zero(off_t i) {
 }
 
 namespace {
-	class ScanResult {
+	class ScanResult final {
 		public:
-			struct Epoch {
+			struct Epoch final {
 				off_t first_sector, last_sector;
 			};
 
@@ -354,7 +354,7 @@ namespace {
 		return 0;
 	}
 
-	struct Command {
+	struct Command final {
 		std::string command;
 		int args;
 		bool needs_write;
@@ -362,7 +362,7 @@ namespace {
 		int (*handler)(SectorArray &sdcard, const ScanResult *scan_result, char **args);
 	};
 
-	const struct Command COMMANDS[] = {
+	const Command COMMANDS[] = {
 		{ "copy", 2, false, true, &do_copy },
 		{ "erase", 0, true, false, &do_erase },
 		{ "info", 0, false, true, &do_info },

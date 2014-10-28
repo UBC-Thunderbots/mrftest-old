@@ -5,7 +5,7 @@
 
 namespace AI {
 	namespace Nav {
-		class Waypoints : public ObjectStore::Element {
+		class Waypoints final : public ObjectStore::Element {
 			public:
 				typedef std::shared_ptr<Waypoints> Ptr;
 				static constexpr std::size_t NUM_WAYPOINTS = 50;

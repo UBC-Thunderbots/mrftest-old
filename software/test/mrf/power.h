@@ -11,7 +11,7 @@
 /**
  * \brief A panel that lets the user manually control power to various subsystems
  */
-class PowerPanel : public Gtk::Table {
+class PowerPanel final : public Gtk::Table {
 	public:
 		/**
 		 * \brief Constructs a new PowerPanel

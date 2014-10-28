@@ -47,7 +47,7 @@ namespace {
 
 	const int default_targets_n = G_N_ELEMENTS(default_targets);
 
-	class TestPass : public HighLevel {
+	class TestPass final : public HighLevel {
 		public:
 			explicit TestPass(World world) : world(world), targets(default_targets, default_targets + default_targets_n) {
 				kicked_count = 0;
@@ -66,13 +66,13 @@ namespace {
 
 			int kicked_count;
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return nullptr;
 			}
 
-			void tick() {
+			void tick() override {
 				const std::size_t pass_target = static_cast<std::size_t>(pass_target_param);
 
 				tick_eval(world);

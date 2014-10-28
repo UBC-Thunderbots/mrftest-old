@@ -5,7 +5,7 @@
 #include <glibmm/refptr.h>
 
 namespace {
-	class MessagesALM : public Glib::Object, public AbstractListModel, public NonCopyable {
+	class MessagesALM final : public Glib::Object, public AbstractListModel, public NonCopyable {
 		public:
 			Gtk::TreeModelColumn<unsigned int> age_column;
 			Gtk::TreeModelColumn<Glib::ustring> message_column;
@@ -34,11 +34,11 @@ namespace {
 				Annunciator::signal_message_hidden.connect(sigc::mem_fun(this, &MessagesALM::on_message_hidden));
 			}
 
-			std::size_t alm_rows() const {
+			std::size_t alm_rows() const override {
 				return Annunciator::visible().size();
 			}
 
-			void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const {
+			void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const override {
 				if (col == static_cast<unsigned int>(age_column.index())) {
 					Glib::Value<unsigned int> v;
 					v.init(age_column.type());
@@ -68,7 +68,7 @@ namespace {
 				}
 			}
 
-			void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) {
+			void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) override {
 			}
 
 			void on_message_activated() {

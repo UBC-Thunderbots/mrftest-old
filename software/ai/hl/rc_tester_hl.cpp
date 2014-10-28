@@ -10,7 +10,7 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	struct RCTester : public HighLevel {
+	struct RCTester final : public HighLevel {
 		World world;
 		Gtk::VBox vbox;
 		Gtk::Button reset_button;
@@ -35,7 +35,7 @@ namespace {
 			}
 		}
 
-		void tick() {
+		void tick() override {
 			FriendlyTeam friendly = world.friendly_team();
 			if (friendly.size() < 1) {
 				LOG_INFO(u8"error: must have at least one robot on the field!");
@@ -52,11 +52,11 @@ namespace {
 			}
 		}
 
-		Gtk::Widget *ui_controls() {
+		Gtk::Widget *ui_controls() override {
 			return &vbox;
 		}
 
-		HighLevelFactory &factory() const;
+		HighLevelFactory &factory() const override;
 	};
 }
 

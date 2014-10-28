@@ -19,27 +19,27 @@ using AI::HL::STP::Region;
 
 namespace {
 
-	class SpinSteal : public Tactic {
+	class SpinSteal final : public Tactic {
 		public:
 			explicit SpinSteal(World world) : Tactic(world, true), none(false) {}
 
 		private:
 			bool none;
-			bool done() const {
+			bool done() const override {
 				return none;
 			}
-			Player select(const std::set<Player> &players) const {
+			Player select(const std::set<Player> &players) const override {
 				return select_baller(world, players, player);
 			}
 
-			void execute();
+			void execute() override;
 
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return u8"spin-steal";
 			}
 	};
 
-	class BackUpSteal : public Tactic {
+	class BackUpSteal final : public Tactic {
 			public:
 				explicit BackUpSteal(World world) : Tactic(world, true), state(BACKING_UP), finished(false), backup_dist(4 * Robot::MAX_RADIUS) {}
 
@@ -51,80 +51,80 @@ namespace {
 				Point start_pos;
 				const double backup_dist;
 
-				bool done() const {
+				bool done() const override {
 					return finished && player.has_ball();
 				}
-				Player select(const std::set<Player> &players) const {
+				Player select(const std::set<Player> &players) const override {
 					return select_baller(world, players, player);
 				}
 
-				void player_changed() {
+				void player_changed() override {
 					start_pos = player.position();
 				}
 
-				void execute();
+				void execute() override;
 
-				Glib::ustring description() const {
+				Glib::ustring description() const override {
 					return u8"backup-steal";
 				}
 	};
 
-	class TActiveDef : public Tactic {
+	class TActiveDef final : public Tactic {
 		public:
 			explicit TActiveDef(World world) : Tactic(world, true), finished(false) {}
 
 		private:
 			bool finished;
-			bool done() const {
+			bool done() const override {
 				return finished;
 			}
-			Player select(const std::set<Player> &players) const {
+			Player select(const std::set<Player> &players) const override {
 				return select_baller(world, players, player);
 			}
 
-			void execute();
+			void execute() override;
 
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return u8"tactive-def";
 			}
 	};
 
-	class TDribbleToRegion : public Tactic {
+	class TDribbleToRegion final : public Tactic {
 		public:
 			explicit TDribbleToRegion(World world, Region region_) : Tactic(world, true), region(region_) {}
 
 		private:
 			Region region;
-			bool done() const {
+			bool done() const override {
 				return region.inside(player.position());
 			}
-			Player select(const std::set<Player> &players) const {
+			Player select(const std::set<Player> &players) const override {
 				return select_baller(world, players, player);
 			}
 
-			void execute();
+			void execute() override;
 
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return u8"tdribble-to-region";
 			}
 	};
 
-	class TSpinToRegion : public Tactic {
+	class TSpinToRegion final : public Tactic {
 		public:
 			explicit TSpinToRegion(World world, Region region_) : Tactic(world, true), region(region_) {}
 
 		private:
 			Region region;
-			bool done() const {
+			bool done() const override {
 				return region.inside(player.position());
 			}
-			Player select(const std::set<Player> &players) const {
+			Player select(const std::set<Player> &players) const override {
 				return select_baller(world, players, player);
 			}
 
-			void execute();
+			void execute() override;
 
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return u8"tspin-to-region";
 			}
 	};

@@ -18,17 +18,17 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
 
-	class DirectFreeFriendlyPivot : public Tactic {
+	class DirectFreeFriendlyPivot final : public Tactic {
 		public:
 			explicit DirectFreeFriendlyPivot(World world) : Tactic(world, true) {
 			}
 
 		private:
-			bool done() const;
-			Player select(const std::set<Player> &players) const;
-			void execute();
-			void player_changed();
-			Glib::ustring description() const {
+			bool done() const override;
+			Player select(const std::set<Player> &players) const override;
+			void execute() override;
+			void player_changed() override;
+			Glib::ustring description() const override {
 				return u8"auto-chipped";
 			}
 

@@ -19,11 +19,11 @@ namespace {
 	 * Parameter Tuning
 	 * Used for tuning robot controllers.
 	 */
-	class ParameterTuningNavigator : public Navigator {
+	class ParameterTuningNavigator final : public Navigator {
 		public:
 			explicit ParameterTuningNavigator(World world);
-			void tick();
-			NavigatorFactory &factory() const;
+			void tick() override;
+			NavigatorFactory &factory() const override;
 
 		private:
 			StochasticLocalSearch sls;

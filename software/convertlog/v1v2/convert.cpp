@@ -28,7 +28,7 @@
 #include <sys/types.h>
 
 namespace {
-	class ScopedFileDeleter : public NonCopyable {
+	class ScopedFileDeleter final : public NonCopyable {
 		public:
 			explicit ScopedFileDeleter(const std::string &filename) : filename(filename) {
 			}
@@ -41,7 +41,7 @@ namespace {
 			std::string filename;
 	};
 
-	class NoAITicksException : public std::runtime_error {
+	class NoAITicksException final : public std::runtime_error {
 		public:
 			explicit NoAITicksException() : std::runtime_error("No AI Ticks") {
 			}

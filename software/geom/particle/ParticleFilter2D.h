@@ -11,7 +11,7 @@
 /**
  * \brief Implements the basic mathematics of a 2D Particle filter.
  */
-class ParticleFilter2D {
+class ParticleFilter2D final {
 	public:
 		explicit ParticleFilter2D(Point length, Point offset, unsigned int numPartitions);
 		~ParticleFilter2D();

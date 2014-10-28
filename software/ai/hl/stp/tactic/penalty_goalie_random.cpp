@@ -14,17 +14,17 @@ namespace {
 
 	Point old_des;
 
-	class PenaltyGoalieRandom : public Tactic {
+	class PenaltyGoalieRandom final : public Tactic {
 		public:
 			explicit PenaltyGoalieRandom(World world);
 
 		private:
 			bool goto_target1;
-			bool done() const;
-			void execute();
+			bool done() const override;
+			void execute() override;
 //better implementation of chip power required. perhaps make a namespace variable for power?
 			double power;
-			Player select(const std::set<Player> &) const {
+			Player select(const std::set<Player> &) const override {
 				assert(false);
 			}
 
@@ -34,7 +34,7 @@ namespace {
 			Point right_target;
 
 			Robot shooter;
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return u8"penalty-goalie-random";
 			}
 	};

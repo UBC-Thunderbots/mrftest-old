@@ -10,7 +10,7 @@
  *
  * \tparam T the type of value to hold.
  */
-template<typename T> class Property : public NonCopyable {
+template<typename T> class Property final : public NonCopyable {
 	public:
 		/**
 		 * \brief Constructs a new Property.

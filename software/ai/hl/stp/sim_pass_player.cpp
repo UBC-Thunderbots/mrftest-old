@@ -12,7 +12,7 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	class SimPassPlayer : public HighLevel {
+	class SimPassPlayer final : public HighLevel {
 		public:
 			explicit SimPassPlayer(World world) : world(world), adj_xposition(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_xposition(adj_xposition), xpos(0.0), adj_yposition(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_yposition(adj_yposition), ypos(0.0), adj_orientation(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_orientation(adj_orientation), orient(Angle::zero()) {
 				adj_orientation.signal_value_changed().connect(sigc::mem_fun(*this, &SimPassPlayer::on_orientation_value_changed));
@@ -26,13 +26,13 @@ namespace {
 		private:
 			World world;
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return &ui_box;
 			}
 
-			void tick() {
+			void tick() override {
 				FriendlyTeam friendly = world.friendly_team();
 				if (!friendly.size()) {
 					return;
@@ -76,7 +76,7 @@ namespace {
 				ypos = hsb_yposition.get_value();
 			}
 
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) override {
 				ctx->set_source_rgb(0.0, 1.0, 0.0);
 				ctx->arc(to_draw.x, to_draw.y, 0.09, to_draw_orient.to_radians() - 0.2 * M_PI, to_draw_orient.to_radians() + 0.2 * M_PI);
 			}

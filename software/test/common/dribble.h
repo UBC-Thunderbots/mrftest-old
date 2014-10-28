@@ -9,7 +9,7 @@
 /**
  * \brief A panel that lets the user manually control the dribbler.
  */
-class DribblePanel : public Gtk::VBox {
+class DribblePanel final : public Gtk::VBox {
 	public:
 		/**
 		 * \brief Constructs a new DribblePanel.

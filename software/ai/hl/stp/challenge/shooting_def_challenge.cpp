@@ -13,15 +13,15 @@ using namespace AI::HL::W;
 namespace {
 	DoubleParam pos_dis_threshold_sd(u8"pos distance threshold shooting def", u8"NC", 0.05, 0, 1.0);
 
-	class ShootingDefChallenge : public HighLevel {
+	class ShootingDefChallenge final : public HighLevel {
 		public:
 			explicit ShootingDefChallenge(World world) : world(world) {
 				for (int i = 0 ; i < 5 ; i++) done[i] = 0;
 			}
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			void tick() {
+			void tick() override {
 
 				const Field &f = world.field();
 				/** 
@@ -86,7 +86,7 @@ namespace {
 				}
 			}
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return nullptr;
 			}
 

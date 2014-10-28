@@ -137,7 +137,7 @@ namespace AI {
 		 */
 		template<typename T, typename U> void swap(TeamIterator<T, U> &x, TeamIterator<T, U> &y);
 
-		template<typename T, typename U> class TeamIterator : public std::iterator<std::random_access_iterator_tag, T, ptrdiff_t, T*, T> {
+		template<typename T, typename U> class TeamIterator final : public std::iterator<std::random_access_iterator_tag, T, ptrdiff_t, T*, T> {
 			public:
 				/**
 				 * \brief Constructs a new iterator.

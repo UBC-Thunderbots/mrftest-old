@@ -14,7 +14,7 @@ namespace AI {
 	/**
 	 * A complete %AI.
 	 */
-	class AIPackage : public NonCopyable {
+	class AIPackage final : public NonCopyable {
 		public:
 			/**
 			 * The Backend against which the AI is running.

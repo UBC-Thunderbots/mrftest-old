@@ -12,7 +12,7 @@ using namespace AI::HL::STP::Action;
 using namespace AI::HL::W;
 
 namespace {
-	class FreeKickPass : public Tactic {
+	class FreeKickPass final : public Tactic {
 		public:
 			explicit FreeKickPass(World world, const Point target, bool chip, double speed_ratio) : Tactic(world, true), target(target), chip(chip), speed_ratio(speed_ratio) {
 				state = TO_BALL;
@@ -24,15 +24,15 @@ namespace {
 			double speed_ratio;
 			enum tactic_state { TO_BALL, ROTATE_BOT, ROTATE_TOP, ROTATE_MID, SHOOT };
 			tactic_state state;
-			bool done() const {
+			bool done() const override {
 				return player && player.autokick_fired();
 			}
 
-			Player select(const std::set<Player> &players) const {
+			Player select(const std::set<Player> &players) const override {
 				return select_baller(world, players, player);
 			}
 
-			void execute() {
+			void execute() override {
 				Point dest;
 				const double DISTANCE_FROM_BALL = 2.5 * Robot::MAX_RADIUS; // Keep robot this far away from the ball
 				const double TOLERANCE = 0.1; // Speed tolerance
@@ -117,7 +117,7 @@ namespace {
 				//return false if rectangle is clear of obstacles
 				return false;
 			}
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return u8"free kick pass";
 			}
 	};

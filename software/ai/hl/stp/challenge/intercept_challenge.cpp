@@ -33,7 +33,7 @@ namespace {
 	// DO NOT make this EXACT, instead, add a little tolerance!
 	const double AVOIDANCE_DIST = INTERCEPT_DIST + Robot::MAX_RADIUS + Ball::RADIUS + 0.005;
 
-	class InterceptChallenge: public HighLevel {
+	class InterceptChallenge final : public HighLevel {
 		public:
 			explicit InterceptChallenge(World world) :
 					world(world) {
@@ -42,13 +42,13 @@ namespace {
 		private:
 			World world;
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return nullptr;
 			}
 
-			void tick() {
+			void tick() override {
 				tick_eval(world);
 
 				std::vector<AI::HL::W::Player> players = AI::HL::Util::get_players(world.friendly_team());

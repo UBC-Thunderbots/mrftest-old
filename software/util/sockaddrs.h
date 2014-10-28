@@ -11,7 +11,7 @@
 /**
  * \brief Stores a set of address information structures returned from a \c getaddrinfo query.
  */
-class AddrInfoSet : public NonCopyable {
+class AddrInfoSet final : public NonCopyable {
 	public:
 		/**
 		 * \brief Invokes \c getaddrinfo and stores the result.

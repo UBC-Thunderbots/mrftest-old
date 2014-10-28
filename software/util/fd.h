@@ -8,7 +8,7 @@
 /**
  * \brief A file descriptor that is safely closed on destruction.
  */
-class FileDescriptor : public NonCopyable {
+class FileDescriptor final : public NonCopyable {
 	public:
 		/**
 		 * \brief Constructs a new FileDescriptor with a descriptor.

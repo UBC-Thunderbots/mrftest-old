@@ -11,7 +11,7 @@ extern "C" typedef void (*SignalHandlerFunction)(int);
 /**
  * Registers a signal handler for the scope of an object.
  */
-class SignalHandlerScopedRegistration {
+class SignalHandlerScopedRegistration final {
 	public:
 		/**
 		 * Registers a signal handler.
@@ -37,7 +37,7 @@ class SignalHandlerScopedRegistration {
 /**
  * Registers an alternate stack for signal handling for the scope of an object.
  */
-class SignalStackScopedRegistration {
+class SignalStackScopedRegistration final {
 	public:
 		/**
 		 * Registers an alternate stack.

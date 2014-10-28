@@ -81,7 +81,7 @@ namespace {
 		scale[0] = scale[1] = scale[2] = scale[3] = 0.1;
 	}
 
-	struct Mode {
+	struct Mode final {
 		const char *name;
 		unsigned int sensitive_mask;
 		double limit;

@@ -7,18 +7,18 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
 namespace {
-	class LoneGoalie : public Tactic {
+	class LoneGoalie final : public Tactic {
 		public:
 			explicit LoneGoalie(World world, bool active) : Tactic(world, active) {
 			}
 
 		private:
-			bool done() const;
-			void execute();
-			Player select(const std::set<Player> &) const {
+			bool done() const override;
+			void execute() override;
+			Player select(const std::set<Player> &) const override {
 				assert(false);
 			}
-			Glib::ustring description() const {
+			Glib::ustring description() const override {
 				return u8"goalie (all alone)";
 			}
 	};

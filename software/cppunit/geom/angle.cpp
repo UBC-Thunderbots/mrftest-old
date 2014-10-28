@@ -3,7 +3,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 namespace {
-	class AngleTest : public CppUnit::TestFixture {
+	class AngleTest final : public CppUnit::TestFixture {
 		CPPUNIT_TEST_SUITE(AngleTest);
 		CPPUNIT_TEST(test_statics);
 		CPPUNIT_TEST(test_of_radians);

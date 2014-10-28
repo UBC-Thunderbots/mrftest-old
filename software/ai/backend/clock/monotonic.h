@@ -13,7 +13,7 @@ namespace AI {
 			/**
 			 * \brief A clock source backed by the system monotonic clock.
 			 */
-			class Monotonic : public AI::BE::Clock::Clock, public sigc::trackable {
+			class Monotonic final : public AI::BE::Clock::Clock, public sigc::trackable {
 				public:
 					/**
 					 * \brief Constructs a new Monotonic.

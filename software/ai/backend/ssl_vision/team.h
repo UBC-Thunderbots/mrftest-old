@@ -48,7 +48,7 @@ namespace AI {
 					 *
 					 * \return the number of existent robots in the team.
 					 */
-					std::size_t size() const;
+					std::size_t size() const override;
 
 					/**
 					 * \brief Returns a robot.
@@ -57,7 +57,7 @@ namespace AI {
 					 *
 					 * \return the robot.
 					 */
-					typename TSuper::Ptr get(std::size_t i) const;
+					typename TSuper::Ptr get(std::size_t i) const override;
 
 					/**
 					 * \brief Returns a robot.

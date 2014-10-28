@@ -15,7 +15,7 @@ namespace AI {
 	/**
 	 * \brief A window for controlling the AI.
 	 */
-	class Window : public Gtk::Window {
+	class Window final : public Gtk::Window {
 		public:
 			/**
 			 * \brief Creates a new main window.

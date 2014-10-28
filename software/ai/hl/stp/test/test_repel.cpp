@@ -8,7 +8,7 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	class TestRepel : public HighLevel {
+	class TestRepel final : public HighLevel {
 		public:
 			explicit TestRepel(World world) : world(world) {
 			}
@@ -16,13 +16,13 @@ namespace {
 		private:
 			World world;
 
-			HighLevelFactory &factory() const;
+			HighLevelFactory &factory() const override;
 
-			Gtk::Widget *ui_controls() {
+			Gtk::Widget *ui_controls() override {
 				return nullptr;
 			}
 
-			void tick() {
+			void tick() override {
 				tick_eval(world);
 
 				FriendlyTeam friendly = world.friendly_team();

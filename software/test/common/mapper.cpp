@@ -38,7 +38,7 @@ namespace {
 	}
 }
 
-class MapperWindow::MappingsListModel : public Glib::Object, public AbstractListModel {
+class MapperWindow::MappingsListModel final : public Glib::Object, public AbstractListModel {
 	public:
 		std::vector<JoystickMapping> mappings;
 
@@ -62,11 +62,11 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 			Config::save();
 		}
 
-		std::size_t alm_rows() const {
+		std::size_t alm_rows() const override {
 			return mappings.size();
 		}
 
-		void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const {
+		void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const override {
 			if (col == static_cast<unsigned int>(name_column.index())) {
 				Glib::Value<Glib::ustring> v;
 				v.init(name_column.type());
@@ -102,7 +102,7 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 			}
 		}
 
-		void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) {
+		void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) override {
 		}
 
 		bool has_mapping(const Joystick::Identifier &ident) const {
@@ -153,7 +153,7 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 		}
 };
 
-class MapperWindow::PreviewDevicesModel : public Glib::Object, public AbstractListModel {
+class MapperWindow::PreviewDevicesModel final : public Glib::Object, public AbstractListModel {
 	public:
 		Gtk::TreeModelColumn<Glib::ustring> name_column;
 
@@ -184,11 +184,11 @@ class MapperWindow::PreviewDevicesModel : public Glib::Object, public AbstractLi
 			return index > 0 ? devices[index - 1] : nullptr;
 		}
 
-		std::size_t alm_rows() const {
+		std::size_t alm_rows() const override {
 			return devices.size() + 1;
 		}
 
-		void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const {
+		void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const override {
 			if (col == static_cast<unsigned int>(name_column.index())) {
 				Glib::Value<Glib::ustring> v;
 				v.init(name_column.type());
@@ -204,7 +204,7 @@ class MapperWindow::PreviewDevicesModel : public Glib::Object, public AbstractLi
 			}
 		}
 
-		void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) {
+		void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) override {
 		}
 
 	private:

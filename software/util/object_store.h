@@ -10,7 +10,7 @@
 /**
  * \brief An ObjectStore allows multiple clients to store arbitrary objects attached to another object, without the holder knowing a priori the details of the stored objects, and without multiple clients overwriting each others’ stored objects.
  */
-class ObjectStore : public NonCopyable {
+class ObjectStore final : public NonCopyable {
 	public:
 		/**
 		 * \brief The type of an element in an ObjectStore.

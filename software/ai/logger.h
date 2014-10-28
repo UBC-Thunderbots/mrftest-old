@@ -26,7 +26,7 @@ namespace AI {
 	/**
 	 * Records a log of a game for later playback.
 	 */
-	class Logger : public NonCopyable, public sigc::trackable {
+	class Logger final : public NonCopyable, public sigc::trackable {
 		public:
 			/**
 			 * Constructs a new Logger and opens a log file.

@@ -11,7 +11,7 @@
 #include <gtkmm/treeview.h>
 #include <gtkmm/window.h>
 
-class LogAnalyzer : public Gtk::Window {
+class LogAnalyzer final : public Gtk::Window {
 	public:
 		/**
 		 * \brief Creates a new LogAnalyzer.
