@@ -7,6 +7,11 @@ firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/logs/CAPTURE3.csv -text
 firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/logs/Doc1.docx -text
 firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/logs/expected.xlsx -text
 firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/temp_controlf_ver2_ino_wPMW_ino.ino -text
+firmware/camera/i2c.c -text
+firmware/camera/main.c -text
+firmware/camera/stm32lib/registers/dcmi.h -text
+firmware/camera/stm32lib/registers/i2c.h -text
+firmware/camera/stm32lib/stm32f405.ld -text
 firmware/cdcacm/cdcacm.c -text
 firmware/cdcacm/include/cdcacm.h -text
 firmware/dongle/Doxyfile -text
