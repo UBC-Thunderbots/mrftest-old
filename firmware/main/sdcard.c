@@ -74,7 +74,6 @@ typedef enum {
 #define SD_DMA_CHANNEL 4U
 
 static SemaphoreHandle_t int_semaphore = NULL;
-static SemaphoreHandle_t dma_semaphore = NULL;
 
 typedef struct {
 	sd_status_t status;
@@ -98,34 +97,6 @@ void sd_isr(void) {
 	SDIO.MASK = mask_temp;
 	BaseType_t yield = pdFALSE;
 	xSemaphoreGiveFromISR(int_semaphore, &yield);
-	if (yield) {
-		portYIELD_FROM_ISR();
-	}
-}
-
-/**
- * \brief Handles DMA controller 2 stream 6 interrupts.
- *
- * This function should be registered in the interrupt vector table at position 69.
- */
-void dma2_stream6_isr(void) {
-	_Static_assert(SD_DMA_STREAM == 6U, "Function needs rewriting to the proper stream number!");
-
-	DMA_HISR_t temp_hisr = DMA2.HISR;
-	DMA_HIFCR_t temp_hifcr = {
-		.CFEIF6 = temp_hisr.FEIF6,
-		.CDMEIF6 = temp_hisr.DMEIF6,
-		.CTEIF6 = temp_hisr.TEIF6,
-		.CHTIF6 = temp_hisr.HTIF6,
-		.CTCIF6 = temp_hisr.TCIF6,
-	};
-
-	assert(!temp_hisr.DMEIF6 && !temp_hisr.TEIF6);
-
-	DMA2.HIFCR = temp_hifcr;
-
-	BaseType_t yield = pdFALSE;
-	xSemaphoreGiveFromISR(dma_semaphore, &yield);
 	if (yield) {
 		portYIELD_FROM_ISR();
 	}
@@ -452,11 +423,16 @@ bool sd_init(void) {
 
 	// Setting up interrupts and related things.
 	int_semaphore = xSemaphoreCreateBinary();
-	dma_semaphore = xSemaphoreCreateBinary();
 
-	// Unmask interrupts.
+	// Unmask SD card interrupts.
 	portENABLE_HW_INTERRUPT(49U, PRIO_EXCEPTION_SD);
-	portENABLE_HW_INTERRUPT(69U, PRIO_EXCEPTION_SD_DMA);
+
+	// Unmask DMA interrupts for the channel. These should never actually
+	// happen, because the specific interrupt causes we enable for the DMA
+	// channel are always error conditions. Thus, there isn’t actually a handler
+	// for this interrupt; instead, if it ever happens, it will crash the
+	// system.
+	portENABLE_HW_INTERRUPT(69U, 0U);
 
 	vTaskDelay(1000U / portTICK_PERIOD_MS);
 
@@ -666,7 +642,7 @@ bool sd_read(uint32_t sector, void *buffer) {
 		.EN = 1,
 		.DMEIE = 1,
 		.TEIE = 1,
-		.TCIE = 1,
+		.TCIE = 0,
 		.PFCTRL = 1,
 		.DIR = DMA_DIR_P2M,
 		.CIRC = 0,
@@ -695,7 +671,9 @@ bool sd_read(uint32_t sector, void *buffer) {
 	if (!send_command_r1( READ_SINGLE_BLOCK, card_state.sdhc ? sector : (sector * 512U), STATE_TRAN)) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
+		while (DMA2.streams[SD_DMA_STREAM].CR.EN) {
+			taskYIELD();
+		}
 		SDIO_DCTRL_t dctrl_temp = { .DTEN = 0 };
 		SDIO.DCTRL = dctrl_temp;
 		return false; 
@@ -710,19 +688,23 @@ bool sd_read(uint32_t sector, void *buffer) {
 	if (SDIO.STA.DTIMEOUT) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
+		while (DMA2.streams[SD_DMA_STREAM].CR.EN) {
+			taskYIELD();
+		}
 		fputs("SD: Data timeout\r\n", stdout);
 		return false;
 	} else if (SDIO.STA.DCRCFAIL) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
+		while (DMA2.streams[SD_DMA_STREAM].CR.EN) {
+			taskYIELD();
+		}
 		fputs("SD: Data CRC failure\r\n", stdout);
 		return false;
 	}
 
 	// Data block ended successfully; wait for the DMA controller to shut down.
-	xSemaphoreTake(dma_semaphore, portMAX_DELAY);
+	while (DMA2.streams[SD_DMA_STREAM].CR.EN);
 
 	return true;
 }
@@ -765,7 +747,7 @@ bool sd_write(uint32_t sector, const void *data) {
 		.EN = 1,
 		.DMEIE = 1,
 		.TEIE = 1,
-		.TCIE = 1,
+		.TCIE = 0,
 		.PFCTRL = 1,
 		.DIR = DMA_DIR_M2P,
 		.CIRC = 0,
@@ -790,7 +772,9 @@ bool sd_write(uint32_t sector, const void *data) {
 	if (!send_command_r1(WRITE_BLOCK, card_state.sdhc ? sector : (sector * 512U), STATE_TRAN)) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
+		while (DMA2.streams[SD_DMA_STREAM].CR.EN) {
+			taskYIELD();
+		}
 		return false; 
 	}
 
@@ -807,19 +791,23 @@ bool sd_write(uint32_t sector, const void *data) {
 	if (SDIO.STA.DTIMEOUT) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
+		while (DMA2.streams[SD_DMA_STREAM].CR.EN) {
+			taskYIELD();
+		}
 		fputs("SD: Data timeout\r\n", stdout);
 		return false;
 	} else if (SDIO.STA.DCRCFAIL) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		xSemaphoreTake(dma_semaphore, portMAX_DELAY);
+		while (DMA2.streams[SD_DMA_STREAM].CR.EN) {
+			taskYIELD();
+		}
 		fputs("SD: Data CRC failure\r\n", stdout);
 		return false;
 	}
 
 	// Data block ended successfully; wait for the DMA controller to shut down.
-	xSemaphoreTake(dma_semaphore, portMAX_DELAY);
+	while (DMA2.streams[SD_DMA_STREAM].CR.EN);
 
 	// Wait for DPSM to disable.
 	// This is where we wait until SDIO_D0 goes high, indicating the card is no longer busy.

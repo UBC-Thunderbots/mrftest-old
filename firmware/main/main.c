@@ -73,7 +73,6 @@ static const fptr interrupt_vectors[82U] __attribute__((used, section(".interrup
 	[56U] = &dma2_stream0_isr,
 	[59U] = &dma2_stream3_isr,
 	[67U] = &udev_isr,
-	[69U] = &dma2_stream6_isr,
 };
 
 static void app_exception_early(void) {

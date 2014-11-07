@@ -131,13 +131,6 @@
 #define PRIO_EXCEPTION_SD EXCEPTION_MKPRIO(5U, 0U)
 
 /**
- * \brief The priority of the SD host controller DMA interrupt.
- *
- * This shares a priority with the SD interrupt.
- */
-#define PRIO_EXCEPTION_SD_DMA PRIO_EXCEPTION_SD
-
-/**
  * \brief The priority of the USB interrupt.
  *
  * This is very low priority as USB is only used for debug printing.

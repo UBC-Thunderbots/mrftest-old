@@ -163,7 +163,6 @@ bool sd_read(uint32_t sector, void *buffer);
 bool sd_write(uint32_t sector, const void *data);
 bool sd_erase(uint32_t sector, size_t count);
 void sd_isr(void);
-void dma2_stream6_isr(void);
 
 #endif
 
