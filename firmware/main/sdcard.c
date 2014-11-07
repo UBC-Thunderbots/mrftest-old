@@ -583,14 +583,6 @@ bool sd_init(void) {
 
 	card_state.status = SD_STATUS_OK;
 
-	// Detach pull-up resistor from DATA3.
-	if (!send_command_r1(APP_CMD, RCA << 16U, STATE_TRAN)) {
-		return false;
-	}
-	if (!send_command_r1(SET_CLR_CARD_DETECT, 0U, STATE_TRAN)) {
-		return false;
-	}
-
 	// Set bus width.
 	SDIO_CLKCR_t clkcr_tmp = SDIO.CLKCR;
 	if (!send_command_r1(APP_CMD, RCA << 16U, STATE_TRAN)) {
