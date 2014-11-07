@@ -434,7 +434,13 @@ bool sd_init(void) {
 	// system.
 	portENABLE_HW_INTERRUPT(69U, 0U);
 
-	vTaskDelay(1000U / portTICK_PERIOD_MS);
+	// Having enabled clocks, wait a little bit for the card to initialize. The
+	// SD card specification states, in section 6.4, that after VDD passes its
+	// minimum threshold, the host must provide at least one millisecond and at
+	// least 74 clock cycles to the card before sending the first command. At
+	// 400 kHz, 74 clock cycles is 185 µs, an insignificant amount of time.
+	// Just wait one millisecond.
+	vTaskDelay(1U);
 
 	// Reset card and enter idle state in SD mode.
 	send_command(GO_IDLE_STATE, 0U, COMMAND_FLAG_NO_RESPONSE);
