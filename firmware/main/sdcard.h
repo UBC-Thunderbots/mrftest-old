@@ -6,6 +6,11 @@
 #include <stdint.h>
 
 /**
+ * \brief The size of a sector on an SD card.
+ */
+#define SD_SECTOR_SIZE 512U
+
+/**
  * \brief The possible results of taking an action against the card.
  */
 typedef enum {

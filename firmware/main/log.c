@@ -23,27 +23,37 @@
 #include <unused.h>
 
 #define NUM_BUFFERS 16U
+#define RECORDS_PER_SECTOR (SD_SECTOR_SIZE / LOG_RECORD_SIZE)
 
 _Static_assert(sizeof(log_record_t) == LOG_RECORD_SIZE, "log_record_t is not LOG_RECORD_SIZE!");
-_Static_assert(LOG_RECORD_SIZE == 512U, "log_record_t is not 512 bytes (one SD card sector) long!");
+_Static_assert((512U % LOG_RECORD_SIZE) == 0U, "log_record_t is not a perfect fraction of 512 bytes (an SD card sector) long!");
+
+typedef struct {
+	log_record_t records[RECORDS_PER_SECTOR];
+} log_sector_t;
+
+_Static_assert(sizeof(log_sector_t) == SD_SECTOR_SIZE, "log_sector_t is not SD_SECTOR_SIZE!");
 
 static log_state_t state = LOG_STATE_UNINITIALIZED;
 static uint16_t epoch;
 static QueueHandle_t free_queue, write_queue;
 static dma_memory_handle_t buffer_handles[NUM_BUFFERS];
+static log_sector_t *filling_sector;
+static unsigned int next_fill_record;
+static unsigned int total_records;
 
 static void log_writeout_task(void *param) {
 	// Shovel records.
 	uint32_t sector = (uint32_t) param;
-	log_record_t *record;
+	log_sector_t *data;
 	do {
 		// Receive a submitted record.
-		BaseType_t rc = xQueueReceive(write_queue, &record, portMAX_DELAY);
+		BaseType_t rc = xQueueReceive(write_queue, &data, portMAX_DELAY);
 		assert(rc == pdTRUE); // Receive can never fail because we wait forever.
 
 		// If this was a real record (not the null pointer signifying shutdown) and nothing has failed yet, write it out to the SD card.
-		if (record && state /* Non-atomic OK because only this task writes */ == LOG_STATE_OK) {
-			if (sd_write(sector, record)) {
+		if (data && state /* Non-atomic OK because only this task writes */ == LOG_STATE_OK) {
+			if (sd_write(sector, data)) {
 				++sector;
 				if (sector == sd_sector_count()) {
 					__atomic_store_n(&state, LOG_STATE_CARD_FULL, __ATOMIC_RELAXED);
@@ -55,9 +65,9 @@ static void log_writeout_task(void *param) {
 		}
 
 		// Put the record back on the free queue.
-		rc = xQueueSend(free_queue, &record, 0U);
+		rc = xQueueSend(free_queue, &data, 0U);
 		assert(rc == pdTRUE); // Send can never fail because free_queue is NUM_BUFFERS long or, in case of null, log_deinit has already sucked out all the real buffers.
-	} while (record);
+	} while (data);
 
 	// We have been asked to shut down, by means of a null pointer being sent over the write queue.
 	// We have already replied by putting the null pointer back on the free queue, so just die.
@@ -82,9 +92,14 @@ log_state_t log_state(void) {
  * \retval false initialization failed and \ref log_alloc will always return null
  */
 bool log_init(void) {
+	// Clear variables.
+	filling_sector = 0;
+	next_fill_record = 0U;
+	total_records = 0U;
+
 	// Allocate the log buffers.
 	for (unsigned int i = 0U; i != NUM_BUFFERS; ++i) {
-		buffer_handles[i] = dma_alloc(sizeof(log_record_t));
+		buffer_handles[i] = dma_alloc(sizeof(log_sector_t));
 	}
 
 	// Sanity check.
@@ -96,12 +111,12 @@ bool log_init(void) {
 		uint32_t low = 0U, high = sd_sector_count();
 		while (low != high && sd_status() == SD_STATUS_OK) {
 			uint32_t probe = (low + high) / 2U;
-			log_record_t *buffer = dma_get_buffer(buffer_handles[0U]);
+			log_sector_t *buffer = dma_get_buffer(buffer_handles[0U]);
 			if (!sd_read(probe, buffer)) {
 				state = LOG_STATE_SD_ERROR;
 				return false;
 			}
-			if (buffer->magic == LOG_MAGIC_TICK) {
+			if (buffer->records[0U].magic == LOG_MAGIC_TICK) {
 				low = probe + 1U;
 			} else {
 				high = probe;
@@ -118,12 +133,12 @@ bool log_init(void) {
 
 	// Compute the epoch: previous sector’s epoch + 1 (if first empty sector is not first sector), or 1 (if first empty sector is first sector).
 	if (next_write_sector > 0U) {
-		log_record_t *buffer = dma_get_buffer(buffer_handles[0U]);
+		log_sector_t *buffer = dma_get_buffer(buffer_handles[0U]);
 		if (!sd_read(next_write_sector - 1U, buffer)) {
 			state = LOG_STATE_SD_ERROR;
 			return false;
 		}
-		epoch = buffer->epoch + 1U;
+		epoch = buffer->records[0U].epoch + 1U;
 	} else {
 		epoch = 1U;
 	}
@@ -135,13 +150,13 @@ bool log_init(void) {
 	}
 
 	// Create all the FreeRTOS IPC objects.
-	free_queue = xQueueCreate(NUM_BUFFERS, sizeof(log_record_t *));
-	write_queue = xQueueCreate(NUM_BUFFERS, sizeof(log_record_t *));
+	free_queue = xQueueCreate(NUM_BUFFERS, sizeof(log_sector_t *));
+	write_queue = xQueueCreate(NUM_BUFFERS, sizeof(log_sector_t *));
 	assert(free_queue && write_queue);
 
 	// Push all the buffers into the free queue.
 	for (size_t i = 0U; i != NUM_BUFFERS; ++i) {
-		log_record_t *buffer = dma_get_buffer(buffer_handles[i]);
+		log_sector_t *buffer = dma_get_buffer(buffer_handles[i]);
 		BaseType_t rc = xQueueSend(free_queue, &buffer, 0U);
 		assert(rc == pdTRUE); // Send can never fail because we are sending NUM_BUFFERS into a fresh NUM_BUFFERS-sized queue.
 	}
@@ -170,7 +185,7 @@ void log_shutdown(void) {
 
 	// Remove all the free buffers from the queue.
 	for (size_t i = 0U; i != NUM_BUFFERS; ++i) {
-		log_record_t *ptr;
+		log_sector_t *ptr;
 		BaseType_t rc = xQueueReceive(free_queue, &ptr, portMAX_DELAY);
 		assert(rc == pdTRUE); // Receive can never fail because we wait forever.
 	}
@@ -183,14 +198,14 @@ void log_shutdown(void) {
 
 	// Send a null pointer into the write queue, signalling the writeout task to terminate.
 	{
-		log_record_t *null = 0;
+		log_sector_t *null = 0;
 		BaseType_t rc = xQueueSend(write_queue, &null, 0U);
 		assert(rc == pdTRUE); // Send can never fail because we have eaten all the buffers, so nothing can possibly be in either queue.
 	}
 
 	// Wait for the writeout task to send the null pointer back on the free queue, signalling that it is terminating.
 	{
-		log_record_t *ptr;
+		log_sector_t *ptr;
 		BaseType_t rc = xQueueReceive(free_queue, &ptr, portMAX_DELAY);
 		assert(rc == pdTRUE); // Receive can never fail because we wait forever.
 		assert(!ptr);
@@ -217,17 +232,20 @@ log_record_t *log_alloc(void) {
 		return 0;
 	}
 
-	log_record_t *rec;
-	BaseType_t rc = xQueueReceive(free_queue, &rec, 0U);
-
-	if (rc == pdTRUE) {
-		rec->epoch = epoch;
-		rec->time = xTaskGetTickCount();
-		return rec;
-	} else {
-		fputs("Log: out of buffers.\r\n", stdout);
-		return 0;
+	if (!filling_sector) {
+		next_fill_record = 0U;
+		BaseType_t rc = xQueueReceive(free_queue, &filling_sector, 0U);
+		if (rc != pdTRUE) {
+			filling_sector = 0;
+			iprintf("Log: out of buffers at %u.\r\n", total_records);
+			return 0;
+		}
 	}
+
+	log_record_t *rec = &filling_sector->records[next_fill_record];
+	rec->epoch = epoch;
+	rec->time = xTaskGetTickCount();
+	return rec;
 }
 
 /**
@@ -236,11 +254,16 @@ log_record_t *log_alloc(void) {
  * \param[in] record the log record, which must have previously been allocated with \ref log_alloc
  */
 void log_queue(log_record_t *record) {
-	BaseType_t rc = xQueueSend(write_queue, &record, 0U);
-	assert(rc == pdTRUE); // Send can never fail because we only ever allocate NUM_BUFFERS buffers, and write_queue is NUM_BUFFERS long.
+	assert(record == &filling_sector->records[next_fill_record]);
+	++next_fill_record;
+	++total_records;
+	if (next_fill_record == RECORDS_PER_SECTOR) {
+		BaseType_t rc = xQueueSend(write_queue, &filling_sector, 0U);
+		assert(rc == pdTRUE); // Send can never fail because we only ever allocate NUM_BUFFERS buffers, and write_queue is NUM_BUFFERS long.
+		filling_sector = 0;
+	}
 }
 
 /**
  * @}
  */
-

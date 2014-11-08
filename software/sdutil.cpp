@@ -26,9 +26,9 @@
 namespace {
 	constexpr unsigned long CPU_FREQUENCY = 48000000UL;
 	constexpr off_t SECTOR_SIZE = 512;
-	constexpr off_t LOG_RECORD_SIZE = 512;
+	constexpr off_t LOG_RECORD_SIZE = 128;
 	constexpr off_t RECORDS_PER_SECTOR = SECTOR_SIZE / LOG_RECORD_SIZE;
-	constexpr uint32_t LOG_MAGIC_TICK = UINT32_C(0xE2468843);
+	constexpr uint32_t LOG_MAGIC_TICK = UINT32_C(0xE2468844);
 
 	class SectorArray final : public NonCopyable {
 		public:

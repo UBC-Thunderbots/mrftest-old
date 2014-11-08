@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define LOG_RECORD_SIZE 512U
-#define LOG_MAGIC_TICK UINT32_C(0xE2468843)
+#define LOG_RECORD_SIZE 128U
+#define LOG_MAGIC_TICK UINT32_C(0xE2468844)
 
 /**
  * \ingroup LOG
