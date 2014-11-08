@@ -207,7 +207,7 @@ void cdcacm_start(void) {
  * \brief Deactivates the CDC ACM module.
  *
  * This function must be called on the USB stack internal task when the containing configuration is exited.
- * A suitable way to do this might be ot use this function as the \c on_exit callback of a \c udev_alternate_setting_infO_t structure.
+ * A suitable way to do this might be to use this function as the \c on_exit callback of a \c udev_alternate_setting_info_t structure.
  */
 void cdcacm_stop(void) {
 	xSemaphoreTake(cdcacm_writer_mutex, portMAX_DELAY);
