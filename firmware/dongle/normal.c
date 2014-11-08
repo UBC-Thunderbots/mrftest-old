@@ -208,7 +208,7 @@ void timer6_isr(void) {
 static void send_drive_packet(const void *packet, uint8_t counter) {
 	// Write out the packet.
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 0U, 9U); // Header length
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 1U, 9U + DRIVE_PACKET_DATA_SIZE + 1U); // Frame length
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 1U, 9U + DRIVE_PACKET_DATA_SIZE + 2U); // Frame length
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 2U, 0b01000001U); // Frame control LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 3U, 0b10001000U); // Frame control MSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 4U, ++mrf_tx_seqnum); // Sequence number
@@ -219,27 +219,24 @@ static void send_drive_packet(const void *packet, uint8_t counter) {
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 9U, 0x00U); // Source address LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 10U, 0x01U); // Source address MSB
 	const uint8_t *bptr = packet;
-	if (estop_read() != ESTOP_RUN) {
-		for (size_t i = 0U; i < DRIVE_PACKET_DATA_SIZE; i += 8U) {
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i + 1U, (i == poll_index * DRIVE_PACKET_DATA_SIZE / 8U) ? 0b10000000U : 0b00000000U);
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i + 0U, 0x00U);
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i + 3U, 0b01000000U & bptr[i+3U]);
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i + 2U, 0x00U);
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i + 5U, 0x00U);
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i + 4U, 0x00U);
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i + 7U, 0x00U);
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i + 6U, 0x00U);
+
+	for (size_t i = 0U; i < DRIVE_PACKET_DATA_SIZE; ++i) {
+		uint8_t mask = 0U;
+		if (i - 1U == poll_index * DRIVE_PACKET_DATA_SIZE / 8U) {
+			mask = 0x80U;
 		}
-	} else {
-		for (size_t i = 0U; i < DRIVE_PACKET_DATA_SIZE; ++i) {
-			uint8_t mask = 0U;
-			if (i - 1U == poll_index * DRIVE_PACKET_DATA_SIZE / 8U) {
-				mask = 0x80U;
-			}
-			mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i, bptr[i] | mask);
-		}
+		mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i, bptr[i] | mask);
 	}
+
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + DRIVE_PACKET_DATA_SIZE, counter);
+
+	//Write the estop byte into the last piece of the packet, after counter
+	if (estop_read() != ESTOP_RUN) { //0 to stop
+		mrf_write_long(MRF_REG_LONG_TXNFIFO + 12U + DRIVE_PACKET_DATA_SIZE, 0x00U);
+	} else {		 	 //1 to proceed
+		mrf_write_long(MRF_REG_LONG_TXNFIFO + 12U + DRIVE_PACKET_DATA_SIZE, 0x01U);
+	}
+
 	poll_index = (poll_index + 1U) % 8U;
 
 	// Initiate transmission with no acknowledgement.
@@ -247,6 +244,7 @@ static void send_drive_packet(const void *packet, uint8_t counter) {
 
 	// Blink the transmit light.
 	gpio_toggle(PIN_LED_TX);
+	
 }
 
 /**

@@ -52,8 +52,8 @@ static void receive_task(void *UNUSED(param)) {
 				static const size_t HEADER_LENGTH = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
 				static const size_t FOOTER_LENGTH = 2U /* FCS */ + 1U /* RSSI */ + 1U /* LQI */;
 				if (dest_address == 0xFFFFU) {
-					// Broadcast frame must contain drive packet, which must be 65 bytes long
-					if (frame_length == HEADER_LENGTH + 65U + FOOTER_LENGTH) {
+					// Broadcast frame must contain drive packet, which must be 65 bytes long (+1byte for estop)
+					if (frame_length == HEADER_LENGTH + 66U + FOOTER_LENGTH) {
 						// Construct the individual 16-bit words sent from the host.
 						const uint8_t offset = HEADER_LENGTH + 8U * robot_index;
 						uint16_t words[4U];
@@ -66,6 +66,13 @@ static void receive_task(void *UNUSED(param)) {
 						// Pull out the serial number at the end.
 						uint8_t drive_data_serial = dma_buffer[HEADER_LENGTH + 64U];
 
+						/* 
+						In the transmit code, the variable "counter" is used as drive_data_serial, which ends up
+						at location HEADER_LENGTH + 64U in dma_buffer. It only seems logical that estop_byte
+						which is written immediately after counter will be at HEADER_LENGTH + 64U + 1U
+						*/
+
+						uint8_t estop_byte = dma_buffer[HEADER_LENGTH + 65U];
 						// Check for feedback request.
 						if (!!(words[0U] & 0x8000U)) {
 							feedback_pend_normal();
@@ -74,23 +81,37 @@ static void receive_task(void *UNUSED(param)) {
 						// Find the packet buffer to write into.
 						drive_t *target = drive_write_get();
 
-						// Decode the drive packet.
-						switch ((words[0U] >> 13U) & 0b11) {
-							case 0b00: target->wheels_mode = WHEELS_MODE_COAST; break;
-							case 0b01: target->wheels_mode = WHEELS_MODE_BRAKE; break;
-							case 0b10: target->wheels_mode = WHEELS_MODE_OPEN_LOOP; break;
-							case 0b11: target->wheels_mode = WHEELS_MODE_CLOSED_LOOP; break;
-						}
-						target->dribbler_power = 255U * (words[2U] >> 11U) / 31U;
-						target->charger_enabled = !!(words[1U] & (1U << 15U));
-						target->discharger_enabled = !!(words[1U] & (1U << 14U));
-						for (unsigned int i = 0U; i < 4U; ++i) {
-							int16_t sp = (int16_t) (words[i] & 0x3FFU);
-							if (words[i] & 0x400U) {
-								sp = -sp;
+						if (estop_byte == 0x01U) { //proceed 
+
+							// Decode the drive packet.	
+							switch ((words[0U] >> 13U) & 0b11) {
+								case 0b00: target->wheels_mode = WHEELS_MODE_COAST; break;
+								case 0b01: target->wheels_mode = WHEELS_MODE_BRAKE; break;
+								case 0b10: target->wheels_mode = WHEELS_MODE_OPEN_LOOP; break;
+								case 0b11: target->wheels_mode = WHEELS_MODE_CLOSED_LOOP; break;
 							}
-							target->setpoints[i] = sp;
+							target->dribbler_power = 255U * (words[2U] >> 11U) / 31U;
+							target->charger_enabled = !!(words[1U] & (1U << 15U));
+							target->discharger_enabled = !!(words[1U] & (1U << 14U));
+							for (unsigned int i = 0U; i < 4U; ++i) {
+								int16_t sp = (int16_t) (words[i] & 0x3FFU);
+								if (words[i] & 0x400U) {
+									sp = -sp;
+								}
+								target->setpoints[i] = sp;
+							}
+							
+						} else { //means the estop_byte is 0, so STOP.
+							target->wheels_mode = WHEELS_MODE_OPEN_LOOP;
+							target->dribbler_power = 0;
+							target->charger_enabled = false;
+							target->discharger_enabled = false;
+							target->setpoints[0] = 0;
+							target->setpoints[1] = 0;
+							target->setpoints[2] = 0;
+							target->setpoints[3] = 0;
 						}
+						
 						target->data_serial = drive_data_serial;
 
 						// Put the written buffer back.
