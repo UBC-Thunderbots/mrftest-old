@@ -11,7 +11,14 @@
 //LPS2 = PB4
 //LPS3 = PB5
 
-lps_values lps_export;
+#define LPS_SENSOR_SPACING 2 // cm
+//#define LPS_OFFSET 0.03f
+#define LPS_MIN 0.005f
+
+lps_values lps_raw;
+lps_values lps_norm;
+float lps_mean;
+float lps_var;
 
 void lps_init(){
 	// nothing to initiate so far
@@ -34,18 +41,34 @@ void lps_incr(){
 	static unsigned int counter = 0;
 	//static lps_values updating_lps = {0,0,0,0};	
 	float adc_reading = adc_lps();
+	float lps_sum=0.0;
 	adc_values[counter%16]=adc_reading;
 	
 	for(unsigned int i = 0; i<LPS_ARRAY_SIZE; i++){
 		updating_lps[i]+=((counter&(1<<i))?1:-1)*adc_reading;
 	}
 
+	// when the calculation is complete 
 	if( counter==0 ){
 		for(unsigned int i = 0; i<LPS_ARRAY_SIZE; i++){
-			lps_export[i] = updating_lps[i];
+			if(updating_lps[i] < 0){
+				lps_raw[i] = -updating_lps[i];
+			} else {
+				lps_raw[i] = LPS_MIN;
+			}
 			updating_lps[i]=0;
 		}
-		
+		lps_mean = 0.0;
+		lps_var = 0.0;
+		for(unsigned int i = 0; i<LPS_ARRAY_SIZE; i++){
+			lps_sum += lps_raw[i];
+		}
+		for(unsigned int i = 0; i<LPS_ARRAY_SIZE; i++){
+			lps_norm[i] = lps_raw[i]/lps_sum;
+			lps_mean += lps_norm[i] * (i-1.5f) * LPS_SENSOR_SPACING;	
+			lps_var += lps_norm[i] * (i-1.5f)*(i-1.5f) * LPS_SENSOR_SPACING * LPS_SENSOR_SPACING;
+		}
+		lps_var = lps_var - lps_mean*lps_mean;
 	}
 
 	counter++; 
@@ -55,6 +78,8 @@ void lps_incr(){
 	if((counter>>1)&1) {gpio_set(PIN_LPS_DRIVE2);} else {gpio_reset(PIN_LPS_DRIVE2);}
 	if((counter>>2)&1) {gpio_set(PIN_LPS_DRIVE1);} else {gpio_reset(PIN_LPS_DRIVE1);}
 	if((counter>>3)&1) {gpio_set(PIN_LPS_DRIVE0);} else {gpio_reset(PIN_LPS_DRIVE0);}
+
+	
 }
 
 int lps_get(){
@@ -68,7 +93,8 @@ int lps_get(){
 		printf("\r\n");
 	}
 	printf("]\r\n");
-	printf("lps(%f, %f, %f, %f)\r\n", lps_export[0], lps_export[1], lps_export[2], lps_export[3]);
+	printf("lps_raw(%f, %f, %f, %f) \r\n", lps_raw[0], lps_raw[1], lps_raw[2], lps_raw[3]);
+	printf("lps_norm(%f, %f, %f, %f) mean=%f, var=%f\r\n", lps_norm[0], lps_norm[1], lps_norm[2], lps_norm[3], lps_mean, lps_var);
 
 	return 0;
 }
