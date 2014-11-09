@@ -4,7 +4,7 @@
 #include "geom/angle.h"
 #include "geom/point.h"
 #include "util/box_ptr.h"
-#include "util/time.h"
+#include <chrono>
 #include <gtkmm/drawingarea.h>
 
 namespace Visualizable {
