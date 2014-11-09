@@ -199,7 +199,7 @@ namespace {
 		const double dx = (x2 - x1) / (grid_x + 1) / 2;
 		const double dy = (y2 - y1) / (grid_y + 1) / 2;
 		double best_score = -1e50;
-		bool inEnemyDefenseArea;
+		bool inEnemyDefenseArea=false;
 
 		best_pos = Point();
 
