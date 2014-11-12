@@ -6,10 +6,6 @@
 #include "util/cacheable.h"
 #include <functional>
 
-namespace {
-    extern DoubleParam chip_estimate;
-}
-
 namespace AI {
 	namespace HL {
 		namespace STP {
