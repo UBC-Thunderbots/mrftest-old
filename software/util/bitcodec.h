@@ -116,20 +116,18 @@ BITCODEC_NS_BEGIN
 	bool operator!=(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y) __attribute__((unused));
 BITCODEC_NS_END
 
-namespace {
-	static_assert(BitcodecPrimitives::OverlapChecker<0, 0
+static_assert(BitcodecPrimitives::OverlapChecker<0, 0
 #define BITCODEC_DATA_U(type, name, offset, length, def) \
-	, offset, length
+, offset, length
 #define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
-	, offset, length
+, offset, length
 #define BITCODEC_DATA_BOOL(name, offset, def) \
-	, offset, 1
+, offset, 1
 #include BITCODEC_DEF_FILE
 #undef BITCODEC_DATA_U
 #undef BITCODEC_DATA_S
 #undef BITCODEC_DATA_BOOL
-		>::OK, "Packet fields overlap!");
-}
+>::OK, "Packet fields overlap!");
 #endif
 
 #if defined BITCODEC_GEN_SOURCE || defined BITCODEC_ANON_NAMESPACE
