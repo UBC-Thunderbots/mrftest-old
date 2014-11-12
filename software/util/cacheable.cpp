@@ -3,7 +3,7 @@
 #include <vector>
 
 namespace {
-	static std::vector<CacheableBase *> &vec() {
+	std::vector<CacheableBase *> &vec() {
 		static std::vector<CacheableBase *> v;
 		return v;
 	}
