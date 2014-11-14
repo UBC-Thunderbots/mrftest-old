@@ -917,7 +917,7 @@ static void uep_activate_impl(const usb_endpoint_descriptor_t *edesc, unsigned i
 		} else {
 			fifo_words = MAX(16U, MIN(alloc_words, max_packet_words * 7U));
 		}
-		OTG_FS.DIEPTXF[UEP_NUM(edesc->bEndpointAddress)].INEPTXFD = fifo_words;
+		OTG_FS.DIEPTXF[UEP_NUM(edesc->bEndpointAddress) - 1U].INEPTXFD = fifo_words;
 
 		// The FIFO must be large enough to contain at least one packet.
 		assert(fifo_words >= max_packet_words);

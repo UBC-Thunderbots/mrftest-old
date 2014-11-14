@@ -735,7 +735,7 @@ static void uep0_enter_configuration(void) {
 		unsigned int fifo_used = txf0.TX0FSA + txf0.TX0FD;
 		for (unsigned int ep = 1U; ep <= UEP_MAX_ENDPOINT; ++ep) {
 			OTG_FS_DIEPTXFx_t txf = { .INEPTXFD = MAX(16U, uep0_current_configuration->transmit_fifo_words[ep - 1U]), .INEPTXSA = fifo_used };
-			OTG_FS.DIEPTXF[ep] = txf;
+			OTG_FS.DIEPTXF[ep - 1U] = txf;
 			fifo_used += txf.INEPTXFD;
 		}
 		assert(fifo_used <= 320U);
