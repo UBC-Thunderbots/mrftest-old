@@ -126,6 +126,56 @@ static const MPU_RASR_t ZERO_RASR = { .ENABLE = 0 };
 
 
 
+static MPU_RASR_t disable_guard_region(void) {
+	// Save the old value of the RASR.
+	MPU_RASR_t old_rasr = MPU.RASR;
+	// Disable the MPU region that traps accesses to the guard region. In the
+	// normal case, we are executing in the context of a task that has a stack
+	// in the CCM, in which case RNR points at the stack guard MPU region and
+	// RASR is enabled. In case we are executing in the context of a task that
+	// has a stack outside the CCM, there is no guard region, and RNR points at
+	// the MPU region with RASR disabled. In the obscure case of creating the
+	// first task before starting the scheduler, the entire MPU is disabled, we
+	// don’t know what value is in RNR, and we don’t care because we will
+	// simply save a disabled RASR, re-disable it, and then restore it to its
+	// original disabled state later.
+	MPU.RASR = ZERO_RASR;
+	// ARMv7-M Architecture Reference Manual A3.7.3 (Memory barriers),
+	// Synchronization requirements for System Control Space updates, states
+	// that a DSB followed by an ISB is necessary to ensure subsequent
+	// instructions are executed in a manner that reflects the effect an access
+	// to the system control space that performs a context-altering operation.
+	// Cortex-M4 Devices Generic User Guide 2.2.4 (Software ordering of memory
+	// access), MPU programming, confirms that this requirement extends to
+	// programming the MPU.
+	asm volatile("dsb\n\tisb");
+	// Do not allow the compiler to hoist subsequent accesses to normal,
+	// non-volatile-qualified memory (such as that in the guard region) above
+	// this point, where it would fault.
+	__atomic_signal_fence(__ATOMIC_ACQUIRE);
+	return old_rasr;
+}
+
+static void enable_guard_region(MPU_RASR_t old_rasr) {
+	// Do not allow the compiler to sink prior accesses to normal,
+	// non-volatile-qualified memory (such as that in the guard region) below
+	// this point, where it would fault.
+	__atomic_signal_fence(__ATOMIC_RELEASE);
+	// Restore the old value of the RASR.
+	MPU.RASR = old_rasr;
+	// ARMv7-M Architecture Reference Manual A3.7.3 (Memory barriers),
+	// Synchronization requirements for System Control Space updates, states
+	// that a DSB followed by an ISB is necessary to ensure subsequent
+	// instructions are executed in a manner that reflects the effect an access
+	// to the system control space that performs a context-altering operation.
+	// Cortex-M4 Devices Generic User Guide 2.2.4 (Software ordering of memory
+	// access), MPU programming, confirms that this requirement extends to
+	// programming the MPU.
+	asm volatile("dsb\n\tisb");
+}
+
+
+
 void *pvPortMallocAligned(size_t size, void *buffer) {
 	// If memory has already been allocated, there is no point doing more allocation.
 	if (buffer) {
@@ -146,8 +196,7 @@ void *pvPortMallocAligned(size_t size, void *buffer) {
 
 	// Disable interrupts and enable access to guard region while manipulating data structures.
 	unsigned long old_imask = portSET_INTERRUPT_MASK_FROM_ISR();
-	MPU_RASR_t old_rasr = MPU.RASR;
-	MPU.RASR = ZERO_RASR;
+	MPU_RASR_t old_rasr = disable_guard_region();
 
 	// Find best fit.
 	ccm_block_header_t *best = 0;
@@ -181,7 +230,7 @@ void *pvPortMallocAligned(size_t size, void *buffer) {
 	}
 
 	// Restore the guard region and interrupts.
-	MPU.RASR = old_rasr;
+	enable_guard_region(old_rasr);
 	portCLEAR_INTERRUPT_MASK_FROM_ISR(old_imask);
 
 	// Defer to the main allocator if we are out of CCM.
@@ -196,8 +245,7 @@ void vPortFreeAligned(void *buffer) {
 	if (CCM_DATA_IS_CCM(buffer)) {
 		// Disable interrupts and enable access to guard region while manipulating data structures.
 		unsigned long old_imask = portSET_INTERRUPT_MASK_FROM_ISR();
-		MPU_RASR_t old_rasr = MPU.RASR;
-		MPU.RASR = ZERO_RASR;
+		MPU_RASR_t old_rasr = disable_guard_region();
 
 		// Convert the data pointer into a header pointer.
 		ccm_block_header_t *h = CCM_DATA_GET_HEADER(buffer);
@@ -224,7 +272,7 @@ void vPortFreeAligned(void *buffer) {
 		}
 
 		// Restore the guard region and interrupts.
-		MPU.RASR = old_rasr;
+		enable_guard_region(old_rasr);
 		portCLEAR_INTERRUPT_MASK_FROM_ISR(old_imask);
 	} else {
 		vPortFree(buffer);
@@ -234,8 +282,7 @@ void vPortFreeAligned(void *buffer) {
 static ccm_block_header_t *ccm_find_header(void *data) {
 	// Disable interrupts and enable access to guard region while manipulating data structures.
 	unsigned long old_imask = portSET_INTERRUPT_MASK_FROM_ISR();
-	MPU_RASR_t old_rasr = MPU.RASR;
-	MPU.RASR = ZERO_RASR;
+	MPU_RASR_t old_rasr = disable_guard_region();
 
 	// Scan the headers until finding the right one.
 	ccm_block_header_t *best = 0;
@@ -338,6 +385,18 @@ long xPortStartScheduler(void) {
 	SCB.SHPR3.PRI_15 = configKERNEL_INTERRUPT_PRIORITY;
 	SCB.SHPR3.PRI_14 = configKERNEL_INTERRUPT_PRIORITY;
 
+	// ARMv7-M Architecture Reference Manual A3.7.3 (Memory barriers),
+	// Synchronization requirements for System Control Space updates, states
+	// that a DSB followed by an ISB is necessary to ensure subsequent
+	// instructions are executed in a manner that reflects the effect an access
+	// to the system control space that performs a context-altering operation.
+	asm volatile("dsb\n\tisb");
+
+	// Ensure the compiler cannot sink any non-volatile-qualified memory writes
+	// below this point, as control flow leaves the function in a way that is
+	// not visible to the compiler and might thus defeat the writes altogether.
+	__atomic_signal_fence(__ATOMIC_RELEASE);
+
 	// We are currently running in process mode on the main stack.
 	// What we want to be doing is running a task in process mode on the task stack, with the main stack pointer reset to its initial value ready to handle interrupts.
 	// What pxPortInitializeStack builds on the process stack is an exception return frame, as would be built by a PendSV.
@@ -437,9 +496,6 @@ void vPortSVCHandler(void) {
 		cpacr.CP10 = cpacr.CP11 = 3;
 		CPACR = cpacr;
 	}
-	// Without this, future FP instructions could fail due to not observing the coprocessor enabled yet.
-	asm volatile("dsb");
-	// An ISB is also necessary, but is omitted here as there is one shortly below.
 
 	// Enable MPU and drop in the common regions.
 	for (size_t i = 0; i < sizeof(COMMON_MPU_REGIONS) / sizeof(*COMMON_MPU_REGIONS); ++i) {
@@ -465,6 +521,11 @@ void vPortSVCHandler(void) {
 		MPU.RNR = rnr;
 	}
 
+	// Ensure the compiler cannot sink any non-volatile-qualified memory writes
+	// below this point, as control flow leaves the function in a way that is
+	// not visible to the compiler and might thus defeat the writes altogether.
+	__atomic_signal_fence(__ATOMIC_RELEASE);
+
 	// No need to handle an extended software frame here.
 	// Because the scheduler is just starting, no tasks have run yet.
 	// Every task is always created, initially, with only basic frames.
@@ -474,15 +535,60 @@ void vPortSVCHandler(void) {
 	asm volatile(
 			// Fix up MSP.
 			"msr msp, r1\n\t"
-			// Restore software frame and MPU settings.
+			// ARMv7-M Architecture Reference Manual B1.4.6 (Special-purpose
+			// register updates and the memory order model) states that “Except
+			// for writes to the CONTROL register, any change to a
+			// special-purpose register by a … MSR instruction is guaranteed …
+			// to be visible to all instructions that appear in program order
+			// after that CPS or MSR instruction.” Consequently, the write to
+			// PSP is guaranteed to be visible by the time the exception return
+			// procedure begins.
+			// Restore software frame from process stack.
 			"ldmia r0!, {r1-r11, lr}\n\t"
 			"msr control, r1\n\t"
+			// ARMv7-M Architecture Reference Manual B1.4.4 (The
+			// special-purpose CONTROL register) states that “software must use
+			// an ISB to ensure a write to the CONTROL register takes effect
+			// before the next instruction is executed.” Section B5.2.3 (MSR
+			// instruction), Notes, Privilege, states that, “after any thread
+			// mode transition from privileged to unprivileged execution,
+			// software must issue an ISB instruction to ensure instruction
+			// fetch correctness.” The first statement is irrelevant; we do not
+			// care whether a possible change to the nPRIV bit takes effect
+			// before the next instruction is executed or not because we are in
+			// handler mode, not thread mode, and thus the value of that bit
+			// has no effect. The second statement is not applicable; we are
+			// not performing a thread mode transition from privileged to
+			// unprivileged because we are not in thread mode. We only care
+			// that the new nPRIV value take effect by the time we return to
+			// thread mode. To get back to thread mode we perform an exception
+			// return, and the exception return procedure includes an
+			// InstructionSynchronizationBarrier. So, we do not need an
+			// explicit ISB here.
 			"ldr r1, =0xE000ED9C\n\t" // MPU_RBAR
 			"stm r1, {r2-r3}\n\t"
+			// Cortex-M4 Devices Generic User Guide 2.2.4 (Software ordering of
+			// memory accesses), MPU programming, states that one must “use a
+			// DSB followed by an ISB instruction or exception return to ensure
+			// that the new MPU configuration is used by subsequent
+			// instructions.” We do not care whether the new RBAR value is in
+			// force until after we return to thread mode via the exception
+			// return, so we can omit the ISB and rely on the
+			// InstructionSynchronizationBarrier executed as part of the
+			// exception return procedure. However, exception return does not
+			// imply a DataSynchronizationBarrier, so the explicit DSB is still
+			// needed.
 			"dsb\n\t"
-			// Fix up PSP and start running the task.
+			// Set PSP and return.
 			"msr psp, r0\n\t"
-			"isb\n\t"
+			// ARMv7-M Architecture Reference Manual B1.4.6 (Special-purpose
+			// register updates and the memory order model) states that “Except
+			// for writes to the CONTROL register, any change to a
+			// special-purpose register by a … MSR instruction is guaranteed …
+			// to be visible to all instructions that appear in program order
+			// after that CPS or MSR instruction.” Consequently, the write to
+			// PSP is guaranteed to be visible by the time the exception return
+			// procedure begins.
 			"bx lr\n\t"
 			:
 			// Note that these variables do not need placeholders in the text; they are fixed in r0 and r1 respectively by their asm constraints above.
@@ -510,13 +616,21 @@ void vPortPendSVHandler(void) {
 			// Disable interrupts.
 			"mov r0, %[newbasepri]\n\t"
 			"msr basepri, r0\n\t"
-			// No ISB needed because increasing execution priority serializes instruction execution.
+			// ARMv7-M Architecture Reference Manual B5.2.3 (MSR instruction),
+			// Visibility of changes, states that an MSR that increases
+			// execution priority serializes the change to the instruction
+			// stream, so no ISB is needed here.
 			// Ask scheduler to pick a new task.
 			"bl vTaskSwitchContext\n\t"
 			// Enable interrupts.
 			"mov r0, #0\n\t"
 			"msr basepri, r0\n\t"
-			// No ISB needed because we don’t care if interrupts are delayed a little longer.
+			// ARMv7-M Architecture Reference Manual B5.2.3 (MSR instruction),
+			// Visibility of changes, states that an MSR that decreases
+			// execution priority may only result in the new priority being
+			// visible after an ISB or exception return. We will be doing an
+			// exception return soon, and we don’t care if the new priority is
+			// visible before that or not, so no ISB is needed here.
 			// Read the new top of stack pointer from TCB.
 			"ldr r0, =pxCurrentTCB\n\t"
 			"ldr r0, [r0]\n\t"
@@ -528,12 +642,49 @@ void vPortPendSVHandler(void) {
 			"it eq\n\t"
 			"vldmiaeq r0!, {s16-s31}\n\t"
 			"msr control, r1\n\t"
+			// ARMv7-M Architecture Reference Manual B1.4.4 (The
+			// special-purpose CONTROL register) states that “software must use
+			// an ISB to ensure a write to the CONTROL register takes effect
+			// before the next instruction is executed.” Section B5.2.3 (MSR
+			// instruction), Notes, Privilege, states that, “after any thread
+			// mode transition from privileged to unprivileged execution,
+			// software must issue an ISB instruction to ensure instruction
+			// fetch correctness.” The first statement is irrelevant; we do not
+			// care whether a possible change to the nPRIV bit takes effect
+			// before the next instruction is executed or not because we are in
+			// handler mode, not thread mode, and thus the value of that bit
+			// has no effect. The second statement is not applicable; we are
+			// not performing a thread mode transition from privileged to
+			// unprivileged because we are not in thread mode. We only care
+			// that the new nPRIV value take effect by the time we return to
+			// thread mode. To get back to thread mode we perform an exception
+			// return, and the exception return procedure includes an
+			// InstructionSynchronizationBarrier. So, we do not need an
+			// explicit ISB here.
 			"ldr r1, =0xE000ED9C\n\t" // MPU_RBAR
 			"stm r1, {r2-r3}\n\t"
+			// Cortex-M4 Devices Generic User Guide 2.2.4 (Software ordering of
+			// memory accesses), MPU programming, states that one must “use a
+			// DSB followed by an ISB instruction or exception return to ensure
+			// that the new MPU configuration is used by subsequent
+			// instructions.” We do not care whether the new RBAR value is in
+			// force until after we return to thread mode via the exception
+			// return, so we can omit the ISB and rely on the
+			// InstructionSynchronizationBarrier executed as part of the
+			// exception return procedure. However, exception return does not
+			// imply a DataSynchronizationBarrier, so the explicit DSB is still
+			// needed.
 			"dsb\n\t"
 			// Set PSP and return.
 			"msr psp, r0\n\t"
-			"isb\n\t"
+			// ARMv7-M Architecture Reference Manual B1.4.6 (Special-purpose
+			// register updates and the memory order model) states that “Except
+			// for writes to the CONTROL register, any change to a
+			// special-purpose register by a … MSR instruction is guaranteed …
+			// to be visible to all instructions that appear in program order
+			// after that CPS or MSR instruction.” Consequently, the write to
+			// PSP is guaranteed to be visible by the time the exception return
+			// procedure begins.
 			"bx lr\n\t"
 			:
 			: [pxCurrentTCB] "i" (&pxCurrentTCB), [newbasepri] "i" (configMAX_SYSCALL_INTERRUPT_PRIORITY));

@@ -34,19 +34,43 @@ typedef unsigned long TickType_t;
 #define portTASK_FUNCTION portTASK_FUNCTION_PROTO
 
 // Functions related to yielding tasks.
-static void portYIELD(void) {
-	// Whether in an ISR or not, yielding is done by pending the PendSV interrupt.
-	// In an ISR, this will be at lower priority, so on exception return, priority will de-escalate.
-	// In a task, this will be taken immediately.
+static inline void portYIELD(void) {
+	// Do not allow the compiler to sink any prior non-volatile-qualified
+	// memory writes below the yield, as code should reasonably be able to
+	// expect that an explicit yield happens in program order.
+	__atomic_signal_fence(__ATOMIC_RELEASE);
+
+	// In a task, yielding is done by pending the PendSV interrupt, which will
+	// be taken immediately.
 	ICSR_t tmp = { .PENDSVSET = 1 };
 	SCB.ICSR = tmp;
-	// DSB ensures the write completes in a timely manner and won’t return to userspace and execute more instructions before taking the PendSV.
-	asm volatile("dsb");
-	// ISB ensures no further instructions execute until after the effects of the PendSV occur.
-	asm volatile("isb");
+
+	// ARMv7-M Architecture Reference Manual A3.7.3 (Memory barriers),
+	// Synchronization requirements for System Control Space updates, states
+	// that a DSB followed by an ISB is necessary to ensure subsequent
+	// instructions are executed in a manner that reflects the effect an access
+	// to the system control space that performs a context-altering operation.
+	asm volatile("dsb\n\tisb");
 }
 #define portYIELD_WITHIN_API portYIELD
-#define portYIELD_FROM_ISR portYIELD
+static inline void portYIELD_FROM_ISR(void) {
+	// In an ISR, yielding is done by pending the PendSV interrupt, which will
+	// be taken on exception return to thread mode.
+	ICSR_t tmp = { .PENDSVSET = 1 };
+	SCB.ICSR = tmp;
+
+	// ARMv7-M Architecture Reference Manual A3.7.3 (Memory barriers),
+	// Synchronization requirements for System Control Space updates, states
+	// that a DSB followed by an ISB is necessary to ensure subsequent
+	// instructions are executed in a manner that reflects the effect an access
+	// to the system control space that performs a context-altering operation.
+	// We do not care when, exactly, the interrupt is pended between now and
+	// the exception return from the ISR, so we can omit the ISB and rely on
+	// the InstructionSynchronizationBarrier executed as part of the exception
+	// return procedure. However, exception return does not imply a
+	// DataSynchronizationBarrier, so the explicit DSB is still needed.
+	asm volatile("dsb");
+}
 
 // Functions related to allocating and freeing task stacks.
 void *pvPortMallocAligned(size_t size, void *buffer);
@@ -56,24 +80,27 @@ void vPortFreeAligned(void *buffer);
 
 // These functions enable and disable interrupts from ISR or non-ISR code.
 static inline void portENABLE_INTERRUPTS(void) {
-	// Force the compiler not to reorder prior memory operations past the enable.
+	// Do not allow the compiler to sink non-volatile-qualified memory accesses
+	// below this point.
 	__atomic_signal_fence(__ATOMIC_RELEASE);
+
+	// Enable interrupts.
 	asm volatile("msr basepri, %[zero]" :: [zero] "r" (0UL));
-	// ARMv7-M manual section B5.2.3 states:
-	// “If execution of a MSR instruction decreases the execution priority, the architecture guarantees only that the new priority is visible to instructions executed after either executing an ISB, or performing an exception entry or exception return.”
-	// So, we must issue an ISB.
-	// Normally we could just say who cares, let the interrupts be taken a few instructions later.
-	// However, conceivably, there could be a situation where interrupts are enabled then immediately re-disabled, in an attempt to flush out pending interrupts.
-	// Such an operation might fail without the ISB, as it might actually *never* observe interrupts enabled!
-	// So, just issue the ISB to be safe.
-	asm volatile("isb");
+
+	// No barrier is needed here as it is OK for interrupts not to be enabled
+	// immediately.
 }
 static inline void portDISABLE_INTERRUPTS(void) {
+	// Disable interrupts.
 	asm volatile("msr basepri, %[newpri]" :: [newpri] "r" (configMAX_SYSCALL_INTERRUPT_PRIORITY));
-	// ARMv7-M manual section B5.2.3 states:
-	// “If execution of a MSR instruction increases the execution priority, the MSR execution serializes that change to the instruction stream.”
-	// Consequently, no ISB is needed, as we are increasing execution priority.
-	// However, we must force the compiler not to reorder subsequent memory operations backwards past the disable, so a fence is needed.
+
+	// ARMv7-M Architecture Reference Manual B5.2.3 (MSR instruction),
+	// Visibility of changes, states that an MSR that increases execution
+	// priority serializes the change to the instruction stream, so no ISB is
+	// needed here.
+
+	// Do not permit the compiler to hoist non-volatile-qualified memory
+	// accesses above this point.
 	__atomic_signal_fence(__ATOMIC_ACQUIRE);
 }
 
@@ -101,21 +128,41 @@ static void portCLEAR_INTERRUPT_MASK_FROM_ISR(unsigned long old __attribute__((u
 
 // These functions turn a specific hardware interrupt on and off.
 static void portENABLE_HW_INTERRUPT(unsigned int irq, unsigned int priority) {
+	// Do not allow the compiler to sink non-volatile-qualified memory accesses
+	// below this point.
+	__atomic_signal_fence(__ATOMIC_RELEASE);
+
+	// Set the interrupt priority.
 	unsigned int ipr_index = irq / 4U;
 	unsigned int ipr_shift_dist = (irq % 4U) * 8U;
 	NVIC.IPR[ipr_index] = (NVIC.IPR[ipr_index] & ~(0xFFU << ipr_shift_dist)) | (priority << ipr_shift_dist);
-	// We must barrier to ensure the priority is set before the interrupt is enabled.
-	// However, we do not need a synchronization barrier because we don’t care *when*, specifically, in instruction stream order, the effects become visible, as long as they do so in the right order.
-	asm volatile("dmb");
+
+	// ARMv7-M Architecture Reference Manual A3.7.3 (Memory barriers),
+	// Synchronization requirements for System Control Space updates, states
+	// that, “The architecture defines the SCS as Strongly-ordered memory.” So,
+	// no barrier is needed to ensure that the interrupt priority is set before
+	// the interrupt is enabled.
+
+	// Enable the interrupt.
 	NVIC.ISER[irq / 32U] = 1U << (irq % 32U);
+
+	// No barrier is needed here as it is OK for the interrupt not to be
+	// enabled immediately.
 }
 static void portDISABLE_HW_INTERRUPT(unsigned int irq) {
+	// Disable the interrupt.
 	NVIC.ICER[irq / 32U] = 1U << (irq % 32U);
-	// The caller may expect that the interrupt cannot possibly happen once the call is complete.
-	// DSB ensures the write is completed before proceeding.
-	asm volatile("dsb");
-	// ISB ensures no subsequent instructions are acted on with the interrupt still enabled.
-	asm volatile("isb");
+
+	// ARMv7-M Architecture Reference Manual A3.7.3 (Memory barriers),
+	// Synchronization requirements for System Control Space updates, states
+	// that a DSB followed by an ISB is necessary to ensure subsequent
+	// instructions are executed in a manner that reflects the effect an access
+	// to the system control space that performs a context-altering operation.
+	asm volatile("dsb\n\tisb");
+
+	// Do not allow the compiler to hoist non-volatile-qualified memory
+	// accesses above this point.
+	__atomic_signal_fence(__ATOMIC_ACQUIRE);
 }
 
 // Interrupt handlers which the application must wire into the vector table.
