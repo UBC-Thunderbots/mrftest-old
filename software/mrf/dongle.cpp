@@ -19,11 +19,18 @@
 #include <sigc++/reference_wrapper.h>
 #include <sigc++/functors/mem_fun.h>
 
-#define DEFAULT_CHANNEL 24
-#define DEFAULT_SYMBOL_RATE 250
-#define DEFAULT_PAN 0x1846
-
 namespace {
+	struct RadioConfig {
+		uint8_t channel;
+		int symbol_rate;
+		uint16_t pan;
+	};
+
+	const RadioConfig DEFAULT_CONFIGS[2] = {
+		{ 24U, 250, 0x1846U },
+		{ 25U, 250, 0x1847U },
+	};
+
 	const unsigned int ANNUNCIATOR_BEEP_LENGTH = 750;
 
 	std::unique_ptr<USB::InterruptOutTransfer> create_reliable_message_transfer(USB::DeviceHandle &device, unsigned int robot, uint8_t message_id, const void *data, std::size_t length) {
@@ -134,7 +141,18 @@ MRFDongle::MRFDongle() :
 	// Switch to configuration mode and configure the radio parameters.
 	device.set_interface_alt_setting(radio_interface, configuration_altsetting);
 	{
-		channel_ = DEFAULT_CHANNEL;
+		unsigned int config = 0U;
+		{
+			const char *config_string = std::getenv("MRF_CONFIG");
+			if (config_string) {
+				int i = std::stoi(config_string, nullptr, 0);
+				if (i < 0 || static_cast<std::size_t>(i) >= sizeof(DEFAULT_CONFIGS) / sizeof(*DEFAULT_CONFIGS)) {
+					throw std::out_of_range("Config index must be between 0 and number of configs - 1.");
+				}
+				config = static_cast<unsigned int>(i);
+			}
+		}
+		channel_ = DEFAULT_CONFIGS[config].channel;
 		{
 			const char *channel_string = std::getenv("MRF_CHANNEL");
 			if (channel_string) {
@@ -145,7 +163,7 @@ MRFDongle::MRFDongle() :
 				channel_ = static_cast<uint8_t>(i);
 			}
 		}
-		int symbol_rate = DEFAULT_SYMBOL_RATE;
+		int symbol_rate = DEFAULT_CONFIGS[config].symbol_rate;
 		{
 			const char *symbol_rate_string = std::getenv("MRF_SYMBOL_RATE");
 			if (symbol_rate_string) {
@@ -156,7 +174,7 @@ MRFDongle::MRFDongle() :
 				symbol_rate = i;
 			}
 		}
-		pan_ = DEFAULT_PAN;
+		pan_ = DEFAULT_CONFIGS[config].pan;
 		{
 			const char *pan_string = std::getenv("MRF_PAN");
 			if (pan_string) {
