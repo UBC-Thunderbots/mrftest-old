@@ -30,7 +30,7 @@
  * However, the MRF24J40 can receive a second frame as soon as the first frame reaches the FPGA’s internal buffer, so the window for dropped frames is very small and does not depend on microcontroller latency.
  *
  * The transmit offload engine handles frames being sent over the air.
- * When the FPGA wishes to send a frame, it issues an ICB command to copy the frame data into a buffer in the FPGA.
+ * When the STM32F4 wishes to send a frame, it issues an ICB command to copy the frame data into a buffer in the FPGA.
  * The FPGA then copies the frame over the slower bus to the MRF24J40’s transmit buffer.
  * Once the frame is fully copied into its final location, the FPGA automatically sets the transmit flag, thus sending the frame.
  * When the MRF24J40 is finished trying to transmit, it asserts an interrupt, which the FPGA observes.
