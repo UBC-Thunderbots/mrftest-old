@@ -240,10 +240,7 @@ static void execute_transfer(size_t length) {
 	}
 
 	// Wait for transfer complete.
-	_Static_assert(DMA_STREAM_RX == 0U, "LISR needs rewriting to the proper stream number!");
-	while (!DMA2.LISR.TCIF0) {
-		xSemaphoreTake(dma_int_sem, portMAX_DELAY);
-	}
+	xSemaphoreTake(dma_int_sem, portMAX_DELAY);
 
 	// Wait for SPI module to be idle.
 	while (SPI1.SR.BSY);
@@ -346,7 +343,17 @@ void mrf_analogue_txrx(void) {
 }
 
 void dma2_stream0_isr(void) {
-	DMA2.streams[0U].CR.TCIE = 0U;
+	_Static_assert(DMA_STREAM_RX == 0U, "Function needs rewriting to the proper stream number!");
+	DMA_LISR_t lisr = DMA2.LISR;
+	DMA_LIFCR_t lifcr = {
+		.CFEIF0 = lisr.FEIF0,
+		.CDMEIF0 = lisr.DMEIF0,
+		.CTEIF0 = lisr.TEIF0,
+		.CHTIF0 = lisr.HTIF0,
+		.CTCIF0 = lisr.TCIF0,
+	};
+	assert(!lisr.DMEIF0 && !lisr.TEIF0);
+	DMA2.LIFCR = lifcr;
 	BaseType_t yield = pdFALSE;
 	BaseType_t ok = xSemaphoreGiveFromISR(dma_int_sem, &yield);
 	assert(ok);
