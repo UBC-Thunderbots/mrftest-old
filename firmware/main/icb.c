@@ -281,6 +281,9 @@ void config_tx_dma(const void *data, size_t length, bool unmask_tcie, bool minc)
 	};
 	DMA2.LIFCR = lifcr;
 
+	// Ensure all memory writes have reached memory before the DMA is enabled.
+	__atomic_thread_fence(__ATOMIC_RELEASE);
+
 	// Enable the FIFO.
 	DMA_SxFCR_t fcr = {
 		.FTH = DMA_FIFO_THRESHOLD_HALF, // Threshold.
@@ -463,10 +466,11 @@ static void icb_send_param(icb_command_t command, const void *data, size_t lengt
 	uint8_t command_byte = command;
 	crc = __builtin_bswap32(crc32_be(data, length, crc32_be(&command_byte, 1U, CRC32_EMPTY)));
 
-	// State and CRC have been locked in.
-	// We are now ready for the DMA transfer complete ISR to be run when the parameter block is done.
-	// Allow that to happen.
-	__atomic_signal_fence(__ATOMIC_RELEASE);
+	// State and CRC have been locked in. We are now ready for the DMA transfer
+	// complete ISR to be run when the parameter block is done. Allow that to
+	// happen, but ensure the write to CRC finishes before enabling the
+	// interrupt.
+	__atomic_thread_fence(__ATOMIC_RELEASE);
 	portENABLE_HW_INTERRUPT(IRQ_TX_DMA, PRIO_EXCEPTION_ICB_DMA);
 
 	// Wait for the transaction to finish.
@@ -631,6 +635,9 @@ bool icb_receive(icb_command_t command, void *buffer, size_t length) {
 	// Otherwise the receive DMA should not have been able to complete.
 	assert(SPI1.SR.TXE);
 	assert(!SPI1.SR.BSY);
+
+	// Ensure all DMA memory writes have completed before any CPU memory reads start.
+	__atomic_thread_fence(__ATOMIC_ACQUIRE);
 
 	// Grab a copy of the received CRC into a local variable to protect it from modification after unlocking the bus mutex.
 	local_crc = crc;
@@ -1036,4 +1043,3 @@ void exti0_isr(void) {
 /**
  * @}
  */
-

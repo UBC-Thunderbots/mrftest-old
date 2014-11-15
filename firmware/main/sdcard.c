@@ -704,6 +704,9 @@ bool sd_read(uint32_t sector, void *buffer) {
 	// Data block ended successfully; wait for the DMA controller to shut down.
 	while (DMA2.streams[SD_DMA_STREAM].CR.EN);
 
+	// Ensure all DMA memory writes are complete before CPU memory reads start.
+	__atomic_thread_fence(__ATOMIC_ACQUIRE);
+
 	return true;
 }
 
@@ -731,6 +734,9 @@ bool sd_write(uint32_t sector, const void *data) {
 		.CTCIF6 = 1U,
 	};
 	DMA2.HIFCR = temp_hifcr;
+
+	// Ensure all CPU memory writes are complete before DMA memory reads start.
+	__atomic_thread_fence(__ATOMIC_RELEASE);
 
 	// Initialize the DMA engine.
 	DMA2.streams[SD_DMA_STREAM].M0AR = (void *) data;

@@ -175,6 +175,9 @@ static void execute_transfer(size_t length) {
 		DMA2.LIFCR = lifcr;
 	}
 
+	// Ensure all memory writes have reached memory before enabling DMA.
+	__atomic_thread_fence(__ATOMIC_RELEASE);
+
 	// Set up receive DMA.
 	{
 		DMA_SxFCR_t fcr = {
@@ -244,6 +247,9 @@ static void execute_transfer(size_t length) {
 
 	// Wait for SPI module to be idle.
 	while (SPI1.SR.BSY);
+
+	// Ensure all subsequent memory reads occur after DMA is observed complete.
+	__atomic_thread_fence(__ATOMIC_ACQUIRE);
 
 	// Deassert CS.
 	sleep_50ns();
