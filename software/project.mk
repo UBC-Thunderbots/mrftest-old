@@ -41,7 +41,7 @@ PROJECT_LIBS := -lbz2
 #
 # The flags to pass to the C++ compiler.
 #
-PROJECT_CXXFLAGS := -std=gnu++11 -pthread -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 -Wold-style-cast -Wconversion -Wundef -Wmissing-declarations -Wredundant-decls -march=native -O2 -fomit-frame-pointer -fstrict-aliasing -g -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -DHAVE_INLINE -I.
+PROJECT_CXXFLAGS := -std=c++11 -pthread -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 -Wold-style-cast -Wconversion -Wundef -Wmissing-declarations -Wredundant-decls -march=native -O2 -fomit-frame-pointer -fstrict-aliasing -g -D_POSIX_C_SOURCE=200112L -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -DHAVE_INLINE -I.
 
 #
 # Custom pkg-config packages to use only for the cppunit target.
