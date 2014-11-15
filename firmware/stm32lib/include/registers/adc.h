@@ -95,18 +95,6 @@ typedef struct {
 _Static_assert(sizeof(ADC_JOFR_t) == 4U, "ADC_JOFR_t is wrong size");
 
 typedef struct {
-	unsigned HT : 12;
-	unsigned : 20;
-} ADC_HTR_t;
-_Static_assert(sizeof(ADC_HTR_t) == 4U, "ADC_HTR_t is wrong size");
-
-typedef struct {
-	unsigned LT : 12;
-	unsigned : 20;
-} ADC_LTR_t;
-_Static_assert(sizeof(ADC_LTR_t) == 4U, "ADC_LTR_t is wrong size");
-
-typedef struct {
 	unsigned SQ13 : 5;
 	unsigned SQ14 : 5;
 	unsigned SQ15 : 5;
@@ -161,8 +149,8 @@ typedef struct {
 	ADC_SMPR1_t SMPR1;
 	ADC_SMPR2_t SMPR2;
 	ADC_JOFR_t JOFR[4];
-	ADC_HTR_t HTR;
-	ADC_LTR_t LTR;
+	unsigned int HTR;
+	unsigned int LTR;
 	ADC_SQR1_t SQR1;
 	ADC_SQR2_t SQR2;
 	ADC_SQR3_t SQR3;
