@@ -41,19 +41,16 @@ typedef struct __attribute__((packed)) {
 
 _Static_assert(sizeof(sensors_accel_data_t) == 6U, "Accel data struct not correct size");
 
-static sensors_gyro_data_t sensors_get_gyro(void) __attribute__((unused));
-static sensors_gyro_data_t sensors_get_gyro(void) {
+inline sensors_gyro_data_t sensors_get_gyro(void) {
 	static sensors_gyro_data_t retval;
 	icb_receive(ICB_COMMAND_SENSORS_GET_GYRO, &retval, sizeof(retval));
 	return retval;
 }
 
-static sensors_accel_data_t sensors_get_accel(void) __attribute__((unused));
-static sensors_accel_data_t sensors_get_accel(void) {
+inline sensors_accel_data_t sensors_get_accel(void) {
 	static sensors_accel_data_t retval;
 	icb_receive(ICB_COMMAND_SENSORS_GET_ACCEL, &retval, sizeof(retval));
 	return retval;
 }
 
 #endif
-

@@ -34,7 +34,7 @@ typedef unsigned long TickType_t;
 #define portTASK_FUNCTION portTASK_FUNCTION_PROTO
 
 // Functions related to yielding tasks.
-static inline void portYIELD(void) {
+inline void portYIELD(void) {
 	// Do not allow the compiler to sink any prior non-volatile-qualified
 	// memory writes below the yield, as code should reasonably be able to
 	// expect that an explicit yield happens in program order.
@@ -53,7 +53,7 @@ static inline void portYIELD(void) {
 	asm volatile("dsb\n\tisb");
 }
 #define portYIELD_WITHIN_API portYIELD
-static inline void portYIELD_FROM_ISR(void) {
+inline void portYIELD_FROM_ISR(void) {
 	// In an ISR, yielding is done by pending the PendSV interrupt, which will
 	// be taken on exception return to thread mode.
 	ICSR_t tmp = { .PENDSVSET = 1 };
@@ -79,7 +79,7 @@ void vPortFreeAligned(void *buffer);
 #define vPortFreeAligned vPortFreeAligned
 
 // These functions enable and disable interrupts from ISR or non-ISR code.
-static inline void portENABLE_INTERRUPTS(void) {
+inline void portENABLE_INTERRUPTS(void) {
 	// Do not allow the compiler to sink non-volatile-qualified memory accesses
 	// below this point.
 	__atomic_signal_fence(__ATOMIC_RELEASE);
@@ -90,7 +90,7 @@ static inline void portENABLE_INTERRUPTS(void) {
 	// No barrier is needed here as it is OK for interrupts not to be enabled
 	// immediately.
 }
-static inline void portDISABLE_INTERRUPTS(void) {
+inline void portDISABLE_INTERRUPTS(void) {
 	// Disable interrupts.
 	asm volatile("msr basepri, %[newpri]" :: [newpri] "r" (configMAX_SYSCALL_INTERRUPT_PRIORITY));
 
@@ -116,18 +116,18 @@ void portEXIT_CRITICAL(void);
 // What this means for us is that we can disable unwanted interrupts by setting BASEPRI to an appropriate value, then re-enable them by setting it to zero.
 // We won’t reenter ourself, because the active exception set takes care of that (and is, in fact, the usual mechanism for doing so).
 // Therefore no old mask value needs to be saved at all!
-static unsigned long portSET_INTERRUPT_MASK_FROM_ISR(void) {
+inline unsigned long portSET_INTERRUPT_MASK_FROM_ISR(void) {
 	portDISABLE_INTERRUPTS();
 	return 0UL;
 }
-static void portCLEAR_INTERRUPT_MASK_FROM_ISR(unsigned long old __attribute__((unused))) {
+inline void portCLEAR_INTERRUPT_MASK_FROM_ISR(unsigned long old __attribute__((unused))) {
 	portENABLE_INTERRUPTS();
 }
 #define portSET_INTERRUPT_MASK_FROM_ISR portSET_INTERRUPT_MASK_FROM_ISR
 #define portCLEAR_INTERRUPT_MASK_FROM_ISR portCLEAR_INTERRUPT_MASK_FROM_ISR
 
 // These functions turn a specific hardware interrupt on and off.
-static void portENABLE_HW_INTERRUPT(unsigned int irq, unsigned int priority) {
+inline void portENABLE_HW_INTERRUPT(unsigned int irq, unsigned int priority) {
 	// Do not allow the compiler to sink non-volatile-qualified memory accesses
 	// below this point.
 	__atomic_signal_fence(__ATOMIC_RELEASE);
@@ -149,7 +149,7 @@ static void portENABLE_HW_INTERRUPT(unsigned int irq, unsigned int priority) {
 	// No barrier is needed here as it is OK for the interrupt not to be
 	// enabled immediately.
 }
-static void portDISABLE_HW_INTERRUPT(unsigned int irq) {
+inline void portDISABLE_HW_INTERRUPT(unsigned int irq) {
 	// Disable the interrupt.
 	NVIC.ICER[irq / 32U] = 1U << (irq % 32U);
 

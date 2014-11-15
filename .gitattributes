@@ -112,6 +112,7 @@ firmware/main/receive.c -text
 firmware/main/receive.h -text
 firmware/main/sdcard.c -text
 firmware/main/sdcard.h -text
+firmware/main/sensors.c -text
 firmware/main/sensors.h -text
 firmware/main/syscalls.c -text
 firmware/main/tbuf.c -text
