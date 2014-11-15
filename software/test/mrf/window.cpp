@@ -84,7 +84,6 @@ class TesterWindow::MappedJoysticksModel final : public Glib::Object, public Abs
 
 TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) :
 		mapped_joysticks(MappedJoysticksModel::create()),
-		robot(robot),
 		feedback_frame(u8"Feedback"),
 		feedback_panel(dongle, robot),
 		drive_frame(u8"Drive"),

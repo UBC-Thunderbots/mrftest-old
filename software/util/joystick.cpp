@@ -75,7 +75,7 @@ namespace {
 		return fd;
 	}
 
-	const Glib::ustring get_text(const FileDescriptor &fd, std::function<int(std::size_t)> iocidfn) {
+	const Glib::ustring get_text(const FileDescriptor &fd, std::function<unsigned long(std::size_t)> iocidfn) {
 		std::vector<char> buffer(8U);
 		int ret;
 		do {
@@ -102,7 +102,7 @@ namespace {
 		version = id.version;
 	}
 
-	void make_map(std::unordered_map<unsigned int, unsigned int> &m, const FileDescriptor &fd, int ioc, const char *iocname, unsigned int bit_count) {
+	void make_map(std::unordered_map<unsigned int, unsigned int> &m, const FileDescriptor &fd, unsigned long ioc, const char *iocname, unsigned int bit_count) {
 		unsigned int bits[bits_to_uints(bit_count)];
 		if (ioctl(fd.fd(), ioc, bits) < 0) {
 			throw SystemError(iocname, errno);

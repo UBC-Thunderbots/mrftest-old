@@ -297,7 +297,7 @@ void MapperWindow::on_add_clicked() {
 	int rc = md.run();
 	int row = cbt.get_active_row_number();
 	if (rc == Gtk::RESPONSE_OK && row != -1) {
-		const Joystick::Identifier &ident = identifiers[row];
+		const Joystick::Identifier &ident = identifiers[static_cast<std::size_t>(row)];
 		if (mappings->has_mapping(ident)) {
 			Gtk::MessageDialog md2(*this, u8"A mapping already exists for that joystick.", false, Gtk::MESSAGE_ERROR);
 			md2.run();

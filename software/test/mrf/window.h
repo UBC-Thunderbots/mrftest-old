@@ -41,8 +41,6 @@ class TesterWindow final : public Gtk::Window {
 
 		Glib::RefPtr<MappedJoysticksModel> mapped_joysticks;
 
-		MRFRobot &robot;
-
 		Gtk::VBox outer_vbox;
 
 		Gtk::HBox hbox;
