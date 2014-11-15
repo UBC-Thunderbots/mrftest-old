@@ -106,7 +106,7 @@ static const struct {
 	// Subregion 5 (0x40050000–0x4005FFFF): Disabled
 	// Subregion 6 (0x40060000–0x4006FFFF): Disabled
 	// Subregion 7 (0x40070000–0x4007FFFF): Disabled
-	{ 0x40000000, { .XN = 1, .AP = 0b011, .TEX = 0b010, .S = 0, .C = 0, .B = 0, .SRD = 0b11111000, .SIZE = 18, .ENABLE = 1 } },
+	{ 0x40000000, { .XN = 1, .AP = 0b011, .TEX = 0b000, .S = 0, .C = 0, .B = 1, .SRD = 0b11111000, .SIZE = 18, .ENABLE = 1 } },
 
 	// 0x50000000–0x5007FFFF (length 512 kiB): Peripherals (device, read-write, not executable) using subregions:
 	// Subregion 0 (0x50000000–0x5000FFFF): Enabled (contains AHB2)
@@ -117,7 +117,7 @@ static const struct {
 	// Subregion 5 (0x50050000–0x5005FFFF): Enabled (contains AHB2)
 	// Subregion 6 (0x50060000–0x5006FFFF): Enabled (contains AHB2)
 	// Subregion 7 (0x50070000–0x5007FFFF): Disabled
-	{ 0x50000000, { .XN = 1, .AP = 0b011, .TEX = 0b010, .S = 0, .C = 0, .B = 0, .SRD = 0b10000000, .SIZE = 18, .ENABLE = 1 } },
+	{ 0x50000000, { .XN = 1, .AP = 0b011, .TEX = 0b000, .S = 0, .C = 0, .B = 1, .SRD = 0b10000000, .SIZE = 18, .ENABLE = 1 } },
 };
 
 #define STACK_GUARD_MPU_REGION (sizeof(COMMON_MPU_REGIONS) / sizeof(*COMMON_MPU_REGIONS))
