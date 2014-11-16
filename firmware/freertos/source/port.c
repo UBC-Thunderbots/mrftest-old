@@ -22,7 +22,6 @@ typedef struct {
 } basic_hw_frame_t;
 
 typedef struct {
-	unsigned long control;
 	void *stack_guard_rbar;
 	MPU_RASR_t stack_guard_rasr;
 	unsigned long r4;
@@ -324,7 +323,6 @@ unsigned long *pxPortInitialiseStack(unsigned long *tos, TaskFunction_t code, vo
 	hwf->xpsr = 0x01000000UL;
 	swf->r4 = swf->r5 = swf->r6 = swf->r7 = swf->r8 = swf->r9 = swf->r10 = swf->r11 = 0UL;
 	swf->lr = 0xFFFFFFFDUL; // Return to thread mode, process stack, basic frame
-	swf->control = 2; // Run privileged on process stack
 
 	// Compute where the stack overflow guard region should be.
 	// This will be the bottom bytes of the stack region.
@@ -544,29 +542,9 @@ void vPortSVCHandler(void) {
 			// PSP is guaranteed to be visible by the time the exception return
 			// procedure begins.
 			// Restore software frame from process stack.
-			"ldmia r0!, {r1-r11, lr}\n\t"
-			"msr control, r1\n\t"
-			// ARMv7-M Architecture Reference Manual B1.4.4 (The
-			// special-purpose CONTROL register) states that “software must use
-			// an ISB to ensure a write to the CONTROL register takes effect
-			// before the next instruction is executed.” Section B5.2.3 (MSR
-			// instruction), Notes, Privilege, states that, “after any thread
-			// mode transition from privileged to unprivileged execution,
-			// software must issue an ISB instruction to ensure instruction
-			// fetch correctness.” The first statement is irrelevant; we do not
-			// care whether a possible change to the nPRIV bit takes effect
-			// before the next instruction is executed or not because we are in
-			// handler mode, not thread mode, and thus the value of that bit
-			// has no effect. The second statement is not applicable; we are
-			// not performing a thread mode transition from privileged to
-			// unprivileged because we are not in thread mode. We only care
-			// that the new nPRIV value take effect by the time we return to
-			// thread mode. To get back to thread mode we perform an exception
-			// return, and the exception return procedure includes an
-			// InstructionSynchronizationBarrier. So, we do not need an
-			// explicit ISB here.
+			"ldmia r0!, {r1-r2,r4-r11, lr}\n\t"
 			"ldr r1, =0xE000ED9C\n\t" // MPU_RBAR
-			"stm r1, {r2-r3}\n\t"
+			"stm r1, {r1-r2}\n\t"
 			// Cortex-M4 Devices Generic User Guide 2.2.4 (Software ordering of
 			// memory accesses), MPU programming, states that one must “use a
 			// DSB followed by an ISB instruction or exception return to ensure
@@ -602,13 +580,12 @@ void vPortPendSVHandler(void) {
 			// Make software frame on process stack.
 			// See the explanation in vPortSVCHandlerImpl for how we deal with floating point registers.
 			"ldr r0, =0xE000ED9C\n\t" // MPU_RBAR
-			"ldm r0, {r2-r3}\n\t"
+			"ldm r0, {r1-r2}\n\t"
 			"mrs r0, psp\n\t"
-			"mrs r1, control\n\t"
 			"tst lr, #16\n\t"
 			"it eq\n\t"
 			"vstmdbeq r0!, {s16-s31}\n\t"
-			"stmdb r0!, {r1-r11, lr}\n\t"
+			"stmdb r0!, {r1-r2,r4-r11, lr}\n\t"
 			// Write new top of stack pointer into TCB.
 			"ldr r1, =pxCurrentTCB\n\t"
 			"ldr r1, [r1]\n\t"
@@ -637,32 +614,12 @@ void vPortPendSVHandler(void) {
 			"ldr r0, [r0]\n\t"
 			// Restore software frame from process stack.
 			// See the explanation in vPortSVCHandlerImpl for how we deal with floating point registers.
-			"ldmia r0!, {r1-r11, lr}\n\t"
+			"ldmia r0!, {r1-r2,r4-r11, lr}\n\t"
 			"tst lr, #16\n\t"
 			"it eq\n\t"
 			"vldmiaeq r0!, {s16-s31}\n\t"
-			"msr control, r1\n\t"
-			// ARMv7-M Architecture Reference Manual B1.4.4 (The
-			// special-purpose CONTROL register) states that “software must use
-			// an ISB to ensure a write to the CONTROL register takes effect
-			// before the next instruction is executed.” Section B5.2.3 (MSR
-			// instruction), Notes, Privilege, states that, “after any thread
-			// mode transition from privileged to unprivileged execution,
-			// software must issue an ISB instruction to ensure instruction
-			// fetch correctness.” The first statement is irrelevant; we do not
-			// care whether a possible change to the nPRIV bit takes effect
-			// before the next instruction is executed or not because we are in
-			// handler mode, not thread mode, and thus the value of that bit
-			// has no effect. The second statement is not applicable; we are
-			// not performing a thread mode transition from privileged to
-			// unprivileged because we are not in thread mode. We only care
-			// that the new nPRIV value take effect by the time we return to
-			// thread mode. To get back to thread mode we perform an exception
-			// return, and the exception return procedure includes an
-			// InstructionSynchronizationBarrier. So, we do not need an
-			// explicit ISB here.
 			"ldr r1, =0xE000ED9C\n\t" // MPU_RBAR
-			"stm r1, {r2-r3}\n\t"
+			"stm r1, {r1-r2}\n\t"
 			// Cortex-M4 Devices Generic User Guide 2.2.4 (Software ordering of
 			// memory accesses), MPU programming, states that one must “use a
 			// DSB followed by an ISB instruction or exception return to ensure
