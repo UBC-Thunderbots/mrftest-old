@@ -30,7 +30,6 @@ typedef struct __attribute__((packed)) {
 		uint8_t failed_chip_id;
 	} data;
 } sensors_gyro_data_t;
-
 _Static_assert(sizeof(sensors_gyro_data_t) == 7U, "Gyro data struct not correct size");
 
 typedef struct __attribute__((packed)) {
@@ -38,19 +37,18 @@ typedef struct __attribute__((packed)) {
 	int16_t y;
 	int16_t z;
 } sensors_accel_data_t;
-
 _Static_assert(sizeof(sensors_accel_data_t) == 6U, "Accel data struct not correct size");
 
 inline sensors_gyro_data_t sensors_get_gyro(void) {
-	static sensors_gyro_data_t retval;
-	icb_receive(ICB_COMMAND_SENSORS_GET_GYRO, &retval, sizeof(retval));
-	return retval;
+	extern sensors_gyro_data_t sensors_gyro_buffer;
+	icb_receive(ICB_COMMAND_SENSORS_GET_GYRO, &sensors_gyro_buffer, sizeof(sensors_gyro_buffer));
+	return sensors_gyro_buffer;
 }
 
 inline sensors_accel_data_t sensors_get_accel(void) {
-	static sensors_accel_data_t retval;
-	icb_receive(ICB_COMMAND_SENSORS_GET_ACCEL, &retval, sizeof(retval));
-	return retval;
+	extern sensors_accel_data_t sensors_accel_buffer;
+	icb_receive(ICB_COMMAND_SENSORS_GET_ACCEL, &sensors_accel_buffer, sizeof(sensors_accel_buffer));
+	return sensors_accel_buffer;
 }
 
 #endif
