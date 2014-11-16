@@ -63,29 +63,27 @@ uep_ep_t uep_eps[UEP_MAX_ENDPOINT * 2U];
 /**
  * \brief Sends a notification to the asynchronous API event group for an endpoint, if one is present.
  *
- * \param[in] ctx the endpoint to notify
+ * \param[in] ep the endpoint address to notify
  */
-void uep_notify_async(uep_ep_t *ctx) {
-	taskENTER_CRITICAL();
-	EventGroupHandle_t group = ctx->async_group;
-	EventBits_t bits = ctx->async_bits;
-	taskEXIT_CRITICAL();
-	if (group) {
-		xEventGroupSetBits(group, bits);
+void uep_notify_async(unsigned int ep) {
+	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
+	uep_async_cb_t cb = __atomic_load_n(&ctx->async_cb, __ATOMIC_RELAXED);
+	if (cb) {
+		cb(ep, 0);
 	}
 }
 
 /**
  * \brief Sends a notification to the asynchronous API event group for an endpoint, if one is present, from an interrupt service routine.
  *
- * \param[in] ctx the endpoint to notify
- *
+ * \param[in] ep the endpoint address to notify
  * \param[out] yield set to \c pdTRUE if the current task should yield due to the notification
  */
-void uep_notify_async_from_isr(uep_ep_t *ctx, BaseType_t *yield) {
-	if (ctx->async_group) {
-		BaseType_t ok = xEventGroupSetBitsFromISR(ctx->async_group, ctx->async_bits, yield);
-		assert(ok);
+void uep_notify_async_from_isr(unsigned int ep, BaseType_t *yield) {
+	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
+	uep_async_cb_t cb = __atomic_load_n(&ctx->async_cb, __ATOMIC_RELAXED);
+	if (cb) {
+		cb(ep, yield);
 	}
 }
 
@@ -476,9 +474,8 @@ static void uep_async_read_start_pxfr(unsigned int ep) {
  *
  * \param[in] max_length the maximum number of bytes to receive
  *
- * \param[in] group the group to notify when the endpoint needs servicing
- *
- * \param[in] bits the bits to set when the endpoint needs servicing
+ * \param[in] cb a callback to invoke when the read completes, or \c null to
+ * omit
  *
  * \retval true if the read started successfully
  * \retval false if an error occurred before the read started (in which case no data has been received)
@@ -488,13 +485,11 @@ static void uep_async_read_start_pxfr(unsigned int ep) {
  *
  * \pre The endpoint must be enabled in the current configuration and in the current alternate setting of any relevant interfaces.
  */
-bool uep_async_read_start(unsigned int ep, void *buffer, size_t max_length, EventGroupHandle_t group, EventBits_t bits) {
+bool uep_async_read_start(unsigned int ep, void *buffer, size_t max_length, uep_async_cb_t cb) {
 	assert(!UEP_DIR(ep));
 	assert(1 <= UEP_NUM(ep) && UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
 	assert(buffer);
 	assert(max_length);
-	assert(group);
-	assert(bits);
 
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
 
@@ -510,18 +505,15 @@ bool uep_async_read_start(unsigned int ep, void *buffer, size_t max_length, Even
 	ctx->bytes_transferred = 0U;
 	ctx->flags.zlp = false;
 	ctx->flags.overflow = false;
-	taskENTER_CRITICAL();
-	ctx->async_group = group;
-	ctx->async_bits = bits;
-	taskEXIT_CRITICAL();
+	__atomic_store_n(&ctx->async_cb, cb, __ATOMIC_RELAXED);
 
 	// Check for endpoint deactivation or halt.
-	// This must be done after the store to ctx->async_group.
-	// Otherwise, another task’s request for deactivate or halt might not make its way into the async group, yet we might consider the operation to have started.
-	// By putting the check here, we are guaranteed that any deactivate or halt occurring after this check will also set bits in group.
+	// This must be done after the store to ctx->async_cb.
+	// Otherwise, another task’s request for deactivate or halt might not make its way into the async callback, yet we might consider the operation to have started.
+	// By putting the check here, we are guaranteed that any deactivate or halt occurring after this check will also invoke the callback.
 	EventBits_t events = xEventGroupGetBits(ctx->event_group) & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED);
 	if (events) {
-		__atomic_store_n(&ctx->async_group, 0, __ATOMIC_RELAXED);
+		__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
 		xSemaphoreGive(ctx->transfer_mutex);
 		errno = (events & UEP_EVENT_DEACTIVATED) ? ECONNRESET : EPIPE;
 		return false;
@@ -581,7 +573,7 @@ bool uep_async_read_finish(unsigned int ep, size_t *length) {
 			*length = ctx->bytes_transferred;
 		}
 		xEventGroupSetBits(ctx->event_group, events & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED));
-		__atomic_store_n(&ctx->async_group, 0, __ATOMIC_RELAXED);
+		__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
 		xSemaphoreGive(ctx->transfer_mutex);
 		errno = (events & UEP_EVENT_DEACTIVATED) ? ECONNRESET : EPIPE;
 		return false;
@@ -604,7 +596,7 @@ bool uep_async_read_finish(unsigned int ep, size_t *length) {
 				*length = ctx->bytes_transferred;
 			}
 			bool overflow = !!ctx->flags.overflow;
-			__atomic_store_n(&ctx->async_group, 0, __ATOMIC_RELAXED);
+			__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
 			xSemaphoreGive(ctx->transfer_mutex);
 			if (overflow) {
 				errno = EOVERFLOW;
@@ -634,6 +626,9 @@ bool uep_async_read_finish(unsigned int ep, size_t *length) {
  *
  * \param[in] zlp \c true to add a zero-length packet if \p length is a multiple of the endpoint maximum packet size, or \c false to omit the zero-length packet
  *
+ * \param[in] cb a callback to invoke when the write completes, or \c null to
+ * omit
+ *
  * \param[in] group the group to notify when the endpoint needs servicing
  *
  * \param[in] bits the bits to set when the endpoint needs servicing
@@ -646,13 +641,11 @@ bool uep_async_read_finish(unsigned int ep, size_t *length) {
  *
  * \pre The endpoint must be enabled in the current configuration and in the current alternate setting of any relevant interfaces.
  */
-bool uep_async_write_start(unsigned int ep, const void *data, size_t length, bool zlp, EventGroupHandle_t group, EventBits_t bits) {
+bool uep_async_write_start(unsigned int ep, const void *data, size_t length, bool zlp, uep_async_cb_t cb) {
 	assert(UEP_DIR(ep));
 	assert(1 <= UEP_NUM(ep) && UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
 	assert(!!data == !!length);
 	assert(length || zlp);
-	assert(group);
-	assert(bits);
 
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
 
@@ -670,18 +663,15 @@ bool uep_async_write_start(unsigned int ep, const void *data, size_t length, boo
 	ctx->bytes_left = length;
 	ctx->bytes_transferred = 0U;
 	ctx->flags.zlp = zlp && !(length % max_packet);
-	taskENTER_CRITICAL();
-	ctx->async_group = group;
-	ctx->async_bits = bits;
-	taskEXIT_CRITICAL();
+	__atomic_store_n(&ctx->async_cb, cb, __ATOMIC_RELAXED);
 
 	// Check for endpoint deactivation or halt.
-	// This must be done after the store to ctx->async_group.
-	// Otherwise, another task’s request for deactivate or halt might not make its way into the async group, yet we might consider the operation to have started.
-	// By putting the check here, we are guaranteed that any deactivate or halt occurring after this check will also set bits in group.
+	// This must be done after the store to ctx->async_cb.
+	// Otherwise, another task’s request for deactivate or halt might not make its way into the async callback, yet we might consider the operation to have started.
+	// By putting the check here, we are guaranteed that any deactivate or halt occurring after this check will also invoke the callback.
 	EventBits_t events = xEventGroupGetBits(ctx->event_group) & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED);
 	if (events) {
-		__atomic_store_n(&ctx->async_group, 0, __ATOMIC_RELAXED);
+		__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
 		xSemaphoreGive(ctx->transfer_mutex);
 		errno = (events & UEP_EVENT_DEACTIVATED) ? ECONNRESET : EPIPE;
 		return false;
@@ -721,7 +711,7 @@ bool uep_async_write_finish(unsigned int ep) {
 		// The endpoint is being deactivated or halted.
 		uep_write_pxfr_abort(ep);
 		xEventGroupSetBits(ctx->event_group, events & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED));
-		__atomic_store_n(&ctx->async_group, 0, __ATOMIC_RELAXED);
+		__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
 		xSemaphoreGive(ctx->transfer_mutex);
 		errno = (events & UEP_EVENT_DEACTIVATED) ? ECONNRESET : EPIPE;
 		return false;
@@ -734,7 +724,7 @@ bool uep_async_write_finish(unsigned int ep) {
 			return false;
 		} else {
 			// The logical transfer is finished.
-			__atomic_store_n(&ctx->async_group, 0, __ATOMIC_RELAXED);
+			__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
 			xSemaphoreGive(ctx->transfer_mutex);
 			return true;
 		}
@@ -753,9 +743,8 @@ bool uep_async_write_finish(unsigned int ep) {
  *
  * \param[in] ep the endpoint on which to wait, from 0x01 to \ref UEP_MAX_ENDPOINT or 0x81 to <code>\ref UEP_MAX_ENDPOINT | 0x80</code>
  *
- * \param[in] group the group to notify when the endpoint needs servicing
- *
- * \param[in] bits the bits to set when the endpoint needs servicing
+ * \param[in] cb a callback to invoke when the read completes, or \c null to
+ * omit
  *
  * \retval true if the wait started successfully
  * \retval false if an error occurred before the wait started
@@ -764,25 +753,20 @@ bool uep_async_write_finish(unsigned int ep) {
  *
  * \pre The endpoint must be enabled in the current configuration and in the current alternate setting of any relevant interfaces.
  */
-bool uep_async_halt_wait_start(unsigned int ep, EventGroupHandle_t group, EventBits_t bits) {
+bool uep_async_halt_wait_start(unsigned int ep, uep_async_cb_t cb) {
 	assert(1 <= UEP_NUM(ep) && UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
-	assert(group);
-	assert(bits);
 
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
 
 	// Set up the control structures.
-	taskENTER_CRITICAL();
-	ctx->async_group = group;
-	ctx->async_bits = bits;
-	taskEXIT_CRITICAL();
+	__atomic_store_n(&ctx->async_cb, cb, __ATOMIC_RELAXED);
 
 	// Check for endpoint deactivation.
 	// This must be done after the store to ctx->async_group.
 	// Otherwise, another task’s request for deactivate or clear halt might not make its way into the async group, yet we might consider the operation to have started.
 	// By putting the check here, we are guaranteed that any deactivate or clear halt occurring after this check will also set bits in group.
 	if (xEventGroupGetBits(ctx->event_group) & UEP_EVENT_DEACTIVATED) {
-		__atomic_store_n(&ctx->async_group, 0, __ATOMIC_RELAXED);
+		__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
 		errno = ECONNRESET;
 		return false;
 	}
@@ -814,12 +798,12 @@ bool uep_async_halt_wait_finish(unsigned int ep) {
 	EventBits_t events = xEventGroupGetBits(ctx->event_group);
 	if (events & UEP_EVENT_DEACTIVATED) {
 		// The endpoint is being deactivated.
-		__atomic_store_n(&ctx->async_group, 0, __ATOMIC_RELAXED);
+		__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
 		errno = ECONNRESET;
 		return false;
 	} else if (events & UEP_EVENT_NOT_HALTED) {
 		// The endpoint is no longer halted.
-		__atomic_store_n(&ctx->async_group, 0, __ATOMIC_RELAXED);
+		__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
 		return true;
 	} else {
 		// Nothing happened.
@@ -844,7 +828,7 @@ static void uep_halt_impl(unsigned int ep) {
 	xEventGroupSetBits(ctx->event_group, UEP_EVENT_HALTED);
 
 	// Notify the asynchronous event group if one is present.
-	uep_notify_async(ctx);
+	uep_notify_async(ep);
 
 	// Wait for in-progress transfer to terminate and then take the transfer mutex to prevent another from starting.
 	xSemaphoreTake(ctx->transfer_mutex, portMAX_DELAY);
@@ -972,7 +956,7 @@ static void uep_deactivate_impl(const usb_endpoint_descriptor_t *edesc) {
 	xEventGroupSetBits(ctx->event_group, UEP_EVENT_DEACTIVATED);
 
 	// Notify the asynchronous event group if one is present.
-	uep_notify_async(ctx);
+	uep_notify_async(edesc->bEndpointAddress);
 
 	// Wait for in-progress transfer to terminate and then take the transfer mutex to prevent another from starting.
 	xSemaphoreTake(ctx->transfer_mutex, portMAX_DELAY);

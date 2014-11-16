@@ -261,14 +261,9 @@ typedef struct {
 	size_t pxfr_bytes_left;
 
 	/**
-	 * \brief The asynchronous API event group to notify when this endpoint needs servicing.
+	 * \brief The callback to invoke when the endpoint completes an operation.
 	 */
-	EventGroupHandle_t async_group;
-
-	/**
-	 * \brief The bits to set in \ref async_group when this endpoint needs servicing.
-	 */
-	EventBits_t async_bits;
+	uep_async_cb_t async_cb;
 } uep_ep_t;
 
 /**
@@ -296,8 +291,8 @@ bool uep0_default_handler(const usb_setup_packet_t *pkt);
 void uep0_exit_configuration(void);
 
 extern uep_ep_t uep_eps[UEP_MAX_ENDPOINT * 2U];
-void uep_notify_async(uep_ep_t *ctx);
-void uep_notify_async_from_isr(uep_ep_t *ctx, BaseType_t *yield);
+void uep_notify_async(unsigned int ep);
+void uep_notify_async_from_isr(unsigned int ep, BaseType_t *yield);
 void uep_activate(const usb_endpoint_descriptor_t *descriptor, unsigned int interface);
 void uep_deactivate(const usb_endpoint_descriptor_t *descriptor);
 void uep_get_async_event(unsigned int ep, EventGroupHandle_t *async_group, EventBits_t *async_bits);

@@ -600,7 +600,7 @@ bool uep0_default_handler(const usb_setup_packet_t *pkt) {
 									xEventGroupSetBits(ctx->event_group, UEP_EVENT_NOT_HALTED);
 
 									// Notify the asynchronous event group if one is present.
-									uep_notify_async(ctx);
+									uep_notify_async(pkt->wIndex);
 
 									// Release mutexes.
 									xSemaphoreGive(ctx->transfer_mutex);
@@ -687,7 +687,7 @@ bool uep0_default_handler(const usb_setup_packet_t *pkt) {
 						xEventGroupSetBits(ctx->event_group, UEP_EVENT_HALTED);
 
 						// Notify the asynchronous event group if one is present.
-						uep_notify_async(ctx);
+						uep_notify_async(pkt->wIndex);
 
 						// Wait for in-progress transfer to terminate and then take the transfer mutex to prevent another from starting.
 						xSemaphoreTake(ctx->transfer_mutex, portMAX_DELAY);

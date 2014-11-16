@@ -46,7 +46,7 @@
  *
  * These data structures and constants match values defined in the USB specification.
  *
- * @{
+ * \{
  */
 
 /**
@@ -288,7 +288,7 @@ _Static_assert(sizeof(usb_setup_packet_t) == 8, "usb_setup_packet_t wrong size")
  */
 
 /**
- * @}
+ * \}
  */
 
 
@@ -300,7 +300,7 @@ _Static_assert(sizeof(usb_setup_packet_t) == 8, "usb_setup_packet_t wrong size")
  * An application must define, in memory (typically Flash, marked \c const), an instance of \ref udev_info_t and pass it to \ref udev_init.
  * The USB stack uses this structure to find all the device’s descriptors, callbacks, and other information it needs.
  *
- * @{
+ * \{
  */
 
 /**
@@ -807,7 +807,32 @@ typedef struct {
 } udev_info_t;
 
 /**
- * @}
+ * \}
+ */
+
+
+
+/**
+ * \defgroup CBS Callbacks
+ *
+ * These types define the types of callback functions.
+ *
+ * \{
+ */
+
+/**
+ * \brief Callback for completion of an asynchronous operation.
+ *
+ * \param[in] ep the endpoint address
+ *
+ * \param[in, out] from_isr_yield \c null if the notification is coming from
+ * thread code, or a pointer to a boolean flag if the notification is coming
+ * from an ISR which must be set to \c pdTRUE if a FreeRTOS yield is needed
+ */
+typedef void (*uep_async_cb_t)(unsigned int ep, BaseType_t *from_isr_yield);
+
+/**
+ * \}
  */
 
 
@@ -823,11 +848,11 @@ void udev_set_self_powered(bool sp);
 bool uep_read(unsigned int ep, void *buffer, size_t max_length, size_t *length);
 bool uep_write(unsigned int ep, const void *data, size_t length, bool zlp);
 bool uep_halt_wait(unsigned int ep);
-bool uep_async_read_start(unsigned int ep, void *buffer, size_t max_length, EventGroupHandle_t group, EventBits_t bits);
+bool uep_async_read_start(unsigned int ep, void *buffer, size_t max_length, uep_async_cb_t cb);
 bool uep_async_read_finish(unsigned int ep, size_t *length);
-bool uep_async_write_start(unsigned int ep, const void *data, size_t length, bool zlp, EventGroupHandle_t group, EventBits_t bits);
+bool uep_async_write_start(unsigned int ep, const void *data, size_t length, bool zlp, uep_async_cb_t cb);
 bool uep_async_write_finish(unsigned int ep);
-bool uep_async_halt_wait_start(unsigned int ep, EventGroupHandle_t group, EventBits_t bits);
+bool uep_async_halt_wait_start(unsigned int ep, uep_async_cb_t cb);
 bool uep_async_halt_wait_finish(unsigned int ep);
 void uep_halt(unsigned int ep);
 

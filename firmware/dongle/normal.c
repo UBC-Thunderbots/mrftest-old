@@ -196,6 +196,22 @@ void timer6_isr(void) {
 }
 
 /**
+ * \brief Handles notifications from the USB layer that an asynchronous
+ * operation on the drive packet endpoint is complete.
+ *
+ * \param[in] ep the endpoint address
+ * \param[in, out] from_isr_yield the yield pointer (if invoked from an ISR),
+ * or \c null (if invoked from mainline code)
+ */
+static void handle_drive_endpoint_done(unsigned int UNUSED(ep), BaseType_t *from_isr_yield) {
+	if (from_isr_yield) {
+		xEventGroupSetBitsFromISR(drive_event_group, DRIVE_EVENT_ENDPOINT, from_isr_yield);
+	} else {
+		xEventGroupSetBits(drive_event_group, DRIVE_EVENT_ENDPOINT);
+	}
+}
+
+/**
  * \brief Writes a drive packet into the radio transmit buffer and begins sending it.
  *
  * This function also blinks the transmit LED.
@@ -300,7 +316,7 @@ static void drive_task(void *UNUSED(param)) {
 	for (;;) {
 		// Start the endpoint if possible.
 		if (!ep_running) {
-			if (uep_async_read_start(0x01U, packet_buffers[wptr], DRIVE_PACKET_DATA_SIZE, drive_event_group, DRIVE_EVENT_ENDPOINT)) {
+			if (uep_async_read_start(0x01U, packet_buffers[wptr], DRIVE_PACKET_DATA_SIZE, &handle_drive_endpoint_done)) {
 				ep_running = true;
 			} else {
 				if (errno == EPIPE) {

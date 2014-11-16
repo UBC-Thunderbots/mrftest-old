@@ -621,7 +621,7 @@ void udev_isr(void) {
 			ok = xEventGroupSetBitsFromISR(ctx->event_group, oep_bits_to_set[ep - 1U], &yield);
 			assert(ok);
 			if (oep_bits_to_set[ep - 1U] & UEP_EVENT_XFRC) {
-				uep_notify_async_from_isr(ctx, &yield);
+				uep_notify_async_from_isr(ep, &yield);
 			}
 		}
 	}
@@ -690,7 +690,7 @@ void udev_isr(void) {
 					ok = xEventGroupSetBitsFromISR(ctx->event_group, to_set, &yield);
 					assert(ok);
 					if (to_set & UEP_EVENT_XFRC) {
-						uep_notify_async_from_isr(ctx, &yield);
+						uep_notify_async_from_isr(0x80U | ep, &yield);
 					}
 				}
 			}
