@@ -28,7 +28,7 @@ namespace {
 			score.push_back(dist);
 		}
 
-		int j;
+		unsigned int j;
 		for (unsigned i = 1; i < enemies.size(); i++){
 			j = i;
 			while (j > 0 && score[j-1] > score[j]){
