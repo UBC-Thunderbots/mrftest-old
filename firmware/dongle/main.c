@@ -186,7 +186,7 @@ static void stm32_main(void) {
 	init_chip(&INIT_SPECS);
 
 	// Initialize the GPIO pins.
-	gpio_init(PINS_INIT);
+	gpio_init(PINS_INIT, sizeof(PINS_INIT) / sizeof(*PINS_INIT));
 
 	// Get into FreeRTOS.
 	BaseType_t ok = xTaskCreate(&main_task, "main", 512U, 0, 1U, 0);

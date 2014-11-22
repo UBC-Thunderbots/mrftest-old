@@ -19,13 +19,19 @@
  * Once this function returns, all I/O pins are in their specified states and all ports are enabled in the RCC.
  *
  * \param[in] specs the specifications of the pins, indexed first by port and then by pin
+ * \param[in] length the number of ports to initialize
  */
-void gpio_init(const gpio_init_pin_t specs[4U][16U]) {
+void gpio_init(const gpio_init_pin_t (*specs)[16U], size_t length) {
 	rcc_enable_reset(AHB1, GPIOA);
 	rcc_enable_reset(AHB1, GPIOB);
 	rcc_enable_reset(AHB1, GPIOC);
 	rcc_enable_reset(AHB1, GPIOD);
-	for (unsigned int port = 0U; port < 4U; ++port) {
+	rcc_enable_reset(AHB1, GPIOE);
+	rcc_enable_reset(AHB1, GPIOF);
+	rcc_enable_reset(AHB1, GPIOG);
+	rcc_enable_reset(AHB1, GPIOH);
+	rcc_enable_reset(AHB1, GPIOI);
+	for (unsigned int port = 0U; port < length; ++port) {
 		uint32_t moder = 0U, otyper = 0U, ospeedr = 0U, pupdr = 0U, odr = 0U, afr[2U] = { 0U, 0U }, lock = 0U;
 		for (unsigned int pin = 0U; pin < 16U; ++pin) {
 			moder |= specs[port][pin].mode << (pin * 2U);

@@ -7,6 +7,7 @@
 #define STM32LIB_GPIO_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <registers/gpio.h>
 
 /**
@@ -408,7 +409,7 @@ typedef struct __attribute__((packed)) {
 	bool unlock : 1; ///< Whether to leave the pin configuration unlocked when locking the ports
 } gpio_init_pin_t;
 
-void gpio_init(const gpio_init_pin_t specs[4U][16U]);
+void gpio_init(const gpio_init_pin_t (*specs)[16U], size_t length);
 
 #endif
 

@@ -445,7 +445,7 @@ static void stm32_main(void) {
 	init_chip(&INIT_SPECS);
 
 	// Set up pins
-	gpio_init(PINS_INIT);
+	gpio_init(PINS_INIT, sizeof(PINS_INIT) / sizeof(*PINS_INIT));
 
 	// setup interrupt
 	rcc_enable_reset(APB2, SYSCFG);
