@@ -49,4 +49,5 @@ bool i2c_init(void) {
 	I2C.CR1 = cr1;
 
 
-	//
+
+}
