@@ -57,9 +57,9 @@ namespace {
 
 			{
 				uint32_t u32;
-				u32 = static_cast<uint32_t>(seconds);
+				u32 = seconds;
 				ofs.write(reinterpret_cast<const char *>(&u32), 4);
-				u32 = static_cast<uint32_t>(microseconds);
+				u32 = microseconds;
 				ofs.write(reinterpret_cast<const char *>(&u32), 4);
 				u32 = static_cast<uint32_t>(transfer.size() - 4);
 				ofs.write(reinterpret_cast<const char *>(&u32), 4);
@@ -119,7 +119,7 @@ int app_main(int argc, char **argv) {
 		sigset_t sigs;
 		sigemptyset(&sigs);
 		sigaddset(&sigs, SIGINT);
-		if (sigprocmask(SIG_BLOCK, &sigs, 0) < 0) {
+		if (sigprocmask(SIG_BLOCK, &sigs, nullptr) < 0) {
 			throw SystemError("sigprocmask", errno);
 		}
 		int rawfd = ::signalfd(-1, &sigs, SFD_NONBLOCK);

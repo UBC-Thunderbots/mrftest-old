@@ -64,7 +64,7 @@ std::vector<uint8_t> SectorArray::get(off_t i) const {
 		std::size_t len = SECTOR_SIZE;
 		off_t off = i * SECTOR_SIZE;
 		while (len) {
-			ssize_t rc = pread(fd.fd(), ptr, static_cast<std::size_t>(len), off);
+			ssize_t rc = pread(fd.fd(), ptr, len, off);
 			if (rc < 0) {
 				throw SystemError("pread", errno);
 			}
@@ -220,7 +220,7 @@ namespace {
 		std::cout.flush();
 		uint64_t params[2];
 		params[0] = 0;
-		params[1] = static_cast<uint64_t>(static_cast<uint64_t>(sdcard.size()) * SECTOR_SIZE);
+		params[1] = static_cast<uint64_t>(sdcard.size() * SECTOR_SIZE);
 		if (ioctl(sdcard.fd.fd(), BLKDISCARD, params) < 0) {
 			if (errno == EOPNOTSUPP) {
 				std::cout << "Well your card reader dun sucks so I card scans and manual overwrite" << std::endl;
@@ -375,7 +375,7 @@ namespace {
 				return &i;
 			}
 		}
-		return 0;
+		return nullptr;
 	}
 
 	void usage(const char *app) {

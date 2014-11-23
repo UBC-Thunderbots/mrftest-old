@@ -58,7 +58,7 @@ namespace {
 
 							// dont back up if the player is pointing towards our net
 							if ((player_orientation > point_our_net_lower) && (player_orientation < point_our_net_higher))
-								player.move(Point(player.position() - move_back_distance), player.orientation(), Point());
+								player.move(player.position() - move_back_distance, player.orientation(), Point());
 						}
 					}
 					else {

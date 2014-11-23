@@ -473,7 +473,7 @@ void PlayExecutor::clear_assignments() {
 	curr_play = nullptr;
 	curr_active = nullptr;
 	for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
-		curr_tactic[i] = 0;
+		curr_tactic[i] = nullptr;
 		curr_assignment[i] = AI::HL::W::Player();
 		prev_assignment[i] = AI::HL::W::Player();
 		curr_roles[i].clear();

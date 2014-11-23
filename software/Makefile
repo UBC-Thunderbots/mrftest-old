@@ -98,6 +98,8 @@ obj/%.o : %.cpp $(PROTOBUF_HS)
 proto/%.pb.cc proto/%.pb.h : proto/%.proto
 	echo "  PROTO	$@"
 	protoc --proto_path=proto --cpp_out=proto $<
+	# Add the #pragma GCC system_header on the top of protobuf files, to prevent them from barfing warnings when included from our code.
+	sed -i -e '1i#pragma GCC system_header' proto/$*.pb.h
 .SECONDARY : $(PROTOBUF_CCS) $(PROTOBUF_HS)
 
 #
@@ -107,7 +109,7 @@ proto/%.pb.cc proto/%.pb.h : proto/%.proto
 obj/proto/%.pb.o : proto/%.pb.cc $(PROTOBUF_HS)
 	echo "  CXX	$@"
 	mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -o$@ -c -Wno-extra -Wno-conversion $<
+	$(CXX) $(CXXFLAGS) -o$@ -c -Wno-extra -Wno-conversion -Wno-useless-cast -Wno-zero-as-null-pointer-constant $<
 
 #
 # Include all the dependency files.

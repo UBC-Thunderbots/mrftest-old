@@ -26,13 +26,13 @@ roles[0].push_back(tactive_def(world));
 
 // ROLE 2
 // defend lane
-roles[1].push_back(tdefend_line(world, Coordinate(world, Point(world.field().friendly_corner_pos() - Point(0.65, 0.41)), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(world.field().friendly_corner_pos() - Point(0.9, 0.41)), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.2));
+roles[1].push_back(tdefend_line(world, Coordinate(world, world.field().friendly_corner_pos() - Point(0.65, 0.41), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, world.field().friendly_corner_pos() - Point(0.9, 0.41), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.2));
 // ROLE 3 (optional)
 // defend line 1
-roles[2].push_back(tdefend_line(world, Coordinate(world, Point(world.field().friendly_corner_neg() + Point(1.1, 4.25)), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(world.field().friendly_goal() + Point(3.70, 0.25)), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.2));
+roles[2].push_back(tdefend_line(world, Coordinate(world, world.field().friendly_corner_neg() + Point(1.1, 4.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, world.field().friendly_goal() + Point(3.70, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.2));
 // ROLE 4 (optional)
 // defend line 2
-roles[3].push_back(tdefend_line(world, Coordinate(world, Point(world.field().friendly_goal() - Point(1.1, 0.35)), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(world.field().friendly_goal() - Point(0.7, -0.35)), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.2));
+roles[3].push_back(tdefend_line(world, Coordinate(world, world.field().friendly_goal() - Point(1.1, 0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, world.field().friendly_goal() - Point(0.7, -0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.2));
 // ROLE 5 (optional)
 // offend
 //roles[4].push_back(offend(world));

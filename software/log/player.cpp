@@ -30,8 +30,8 @@
 
 namespace {
 	std::chrono::steady_clock::time_point make_monotonic_time(const Log::MonotonicTimeSpec &target, const Log::MonotonicTimeSpec &reference) {
-		std::chrono::duration<intmax_t, std::nano> target_nanos(static_cast<intmax_t>(target.seconds()) * 1000000000 + target.nanoseconds());
-		std::chrono::duration<intmax_t, std::nano> reference_nanos(static_cast<intmax_t>(reference.seconds()) * 1000000000 + target.nanoseconds());
+		std::chrono::duration<int64_t, std::nano> target_nanos(target.seconds() * 1000000000 + target.nanoseconds());
+		std::chrono::duration<int64_t, std::nano> reference_nanos(reference.seconds() * 1000000000 + target.nanoseconds());
 		return std::chrono::steady_clock::time_point(std::chrono::duration_cast<std::chrono::steady_clock::duration>(target_nanos - reference_nanos));
 	}
 

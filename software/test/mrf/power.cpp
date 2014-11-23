@@ -1,6 +1,6 @@
 #include "test/mrf/power.h"
 
-PowerPanel::PowerPanel(MRFDongle &dongle, unsigned int index) : Gtk::Table(1, 2), dongle(dongle), index(index), drivetrain_button(u8"Power Drivetrain"), current_operation_status_entry(0) {
+PowerPanel::PowerPanel(MRFDongle &dongle, unsigned int index) : Gtk::Table(1, 2), dongle(dongle), index(index), drivetrain_button(u8"Power Drivetrain"), current_operation_status_entry(nullptr) {
 	drivetrain_button.signal_clicked().connect(sigc::mem_fun(this, &PowerPanel::power_drivetrain));
 	attach(drivetrain_button, 0, 1, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	drivetrain_status.set_editable(false);

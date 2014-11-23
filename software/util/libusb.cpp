@@ -440,7 +440,7 @@ void USB::DeviceHandle::mark_shutting_down() {
 void USB::DeviceHandle::init_descriptors() {
 	check_fn("libusb_get_device_descriptor", libusb_get_device_descriptor(libusb_get_device(handle), &device_descriptor_), 0);
 	for (uint8_t i = 0; i < device_descriptor_.bNumConfigurations; ++i) {
-		libusb_config_descriptor *desc = 0;
+		libusb_config_descriptor *desc = nullptr;
 		check_fn("libusb_get_configuration_descriptor", libusb_get_config_descriptor(libusb_get_device(handle), i, &desc), 0);
 		std::unique_ptr<libusb_config_descriptor, void (*)(libusb_config_descriptor *)> ptr(desc, &libusb_free_config_descriptor);
 		config_descriptors.push_back(std::move(ptr));

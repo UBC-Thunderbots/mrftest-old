@@ -179,7 +179,8 @@ inline uint32_t decode_u24_be(const void *buffer) {
 	const uint8_t *buf = static_cast<const uint8_t *>(buffer);
 	uint32_t val = 0;
 	for (std::size_t i = 0; i < 3; ++i) {
-		val = static_cast<uint32_t>((val << 8) | buf[i]);
+		val <<= 8;
+		val |= buf[i];
 	}
 	return val;
 }
@@ -195,7 +196,8 @@ inline uint32_t decode_u32_be(const void *buffer) {
 	const uint8_t *buf = static_cast<const uint8_t *>(buffer);
 	uint32_t val = 0;
 	for (std::size_t i = 0; i < 4; ++i) {
-		val = static_cast<uint32_t>((val << 8) | buf[i]);
+		val <<= 8;
+		val |= buf[i];
 	}
 	return val;
 }
@@ -211,7 +213,8 @@ inline uint64_t decode_u64_be(const void *buffer) {
 	const uint8_t *buf = static_cast<const uint8_t *>(buffer);
 	uint64_t val = 0;
 	for (std::size_t i = 0; i < 8; ++i) {
-		val = static_cast<uint64_t>((val << 8) | buf[i]);
+		val <<= 8;
+		val |= buf[i];
 	}
 	return val;
 }
@@ -380,7 +383,8 @@ inline uint32_t decode_u24_le(const void *buffer) {
 	const uint8_t *buf = static_cast<const uint8_t *>(buffer);
 	uint32_t val = 0;
 	for (std::size_t i = 0; i < 3; ++i) {
-		val = static_cast<uint32_t>((val << 8) | buf[2 - i]);
+		val <<= 8;
+		val |= buf[2 - i];
 	}
 	return val;
 }
@@ -396,7 +400,8 @@ inline uint32_t decode_u32_le(const void *buffer) {
 	const uint8_t *buf = static_cast<const uint8_t *>(buffer);
 	uint32_t val = 0;
 	for (std::size_t i = 0; i < 4; ++i) {
-		val = static_cast<uint32_t>((val << 8) | buf[3 - i]);
+		val <<= 8;
+		val |= buf[3 - i];
 	}
 	return val;
 }
@@ -412,7 +417,8 @@ inline uint64_t decode_u64_le(const void *buffer) {
 	const uint8_t *buf = static_cast<const uint8_t *>(buffer);
 	uint64_t val = 0;
 	for (std::size_t i = 0; i < 8; ++i) {
-		val = static_cast<uint64_t>((val << 8) | buf[7 - i]);
+		val <<= 8;
+		val |= buf[7 - i];
 	}
 	return val;
 }

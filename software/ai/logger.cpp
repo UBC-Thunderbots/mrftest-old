@@ -58,8 +58,8 @@ namespace {
 
 	void timestamp_to_log(const AI::Timestamp &src, const AI::Timestamp &ref, Log::MonotonicTimeSpec &dest) {
 		AI::Timediff diff = src - ref;
-		intmax_t nanos = std::chrono::duration_cast<std::chrono::duration<intmax_t, std::nano>>(diff).count();
-		dest.set_seconds(static_cast<int64_t>(nanos / 1000000000));
+		int64_t nanos = std::chrono::duration_cast<std::chrono::duration<int64_t, std::nano>>(diff).count();
+		dest.set_seconds(nanos / 1000000000);
 		dest.set_nanoseconds(static_cast<int32_t>(nanos % 1000000000));
 	}
 

@@ -101,7 +101,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::SSLVision::Ba
 
 	playtype_time = std::chrono::steady_clock::now();
 
-	pFilter_ = NULL;
+	pFilter_ = nullptr;
 }
 
 template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::tick() {

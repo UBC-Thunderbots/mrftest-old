@@ -5,11 +5,11 @@
 
 namespace {
 	void *to_ptr(std::size_t sz) {
-		return reinterpret_cast<void *>(static_cast<uintptr_t>(sz));
+		return reinterpret_cast<void *>(sz);
 	}
 
 	std::size_t of_ptr(void *p) {
-		return static_cast<std::size_t>(reinterpret_cast<uintptr_t>(p));
+		return reinterpret_cast<std::size_t>(p);
 	}
 }
 
