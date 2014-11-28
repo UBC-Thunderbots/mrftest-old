@@ -11,6 +11,7 @@ typedef float lps_adc[16];
 
 void lps_init(void);
 void lps_incr(void);
-int lps_get(void);
+void lps_get(void);
+void lps_print(void);
 
 #endif
