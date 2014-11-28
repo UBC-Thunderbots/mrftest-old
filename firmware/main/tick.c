@@ -99,12 +99,6 @@ static void normal_task(void *UNUSED(param)) {
 		receive_tick();
 		adc_tick(record);
 		leds_tick();
-		/*lps_incr();
-		if( lps_counter >= 100 ){
-			lps_get();
-			lps_counter=0;
-		}
-		lps_counter++;*/
 		breakbeam_tick();
 		if (chicker_auto_fired_test_clear()) {
 			feedback_pend_autokick();
