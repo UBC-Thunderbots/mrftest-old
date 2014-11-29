@@ -100,6 +100,7 @@ static void normal_task(void *UNUSED(param)) {
 		adc_tick(record);
 		leds_tick();
 		breakbeam_tick();
+		lps_get();
 		if (chicker_auto_fired_test_clear()) {
 			feedback_pend_autokick();
 		}
@@ -200,6 +201,9 @@ void timer6_isr(void) {
 	// Run the devices that need to run fast.
 	breakbeam_tick_fast();
 	chicker_tick_fast();
+
+	// Run lps fast tick
+	lps_incr();	
 
 	// Report progress.
 	main_kick_wdt(MAIN_WDT_SOURCE_HSTICK);

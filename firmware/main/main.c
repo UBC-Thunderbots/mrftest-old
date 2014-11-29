@@ -400,6 +400,9 @@ static void main_task(void *UNUSED(param)) {
 
 	// Receive must be the second-last module initialized, because received packets can cause calls to other modules.
 	receive_init(switches[0U]);
+	
+	// lps init
+	lps_init();
 
 	// Ticks must be the last module initialized, because ticks propagate into other modules.
 	tick_init();

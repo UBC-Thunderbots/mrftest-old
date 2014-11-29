@@ -73,6 +73,13 @@ void lps_incr(){
 		if( counter == 0 ){
 			tbuf_write_put(&lps_buffer_ctl, current_lps_buffer);
 			current_lps_buffer = tbuf_write_get(&lps_buffer_ctl);
+			if( current_lps_buffer != UINT_MAX )
+			{
+				updating_lps = lps_buf[current_lps_buffer];
+				for( unsigned int i = 0; i < LPS_ARRAY_SIZE; i++ ){
+					updating_lps[i] = 0.0;
+				}
+			}
 		}
 	}
 }
