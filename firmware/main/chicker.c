@@ -329,10 +329,10 @@ void chicker_fire(chicker_device_t device, unsigned int width) {
 	charger_mark_fired();
 
 	// Set a timeout to avoid colliding with the hardware.
-	taskENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	collide_timeout = COLLIDE_TIMEOUT;
 	collide_timeout_active = true;
-	taskEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 }
 
 /**
