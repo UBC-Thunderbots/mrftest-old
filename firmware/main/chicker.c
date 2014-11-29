@@ -16,6 +16,11 @@
 #include <registers/timer.h>
 
 /**
+ * \brief This is a hard cap on the pulse_width to prevent the fuse from blowing.
+ */
+#define KICKER_MAX_PULSE 5000U
+
+/**
  * \brief The amount of time (in ticks) to delay after firing a device before allowing another fire, to avoid physical collisions.
  */
 #define COLLIDE_TIMEOUT (500U / portTICK_PERIOD_MS)
@@ -258,8 +263,8 @@ void chicker_fire(chicker_device_t device, unsigned int width) {
 		TIM11.CR1 = cr1;
 
 		// Load the pulse width, clamping at maximum.
-		TIM11.ARR = MIN(width, 65535U);
-		TIM11.CCR1 = MIN(width, 65535U);
+		TIM11.ARR = MIN(width, KICKER_MAX_PULSE );
+		TIM11.CCR1 = MIN(width, KICKER_MAX_PULSE );
 
 		// Clear the counter.
 		TIM11.CNT = 0U;
