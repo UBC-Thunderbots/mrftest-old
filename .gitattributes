@@ -17,8 +17,6 @@ firmware/camera/pins.c -text
 firmware/camera/pins.h -text
 firmware/camera/stm32lib/discovery/pins.c -text
 firmware/camera/stm32lib/discovery/pins.h -text
-firmware/camera/stm32lib/registers/dcmi.h -text
-firmware/camera/stm32lib/registers/i2c.h -text
 firmware/camera/stm32lib/stm32f405.ld -text
 firmware/cdcacm/cdcacm.c -text
 firmware/cdcacm/include/cdcacm.h -text
@@ -159,10 +157,12 @@ firmware/stm32lib/include/minmax.h -text
 firmware/stm32lib/include/rcc.h -text
 firmware/stm32lib/include/registers/adc.h -text
 firmware/stm32lib/include/registers/crc.h -text
+firmware/stm32lib/include/registers/dcmi.h -text
 firmware/stm32lib/include/registers/dma.h -text
 firmware/stm32lib/include/registers/exti.h -text
 firmware/stm32lib/include/registers/flash.h -text
 firmware/stm32lib/include/registers/gpio.h -text
+firmware/stm32lib/include/registers/i2c.h -text
 firmware/stm32lib/include/registers/id.h -text
 firmware/stm32lib/include/registers/iwdg.h -text
 firmware/stm32lib/include/registers/mpu.h -text

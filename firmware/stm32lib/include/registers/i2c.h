@@ -44,9 +44,9 @@ _Static_assert(sizeof(I2C_CR2_t) == 4U, "I2C_CR2_t is wrong size");
 
 typedef struct {
 	unsigned ADD0 : 1;
-	unsigned ADD : 7;
-	unsigned ADD : 2;
-	unsigned : 5;
+	unsigned ADD : 9;
+	unsigned : 4;
+	unsigned defaultval : 1;
 	unsigned ADDMODE : 1;
 	unsigned : 16;
 } I2C_OAR1_t;
@@ -136,7 +136,7 @@ typedef struct {
 	I2C_SR2_t SR2;
 	I2C_CCR_t CCR;
 	I2C_TRISE_t TRISE;
-	I2C_FLTR_t FLTR;
+	//I2C_FLTR_t FLTR;
 } I2C_t;
 _Static_assert(sizeof(I2C_t) == 36U, "I2C_t is wrong size");
 
