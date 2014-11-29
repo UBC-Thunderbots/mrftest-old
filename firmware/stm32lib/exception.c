@@ -290,10 +290,8 @@ const hw_basic_stack_frame_t * volatile exception_hw_basic_stack_frame;
 const hw_extended_stack_frame_t * volatile exception_hw_extended_stack_frame;
 
 static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause) {
-	// Save for later inspection in the dump.
-	exception_sw_stack_frame = swframe;
-
-	// Fill out the signal info based on the exception number and fault status registers.
+	// Fill out the signal info based on the exception number and fault status
+	// registers.
 	switch (cause) {
 		case 3: // Hard fault
 			if (SCB.HFSR.DEBUGEVT) {
@@ -310,8 +308,8 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 			if (SCB.CFSR.MMARVALID) {
 				elf_notes.pr_siginfo.si_addr = (uint32_t) SCB.MMFAR;
 			}
-			// We don’t bother figuring out whether we had SEGV_MAPERR or SEGV_ACCERR.
-			// So, leave si_code at zero.
+			// We don’t bother figuring out whether we had SEGV_MAPERR or
+			// SEGV_ACCERR. So, leave si_code at zero.
 			break;
 
 		case 5: // Bus fault
@@ -351,118 +349,128 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 	elf_notes.prstatus.si_errno = elf_notes.pr_siginfo.si_code;
 	elf_notes.prstatus.pr_cursig = elf_notes.pr_siginfo.si_signum;
 
-	// General purpose registers always come from the software frame.
-	// The hardware frame may or may not exist, and if it does, it only has a few GP regs.
-	// The software frame *always* exists and has *all* the GP regs, so it’s much easier.
+	// General purpose registers always come from the software frame. The
+	// hardware frame may or may not exist, and if it does, it only has a few
+	// GP regs. The software frame *always* exists and has *all* the GP regs,
+	// so it’s much easier.
 	memcpy(&elf_notes.prstatus.pr_gpregs, &swframe->gpregs, 13 * sizeof(uint32_t));
 
+	const hw_basic_stack_frame_t *hwbframe;
+	const hw_extended_stack_frame_t *hweframe;
 	{
-		// Start by computing the hardware SP address based on the exception return code.
-		// The exception return code itself is saved in the software frame’s link register.
-		const hw_basic_stack_frame_t *hwframe;
-		if (swframe->lr & 4) {
-			// This means we were running on the process stack.
-			elf_notes.prstatus.pr_reg_sp = swframe->psp + sizeof(hw_basic_stack_frame_t);
-
-			// However, there might have been an error while stacking the exception frame.
-			// This could be caused by e.g. a stack overflow, leaving no space for the frame.
-			// In that case, we don’t want to go poking around there!
-			// We might take another fault, and anyway the values we get would be useless.
-			// So check if we faulted while stacking the exception frame before using it.
+		// Find the hardware frame, if there is one, and initialize ELF note SP
+		// to point at it.
+		const void *hwframeptr;
+		if (swframe->lr & 4U) {
+			// We were running on the process stack. The hardware frame may or
+			// may not be present, as there might have been an error while
+			// stacking the frame. If it is present, then it was the last thing
+			// pushed on the process stack and is thus still pointed to by PSP.
 			if (SCB.CFSR.MSTKERR || SCB.CFSR.STKERR) {
-				// A stacking error occurred.
-				hwframe = 0;
+				hwframeptr = 0;
 			} else {
-				// No stacking error occurred.
-				// The hardware frame was the last thing pushed onto the process stack.
-				// It must therefore be pointed to by PSP.
-				hwframe = (const hw_basic_stack_frame_t *) swframe->psp;
+				hwframeptr = (const void *) swframe->psp;
 			}
-
-			if (hwframe && hwframe->xpsr & (1U << 9)) {
-				// Stack pointer was adjusted by 4 to achieve 8-byte alignment.
-				elf_notes.prstatus.pr_reg_sp += 4;
-			}
-
-			// We call userspace PID 1.
-			elf_notes.prstatus.pr_pid = 1;
+			elf_notes.prstatus.pr_reg_sp = swframe->psp;
 		} else {
-			// This means we were running on the main stack.
-			// We assume the main stack is always OK.
-			// It must be, because we’re using it right now!
-			// Point the hardware frame pointer at the frame on the main stack.
-			// This will have been pushed right before the transfer to the exception ISR.
-			// The exception ISR will then immediately have pushed the software frame.
-			// Thus, the hardware frame lives immediately above the software frame.
-			hwframe = (const hw_basic_stack_frame_t *) (swframe + 1);
-			elf_notes.prstatus.pr_reg_sp = (uint32_t) (hwframe + 1);
-			if (hwframe->xpsr & (1U << 9)) {
-				// Stack pointer was adjusted by 4 to achieve 8-byte alignment.
-				elf_notes.prstatus.pr_reg_sp += 4;
-			}
-
-			// We call kernelspace PID 0.
-			elf_notes.prstatus.pr_pid = 0;
+			// Hardware frame lives on the main stack. The main stack is
+			// assumed not to have stacking errors, since we’re using it right
+			// now. The hardware frame was pushed just before entry to the
+			// fault ISR, immediately after which the software frame was
+			// pushed. So, the hardware frame lives immediately following the
+			// software frame in memory.
+			hwframeptr = swframe + 1;
+			elf_notes.prstatus.pr_reg_sp = (uint32_t) hwframeptr;
 		}
 
-		// Fill the rest of prstatus as best we can.
-		if (hwframe) {
-			elf_notes.prstatus.pr_reg_lr = hwframe->lr;
-			elf_notes.prstatus.pr_reg_pc = hwframe->pc;
-			elf_notes.prstatus.pr_reg_xpsr = hwframe->xpsr;
+		// Classify hardware frame into basic or extended. Advance SP over
+		// frame.
+		if (swframe->lr & 16U) {
+			hwbframe = hwframeptr;
+			hweframe = 0;
+			elf_notes.prstatus.pr_reg_sp += sizeof(hw_basic_stack_frame_t);
 		} else {
-			elf_notes.prstatus.pr_reg_xpsr = swframe->xpsr;
+			hweframe = hwframeptr;
+			hwbframe = &hweframe->basic;
+			elf_notes.prstatus.pr_reg_sp += sizeof(hw_extended_stack_frame_t);
 		}
 
-		// Sort out the floating point registers.
-		if (CPACR.CP11 != 0 && CPACR.CP10 != 0 && hwframe) {
-			if (swframe->lr & 16) {
-				// The hardware pushed a basic frame.
-				exception_hw_basic_stack_frame = hwframe;
-				if (FP.CCR.ASPEN) {
-					// Automatic preservation is enabled.
-					// If we had been using FP, the hardware would have pushed an extended frame.
-					// That it pushed a basic frame means no FP was happening.
-					// Wipe the note.
-					elf_notes.arm_vfp_nheader.n_type = 0;
-				} else {
-					// Automatic preservation is disabled.
-					// We really don’t know whether any FP was happening or not.
-					// The hardware will always push a basic frame in this state.
-					// Just to be safe, write out all the FP registers from their current values.
-					// If the application wasn’t using FP, the data can be ignored.
-					asm volatile("vstm %[dest], {s0-s31}" :: [dest] "r" (&elf_notes.arm_vfp.sregs) : "memory");
-					asm("vmrs %[dest], fpscr" : [dest] "=r" (elf_notes.arm_vfp.fpscr));
-				}
+		// Check for stack realignment.
+		if (hwbframe && hwbframe->xpsr & (1U << 9U)) {
+			// Stack pointer was adjusted by 4 to achieve 8-byte alignment.
+			elf_notes.prstatus.pr_reg_sp += 4U;
+		}
+	}
+
+	// Classify thread mode as PID 1 and handler mode as PID 0.
+	if (swframe->lr & 8U) {
+		elf_notes.prstatus.pr_pid = 1;
+	} else {
+		elf_notes.prstatus.pr_pid = 0;
+	}
+
+	// Fill the rest of prstatus as best we can.
+	if (hwbframe) {
+		elf_notes.prstatus.pr_reg_lr = hwbframe->lr;
+		elf_notes.prstatus.pr_reg_pc = hwbframe->pc;
+		elf_notes.prstatus.pr_reg_xpsr = hwbframe->xpsr;
+	} else {
+		elf_notes.prstatus.pr_reg_xpsr = swframe->xpsr;
+	}
+
+	// Sort out the floating point registers.
+	if (CPACR.CP11 != 0 && CPACR.CP10 != 0 && hwbframe) {
+		if (hweframe) {
+			// The hardware pushed an extended frame.
+			if (FP.CCR.LSPEN) {
+				// Lazy state preservation has applied here. There is no data
+				// in the frame yet. Execute an arbitrary floating-point
+				// instruction to force the state out to RAM.
+				asm volatile("vmov.f32 s0, #1.0" ::: "s0");
+			}
+			// The first 16 registers and FPSCR are in the stack frame. The
+			// second 16 registers are not preserved anywhere yet and can be
+			// grabbed directly.
+			memcpy(&elf_notes.arm_vfp.sregs, &hweframe->fpregs, sizeof(hweframe->fpregs));
+			asm volatile("vstm %[dest], {s16-s31}" :: [dest] "r" (&elf_notes.arm_vfp.sregs[16]) : "memory");
+			elf_notes.arm_vfp.fpscr = hweframe->fpscr;
+		} else {
+			// The hardware pushed a basic frame.
+			if (FP.CCR.ASPEN) {
+				// Automatic preservation is enabled. If we had been using FP,
+				// the hardware would have pushed an extended frame. That it
+				// pushed a basic frame means no FP was happening. Wipe the
+				// note.
+				elf_notes.arm_vfp_nheader.n_type = 0;
 			} else {
-				// The hardware pushed an extended frame.
-				const hw_extended_stack_frame_t *hweframe = (const hw_extended_stack_frame_t *) hwframe;
-				exception_hw_extended_stack_frame = hweframe;
-				if (FP.CCR.LSPEN) {
-					// Lazy state preservation has applied here.
-					// There is no data in the frame yet.
-					// Execute an arbitrary floating-point instruction to force the state out to RAM.
-					asm volatile("vmov.f32 s0, #1.0" ::: "s0");
-				}
-				// The first 16 registers and FPSCR are in the stack frame.
-				// The second 16 registers are not preserved anywhere yet and can be grabbed directly.
-				memcpy(&elf_notes.arm_vfp.sregs, &hweframe->fpregs, sizeof(hweframe->fpregs));
-				asm volatile("vstm %[dest], {s16-s31}" :: [dest] "r" (&elf_notes.arm_vfp.sregs[16]) : "memory");
-				elf_notes.arm_vfp.fpscr = hweframe->fpscr;
+				// Automatic preservation is disabled. We really don’t know
+				// whether any FP was happening or not. The hardware will
+				// always push a basic frame in this state. Just to be safe,
+				// write out all the FP registers from their current values. If
+				// the application wasn’t using FP, the data can be ignored.
+				asm volatile("vstm %[dest], {s0-s31}" :: [dest] "r" (&elf_notes.arm_vfp.sregs) : "memory");
+				asm("vmrs %[dest], fpscr" : [dest] "=r" (elf_notes.arm_vfp.fpscr));
 			}
-		} else {
-			// The coprocessor is disabled or no hardware frame was pushed (due to a fault during stacking).
-			// If no hardware frame was pushed, we can’t differentiate between whether the frame that wasn’t pushed would have been basic or extended.
-			// If the frame would have been extended, then the bottom 16 FP registers (and FPSCR) would have had indeterminate values after pushing.
-			// Therefore, it’s not safe to just copy the current values of the FP registers from the register file.
-			// Wipe the note.
-			exception_hw_basic_stack_frame = hwframe;
-			elf_notes.arm_vfp_nheader.n_type = 0;
 		}
+	} else {
+		// The coprocessor is disabled or no hardware frame was pushed (due to
+		// a fault during stacking). If no hardware frame was pushed, we can’t
+		// differentiate between whether the frame that wasn’t pushed would
+		// have been basic or extended. If the frame would have been extended,
+		// then the bottom 16 FP registers (and FPSCR) would have had
+		// indeterminate values after pushing. Therefore, it’s not safe to just
+		// copy the current values of the FP registers from the register file.
+		// Wipe the note.
+		elf_notes.arm_vfp_nheader.n_type = 0;
 	}
 
 	// Do some final tidying up.
 	elf_notes.prstatus.pr_reg_orig_r0 = elf_notes.prstatus.pr_gpregs[0];
+
+	// Save frame pointers for later inspection in the dump.
+	exception_sw_stack_frame = swframe;
+	exception_hw_basic_stack_frame = hwbframe;
+	exception_hw_extended_stack_frame = hweframe;
 }
 
 static void common_fault_isr(const sw_stack_frame_t *sp, unsigned int cause) __attribute__((noreturn, used));
