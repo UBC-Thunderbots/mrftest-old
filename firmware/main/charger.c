@@ -21,6 +21,8 @@
 
 #define CHARGE_TIMEOUT (4000U / portTICK_PERIOD_MS)
 
+#define VC_MAX 240.0f
+
 static bool full = false;
 static unsigned int timeout_counter = CHARGE_TIMEOUT;
 static bool timeout_lockout = false;
@@ -174,7 +176,7 @@ void charger_tick(bool charger_enabled) {
 		__atomic_store_n(&full, false, __ATOMIC_RELAXED); // If we are not charging at all, then we instantly drain a bit.
 	}
 
-	if (vcap > 240.0f) {
+	if (vcap > VC_MAX) {
 		charger_enabled = false; //disable charger after critical voltage
 		__atomic_store_n(&full, true, __ATOMIC_RELAXED); // Charger is now full.
 		__atomic_store_n(&timeout_counter, CHARGE_TIMEOUT, __ATOMIC_RELAXED); // We will keep topping up, but this does not contribute to timeout.
