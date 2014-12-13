@@ -885,20 +885,28 @@ void normal_on_enter(void) {
 }
 
 void normal_on_exit(void) {
-	// Push markers into the queues to notify the tasks.
+	// Push markers into the queues to notify the tasks. Notify all tasks
+	// except for rdrx. That task must be shut down last, because it processes
+	// MRF transmit complete interrupts which may be necessary to avoid
+	// deadlocking other tasks.
 	static packet_t * const null_packet = 0;
 	xQueueSend(transmit_queue, &null_packet, portMAX_DELAY);
 	xQueueSend(receive_queue, &null_packet, portMAX_DELAY);
 	static const mdr_t null_mdr = { 0xFFU, 0xFFU };
 	xQueueSend(mdr_queue, &null_mdr, portMAX_DELAY);
 	xSemaphoreGive(dongle_status_sem);
+
+	// Wait for the tasks to terminate.
+	for (unsigned int i = 0U; i != 7U; ++i) {
+		xSemaphoreTake(shutdown_sem, portMAX_DELAY);
+	}
+
+	// Signal the rdrx task to terminate.
 	__atomic_store_n(&rdrx_shutting_down, true, __ATOMIC_RELAXED);
 	xSemaphoreGive(mrf_int_sem);
 
-	// Wait for the tasks to terminate.
-	for (unsigned int i = 0U; i != 8U; ++i) {
-		xSemaphoreTake(shutdown_sem, portMAX_DELAY);
-	}
+	// Wait for it to terminate.
+	xSemaphoreTake(shutdown_sem, portMAX_DELAY);
 
 	// Disable the external interrupt on MRF INT.
 	mrf_disable_interrupt();
