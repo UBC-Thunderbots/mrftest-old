@@ -534,15 +534,15 @@ bool uep0_default_handler(const usb_setup_packet_t *pkt) {
 		} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_ENDPOINT && UEP_NUM(pkt->wIndex) <= UEP_MAX_ENDPOINT) {
 			if (pkt->bRequest == USB_CREQ_CLEAR_FEATURE && !pkt->wLength) {
 				if (pkt->wValue == USB_FEATURE_ENDPOINT_HALT) {
-					if ((0x01 <= pkt->wIndex && pkt->wIndex <= UEP_MAX_ENDPOINT) || (0x81 <= pkt->wIndex && pkt->wIndex <= (0x80 | UEP_MAX_ENDPOINT))) {
+					if (!UEP_NUM(pkt->wIndex)) {
+						// Endpoint zero is never halted, but always allows
+						// halt feature to be cleared.
+						return true;
+					} else {
 						const udev_endpoint_info_t *einfo = uutil_find_endpoint_info(pkt->wIndex);
 						if (einfo) {
 							return uep_clear_halt(pkt->wIndex, einfo->can_clear_halt, einfo->on_clear_halt);
 						}
-					} else if (pkt->wIndex == 0x00U || pkt->wIndex == 0x80U) {
-						// Endpoint zero is never halted, but always allows
-						// halt feature to be cleared.
-						return true;
 					}
 				}
 			} else if (pkt->bRequest == USB_CREQ_GET_STATUS && !pkt->wValue && pkt->wLength == 2U) {
@@ -550,7 +550,7 @@ bool uep0_default_handler(const usb_setup_packet_t *pkt) {
 					// Endpoint zero is never halted.
 					uep0_data_write(&ZERO16, sizeof(ZERO16));
 					return true;
-				} else if (UEP_NUM(pkt->wIndex) <= UEP_MAX_ENDPOINT) {
+				} else {
 					uep_ep_t *ctx = &uep_eps[UEP_IDX(pkt->wIndex)];
 					xSemaphoreTake(ctx->mutex, portMAX_DELAY);
 					uep_state_t state = ctx->state;
