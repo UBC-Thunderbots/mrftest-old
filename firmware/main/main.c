@@ -95,8 +95,15 @@ static void app_exception_early(void) {
 }
 
 static void app_exception_late(bool core_written) {
+	// Disable SYSTICK while changing frequency.
+	{
+		SYST_CSR_t tmp = { 0 };
+		SYSTICK.CSR = tmp;
+	}
 	// Set SYSTICK to divide by 168 so it overflows every microsecond.
-	SYSTICK.RVR.RELOAD = 168U - 1U;
+	SYSTICK.RVR = 168U - 1U;
+	// Reset the counter.
+	SYSTICK.CVR = 0U;
 	// Set SYSTICK to run with the core AHB clock.
 	{
 		SYST_CSR_t tmp = {
@@ -105,8 +112,6 @@ static void app_exception_late(bool core_written) {
 		};
 		SYSTICK.CSR = tmp;
 	}
-	// Reset the counter.
-	SYSTICK.CVR.CURRENT = 0U;
 
 	// Show flashing lights.
 	for (;;) {

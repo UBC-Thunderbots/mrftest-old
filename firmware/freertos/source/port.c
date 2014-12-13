@@ -442,6 +442,7 @@ void vPortSVCHandler(void) {
 
 	// Enable system timer.
 	SYSTICK.RVR = configCPU_CLOCK_HZ / configTICK_RATE_HZ - 1U;
+	SYSTICK.CVR = 0;
 	{
 		SYST_CSR_t tmp = { .ENABLE = 1, .TICKINT = 1, .CLKSOURCE = 1 };
 		SYSTICK.CSR = tmp;

@@ -12,6 +12,7 @@
 #include <gpio.h>
 #include <init.h>
 #include <rcc.h>
+#include <sleep.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -58,8 +59,15 @@ static void app_exception_early(void) {
 }
 
 static void app_exception_late(bool core_written) {
-	// Set SYSTICK to divide by 144,000 so it overflows every millisecond.
-	SYSTICK.RVR = 144000U - 1U;
+	// Disable SYSTICK while changing frequency.
+	{
+		SYST_CSR_t tmp = { 0 };
+		SYSTICK.CSR = tmp;
+	}
+	// Set SYSTICK to divide by 144 so it overflows every microsecond.
+	SYSTICK.RVR = 144U - 1U;
+	// Reset the counter.
+	SYSTICK.CVR = 0U;
 	// Set SYSTICK to run with the core AHB clock.
 	{
 		SYST_CSR_t tmp = {
@@ -68,25 +76,19 @@ static void app_exception_late(bool core_written) {
 		};
 		SYSTICK.CSR = tmp;
 	}
-	// Reset the counter.
-	SYSTICK.CVR = 0U;
 
 	// Show flashing lights.
 	for (;;) {
 		gpio_reset(PIN_LED_POWER);
 		gpio_reset(PIN_LED_TX);
 		gpio_reset(PIN_LED_RX);
-		for (unsigned int i = 0U; i < 500U; ++i) {
-			while (!SYSTICK.CSR.COUNTFLAG);
-		}
+		sleep_ms(500U);
 		gpio_set(PIN_LED_POWER);
 		if (core_written) {
 			gpio_set(PIN_LED_TX);
 			gpio_set(PIN_LED_RX);
 		}
-		for (unsigned int i = 0U; i < 500U; ++i) {
-			while (!SYSTICK.CSR.COUNTFLAG);
-		}
+		sleep_ms(500U);
 	}
 }
 
