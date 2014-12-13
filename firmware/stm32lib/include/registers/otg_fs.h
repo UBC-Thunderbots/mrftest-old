@@ -298,12 +298,6 @@ typedef struct {
 _Static_assert(sizeof(OTG_FS_DVBUSPULSE_t) == 4U, "OTG_FS_DVBUSPULSE_t is wrong size");
 
 typedef struct {
-	unsigned INEPTXFEM : 16;
-	unsigned : 16;
-} OTG_FS_DIEPEMPMSK_t;
-_Static_assert(sizeof(OTG_FS_DIEPEMPMSK_t) == 4U, "OTG_FS_DIEPEMPMSK_t is wrong size");
-
-typedef struct {
 	unsigned MPSIZ : 2;
 	unsigned : 13;
 	unsigned USBAEP : 1;
@@ -504,7 +498,7 @@ typedef struct {
 	OTG_FS_DVBUSDIS_t DVBUSDIS;
 	OTG_FS_DVBUSPULSE_t DVBUSPULSE;
 	uint32_t pad6;
-	OTG_FS_DIEPEMPMSK_t DIEPEMPMSK;
+	uint32_t DIEPEMPMSK;
 	uint32_t pad7[(0x900U - 0x838U) / 4U];
 	OTG_FS_DIEPCTL0_t DIEPCTL0;
 	uint32_t pad8;
@@ -539,4 +533,3 @@ extern volatile OTG_FS_FIFOS_t OTG_FS_FIFO;
 /**
  * @}
  */
-

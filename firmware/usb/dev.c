@@ -663,7 +663,7 @@ void udev_isr(void) {
 				udev_bits_to_set |= UEP0_EVENT_IN_XFRC;
 			}
 		}
-		OTG_FS_DIEPEMPMSK_t empmsk = OTG_FS.DIEPEMPMSK;
+		uint32_t empmsk = OTG_FS.DIEPEMPMSK;
 		for (unsigned int ep = 1U; ep <= UEP_MAX_ENDPOINT; ++ep) {
 			if (epint & (1U << ep)) {
 				OTG_FS_DIEPINTx_t diepint = OTG_FS.DIEP[ep - 1U].DIEPINT;
@@ -673,7 +673,7 @@ void udev_isr(void) {
 				// might get in here for a reason other than empty FIFO, and if
 				// empty FIFO is not an interrupt source for this endpoint, it
 				// means somebody doesn’t want us pushing packets, so don’t.
-				if (empmsk.INEPTXFEM & (1U << ep)) {
+				if (empmsk & (1U << ep)) {
 					// Shovel a packet at a time until either:
 					// (1) there is not enough space in the FIFO for another
 					//     packet, or
@@ -690,7 +690,7 @@ void udev_isr(void) {
 					// If we are out of data to transfer, stop taking FIFO
 					// empty interrupts.
 					if (!OTG_FS.DIEP[ep - 1U].DIEPTSIZ.XFRSIZ) {
-						empmsk.INEPTXFEM &= ~(1U << ep);
+						empmsk &= ~(1U << ep);
 					}
 				}
 

@@ -316,7 +316,7 @@ void init_chip(const init_specs_t *specs) {
 
 	if (!specs->flags.freertos) {
 		// Set SYSTICK to divide by cpu_frequency so it overflows every microsecond.
-		SYSTICK.RVR.RELOAD = specs->cpu_frequency - 1;
+		SYSTICK.RVR = specs->cpu_frequency - 1;
 		// Set SYSTICK to run with the core AHB clock.
 		{
 			SYST_CSR_t tmp = {
@@ -326,7 +326,7 @@ void init_chip(const init_specs_t *specs) {
 			SYSTICK.CSR = tmp;
 		}
 		// Reset the counter.
-		SYSTICK.CVR.CURRENT = 0;
+		SYSTICK.CVR = 0;
 	}
 
 	// If we will be running at at most 144 MHz, switch to the lower-power voltage regulator mode.

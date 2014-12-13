@@ -119,7 +119,7 @@ static void uep_disable(unsigned int ep) {
 		// Disabling an IN endpoint.
 		taskENTER_CRITICAL();
 		// Prevent the ISR from pushing more data into this endpoint.
-		OTG_FS.DIEPEMPMSK.INEPTXFEM &= ~(1U << UEP_NUM(ep));
+		OTG_FS.DIEPEMPMSK &= ~(1U << UEP_NUM(ep));
 		// Kick off the disable operation. Whether the transfer completes or
 		// not, the SNAK=1 will cause the hardware to set NAKSTS=1 and
 		// INEPNE=1, the latter of which will cause an interrupt; the ISR will
@@ -220,7 +220,7 @@ static bool uep_start_pxfr(unsigned int ep) {
 				OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL = ctl;
 				if (pxfr_bytes) {
 					taskENTER_CRITICAL();
-					OTG_FS.DIEPEMPMSK.INEPTXFEM |= 1U << UEP_NUM(ep);
+					OTG_FS.DIEPEMPMSK |= 1U << UEP_NUM(ep);
 					taskEXIT_CRITICAL();
 				}
 			} else {

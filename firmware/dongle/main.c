@@ -59,7 +59,7 @@ static void app_exception_early(void) {
 
 static void app_exception_late(bool core_written) {
 	// Set SYSTICK to divide by 144,000 so it overflows every millisecond.
-	SYSTICK.RVR.RELOAD = 144000U - 1U;
+	SYSTICK.RVR = 144000U - 1U;
 	// Set SYSTICK to run with the core AHB clock.
 	{
 		SYST_CSR_t tmp = {
@@ -69,7 +69,7 @@ static void app_exception_late(bool core_written) {
 		SYSTICK.CSR = tmp;
 	}
 	// Reset the counter.
-	SYSTICK.CVR.CURRENT = 0U;
+	SYSTICK.CVR = 0U;
 
 	// Show flashing lights.
 	for (;;) {

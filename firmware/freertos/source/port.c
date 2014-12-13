@@ -441,10 +441,7 @@ void vPortSVCHandler(void) {
 	critical_section_nesting = 0U;
 
 	// Enable system timer.
-	{
-		SYST_RVR_t tmp = { .RELOAD = configCPU_CLOCK_HZ / configTICK_RATE_HZ - 1U };
-		SYSTICK.RVR = tmp;
-	}
+	SYSTICK.RVR = configCPU_CLOCK_HZ / configTICK_RATE_HZ - 1U;
 	{
 		SYST_CSR_t tmp = { .ENABLE = 1, .TICKINT = 1, .CLKSOURCE = 1 };
 		SYSTICK.CSR = tmp;
