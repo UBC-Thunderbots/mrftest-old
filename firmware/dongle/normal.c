@@ -335,7 +335,6 @@ static void drive_task(void *UNUSED(param)) {
 
 		if (bits & DRIVE_EVENT_ENDPOINT) {
 			// Endpoint finished.
-			ep_running = false;
 			size_t transfer_length;
 			if (uep_async_read_finish(0x01U, &transfer_length)) {
 				ep_running = false;
@@ -369,6 +368,7 @@ static void drive_task(void *UNUSED(param)) {
 				break;
 			} else if (errno == EOVERFLOW) {
 				// Halt endpoint due to application being dumb.
+				ep_running = false;
 				uep_halt(0x01U);
 			} else if (errno != EINPROGRESS) {
 				ep_running = false;
