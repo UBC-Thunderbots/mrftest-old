@@ -85,19 +85,21 @@ static unsigned int udev_setup_packet_wptr = 0U; // Index of entry into which ne
 bool udev_self_powered = false;
 
 /**
- * \brief A mutex that must be held by any task that wishes to take global OUT NAK.
+ * \brief A mutex that must be held by any task that wishes to take global OUT
+ * NAK.
  */
-static SemaphoreHandle_t udev_gonak_mutex = 0;
+SemaphoreHandle_t udev_gonak_mutex = 0;
+
+/**
+ * \brief The endpoint number of the OUT endpoint that should be disabled when
+ * global OUT NAK status becomes effective.
+ */
+unsigned int udev_gonak_disable_ep;
 
 /**
  * \brief A semaphore that is given every time the device enters the detached state.
  */
 static SemaphoreHandle_t udev_detach_sem = 0;
-
-/**
- * \brief A mutex that must be held by any task that wishes to use \c OTG_FS.GRSTCTL (for example, to flush a FIFO).
- */
-static SemaphoreHandle_t udev_grstctl_mutex = 0;
 
 _Static_assert(INCLUDE_vTaskSuspend == 1, "vTaskSuspend must be included, because otherwise mutex taking can time out!");
 
@@ -394,42 +396,16 @@ static void udev_task(void *UNUSED(param)) {
 }
 
 /**
- * \brief Obtains global OUT NAK status.
- */
-void udev_gonak_take(void) {
-	xSemaphoreTake(udev_gonak_mutex, portMAX_DELAY);
-	assert(!(xEventGroupGetBits(udev_event_group) & UDEV_EVENT_GONAKEFF));
-	assert(!OTG_FS.GINTSTS.GOUTNAKEFF);
-	if (!OTG_FS.GINTSTS.GOUTNAKEFF) {
-		assert(!OTG_FS.DCTL.GONSTS);
-		OTG_FS.DCTL.SGONAK = 1;
-		while (!(xEventGroupWaitBits(udev_event_group, UDEV_EVENT_GONAKEFF, pdTRUE, pdFALSE, portMAX_DELAY) & UDEV_EVENT_GONAKEFF));
-	}
-	assert(OTG_FS.GINTSTS.GOUTNAKEFF);
-	assert(OTG_FS.DCTL.GONSTS);
-}
-
-/**
- * \brief Releases global OUT NAK status.
- */
-void udev_gonak_release(void) {
-	OTG_FS.DCTL.CGONAK = 1;
-	assert(!OTG_FS.GINTSTS.GOUTNAKEFF);
-	assert(!OTG_FS.DCTL.GONSTS);
-	xSemaphoreGive(udev_gonak_mutex);
-}
-
-/**
  * \brief Flushes the receive FIFO.
  */
 void udev_flush_rx_fifo(void) {
-	xSemaphoreTake(udev_grstctl_mutex, portMAX_DELAY);
+	taskENTER_CRITICAL();
 	while (!OTG_FS.GRSTCTL.AHBIDL);
 	OTG_FS_GRSTCTL_t ctl = { .RXFFLSH = 1U };
 	OTG_FS.GRSTCTL = ctl;
 	while (OTG_FS.GRSTCTL.RXFFLSH);
 	while (!OTG_FS.GRSTCTL.AHBIDL);
-	xSemaphoreGive(udev_grstctl_mutex);
+	taskEXIT_CRITICAL();
 }
 
 /**
@@ -440,23 +416,22 @@ void udev_flush_rx_fifo(void) {
 void udev_flush_tx_fifo(unsigned int ep) {
 	assert(UEP_DIR(ep));
 	assert(UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
-	xSemaphoreTake(udev_grstctl_mutex, portMAX_DELAY);
+	taskENTER_CRITICAL();
 	while (!OTG_FS.GRSTCTL.AHBIDL);
 	OTG_FS_GRSTCTL_t ctl = { .TXFNUM = UEP_NUM(ep), .TXFFLSH = 1U };
 	OTG_FS.GRSTCTL = ctl;
 	while (OTG_FS.GRSTCTL.TXFFLSH);
 	while (!OTG_FS.GRSTCTL.AHBIDL);
-	xSemaphoreGive(udev_grstctl_mutex);
+	taskEXIT_CRITICAL();
 }
 
 /**
  * \brief Extracts a packet from the receive FIFO.
  *
  * \param[out] dest the memory location to copy the packet to
- *
  * \param[in] bytes the number of bytes to copy out
- *
- * \param[in] extra the number of bytes left in the FIFO after the packet is copied out, due to overflow, which are extracted and discarded
+ * \param[in] extra the number of bytes left in the FIFO after the packet is
+ * copied out, due to overflow, which are extracted and discarded
  */
 static void udev_rx_copy_out(void *dest, size_t bytes, size_t extra) {
 	uint8_t *pc = dest;
@@ -515,27 +490,45 @@ static void udev_tx_copy_in(volatile uint32_t *dest, const void *source, size_t 
 /**
  * \brief Handles USB interrupts.
  *
- * This function should be registered in the application’s interrupt vector table at position 67.
+ * This function should be registered in the application’s interrupt vector
+ * table at position 67.
  *
  * \internal
  *
- * The general philosophy for handling interrupts in the USB stack is to do the minimum amount of work in the ISR that is sensible, but no less.
- * This leads to the following policy:
- * \li For receive FIFO non-empty interrupts, an element is popped from the FIFO and examined; received packets are copied into their final locations, while other events are marked in event groups for later consideration by tasks.
- * \li For transmit FIFO empty interrupts, data to send is copied from the source buffer into the FIFO, and once the transfer is fully satisfied, the FIFO empty interrupt is masked.
- * \li For state-change interrupts (such as reset, session end, and session request), \ref udev_state is updated immediately and an event is marked for the stack internal task.
- * \li For most other interrupt sources, the interrupt is acknowledged and an event is set in the appropriate event group for later consideration by a task.
+ * The general philosophy for handling interrupts in the USB stack is to do the
+ * minimum amount of work in the ISR that is sensible, but no less. This leads
+ * to the following policy:
+ * \li For receive FIFO non-empty interrupts, an element is popped from the
+ * FIFO and examined; received packets are copied into their final locations,
+ * while other events are marked in event groups for later consideration by
+ * tasks.
+ * \li For transmit FIFO empty interrupts, data to send is copied from the
+ * source buffer into the FIFO, and once the transfer is fully satisfied, the
+ * FIFO empty interrupt is masked.
+ * \li For state-change interrupts (such as reset, session end, and session
+ * request), \ref udev_state is updated immediately and an event is queued for
+ * the stack internal task.
+ * \li For most other interrupt sources, the interrupt is acknowledged and an
+ * event is queued for later consideration by a task.
  *
- * This policy means that, during normal operation, an entire physical transfer will complete entirely under the ISR’s control before the initiating task is finally woken through its event group to take a transfer complete event.
- * This is a middle ground between ultimate efficiency (wherein the ISR does everything, including decomposing logical transfers into multiple physical transfers and dealing with zero-length packets) and ultimate minimalism (wherein the ISR only ever sets events, and a task must awaken to read or write every single data packet).
- * It also means that the tasks become more closely involved in unusual situations, such as uenxpected disabling of an endpoint; this is acceptable because these unusual situations are not in performance-critical paths and introduce a lot of complexity which does not belong in an ISR.
+ * This policy means that, during normal operation, an entire physical transfer
+ * will complete entirely under the ISR’s control before the initiating task is
+ * finally woken through its event queue to take a transfer complete event.
+ * This is a middle ground between ultimate efficiency (wherein the ISR does
+ * everything, including decomposing logical transfers into multiple physical
+ * transfers and dealing with zero-length packets) and ultimate minimalism
+ * (wherein the ISR only ever queues events, and a task must awaken to read or
+ * write every single data packet). It also means that the tasks become more
+ * closely involved in unusual situations, such as uenxpected disabling of an
+ * endpoint; this is acceptable because these unusual situations are not in
+ * performance-critical paths and introduce a lot of complexity which does not
+ * belong in an ISR.
  */
 void udev_isr(void) {
 	OTG_FS_GINTMSK_t msk = OTG_FS.GINTMSK;
 	OTG_FS_GINTSTS_t sts = OTG_FS.GINTSTS;
 	OTG_FS_GOTGINT_t otg = OTG_FS.GOTGINT;
 	EventBits_t udev_bits_to_set = 0U;
-	EventBits_t oep_bits_to_set[UEP_MAX_ENDPOINT] = { 0U };
 	BaseType_t ok;
 	BaseType_t yield = pdFALSE;
 
@@ -545,27 +538,58 @@ void udev_isr(void) {
 			OTG_FS_GRXSTSR_device_t elt = OTG_FS.GRXSTSP.device;
 			switch (elt.PKTSTS) {
 				case 0b0001:
-					// Global OUT NAK effective.
-					udev_bits_to_set |= UDEV_EVENT_GONAKEFF;
+					// Global OUT NAK effective. GONAK is only ever requested
+					// by the endpoint module when it wants to asynchronously
+					// disable an OUT endpoint during a transfer. It stores the
+					// endpoint address in udev_gonak_disable_ep before calling
+					// for GONAK.
+					{
+						OTG_FS_DOEPCTLx_t ctl = OTG_FS.DOEP[UEP_NUM(udev_gonak_disable_ep) - 1U].DOEPCTL;
+						if (ctl.EPENA) {
+							// Endpoint is currently enabled. There is no
+							// longer any race against it being disabled by
+							// XFRC: because GONAKEFF, no further transactions
+							// can arrive and cause an XFRC that has not
+							// already happened and been observed; the GONAKEFF
+							// acts as a fence in GRXSTSP. Start disabling the
+							// endpoint now. Keep GONAK until the endpoint
+							// finishes disabling.
+							ctl.EPENA = 0;
+							ctl.EPDIS = 1;
+							ctl.SNAK = 1;
+							OTG_FS.DOEP[UEP_NUM(udev_gonak_disable_ep) - 1U].DOEPCTL = ctl;
+						} else {
+							// Endpoint had already disabled itself by the time
+							// we got here due to XFRC. Notify whoever was
+							// waiting for the endpoint to disable that it is
+							// indeed disabled, then release GONAK as we do not
+							// need it.
+							ok = xSemaphoreGiveFromISR(uep_eps[UEP_IDX(udev_gonak_disable_ep)].disabled_sem, &yield);
+							assert(ok == pdTRUE);
+							OTG_FS.DCTL.CGONAK = 1;
+						}
+					}
 					break;
 
 				case 0b0010:
-					// OUT data packet received.
-					// Copy data into target buffer; do not set any events.
+					// OUT data packet received. Copy data into target buffer;
+					// do not queue any events.
 					if (elt.EPNUM) {
 						uep_ep_t *ctx = &uep_eps[UEP_IDX(0x00 | elt.EPNUM)];
 						if (elt.BCNT) {
 							size_t to_copy = MIN(elt.BCNT, ctx->bytes_left);
-							udev_rx_copy_out(ctx->data.out, to_copy, elt.BCNT - to_copy);
-							ctx->data.out += to_copy;
-							ctx->bytes_transferred += to_copy;
+							udev_rx_copy_out(ctx->transfer.out.wptr, to_copy, elt.BCNT - to_copy);
+							ctx->transfer.out.wptr += to_copy;
 							ctx->bytes_left -= to_copy;
 						} else {
 							ctx->flags.zlp = 1;
 						}
 					} else {
-						// No need to report ZLPs because OUT endpoint 0 should never see a ZLP (except in the status stage, which need not be reported).
-						// For data stages, the host should indicate in wLength exactly how much it will send and then send it.
+						// No need to report ZLPs because OUT endpoint 0 should
+						// never see a ZLP (except in the status stage, which
+						// need not be reported). For data stages, the host
+						// should indicate in wLength exactly how much it will
+						// send and then send it.
 						size_t to_copy = MIN(elt.BCNT, uep0_out_data_length);
 						udev_rx_copy_out(uep0_out_data_pointer, to_copy, elt.BCNT - to_copy);
 						uep0_out_data_pointer += to_copy;
@@ -576,7 +600,7 @@ void udev_isr(void) {
 				case 0b0011:
 					// OUT transfer completed.
 					if (elt.EPNUM) {
-						oep_bits_to_set[elt.EPNUM - 1U] |= UEP_EVENT_XFRC;
+						uep_queue_event_from_isr(0x00 | elt.EPNUM, UEP_EVENT_XFRC, &yield);
 					} else {
 						udev_bits_to_set |= UEP0_EVENT_OUT_XFRC;
 					}
@@ -608,20 +632,17 @@ void udev_isr(void) {
 			if (epmsk & (1U << ep)) {
 				OTG_FS_DOEPINTx_t doepint = OTG_FS.DOEP[ep - 1U].DOEPINT;
 				if (doepint.EPDISD) {
+					// EPDISD interrupt occurs only when we set EPDIS=1
+					// explicitly. This occurs only when we are asynchronously
+					// disabling an endpoint under GONAK. Clear the interrupt,
+					// report the situation, and release GONAK.
 					OTG_FS_DOEPINTx_t tmp = { .EPDISD = 1 };
 					OTG_FS.DOEP[ep - 1U].DOEPINT = tmp;
-					oep_bits_to_set[ep - 1U] |= UEP_EVENT_DISD;
+					ok = xSemaphoreGiveFromISR(uep_eps[UEP_IDX(0x00 | ep)].disabled_sem, &yield);
+					assert(ok == pdTRUE);
+					uep_queue_event_from_isr(0x00 | ep, UEP_EVENT_EPDISD, &yield);
+					OTG_FS.DCTL.CGONAK = 1;
 				}
-			}
-		}
-	}
-	for (unsigned int ep = 1U; ep <= UEP_MAX_ENDPOINT; ++ep) {
-		if (oep_bits_to_set[ep - 1U]) {
-			uep_ep_t *ctx = &uep_eps[UEP_IDX(0x00 | ep)];
-			ok = xEventGroupSetBitsFromISR(ctx->event_group, oep_bits_to_set[ep - 1U], &yield);
-			assert(ok);
-			if (oep_bits_to_set[ep - 1U] & UEP_EVENT_XFRC) {
-				uep_notify_async_from_isr(ep, &yield);
 			}
 		}
 	}
@@ -648,51 +669,74 @@ void udev_isr(void) {
 				OTG_FS_DIEPINTx_t diepint = OTG_FS.DIEP[ep - 1U].DIEPINT;
 				uep_ep_t *ctx = &uep_eps[UEP_IDX(0x80 | ep)];
 
-				// Shovel a packet at a time until either:
-				// (1) there is not enough space in the FIFO for another packet,
-				// (2) the physical transfer is finished
-				size_t ep_max_packet = OTG_FS.DIEP[ep - 1U].DIEPCTL.MPSIZ;
-				size_t ep_max_packet_words = (ep_max_packet + 3U) / 4U;
-				while (ctx->pxfr_bytes_left && OTG_FS.DIEP[ep - 1U].DTXFSTS.INEPTFSAV >= ep_max_packet_words) {
-					size_t this_packet_bytes = MIN(ep_max_packet, ctx->pxfr_bytes_left);
-					udev_tx_copy_in(&OTG_FS_FIFO[ep][0U], ctx->data.in, this_packet_bytes);
-					ctx->bytes_left -= this_packet_bytes;
-					ctx->bytes_transferred += this_packet_bytes;
-					ctx->pxfr_bytes_left -= this_packet_bytes;
-					ctx->data.in += this_packet_bytes;
+				// Only push packets to the FIFO if we actually should; we
+				// might get in here for a reason other than empty FIFO, and if
+				// empty FIFO is not an interrupt source for this endpoint, it
+				// means somebody doesn’t want us pushing packets, so don’t.
+				if (empmsk.INEPTXFEM & (1U << ep)) {
+					// Shovel a packet at a time until either:
+					// (1) there is not enough space in the FIFO for another
+					//     packet, or
+					// (2) the physical transfer is finished
+					size_t ep_max_packet = OTG_FS.DIEP[ep - 1U].DIEPCTL.MPSIZ;
+					size_t ep_max_packet_words = (ep_max_packet + 3U) / 4U;
+					while (OTG_FS.DIEP[ep - 1U].DIEPTSIZ.XFRSIZ && OTG_FS.DIEP[ep - 1U].DTXFSTS.INEPTFSAV >= ep_max_packet_words) {
+						size_t this_packet_bytes = MIN(ep_max_packet, ctx->bytes_left);
+						udev_tx_copy_in(&OTG_FS_FIFO[ep][0U], ctx->transfer.in.rptr, this_packet_bytes);
+						ctx->bytes_left -= this_packet_bytes;
+						ctx->transfer.in.rptr += this_packet_bytes;
+					}
+
+					// If we are out of data to transfer, stop taking FIFO
+					// empty interrupts.
+					if (!OTG_FS.DIEP[ep - 1U].DIEPTSIZ.XFRSIZ) {
+						empmsk.INEPTXFEM &= ~(1U << ep);
+					}
 				}
 
-				// If we are out of data to transfer, stop taking FIFO empty interrupts.
-				if (!ctx->pxfr_bytes_left) {
-					empmsk.INEPTXFEM &= ~(1U << ep);
-				}
-
-				// Check for other interrupt sources.
-				EventBits_t to_set = 0U;
+				// Check for other interrupts on the endpoint.
 				OTG_FS_DIEPINTx_t to_clear = { 0 };
+				if (diepint.XFRC) {
+					to_clear.XFRC = 1;
+					uep_queue_event_from_isr(0x80 | ep, UEP_EVENT_XFRC, &yield);
+				}
 				if (diepint.INEPNE) {
 					to_clear.INEPNE = 1;
-					to_set |= UEP_IN_EVENT_NAKEFF;
+					// This occurs only when a task wishes to asynchronously
+					// disable the endpoint. It initiates the asynchronous
+					// disable by setting SNAK=1. This causes INEPNE regardless
+					// of the prior value of EPENA or NAKSTS, bringing us here.
+					// Proceed with disabling the endpoint.
+					OTG_FS_DIEPCTLx_t ctl = OTG_FS.DIEP[ep - 1U].DIEPCTL;
+					if (ctl.EPENA) {
+						// Endpoint is currently enabled. There is no longer
+						// any race against it being disabled by XFRC: because
+						// NAKSTS (implied by INEPNE), no further transactions
+						// can arrive and cause an XFRC that has not already
+						// been observed; the NAKSTS acts as a fence. Start
+						// disabling the endpoint now.
+						ctl.EPENA = 0;
+						ctl.EPDIS = 1;
+						OTG_FS.DIEP[ep - 1U].DIEPCTL = ctl;
+					} else {
+						// Endpoint had already disabled itself by the time we
+						// got here due to XFRC. Notify whoever was waiting for
+						// the endpoint to disable that it has indeed disabled.
+						ok = xSemaphoreGiveFromISR(ctx->disabled_sem, &yield);
+						assert(ok == pdTRUE);
+					}
 				}
 				if (diepint.EPDISD) {
 					to_clear.EPDISD = 1;
-					to_set |= UEP_EVENT_DISD;
-				}
-				if (diepint.XFRC) {
-					assert(!ctx->pxfr_bytes_left);
-					to_clear.XFRC = 1;
-					to_set |= UEP_EVENT_XFRC;
+					// EPDISD interrupt occurs only when we set EPDIS=1
+					// explicitly. This occurs only when we are asynchronously
+					// disabling the endpoint under NAKSTS, started just above
+					// in the INEPNE branch. Report the situation.
+					ok = xSemaphoreGiveFromISR(ctx->disabled_sem, &yield);
+					assert(ok == pdTRUE);
+					uep_queue_event_from_isr(0x80 | ep, UEP_EVENT_EPDISD, &yield);
 				}
 				OTG_FS.DIEP[ep - 1U].DIEPINT = to_clear;
-
-				// Post events.
-				if (to_set) {
-					ok = xEventGroupSetBitsFromISR(ctx->event_group, to_set, &yield);
-					assert(ok);
-					if (to_set & UEP_EVENT_XFRC) {
-						uep_notify_async_from_isr(0x80U | ep, &yield);
-					}
-				}
 			}
 		}
 		OTG_FS.DIEPEMPMSK = empmsk;
@@ -782,22 +826,29 @@ void udev_init(const udev_info_t *info) {
 			if (!(udev_detach_sem = xSemaphoreCreateBinary())) {
 				abort();
 			}
-			if (!(udev_grstctl_mutex = xSemaphoreCreateMutex())) {
-				abort();
-			}
 			for (unsigned int i = 0; i < UEP_MAX_ENDPOINT * 2U; ++i) {
+				if (!(uep_eps[i].mutex = xSemaphoreCreateMutex())) {
+					abort();
+				}
+				uep_eps[i].state = UEP_STATE_INACTIVE;
+				if (!(uep_eps[i].event_queue = xQueueCreate(1U, 1U))) {
+					abort();
+				}
+				if (!(uep_eps[i].disabled_sem = xSemaphoreCreateBinary())) {
+					abort();
+				}
+				uep_eps[i].flags.zlp = false;
+				uep_eps[i].flags.overflow = false;
 				uep_eps[i].interface = UINT_MAX;
-				if (!(uep_eps[i].event_group = xEventGroupCreate())) {
-					abort();
+				if (i < UEP_MAX_ENDPOINT) {
+					uep_eps[i].transfer.out.buffer = 0;
+					uep_eps[i].transfer.out.wptr = 0;
+				} else {
+					uep_eps[i].transfer.in.data = 0;
+					uep_eps[i].transfer.in.rptr = 0;
 				}
-				if (!(uep_eps[i].transfer_mutex = xSemaphoreCreateMutex())) {
-					abort();
-				}
-				if (!(uep_eps[i].manage_mutex = xSemaphoreCreateMutex())) {
-					abort();
-				}
-				xEventGroupSetBits(uep_eps[i].event_group, UEP_EVENT_DEACTIVATED | UEP_EVENT_NOT_HALTED);
-				uep_eps[i].pxfr_bytes_left = 0U;
+				uep_eps[i].bytes_left = 0U;
+				uep_eps[i].async_cb = 0;
 			}
 			if (!xTaskCreate(&udev_task, "usb", info->internal_task_stack_size, 0, info->internal_task_priority, &udev_task_handle)) {
 				abort();
@@ -889,4 +940,3 @@ void udev_set_self_powered(bool sp) {
 /**
  * @}
  */
-

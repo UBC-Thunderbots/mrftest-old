@@ -36,21 +36,16 @@ This sequence does mean, however, that as long as a particular task only ever bl
 The asynchronous API allows multiple nonzero endpoints to be handled by a single FreeRTOS task.
 This may be useful when the endpoints perform closely coupled operations which are better handled by a single task.
 
-To use the asynchronous API, the application must first allocate a FreeRTOS event group.
-The application then starts the asynchronous operations, passing the event group and a bitmask to each operation.
-When an endpoint involved in an asynchronous operation needs servicing, the corresponding bitmask is set in the event group.
-The application must then try to finish the operation.
-Note that the application must not take the setting of the bits to mean that the operation is complete.
-Some operations take multiple steps; when one step is complete, the event bits are set, but the finish function will start the next step and return with \c errno set to \c EINPROGRESS.
+To use the asynchronous API, the application must provide notification callbacks to be notified when an asynchronous transfer completes.
+The application then starts the asynchronous operations, passing the callback.
+When an endpoint involved in an asynchronous operation needs servicing, the callback is invoked, either from the internal task, another application task, or the USB ISR.
+The callback must use some application-specific method to notify the relevant application task to complete the asynchronous operation.
+Note that the application must not take the invocation of the callback to mean that the operation is complete.
+Some operations take multiple steps; when one step is complete, the callback is invoked, but the finish function will start the next step and return with \c errno set to \c EINPROGRESS.
 
-There are no restrictions on which bits the application uses for different operations.
-The application can choose to allocate a bit per endpoint, and then try to finish operations based on which bits are set.
-Alternatively, the application can specify the same bit for all endpoints and, when that bit is set, try to finish all pending operations.
-Mixtures of these are possible (e.g. allocating subgroups of endpoints).
-The application may also use any of the event bits not specified for endpoint operations for its own signalling.
-An application may even share bits between endpoint operations and other application signalling, as long as it is prepared for the case where the bit is set by the USB stack rather than the application signalling mechanism.
 In general, it is harmless to try to finish an endpoint operation that has not indicated a need for servicing (though of course it is more efficient to avoid doing this if possible).
-The only rule is that, when an endpoint needs servicing, it will set its event bits once and only once; if an application fails to finish an operation that is ready to finish and then goes back to sleep, it may deadlock waiting for an endpoint that has already asked for service.
+The only rule is that, when an endpoint needs servicing, it will invoke its callback once and only once; if an application fails to finish an operation that is ready to finish and then goes back to sleep, it may deadlock waiting for an endpoint that has already asked for service.
+The application must be sure to service all endpoints promptly; failure to service an endpoint may delay other activities.
 
 It is essential that all asynchronous operations that are started are finished by the same task.
 For example, when exiting a configuration or alternate setting, the task handling the endpoints must ensure it keeps polling and finishing operations until all operations report \c ECONNRESET (or success) rather than \c EINPROGRESS.

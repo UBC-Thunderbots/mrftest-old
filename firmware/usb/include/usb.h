@@ -854,7 +854,7 @@ bool uep_async_write_start(unsigned int ep, const void *data, size_t length, boo
 bool uep_async_write_finish(unsigned int ep);
 bool uep_async_halt_wait_start(unsigned int ep, uep_async_cb_t cb);
 bool uep_async_halt_wait_finish(unsigned int ep);
-void uep_halt(unsigned int ep);
+bool uep_halt(unsigned int ep);
 
 
 

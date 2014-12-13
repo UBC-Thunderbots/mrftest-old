@@ -1,14 +1,16 @@
 /**
  * \defgroup UEP Nonzero endpoint handling
  *
- * These functions allow the application to communicate over a nonzero endpoint.
- * None of the function in this section may be called from the USB stack internal task unless otherwise indicated.
+ * These functions allow the application to communicate over a nonzero
+ * endpoint. None of the function in this section may be called from the USB
+ * stack internal task unless otherwise indicated.
  *
- * @{
+ * \{
  */
 #include <usb.h>
 #include "internal.h"
 #include <FreeRTOS.h>
+#include <assert.h>
 #include <errno.h>
 #include <limits.h>
 #include <minmax.h>
@@ -18,39 +20,42 @@
 
 /**
  * \cond INTERNAL
- * \brief The configuration and status data for the OUT endpoints.
+ */
+/**
+ * \brief The configuration and status data for the endpoints.
  */
 uep_ep_t uep_eps[UEP_MAX_ENDPOINT * 2U];
 
 /**
- * \brief The maximum number of packets in an OUT transfer.
+ * \brief The maximum number of packets in an OUT physical transfer.
  *
  * This value is determined by the width of the \c PKTCNT field in the \c TSIZ register.
  */
 #define OUT_PXFR_MAX_PACKETS 0x3FFU
 
 /**
- * \brief The maximum number of bytes in an OUT transfer.
+ * \brief The maximum number of bytes in an OUT physical transfer.
  *
  * This value is determined by the width of the \c XFRSIZ field in the \c TSIZ register.
  */
 #define OUT_PXFR_MAX_BYTES 0x7FFFFU
 
 /**
- * \brief The maximum number of packets in an IN transfer.
+ * \brief The maximum number of packets in an IN physical transfer.
  *
  * This value is determined by the width of the \c PKTCNT field in the \c TSIZ register.
  */
 #define IN_PXFR_MAX_PACKETS 0x3FFU
 
 /**
- * \brief The maximum number of bytes in an IN transfer.
+ * \brief The maximum number of bytes in an IN physical transfer.
  *
- * This value should be determined by the width of the \c XFRSIZ field in the \c TSIZ register.
- * However, what appears to be a hardware bug means that transfers occasionally execute at the wrong size if bit 11 or above of the \c XFRSIZ field is nonzero!
+ * This value should be determined by the width of the \c XFRSIZ field in the
+ * \c TSIZ register. However, what appears to be a hardware bug means that
+ * transfers occasionally execute at the wrong size if bit 11 or above of the
+ * \c XFRSIZ field is nonzero!
  */
 #define IN_PXFR_MAX_BYTES 0x7FFFFU
-
 /**
  * \endcond
  */
@@ -61,120 +66,287 @@ uep_ep_t uep_eps[UEP_MAX_ENDPOINT * 2U];
  * \cond INTERNAL
  */
 /**
- * \brief Sends a notification to the asynchronous API event group for an endpoint, if one is present.
+ * \brief Queues an event on an endpoint’s event queue.
  *
- * \param[in] ep the endpoint address to notify
+ * \param[in] ep the endpoint address
+ * \param[in] event the event to queue
+ * \pre This function must be called only from task code.
  */
-void uep_notify_async(unsigned int ep) {
+void uep_queue_event(unsigned int ep, uint8_t event) {
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
-	uep_async_cb_t cb = __atomic_load_n(&ctx->async_cb, __ATOMIC_RELAXED);
-	if (cb) {
-		cb(ep, 0);
+	BaseType_t ret = xQueueSend(ctx->event_queue, &event, 0U);
+	assert(ret == pdTRUE);
+	if (ctx->async_cb) {
+		ctx->async_cb(ep, 0);
 	}
 }
 
 /**
- * \brief Sends a notification to the asynchronous API event group for an endpoint, if one is present, from an interrupt service routine.
+ * \brief Queues an event on an endpoint’s event queue.
  *
- * \param[in] ep the endpoint address to notify
- * \param[out] yield set to \c pdTRUE if the current task should yield due to the notification
+ * \param[in] ep the endpoint address
+ * \param[in] event the event to queue
+ * \param[out] yield whether the operation woke up a task that requires a
+ * context switch on return
+ * \pre This function must be called only from the USB interrupt service
+ * routine.
  */
-void uep_notify_async_from_isr(unsigned int ep, BaseType_t *yield) {
+void uep_queue_event_from_isr(unsigned int ep, uint8_t event, BaseType_t *yield) {
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
-	uep_async_cb_t cb = __atomic_load_n(&ctx->async_cb, __ATOMIC_RELAXED);
-	if (cb) {
-		cb(ep, yield);
+	BaseType_t ret = xQueueSendFromISR(ctx->event_queue, &event, yield);
+	assert(ret == pdTRUE);
+	if (ctx->async_cb) {
+		ctx->async_cb(ep, yield);
 	}
 }
 
-static bool uep_read_impl(unsigned int ep, void *buffer, size_t max_length, size_t *length) {
+/**
+ * \brief Disables a running endpoint.
+ *
+ * \param[in] ep the endpoint address
+ * \pre The caller must hold the endpoint mutex.
+ * \pre The endpoint must be in UEP_STATE_RUNNING.
+ * \post The endpoint is in UEP_STATE_IDLE.
+ * \post The endpoint mutex is still held.
+ */
+static void uep_disable(unsigned int ep) {
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
 
-	// Check for endpoint deactivation or halt.
-	EventBits_t events = xEventGroupGetBits(ctx->event_group) & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED);
-	if (events) {
-		if (length) {
-			*length = 0U;
-		}
-		errno = (events & UEP_EVENT_DEACTIVATED) ? ECONNRESET : EPIPE;
-		return false;
-	}
-
 	// Sanity check.
-	assert(OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL.USBAEP);
+	assert(ctx->state == UEP_STATE_RUNNING);
 
-	// Set up the control structure.
-	ctx->data.out = buffer;
-	ctx->bytes_left = max_length;
-	ctx->bytes_transferred = 0U;
-	ctx->flags.zlp = false;
-	ctx->flags.overflow = false;
-
-	// Grab maximum packet size.
-	size_t max_packet = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL.MPSIZ;
-
-	// A transfer is complete when:
-	// (1) the expected number of bytes has been received,
-	// (2) a short packet is received
-	//
-	// A short packet is always either a packet which is not a multiple of max packet size or a ZLP.
-	while (ctx->bytes_left && !(ctx->bytes_transferred % max_packet) && !ctx->flags.zlp) {
-		// Start a physical transfer.
-		// The byte count field must always be set to a multiple of the maximum packet size for an OUT endpoint.
-		// Overflow detection is handled in the ISR, not in the hardware.
-		size_t pxfr_packets = (ctx->bytes_left + max_packet - 1U) / max_packet;
-		pxfr_packets = MIN(pxfr_packets, OUT_PXFR_MAX_PACKETS);
-		pxfr_packets = MIN(pxfr_packets, OUT_PXFR_MAX_BYTES / max_packet);
-		OTG_FS_DOEPTSIZx_t tsiz = { .PKTCNT = pxfr_packets, .XFRSIZ = pxfr_packets * max_packet };
-		OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPTSIZ = tsiz;
-		OTG_FS_DOEPCTLx_t ctl = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL;
-		assert(!ctl.EPENA);
-		ctl.EPENA = 1;
-		ctl.CNAK = 1;
-		ctl.STALL = 0;
-		__atomic_signal_fence(__ATOMIC_ACQ_REL); // Prevent writes to context block from being sunk below this point, nor the write to CTL from being hoisted, which could break the ISR.
-		OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL = ctl;
-
-		// Wait for something to happen.
-		do {
-			events = xEventGroupWaitBits(ctx->event_group, UEP_EVENT_XFRC | UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED, pdTRUE, pdFALSE, portMAX_DELAY);
-		} while (!(events & (UEP_EVENT_XFRC | UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED)));
-
-		if (events & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED)) {
-			// The endpoint is being deactivated or halted.
-			// Begin by taking global OUT NAK.
-			udev_gonak_take();
-			// Check the status of the endpoint.
-			ctl = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL;
-			if (ctl.EPENA) {
-				// Endpoint is still enabled.
-				// Force-disable it.
-				ctl.EPDIS = 1;
-				ctl.SNAK = 1;
-				OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL = ctl;
-				while (!(xEventGroupWaitBits(ctx->event_group, UEP_EVENT_DISD, pdTRUE, pdFALSE, portMAX_DELAY) & UEP_EVENT_DISD));
-			}
-			// Release global OUT NAK.
-			udev_gonak_release();
-			// Endpoint is now fully disabled.
-			if (length) {
-				*length = ctx->bytes_transferred;
-			}
-			xEventGroupSetBits(ctx->event_group, events & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED));
-			errno = (events & UEP_EVENT_DEACTIVATED) ? ECONNRESET : EPIPE;
-			return false;
+	if (UEP_DIR(ep)) {
+		// Disabling an IN endpoint.
+		taskENTER_CRITICAL();
+		// Prevent the ISR from pushing more data into this endpoint.
+		OTG_FS.DIEPEMPMSK.INEPTXFEM &= ~(1U << UEP_NUM(ep));
+		// Kick off the disable operation. Whether the transfer completes or
+		// not, the SNAK=1 will cause the hardware to set NAKSTS=1 and
+		// INEPNE=1, the latter of which will cause an interrupt; the ISR will
+		// observe INEPNE=1, clear it, and, if EPENA=1, set EPDIS=1.
+		{
+			OTG_FS_DIEPCTLx_t diepctl = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL;
+			diepctl.EPENA = 0;
+			diepctl.EPDIS = 0;
+			diepctl.SNAK = 1;
+			OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL = diepctl;
 		}
+		taskEXIT_CRITICAL();
+		// Wait for the endpoint to be disabled.
+		xSemaphoreTake(ctx->disabled_sem, portMAX_DELAY);
+	} else {
+		// Disabling an OUT endpoint.
+		xSemaphoreTake(udev_gonak_mutex, portMAX_DELAY);
+		// Tell the ISR that it should disable this endpoint when GONAKEFF
+		// occurs.
+		udev_gonak_disable_ep = ep;
+		// Kick off the process by achieving GONAK.
+		taskENTER_CRITICAL();
+		__atomic_signal_fence(__ATOMIC_RELEASE);
+		OTG_FS.DCTL.SGONAK = 1;
+		taskEXIT_CRITICAL();
+		// Wait for the endpoint to be disabled.
+		xSemaphoreTake(ctx->disabled_sem, portMAX_DELAY);
+		xSemaphoreGive(udev_gonak_mutex);
 	}
 
-	if (length) {
-		*length = ctx->bytes_transferred;
+	// By the time we get here, we know that not only is there no transfer
+	// running and EPENA=0 but also that an event has been queued which will
+	// wake up the task previously running a transfer. The event might be XFRC
+	// or might be EPDISD, but which one it is doesn’t matter.
+
+	// Transfer has now stopped.
+	ctx->state = UEP_STATE_IDLE;
+}
+
+
+
+/**
+ * \brief Starts the next physical transfer on an endpoint.
+ *
+ * \param[in] ep the endpoint address
+ * \retval true the transfer was started
+ * \retval false the transfer was not started due to the endpoint
+ * state, and \c errno has been set appropriately
+ * \pre The caller must hold the endpoint mutex.
+ * \pre The endpoint must not be in UEP_STATE_HALTED_WAITING.
+ * \pre The endpoint must be disabled (\c EPENA=0).
+ * \pre The transfer metadata must be initialized.
+ * \post The endpoint mutex is still held.
+ */
+static bool uep_start_pxfr(unsigned int ep) {
+	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
+
+	bool ret;
+	switch (ctx->state) {
+		case UEP_STATE_INACTIVE:
+			// Endpoint asynchronously deactivated. Report the situation to the
+			// application.
+			errno = ECONNRESET;
+			ret = false;
+			break;
+
+		case UEP_STATE_HALTED:
+		case UEP_STATE_CLEAR_HALT_PENDING:
+			// Endpoint asynchronously halted. Report the situation to the
+			// application.
+			errno = EPIPE;
+			ret = false;
+			break;
+
+		case UEP_STATE_RUNNING:
+			// Start the next physical transfer.
+			if (UEP_DIR(ep)) {
+				// IN transfer.
+				size_t max_packet = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL.MPSIZ;
+				size_t pxfr_bytes = ctx->bytes_left;
+				pxfr_bytes = MIN(pxfr_bytes, IN_PXFR_MAX_BYTES / max_packet * max_packet);
+				pxfr_bytes = MIN(pxfr_bytes, IN_PXFR_MAX_PACKETS * max_packet);
+				OTG_FS_DIEPTSIZx_t tsiz;
+				if (pxfr_bytes) {
+					tsiz.PKTCNT = (pxfr_bytes + max_packet - 1U) / max_packet,
+					tsiz.XFRSIZ = pxfr_bytes;
+				} else {
+					tsiz.PKTCNT = 1U;
+					tsiz.XFRSIZ = 0U;
+					ctx->flags.zlp = false;
+				}
+				OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPTSIZ = tsiz;
+				OTG_FS_DIEPCTLx_t ctl = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL;
+				ctl.EPENA = 1;
+				ctl.EPDIS = 0;
+				ctl.CNAK = 1;
+				__atomic_signal_fence(__ATOMIC_ACQ_REL); // Prevent writes to ctx from being sunk below, nor the write to DIEPCTL from being hoisted above, this point.
+				OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL = ctl;
+				if (pxfr_bytes) {
+					taskENTER_CRITICAL();
+					OTG_FS.DIEPEMPMSK.INEPTXFEM |= 1U << UEP_NUM(ep);
+					taskEXIT_CRITICAL();
+				}
+			} else {
+				// OUT transfer.
+				size_t max_packet = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL.MPSIZ;
+				size_t pxfr_packets = (ctx->bytes_left + max_packet - 1U) / max_packet;
+				pxfr_packets = MIN(pxfr_packets, OUT_PXFR_MAX_PACKETS);
+				pxfr_packets = MIN(pxfr_packets, OUT_PXFR_MAX_BYTES / max_packet);
+				OTG_FS_DOEPTSIZx_t tsiz = {
+					.PKTCNT = pxfr_packets,
+					.XFRSIZ = pxfr_packets * max_packet,
+				};
+				OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPTSIZ = tsiz;
+				OTG_FS_DOEPCTLx_t ctl = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL;
+				ctl.EPENA = 1;
+				ctl.EPDIS = 0;
+				ctl.CNAK = 1;
+				__atomic_signal_fence(__ATOMIC_ACQ_REL); // Prevent writes to ctx from being sunk below, nor the write to DOEPCTL from being hoisted above, this point.
+				OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL = ctl;
+			}
+			ret = true;
+			break;
+
+		default:
+			// If UEP_STATE_IDLE, logic error: higher-level start-transfer
+			// function should have set UEP_STATE_RUNNING. If
+			// UEP_STATE_HALTED_WAITING, logic error: application tried to
+			// start two operations on an endpoint at the same time.
+			abort();
 	}
-	if (ctx->flags.overflow) {
-		errno = EOVERFLOW;
-		return false;
+
+	return ret;
+}
+
+/**
+ * \brief Synchronously runs a logical transfer.
+ *
+ * \param[in] ep the endpoint address
+ * \retval true the transfer finished normally
+ * \retval false the transfer was not started or was aborted due to the
+ * endpoint state, and \c errno has been set appropriately
+ * \pre The endpoint must not be in UEP_STATE_RUNNING or
+ * UEP_STATE_HALTED_WAITING.
+ * \pre The transfer parameters must be initialized.
+ */
+static bool uep_transfer(unsigned int ep) {
+	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
+
+	// Grab max packet size.
+	size_t max_packet;
+	if (UEP_DIR(ep)) {
+		max_packet = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL.MPSIZ;
 	} else {
-		return true;
+		max_packet = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL.MPSIZ;
 	}
+
+	// Change from idle state, if there, to running.
+	xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+	assert(ctx->state != UEP_STATE_RUNNING && ctx->state != UEP_STATE_HALTED_WAITING);
+	if (ctx->state == UEP_STATE_IDLE) {
+		ctx->state = UEP_STATE_RUNNING;
+	}
+	xSemaphoreGive(ctx->mutex);
+
+	bool done, ret = true;
+	do {
+		if (UEP_DIR(ep)) {
+			// Done when all bytes are sent and a ZLP, if necessary, has also
+			// been sent.
+			done = !ctx->bytes_left && !ctx->flags.zlp;
+		} else {
+			// Done when all bytes are received, a ZLP is received or a short
+			// packet is received.
+			done = !ctx->bytes_left || ctx->flags.zlp || ((ctx->transfer.out.wptr - ctx->transfer.out.buffer) % max_packet);
+		}
+
+		// If an overflow occurs, stop immediately.
+		if (ctx->flags.overflow) {
+			done = true;
+			ret = false;
+			errno = EOVERFLOW;
+		}
+
+		if (!done) {
+			// Try to start a physical transfer.
+			xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+			ret = uep_start_pxfr(ep);
+			xSemaphoreGive(ctx->mutex);
+
+			if (ret) {
+				// Started physical transfer OK; wait for event.
+				uint8_t event;
+				xQueueReceive(ctx->event_queue, &event, portMAX_DELAY);
+				switch (event) {
+					case UEP_EVENT_XFRC:
+						// Physical transfer done; loop around and start next.
+						break;
+
+					case UEP_EVENT_EPDISD:
+						// Endpoint asynchronously disabled; report.
+						ret = false;
+						done = true;
+						xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+						errno = ctx->state == UEP_STATE_INACTIVE ? ECONNRESET : EPIPE;
+						xSemaphoreGive(ctx->mutex);
+						break;
+
+					default:
+						// These should never happen during a transfer.
+						abort();
+				}
+			} else {
+				// Starting physical transfer failed; return now.
+				done = true;
+			}
+		}
+	} while (!done);
+
+	// Change state from running, if there, back to idle.
+	xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+	if (ctx->state == UEP_STATE_RUNNING) {
+		ctx->state = UEP_STATE_IDLE;
+	}
+	xSemaphoreGive(ctx->mutex);
+
+	return ret;
 }
 /**
  * \endcond
@@ -183,280 +355,292 @@ static bool uep_read_impl(unsigned int ep, void *buffer, size_t max_length, size
 /**
  * \brief Reads a block of data from an OUT endpoint.
  *
- * This function blocks until the requested amount of data is received, a short transaction is received, or an error is detected.
+ * This function blocks until the requested amount of data is received, a short
+ * transaction is received, or an error is detected.
  *
- * \param[in] ep the endpoint address to read from, from 0x01 to \ref UEP_MAX_ENDPOINT
- *
+ * \param[in] ep the endpoint address to read from, from 0x01 to \ref
+ * UEP_MAX_ENDPOINT
  * \param[out] buffer the buffer into which to store the received data
- *
  * \param[in] max_length the maximum number of bytes to receive
- *
- * \param[out] length the actual number of bytes received (which is valid and may be nonzero even if an error occurs)
- *
+ * \param[out] length the actual number of bytes received (which is valid and
+ * may be nonzero even if an error occurs)
  * \retval true if the read completed successfully
- * \retval false if an error occurred before or during the read (despite which some data may have been received)
- *
- * \exception EPIPE the endpoint was halted, either when the function was first called or while the transfer was occurring
- * \exception ECONNRESET the endpoint was disabled, either when the function was first called or while the transfer was occurring
- * \exception EOVERFLOW \p max_length is not a multiple of the endpoint maximum packet size and the last transaction did not fit in the buffer
- *
- * \pre The endpoint must be enabled in the current configuration and in the current alternate setting of any relevant interfaces.
+ * \retval false if an error occurred before or during the read (despite which
+ * some data may have been received)
+ * \exception EPIPE the endpoint was halted, either when the function was first
+ * called or while the transfer was occurring
+ * \exception ECONNRESET the endpoint was inactive, either when the function
+ * was first called or while the transfer was occurring
+ * \exception EOVERFLOW \p max_length is not a multiple of the endpoint maximum
+ * packet size and the last transaction did not fit in the buffer
+ * \pre The endpoint must be enabled in the current configuration and in the
+ * current alternate setting of any relevant interfaces.
  */
 bool uep_read(unsigned int ep, void *buffer, size_t max_length, size_t *length) {
+	// Sanity check.
 	assert(!UEP_DIR(ep));
 	assert(1 <= UEP_NUM(ep) && UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
 	assert(buffer);
 	assert(max_length);
 
+	// Set up transfer parameters.
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
-	xSemaphoreTake(ctx->transfer_mutex, portMAX_DELAY);
-	bool ret = uep_read_impl(ep, buffer, max_length, length);
-	xSemaphoreGive(ctx->transfer_mutex);
+	ctx->flags.zlp = false;
+	ctx->flags.overflow = false;
+	ctx->transfer.out.buffer = buffer;
+	ctx->transfer.out.wptr = buffer;
+	ctx->bytes_left = max_length;
+	ctx->async_cb = 0;
+
+	// Run the transfer.
+	bool ret = uep_transfer(ep);
+
+	// Determine number of bytes received.
+	*length = ctx->transfer.out.wptr - ctx->transfer.out.buffer;
+
+	// Clear transfer parameters.
+	ctx->transfer.out.buffer = 0;
+	ctx->transfer.out.wptr = 0;
+	ctx->bytes_left = 0;
+	ctx->async_cb = 0;
+
+	// Done.
 	return ret;
 }
 
-/**
- * \cond INTERNAL
- */
 
-/**
- * \brief Starts a physical transfer on an IN endpoint.
- *
- * This function chooses the specifications of a physical transfer, writes those specifications into the context block, and enables the hardware.
- *
- * \param[in] ep the endpoint address to start
- *
- * \pre The endpoint is disabled.
- * \pre The \ref uep_ep_t::zlp "zlp" flag and the \ref uep_ep_t::bytes_left "bytes_left" and \ref uep_ep_t::data "data" fields are set properly.
- * \post The endpoint is enabled, with the ISR ready to push data if needed.
- * \post The \ref uep_ep_t::pxfr_bytes_left "pxfr_bytes_left" field is set properly.
- */
-static void uep_write_pxfr_start(unsigned int ep) {
-	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
-
-	// Grab the control register, sanity check, and extract max packet size.
-	OTG_FS_DIEPCTLx_t ctl = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL;
-	assert(!ctl.EPENA);
-	size_t max_packet = ctl.MPSIZ;
-
-	// Compute the size of the physical transfer.
-	// This is computed based on three constraints:
-	// (1) the amount of data left in the logical transfer,
-	// (2) the maximum number of bytes per physical transfer (rounded down to a max-packet boundary),
-	// (3) the maximum number of packets per physical transfer
-	size_t pxfr_bytes = MIN(ctx->bytes_left, MIN(IN_PXFR_MAX_PACKETS, IN_PXFR_MAX_BYTES / max_packet) * max_packet);
-
-	// Start a physical transfer.
-	//
-	// To start a physical transfer, we must do four things:
-	// (1) Set DIEPTSIZ.
-	// (2) Set DIEPCTL.
-	// (3) Set pxfr_bytes_left.
-	// (4) Set INEPTXFEM.
-	//
-	// The USB engine requires that DIEPTSIZ be set before enabling an endpoint; therefore, (2) must be done after (1).
-	//
-	// The ISR considers the endpoint to be a candidate for pushing data whenever pxfr_bytes_left is nonzero (this is the canonical record of readiness for pushing).
-	// The USB engine requires that an endpoint be enabled before any data is pushed into its FIFO.
-	// Therefore, (3) must be done after (2).
-	//
-	// The ISR may clear a bit in INEPTXFEM if its corresponding pxfr_bytes_left is zero when an interrupt is taken.
-	// To ensure this is not done spuriously, (4) must be done after (3).
-	OTG_FS_DIEPTSIZx_t tsiz;
-	if (pxfr_bytes) {
-		tsiz.XFRSIZ = pxfr_bytes;
-		tsiz.PKTCNT = (pxfr_bytes + max_packet - 1U) / max_packet;
-	} else {
-		tsiz.XFRSIZ = 0U;
-		tsiz.PKTCNT = 1U;
-		ctx->flags.zlp = false;
-	}
-	OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPTSIZ = tsiz;
-	ctl.EPENA = 1;
-	ctl.CNAK = 1;
-	ctl.STALL = 0;
-	OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL = ctl;
-	__atomic_signal_fence(__ATOMIC_RELEASE); // Prevent prior writes from being sunk below pxfr_bytes_left write.
-	__atomic_store_n(&ctx->pxfr_bytes_left, pxfr_bytes, __ATOMIC_RELAXED);
-	__atomic_signal_fence(__ATOMIC_ACQUIRE); // Prevent subsequent writes from being hoisted above pxfr_bytes_left write.
-	if (pxfr_bytes) {
-		taskENTER_CRITICAL();
-		OTG_FS.DIEPEMPMSK.INEPTXFEM |= 1U << UEP_NUM(ep);
-		taskEXIT_CRITICAL();
-	}
-}
-
-/**
- * \brief Aborts a running physical transfer on an endpoint.
- *
- * This function is used in cases of abnormal termination of a transfer (namely, endpoint disablement or halting).
- *
- * \param[in] ep the endpoint address to abort
- *
- * \post The endpoint is disabled.
- * \post The \ref uep_ep_t::pxfr_bytes_left "pxfr_bytes_left" field is zero.
- */
-static void uep_write_pxfr_abort(unsigned int ep) {
-	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
-
-	// Begin by zeroing out the physical transfer size so the ISR will stop pushing data.
-	__atomic_store_n(&ctx->pxfr_bytes_left, 0U, __ATOMIC_RELAXED);
-	__atomic_signal_fence(__ATOMIC_ACQUIRE); // Prevent subsequent writes from being hoisted above pxfr_bytes_left write.
-
-	// Obtain local NAK status.
-	xEventGroupClearBits(ctx->event_group, UEP_IN_EVENT_NAKEFF);
-	OTG_FS_DIEPCTLx_t ctl = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL;
-	if (!ctl.NAKSTS) {
-		ctl.SNAK = 1;
-		OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL = ctl;
-		while (!(xEventGroupWaitBits(ctx->event_group, UEP_IN_EVENT_NAKEFF, pdTRUE, pdFALSE, portMAX_DELAY) & UEP_IN_EVENT_NAKEFF));
-	}
-
-	// Check the status of the endpoint.
-	ctl = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL;
-	if (ctl.EPENA) {
-		// Endpoint is still enabled.
-		// Force-disable it.
-		ctl.EPDIS = 1;
-		OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL = ctl;
-		while (!(xEventGroupWaitBits(ctx->event_group, UEP_EVENT_DISD, pdTRUE, pdFALSE, portMAX_DELAY) & UEP_EVENT_DISD));
-	}
-}
-
-static bool uep_write_impl(unsigned int ep, const void *data, size_t length, bool zlp) {
-	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
-
-	// Check for endpoint deactivation or halt.
-	EventBits_t events = xEventGroupGetBits(ctx->event_group) & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED);
-	if (events) {
-		errno = (events & UEP_EVENT_DEACTIVATED) ? ECONNRESET : EPIPE;
-		return false;
-	}
-
-	// Sanity check.
-	assert(OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL.USBAEP);
-
-	// Grab the maximum packet size.
-	size_t max_packet = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL.MPSIZ;
-
-	// Decide whether we need a ZLP.
-	ctx->flags.zlp = zlp && !(length % max_packet);
-
-	// Set up the control structure.
-	ctx->data.in = data;
-	ctx->bytes_left = length;
-	ctx->bytes_transferred = 0U;
-
-	while (ctx->bytes_left || ctx->flags.zlp) {
-		// Start a physical transfer.
-		uep_write_pxfr_start(ep);
-
-		// Wait for something to happen.
-		do {
-			events = xEventGroupWaitBits(ctx->event_group, UEP_EVENT_XFRC | UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED, pdTRUE, pdFALSE, portMAX_DELAY);
-		} while (!(events & (UEP_EVENT_XFRC | UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED)));
-
-		if (events & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED)) {
-			// The endpoint is being deactivated or halted.
-			uep_write_pxfr_abort(ep);
-			xEventGroupSetBits(ctx->event_group, events & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED));
-			errno = (events & UEP_EVENT_DEACTIVATED) ? ECONNRESET : EPIPE;
-			return false;
-		}
-	}
-
-	return true;
-}
-/**
- * \endcond
- */
 
 /**
  * \brief Writes a block of data to an IN endpoint.
  *
- * This function blocks until the data has been delivered or an error is detected.
+ * This function blocks until the data has been delivered or an error is
+ * detected.
  *
- * \param[in] ep the endpoint to write to, from 0x81 to <code>\ref UEP_MAX_ENDPOINT | 0x80</code>
- *
+ * \param[in] ep the endpoint to write to, from 0x81 to <code>\ref
+ * UEP_MAX_ENDPOINT | 0x80</code>
  * \param[in] data the data to send
- *
  * \param[in] length the number of bytes to send
- *
- * \param[in] zlp \c true to add a zero-length packet if \p length is a multiple of the endpoint maximum packet size, or \c false to omit the zero-length packet
- *
+ * \param[in] zlp \c true to add a zero-length packet if \p length is a
+ * multiple of the endpoint maximum packet size, or \c false to omit the
+ * zero-length packet
  * \retval true if the write completed successfully
- * \retval false if an error occurred before or during the write (despite which some data may have been sent)
- *
- * \exception EPIPE the endpoint was halted, either when the function was first called or while the transfer was occurring
- * \exception ECONNRESET the endpoint was disabled, either when the function was first called or while the transfer was occurring
- *
- * \pre The endpoint must be enabled in the current configuration and in the current alternate setting of any relevant interfaces.
+ * \retval false if an error occurred before or during the write (despite which
+ * some data may have been sent)
+ * \exception EPIPE the endpoint was halted, either when the function was first
+ * called or while the transfer was occurring
+ * \exception ECONNRESET the endpoint was deactivated, either when the function
+ * was first called or while the transfer was occurring
+ * \pre The endpoint must be enabled in the current configuration and in the
+ * current alternate setting of any relevant interfaces.
  */
 bool uep_write(unsigned int ep, const void *data, size_t length, bool zlp) {
+	// Sanity check.
 	assert(UEP_DIR(ep));
 	assert(1 <= UEP_NUM(ep) && UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
 	assert(!!data == !!length);
 	assert(length || zlp);
 
-	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
+	// Grab max packet size.
+	size_t max_packet = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL.MPSIZ;
 
-	xSemaphoreTake(ctx->transfer_mutex, portMAX_DELAY);
-	bool ret = uep_write_impl(ep, data, length, zlp);
-	xSemaphoreGive(ctx->transfer_mutex);
+	// Set up transfer parameters.
+	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
+	ctx->flags.zlp = zlp && !(length % max_packet);
+	ctx->flags.overflow = false;
+	ctx->transfer.in.data = data;
+	ctx->transfer.in.rptr = data;
+	ctx->bytes_left = length;
+	ctx->async_cb = 0;
+
+	// Run transfer.
+	bool ret = uep_transfer(ep);
+
+	// Clear transfer parameters.
+	ctx->transfer.in.data = 0;
+	ctx->transfer.in.rptr = 0;
+	ctx->bytes_left = 0;
+	ctx->async_cb = 0;
+
+	// Done.
 	return ret;
 }
+
+
 
 /**
  * \brief Waits for halt status to clear on a halted endpoint.
  *
- * This function returns only when the endpoint becomes disabled or when halt status is successfully cleared on the endpoint.
- * If the endpoint is not halted, this function returns immediately.
+ * This function returns when the endpoint is not halted. If the endpoint is
+ * not halted when called, this function returns immediately.
  *
- * \param[in] ep the endpoint on which to wait, from 0x01 to \ref UEP_MAX_ENDPOINT or 0x81 to <code>\ref UEP_MAX_ENDPOINT | 0x80</code>
- *
- * \retval true if endpoint halt status has been cleared and the endpoint is now working normally
+ * \param[in] ep the endpoint on which to wait, from 0x01 to \ref
+ * UEP_MAX_ENDPOINT or 0x81 to <code>\ref UEP_MAX_ENDPOINT | 0x80</code>
+ * \retval true if endpoint halt status has been cleared and the endpoint is
+ * now working normally
  * \retval false if an error occurred
- *
- * \exception ECONNRESET the endpoint was disabled, either when the function was first called or while the transfer was occurring
- *
- * \pre The endpoint must be enabled in the current configuration and in the current alternate setting of any relevant interfaces.
+ * \exception ECONNRESET the endpoint was deactivated, either when the function
+ * was first called or while waiting
+ * \pre The endpoint must be enabled in the current configuration and in the
+ * current alternate setting of any relevant interfaces.
  */
 bool uep_halt_wait(unsigned int ep) {
 	assert(UEP_NUM(ep) && UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
+
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
-	EventBits_t events;
-	do {
-		events = xEventGroupWaitBits(ctx->event_group, UEP_EVENT_DEACTIVATED | UEP_EVENT_NOT_HALTED, pdFALSE, pdFALSE, portMAX_DELAY);
-	} while (!(events & (UEP_EVENT_DEACTIVATED | UEP_EVENT_NOT_HALTED)));
-	if (events & UEP_EVENT_DEACTIVATED) {
-		errno = ECONNRESET;
-		return false;
-	} else {
-		return true;
+
+	// Decide whether to return immediately or wait.
+	xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+	bool ret, wait;
+	switch (ctx->state) {
+		case UEP_STATE_INACTIVE:
+			// Endpoint is not halted; return immediately.
+			errno = ECONNRESET;
+			ret = false;
+			wait = false;
+			break;
+
+		case UEP_STATE_IDLE:
+			// Endpoint is not halted; return immediately.
+			ret = true;
+			wait = false;
+			break;
+
+		case UEP_STATE_CLEAR_HALT_PENDING:
+			// Prior halt status acknowledged; return immediately.
+			ctx->state = UEP_STATE_IDLE;
+			ret = true;
+			wait = false;
+			break;
+
+		case UEP_STATE_HALTED:
+			// Endpoint is halted; wait.
+			ctx->state = UEP_STATE_HALTED_WAITING;
+			wait = true;
+			break;
+
+		default:
+			// If UEP_STATE_RUNNING or UEP_STATE_HALTED_WAITING, logic error:
+			// application tried to start two operations on an endpoint at the
+			// same time.
+			abort();
 	}
+	xSemaphoreGive(ctx->mutex);
+
+	if (wait) {
+		uint8_t event;
+		xQueueReceive(ctx->event_queue, &event, portMAX_DELAY);
+		switch (event) {
+			case UEP_EVENT_DEACTIVATED_WHILE_HALTED:
+				// Endpoint deactivated.
+				errno = ECONNRESET;
+				ret = false;
+				break;
+
+			case UEP_EVENT_HALT_CLEARED:
+				// Halt status cleared. Let the application go on and
+				// operate the endpoint.
+				ret = true;
+				break;
+
+			default:
+				// If UEP_EVENT_XFRC or UEP_EVENT_EPDISD, logic error: no
+				// transfer should have been in progress.
+				abort();
+		}
+	}
+
+	return ret;
 }
+
+
 
 /**
  * \cond INTERNAL
  */
-static void uep_async_read_start_pxfr(unsigned int ep) {
-	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
-	size_t max_packet = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL.MPSIZ;
+/**
+ * \brief Finishes an asynchronous read or write on an endpoint.
+ *
+ * This function returns immediately, whether or not the transfer was finished,
+ * reporting the operation’s current status. This function does not compute the
+ * number of bytes transferred nor clear the transfer parameters; the caller
+ * must do that if this function returns anything other than \c false with \c
+ * errno set to \c EINPROGRESS. This function also does not modify the endpoint
+ * state variable.
+ *
+ * \param[in] ep the endpoint to check
+ * \retval true if the transfer completed successfully
+ * \retval false if an error occurred while the transfer was in progress
+ * (despite which some data may have been transferred), if the write has not
+ * yet finished
+ * \exception EPIPE the endpoint was halted while the read was in progress
+ * \exception ECONNRESET the endpoint was disabled while the read was in progress
+ * \exception EINPROGRESS the operation has not yet finished
+ * \pre A prior asynchronous read or write must have been started and not yet
+ * reported completed on this endpoint.
+ */
+static bool uep_async_finish(unsigned int ep) {
+	// Grab max packet size if this is an OUT endpoint (not needed for IN
+	// endpoints).
+	size_t max_packet_out = UEP_DIR(ep) ? 0U : OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL.MPSIZ;
 
-	// Start a physical transfer.
-	// The byte count field must always be set to a multiple of the maximum packet size for an OUT endpoint.
-	// Overflow detection is handled in the ISR, not in the hardware.
-	size_t pxfr_packets = (ctx->bytes_left + max_packet - 1U) / max_packet;
-	pxfr_packets = MIN(pxfr_packets, OUT_PXFR_MAX_PACKETS);
-	pxfr_packets = MIN(pxfr_packets, OUT_PXFR_MAX_BYTES / max_packet);
-	OTG_FS_DOEPTSIZx_t tsiz = { .PKTCNT = pxfr_packets, .XFRSIZ = pxfr_packets * max_packet };
-	OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPTSIZ = tsiz;
-	OTG_FS_DOEPCTLx_t ctl = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL;
-	assert(!ctl.EPENA);
-	ctl.EPENA = 1;
-	ctl.CNAK = 1;
-	ctl.STALL = 0;
-	OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL = ctl;
+	// Check for event.
+	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
+	uint8_t event;
+	bool ret, done;
+	if (xQueueReceive(ctx->event_queue, &event, 0) == pdTRUE) {
+		// Event received.
+		switch (event) {
+			case UEP_EVENT_XFRC:
+				// Physical transfer done.
+				if (UEP_DIR(ep)) {
+					// Done when all bytes are sent and a ZLP, if necessary,
+					// has also been sent.
+					done = !ctx->bytes_left && !ctx->flags.zlp;
+				} else {
+					// Done when all bytes are received, a ZLP is received or a
+					// short packet is received.
+					done = !ctx->bytes_left || ctx->flags.zlp || ((ctx->transfer.out.wptr - ctx->transfer.out.buffer) % max_packet_out);
+				}
+				if (done) {
+					// Logical transfer is done.
+					ret = true;
+				} else {
+					// Need another physical transfer to do the rest of the
+					// bytes.
+					xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+					ret = uep_start_pxfr(ep);
+					xSemaphoreGive(ctx->mutex);
+					if (ret) {
+						// Next physical transfer started. Not a successful
+						// transfer-finish; transfer is still in progress.
+						errno = EINPROGRESS;
+						ret = false;
+					} else {
+						// Transfer aborted; use return value and errno from
+						// uep_start_pxfr.
+					}
+				}
+				break;
+
+			case UEP_EVENT_EPDISD:
+				// Endpoint asynchronously disabled; report.
+				ret = false;
+				xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+				errno = ctx->state == UEP_STATE_INACTIVE ? ECONNRESET : EPIPE;
+				xSemaphoreGive(ctx->mutex);
+				break;
+
+			default:
+				// These should never happen during a transfer.
+				abort();
+		}
+	} else {
+		// No event; there is nothing to report.
+		errno = EINPROGRESS;
+		ret = false;
+	}
+
+	return ret;
 }
 /**
  * \endcond
@@ -465,383 +649,438 @@ static void uep_async_read_start_pxfr(unsigned int ep) {
 /**
  * \brief Starts an asynchronous read on an endpoint.
  *
- * This function returns immediately, allowing the read to continue in the background.
- * The memory referred to by the \p buffer pointer \em must remain valid until the asynchronous read operation completes (successfully or otherwise)!
+ * This function returns immediately, allowing the read to continue in the
+ * background. The memory referred to by the \p buffer pointer \em must remain
+ * valid until the asynchronous read operation completes (successfully or
+ * otherwise)!
  *
  * \param[in] ep the endpoint to read from, from 0x01 to \ref UEP_MAX_ENDPOINT
- *
  * \param[out] buffer the buffer into which to store the received data
- *
  * \param[in] max_length the maximum number of bytes to receive
- *
- * \param[in] cb a callback to invoke when the read completes, or \c null to
- * omit
- *
+ * \param[in] cb a callback to invoke when \ref uep_async_read_finish must be
+ * called (whose invocation does not necessarily imply the transfer is
+ * complete)
  * \retval true if the read started successfully
- * \retval false if an error occurred before the read started (in which case no data has been received)
- *
+ * \retval false if an error occurred before the read started (in which case no
+ * data has been received)
  * \exception EPIPE the endpoint was halted at the time of call
  * \exception ECONNRESET the endpoint was disabled at the time of call
- *
- * \pre The endpoint must be enabled in the current configuration and in the current alternate setting of any relevant interfaces.
+ * \pre The endpoint must be enabled in the current configuration and in the
+ * current alternate setting of any relevant interfaces.
  */
 bool uep_async_read_start(unsigned int ep, void *buffer, size_t max_length, uep_async_cb_t cb) {
+	// Sanity check.
 	assert(!UEP_DIR(ep));
 	assert(1 <= UEP_NUM(ep) && UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
 	assert(buffer);
 	assert(max_length);
 
+	// Set up transfer parameters.
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
-
-	// Lock the transfer mutex so we can do a transfer.
-	xSemaphoreTake(ctx->transfer_mutex, portMAX_DELAY);
-
-	// Sanity check.
-	assert(OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL.USBAEP);
-
-	// Set up the control structures.
-	ctx->data.out = buffer;
-	ctx->bytes_left = max_length;
-	ctx->bytes_transferred = 0U;
 	ctx->flags.zlp = false;
 	ctx->flags.overflow = false;
-	__atomic_store_n(&ctx->async_cb, cb, __ATOMIC_RELAXED);
+	ctx->transfer.out.buffer = buffer;
+	ctx->transfer.out.wptr = buffer;
+	ctx->bytes_left = max_length;
+	ctx->async_cb = cb;
 
-	// Check for endpoint deactivation or halt.
-	// This must be done after the store to ctx->async_cb.
-	// Otherwise, another task’s request for deactivate or halt might not make its way into the async callback, yet we might consider the operation to have started.
-	// By putting the check here, we are guaranteed that any deactivate or halt occurring after this check will also invoke the callback.
-	EventBits_t events = xEventGroupGetBits(ctx->event_group) & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED);
-	if (events) {
-		__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
-		xSemaphoreGive(ctx->transfer_mutex);
-		errno = (events & UEP_EVENT_DEACTIVATED) ? ECONNRESET : EPIPE;
-		return false;
+	// Change endpoint state and start first physical transfer.
+	xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+	if (ctx->state == UEP_STATE_IDLE) {
+		ctx->state = UEP_STATE_RUNNING;
 	}
+	bool ret = uep_start_pxfr(ep);
 
-	// Start a physical transfer.
-	uep_async_read_start_pxfr(ep);
+	// On failure, clear transfer parameters and reset endpoint state.
+	if (!ret) {
+		ctx->transfer.out.buffer = 0;
+		ctx->transfer.out.wptr = 0;
+		ctx->bytes_left = 0;
+		ctx->async_cb = 0;
+		if (ctx->state == UEP_STATE_RUNNING) {
+			ctx->state = UEP_STATE_IDLE;
+		}
+	}
+	xSemaphoreGive(ctx->mutex);
 
-	return true;
+	// Done.
+	return ret;
 }
 
 /**
  * \brief Finishes an asynchronous read on an endpoint.
  *
- * This function returns immediately, whether or not the read was finished, reporting the operation’s current status.
+ * This function returns immediately, whether or not the read was finished,
+ * reporting the operation’s current status.
  *
- * \param[in] ep the endpoint being read from, from 0x01 to \ref UEP_MAX_ENDPOINT
- *
+ * \param[in] ep the endpoint being read from, from 0x01 to \ref
+ * UEP_MAX_ENDPOINT
  * \param[out] length the number of bytes actually received
- *
  * \retval true if the read completed successfully
- * \retval false if an error occurred while the read was in progress (despite which some data may have been received), if the read has not yet finished, or if no asynchronous read was started
- *
+ * \retval false if an error occurred while the read was in progress (despite
+ * which some data may have been received) or if the read has not yet finished
  * \exception EPIPE the endpoint was halted while the read was in progress
- * \exception ECONNRESET the endpoint was disabled while the read was in progress
- * \exception EOVERFLOW \p max_length was not a multiple of the endpoint maximum packet size and the last transaction did not fit in the buffer
+ * \exception ECONNRESET the endpoint was disabled while the read was in
+ * progress
+ * \exception EOVERFLOW \p max_length was not a multiple of the endpoint
+ * maximum packet size and the last transaction did not fit in the buffer
  * \exception EINPROGRESS the operation has not yet finished
- *
- * \pre A prior asynchronous read must have been started and not yet reported completed on this endpoint.
+ * \pre A prior asynchronous read must have been started and not yet reported
+ * completed on this endpoint.
  */
 bool uep_async_read_finish(unsigned int ep, size_t *length) {
+	// Sanity check.
 	assert(!UEP_DIR(ep));
 	assert(1 <= UEP_NUM(ep) && UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
 
-	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
-
-	// Check what, if anything, happened.
-	EventBits_t events = xEventGroupClearBits(ctx->event_group, UEP_EVENT_XFRC | UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED);
-	if (events & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED)) {
-		// The endpoint is being deactivated or halted.
-		// Begin by taking global OUT NAK.
-		udev_gonak_take();
-		// Check the status of the endpoint.
-		OTG_FS_DOEPCTLx_t ctl = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL;
-		if (ctl.EPENA) {
-			// Endpoint is still enabled.
-			// Force-disable it.
-			ctl.EPDIS = 1;
-			ctl.SNAK = 1;
-			OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL = ctl;
-			while (!(xEventGroupWaitBits(ctx->event_group, UEP_EVENT_DISD, pdTRUE, pdFALSE, portMAX_DELAY) & UEP_EVENT_DISD));
+	// Try to finish the transfer.
+	bool ret = uep_async_finish(ep);
+	if (ret || (!ret && errno != EINPROGRESS)) {
+		// Transfer finished, successfully or otherwise; compute length, clear
+		// transfer parameters and reset endpoint state.
+		uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
+		*length = ctx->transfer.out.wptr - ctx->transfer.out.buffer;
+		ctx->transfer.out.buffer = 0;
+		ctx->transfer.out.wptr = 0;
+		ctx->bytes_left = 0;
+		ctx->async_cb = 0;
+		xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+		if (ctx->state == UEP_STATE_RUNNING) {
+			ctx->state = UEP_STATE_IDLE;
 		}
-		// Release global OUT NAK.
-		udev_gonak_release();
-		// Endpoint is now fully disabled.
-		if (length) {
-			*length = ctx->bytes_transferred;
-		}
-		xEventGroupSetBits(ctx->event_group, events & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED));
-		__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
-		xSemaphoreGive(ctx->transfer_mutex);
-		errno = (events & UEP_EVENT_DEACTIVATED) ? ECONNRESET : EPIPE;
-		return false;
-	} else if (events & UEP_EVENT_XFRC) {
-		// A physical transfer finished.
-		// A transfer is complete when:
-		// (1) the expected number of bytes has been received,
-		// (2) a short packet is received
-		//
-		// A short packet is always either a packet which is not a multiple of max packet size or a ZLP.
-		size_t max_packet = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL.MPSIZ;
-		if (ctx->bytes_left && !(ctx->bytes_transferred % max_packet) && ctx->flags.zlp) {
-			// The logical transfer is not finished yet.
-			uep_async_read_start_pxfr(ep);
-			errno = EINPROGRESS;
-			return false;
-		} else {
-			// The logical transfer is finished.
-			if (length) {
-				*length = ctx->bytes_transferred;
-			}
-			bool overflow = !!ctx->flags.overflow;
-			__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
-			xSemaphoreGive(ctx->transfer_mutex);
-			if (overflow) {
-				errno = EOVERFLOW;
-				return false;
-			} else {
-				return true;
-			}
-		}
-	} else {
-		// Nothing happened.
-		errno = EINPROGRESS;
-		return false;
+		xSemaphoreGive(ctx->mutex);
 	}
+
+	return ret;
 }
+
+
 
 /**
  * \brief Starts an asynchronous write on an endpoint.
  *
- * This function returns immediately, allowing the write to continue in the background.
- * The memory referred to by the \p data pointer \em must remain valid until the asynchronous write operation completes (successfully or otherwise)!
+ * This function returns immediately, allowing the write to continue in the
+ * background. The memory referred to by the \p data pointer \em must remain
+ * valid until the asynchronous write operation completes (successfully or
+ * otherwise)!
  *
- * \param[in] ep the endpoint to write to, from 0x81 to <code>\ref UEP_MAX_ENDPOINT | 0x80</code>
- *
+ * \param[in] ep the endpoint to write to, from 0x81 to <code>\ref
+ * UEP_MAX_ENDPOINT | 0x80</code>
  * \param[in] data the data to send
- *
  * \param[in] length the number of bytes to send
- *
- * \param[in] zlp \c true to add a zero-length packet if \p length is a multiple of the endpoint maximum packet size, or \c false to omit the zero-length packet
- *
- * \param[in] cb a callback to invoke when the write completes, or \c null to
- * omit
- *
- * \param[in] group the group to notify when the endpoint needs servicing
- *
- * \param[in] bits the bits to set when the endpoint needs servicing
- *
+ * \param[in] zlp \c true to add a zero-length packet if \p length is a
+ * multiple of the endpoint maximum packet size, or \c false to omit the
+ * zero-length packet
+ * \param[in] cb a callback to invoke when \ref uep_async_write_finish must be
+ * called (whose invocation does not necessarily imply the transfer is
+ * complete)
  * \retval true if the write started successfully
- * \retval false if an error occurred before the write started (in which case no data has been sent)
- *
+ * \retval false if an error occurred before the write started (in which case
+ * no data has been sent)
  * \exception EPIPE the endpoint was halted at the time of call
  * \exception ECONNRESET the endpoint was disabled at the time of call
- *
- * \pre The endpoint must be enabled in the current configuration and in the current alternate setting of any relevant interfaces.
+ * \pre The endpoint must be enabled in the current configuration and in the
+ * current alternate setting of any relevant interfaces.
  */
 bool uep_async_write_start(unsigned int ep, const void *data, size_t length, bool zlp, uep_async_cb_t cb) {
+	// Sanity check.
 	assert(UEP_DIR(ep));
 	assert(1 <= UEP_NUM(ep) && UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
 	assert(!!data == !!length);
 	assert(length || zlp);
 
-	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
-
-	// Lock the transfer mutex so we can do a transfer.
-	xSemaphoreTake(ctx->transfer_mutex, portMAX_DELAY);
-
-	// Sanity check.
-	assert(OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL.USBAEP);
-
-	// Grab the maximum packet size.
+	// Grab max packet size.
 	size_t max_packet = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL.MPSIZ;
 
-	// Set up the control structure.
-	ctx->data.in = data;
-	ctx->bytes_left = length;
-	ctx->bytes_transferred = 0U;
+	// Set up transfer parameters.
+	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
 	ctx->flags.zlp = zlp && !(length % max_packet);
-	__atomic_store_n(&ctx->async_cb, cb, __ATOMIC_RELAXED);
+	ctx->flags.overflow = false;
+	ctx->transfer.in.data = data;
+	ctx->transfer.in.rptr = data;
+	ctx->bytes_left = length;
+	ctx->async_cb = cb;
 
-	// Check for endpoint deactivation or halt.
-	// This must be done after the store to ctx->async_cb.
-	// Otherwise, another task’s request for deactivate or halt might not make its way into the async callback, yet we might consider the operation to have started.
-	// By putting the check here, we are guaranteed that any deactivate or halt occurring after this check will also invoke the callback.
-	EventBits_t events = xEventGroupGetBits(ctx->event_group) & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED);
-	if (events) {
-		__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
-		xSemaphoreGive(ctx->transfer_mutex);
-		errno = (events & UEP_EVENT_DEACTIVATED) ? ECONNRESET : EPIPE;
-		return false;
+	// Change endpoint state and start first physical transfer.
+	xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+	if (ctx->state == UEP_STATE_IDLE) {
+		ctx->state = UEP_STATE_RUNNING;
 	}
+	bool ret = uep_start_pxfr(ep);
 
-	// Start a physical transfer.
-	uep_write_pxfr_start(ep);
+	// On failure, clear transfer parameters.
+	if (!ret) {
+		ctx->transfer.in.data = 0;
+		ctx->transfer.in.rptr = 0;
+		ctx->bytes_left = 0;
+		ctx->async_cb = 0;
+		if (ctx->state == UEP_STATE_RUNNING) {
+			ctx->state = UEP_STATE_IDLE;
+		}
+	}
+	xSemaphoreGive(ctx->mutex);
 
-	return true;
+	// Done.
+	return ret;
 }
 
 /**
  * \brief Finishes an asynchronous write on an endpoint.
  *
- * This function returns immediately, whether or not the write was finished, reporting the operation’s current status.
+ * This function returns immediately, whether or not the write was finished,
+ * reporting the operation’s current status.
  *
- * \param[in] ep the endpoint being read from, from 0x81 to <code>\ref UEP_MAX_ENDPOINT | 0x80</code>
- *
+ * \param[in] ep the endpoint being read from, from 0x81 to <code>\ref
+ * UEP_MAX_ENDPOINT | 0x80</code>
  * \retval true if the write completed successfully
- * \retval false if an error occurred while the write was in progress (despite which some data may have been sent), if the write has not yet finished, or if no asynchronous write was started
- *
+ * \retval false if an error occurred while the write was in progress (despite
+ * which some data may have been sent) or if the write has not yet finished
  * \exception EPIPE the endpoint was halted while the read was in progress
  * \exception ECONNRESET the endpoint was disabled while the read was in progress
  * \exception EINPROGRESS the operation has not yet finished
- *
- * \pre A prior asynchronous write must have been started and not yet reported completed on this endpoint.
+ * \pre A prior asynchronous write must have been started and not yet reported
+ * completed on this endpoint.
  */
 bool uep_async_write_finish(unsigned int ep) {
+	// Sanity check.
 	assert(UEP_DIR(ep));
 	assert(1 <= UEP_NUM(ep) && UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
 
-	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
-
-	// Check what, if anything, happened.
-	EventBits_t events = xEventGroupClearBits(ctx->event_group, UEP_EVENT_XFRC | UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED);
-	if (events & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED)) {
-		// The endpoint is being deactivated or halted.
-		uep_write_pxfr_abort(ep);
-		xEventGroupSetBits(ctx->event_group, events & (UEP_EVENT_DEACTIVATED | UEP_EVENT_HALTED));
-		__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
-		xSemaphoreGive(ctx->transfer_mutex);
-		errno = (events & UEP_EVENT_DEACTIVATED) ? ECONNRESET : EPIPE;
-		return false;
-	} else if (events & UEP_EVENT_XFRC) {
-		// A physical transfer finished.
-		if (ctx->bytes_left || ctx->flags.zlp) {
-			// The logical transfer is not finished yet.
-			uep_write_pxfr_start(ep);
-			errno = EINPROGRESS;
-			return false;
-		} else {
-			// The logical transfer is finished.
-			__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
-			xSemaphoreGive(ctx->transfer_mutex);
-			return true;
+	// Try to finish the transfer.
+	bool ret = uep_async_finish(ep);
+	if (ret || (!ret && errno != EINPROGRESS)) {
+		// Transfer finished, successfully or otherwise; clear transfer
+		// parameters and reset endpoint state.
+		uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
+		ctx->transfer.in.data = 0;
+		ctx->transfer.in.rptr = 0;
+		ctx->bytes_left = 0;
+		ctx->async_cb = 0;
+		xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+		if (ctx->state == UEP_STATE_RUNNING) {
+			ctx->state = UEP_STATE_IDLE;
 		}
-	} else {
-		// Nothing happened.
-		errno = EINPROGRESS;
-		return false;
+		xSemaphoreGive(ctx->mutex);
 	}
+
+	return ret;
 }
+
+
 
 /**
  * \brief Starts waiting for halt status to clear on a halted endpoint.
  *
- * This function returns immediately, allowing the wait to continue in the background.
- * If the endpoint is not halted, this function succeeds and starts a wait which immediately finishes.
+ * This function returns immediately, allowing the wait to continue in the
+ * background. If the endpoint is not halted, this function succeeds and starts
+ * a wait which immediately finishes.
  *
- * \param[in] ep the endpoint on which to wait, from 0x01 to \ref UEP_MAX_ENDPOINT or 0x81 to <code>\ref UEP_MAX_ENDPOINT | 0x80</code>
- *
- * \param[in] cb a callback to invoke when the read completes, or \c null to
- * omit
- *
+ * \param[in] ep the endpoint on which to wait, from 0x01 to \ref
+ * UEP_MAX_ENDPOINT or 0x81 to <code>\ref UEP_MAX_ENDPOINT | 0x80</code>
+ * \param[in] cb a callback to invoke when \ref uep_async_halt_wait_finish must
+ * be called (whose invocation does not necessarily imply the wait is complete)
  * \retval true if the wait started successfully
- * \retval false if an error occurred before the wait started
- *
+ * \retval false if an error occurred before the wait started or if the
+ * endpoint was not halted at the time of call
  * \exception ECONNRESET the endpoint was disabled at the time of call
- *
- * \pre The endpoint must be enabled in the current configuration and in the current alternate setting of any relevant interfaces.
+ * \exception EINVAL the endpoint was not halted at the time of call
+ * \pre The endpoint must be enabled in the current configuration and in the
+ * current alternate setting of any relevant interfaces.
  */
 bool uep_async_halt_wait_start(unsigned int ep, uep_async_cb_t cb) {
+	// Sanity check.
 	assert(1 <= UEP_NUM(ep) && UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
 
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
 
-	// Set up the control structures.
-	__atomic_store_n(&ctx->async_cb, cb, __ATOMIC_RELAXED);
+	// Decide whether to start a wait or return immediately.
+	xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+	bool ret;
+	switch (ctx->state) {
+		case UEP_STATE_INACTIVE:
+			// Endpoint inactive; return immediately.
+			errno = ECONNRESET;
+			ret = false;
+			break;
 
-	// Check for endpoint deactivation.
-	// This must be done after the store to ctx->async_group.
-	// Otherwise, another task’s request for deactivate or clear halt might not make its way into the async group, yet we might consider the operation to have started.
-	// By putting the check here, we are guaranteed that any deactivate or clear halt occurring after this check will also set bits in group.
-	if (xEventGroupGetBits(ctx->event_group) & UEP_EVENT_DEACTIVATED) {
-		__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
-		errno = ECONNRESET;
-		return false;
+		case UEP_STATE_IDLE:
+			// Endpoint is not halted; return immediately.
+			errno = EINVAL;
+			ret = false;
+			break;
+
+		case UEP_STATE_CLEAR_HALT_PENDING:
+			// Prior halt status acknowledged; return immediately.
+			ctx->state = UEP_STATE_IDLE;
+			errno = EINVAL;
+			ret = false;
+			break;
+
+		case UEP_STATE_HALTED:
+			// Endpoint is halted; start waiting.
+			ctx->state = UEP_STATE_HALTED_WAITING;
+			ctx->async_cb = cb;
+			ret = true;
+			break;
+
+		default:
+			// If UEP_STATE_RUNNING or UEP_STATE_HALTED_WAITING, logic error:
+			// application tried to start two operations on an endpoint at the
+			// same time.
+			abort();
 	}
+	xSemaphoreGive(ctx->mutex);
 
-	return true;
+	return ret;
 }
 
 /**
  * \brief Finishes waiting for halt status to clear on a halted endpoint.
  *
- * This function returns immediately, whether or not the wait was finished, reporting the operation’s current status.
+ * This function returns immediately, whether or not the wait was finished,
+ * reporting the operation’s current status.
  *
- * \param[in] ep the endpoint being waited on, from 0x01 to \ref UEP_MAX_ENDPOINT or 0x81 to <code>\ref UEP_MAX_ENDPOINT | 0x80</code>
- *
- * \retval true if the endpoint halt status has been cleared and the endpoint is now working normally
- * \retval false if an error occurred while the wait was in progress, if the endpoint is still halted, or if no asynchronous wait was started
- *
- * \exception ECONNRESET the endpoint was disabled while the wait was in progress
+ * \param[in] ep the endpoint being waited on, from 0x01 to \ref
+ * UEP_MAX_ENDPOINT or 0x81 to <code>\ref UEP_MAX_ENDPOINT | 0x80</code>
+ * \retval true if the endpoint halt status has been cleared and the endpoint
+ * is now working normally
+ * \retval false if an error occurred while the wait was in progress or if the
+ * endpoint is still halted
+ * \exception ECONNRESET the endpoint was disabled while the wait was in
+ * progress
  * \exception EINPROGRESS the operation has not yet finished
- *
- * \pre A prior asynchronous halt wait must have been started and not yet reported completed on this endpoint.
+ * \pre A prior asynchronous halt wait must have been started and not yet
+ * reported completed on this endpoint.
  */
 bool uep_async_halt_wait_finish(unsigned int ep) {
+	// Sanity check.
 	assert(1 <= UEP_NUM(ep) && UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
 
+	// Check for event.
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
+	uint8_t event;
+	bool ret;
+	if (xQueueReceive(ctx->event_queue, &event, 0) == pdTRUE) {
+		// Event received.
+		switch (event) {
+			case UEP_EVENT_DEACTIVATED_WHILE_HALTED:
+				// Endpoint deactivated.
+				errno = ECONNRESET;
+				ret = false;
+				ctx->async_cb = 0;
+				break;
 
-	// Check what, if anything, happened.
-	EventBits_t events = xEventGroupGetBits(ctx->event_group);
-	if (events & UEP_EVENT_DEACTIVATED) {
-		// The endpoint is being deactivated.
-		__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
-		errno = ECONNRESET;
-		return false;
-	} else if (events & UEP_EVENT_NOT_HALTED) {
-		// The endpoint is no longer halted.
-		__atomic_store_n(&ctx->async_cb, 0, __ATOMIC_RELAXED);
-		return true;
+			case UEP_EVENT_HALT_CLEARED:
+				// Halt status cleared.
+				ret = true;
+				ctx->async_cb = 0;
+				break;
+
+			default:
+				// If UEP_EVENT_XFRC or UEP_EVENT_EPDISD, logic error: no
+				// transfer should have been in progress.
+				abort();
+		}
 	} else {
-		// Nothing happened.
+		// No event; there is nothing to report.
 		errno = EINPROGRESS;
-		return false;
+		ret = false;
 	}
+
+	return ret;
 }
+
+
 
 /**
  * \cond INTERNAL
  */
-static void uep_halt_impl(unsigned int ep) {
+/**
+ * \brief Sets the halt feature on an endpoint.
+ *
+ * \param[in] ep the endpoint address to halt
+ * \param[in] cb the callback to invoke if halt status actually changes from
+ * not halted to halted, or null to not invoke any callback in this case
+ * \retval true if the endpoint is now halted
+ * \retval false if the endpoint is inactive in the current configuration
+ */
+bool uep_halt_with_cb(unsigned int ep, void (*cb)(void)) {
+	// Sanity check.
+	assert(1 <= UEP_NUM(ep) && UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
 
-	// If endpoint is not active, do nothing.
-	if (xEventGroupGetBits(ctx->event_group) & UEP_EVENT_DEACTIVATED) {
-		return;
+	// Take the mutex.
+	xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+
+	// Do the state-specific handling.
+	bool ret, runcb;
+	switch (ctx->state) {
+		case UEP_STATE_INACTIVE:
+			// Cannot set halt feature on an inactive endpoint.
+			ret = false;
+			runcb = false;
+			break;
+
+		case UEP_STATE_IDLE:
+			// Set halt feature.
+			ctx->state = UEP_STATE_HALTED;
+			ret = true;
+			runcb = true;
+			break;
+
+		case UEP_STATE_RUNNING:
+			// Stop transfer first, then set halt feature.
+			uep_disable(ep);
+			ctx->state = UEP_STATE_HALTED;
+			ret = true;
+			runcb = true;
+			break;
+
+		case UEP_STATE_HALTED:
+		case UEP_STATE_HALTED_WAITING:
+			// Already halted, so nothing to do.
+			ret = true;
+			runcb = false;
+			break;
+
+		case UEP_STATE_CLEAR_HALT_PENDING:
+			// Go back from pending to halted.
+			ctx->state = UEP_STATE_HALTED;
+			ret = true;
+			runcb = false;
+			break;
+
+		default:
+			// State contains illegal value.
+			abort();
 	}
 
-	// Mark endpoint as halted in control block, which causes any in-progress transfer to terminate.
-	xEventGroupClearBits(ctx->event_group, UEP_EVENT_NOT_HALTED);
-	xEventGroupSetBits(ctx->event_group, UEP_EVENT_HALTED);
-
-	// Notify the asynchronous event group if one is present.
-	uep_notify_async(ep);
-
-	// Wait for in-progress transfer to terminate and then take the transfer mutex to prevent another from starting.
-	xSemaphoreTake(ctx->transfer_mutex, portMAX_DELAY);
-
-	// Set the hardware.
-	if (UEP_DIR(ep)) {
-		OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL.STALL = 1;
-	} else {
-		OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL.STALL = 1;
+	// On success, get the endpoint returning STALL handshakes.
+	if (ret) {
+		if (UEP_DIR(ep)) {
+			OTG_FS_DIEPCTLx_t diepctl = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL;
+			diepctl.EPENA = 0;
+			diepctl.EPDIS = 0;
+			diepctl.STALL = 1;
+			OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL = diepctl;
+		} else {
+			OTG_FS_DOEPCTLx_t doepctl = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL;
+			doepctl.EPENA = 0;
+			doepctl.EPDIS = 0;
+			doepctl.STALL = 1;
+			OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL = doepctl;
+		}
 	}
 
-	// Release transfer mutex.
-	xSemaphoreGive(ctx->transfer_mutex);
+	// Release the mutex.
+	xSemaphoreGive(ctx->mutex);
+
+	// Run the callback, if provided and should do so.
+	if (cb && runcb) {
+		cb();
+	}
+
+	return ret;
 }
 /**
  * \endcond
@@ -850,49 +1089,189 @@ static void uep_halt_impl(unsigned int ep) {
 /**
  * \brief Sets the halt feature on an endpoint.
  *
- * This function blocks until the feature is fully set.
+ * The application cannot clear the halt feature once set. The halt feature can
+ * only be cleared by the host via a control transfer on endpoint zero.
  *
- * There is no corresponding \c uep_unhalt function because halt status can only be cleared by request from the host system.
- *
- * \param[in] ep the endpoint to halt, from 0x01 to \ref UEP_MAX_ENDPOINT or 0x81 to <code>\ref UEP_MAX_ENDPOINT | 0x80</code>
+ * \param[in] ep the endpoint to halt, from 0x01 to \ref UEP_MAX_ENDPOINT or
+ * 0x81 to <code>\ref UEP_MAX_ENDPOINT | 0x80</code>
+ * \retval true if the endpoint is now halted
+ * \retval false if the endpoint is inactive in the current configuration
  */
-void uep_halt(unsigned int ep) {
-	assert(1 <= UEP_NUM(ep) && UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
-
-	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
-
-	xSemaphoreTake(ctx->manage_mutex, portMAX_DELAY);
-	uep_halt_impl(ep);
-	xSemaphoreGive(ctx->manage_mutex);
+bool uep_halt(unsigned int ep) {
+	return uep_halt_with_cb(ep, 0);
 }
 
 /**
  * \cond INTERNAL
  */
-static void uep_activate_impl(const usb_endpoint_descriptor_t *edesc, unsigned int interface) {
+/**
+ * \brief Clears the halt feature on an endpoint.
+ *
+ * \param[in] ep the endpoint address
+ * \param[in] cancb the callback to invoke to check whether it is acceptable to
+ * clear halt status
+ * \param[in] cb the callback to invoke if halt status is cleared
+ * \retval true if the endpoint is now not halted
+ * \retval false if the endpoint is inactive or the halt feature could not be
+ * cleared
+ * \pre This function must be invoked on the stack internal task.
+ */
+bool uep_clear_halt(unsigned int ep, bool (*cancb)(void), void (*cb)(void)) {
+	// Sanity check.
+	assert(1 <= UEP_NUM(ep) && UEP_NUM(ep) <= UEP_MAX_ENDPOINT);
+	uep_ep_t *ctx = &uep_eps[UEP_IDX(ep)];
+
+	// Take the mutex.
+	xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+
+	// Do the state-specific handling.
+	bool ret, docb = false;
+	switch (ctx->state) {
+		case UEP_STATE_INACTIVE:
+			// Cannot clear halt feature on an inactive endpoint.
+			ret = false;
+			break;
+
+		case UEP_STATE_IDLE:
+		case UEP_STATE_RUNNING:
+			// Not actually clearing the halt feature, but the request should
+			// still succeed.
+			ret = true;
+			break;
+
+		case UEP_STATE_HALTED:
+			if (!cancb || cancb()) {
+				// No check callback or check callback succeeded; halt feature
+				// can be cleared. No process is waiting, so we must pend the
+				// clear so that another task will observe the halt status at
+				// least once and acknowledge it before we go back to idle
+				// (otherwise halt status could be set and immediately cleared
+				// and the task handling endpoint transfers not even notice,
+				// whereas it really ought to do something application-specific
+				// in response to that scenario).
+				ctx->state = UEP_STATE_CLEAR_HALT_PENDING;
+				docb = true;
+				ret = true;
+			} else {
+				// Check callback denies clearing halt status.
+				ret = false;
+			}
+			break;
+
+		case UEP_STATE_HALTED_WAITING:
+			if (!cancb || cancb()) {
+				// No check callback or check callback succeeded; halt feature
+				// can be cleared. A task is waiting for the halt to clear (and
+				// by being in that waiting state has acknowledged the setting
+				// of the halt feature), so notify the task and go to idle
+				// state.
+				ctx->state = UEP_STATE_IDLE;
+				docb = true;
+				uep_queue_event(ep, UEP_EVENT_HALT_CLEARED);
+				ret = true;
+			} else {
+				// Check callback denies clearing halt status.
+				ret = false;
+			}
+			break;
+
+		case UEP_STATE_CLEAR_HALT_PENDING:
+			// Do nothing, but successfully. Clearing halt status repeatedly
+			// should not fail.
+			ret = true;
+			break;
+
+		default:
+			// State contains illegal value.
+			abort();
+	}
+
+	// On success, get the endpoint to stop sending STALLs and reset its data
+	// toggle. According to USB 2.0 section 9.4.5, even if the halt feature was
+	// not actually set, the CLEAR FEATURE request should reset data toggle.
+	if (ret) {
+		if (UEP_DIR(ep)) {
+			OTG_FS_DIEPCTLx_t diepctl = OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL;
+			diepctl.EPENA = 0;
+			diepctl.EPDIS = 0;
+			diepctl.STALL = 0;
+			OTG_FS.DIEP[UEP_NUM(ep) - 1U].DIEPCTL = diepctl;
+		} else {
+			OTG_FS_DOEPCTLx_t doepctl = OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL;
+			doepctl.EPENA = 0;
+			doepctl.EPDIS = 0;
+			doepctl.STALL = 0;
+			OTG_FS.DOEP[UEP_NUM(ep) - 1U].DOEPCTL = doepctl;
+		}
+	}
+
+	// Invoke the callback if we appropriate; note that this happens after
+	// stopping the STALL handshakes.
+	if (docb && cb) {
+		cb();
+	}
+
+	// Release the mutex.
+	xSemaphoreGive(ctx->mutex);
+
+	return ret;
+}
+/**
+ * \endcond
+ */
+
+
+
+/**
+ * \cond INTERNAL
+ */
+/**
+ * \brief Activates an endpoint.
+ *
+ * \param[in] edesc the endpoint descriptor describing the endpoint to activate
+ * \param[in] interface the interface number to which the endpoint belongs, or
+ * UINT_MAX if none
+ * \pre This function must be invoked on the stack internal task.
+ * \pre The endpoint must be in UEP_STATE_INACTIVE.
+ * \post The endpoint is in UEP_STATE_IDLE.
+ */
+void uep_activate(const usb_endpoint_descriptor_t *edesc, unsigned int interface) {
+	// Sanity check.
+	assert(UEP_NUM(edesc->bEndpointAddress));
+	assert(UEP_NUM(edesc->bEndpointAddress) <= UEP_MAX_ENDPOINT);
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(edesc->bEndpointAddress)];
+	assert(ctx->state == UEP_STATE_INACTIVE);
 
 	// Set up state block.
+	ctx->state = UEP_STATE_IDLE;
 	ctx->interface = interface;
-	xEventGroupClearBits(ctx->event_group, UEP_EVENT_DISD | UEP_IN_EVENT_NAKEFF | UEP_EVENT_XFRC | UEP_EVENT_DEACTIVATED);
+	ctx->async_cb = 0;
 
 	// Enable the endpoint hardware.
 	if (UEP_DIR(edesc->bEndpointAddress)) {
-		// The amount of space available for this FIFO is MAX{16, transmit_fifo_words[N]} words.
-		// We cannot use more than that amount, because other FIFOs lie beyond that space.
-		// However, we can elect to use a smaller FIFO if it would help.
-		//
-		// Normally, a larger FIFO helps reduce interrupts; multiple packets can be pushed at once, and an interrupt is taken only once half of them have been transmitted.
-		// However, the hardware requires that, no matter how large the FIFO is, only seven packets may be present at any time.
-		// Fortunately, the half-empty interrupt is inhibited if all seven packets are present, even if the FIFO is less than half full, avoiding an interrupt storm.
-		// As the FIFO grows beyond seven max-packets, however, interrupt frequency increases.
-		// This is because fewer packets have to be transmitted in order for the FIFO to become half empty.
-		// In the limit, once the FIFO reaches 12 packets in size, every packet transmitted brings the FIFO from seven to six packets, making it half empty and causing an interrupt.
-		// Absolute minimization of interrupts occurs when the FIFO is seven packets long, so we try to do that.
-		// However, we must still obey the other hardware rule, namely that the FIFO must be at least 16 words long.
-		// That means we cannot quite achieve seven packets for a max packet size of eight bytes or smaller; however, we do the best we can.
-		//
-		// All of the above is completely irrelevant if the interrupt minimization flag is set, because then the interrupt fires when the FIFO is completely empty.
+		// The amount of space available for this FIFO is MAX{16,
+		// transmit_fifo_words[N]} words. We cannot use more than that amount,
+		// because other FIFOs lie beyond that space. However, we can elect to
+		// use a smaller FIFO if it would help. Normally, a larger FIFO helps
+		// reduce interrupts; multiple packets can be pushed at once, and an
+		// interrupt is taken only once half of them have been transmitted.
+		// However, the hardware requires that, no matter how large the FIFO
+		// is, only seven packets may be present at any time. Fortunately, the
+		// half-empty interrupt is inhibited if all seven packets are present,
+		// even if the FIFO is less than half full, avoiding an interrupt
+		// storm. As the FIFO grows beyond seven max-packets, however,
+		// interrupt frequency increases. This is because fewer packets have to
+		// be transmitted in order for the FIFO to become half empty. In the
+		// limit, once the FIFO reaches 12 packets in size, every packet
+		// transmitted brings the FIFO from seven to six packets, making it
+		// half empty and causing an interrupt. Absolute minimization of
+		// interrupts occurs when the FIFO is seven packets long, so we try to
+		// do that. However, we must still obey the other hardware rule, namely
+		// that the FIFO must be at least 16 words long. That means we cannot
+		// quite achieve seven packets for a max packet size of eight bytes or
+		// smaller; however, we do the best we can. All of the above is
+		// completely irrelevant if the interrupt minimization flag is set,
+		// because then the interrupt fires when the FIFO is completely empty.
 		size_t max_packet_words = (edesc->wMaxPacketSize + 3U) / 4U;
 		size_t alloc_words = MAX(16U, uep0_current_configuration->transmit_fifo_words[UEP_NUM(edesc->bEndpointAddress) - 1U]);
 		size_t fifo_words;
@@ -910,7 +1289,6 @@ static void uep_activate_impl(const usb_endpoint_descriptor_t *edesc, unsigned i
 		udev_flush_tx_fifo(edesc->bEndpointAddress);
 
 		// Activate endpoint.
-		assert(!OTG_FS.DIEP[UEP_NUM(edesc->bEndpointAddress) - 1U].DIEPCTL.USBAEP);
 		OTG_FS_DIEPCTLx_t ctl = {
 			.SD0PID_SEVNFRM = 1,
 			.TXFNUM = UEP_NUM(edesc->bEndpointAddress),
@@ -933,73 +1311,65 @@ static void uep_activate_impl(const usb_endpoint_descriptor_t *edesc, unsigned i
 }
 
 /**
- * \brief Activates an endpoint.
+ * \brief Deactivates an endpoint.
  *
- * \param[in] edesc the endpoint descriptor describing the endpoint to activate
- *
- * \param[in] interface the interface number to which the endpoint belongs, or UINT_MAX if none
+ * \param[in] edesc the endpoint descriptor describing the endpoint to
+ * deactivate
+ * \pre This function must be invoked on the stack internal task.
+ * \pre The endpoint must be in something other than UEP_STATE_INACTIVE.
  */
-void uep_activate(const usb_endpoint_descriptor_t *edesc, unsigned int interface) {
+void uep_deactivate(const usb_endpoint_descriptor_t *edesc) {
+	// Sanity check.
 	assert(UEP_NUM(edesc->bEndpointAddress) && UEP_NUM(edesc->bEndpointAddress) <= UEP_MAX_ENDPOINT);
-
 	uep_ep_t *ctx = &uep_eps[UEP_IDX(edesc->bEndpointAddress)];
 
-	xSemaphoreTake(ctx->manage_mutex, portMAX_DELAY);
-	uep_activate_impl(edesc, interface);
-	xSemaphoreGive(ctx->manage_mutex);
-}
+	// Take the semaphore.
+	xSemaphoreTake(ctx->mutex, portMAX_DELAY);
 
-static void uep_deactivate_impl(const usb_endpoint_descriptor_t *edesc) {
-	uep_ep_t *ctx = &uep_eps[UEP_IDX(edesc->bEndpointAddress)];
+	// Based on state, do needed special handling.
+	switch (ctx->state) {
+		case UEP_STATE_INACTIVE:
+			// This should never happen.
+			abort();
 
-	// Mark the endpoint as deactivated, signalling any running operation to terminate.
-	xEventGroupSetBits(ctx->event_group, UEP_EVENT_DEACTIVATED);
+		case UEP_STATE_IDLE:
+		case UEP_STATE_HALTED:
+		case UEP_STATE_CLEAR_HALT_PENDING:
+			// We do not need to do anything in these states.
+			break;
 
-	// Notify the asynchronous event group if one is present.
-	uep_notify_async(edesc->bEndpointAddress);
+		case UEP_STATE_RUNNING:
+			// Stop the running transfer before deactivating the endpoint.
+			uep_disable(edesc->bEndpointAddress);
+			break;
 
-	// Wait for in-progress transfer to terminate and then take the transfer mutex to prevent another from starting.
-	xSemaphoreTake(ctx->transfer_mutex, portMAX_DELAY);
+		case UEP_STATE_HALTED_WAITING:
+			// Wake up the waiting task before deactivating the endpoint.
+			uep_queue_event(edesc->bEndpointAddress, UEP_EVENT_DEACTIVATED_WHILE_HALTED);
+			break;
+	}
+
+	// Clear the state block.
+	ctx->state = UEP_STATE_INACTIVE;
+	ctx->interface = UINT_MAX;
+	ctx->async_cb = 0;
 
 	// Disable the endpoint hardware.
 	if (UEP_DIR(edesc->bEndpointAddress)) {
-		assert(!OTG_FS.DIEP[UEP_NUM(edesc->bEndpointAddress) - 1U].DIEPCTL.EPENA);
 		OTG_FS_DIEPCTLx_t ctl = { 0 };
 		OTG_FS.DIEP[UEP_NUM(edesc->bEndpointAddress) - 1U].DIEPCTL = ctl;
 	} else {
-		assert(!OTG_FS.DOEP[UEP_NUM(edesc->bEndpointAddress) - 1U].DOEPCTL.EPENA);
 		OTG_FS_DOEPCTLx_t ctl = { 0 };
 		OTG_FS.DOEP[UEP_NUM(edesc->bEndpointAddress) - 1U].DOEPCTL = ctl;
 	}
 
-	// Clear the state block and release the transfer mutex.
-	ctx->interface = UINT_MAX;
-	xEventGroupClearBits(ctx->event_group, UEP_EVENT_HALTED);
-	xEventGroupSetBits(ctx->event_group, UEP_EVENT_NOT_HALTED);
-	xSemaphoreGive(ctx->transfer_mutex);
-}
-
-/**
- * \brief Deactivates an endpoint.
- *
- * \param[in] edesc the endpoint descriptor describing the endpoint to deactivate
- *
- * \pre This function must be invoked on the stack internal task.
- */
-void uep_deactivate(const usb_endpoint_descriptor_t *edesc) {
-	assert(UEP_NUM(edesc->bEndpointAddress) && UEP_NUM(edesc->bEndpointAddress) <= UEP_MAX_ENDPOINT);
-
-	uep_ep_t *ctx = &uep_eps[UEP_IDX(edesc->bEndpointAddress)];
-
-	xSemaphoreTake(ctx->manage_mutex, portMAX_DELAY);
-	uep_deactivate_impl(edesc);
-	xSemaphoreGive(ctx->manage_mutex);
+	// Release the semaphore.
+	xSemaphoreGive(ctx->mutex);
 }
 /**
  * \endcond
  */
 
 /**
- * @}
+ * \}
  */
-

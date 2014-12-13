@@ -21,14 +21,6 @@
  */
 typedef enum {
 	/**
-	 * \brief Indicates that global OUT NAK has taken effect and all prior OUT and SETUP activity has been drained and delivered.
-	 *
-	 * This flag is set by the ISR when the global OUT NAK effective pattern appears in the receive status FIFO.
-	 * It is atomically cleared by the task that is waiting for global OUT NAK status as part of resuming that task.
-	 */
-	UDEV_EVENT_GONAKEFF      = 0x000001,
-
-	/**
 	 * \brief Indicates that \ref udev_state has changed value.
 	 *
 	 * This flag is set by any code which modifies \ref udev_state.
@@ -123,145 +115,227 @@ typedef enum {
 
 /**
  * \ingroup UEP
- * \brief The event bits that can be delivered via a nonzero endpoint’s \ref uep_ep_t::event_group "event_group" member.
+ * \brief The states that a (non-zero) endpoint can be in.
  */
 typedef enum {
 	/**
-	 * \brief Indicates that the endpoint has been disabled due to firmware request (not due to transfer completion).
-	 *
-	 * This flag is set by the ISR when the endpoint disabled interrupt is asserted.
-	 * It is atomically cleared by the task running a transfer on the endpoint which triggered disablement, as part of resuming that task.
-	 * It is also cleared while activating an endpoint, in case old data was left over.
+	 * \brief The endpoint is not active in the current configuration or
+	 * interface alternate setting.
 	 */
-	UEP_EVENT_DISD = 0x000001,
+	UEP_STATE_INACTIVE,
 
 	/**
-	 * \brief Indicates that local NAK status has become effective for the endpoint.
+	 * \brief The endpoint is ready to use.
 	 *
-	 * This flag is only used for IN endpoints.
-	 *
-	 * This flag is set by the ISR when the NAK effective interrupt is asserted.
-	 * It is atomically cleared by the task running a transfer on the endpoint which triggered local NAK, as part of resuming that task.
-	 * It is also cleared while activating an endpoint, in case old data was left over.
+	 * No operation is running. A task may start a transfer.
 	 */
-	UEP_IN_EVENT_NAKEFF = 0x000002,
+	UEP_STATE_IDLE,
 
 	/**
-	 * \brief Indicates that a transfer has finished.
+	 * \brief A data transfer is running.
 	 *
-	 * This flag is set by the ISR when the transfer complete pattern appears in the receive status FIFO (for OUT endpoints) or the transfer complete interrupt is asserted (for IN endpoints).
-	 * It is atomically cleared by the task running a transfer on the endpoint, as part of resuming that task (or polling, for the asynchronous API).
-	 * It is also cleared while activating an endpoint, in case old data was left over.
+	 * In the case of a synchronous transfer, \ref uep_read or \ref uep_write
+	 * has not returned yet. In the case of an asynchronous transfer, \ref
+	 * uep_async_read_finish or \ref uep_async_write_finish has not been
+	 * invoked successfully yet.
 	 */
-	UEP_EVENT_XFRC = 0x000004,
+	UEP_STATE_RUNNING,
 
 	/**
-	 * \brief Indicates that the endpoint is, or is being, deactivated.
+	 * \brief The endpoint is halted.
 	 *
-	 * This flag is set for all (nonzero) endpoints at stack initialization time, because all endpoints are initially deactivated.
-	 * It is also set when an endpoint is disabled due to activity on endpoint zero.
-	 *
-	 * It is generally cleared when the endpoint is enabled due to activity on endpoint zero.
-	 *
-	 * In some cases, tasks running transfers may unintentionally clear this flag while waiting or polling; they then re-set the flag in such cases.
+	 * No halt-wait is running. A task may start one.
 	 */
-	UEP_EVENT_DEACTIVATED = 0x000008,
+	UEP_STATE_HALTED,
 
 	/**
-	 * \brief Indicates that the endpoint is halted.
+	 * \brief The endpoint is halted and a halt-wait is running.
 	 *
-	 * This flag is set when an endpoint is halted due to application calling \ref uep_halt or due to a SET FEATURE request on endpoint zero.
-	 * It is cleared due to a CLEAR FEATURE request on endpoint zero.
-	 * It is also cleared when an endpoint is activated, because endpoints are initially not halted when activated.
-	 *
-	 * In some cases, tasks running transfers may unintentionally clear this flag while waiting or polling; they then re-set the flag in such cases.
+	 * In the case of a synchronous halt-wait, \ref uep_halt_wait has not
+	 * returned yet. In the case of an asynchronous halt-wait, \ref
+	 * uep_async_halt_wait_finish has not been invoked successfully yet.
 	 */
-	UEP_EVENT_HALTED = 0x000010,
+	UEP_STATE_HALTED_WAITING,
 
 	/**
-	 * \brief Indicates that the endpoint is not halted.
+	 * \brief The endpoint was halted and a CLEAR FEATURE request was received
+	 * clearing the halt feature.
 	 *
-	 * This flag is set for all (nonzero) endpoints at stack initialization time, because no endpoints are initially halted.
-	 * It is also set due to a CLEAR FEATURE request on endpoint zero.
-	 * It is also set when an endpoint is activated, because endpoints are initially not halted when activated.
-	 * It is cleared when an endpoint is halted due to \ref uep_halt or SET FEATURE.
+	 * No halt-wait was running when the request was received, so the
+	 * application still needs to start one in order to observe the prior halt
+	 * state.
 	 */
-	UEP_EVENT_NOT_HALTED = 0x000020,
-} uep_out_event_bits_t;
+	UEP_STATE_CLEAR_HALT_PENDING,
+} uep_state_t;
+
+/**
+ * \ingroup UEP
+ * \brief The event numbers that can be delivered via a nonzero endpoint’s \ref
+ * uep_ep_t::event_queue "event_queue" member.
+ */
+typedef enum {
+	/**
+	 * \brief A physical transfer has finished.
+	 *
+	 * This event is queued by the ISR when the endpoint is in \ref
+	 * UEP_STATE_RUNNING when the physical transfer finishes.
+	 */
+	UEP_EVENT_XFRC,
+
+	/**
+	 * \brief The endpoint has been disabled during a physical transfer.
+	 *
+	 * This event is queued by the ISR when the endpoint is in \ref
+	 * UEP_STATE_RUNNING after the endpoint is fully disabled.
+	 */
+	UEP_EVENT_EPDISD,
+
+	/**
+	 * \brief A halted endpoint was deactivated by a configuration or interface
+	 * alternate setting change.
+	 *
+	 * This event is queued by the internal task when the endpoint is in \ref
+	 * UEP_STATE_HALTED_WAITING and is deactivated.
+	 */
+	UEP_EVENT_DEACTIVATED_WHILE_HALTED,
+
+	/**
+	 * \brief A halted endpoint had its halt status cleared.
+	 *
+	 * This event is queued by the internal task when the endpoint is in \ref
+	 * UEP_STATE_HALTED_WAITING and a CLEAR FEATURE request arrives which
+	 * successfully clears the endpoint’s halt status.
+	 */
+	UEP_EVENT_HALT_CLEARED,
+} uep_event_t;
 
 /**
  * \ingroup UEP
  * \brief The type of data associated with a nonzero endpoint.
  */
 typedef struct {
+	/**
+	 * \brief A mutex held by the task manipulating the endpoint.
+	 *
+	 * Not all fields in this structure are protected by the mutex. See details
+	 * of individual fields.
+	 */
+	SemaphoreHandle_t mutex;
+
+	/**
+	 * \brief The endpoint’s current state.
+	 *
+	 * This field is protected by the mutex.
+	 */
+	uep_state_t state;
+
+	/**
+	 * \brief The endpoint’s event queue.
+	 *
+	 * The queue carries single bytes. Each byte is a member of the \ref
+	 * uep_event_t enumeration representing the type of event that occurred.
+	 * Events are sent from a variety of sources and always received by the
+	 * task that is running a transfer or a halt-wait on the endpoint.
+	 *
+	 * A task pushing to the queue must hold the mutex. A task blocking on the
+	 * queue to pop must not hold the mutex.
+	 *
+	 * This queue is only one element long. This is adequate, because events
+	 * are always used to notify the task currently running a transfer, and
+	 * each event terminates the current physical transfer or halt-wait,
+	 * requiring service from the application before any subsequent event can
+	 * be queued.
+	 */
+	QueueHandle_t event_queue;
+
+	/**
+	 * \brief A semaphore given by the USB interrupt service routine after an
+	 * endpoint is disabled due to application request (rather than due to
+	 * transfer complete).
+	 *
+	 * A task blocking on the semaphore must hold the mutex.
+	 */
+	SemaphoreHandle_t disabled_sem;
+
 	struct {
 		/**
-		 * \brief Whether a zero-length packet has been received or is pending to send.
+		 * \brief Whether a zero-length packet has been received or is pending
+		 * to send.
 		 *
-		 * For OUT endpoints, this indicates whether or not a zero-length packet was received in the last transfer.
-		 * For IN endpoints, this indicates whether or not a zero-length packet needs to be, and has not yet been, sent at the end of the logical transfer.
+		 * For OUT endpoints, this indicates whether or not a zero-length
+		 * packet was received in the last transfer. For IN endpoints, this
+		 * indicates whether or not a zero-length packet needs to be, and has
+		 * not yet been, sent at the end of the logical transfer.
 		 */
-		unsigned zlp : 1;
+		bool zlp : 1;
 
 		/**
 		 * \brief Whether or not the last transfer overflowed.
 		 */
-		unsigned overflow : 1;
+		bool overflow : 1;
 	}
 	/**
 	 * \brief Flags regarding the endpoint.
+	 *
+	 * This field is only touched by the task performing a transfer or by the
+	 * ISR. It is not protected by the mutex.
 	 */
 	flags;
 
 	/**
 	 * \brief The interface that contains this endpoint, or UINT_MAX if none.
+	 *
+	 * This field is only touched by the stack internal task. It is not
+	 * protected by the mutex.
 	 */
 	unsigned int interface;
 
-	/**
-	 * \brief An event group for delivering events related to this endpoint.
-	 */
-	EventGroupHandle_t event_group;
-
-	/**
-	 * \brief A mutex held by the task that is currently running a read or write operation or that needs to prevent one from starting.
-	 */
-	SemaphoreHandle_t transfer_mutex;
-
-	/**
-	 * \brief A mutex held by the task that is currently setting or clearing endpoint halt status or activating or deactivating the endpoint.
-	 *
-	 * A task may take this mutex, then signal the endpoint via \ref event_group, then take \ref transfer_mutex, in order to ensure the endpoint is idle.
-	 * This mutex must not be taken if \ref transfer_mutex is already held, to avoid deadlock.
-	 */
-	SemaphoreHandle_t manage_mutex;
-
 	union {
-		uint8_t *out;
-		const uint8_t *in;
+		struct {
+			/**
+			 * \brief A pointer to the start of the receive buffer.
+			 */
+			uint8_t *buffer;
+
+			/**
+			 * \brief A pointer to the next byte to write into.
+			 */
+			uint8_t *wptr;
+		} out;
+
+		struct {
+			/**
+			 * \brief A pointer to the start of the data to send.
+			 */
+			const uint8_t *data;
+
+			/**
+			 * \brief A pointer to the next byte to read and send.
+			 */
+			const uint8_t *rptr;
+		} in;
 	}
 	/**
-	 * \brief A pointer to the data buffer.
+	 * \brief Information about the transfer that is specific to the direction.
+	 *
+	 * This field is only touched by the task performing a transfer or by the
+	 * ISR. It is not protected by the mutex.
 	 */
-	data;
+	transfer;
 
 	/**
-	 * \brief The number of bytes left in the current logical transfer.
+	 * \brief The number of bytes left in the logical transfer.
+	 *
+	 * This field is only touched by the task performing a transfer or by the
+	 * ISR. It is not protected by the mutex.
 	 */
 	size_t bytes_left;
 
 	/**
-	 * \brief The number of bytes received so far in the current logical transfer.
-	 */
-	size_t bytes_transferred;
-
-	/**
-	 * \brief The number of bytes left to feed to the FIFO for the current physical transfer, for IN endpoints.
-	 */
-	size_t pxfr_bytes_left;
-
-	/**
 	 * \brief The callback to invoke when the endpoint completes an operation.
+	 *
+	 * This field is only touched by the task performing a transfer or by the
+	 * ISR. It is not protected by the mutex.
 	 */
 	uep_async_cb_t async_cb;
 } uep_ep_t;
@@ -277,8 +351,8 @@ extern udev_state_t udev_state;
 extern const udev_info_t *udev_info;
 extern const usb_setup_packet_t *udev_setup_packet;
 extern bool udev_self_powered;
-void udev_gonak_take(void);
-void udev_gonak_release(void);
+extern SemaphoreHandle_t udev_gonak_mutex;
+extern unsigned int udev_gonak_disable_ep;
 void udev_flush_rx_fifo(void);
 void udev_flush_tx_fifo(unsigned int ep);
 
@@ -291,14 +365,14 @@ bool uep0_default_handler(const usb_setup_packet_t *pkt);
 void uep0_exit_configuration(void);
 
 extern uep_ep_t uep_eps[UEP_MAX_ENDPOINT * 2U];
-void uep_notify_async(unsigned int ep);
-void uep_notify_async_from_isr(unsigned int ep, BaseType_t *yield);
+void uep_queue_event(unsigned int ep, uint8_t event);
+void uep_queue_event_from_isr(unsigned int ep, uint8_t event, BaseType_t *yield);
+bool uep_halt_with_cb(unsigned int ep, void (*cb)(void));
+bool uep_clear_halt(unsigned int ep, bool (*cancb)(void), void (*cb)(void));
 void uep_activate(const usb_endpoint_descriptor_t *descriptor, unsigned int interface);
 void uep_deactivate(const usb_endpoint_descriptor_t *descriptor);
-void uep_get_async_event(unsigned int ep, EventGroupHandle_t *async_group, EventBits_t *async_bits);
 
 const usb_interface_descriptor_t *uutil_find_interface_descriptor(const usb_configuration_descriptor_t *config, unsigned int interface, unsigned int altsetting);
 const udev_endpoint_info_t *uutil_find_endpoint_info(unsigned int ep);
 
 #endif
-

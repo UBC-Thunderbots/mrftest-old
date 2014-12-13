@@ -156,9 +156,21 @@ static SemaphoreHandle_t transmit_mutex;
 static SemaphoreHandle_t transmit_complete_sem;
 
 /**
- * \brief A semaphore that is given every 20 ms, when a drive packet should be transmitted.
+ * \brief A semaphore that is given every 20 ms, when a drive packet should be
+ * transmitted, and when a USB transfer on the drive packet endpoint completes.
  */
-static EventGroupHandle_t drive_event_group;
+static SemaphoreHandle_t drive_sem;
+
+/**
+ * \brief Whether a drive packet should be transmitted due to 20 ms passing
+ * since the last transmission.
+ */
+static bool drive_tick_pending;
+
+/**
+ * \brief Whether a drive packet USB transfer has completed.
+ */
+static bool drive_transfer_complete;
 
 /**
  * \brief A semaphore used to signal task shutdown.
@@ -188,8 +200,9 @@ void timer6_isr(void) {
 	}
 
 	// Notify task.
+	__atomic_store_n(&drive_tick_pending, true, __ATOMIC_RELAXED);
 	BaseType_t yield = pdFALSE;
-	xEventGroupSetBitsFromISR(drive_event_group, DRIVE_EVENT_TICK, &yield);
+	xSemaphoreGiveFromISR(drive_sem, &yield);
 	if (yield) {
 		portYIELD_FROM_ISR();
 	}
@@ -204,10 +217,11 @@ void timer6_isr(void) {
  * or \c null (if invoked from mainline code)
  */
 static void handle_drive_endpoint_done(unsigned int UNUSED(ep), BaseType_t *from_isr_yield) {
+	__atomic_store_n(&drive_transfer_complete, true, __ATOMIC_RELAXED);
 	if (from_isr_yield) {
-		xEventGroupSetBitsFromISR(drive_event_group, DRIVE_EVENT_ENDPOINT, from_isr_yield);
+		xSemaphoreGiveFromISR(drive_sem, from_isr_yield);
 	} else {
-		xEventGroupSetBits(drive_event_group, DRIVE_EVENT_ENDPOINT);
+		xSemaphoreGive(drive_sem);
 	}
 }
 
@@ -260,7 +274,6 @@ static void send_drive_packet(const void *packet, uint8_t counter) {
 
 	// Blink the transmit light.
 	gpio_toggle(PIN_LED_TX);
-	
 }
 
 /**
@@ -331,14 +344,14 @@ static void drive_task(void *UNUSED(param)) {
 		}
 
 		// Wait for activity.
-		EventBits_t bits = xEventGroupWaitBits(drive_event_group, DRIVE_EVENT_TICK | DRIVE_EVENT_ENDPOINT, pdTRUE, pdFALSE, portMAX_DELAY);
+		xSemaphoreTake(drive_sem, portMAX_DELAY);
 
-		if (bits & DRIVE_EVENT_ENDPOINT) {
+		if (__atomic_exchange_n(&drive_transfer_complete, false, __ATOMIC_RELAXED)) {
 			// Endpoint finished.
 			size_t transfer_length;
 			if (uep_async_read_finish(0x01U, &transfer_length)) {
 				ep_running = false;
-				bool ok = false;
+				bool ok;
 				if (transfer_length == DRIVE_PACKET_DATA_SIZE) {
 					// Check for illegal bit 15 being set.
 					ok = true;
@@ -375,7 +388,7 @@ static void drive_task(void *UNUSED(param)) {
 			}
 		}
 
-		if (bits & DRIVE_EVENT_TICK) {
+		if (__atomic_exchange_n(&drive_tick_pending, false, __ATOMIC_RELAXED)) {
 			if (rptr != wptr) {
 				// Send a packet.
 				xSemaphoreTake(transmit_mutex, portMAX_DELAY);
@@ -837,9 +850,11 @@ void normal_on_enter(void) {
 	mrf_int_sem = xSemaphoreCreateBinary();
 	transmit_mutex = xSemaphoreCreateMutex();
 	transmit_complete_sem = xSemaphoreCreateBinary();
-	drive_event_group = xEventGroupCreate();
+	drive_sem = xSemaphoreCreateBinary();
+	drive_tick_pending = false;
+	drive_transfer_complete = false;
 	shutdown_sem = xSemaphoreCreateCounting(8U /* Eight tasks */, 0U);
-	assert(free_queue && transmit_queue && receive_queue && mdr_queue && dongle_status_sem && mrf_int_sem && transmit_mutex && transmit_complete_sem && drive_event_group && shutdown_sem);
+	assert(free_queue && transmit_queue && receive_queue && mdr_queue && dongle_status_sem && mrf_int_sem && transmit_mutex && transmit_complete_sem && drive_sem && shutdown_sem);
 
 	// Allocate packet buffers.
 	for (unsigned int i = 0U; i < NUM_PACKETS; ++i) {
@@ -935,7 +950,7 @@ void normal_on_exit(void) {
 
 	// Destroy data structures.
 	vSemaphoreDelete(shutdown_sem);
-	vEventGroupDelete(drive_event_group);
+	vSemaphoreDelete(drive_sem);
 	vSemaphoreDelete(transmit_complete_sem);
 	vSemaphoreDelete(mrf_int_sem);
 	vSemaphoreDelete(transmit_mutex);

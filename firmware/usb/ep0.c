@@ -70,8 +70,9 @@ static void uep0_altsetting_deactivate_endpoints(const usb_interface_descriptor_
  * \cond INTERNAL
  * \brief Waits for an OUT transfer on endpoint zero to finish.
  *
- * This function must be called after the transfer has been enabled in the engine.
- * The function is guaranteed only to return once the endpoint is disabled, or at least in NAK status, one way or another.
+ * This function must be called after the transfer has been enabled in the
+ * engine. The function is guaranteed only to return once the endpoint is
+ * disabled, or at least in NAK status, one way or another.
  *
  * \retval true if the transfer was successful
  * \retval false if the transfer failed for some reason
@@ -85,26 +86,21 @@ static bool uep0_wait_out(void) {
 		if ((events & UDEV_EVENT_STATE_CHANGED) && __atomic_load_n(&udev_state, __ATOMIC_RELAXED) != UDEV_STATE_ENUMERATED) {
 			// Device state is no longer enumerated due to USB reset, cable unplug, or soft detach.
 			if (!(events & (UEP0_EVENT_SETUP | UEP0_EVENT_OUT_XFRC))) {
-				// The endpoint has not finished, so it is still enabled.
-				// We would like to disable endpoint 0 OUT if we could, but EPDIS is documented as (intentionally) not working on OUT endpoint 0.
-				// Do the next best thing, which is set up local NAK status.
-				// We must take GONAK in order to do that safely without races.
-				udev_gonak_take();
-				// Get NAK status on the endpoint.
-				if (OTG_FS.DOEPCTL0.EPENA) {
-					// The endpoint is still enabled.
-					OTG_FS.DOEPCTL0.SNAK = 1;
-					// Normally we wouldn’t spin, but this is an unusual case.
-					while (!OTG_FS.DOEPCTL0.NAKSTS);
-				} else {
-					// The endpoint finished moving data and disabled itself due to XFRC while we were waiting for GONAKEFF.
-					// We don’t need to do anything.
-				}
-				// Clear out either of these events which arrived while stopping the endpoint.
-				// Otherwise, they might confuse future iterations.
+				// The endpoint has not finished, so it is still enabled. For
+				// endpoints other than zero, hardware clears USBAEP on reset,
+				// but for endpoint zero, USBAEP is hardwired to 1. We also
+				// can’t actually disable the endpoint (EPDIS is read-only in
+				// DOEPCTL0). The best we can do is stall further traffic until
+				// the next SETUP packet.
+				OTG_FS_DOEPCTL0_t ctl = OTG_FS.DOEPCTL0;
+				ctl.EPENA = 0;
+				ctl.EPDIS = 0;
+				ctl.STALL = 1;
+				OTG_FS.DOEPCTL0 = ctl;
+				// Clear out either of these events which arrived while
+				// stalling the endpoint. Otherwise, they might confuse future
+				// iterations.
 				xEventGroupClearBits(udev_event_group, UEP0_EVENT_SETUP | UEP0_EVENT_OUT_XFRC);
-				// Release global OUT NAK.
-				udev_gonak_release();
 			}
 			errno = EPIPE;
 			return false;
@@ -538,114 +534,14 @@ bool uep0_default_handler(const usb_setup_packet_t *pkt) {
 		} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_ENDPOINT && UEP_NUM(pkt->wIndex) <= UEP_MAX_ENDPOINT) {
 			if (pkt->bRequest == USB_CREQ_CLEAR_FEATURE && !pkt->wLength) {
 				if (pkt->wValue == USB_FEATURE_ENDPOINT_HALT) {
-					if (UEP_NUM(pkt->wIndex)) {
-						EventBits_t events = xEventGroupGetBits(uep_eps[UEP_IDX(pkt->wIndex)].event_group);
-						bool is_active = !(events & UEP_EVENT_DEACTIVATED);
-						bool is_halted = !!(events & UEP_EVENT_HALTED);
-
-						// Concurrency note:
-						// It is safe to just check bits above and then go into the conditional block below, without doing any locking.
-						// This is because:
-						// (1) UEP_EVENT_DEACTIVATED could never change, because it can only change as a result of endpoint zero activity, and we *are* the endpoint zero task,
-						// (2) UEP_EVENT_HALTED could change due to endpoint zero activity or could be *set* due to application uep_halt(), but could never clear due to application
-						// So, is_active is guaranteed to remain accurate, and is_halted will either remain accurate or indicate a false negative.
-						// The false negative is safe, because we will just poke the data toggle and return, having done nothing about the halt status.
-						// From the host’s point of view, this is indistinguishable from the case where it sent the CLEAR FEATURE request slightly before the halt status was set.
-
-						if (is_active) {
-							const udev_endpoint_info_t *einfo;
-							bool ok;
-							if (is_halted) {
-								// We are clearing an active halt status here.
-								// Interrogate the callback.
-								einfo = uutil_find_endpoint_info(pkt->wIndex);
-								ok = (einfo && einfo->can_clear_halt) ? einfo->can_clear_halt() : true;
-							} else {
-								// Halt status was not active.
-								// We will succeed, but do not call any callbacks.
-								einfo = 0; // We do not need any of the endpoint callbacks in this case, so don’t bother finding them.
-								ok = true;
-							}
-
-							if (ok) {
-								if (is_halted) {
-									// Clear halt status.
-									uep_ep_t *ctx = &uep_eps[UEP_IDX(pkt->wIndex)];
-
-									// The endpoint is halted, which means it either is or will soon be idle.
-									// Take both mutexes.
-									xSemaphoreTake(ctx->manage_mutex, portMAX_DELAY);
-									xSemaphoreTake(ctx->transfer_mutex, portMAX_DELAY);
-
-									// Set hardware.
-									if (UEP_DIR(pkt->wIndex)) {
-										// Flush FIFO.
-										udev_flush_tx_fifo(pkt->wIndex);
-
-										// Clear halt condition in endpoint control.
-										OTG_FS_DIEPCTLx_t ctl = OTG_FS.DIEP[UEP_NUM(pkt->wIndex) - 1U].DIEPCTL;
-										ctl.STALL = 0;
-										ctl.SD0PID_SEVNFRM = 1;
-										OTG_FS.DIEP[UEP_NUM(pkt->wIndex) - 1U].DIEPCTL = ctl;
-									} else {
-										// Clear halt condition in endpoint control.
-										OTG_FS_DOEPCTLx_t ctl = OTG_FS.DOEP[UEP_NUM(pkt->wIndex) - 1U].DOEPCTL;
-										ctl.STALL = 0;
-										ctl.SD0PID_SEVENFRM = 1;
-										OTG_FS.DOEP[UEP_NUM(pkt->wIndex) - 1U].DOEPCTL = ctl;
-									}
-
-									// Update control block.
-									xEventGroupClearBits(ctx->event_group, UEP_EVENT_HALTED);
-									xEventGroupSetBits(ctx->event_group, UEP_EVENT_NOT_HALTED);
-
-									// Notify the asynchronous event group if one is present.
-									uep_notify_async(pkt->wIndex);
-
-									// Release mutexes.
-									xSemaphoreGive(ctx->transfer_mutex);
-									xSemaphoreGive(ctx->manage_mutex);
-
-									// We just cleared an active halt status.
-									// Invoke the callback.
-									if (einfo && einfo->on_clear_halt) {
-										einfo->on_clear_halt();
-									}
-								} else {
-									// Not halted, but still need to reset data toggle.
-									// If the endpoint were actually halted, nobody else could be manipulating the hardware.
-									// This is because we take both mutexes.
-									// In this case, however, we can’t do that.
-									// A transfer could be in progress on the endpoint, which means we can’t take the idle mutex without aborting it.
-									// We don’t want to abort the transfer.
-									// So, instead, we ensure no other task could be manipulating the hardware by taking a scheduler critical section around this block.
-									// The only thing we will do in here is set one bit in an endpoint control register.
-									// The bit being set is of type w, which means it will always read as zero.
-									// We write it to 1 here, and leave all other bits unchanged.
-									// Even if another task were in the middle of changing the control register, this would be OK.
-									// We will leave the control register looking exactly as we found it, safe for the other task to write into.
-									taskENTER_CRITICAL();
-									if (UEP_DIR(pkt->wIndex)) {
-										OTG_FS_DIEPCTLx_t ctl = OTG_FS.DIEP[UEP_NUM(pkt->wIndex) - 1U].DIEPCTL;
-										ctl.EPENA = 0;
-										ctl.EPDIS = 0;
-										ctl.SD0PID_SEVNFRM = 1;
-										OTG_FS.DIEP[UEP_NUM(pkt->wIndex) - 1U].DIEPCTL = ctl;
-									} else {
-										OTG_FS_DOEPCTLx_t ctl = OTG_FS.DOEP[UEP_NUM(pkt->wIndex) - 1U].DOEPCTL;
-										ctl.EPENA = 0;
-										ctl.EPDIS = 0;
-										ctl.SD0PID_SEVENFRM = 1;
-										OTG_FS.DOEP[UEP_NUM(pkt->wIndex) - 1U].DOEPCTL = ctl;
-									}
-									taskEXIT_CRITICAL();
-								}
-							}
-
-							return ok;
+					if ((0x01 <= pkt->wIndex && pkt->wIndex <= UEP_MAX_ENDPOINT) || (0x81 <= pkt->wIndex && pkt->wIndex <= (0x80 | UEP_MAX_ENDPOINT))) {
+						const udev_endpoint_info_t *einfo = uutil_find_endpoint_info(pkt->wIndex);
+						if (einfo) {
+							return uep_clear_halt(pkt->wIndex, einfo->can_clear_halt, einfo->on_clear_halt);
 						}
-					} else {
-						// Endpoint zero is never halted, but always allows halt feature to be cleared.
+					} else if (pkt->wIndex == 0x00U || pkt->wIndex == 0x80U) {
+						// Endpoint zero is never halted, but always allows
+						// halt feature to be cleared.
 						return true;
 					}
 				}
@@ -655,66 +551,49 @@ bool uep0_default_handler(const usb_setup_packet_t *pkt) {
 					uep0_data_write(&ZERO16, sizeof(ZERO16));
 					return true;
 				} else if (UEP_NUM(pkt->wIndex) <= UEP_MAX_ENDPOINT) {
-					uint16_t status = (xEventGroupGetBits(uep_eps[UEP_IDX(pkt->wIndex)].event_group) & UEP_EVENT_HALTED) ? 1U : 0U;
-					uep0_data_write(&status, sizeof(status));
-					return true;
+					uep_ep_t *ctx = &uep_eps[UEP_IDX(pkt->wIndex)];
+					xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+					uep_state_t state = ctx->state;
+					xSemaphoreGive(ctx->mutex);
+					bool exists, halted;
+					switch (state) {
+						case UEP_STATE_INACTIVE:
+							exists = false;
+							break;
+
+						case UEP_STATE_IDLE:
+						case UEP_STATE_RUNNING:
+							exists = true;
+							halted = false;
+							break;
+
+						case UEP_STATE_HALTED:
+						case UEP_STATE_HALTED_WAITING:
+							exists = true;
+							halted = true;
+							break;
+
+						case UEP_STATE_CLEAR_HALT_PENDING:
+							exists = true;
+							halted = false;
+							break;
+
+						default:
+							abort();
+					}
+					if (exists) {
+						uint16_t status = halted ? 1U : 0U;
+						uep0_data_write(&status, sizeof(status));
+						return true;
+					}
 				}
 			} else if (pkt->bRequest == USB_CREQ_SET_FEATURE && !pkt->wLength) {
 				if (pkt->wValue == USB_FEATURE_ENDPOINT_HALT && UEP_NUM(pkt->wIndex)) {
-					uep_ep_t *ctx = &uep_eps[UEP_IDX(pkt->wIndex)];
-
-					// Take the management mutex.
-					xSemaphoreTake(ctx->manage_mutex, portMAX_DELAY);
-
-					// Check the status of the endpoint.
-					bool ok, run_cb;
-					EventBits_t events = xEventGroupGetBits(ctx->event_group);
-					if (events & UEP_EVENT_DEACTIVATED) {
-						// Endpoint is not active, so request should fail.
-						ok = false;
-						run_cb = false;
-					} else if (events & UEP_EVENT_HALTED) {
-						// Endpoint has already been halted by someone else, so request should succeed but do nothing.
-						ok = true;
-						run_cb = false;
-					} else {
-						// Endpoint is active and not halted.
-						ok = true;
-						run_cb = true;
-
-						// Mark endpoint as halted in control block, which causes any in-progress operation to terminate.
-						xEventGroupClearBits(ctx->event_group, UEP_EVENT_NOT_HALTED);
-						xEventGroupSetBits(ctx->event_group, UEP_EVENT_HALTED);
-
-						// Notify the asynchronous event group if one is present.
-						uep_notify_async(pkt->wIndex);
-
-						// Wait for in-progress transfer to terminate and then take the transfer mutex to prevent another from starting.
-						xSemaphoreTake(ctx->transfer_mutex, portMAX_DELAY);
-
-						// Set the hardware.
-						if (UEP_DIR(pkt->wIndex)) {
-							OTG_FS.DIEP[UEP_NUM(pkt->wIndex) - 1U].DIEPCTL.STALL = 1;
-						} else {
-							OTG_FS.DOEP[UEP_NUM(pkt->wIndex) - 1U].DOEPCTL.STALL = 1;
-						}
-
-						// Release transfer mutex.
-						xSemaphoreGive(ctx->transfer_mutex);
+					const udev_endpoint_info_t *einfo = uutil_find_endpoint_info(pkt->wIndex);
+					if (einfo) {
+						uep_halt_with_cb(pkt->wIndex, einfo->on_commanded_halt);
+						return true;
 					}
-
-					// Release management mutex.
-					xSemaphoreGive(ctx->manage_mutex);
-
-					// Run the callback if we should.
-					if (run_cb) {
-						const udev_endpoint_info_t *einfo = uutil_find_endpoint_info(pkt->wIndex);
-						if (einfo && einfo->on_commanded_halt) {
-							einfo->on_commanded_halt();
-						}
-					}
-
-					return ok;
 				}
 			}
 		}
