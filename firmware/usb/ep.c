@@ -134,6 +134,8 @@ static void uep_disable(unsigned int ep) {
 		taskEXIT_CRITICAL();
 		// Wait for the endpoint to be disabled.
 		xSemaphoreTake(ctx->disabled_sem, portMAX_DELAY);
+		// Flush the transmit FIFO.
+		udev_flush_tx_fifo(ep);
 	} else {
 		// Disabling an OUT endpoint.
 		xSemaphoreTake(udev_gonak_mutex, portMAX_DELAY);
