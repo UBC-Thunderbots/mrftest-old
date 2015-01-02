@@ -47,12 +47,11 @@ In general, it is harmless to try to finish an endpoint operation that has not i
 The only rule is that, when an endpoint needs servicing, it will invoke its callback once and only once; if an application fails to finish an operation that is ready to finish and then goes back to sleep, it may deadlock waiting for an endpoint that has already asked for service.
 The application must be sure to service all endpoints promptly; failure to service an endpoint may delay other activities.
 
-It is essential that all asynchronous operations that are started are finished by the same task.
+It is essential that all asynchronous operations that are started are finished.
 For example, when exiting a configuration or alternate setting, the task handling the endpoints must ensure it keeps polling and finishing operations until all operations report \c ECONNRESET (or success) rather than \c EINPROGRESS.
 If this is not done, the operation will remain unfinished, and any further activity on that endpoint will deadlock waiting for the operation to finish.
-Because FreeRTOS mutexes are used internally, the finish function (which releases a mutex) must be called by the same task as the start function (which takes that mutex).
+It is not strictly necessary that the finish be performed by the same task that performed the start, though that will usually be the case.
 
 The asynchronous API does not allow multiple transfers to be queued for a single endpoint.
-Attempting to start a second transfer before the first is finished will block until the first transfer is finished.
-Because the first transfer is not considered finished until its finish function has returned, if this attempt is made from the same task that would normally run the finish function, the system will deadlock.
+Attempting to start a second transfer before the first is finished invokes undefined behaviour.
 */
