@@ -254,9 +254,13 @@ static void udev_task(void *UNUSED(param)) {
 				udev_flush_rx_fifo();
 				udev_flush_tx_fifo(0x80U);
 
-				// Set local NAK on all OUT endpoints.
-				// If this is not done, then on powerup, the endpoints are *disabled*, but they do *not* have local NAK status.
-				// In such a situation, an OUT transaction may be ACKed!
+				// Set local NAK on all OUT endpoints. If this is not done,
+				// then on powerup, the endpoints are *disabled*, but they do
+				// *not* have local NAK status. In such a situation, an OUT
+				// transaction may be ACKed! This is not a problem with IN
+				// endpoints because, even lacking local NAK status, they will
+				// always NAK when disabled because their transmit FIFOs are
+				// empty.
 				OTG_FS_DOEPCTL0_t ctl0 = { .SNAK = 1 };
 				OTG_FS.DOEPCTL0 = ctl0;
 				for (unsigned int i = 0U; i < UEP_MAX_ENDPOINT; ++i) {
