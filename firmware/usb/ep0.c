@@ -4,7 +4,7 @@
  * These functions are used to communicate over endpoint zero, the control endpoint.
  * All functions in this section must only be called from the USB stack internal task.
  *
- * @{
+ * \{
  */
 #include <usb.h>
 #include "internal.h"
@@ -22,17 +22,33 @@
  * \cond INTERNAL
  */
 /**
- * \brief A pointer to the next location where an OUT transaction to endpoint zero will be written by the ISR.
+ * \brief The most recent setup-stage-related event that happened on endpoint
+ * zero.
  */
-uint8_t *uep0_out_data_pointer = 0;
+uep0_setup_event_t uep0_setup_event = UEP0_SETUP_EVENT_NONE;
 
 /**
- * \brief The size of an OUT endpoint zero packet.
- *
- * While the endpoint is enabled, before the transaction is received, this is the maximum number of bytes the ISR is allowed to write into the buffer.
- * After the transaction has been taken, this is the size of the received packet, which may be larger or smaller than the original value.
+ * \brief A pointer to the next location where an OUT transaction to endpoint
+ * zero will be written by the ISR.
  */
-size_t uep0_out_data_length = 0U;
+void *uep0_out_wptr = 0;
+
+/**
+ * \brief The length of the OUT data.
+ *
+ * While the endpoint is enabled, before the transaction is received, this is
+ * the maximum number of bytes the ISR is allowed to write into the buffer.
+ * After the transaction has been taken, this is the size of the received
+ * packet, which may be larger or smaller than the original value.
+ */
+size_t uep0_out_length = 0U;
+
+/**
+ * \brief A bitmask of transfers on endpoint zero that have completed.
+ *
+ * Bit 0 is for an OUT transfer while bit 1 is for an IN transfer.
+ */
+unsigned int uep0_xfrc = 0;
 
 /**
  * \brief The currently active configuration.
@@ -45,9 +61,41 @@ const udev_config_info_t *uep0_current_configuration = 0;
 uint8_t *uep0_alternate_settings = 0;
 
 /**
+ * \brief A double buffer for holding SETUP transactions.
+ *
+ * Index \ref uep0_setup_packet_wptr will be written into by the ISR whenever a
+ * SETUP transaction arrives.
+ */
+static usb_setup_packet_t uep0_setup_packets[2];
+
+/**
+ * \brief The index of the buffer which will receive incoming SETUP
+ * transactions.
+ *
+ * The interrupt service routine uses this index to write SETUP transactions
+ * into \ref udev_setup_packets. When the setup stage complete event arrives at
+ * the stack internal task, it atomically inverts this index to ensure the
+ * SETUP transaction is not overwritten while the control transfer is under
+ * way.
+ */
+static unsigned int uep0_setup_packet_wptr = 0U;
+
+/**
+ * \brief The SETUP transaction of the current control transfer.
+ *
+ * This variable is null if no control transfer is under way.
+ */
+static const usb_setup_packet_t *uep0_setup_packet = 0;
+
+/**
  * \brief The function that will be invoked after the status stage of the current control transfer.
  */
 static void (*uep0_poststatus)(void) = 0;
+
+/**
+ * \brief Whether endpoint zero is functionally halted.
+ */
+static bool uep0_halted = false;
 /**
  * \endcond
  */
@@ -55,126 +103,146 @@ static void (*uep0_poststatus)(void) = 0;
 
 
 /**
- * \cond INTERNAL
- */
-static void uep0_enter_configuration(void);
-static void uep0_altsetting_activate_endpoints(unsigned int interface, const usb_interface_descriptor_t *interface_descriptor);
-static void uep0_altsetting_deactivate_endpoints(const usb_interface_descriptor_t *interface_descriptor);
-/**
- * \endcond
- */
-
-
-
-/**
- * \cond INTERNAL
- * \brief Waits for an OUT transfer on endpoint zero to finish.
- *
- * This function must be called after the transfer has been enabled in the
- * engine. The function is guaranteed only to return once the endpoint is
- * disabled, or at least in NAK status, one way or another.
- *
- * \retval true if the transfer was successful
- * \retval false if the transfer failed for some reason
- *
- * \exception EPIPE the device state changed
- * \exception ECONNRESET a SETUP transaction arrived
- */
-static bool uep0_wait_out(void) {
-	for (;;) {
-		EventBits_t events = xEventGroupWaitBits(udev_event_group, UDEV_EVENT_STATE_CHANGED | UEP0_EVENT_SETUP | UEP0_EVENT_OUT_XFRC, pdTRUE, pdFALSE, portMAX_DELAY);
-		if ((events & UDEV_EVENT_STATE_CHANGED) && __atomic_load_n(&udev_state, __ATOMIC_RELAXED) != UDEV_STATE_ENUMERATED) {
-			// Device state is no longer enumerated due to USB reset, cable unplug, or soft detach.
-			if (!(events & (UEP0_EVENT_SETUP | UEP0_EVENT_OUT_XFRC))) {
-				// The endpoint has not finished, so it is still enabled. For
-				// endpoints other than zero, hardware clears USBAEP on reset,
-				// but for endpoint zero, USBAEP is hardwired to 1. We also
-				// can’t actually disable the endpoint (EPDIS is read-only in
-				// DOEPCTL0). The best we can do is stall further traffic until
-				// the next SETUP packet.
-				OTG_FS_DOEPCTL0_t ctl = OTG_FS.DOEPCTL0;
-				ctl.EPENA = 0;
-				ctl.EPDIS = 0;
-				ctl.STALL = 1;
-				OTG_FS.DOEPCTL0 = ctl;
-				// Clear out either of these events which arrived while
-				// stalling the endpoint. Otherwise, they might confuse future
-				// iterations.
-				xEventGroupClearBits(udev_event_group, UEP0_EVENT_SETUP | UEP0_EVENT_OUT_XFRC);
-			}
-			errno = EPIPE;
-			return false;
-		}
-		if (events & UEP0_EVENT_SETUP) {
-			// Setup stage of a new control transfer is finished.
-			// We need to leave this bit set in the event mask so the top-level dispatcher will handle the new control transfer.
-			xEventGroupSetBits(udev_event_group, UEP0_EVENT_SETUP);
-			// Receiving a SETUP packet automatically disables OUT endpoint zero.
-			// Therefore, even if the SETUP packet interrupted an ongoing transfer, we don’t need to disable the endpoint ourselves.
-			// It’s possible that XFRC might have happened as well.
-			// Could this be a problem?
-			// Maybe the data stage actually finished before the new SETUP packet arrived, in which case we ought to report the data stage as successful to the caller?
-			// Actually, this is not a problem: by sending another SETUP packet, the host omitted the status stage of this transfer.
-			// Therefore, clearly, the host no longer cares about this transfer and doesn’t expect any side effects to have occurred.
-			// So, it’s safe to discard everything.
-			errno = ECONNRESET;
-			return false;
-		}
-		if (events & UEP0_EVENT_OUT_XFRC) {
-			// The endpoint has finished.
-			return true;
-		}
-	}
-}
-/**
- * \endcond
- */
-
-/**
- * \brief Reads the data stage of a control transfer.
+ * \brief Reads the OUT data stage of a control transfer.
  *
  * This function blocks until the data stage finishes or an error is detected.
  *
- * \param[out] buffer the buffer into which to store the received data, which must be large enough to accommodate the length specified in the SETUP packet
+ * \param[out] buffer the buffer into which to store the received data, which
+ * must be large enough to accommodate the length specified in the SETUP packet
  *
  * \retval true if the read completed successfully
  * \retval false if an error occurred before or during the read
  *
- * \exception ECONNRESET another SETUP packet was received since this control transfer started
- * \exception EPIPE the endpoint was disabled, either when the function was first called or while the transfer was occurring, due to USB reset signalling or cable unplug
- * \exception EOVERFLOW the host attempted to send more data than it specified in the SETUP packet
+ * \exception ECONNRESET another SETUP packet was received since this control
+ * transfer started
+ * \exception EPIPE the endpoint was disabled, either when the function was
+ * first called or while the transfer was occurring, due to USB reset
+ * signalling, cable unplug, or a call to \ref udev_detach
+ * \exception EOVERFLOW the host attempted to send more data than it specified
+ * in the SETUP packet
  */
 bool uep0_data_read(void *buffer) {
 	// Sanity check.
-	assert(!udev_setup_packet->bmRequestType.direction);
-	assert(udev_setup_packet->wLength);
+	assert(!uep0_setup_packet->bmRequestType.direction);
+	assert(uep0_setup_packet->wLength);
 	assert(buffer);
 
 	// Run the data stage.
-	uep0_out_data_pointer = buffer;
+	uep0_out_wptr = buffer;
 	size_t max_packet = udev_info->device_descriptor.bMaxPacketSize0;
-	size_t left = udev_setup_packet->wLength;
+	size_t left = uep0_setup_packet->wLength;
 	while (left) {
-		// Enable the endpoint for one packet.
-		size_t this = left > max_packet ? max_packet : left;
-		uep0_out_data_length = this;
-		OTG_FS_DOEPTSIZ0_t tsiz = { .PKTCNT = 1, .XFRSIZ = max_packet };
-		OTG_FS.DOEPTSIZ0 = tsiz;
-		OTG_FS_DOEPCTL0_t ctl = { .EPENA = 1, .CNAK = 1 };
-		OTG_FS.DOEPCTL0 = ctl;
-
-		// Wait until the endpoint finishes, an interrupting SETUP packet arrives, or the device state is no longer enumerated.
-		if (!uep0_wait_out()) {
+		// Check for USB reset, cable unplug, \ref udev_detach, or new SETUP
+		// packet before enabling the endpoint.
+		if (__atomic_load_n(&udev_state_change, __ATOMIC_RELAXED) != UDEV_STATE_CHANGE_NONE) {
+			errno = EPIPE;
+			return false;
+		}
+		if (__atomic_load_n(&uep0_setup_event, __ATOMIC_RELAXED) != UEP0_SETUP_EVENT_NONE) {
+			errno = ECONNRESET;
 			return false;
 		}
 
-		// A packet was shipped.
-		// In this case, the ISR sets uep0_out_data_length to the length of the packet actually received, while copying the data into the buffer and advancing the pointer.
-		if (uep0_out_data_length > this) {
+		// Enable the endpoint for one packet.
+		size_t this = left > max_packet ? max_packet : left;
+		uep0_out_length = this;
+		// Prevent sinking writes to uep0_out_{wptr,length} below this line.
+		__atomic_signal_fence(__ATOMIC_RELEASE);
+		{
+			OTG_FS_DOEPTSIZ0_t tsiz = { .PKTCNT = 1, .XFRSIZ = max_packet };
+			OTG_FS.DOEPTSIZ0 = tsiz;
+			OTG_FS_DOEPCTL0_t ctl = { .EPENA = 1, .CNAK = 1 };
+			OTG_FS.DOEPCTL0 = ctl;
+		}
+
+		// Wait for transfer complete, a new setup-stage event, or a state
+		// change.
+		unsigned int xfrc;
+		while (!(xfrc = __atomic_exchange_n(&uep0_xfrc, 0, __ATOMIC_RELAXED))) {
+			bool abort = false;
+			if (__atomic_load_n(&udev_state_change, __ATOMIC_RELAXED) != UDEV_STATE_CHANGE_NONE) {
+				// A USB reset, cable unplug, or \ref udev_detach happened.
+				abort = true;
+				errno = EPIPE;
+			}
+			if (__atomic_load_n(&uep0_setup_event, __ATOMIC_RELAXED) != UEP0_SETUP_EVENT_NONE) {
+				// A new SETUP packet was received.
+				abort = true;
+				errno = ECONNRESET;
+			}
+			if (abort) {
+				// Because of the event that occurred, we must abort the
+				// transfer that is currently running.
+				//
+				// In the case of a new SETUP packet arriving, the hardware
+				// disables the endpoint automatically as soon as it sees the
+				// token, which is awesome. However, there is still a tiny race
+				// condition: we could write EPENA=1 just a moment after the
+				// SETUP token arrives, thus starting a transfer which we think
+				// is for the old control transfer but which will actually see
+				// data for the new control transfer.
+				//
+				// Also, USB reset signalling will not disable the endpoint (it
+				// will clear USBAEP for all nonzero endpoints which also
+				// inhibits traffic, but endpoint zero’s USBAEP is hardwired to
+				// 1). So, we still need to do some work in firmware to be
+				// absolutely certain no traffic will be accepted at all.
+				//
+				// No matter what we do, this is still slightly racy. If a
+				// SETUP token arrives a moment before we write EPENA=1, there
+				// is still a small window of time after we write EPENA=1 and
+				// before we get in here to stop things where some traffic
+				// could flow. This race is impossible to fix AFAICT. However,
+				// it should be hard to trigger ever, and impossible to trigger
+				// unless the host is doing something rather non-standard like
+				// abandoning a control transfer in the middle for no good
+				// reason almost immediately after starting it.
+				//
+				// We can’t actually disable endpoint zero under application
+				// request (the EPDIS bit is not implemented for endpoint
+				// zero). So, do the best we can: endpoint local NAK status.
+				OTG_FS_DOEPCTL0_t ctl = { .SNAK = 1 };
+				OTG_FS.DOEPCTL0 = ctl;
+				// Normally, when disabling a non-zero OUT endpoint, we first
+				// achieve global OUT NAK (which fires an interrupt), then
+				// disable the endpoint using EPDIS (which fires a second
+				// interrupt), thus allowing us to block until the endpoint is
+				// fully disabled. We can’t use EPDIS due to it not existing
+				// for endpoint zero, and local NAK status for an OUT endpoint
+				// doesn’t fire an interrupt, so we have no choice but to spin
+				// rather than block. This is likely to take much less than one
+				// FreeRTOS timeslice, so it would be counterproductive to
+				// sleep.
+				while (!OTG_FS.DOEPCTL0.NAKSTS);
+				// Prevent the write to uep0_xfrc from being hoisted above
+				// here.
+				__atomic_signal_fence(__ATOMIC_ACQUIRE);
+				// While we were waiting to achieve local NAK status, it’s
+				// possible the transfer might have completed. If that
+				// happened, just throw away the transfer complete notification
+				// from the ISR. We don’t care about the data, but we must
+				// clear the flag to maintain the invariant that the flag is
+				// false whenever no transfer is being done.
+				__atomic_store_n(&uep0_xfrc, 0, __ATOMIC_RELAXED);
+				// Report to the caller.
+				return false;
+			}
+			xSemaphoreTake(udev_event_sem, portMAX_DELAY);
+		}
+
+		// Sanity check: only OUT endpoint zero is being activated, so IN
+		// endpoint zero must never report transfer complete.
+		assert(!(xfrc & 2));
+
+		// A packet was shipped. In this case, the ISR sets uep0_out_length to
+		// the length of the packet actually received, while copying the data
+		// into the buffer and advancing the pointer.
+		if (uep0_out_length > this) {
 			errno = EOVERFLOW;
 			return false;
 		} else {
-			left -= uep0_out_data_length;
+			left -= uep0_out_length;
+			uep0_out_wptr = ((char *) uep0_out_wptr) + uep0_out_length;
 		}
 	}
 
@@ -183,140 +251,96 @@ bool uep0_data_read(void *buffer) {
 }
 
 /**
- * \cond INTERNAL
- * \brief Waits for an IN transfer on endpoint zero to finish.
+ * \brief Writes the IN data stage of a control transfer.
  *
- * This function must be called after the transfer has been enabled in the engine.
- * The function is guaranteed only to return once the endpoint is disabled, one way or another.
- *
- * \retval true if the transfer was successful
- * \retval false if the transfer failed for some reason
- *
- * \exception EPIPE the device state changed
- * \exception ECONNRESET a SETUP transaction arrived
- */
-static bool uep0_wait_in(void) {
-	for (;;) {
-		EventBits_t events = xEventGroupWaitBits(udev_event_group, UDEV_EVENT_STATE_CHANGED | UEP0_EVENT_SETUP | UEP0_EVENT_IN_XFRC, pdTRUE, pdFALSE, portMAX_DELAY);
-		if ((events & UDEV_EVENT_STATE_CHANGED) && __atomic_load_n(&udev_state, __ATOMIC_RELAXED) != UDEV_STATE_ENUMERATED) {
-			// Device state is no longer enumerated due to USB reset, cable unplug, or soft detach.
-			if (!(events & (UEP0_EVENT_SETUP | UEP0_EVENT_IN_XFRC))) {
-				// The endpoint has not finished, so it is still enabled.
-				// We must disable it.
-				// To do that, we first establish local NAK.
-				xEventGroupClearBits(udev_event_group, UEP0_EVENT_IN_NAKEFF);
-				if (!OTG_FS.DIEPCTL0.NAKSTS) {
-					OTG_FS.DIEPCTL0.SNAK = 1;
-					while (!(xEventGroupWaitBits(udev_event_group, UEP0_EVENT_IN_NAKEFF, pdTRUE, pdFALSE, portMAX_DELAY) & UEP0_EVENT_IN_NAKEFF));
-				}
-				assert(OTG_FS.DIEPCTL0.NAKSTS);
-				// Next, we disable the endpoint, but only if it is currently enabled (disabling a disabled endpoint is documented as being A Bad Idea).
-				// There is no race condition between checking EPENA and setting EPDIS, because when NAKSTS=1 there can be no XFRC because no packets can ship.
-				// According to the manual, SETUP packet reception sets NAK status but does *not* clear EPENA (though it does for OUT endpoint 0), so that cannot race here.
-				if (OTG_FS.DIEPCTL0.EPENA) {
-					OTG_FS.DIEPCTL0.EPDIS = 1;
-					while (!(xEventGroupWaitBits(udev_event_group, UEP0_EVENT_IN_DISD, pdTRUE, pdFALSE, portMAX_DELAY) & UEP0_EVENT_IN_DISD));
-				}
-				// Because we might have disabled the endpoint while data was still pending, flush the FIFO.
-				udev_flush_tx_fifo(0x80U);
-				// Clear out either of these events which arrived while stopping the endpoint.
-				// Otherwise, they might confuse future iterations.
-				xEventGroupClearBits(udev_event_group, UEP0_EVENT_SETUP | UEP0_EVENT_IN_XFRC);
-			}
-			errno = EPIPE;
-			return false;
-		}
-		if (events & UEP0_EVENT_SETUP) {
-			// Setup stage of a new control transfer is finished.
-			// We need to leave this bit set in the event mask so the top-level dispatcher will handle the new control transfer.
-			xEventGroupSetBits(udev_event_group, UEP0_EVENT_SETUP);
-			// Receiving a SETUP packet automatically sets NAK status on IN endpoint zero.
-			// Fully disable the endpoint, but only if it is currently enabled (disabling a disabled endpoint is documented as being A Bad Idea).
-			// There is no race condition between checking EPENA and setting EPDIS, because when NAKSTS=1 there can be no XFRC because no packets can ship.
-			// According to the manual, SETUP packet reception sets NAK status but does *not* clear EPENA (though it does for OUT endpoint 0), so that cannot race here.
-			if (OTG_FS.DIEPCTL0.EPENA) {
-				OTG_FS.DIEPCTL0.EPDIS = 1;
-				while (!(xEventGroupWaitBits(udev_event_group, UEP0_EVENT_IN_DISD, pdTRUE, pdFALSE, portMAX_DELAY) & UEP0_EVENT_IN_DISD));
-			}
-			// Because we might have disabled the endpoint while data was still pending, flush the FIFO.
-			udev_flush_tx_fifo(0x80U);
-			// It’s possible that XFRC might have happened as well.
-			// Could this be a problem?
-			// Maybe the data stage actually finished before the new SETUP packet arrived, in which case we ought to report the data stage as successful to the caller?
-			// Actually, this is not a problem: by sending another SETUP packet, the host omitted the status stage of this transfer.
-			// Therefore, clearly, the host no longer cares about this transfer and doesn’t expect any side effects to have occurred.
-			// So, it’s safe to discard everything.
-			errno = ECONNRESET;
-			return false;
-		}
-		if (events & UEP0_EVENT_IN_XFRC) {
-			// The endpoint has finished.
-			return true;
-		}
-	}
-}
-/**
- * \endcond
- */
-
-/**
- * \brief Writes the data stage of a control transfer.
- *
- * This function blocks until the data has been delivered or an error is detected.
+ * This function blocks until the data stage finishes or an error is detected.
  *
  * \param[in] data the data to send
- *
- * \param[in] length the maximum number of bytes to send, which is permitted to be more or less than the length requested in the SETUP packet (in the former case, the data is truncated)
+ * \param[in] length the maximum number of bytes to send, which is permitted to
+ * be more or less than the length requested in the SETUP packet (in the former
+ * case, the data is truncated)
  *
  * \retval true if the write completed successfully
  * \retval false if an error occurred before or during the write
  *
- * \exception ECONNRESET another SETUP packet was received since this control transfer started, or the host tried to start the status stage after sending less data than specified in the SETUP packet
- * \exception EPIPE the endpoint was disabled, either when the function was first called or while the transfer was occurring, due to USB reset signalling or cable unplug
+ * \exception ECONNRESET another SETUP packet was received since this control
+ * transfer started
+ * \exception EPIPE the endpoint was disabled, either when the function was
+ * first called or while the transfer was occurring, due to USB reset
+ * signalling, cable unplug, or a call to \ref udev_detach
  */
 bool uep0_data_write(const void *data, size_t length) {
-	// We consider writing more data than requested to be a successful operation where the data actually delivered is truncated.
-	// For uniformity, this policy should apply even when zero bytes are requested.
-	// Strictly speaking when wLength=0 a transfer is treated more like an OUT transfer than an IN transfer (the status stage is IN).
-	// If an application cares, it can always check the SETUP packet in more detail.
-	// However, in the common case where bRequest fully identifies a request, this clause prevents the application from having to special-case wLength=0.
-	if (!udev_setup_packet->wLength) {
+	// We consider writing more data than requested to be a successful
+	// operation where the data actually delivered is truncated. For
+	// uniformity, this policy should apply even when zero bytes are requested.
+	// Strictly speaking when wLength=0 a transfer is treated more like an OUT
+	// transfer than an IN transfer (the status stage is IN). If an application
+	// cares, it can always check the SETUP packet in more detail. However, in
+	// the common case where bRequest fully identifies a request, this clause
+	// prevents the application from having to special-case wLength=0.
+	if (!uep0_setup_packet->wLength) {
 		return true;
 	}
 
 	// Sanity check.
-	assert(udev_setup_packet->bmRequestType.direction);
-	assert(udev_setup_packet->wLength);
+	assert(uep0_setup_packet->bmRequestType.direction);
 	assert(data || !length);
 
 	// Clamp length to amount requested by host.
-	if (length > udev_setup_packet->wLength) {
-		length = udev_setup_packet->wLength;
+	if (length > uep0_setup_packet->wLength) {
+		length = uep0_setup_packet->wLength;
 	}
 
 	// Decide whether we will send a ZLP.
-	bool need_zlp = (length != udev_setup_packet->wLength) && !(length & (udev_info->device_descriptor.bMaxPacketSize0 - 1U));
+	bool need_zlp = (length != uep0_setup_packet->wLength) && !(length & (udev_info->device_descriptor.bMaxPacketSize0 - 1U));
 
-	// Run the data stage.
-	// DIEPTSIZ0 provides a 2-bit PKTCNT field and a 7-bit XFRSIZ field.
-	// That means we can only ship blocks of up to min{3 packets, 127 bytes} at a time.
-	// For a 64-byte max packet size, that means one packet at a time.
-	// For anything smaller, than means three packets at a time.
-	// Because these blocks are so small, rather than having the ISR copy data into the transmit FIFO, we just do it directly on enabling the endpoint.
-	// The endpoint 0 transmit FIFO is always long enough for this to be safe.
-	//
-	// It could occur that the device sends the last data packet of the data stage, but the ACK handshake returned is corrupted.
-	// Then the device will still think it’s in the data stage, but the host will think it’s advanced to the status stage.
-	// This will result in an attempt to send an OUT transaction while the OUT endpoint is disabled.
-	// We fix this by starting the status stage now.
+	// It could occur that the device sends the last data packet of the data
+	// stage, but the ACK handshake returned is corrupted. Then the device will
+	// still think it’s in the data stage, but the host will think it’s
+	// advanced to the status stage. This will result in an attempt to send an
+	// OUT transaction while the OUT endpoint is disabled. We fix this by
+	// starting the status stage now.
 	{
-		OTG_FS_DOEPTSIZ0_t tsiz = { .PKTCNT = 1, .XFRSIZ = 0 };
+		uep0_out_wptr = 0;
+		uep0_out_length = 0;
+		// Prevent sinking writes to uep0_out_{wptr,length} below this line.
+		__atomic_signal_fence(__ATOMIC_RELEASE);
+		OTG_FS_DOEPTSIZ0_t tsiz = {
+			.PKTCNT = 1,
+			.XFRSIZ = udev_info->device_descriptor.bMaxPacketSize0
+		};
 		OTG_FS.DOEPTSIZ0 = tsiz;
 		OTG_FS_DOEPCTL0_t ctl = { .EPENA = 1, .CNAK = 1 };
 		OTG_FS.DOEPCTL0 = ctl;
 	}
+
+	// DIEPTSIZ0 provides a 2-bit PKTCNT field and a 7-bit XFRSIZ field. That
+	// means we can only ship blocks of up to min{3 packets, 127 bytes} at a
+	// time. For a 64-byte max packet size, that means one packet at a time.
+	// For anything smaller, than means three packets at a time. Because these
+	// blocks are so small, rather than having the ISR copy data into the
+	// transmit FIFO, we just do it directly on enabling the endpoint. The
+	// endpoint 0 transmit FIFO is always long enough for this to be safe.
 	const uint8_t *dptr = data;
 	while (length || need_zlp) {
+		// Check for USB reset, cable unplug, \ref udev_detach, new SETUP
+		// packet, or status stage complete before enabling the endpoint.
+		if (__atomic_load_n(&udev_state_change, __ATOMIC_RELAXED) != UDEV_STATE_CHANGE_NONE) {
+			errno = EPIPE;
+			return false;
+		}
+		if (__atomic_load_n(&uep0_setup_event, __ATOMIC_RELAXED) != UEP0_SETUP_EVENT_NONE) {
+			errno = ECONNRESET;
+			return false;
+		}
+		unsigned int xfrc = __atomic_exchange_n(&uep0_xfrc, 0, __ATOMIC_RELAXED);
+		if (xfrc & 1) {
+			return true;
+		}
+
+		// Sanity check, we did not start an IN transfer so it cannot have finished.
+		assert(!(xfrc & 2));
+
 		// Start a block.
 		size_t to_push;
 		if (length) {
@@ -335,36 +359,86 @@ bool uep0_data_write(const void *data, size_t length) {
 			to_push = 0U;
 			need_zlp = false;
 		}
-		OTG_FS_DIEPCTL0_t ctl = { .EPENA = 1, .CNAK = 1, .TXFNUM = 0, .MPSIZ = OTG_FS.DIEPCTL0.MPSIZ };
+		OTG_FS_DIEPCTL0_t ctl = {
+			.EPENA = 1,
+			.CNAK = 1,
+			.TXFNUM = 0,
+			.MPSIZ = OTG_FS.DIEPCTL0.MPSIZ
+		};
 		OTG_FS.DIEPCTL0 = ctl;
 		length -= to_push;
 
-		// The USB engine very strictly requires that all data for a whole packet be pushed into the FIFO at once.
-		// This rule even applies ACROSS DIFFERENT FIFOS.
-		// Pushing part of a packet, then going and doing some work on a completely different FIFO, then finishing the original packet makes the USB engine fall over and die.
-		// For most endpoints, we start (potentially) very large physical transfers and then let the ISR push packets—packet pushing is serialized simply by being in the ISR.
-		// For endpoint zero, the small size of PKTCNT/XFRSIZ means large physical transfers are impossible.
-		// For a small physical transfer, we save the overhead of getting into the ISR to push data by pushing it immediately when the endpoint is enabled, right here.
-		// However, we must ensure the ISR doesn’t fire during this time and go off and push data on some other endpoint.
-		// So, we must do this inside a critical section.
+		// The USB engine very strictly requires that all data for a whole
+		// packet be pushed into the FIFO at once. This rule even applies
+		// ACROSS DIFFERENT FIFOS. Pushing part of a packet, then going and
+		// doing some work on a completely different FIFO, then finishing the
+		// original packet makes the USB engine fall over and die. For most
+		// endpoints, we start (potentially) very large physical transfers and
+		// then let the ISR push packets—packet pushing is serialized simply by
+		// being in the ISR. For endpoint zero, the small size of PKTCNT/XFRSIZ
+		// means large physical transfers are impossible. For a small physical
+		// transfer, we save the overhead of getting into the ISR to push data
+		// by pushing it immediately when the endpoint is enabled, right here.
+		// However, we must ensure the ISR doesn’t fire during this time and go
+		// off and push data on some other endpoint. So, we must do this inside
+		// a critical section.
 		taskENTER_CRITICAL();
-		while (to_push) {
-			uint32_t word = 0U;
-			size_t word_size = to_push;
-			if (word_size > sizeof(uint32_t)) {
-				word_size = sizeof(uint32_t);
-			}
-			for (size_t i = 0; i < word_size; ++i) {
-				word |= ((uint32_t) *dptr++) << (i * 8U);
-			}
-			to_push -= word_size;
-			OTG_FS_FIFO[0U][0U] = word;
-		}
+		udev_tx_copy_in(&OTG_FS_FIFO[0][0], dptr, to_push);
+		dptr += to_push;
 		taskEXIT_CRITICAL();
 
-		// Wait until the endpoint finishes, an interrupting SETUP packet arrives, or the device state is no longer enumerated.
-		if (!uep0_wait_in()) {
-			return false;
+		// Wait for transfer complete, a new setup-stage event, or a state
+		// change.
+		while (!(xfrc = __atomic_exchange_n(&uep0_xfrc, 0, __ATOMIC_RELAXED))) {
+			bool abort = false;
+			if (__atomic_load_n(&udev_state_change, __ATOMIC_RELAXED) != UDEV_STATE_CHANGE_NONE) {
+				// A USB reset, cable unplug, or \ref udev_detach happened.
+				abort = true;
+				errno = EPIPE;
+			}
+			if (__atomic_load_n(&uep0_setup_event, __ATOMIC_RELAXED) != UEP0_SETUP_EVENT_NONE) {
+				// A new SETUP packet was received.
+				abort = true;
+				errno = ECONNRESET;
+			}
+			if (abort) {
+				// See the long comment in uep0_data_read for why this.
+				OTG_FS_DOEPCTL0_t octl = { .SNAK = 1 };
+				OTG_FS.DOEPCTL0 = octl;
+				OTG_FS_DIEPCTL0_t ictl = { .SNAK = 1 };
+				OTG_FS.DIEPCTL0 = ictl;
+				while (!OTG_FS.DOEPCTL0.NAKSTS);
+				while (!OTG_FS.DIEPCTL0.NAKSTS);
+				udev_flush_tx_fifo(0x80);
+				// Prevent the write to uep0_xfrc from being hoisted above
+				// here.
+				__atomic_signal_fence(__ATOMIC_ACQUIRE);
+				__atomic_store_n(&uep0_xfrc, 0, __ATOMIC_RELAXED);
+				// Report to the caller.
+				return false;
+			}
+			xSemaphoreTake(udev_event_sem, portMAX_DELAY);
+		}
+
+		if (xfrc & 1) {
+			// OUT status stage complete.
+			if (!(xfrc & 2)) {
+				// IN data stage not complete when status stage finished. Abort
+				// endpoint. See long comment in uep0_data_read for why done
+				// this way.
+				OTG_FS_DIEPCTL0_t ictl = { .SNAK = 1 };
+				OTG_FS.DIEPCTL0 = ictl;
+				while (!OTG_FS.DIEPCTL0.NAKSTS);
+				udev_flush_tx_fifo(0x80);
+				// Prevent the write to uep0_xfrc from being hoisted above
+				// here.
+				__atomic_signal_fence(__ATOMIC_ACQUIRE);
+				__atomic_store_n(&uep0_xfrc, 0, __ATOMIC_RELAXED);
+				return true;
+			} else {
+				// IN data stage finished as well as OUT status stage.
+				return true;
+			}
 		}
 	}
 
@@ -384,6 +458,15 @@ void uep0_set_poststatus(void (*cb)(void)) {
 /**
  * \cond INTERNAL
  */
+/**
+ * \brief Looks up a buffer into which the next arriving SETUP packet should be
+ * written.
+ *
+ * \return the buffer
+ */
+void *uep0_writable_setup_packet(void) {
+	return &uep0_setup_packets[uep0_setup_packet_wptr];
+}
 
 /**
  * \brief Runs the status stage for a successful control transfer.
@@ -391,8 +474,8 @@ void uep0_set_poststatus(void (*cb)(void)) {
  * This function returns once the status stage has finished.
  * This function is responsible for calling the poststatus callback, if one is registered.
  */
-void uep0_status_stage(void) {
-	if (!udev_setup_packet->bmRequestType.direction || !udev_setup_packet->wLength) {
+static void uep0_status_stage(void) {
+	if (!uep0_setup_packet->bmRequestType.direction || !uep0_setup_packet->wLength) {
 		// Data stage was OUT or not present, so status stage will be IN.
 		OTG_FS_DIEPTSIZ0_t tsiz = { .PKTCNT = 1, .XFRSIZ = 0 };
 		OTG_FS.DIEPTSIZ0 = tsiz;
@@ -400,205 +483,71 @@ void uep0_status_stage(void) {
 		OTG_FS.DIEPCTL0 = ctl;
 
 		// Wait until transfer complete.
-		uep0_wait_in();
+		unsigned int xfrc;
+		while (!(xfrc = __atomic_exchange_n(&uep0_xfrc, 0, __ATOMIC_RELAXED))) {
+			bool abort = false;
+			if (__atomic_load_n(&udev_state_change, __ATOMIC_RELAXED) != UDEV_STATE_CHANGE_NONE) {
+				// A USB reset, cable unplug, or \ref udev_detach happened.
+				abort = true;
+			}
+			if (__atomic_load_n(&uep0_setup_event, __ATOMIC_RELAXED) != UEP0_SETUP_EVENT_NONE) {
+				// A new SETUP packet was received.
+				abort = true;
+			}
+			if (abort) {
+				// See the long comment in uep0_data_read for why this.
+				OTG_FS_DIEPCTL0_t ictl = { .SNAK = 1 };
+				OTG_FS.DIEPCTL0 = ictl;
+				while (!OTG_FS.DIEPCTL0.NAKSTS);
+				// Prevent the write to uep0_xfrc from being hoisted above
+				// here.
+				__atomic_signal_fence(__ATOMIC_ACQUIRE);
+				__atomic_store_n(&uep0_xfrc, 0, __ATOMIC_RELAXED);
+				break;
+			}
+			xSemaphoreTake(udev_event_sem, portMAX_DELAY);
+		}
+
+		// Sanity check.
+		assert(xfrc == 2);
 	} else {
-		// Data stage was IN so status stage will be OUT.
-		// OUT status stages are started in uep0_data_write, so no need to do it here.
-		// However, we should still wait until the transfer finishes.
-		uep0_wait_out();
+		// Data stage was IN so status stage will be OUT. OUT status stages are
+		// started in uep0_data_write, so no need to do it here. However, we
+		// should still wait until the transfer finishes. Wait until transfer
+		// complete.
+		unsigned int xfrc;
+		while (!(xfrc = __atomic_exchange_n(&uep0_xfrc, 0, __ATOMIC_RELAXED))) {
+			bool abort = false;
+			if (__atomic_load_n(&udev_state_change, __ATOMIC_RELAXED) != UDEV_STATE_CHANGE_NONE) {
+				// A USB reset, cable unplug, or \ref udev_detach happened.
+				abort = true;
+			}
+			if (__atomic_load_n(&uep0_setup_event, __ATOMIC_RELAXED) != UEP0_SETUP_EVENT_NONE) {
+				// A new SETUP packet was received.
+				abort = true;
+			}
+			if (abort) {
+				// See the long comment in uep0_data_read for why this.
+				OTG_FS_DOEPCTL0_t octl = { .SNAK = 1 };
+				OTG_FS.DOEPCTL0 = octl;
+				while (!OTG_FS.DOEPCTL0.NAKSTS);
+				// Prevent the write to uep0_xfrc from being hoisted above
+				// here.
+				__atomic_signal_fence(__ATOMIC_ACQUIRE);
+				__atomic_store_n(&uep0_xfrc, 0, __ATOMIC_RELAXED);
+				break;
+			}
+			xSemaphoreTake(udev_event_sem, portMAX_DELAY);
+		}
+
+		// Sanity check.
+		assert(xfrc == 1);
 	}
 
 	if (uep0_poststatus) {
 		uep0_poststatus();
 		uep0_poststatus = 0;
 	}
-}
-
-/**
- * \brief Handles control transfers when no other handler is interested.
- *
- * \param[in] pkt the payload of the SETUP transaction starting the transfer
- *
- * \retval true if the handler accepted the transfer
- * \retval false if the handler could not handle the transfer
- */
-bool uep0_default_handler(const usb_setup_packet_t *pkt) {
-	static const uint16_t ZERO16 = 0U;
-	if (pkt->bmRequestType.type == USB_CTYPE_STANDARD) {
-		if (pkt->bmRequestType.recipient == USB_RECIPIENT_DEVICE) {
-			if (pkt->bRequest == USB_CREQ_GET_CONFIGURATION && pkt->bmRequestType.direction == 1 && !pkt->wValue && !pkt->wIndex && pkt->wLength == 1U) {
-				uint8_t conf = uep0_current_configuration ? uep0_current_configuration->descriptors->bConfigurationValue : 0U;
-				uep0_data_write(&conf, sizeof(conf));
-				return true;
-			} else if (pkt->bRequest == USB_CREQ_GET_DESCRIPTOR && pkt->bmRequestType.direction == 1) {
-				const void *descriptor = 0;
-				size_t length = 0;
-				switch (pkt->wValue >> 8U) {
-					case USB_DTYPE_DEVICE:
-						if ((pkt->wValue & 0xFFU) == 0) {
-							descriptor = &udev_info->device_descriptor;
-						}
-						break;
-
-					case USB_DTYPE_CONFIGURATION:
-						if ((pkt->wValue & 0xFFU) < udev_info->device_descriptor.bNumConfigurations) {
-							descriptor = udev_info->configurations[pkt->wValue & 0xFFU]->descriptors;
-							length = ((const usb_configuration_descriptor_t *) descriptor)->wTotalLength;
-						}
-						break;
-
-					case USB_DTYPE_STRING:
-						if (!(pkt->wValue & 0xFFU)) {
-							descriptor = udev_info->string_zero_descriptor;
-						} else if ((pkt->wValue & 0xFFU) <= udev_info->string_count) {
-							for (const udev_language_info_t *lang = udev_info->language_table; lang->strings && !descriptor; ++lang) {
-								if (lang->id == pkt->wIndex) {
-									descriptor = lang->strings[(pkt->wValue & 0xFFU) - 1U];
-								}
-							}
-						}
-						break;
-				}
-
-				if (descriptor) {
-					if (!length) {
-						length = *(const uint8_t *) descriptor;
-					}
-					uep0_data_write(descriptor, length);
-					return true;
-				}
-			} else if (pkt->bRequest == USB_CREQ_GET_STATUS && pkt->bmRequestType.direction == 1 && !pkt->wValue && !pkt->wIndex && pkt->wLength == 2U) {
-				uint16_t status = 0U;
-				if (__atomic_load_n(&udev_self_powered, __ATOMIC_RELAXED)) {
-					status |= 1U;
-				}
-				uep0_data_write(&status, sizeof(status));
-				return true;
-			} else if (pkt->bRequest == USB_CREQ_SET_ADDRESS && pkt->wValue <= 127 && !pkt->wIndex && !pkt->wLength) {
-				OTG_FS.DCFG.DAD = pkt->wValue;
-				return true;
-			} else if (pkt->bRequest == USB_CREQ_SET_CONFIGURATION && !pkt->wIndex && !pkt->wLength) {
-				const udev_config_info_t *new_config = 0;
-				if (pkt->wValue) {
-					for (unsigned int i = 0; !new_config && i < udev_info->device_descriptor.bNumConfigurations; ++i) {
-						if (udev_info->configurations[i]->descriptors->bConfigurationValue == pkt->wValue) {
-							new_config = udev_info->configurations[i];
-						}
-					}
-					if (!new_config) {
-						return false;
-					}
-				}
-
-				if (new_config && new_config->can_enter && !new_config->can_enter()) {
-					return false;
-				}
-
-				uep0_exit_configuration();
-				uep0_current_configuration = new_config;
-				uep0_enter_configuration();
-
-				return true;
-			}
-		} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_INTERFACE && uep0_current_configuration && pkt->wIndex < uep0_current_configuration->descriptors->bNumInterfaces) {
-			if (pkt->bRequest == USB_CREQ_GET_INTERFACE && !pkt->wValue && pkt->wLength == 1U) {
-				uep0_data_write(&uep0_alternate_settings[pkt->wIndex], 1U);
-				return true;
-			} else if (pkt->bRequest == USB_CREQ_GET_STATUS && !pkt->wValue && pkt->wLength == 2U) {
-				uep0_data_write(&ZERO16, sizeof(ZERO16));
-				return true;
-			} else if (pkt->bRequest == USB_CREQ_SET_INTERFACE && !pkt->wLength) {
-				unsigned int interface = pkt->wIndex;
-				unsigned int new_as = pkt->wValue;
-				const usb_interface_descriptor_t *newidesc = uutil_find_interface_descriptor(uep0_current_configuration->descriptors, interface, new_as);
-				if (newidesc) {
-					const udev_interface_info_t *iinfo = uep0_current_configuration->interfaces[interface];
-					unsigned int old_as = uep0_alternate_settings[interface];
-					const usb_interface_descriptor_t *oldidesc = uutil_find_interface_descriptor(uep0_current_configuration->descriptors, interface, old_as);
-					assert(oldidesc);
-					if (iinfo && iinfo->alternate_settings[new_as].can_enter && !iinfo->alternate_settings[new_as].can_enter()) {
-						return false;
-					}
-					uep0_altsetting_deactivate_endpoints(oldidesc);
-					if (iinfo && iinfo->alternate_settings[old_as].on_exit) {
-						iinfo->alternate_settings[old_as].on_exit();
-					}
-					uep0_alternate_settings[interface] = new_as;
-					uep0_altsetting_activate_endpoints(interface, newidesc);
-					if (iinfo && iinfo->alternate_settings[new_as].on_enter) {
-						iinfo->alternate_settings[new_as].on_enter();
-					}
-					return true;
-				}
-			}
-		} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_ENDPOINT && UEP_NUM(pkt->wIndex) <= UEP_MAX_ENDPOINT) {
-			if (pkt->bRequest == USB_CREQ_CLEAR_FEATURE && !pkt->wLength) {
-				if (pkt->wValue == USB_FEATURE_ENDPOINT_HALT) {
-					if (!UEP_NUM(pkt->wIndex)) {
-						// Endpoint zero is never halted, but always allows
-						// halt feature to be cleared.
-						return true;
-					} else {
-						const udev_endpoint_info_t *einfo = uutil_find_endpoint_info(pkt->wIndex);
-						if (einfo) {
-							return uep_clear_halt(pkt->wIndex, einfo->can_clear_halt, einfo->on_clear_halt);
-						}
-					}
-				}
-			} else if (pkt->bRequest == USB_CREQ_GET_STATUS && !pkt->wValue && pkt->wLength == 2U) {
-				if (!UEP_NUM(pkt->wIndex)) {
-					// Endpoint zero is never halted.
-					uep0_data_write(&ZERO16, sizeof(ZERO16));
-					return true;
-				} else {
-					uep_ep_t *ctx = &uep_eps[UEP_IDX(pkt->wIndex)];
-					xSemaphoreTake(ctx->mutex, portMAX_DELAY);
-					uep_state_t state = ctx->state;
-					xSemaphoreGive(ctx->mutex);
-					bool exists, halted;
-					switch (state) {
-						case UEP_STATE_INACTIVE:
-							exists = false;
-							break;
-
-						case UEP_STATE_IDLE:
-						case UEP_STATE_RUNNING:
-							exists = true;
-							halted = false;
-							break;
-
-						case UEP_STATE_HALTED:
-						case UEP_STATE_HALTED_WAITING:
-							exists = true;
-							halted = true;
-							break;
-
-						case UEP_STATE_CLEAR_HALT_PENDING:
-							exists = true;
-							halted = false;
-							break;
-
-						default:
-							abort();
-					}
-					if (exists) {
-						uint16_t status = halted ? 1U : 0U;
-						uep0_data_write(&status, sizeof(status));
-						return true;
-					}
-				}
-			} else if (pkt->bRequest == USB_CREQ_SET_FEATURE && !pkt->wLength) {
-				if (pkt->wValue == USB_FEATURE_ENDPOINT_HALT && UEP_NUM(pkt->wIndex)) {
-					const udev_endpoint_info_t *einfo = uutil_find_endpoint_info(pkt->wIndex);
-					if (einfo) {
-						uep_halt_with_cb(pkt->wIndex, einfo->on_commanded_halt);
-						return true;
-					}
-				}
-			}
-		}
-	}
-	return false;
 }
 
 /**
@@ -678,7 +627,7 @@ static void uep0_enter_configuration(void) {
  * This function deactivates all nonzero endpoints.
  * It then invokes the exit callbacks for all current alternate settings and interfaces and for the configuration itself.
  */
-void uep0_exit_configuration(void) {
+static void uep0_exit_configuration(void) {
 	if (uep0_current_configuration) {
 		// First order of business, scan the descriptor block and deactivate all endpoints.
 		const uint8_t *base = (const uint8_t *) uep0_current_configuration->descriptors;
@@ -756,11 +705,294 @@ static void uep0_altsetting_deactivate_endpoints(const usb_interface_descriptor_
 		dptr += dptr[0U];
 	}
 }
+
+/**
+ * \brief Handles control transfers when no other handler is interested.
+ *
+ * \param[in] pkt the payload of the SETUP transaction starting the transfer
+ *
+ * \retval true if the handler accepted the transfer
+ * \retval false if the handler could not handle the transfer
+ */
+static bool uep0_default_handler(const usb_setup_packet_t *pkt) {
+	static const uint16_t ZERO16 = 0U;
+	if (pkt->bmRequestType.type == USB_CTYPE_STANDARD) {
+		if (pkt->bmRequestType.recipient == USB_RECIPIENT_DEVICE) {
+			if (pkt->bRequest == USB_CREQ_GET_CONFIGURATION && pkt->bmRequestType.direction == 1 && !pkt->wValue && !pkt->wIndex && pkt->wLength == 1U && !uep0_halted) {
+				uint8_t conf = uep0_current_configuration ? uep0_current_configuration->descriptors->bConfigurationValue : 0U;
+				uep0_data_write(&conf, sizeof(conf));
+				return true;
+			} else if (pkt->bRequest == USB_CREQ_GET_DESCRIPTOR && pkt->bmRequestType.direction == 1 && !uep0_halted) {
+				const void *descriptor = 0;
+				size_t length = 0;
+				switch (pkt->wValue >> 8U) {
+					case USB_DTYPE_DEVICE:
+						if ((pkt->wValue & 0xFFU) == 0) {
+							descriptor = &udev_info->device_descriptor;
+						}
+						break;
+
+					case USB_DTYPE_CONFIGURATION:
+						if ((pkt->wValue & 0xFFU) < udev_info->device_descriptor.bNumConfigurations) {
+							descriptor = udev_info->configurations[pkt->wValue & 0xFFU]->descriptors;
+							length = ((const usb_configuration_descriptor_t *) descriptor)->wTotalLength;
+						}
+						break;
+
+					case USB_DTYPE_STRING:
+						if (!(pkt->wValue & 0xFFU)) {
+							descriptor = udev_info->string_zero_descriptor;
+						} else if ((pkt->wValue & 0xFFU) <= udev_info->string_count) {
+							for (const udev_language_info_t *lang = udev_info->language_table; lang->strings && !descriptor; ++lang) {
+								if (lang->id == pkt->wIndex) {
+									descriptor = lang->strings[(pkt->wValue & 0xFFU) - 1U];
+								}
+							}
+						}
+						break;
+				}
+
+				if (descriptor) {
+					if (!length) {
+						length = *(const uint8_t *) descriptor;
+					}
+					uep0_data_write(descriptor, length);
+					return true;
+				}
+			} else if (pkt->bRequest == USB_CREQ_GET_STATUS && pkt->bmRequestType.direction == 1 && !pkt->wValue && !pkt->wIndex && pkt->wLength == 2U) {
+				uint16_t status = 0U;
+				if (__atomic_load_n(&udev_self_powered, __ATOMIC_RELAXED)) {
+					status |= 1U;
+				}
+				uep0_data_write(&status, sizeof(status));
+				return true;
+			} else if (pkt->bRequest == USB_CREQ_SET_ADDRESS && pkt->wValue <= 127 && !pkt->wIndex && !pkt->wLength && !uep0_halted) {
+				OTG_FS.DCFG.DAD = pkt->wValue;
+				return true;
+			} else if (pkt->bRequest == USB_CREQ_SET_CONFIGURATION && !pkt->wIndex && !pkt->wLength && !uep0_halted) {
+				const udev_config_info_t *new_config = 0;
+				if (pkt->wValue) {
+					for (unsigned int i = 0; !new_config && i < udev_info->device_descriptor.bNumConfigurations; ++i) {
+						if (udev_info->configurations[i]->descriptors->bConfigurationValue == pkt->wValue) {
+							new_config = udev_info->configurations[i];
+						}
+					}
+					if (!new_config) {
+						return false;
+					}
+				}
+
+				if (new_config && new_config->can_enter && !new_config->can_enter()) {
+					return false;
+				}
+
+				uep0_exit_configuration();
+				uep0_current_configuration = new_config;
+				uep0_enter_configuration();
+
+				return true;
+			}
+		} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_INTERFACE && uep0_current_configuration && pkt->wIndex < uep0_current_configuration->descriptors->bNumInterfaces) {
+			if (pkt->bRequest == USB_CREQ_GET_INTERFACE && !pkt->wValue && pkt->wLength == 1U && !uep0_halted) {
+				uep0_data_write(&uep0_alternate_settings[pkt->wIndex], 1U);
+				return true;
+			} else if (pkt->bRequest == USB_CREQ_GET_STATUS && !pkt->wValue && pkt->wLength == 2U) {
+				uep0_data_write(&ZERO16, sizeof(ZERO16));
+				return true;
+			} else if (pkt->bRequest == USB_CREQ_SET_INTERFACE && !pkt->wLength && !uep0_halted) {
+				unsigned int interface = pkt->wIndex;
+				unsigned int new_as = pkt->wValue;
+				const usb_interface_descriptor_t *newidesc = uutil_find_interface_descriptor(uep0_current_configuration->descriptors, interface, new_as);
+				if (newidesc) {
+					const udev_interface_info_t *iinfo = uep0_current_configuration->interfaces[interface];
+					unsigned int old_as = uep0_alternate_settings[interface];
+					const usb_interface_descriptor_t *oldidesc = uutil_find_interface_descriptor(uep0_current_configuration->descriptors, interface, old_as);
+					assert(oldidesc);
+					if (iinfo && iinfo->alternate_settings[new_as].can_enter && !iinfo->alternate_settings[new_as].can_enter()) {
+						return false;
+					}
+					uep0_altsetting_deactivate_endpoints(oldidesc);
+					if (iinfo && iinfo->alternate_settings[old_as].on_exit) {
+						iinfo->alternate_settings[old_as].on_exit();
+					}
+					uep0_alternate_settings[interface] = new_as;
+					uep0_altsetting_activate_endpoints(interface, newidesc);
+					if (iinfo && iinfo->alternate_settings[new_as].on_enter) {
+						iinfo->alternate_settings[new_as].on_enter();
+					}
+					return true;
+				}
+			}
+		} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_ENDPOINT && UEP_NUM(pkt->wIndex) <= UEP_MAX_ENDPOINT) {
+			if (pkt->bRequest == USB_CREQ_CLEAR_FEATURE && !pkt->wLength) {
+				if (pkt->wValue == USB_FEATURE_ENDPOINT_HALT) {
+					if (!UEP_NUM(pkt->wIndex)) {
+						// Endpoint zero always allows halt feature to be
+						// cleared.
+						uep0_halted = false;
+						return true;
+					} else {
+						const udev_endpoint_info_t *einfo = uutil_find_endpoint_info(pkt->wIndex);
+						if (einfo) {
+							return uep_clear_halt(pkt->wIndex, einfo->can_clear_halt, einfo->on_clear_halt);
+						}
+					}
+				}
+			} else if (pkt->bRequest == USB_CREQ_GET_STATUS && !pkt->wValue && pkt->wLength == 2U) {
+				if (!UEP_NUM(pkt->wIndex)) {
+					uint16_t status = uep0_halted ? 1U : 0U;
+					uep0_data_write(&status, sizeof(status));
+					return true;
+				} else {
+					uep_ep_t *ctx = &uep_eps[UEP_IDX(pkt->wIndex)];
+					xSemaphoreTake(ctx->mutex, portMAX_DELAY);
+					uep_state_t state = ctx->state;
+					xSemaphoreGive(ctx->mutex);
+					bool exists, halted;
+					switch (state) {
+						case UEP_STATE_INACTIVE:
+							exists = false;
+							break;
+
+						case UEP_STATE_IDLE:
+						case UEP_STATE_RUNNING:
+							exists = true;
+							halted = false;
+							break;
+
+						case UEP_STATE_HALTED:
+						case UEP_STATE_HALTED_WAITING:
+							exists = true;
+							halted = true;
+							break;
+
+						case UEP_STATE_CLEAR_HALT_PENDING:
+							exists = true;
+							halted = false;
+							break;
+
+						default:
+							abort();
+					}
+					if (exists) {
+						uint16_t status = halted ? 1U : 0U;
+						uep0_data_write(&status, sizeof(status));
+						return true;
+					}
+				}
+			} else if (pkt->bRequest == USB_CREQ_SET_FEATURE && !pkt->wLength) {
+				if (pkt->wValue == USB_FEATURE_ENDPOINT_HALT) {
+					if (!UEP_NUM(pkt->wIndex)) {
+						uep0_halted = true;
+						return true;
+					} else {
+						const udev_endpoint_info_t *einfo = uutil_find_endpoint_info(pkt->wIndex);
+						if (einfo) {
+							uep_halt_with_cb(pkt->wIndex, einfo->on_commanded_halt);
+							return true;
+						}
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+/**
+ * \brief Handles a control transfer.
+ *
+ * This function must be invoked after the setup stage finishes. It dispatches
+ * the control transfer to whichever handler is appropriate and runs the data
+ * and status stages before returning. It also returns if a device state change
+ * occurs or another SETUP transaction arrives.
+ */
+void uep0_run_transfer(void) {
+	// Setup transaction complete.
+	if (OTG_FS.DIEPCTL0.EPENA || OTG_FS.DOEPCTL0.EPENA) {
+		// We hit the tiny endpoint-disabling race condition described in the
+		// abort branch of uep0_data_read. We have four options:
+		// 1. Try to run this transfer.
+		// 2. NAK the transfer forever.
+		// 3. Issue protocol stall for this transfer.
+		// 4. Set functional stall (endpoint halt) for endpoint zero.
+		// Option 1 is impossible: with the endpoint enabled as it is, we can’t
+		// possibly avoid letting old stuff bleed over into this transfer.
+		//
+		// Option 2 is possible but seems potentially problematic since it may
+		// hang up host software for a long time before it times out.
+		//
+		// Option 3 doesn’t make a lot of sense because the request itself is
+		// probably inherently acceptable, and to issue protocol stall would be
+		// to claim otherwise.
+		//
+		// Option 4 is all we have left, so do it.
+		uep0_halted = true;
+		OTG_FS.DOEPCTL0.STALL = 1;
+		OTG_FS.DIEPCTL0.STALL = 1;
+	} else {
+		// Grab the SETUP packet.
+		uep0_setup_packet = &uep0_setup_packets[__atomic_fetch_xor(&uep0_setup_packet_wptr, 1U, __ATOMIC_RELAXED)];
+		__atomic_signal_fence(__ATOMIC_ACQUIRE); // Prevent operations from being hoisted above the udev_setup_packet_wptr fetch and XOR.
+
+		bool handled;
+		if (uep0_halted) {
+			// Endpoint is halted. When endpoint zero is halted, only ClearFeature,
+			// SetFeature, and GetStatus requests are acceptable. No user handlers
+			// are invoked, only the default handler.
+			handled = uep0_default_handler(uep0_setup_packet);
+		} else {
+			// Go through all available handlers and see who wants this transfer.
+			handled = false;
+			usb_recipient_t recipient = uep0_setup_packet->bmRequestType.recipient;
+			if ((recipient == USB_RECIPIENT_INTERFACE || recipient == USB_RECIPIENT_ENDPOINT) && uep0_current_configuration) {
+				unsigned int interface = UINT_MAX;
+				if (recipient == USB_RECIPIENT_INTERFACE) {
+					interface = uep0_setup_packet->wIndex;
+				} else if (recipient == USB_RECIPIENT_ENDPOINT && UEP_NUM(uep0_setup_packet->wIndex) <= UEP_MAX_ENDPOINT) {
+					interface = uep_eps[UEP_IDX(uep0_setup_packet->wIndex)].interface;
+				}
+				if (interface < uep0_current_configuration->descriptors->bNumInterfaces) {
+					const udev_interface_info_t *iinfo = uep0_current_configuration->interfaces[interface];
+					if (iinfo) {
+						const udev_alternate_setting_info_t *asinfo = &iinfo->alternate_settings[uep0_alternate_settings[interface]];
+						handled = handled || (asinfo->control_handler && asinfo->control_handler(uep0_setup_packet));
+						handled = handled || (iinfo->control_handler && iinfo->control_handler(uep0_setup_packet));
+					}
+				}
+			}
+			handled = handled || (uep0_current_configuration && uep0_current_configuration->control_handler && uep0_current_configuration->control_handler(uep0_setup_packet));
+			handled = handled || (udev_info->control_handler && udev_info->control_handler(uep0_setup_packet));
+			handled = handled || uep0_default_handler(uep0_setup_packet);
+		}
+
+		if (__atomic_load_n(&udev_state_change, __ATOMIC_RELAXED) == UDEV_STATE_CHANGE_NONE && __atomic_load_n(&uep0_setup_event, __ATOMIC_RELAXED) == UEP0_SETUP_EVENT_NONE) {
+			if (handled) {
+				// The request was accepted and the request handler will have
+				// handled any necessary data stage.
+				uep0_status_stage();
+			} else {
+				// Stall the endpoints and wait for another SETUP packet.
+				OTG_FS.DOEPCTL0.STALL = 1;
+				OTG_FS.DIEPCTL0.STALL = 1;
+			}
+		}
+
+		uep0_setup_packet = 0;
+	}
+}
+
+/**
+ * \brief Handles a detach, reset, or cable unplug event.
+ */
+void uep0_handle_reset(void) {
+	uep0_exit_configuration();
+	uep0_halted = false;
+}
 /**
  * \endcond
  */
 
 /**
- * @}
+ * \}
  */
-

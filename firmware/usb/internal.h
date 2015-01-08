@@ -2,9 +2,10 @@
 #define USB_USB_INTERNAL_H
 
 #include <FreeRTOS.h>
-#include <event_groups.h>
+#include <queue.h>
 #include <semphr.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 
@@ -12,68 +13,6 @@
 /**
  * \cond INTERNAL
  */
-
-/**
- * \ingroup UDEV
- * \brief The event bits that can be delivered via \ref udev_event_group.
- *
- * Because the stack internal task handles both device state events and endpoint zero traffic, both types of events are present here.
- */
-typedef enum {
-	/**
-	 * \brief Indicates that \ref udev_state has changed value.
-	 *
-	 * This flag is set by any code which modifies \ref udev_state.
-	 * This is the ISR in response to a session request, session end, USB reset, or enumeration complete interrupt; and \ref udev_attach and \ref udev_detach.
-	 * It is atomically cleared by the stack internal task while waiting for a state change or completion of an endpoint zero transfer component, as part of resuming that task.
-	 */
-	UDEV_EVENT_STATE_CHANGED = 0x000002,
-
-	/**
-	 * \brief Indicates that the setup stage of a control transfer has finished.
-	 *
-	 * This flag is usually set by the ISR when a SETUP stage completes.
-	 * It is usually atomically cleared by the stack internal task while waiting for a control transfer to start, as part of resuming that task.
-	 *
-	 * In some cases, this flag may be atomically cleared by code elsewhere in the stack internal task which needs to wake on a SETUP transaction but which does not directly handle it.
-	 * Such code sets the flag immediately after waking up, so that the outer loop of the stack internal task will handle the event.
-	 *
-	 * Finally, the bit may be cleared in the ISR or stack internal task in cases where a SETUP transaction has occurred but other activity makes it inappropriate to handle it.
-	 */
-	UEP0_EVENT_SETUP         = 0x000004,
-
-	/**
-	 * \brief Indicates that an OUT component of a transfer on endpoint zero has finished.
-	 *
-	 * This flag is set by the ISR when the transfer complete pattern appears in the receive status FIFO.
-	 * It is atomically cleared by the stack internal task while waiting for the OUT component to complete, as part of resuming that task.
-	 */
-	UEP0_EVENT_OUT_XFRC      = 0x000008,
-
-	/**
-	 * \brief Indicates that an IN component of a transfer on endpoint zero has finished.
-	 *
-	 * This flag is set by the ISR when the transfer complete interrupt is asserted.
-	 * It is atomically cleared by the stack internal task while waiting for the IN component to complete, as part of resuming that task.
-	 */
-	UEP0_EVENT_IN_XFRC       = 0x000010,
-
-	/**
-	 * \brief Indicates that IN endpoint zero’s NAK status bit has become set.
-	 *
-	 * This flag is set by the ISR when the NAK effective interrupt is asserted.
-	 * It is cleared by the stack internal task before requesting local NAK status, then waited on.
-	 */
-	UEP0_EVENT_IN_NAKEFF     = 0x000020,
-
-	/**
-	 * \brief Indicates that IN endpoint zero has been disabled due to firmware request (not due to transfer completion).
-	 *
-	 * This flag is set by the ISR when the endpoint disabled interrupt is asserted.
-	 * It is atomically cleared by the stack internal task while waiting for the endpoint to disable, as part of resuming that task.
-	 */
-	UEP0_EVENT_IN_DISD       = 0x000040,
-} udev_event_bits_t;
 
 /**
  * \ingroup UDEV
@@ -86,30 +25,69 @@ typedef enum {
 	UDEV_STATE_UNINITIALIZED,
 
 	/**
-	 * \brief The device is detached from the bus and will not exhibit a D+ pull-up resistor.
+	 * \brief The device is detached from the bus and will not exhibit a D+
+	 * pull-up resistor.
 	 */
 	UDEV_STATE_DETACHED,
 
 	/**
-	 * \brief The device is attached to the bus but is not yet exhibiting a D+ pull-up resistor because VBUS is not yet valid.
+	 * \brief The device is attached to the bus. If VBUS is present, a D+
+	 * pull-up resistor is exhibited.
 	 */
 	UDEV_STATE_ATTACHED,
-
-	/**
-	 * \brief The device is attached and has observed a valid level on VBUS and is awaiting USB device reset signalling.
-	 */
-	UDEV_STATE_POWERED,
-
-	/**
-	 * \brief Device reset signalling has been received, but enumeration complete has not yet been observed.
-	 */
-	UDEV_STATE_RESET,
-
-	/**
-	 * \brief Enumeration complete has occurred and the device is ready to transfer packets.
-	 */
-	UDEV_STATE_ENUMERATED,
 } udev_state_t;
+
+/**
+ * \ingroup UDEV
+ * \brief The possible state changes that can happen.
+ */
+typedef enum {
+	/**
+	 * \brief Indicates that no state change has happened.
+	 */
+	UDEV_STATE_CHANGE_NONE,
+
+	/**
+	 * \brief Indicates that a call was made to \ref udev_attach.
+	 */
+	UDEV_STATE_CHANGE_ATTACH,
+
+	/**
+	 * \brief Indicates that a call was made to \ref udev_detach.
+	 */
+	UDEV_STATE_CHANGE_DETACH,
+
+	/**
+	 * \brief Indicates that either VBUS fell below 5 volts or reset signalling
+	 * started.
+	 */
+	UDEV_STATE_CHANGE_SEDET_OR_RESET,
+} udev_state_change_t;
+
+
+
+/**
+ * \ingroup UEP0
+ * \brief The possible SETUP-related events that can happen.
+ */
+typedef enum {
+	/**
+	 * \brief No SETUP-related event is pending.
+	 */
+	UEP0_SETUP_EVENT_NONE,
+
+	/**
+	 * \brief A SETUP packet has arrived from the host.
+	 */
+	UEP0_SETUP_EVENT_STARTED,
+
+	/**
+	 * \brief Since the last SETUP packet arrived, an IN or OUT token was
+	 * NAKed, indicating that the setup stage of the control transfer is
+	 * finished and the data or status stage is starting.
+	 */
+	UEP0_SETUP_EVENT_FINISHED,
+} uep0_setup_event_t;
 
 
 
@@ -346,23 +324,25 @@ typedef struct {
 
 
 
-extern EventGroupHandle_t udev_event_group;
-extern udev_state_t udev_state;
+extern udev_state_change_t udev_state_change;
+extern SemaphoreHandle_t udev_event_sem;
 extern const udev_info_t *udev_info;
-extern const usb_setup_packet_t *udev_setup_packet;
 extern bool udev_self_powered;
 extern SemaphoreHandle_t udev_gonak_mutex;
 extern unsigned int udev_gonak_disable_ep;
 void udev_flush_rx_fifo(void);
 void udev_flush_tx_fifo(unsigned int ep);
+void udev_tx_copy_in(volatile void *dest, const void *source, size_t bytes);
 
-extern uint8_t *uep0_out_data_pointer;
-extern size_t uep0_out_data_length;
+extern uep0_setup_event_t uep0_setup_event;
+extern void *uep0_out_wptr;
+extern size_t uep0_out_length;
+extern unsigned int uep0_xfrc;
 extern const udev_config_info_t *uep0_current_configuration;
 extern uint8_t *uep0_alternate_settings;
-void uep0_status_stage(void);
-bool uep0_default_handler(const usb_setup_packet_t *pkt);
-void uep0_exit_configuration(void);
+void *uep0_writable_setup_packet(void);
+void uep0_run_transfer(void);
+void uep0_handle_reset(void);
 
 extern uep_ep_t uep_eps[UEP_MAX_ENDPOINT * 2U];
 void uep_queue_event(unsigned int ep, uint8_t event);
