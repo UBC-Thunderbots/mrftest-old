@@ -76,8 +76,7 @@ bool Player::chicker_ready() const {
 void Player::kick_impl(double speed) {
 	if (bot.alive) {
 		if (bot.capacitor_charged) {
-			bot.kick(false, speed * 337.85 + 418.19) // new function, may be broken
-			//bot.kick(false, speed / 8.0 * 825.0 * 4);
+			bot.kick(false, speed * 337.85 + 418.19); 
 		} else {
 			LOG_ERROR(Glib::ustring::compose(u8"Bot %1 kick when not ready", pattern()));
 		}
@@ -87,8 +86,7 @@ void Player::kick_impl(double speed) {
 void Player::autokick_impl(double speed) {
 	if (bot.alive) {
 		autokick_params.chip = false;
-		autokick_params.pulse = speed * 337.85 + 418.19 // new function, may be broken
-		//autokick_params.pulse = speed / 8.0 * 825.0 * 4;
+		autokick_params.pulse = speed * 337.85 + 418.19;
 	}
 }
 
