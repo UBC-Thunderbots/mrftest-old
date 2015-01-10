@@ -451,7 +451,10 @@ namespace {
 			assert(fd.type() == google::protobuf::FieldDescriptor::TYPE_INT64);
 			row[cols.key] = u8"date/time";
 			char buffer[4096];
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuseless-cast" // The cast to time_t is useless on 64-bit platforms but not on 32-bit platforms.
 			std::time_t t = static_cast<std::time_t>(refl.GetInt64(message, &fd));
+#pragma GCC diagnostic pop
 			std::strftime(buffer, sizeof(buffer), "%c", std::localtime(&t));
 			row[cols.value] = buffer;
 			return;
