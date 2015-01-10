@@ -171,7 +171,7 @@ void MRFRobot::set_charger_state(ChargerState state) {
 }
 
 double MRFRobot::kick_pulse_maximum() const {
-	return 65535.0;
+	return 5000.0;
 }
 
 double MRFRobot::kick_pulse_resolution() const {
