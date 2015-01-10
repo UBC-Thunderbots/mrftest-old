@@ -327,7 +327,6 @@ typedef struct {
 extern udev_state_change_t udev_state_change;
 extern SemaphoreHandle_t udev_event_sem;
 extern const udev_info_t *udev_info;
-extern bool udev_self_powered;
 extern SemaphoreHandle_t udev_gonak_mutex;
 extern unsigned int udev_gonak_disable_ep;
 void udev_flush_rx_fifo(void);

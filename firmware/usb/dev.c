@@ -83,11 +83,6 @@ static bool udev_attach_detach_sem_needed;
 const udev_info_t *udev_info;
 
 /**
- * \brief Whether or not the device is currently self-powered.
- */
-bool udev_self_powered = false;
-
-/**
  * \brief A mutex that must be held by any task that wishes to take global OUT
  * NAK.
  */
@@ -921,22 +916,6 @@ void udev_detach(void) {
 
 	// Wait a little bit to allow the bus to settle in its detached state.
 	vTaskDelay(1U);
-}
-
-/**
- * \brief Sets whether the device is currently self-powered.
- *
- * A self-powered device is one that is receiving power from a source other than USB VBUS.
- * Because power sources can be attached and detached dynamically, the application must keep the USB stack up-to-date on whether external power is available.
- * By default, if this function is never called, a device is assumed to be bus-powered.
- * If the device is self-powered at boot, this function should be called after \ref udev_init but before \ref udev_attach.
- *
- * This function can be called at absolutely any time, including from an interrupt service routine.
- *
- * \param[in] sp \c true if an external power source is attached, or \c false if all power is currently coming from USB VBUS
- */
-void udev_set_self_powered(bool sp) {
-	__atomic_store_n(&udev_self_powered, sp, __ATOMIC_RELAXED);
 }
 
 /**

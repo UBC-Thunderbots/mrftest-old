@@ -177,6 +177,7 @@ static const udev_info_t USB_INFO = {
 	.flags = {
 		.vbus_sensing = 1,
 		.minimize_interrupts = 1,
+		.self_powered = 1,
 	},
 	.internal_task_priority = PRIO_TASK_USB,
 	.internal_task_stack_size = 1024U,
@@ -269,7 +270,6 @@ static void main_task(void *UNUSED(param)) {
 
 	// Initialize USB.
 	udev_init(&USB_INFO);
-	udev_set_self_powered(true);
 	udev_attach();
 
 	// Provide a message that will be printed as soon as the user connects.

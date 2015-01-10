@@ -761,7 +761,7 @@ static bool uep0_default_handler(const usb_setup_packet_t *pkt) {
 				}
 			} else if (pkt->bRequest == USB_CREQ_GET_STATUS && pkt->bmRequestType.direction == 1 && !pkt->wValue && !pkt->wIndex && pkt->wLength == 2U) {
 				uint16_t status = 0U;
-				if (__atomic_load_n(&udev_self_powered, __ATOMIC_RELAXED)) {
+				if (udev_info->flags.self_powered) {
 					status |= 1U;
 				}
 				uep0_data_write(&status, sizeof(status));

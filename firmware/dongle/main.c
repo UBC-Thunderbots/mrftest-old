@@ -147,6 +147,7 @@ static const udev_info_t USB_INFO = {
 	.flags = {
 		.vbus_sensing = 0,
 		.minimize_interrupts = 0,
+		.self_powered = 0,
 	},
 	.internal_task_priority = 4U,
 	.internal_task_stack_size = 1024U,

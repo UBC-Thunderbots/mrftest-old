@@ -697,6 +697,12 @@ typedef struct {
 		 * This flag instructs the stack to sacrifice USB performance in favour of saving CPU time.
 		 */
 		unsigned minimize_interrupts : 1;
+
+		/**
+		 * \brief Whether the device should report itself as being self-powered
+		 * in response to a device-scope Get Status request.
+		 */
+		unsigned self_powered : 1;
 	}
 	/**
 	 * \brief Flags describing the device’s operation.
@@ -841,7 +847,6 @@ void udev_isr(void);
 void udev_init(const udev_info_t *info);
 void udev_attach(void);
 void udev_detach(void);
-void udev_set_self_powered(bool sp);
 
 
 
