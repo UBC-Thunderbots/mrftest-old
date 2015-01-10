@@ -1,6 +1,7 @@
 #include "enabled.h"
 #include "buzzer.h"
 #include "constants.h"
+#include "led.h"
 #include "normal.h"
 #include "promiscuous.h"
 #include "radio_config.h"
@@ -344,10 +345,21 @@ static const udev_interface_info_t DFU_INTERFACE_INFO = {
 
 
 
+static void config_on_enter(void) {
+	led_on(LED_POWER);
+}
+
+static void config_on_exit(void) {
+	led_off(LED_POWER);
+	buzzer_stop();
+}
+
+
+
 const udev_config_info_t ENABLED_CONFIGURATION = {
 	.can_enter = 0,
-	.on_enter = 0,
-	.on_exit = &buzzer_stop,
+	.on_enter = &config_on_enter,
+	.on_exit = &config_on_exit,
 	.control_handler = 0,
 	.descriptors = &DESCRIPTORS.config,
 	.transmit_fifo_words = {

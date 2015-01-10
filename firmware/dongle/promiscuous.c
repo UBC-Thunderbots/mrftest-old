@@ -1,11 +1,10 @@
 #include "promiscuous.h"
 #include "constants.h"
+#include "led.h"
 #include "mrf.h"
-#include "pins.h"
 #include "radio_config.h"
 #include <FreeRTOS.h>
 #include <errno.h>
-#include <gpio.h>
 #include <minmax.h>
 #include <queue.h>
 #include <rcc.h>
@@ -48,9 +47,6 @@ static void radio_task(void *UNUSED(param)) {
 	mrf_common_init();
 	while (mrf_get_interrupt());
 
-	// Turn on LED 1.
-	gpio_set(PIN_LED_POWER);
-
 	// Enable external interrupt on MRF INT rising edge.
 	mrf_enable_interrupt(&mrf_int_isr, EXCEPTION_MKPRIO(6U, 0U));
 
@@ -88,8 +84,9 @@ static void radio_task(void *UNUSED(param)) {
 					packet_dropped = true;
 				}
 				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00U); // RXDECINV = 0; stop inverting receiver and allow further reception
-				// Toggle LED 3 to show reception.
-				gpio_toggle(PIN_LED_RX);
+
+				// Blink receive LED.
+				led_blink(LED_RX);
 			}
 		}
 
@@ -98,11 +95,6 @@ static void radio_task(void *UNUSED(param)) {
 
 	// Disable the external interrupt on MRF INT.
 	mrf_disable_interrupt();
-
-	// Turn off all LEDs.
-	gpio_reset(PIN_LED_POWER);
-	gpio_reset(PIN_LED_TX);
-	gpio_reset(PIN_LED_RX);
 
 	// Reset the radio.
 	mrf_deinit();
@@ -204,7 +196,10 @@ void promiscuous_on_exit(void) {
 	event_sem = 0;
 	init_shutdown_sem = 0;
 
-	// Give the timer task some time to free task stacks.
+	// Turn off receive LED.
+	led_off(LED_RX);
+
+	// Give the idle task some time to free task stacks.
 	vTaskDelay(1U);
 }
 
@@ -263,16 +258,16 @@ bool promiscuous_control_handler(const usb_setup_packet_t *pkt) {
 			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00U);
 			// Enable interrupt on receive.
 			mrf_write_short(MRF_REG_SHORT_INTCON, 0xF7U);
-			// Turn on LED 2 to indicate capture is enabled.
-			gpio_set(PIN_LED_TX);
+			// Turn on receive LED to indicate capture is enabled.
+			led_on(LED_RX);
 		} else {
 			// Shut down the radio.
 			mrf_write_short(MRF_REG_SHORT_RXMCR, 0x20U);
 			mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04U);
 			mrf_write_short(MRF_REG_SHORT_INTCON, 0xFFU);
 			mrf_analogue_off();
-			// Turn off LED 2 to indicate capture is disabled.
-			gpio_reset(PIN_LED_TX);
+			// Turn off receive LED to indicate capture is disabled.
+			led_off(LED_RX);
 		}
 
 		return true;

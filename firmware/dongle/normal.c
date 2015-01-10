@@ -2,13 +2,12 @@
 #include "constants.h"
 #include "crc.h"
 #include "estop.h"
+#include "led.h"
 #include "mrf.h"
-#include "pins.h"
 #include "radio_config.h"
 #include <FreeRTOS.h>
 #include <errno.h>
 #include <event_groups.h>
-#include <gpio.h>
 #include <queue.h>
 #include <rcc.h>
 #include <semphr.h>
@@ -273,7 +272,7 @@ static void send_drive_packet(const void *packet, uint8_t counter) {
 	mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000001U);
 
 	// Blink the transmit light.
-	gpio_toggle(PIN_LED_TX);
+	led_blink(LED_TX);
 }
 
 /**
@@ -767,7 +766,7 @@ static void rdrx_task(void *UNUSED(param)) {
 							uint16_t source_address = source_address_lsb | (source_address_msb << 8U);
 							if (source_address < 8U && sequence_number != seqnum[source_address]) {
 								// Blink the receive light.
-								gpio_toggle(PIN_LED_RX);
+								led_blink(LED_RX);
 
 								// Update sequence number.
 								seqnum[source_address] = sequence_number;
@@ -874,11 +873,12 @@ void normal_on_enter(void) {
 	mrf_analogue_txrx();
 	mrf_write_short(MRF_REG_SHORT_INTCON, 0b11110110);
 
-	// Turn on LED 1.
-	gpio_set(PIN_LED_POWER);
-
 	// Enable external interrupt on MRF INT rising edge.
 	mrf_enable_interrupt(&mrf_int_isr, EXCEPTION_MKPRIO(6U, 0U));
+
+	// Turn on LEDs.
+	led_on(LED_TX);
+	led_on(LED_RX);
 
 	// Start tasks.
 	BaseType_t ret = xTaskCreate(&drive_task, "norm_drive", 1024U, 0, 7U, 0);
@@ -927,9 +927,8 @@ void normal_on_exit(void) {
 	mrf_disable_interrupt();
 
 	// Turn off all LEDs.
-	gpio_reset(PIN_LED_POWER);
-	gpio_reset(PIN_LED_TX);
-	gpio_reset(PIN_LED_RX);
+	led_off(LED_TX);
+	led_off(LED_RX);
 
 	// Reset the radio.
 	mrf_deinit();

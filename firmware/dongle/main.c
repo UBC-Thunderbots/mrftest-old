@@ -2,6 +2,7 @@
 #include "constants.h"
 #include "enabled.h"
 #include "estop.h"
+#include "led.h"
 #include "mrf.h"
 #include "normal.h"
 #include "pins.h"
@@ -53,9 +54,10 @@ static void app_exception_early(void) {
 	OTG_FS.GCCFG.PWRDWN = 0;
 
 	// Turn the three LEDs on.
-	gpio_set(PIN_LED_POWER);
-	gpio_set(PIN_LED_TX);
-	gpio_set(PIN_LED_RX);
+	led_end_lamp_test_early();
+	led_on(LED_POWER);
+	led_on(LED_TX);
+	led_on(LED_RX);
 }
 
 static void app_exception_late(bool core_written) {
@@ -79,14 +81,14 @@ static void app_exception_late(bool core_written) {
 
 	// Show flashing lights.
 	for (;;) {
-		gpio_reset(PIN_LED_POWER);
-		gpio_reset(PIN_LED_TX);
-		gpio_reset(PIN_LED_RX);
+		led_off(LED_POWER);
+		led_off(LED_TX);
+		led_off(LED_RX);
 		sleep_ms(500U);
-		gpio_set(PIN_LED_POWER);
+		led_on(LED_POWER);
 		if (core_written) {
-			gpio_set(PIN_LED_TX);
-			gpio_set(PIN_LED_RX);
+			led_on(LED_TX);
+			led_on(LED_RX);
 		}
 		sleep_ms(500U);
 	}
@@ -200,16 +202,9 @@ static void stm32_main(void) {
 
 static void main_task(void *UNUSED(param)) {
 	// Initialize subsystems.
+	led_init();
 	buzzer_init();
 	estop_init(EXCEPTION_MKPRIO(5U, 0U));
-
-	// Wait a bit.
-	vTaskDelay(100U / portTICK_PERIOD_MS);
-
-	// Turn off LEDs.
-	gpio_reset(PIN_LED_POWER);
-	gpio_reset(PIN_LED_TX);
-	gpio_reset(PIN_LED_RX);
 
 	// Fill in the device serial number.
 	{

@@ -12,8 +12,4 @@ extern const gpio_init_pin_t PINS_INIT[4U][16U];
 
 #define PIN_ESTOP_SUPPLY GPIOB, 0U
 
-#define PIN_LED_POWER GPIOB, 12U
-#define PIN_LED_TX GPIOB, 13U
-#define PIN_LED_RX GPIOB, 14U
-
 #endif

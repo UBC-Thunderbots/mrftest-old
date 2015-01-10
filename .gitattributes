@@ -32,6 +32,8 @@ firmware/dongle/enabled.c -text
 firmware/dongle/enabled.h -text
 firmware/dongle/estop.c -text
 firmware/dongle/estop.h -text
+firmware/dongle/led.c -text
+firmware/dongle/led.h -text
 firmware/dongle/main.c -text
 firmware/dongle/mrf.c -text
 firmware/dongle/mrf.h -text
