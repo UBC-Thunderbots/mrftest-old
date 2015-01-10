@@ -99,7 +99,6 @@ MRFDongle::MRFDongle() :
 		radio_interface(-1),
 		configuration_altsetting(-1),
 		normal_altsetting(-1),
-		mdr_transfer(device, 1, 8, false, 0),
 		status_transfer(device, 3, 1, true, 0),
 		rx_fcs_fail_message(u8"Dongle receive FCS fail", Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::HIGH),
 		drive_dirty(false),
@@ -208,9 +207,12 @@ MRFDongle::MRFDongle() :
 		free_message_ids.push(static_cast<uint8_t>(i));
 	}
 
-	// Submit the message delivery report transfer.
-	mdr_transfer.signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_mdrs));
-	mdr_transfer.submit();
+	// Submit the message delivery report transfers.
+	for (auto &i : mdr_transfers) {
+		i.reset(new USB::BulkInTransfer(device, 1, 8, false, 0));
+		i->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_mdrs));
+		i->submit();
+	}
 
 	// Submit the received message transfers.
 	for (auto &i : message_transfers) {
@@ -261,7 +263,8 @@ void MRFDongle::free_message_id(uint8_t id) {
 	free_message_ids.push(id);
 }
 
-void MRFDongle::handle_mdrs(AsyncOperation<void> &) {
+void MRFDongle::handle_mdrs(AsyncOperation<void> &op) {
+	USB::BulkInTransfer &mdr_transfer = dynamic_cast<USB::BulkInTransfer &>(op);
 	mdr_transfer.result();
 	if ((mdr_transfer.size() % 2) != 0) {
 		throw std::runtime_error("MDR transfer has odd size");

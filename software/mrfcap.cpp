@@ -224,9 +224,12 @@ int app_main(int argc, char **argv) {
 	std::cout << "OK\n";
 
 	// Start accepting capture data.
-	USB::BulkInTransfer transfer(devh, 1, 256, false, 0);
-	transfer.signal_done.connect(sigc::bind(&handle_transfer_done, std::ref(ofs)));
-	transfer.submit();
+	std::array<std::unique_ptr<USB::BulkInTransfer>, 32> transfers;
+	for (auto &i : transfers) {
+		i.reset(new USB::BulkInTransfer(devh, 1, 256, false, 0));
+		i->signal_done.connect(sigc::bind(&handle_transfer_done, std::ref(ofs)));
+		i->submit();
+	}
 
 	// Go into a main loop.
 	MainLoop::run();

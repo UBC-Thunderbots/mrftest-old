@@ -94,8 +94,8 @@ class MRFDongle final : public Drive::Dongle {
 		std::unique_ptr<USB::InterfaceClaimer> interface_claimer;
 		uint8_t channel_;
 		uint16_t pan_;
-		USB::BulkInTransfer mdr_transfer;
-		std::array<std::unique_ptr<USB::InterruptInTransfer>, 4> message_transfers;
+		std::array<std::unique_ptr<USB::BulkInTransfer>, 32> mdr_transfers;
+		std::array<std::unique_ptr<USB::InterruptInTransfer>, 32> message_transfers;
 		USB::InterruptInTransfer status_transfer;
 		Annunciator::Message rx_fcs_fail_message;
 		std::unique_ptr<USB::InterruptOutTransfer> drive_transfer;
