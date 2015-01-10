@@ -15,8 +15,6 @@ firmware/camera/main.c -text
 firmware/camera/main.h -text
 firmware/camera/pins.c -text
 firmware/camera/pins.h -text
-firmware/camera/stm32lib/discovery/pins.c -text
-firmware/camera/stm32lib/discovery/pins.h -text
 firmware/camera/stm32lib/stm32f405.ld -text
 firmware/cdcacm/cdcacm.c -text
 firmware/cdcacm/include/cdcacm.h -text

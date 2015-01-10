@@ -16,6 +16,21 @@
 #include "pins.h"
 #include "main.h"
 
+static void stm32_main(void) __attribute__((noreturn));
+
+static unsigned long mstack[1024U] __attribute__((section(".mstack")));
+
+typedef void (*fptr)(void);
+static const fptr exception_vectors[16U] __attribute__((used, section(".exception_vectors"))) = {
+	[0U] = (fptr) (mstack + sizeof(mstack) / sizeof(*mstack)),
+	[1U] = &stm32_main,
+	[3U] = &exception_hard_fault_isr,
+	[4U] = &exception_memory_manage_fault_isr,
+	[5U] = &exception_bus_fault_isr,
+	[6U] = &exception_usage_fault_isr,
+};
+
+
 static const init_specs_t INIT_SPECS = {
 	.flags = {
 		.hse_crystal = false,
@@ -26,6 +41,7 @@ static const init_specs_t INIT_SPECS = {
 	.hse_frequency = 8,
 	.pll_frequency = 336,
 	.sys_frequency = 168,
+	.cpu_frequency = 168,
 	.apb1_frequency = 42,
 	.apb2_frequency = 84,
 	.exception_core_writer = NULL,	//Don't have any
@@ -37,25 +53,25 @@ static const init_specs_t INIT_SPECS = {
 
 
 	
-#define BLINKED_LED GPIOB, 13U
+#define BLINKED_LED GPIOD,13U
 
 
 static void stm32_main(void)
 {
+	volatile uint32_t i;
 	init_chip(&INIT_SPECS);
 
-	gpio_init(PINS_INIT,5U);
+	gpio_init(PINS_INIT,sizeof(PINS_INIT)/sizeof(*PINS_INIT));
 
 	while (1)
 	{
-		gpio_set(BLINKED_LED);
-		int i;
+		gpio_set(BLINKED_LED);	
 
-		for (i = 0; i < 2000; i++ ){}
+		for (i = 0; i < 1000000; i++ ){}
 
 		gpio_reset(BLINKED_LED);
 
-		for (i = 0; i < 2000; i++) {}
+		for (i = 0; i < 1000000; i++) {}
 	}
 
 
