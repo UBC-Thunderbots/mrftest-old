@@ -34,6 +34,10 @@
         <degrees name="Angle that receiver can be offset (degrees)">1.5</degrees>
         <double name="Average Player Velocity">6.0</double>
       </category>
+      <category name="penalty">
+        <double name="standard deviation for goalie movement (sec divided by 30)">0.10</double>
+        <double name="travel width for goalie movement (robot width)">2.00</double>
+      </category>
       <category name="STP">
         <category name="Tactic">
           <category name="shoot">
@@ -117,7 +121,6 @@
         <double name="Careful max speed">0.500</double>
         <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
         <double name="Distance to extend the tree on each step (m)">0.100</double>
-        <integer name="Divide by how much?">2</integer>
         <integer name="Jon Hysteris Hack">2</integer>
         <boolean name="New Pivot: enable">false</boolean>
         <boolean name="New Pivot: go backward">false</boolean>
