@@ -9,6 +9,7 @@
 #include "util/timestep.h"
 #include <cmath>
 #include <iomanip>
+#include <memory>
 #include <vector>
 #include <gtkmm/expander.h>
 #include <gtkmm/table.h>
@@ -165,58 +166,46 @@ namespace {
 		std_entry.set_text(text);
 	}
 
+	class UIControls final : public Gtk::Expander {
+		public:
+			static const unsigned int ROWS = 16;
+
+			Gtk::Entry entries[ROWS];
+
+			explicit UIControls() : Gtk::Expander(u8"Kalman Monitor") {
+				for (unsigned int i = 0; i < ROWS; ++i) {
+					labels[i].set_text(todecu(i));
+					table.attach(labels[i], 0, 1, i, i + 1);
+					entries[i].set_sensitive(false);
+					table.attach(entries[i], 1, 2, i, i + 1);
+				}
+				add(table);
+			}
+
+		private:
+			Gtk::Table table{ROWS, 2};
+			Gtk::Label labels[ROWS];
+	};
+
 	class PID5ControllerFactory final : public RobotControllerFactory {
 		public:
 			explicit PID5ControllerFactory() : RobotControllerFactory(u8"PID 5") {
 			}
 
 			std::unique_ptr<RobotController> create_controller(World world, Player plr) const override {
-				std::unique_ptr<RobotController> p(new PID5Controller(world, plr, get_std(plr.pattern())));
+				if (!controls) {
+					controls.reset(new UIControls);
+				}
+				std::unique_ptr<RobotController> p(new PID5Controller(world, plr, controls->entries[plr.pattern()]));
 				return p;
 			}
 
 			Gtk::Widget *ui_controls() override {
-				return &get_widget();
+				return controls.get();
 			}
 	
 		private:
-			
-			Gtk::Widget &get_widget(){
-				static Gtk::Expander expander(u8"Kalman Monitor");
-				expander.add( get_table() );
-				return expander;
-			}
-	
-			Gtk::Table &get_table() const {
-				static Gtk::Table t(16, 2);
-				static bool initialized = false;
-				if (!initialized) {
-					for (unsigned int i = 0; i < 16; ++i) {
-						t.attach(get_label(i), 0, 1, i, i + 1);
-						t.attach(get_std(i), 1, 2, i, i + 1);
-					}
-					initialized = true;
-				}
-				return t;
-			}
-
-			Gtk::Label &get_label(unsigned int idx) const {
-				static Gtk::Label labels[16];
-				static bool initialized = false;
-				if (!initialized) {
-					for (unsigned int i = 0; i < 16; ++i) {
-						labels[i].set_text(todecu(i));
-					}
-					initialized = true;
-				}
-				return labels[idx];
-			}
-
-			Gtk::Entry &get_std(unsigned int idx) const {
-				static Gtk::Entry entries[16];
-				entries[idx].set_sensitive(false);
-				return entries[idx];
-			}
+			mutable std::unique_ptr<UIControls> controls;
 	};
 }
 
