@@ -5,7 +5,7 @@
 #include <glibmm/refptr.h>
 
 namespace {
-	class MessagesALM final : public Glib::Object, public AbstractListModel, public NonCopyable {
+	class MessagesALM final : public AbstractListModel, public Glib::Object, public NonCopyable {
 		public:
 			Gtk::TreeModelColumn<unsigned int> age_column;
 			Gtk::TreeModelColumn<Glib::ustring> message_column;

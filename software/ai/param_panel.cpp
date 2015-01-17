@@ -25,7 +25,7 @@
 namespace {
 	bool emit_numeric_row_changed = false;
 
-	class ParamTreeModel final : public Glib::Object, public Gtk::TreeModel {
+	class ParamTreeModel final : public Gtk::TreeModel, public Glib::Object {
 		public:
 			Gtk::TreeModelColumn<Glib::ustring> name_column;
 			Gtk::TreeModelColumn<bool> has_bool_column;

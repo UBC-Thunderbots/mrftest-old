@@ -6,23 +6,28 @@
 #include <gtkmm/treemodel.h>
 
 /**
- * An abstract implementation of \c Gtk::TreeModel for list-type models.
- * This class can be efficiently used with random-access data structures such as \c std::vector.
+ * An abstract implementation of \c Gtk::TreeModel for list-type models. This
+ * class can be efficiently used with random-access data structures such as \c
+ * std::vector.
  *
- * Your own class must also extend \c Glib::Object and invoke the following constructors from its own:
+ * Your own class must also extend \c Glib::Object and invoke the following
+ * constructors from its own:
  *
  * \li <code>Glib::ObjectBase(typeid(your_class_name))</code>
  * \li <code>Glib::Object()</code>
  *
- * The \c ObjectBase initialization is permitted because \c Glib::Object virtually extends \c Glib::ObjectBase,
- * and hence responsibility for invoking the \c Glib::ObjectBase constructor is given to the type of the object being constructed,
- * not the immediate subclass of \c Glib::ObjectBase.
+ * The \c ObjectBase initialization is permitted because \c Glib::Object
+ * virtually extends \c Glib::ObjectBase, and hence responsibility for invoking
+ * the \c Glib::ObjectBase constructor is given to the type of the object being
+ * constructed, not the immediate subclass of \c Glib::ObjectBase.
  *
- * Note that your class must inherit from \c Glib::Object \em before it inherits from \c AbstractListModel.
+ * Note that your class must inherit from \c Glib::Object \em after it inherits
+ * from \c AbstractListModel.
  *
  * You must override all pure-virtual functions as described below.
  *
- * You must arrange to invoke alm_row_changed(), alm_row_inserted(), and alm_row_deleted() at the appropriate times.
+ * You must arrange to invoke alm_row_changed(), alm_row_inserted(), and
+ * alm_row_deleted() at the appropriate times.
  */
 class AbstractListModel : public Gtk::TreeModel {
 	protected:

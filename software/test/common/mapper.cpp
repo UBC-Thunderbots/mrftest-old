@@ -39,7 +39,7 @@ namespace {
 	}
 }
 
-class MapperWindow::MappingsListModel final : public Glib::Object, public AbstractListModel {
+class MapperWindow::MappingsListModel final : public AbstractListModel, public Glib::Object {
 	public:
 		std::vector<JoystickMapping> mappings;
 
@@ -154,7 +154,7 @@ class MapperWindow::MappingsListModel final : public Glib::Object, public Abstra
 		}
 };
 
-class MapperWindow::PreviewDevicesModel final : public Glib::Object, public AbstractListModel {
+class MapperWindow::PreviewDevicesModel final : public AbstractListModel, public Glib::Object {
 	public:
 		Gtk::TreeModelColumn<Glib::ustring> name_column;
 

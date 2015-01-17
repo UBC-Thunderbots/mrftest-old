@@ -359,7 +359,7 @@ namespace {
 		return new_row;
 	}
 
-	class RecordsALM final : public Glib::Object, public AbstractListModel {
+	class RecordsALM final : public AbstractListModel, public Glib::Object {
 		public:
 			typedef Glib::RefPtr<RecordsALM> Ptr;
 			Gtk::TreeModelColumn<std::size_t> index_column;
@@ -373,7 +373,9 @@ namespace {
 		private:
 			const std::vector<Log::Record> &records;
 
-			explicit RecordsALM(const std::vector<Log::Record> &records) : Glib::ObjectBase(typeid(RecordsALM)), Glib::Object(), AbstractListModel(), records(records) {
+			explicit RecordsALM(const std::vector<Log::Record> &records) :
+					Glib::ObjectBase(typeid(RecordsALM)),
+					records(records) {
 				alm_column_record.add(index_column);
 				alm_column_record.add(type_column);
 			}

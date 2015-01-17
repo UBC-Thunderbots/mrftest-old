@@ -14,7 +14,7 @@
 #include <gtkmm/main.h>
 #include <gtkmm/treemodelcolumn.h>
 
-class TesterWindow::MappedJoysticksModel final : public Glib::Object, public AbstractListModel {
+class TesterWindow::MappedJoysticksModel final : public AbstractListModel, public Glib::Object {
 	public:
 		Gtk::TreeModelColumn<Glib::ustring> name_column;
 
