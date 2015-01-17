@@ -170,14 +170,6 @@ void AI::HL::STP::draw_offense(World world, Cairo::RefPtr<Cairo::Context> ctx) {
 
 				const double score = Evaluation::offense_score(i, j);
 
-				/*
-				   {
-				   std::ostringstream text;
-				   text << score << std::endl;
-				   LOG_INFO(text.str());
-				   }
-				 */
-
 				if (score < 0) {
 					continue;
 				}

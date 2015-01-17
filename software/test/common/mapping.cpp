@@ -4,8 +4,6 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdlib>
-#include <locale>
-#include <sstream>
 #include <string>
 
 namespace {
@@ -15,14 +13,6 @@ namespace {
 		u8"scram",
 	};
 	static_assert(G_N_ELEMENTS(BUTTON_XML_NAMES) == JoystickMapping::N_BUTTONS, "BUTTON_XML_NAMES array must be same size as N_BUTTONS enumeration element");
-
-	int to_int(const Glib::ustring &str) {
-		std::wistringstream iss(ustring2wstring(str));
-		iss.imbue(std::locale("C"));
-		int i;
-		iss >> i;
-		return i;
-	}
 }
 
 const char *const JoystickMapping::BUTTON_LABELS[] = {
@@ -84,9 +74,9 @@ JoystickMapping::JoystickMapping(const xmlpp::Element *elt) :
 						for (log = 0; static_cast<unsigned int>(log) < n_mappings && logs != xml_names[log]; ++log) {
 						}
 					} else {
-						log = to_int(logs);
+						log = std::stoi(ustring2wstring(logs));
 					}
-					int phys = to_int(physs);
+					int phys = std::stoi(ustring2wstring(physs));
 					assert(0 <= log && static_cast<unsigned int>(log) < n_mappings);
 					assert(0 <= phys && phys <= 255);
 					mappings[log] = phys;

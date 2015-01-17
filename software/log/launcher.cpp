@@ -14,8 +14,6 @@
 #include <fcntl.h>
 #include <iterator>
 #include <limits>
-#include <locale>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unistd.h>
@@ -181,14 +179,7 @@ void LogLauncher::start_compressing() {
 
 void LogLauncher::compress_thread_proc(const std::string &filename) {
 	// Open the temporary file.
-	std::string temp_filename;
-	{
-		std::wostringstream oss;
-		oss.imbue(std::locale("C"));
-		oss << L".loglauncher.tmp.";
-		oss << std::this_thread::get_id();
-		temp_filename = Glib::filename_from_utf8(wstring2ustring(oss.str()));
-	}
+	const std::string &temp_filename = Glib::filename_from_utf8(Glib::ustring::compose(u8".loglauncher.tmp.%1", std::this_thread::get_id()));
 	const std::string &temp_pathname = filename_to_pathname(temp_filename);
 	FileDescriptor dst_fd = FileDescriptor::create_open(temp_pathname.c_str(), O_RDWR | O_CREAT | O_EXCL, 0666);
 

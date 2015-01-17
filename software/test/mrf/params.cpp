@@ -2,9 +2,7 @@
 #include "util/algorithm.h"
 #include "util/string.h"
 #include <cstddef>
-#include <iomanip>
-#include <locale>
-#include <sstream>
+#include <stdexcept>
 #include <glibmm/main.h>
 #include <gtkmm/messagedialog.h>
 #include <sigc++/bind_return.h>
@@ -67,11 +65,13 @@ void ParamsPanel::send_params() {
 
 		uint8_t channel = static_cast<uint8_t>(channel_chooser.get_active_row_number() + 0x0B);
 		uint8_t index = static_cast<uint8_t>(index_chooser.get_active_row_number());
-		std::wistringstream iss(ustring2wstring(pan_entry.get_text()));
-		iss.flags(std::ios_base::hex);
 		uint16_t pan;
-		iss >> pan;
-		if (!iss || pan == 0xFFFF) {
+		try {
+			pan = static_cast<uint16_t>(std::stoi(ustring2wstring(pan_entry.get_text()), nullptr, 16));
+		} catch (const std::logic_error &) {
+			pan = 0xFFFF;
+		}
+		if (pan == 0xFFFF) {
 			Gtk::MessageDialog md(u8"Invalid PAN ID", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
 			md.run();
 			return;

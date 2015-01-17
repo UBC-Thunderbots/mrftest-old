@@ -125,20 +125,20 @@ namespace {
 				   }
 				 */
 
-				std::ostringstream text;
+				Glib::ustring text;
 
 				if (curr_play) {
-					text << "Running";
+					text = u8"Running";
 					execute_tactics();
 				} else {
-					text << "Stop";
+					text = u8"Stop";
 				}
 
 				if (curr_play) {
-					text << info();
+					text += info();
 				}
 
-				text_status.get_buffer()->set_text(Glib::locale_to_utf8(text.str()));
+				text_status.get_buffer()->set_text(text);
 			}
 
 			Gtk::Widget *ui_controls() override {

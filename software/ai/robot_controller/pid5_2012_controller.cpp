@@ -8,9 +8,8 @@
 #include "util/string.h"
 #include "util/timestep.h"
 #include <cmath>
-#include <vector>
 #include <iomanip>
-#include <sstream>
+#include <vector>
 #include <gtkmm/expander.h>
 #include <gtkmm/table.h>
 #include <gtkmm/label.h>

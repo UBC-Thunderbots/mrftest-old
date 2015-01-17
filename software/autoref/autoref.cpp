@@ -25,11 +25,9 @@
 #include <limits>
 #include <locale>
 #include <ratio>
-#include <sstream>
 #include <glibmm/convert.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/ustring.h>
-#include <google/protobuf/io/coded_stream.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <string>

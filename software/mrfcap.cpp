@@ -13,7 +13,6 @@
 #include <fstream>
 #include <iostream>
 #include <locale>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>

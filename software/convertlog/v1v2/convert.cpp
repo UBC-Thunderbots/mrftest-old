@@ -16,8 +16,6 @@
 #include <cstdio>
 #include <fcntl.h>
 #include <iostream>
-#include <locale>
-#include <sstream>
 #include <string>
 #include <unistd.h>
 #include <glibmm/fileutils.h>
@@ -193,11 +191,7 @@ namespace {
 						// Add this parameter value to the parameters record.
 						Log::Parameter &param = *boot_parameters_record.add_parameters();
 						param.set_name(std::string(payload + 20, payload + payload_length));
-						std::istringstream iss(std::string(payload, payload + 20));
-						iss.imbue(std::locale("C"));
-						double v;
-						iss >> v;
-						param.set_double_value(v);
+						param.set_double_value(std::stod(std::string(payload, payload + 20)));
 						break;
 					}
 
@@ -422,11 +416,7 @@ namespace {
 					Log::Record record;
 					Log::Parameter &param = *record.add_parameters();
 					param.set_name(std::string(payload + 8, payload + payload_length));
-					std::istringstream iss(std::string(payload, payload + 20));
-					iss.imbue(std::locale("C"));
-					double v;
-					iss >> v;
-					param.set_double_value(v);
+					param.set_double_value(std::stod(std::string(payload, payload + 20)));
 					write_record(record, dest);
 					break;
 				}

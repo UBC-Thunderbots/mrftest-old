@@ -8,8 +8,6 @@
 #include "util/string.h"
 #include <algorithm>
 #include <cmath>
-#include <locale>
-#include <sstream>
 #include <stdexcept>
 #include <glibmm/ustring.h>
 
