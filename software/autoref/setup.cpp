@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <fstream>
 #include <string>
+#include <glibmm/miscutils.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 

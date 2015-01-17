@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <vector>
 #include <gtkmm/box.h>
+#include <gtkmm/checkbutton.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/frame.h>
@@ -17,11 +18,16 @@ using AI::Window;
 namespace {
 	class BasicControls final : public Gtk::Frame {
 		public:
-			explicit BasicControls(AI::AIPackage &ai) : Gtk::Frame(u8"Basics"), ai(ai), table(2 + ai.backend.main_ui_controls_table_rows(), 3), playtype_override_label(u8"Play type override:"), playtype_label(u8"Play type:") {
+			explicit BasicControls(AI::AIPackage &ai) :
+					Gtk::Frame(u8"Basics"),
+					ai(ai),
+					table(2 + ai.backend.main_ui_controls_table_rows(), 3),
+					playtype_override_label(u8"Play type override:"),
+					playtype_label(u8"Play type:") {
 				table.attach(playtype_override_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				playtype_override_chooser.append_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayType::NONE));
+				playtype_override_chooser.append(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayType::NONE));
 				for (unsigned int i = 0; i < static_cast<unsigned int>(AI::Common::PlayType::NONE); ++i) {
-					playtype_override_chooser.append_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayTypeInfo::of_int(i)));
+					playtype_override_chooser.append(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayTypeInfo::of_int(i)));
 				}
 				playtype_override_chooser.set_active_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayType::NONE));
 				table.attach(playtype_override_chooser, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -69,10 +75,10 @@ namespace {
 	class HighLevelControls final : public Gtk::Frame {
 		public:
 			explicit HighLevelControls(AI::AIPackage &ai) : Gtk::Frame(u8"High Level"), ai(ai), table(2, 2), custom_controls(nullptr) {
-				high_level_chooser.append_text(u8"<Choose High Level>");
+				high_level_chooser.append(u8"<Choose High Level>");
 				typedef AI::HL::HighLevelFactory::Map Map;
 				for (const Map::value_type &i : AI::HL::HighLevelFactory::all()) {
-					high_level_chooser.append_text(i.second->name());
+					high_level_chooser.append(i.second->name());
 				}
 				table.attach(high_level_chooser, 0, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				high_level_chooser.signal_changed().connect(sigc::mem_fun(this, &HighLevelControls::on_high_level_chooser_changed));
@@ -128,10 +134,10 @@ namespace {
 	class NavigatorControls final : public Gtk::Frame {
 		public:
 			explicit NavigatorControls(AI::AIPackage &ai) : Gtk::Frame(u8"Navigator"), ai(ai), table(3, 2), custom_controls(nullptr) {
-				navigator_chooser.append_text(u8"<Choose Navigator>");
+				navigator_chooser.append(u8"<Choose Navigator>");
 				typedef AI::Nav::NavigatorFactory::Map Map;
 				for (const Map::value_type &i : AI::Nav::NavigatorFactory::all()) {
-					navigator_chooser.append_text(i.second->name());
+					navigator_chooser.append(i.second->name());
 				}
 
 				table.attach(navigator_chooser, 0, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -188,10 +194,10 @@ namespace {
 	class RobotControllerControls final : public Gtk::Frame {
 		public:
 			explicit RobotControllerControls(AI::AIPackage &ai) : Gtk::Frame(u8"Robot Controller"), ai(ai), table(3, 2), custom_controls(nullptr) {
-				rc_chooser.append_text(u8"<Choose Robot Controller>");
+				rc_chooser.append(u8"<Choose Robot Controller>");
 				typedef AI::RC::RobotControllerFactory::Map Map;
 				for (const Map::value_type &i : AI::RC::RobotControllerFactory::all()) {
-					rc_chooser.append_text(i.second->name());
+					rc_chooser.append(i.second->name());
 				}
 				table.attach(rc_chooser, 0, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				rc_chooser.signal_changed().connect(sigc::mem_fun(this, &RobotControllerControls::on_rc_chooser_changed));

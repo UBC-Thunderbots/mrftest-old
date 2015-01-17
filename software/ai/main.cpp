@@ -39,7 +39,7 @@ namespace {
 		Gtk::ComboBoxText combo;
 		typedef AI::BE::BackendFactory::Map Map;
 		for (const Map::value_type &i : AI::BE::BackendFactory::all()) {
-			combo.append_text(i.second->name());
+			combo.append(i.second->name());
 		}
 		dlg.get_vbox()->pack_start(combo, Gtk::PACK_SHRINK);
 		dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);

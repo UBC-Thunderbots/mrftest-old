@@ -27,9 +27,9 @@ namespace {
 			Gtk::ComboBoxText combo;
 
 			explicit STPHLChoosable(World world) : PlayExecutor(world) {
-				combo.append_text(CHOOSE_PLAY_TEXT);
+				combo.append(CHOOSE_PLAY_TEXT);
 				for (const auto &i : Play::PlayFactory::all()) {
-					combo.append_text(i.second->name());
+					combo.append(i.second->name());
 				}
 				combo.set_active_text(CHOOSE_PLAY_TEXT);
 				vbox.add(combo);

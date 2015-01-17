@@ -56,7 +56,6 @@ GType AbstractListModel::get_column_type_vfunc(int col) const {
 }
 
 bool AbstractListModel::iter_next_vfunc(const iterator &iter, iterator &next) const {
-	assert(iter_is_valid(iter));
 	std::size_t nextindex = of_ptr(iter.gobj()->user_data) + 1;
 	if (nextindex < alm_rows()) {
 		make_iter_valid(next, nextindex);
@@ -115,15 +114,10 @@ int AbstractListModel::iter_n_root_children_vfunc() const {
 }
 
 Gtk::TreeModel::Path AbstractListModel::get_path_vfunc(const iterator &iter) const {
-	assert(iter_is_valid(iter));
 	Path p;
 	std::size_t index = of_ptr(iter.gobj()->user_data);
 	p.push_back(static_cast<int>(index));
 	return p;
-}
-
-bool AbstractListModel::iter_is_valid(const iterator &iter) const {
-	return iter.get_stamp() == stamp && of_ptr(iter.gobj()->user_data) < alm_rows();
 }
 
 void AbstractListModel::make_iter_valid(iterator &iter, std::size_t index) const {
@@ -137,14 +131,12 @@ void AbstractListModel::make_iter_invalid(iterator &iter) {
 }
 
 void AbstractListModel::get_value_vfunc(const iterator &iter, int col, Glib::ValueBase &value) const {
-	assert(iter_is_valid(iter));
 	assert(is_valid_column(col));
 	std::size_t index = of_ptr(iter.gobj()->user_data);
 	alm_get_value(index, static_cast<unsigned int>(col), value);
 }
 
 void AbstractListModel::set_value_impl(const iterator &iter, int col, const Glib::ValueBase &value) {
-	assert(iter_is_valid(iter));
 	assert(is_valid_column(col));
 	std::size_t index = of_ptr(iter.gobj()->user_data);
 	alm_set_value(index, static_cast<unsigned int>(col), value);

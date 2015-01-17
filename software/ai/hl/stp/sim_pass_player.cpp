@@ -14,10 +14,20 @@ using namespace AI::HL::W;
 namespace {
 	class SimPassPlayer final : public HighLevel {
 		public:
-			explicit SimPassPlayer(World world) : world(world), adj_xposition(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_xposition(adj_xposition), xpos(0.0), adj_yposition(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_yposition(adj_yposition), ypos(0.0), adj_orientation(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI), hsb_orientation(adj_orientation), orient(Angle::zero()) {
-				adj_orientation.signal_value_changed().connect(sigc::mem_fun(*this, &SimPassPlayer::on_orientation_value_changed));
-				adj_xposition.signal_value_changed().connect(sigc::mem_fun(*this, &SimPassPlayer::on_xposition_value_changed));
-				adj_yposition.signal_value_changed().connect(sigc::mem_fun(*this, &SimPassPlayer::on_yposition_value_changed));
+			explicit SimPassPlayer(World world) :
+					world(world),
+					adj_xposition(Gtk::Adjustment::create(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI)),
+					hsb_xposition(adj_xposition),
+					xpos(0.0),
+					adj_yposition(Gtk::Adjustment::create(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI)),
+					hsb_yposition(adj_yposition),
+					ypos(0.0),
+					adj_orientation(Gtk::Adjustment::create(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI)),
+					hsb_orientation(adj_orientation),
+					orient(Angle::zero()) {
+				adj_orientation->signal_value_changed().connect(sigc::mem_fun(*this, &SimPassPlayer::on_orientation_value_changed));
+				adj_xposition->signal_value_changed().connect(sigc::mem_fun(*this, &SimPassPlayer::on_xposition_value_changed));
+				adj_yposition->signal_value_changed().connect(sigc::mem_fun(*this, &SimPassPlayer::on_yposition_value_changed));
 				ui_box.add(hsb_orientation);
 				ui_box.add(hsb_xposition);
 				ui_box.add(hsb_yposition);
@@ -49,13 +59,13 @@ namespace {
 				}
 			}
 			Gtk::VBox ui_box;
-			Gtk::Adjustment adj_xposition;
+			Glib::RefPtr<Gtk::Adjustment> adj_xposition;
 			Gtk::HScrollbar hsb_xposition;
 			double xpos;
-			Gtk::Adjustment adj_yposition;
+			Glib::RefPtr<Gtk::Adjustment> adj_yposition;
 			Gtk::HScrollbar hsb_yposition;
 			double ypos;
-			Gtk::Adjustment adj_orientation;
+			Glib::RefPtr<Gtk::Adjustment> adj_orientation;
 			Gtk::HScrollbar hsb_orientation;
 			Angle orient;
 

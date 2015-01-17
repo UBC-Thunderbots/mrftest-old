@@ -13,6 +13,8 @@
 #include <iterator>
 #include <vector>
 #include <gdk/gdkkeysyms.h>
+#include <glibmm/convert.h>
+#include <glibmm/main.h>
 #include <gtkmm/adjustment.h>
 #include <gtkmm/box.h>
 #include <gtkmm/frame.h>

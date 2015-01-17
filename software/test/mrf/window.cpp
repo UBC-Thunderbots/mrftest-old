@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <glibmm/convert.h>
 #include <glibmm/object.h>
 #include <glibmm/refptr.h>
 #include <gtkmm/main.h>
@@ -157,7 +158,7 @@ void TesterWindow::scram() {
 }
 
 int TesterWindow::key_snoop(Widget *, GdkEventKey *event) {
-	if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_Z || event->keyval == GDK_z)) {
+	if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_KEY_Z || event->keyval == GDK_KEY_z)) {
 		// Z letter sets all controls to zero.
 		drive_panel.zero();
 		dribble_panel.stop();

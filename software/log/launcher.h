@@ -6,6 +6,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <glibmm/dispatcher.h>
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>
 #include <gtkmm/buttonbox.h>

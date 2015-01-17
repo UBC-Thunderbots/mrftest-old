@@ -41,13 +41,8 @@ void Visualizer::on_size_allocate(Gtk::Allocation &alloc) {
 	compute_scales();
 }
 
-bool Visualizer::on_expose_event(GdkEventExpose *evt) {
-	Gtk::DrawingArea::on_expose_event(evt);
-
-	int width, height;
-	get_window()->get_size(width, height);
-
-	Cairo::RefPtr<Cairo::Context> ctx = get_window()->create_cairo_context();
+bool Visualizer::on_draw(const Cairo::RefPtr<Cairo::Context> &ctx) {
+	Gtk::DrawingArea::on_draw(ctx);
 
 	// Fill the background with field-green.
 	ctx->set_source_rgb(0.0, 0.33, 0.0);

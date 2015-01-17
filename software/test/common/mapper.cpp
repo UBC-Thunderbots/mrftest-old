@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <unordered_set>
 #include <vector>
+#include <glibmm/convert.h>
 #include <glibmm/object.h>
 #include <glibmm/refptr.h>
 #include <gtkmm/comboboxtext.h>
@@ -31,7 +32,7 @@ namespace {
 	}
 
 	std::size_t get_selected_row(const Gtk::TreeView &tv) {
-		const Gtk::TreeSelection::ListHandle_Path &sel = tv.get_selection()->get_selected_rows();
+		const std::vector<Gtk::TreePath> &sel = tv.get_selection()->get_selected_rows();
 		assert(!sel.empty());
 		const Gtk::TreePath &p = *sel.begin();
 		return static_cast<std::size_t>(p[0]);

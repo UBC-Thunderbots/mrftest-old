@@ -24,7 +24,7 @@ namespace {
 
 LEDsPanel::LEDsPanel(MRFDongle &dongle, unsigned int index) : dongle(dongle), index(index), set_button(u8"Set") {
 	for (const LEDMode &mode : MODES) {
-		mode_chooser.append_text(mode.name);
+		mode_chooser.append(mode.name);
 	}
 	mode_chooser.set_active(0);
 	pack_start(mode_chooser, Gtk::PACK_SHRINK);

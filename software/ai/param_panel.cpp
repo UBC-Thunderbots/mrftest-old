@@ -31,7 +31,7 @@ namespace {
 			Gtk::TreeModelColumn<bool> has_bool_column;
 			Gtk::TreeModelColumn<bool> bool_column;
 			Gtk::TreeModelColumn<bool> has_numeric_column;
-			Gtk::TreeModelColumn<Gtk::Adjustment *> numeric_adjustment_column;
+			Gtk::TreeModelColumn<Glib::RefPtr<Gtk::Adjustment>> numeric_adjustment_column;
 			Gtk::TreeModelColumn<Glib::ustring> numeric_value_column;
 			Gtk::TreeModelColumn<unsigned int> numeric_digits_column;
 			Gtk::TreeModelColumnRecord column_record;
@@ -42,7 +42,6 @@ namespace {
 			}
 
 			void toggle_bool(const iterator &iter) {
-				assert(iter_is_valid(iter));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(iter.gobj()->user_data);
 				BoolParam *bp = dynamic_cast<BoolParam *>(node);
 				if (bp) {
@@ -51,15 +50,11 @@ namespace {
 			}
 
 		private:
-			static constexpr int STAMP = 123498723;
-
 			static bool make_iter(ParamTreeNode *node, iterator &iter) {
 				if (node) {
-					iter.gobj()->stamp = STAMP;
 					iter.gobj()->user_data = node;
 					return true;
 				} else {
-					iter.gobj()->stamp = 0;
 					iter.gobj()->user_data = nullptr;
 					return false;
 				}
@@ -110,7 +105,6 @@ namespace {
 			}
 
 			bool iter_next_vfunc(const iterator &iter, iterator &iter_next) const override {
-				assert(iter_is_valid(iter));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(iter.gobj()->user_data);
 				return make_iter(node->next_sibling(), iter_next);
 			}
@@ -124,19 +118,16 @@ namespace {
 			}
 
 			bool iter_children_vfunc(const iterator &parent, iterator &iter) const override {
-				assert(iter_is_valid(parent));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(parent.gobj()->user_data);
 				return make_iter(node->child(0), iter);
 			}
 
 			bool iter_parent_vfunc(const iterator &child, iterator &iter) const override {
-				assert(iter_is_valid(child));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(child.gobj()->user_data);
 				return make_iter(node->parent(), iter);
 			}
 
 			bool iter_nth_child_vfunc(const iterator &parent, int n, iterator &iter) const override {
-				assert(iter_is_valid(parent));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(parent.gobj()->user_data);
 				return make_iter(node->child(static_cast<std::size_t>(n)), iter);
 			}
@@ -146,13 +137,11 @@ namespace {
 			}
 
 			bool iter_has_child_vfunc(const iterator &iter) const override {
-				assert(iter_is_valid(iter));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(iter.gobj()->user_data);
 				return node->num_children() > 0;
 			}
 
 			int iter_n_children_vfunc(const iterator &iter) const override {
-				assert(iter_is_valid(iter));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(iter.gobj()->user_data);
 				return static_cast<int>(node->num_children());
 			}
@@ -162,7 +151,6 @@ namespace {
 			}
 
 			Gtk::TreePath get_path_vfunc(const iterator &iter) const override {
-				assert(iter_is_valid(iter));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(iter.gobj()->user_data);
 				Gtk::TreePath path;
 				while (node && node->index() != static_cast<std::size_t>(-1)) {
@@ -173,7 +161,6 @@ namespace {
 			}
 
 			void get_value_vfunc(const iterator &iter, int column, Glib::ValueBase &value) const override {
-				assert(iter_is_valid(iter));
 				ParamTreeNode *node = static_cast<ParamTreeNode *>(iter.gobj()->user_data);
 
 				if (column == name_column.index()) {
@@ -204,13 +191,13 @@ namespace {
 					value.init(has_numeric_column.type());
 					value = v;
 				} else if (column == numeric_adjustment_column.index()) {
-					Glib::Value<Gtk::Adjustment *> v;
+					Glib::Value<Glib::RefPtr<Gtk::Adjustment>> v;
 					v.init(numeric_adjustment_column.type());
 					NumericParam *np = dynamic_cast<NumericParam *>(node);
 					if (np) {
 						v.set(np->adjustment());
 					} else {
-						v.set(nullptr);
+						v.set(Glib::RefPtr<Gtk::Adjustment>());
 					}
 					value.init(numeric_adjustment_column.type());
 					value = v;
@@ -240,13 +227,7 @@ namespace {
 					std::abort();
 				}
 			}
-
-			bool iter_is_valid(const iterator &iter) const override {
-				return iter.gobj()->stamp == STAMP && iter.gobj()->user_data;
-			}
 	};
-
-	constexpr int ParamTreeModel::STAMP;
 
 	class ParamTreeView final : public Gtk::TreeView {
 		public:

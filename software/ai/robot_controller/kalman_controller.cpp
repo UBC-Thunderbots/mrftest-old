@@ -29,16 +29,45 @@ using namespace AI::RC::W;
 namespace {
 	class KalmanController final : public RobotController {
 		public:
-			explicit KalmanController(World world, Player player) : RobotController(world, player), lbl_ramp_time(u8"T ramp"), lbl_plateau_time(u8"T plateau"), lbl_terminal_velocity(u8"V terminal"), lbl_direction(u8"Direction"), lbl_rotate_speed(u8"Rotation"), lbl_pivot_radius(u8"Pivot Radius"), adj_ramp_time(0.0, 0.0, 2.0, 0.1, 0.5, 1.0), adj_plateau_time(0.0, 0.0, 4.0, 0.2, 1.0, 1.0), adj_terminal_velocity(0.0, 0.0, 10.0, 0.1, 0.2, 0.2), adj_direction(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI, 1.0), adj_rotate_speed(0.0, -20 * M_PI, 20 * M_PI, 0.05 * M_PI, 0.1 * M_PI, 0.0), adj_pivot_radius(0.1, 0.1, 10.0, 0.1, 1.0, 0.0), hsb_ramp_time(adj_ramp_time), hsb_plateau_time(adj_plateau_time), hsb_terminal_velocity(adj_terminal_velocity), hsb_direction(adj_direction), hsb_rotate_speed(adj_rotate_speed), hsb_pivot_radius(adj_pivot_radius), enable_pivot_radius(true), velocity_inc(0.0, 0.0), to_be_ramp_time(0.0), to_be_plateau_time(0.0), to_be_terminal_velocity(0.0), to_be_velocity(0.0, 0.0), to_be_direction(Angle::zero()), to_be_rotate_speed(Angle::zero()), to_be_pivot_radius(0.1), state(State::IDLE) {
+			explicit KalmanController(World world, Player player) :
+					RobotController(world, player),
+					lbl_ramp_time(u8"T ramp"),
+					lbl_plateau_time(u8"T plateau"),
+					lbl_terminal_velocity(u8"V terminal"),
+					lbl_direction(u8"Direction"),
+					lbl_rotate_speed(u8"Rotation"),
+					lbl_pivot_radius(u8"Pivot Radius"),
+					adj_ramp_time(Gtk::Adjustment::create(0.0, 0.0, 2.0, 0.1, 0.5, 1.0)),
+					adj_plateau_time(Gtk::Adjustment::create(0.0, 0.0, 4.0, 0.2, 1.0, 1.0)),
+					adj_terminal_velocity(Gtk::Adjustment::create(0.0, 0.0, 10.0, 0.1, 0.2, 0.2)),
+					adj_direction(Gtk::Adjustment::create(0.0, 0.0, 2 * M_PI, 0.1 * M_PI, 0.5 * M_PI, 1.0)),
+					adj_rotate_speed(Gtk::Adjustment::create(0.0, -20 * M_PI, 20 * M_PI, 0.05 * M_PI, 0.1 * M_PI, 0.0)),
+					adj_pivot_radius(Gtk::Adjustment::create(0.1, 0.1, 10.0, 0.1, 1.0, 0.0)),
+					hsb_ramp_time(adj_ramp_time),
+					hsb_plateau_time(adj_plateau_time),
+					hsb_terminal_velocity(adj_terminal_velocity),
+					hsb_direction(adj_direction),
+					hsb_rotate_speed(adj_rotate_speed),
+					hsb_pivot_radius(adj_pivot_radius),
+					enable_pivot_radius(true),
+					velocity_inc(0.0, 0.0),
+					to_be_ramp_time(0.0),
+					to_be_plateau_time(0.0),
+					to_be_terminal_velocity(0.0),
+					to_be_velocity(0.0, 0.0),
+					to_be_direction(Angle::zero()),
+					to_be_rotate_speed(Angle::zero()),
+					to_be_pivot_radius(0.1),
+					state(State::IDLE) {
 				enable_pivot_radius_tgl.signal_toggled().connect(sigc::mem_fun(*this, &KalmanController::on_enable_pivot_radius_toggled));
 
 				// param bar
-				adj_ramp_time.signal_value_changed().connect(sigc::mem_fun(*this, &KalmanController::on_adj_ramp_time_changed));
-				adj_plateau_time.signal_value_changed().connect(sigc::mem_fun(*this, &KalmanController::on_adj_plateau_time_changed));
-				adj_terminal_velocity.signal_value_changed().connect(sigc::mem_fun(*this, &KalmanController::on_adj_terminal_velocity_changed));
-				adj_direction.signal_value_changed().connect(sigc::mem_fun(*this, &KalmanController::on_adj_direction_changed));
-				adj_rotate_speed.signal_value_changed().connect(sigc::mem_fun(*this, &KalmanController::on_adj_rotate_speed_changed));
-				adj_pivot_radius.signal_value_changed().connect(sigc::mem_fun(*this, &KalmanController::on_adj_pivot_radius_changed));
+				adj_ramp_time->signal_value_changed().connect(sigc::mem_fun(*this, &KalmanController::on_adj_ramp_time_changed));
+				adj_plateau_time->signal_value_changed().connect(sigc::mem_fun(*this, &KalmanController::on_adj_plateau_time_changed));
+				adj_terminal_velocity->signal_value_changed().connect(sigc::mem_fun(*this, &KalmanController::on_adj_terminal_velocity_changed));
+				adj_direction->signal_value_changed().connect(sigc::mem_fun(*this, &KalmanController::on_adj_direction_changed));
+				adj_rotate_speed->signal_value_changed().connect(sigc::mem_fun(*this, &KalmanController::on_adj_rotate_speed_changed));
+				adj_pivot_radius->signal_value_changed().connect(sigc::mem_fun(*this, &KalmanController::on_adj_pivot_radius_changed));
 				// hsb_ramp_time.set_label(u8"T ramp");
 				// hsb_plateau_time.set_label(u8"T plateau");
 				// hsb_terminal_velocity.set_label(u8"v terminal");
@@ -103,12 +132,12 @@ namespace {
 			Gtk::Label lbl_rotate_speed;
 			Gtk::Label lbl_pivot_radius;
 
-			Gtk::Adjustment adj_ramp_time;
-			Gtk::Adjustment adj_plateau_time;
-			Gtk::Adjustment adj_terminal_velocity;
-			Gtk::Adjustment adj_direction;
-			Gtk::Adjustment adj_rotate_speed;
-			Gtk::Adjustment adj_pivot_radius;
+			Glib::RefPtr<Gtk::Adjustment> adj_ramp_time;
+			Glib::RefPtr<Gtk::Adjustment> adj_plateau_time;
+			Glib::RefPtr<Gtk::Adjustment> adj_terminal_velocity;
+			Glib::RefPtr<Gtk::Adjustment> adj_direction;
+			Glib::RefPtr<Gtk::Adjustment> adj_rotate_speed;
+			Glib::RefPtr<Gtk::Adjustment> adj_pivot_radius;
 
 			Gtk::HScale hsb_ramp_time;
 			Gtk::HScale hsb_plateau_time;

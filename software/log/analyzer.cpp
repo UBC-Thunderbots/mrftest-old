@@ -16,6 +16,7 @@
 #include <locale>
 #include <string>
 #include <vector>
+#include <glibmm/convert.h>
 #include <glibmm/object.h>
 #include <glibmm/refptr.h>
 #include <google/protobuf/descriptor.h>
@@ -782,10 +783,12 @@ void LogAnalyzer::on_to_tsv_clicked() {
 		fc.set_local_only();
 		fc.set_select_multiple(false);
 		fc.set_do_overwrite_confirmation();
-		Gtk::FileFilter ff;
-		ff.set_name(u8"TSV Files");
-		ff.add_pattern(u8"*.tsv");
-		fc.add_filter(ff);
+		{
+			Glib::RefPtr<Gtk::FileFilter> ff(Gtk::FileFilter::create());
+			ff->set_name(u8"TSV Files");
+			ff->add_pattern(u8"*.tsv");
+			fc.add_filter(ff);
+		}
 		fc.add_button(Gtk::Stock::SAVE, Gtk::RESPONSE_OK);
 		fc.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 		if (fc.run() == Gtk::RESPONSE_OK) {

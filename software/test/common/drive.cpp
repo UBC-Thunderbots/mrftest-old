@@ -1,5 +1,6 @@
 #include "test/common/drive.h"
 #include "util/algorithm.h"
+#include <glibmm/main.h>
 #include <sigc++/bind_return.h>
 #include <sigc++/functors/mem_fun.h>
 
@@ -114,7 +115,7 @@ DrivePanel::DrivePanel(Drive::Robot &robot) :
 	const Mode * const MODES = robot.can_coast() ? MODES_COAST : MODES_NO_COAST;
 	const std::size_t MODES_SIZE = robot.can_coast() ? G_N_ELEMENTS(MODES_COAST) : G_N_ELEMENTS(MODES_NO_COAST);
 	for (std::size_t i = 0; i < MODES_SIZE; ++i) {
-		mode_chooser.append_text(MODES[i].name);
+		mode_chooser.append(MODES[i].name);
 	}
 	coast();
 	mode_chooser.signal_changed().connect(sigc::mem_fun(this, &DrivePanel::on_mode_changed));

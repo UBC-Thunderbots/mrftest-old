@@ -26,7 +26,7 @@ SOURCES_autoref :=  autoref main.cpp util  geom ai/backend proto ai/common ai/ai
 #
 # All the pkg-config packages used.
 #
-PACKAGES := glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 gsl libusb-1.0
+PACKAGES := glibmm-2.4 gtkmm-3.0 cairomm-1.0 ode protobuf libxml++-2.6 gsl libusb-1.0
 
 #
 # The flags to pass to the linker ahead of any object files.

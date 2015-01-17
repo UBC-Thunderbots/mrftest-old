@@ -420,8 +420,8 @@ class NumericParam : public Param {
 		 *
 		 * \return the Gtk::Adjustment.
 		 */
-		Gtk::Adjustment *adjustment() const {
-			return adjustment_.get();
+		const Glib::RefPtr<Gtk::Adjustment> &adjustment() const {
+			return adjustment_;
 		}
 
 		/**
@@ -452,7 +452,7 @@ class NumericParam : public Param {
 	private:
 		const double def, min, max;
 		const bool integer;
-		std::unique_ptr<Gtk::Adjustment> adjustment_;
+		Glib::RefPtr<Gtk::Adjustment> adjustment_;
 		mutable sigc::signal<void> signal_changed_reflector;
 
 		/**

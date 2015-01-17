@@ -116,7 +116,6 @@ class AbstractListModel : public Gtk::TreeModel {
 		int iter_n_children_vfunc(const iterator &) const override;
 		int iter_n_root_children_vfunc() const override;
 		Path get_path_vfunc(const iterator &) const override;
-		bool iter_is_valid(const iterator &) const override;
 		void get_value_vfunc(const iterator &, int, Glib::ValueBase &) const override;
 		void set_value_impl(const iterator &, int, const Glib::ValueBase &) override;
 

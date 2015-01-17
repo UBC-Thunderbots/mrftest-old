@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <glibmm/convert.h>
 #include <libxml++/libxml++.h>
 
 namespace {
@@ -342,7 +343,7 @@ void NumericParam::set_default() {
 
 void NumericParam::initialize() {
 	Param::initialize();
-	adjustment_.reset(new Gtk::Adjustment(def, min, max, integer ? 1 : compute_step(min, max), integer ? 10 : compute_page(min, max), 0));
+	adjustment_ = Gtk::Adjustment::create(def, min, max, integer ? 1 : compute_step(min, max), integer ? 10 : compute_page(min, max), 0);
 	adjustment_->signal_value_changed().connect(signal_changed_reflector.make_slot());
 }
 

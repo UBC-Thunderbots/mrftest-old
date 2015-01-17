@@ -18,6 +18,12 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
+#include <giomm/file.h>
+#include <glibmm/convert.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
+#include <glibmm/refptr.h>
+#include <glibmm/ustring.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <gtkmm/filechooserdialog.h>
@@ -46,7 +52,7 @@ namespace {
 	}
 }
 
-LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyzer_button(u8"Analyzer"), player_button(u8"Player"), rename_button(u8"Rename"), delete_button(u8"Delete"), export_button(u8"Export"), import_button(u8"Import"), exit_pending(false) {
+LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_MULTIPLE), analyzer_button(u8"Analyzer"), player_button(u8"Player"), rename_button(u8"Rename"), delete_button(u8"Delete"), export_button(u8"Export"), import_button(u8"Import"), exit_pending(false) {
 	set_title(u8"Thunderbots Log Tools");
 	set_size_request(400, 400);
 
@@ -131,7 +137,7 @@ void LogLauncher::populate() {
 
 	get_filenames(files);
 	for (const std::string &i : files) {
-		log_list.append_text(Glib::filename_display_basename(filename_to_pathname(i)));
+		log_list.append(Glib::filename_display_basename(filename_to_pathname(i)));
 	}
 }
 
@@ -254,10 +260,10 @@ void LogLauncher::on_log_list_selection_changed() {
 }
 
 void LogLauncher::on_analyzer_clicked() {
-	const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
-	for (const Gtk::TreeModel::Path &i : selected) {
+	const std::vector<int> &selected = log_list.get_selected();
+	for (int i : selected) {
 		try {
-			new LogAnalyzer(*this, filename_to_pathname(files[static_cast<std::size_t>(i[0])]));
+			new LogAnalyzer(*this, filename_to_pathname(files[static_cast<std::size_t>(i)]));
 		} catch (const std::runtime_error &exp) {
 			Gtk::MessageDialog md(*this, exp.what(), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
 			md.run();
@@ -266,10 +272,10 @@ void LogLauncher::on_analyzer_clicked() {
 }
 
 void LogLauncher::on_player_clicked() {
-	const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
-	for (const Gtk::TreeModel::Path &i : selected) {
+	const std::vector<int> &selected = log_list.get_selected();
+	for (int i : selected) {
 		try {
-			new LogPlayer(*this, filename_to_pathname(files[static_cast<std::size_t>(i[0])]));
+			new LogPlayer(*this, filename_to_pathname(files[static_cast<std::size_t>(i)]));
 		} catch (const std::runtime_error &exp) {
 			Gtk::MessageDialog md(*this, exp.what(), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
 			md.run();
@@ -317,9 +323,9 @@ void LogLauncher::on_delete_clicked() {
 	Gtk::MessageDialog md(*this, Glib::ustring::compose(u8"Are you sure you wish to delete %1 %2 log%3?", num == 1 ? u8"this" : u8"these", num, num == 1 ? u8"" : u8"s"), false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true);
 	int resp = md.run();
 	if (resp == Gtk::RESPONSE_YES) {
-		const Gtk::TreeSelection::ListHandle_Path &selected = log_list.get_selection()->get_selected_rows();
-		for (const Gtk::TreeModel::Path &i : selected) {
-			const std::string &pathname = filename_to_pathname(files[static_cast<std::size_t>(i[0])]);
+		const std::vector<int> &selected = log_list.get_selected();
+		for (int i : selected) {
+			const std::string &pathname = filename_to_pathname(files[static_cast<std::size_t>(i)]);
 			try {
 				if (std::remove(pathname.c_str()) < 0) {
 					throw SystemError("remove", errno);

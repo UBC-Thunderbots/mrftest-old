@@ -433,7 +433,7 @@ class Visualizer final : public Gtk::DrawingArea {
 		void on_show() override;
 		void on_hide() override;
 		void on_size_allocate(Gtk::Allocation &) override;
-		bool on_expose_event(GdkEventExpose *) override;
+		bool on_draw(const Cairo::RefPtr<Cairo::Context> &ctx) override;
 		bool on_button_press_event(GdkEventButton *evt) override;
 		bool on_button_release_event(GdkEventButton *evt) override;
 		bool on_motion_notify_event(GdkEventMotion *evt) override;
