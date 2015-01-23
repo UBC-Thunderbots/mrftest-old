@@ -509,7 +509,9 @@ static void uep0_status_stage(void) {
 		}
 
 		// Sanity check.
-		assert(xfrc == 2);
+		if (xfrc) {
+			assert(xfrc == 2);
+		}
 	} else {
 		// Data stage was IN so status stage will be OUT. OUT status stages are
 		// started in uep0_data_write, so no need to do it here. However, we
@@ -541,7 +543,9 @@ static void uep0_status_stage(void) {
 		}
 
 		// Sanity check.
-		assert(xfrc == 1);
+		if (xfrc) {
+			assert(xfrc == 1);
+		}
 	}
 
 	if (uep0_poststatus) {
