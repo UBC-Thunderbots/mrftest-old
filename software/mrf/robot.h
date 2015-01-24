@@ -30,7 +30,10 @@ class MRFRobot final : public Drive::Robot {
 		void dribble(unsigned int power) override;
 		void set_charger_state(ChargerState state) override;
 		double kick_pulse_maximum() const override;
+		double kick_speed_maximum() const override;
 		double kick_pulse_resolution() const override;
+		double chip_distance_maximum() const override;
+		double chip_distance_resolution() const override;
 		void kick(bool chip, double pulse_width) override;
 		void autokick(bool chip, double pulse_width) override;
 
