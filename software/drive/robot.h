@@ -177,11 +177,33 @@ namespace Drive {
 			virtual double kick_pulse_maximum() const = 0;
 
 			/**
+			 * \brief Indicates the maximum kicker speed the robot is capable of executing
+			 * 
+			 * \return the maximum speed, in m/s
+			 */
+			virtual double kick_speed_maximum() const = 0;
+
+			/**
+			 * \brief Indicates the maximum chipper distance
+			 *
+			 * \return the maximum distance, in m
+			 */
+			virtual double chip_distance_maximum() const = 0;
+
+			/**
 			 * \brief Indicates the resolution of kicker pulse width the robot is capable of encoding.
 			 *
 			 * \return the pulse width resolution, in microseconds
 			 */
 			virtual double kick_pulse_resolution() const = 0;
+
+			/**
+			 * \bried Indicates the resolution of chipper pulse width the robot is capable of encoding.
+			 *
+			 * \return the chipper distance resolution, in m
+			 */
+			virtual double chip_distance_resolution() const = 0;
+
 
 			/**
 			 * \brief Executes a kick.
