@@ -174,12 +174,33 @@ double MRFRobot::kick_pulse_maximum() const {
 	return 5000.0;
 }
 
+// To be used for the slide bar
+double MRFRobot::kick_speed_maximum() const {
+	return 10.0;
+}
+
+double MRFRobot::chip_distance_maximum() const {
+	return 2.0;
+}
+
+double MRFRobot::chip_distance_resolution() const {
+	return 1.0;
+}
+
 double MRFRobot::kick_pulse_resolution() const {
 	return 1.0;
 }
 
-void MRFRobot::kick(bool chip, double pulse_width) {
-	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width + 0.1), 0, 65535));
+// actually currently taking in a velocity
+void MRFRobot::kick(bool chip, double value) {
+	unsigned int pulse_width;
+	if (!chip) {
+		pulse_width = value * 332.7 + 219.8;
+	} else {
+		//ballpark, not real
+		pulse_width = 835 * value * value + 469.2 * value + 1118.5;
+	}
+	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width + 0.1), 0, (int) kick_pulse_maximum()));
 
 	uint8_t buffer[4];
 	buffer[0] = 0x00;
@@ -190,8 +211,14 @@ void MRFRobot::kick(bool chip, double pulse_width) {
 	dongle_.send_unreliable(index, buffer, sizeof(buffer));
 }
 
-void MRFRobot::autokick(bool chip, double pulse_width) {
-	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width + 0.1), 0, 65535));
+void MRFRobot::autokick(bool chip, double value) {
+	unsigned int pulse_width; 
+	if (!chip) {
+		pulse_width = value * 332.7 + 219.8;
+	} else {
+		pulse_width = value * 1000;
+	}
+	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width + 0.1), 0, (int) kick_pulse_maximum()));
 
 	if (clamped) {
 		uint8_t buffer[4];
