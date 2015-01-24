@@ -569,10 +569,6 @@ software/geom/kalman/kalman.cpp -text
 software/geom/kalman/kalman.h -text
 software/geom/param.cpp -text
 software/geom/param.h -text
-software/geom/particle/ParticleFilter.cpp -text
-software/geom/particle/ParticleFilter.h -text
-software/geom/particle/ParticleFilter2D.cpp -text
-software/geom/particle/ParticleFilter2D.h -text
 software/geom/particle/particle_filter.cpp -text
 software/geom/particle/particle_filter.h -text
 software/geom/particle/particle_filter_2d.cpp -text
