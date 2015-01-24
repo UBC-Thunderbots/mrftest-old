@@ -7,7 +7,7 @@
 #include "ai/backend/ssl_vision/vision_socket.h"
 #include "ai/common/playtype.h"
 #include "geom/point.h"
-#include "geom/particle/ParticleFilter2D.h"
+#include "geom/particle/particle_filter_2d.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "util/dprint.h"
 #include "util/param.h"

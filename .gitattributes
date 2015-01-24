@@ -573,6 +573,10 @@ software/geom/particle/ParticleFilter.cpp -text
 software/geom/particle/ParticleFilter.h -text
 software/geom/particle/ParticleFilter2D.cpp -text
 software/geom/particle/ParticleFilter2D.h -text
+software/geom/particle/particle_filter.cpp -text
+software/geom/particle/particle_filter.h -text
+software/geom/particle/particle_filter_2d.cpp -text
+software/geom/particle/particle_filter_2d.h -text
 software/geom/point.h -text
 software/geom/predictor.cpp -text
 software/geom/predictor.h -text

@@ -130,7 +130,7 @@ namespace {
 					if(lineseg_point_dist(Point(x, y), enemy_goal_negative, enemy_goal_positive) < 0.4)
 						shoot_score *= 0.1;
 
-					shoot_score += (8 - (Point(x, y) - player.position()).len() * 8);
+					shoot_score -= (Point(x, y) - player.position()).len() * 8;
 
 					scores.push_back(std::make_tuple(Point(x, y), sweep_score.first, shoot_score));
 				}
