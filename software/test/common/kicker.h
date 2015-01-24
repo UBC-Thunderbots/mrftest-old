@@ -43,6 +43,9 @@ class KickerPanel final : public Gtk::Table {
 		Gtk::RadioButton kicker_button, chipper_button;
 		Gtk::Label pulse_width_label;
 		Gtk::HScale pulse_width;
+		// New slide bar
+		Gtk::Label chip_distance_label;
+		Gtk::HScale chip_distance;
 		Gtk::HBox fire_hbox;
 		Gtk::Button kick;
 		Gtk::ToggleButton autokick;
@@ -53,6 +56,7 @@ class KickerPanel final : public Gtk::Table {
 		void on_alive_changed();
 		void on_charge_changed();
 		void on_pulse_width_changed();
+		void on_chip_distance_changed();
 		void on_kick();
 		void on_autokick_changed();
 		void on_autokick_fired();
