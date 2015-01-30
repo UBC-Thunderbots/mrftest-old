@@ -314,7 +314,7 @@ namespace {
 		return violation;
 	}
 
-	struct violation final {
+	struct Violation final {
 		double enemy, friendly, play_area, ball_stop, ball_tiny, friendly_defense, enemy_defense, own_half, penalty_kick_friendly, penalty_kick_enemy, goal_post, total_bounds, net_allowance;
 
 		unsigned int extra_flags;
@@ -355,35 +355,35 @@ namespace {
 		}
 
 		// default, no violation
-		explicit violation() : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(0) {
+		explicit Violation() : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(0) {
 		}
 
-		explicit violation(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(0) {
+		explicit Violation(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(0) {
 			if (OWN_HALF_OVERRIDE) {
 				extra_flags = extra_flags | FLAG_STAY_OWN_HALF;
 			}
 			set_violation_amount(cur, dst, world, player);
 		}
 
-		explicit violation(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player, unsigned int added_flags) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(added_flags) {
+		explicit Violation(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player, unsigned int added_flags) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0), goal_post(0.0), total_bounds(0.0), net_allowance(0.0), extra_flags(added_flags) {
 			if (OWN_HALF_OVERRIDE) {
 				extra_flags = extra_flags | FLAG_STAY_OWN_HALF;
 			}
 			set_violation_amount(cur, dst, world, player);
 		}
 
-		static violation get_violation_amount(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
-			violation v(cur, dst, world, player);
+		static Violation get_violation_amount(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
+			Violation v(cur, dst, world, player);
 			return v;
 		}
 
-		static violation get_violation_amount(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player, unsigned int extra_flags) {
-			violation v(cur, dst, world, player, extra_flags);
+		static Violation get_violation_amount(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player, unsigned int extra_flags) {
+			Violation v(cur, dst, world, player, extra_flags);
 			return v;
 		}
 
 		// whether there is less violation than the violation parameter
-		bool no_more_violating_than(violation b) {
+		bool no_more_violating_than(Violation b) {
 			return enemy < b.enemy + EPS && friendly < b.friendly + EPS &&
 			       play_area < b.play_area + EPS && ball_stop < b.ball_stop + EPS &&
 			       ball_tiny < b.ball_tiny + EPS && friendly_defense < b.friendly_defense + EPS &&
@@ -512,20 +512,21 @@ std::vector<Point> AI::Nav::Util::get_destination_alternatives(Point dst, AI::Na
 }
 
 bool AI::Nav::Util::valid_dst(Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
-	return violation::get_violation_amount(dst, dst, world, player).violation_free();
+	return Violation::get_violation_amount(dst, dst, world, player).violation_free();
 }
 
 bool AI::Nav::Util::valid_path(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
-	return violation::get_violation_amount(cur, dst, world, player).no_more_violating_than(violation::get_violation_amount(cur, cur, world, player));
+	return Violation::get_violation_amount(cur, dst, world, player).no_more_violating_than(Violation::get_violation_amount(cur, cur, world, player));
 }
 
 bool AI::Nav::Util::valid_path(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player, unsigned int extra_flags) {
-	return violation::get_violation_amount(cur, dst, world, player, extra_flags).no_more_violating_than(violation::get_violation_amount(cur, cur, world, player, extra_flags));
+	return Violation::get_violation_amount(cur, dst, world, player, extra_flags).no_more_violating_than(Violation::get_violation_amount(cur, cur, world, player, extra_flags));
 }
 
 std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World world, AI::Nav::W::Player player) {
 	return get_obstacle_boundaries(world, player, 0);
 }
+
 #warning some magic numbers here need to clean up a bit
 std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World world, AI::Nav::W::Player player, unsigned int added_flags) {
 	// this number must be >=3
