@@ -90,7 +90,12 @@ void KickerPanel::on_autokick_changed() {
 	kicker_button.set_sensitive(!autokick.get_active());
 	chipper_button.set_sensitive(!autokick.get_active());
 	if (autokick.get_active()) {
-		robot.autokick(chipper_button.get_active(), pulse_width.get_value());
+		bool is_active = chipper_button.get_active();
+		if (!is_active) {
+			robot.autokick(is_active, pulse_width.get_value());
+		} else {
+			robot.autokick(is_active, chip_distance.get_value());
+		}		
 	} else {
 		robot.autokick(false, 0);
 	}
