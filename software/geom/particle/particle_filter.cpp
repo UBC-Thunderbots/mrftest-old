@@ -67,6 +67,7 @@ void ParticleFilter::update(double timeDelta) {
 			// shift everything back
 			for (int i = static_cast<int> (estimatedVelocity*timeDelta/partitionSize); i < static_cast<int>(numPartitions_); i++)
 			{
+				assert(i-(abs(static_cast<int>(estimatedVelocity*timeDelta/partitionSize))) < numPartitions_);
 				weight_[i-(abs(static_cast<int>(estimatedVelocity*timeDelta/partitionSize)))] = weight_[i];
 			}
 		}
@@ -82,6 +83,7 @@ void ParticleFilter::update(double timeDelta) {
 		} else {
 			// shift everything forward
 			for (int i = static_cast<int>(numPartitions_ - estimatedVelocity*timeDelta/partitionSize) - 1; i >= 0; i--) {
+				assert(i+static_cast<int>(estimatedVelocity*timeDelta/partitionSize) < numPartitions_);
 				weight_[i+static_cast<int>(estimatedVelocity*timeDelta/partitionSize)] = weight_[i];
 			}
 
