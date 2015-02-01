@@ -37,14 +37,14 @@ ParticleFilter::~ParticleFilter() {
 
 void ParticleFilter::update(double timeDelta) {
 	// uniform random generator - use timestamp as seed
-	unsigned int seed = static_cast<unsigned int>( std::chrono::system_clock::now().time_since_epoch().count());
+	unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator (seed);
-	double partitionSize = (length_/numPartitions_);
+	double partitionSize = (double)length_/numPartitions_;
 
 	// DECAY
 	for (unsigned int i = 0; i < numPartitions_; i++) {
 		// binomial distribution w/ p = decayrate
-		std::binomial_distribution<int> dist(static_cast<int>(weight_[i]), PARTICLE_FILTER_DECAYRATE);
+		std::binomial_distribution<int> dist(weight_[i], PARTICLE_FILTER_DECAYRATE);
 		weight_[i] = dist(generator);
 	}
 
@@ -53,26 +53,24 @@ void ParticleFilter::update(double timeDelta) {
 
 	double curVelocity = (estimate_ - prevEstimate_)/timeDelta; // find out how "fast" we are going
 	double acceleration = (curVelocity - velocity_)/timeDelta;
-	//TODO not sure where accel_ is being set
 	double estimatedVelocity = curVelocity - accel_*timeDelta; // use previous acceleration and current velocity to find estimated velocity
 
 	if (estimatedVelocity < 0) {
 		// blank out the section in the back where we don't think the ball was
-		if (numPartitions_ + 1 < abs(static_cast<int>(estimatedVelocity*timeDelta/partitionSize))) {
+		if (numPartitions_ + 1 < abs(estimatedVelocity*timeDelta/partitionSize)) {
 			//std::cout << "LARGE NEGATIVE VELOCITY - CLEARING FIELD" << std::endl;
 			//assert(numPartitions_ + 1 >= estimatedVelocity*timeDelta);
 
 			clearWeights(0, numPartitions_);
 		} else {
 			// shift everything back
-			for (int i = static_cast<int> (estimatedVelocity*timeDelta/partitionSize); i < static_cast<int>(numPartitions_); i++)
+			for (int i = estimatedVelocity*timeDelta/partitionSize; i < numPartitions_; i++)
 			{
-				assert(i-(abs(static_cast<int>(estimatedVelocity*timeDelta/partitionSize))) < numPartitions_);
-				weight_[i-(abs(static_cast<int>(estimatedVelocity*timeDelta/partitionSize)))] = weight_[i];
+				weight_[i-(int)(abs(estimatedVelocity*timeDelta/partitionSize))] = weight_[i];
 			}
 		}
 
-		clearWeights(numPartitions_ - static_cast<unsigned int>(estimatedVelocity*timeDelta/partitionSize) + 1, numPartitions_);
+		clearWeights(numPartitions_ - (estimatedVelocity*timeDelta/partitionSize) + 1, numPartitions_);
 	} else if (estimatedVelocity > 0) {
 		// blank out everything in the front where we don't think the ball was
 		if (estimatedVelocity*timeDelta/partitionSize > numPartitions_) {
@@ -82,34 +80,33 @@ void ParticleFilter::update(double timeDelta) {
 			clearWeights(0, numPartitions_);
 		} else {
 			// shift everything forward
-			for (int i = static_cast<int>(numPartitions_ - estimatedVelocity*timeDelta/partitionSize) - 1; i >= 0; i--) {
-				assert(i+static_cast<int>(estimatedVelocity*timeDelta/partitionSize) < numPartitions_);
-				weight_[i+static_cast<int>(estimatedVelocity*timeDelta/partitionSize)] = weight_[i];
+			for (int i = numPartitions_ - estimatedVelocity*timeDelta/partitionSize - 1; i >= 0; i--) {
+				weight_[i+(int)(estimatedVelocity*timeDelta/partitionSize)] = weight_[i];
 			}
 
-			clearWeights(0, static_cast<unsigned int>(estimatedVelocity*timeDelta/partitionSize));
+			clearWeights(0, estimatedVelocity*timeDelta/partitionSize);
 		}
 	}
 
-	//clearWeights(0, numPartitions_);
+	clearWeights(0, numPartitions_);
 
 	// SUM UP EVERYTHING AND REDUCE IF TOO MANY
 	int sum = 0;
 
-	for (int i = 0; i < static_cast<int>(numPartitions_); i++) {
-		sum += static_cast<int>(weight_[i]);
+	for (int i = 0; i < numPartitions_; i++) {
+		sum += weight_[i];
 	}
 
 	if (sum > 1000) {
-		for (int i = 0; i <static_cast<int> (numPartitions_); i++) {
-			weight_[i] *= static_cast<double>(1000/sum);
+		for (int i = 0; i < numPartitions_; i++) {
+			weight_[i] *= (double)(1000/sum);
 		}
 	}
 
 	// update values
 	velocity_ = curVelocity;
 	accel_ = acceleration;
-	prevEstimate_ = static_cast<int>(estimate_);
+	prevEstimate_ = estimate_;
 }
 
 void ParticleFilter::toString() {
@@ -117,7 +114,7 @@ void ParticleFilter::toString() {
 
 	for (unsigned int i = 0; i < numPartitions_; i++) {
 		std::cout << weight_[i] << "\n";
-		sum += static_cast<int>(weight_[i]);
+		sum += weight_[i];
 	}
 
 	std::cout << " - " << sum << " particles " << std::endl;
@@ -125,12 +122,12 @@ void ParticleFilter::toString() {
 
 void ParticleFilter::add(double input, unsigned int numParticles) {
 	// uniform random generator - use timestamp as seed
-	unsigned int seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
+	unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator (seed);
 
 	std::normal_distribution<double> normal(input - offset_, PARTICLE_FILTER_STDDEV);
 	double value;
-	double partitionSize = (length_/numPartitions_);
+	double partitionSize = (double)length_/numPartitions_;
 	int partition;
 	int count = 0;
 
@@ -141,10 +138,10 @@ void ParticleFilter::add(double input, unsigned int numParticles) {
 		value = normal(generator); // how far into the field we are
 		if ((value >= 0) && (value < length_)) {
 			// calculate which partition the particle falls in
-			partition = static_cast<int>(value/partitionSize);
+			partition = value/partitionSize;
 
 			assert(partition >= 0);
-			assert(partition < static_cast<int>(numPartitions_));
+			assert(partition < (int)numPartitions_);
 			weight_[partition] += 1;
 			count++;
 		}
@@ -175,7 +172,7 @@ void ParticleFilter::updateEstimatedPartition() {
 
 		// FIND HYPOTHESIS WITH MOST WEIGHT
 		for (unsigned int i = 0; i < numPartitions_; i++) {
-			sum += static_cast<unsigned int>(weight_[i]);
+			sum += weight_[i];
 		}
 
 		estimate_ = 0;
