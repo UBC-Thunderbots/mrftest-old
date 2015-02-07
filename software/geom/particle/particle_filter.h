@@ -1,5 +1,5 @@
-#ifndef GEOM_PARTICLE_PARTICLEFILTER_H
-#define GEOM_PARTICLE_PARTICLEFILTER_H
+#ifndef GEOM_PARTICLE_PARTICLE_FILTER_H
+#define GEOM_PARTICLE_PARTICLE_FILTER_H
 
 #include "util/matrix.h"
 #include "util/param.h"
@@ -13,7 +13,7 @@ extern DoubleParam PARTICLE_FILTER_DECAYRATE;
  */
 class ParticleFilter final {
 	public:
-		explicit ParticleFilter(double length, double offset, unsigned int numPartitions);
+		explicit ParticleFilter(double length, double partitionSize);
 		~ParticleFilter();
 
 		void update(double timeDelta);

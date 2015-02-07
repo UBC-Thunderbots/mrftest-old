@@ -160,7 +160,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 
 	if (pFilter_ == NULL && field_.valid())
 	{
-		pFilter_ = new ParticleFilter2D(Point(field_.length()+0.5, field_.width()+0.5), Point(-1*((field_.length()/2.0) + 0.25), -1*((field_.width()/2.0) + 0.25)), 100);
+		pFilter_ = new ParticleFilter2D(Point(field_.length()+0.5, field_.width()+0.5), 0.05);
 	}
 
 	// If it contains ball and robot data, update the ball and the teams.

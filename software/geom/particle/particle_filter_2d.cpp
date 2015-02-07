@@ -1,8 +1,8 @@
 #include "geom/particle/particle_filter_2d.h"
 
-ParticleFilter2D::ParticleFilter2D(Point length, Point offset, unsigned int numPartitions) {
-	xFilter = new ParticleFilter(length.x, offset.x, numPartitions);
-	yFilter = new ParticleFilter(length.y, offset.y, numPartitions);
+ParticleFilter2D::ParticleFilter2D(Point length, double partitionSize) {
+	xFilter = new ParticleFilter(length.x, partitionSize);
+	yFilter = new ParticleFilter(length.y, partitionSize);
 }
 
 ParticleFilter2D::~ParticleFilter2D() {

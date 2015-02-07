@@ -1,5 +1,5 @@
-#ifndef GEOM_PARTICLE_PARTICLEFILTER2D_H
-#define GEOM_PARTICLE_PARTICLEFILTER2D_H
+#ifndef GEOM_PARTICLE_PARTICLE_FILTER_2D_H
+#define GEOM_PARTICLE_PARTICLE_FILTER_2D_H
 
 #include "util/matrix.h"
 #include "util/param.h"
@@ -12,7 +12,7 @@
  */
 class ParticleFilter2D final {
 	public:
-		explicit ParticleFilter2D(Point length, Point offset, unsigned int numPartitions);
+		explicit ParticleFilter2D(Point length, double partitionSize);
 		~ParticleFilter2D();
 
 		void update(double timeDelta);

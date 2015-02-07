@@ -10,10 +10,12 @@
 DoubleParam PARTICLE_FILTER_STDDEV(u8"Particle Filter Standard Deviation", u8"Backend", 0.1, 0.0, 2.0);
 DoubleParam PARTICLE_FILTER_DECAYRATE(u8"Particle Filter Decay Rate", u8"Backend", 0.3, 0, 1.0);
 
-ParticleFilter::ParticleFilter(double length, double offset, unsigned int numPartitions) {
-	weight_ = new double[numPartitions]; // weight of the partitions
+ParticleFilter::ParticleFilter(double length, double partitionSize) {
+	numPartitions_ = ceil(length/partitionSize); // number of time to partition the length. particles are assigned to one of these partitions
+	
+	weight_ = new double[numPartitions_]; // weight of the partitions
 
-	for (unsigned int i = 0; i < numPartitions; i++) {
+	for (unsigned int i = 0; i < numPartitions_; i++) {
 		weight_[i] = 0;
 	}
 
@@ -21,10 +23,9 @@ ParticleFilter::ParticleFilter(double length, double offset, unsigned int numPar
 	accel_ = 0;
 	estimate_ = 0;
 	prevEstimate_ = 0;
-	numPartitions_ = numPartitions; // number of time to partition the length. particles are assigned to one of these partitions
 	estimateValid_ = false;
 	length_ = length;
-	offset_ = offset; // starting offset from 0 (ie length goes from -2 to 2 -> offset = -2)
+	offset_ = -(length*0.5); // starting offset from 0 (ie length goes from -2 to 2 -> offset = -2)
 
 	//std::cout << "Length: " << length_ << "; Offset: " << offset_ << "; numPartitions: " << numPartitions_ << std::endl;
 
