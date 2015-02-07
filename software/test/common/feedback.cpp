@@ -75,9 +75,11 @@ void TesterFeedbackPanel::on_battery_voltage_changed() {
 	if (robot.alive) {
 		battery_voltage.set_fraction(clamp(robot.battery_voltage / 18.0, 0.0, 1.0));
 		battery_voltage.set_text(Glib::ustring::compose(u8"%1V", Glib::ustring::format(std::fixed, std::setprecision(2), robot.battery_voltage)));
+		battery_voltage.set_show_text(true);
 	} else {
 		battery_voltage.set_fraction(0);
 		battery_voltage.set_text(u8"No Data");
+		battery_voltage.set_show_text(true);
 	}
 }
 
@@ -85,9 +87,11 @@ void TesterFeedbackPanel::on_capacitor_voltage_changed() {
 	if (robot.alive) {
 		capacitor_voltage.set_fraction(clamp(robot.capacitor_voltage / 250.0, 0.0, 1.0));
 		capacitor_voltage.set_text(Glib::ustring::compose(u8"%1V", Glib::ustring::format(std::fixed, std::setprecision(0), robot.capacitor_voltage)));
+		capacitor_voltage.set_show_text(true);
 	} else {
 		capacitor_voltage.set_fraction(0);
 		capacitor_voltage.set_text(u8"No Data");
+		capacitor_voltage.set_show_text(true);
 	}
 }
 
@@ -95,9 +99,11 @@ void TesterFeedbackPanel::on_dribbler_temperature_changed() {
 	if (robot.alive && 0 < robot.dribbler_temperature && robot.dribbler_temperature < 200) {
 		dribbler_temperature.set_fraction(clamp(robot.dribbler_temperature / 125.0, 0.0, 1.0));
 		dribbler_temperature.set_text(Glib::ustring::compose(u8"%1°C", Glib::ustring::format(std::fixed, std::setprecision(1), robot.dribbler_temperature)));
+		dribbler_temperature.set_show_text(true);
 	} else {
 		dribbler_temperature.set_fraction(0);
 		dribbler_temperature.set_text(u8"No Data");
+		dribbler_temperature.set_show_text(true);
 	}
 }
 
@@ -105,9 +111,11 @@ void TesterFeedbackPanel::on_dribbler_speed_changed() {
 	if (robot.alive) {
 		dribbler_speed.set_fraction(clamp(robot.dribbler_speed / 50000.0, 0.0, 1.0));
 		dribbler_speed.set_text(Glib::ustring::compose(u8"%1 rpm", Glib::ustring::format(robot.dribbler_speed)));
+		dribbler_speed.set_show_text(true);
 	} else {
 		dribbler_speed.set_fraction(0);
 		dribbler_speed.set_text(u8"No Data");
+		dribbler_speed.set_show_text(true);
 	}
 }
 
@@ -115,9 +123,11 @@ void TesterFeedbackPanel::on_board_temperature_changed() {
 	if (robot.alive && 0 < robot.board_temperature && robot.board_temperature < 200) {
 		board_temperature.set_fraction(clamp(robot.board_temperature / 125.0, 0.0, 1.0));
 		board_temperature.set_text(Glib::ustring::compose(u8"%1°C", Glib::ustring::format(std::fixed, std::setprecision(1), robot.board_temperature)));
+		board_temperature.set_show_text(true);
 	} else {
 		board_temperature.set_fraction(0);
 		board_temperature.set_text(u8"No Data");
+		board_temperature.set_show_text(true);
 	}
 }
 
@@ -125,20 +135,24 @@ void TesterFeedbackPanel::on_break_beam_reading_changed() {
 	if (robot.alive) {
 		break_beam_reading.set_fraction(clamp(robot.break_beam_reading / robot.break_beam_scale, 0.0, 1.0));
 		break_beam_reading.set_text(Glib::ustring::format(robot.break_beam_reading));
+		break_beam_reading.set_show_text(true);
 	} else {
 		break_beam_reading.set_fraction(0);
 		break_beam_reading.set_text(u8"No Data");
+		break_beam_reading.set_show_text(true);
 	}
 }
 
 void TesterFeedbackPanel::on_lqi_changed() {
 	lqi_reading.set_fraction(robot.link_quality);
 	lqi_reading.set_text(Glib::ustring::format(robot.link_quality));
+	lqi_reading.set_show_text(true);
 }
 
 void TesterFeedbackPanel::on_rssi_changed() {
 	rssi_reading.set_fraction((robot.received_signal_strength + 90) / (90.0 - 35.0));
 	rssi_reading.set_text(Glib::ustring::compose(u8"%1 dB", robot.received_signal_strength));
+	rssi_reading.set_show_text(true);
 }
 
 void TesterFeedbackPanel::on_alive_changed() {
