@@ -323,15 +323,15 @@ software/ai/hl/stp/param.h -text
 software/ai/hl/stp/play/2_mixed_team_defense/mtd_defensive.cpp -text
 software/ai/hl/stp/play/2_mixed_team_defense/mtd_defensive_block.cpp -text
 software/ai/hl/stp/play/3_mixed_team_offense/mto_just_shoot.cpp -text
-software/ai/hl/stp/play/CircularShoot.cpp -text
-software/ai/hl/stp/play/EasyWin.cpp -text
 software/ai/hl/stp/play/backup_steal.cpp -text
 software/ai/hl/stp/play/ball_towards_enemy.cpp -text
+software/ai/hl/stp/play/circular_shoot.cpp -text
 software/ai/hl/stp/play/corner_kick_friendly.cpp -text
 software/ai/hl/stp/play/defense_basic_2block.cpp -text
 software/ai/hl/stp/play/defense_basic_corner.cpp -text
 software/ai/hl/stp/play/defensive_block.cpp -text
 software/ai/hl/stp/play/direct_kick_friendly_pivot.cpp -text
+software/ai/hl/stp/play/easy_win.cpp -text
 software/ai/hl/stp/play/frantic_defense.cpp -text
 software/ai/hl/stp/play/free_kick_corner_chip.cpp -text
 software/ai/hl/stp/play/free_kick_enemy_defend.cpp -text
