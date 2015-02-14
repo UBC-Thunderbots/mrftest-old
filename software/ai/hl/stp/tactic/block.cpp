@@ -2,6 +2,7 @@
 #include "ai/hl/stp/action/block.h"
 #include "ai/hl/stp/action/stop.h"
 #include "ai/hl/util.h"
+#include "ai/hl/stp/action/move.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -10,6 +11,10 @@ namespace Action = AI::HL::STP::Action;
 
 namespace {
 	// should take into account of enemy velocity etc
+
+	DoubleParam block_threshold(u8"block threshold distance in terms of robot radius", u8"STP/Action/block", 3.0, 2.0, 8.0);
+	DoubleParam block_angle(u8"baller projects a cone of this angle, blocker will avoid this cone (degrees)", u8"STP/Action/block", 5.0, 0, 90);
+
 
 	class BlockGoal final : public Tactic {
 		public:
@@ -39,6 +44,9 @@ namespace {
 			return;
 		}
 		AI::HL::STP::Action::block_goal(world, player, enemy->evaluate());
+		Point dirToGoal = (world.field().friendly_goal() - player.position().norm());
+		Point target = player.position() + (block_threshold * Robot::MAX_RADIUS * dirToGoal);
+		Action::move(world, player, target);
 	}
 
 	class BlockBall final : public Tactic {
@@ -68,8 +76,9 @@ namespace {
 			player.dribble(AI::BE::Player::DribbleMode::STOP);
 			return;
 		}
-
-		AI::HL::STP::Action::block_ball(world, player, enemy->evaluate());
+		Point dirToBall = (world.ball().position() - player.position()).norm();
+		Point target = player.position() + (block_threshold * Robot::MAX_RADIUS * dirToBall);
+		Action::move(world, player, target);
 	}
 }
 
