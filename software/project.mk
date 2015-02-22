@@ -1,7 +1,7 @@
 #
 # The executables to compile.
 #
-EXECUTABLES := ai convertlog cppunit getcore hall2phase log mrfcap mrftest sdutil autoref
+EXECUTABLES := ai buildid convertlog cppunit getcore hall2phase log mrfcap mrftest sdutil autoref
 
 #
 # The subset of the above that should not be built by the world target.
@@ -13,6 +13,7 @@ EXECUTABLES_EXCLUDE_WORLD := cppunit
 # Directories will be searched recursively for source files.
 #
 SOURCES_ai := ai drive geom log/shared main.cpp mrf proto uicomponents util
+SOURCES_buildid := build_id.cpp main.cpp util
 SOURCES_convertlog := ai/common convertlog log/shared main.cpp proto util
 SOURCES_cppunit := cppunit geom util
 SOURCES_getcore := getcore.cpp main.cpp util

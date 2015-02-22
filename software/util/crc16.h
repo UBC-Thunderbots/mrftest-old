@@ -13,13 +13,13 @@ namespace CRC16 {
 	/**
 	 * Computes the CRC16 of a byte of data.
 	 *
-	 * \param[in] data the data to checksum.
-	 *
 	 * \param[in] crc the initial value, computed from prior data.
+	 *
+	 * \param[in] data the data to checksum.
 	 *
 	 * \return the CRC16.
 	 */
-	uint16_t calculate(uint8_t data, uint16_t crc = INITIAL) __attribute__((warn_unused_result));
+	uint16_t calculate(uint16_t crc, uint8_t data) __attribute__((warn_unused_result));
 
 	/**
 	 * Computes the CRC16 of a block of data.

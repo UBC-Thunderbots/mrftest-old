@@ -15,6 +15,7 @@
 #define ROBOT_VID 0x0483U
 #define ROBOT_PID 0x497EU
 #define ROBOT_READ_CORE 0x0DU
+#define ROBOT_READ_BUILD_ID 0x0EU
 
 #define CORE_SIZE (256U * 1024U)
 #define BLOCK_SIZE 1024U
@@ -55,8 +56,14 @@ namespace {
 		}
 		ofs.close();
 
-		// Done!
-		std::cout << "OK\n";
+		// Read the build ID.
+		std::cout << "OK\nReading build ID… ";
+		std::cout.flush();
+		{
+			uint32_t id;
+			devh.control_in(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, ROBOT_READ_BUILD_ID, 0, 0, &id, sizeof(id), 0);
+			std::cout << "0x" << tohex(id, 8) << '\n';
+		}
 	}
 
 	void run_dongle(const std::string &filename) {
@@ -88,8 +95,14 @@ namespace {
 		}
 		ofs.close();
 
-		// Done!
-		std::cout << "OK\n";
+		// Read the build ID.
+		std::cout << "OK\nReading build ID… ";
+		std::cout.flush();
+		{
+			uint32_t id;
+			devh.control_in(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, MRF::CONTROL_REQUEST_READ_BUILD_ID, 0, 0, &id, sizeof(id), 0);
+			std::cout << "0x" << tohex(id, 8) << '\n';
+		}
 	}
 }
 

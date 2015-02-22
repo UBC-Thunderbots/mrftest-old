@@ -138,6 +138,7 @@ firmware/stm32lib/Doxyfile.public -text
 firmware/stm32lib/Makefile -text
 firmware/stm32lib/Makefile.common -text
 firmware/stm32lib/abort.c -text
+firmware/stm32lib/build_id.c -text
 firmware/stm32lib/core_progmem.c -text
 firmware/stm32lib/crc32.c -text
 firmware/stm32lib/exception.c -text
@@ -147,6 +148,7 @@ firmware/stm32lib/gdb/arm-vfpv2.xml -text
 firmware/stm32lib/gdb/arm-with-m-vfp-d16.xml -text
 firmware/stm32lib/gpio.c -text
 firmware/stm32lib/include/assert.h -text
+firmware/stm32lib/include/build_id.h -text
 firmware/stm32lib/include/core_progmem.h -text
 firmware/stm32lib/include/crc32.h -text
 firmware/stm32lib/include/exception.h -text
@@ -545,6 +547,7 @@ software/autoref/param.cpp -text
 software/autoref/param_panel.h -text
 software/autoref/setup.cpp -text
 software/autoref/setup.h -text
+software/build_id.cpp -text
 software/config.xml -text
 software/convertlog/main.cpp -text
 software/convertlog/v1v2/convert.cpp -text
@@ -664,6 +667,8 @@ software/util/config.cpp -text
 software/util/config.h -text
 software/util/crc16.cpp -text
 software/util/crc16.h -text
+software/util/crc32.cpp -text
+software/util/crc32.h -text
 software/util/dprint.cpp -text
 software/util/dprint.h -text
 software/util/exception.cpp -text

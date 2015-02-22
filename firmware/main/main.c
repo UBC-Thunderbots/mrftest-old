@@ -28,6 +28,7 @@
 #include "tick.h"
 #include "usb_config.h"
 #include <FreeRTOS.h>
+#include <build_id.h>
 #include <cdcacm.h>
 #include <core_progmem.h>
 #include <crc32.h>
@@ -169,6 +170,10 @@ static bool usb_control_handler(const usb_setup_packet_t *pkt) {
 	if (pkt->bmRequestType.recipient == USB_RECIPIENT_DEVICE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_READ_CORE && pkt->wValue < 256U && !pkt->wIndex && pkt->wLength == 1024U) {
 		uep0_data_write(&core_progmem_dump[pkt->wValue * 1024U / 4U], 1024U);
 		return true;
+	} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_DEVICE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_READ_BUILD_ID && !pkt->wValue && !pkt->wIndex && pkt->wLength == 4U) {
+		uint32_t id = build_id_get();
+		uep0_data_write(&id, sizeof(id));
+		return true;
 	}
 	return false;
 }
@@ -265,6 +270,9 @@ static void main_task(void *UNUSED(param)) {
 	// Initialize CRC32 calculator.
 	crc32_init();
 
+	// Calculate the build ID.
+	build_id_init();
+
 	// Initialize CDC ACM.
 	cdcacm_init(2U, PRIO_TASK_CDC_ACM);
 
@@ -273,7 +281,7 @@ static void main_task(void *UNUSED(param)) {
 	udev_attach();
 
 	// Provide a message that will be printed as soon as the user connects.
-	fputs("Supervisor: System init\r\n", stdout);
+	iprintf("Supervisor: System init\r\nBuild ID: 0x%08\r\n" PRIX32, build_id_get());
 
 	// If we are attached to USB, wait three seconds to give the user time to connect to the port and see messages before advancing.
 	if (gpio_get_input(PIN_OTG_FS_VBUS)) {

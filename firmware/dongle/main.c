@@ -7,7 +7,9 @@
 #include "normal.h"
 #include "pins.h"
 #include <FreeRTOS.h>
+#include <build_id.h>
 #include <core_progmem.h>
+#include <crc32.h>
 #include <exception.h>
 #include <format.h>
 #include <gpio.h>
@@ -141,6 +143,10 @@ static bool usb_control_handler(const usb_setup_packet_t *pkt) {
 	if (pkt->bmRequestType.recipient == USB_RECIPIENT_DEVICE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_READ_CORE && pkt->wValue < 256U && !pkt->wIndex && pkt->wLength == 1024U) {
 		uep0_data_write(&core_progmem_dump[pkt->wValue * 1024U / 4U], 1024U);
 		return true;
+	} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_DEVICE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_READ_BUILD_ID && !pkt->wValue && !pkt->wIndex && pkt->wLength == 4U) {
+		uint32_t id = build_id_get();
+		uep0_data_write(&id, sizeof(id));
+		return true;
 	}
 	return false;
 }
@@ -203,6 +209,8 @@ static void stm32_main(void) {
 static void main_task(void *UNUSED(param)) {
 	// Initialize subsystems.
 	led_init();
+	crc32_init();
+	build_id_init();
 	buzzer_init();
 	estop_init(EXCEPTION_MKPRIO(5U, 0U));
 
