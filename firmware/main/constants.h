@@ -34,6 +34,7 @@ enum {
  */
 enum {
 	CONTROL_REQUEST_READ_CORE = 0x0DU,
+	CONTROL_REQUEST_READ_BUILD_ID = 0x0EU,
 };
 
 #endif
