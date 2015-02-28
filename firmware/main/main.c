@@ -281,7 +281,7 @@ static void main_task(void *UNUSED(param)) {
 	udev_attach();
 
 	// Provide a message that will be printed as soon as the user connects.
-	iprintf("Supervisor: System init\r\nBuild ID: 0x%08\r\n" PRIX32, build_id_get());
+	iprintf("Supervisor: System init\r\nBuild ID: 0x%08" PRIX32 "\r\n", build_id_get());
 
 	// If we are attached to USB, wait three seconds to give the user time to connect to the port and see messages before advancing.
 	if (gpio_get_input(PIN_OTG_FS_VBUS)) {
