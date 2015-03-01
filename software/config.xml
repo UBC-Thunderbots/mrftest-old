@@ -644,6 +644,18 @@
         <mapping logical="kick" physical="0"/>
       </buttons>
     </joystick>
+    <joystick name="Xbox 360 Wireless Receiver" bus_type="3" vendor_id="1118" product_id="1817" version="256">
+      <axes>
+        <mapping logical="0" physical="1"/>
+        <mapping logical="1" physical="0"/>
+        <mapping logical="2" physical="3"/>
+        <mapping logical="3" physical="4"/>
+      </axes>
+      <buttons>
+        <mapping logical="dribble" physical="2"/>
+        <mapping logical="kick" physical="0"/>
+      </buttons>
+    </joystick>
     <joystick name="Logitech Logitech Dual Action" bus_type="3" vendor_id="1133" product_id="49686" version="272">
       <axes>
         <mapping logical="0" physical="1"/>
