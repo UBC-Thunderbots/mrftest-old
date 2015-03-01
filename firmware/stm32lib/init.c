@@ -327,6 +327,14 @@ void init_chip(const init_specs_t *specs) {
 			};
 			SYSTICK.CSR = tmp;
 		}
+
+		// Activate the FPU (in FreeRTOs mode, this will be done on scheduler
+		// startup so context saving is handled properly).
+		FPCCR_t fpccr = { .LSPEN = 1 };
+		FP.CCR = fpccr;
+		CPACR_t cpacr = CPACR;
+		cpacr.CP10 = cpacr.CP11 = 3;
+		CPACR = cpacr;
 	}
 
 	// If we will be running at at most 144 MHz, switch to the lower-power voltage regulator mode.
