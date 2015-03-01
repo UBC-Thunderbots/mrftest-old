@@ -24,7 +24,6 @@
 #include <sys/types.h>
 
 namespace {
-	constexpr unsigned long CPU_FREQUENCY = 48000000UL;
 	constexpr off_t SECTOR_SIZE = 512;
 	constexpr off_t LOG_RECORD_SIZE = 128;
 	constexpr off_t RECORDS_PER_SECTOR = SECTOR_SIZE / LOG_RECORD_SIZE;
@@ -275,7 +274,7 @@ namespace {
 		std::ofstream ofs;
 		ofs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
 		ofs.open(args[1], std::ios_base::out | std::ios_base::trunc);
-		ofs << "Epoch\tTime (ticks)\tBreakbeam\tBattery (V)\tCapacitor (V)\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tEncoder 0 (¼°/t)\tEncoder 1 (¼°/t)\tEncoder 2 (¼°/t)\tEncoder 3 (¼°/t)\tMotor 0 (/255)\tMotor 1 (/255)\tMotor 2 (/255)\tMotor 3 (/255)\tMotor 0 (°C)\tMotor 1 (°C)\tMotor 2 (°C)\tMotor 3 (°C)\tDribbler Ticked?\tDribbler (/255)\tDribbler (rpm)\tDribbler (°C)\n";
+		ofs << "Epoch\tTime (ticks)\tBreakbeam\tBattery (V)\tCapacitor (V)\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tEncoder 0 (¼°/t)\tEncoder 1 (¼°/t)\tEncoder 2 (¼°/t)\tEncoder 3 (¼°/t)\tMotor 0 (/255)\tMotor 1 (/255)\tMotor 2 (/255)\tMotor 3 (/255)\tMotor 0 (°C)\tMotor 1 (°C)\tMotor 2 (°C)\tMotor 3 (°C)\tDribbler Ticked?\tDribbler (/255)\tDribbler (rpm)\tDribbler (°C)\tIdle Cycles\n";
 		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
 			const std::vector<uint8_t> &buffer = sdcard.get(sector);
 			for (std::size_t record = 0; record < static_cast<std::size_t>(RECORDS_PER_SECTOR); ++record) {
@@ -314,6 +313,7 @@ namespace {
 					uint8_t dribbler_speed = decode_u8_le(ptr); ptr += 1;
 					uint8_t dribbler_temperature = decode_u8_le(ptr); ptr += 1;
 					uint8_t dribbler_hall_sensors_failed = decode_u8_le(ptr); ptr += 1;
+					uint32_t idle_cycles = decode_u32_le(ptr); ptr += 4;
 
 					ofs << epoch_index << '\t' << ticks << '\t' << breakbeam_diff << '\t' << battery_voltage << '\t' << capacitor_voltage;
 					for (int16_t sp : wheels_setpoints) {
@@ -344,6 +344,7 @@ namespace {
 						ofs << '\t' << static_cast<unsigned int>(dribbler_pwm) << '\t' << static_cast<unsigned int>(dribbler_speed);
 					}
 					ofs << '\t' << static_cast<unsigned int>(dribbler_temperature);
+					ofs << '\t' << idle_cycles;
 					ofs << '\n';
 				}
 			}

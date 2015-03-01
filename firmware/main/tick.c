@@ -129,6 +129,7 @@ static void normal_task(void *UNUSED(param)) {
 
 		// Submit the log record, if we filled one.
 		if (record) {
+			record->tick.idle_cpu_cycles = main_read_clear_idle_cycles();
 			log_queue(record);
 		}
 
@@ -212,4 +213,3 @@ void timer6_isr(void) {
 /**
  * @}
  */
-

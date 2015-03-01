@@ -16,6 +16,7 @@ typedef enum {
 
 void main_kick_wdt(main_wdt_source_t source);
 void main_shutdown(bool reboot);
+uint32_t main_read_clear_idle_cycles(void);
 
 #endif
 

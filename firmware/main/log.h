@@ -30,6 +30,8 @@ typedef struct __attribute__((packed)) {
 	uint8_t dribbler_speed;
 	uint8_t dribbler_temperature;
 	uint8_t dribbler_hall_sensors_failed;
+
+	uint32_t idle_cpu_cycles;
 } log_tick_t;
 
 /**

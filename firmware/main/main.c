@@ -213,12 +213,61 @@ static const udev_info_t USB_INFO = {
 	},
 };
 
+static uint32_t idle_cycles = 0;
 static bool shutting_down = false, reboot_after_shutdown;
 static SemaphoreHandle_t supervisor_sem;
 static unsigned int wdt_sources = 0U;
 
 void vApplicationIdleHook(void) {
+	// We will do a WFI to put the chip to sleep until some activity happens.
+	// WFI will finish when an enabled interrupt (or some other
+	// implementation-specific event) occurs. However, for the definition of
+	// “enabled” for the sake of WFI, an interrupt disabled due to the PRIMASK
+	// bit is not considered disabled—PRIMASK will prevent the ISR from being
+	// entered, but not WFI from waking up. Instead, on wakeup, execution will
+	// continue after the WFI, with the interrupt remaining pending. We can use
+	// this to get some control before handling the interrupt in an ISR.
+	asm volatile("cpsid i");
+	// ARMv7-M Architecture Reference Manual B5.2.1 (CPS instruction) states
+	// that “If execution of a CPS instruction increases the execution
+	// priority, the CPS execution serializes that change to the instruction
+	// stream.”. So no ISB is needed here.
+
+	// Capture the system tick count before sleeping.
+	uint32_t systick_before = SYSTICK.CVR;
+
+	// Go to sleep until an interrupt.
 	asm volatile("wfi");
+
+	// Capture the system tick count after sleeping.
+	uint32_t systick_after = SYSTICK.CVR;
+
+	// System tick counts downwards, so if after ≥ before, that means it must
+	// have wrapped. It can’t have wrapped more than once, because as soon as
+	// it wraps the first time, the system tick interrupt will become pending
+	// and wake us up. We can assume (especially since we have PRIMASK set)
+	// that we will get past this code before the system tick counter wraps a
+	// second time, so it can only have wrapped once. Accumulate the count of
+	// cycles we spent asleep onto the idle cycle counter.
+	if (systick_after >= systick_before) {
+		systick_before += SYSTICK.RVR + 1;
+	}
+	__atomic_fetch_add(&idle_cycles, systick_before - systick_after, __ATOMIC_RELAXED);
+
+	// Re-enable interrupts, which allows whichever pending interrupt woke us
+	// from WFI to now execute its ISR and execute to proceed as usual.
+	asm volatile("cpsie i");
+	// ARMv7-M Architecture Reference Manual B5.2.1 (CPS instruction) states
+	// that “If execution of a CPS instruction decreases the execution
+	// priority, the architecture guarantees only that the new priority is
+	// visible to instructions executed after either executing an ISB, or
+	// performing an exception entry or exception return.”. Normally this
+	// wouldn’t matter because we’re going off and doing something else anyway;
+	// however, theoretically, it’s possible that we might get back into
+	// vApplicationIdleHook before the CPU had a chance to take the pending
+	// interrupt, disable interrupts again, and thus not actually handle the
+	// interrupt. So, use a barrier.
+	asm volatile("isb");
 }
 
 static void main_task(void *param) __attribute__((noreturn));
@@ -518,6 +567,15 @@ void main_shutdown(bool reboot) {
 }
 
 /**
+ * \brief Reads and clears the count of idle cycles.
+ *
+ * \return the number of CPU cycles during which the system was idle since this
+ * function was last called
+ */
+uint32_t main_read_clear_idle_cycles(void) {
+	return __atomic_exchange_n(&idle_cycles, 0, __ATOMIC_RELAXED);
+}
+
+/**
  * @}
  */
-
