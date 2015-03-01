@@ -41,6 +41,7 @@
 #include "hall.h"
 #include "leds.h"
 #include "log.h"
+#include "lps.h"
 #include "main.h"
 #include "motor.h"
 #include "priority.h"
@@ -59,7 +60,6 @@ _Static_assert(!(CONTROL_LOOP_HZ % DRIBBLER_TICK_HZ), "Dribbler period is not a 
 
 static bool shutdown = false;
 static SemaphoreHandle_t shutdown_sem;
-static unsigned int lps_counter = 0;
 static const drive_t SCRAM_DRIVE_STRUCT = {
 	.wheels_mode = WHEELS_MODE_BRAKE,
 	.dribbler_power = 0U,
