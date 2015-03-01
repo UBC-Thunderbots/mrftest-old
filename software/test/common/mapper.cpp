@@ -182,7 +182,7 @@ class MapperWindow::PreviewDevicesModel final : public AbstractListModel, public
 		}
 
 		const Joystick *get_device(std::size_t index) const {
-			return index > 0 ? devices[index - 1] : nullptr;
+			return (0 < index && index <= devices.size()) ? devices[index - 1] : nullptr;
 		}
 
 		std::size_t alm_rows() const override {
@@ -194,7 +194,7 @@ class MapperWindow::PreviewDevicesModel final : public AbstractListModel, public
 				Glib::Value<Glib::ustring> v;
 				v.init(name_column.type());
 				if (row > 0) {
-					v.set(Glib::ustring::compose(u8"%1 on %2", devices[row - 1]->identifier().name, devices[row - 1]->physical_location()));
+					v.set(Glib::ustring::compose(u8"%1 on %2 (/dev/input/event%3)", devices[row - 1]->identifier().name, devices[row - 1]->physical_location(), devices[row - 1]->index));
 				} else {
 					v.set(u8"<No Preview Device>");
 				}

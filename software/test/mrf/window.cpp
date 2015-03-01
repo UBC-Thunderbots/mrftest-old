@@ -31,7 +31,7 @@ class TesterWindow::MappedJoysticksModel final : public AbstractListModel, publi
 			if (col == static_cast<unsigned int>(name_column.index())) {
 				Glib::Value<Glib::ustring> v;
 				v.init(name_column.type());
-				v.set(row == 0 ? Glib::ustring(u8"<None>") : Glib::ustring::compose(u8"%1 on %2", sticks[row - 1]->identifier().name, sticks[row - 1]->physical_location()));
+				v.set(row == 0 ? Glib::ustring(u8"<None>") : Glib::ustring::compose(u8"%1 on %2 (/dev/input/event%3)", sticks[row - 1]->identifier().name, sticks[row - 1]->physical_location(), sticks[row - 1]->index));
 				value.init(name_column.type());
 				value = v;
 			} else {

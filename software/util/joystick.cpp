@@ -159,7 +159,7 @@ std::vector<std::unique_ptr<Joystick>> &Joystick::instances() {
 	return sticks;
 }
 
-Joystick::Joystick(unsigned int index) : fd(open_joystick(index)), flushing_dropped(false) {
+Joystick::Joystick(unsigned int index) : index(index), fd(open_joystick(index)), flushing_dropped(false) {
 	// Grab device identification.
 	identifier_.name = get_text(fd, [](std::size_t len) { return EVIOCGNAME(len); });
 	physical_location_ = get_text(fd, [](std::size_t len) { return EVIOCGPHYS(len); });

@@ -28,6 +28,11 @@ class Joystick final : public NonCopyable, public sigc::trackable {
 		};
 
 		/**
+		 * \brief The index of the /dev/input/event* ndoe for this joystick.
+		 */
+		const unsigned int index;
+
+		/**
 		 * \brief Returns the number of joysticks attached to the computer.
 		 *
 		 * \return the number of joysticks.
