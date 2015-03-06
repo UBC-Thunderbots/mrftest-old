@@ -286,6 +286,36 @@ bool unique_line_intersect(const Point &a, const Point &b, const Point &c, const
 Point line_intersect(const Point &a, const Point &b, const Point &c, const Point &d);
 
 /**
+ * Computes whether a line segment intersects a circle.
+ *
+ * \param[in] a one end of the line segment
+ *
+ * \param[in] b the other end of the line segment
+ *
+ * \param[in] c the origin of the circle
+ *
+ * \param[in] r the radius of the circle
+ *
+ * \return whether the line segment and the circle intersect
+ */
+bool seg_intersects_circle(const Point& a, const Point& b, const Point& c, double r);
+
+/**
+ * Computes whether any point on a line segment lies inside a circle.
+ *
+ * \param[in] a one end of the line segment
+ *
+ * \param[in] b the other end of the line segment
+ *
+ * \param[in] c the origin of the circle
+ *
+ * \param[in] r the radius of the circle
+ *
+ * \return whether the line segment is contained at all (even if partially) inside the circle
+ */
+bool seg_inside_circle(const Point& a, const Point& b, const Point& c, double r);
+
+/**
  * Computes the distance from a point to a line.
  *
  * \param[in] p the point.

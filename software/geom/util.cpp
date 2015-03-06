@@ -387,6 +387,16 @@ std::vector<Point> line_circle_intersect(const Point &centre, double radius, con
 	return ans;
 }
 
+bool seg_intersects_circle(const Point& a, const Point& b, const Point& c, double r) {
+	// if the segment is inside the circle AND at least one of the points is outside the circle
+	return seg_inside_circle(a, b, c, r) && ((a - c).lensq() > r * r || (b - c).lensq() > r * r);
+}
+
+bool seg_inside_circle(const Point& a, const Point& b, const Point& c, double r) {
+	return seg_pt_dist(a, b, c) < r;
+}
+
+
 std::vector<Point> line_rect_intersect(const Rect &r, const Point &segA, const Point &segB) {
 	std::vector<Point> ans;
 	for (unsigned int i = 0; i < 4; i++) {
