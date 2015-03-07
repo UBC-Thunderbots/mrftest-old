@@ -11,8 +11,8 @@ DoubleParam PARTICLE_FILTER_STDDEV(u8"Particle Filter Standard Deviation", u8"Ba
 DoubleParam PARTICLE_FILTER_DECAYRATE(u8"Particle Filter Decay Rate", u8"Backend", 0.3, 0, 1.0);
 
 ParticleFilter::ParticleFilter(double length, double partitionSize) {
-	numPartitions_ = ceil(length/partitionSize); // number of time to partition the length. particles are assigned to one of these partitions
-	
+	numPartitions_ = static_cast<unsigned int>(ceil(length/partitionSize)); // number of time to partition the length. particles are assigned to one of these partitions
+
 	weight_ = new double[numPartitions_]; // weight of the partitions
 
 	for (unsigned int i = 0; i < numPartitions_; i++) {
@@ -38,7 +38,7 @@ ParticleFilter::~ParticleFilter() {
 
 void ParticleFilter::update(double timeDelta) {
 	// uniform random generator - use timestamp as seed
-	unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
+	unsigned int seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
 	std::default_random_engine generator (seed);
 	double partitionSize = (double)length_/numPartitions_;
 
@@ -82,7 +82,7 @@ void ParticleFilter::update(double timeDelta) {
 		} else {
 			// shift everything forward
 			for (int i = numPartitions_ - estimatedVelocity*timeDelta/partitionSize - 1; i >= 0; i--) {
-				weight_[i+(int)(estimatedVelocity*timeDelta/partitionSize)] = weight_[i];
+				weight_[i+static_cast<unsigned int>(estimatedVelocity*timeDelta/partitionSize)] = weight_[i];
 			}
 
 			clearWeights(0, estimatedVelocity*timeDelta/partitionSize);
