@@ -50,7 +50,7 @@ typedef enum {
 /**
  * \brief Whether the module is currently active.
  */
-static bool cdcacm_enabled;
+static bool cdcacm_enabled = false;
 
 /**
  * \brief The buffer that holds data before it travels over USB.
@@ -60,12 +60,12 @@ static uint8_t cdcacm_buffer[CDCACM_BUFFER_SIZE];
 /**
  * \brief The index in the buffer of the next byte that the task will send over USB.
  */
-static size_t cdcacm_rptr;
+static size_t cdcacm_rptr = 0;
 
 /**
  * \brief The index in the buffer of the next byte that a caller will write into.
  */
-static size_t cdcacm_wptr;
+static size_t cdcacm_wptr = 0;
 
 /**
  * \brief The endpoint address of the IN data endpoint.
@@ -178,7 +178,6 @@ static void cdcacm_task(void *UNUSED(param)) {
  * \param[in] task_priority the priority of the CDC ACM task
  */
 void cdcacm_init(unsigned int in_data_ep_num, unsigned int task_priority) {
-	cdcacm_enabled = false;
 	cdcacm_in_data_ep = 0x80U | in_data_ep_num;
 	cdcacm_task_priority = task_priority;
 	cdcacm_writer_mutex = xSemaphoreCreateMutex();
@@ -196,8 +195,6 @@ void cdcacm_start(void) {
 	xSemaphoreTake(cdcacm_writer_mutex, portMAX_DELAY);
 	assert(!cdcacm_enabled);
 	cdcacm_enabled = true;
-	cdcacm_rptr = 0U;
-	cdcacm_wptr = 0U;
 	BaseType_t ok = xTaskCreate(&cdcacm_task, "cdcacm", 512U, 0, cdcacm_task_priority, 0);
 	assert(ok == pdPASS);
 	xSemaphoreGive(cdcacm_writer_mutex);
