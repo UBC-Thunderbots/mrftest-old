@@ -195,12 +195,11 @@ double MRFRobot::kick_pulse_resolution() const {
 void MRFRobot::kick(bool chip, double value) {
 	unsigned int pulse_width;
 	if (!chip) {
-		pulse_width = value * 332.7 + 219.8;
+		pulse_width = static_cast<unsigned>(value * 332.7 + 219.8);
 	} else {
-		//ballpark, not real
-		pulse_width = 835 * value * value + 469.2 * value + 1118.5;
+		pulse_width =static_cast<unsigned>(835 * value * value + 469.2 * value + 1118.5);
 	}
-	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width + 0.1), 0, (int) kick_pulse_maximum()));
+	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width + 0.1), 0, static_cast<int>(kick_pulse_maximum())));
 
 	uint8_t buffer[4];
 	buffer[0] = 0x00;
@@ -214,11 +213,11 @@ void MRFRobot::kick(bool chip, double value) {
 void MRFRobot::autokick(bool chip, double value) {
 	unsigned int pulse_width; 
 	if (!chip) {
-		pulse_width = value * 332.7 + 219.8;
+		pulse_width = static_cast<unsigned>(value * 332.7 + 219.8);
 	} else {
-		pulse_width = value * 1000;
+		pulse_width = static_cast<unsigned>(835 * value * value + 469.2 * value + 1118.5);
 	}
-	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width + 0.1), 0, (int) kick_pulse_maximum()));
+	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width + 0.1), 0, static_cast<int>(kick_pulse_maximum())));
 
 	if (clamped) {
 		uint8_t buffer[4];
