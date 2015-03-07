@@ -540,9 +540,9 @@ void vPortSVCHandler(void) {
 			// PSP is guaranteed to be visible by the time the exception return
 			// procedure begins.
 			// Restore software frame from process stack.
-			"ldmia r0!, {r1-r2,r4-r11, lr}\n\t"
+			"ldmia r0!, {r2-r11, lr}\n\t"
 			"ldr r1, =0xE000ED9C\n\t" // MPU_RBAR
-			"stm r1, {r1-r2}\n\t"
+			"stm r1, {r2-r3}\n\t"
 			// Cortex-M4 Devices Generic User Guide 2.2.4 (Software ordering of
 			// memory accesses), MPU programming, states that one must “use a
 			// DSB followed by an ISB instruction or exception return to ensure
@@ -612,12 +612,12 @@ void vPortPendSVHandler(void) {
 			"ldr r0, [r0]\n\t"
 			// Restore software frame from process stack.
 			// See the explanation in vPortSVCHandlerImpl for how we deal with floating point registers.
-			"ldmia r0!, {r1-r2,r4-r11, lr}\n\t"
+			"ldmia r0!, {r2-r11, lr}\n\t"
 			"tst lr, #16\n\t"
 			"it eq\n\t"
 			"vldmiaeq r0!, {s16-s31}\n\t"
 			"ldr r1, =0xE000ED9C\n\t" // MPU_RBAR
-			"stm r1, {r1-r2}\n\t"
+			"stm r1, {r2-r3}\n\t"
 			// Cortex-M4 Devices Generic User Guide 2.2.4 (Software ordering of
 			// memory accesses), MPU programming, states that one must “use a
 			// DSB followed by an ISB instruction or exception return to ensure
