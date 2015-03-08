@@ -4,8 +4,8 @@
  * @{
  */
 
-#ifndef STM32LIB_REGISTERS_ADC_H
-#define STM32LIB_REGISTERS_ADC_H
+#ifndef STM32LIB_REGISTERS_I2C_H
+#define STM32LIB_REGISTERS_I2C_H
 
 #include <stdint.h>
 

@@ -32,6 +32,7 @@ typedef struct {
 	unsigned FNE : 1;
 	unsigned : 29;
 } DCMI_SR_t;
+_Static_assert(sizeof(DCMI_SR_t) == 4U, "DCMI_SR_t is wrong size");
 
 typedef struct {
 	unsigned FRAME_RIS : 1;
@@ -41,6 +42,7 @@ typedef struct {
 	unsigned LINE_RIS : 1;
 	unsigned : 27;
 } DCMI_RIS_t;
+_Static_assert(sizeof(DCMI_RIS_t) == 4U, "DCMI_RIS_t is wrong size");
 
 typedef struct {
 	unsigned FRAME_IE : 1;
@@ -50,6 +52,7 @@ typedef struct {
 	unsigned LINE_IE : 1;
 	unsigned : 27;
 } DCMI_IER_t;
+_Static_assert(sizeof(DCMI_IER_t) == 4U, "DCMI_IER_t is wrong size");
 
 typedef struct {
 	unsigned FRAME_MIS : 1;
@@ -57,7 +60,9 @@ typedef struct {
 	unsigned ERR_MIS : 1;
 	unsigned VSYNC_MIS : 1;
 	unsigned LINE_MIS : 1;
+	unsigned : 27;
 } DCMI_MIS_t;
+_Static_assert(sizeof(DCMI_MIS_t) == 4U, "DCMI_MIS_t is wrong size");
 
 typedef struct {
 	unsigned FRAME_ISC : 1;
@@ -65,7 +70,9 @@ typedef struct {
 	unsigned ERR_ISC : 1;
 	unsigned VSYNC_ISC : 1;
 	unsigned LINE_ISC : 1;
+	unsigned : 27;
 } DCMI_ICR_t;
+_Static_assert(sizeof(DCMI_ICR_t) == 4U, "DCMI_ICR_t is wrong size");
 
 typedef struct {
 	unsigned FSC : 8;
@@ -73,6 +80,7 @@ typedef struct {
 	unsigned LEC : 8;
 	unsigned FEC : 8;
 } DCMI_ESCR_t;
+_Static_assert(sizeof(DCMI_ESCR_t) == 4U, "DCMI_ESCR_t is wrong size");
 
 typedef struct {
 	unsigned FSU : 8;
@@ -80,6 +88,7 @@ typedef struct {
 	unsigned LEU : 8;
 	unsigned FEU : 8;
 } DCMI_ESUR_t;
+_Static_assert(sizeof(DCMI_ESUR_t) == 4U, "DCMI_ESUR_t is wrong size");
 
 typedef struct {
 	unsigned HOFFCNT : 14;
@@ -87,6 +96,7 @@ typedef struct {
 	unsigned VST : 13;
 	unsigned : 3;
 } DCMI_CWSTRT_t;
+_Static_assert(sizeof(DCMI_CWSTRT_t) == 4U, "DCMI_CWSTRT_t is wrong size");
 
 typedef struct {
 	unsigned CAPCNT : 14;
@@ -94,7 +104,7 @@ typedef struct {
 	unsigned VLINE : 14;
 	unsigned : 2;
 } DCMI_CWSIZE_t;
-	
+_Static_assert(sizeof(DCMI_CWSIZE_t) == 4U, "DCMI_CWSIZE_t is wrong size");
 
 typedef struct {
 	DCMI_CR_t CR;
@@ -109,6 +119,7 @@ typedef struct {
 	DCMI_DWSIZE_t DWSIZE;
 	uint32_t DR;
 } DCMI_t;
+_Static_assert(sizeof(DCMI_t) == 44U, "DCMI_t is wrong size");
 
 extern volatile DCMI_t DCMI;
 
