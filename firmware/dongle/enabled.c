@@ -321,7 +321,7 @@ static bool dfu_control_handler(const usb_setup_packet_t *pkt) {
 			uep0_data_write(DFU_STATUS, sizeof(DFU_STATUS));
 			return true;
 		} else if (pkt->bRequest == DFU_GETSTATE && pkt->bmRequestType.direction && !pkt->wValue && pkt->wLength == 1U) {
-			uep0_data_write(&DFU_STATUS[4U], 2U);
+			uep0_data_write(&DFU_STATUS[4U], 1U);
 			return true;
 		}
 	}
