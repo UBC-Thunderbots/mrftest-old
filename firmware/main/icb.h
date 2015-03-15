@@ -43,12 +43,12 @@ typedef enum {
 	/**
 	 * \brief Read configuration switches.
 	 *
-	 * Interpretation fo the flags byte is as follows:
+	 * Interpretation of the flags byte is as follows:
 	 *
 	 * <table>
 	 * <tr><td>Bit</td><td>Meaning</td></tr>
-	 * <tr><td>0</td><td>Radio channel index (0=primary, 1=alternate)</td></tr>
-	 * <tr><td>1</td><td>Safety interlock status (0=overridden, 1=active)</td></tr>
+	 * <tr><td>0</td><td>Radio channel index LSb</td></tr>
+	 * <tr><td>1</td><td>Radio channel index MSb</td></tr>
 	 * <tr><td>2–7</td><td>Unused</td></tr>
 	 * </table>
 	 *

@@ -423,7 +423,7 @@ static void main_task(void *UNUSED(param)) {
 	// Read the configuration switches.
 	static uint8_t switches[2U];
 	icb_receive(ICB_COMMAND_READ_SWITCHES, switches, sizeof(switches));
-	iprintf("Switches: Robot index %" PRIu8 ", channel %s, safety interlocks %s\r\n", switches[0U], (switches[1U] & 1U) ? "alternate" : "primary", (switches[1U] & 2U) ? "active" : "overridden");
+	iprintf("Switches: Robot index %" PRIu8 ", channel %u", switches[0U], (switches[1] & 3U));
 
 	// Enable independent watchdog.
 	while (IWDG.SR.PVU);
@@ -442,11 +442,17 @@ static void main_task(void *UNUSED(param)) {
 		uint8_t channel;
 		bool symbol_rate;
 		uint16_t pan;
-	} mrf_profiles[2] = {
+	} mrf_profiles[4] = {
 		{ 24, false, 0x1846U },
 		{ 25, false, 0x1847U },
+		{ 26, false, 0x1848U },
+		{ 23, false, 0x1849U },
 	};
-	unsigned int profile = switches[1U] & 1U;
+	
+	// Assign a mrf profile.
+	unsigned int profile;
+	profile = (switches[1] & 3U);
+
 	fputs("MRF init: ", stdout);
 	fflush(stdout);
 	mrf_init(mrf_profiles[profile].channel, mrf_profiles[profile].symbol_rate, mrf_profiles[profile].pan, switches[0U], UINT64_C(0xec89d61e8ffd409b));

@@ -26,9 +26,11 @@ namespace {
 		uint16_t pan;
 	};
 
-	const RadioConfig DEFAULT_CONFIGS[2] = {
+	const RadioConfig DEFAULT_CONFIGS[4] = {
 		{ 24U, 250, 0x1846U },
 		{ 25U, 250, 0x1847U },
+		{ 26U, 250, 0x1848U },
+		{ 23U, 250, 0x1849U },
 	};
 
 	const unsigned int ANNUNCIATOR_BEEP_LENGTH = 750;
