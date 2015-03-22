@@ -1,6 +1,7 @@
 #include "pins.h"
 
 /*
+	***DCMI***
 	PIXCLK 	= PA6
 	HSYNC  	= PA4
 	VSYNC  	= PB7
@@ -12,6 +13,10 @@
 	D5		= PB6
 	D6		= PE5
 	D7		= PE6
+
+	***I2C***
+	SDA		= PB9
+	SCL		= PB8
 
 */
 const gpio_init_pin_t PINS_INIT[5U][16U] = {
@@ -142,12 +147,12 @@ const gpio_init_pin_t PINS_INIT[5U][16U] = {
 		{ .mode = GPIO_MODE_IN, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_PD, .od = 0, .af = 0 },
 		// PD11 = N/C
 		{ .mode = GPIO_MODE_IN, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_PD, .od = 0, .af = 0 },
-		// PD12 = N/C
-		{ .mode = GPIO_MODE_IN, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_PD, .od = 0, .af = 0 },
+		// PD12 = Green LED (Success)
+		{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
 		// PD13 = N/C
 		{ .mode = GPIO_MODE_IN, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_PD, .od = 0 , .af = 0 },
-		// PD14 = N/C
-		{ .mode = GPIO_MODE_IN, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_PD, .od = 0, .af = 0 },
+		// PD14 = Red LED (Fail)
+		{ .mode = GPIO_MODE_OUT, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_NONE, .od = 0, .af = 0 },
 		// PD15 = N/C
 		{ .mode = GPIO_MODE_IN, .otype = GPIO_OTYPE_PP, .ospeed = GPIO_OSPEED_2, .pupd = GPIO_PUPD_PD, .od = 0, .af = 0 },
 	},

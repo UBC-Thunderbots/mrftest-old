@@ -9,6 +9,8 @@ firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/logs/expected.xlsx -text
 firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/temp_controlf_ver2_ino_wPMW_ino.ino -text
 firmware/camera/Makefile -text
 firmware/camera/bit_bang_i2c.c -text
+firmware/camera/camera.c -text
+firmware/camera/camera.h -text
 firmware/camera/i2c.c -text
 firmware/camera/i2c.h -text
 firmware/camera/main.c -text
