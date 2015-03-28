@@ -69,6 +69,7 @@ static const fptr exception_vectors[16U] __attribute__((used, section(".exceptio
 
 static const fptr interrupt_vectors[82U] __attribute__((used, section(".interrupt_vectors"))) = {
 	[6U] = &exti0_isr,
+	[PIN_SD_D0_EXTI_VECTOR] = &sd_d0_exti_isr,
 	[49U] = &sd_isr,
 	[54U] = &timer6_isr,
 	[56U] = &dma2_stream0_isr,

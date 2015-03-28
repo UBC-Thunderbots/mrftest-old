@@ -3,6 +3,7 @@
 #include "pins.h"
 #include "priority.h"
 #include <FreeRTOS.h>
+#include <gpio.h>
 #include <inttypes.h>
 #include <rcc.h>
 #include <semphr.h>
@@ -10,7 +11,9 @@
 #include <stdio.h>
 #include <task.h>
 #include <registers/dma.h>
+#include <registers/exti.h>
 #include <registers/sdio.h>
+#include <registers/syscfg.h>
 
 typedef enum {
 	GO_IDLE_STATE = 0,
@@ -73,7 +76,7 @@ typedef enum {
 #define SD_DMA_STREAM 6U
 #define SD_DMA_CHANNEL 4U
 
-static SemaphoreHandle_t int_semaphore = NULL;
+static SemaphoreHandle_t int_semaphore = NULL, d0_exti_int_semaphore = NULL;
 
 typedef struct {
 	sd_status_t status;
@@ -97,6 +100,24 @@ void sd_isr(void) {
 	SDIO.MASK = mask_temp;
 	BaseType_t yield = pdFALSE;
 	xSemaphoreGiveFromISR(int_semaphore, &yield);
+	if (yield) {
+		portYIELD_FROM_ISR();
+	}
+}
+
+/**
+ * \brief Handles SD card data pin 0 EXTI interrupts.
+ *
+ * This function should be registered in the application’s interrupt vector
+ * table at position PIN_SD_D0_EXTI_VECTOR.
+ */
+void sd_d0_exti_isr(void) {
+	// Clear the pending flag.
+	EXTI.PR = 1 << PIN_SD_D0_EXTI_PIN;
+
+	// Notify the waiting task.
+	BaseType_t yield = pdFALSE;
+	xSemaphoreGiveFromISR(d0_exti_int_semaphore, &yield);
 	if (yield) {
 		portYIELD_FROM_ISR();
 	}
@@ -376,6 +397,39 @@ static bool send_command_r6 (uint8_t command, uint32_t argument,  uint16_t * RCA
 	return false;
 }
 
+/**
+ * \brief Waits until pin data 0 goes high.
+ *
+ * Pin data 0 is held low at the end of a write or erase operation to indicate
+ * the card being busy; it goes high when the card is no longer busy. For a
+ * write operation this fact is reflected in the status bit \c TXACT, which
+ * remains high until the card exits busy status then goes low to indicate the
+ * DPSM has returned to idle.
+ *
+ * However, there are two problems with \c TXACT:
+ * \li there is no interrupt that fires when \c TXACT goes low.
+ * \li \c TXACT is not used for an erase operation, because an erase operation
+ * does not use the DPSM
+ *
+ * Therefore, this function uses an external interrupt (EXTI) to wait until D0
+ * goes high. If desired, one can then spin until \c TXACT goes low, but this
+ * should take almost no time as the card has released idle status and all that
+ * remains to be done is the DPSM itself to return to idle.
+ */
+static void wait_d0_high(void) {
+	if (!gpio_get_input(PIN_SD_D0)) {
+		EXTI.RTSR |= 1 << PIN_SD_D0_EXTI_PIN;
+		// DANGER: Do not observe the if(!gpio_get_input) above and optimize
+		// this to a do…while loop! It is essential that another test happen
+		// before taking the semaphore and after setting RTSR, otherwise a race
+		// could happen where the pin goes high after the first test but before
+		// RTSR is set, which results in deadlock.
+		while (!gpio_get_input(PIN_SD_D0)) {
+			xSemaphoreTake(d0_exti_int_semaphore, portMAX_DELAY);
+		}
+		EXTI.RTSR &= ~(1 << PIN_SD_D0_EXTI_PIN);
+	}
+}
 
 /**
  * \brief Returns the current status of the SD card.
@@ -423,6 +477,7 @@ bool sd_init(void) {
 
 	// Setting up interrupts and related things.
 	int_semaphore = xSemaphoreCreateBinary();
+	d0_exti_int_semaphore = xSemaphoreCreateBinary();
 
 	// Unmask SD card interrupts.
 	portENABLE_HW_INTERRUPT(49U, PRIO_EXCEPTION_SD);
@@ -433,6 +488,18 @@ bool sd_init(void) {
 	// for this interrupt; instead, if it ever happens, it will crash the
 	// system.
 	portENABLE_HW_INTERRUPT(69U, 0U);
+
+	// Configure and unmask the D0 EXTI interrupt, but do not activate the
+	// rising edge trigger yet (do that only as needed).
+	rcc_enable(APB2, SYSCFG);
+	{
+		unsigned int ELT = PIN_SD_D0_EXTI_PIN / 4;
+		unsigned int SHIFT = (PIN_SD_D0_EXTI_PIN % 4) * 4;
+		SYSCFG.EXTICR[ELT] = (SYSCFG.EXTICR[ELT] & ~(15 << SHIFT)) | (PIN_SD_D0_EXTI_PORT << SHIFT);
+	}
+	rcc_disable(APB2, SYSCFG);
+	portENABLE_HW_INTERRUPT(PIN_SD_D0_EXTI_VECTOR, PRIO_EXCEPTION_SD);
+	EXTI.IMR |= 1 << PIN_SD_D0_EXTI_PIN;
 
 	// Having enabled clocks, wait a little bit for the card to initialize. The
 	// SD card specification states, in section 6.4, that after VDD passes its
@@ -810,18 +877,15 @@ bool sd_write(uint32_t sector, const void *data) {
 		return false;
 	}
 
-	// Data block ended successfully; wait for the DMA controller to shut down.
+	// Write operations use D0 busy/idle signalling; wait for card to go idle.
+	wait_d0_high();
+
+	// Wait for the DMA controller to shut down; this will almost certainly
+	// take no time at all as it will be dwarfed by the card going idle.
 	while (DMA2.streams[SD_DMA_STREAM].CR.EN);
 
 	// Wait for DPSM to disable.
-	// This is where we wait until SDIO_D0 goes high, indicating the card is no longer busy.
-	// Unfortunately there is no way to do this with an interrupt.
-	// TXACT, TXFIFOE, and TXFIFOHE all go from 1 to 0 when the DPSM goes idle.
-	// However, the host controller only generates interrupts when a status flag goes high, not low.
-	// So, busy-wait instead.
-	while (SDIO.STA.TXACT) {
-		taskYIELD();
-	}
+	while (SDIO.STA.TXACT);
 
 	return true;
 }
@@ -850,8 +914,8 @@ bool sd_erase(uint32_t sector, size_t count) {
 		return false;
 	}
 
-	// Wait until the card is no longer busy.
-	while (!gpio_get_input(PIN_SD_D0));
+	// Erase operations use D0 busy/idle signalling.
+	wait_d0_high();
 
 	return true;
 }

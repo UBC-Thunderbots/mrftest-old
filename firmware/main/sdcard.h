@@ -168,6 +168,6 @@ bool sd_read(uint32_t sector, void *buffer);
 bool sd_write(uint32_t sector, const void *data);
 bool sd_erase(uint32_t sector, size_t count);
 void sd_isr(void);
+void sd_d0_exti_isr(void);
 
 #endif
-
