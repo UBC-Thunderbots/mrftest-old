@@ -60,6 +60,10 @@ void ParticleFilter::update(double timeDelta) {
 			// shift everything back
 			for (int i = static_cast<int>(estimatedVelocity*timeDelta/partitionSize); i < static_cast<int>(numPartitions_); i++)
 			{
+				assert(i >= 0);
+				assert(i < weight_.size());
+				assert(i - limit >= 0);
+				assert(i - limit < weight_.size());
 				weight_[i-limit] = weight_[i];
 			}
 		}
