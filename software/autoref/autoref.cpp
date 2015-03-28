@@ -36,7 +36,7 @@ using AI::Common::PlayType;
 using AI::HL::STP::Predicates::playtype;
 
 
-AI::AutoRef* AI::AutoRef::instance = 0;
+AI::AutoRef* AI::AutoRef::instance = nullptr;
 //define the velocity of what constitutes a violent collision.
 //If the collision message is being printed too much, raise this value.
 //If the collision message is not being printed enough, lower this value.
@@ -304,8 +304,8 @@ void AI::AutoRef::multiple_defenders() {
 
 		}
 		//this case for if the robot may be in the bottom arc
-		else if (current.position().y < enemy_centre_of_bottom_arc->y
-				& right_side_of_field(current.position().x, ENEMY_TEAM))
+		else if ((current.position().y < enemy_centre_of_bottom_arc->y)
+				&& right_side_of_field(current.position().x, ENEMY_TEAM))
 		{
 			double distance =std::sqrt(std::pow(current.position().x - enemy_centre_of_bottom_arc->x,2)
 									+ std::pow( current.position().y - enemy_centre_of_bottom_arc->y,2));
