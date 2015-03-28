@@ -51,14 +51,14 @@ void ParticleFilter::update(double timeDelta) {
 	if (estimatedVelocity < 0) {
 		// blank out the section in the back where we don't think the ball was
 		int limit = abs(static_cast<int>(estimatedVelocity*timeDelta/partitionSize));
-		if (numPartitions_ + 1 < limit) {
+		if (static_cast<int>(numPartitions_) + 1 < limit) {
 			//std::cout << "LARGE NEGATIVE VELOCITY - CLEARING FIELD" << std::endl;
 			//assert(numPartitions_ + 1 >= estimatedVelocity*timeDelta);
 
 			clearWeights(0, numPartitions_);
 		} else {
 			// shift everything back
-			for (int i = static_cast<int>(estimatedVelocity*timeDelta/partitionSize); i < numPartitions_; i++)
+			for (int i = static_cast<int>(estimatedVelocity*timeDelta/partitionSize); i < static_cast<int>(numPartitions_); i++)
 			{
 				weight_[i-limit] = weight_[i];
 			}
