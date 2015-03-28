@@ -42,7 +42,46 @@ PROJECT_LIBS := -lbz2
 #
 # The flags to pass to the C++ compiler.
 #
-PROJECT_CXXFLAGS := -std=c++11 -pthread -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 -Wold-style-cast -Wconversion -Wundef -Wmissing-declarations -Wredundant-decls -Wuseless-cast -Wzero-as-null-pointer-constant -march=native -O2 -fomit-frame-pointer -fstrict-aliasing -g -D_POSIX_C_SOURCE=200112L -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -DHAVE_INLINE -I.
+# Use C++11 (can be kicked up to a higher level when ready).
+PROJECT_CXXFLAGS := -std=c++11
+# Enable threading and thread-safe functions.
+PROJECT_CXXFLAGS += -pthread
+# Enable lots of warnings.
+PROJECT_CXXFLAGS += -Wall -Wextra
+# Enable extra warnings about printf/scanf/strftime format strings.
+PROJECT_CXXFLAGS += -Wformat=2
+# Warn when C-style cast is used in C++ code.
+PROJECT_CXXFLAGS += -Wold-style-cast
+# Warn when possibly erroneous value-altering implicit conversions are used.
+PROJECT_CXXFLAGS += -Wconversion
+# Warn when an undefined macro name is referenced.
+PROJECT_CXXFLAGS += -Wundef
+# Warn when a global function has no previous declaration (i.e. missing from the header file or should be file-scope).
+PROJECT_CXXFLAGS += -Wmissing-declarations
+# Warn when the same thing is declared more than once, pointlessly.
+PROJECT_CXXFLAGS += -Wredundant-decls
+# Warn when casting from a type to itself.
+PROJECT_CXXFLAGS += -Wuseless-cast
+# Warn when using 0 as a null pointer constant; nullptr is preferable.
+PROJECT_CXXFLAGS += -Wzero-as-null-pointer-constant
+# Optimize reasonably well for the native machine.
+PROJECT_CXXFLAGS += -march=native -O2
+# Do not allow multiple definitions of the same global variable.
+PROJECT_CXXFLAGS += -fno-common
+# Optimize by assuming pointers do not alias when they are not permitted to do so according to type.
+PROJECT_CXXFLAGS += -fstrict-aliasing
+# Include full debug information.
+PROJECT_CXXFLAGS += -g
+# Define strerror_r.
+PROJECT_CXXFLAGS += -D_POSIX_C_SOURCE=200112L
+# If building on a 32-bit platform, nevertheless use 64-bit offsets when seeking in files.
+PROJECT_CXXFLAGS += -D_FILE_OFFSET_BITS=64
+# Define the [U]INT[N]_C macros in <cinttypes>.
+PROJECT_CXXFLAGS += -D__STDC_CONSTANT_MACROS=1
+# Use inline functions where available from GNU Scientific Library.
+PROJECT_CXXFLAGS += -DHAVE_INLINE
+# Take include files from the project root directory rather than relative to the source file.
+PROJECT_CXXFLAGS += -I.
 
 #
 # Custom pkg-config packages to use only for the cppunit target.
