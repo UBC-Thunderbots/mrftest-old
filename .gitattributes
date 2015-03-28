@@ -572,6 +572,8 @@ software/drive/robot.h -text
 software/geom/angle.h -text
 software/geom/kalman/kalman.cpp -text
 software/geom/kalman/kalman.h -text
+software/geom/line.cpp -text
+software/geom/line.h -text
 software/geom/param.cpp -text
 software/geom/param.h -text
 software/geom/particle/particle_filter.cpp -text
@@ -583,6 +585,8 @@ software/geom/predictor.cpp -text
 software/geom/predictor.h -text
 software/geom/rect.cpp -text
 software/geom/rect.h -text
+software/geom/seg.cpp -text
+software/geom/seg.h -text
 software/geom/util.cpp -text
 software/geom/util.h -text
 software/getcore.cpp -text

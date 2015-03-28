@@ -22,8 +22,6 @@ namespace AI {
 }
 
 namespace {
-	constexpr double EPS = 1e-9;
-	
 	DoubleParam INTERCEPT_ANGLE_STEP_SIZE(u8"angle increment in approaching the ball, in degrees", u8"Nav/Util", 10.0, 0.1, 30.0);
 
 	BoolParam OWN_HALF_OVERRIDE(u8"enforce that robots stay on own half ", u8"Nav/Util", false);

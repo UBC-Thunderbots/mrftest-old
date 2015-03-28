@@ -1,4 +1,5 @@
 #include "geom/util.h"
+#include "geom/seg.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
 #include "util/hungarian.h"
@@ -6,23 +7,37 @@
 #include <cassert>
 #include <cmath>
 
-namespace {
-	constexpr double EPS = 1e-9;
+using namespace Geom;
 
-	// used for lensq only
-	constexpr double EPS2 = EPS * EPS;
-
-	// ported code
-	constexpr int sign(double n) {
-		return n > EPS ? 1 : (n < -EPS ? -1 : 0);
+template<>
+double dist<Point, Point>(const Point& first, const Point& second) {
+	return (first - second).len();
+}
+template<>
+double dist<Line, Point>(const Line& first, const Point& second) {
+	if (first.degenerate()) {
+		return dist(first.first, second);
 	}
+
+	return std::fabs((second - first.first).cross(first.second - first.first) / (first.second - first.first).len());
+}
+template<>
+double dist<Point, Line>(const Point& first, const Line& second) {
+	return dist(second, first);
+}
+template<>
+double dist<Point, Seg>(const Point& first, const Seg& second) {
+	return proj_dist(second.start, second.end, first) > 0 && proj_dist(second.end, second.start, first) > 0
+		? std::fabs(dist(second.to_line(), first)) 
+		: std::min((second.start - first).len(), (second.end - first).len());
+}
+template<>
+double dist<Seg, Point>(const Seg& first, const Point& second) {
+	return dist(second, first);
 }
 
 double line_pt_dist(const Point A, const Point B, const Point P) {
-	if ((A - B).len() < EPS) {
-		return (B - P).len();
-	}
-	return std::fabs((P - A).cross(B - A) / (B - A).len());
+	return dist(Line(A, B), P);
 }
 
 double proj_dist(const Point A, const Point B, const Point P) {
@@ -30,7 +45,7 @@ double proj_dist(const Point A, const Point B, const Point P) {
 }
 
 double seg_pt_dist(const Point a, const Point b, const Point p) {
-	return proj_dist(a, b, p) > 0 && proj_dist(b, a, p) > 0 ? std::fabs(line_pt_dist(a, b, p)) : std::min((a - p).len(), (b - p).len());
+	return dist(Seg(a, b), p);
 }
 
 std::vector<std::size_t> dist_matching(const std::vector<Point> &v1, const std::vector<Point> &v2) {

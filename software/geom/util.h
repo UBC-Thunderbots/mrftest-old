@@ -1,10 +1,23 @@
-#ifndef GEOM_UTIL_H
-#define GEOM_UTIL_H
+#pragma once
 
 #include "geom/point.h"
 #include "geom/rect.h"
+#include "geom/line.h"
+#include "geom/seg.h"
 #include <cstddef>
 #include <vector>
+
+namespace Geom {
+	constexpr double EPS = 1e-9;
+
+	// used for lensq only
+	constexpr double EPS2 = EPS * EPS;
+
+	// ported code
+	constexpr int sign(double n) {
+		return n > EPS ? 1 : (n < -EPS ? -1 : 0);
+	}
+}
 
 /*
  * Misc geometry utility functions.
@@ -14,6 +27,22 @@
  * - LINE a line of infinite length
  * - SEGMENT a line of finite length
  */
+
+using namespace Geom;
+
+template<typename T1, typename T2>
+double dist(const T1& first, const T2& second);
+
+template<>
+double dist<Point, Point>(const Point& first, const Point& second);
+template<>
+double dist<Line, Point>(const Line& first, const Point& second);
+template<>
+double dist<Point, Line>(const Point& first, const Line& second);
+template<>
+double dist<Point, Seg>(const Point& first, const Seg& second);
+template<>
+double dist<Seg, Point>(const Seg& first, const Point& second);
 
 /**
  * The distance between an INFINITE line (A, B) and point P.
@@ -515,6 +544,3 @@ double closest_point_time(Point x1, Point v1, Point x2, Point v2);
  * param[in] p is the point is question
  */
 bool point_in_front_vector( Point offset, Point dir, Point p );
-
-#endif
-

@@ -1,5 +1,4 @@
-#ifndef GEOM_POINT_H
-#define GEOM_POINT_H
+#pragma once
 
 #include "geom/angle.h"
 #include <cmath>
@@ -167,6 +166,10 @@ class Point final {
 		 */
 		constexpr bool close(const Point &other, double dist) const;
 };
+
+namespace Geom {
+	typedef Point Vector2;
+}
 
 /**
  * \brief Adds two points
@@ -521,6 +524,3 @@ namespace std {
 		}
 	};
 }
-
-#endif
-
