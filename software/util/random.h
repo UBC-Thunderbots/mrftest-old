@@ -3,7 +3,13 @@
 
 namespace Random {
 	/**
-	 * \brief Seeds all random number generators in the system using the current time
+	 * \brief Generates a word of seed data.
+	 */
+	unsigned int generate_seed();
+
+	/**
+	 * \brief Seeds all global random number generators in the system using the
+	 * current time.
 	 */
 	void seed();
 }

@@ -1,12 +1,9 @@
 #ifndef GEOM_PARTICLE_PARTICLE_FILTER_H
 #define GEOM_PARTICLE_PARTICLE_FILTER_H
 
-#include "util/matrix.h"
-#include "util/param.h"
-#include <iostream>
-
-extern DoubleParam PARTICLE_FILTER_STDDEV;
-extern DoubleParam PARTICLE_FILTER_DECAYRATE;
+#include <random>
+#include <utility>
+#include <vector>
 
 /**
  * \brief Implements the basic mathematics of a Particle filter.
@@ -14,7 +11,6 @@ extern DoubleParam PARTICLE_FILTER_DECAYRATE;
 class ParticleFilter final {
 	public:
 		explicit ParticleFilter(double length, double partitionSize);
-		~ParticleFilter();
 
 		void update(double timeDelta);
 
@@ -24,10 +20,8 @@ class ParticleFilter final {
 		double getLength();
 		double getOffset();
 		int getNumParticles();
-		void toString();
 
 	private:
-
 		void updateEstimatedPartition();
 		void clearWeights(unsigned int startIndex, unsigned int endIndex);
 
@@ -41,10 +35,10 @@ class ParticleFilter final {
 		bool estimateValid_;
 		bool prevEstimateValid_;
 		bool velocityValid_;
-		double *weight_;
+		std::vector<int> weight_;
+		std::default_random_engine random_generator_;
+		std::binomial_distribution<int> random_binom_distribution_;
+		std::normal_distribution<double> random_normal_distribution_;
 };
 
-bool pairCompare(const std::pair<int, int>& a, const std::pair<int, int>& b);
-
 #endif
-

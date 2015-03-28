@@ -18,7 +18,6 @@ class ParticleFilter2D final {
 		void update(double timeDelta);
 
 		void add(Point p, unsigned int numParticles);
-		void toString();
 
 		Point getEstimate();
 

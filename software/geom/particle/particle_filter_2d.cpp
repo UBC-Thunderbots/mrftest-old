@@ -20,11 +20,6 @@ void ParticleFilter2D::add(Point p, unsigned int numParticles) {
 	yFilter->add(p.y, numParticles);
 }
 
-void ParticleFilter2D::toString() {
-	xFilter->toString();
-	yFilter->toString();
-}
-
 Point ParticleFilter2D::getEstimate() {
 	return Point(xFilter->getEstimate(), yFilter->getEstimate());
 }
