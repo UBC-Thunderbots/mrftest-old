@@ -184,64 +184,51 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 			// Compute the best ball position from the list of detections.
 			Point best_pos;
 			AI::Timestamp best_time = now;
-			//for (auto &i : detections) {
-				// Estimate the ball’s position at the camera frame’s timestamp.
-				double time_delta = std::chrono::duration_cast<std::chrono::duration<double>>(now - ball_.lock_time()).count();
-				/*Point estimated_position = ball_.position(time_delta);
-				Point estimated_stdev = ball_.position_stdev(time_delta);
-				double x_prob, y_prob;*/
 
-				if (time_delta >= 0) {
-					for (const SSL_DetectionBall &b : det.balls()) {
-						// Compute the probability of this ball being the wanted one.
-						Point detection_position(b.x() / 1000.0, b.y() / 1000.0);
-						if (defending_end() == FieldEnd::EAST) {
-							detection_position = -detection_position;
-						}
+			// Estimate the ball’s position at the camera frame’s timestamp.
+			double time_delta = std::chrono::duration_cast<std::chrono::duration<double>>(now - ball_.lock_time()).count();
+			/*Point estimated_position = ball_.position(time_delta);
+			Point estimated_stdev = ball_.position_stdev(time_delta);
+			double x_prob = 0, y_prob = 0;
+			double best_prob = 0;*/
 
-						/* old formulae
-						Point distance_from_estimate = detection_position - estimated_position;
-						x_prob = 1.0f / (std::pow(distance_from_estimate.x / estimated_stdev.x, 2.0) + 1.0f);
-						y_prob = 1.0f / (std::pow(distance_from_estimate.y / estimated_stdev.y, 2.0) + 1.0f); */
-
-						/*new formulae
-						double a = (detection_position.x - estimated_position.x) / estimated_stdev.x;
-						x_prob = std::exp(-0.5 * a * a);
-
-						a = (detection_position.y - estimated_position.y) / estimated_stdev.y;
-						y_prob = std::exp(-0.5 * a * a);
-
-						double prob;
-						if(USE_KALMAN_FILTER)
-							prob = x_prob * y_prob * b.confidence();
-						else
-							prob = b.confidence();
-						if (prob > best_prob || !found) {
-							found = true;
-							best_prob = prob;
-							best_pos = detection_position;
-						}
-						*/
-
-						/* Particle Filter */
-						//std::cout << "X: " << detection_position.x << "; Y: " << detection_position.y << std::endl;
-						pFilter_->add(detection_position, static_cast<unsigned int>(b.confidence() * 500U));
+			if (time_delta >= 0) {
+				for (const SSL_DetectionBall &b : det.balls()) {
+					// Compute the probability of this ball being the wanted one.
+					Point detection_position(b.x() / 1000.0, b.y() / 1000.0);
+					if (defending_end() == FieldEnd::EAST) {
+						detection_position = -detection_position;
 					}
+
+					/* KALMAN FORMULAS */
+
+					/* old formulae */
+					/*Point distance_from_estimate = detection_position - estimated_position;
+					x_prob = 1.0f / (std::pow(distance_from_estimate.x / estimated_stdev.x, 2.0) + 1.0f);
+					y_prob = 1.0f / (std::pow(distance_from_estimate.y / estimated_stdev.y, 2.0) + 1.0f); */
+
+					/*new formulae*/
+					/*double a = (detection_position.x - estimated_position.x) / estimated_stdev.x;
+					x_prob = std::exp(-0.5 * a * a);
+
+					a = (detection_position.y - estimated_position.y) / estimated_stdev.y;
+					y_prob = std::exp(-0.5 * a * a);
+
+					double prob = x_prob * y_prob * b.confidence();
+
+					if (prob > best_prob) {
+						best_prob = prob;
+						best_pos = detection_position;
+					}*/
+
+					/* PARTICLE FILTER */
+					pFilter_->add(detection_position, static_cast<unsigned int>(b.confidence() * 500U));
 				}
+			}
 
-				best_pos = pFilter_->getEstimate();
-				//std::cout << "ADDING TO KALMAN - X: " << best_pos.x << " Y: " << best_pos.y << std::endl;
-
-				pFilter_->update(time_delta);
-			//}
-
-			//std::cout << "ADDING TO KALMAN - X: " << best_pos.x << " Y: " << best_pos.y << std::endl;
-
-			ball_.add_field_data(best_pos, best_time);
-
-			/*
+			/* KALMAN */
 			// Keep the detection if it is good enough.
-			if (best_prob >= BALL_FILTER_THRESHOLD) {
+			/*if (best_prob >= BALL_FILTER_THRESHOLD) {
 				ball_.add_field_data(best_pos, best_time);
 			} else {
 				// No useful detection from camera; instead, see if a robot has the ball.
@@ -264,6 +251,12 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 					ball_.add_field_data(avg, now);
 				}
 			}*/
+
+			/* PARTICLE FILTER */
+			best_pos = pFilter_->getEstimate();
+			pFilter_->update(time_delta);
+
+			ball_.add_field_data(best_pos, best_time);
 		}
 
 		// Update the robots.
