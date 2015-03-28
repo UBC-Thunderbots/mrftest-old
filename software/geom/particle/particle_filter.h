@@ -28,7 +28,7 @@ class ParticleFilter final {
 		double velocity_;
 		double accel_;
 		double estimate_;
-		int prevEstimate_;
+		double prevEstimate_;
 		unsigned int numPartitions_;
 		double length_;
 		double offset_;

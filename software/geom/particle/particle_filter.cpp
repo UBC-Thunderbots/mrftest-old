@@ -58,7 +58,7 @@ void ParticleFilter::update(double timeDelta) {
 			clearWeights(0, numPartitions_);
 		} else {
 			// shift everything back
-			for (int i = static_cast<int>(estimatedVelocity*timeDelta/partitionSize); i < static_cast<int>(numPartitions_); i++)
+			for (int i = abs(static_cast<int>(estimatedVelocity*timeDelta/partitionSize)); i < static_cast<int>(numPartitions_); i++)
 			{
 				assert(i >= 0);
 				assert(i < weight_.size());
@@ -104,8 +104,7 @@ void ParticleFilter::update(double timeDelta) {
 	// update values
 	velocity_ = curVelocity;
 	accel_ = acceleration;
-#warning Why are these different types?
-	prevEstimate_ = static_cast<int>(estimate_);
+	prevEstimate_ = estimate_;
 }
 
 void ParticleFilter::add(double input, unsigned int numParticles) {
