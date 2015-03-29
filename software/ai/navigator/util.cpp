@@ -382,26 +382,26 @@ namespace {
 
 		// whether there is less violation than the violation parameter
 		bool no_more_violating_than(Violation b) {
-			return enemy < b.enemy + EPS && friendly < b.friendly + EPS &&
-			       play_area < b.play_area + EPS && ball_stop < b.ball_stop + EPS &&
-			       ball_tiny < b.ball_tiny + EPS && friendly_defense < b.friendly_defense + EPS &&
-			       enemy_defense < b.enemy_defense + EPS && own_half < b.own_half + EPS &&
-			       penalty_kick_enemy < b.penalty_kick_enemy + EPS &&
-			       penalty_kick_friendly < b.penalty_kick_friendly + EPS &&
-			       goal_post < b.goal_post + EPS &&
-			       total_bounds < b.total_bounds + EPS &&
-			       net_allowance < b.net_allowance + EPS;
+			return enemy < b.enemy + Geom::EPS && friendly < b.friendly + Geom::EPS &&
+			       play_area < b.play_area + Geom::EPS && ball_stop < b.ball_stop + Geom::EPS &&
+			       ball_tiny < b.ball_tiny + Geom::EPS && friendly_defense < b.friendly_defense + Geom::EPS &&
+			       enemy_defense < b.enemy_defense + Geom::EPS && own_half < b.own_half + Geom::EPS &&
+			       penalty_kick_enemy < b.penalty_kick_enemy + Geom::EPS &&
+			       penalty_kick_friendly < b.penalty_kick_friendly + Geom::EPS &&
+			       goal_post < b.goal_post + Geom::EPS &&
+			       total_bounds < b.total_bounds + Geom::EPS &&
+			       net_allowance < b.net_allowance + Geom::EPS;
 		}
 
 		// whether there are no violations at all
 		bool violation_free() {
-			return enemy < EPS && friendly < EPS &&
-			       play_area < EPS && ball_stop < EPS &&
-			       ball_tiny < EPS && friendly_defense < EPS &&
-			       enemy_defense < EPS && own_half < EPS &&
-			       penalty_kick_enemy < EPS && penalty_kick_friendly < EPS &&
-			       goal_post < EPS && total_bounds < EPS &&
-			       net_allowance < EPS;
+			return enemy < Geom::EPS && friendly < Geom::EPS &&
+			       play_area < Geom::EPS && ball_stop < Geom::EPS &&
+			       ball_tiny < Geom::EPS && friendly_defense < Geom::EPS &&
+			       enemy_defense < Geom::EPS && own_half < Geom::EPS &&
+			       penalty_kick_enemy < Geom::EPS && penalty_kick_friendly < Geom::EPS &&
+			       goal_post < Geom::EPS && total_bounds < Geom::EPS &&
+			       net_allowance < Geom::EPS;
 		}
 	};
 
@@ -579,7 +579,7 @@ std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World worl
 std::pair<Point, AI::Timestamp> AI::Nav::Util::get_ramball_location(Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
 	Point ball_dir = world.ball().velocity();
 
-	if (ball_dir.lensq() < EPS) {
+	if (ball_dir.lensq() < Geom::EPS) {
 		if (lineseg_point_dist(world.ball().position(), player.position(), dst) < RAM_BALL_ALLOWANCE) {
 			return std::make_pair(world.ball().position(), world.monotonic_time());
 		}

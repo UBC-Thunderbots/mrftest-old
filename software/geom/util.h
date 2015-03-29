@@ -1,13 +1,14 @@
 #pragma once
 
 #include "geom/point.h"
-#include "geom/rect.h"
-#include "geom/line.h"
-#include "geom/seg.h"
+#include "geom/shapes.h"
 #include <cstddef>
 #include <vector>
 
 namespace Geom {
+	typedef std::array<Vector2, 3U> Triangle;
+	typedef std::array<Vector2, 4U> Quad;
+
 	constexpr double EPS = 1e-9;
 
 	// used for lensq only
@@ -17,32 +18,51 @@ namespace Geom {
 	constexpr int sign(double n) {
 		return n > EPS ? 1 : (n < -EPS ? -1 : 0);
 	}
+
+	bool contains(const Triangle &out, const Vector2 &in);
+	bool contains(const Circle &out, const Vector2 &in);
+	bool contains(const Circle &out, const Seg &in);
+
+	bool intersects(const Triangle &first, const Circle& second);
+	bool intersects(const Circle &first, const Triangle& second);
+	bool intersects(const Seg& first, const Circle& second);
+	bool intersects(const Circle& first, const Seg& second);
+
+	double dist(const Vector2& first, const Vector2& second);
+	double dist(const Line& first, const Vector2& second);
+	double dist(const Vector2& first, const Line& second);
+	double dist(const Vector2& first, const Seg& second);
+	double dist(const Seg& first, const Vector2& second);
+
+	double distsq(const Vector2& first, const Vector2& second);
+
+	double slope(const Seg& seg);
+	double slope(const Line& line);
+
+	bool is_degenerate(const Seg& seg);
+	bool is_degenerate(const Line& line);
+
+	Vector2 as_vector2(const Seg& seg);
+	Line as_line(const Seg& seg);
+
+	double len(const Seg& seg);
+	double len(const Line& line);
+
+	double lensq(const Seg& seg);
+	double lensq(const Line& line);
+
+	template<unsigned int N>
+	Vector2 get_vertex(const std::array<Vector2, N>& poly, unsigned int i);
+	template<unsigned int N>
+	void set_vertex(std::array<Vector2, N>& poly, unsigned int i, Vector2& v);
+
+	/**
+	 * Gets the side that is connected to the vertex with index provided
+	 * and also connected to the vertex with the next index.
+	 */
+	template<unsigned int N>
+	Seg get_side(const std::array<Vector2, N>& poly, unsigned int i);
 }
-
-/*
- * Misc geometry utility functions.
- * Contains code ported since 2009.
- *
- * PLEASE FOLLOW THE DEFINITION:
- * - LINE a line of infinite length
- * - SEGMENT a line of finite length
- */
-
-using namespace Geom;
-
-template<typename T1, typename T2>
-double dist(const T1& first, const T2& second);
-
-template<>
-double dist<Point, Point>(const Point& first, const Point& second);
-template<>
-double dist<Line, Point>(const Line& first, const Point& second);
-template<>
-double dist<Point, Line>(const Point& first, const Line& second);
-template<>
-double dist<Point, Seg>(const Point& first, const Seg& second);
-template<>
-double dist<Seg, Point>(const Seg& first, const Point& second);
 
 /**
  * The distance between an INFINITE line (A, B) and point P.

@@ -1,5 +1,4 @@
-#ifndef GEOM_RECT_H
-#define GEOM_RECT_H
+#pragma once
 
 #include "geom/point.h"
 #include <algorithm>
@@ -195,6 +194,3 @@ inline void Rect::translate(const Point &offset) {
 inline constexpr bool Rect::point_inside(Point p) const {
 	return p.x >= min_corner.x && p.y >= min_corner.y && p.x <= min_corner.x + diag.x && p.y <= min_corner.y + diag.y;
 }
-
-#endif
-

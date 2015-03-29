@@ -1,40 +1,142 @@
 #include "geom/util.h"
-#include "geom/seg.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
 #include "util/hungarian.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <limits>
 
-using namespace Geom;
+namespace Geom {
+	double dist(const Vector2& first, const Vector2& second) {
+		return (first - second).len();
+	}
+	double dist(const Line& first, const Vector2& second) {
+		if (is_degenerate(first)) {
+			return dist(first.first, second);
+		}
 
-template<>
-double dist<Point, Point>(const Point& first, const Point& second) {
-	return (first - second).len();
-}
-template<>
-double dist<Line, Point>(const Line& first, const Point& second) {
-	if (first.degenerate()) {
-		return dist(first.first, second);
+		return std::fabs((second - first.first).cross(first.second - first.first) 
+				/ (first.second - first.first).len());
+	}
+	double dist(const Vector2& first, const Line& second) {
+		return dist(second, first);
+	}
+	double dist(const Vector2& first, const Seg& second) {
+		return proj_dist(second.start, second.end, first) > 0 
+			&& proj_dist(second.end, second.start, first) > 0
+			? std::fabs(dist(as_line(second), first)) 
+			: std::min((second.start - first).len(), (second.end - first).len());
+	}
+	double dist(const Seg& first, const Vector2& second) {
+		return dist(second, first);
 	}
 
-	return std::fabs((second - first.first).cross(first.second - first.first) / (first.second - first.first).len());
+	double distsq(const Vector2& first, const Vector2& second) {
+		return (first - second).lensq();
+	}
+
+	double slope(const Seg& seg) {
+		Vector2 diff = seg.start - seg.end;
+		return diff.y / diff.x;
+	}
+	double slope(const Line& line) {
+		Vector2 diff = line.first - line.second;
+		return diff.y / diff.x;
+	}
+
+	bool is_degenerate(const Seg& seg) {
+		return distsq(seg.start, seg.end) < EPS2;
+	}
+	
+	bool is_degenerate(const Line& line) {
+		return distsq(line.first, line.second) < EPS2;
+	}
+
+	Vector2 as_vector2(const Seg& seg) {
+		return seg.end - seg.start;
+	}
+
+	Line as_line(const Seg& seg) {
+		return Line(seg.start, seg.end);
+	}
+
+	double len(const Seg& seg) {
+		return dist(seg.start, seg.end);
+	}
+
+	double len(const Line& line) {
+		(void) line; // unused
+		return std::numeric_limits<double>::infinity();
+	}
+
+	double lensq(const Seg& seg) {
+		return distsq(seg.start, seg.end);
+	}
+
+	double lensq(const Line& line) {
+		(void) line; // unused
+		return std::numeric_limits<double>::infinity();
+	}
+
+	bool contains(const Triangle& out, const Vector2& in) {
+		double angle = 0;
+		for (int i = 0, j = 2; i < 3; j = i++) {
+			if ((in - out[i]).len() < EPS) {
+				return true; // SPECIAL CASE
+			}
+			double a = atan2((out[i] - in).cross(out[j] - in),
+					(out[i] - in).dot(out[j] - in));
+			angle += a;
+		}
+		return std::fabs(angle) > 6;
+	}
+
+	bool contains(const Circle& out, const Vector2& in) {
+		return distsq(out.origin, in) <= out.radius * out.radius;
+	}
+
+	bool contains(const Circle& out, const Seg& in) {
+		return dist(in, out.origin) < out.radius;
+	}
+
+	bool intersects(const Triangle &first, const Circle& second) {
+		return contains(first, second.origin) 
+			|| dist(get_side<3>(first, 0), second.origin) < second.radius
+			|| dist(get_side<3>(first, 1), second.origin) < second.radius
+			|| dist(get_side<3>(first, 2), second.origin) < second.radius;
+	}
+	bool intersects(const Circle &first, const Triangle& second) {
+		return intersects(second, first);
+	}
+
+	bool intersects(const Seg &first, const Circle &second) {
+		// if the segment is inside the circle AND at least one of the points is outside the circle
+		return contains(second, first) 
+			&& (distsq(first.start, second.origin) > second.radius * second.radius
+				|| distsq(first.end, second.origin) > second.radius * second.radius);
+	}
+	bool intersects(const Circle &first, const Seg &second) {
+		return intersects(second, first);
+	}
+
+	template<unsigned int N>
+	Vector2 get_vertex(const std::array<Vector2, N>& poly, unsigned int i) {
+		return poly[i % N];
+	}
+
+	template<unsigned int N>
+	void set_vertex(std::array<Vector2, N>& poly, unsigned int i, const Vector2& v) {
+		poly[i % N] = v;
+	}
+
+	template<unsigned int N>
+	Seg get_side(const std::array<Vector2, N>& poly, unsigned int i) {
+		return Seg(get_vertex<3>(poly, i), get_vertex<3>(poly, i + 1));
+	}
 }
-template<>
-double dist<Point, Line>(const Point& first, const Line& second) {
-	return dist(second, first);
-}
-template<>
-double dist<Point, Seg>(const Point& first, const Seg& second) {
-	return proj_dist(second.start, second.end, first) > 0 && proj_dist(second.end, second.start, first) > 0
-		? std::fabs(dist(second.to_line(), first)) 
-		: std::min((second.start - first).len(), (second.end - first).len());
-}
-template<>
-double dist<Seg, Point>(const Seg& first, const Point& second) {
-	return dist(second, first);
-}
+
+using namespace Geom;
 
 double line_pt_dist(const Point A, const Point B, const Point P) {
 	return dist(Line(A, B), P);
@@ -92,20 +194,11 @@ std::vector<std::size_t> dist_matching(const std::vector<Point> &v1, const std::
 }
 
 bool point_in_triangle(const Point p1, const Point p2, const Point p3, const Point p) {
-	const Point P[3] = { p1, p2, p3 };
-	double angle = 0;
-	for (int i = 0, j = 2; i < 3; j = i++) {
-		if ((p - P[i]).len() < EPS) {
-			return true; // SPECIAL CASE
-		}
-		double a = atan2((P[i] - p).cross(P[j] - p), (P[i] - p).dot(P[j] - p));
-		angle += a;
-	}
-	return std::fabs(angle) > 6;
+	return contains(Triangle({ p1, p2, p3 }), p);
 }
 
 bool triangle_circle_intersect(const Point p1, const Point p2, const Point p3, const Point c, const double radius) {
-	return point_in_triangle(p1, p2, p3, c) || seg_pt_dist(p1, p2, c) < radius || seg_pt_dist(p2, p3, c) < radius || seg_pt_dist(p3, p1, c) < radius;
+	return intersects(Triangle({ p1, p2, p3 }), Circle(c, radius));
 }
 
 std::vector<std::pair<Point, Angle>> angle_sweep_circles_all(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius) {
@@ -403,12 +496,11 @@ std::vector<Point> line_circle_intersect(const Point &centre, double radius, con
 }
 
 bool seg_intersects_circle(const Point& a, const Point& b, const Point& c, double r) {
-	// if the segment is inside the circle AND at least one of the points is outside the circle
-	return seg_inside_circle(a, b, c, r) && ((a - c).lensq() > r * r || (b - c).lensq() > r * r);
+	return intersects(Seg(a, b), Circle(c, r));
 }
 
 bool seg_inside_circle(const Point& a, const Point& b, const Point& c, double r) {
-	return seg_pt_dist(a, b, c) < r;
+	return contains(Circle(c, r), Seg(a, b));
 }
 
 

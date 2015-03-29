@@ -1,4 +1,5 @@
 #include "ai/hl/hl.h"
+#include "geom/rect.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
 #include "util/param.h"
