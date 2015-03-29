@@ -132,7 +132,7 @@ namespace Geom {
 
 	template<unsigned int N>
 	Seg get_side(const std::array<Vector2, N>& poly, unsigned int i) {
-		return Seg(get_vertex<3>(poly, i), get_vertex<3>(poly, i + 1));
+		return Seg(get_vertex<N>(poly, i), get_vertex<N>(poly, i + 1));
 	}
 }
 
