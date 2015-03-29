@@ -756,7 +756,7 @@ bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::
 			AI::Timestamp working_time = world.monotonic_time();
 
 			// if we're within a certain threshold then skip this and just move towards the ball's future position
-			if (line_pt_dist(move_to_point, ball_future_pos, player.position()) > CATCH_BALL_THRESHOLD) {
+			if (Geom::dist(Geom::Seg(move_to_point, ball_future_pos), player.position()) > CATCH_BALL_THRESHOLD) {
 				// ignore first point since it is bot's position
 				for (unsigned int j = 1; j < path_points_with_angle.size(); j++) {
 					// not going for proper timestamp, yet

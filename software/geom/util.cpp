@@ -15,18 +15,19 @@ namespace Geom {
 		if (is_degenerate(first)) {
 			return dist(first.first, second);
 		}
-
-		return std::fabs((second - first.first).cross(first.second - first.first) 
-				/ (first.second - first.first).len());
+		return fabs((second - first.first).cross(first.second - first.first)
+			/ (first.second - first.first).len());
 	}
+
 	double dist(const Vector2& first, const Line& second) {
 		return dist(second, first);
 	}
+
 	double dist(const Vector2& first, const Seg& second) {
 		return proj_dist(second.start, second.end, first) > 0 
 			&& proj_dist(second.end, second.start, first) > 0
 			? std::fabs(dist(as_line(second), first)) 
-			: std::min((second.start - first).len(), (second.end - first).len());
+			: std::min(dist(second.start, first), dist(second.end, first));
 	}
 	double dist(const Seg& first, const Vector2& second) {
 		return dist(second, first);
@@ -120,6 +121,18 @@ namespace Geom {
 		return intersects(second, first);
 	}
 
+	bool intersects(const Seg& first, const Seg& second) {
+		if (sign((first.start - first.end).cross(second.start - second.end)) == 0) {
+			// find distance of two endpoints on segments furthest away from each other
+			double mx_len = std::max(std::max((second.start - first.end).len(), (second.end - first.end).len()), std::max((second.start - first.start).len(), (second.end - first.start).len()));
+			// if the segments cross then this distance should be less than
+			// the sum of the distances of the line segments
+			return mx_len < (first.start - first.end).len() + (second.start - second.end).len() + EPS;
+		}
+
+	return sign((first.end - first.start).cross(second.start - first.start)) * sign((first.end - first.start).cross(second.end - first.start)) <= 0 && sign((second.end - second.start).cross(first.start - second.start)) * sign((second.end - second.start).cross(first.end - second.start)) <= 0;
+	}
+
 	template<unsigned int N>
 	Vector2 get_vertex(const std::array<Vector2, N>& poly, unsigned int i) {
 		return poly[i % N];
@@ -137,10 +150,6 @@ namespace Geom {
 }
 
 using namespace Geom;
-
-double line_pt_dist(const Point A, const Point B, const Point P) {
-	return dist(Line(A, B), P);
-}
 
 double proj_dist(const Point A, const Point B, const Point P) {
 	return (B - A).dot(P - A) / (B - A).len();
@@ -684,29 +693,8 @@ Point line_intersect(const Point &a, const Point &b, const Point &c, const Point
 }
 
 // ported code
-double line_point_dist(const Point &p, const Point &a, const Point &b) {
-	if ((b - a).lensq() < EPS) {
-		if ((b - p).lensq() < EPS || (b - p).lensq() < EPS) {
-			return 0.0;
-		}
-		return std::min((b - p).len(), (a - p).len());
-	}
-	return (p - a).cross(b - a) / (b - a).len();
-}
-
-
-// ported code
 bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2) {
-	// handle case where the lines are co-linear
-	if (sign((a1 - a2).cross(b1 - b2)) == 0) {
-		// find distance of two endpoints on segments furthest away from each other
-		double mx_len = std::max(std::max((b1 - a2).len(), (b2 - a2).len()), std::max((b1 - a1).len(), (b2 - a1).len()));
-		// if the segments cross then this distance should be less than
-		// the sum of the distances of the line segments
-		return mx_len < (a1 - a2).len() + (b1 - b2).len() + EPS;
-	}
-
-	return sign((a2 - a1).cross(b1 - a1)) * sign((a2 - a1).cross(b2 - a1)) <= 0 && sign((b2 - b1).cross(a1 - b1)) * sign((b2 - b1).cross(a2 - b1)) <= 0;
+	return intersects(Seg(a1, a2), Seg(b1, b2));
 }
 
 bool vector_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2) {

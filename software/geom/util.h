@@ -19,14 +19,31 @@ namespace Geom {
 		return n > EPS ? 1 : (n < -EPS ? -1 : 0);
 	}
 
+	/*
+	 * The family of `contains` functions determins whether
+	 * the second parameter is contained, even if partially,
+	 * inside the first parameter.
+	 */
+
 	bool contains(const Triangle &out, const Vector2 &in);
 	bool contains(const Circle &out, const Vector2 &in);
 	bool contains(const Circle &out, const Seg &in);
+
+	/*
+	 * The family of `intersects` functions determines whether there
+	 * exists an intersection between one object and another.
+	 */
 
 	bool intersects(const Triangle &first, const Circle& second);
 	bool intersects(const Circle &first, const Triangle& second);
 	bool intersects(const Seg& first, const Circle& second);
 	bool intersects(const Circle& first, const Seg& second);
+	bool intersects(const Seg& first, const Seg& second);
+
+	/*
+	 * The family of `dist` functions calculates the unsigned distance
+	 * between one object and another.
+	 */
 
 	double dist(const Vector2& first, const Vector2& second);
 	double dist(const Line& first, const Vector2& second);
@@ -63,11 +80,6 @@ namespace Geom {
 	template<unsigned int N>
 	Seg get_side(const std::array<Vector2, N>& poly, unsigned int i);
 }
-
-/**
- * The distance between an INFINITE line (A, B) and point P.
- */
-double line_pt_dist(const Point A, const Point B, const Point P);
 
 /**
  * The distance between a FINITE line segment (A, B) and point p.
@@ -364,19 +376,6 @@ bool seg_intersects_circle(const Point& a, const Point& b, const Point& c, doubl
  */
 bool seg_inside_circle(const Point& a, const Point& b, const Point& c, double r);
 
-/**
- * Computes the distance from a point to a line.
- *
- * \param[in] p the point.
- *
- * \param[in] a a point on the line.
- *
- * \param[in] b another point on the line.
- *
- * \return the signed distance from the point to the line,
- * with a negative number indicating that the point is counterclockwise of the line and a positive number indicating that the point is clockwise of the line.
- */
-double line_point_dist(const Point &p, const Point &a, const Point &b);
 
 double seg_seg_distance(const Point &a, const Point &b, const Point &c, const Point &d);
 

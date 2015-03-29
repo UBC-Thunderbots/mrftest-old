@@ -10,7 +10,8 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 // Set this to 1 to enable debug output.
-#define DEBUG 0
+#define DEBUG 1
+using namespace Geom;
 
 namespace {
 #if DEBUG
@@ -27,7 +28,6 @@ namespace {
 		CPPUNIT_TEST(test_vector_crosses_seg);
 		CPPUNIT_TEST(test_vector_rect_intersect);
 		CPPUNIT_TEST(test_lineseg_point_dist);
-		CPPUNIT_TEST(test_seg_pt_dist);
 		CPPUNIT_TEST(test_proj_dist);
 		CPPUNIT_TEST(test_point_in_rectangle);
 		CPPUNIT_TEST(test_calc_block_cone_defender);
@@ -42,7 +42,6 @@ namespace {
 		CPPUNIT_TEST(test_closest_lineseg_point);
 		CPPUNIT_TEST(test_line_rect_intersect);
 		CPPUNIT_TEST(test_clip_point);
-		CPPUNIT_TEST(test_line_pt_dist);
 		CPPUNIT_TEST(test_point_in_triangle);
 		CPPUNIT_TEST(test_triangle_circle_intersect);
 		CPPUNIT_TEST(test_calc_block_cone);
@@ -53,7 +52,7 @@ namespace {
 		CPPUNIT_TEST(test_intersection);
 		CPPUNIT_TEST(test_vertex_angle);
 		CPPUNIT_TEST(test_closest_point_time);
-		CPPUNIT_TEST(test_line_point_dist);
+		CPPUNIT_TEST(test_dist_line_vector2);
 		CPPUNIT_TEST(test_seg_buffer_boundaries);
 		CPPUNIT_TEST(test_angle_sweep_circles);
 		CPPUNIT_TEST(test_angle_sweep_circles_all);
@@ -62,8 +61,6 @@ namespace {
 		CPPUNIT_TEST_SUITE_END();
 
 		public:
-			void test_line_pt_dist();
-			void test_seg_pt_dist();
 			void test_proj_dist(); 
 			void test_point_in_triangle(); 
 			void test_collinear();
@@ -83,7 +80,7 @@ namespace {
 			void test_clip_point(); 
 			void test_unique_line_intersect();
 			void test_line_intersect();
-			void test_line_point_dist();
+			void test_dist_line_vector2();
 			void test_seg_crosses_seg(); 
 			void test_vector_crosses_seg(); 
 			void test_reflect(); 
@@ -104,60 +101,40 @@ namespace {
 	CPPUNIT_TEST_SUITE_REGISTRATION(GeomUtilTest);
 }
 
-void GeomUtilTest::test_line_pt_dist() {
+void GeomUtilTest::test_dist_line_vector2() {
 	double calculated_val, expected_val;
 
 	//case 1
-	Point test1linep1(0,1);
-	Point test1linep2(0,0);
-	Point test1p1(2,0);
-	calculated_val = line_pt_dist(test1linep1, test1linep2, test1p1);
+	Line test1line(Vector2(0, 1), Vector2(0, 0));
+	Vector2 test1p(2, 0);
+	calculated_val = dist(test1line, test1p);
 	expected_val = 2;
 	CPPUNIT_ASSERT_EQUAL(expected_val, calculated_val);
 
 	//case 2
-	Point test2linep1(2,0);
-	Point test2linep2(0,2);
-	Point test2p1(0,0);
-	calculated_val = line_pt_dist(test2linep1, test2linep2, test2p1);
+	Line test2line(Vector2(2, 0), Vector2(0, 2));
+	Vector2 test2p(0, 0);
+	calculated_val = dist(test2line, test2p);
 	expected_val = sqrt(2);
 	CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.00001);
 
 	//case 3
-	Point test3linep1(0,0);
-	Point test3linep2(0,0);
-	Point test3p1(1,0);
-	calculated_val = line_pt_dist(test3linep1, test3linep2, test3p1);
+	Line test3line(Vector2(0, 0), Vector2(0, 0));
+	Point test3p(1,0);
+	calculated_val = dist(test3line, test3p);
 	expected_val = 1;
 	CPPUNIT_ASSERT_EQUAL(expected_val, calculated_val);
-}
 
-void GeomUtilTest::test_seg_pt_dist() {
-	double calculated_val, expected_val;
+	Line line(Vector2(1, -1), Vector2(5, -2));
+	Point p(2, -3);
 
-	//case 1
-	Point test1linep1(1,0);
-	Point test1linep2(2,3);
-	Point test1p1(2,0);
-	calculated_val = line_pt_dist(test1linep1, test1linep2, test1p1);
-	expected_val = sin(atan(3));
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.0000001);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(1.69775, dist(line, p), 0.0001);
 
-	//case 2
-	Point test2linep1(2,0);
-	Point test2linep2(0,2);
-	Point test2p1(0,0);
-	calculated_val = line_pt_dist(test2linep1, test2linep2, test2p1);
-	expected_val = sqrt(2);
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.000001);
+	p = Point(2, 1);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(2.18282, dist(line, p), 0.0001);
 
-	//case 3
-	Point test3linep1(0,0);
-	Point test3linep2(0,0);
-	Point test3p1(1,0);
-	calculated_val = line_pt_dist(test3linep1, test3linep2, test3p1);
-	expected_val = 1;
-	CPPUNIT_ASSERT_EQUAL(expected_val, calculated_val);
+	p = Point(2, 0);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(1.21268, dist(line, p), 0.0001);
 }
 
 void GeomUtilTest::test_proj_dist() {
@@ -579,22 +556,6 @@ void GeomUtilTest::test_line_intersect() {
 
 		CPPUNIT_ASSERT((expected - found).len() < 0.0001);
 	}
-}
-
-void GeomUtilTest::test_line_point_dist() {
-	Point x0(1, -1);
-	Point x1(5, -2);
-	Point p(2, -3);
-
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(1.69775, line_point_dist(p, x0, x1), 0.0001);
-
-	p = Point(2, 1);
-
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(-2.18282, line_point_dist(p, x0, x1), 0.0001);
-
-	p = Point(2, 0);
-
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(-1.21268, line_point_dist(p, x0, x1), 0.0001);
 }
 
 void GeomUtilTest::test_seg_crosses_seg() {

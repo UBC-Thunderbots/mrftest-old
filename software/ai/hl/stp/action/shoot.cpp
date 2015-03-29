@@ -64,7 +64,7 @@ bool AI::HL::STP::Action::shoot_goal(World world, Player player, bool use_reduce
                         }
                 }       
                 else */
-                if (fabs(line_point_dist(player.position(), behind_goal, destination)) > 0.05) {
+                if (fabs(Geom::dist(Geom::Seg(player.position(), behind_goal), destination)) > 0.05) {
                         //move(player, (angle_sweep_circles(player.position(), world.field().enemy_goal_boundary().second, world.field().enemy_goal_boundary().first, positions, Robot::MAX_RADIUS).first - player.position()).orientation(), destination);
                         shoot_target(world, player, angle_sweep_circles(player.position(), world.field().enemy_goal_boundary().first, world.field().enemy_goal_boundary().second, positions, Robot::MAX_RADIUS).first, BALL_MAX_SPEED);
                 }
