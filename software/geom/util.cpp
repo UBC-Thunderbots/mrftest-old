@@ -103,9 +103,9 @@ namespace Geom {
 
 	bool intersects(const Triangle &first, const Circle& second) {
 		return contains(first, second.origin) 
-			|| dist(get_side<3>(first, 0), second.origin) < second.radius
-			|| dist(get_side<3>(first, 1), second.origin) < second.radius
-			|| dist(get_side<3>(first, 2), second.origin) < second.radius;
+			|| dist(get_side(first, 0), second.origin) < second.radius
+			|| dist(get_side(first, 1), second.origin) < second.radius
+			|| dist(get_side(first, 2), second.origin) < second.radius;
 	}
 	bool intersects(const Circle &first, const Triangle& second) {
 		return intersects(second, first);
@@ -133,19 +133,19 @@ namespace Geom {
 	return sign((first.end - first.start).cross(second.start - first.start)) * sign((first.end - first.start).cross(second.end - first.start)) <= 0 && sign((second.end - second.start).cross(first.start - second.start)) * sign((second.end - second.start).cross(first.end - second.start)) <= 0;
 	}
 
-	template<unsigned int N>
-	Vector2 get_vertex(const std::array<Vector2, N>& poly, unsigned int i) {
+	template<size_t N>
+	Vector2 get_vertex(const Poly<N>& poly, unsigned int i) {
 		return poly[i % N];
 	}
 
-	template<unsigned int N>
-	void set_vertex(std::array<Vector2, N>& poly, unsigned int i, const Vector2& v) {
+	template<size_t N>
+	void set_vertex(Poly<N>& poly, unsigned int i, const Vector2& v) {
 		poly[i % N] = v;
 	}
 
-	template<unsigned int N>
-	Seg get_side(const std::array<Vector2, N>& poly, unsigned int i) {
-		return Seg(get_vertex<N>(poly, i), get_vertex<N>(poly, i + 1));
+	template<size_t N>
+	Seg get_side(const Poly<N>& poly, unsigned int i) {
+		return Seg(get_vertex(poly, i), get_vertex(poly, i + 1));
 	}
 }
 

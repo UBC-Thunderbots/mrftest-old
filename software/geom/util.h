@@ -6,8 +6,10 @@
 #include <vector>
 
 namespace Geom {
-	typedef std::array<Vector2, 3U> Triangle;
-	typedef std::array<Vector2, 4U> Quad;
+	template<size_t N>
+	using Poly = std::array<Vector2, N>;
+	using Triangle = Poly<3>;
+	using Quad = Poly<4>;
 
 	constexpr double EPS = 1e-9;
 
@@ -68,17 +70,17 @@ namespace Geom {
 	double lensq(const Seg& seg);
 	double lensq(const Line& line);
 
-	template<unsigned int N>
-	Vector2 get_vertex(const std::array<Vector2, N>& poly, unsigned int i);
-	template<unsigned int N>
-	void set_vertex(std::array<Vector2, N>& poly, unsigned int i, Vector2& v);
+	template<size_t N>
+	Vector2 get_vertex(const Poly<N>& poly, unsigned int i);
+	template<size_t N>
+	void set_vertex(Poly<N>& poly, unsigned int i, Vector2& v);
 
 	/**
 	 * Gets the side that is connected to the vertex with index provided
 	 * and also connected to the vertex with the next index.
 	 */
-	template<unsigned int N>
-	Seg get_side(const std::array<Vector2, N>& poly, unsigned int i);
+	template<size_t N>
+	Seg get_side(const Poly<N>& poly, unsigned int i);
 }
 
 /**
