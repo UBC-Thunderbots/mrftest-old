@@ -68,6 +68,8 @@ PROJECT_CXXFLAGS += -Wzero-as-null-pointer-constant
 PROJECT_CXXFLAGS += -march=native -O2
 # Do not allow multiple definitions of the same global variable.
 PROJECT_CXXFLAGS += -fno-common
+# Optimize by assuming nobody checks errno for math functions.
+PROJECT_CXXFLAGS += -fno-math-errno
 # Optimize by assuming pointers do not alias when they are not permitted to do so according to type.
 PROJECT_CXXFLAGS += -fstrict-aliasing
 # Include full debug information.
