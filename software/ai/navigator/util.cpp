@@ -608,8 +608,7 @@ AI::Timestamp AI::Nav::Util::get_next_ts(AI::Timestamp now, Point &p1, Point &p2
 	double velocity, distance;
 	velocity = target_velocity.len();
 	distance = (p1 - p2).len();
-#warning unit cancellation says this is not time, should be distance divided by velocity!
-	return now + std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(velocity * distance));
+	return now + std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(distance / velocity));
 }
 
 double AI::Nav::Util::estimate_action_duration(std::vector<std::pair<Point, Angle>> path_points) {
