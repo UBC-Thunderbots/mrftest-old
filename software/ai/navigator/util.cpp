@@ -12,6 +12,7 @@
 
 using namespace AI::Flags;
 using namespace AI::Nav::W;
+using namespace Geom;
 
 namespace AI {
 	namespace Nav {
@@ -153,8 +154,8 @@ namespace {
 		double circle_radius = world.field().total_length() / 2.0 - world.field().length() / 2.0;
 		Point A(-world.field().total_length() / 2.0, world.field().goal_width() / 2.0);
 		Point B(-world.field().total_length() / 2.0, -world.field().goal_width() / 2.0);
-		double dist = seg_seg_distance(A, B, cur, dst);
-		violate = std::max(violate, circle_radius - dist);
+		double sdist = dist(Seg(A, B), Seg(cur, dst));
+		violate = std::max(violate, circle_radius - sdist);
 		return violate;
 	}
 
@@ -167,8 +168,8 @@ namespace {
 		Point D(-world.field().length() / 2.0, -world.field().goal_width() / 2.0);
 		Point pts[4] = { A, B, C, D };
 		for (Point i : pts) {
-			double dist = lineseg_point_dist(i, cur, dst);
-			violate = std::max(violate, circle_radius - dist);
+			double sdist = dist(i, Seg(cur, dst));
+			violate = std::max(violate, circle_radius - sdist);
 		}
 		return violate;
 	}
@@ -178,11 +179,11 @@ namespace {
 		// avoid enemy robots
 		for (AI::Nav::W::Robot rob : world.enemy_team()) {
 			double circle_radius = enemy(world, rob);
-			double dist = lineseg_point_dist(rob.position(), cur, dst);
+			double sdist = dist(rob.position(), Seg(cur, dst));
 			if (USE_ENEMY_MOVEMENT_FACTOR) {
-				dist = seg_seg_distance(rob.position(), rob.position() + ENEMY_MOVEMENT_FACTOR * rob.velocity(), cur, dst);
+				sdist = dist(Seg(rob.position(), rob.position() + ENEMY_MOVEMENT_FACTOR * rob.velocity()), Seg(cur, dst));
 			}
-			violate = std::max(violate, circle_radius - dist);
+			violate = std::max(violate, circle_radius - sdist);
 		}
 
 		return violate;
@@ -226,12 +227,12 @@ namespace {
 				continue;
 			}
 			double circle_radius = friendly(player, rob.prio());
-			double dist = lineseg_point_dist(rob.position(), cur, dst);
+			double sdist = dist(rob.position(), Seg(cur, dst));
 			if (USE_FRIENDLY_MOVEMENT_FACTOR) {
-				dist = seg_seg_distance(rob.position(), rob.position() + FRIENDLY_MOVEMENT_FACTOR * rob.velocity(), cur, dst);
+				sdist = dist(Seg(rob.position(), rob.position() + FRIENDLY_MOVEMENT_FACTOR * rob.velocity()), Seg(cur, dst));
 			}
 
-			violate = std::max(violate, circle_radius - dist);
+			violate = std::max(violate, circle_radius - sdist);
 		}
 		return violate;
 	}
@@ -240,8 +241,8 @@ namespace {
 		double violate = 0.0;
 		const Ball &ball = world.ball();
 		double circle_radius = ball_stop(player);
-		double dist = lineseg_point_dist(ball.position(), cur, dst);
-		violate = std::max(violate, circle_radius - dist);
+		double sdist = dist(ball.position(), Seg(cur, dst));
+		violate = std::max(violate, circle_radius - sdist);
 		return violate;
 	}
 
@@ -250,7 +251,7 @@ namespace {
 		double defense_dist = friendly_defense(world, player);
 		Point defense_point1(-f.length() / 2, -f.defense_area_stretch() / 2);
 		Point defense_point2(-f.length() / 2, f.defense_area_stretch() / 2);
-		return std::max(0.0, defense_dist - seg_seg_distance(cur, dst, defense_point1, defense_point2));
+		return std::max(0.0, defense_dist - dist(Seg(cur, dst), Seg(defense_point1, defense_point2)));
 	}
 
 	double get_own_half_trespass(Point, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
@@ -270,14 +271,14 @@ namespace {
 		double defense_dist = friendly_kick(world, player);
 		Point defense_point1(f.length() / 2, -f.defense_area_stretch() / 2);
 		Point defense_point2(f.length() / 2, f.defense_area_stretch() / 2);
-		return std::max(0.0, defense_dist - seg_seg_distance(cur, dst, defense_point1, defense_point2));
+		return std::max(0.0, defense_dist - dist(Seg(cur, dst), Seg(defense_point1, defense_point2)));
 	}
 
 	double get_ball_tiny_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
 		const Ball &ball = world.ball();
 		double circle_radius = ball_tiny(player);
-		double dist = lineseg_point_dist(ball.position(), cur, dst);
-		return std::max(0.0, circle_radius - dist);
+		double sdist = dist(Seg(cur, dst), ball.position());
+		return std::max(0.0, circle_radius - sdist);
 	}
 
 	double get_penalty_friendly_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player) {
@@ -580,7 +581,7 @@ std::pair<Point, AI::Timestamp> AI::Nav::Util::get_ramball_location(Point dst, A
 	Point ball_dir = world.ball().velocity();
 
 	if (ball_dir.lensq() < Geom::EPS) {
-		if (lineseg_point_dist(world.ball().position(), player.position(), dst) < RAM_BALL_ALLOWANCE) {
+		if (dist(world.ball().position(), Seg(player.position(), dst)) < RAM_BALL_ALLOWANCE) {
 			return std::make_pair(world.ball().position(), world.monotonic_time());
 		}
 	}

@@ -50,20 +50,9 @@ namespace {
 		rectangle[2] = enemy;
 		rectangle[3] = enemy;
 
-//		if (enemy.x > shadow_thresh && line_seg_intersect_rectangle(line_segment, rectangle)) {
-			//enemy too far away, go do something useful`
-			//check evaluation for tactic
-//			destination = AI::HL::STP::Evaluation::evaluate_tdefense(world, index);
-//		}
-
-//		else {
-			//keep it same as before
-			destination = destination.norm() * (AI::Util::BALL_STOP_DIST + Robot::MAX_RADIUS + Ball::RADIUS);
-			destination = ball - destination;
-			dest = destination;
-//		}
-
-
+		destination = destination.norm() * (AI::Util::BALL_STOP_DIST + Robot::MAX_RADIUS + Ball::RADIUS);
+		destination = ball - destination;
+		dest = destination;
 
 		Action::move(world, player, dest.position(), dest.velocity());
 		player.dribble(AI::BE::Player::DribbleMode::STOP);

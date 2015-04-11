@@ -94,7 +94,7 @@ bool Evaluation::can_shoot_ray(World world, Player player, Angle orientation) {
 			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, fptr.position(), dest);
 			dist = (dest - fptr.position()).len();
 		} else {
-			dist = seg_pt_dist(p1, p2, fptr.position());
+			dist = Geom::dist(Geom::Seg(p1, p2), fptr.position());
 		}
 
 		closest_friendly = std::min(closest_friendly, dist);
@@ -107,7 +107,7 @@ bool Evaluation::can_shoot_ray(World world, Player player, Angle orientation) {
 			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, robot.position(), dest);
 			dist = (dest - robot.position()).len();
 		} else {
-			dist = seg_pt_dist(p1, p2, robot.position());
+			dist = Geom::dist(Geom::Seg(p1, p2), robot.position());
 		}
 
 		closest_enemy = std::min(closest_enemy, dist);

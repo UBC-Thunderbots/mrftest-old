@@ -27,8 +27,7 @@ namespace {
 		CPPUNIT_TEST(test_seg_crosses_seg);
 		CPPUNIT_TEST(test_vector_crosses_seg);
 		CPPUNIT_TEST(test_vector_rect_intersect);
-		CPPUNIT_TEST(test_lineseg_point_dist);
-		CPPUNIT_TEST(test_proj_dist);
+		CPPUNIT_TEST(test_proj_len);
 		CPPUNIT_TEST(test_point_in_rectangle);
 		CPPUNIT_TEST(test_calc_block_cone_defender);
 		CPPUNIT_TEST(test_circle_boundaries);
@@ -36,14 +35,13 @@ namespace {
 		CPPUNIT_TEST(test_reflect2);
 		CPPUNIT_TEST(test_calc_block_other_ray);
 		CPPUNIT_TEST(test_calc_goalie_block_goal_post);
-		CPPUNIT_TEST(test_line_seg_intersect_rectangle);
 		CPPUNIT_TEST(test_unique_line_intersect);
 		CPPUNIT_TEST(test_line_circle_intersect);
 		CPPUNIT_TEST(test_closest_lineseg_point);
 		CPPUNIT_TEST(test_line_rect_intersect);
 		CPPUNIT_TEST(test_clip_point);
-		CPPUNIT_TEST(test_point_in_triangle);
-		CPPUNIT_TEST(test_triangle_circle_intersect);
+		CPPUNIT_TEST(test_contains_triangle_point);
+		CPPUNIT_TEST(test_intersects_triangle_circle);
 		CPPUNIT_TEST(test_calc_block_cone);
 		CPPUNIT_TEST(test_calc_block_cone2);
 		CPPUNIT_TEST(test_offset_to_line);
@@ -61,10 +59,10 @@ namespace {
 		CPPUNIT_TEST_SUITE_END();
 
 		public:
-			void test_proj_dist(); 
-			void test_point_in_triangle(); 
+			void test_proj_len(); 
+			void test_contains_triangle_point(); 
 			void test_collinear();
-			void test_triangle_circle_intersect();
+			void test_intersects_triangle_circle();
 			void test_dist_matching(); 
 			void test_angle_sweep_circles(); 
 			void test_angle_sweep_circles_all();
@@ -137,13 +135,13 @@ void GeomUtilTest::test_dist_line_vector2() {
 	CPPUNIT_ASSERT_DOUBLES_EQUAL(1.21268, dist(line, p), 0.0001);
 }
 
-void GeomUtilTest::test_proj_dist() {
+void GeomUtilTest::test_proj_len() {
 	double calculated_val, expected_val;
 	//test case 1
 	Point test1p1(0,0);
 	Point test1p2(4,4);
 	Point test1p3(4,0);
-	calculated_val = proj_dist(test1p1, test1p2, test1p3);
+	calculated_val = proj_len(Seg(test1p1, test1p2), test1p3);
 	expected_val = 2*sqrt(2);
 	CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.000001);
 
@@ -151,7 +149,7 @@ void GeomUtilTest::test_proj_dist() {
 	Point test2p1(0,0);
 	Point test2p2(4,0);
 	Point test2p3(4,4);
-	calculated_val = proj_dist(test2p1, test2p2, test2p3);
+	calculated_val = proj_len(Seg(test2p1, test2p2), test2p3);
 	expected_val = 4;
 	CPPUNIT_ASSERT_EQUAL(expected_val, calculated_val);
 
@@ -159,7 +157,7 @@ void GeomUtilTest::test_proj_dist() {
 	Point test3p1(0,0);
 	Point test3p2(4,4);
 	Point test3p3(-4,-4);
-	calculated_val = proj_dist(test3p1, test3p2, test3p3);
+	calculated_val = proj_len(Seg(test3p1, test3p2), test3p3);
 	expected_val = -4*sqrt(2);
 	CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.000001);
 
@@ -167,13 +165,13 @@ void GeomUtilTest::test_proj_dist() {
 	Point test4p1(0,0);
 	Point test4p2(4,1);
 	Point test4p3(-4,-4);
-	calculated_val = proj_dist(test4p1, test4p2, test4p3);
+	calculated_val = proj_len(Seg(test4p1, test4p2), test4p3);
 	expected_val = -sqrt(32)*(cos((M_PI/4.0f)-atan(1.0f/4.0f)));
 	CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.000001);
 
 }
 
-void GeomUtilTest::test_point_in_triangle() {
+void GeomUtilTest::test_contains_triangle_point() {
 	// this triangle lies in the first quatren of the field, we can rota
 	Point p1(0, 0);
 	Point p2((std::rand() % 100) / 100, 0);
@@ -205,7 +203,7 @@ void GeomUtilTest::test_point_in_triangle() {
 	if (((p1 - p3).cross(p - p3) > 0) != ((p1 - p3).cross(p2 - p3) > 0))
 		expected_val = false;
 	
-	bool calculated_val = point_in_triangle(p1, p2, p3, p);
+	bool calculated_val = contains(triangle(p1, p2, p3), p);
 	CPPUNIT_ASSERT_EQUAL(expected_val, calculated_val);
 }
 
@@ -221,41 +219,41 @@ void GeomUtilTest::test_collinear() {
 	}
 }
 
-void GeomUtilTest::test_triangle_circle_intersect() {
+void GeomUtilTest::test_intersects_triangle_circle() {
 	Point test1p1(-5, 0);
 	Point test1p2(5, 0);
 	Point test1p3(2, 5);
 	Point test1c(0, -1);
 	double test1radius = 1;
-	CPPUNIT_ASSERT(!triangle_circle_intersect(test1p1,test1p2,test1p3,test1c,test1radius)); //circle is tangent to triangle, no intersect
+	CPPUNIT_ASSERT(!intersects(triangle(test1p1,test1p2,test1p3), Circle(test1c, test1radius))); //circle is tangent to triangle, no intersect
 
 	Point test2p1(-10, 0);
 	Point test2p2(10, 0);
 	Point test2p3(0, 15);
 	Point test2c(0, 5);
 	double test2radius = 1;
-	CPPUNIT_ASSERT(triangle_circle_intersect(test2p1,test2p2,test2p3,test2c,test2radius)); //circle is completely inside triangle, intersect
+	CPPUNIT_ASSERT(intersects(triangle(test2p1,test2p2,test2p3), Circle(test2c, test2radius))); //circle is completely inside triangle, intersect
 
 	Point test3p1(-5, -5);
 	Point test3p2(5, -5);
 	Point test3p3(0, 0);
 	Point test3c(0, 1);
 	double test3radius = 1;
-	CPPUNIT_ASSERT(!triangle_circle_intersect(test3p1,test3p2,test3p3,test3c,test3radius)); //circle is tangent to vertice, no intersect
+	CPPUNIT_ASSERT(!intersects(triangle(test3p1,test3p2,test3p3), Circle(test3c,test3radius))); //circle is tangent to vertice, no intersect
 
 	Point test4p1(-8, -5);
 	Point test4p2(0, 0);
 	Point test4p3(-3, -2);
 	Point test4c(5, 5);
 	double test4radius = 2;
-	CPPUNIT_ASSERT(!triangle_circle_intersect(test4p1,test4p2,test4p3,test4c,test4radius));
+	CPPUNIT_ASSERT(!intersects(triangle(test4p1,test4p2,test4p3), Circle(test4c,test4radius)));
 
 	Point test5p1(-2, -2);
 	Point test5p2(2, -2);
 	Point test5p3(0, 1);
 	Point test5c(0, -1);
 	double test5radius = 1;
-	CPPUNIT_ASSERT(triangle_circle_intersect(test5p1,test5p2,test5p3,test5c,test5radius));
+	CPPUNIT_ASSERT(intersects(triangle(test5p1,test5p2,test5p3),Circle(test5c,test5radius)));
 }
 
 void GeomUtilTest::test_dist_matching() {
@@ -337,66 +335,74 @@ void GeomUtilTest::test_angle_sweep_circles_all() {
 	testpairs = angle_sweep_circles_all(Point(0, 0), Point(10, 10), Point(-10, 10), obs, 1.0);
 }
 
-void GeomUtilTest::test_line_seg_intersect_rectangle() {
-	Point rec[4] = { Point(0, 0), Point(1, 0), Point(1, 1), Point(0, 1) };
-	Point seg[2] = { Point(2, 0.3), Point(-1, 0.6) };
-	Point seg2[2] = { Point(2, 2), Point(-1, 1.5) };
-
-	CPPUNIT_ASSERT(line_seg_intersect_rectangle(seg, rec));
-	CPPUNIT_ASSERT(!line_seg_intersect_rectangle(seg2, rec));
-}
-
 void GeomUtilTest::test_point_in_rectangle() {
 
 	// Point in 1st quadrant, rectangle in the 3rd quadrant. Should fail!
-	Point test1rect[4] = {Point(0, 0), Point(-2,0), Point(-2,-2), Point(0,-2)};
-	CPPUNIT_ASSERT(!point_in_rectangle(Point(1,1),test1rect));
+	CPPUNIT_ASSERT(!contains(
+				Rect(Point(0, 0), Point(-2, -2)),
+				Point(1, 1))
+			);
 
 	// Point in 3rd quadrant, rectangle in the 3rd quadrant. Pass!
-	Point test2rect[4] = {Point(0, 0), Point(-2,0), Point(-2,-2), Point(0,-2)};
-	CPPUNIT_ASSERT(point_in_rectangle(Point(-1,-1),test2rect));
+	CPPUNIT_ASSERT(contains(
+				Rect(Point(0, 0), Point(-2, -2)),
+				Point(-1, -1))
+			);
 
 	// Point is one of the corners of the rectangle. Pass
-	Point test3rect[4] = {Point(0, 0), Point(2,0), Point(2,2), Point(0,2)};
-	CPPUNIT_ASSERT(point_in_rectangle(Point(2,2),test3rect));
+	CPPUNIT_ASSERT(contains(
+				Rect(Point(0, 0), Point(2, 2)),
+				Point(2, 2))
+			);
 
 	// Point is on the edge of the rectangle. Pass
-	Point test4rect[4] = {Point(0, 0), Point(3,0), Point(3,3), Point(0,3)};
-	CPPUNIT_ASSERT(point_in_rectangle(Point(0,1),test4rect));
+	CPPUNIT_ASSERT(contains(
+				Rect(Point(0, 0), Point(3, 3)),
+				Point(0, 1))
+			);
 
 	// Point in the 1st quadrant, rectangle in the 1st quadrant. Pass
-	Point test5rect[4] = {Point(0, 0), Point(3,0), Point(3,3), Point(0,3)};
-	CPPUNIT_ASSERT(point_in_rectangle(Point(1,2),test5rect));
+	CPPUNIT_ASSERT(contains(
+				Rect(Point(0, 0), Point(3, 3)),
+				Point(1, 2))
+			);
 
 	// Point in the 2nd quadrant, rectangle in the 2nd quadrant. Point is off above, Fail.
-	Point test6rect[4] = {Point(0, 0), Point(0,4), Point(-4,0), Point(-4, 4)};
-	CPPUNIT_ASSERT(!point_in_rectangle(Point(-2,5),test6rect));
+	CPPUNIT_ASSERT(!contains(
+				Rect(Point(0, 0), Point(-4, 4)),
+				Point(-2, 5))
+			);
 
 	// Point in the 2nd quadrant, rectangle in the 4th quadrant. Point is off to the left, Fail.
-	Point test7rect[4] = {Point(0, 0), Point(0,4), Point(-4,0), Point(-4, 4)};
-	CPPUNIT_ASSERT(!point_in_rectangle(Point(-7,2),test7rect));
+	CPPUNIT_ASSERT(!contains(
+				Rect(Point(0, 0), Point(-4, 4)),
+				Point(-7, 2))
+			);
 
 	// Point in the 2nd quadrant, rectangle centered at origin. Point is off above, Fail.
-	Point test8rect[4] = {Point(1, 1), Point(-1,-1), Point(1,-1), Point(-1, 1)};
-	CPPUNIT_ASSERT(point_in_rectangle(Point(0.5,0.5),test8rect));
+	CPPUNIT_ASSERT(contains(
+				Rect(Point(1, 1), Point(-1, -1)),
+				Point(0.5, 0.5))
+			);
 
 	// Point in the 2nd quadrant, rectangle centered at origin. Point is off to the left, Fail.
-	Point test9point(2,2);
-	Point test9rect[4] = {Point(1, 1), Point(-1,-1), Point(1,-1), Point(-1, 1)};
-	CPPUNIT_ASSERT(!point_in_rectangle(Point(2,2), test9rect));
+	CPPUNIT_ASSERT(!contains(
+				Rect(Point(1, 1), Point(-1, -1)),
+				Point(2, 2))
+			);
 }
 
 void GeomUtilTest::test_seg_buffer_boundaries() {
 	Point a = Point(0, 0);
 	Point b = Point(1, 0);
 	for(Point i : seg_buffer_boundaries(a, b, 1.0, 10))
-		CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, lineseg_point_dist(i, a, b), 0.0001);
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, dist(i, Seg(a, b)), 0.0001);
 
 	a = Point(5, 2);
 	b = Point(2, 7);
 
 	for(Point i : seg_buffer_boundaries(a, b, 4.0, 10))
-		CPPUNIT_ASSERT_DOUBLES_EQUAL(4.0, lineseg_point_dist(i, a, b), 0.0001);
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(4.0, dist(i, Seg(a, b)), 0.0001);
 }
 
 void GeomUtilTest::test_circle_boundaries() { 
@@ -404,14 +410,6 @@ void GeomUtilTest::test_circle_boundaries() {
 
 	for(Point i : test_circle)
 		CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, (i - Point(0, 0)).len(), 0.0001);
-}
-
-void GeomUtilTest::test_lineseg_point_dist() {
-	Point a(-2,2);
-	Point b(2,2);
-	Point p(1,5);
-
-	CPPUNIT_ASSERT(lineseg_point_dist(p, a, b) - 3 < 0.000001);
 }
 
 void GeomUtilTest::test_closest_lineseg_point() {
@@ -578,7 +576,7 @@ void GeomUtilTest::test_seg_crosses_seg() {
 		Point b2 = b1 + (i0 - b1) * (1 + std::rand() % 100 / 100.0 * (b_over ? 1 : -1));    // as a scaling factor for a2 and b2
 
 		bool expected = a_over && b_over;
-		bool found = seg_crosses_seg(a1, a2, b1, b2);
+		bool found = intersects(Seg(a1, a2), Seg( b1, b2));
 
 		// uncomment to print out some messages
 		dbgout << "points are (" << a1.x << ", " << a1.y << ") ";
@@ -612,7 +610,7 @@ void GeomUtilTest::test_vector_crosses_seg() {
 		Point a2 = a1 + (i0 - a1).norm();
 		Point b2 = b1 + (i0 - b1) * (1 + std::rand() % 100 / 100.0 * (expected ? 1 : -1));  // as a scaling factor for b2
 
-		bool found = vector_crosses_seg(a1, a2, b1, b2);
+		bool found = intersects(Ray(a1, a2), Seg( b1, b2));
 
 		// uncomment to print out some messages
 		dbgout << "points are (" << a1.x << ", " << a1.y << ") ";
@@ -639,7 +637,7 @@ void GeomUtilTest::test_vector_crosses_seg() {
 		Point a2 = a1 - (i0 - a1).norm();
 		Point b2 = b1 + (i0 - b1) * (1 + std::rand() % 100 / 100.0);   // as a scaling factor for b2, make sure it is long enough
 
-		bool found = vector_crosses_seg(a1, a2, b1, b2);
+		bool found = intersects(Ray(a1, a2), Seg( b1, b2));
 
 		// uncomment to print out some messages
 		dbgout << "points are (" << a1.x << ", " << a1.y << ") ";

@@ -4,6 +4,24 @@
 #include "geom/rect.h"
 
 namespace Geom {
+	class Line final {
+	public:
+		Vector2 first;
+		Vector2 second;
+
+		/**
+		 * \brief Creates a degenerate Line at (0, 0)
+		 */
+		inline explicit constexpr Line() { }
+
+		/**
+		 * \brief Creates a Line that starts and ends at the given points
+		 */
+		inline explicit Line(const Vector2& first, const Vector2& second) : first(first), second(second) { }
+
+		inline double slope() const { return (second.y - first.y) / (second.x - first.x); }
+	};
+
 	class Seg final {
 	public:
 		Vector2 start;
@@ -18,22 +36,45 @@ namespace Geom {
 		 * \brief Creates a Seg that starts and ends at the given points
 		 */
 		inline explicit Seg(const Vector2& start, const Vector2& end) : start(start), end(end) { }
+
+		/**
+		 * \brief Creates a Seg that is this reversed.
+		 */
+		inline Seg reverse() const { return Seg(end, start); }
+
+		/**
+		 * \brief Makes a Vector2 out of this Seg.
+		 */
+		inline Vector2 to_vector2() const { return end - start; }
+
+		/**
+		 * \brief Makes a line out of this Seg.
+		 */
+		inline Line to_line() { return Line(start, end); }
+
+		inline double slope() const { return (end.y - start.y) / (end.x - start.x); }
 	};
 
-	class Line final {
+	class Ray final {
 	public:
-		Vector2 first;
-		Vector2 second;
+		Vector2 start;
+		Vector2 dir;
 
 		/**
-		 * \brief Creates a degenerate Line at (0, 0)
+		 * \brief Creates a degenerate Seg at (0, 0)
 		 */
-		inline explicit constexpr Line() { }
+		inline explicit constexpr Ray() { }
 
 		/**
-		 * \brief Creates a Seg that starts and ends at the given points
+		 * \brief Creates a Seg that starts and contains a point along the given line
 		 */
-		inline explicit Line(const Vector2& first, const Vector2& second) : first(first), second(second) { }
+		inline explicit Ray(const Vector2& start, const Vector2& dir) : start(start), dir(dir) { }
+
+		inline Seg to_seg() const { return Seg(start, dir); }
+
+		inline Vector2 to_vector2() const { return dir - start; }
+
+		inline Line to_line() const { return Line(start, dir); }
 	};
 
 	class Circle final {

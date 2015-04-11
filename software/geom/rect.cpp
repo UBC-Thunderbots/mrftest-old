@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
+using namespace Geom;
+
 bool Rect::expand(double amount) {
 	if (diag.x < -2 * amount || diag.y < -2 * amount) {
 		return false;
@@ -14,12 +16,12 @@ bool Rect::expand(double amount) {
 }
 
 double Rect::dist_to_boundary(Point p) {
-	double dist = 10e9; // approx of infinity
+	double inf = 10e9; // approx of infinity
 	for (unsigned int i = 0; i < 4; i++) {
 		Point a = operator[](i);
 		Point b = operator[](i + 1);
-		dist = std::min(dist, lineseg_point_dist(p, a, b));
+		inf = std::min(inf, dist(p, Seg(a, b)));
 	}
-	return dist;
+	return inf;
 }
 

@@ -19,6 +19,7 @@ using AI::HL::STP::BALL_MAX_SPEED;
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::STP::Action;
 using namespace AI::HL::W;
+using namespace Geom;
 using AI::HL::STP::Coordinate;
 namespace Evaluation = AI::HL::STP::Evaluation;
 
@@ -127,7 +128,7 @@ namespace {
 							shoot_score = 0.0;
 					}
 
-					if(lineseg_point_dist(Point(x, y), enemy_goal_negative, enemy_goal_positive) < 0.4)
+					if(dist(Point(x, y), Seg(enemy_goal_negative, enemy_goal_positive)) < 0.4)
 						shoot_score *= 0.1;
 
 					shoot_score -= (Point(x, y) - player.position()).len() * 8;

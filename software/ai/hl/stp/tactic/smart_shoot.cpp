@@ -12,6 +12,7 @@
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::STP::Action;
 using namespace AI::HL::W;
+using namespace Geom;
 
 namespace {
 	class SmartShoot final : public Tactic {
@@ -93,31 +94,24 @@ namespace {
 			 * If there are any robots (friendly or enemy) in the path of the robot to the target, it returns true.
 			 * If there are not any robots in the path of the robot to the target, it returns false.
 			 */
-
-			bool obstacle(Player Passer, Point Destination) {
+			bool obstacle(Player passer, Point destination) {
 				double tolerance = Robot::MAX_RADIUS/2;
-				Point rectangle[4];
-				Point norm_passer = (Passer.position() - Destination).norm();
-				//rectangle drawn by getting normal vector. then the 4 points are chosen by tolerance
-				rectangle[0] = Passer.position() + (norm_passer * tolerance);
-				rectangle[1] = Passer.position() - (norm_passer * tolerance);
-				rectangle[2] = Destination + (norm_passer * tolerance);
-				rectangle[3] = Destination - (norm_passer * tolerance);
-				//check if any enemies are in the rectangle
-				for (const Robot i : world.enemy_team()) {
-					if (point_in_rectangle(i.position(), rectangle)) {
-						return true;
-					}
-				}
-				//check if any friendlies are in the rectangle
+				Seg path = Seg(passer.position(), destination);
+
 				for (const Player i : world.friendly_team()) {
-					if (point_in_rectangle(i.position(), rectangle)) {
-						return true;
-					}
+					// ignore ourself
+					if (i == passer) continue;
+
+					if (dist(i.position(), path) < tolerance) return true;
 				}
-				//return false if rectangle is clear of obstacles
+
+				for (const Robot i : world.enemy_team()) {
+					if (dist(i.position(), path) < tolerance) return true;
+				}
+
 				return false;
 			}
+
 
 			Glib::ustring description() const {
 				return u8"smart shoot";

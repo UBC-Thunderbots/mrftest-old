@@ -13,13 +13,28 @@ namespace Geom {
 
 	constexpr double EPS = 1e-9;
 
-	// used for lensq only
 	constexpr double EPS2 = EPS * EPS;
 
-	// ported code
 	constexpr int sign(double n) {
 		return n > EPS ? 1 : (n < -EPS ? -1 : 0);
 	}
+
+	inline Triangle triangle(const Point& a, const Point& b, const Point& c) {
+		return { a, b, c };
+	}
+	inline Quad quad(const Point& a, const Point& b, const Point& c, const Point& d) {
+		return { a, b, c, d };
+	}
+
+	/**
+	 * Signed magnitude of the projection of `second` on `first`
+	 */
+	double proj_len(const Vector2& first, const Vector2& second);
+
+	/**
+	 * Signed magnitude of the projection of `first.start -> second` on `first`
+	 */
+	double proj_len(const Seg& first, const Vector2& second);
 
 	/*
 	 * The family of `contains` functions determins whether
@@ -30,6 +45,9 @@ namespace Geom {
 	bool contains(const Triangle &out, const Vector2 &in);
 	bool contains(const Circle &out, const Vector2 &in);
 	bool contains(const Circle &out, const Seg &in);
+	bool contains(const Ray &out, const Vector2 &in);
+	bool contains(const Seg &out, const Vector2 &in);
+	bool contains(const Rect &out, const Vector2 &in);
 
 	/*
 	 * The family of `intersects` functions determines whether there
@@ -41,28 +59,27 @@ namespace Geom {
 	bool intersects(const Seg& first, const Circle& second);
 	bool intersects(const Circle& first, const Seg& second);
 	bool intersects(const Seg& first, const Seg& second);
+	bool intersects(const Ray& first, const Seg& second);
+	bool intersects(const Seg& first, const Ray& second);
 
 	/*
 	 * The family of `dist` functions calculates the unsigned distance
 	 * between one object and another.
 	 */
-
 	double dist(const Vector2& first, const Vector2& second);
-	double dist(const Line& first, const Vector2& second);
-	double dist(const Vector2& first, const Line& second);
+	double dist(const Seg& first, const Seg& second);
+
 	double dist(const Vector2& first, const Seg& second);
 	double dist(const Seg& first, const Vector2& second);
 
+	double dist(const Line& first, const Vector2& second);
+	double dist(const Vector2& first, const Line& second);
+
 	double distsq(const Vector2& first, const Vector2& second);
 
-	double slope(const Seg& seg);
-	double slope(const Line& line);
-
 	bool is_degenerate(const Seg& seg);
+	bool is_degenerate(const Ray& seg);
 	bool is_degenerate(const Line& line);
-
-	Vector2 as_vector2(const Seg& seg);
-	Line as_line(const Seg& seg);
 
 	double len(const Seg& seg);
 	double len(const Line& line);
@@ -82,26 +99,6 @@ namespace Geom {
 	template<size_t N>
 	Seg get_side(const Poly<N>& poly, unsigned int i);
 }
-
-/**
- * The distance between a FINITE line segment (A, B) and point p.
- */
-double seg_pt_dist(const Point a, const Point b, const Point p);
-
-/**
- * Projection of (a -> p) to vector (a -> b), SIGNED - positive in front
- */
-double proj_dist(const Point a, const Point b, const Point p);
-
-/**
- * Point in triangle
- */
-bool point_in_triangle(const Point p1, const Point p2, const Point p3, const Point c);
-
-/**
- * Checks if triangle-circle intersect.
- */
-bool triangle_circle_intersect(const Point p1, const Point p2, const Point p3, const Point c, const double radius);
 
 /**
  * Computes a minimum-total-distance bipartite matching between sets of points.
@@ -177,41 +174,6 @@ std::pair<Point, Angle> angle_sweep_circles(const Point &src, const Point &p1, c
 std::vector<std::pair<Point, Angle>> angle_sweep_circles_all(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius);
 
 /**
- * Checks whether a line segment intersects a rectangle.
- *
- * \param[in] seg the endpoints of the line segment.
- *
- * \param[in] recA the corners of the rectangle.
- *
- * \return \c true if any part of the segment lies inside the rectangle, or \c false if the entire segment lies outside the rectangle.
- */
-bool line_seg_intersect_rectangle(const Point seg[2], const Point recA[4]);
-
-/**
- * Checks whether a point lies inside an axis-aligned rectangle.
- *
- * \param[in] pointA the point to check.
- *
- * \param[in] recA the corners of the rectangle.
- *
- * \return \c true if \p pointA lies inside the rectangle, or \c false if it lies outside.
- */
-bool point_in_rectangle(const Point &pointA, const Point recA[4]);
-
-/**
- * Checks whether a point lies inside an axis-aligned rectangle.
- *
- * \param[in] pointA the point to check.
- *
- * \param[in] cornerA one corner of the rectangle
- *
- * \param[in] cornerB the opposite-facing corner of the rectangle
- *
- * \return \c true if \p pointA lies inside the rectangle, or \c false if it lies outside.
- */
-bool point_in_rectangle(const Point &pointA, const Point &cornerA, const Point &cornerB);
-
-/**
  * returns a list of points that lie exactle "buffer" distance awaw from the line seg
  */
 std::vector<Point> seg_buffer_boundaries(const Point &a, const Point &b, double buffer, int num_points);
@@ -220,19 +182,6 @@ std::vector<Point> seg_buffer_boundaries(const Point &a, const Point &b, double 
  * returns a list of points that lie on the border of the circle
  */
 std::vector<Point> circle_boundaries(const Point &centre, double radius, int num_points);
-
-/**
- * Finds the distance between and a line segment and a point.
- *
- * \param[in] centre the point.
- *
- * \param[in] segA one end of the line segment.
- *
- * \param[in] segB the other end of the line segment.
- *
- * \return the distance between line seg and point.
- */
-double lineseg_point_dist(const Point &centre, const Point &segA, const Point &segB);
 
 /**
  * Finds the Point on line segment closest to point.
@@ -347,71 +296,6 @@ bool unique_line_intersect(const Point &a, const Point &b, const Point &c, const
  * \return the point of intersection.
  */
 Point line_intersect(const Point &a, const Point &b, const Point &c, const Point &d);
-
-/**
- * Computes whether a line segment intersects a circle.
- *
- * \param[in] a one end of the line segment
- *
- * \param[in] b the other end of the line segment
- *
- * \param[in] c the origin of the circle
- *
- * \param[in] r the radius of the circle
- *
- * \return whether the line segment and the circle intersect
- */
-bool seg_intersects_circle(const Point& a, const Point& b, const Point& c, double r);
-
-/**
- * Computes whether any point on a line segment lies inside a circle.
- *
- * \param[in] a one end of the line segment
- *
- * \param[in] b the other end of the line segment
- *
- * \param[in] c the origin of the circle
- *
- * \param[in] r the radius of the circle
- *
- * \return whether the line segment is contained at all (even if partially) inside the circle
- */
-bool seg_inside_circle(const Point& a, const Point& b, const Point& c, double r);
-
-
-double seg_seg_distance(const Point &a, const Point &b, const Point &c, const Point &d);
-
-/**
- * Checks whether two line segments intersect.
- *
- * \param[in] a1 one end of the first segment.
- *
- * \param[in] a2 the other end of the first segment.
- *
- * \param[in] b1 one end of the second segment.
- *
- * \param[in] b2 the other end of the second segment.
- *
- * \return \c true if the segments intersect, or \c false if not.
- */
-bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2);
-
-
-/**
- * Checks whether two line segments intersect.
- *
- * \param[in] a1 end of the vector.
- *
- * \param[in] a2 one point on the direction that the vector extends into.
- *
- * \param[in] b1 one end of the second segment.
- *
- * \param[in] b2 the other end of the second segment.
- *
- * \return \c true if the segments intersect, or \c false if not.
- */
-bool vector_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2);
-
 
 /**
  * Reflects a ray incident on origin given the normal of the reflecting plane.

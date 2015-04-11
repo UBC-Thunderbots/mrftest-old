@@ -192,6 +192,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 			double x_prob = 0, y_prob = 0;
 			double best_prob = 0;*/
 
+			double best_conf = 0;
+
 			if (time_delta >= 0) {
 				for (const SSL_DetectionBall &b : det.balls()) {
 					// Compute the probability of this ball being the wanted one.
@@ -219,7 +221,13 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 					if (prob > best_prob) {
 						best_prob = prob;
 						best_pos = detection_position;
-					}*/
+					}
+					*/
+
+					if (b.confidence() > best_conf) {
+						best_conf = b.confidence();
+						best_pos = detection_position;
+					}
 
 					/* PARTICLE FILTER */
 					pFilter_->add(detection_position, static_cast<unsigned int>(b.confidence() * 500U));
@@ -252,11 +260,10 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 				}
 			}*/
 
-			/* PARTICLE FILTER */
-			best_pos = pFilter_->getEstimate();
-			pFilter_->update(time_delta);
-
+			//ball_.add_field_data(pFilter_->getEstimate(), best_time);
 			ball_.add_field_data(best_pos, best_time);
+
+			pFilter_->update(time_delta);
 		}
 
 		// Update the robots.

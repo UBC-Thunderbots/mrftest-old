@@ -12,6 +12,7 @@
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
+using namespace Geom;
 namespace Evaluation = AI::HL::STP::Evaluation;
 namespace Action = AI::HL::STP::Action;
 
@@ -71,7 +72,7 @@ namespace {
 			unsigned index;
 			Player select(const std::set<Player> &players) const override;
 			void execute() override;
-			Point calc_defend_pos(unsigned index) const;
+			Vector2 calc_defend_pos(unsigned index) const;
 			Glib::ustring description() const override {
 				return u8"extra defender";
 			}
@@ -89,7 +90,7 @@ namespace {
 		}
 		// check if there are any defenders close by
 		for (const Player i : world.friendly_team()) {
-			bool close_to_block_formation = seg_pt_dist(world.ball().position(), world.field().friendly_goal(), i.position()) < danger_dist;
+			bool close_to_block_formation = dist(Seg(world.ball().position(), world.field().friendly_goal()), i.position()) < danger_dist;
 			bool goalie = i.position().close(player.position(), 0.1);
 			if (close_to_block_formation && !goalie)
 				return false;
@@ -99,8 +100,8 @@ namespace {
 
 	void Goalie2::execute() {
 		if (tdefend_goalie) {
-			Point dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
-			Point dest = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
+			Vector2 dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
+			Vector2 dest = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
 			Action::goalie_move(world, player, dest);
 		} else if (dangerous(world, player)){
 			AI::HL::STP::Action::lone_goalie(world, player);
@@ -116,7 +117,7 @@ namespace {
 
 	void Goalie::execute() {
 		auto waypoints = Evaluation::evaluate_defense();
-		Point dest = waypoints[0];
+		Vector2 dest = waypoints[0];
 		if (tdefend_goalie) {
 			AI::HL::STP::Action::lone_goalie(world, player);
 			return;
@@ -127,18 +128,18 @@ namespace {
 	}
 
 	Player Defender::select(const std::set<Player> &players) const {
-		Point dest = calc_defend_pos(index);
+		Vector2 dest = calc_defend_pos(index);
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest));
 	}
 
 	void Defender::execute() {
-		Point dest = calc_defend_pos(index);
+		Vector2 dest = calc_defend_pos(index);
 		Action::defender_move(world, player, dest);
 	}
 
-	Point Defender::calc_defend_pos(unsigned index) const {
+	Vector2 Defender::calc_defend_pos(unsigned index) const {
 		auto waypoints = Evaluation::evaluate_defense();
-		Point dest = waypoints[index];
+		Vector2 dest = waypoints[index];
 		// tdefend switch
 		if (tdefend_defender1 && index == 1) {
 			dest = Evaluation::evaluate_tdefense(world, index);

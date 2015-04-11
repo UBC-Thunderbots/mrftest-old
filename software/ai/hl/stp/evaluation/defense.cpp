@@ -16,6 +16,7 @@
 using namespace AI::HL::W;
 using namespace AI::HL::STP::Evaluation;
 using namespace AI::HL::STP;
+using namespace Geom;
 
 namespace {
 	BoolParam defense_follow_enemy_baller(u8"defense protect against baller", u8"STP/defense", true);
@@ -99,7 +100,7 @@ namespace {
 			// prevent the goalie from entering the goal area
 			waypoint_goalie.x = std::max(waypoint_goalie.x, -field.length() / 2 + radius);
 
-			second_needed = lineseg_point_dist(waypoint_goalie, ball_pos, goal_opp) > radius;
+			second_needed = dist(waypoint_goalie, Seg(ball_pos, goal_opp)) > radius;
 		}
 
 		// first defender will block the remaining cone from the ball

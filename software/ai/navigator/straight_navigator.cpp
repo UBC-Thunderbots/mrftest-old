@@ -5,6 +5,7 @@
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
+using namespace Geom;
 using namespace AI::Nav::W;
 using namespace AI::Nav::Util;
 using namespace AI::Flags;
@@ -74,7 +75,7 @@ std::vector<std::pair<std::size_t, std::size_t>> PathModerator::getPathCrossPath
 		for (std::size_t j = 0; j < i; j++) {
 			SPath a = _all_path[i];
 			SPath b = _all_path[j];
-			if (seg_crosses_seg(a.first, a.second, b.first, b.second)) {
+			if (intersects(Seg(a.first, a.second), Seg(b.first, b.second))) {
 				std::pair<std::size_t, std::size_t> new_item(i, j);
 				crossing_path_index.push_back(new_item);
 			}
