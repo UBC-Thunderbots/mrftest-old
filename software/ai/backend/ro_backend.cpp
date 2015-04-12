@@ -1,7 +1,7 @@
 #include "ai/backend/ro_backend.h"
 #include "ai/backend/backend.h"
-#include "ai/backend/ssl_vision/backend.h"
-#include "ai/backend/ssl_vision/team.h"
+#include "ai/backend/vision/backend.h"
+#include "ai/backend/vision/team.h"
 #include <cstdlib>
 
 using namespace AI::BE;
@@ -42,7 +42,7 @@ namespace {
 	/**
 	 * \brief A friendly team in the read-only backend.
 	 */
-	class FriendlyTeam final: public AI::BE::SSLVision::Team<ROPlayer, Player> {
+	class FriendlyTeam final: public AI::BE::Vision::Team<ROPlayer, Player> {
 		public:
 			explicit FriendlyTeam(Backend &backend);
 
@@ -53,7 +53,7 @@ namespace {
 	/**
 	 * \brief An enemy team in the read-only backend.
 	 */
-	class EnemyTeam final: public AI::BE::SSLVision::Team<Robot, Robot> {
+	class EnemyTeam final: public AI::BE::Vision::Team<Robot, Robot> {
 		public:
 			explicit EnemyTeam(Backend &backend);
 
@@ -64,7 +64,7 @@ namespace {
 	/**
 	 * \brief A backend which does not allow driving robots, but only viewing their states on the field.
 	 */
-	class ROBackend final: public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
+	class ROBackend final: public AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam> {
 		public:
 			explicit ROBackend(const std::vector<bool> &disable_cameras, int multicast_interface);
 			BackendFactory &factory() const override;
@@ -137,14 +137,14 @@ void ROPlayer::tick(bool, bool) {
 	// Do nothing.
 }
 
-FriendlyTeam::FriendlyTeam(Backend &backend) : AI::BE::SSLVision::Team<ROPlayer, Player>(backend) {
+FriendlyTeam::FriendlyTeam(Backend &backend) : AI::BE::Vision::Team<ROPlayer, Player>(backend) {
 }
 
 void FriendlyTeam::create_member(unsigned int pattern) {
 	members[pattern].create(pattern);
 }
 
-EnemyTeam::EnemyTeam(Backend &backend) : AI::BE::SSLVision::Team<Robot, Robot>(backend) {
+EnemyTeam::EnemyTeam(Backend &backend) : AI::BE::Vision::Team<Robot, Robot>(backend) {
 }
 
 void EnemyTeam::create_member(unsigned int pattern) {

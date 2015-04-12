@@ -1,6 +1,6 @@
 #include "ai/backend/physical/player.h"
-#include "ai/backend/ssl_vision/backend.h"
-#include "ai/backend/ssl_vision/team.h"
+#include "ai/backend/vision/backend.h"
+#include "ai/backend/vision/team.h"
 #include "mrf/dongle.h"
 #include "mrf/robot.h"
 #include <cstdlib>
@@ -25,7 +25,7 @@ namespace {
 	/**
 	 * \brief The friendly team.
 	 */
-	class FriendlyTeam final : public AI::BE::SSLVision::Team<AI::BE::Physical::Player, AI::BE::Player> {
+	class FriendlyTeam final : public AI::BE::Vision::Team<AI::BE::Physical::Player, AI::BE::Player> {
 		public:
 			explicit FriendlyTeam(Backend &backend);
 
@@ -39,7 +39,7 @@ namespace {
 	/**
 	 * \brief The enemy team.
 	 */
-	class EnemyTeam final : public AI::BE::SSLVision::Team<AI::BE::Robot, AI::BE::Robot> {
+	class EnemyTeam final : public AI::BE::Vision::Team<AI::BE::Robot, AI::BE::Robot> {
 		public:
 			explicit EnemyTeam(Backend &backend);
 
@@ -50,7 +50,7 @@ namespace {
 	/**
 	 * \brief The backend.
 	 */
-	class MRFBackend final : public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
+	class MRFBackend final : public AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam> {
 		public:
 			explicit MRFBackend(const std::vector<bool> &disable_cameras, int multicast_interface);
 			BackendFactory &factory() const override;
@@ -73,7 +73,7 @@ namespace {
 
 MRFBackendFactory mrf_backend_factory_instance;
 
-FriendlyTeam::FriendlyTeam(Backend &backend) : AI::BE::SSLVision::Team<AI::BE::Physical::Player, AI::BE::Player>(backend) {
+FriendlyTeam::FriendlyTeam(Backend &backend) : AI::BE::Vision::Team<AI::BE::Physical::Player, AI::BE::Player>(backend) {
 }
 
 void FriendlyTeam::create_member(unsigned int pattern) {
@@ -82,7 +82,7 @@ void FriendlyTeam::create_member(unsigned int pattern) {
 	}
 }
 
-EnemyTeam::EnemyTeam(Backend &backend) : AI::BE::SSLVision::Team<AI::BE::Robot, AI::BE::Robot>(backend) {
+EnemyTeam::EnemyTeam(Backend &backend) : AI::BE::Vision::Team<AI::BE::Robot, AI::BE::Robot>(backend) {
 }
 
 void EnemyTeam::create_member(unsigned int pattern) {

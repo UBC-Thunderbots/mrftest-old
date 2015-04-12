@@ -11,7 +11,7 @@ class SSL_WrapperPacket;
 
 namespace AI {
 	namespace BE {
-		namespace SSLVision {
+		namespace Vision {
 			class VisionSocket final : public NonCopyable {
 				public:
 					sigc::signal<void, const SSL_WrapperPacket &> signal_vision_data;

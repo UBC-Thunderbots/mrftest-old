@@ -1,4 +1,4 @@
-#include "ai/backend/ssl_vision/vision_socket.h"
+#include "ai/backend/vision/vision_socket.h"
 #include "util/dprint.h"
 #include "util/exception.h"
 #include "util/sockaddrs.h"
@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-using AI::BE::SSLVision::VisionSocket;
+using AI::BE::Vision::VisionSocket;
 
 VisionSocket::VisionSocket(int multicast_interface, const std::string &port) : sock(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
 	addrinfo hints;

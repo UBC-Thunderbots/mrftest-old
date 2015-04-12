@@ -1,7 +1,7 @@
 #include "ai/backend/backend.h"
 #include "ai/backend/grsim/player.h"
-#include "ai/backend/ssl_vision/backend.h"
-#include "ai/backend/ssl_vision/team.h"
+#include "ai/backend/vision/backend.h"
+#include "ai/backend/vision/team.h"
 #include "proto/grSim_Packet.pb.h"
 #include "util/exception.h"
 #include "util/fd.h"
@@ -28,7 +28,7 @@ namespace AI {
 }
 
 namespace {
-	class FriendlyTeam final : public AI::BE::SSLVision::Team<AI::BE::GRSim::Player, AI::BE::Player> {
+	class FriendlyTeam final : public AI::BE::Vision::Team<AI::BE::GRSim::Player, AI::BE::Player> {
 		public:
 			explicit FriendlyTeam(AI::BE::Backend &backend);
 
@@ -36,7 +36,7 @@ namespace {
 			void create_member(unsigned int pattern) override;
 	};
 
-	class EnemyTeam final : public AI::BE::SSLVision::Team<AI::BE::Robot, AI::BE::Robot> {
+	class EnemyTeam final : public AI::BE::Vision::Team<AI::BE::Robot, AI::BE::Robot> {
 		public:
 			explicit EnemyTeam(AI::BE::Backend &backend);
 
@@ -44,7 +44,7 @@ namespace {
 			void create_member(unsigned int pattern) override;
 	};
 
-	class Backend final : public AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam> {
+	class Backend final : public AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam> {
 		public:
 			explicit Backend(const std::vector<bool> &disable_cameras, int multicast_interface);
 			AI::BE::GRSim::BackendFactory &factory() const override;
@@ -72,21 +72,21 @@ std::unique_ptr<AI::BE::Backend> AI::BE::GRSim::BackendFactory::create_backend(c
 
 AI::BE::GRSim::BackendFactory AI::BE::GRSim::grsim_backend_factory_instance;
 
-FriendlyTeam::FriendlyTeam(AI::BE::Backend &backend) : AI::BE::SSLVision::Team<AI::BE::GRSim::Player, AI::BE::Player>(backend) {
+FriendlyTeam::FriendlyTeam(AI::BE::Backend &backend) : AI::BE::Vision::Team<AI::BE::GRSim::Player, AI::BE::Player>(backend) {
 }
 
 void FriendlyTeam::create_member(unsigned int pattern) {
 	members[pattern].create(pattern, std::ref(backend.ball()));
 }
 
-EnemyTeam::EnemyTeam(AI::BE::Backend &backend) : AI::BE::SSLVision::Team<AI::BE::Robot, AI::BE::Robot>(backend) {
+EnemyTeam::EnemyTeam(AI::BE::Backend &backend) : AI::BE::Vision::Team<AI::BE::Robot, AI::BE::Robot>(backend) {
 }
 
 void EnemyTeam::create_member(unsigned int pattern) {
 	members[pattern].create(pattern);
 }
 
-Backend::Backend(const std::vector<bool> &disable_cameras, int multicast_interface) : AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>(disable_cameras, multicast_interface, "10020"), friendly(*this), enemy(*this), grsim_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
+Backend::Backend(const std::vector<bool> &disable_cameras, int multicast_interface) : AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>(disable_cameras, multicast_interface, "10020"), friendly(*this), enemy(*this), grsim_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
 	addrinfo hints;
 	std::memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;

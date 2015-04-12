@@ -4,7 +4,7 @@
 #include "ai/backend/backend.h"
 #include "ai/backend/refbox.h"
 #include "ai/backend/clock/monotonic.h"
-#include "ai/backend/ssl_vision/vision_socket.h"
+#include "ai/backend/vision/vision_socket.h"
 #include "ai/common/playtype.h"
 #include "geom/point.h"
 #include "geom/particle/particle_filter_2d.h"
@@ -20,7 +20,7 @@
 
 namespace AI {
 	namespace BE {
-		namespace SSLVision {
+		namespace Vision {
 			extern BoolParam USE_PARTICLE_FILTER;
 
 			/**
@@ -67,7 +67,7 @@ namespace AI {
 					const std::vector<bool> &disable_cameras;
 					AI::BE::RefBox refbox;
 					AI::BE::Clock::Monotonic clock;
-					AI::BE::SSLVision::VisionSocket vision_rx;
+					AI::BE::Vision::VisionSocket vision_rx;
 					AI::Timestamp playtype_time;
 					Point playtype_arm_ball_position;
 					std::vector<std::pair<SSL_DetectionFrame, AI::Timestamp>> detections;
@@ -88,9 +88,9 @@ namespace AI {
 
 
 
-template<typename FriendlyTeam, typename EnemyTeam> constexpr double AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::BALL_FREE_DISTANCE;
+template<typename FriendlyTeam, typename EnemyTeam> constexpr double AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::BALL_FREE_DISTANCE;
 
-template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::Backend(const std::vector<bool> &disable_cameras, int multicast_interface, const std::string &vision_port) : disable_cameras(disable_cameras), refbox(multicast_interface), vision_rx(multicast_interface, vision_port) {
+template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::Backend(const std::vector<bool> &disable_cameras, int multicast_interface, const std::string &vision_port) : disable_cameras(disable_cameras), refbox(multicast_interface), vision_rx(multicast_interface, vision_port) {
 	friendly_colour().signal_changed().connect(sigc::mem_fun(this, &Backend::on_friendly_colour_changed));
 	playtype_override().signal_changed().connect(sigc::mem_fun(this, &Backend::update_playtype));
 	refbox.signal_packet.connect(sigc::mem_fun(this, &Backend::on_refbox_packet));
@@ -104,7 +104,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::SSLVision::Ba
 	pFilter_ = nullptr;
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::tick() {
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::tick() {
 	// If the field geometry is not yet valid, do nothing.
 	if (!field_.valid()) {
 		return;
@@ -137,7 +137,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 	signal_post_tick().emit(after - monotonic_time_);
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::handle_vision_packet(const SSL_WrapperPacket &packet) {
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::handle_vision_packet(const SSL_WrapperPacket &packet) {
 	// Pass it to any attached listeners.
 	AI::Timestamp now;
 	now = std::chrono::steady_clock::now();
@@ -261,7 +261,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 			 * }
 			 */
 
-			if (AI::BE::SSLVision::USE_PARTICLE_FILTER) {
+			if (AI::BE::Vision::USE_PARTICLE_FILTER) {
 				ball_.add_field_data(pFilter_->getEstimate(), best_time);
 			}
 			else {
@@ -296,7 +296,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 	return;
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::on_refbox_packet() {
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::on_refbox_packet() {
 	update_goalies();
 	update_scores();
 	update_playtype();
@@ -305,7 +305,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 	signal_refbox().emit(now, refbox.packet);
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::update_playtype() {
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_playtype() {
 	AI::Common::PlayType new_pt;
 	AI::Common::PlayType old_pt = playtype();
 	if (playtype_override() != AI::Common::PlayType::NONE) {
@@ -325,7 +325,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 	}
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::update_goalies() {
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_goalies() {
 	if (friendly_colour() == AI::Common::Colour::YELLOW) {
 		friendly_team().goalie = refbox.packet.yellow().goalie();
 		enemy_team().goalie = refbox.packet.blue().goalie();
@@ -335,7 +335,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 	}
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::update_scores() {
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_scores() {
 	if (friendly_colour() == AI::Common::Colour::YELLOW) {
 		friendly_team().score = refbox.packet.yellow().score();
 		enemy_team().score = refbox.packet.blue().score();
@@ -345,14 +345,14 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 	}
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::on_friendly_colour_changed() {
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::on_friendly_colour_changed() {
 	update_playtype();
 	update_scores();
 	friendly_team().clear();
 	enemy_team().clear();
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType AI::BE::SSLVision::Backend<FriendlyTeam, EnemyTeam>::compute_playtype(AI::Common::PlayType old_pt) {
+template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::compute_playtype(AI::Common::PlayType old_pt) {
 	switch (refbox.packet.command()) {
 		case SSL_Referee::HALT:
 		case SSL_Referee::TIMEOUT_YELLOW:

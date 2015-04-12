@@ -13,7 +13,7 @@
 
 namespace AI {
 	namespace BE {
-		namespace SSLVision {
+		namespace Vision {
 			/**
 			 * \brief The number of vision failures to tolerate before assuming the robot is gone and removing it from the system.
 			 *
@@ -104,31 +104,31 @@ namespace AI {
 
 
 
-template<typename T, typename TSuper> constexpr std::size_t AI::BE::SSLVision::Team<T, TSuper>::NUM_PATTERNS;
+template<typename T, typename TSuper> constexpr std::size_t AI::BE::Vision::Team<T, TSuper>::NUM_PATTERNS;
 
-template<typename T, typename TSuper> AI::BE::SSLVision::Team<T, TSuper>::Team(AI::BE::Backend &backend) : backend(backend) {
+template<typename T, typename TSuper> AI::BE::Vision::Team<T, TSuper>::Team(AI::BE::Backend &backend) : backend(backend) {
 	std::fill_n(vision_failures, NUM_PATTERNS, 0U);
 }
 
-template<typename T, typename TSuper> std::size_t AI::BE::SSLVision::Team<T, TSuper>::size() const {
+template<typename T, typename TSuper> std::size_t AI::BE::Vision::Team<T, TSuper>::size() const {
 	return member_ptrs.size();
 }
 
-template<typename T, typename TSuper> typename T::Ptr AI::BE::SSLVision::Team<T, TSuper>::get_backend_robot(std::size_t i) const {
+template<typename T, typename TSuper> typename T::Ptr AI::BE::Vision::Team<T, TSuper>::get_backend_robot(std::size_t i) const {
 	return member_ptrs[i];
 }
 
-template<typename T, typename TSuper> typename TSuper::Ptr AI::BE::SSLVision::Team<T, TSuper>::get(std::size_t i) const {
+template<typename T, typename TSuper> typename TSuper::Ptr AI::BE::Vision::Team<T, TSuper>::get(std::size_t i) const {
 	return member_ptrs[i];
 }
 
-template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::clear() {
+template<typename T, typename TSuper> void AI::BE::Vision::Team<T, TSuper>::clear() {
 	std::for_each(members.begin(), members.end(), std::mem_fn(&Box<T>::destroy));
 	member_ptrs.clear();
 	AI::BE::Team<TSuper>::signal_membership_changed().emit();
 }
 
-template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<AI::Timestamp> &ts) {
+template<typename T, typename TSuper> void AI::BE::Vision::Team<T, TSuper>::update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<AI::Timestamp> &ts) {
 	bool membership_changed = false;
 
 	// Update existing robots and create new robots.
@@ -187,11 +187,11 @@ template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::u
 	}
 }
 
-template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::lock_time(const AI::Timestamp &now) {
+template<typename T, typename TSuper> void AI::BE::Vision::Team<T, TSuper>::lock_time(const AI::Timestamp &now) {
 	std::for_each(member_ptrs.begin(), member_ptrs.end(), std::bind(std::mem_fn(&T::lock_time), std::placeholders::_1, now));
 }
 
-template<typename T, typename TSuper> void AI::BE::SSLVision::Team<T, TSuper>::populate_pointers() {
+template<typename T, typename TSuper> void AI::BE::Vision::Team<T, TSuper>::populate_pointers() {
 	member_ptrs.clear();
 	for (Box<T> &i : members) {
 		if (i) {
