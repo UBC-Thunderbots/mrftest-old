@@ -11,10 +11,10 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	DoubleParam pos_dis_threshold(u8"pos distance threshold", u8"MB", 0.05, 0, 1.0);
-	DoubleParam pos_vel_threshold(u8"pos velocity threshold", u8"MB", 0.03, 0, 1.0);
-	RadianParam ori_dis_threshold(u8"ori distance threshold (radians)", u8"MB", 0.1, 0, 1.0);
-	RadianParam ori_vel_threshold(u8"ori velocity threshold (radians)", u8"MB", 0.03, 0, 1.0);
+	DoubleParam pos_dis_threshold(u8"Pos-dist thresh", u8"AI/HL/MovementBenchmark", 0.05, 0, 1.0);
+	DoubleParam pos_vel_threshold(u8"Pos-vel thresh", u8"AI/HL/MovementBenchmark", 0.03, 0, 1.0);
+	RadianParam ori_dis_threshold(u8"Ori-dist thresh (rad)", u8"AI/HL/MovementBenchmark", 0.1, 0, 1.0);
+	RadianParam ori_vel_threshold(u8"Ori-vel thresh (rad)", u8"AI/HL/MovementBenchmark", 0.03, 0, 1.0);
 
 	const std::pair<Point, Angle> tasks_default[] = {
 		std::make_pair(Point(1.2, 0), Angle::of_radians(0)),

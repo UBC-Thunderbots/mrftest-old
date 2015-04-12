@@ -13,30 +13,27 @@ using namespace AI::Nav::Util;
 using namespace AI::Flags;
 using namespace Glib;
 
-
-
-
 namespace AI {
 	namespace Nav {
 		namespace RRT {
 			// fraction of the maximum speed that the robot will try to dribble at
 			const double DRIBBLE_SPEED = 0.4;
 
-			DegreeParam offset_angle(u8"Pivot: offset angle (degrees)", u8"Nav/RRT", 30.0, -1000.0, 1000.0);
-			DegreeParam orientation_offset(u8"Pivot: orientation offset (degrees)", u8"Nav/RRT", 30.0, -1000.0, 1000.0);
+			DegreeParam offset_angle(u8"Pivot offset angle (deg)", u8"AI/Navigator/RRT", 30.0, -1000.0, 1000.0);
+			DegreeParam orientation_offset(u8"Pivot orientation offset (deg)", u8"AI/Navigator/RRT", 30.0, -1000.0, 1000.0);
 
-			BoolParam use_new_pivot(u8"New Pivot: enable", u8"Nav/RRT", false);
-			DoubleParam new_pivot_linear_sfactor(u8"New Pivot [PID]: linear", u8"Nav/RRT", 1.0, 0.01, 50.0);
-			DoubleParam new_pivot_angular_sfactor(u8"New Pivot [PID]: angular", u8"Nav/RRT", 1.0, 0.01, 50.0);
-			DoubleParam new_pivot_radius(u8"New Pivot: travel radius", u8"Nav/RRT", 0.3, 0.01, 0.5);
-			BoolParam new_pivot_go_backward(u8"New Pivot: go backward", u8"Nav/RRT", false);
-			RadianParam new_pivot_offset_angle(u8"New Pivot: offset angle (radians)", u8"Nav/RRT", 0.1, 0, 0.5);
-			DoubleParam new_pivot_travel_angle(u8"New Pivot: travel angle, need proper unit, (n*M_PI)", u8"Nav/RRT", 0.2, -0.5, 0.5);
-			DoubleParam new_pivot_hyster_angle(u8"New Pivot: Hysterisis angle, one side, (n*M_PI)", u8"Nav/RRT", 0.2, 0.01, 0.2);
-			DoubleParam new_pivot_thresh_angle(u8"New Pivot: Threshold angle, one side, (n*M_PI)", u8"Nav/RRT", 0.2, 0.01, 0.2);
-			DoubleParam careful_max_speed(u8"Careful max speed", u8"Nav/RRT", 0.75, 0.1, 3.0);
+			BoolParam use_new_pivot(u8"New pivot enable", u8"AI/Navigator/RRT", false);
+			DoubleParam new_pivot_linear_sfactor(u8"New pivot [PID] linear", u8"AI/Navigator/RRT", 1.0, 0.01, 50.0);
+			DoubleParam new_pivot_angular_sfactor(u8"New pivot [PID] angular", u8"AI/Navigator/RRT", 1.0, 0.01, 50.0);
+			DoubleParam new_pivot_radius(u8"New pivot travel radius", u8"AI/Navigator/RRT", 0.3, 0.01, 0.5);
+			BoolParam new_pivot_go_backward(u8"New pivot go backward", u8"AI/Navigator/RRT", false);
+			RadianParam new_pivot_offset_angle(u8"New pivot offset angle (rad)", u8"AI/Navigator/RRT", 0.1, 0, 0.5);
+			DoubleParam new_pivot_travel_angle(u8"New pivot travel angle (x*pi rad)", u8"AI/Navigator/RRT", 0.2, -0.5, 0.5);
+			DoubleParam new_pivot_hyster_angle(u8"New pivot hysteresis angle, (x*pi rad)", u8"AI/Navigator/RRT", 0.2, 0.01, 0.2);
+			DoubleParam new_pivot_thresh_angle(u8"New pivot threshold angle, (x*pi rad)", u8"AI/Navigator/RRT", 0.2, 0.01, 0.2);
+			DoubleParam careful_max_speed(u8"Careful max speed", u8"AI/Navigator/RRT", 0.75, 0.1, 3.0);
 
-			IntParam jon_hysteris_hack(u8"Jon Hysteris Hack", u8"Nav/RRT", 2, 1, 10);
+			IntParam jon_hysteris_hack(u8"Jon Hysteris Hack", u8"AI/Navigator/RRT", 2, 1, 10);
 
 
 			class RRTNavigator final : public Navigator {

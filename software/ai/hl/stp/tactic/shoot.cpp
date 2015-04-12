@@ -18,8 +18,8 @@ using AI::HL::STP::Coordinate;
 namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
-	BoolParam new_shoot(u8"ShootGoal: enable autokick threshold", u8"AI/STP/Tactic/shoot", true);
-	DegreeParam shoot_thresh(u8"ShootGoal: threshold (degrees)", u8"AI/STP/Tactic/shoot", 5.0, 0.0, 90.0);
+	BoolParam new_shoot(u8"Enable autokick threshold", u8"AI/HL/STP/Tactic/Shoot", true);
+	DegreeParam shoot_thresh(u8"Threshold (degrees)", u8"AI/HL/STP/Tactic/Shoot", 5.0, 0.0, 90.0);
 
 	class ShootGoal final : public Tactic {
 		public:

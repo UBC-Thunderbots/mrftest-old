@@ -9,8 +9,8 @@
 #include <vector>
 
 namespace {
-	DoubleParam PARTICLE_FILTER_STDDEV(u8"Particle Filter Standard Deviation", u8"Backend", 0.1, 0.0, 2.0);
-	DoubleParam PARTICLE_FILTER_DECAYRATE(u8"Particle Filter Decay Rate", u8"Backend", 0.3, 0, 1.0);
+	DoubleParam PARTICLE_FILTER_STDDEV(u8"Particle Filter Standard Deviation", u8"AI/Backend/Vision/Particle", 0.1, 0.0, 2.0);
+	DoubleParam PARTICLE_FILTER_DECAYRATE(u8"Particle Filter Decay Rate", u8"AI/Backend/Vision/Particle", 0.3, 0, 1.0);
 }
 
 ParticleFilter::ParticleFilter(double length, double partitionSize) :

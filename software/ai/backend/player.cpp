@@ -7,7 +7,7 @@
 #include <glibmm/ustring.h>
 
 namespace {
-	BoolParam kalman_control_inputs(u8"Enable Kalman control inputs", u8"Backend", true);
+	BoolParam kalman_control_inputs(u8"Enable Kalman control inputs", u8"AI/Backend", true);
 }
 
 using AI::BE::Player;

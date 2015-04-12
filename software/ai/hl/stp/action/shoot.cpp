@@ -23,9 +23,9 @@
 using namespace AI::HL::STP;
 
 namespace {
-	BoolParam AUTO_ORIENT(u8"Orient self towards enemy goal at all times", u8"Cyprus/Shoot", true);
-	BoolParam REPOSITION(u8"Use repositioning algorithm to find openings in defense (overrides autoorientation if true)", u8"Cyprus/Shoot", true);
-	BoolParam TEAMMATE_CHECK(u8"Use teammate locations in openings as well", u8"Cyprus/Shoot", true);
+	BoolParam AUTO_ORIENT(u8"Orient towards enemy goal", u8"AI/HL/STP/Action/Shoot", true);
+	BoolParam REPOSITION(u8"Strafe towards enemy openings", u8"AI/HL/STP/Action/Shoot", true);
+	BoolParam TEAMMATE_CHECK(u8"Include teammates in strafe sweep", u8"AI/HL/STP/Action/Shoot", true);
 	const double FAST = 100.0;
 	DoubleParam FAST_BALL(u8"Default Shooting Speed", u8"STP/Shoot", 8.0, 0.0, 32.0);
 }

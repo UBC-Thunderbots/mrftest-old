@@ -9,8 +9,8 @@ using namespace AI::HL::W;
 using namespace AI::HL::STP::Tactic;
 
 namespace {
-	DoubleParam PARAM_penalty_stdev(u8"standard deviation for goalie movement (sec divided by 30)", u8"AI/penalty", 0.1, 0.0, 10.0);
-	DoubleParam PARAM_penalty_travel(u8"travel width for goalie movement (robot width)", u8"AI/penalty", 2.0, 0.0, 10.0);
+	DoubleParam PARAM_penalty_stdev(u8"Standard deviation for goalie movement (0.0333 sec)", u8"AI/HL/STP/Tactic/Penalty", 0.1, 0.0, 10.0);
+	DoubleParam PARAM_penalty_travel(u8"Travel width for goalie movement (robot width)", u8"AI/HL/STP/Tactic/Penalty", 2.0, 0.0, 10.0);
 
 	Point old_des;
 

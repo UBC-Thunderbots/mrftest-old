@@ -7,7 +7,7 @@
 using AI::BE::Backend;
 using AI::BE::BackendFactory;
 
-DoubleParam AI::BE::LOOP_DELAY(u8"Loop Delay", u8"Backend", 0.08, -1.0, 1.0);
+DoubleParam AI::BE::LOOP_DELAY(u8"Loop Delay", u8"AI/Backend", 0.08, -1.0, 1.0);
 
 AI::BE::Backend::~Backend() = default;
 
