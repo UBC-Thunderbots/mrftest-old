@@ -30,6 +30,12 @@
 <thunderbots>
   <params>
     <category name="AI">
+      <category name="Backend">
+        <category name="Vision">
+          <double name="Ball detection probability threshold">0.250</double>
+          <boolean name="Disables the Particle filter if unchecked.">false</boolean>
+        </category>
+      </category>
       <category name="Param">
         <degrees name="Angle that receiver can be offset (degrees)">1.5</degrees>
         <double name="Average Player Velocity">6.0</double>
@@ -49,8 +55,6 @@
     </category>
     <category name="Backend">
       <double name="Ball Decay Constant">2.7</double>
-      <double name="Ball detection probability threshold">0.500</double>
-      <boolean name="Disables the Kalman filter if unchecked.">false</boolean>
       <boolean name="Enable Kalman control inputs">false</boolean>
       <double name="Loop Delay">0.050</double>
       <double name="Particle Filter Decay Rate">0.300</double>

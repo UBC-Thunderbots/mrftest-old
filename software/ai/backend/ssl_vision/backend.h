@@ -21,7 +21,7 @@
 namespace AI {
 	namespace BE {
 		namespace SSLVision {
-			extern BoolParam USE_KALMAN_FILTER;
+			extern BoolParam USE_PARTICLE_FILTER;
 
 			/**
 			 * \brief The minimum probability above which the best ball detection will be accepted.
@@ -183,16 +183,18 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 		{
 			// Compute the best ball position from the list of detections.
 			Point best_pos;
+			double best_conf = 0;
 			AI::Timestamp best_time = now;
 
 			// Estimate the ball’s position at the camera frame’s timestamp.
 			double time_delta = std::chrono::duration_cast<std::chrono::duration<double>>(now - ball_.lock_time()).count();
-			/*Point estimated_position = ball_.position(time_delta);
-			Point estimated_stdev = ball_.position_stdev(time_delta);
-			double x_prob = 0, y_prob = 0;
-			double best_prob = 0;*/
 
-			double best_conf = 0;
+			/* Kalman variable declarations
+			 * Point estimated_position = ball_.position(time_delta);
+			 * Point estimated_stdev = ball_.position_stdev(time_delta);
+			 * double x_prob = 0, y_prob = 0;
+			 * double best_prob = 0;
+			 */
 
 			if (time_delta >= 0) {
 				for (const SSL_DetectionBall &b : det.balls()) {
@@ -204,25 +206,24 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 
 					/* KALMAN FORMULAS */
 
-					/* old formulae */
-					/*Point distance_from_estimate = detection_position - estimated_position;
-					x_prob = 1.0f / (std::pow(distance_from_estimate.x / estimated_stdev.x, 2.0) + 1.0f);
-					y_prob = 1.0f / (std::pow(distance_from_estimate.y / estimated_stdev.y, 2.0) + 1.0f); */
+					/* old Kalman formulae
+					 * Point distance_from_estimate = detection_position - estimated_position;
+					 * x_prob = 1.0f / (std::pow(distance_from_estimate.x / estimated_stdev.x, 2.0) + 1.0f);
+					 * y_prob = 1.0f / (std::pow(distance_from_estimate.y / estimated_stdev.y, 2.0) + 1.0f);
+					 */
 
-					/*new formulae*/
-					/*double a = (detection_position.x - estimated_position.x) / estimated_stdev.x;
-					x_prob = std::exp(-0.5 * a * a);
-
-					a = (detection_position.y - estimated_position.y) / estimated_stdev.y;
-					y_prob = std::exp(-0.5 * a * a);
-
-					double prob = x_prob * y_prob * b.confidence();
-
-					if (prob > best_prob) {
-						best_prob = prob;
-						best_pos = detection_position;
-					}
-					*/
+					/* new Kalman formulae
+					 * double a = (detection_position.x - estimated_position.x) / estimated_stdev.x;
+					 * x_prob = std::exp(-0.5 * a * a);
+					 * a = (detection_position.y - estimated_position.y) / estimated_stdev.y;
+					 * y_prob = std::exp(-0.5 * a * a);
+					 *
+					 * double prob = x_prob * y_prob * b.confidence();
+					 * if (prob > best_prob) {
+					 * 	best_prob = prob;
+					 * 	best_pos = detection_position;
+					 * }
+					 */
 
 					if (b.confidence() > best_conf) {
 						best_conf = b.confidence();
@@ -234,34 +235,38 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::SSLVisio
 				}
 			}
 
-			/* KALMAN */
-			// Keep the detection if it is good enough.
-			/*if (best_prob >= BALL_FILTER_THRESHOLD) {
-				ball_.add_field_data(best_pos, best_time);
-			} else {
-				// No useful detection from camera; instead, see if a robot has the ball.
-				std::vector<Point> has_ball_inputs;
-				for (std::size_t i = 0; i < friendly_team().size(); ++i) {
-					Player::Ptr player = friendly_team().get(i);
-					if (player->has_ball()) {
-						player->lock_time(now);
-						Point pos = player->position(0);
-						pos += Point::of_angle(player->orientation(0)) * ROBOT_CENTRE_TO_FRONT_DISTANCE;
-						has_ball_inputs.push_back(pos);
-					}
-				}
-				if (!has_ball_inputs.empty()) {
-					Point avg;
-					for (auto i : has_ball_inputs) {
-						avg += i;
-					}
-					avg /= static_cast<double>(has_ball_inputs.size());
-					ball_.add_field_data(avg, now);
-				}
-			}*/
+			/* Kalman
+			 * if (best_prob >= BALL_FILTER_THRESHOLD) {
+				 * ball_.add_field_data(best_pos, best_time);
+			 * } else {
+				 * // No useful detection from camera; instead, see if a robot has the ball.
+				 * std::vector<Point> has_ball_inputs;
+				 * for (std::size_t i = 0; i < friendly_team().size(); ++i) {
+					 * Player::Ptr player = friendly_team().get(i);
+					 * if (player->has_ball()) {
+						 * player->lock_time(now);
+						 * Point pos = player->position(0);
+						 * pos += Point::of_angle(player->orientation(0)) * ROBOT_CENTRE_TO_FRONT_DISTANCE;
+						 * has_ball_inputs.push_back(pos);
+					 * }
+				 * }
+				 * if (!has_ball_inputs.empty()) {
+					 * Point avg;
+					 * for (auto i : has_ball_inputs) {
+						 * avg += i;
+					 * }
+					 * avg /= static_cast<double>(has_ball_inputs.size());
+					 * ball_.add_field_data(avg, now);
+				 * }
+			 * }
+			 */
 
-			//ball_.add_field_data(pFilter_->getEstimate(), best_time);
-			ball_.add_field_data(best_pos, best_time);
+			if (AI::BE::SSLVision::USE_PARTICLE_FILTER) {
+				ball_.add_field_data(pFilter_->getEstimate(), best_time);
+			}
+			else {
+				ball_.add_field_data(best_pos, best_time);
+			}
 
 			pFilter_->update(time_delta);
 		}
