@@ -10,7 +10,7 @@
 using namespace AI::HL::STP;
 namespace Util = AI::HL::Util;
 
-DegreeParam AI::HL::STP::Evaluation::enemy_shoot_accuracy(u8"Enemy shoot accuracy (degrees)", u8"STP/enemy", 1.0, 0.0, 90.0);
+DegreeParam AI::HL::STP::Evaluation::enemy_shoot_accuracy(u8"Enemy shoot accuracy (degrees)", u8"AI/HL/STP/enemy", 1.0, 0.0, 90.0);
 
 bool AI::HL::STP::Evaluation::enemy_can_shoot_goal(World world, Robot enemy) {
 	return calc_enemy_best_shot_goal(world, enemy).second > enemy_shoot_accuracy;

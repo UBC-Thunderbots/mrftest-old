@@ -4,7 +4,7 @@
 using namespace AI::HL::STP;
 
 namespace {
-	DoubleParam INCREMENT(u8"strafing increment", "STP/Action/Strafe", 0.1, 0.01, 1);
+	DoubleParam INCREMENT(u8"strafing increment", u8"AI/HL/STP/Action/Strafe", 0.1, 0.01, 1);
 }
 
 void Action::strafe(Player player, const Point dir) {

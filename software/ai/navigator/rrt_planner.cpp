@@ -11,9 +11,9 @@ using namespace AI::Nav::Util;
 using namespace AI::Flags;
 
 namespace {
-	IntParam iteration_limit(u8"Number of iterations to go through before we give best partial path", u8"Nav/RRT", 200, 10, 2000);
-	DoubleParam threshold(u8"Distance to destination when we stop looking for a path (m)", u8"Nav/RRT", 0.08, 0, 1.0);
-	DoubleParam step_distance(u8"Distance to extend the tree on each step (m)", u8"Nav/RRT", 0.1, 0, 1.0);
+	IntParam iteration_limit(u8"Number of iterations to go through before we give best partial path", u8"AI/HL/Nav/RRT", 200, 10, 2000);
+	DoubleParam threshold(u8"Distance to destination when we stop looking for a path (m)", u8"AI/HL/Nav/RRT", 0.08, 0, 1.0);
+	DoubleParam step_distance(u8"Distance to extend the tree on each step (m)", u8"AI/HL/Nav/RRT", 0.1, 0, 1.0);
 
 	// probability that we will take a step towards the goal
 	constexpr double GOAL_PROB = 0.2;

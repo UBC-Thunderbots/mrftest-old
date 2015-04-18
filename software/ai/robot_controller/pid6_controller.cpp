@@ -115,10 +115,10 @@ namespace {
 			}
 	};
 
-	DoubleParam firmware_loop_rate(u8"Tick rate of firmware control loop in s^-1", u8"RC/PID6", 200.0, 0.0, 48.0e6);
-	DoubleParam wheel_max_speed(u8"Limit wheel speed (quarter degree per firmware tick)", u8"RC/PID6", 330.0, 0, 1023);
-	DoubleParam wheel_max_accel(u8"Limit wheel accel (quarter degree per firmware tick squared)", u8"RC/PID6", 45, 0, 1023);
-	DoubleParam aggressiveness(u8"Aggressiveness of the controller", u8"RC/PID6", 0.8, 0, 1.0);
+	DoubleParam firmware_loop_rate(u8"Tick rate of firmware control loop in s^-1", u8"Controller/PID6", 200.0, 0.0, 48.0e6);
+	DoubleParam wheel_max_speed(u8"Limit wheel speed (quarter degree per firmware tick)", u8"Controller/PID6", 330.0, 0, 1023);
+	DoubleParam wheel_max_accel(u8"Limit wheel accel (quarter degree per firmware tick squared)", u8"Controller/PID6", 45, 0, 1023);
+	DoubleParam aggressiveness(u8"Aggressiveness of the controller", u8"Controller/PID6", 0.8, 0, 1.0);
 
 	class PID6Controller final : public RobotController {
 		public:

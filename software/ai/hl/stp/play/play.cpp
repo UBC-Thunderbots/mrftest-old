@@ -17,6 +17,6 @@ void Play::draw_overlay(Cairo::RefPtr<Cairo::Context>) const {
 Play::Play(World world) : world(world) {
 }
 
-PlayFactory::PlayFactory(const char *name) : Registerable<PlayFactory>(name), enable(name, u8"STP/Play/Enable", true), priority(name, u8"STP/Play/Priority 0=low, 10=hi, 5=default", 5, 0, 10), playbook(name, u8"STP/Play/Playbook", 1023, 1, 1023), static_play(name, u8"STP/Play/StaticRoleAssignment", false) {
+PlayFactory::PlayFactory(const char *name) : Registerable<PlayFactory>(name), enable(name, u8"AI/HL/STP/Play/Enable", true), priority(name, u8"AI/HL/STP/Play/Priority 0=low, 10=hi, 5=default", 5, 0, 10), playbook(name, u8"AI/HL/STP/Play/Playbook", 1023, 1, 1023), static_play(name, u8"AI/HL/STP/Play/StaticRoleAssignment", false) {
 }
 

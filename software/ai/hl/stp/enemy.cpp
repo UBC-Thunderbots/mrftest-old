@@ -11,7 +11,7 @@ using AI::HL::STP::Enemy;
 namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
-	BoolParam use_grab_ball_pos(u8"enemy closest use grab ball position", u8"STP/enemy", true);
+	BoolParam use_grab_ball_pos(u8"enemy closest use grab ball position", u8"AI/HL/STP/enemy", true);
 
 	class Fixed final : public Enemy {
 		public:

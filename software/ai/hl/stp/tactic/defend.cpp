@@ -17,10 +17,10 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace Action = AI::HL::STP::Action;
 
 namespace {
-	BoolParam tdefend_goalie(u8"Whether or not Terence Defense should take the place of normal goalie", u8"STP/Tactic/defend", false);
-	BoolParam tdefend_defender1(u8"Whether or not Terence Defense should take the place of normal defender 1", u8"STP/Tactic/defend", false);
-	BoolParam tdefend_defender2(u8"Whether or not Terence Defense should take the place of normal defender 2", u8"STP/Tactic/defend", false);
-	BoolParam tdefend_defender3(u8"Whether or not Terence Defense should take the place of normal defender 3", u8"STP/Tactic/defend", false);
+	BoolParam tdefend_goalie(u8"Whether or not Terence Defense should take the place of normal goalie", u8"AI/HL/STP/Tactic/defend", false);
+	BoolParam tdefend_defender1(u8"Whether or not Terence Defense should take the place of normal defender 1", u8"AI/HL/STP/Tactic/defend", false);
+	BoolParam tdefend_defender2(u8"Whether or not Terence Defense should take the place of normal defender 2", u8"AI/HL/STP/Tactic/defend", false);
+	BoolParam tdefend_defender3(u8"Whether or not Terence Defense should take the place of normal defender 3", u8"AI/HL/STP/Tactic/defend", false);
 
 	/**
 	 * Goalie in a team of N robots.

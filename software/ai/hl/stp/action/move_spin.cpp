@@ -7,7 +7,7 @@
 using namespace AI::HL::STP;
 
 namespace {
-	RadianParam spin_delta(u8"change in orientation every time tick for move spin (radians)", u8"STP/Action/spin", 3.0, 1.0, 5.0);
+	RadianParam spin_delta(u8"change in orientation every time tick for move spin (radians)", u8"AI/HL/STP/Action/spin", 3.0, 1.0, 5.0);
 
 	const int CLOCKWISE = -1;
 	const int COUNTER_CLOCKWISE = 1;

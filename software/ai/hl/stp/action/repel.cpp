@@ -14,7 +14,7 @@ using namespace AI::HL::STP;
 
 namespace {
 	const double FAST = 100.0;
-	DoubleParam corner_repel_speed(u8"speed that repel will be kicking at in a corner", u8"STP/Action/repel", 3.0, 1.0, BALL_MAX_SPEED);
+	DoubleParam corner_repel_speed(u8"speed that repel will be kicking at in a corner", u8"AI/HL/STP/Action/repel", 3.0, 1.0, BALL_MAX_SPEED);
 }
 
 bool AI::HL::STP::Action::repel(World world, Player player) {

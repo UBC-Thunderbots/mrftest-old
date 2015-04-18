@@ -19,7 +19,7 @@ using namespace AI::HL::STP::Evaluation;
 #define GRID_Y 15.0
 
 namespace {
-	BoolParam attack_follow_enemy_baller(u8"attack going against enemy baller", u8"STP/tri_attack", true);
+	BoolParam attack_follow_enemy_baller(u8"attack going against enemy baller", u8"AI/HL/STP/tri_attack", true);
 
 	std::array<std::pair<Point, Point>, MAX_ATTACKERS> waypoints;
 

@@ -15,17 +15,17 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	IntParam pass_target_param(u8"passing target points", u8"STP/test_pass", 0, 0, 14);
-	DoubleParam negligible_velocity(u8"velocity to ignore", u8"STP/test_pass", 0.1, 0.0, 1.0);
+	IntParam pass_target_param(u8"passing target points", u8"AI/HL/STP/test_pass", 0, 0, 14);
+	DoubleParam negligible_velocity(u8"velocity to ignore", u8"AI/HL/STP/test_pass", 0.1, 0.0, 1.0);
 
-	DegreeParam passer_tol_target(u8" angle tolerance that the passer needs to be with respect to the target (degrees)", u8"STP/test_pass", 30.0, 0.0, 180.0);
-	DegreeParam passer_tol_reciever(u8" angle tolerance that the passer needs to be with respect to the passee (degrees)", u8"STP/test_pass", 20.0, 0.0, 180.0);
-	DoubleParam passee_tol(u8" distance tolerance that the passee needs to be with respect to the passer shot", u8"STP/test_pass", 0.05, 0.0, 1.0);
+	DegreeParam passer_tol_target(u8" angle tolerance that the passer needs to be with respect to the target (degrees)", u8"AI/HL/STP/test_pass", 30.0, 0.0, 180.0);
+	DegreeParam passer_tol_reciever(u8" angle tolerance that the passer needs to be with respect to the passee (degrees)", u8"AI/HL/STP/test_pass", 20.0, 0.0, 180.0);
+	DoubleParam passee_tol(u8" distance tolerance that the passee needs to be with respect to the passer shot", u8"AI/HL/STP/test_pass", 0.05, 0.0, 1.0);
 
-	DoubleParam passee_hack_dist(u8"Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)", u8"STP/test_pass", 0.03, 0.0, 1.0);
+	DoubleParam passee_hack_dist(u8"Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)", u8"AI/HL/STP/test_pass", 0.03, 0.0, 1.0);
 	// make better targets
 
-	BoolParam lower_number_passer(u8"lower numbered bot is passer", u8"STP/test_pass", true);
+	BoolParam lower_number_passer(u8"lower numbered bot is passer", u8"AI/HL/STP/test_pass", true);
 
 	const Point default_targets[] = {
 		Point(-1.2, 0),

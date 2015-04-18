@@ -11,7 +11,7 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	DoubleParam pos_dis_threshold_sd(u8"pos distance threshold shooting def", u8"NC", 0.05, 0, 1.0);
+	DoubleParam pos_dis_threshold_sd(u8"pos distance threshold shooting def", u8"AI/HL/NC", 0.05, 0, 1.0);
 
 	class ShootingDefChallenge final : public HighLevel {
 		public:

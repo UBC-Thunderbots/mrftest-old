@@ -27,7 +27,7 @@ namespace {
 	BoolParam REPOSITION(u8"Strafe towards enemy openings", u8"AI/HL/STP/Action/Shoot", true);
 	BoolParam TEAMMATE_CHECK(u8"Include teammates in strafe sweep", u8"AI/HL/STP/Action/Shoot", true);
 	const double FAST = 100.0;
-	DoubleParam FAST_BALL(u8"Default Shooting Speed", u8"STP/Shoot", 8.0, 0.0, 32.0);
+	DoubleParam FAST_BALL(u8"Default Shooting Speed", u8"AI/HL/STP/Shoot", 8.0, 0.0, 32.0);
 }
 
 bool AI::HL::STP::Action::shoot_goal(World world, Player player, bool use_reduced_radius) {

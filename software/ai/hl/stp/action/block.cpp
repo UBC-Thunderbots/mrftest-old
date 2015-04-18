@@ -17,8 +17,8 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Action {
-				DoubleParam block_threshold(u8"block threshold distance in terms of robot radius", u8"STP/Action/block", 3.0, 2.0, 8.0);
-				DoubleParam block_angle(u8"baller projects a cone of this angle, blocker will avoid this cone (degrees)", u8"STP/Action/block", 5.0, 0, 90);
+				DoubleParam block_threshold(u8"block threshold distance in terms of robot radius", u8"AI/HL/STP/Action/block", 3.0, 2.0, 8.0);
+				DoubleParam block_angle(u8"baller projects a cone of this angle, blocker will avoid this cone (degrees)", u8"AI/HL/STP/Action/block", 5.0, 0, 90);
 			}
 		}
 	}

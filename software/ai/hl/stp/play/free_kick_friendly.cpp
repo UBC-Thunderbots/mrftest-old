@@ -14,8 +14,8 @@ using namespace AI::HL::STP::Play;
  */
 
 namespace {
-DoubleParam PARAM_free_kick_at_defence_zone(u8"Ball close to enemy defence area during free kick", u8"STP/freekick", 0.2, 0.0, 1.0);
-BoolParam PARAM_free_kick_defence_enable(u8"Enable ball close to enemy defence area", u8"STP/freekick", true);
+DoubleParam PARAM_free_kick_at_defence_zone(u8"Ball close to enemy defence area during free kick", u8"AI/HL/STP/freekick", 0.2, 0.0, 1.0);
+BoolParam PARAM_free_kick_defence_enable(u8"Enable ball close to enemy defence area", u8"AI/HL/STP/freekick", true);
 }
 
 BEGIN_PLAY(FreeKickFriendly)

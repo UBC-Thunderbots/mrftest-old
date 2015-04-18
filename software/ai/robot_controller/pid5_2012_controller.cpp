@@ -22,18 +22,18 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-	DoubleParam pid_xy_prop(u8"xy +proportional", u8"RC/PID5_2012", 25.0, 0.0, 100.0);
-	DoubleParam pid_xy_diff(u8"xy -differential", u8"RC/PID5_2012", 0.0, -100.0, 10.0);
+	DoubleParam pid_xy_prop(u8"xy +proportional", u8"Controller/PID5_2012", 25.0, 0.0, 100.0);
+	DoubleParam pid_xy_diff(u8"xy -differential", u8"Controller/PID5_2012", 0.0, -100.0, 10.0);
 
-	DoubleParam pid_a_prop(u8"angular +proportional", u8"RC/PID5_2012", 30.0, 0.0, 100);
-	DoubleParam pid_a_diff(u8"angular -differential", u8"RC/PID5_2012", 0.2, -100, 100);
+	DoubleParam pid_a_prop(u8"angular +proportional", u8"Controller/PID5_2012", 30.0, 0.0, 100);
+	DoubleParam pid_a_diff(u8"angular -differential", u8"Controller/PID5_2012", 0.2, -100, 100);
 
-	DoubleParam pid_xy_ratio(u8"x to y ratio", u8"RC/PID5_2012", 0.81, 0.0, 2.0);
+	DoubleParam pid_xy_ratio(u8"x to y ratio", u8"Controller/PID5_2012", 0.81, 0.0, 2.0);
 
-	DoubleParam pid_ya_ratio(u8"YA ratio", u8"RC/PID5_2012", 0.08, -10.0, 10.0);
+	DoubleParam pid_ya_ratio(u8"YA ratio", u8"Controller/PID5_2012", 0.08, -10.0, 10.0);
 
-	DoubleParam wheel_max_speed(u8"Limit wheel speed", u8"RC/PID5_2012", 100.0, 0, 8888);
-	DoubleParam wheel_max_accel(u8"Limit wheel accel", u8"RC/PID5_2012", 5.0, 0, 8888);
+	DoubleParam wheel_max_speed(u8"Limit wheel speed", u8"Controller/PID5_2012", 100.0, 0, 8888);
+	DoubleParam wheel_max_accel(u8"Limit wheel accel", u8"Controller/PID5_2012", 5.0, 0, 8888);
 	
 	class PID5_2012ControllerFactory;
 

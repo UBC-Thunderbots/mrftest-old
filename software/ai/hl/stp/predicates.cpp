@@ -14,14 +14,14 @@ using namespace AI::HL::STP;
 
 namespace {
 	// shoot_anyway should be adjusted when facing different teams.
-    IntParam    shoot_anyway(u8"randomize factor that the baller will shoot even if blocked", u8"STP/predicates", 5, 1, 10);
+    IntParam    shoot_anyway(u8"randomize factor that the baller will shoot even if blocked", u8"AI/HL/STP/predicates", 5, 1, 10);
 
-    DoubleParam near_thresh(u8"enemy avoidance distance (robot radius)", u8"STP/predicates", 3.0, 1.0, 10.0);
-    DoubleParam chip_estimate(u8"estimate of our chip distance (m)", u8"STP/predicates", 1.0, 0.0, 3.0);
-	DoubleParam fight_thresh(u8"dist thresh to start fight ball with enemy (robot radius)", u8"STP/predicates", 2.0, 0.1, 4.0);
-	DoubleParam looseBall_thresh(u8"distance to trigger loose_ball predicate", u8"STP/predicates", 1.0, 0.5, 6.0);
+    DoubleParam near_thresh(u8"enemy avoidance distance (robot radius)", u8"AI/HL/STP/predicates", 3.0, 1.0, 10.0);
+    DoubleParam chip_estimate(u8"estimate of our chip distance (m)", u8"AI/HL/STP/predicates", 1.0, 0.0, 3.0);
+	DoubleParam fight_thresh(u8"dist thresh to start fight ball with enemy (robot radius)", u8"AI/HL/STP/predicates", 2.0, 0.1, 4.0);
+	DoubleParam looseBall_thresh(u8"distance to trigger loose_ball predicate", u8"AI/HL/STP/predicates", 1.0, 0.5, 6.0);
 
-	BoolParam new_fight(u8"new fight", u8"STP/predicates", true);
+	BoolParam new_fight(u8"new fight", u8"AI/HL/STP/predicates", true);
 }
 
 bool Predicates::Goal::compute(World) {

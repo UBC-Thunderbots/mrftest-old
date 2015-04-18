@@ -20,9 +20,9 @@ namespace {
 			NavigatorFactory &factory() const override;
 	};
 
-	DegreeParam offset_angle(u8"offset angle (degrees)", u8"Nav/Pivot", 80.0, -1000.0, 1000.0);
-	DoubleParam offset_distance(u8"offset distance", u8"Nav/Pivot", 0.1, -1000.0, 10.0);
-	DegreeParam orientation_offset(u8"orientation offset (degrees)", u8"Nav/Pivot", 30.0, -1000.0, 1000.0);
+	DegreeParam offset_angle(u8"offset angle (degrees)", u8"AI/HL/Nav/Pivot", 80.0, -1000.0, 1000.0);
+	DoubleParam offset_distance(u8"offset distance", u8"AI/HL/Nav/Pivot", 0.1, -1000.0, 10.0);
+	DegreeParam orientation_offset(u8"orientation offset (degrees)", u8"AI/HL/Nav/Pivot", 30.0, -1000.0, 1000.0);
 }
 
 PivotNavigator::PivotNavigator(World world) : Navigator(world) {

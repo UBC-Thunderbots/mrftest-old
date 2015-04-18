@@ -24,30 +24,30 @@ namespace AI {
 }
 
 namespace {
-	BoolParam test_goalie(u8"Goalie selection by lowest or user assigned", u8"STP/Goalie", false);
+	BoolParam test_goalie(u8"Goalie selection by lowest or user assigned", u8"AI/HL/STP/Goalie", false);
 
 	// One of the changes from the technical committee this year (2013) is that the
 	// referee box will send the pattern number of the goalie for each team.
 	// You can retrieve this with the goalie() function on a Team object.
 	// Therefore the following goalie code can only be used when the test_goalie param is turned on (for testing). 
-	BoolParam goalie_lowest(u8"Goalie is lowest index", u8"STP/Goalie", true);
-	IntParam goalie_pattern_index(u8"Goalie pattern index", u8"STP/Goalie", 0, 0, 11);
+	BoolParam goalie_lowest(u8"Goalie is lowest index", u8"AI/HL/STP/Goalie", true);
+	IntParam goalie_pattern_index(u8"Goalie pattern index", u8"AI/HL/STP/Goalie", 0, 0, 11);
 
-	BoolParam enable0(u8"enable robot 0", u8"STP/PlayExecutor", true);
-	BoolParam enable1(u8"enable robot 1", u8"STP/PlayExecutor", true);
-	BoolParam enable2(u8"enable robot 2", u8"STP/PlayExecutor", true);
-	BoolParam enable3(u8"enable robot 3", u8"STP/PlayExecutor", true);
-	BoolParam enable4(u8"enable robot 4", u8"STP/PlayExecutor", true);
-	BoolParam enable5(u8"enable robot 5", u8"STP/PlayExecutor", true);
-	BoolParam enable6(u8"enable robot 6", u8"STP/PlayExecutor", true);
-	BoolParam enable7(u8"enable robot 7", u8"STP/PlayExecutor", true);
-	BoolParam enable8(u8"enable robot 8", u8"STP/PlayExecutor", true);
-	BoolParam enable9(u8"enable robot 9", u8"STP/PlayExecutor", true);
-	BoolParam enable10(u8"enable robot 10", u8"STP/PlayExecutor", true);
-	BoolParam enable11(u8"enable robot 11", u8"STP/PlayExecutor", true);
+	BoolParam enable0(u8"enable robot 0", u8"AI/HL/STP/PlayExecutor", true);
+	BoolParam enable1(u8"enable robot 1", u8"AI/HL/STP/PlayExecutor", true);
+	BoolParam enable2(u8"enable robot 2", u8"AI/HL/STP/PlayExecutor", true);
+	BoolParam enable3(u8"enable robot 3", u8"AI/HL/STP/PlayExecutor", true);
+	BoolParam enable4(u8"enable robot 4", u8"AI/HL/STP/PlayExecutor", true);
+	BoolParam enable5(u8"enable robot 5", u8"AI/HL/STP/PlayExecutor", true);
+	BoolParam enable6(u8"enable robot 6", u8"AI/HL/STP/PlayExecutor", true);
+	BoolParam enable7(u8"enable robot 7", u8"AI/HL/STP/PlayExecutor", true);
+	BoolParam enable8(u8"enable robot 8", u8"AI/HL/STP/PlayExecutor", true);
+	BoolParam enable9(u8"enable robot 9", u8"AI/HL/STP/PlayExecutor", true);
+	BoolParam enable10(u8"enable robot 10", u8"AI/HL/STP/PlayExecutor", true);
+	BoolParam enable11(u8"enable robot 11", u8"AI/HL/STP/PlayExecutor", true);
 
-	BoolParam high_priority_always(u8"If higher priority play exists, switch", u8"STP/PlayExecutor", true);
-	IntParam playbook_index(u8"Current Playbook, use bitwise operations", u8"STP/PlayExecutor", 0, 0, 9);
+	BoolParam high_priority_always(u8"If higher priority play exists, switch", u8"AI/HL/STP/PlayExecutor", true);
+	IntParam playbook_index(u8"Current Playbook, use bitwise operations", u8"AI/HL/STP/PlayExecutor", 0, 0, 9);
 }
 
 PlayExecutor::PlayExecutor(World w) : world(w), curr_play(nullptr), curr_active(nullptr) {

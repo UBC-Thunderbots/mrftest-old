@@ -21,7 +21,7 @@ namespace Action = AI::HL::STP::Action;
 namespace Evaluation = AI::HL::STP::Evaluation;
 
 namespace {
-	DegreeParam small_pass_ray_angle(u8"Small ray shoot rotation (degrees)", u8"STP/PassRay", 20, 0, 180);
+	DegreeParam small_pass_ray_angle(u8"Small ray shoot rotation (degrees)", u8"AI/HL/STP/PassRay", 20, 0, 180);
 
 	struct PasserRay final : public Tactic {
 		bool kick_attempted;

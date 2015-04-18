@@ -8,8 +8,8 @@
 using namespace AI::HL::STP;
 
 namespace {
-	DoubleParam repel_dist(u8"Distance the defender should repel the ball in robot radius", u8"STP/Action/defend", 3.0, 2.0, 6.0);
-	BoolParam shoot_not_repel(u8"Whether the defender shoot_goal (otherwise repels)", u8"STP/Action/defend", true);
+	DoubleParam repel_dist(u8"Distance the defender should repel the ball in robot radius", u8"AI/HL/STP/Action/defend", 3.0, 2.0, 6.0);
+	BoolParam shoot_not_repel(u8"Whether the defender shoot_goal (otherwise repels)", u8"AI/HL/STP/Action/defend", true);
 }
 
 void AI::HL::STP::Action::defender_move(World world, Player player, const Point dest) {
