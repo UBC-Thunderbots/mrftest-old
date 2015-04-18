@@ -261,17 +261,15 @@ std::vector<std::pair<Vector2, Angle>> angle_sweep_circles_all(const Vector2 &sr
 	events.push_back(std::make_pair(((p2 - src).orientation() - offangle).angle_mod(), -1));
 	for (Vector2 i : obstacles) {
 		Vector2 diff = i - src;
-		// warning: temporarily reduced
 		if (diff.len() < radius) {
-			// std::cerr << "geom: inside" << std::endl;
 			return ret;
 		}
+
 		const Angle cent = (diff.orientation() - offangle).angle_mod();
 		const Angle span = Angle::asin(radius / diff.len());
 		const Angle range1 = cent - span;
 		const Angle range2 = cent + span;
 
-		// "warning: hack should work" was removed since both this and the next function are functioning properly
 		if (range1 < -Angle::half() || range2 > Angle::half()) {
 			continue;
 		}
@@ -318,9 +316,7 @@ std::pair<Vector2, Angle> angle_sweep_circles(const Vector2 &src, const Vector2 
 	events.push_back(std::make_pair(((p2 - src).orientation() - offangle).angle_mod(), -1));
 	for (Vector2 i : obstacles) {
 		Vector2 diff = i - src;
-		// warning: temporarily reduced
 		if (diff.len() < radius) {
-			// std::cerr << "geom: inside" << std::endl;
 			return std::make_pair(bestshot, Angle::zero());
 		}
 		const Angle cent = (diff.orientation() - offangle).angle_mod();
