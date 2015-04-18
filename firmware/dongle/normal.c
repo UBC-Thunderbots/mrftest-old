@@ -22,7 +22,7 @@
 /**
  * \brief The exact number of bytes in the payload of a drive packet.
  *
- * This number does not include the data counter.
+ * This number does not include the data counter or emergency stop status.
  */
 #define DRIVE_PACKET_DATA_SIZE 64U
 
