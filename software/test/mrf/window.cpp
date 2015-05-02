@@ -102,31 +102,49 @@ TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) :
 		joystick_frame(u8"Joystick"),
 		joystick_sensitivity_high_button(joystick_sensitivity_group, u8"High Sensitivity"),
 		joystick_sensitivity_low_button(joystick_sensitivity_group, u8"Low Sensitivity"),
-		joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks)) {
+		joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks)),
+		primitive_button(mode_group, u8"Primitive Mode"),
+		direct_button(mode_group, u8"Direct Mode"), 
+		primitive_frame(u8"Primitives"),
+		primitive_panel(robot)
+{
 	set_title(Glib::ustring::compose(u8"Tester (%1)", robot.index));
 
 	feedback_frame.add(feedback_panel);
 	vbox1.pack_start(feedback_frame, Gtk::PACK_SHRINK);
 
-	drive_frame.add(drive_panel);
-	vbox1.pack_start(drive_frame, Gtk::PACK_SHRINK);
+	leds_frame.add(leds_panel);
+	vbox1.pack_start(leds_frame, Gtk::PACK_SHRINK);
+
+	params_frame.add(params_panel);
+	vbox1.pack_start(params_frame, Gtk::PACK_SHRINK);
 
 	dribble_frame.add(dribble_panel);
 	vbox1.pack_start(dribble_frame, Gtk::PACK_SHRINK);
 
 	hbox.pack_start(vbox1, Gtk::PACK_EXPAND_WIDGET);
 
+	mode_hbox.pack_start(direct_button, Gtk::PACK_SHRINK);
+	mode_hbox.pack_start(primitive_button, Gtk::PACK_SHRINK);
+
+	direct_button.set_active();
+	direct_button.signal_toggled().connect(sigc::mem_fun(this, &TesterWindow::on_mode_changed));
+	primitive_button.signal_toggled().connect(sigc::mem_fun(this, &TesterWindow::on_mode_changed));
+	
+	mode_frame.add(mode_hbox);
+	vbox2.pack_start(mode_frame, Gtk::PACK_SHRINK);
+	
 	kicker_frame.add(kicker_panel);
 	vbox2.pack_start(kicker_frame, Gtk::PACK_SHRINK);
 
-	leds_frame.add(leds_panel);
-	vbox2.pack_start(leds_frame, Gtk::PACK_SHRINK);
-
-	params_frame.add(params_panel);
-	vbox2.pack_start(params_frame, Gtk::PACK_SHRINK);
+	drive_frame.add(drive_panel);
+	vbox2.pack_start(drive_frame, Gtk::PACK_SHRINK);
 
 	power_frame.add(power_panel);
 	vbox2.pack_start(power_frame, Gtk::PACK_SHRINK);
+
+	primitive_frame.add(primitive_panel);
+	vbox2.pack_start(primitive_frame, Gtk::PACK_SHRINK);
 
 	hbox.pack_start(vbox2, Gtk::PACK_EXPAND_WIDGET);
 
@@ -147,6 +165,7 @@ TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) :
 	Gtk::Main::signal_key_snooper().connect(sigc::mem_fun(this, &TesterWindow::key_snoop));
 
 	show_all();
+	primitive_frame.hide();
 }
 
 TesterWindow::~TesterWindow() = default;
@@ -242,3 +261,20 @@ bool TesterWindow::on_delete_event(GdkEventAny *) {
 	return false;
 }
 
+void TesterWindow::on_mode_changed() {
+	if (primitive_button.get_active()) {
+		kicker_frame.hide();
+		drive_frame.hide();
+		power_frame.hide();
+		primitive_frame.show();
+		primitive_panel.hide_init();	
+	}
+
+	else {	
+		primitive_frame.hide();
+		kicker_frame.show();
+		drive_frame.show();
+		power_frame.show();
+	}
+	
+}
