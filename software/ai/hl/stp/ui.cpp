@@ -15,12 +15,12 @@ using AI::HL::STP::Evaluation::grid_x;
 using AI::HL::STP::Evaluation::grid_y;
 
 namespace {
-	BoolParam draw_ray(u8"draw ray", u8"Overlay/STP", false);
-	BoolParam DRAW_FRIENDLY_PASS(u8"Draw friendly pass lines", u8"Overlay/STP", false);
-	BoolParam DRAW_ENEMY_PASS(u8"Draw enemy pass lines", u8"Overlay/STP", false);
-	BoolParam DRAW_SHOOT(u8"Draw shoot lines", u8"Overlay/STP", false);
-	BoolParam DRAW_OFFENSE(u8"Draw offense circles", u8"Overlay/STP", false);
-	BoolParam DRAW_DEFENSE(u8"Draw defense circles", u8"Overlay/STP", false);
+	BoolParam draw_ray(u8"draw ray", u8"AI/HL/STP/UI", false);
+	BoolParam DRAW_FRIENDLY_PASS(u8"Draw friendly pass lines", u8"AI/HL/STP/UI", false);
+	BoolParam DRAW_ENEMY_PASS(u8"Draw enemy pass lines", u8"AI/HL/STP/UI", false);
+	BoolParam DRAW_SHOOT(u8"Draw shoot lines", u8"AI/HL/STP/UI", false);
+	BoolParam DRAW_OFFENSE(u8"Draw offense circles", u8"AI/HL/STP/UI", false);
+	BoolParam DRAW_DEFENSE(u8"Draw defense circles", u8"AI/HL/STP/UI", false);
 }
 
 void AI::HL::STP::draw_player_status(World world, Cairo::RefPtr<Cairo::Context> ctx) {
