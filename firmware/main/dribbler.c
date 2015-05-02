@@ -34,8 +34,6 @@
 #define THERMAL_WARNING_STOP_TEMPERATURE_WINDING (THERMAL_WARNING_START_TEMPERATURE_WINDING - 15.0f) // °C—chead
 #define THERMAL_WARNING_STOP_ENERGY_WINDING ((THERMAL_WARNING_STOP_TEMPERATURE_WINDING - THERMAL_AMBIENT) * THERMAL_CAPACITANCE_WINDING) // joules
 
-#define MAX_DELTA_PWM 255
-
 static float winding_energy = 0.0f, housing_energy = 0.0f;
 static bool hot = false;
 static unsigned int temperature = 0U;
@@ -78,18 +76,9 @@ void dribbler_tick(uint8_t pwm, log_record_t *record) {
 
 	// Decide whether to run or not.
 	if (winding_energy < THERMAL_MAX_ENERGY_WINDING) {
+		motor_set(4U, MOTOR_MODE_FORWARD, pwm);
 		float battery = adc_battery();
 		float back_emf = dribbler_speed * VOLTS_PER_SPEED_UNIT;
-		uint16_t back_emf_pwm = (uint16_t) (back_emf / battery * 255.0f);
-		uint8_t min_pwm = back_emf_pwm <= MAX_DELTA_PWM ? 0 : (uint8_t) (back_emf_pwm - MAX_DELTA_PWM);
-		uint8_t max_pwm = back_emf_pwm >= 255 - MAX_DELTA_PWM ? 255 : (uint8_t) (back_emf_pwm + MAX_DELTA_PWM);
-		if (pwm > max_pwm) {
-			pwm = max_pwm;
-		} else if (pwm < min_pwm) {
-			pwm = min_pwm;
-		}
-
-		motor_set(4U, MOTOR_MODE_FORWARD, pwm);
 		float applied_voltage = battery * pwm / 255.0f;
 		float delta_voltage = applied_voltage - back_emf;
 		float current = delta_voltage / (PHASE_RESISTANCE + SWITCH_RESISTANCE);
