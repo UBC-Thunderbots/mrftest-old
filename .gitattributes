@@ -551,10 +551,6 @@ software/autoref/setup.cpp -text
 software/autoref/setup.h -text
 software/build_id.cpp -text
 software/config.xml -text
-software/convertlog/main.cpp -text
-software/convertlog/v1v2/convert.cpp -text
-software/convertlog/v1v2/convert.h -text
-software/convertlog/v1v2/tags.h -text
 software/cppunit/geom/angle.cpp -text
 software/cppunit/geom/util.cpp -text
 software/cppunit/main.cpp -text
