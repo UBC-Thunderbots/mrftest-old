@@ -129,7 +129,7 @@ void Player::update_predictor(AI::Timestamp ts) {
 				prediction_vector[row] += AI::RC::RobotController::WHEEL_MATRIX_PINV[row][col] * wheel_speeds_[col];
 			}
 		}
-		pred.add_control(Point(prediction_vector[0], prediction_vector[1]), Angle::of_radians(prediction_vector[2]), ts);
+		add_control(Point(prediction_vector[0], prediction_vector[1]), Angle::of_radians(prediction_vector[2]), ts);
 	}
 }
 

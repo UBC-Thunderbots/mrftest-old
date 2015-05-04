@@ -13,10 +13,12 @@ Ball::Ball() : should_highlight(false), pred(1.3e-3, 2, std::chrono::duration_ca
 
 void Ball::add_field_data(Point pos, AI::Timestamp ts) {
 	pred.add_measurement(pos, ts + std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(LOOP_DELAY)));
+	update_caches();
 }
 
 void Ball::lock_time(AI::Timestamp now) {
 	pred.lock_time(now);
+	update_caches();
 }
 
 AI::Timestamp Ball::lock_time() const {
@@ -47,3 +49,7 @@ Visualizable::Colour Ball::highlight_colour() const {
 	return Visualizable::Colour(0.0, 0.0, 0.0);
 }
 
+void Ball::update_caches() {
+	position_cached = position(0.0);
+	velocity_cached = velocity(0.0);
+}

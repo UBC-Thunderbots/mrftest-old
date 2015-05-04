@@ -234,7 +234,7 @@ namespace AI {
 					 *
 					 * \return the ball
 					 */
-					const Ball &ball() const;
+					Ball ball() const;
 
 					/**
 					 * \brief Returns the friendly team
@@ -383,8 +383,8 @@ inline const AI::HL::W::Field &AI::HL::W::World::field() const {
 	return impl.field();
 }
 
-inline const AI::HL::W::Ball &AI::HL::W::World::ball() const {
-	return impl.ball();
+inline AI::HL::W::Ball AI::HL::W::World::ball() const {
+	return AI::Common::Ball(impl.ball());
 }
 
 inline AI::HL::W::FriendlyTeam AI::HL::W::World::friendly_team() const {

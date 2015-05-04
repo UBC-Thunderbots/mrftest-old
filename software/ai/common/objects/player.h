@@ -153,7 +153,7 @@ inline bool AI::Common::Player::chicker_ready() const {
 }
 
 inline bool AI::Common::Player::has_chipper() const {
-	return impl->has_chipper();
+	return true;
 }
 
 inline bool AI::Common::Player::autokick_fired() const {
@@ -161,4 +161,3 @@ inline bool AI::Common::Player::autokick_fired() const {
 }
 
 #endif
-

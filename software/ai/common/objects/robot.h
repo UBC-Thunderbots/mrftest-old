@@ -12,18 +12,20 @@ namespace AI {
 
 namespace std {
 	/**
-	 * \brief Provides a total ordering of Robot objects so they can be stored in STL ordered containers
+	 * \brief Provides a total ordering of Robot objects so they can be stored
+	 * in STL ordered containers.
 	 */
 	template<> struct less<AI::Common::Robot> final {
 		public:
 			/**
-			 * \brief Compares two objects
+			 * \brief Compares two objects.
 			 *
-			 * \param[in] x the first objects
+			 * \param[in] x the first object
 			 *
-			 * \param[in] y the second objects
+			 * \param[in] y the second object
 			 *
-			 * \return \c true if \p x should precede \p y in an ordered container, or \c false if not.
+			 * \retval true \p x should precede \p y
+			 * \retval false \p x is equal to or should succeed \p y
 			 */
 			bool operator()(const AI::Common::Robot &x, const AI::Common::Robot &y) const;
 
@@ -35,141 +37,188 @@ namespace std {
 namespace AI {
 	namespace Common {
 		/**
-		 * \brief The common functions available on a robot in all layers
+		 * \brief The common functions available on a robot in all layers.
 		 */
 		class Robot {
 			public:
 				/**
-				 * \brief The largest possible radius of a robot, in metres
+				 * \brief The largest possible radius of a robot, in metres.
 				 */
 				static constexpr double MAX_RADIUS = 0.09;
 
 				/**
-				 * \brief Constructs a nonexistent Robot
+				 * \brief Constructs a nonexistent Robot.
 				 */
 				explicit Robot();
 
 				/**
-				 * \brief Constructs a new Robot
+				 * \brief Constructs a new Robot.
 				 *
 				 * \param[in] impl the backend implementation
 				 */
 				explicit Robot(AI::BE::Robot::Ptr impl);
 
 				/**
-				 * \brief Copies a Robot
+				 * \brief Copies a Robot.
 				 *
 				 * \param[in] copyref the object to copy
 				 */
 				Robot(const Robot &copyref);
 
 				/**
-				 * \brief Checks whether two robots are equal
+				 * \brief Checks whether two robots are equal.
 				 *
 				 * \param[in] other the robot to compare to
 				 *
-				 * \return \c true if the objects refer to the same robot, or \c false if not
+				 * \retval true the robots are equal
+				 * \retval false the robots differ
 				 */
 				bool operator==(const Robot &other) const;
 
 				/**
-				 * \brief Checks whether two robots are equal
+				 * \brief Checks whether two robots are equal.
 				 *
 				 * \param[in] other the robot to compare to
 				 *
-				 * \return \c false if the objects refer to the same robot, or \c true if not
+				 * \retval true the robots differ
+				 * \retval the robots are equal
 				 */
 				bool operator!=(const Robot &other) const;
 
 				/**
-				 * \brief Checks whether the robot exists
+				 * \brief Checks whether the robot exists.
 				 *
-				 * \return \c true if the object refers to an existing robot, or \c false if not
+				 * \retval true the object refers to an existing robot
+				 * \retval false the object does not refer to an existing robot
 				 */
 				explicit operator bool() const;
 
 				/**
-				 * \brief Returns the index of the robot
+				 * \brief Returns the index of the robot.
 				 *
 				 * \return the index of the robot's lid pattern
 				 */
 				unsigned int pattern() const;
 
 				/**
-				 * \brief Returns an object store for the robot
+				 * \brief Returns an object store for the robot.
 				 *
-				 * AI entities can use this object store to hold opaque data on a per-robot basis,
-				 * without worrying about keeping parallel data structures up-to-date and dealing with team changes.
+				 * AI entities can use this object store to hold opaque data on
+				 * a per-robot basis, without worrying about keeping parallel
+				 * data structures up-to-date and dealing with team changes.
 				 *
 				 * \return an object store
 				 */
 				ObjectStore &object_store() const;
 
 				/**
-				 * \brief Gets the predicted position of the object
-				 *
-				 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time
+				 * \brief Gets the predicted current position of the object.
 				 *
 				 * \return the predicted position
 				 */
-				Point position(double delta = 0.0) const __attribute__((warn_unused_result));
+				Point position() const __attribute__((warn_unused_result));
 
 				/**
-				 * \brief Gets the standard deviation of the predicted position of the object
+				 * \brief Gets the predicted future position of the object.
 				 *
-				 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time
+				 * \param[in] delta the number of seconds forward or backward
+				 * to predict, relative to the current time
+				 *
+				 * \return the predicted position
+				 */
+				Point position(double delta) const __attribute__((warn_unused_result));
+
+				/**
+				 * \brief Gets the standard deviation of the predicted position
+				 * of the object.
+				 *
+				 * \param[in] delta the number of seconds forward or backward
+				 * to predict, relative to the current time
 				 *
 				 * \return the standard deviation of the predicted position
 				 */
 				Point position_stdev(double delta = 0.0) const __attribute__((warn_unused_result));
 
 				/**
-				 * \brief Gets the predicted velocity of the object
-				 *
-				 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time
+				 * \brief Gets the predicted current velocity of the object.
 				 *
 				 * \return the predicted velocity
 				 */
-				Point velocity(double delta = 0.0) const __attribute__((warn_unused_result));
+				Point velocity() const __attribute__((warn_unused_result));
 
 				/**
-				 * \brief Gets the standard deviation of the predicted velocity of the object
+				 * \brief Gets the predicted future velocity of the object.
 				 *
-				 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time
+				 * \param[in] delta the number of seconds forward or backward
+				 * to predict, relative to the current time
+				 *
+				 * \return the predicted velocity
+				 */
+				Point velocity(double delta) const __attribute__((warn_unused_result));
+
+				/**
+				 * \brief Gets the standard deviation of the predicted velocity
+				 * of the object.
+				 *
+				 * \param[in] delta the number of seconds forward or backward
+				 * to predict, relative to the current time
 				 *
 				 * \return the standard deviation of the predicted velocity
 				 */
 				Point velocity_stdev(double delta = 0.0) const __attribute__((warn_unused_result));
 
 				/**
-				 * \brief Gets the predicted orientation of the object
+				 * \brief Gets the predicted current orientation of the object.
 				 *
-				 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time
+				 * \param[in] delta the number of seconds forward or backward
+				 * to predict, relative to the current time
 				 *
 				 * \return the predicted orientation
 				 */
-				Angle orientation(double delta = 0.0) const __attribute__((warn_unused_result));
+				Angle orientation() const __attribute__((warn_unused_result));
 
 				/**
-				 * \brief Gets the standard deviation of the predicted orientation of the object
+				 * \brief Gets the predicted future orientation of the object.
 				 *
-				 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time
+				 * \param[in] delta the number of seconds forward or backward
+				 * to predict, relative to the current time
+				 *
+				 * \return the predicted orientation
+				 */
+				Angle orientation(double delta) const __attribute__((warn_unused_result));
+
+				/**
+				 * \brief Gets the standard deviation of the predicted
+				 * orientation of the object.
+				 *
+				 * \param[in] delta the number of seconds forward or backward
+				 * to predict, relative to the current time
 				 *
 				 * \return the standard deviation of the predicted orientation
 				 */
 				Angle orientation_stdev(double delta = 0.0) const __attribute__((warn_unused_result));
 
 				/**
-				 * \brief Gets the predicted angular velocity of the object
-				 *
-				 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time
+				 * \brief Gets the predicted current angular velocity of the
+				 * object.
 				 *
 				 * \return the predicted angular velocity
 				 */
-				Angle avelocity(double delta = 0.0) const __attribute__((warn_unused_result));
+				Angle avelocity() const __attribute__((warn_unused_result));
 
 				/**
-				 * \brief Gets the standard deviation of the predicted angular velocity of the object
+				 * \brief Gets the predicted future angular velocity of the
+				 * object.
+				 *
+				 * \param[in] delta the number of seconds forward or backward
+				 * to predict, relative to the current time
+				 *
+				 * \return the predicted angular velocity
+				 */
+				Angle avelocity(double delta) const __attribute__((warn_unused_result));
+
+				/**
+				 * \brief Gets the standard deviation of the predicted angular velocity of the object.
 				 *
 				 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time
 				 *
@@ -218,12 +267,20 @@ inline ObjectStore &AI::Common::Robot::object_store() const {
 	return impl->object_store();
 }
 
+inline Point AI::Common::Robot::position() const {
+	return impl->position();
+}
+
 inline Point AI::Common::Robot::position(double delta) const {
 	return impl->position(delta);
 }
 
 inline Point AI::Common::Robot::position_stdev(double delta) const {
 	return impl->position_stdev(delta);
+}
+
+inline Point AI::Common::Robot::velocity() const {
+	return impl->velocity();
 }
 
 inline Point AI::Common::Robot::velocity(double delta) const {
@@ -234,12 +291,20 @@ inline Point AI::Common::Robot::velocity_stdev(double delta) const {
 	return impl->velocity_stdev(delta);
 }
 
+inline Angle AI::Common::Robot::orientation() const {
+	return impl->orientation();
+}
+
 inline Angle AI::Common::Robot::orientation(double delta) const {
 	return impl->orientation(delta);
 }
 
 inline Angle AI::Common::Robot::orientation_stdev(double delta) const {
 	return impl->orientation_stdev(delta);
+}
+
+inline Angle AI::Common::Robot::avelocity() const {
+	return impl->avelocity();
 }
 
 inline Angle AI::Common::Robot::avelocity(double delta) const {
@@ -251,4 +316,3 @@ inline Angle AI::Common::Robot::avelocity_stdev(double delta) const {
 }
 
 #endif
-

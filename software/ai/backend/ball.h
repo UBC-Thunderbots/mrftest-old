@@ -1,7 +1,6 @@
 #ifndef AI_BACKEND_BALL_H
 #define AI_BACKEND_BALL_H
 
-#include "ai/common/objects/ball.h"
 #include "ai/common/objects/time.h"
 #include "geom/predictor.h"
 #include "geom/point.h"
@@ -12,7 +11,7 @@ namespace AI {
 		/**
 		 * \brief The ball, as exposed by the backend
 		 */
-		class Ball : public AI::Common::Ball, public Visualizable::Ball {
+		class Ball final : public Visualizable::Ball {
 			public:
 				/**
 				 * \brief Whether or not the ball should be highlighted in the visualizer
@@ -47,18 +46,32 @@ namespace AI {
 				 */
 				AI::Timestamp lock_time() const;
 
-				Point position(double delta = 0.0) const override;
-				Point velocity(double delta = 0.0) const override;
-				Point position_stdev(double delta = 0.0) const override;
-				Point velocity_stdev(double delta = 0.0) const override;
+				Point position() const override;
+				Point position(double delta) const;
+				Point velocity() const override;
+				Point velocity(double delta) const;
+				Point position_stdev(double delta) const;
+				Point velocity_stdev(double delta) const;
 				bool highlight() const override;
 				Visualizable::Colour highlight_colour() const override;
 
 			private:
 				Predictor2 pred;
+				Point position_cached, velocity_cached;
+
+				void update_caches();
 		};
 	}
 }
 
-#endif
 
+
+inline Point AI::BE::Ball::position() const {
+	return position_cached;
+}
+
+inline Point AI::BE::Ball::velocity() const {
+	return velocity_cached;
+}
+
+#endif

@@ -124,20 +124,16 @@ namespace Visualizable {
 			/**
 			 * Returns the position of the ball.
 			 *
-			 * \param[in] delta the number of seconds into the future to look.
-			 *
 			 * \return the position of the ball.
 			 */
-			virtual Point position(double delta = 0.0) const = 0;
+			virtual Point position() const = 0;
 
 			/**
 			 * Returns the velocity of the ball.
 			 *
-			 * \param[in] delta the number of seconds into the future to look.
-			 *
 			 * \return the velocity of the ball.
 			 */
-			virtual Point velocity(double delta = 0.0) const = 0;
+			virtual Point velocity() const = 0;
 
 			/**
 			 * Returns whether or not the ball should be highlighted.
@@ -167,29 +163,23 @@ namespace Visualizable {
 			/**
 			 * Returns the position of the robot.
 			 *
-			 * \param[in] delta the number of seconds into the future to look.
-			 *
 			 * \return the position of the Robot.
 			 */
-			virtual Point position(double delta = 0.0) const = 0;
+			virtual Point position() const = 0;
 
 			/**
 			 * Returns the orientation of the robot.
 			 *
-			 * \param[in] delta the number of seconds into the future to look.
-			 *
 			 * \return the orientation of the Robot.
 			 */
-			virtual Angle orientation(double delta = 0.0) const = 0;
+			virtual Angle orientation() const = 0;
 
 			/**
 			 * Returns the velocity of the robot.
 			 *
-			 * \param[in] delta the number of seconds into the future to look.
-			 *
 			 * \return the velocity of the robot.
 			 */
-			virtual Point velocity(double delta = 0.0) const = 0;
+			virtual Point velocity() const = 0;
 
 			/**
 			 * Returns the colour of the robot.

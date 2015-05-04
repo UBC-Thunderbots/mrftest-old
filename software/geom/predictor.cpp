@@ -24,38 +24,26 @@ namespace {
 	}
 }
 
-template<> Predictor<double>::Predictor(double measure_std, double accel_std, Timediff decay_time_constant) : filter(false, measure_std, accel_std, decay_time_constant), zero_value(0, 0) {
+template<> Predictor<double>::Predictor(double measure_std, double accel_std, Timediff decay_time_constant) : filter(false, measure_std, accel_std, decay_time_constant) {
 }
 
-template<> Predictor<Angle>::Predictor(Angle measure_std, Angle accel_std, Timediff decay_time_constant) : filter(true, measure_std.to_radians(), accel_std.to_radians(), decay_time_constant), zero_value(Angle::zero(), Angle::zero()) {
+template<> Predictor<Angle>::Predictor(Angle measure_std, Angle accel_std, Timediff decay_time_constant) : filter(true, measure_std.to_radians(), accel_std.to_radians(), decay_time_constant) {
 }
 
-template<typename T> std::pair<T, T> Predictor<T>::value(double delta, unsigned int deriv, bool ignore_cache) const {
-	if (-1e-9 < delta && delta < 1e-9 && !ignore_cache) {
-		if (deriv == 0) {
-			return zero_value;
-		} else if (deriv == 1) {
-			return zero_first_deriv;
-		} else {
-			std::abort();
-		}
+template<typename T> std::pair<T, T> Predictor<T>::value(double delta, unsigned int deriv) const {
+	Matrix guess, covariance;
+	filter.predict(lock_timestamp + std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(delta)), guess, covariance);
+	if (deriv == 0) {
+		return std::make_pair(double_to_value<T>(guess(0, 0)), double_to_value<T>(std::sqrt(covariance(0, 0))));
+	} else if (deriv == 1) {
+		return std::make_pair(double_to_value<T>(guess(1, 0)), double_to_value<T>(std::sqrt(covariance(1, 1))));
 	} else {
-		Matrix guess, covariance;
-		filter.predict(lock_timestamp + std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(delta)), guess, covariance);
-		if (deriv == 0) {
-			return std::make_pair(double_to_value<T>(guess(0, 0)), double_to_value<T>(std::sqrt(covariance(0, 0))));
-		} else if (deriv == 1) {
-			return std::make_pair(double_to_value<T>(guess(1, 0)), double_to_value<T>(std::sqrt(covariance(1, 1))));
-		} else {
-			std::abort();
-		}
+		std::abort();
 	}
 }
 
 template<typename T> void Predictor<T>::lock_time(Timestamp ts) {
 	lock_timestamp = ts;
-	zero_value = value(0, 0, true);
-	zero_first_deriv = value(0, 1, true);
 }
 
 template<typename T> typename Predictor<T>::Timestamp Predictor<T>::lock_time() const {
@@ -84,9 +72,9 @@ Predictor2::Predictor2(double measure_std, double accel_std, Predictor<double>::
 		y(measure_std, accel_std, decay_time_constant) {
 }
 
-std::pair<Point, Point> Predictor2::value(double delta, unsigned int deriv, bool ignore_cache) const {
-	const std::pair<double, double> &vx = x.value(delta, deriv, ignore_cache);
-	const std::pair<double, double> &vy = y.value(delta, deriv, ignore_cache);
+std::pair<Point, Point> Predictor2::value(double delta, unsigned int deriv) const {
+	const std::pair<double, double> &vx = x.value(delta, deriv);
+	const std::pair<double, double> &vy = y.value(delta, deriv);
 	return std::make_pair(Point(vx.first, vy.first), Point(vx.second, vy.second));
 }
 
@@ -122,10 +110,10 @@ Predictor3::Predictor3(double measure_std_linear, double accel_std_linear, Predi
 		t(measure_std_angular, accel_std_angular, decay_time_constant_angular) {
 }
 
-std::pair<std::pair<Point, Angle>, std::pair<Point, Angle>> Predictor3::value(double delta, unsigned int deriv, bool ignore_cache) const {
-	const std::pair<double, double> &vx = x.value(delta, deriv, ignore_cache);
-	const std::pair<double, double> &vy = y.value(delta, deriv, ignore_cache);
-	const std::pair<Angle, Angle> &vt = t.value(delta, deriv, ignore_cache);
+std::pair<std::pair<Point, Angle>, std::pair<Point, Angle>> Predictor3::value(double delta, unsigned int deriv) const {
+	const std::pair<double, double> &vx = x.value(delta, deriv);
+	const std::pair<double, double> &vy = y.value(delta, deriv);
+	const std::pair<Angle, Angle> &vt = t.value(delta, deriv);
 	return std::make_pair(std::make_pair(Point(vx.first, vy.first), vt.first), std::make_pair(Point(vx.second, vy.second), vt.second));
 }
 

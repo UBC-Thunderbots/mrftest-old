@@ -106,11 +106,11 @@ namespace {
 
 	class Ball final : public NonCopyable, public Visualizable::Ball {
 		public:
-			Point position(double) const override {
+			Point position() const override {
 				return position_;
 			}
 
-			Point velocity(double) const override {
+			Point velocity() const override {
 				return velocity_;
 			}
 
@@ -150,15 +150,15 @@ namespace {
 				orientation_ = Angle::of_radians(decode_micros(position.t()));
 			}
 
-			Point position(double) const override {
+			Point position() const override {
 				return position_;
 			}
 
-			Angle orientation(double) const override {
+			Angle orientation() const override {
 				return orientation_;
 			}
 
-			Point velocity(double) const override {
+			Point velocity() const override {
 				return velocity_;
 			}
 

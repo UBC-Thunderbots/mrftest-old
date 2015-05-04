@@ -1,14 +1,21 @@
 #ifndef AI_COMMON_OBJECTS_BALL_H
 #define AI_COMMON_OBJECTS_BALL_H
 
+#include "ai/backend/ball.h"
 #include "geom/point.h"
+
+namespace AI {
+	namespace Common {
+		class Ball;
+	}
+}
 
 namespace AI {
 	namespace Common {
 		/**
 		 * \brief The common functions available on the ball in all layers.
 		 */
-		class Ball {
+		class Ball final {
 			public:
 				/**
 				 * \brief The approximate radius of the ball.
@@ -16,43 +23,103 @@ namespace AI {
 				static constexpr double RADIUS = 0.0215;
 
 				/**
-				 * \brief Gets the predicted position of the object.
+				 * \brief Constructs a new Ball.
 				 *
-				 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time
+				 * \param[in] impl the backend implementation
+				 */
+				explicit Ball(const AI::BE::Ball &impl);
+
+				/**
+				 * \brief Gets the predicted position of the object at the
+				 * current time.
 				 *
 				 * \return the predicted position
 				 */
-				virtual Point position(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+				Point position() const __attribute__((warn_unused_result));
+
+				/**
+				 * \brief Gets the predicted position of the object.
+				 *
+				 * \param[in] delta the number of seconds forward or backward
+				 * to predict, relative to the current time
+				 *
+				 * \return the predicted position
+				 */
+				Point position(double delta) const __attribute__((warn_unused_result));
+
+				/**
+				 * \brief Gets the predicted velocity of the object at the
+				 * current time.
+				 *
+				 * \return the predicted velocity
+				 */
+				Point velocity() const __attribute__((warn_unused_result));
 
 				/**
 				 * \brief Gets the predicted velocity of the object.
 				 *
-				 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time
+				 * \param[in] delta the number of seconds forward or backward
+				 * to predict, relative to the current time
 				 *
 				 * \return the predicted velocity
 				 */
-				virtual Point velocity(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+				Point velocity(double delta) const __attribute__((warn_unused_result));
 
 				/**
-				 * \brief Gets the standard deviation of the predicted position of the object.
+				 * \brief Gets the standard deviation of the predicted position
+				 * of the object.
 				 *
-				 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time
+				 * \param[in] delta the number of seconds forward or backward
+				 * to predict, relative to the current time
 				 *
 				 * \return the standard deviation of the predicted position
 				 */
-				virtual Point position_stdev(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+				Point position_stdev(double delta = 0.0) const __attribute__((warn_unused_result));
 
 				/**
-				 * \brief Gets the standard deviation of the predicted velocity of the object.
+				 * \brief Gets the standard deviation of the predicted velocity
+				 * of the object.
 				 *
-				 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time
+				 * \param[in] delta the number of seconds forward or backward
+				 * to predict, relative to the current time
 				 *
 				 * \return the standard deviation of the predicted velocity
 				 */
-				virtual Point velocity_stdev(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+				Point velocity_stdev(double delta = 0.0) const __attribute__((warn_unused_result));
+
+			private:
+				const AI::BE::Ball &impl;
 		};
 	}
 }
 
-#endif
 
+
+inline AI::Common::Ball::Ball(const AI::BE::Ball &impl) : impl(impl) {
+}
+
+inline Point AI::Common::Ball::position() const {
+	return impl.position();
+}
+
+inline Point AI::Common::Ball::position(double delta) const {
+	return impl.position(delta);
+}
+
+inline Point AI::Common::Ball::velocity() const {
+	return impl.velocity();
+}
+
+inline Point AI::Common::Ball::velocity(double delta) const {
+	return impl.velocity(delta);
+}
+
+inline Point AI::Common::Ball::position_stdev(double delta) const {
+	return impl.position_stdev(delta);
+}
+
+inline Point AI::Common::Ball::velocity_stdev(double delta) const {
+	return impl.velocity_stdev(delta);
+}
+
+#endif

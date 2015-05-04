@@ -41,11 +41,9 @@ template<typename T> class Predictor final {
 		 *
 		 * \param[in] deriv the derivative level to take (\c 0 for position or \c 1 for velocity).
 		 *
-		 * \param[in] ignore_cache \c true to ignore the lookaside, or \c false to use it.
-		 *
 		 * \return the value and its standard deviation.
 		 */
-		std::pair<T, T> value(double delta, unsigned int deriv = 0, bool ignore_cache = false) const __attribute__((warn_unused_result));
+		std::pair<T, T> value(double delta, unsigned int deriv = 0) const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Locks in a timestamp to consider as the current time.
@@ -91,7 +89,6 @@ template<typename T> class Predictor final {
 	private:
 		Timestamp lock_timestamp;
 		Kalman filter;
-		std::pair<T, T> zero_value, zero_first_deriv;
 };
 
 /**
@@ -117,11 +114,9 @@ class Predictor2 final {
 		 *
 		 * \param[in] deriv the derivative level to take (\c 0 for position or \c 1 for velocity).
 		 *
-		 * \param[in] ignore_cache \c true to ignore the lookaside, or \c false to use it.
-		 *
 		 * \return the value and its standard deviation.
 		 */
-		std::pair<Point, Point> value(double delta, unsigned int deriv = 0, bool ignore_cache = false) const __attribute__((warn_unused_result));
+		std::pair<Point, Point> value(double delta, unsigned int deriv = 0) const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Locks in a timestamp to consider as the current time.
@@ -197,11 +192,9 @@ class Predictor3 final {
 		 *
 		 * \param[in] deriv the derivative level to take (\c 0 for position or \c 1 for velocity).
 		 *
-		 * \param[in] ignore_cache \c true to ignore the lookaside, or \c false to use it.
-		 *
 		 * \return the value and its standard deviation.
 		 */
-		std::pair<std::pair<Point, Angle>, std::pair<Point, Angle>> value(double delta, unsigned int deriv = 0, bool ignore_cache = false) const __attribute__((warn_unused_result));
+		std::pair<std::pair<Point, Angle>, std::pair<Point, Angle>> value(double delta, unsigned int deriv = 0) const __attribute__((warn_unused_result));
 
 		/**
 		 * \brief Locks in a timestamp to consider as the current time.

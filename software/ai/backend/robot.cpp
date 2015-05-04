@@ -9,13 +9,14 @@ namespace {
 }
 
 Robot::Robot(unsigned int pattern) :
-		pred(1.3e-3, 2, TIME_CONSTANT, Angle::of_radians(1.3e-3), Angle::of_radians(2), TIME_CONSTANT),
 		pattern_(pattern),
-		avoid_distance_(AI::Flags::AvoidDistance::MEDIUM) {
+		avoid_distance_(AI::Flags::AvoidDistance::MEDIUM),
+		pred(1.3e-3, 2, TIME_CONSTANT, Angle::of_radians(1.3e-3), Angle::of_radians(2), TIME_CONSTANT) {
 }
 
 void Robot::add_field_data(Point pos, Angle ori, AI::Timestamp ts) {
 	pred.add_measurement(pos, ori, ts - std::chrono::duration_cast<AI::Timediff>(std::chrono::duration<double>(AI::BE::LOOP_DELAY)));
+	update_caches();
 }
 
 ObjectStore &Robot::object_store() const {
@@ -80,6 +81,7 @@ void Robot::pre_tick() {
 
 void Robot::lock_time(AI::Timestamp now) {
 	pred.lock_time(now);
+	update_caches();
 }
 
 Visualizable::Colour Robot::visualizer_colour() const {
@@ -110,3 +112,14 @@ Visualizable::Colour Robot::bar_graph_colour(unsigned int) const {
 	throw std::logic_error("This robot has no graphs");
 }
 
+void Robot::add_control(Point linear_value, Angle angular_value, Predictor<double>::Timestamp ts) {
+	pred.add_control(linear_value, angular_value, ts);
+	update_caches();
+}
+
+void Robot::update_caches() {
+	position_cached = position(0.0);
+	orientation_cached = orientation(0.0);
+	velocity_cached = velocity(0.0);
+	avelocity_cached = avelocity(0.0);
+}
