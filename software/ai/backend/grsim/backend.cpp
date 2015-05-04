@@ -102,19 +102,6 @@ Backend::Backend(const std::vector<bool> &disable_cameras, int multicast_interfa
 	}
 
 	signal_post_tick().connect(sigc::mem_fun(this, &Backend::send_packet));
-
-	// grSim doesn’t send field geometry—hardcode it.
-	{
-		static const double length = 6.05;
-		static const double total_length = length + 2.0 * 0.25 + 2.0 * 0.425;
-		static const double width = 4.05;
-		static const double total_width = width + 2.0 * 0.25 + 2.0 * 0.425;
-		static const double goal_width = 0.7;
-		static const double centre_circle_radius = 0.5;
-		static const double defense_area_radius = 0.8;
-		static const double defense_area_stretch = 0.35;
-		field_.update(length, total_length, width, total_width, goal_width, centre_circle_radius, defense_area_radius, defense_area_stretch);
-	}
 }
 
 AI::BE::GRSim::BackendFactory &Backend::factory() const {
