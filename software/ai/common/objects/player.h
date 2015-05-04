@@ -1,5 +1,5 @@
-#ifndef AI_COMMON_PLAYER_H
-#define AI_COMMON_PLAYER_H
+#ifndef AI_COMMON_OBJECTS_PLAYER_H
+#define AI_COMMON_OBJECTS_PLAYER_H
 
 #include "ai/backend/player.h"
 #include <functional>

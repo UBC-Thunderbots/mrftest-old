@@ -1,5 +1,5 @@
-#ifndef AI_COMMON_BALL_H
-#define AI_COMMON_BALL_H
+#ifndef AI_COMMON_OBJECTS_BALL_H
+#define AI_COMMON_OBJECTS_BALL_H
 
 #include "geom/point.h"
 

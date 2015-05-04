@@ -2,28 +2,6 @@
 #include <cstdlib>
 #include <stdexcept>
 
-Log::Colour Log::Util::Colour::to_protobuf(AI::Common::Colour clr) {
-	switch (clr) {
-		case AI::Common::Colour::YELLOW:
-			return Log::COLOUR_YELLOW;
-
-		case AI::Common::Colour::BLUE:
-			return Log::COLOUR_BLUE;
-	}
-	throw std::invalid_argument("Invalid enumeration element.");
-}
-
-AI::Common::Colour Log::Util::Colour::of_protobuf(Log::Colour clr) {
-	switch (clr) {
-		case Log::COLOUR_YELLOW:
-			return AI::Common::Colour::YELLOW;
-
-		case Log::COLOUR_BLUE:
-			return AI::Common::Colour::BLUE;
-	}
-	throw std::invalid_argument("Invalid enumeration element.");
-}
-
 Log::PlayType Log::Util::PlayType::to_protobuf(AI::Common::PlayType pt) {
 	switch (pt) {
 		case AI::Common::PlayType::HALT:

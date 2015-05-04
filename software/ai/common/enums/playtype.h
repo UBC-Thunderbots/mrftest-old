@@ -1,8 +1,7 @@
-#ifndef AI_COMMON_PLAYTYPE_H
-#define AI_COMMON_PLAYTYPE_H
+#ifndef AI_COMMON_ENUMS_PLAYTYPE_H
+#define AI_COMMON_ENUMS_PLAYTYPE_H
 
 #include <functional>
-#include <vector>
 #include <glibmm/ustring.h>
 
 namespace AI {
@@ -143,4 +142,3 @@ namespace std {
 }
 
 #endif
-

@@ -1,5 +1,5 @@
 #include "log/player.h"
-#include "ai/common/playtype.h"
+#include "ai/common/enums/playtype.h"
 #include "log/loader.h"
 #include "log/shared/enums.h"
 #include "proto/log_record.pb.h"

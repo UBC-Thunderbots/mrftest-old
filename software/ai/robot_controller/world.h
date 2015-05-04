@@ -3,7 +3,7 @@
 
 #include "ai/flags.h"
 #include "ai/backend/backend.h"
-#include "ai/common/world.h"
+#include "ai/common/objects/world.h"
 #include "geom/point.h"
 #include <functional>
 #include <utility>

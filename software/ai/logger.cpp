@@ -63,6 +63,17 @@ namespace {
 		dest.set_nanoseconds(static_cast<int32_t>(nanos % 1000000000));
 	}
 
+    Log::Colour colour_to_protobuf(AI::Common::Colour clr) {
+        switch (clr) {
+            case AI::Common::Colour::YELLOW:
+                return Log::COLOUR_YELLOW;
+
+            case AI::Common::Colour::BLUE:
+                return Log::COLOUR_BLUE;
+        }
+        throw std::invalid_argument("Invalid enumeration element.");
+    }
+
 	AI::Logger *instance = nullptr;
 }
 
@@ -95,7 +106,7 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), fos(fd.
 	if (ai.robot_controller_factory.get()) {
 		config_record.mutable_config()->set_robot_controller(ai.robot_controller_factory->name());
 	}
-	config_record.mutable_config()->set_friendly_colour(Log::Util::Colour::to_protobuf(ai.backend.friendly_colour()));
+	config_record.mutable_config()->set_friendly_colour(colour_to_protobuf(ai.backend.friendly_colour()));
 	config_record.mutable_config()->set_nominal_ticks_per_second(TIMESTEPS_PER_SECOND);
 	write_record(config_record);
 
@@ -283,7 +294,7 @@ void AI::Logger::on_field_changed() {
 }
 
 void AI::Logger::on_friendly_colour_changed() {
-	config_record.mutable_config()->set_friendly_colour(Log::Util::Colour::to_protobuf(ai.backend.friendly_colour()));
+	config_record.mutable_config()->set_friendly_colour(colour_to_protobuf(ai.backend.friendly_colour()));
 	write_record(config_record);
 }
 

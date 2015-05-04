@@ -9,7 +9,7 @@
 #include "ai/hl/stp/action/move.h"
 #include "geom/util.h"
 #include "util/param.h"
-#include "ai/common/playtype.h"
+#include "ai/common/enums/playtype.h"
 #include "ai/hl/stp/tactic/move_stop.h"
 
 namespace Flags = AI::Flags;

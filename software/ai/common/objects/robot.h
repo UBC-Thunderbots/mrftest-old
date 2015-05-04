@@ -1,5 +1,5 @@
-#ifndef AI_COMMON_ROBOT_H
-#define AI_COMMON_ROBOT_H
+#ifndef AI_COMMON_OBJECTS_ROBOT_H
+#define AI_COMMON_OBJECTS_ROBOT_H
 
 #include "ai/backend/robot.h"
 #include <functional>

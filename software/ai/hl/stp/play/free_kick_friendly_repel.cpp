@@ -3,7 +3,7 @@
 #include "ai/hl/stp/tactic/repel.h"
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/tactic/offend.h"
-#include "ai/common/playtype.h"
+#include "ai/common/enums/playtype.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
 

@@ -5,7 +5,7 @@
 #include "ai/backend/refbox.h"
 #include "ai/backend/clock/monotonic.h"
 #include "ai/backend/vision/vision_socket.h"
-#include "ai/common/playtype.h"
+#include "ai/common/enums/playtype.h"
 #include "geom/point.h"
 #include "geom/particle/particle_filter_2d.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"

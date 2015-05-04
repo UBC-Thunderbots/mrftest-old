@@ -1,5 +1,4 @@
-#include "ai/common/playtype.h"
-#include <cstddef>
+#include "ai/common/enums/playtype.h"
 #include <cstdlib>
 #include <stdexcept>
 
@@ -112,4 +111,3 @@ AI::Common::PlayType AI::Common::PlayTypeInfo::invert(PlayType pt) {
 
 	std::abort();
 }
-

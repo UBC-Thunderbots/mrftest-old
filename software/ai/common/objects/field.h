@@ -1,5 +1,5 @@
-#ifndef AI_COMMON_FIELD_H
-#define AI_COMMON_FIELD_H
+#ifndef AI_COMMON_OBJECTS_FIELD_H
+#define AI_COMMON_OBJECTS_FIELD_H
 
 #include "geom/point.h"
 #include <utility>

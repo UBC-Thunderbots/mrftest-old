@@ -1,7 +1,7 @@
 #ifndef AI_FLAGS_H
 #define AI_FLAGS_H
 
-#include "ai/common/playtype.h"
+#include "ai/common/enums/playtype.h"
 
 namespace AI {
 	namespace Flags {

@@ -2,7 +2,7 @@
 #define AI_NAVIGATOR_WORLD_H
 
 #include "ai/backend/backend.h"
-#include "ai/common/world.h"
+#include "ai/common/objects/world.h"
 #include "ai/flags.h"
 #include <functional>
 #include <utility>

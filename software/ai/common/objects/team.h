@@ -1,5 +1,5 @@
-#ifndef AI_COMMON_TEAM_H
-#define AI_COMMON_TEAM_H
+#ifndef AI_COMMON_OBJECTS_TEAM_H
+#define AI_COMMON_OBJECTS_TEAM_H
 
 #include "ai/backend/team.h"
 #include <cstddef>
@@ -7,14 +7,6 @@
 
 namespace AI {
 	namespace Common {
-		/**
-		 * \brief The possible values indicating which colour a team is.
-		 */
-		enum class Colour {
-			YELLOW,
-			BLUE,
-		};
-
 		template<typename T, typename U> class Team;
 		template<typename T, typename U> class TeamIterator;
 

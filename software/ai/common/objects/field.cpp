@@ -1,4 +1,4 @@
-#include "ai/common/field.h"
+#include "ai/common/objects/field.h"
 
 using namespace AI::Common;
 
@@ -45,4 +45,3 @@ std::pair<Point, Point> Field::enemy_goal_boundary() const {
 double Field::bounds_margin() const {
 	return width() / 20.0;
 }
-

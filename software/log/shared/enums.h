@@ -2,32 +2,11 @@
 #define LOG_SHARED_ENUMS_H
 
 #include "ai/flags.h"
-#include "ai/common/playtype.h"
-#include "ai/common/team.h"
+#include "ai/common/enums/playtype.h"
 #include "proto/log_record.pb.h"
 
 namespace Log {
 	namespace Util {
-		namespace Colour {
-			/**
-			 * \brief Converts an AI colour to a Protobuf colour.
-			 *
-			 * \param[in] clr the AI colour to convert.
-			 *
-			 * \return the Protobuf colour.
-			 */
-			Log::Colour to_protobuf(AI::Common::Colour clr);
-
-			/**
-			 * \brief Converts a Protobuf colour to an AI colour.
-			 *
-			 * \param[in] clr the Protobuf colour to convert.
-			 *
-			 * \return the AI colour.
-			 */
-			AI::Common::Colour of_protobuf(Log::Colour clr);
-		}
-
 		namespace PlayType {
 			/**
 			 * \brief Converts an AI play type to a Protobuf play type.

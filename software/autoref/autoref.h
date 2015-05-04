@@ -3,10 +3,8 @@
 
 #include "ai/ai.h"
 #include "ai/backend/ball.h"
-#include "ai/common/field.h"
 #include "ai/backend/backend.h"
-#include "ai/common/world.h"
-#include "ai/common/team.h"
+#include "ai/common/objects/world.h"
 #include "ai/hl/world.h"
 #include "proto/log_record.pb.h"
 #include "proto/referee.pb.h"
