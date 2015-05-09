@@ -75,6 +75,8 @@ namespace Geom {
 	double dist(const Line& first, const Vector2& second);
 	double dist(const Vector2& first, const Line& second);
 
+	double distsq(const Vector2& first, const Seg& second);
+	double distsq(const Seg& first, const Vector2& second);
 	double distsq(const Vector2& first, const Vector2& second);
 
 	bool is_degenerate(const Seg& seg);

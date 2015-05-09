@@ -23,8 +23,8 @@ namespace Geom {
 		if (intersects(first, second)) {
 			return 0.0;
 		}
-		return std::min(std::min(dist(first, second.start), dist(first, second.end)),
-						std::min(dist(second, first.start), dist(second, first.end)));
+		return std::sqrt(std::min(std::min(distsq(first, second.start), distsq(first, second.end)),
+						std::min(distsq(second, first.start), distsq(second, first.end))));
 	}
 
 	double dist(const Line& first, const Vector2& second) {
@@ -40,6 +40,14 @@ namespace Geom {
 	}
 
 	double dist(const Vector2& first, const Seg& second) {
+		return std::sqrt(distsq(first, second));
+	}
+
+	double dist(const Seg& first, const Vector2& second) {
+		return dist(second, first);
+	}
+
+	double distsq(const Vector2& first, const Seg& second) {
 		double seglen = len(second);
 		Vector2 relsecond_s = first - second.start;
 		Vector2 relsecond_e = first - second.end;
@@ -57,11 +65,11 @@ namespace Geom {
 		double lensq_s = distsq(second.start, first),
 			   lensq_e = distsq(second.end, first);
 
-		return lensq_s < lensq_e ? std::sqrt(lensq_s) : std::sqrt(lensq_e);
+		return std::min(lensq_s, lensq_e);
 	}
 
-	double dist(const Seg& first, const Vector2& second) {
-		return dist(second, first);
+	double distsq(const Seg &first, const Vector2 &second) {
+		return distsq(second, first);
 	}
 
 	double distsq(const Vector2& first, const Vector2& second) {
@@ -172,15 +180,15 @@ namespace Geom {
 	bool intersects(const Seg& first, const Seg& second) {
 		if (sign((first.start - first.end).cross(second.start - second.end)) == 0) {
 			// find distance of two endpoints on segments furthest away from each other
-			double mx_len = std::max(
-					std::max((second.start - first.end).len(), (second.end - first.end).len()),
-					std::max((second.start - first.start).len(), (second.end - first.start).len()));
+			double mx_len = std::sqrt(std::max(
+					std::max((second.start - first.end).lensq(), (second.end - first.end).lensq()),
+					std::max((second.start - first.start).lensq(), (second.end - first.start).lensq())));
 			// if the segments cross then this distance should be less than
 			// the sum of the distances of the line segments
 			return mx_len < (first.start - first.end).len() + (second.start - second.end).len() + EPS;
 		}
 
-	return sign((first.end - first.start).cross(second.start - first.start)) * sign((first.end - first.start).cross(second.end - first.start)) <= 0 && sign((second.end - second.start).cross(first.start - second.start)) * sign((second.end - second.start).cross(first.end - second.start)) <= 0;
+		return sign((first.end - first.start).cross(second.start - first.start)) * sign((first.end - first.start).cross(second.end - first.start)) <= 0 && sign((second.end - second.start).cross(first.start - second.start)) * sign((second.end - second.start).cross(first.end - second.start)) <= 0;
 	}
 
 	template<size_t N>
