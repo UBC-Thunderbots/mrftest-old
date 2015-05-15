@@ -63,6 +63,8 @@ PROJECT_CXXFLAGS += -Wredundant-decls
 PROJECT_CXXFLAGS += -Wuseless-cast
 # Warn when using 0 as a null pointer constant; nullptr is preferable.
 PROJECT_CXXFLAGS += -Wzero-as-null-pointer-constant
+# Warn when doing pointer arithmetic on null, void, or function pointers.
+PROJECT_CXXFLAGS += -Wpointer-arith
 # Optimize reasonably well for the native machine.
 PROJECT_CXXFLAGS += -march=native -O2
 # Do not allow multiple definitions of the same global variable.
