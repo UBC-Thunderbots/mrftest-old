@@ -551,7 +551,6 @@ void udev_isr(void) {
 						// send and then send it.
 						size_t to_copy = MIN(elt.BCNT, uep0_out_length);
 						udev_rx_copy_out(uep0_out_wptr, to_copy, elt.BCNT - to_copy);
-						uep0_out_wptr += to_copy;
 						uep0_out_length = elt.BCNT;
 					}
 					break;
