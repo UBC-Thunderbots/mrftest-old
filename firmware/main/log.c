@@ -183,6 +183,16 @@ void log_shutdown(void) {
 		return;
 	}
 
+	// Flush out any last, partly filled sector.
+	if (filling_sector) {
+		while (next_fill_record != RECORDS_PER_SECTOR) {
+			filling_sector->records[next_fill_record++].magic = 0;
+		}
+		BaseType_t rc = xQueueSend(write_queue, &filling_sector, 0U);
+		assert(rc == pdTRUE); // Send can never fail because we only ever allocate NUM_BUFFERS buffers, and write_queue is NUM_BUFFERS long.
+		filling_sector = 0;
+	}
+
 	// Remove all the free buffers from the queue.
 	for (size_t i = 0U; i != NUM_BUFFERS; ++i) {
 		log_sector_t *ptr;
