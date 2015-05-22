@@ -335,7 +335,7 @@ static void main_task(void *UNUSED(param)) {
 
 	// Bring up the SD card.
 	fputs("Supervisor: SD init: ", stdout);
-	if (sd_init()) {
+	if (sd_init() == SD_STATUS_OK) {
 		// Bring up the data logger.
 		fputs("Supervisor: log init: ", stdout);
 		if (log_init()) {
