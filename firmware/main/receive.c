@@ -155,7 +155,7 @@ static void receive_task(void *UNUSED(param)) {
 						case 0x03U: // Set LED mode
 							if (frame_length == HEADER_LENGTH + 2U + FOOTER_LENGTH) {
 								uint8_t mode = dma_buffer[MESSAGE_PAYLOAD_ADDR];
-								if (0U <= mode && mode <= 4U) {
+								if (mode <= 4U) {
 									leds_test_set_mode(LEDS_TEST_MODE_HALL, mode);
 								} else if (5U <= mode && mode <= 8U) {
 									leds_test_set_mode(LEDS_TEST_MODE_ENCODER, mode - 5U);
