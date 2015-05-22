@@ -78,7 +78,7 @@ static const fptr interrupt_vectors[82U] __attribute__((used, section(".interrup
 };
 
 static void app_exception_early(void) {
-	// Kick the hardware watchdogs.
+	// Kick the hardware watchdog.
 	IWDG.KR = 0xAAAAU;
 
 	// Power down the USB engine to disconnect from the host.
@@ -487,8 +487,10 @@ static void main_task(void *UNUSED(param)) {
 		}
 	}
 
-	// Shut down the system.
-	// This comprises four basic phases:
+	// Kick the hardware watchdog to avoid timeouts during shutdown.
+	IWDG.KR = 0xAAAAU;
+
+	// Shut down the system. This comprises four basic phases:
 	//
 	// Phase 1: prevent outside influence on the system.
 	// This means stopping the tick generator, the radio receive task, and the feedback task.
@@ -514,6 +516,11 @@ static void main_task(void *UNUSED(param)) {
 	motor_shutdown();
 
 	chicker_shutdown();
+
+	// Kick the hardware watchdog to avoid timeouts. Chicker shutdown sometimes
+	// takes up to three seconds, particularly if the board is not plugged in,
+	// so that eats most of the timeout period.
+	IWDG.KR = 0xAAAAU;
 
 	gpio_reset(PIN_POWER_HV);
 	mrf_shutdown();

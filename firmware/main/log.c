@@ -51,9 +51,10 @@ static void log_writeout_task(void *param) {
 		BaseType_t rc = xQueueReceive(write_queue, &data, portMAX_DELAY);
 		assert(rc == pdTRUE); // Receive can never fail because we wait forever.
 
-		// If this was a real record (not the null pointer signifying shutdown) and nothing has failed yet, write it out to the SD card.
+		// If this was a real record (not the null pointer signifying shutdown)
+		// and nothing has failed yet, write it out to the SD card.
 		if (data && state /* Non-atomic OK because only this task writes */ == LOG_STATE_OK) {
-			if (sd_write(sector, data)) {
+			if (sd_write(sector, data) == SD_STATUS_OK) {
 				++sector;
 				if (sector == sd_sector_count()) {
 					__atomic_store_n(&state, LOG_STATE_CARD_FULL, __ATOMIC_RELAXED);
@@ -109,10 +110,10 @@ bool log_init(void) {
 	uint32_t next_write_sector;
 	{
 		uint32_t low = 0U, high = sd_sector_count();
-		while (low != high && sd_status() == SD_STATUS_OK) {
+		while (low != high) {
 			uint32_t probe = (low + high) / 2U;
 			log_sector_t *buffer = dma_get_buffer(buffer_handles[0U]);
-			if (!sd_read(probe, buffer)) {
+			if (sd_read(probe, buffer) != SD_STATUS_OK) {
 				state = LOG_STATE_SD_ERROR;
 				return false;
 			}
@@ -134,7 +135,7 @@ bool log_init(void) {
 	// Compute the epoch: previous sector’s epoch + 1 (if first empty sector is not first sector), or 1 (if first empty sector is first sector).
 	if (next_write_sector > 0U) {
 		log_sector_t *buffer = dma_get_buffer(buffer_handles[0U]);
-		if (!sd_read(next_write_sector - 1U, buffer)) {
+		if (sd_read(next_write_sector - 1U, buffer) != SD_STATUS_OK) {
 			state = LOG_STATE_SD_ERROR;
 			return false;
 		}
@@ -145,7 +146,8 @@ bool log_init(void) {
 
 	// Erase the card from the start sector to the end of the card.
 	// Do this ahead of time so we won’t get stuck doing a long erase as part of the first write when time actually matters.
-	if (!sd_erase(next_write_sector, sd_sector_count() - next_write_sector)) {
+	if (sd_erase(next_write_sector, sd_sector_count() - next_write_sector) != SD_STATUS_OK) {
+		state = LOG_STATE_SD_ERROR;
 		return false;
 	}
 

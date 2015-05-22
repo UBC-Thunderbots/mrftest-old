@@ -160,8 +160,10 @@ static void feedback_task(void *UNUSED(param)) {
 				flags |= 1U << 6U;
 			}
 			frame[22U] = flags;
-#warning SD status has more than 16 possible errors!
-			frame[23U] = (((unsigned int) log_state()) << 4U) | (((unsigned int) sd_status()) & 0x0FU);
+//#warning SD status has more than 16 possible errors!
+//			frame[23U] = (((unsigned int) log_state()) << 4U) | (((unsigned int) sd_status()) & 0x0FU);
+			frame[23U] = log_state() << 4;
+#warning TODO more detailed SD status reporting
 			int16_t i16 = hall_speed(4U);
 			frame[24U] = (uint8_t) (uint16_t) i16;
 			frame[25U] = (uint8_t) (((uint16_t) i16) >> 8U);

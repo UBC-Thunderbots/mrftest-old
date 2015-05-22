@@ -83,4 +83,3 @@ log_record_t *log_alloc(void);
 void log_queue(log_record_t *record);
 
 #endif
-
