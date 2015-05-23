@@ -9,7 +9,7 @@ namespace AI {
 			namespace Tactic {
 				/**
 				 * Free Kick Pass
-				 * Non Active Tactic
+				 * Active Tactic
 				 * For now, robot moves towards ball, rotates 30 degrees below, then 30 degrees above,
 				 * then to shooting position and shoots to target.
 				 *
