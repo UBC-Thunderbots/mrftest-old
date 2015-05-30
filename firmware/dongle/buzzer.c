@@ -10,6 +10,7 @@ void timer5_isr(void) {
 		TIM2_5_SR_t tmp = { 0 };
 		TIM5.SR = tmp; // Clear interrupt flag
 	}
+	EXCEPTION_RETURN_BARRIER();
 }
 
 void buzzer_init(void) {

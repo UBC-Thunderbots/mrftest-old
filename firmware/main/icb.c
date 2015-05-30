@@ -965,6 +965,8 @@ void dma2_stream0_isr(void) {
 			portYIELD_FROM_ISR();
 		}
 	}
+
+	EXCEPTION_RETURN_BARRIER();
 }
 
 /**
@@ -1017,6 +1019,8 @@ void dma2_stream3_isr(void) {
 			portYIELD_FROM_ISR();
 		}
 	}
+
+	EXCEPTION_RETURN_BARRIER();
 }
 
 /**
@@ -1034,6 +1038,8 @@ void exti0_isr(void) {
 	if (yield) {
 		portYIELD_FROM_ISR();
 	}
+
+	EXCEPTION_RETURN_BARRIER();
 }
 
 /**

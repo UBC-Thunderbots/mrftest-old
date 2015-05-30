@@ -747,6 +747,8 @@ void udev_isr(void) {
 	if (yield) {
 		portYIELD_FROM_ISR();
 	}
+
+	EXCEPTION_RETURN_BARRIER();
 }
 
 /**

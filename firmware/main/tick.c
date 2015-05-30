@@ -208,6 +208,8 @@ void timer6_isr(void) {
 
 	// Report progress.
 	main_kick_wdt(MAIN_WDT_SOURCE_HSTICK);
+
+	EXCEPTION_RETURN_BARRIER();
 }
 
 /**

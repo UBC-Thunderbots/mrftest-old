@@ -144,5 +144,7 @@ void adc_isr(void) {
 			portYIELD_FROM_ISR();
 		}
 	}
+
+	EXCEPTION_RETURN_BARRIER();
 }
 

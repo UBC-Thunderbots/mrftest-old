@@ -101,9 +101,14 @@ void exception_usage_fault_isr(void) __attribute__((naked, noreturn));
  */
 #define EXCEPTION_SUB_PRIO(prio) (((prio) >> (8U - EXCEPTION_GROUP_PRIO_BITS - EXCEPTION_SUB_PRIO_BITS)) & ((1U << EXCEPTION_SUB_PRIO_BITS) - 1U))
 
+/**
+ * \brief Inserts the barrier needed before an exception return to handle
+ * Cortex-M4 erratum 838869.
+ */
+#define EXCEPTION_RETURN_BARRIER() do { __atomic_signal_fence(__ATOMIC_SEQ_CST); asm volatile("dsb"); } while (0)
+
 #endif
 
 /**
  * @}
  */
-

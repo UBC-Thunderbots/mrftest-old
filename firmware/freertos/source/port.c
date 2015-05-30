@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <FreeRTOS.h>
+#include <exception.h>
 #include <inttypes.h>
 #include <semphr.h>
 #include <stdbool.h>
@@ -651,6 +652,7 @@ void vPortSysTickHandler(void) {
 		portYIELD_FROM_ISR();
 	}
 	portCLEAR_INTERRUPT_MASK_FROM_ISR(0U);
+	EXCEPTION_RETURN_BARRIER();
 }
 
 #if configASSERT_DEFINED == 1

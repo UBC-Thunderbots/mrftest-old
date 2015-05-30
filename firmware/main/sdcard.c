@@ -107,6 +107,8 @@ void sd_isr(void) {
 	if (yield) {
 		portYIELD_FROM_ISR();
 	}
+
+	EXCEPTION_RETURN_BARRIER();
 }
 
 /**
@@ -125,6 +127,8 @@ void sd_d0_exti_isr(void) {
 	if (yield) {
 		portYIELD_FROM_ISR();
 	}
+
+	EXCEPTION_RETURN_BARRIER();
 }
 
 static bool sd_card_present(void) {

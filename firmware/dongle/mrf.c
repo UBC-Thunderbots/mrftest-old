@@ -360,6 +360,8 @@ void dma2_stream0_isr(void) {
 	if (yield) {
 		portYIELD_FROM_ISR();
 	}
+
+	EXCEPTION_RETURN_BARRIER();
 }
 
 void exti10_15_isr(void) {
@@ -368,5 +370,7 @@ void exti10_15_isr(void) {
 
 	// Call the application handler.
 	mrf_isr();
+
+	EXCEPTION_RETURN_BARRIER();
 }
 

@@ -129,7 +129,8 @@ static void external_interrupt_15_10_vector(void){
 		}
 		//toc();
 	}
-	
+
+	EXCEPTION_RETURN_BARRIER();
 }
 
 static const init_specs_t INIT_SPECS = {
@@ -209,6 +210,8 @@ static void timer2_wrap_interrupt(void){
 		TIM2_5_SR_t tmp = { 0 }; // Clear interrupt flag.
 		TIM2.SR = tmp;
 	}
+
+	EXCEPTION_RETURN_BARRIER();
 }
 
 static void tic(void){
