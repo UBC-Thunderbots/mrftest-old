@@ -424,6 +424,14 @@ int app_main(int argc, char **argv) {
 	}
 
 	// Execute the command.
-	return command->handler(sdcard, scan_result.get(), argv + 3);
-}
+	int status = command->handler(sdcard, scan_result.get(), argv + 3);
 
+	// Sync the card if it was opened for writing.
+	if (command->needs_write) {
+		if (fsync(sdfd.fd()) < 0) {
+			throw SystemError("fsync", errno);
+		}
+	}
+
+	return status;
+}
