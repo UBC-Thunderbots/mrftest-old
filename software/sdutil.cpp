@@ -3,6 +3,7 @@
 #include "util/exception.h"
 #include "util/fd.h"
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cerrno>
 #include <cinttypes>
@@ -28,6 +29,7 @@ namespace {
 	constexpr off_t LOG_RECORD_SIZE = 128;
 	constexpr off_t RECORDS_PER_SECTOR = SECTOR_SIZE / LOG_RECORD_SIZE;
 	constexpr uint32_t LOG_MAGIC_TICK = UINT32_C(0xE2468844);
+	const std::array<uint8_t, SECTOR_SIZE> ZERO_SECTOR{0};
 
 	class SectorArray final : public NonCopyable {
 		public:
@@ -35,7 +37,7 @@ namespace {
 
 			explicit SectorArray(const FileDescriptor &fd);
 			off_t size() const;
-			std::vector<uint8_t> get(off_t i) const;
+			void get(off_t i, void *buffer) const;
 			void zero(off_t i);
 
 		private:
@@ -55,42 +57,33 @@ off_t SectorArray::size() const {
 	return size_;
 }
 
-std::vector<uint8_t> SectorArray::get(off_t i) const {
+void SectorArray::get(off_t i, void *buffer) const {
 	assert(i < size());
-	std::vector<uint8_t> buffer(SECTOR_SIZE);
-	{
-		uint8_t *ptr = &buffer[0];
-		std::size_t len = SECTOR_SIZE;
-		off_t off = i * SECTOR_SIZE;
-		while (len) {
-			ssize_t rc = pread(fd.fd(), ptr, len, off);
-			if (rc < 0) {
-				throw SystemError("pread", errno);
-			}
-			ptr += rc;
-			len -= static_cast<std::size_t>(rc);
-			off += rc;
+	uint8_t *ptr = static_cast<uint8_t *>(buffer);
+	std::size_t len = SECTOR_SIZE;
+	off_t off = i * SECTOR_SIZE;
+	while (len) {
+		ssize_t rc = pread(fd.fd(), ptr, len, off);
+		if (rc < 0) {
+			throw SystemError("pread", errno);
 		}
+		ptr += rc;
+		len -= static_cast<std::size_t>(rc);
+		off += rc;
 	}
-	return buffer;
 }
 
 void SectorArray::zero(off_t i) {
 	assert(i < size());
-	std::vector<uint8_t> buffer(SECTOR_SIZE, static_cast<uint8_t>(i));
-	{
-		const uint8_t *ptr = &buffer[0];
-		std::size_t len = SECTOR_SIZE;
-		off_t off = i * SECTOR_SIZE;
-		while (len) {
-			ssize_t rc = pwrite(fd.fd(), ptr, len, off);
-			if (rc < 0) {
-				throw SystemError("pwrite", errno);
-			}
-			ptr += rc;
-			len -= static_cast<std::size_t>(rc);
-			off += rc;
+	std::size_t len = SECTOR_SIZE;
+	off_t off = i * SECTOR_SIZE;
+	while (len) {
+		ssize_t rc = pwrite(fd.fd(), &ZERO_SECTOR[0], len, off);
+		if (rc < 0) {
+			throw SystemError("pwrite", errno);
 		}
+		len -= static_cast<std::size_t>(rc);
+		off += rc;
 	}
 }
 
@@ -115,7 +108,8 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 	off_t low = 0, high = sarray.size() + 1;
 	while (low + 1 < high) {
 		off_t pos = (low + high - 1) / 2;
-		const std::vector<uint8_t> &sector = sarray.get(pos);
+		std::array<uint8_t, SECTOR_SIZE> sector;
+		sarray.get(pos, &sector[0]);
 		bool blank = std::count(sector.begin(), sector.end(), static_cast<uint8_t>(0)) == static_cast<std::vector<uint8_t>::difference_type>(sector.size());
 		if (blank) {
 			high = pos + 1;
@@ -129,7 +123,8 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 		// Find number of epochs.
 		std::size_t num_epochs;
 		{
-			const std::vector<uint8_t> &sector = sarray.get(nonblank_size() - 1);
+			std::array<uint8_t, SECTOR_SIZE> sector;
+			sarray.get(nonblank_size() - 1, &sector[0]);
 			num_epochs = decode_u32_le(&sector[4]);
 		}
 
@@ -141,7 +136,8 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 			off_t low = 0, high = nonblank_size();
 			while (low + 1 < high) {
 				off_t pos = (low + high - 1) / 2;
-				const std::vector<uint8_t> &sector = sarray.get(pos);
+				std::array<uint8_t, SECTOR_SIZE> sector;
+				sarray.get(pos, &sector[0]);
 				std::size_t sector_epoch = decode_u32_le(&sector[4]);
 				if (sector_epoch >= epoch) {
 					high = pos + 1;
@@ -155,7 +151,8 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 			low = 0, high = nonblank_size() + 1;
 			while (low + 1 < high) {
 				off_t pos = (low + high - 1) / 2;
-				const std::vector<uint8_t> &sector = sarray.get(pos);
+				std::array<uint8_t, SECTOR_SIZE> sector;
+				sarray.get(pos, &sector[0]);
 				std::size_t sector_epoch = decode_u32_le(&sector[4]);
 				if (sector_epoch > epoch) {
 					high = pos + 1;
@@ -196,7 +193,8 @@ namespace {
 
 		FileDescriptor fd(FileDescriptor::create_open(args[1], O_WRONLY | O_CREAT | O_TRUNC, 0666));
 		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
-			const std::vector<uint8_t> &buffer = sdcard.get(sector);
+			std::array<uint8_t, SECTOR_SIZE> buffer;
+			sdcard.get(sector, &buffer[0]);
 			const uint8_t *ptr = &buffer[0];
 			std::size_t len = SECTOR_SIZE;
 			while (len) {
@@ -276,7 +274,8 @@ namespace {
 		ofs.open(args[1], std::ios_base::out | std::ios_base::trunc);
 		ofs << "Epoch\tTime (ticks)\tBreakbeam\tBattery (V)\tCapacitor (V)\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tEncoder 0 (¼°/t)\tEncoder 1 (¼°/t)\tEncoder 2 (¼°/t)\tEncoder 3 (¼°/t)\tMotor 0 (/255)\tMotor 1 (/255)\tMotor 2 (/255)\tMotor 3 (/255)\tMotor 0 (°C)\tMotor 1 (°C)\tMotor 2 (°C)\tMotor 3 (°C)\tDribbler Ticked?\tDribbler (/255)\tDribbler (rpm)\tDribbler (°C)\tIdle Cycles\n";
 		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
-			const std::vector<uint8_t> &buffer = sdcard.get(sector);
+			std::array<uint8_t, SECTOR_SIZE> buffer;
+			sdcard.get(sector, &buffer[0]);
 			for (std::size_t record = 0; record < static_cast<std::size_t>(RECORDS_PER_SECTOR); ++record) {
 				const uint8_t *ptr = &buffer[record * LOG_RECORD_SIZE];
 
