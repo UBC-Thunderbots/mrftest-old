@@ -13,6 +13,19 @@ static void start(void) {
 	while (FLASH.SR.BSY);
 	FLASH.SR = FLASH.SR;
 
+	// Disable and flush caches while erasing Flash.
+	FLASH_ACR_t acr = FLASH.ACR;
+	acr.PRFTEN = 0;
+	acr.ICEN = 0;
+	acr.DCEN = 0;
+	FLASH.ACR = acr;
+	acr.ICRST = 1;
+	acr.DCRST = 1;
+	FLASH.ACR = acr;
+	acr.ICRST = 0;
+	acr.DCRST = 0;
+	FLASH.ACR = acr;
+
 	// Erase sectors 10 and 11 which are where we keep core dumps.
 	{
 		FLASH_CR_t tmp = {
@@ -37,6 +50,12 @@ static void start(void) {
 		FLASH.CR = tmp;
 		while (FLASH.SR.BSY);
 	}
+
+	// Turn caches back on.
+	acr.PRFTEN = 1;
+	acr.ICEN = 1;
+	acr.DCEN = 1;
+	FLASH.ACR = acr;
 
 	// Enable Flash programming.
 	FLASH.CR.PG = 1;
@@ -94,4 +113,3 @@ const exception_core_writer_t core_progmem_writer = {
 	.write = &write,
 	.end = &end,
 };
-
