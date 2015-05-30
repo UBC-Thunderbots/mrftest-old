@@ -717,9 +717,7 @@ static sd_status_t sd_read_impl(uint32_t sector, void *buffer) {
 	if (ret != SD_STATUS_OK) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		while (DMA2.streams[SD_DMA_STREAM].CR.EN) {
-			taskYIELD();
-		}
+		while (DMA2.streams[SD_DMA_STREAM].CR.EN);
 		SDIO_DCTRL_t dctrl_temp = { .DTEN = 0 };
 		SDIO.DCTRL = dctrl_temp;
 		return ret;
@@ -734,17 +732,13 @@ static sd_status_t sd_read_impl(uint32_t sector, void *buffer) {
 	if (SDIO.STA.DTIMEOUT) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		while (DMA2.streams[SD_DMA_STREAM].CR.EN) {
-			taskYIELD();
-		}
+		while (DMA2.streams[SD_DMA_STREAM].CR.EN);
 		fputs("SD: Data timeout\r\n", stdout);
 		return SD_STATUS_DATA_TIMEOUT;
 	} else if (SDIO.STA.DCRCFAIL) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		while (DMA2.streams[SD_DMA_STREAM].CR.EN) {
-			taskYIELD();
-		}
+		while (DMA2.streams[SD_DMA_STREAM].CR.EN);
 		fputs("SD: Data CRC failure\r\n", stdout);
 		return SD_STATUS_DATA_CRC_ERROR;
 	}
@@ -836,9 +830,7 @@ static sd_status_t sd_write_impl(uint32_t sector, const void *data) {
 	if (ret != SD_STATUS_OK) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		while (DMA2.streams[SD_DMA_STREAM].CR.EN) {
-			taskYIELD();
-		}
+		while (DMA2.streams[SD_DMA_STREAM].CR.EN);
 		return ret;
 	}
 
@@ -856,17 +848,13 @@ static sd_status_t sd_write_impl(uint32_t sector, const void *data) {
 	if (SDIO.STA.DTIMEOUT) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		while (DMA2.streams[SD_DMA_STREAM].CR.EN) {
-			taskYIELD();
-		}
+		while (DMA2.streams[SD_DMA_STREAM].CR.EN);
 		fputs("SD: Data timeout\r\n", stdout);
 		return SD_STATUS_DATA_TIMEOUT;
 	} else if (SDIO.STA.DCRCFAIL) {
 		// Disable the DMA stream.
 		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		while (DMA2.streams[SD_DMA_STREAM].CR.EN) {
-			taskYIELD();
-		}
+		while (DMA2.streams[SD_DMA_STREAM].CR.EN);
 		fputs("SD: Data CRC failure\r\n", stdout);
 		return SD_STATUS_DATA_CRC_ERROR;
 	}
