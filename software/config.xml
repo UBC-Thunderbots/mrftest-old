@@ -553,19 +553,19 @@
       </category>
       <category name="Navigator">
         <category name="RRT">
-          <double name="Careful max speed">0.750</double>
+          <double name="Careful max speed">0.500</double>
           <integer name="Jon Hysteris Hack">2</integer>
           <boolean name="New pivot enable">false</boolean>
           <boolean name="New pivot go backward">false</boolean>
           <double name="New pivot hysteresis angle, (x*pi rad)">0.2000</double>
           <radians name="New pivot offset angle (rad)">0.1000</radians>
-          <double name="New pivot [PID] angular">1.00</double>
-          <double name="New pivot [PID] linear">1.00</double>
+          <double name="New pivot [PID] angular">2.00</double>
+          <double name="New pivot [PID] linear">2.00</double>
           <double name="New pivot threshold angle, (x*pi rad)">0.2000</double>
           <double name="New pivot travel angle (x*pi rad)">0.200</double>
-          <double name="New pivot travel radius">0.3000</double>
-          <degrees name="Pivot offset angle (deg)">30</degrees>
-          <degrees name="Pivot orientation offset (deg)">30</degrees>
+          <double name="New pivot travel radius">0.2000</double>
+          <degrees name="Pivot offset angle (deg)">5</degrees>
+          <degrees name="Pivot orientation offset (deg)">10</degrees>
         </category>
         <category name="Util">
           <double name="Angle increment in ball approach (deg)">10.00</double>
@@ -595,13 +595,13 @@
         <double name="Controller velocity scale">2.00</double>
       </category>
       <category name="PID5">
-        <double name="angular -differential">0.2</double>
-        <double name="angular +proportional">30.0</double>
-        <double name="Limit wheel accel">5</double>
-        <double name="Limit wheel speed">100</double>
-        <double name="x to y ratio">0.810</double>
-        <double name="xy -differential">0.0</double>
-        <double name="xy +proportional">25.0</double>
+        <double name="angular -differential">-1.1</double>
+        <double name="angular +proportional">10.0</double>
+        <double name="Limit wheel accel">450</double>
+        <double name="Limit wheel speed">1000</double>
+        <double name="x to y ratio">0.830</double>
+        <double name="xy -differential">-0.1</double>
+        <double name="xy +proportional">14.0</double>
         <double name="YA ratio">0.08</double>
       </category>
       <category name="PID5_2012">
