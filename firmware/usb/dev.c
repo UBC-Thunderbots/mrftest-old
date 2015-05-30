@@ -171,7 +171,8 @@ static void udev_task_attached(void) {
 
 	// Wait for detach.
 	while (udev_state == UDEV_STATE_ATTACHED) {
-		switch (__atomic_exchange_n(&udev_state_change, UDEV_STATE_CHANGE_NONE, __ATOMIC_RELAXED)) {
+		udev_state_change_t state_change = __atomic_exchange_n(&udev_state_change, UDEV_STATE_CHANGE_NONE, __ATOMIC_RELAXED);
+		switch (state_change) {
 			case UDEV_STATE_CHANGE_NONE:
 				switch (__atomic_exchange_n(&uep0_setup_event, UEP0_SETUP_EVENT_NONE, __ATOMIC_RELAXED)) {
 					case UEP0_SETUP_EVENT_NONE:
@@ -194,7 +195,8 @@ static void udev_task_attached(void) {
 				uep0_handle_reset();
 				break;
 
-			case UDEV_STATE_CHANGE_SEDET_OR_RESET:
+			case UDEV_STATE_CHANGE_SEDET:
+			case UDEV_STATE_CHANGE_RESET:
 				// Exit any configuration we might previously have been in.
 				uep0_handle_reset();
 
@@ -710,7 +712,7 @@ void udev_isr(void) {
 			// UDEV_STATE_CHANGE_DETACH as, in the face of that action, this
 			// event is uninteresting.
 			if (udev_state_change == UDEV_STATE_CHANGE_NONE) {
-				udev_state_change = UDEV_STATE_CHANGE_SEDET_OR_RESET;
+				udev_state_change = UDEV_STATE_CHANGE_SEDET;
 				give_udev_sem = true;
 			}
 			// Ensure a SETUP packet received before the reset won’t get
@@ -729,7 +731,7 @@ void udev_isr(void) {
 		// UDEV_STATE_CHANGE_DETACH as, in the face of that action, this event
 		// is uninteresting.
 		if (udev_state_change == UDEV_STATE_CHANGE_NONE) {
-			udev_state_change = UDEV_STATE_CHANGE_SEDET_OR_RESET;
+			udev_state_change = UDEV_STATE_CHANGE_RESET;
 			give_udev_sem = true;
 		}
 		// Reset signalling requires the device to respond to address zero.

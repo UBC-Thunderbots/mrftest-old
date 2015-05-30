@@ -7,9 +7,14 @@
 #define VENDOR_ID 0x0483U
 
 /**
- * \brief The product ID.
+ * \brief The product ID in main mode.
  */
 #define PRODUCT_ID 0x497EU
+
+/**
+ * \brief The product ID in DFU mode.
+ */
+#define PRODUCT_ID_DFU 0x497FU
 
 /**
  * \brief The interface numbers.
@@ -26,7 +31,11 @@ enum {
 	STRING_INDEX_ZERO = 0U,
 	STRING_INDEX_MANUFACTURER,
 	STRING_INDEX_PRODUCT,
+	STRING_INDEX_PRODUCT_DFU,
 	STRING_INDEX_SERIAL,
+	STRING_INDEX_DFU_FW,
+	STRING_INDEX_DFU_FPGA,
+	STRING_INDEX_COUNT,
 };
 
 /**

@@ -889,9 +889,11 @@ icb_conf_result_t icb_conf_end(void) {
 	// Unlock the bus.
 	unlock_bus();
 
-	// Wait until either DONE goes high (indicating completion) or INIT_B goes low (indicating CRC error).
-	unsigned int retries = 1000U / portTICK_PERIOD_MS;
-	while (retries--) {
+	// Wait until either DONE goes high (indicating completion) or INIT_B goes
+	// low (indicating CRC error).
+	TickType_t last_wake_time = xTaskGetTickCount();
+	unsigned int tries = 1000U / portTICK_PERIOD_MS;
+	while (tries--) {
 		if (!gpio_get_input(PIN_FPGA_INIT_B)) {
 			return ICB_CONF_CRC_ERROR;
 		}
@@ -902,7 +904,7 @@ icb_conf_result_t icb_conf_end(void) {
 			gpio_set_pupd(PIN_ICB_CS, GPIO_PUPD_NONE);
 			return ICB_CONF_OK;
 		}
-		vTaskDelay(1U);
+		vTaskDelayUntil(&last_wake_time, 1U);
 	}
 
 	// DONE never went high!

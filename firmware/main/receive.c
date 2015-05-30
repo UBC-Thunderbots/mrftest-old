@@ -169,7 +169,7 @@ static void receive_task(void *UNUSED(param)) {
 
 						case 0x08U: // Reboot
 							if (frame_length == HEADER_LENGTH + 1U + FOOTER_LENGTH) {
-								main_shutdown(true);
+								main_shutdown(MAIN_SHUT_MODE_REBOOT);
 							}
 							break;
 
@@ -181,7 +181,7 @@ static void receive_task(void *UNUSED(param)) {
 
 						case 0x0CU: // Shut down
 							if (frame_length == HEADER_LENGTH + 1U + FOOTER_LENGTH) {
-								main_shutdown(false);
+								main_shutdown(MAIN_SHUT_MODE_POWER);
 							}
 							break;
 					}

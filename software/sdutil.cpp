@@ -1,7 +1,9 @@
 #include "main.h"
 #include "util/codec.h"
+#include "util/crc32.h"
 #include "util/exception.h"
 #include "util/fd.h"
+#include "util/string.h"
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -11,6 +13,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <fstream>
+#include <iterator>
 #include <iostream>
 #include <locale>
 #include <memory>
@@ -29,7 +32,19 @@ namespace {
 	constexpr off_t LOG_RECORD_SIZE = 128;
 	constexpr off_t RECORDS_PER_SECTOR = SECTOR_SIZE / LOG_RECORD_SIZE;
 	constexpr uint32_t LOG_MAGIC_TICK = UINT32_C(0xE2468844);
+	constexpr off_t UPGRADE_AREA_SECTORS = 1024 * 4096 / SECTOR_SIZE;
+	constexpr unsigned int UPGRADE_AREA_COUNT = 2;
 	const std::array<uint8_t, SECTOR_SIZE> ZERO_SECTOR{0};
+
+	const std::array<std::string, UPGRADE_AREA_COUNT> UPGRADE_AREA_NAMES = {
+		"firmware",
+		"fpga",
+	};
+
+	constexpr uint32_t UPGRADE_AREA_MAGICS[UPGRADE_AREA_COUNT] = {
+		UINT32_C(0x1453CABE),
+		UINT32_C(0x74E4BCC5),
+	};
 
 	class SectorArray final : public NonCopyable {
 		public:
@@ -38,6 +53,7 @@ namespace {
 			explicit SectorArray(const FileDescriptor &fd);
 			off_t size() const;
 			void get(off_t i, void *buffer) const;
+			void put(off_t i, const void *data);
 			void zero(off_t i);
 
 		private:
@@ -73,6 +89,22 @@ void SectorArray::get(off_t i, void *buffer) const {
 	}
 }
 
+void SectorArray::put(off_t i, const void *data) {
+	assert(i < size());
+	const uint8_t *ptr = static_cast<const uint8_t *>(data);
+	std::size_t len = SECTOR_SIZE;
+	off_t off = i * SECTOR_SIZE;
+	while (len) {
+		ssize_t rc = pwrite(fd.fd(), ptr, len, off);
+		if (rc < 0) {
+			throw SystemError("pwrite", errno);
+		}
+		ptr += rc;
+		len -= static_cast<std::size_t>(rc);
+		off += rc;
+	}
+}
+
 void SectorArray::zero(off_t i) {
 	assert(i < size());
 	std::size_t len = SECTOR_SIZE;
@@ -90,22 +122,74 @@ void SectorArray::zero(off_t i) {
 namespace {
 	class ScanResult final {
 		public:
+			enum class UpgradeAreaStatus {
+				BLANK,
+				OK,
+				CORRUPT,
+			};
+
+			struct UpgradeArea final {
+				UpgradeAreaStatus status;
+				bool ephemeral;
+				uint32_t length;
+				uint32_t crc;
+			};
+
 			struct Epoch final {
 				off_t first_sector, last_sector;
 			};
 
 			explicit ScanResult(const SectorArray &sarray);
 			off_t nonblank_size() const;
+			const std::array<UpgradeArea, UPGRADE_AREA_COUNT> &upgrade_areas() const;
 			const std::vector<Epoch> &epochs() const;
 
 		private:
 			off_t nonblank_size_;
+			std::array<UpgradeArea, UPGRADE_AREA_COUNT> upgrade_areas_;
 			std::vector<Epoch> epochs_;
 	};
 }
 
 ScanResult::ScanResult(const SectorArray &sarray) {
-	off_t low = 0, high = sarray.size() + 1;
+	// Examine the upgrade areas.
+	for (unsigned int i = 0; i != UPGRADE_AREA_COUNT; ++i) {
+		off_t pos = i * UPGRADE_AREA_SECTORS;
+		std::array<uint8_t, SECTOR_SIZE> header_sector;
+		sarray.get(pos, &header_sector[0]);
+		uint32_t magic = decode_u32_le(&header_sector[0]);
+		uint32_t flags = decode_u32_le(&header_sector[4]);
+		uint32_t length = decode_u32_le(&header_sector[8]);
+		uint32_t expected_crc = decode_u32_le(&header_sector[12]);
+
+		upgrade_areas_[i].status = UpgradeAreaStatus::BLANK;
+		upgrade_areas_[i].ephemeral = false;
+		upgrade_areas_[i].length = 0;
+		upgrade_areas_[i].crc = 0;
+		if (magic == UPGRADE_AREA_MAGICS[i]) {
+			upgrade_areas_[i].status = UpgradeAreaStatus::CORRUPT;
+			if (!(flags & UINT32_C(0xFFFFFFFE)) && length && (length <= (UPGRADE_AREA_SECTORS - 1) * SECTOR_SIZE)) {
+				off_t first_sector = i * UPGRADE_AREA_SECTORS + 1;
+				off_t length_sectors = (length + SECTOR_SIZE - 1) / SECTOR_SIZE;
+				uint32_t actual_crc = CRC32::INITIAL;
+				for (off_t j = 0; j != length_sectors; ++j) {
+					uint32_t sector_base = static_cast<uint32_t>(j * SECTOR_SIZE);
+					std::array<uint8_t, SECTOR_SIZE> sector_data;
+					sarray.get(first_sector + j, &sector_data[0]);
+					actual_crc = CRC32::calculate(&sector_data[0], MIN(SECTOR_SIZE, length - sector_base), actual_crc);
+				}
+				if (actual_crc == expected_crc) {
+					upgrade_areas_[i].status = UpgradeAreaStatus::OK;
+					upgrade_areas_[i].ephemeral = !!(flags & 1);
+					upgrade_areas_[i].length = length;
+					upgrade_areas_[i].crc = actual_crc;
+				}
+			}
+		}
+	}
+
+	// Binary search on the non-blank size.
+	off_t low = UPGRADE_AREA_COUNT * UPGRADE_AREA_SECTORS, high = sarray.size() + 1;
 	while (low + 1 < high) {
 		off_t pos = (low + high - 1) / 2;
 		std::array<uint8_t, SECTOR_SIZE> sector;
@@ -133,7 +217,7 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 			Epoch epoch_struct;
 
 			// Search for start of epoch.
-			off_t low = 0, high = nonblank_size();
+			off_t low = UPGRADE_AREA_COUNT * UPGRADE_AREA_SECTORS, high = nonblank_size();
 			while (low + 1 < high) {
 				off_t pos = (low + high - 1) / 2;
 				std::array<uint8_t, SECTOR_SIZE> sector;
@@ -148,7 +232,7 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 			epoch_struct.first_sector = low;
 
 			// Search for end of epoch.
-			low = 0, high = nonblank_size() + 1;
+			low = epoch_struct.first_sector, high = nonblank_size() + 1;
 			while (low + 1 < high) {
 				off_t pos = (low + high - 1) / 2;
 				std::array<uint8_t, SECTOR_SIZE> sector;
@@ -171,11 +255,24 @@ off_t ScanResult::nonblank_size() const {
 	return nonblank_size_;
 }
 
+const std::array<ScanResult::UpgradeArea, UPGRADE_AREA_COUNT> &ScanResult::upgrade_areas() const {
+	return upgrade_areas_;
+}
+
 const std::vector<ScanResult::Epoch> &ScanResult::epochs() const {
 	return epochs_;
 }
 
 namespace {
+	std::string load_file(const std::string &filename) {
+		std::ifstream ifs;
+		ifs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
+		ifs.open(filename, std::ios_base::in | std::ios_base::binary);
+		std::ostringstream oss;
+		oss << ifs.rdbuf();
+		return oss.str();
+	}
+
 	int do_copy(SectorArray &sdcard, const ScanResult *scan_result, char **args) {
 		std::size_t epoch_index = static_cast<std::size_t>(std::stoll(args[0], nullptr, 0));
 		if (!epoch_index) {
@@ -212,30 +309,58 @@ namespace {
 		return 0;
 	}
 
-	int do_erase(SectorArray &sdcard, const ScanResult *, char **) {
-		std::cout << "Erasing sectors 0 through " << (sdcard.size() - 1) << ": ";
+	int do_erase(SectorArray &sdcard, const ScanResult *, char **params) {
+		off_t first, last;
+
+		std::string erase_type(params[0]);
+		if (erase_type == "all") {
+			first = 0;
+			last = sdcard.size() - 1;
+		} else if (erase_type == "log") {
+			first = UPGRADE_AREA_COUNT * UPGRADE_AREA_SECTORS;
+			last = sdcard.size() - 1;
+		} else if (erase_type == "upgrade") {
+			first = 0;
+			last = UPGRADE_AREA_COUNT * UPGRADE_AREA_SECTORS - 1;
+		} else {
+			bool found = false;
+			for (unsigned int i = 0; !found && (i != UPGRADE_AREA_COUNT); ++i) {
+				if (erase_type == UPGRADE_AREA_NAMES[i]) {
+					first = i * UPGRADE_AREA_SECTORS;
+					last = first + UPGRADE_AREA_SECTORS - 1;
+					found = true;
+				}
+			}
+			if (!found) {
+				std::cerr << "Valid erase targets are:\nall\nlog\nupgrade\n";
+				std::copy(UPGRADE_AREA_NAMES.begin(), UPGRADE_AREA_NAMES.end(), std::ostream_iterator<std::string>(std::cerr, "\n"));
+				return 1;
+			}
+		}
+
+		std::cout << "Erasing sectors " << first << " through " << last << ": ";
 		std::cout.flush();
-		uint64_t params[2];
-		params[0] = 0;
-		params[1] = static_cast<uint64_t>(sdcard.size() * SECTOR_SIZE);
-		if (ioctl(sdcard.fd.fd(), BLKDISCARD, params) < 0) {
+		uint64_t blkdiscard_params[2];
+		blkdiscard_params[0] = static_cast<uint64_t>(first * SECTOR_SIZE);
+		blkdiscard_params[1] = static_cast<uint64_t>((last - first + 1) * SECTOR_SIZE);
+		if (ioctl(sdcard.fd.fd(), BLKDISCARD, blkdiscard_params) < 0) {
 			if (errno == EOPNOTSUPP) {
 				std::cout << "Well your card reader dun sucks so I card scans and manual overwrite" << std::endl;
 				ScanResult scan_result(sdcard);
-				const std::size_t WRITE_AMOUNT = 4 * 1024 * 1024;
+				constexpr std::size_t WRITE_AMOUNT = UPGRADE_AREA_SECTORS * SECTOR_SIZE;
 				uint8_t blank_data[WRITE_AMOUNT];
-				std::memset(blank_data, 0, WRITE_AMOUNT); //4 megs of nothing
+				std::memset(blank_data, 0, WRITE_AMOUNT);
 				std::size_t write_size;
-				off_t file_offset = 0; 
+				off_t file_offset = first * SECTOR_SIZE; 
+				off_t past_end_offset = MIN(scan_result.nonblank_size(), last + 1) * SECTOR_SIZE;
 				do {
-					write_size = std::min(WRITE_AMOUNT, static_cast<std::size_t>(scan_result.nonblank_size() * SECTOR_SIZE - file_offset));
+					write_size = std::min(WRITE_AMOUNT, static_cast<std::size_t>(past_end_offset - file_offset));
 					ssize_t ret_val = pwrite(sdcard.fd.fd(), blank_data, write_size, file_offset);
 					if (ret_val < 0) {
 						throw SystemError("pwrite", errno);
 					}
 					file_offset += ret_val;
-				} while (file_offset < scan_result.nonblank_size() * SECTOR_SIZE);
-
+				} while (file_offset < past_end_offset);
 			} else {
 				throw SystemError("ioctl(BLKDISCARD)", errno);
 			}
@@ -247,11 +372,95 @@ namespace {
 	int do_info(SectorArray &sdcard, const ScanResult *scan_result, char **) {
 		std::cout << "Sectors: " << sdcard.size() << '\n';
 		std::cout << "Used: " << scan_result->nonblank_size() << '\n';
+
+		std::cout << "Upgrade Areas:\n";
+		std::size_t max_name_length = 0;
+		for (unsigned int i = 0; i != UPGRADE_AREA_COUNT; ++i) {
+			max_name_length = MAX(max_name_length, UPGRADE_AREA_NAMES[i].size());
+		}
+		for (unsigned int i = 0; i != UPGRADE_AREA_COUNT; ++i) {
+			std::cout << (i + 1) << " (" << UPGRADE_AREA_NAMES[i] << std::string(max_name_length - UPGRADE_AREA_NAMES[i].size(), ' ') << "): ";
+			const ScanResult::UpgradeArea &area = scan_result->upgrade_areas()[i];
+			switch (area.status) {
+				case ScanResult::UpgradeAreaStatus::BLANK:
+					std::cout << "blank\n";
+					break;
+
+				case ScanResult::UpgradeAreaStatus::CORRUPT:
+					std::cout << "corrupt\n";
+					break;
+
+				case ScanResult::UpgradeAreaStatus::OK:
+					std::cout << "OK (length " << area.length << " bytes, CRC 0x" << tohex(area.crc, 8);
+					if (area.ephemeral) {
+						std::cout << ", ephemeral";
+					}
+					std::cout << ")\n";
+					break;
+			}
+		}
+
 		std::cout << "Epochs:\n";
 		for (std::size_t i = 0; i < scan_result->epochs().size(); ++i) {
 			std::cout << (i + 1) << ": " << '[' << scan_result->epochs()[i].first_sector << ',' << scan_result->epochs()[i].last_sector << "]\n";
 		}
 		return 1;
+	}
+
+	int do_install(SectorArray &sdcard, const ScanResult *, char **params) {
+		const std::string filename(params[0]);
+		const std::string area_name(params[1]);
+		const std::string flag(params[2]);
+
+		unsigned int area = static_cast<unsigned int>(std::find(UPGRADE_AREA_NAMES.begin(), UPGRADE_AREA_NAMES.end(), area_name) - UPGRADE_AREA_NAMES.begin());
+		if (area == UPGRADE_AREA_COUNT) {
+			std::cerr << "Second parameter must be an upgrade area, one of:\n";
+			std::copy(UPGRADE_AREA_NAMES.begin(), UPGRADE_AREA_NAMES.end(), std::ostream_iterator<std::string>(std::cerr, "\n"));
+			return 1;
+		}
+
+		uint32_t flags;
+		if (flag == "ephemeral") {
+			flags = 1;
+		} else if (flag == "normal") {
+			flags = 0;
+		} else {
+			std::cerr << "Third parameter must be flags, one of:\nnormal\nephemeral\n";
+			return 1;
+		}
+
+		std::string data = load_file(filename);
+		if (data.size() > ((UPGRADE_AREA_SECTORS - 1) * SECTOR_SIZE)) {
+			std::cerr << "File is too large (" << data.size() << " bytes, maximum is " << ((UPGRADE_AREA_SECTORS - 1) * SECTOR_SIZE) << ")\n";
+			return 1;
+		}
+		std::size_t original_size = data.size();
+		if(data.size() % SECTOR_SIZE) {
+			data.append(SECTOR_SIZE - (data.size() % SECTOR_SIZE), 0);
+		}
+
+		// Wipe the header.
+		sdcard.zero(area * UPGRADE_AREA_SECTORS);
+
+		// Copy the data.
+		for (std::size_t i = 0; i != data.size() / SECTOR_SIZE; ++i) {
+			sdcard.put(area * UPGRADE_AREA_SECTORS + 1 + i, &data[i * SECTOR_SIZE]);
+		}
+
+		// CRC the data.
+		uint32_t crc = CRC32::calculate(data.data(), original_size);
+
+		// Write the header.
+		std::array<uint8_t, SECTOR_SIZE> header{0};
+		encode_u32_le(&header[0], UPGRADE_AREA_MAGICS[area]);
+		encode_u32_le(&header[4], flags);
+		encode_u32_le(&header[8], static_cast<uint32_t>(original_size));
+		encode_u32_le(&header[12], crc);
+		sdcard.put(area * UPGRADE_AREA_SECTORS, &header[0]);
+
+		std::cout << "Image written (" << original_size << " bytes, CRC 0x" << tohex(crc, 8) << ").\n";
+
+		return 0;
 	}
 
 	int do_tsv(SectorArray &sdcard, const ScanResult *scan_result, char **args) {
@@ -364,8 +573,9 @@ namespace {
 
 	const Command COMMANDS[] = {
 		{ "copy", 2, false, true, &do_copy },
-		{ "erase", 0, true, false, &do_erase },
+		{ "erase", 1, true, false, &do_erase },
 		{ "info", 0, false, true, &do_info },
+		{ "install", 3, true, false, &do_install },
 		{ "tsv", 2, false, true, &do_tsv },
 	};
 

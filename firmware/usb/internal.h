@@ -58,10 +58,14 @@ typedef enum {
 	UDEV_STATE_CHANGE_DETACH,
 
 	/**
-	 * \brief Indicates that either VBUS fell below 5 volts or reset signalling
-	 * started.
+	 * \brief Indicates that VBUS fell below 5 volts.
 	 */
-	UDEV_STATE_CHANGE_SEDET_OR_RESET,
+	UDEV_STATE_CHANGE_SEDET,
+
+	/**
+	 * \brief Indicates that reset signalling started.
+	 */
+	UDEV_STATE_CHANGE_RESET,
 } udev_state_change_t;
 
 

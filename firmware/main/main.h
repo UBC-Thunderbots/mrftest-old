@@ -2,6 +2,8 @@
 #define MAIN_H
 
 #include <stdbool.h>
+#include <stdint.h>
+#include <usb.h>
 
 /**
  * \ingroup MAIN
@@ -14,9 +16,22 @@ typedef enum {
 	MAIN_WDT_SOURCE_COUNT, ///< The number of liveness sources.
 } main_wdt_source_t;
 
+/**
+ * \ingroup MAIN
+ *
+ * \brief The modes in which a system shutdown can occur.
+ */
+typedef enum {
+	MAIN_SHUT_MODE_POWER, ///< Power off after shutdown
+	MAIN_SHUT_MODE_REBOOT, ///< Reboot after shutdown
+	MAIN_SHUT_MODE_DFU, ///< Go into DFU after shutdown
+} main_shut_mode_t;
+
+extern const udev_language_info_t MAIN_LANGUAGE_TABLE[];
+extern const usb_string_zero_descriptor_t MAIN_STRING_ZERO;
+
 void main_kick_wdt(main_wdt_source_t source);
-void main_shutdown(bool reboot);
+void main_shutdown(main_shut_mode_t mode);
 uint32_t main_read_clear_idle_cycles(void);
 
 #endif
-

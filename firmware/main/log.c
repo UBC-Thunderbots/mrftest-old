@@ -14,6 +14,7 @@
 #include "log.h"
 #include "dma.h"
 #include "sdcard.h"
+#include "upgrade/constants.h"
 #include <FreeRTOS.h>
 #include <assert.h>
 #include <queue.h>
@@ -109,7 +110,7 @@ bool log_init(void) {
 	// Binary search for the first empty sector.
 	uint32_t next_write_sector;
 	{
-		uint32_t low = 0U, high = sd_sector_count();
+		uint32_t low = UPGRADE_SD_AREA_SECTORS * UPGRADE_SD_AREA_COUNT, high = sd_sector_count();
 		while (low != high) {
 			uint32_t probe = (low + high) / 2U;
 			log_sector_t *buffer = dma_get_buffer(buffer_handles[0U]);

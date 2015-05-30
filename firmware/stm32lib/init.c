@@ -23,6 +23,9 @@ volatile uint64_t bootload_flag;
 extern unsigned char linker_data_vma;
 extern const unsigned char linker_data_lma;
 extern unsigned char linker_data_size;
+extern unsigned char linker_ramtext_vma;
+extern const unsigned char linker_ramtext_lma;
+extern unsigned char linker_ramtext_size;
 extern unsigned char linker_bss_vma;
 extern unsigned char linker_bss_size;
 
@@ -105,6 +108,7 @@ void init_chip(const init_specs_t *specs) {
 
 	// Copy initialized globals and statics from ROM to RAM.
 	memcpy(&linker_data_vma, &linker_data_lma, (size_t) &linker_data_size /* Yes, there should be an & here! */);
+	memcpy(&linker_ramtext_vma, &linker_ramtext_lma, (size_t) &linker_ramtext_size /* Yes, there should be an & here! */);
 	// Scrub the BSS section in RAM.
 	memset(&linker_bss_vma, 0, (size_t) &linker_bss_size /* Yes, there should be an & here! */);
 

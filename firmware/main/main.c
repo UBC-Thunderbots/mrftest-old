@@ -26,6 +26,9 @@
 #include "receive.h"
 #include "sdcard.h"
 #include "tick.h"
+#include "upgrade/dfu.h"
+#include "upgrade/fpga.h"
+#include "upgrade/fw.h"
 #include "usb_config.h"
 #include <FreeRTOS.h>
 #include <build_id.h>
@@ -47,6 +50,7 @@
 #include <usb.h>
 #include <registers/id.h>
 #include <registers/iwdg.h>
+#include <registers/mpu.h>
 #include <registers/otg_fs.h>
 #include <registers/systick.h>
 
@@ -151,17 +155,23 @@ static const init_specs_t INIT_SPECS = {
 
 static const usb_string_descriptor_t STRING_EN_CA_MANUFACTURER = USB_STRING_DESCRIPTOR_INITIALIZER(u"UBC Thunderbots Football Club");
 static const usb_string_descriptor_t STRING_EN_CA_PRODUCT = USB_STRING_DESCRIPTOR_INITIALIZER(u"Robot");
+static const usb_string_descriptor_t STRING_EN_CA_PRODUCT_DFU = USB_STRING_DESCRIPTOR_INITIALIZER(u"Robot (DFU mode)");
 static usb_string_descriptor_t STRING_SERIAL = USB_STRING_DESCRIPTOR_INITIALIZER(u"                        ");
+static const usb_string_descriptor_t STRING_EN_CA_DFU_FW = USB_STRING_DESCRIPTOR_INITIALIZER(u"Firmware");
+static const usb_string_descriptor_t STRING_EN_CA_DFU_FPGA = USB_STRING_DESCRIPTOR_INITIALIZER(u"FPGA Bitstream");
 static const usb_string_descriptor_t * const STRINGS_EN_CA[] = {
 	[STRING_INDEX_MANUFACTURER - 1U] = &STRING_EN_CA_MANUFACTURER,
 	[STRING_INDEX_PRODUCT - 1U] = &STRING_EN_CA_PRODUCT,
+	[STRING_INDEX_PRODUCT_DFU - 1U] = &STRING_EN_CA_PRODUCT_DFU,
 	[STRING_INDEX_SERIAL - 1U] = &STRING_SERIAL,
+	[STRING_INDEX_DFU_FW - 1U] = &STRING_EN_CA_DFU_FW,
+	[STRING_INDEX_DFU_FPGA - 1U] = &STRING_EN_CA_DFU_FPGA,
 };
-static const udev_language_info_t LANGUAGE_TABLE[] = {
+const udev_language_info_t MAIN_LANGUAGE_TABLE[] = {
 	{ .id = 0x1009U /* en_CA */, .strings = STRINGS_EN_CA },
 	{ .id = 0, .strings = 0 },
 };
-static const usb_string_zero_descriptor_t STRING_ZERO = {
+const usb_string_zero_descriptor_t MAIN_STRING_ZERO = {
 	.bLength = sizeof(usb_string_zero_descriptor_t) + sizeof(uint16_t),
 	.bDescriptorType = USB_DTYPE_STRING,
 	.wLANGID = { 0x1009U /* en_CA */, },
@@ -205,9 +215,9 @@ static const udev_info_t USB_INFO = {
 		.iSerialNumber = STRING_INDEX_SERIAL,
 		.bNumConfigurations = 1U,
 	},
-	.string_count = 3U,
-	.string_zero_descriptor = &STRING_ZERO,
-	.language_table = LANGUAGE_TABLE,
+	.string_count = STRING_INDEX_COUNT - 1U /* exclude zero */,
+	.string_zero_descriptor = &MAIN_STRING_ZERO,
+	.language_table = MAIN_LANGUAGE_TABLE,
 	.control_handler = &usb_control_handler,
 	.configurations = {
 		&USB_CONFIGURATION,
@@ -215,7 +225,8 @@ static const udev_info_t USB_INFO = {
 };
 
 static uint32_t idle_cycles = 0;
-static bool shutting_down = false, reboot_after_shutdown;
+static bool shutting_down = false;
+static main_shut_mode_t shutdown_mode;
 static SemaphoreHandle_t supervisor_sem;
 static unsigned int wdt_sources = 0U;
 
@@ -287,140 +298,7 @@ static void stm32_main(void) {
 	__builtin_unreachable();
 }
 
-static void main_task(void *UNUSED(param)) {
-	// Create a semaphore which other tasks will use to ping the supervisor.
-	supervisor_sem = xSemaphoreCreateBinary();
-	assert(supervisor_sem);
-
-	// Initialize DMA engines.
-	// These are needed for a lot of other things so must come first.
-	dma_init();
-
-	// Initialize ADCs.
-	// SAFETY CRITICAL: The ADCs drive the charged LED, so we must initialize them early while the bootup LEDs are still on!
-	adc_init();
-
-	// Wait a bit.
-	vTaskDelay(100U / portTICK_PERIOD_MS);
-
-	// Initialize LEDs.
-	leds_init();
-
-	// Fill in the device serial number.
-	{
-		char temp[24U];
-		formathex32(&temp[0U], U_ID.H);
-		formathex32(&temp[8U], U_ID.M);
-		formathex32(&temp[16U], U_ID.L);
-		for (size_t i = 0U; i < 24U; ++i) {
-			STRING_SERIAL.bString[i] = temp[i];
-		}
-	}
-
-	// Initialize CRC32 calculator.
-	crc32_init();
-
-	// Calculate the build ID.
-	build_id_init();
-
-	// Initialize CDC ACM.
-	cdcacm_init(2U, PRIO_TASK_CDC_ACM);
-
-	// Initialize USB.
-	udev_init(&USB_INFO);
-	udev_attach();
-
-	// Provide a message that will be printed as soon as the user connects.
-	iprintf("Supervisor: System init\r\nBuild ID: 0x%08" PRIX32 "\r\n", build_id_get());
-
-	// Bring up the SD card.
-	fputs("Supervisor: SD init: ", stdout);
-	if (sd_init() == SD_STATUS_OK) {
-		// Bring up the data logger.
-		fputs("Supervisor: log init: ", stdout);
-		if (log_init()) {
-			fputs("OK\r\n", stdout);
-		} else {
-			switch (log_state()) {
-				case LOG_STATE_OK: fputs("Confused\r\n", stdout); break;
-				case LOG_STATE_UNINITIALIZED: fputs("Uninitialized\r\n", stdout); break;
-				case LOG_STATE_SD_ERROR: fputs("SD card error\r\n", stdout); break;
-				case LOG_STATE_CARD_FULL: fputs("SD card full\r\n", stdout); break;
-			}
-		}
-	}
-
-	// Bring up the ICB and configure the FPGA using a bitstream stored in the first 1 MiB of the SD card.
-	icb_init();
-	fputs("Supervisor: FPGA init: ", stdout);
-	fflush(stdout);
-	{
-		icb_conf_result_t rc = icb_conf_start();
-#if 0
-		char *buffer = 0;
-		unsigned int block = 0U;
-		while (rc == ICB_CONF_CONTINUE) {
-			if (block < 1024U * 1024U * 512U) {
-				if (!buffer) {
-					buffer = malloc(512U);
-				}
-				if (!sd_read_block(block, buffer)) {
-					// There is nothing to be done.
-					for (;;) {
-						asm volatile("wfi");
-					}
-				}
-				rc = icb_conf_block(buffer, 512U);
-				++block;
-			} else {
-				rc = icb_conf_block(0, 0U);
-			}
-		}
-		free(buffer);
-#else
-#warning Should actually use the SD card here.
-		if (rc == ICB_CONF_OK) {
-			extern const char fpga_bitstream_data_start, fpga_bitstream_data_end;
-			icb_conf_block(&fpga_bitstream_data_start, &fpga_bitstream_data_end - &fpga_bitstream_data_start);
-			rc = icb_conf_end();
-		}
-#endif
-		switch (rc) {
-			case ICB_CONF_OK:
-				fputs("OK\r\n", stdout);
-				break;
-			case ICB_CONF_INIT_B_STUCK_HIGH:
-				fputs("INIT_B stuck high\r\n", stdout);
-				break;
-			case ICB_CONF_INIT_B_STUCK_LOW:
-				fputs("INIT_B stuck low\r\n", stdout);
-				break;
-			case ICB_CONF_DONE_STUCK_HIGH:
-				fputs("DONE stuck high\r\n", stdout);
-				break;
-			case ICB_CONF_DONE_STUCK_LOW:
-				fputs("DONE stuck low\r\n", stdout);
-				break;
-			case ICB_CONF_CRC_ERROR:
-				fputs("Bitstream CRC error\r\n", stdout);
-				break;
-		}
-		if (rc != ICB_CONF_OK) {
-			// There is nothing to be done.
-			vTaskDelete(0);
-		}
-	}
-
-	// Give the FPGA circuit some time to bring up clocks, come out of reset, etc.
-	vTaskDelay(100U / portTICK_PERIOD_MS);
-
-	// Read the FPGA device DNA.
-	static uint64_t device_dna = 0U;
-	do {
-		icb_receive(ICB_COMMAND_READ_DNA, &device_dna, 7U);
-	} while (!(device_dna & (UINT64_C(1) << 55U)));
-	iprintf("Device DNA: 0x%014" PRIX64 "\r\n", device_dna & ~(UINT64_C(1) << 55U));
-
+static void run_normal(void) {
 	// Read the configuration switches.
 	static uint8_t switches[2U];
 	icb_receive(ICB_COMMAND_READ_SWITCHES, switches, sizeof(switches));
@@ -461,14 +339,27 @@ static void main_task(void *UNUSED(param)) {
 	feedback_init();
 	motor_init();
 	encoder_init();
-
-	// Receive must be the second-last module initialized, because received packets can cause calls to other modules.
-	receive_init(switches[0U]);
-	
-	// lps init
 	lps_init();
 
-	// Ticks must be the last module initialized, because ticks propagate into other modules.
+	// Bring up the data logger.
+	fputs("Supervisor: log init: ", stdout);
+	if (log_init()) {
+		fputs("OK\r\n", stdout);
+	} else {
+		switch (log_state()) {
+			case LOG_STATE_OK: fputs("Confused\r\n", stdout); break;
+			case LOG_STATE_UNINITIALIZED: fputs("Uninitialized\r\n", stdout); break;
+			case LOG_STATE_SD_ERROR: fputs("SD card error\r\n", stdout); break;
+			case LOG_STATE_CARD_FULL: fputs("SD card full\r\n", stdout); break;
+		}
+	}
+
+	// Receive must be the second-last module initialized, because received
+	// packets can cause calls to other modules.
+	receive_init(switches[0U]);
+	
+	// Ticks must be the last module initialized, because ticks propagate into
+	// other modules.
 	tick_init();
 
 	// Done!
@@ -482,7 +373,7 @@ static void main_task(void *UNUSED(param)) {
 			// Timeout occurred, so check for task liveness.
 			assert(__atomic_load_n(&wdt_sources, __ATOMIC_RELAXED) == (1U << MAIN_WDT_SOURCE_COUNT) - 1U);
 			__atomic_store_n(&wdt_sources, 0U, __ATOMIC_RELAXED);
-			// Kick the hardware watchdogs.
+			// Kick the hardware watchdog.
 			IWDG.KR = 0xAAAAU;
 		}
 	}
@@ -492,20 +383,25 @@ static void main_task(void *UNUSED(param)) {
 
 	// Shut down the system. This comprises four basic phases:
 	//
-	// Phase 1: prevent outside influence on the system.
-	// This means stopping the tick generator, the radio receive task, and the feedback task.
-	// Once this is done, further shutdown activity does not need to worry about its work being undone.
+	// Phase 1: prevent outside influence on the system. This means
+	// stopping the tick generator, the radio receive task, and the
+	// feedback task. Once this is done, further shutdown activity does not
+	// need to worry about its work being undone.
 	//
-	// Phase 2: stop things from getting less safe.
-	// This means setting the motors to coast and turning off the charger.
-	// Once this is done, nothing should be putting significant load on the battery, and nothing should be doing anything scary.
+	// Phase 2: stop things from getting less safe. This means setting the
+	// motors to coast and turning off the charger. Once this is done,
+	// nothing should be putting significant load on the battery, and
+	// nothing should be doing anything scary.
 	//
-	// Phase 3: make dangerous things safe.
-	// This means discharging the capacitors.
-	// Once this is done, the circuit should be safe to touch.
+	// Phase 3: make dangerous things safe. This means discharging the
+	// capacitors. Once this is done, the circuit should be safe to touch.
 	//
-	// Phase 4: incrementally shut down remaining circuit components.
-	// This means cutting supply to the motor drivers, resetting the radio, wiping the FPGA, detaching from the USB, and then either cutting logic supply or rebooting the CPU.
+	// Phase 4: incrementally shut down remaining circuit components. This
+	// means cutting supply to the motor drivers, resetting the radio,
+	// wiping the FPGA, detaching from the USB, and then either cutting
+	// logic supply or rebooting the CPU. The last few steps are done in
+	// main_task instead of here, as those particular items are initialized in
+	// both safe mode and normal mode.
 	fputs("System shutdown.\r\n", stdout);
 
 	tick_shutdown();
@@ -527,28 +423,197 @@ static void main_task(void *UNUSED(param)) {
 	log_shutdown();
 	vTaskDelay(100U / portTICK_PERIOD_MS);
 	icb_irq_shutdown();
+}
+
+static void run_safe_mode(void) {
+	// Show status.
+	fputs("System running in safe mode.\r\n", stdout);
+	fflush(stdout);
+
+	// Wait until requested to shut down for some reason (e.g. DFU entry).
+	// Blink the status light while we’re at it.
+	unsigned int counter = 0U;
+	TickType_t last_wake_time = xTaskGetTickCount();
+	while (!__atomic_load_n(&shutting_down, __ATOMIC_RELAXED)) {
+		++counter;
+		if (counter == 1000U / portTICK_PERIOD_MS) {
+			counter = 0;
+			gpio_set(PIN_LED_STATUS);
+		} else if (counter == 150U / portTICK_PERIOD_MS) {
+			gpio_reset(PIN_LED_STATUS);
+		}
+		vTaskDelayUntil(&last_wake_time, 1U);
+	}
+
+	// Shut down.
+	fputs("System shutdown.\r\n", stdout);
+}
+
+static void main_task(void *UNUSED(param)) {
+	// Create a semaphore which other tasks will use to ping the supervisor.
+	supervisor_sem = xSemaphoreCreateBinary();
+	assert(supervisor_sem);
+
+	// Initialize DMA engines.
+	// These are needed for a lot of other things so must come first.
+	dma_init();
+
+	// Initialize ADCs.
+	// SAFETY CRITICAL: The ADCs drive the charged LED, so we must initialize them early while the bootup LEDs are still on!
+	adc_init();
+
+	// Wait a bit.
+	vTaskDelay(100U / portTICK_PERIOD_MS);
+
+	// Fill in the device serial number.
+	{
+		char temp[24U];
+		formathex32(&temp[0U], U_ID.H);
+		formathex32(&temp[8U], U_ID.M);
+		formathex32(&temp[16U], U_ID.L);
+		for (size_t i = 0U; i < 24U; ++i) {
+			STRING_SERIAL.bString[i] = temp[i];
+		}
+	}
+
+	// Initialize CRC32 calculator.
+	crc32_init();
+
+	// Calculate the build ID.
+	build_id_init();
+
+	// Initialize LEDs.
+	leds_init();
+
+	// Initialize CDC ACM.
+	cdcacm_init(2U, PRIO_TASK_CDC_ACM);
+
+	// Initialize USB.
+	udev_init(&USB_INFO);
+	udev_attach();
+
+	// Provide a message that will be printed as soon as the user connects.
+	iprintf("Supervisor: System init\r\nBuild ID: 0x%08" PRIX32 "\r\n", build_id_get());
+
+	// Initialize ICB-related objects. This will be needed later, even if no SD
+	// card is found, as we unconditionally try to wipe the FPGA bitstream as
+	// part of shutdown, and that process requires that the relevant
+	// semaphores, etc. have been created.
+	icb_init();
+
+	// Bring up the SD card.
+	fputs("Supervisor: SD init: ", stdout);
+	bool ok = sd_init() == SD_STATUS_OK;
+	if (ok) {
+		// Check for a new firmware image to install, or an existing one to
+		// delete due to the ephemeral flag.
+		upgrade_fw_check_install();
+
+		// Check if we have a proper FPGA bitstream.
+		ok = upgrade_fpga_check();
+		if (!ok) {
+			fputs("Supervisor: No FPGA bitstream\r\n", stdout);
+		}
+	}
+	if (ok) {
+		// Bring up the ICB and configure the FPGA using a bitstream stored the
+		// SD card.
+		fputs("Supervisor: FPGA init: ", stdout);
+		fflush(stdout);
+		icb_conf_result_t rc = icb_conf_start();
+		bool reading_ok = true;
+		if (rc == ICB_CONF_OK) {
+			reading_ok = upgrade_fpga_send();
+			rc = icb_conf_end();
+		}
+		if (reading_ok) {
+			switch (rc) {
+				case ICB_CONF_OK:
+					fputs("OK\r\n", stdout);
+					break;
+				case ICB_CONF_INIT_B_STUCK_HIGH:
+					fputs("INIT_B stuck high\r\n", stdout);
+					break;
+				case ICB_CONF_INIT_B_STUCK_LOW:
+					fputs("INIT_B stuck low\r\n", stdout);
+					break;
+				case ICB_CONF_DONE_STUCK_HIGH:
+					fputs("DONE stuck high\r\n", stdout);
+					break;
+				case ICB_CONF_DONE_STUCK_LOW:
+					fputs("DONE stuck low\r\n", stdout);
+					break;
+				case ICB_CONF_CRC_ERROR:
+					fputs("Bitstream CRC error\r\n", stdout);
+					break;
+			}
+		} else {
+			fputs("Error reading bitstream from SD\r\n", stdout);
+		}
+		ok = reading_ok && (rc == ICB_CONF_OK);
+	}
+	if (ok) {
+		// Give the FPGA circuit some time to bring up clocks, come out of
+		// reset, etc.
+		vTaskDelay(100U / portTICK_PERIOD_MS);
+
+		// Read the FPGA device DNA.
+		fputs("Device DNA: ", stdout);
+		fflush(stdout);
+		TickType_t last_wake_time = xTaskGetTickCount();
+		unsigned int tries = 1000U / portTICK_PERIOD_MS;
+		ok = false;
+		while (!ok && tries--) {
+			static uint64_t device_dna = 0U;
+			vTaskDelayUntil(&last_wake_time, 1U);
+			icb_receive(ICB_COMMAND_READ_DNA, &device_dna, 7U);
+			if ((device_dna & (UINT64_C(1) << 55U))) {
+				iprintf("0x%014" PRIX64 "\r\n", device_dna & ~(UINT64_C(1) << 55U));
+				ok = true;
+			}
+		}
+		if (!ok) {
+			fputs("Timed out waiting for device DNA\r\n", stdout);
+		}
+	}
+	if (ok) {
+		run_normal();
+	} else {
+		run_safe_mode();
+	}
+
+	// Wipe the FPGA configuration, if any.
 	icb_conf_start();
+
+	// Disconnect from the USB and wait for the disconnect to take effect.
 	udev_detach();
 	vTaskDelay(100U / portTICK_PERIOD_MS);
 
-	if (reboot_after_shutdown) {
-		asm volatile("cpsid i");
-		asm volatile("dsb");
-		{
-			AIRCR_t tmp = SCB.AIRCR;
-			tmp.VECTKEY = 0x05FA;
-			tmp.SYSRESETREQ = 1;
-			SCB.AIRCR = tmp;
-		}
-	} else {
-		asm volatile("cpsid i");
-		asm volatile("dsb");
-		gpio_reset(PIN_POWER_LOGIC);
-		asm volatile("dsb");
-	}
+	// Do whatever we are supposed to do now.
+	switch (shutdown_mode) {
+		case MAIN_SHUT_MODE_DFU:
+			upgrade_dfu_run();
+			// Fall through to reboot after DFU is done.
+		case MAIN_SHUT_MODE_REBOOT:
+			asm volatile("cpsid i");
+			asm volatile("dsb");
+			{
+				AIRCR_t tmp = SCB.AIRCR;
+				tmp.VECTKEY = 0x05FA;
+				tmp.SYSRESETREQ = 1;
+				SCB.AIRCR = tmp;
+			}
+			__builtin_unreachable();
 
-	for (;;) {
-		asm volatile("wfi");
+		case MAIN_SHUT_MODE_POWER:
+		default:
+			asm volatile("cpsid i");
+			asm volatile("dsb");
+			gpio_reset(PIN_POWER_LOGIC);
+			asm volatile("dsb");
+			for (;;) {
+				asm volatile("wfi");
+			}
 	}
 }
 
@@ -564,12 +629,13 @@ void main_kick_wdt(main_wdt_source_t source) {
 /**
  * \brief Begins shutting down the robot.
  *
- * This function is asynchronous; it returns immediately, but proceeds with the shutdown sequence in another task.
+ * This function is asynchronous; it returns immediately, but proceeds with the
+ * shutdown sequence in another task.
  *
- * \param[in] reboot \c true to reboot, or \c false to power off
+ * \param[in] mode what to do after shutting down
  */
-void main_shutdown(bool reboot) {
-	reboot_after_shutdown = reboot;
+void main_shutdown(main_shut_mode_t mode) {
+	shutdown_mode = mode;
 	__atomic_signal_fence(__ATOMIC_RELEASE);
 	__atomic_store_n(&shutting_down, true, __ATOMIC_RELAXED);
 	xSemaphoreGive(supervisor_sem);

@@ -261,7 +261,7 @@ void adc_tick(log_record_t *record) {
 	battery_filtered = filtered;
 	portENABLE_INTERRUPTS();
 	if (filtered < 12.5f) {
-		main_shutdown(false);
+		main_shutdown(MAIN_SHUT_MODE_POWER);
 	}
 
 	if (record) {

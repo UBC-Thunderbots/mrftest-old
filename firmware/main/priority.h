@@ -82,6 +82,13 @@
 #define PRIO_TASK_LOG_WRITEOUT 1U
 
 /**
+ * \brief The priority of the firmware upgrade data writeout task.
+ *
+ * This must be very low priority as it contains a busy wait!
+ */
+#define PRIO_TASK_UPGRADE_WRITEOUT 1U
+
+/**
  * @}
  */
 

@@ -32,6 +32,11 @@ SECTIONS {
 		*(.data .data.*)
 	} >sram_region AT>flash_region
 
+	/* Code that for technical reasons must execute from RAM is also copied from Flash to ROM */
+	.ramtext : {
+		*(.ramtext .ramtext.*)
+	} >sram_region AT>flash_region
+
 	/* Allocate the last 256 kiB (two sectors) of Flash for a core dump */
 	.coredump 0x080C0000 (NOLOAD) : {
 		*(.coredump)
@@ -59,6 +64,10 @@ SECTIONS {
 linker_data_vma = ADDR(.data);
 linker_data_lma = LOADADDR(.data);
 linker_data_size = SIZEOF(.data);
+
+linker_ramtext_vma = ADDR(.ramtext);
+linker_ramtext_lma = LOADADDR(.ramtext);
+linker_ramtext_size = SIZEOF(.ramtext);
 
 linker_bss_vma = ADDR(.bss);
 linker_bss_size = SIZEOF(.bss);

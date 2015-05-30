@@ -10,44 +10,8 @@
 #include <init.h>
 #include <unused.h>
 #include <usb.h>
+#include <usb_dfu.h>
 #include <registers/scb.h>
-
-enum {
-	USB_DTYPE_DFU = 0x21U,
-};
-
-enum {
-	USB_CLASS_APPLICATION_SPECIFIC = 0xFEU,
-};
-
-enum {
-	UASP_SUBCLASS_DFU = 1U,
-};
-
-enum {
-	DFU_DETACH = 0U,
-	DFU_DNLOAD = 1U,
-	DFU_UPLOAD = 2U,
-	DFU_GETSTATUS = 3U,
-	DFU_CLRSTATUS = 4U,
-	DFU_GETSTATE = 5U,
-	DFU_ABORT = 6U,
-};
-
-typedef struct __attribute__((packed)) {
-	uint8_t bLength;
-	uint8_t bDescriptorType;
-	struct __attribute__((packed)) {
-		unsigned bitCanDnload : 1;
-		unsigned bitCanUpload : 1;
-		unsigned bitManifestationTolerant : 1;
-		unsigned bitWillDetach : 1;
-		unsigned : 4;
-	} bmAttributes;
-	uint16_t wDetachTimeout;
-	uint16_t wTransferSize;
-	uint16_t bcdDFUVersion;
-} dfu_functional_descriptor_t;
 
 static const struct __attribute__((packed)) {
 	usb_configuration_descriptor_t config;
@@ -62,7 +26,7 @@ static const struct __attribute__((packed)) {
 		usb_interface_descriptor_t promisc_intf;
 			usb_endpoint_descriptor_t promisc_rx_ep;
 		usb_interface_descriptor_t dfu_intf;
-			dfu_functional_descriptor_t dfu;
+			usb_dfu_functional_descriptor_t dfu;
 } DESCRIPTORS = {
 	.config = {
 		.bLength = sizeof(usb_configuration_descriptor_t),
@@ -212,15 +176,15 @@ static const struct __attribute__((packed)) {
 		.bInterfaceNumber = INTERFACE_DFU,
 		.bAlternateSetting = 0U,
 		.bNumEndpoints = 0U,
-		.bInterfaceClass = USB_CLASS_APPLICATION_SPECIFIC,
-		.bInterfaceSubClass = UASP_SUBCLASS_DFU,
-		.bInterfaceProtocol = 1U,
+		.bInterfaceClass = USB_DFU_CLASS_APPLICATION_SPECIFIC,
+		.bInterfaceSubClass = USB_DFU_SUBCLASS_DFU,
+		.bInterfaceProtocol = USB_DFU_PROTOCOL_RUNTIME,
 		.iInterface = 0U,
 	},
 
 	.dfu = {
-		.bLength = sizeof(dfu_functional_descriptor_t),
-		.bDescriptorType = USB_DTYPE_DFU,
+		.bLength = sizeof(usb_dfu_functional_descriptor_t),
+		.bDescriptorType = USB_DFU_DTYPE_FUNCTIONAL,
 		.bmAttributes = {
 			.bitCanDnload = 1,
 			.bitCanUpload = 1,
@@ -314,13 +278,13 @@ static bool dfu_control_handler(const usb_setup_packet_t *pkt) {
 			0, // bState (appIDLE)
 			0, // iString
 		};
-		if (pkt->bRequest == DFU_DETACH && !pkt->wLength) {
+		if (pkt->bRequest == USB_DFU_CREQ_DETACH && !pkt->wLength) {
 			uep0_set_poststatus(&dfu_detach_poststatus);
 			return true;
-		} else if (pkt->bRequest == DFU_GETSTATUS && pkt->bmRequestType.direction && !pkt->wValue && pkt->wLength == sizeof(DFU_STATUS)) {
+		} else if (pkt->bRequest == USB_DFU_CREQ_GETSTATUS && pkt->bmRequestType.direction && !pkt->wValue && pkt->wLength == sizeof(DFU_STATUS)) {
 			uep0_data_write(DFU_STATUS, sizeof(DFU_STATUS));
 			return true;
-		} else if (pkt->bRequest == DFU_GETSTATE && pkt->bmRequestType.direction && !pkt->wValue && pkt->wLength == 1U) {
+		} else if (pkt->bRequest == USB_DFU_CREQ_GETSTATE && pkt->bmRequestType.direction && !pkt->wValue && pkt->wLength == 1U) {
 			uep0_data_write(&DFU_STATUS[4U], 1U);
 			return true;
 		}

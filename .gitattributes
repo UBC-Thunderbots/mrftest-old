@@ -71,7 +71,6 @@ firmware/main/FreeRTOSConfig.h -text
 firmware/main/Makefile -text
 firmware/main/adc.c -text
 firmware/main/adc.h -text
-firmware/main/bitstream.c -text
 firmware/main/breakbeam.c -text
 firmware/main/breakbeam.h -text
 firmware/main/charger.c -text
@@ -110,7 +109,6 @@ firmware/main/mrf.h -text
 firmware/main/pins.c -text
 firmware/main/pins.h -text
 firmware/main/priority.h -text
-firmware/main/readme.txt -text
 firmware/main/receive.c -text
 firmware/main/receive.h -text
 firmware/main/sdcard.c -text
@@ -123,6 +121,15 @@ firmware/main/tbuf.h -text
 firmware/main/tick.c -text
 firmware/main/tick.h -text
 firmware/main/timers.dox -text
+firmware/main/upgrade/constants.h -text
+firmware/main/upgrade/dfu.c -text
+firmware/main/upgrade/dfu.h -text
+firmware/main/upgrade/fpga.c -text
+firmware/main/upgrade/fpga.h -text
+firmware/main/upgrade/fw.c -text
+firmware/main/upgrade/fw.h -text
+firmware/main/upgrade/internal.h -text
+firmware/main/upgrade/util.c -text
 firmware/main/usb_config.c -text
 firmware/main/usb_config.h -text
 firmware/main/wheels.c -text
@@ -198,6 +205,7 @@ firmware/usb/dev.c -text
 firmware/usb/ep.c -text
 firmware/usb/ep0.c -text
 firmware/usb/include/usb.h -text
+firmware/usb/include/usb_dfu.h -text
 firmware/usb/internal.h -text
 firmware/usb/usb.dox -text
 firmware/usb/util.c -text

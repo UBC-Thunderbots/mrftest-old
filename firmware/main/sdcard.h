@@ -185,6 +185,7 @@ typedef enum {
 } sd_status_t;
 
 sd_status_t sd_init(void);
+bool sd_is_hc(void);
 uint32_t sd_sector_count(void);
 sd_status_t sd_read(uint32_t sector, void *buffer);
 sd_status_t sd_write(uint32_t sector, const void *data);
