@@ -728,32 +728,43 @@ static sd_status_t sd_read_impl(uint32_t sector, void *buffer) {
 	}
 
 	// Now that the CPSM is finished, wait for the DPSM to also finish.
-	SDIO_MASK_t mask_temp = { .DBCKENDIE = 1, .DCRCFAILIE = 1, .DTIMEOUTIE = 1 };
+	SDIO_MASK_t mask_temp = { .DBCKENDIE = 1, .STBITERRIE = 1, .RXOVERRIE = 1, .DCRCFAILIE = 1, .DTIMEOUTIE = 1 };
 	SDIO.MASK = mask_temp;
 	xSemaphoreTake(int_semaphore, portMAX_DELAY);
+	SDIO_STA_t status = SDIO.STA;
 
-	// SD error handling.
-	if (SDIO.STA.DTIMEOUT) {
-		// Disable the DMA stream.
-		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		while (DMA2.streams[SD_DMA_STREAM].CR.EN);
-		fputs("SD: Data timeout\r\n", stdout);
-		return SD_STATUS_DATA_TIMEOUT;
-	} else if (SDIO.STA.DCRCFAIL) {
-		// Disable the DMA stream.
-		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		while (DMA2.streams[SD_DMA_STREAM].CR.EN);
+	// Decode the completion status.
+	if (status.DBCKEND) {
+		ret = SD_STATUS_OK;
+	} else if (status.STBITERR) {
+		fputs("SD: Start bit missing on data line\r\n", stdout);
+		ret = SD_STATUS_MISSING_START_BIT;
+	} else if (status.RXOVERR) {
+		fputs("SD: FIFO overrun\r\n", stdout);
+		ret = SD_STATUS_FIFO_ERROR;
+	} else if (status.DCRCFAIL) {
 		fputs("SD: Data CRC failure\r\n", stdout);
-		return SD_STATUS_DATA_CRC_ERROR;
+		ret = SD_STATUS_DATA_CRC_ERROR;
+	} else if (status.DTIMEOUT) {
+		fputs("SD: Data timeout\r\n", stdout);
+		ret = SD_STATUS_DATA_TIMEOUT;
+	} else {
+		fputs("SD: Unknown SDIO_STA value\r\n", stdout);
+		ret = SD_STATUS_LOGICAL_ERROR;
 	}
 
-	// Data block ended successfully; wait for the DMA controller to shut down.
+	// Abort the DMA transfer if an error occurred.
+	if (ret != SD_STATUS_OK) {
+		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
+	}
+
+	// Wait for the DMA controller to shut down.
 	while (DMA2.streams[SD_DMA_STREAM].CR.EN);
 
 	// Ensure all DMA memory writes are complete before CPU memory reads start.
 	__atomic_thread_fence(__ATOMIC_ACQUIRE);
 
-	return SD_STATUS_OK;
+	return ret;
 }
 
 /**
@@ -842,38 +853,48 @@ static sd_status_t sd_write_impl(uint32_t sector, const void *data) {
 	SDIO.DTIMER = UINT32_MAX;
 	SDIO_DCTRL_t dctrl_temp = { .DTEN = 1, .DTDIR = 0, .DTMODE = 0, .DMAEN = 1, .DBLOCKSIZE = 9 };
 	SDIO.DCTRL = dctrl_temp;
-	SDIO_MASK_t mask_temp = { .DBCKENDIE = 1, .DCRCFAILIE = 1, .DTIMEOUTIE = 1 };
+	SDIO_MASK_t mask_temp = { .DBCKENDIE = 1, .STBITERRIE = 1, .TXUNDERRIE = 1, .DCRCFAILIE = 1, .DTIMEOUTIE = 1 };
 	SDIO.MASK = mask_temp;
 
 	// Wait for SD controller to interrupt with error/transfer complete.
 	xSemaphoreTake(int_semaphore, portMAX_DELAY);
+	SDIO_STA_t status = SDIO.STA;
 
-	// SD error handling.
-	if (SDIO.STA.DTIMEOUT) {
-		// Disable the DMA stream.
-		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		while (DMA2.streams[SD_DMA_STREAM].CR.EN);
-		fputs("SD: Data timeout\r\n", stdout);
-		return SD_STATUS_DATA_TIMEOUT;
-	} else if (SDIO.STA.DCRCFAIL) {
-		// Disable the DMA stream.
-		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
-		while (DMA2.streams[SD_DMA_STREAM].CR.EN);
+	// Decode the completion status.
+	if (status.DBCKEND) {
+		ret = SD_STATUS_OK;
+	} else if (status.STBITERR) {
+		fputs("SD: Start bit missing on data line\r\n", stdout);
+		ret = SD_STATUS_MISSING_START_BIT;
+	} else if (status.TXUNDERR) {
+		fputs("SD: FIFO underrun\r\n", stdout);
+		ret = SD_STATUS_FIFO_ERROR;
+	} else if (status.DCRCFAIL) {
 		fputs("SD: Data CRC failure\r\n", stdout);
-		return SD_STATUS_DATA_CRC_ERROR;
+		ret = SD_STATUS_DATA_CRC_ERROR;
+	} else if (status.DTIMEOUT) {
+		fputs("SD: Data timeout\r\n", stdout);
+		ret = SD_STATUS_DATA_TIMEOUT;
+	} else {
+		fputs("SD: Unknown SDIO_STA value\r\n", stdout);
+		ret = SD_STATUS_LOGICAL_ERROR;
 	}
+
+	// Abort the DMA transfer if an error occurred.
+	if (ret != SD_STATUS_OK) {
+		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
+	}
+
+	// Wait for the DMA controller to shut down.
+	while (DMA2.streams[SD_DMA_STREAM].CR.EN);
 
 	// Write operations use D0 busy/idle signalling; wait for card to go idle.
 	sd_wait_d0_high();
 
-	// Wait for the DMA controller to shut down; this will almost certainly
-	// take no time at all as it will be dwarfed by the card going idle.
-	while (DMA2.streams[SD_DMA_STREAM].CR.EN);
-
 	// Wait for DPSM to disable.
 	while (SDIO.STA.TXACT);
 
-	return SD_STATUS_OK;
+	return ret;
 }
 
 /**

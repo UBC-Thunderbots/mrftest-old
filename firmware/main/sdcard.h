@@ -182,6 +182,16 @@ typedef enum {
 	 * \brief Data was received with an incorrect CRC.
 	 */
 	SD_STATUS_DATA_CRC_ERROR,
+
+	/**
+	 * \brief A start bit was missing on one or more data lines.
+	 */
+	SD_STATUS_MISSING_START_BIT,
+
+	/**
+	 * \brief A FIFO overrun or underrun occurred.
+	 */
+	SD_STATUS_FIFO_ERROR,
 } sd_status_t;
 
 sd_status_t sd_init(void);
