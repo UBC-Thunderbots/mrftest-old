@@ -23,6 +23,9 @@ typedef unsigned long TickType_t;
 // The stack grows down.
 #define portSTACK_GROWTH -1
 
+// Tick counters are atomic.
+#define portTICK_TYPE_IS_ATOMIC 1
+
 // The tick interval, in milliseconds.
 #define portTICK_PERIOD_MS (1000UL / configTICK_RATE_HZ)
 
