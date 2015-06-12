@@ -49,6 +49,7 @@ firmware/dongle/timers.txt -text
 firmware/freertos/include/FreeRTOS.h -text
 firmware/freertos/include/StackMacros.h -text
 firmware/freertos/include/croutine.h -text
+firmware/freertos/include/deprecated_definitions.h -text
 firmware/freertos/include/event_groups.h -text
 firmware/freertos/include/list.h -text
 firmware/freertos/include/mpu_wrappers.h -text
