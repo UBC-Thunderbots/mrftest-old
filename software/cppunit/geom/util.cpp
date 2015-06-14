@@ -56,9 +56,11 @@ namespace {
 		CPPUNIT_TEST(test_angle_sweep_circles_all);
 		CPPUNIT_TEST(test_dist_matching);
 		CPPUNIT_TEST(test_clip_point2);
+		CPPUNIT_TEST(test_dist_point_seg);
 		CPPUNIT_TEST_SUITE_END();
 
 		public:
+			void test_dist_point_seg();
 			void test_proj_len(); 
 			void test_contains_triangle_point(); 
 			void test_collinear();
@@ -70,7 +72,6 @@ namespace {
 			void test_point_in_rectangle(); 
 			void test_seg_buffer_boundaries();
 			void test_circle_boundaries();
-			void test_lineseg_point_dist(); 
 			void test_closest_lineseg_point();
 			void test_line_circle_intersect(); 
 			void test_line_rect_intersect();
@@ -822,3 +823,19 @@ void GeomUtilTest::test_closest_point_time() {
 	CPPUNIT_ASSERT_DOUBLES_EQUAL(1.8, closest_point_time(x1, v1, x2, v2), 0.0001);
 }
 
+
+void GeomUtilTest::test_dist_point_seg() {
+	Point a1(0, 0);
+	Point b1(1, 0);
+
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, dist(Point(0, 1), Seg(a1, b1)), 0.0001);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, dist(Point(2, 0), Seg(a1, b1)), 0.0001);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, dist(Point(1, -1), Seg(a1, b1)), 0.0001);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, dist(Point(-1, 0), Seg(a1, b1)), 0.0001);
+
+	Point a2(5, 2);
+	Point b2(2, 7);
+	Point c2(6.5369, 7.2131);
+
+	CPPUNIT_ASSERT_DOUBLES_EQUAL(4.0, dist(c2, Seg(a2, b2)), 0.001);
+}

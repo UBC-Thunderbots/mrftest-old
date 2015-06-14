@@ -48,7 +48,7 @@ namespace Geom {
 	}
 
 	double distsq(const Vector2& first, const Seg& second) {
-		double seglen = len(second);
+		double seglensq = lensq(second);
 		Vector2 relsecond_s = first - second.start;
 		Vector2 relsecond_e = first - second.end;
 
@@ -59,7 +59,8 @@ namespace Geom {
 			if (is_degenerate(second)) {
 				return relsecond_s.len();
 			}
-			return std::fabs((relsecond_s).cross(s_vec2) / seglen);
+			double cross = relsecond_s.cross(s_vec2);
+			return std::fabs(cross * cross / seglensq);
 		}
 
 		double lensq_s = distsq(second.start, first),
