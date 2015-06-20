@@ -52,10 +52,10 @@
           <double name="Pos-vel thresh">0.030</double>
         </category>
         <category name="NC">
-          <double name="distance in the x direction to set the navigation points">0.300</double>
+          <double name="distance in the x direction to set the navigation points">0.400</double>
           <double name="distance in the y direction to set the navigation points">0.500</double>
           <double name="pos distance threshold">0.200</double>
-          <double name="pos distance threshold nav 2013">0.050</double>
+          <double name="pos distance threshold nav 2013">0.100</double>
           <double name="pos distance threshold shooting def">0.050</double>
         </category>
         <category name="STP">
@@ -69,11 +69,11 @@
               <boolean name="Whether the defender shoot_goal (otherwise repels)">true</boolean>
             </category>
             <category name="Goalie">
-              <double name="Distance the goalie should repel the ball in robot radius">4.000</double>
+              <double name="Distance the goalie should repel the ball in robot radius">3.000</double>
               <double name="Lone Goalie: distance to goal post (m)">0.300</double>
             </category>
             <category name="repel">
-              <double name="speed that repel will be kicking at in a corner">3.000</double>
+              <double name="speed that repel will be kicking at in a corner">6.000</double>
             </category>
             <category name="Shoot">
               <boolean name="Include teammates in strafe sweep">true</boolean>
@@ -89,14 +89,14 @@
               <radians name="change in orientation every time tick for move spin (radians)">3.000</radians>
             </category>
             <category name="Strafe">
-              <double name="strafing increment">0.100</double>
+              <double name="strafing increment">0.171</double>
             </category>
           </category>
           <category name="ball">
             <boolean name="Calc baller always return">true</boolean>
             <double name="circle radius in front of enemy robot to consider possession (meters)">0.100</double>
             <double name="circle radius in front of robot to enable pivot (meters)">0.100</double>
-            <boolean name="Smart possess ball (instead of has ball only)">true</boolean>
+            <boolean name="Smart possess ball (instead of has ball only)">false</boolean>
           </category>
           <category name="Challenge">
             <degrees name="CHALLENGE: angle to separate players (degrees)">120.0</degrees>
@@ -104,26 +104,26 @@
           </category>
           <category name="defense">
             <double name="ball2side ratio">0.70</double>
-            <boolean name="defense protect against baller">true</boolean>
-            <boolean name="goalie hug switch">true</boolean>
-            <double name="max goalie dist from goal (robot radius)">3.00</double>
+            <boolean name="defense protect against baller">false</boolean>
+            <boolean name="goalie hug switch">false</boolean>
+            <double name="max goalie dist from goal (robot radius)">5.00</double>
             <boolean name="open net enemy is dangerous">true</boolean>
-            <double name="shrink robot radius">1.100</double>
+            <double name="shrink robot radius">0.900</double>
           </category>
           <category name="enemy">
             <boolean name="enemy closest use grab ball position">true</boolean>
             <degrees name="Enemy shoot accuracy (degrees)">1.0</degrees>
           </category>
           <category name="evaluation">
-            <double name="speed goalie should ignore direction of ball">0.050</double>
+            <double name="speed goalie should ignore direction of ball">1.000</double>
             <double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>
           </category>
           <category name="freekick">
-            <double name="Ball close to enemy defence area during free kick">0.200</double>
-            <boolean name="Enable ball close to enemy defence area">true</boolean>
+            <double name="Ball close to enemy defence area during free kick">1.000</double>
+            <boolean name="Enable ball close to enemy defence area">false</boolean>
           </category>
           <category name="Goalie">
-            <boolean name="Goalie is lowest index">true</boolean>
+            <boolean name="Goalie is lowest index">false</boolean>
             <integer name="Goalie pattern index">0</integer>
             <boolean name="Goalie selection by lowest or user assigned">false</boolean>
           </category>
@@ -164,18 +164,18 @@
             <boolean name="Enable robot 9">true</boolean>
           </category>
           <category name="offense">
-            <double name="Dont block increase multiplier">1.10</double>
+            <double name="Dont block increase multiplier">2.00</double>
             <double name="enemy avoidance distance (robot radius)">2.50</double>
-            <integer name="grid x size">25</integer>
-            <integer name="grid y size">25</integer>
-            <double name="Offensive friendly avoidance increase radius (robot radius)">1.10</double>
-            <double name="Scoring weight for angle from ball to goal at robot (-ve)">1.0</double>
-            <double name="Scoring weight for angle to goal (POWER, careful)">1.0</double>
+            <integer name="grid x size">10</integer>
+            <integer name="grid y size">10</integer>
+            <double name="Offensive friendly avoidance increase radius (robot radius)">2.00</double>
+            <double name="Scoring weight for angle from ball to goal at robot (-ve)">2.0</double>
+            <double name="Scoring weight for angle to goal (POWER, careful)">2.5</double>
             <double name="Scoring weight for baller angle (-ve)">20</double>
             <double name="Scoring weight for ball progress (+ve)">1.0</double>
             <double name="Scoring weight for distance to ball (-ve)">1.0</double>
             <double name="Scoring weight for distance to enemy goal (-ve)">1.0</double>
-            <double name="Scoring weight for everything">1</double>
+            <double name="Scoring weight for everything">2000</double>
             <double name="Scoring weight for nearest enemy (+ve)">1.0</double>
             <boolean name="Triangle check">true</boolean>
           </category>
@@ -199,60 +199,60 @@
           </category>
           <category name="Play">
             <category name="Enable">
-              <boolean name="BackUpSteal">true</boolean>
-              <boolean name="BallTowardsEnemy">true</boolean>
+              <boolean name="BackUpSteal">false</boolean>
+              <boolean name="BallTowardsEnemy">false</boolean>
               <boolean name="CircularShoot">true</boolean>
               <boolean name="CornerChip">true</boolean>
-              <boolean name="CornerKickFriendly">true</boolean>
+              <boolean name="CornerKickFriendly">false</boolean>
               <boolean name="DBasic2Block">true</boolean>
               <boolean name="DBasicCorner">true</boolean>
               <boolean name="DefensiveBlock">true</boolean>
-              <boolean name="DirectKickFriendlyPivot">true</boolean>
-              <boolean name="EasyWin">true</boolean>
+              <boolean name="DirectKickFriendlyPivot">false</boolean>
+              <boolean name="EasyWin">false</boolean>
               <boolean name="FranticDefense">true</boolean>
               <boolean name="FreeKickEnemyDefend">true</boolean>
               <boolean name="FreeKickEnemyDirect">true</boolean>
               <boolean name="FreeKickEnemyIndirect">true</boolean>
               <boolean name="FreeKickEnemyMarkDefend">true</boolean>
               <boolean name="FreeKickFriendly">true</boolean>
-              <boolean name="FreeKickFriendlyChip">true</boolean>
-              <boolean name="FreeKickFriendlyPass">true</boolean>
-              <boolean name="FreeKickFriendlyRay">true</boolean>
-              <boolean name="FreeKickFriendlyRepel">true</boolean>
-              <boolean name="FreeKickPass">true</boolean>
-              <boolean name="GoalKickFriendly">true</boolean>
+              <boolean name="FreeKickFriendlyChip">false</boolean>
+              <boolean name="FreeKickFriendlyPass">false</boolean>
+              <boolean name="FreeKickFriendlyRay">false</boolean>
+              <boolean name="FreeKickFriendlyRepel">false</boolean>
+              <boolean name="FreeKickPass">false</boolean>
+              <boolean name="GoalKickFriendly">false</boolean>
               <boolean name="GrabBallDefensive">true</boolean>
               <boolean name="GrabBallOffensive">true</boolean>
-              <boolean name="IndirectKickFriendlyPivot">true</boolean>
-              <boolean name="JustChip">true</boolean>
+              <boolean name="IndirectKickFriendlyPivot">false</boolean>
+              <boolean name="JustChip">false</boolean>
               <boolean name="JustGoalie">true</boolean>
-              <boolean name="JustRepel">true</boolean>
+              <boolean name="JustRepel">false</boolean>
               <boolean name="JustShoot">true</boolean>
-              <boolean name="JustSpin">true</boolean>
+              <boolean name="JustSpin">false</boolean>
               <boolean name="KickoffEnemy">true</boolean>
               <boolean name="KickOffEnemySmall">true</boolean>
-              <boolean name="KickoffFriendly">true</boolean>
+              <boolean name="KickoffFriendly">false</boolean>
               <boolean name="KickoffFriendlyChip">true</boolean>
               <boolean name="Lone2Player">true</boolean>
-              <boolean name="MTDDefensive">true</boolean>
-              <boolean name="MTDDefensiveBlock">true</boolean>
-              <boolean name="MTOJustShoot">true</boolean>
+              <boolean name="MTDDefensive">false</boolean>
+              <boolean name="MTDDefensiveBlock">false</boolean>
+              <boolean name="MTOJustShoot">false</boolean>
               <boolean name="OffensiveBlock">true</boolean>
-              <boolean name="OurCornerChip">true</boolean>
+              <boolean name="OurCornerChip">false</boolean>
               <boolean name="OurCornerPlay">true</boolean>
               <boolean name="OurCornerShoot">true</boolean>
-              <boolean name="PassDefensive">true</boolean>
-              <boolean name="PassOffensive">true</boolean>
-              <boolean name="PassRay">true</boolean>
-              <boolean name="PassSimple">true</boolean>
+              <boolean name="PassDefensive">false</boolean>
+              <boolean name="PassOffensive">false</boolean>
+              <boolean name="PassRay">false</boolean>
+              <boolean name="PassSimple">false</boolean>
               <boolean name="PenaltyEnemy">true</boolean>
               <boolean name="PenaltyFriendly">true</boolean>
-              <boolean name="ShootGoal">true</boolean>
+              <boolean name="ShootGoal">false</boolean>
               <boolean name="Stop">true</boolean>
-              <boolean name="StopShadow">true</boolean>
-              <boolean name="TestCShoot">true</boolean>
-              <boolean name="TestShootSpeed">true</boolean>
-              <boolean name="TheirCornerChip">true</boolean>
+              <boolean name="StopShadow">false</boolean>
+              <boolean name="TestCShoot">false</boolean>
+              <boolean name="TestShootSpeed">false</boolean>
+              <boolean name="TheirCornerChip">false</boolean>
               <boolean name="TheirCornerPlay">true</boolean>
               <boolean name="TriAttackDef">true</boolean>
               <boolean name="TriAttackDiamond">true</boolean>
@@ -327,9 +327,9 @@
               <integer name="DBasic2Block">5</integer>
               <integer name="DBasicCorner">5</integer>
               <integer name="DefensiveBlock">5</integer>
-              <integer name="DirectKickFriendlyPivot">5</integer>
+              <integer name="DirectKickFriendlyPivot">10</integer>
               <integer name="EasyWin">5</integer>
-              <integer name="FranticDefense">5</integer>
+              <integer name="FranticDefense">10</integer>
               <integer name="FreeKickEnemyDefend">5</integer>
               <integer name="FreeKickEnemyDirect">5</integer>
               <integer name="FreeKickEnemyIndirect">5</integer>
@@ -338,7 +338,7 @@
               <integer name="FreeKickFriendlyChip">5</integer>
               <integer name="FreeKickFriendlyPass">5</integer>
               <integer name="FreeKickFriendlyRay">5</integer>
-              <integer name="FreeKickFriendlyRepel">5</integer>
+              <integer name="FreeKickFriendlyRepel">0</integer>
               <integer name="FreeKickPass">5</integer>
               <integer name="GoalKickFriendly">5</integer>
               <integer name="GrabBallDefensive">5</integer>
@@ -346,9 +346,9 @@
               <integer name="IndirectKickFriendlyPivot">5</integer>
               <integer name="JustChip">5</integer>
               <integer name="JustGoalie">5</integer>
-              <integer name="JustRepel">5</integer>
-              <integer name="JustShoot">5</integer>
-              <integer name="JustSpin">5</integer>
+              <integer name="JustRepel">0</integer>
+              <integer name="JustShoot">8</integer>
+              <integer name="JustSpin">10</integer>
               <integer name="KickoffEnemy">5</integer>
               <integer name="KickOffEnemySmall">5</integer>
               <integer name="KickoffFriendly">5</integer>
@@ -367,7 +367,7 @@
               <integer name="PassSimple">5</integer>
               <integer name="PenaltyEnemy">5</integer>
               <integer name="PenaltyFriendly">5</integer>
-              <integer name="ShootGoal">5</integer>
+              <integer name="ShootGoal">10</integer>
               <integer name="Stop">5</integer>
               <integer name="StopShadow">5</integer>
               <integer name="TestCShoot">5</integer>
@@ -465,13 +465,13 @@
           </category>
           <category name="Shoot">
             <radians name="Angle threshold that defines shoot accuracy, bigger is more accurate (radians)">0.0</radians>
-            <double name="big reduced radius for calculating best shot (robot radius ratio)">0.800</double>
+            <double name="big reduced radius for calculating best shot (robot radius ratio)">0.500</double>
             <double name="Default Shooting Speed">8.00</double>
             <double name="Shoot accuracy (for various purposes)">5.0</double>
             <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
           </category>
           <category name="Stop">
-            <double name="goalie stop dist">0.090</double>
+            <double name="goalie stop dist">0.180</double>
             <degrees name="stop: angle to separate players (degrees)">15.0</degrees>
           </category>
           <category name="Tactic">
@@ -483,13 +483,13 @@
             </category>
             <category name="pass">
               <double name="dist from target when passee hack is applicable (meters)">0.100</double>
-              <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.000</double>
+              <double name="Hack to get reciever to move more quickly to intercept pos by modifying dest (meters)">0.113</double>
               <boolean name=" pass blocked means that Passer should fail ">true</boolean>
-              <boolean name=" shot on net avaiable means that Passer should fail ">true</boolean>
+              <boolean name=" shot on net avaiable means that Passer should fail ">false</boolean>
               <double name=" the buffer (meters) in which passee must be with repect to target region before valid ">0.000</double>
               <double name=" the radius (meters) in which passer must be with repect to ball before valid ">1.000</double>
               <double name="velocity of pass threshold">1.000</double>
-              <double name="velocity to ignore">0.050</double>
+              <double name="velocity to ignore">0.200</double>
               <degrees name="when passer within this angle tol passee responds to passer direction (degrees)">30.0</degrees>
             </category>
             <category name="Penalty">
@@ -497,7 +497,7 @@
               <double name="Travel width for goalie movement (robot width)">2.00</double>
             </category>
             <category name="penalty_goalie">
-              <boolean name="Whether the penalty goalie should choose random points">false</boolean>
+              <boolean name="Whether the penalty goalie should choose random points">true</boolean>
             </category>
             <category name="Shoot">
               <boolean name="Enable autokick threshold">true</boolean>
@@ -505,7 +505,7 @@
             </category>
           </category>
           <category name="tdefend">
-            <double name="Distance between the tdefenders">2.250</double>
+            <double name="Distance between the tdefenders">2.500</double>
           </category>
           <category name="test_pass">
             <degrees name=" angle tolerance that the passer needs to be with respect to the passee (degrees)">20.0</degrees>
@@ -520,7 +520,7 @@
             <boolean name="attack going against enemy baller">true</boolean>
           </category>
           <category name="UI">
-            <boolean name="Draw defense circles">false</boolean>
+            <boolean name="Draw defense circles">true</boolean>
             <boolean name="Draw enemy pass lines">false</boolean>
             <boolean name="Draw friendly pass lines">false</boolean>
             <boolean name="Draw offense circles">false</boolean>
