@@ -110,6 +110,7 @@ inline void portDISABLE_INTERRUPTS(void) {
 // These functions are basically nestable variants of the functions above, which just maintain a counter and call those functions.
 void portENTER_CRITICAL(void);
 void portEXIT_CRITICAL(void);
+void portRELAX_CRITICAL_ISR_CHECK(void);
 
 // These functions enable and disable interrupts from an ISR.
 // We do not need to save a prior value of BASEPRI.

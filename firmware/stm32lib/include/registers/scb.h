@@ -231,9 +231,66 @@ _Static_assert(sizeof(FP_t) == 12U, "FP_t is wrong size");
 
 extern volatile FP_t FP;
 
+typedef struct {
+	unsigned C_DEBUGEN : 1;
+	unsigned C_HALT : 1;
+	unsigned C_STEP : 1;
+	unsigned C_MASKINTS : 1;
+	unsigned : 1;
+	unsigned C_SNAPSTALL : 1;
+	unsigned : 10;
+	unsigned S_REGRDY : 1;
+	unsigned S_HALT : 1;
+	unsigned S_SLEEP : 1;
+	unsigned S_LOCKUP : 1;
+	unsigned : 4;
+	unsigned S_RETIRE_ST : 1;
+	unsigned S_RESET_ST : 1;
+	unsigned : 6;
+} DHCSR_t;
+_Static_assert(sizeof(DHCSR_t) == 4U, "DHCSR_t is wrong size");
+
+typedef struct {
+	unsigned REGSEL : 7;
+	unsigned : 9;
+	unsigned REGWnR : 1;
+	unsigned : 15;
+} DCRSR_t;
+_Static_assert(sizeof(DCRSR_t) == 4U, "DCRSR_t is wrong size");
+
+typedef struct {
+	unsigned VC_CORERESET : 1;
+	unsigned : 3;
+	unsigned VC_MMERR : 1;
+	unsigned VC_NOCPERR : 1;
+	unsigned VC_CHKERR : 1;
+	unsigned VC_STATERR : 1;
+	unsigned VC_BUSERR : 1;
+	unsigned VC_INTERR : 1;
+	unsigned VC_HARDERR : 1;
+	unsigned : 5;
+	unsigned MON_EN : 1;
+	unsigned MON_PEND : 1;
+	unsigned MON_STEP : 1;
+	unsigned MON_REQ : 1;
+	unsigned : 4;
+	unsigned TRCENA : 1;
+	unsigned : 7;
+} DEMCR_t;
+_Static_assert(sizeof(DEMCR_t) == 4U, "DEMCR_t is wrong size");
+
+typedef struct {
+	DHCSR_t DHCSR;
+	DCRSR_t DCRSR;
+	uint32_t DCRDR;
+	DEMCR_t DEMCR;
+} DEBUG_t;
+_Static_assert(sizeof(DEBUG_t) == 0xEDFCU - 0xEDF0U + 4U, "DEBUG_t is wrong size");
+
+extern volatile DEBUG_t DEBUG;
+
 #endif
 
 /**
  * @}
  */
-

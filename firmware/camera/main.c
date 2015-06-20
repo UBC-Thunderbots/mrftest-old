@@ -39,6 +39,7 @@ static const fptr exception_vectors[16U] __attribute__((used, section(".exceptio
 	[4U] = &exception_memory_manage_fault_isr,
 	[5U] = &exception_bus_fault_isr,
 	[6U] = &exception_usage_fault_isr,
+	[12U] = &exception_debug_fault_isr,
 };
 
 

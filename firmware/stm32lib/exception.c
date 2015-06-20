@@ -18,10 +18,19 @@
 #include <registers/scb.h>
 #include <sleep.h>
 #include <string.h>
+#if STM32LIB_USE_FREERTOS
+#include <FreeRTOS.h>
+#include <task.h>
+#endif
 
 /**
  * \cond INTERNAL
  */
+#if STM32LIB_USE_FREERTOS && configUSE_TRACE_FACILITY
+#define EXCEPTION_MAX_THREADS 32
+#else
+#define EXCEPTION_MAX_THREADS 1
+#endif
 static const exception_core_writer_t *core_writer = 0;
 static const exception_app_cbs_t *app_cbs = 0;
 /**
@@ -45,7 +54,7 @@ void exception_init(const exception_core_writer_t *cw, const exception_app_cbs_t
 	}
 
 	// We will run as follows:
-	// CPU exceptions (UsageFault, BusFault, MemManage) will be priority 0.0 and thus preempt everything else.
+	// CPU exceptions (UsageFault, BusFault, MemManage, DebugMonitor) will be priority 0.0 and thus preempt everything else.
 	// Other priorities are defined elsewhere.
 	// Give all hardware interrupts a default priority of 6.0 in case some application fails to set a priority.
 	for (size_t i = 0; i < sizeof(NVIC.IPR) / sizeof(*NVIC.IPR); ++i) {
@@ -63,6 +72,10 @@ void exception_init(const exception_core_writer_t *cw, const exception_app_cbs_t
 		tmp.MEMFAULTENA = 1;
 		SCB.SHCSR = tmp;
 	}
+
+	// Enable DebugMonitor faults to be taken as such rather than escalating to
+	// HardFaults.
+	DEBUG.DEMCR.MON_EN = 1;
 
 	// Enable trap on divide by zero.
 	SCB.CCR.DIV_0_TRP = 1;
@@ -165,13 +178,17 @@ typedef struct __attribute__((packed)) {
 	char prstatus_name[8];
 	elf_note_prstatus_t prstatus;
 
+	elf_note_header_t arm_vfp_nheader;
+	char arm_vfp_name[8];
+	elf_note_arm_vfp_t arm_vfp;
+} elf_thread_notes_t;
+
+typedef struct __attribute__((packed)) {
 	elf_note_header_t pr_siginfo_nheader;
 	char pr_siginfo_name[8];
 	elf_note_pr_siginfo_t pr_siginfo;
 
-	elf_note_header_t arm_vfp_nheader;
-	char arm_vfp_name[8];
-	elf_note_arm_vfp_t arm_vfp;
+	elf_thread_notes_t threads[EXCEPTION_MAX_THREADS];
 } elf_notes_t;
 
 static const elf_headers_t ELF_HEADERS = {
@@ -234,26 +251,12 @@ static const elf_headers_t ELF_HEADERS = {
 };
 
 static elf_notes_t elf_notes = {
-	.prstatus_nheader = {
-		.n_namesz = 5,
-		.n_descsz = sizeof(elf_note_prstatus_t),
-		.n_type = 1, // NT_PRSTATUS
-	},
-	.prstatus_name = "CORE",
-
 	.pr_siginfo_nheader = {
 		.n_namesz = 5,
 		.n_descsz = sizeof(elf_note_pr_siginfo_t),
 		.n_type = 0x53494749, // IGIS
 	},
 	.pr_siginfo_name = "CORE",
-
-	.arm_vfp_nheader = {
-		.n_namesz = 6,
-		.n_descsz = sizeof(elf_note_arm_vfp_t),
-		.n_type = 0x400, // NT_ARM_VFP
-	},
-	.arm_vfp_name = "LINUX",
 };
 
 typedef struct __attribute__((packed)) {
@@ -266,7 +269,28 @@ typedef struct __attribute__((packed)) {
 	uint32_t control;
 	uint32_t gpregs[13];
 	uint32_t lr;
-} sw_stack_frame_t;
+} exception_isr_frame_t;
+
+#if STM32LIB_USE_FREERTOS && configUSE_TRACE_FACILITY
+typedef struct __attribute__((packed)) {
+	void *stack_guard_rbar;
+	MPU_RASR_t stack_guard_rasr;
+	unsigned long r4;
+	unsigned long r5;
+	unsigned long r6;
+	unsigned long r7;
+	unsigned long r8;
+	unsigned long r9;
+	unsigned long r10;
+	unsigned long r11;
+	unsigned long lr;
+} exception_rtos_basic_frame_t;
+
+typedef struct __attribute__((packed)) {
+	exception_rtos_basic_frame_t basic;
+	uint32_t fpregs[16];
+} exception_rtos_extended_frame_t;
+#endif
 
 typedef struct __attribute__((packed)) {
 	uint32_t r0;
@@ -277,30 +301,21 @@ typedef struct __attribute__((packed)) {
 	uint32_t lr;
 	uint32_t pc;
 	uint32_t xpsr;
-} hw_basic_stack_frame_t;
+} exception_hw_basic_frame_t;
 
 typedef struct __attribute__((packed)) {
-	hw_basic_stack_frame_t basic;
+	exception_hw_basic_frame_t basic;
 	uint32_t fpregs[16];
 	uint32_t fpscr;
-} hw_extended_stack_frame_t;
+} exception_hw_extended_frame_t;
 
-const sw_stack_frame_t * volatile exception_sw_stack_frame;
-const hw_basic_stack_frame_t * volatile exception_hw_basic_stack_frame;
-const hw_extended_stack_frame_t * volatile exception_hw_extended_stack_frame;
-
-static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause) {
+static void exception_fill_siginfo(unsigned int cause) {
 	// Fill out the signal info based on the exception number and fault status
 	// registers.
 	switch (cause) {
 		case 3: // Hard fault
-			if (SCB.HFSR.DEBUGEVT) {
-				elf_notes.pr_siginfo.si_signum = 6; // SIGABRT
-				elf_notes.pr_siginfo.si_code = -6; // Sent by tkill (what abort()/assert() do)
-			} else {
-				elf_notes.pr_siginfo.si_signum = 9; // SIGKILL (not really any good answer here)
-				elf_notes.pr_siginfo.si_code = 0x80; // SI_KERNEL
-			}
+			elf_notes.pr_siginfo.si_signum = 9; // SIGKILL (not really any good answer here)
+			elf_notes.pr_siginfo.si_code = 0x80; // SI_KERNEL
 			break;
 
 		case 4: // Memory manage fault
@@ -341,22 +356,35 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 				elf_notes.pr_siginfo.si_code = 1; // ILL_ILLOPC
 			}
 			break;
+
+		case 12: // Debug monitor fault
+			elf_notes.pr_siginfo.si_signum = 6; // SIGABRT
+			elf_notes.pr_siginfo.si_code = -6; // Sent by tkill (what abort()/assert() do)
+			break;
 	}
+}
+
+static void exception_fill_thread_isr(const exception_isr_frame_t *swframe, elf_thread_notes_t *thread) {
+	// Fill headers.
+	thread->prstatus_nheader.n_type = 1; // NT_PRSTATUS
+	strcpy(thread->prstatus_name, "CORE");
+	thread->arm_vfp_nheader.n_type = 0x400;
+	strcpy(thread->arm_vfp_name, "LINUX");
 
 	// Copy signal info over to prstatus.
-	elf_notes.prstatus.si_signo = elf_notes.pr_siginfo.si_signum;
-	elf_notes.prstatus.si_code = elf_notes.pr_siginfo.si_code;
-	elf_notes.prstatus.si_errno = elf_notes.pr_siginfo.si_code;
-	elf_notes.prstatus.pr_cursig = elf_notes.pr_siginfo.si_signum;
+	thread->prstatus.si_signo = elf_notes.pr_siginfo.si_signum;
+	thread->prstatus.si_code = elf_notes.pr_siginfo.si_code;
+	thread->prstatus.si_errno = elf_notes.pr_siginfo.si_code;
+	thread->prstatus.pr_cursig = elf_notes.pr_siginfo.si_signum;
 
 	// General purpose registers always come from the software frame. The
 	// hardware frame may or may not exist, and if it does, it only has a few
 	// GP regs. The software frame *always* exists and has *all* the GP regs,
 	// so it’s much easier.
-	memcpy(&elf_notes.prstatus.pr_gpregs, &swframe->gpregs, 13 * sizeof(uint32_t));
+	memcpy(&thread->prstatus.pr_gpregs, &swframe->gpregs, 13 * sizeof(uint32_t));
 
-	const hw_basic_stack_frame_t *hwbframe;
-	const hw_extended_stack_frame_t *hweframe;
+	const exception_hw_basic_frame_t *hwbframe;
+	const exception_hw_extended_frame_t *hweframe;
 	{
 		// Find the hardware frame, if there is one, and initialize ELF note SP
 		// to point at it.
@@ -371,7 +399,7 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 			} else {
 				hwframeptr = (const void *) swframe->psp;
 			}
-			elf_notes.prstatus.pr_reg_sp = swframe->psp;
+			thread->prstatus.pr_reg_sp = swframe->psp;
 		} else {
 			// Hardware frame lives on the main stack. The main stack is
 			// assumed not to have stacking errors, since we’re using it right
@@ -380,7 +408,7 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 			// pushed. So, the hardware frame lives immediately following the
 			// software frame in memory.
 			hwframeptr = swframe + 1;
-			elf_notes.prstatus.pr_reg_sp = (uint32_t) hwframeptr;
+			thread->prstatus.pr_reg_sp = (uint32_t) hwframeptr;
 		}
 
 		// Classify hardware frame into basic or extended. Advance SP over
@@ -388,34 +416,34 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 		if (swframe->lr & 16U) {
 			hwbframe = hwframeptr;
 			hweframe = 0;
-			elf_notes.prstatus.pr_reg_sp += sizeof(hw_basic_stack_frame_t);
+			thread->prstatus.pr_reg_sp += sizeof(exception_hw_basic_frame_t);
 		} else {
 			hweframe = hwframeptr;
 			hwbframe = &hweframe->basic;
-			elf_notes.prstatus.pr_reg_sp += sizeof(hw_extended_stack_frame_t);
+			thread->prstatus.pr_reg_sp += sizeof(exception_hw_extended_frame_t);
 		}
 
 		// Check for stack realignment.
 		if (hwbframe && hwbframe->xpsr & (1U << 9U)) {
 			// Stack pointer was adjusted by 4 to achieve 8-byte alignment.
-			elf_notes.prstatus.pr_reg_sp += 4U;
+			thread->prstatus.pr_reg_sp += 4U;
 		}
 	}
 
 	// Classify thread mode as PID 1 and handler mode as PID 0.
 	if (swframe->lr & 8U) {
-		elf_notes.prstatus.pr_pid = 1;
+		thread->prstatus.pr_pid = 1;
 	} else {
-		elf_notes.prstatus.pr_pid = 0;
+		thread->prstatus.pr_pid = 0;
 	}
 
 	// Fill the rest of prstatus as best we can.
 	if (hwbframe) {
-		elf_notes.prstatus.pr_reg_lr = hwbframe->lr;
-		elf_notes.prstatus.pr_reg_pc = hwbframe->pc;
-		elf_notes.prstatus.pr_reg_xpsr = hwbframe->xpsr;
+		thread->prstatus.pr_reg_lr = hwbframe->lr;
+		thread->prstatus.pr_reg_pc = hwbframe->pc;
+		thread->prstatus.pr_reg_xpsr = hwbframe->xpsr;
 	} else {
-		elf_notes.prstatus.pr_reg_xpsr = swframe->xpsr;
+		thread->prstatus.pr_reg_xpsr = swframe->xpsr;
 	}
 
 	// Sort out the floating point registers.
@@ -431,9 +459,9 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 			// The first 16 registers and FPSCR are in the stack frame. The
 			// second 16 registers are not preserved anywhere yet and can be
 			// grabbed directly.
-			memcpy(&elf_notes.arm_vfp.sregs, &hweframe->fpregs, sizeof(hweframe->fpregs));
-			asm volatile("vstm %[dest], {s16-s31}" :: [dest] "r" (&elf_notes.arm_vfp.sregs[16]) : "memory");
-			elf_notes.arm_vfp.fpscr = hweframe->fpscr;
+			memcpy(&thread->arm_vfp.sregs, &hweframe->fpregs, sizeof(hweframe->fpregs));
+			asm volatile("vstm %[dest], {s16-s31}" :: [dest] "r" (&thread->arm_vfp.sregs[16]) : "memory");
+			thread->arm_vfp.fpscr = hweframe->fpscr;
 		} else {
 			// The hardware pushed a basic frame.
 			if (FP.CCR.ASPEN) {
@@ -441,15 +469,16 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 				// the hardware would have pushed an extended frame. That it
 				// pushed a basic frame means no FP was happening. Wipe the
 				// note.
-				elf_notes.arm_vfp_nheader.n_type = 0;
+				thread->arm_vfp_nheader.n_type = 0;
+				memset(thread->arm_vfp_name, 0, sizeof(thread->arm_vfp_name));
 			} else {
 				// Automatic preservation is disabled. We really don’t know
 				// whether any FP was happening or not. The hardware will
 				// always push a basic frame in this state. Just to be safe,
 				// write out all the FP registers from their current values. If
 				// the application wasn’t using FP, the data can be ignored.
-				asm volatile("vstm %[dest], {s0-s31}" :: [dest] "r" (&elf_notes.arm_vfp.sregs) : "memory");
-				asm("vmrs %[dest], fpscr" : [dest] "=r" (elf_notes.arm_vfp.fpscr));
+				asm volatile("vstm %[dest], {s0-s31}" :: [dest] "r" (&thread->arm_vfp.sregs) : "memory");
+				asm("vmrs %[dest], fpscr" : [dest] "=r" (thread->arm_vfp.fpscr));
 			}
 		}
 	} else {
@@ -461,20 +490,161 @@ static void fill_core_notes(const sw_stack_frame_t *swframe, unsigned int cause)
 		// indeterminate values after pushing. Therefore, it’s not safe to just
 		// copy the current values of the FP registers from the register file.
 		// Wipe the note.
-		elf_notes.arm_vfp_nheader.n_type = 0;
+		thread->arm_vfp_nheader.n_type = 0;
+		memset(thread->arm_vfp_name, 0, sizeof(thread->arm_vfp_name));
 	}
 
 	// Do some final tidying up.
-	elf_notes.prstatus.pr_reg_orig_r0 = elf_notes.prstatus.pr_gpregs[0];
-
-	// Save frame pointers for later inspection in the dump.
-	exception_sw_stack_frame = swframe;
-	exception_hw_basic_stack_frame = hwbframe;
-	exception_hw_extended_stack_frame = hweframe;
+	thread->prstatus.pr_reg_orig_r0 = thread->prstatus.pr_gpregs[0];
 }
 
-static void common_fault_isr(const sw_stack_frame_t *sp, unsigned int cause) __attribute__((noreturn, used));
-static void common_fault_isr(const sw_stack_frame_t *sp, unsigned int cause) {
+#if STM32LIB_USE_FREERTOS && configUSE_TRACE_FACILITY
+static void exception_fill_thread_rtos(const exception_rtos_basic_frame_t *swbframe, uint32_t pid, elf_thread_notes_t *thread) {
+	// Fill headers.
+	thread->prstatus_nheader.n_type = 1; // NT_PRSTATUS
+	strcpy(thread->prstatus_name, "CORE");
+	thread->arm_vfp_nheader.n_type = 0x400;
+	strcpy(thread->arm_vfp_name, "LINUX");
+
+	// Copy signal info over to prstatus.
+	thread->prstatus.si_signo = elf_notes.pr_siginfo.si_signum;
+	thread->prstatus.si_code = elf_notes.pr_siginfo.si_code;
+	thread->prstatus.si_errno = elf_notes.pr_siginfo.si_code;
+	thread->prstatus.pr_cursig = elf_notes.pr_siginfo.si_signum;
+
+	// Determine if the frames are basic or extended.
+	bool extended = !(swbframe->lr & 16U);
+
+	// Get a software extended frame if there is one.
+	const exception_rtos_extended_frame_t *sweframe = extended ? (const exception_rtos_extended_frame_t *) swbframe : 0;
+
+	// Get the hardware frames and populate the SP register in the ELF note to
+	// point just past the hardware frame.
+	const exception_hw_basic_frame_t *hwbframe;
+	const exception_hw_extended_frame_t *hweframe;
+	if (extended) {
+		hweframe = (const exception_hw_extended_frame_t *) (sweframe + 1);
+		hwbframe = &hweframe->basic;
+		thread->prstatus.pr_reg_sp = (uint32_t) (hweframe + 1);
+	} else {
+		hweframe = 0;
+		hwbframe = (const exception_hw_basic_frame_t *) (swbframe + 1);
+		thread->prstatus.pr_reg_sp = (uint32_t) (hwbframe + 1);
+	}
+
+	// Check for stack realignment.
+	if (hwbframe->xpsr & (1U << 9U)) {
+		// Stack pointer was adjusted by 4 to achieve 8-byte alignment.
+		thread->prstatus.pr_reg_sp += 4U;
+	}
+
+	// Grab general purpose registers from a mix of the software and hardware
+	// frames.
+	thread->prstatus.pr_gpregs[0] = hwbframe->r0;
+	thread->prstatus.pr_gpregs[1] = hwbframe->r1;
+	thread->prstatus.pr_gpregs[2] = hwbframe->r2;
+	thread->prstatus.pr_gpregs[3] = hwbframe->r3;
+	thread->prstatus.pr_gpregs[4] = swbframe->r4;
+	thread->prstatus.pr_gpregs[5] = swbframe->r5;
+	thread->prstatus.pr_gpregs[6] = swbframe->r6;
+	thread->prstatus.pr_gpregs[7] = swbframe->r7;
+	thread->prstatus.pr_gpregs[8] = swbframe->r8;
+	thread->prstatus.pr_gpregs[9] = swbframe->r9;
+	thread->prstatus.pr_gpregs[10] = swbframe->r10;
+	thread->prstatus.pr_gpregs[11] = swbframe->r11;
+	thread->prstatus.pr_gpregs[12] = hwbframe->r12;
+
+	// Grab a process ID.
+	thread->prstatus.pr_pid = pid;
+
+	// Fill the rest of prstatus.
+	thread->prstatus.pr_reg_lr = hwbframe->lr;
+	thread->prstatus.pr_reg_pc = hwbframe->pc;
+	thread->prstatus.pr_reg_xpsr = hwbframe->xpsr;
+
+	// Sort out the floating point registers.
+	if (extended) {
+		// This thread was using the FPU. The first 16 registers and FPSCR are
+		// in the hardware frame. The second 16 registers are in the software
+		// frame.
+		memcpy(thread->arm_vfp.sregs, hweframe->fpregs, sizeof(hweframe->fpregs));
+		memcpy(thread->arm_vfp.sregs + 16, sweframe->fpregs, sizeof(sweframe->fpregs));
+		thread->arm_vfp.fpscr = hweframe->fpscr;
+	} else {
+		// This thread is not using the FPU. Wipe the note.
+		thread->arm_vfp_nheader.n_type = 0;
+		memset(thread->arm_vfp_name, 0, sizeof(thread->arm_vfp_name));
+	}
+
+	// Do some final tidying up.
+	thread->prstatus.pr_reg_orig_r0 = thread->prstatus.pr_gpregs[0];
+}
+#endif
+
+static void exception_fill_core_notes(const exception_isr_frame_t *swframe, unsigned int cause) {
+	// Fill note name sizes and data sizes, but not names or types. The sizes
+	// must be correct so that a note reader can walk from note to note and the
+	// notes block can be well-formed. However, the names and types should only
+	// be filled in when actually populating a note, so a reader won’t pay
+	// attention to the contents of unused space.
+	for (size_t i = 0; i != EXCEPTION_MAX_THREADS; ++i) {
+		elf_notes.threads[i].prstatus_nheader.n_namesz = 5;
+		elf_notes.threads[i].prstatus_nheader.n_descsz = sizeof(elf_note_prstatus_t);
+		elf_notes.threads[i].arm_vfp_nheader.n_namesz = 6;
+		elf_notes.threads[i].arm_vfp_nheader.n_descsz = sizeof(elf_note_arm_vfp_t);
+	}
+
+	// Fill siginfo structure.
+	exception_fill_siginfo(cause);
+
+	// Fill the executing thread.
+	exception_fill_thread_isr(swframe, &elf_notes.threads[0]);
+
+	// If using FreeRTOS and this is not a hard fault, fill the other threads
+	// as well.
+#if STM32LIB_USE_FREERTOS && configUSE_TRACE_FACILITY
+	if(cause != 3) {
+		// Suspend the scheduler. uxTaskGetSystemState also suspends the
+		// scheduler while it’s running. However, it then tries to resume the
+		// scheduler at the end, as one would expect. Suspending the scheduler
+		// is harmless—it just increments a counter—but trying to resume it
+		// inside a CPU fault ISR is probably a very, very bad idea. Adding an
+		// extra suspend guarantees that it will never actually try to resume.
+		//
+		// Also, uxTaskGetSystemState uses portENTER_CRITICAL, which asserts
+		// that it is not called from an ISR (as it is not intended to be).
+		// We’re doing weird stuff here which makes it sort of OK, so relax
+		// that check.
+		portRELAX_CRITICAL_ISR_CHECK();
+		vTaskSuspendAll();
+		TaskStatus_t tasks[EXCEPTION_MAX_THREADS];
+		unsigned int count = uxTaskGetSystemState(tasks, EXCEPTION_MAX_THREADS, 0);
+		size_t write_index = 1;
+		TaskHandle_t current = xTaskGetCurrentTaskHandle();
+		for (unsigned int i = 0; i != count && write_index != EXCEPTION_MAX_THREADS; ++i) {
+			if (tasks[i].xHandle == current) {
+				// The current task has already been written out, using the ISR
+				// frame. However, if we were running in thread mode, we can
+				// update its PID field to align with how we allocate PIDs
+				// elsewhere. If it was running in handler mode, leave its PID
+				// at zero to signify that fact.
+				if (elf_notes.threads[0].prstatus.pr_pid) {
+					elf_notes.threads[0].prstatus.pr_pid = tasks[i].xTaskNumber;
+				}
+			} else {
+				// Write out the task. We know the top of stack is the first
+				// word in the TCB, which is pointed to by the task handle.
+				// Yank it out in a bit of an ugly way.
+				const exception_rtos_basic_frame_t * const *tcb_pointer = (const exception_rtos_basic_frame_t * const *)tasks[i].xHandle;
+				exception_fill_thread_rtos(*tcb_pointer, tasks[i].xTaskNumber, &elf_notes.threads[write_index++]);
+			}
+		}
+	}
+#endif
+}
+
+static void common_fault_isr(const exception_isr_frame_t *sp, unsigned int cause) __attribute__((noreturn, used));
+static void common_fault_isr(const exception_isr_frame_t *sp, unsigned int cause) {
 	// Call the early application callbacks.
 	if (app_cbs && app_cbs->early) {
 		app_cbs->early();
@@ -488,7 +658,7 @@ static void common_fault_isr(const sw_stack_frame_t *sp, unsigned int cause) {
 	// If we have a core dump writer, then write a core dump.
 	bool core_written = false;
 	if (core_writer) {
-		fill_core_notes(sp, cause);
+		exception_fill_core_notes(sp, cause);
 		core_writer->start();
 		core_writer->write(&ELF_HEADERS, sizeof(ELF_HEADERS));
 		core_writer->write(&elf_notes, sizeof(elf_notes));
@@ -534,7 +704,8 @@ static void common_fault_isr(const sw_stack_frame_t *sp, unsigned int cause) {
 /**
  * \brief An interrupt handler that handles hard faults.
  *
- * This function must be inserted as element 3 in the application’s CPU exception vector table.
+ * This function must be inserted as element 3 in the application’s CPU
+ * exception vector table.
  */
 void exception_hard_fault_isr(void) {
 	GEN_FAULT_HANDLER(3);
@@ -543,7 +714,8 @@ void exception_hard_fault_isr(void) {
 /**
  * \brief An interrupt handler that handles memory manage faults.
  *
- * This function must be inserted as element 4 in the application’s CPU exception vector table.
+ * This function must be inserted as element 4 in the application’s CPU
+ * exception vector table.
  */
 void exception_memory_manage_fault_isr(void) {
 	GEN_FAULT_HANDLER(4);
@@ -552,7 +724,8 @@ void exception_memory_manage_fault_isr(void) {
 /**
  * \brief An interrupt handler that handles bus faults.
  *
- * This function must be inserted as element 5 in the application’s CPU exception vector table.
+ * This function must be inserted as element 5 in the application’s CPU
+ * exception vector table.
  */
 void exception_bus_fault_isr(void) {
 	GEN_FAULT_HANDLER(5);
@@ -561,13 +734,23 @@ void exception_bus_fault_isr(void) {
 /**
  * \brief An interrupt handler that handles usage faults.
  *
- * This function must be inserted as element 6 in the application’s CPU exception vector table.
+ * This function must be inserted as element 6 in the application’s CPU
+ * exception vector table.
  */
 void exception_usage_fault_isr(void) {
 	GEN_FAULT_HANDLER(6);
 }
 
 /**
+ * \brief An interrupt handler that handles debug faults.
+ *
+ * This function must be inserted as element 12 in the application’s CPU
+ * exception vector table.
+ */
+void exception_debug_fault_isr(void) {
+	GEN_FAULT_HANDLER(12);
+}
+
+/**
  * @}
  */
-

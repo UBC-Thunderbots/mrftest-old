@@ -38,6 +38,7 @@ static const fptr exception_vectors[16U] __attribute__((used, section(".exceptio
 	[5U] = &exception_bus_fault_isr,
 	[6U] = &exception_usage_fault_isr,
 	[11U] = &vPortSVCHandler,
+	[12U] = &exception_debug_fault_isr,
 	[14U] = &vPortPendSVHandler,
 	[15U] = &vPortSysTickHandler,
 };

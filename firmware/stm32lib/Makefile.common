@@ -30,7 +30,7 @@ OBJS := $(SOURCES:../%.c=obj/%.o)
 
 
 
-override CFLAGS := $(CFLAGS) $(LIBRARIES:%=-isystem ../%/include) -I.
+override CFLAGS := $(CFLAGS) $(LIBRARIES:%=-isystem ../%/include) -I. -DSTM32LIB_USE_FREERTOS=$(if $(filter freertos,$(LIBRARIES)),1,0)
 override LDLIBS := $(LDLIBS) -lm
 override LDFLAGS := $(LDFLAGS) -Wl,-T$(LINKER_SCRIPT)
 

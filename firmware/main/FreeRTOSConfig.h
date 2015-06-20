@@ -13,7 +13,7 @@
 #define configMAX_PRIORITIES			(PRIO_TASK_MAX + 1U)
 #define configMINIMAL_STACK_SIZE		( ( unsigned short ) 130 )
 #define configMAX_TASK_NAME_LEN			( 10 )
-#define configUSE_TRACE_FACILITY		0
+#define configUSE_TRACE_FACILITY		1
 #define configUSE_16_BIT_TICKS			0
 #define configIDLE_SHOULD_YIELD			1
 #define configUSE_MUTEXES				1

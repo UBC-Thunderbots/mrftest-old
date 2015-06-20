@@ -68,15 +68,14 @@ typedef struct {
 // Whether or not the CCM arena has been initialized.
 static volatile bool ccm_arena_initialized = false;
 
-
-
 // Nesting level of critical sections.
 static unsigned int critical_section_nesting = 0xAAAAAAAAU;
 
-
-
 // Current task control block pointer.
 extern unsigned long *pxCurrentTCB;
+
+// Whether to allow portENTER_CRITICAL from an ISR.
+static bool relax_critical_isr_check = false;
 
 
 
@@ -418,7 +417,7 @@ void portENTER_CRITICAL(void) {
 	functions that end in "FromISR" can be used in an interrupt.  Only assert if
 	the critical nesting count is 1 to protect against recursive calls if the
 	assert function also uses a critical section. */
-	if (critical_section_nesting == 1U) {
+	if (critical_section_nesting == 1U && !relax_critical_isr_check) {
 		unsigned int xpsr;
 		asm volatile("mrs %[xpsr], xpsr\n\t" : [xpsr] "=r" (xpsr));
 		configASSERT(!(xpsr & 0xFFU));
@@ -429,6 +428,10 @@ void portEXIT_CRITICAL(void) {
 	if (!--critical_section_nesting) {
 		portENABLE_INTERRUPTS();
 	}
+}
+
+void portRELAX_CRITICAL_ISR_CHECK(void) {
+	relax_critical_isr_check = true;
 }
 
 
