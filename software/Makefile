@@ -68,7 +68,7 @@ PROTOBUF_HS := $(PROTOBUF_INPUTS:.proto=.pb.h)
 $(addprefix bin/,$(EXECUTABLES)) : bin/% : $$(addprefix obj/,$$(subst .cc,.o,$$(subst .cpp,.o,$$(shell find $$(SOURCES_%) -name .svn -prune -o -name '*.cpp' -print) $$(if $$(filter proto,$$(SOURCES_%)),$(PROTOBUF_CCS)))))
 	echo "  LD	$@"
 	mkdir -p bin
-	$(CXX) $(LDFLAGS) $(if $(PACKAGES_$(notdir $@)),$(shell $(PKG_CONFIG) --libs-only-other --libs-only-L $(PACKAGES_$(notdir $@)))) -o$@ $+ $(LIBS) $(if $(PACKAGES_$(notdir $@)),$(shell $(PKG_CONFIG) --libs-only-l $(PACKAGES_$(notdir $@))))
+	$(CXX) $(LDFLAGS) $(if $(PACKAGES_$(notdir $@)),$(shell $(PKG_CONFIG) --libs-only-other --libs-only-L $(PACKAGES_$(notdir $@)))) -o$@ $+ $(LIBS) $(if $(PACKAGES_$(notdir $@)),$(shell $(PKG_CONFIG) --libs-only-l $(PACKAGES_$(notdir $@)))) || (printf "\033[41;1mWhat are you doing to the source code?\033[0m\n" && false)
 
 #
 # Rule to make a .d file and a .o file from a .cpp file.
@@ -90,7 +90,7 @@ obj/%.o : %.cpp $(PROTOBUF_HS)
 	$(RM) $(@:.o=.d) $@
 	echo "  CXX   obj/$(<:.cpp=.o)"
 	mkdir -p $(dir obj/$(<:.cpp=.o))
-	$(CXX) $(CXXFLAGS) -o $@ -c -MT '$@' -MMD -MP $<
+	$(CXX) $(CXXFLAGS) -o $@ -c -MT '$@' -MMD -MP $< || (printf "\033[41;1mWhat are you doing to the source code?\033[0m\n" && false)
 
 #
 # Rule to make a .pb.cc and a .pb.h file from a .proto file.
