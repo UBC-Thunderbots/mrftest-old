@@ -46,14 +46,221 @@ static chicker_device_t auto_device;
 static unsigned int auto_width;
 
 /**
- * \brief Whether no device should be fired right now because it will physically collide with the previously fired device.
- */
-static bool collide_timeout_active = false;
-
-/**
- * \brief The number of ticks left until the collide timeout expires.
+ * \brief The number of ticks for which no device should be activated because
+ * it would interfere with an ongoing fire.
  */
 static unsigned int collide_timeout;
+
+/**
+ * \brief Whether or not discharge is requested.
+ */
+static bool chicker_discharge_requested = false;
+
+/**
+ * \brief Whether or not the hardware is currently generating the discharge
+ * pulse train.
+ */
+static bool chicker_discharge_active = false;
+
+/**
+ * \brief Configures the kicker pulse generator to idle.
+ *
+ * \pre This function must be called with appropriate protection against
+ * simultaneous invocation.
+ */
+static void chicker_hw_kicker_idle(void) {
+	// Force output off.
+	TIM10_14_CCMR1_t ccmr1 = {
+		.O = {
+			.CC1S = 0b00, // Channel is an output
+			.OC1FE = 0, // No special fast enable circuit
+			.OC1PE = 0, // Writes to CCR1 happen immediately (we will be doing all that sort of thing with the timer disabled anyway)
+			.OC1M = 0b100, // Force OC1REF to low level
+		}
+	};
+	TIM11.CCMR1 = ccmr1;
+}
+
+/**
+ * \brief Configures the chipper pulse generator to idle.
+ *
+ * \pre This function must be called with appropriate protection against
+ * simultaneous invocation.
+ */
+static void chicker_hw_chipper_idle(void) {
+	// Force output off.
+	TIM9_12_CCMR1_t ccmr1 = {
+		.O = {
+			.CC1S = 0b00, // Channel is an output
+			.OC1FE = 0, // No special fast enable circuit
+			.OC1PE = 0, // Writes to CCR1 happen immediately (we will be doing all that sort of thing with the timer disabled anyway)
+			.OC1M = 0b100, // Force OC1REF to low level
+		}
+	};
+	TIM9.CCMR1 = ccmr1;
+}
+
+/**
+ * \brief Configures the kicker pulse generator to generate a single pulse.
+ *
+ * \pre This function must be called with appropriate protection against
+ * simultaneous invocation.
+ */
+static void chicker_hw_kicker_fire(unsigned int width) {
+	// Force output off while reconfiguring.
+	chicker_hw_kicker_idle();
+
+	// Disable the timer.
+	TIM10_14_CR1_t cr1 = {
+		.CEN = 0,
+	};
+	TIM11.CR1 = cr1;
+
+	// Load the pulse width, clamping at maximum.
+	TIM11.ARR = MIN(width, KICKER_MAX_PULSE);
+	TIM11.CCR1 = MIN(width, KICKER_MAX_PULSE);
+
+	// Clear the counter.
+	TIM11.CNT = 0U;
+
+	// Begin the pulse by forcing the output high.
+	TIM10_14_CCMR1_t ccmr1 = {
+		.O = {
+			.CC1S = 0b00, // Channel is an output
+			.OC1FE = 0, // No special fast enable circuit
+			.OC1PE = 0, // Writes to CCR1 happen immediately (we will be doing all that sort of thing with the timer disabled anyway)
+			.OC1M = 0b101, // Force OC1REF to high level
+		}
+	};
+	TIM11.CCMR1 = ccmr1;
+
+	// Switch the timer to output-compare inactive-on-match mode.
+	ccmr1.O.OC1M = 0b010U;
+	TIM11.CCMR1 = ccmr1;
+
+	// Start the counter.
+	cr1.CEN = 1;
+	TIM11.CR1 = cr1;
+}
+
+/**
+ * \brief Configures the chipper pulse generator to generate a single pulse.
+ *
+ * \pre This function must be called with appropriate protection against
+ * simultaneous invocation.
+ */
+static void chicker_hw_chipper_fire(unsigned int width) {
+	// Force output off while reconfiguring.
+	chicker_hw_chipper_idle();
+
+	// Disable the timer.
+	TIM9_12_CR1_t cr1 = {
+		.CEN = 0,
+	};
+	TIM9.CR1 = cr1;
+
+	// Load the pulse width, clamping at maximum.
+	TIM9.ARR = MIN(width, 65535U);
+	TIM9.CCR1 = MIN(width, 65535U);
+
+	// Clear the counter.
+	TIM9.CNT = 0U;
+
+	// Begin the pulse by forcing the output high.
+	TIM9_12_CCMR1_t ccmr1 = {
+		.O = {
+			.CC1S = 0b00, // Channel is an output
+			.OC1FE = 0, // No special fast enable circuit
+			.OC1PE = 0, // Writes to CCR1 happen immediately (we will be doing all that sort of thing with the timer disabled anyway)
+			.OC1M = 0b101, // Force OC1REF to high level
+		}
+	};
+	TIM9.CCMR1 = ccmr1;
+
+	// Switch the timer to output-compare inactive-on-match mode.
+	ccmr1.O.OC1M = 0b010U;
+	TIM9.CCMR1 = ccmr1;
+
+	// Start the counter.
+	cr1.CEN = 1;
+	TIM9.CR1 = cr1;
+}
+
+/**
+ * \brief Configures the kicker pulse generator to generate a discharge pulse
+ * train.
+ *
+ * \pre This function must be called with appropriate protection against
+ * simultaneous invocation.
+ */
+static void chicker_hw_kicker_discharge(void) {
+	// Force output off while reconfiguring.
+	chicker_hw_kicker_idle();
+
+	// Disable the timer.
+	TIM10_14_CR1_t cr1 = {
+		.CEN = 0,
+	};
+	TIM11.CR1 = cr1;
+
+	// Reconfigure timing parameters.
+	TIM11.CNT = 0U;
+	TIM11.ARR = 1000U * 4U;
+	TIM11.CCR1 = 25U * 4U;
+
+	// Enable the timer.
+	cr1.CEN = 1;
+	TIM11.CR1 = cr1;
+
+	// Enable the output.
+	TIM10_14_CCMR1_t ccmr1 = {
+		.O = {
+			.CC1S = 0b00, // Channel is an output
+			.OC1FE = 0, // No special fast enable circuit
+			.OC1PE = 0, // Writes to CCR1 happen immediately (we will be doing all that sort of thing with the timer disabled anyway)
+			.OC1M = 0b110, // PWM mode 1
+		}
+	};
+	TIM11.CCMR1 = ccmr1;
+}
+
+/**
+ * \brief Configures the chipper pulse generator to generate a discharge pulse
+ * train.
+ *
+ * \pre This function must be called with appropriate protection against
+ * simultaneous invocation.
+ */
+static void chicker_hw_chipper_discharge(void) {
+	// Force output off while reconfiguring.
+	chicker_hw_chipper_idle();
+
+	// Disable the timer.
+	TIM9_12_CR1_t cr1 = {
+		.CEN = 0,
+	};
+	TIM9.CR1 = cr1;
+
+	// Reconfigure timing parameters.
+	TIM9.CNT = 0U;
+	TIM9.ARR = 1000U * 4U;
+	TIM9.CCR1 = 25U * 4U;
+
+	// Enable the timer.
+	cr1.CEN = 1;
+	TIM9.CR1 = cr1;
+
+	// Enable the output.
+	TIM9_12_CCMR1_t ccmr1 = {
+		.O = {
+			.CC1S = 0b00, // Channel is an output
+			.OC1FE = 0, // No special fast enable circuit
+			.OC1PE = 0, // Writes to CCR1 happen immediately (we will be doing all that sort of thing with the timer disabled anyway)
+			.OC1M = 0b110, // PWM mode 1
+		}
+	};
+	TIM9.CCMR1 = ccmr1;
+}
 
 /**
  * \brief Initializes the chicker subsystem.
@@ -64,50 +271,35 @@ void chicker_init(void) {
 	// Each firing could then set CCR to 1, set ARR to pulse width plus one, and enable the counter.
 	// Unfortunately, timer 11 does not support one-pulse mode.
 	// So, instead, we use output-compare mode along with some forced levels to get things into the states we want.
-	{
-		rcc_enable_reset(APB2, TIM9);
-		rcc_enable_reset(APB2, TIM11);
-		TIM9.PSC = 168000000U / 1000000U;
-		TIM11.PSC = 168000000U / 1000000U;
-		TIM9_12_EGR_t egr9 = {
-			.UG = 1, // Generate an update event (to push PSC into the timer)
-		};
-		TIM10_14_EGR_t egr11 = {
-			.UG = 1, // Generate an update event (to push PSC into the timer)
-		};
-		TIM9.EGR = egr9;
-		TIM11.EGR = egr11;
-		TIM9_12_CCMR1_t ccmr1_9 = {
-			.O = {
-				.CC1S = 0b00, // Channel is an output
-				.OC1FE = 0, // No special fast enable circuit
-				.OC1PE = 0, // Writes to CCR1 happen immediately (we will be doing all that sort of thing with the timer disabled anyway)
-				.OC1M = 0b100, // Force OC1REF to low level
-			}
-		};
-		TIM10_14_CCMR1_t ccmr1_11 = {
-			.O = {
-				.CC1S = 0b00, // Channel is an output
-				.OC1FE = 0, // No special fast enable circuit
-				.OC1PE = 0, // Writes to CCR1 happen immediately (we will be doing all that sort of thing with the timer disabled anyway)
-				.OC1M = 0b100, // Force OC1REF to low level
-			}
-		};
-		TIM9.CCMR1 = ccmr1_9;
-		TIM11.CCMR1 = ccmr1_11;
-		TIM9_12_CCER_t ccer9 = {
-			.CC1E = 1, // OC1 signal output to pin
-			.CC1P = 0, // OC1 active high
-			.CC1NP = 0, // Must be cleared for output mode
-		};
-		TIM10_14_CCER_t ccer11 = {
-			.CC1E = 1, // OC1 signal output to pin
-			.CC1P = 0, // OC1 active high
-			.CC1NP = 0, // Must be cleared for output mode
-		};
-		TIM9.CCER = ccer9;
-		TIM11.CCER = ccer11;
-	}
+	rcc_enable_reset(APB2, TIM9);
+	rcc_enable_reset(APB2, TIM11);
+
+	chicker_hw_kicker_idle();
+	chicker_hw_chipper_idle();
+
+	TIM9.PSC = 168000000U / 1000000U;
+	TIM9_12_EGR_t egr9 = {
+		.UG = 1, // Generate an update event (to push PSC into the timer)
+	};
+	TIM9.EGR = egr9;
+	TIM9_12_CCER_t ccer9 = {
+		.CC1E = 1, // OC1 signal output to pin
+		.CC1P = 0, // OC1 active high
+		.CC1NP = 0, // Must be cleared for output mode
+	};
+	TIM9.CCER = ccer9;
+
+	TIM11.PSC = 168000000U / 1000000U;
+	TIM10_14_EGR_t egr11 = {
+		.UG = 1, // Generate an update event (to push PSC into the timer)
+	};
+	TIM11.EGR = egr11;
+	TIM10_14_CCER_t ccer11 = {
+		.CC1E = 1, // OC1 signal output to pin
+		.CC1P = 0, // OC1 active high
+		.CC1NP = 0, // Must be cleared for output mode
+	};
+	TIM11.CCER = ccer11;
 }
 
 /**
@@ -117,11 +309,14 @@ void chicker_init(void) {
  */
 void chicker_shutdown(void) {
 	chicker_discharge(true);
+	collide_timeout = 0;
+	chicker_tick();
 	unsigned int timeout = 30U; // Give up if we wait three seconds and have not discharged (else ADC failure could burn a lot of power forever).
 	while (adc_capacitor() > CHICKER_DISCHARGE_THRESHOLD && timeout--) {
 		vTaskDelay(100U / portTICK_PERIOD_MS);
 	}
 	chicker_discharge(false);
+	chicker_tick();
 }
 
 /**
@@ -132,99 +327,45 @@ void chicker_shutdown(void) {
  * \param[in] discharge \c true to discharge, or \c false to not discharge
  */
 void chicker_discharge(bool discharge) {
-	if (discharge) {
-		// To discharge, we generate a pulse train with 2.5% duty cycle and 1 ms period.
+	__atomic_store_n(&chicker_discharge_requested, discharge, __ATOMIC_RELAXED);
+}
 
-		// Do the kicker.
-		{
-			// Force output off to avoid spurious activity while reconfiguring.
-			TIM10_14_CCMR1_t ccmr1 = {
-				.O = {
-					.CC1S = 0b00, // Channel is an output
-					.OC1FE = 0, // No special fast enable circuit
-					.OC1PE = 0, // Writes to CCR1 happen immediately (we will be doing all that sort of thing with the timer disabled anyway)
-					.OC1M = 0b100, // Force OC1REF to low level
-				}
-			};
-			TIM11.CCMR1 = ccmr1;
-
-			// Disable the timer.
-			TIM10_14_CR1_t cr1 = {
-				.CEN = 0,
-			};
-			TIM11.CR1 = cr1;
-
-			// Reconfigure timing parameters.
-			TIM11.CNT = 0U;
-			TIM11.ARR = 1000U * 4U;
-			TIM11.CCR1 = 25U * 4U;
-
-			// Enable the timer.
-			cr1.CEN = 1;
-			TIM11.CR1 = cr1;
-
-			// Enable the output.
-			ccmr1.O.OC1M = 0b110; // PWM mode 1
-			TIM11.CCMR1 = ccmr1;
-		}
-
-		// Do the chipper.
-		{
-			// Force output off to avoid spurious activity while reconfiguring.
-			TIM9_12_CCMR1_t ccmr1 = {
-				.O = {
-					.CC1S = 0b00, // Channel is an output
-					.OC1FE = 0, // No special fast enable circuit
-					.OC1PE = 0, // Writes to CCR1 happen immediately (we will be doing all that sort of thing with the timer disabled anyway)
-					.OC1M = 0b100, // Force OC1REF to low level
-				}
-			};
-			TIM9.CCMR1 = ccmr1;
-
-			// Disable the timer.
-			TIM9_12_CR1_t cr1 = {
-				.CEN = 0,
-			};
-			TIM9.CR1 = cr1;
-
-			// Reconfigure timing parameters.
-			TIM9.CNT = 0U;
-			TIM9.ARR = 1000U * 4U;
-			TIM9.CCR1 = 25U * 4U;
-
-			// Enable the timer.
-			cr1.CEN = 1;
-			TIM9.CR1 = cr1;
-
-			// Enable the output.
-			ccmr1.O.OC1M = 0b110; // PWM mode 1
-			TIM9.CCMR1 = ccmr1;
-		}
-
-		// Because we are discharging, the capacitors cannot be full.
-		charger_mark_fired();
-	} else {
-		// To stop discharging, find each timer that was in PWM mode and switch it to forced-low mode.
-		// This will carefully not touch timers that are in output-compare inactive-on-match mode, as such timers are involved in firing, not discharging, operations.
-
-		// Do the kicker.
-		{
-			TIM10_14_CCMR1_t ccmr1 = TIM11.CCMR1;
-			if (ccmr1.O.OC1M == 0b110 /* PWM mode 1 */) {
-				ccmr1.O.OC1M = 0b100; // Force OC1REF to low level
-				TIM11.CCMR1 = ccmr1;
-			}
-		}
-
-		// Do the chipper.
-		{
-			TIM9_12_CCMR1_t ccmr1 = TIM9.CCMR1;
-			if (ccmr1.O.OC1M == 0b110 /* PWM mode 1 */) {
-				ccmr1.O.OC1M = 0b100; // Force OC1REF to low level
-				TIM9.CCMR1 = ccmr1;
-			}
-		}
+/**
+ * \brief Fires a device with simultaneous access protection provided
+ * externally.
+ *
+ * \param[in] device which device to fire
+ * \param[in] width the width of the pulse, in kicking units
+ */
+static void chicker_fire_impl(chicker_device_t device, unsigned int width) {
+	// A pulse width of zero is meaningless.
+	if (!width) {
+		return;
 	}
+
+	// We can only fire if we will not interfere with a previous fire.
+	if (collide_timeout != 0) {
+		return;
+	}
+
+	// Activate the hardware.
+	if (device == CHICKER_KICK) {
+		chicker_hw_kicker_fire(width);
+		chicker_hw_chipper_idle();
+	} else {
+		chicker_hw_kicker_idle();
+		chicker_hw_chipper_fire(width);
+	}
+
+	// Set a timeout to avoid colliding with the hardware.
+	collide_timeout = COLLIDE_TIMEOUT;
+
+	// We are not currently discharging, because we have just taken control
+	// of the hardware for a fire pulse.
+	chicker_discharge_active = false;
+
+	// Because we are discharging, the capacitors cannot be full.
+	charger_mark_fired();
 }
 
 /**
@@ -234,110 +375,9 @@ void chicker_discharge(bool discharge) {
  * \param[in] width the width of the pulse, in kicking units
  */
 void chicker_fire(chicker_device_t device, unsigned int width) {
-	// If the collide timeout is active, we are not allowed to fire right now.
-	if (__atomic_load_n(&collide_timeout_active, __ATOMIC_RELAXED)) {
-		return;
-	}
-
-	// A pulse width of zero is meaningless.
-	if (!width) {
-		return;
-	}
-
-	if (device == CHICKER_KICK) {
-		// Force output off in case it was already firing.
-		TIM10_14_CCMR1_t ccmr1 = {
-			.O = {
-				.CC1S = 0b00, // Channel is an output
-				.OC1FE = 0, // No special fast enable circuit
-				.OC1PE = 0, // Writes to CCR1 happen immediately (we will be doing all that sort of thing with the timer disabled anyway)
-				.OC1M = 0b100, // Force OC1REF to low level
-			}
-		};
-		TIM11.CCMR1 = ccmr1;
-
-		// Disable the timer.
-		TIM10_14_CR1_t cr1 = {
-			.CEN = 0,
-		};
-		TIM11.CR1 = cr1;
-
-		// Load the pulse width, clamping at maximum.
-		TIM11.ARR = MIN(width, KICKER_MAX_PULSE );
-		TIM11.CCR1 = MIN(width, KICKER_MAX_PULSE );
-
-		// Clear the counter.
-		TIM11.CNT = 0U;
-
-		// The next steps are timing-critical.
-		portDISABLE_INTERRUPTS();
-
-		// Begin the pulse by forcing the output high.
-		ccmr1.O.OC1M = 0b101;
-		TIM11.CCMR1 = ccmr1;
-
-		// Switch the timer to output-compare inactive-on-match mode.
-		ccmr1.O.OC1M = 0b010U;
-		TIM11.CCMR1 = ccmr1;
-
-		// Start the counter.
-		cr1.CEN = 1;
-		TIM11.CR1 = cr1;
-
-		// End of timing-critical steps.
-		portENABLE_INTERRUPTS();
-	} else {
-		// Force output off in case it was already firing.
-		TIM9_12_CCMR1_t ccmr1 = {
-			.O = {
-				.CC1S = 0b00, // Channel is an output
-				.OC1FE = 0, // No special fast enable circuit
-				.OC1PE = 0, // Writes to CCR1 happen immediately (we will be doing all that sort of thing with the timer disabled anyway)
-				.OC1M = 0b100, // Force OC1REF to low level
-			}
-		};
-		TIM9.CCMR1 = ccmr1;
-
-		// Disable the timer.
-		TIM9_12_CR1_t cr1 = {
-			.CEN = 0,
-		};
-		TIM9.CR1 = cr1;
-
-		// Load the pulse width, clamping at maximum.
-		TIM9.ARR = MIN(width, 65535U);
-		TIM9.CCR1 = MIN(width, 65535U);
-
-		// Clear the counter.
-		TIM9.CNT = 0U;
-
-		// The next steps are timing-critical.
-		portDISABLE_INTERRUPTS();
-
-		// Begin the pulse by forcing the output high.
-		ccmr1.O.OC1M = 0b101;
-		TIM9.CCMR1 = ccmr1;
-
-		// Switch the timer to output-compare inactive-on-match mode.
-		ccmr1.O.OC1M = 0b010U;
-		TIM9.CCMR1 = ccmr1;
-
-		// Start the counter.
-		cr1.CEN = 1;
-		TIM9.CR1 = cr1;
-
-		// End of timing-critical steps.
-		portENABLE_INTERRUPTS();
-	}
-
-	// Because we are discharging, the capacitors cannot be full.
-	charger_mark_fired();
-
-	// Set a timeout to avoid colliding with the hardware.
-	portDISABLE_INTERRUPTS();
-	collide_timeout = COLLIDE_TIMEOUT;
-	collide_timeout_active = true;
-	portENABLE_INTERRUPTS();
+	taskENTER_CRITICAL();
+	chicker_fire_impl(device, width);
+	taskEXIT_CRITICAL();
 }
 
 /**
@@ -397,9 +437,38 @@ bool chicker_auto_fired_test_clear(void) {
  * This function runs in the normal-speed tick task.
  */
 void chicker_tick(void) {
-	if (!__atomic_sub_fetch(&collide_timeout, 1U, __ATOMIC_RELAXED)) {
-		__atomic_store_n(&collide_timeout_active, false, __ATOMIC_RELAXED);
+	// Check capacitor level for whether discharging would happen.
+	bool above_discharge_threshold = adc_capacitor() > CHICKER_DISCHARGE_THRESHOLD;
+
+	// Do this in a critical section so we cannot interleave with another task
+	// or the fast tick ISR poking at the hardware and/or the collide timeout.
+	taskENTER_CRITICAL();
+
+	// Decrement the collide timeout.
+	if (collide_timeout) {
+		--collide_timeout;
 	}
+
+	// We want to discharge if we were asked to, no kick or chip has happened
+	// recently, and the voltage is high enough.
+	bool want_discharge = chicker_discharge_requested && !collide_timeout && above_discharge_threshold;
+
+	// Update discharging state if necessary.
+	if (want_discharge && !chicker_discharge_active) {
+		chicker_hw_kicker_discharge();
+		chicker_hw_chipper_discharge();
+		chicker_discharge_active = true;
+	} else if (!want_discharge && chicker_discharge_active) {
+		chicker_hw_kicker_idle();
+		chicker_hw_chipper_idle();
+		chicker_discharge_active = false;
+	}
+
+	// Done critical section work.
+	taskEXIT_CRITICAL();
+
+	// Because we are discharging, the capacitors cannot be full.
+	charger_mark_fired();
 }
 
 /**
@@ -409,8 +478,8 @@ void chicker_tick(void) {
  */
 void chicker_tick_fast(void) {
 	// Check if we should fire now.
-	if (auto_enabled && breakbeam_interrupted() && charger_full() && !collide_timeout_active) {
-		chicker_fire(auto_device, auto_width);
+	if (auto_enabled && breakbeam_interrupted() && charger_full() && !collide_timeout) {
+		chicker_fire_impl(auto_device, auto_width);
 		auto_enabled = false;
 		auto_fired = true;
 	}
@@ -419,4 +488,3 @@ void chicker_tick_fast(void) {
 /**
  * @}
  */
-
