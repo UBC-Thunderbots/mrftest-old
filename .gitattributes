@@ -643,8 +643,6 @@ software/test/mrf/launcher.h -text
 software/test/mrf/leds.cpp -text
 software/test/mrf/leds.h -text
 software/test/mrf/main.cpp -text
-software/test/mrf/params.cpp -text
-software/test/mrf/params.h -text
 software/test/mrf/power.cpp -text
 software/test/mrf/power.h -text
 software/test/mrf/window.cpp -text

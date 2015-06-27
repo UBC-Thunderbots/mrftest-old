@@ -8,7 +8,6 @@
 #include "test/common/feedback.h"
 #include "test/common/kicker.h"
 #include "test/mrf/leds.h"
-#include "test/mrf/params.h"
 #include "test/mrf/power.h"
 #include <vector>
 #include <glibmm/refptr.h>
@@ -63,9 +62,6 @@ class TesterWindow final : public Gtk::Window {
 
 		Gtk::Frame leds_frame;
 		LEDsPanel leds_panel;
-
-		Gtk::Frame params_frame;
-		ParamsPanel params_panel;
 
 		Gtk::Frame power_frame;
 		PowerPanel power_panel;

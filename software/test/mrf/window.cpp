@@ -95,8 +95,6 @@ TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) :
 		kicker_panel(robot),
 		leds_frame(u8"LEDs"),
 		leds_panel(dongle, robot.index),
-		params_frame(u8"Parameters"),
-		params_panel(dongle, robot),
 		power_frame(u8"Power"),
 		power_panel(dongle, robot.index),
 		joystick_frame(u8"Joystick"),
@@ -121,9 +119,6 @@ TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) :
 
 	leds_frame.add(leds_panel);
 	vbox2.pack_start(leds_frame, Gtk::PACK_SHRINK);
-
-	params_frame.add(params_panel);
-	vbox2.pack_start(params_frame, Gtk::PACK_SHRINK);
 
 	power_frame.add(power_panel);
 	vbox2.pack_start(power_frame, Gtk::PACK_SHRINK);
