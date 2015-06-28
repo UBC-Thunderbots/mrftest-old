@@ -494,7 +494,7 @@ static void main_task(void *UNUSED(param)) {
 	udev_attach();
 
 	// Provide a message that will be printed as soon as the user connects.
-	iprintf("Supervisor: System init\r\nBuild ID: 0x%08" PRIX32 "\r\n", build_id_get());
+	iprintf("Supervisor: System init\r\nMCU Build ID: 0x%08" PRIX32 "\r\n", build_id_get());
 
 	// Initialize ICB-related objects. This will be needed later, even if no SD
 	// card is found, as we unconditionally try to wipe the FPGA bitstream as
@@ -512,7 +512,9 @@ static void main_task(void *UNUSED(param)) {
 
 		// Check if we have a proper FPGA bitstream.
 		ok = upgrade_fpga_check();
-		if (!ok) {
+		if (ok) {
+			iprintf("FPGA Build ID: 0x%08" PRIX32 "\r\n", upgrade_fpga_build_id());
+		} else {
 			fputs("Supervisor: No FPGA bitstream\r\n", stdout);
 		}
 	}

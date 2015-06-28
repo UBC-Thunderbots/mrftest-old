@@ -10,10 +10,15 @@
  */
 static size_t upgrade_fpga_length;
 
-bool upgrade_fpga_check(void) {
-	uint32_t flags, crc;
+/**
+ * \brief The build ID, read from the header.
+ */
+static uint32_t upgrade_fpga_build_id_value;
 
-	return upgrade_int_check_area(UPGRADE_FPGA_FIRST_SECTOR, UPGRADE_FPGA_MAGIC, &upgrade_fpga_length, &flags, &crc);
+bool upgrade_fpga_check(void) {
+	uint32_t flags;
+
+	return upgrade_int_check_area(UPGRADE_FPGA_FIRST_SECTOR, UPGRADE_FPGA_MAGIC, &upgrade_fpga_length, &flags, &upgrade_fpga_build_id_value);
 }
 
 bool upgrade_fpga_send(void) {
@@ -31,4 +36,8 @@ bool upgrade_fpga_send(void) {
 	}
 	dma_free(block_buffer_handle);
 	return ok;
+}
+
+uint32_t upgrade_fpga_build_id(void) {
+	return upgrade_fpga_build_id_value;
 }
