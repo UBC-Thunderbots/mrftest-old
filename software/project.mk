@@ -20,7 +20,7 @@ SOURCES_hall2phase := hall2phase
 SOURCES_log := ai/common/enums geom log main.cpp proto uicomponents util
 SOURCES_mrfcap := main.cpp mrfcap.cpp util
 SOURCES_mrftest := drive main.cpp mrf test/common test/mrf uicomponents util
-SOURCES_sdutil := main.cpp sdutil.cpp util
+SOURCES_sdutil := main.cpp sdutil.cpp mrf/constants.cpp util
 SOURCES_autoref :=  autoref main.cpp util  geom ai/backend proto ai/common ai/ai.h ai/ai.cpp ai/param_panel.h ai/param_panel.cpp ai/util.cpp ai/util.h  mrf drive ai/robot_controller ai/window.h ai/window.cpp uicomponents
 
 #

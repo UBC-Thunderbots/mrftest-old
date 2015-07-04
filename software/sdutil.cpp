@@ -1,4 +1,5 @@
 #include "main.h"
+#include "mrf/constants.h"
 #include "util/codec.h"
 #include "util/crc32.h"
 #include "util/exception.h"
@@ -481,7 +482,14 @@ namespace {
 		std::ofstream ofs;
 		ofs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
 		ofs.open(args[1], std::ios_base::out | std::ios_base::trunc);
-		ofs << "Epoch\tTime (ticks)\tBreakbeam\tBattery (V)\tCapacitor (V)\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tEncoder 0 (¼°/t)\tEncoder 1 (¼°/t)\tEncoder 2 (¼°/t)\tEncoder 3 (¼°/t)\tMotor 0 (/255)\tMotor 1 (/255)\tMotor 2 (/255)\tMotor 3 (/255)\tMotor 0 (°C)\tMotor 1 (°C)\tMotor 2 (°C)\tMotor 3 (°C)\tDribbler Ticked?\tDribbler (/255)\tDribbler (rpm)\tDribbler (°C)\tIdle Cycles\n";
+		ofs << "Epoch\tTime (ticks)\tBreakbeam\tBattery (V)\tCapacitor (V)\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tEncoder 0 (¼°/t)\tEncoder 1 (¼°/t)\tEncoder 2 (¼°/t)\tEncoder 3 (¼°/t)\tMotor 0 (/255)\tMotor 1 (/255)\tMotor 2 (/255)\tMotor 3 (/255)\tMotor 0 (°C)\tMotor 1 (°C)\tMotor 2 (°C)\tMotor 3 (°C)\tDribbler Ticked?\tDribbler (/255)\tDribbler (rpm)\tDribbler (°C)\tIdle Cycles";
+		for (unsigned int i = 0; i != MRF::ERROR_LT_COUNT; ++i) {
+			ofs << '\t' << MRF::ERROR_LT_MESSAGES[i];
+		}
+		for (unsigned int i = 0; i != MRF::ERROR_ET_COUNT; ++i) {
+			ofs << '\t' << MRF::ERROR_ET_MESSAGES[i];
+		}
+		ofs << '\n';
 		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
 			std::array<uint8_t, SECTOR_SIZE> buffer;
 			sdcard.get(sector, &buffer[0]);
@@ -513,46 +521,41 @@ namespace {
 					for (uint8_t &value : wheels_temperatures) {
 						value = decode_u8_le(ptr); ptr += 1;
 					}
-					uint8_t wheels_encoders_failed = decode_u8_le(ptr); ptr += 1;
-					uint8_t wheels_hall_sensors_failed = decode_u8_le(ptr); ptr += 1;
 
 					bool dribbler_ticked = decode_u8_le(ptr) != 0; ptr += 1;
 					uint8_t dribbler_pwm = decode_u8_le(ptr); ptr += 1;
 					uint8_t dribbler_speed = decode_u8_le(ptr); ptr += 1;
 					uint8_t dribbler_temperature = decode_u8_le(ptr); ptr += 1;
-					uint8_t dribbler_hall_sensors_failed = decode_u8_le(ptr); ptr += 1;
+
 					uint32_t idle_cycles = decode_u32_le(ptr); ptr += 4;
+
+					uint8_t errors[MRF::ERROR_BYTES];
+					for (unsigned int i = 0; i != MRF::ERROR_BYTES; ++i) {
+						errors[i] = *ptr++;
+					}
 
 					ofs << epoch_index << '\t' << ticks << '\t' << breakbeam_diff << '\t' << battery_voltage << '\t' << capacitor_voltage;
 					for (int16_t sp : wheels_setpoints) {
 						ofs << '\t' << sp;
 					}
 					for (unsigned int i = 0; i < 4; ++i) {
-						if (wheels_encoders_failed & (1 << i)) {
-							ofs << "\tNaN";
-						} else {
-							ofs << '\t' << wheels_encoder_counts[i];
-						}
+						ofs << '\t' << wheels_encoder_counts[i];
 					}
 					for (unsigned int i = 0; i < 4; ++i) {
-						bool failed = !!((wheels_hall_sensors_failed >> (2 * i)) & 3);
-						if (failed) {
-							ofs << "\tNaN";
-						} else {
-							ofs << '\t' << wheels_drives[i];
-						}
+						ofs << '\t' << wheels_drives[i];
 					}
 					for (unsigned int temp : wheels_temperatures) {
 						ofs << '\t' << temp;
 					}
 					ofs << '\t' << (dribbler_ticked ? '1' : '0');
-					if (dribbler_hall_sensors_failed) {
-						ofs << "\tNaN\tNaN";
-					} else {
-						ofs << '\t' << static_cast<unsigned int>(dribbler_pwm) << '\t' << static_cast<unsigned int>(dribbler_speed);
-					}
+					ofs << '\t' << static_cast<unsigned int>(dribbler_pwm) << '\t' << static_cast<unsigned int>(dribbler_speed);
 					ofs << '\t' << static_cast<unsigned int>(dribbler_temperature);
 					ofs << '\t' << idle_cycles;
+					for (unsigned int i = 0; i != MRF::ERROR_COUNT; ++i) {
+						unsigned int word = i / CHAR_BIT;
+						unsigned int bit = i % CHAR_BIT;
+						ofs << '\t' << ((errors[word] & (1U << bit)) != 0);
+					}
 					ofs << '\n';
 				}
 			}

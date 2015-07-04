@@ -1,4 +1,5 @@
 #include "motor.h"
+#include "error.h"
 #include "icb.h"
 #include "pins.h"
 #include <rcc.h>
@@ -7,7 +8,6 @@
 
 static uint8_t motor_packet[10U];
 static bool force_power = false;
-static uint8_t stuck_halls[2U];
 
 /**
  * \brief Initializes the motors.
@@ -52,38 +52,6 @@ void motor_force_power(void) {
 }
 
 /**
- * \brief Checks whether a motor’s Hall sensors are stuck low.
- *
- * \param[in] motor the index of the motor to check
- *
- * \retval true the Hall sensors were observed stuck low in the last tick period
- * \retval false the Hall sensors were not observed stuck low in the last tick period
- */
-bool motor_hall_stuck_low(unsigned int motor) {
-	return __atomic_load_n(&stuck_halls[0U], __ATOMIC_RELAXED) & (1U << motor);
-}
-
-/**
- * \brief Checks whether a motor’s Hall sensors are stuck high.
- *
- * \param[in] motor the index of the motor to check
- *
- * \retval true the Hall sensors were observed stuck high in the last tick period
- * \retval false the Hall sensors were not observed stuck high in the last tick period
- */
-bool motor_hall_stuck_high(unsigned int motor) {
-	return __atomic_load_n(&stuck_halls[1U], __ATOMIC_RELAXED) & (1U << motor);
-}
-
-/**
- * \brief Clears accumulated data of whether motor Hall sensors are stuck.
- */
-void motor_hall_stuck_clear(void) {
-	__atomic_store_n(&stuck_halls[0U], 0U, __ATOMIC_RELAXED);
-	__atomic_store_n(&stuck_halls[1U], 0U, __ATOMIC_RELAXED);
-}
-
-/**
  * \brief Sends the drive data to the motors.
  */
 void motor_tick(void) {
@@ -103,8 +71,8 @@ void motor_tick(void) {
 	// Read back stuck Hall sensors.
 	static uint8_t new_stuck[2U];
 	icb_receive(ICB_COMMAND_MOTORS_GET_CLEAR_STUCK_HALLS, new_stuck, sizeof(new_stuck));
-	for (unsigned int i = 0U; i != sizeof(new_stuck) / sizeof(*new_stuck); ++i) {
-		__atomic_or_fetch(&stuck_halls[i], new_stuck[i], __ATOMIC_RELAXED);
+	for (unsigned int i = 0; i != 5; ++i) {
+		error_lt_set(ERROR_LT_HALL0_STUCK_LOW + i, new_stuck[0] & (1 << i));
+		error_lt_set(ERROR_LT_HALL0_STUCK_HIGH + i, new_stuck[1] & (1 << i));
 	}
 }
-

@@ -6,7 +6,11 @@
  * @{
  */
 #include "encoder.h"
+#include "error.h"
+#include "hall.h"
+#include "wheels.h"
 #include <assert.h>
+#include <math.h>
 #include <rcc.h>
 #include <registers/timer.h>
 
@@ -68,6 +72,7 @@ void encoder_init(void) {
  * \brief Updates the current optical encoder speed measurements.
  */
 void encoder_tick(void) {
+	// Grab new position data.
 	uint16_t new_positions[NUM_ENCODERS];
 	new_positions[0U] = (uint16_t) TIM2.CNT;
 	new_positions[1U] = (uint16_t) TIM4.CNT;
@@ -76,6 +81,31 @@ void encoder_tick(void) {
 	for (unsigned int i = 0U; i != NUM_ENCODERS; ++i) {
 		speeds[i] = -(int16_t) (uint16_t) (new_positions[i] - last_positions[i]);
 		last_positions[i] = new_positions[i];
+	}
+
+	// Update encoder-not-commutating errors.
+	for (unsigned int i = 0U; i != 4U; ++i) {
+		float hall_rpt = hall_speed(i) / (float) WHEELS_HALL_COUNTS_PER_REV;
+		float encoder_rpt = encoder_speed(i) / (float) WHEELS_ENCODER_COUNTS_PER_REV;
+		float diff = fabsf(encoder_rpt - hall_rpt);
+		// When Hall RPT is x, encoder RPT should be roughly x. However, the
+		// extra WHEELS_ENCODER_COUNTS_PER_HALL_COUNT resolution means it is
+		// not exactly x. That extra resolution is as much as
+		// WHEELS_ENCODER_COUNTS_PER_HALL_COUNT encoder counts. In RPT, that is
+		// (WHEELS_ENCODER_COUNTS_PER_HALL_COUNT /
+		// WHEELS_ENCODER_COUNTS_PER_REV) RPT. Double that, and ignore any
+		// errors with absolute magnitude less than that threshold.
+		//
+		// Also, to allow for physical imperfections in the sensors, also
+		// ignore any error of less than 10%.
+		//
+		// Finally, do not consider the error to be *cleared* unless the wheel
+		// is turning.
+		if (diff > 2.0f * WHEELS_ENCODER_COUNTS_PER_HALL_COUNT / WHEELS_ENCODER_COUNTS_PER_REV && diff > 0.1f * fabsf(hall_rpt)) {
+			error_lt_set(ERROR_LT_ENC0_COMMUTATION + i, true);
+		} else if (hall_speed(i)) {
+			error_lt_set(ERROR_LT_ENC0_COMMUTATION + i, false);
+		}
 	}
 }
 

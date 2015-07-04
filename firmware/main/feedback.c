@@ -12,6 +12,7 @@
 #include "charger.h"
 #include "dribbler.h"
 #include "encoder.h"
+#include "error.h"
 #include "hall.h"
 #include "icb.h"
 #include "log.h"
@@ -24,6 +25,7 @@
 #include <assert.h>
 #include <event_groups.h>
 #include <math.h>
+#include <minmax.h>
 #include <unused.h>
 
 #define HAS_BALL_MIN_PERIOD (10U / portTICK_PERIOD_MS)
@@ -63,11 +65,16 @@ static void feedback_task(void *UNUSED(param)) {
 			vTaskDelete(0);
 		}
 		if (bits & EVENT_SEND_NORMAL) {
-			static uint8_t frame[] = {
-				9U, // Header length
-				9U + 17U, // Total length
-				0b01100001, // Frame control LSB (data frame, no security, no frame pending, ack request, intra-PAN)
-				0b10001000, // Frame control MSB (16-bit destination address, 16-bit source address)
+#define PREFIX_LENGTH 2
+#define HEADER_LENGTH 9
+#define PURPOSE_LENGTH 1
+#define BASIC_LENGTH 12
+#define EXTENSIONS_MAX_LENGTH 8
+			static uint8_t frame[PREFIX_LENGTH + HEADER_LENGTH + PURPOSE_LENGTH + BASIC_LENGTH + EXTENSIONS_MAX_LENGTH] = {
+				HEADER_LENGTH, // [0] Header length
+				0, // [1] Total length
+				0b01100001, // [2] Frame control LSB (data frame, no security, no frame pending, ack request, intra-PAN)
+				0b10001000, // [3] Frame control MSB (16-bit destination address, 16-bit source address)
 				0U, // [4] Sequence number
 				0U, // [5] PAN ID LSB
 				0U, // [6] PAN ID MSB
@@ -75,118 +82,68 @@ static void feedback_task(void *UNUSED(param)) {
 				0x01U, // Destination address MSB
 				0U, // [9] Source address LSB
 				0U, // [10] Source address MSB
-				0x00U, // Packet purpose (general robot status update)
-				0U, 0U, // [12,13] Battery voltage
-				0U, 0U, // [14,15] Capacitor voltage
-				0U, 0U, // [16,17] Break beam difference
-				0U, 0U, // [18,19] Temperature
-				0U, // [20] Flags
-				0U, // [21] Stuck Hall sensors
-				0U, // [22] Additional failures
-				0x11U, // [23] SD logger status (both uninitialized)
-				0U, 0U, // [24,25] Dribbler speed
-				0U, // [26] Hot motors
-				0U, // [27] Dribbler temperature
 			};
 
-			frame[4U] = mrf_alloc_seqnum();
+			// Fill header.
+			uint8_t *wptr = frame + PREFIX_LENGTH;
+			wptr += 2; // Frame control
+			*wptr++ = mrf_alloc_seqnum(); // Sequence number
 			uint16_t u16 = mrf_pan_id();
-			frame[5U] = u16;
-			frame[6U] = u16 >> 8U;
+			*wptr++ = u16; // PAN ID LSB
+			*wptr++ = u16 >> 8U; // PAN ID MSB
+			wptr += 2; // Destination address
 			u16 = mrf_short_address();
-			frame[9U] = u16;
-			frame[10U] = u16 >> 8U;
+			*wptr++ = u16; // Source address LSB
+			*wptr++ = u16 >> 8U; // Source address MSB
+
+			// Fill purpose.
+			*wptr++ = 0x00; // Purpose: general robot status update
+
+			// Fill basic section.
 			u16 = (uint16_t) (adc_battery() * 1000.0f);
-			frame[12U] = u16;
-			frame[13U] = u16 >> 8U;
+			*wptr++ = u16; // Battery LSB
+			*wptr++ = u16 >> 8U; // Battery MSB
 			u16 = (uint16_t) (adc_capacitor() * 100.0f);
-			frame[14U] = u16;
-			frame[15U] = u16 >> 8U;
+			*wptr++ = u16; // Capacitor LSB
+			*wptr++ = u16 >> 8U; // Capacitor MSB
 			u16 = (uint16_t) (breakbeam_difference() * 1000.0f);
-			frame[16U] = u16;
-			frame[17U] = u16 >> 8U;
+			*wptr++ = u16; // Breakbeam LSB
+			*wptr++ = u16 >> 8U; // Breakbeam MSB
 			u16 = (uint16_t) (adc_temperature() * 100.0f);
-			frame[18U] = u16;
-			frame[19U] = u16 >> 8U;
-			uint8_t flags = 0x08U /* Breakout present (undetectable on this board) */ | 0x10U /* Chicker present (undetectable on this board) */;
+			*wptr++ = u16; // System temperature LSB
+			*wptr++ = u16 >> 8U; // System temperature MSB
+			uint8_t flags = 0;
 			if (breakbeam_interrupted()) {
-				flags |= 0x01U;
+				flags |= 0x80U;
 			}
 			if (charger_full()) {
-				flags |= 0x02U;
+				flags |= 0x40U;
 			}
-			if (charger_timeout()) {
-				flags |= 0x04U;
-			}
-			bool icb_crc_error_reported = icb_crc_error_check();
-			if (icb_crc_error_reported) {
-				flags |= 0x20U;
-			}
-			flags |= 0x80U; // For compatibility with pre-2014-08-01 software.
-			frame[20U] = flags;
-			flags = 0U;
-			for (unsigned int i = 0U; i < 4U; ++i) {
-				if (motor_hall_stuck_low(i)) {
-					flags |= 1U << (i * 2U);
-				}
-				if (motor_hall_stuck_high(i)) {
-					flags |= 1U << (i * 2U + 1U);
-				}
-			}
-			frame[21U] = flags;
-			flags = 0U;
-			if (motor_hall_stuck_low(4U)) {
-				flags |= 1U;
-			}
-			if (motor_hall_stuck_high(4U)) {
-				flags |= 2U;
-			}
-			for (unsigned int i = 0U; i != 4U; ++i) {
-				float hall_rpt = hall_speed(i) / (float) WHEELS_HALL_COUNTS_PER_REV;
-				float encoder_rpt = encoder_speed(i) / (float) WHEELS_ENCODER_COUNTS_PER_REV;
-				float diff = fabsf(encoder_rpt - hall_rpt);
-				// When Hall RPT is x, encoder RPT should be roughly x.
-				// However, the extra WHEELS_ENCODER_COUNTS_PER_HALL_COUNT resolution means it is not exactly x.
-				// That extra resolution is as much as WHEELS_ENCODER_COUNTS_PER_HALL_COUNT encoder counts.
-				// In RPT, that is (WHEELS_ENCODER_COUNTS_PER_HALL_COUNT / WHEELS_ENCODER_COUNTS_PER_REV) RPT.
-				// Double that, and ignore any errors with absolute magnitude less than that threshold.
-				//
-				// Also, to allow for physical imperfections in the sensors, also ignore any error of less than 10%.
-				if (diff > 2.0f * WHEELS_ENCODER_COUNTS_PER_HALL_COUNT / WHEELS_ENCODER_COUNTS_PER_REV && diff > 0.1f * fabsf(hall_rpt)) {
-					flags |= 1U << (i + 2U);
-				}
-			}
-			if (mrf_receive_fcs_fail_check_clear()) {
-				flags |= 1U << 6U;
-			}
-			frame[22U] = flags;
-//#warning SD status has more than 16 possible errors!
-//			frame[23U] = (((unsigned int) log_state()) << 4U) | (((unsigned int) sd_status()) & 0x0FU);
-			frame[23U] = log_state() << 4;
-#warning TODO more detailed SD status reporting
+			*wptr++ = flags | log_state(); // Flags and log state
+			*wptr++ = log_last_error(); // SD card error
 			int16_t i16 = hall_speed(4U);
-			frame[24U] = (uint8_t) (uint16_t) i16;
-			frame[25U] = (uint8_t) (((uint16_t) i16) >> 8U);
-			flags = wheels_hot();
-			if (dribbler_hot()) {
-				flags |= 0x10U;
+			*wptr++ = (uint8_t) (uint16_t) i16; // Dribbler speed LSB
+			*wptr++ = (uint8_t) (((uint16_t) i16) >> 8U); // Dribbler speed MSB
+			*wptr++ = (uint8_t) MIN(255, dribbler_temperature()); // Dribbler temp
+
+			// Fill errors extension.
+			bool do_errors = error_any_latched(ERROR_CONSUMER_MRF);
+			if (do_errors) {
+				*wptr++ = 0x00; // Error report extension code.
+				error_pre_report(ERROR_CONSUMER_MRF, wptr);
+				wptr += ERROR_BYTES;
 			}
-			frame[26U] = flags;
-			{
-				unsigned int temp = dribbler_temperature();
-				if (temp > 255U) {
-					temp = 255U;
-				}
-				frame[27U] = (uint8_t) temp;
-			}
+
+			// Fill length prefix and transmit.
+			frame[1] = wptr - frame - PREFIX_LENGTH;
 			mrf_tx_result_t result = mrf_transmit(frame);
 			if (result == MRF_TX_OK) {
-				motor_hall_stuck_clear();
-				if (icb_crc_error_reported) {
-					icb_crc_error_clear();
-				}
-				// We no longer need to send a has-ball update, because the information it would convey is in the feedback packet.
+				// We no longer need to send a has-ball update, because the
+				// information it would convey is in the feedback packet.
 				bits &= ~EVENT_SEND_HAS_BALL;
+			}
+			if (do_errors) {
+				error_post_report(ERROR_CONSUMER_MRF, result == MRF_TX_OK);
 			}
 		}
 		if (bits & EVENT_SEND_HAS_BALL) {

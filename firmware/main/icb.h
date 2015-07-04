@@ -286,8 +286,6 @@ typedef enum {
 void icb_init(void);
 void icb_send(icb_command_t command, const void *data, size_t length);
 bool icb_receive(icb_command_t command, void *buffer, size_t length);
-bool icb_crc_error_check(void);
-void icb_crc_error_clear(void);
 void icb_irq_init(void);
 void icb_irq_shutdown(void);
 void icb_irq_set_vector(icb_irq_t irq, void (*isr)(void));
@@ -299,4 +297,3 @@ void dma2_stream3_isr(void);
 void exti0_isr(void);
 
 #endif
-

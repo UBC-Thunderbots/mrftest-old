@@ -2,6 +2,7 @@
 #define MRF_ROBOT_H
 
 #include "drive/robot.h"
+#include "mrf/constants.h"
 #include "util/annunciator.h"
 #include "util/async_operation.h"
 #include "util/noncopyable.h"
@@ -40,13 +41,15 @@ class MRFRobot final : public Drive::Robot {
 	private:
 		friend class MRFDongle;
 
+		static constexpr unsigned int SD_MESSAGE_COUNT = 33;
+		static constexpr unsigned int LOGGER_MESSAGE_COUNT = 4;
+
 		MRFDongle &dongle_;
-		Annunciator::Message charge_timeout_message, breakout_missing_message, chicker_missing_message, crc_error_message, interlocks_overridden_message, low_capacitor_message, receive_fcs_fail_message;
-		std::array<std::unique_ptr<Annunciator::Message>, 10> hall_sensor_stuck_messages;
-		std::array<std::unique_ptr<Annunciator::Message>, 4> optical_encoder_not_commutating_messages;
-		std::array<std::unique_ptr<Annunciator::Message>, 10> sd_messages;
-		std::array<std::unique_ptr<Annunciator::Message>, 4> logger_messages;
-		std::array<std::unique_ptr<Annunciator::Message>, 5> hot_motor_messages;
+		Annunciator::Message low_capacitor_message;
+		std::array<std::unique_ptr<Annunciator::Message>, MRF::ERROR_LT_COUNT> error_lt_messages;
+		std::array<std::unique_ptr<Annunciator::Message>, MRF::ERROR_ET_COUNT> error_et_messages;
+		std::array<std::unique_ptr<Annunciator::Message>, SD_MESSAGE_COUNT> sd_messages;
+		std::array<std::unique_ptr<Annunciator::Message>, LOGGER_MESSAGE_COUNT> logger_messages;
 		sigc::connection feedback_timeout_connection;
 
 		explicit MRFRobot(MRFDongle &dongle, unsigned int index);

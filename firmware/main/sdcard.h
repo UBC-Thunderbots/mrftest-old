@@ -87,7 +87,7 @@ typedef enum {
 
 	/**
 	 * \brief Either the argument of a SET_BLOCKLEN command exceeds the maximum
-	 * value allowed for the card, or the previously defined blck length is
+	 * value allowed for the card, or the previously defined block length is
 	 * illegal for the current command.
 	 */
 	SD_STATUS_BLOCK_LEN_ERROR,
@@ -98,7 +98,7 @@ typedef enum {
 	SD_STATUS_ERASE_SEQ_ERROR,
 
 	/**
-	 * \brief An invalid selectioin of erase groups for erase occurred.
+	 * \brief An invalid selection of erase groups for erase occurred.
 	 */
 	SD_STATUS_ERASE_PARAM,
 

@@ -92,6 +92,8 @@ static void normal_task(void *UNUSED(param)) {
 		log_record_t *record = log_alloc();
 		if (record) {
 			record->magic = LOG_MAGIC_TICK;
+			error_pre_report(ERROR_CONSUMER_LOG, record->tick.errors);
+			error_post_report(ERROR_CONSUMER_LOG, true);
 		}
 
 		// Run the stuff.
@@ -116,7 +118,6 @@ static void normal_task(void *UNUSED(param)) {
 			record->tick.dribbler_pwm = 0U;
 			record->tick.dribbler_speed = 0U;
 			record->tick.dribbler_temperature = 0U;
-			record->tick.dribbler_hall_sensors_failed = 0U;
 		}
 		charger_tick(drive->charger_enabled);
 		chicker_discharge(drive->discharger_enabled && adc_capacitor() > CHICKER_DISCHARGE_THRESHOLD);

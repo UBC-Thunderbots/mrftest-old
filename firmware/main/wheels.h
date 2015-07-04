@@ -28,7 +28,6 @@ typedef enum {
 } wheels_mode_t;
 
 void wheels_tick(const drive_t *drive, log_record_t *record);
-uint8_t wheels_hot(void);
 
 #endif
 

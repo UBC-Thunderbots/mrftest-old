@@ -42,6 +42,7 @@ static dma_memory_handle_t buffer_handles[NUM_BUFFERS];
 static log_sector_t *filling_sector;
 static unsigned int next_fill_record;
 static unsigned int total_records;
+static sd_status_t last_error = SD_STATUS_OK;
 
 static void log_writeout_task(void *param) {
 	// Shovel records.
@@ -55,12 +56,14 @@ static void log_writeout_task(void *param) {
 		// If this was a real record (not the null pointer signifying shutdown)
 		// and nothing has failed yet, write it out to the SD card.
 		if (data && state /* Non-atomic OK because only this task writes */ == LOG_STATE_OK) {
-			if (sd_write(sector, data) == SD_STATUS_OK) {
+			sd_status_t ret = sd_write(sector, data);
+			if (ret == SD_STATUS_OK) {
 				++sector;
 				if (sector == sd_sector_count()) {
 					__atomic_store_n(&state, LOG_STATE_CARD_FULL, __ATOMIC_RELAXED);
 				}
 			} else {
+				__atomic_store_n(&last_error, ret, __ATOMIC_RELAXED);
 				__atomic_store_n(&state, LOG_STATE_SD_ERROR, __ATOMIC_RELAXED);
 				iprintf("Log: SD error writing sector %" PRIu32 "\r\n", sector);
 			}
@@ -83,6 +86,15 @@ static void log_writeout_task(void *param) {
  */
 log_state_t log_state(void) {
 	return __atomic_load_n(&state, __ATOMIC_RELAXED);
+}
+
+/**
+ * \brief Returns the error, if any, from the SD card subsystem.
+ *
+ * \return the error
+ */
+sd_status_t log_last_error(void) {
+	return __atomic_load_n(&last_error, __ATOMIC_RELAXED);
 }
 
 /**
@@ -114,7 +126,9 @@ bool log_init(void) {
 		while (low != high) {
 			uint32_t probe = (low + high) / 2U;
 			log_sector_t *buffer = dma_get_buffer(buffer_handles[0U]);
-			if (sd_read(probe, buffer) != SD_STATUS_OK) {
+			sd_status_t ret = sd_read(probe, buffer);
+			if (ret != SD_STATUS_OK) {
+				last_error = ret;
 				state = LOG_STATE_SD_ERROR;
 				return false;
 			}
@@ -136,7 +150,9 @@ bool log_init(void) {
 	// Compute the epoch: previous sector’s epoch + 1 (if first empty sector is not first sector), or 1 (if first empty sector is first sector).
 	if (next_write_sector > 0U) {
 		log_sector_t *buffer = dma_get_buffer(buffer_handles[0U]);
-		if (sd_read(next_write_sector - 1U, buffer) != SD_STATUS_OK) {
+		sd_status_t ret = sd_read(next_write_sector - 1U, buffer);
+		if (ret != SD_STATUS_OK) {
+			last_error = ret;
 			state = LOG_STATE_SD_ERROR;
 			return false;
 		}
@@ -147,9 +163,13 @@ bool log_init(void) {
 
 	// Erase the card from the start sector to the end of the card.
 	// Do this ahead of time so we won’t get stuck doing a long erase as part of the first write when time actually matters.
-	if (sd_erase(next_write_sector, sd_sector_count() - next_write_sector) != SD_STATUS_OK) {
-		state = LOG_STATE_SD_ERROR;
-		return false;
+	{
+		sd_status_t ret = sd_erase(next_write_sector, sd_sector_count() - next_write_sector);
+		if (ret != SD_STATUS_OK) {
+			last_error = ret;
+			state = LOG_STATE_SD_ERROR;
+			return false;
+		}
 	}
 
 	// Create all the FreeRTOS IPC objects.

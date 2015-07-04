@@ -65,13 +65,6 @@ void dribbler_tick(uint8_t pwm, log_record_t *record) {
 	if (record) {
 		record->tick.dribbler_ticked = 1U;
 		record->tick.dribbler_speed = dribbler_speed;
-		if (motor_hall_stuck_low(4U)) {
-			record->tick.dribbler_hall_sensors_failed = 1U;
-		} else if (motor_hall_stuck_high(4U)) {
-			record->tick.dribbler_hall_sensors_failed = 2U;
-		} else {
-			record->tick.dribbler_hall_sensors_failed = 0U;
-		}
 	}
 
 	// Decide whether to run or not.

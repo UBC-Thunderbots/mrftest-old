@@ -8,4 +8,3 @@ void encoder_tick(void);
 int16_t encoder_speed(unsigned int index);
 
 #endif
-

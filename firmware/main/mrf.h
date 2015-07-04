@@ -19,7 +19,5 @@ uint8_t mrf_alloc_seqnum(void);
 mrf_tx_result_t mrf_transmit(const void *frame);
 size_t mrf_receive(void *buffer);
 void mrf_receive_cancel(void);
-bool mrf_receive_fcs_fail_check_clear(void);
 
 #endif
-

@@ -18,6 +18,7 @@
 
 #include "icb.h"
 #include "dma.h"
+#include "error.h"
 #include "pins.h"
 #include "priority.h"
 #include <FreeRTOS.h>
@@ -156,11 +157,6 @@ static SemaphoreHandle_t irq_sem;
  * \brief The semaphores to notify when ICB IRQs are asserted.
  */
 static void (*irq_handlers[ICB_IRQ_COUNT])(void);
-
-/**
- * \brief Whether any CRC errors have occurred.
- */
-static bool crc_error = false;
 
 /**
  * \brief Takes the simultaneous-access mutex.
@@ -652,23 +648,9 @@ bool icb_receive(icb_command_t command, void *buffer, size_t length) {
 	if (computed_crc == __builtin_bswap32(local_crc)) {
 		return true;
 	} else {
-		__atomic_store_n(&crc_error, true, __ATOMIC_RELAXED);
+		error_et_fire(ERROR_ET_ICB_CRC);
 		return false;
 	}
-}
-
-/**
- * \brief Checks whether any CRC errors have been recorded on the ICB.
- */
-bool icb_crc_error_check(void) {
-	return __atomic_load_n(&crc_error, __ATOMIC_RELAXED);
-}
-
-/**
- * \brief Clears any recorded CRC errors.
- */
-void icb_crc_error_clear(void) {
-	__atomic_store_n(&crc_error, false, __ATOMIC_RELAXED);
 }
 
 /**
@@ -714,7 +696,7 @@ static void irq_task(void *UNUSED(param)) {
  * \brief Handles ICB CRC error IRQs.
  */
 static void icb_crc_error_isr(void) {
-	__atomic_store_n(&crc_error, true, __ATOMIC_RELAXED);
+	error_et_fire(ERROR_ET_ICB_CRC);
 }
 
 /**

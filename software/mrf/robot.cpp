@@ -76,29 +76,47 @@ namespace {
 		{ 0, -90 },
 	};
 
-	struct MessageTemplate final {
-		const char *pattern;
-		Annunciator::Message::Severity severity;
+	const char * const SD_MESSAGES[] = {
+		nullptr,
+		u8"Bot %1 SD card uninitialized",
+		nullptr,
+		u8"Bot %1 SD card incompatible",
+		u8"Bot %1 SD card sent illegal response",
+		u8"Bot %1 SD layer logical error",
+		u8"Bot %1 SD card CRC error",
+		u8"Bot %1 SD card claimed illegal command",
+		u8"Bot %1 SD card in unexpected state",
+		u8"Bot %1 SD card internal error",
+		u8"Bot %1 SD card command response timeout",
+		u8"Bot %1 SD card parameter out of range",
+		u8"Bot %1 SD card address misaligned",
+		u8"Bot %1 SD card block length error",
+		u8"Bot %1 SD card erase sequence error",
+		u8"Bot %1 SD card erase parameter error",
+		u8"Bot %1 SD card write protect violation",
+		u8"Bot %1 SD card locked",
+		u8"Bot %1 SD card lock or unlock failed",
+		u8"Bot %1 SD card command CRC error",
+		u8"Bot %1 SD card ECC error",
+		u8"Bot %1 SD card CC error",
+		u8"Bot %1 SD card generic error",
+		u8"Bot %1 SD card CSD write error",
+		u8"Bot %1 SD card partial erase due to write protection",
+		u8"Bot %1 SD card ECC disabled",
+		u8"Bot %1 SD card erase sequence cancelled",
+		u8"Bot %1 SD card authentication sequence error",
+		u8"Bot %1 SD card initialization timeout",
+		u8"Bot %1 SD card data timeout",
+		u8"Bot %1 SD card data CRC error",
+		u8"Bot %1 SD card missing data start bit",
+		u8"Bot %1 SD card FIFO overrun or underrun",
 	};
 
-	const MessageTemplate SD_MESSAGES[] = {
-		{ nullptr, Annunciator::Message::Severity::LOW },
-		{ u8"Bot %1 SD card uninitialized", Annunciator::Message::Severity::HIGH },
-		{ nullptr, Annunciator::Message::Severity::LOW },
-		{ u8"Bot %1 SD card incompatible", Annunciator::Message::Severity::HIGH },
-		{ u8"Bot %1 SD card sent illegal response", Annunciator::Message::Severity::HIGH },
-		{ u8"Bot %1 SD layer logical error", Annunciator::Message::Severity::HIGH },
-		{ u8"Bot %1 SD card CRC error", Annunciator::Message::Severity::HIGH },
-		{ u8"Bot %1 SD card claimed illegal command", Annunciator::Message::Severity::HIGH },
-		{ u8"Bot %1 SD card illegally idle", Annunciator::Message::Severity::HIGH },
-		{ u8"Bot %1 SD card internal error", Annunciator::Message::Severity::HIGH },
-	};
-
-	const MessageTemplate LOGGER_MESSAGES[] = {
-		{ nullptr, Annunciator::Message::Severity::LOW },
-		{ u8"Bot %1 logger uninitialized", Annunciator::Message::Severity::HIGH },
-		{ nullptr, Annunciator::Message::Severity::LOW },
-		{ u8"Bot %1 SD card full", Annunciator::Message::Severity::HIGH },
+	const char * const LOGGER_MESSAGES[] = {
+		nullptr,
+		u8"Bot %1 logger uninitialized",
+		nullptr,
+		u8"Bot %1 SD card full",
 	};
 }
 
@@ -235,38 +253,33 @@ void MRFRobot::autokick(bool chip, double value) {
 	}
 }
 
+constexpr unsigned int MRFRobot::SD_MESSAGE_COUNT;
+constexpr unsigned int MRFRobot::LOGGER_MESSAGE_COUNT;
+
 MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) :
 		Drive::Robot(index, DRIBBLE_POWER_MAX),
 		dongle_(dongle),
-		charge_timeout_message(Glib::ustring::compose(u8"Bot %1 charge timeout", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
-		breakout_missing_message(Glib::ustring::compose(u8"Bot %1 breakout missing", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
-		chicker_missing_message(Glib::ustring::compose(u8"Bot %1 chicker missing", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
-		crc_error_message(Glib::ustring::compose(u8"Bot %1 ICB CRC error", index), Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::HIGH),
-		interlocks_overridden_message(Glib::ustring::compose(u8"Bot %1 interlocks overridden", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
-		low_capacitor_message(Glib::ustring::compose(u8"Bot %1 low caps (fuse blown?)", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
-		receive_fcs_fail_message(Glib::ustring::compose(u8"Bot %1 receive FCS fail", index), Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::HIGH) {
-	for (unsigned int i = 0; i < 8; ++i) {
-		hall_sensor_stuck_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 wheel %2 Hall sensor stuck %3", index, i / 2, (i % 2) == 0 ? u8"low" : u8"high"), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
+		low_capacitor_message(Glib::ustring::compose(u8"Bot %1 capacitor low (fuse blown?)", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH) {
+	for (unsigned int i = 0; i < MRF::ERROR_LT_COUNT; ++i) {
+		error_lt_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 %2", index, MRF::ERROR_LT_MESSAGES[i]), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
 	}
-	hall_sensor_stuck_messages[8].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 dribbler Hall sensor stuck low", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
-	hall_sensor_stuck_messages[9].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 dribbler Hall sensor stuck high", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
-	for (unsigned int i = 0; i < 4; ++i) {
-		optical_encoder_not_commutating_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 wheel %2 optical encoder not commutating", index, i), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
+	for (unsigned int i = 0; i < MRF::ERROR_ET_COUNT; ++i) {
+		error_et_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 %2", index, MRF::ERROR_ET_MESSAGES[i]), Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::HIGH));
 	}
+
+	static_assert(sizeof(SD_MESSAGES) / sizeof(*SD_MESSAGES) == MRFRobot::SD_MESSAGE_COUNT, "Wrong number of SD message initializers");
 	for (std::size_t i = 0; i < sizeof(SD_MESSAGES) / sizeof(*SD_MESSAGES); ++i) {
-		if (SD_MESSAGES[i].pattern) {
-			sd_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(SD_MESSAGES[i].pattern, index), Annunciator::Message::TriggerMode::LEVEL, SD_MESSAGES[i].severity));
+		if (SD_MESSAGES[i]) {
+			sd_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(SD_MESSAGES[i], index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
 		}
 	}
+
+	static_assert(sizeof(LOGGER_MESSAGES) / sizeof(*LOGGER_MESSAGES) == MRFRobot::LOGGER_MESSAGE_COUNT, "Wrong number of SD message initializers");
 	for (std::size_t i = 0; i < sizeof(LOGGER_MESSAGES) / sizeof(*LOGGER_MESSAGES); ++i) {
-		if (LOGGER_MESSAGES[i].pattern) {
-			logger_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(LOGGER_MESSAGES[i].pattern, index), Annunciator::Message::TriggerMode::LEVEL, LOGGER_MESSAGES[i].severity));
+		if (LOGGER_MESSAGES[i]) {
+			logger_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(LOGGER_MESSAGES[i], index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
 		}
 	}
-	for (std::size_t i = 0; i < 4; ++i) {
-		hot_motor_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 wheel %2 motor hot", index, i), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
-	}
-	hot_motor_messages[4].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 dribbler motor hot", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
 }
 
 MRFRobot::~MRFRobot() {
@@ -290,61 +303,101 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 
 	const uint8_t *bptr = static_cast<const uint8_t *>(data);
 	if (len) {
-		switch (bptr[0]) {
+		switch (*bptr) {
 			case 0x00:
 				// General robot status update
 				++bptr;
 				--len;
-				if (len >= 15) {
+				if (len >= 13) {
 					alive = true;
+
 					battery_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1000.0;
-					capacitor_voltage = (bptr[2] | static_cast<unsigned int>(bptr[3] << 8)) / 100.0;
-					break_beam_reading = (bptr[4] | static_cast<unsigned int>(bptr[5] << 8)) / 1000.0;
+					bptr += 2;
+					len -= 2;
+
+					capacitor_voltage = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 100.0;
+					low_capacitor_message.active(capacitor_voltage < 5.0);
+					bptr += 2;
+					len -= 2;
+
+					break_beam_reading = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1000.0;
 					break_beam_scale = 0.3;
-					board_temperature = (bptr[6] | static_cast<unsigned int>(bptr[7] << 8)) / 100.0;
-					ball_in_beam = !!(bptr[8] & 0x01);
-					capacitor_charged = !!(bptr[8] & 0x02);
-					charge_timeout_message.active(!!(bptr[8] & 0x04));
-					bool breakout_present = !!(bptr[8] & 0x08);
-					breakout_missing_message.active(!breakout_present);
-					bool chicker_present = !!(bptr[8] & 0x10);
-					chicker_missing_message.active(!chicker_present);
-					if (bptr[8] & 0x20) {
-						crc_error_message.fire();
-					}
-					interlocks_overridden_message.active(!!(bptr[8] & 0x40));
-					low_capacitor_message.active(chicker_present && capacitor_voltage < 5);
-					for (unsigned int bit = 0; bit < 8; ++bit) {
-						hall_sensor_stuck_messages[bit]->active(!!(bptr[9] & (1 << bit)) && breakout_present);
-					}
-					for (unsigned int bit = 0; bit < 2; ++bit) {
-						hall_sensor_stuck_messages[bit + 8]->active(!!(bptr[10] & (1 << bit)));
-					}
-					for (unsigned int wheel = 0; wheel < 4; ++wheel) {
-						optical_encoder_not_commutating_messages[wheel]->active(!!(bptr[10] & (1 << (wheel + 2))) && breakout_present);
-					}
-					if (bptr[10] & (1 << 6)) {
-						receive_fcs_fail_message.fire();
-					}
-					unsigned int sd_status = bptr[11] & 0x0F;
-					unsigned int logger_status = bptr[11] >> 4;
-					for (std::size_t i = 0; i < sd_messages.size(); ++i) {
-						if (sd_messages[i]) {
-							sd_messages[i]->active(sd_status == i);
-						}
-					}
+					bptr += 2;
+					len -= 2;
+
+					board_temperature = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 100.0;
+					bptr += 2;
+					len -= 2;
+
+					ball_in_beam = !!(*bptr & 0x80);
+					capacitor_charged = !!(*bptr & 0x40);
+					unsigned int logger_status = *bptr & 0x3F;
 					for (std::size_t i = 0; i < logger_messages.size(); ++i) {
 						if (logger_messages[i]) {
-							logger_messages[i]->active(sd_status == 0 && logger_status == i);
+							logger_messages[i]->active(logger_status == i);
 						}
 					}
-					dribbler_speed = static_cast<int16_t>(static_cast<uint16_t>(bptr[12] | (bptr[13] << 8))) * 25 * 60 / 6;
-					for (std::size_t i = 0; i < hot_motor_messages.size(); ++i) {
-						hot_motor_messages[i]->active(!!(bptr[14] & (1 << i)));
+					++bptr;
+					--len;
+
+					for (std::size_t i = 0; i < sd_messages.size(); ++i) {
+						if (sd_messages[i]) {
+							sd_messages[i]->active(*bptr == i);
+						}
 					}
-					if (len >= 16) {
-						dribbler_temperature = bptr[15];
+					++bptr;
+					--len;
+
+					dribbler_speed = static_cast<int16_t>(static_cast<uint16_t>(bptr[0] | (bptr[1] << 8))) * 25 * 60 / 6;
+					bptr += 2;
+					len -= 2;
+
+					dribbler_temperature = *bptr++;
+					--len;
+
+					bool has_error_extension = false;
+					while (len) {
+						// Decode extensions.
+						switch (*bptr) {
+							case 0x00: // Error bits.
+								++bptr;
+								--len;
+								if (len >= MRF::ERROR_BYTES) {
+									has_error_extension = true;
+									for (unsigned int i = 0; i != MRF::ERROR_LT_COUNT; ++i) {
+										unsigned int byte = i / CHAR_BIT;
+										unsigned int bit = i % CHAR_BIT;
+										error_lt_messages[i]->active(bptr[byte] & (1 << bit));
+									}
+									for (unsigned int i = 0; i != MRF::ERROR_ET_COUNT; ++i) {
+										unsigned int byte = (i + MRF::ERROR_LT_COUNT) / CHAR_BIT;
+										unsigned int bit = (i + MRF::ERROR_LT_COUNT) % CHAR_BIT;
+										if (bptr[byte] & (1 << bit)) {
+											error_et_messages[i]->fire();
+										}
+									}
+									bptr += MRF::ERROR_BYTES;
+									len -= MRF::ERROR_BYTES;
+								} else {
+									LOG_ERROR(Glib::ustring::compose(u8"Received general robot status update with truncated error bits extension of length %1", len));
+								}
+								break;
+
+							default:
+								LOG_ERROR(Glib::ustring::compose(u8"Received general status packet from robot with unknown extension code %1", static_cast<unsigned int>(*bptr)));
+								len = 0;
+								break;
+						}
 					}
+
+					if (!has_error_extension) {
+						// Error reporting extension is absent → no errors are
+						// asserted.
+						for (auto &i : error_lt_messages) {
+							i->active(false);
+						}
+					}
+
 					feedback_timeout_connection.disconnect();
 					feedback_timeout_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &MRFRobot::handle_feedback_timeout), 3);
 				} else {
@@ -368,7 +421,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 				break;
 
 			default:
-				LOG_ERROR(u8"Received packet from robot with unknown message type");
+				LOG_ERROR(Glib::ustring::compose(u8"Received packet from robot with unknown message type %1", static_cast<unsigned int>(*bptr)));
 				break;
 		}
 	}
@@ -376,15 +429,8 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 
 bool MRFRobot::handle_feedback_timeout() {
 	alive = false;
-	charge_timeout_message.active(false);
-	breakout_missing_message.active(false);
-	chicker_missing_message.active(false);
-	interlocks_overridden_message.active(false);
 	low_capacitor_message.active(false);
-	for (auto &i : hall_sensor_stuck_messages) {
-		i->active(false);
-	}
-	for (auto &i : optical_encoder_not_commutating_messages) {
+	for (auto &i : error_lt_messages) {
 		i->active(false);
 	}
 	for (auto &i : sd_messages) {
@@ -397,9 +443,5 @@ bool MRFRobot::handle_feedback_timeout() {
 			i->active(false);
 		}
 	}
-	for (auto &i : hot_motor_messages) {
-		i->active(false);
-	}
 	return false;
 }
-

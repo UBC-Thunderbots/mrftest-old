@@ -18,10 +18,6 @@ void motor_init(void);
 void motor_shutdown(void);
 void motor_set(unsigned int motor_num, motor_mode_t mode, uint8_t pwm_level);
 void motor_force_power(void);
-bool motor_hall_stuck_low(unsigned int motor);
-bool motor_hall_stuck_high(unsigned int motor);
-void motor_hall_stuck_clear(void);
 void motor_tick(void);
 
 #endif
-

@@ -3,6 +3,7 @@
 #include "control.h"
 #include "drive.h"
 #include "encoder.h"
+#include "error.h"
 #include "motor.h"
 #include "receive.h"
 #include <rcc.h>
@@ -29,7 +30,6 @@
 
 static uint16_t last_data_serial = 0xFFFFU;
 static float energy[NUM_WHEELS] = {};
-static uint8_t hot;
 
 static void set_nominal_drive(unsigned int index, motor_mode_t mode, int16_t drive, log_record_t *record) {
 	// Fix negative numbers.
@@ -89,18 +89,10 @@ static void set_nominal_drive(unsigned int index, motor_mode_t mode, int16_t dri
  */
 void wheels_tick(const drive_t *drive, log_record_t *record) {
 	if (record) {
-		record->tick.wheels_hall_sensors_failed = 0U;
 		for (unsigned int i = 0U; i != NUM_WHEELS; ++i) {
 			record->tick.wheels_setpoints[i] = drive->setpoints[i];
 			record->tick.wheels_encoder_counts[i] = encoder_speed(i);
-			if (motor_hall_stuck_low(i)) {
-				record->tick.wheels_hall_sensors_failed |= 1U << (i * 2U);
-			} else if (motor_hall_stuck_high(i)) {
-				record->tick.wheels_hall_sensors_failed |= 2U << (i * 2U);
-			}
 		}
-#warning check for optical encoder failures
-		record->tick.wheels_encoders_failed = 0U;
 	}
 
 	if (drive->wheels_mode == WHEELS_MODE_CLOSED_LOOP) {
@@ -140,19 +132,12 @@ void wheels_tick(const drive_t *drive, log_record_t *record) {
 		}
 	}
 
-	// Update the hot wheel bitmask.
-	uint8_t new_hot = hot;
+	// Update the hot wheel report.
 	for (unsigned int index = 0U; index != NUM_WHEELS; ++index) {
 		if (energy[index] > THERMAL_WARNING_START_ENERGY) {
-			new_hot |= 1U << index;
+			error_lt_set(ERROR_LT_MOTOR0_HOT + index, true);
 		} else if (energy[index] < THERMAL_WARNING_STOP_ENERGY) {
-			new_hot &= ~(1U << index);
+			error_lt_set(ERROR_LT_MOTOR0_HOT + index, false);
 		}
 	}
-	__atomic_store_n(&hot, new_hot, __ATOMIC_RELAXED);
 }
-
-uint8_t wheels_hot(void) {
-	return __atomic_load_n(&hot, __ATOMIC_RELAXED);
-}
-

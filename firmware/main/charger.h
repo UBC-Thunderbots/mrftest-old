@@ -6,7 +6,6 @@
 void charger_init(void);
 void charger_shutdown(void);
 bool charger_full(void);
-bool charger_timeout(void);
 void charger_mark_fired(void);
 void charger_tick(bool charger_enabled);
 

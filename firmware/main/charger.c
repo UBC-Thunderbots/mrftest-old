@@ -4,6 +4,7 @@
  **/
 
 #include "adc.h"
+#include "error.h"
 #include "receive.h"
 #include <FreeRTOS.h>
 #include <gpio.h>
@@ -25,7 +26,6 @@
 
 static bool full = false;
 static unsigned int timeout_counter = CHARGE_TIMEOUT;
-static bool timeout_lockout = false;
 
 /** 
  * \brief Calculates the MOSFET downtime.
@@ -144,16 +144,6 @@ bool charger_full(void) {
 }
 
 /**
- * \brief Checks whether the charger has failed due to timeout.
- *
- * \retval true the capacitors took too long to charge and the charger has been disabled permanently
- * \retval false the charger is working properly
- */
-bool charger_timeout(void) {
-	return __atomic_load_n(&timeout_lockout, __ATOMIC_RELAXED);
-}
-
-/**
  * \brief Marks the capacitors as having been used.
  *
  * This function must be called from anywhere that uses energy from the capacitors.
@@ -193,10 +183,10 @@ void charger_tick(bool charger_enabled) {
 
 	if (!timeout_counter /* Need not be atomic because only this task ever writes */) {
 		// If timeout counter has reached zero, fail.
-		__atomic_store_n(&timeout_lockout, true, __ATOMIC_RELAXED);
+		error_lt_set(ERROR_LT_CHARGE_TIMEOUT, true);
 	}
 
-	if (timeout_lockout /* Need not be atomic because only this task ever writes */) {
+	if (error_lt_get(ERROR_LT_CHARGE_TIMEOUT) /* Need not be atomic because only this task ever writes */) {
 		// If we have locked out due to timeout, fail.
 		charger_enabled = false;
 	}

@@ -45,6 +45,7 @@
  */
 
 #include "mrf.h"
+#include "error.h"
 #include "icb.h"
 #include <FreeRTOS.h>
 #include <assert.h>
@@ -177,7 +178,6 @@ typedef enum {
 static SemaphoreHandle_t da_irq_sem, tx_irq_sem, tx_mutex;
 static EventGroupHandle_t rx_event_group;
 static uint16_t saved_pan_id, saved_short_address;
-static bool rx_fcs_fail;
 
 static void da_isr(void) {
 	xSemaphoreGive(da_irq_sem);
@@ -192,7 +192,7 @@ static void rx_isr(void) {
 }
 
 static void rx_fcs_fail_isr(void) {
-	__atomic_store_n(&rx_fcs_fail, true, __ATOMIC_RELAXED);
+	error_et_fire(ERROR_ET_MRF_FCS);
 }
 
 static void reset(void) {
@@ -490,22 +490,5 @@ void mrf_receive_cancel(void) {
 }
 
 /**
- * \brief Checks and clears the FCS failed flag.
- *
- * The FCS failed flag is set if a frame arrives in the radio with an incorrect frame check sequence.
- * This should \em never happen, because the radio should filter out such frames before accepting them.
- * Nevertheless, defense in depth dictates that we check the FCS and report failures.
- *
- * Such frames are not received as normal receivable frames.
- *
- * \retval true a bad FCS has happened since the last call to this function
- * \retval false no bad FCSs have happened
- */
-bool mrf_receive_fcs_fail_check_clear(void) {
-	return __atomic_exchange_n(&rx_fcs_fail, false, __ATOMIC_RELAXED);
-}
-
-/**
  * @}
  */
-

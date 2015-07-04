@@ -1,6 +1,7 @@
 #ifndef MRF_CONSTANTS_H
 #define MRF_CONSTANTS_H
 
+#include <climits>
 #include <stdint.h>
 
 namespace MRF {
@@ -20,7 +21,8 @@ namespace MRF {
 	constexpr uint8_t SUBCLASS = 0x01;
 
 	/**
-	 * \brief The interface protocol number used by the dongle in radio off mode.
+	 * \brief The interface protocol number used by the dongle in radio off
+	 * mode.
 	 */
 	constexpr uint8_t PROTOCOL_OFF = 0x01;
 
@@ -30,12 +32,14 @@ namespace MRF {
 	constexpr uint8_t PROTOCOL_NORMAL = 0x41;
 
 	/**
-	 * \brief The interface protocol number used by the dongle in promiscuous mode.
+	 * \brief The interface protocol number used by the dongle in promiscuous
+	 * mode.
 	 */
 	constexpr uint8_t PROTOCOL_PROMISCUOUS = 0x81;
 
 	/**
-	 * \brief The vendor-specific control requests understood by the radio interface.
+	 * \brief The vendor-specific control requests understood by the radio
+	 * interface.
 	 */
 	enum {
 		CONTROL_REQUEST_GET_CHANNEL = 0x00,
@@ -54,7 +58,7 @@ namespace MRF {
 	};
 
 	/**
-	 * The delivery status codes reported in message delivery reports.
+	 * \brief The delivery status codes reported in message delivery reports.
 	 */
 	enum {
 		MDR_STATUS_OK,
@@ -62,7 +66,36 @@ namespace MRF {
 		MDR_STATUS_NOT_ACKNOWLEDGED,
 		MDR_STATUS_NO_CLEAR_CHANNEL,
 	};
+
+	/**
+	 * \brief The number of level-triggered errors.
+	 */
+	constexpr unsigned int ERROR_LT_COUNT = 20;
+
+	/**
+	 * \brief The number of edge-triggered errors.
+	 */
+	constexpr unsigned int ERROR_ET_COUNT = 2;
+
+	/**
+	 * \brief The total number of errors.
+	 */
+	constexpr unsigned int ERROR_COUNT = ERROR_LT_COUNT + ERROR_ET_COUNT;
+
+	/**
+	 * \brief The number of bytes to hold the error bitmask.
+	 */
+	constexpr unsigned int ERROR_BYTES = (ERROR_COUNT + CHAR_BIT - 1) / CHAR_BIT;
+
+	/**
+	 * \brief The message patterns for the level-triggered error messages.
+	 */
+	extern const char * const ERROR_LT_MESSAGES[];
+
+	/**
+	 * \brief The message patterns for the edge-triggered error messages.
+	 */
+	extern const char * const ERROR_ET_MESSAGES[];
 }
 
 #endif
-

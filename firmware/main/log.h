@@ -1,6 +1,8 @@
 #ifndef LOG_H
 #define LOG_H
 
+#include "error.h"
+#include "sdcard.h"
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -22,16 +24,15 @@ typedef struct __attribute__((packed)) {
 	int16_t wheels_encoder_counts[4U];
 	int16_t wheels_drives[4U];
 	uint8_t wheels_temperatures[4U];
-	uint8_t wheels_encoders_failed;
-	uint8_t wheels_hall_sensors_failed;
 
 	uint8_t dribbler_ticked;
 	uint8_t dribbler_pwm;
 	uint8_t dribbler_speed;
 	uint8_t dribbler_temperature;
-	uint8_t dribbler_hall_sensors_failed;
 
 	uint32_t idle_cpu_cycles;
+
+	uint8_t errors[ERROR_BYTES];
 } log_tick_t;
 
 /**
@@ -77,6 +78,7 @@ typedef enum {
 } log_state_t;
 
 log_state_t log_state(void);
+sd_status_t log_last_error(void);
 bool log_init(void);
 void log_shutdown(void);
 log_record_t *log_alloc(void);
