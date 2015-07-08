@@ -25,16 +25,22 @@ class ParticleFilter final {
 		void updateEstimatedPartition();
 		void clearWeights(unsigned int startIndex, unsigned int endIndex);
 
-		double velocity_;
-		double accel_;
-		double estimate_;
-		double prevEstimate_;
+		double position_[2];
+		double positionVar_[2];
+		bool positionValid_[2];
+
+		double velocity_[2];
+		double velocityVar_[2];
+		bool velocityValid_[2];
+
+		double acceleration_;
+		double accelerationVar_;
+		bool accelerationValid_;
+
 		unsigned int numPartitions_;
 		double length_;
 		double offset_;
-		bool estimateValid_;
-		bool prevEstimateValid_;
-		bool velocityValid_;
+
 		std::vector<int> weight_;
 		std::default_random_engine random_generator_;
 		std::binomial_distribution<int> random_binom_distribution_;
