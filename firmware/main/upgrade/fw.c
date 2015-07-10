@@ -253,7 +253,7 @@ static void upgrade_fw_erase_and_copy(size_t length, bool sdhc, void *buffer) {
 		aircr_tmp.SYSRESETREQ = 1;
 		SCB.AIRCR = aircr_tmp;
 		__sync_synchronize();
-		__builtin_unreachable();
+		for (;;);
 	}
 }
 

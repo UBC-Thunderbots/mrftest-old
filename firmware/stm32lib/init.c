@@ -374,15 +374,14 @@ void init_bootload(void) {
 	// Ensure all pending memory writes have finished.
 	asm volatile("dsb");
 
-	// Request the reboot.
+	// Reboot the chip.
 	{
 		AIRCR_t tmp = SCB.AIRCR;
 		tmp.VECTKEY = 0x05FA;
 		tmp.SYSRESETREQ = 1;
 		SCB.AIRCR = tmp;
 	}
-
-	// Wait forever until the reboot happens.
+	__sync_synchronize();
 	for (;;);
 }
 

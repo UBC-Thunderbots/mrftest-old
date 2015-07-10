@@ -606,7 +606,8 @@ static void main_task(void *UNUSED(param)) {
 				tmp.SYSRESETREQ = 1;
 				SCB.AIRCR = tmp;
 			}
-			__builtin_unreachable();
+			__sync_synchronize();
+			for (;;);
 
 		case MAIN_SHUT_MODE_POWER:
 		default:
@@ -614,9 +615,7 @@ static void main_task(void *UNUSED(param)) {
 			asm volatile("dsb");
 			gpio_reset(PIN_POWER_LOGIC);
 			asm volatile("dsb");
-			for (;;) {
-				asm volatile("wfi");
-			}
+			for (;;);
 	}
 }
 
