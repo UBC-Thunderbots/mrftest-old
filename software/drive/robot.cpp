@@ -18,6 +18,9 @@ Drive::Robot::Robot(unsigned int index, unsigned int dribble_max_power) :
 		board_temperature(0),
 		link_quality(0),
 		received_signal_strength(-90),
+		build_ids_valid(false),
+		fw_build_id(0),
+		fpga_build_id(0),
 		low_battery_message(Glib::ustring::compose(u8"Bot %1 low battery", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
 		high_board_temperature_message(Glib::ustring::compose(u8"Bot %1 board hot", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH) {
 	alive.signal_changed().connect(sigc::mem_fun(this, &Robot::handle_alive_changed));

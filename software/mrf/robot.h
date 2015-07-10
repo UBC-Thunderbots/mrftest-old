@@ -13,6 +13,7 @@
 #include <functional>
 #include <memory>
 #include <stdint.h>
+#include <glibmm/timer.h>
 #include <sigc++/connection.h>
 
 class MRFDongle;
@@ -51,6 +52,8 @@ class MRFRobot final : public Drive::Robot {
 		std::array<std::unique_ptr<Annunciator::Message>, SD_MESSAGE_COUNT> sd_messages;
 		std::array<std::unique_ptr<Annunciator::Message>, LOGGER_MESSAGE_COUNT> logger_messages;
 		sigc::connection feedback_timeout_connection;
+		Glib::Timer request_build_ids_timer;
+		unsigned int request_build_ids_counter;
 
 		explicit MRFRobot(MRFDongle &dongle, unsigned int index);
 	public:
@@ -58,7 +61,7 @@ class MRFRobot final : public Drive::Robot {
 	private:
 		void handle_message(const void *data, std::size_t len, uint8_t lqi, uint8_t rssi);
 		bool handle_feedback_timeout();
+		void request_build_ids();
 };
 
 #endif
-

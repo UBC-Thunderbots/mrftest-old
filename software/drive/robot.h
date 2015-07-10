@@ -4,6 +4,7 @@
 #include "util/annunciator.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
+#include <cstdint>
 
 namespace Drive {
 	class Dongle;
@@ -102,6 +103,21 @@ namespace Drive {
 			 * \brief The received signal strength of the last received packet, in decibels.
 			 */
 			Property<int> received_signal_strength;
+
+			/**
+			 * \brief Whether or not the build ID information is valid.
+			 */
+			Property<bool> build_ids_valid;
+
+			/**
+			 * \brief The microcontroller firmware build ID.
+			 */
+			Property<uint32_t> fw_build_id;
+
+			/**
+			 * \brief The FPGA bitstream build ID.
+			 */
+			Property<uint32_t> fpga_build_id;
 
 			/**
 			 * \brief Emitted when the autokick mechanism causes the robot to kick.

@@ -8,7 +8,7 @@
  *
  * For message packets, the action required by the packet is taken immediately.
  *
- * @{
+ * \{
  */
 
 #include "receive.h"
@@ -184,6 +184,10 @@ static void receive_task(void *UNUSED(param)) {
 								main_shutdown(MAIN_SHUT_MODE_POWER);
 							}
 							break;
+
+						case 0x0DU: // Request build IDs
+							feedback_pend_build_ids();
+							break;
 					}
 				}
 			}
@@ -246,6 +250,5 @@ bool receive_drive_packet_timeout(void) {
 }
 
 /**
- * @}
+ * \}
  */
-

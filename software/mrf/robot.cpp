@@ -1,6 +1,7 @@
 #include "mrf/robot.h"
 #include "mrf/dongle.h"
 #include "util/algorithm.h"
+#include "util/codec.h"
 #include "util/dprint.h"
 #include <cassert>
 #include <cstdlib>
@@ -12,6 +13,17 @@
 namespace {
 	const unsigned int DRIBBLE_POWER_BITS = 5U;
 	const unsigned int DRIBBLE_POWER_MAX = (1U << DRIBBLE_POWER_BITS) - 1U;
+
+	/**
+	 * \brief The number of attempts to request the build IDs before giving up.
+	 */
+	const unsigned int REQUEST_BUILD_IDS_COUNT = 7;
+
+	/**
+	 * \brief The number of seconds to wait between consecutive requests for
+	 * the build IDs.
+	 */
+	const double REQUEST_BUILD_IDS_INTERVAL = 0.5;
 
 	struct RSSITableEntry final {
 		int rssi;
@@ -259,7 +271,8 @@ constexpr unsigned int MRFRobot::LOGGER_MESSAGE_COUNT;
 MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) :
 		Drive::Robot(index, DRIBBLE_POWER_MAX),
 		dongle_(dongle),
-		low_capacitor_message(Glib::ustring::compose(u8"Bot %1 capacitor low (fuse blown?)", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH) {
+		low_capacitor_message(Glib::ustring::compose(u8"Bot %1 capacitor low (fuse blown?)", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
+		request_build_ids_counter(REQUEST_BUILD_IDS_COUNT) {
 	for (unsigned int i = 0; i < MRF::ERROR_LT_COUNT; ++i) {
 		error_lt_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 %2", index, MRF::ERROR_LT_MESSAGES[i]), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
 	}
@@ -383,6 +396,20 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 								}
 								break;
 
+							case 0x01: // Build IDs.
+								++bptr;
+								--len;
+								if (len >= 8) {
+									build_ids_valid = true;
+									fw_build_id = decode_u32_le(bptr);
+									fpga_build_id = decode_u32_le(bptr + 4);
+									bptr += 8;
+									len -= 8;
+								} else {
+									LOG_ERROR(Glib::ustring::compose(u8"Received general robot status update with truncated build IDs extension of length %1", len));
+								}
+								break;
+
 							default:
 								LOG_ERROR(Glib::ustring::compose(u8"Received general status packet from robot with unknown extension code %1", static_cast<unsigned int>(*bptr)));
 								len = 0;
@@ -402,6 +429,15 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 					feedback_timeout_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &MRFRobot::handle_feedback_timeout), 3);
 				} else {
 					LOG_ERROR(Glib::ustring::compose(u8"Received general robot status update with wrong byte count %1", len));
+				}
+
+				if (!build_ids_valid && request_build_ids_counter && request_build_ids_timer.elapsed() > REQUEST_BUILD_IDS_INTERVAL) {
+					--request_build_ids_counter;
+					request_build_ids_timer.stop();
+					request_build_ids_timer.reset();
+					request_build_ids_timer.start();
+					static const uint8_t REQUEST = 0x0D;
+					dongle_.send_unreliable(index, &REQUEST, 1);
 				}
 				break;
 
@@ -429,6 +465,8 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 
 bool MRFRobot::handle_feedback_timeout() {
 	alive = false;
+	build_ids_valid = false;
+	request_build_ids_counter = REQUEST_BUILD_IDS_COUNT;
 	low_capacitor_message.active(false);
 	for (auto &i : error_lt_messages) {
 		i->active(false);

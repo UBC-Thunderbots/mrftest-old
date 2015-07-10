@@ -5,6 +5,7 @@
 #include "drive/robot.h"
 #include <gtkmm/box.h>
 #include <gtkmm/checkbutton.h>
+#include <gtkmm/entry.h>
 #include <gtkmm/label.h>
 #include <gtkmm/progressbar.h>
 #include <gtkmm/table.h>
@@ -26,8 +27,9 @@ class TesterFeedbackPanel final : public Gtk::Table {
 	private:
 		Drive::Dongle &dongle;
 		Drive::Robot &robot;
-		Gtk::Label battery_voltage_label, capacitor_voltage_label, dribbler_temperature_label, board_temperature_label, break_beam_reading_label, lqi_label, rssi_label;
+		Gtk::Label battery_voltage_label, capacitor_voltage_label, dribbler_temperature_label, board_temperature_label, break_beam_reading_label, lqi_label, rssi_label, fw_build_id_label, fpga_build_id_label;
 		Gtk::ProgressBar battery_voltage, capacitor_voltage, dribbler_temperature, dribbler_speed, board_temperature, break_beam_reading, lqi_reading, rssi_reading;
+		Gtk::Entry fw_build_id, fpga_build_id;
 		Gtk::HBox cb_hbox1, cb_hbox2;
 		Gtk::CheckButton alive, estop, ball_in_beam, capacitor_charged;
 
@@ -39,6 +41,8 @@ class TesterFeedbackPanel final : public Gtk::Table {
 		void on_break_beam_reading_changed();
 		void on_lqi_changed();
 		void on_rssi_changed();
+		void on_fw_build_id_changed();
+		void on_fpga_build_id_changed();
 		void on_alive_changed();
 		void on_estop_changed();
 		void on_ball_in_beam_changed();
@@ -46,4 +50,3 @@ class TesterFeedbackPanel final : public Gtk::Table {
 };
 
 #endif
-

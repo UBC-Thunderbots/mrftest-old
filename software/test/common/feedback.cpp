@@ -1,9 +1,10 @@
 #include "test/common/feedback.h"
 #include "util/algorithm.h"
+#include "util/string.h"
 #include <iomanip>
 
 TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &robot) :
-		Gtk::Table(10, 2),
+		Gtk::Table(12, 2),
 		dongle(dongle),
 		robot(robot),
 		battery_voltage_label(u8"Battery:"),
@@ -13,6 +14,8 @@ TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &ro
 		break_beam_reading_label(u8"Break Beam:"),
 		lqi_label(u8"LQI:"),
 		rssi_label(u8"RSSI:"),
+		fw_build_id_label(u8"FW:"),
+		fpga_build_id_label(u8"FPGA:"),
 		alive(u8"Alive"),
 		estop(u8"EStop Run"),
 		ball_in_beam(u8"Ball in Beam"),
@@ -32,17 +35,23 @@ TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &ro
 	attach(lqi_reading, 1, 2, 6, 7, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(rssi_label, 0, 1, 7, 8, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(rssi_reading, 1, 2, 7, 8, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(fw_build_id_label, 0, 1, 8, 9, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(fw_build_id, 1, 2, 8, 9, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(fpga_build_id_label, 0, 1, 9, 10, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(fpga_build_id, 1, 2, 9, 10, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	alive.set_sensitive(false);
 	estop.set_sensitive(false);
 	ball_in_beam.set_sensitive(false);
 	capacitor_charged.set_sensitive(false);
+	fw_build_id.set_editable(false);
+	fpga_build_id.set_editable(false);
 	cb_hbox1.pack_start(alive, Gtk::PACK_EXPAND_WIDGET);
 	cb_hbox1.pack_start(estop, Gtk::PACK_EXPAND_WIDGET);
-	attach(cb_hbox1, 0, 2, 8, 9, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(cb_hbox1, 0, 2, 10, 11, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	cb_hbox2.pack_start(ball_in_beam, Gtk::PACK_EXPAND_WIDGET);
 	cb_hbox2.pack_start(capacitor_charged, Gtk::PACK_EXPAND_WIDGET);
-	attach(cb_hbox2, 0, 2, 9, 10, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(cb_hbox2, 0, 2, 11, 12, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	robot.battery_voltage.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_battery_voltage_changed));
 	robot.capacitor_voltage.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_capacitor_voltage_changed));
@@ -52,6 +61,10 @@ TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &ro
 	robot.break_beam_reading.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_break_beam_reading_changed));
 	robot.link_quality.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_lqi_changed));
 	robot.received_signal_strength.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_rssi_changed));
+	robot.build_ids_valid.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_fw_build_id_changed));
+	robot.build_ids_valid.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_fpga_build_id_changed));
+	robot.fw_build_id.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_fw_build_id_changed));
+	robot.fpga_build_id.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_fpga_build_id_changed));
 	robot.alive.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_alive_changed));
 	dongle.estop_state.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_estop_changed));
 	robot.ball_in_beam.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_ball_in_beam_changed));
@@ -65,6 +78,8 @@ TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &ro
 	on_break_beam_reading_changed();
 	on_lqi_changed();
 	on_rssi_changed();
+	on_fw_build_id_changed();
+	on_fpga_build_id_changed();
 	on_alive_changed();
 	on_estop_changed();
 	on_ball_in_beam_changed();
@@ -151,6 +166,22 @@ void TesterFeedbackPanel::on_rssi_changed() {
 	rssi_reading.set_text(Glib::ustring::compose(u8"%1 dB", robot.received_signal_strength));
 }
 
+void TesterFeedbackPanel::on_fw_build_id_changed() {
+	if (robot.build_ids_valid) {
+		fw_build_id.set_text(Glib::ustring::compose(u8"0x%1", tohex(robot.fw_build_id, 8)));
+	} else {
+		fw_build_id.set_text(u8"No data");
+	}
+}
+
+void TesterFeedbackPanel::on_fpga_build_id_changed() {
+	if (robot.build_ids_valid) {
+		fpga_build_id.set_text(Glib::ustring::compose(u8"0x%1", tohex(robot.fpga_build_id, 8)));
+	} else {
+		fpga_build_id.set_text(u8"No data");
+	}
+}
+
 void TesterFeedbackPanel::on_alive_changed() {
 	alive.set_active(robot.alive);
 	on_battery_voltage_changed();
@@ -159,6 +190,8 @@ void TesterFeedbackPanel::on_alive_changed() {
 	on_dribbler_speed_changed();
 	on_board_temperature_changed();
 	on_break_beam_reading_changed();
+	on_fw_build_id_changed();
+	on_fpga_build_id_changed();
 }
 
 void TesterFeedbackPanel::on_estop_changed() {
@@ -172,4 +205,3 @@ void TesterFeedbackPanel::on_ball_in_beam_changed() {
 void TesterFeedbackPanel::on_capacitor_charged_changed() {
 	capacitor_charged.set_active(robot.alive && robot.capacitor_charged);
 }
-

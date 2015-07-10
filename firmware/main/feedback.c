@@ -3,7 +3,7 @@
  *
  * \brief These functions relate to sending feedback packets over the radio.
  *
- * @{
+ * \{
  */
 
 #include "feedback.h"
@@ -21,11 +21,14 @@
 #include "priority.h"
 #include "sdcard.h"
 #include "wheels.h"
+#include "upgrade/fpga.h"
 #include <FreeRTOS.h>
 #include <assert.h>
+#include <build_id.h>
 #include <event_groups.h>
 #include <math.h>
 #include <minmax.h>
+#include <string.h>
 #include <unused.h>
 
 #define HAS_BALL_MIN_PERIOD (10U / portTICK_PERIOD_MS)
@@ -41,6 +44,7 @@ typedef enum {
 static EventGroupHandle_t event_group;
 static unsigned int has_ball_antispam_ticks = 0U;
 static bool has_ball_after_antispam = false;
+static bool build_ids_pending = false;
 
 static void feedback_task(void *UNUSED(param)) {
 	static uint8_t nullary_frame[] = {
@@ -69,7 +73,7 @@ static void feedback_task(void *UNUSED(param)) {
 #define HEADER_LENGTH 9
 #define PURPOSE_LENGTH 1
 #define BASIC_LENGTH 12
-#define EXTENSIONS_MAX_LENGTH 8
+#define EXTENSIONS_MAX_LENGTH 32
 			static uint8_t frame[PREFIX_LENGTH + HEADER_LENGTH + PURPOSE_LENGTH + BASIC_LENGTH + EXTENSIONS_MAX_LENGTH] = {
 				HEADER_LENGTH, // [0] Header length
 				0, // [1] Total length
@@ -134,6 +138,18 @@ static void feedback_task(void *UNUSED(param)) {
 				wptr += ERROR_BYTES;
 			}
 
+			// Fill build IDs extension.
+			bool do_build_ids = __atomic_load_n(&build_ids_pending, __ATOMIC_RELAXED);
+			if (do_build_ids) {
+				*wptr++ = 0x01; // Build IDs extension code.
+				uint32_t bid = build_id_get();
+				memcpy(wptr, &bid, sizeof(bid));
+				wptr += sizeof(bid);
+				bid = upgrade_fpga_build_id();
+				memcpy(wptr, &bid, sizeof(bid));
+				wptr += sizeof(bid);
+			}
+
 			// Fill length prefix and transmit.
 			frame[1] = wptr - frame - PREFIX_LENGTH;
 			mrf_tx_result_t result = mrf_transmit(frame);
@@ -144,6 +160,9 @@ static void feedback_task(void *UNUSED(param)) {
 			}
 			if (do_errors) {
 				error_post_report(ERROR_CONSUMER_MRF, result == MRF_TX_OK);
+			}
+			if (do_build_ids && result == MRF_TX_OK) {
+				__atomic_store_n(&build_ids_pending, false, __ATOMIC_RELAXED);
 			}
 		}
 		if (bits & EVENT_SEND_HAS_BALL) {
@@ -232,6 +251,16 @@ void feedback_pend_autokick(void) {
 }
 
 /**
+ * \brief Marks build IDs as pending.
+ *
+ * The feedback task will send the build IDs as part of the next general status
+ * update packet.
+ */
+void feedback_pend_build_ids(void) {
+	__atomic_store_n(&build_ids_pending, true, __ATOMIC_RELAXED);
+}
+
+/**
  * \brief Ticks the feedback module.
  */
 void feedback_tick(void) {
@@ -247,6 +276,5 @@ void feedback_tick(void) {
 }
 
 /**
- * @}
+ * \}
  */
-
