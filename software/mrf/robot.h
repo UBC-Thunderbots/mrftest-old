@@ -47,6 +47,7 @@ class MRFRobot final : public Drive::Robot {
 
 		MRFDongle &dongle_;
 		Annunciator::Message low_capacitor_message;
+		Annunciator::Message fw_build_id_mismatch_message, fpga_build_id_mismatch_message, build_id_fetch_error_message;
 		std::array<std::unique_ptr<Annunciator::Message>, MRF::ERROR_LT_COUNT> error_lt_messages;
 		std::array<std::unique_ptr<Annunciator::Message>, MRF::ERROR_ET_COUNT> error_et_messages;
 		std::array<std::unique_ptr<Annunciator::Message>, SD_MESSAGE_COUNT> sd_messages;
@@ -61,7 +62,7 @@ class MRFRobot final : public Drive::Robot {
 	private:
 		void handle_message(const void *data, std::size_t len, uint8_t lqi, uint8_t rssi);
 		bool handle_feedback_timeout();
-		void request_build_ids();
+		void check_build_id_mismatch();
 };
 
 #endif

@@ -3,10 +3,13 @@
 #include "util/algorithm.h"
 #include "util/codec.h"
 #include "util/dprint.h"
+#include "util/string.h"
+#include <array>
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <utility>
 #include <glibmm/main.h>
 #include <sigc++/functors/mem_fun.h>
 
@@ -272,6 +275,9 @@ MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) :
 		Drive::Robot(index, DRIBBLE_POWER_MAX),
 		dongle_(dongle),
 		low_capacitor_message(Glib::ustring::compose(u8"Bot %1 capacitor low (fuse blown?)", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
+		fw_build_id_mismatch_message(u8"", Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
+		fpga_build_id_mismatch_message(u8"", Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
+		build_id_fetch_error_message(Glib::ustring::compose(u8"Bot %1 failed to read build IDs", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
 		request_build_ids_counter(REQUEST_BUILD_IDS_COUNT) {
 	for (unsigned int i = 0; i < MRF::ERROR_LT_COUNT; ++i) {
 		error_lt_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 %2", index, MRF::ERROR_LT_MESSAGES[i]), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
@@ -403,6 +409,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 									build_ids_valid = true;
 									fw_build_id = decode_u32_le(bptr);
 									fpga_build_id = decode_u32_le(bptr + 4);
+									check_build_id_mismatch();
 									bptr += 8;
 									len -= 8;
 								} else {
@@ -431,13 +438,17 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 					LOG_ERROR(Glib::ustring::compose(u8"Received general robot status update with wrong byte count %1", len));
 				}
 
-				if (!build_ids_valid && request_build_ids_counter && request_build_ids_timer.elapsed() > REQUEST_BUILD_IDS_INTERVAL) {
-					--request_build_ids_counter;
+				if (!build_ids_valid && request_build_ids_timer.elapsed() > REQUEST_BUILD_IDS_INTERVAL) {
 					request_build_ids_timer.stop();
 					request_build_ids_timer.reset();
 					request_build_ids_timer.start();
-					static const uint8_t REQUEST = 0x0D;
-					dongle_.send_unreliable(index, &REQUEST, 1);
+					if (request_build_ids_counter) {
+						--request_build_ids_counter;
+						static const uint8_t REQUEST = 0x0D;
+						dongle_.send_unreliable(index, &REQUEST, 1);
+					} else {
+						build_id_fetch_error_message.active(true);
+					}
 				}
 				break;
 
@@ -468,6 +479,9 @@ bool MRFRobot::handle_feedback_timeout() {
 	build_ids_valid = false;
 	request_build_ids_counter = REQUEST_BUILD_IDS_COUNT;
 	low_capacitor_message.active(false);
+	fw_build_id_mismatch_message.active(false);
+	fpga_build_id_mismatch_message.active(false);
+	build_id_fetch_error_message.active(false);
 	for (auto &i : error_lt_messages) {
 		i->active(false);
 	}
@@ -482,4 +496,51 @@ bool MRFRobot::handle_feedback_timeout() {
 		}
 	}
 	return false;
+}
+
+void MRFRobot::check_build_id_mismatch() {
+	static const struct {
+		const char *name;
+		Property<uint32_t> Drive::Robot::*field;
+		Annunciator::Message MRFRobot::*message;
+	} FIELDS[] = {
+		{ u8"FW", &Drive::Robot::fw_build_id, &MRFRobot::fw_build_id_mismatch_message },
+		{ u8"FPGA", &Drive::Robot::fpga_build_id, &MRFRobot::fpga_build_id_mismatch_message },
+	};
+
+	for (const auto &field : FIELDS) {
+		// Build an array of (count of matching robots, build ID) pairs.
+		std::array<std::pair<unsigned int, uint32_t>, sizeof(dongle_.robots) / sizeof(*dongle_.robots)> ids;
+		decltype(ids)::size_type next = 0;
+		for (const std::unique_ptr<MRFRobot> &bot : dongle_.robots) {
+			if (bot->build_ids_valid) {
+				bool found = false;
+				for (decltype(ids)::size_type i = 0; i != next; ++i) {
+					if (ids[i].second == bot.get()->*field.field) {
+						++ids[i].first;
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					ids[next].first = 1;
+					ids[next].second = bot.get()->*field.field;
+					++next;
+				}
+			}
+		}
+
+		// Sort the array in increasing order of count.
+		std::sort(ids.begin(), ids.begin() + next);
+
+		// Activate the warning message on all robots that do not match the majority build ID.
+		for (const std::unique_ptr<MRFRobot> &bot : dongle_.robots) {
+			if (bot->build_ids_valid && bot.get()->*field.field != ids[next - 1].second) {
+				(bot.get()->*field.message).set_text(Glib::ustring::compose(u8"Bot %1 %2 build ID 0x%3 mismatches majority 0x%4", bot->index, field.name, tohex(bot.get()->*field.field, 8), tohex(ids[next - 1].second)));
+				(bot.get()->*field.message).active(true);
+			} else {
+				(bot.get()->*field.message).active(false);
+			}
+		}
+	}
 }
