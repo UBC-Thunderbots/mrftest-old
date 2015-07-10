@@ -64,11 +64,6 @@ namespace Annunciator {
 			~Message();
 
 			/**
-			 * \brief The text of the message.
-			 */
-			const Glib::ustring text;
-
-			/**
 			 * \brief The trigger mode of the message.
 			 */
 			const TriggerMode mode;
@@ -113,7 +108,22 @@ namespace Annunciator {
 			 */
 			unsigned int age() const;
 
+			/**
+			 * \brief Returns the text of the message.
+			 *
+			 * \return the text of the message
+			 */
+			const Glib::ustring &get_text() const;
+
+			/**
+			 * \brief Sets the text of the message.
+			 *
+			 * \param[in] text the new text of the message
+			 */
+			void set_text(const Glib::ustring &text);
+
 		private:
+			Glib::ustring text;
 			bool active_;
 			unsigned int age_;
 			bool displayed_;
@@ -141,6 +151,11 @@ namespace Annunciator {
 	extern sigc::signal<void, std::size_t> signal_message_deactivated;
 
 	/**
+	 * \brief Fired when a visible message’s text changes.
+	 */
+	extern sigc::signal<void, std::size_t> signal_message_text_changed;
+
+	/**
 	 * \brief Fired when a message ages.
 	 */
 	extern sigc::signal<void, std::size_t> signal_message_aging;
@@ -166,5 +181,8 @@ inline unsigned int Annunciator::Message::age() const {
 	return age_;
 }
 
-#endif
+inline const Glib::ustring &Annunciator::Message::get_text() const {
+	return text;
+}
 
+#endif

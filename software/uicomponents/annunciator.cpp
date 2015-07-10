@@ -29,6 +29,7 @@ namespace {
 
 				Annunciator::signal_message_activated.connect(sigc::mem_fun(this, &MessagesALM::on_message_activated));
 				Annunciator::signal_message_deactivated.connect(sigc::mem_fun(this, &MessagesALM::on_message_deactivated));
+				Annunciator::signal_message_text_changed.connect(sigc::mem_fun(this, &MessagesALM::on_message_text_changed));
 				Annunciator::signal_message_aging.connect(sigc::mem_fun(this, &MessagesALM::on_message_aging));
 				Annunciator::signal_message_reactivated.connect(sigc::mem_fun(this, &MessagesALM::on_message_reactivated));
 				Annunciator::signal_message_hidden.connect(sigc::mem_fun(this, &MessagesALM::on_message_hidden));
@@ -48,7 +49,7 @@ namespace {
 				} else if (col == static_cast<unsigned int>(message_column.index())) {
 					Glib::Value<Glib::ustring> v;
 					v.init(message_column.type());
-					v.set(Annunciator::visible()[row]->text);
+					v.set(Annunciator::visible()[row]->get_text());
 					value.init(message_column.type());
 					value = v;
 				} else if (col == static_cast<unsigned int>(active_column.index())) {
@@ -76,6 +77,10 @@ namespace {
 			}
 
 			void on_message_deactivated(std::size_t i) {
+				alm_row_changed(i);
+			}
+
+			void on_message_text_changed(std::size_t i) {
 				alm_row_changed(i);
 			}
 

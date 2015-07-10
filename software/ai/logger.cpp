@@ -125,6 +125,7 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), fos(fd.
 	Annunciator::signal_message_activated.connect(sigc::mem_fun(this, &AI::Logger::on_annunciator_message_activated));
 	Annunciator::signal_message_deactivated.connect(sigc::mem_fun(this, &AI::Logger::on_annunciator_message_deactivated));
 	Annunciator::signal_message_reactivated.connect(sigc::mem_fun(this, &AI::Logger::on_annunciator_message_reactivated));
+	Annunciator::signal_message_text_changed.connect(sigc::mem_fun(this, &AI::Logger::on_annunciator_message_text_changed));
 
 	attach_param_change_handler(ParamTreeNode::root());
 
@@ -224,7 +225,7 @@ void AI::Logger::on_message_logged(Log::DebugMessageLevel level, const Glib::ust
 void AI::Logger::log_annunciator(std::size_t i, bool activated) {
 	const Annunciator::Message &message = *Annunciator::visible()[i];
 	Log::Record record;
-	record.mutable_annunciator_message()->set_text(message.text);
+	record.mutable_annunciator_message()->set_text(message.get_text());
 	switch (message.mode) {
 		case Annunciator::Message::TriggerMode::LEVEL:
 			if (activated) {
@@ -254,6 +255,10 @@ void AI::Logger::on_annunciator_message_deactivated(std::size_t i) {
 }
 
 void AI::Logger::on_annunciator_message_reactivated(std::size_t i) {
+	log_annunciator(i, true);
+}
+
+void AI::Logger::on_annunciator_message_text_changed(std::size_t i) {
 	log_annunciator(i, true);
 }
 

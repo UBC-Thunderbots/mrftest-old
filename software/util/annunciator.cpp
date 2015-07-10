@@ -109,6 +109,15 @@ void Annunciator::Message::hide() {
 	displayed_ = false;
 }
 
+void Annunciator::Message::set_text(const Glib::ustring &t) {
+	text = t;
+	for (std::size_t i = 0; i < displayed.size(); ++i) {
+		if (displayed[i] == this) {
+			signal_message_text_changed.emit(i);
+		}
+	}
+}
+
 const std::vector<Annunciator::Message *> &Annunciator::visible() {
 	return displayed;
 }
@@ -117,9 +126,10 @@ sigc::signal<void> Annunciator::signal_message_activated;
 
 sigc::signal<void, std::size_t> Annunciator::signal_message_deactivated;
 
+sigc::signal<void, std::size_t> Annunciator::signal_message_text_changed;
+
 sigc::signal<void, std::size_t> Annunciator::signal_message_aging;
 
 sigc::signal<void, std::size_t> Annunciator::signal_message_reactivated;
 
 sigc::signal<void, std::size_t> Annunciator::signal_message_hidden;
-

@@ -78,6 +78,7 @@ namespace AI {
 			void on_annunciator_message_activated();
 			void on_annunciator_message_deactivated(std::size_t i);
 			void on_annunciator_message_reactivated(std::size_t i);
+			void on_annunciator_message_text_changed(std::size_t i);
 			void on_param_changed(const Param *p);
 			void on_vision_packet(AI::Timestamp ts, const SSL_WrapperPacket &vision_packet);
 			void on_refbox_packet(AI::Timestamp ts, const SSL_Referee &packet);
