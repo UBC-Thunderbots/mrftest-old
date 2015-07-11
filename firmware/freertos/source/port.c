@@ -558,6 +558,8 @@ void vPortSVCHandler(void) {
 			// exception return procedure. However, exception return does not
 			// imply a DataSynchronizationBarrier, so the explicit DSB is still
 			// needed.
+			//
+			// Cortex-M4 erratum 838869 also requires a DSB here.
 			"dsb\n\t"
 			// Set PSP and return.
 			"msr psp, r0\n\t"
@@ -633,6 +635,8 @@ void vPortPendSVHandler(void) {
 			// exception return procedure. However, exception return does not
 			// imply a DataSynchronizationBarrier, so the explicit DSB is still
 			// needed.
+			//
+			// Cortex-M4 erratum 838869 also requires a DSB here.
 			"dsb\n\t"
 			// Set PSP and return.
 			"msr psp, r0\n\t"
