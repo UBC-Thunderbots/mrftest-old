@@ -635,14 +635,14 @@ static void exception_fill_core_notes(const exception_isr_frame_t *swframe, unsi
 				// elsewhere. If it was running in handler mode, leave its PID
 				// at zero to signify that fact.
 				if (elf_notes.threads[0].prstatus.pr_pid) {
-					elf_notes.threads[0].prstatus.pr_pid = tasks[i].xTaskNumber;
+					elf_notes.threads[0].prstatus.pr_pid = (uint32_t)tasks[i].xHandle;
 				}
 			} else {
 				// Write out the task. We know the top of stack is the first
 				// word in the TCB, which is pointed to by the task handle.
 				// Yank it out in a bit of an ugly way.
 				const exception_rtos_basic_frame_t * const *tcb_pointer = (const exception_rtos_basic_frame_t * const *)tasks[i].xHandle;
-				exception_fill_thread_rtos(*tcb_pointer, tasks[i].xTaskNumber, &elf_notes.threads[write_index++]);
+				exception_fill_thread_rtos(*tcb_pointer, (uint32_t)tasks[i].xHandle, &elf_notes.threads[write_index++]);
 			}
 		}
 	}
