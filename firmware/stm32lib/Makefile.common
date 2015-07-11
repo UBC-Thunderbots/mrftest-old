@@ -2,7 +2,7 @@ ABI := arm-none-eabi
 CC := $(ABI)-gcc
 LD := $(ABI)-ld
 OBJCOPY := $(ABI)-objcopy
-override CFLAGS := -Wall -Wextra -Wdouble-promotion -Wpointer-arith -std=gnu99 -O2 -mlittle-endian -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -g -fno-common -ffunction-sections -static -isystem include $(CFLAGS)
+override CFLAGS := -Wall -Wextra -Wdouble-promotion -Wpointer-arith -std=gnu99 -O2 -mlittle-endian -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -ggdb3 -fno-common -ffunction-sections -static -isystem include $(CFLAGS)
 override LDFLAGS := $(LDFLAGS) -Wl,--gc-sections -Wl,--build-id=none $(CFLAGS)
 
 

@@ -31,7 +31,7 @@ PACKAGES := glibmm-2.4 gtkmm-3.0 cairomm-1.0 ode protobuf libxml++-2.6 gsl libus
 #
 # The flags to pass to the linker ahead of any object files.
 #
-PROJECT_LDFLAGS := -pthread -Wl,--as-needed -Wl,-O1 -g
+PROJECT_LDFLAGS := -pthread -Wl,--as-needed -Wl,-O1 -ggdb3
 
 #
 # The library flags to pass to the linker after all object files.
@@ -74,7 +74,7 @@ PROJECT_CXXFLAGS += -fno-math-errno
 # Optimize by assuming pointers do not alias when they are not permitted to do so according to type.
 PROJECT_CXXFLAGS += -fstrict-aliasing
 # Include full debug information.
-PROJECT_CXXFLAGS += -g
+PROJECT_CXXFLAGS += -ggdb3
 # Define strerror_r.
 PROJECT_CXXFLAGS += -D_POSIX_C_SOURCE=200112L
 # If building on a 32-bit platform, nevertheless use 64-bit offsets when seeking in files.
