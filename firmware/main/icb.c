@@ -24,8 +24,10 @@
 #include <FreeRTOS.h>
 #include <assert.h>
 #include <crc32.h>
+#include <exception.h>
 #include <gpio.h>
 #include <minmax.h>
+#include <nvic.h>
 #include <portmacro.h>
 #include <rcc.h>
 #include <semphr.h>
@@ -61,23 +63,16 @@
 /**
  * \internal
  *
- * \brief The interrupt number for the EXTI0 interrupt.
- */
-#define IRQ_EXTI0 6U
-
-/**
- * \internal
- *
  * \brief The interrupt number for the receive DMA interrupt.
  */
-#define IRQ_RX_DMA 56U
+#define IRQ_RX_DMA NVIC_IRQ_DMA2_STREAM0
 
 /**
  * \internal
  *
  * \brief The interrupt number for the transmit DMA interrupt.
  */
-#define IRQ_TX_DMA 59U
+#define IRQ_TX_DMA NVIC_IRQ_DMA2_STREAM3
 
 /**
  * \brief The possible states the bus can be in.
@@ -416,7 +411,7 @@ void icb_init(void) {
 
 	// Enable the EXTI0 interrupt.
 	// Other interrupts will be enabled as needed.
-	portENABLE_HW_INTERRUPT(IRQ_EXTI0, PRIO_EXCEPTION_ICB_IRQ);
+	portENABLE_HW_INTERRUPT(NVIC_IRQ_EXTI0);
 }
 
 /**
@@ -467,7 +462,7 @@ static void icb_send_param(icb_command_t command, const void *data, size_t lengt
 	// happen, but ensure the write to CRC finishes before enabling the
 	// interrupt.
 	__atomic_thread_fence(__ATOMIC_RELEASE);
-	portENABLE_HW_INTERRUPT(IRQ_TX_DMA, PRIO_EXCEPTION_ICB_DMA);
+	portENABLE_HW_INTERRUPT(IRQ_TX_DMA);
 
 	// Wait for the transaction to finish.
 	// This includes the CRC.
@@ -515,7 +510,7 @@ static void icb_send_nullary(icb_command_t command) {
 	// We are now ready for the DMA transfer complete ISR to be run when the command+CRC block is done.
 	// Allow that to happen.
 	__atomic_signal_fence(__ATOMIC_RELEASE);
-	portENABLE_HW_INTERRUPT(IRQ_TX_DMA, PRIO_EXCEPTION_ICB_DMA);
+	portENABLE_HW_INTERRUPT(IRQ_TX_DMA);
 
 	// Wait for the transaction to finish.
 	xSemaphoreTake(transaction_complete_sem, portMAX_DELAY);
@@ -584,7 +579,7 @@ bool icb_receive(icb_command_t command, void *buffer, size_t length) {
 	// We are now ready for the DMA transfer complete ISR to be run when the command+CRC block is done.
 	// Allow that to happen.
 	__atomic_signal_fence(__ATOMIC_RELEASE);
-	portENABLE_HW_INTERRUPT(IRQ_TX_DMA, PRIO_EXCEPTION_ICB_DMA);
+	portENABLE_HW_INTERRUPT(IRQ_TX_DMA);
 
 	// Wait for the transaction to finish.
 	xSemaphoreTake(transaction_complete_sem, portMAX_DELAY);
@@ -614,8 +609,8 @@ bool icb_receive(icb_command_t command, void *buffer, size_t length) {
 	// Only receive has transfer complete unmasked.
 	// So, any error on either channel will be detected.
 	// However, only receive complete will finish the transfer.
-	portENABLE_HW_INTERRUPT(IRQ_TX_DMA, PRIO_EXCEPTION_ICB_DMA);
-	portENABLE_HW_INTERRUPT(IRQ_RX_DMA, PRIO_EXCEPTION_ICB_DMA);
+	portENABLE_HW_INTERRUPT(IRQ_TX_DMA);
+	portENABLE_HW_INTERRUPT(IRQ_RX_DMA);
 
 	// Wait for transaction complete.
 	xSemaphoreTake(transaction_complete_sem, portMAX_DELAY);

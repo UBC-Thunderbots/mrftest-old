@@ -162,10 +162,8 @@ void mrf_deinit(void);
  * \brief Enables taking an interrupt on rising edge of the MRF interrupt pin.
  *
  * \param[in] isr the service routine that will handle the interrupt
- *
- * \param[in] priority the priority
  */
-void mrf_enable_interrupt(void (*isr)(void), unsigned int priority);
+void mrf_enable_interrupt(void (*isr)(void));
 
 /**
  * \brief Disables taking an interrupt on rising edge of the MRF interrupt pin.

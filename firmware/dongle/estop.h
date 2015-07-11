@@ -35,10 +35,8 @@ typedef enum {
  *
  * This function is intended to be called once at application startup.
  * The emergency stop switch will be read continuously from that point forward on a timer.
- *
- * \param[in] priority the interrupt priority for the timer and ADC ISRs
  */
-void estop_init(unsigned int priority);
+void estop_init(void);
 
 /**
  * \brief Returns the most recently sampled state of the switch.

@@ -48,7 +48,7 @@ static void radio_task(void *UNUSED(param)) {
 	while (mrf_get_interrupt());
 
 	// Enable external interrupt on MRF INT rising edge.
-	mrf_enable_interrupt(&mrf_int_isr, EXCEPTION_MKPRIO(6U, 0U));
+	mrf_enable_interrupt(&mrf_int_isr);
 
 	// Notify on_enter that initialization is finished.
 	xSemaphoreGive(init_shutdown_sem);

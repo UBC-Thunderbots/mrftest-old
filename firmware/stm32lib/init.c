@@ -8,14 +8,15 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <rcc.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 #include <registers/flash.h>
 #include <registers/mpu.h>
 #include <registers/power.h>
 #include <registers/scb.h>
 #include <registers/systick.h>
 #include <registers/syscfg.h>
-#include <stdlib.h>
-#include <string.h>
 
 volatile uint64_t bootload_flag;
 #define BOOTLOAD_FLAG_VALUE UINT64_C(0xFE228106195AD2B0)
@@ -78,11 +79,13 @@ static unsigned int compute_flash_wait_states(unsigned int cpu) {
  * \li CPU caches are cleared and enabled.
  * \li The systick timer is configured to overflow once per microsecond.
  *
- * A call to this function should usually be the first statement in the main function.
+ * A call to this function should usually be the first statement in the main
+ * function.
  *
  * \param[in] specs the specifications for how to initialize the chip
+ * \param[in] specSize the size of \p *specs in bytes
  */
-void init_chip(const init_specs_t *specs) {
+void init_chip(const init_specs_t *specs, size_t specSize) {
 	// Check if we’re supposed to go to the bootloader.
 	RCC_CSR_t rcc_csr_shadow = RCC.CSR; // Keep a copy of RCC_CSR
 	RCC.CSR.RMVF = 1; // Clear reset flags
@@ -116,7 +119,7 @@ void init_chip(const init_specs_t *specs) {
 	SCB.CCR.STKALIGN = 1; // Guarantee 8-byte alignment
 
 	// Set up interrupt handling.
-	exception_init(specs->exception_core_writer, &specs->exception_app_cbs);
+	exception_init(specs->exception_core_writer, &specs->exception_app_cbs, specs->exception_prios, specSize - offsetof(init_specs_t, exception_prios));
 
 	if (!specs->flags.freertos) {
 		// Set up the memory protection unit to catch bad pointer dereferences.

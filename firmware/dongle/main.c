@@ -14,6 +14,7 @@
 #include <format.h>
 #include <gpio.h>
 #include <init.h>
+#include <nvic.h>
 #include <rcc.h>
 #include <sleep.h>
 #include <stddef.h>
@@ -44,12 +45,12 @@ static const fptr exception_vectors[16U] __attribute__((used, section(".exceptio
 };
 
 static const fptr interrupt_vectors[82U] __attribute__((used, section(".interrupt_vectors"))) = {
-	[18U] = &adc_isr,
-	[40U] = &exti10_15_isr,
-	[50U] = &timer5_isr,
-	[54U] = &timer6_isr,
-	[56U] = &dma2_stream0_isr,
-	[67U] = &udev_isr,
+	[NVIC_IRQ_ADC] = &adc_isr,
+	[NVIC_IRQ_EXTI15_10] = &exti10_15_isr,
+	[NVIC_IRQ_TIM5] = &timer5_isr,
+	[NVIC_IRQ_TIM6_DAC] = &timer6_isr,
+	[NVIC_IRQ_DMA2_STREAM0] = &dma2_stream0_isr,
+	[NVIC_IRQ_OTG_FS] = &udev_isr,
 };
 
 static void app_exception_early(void) {
@@ -114,6 +115,14 @@ static const init_specs_t INIT_SPECS = {
 		.early = &app_exception_early,
 		.late = &app_exception_late,
 	},
+	.exception_prios = {
+		[NVIC_IRQ_ADC] = EXCEPTION_MKPRIO(5, 0),
+		[NVIC_IRQ_EXTI15_10] = EXCEPTION_MKPRIO(6, 0),
+		[NVIC_IRQ_TIM5] = EXCEPTION_MKPRIO(6, 0),
+		[NVIC_IRQ_TIM6_DAC] = EXCEPTION_MKPRIO(6, 0),
+		[NVIC_IRQ_DMA2_STREAM0] = EXCEPTION_MKPRIO(4, 0),
+		[NVIC_IRQ_OTG_FS] = EXCEPTION_MKPRIO(5, 0),
+	},
 };
 
 static const usb_string_descriptor_t STRING_EN_CA_MANUFACTURER = USB_STRING_DESCRIPTOR_INITIALIZER(u"UBC Thunderbots Football Club");
@@ -160,7 +169,6 @@ static const udev_info_t USB_INFO = {
 	},
 	.internal_task_priority = 4U,
 	.internal_task_stack_size = 1024U,
-	.isr_priority = EXCEPTION_MKPRIO(5U, 0U),
 	.receive_fifo_words = 10U /* SETUP packets */ + 1U /* Global OUT NAK status */ + ((64U / 4U) + 1U) * 2U /* Packets */ + 4U /* Transfer complete status */,
 	.device_descriptor = {
 		.bLength = sizeof(usb_device_descriptor_t),
@@ -195,7 +203,7 @@ static void main_task(void *param) __attribute__((noreturn));
 
 static void stm32_main(void) {
 	// Initialize the basic chip hardware.
-	init_chip(&INIT_SPECS);
+	init_chip(&INIT_SPECS, sizeof(INIT_SPECS));
 
 	// Initialize the GPIO pins.
 	gpio_init(PINS_INIT, sizeof(PINS_INIT) / sizeof(*PINS_INIT));
@@ -213,7 +221,7 @@ static void main_task(void *UNUSED(param)) {
 	crc32_init();
 	build_id_init();
 	buzzer_init();
-	estop_init(EXCEPTION_MKPRIO(5U, 0U));
+	estop_init();
 
 	// Fill in the device serial number.
 	{

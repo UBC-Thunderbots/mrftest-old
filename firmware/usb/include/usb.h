@@ -720,11 +720,6 @@ typedef struct {
 	unsigned short internal_task_stack_size;
 
 	/**
-	 * \brief The priority of the interrupt service routine.
-	 */
-	unsigned int isr_priority;
-
-	/**
 	 * \brief The size of the receive FIFO, in words.
 	 *
 	 * This must be large enough to hold all of the following:

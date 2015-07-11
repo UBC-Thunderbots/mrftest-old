@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <event_groups.h>
 #include <queue.h>
+#include <nvic.h>
 #include <rcc.h>
 #include <semphr.h>
 #include <stdbool.h>
@@ -323,7 +324,7 @@ static void drive_task(void *UNUSED(param)) {
 	TIM6.ARR = 1439U;
 	TIM6.CNT = 0U;
 	TIM6.CR1.CEN = 1; // Enable timer
-	portENABLE_HW_INTERRUPT(54U, EXCEPTION_MKPRIO(6U, 0U));
+	portENABLE_HW_INTERRUPT(NVIC_IRQ_TIM6_DAC);
 
 	// Run!
 	bool ep_running = false;
@@ -405,7 +406,7 @@ static void drive_task(void *UNUSED(param)) {
 		TIM_basic_CR1_t tmp = { 0 };
 		TIM6.CR1 = tmp; // Disable counter
 	}
-	portDISABLE_HW_INTERRUPT(54U);
+	portDISABLE_HW_INTERRUPT(NVIC_IRQ_TIM6_DAC);
 	rcc_disable(APB1, TIM6);
 
 	// Free packet buffers.
@@ -876,7 +877,7 @@ void normal_on_enter(void) {
 	mrf_write_short(MRF_REG_SHORT_INTCON, 0b11110110);
 
 	// Enable external interrupt on MRF INT rising edge.
-	mrf_enable_interrupt(&mrf_int_isr, EXCEPTION_MKPRIO(6U, 0U));
+	mrf_enable_interrupt(&mrf_int_isr);
 
 	// Turn on LEDs.
 	led_on(LED_TX);

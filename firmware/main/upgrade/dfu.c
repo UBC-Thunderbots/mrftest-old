@@ -1120,7 +1120,6 @@ static const udev_info_t UPGRADE_USB_INFO = {
 	},
 	.internal_task_priority = PRIO_TASK_USB,
 	.internal_task_stack_size = 1024U,
-	.isr_priority = PRIO_EXCEPTION_USB,
 	.receive_fifo_words = 10U /* SETUP packets */ + 1U /* Global OUT NAK status */ + ((64U / 4U) + 1U) * 2U /* Packets */ + 4U /* Transfer complete status */,
 	.device_descriptor = {
 		.bLength = sizeof(usb_device_descriptor_t),

@@ -2,6 +2,7 @@
 #include "pins.h"
 #include <FreeRTOS.h>
 #include <gpio.h>
+#include <nvic.h>
 #include <rcc.h>
 #include <semphr.h>
 #include <stdlib.h>
@@ -48,7 +49,7 @@ static void tick(TimerHandle_t UNUSED(timer)) {
 	estop_start_sample();
 }
 
-void estop_init(unsigned int priority) {
+void estop_init(void) {
 	// Initialize the notification source.
 	__atomic_store_n(&notify_sem, 0, __ATOMIC_RELAXED);
 	__atomic_signal_fence(__ATOMIC_ACQ_REL);
@@ -103,7 +104,7 @@ void estop_init(unsigned int priority) {
 
 	// Enable ADC completion interrupts
 	ADC1.CR1.EOCIE = 1; // Enable interrupt on end of conversion
-	portENABLE_HW_INTERRUPT(18U, priority);
+	portENABLE_HW_INTERRUPT(NVIC_IRQ_ADC);
 
 	// Set up a 50 ms timer to run the ADC.
 	TimerHandle_t timer = xTimerCreate("estop", 50U / portTICK_PERIOD_MS, pdTRUE, 0, &tick);

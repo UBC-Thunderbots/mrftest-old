@@ -2,21 +2,21 @@
 #include "pins.h"
 #include <gpio.h>
 #include <init.h>
+#include <nvic.h>
 #include <rcc.h>
-#include <registers/exti.h>
-#include <registers/flash.h>
-#include <registers/nvic.h>
-#include <registers/timer.h>
-#include <registers/power.h>
-#include <registers/scb.h>
-#include <registers/syscfg.h>
-#include <registers/systick.h>
 #include <sleep.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
 #include <unused.h>
+#include <registers/exti.h>
+#include <registers/flash.h>
+#include <registers/timer.h>
+#include <registers/power.h>
+#include <registers/scb.h>
+#include <registers/syscfg.h>
+#include <registers/systick.h>
 
 volatile uint8_t G_status = 0; // 1 for first triggered, 2 for second triggered, 0 for last wrap_count is output to screen
 
@@ -66,9 +66,8 @@ static const fptr exception_vectors[16] __attribute__((used, section(".exception
 };
 
 static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt_vectors"))) = {
-
-	[28] = &timer2_wrap_interrupt,
-	[40] = &external_interrupt_15_10_vector,
+	[NVIC_IRQ_TIM2] = &timer2_wrap_interrupt,
+	[NVIC_IRQ_EXTI15_10] = &external_interrupt_15_10_vector,
 };
 
 static void nmi_vector(void) {
@@ -150,6 +149,10 @@ static const init_specs_t INIT_SPECS = {
 		.early = 0,
 		.late = 0,
 	},
+	.exception_prios = {
+		[NVIC_IRQ_TIM2] = EXCEPTION_MKPRIO(6, 0),
+		[NVIC_IRQ_EXTI15_10] = EXCEPTION_MKPRIO(6, 0),
+	},
 };
 
 /***********************************************************
@@ -201,7 +204,7 @@ static void tic_toc_setup(void){
 	
 	TIM2.ARR = 0x40;
 	
-	NVIC.ISER[28 / 32] = 1 << (28 % 32);
+	NVIC.ISER[NVIC_IRQ_TIM2 / 32] = 1 << (NVIC_IRQ_TIM2 % 32);
 }
 
 static void timer2_wrap_interrupt(void){
@@ -445,7 +448,7 @@ static void stm32_main(void) {
 	uint32_t test_num = 123456;
 
 	// Initialize chip
-	init_chip(&INIT_SPECS);
+	init_chip(&INIT_SPECS, sizeof(INIT_SPECS));
 
 	// Set up pins
 	gpio_init(PINS_INIT, sizeof(PINS_INIT) / sizeof(*PINS_INIT));
@@ -457,7 +460,7 @@ static void stm32_main(void) {
 	//           ooo|ooo|ooo|ooo|
 	EXTI.IMR = 0b0011000000000000;
 	EXTI.FTSR= 0b0011000000000000;
-	NVIC.ISER[40 / 32] = 1 << (40 % 32); 
+	NVIC.ISER[NVIC_IRQ_EXTI15_10 / 32] = 1 << (NVIC_IRQ_EXTI15_10 % 32); 
 
 // SETENA67 = 1; enable USB FS interrupt
 
@@ -476,7 +479,7 @@ static void stm32_main(void) {
 	//usb_ep0_set_global_callbacks(&DEVICE_CBS);
 	//usb_ep0_set_configuration_callbacks(CONFIG_CBS);
 	//usb_attach(&DEVICE_INFO);
-	//NVIC_ISER[67 / 32] = 1 << (67 % 32); // SETENA67 = 1; enable USB FS interrupt
+	//NVIC_ISER[NVIC_IRQ_OTG_FS / 32] = 1 << (NVIC_IRQ_OTG_FS % 32); // SETENA67 = 1; enable USB FS interrupt
 
 	// Handle activity
 	tic_toc_setup();

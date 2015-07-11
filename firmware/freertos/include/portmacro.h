@@ -1,6 +1,7 @@
 #ifndef PORTMACRO_H
 #define PORTMACRO_H
 
+#include <exception.h>
 #include <limits.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -131,21 +132,10 @@ inline void portCLEAR_INTERRUPT_MASK_FROM_ISR(unsigned long old __attribute__((u
 #define portCLEAR_INTERRUPT_MASK_FROM_ISR portCLEAR_INTERRUPT_MASK_FROM_ISR
 
 // These functions turn a specific hardware interrupt on and off.
-inline void portENABLE_HW_INTERRUPT(unsigned int irq, unsigned int priority) {
+inline void portENABLE_HW_INTERRUPT(unsigned int irq) {
 	// Do not allow the compiler to sink non-volatile-qualified memory accesses
 	// below this point.
 	__atomic_signal_fence(__ATOMIC_RELEASE);
-
-	// Set the interrupt priority.
-	unsigned int ipr_index = irq / 4U;
-	unsigned int ipr_shift_dist = (irq % 4U) * 8U;
-	NVIC.IPR[ipr_index] = (NVIC.IPR[ipr_index] & ~(0xFFU << ipr_shift_dist)) | (priority << ipr_shift_dist);
-
-	// ARMv7-M Architecture Reference Manual A3.7.3 (Memory barriers),
-	// Synchronization requirements for System Control Space updates, states
-	// that, “The architecture defines the SCS as Strongly-ordered memory.” So,
-	// no barrier is needed to ensure that the interrupt priority is set before
-	// the interrupt is enabled.
 
 	// Enable the interrupt.
 	NVIC.ISER[irq / 32U] = 1U << (irq % 32U);

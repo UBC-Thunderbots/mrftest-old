@@ -3,10 +3,12 @@
 #include "pins.h"
 #include "priority.h"
 #include <FreeRTOS.h>
+#include <exception.h>
 #include <gpio.h>
 #include <inttypes.h>
 #include <limits.h>
 #include <minmax.h>
+#include <nvic.h>
 #include <rcc.h>
 #include <semphr.h>
 #include <stddef.h>
@@ -449,14 +451,14 @@ sd_status_t sd_init(void) {
 	d0_exti_int_semaphore = xSemaphoreCreateBinary();
 
 	// Unmask SD card interrupts.
-	portENABLE_HW_INTERRUPT(49U, PRIO_EXCEPTION_SD);
+	portENABLE_HW_INTERRUPT(NVIC_IRQ_SDIO);
 
 	// Unmask DMA interrupts for the channel. These should never actually
 	// happen, because the specific interrupt causes we enable for the DMA
 	// channel are always error conditions. Thus, there isn’t actually a handler
 	// for this interrupt; instead, if it ever happens, it will crash the
 	// system.
-	portENABLE_HW_INTERRUPT(69U, 0U);
+	portENABLE_HW_INTERRUPT(NVIC_IRQ_DMA2_STREAM6);
 
 	// Configure and unmask the D0 EXTI interrupt, but do not activate the
 	// rising edge trigger yet (do that only as needed).
@@ -467,7 +469,7 @@ sd_status_t sd_init(void) {
 		SYSCFG.EXTICR[ELT] = (SYSCFG.EXTICR[ELT] & ~(15 << SHIFT)) | (PIN_SD_D0_EXTI_PORT << SHIFT);
 	}
 	rcc_disable(APB2, SYSCFG);
-	portENABLE_HW_INTERRUPT(PIN_SD_D0_EXTI_VECTOR, PRIO_EXCEPTION_SD);
+	portENABLE_HW_INTERRUPT(NVIC_IRQ_EXTI9_5);
 	EXTI.IMR |= 1 << PIN_SD_D0_EXTI_PIN;
 
 	// Having enabled clocks, wait a little bit for the card to initialize. The

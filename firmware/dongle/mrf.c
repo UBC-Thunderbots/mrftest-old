@@ -3,6 +3,7 @@
 #include <FreeRTOS.h>
 #include <assert.h>
 #include <gpio.h>
+#include <nvic.h>
 #include <rcc.h>
 #include <semphr.h>
 #include <string.h>
@@ -91,7 +92,7 @@ void mrf_init(void) {
 	}
 
 	// Enable the DMA interrupt.
-	portENABLE_HW_INTERRUPT(56U, EXCEPTION_MKPRIO(4U, 0U));
+	portENABLE_HW_INTERRUPT(NVIC_IRQ_DMA2_STREAM0);
 
 	// Configure the external interrupt, but do not actually enable it yet.
 	rcc_enable(APB2, SYSCFG);
@@ -104,7 +105,7 @@ void mrf_init(void) {
 
 void mrf_deinit(void) {
 	// Disable the DMA interrupt.
-	portDISABLE_HW_INTERRUPT(56U);
+	portDISABLE_HW_INTERRUPT(NVIC_IRQ_DMA2_STREAM0);
 
 	// Wait for DMA channels to be idle.
 	while (DMA2.streams[DMA_STREAM_TX].CR.EN);
@@ -137,14 +138,14 @@ void mrf_deinit(void) {
 	vSemaphoreDelete(dma_int_sem);
 }
 
-void mrf_enable_interrupt(void (*isr)(void), unsigned int priority) {
+void mrf_enable_interrupt(void (*isr)(void)) {
 	mrf_disable_interrupt();
 	mrf_isr = isr;
-	portENABLE_HW_INTERRUPT(40U, priority);
+	portENABLE_HW_INTERRUPT(NVIC_IRQ_EXTI15_10);
 }
 
 void mrf_disable_interrupt(void) {
-	portDISABLE_HW_INTERRUPT(40U);
+	portDISABLE_HW_INTERRUPT(NVIC_IRQ_EXTI15_10);
 	mrf_isr = 0;
 }
 

@@ -93,71 +93,7 @@
  */
 
 /**
- * \name Interrupt and Exception Priorities
- *
- * These are the priorities of interrupts, which should be constructed using the \ref EXCEPTION_MKPRIO macro.
- *
- * ARM defines interrupt priorities “backwards”; that is, priority 0 is the most important and will preempt all others.
- *
- * @{
- */
-
-#include <exception.h>
-
-/**
- * \brief The highest priority (lowest number) from which FreeRTOS API functions can be called.
- */
-#define PRIO_EXCEPTION_FREERTOS_MAX EXCEPTION_MKPRIO(2U, 0U)
-
-/**
- * \brief The priority at which the FreeRTOS system tick handler runs.
- *
- * This is the lowest possible priority, to be preemptible by anything else.
- */
-#define PRIO_EXCEPTION_SYSTICK EXCEPTION_MKPRIO(7U, 1U)
-
-/**
- * \brief The priority of the ICB DMA complete interrupts.
- *
- * These are quite high priority, as the ICB is used for time-critical work.
- */
-#define PRIO_EXCEPTION_ICB_DMA EXCEPTION_MKPRIO(3U, 0U)
-
-/**
- * \brief The priority of the ICB IRQ EXTI interrupt.
- *
- * This shares a priority with the ICB DMA interrupt as it is also time-critical, but defers to the DMA interrupt.
- */
-#define PRIO_EXCEPTION_ICB_IRQ EXCEPTION_MKPRIO(3U, 1U)
-
-/**
- * \brief The priority of the SD host controller interrupt.
- *
- * This is quite low priority as the SD controller is used for logging only during normal operation.
- */
-#define PRIO_EXCEPTION_SD EXCEPTION_MKPRIO(5U, 0U)
-
-/**
- * \brief The priority of the USB interrupt.
- *
- * This is very low priority as USB is only used for debug printing.
- */
-#define PRIO_EXCEPTION_USB EXCEPTION_MKPRIO(6U, 0U)
-
-/**
- * \brief The priority of the fast ISR.
- *
- * These are very high priority, as it does time-critical work.
- */
-#define PRIO_EXCEPTION_FAST EXCEPTION_MKPRIO(2U, 0U)
-
-/**
- * @}
- */
-
-/**
  * @}
  */
 
 #endif
-

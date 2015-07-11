@@ -3,6 +3,7 @@
 
 #include <FreeRTOS.h>
 #include <semphr.h>
+#include <stdbool.h>
 #include <stddef.h>
 
 /**

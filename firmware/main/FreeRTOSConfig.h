@@ -45,8 +45,8 @@ to exclude the API function. */
 #define INCLUDE_vTaskDelay				1
 #define INCLUDE_xTimerPendFunctionCall	0
 
-#define configKERNEL_INTERRUPT_PRIORITY PRIO_EXCEPTION_SYSTICK
-#define configMAX_SYSCALL_INTERRUPT_PRIORITY PRIO_EXCEPTION_FREERTOS_MAX
+#define configKERNEL_INTERRUPT_PRIORITY EXCEPTION_MKPRIO(7U, 1U)
+#define configMAX_SYSCALL_INTERRUPT_PRIORITY EXCEPTION_MKPRIO(2U, 0U)
 
 #include <assert.h>
 #define configASSERT assert

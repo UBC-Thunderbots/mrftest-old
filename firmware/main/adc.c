@@ -62,6 +62,7 @@
 #include "adc.h"
 #include "main.h"
 #include <FreeRTOS.h>
+#include <nvic.h>
 #include <rcc.h>
 #include <stdint.h>
 #include <task.h>
@@ -237,10 +238,9 @@ void adc_init(void) {
 		ADC2.CR2 = cr2;
 	}
 
-	// Take an interrupt on data overrun.
-	// There is no ISR for this, but it should never happen anyway, so crashing is fine.
-	// Because this is only about error checking, make it lowest possible priority.
-	portENABLE_HW_INTERRUPT(18U, 0xFFU);
+	// Take an interrupt on data overrun. There is no ISR for this, but it
+	// should never happen anyway, so crashing is fine.
+	portENABLE_HW_INTERRUPT(NVIC_IRQ_ADC);
 
 	// Wait a bit to give the internal channels time to settle and the ADCs time to convert every channel at least once.
 	vTaskDelay(1U);

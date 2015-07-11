@@ -679,5 +679,5 @@ extern inline void portENABLE_INTERRUPTS(void);
 extern inline void portDISABLE_INTERRUPTS(void);
 extern inline unsigned long portSET_INTERRUPT_MASK_FROM_ISR(void);
 extern inline void portCLEAR_INTERRUPT_MASK_FROM_ISR(unsigned long old);
-extern inline void portENABLE_HW_INTERRUPT(unsigned int irq, unsigned int priority);
+extern inline void portENABLE_HW_INTERRUPT(unsigned int irq);
 extern inline void portDISABLE_HW_INTERRUPT(unsigned int irq);

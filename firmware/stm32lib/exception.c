@@ -11,17 +11,17 @@
  *
  * @{
  */
-
 #include <exception.h>
-#include <registers/mpu.h>
-#include <registers/nvic.h>
-#include <registers/scb.h>
+#include <minmax.h>
 #include <sleep.h>
 #include <string.h>
 #if STM32LIB_USE_FREERTOS
 #include <FreeRTOS.h>
 #include <task.h>
 #endif
+#include <registers/mpu.h>
+#include <registers/nvic.h>
+#include <registers/scb.h>
 
 /**
  * \cond INTERNAL
@@ -41,10 +41,13 @@ static const exception_app_cbs_t *app_cbs = 0;
  * \brief Initializes the exception handling subsystem.
  *
  * \param[in] cw the core dump writer module, or null to not write core dumps
- *
- * \param[in] acbs the application-specific callbacks invoked when a crash occurs, or null to omit
+ * \param[in] acbs the application-specific callbacks invoked when a crash
+ * occurs, or null to omit
+ * \param[in] prios the hardware interrupt priorities, indexed by NVIC
+ * interrupt number, one byte per interrupt
+ * \param[in] prioCount the number of bytes in \p prios
  */
-void exception_init(const exception_core_writer_t *cw, const exception_app_cbs_t *acbs) {
+void exception_init(const exception_core_writer_t *cw, const exception_app_cbs_t *acbs, const uint8_t *prios, size_t prioCount) {
 	// Set the interrupt system to set priorities as having the upper three bits for group priorities and the rest as subpriorities.
 	{
 		AIRCR_t tmp = SCB.AIRCR;
@@ -53,18 +56,21 @@ void exception_init(const exception_core_writer_t *cw, const exception_app_cbs_t
 		SCB.AIRCR = tmp;
 	}
 
-	// We will run as follows:
-	// CPU exceptions (UsageFault, BusFault, MemManage, DebugMonitor) will be priority 0.0 and thus preempt everything else.
-	// Other priorities are defined elsewhere.
-	// Give all hardware interrupts a default priority of 6.0 in case some application fails to set a priority.
-	for (size_t i = 0; i < sizeof(NVIC.IPR) / sizeof(*NVIC.IPR); ++i) {
-		NVIC.IPR[i] = (EXCEPTION_MKPRIO(6U, 0U) << 24U) | (EXCEPTION_MKPRIO(6U, 0U) << 16U) | (EXCEPTION_MKPRIO(6U, 0U) << 8U) | EXCEPTION_MKPRIO(6U, 0U);
+	// CPU exceptions (UsageFault, BusFault, MemManage, DebugMonitor) will be
+	// priority 0.0 and thus preempt everything else. Hardware interrupts will
+	// have the priorities provided in the priority table.
+	for (size_t i = 0; i < prioCount; i += 4) {
+		uint32_t u32 = 0;
+		memcpy(&u32, prios + i, MIN(4, prioCount - i));
+		NVIC.IPR[i / 4] = u32;
 	}
 
-	// FreeRTOS sets the PendSV and SysTick exceptions’ priorities itself, so there is no need to do so here.
-	// Non-FreeRTOS firmware doesn’t use these exceptions.
+	// FreeRTOS sets the PendSV and SysTick exceptions’ priorities itself, so
+	// there is no need to do so here. Non-FreeRTOS firmware doesn’t use these
+	// exceptions.
 
-	// Enable Usage, Bus, and MemManage faults to be taken as such rather than escalating to HardFaults.
+	// Enable Usage, Bus, and MemManage faults to be taken as such rather than
+	// escalating to HardFaults.
 	{
 		SHCSR_t tmp = SCB.SHCSR;
 		tmp.USGFAULTENA = 1;

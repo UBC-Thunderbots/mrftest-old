@@ -168,6 +168,7 @@ firmware/stm32lib/include/format.h -text
 firmware/stm32lib/include/gpio.h -text
 firmware/stm32lib/include/init.h -text
 firmware/stm32lib/include/minmax.h -text
+firmware/stm32lib/include/nvic.h -text
 firmware/stm32lib/include/rcc.h -text
 firmware/stm32lib/include/registers/adc.h -text
 firmware/stm32lib/include/registers/crc.h -text

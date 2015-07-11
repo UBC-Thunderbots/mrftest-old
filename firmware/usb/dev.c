@@ -15,20 +15,20 @@
  *
  * @{
  */
-
 #include <usb.h>
 #include "internal.h"
 #include <FreeRTOS.h>
 #include <assert.h>
+#include <exception.h>
 #include <limits.h>
 #include <minmax.h>
+#include <nvic.h>
 #include <rcc.h>
 #include <semphr.h>
 #include <stdbool.h>
 #include <string.h>
 #include <task.h>
 #include <unused.h>
-#include <registers/nvic.h>
 #include <registers/otg_fs.h>
 
 
@@ -333,7 +333,7 @@ static void udev_task(void *UNUSED(param)) {
 	}
 
 	// Globally enable USB interrupts.
-	portENABLE_HW_INTERRUPT(67U, udev_info->isr_priority);
+	portENABLE_HW_INTERRUPT(NVIC_IRQ_OTG_FS);
 
 	// Run the state machine.
 	for (;;) {

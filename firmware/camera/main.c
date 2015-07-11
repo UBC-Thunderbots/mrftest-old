@@ -147,7 +147,7 @@ void algorithm (uint8_t* ptr, unsigned int rows, unsigned int cols)
 
 static void stm32_main(void)
 {
-	init_chip(&INIT_SPECS);
+	init_chip(&INIT_SPECS, sizeof(INIT_SPECS));
 
 	gpio_init(PINS_INIT,sizeof(PINS_INIT)/sizeof(*PINS_INIT));
 

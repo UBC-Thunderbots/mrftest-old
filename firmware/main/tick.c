@@ -48,6 +48,8 @@
 #include "receive.h"
 #include <FreeRTOS.h>
 #include <assert.h>
+#include <exception.h>
+#include <nvic.h>
 #include <rcc.h>
 #include <semphr.h>
 #include <task.h>
@@ -168,7 +170,7 @@ void tick_init(void) {
 		.UIE = 1, // Update interrupt enabled
 	};
 	TIM6.DIER = dier;
-	portENABLE_HW_INTERRUPT(54U, PRIO_EXCEPTION_FAST);
+	portENABLE_HW_INTERRUPT(NVIC_IRQ_TIM6_DAC);
 
 	// Fork a task to run the normal ticks.
 	BaseType_t ok = xTaskCreate(&normal_task, "tick-normal", 1024U, 0, PRIO_TASK_NORMAL_TICK, 0);
@@ -187,7 +189,7 @@ void tick_shutdown(void) {
 	vSemaphoreDelete(shutdown_sem);
 
 	// Disable timer 6 interrupts.
-	portDISABLE_HW_INTERRUPT(54U);
+	portDISABLE_HW_INTERRUPT(NVIC_IRQ_TIM6_DAC);
 }
 
 /**
