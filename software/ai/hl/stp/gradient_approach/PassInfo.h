@@ -51,6 +51,10 @@ public:
 		Angle kicker_orientation;
 		Point kicker_target;
 		bool kick_attempted;
+
+		Point alt_passer_point;
+		Angle alt_passer_orientation;
+		bool use_stored_point_as_passer = false;
 	};
     kick_info tacticInfo;
 

@@ -421,6 +421,18 @@ namespace {
 
 		PasseeReceive(World world) : Tactic(world, true){
 
+			GradientApproach::PassInfo::kick_info passer_info = GradientApproach::PassInfo::Instance().tacticInfo;
+
+			passer_info.alt_passer_orientation = (passer_info.kicker_location-passer_info.kicker_target).orientation();
+			passer_info.alt_passer_point = passer_info.kicker_location;
+
+			passer_info.use_stored_point_as_passer = true;
+
+		}
+
+		~PasseeReceive(){
+
+			GradientApproach::PassInfo::Instance().tacticInfo.use_stored_point_as_passer = false;
 		}
 
 		Player select(const std::set<Player> &players) const {
