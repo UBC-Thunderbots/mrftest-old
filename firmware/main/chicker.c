@@ -467,8 +467,10 @@ void chicker_tick(void) {
 	// Done critical section work.
 	taskEXIT_CRITICAL();
 
-	// Because we are discharging, the capacitors cannot be full.
-	charger_mark_fired();
+	if (want_discharge) {
+		// Because we are discharging, the capacitors cannot be full.
+		charger_mark_fired();
+	}
 }
 
 /**
