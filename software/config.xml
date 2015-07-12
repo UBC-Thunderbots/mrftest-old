@@ -441,6 +441,7 @@
           </category>
           <category name="PlayExecutor">
             <integer name="Current Playbook, use bitwise operations">0</integer>
+            <boolean name="Run pass calculation on seperate thread">true</boolean>
             <boolean name="enable robot 0">true</boolean>
             <boolean name="enable robot 1">true</boolean>
             <boolean name="enable robot 10">true</boolean>

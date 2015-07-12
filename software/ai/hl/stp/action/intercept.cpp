@@ -7,3 +7,6 @@ void AI::HL::STP::Action::intercept(AI::HL::STP::Player player, const Point targ
 	player.dribble(AI::BE::Player::DribbleMode::CATCH);
 	player.move(target, (target - player.position()).orientation(), Point());
 }
+
+
+

@@ -8,13 +8,19 @@
 #include <cmath>
 #include <algorithm>
 
-void AI::HL::STP::Action::intercept_pivot(AI::HL::STP::World world, AI::HL::STP::Player player, const Point target) {
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
+
+void AI::HL::STP::Action::intercept_pivot(AI::HL::STP::World world, AI::HL::STP::Player player, const Point target,const double radius) {
 	if (Evaluation::ball_in_pivot_thresh(world, player)) {
-		pivot(world, player, target);
+		pivot(world, player, target,radius);
 	} else {
+		std::cout << "Intercept";
 		intercept(player, target);
 	}
 }
+
 
 void AI::HL::STP::Action::pivot(AI::HL::STP::World world, AI::HL::STP::Player player, const Point target, const double radius) {
 	const Angle ori = (target - player.position()).orientation();

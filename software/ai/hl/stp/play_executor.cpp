@@ -8,6 +8,7 @@
 #include <utility>
 #include <glibmm/ustring.h>
 
+
 using AI::HL::STP::PlayExecutor;
 using namespace AI::HL::STP;
 
@@ -19,6 +20,8 @@ namespace AI {
 		namespace STP {
 			Player _goalie;
 			size_t team_size = 0;
+			
+			
 		}
 	}
 }
@@ -45,6 +48,10 @@ namespace {
 	BoolParam enable9(u8"enable robot 9", u8"AI/HL/STP/PlayExecutor", true);
 	BoolParam enable10(u8"enable robot 10", u8"AI/HL/STP/PlayExecutor", true);
 	BoolParam enable11(u8"enable robot 11", u8"AI/HL/STP/PlayExecutor", true);
+
+	//BoolParam use_gradient_pass(u8"Run pass calculation on seperate thread", u8"AI/HL/STP/PlayExecutor", true);
+			
+
 
 	BoolParam high_priority_always(u8"If higher priority play exists, switch", u8"AI/HL/STP/PlayExecutor", true);
 	IntParam playbook_index(u8"Current Playbook, use bitwise operations", u8"AI/HL/STP/PlayExecutor", 0, 0, 9);
@@ -352,6 +359,24 @@ void PlayExecutor::execute_tactics() {
 
 void PlayExecutor::tick() {
 	tick_eval(world);
+
+
+	//Update version of world used in pass calculation thread
+	//if( use_gradient_pass){
+
+	/*
+		GradientApproach::PassInfo::Instance().updateWorldSnapshot(world);
+		if(!GradientApproach::PassInfo::Instance().threadRunning()){
+		    GradientApproach::PassInfo::worldSnapshot snapshot = GradientApproach::PassInfo::Instance().getWorldSnapshot();
+		    std::thread pass_thread(GradientApproach::superLoop, snapshot);
+                    GradientApproach::PassInfo::Instance().setThreadRunning(true); 
+		}
+	*/
+	//}
+	
+
+
+
 	enable_players();
 
 	std::vector<Player> players;

@@ -10,6 +10,8 @@
 #include <gtkmm/button.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/textview.h>
+#include <iostream>
+#include <chrono>  
 
 using namespace AI::HL;
 using namespace AI::HL::STP;
@@ -17,6 +19,9 @@ using namespace AI::HL::W;
 
 namespace {
 	const Glib::ustring CHOOSE_PLAY_TEXT = u8"<Choose Play>";
+
+	//BoolParam use_gradient_pass(u8"Run pass calculation on seperate thread", u8"AI/HL/STP/PlayExecutor", true);
+			
 
 	class STPHLChoosable final : public PlayExecutor, public HighLevel {
 		public:
@@ -102,6 +107,32 @@ namespace {
 
 			void tick() override {
 				tick_eval(world);
+
+				//Update version of world used in pass calculation thread
+
+				if( world.friendly_team().size() > 1 && world.enemy_team().size() >0){
+					GradientApproach::PassInfo::Instance().updateWorldSnapshot(world);
+				
+					if(!GradientApproach::PassInfo::Instance().threadRunning()){
+					    std::cout << "no thread running" << std::endl;
+					    GradientApproach::PassInfo::worldSnapshot snapshot = GradientApproach::PassInfo::Instance().getWorldSnapshot();
+					    std::cout << "got snapshot" << std::endl;
+
+					    GradientApproach::PassInfo::Instance().setThreadRunning(true);
+					    std::cout << "recorded start of thread" << std::endl; 
+					    std::thread pass_thread(GradientApproach::superLoop, snapshot);
+					    std::cout << "started thread" << std::endl;
+					    pass_thread.detach();
+					    std::cout << "detached thread" << std::endl;
+					    
+					    
+					    
+					}
+			
+				}
+				
+	
+
 				enable_players();
 
 				// override halt completely

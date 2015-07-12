@@ -1,15 +1,17 @@
 #ifndef AI_HL_STP_EVALUATION_SHOOT_H
 #define AI_HL_STP_EVALUATION_SHOOT_H
 
+#include "ai/hl/stp/gradient_approach/PassInfo.h"
 #include "ai/hl/stp/world.h"
 #include "util/cacheable.h"
 #include "util/param.h"
-
 
 namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
+				using namespace AI::HL::STP::GradientApproach;
+
 				struct ShootData final {
 					bool blocked;
 					bool reduced_radius;
@@ -20,6 +22,8 @@ namespace AI {
 				};
 
 				ShootData evaluate_shoot(World world, Player player, bool use_reduced_radius = true);
+
+				double get_passee_shoot_score(const PassInfo::worldSnapshot& snap, Point position);
 
 				/**
 				 * The current score of the the robot, in it's current position and orientation

@@ -4,10 +4,12 @@
 #include "ai/hl/stp/world.h"
 #include "ai/hl/stp/play/play.h"
 #include <string>
+#include "ai/hl/stp/gradient_approach/PassInfo.h"
 
 namespace AI {
 	namespace HL {
 		namespace STP {
+			
 			/**
 			 * These values should purely be used to record the active tactics used. 
 			 */

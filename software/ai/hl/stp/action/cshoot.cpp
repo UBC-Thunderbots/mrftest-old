@@ -20,11 +20,11 @@
 #include <cmath>
 #include "ai/hl/stp/param.h"
 
+
 using namespace AI::HL::STP;
 
 bool AI::HL::STP::Action::cshoot_target(World world, Player player, const Point target, double velocity) {
-	// Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot_target(world, player, target);
-	intercept(player, target);
+	Action::intercept( player, target);
 
 	// if (shoot_data.can_shoot) {
 	if (!Evaluation::player_within_angle_thresh(player, target, passer_angle_threshold)) {

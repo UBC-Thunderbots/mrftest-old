@@ -33,42 +33,69 @@ Angle Evaluation::get_shoot_score(World world, Player player, bool use_reduced_r
 	return Angle::zero();
 }
 
+double Evaluation::get_passee_shoot_score(const PassInfo::worldSnapshot& snap, Point position) {
+	std::vector<Point> obstacles;
+	Point enemy_goal_positive = snap.enemy_goal_boundary.first.x > 0.0 ? 
+		snap.enemy_goal_boundary.first : snap.enemy_goal_boundary.second;
+	Point enemy_goal_negative = snap.enemy_goal_boundary.first.x < 0.0 ?
+		snap.enemy_goal_boundary.first : snap.enemy_goal_boundary.second;
+
+	for (auto i : snap.enemy_positions) {
+		obstacles.push_back(i);
+	}
+	for(auto i : snap.passee_positions) {
+		if ((i - position).lensq() > 0.005) {
+			obstacles.push_back(i);
+		}
+	}
+
+	double angle =  angle_sweep_circles(
+			position,
+			enemy_goal_positive,
+			enemy_goal_negative,
+			obstacles,
+			Robot::MAX_RADIUS
+			).second.to_degrees();
+
+	return 1/(1+std::exp(0.2*(10 - angle)));
+}
+
 /*
    Point Evaluation::get_best_shoot_target(World world, Player player) {
-    //			std::vector<std::pair<Point, double>> calc_best_shot_all(AI::HL::W::World world, AI::HL::W::Player player, double radius = 1.0);
-    std::vector<std::pair<Point, double>> openings = AI::HL::Util::calc_best_shot_all(world, player);
+//			std::vector<std::pair<Point, double>> calc_best_shot_all(AI::HL::W::World world, AI::HL::W::Player player, double radius = 1.0);
+std::vector<std::pair<Point, double>> openings = AI::HL::Util::calc_best_shot_all(world, player);
 
-    double ans = 0.0;
-    Point post_low(world.field().length()/2.0, -world.field().goal_width()/2.0);
-    Point post_high(world.field().length()/2.0, -world.field().goal_width()/2.0);
-    Point player_dir(1, 0);
-    player_dir = player_dir.rotate(player.orientation());
+double ans = 0.0;
+Point post_low(world.field().length()/2.0, -world.field().goal_width()/2.0);
+Point post_high(world.field().length()/2.0, -world.field().goal_width()/2.0);
+Point player_dir(1, 0);
+player_dir = player_dir.rotate(player.orientation());
 
-    if(openings.size() == 0){
-        Point ans(world.field().length()/2.0, 0.0);
-        return ans;
-    }
+if(openings.size() == 0){
+Point ans(world.field().length()/2.0, 0.0);
+return ans;
+}
 
-    std::pair<Point, double> best = *(openings.begin());
-    for(std::vector<std::pair<Point, double>>::iterator it = openings.begin(); it!= openings.end(); it++){
-        if( it->second > best.second){
-            best = *it;
-        }
+std::pair<Point, double> best = *(openings.begin());
+for(std::vector<std::pair<Point, double>>::iterator it = openings.begin(); it!= openings.end(); it++){
+if( it->second > best.second){
+best = *it;
+}
 
-        double centre_ang = (it->first - player.position()).orientation();
-        double ang_1 = (it->first - post_low).orientation();
-        double ang_2 = (it->first - post_high).orientation();
-        double both = angle_diff(ang_1, ang_2);
-        if( angle_diff(ang_1, centre_ang) > both || angle_diff(ang_2, centre_ang) > both){
-            continue;
-        }
-        if(it->second > best.second){
-            best = *it;
-        }
-    }
-    return best.first;
-   }
- */
+double centre_ang = (it->first - player.position()).orientation();
+double ang_1 = (it->first - post_low).orientation();
+double ang_2 = (it->first - post_high).orientation();
+double both = angle_diff(ang_1, ang_2);
+if( angle_diff(ang_1, centre_ang) > both || angle_diff(ang_2, centre_ang) > both){
+continue;
+}
+if(it->second > best.second){
+best = *it;
+}
+}
+return best.first;
+}
+*/
 Evaluation::ShootData Evaluation::evaluate_shoot(World world, Player player, bool use_reduced_radius) {
 	ShootData data;
 

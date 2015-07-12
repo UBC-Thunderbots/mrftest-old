@@ -40,8 +40,6 @@ namespace {
 			// }
 			// }
 
-
-
 			bool done() const override;
 			Player select(const std::set<Player> &players) const override;
 			void execute() override;

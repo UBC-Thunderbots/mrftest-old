@@ -119,7 +119,6 @@ class Angle final {
 		constexpr Angle remainder(Angle divisor) const;
 
 		/**
-		 * \brief Computes the absolute value of this angle.
 		 *
 		 * \return the absolute value of this angle.
 		 */
