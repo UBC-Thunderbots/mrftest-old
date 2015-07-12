@@ -7,6 +7,7 @@
 #define STM32LIB_INIT_h
 
 #include <exception.h>
+#include <nvic.h>
 #include <stdbool.h>
 
 /**
@@ -107,10 +108,10 @@ typedef struct {
 	/**
 	 * \brief The interrupt priorities, indexed by NVIC interrupt number.
 	 */
-	uint8_t exception_prios[];
+	uint8_t exception_prios[NVIC_IRQ_COUNT];
 } init_specs_t;
 
-void init_chip(const init_specs_t *specs, size_t specsSize);
+void init_chip(const init_specs_t *specs);
 void init_bootload(void);
 
 #endif

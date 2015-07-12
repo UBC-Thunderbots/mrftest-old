@@ -61,7 +61,7 @@ typedef struct {
 	void (*late)(bool);
 } exception_app_cbs_t;
 
-void exception_init(const exception_core_writer_t *core_writer, const exception_app_cbs_t *app_cbs, const uint8_t *prios, size_t prioCount);
+void exception_init(const exception_core_writer_t *core_writer, const exception_app_cbs_t *app_cbs, const uint8_t *prios);
 void exception_hard_fault_isr(void) __attribute__((naked, noreturn));
 void exception_memory_manage_fault_isr(void) __attribute__((naked, noreturn));
 void exception_bus_fault_isr(void) __attribute__((naked, noreturn));

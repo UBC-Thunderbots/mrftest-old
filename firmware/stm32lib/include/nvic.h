@@ -99,6 +99,7 @@ typedef enum {
 	NVIC_IRQ_LCD_TFT,
 	NVIC_IRQ_LCD_TFT_ERROR,
 	NVIC_IRQ_DMA2D,
+	NVIC_IRQ_COUNT,
 } nvic_irq_t;
 
 #endif

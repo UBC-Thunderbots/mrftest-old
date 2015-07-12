@@ -296,7 +296,7 @@ static void main_task(void *param) __attribute__((noreturn));
 
 static void stm32_main(void) {
 	// Initialize the basic chip hardware.
-	init_chip(&INIT_SPECS, sizeof(INIT_SPECS));
+	init_chip(&INIT_SPECS);
 
 	// Initialize the GPIO pins.
 	gpio_init(PINS_INIT, sizeof(PINS_INIT) / sizeof(*PINS_INIT));

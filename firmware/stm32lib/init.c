@@ -85,7 +85,7 @@ static unsigned int compute_flash_wait_states(unsigned int cpu) {
  * \param[in] specs the specifications for how to initialize the chip
  * \param[in] specSize the size of \p *specs in bytes
  */
-void init_chip(const init_specs_t *specs, size_t specSize) {
+void init_chip(const init_specs_t *specs) {
 	// Check if we’re supposed to go to the bootloader.
 	RCC_CSR_t rcc_csr_shadow = RCC.CSR; // Keep a copy of RCC_CSR
 	RCC.CSR.RMVF = 1; // Clear reset flags
@@ -119,7 +119,7 @@ void init_chip(const init_specs_t *specs, size_t specSize) {
 	SCB.CCR.STKALIGN = 1; // Guarantee 8-byte alignment
 
 	// Set up interrupt handling.
-	exception_init(specs->exception_core_writer, &specs->exception_app_cbs, specs->exception_prios, specSize - offsetof(init_specs_t, exception_prios));
+	exception_init(specs->exception_core_writer, &specs->exception_app_cbs, specs->exception_prios);
 
 	if (!specs->flags.freertos) {
 		// Set up the memory protection unit to catch bad pointer dereferences.

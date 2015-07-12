@@ -448,7 +448,7 @@ static void stm32_main(void) {
 	uint32_t test_num = 123456;
 
 	// Initialize chip
-	init_chip(&INIT_SPECS, sizeof(INIT_SPECS));
+	init_chip(&INIT_SPECS);
 
 	// Set up pins
 	gpio_init(PINS_INIT, sizeof(PINS_INIT) / sizeof(*PINS_INIT));

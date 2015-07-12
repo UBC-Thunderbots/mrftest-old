@@ -12,7 +12,7 @@
  * @{
  */
 #include <exception.h>
-#include <minmax.h>
+#include <nvic.h>
 #include <sleep.h>
 #include <string.h>
 #if STM32LIB_USE_FREERTOS
@@ -20,7 +20,6 @@
 #include <task.h>
 #endif
 #include <registers/mpu.h>
-#include <registers/nvic.h>
 #include <registers/scb.h>
 
 /**
@@ -47,7 +46,7 @@ static const exception_app_cbs_t *app_cbs = 0;
  * interrupt number, one byte per interrupt
  * \param[in] prioCount the number of bytes in \p prios
  */
-void exception_init(const exception_core_writer_t *cw, const exception_app_cbs_t *acbs, const uint8_t *prios, size_t prioCount) {
+void exception_init(const exception_core_writer_t *cw, const exception_app_cbs_t *acbs, const uint8_t *prios) {
 	// Set the interrupt system to set priorities as having the upper three bits for group priorities and the rest as subpriorities.
 	{
 		AIRCR_t tmp = SCB.AIRCR;
@@ -59,9 +58,9 @@ void exception_init(const exception_core_writer_t *cw, const exception_app_cbs_t
 	// CPU exceptions (UsageFault, BusFault, MemManage, DebugMonitor) will be
 	// priority 0.0 and thus preempt everything else. Hardware interrupts will
 	// have the priorities provided in the priority table.
-	for (size_t i = 0; i < prioCount; i += 4) {
+	for (size_t i = 0; i < NVIC_IRQ_COUNT; i += 4) {
 		uint32_t u32 = 0;
-		memcpy(&u32, prios + i, MIN(4, prioCount - i));
+		memcpy(&u32, prios + i, 4);
 		NVIC.IPR[i / 4] = u32;
 	}
 
