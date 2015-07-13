@@ -442,7 +442,7 @@ namespace {
 		bool fail() const {
 			GradientApproach::PassInfo::kick_info passer_info = GradientApproach::PassInfo::Instance().tacticInfo;
 			Point intercept_pos = closest_lineseg_point(passer_info.kicker_target, world.ball().position(), world.ball().position(100));
-			if((passer_info.kicker_target - world.ball().position()).len() > 0.5 & world.ball().velocity.len() < 0.5){
+			if((passer_info.kicker_target - world.ball().position()).len() > 0.5 && world.ball().velocity().len() < 0.5){
 				return true;
 			}
 			
