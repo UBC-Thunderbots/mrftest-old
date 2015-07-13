@@ -39,13 +39,13 @@ namespace AI {
 						passPointsLog.insert(passPointsLog.end(), newStartingPos.begin(), newStartingPos.end());
 						passPointsLog = merge(passPointsLog);
 
-						passPointsLog = (stepForward( snapshot, passPointsLog));
+						passPointsLog = stepForward( snapshot, passPointsLog);
 						passPointsLog = merge(passPointsLog);
 
 						
 						if(passPointsLog.size() > 50){
 							std::sort(passPointsLog.begin(), passPointsLog.end(), comparePassQuality);
-							passPointsLog.erase(passPointsLog.begin(), passPointsLog.end() - 40);
+							passPointsLog.erase(passPointsLog.begin(), passPointsLog.begin() + 40);
 						}
 
 							
@@ -336,7 +336,7 @@ namespace AI {
 					return merged_potential_passes;
 				}
 				bool comparePassQuality(PassInfo::passDataStruct a, PassInfo::passDataStruct b){
-					return a.quality > b.quality;
+					return a.quality < b.quality;
 				}
 
 				std::vector<PassInfo::passDataStruct> bestPassPositions(PassInfo::worldSnapshot snapshot, std::vector<PassInfo::passDataStruct> potential_passes, int numberPositions){

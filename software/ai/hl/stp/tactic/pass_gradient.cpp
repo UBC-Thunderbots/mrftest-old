@@ -351,8 +351,12 @@ namespace {
 			std::vector<GradientApproach::PassInfo::passDataStruct> points = GradientApproach::PassInfo::Instance().getCurrentPoints();
 			auto bestPass = std::max_element(points.begin(),points.end(),[] (GradientApproach::PassInfo::passDataStruct lhs, GradientApproach::PassInfo::passDataStruct rhs) {return lhs.quality < rhs.quality;});
 
-
-			target = Point(bestPass->params.at(0),bestPass->params.at(1));
+			if(points.size() > 1){
+					target = bestPass->getTarget();
+			}else{
+					target = player.position();
+			}
+			
 			Player passee = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(target));
 			GradientApproach::PassInfo::Instance().tacticInfo.passee_location = passee.position();
 			return passee;
@@ -388,8 +392,12 @@ namespace {
 
 			Player select(const std::set<Player> &players) const {
 				std::vector<GradientApproach::PassInfo::passDataStruct> points = GradientApproach::PassInfo::Instance().getCurrentPoints();
-
-				target2 = Point(points.at(1).params.at(0),points.at(1).params.at(1));
+				if(points.size() > 1){
+					target2 = points.at(1).getTarget();
+				}else{
+					target2 = player.position();
+				}
+				
 				Player passee = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(target2));
 
 				return passee;
