@@ -33,10 +33,6 @@ class ParticleFilter final {
 		double velocityVar_[2];
 		bool velocityValid_[2];
 
-		double acceleration_;
-		double accelerationVar_;
-		bool accelerationValid_;
-
 		unsigned int numPartitions_;
 		double length_;
 		double offset_;

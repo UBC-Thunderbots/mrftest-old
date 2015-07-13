@@ -14,6 +14,12 @@ namespace {
 }
 
 ParticleFilter::ParticleFilter(double length, double partitionSize) :
+		position_{},
+		positionVar_{},
+		positionValid_{},
+		velocity_{},
+		velocityVar_{},
+		velocityValid_{},
 		numPartitions_(static_cast<unsigned int>(ceil(length/partitionSize))), // number of time to partition the length. particles are assigned to one of these partitions
 		length_(length),
 		offset_(-(length*0.5)), // starting offset from 0 (ie length goes from -2 to 2 -> offset = -2)
@@ -26,8 +32,6 @@ ParticleFilter::ParticleFilter(double length, double partitionSize) :
 }
 
 void ParticleFilter::update(double timeDelta) {
-	double partitionSize = length_/numPartitions_;
-
 	// DECAY
 	for (unsigned int i = 0; i < numPartitions_; i++) {
 		// binomial distribution w/ p = decayrate
