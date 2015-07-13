@@ -365,7 +365,7 @@ namespace AI {
 							}
 						}
 						if(!blockingPass){
-							std::cout<< "Quality:" << potential_passes.at(ii).quality << std::endl;
+						
 							bestPositions.push_back(potential_passes.at(ii));
 						}
 						if(bestPositions.size() >= numberPositions){

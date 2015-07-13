@@ -34,15 +34,14 @@ roles[3].push_back(defend_duo_extra1(world));
 
 // Step 2
 
-/*
+
 goalie_role.push_back(goalie_dynamic(world, 1));
-roles[0].push_back(receive_pass(world)); //make this tactic
+roles[0].push_back(passee_gradient_receive(world)); //make this tactic
 roles[1].push_back(defend_duo_defender(world));
 roles[2].push_back(defend_duo_extra1(world));
 roles[3].push_back(passee_gradient(world));
-roles[4].push_back(follow_baller_gradient(world)); //change this to defend
-roles[5].push_back(get_open(world)); //make this tactic
-*/
+roles[4].push_back(passee_gradient_secondary(world));
+
 
 
 

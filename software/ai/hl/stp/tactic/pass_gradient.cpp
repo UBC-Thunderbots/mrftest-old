@@ -124,7 +124,7 @@ namespace {
 
 				target = Point(bestPass->params.at(0),bestPass->params.at(1));
 				shot_velocity = bestPass->params.at(3);
-				if(shot_velocity < 3) shot_velocity = 3;
+				if(shot_velocity < 2) shot_velocity = 2;
 				time_delay = bestPass->params.at(2);
 				double quality = bestPass->quality;
 
@@ -359,10 +359,7 @@ namespace {
 			return passee;
 		}
 
-		bool done() const override{
-			return player && player.has_ball();
-
-		}
+	
 
 		void execute() {
 			//Point target = GradientApproach::PassInfo::Instance().get_target();
@@ -399,10 +396,7 @@ namespace {
 				return passee;
 			}
 
-			bool done() const override{
-				return player && player.has_ball();
-
-			}
+		
 
 			void execute() {
 				//Point target = GradientApproach::PassInfo::Instance().get_target();
@@ -436,11 +430,7 @@ namespace {
 		}
 
 		Player select(const std::set<Player> &players) const {
-			std::vector<GradientApproach::PassInfo::passDataStruct> points = GradientApproach::PassInfo::Instance().getCurrentPoints();
-			auto bestPass = std::max_element(points.begin(),points.end(),[] (GradientApproach::PassInfo::passDataStruct lhs, GradientApproach::PassInfo::passDataStruct rhs) {return lhs.quality < rhs.quality;});
-
-
-			target = Point(bestPass->params.at(0),bestPass->params.at(1));
+			Point target = GradientApproach::PassInfo::Instance().tacticInfo.kicker_target;
 			Player passee = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(target));
 
 			return passee;
@@ -449,45 +439,45 @@ namespace {
 		bool done() const {
 			return player && player.has_ball();
 		}
+		bool fail() const {
+			GradientApproach::PassInfo::kick_info passer_info = GradientApproach::PassInfo::Instance().tacticInfo;
+			Point intercept_pos = closest_lineseg_point(passer_info.kicker_target, world.ball().position(), world.ball().position(100));
+			if((passer_info.kicker_target - world.ball().position()).len() > 0.5 & world.ball().velocity.len() < 0.5){
+				return true;
+			}
+			
+			double possible_dist;
+			double V_MAX = 2;
+			double A_MAX = 3;
+			double t_ball_arrive = (world.ball().position() - intercept_pos).len()/world.ball().velocity().len();
+			//can we get there in time?
+			if (t_ball_arrive > 2*V_MAX/A_MAX){
+			    possible_dist = V_MAX*V_MAX/A_MAX + (t_ball_arrive - 2*V_MAX/A_MAX)*V_MAX;
+			}
+
+			else{
+			    possible_dist =  A_MAX/4*t_ball_arrive*t_ball_arrive;
+			}
+
+
+			if( (player.position() - intercept_pos).len() - possible_dist > -0.5){
+				return false;
+			}else{
+				return true;
+			}
+
+		}
 
 		void execute(){
 
 			GradientApproach::PassInfo::kick_info passer_info = GradientApproach::PassInfo::Instance().tacticInfo;
-
-			double fast_velocity = 1;
-			double negligible_velocity = 0.05;
-			double passee_hack_dist = 0;
-
-			bool fast_ball = world.ball().velocity().len() > fast_velocity;
-
-			// ball heading towards us
-			bool can_intercept = ((player.position() - world.ball().position()).dot(world.ball().velocity()) > 0);
-
-			if (world.ball().velocity().len() < negligible_velocity) {
-				Action::intercept(player, world.ball().position());
-				player.type(AI::Flags::MoveType::DRIBBLE);
-				return;
-			}
-
-			if (!fast_ball) {
-				Point pass_dir(100, 0);
-				pass_dir = pass_dir.rotate(passer_info.kicker_orientation);
-				Point intercept_pos = closest_lineseg_point(player.position(), passer_info.kicker_location, passer_info.kicker_location + pass_dir);
-				Point addit = passee_hack_dist * (intercept_pos - player.position()).norm();
-				Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos + addit);
-			} else if (can_intercept && fast_ball) {
-				Point intercept_pos = closest_lineseg_point(player.position(), world.ball().position(), world.ball().position() + 100 * (world.ball().velocity().norm()));
-				Point addit = passee_hack_dist * (intercept_pos - player.position()).norm();
-				Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos + addit);
-			} else {
-				// ball is running too slowly, chase it
-				Action::intercept(player, world.ball().position());
-			}
+			Point intercept_pos = closest_lineseg_point(passer_info.kicker_target, world.ball().position(), world.ball().position(100));
+			Action::move(player, (passer_info.kicker_location - intercept_pos).orientation(), intercept_pos);
 			player.type(AI::Flags::MoveType::DRIBBLE);
 		}
 
 		Glib::ustring description() const override {
-			return u8"passee_gradient-recieve";
+			return u8"passee_gradient-receive";
 		}
 	};
 
