@@ -21,7 +21,7 @@ namespace AI {
 		namespace STP {
 			namespace GradientApproach {
 				double ratePass(PassInfo::worldSnapshot snapshot, Point target,  double time_delay, double ball_velocity){
-					if(snapshot.passee_positions.size() > 0){
+					if(snapshot.passee_positions.size() < 0){
 						return 0;
 					}
 					double pass_quality = Evaluation::getStaticPositionQuality(snapshot, target);

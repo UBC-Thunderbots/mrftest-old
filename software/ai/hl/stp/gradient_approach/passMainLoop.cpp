@@ -336,7 +336,7 @@ namespace AI {
 					return merged_potential_passes;
 				}
 				bool comparePassQuality(PassInfo::passDataStruct a, PassInfo::passDataStruct b){
-					return a.quality < b.quality;
+					return a.quality > b.quality;
 				}
 
 				std::vector<PassInfo::passDataStruct> bestPassPositions(PassInfo::worldSnapshot snapshot, std::vector<PassInfo::passDataStruct> potential_passes, int numberPositions){
