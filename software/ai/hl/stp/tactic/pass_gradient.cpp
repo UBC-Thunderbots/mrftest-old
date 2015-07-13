@@ -165,7 +165,6 @@ namespace {
 
 			/*
 			Point relative_pos = world.ball().position()-player.position();
-/*
 
 			if (relative_pos.len()<0.5) {
 				std::cout << "shooting"
