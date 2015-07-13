@@ -45,7 +45,7 @@ namespace AI {
 						
 						if(passPointsLog.size() > 50){
 							std::sort(passPointsLog.begin(), passPointsLog.end(), comparePassQuality);
-							passPointsLog.erase(passPointsLog.begin(), passPointsLog.begin() + 40);
+							passPointsLog.erase(passPointsLog.begin() + 40 , passPointsLog.end());
 						}
 
 							
