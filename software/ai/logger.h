@@ -90,6 +90,9 @@ namespace AI {
 			void on_ai_notes_changed(const Glib::ustring &notes);
 			void on_tick(AI::Timediff compute_time);
 
+			static void encode_vec2(Point p, Log::Vector2 &log);
+			static void encode_vec3(Point p, Angle a, Log::Vector3 &log);
+
 			friend void ::ai_logger_signal_handler_thunk(int sig);
 	};
 }
