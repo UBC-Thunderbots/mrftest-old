@@ -37,7 +37,7 @@
         <double name="Loop Delay">0.080</double>
         <category name="Vision">
           <double name="Ball detection probability threshold">0.250</double>
-          <boolean name="Disables the Particle filter if unchecked.">false</boolean>
+          <boolean name="Enable Particle Filter">true</boolean>
           <category name="Particle">
             <double name="Particle Filter Decay Rate">0.300</double>
             <double name="Particle Filter Variance Threshold">0.100</double>

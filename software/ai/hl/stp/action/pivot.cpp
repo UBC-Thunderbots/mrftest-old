@@ -16,7 +16,6 @@ void AI::HL::STP::Action::intercept_pivot(AI::HL::STP::World world, AI::HL::STP:
 	if (Evaluation::ball_in_pivot_thresh(world, player)) {
 		pivot(world, player, target,radius);
 	} else {
-		std::cout << "Intercept";
 		intercept(player, target);
 	}
 }

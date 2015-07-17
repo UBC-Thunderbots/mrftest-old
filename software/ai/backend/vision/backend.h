@@ -263,7 +263,10 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 			 */
 
 			if (AI::BE::Vision::USE_PARTICLE_FILTER) {
-				ball_.add_field_data(pFilter_->getEstimate(), best_time);
+				if (det.balls().size() > 0)
+				{
+					ball_.add_field_data(pFilter_->getEstimate(), best_time);
+				}
 			}
 			else {
 				ball_.add_field_data(best_pos, best_time);
