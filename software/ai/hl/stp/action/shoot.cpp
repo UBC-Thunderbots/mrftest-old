@@ -99,6 +99,7 @@ bool AI::HL::STP::Action::shoot_goal(World world, Player player, bool use_reduce
 
 bool AI::HL::STP::Action::shoot_target(World world, Player player, const Point target, double velocity) {
 	// Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot_target(world, player, target);
+
 	intercept(player, target);
 
 	// if (shoot_data.can_shoot) {

@@ -50,6 +50,8 @@ namespace {
 	Point target;
 	Point target2;
 
+	int counter;
+
 
 	/*
 	struct kick_info {
@@ -78,6 +80,7 @@ namespace {
 		PasserGradient(World world) : Tactic(world, true){
 			GradientApproach::PassInfo::Instance().tacticInfo.kick_attempted = false;
 			toggle_main_loop = toggle_main_loop_param;
+			counter = 0;
 			
 		}
 
@@ -111,9 +114,9 @@ namespace {
 		}
 
 		void execute() {
-			
+			if(counter % 16 == 0){
 
-		
+			
 				std::vector<GradientApproach::PassInfo::passDataStruct> points = GradientApproach::PassInfo::Instance().getCurrentPoints();
 
 				auto bestPass = std::max_element(points.begin(),
@@ -124,6 +127,8 @@ namespace {
 
 				target = Point(bestPass->params.at(0),bestPass->params.at(1));
 				shot_velocity = bestPass->params.at(3);
+				//shot_velocity = 1;
+				std::cout << "Ball_vel from Tact: " << shot_velocity << std::endl;
 				if(shot_velocity < 2) shot_velocity = 2;
 				time_delay = bestPass->params.at(2);
 				double quality = bestPass->quality;
@@ -133,7 +138,7 @@ namespace {
 				GradientApproach::PassInfo::Instance().tacticInfo.kicker_orientation = player.orientation();
 				GradientApproach::PassInfo::Instance().tacticInfo.kicker_target = target;
 
-
+			}counter++;
 
 
 			
@@ -365,14 +370,18 @@ namespace {
 	
 
 		void execute() {
+
 			//Point target = GradientApproach::PassInfo::Instance().get_target();
 			GradientApproach::PassInfo::worldSnapshot snapshot =  GradientApproach::PassInfo::Instance().getWorldSnapshot();
-			if(world.ball().velocity().len() > 1.5){
-				Action::intercept(player, snapshot.passer_position);
-			}else{
+			if(counter % 16 == 0){
+				if(world.ball().velocity().len() > 1.5){
+					Action::intercept(player, snapshot.passer_position);
+				}else{
 
-				Action::move(world, player, target);
+					Action::move( player, (GradientApproach::PassInfo::Instance().tacticInfo.kicker_location- target).orientation(), target);
+				}
 			}
+
 		}
 
 
@@ -408,7 +417,7 @@ namespace {
 			void execute() {
 				//Point target = GradientApproach::PassInfo::Instance().get_target();
 
-				Action::move(world, player, target2);
+				Action::move( player, (GradientApproach::PassInfo::Instance().tacticInfo.kicker_location- target2).orientation(), target2);
 
 			}
 
@@ -446,10 +455,10 @@ namespace {
 		bool done() const {
 			return player && player.has_ball();
 		}
-		bool fail() const {
+		bool fail() const {/*
 			GradientApproach::PassInfo::kick_info passer_info = GradientApproach::PassInfo::Instance().tacticInfo;
 			Point intercept_pos = closest_lineseg_point(passer_info.kicker_target, world.ball().position(), world.ball().position(100));
-			if((passer_info.kicker_target - world.ball().position()).len() > 0.5 && world.ball().velocity().len() < 0.5){
+			if((passer_info.kicker_target - world.ball().position()).len() > 0.5 && world.ball().velocity().len() < 0.1){
 				return true;
 			}
 			
@@ -472,10 +481,13 @@ namespace {
 			}else{
 				return true;
 			}
+			*/
+			return false;
 
 		}
 
 		void execute(){
+			std::cout << "Running passee receive" << std::endl;
 
 			GradientApproach::PassInfo::kick_info passer_info = GradientApproach::PassInfo::Instance().tacticInfo;
 			Point intercept_pos = closest_lineseg_point(passer_info.kicker_target, world.ball().position(), world.ball().position(100));

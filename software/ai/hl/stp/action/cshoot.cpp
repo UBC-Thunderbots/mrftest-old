@@ -24,7 +24,7 @@
 using namespace AI::HL::STP;
 
 bool AI::HL::STP::Action::cshoot_target(World world, Player player, const Point target, double velocity) {
-	Action::intercept( player, target);
+	Action::move(world, player, world.ball().position()+ 0.04*(world.ball().position() - target).norm());	
 
 	// if (shoot_data.can_shoot) {
 	if (!Evaluation::player_within_angle_thresh(player, target, passer_angle_threshold)) {
@@ -37,7 +37,7 @@ bool AI::HL::STP::Action::cshoot_target(World world, Player player, const Point 
 		// angle is right but chicker not ready, ram the ball and get closer to target, only use in normal play
 		if (world.playtype() == AI::Common::PlayType::PLAY) {
 			const Point diff = world.ball().position() - player.position();
-			ram(world, player, target, diff * 8.0);
+			ram(world, player, target, diff * velocity);
 		}
 		return false;
 	}
