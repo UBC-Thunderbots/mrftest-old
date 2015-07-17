@@ -3,6 +3,7 @@
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/hl/stp/param.h"
+#include "ai/hl/stp/enemy.h"
 #include "ai/hl/util.h"
 #include "ai/util.h"
 #include "geom/util.h"
@@ -275,5 +276,27 @@ Point AI::HL::STP::Evaluation::evaluate_tdefense_line(World world, const Point p
 	double diff = (ball - target).len();
 	if (diff > dist_max || diff < dist_min) return ball;
 	return target;
+}
+
+Point AI::HL::STP::Evaluation::evaluate_shadow_enemy_point(World world, int closest_enemy_index){
+	Point enemy = Enemy::closest_ball(world, closest_enemy_index)->evaluate().position();
+	Point ball = world.ball().position();
+	Point destination = ball - enemy;
+	Point rectangle[4];
+	Point line_segment[2];
+	double shadow_thresh = world.field().enemy_goal().x - 0.5;
+	std::size_t index = world.enemy_team().size() - 1;
+
+	line_segment[0] = enemy;
+	line_segment[1] = world.field().friendly_goal();
+
+	rectangle[0] = Point(world.field().friendly_goal().x + world.field().goal_width() / 2, world.field().friendly_goal().y);
+	rectangle[1] = Point(world.field().friendly_goal().x - world.field().goal_width() / 2, world.field().friendly_goal().y);
+	rectangle[2] = enemy;
+	rectangle[3] = enemy;
+
+	destination = destination.norm() * (AI::Util::BALL_STOP_DIST + Robot::MAX_RADIUS + Ball::RADIUS);
+	destination = ball - destination;
+	return destination;
 }
 

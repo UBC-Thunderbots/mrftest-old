@@ -36,6 +36,11 @@ namespace AI {
 				 * return dest of Terence defender line.
 				 */
 				Point evaluate_tdefense_line(World world, const Point p1, const Point p2, const double dist_min, const double dist_max);
+
+				/**
+				 *  return the point to go to stop the closest enemy
+				 */
+				Point evaluate_shadow_enemy_point(World world, int closest_enemy_index);
 			}
 		}
 	}
