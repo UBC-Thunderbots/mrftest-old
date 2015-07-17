@@ -40,7 +40,7 @@
           <boolean name="Disables the Particle filter if unchecked.">false</boolean>
           <category name="Particle">
             <double name="Particle Filter Decay Rate">0.300</double>
-            <double name="Particle Filter Standard Deviation">0.100</double>
+            <double name="Particle Filter Variance Threshold">0.100</double>
           </category>
         </category>
       </category>

@@ -1,46 +1,77 @@
 #ifndef GEOM_PARTICLE_PARTICLE_FILTER_H
 #define GEOM_PARTICLE_PARTICLE_FILTER_H
 
+#include <cstdlib>
+#include <math.h>
 #include <random>
+#include <iostream>
 #include <utility>
 #include <vector>
 
-/**
- * \brief Implements the basic mathematics of a Particle filter.
- */
-class ParticleFilter final {
-	public:
-		explicit ParticleFilter(double length, double partitionSize);
+#include "geom/point.h"
+#include "util/param.h"
 
-		void update(double timeDelta);
+namespace AI {
+	namespace BE {
+		namespace Vision {
+			namespace Particle {
 
-		void add(double value, unsigned int numParticles);
+				extern DoubleParam PARTICLE_FILTER_VAR_THRESH;
+				extern DoubleParam PARTICLE_FILTER_DECAYRATE;
 
-		double getEstimate();
-		double getLength();
-		double getOffset();
-		int getNumParticles();
+				class Particle {
+					public:
+						Particle(Point position, Point velocity,
+								Point acceleration);
 
-	private:
-		void updateEstimatedPartition();
-		void clearWeights(unsigned int startIndex, unsigned int endIndex);
+						Point getPosition();
 
-		double position_[2];
-		double positionVar_[2];
-		bool positionValid_[2];
+						void updatePosition(double timeDelta);
+						void updateVelocity(double timeDelta);
 
-		double velocity_[2];
-		double velocityVar_[2];
-		bool velocityValid_[2];
+					private:
+						Point position_;
+						Point velocity_;
+						Point acceleration_;
+				};
 
-		unsigned int numPartitions_;
-		double length_;
-		double offset_;
+				/**
+				 * \brief Implements the basic mathematics of a Particle filter.
+				 */
+				class ParticleFilter final {
+					public:
+						explicit ParticleFilter(double length, double width);
 
-		std::vector<int> weight_;
-		std::default_random_engine random_generator_;
-		std::binomial_distribution<int> random_binom_distribution_;
-		std::normal_distribution<double> random_normal_distribution_;
-};
+						void update(double timeDelta);
+
+						void add(Point ballLocation);
+
+						void updateEstimatedPartition();
+
+						Point getEstimate();
+						Point getEstimateVariance();
+
+					private:
+
+						std::vector<Particle> particles_;
+
+						Point position_[2];
+						Point positionVar_[2];
+
+						Point velocity_[2];
+						Point velocityVar_[2];
+
+						Point acceleration_;
+						Point accelerationVar_;
+
+						bool estimateValid_;
+
+						double length_;
+						double width_;
+				};
+			}
+		}
+	}
+}
 
 #endif

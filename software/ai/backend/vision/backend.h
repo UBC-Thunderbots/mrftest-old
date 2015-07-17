@@ -7,7 +7,7 @@
 #include "ai/backend/vision/vision_socket.h"
 #include "ai/common/enums/playtype.h"
 #include "geom/point.h"
-#include "geom/particle/particle_filter_2d.h"
+#include "geom/particle/particle_filter.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "util/dprint.h"
 #include "util/param.h"
@@ -71,7 +71,7 @@ namespace AI {
 					AI::Timestamp playtype_time;
 					Point playtype_arm_ball_position;
 					std::vector<std::pair<SSL_DetectionFrame, AI::Timestamp>> detections;
-					ParticleFilter2D *pFilter_;
+					AI::BE::Vision::Particle::ParticleFilter *pFilter_;
 
 					void tick();
 					void handle_vision_packet(const SSL_WrapperPacket &packet);
@@ -160,7 +160,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 
 	if (pFilter_ == NULL && field_.valid())
 	{
-		pFilter_ = new ParticleFilter2D(Point(field_.length()+0.5, field_.width()+0.5), 0.05);
+		pFilter_ = new AI::BE::Vision::Particle::ParticleFilter(field_.length(),
+				field_.width());
 	}
 
 	// If it contains ball and robot data, update the ball and the teams.
@@ -231,7 +232,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 					}
 
 					/* PARTICLE FILTER */
-					pFilter_->add(detection_position, static_cast<unsigned int>(b.confidence() * 500U));
+					pFilter_->add(detection_position);
 				}
 			}
 

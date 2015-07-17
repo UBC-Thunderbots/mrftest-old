@@ -1,166 +1,140 @@
-#include "geom/particle/particle_filter.h"
-#include "geom/angle.h"
-#include "util/param.h"
-#include "util/random.h"
-#include <algorithm>
-#include <cassert>
-#include <cmath>
-#include <random>
-#include <vector>
+#include "particle_filter.h"
 
-namespace {
-	DoubleParam PARTICLE_FILTER_STDDEV(u8"Particle Filter Standard Deviation", u8"AI/Backend/Vision/Particle", 0.1, 0.0, 2.0);
-	DoubleParam PARTICLE_FILTER_DECAYRATE(u8"Particle Filter Decay Rate", u8"AI/Backend/Vision/Particle", 0.3, 0, 1.0);
+using namespace AI::BE::Vision::Particle;
+
+DoubleParam AI::BE::Vision::Particle::PARTICLE_FILTER_VAR_THRESH(
+		u8"Particle Filter Variance Threshold",
+		u8"AI/Backend/Vision/Particle", 0.1, 0.0, 2.0);
+DoubleParam AI::BE::Vision::Particle::PARTICLE_FILTER_DECAYRATE(
+		u8"Particle Filter Decay Rate",
+		u8"AI/Backend/Vision/Particle", 0.1, 0, 1.0);
+
+Particle::Particle(Point position, Point velocity, Point acceleration) :
+		position_(position), velocity_(velocity), acceleration_(acceleration)
+{
 }
 
-ParticleFilter::ParticleFilter(double length, double partitionSize) :
-		position_{},
-		positionVar_{},
-		positionValid_{},
-		velocity_{},
-		velocityVar_{},
-		velocityValid_{},
-		numPartitions_(static_cast<unsigned int>(ceil(length/partitionSize))), // number of time to partition the length. particles are assigned to one of these partitions
-		length_(length),
-		offset_(-(length*0.5)), // starting offset from 0 (ie length goes from -2 to 2 -> offset = -2)
-		weight_(numPartitions_, 0),
-		random_generator_(Random::generate_seed()),
-		random_binom_distribution_(),
-		random_normal_distribution_() 
+Point Particle::getPosition()
 {
-	add(0, 100);
+	return position_;
+}
+
+void Particle::updateVelocity(double timeDelta)
+{
+	velocity_.x = velocity_.x + timeDelta*acceleration_.x;
+	velocity_.y = velocity_.y + timeDelta*acceleration_.y;
+}
+
+void Particle::updatePosition(double timeDelta)
+{
+	position_.x = position_.x + timeDelta*velocity_.x;
+	position_.y = position_.y + timeDelta*velocity_.y;
+}
+
+ParticleFilter::ParticleFilter(double length, double width) :
+		length_(length),
+		width_(width),
+		estimateValid_(false)
+{
+	time_t  timev;
+
+	add(Point(0,0));
+	srand(static_cast<unsigned int>(time(&timev)));
 }
 
 void ParticleFilter::update(double timeDelta) {
-	// DECAY
-	for (unsigned int i = 0; i < numPartitions_; i++) {
-		// binomial distribution w/ p = decayrate
-		std::binomial_distribution<int>::param_type params(weight_[i], PARTICLE_FILTER_DECAYRATE);
-		weight_[i] = random_binom_distribution_(random_generator_, params);
-	}
-
-	// MOVE REMAINING PARTICLES
-	updateEstimatedPartition();
-
-	double estimatedVelocity = 0; // use previous acceleration and current velocity to find estimated velocity
-	double estimatedVelocityVar = 0;
-
-	if (positionValid_[0] && positionValid_[1])
-	{
-		double curVelocity = (position_[0] - position_[1])/timeDelta; // find out how "fast" we are going
-		double curVelocityVar = positionVar_[0] + positionVar_[1];
-
-		estimatedVelocity = curVelocity;
-		estimatedVelocityVar = curVelocityVar;
-
-		if (velocityValid_[0] && velocityValid_[1])
-		{
-			double curAcceleration = (velocity_[0] - velocity_[1])/timeDelta;
-			double curAccelerationVar = velocityVar_[0] + velocityVar_[1];
-
-			estimatedVelocity = curVelocity + curAcceleration*timeDelta;
-			estimatedVelocityVar = curAccelerationVar + curAccelerationVar;
-		}
-	}
-
-	double estimatePosition = position_[0] + timeDelta*estimatedVelocity;
-	double estimatePositionVar = positionVar_[0] + estimatedVelocityVar;
-
+	// Update particle cloud parameters
 	position_[1] = position_[0];
 	positionVar_[1] = positionVar_[0];
-	positionValid_[1] = positionValid_[0];
 
-	position_[0] = estimatePosition;
-	positionVar_[0] = estimatePositionVar;
-	positionValid_[0] = true;
+	position_[0] = Point(0,0);
+	positionVar_[0] = Point(0,0);
 
 	velocity_[1] = velocity_[0];
-	velocityVar_[1] = velocityVar_[0];
-	velocityValid_[1] = velocityValid_[0];
+	velocityVar_[1] = velocity_[1];
 
-	velocity_[0] = estimatedVelocity;
-	velocityVar_[0] = estimatedVelocityVar;
-	velocityValid_[0] = true;
+	velocity_[0] = Point(0,0);
+	velocityVar_[0] = Point(0,0);
 
-	// SUM UP EVERYTHING AND REDUCE IF TOO MANY
-	int sum = 0;
+	acceleration_.x = (velocity_[0].x - velocity_[1].x)/timeDelta;
+	acceleration_.y = (velocity_[0].y - velocity_[1].y)/timeDelta;
+	accelerationVar_.x = velocityVar_[0].x + velocityVar_[1].x;
+	accelerationVar_.y = velocityVar_[0].y + velocityVar_[1].y;
 
-	for (unsigned int i = 0; i < numPartitions_; i++) {
-		sum += weight_[i];
+	// Update each particle
+	for(std::vector<Particle>::iterator it = particles_.begin();
+			it != particles_.end();) {
+	    if (rand()%100 >= PARTICLE_FILTER_DECAYRATE*100)
+	    {
+	        // Decay Particles
+	    	// Each particle has a probability of PARTICLE_FILTER_DECAYRATE of
+	    	// decaying
+	    	it = particles_.erase(it);
+	    }
+	    else
+	    {
+	    	// Update Particles
+	    	it->updateVelocity(timeDelta);
+	    	it->updatePosition(timeDelta);
+	    	++it;
+	    }
+	}
+}
+
+void ParticleFilter::add(Point ballLocation) {
+	if (!isnan(ballLocation.x + ballLocation.y))
+	{
+		particles_.push_back(Particle(ballLocation, velocity_[1], acceleration_));
+		estimateValid_ = false;
+	}
+}
+
+Point ParticleFilter::getEstimate() {
+	if (!estimateValid_)
+	{
+		updateEstimatedPartition();
 	}
 
-	if (sum > 1000) {
-		for (unsigned int i = 0; i < numPartitions_; i++) {
-			weight_[i] = weight_[i] * 1000 / sum;
-		}
-	}
+	return position_[0];
 }
 
-void ParticleFilter::add(double input, unsigned int numParticles) {
-	std::normal_distribution<double>::param_type normal_params(input - offset_, PARTICLE_FILTER_STDDEV);
-	double value;
-	double partitionSize = length_/numPartitions_;
-	int partition;
-	int count = 0;
-
-	// ADD PARTICLES
-
-	for (unsigned int i = 0; i < numParticles; i++) {
-		// generate normal distribution of particles
-		value = random_normal_distribution_(random_generator_, normal_params); // how far into the field we are
-		if ((value >= 0) && (value < length_)) {
-			// calculate which partition the particle falls in
-			partition = static_cast<int>(value/partitionSize);
-
-			assert(partition >= 0);
-			assert(static_cast<unsigned int>(partition) < numPartitions_);
-			weight_[partition] += 1;
-			count++;
-		}
+Point ParticleFilter::getEstimateVariance()
+{
+	if (!estimateValid_)
+	{
+		updateEstimatedPartition();
 	}
 
-	// ESTIMATE IS NO LONGER VALID
-	positionValid_[0] = false;
-}
-
-double ParticleFilter::getEstimate() {
-	updateEstimatedPartition();
-	//return estimate_;
-	return offset_ + (position_[0] + 0.5)*(length_/numPartitions_);
-}
-
-double ParticleFilter::getLength() {
-	return length_;
-}
-double ParticleFilter::getOffset() {
-	return offset_;
+	return positionVar_[0];
 }
 
 void ParticleFilter::updateEstimatedPartition() {
-	std::vector<std::pair<int, int> > weightIndexPairs;
+	Point sum(0, 0);
 
-	if (!positionValid_[0]) {
-		unsigned int sum = 0;
-
-		// FIND HYPOTHESIS WITH MOST WEIGHT
-		for (unsigned int i = 0; i < numPartitions_; i++) {
-			sum += weight_[i];
-		}
-
-		position_[0] = 0;
-
-		for (unsigned int i = 0; i < numPartitions_; i++) {
-			position_[0] += (static_cast<double>(weight_[i])/sum)*i;
-		}
-
-		positionValid_[0] = true;
+	// Calculate mean of the points
+	for(std::vector<Particle>::iterator it = particles_.begin();
+			it != particles_.end(); ++it) {
+	    sum.x += it->getPosition().x;
+	    sum.y += it->getPosition().y;
 	}
-}
 
-void ParticleFilter::clearWeights(unsigned int startIndex, unsigned int endIndex)
-{
-	assert(endIndex <= numPartitions_);
-	for (unsigned int i = startIndex; i < endIndex; i++) {
-		weight_[i] = 0;
+	position_[0].x = sum.x / static_cast<double>(particles_.size());
+	position_[0].y = sum.y / static_cast<double>(particles_.size());
+
+	// Calculate the variance of the points
+	sum.x = 0;
+	sum.y = 0;
+
+	for(std::vector<Particle>::iterator it = particles_.begin();
+			it != particles_.end(); ++it) {
+	    sum.x += (it->getPosition().x - position_[0].x)*(it->getPosition().x -
+	    		position_[0].x);
+	    sum.y += (it->getPosition().y - position_[0].y)*(it->getPosition().y -
+	    		position_[0].y);
 	}
+
+	positionVar_[0].x = sum.x / static_cast<double>(particles_.size());
+	positionVar_[0].y = sum.y / static_cast<double>(particles_.size());
+
+	estimateValid_ = true;
 }
