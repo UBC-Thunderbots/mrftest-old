@@ -27,10 +27,10 @@ namespace {
 	};
 
 	const RadioConfig DEFAULT_CONFIGS[4] = {
-		{ 24U, 250, 0x1846U },
-		{ 25U, 250, 0x1847U },
-		{ 26U, 250, 0x1848U },
-		{ 23U, 250, 0x1849U },
+		{ 16U, 250, 0x1846U },
+		{ 17U, 250, 0x1847U },
+		{ 17U, 250, 0x1848U },
+		{ 17U, 250, 0x1849U },
 	};
 
 	const unsigned int ANNUNCIATOR_BEEP_LENGTH = 750;
