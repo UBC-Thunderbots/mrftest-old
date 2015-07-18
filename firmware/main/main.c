@@ -312,7 +312,7 @@ static void run_normal(void) {
 	// Read the configuration switches.
 	static uint8_t switches[2U];
 	icb_receive(ICB_COMMAND_READ_SWITCHES, switches, sizeof(switches));
-	iprintf("Switches: Robot index %" PRIu8 ", channel %u", switches[0U], (switches[1] & 3U));
+	iprintf("Switches: Robot index %" PRIu8 ", channel %u\r\n", switches[0U], (switches[1] & 3U));
 
 	// Enable independent watchdog.
 	while (IWDG.SR.PVU);
