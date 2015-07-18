@@ -26,17 +26,6 @@ namespace AI {
 				bool shoot_target(World world, Player player, const Point target, double velocity = BALL_MAX_SPEED);
 
 				/**
-				 * Shoots the ball at the region centred at target with radius.
-				 *
-				 * If the player does not have the ball, chases after it.
-				 *
-				 * \param[in] target the location to shoot the ball to.
-				 *
-				 * \return true if the player autokick is fired.
-				 */
-				bool shoot_region(World world, Player player, const Point target, double radius, double delta = 1e9);
-
-				/**
 				 * Directly shoots to a player.
 				 *
 				 * \return true if the player autokick is fired.
@@ -65,13 +54,6 @@ namespace AI {
 				 * \return double the robot kick speed.
 				 */
 				double shoot_speed(double distance, double delta = 1e9, double alph = -1);
-
-				/**
-				 * Arm the kicker so that it kicks ball exact speed to stop at target (i.e. t= inf)
-				 * or alternatively reach target at time delta from the current time ( may be moving )
-				 * \return true if the constraints are achievable
-				 */
-				// bool arm(World world, Player player, const Point target, double delta = 1e10);
 			}
 		}
 	}
