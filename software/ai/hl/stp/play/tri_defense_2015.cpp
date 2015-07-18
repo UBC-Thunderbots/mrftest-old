@@ -28,8 +28,8 @@ goalie_role.push_back(defend_duo_goalie(world));
 roles[0].push_back(defend_duo_defender(world));
 roles[1].push_back(defend_duo_extra1(world));
 roles[2].push_back(spin_steal(world));
-roles[3].push_back(shadow_enemy(world, 0));
-roles[4].push_back(shadow_enemy(world, 1));
+roles[3].push_back(defend_duo_extra2(world));
+roles[4].push_back(shadow_enemy(world,1));
 
 END_ASSIGN()
 END_PLAY()

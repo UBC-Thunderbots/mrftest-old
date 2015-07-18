@@ -184,7 +184,7 @@ namespace {
 			/**
 			 * block the passing lanes with the next few robots
 			 */
-			bool blowup = false
+			bool blowup = false;
 			Point D = closest_lineseg_point(world.field().friendly_goal(), world.ball().position(), threat[i].position());
 			if (D.x < Robot::MAX_RADIUS - field.length() / 2 + field.defense_area_stretch()) {
 				blowup = true;

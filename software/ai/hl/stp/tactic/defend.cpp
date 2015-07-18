@@ -177,3 +177,4 @@ Tactic::Ptr AI::HL::STP::Tactic::defend_duo_extra2(AI::HL::W::World world) {
 	return p;
 }
 
+

@@ -9,7 +9,7 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-				constexpr unsigned int MAX_DEFENDERS = 3;
+				constexpr unsigned int MAX_DEFENDERS = 4;
 
 				void tick_defense(World world);
 
@@ -19,6 +19,7 @@ namespace AI {
 				 * 1 - defender
 				 * 2 - defender-extra1
 				 * 3 - defender-extra2
+				 * 3 - defender- extra3
 				 */
 				const std::array<Point, MAX_DEFENDERS + 1> evaluate_defense();
 

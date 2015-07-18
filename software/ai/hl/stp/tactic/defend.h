@@ -39,6 +39,13 @@ namespace AI {
 				Tactic::Ptr defend_duo_extra2(World world);
 
 				/**
+				 * Defend Duo Extra
+				 * Non Active Tactic
+				 * A tactic for extra player.
+				 */
+				Tactic::Ptr defend_duo_extra3(World world);
+
+				/**
 				 * Goalie Dynamic
 				 * Non Active Tatic
 				 * A goalie tactic that can switch between lone and duo goalie.
