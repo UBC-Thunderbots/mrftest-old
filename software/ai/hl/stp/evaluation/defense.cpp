@@ -69,6 +69,9 @@ namespace {
 		// list of points to defend, by order of importance
 		std::vector<Point> waypoint_defenders;
 
+		//list of points to intercept enemy passing lanes
+		std::vector<Point> waypoint_passing_lanes;
+
 		// there is cone ball to goal sides, bounded by 1 rays.
 		// the side that goalie is going to guard is goal_side
 		// the opposite side is goal_opp
@@ -151,6 +154,13 @@ namespace {
 			threat = enemies;
 		}
 
+		//figure out positions to stop the passing lanes
+
+		for (size_t i = 0; i < threat.size(); i++) {
+			waypoint_passing_lanes.push_back(threat[i].position());
+		}
+
+
 		// next two defenders block nearest enemy sights to goal if needed
 		// enemies with ball possession are ignored (they should be handled above)
 		for (size_t i = 0; i < threat.size() && waypoint_defenders.size() < MAX_DEFENDERS; ++i) {
@@ -171,8 +181,26 @@ namespace {
 			// TODO: check if enemy can shoot the ball from here
 			// if so, block it
 
+			/**
+			 * block the passing lanes with the next few robots
+			 */
+			bool blowup = false
+			Point D = closest_lineseg_point(world.field().friendly_goal(), world.ball().position(), threat[i].position());
+			if (D.x < Robot::MAX_RADIUS - field.length() / 2 + field.defense_area_stretch()) {
+				blowup = true;
+				}
+			if (std::fabs(D.y) > field.width() / 4) {
+				blowup = true;
+			}
+			if (blowup) {
+				D = (field.friendly_goal() + threat[i].position()) / 2;
+			}
+			/*
+			 * The following block of code calculates the the best place to put extra defenders to block the robots
+			 * from shooting the ball from one touch passes. instead, we try to block passing lanes
+
 			bool blowup = false;
-			Point D = calc_block_cone(goal_side, goal_opp, threat[i].position(), radius);
+			Point D = calc_block_cone(world.ball().positon(), world.ball().position(), threat[i].position(), radius);
 			if (D.x < Robot::MAX_RADIUS - field.length() / 2 + field.defense_area_stretch()) {
 				blowup = true;
 			}
@@ -181,7 +209,7 @@ namespace {
 			}
 			if (blowup) {
 				D = (field.friendly_goal() + threat[i].position()) / 2;
-			}
+			} */
 			waypoint_defenders.push_back(D);
 		}
 
@@ -278,7 +306,7 @@ Point AI::HL::STP::Evaluation::evaluate_tdefense_line(World world, const Point p
 	return target;
 }
 
-Point AI::HL::STP::Evaluation::evaluate_shadow_enemy_point(World world, int closest_enemy_index){
+Point AI::HL::STP::Evaluation::evaluate_shadow_enemy_point(World world, const int closest_enemy_index){
 	Point enemy = Enemy::closest_ball(world, closest_enemy_index)->evaluate().position();
 	Point ball = world.ball().position();
 	Point destination = ball - enemy;
@@ -299,4 +327,41 @@ Point AI::HL::STP::Evaluation::evaluate_shadow_enemy_point(World world, int clos
 	destination = ball - destination;
 	return destination;
 }
+
+std::vector<Point> AI::HL::STP::Evaluation::evaluate_enemy_passing_lanes(World world, const int highest_threat_index) {
+
+	std::vector<Point> returnVector;
+	return returnVector;
+}
+//
+//	std::vector<Point> intercept_points;
+//	std::vector<Robot> enemies = enemies_by_grab_ball_dist();
+//
+//	// sort enemies by distance to own goal
+//	// std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot>(field.friendly_goal()));
+//
+//	std::vector<Robot> threat;
+//
+//	if (open_net_dangerous && second_needed) {
+//		std::vector<Point> obstacles;
+//		obstacles.push_back(waypoint_goalie);
+//		obstacles.push_back(waypoint_defenders[0]);
+//
+//		for (size_t i = 0; i < enemies.size(); ++i) {
+//			if (calc_enemy_best_shot_goal(world.field(), obstacles, enemies[i].position()).second > enemy_shoot_accuracy) {
+//				threat.push_back(enemies[i]);
+//			}
+//		}
+//		for (size_t i = 0; i < enemies.size(); ++i) {
+//			if (!(calc_enemy_best_shot_goal(world.field(), obstacles, enemies[i].position()).second > enemy_shoot_accuracy)) {
+//				threat.push_back(enemies[i]);
+//			}
+//		}
+//	} else {
+//		threat = enemies;
+//	}
+//
+//	return intercept_points;
+
+
 

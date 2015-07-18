@@ -40,7 +40,13 @@ namespace AI {
 				/**
 				 *  return the point to go to stop the closest enemy
 				 */
-				Point evaluate_shadow_enemy_point(World world, int closest_enemy_index);
+				Point evaluate_shadow_enemy_point(World world, const int closest_enemy_index);
+
+				/**
+				 * returns the optimal position to block an enemy passing lane based upon the index
+				 */
+				std::vector<Point> evaluate_enemy_passing_lanes(World world, const int highest_threat_index);
+
 			}
 		}
 	}
