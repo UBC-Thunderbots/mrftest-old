@@ -415,6 +415,7 @@ software/ai/hl/stp/play/their_corner_play.cpp -text
 software/ai/hl/stp/play/tri_attack_defensive.cpp -text
 software/ai/hl/stp/play/tri_attack_diamond.cpp -text
 software/ai/hl/stp/play/tri_attack_offensive.cpp -text
+software/ai/hl/stp/play/tri_defense_2015.cpp -text
 software/ai/hl/stp/play_executor.cpp -text
 software/ai/hl/stp/play_executor.h -text
 software/ai/hl/stp/predicates.cpp -text
