@@ -260,9 +260,7 @@ class LogPlayer::Impl final : public Gtk::VBox, public Visualizable::World {
 	public:
 		explicit Impl(Gtk::Window &parent, const std::string &pathname) :
 				records(LogLoader::load(pathname)),
-				top_info_table(11, 2, false),
-				ball_filter_label(u8"Ball Filter:"),
-				strategy_label(u8"Strategy:"),
+				top_info_table(9, 2, false),
 				backend_label(u8"Backend:"),
 				high_level_label(u8"HL:"),
 				robot_controller_label(u8"Controller:"),
@@ -285,10 +283,8 @@ class LogPlayer::Impl final : public Gtk::VBox, public Visualizable::World {
 			}
 			game_start_monotonic = tick_records[0]->tick().start_time();
 
-			ball_filter_value.set_width_chars(25);
+			backend_value.set_width_chars(25);
 
-			ball_filter_frame.set_shadow_type(Gtk::SHADOW_IN);
-			strategy_frame.set_shadow_type(Gtk::SHADOW_IN);
 			backend_frame.set_shadow_type(Gtk::SHADOW_IN);
 			high_level_frame.set_shadow_type(Gtk::SHADOW_IN);
 			robot_controller_frame.set_shadow_type(Gtk::SHADOW_IN);
@@ -301,8 +297,6 @@ class LogPlayer::Impl final : public Gtk::VBox, public Visualizable::World {
 
 			ticks_per_second_value.set_text(Glib::ustring::format(ticks_per_second));
 
-			ball_filter_frame.add(ball_filter_value);
-			strategy_frame.add(strategy_value);
 			backend_frame.add(backend_value);
 			high_level_frame.add(high_level_value);
 			robot_controller_frame.add(robot_controller_value);
@@ -313,27 +307,23 @@ class LogPlayer::Impl final : public Gtk::VBox, public Visualizable::World {
 			enemy_score_frame.add(enemy_score_value);
 			ai_notes_frame.add(ai_notes_value);
 
-			top_info_table.attach(ball_filter_label, 0, 1, 0, 1);
-			top_info_table.attach(ball_filter_frame, 1, 2, 0, 1);
-			top_info_table.attach(strategy_label, 0, 1, 1, 2);
-			top_info_table.attach(strategy_frame, 1, 2, 1, 2);
-			top_info_table.attach(backend_label, 0, 1, 2, 3);
-			top_info_table.attach(backend_frame, 1, 2, 2, 3);
-			top_info_table.attach(high_level_label, 0, 1, 3, 4);
-			top_info_table.attach(high_level_frame, 1, 2, 3, 4);
-			top_info_table.attach(robot_controller_label, 0, 1, 4, 5);
-			top_info_table.attach(robot_controller_frame, 1, 2, 4, 5);
-			top_info_table.attach(friendly_colour_label, 0, 1, 5, 6);
-			top_info_table.attach(friendly_colour_frame, 1, 2, 5, 6);
-			top_info_table.attach(ticks_per_second_label, 0, 1, 6, 7);
-			top_info_table.attach(ticks_per_second_frame, 1, 2, 6, 7);
-			top_info_table.attach(play_type_label, 0, 1, 7, 8);
-			top_info_table.attach(play_type_frame, 1, 2, 7, 8);
-			top_info_table.attach(friendly_score_label, 0, 1, 8, 9);
-			top_info_table.attach(friendly_score_frame, 1, 2, 8, 9);
-			top_info_table.attach(enemy_score_label, 0, 1, 9, 10);
-			top_info_table.attach(enemy_score_frame, 1, 2, 9, 10);
-			top_info_table.attach(ai_notes_frame, 0, 2, 10, 11);
+			top_info_table.attach(backend_label, 0, 1, 0, 1);
+			top_info_table.attach(backend_frame, 1, 2, 0, 1);
+			top_info_table.attach(high_level_label, 0, 1, 1, 2);
+			top_info_table.attach(high_level_frame, 1, 2, 1, 2);
+			top_info_table.attach(robot_controller_label, 0, 1, 2, 3);
+			top_info_table.attach(robot_controller_frame, 1, 2, 2, 3);
+			top_info_table.attach(friendly_colour_label, 0, 1, 3, 4);
+			top_info_table.attach(friendly_colour_frame, 1, 2, 3, 4);
+			top_info_table.attach(ticks_per_second_label, 0, 1, 4, 5);
+			top_info_table.attach(ticks_per_second_frame, 1, 2, 4, 5);
+			top_info_table.attach(play_type_label, 0, 1, 5, 6);
+			top_info_table.attach(play_type_frame, 1, 2, 5, 6);
+			top_info_table.attach(friendly_score_label, 0, 1, 6, 7);
+			top_info_table.attach(friendly_score_frame, 1, 2, 6, 7);
+			top_info_table.attach(enemy_score_label, 0, 1, 7, 8);
+			top_info_table.attach(enemy_score_frame, 1, 2, 7, 8);
+			top_info_table.attach(ai_notes_frame, 0, 2, 8, 9);
 
 			top_info_vbox.pack_start(top_info_table, Gtk::PACK_SHRINK);
 
@@ -456,9 +446,9 @@ class LogPlayer::Impl final : public Gtk::VBox, public Visualizable::World {
 		Gtk::HBox upper_hbox;
 		Gtk::VBox top_info_vbox;
 		Gtk::Table top_info_table;
-		Gtk::Label ball_filter_label, strategy_label, backend_label, high_level_label, robot_controller_label, friendly_colour_label, ticks_per_second_label, play_type_label, friendly_score_label, enemy_score_label;
-		Gtk::Frame ball_filter_frame, strategy_frame, backend_frame, high_level_frame, robot_controller_frame, friendly_colour_frame, ticks_per_second_frame, play_type_frame, friendly_score_frame, enemy_score_frame, ai_notes_frame;
-		Gtk::Label ball_filter_value, strategy_value, backend_value, high_level_value, robot_controller_value, friendly_colour_value, ticks_per_second_value, play_type_value, friendly_score_value, enemy_score_value, ai_notes_value;
+		Gtk::Label backend_label, high_level_label, robot_controller_label, friendly_colour_label, ticks_per_second_label, play_type_label, friendly_score_label, enemy_score_label;
+		Gtk::Frame backend_frame, high_level_frame, robot_controller_frame, friendly_colour_frame, ticks_per_second_frame, play_type_frame, friendly_score_frame, enemy_score_frame, ai_notes_frame;
+		Gtk::Label backend_value, high_level_value, robot_controller_value, friendly_colour_value, ticks_per_second_value, play_type_value, friendly_score_value, enemy_score_value, ai_notes_value;
 		Visualizer visualizer;
 
 		Gtk::HBox lower_hbox;
@@ -629,8 +619,6 @@ class LogPlayer::Impl final : public Gtk::VBox, public Visualizable::World {
 				}
 			}
 
-			ball_filter_value.set_text(config.has_ball_filter() ? config.ball_filter() : u8"<None>");
-			strategy_value.set_text(config.has_strategy() ? config.strategy() : u8"<None>");
 			backend_value.set_text(config.backend());
 			high_level_value.set_text(config.has_high_level() ? config.high_level() : u8"<None>");
 			robot_controller_value.set_text(config.has_robot_controller() ? config.robot_controller() : u8"<None>");
