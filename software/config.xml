@@ -327,9 +327,9 @@
               <integer name="DBasic2Block">5</integer>
               <integer name="DBasicCorner">5</integer>
               <integer name="DefensiveBlock">5</integer>
-              <integer name="DirectKickFriendlyPivot">10</integer>
+              <integer name="DirectKickFriendlyPivot">7</integer>
               <integer name="EasyWin">5</integer>
-              <integer name="FranticDefense">10</integer>
+              <integer name="FranticDefense">5</integer>
               <integer name="FreeKickEnemyDefend">5</integer>
               <integer name="FreeKickEnemyDirect">5</integer>
               <integer name="FreeKickEnemyIndirect">5</integer>
