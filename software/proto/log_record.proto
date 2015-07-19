@@ -52,6 +52,9 @@ message Record {
 
 	// Stores notes provided by the current high level, e.g. an STP play and role list.
 	optional string ai_notes = 6;
+
+	// Store information specific to the MRF backend.
+	optional MRF mrf = 7;
 }
 
 message Config {
@@ -262,4 +265,30 @@ enum AnnunciatorAction {
 	ANNUNCIATOR_ACTION_ASSERT = 0;
 	ANNUNCIATOR_ACTION_DEASSERT = 1;
 	ANNUNCIATOR_ACTION_EDGE = 2;
+}
+
+// Information specific to the MRF backend.
+message MRF {
+	message OutMessage {
+		required uint32 Index = 1;
+		optional uint32 ID = 2;
+		required bytes Data = 3;
+	}
+
+	message InMessage {
+		required uint32 Index = 1;
+		required bytes Data = 2;
+		required uint32 LQI = 3;
+		required uint32 RSSI = 4;
+	}
+
+	message MDR {
+		required uint32 ID = 1;
+		required uint32 Code = 2;
+	}
+
+	optional bytes drive_packet = 1;
+	optional OutMessage out_message = 2;
+	optional InMessage in_message = 3;
+	optional MDR mdr = 4;
 }

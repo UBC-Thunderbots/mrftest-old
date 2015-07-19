@@ -279,6 +279,7 @@ int app_main(int argc, char **argv) {
 
 	// Start logging.
 	AI::Logger logger(ai);
+	backend.log_to(logger);
 
 	// Run the AI.
 	try {

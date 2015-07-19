@@ -47,6 +47,9 @@ namespace {
 }
 
 MRFDongle::SendReliableMessageOperation::SendReliableMessageOperation(MRFDongle &dongle, unsigned int robot, const void *data, std::size_t length) : dongle(dongle), message_id(dongle.alloc_message_id()), delivery_status(0xFF), transfer(create_reliable_message_transfer(dongle.device, robot, message_id, data, length)) {
+	if (dongle.logger) {
+		dongle.logger->log_mrf_message_out(robot, true, message_id, data, length);
+	}
 	transfer->signal_done.connect(sigc::mem_fun(this, &SendReliableMessageOperation::out_transfer_done));
 	transfer->submit();
 	mdr_connection = dongle.signal_message_delivery_report.connect(sigc::mem_fun(this, &SendReliableMessageOperation::message_delivery_report));
@@ -96,6 +99,7 @@ MRFDongle::SendReliableMessageOperation::ClearChannelError::ClearChannelError() 
 
 
 MRFDongle::MRFDongle() :
+		logger(nullptr),
 		context(),
 		device(context, MRF::VENDOR_ID, MRF::PRODUCT_ID, std::getenv("MRF_SERIAL")),
 		radio_interface(-1),
@@ -252,6 +256,10 @@ void MRFDongle::beep(unsigned int length) {
 	}
 }
 
+void MRFDongle::log_to(MRFPacketLogger &logger) {
+	this->logger = &logger;
+}
+
 uint8_t MRFDongle::alloc_message_id() {
 	if (free_message_ids.empty()) {
 		throw std::runtime_error("Out of reliable message IDs");
@@ -272,6 +280,9 @@ void MRFDongle::handle_mdrs(AsyncOperation<void> &op) {
 		throw std::runtime_error("MDR transfer has odd size");
 	}
 	for (unsigned int i = 0; i < mdr_transfer.size(); i += 2) {
+		if (logger) {
+			logger->log_mrf_mdr(mdr_transfer.data()[i], mdr_transfer.data()[i + 1]);
+		}
 		signal_message_delivery_report.emit(mdr_transfer.data()[i], mdr_transfer.data()[i + 1]);
 	}
 	mdr_transfer.submit();
@@ -281,6 +292,9 @@ void MRFDongle::handle_message(AsyncOperation<void> &, USB::InterruptInTransfer 
 	transfer.result();
 	if (transfer.size() > 2) {
 		unsigned int robot = transfer.data()[0];
+		if (logger) {
+			logger->log_mrf_message_in(robot, transfer.data() + 1, transfer.size() - 3, transfer.data()[transfer.size() - 2], transfer.data()[transfer.size() - 1]);
+		}
 		robots[robot]->handle_message(transfer.data() + 1, transfer.size() - 3, transfer.data()[transfer.size() - 2], transfer.data()[transfer.size() - 1]);
 	}
 	transfer.submit();
@@ -304,6 +318,9 @@ void MRFDongle::dirty_drive() {
 
 bool MRFDongle::submit_drive_transfer() {
 	if (!drive_transfer) {
+		if (logger) {
+			logger->log_mrf_drive(drive_packet, sizeof(drive_packet));
+		}
 		drive_transfer.reset(new USB::InterruptOutTransfer(device, 1, drive_packet, sizeof(drive_packet), 64, 0));
 		drive_transfer->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_drive_transfer_done));
 		drive_transfer->submit();
@@ -321,6 +338,9 @@ void MRFDongle::handle_drive_transfer_done(AsyncOperation<void> &op) {
 }
 
 void MRFDongle::send_unreliable(unsigned int robot, const void *data, std::size_t len) {
+	if (logger) {
+		logger->log_mrf_message_out(robot, false, 0, data, len);
+	}
 	uint8_t buffer[len + 1];
 	buffer[0] = static_cast<uint8_t>(robot);
 	std::memcpy(buffer + 1, data, len);
@@ -354,4 +374,3 @@ void MRFDongle::handle_annunciator_message_reactivated(std::size_t index) {
 		beep(ANNUNCIATOR_BEEP_LENGTH);
 	}
 }
-

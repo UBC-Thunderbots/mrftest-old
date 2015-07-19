@@ -1,6 +1,7 @@
 #include "ai/backend/physical/player.h"
 #include "ai/backend/vision/backend.h"
 #include "ai/backend/vision/team.h"
+#include "ai/logger.h"
 #include "mrf/dongle.h"
 #include "mrf/robot.h"
 #include <cstdlib>
@@ -28,6 +29,7 @@ namespace {
 	class FriendlyTeam final : public AI::BE::Vision::Team<AI::BE::Physical::Player, AI::BE::Player> {
 		public:
 			explicit FriendlyTeam(Backend &backend);
+			void log_to(MRFPacketLogger &logger);
 
 		protected:
 			void create_member(unsigned int pattern) override;
@@ -58,6 +60,7 @@ namespace {
 			const FriendlyTeam &friendly_team() const override;
 			EnemyTeam &enemy_team() override;
 			const EnemyTeam &enemy_team() const override;
+			void log_to(AI::Logger &logger) override;
 
 		private:
 			FriendlyTeam friendly;
@@ -74,6 +77,10 @@ namespace {
 MRFBackendFactory mrf_backend_factory_instance;
 
 FriendlyTeam::FriendlyTeam(Backend &backend) : AI::BE::Vision::Team<AI::BE::Physical::Player, AI::BE::Player>(backend) {
+}
+
+void FriendlyTeam::log_to(MRFPacketLogger &logger) {
+	dongle.log_to(logger);
 }
 
 void FriendlyTeam::create_member(unsigned int pattern) {
@@ -112,6 +119,10 @@ const EnemyTeam &MRFBackend::enemy_team() const {
 	return enemy;
 }
 
+void MRFBackend::log_to(AI::Logger &logger) {
+	friendly.log_to(logger);
+}
+
 MRFBackendFactory::MRFBackendFactory() : BackendFactory(u8"mrf") {
 }
 
@@ -119,4 +130,3 @@ std::unique_ptr<Backend> MRFBackendFactory::create_backend(const std::vector<boo
 	std::unique_ptr<Backend> be(new MRFBackend(disable_cameras, multicast_interface));
 	return be;
 }
-

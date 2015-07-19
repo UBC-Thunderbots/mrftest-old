@@ -52,6 +52,7 @@ namespace {
 			const FriendlyTeam &friendly_team() const override;
 			EnemyTeam &enemy_team() override;
 			const EnemyTeam &enemy_team() const override;
+			void log_to(AI::Logger &logger) override;
 
 		private:
 			FriendlyTeam friendly;
@@ -124,6 +125,9 @@ const EnemyTeam &Backend::enemy_team() const {
 	return enemy;
 }
 
+void Backend::log_to(AI::Logger &) {
+}
+
 void Backend::send_packet(AI::Timediff) {
 	grSim_Packet packet;
 	grSim_Commands *commands = packet.mutable_commands();
@@ -139,4 +143,3 @@ void Backend::send_packet(AI::Timediff) {
 		throw SystemError("sendmsg", errno);
 	}
 }
-

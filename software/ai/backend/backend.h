@@ -29,6 +29,8 @@ namespace Gtk {
 }
 
 namespace AI {
+	class Logger;
+
 	namespace BF {
 		class BallFilter;
 	}
@@ -268,6 +270,14 @@ namespace AI {
 				 */
 				sigc::signal<void, Cairo::RefPtr<Cairo::Context>> &signal_draw_overlay() const;
 
+				/**
+				 * \brief Sets which logger to use for any logging work this
+				 * backend needs to do.
+				 *
+				 * \param[in] logger the logger
+				 */
+				virtual void log_to(AI::Logger &logger) = 0;
+
 			protected:
 				/**
 				 * \brief The field
@@ -322,13 +332,14 @@ namespace AI {
 		class BackendFactory : public Registerable<BackendFactory> {
 			public:
 				/**
-				 * \brief Creates a new instance of the corresponding Backend and invokes a function with it.
+				 * \brief Creates a new instance of the corresponding Backend
+				 * and invokes a function with it.
 				 *
-				 * \param[in] disable_cameras a bitmask indicating which cameras should be ignored
-				 *
-				 * \param[in] multicast_interface the index of the interface on which to join multicast groups, or zero to use the kernel's default choice
-				 *
-				 * \return a pointer to the created backend
+				 * \param[in] disable_cameras a bitmask indicating which
+				 * cameras should be ignored
+				 * \param[in] multicast_interface the index of the interface on
+				 * which to join multicast groups, or zero to use the kernel's
+				 * default choice
 				 */
 				virtual std::unique_ptr<Backend> create_backend(const std::vector<bool> &disable_cameras, int multicast_interface) const = 0;
 

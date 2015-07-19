@@ -169,6 +169,41 @@ void AI::Logger::end_with_exception(const Glib::ustring &msg) {
 	ended = true;
 }
 
+void AI::Logger::log_mrf_drive(const void *data, std::size_t length) {
+	Log::Record record;
+	record.mutable_mrf()->set_drive_packet(data, length);
+	write_record(record);
+}
+
+void AI::Logger::log_mrf_message_out(unsigned int index, bool reliable, unsigned int id, const void *data, std::size_t length) {
+	Log::Record record;
+	Log::MRF::OutMessage *msg = record.mutable_mrf()->mutable_out_message();
+	msg->set_index(index);
+	if (reliable) {
+		msg->set_id(id);
+	}
+	msg->set_data(data, length);
+	write_record(record);
+}
+
+void AI::Logger::log_mrf_message_in(unsigned int index, const void *data, std::size_t length, unsigned int lqi, unsigned int rssi) {
+	Log::Record record;
+	Log::MRF::InMessage *msg = record.mutable_mrf()->mutable_in_message();
+	msg->set_index(index);
+	msg->set_data(data, length);
+	msg->set_lqi(lqi);
+	msg->set_rssi(rssi);
+	write_record(record);
+}
+
+void AI::Logger::log_mrf_mdr(unsigned int id, unsigned int code) {
+	Log::Record record;
+	Log::MRF::MDR *mdr = record.mutable_mrf()->mutable_mdr();
+	mdr->set_id(id);
+	mdr->set_code(code);
+	write_record(record);
+}
+
 void AI::Logger::write_record(const Log::Record &record) {
 	assert(record.IsInitialized());
 	google::protobuf::io::CodedOutputStream cos(&fos);

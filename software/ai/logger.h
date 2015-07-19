@@ -2,6 +2,7 @@
 #define AI_LOGGER_H
 
 #include "ai/ai.h"
+#include "mrf/packet_logger.h"
 #include "proto/log_record.pb.h"
 #include "proto/referee.pb.h"
 #include "util/fd.h"
@@ -26,7 +27,7 @@ namespace AI {
 	/**
 	 * Records a log of a game for later playback.
 	 */
-	class Logger final : public NonCopyable, public sigc::trackable {
+	class Logger final : public MRFPacketLogger, public NonCopyable, public sigc::trackable {
 		public:
 			/**
 			 * Constructs a new Logger and opens a log file.
@@ -46,6 +47,11 @@ namespace AI {
 			 * \param[in] msg a message describing the exception.
 			 */
 			void end_with_exception(const Glib::ustring &msg);
+
+			void log_mrf_drive(const void *data, std::size_t length) override;
+			void log_mrf_message_out(unsigned int index, bool reliable, unsigned int id, const void *data, std::size_t length) override;
+			void log_mrf_message_in(unsigned int index, const void *data, std::size_t length, unsigned int lqi, unsigned int rssi) override;
+			void log_mrf_mdr(unsigned int id, unsigned int code) override;
 
 		private:
 			const AI::AIPackage &ai;
@@ -98,4 +104,3 @@ namespace AI {
 }
 
 #endif
-

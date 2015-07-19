@@ -8,6 +8,7 @@
  */
 
 #include "drive/dongle.h"
+#include "mrf/packet_logger.h"
 #include "mrf/robot.h"
 #include "util/async_operation.h"
 #include "util/libusb.h"
@@ -84,10 +85,18 @@ class MRFDongle final : public Drive::Dongle {
 		 */
 		uint16_t pan() const;
 
+		/**
+		 * \brief Sets the logger to which to log packets.
+		 *
+		 * \param[in] logger the logger to log to
+		 */
+		void log_to(MRFPacketLogger &logger);
+
 	private:
 		friend class MRFRobot;
 		friend class SendReliableMessageOperation;
 
+		MRFPacketLogger *logger;
 		USB::Context context;
 		USB::DeviceHandle device;
 		int radio_interface, configuration_altsetting, normal_altsetting;
@@ -216,4 +225,3 @@ inline uint16_t MRFDongle::pan() const {
 }
 
 #endif
-

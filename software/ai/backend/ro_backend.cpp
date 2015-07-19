@@ -72,6 +72,7 @@ namespace {
 			const FriendlyTeam &friendly_team() const override;
 			EnemyTeam &enemy_team() override;
 			const EnemyTeam &enemy_team() const override;
+			void log_to(AI::Logger &) override;
 
 		private:
 			FriendlyTeam friendly;
@@ -174,6 +175,9 @@ const EnemyTeam &ROBackend::enemy_team() const {
 	return enemy;
 }
 
+void ROBackend::log_to(AI::Logger &) {
+}
+
 ROBackendFactory::ROBackendFactory() : BackendFactory(u8"ro") {
 }
 
@@ -185,4 +189,3 @@ std::unique_ptr<Backend> ROBackendFactory::create_backend(const std::vector<bool
 BackendFactory &AI::BE::RO::get_factory() {
 	return ro_backend_factory_instance;
 }
-

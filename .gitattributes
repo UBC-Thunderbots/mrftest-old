@@ -634,6 +634,8 @@ software/mrf/constants.cpp -text
 software/mrf/constants.h -text
 software/mrf/dongle.cpp -text
 software/mrf/dongle.h -text
+software/mrf/packet_logger.cpp -text
+software/mrf/packet_logger.h -text
 software/mrf/robot.cpp -text
 software/mrf/robot.h -text
 software/mrfcap.cpp -text
