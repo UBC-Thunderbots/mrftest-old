@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 #define LOG_RECORD_SIZE 128U
-#define LOG_MAGIC_TICK UINT32_C(0xE2468844)
+#define LOG_MAGIC_TICK UINT32_C(0xE2468845)
 
 /**
  * \ingroup LOG
@@ -43,10 +43,10 @@ typedef struct __attribute__((packed)) {
 typedef struct {
 	uint32_t magic;
 	uint32_t epoch;
-	uint32_t time;
+	uint64_t time;
 	union {
 		log_tick_t tick;
-		uint8_t padding[LOG_RECORD_SIZE - 4U - 4U - 4U];
+		uint8_t padding[LOG_RECORD_SIZE - 4U - 4U - 8U];
 	};
 } log_record_t;
 

@@ -21,6 +21,7 @@
 #include "motor.h"
 #include "mrf.h"
 #include "priority.h"
+#include "rtc.h"
 #include <FreeRTOS.h>
 #include <assert.h>
 #include <semphr.h>
@@ -52,8 +53,14 @@ static void receive_task(void *UNUSED(param)) {
 				static const size_t HEADER_LENGTH = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
 				static const size_t FOOTER_LENGTH = 2U /* FCS */ + 1U /* RSSI */ + 1U /* LQI */;
 				if (dest_address == 0xFFFFU) {
-					// Broadcast frame must contain drive packet, which must be 65 bytes long (+1byte for estop)
-					if (frame_length == HEADER_LENGTH + 66U + FOOTER_LENGTH) {
+					// Broadcast frame must contain a drive packet, which must
+					// contain:
+					// - 8×8=64 bytes of robot drive data
+					// - 1 byte of serial number
+					// - 1 byte of emergency stop condition
+					// - 8 bytes of timestamp
+					static const size_t BODY_LENGTH = 8 * 8 + 1 + 1 + 8;
+					if (frame_length == HEADER_LENGTH + BODY_LENGTH + FOOTER_LENGTH) {
 						// Construct the individual 16-bit words sent from the host.
 						const uint8_t offset = HEADER_LENGTH + 8U * robot_index;
 						uint16_t words[4U];
@@ -63,16 +70,16 @@ static void receive_task(void *UNUSED(param)) {
 							words[i] |= dma_buffer[offset + i * 2U];
 						}
 
-						// Pull out the serial number at the end.
+						// Pull out the stuff at the end.
 						uint8_t drive_data_serial = dma_buffer[HEADER_LENGTH + 64U];
-
-						/* 
-						In the transmit code, the variable "counter" is used as drive_data_serial, which ends up
-						at location HEADER_LENGTH + 64U in dma_buffer. It only seems logical that estop_byte
-						which is written immediately after counter will be at HEADER_LENGTH + 64U + 1U
-						*/
-
 						uint8_t estop_byte = dma_buffer[HEADER_LENGTH + 65U];
+						uint64_t timestamp = 0;
+						for (unsigned int i = 7; i < 8; --i) {
+							timestamp <<= 8;
+							timestamp |= dma_buffer[HEADER_LENGTH + 66U + i];
+						}
+						rtc_set(timestamp);
+
 						// Check for feedback request.
 						if (!!(words[0U] & 0x8000U)) {
 							feedback_pend_normal();

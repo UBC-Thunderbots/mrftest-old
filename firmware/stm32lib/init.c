@@ -1,7 +1,7 @@
 /**
  * \defgroup INIT Chip initialization functions
  *
- * @{
+ * \{
  */
 
 #include <init.h>
@@ -29,6 +29,8 @@ extern const unsigned char linker_ramtext_lma;
 extern unsigned char linker_ramtext_size;
 extern unsigned char linker_bss_vma;
 extern unsigned char linker_bss_size;
+
+static const init_specs_t *init_specs_saved;
 
 static unsigned int compute_ahb_prescale(unsigned int sys, unsigned int cpu) {
 	assert(!(sys % cpu));
@@ -114,6 +116,9 @@ void init_chip(const init_specs_t *specs) {
 	memcpy(&linker_ramtext_vma, &linker_ramtext_lma, (size_t) &linker_ramtext_size /* Yes, there should be an & here! */);
 	// Scrub the BSS section in RAM.
 	memset(&linker_bss_vma, 0, (size_t) &linker_bss_size /* Yes, there should be an & here! */);
+
+	// Save the specs.
+	init_specs_saved = specs;
 
 	// Always 8-byte-align the stack pointer on entry to an interrupt handler (as ARM recommends).
 	SCB.CCR.STKALIGN = 1; // Guarantee 8-byte alignment
@@ -389,6 +394,14 @@ void init_bootload(void) {
 }
 
 /**
- * @}
+ * \brief Returns the initialization specs.
+ *
+ * \return the initialization specs
  */
+const init_specs_t *init_specs(void) {
+	return init_specs_saved;
+}
 
+/**
+ * \}
+ */

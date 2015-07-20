@@ -13,6 +13,7 @@
 
 #include "log.h"
 #include "dma.h"
+#include "rtc.h"
 #include "sdcard.h"
 #include "upgrade/constants.h"
 #include <FreeRTOS.h>
@@ -261,6 +262,12 @@ void log_shutdown(void) {
  * \return the log record, or null on failure
  */
 log_record_t *log_alloc(void) {
+	uint64_t stamp = rtc_get();
+
+	if (stamp == 0) {
+		return 0;
+	}
+
 	if (log_state() != LOG_STATE_OK) {
 		return 0;
 	}
@@ -277,7 +284,7 @@ log_record_t *log_alloc(void) {
 
 	log_record_t *rec = &filling_sector->records[next_fill_record];
 	rec->epoch = epoch;
-	rec->time = xTaskGetTickCount();
+	rec->time = stamp;
 	return rec;
 }
 

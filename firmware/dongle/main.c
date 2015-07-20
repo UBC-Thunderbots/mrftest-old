@@ -16,6 +16,7 @@
 #include <init.h>
 #include <nvic.h>
 #include <rcc.h>
+#include <rtc.h>
 #include <sleep.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -157,6 +158,12 @@ static bool usb_control_handler(const usb_setup_packet_t *pkt) {
 		uint32_t id = build_id_get();
 		uep0_data_write(&id, sizeof(id));
 		return true;
+	} else if (pkt->bmRequestType.recipient == USB_RECIPIENT_DEVICE && pkt->bmRequestType.type == USB_CTYPE_VENDOR && pkt->bRequest == CONTROL_REQUEST_SET_TIME && !pkt->wValue && !pkt->wIndex && pkt->wLength == 8U) {
+		uint64_t stamp;
+		if (uep0_data_read(&stamp)) {
+			rtc_set(stamp);
+			return true;
+		}
 	}
 	return false;
 }

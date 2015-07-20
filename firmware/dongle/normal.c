@@ -11,6 +11,7 @@
 #include <queue.h>
 #include <nvic.h>
 #include <rcc.h>
+#include <rtc.h>
 #include <semphr.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -240,7 +241,7 @@ static void handle_drive_endpoint_done(unsigned int UNUSED(ep), BaseType_t *from
 static void send_drive_packet(const void *packet, uint8_t counter) {
 	// Write out the packet.
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 0U, 9U); // Header length
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 1U, 9U + DRIVE_PACKET_DATA_SIZE + 2U); // Frame length
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 1U, 9U + DRIVE_PACKET_DATA_SIZE + 1U + 1U + 8U); // Frame length
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 2U, 0b01000001U); // Frame control LSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 3U, 0b10001000U); // Frame control MSB
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 4U, ++mrf_tx_seqnum); // Sequence number
@@ -260,15 +261,15 @@ static void send_drive_packet(const void *packet, uint8_t counter) {
 		mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i, bptr[i] | mask);
 	}
 
+	// Write the footer: counter, emergency stop status, and timestamp.
 	mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + DRIVE_PACKET_DATA_SIZE, counter);
-
-	//Write the estop byte into the last piece of the packet, after counter
-	if (estop_read() != ESTOP_RUN) { //0 to stop
-		mrf_write_long(MRF_REG_LONG_TXNFIFO + 12U + DRIVE_PACKET_DATA_SIZE, 0x00U);
-	} else {		 	 //1 to proceed
-		mrf_write_long(MRF_REG_LONG_TXNFIFO + 12U + DRIVE_PACKET_DATA_SIZE, 0x01U);
+	mrf_write_long(MRF_REG_LONG_TXNFIFO + 12U + DRIVE_PACKET_DATA_SIZE, estop_read() == ESTOP_RUN);
+	uint64_t stamp = rtc_get();
+	for (unsigned int i = 0; i < 8; ++i) {
+		mrf_write_long(MRF_REG_LONG_TXNFIFO + 13U + DRIVE_PACKET_DATA_SIZE + i, (uint8_t)(stamp >> (8 * i)));
 	}
 
+	// Advance to polling the next robot on the next packet.
 	poll_index = (poll_index + 1U) % 8U;
 
 	// Initiate transmission with no acknowledgement.

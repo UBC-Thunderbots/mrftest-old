@@ -5,6 +5,7 @@
 #include "util/dprint.h"
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <exception>
@@ -195,6 +196,15 @@ MRFDongle::MRFDongle() :
 		device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, MRF::CONTROL_REQUEST_SET_PAN_ID, pan_, static_cast<uint16_t>(radio_interface), 0);
 		static const uint64_t MAC = UINT64_C(0x20cb13bd834ab817);
 		device.control_out(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_INTERFACE, MRF::CONTROL_REQUEST_SET_MAC_ADDRESS, 0, static_cast<uint16_t>(radio_interface), &MAC, sizeof(MAC), 0);
+
+		{
+			std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+			std::chrono::system_clock::time_point epoch = std::chrono::system_clock::from_time_t(0);
+			std::chrono::system_clock::duration diff = now - epoch;
+			std::chrono::microseconds micros = std::chrono::duration_cast<std::chrono::microseconds>(diff);
+			uint64_t stamp = static_cast<uint64_t>(micros.count());
+			device.control_out(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, MRF::CONTROL_REQUEST_SET_TIME, 0, 0, &stamp, sizeof(stamp), 0);
+		}
 	}
 
 	// Switch to normal mode.

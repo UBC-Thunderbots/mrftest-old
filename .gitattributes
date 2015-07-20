@@ -193,12 +193,14 @@ firmware/stm32lib/include/registers/syscfg.h -text
 firmware/stm32lib/include/registers/systick.h -text
 firmware/stm32lib/include/registers/timer.h -text
 firmware/stm32lib/include/registers/usart.h -text
+firmware/stm32lib/include/rtc.h -text
 firmware/stm32lib/include/sleep.h -text
 firmware/stm32lib/include/uchar.h -text
 firmware/stm32lib/include/unused.h -text
 firmware/stm32lib/init.c -text
 firmware/stm32lib/libcsupport.c -text
 firmware/stm32lib/registers.dox -text
+firmware/stm32lib/rtc.c -text
 firmware/stm32lib/sleep.c -text
 firmware/stm32lib/stm32f405.ld -text
 firmware/usb/Doxyfile.common -text

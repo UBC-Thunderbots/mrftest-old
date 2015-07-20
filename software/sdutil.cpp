@@ -32,7 +32,7 @@ namespace {
 	constexpr off_t SECTOR_SIZE = 512;
 	constexpr off_t LOG_RECORD_SIZE = 128;
 	constexpr off_t RECORDS_PER_SECTOR = SECTOR_SIZE / LOG_RECORD_SIZE;
-	constexpr uint32_t LOG_MAGIC_TICK = UINT32_C(0xE2468844);
+	constexpr uint32_t LOG_MAGIC_TICK = UINT32_C(0xE2468845);
 	constexpr off_t UPGRADE_AREA_SECTORS = 1024 * 4096 / SECTOR_SIZE;
 	constexpr unsigned int UPGRADE_AREA_COUNT = 2;
 	const std::array<uint8_t, SECTOR_SIZE> ZERO_SECTOR{0};
@@ -138,6 +138,7 @@ namespace {
 
 			struct Epoch final {
 				off_t first_sector, last_sector;
+				uint64_t stamp;
 			};
 
 			explicit ScanResult(const SectorArray &sarray);
@@ -246,6 +247,13 @@ ScanResult::ScanResult(const SectorArray &sarray) {
 				}
 			}
 			epoch_struct.last_sector = low - 1;
+
+			// Extract epoch start timestamp.
+			{
+				std::array<uint8_t, SECTOR_SIZE> sector;
+				sarray.get(epoch_struct.first_sector, &sector[0]);
+				epoch_struct.stamp = decode_u64_le(&sector[8]);
+			}
 
 			epochs_.push_back(epoch_struct);
 		}
@@ -403,7 +411,14 @@ namespace {
 
 		std::cout << "Epochs:\n";
 		for (std::size_t i = 0; i < scan_result->epochs().size(); ++i) {
-			std::cout << (i + 1) << ": " << '[' << scan_result->epochs()[i].first_sector << ',' << scan_result->epochs()[i].last_sector << "]\n";
+			const ScanResult::Epoch &epoch = scan_result->epochs()[i];
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuseless-cast" // The cast to time_t is useless on 64-bit platforms but not on 32-bit platforms.
+			std::time_t t = static_cast<std::time_t>(epoch.stamp / 1000000);
+#pragma GCC diagnostic pop
+			char stamp_formatted[4096];
+			std::strftime(stamp_formatted, sizeof(stamp_formatted), "%c", std::localtime(&t));
+			std::cout << (i + 1) << '@' << stamp_formatted << " + 0." << todecu(epoch.stamp % 1000000, 6) << " s: " << '[' << epoch.first_sector << ',' << epoch.last_sector << "]\n";
 		}
 		return 1;
 	}
@@ -482,7 +497,7 @@ namespace {
 		std::ofstream ofs;
 		ofs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
 		ofs.open(args[1], std::ios_base::out | std::ios_base::trunc);
-		ofs << "Epoch\tTime (ticks)\tBreakbeam\tBattery (V)\tCapacitor (V)\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tEncoder 0 (¼°/t)\tEncoder 1 (¼°/t)\tEncoder 2 (¼°/t)\tEncoder 3 (¼°/t)\tMotor 0 (/255)\tMotor 1 (/255)\tMotor 2 (/255)\tMotor 3 (/255)\tMotor 0 (°C)\tMotor 1 (°C)\tMotor 2 (°C)\tMotor 3 (°C)\tDribbler Ticked?\tDribbler (/255)\tDribbler (rpm)\tDribbler (°C)\tIdle Cycles";
+		ofs << "Epoch\tUNIX Time\tBreakbeam\tBattery (V)\tCapacitor (V)\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tEncoder 0 (¼°/t)\tEncoder 1 (¼°/t)\tEncoder 2 (¼°/t)\tEncoder 3 (¼°/t)\tMotor 0 (/255)\tMotor 1 (/255)\tMotor 2 (/255)\tMotor 3 (/255)\tMotor 0 (°C)\tMotor 1 (°C)\tMotor 2 (°C)\tMotor 3 (°C)\tDribbler Ticked?\tDribbler (/255)\tDribbler (rpm)\tDribbler (°C)\tIdle Cycles";
 		for (unsigned int i = 0; i != MRF::ERROR_LT_COUNT; ++i) {
 			ofs << '\t' << MRF::ERROR_LT_MESSAGES[i];
 		}
@@ -499,7 +514,7 @@ namespace {
 				// Decode the record.
 				uint32_t magic = decode_u32_le(ptr); ptr += 4;
 				uint32_t record_epoch = decode_u32_le(ptr); ptr += 4;
-				uint32_t ticks = decode_u32_le(ptr); ptr += 4;
+				uint64_t stamp = decode_u64_le(ptr); ptr += 8;
 				if (magic == LOG_MAGIC_TICK && record_epoch == epoch_index) {
 					float breakbeam_diff = decode_float_le(ptr); ptr += 4;
 					float battery_voltage = decode_float_le(ptr); ptr += 4;
@@ -534,7 +549,7 @@ namespace {
 						errors[i] = *ptr++;
 					}
 
-					ofs << epoch_index << '\t' << ticks << '\t' << breakbeam_diff << '\t' << battery_voltage << '\t' << capacitor_voltage;
+					ofs << epoch_index << '\t' << (stamp / 1000000) << '.' << todecu(stamp % 1000000, 6) << '\t' << breakbeam_diff << '\t' << battery_voltage << '\t' << capacitor_voltage;
 					for (int16_t sp : wheels_setpoints) {
 						ofs << '\t' << sp;
 					}

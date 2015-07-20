@@ -113,6 +113,7 @@ typedef struct {
 
 void init_chip(const init_specs_t *specs);
 void init_bootload(void);
+const init_specs_t *init_specs(void);
 
 #endif
 
