@@ -568,8 +568,7 @@ void AI::AutoRef::ball_has_left() {
 
 	}
 
-void AI::AutoRef::on_vision_packet(AI::Timestamp ts, const SSL_WrapperPacket &vision_packet){
-
+void AI::AutoRef::on_vision_packet(AI::Timestamp, const SSL_WrapperPacket &){
 	if(print_ball_velocity && ((world.playtype() != PlayType::STOP) || (world.playtype() !=PlayType::HALT)))
 	{
 		double velocity = world.ball().velocity().len();
@@ -587,11 +586,5 @@ void AI::AutoRef::on_vision_packet(AI::Timestamp ts, const SSL_WrapperPacket &vi
 	}
 }
 
-void AI::AutoRef::on_refbox_packet(AI::Timestamp ts, const SSL_Referee &vision_packet){
-
-	//throwaway packets since we dont use them
-	ts  = std::chrono::steady_clock::now();
-	vision_packet.has_blue();
-
+void AI::AutoRef::on_refbox_packet(AI::Timestamp, const SSL_Referee &){
 }
-

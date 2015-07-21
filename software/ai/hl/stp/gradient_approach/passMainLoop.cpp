@@ -350,10 +350,10 @@ namespace AI {
 
 					bool blockingPass = false;
 					//iterate over the rest of the pass positions
-					for(int ii = 1; ii < potential_passes.size(); ii++){
+					for(std::size_t ii = 1; ii < potential_passes.size(); ii++){
 						blockingPass = false;
 						Point relativeTarget = potential_passes.at(ii).getTarget()-snapshot.passer_position;
-						for(int jj = 0; jj < bestPositions.size(); jj++){
+						for(std::size_t jj = 0; jj < bestPositions.size(); jj++){
 							Point relativeBestPos = bestPositions.at(jj).getTarget()-snapshot.passer_position;
 
 							//If its closer to passer and the fastest distance

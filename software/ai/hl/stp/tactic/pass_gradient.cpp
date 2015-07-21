@@ -131,8 +131,6 @@ namespace {
 				std::cout << "Ball_vel from Tact: " << shot_velocity << std::endl;
 				if(shot_velocity < 2) shot_velocity = 2;
 				time_delay = bestPass->params.at(2);
-				double quality = bestPass->quality;
-
 
 				GradientApproach::PassInfo::Instance().tacticInfo.kicker_location = player.position();
 				GradientApproach::PassInfo::Instance().tacticInfo.kicker_orientation = player.orientation();

@@ -39,8 +39,6 @@ namespace {
 		Point destination = ball - enemy;
 		Point rectangle[4];
 		Point line_segment[2];
-		double shadow_thresh = world.field().enemy_goal().x - 0.5;
-		std::size_t index = world.enemy_team().size() - 1;
 
 		line_segment[0] = enemy;
 		line_segment[1] = world.field().friendly_goal();

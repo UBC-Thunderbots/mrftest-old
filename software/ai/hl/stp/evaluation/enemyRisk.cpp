@@ -62,7 +62,7 @@ using namespace AI::HL::STP::GradientApproach;
 		double TIME_UNCERTAINTY = 3;
 		double W_q = 9;
 
-		int num_enemies = snapshot.enemy_positions.size();
+		std::size_t num_enemies = snapshot.enemy_positions.size();
 		Point passer_pos = snapshot.passer_position;
 		//assumes ball maintains constant velocity- should be improved later
 		double t_arrive = (passer_pos - destination).len()/kickSpeed + delay_time;
@@ -83,7 +83,7 @@ using namespace AI::HL::STP::GradientApproach;
 		double current_distance;
 
 
-		for (int i = 0; i < snapshot.enemy_positions.size(); ++i){
+		for (std::size_t i = 0; i < snapshot.enemy_positions.size(); ++i){
 			projected_enemy_positions.at(i) = snapshot.enemy_positions.at(i)
 													+ snapshot.enemy_velocities.at(i) * future_time;
 			current_distance = (snapshot.passer_position - projected_enemy_positions.at(i)).len();
@@ -128,7 +128,7 @@ using namespace AI::HL::STP::GradientApproach;
 		double t_intercept;
 		double danger;
 
-		for(unsigned int i=0; i<=num_enemies ;i++){
+		for(std::size_t i=0; i<=num_enemies ;i++){
 
 			l2 = (destination - passer_pos).len();
 			l2 = l2*l2;

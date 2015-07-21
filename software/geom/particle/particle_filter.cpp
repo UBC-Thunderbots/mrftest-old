@@ -32,9 +32,9 @@ void Particle::updatePosition(double timeDelta)
 }
 
 ParticleFilter::ParticleFilter(double length, double width) :
+		estimateValid_(false),
 		length_(length),
-		width_(width),
-		estimateValid_(false)
+		width_(width)
 {
 	time_t  timev;
 
