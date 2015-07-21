@@ -680,7 +680,6 @@ static void rdtx_task(void *UNUSED(param)) {
 						mdr.status = MDR_STATUS_NO_CLEAR_CHANNEL;
 					} else {
 						// Assume: No ACK.
-#warning possibly bad assumption; add a code for "unknown reason"
 						mdr.status = MDR_STATUS_NOT_ACKNOWLEDGED;
 					}
 				} else {

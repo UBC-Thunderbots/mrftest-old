@@ -348,11 +348,11 @@ static struct {
  * \brief The writeout task.
  */
 static void upgrade_dfu_writeout_task(void *UNUSED(param)) {
-	bool prepared = false, running = true, erased;
+	bool prepared = false, running = true, erased = false;
 	dma_memory_handle_t buffer_handle;
 	uint8_t *buffer;
-	size_t buffer_used;
-	uint32_t byte_count, crc, start_sector, next_sector, header_magic, header_flags;
+	size_t buffer_used = 0;
+	uint32_t byte_count, crc, start_sector = 0, next_sector = 0, header_magic, header_flags;
 
 	buffer_handle = dma_alloc(SD_SECTOR_SIZE);
 	buffer = dma_get_buffer(buffer_handle);
