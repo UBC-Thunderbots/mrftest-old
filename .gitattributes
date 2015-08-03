@@ -652,6 +652,7 @@ software/proto/messages_robocup_ssl_wrapper.proto -text
 software/proto/referee.proto -text
 software/sdutil.cpp -text
 software/style.txt -text
+software/svn-commit.tmp -text
 software/test/common/dribble.cpp -text
 software/test/common/dribble.h -text
 software/test/common/drive.cpp -text
