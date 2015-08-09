@@ -4,6 +4,7 @@
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/evaluation/defense.h"
 #include "geom/util.h"
+#include "ai/hl/stp/evaluation/enemy.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -34,8 +35,23 @@ namespace {
 	}
 
 	void ShadowEnemy::execute() {
-		Point enemy = Enemy::closest_ball(world, index)->evaluate().position();
-		Point ball = world.ball().position();
+		std::vector<AI::HL::STP::Evaluation::Threat> enemy_threats = AI::HL::STP::Evaluation::calc_enemy_threat(world);
+		Point enemy_to_block = enemy_threats[index].robot.position();
+
+		/**
+		 * ssshh... global state
+		 * DO NOT TOUCH THIS unless you know what you are doing.
+		 */
+		bool goalie_top = true;
+
+		const Field &field = world.field();
+		const Point goal_side = goalie_top ? Point(-field.length() / 2, field.goal_width() / 2) : Point(-field.length() / 2, -field.goal_width() / 2);
+		const Point goal_opp = goalie_top ? Point(-field.length() / 2, -field.goal_width() / 2) : Point(-field.length() / 2, field.goal_width() / 2);
+
+
+
+		Point destination = calc_block_cone(goal_side, goal_opp, enemy_to_block, Robot::MAX_RADIUS);
+/*		Point ball = world.ball().position();
 		Point destination = ball - enemy;
 		Point rectangle[4];
 		Point line_segment[2];
@@ -51,9 +67,8 @@ namespace {
 		destination = destination.norm() * (AI::Util::BALL_STOP_DIST + Robot::MAX_RADIUS + Ball::RADIUS);
 		destination = ball - destination;
 		dest = destination;
-
+*/
 		Action::move(world, player, dest.position(), dest.velocity());
-		player.dribble(AI::BE::Player::DribbleMode::STOP);
 	}
 }
 

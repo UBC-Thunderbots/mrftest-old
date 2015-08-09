@@ -49,22 +49,22 @@ class TesterWindow final : public Gtk::Window {
 		Gtk::Frame feedback_frame;
 		TesterFeedbackPanel feedback_panel;
 
-		Gtk::Frame drive_frame;
-		DrivePanel drive_panel;
-
-		Gtk::Frame dribble_frame;
-		DribblePanel dribble_panel;
-
-		Gtk::VBox vbox2;
-
-		Gtk::Frame kicker_frame;
-		KickerPanel kicker_panel;
-
 		Gtk::Frame leds_frame;
 		LEDsPanel leds_panel;
 
 		Gtk::Frame power_frame;
 		PowerPanel power_panel;
+
+		Gtk::VBox vbox2;
+
+		Gtk::Frame drive_frame;
+		DrivePanel drive_panel;
+
+		Gtk::Frame kicker_frame;
+		KickerPanel kicker_panel;
+
+		Gtk::Frame dribble_frame;
+		DribblePanel dribble_panel;
 
 		Gtk::Frame joystick_frame;
 		Gtk::HBox joystick_sensitivity_hbox;
@@ -74,6 +74,8 @@ class TesterWindow final : public Gtk::Window {
 		Gtk::ComboBox joystick_chooser;
 
 		std::vector<sigc::connection> joystick_signal_connections;
+
+		MRFRobot *robot;
 
 		void scram();
 		int key_snoop(Widget *, GdkEventKey *event);
@@ -86,4 +88,3 @@ class TesterWindow final : public Gtk::Window {
 };
 
 #endif
-

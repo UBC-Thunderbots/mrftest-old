@@ -2,6 +2,8 @@
 #include "ai/hl/stp/action/goalie.h"
 #include "ai/hl/util.h"
 #include "ai/hl/stp/param.h"
+#include "ai/hl/stp/action/chip.h"
+#include "ai/hl/stp/action/move.h"
 
 #include <cassert>
 
@@ -84,16 +86,17 @@ namespace {
 
 
 //			// just orient towards the "front"
-//			player.move(next_point, Angle::zero(), Point());
+//			AI::HL::STP::Action::move(player, Angle::zero, next_point);
+
 
     		// uniform random generator - use timestamp as seed
 			counter--;
 
 			if(is_left){
-				player.move(left_target,Angle::zero(), Point());
+				AI::HL::STP::Action::move(player, Angle::zero(), left_target);
 			}
 			else {
-				player.move(right_target,Angle::zero(), Point());
+				AI::HL::STP::Action::move(player, Angle::zero(), right_target);
 			}
 
 			if( counter == 0 ){
@@ -114,8 +117,9 @@ namespace {
 			}
 			player.type(AI::Flags::MoveType::RAM_BALL);
 			player.prio(AI::Flags::MovePrio::HIGH);
-		if (player.has_ball())
-				player.autochip(power);
+		if (player.has_ball()) {
+			AI::HL::STP::Action::goalie_chip_target(world, player, world.ball().position());
+		}
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::penalty_goalie_random(World world) {

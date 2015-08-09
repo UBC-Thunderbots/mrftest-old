@@ -19,11 +19,6 @@ namespace AI {
 			Glib::ustring navigator_name;
 
 			/**
-			 * \brief The name of the robot controller in use.
-			 */
-			Glib::ustring robot_controller_name;
-
-			/**
 			 * \brief Which end of the field the team is defending.
 			 */
 			AI::BE::Backend::FieldEnd defending_end;

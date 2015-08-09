@@ -16,7 +16,7 @@ namespace AI {
 			/**
 			 * The max speed the ball can be kicked
 			 */
-			constexpr double BALL_MAX_SPEED = 8.0; 
+			extern DoubleParam BALL_MAX_SPEED;
 
 			/**
 			 * Distance from the penalty mark

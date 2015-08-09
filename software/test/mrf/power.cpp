@@ -2,7 +2,7 @@
 #include <glibmm/main.h>
 
 PowerPanel::PowerPanel(MRFDongle &dongle, unsigned int index) :
-		Gtk::HButtonBox(Gtk::BUTTONBOX_SPREAD),
+		Gtk::VButtonBox(Gtk::BUTTONBOX_SPREAD),
 		dongle(dongle),
 		index(index),
 		power_drivetrain_button(u8"Power Drivetrain"),

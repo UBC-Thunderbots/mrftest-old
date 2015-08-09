@@ -1,12 +1,12 @@
-#include "ai/hl/stp/action/block.h"
-#include "ai/hl/stp/action/shoot.h"
-#include "ai/hl/stp/action/move.h"
-#include "ai/hl/stp/evaluation/player.h"
-#include "ai/hl/stp/evaluation/ball.h"
 #include "ai/flags.h"
+#include "ai/hl/stp/action/block.h"
+#include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/evaluation/ball.h"
+#include "ai/hl/stp/evaluation/player.h"
 #include "ai/hl/util.h"
-#include "geom/util.h"
 #include "geom/angle.h"
+#include "geom/util.h"
 #include "util/dprint.h"
 #include "util/param.h"
 
@@ -25,32 +25,23 @@ namespace AI {
 }
 
 void AI::HL::STP::Action::block_goal(World world, Player player, Robot robot) {
+	// Avoid defense areas
+	player.flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE ||
+		AI::Flags::FLAG_AVOID_ENEMY_DEFENSE);
+
 	Point dirToGoal = (world.field().friendly_goal() - robot.position()).norm();
 	Point target = robot.position() + (block_threshold * Robot::MAX_RADIUS * dirToGoal);
 
-	// #warning CHECK ??
-	/*
-	   // don't block from ball if we are blocking our baller!!
-	   Player baller = Evaluation::calc_friendly_baller(world);
-	   if (baller.is() && Evaluation::player_within_angle_thresh(baller, target, 2 * degrees2radians(block_angle))) {
-	    Point target = robot.position() + (2 * block_threshold * Robot::MAX_RADIUS * dirToGoal);
-	   }
-	 */
-	move(world, player, target);
+	player.mp_move(target, (world.ball().position() - player.position()).orientation());
 }
 
 void AI::HL::STP::Action::block_ball(World world, Player player, Robot robot) {
+	// Avoid defense areas
+	player.flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE ||
+		AI::Flags::FLAG_AVOID_ENEMY_DEFENSE);
+
 	Point dirToBall = (world.ball().position() - robot.position()).norm();
 	Point target = robot.position() + (block_threshold * Robot::MAX_RADIUS * dirToBall);
 
-	// #warning CHECK ??
-	/*
-	   // don't block from ball if we are blocking our baller!!
-	   Player baller = Evaluation::calc_friendly_baller(world);
-	   if (baller.is() && Evaluation::player_within_angle_thresh(baller, target, 2 * degrees2radians(block_angle))){
-	    target = robot.position() + (2 * block_threshold * Robot::MAX_RADIUS * dirToBall);
-	   }
-	 */
-	move(world, player, target);
+	player.mp_move(target, (world.ball().position() - player.position()).orientation());
 }
-

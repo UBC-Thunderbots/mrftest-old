@@ -1,46 +1,47 @@
 #include "ai/flags.h"
-#include "ai/hl/util.h"
 #include "ai/hl/stp/action/move_spin.h"
+#include "ai/hl/util.h"
 #include "geom/angle.h"
 #include "geom/param.h"
 
 using namespace AI::HL::STP;
 
 namespace {
-	RadianParam spin_delta(u8"change in orientation every time tick for move spin (radians)", u8"AI/HL/STP/Action/spin", 3.0, 1.0, 5.0);
+	RadianParam spin_delta(u8"change in orientation every time tick for move spin (radians)", u8"AI/HL/STP/Action/spin", 600.0, 0.0, 1200.0);
 
 	const int CLOCKWISE = -1;
 	const int COUNTER_CLOCKWISE = 1;
 }
 
 void AI::HL::STP::Action::move_spin(Player player, const Point dest) {
+	// Avoid defense areas
+	player.flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE ||
+		AI::Flags::FLAG_AVOID_ENEMY_DEFENSE);
+
 	// spin in different directions depending on which quadrant of the field the robot is at
 	int direction_to_spin;
 
-	if(player.position().x < 0){
-		if(player.position().y < 0){
+	if (player.position().x < 0) {
+		if (player.position().y < 0) {
 			direction_to_spin= CLOCKWISE;
-		}
-		else{
+		} else {
 			direction_to_spin= COUNTER_CLOCKWISE;
 		}
-	}
-	else{
-		if(player.position().y < 0){
+	} else {
+		if (player.position().y < 0) {
 			direction_to_spin= COUNTER_CLOCKWISE;
-		}
-		else{
+		} else {
 			direction_to_spin= CLOCKWISE;
 		}
 	}
-
 
 	// spin faster when you are close to the destination point
 	if ((player.position() - dest).len() < AI::HL::Util::POS_CLOSE + Robot::MAX_RADIUS) {
-		player.move(dest, (player.orientation() + 2 * spin_delta * direction_to_spin).angle_mod(), Point());
+		player.mp_spin(dest, spin_delta*direction_to_spin);
 	} else {
-		player.move(dest, (player.orientation() + spin_delta * direction_to_spin).angle_mod(), Point());
+		player.mp_spin(dest, spin_delta*direction_to_spin);
 	}
+
 	player.type(AI::Flags::MoveType::NORMAL);
 	player.prio(AI::Flags::MovePrio::HIGH);
 }

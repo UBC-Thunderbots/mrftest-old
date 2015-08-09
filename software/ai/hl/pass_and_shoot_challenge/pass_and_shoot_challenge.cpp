@@ -176,7 +176,7 @@ class PASCHL final : public HighLevel {
 					if (player3.has_ball() && player3.orientation().angle_diff(facing_goal) > Angle::of_degrees(2))
 						player3.move(player3.position(), facing_goal , Point());
 					else
-						player3.autokick(kick_speed);
+#warning This does not work with movement primitives. It used to call autokick.
 					break;
 				}
 			}
@@ -229,7 +229,7 @@ void PASCHL::robot_pass(std::size_t passer_num, std::size_t receiver_num, state 
 
 		Angle acceptable_angle_difference = Angle::of_degrees(10);
 		if (passer.orientation().angle_diff(passer_orientation) < acceptable_angle_difference) {
-			passer.autokick(kick_speed);
+#warning This does not work with movement primitives. It used to call autokick.
 			kicked_ball = true;
 		}
 	} else {

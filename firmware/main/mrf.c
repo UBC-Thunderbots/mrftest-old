@@ -51,6 +51,7 @@
 #include <assert.h>
 #include <event_groups.h>
 #include <inttypes.h>
+#include <semphr.h>
 #include <task.h>
 
 typedef enum {

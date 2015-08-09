@@ -1,6 +1,7 @@
 #ifndef AI_HL_WORLD_H
 #define AI_HL_WORLD_H
 
+#include "drive/robot.h"
 #include "ai/flags.h"
 #include "ai/backend/backend.h"
 #include "ai/common/objects/world.h"
@@ -100,11 +101,89 @@ namespace AI {
 					 */
 					void move(Point dest, Angle ori, Point vel);
 
+
+					/**
+					 * \brief Request the player to execute the move primitive and set its destination
+					 *
+					 * \param[in] dest the destination position to move to
+					 */
+
+					void mp_move(Point dest);
+
+					/**
+					 * \brief Request the player to execute the move primitive and set its destination
+					 *
+					 * \param[in] dest the destination position to move to
+					 *
+					 * \param[in] ori the target orientation to assume
+					 */
+					void mp_move(Point dest, Angle ori);
+
+					/**
+					 * \brief Request the player to execute the dribble primitive and set its destination
+					 *
+					 * \param[in] dest the destination position to dribble to
+					 *
+					 * \param[in] ori the target orientation to assume
+					 */
+					void mp_dribble(Point dest, Angle ori);
+
+					/**
+					 * \brief Request the player to execute the move primitive and set its destination
+					 *
+					 * \param[in] dest the destination position to move to before activating the kicker/chipper
+					 *
+					 * \param[in] ori the target orientation to assume whent the kick/chipper is activated
+					 *
+					 * \param[in] chip whether the robot should chip
+					 *
+					 * \param[in] power kick velocity or chip distance depending on the action
+					 */
+					void mp_shoot(Point dest, Angle ori, bool chip, double power);
+
+					/**
+					 * \brief Request the player to execute the shoot primitive and set its destination. 
+					 * This is intended for scenarios where orientation of the kick/chip is not important.
+					 *
+					 * \param[in] dest the destination position for robot to move to when activating the kicker/chipper
+					 *
+					 * \param[in] chip whether the robot should chip
+					 *
+					 * \param[in] power kick velocity or chip distance depending on the action
+					 */
+					void mp_shoot(Point dest, bool chip, double power);
+
+
+					/**
+					 * \brief Request the player to execute the catch primitive. Interface is not yet set
+					 */
+					void mp_catch(Point target);// not sure what the best interface is
+
+					/**
+					 * \brief Request the player to execute the pivot primitive and set the geometery of the pivot action
+					 *
+					 * \param[in] centre the point to pivot around
+					 *
+					 * \param[in] ori final orientation of the robot, assuming it face pivoting centre at the end
+					 */
+					void mp_pivot(Point centre, Angle ori);
+
+					/**
+					 * \brief Request the player to execute the spin primitive and set its destination
+					 *
+					 * \param[in] dest the destination position to move to
+					 *
+					 * \param[in] speed angular speed
+					 */
+					void mp_spin(Point dest, Angle speed);
+	
+
 					/**
 					 * \brief Returns the movement flags for this player
 					 *
 					 * \return the flags governing the movement
 					 */
+
 					unsigned int flags() const;
 
 					/**
@@ -141,47 +220,6 @@ namespace AI {
 					 * \param[in] prio the priority of the movement
 					 */
 					void prio(AI::Flags::MovePrio prio);
-
-					/**
-					 * \brief Causes the player to kick the ball
-					 *
-					 * \param[in] speed the speed of the kick, in m/s
-					 */
-					void kick(double speed);
-
-					/**
-					 * \brief Causes the player to automatically kick the ball as soon as it is picked up by the sensor
-					 *
-					 * This function must be called on every tick in order to remain armed; failing to invoke the function will disarm the mechanism
-					 *
-					 * \param[in] speed the speed of the kick, in m/s
-					 */
-					void autokick(double speed);
-
-					/**
-					 * \brief Causes the player to chip the ball up in the air
-					 *
-					 * \param[in] power the power of the chip, from 0 to 1 in arbitrary units
-					 */
-					void chip(double power);
-
-					/**
-					 * \brief Causes the player to automatically chip the ball as soon as it is picked up by the sensor
-					 *
-					 * This function must be called on every tick in order to remain armed; failing to invoke the function will disarm the mechanism
-					 *
-					 * \param[in] power the power of the chip, from 0 to 1 in arbitrary units
-					 */
-					void autochip(double power);
-
-					/**
-					 * \brief Controls the dribbler.
-					 *
-					 * If this function is not called in a tick, the dribbler stops.
-					 *
-					 * \param[in] mode the mode in which to run the dribbler
-					 */
-					void dribble(DribbleMode mode);
 			};
 
 			/**
@@ -354,26 +392,6 @@ inline void AI::HL::W::Player::prio(AI::Flags::MovePrio prio) {
 	AI::Common::Player::impl->prio(prio);
 }
 
-inline void AI::HL::W::Player::kick(double speed) {
-	AI::Common::Player::impl->kick(speed);
-}
-
-inline void AI::HL::W::Player::autokick(double speed) {
-	AI::Common::Player::impl->autokick(speed);
-}
-
-inline void AI::HL::W::Player::chip(double power) {
-	AI::Common::Player::impl->chip(power);
-}
-
-inline void AI::HL::W::Player::autochip(double power) {
-	AI::Common::Player::impl->autochip(power);
-}
-
-inline void AI::HL::W::Player::dribble(DribbleMode mode) {
-	AI::Common::Player::impl->dribble(mode);
-}
-
 inline AI::HL::W::World::World(AI::BE::Backend &impl) : impl(impl) {
 }
 
@@ -409,6 +427,72 @@ inline bool std::less<AI::HL::W::Robot>::operator()(const AI::HL::W::Robot &x, c
 
 inline bool std::less<AI::HL::W::Player>::operator()(const AI::HL::W::Player &x, const AI::HL::W::Player &y) const {
 	return cmp(x, y);
+}
+
+inline void AI::HL::W::Player::mp_move(Point dest){
+	AI::Common::Player::impl->hl_request.type = Drive::Primitive::MOVE;
+	AI::Common::Player::impl->hl_request.field_point = dest;
+	//AI::Common::Player::impl->hl_request.field_bool = false; // this means that we don't care about angle
+	AI::Common::Player::impl->move(dest, Angle(), Point());
+}
+
+inline void AI::HL::W::Player::mp_move(Point dest, Angle ori){
+	AI::Common::Player::impl->hl_request.type = Drive::Primitive::MOVE;
+	AI::Common::Player::impl->hl_request.field_point = dest;
+	AI::Common::Player::impl->hl_request.care_angle = true; // this means that we care about angle
+	AI::Common::Player::impl->hl_request.field_angle = ori;
+	AI::Common::Player::impl->move(dest, ori, Point());
+}
+
+inline void AI::HL::W::Player::mp_dribble(Point dest, Angle ori){
+	AI::Common::Player::impl->hl_request.type = Drive::Primitive::DRIBBLE;
+	AI::Common::Player::impl->hl_request.field_point = dest;
+	AI::Common::Player::impl->hl_request.care_angle = true; // this means that we care about angle
+	AI::Common::Player::impl->hl_request.field_angle = ori;
+	AI::Common::Player::impl->move(dest, ori, Point());
+}
+
+inline void AI::HL::W::Player::mp_shoot(Point dest, Angle ori, bool chip, double power){
+	AI::Common::Player::impl->hl_request.type = Drive::Primitive::SHOOT;
+	AI::Common::Player::impl->hl_request.field_point = dest;
+	AI::Common::Player::impl->hl_request.care_angle = true;
+	AI::Common::Player::impl->hl_request.field_angle = ori;
+	AI::Common::Player::impl->hl_request.field_bool = chip;
+	AI::Common::Player::impl->hl_request.field_double = power;
+	AI::Common::Player::impl->move(dest, ori, Point());
+}
+
+inline void AI::HL::W::Player::mp_shoot(Point dest, bool chip, double power){
+	AI::Common::Player::impl->hl_request.type = Drive::Primitive::SHOOT;
+	AI::Common::Player::impl->hl_request.field_point = dest;
+	AI::Common::Player::impl->hl_request.care_angle = false; 
+	AI::Common::Player::impl->hl_request.field_bool = chip;
+	AI::Common::Player::impl->hl_request.field_double = power;
+	AI::Common::Player::impl->move(dest, Angle(), Point());
+}
+
+
+inline void AI::HL::W::Player::mp_catch(Point target){
+	AI::Common::Player::impl->hl_request.type = Drive::Primitive::CATCH;
+	AI::Common::Player::impl->hl_request.field_point = target;
+}
+
+inline void AI::HL::W::Player::mp_pivot(Point centre, Angle ori){
+	//hl_request.type = 
+	AI::Common::Player::impl->hl_request.type = Drive::Primitive::PIVOT;
+	AI::Common::Player::impl->hl_request.field_point = centre;
+	AI::Common::Player::impl->hl_request.care_angle = true; // this means that we care about angle
+	AI::Common::Player::impl->hl_request.field_angle = ori;
+	AI::Common::Player::impl->move(centre, ori, Point());
+}
+
+inline void AI::HL::W::Player::mp_spin(Point dest, Angle speed){
+	//hl_request.type = 
+	AI::Common::Player::impl->hl_request.type = Drive::Primitive::SPIN;
+	AI::Common::Player::impl->hl_request.field_point = dest;
+	AI::Common::Player::impl->hl_request.care_angle = true; // this means that we care about angle
+	AI::Common::Player::impl->hl_request.field_angle = speed;
+	AI::Common::Player::impl->move(dest, Angle(), Point());
 }
 
 #endif

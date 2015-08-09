@@ -19,7 +19,6 @@
 #include "util/dprint.h"
 #include "ai/hl/stp/param.h"
 #include "ai/hl/stp/action/intercept.h"
-#include "ai/hl/stp/action/dribble.h"
 #include "ai/hl/stp/action/pivot.h"
 #include "ai/hl/stp/gradient_approach/passMainLoop.h"
 
@@ -156,10 +155,10 @@ namespace {
 
 			if(r > 0 ){
 				GradientApproach::PassInfo::Instance().tacticInfo.kick_attempted = TRUE;
-				Action::cshoot_target(world, player,  target,  shot_velocity);
+				Action::pivot_shoot(world, player,  target,  shot_velocity);
 			}else{
 				GradientApproach::PassInfo::Instance().tacticInfo.kick_attempted = FALSE;
-				Action::cshoot_target(world, player,  target,  0);
+				Action::pivot_shoot(world, player,  target,  0);
 			}
 				
 		

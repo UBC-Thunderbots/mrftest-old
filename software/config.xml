@@ -34,7 +34,7 @@
       <category name="Backend">
         <double name="Ball Decay Constant">99.0</double>
         <boolean name="Enable Kalman control inputs">false</boolean>
-        <double name="Loop Delay">0.080</double>
+        <double name="Loop Delay">0.000</double>
         <category name="Vision">
           <double name="Ball detection probability threshold">0.250</double>
           <boolean name="Enable Particle Filter">true</boolean>
@@ -78,7 +78,9 @@
             <category name="Shoot">
               <boolean name="Include teammates in strafe sweep">true</boolean>
               <boolean name="Orient towards enemy goal">true</boolean>
-              <boolean name="Strafe towards enemy openings">true</boolean>
+              <double name="Pivot_shoot angle thresh">20.0</double>
+              <double name="Pivot_shoot radius">0.300</double>
+              <boolean name="Use mp_move or MP_intercept">true</boolean>
             </category>
             <category name="shoot">
               <degrees name="Angle threshold that defines passing accuracy, smaller is more accurate (degrees)">5.0</degrees>
@@ -86,7 +88,7 @@
               <double name="Decay constant for the ball velocity">0.100</double>
             </category>
             <category name="spin">
-              <radians name="change in orientation every time tick for move spin (radians)">3.000</radians>
+              <radians name="change in orientation every time tick for move spin (radians)">15</radians>
             </category>
             <category name="Strafe">
               <double name="strafing increment">0.171</double>
@@ -123,12 +125,9 @@
             <boolean name="Enable ball close to enemy defence area">false</boolean>
           </category>
           <category name="Goalie">
-            <boolean name="Goalie is lowest index">false</boolean>
-            <integer name="Goalie pattern index">0</integer>
+            <boolean name="Goalie is lowest index">true</boolean>
+            <integer name="Goalie pattern index">1</integer>
             <boolean name="Goalie selection by lowest or user assigned">false</boolean>
-          </category>
-          <category name="Kickoff">
-            <degrees name="kickoff: angle to separate players (degrees)">20.0</degrees>
           </category>
           <category name="MTD">
             <boolean name="2 defenders 2 attackers">false</boolean>
@@ -164,7 +163,7 @@
             <boolean name="Enable robot 9">true</boolean>
           </category>
           <category name="offense">
-            <double name="Dont block increase multiplier">2.00</double>
+            <double name="Dont block increase multiplier">4.00</double>
             <double name="enemy avoidance distance (robot radius)">2.50</double>
             <integer name="grid x size">10</integer>
             <integer name="grid y size">10</integer>
@@ -206,13 +205,13 @@
               <boolean name="CornerKickFriendly">false</boolean>
               <boolean name="DBasic2Block">true</boolean>
               <boolean name="DBasicCorner">true</boolean>
-              <boolean name="DefensiveBlock">true</boolean>
+              <boolean name="DefensiveBlock">false</boolean>
               <boolean name="DirectKickFriendlyPivot">false</boolean>
-              <boolean name="EasyWin">false</boolean>
+              <boolean name="EasyWin">true</boolean>
               <boolean name="FranticDefense">true</boolean>
               <boolean name="FreeKickEnemyDefend">true</boolean>
               <boolean name="FreeKickEnemyDirect">true</boolean>
-              <boolean name="FreeKickEnemyIndirect">true</boolean>
+              <boolean name="FreeKickEnemyIndirect">false</boolean>
               <boolean name="FreeKickEnemyMarkDefend">true</boolean>
               <boolean name="FreeKickFriendly">true</boolean>
               <boolean name="FreeKickFriendlyChip">false</boolean>
@@ -242,6 +241,7 @@
               <boolean name="OurCornerPlay">true</boolean>
               <boolean name="OurCornerShoot">true</boolean>
               <boolean name="PassDefensive">false</boolean>
+              <boolean name="PassGradient">false</boolean>
               <boolean name="PassOffensive">false</boolean>
               <boolean name="PassRay">false</boolean>
               <boolean name="PassSimple">false</boolean>
@@ -254,9 +254,11 @@
               <boolean name="TestShootSpeed">false</boolean>
               <boolean name="TheirCornerChip">false</boolean>
               <boolean name="TheirCornerPlay">true</boolean>
-              <boolean name="TriAttackDef">true</boolean>
-              <boolean name="TriAttackDiamond">true</boolean>
-              <boolean name="TriAttackOff">true</boolean>
+              <boolean name="TriAttackDef">false</boolean>
+              <boolean name="TriAttackDiamond">false</boolean>
+              <boolean name="TriAttackOff">false</boolean>
+              <boolean name="TriDefense2015">false</boolean>
+              <boolean name="VeryEasyWin">true</boolean>
             </category>
             <category name="Playbook">
               <integer name="BackUpSteal">1023</integer>
@@ -302,6 +304,7 @@
               <integer name="OurCornerPlay">1023</integer>
               <integer name="OurCornerShoot">1023</integer>
               <integer name="PassDefensive">1023</integer>
+              <integer name="PassGradient">1023</integer>
               <integer name="PassOffensive">1023</integer>
               <integer name="PassRay">1023</integer>
               <integer name="PassSimple">1023</integer>
@@ -317,6 +320,8 @@
               <integer name="TriAttackDef">1023</integer>
               <integer name="TriAttackDiamond">1023</integer>
               <integer name="TriAttackOff">1023</integer>
+              <integer name="TriDefense2015">1023</integer>
+              <integer name="VeryEasyWin">1023</integer>
             </category>
             <category name="Priority 0=low, 10=hi, 5=default">
               <integer name="BackUpSteal">5</integer>
@@ -329,11 +334,11 @@
               <integer name="DefensiveBlock">5</integer>
               <integer name="DirectKickFriendlyPivot">7</integer>
               <integer name="EasyWin">5</integer>
-              <integer name="FranticDefense">5</integer>
+              <integer name="FranticDefense">4</integer>
               <integer name="FreeKickEnemyDefend">5</integer>
               <integer name="FreeKickEnemyDirect">5</integer>
               <integer name="FreeKickEnemyIndirect">5</integer>
-              <integer name="FreeKickEnemyMarkDefend">5</integer>
+              <integer name="FreeKickEnemyMarkDefend">7</integer>
               <integer name="FreeKickFriendly">5</integer>
               <integer name="FreeKickFriendlyChip">5</integer>
               <integer name="FreeKickFriendlyPass">5</integer>
@@ -362,6 +367,7 @@
               <integer name="OurCornerPlay">5</integer>
               <integer name="OurCornerShoot">5</integer>
               <integer name="PassDefensive">5</integer>
+              <integer name="PassGradient">5</integer>
               <integer name="PassOffensive">5</integer>
               <integer name="PassRay">5</integer>
               <integer name="PassSimple">5</integer>
@@ -377,6 +383,8 @@
               <integer name="TriAttackDef">5</integer>
               <integer name="TriAttackDiamond">5</integer>
               <integer name="TriAttackOff">5</integer>
+              <integer name="TriDefense2015">5</integer>
+              <integer name="VeryEasyWin">5</integer>
             </category>
             <category name="StaticRoleAssignment">
               <boolean name="BackUpSteal">false</boolean>
@@ -422,6 +430,7 @@
               <boolean name="OurCornerPlay">false</boolean>
               <boolean name="OurCornerShoot">false</boolean>
               <boolean name="PassDefensive">false</boolean>
+              <boolean name="PassGradient">false</boolean>
               <boolean name="PassOffensive">false</boolean>
               <boolean name="PassRay">false</boolean>
               <boolean name="PassSimple">false</boolean>
@@ -437,11 +446,12 @@
               <boolean name="TriAttackDef">false</boolean>
               <boolean name="TriAttackDiamond">false</boolean>
               <boolean name="TriAttackOff">false</boolean>
+              <boolean name="TriDefense2015">false</boolean>
+              <boolean name="VeryEasyWin">false</boolean>
             </category>
           </category>
           <category name="PlayExecutor">
             <integer name="Current Playbook, use bitwise operations">0</integer>
-            <boolean name="Run pass calculation on seperate thread">true</boolean>
             <boolean name="enable robot 0">true</boolean>
             <boolean name="enable robot 1">true</boolean>
             <boolean name="enable robot 10">true</boolean>
@@ -455,6 +465,7 @@
             <boolean name="enable robot 8">true</boolean>
             <boolean name="enable robot 9">true</boolean>
             <boolean name="If higher priority play exists, switch">true</boolean>
+            <boolean name="Run pass calculation on seperate thread">true</boolean>
           </category>
           <category name="predicates">
             <double name="distance to trigger loose_ball predicate">1.000</double>
@@ -468,6 +479,7 @@
             <radians name="Angle threshold that defines shoot accuracy, bigger is more accurate (radians)">0.0</radians>
             <double name="big reduced radius for calculating best shot (robot radius ratio)">0.500</double>
             <double name="Default Shooting Speed">8.00</double>
+            <double name="Maximum speed ball can shoot at">8.00</double>
             <double name="Shoot accuracy (for various purposes)">5.0</double>
             <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
           </category>
@@ -531,6 +543,18 @@
         </category>
       </category>
       <degrees name="Max receiver offset angle (deg)">1.5</degrees>
+      <category name="Movement">
+        <category name="Primitives">
+          <double name="Distance before we update the movement primitives">10</double>
+          <double name="Tick before update move primitive">1.0</double>
+          <double name="Tick before update pivot primitive">1.0</double>
+          <double name="Tick before update primitive">1.0</double>
+          <double name="Tick before update shoot primitive">1.0</double>
+        </category>
+      </category>
+      <category name="MovementPrimitives">
+        <double name="Time before we update the movement primitives">0.100</double>
+      </category>
       <category name="Nav">
         <category name="Pivot">
           <degrees name="offset angle (degrees)">80</degrees>
@@ -554,19 +578,7 @@
       </category>
       <category name="Navigator">
         <category name="RRT">
-          <double name="Careful max speed">0.500</double>
           <integer name="Jon Hysteris Hack">2</integer>
-          <boolean name="New pivot enable">false</boolean>
-          <boolean name="New pivot go backward">false</boolean>
-          <double name="New pivot hysteresis angle, (x*pi rad)">0.2000</double>
-          <radians name="New pivot offset angle (rad)">0.1000</radians>
-          <double name="New pivot [PID] angular">2.00</double>
-          <double name="New pivot [PID] linear">2.00</double>
-          <double name="New pivot threshold angle, (x*pi rad)">0.2000</double>
-          <double name="New pivot travel angle (x*pi rad)">0.200</double>
-          <double name="New pivot travel radius">0.2000</double>
-          <degrees name="Pivot offset angle (deg)">5</degrees>
-          <degrees name="Pivot orientation offset (deg)">10</degrees>
         </category>
         <category name="Util">
           <double name="Angle increment in ball approach (deg)">10.00</double>
@@ -590,42 +602,17 @@
           <double name="Small ball avoidance dist">-0.050</double>
         </category>
       </category>
-    </category>
-    <category name="Controller">
-      <category name="Circle">
-        <double name="Controller velocity scale">2.00</double>
-      </category>
-      <category name="PID5">
-        <double name="angular -differential">-1.1</double>
-        <double name="angular +proportional">10.0</double>
-        <double name="Limit wheel accel">450</double>
-        <double name="Limit wheel speed">1000</double>
-        <double name="x to y ratio">0.830</double>
-        <double name="xy -differential">-0.1</double>
-        <double name="xy +proportional">14.0</double>
-        <double name="YA ratio">0.08</double>
-      </category>
-      <category name="PID5_2012">
-        <double name="angular -differential">0.2</double>
-        <double name="angular +proportional">3.5</double>
-        <double name="Limit wheel accel">100</double>
-        <double name="Limit wheel speed">500</double>
-        <double name="x to y ratio">0.810</double>
-        <double name="xy -differential">0.0</double>
-        <double name="xy +proportional">4.0</double>
-        <double name="YA ratio">0.08</double>
-      </category>
-      <category name="PID6">
-        <double name="Aggressiveness of the controller">0.800</double>
-        <double name="Limit wheel accel (quarter degree per firmware tick squared)">45</double>
-        <double name="Limit wheel speed (quarter degree per firmware tick)">330</double>
-        <double name="Tick rate of firmware control loop in s^-1">200</double>
-      </category>
-      <category name="PID6_2012">
-        <double name="Aggressiveness of the controller">0.800</double>
-        <double name="Limit wheel accel (quarter degree per firmware tick squared)">75</double>
-        <double name="Limit wheel speed (quarter degree per firmware tick)">214</double>
-        <double name="Tick rate of firmware control loop in s^-1">200</double>
+      <category name="STP">
+        <category name="Tactic">
+          <category name="gradient_pass">
+            <double name="Pass Gradient: Ball Velocity">4.0</double>
+            <double name="Pass Gradient: Time Delay">0.2</double>
+            <boolean name="Pass Gradient: Toggle main loop.">true</boolean>
+            <boolean name="Pass Gradient: use true t_delay and ball_vel values">true</boolean>
+            <double name="Pass Gradient: X-Location">0.0</double>
+            <double name="Pass Gradient: Y-Location">0.0</double>
+          </category>
+        </category>
       </category>
     </category>
   </params>

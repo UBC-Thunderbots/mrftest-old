@@ -39,11 +39,13 @@ enum {
 /**
  * \brief The protocol numbers used by the radio interface.
  *
- * These numbers act both to differentiate the alternate settings and also as version numbers; any change to the operation of the alternate setting will increment the protocol number.
+ * These numbers act both to differentiate the alternate settings and also as
+ * version numbers; any change to the operation of the alternate setting will
+ * increment the protocol number.
  */
 enum {
 	RADIO_PROTOCOL_OFF = 0x01U,
-	RADIO_PROTOCOL_NORMAL = 0x41U,
+	RADIO_PROTOCOL_NORMAL = 0x43U,
 	RADIO_PROTOCOL_PROMISCUOUS = 0x81U,
 };
 

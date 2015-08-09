@@ -12,9 +12,9 @@
  */
 
 #include "receive.h"
+#include "charger.h"
 #include "chicker.h"
 #include "dma.h"
-#include "drive.h"
 #include "feedback.h"
 #include "leds.h"
 #include "main.h"
@@ -22,19 +22,32 @@
 #include "mrf.h"
 #include "priority.h"
 #include "rtc.h"
+#include "primitives/primitive.h"
 #include <FreeRTOS.h>
 #include <assert.h>
 #include <semphr.h>
 #include <task.h>
 #include <unused.h>
 
+/**
+ * \brief The number of robots in the drive packet.
+ */
+#define RECEIVE_DRIVE_NUM_ROBOTS 8
+
+/**
+ * \brief The number of bytes of drive packet data per robot.
+ */
+#define RECEIVE_DRIVE_BYTES_PER_ROBOT 9
+
 static unsigned int robot_index;
 static uint8_t *dma_buffer;
-static SemaphoreHandle_t shutdown_sem;
+static SemaphoreHandle_t shutdown_sem, drive_mtx;
 static unsigned int timeout_ticks;
+static uint8_t last_serial = 0xFF;
 
 static void receive_task(void *UNUSED(param)) {
 	uint16_t last_sequence_number = 0xFFFFU;
+	bool last_estop_run = false;
 	size_t frame_length;
 
 	while ((frame_length = mrf_receive(dma_buffer))) {
@@ -59,74 +72,95 @@ static void receive_task(void *UNUSED(param)) {
 					// - 1 byte of serial number
 					// - 1 byte of emergency stop condition
 					// - 8 bytes of timestamp
-					static const size_t BODY_LENGTH = 8 * 8 + 1 + 1 + 8;
+					static const size_t BODY_LENGTH = RECEIVE_DRIVE_NUM_ROBOTS * RECEIVE_DRIVE_BYTES_PER_ROBOT + 1 + 8;
 					if (frame_length == HEADER_LENGTH + BODY_LENGTH + FOOTER_LENGTH) {
-						// Construct the individual 16-bit words sent from the host.
-						const uint8_t offset = HEADER_LENGTH + 8U * robot_index;
-						uint16_t words[4U];
-						for (unsigned int i = 0U; i < 4U; ++i) {
-							words[i] = dma_buffer[offset + i * 2U + 1U];
-							words[i] <<= 8U;
-							words[i] |= dma_buffer[offset + i * 2U];
-						}
-
-						// Pull out the stuff at the end.
-						uint8_t drive_data_serial = dma_buffer[HEADER_LENGTH + 64U];
-						uint8_t estop_byte = dma_buffer[HEADER_LENGTH + 65U];
+						// Grab emergency stop status and timestamp from the
+						// end of the frame.
+						bool estop_run = !!dma_buffer[HEADER_LENGTH + RECEIVE_DRIVE_NUM_ROBOTS * RECEIVE_DRIVE_BYTES_PER_ROBOT];
 						uint64_t timestamp = 0;
 						for (unsigned int i = 7; i < 8; --i) {
 							timestamp <<= 8;
-							timestamp |= dma_buffer[HEADER_LENGTH + 66U + i];
+							timestamp |= dma_buffer[HEADER_LENGTH + RECEIVE_DRIVE_NUM_ROBOTS * RECEIVE_DRIVE_BYTES_PER_ROBOT + 1 + i];
 						}
 						rtc_set(timestamp);
 
-						// Check for feedback request.
-						if (!!(words[0U] & 0x8000U)) {
+						// Grab a pointer to the robot’s own data block.
+						const uint8_t *robot_data = dma_buffer + HEADER_LENGTH + RECEIVE_DRIVE_BYTES_PER_ROBOT * robot_index;
+
+						// Check if feedback should be sent.
+						if (robot_data[0] & 0x80) {
 							feedback_pend_normal();
 						}
 
-						// Find the packet buffer to write into.
-						drive_t *target = drive_write_get();
+						// Extract the serial number.
+						uint8_t serial = *robot_data++ & 0x0F;
 
-						if (estop_byte == 0x01U) { //proceed 
-
-							// Decode the drive packet.	
-							switch ((words[0U] >> 13U) & 0b11) {
-								case 0b00: target->wheels_mode = WHEELS_MODE_COAST; break;
-								case 0b01: target->wheels_mode = WHEELS_MODE_BRAKE; break;
-								case 0b10: target->wheels_mode = WHEELS_MODE_OPEN_LOOP; break;
-								case 0b11: target->wheels_mode = WHEELS_MODE_CLOSED_LOOP; break;
-							}
-							target->dribbler_power = 255U * (words[2U] >> 11U) / 31U;
-							target->charger_enabled = !!(words[1U] & (1U << 15U));
-							target->discharger_enabled = !!(words[1U] & (1U << 14U));
-							for (unsigned int i = 0U; i < 4U; ++i) {
-								int16_t sp = (int16_t) (words[i] & 0x3FFU);
-								if (words[i] & 0x400U) {
-									sp = -sp;
-								}
-								target->setpoints[i] = sp;
-							}
-							
-						} else { //means the estop_byte is 0, so STOP.
-							target->wheels_mode = WHEELS_MODE_OPEN_LOOP;
-							target->dribbler_power = 0;
-							target->charger_enabled = false;
-							target->discharger_enabled = false;
-							target->setpoints[0] = 0;
-							target->setpoints[1] = 0;
-							target->setpoints[2] = 0;
-							target->setpoints[3] = 0;
+						// Construct the individual 16-bit words sent from the host.
+						uint16_t words[4U];
+						for (unsigned int i = 0U; i < 4U; ++i) {
+							words[i] = *robot_data++;
+							words[i] |= (uint16_t)*robot_data++ << 8;
 						}
-						
-						target->data_serial = drive_data_serial;
 
-						// Put the written buffer back.
-						drive_write_put();
-						target = 0;
+						// In case of emergency stop, treat everything as zero
+						// except the chicker discharge bit (that can keep its
+						// status).
+						if (!estop_run) {
+							static const uint16_t MASK[4] = { 0x0000, 0x4000, 0x0000, 0x0000 };
+							for (unsigned int i = 0; i != 4; ++i) {
+								words[i] &= MASK[i];
+							}
+						}
+
+						// Take the drive mutex.
+						xSemaphoreTake(drive_mtx, portMAX_DELAY);
 
 						// Reset timeout.
-						__atomic_store_n(&timeout_ticks, 1000U / portTICK_PERIOD_MS, __ATOMIC_RELAXED);
+						timeout_ticks = 1000U / portTICK_PERIOD_MS;
+
+						// Apply the charge and discharge mode.
+						charger_enable(words[1] & 0x8000);
+						chicker_discharge(words[1] & 0x4000);
+
+						// If the serial number, the emergency stop has just
+						// been switched to stop, or the current primitive is
+						// direct, a new movement primitive needs to start. Do
+						// not start a movement primitive if the emergency stop
+						// has just been switched to run and the current
+						// primitive is not direct, because we can’t usefully
+						// restart the stopped prior primitive—instead, wait
+						// for the host to send new data. Strictly speaking, we
+						// only need to start direct primitives when the estop
+						// is switched from stop to run, but this is
+						// unnecessary as direct primitives shouldn’t care
+						// about being started more often than necessary.
+						unsigned int primitive;
+						primitive_params_t pparams;
+						for (unsigned int i = 0; i != 4; ++i) {
+							int16_t value = words[i] & 0x3FF;
+							if (words[i] & 0x400) {
+								value = -value;
+							}
+							if (words[i] & 0x800) {
+								value *= 10;
+							}
+							pparams.params[i] = value;
+						}
+						primitive = words[0] >> 12;
+						pparams.extra = (words[2] >> 12) | ((words[3] >> 12) << 4);
+						pparams.slow = !!(pparams.extra & 0x80);
+						pparams.extra &= 0x7F;
+						if ((serial != last_serial /* Non-atomic because we are only writer */) || (!estop_run && last_estop_run) || primitive_is_direct(primitive)) {
+							// Apply the movement primitive.
+							primitive_start(primitive, &pparams);
+						}
+
+						// Release the drive mutex.
+						xSemaphoreGive(drive_mtx);
+
+						// Update the last values.
+						__atomic_store_n(&last_serial, serial, __ATOMIC_RELAXED);
+						last_estop_run = estop_run;
 					}
 				} else if (frame_length >= HEADER_LENGTH + 1U + FOOTER_LENGTH) {
 					// Non-broadcast frame contains a message specifically for this robot
@@ -213,6 +247,9 @@ static void receive_task(void *UNUSED(param)) {
  * \param[in] index the robot index
  */
 void receive_init(unsigned int index) {
+	drive_mtx = xSemaphoreCreateMutex();
+	assert(drive_mtx);
+
 	robot_index = index;
 
 	dma_memory_handle_t dma_buffer_handle = dma_alloc(128U);
@@ -232,6 +269,7 @@ void receive_shutdown(void) {
 	mrf_receive_cancel();
 	xSemaphoreTake(shutdown_sem, portMAX_DELAY);
 	vSemaphoreDelete(shutdown_sem);
+	vSemaphoreDelete(drive_mtx);
 }
 
 /**
@@ -239,21 +277,24 @@ void receive_shutdown(void) {
  */
 void receive_tick(void) {
 	// Decrement timeout tick counter if nonzero.
-	unsigned int old, new;
-	do {
-		old = __atomic_load_n(&timeout_ticks, __ATOMIC_RELAXED);
-		new = old ? old - 1U : old;
-	} while (!__atomic_compare_exchange_n(&timeout_ticks, &old, new, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
+	xSemaphoreTake(drive_mtx, portMAX_DELAY);
+	if (timeout_ticks == 1) {
+		timeout_ticks = 0;
+		charger_enable(false);
+		chicker_discharge(true);
+		static const primitive_params_t ZERO_PARAMS;
+		primitive_start(0, &ZERO_PARAMS);
+	} else if (timeout_ticks > 1) {
+		--timeout_ticks;
+	}
+	xSemaphoreGive(drive_mtx);
 }
 
 /**
- * \brief Checks whether there has been a receive timeout indicating that the host is no longer sending orders.
- *
- * \retval true if a timeout has occurred
- * \retval false if a timeout has not occurred
+ * \brief Returns the serial number of the most recent drive packet.
  */
-bool receive_drive_packet_timeout(void) {
-	return !__atomic_load_n(&timeout_ticks, __ATOMIC_RELAXED);
+uint8_t receive_last_serial(void) {
+	return __atomic_load_n(&last_serial, __ATOMIC_RELAXED);
 }
 
 /**

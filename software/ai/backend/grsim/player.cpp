@@ -36,10 +36,6 @@ Player::Player(unsigned int pattern, const AI::BE::Ball &ball) :
 		last_chick_time(steady_clock::now()) {
 }
 
-void Player::dribble(DribbleMode mode) {
-	dribble_requested = mode != DribbleMode::STOP;
-}
-
 bool Player::has_ball() const {
 	Point ball_contact_point = ball.position() - Point::of_angle(orientation(0.0)) * BALL_DIAMETER / 2.0;
 	Angle contact_point_offset_angle = (ball_contact_point - position(0.0)).orientation().angle_diff(orientation(0.0));
@@ -60,15 +56,7 @@ bool Player::autokick_fired() const {
 }
 
 void Player::tick(bool halt, bool stop) {
-	if (halt) {
-		std::fill_n(wheel_speeds_, 4, 0);
-		dribble_active = false;
-		chick_mode = ChickMode::IDLE;
-		chick_power = 0.0;
-	} else {
-		dribble_active = !stop && dribble_requested;
-	}
-	dribble_requested = false;
+#warning Write this for movement primitives
 }
 
 void Player::encode_orders(grSim_Robot_Command &packet) {
@@ -80,75 +68,7 @@ void Player::encode_orders(grSim_Robot_Command &packet) {
 	packet.set_wheelsspeed(true);
 
 	autokick_fired_ = false;
-	if (chicker_ready()) {
-		if (chick_mode == ChickMode::AUTOKICK || chick_mode == ChickMode::AUTOCHIP) {
-			if (has_ball()) {
-				had_ball = true;
-			} else if (had_ball) {
-				last_chick_time = steady_clock::now();
-				autokick_fired_ = true;
-				chick_mode = ChickMode::IDLE;
-				chick_power = 0.0;
-				had_ball = false;
-			}
-		} else {
-			had_ball = false;
-		}
+#warning Write chicker handling for movement primitives.
 
-		switch (chick_mode) {
-			case ChickMode::IDLE:
-				packet.set_kickspeedx(0.0f);
-				packet.set_kickspeedz(0.0f);
-				break;
-
-			case ChickMode::KICK:
-			case ChickMode::AUTOKICK:
-				packet.set_kickspeedx(static_cast<float>(chick_power));
-				packet.set_kickspeedz(0.0f);
-				break;
-
-			case ChickMode::CHIP:
-			case ChickMode::AUTOCHIP:
-				packet.set_kickspeedx(static_cast<float>(MAX_CHIP_SPEED * COSINE_CHIP_ANGLE * chick_power));
-				packet.set_kickspeedz(static_cast<float>(MAX_CHIP_SPEED * SINE_CHIP_ANGLE * chick_power));
-				break;
-		}
-	} else {
-		packet.set_kickspeedx(0.0f);
-		packet.set_kickspeedz(0.0f);
-	}
-	chick_mode = ChickMode::IDLE;
-
-	static void (grSim_Robot_Command::* const WHEEL_SETTERS[4])(float) = {
-		&grSim_Robot_Command::set_wheel1,
-		&grSim_Robot_Command::set_wheel2,
-		&grSim_Robot_Command::set_wheel3,
-		&grSim_Robot_Command::set_wheel4,
-	};
-	for (unsigned int i = 0; i < 4; ++i) {
-		(packet.*WHEEL_SETTERS[i])(static_cast<float>(wheel_speeds_[i] * RADIANS_PER_SECOND__PER__QUARTER_DEGREES_PER_FIVE_MILLISECONDS));
-	}
+#warning Write wheel handling for movement primitives.
 }
-
-void Player::kick_impl(double speed) {
-	chick_mode = ChickMode::KICK;
-	chick_power = clamp(speed, 0.0, 8.0);
-	last_chick_time = steady_clock::now();
-}
-
-void Player::autokick_impl(double speed) {
-	chick_mode = ChickMode::AUTOKICK;
-	chick_power = clamp(speed, 0.0, 8.0);
-}
-
-void Player::chip_impl(double power) {
-	chick_mode = ChickMode::CHIP;
-	chick_power = clamp(power, 0.0, 1.0);
-	last_chick_time = steady_clock::now();
-}
-
-void Player::autochip_impl(double power) {
-	chick_mode = ChickMode::AUTOCHIP;
-	chick_power = clamp(power, 0.0, 1.0);
-}
-

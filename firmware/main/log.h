@@ -20,7 +20,17 @@ typedef struct __attribute__((packed)) {
 	float battery_voltage;
 	float capacitor_voltage;
 
-	int16_t wheels_setpoints[4U];
+	float dr_x;
+	float dr_y;
+	float dr_angle;
+	float dr_vx;
+	float dr_vy;
+	float dr_avel;
+
+	uint8_t drive_serial;
+	uint8_t primitive;
+	float primitive_data[10U];
+
 	int16_t wheels_encoder_counts[4U];
 	int16_t wheels_drives[4U];
 	uint8_t wheels_temperatures[4U];

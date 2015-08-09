@@ -24,7 +24,7 @@ namespace {
 
 			void execute() override {
 				// should probably use move spin action instead (or tsteal tactic in cm_ball which uses it)
-				ram(world, player, world.ball().position(), Point());
+				ram(world, player, world.ball().position());
 			}
 			Glib::ustring description() const override {
 				return u8"ram";

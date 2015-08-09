@@ -10,7 +10,7 @@ namespace Predicates = AI::HL::STP::Predicates;
  */
 BEGIN_PLAY(PassGradient)
 INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY)
-		&& Predicates::our_team_size_at_least(world, 4))
+		&& Predicates::our_team_size_at_least(world, 3))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)

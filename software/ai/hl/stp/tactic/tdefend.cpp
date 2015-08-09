@@ -116,7 +116,7 @@ void TDefendLine::execute() {
 	// Angle
 	angle = (ball - target).orientation();
 
-	//player.move(target, angle, velocity);
+
 	Action::defender_move(world, player, target);
 }
 

@@ -25,7 +25,7 @@ namespace AI {
 
 				//std::vector<std::vector<PassInfo::passDataStruct> > passPointsLog;
 
-				std::vector<PassInfo::passDataStruct> newPositions(PassInfo::worldSnapshot snapshot,int quantity);
+				std::vector<PassInfo::passDataStruct> newPositions(PassInfo::worldSnapshot snapshot, unsigned int quantity);
 
 				PassInfo::passDataStruct stepForward(PassInfo::worldSnapshot snapshot,PassInfo::passDataStruct);
 				std::vector<PassInfo::passDataStruct> stepForward(PassInfo::worldSnapshot snapshot,std::vector<PassInfo::passDataStruct>);
@@ -35,7 +35,7 @@ namespace AI {
 				std::vector<PassInfo::passDataStruct> merge(std::vector<PassInfo::passDataStruct> potential_passes);
 
 				//returns a vector of best pass positions to be sent to PassInfo, takes into account passes blocking each other
-				std::vector<PassInfo::passDataStruct> bestPassPositions(PassInfo::worldSnapshot snapshot, std::vector<PassInfo::passDataStruct> potential_passes, int numberPositions);
+				std::vector<PassInfo::passDataStruct> bestPassPositions(PassInfo::worldSnapshot snapshot, std::vector<PassInfo::passDataStruct> potential_passes, unsigned int numberPositions);
 			
 			} /* namespace GradientApproach */
 		} /* namespace STP */

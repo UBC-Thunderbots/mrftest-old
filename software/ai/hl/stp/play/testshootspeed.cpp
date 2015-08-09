@@ -1,11 +1,10 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/predicates.h"
-#include "ai/hl/stp/tactic/move_stop.h"
 #include "ai/hl/stp/tactic/move.h"
-#include "ai/hl/stp/tactic/wait_playtype.h"
-#include "ai/hl/stp/tactic/testshootspeed.h"
+#include "ai/hl/stp/tactic/move_stop.h"
 #include "ai/hl/stp/tactic/shoot.h"
-//#include "ai/hl/stp/play/testshootspeed.h"
+#include "ai/hl/stp/tactic/testshootspeed.h"
+#include "ai/hl/stp/tactic/wait_playtype.h"
 
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::W;
@@ -24,7 +23,7 @@ APPLICABLE(true)
 DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
-goalie_role.push_back(move(world, Point(world.field().friendly_goal().x, 0.0)));
+goalie_role.push_back(goalie_move(world, Point(world.field().friendly_goal().x, 0.0)));
 
 // doesn't matter what the playtype we are waiting for is here, we just need an active tactic
 roles[0].push_back(test_shoot_speed(world, true));

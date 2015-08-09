@@ -155,19 +155,19 @@ bool Visualizer::on_draw(const Cairo::RefPtr<Cairo::Context> &ctx) {
 					ctx->restore();
 				}
 
-				if (show_robots_path && bot->has_path()) {
+				if (show_robots_path && bot->has_display_path()) {
 					ctx->set_source_rgb(1.0, 0.0, 1.0);
 					ctx->begin_new_path();
 					ctx->move_to(bot->position().x, bot->position().y);
-					const std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> &path = bot->path();
-					for (auto j : path) {
-						ctx->line_to(j.first.first.x, j.first.first.y);
+					const std::vector<Point> &path = bot->display_path();
+					for (Point j : path) {
+						ctx->line_to(j.x, j.y);
 					}
 					ctx->stroke();
 
 					ctx->set_source_rgb(0, 0, 0);
-					for (auto j : path) {
-						ctx->arc(j.first.first.x, j.first.first.y, 0.01, 0, 2 * M_PI);
+					for (Point j : path) {
+						ctx->arc(j.x, j.y, 0.01, 0, 2 * M_PI);
 						ctx->fill();
 					}
 				}

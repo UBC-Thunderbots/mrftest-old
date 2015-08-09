@@ -1,7 +1,9 @@
-#include "ai/hl/stp/tactic/move.h"
-#include "ai/hl/stp/action/move.h"
-#include "ai/hl/util.h"
 #include <algorithm>
+
+#include "ai/hl/stp/action/goalie.h"
+#include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/tactic/move.h"
+#include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -29,12 +31,36 @@ namespace {
 
 	void Move::execute() {
 		Action::move(world, player, dest.position(), dest.velocity());
-		player.dribble(AI::BE::Player::DribbleMode::STOP);
+	}
+
+	class GoalieMove final : public Tactic {
+		public:
+			explicit GoalieMove(World world, const Coordinate dest) : Tactic(world), dest(dest) {
+			}
+
+		private:
+			const Coordinate dest;
+			Player select(const std::set<Player> &) const override {
+				assert(false);
+			}
+			void execute() override;
+			Glib::ustring description() const override {
+				return u8"goalie move";
+			}
+	};
+
+	void GoalieMove::execute() {
+		Action::goalie_move_direct(world, player, dest.position());
 	}
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::move(World world, const Coordinate dest) {
 	Tactic::Ptr p(new Move(world, dest));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::goalie_move(World world, const Coordinate dest) {
+	Tactic::Ptr p(new GoalieMove(world, dest));
 	return p;
 }
 

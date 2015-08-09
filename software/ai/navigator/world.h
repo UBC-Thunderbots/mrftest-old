@@ -64,14 +64,9 @@ namespace AI {
 			class Player final : public AI::Common::Player, public Robot {
 				public:
 					/**
-					 * \brief The type of a single point in a path
-					 */
-					typedef std::pair<std::pair<Point, Angle>, AI::Timestamp> PathPoint;
-
-					/**
 					 * \brief The type of a complete path
 					 */
-					typedef std::vector<PathPoint> Path;
+					typedef std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> Path __attribute__((deprecated("This type should no longer be used.")));
 
 					/**
 					 * \brief The maximum linear velocity of the robot, in metres per second
@@ -124,6 +119,13 @@ namespace AI {
 					std::pair<Point, Angle> destination() const;
 
 					/**
+					 * \brief Returns the destination position and orientation requested by the HighLevel
+					 *
+					 * \dest set the destination position and orientation for gui to show
+					 */
+					void destination(std::pair<Point, Angle> dest);
+
+					/**
 					 * \brief Returns the target velocity requested by the HighLevel
 					 *
 					 * \return the target velocity
@@ -152,11 +154,190 @@ namespace AI {
 					AI::Flags::MovePrio prio() const;
 
 					/**
+					 * \brief Returns the current movement primitive
+					 *
+					 * \return the primitive
+					 */
+					const Property<Drive::Primitive> &primitive() const;
+
+					/**
 					 * \brief Sets the path this player should follow
 					 *
 					 * \param[in] p the path (an empty path causes the robot to halt)
 					 */
-					void path(const Path &p);
+					void path(const std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> &p) __attribute__((deprecated("You should use movement primitives instead.")));
+
+					/**
+					 * \brief Sets the path this player plans to follow, for
+					 * display purposes.
+					 *
+					 * \param[in] p the path
+					 */
+					void display_path(const std::vector<Point> &p);
+	
+					/**
+					 * \brief Coasts the robot’s wheels.
+					 */
+					void move_coast();
+
+					/**
+					 * \brief Brakes the robot’s wheels.
+					 */
+					void move_brake();
+
+					/**
+					 * \brief Moves the robot to a target position.
+					 *
+					 * The robot’s orientation upon reaching the target position is
+					 * unspecified.
+					 *
+					 * \param[in] dest the position to move to, as a distance forward
+					 * and left of the robot’s current position, relative to the
+					 * robot’s current orientation
+					 */
+					void move_move(Point dest);
+
+					/**
+					 * \brief Moves the robot to a target position and orientation.
+					 *
+					 * \param[in] dest the position to move to, as a distance forward
+					 * and left of the robot’s current position, relative to the
+					 * robot’s current orientation
+					 * \param[in] orientation how far left to rotate the robot to reach
+					 * its desired orientation
+					 */
+					void move_move(Point dest, Angle orientation);
+
+					/**
+					 * \brief Moves the robot to a target position.
+					 *
+					 * The robot’s orientation upon reaching the target position is
+					 * unspecified.
+					 *
+					 * \param[in] dest the position to move to, as a distance forward
+					 * and left of the robot’s current position, relative to the
+					 * robot’s current orientation
+					 * \param[in] time_delta how many seconds in the future the robot
+					 * should arrive at its destination
+					 */
+					void move_move(Point dest, double time_delta);
+
+					/**
+					 * \brief Moves the robot to a target position and orientation.
+					 *
+					 * \param[in] dest the position to move to, as a distance forward
+					 * and left of the robot’s current position, relative to the
+					 * robot’s current orientation
+					 * \param[in] orientation how far left to rotate the robot to reach
+					 * its desired orientation
+					 * \param[in] time_delta how many seconds in the future the robot
+					 * should arrive at its destination
+					 */
+					void move_move(Point dest, Angle orientation, double time_delta);
+
+					/**
+					 * \brief Moves the robot while carrying the ball.
+					 *
+					 * \param[in] dest the position to move to, as a distance forward
+					 * and left of the robot’s current position, relative to the
+					 * robot’s current orientation
+					 * \param[in] orientation how far left to rotate the robot to reach
+					 * its desired orientation
+					 * \param[in] small_kick_allowed whether or not the robot is
+					 * allowed to kick the ball ahead of itself while moving
+					 */
+					void move_dribble(Point dest, Angle orientation, bool small_kick_allowed);
+
+					/**
+					 * \brief Kicks the ball.
+					 *
+					 * The direction of the kick, and the robot’s final orientation,
+					 * are unspecified.
+					 *
+					 * \param[in] dest the position of the ball, as a distance forward
+					 * and left of the robot’s current position, relative to the
+					 * robot’s current orientation
+					 * \param[in] power how fast in m/s (for kicking) or how far in m
+					 * (for chipping) to kick the ball
+					 * \param[in] chip \c true to chip the ball or \c false to kick it
+					 */
+					void move_shoot(Point dest, double power, bool chip);
+
+					/**
+					 * \brief Kicks the ball.
+					 *
+					 * \param[in] dest the position of the ball, as a distance forward
+					 * and left of the robot’s current position, relative to the
+					 * robot’s current orientation
+					 * \param[in] orientation how far left the robot should rotate
+					 * before it kicks in order to kick the ball in the desired
+					 * direction
+					 * \param[in] power how fast in m/s (for kicking) or how far in m
+					 * (for chipping) to kick the ball
+					 * \param[in] chip \c true to chip the ball or \c false to kick it
+					 */
+					void move_shoot(Point dest, Angle orientation, double power, bool chip);
+
+					/**
+					 * \brief Catches a moving ball.
+					 *
+					 * \param[in] angle_diff how far left of the robot’s current
+					 * orientation would make it be pointing exactly 180° from the
+					 * ball’s current velocity (and thus pointing in the perfect
+					 * direction to receive the ball)
+					 * \param[in] displacement the distance to the left of the robot’s
+					 * current position to move to in order to be in the ball’s path,
+					 * where “left” is defined relative to the robot’s orientation
+					 * <em>after the requested rotation</em>
+					 * \param[in] speed the speed the robot should move forward (or
+					 * negative for backward), where “forward” is defined relative to
+					 * the robot’s orientation <em>after the requested rotation</em>
+					 */
+					void move_catch(Angle angle_diff, double displacement, double speed);
+
+					/**
+					 * \brief Rotates around a point on the field (e.g. the ball) while
+					 * facing it.
+					 *
+					 * Throughout the pivot, the robot maintains a fixed distance from
+					 * the centre point.
+					 *
+					 * \param[in] centre the position of the centre of the circle, as a
+					 * distance forward and left of the robot’s current position,
+					 * relative to the robot’s current orientation
+					 * \param[in] swing how far counterclockwise to swing the vector
+					 * from centre point to robot about the centre point to get the
+					 * final position of the robot
+					 * \param[in] orientation how far left the robot should rotate to
+					 * reach the desired final orientation
+					 */
+					void move_pivot(Point centre, Angle swing, Angle orientation);
+
+					/**
+					 * \brief Spins around rapidly while moving.
+					 *
+					 * \param[in] dest the position to move to, as a distance forward
+					 * and left of the robot’s current position, relative to the
+					 * robot’s current orientation
+					 * \param[in] speed the speed to spin at, in units per second
+					 */
+					void move_spin(Point dest, Angle speed);
+
+					AI::PrimitiveInfo primitive_info();
+	
+					/*void move_coast();
+					void move_brake();
+					void move_move(Point dest);
+					void move_move(Point dest, Angle orientation);
+					void move_move(Point dest, double time_delta);
+					void move_move(Point dest, Angle orientation, double time_delta);
+					void move_dribble(Point dest, Angle orientation, bool small_kick_allowed);
+					void move_shoot(Point dest, double power, bool chip);
+					void move_shoot(Point dest, Angle orientation, double power, bool chip);
+					void move_catch(Angle angle_diff, double displacement, double speed);
+					void move_pivot(Point centre, Angle swing, Angle orientation);
+					void move_spin(Point dest, Angle speed);				*/
+
 			};
 
 			/**
@@ -301,6 +482,11 @@ inline std::pair<Point, Angle> AI::Nav::W::Player::destination() const {
 	return AI::Common::Player::impl->destination();
 }
 
+inline void AI::Nav::W::Player::destination(std::pair<Point, Angle> dest){
+	AI::Common::Player::impl->destination(dest);
+	return;
+}
+
 inline Point AI::Nav::W::Player::target_velocity() const {
 	return AI::Common::Player::impl->target_velocity();
 }
@@ -317,9 +503,65 @@ inline AI::Flags::MovePrio AI::Nav::W::Player::prio() const {
 	return AI::Common::Player::impl->prio();
 }
 
-inline void AI::Nav::W::Player::path(const Path &p) {
-	AI::Common::Player::impl->path(p);
+inline const Property<Drive::Primitive> &AI::Nav::W::Player::primitive() const {
+	return AI::Common::Player::impl->primitive();
 }
+
+inline void AI::Nav::W::Player::path(const std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> &) {
+}
+
+inline void AI::Nav::W::Player::display_path(const std::vector<Point> &p) {
+	AI::Common::Player::impl->display_path(p);
+}
+
+inline void AI::Nav::W::Player::move_coast(){
+	AI::Common::Player::impl->move_coast();
+}
+
+inline void AI::Nav::W::Player::move_brake(){
+	AI::Common::Player::impl->move_brake();
+}
+
+inline void AI::Nav::W::Player::move_move(Point dest){
+	AI::Common::Player::impl->move_move(dest);
+}
+
+inline void AI::Nav::W::Player::move_move(Point dest, Angle orientation){
+	AI::Common::Player::impl->move_move(dest, orientation);
+}
+
+inline void AI::Nav::W::Player::move_move(Point dest, double time_delta){
+	AI::Common::Player::impl->move_move(dest, time_delta);
+}
+
+inline void AI::Nav::W::Player::move_move(Point dest, Angle orientation, double time_delta){
+	AI::Common::Player::impl->move_move(dest, orientation, time_delta);
+}
+
+inline void AI::Nav::W::Player::move_dribble(Point dest, Angle orientation, bool small_kick_allowed){
+	AI::Common::Player::impl->move_dribble(dest, orientation, small_kick_allowed);
+}
+
+inline void AI::Nav::W::Player::move_shoot(Point dest, double power, bool chip){
+	AI::Common::Player::impl->move_shoot(dest, power, chip);
+}
+
+inline void AI::Nav::W::Player::move_shoot(Point dest, Angle orientation, double power, bool chip){
+	AI::Common::Player::impl->move_shoot(dest, orientation, power, chip);
+}
+
+inline void AI::Nav::W::Player::move_catch(Angle angle_diff, double displacement, double speed){
+	AI::Common::Player::impl->move_catch(angle_diff, displacement, speed);
+}
+
+inline void AI::Nav::W::Player::move_pivot(Point centre, Angle swing, Angle orientation){
+	AI::Common::Player::impl->move_pivot(centre, swing, orientation);
+}
+
+inline void AI::Nav::W::Player::move_spin(Point dest, Angle speed){
+	AI::Common::Player::impl->move_spin(dest, speed);
+}
+
 
 inline AI::Nav::W::World::World(AI::BE::Backend &impl) : impl(impl) {
 }
@@ -354,5 +596,8 @@ inline bool std::less<AI::Nav::W::Player>::operator()(const AI::Nav::W::Player &
 	return cmp(x, y);
 }
 
+inline AI::PrimitiveInfo AI::Nav::W::Player::primitive_info(){
+	return AI::Common::Player::impl->hl_request;
+}
 #endif
 

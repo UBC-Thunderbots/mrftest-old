@@ -2,6 +2,7 @@
 #define TEST_COMMON_DRIBBLE_H
 
 #include "drive/robot.h"
+#include "util/property.h"
 #include <gtkmm/box.h>
 #include <gtkmm/scale.h>
 #include <gtkmm/togglebutton.h>
@@ -33,9 +34,8 @@ class DribblePanel final : public Gtk::VBox {
 		Gtk::ToggleButton dribble_button;
 		Gtk::HScale level;
 
+		void on_direct_changed();
 		void on_update();
 };
 
 #endif
-
-

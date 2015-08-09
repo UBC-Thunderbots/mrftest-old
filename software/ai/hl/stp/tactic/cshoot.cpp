@@ -13,6 +13,7 @@
 #include "geom/util.h"
 #include "util/dprint.h"
 #include "geom/angle.h"
+#include "ai/hl/stp/action/shoot.h"
 #include <iostream>
 
 using AI::HL::STP::BALL_MAX_SPEED;
@@ -197,7 +198,7 @@ namespace {
 			return;
 		}
 
-		player.autokick(BALL_MAX_SPEED);
+		AI::HL::STP::Action::shoot_goal(world, player, true);
 	}
 
 	void CShootGoal::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {

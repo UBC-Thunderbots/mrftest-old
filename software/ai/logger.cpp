@@ -103,9 +103,6 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), fos(fd.
 	if (ai.high_level.get()) {
 		config_record.mutable_config()->set_high_level(ai.high_level->factory().name());
 	}
-	if (ai.robot_controller_factory.get()) {
-		config_record.mutable_config()->set_robot_controller(ai.robot_controller_factory->name());
-	}
 	config_record.mutable_config()->set_friendly_colour(colour_to_protobuf(ai.backend.friendly_colour()));
 	config_record.mutable_config()->set_nominal_ticks_per_second(TIMESTEPS_PER_SECOND);
 	write_record(config_record);
@@ -133,7 +130,6 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), fos(fd.
 	ai.backend.signal_refbox().connect(sigc::mem_fun(this, &AI::Logger::on_refbox_packet));
 	ai.backend.field().signal_changed.connect(sigc::mem_fun(this, &AI::Logger::on_field_changed));
 	ai.backend.friendly_colour().signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_friendly_colour_changed));
-	ai.robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_robot_controller_factory_changed));
 	ai.backend.friendly_team().score.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_score_changed));
 	ai.backend.enemy_team().score.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_score_changed));
 	ai.backend.signal_post_tick().connect(sigc::mem_fun(this, &AI::Logger::on_tick));
@@ -350,15 +346,6 @@ void AI::Logger::on_high_level_changed() {
 	write_record(empty_ai_notes_record);
 }
 
-void AI::Logger::on_robot_controller_factory_changed() {
-	if (ai.robot_controller_factory) {
-		config_record.mutable_config()->set_robot_controller(ai.robot_controller_factory->name());
-	} else {
-		config_record.mutable_config()->clear_robot_controller();
-	}
-	write_record(config_record);
-}
-
 void AI::Logger::on_score_changed() {
 	Log::Record record;
 	record.mutable_scores()->set_friendly(ai.backend.friendly_team().score);
@@ -397,14 +384,31 @@ void AI::Logger::on_tick(AI::Timediff compute_time) {
 		player.set_movement_flags(p->flags());
 		player.set_movement_type(Log::Util::MoveType::to_protobuf(p->type()));
 		player.set_movement_priority(Log::Util::MovePrio::to_protobuf(p->prio()));
-		for (const std::pair<std::pair<Point, Angle>, AI::Timestamp> &j : p->path()) {
-			Log::Tick::FriendlyRobot::PathElement &path_element = *player.add_path();
-			encode_vec3(j.first.first, j.first.second, *path_element.mutable_point());
-			timestamp_to_log(j.second, ai.backend.monotonic_start_time(), *path_element.mutable_timestamp());
+		for (Point j : p->display_path()) {
+			Log::Vector2 &path_element = *player.add_display_path();
+			encode_vec2(j, path_element);
 		}
-		for (int j : p->wheel_speeds()) {
-			player.add_wheel_setpoints(j);
+
+		static const std::unordered_map<Drive::Primitive, Log::Tick::FriendlyRobot::HLPrimitive::Primitive> MAPPING = {
+			{ Drive::Primitive::MOVE, Log::Tick::FriendlyRobot::HLPrimitive::MOVE },
+			{ Drive::Primitive::DRIBBLE, Log::Tick::FriendlyRobot::HLPrimitive::DRIBBLE },
+			{ Drive::Primitive::SHOOT, Log::Tick::FriendlyRobot::HLPrimitive::SHOOT },
+			{ Drive::Primitive::CATCH, Log::Tick::FriendlyRobot::HLPrimitive::CATCH },
+			{ Drive::Primitive::PIVOT, Log::Tick::FriendlyRobot::HLPrimitive::PIVOT },
+			{ Drive::Primitive::SPIN, Log::Tick::FriendlyRobot::HLPrimitive::SPIN },
+		};
+
+		auto iter = MAPPING.find(p->hl_request.type);
+		if (iter != MAPPING.end()) {
+			Log::Tick::FriendlyRobot::HLPrimitive &hlp = *player.mutable_hl_primitive();
+			hlp.set_primitive(iter->second);
+			encode_hlp_vec23(p->hl_request, hlp);
+			if(p->hl_request.type == Drive::Primitive::SHOOT) {
+				hlp.set_chip(p->hl_request.field_bool);
+				hlp.set_power(encode_micros(p->hl_request.field_double));
+			}
 		}
+#warning Log some information related to navigator-output movement primitives.
 	}
 
 	for (std::size_t i = 0; i < ai.backend.enemy_team().size(); ++i) {
@@ -416,6 +420,14 @@ void AI::Logger::on_tick(AI::Timediff compute_time) {
 	}
 
 	write_record(record);
+}
+
+void AI::Logger::encode_hlp_vec23(const AI::PrimitiveInfo &hl_request, Log::Tick::FriendlyRobot::HLPrimitive &log) {
+	if (hl_request.care_angle) {
+		encode_vec3(hl_request.field_point, hl_request.field_angle, *log.mutable_vector3());
+	} else {
+		encode_vec2(hl_request.field_point, *log.mutable_vector2());
+	}
 }
 
 void AI::Logger::encode_vec2(Point p, Log::Vector2 &log) {

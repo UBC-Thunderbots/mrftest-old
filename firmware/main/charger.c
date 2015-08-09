@@ -24,6 +24,7 @@
 
 #define VC_MAX 240.0f
 
+static bool charger_enabled = false;
 static bool full = false;
 static unsigned int timeout_counter = CHARGE_TIMEOUT;
 
@@ -153,21 +154,30 @@ void charger_mark_fired(void) {
 	__atomic_store_n(&timeout_counter, CHARGE_TIMEOUT, __ATOMIC_RELAXED); // Avoid reporting a timeout if we charge for a long time because we keep firing.
 }
 
+/**
+ * \brief Enables or disables the charger.
+ *
+ * \param[in] enabled whether or not to charge the capacitor
+ */
+void charger_enable(bool enabled) {
+	__atomic_store_n(&charger_enabled, enabled, __ATOMIC_RELAXED);
+}
+
 /** 
  * \brief Sets the duty cycle to the correct value.
- *
- * \param[in] charger_enabled whether or not to charge the capacitor
  */
-void charger_tick(bool charger_enabled) {
+void charger_tick(void) {
 	float vcap = adc_capacitor();
 	float vbat = adc_battery_unfiltered();
 
-	if (!charger_enabled) {
+	bool charge = __atomic_load_n(&charger_enabled, __ATOMIC_RELAXED);
+
+	if (!charge) {
 		__atomic_store_n(&full, false, __ATOMIC_RELAXED); // If we are not charging at all, then we instantly drain a bit.
 	}
 
 	if (vcap > VC_MAX) {
-		charger_enabled = false; //disable charger after critical voltage
+		charge = false; //disable charger after critical voltage
 		__atomic_store_n(&full, true, __ATOMIC_RELAXED); // Charger is now full.
 		__atomic_store_n(&timeout_counter, CHARGE_TIMEOUT, __ATOMIC_RELAXED); // We will keep topping up, but this does not contribute to timeout.
 	}
@@ -178,7 +188,7 @@ void charger_tick(bool charger_enabled) {
 		// However, if the emergency relay were to get stuck, the capacitors would be detached from the voltage divider.
 		// This would result in vcap being roughly zero.
 		// Charging the capacitors in this situation would be dangerous, because the discharge resistors would still be attached!
-		charger_enabled = false;
+		charge = false;
 	}
 
 	if (!timeout_counter /* Need not be atomic because only this task ever writes */) {
@@ -188,10 +198,10 @@ void charger_tick(bool charger_enabled) {
 
 	if (error_lt_get(ERROR_LT_CHARGE_TIMEOUT) /* Need not be atomic because only this task ever writes */) {
 		// If we have locked out due to timeout, fail.
-		charger_enabled = false;
+		charge = false;
 	}
 
-	if (charger_enabled) {
+	if (charge) {
 		uint32_t ccrTicks;
 		uint32_t arrTicks;
 

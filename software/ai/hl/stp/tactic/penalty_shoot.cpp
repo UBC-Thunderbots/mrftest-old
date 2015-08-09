@@ -1,5 +1,7 @@
 #include "ai/hl/stp/tactic/penalty_shoot.h"
 #include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/action/pivot.h"
+#include "ai/hl/stp/action/move.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
@@ -40,42 +42,62 @@ namespace {
 	void PenaltyShoot::execute()
 	{
 		const Field &f = world.field();
+
 		Point enemy_goal = f.enemy_goal();
 		Point enemy_goal_post1 = f.enemy_goal_boundary().first;
 		Point enemy_goal_post2 = f.enemy_goal_boundary().second;
+		Point target;
 
-		// shoot center of goal if there is no enemy
-		// otherwise, find a side to shoot
 		if (world.enemy_team().size() > 0)
 		{
-		    // since all other robots not participating in penalty shoot must be far away from the goal post
-		    // hence the enemy goalie is the robot closest to enemy goal post
+			// The enemy team has a goalie - find out which robot is the goalie!
+		    // Assume that the goalie is the robot closest to enemy goal post
 		    std::vector<Robot> enemies = AI::HL::Util::get_robots(world.enemy_team());
 
-		    Robot enemy_goalie = *std::min_element(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot>(world.field().enemy_goal()));
+			Robot enemy_goalie = *std::min_element(enemies.begin(),
+				enemies.end(), AI::HL::Util::CmpDist<Robot>(enemy_goal));
 
-		    // a hysteresis
-		    double goal_post_diff = (f.enemy_goal_boundary().first - f.enemy_goal_boundary().second).len();
-		    const double target_y = goal_post_diff * 3 / 4;
+			// Check to see if the enemy goalie is off to one side
+		    double goal_line_length = (enemy_goal_post1 - enemy_goal_post2).len();
+		    // If goalie is off of the center by threshold don't try fake out
+		    const double goalie_offset_threshold = goal_line_length * 1 / 3;
 
-		    if (shoot_up && enemy_goalie.position().y + Robot::MAX_RADIUS > target_y) {
-		        shoot_up = false;
-		    } else if (!shoot_up && enemy_goalie.position().y - Robot::MAX_RADIUS < -target_y) {
-		        shoot_up = true;
-		    }
+			if ((enemy_goalie.position() - enemy_goal).len() >
+				goalie_offset_threshold - Robot::MAX_RADIUS)
+			{
+				// Enemy goalie is further away from the goal center than the
+				// threshold. Therefore we should kick in the opposite direction
+			    if (enemy_goalie.position().y > enemy_goal.y) {
+			    	// Goalie is above the center of the goal. Shoot towards the
+			    	// bottom of the net.
+			    	target = Point(f.length() / 2, -goal_line_length/4);
+			    } else {
+			    	// Goalie is below the center of the goal. Shoot towards the
+			    	// top of the net.
+			    	target = Point(f.length() / 2, goal_line_length/4);
+			    }
+			}
+			else
+			{
+				// Enemy goalie is in the center of the net. Try and fake them
+				// out by pivoting.
+				AI::HL::STP::Action::move(player,
+					(enemy_goal - world.ball().position() -
+					Point(Robot::MAX_RADIUS, Robot::MAX_RADIUS)).orientation(),
+					world.ball().position() -
+					Point(Robot::MAX_RADIUS, Robot::MAX_RADIUS), Point(0, 0));
 
-		    if (shoot_up) {
-		    	enemy_goal = Point(f.length() / 2, target_y);
-		    } else {
-		    	enemy_goal = Point(f.length() / 2, -target_y);
-		    }
+				AI::HL::STP::Action::pivot(world, player, world.ball().position(), 0.05);
+				target = enemy_goal;
+			}
 		}
 		else
 		{
-			has_shot = AI::HL::STP::Action::shoot_target(world, player, enemy_goal);
+			// Enemy team has no goalie. Shoot straight for the goal!
+			target = enemy_goal;
 		}
 
-		 //has_shot = AI::HL::STP::Action::shoot_goal(world, player, false);
+		AI::HL::STP::Action::pivot_shoot(world, player, target);
 
 		// unset any flags
 		player.flags(0);

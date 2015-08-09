@@ -3,6 +3,7 @@
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/tactic/shadow_kickoff.h"
 #include "ai/hl/stp/tactic/wait_playtype.h"
+#include "ai/hl/util.h"
 #include "geom/param.h"
 
 using namespace AI::HL::STP::Play;
@@ -13,12 +14,16 @@ namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
 	// the distance we want the players to the ball
-	const double AVOIDANCE_DIST = 0.50 + Ball::RADIUS + Robot::MAX_RADIUS + 0.005;
+	constexpr double AVOIDANCE_DIST = AI::HL::Util::KICKOFF_STOP_DIST + Ball::RADIUS
+		+ Robot::MAX_RADIUS;
 
-	// in ball avoidance, angle between center of 2 robots, as seen from the ball 
-	const Angle AVOIDANCE_ANGLE = 2.0 * Angle::of_radians(std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST)); 
-	 	 
-	DegreeParam kickoff_separation_angle(u8"kickoff: angle to separate players (degrees)", u8"AI/HL/STP/Kickoff", 20, 0, 80); 
+	// distance for the offenders to be positioned away from the kicker
+	constexpr double SEPARATION_DIST = 10 * Robot::MAX_RADIUS;
+
+	// hard coded positions for the kicker, and 2 offenders
+	constexpr Point kicker_position(-AVOIDANCE_DIST, 0);
+	constexpr Point ready_positions[3] = { Point(0, -SEPARATION_DIST),
+		Point(0, SEPARATION_DIST) };
 }
 
 /**
@@ -29,7 +34,9 @@ namespace {
  * - Handle Enemy Kickoff
  */
 BEGIN_PLAY(KickoffEnemy)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::PREPARE_KICKOFF_ENEMY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_KICKOFF_ENEMY)) && Predicates::our_team_size_at_least(world, 2))
+INVARIANT((Predicates::playtype(world, AI::Common::PlayType::PREPARE_KICKOFF_ENEMY)
+	|| Predicates::playtype(world, AI::Common::PlayType::EXECUTE_KICKOFF_ENEMY))
+	&& Predicates::our_team_size_at_least(world, 2))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
@@ -42,27 +49,21 @@ goalie_role.push_back(wait_playtype(world, defend_duo_goalie(world), AI::Common:
 // defend
 roles[0].push_back(defend_duo_defender(world));
 
-// calculate angle between robots 
-const Angle delta_angle = AVOIDANCE_ANGLE + kickoff_separation_angle; 
-	 	 
-// a ray that shoots from the center to friendly goal. 
-const Point shoot = Point(-1, 0) * AVOIDANCE_DIST; 
-
 // ROLE 2
 // move to offender position 1
-roles[1].push_back(move(world, shoot));
+roles[1].push_back(move(world, kicker_position));
 
 // ROLE 3
 // shadowing
-roles[2].push_back(shadow_kickoff(world, Enemy::closest_ball(world, 1), shoot.rotate(delta_angle))); 
+roles[2].push_back(shadow_kickoff(world, Enemy::closest_ball(world, 1), ready_positions[0]));
 
 // ROLE 4
 // shadowing
-roles[3].push_back(shadow_kickoff(world, Enemy::closest_ball(world, 2), shoot.rotate(-delta_angle))); 
+roles[3].push_back(shadow_kickoff(world, Enemy::closest_ball(world, 2), ready_positions[1]));
 
 // ROLE 5
 // defend
-roles[4].push_back(move(world, Point(-2*(world.field().centre_circle_radius() + 2*Robot::MAX_RADIUS), 0)));
+roles[4].push_back(move(world, Point(world.field().friendly_goal().x + world.field().defense_area_radius() + 3*Robot::MAX_RADIUS, 0)));
 
 END_ASSIGN()
 END_PLAY()

@@ -7,9 +7,11 @@
  */
 #include "dribbler.h"
 #include "adc.h"
+#include "control.h"
 #include "hall.h"
 #include "motor.h"
 #include "receive.h"
+#include "physics.h"
 
 #define SPEED_CONSTANT 3760.0f // rpm per volt—EC16 datasheet
 #define VOLTS_PER_RPM (1.0f / SPEED_CONSTANT) // volts per rpm
@@ -34,6 +36,11 @@
 #define THERMAL_WARNING_STOP_TEMPERATURE_WINDING (THERMAL_WARNING_START_TEMPERATURE_WINDING - 15.0f) // °C—chead
 #define THERMAL_WARNING_STOP_ENERGY_WINDING ((THERMAL_WARNING_STOP_TEMPERATURE_WINDING - THERMAL_AMBIENT) * THERMAL_CAPACITANCE_WINDING) // joules
 
+// Verify that all the timing requirements are set up properly.
+_Static_assert(!(CONTROL_LOOP_HZ % DRIBBLER_TICK_HZ), "Dribbler period is not a multiple of control loop period.");
+
+static uint8_t dribbler_pwm = 0;
+static unsigned int dribbler_tick_counter = 0;
 static float winding_energy = 0.0f, housing_energy = 0.0f;
 static bool hot = false;
 static unsigned int temperature = 0U;
@@ -51,47 +58,72 @@ static void update_thermal_model(float added_winding_energy) {
 }
 
 /**
- * \brief Updates the dribbler.
+ * \brief Sets the power level of the dribbler.
  *
  * \param[in] pwm the power level of the dribbler
+ */
+void dribbler_set_power(uint8_t pwm) {
+	dribbler_pwm = pwm;
+}
+
+/**
+ * \brief Updates the dribbler.
  *
  * \param[out] record the log record whose dribbler-related fields will be updated
  */
-void dribbler_tick(uint8_t pwm, log_record_t *record) {
-	// Measure the dribbler speed.
-	int16_t dribbler_speed = hall_speed(4U);
+void dribbler_tick(log_record_t *record) {
+	// Decide whether this is a dribbler tick time.
+	if (dribbler_tick_counter == 0) {
+		// Reset counter.
+		dribbler_tick_counter = CONTROL_LOOP_HZ / DRIBBLER_TICK_HZ - 1U;
 
-	// Do some log record filling.
-	if (record) {
-		record->tick.dribbler_ticked = 1U;
-		record->tick.dribbler_speed = dribbler_speed;
-	}
+		// Measure the dribbler speed.
+		hall_lock_dribbler();
+		int16_t dribbler_speed = hall_speed(4U);
 
-	// Decide whether to run or not.
-	if (winding_energy < THERMAL_MAX_ENERGY_WINDING) {
-		motor_set(4U, MOTOR_MODE_FORWARD, pwm);
-		float battery = adc_battery();
-		float back_emf = dribbler_speed * VOLTS_PER_SPEED_UNIT;
-		float applied_voltage = battery * pwm / 255.0f;
-		float delta_voltage = applied_voltage - back_emf;
-		float current = delta_voltage / (PHASE_RESISTANCE + SWITCH_RESISTANCE);
-		float power = current * current * PHASE_RESISTANCE;
-		float energy = power / DRIBBLER_TICK_HZ;
-		update_thermal_model(energy);
+		// Do some log record filling.
+		if (record) {
+			record->tick.dribbler_ticked = 1U;
+			record->tick.dribbler_speed = dribbler_speed;
+		}
+
+		// Decide whether to run or not.
+		if (winding_energy < THERMAL_MAX_ENERGY_WINDING) {
+			motor_set(4U, MOTOR_MODE_FORWARD, dribbler_pwm);
+			float battery = adc_battery();
+			float back_emf = dribbler_speed * VOLTS_PER_SPEED_UNIT;
+			float applied_voltage = battery * dribbler_pwm / 255.0f;
+			float delta_voltage = applied_voltage - back_emf;
+			float current = delta_voltage / (PHASE_RESISTANCE + SWITCH_RESISTANCE);
+			float power = current * current * PHASE_RESISTANCE;
+			float energy = power / DRIBBLER_TICK_HZ;
+			update_thermal_model(energy);
+
+			if (record) {
+				record->tick.dribbler_pwm = dribbler_pwm;
+			}
+		} else {
+			motor_set(4U, MOTOR_MODE_COAST, 0U);
+			update_thermal_model(0.0f);
+			if (record) {
+				record->tick.dribbler_pwm = 0U;
+			}
+		}
 
 		if (record) {
-			record->tick.dribbler_pwm = pwm;
+			record->tick.dribbler_temperature = (uint8_t) (winding_energy / THERMAL_CAPACITANCE_WINDING + THERMAL_AMBIENT);
 		}
 	} else {
-		motor_set(4U, MOTOR_MODE_COAST, 0U);
-		update_thermal_model(0.0f);
-		if (record) {
-			record->tick.dribbler_pwm = 0U;
-		}
-	}
+		// Decrement counter.
+		--dribbler_tick_counter;
 
-	if (record) {
-		record->tick.dribbler_temperature = (uint8_t) (winding_energy / THERMAL_CAPACITANCE_WINDING + THERMAL_AMBIENT);
+		// Leave the record cleanly empty.
+		if (record) {
+			record->tick.dribbler_ticked = 0U;
+			record->tick.dribbler_pwm = 0U;
+			record->tick.dribbler_speed = 0U;
+			record->tick.dribbler_temperature = 0U;
+		}
 	}
 }
 

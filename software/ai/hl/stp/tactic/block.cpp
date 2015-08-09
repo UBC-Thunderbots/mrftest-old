@@ -79,7 +79,6 @@ namespace {
 	void BlockBall::execute() {
 		if (!enemy->evaluate()) {
 			Action::stop(world, player);
-			player.dribble(AI::BE::Player::DribbleMode::STOP);
 			return;
 		}
 		Point dirToBall = (world.ball().position() - player.position()).norm();

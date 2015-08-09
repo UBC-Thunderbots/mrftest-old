@@ -90,7 +90,7 @@ namespace AI {
 				}
 
 
-				std::vector<PassInfo::passDataStruct> newPositions(PassInfo::worldSnapshot snapshot, int quantity){
+				std::vector<PassInfo::passDataStruct> newPositions(PassInfo::worldSnapshot snapshot, unsigned int quantity){
 					// Generate a list of potential points, then randomly select the number specified by 'quantity' to be returned.
 					// Current implementation is fairly inefficient when 'quantity' is smaller than the number of potential points.
 					// An improvement would be to randomly pick indices then calculate only their positions.
@@ -167,7 +167,6 @@ namespace AI {
 								0,4,0.5));
 					}
 
-
 					for(unsigned int i =0; i < mergedEnemyPositions.size() -1; i++){
 
 						for(unsigned int j = 0; j < friendlyRadii.size(); j++){
@@ -177,15 +176,12 @@ namespace AI {
 						}
 					}
 
-
 					if(quantity < startingPositions.size()){
 						// Randomly order the vector, then truncate the vector to the desired number of points
 						std::random_shuffle(startingPositions.begin(), startingPositions.end());
 
 						startingPositions.resize(quantity);
 					}
-
-
 
 					return startingPositions;
 				}
@@ -307,7 +303,7 @@ namespace AI {
 							y1 = potential_passes.at(i).params.at(2);
 
 
-							for (int n=i+1; n < potential_passes.size(); n++){
+							for (unsigned int n=i+1; n < potential_passes.size(); n++){
 								if(std::find(removed_objects.begin(), removed_objects.end(), n) == removed_objects.end()) {
 									xdist = x1 - potential_passes.at(n).params.at(1);
 									ydist = y1 - potential_passes.at(n).params.at(2);
@@ -339,7 +335,7 @@ namespace AI {
 					return a.quality > b.quality;
 				}
 
-				std::vector<PassInfo::passDataStruct> bestPassPositions(PassInfo::worldSnapshot snapshot, std::vector<PassInfo::passDataStruct> potential_passes, int numberPositions){
+				std::vector<PassInfo::passDataStruct> bestPassPositions(PassInfo::worldSnapshot snapshot, std::vector<PassInfo::passDataStruct> potential_passes, unsigned int numberPositions){
 					std::vector<PassInfo::passDataStruct> bestPositions;
 					//sort all points by quality
 					std::sort(potential_passes.begin(), potential_passes.end(), comparePassQuality);

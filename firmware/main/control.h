@@ -1,29 +1,23 @@
 #ifndef CONTROL_H
 #define CONTROL_H
 
-#include <stdint.h>
+//input is acceleration in robot coordinates
+//a is in m/s^2
+//rot is rotational acceleration in rad/sec^2
+void apply_accel(float linear_accel[2], float angular_accel);
 
-#define CONTROL_LOOP_HZ 200U
+//input is force in newtons per wheel to apply the robot
+void apply_wheel_force(const float force[4]);
 
-/**
- * \brief Invoked once per tick when the control loop is not enabled to clear accumulated state.
- */
-void control_clear(void);
+//Takes velocities in global coordinates
+//tries to apply accelerations to track it
+//essentially a velocity controller.
+void track_vel_target(const float linear_vel[2], float angular_vel);
 
-/**
- * \brief Updates the internal state of the controller when new setpoints are received from the host.
- *
- * \param[in] setpoints the new setpoints
- */
-void control_process_new_setpoints(const int16_t setpoints[4U]);
+// compute accelerate from a simple bang-bang model
+float compute_accel_track_pos_1D(float d_target, float d_cur, float v_cur, float v_max, float a_max);
 
-/**
- * \brief Updates the internal state of the controller as time passes and computes new output drive levels.
- *
- * \param[in] feedback the current measured speeds of the wheels
- * \param[out] drive the drive levels to send to the motors
- */
-void control_tick(const int16_t feedback[4U], int16_t drive[4U]);
+void Clamp(float *input, float limit);
 
 #endif
 

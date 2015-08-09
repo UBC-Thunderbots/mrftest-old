@@ -6,6 +6,8 @@
 #include "geom/point.h"
 #include "ai/hl/stp/action/pivot.h"
 #include "geom/util.h"
+#include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/action/chip.h"
 
 #include <iostream>
 
@@ -41,13 +43,13 @@ namespace {
 				Angle point_our_net_higher = Angle::of_degrees(150);
 
 				Angle player_orientation = player.orientation();
-				player.move(player.position(), to_target, Point());
+				AI::HL::STP::Action::move(player, to_target, player.position());
 
 
 				if ((player_orientation.angle_diff(to_target) < epsilon)) {
 					if (obstacle(player, target) == true && chipperclear(player) == true) {
 						std::cout << "Chip chip";
-						player.autochip(speed_ratio);
+						AI::HL::STP::Action::chip_target(world, player, world.ball().position());
 						}
 /*
  * 					TODO: Add code so that if enemy is too close for robot to chip, it moves back a bit to make room and then chips.
@@ -59,12 +61,12 @@ namespace {
 
 							// dont back up if the player is pointing towards our net
 							if ((player_orientation > point_our_net_lower) && (player_orientation < point_our_net_higher))
-								player.move(player.position() - move_back_distance, player.orientation(), Point());
+								AI::HL::STP::Action::move(player, player.orientation(), player.position() - move_back_distance);
 						}
 					}
 					else {
 						std::cout << "shoot shoot";
-						player.autokick(speed_ratio);
+						AI::HL::STP::Action::shoot_goal(world, player, true);
 					}
 				}
 			}

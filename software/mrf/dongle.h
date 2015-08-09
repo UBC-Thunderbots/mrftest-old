@@ -110,8 +110,7 @@ class MRFDongle final : public Drive::Dongle {
 		std::unique_ptr<USB::InterruptOutTransfer> drive_transfer;
 		std::list<std::unique_ptr<USB::InterruptOutTransfer>> unreliable_messages;
 		std::unique_ptr<MRFRobot> robots[8];
-		uint16_t drive_packet[8][4];
-		bool drive_dirty;
+		uint8_t drive_packet[64];
 		sigc::connection drive_submit_connection;
 		std::queue<uint8_t> free_message_ids;
 		sigc::signal<void, uint8_t, uint8_t> signal_message_delivery_report;

@@ -82,26 +82,47 @@ void PassInfo::updateCurrentPoints(std::vector<PassInfo::passDataStruct> newPoin
 void PassInfo::updateWorldSnapshot(World world){
 	worldSnapshot new_snapshot;
 
+	// in case we want another point as the passer other than the one closest to the ball
+	if(tacticInfo.use_stored_point_as_passer){
+		new_snapshot.passer_position = tacticInfo.alt_passer_point;
+		new_snapshot.passer_orientation = tacticInfo.alt_passer_orientation;
 
+		Player alt_passer = *std::min_element(world.friendly_team().begin(), world.friendly_team().end(), AI::HL::Util::CmpDist<Player>(tacticInfo.alt_passer_point));
+		Player goalie =  *std::min_element(world.friendly_team().begin(), world.friendly_team().end(), AI::HL::Util::CmpDist<Player>(world.field().friendly_goal()));
+		for(Player player: world.friendly_team()){
 
-	Player passer;
-	double min_dist = 1e99;
-	for (Player player : world.friendly_team()) {
-		Point dest = Evaluation::calc_fastest_grab_ball_dest(world, player);
-		if (!passer || min_dist > (dest - player.position()).len()) {
-			min_dist = (dest - player.position()).len();
-			passer = player;
+			if(player != alt_passer && player != goalie){
+				new_snapshot.passee_positions.push_back(player.position());
+				new_snapshot.passee_velocities.push_back(player.velocity());
+			}
 		}
 	}
-	new_snapshot.passer_position = passer.position();
-	new_snapshot.passer_orientation = passer.orientation();
+
+	// otherwise determine through clac_fastest_grab_ball_destt
+	else{
+		Player passer;
+		double min_dist = 1e99;
+		for (Player player : world.friendly_team()) {
+			Point dest = Evaluation::calc_fastest_grab_ball_dest(world, player);
+			if (!passer || min_dist > (dest - player.position()).len()) {
+				min_dist = (dest - player.position()).len();
+				passer = player;
+			}
+		}
+		new_snapshot.passer_position = passer.position();
+		new_snapshot.passer_orientation = passer.orientation();
+
+		//Player goalie =  *std::min_element(world.friendly_team().begin(), world.friendly_team().end(), AI::HL::Util::CmpDist<Player>(world.field().friendly_goal()));
+
+		for(Player player: world.friendly_team()){
+			if(player.position() != passer.position()){
+				new_snapshot.passee_positions.push_back(player.position());
+				new_snapshot.passee_velocities.push_back(player.velocity());
+			}
+		}
+	}
 	
-	for(Player player: world.friendly_team()){
-		if(player.position() != passer.position()){
-			new_snapshot.passee_positions.push_back(player.position());
-			new_snapshot.passee_velocities.push_back(player.velocity());
-		}
-	}
+
 	for(Robot robot : world.enemy_team()){
 		new_snapshot.enemy_positions.push_back(robot.position());
 		new_snapshot.enemy_velocities.push_back(robot.velocity());

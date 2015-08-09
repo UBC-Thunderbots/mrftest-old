@@ -16,17 +16,21 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #include <unused.h>
 #include <usb.h>
 #include <registers/exti.h>
 #include <registers/timer.h>
 
 /**
- * \brief The exact number of bytes in the payload of a drive packet.
- *
- * This number does not include the data counter or emergency stop status.
+ * \brief The number of robots.
  */
-#define DRIVE_PACKET_DATA_SIZE 64U
+#define DRIVE_NUM_ROBOTS 8
+
+/**
+ * \brief The number of bytes in the drive data block for each robot.
+ */
+#define DRIVE_BYTES_PER_ROBOT 8
 
 /**
  * \brief The number of packet buffers to allocate at system startup.
@@ -229,48 +233,60 @@ static void handle_drive_endpoint_done(unsigned int UNUSED(ep), BaseType_t *from
 }
 
 /**
- * \brief Writes a drive packet into the radio transmit buffer and begins sending it.
+ * \brief Writes a drive packet into the radio transmit buffer and begins
+ * sending it.
  *
  * This function also blinks the transmit LED.
  *
  * \param[in] packet the 64-byte drive packet
- * \param[in] counter the 1-byte data counter, incremented when new data arrives
+ * \param[in] serials the 1-byte data serial number for each robot, incremented
+ * when new data arrives
  *
  * \pre The transmit mutex must be held by the caller.
  */
-static void send_drive_packet(const void *packet, uint8_t counter) {
-	// Write out the packet.
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 0U, 9U); // Header length
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 1U, 9U + DRIVE_PACKET_DATA_SIZE + 1U + 1U + 8U); // Frame length
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 2U, 0b01000001U); // Frame control LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 3U, 0b10001000U); // Frame control MSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 4U, ++mrf_tx_seqnum); // Sequence number
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 5U, radio_config.pan_id); // Destination PAN ID LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 6U, radio_config.pan_id >> 8U); // Destination PAN ID MSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 7U, 0xFFU); // Destination address LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 8U, 0xFFU); // Destination address MSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 9U, 0x00U); // Source address LSB
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 10U, 0x01U); // Source address MSB
-	const uint8_t *bptr = packet;
+static void send_drive_packet(const void *packet, const uint8_t *serials) {
+	unsigned int address = MRF_REG_LONG_TXNFIFO;
 
-	for (size_t i = 0U; i < DRIVE_PACKET_DATA_SIZE; ++i) {
-		uint8_t mask = 0U;
-		if (i - 1U == poll_index * DRIVE_PACKET_DATA_SIZE / 8U) {
-			mask = 0x80U;
+	// Write out the MRF24J40 and 802.15.4 headers.
+	unsigned int header_length_address = address++;
+	unsigned int frame_length_address = address++;
+	unsigned int header_start_address = address;
+	mrf_write_long(address++, 0b01000001U); // Frame control LSB
+	mrf_write_long(address++, 0b10001000U); // Frame control MSB
+	mrf_write_long(address++, ++mrf_tx_seqnum); // Sequence number
+	mrf_write_long(address++, radio_config.pan_id); // Destination PAN ID LSB
+	mrf_write_long(address++, radio_config.pan_id >> 8U); // Destination PAN ID MSB
+	mrf_write_long(address++, 0xFFU); // Destination address LSB
+	mrf_write_long(address++, 0xFFU); // Destination address MSB
+	mrf_write_long(address++, 0x00U); // Source address LSB
+	mrf_write_long(address++, 0x01U); // Source address MSB
+
+	// Record the header length, now that the header is finished.
+	mrf_write_long(header_length_address, address - header_start_address);
+
+	// Write out the payload sent from the host, interleaved with the prefix
+	// byte for each robot.
+	const uint8_t *rptr = packet;
+	for (size_t i = 0; i != DRIVE_NUM_ROBOTS; ++i) {
+		mrf_write_long(address++, (serials[i] & 0x0F) | ((poll_index == i) ? 0x80 : 0x00));
+		for (size_t j = 0; j != DRIVE_BYTES_PER_ROBOT; ++j) {
+			mrf_write_long(address++, *rptr++);
 		}
-		mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + i, bptr[i] | mask);
 	}
 
-	// Write the footer: counter, emergency stop status, and timestamp.
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 11U + DRIVE_PACKET_DATA_SIZE, counter);
-	mrf_write_long(MRF_REG_LONG_TXNFIFO + 12U + DRIVE_PACKET_DATA_SIZE, estop_read() == ESTOP_RUN);
+	// Write out the footer, which comprises the emergency stop status and
+	// timestamp.
+	mrf_write_long(address++, estop_read() == ESTOP_RUN);
 	uint64_t stamp = rtc_get();
 	for (unsigned int i = 0; i < 8; ++i) {
-		mrf_write_long(MRF_REG_LONG_TXNFIFO + 13U + DRIVE_PACKET_DATA_SIZE + i, (uint8_t)(stamp >> (8 * i)));
+		mrf_write_long(address++, (uint8_t)(stamp >> (8 * i)));
 	}
 
-	// Advance to polling the next robot on the next packet.
-	poll_index = (poll_index + 1U) % 8U;
+	// Record the frame length, now that the frame is finished.
+	mrf_write_long(frame_length_address, address - header_start_address);
+
+	// Advance the feedback polling index.
+	poll_index = (poll_index + 1U) % DRIVE_NUM_ROBOTS;
 
 	// Initiate transmission with no acknowledgement.
 	mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000001U);
@@ -289,15 +305,16 @@ static void send_drive_packet(const void *packet, uint8_t counter) {
  * On receiving a packet over USB, the new packet is used on the next scheduled transmission and thereafter.
  */
 static void drive_task(void *UNUSED(param)) {
-	uint8_t *packet_buffers[2U];
-	uint8_t counter = 0U;
-	unsigned int wptr = 0U, rptr = 0U;
+	uint8_t *packet_buffer, *usb_buffer;
+	uint8_t serials[DRIVE_NUM_ROBOTS] = {};
 
 	// Allocate packet buffers.
-	for (unsigned int i = 0U; i != 2U; ++i) {
-		packet_buffers[i] = malloc(DRIVE_PACKET_DATA_SIZE);
-		assert(packet_buffers[i]);
-	}
+	packet_buffer = malloc(DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT);
+	usb_buffer = malloc(DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT);
+	assert(packet_buffer && usb_buffer);
+
+	// Fill the packet buffer with a safe default.
+	memset(packet_buffer, 0, DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT);
 
 	// Set up timer 6 to overflow every 20 milliseconds for the drive packet.
 	// Timer 6 input is 72 MHz from the APB.
@@ -332,12 +349,11 @@ static void drive_task(void *UNUSED(param)) {
 	for (;;) {
 		// Start the endpoint if possible.
 		if (!ep_running) {
-			if (uep_async_read_start(0x01U, packet_buffers[wptr], DRIVE_PACKET_DATA_SIZE, &handle_drive_endpoint_done)) {
+			if (uep_async_read_start(0x01U, usb_buffer, DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT, &handle_drive_endpoint_done)) {
 				ep_running = true;
 			} else {
 				if (errno == EPIPE) {
 					// Endpoint halted.
-					rptr = wptr = 0U;
 					uep_halt_wait(0x01U);
 				} else {
 					// Shutting down.
@@ -354,28 +370,24 @@ static void drive_task(void *UNUSED(param)) {
 			size_t transfer_length;
 			if (uep_async_read_finish(0x01U, &transfer_length)) {
 				ep_running = false;
-				bool ok;
-				if (transfer_length == DRIVE_PACKET_DATA_SIZE) {
-					// Check for illegal bit 15 being set.
-					ok = true;
-					for (unsigned int robot = 0U; robot != 8U; ++robot) {
-						const uint8_t *bot_data = &packet_buffers[wptr][robot * DRIVE_PACKET_DATA_SIZE / 8U];
-						uint16_t first_word = bot_data[0U] | ((uint16_t) bot_data[1U] << 8U);
-						if (first_word & 0x8000U) {
-							ok = false;
-						}
+				if (transfer_length == DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT) {
+					// This transfer contains new data for every robot.
+					memcpy(packet_buffer, usb_buffer, DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT);
+					for (unsigned int i = 0; i != DRIVE_NUM_ROBOTS; ++i) {
+						++serials[i];
+					}
+				} else if (transfer_length && !(transfer_length % (DRIVE_BYTES_PER_ROBOT + 1))) {
+					// This transfer contains a list of new drive data blocks
+					// prefixed with robot indices.
+					const uint8_t *rptr = usb_buffer;
+					while (rptr != usb_buffer + transfer_length) {
+						unsigned int index = *rptr++;
+						memcpy(packet_buffer + index * DRIVE_BYTES_PER_ROBOT, rptr, DRIVE_BYTES_PER_ROBOT);
+						rptr += DRIVE_BYTES_PER_ROBOT;
+						++serials[index];
 					}
 				} else {
 					// Transfer is wrong length; reject.
-					ok = false;
-				}
-				if (ok) {
-					// Transfer OK; accept this packet and use it on next tick.
-					rptr = wptr;
-					wptr = !wptr;
-					++counter;
-				} else {
-					// Halt endpoint due to application being dumb.
 					uep_halt(0x01U);
 				}
 			} else if (errno == ECONNRESET) {
@@ -392,13 +404,11 @@ static void drive_task(void *UNUSED(param)) {
 		}
 
 		if (__atomic_exchange_n(&drive_tick_pending, false, __ATOMIC_RELAXED)) {
-			if (rptr != wptr) {
-				// Send a packet.
-				xSemaphoreTake(transmit_mutex, portMAX_DELAY);
-				send_drive_packet(packet_buffers[rptr], counter);
-				xSemaphoreTake(transmit_complete_sem, portMAX_DELAY);
-				xSemaphoreGive(transmit_mutex);
-			}
+			// Send a packet.
+			xSemaphoreTake(transmit_mutex, portMAX_DELAY);
+			send_drive_packet(packet_buffer, serials);
+			xSemaphoreTake(transmit_complete_sem, portMAX_DELAY);
+			xSemaphoreGive(transmit_mutex);
 		}
 	}
 
@@ -411,9 +421,8 @@ static void drive_task(void *UNUSED(param)) {
 	rcc_disable(APB1, TIM6);
 
 	// Free packet buffers.
-	for (unsigned int i = 0U; i != 2U; ++i) {
-		free(packet_buffers[i]);
-	}
+	free(packet_buffer);
+	free(usb_buffer);
 
 	// Done.
 	xSemaphoreGive(shutdown_sem);

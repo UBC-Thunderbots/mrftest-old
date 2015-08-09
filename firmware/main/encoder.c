@@ -82,7 +82,15 @@ void encoder_tick(void) {
 		speeds[i] = -(int16_t) (uint16_t) (new_positions[i] - last_positions[i]);
 		last_positions[i] = new_positions[i];
 	}
+}
 
+/**
+ * \brief Checks for encoder commutation errors.
+ *
+ * This can’t be done in @ref encoder_tick because it has to happen after
+ * locking the Hall sensor readings.
+ */
+void encoder_check_commutation_errors(void) {
 	// Update encoder-not-commutating errors.
 	for (unsigned int i = 0U; i != 4U; ++i) {
 		float hall_rpt = hall_speed(i) / (float) WHEELS_HALL_COUNTS_PER_REV;

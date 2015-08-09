@@ -40,12 +40,12 @@ namespace {
 	void Intercept::execute() {
 		// if it has the ball, stay there
 		if (player.has_ball()) {
-			Action::dribble(world, player);
+			Action::dribble(player);
 			return;
 		}
 
 		// orient towards the enemy goal?
-		Action::intercept(player, target);
+		Action::intercept(player, world.ball().position());
 	}
 }
 

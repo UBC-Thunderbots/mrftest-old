@@ -8,13 +8,38 @@ namespace AI {
 		namespace STP {
 			namespace Action {
 				/**
-				 * 
-				 * Chips the ball to a target point with a double param power indicating the power to chip.
+				 * Chip Target
+				 *
+				 * Not intended for goalie use
+				 *
+				 * Chips the ball to a target point with a double param power
+				 * indicating the power to chip.
 				 *
 				 * \return true if the player autokick is fired.
 				 */
-				bool chip_target(World world, Player player, const Point target, double power = 0.6);
+				bool chip_target(World world, Player player, const Point target);
+
+				/**
+				 * Goalie Chip Target
+				 *
+				 * Intended for goalie use
+				 * 
+				 * Chips the ball to a target point with a double param power
+				 * indicating the power to chip.
+				 *
+				 * \return true if the player autokick is fired.
+				 */
+				bool goalie_chip_target(World world, Player player, const Point target);
 				
+				/*
+				 * Chip at Location
+				 *
+				 * Not intended for goalie use
+				 *
+				 * Goes to a location on the field and chips the ball at a certain orientation.
+				 */
+				bool chip_at_location(Player player, const Point location_to_chip_at,
+					double chip_distance, Angle chip_orientation);
 			}
 		}
 	}

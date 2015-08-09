@@ -2,6 +2,7 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/shadow_kickoff.h"
 #include "ai/hl/stp/tactic/shadow_enemy.h"
+#include "ai/hl/stp/tactic/mark_offside.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
 
@@ -31,11 +32,11 @@ roles[1].push_back(defend_duo_extra1(world));
 
 // ROLE 3
 // offend
-roles[2].push_back(offend(world));
+roles[2].push_back(mark_offside(world));
 
 // ROLE 4
 // shadow enemy
-roles[3].push_back(shadow_enemy(world,0));
+roles[3].push_back(shadow_enemy(world,1));
 
 // ROLE 5
 // move to other half of the field to position for catching the ball after chipping shots

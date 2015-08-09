@@ -21,10 +21,8 @@ namespace AI {
 		namespace STP {
 			namespace GradientApproach {
 				double ratePass(PassInfo::worldSnapshot snapshot, Point target,  double time_delay, double ball_velocity){
-					if(snapshot.passee_positions.size() < 0){
-						return 0;
-					}
 					double pass_quality = Evaluation::getStaticPositionQuality(snapshot, target);
+
 					if(snapshot.passee_positions.size() > 0){
 						pass_quality = pass_quality * (Evaluation::getFriendlyCapability(snapshot, target, time_delay, ball_velocity));
 					}
@@ -36,17 +34,13 @@ namespace AI {
 					double shoot_score = Evaluation::get_passee_shoot_score(snapshot, target);
 					pass_quality = pass_quality * (0.5 + 0.5*shoot_score );
 
-
 					double dist = (snapshot.passer_position - target).len();
 					pass_quality = pass_quality/(1+std::exp(3 * ( 1- dist))); 
 					pass_quality = pass_quality/(1+std::exp(200 * ( - time_delay + 0.3)));
 					pass_quality = pass_quality/(1+std::exp(200 * (2.5 - ball_velocity))); 
 					pass_quality = pass_quality/(1+std::exp(200 * (-6 +  ball_velocity ))); 
 
-
-
 					return pass_quality;
-
 				}
 			}
 		}

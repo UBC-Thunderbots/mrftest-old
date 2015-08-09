@@ -30,6 +30,7 @@ namespace {
 				if (!friendly.size()) {
 					return;
 				}
+				
 
 				Action::shoot_goal(world, friendly[0]);
 			}

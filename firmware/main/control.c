@@ -1,197 +1,223 @@
 #include "control.h"
 #include "adc.h"
+#include "physics.h"
+#include "dsp.h"
+#include "dr.h"
 #include "wheels.h"
-#include "sensors.h"
-#include <string.h>
+#include "encoder.h"
 #include <math.h>
 
-#define QUARTERDEGREE_TO_MS 0.0114f
-#define ROBOT_RADIUS 0.08f
-#define TICK_TIME (1.0f / CONTROL_LOOP_HZ)
-#define DELTA_VOLTAGE_LIMIT 8.0f  //Voltage where wheel slips
-#define ROBOT_MASS 2.48f
-#define INERTIAL_CONSTANT 0.282f
-#define AGGRESSIVENESS 0.08f
-#define INPUT_NOISE 0.02f //noise of speed in m/s (measured value)
 
-#define PI 3.141596254f
-
-//gyro running at 2000/second and in integers such that 32767 is 2000
-//61.0 millidegrees/second / LSB
-#define DEGREES_PER_GYRO (61.0f/1000.0f)
-#define MS_PER_DEGREE (2.0f*PI*ROBOT_RADIUS/360.0f)
-#define MS_PER_GYRO MS_PER_DEGREE*DEGREES_PER_GYRO
-
-//All wheels good
-static const float speed4_to_speed3_mat[3][4]=
-{
-	{-0.34847, -0.29380,0.29380,0.34847},
-	{0.39944,-0.39944,-0.39944, 0.39944},
-	{0.28245, 0.21755, 0.21755, 0.28245}
-};
-
-static const float speed3_to_speed4_mat[4][3] =
-	{ 
-		{-0.83867, 0.54464, 1.00000},
-    { -0.70711,-0.70711, 1.00000},
-    {0.70711,-0.70711, 1.00000},
-    {0.83867, 0.54464, 1.00000}
-	};
-
+//adjust the force on the wheels such that it compensates for a high center
+//of gravity
+//derived from the following formula 
+//F = mu*h/R where mu is coeff of friction, h is hight of cog and R is radius of wheels
+//P is the wheel position matrix P = [cos(thetas);sin(thetas)]
+//where thetas is the wheel angle
+//M = pinv(P)*[0 1;-1 0]*P
+//M' = M*F
+//Mat = I + (I - M')^-1 * M'
 static const float WHEEL_CORR_MAT[4][4] =
 	{
-		{0.3283, 0.3064, -0.2306, 0.6762},
-		{0.3333, -0.0039, 0.3755, -0.1820},
-		{-0.2880, 0.5643, -0.0350, 0.3345},
-		{0.5563, -0.3302, 0.2770, 0.4442},
+		{0.9995, 0.0841, 0.0153, -0.0802},
+		{-0.0895, 0.9694, 0.0855, 0.0450},
+		{-0.0153, -0.0908, 0.9995, 0.0893},
+		{0.0855, 0.0144, -0.0843, 0.9712},
 	};
 
-static const float rescale_vector[] = {AGGRESSIVENESS, AGGRESSIVENESS, AGGRESSIVENESS };
-static const float slip_vector[4] = {-0.45580, 0.54060, -0.54060, 0.45580};
-#if 0
-static const float filter_gain = 0.0362;
-static const float filter_B[] = {1, 1.2857, 1.2857, 1};
-static const float filter_A[] = {1.0, -1.7137, 1.1425, -0.2639};
-#define FILTER_ORDER 3
-static float input_filter_states[4][FILTER_ORDER];
-#else
-static const float filter_gain = 0.0246;
-static const float filter_B[] = {1, 0.66667, 1};
-static const float filter_A[] = {1.0, -1.6079, 0.6735};
-#define FILTER_ORDER 2
-static float input_filter_states[4][FILTER_ORDER];
-#endif
-static float setpoints[3U];
 
-static float runDF2(float input,float gain,const float* num,const float* den, float* state, size_t order) {
-	float accum=0;
-	for(size_t i=0;i<order;++i) {
-		input -= state[i]*den[i+1];
-	}
-	input /= den[0];
-
-	for(size_t i=order-1;i!=0;--i) {
-		accum += state[i]*num[i+1];
-		state[i]=state[i-1];
-	}
-	accum += state[0]*num[1];
-		state[0]=input;
-		accum += input*num[0];
-	return gain*accum;
+/**
+ * \ingroup Controls
+ * \brief applies a tranformation matrix to weight force to rear wheels
+ *
+ * /param[in] forces to drive the robot with
+ * /param[out] new forces to apply to the wheels
+ */
+void correct_wheel_force(const float force[4], float new_force[4]) {
+	matrix_mult(new_force,4,force,4,WHEEL_CORR_MAT);
 }
 
-static float runEncoderFilter(float input,float* filter_states) {
-	return runDF2(input,filter_gain,filter_B,filter_A,filter_states,FILTER_ORDER);
-}
 
-static void correct_sp(float input[4]) {
-	float output[4];
-	for(unsigned int i=0;i<4;++i) {
-		float temp = 0;
-		for(unsigned int j=0;j<4;++j) {
-			temp += WHEEL_CORR_MAT[i][j] * input[j];
-		}
-		output[i] = temp;
-	}
-	
-	for(unsigned int k=0;k<4;++k) {
-		input[k] = output[k];
-	}
-}
-
-//convert 4 speeds to 3 speed
-static void speed4_to_speed3(const float speed4[4], float speed3[3]) {
-	for(unsigned int j=0;j<3;++j) {
-		speed3[j]=0;
-		for(unsigned int i=0;i<4;++i) {
-			speed3[j]+= speed4_to_speed3_mat[j][i]*speed4[i];
-		}
-	}
-}
-
-//convert 3 speed to 4 speed
-static void speed3_to_speed4(const float speed3[3], float speed4[4]) {
-	for(uint8_t j=0;j<4;++j) {
-		speed4[j]=0;
-		for(unsigned int i=0;i<3;++i) {
-			speed4[j] +=  speed3_to_speed4_mat[j][i]*speed3[i]; 
-		}
-	}
-}
-
-static void rotate_velocity(float speed[3], float angle) {
-	float temp = cosf(angle)*speed[0] - sinf(angle)*speed[1];
-	speed[1] = sinf(angle)*speed[0] + cosf(angle)*speed[1];
-	speed[0]=temp;
-}
-
-void control_clear() {
-	//current controller has no persistent other than setpoint state
-}
-
-void control_process_new_setpoints(const int16_t wheel_setpoints[4]) {
-	float temp[4];
-	for(unsigned int i=0;i<4;++i) {
-		temp[i]= QUARTERDEGREE_TO_MS*wheel_setpoints[i];
-	}
-	speed4_to_speed3(temp, setpoints);
-}
-
-void control_tick(const int16_t feedback[4U], int16_t drive[4U]) {
-	float Velocity[3];
-	float Veldiff[3];
-	float Accels[4];
-	float max_accel=-10;
-	float min_rescale_factor=1;
-	float filtered_encoders[4];
-
-	for(size_t i=0;i<4;++i) {
-		filtered_encoders[i] = runEncoderFilter(feedback[i],input_filter_states[i]);
-	}
-
-	//Convert the measurements to the 3 velocity
-	speed4_to_speed3(filtered_encoders, Velocity);
-	//This needs to be changed to the state updater
-
-	//Update the setpoint by the current rotational speed
-	rotate_velocity(setpoints,-Velocity[2]/ROBOT_RADIUS*QUARTERDEGREE_TO_MS*TICK_TIME);
-	sensors_gyro_data_t gyrodata = sensors_get_gyro();	
-	if(gyrodata.status) {
-		Velocity[2] = MS_PER_GYRO*gyrodata.data.reading.z/QUARTERDEGREE_TO_MS;
-	}
-
-	//Get the control error
-	for(uint8_t i=0;i<3;++i) {
-		Veldiff[i]=(setpoints[i]-Velocity[i]*QUARTERDEGREE_TO_MS)*(DELTA_VOLTAGE_LIMIT/INPUT_NOISE)*rescale_vector[i]; //Should be desired Acceleration
-	}
-
-	//convert that control error in the 4 wheel accel direction
-	speed3_to_speed4(Veldiff,Accels);
-
-	correct_sp(Accels);
-	
-	for(uint8_t i=0;i<4;++i) {
-		if(fabsf(Accels[i]) > max_accel) {
-			max_accel = fabsf(Accels[i]);
-		}
-	}
-
-	if(max_accel > DELTA_VOLTAGE_LIMIT) {
-		for(uint8_t i=0;i<4;++i) {
-			Accels[i] = (DELTA_VOLTAGE_LIMIT/max_accel)*Accels[i];
-		}
-	}
-	
+/**
+ * \ingroup Controls
+ * \brief Applies a force in newtons to each wheel
+ *
+ * \param[in] per wheel force in newtons
+ */
+void apply_wheel_force(const float force[4]) {
 	float battery = adc_battery();
-	for(uint8_t i=0;i<4;++i) {
-		if(fabsf((battery - feedback[i]*WHEELS_VOLTS_PER_ENCODER_COUNT)/Accels[i]) < min_rescale_factor) {
-			min_rescale_factor = fabsf((battery - feedback[i]*WHEELS_VOLTS_PER_ENCODER_COUNT)/Accels[i]);
-		}
+	//float new_force[4];
+	//correct_wheel_force(force, new_force);
+
+	for(int i=0;i<4; i++) {
+		float torque = force[i]*WHEEL_RADIUS*GEAR_RATIO;
+		float voltage = torque*CURRENT_PER_TORQUE*PHASE_RESISTANCE; //delta voltage
+		float back_emf = (float)encoder_speed(i)*QUARTERDEGREE_TO_VOLT;
+		wheels_drive(i,(voltage+back_emf)/battery*255);
+	}
+}
+
+
+#define JERK_LIMIT 40.0f //(m/s^3)
+
+void Clamp(float *input, float limit) {
+	if (*input > limit) {
+		*input = limit;
+	}
+	if (*input < -limit) {
+		*input = -limit;
+	}
+}
+
+/**
+ * \ingroup Controls
+ *
+ * \brief Applies a specific acceleration to the robot
+ *
+ * \param[in] linear acceleration to apply in robot coordinates (m/s^2)
+ * \param[in] angular acceleration to apply (rad/s^2)
+ */
+void apply_accel(float linear_accel[2], float angular_accel) {
+	//check for max acceleration scaling in direction of the vel difference
+	float scaling = get_maximal_accel_scaling(linear_accel, angular_accel);
+	
+	//if the naive 1 tick acceleration violates the limits of the robot
+	//scale it to maximum
+	//if the 1 tick acceleration is below the limit, then leave it
+	if(scaling < 1.0f) {
+		linear_accel[0] *= scaling;
+		linear_accel[1] *= scaling;
+		angular_accel *= scaling;
 	}
 
-	for(uint8_t i=0;i<4;++i) {
-		float	temp = (feedback[i]*WHEELS_VOLTS_PER_ENCODER_COUNT+ min_rescale_factor*Accels[i])/battery*255;
-		//because I can
-		drive[i] = (temp > 255)?255:(temp<-255)?-255:temp;
+	static float prev_linear_accel0=0;
+	static float prev_linear_accel1=0;
+	static float prev_angular_accel=0;
+	
+	float linear_diff0 = linear_accel[0]-prev_linear_accel0;
+	float linear_diff1 = linear_accel[1]-prev_linear_accel1;
+	float angular_diff = angular_accel - prev_angular_accel;
+	
+	Clamp(&linear_diff0, JERK_LIMIT*TICK_TIME);
+	Clamp(&linear_diff1, JERK_LIMIT*TICK_TIME);
+	Clamp(&angular_diff, JERK_LIMIT/ROBOT_RADIUS*TICK_TIME*5.0f);
+
+	linear_accel[0] = prev_linear_accel0 + linear_diff0;
+	linear_accel[1] = prev_linear_accel1 + linear_diff1;
+	angular_accel = prev_angular_accel + angular_diff;
+
+	prev_linear_accel0 = linear_accel[0];
+	prev_linear_accel1 = linear_accel[1];
+	prev_angular_accel = angular_accel;
+
+	float robot_force[3];
+	robot_force[0] = linear_accel[0]*ROBOT_MASS[0]; //force in x direction
+	robot_force[1] = linear_accel[1]*ROBOT_MASS[1]; //force in y direction
+	//input is angular acceleration so mass * Radius * radians/second^2 gives newtons
+	robot_force[2] = angular_accel*ROBOT_RADIUS*ROBOT_MASS[2];
+	float wheel_force[4];
+	speed3_to_speed4(robot_force, wheel_force); //Convert to wheel coordinate syste
+	apply_wheel_force(wheel_force); //set force
+}
+
+/**
+ * \ingroup Controls 
+ *
+ * \brief Applies acceleration to reach a desired velocity specified in dead reckoning coordinates
+ *
+ * \param[in] desired linear velocity (m/s)
+ * \param[in] desired angular velocity (rad/s)
+ */
+#define TRACK_TIME 0.1f
+void track_vel_target(const float linear_vel[2], float angular_vel) {
+	dr_data_t current_state;
+	
+	//grab our current velocity information
+	dr_get(&current_state);
+	
+
+	//get the desired accleration by assuming we need to acheive the 
+	//velocity delta in a single tick
+	float cur_acc[2];
+	cur_acc[0] = (linear_vel[0] - current_state.vx)/TRACK_TIME;
+	cur_acc[1] = (linear_vel[1] - current_state.vy)/TRACK_TIME;
+
+	rotate(cur_acc, -current_state.angle); //rotate into robot local coordinate from dr
+
+	float angular_acc = (angular_vel - current_state.avel)/TRACK_TIME;
+
+
+	//send acceleration to wheels
+	apply_accel(cur_acc, angular_acc);
+
+}
+
+// assuming units are the same except by order of time
+float compute_accel_track_pos_1D(float d_target, float d_cur, float v_cur, float v_max, float a_max){
+	// step 2. diff distination todo: check unit
+	//pos_diff[0] = ((float)shoot_param.params[0]/1000.0f)-data.x;
+	//pos_diff[1] = ((float)shoot_param.params[1]/1000.0f)-data.y;
+	//pos_diff[2] = ((float)shoot_param.params[2]/100.0f)-data.angle;
+
+	float d_diff, v_thresh_abs, v_target, v_diff, a_target;
+
+	// this is not the best way to derive the hysteresis values
+	float d_hysteresis = a_max*0.005f;
+	float v_hysteresis = a_max*0.05f;
+
+	static unsigned int frame = 0;
+	
+	frame++;
+	frame = frame%34;
+
+	d_diff = d_target-d_cur;
+
+	// step 3. get threshold velocity todo: check if we have sqrt routine, abs
+	// todo: check if the math function only takes double
+	v_thresh_abs = sqrtf(2*fabsf(d_diff)*a_max);
+
+
+	// step 3.1 remember the vel_thresh_abs has no directional dependence 
+	//	    this is the correction step
+	// step 3.2 clamp thresh to maximum velocity
+	// clamp and get the sign right
+	if(v_thresh_abs > v_max) {
+		if(d_diff > d_hysteresis ){ 
+			v_target = v_max;
+		} else if( d_diff < -d_hysteresis ){
+			v_target = -v_max;
+		} else {
+			v_target = 0.0f;
+		}
+	} else{
+		if(d_diff > d_hysteresis ){
+			v_target = v_thresh_abs;
+		} else if( d_diff < -d_hysteresis ){
+			v_target = -v_thresh_abs;
+		} else {
+			v_target = 0.0f;
+		}
+	} 
+
+	// option 1: there is apparently a function to call to do velocity control
+	
+	// option 2: set max acceleration yourself
+	
+	v_diff = v_target-v_cur;
+
+	// this set accel to maximum or zero
+	if(v_diff > v_hysteresis ){	
+		a_target = a_max;
+	} else if(v_diff < -v_hysteresis ) {
+		a_target = -a_max;
+	} else {
+		a_target = 0.0f;
 	}
+
+	
+	if(frame == 0){
+		//printf("=== compute_accel === %f, %f, %f, %f\r\n", d_diff, v_thresh_abs, v_target, v_diff);
+	}
+
+	return a_target;
 }

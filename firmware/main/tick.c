@@ -35,7 +35,6 @@
 #include "chicker.h"
 #include "control.h"
 #include "dribbler.h"
-#include "drive.h"
 #include "encoder.h"
 #include "feedback.h"
 #include "hall.h"
@@ -46,6 +45,8 @@
 #include "motor.h"
 #include "priority.h"
 #include "receive.h"
+#include "wheels.h"
+#include "primitives/primitive.h"
 #include <FreeRTOS.h>
 #include <assert.h>
 #include <exception.h>
@@ -58,34 +59,16 @@
 
 // Verify that all the timing requirements are set up properly.
 _Static_assert(portTICK_PERIOD_MS * CONTROL_LOOP_HZ == 1000U, "Tick rate is not equal to control loop period.");
-_Static_assert(!(CONTROL_LOOP_HZ % DRIBBLER_TICK_HZ), "Dribbler period is not a multiple of control loop period.");
 
 static bool shutdown = false;
 static SemaphoreHandle_t shutdown_sem;
-static const drive_t SCRAM_DRIVE_STRUCT = {
-	.wheels_mode = WHEELS_MODE_BRAKE,
-	.dribbler_power = 0U,
-	.charger_enabled = false,
-	.discharger_enabled = true,
-	.setpoints = { 0, 0, 0, 0 },
-	.data_serial = 0U,
-};
 
 static void normal_task(void *UNUSED(param)) {
-	unsigned int dribbler_tick_counter = 0U;
 	TickType_t last_wake = xTaskGetTickCount();
 
 	while (!__atomic_load_n(&shutdown, __ATOMIC_RELAXED)) {
 		// Wait one system tick.
 		vTaskDelayUntil(&last_wake, 1U);
-
-		// Decide whether this is also a dribbler tick.
-		bool is_dribbler_tick = dribbler_tick_counter == 0U;
-		if (is_dribbler_tick) {
-			dribbler_tick_counter = CONTROL_LOOP_HZ / DRIBBLER_TICK_HZ - 1U;
-		} else {
-			--dribbler_tick_counter;
-		}
 
 		// Sanity check: the FPGA must not have experienced a post-configuration CRC failure.
 		assert(gpio_get_input(PIN_FPGA_INIT_B));
@@ -108,26 +91,13 @@ static void normal_task(void *UNUSED(param)) {
 		if (chicker_auto_fired_test_clear()) {
 			feedback_pend_autokick();
 		}
-		hall_tick(is_dribbler_tick);
+		hall_tick();
 		encoder_tick();
-		bool receive_timeout = receive_drive_packet_timeout();
-		const drive_t *drive = receive_timeout ? &SCRAM_DRIVE_STRUCT : drive_read_get();
-		wheels_tick(drive, record);
-		if (is_dribbler_tick) {
-			dribbler_tick(drive->dribbler_power, record);
-		} else if (record) {
-			record->tick.dribbler_ticked = 0U;
-			record->tick.dribbler_pwm = 0U;
-			record->tick.dribbler_speed = 0U;
-			record->tick.dribbler_temperature = 0U;
-		}
-		charger_tick(drive->charger_enabled);
-		chicker_discharge(drive->discharger_enabled && adc_capacitor() > CHICKER_DISCHARGE_THRESHOLD);
+		primitive_tick(record);
+		wheels_tick(record);
+		dribbler_tick(record);
+		charger_tick();
 		chicker_tick();
-		if (!receive_timeout) {
-			drive_read_put();
-		}
-		drive = 0;
 		motor_tick();
 
 		// Submit the log record, if we filled one.

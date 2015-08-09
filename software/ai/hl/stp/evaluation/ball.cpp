@@ -3,8 +3,10 @@
 #include "ai/hl/util.h"
 #include "ai/hl/stp/stp.h"
 #include "ai/hl/stp/param.h"
+#include "ai/hl/world.h"
 
 using namespace AI::HL::STP;
+using namespace AI::HL::W;
 
 namespace {
 	BoolParam calc_baller_always_return(u8"Calc baller always return", u8"AI/HL/STP/ball", true);
@@ -96,6 +98,22 @@ bool Evaluation::possess_ball(World world, Player player) {
 		return false;
 	}
 	return ball_in_pivot_thresh(world, player);
+}
+
+bool Evaluation::behind_ball_within_dist(World world, Player player, Point target, double dist, Angle angle_thresh) {
+	if (player.has_ball()) {
+		return true;
+	}
+	
+	Point diff = player.position() - world.ball().position();
+	Point target_diff = target - player.position();
+	Angle angle_diff = target_diff.orientation().angle_diff(diff.orientation());
+	
+	if(diff.len() < (dist + Robot::MAX_RADIUS) && angle_diff.abs() < angle_thresh){
+		return true;
+	}
+	
+	return false;
 }
 
 bool Evaluation::possess_ball(World world, Robot robot) {

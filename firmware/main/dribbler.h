@@ -11,7 +11,8 @@
  */
 #define DRIBBLER_TICK_HZ 25U
 
-void dribbler_tick(uint8_t power, log_record_t *record);
+void dribbler_set_power(uint8_t power);
+void dribbler_tick(log_record_t *record);
 bool dribbler_hot(void);
 unsigned int dribbler_temperature(void);
 

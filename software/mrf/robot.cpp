@@ -1,4 +1,5 @@
 #include "mrf/robot.h"
+#include "mrf/constants.h"
 #include "mrf/dongle.h"
 #include "util/algorithm.h"
 #include "util/codec.h"
@@ -8,15 +9,14 @@
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <memory>
 #include <utility>
 #include <glibmm/main.h>
 #include <sigc++/functors/mem_fun.h>
+#include <iostream>
 
 namespace {
-	const unsigned int DRIBBLE_POWER_BITS = 5U;
-	const unsigned int DRIBBLE_POWER_MAX = (1U << DRIBBLE_POWER_BITS) - 1U;
-
 	/**
 	 * \brief The number of attempts to request the build IDs before giving up.
 	 */
@@ -133,6 +133,24 @@ namespace {
 		nullptr,
 		u8"Bot %1 SD card full",
 	};
+	
+	//this is a hard limit because we are kicking instead of chipping
+	//however, 8 meters is a fine chip to so this may stand
+#warning hack for kicking when chipping
+	const double MAX_KICK_VALUE = 8.0f;
+
+	unsigned int chicker_power_to_pulse_width(double power, bool chip) {
+		unsigned int width;
+		power = clamp_symmetric(power, MAX_KICK_VALUE);
+		if (!chip) {
+			width = static_cast<unsigned>(power * 332.7 + 219.8);
+		} else {
+			width = static_cast<unsigned>(835 * power * power + 469.2 * power + 1118.5);
+		}
+		return clamp(width, 0U, static_cast<unsigned int>(UINT16_MAX));
+	}
+
+
 }
 
 Drive::Dongle &MRFRobot::dongle() {
@@ -143,121 +161,181 @@ const Drive::Dongle &MRFRobot::dongle() const {
 	return dongle_;
 }
 
-void MRFRobot::drive(const int(&wheels)[4], bool controlled) {
-	for (unsigned int i = 0; i < 4; ++i) {
-		unsigned int level_u = static_cast<unsigned int>(std::abs(wheels[i]));
-		if (level_u > 1023) {
-			LOG_ERROR(u8"Wheel setpoint out of range");
-			level_u = 1023;
-		}
-		if (wheels[i] < 0) {
-			level_u |= 0x400;
-		}
-		dongle_.drive_packet[index][i] &= static_cast<uint16_t>(~0x7FF);
-		dongle_.drive_packet[index][i] |= static_cast<uint16_t>(level_u);
-	}
-
-	dongle_.drive_packet[index][0] |= 1 << 14;
-	dongle_.drive_packet[index][0] &= static_cast<uint16_t>(~(1 << 13));
-	if (controlled) {
-		dongle_.drive_packet[index][0] |= 1 << 13;
-	}
-
-	dongle_.dirty_drive();
-}
-
-bool MRFRobot::can_coast() const {
-	return true;
-}
-
-void MRFRobot::drive_coast() {
-	dongle_.drive_packet[index][0U] &= static_cast<uint16_t>(~(3U << 13U));
-	dongle_.dirty_drive();
-}
-
-void MRFRobot::drive_brake() {
-	dongle_.drive_packet[index][0] &= static_cast<uint16_t>(~(3 << 13));
-	dongle_.drive_packet[index][0] |= 1 << 13;
-	dongle_.dirty_drive();
-}
-
-void MRFRobot::dribble(unsigned int power) {
-	power = clamp(power, 0U, DRIBBLE_POWER_MAX);
-	dongle_.drive_packet[index][2U] &= static_cast<uint16_t>(~(DRIBBLE_POWER_MAX << 11U));
-	dongle_.drive_packet[index][2U] |= static_cast<uint16_t>(power << 11U);
-	dongle_.dirty_drive();
-}
-
 void MRFRobot::set_charger_state(ChargerState state) {
-	dongle_.drive_packet[index][1] &= static_cast<uint16_t>(~(0b11 << 14));
-	switch (state) {
-		case ChargerState::FLOAT:
-			break;
-		case ChargerState::DISCHARGE:
-			dongle_.drive_packet[index][1] |= 0b01 << 14;
-			break;
-		case ChargerState::CHARGE:
-			dongle_.drive_packet[index][1] |= 0b10 << 14;
-			break;
-	}
-	dongle_.dirty_drive();
+	charger_state = state;
+	dirty_drive();
 }
 
-double MRFRobot::kick_pulse_maximum() const {
-	return 5000.0;
+void MRFRobot::move_slow(bool slow) {
+	assert(!direct_control);
+	this->slow = slow;
+	dirty_drive();
 }
 
-// To be used for the slide bar
-double MRFRobot::kick_speed_maximum() const {
-	return 10.0;
+void MRFRobot::move_coast() {
+	assert(!direct_control);
+	primitive = Drive::Primitive::STOP;
+	params[0] = 0.0;
+	params[1] = 0.0;
+	params[2] = 0.0;
+	params[3] = 0.0;
+	extra = 0;
+	dirty_drive();
 }
 
-double MRFRobot::chip_distance_maximum() const {
-	return 2.0;
+void MRFRobot::move_brake() {
+	assert(!direct_control);
+	primitive = Drive::Primitive::STOP;
+	params[0] = 0.0;
+	params[1] = 0.0;
+	params[2] = 0.0;
+	params[3] = 0.0;
+	extra = 1;
+	dirty_drive();
 }
 
-double MRFRobot::chip_distance_resolution() const {
-	return 1.0;
+void MRFRobot::move_move(Point dest, double time_delta) {
+	assert(!direct_control);
+	primitive = Drive::Primitive::MOVE;
+	params[0] = dest.x * 1000.0;
+	params[1] = dest.y * 1000.0;
+	params[2] = 0.0;
+	params[3] = time_delta * 1000.0;
+	extra = 0;
+	dirty_drive();
 }
 
-double MRFRobot::kick_pulse_resolution() const {
-	return 1.0;
+void MRFRobot::move_move(Point dest, Angle orientation, double time_delta) {
+	assert(!direct_control);
+	primitive = Drive::Primitive::MOVE;
+	params[0] = dest.x * 1000.0;
+	params[1] = dest.y * 1000.0;
+	params[2] = orientation.angle_mod().to_radians() * 100.0;
+	params[3] = time_delta * 1000.0;
+	extra = 1;
+	dirty_drive();
 }
 
-// actually currently taking in a velocity
-void MRFRobot::kick(bool chip, double value) {
-	unsigned int pulse_width;
-	if (!chip) {
-		pulse_width = static_cast<unsigned>(value * 332.7 + 219.8);
-	} else {
-		pulse_width =static_cast<unsigned>(835 * value * value + 469.2 * value + 1118.5);
-	}
-	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width + 0.1), 0, static_cast<int>(kick_pulse_maximum())));
+void MRFRobot::move_dribble(Point dest, Angle orientation, bool small_kick_allowed) {
+	assert(!direct_control);
+	primitive = Drive::Primitive::DRIBBLE;
+	params[0] = dest.x * 1000.0;
+	params[1] = dest.y * 1000.0;
+	params[2] = orientation.angle_mod().to_radians() * 100.0;
+	params[3] = 0.0;
+	extra = small_kick_allowed;
+	dirty_drive();
+}
+
+void MRFRobot::move_shoot(Point dest, double power, bool chip) {
+	chip=false;
+	assert(!direct_control);
+	primitive = Drive::Primitive::SHOOT;
+	params[0] = dest.x * 1000.0;
+	params[1] = dest.y * 1000.0;
+	params[2] = 0.0;
+	uint16_t chick_power = chicker_power_to_pulse_width(power,chip);
+	params[3] = chick_power;
+	extra = chip;
+	dirty_drive();
+	std::cout << "move_shoot(" << dest << ',' << power << ',' << chip << ")\n";
+}
+
+void MRFRobot::move_shoot(Point dest, Angle orientation, double power, bool chip) {
+	chip=false;
+	assert(!direct_control);
+	primitive = Drive::Primitive::SHOOT;
+	params[0] = dest.x * 1000.0;
+	params[1] = dest.y * 1000.0;
+	params[2] = orientation.angle_mod().to_radians() * 100.0;
+	uint16_t chick_power = chicker_power_to_pulse_width(power,chip);
+	params[3] = chick_power;
+	extra = static_cast<uint8_t>(2 | chip);
+	dirty_drive();
+	std::cout << "move_shoot(" << dest << ',' << orientation << ',' << power << ',' << chip << ")\n";
+}
+
+void MRFRobot::move_catch(Angle angle_diff, double displacement, double speed) {
+	assert(!direct_control);
+	primitive = Drive::Primitive::CATCH;
+	params[0] = angle_diff.angle_mod().to_radians() * 100.0;
+	params[1] = displacement * 1000.0;
+	params[2] = speed * 1000.0;
+	params[3] = 0.0;
+	extra = 0;
+	dirty_drive();
+}
+
+void MRFRobot::move_pivot(Point centre, Angle swing, Angle orientation) {
+	assert(!direct_control);
+	primitive = Drive::Primitive::PIVOT;
+	params[0] = centre.x * 1000.0;
+	params[1] = centre.y * 1000.0;
+	params[2] = swing.angle_mod().to_radians() * 100.0;
+	params[3] = orientation.angle_mod().to_radians() * 100.0;
+	extra = 0;
+	dirty_drive();
+}
+
+void MRFRobot::move_spin(Point dest, Angle speed) {
+	assert(!direct_control);
+	primitive = Drive::Primitive::SPIN;
+	params[0] = dest.x * 1000.0;
+	params[1] = dest.y * 1000.0;
+	params[2] = speed.to_radians() * 100.0;
+	params[3] = 0.0;
+	extra = 0;
+	dirty_drive();
+}
+
+void MRFRobot::direct_wheels(const int (&wheels)[4]) {
+	assert(direct_control);
+	primitive = Drive::Primitive::DIRECT_WHEELS;
+	params[0] = wheels[0];
+	params[1] = wheels[1];
+	params[2] = wheels[2];
+	params[3] = wheels[3];
+	dirty_drive();
+}
+
+void MRFRobot::direct_velocity(Point vel, Angle avel) {
+	assert(direct_control);
+	primitive = Drive::Primitive::DIRECT_VELOCITY;
+	params[0] = vel.x * 1000.0;
+	params[1] = vel.y * 1000.0;
+	params[2] = avel.to_radians() * 100.0;
+	params[3] = 0.0;
+	dirty_drive();
+}
+
+void MRFRobot::direct_dribbler(unsigned int power) {
+	assert(direct_control);
+	assert(power <= 127);
+	extra = static_cast<uint8_t>(power);
+	dirty_drive();
+}
+
+void MRFRobot::direct_chicker(double power, bool chip) {
+	uint16_t width = static_cast<uint16_t>(chicker_power_to_pulse_width(power, chip));
 
 	uint8_t buffer[4];
 	buffer[0] = 0x00;
 	buffer[1] = chip ? 0x01 : 0x00;
-	buffer[2] = static_cast<uint8_t>(clamped);
-	buffer[3] = static_cast<uint8_t>(clamped >> 8);
+	buffer[2] = static_cast<uint8_t>(width);
+	buffer[3] = static_cast<uint8_t>(width >> 8);
 
 	dongle_.send_unreliable(index, buffer, sizeof(buffer));
 }
 
-void MRFRobot::autokick(bool chip, double value) {
-	unsigned int pulse_width; 
-	if (!chip) {
-		pulse_width = static_cast<unsigned>(value * 332.7 + 219.8);
-	} else {
-		pulse_width = static_cast<unsigned>(835 * value * value + 469.2 * value + 1118.5);
-	}
-	unsigned int clamped = static_cast<unsigned>(clamp(static_cast<int>(pulse_width + 0.1), 0, static_cast<int>(kick_pulse_maximum())));
+void MRFRobot::direct_chicker_auto(double power, bool chip) {
+	uint16_t width = static_cast<uint16_t>(chicker_power_to_pulse_width(power, chip));
 
-	if (clamped) {
+	if (power > 0.001 && width) {
 		uint8_t buffer[4];
 		buffer[0] = 0x01;
 		buffer[1] = chip ? 0x01 : 0x00;
-		buffer[2] = static_cast<uint8_t>(clamped);
-		buffer[3] = static_cast<uint8_t>(clamped >> 8);
+		buffer[2] = static_cast<uint8_t>(width);
+		buffer[3] = static_cast<uint8_t>(width >> 8);
 
 		dongle_.send_unreliable(index, buffer, sizeof(buffer));
 	} else {
@@ -272,12 +350,17 @@ constexpr unsigned int MRFRobot::SD_MESSAGE_COUNT;
 constexpr unsigned int MRFRobot::LOGGER_MESSAGE_COUNT;
 
 MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) :
-		Drive::Robot(index, DRIBBLE_POWER_MAX),
+		Drive::Robot(index, 0.3, 10.0, 2.0, 127),
 		dongle_(dongle),
-		low_capacitor_message(Glib::ustring::compose(u8"Bot %1 capacitor low (fuse blown?)", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
+		low_capacitor_message(Glib::ustring::compose(u8"Bot %1 low caps (fuse blown?)", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
 		fw_build_id_mismatch_message(u8"", Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
 		fpga_build_id_mismatch_message(u8"", Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
 		build_id_fetch_error_message(Glib::ustring::compose(u8"Bot %1 failed to read build IDs", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),
+		charger_state(ChargerState::FLOAT),
+		slow(false),
+		params{0.0, 0.0, 0.0, 0.0},
+		extra(0),
+		drive_dirty(false),
 		request_build_ids_counter(REQUEST_BUILD_IDS_COUNT) {
 	for (unsigned int i = 0; i < MRF::ERROR_LT_COUNT; ++i) {
 		error_lt_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(u8"Bot %1 %2", index, MRF::ERROR_LT_MESSAGES[i]), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
@@ -299,10 +382,75 @@ MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) :
 			logger_messages[i].reset(new Annunciator::Message(Glib::ustring::compose(LOGGER_MESSAGES[i], index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH));
 		}
 	}
+
+	direct_control.signal_changed().connect(sigc::mem_fun(this, &MRFRobot::handle_direct_control_changed));
 }
 
 MRFRobot::~MRFRobot() {
 	feedback_timeout_connection.disconnect();
+}
+
+void MRFRobot::encode_drive_packet(void *out) {
+	uint16_t words[4];
+
+	// Encode the parameter words.
+	for(std::size_t i = 0; i != sizeof(params) / sizeof(*params); ++i) {
+		double value = params[i];
+		switch (std::fpclassify(value)) {
+			case FP_NAN:
+				value = 0.0;
+				break;
+			case FP_INFINITE:
+				if (value > 0.0) {
+					value = 10000.0;
+				} else {
+					value = -10000.0;
+				}
+				break;
+		}
+		words[i] = 0;
+		if (value < 0.0) {
+			words[i] |= 1 << 10;
+			value = -value;
+		}
+		if (value > 1000.0) {
+			words[i] |= 1 << 11;
+			value *= 0.1;
+		}
+		if (value > 1000.0) {
+			value = 1000.0;
+		}
+		words[i] |= static_cast<uint16_t>(value);
+	}
+
+	// Encode the movement primitive number.
+	words[0] = static_cast<uint16_t>(words[0] | static_cast<unsigned int>(primitive.get()) << 12);
+
+	// Encode the charger state.
+	switch (charger_state) {
+		case ChargerState::DISCHARGE:
+			words[1] |= 1 << 14;
+			break;
+		case ChargerState::FLOAT:
+			break;
+		case ChargerState::CHARGE:
+			words[1] |= 2 << 14;
+			break;
+	}
+
+	// Encode extra data plus the slow flag.
+	assert(extra <= 127);
+	uint8_t extra_encoded = static_cast<uint8_t>(extra | (slow ? 0x80 : 0x00));
+
+	words[2] |= static_cast<uint16_t>((extra_encoded & 0xF) << 12);
+	words[3] |= static_cast<uint16_t>((extra_encoded >> 4) << 12);
+
+	// Convert the words to bytes.
+	uint8_t *wptr = static_cast<uint8_t *>(out);
+	for (std::size_t i = 0; i != 4; ++i) {
+		*wptr++ = static_cast<uint8_t>(words[i]);
+		*wptr++ = static_cast<uint8_t>(words[i] / 256);
+	}
 }
 
 void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, uint8_t rssi) {
@@ -340,7 +488,6 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 					len -= 2;
 
 					break_beam_reading = (bptr[0] | static_cast<unsigned int>(bptr[1] << 8)) / 1000.0;
-					break_beam_scale = 0.3;
 					bptr += 2;
 					len -= 2;
 
@@ -496,6 +643,25 @@ bool MRFRobot::handle_feedback_timeout() {
 		}
 	}
 	return false;
+}
+
+void MRFRobot::handle_direct_control_changed() {
+	if (direct_control) {
+		primitive = Drive::Primitive::DIRECT_WHEELS;
+	} else {
+		primitive = Drive::Primitive::STOP;
+	}
+	params[0] = 0.0;
+	params[1] = 0.0;
+	params[2] = 0.0;
+	params[3] = 0.0;
+	extra = 0;
+	dirty_drive();
+}
+
+void MRFRobot::dirty_drive() {
+	drive_dirty = true;
+	dongle_.dirty_drive();
 }
 
 void MRFRobot::check_build_id_mismatch() {

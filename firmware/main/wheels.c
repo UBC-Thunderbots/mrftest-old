@@ -1,16 +1,24 @@
+/**
+ * \defgroup WHEELS Wheel Management Functions
+ *
+ * \brief These functions handle the wheel driving process, including the
+ * thermal model and thermal throttling.
+ *
+ * @{
+ */
 #include "wheels.h"
 #include "adc.h"
 #include "control.h"
-#include "drive.h"
 #include "encoder.h"
 #include "error.h"
+#include "hall.h"
 #include "motor.h"
 #include "receive.h"
 #include <rcc.h>
 #include <registers/timer.h>
 #include <math.h>
 #include <stdbool.h>
-#include <string.h>
+#include <stdlib.h>
 
 #define THERMAL_TIME_CONSTANT 13.2f // seconds—EC45 datasheet
 #define THERMAL_RESISTANCE 4.57f // kelvins per Watt—EC45 datasheet (winding to housing)
@@ -26,117 +34,178 @@
 #define PHASE_RESISTANCE 1.2f // ohms—EC45 datasheet
 #define SWITCH_RESISTANCE 0.6f // ohms—L6234 datasheet
 
-#define NUM_WHEELS 4U
+/**
+ * \brief The possible modes a wheel can be in.
+ */
+typedef enum {
+	/**
+	 * \brief The wheel is coasting.
+	 */
+	WHEELS_MODE_COAST,
 
-static uint16_t last_data_serial = 0xFFFFU;
-static float energy[NUM_WHEELS] = {};
+	/**
+	 * \brief The wheel is braking.
+	 */
+	WHEELS_MODE_BRAKE,
 
-static void set_nominal_drive(unsigned int index, motor_mode_t mode, int16_t drive, log_record_t *record) {
-	// Fix negative numbers.
-	if (drive < 0) {
-		drive = -drive;
-		if (mode == MOTOR_MODE_FORWARD) {
-			mode = MOTOR_MODE_BACKWARD;
-		}
+	/**
+	 * \brief The wheel is driving.
+	 */
+	WHEELS_MODE_DRIVE,
+} wheels_mode_t;
+
+/**
+ * \brief The data associated with each wheel.
+ */
+typedef struct {
+	/**
+	 * \brief The amount of thermal energy in the motor windings.
+	 */
+	float energy;
+
+	/**
+	 * \brief The most recent operating mode provided by a movement primitive.
+	 */
+	wheels_mode_t mode;
+
+	/**
+	 * \brief The most recent PWM value provided by a movement primitive.
+	 */
+	int power;
+} wheels_wheel_t;
+
+/**
+ * \brief The wheel data.
+ */
+static wheels_wheel_t wheels[WHEELS_NUM_WHEELS];
+
+/**
+ * \brief Initializes the wheels.
+ */
+void wheels_init(void) {
+	for (unsigned int i = 0; i != WHEELS_NUM_WHEELS; ++i) {
+		wheels[i].energy = 0.0f;
+		wheels[i].mode = WHEELS_MODE_COAST;
 	}
+}
 
-	// Fix out-of-range numbers.
-	if (drive > 255) {
-		drive = 255;
-	}
+/**
+ * \brief Coasts a wheel.
+ *
+ * \param[in] index the index of the wheel to coast
+ */
+void wheels_coast(unsigned int index) {
+	wheels[index].mode = WHEELS_MODE_COAST;
+}
 
-	// Check temperature.
-	bool critical_temp = energy[index] > THERMAL_MAX_ENERGY;
+/**
+ * \brief Brakes a wheel.
+ *
+ * \param[in] index the index of the wheel to brake
+ */
+void wheels_brake(unsigned int index) {
+	wheels[index].mode = WHEELS_MODE_BRAKE;
+}
 
-	// Drive the motor.
-	if (!critical_temp) {
-		motor_set(index, mode, (uint8_t) drive);
-		if (record) {
-			record->tick.wheels_drives[index] = mode == MOTOR_MODE_BACKWARD ? -drive : drive;
-		}
+/**
+ * \brief Drives a wheel.
+ *
+ * \param[in] index the index of the wheel to drive
+ * \param[in] power the (signed) PWM level to send to the wheel
+ */
+void wheels_drive(unsigned int index, int power) {
+	wheels[index].mode = WHEELS_MODE_DRIVE;
+	if (power < -255) {
+		wheels[index].power = -255;
+	} else if (power > 255) {
+		wheels[index].power = 255;
 	} else {
-		motor_set(index, MOTOR_MODE_COAST, 0U);
-		if (record) {
-			record->tick.wheels_drives[index] = 0;
-		}
-	}
-
-	// Update the thermal model.
-	float added_energy;
-	if (critical_temp || mode == MOTOR_MODE_COAST || mode == MOTOR_MODE_BRAKE) {
-		added_energy = 0.0f;
-	} else {
-		float applied_delta_voltage = drive / 255.0f * adc_battery() - encoder_speed(index) * WHEELS_VOLTS_PER_ENCODER_COUNT;
-		float current = applied_delta_voltage / (PHASE_RESISTANCE + SWITCH_RESISTANCE);
-		float power = current * current * PHASE_RESISTANCE;
-		added_energy = power / CONTROL_LOOP_HZ;
-	}
-	energy[index] = energy[index] + added_energy - (energy[index] / THERMAL_CAPACITANCE / THERMAL_RESISTANCE / CONTROL_LOOP_HZ);
-
-	if (record) {
-		record->tick.wheels_temperatures[index] = (uint8_t) (energy[index] / THERMAL_CAPACITANCE + THERMAL_AMBIENT);
+		wheels[index].power = power;
 	}
 }
 
 /**
  * \brief Updates the wheels.
  *
- * This function runs the control loop (if needed) and sends new power levels to the motor module.
+ * This function uses the operating mode most recently provided by a movement
+ * primitive for each motor, updates the thermal model, throttles the wheels if
+ * necessary, and sends the new PWM levels to the FPGA.
  *
- * \param[in] drive the most recent drive packet that indicates how to control the wheels
- *
- * \param[out] record the log record whose wheel-related fields will be filled
+ * \param[out] log the log record whose wheel-related fields will be filled
  */
-void wheels_tick(const drive_t *drive, log_record_t *record) {
-	if (record) {
-		for (unsigned int i = 0U; i != NUM_WHEELS; ++i) {
-			record->tick.wheels_setpoints[i] = drive->setpoints[i];
-			record->tick.wheels_encoder_counts[i] = encoder_speed(i);
+void wheels_tick(log_record_t *log) {
+	hall_lock_wheels();
+	encoder_check_commutation_errors();
+
+	// Fill the log record.
+	if (log) {
+#warning this should probably be somewhere else
+		for (unsigned int i = 0U; i != WHEELS_NUM_WHEELS; ++i) {
+			log->tick.wheels_encoder_counts[i] = encoder_speed(i);
 		}
 	}
 
-	if (drive->wheels_mode == WHEELS_MODE_CLOSED_LOOP) {
-#warning check for optical encoder failures
-		// If new setpoints were sent, deliver them to the controller.
-		if (drive->data_serial != last_data_serial) {
-			control_process_new_setpoints(drive->setpoints);
+	// Send the PWM values to the motors.
+	for (unsigned int i = 0U; i != WHEELS_NUM_WHEELS; ++i) {
+		// Apply thermal throttling.
+		wheels_mode_t mode = wheels[i].mode;
+		if (wheels[i].energy > THERMAL_MAX_ENERGY) {
+			mode = WHEELS_MODE_COAST;
 		}
 
-		// Read out controller feedback values from optical encoders.
-		int16_t feedback[NUM_WHEELS];
-		for (unsigned int i = 0U; i != NUM_WHEELS; ++i) {
-			feedback[i] = encoder_speed(i);
-		}
-
-		// Run the controller.
-		int16_t pwm[NUM_WHEELS];
-		control_tick(feedback, pwm);
-
-		// Send the PWM values to the motors.
-		for (unsigned int i = 0U; i != NUM_WHEELS; ++i) {
-			set_nominal_drive(i, MOTOR_MODE_FORWARD, pwm[i], record);
-		}
-	} else {
-		// Clear accumulated control data.
-		control_clear();
-
-		// Send the PWM values to the motors.
+		// Compute the motor mode, raw PWM value, and energy level.
 		motor_mode_t mmode;
-		switch (drive->wheels_mode) {
-			case WHEELS_MODE_BRAKE: mmode = MOTOR_MODE_BRAKE; break;
-			case WHEELS_MODE_OPEN_LOOP: mmode = MOTOR_MODE_FORWARD; break;
-			default: mmode = MOTOR_MODE_COAST; break;
+		uint8_t raw_pwm;
+		float added_energy;
+		switch (mode) {
+			case WHEELS_MODE_COAST:
+				mmode = MOTOR_MODE_COAST;
+				raw_pwm = 0;
+				added_energy = 0.0f;
+				break;
+
+			case WHEELS_MODE_BRAKE:
+				mmode = MOTOR_MODE_BRAKE;
+				raw_pwm = 0;
+				added_energy = 0.0f;
+				break;
+
+			case WHEELS_MODE_DRIVE:
+				if (wheels[i].power >= 0) {
+					raw_pwm = (uint8_t) wheels[i].power;
+					mmode = MOTOR_MODE_FORWARD;
+				} else {
+					raw_pwm = (uint8_t) -wheels[i].power;
+					mmode = MOTOR_MODE_BACKWARD;
+				}
+				float applied_delta_voltage = wheels[i].power / 255.0f * adc_battery() - encoder_speed(i) * WHEELS_VOLTS_PER_ENCODER_COUNT;
+				float current = applied_delta_voltage / (PHASE_RESISTANCE + SWITCH_RESISTANCE);
+				float power = current * current * PHASE_RESISTANCE;
+				added_energy = power / CONTROL_LOOP_HZ;
+				break;
+
+			default:
+				abort();
 		}
-		for (unsigned int i = 0U; i != NUM_WHEELS; ++i) {
-			set_nominal_drive(i, mmode, drive->setpoints[i], record);
+
+		// Drive the motor.
+		motor_set(i, mmode, raw_pwm);
+
+		// Update the thermal model.
+		wheels[i].energy = wheels[i].energy + added_energy - (wheels[i].energy / THERMAL_CAPACITANCE / THERMAL_RESISTANCE / CONTROL_LOOP_HZ);
+
+		// Log.
+		if (log) {
+			log->tick.wheels_drives[i] = mmode == MOTOR_MODE_BACKWARD ? -(int16_t)raw_pwm : (int16_t)raw_pwm;
+			log->tick.wheels_temperatures[i] = (uint8_t) (wheels[i].energy / THERMAL_CAPACITANCE + THERMAL_AMBIENT);
 		}
 	}
 
 	// Update the hot wheel report.
-	for (unsigned int index = 0U; index != NUM_WHEELS; ++index) {
-		if (energy[index] > THERMAL_WARNING_START_ENERGY) {
+	for (unsigned int index = 0U; index != WHEELS_NUM_WHEELS; ++index) {
+		if (wheels[index].energy > THERMAL_WARNING_START_ENERGY) {
 			error_lt_set(ERROR_LT_MOTOR0_HOT + index, true);
-		} else if (energy[index] < THERMAL_WARNING_STOP_ENERGY) {
+		} else if (wheels[index].energy < THERMAL_WARNING_STOP_ENERGY) {
 			error_lt_set(ERROR_LT_MOTOR0_HOT + index, false);
 		}
 	}

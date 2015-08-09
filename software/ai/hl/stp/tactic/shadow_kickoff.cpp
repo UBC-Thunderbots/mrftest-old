@@ -51,7 +51,6 @@ namespace {
 		} else {
 			Action::move(world, player, default_loc.position());
 		}
-		player.dribble(AI::BE::Player::DribbleMode::STOP);
 	}
 
 	class ShadowBall final : public Tactic {
@@ -77,7 +76,6 @@ namespace {
 		} else {
 			Action::move(world, player, Point(world.ball().position().x, -world.ball().position().y - 2 * Robot::MAX_RADIUS));
 		}
-		player.dribble(AI::BE::Player::DribbleMode::STOP);
 	}
 }
 

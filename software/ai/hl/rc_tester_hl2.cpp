@@ -5,6 +5,7 @@
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>
 #include <gtkmm/scale.h>
+#include <gtkmm/comboboxtext.h>
 
 using namespace AI::HL;
 using namespace AI::HL::W;
@@ -17,6 +18,7 @@ namespace {
 		Gtk::HScale offsets_x;
 		Gtk::HScale offsets_y;
 		Gtk::Button reset_button;
+		Gtk::ComboBoxText mp_choose;
 
 		explicit RCTester2(World world) : world(world) {
 			for (Gtk::HScale &i : controls) {
@@ -42,6 +44,13 @@ namespace {
 			vbox.add(reset_button);
 			reset_button.set_label(u8"reset");
 			reset_button.signal_clicked().connect(sigc::bind(&RCTester2::reset, sigc::ref(*this)));
+		
+			mp_choose.append(u8"movement = move");
+			mp_choose.append(u8"movement = dribble");
+			mp_choose.append(u8"movement = shoot");
+			mp_choose.append(u8"movement = spin");
+
+			vbox.add(mp_choose);
 		}
 
 		void reset() {
@@ -63,13 +72,27 @@ namespace {
 			const double py = controls[1].get_value();
 			const Angle pz = Angle::of_radians(controls[2].get_value());
 
+			int row = mp_choose.get_active_row_number();
+
 			for (std::size_t i = 0; i < friendly.size(); ++i) {
 				Player runner = friendly[i];
-
+				
 				const double ix = px + offsets_x.get_value() * static_cast<double>(i);
 				const double iy = py + offsets_y.get_value() * static_cast<double>(i);
-
-				runner.move(Point(ix, iy), pz, Point());
+				switch( row ){
+					case 0: 
+						runner.mp_move(Point(ix, iy), pz);
+						break;
+					case 1: 
+						runner.mp_dribble(Point(ix, iy), pz);
+						break;
+					case 2: 
+						runner.mp_shoot(Point(ix, iy), pz, false, 4.0);
+						break;
+					case 3: 
+						runner.mp_spin(Point(ix, iy), pz);
+						break;
+				}
 				runner.type(AI::Flags::MoveType::NORMAL);
 			}
 		}

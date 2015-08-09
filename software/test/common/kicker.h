@@ -2,6 +2,7 @@
 #define TEST_COMMON_KICKER_H
 
 #include "drive/robot.h"
+#include "util/property.h"
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>
 #include <gtkmm/label.h>
@@ -53,7 +54,6 @@ class KickerPanel final : public Gtk::Table {
 		Gtk::Label autokick_count_value_label;
 		unsigned int autokick_count;
 
-		void on_alive_changed();
 		void on_charge_changed();
 		void on_pulse_width_changed();
 		void on_chip_distance_changed();
@@ -64,4 +64,3 @@ class KickerPanel final : public Gtk::Table {
 };
 
 #endif
-

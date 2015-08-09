@@ -4,6 +4,7 @@
 #include "ai/param.h"
 #include "ai/util.h"
 #include "util/object_store.h"
+#include "ai/backend/player.h"
 #include <memory>
 #include "ai/flags.h"
 
@@ -22,6 +23,12 @@ namespace AI {
 					AI::Flags::AvoidDistance prev_avoid_distance;
 					Point previous_dest;
 					Angle previous_orient;
+					AI::PrimitiveInfo last_primitive;
+					AI::PrimitiveInfo last_shoot_primitive;
+					unsigned int counter_since_last_primitive;
+					unsigned int counter_since_last_shoot_primitive;
+					bool fancy_shoot_maneuver;
+									
 			};
 		}
 	}

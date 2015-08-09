@@ -11,7 +11,7 @@
 /**
  * \brief A panel that lets the user manually control power to various subsystems
  */
-class PowerPanel final : public Gtk::HButtonBox {
+class PowerPanel final : public Gtk::VButtonBox {
 	public:
 		/**
 		 * \brief Constructs a new PowerPanel

@@ -4,7 +4,6 @@
 #include "ai/backend/backend.h"
 #include "ai/hl/hl.h"
 #include "ai/navigator/navigator.h"
-#include "ai/robot_controller/robot_controller.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
 #include <glibmm/ustring.h>
@@ -32,11 +31,6 @@ namespace AI {
 			Property<AI::Nav::Navigator::Ptr> navigator;
 
 			/**
-			 * The RobotControllerFactory driving the robots.
-			 */
-			Property<AI::RC::RobotControllerFactory *> robot_controller_factory;
-
-			/**
 			 * \brief Fired whenever the AI notes change.
 			 */
 			mutable sigc::signal<void, Glib::ustring> signal_ai_notes_changed;
@@ -52,11 +46,6 @@ namespace AI {
 			bool show_nav_overlay;
 
 			/**
-			 * \brief Whether or not the overlay mechanism should render the robot controller overlay.
-			 */
-			bool show_rc_overlay;
-
-			/**
 			 * Constructs a new AIPackage.
 			 *
 			 * \param[in] backend the Backend against which to run.
@@ -65,8 +54,6 @@ namespace AI {
 
 		private:
 			void tick();
-			void attach_robot_controllers();
-			void robot_controller_factory_changed();
 			void init_ai_notes();
 			void ai_notes_changed();
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;

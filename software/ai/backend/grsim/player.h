@@ -15,18 +15,26 @@ namespace AI {
 					typedef BoxPtr<Player> Ptr;
 
 					explicit Player(unsigned int pattern, const AI::BE::Ball &ball);
-					void dribble(DribbleMode mode) override;
 					bool has_ball() const override;
 					bool chicker_ready() const override;
 					bool autokick_fired() const override;
+					const Property<Drive::Primitive> &primitive() const override;
+
+					void move_coast() override;
+					void move_brake() override;
+					void move_move(Point dest) override;
+					void move_move(Point dest, Angle orientation) override;
+					void move_move(Point dest, double time_delta) override;
+					void move_move(Point dest, Angle orientation, double time_delta) override;
+					void move_dribble(Point dest, Angle orientation, bool small_kick_allowed) override;
+					void move_shoot(Point dest, double power, bool chip) override;
+					void move_shoot(Point dest, Angle orientation, double power, bool chip) override;
+					void move_catch(Angle angle_diff, double displacement, double speed) override;
+					void move_pivot(Point centre, Angle swing, Angle orientation) override;
+					void move_spin(Point dest, Angle speed) override;
+
 					void tick(bool halt, bool stop);
 					void encode_orders(grSim_Robot_Command &packet);
-
-				protected:
-					void kick_impl(double speed) override;
-					void autokick_impl(double speed) override;
-					void chip_impl(double power) override;
-					void autochip_impl(double power) override;
 
 				private:
 					enum class ChickMode {
@@ -47,6 +55,60 @@ namespace AI {
 			};
 		}
 	}
+}
+
+#warning movement primitives arent yet implemented in grsim wrapper
+inline const Property<Drive::Primitive> &AI::BE::GRSim::Player::primitive() const {
+	static Property<Drive::Primitive> prim(Drive::Primitive::STOP);
+	return prim;
+}
+
+#warning movement primitives arent yet implemented in grsim wrapper
+inline void AI::BE::GRSim::Player::move_coast() {	
+}
+
+#warning movement primitives arent yet implemented in grsim wrapper
+inline void AI::BE::GRSim::Player::move_brake() {
+}
+
+#warning movement primitives arent yet implemented in grsim wrapper
+inline void AI::BE::GRSim::Player::move_move(Point dest) {
+}
+
+#warning movement primitives arent yet implemented in grsim wrapper
+inline void AI::BE::GRSim::Player::move_move(Point dest, Angle orientation) {
+}
+
+#warning movement primitives arent yet implemented in grsim wrapper
+inline void AI::BE::GRSim::Player::move_move(Point dest, double time_delta) {
+}
+
+#warning movement primitives arent yet implemented in grsim wrapper
+inline void AI::BE::GRSim::Player::move_move(Point dest, Angle orientation, double time_delta) {
+}
+
+#warning movement primitives arent yet implemented in grsim wrapper
+inline void AI::BE::GRSim::Player::move_dribble(Point dest, Angle orientation, bool small_kick_allowed) {
+}
+
+#warning movement primitives arent yet implemented in grsim wrapper
+inline void AI::BE::GRSim::Player::move_shoot(Point dest, double power, bool chip) {
+}
+
+#warning movement primitives arent yet implemented in grsim wrapper
+inline void AI::BE::GRSim::Player::move_shoot(Point dest, Angle orientation, double power, bool chip) {
+}
+
+#warning movement primitives arent yet implemented in grsim wrapper
+inline void AI::BE::GRSim::Player::move_catch(Angle angle_diff, double displacement, double speed) {
+}
+
+#warning movement primitives arent yet implemented in grsim wrapper
+inline void AI::BE::GRSim::Player::move_pivot(Point centre, Angle swing, Angle orientation) {
+}
+
+#warning movement primitives arent yet implemented in grsim wrapper
+inline void AI::BE::GRSim::Player::move_spin(Point dest, Angle speed) {
 }
 
 #endif

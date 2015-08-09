@@ -191,64 +191,6 @@ namespace {
 			}
 	};
 
-	class RobotControllerControls final : public Gtk::Frame {
-		public:
-			explicit RobotControllerControls(AI::AIPackage &ai) : Gtk::Frame(u8"Robot Controller"), ai(ai), table(3, 2), custom_controls(nullptr) {
-				rc_chooser.append(u8"<Choose Robot Controller>");
-				typedef AI::RC::RobotControllerFactory::Map Map;
-				for (const Map::value_type &i : AI::RC::RobotControllerFactory::all()) {
-					rc_chooser.append(i.second->name());
-				}
-				table.attach(rc_chooser, 0, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				rc_chooser.signal_changed().connect(sigc::mem_fun(this, &RobotControllerControls::on_rc_chooser_changed));
-				ai.robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &RobotControllerControls::on_rc_changing));
-				ai.robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &RobotControllerControls::on_rc_changed));
-
-				on_rc_changed();
-
-				add(table);
-			}
-
-		private:
-			AI::AIPackage &ai;
-			Gtk::Table table;
-			Gtk::ComboBoxText rc_chooser;
-			Gtk::Widget *custom_controls;
-
-			void on_rc_chooser_changed() {
-				const Glib::ustring &selected = rc_chooser.get_active_text();
-				typedef AI::RC::RobotControllerFactory::Map Map;
-				const Map &m = AI::RC::RobotControllerFactory::all();
-				const Map::const_iterator &i = m.find(selected.collate_key());
-				if (i != m.end()) {
-					ai.robot_controller_factory = i->second;
-				} else {
-					ai.robot_controller_factory = nullptr;
-				}
-			}
-
-			void on_rc_changing() {
-				if (custom_controls) {
-					table.remove(*custom_controls);
-					custom_controls = nullptr;
-				}
-			}
-
-			void on_rc_changed() {
-				AI::RC::RobotControllerFactory *rcf = ai.robot_controller_factory;
-				if (rcf) {
-					rc_chooser.set_active_text(rcf->name());
-				} else {
-					rc_chooser.set_active_text(u8"<Choose Robot Controller>");
-				}
-				custom_controls = rcf ? rcf->ui_controls() : nullptr;
-				if (custom_controls) {
-					table.attach(*custom_controls, 0, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-					custom_controls->show_all();
-				}
-			}
-	};
-
 	class SecondaryBasicControls final : public Gtk::Table {
 		public:
 			explicit SecondaryBasicControls(AI::AIPackage &ai) : Gtk::Table(2 + ai.backend.secondary_ui_controls_table_rows(), 3), ai(ai), defending_end_label(u8"Defending:"), friendly_colour_label(u8"Colour:"), flip_end_button(u8"X"), flip_friendly_colour_button(u8"X") {
@@ -346,7 +288,7 @@ namespace {
 				unsigned int num_children;
 			};
 
-			static const ControlInfo CONTROLS[12];
+			static const ControlInfo CONTROLS[11];
 
 			AI::AIPackage &ai;
 			Visualizer &vis;
@@ -379,7 +321,7 @@ namespace {
 			}
 	};
 
-	const VisualizerControls::ControlInfo VisualizerControls::CONTROLS[12] = {
+	const VisualizerControls::ControlInfo VisualizerControls::CONTROLS[11] = {
 		{ u8"Field", &Visualizer::show_field, nullptr, 0 },
 		{ u8"Ball", &Visualizer::show_ball, nullptr, 1 },
 		{ u8"Velocity", &Visualizer::show_ball_v, nullptr, 0 },
@@ -391,7 +333,6 @@ namespace {
 		{ u8"AI Overlays", &Visualizer::show_overlay, nullptr, 3 },
 		{ u8"High-Level", nullptr, &AI::AIPackage::show_hl_overlay, 0 },
 		{ u8"Navigator", nullptr, &AI::AIPackage::show_nav_overlay, 0 },
-		{ u8"Robot Controller", nullptr, &AI::AIPackage::show_rc_overlay, 0 },
 	};
 
 	class VisualizerCoordinatesBar final : public Gtk::Statusbar {
@@ -414,7 +355,6 @@ Window::Window(AIPackage &ai) : visualizer(ai.backend) {
 	main_vbox.pack_start(*Gtk::manage(new BasicControls(ai)), Gtk::PACK_SHRINK);
 	main_vbox.pack_start(*Gtk::manage(new HighLevelControls(ai)), Gtk::PACK_EXPAND_WIDGET);
 	main_vbox.pack_start(*Gtk::manage(new NavigatorControls(ai)), Gtk::PACK_EXPAND_WIDGET);
-	main_vbox.pack_start(*Gtk::manage(new RobotControllerControls(ai)), Gtk::PACK_EXPAND_WIDGET);
 	notebook.append_page(main_vbox, u8"Main");
 
 	secondary_basics_frame.set_label(u8"Basics");

@@ -87,7 +87,7 @@ namespace {
 						player.type(AI::Flags::MoveType::NORMAL);
 					}
 					if (to_kick) {
-						player.kick(hsb_kick_power.get_value());
+#warning This does not work with movement primitives. It used to call kick.
 						to_kick = false;
 					}
 				}

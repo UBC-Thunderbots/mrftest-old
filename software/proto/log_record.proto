@@ -149,6 +149,25 @@ message Tick {
 
 		// There must be exactly four of these, measured in quarters of a degree per five milliseconds.
 		repeated sint32 wheel_setpoints = 9;
+
+		message HLPrimitive {
+			enum Primitive {
+				MOVE = 0;
+				DRIBBLE = 1;
+				SHOOT = 2;
+				CATCH = 3;
+				PIVOT = 4;
+				SPIN = 5;
+			}
+			required Primitive primitive = 1;
+			optional Vector2 vector2 = 2;
+			optional Vector3 vector3 = 3;
+			optional bool chip = 4;
+			optional uint32 power = 5; // Measured in µm or µm/s
+		}
+		optional HLPrimitive hl_primitive = 10;
+
+		repeated Vector2 display_path = 11;
 	}
 	repeated FriendlyRobot friendly_robots = 6;
 

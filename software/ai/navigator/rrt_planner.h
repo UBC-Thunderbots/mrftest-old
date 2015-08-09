@@ -4,6 +4,14 @@
 #include <glibmm/nodetree.h>
 
 namespace AI {
+
+
+	namespace MovementPrimitives
+	{
+		enum MovePrimType {COAST, BRAKE, MOVE, DRIBBLE, SHOOT, CATCH, PIVOT, SPIN};
+
+	}
+
 	namespace Nav {
 		class Waypoints final : public ObjectStore::Element {
 			public:
@@ -11,7 +19,9 @@ namespace AI {
 				static constexpr std::size_t NUM_WAYPOINTS = 50;
 				Point points[NUM_WAYPOINTS];
 				unsigned int added_flags;
-
+				Timestamp lastSentTime;
+				Point move_dest;
+				AI::MovementPrimitives::MovePrimType currentMoveType;
 		};
 
 		class RRTPlanner : public Plan {

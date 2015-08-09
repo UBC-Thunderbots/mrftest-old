@@ -2,6 +2,9 @@
 #include "ai/hl/stp/action/goalie.h"
 #include "ai/hl/util.h"
 #include "ai/hl/stp/param.h"
+#include "ai/hl/stp/action/chip.h"
+#include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/action/move.h"
 
 #include <cassert>
 
@@ -45,7 +48,7 @@ namespace {
 				old_des = Point(world.field().friendly_goal().x + Robot::MAX_RADIUS, ran * 0.2 - (1 - ran) * 0.2);
 			}
 			// just orient towards the "front"
-			player.move(old_des, Angle::zero(), Point());
+			AI::HL::STP::Action::move(player, Angle::zero(), old_des);
 			player.type(AI::Flags::MoveType::RAM_BALL);
 			player.prio(AI::Flags::MovePrio::HIGH);
 		} else {
@@ -64,14 +67,14 @@ namespace {
 				target = p2;
 			}
 			// just orient towards the "front"
-			player.move(target, Angle::zero(), Point());
+			AI::HL::STP::Action::move(player, Angle::zero(), target);
 			player.type(AI::Flags::MoveType::RAM_BALL);
 			player.prio(AI::Flags::MovePrio::HIGH);
 		}
 
-		if (player.has_ball())
-				player.autochip(power);
-
+		if (player.has_ball()) {
+			AI::HL::STP::Action::goalie_chip_target(world, player, world.field().enemy_goal());
+		}
 	}
 }
 

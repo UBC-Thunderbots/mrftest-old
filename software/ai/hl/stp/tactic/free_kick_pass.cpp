@@ -6,6 +6,8 @@
 #include "geom/point.h"
 #include "ai/hl/stp/action/pivot.h"
 #include "geom/util.h"
+#include "ai/hl/stp/action/chip.h"
+#include "ai/hl/stp/action/shoot.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::STP::Action;
@@ -82,9 +84,9 @@ namespace {
 						move(world, player, dest, Point(0, 0));
 						//checks to see if there is any enemy/friendly robot in path to target.
 						if (obstacle(player, target)) {
-							player.autochip(speed_ratio);
+							AI::HL::STP::Action::chip_target(world, player, target);
 						} else {
-							player.autokick(AI::HL::STP::BALL_MAX_SPEED * speed_ratio);
+							AI::HL::STP::Action::shoot_target(world, player, target);
 						}
 						break;
 				}

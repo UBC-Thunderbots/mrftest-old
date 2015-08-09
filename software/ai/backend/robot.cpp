@@ -67,11 +67,11 @@ std::pair<Point, Angle> Robot::destination() const {
 	throw std::logic_error("This robot has no destination");
 }
 
-bool Robot::has_path() const {
+bool Robot::has_display_path() const {
 	return false;
 }
 
-const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &Robot::path() const {
+const std::vector<Point> &Robot::display_path() const {
 	throw std::logic_error("This robot has no path");
 }
 

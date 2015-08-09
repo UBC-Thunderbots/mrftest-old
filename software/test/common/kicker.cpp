@@ -1,8 +1,23 @@
 #include "test/common/kicker.h"
 #include <gtkmm/adjustment.h>
 
-KickerPanel::KickerPanel(Drive::Robot &robot) : Gtk::Table(5, 2), robot(robot), discharge_button(charge_group, u8"Discharge"), float_button(charge_group, u8"Float"), charge_button(charge_group, u8"Charge"), kicker_button(solenoid_group, u8"Kicker"), chipper_button(solenoid_group, u8"Chipper"), pulse_width_label(u8"Speed (m/s):"), chip_distance_label(u8"Distance (m)"), kick(u8"Kick"), autokick(u8"Autokick"), autokick_count_label(u8"Autokick Count:"), autokick_count_value_label(u8"0"), autokick_count(0) {
-	robot.alive.signal_changed().connect(sigc::mem_fun(this, &KickerPanel::on_alive_changed));
+KickerPanel::KickerPanel(Drive::Robot &robot) :
+		Gtk::Table(5, 2),
+		robot(robot),
+		discharge_button(charge_group, u8"Discharge"),
+		float_button(charge_group, u8"Float"),
+		charge_button(charge_group, u8"Charge"),
+		kicker_button(solenoid_group, u8"Kicker"),
+		chipper_button(solenoid_group, u8"Chipper"),
+		pulse_width_label(u8"Speed (m/s):"),
+		chip_distance_label(u8"Distance (m)"), kick(u8"Kick"),
+		autokick(u8"Autokick"),
+		autokick_count_label(u8"Autokick Count:"),
+		autokick_count_value_label(u8"0"),
+		autokick_count(0)
+{
+	robot.direct_control.signal_changed().connect(sigc::mem_fun(this, &KickerPanel::update_sensitive));
+	robot.alive.signal_changed().connect(sigc::mem_fun(this, &KickerPanel::update_sensitive));
 	robot.signal_autokick_fired.connect(sigc::mem_fun(this, &KickerPanel::on_autokick_fired));
 
 	float_button.set_active();
@@ -20,19 +35,16 @@ KickerPanel::KickerPanel(Drive::Robot &robot) : Gtk::Table(5, 2), robot(robot), 
 	attach(solenoid_box, 0, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	pulse_width.get_adjustment()->signal_value_changed().connect(sigc::mem_fun(this, &KickerPanel::on_pulse_width_changed));
-	pulse_width.get_adjustment()->configure(0, 0, robot.kick_speed_maximum(), robot.kick_pulse_resolution(), robot.kick_pulse_resolution() * 100, 0);
+	pulse_width.get_adjustment()->configure(0, 0, robot.kick_speed_max, robot.kick_speed_resolution, robot.kick_speed_resolution * 100, 0);
 	pulse_width.set_digits(2);
 	attach(pulse_width_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(pulse_width, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	
-
-	
 	chip_distance.get_adjustment()->signal_value_changed().connect(sigc::mem_fun(this, &KickerPanel::on_chip_distance_changed));
-	chip_distance.get_adjustment()->configure(0, 0, robot.chip_distance_maximum(), robot.chip_distance_resolution(), robot.chip_distance_resolution() * 100, 0);
+	chip_distance.get_adjustment()->configure(0, 0, robot.chip_distance_max, robot.chip_distance_resolution, robot.chip_distance_resolution * 100, 0);
 	chip_distance.set_digits(2);
 	attach(chip_distance_label, 0, 1, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(chip_distance, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-
 
 	kick.signal_clicked().connect(sigc::mem_fun(this, &KickerPanel::on_kick));
 	fire_hbox.pack_start(kick, Gtk::PACK_EXPAND_WIDGET);
@@ -43,7 +55,7 @@ KickerPanel::KickerPanel(Drive::Robot &robot) : Gtk::Table(5, 2), robot(robot), 
 	attach(autokick_count_label, 0, 1, 5, 6, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(autokick_count_value_label, 1, 2, 5, 6, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
-	on_alive_changed();
+	update_sensitive();
 }
 
 void KickerPanel::scram() {
@@ -54,14 +66,10 @@ void KickerPanel::scram() {
 void KickerPanel::fire() {
 	bool is_active = chipper_button.get_active();
 	if( !is_active ) {
-		robot.kick(is_active, pulse_width.get_value());
+		robot.direct_chicker(pulse_width.get_value(), is_active);
 	} else {
-		robot.kick(is_active, chip_distance.get_value());
+		robot.direct_chicker(chip_distance.get_value(), is_active);
 	}
-}
-
-void KickerPanel::on_alive_changed() {
-	update_sensitive();
 }
 
 void KickerPanel::on_charge_changed() {
@@ -87,17 +95,16 @@ void KickerPanel::on_kick() {
 }
 
 void KickerPanel::on_autokick_changed() {
-	kicker_button.set_sensitive(!autokick.get_active());
-	chipper_button.set_sensitive(!autokick.get_active());
+	update_sensitive();
 	if (autokick.get_active()) {
 		bool is_active = chipper_button.get_active();
 		if (!is_active) {
-			robot.autokick(is_active, pulse_width.get_value());
+			robot.direct_chicker_auto(pulse_width.get_value(), is_active);
 		} else {
-			robot.autokick(is_active, chip_distance.get_value());
+			robot.direct_chicker_auto(pulse_width.get_value(), is_active);
 		}		
 	} else {
-		robot.autokick(false, 0);
+		robot.direct_chicker_auto(false, 0);
 	}
 }
 
@@ -110,7 +117,6 @@ void KickerPanel::on_autokick_fired() {
 	on_autokick_changed();
 }
 
-// this needs to change to check if chip/kick button is set
 void KickerPanel::update_sensitive() {
 	bool chip = chipper_button.get_active();
 	bool pulse_ok;
@@ -119,8 +125,10 @@ void KickerPanel::update_sensitive() {
 	} else {
 		pulse_ok = chip_distance.get_value() > 0.0;
 	}
-	kick.set_sensitive(robot.alive && pulse_ok);
-	autokick.set_sensitive(pulse_ok);
+	kicker_button.set_sensitive(robot.direct_control);
+	chipper_button.set_sensitive(robot.direct_control);
+	pulse_width.set_sensitive(!autokick.get_active() && robot.direct_control);
+	chip_distance.set_sensitive(!autokick.get_active() && robot.direct_control);
+	kick.set_sensitive(robot.alive && pulse_ok && robot.direct_control);
+	autokick.set_sensitive(pulse_ok && robot.direct_control);
 }
-
-

@@ -47,13 +47,15 @@ namespace {
 
 	//run at ball with auto chip on. when it passes sensors, it auto chips
 	void DirectFreeFriendlyPivot::execute() {
-		player.move(world.ball().position(), (world.ball().position() - player.position()).orientation(), Point());
-		player.autochip(0.7);
+	AI::HL::STP::Action::move(player, (world.ball().position() - player.position()).orientation(), world.ball().position());
+	if (player.has_ball()){
+	AI::HL::STP::Action::shoot_goal(world, player);
 	}
 }
-
+}
 Tactic::Ptr AI::HL::STP::Tactic::direct_free_friendly_pivot(World world) {
 	Tactic::Ptr p(new DirectFreeFriendlyPivot(world));
 	return p;
 }
+
 

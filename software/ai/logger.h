@@ -91,11 +91,11 @@ namespace AI {
 			void on_field_changed();
 			void on_friendly_colour_changed();
 			void on_high_level_changed();
-			void on_robot_controller_factory_changed();
 			void on_score_changed();
 			void on_ai_notes_changed(const Glib::ustring &notes);
 			void on_tick(AI::Timediff compute_time);
 
+			static void encode_hlp_vec23(const AI::PrimitiveInfo &hl_request, Log::Tick::FriendlyRobot::HLPrimitive &log);
 			static void encode_vec2(Point p, Log::Vector2 &log);
 			static void encode_vec3(Point p, Angle a, Log::Vector3 &log);
 

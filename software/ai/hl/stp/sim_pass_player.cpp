@@ -53,7 +53,7 @@ namespace {
 					Point ball_vel = world.ball().velocity();
 					Angle theta = Angle::of_radians(-std::atan(ball_vel.y / ball_vel.x));
 					Point right_intersect = Point(receiver_pos.rotate(theta).x, ball_pos.rotate(theta).y).rotate(-theta);
-					receiver.move(right_intersect, Angle::half() - ball_vel.orientation(), Point());
+					receiver.mp_move(right_intersect, Angle::half() - ball_vel.orientation());
 					to_draw = right_intersect;
 					to_draw_orient = Angle::half() - ball_vel.orientation();
 				}

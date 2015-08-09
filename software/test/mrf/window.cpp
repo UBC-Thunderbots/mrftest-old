@@ -87,41 +87,45 @@ TesterWindow::TesterWindow(MRFDongle &dongle, MRFRobot &robot) :
 		mapped_joysticks(MappedJoysticksModel::create()),
 		feedback_frame(u8"Feedback"),
 		feedback_panel(dongle, robot),
-		drive_frame(u8"Drive"),
-		drive_panel(robot),
-		dribble_frame(u8"Dribble"),
-		dribble_panel(robot),
-		kicker_frame(u8"Kicker"),
-		kicker_panel(robot),
 		leds_frame(u8"LEDs"),
 		leds_panel(dongle, robot.index),
 		power_frame(u8"Power"),
 		power_panel(dongle, robot.index),
+		drive_frame(u8"Drive"),
+		drive_panel(robot),
+		kicker_frame(u8"Kicker"),
+		kicker_panel(robot),
+		dribble_frame(u8"Dribble"),
+		dribble_panel(robot),
 		joystick_frame(u8"Joystick"),
 		joystick_sensitivity_high_button(joystick_sensitivity_group, u8"High Sensitivity"),
 		joystick_sensitivity_low_button(joystick_sensitivity_group, u8"Low Sensitivity"),
-		joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks)) {
+		joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks))
+{
+
+	this->robot = &robot;
+
 	set_title(Glib::ustring::compose(u8"Tester (%1)", robot.index));
 
 	feedback_frame.add(feedback_panel);
 	vbox1.pack_start(feedback_frame, Gtk::PACK_SHRINK);
 
-	drive_frame.add(drive_panel);
-	vbox1.pack_start(drive_frame, Gtk::PACK_SHRINK);
+	leds_frame.add(leds_panel);
+	vbox1.pack_start(leds_frame, Gtk::PACK_SHRINK);
 
-	dribble_frame.add(dribble_panel);
-	vbox1.pack_start(dribble_frame, Gtk::PACK_SHRINK);
+	power_frame.add(power_panel);
+	vbox1.pack_start(power_frame, Gtk::PACK_SHRINK);
 
 	hbox.pack_start(vbox1, Gtk::PACK_EXPAND_WIDGET);
+
+	drive_frame.add(drive_panel);
+	vbox2.pack_start(drive_frame, Gtk::PACK_SHRINK);
 
 	kicker_frame.add(kicker_panel);
 	vbox2.pack_start(kicker_frame, Gtk::PACK_SHRINK);
 
-	leds_frame.add(leds_panel);
-	vbox2.pack_start(leds_frame, Gtk::PACK_SHRINK);
-
-	power_frame.add(power_panel);
-	vbox2.pack_start(power_frame, Gtk::PACK_SHRINK);
+	dribble_frame.add(dribble_panel);
+	vbox2.pack_start(dribble_frame, Gtk::PACK_SHRINK);
 
 	hbox.pack_start(vbox2, Gtk::PACK_EXPAND_WIDGET);
 
@@ -236,4 +240,3 @@ bool TesterWindow::on_delete_event(GdkEventAny *) {
 	scram();
 	return false;
 }
-

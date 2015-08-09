@@ -29,7 +29,7 @@ namespace {
 				}
 
 				Player player = friendly[0];
-				player.autokick(AI::HL::STP::BALL_MAX_SPEED);
+#warning This does not work with movement primitives. It used to call autokick.
 				Action::intercept(player, world.field().enemy_goal());
 			}
 	};

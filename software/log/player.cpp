@@ -186,11 +186,11 @@ namespace {
 				std::abort();
 			}
 
-			bool has_path() const override {
+			bool has_display_path() const override {
 				return false;
 			}
 
-			const std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> &path() const override {
+			const std::vector<Point> &display_path() const override {
 				std::abort();
 			}
 
@@ -216,17 +216,24 @@ namespace {
 		public:
 			typedef BoxPtr<Player> Ptr;
 
-			void update(const Log::MonotonicTimeSpec &reference_time, const Log::Tick::FriendlyRobot &bot) {
+			void update(const Log::Tick::FriendlyRobot &bot) {
 				Robot::update(bot.pattern(), bot.position(), bot.velocity());
 				destination_.first.x = decode_micros(bot.target().x());
 				destination_.first.y = decode_micros(bot.target().y());
 				destination_.second = Angle::of_radians(decode_micros(bot.target().t()));
-				path_.clear();
-				for (const Log::Tick::FriendlyRobot::PathElement &i : bot.path()) {
-					double x = decode_micros(i.point().x());
-					double y = decode_micros(i.point().y());
-					Angle t = Angle::of_radians(decode_micros(i.point().t()));
-					path_.push_back(std::make_pair(std::make_pair(Point(x, y), t), make_monotonic_time(i.timestamp(), reference_time)));
+				display_path_.clear();
+				if (bot.path_size() > 0) {
+					for (const Log::Tick::FriendlyRobot::PathElement &i : bot.path()) {
+						double x = decode_micros(i.point().x());
+						double y = decode_micros(i.point().y());
+						display_path_.push_back({x, y});
+					}
+				} else if (bot.display_path_size() > 0) {
+					for (const Log::Vector2 &i : bot.display_path()) {
+						double x = decode_micros(i.x());
+						double y = decode_micros(i.y());
+						display_path_.push_back({x, y});
+					}
 				}
 			}
 
@@ -242,17 +249,17 @@ namespace {
 				return destination_;
 			}
 
-			bool has_path() const override {
+			bool has_display_path() const override {
 				return true;
 			}
 
-			const std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> &path() const override {
-				return path_;
+			const std::vector<Point> &display_path() const override {
+				return display_path_;
 			}
 
 		private:
 			std::pair<Point, Angle> destination_;
-			std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> path_;
+			std::vector<Point> display_path_;
 	};
 }
 
@@ -592,7 +599,7 @@ class LogPlayer::Impl final : public Gtk::VBox, public Visualizable::World {
 					if (!players_[bot.pattern()]) {
 						players_[bot.pattern()].create();
 					}
-					players_[bot.pattern()].value().update(game_start_monotonic, bot);
+					players_[bot.pattern()].value().update(bot);
 					seen[bot.pattern()] = true;
 				}
 				for (std::size_t i = 0; i < G_N_ELEMENTS(seen); ++i) {

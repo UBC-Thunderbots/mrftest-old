@@ -28,15 +28,24 @@ namespace {
 		public:
 			typedef BoxPtr<ROPlayer> Ptr;
 			explicit ROPlayer(unsigned int pattern);
-			void dribble(DribbleMode mode) override;
 			bool has_ball() const override;
 			bool chicker_ready() const override;
 			bool autokick_fired() const override;
-			void kick_impl(double) override;
-			void autokick_impl(double) override;
-			void chip_impl(double) override;
-			void autochip_impl(double) override;
 			void tick(bool, bool);
+			const Property<Drive::Primitive> &primitive() const override;
+	
+			void move_coast() override;
+			void move_brake() override;
+			void move_move(Point dest) override;
+			void move_move(Point dest, Angle orientation) override;
+			void move_move(Point dest, double time_delta) override;
+			void move_move(Point dest, Angle orientation, double time_delta) override;
+			void move_dribble(Point dest, Angle orientation, bool small_kick_allowed) override;
+			void move_shoot(Point dest, double power, bool chip) override;
+			void move_shoot(Point dest, Angle orientation, double power, bool chip) override;
+			void move_catch(Angle angle_diff, double displacement, double speed) override;
+			void move_pivot(Point centre, Angle swing, Angle orientation) override;
+			void move_spin(Point dest, Angle speed) override;
 	};
 
 	/**
@@ -102,10 +111,6 @@ ROBackendFactory AI::BE::RO::ro_backend_factory_instance;
 ROPlayer::ROPlayer(unsigned int pattern) : Player(pattern) {
 }
 
-void ROPlayer::dribble(DribbleMode) {
-	// Do nothing.
-}
-
 bool ROPlayer::has_ball() const {
 	return false;
 }
@@ -118,25 +123,64 @@ bool ROPlayer::autokick_fired() const {
 	return false;
 }
 
-void ROPlayer::kick_impl(double) {
-	// Do nothing.
-}
-
-void ROPlayer::autokick_impl(double) {
-	// Do nothing.
-}
-
-void ROPlayer::chip_impl(double) {
-	// Do nothing.
-}
-
-void ROPlayer::autochip_impl(double) {
-	// Do nothing.
-}
-
 void ROPlayer::tick(bool, bool) {
 	// Do nothing.
 }
+
+const Property<Drive::Primitive> &ROPlayer::primitive() const {
+	static const Property<Drive::Primitive> prim(Drive::Primitive::STOP);
+	return prim;
+}
+
+void ROPlayer::move_coast() {	
+	// Do nothing.
+}
+
+void ROPlayer::move_brake() {
+	// Do nothing.
+}
+
+void ROPlayer::move_move(Point) {
+	// Do nothing.
+}
+
+void ROPlayer::move_move(Point, Angle) {
+	// Do nothing.
+}
+
+void ROPlayer::move_move(Point, double) {
+	// Do nothing.
+}
+
+void ROPlayer::move_move(Point, Angle, double) {
+	// Do nothing.
+}
+
+void ROPlayer::move_dribble(Point, Angle, bool) {
+	// Do nothing.
+}
+
+void ROPlayer::move_shoot(Point, double, bool) {
+	// Do nothing.
+}
+
+void ROPlayer::move_shoot(Point, Angle, double, bool) {
+	// Do nothing.
+}
+
+void ROPlayer::move_catch(Angle, double, double) {
+	// Do nothing.
+}
+
+void ROPlayer::move_pivot(Point, Angle, Angle) {
+	// Do nothing.
+}
+
+void ROPlayer::move_spin(Point, Angle) {
+	// Do nothing.
+}
+
+
 
 FriendlyTeam::FriendlyTeam(Backend &backend) : AI::BE::Vision::Team<ROPlayer, Player>(backend) {
 }

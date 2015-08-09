@@ -12,6 +12,7 @@
 #include "chicker.h"
 #include "constants.h"
 #include "dma.h"
+#include "dr.h"
 #include "encoder.h"
 #include "feedback.h"
 #include "icb.h"
@@ -26,10 +27,12 @@
 #include "receive.h"
 #include "sdcard.h"
 #include "tick.h"
+#include "usb_config.h"
+#include "wheels.h"
+#include "primitives/primitive.h"
 #include "upgrade/dfu.h"
 #include "upgrade/fpga.h"
 #include "upgrade/fw.h"
-#include "usb_config.h"
 #include <FreeRTOS.h>
 #include <build_id.h>
 #include <cdcacm.h>
@@ -42,6 +45,7 @@
 #include <inttypes.h>
 #include <nvic.h>
 #include <rcc.h>
+#include <semphr.h>
 #include <sleep.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -348,7 +352,10 @@ static void run_normal(void) {
 	fputs("OK\r\n", stdout);
 	feedback_init();
 	motor_init();
+	wheels_init();
 	encoder_init();
+	dr_init();
+	primitive_init();
 	lps_init();
 
 	// Bring up the data logger.

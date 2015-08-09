@@ -4,6 +4,7 @@
 #include "ai/backend/player.h"
 #include "util/annunciator.h"
 #include "util/box_ptr.h"
+#include "drive/robot.h"
 #include <ctime>
 #include <utility>
 #include <vector>
@@ -50,12 +51,22 @@ namespace AI {
 
 					bool has_ball() const override;
 					bool chicker_ready() const override;
-					void kick_impl(double speed) override;
-					void autokick_impl(double speed) override;
-					void chip_impl(double speed) override;
-					void autochip_impl(double speed) override;
+					const Property<Drive::Primitive> &primitive() const override;
+
+					void move_coast() override;
+					void move_brake() override;
+					void move_move(Point dest) override;
+					void move_move(Point dest, Angle orientation) override;
+					void move_move(Point dest, double time_delta) override;
+					void move_move(Point dest, Angle orientation, double time_delta) override;
+					void move_dribble(Point dest, Angle orientation, bool small_kick_allowed) override;
+					void move_shoot(Point dest, double power, bool chip) override;
+					void move_shoot(Point dest, Angle orientation, double power, bool chip) override;
+					void move_catch(Angle angle_diff, double displacement, double speed) override;
+					void move_pivot(Point centre, Angle swing, Angle orientation) override;
+					void move_spin(Point dest, Angle speed) override;
+				
 					bool autokick_fired() const override { return autokick_fired_; }
-					void dribble(DribbleMode mode) override;
 					unsigned int num_bar_graphs() const override;
 					double bar_graph_value(unsigned int) const override;
 					Visualizable::Colour bar_graph_colour(unsigned int) const override;
@@ -64,20 +75,66 @@ namespace AI {
 					Drive::Robot &bot;
 					Annunciator::Message robot_dead_message;
 					bool autokick_fired_;
-					DribbleMode dribble_mode_;
-					struct AutokickParams final {
-						bool chip;
-						double pulse;
-						explicit AutokickParams();
-						bool operator==(const AutokickParams &other) const;
-						bool operator!=(const AutokickParams &other) const;
-					} autokick_params, autokick_params_old;
 
 					void on_autokick_fired();
 			};
+
 		}
 	}
 }
 
-#endif
 
+
+inline const Property<Drive::Primitive> &AI::BE::Physical::Player::primitive() const {
+	return bot.primitive;
+}
+
+inline void AI::BE::Physical::Player::move_coast() {
+	bot.move_coast();
+}
+
+inline void AI::BE::Physical::Player::move_brake() {
+	bot.move_brake();
+}
+
+inline void AI::BE::Physical::Player::move_move(Point dest) {
+	bot.move_move(dest);
+}
+
+inline void AI::BE::Physical::Player::move_move(Point dest, Angle orientation) {
+	bot.move_move(dest, orientation);
+}
+
+inline void AI::BE::Physical::Player::move_move(Point dest, double time_delta) {
+	bot.move_move(dest, time_delta);
+}
+
+inline void AI::BE::Physical::Player::move_move(Point dest, Angle orientation, double time_delta) {
+	bot.move_move(dest, orientation, time_delta);
+}
+
+inline void AI::BE::Physical::Player::move_dribble(Point dest, Angle orientation, bool small_kick_allowed) {
+	bot.move_dribble(dest, orientation, small_kick_allowed);
+}
+
+inline void AI::BE::Physical::Player::move_shoot(Point dest, double power, bool chip) {
+	bot.move_shoot(dest, power, chip);
+}
+
+inline void AI::BE::Physical::Player::move_shoot(Point dest, Angle orientation, double power, bool chip) {
+	bot.move_shoot(dest, orientation, power, chip);
+}
+
+inline void AI::BE::Physical::Player::move_catch(Angle angle_diff, double displacement, double speed) {
+	bot.move_catch(angle_diff, displacement, speed);
+}
+
+inline void AI::BE::Physical::Player::move_pivot(Point centre, Angle swing, Angle orientation) {
+	bot.move_pivot(centre, swing, orientation);
+}
+
+inline void AI::BE::Physical::Player::move_spin(Point dest, Angle speed) {
+	bot.move_spin(dest, speed);
+}
+
+#endif

@@ -15,6 +15,29 @@ namespace AI {
 		 */
 		namespace Util {
 			/**
+			 * Somewhat close.
+			 */
+			constexpr double POS_CLOSE = AI::HL::W::Robot::MAX_RADIUS / 4.0;
+
+			/**
+			 * Really really really close.
+			 * As in, we don't want division by zero.
+			 */
+			constexpr double POS_EPS = 1e-12;
+
+			/**
+			 * Somewhat stationary.
+			 */
+			constexpr double VEL_CLOSE = 1e-2;
+
+			/**
+			 * Super stationary.
+			 */
+			constexpr double VEL_EPS = 1e-12;
+
+			constexpr double KICKOFF_STOP_DIST = 0.5;
+
+			/**
 			 * A comparator that sorts by a particular distance.
 			 * To be used together with std::sort.
 			 * An object <var>x</var> is said to precede another object <var>y</var> is <var>x</var> is closer than <var>y</var> to the reference point.
@@ -53,27 +76,6 @@ namespace AI {
 				private:
 					Point dest;
 			};
-
-			/**
-			 * Somewhat close.
-			 */
-			constexpr double POS_CLOSE = AI::HL::W::Robot::MAX_RADIUS / 4.0;
-
-			/**
-			 * Really really really close.
-			 * As in, we don't want division by zero.
-			 */
-			constexpr double POS_EPS = 1e-12;
-
-			/**
-			 * Somewhat stationary.
-			 */
-			constexpr double VEL_CLOSE = 1e-2;
-
-			/**
-			 * Super stationary.
-			 */
-			constexpr double VEL_EPS = 1e-12;
 
 			/**
 			 * Checks if a point lies inside the friendly defense area.

@@ -4,6 +4,7 @@
 #include "ai/hl/util.h"
 #include "ai/hl/stp/param.h"
 #include "geom/util.h"
+#include "ai/hl/stp/action/chip.h"
 
 #include <cassert>
 
@@ -60,8 +61,9 @@ namespace {
 
 		AI::HL::STP::Action::move(player, (world.ball().position() - player.position()).orientation(), clip_point(line_intersect(world.field().friendly_goal_boundary().first, world.field().friendly_goal_boundary().second, world.ball().position(), predicted), world.field().friendly_goal_boundary().first + Point(0, goalie_range), world.field().friendly_goal_boundary().second - Point(0.00001, goalie_range)) + Point(Robot::MAX_RADIUS, 0));
 
-		if (player.has_ball())
-			player.autochip(power);
+		if (player.has_ball()) {
+			AI::HL::STP::Action::goalie_chip_target(world, player, world.field().enemy_goal());
+		}
 	}
 
 	void PenaltyGoalieNew::draw_overlay(Cairo::RefPtr<Cairo::Context> context) const {

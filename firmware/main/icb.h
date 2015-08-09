@@ -1,8 +1,7 @@
 #ifndef ICB_H
 #define ICB_H
 
-#include <FreeRTOS.h>
-#include <semphr.h>
+#include <stdbool.h>
 #include <stdbool.h>
 #include <stddef.h>
 

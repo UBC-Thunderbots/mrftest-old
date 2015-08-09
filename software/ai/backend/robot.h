@@ -52,8 +52,8 @@ namespace AI {
 				Angle avelocity_stdev(double delta) const;
 				bool has_destination() const override;
 				std::pair<Point, Angle> destination() const override;
-				bool has_path() const override;
-				const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &path() const override;
+				bool has_display_path() const override;
+				const std::vector<Point> &display_path() const override;
 				void avoid_distance(AI::Flags::AvoidDistance dist) const;
 				AI::Flags::AvoidDistance avoid_distance() const;
 				void pre_tick();

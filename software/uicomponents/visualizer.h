@@ -228,14 +228,14 @@ namespace Visualizable {
 			 *
 			 * \return \c true if the robot has a path, or \c false if not.
 			 */
-			virtual bool has_path() const = 0;
+			virtual bool has_display_path() const = 0;
 
 			/**
 			 * Returns the robot's path.
 			 *
 			 * \return the path the robot should follow.
 			 */
-			virtual const std::vector<std::pair<std::pair<Point, Angle>, std::chrono::steady_clock::time_point>> &path() const = 0;
+			virtual const std::vector<Point> &display_path() const = 0;
 
 			/**
 			 * \brief Returns the number of bar graphs the robot can display.

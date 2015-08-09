@@ -7,6 +7,7 @@
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/action/repel.h"
 #include "ai/hl/stp/action/intercept.h"
+#include "ai/hl/stp/action/chip.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/hl/stp/evaluation/defense.h"
@@ -296,7 +297,7 @@ namespace {
 			if (players.size() > 0) {
 				Action::intercept(players[0], world.field().enemy_goal());
 				if (players[0].has_chipper()) {
-					players[0].autochip(1);
+					Action::chip_target(world, players[0], world.field().enemy_goal());
 				}
 			}
 			if (players.size() > 1) {
@@ -317,7 +318,7 @@ namespace {
 			if (players.size() > 0) {
 				Action::intercept(players[0], world.field().enemy_goal());
 				if (players[0].has_chipper()) {
-					players[0].autochip(1);
+					Action::chip_target(world, players[0], world.field().enemy_goal());
 				}
 			}
 

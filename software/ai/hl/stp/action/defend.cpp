@@ -1,8 +1,8 @@
-#include "ai/hl/stp/action/shoot.h"
+#include "ai/flags.h"
 #include "ai/hl/stp/action/chip.h"
 #include "ai/hl/stp/action/defend.h"
 #include "ai/hl/stp/action/repel.h"
-#include "ai/flags.h"
+#include "ai/hl/stp/action/shoot.h"
 #include "util/param.h"
 
 using namespace AI::HL::STP;
@@ -13,21 +13,31 @@ namespace {
 }
 
 void AI::HL::STP::Action::defender_move(World world, Player player, const Point dest) {
-	// if the ball is too close we repel or chip
+	// Avoid defense areas
+	player.flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE ||
+		AI::Flags::FLAG_AVOID_ENEMY_DEFENSE);
+
+	// if the ball is within repel distance do something
 	if ((world.ball().position() - player.position()).len() < repel_dist * Robot::MAX_RADIUS) {
+		// check to see if ball is too close to friendly goal
 		if ((world.ball().position() - world.field().friendly_goal()).len() < repel_dist * 3) {
+			// chip to the center of the field
 			chip_target(world, player, Point(0,0));
 		} else {
+			// if we are far away from our own goal, if AI needs to be agressive, shoot goal
 			if (shoot_not_repel) {
 				shoot_goal(world, player);
+			// otherwise AI should do defensive stuff
 			} else {
 				corner_repel(world, player);
 			}
 		}
 		return;
 	}
-	player.move(dest, (world.ball().position() - player.position()).orientation(), Point());
+
+	// if we are not within repel distance, move closer
+	player.mp_move(dest,(world.ball().position() - player.position()).orientation());
+
 	player.type(AI::Flags::MoveType::NORMAL);
-	//player.flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE);
 }
 

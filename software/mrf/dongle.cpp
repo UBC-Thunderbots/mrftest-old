@@ -108,7 +108,6 @@ MRFDongle::MRFDongle() :
 		normal_altsetting(-1),
 		status_transfer(device, 3, 1, true, 0),
 		rx_fcs_fail_message(u8"Dongle receive FCS fail", Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::HIGH),
-		drive_dirty(false),
 		pending_beep_length(0) {
 	// Sanity-check the dongle by looking for an interface with the appropriate subclass and alternate settings with the appropriate protocols.
 	// While doing so, discover which interface number is used for the radio and which alternate settings are for configuration-setting and normal operation.
@@ -215,9 +214,6 @@ MRFDongle::MRFDongle() :
 		robots[i].reset(new MRFRobot(*this, i));
 	}
 
-	// Clear the drive packet.
-	std::memset(drive_packet, 0, sizeof(drive_packet));
-
 	// Prepare the available message IDs for allocation.
 	for (unsigned int i = 0; i < 256; ++i) {
 		free_message_ids.push(static_cast<uint8_t>(i));
@@ -320,7 +316,6 @@ void MRFDongle::handle_status(AsyncOperation<void> &) {
 }
 
 void MRFDongle::dirty_drive() {
-	drive_dirty = true;
 	if (!drive_submit_connection.connected()) {
 		drive_submit_connection = Glib::signal_idle().connect(sigc::mem_fun(this, &MRFDongle::submit_drive_transfer));
 	}
@@ -328,13 +323,40 @@ void MRFDongle::dirty_drive() {
 
 bool MRFDongle::submit_drive_transfer() {
 	if (!drive_transfer) {
-		if (logger) {
-			logger->log_mrf_drive(drive_packet, sizeof(drive_packet));
+		std::size_t dirty_indices[sizeof(robots) / sizeof(*robots)];
+		std::size_t dirty_indices_count = 0;
+		for (std::size_t i = 0; i != sizeof(robots) / sizeof(*robots); ++i) {
+			if (robots[i]->drive_dirty) {
+				dirty_indices[dirty_indices_count++] = i;
+				robots[i]->drive_dirty = false;
+			}
 		}
-		drive_transfer.reset(new USB::InterruptOutTransfer(device, 1, drive_packet, sizeof(drive_packet), 64, 0));
-		drive_transfer->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_drive_transfer_done));
-		drive_transfer->submit();
-		drive_dirty = false;
+		if (dirty_indices_count) {
+			std::size_t length;
+			if (dirty_indices_count == sizeof(robots) / sizeof(*robots)) {
+				// All robots are present. Build a full-size packet with all the
+				// robots’ data in index order.
+				for (std::size_t i = 0; i != sizeof(robots) / sizeof(*robots); ++i) {
+					robots[i]->encode_drive_packet(&drive_packet[i * 8]);
+				}
+				length = 64;
+			} else {
+				// Only some robots are present. Build a reduced-size packet with
+				// robot indices prefixed.
+				length = 0;
+				for (std::size_t i = 0; i != dirty_indices_count; ++i) {
+					drive_packet[length++] = static_cast<uint8_t>(dirty_indices[i]);
+					robots[dirty_indices[i]]->encode_drive_packet(&drive_packet[length]);
+					length += 8;
+				}
+			}
+			drive_transfer.reset(new USB::InterruptOutTransfer(device, 1, drive_packet, length, 64, 0));
+			drive_transfer->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_drive_transfer_done));
+			drive_transfer->submit();
+			if (logger) {
+				logger->log_mrf_drive(drive_packet, length);
+			}
+		}
 	}
 	return false;
 }
@@ -342,7 +364,7 @@ bool MRFDongle::submit_drive_transfer() {
 void MRFDongle::handle_drive_transfer_done(AsyncOperation<void> &op) {
 	op.result();
 	drive_transfer.reset();
-	if (drive_dirty) {
+	if(std::find_if(robots, robots + sizeof(robots) / sizeof(*robots), [](const std::unique_ptr<MRFRobot> &bot) { return bot->drive_dirty; }) != robots + sizeof(robots) / sizeof(*robots)) {
 		submit_drive_transfer();
 	}
 }

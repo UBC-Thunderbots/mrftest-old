@@ -136,12 +136,6 @@ int app_main(int argc, char **argv) {
 	navigator_entry.set_arg_description(u8"NAVIGATOR");
 	option_group.add_entry(navigator_entry, setup.navigator_name);
 
-	Glib::OptionEntry robot_controller_entry;
-	robot_controller_entry.set_long_name(u8"controller");
-	robot_controller_entry.set_description(u8"Selects which robot controller should be selected at startup");
-	robot_controller_entry.set_arg_description(u8"CONTROLLER");
-	option_group.add_entry(robot_controller_entry, setup.robot_controller_name);
-
 	Glib::OptionEntry minimize_entry;
 	minimize_entry.set_long_name(u8"minimize");
 	minimize_entry.set_short_name('m');
@@ -174,14 +168,6 @@ int app_main(int argc, char **argv) {
 			std::cerr << "The following navigators are available:\n";
 			typedef AI::Nav::NavigatorFactory::Map Map;
 			for (const Map::value_type &i : AI::Nav::NavigatorFactory::all()) {
-				std::cerr << i.second->name() << '\n';
-			}
-			std::cerr << '\n';
-		}
-		{
-			std::cerr << "The following robot controllers are available:\n";
-			typedef AI::RC::RobotControllerFactory::Map Map;
-			for (const Map::value_type &i : AI::RC::RobotControllerFactory::all()) {
 				std::cerr << i.second->name() << '\n';
 			}
 			std::cerr << '\n';
@@ -251,7 +237,7 @@ int app_main(int argc, char **argv) {
 	// Instantiate the AI.
 	AI::AIPackage ai(backend);
 
-	// Select the last selected high level, navigator, and controller.
+	// Select the last selected high level and navigator.
 	if (!setup.high_level_name.empty()) {
 		typedef AI::HL::HighLevelFactory::Map Map;
 		const Map &m = AI::HL::HighLevelFactory::all();
@@ -266,14 +252,6 @@ int app_main(int argc, char **argv) {
 		const Map::const_iterator &i = m.find(setup.navigator_name.collate_key());
 		if (i != m.end()) {
 			ai.navigator = i->second->create_navigator(AI::Nav::W::World(backend));
-		}
-	}
-	if (!setup.robot_controller_name.empty()) {
-		typedef AI::RC::RobotControllerFactory::Map Map;
-		const Map &m = AI::RC::RobotControllerFactory::all();
-		const Map::const_iterator &i = m.find(setup.robot_controller_name.collate_key());
-		if (i != m.end()) {
-			ai.robot_controller_factory = i->second;
 		}
 	}
 

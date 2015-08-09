@@ -54,7 +54,7 @@ namespace {
 		}
 		Angle cur_shoot_score = AI::HL::STP::Evaluation::get_shoot_score(world, player);
 //		if (new_shoot && ((cur_shoot_score < shoot_score + Angle::of_radians(1e-9) && shoot_score > Angle::zero()) || cur_shoot_score > shoot_thresh)) {
-			player.autokick(BALL_MAX_SPEED);
+#warning This does not work with movement primitives. It used to call autokick.
 //		}
 		shoot_score = cur_shoot_score;
 	}

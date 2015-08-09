@@ -386,11 +386,6 @@ void PlayExecutor::tick() {
 		}
 	}
 
-	for (Player i : world.friendly_team()) {
-		if(!i.has_ball())
-			i.dribble(AI::BE::Player::DribbleMode::CATCH);
-	}
-
 	// override halt completely
 	if (players.empty() || /* world.friendly_team().size() == 0 || */ world.playtype() == AI::Common::PlayType::HALT) {
 		curr_play = nullptr;

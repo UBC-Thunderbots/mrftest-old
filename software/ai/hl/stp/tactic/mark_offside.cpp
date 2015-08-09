@@ -21,15 +21,16 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace {
 	class MarkOffside final : public Tactic {
 		public:
-			explicit MarkOffside(World world) : Tactic(world) {
+			explicit MarkOffside(World world, unsigned i) : Tactic(world), index(i) {
 			}
 
 		private:
 			Player select(const std::set<Player> &players) const override;
 			void execute() override;
 			Coordinate dest;
-			Robot player_to_mark(std::vector<AI::HL::W::Robot> enemies) const;
+			std::vector<AI::HL::W::Robot> player_to_mark(std::vector<AI::HL::W::Robot> enemies) const;
 			Player nearest_friendly(Point target) const;
+			unsigned index;
 			Glib::ustring description() const override {
 				return u8"MarkOffside";
 			}
@@ -39,7 +40,9 @@ namespace {
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest.position()));
 	}
 
-	Robot MarkOffside::player_to_mark(std::vector<AI::HL::W::Robot> enemies) const {
+	std::vector<AI::HL::W::Robot> MarkOffside::player_to_mark(std::vector<AI::HL::W::Robot> enemies) const {
+#warning This is a quick implementation during robocup 2015 to find more than one mark offender. This should be changed later to not take n^2 time
+
 		// filter out enemies that:
 		// 1. are far away from our goal
 		// 2. can't shoot to goal
@@ -47,23 +50,30 @@ namespace {
 			return (robot.position().x > 1.0) || (!Evaluation::enemy_can_shoot_goal(world, robot));
 		}), enemies.end());
 
-		AI::HL::W::Robot open_robot = Evaluation::calc_enemy_baller(world);
-		// find the enemy robot with the biggest open space
-		int most_open_index = -1;
-		double dist = 0;
-		for (std::size_t i = 0; i < enemies.size(); i++) {
-			double d = (enemies[i].position() - nearest_friendly(enemies[i].position()).position()).len();
-			if (most_open_index < 0 || d > dist) {
-				most_open_index = static_cast<int>(i);
-				dist = d;
+		std::vector<AI::HL::W::Robot> open_robots;
+
+		 AI::HL::W::Robot most_open_robot = Evaluation::calc_enemy_baller(world);
+		for (std::size_t j = 0; j < enemies.size(); j++)
+		{
+			// find the enemy robot with the biggest open space
+			int most_open_index = -1;
+			double dist = 0;
+			for (std::size_t i = 0; i < enemies.size(); i++) {
+				double d = (enemies[i].position() - nearest_friendly(enemies[i].position()).position()).len();
+				if (most_open_index < 0 || d > dist) {
+					most_open_index = static_cast<int>(i);
+					dist = d;
+				}
+			}
+
+			// every time we find an open robot, we remove it from the list and redo again with a smaller list.
+			if (most_open_index != -1) {
+				open_robots.push_back(enemies[static_cast<std::size_t>(most_open_index)]);
+				enemies.erase(enemies.begin() + most_open_index);
 			}
 		}
 
-		if (most_open_index != -1) {
-			open_robot = enemies[static_cast<std::size_t>(most_open_index)];
-		}
-
-		return open_robot;
+		return open_robots;
 	}
 
 	//return nearest friendly from the pool of non-marker players
@@ -89,7 +99,15 @@ namespace {
 
 	void MarkOffside::execute() {
 		if (world.enemy_team().size()) {
-			Action::block_ball(world, player, player_to_mark(AI::HL::Util::get_robots(world.enemy_team())));
+			std::vector<Robot> players_to_mark = AI::HL::Util::get_robots(world.enemy_team());
+			if (index < players_to_mark.size())
+			{
+				Robot player_to_mark = AI::HL::Util::get_robots(world.enemy_team())[index];
+				Action::block_ball(world, player, player_to_mark);
+			}
+			else {
+				Action::move(player, (player.position() - world.ball().position()).orientation(), Point(world.ball().position().x, -world.ball().position().y));
+			}
 		} else {
 			Action::move(player, (player.position() - world.ball().position()).orientation(), Point(world.ball().position().x, -world.ball().position().y));
 		}
@@ -98,7 +116,22 @@ namespace {
 
 
 Tactic::Ptr AI::HL::STP::Tactic::mark_offside(World world) {
-	Tactic::Ptr p(new MarkOffside(world));
+	Tactic::Ptr p(new MarkOffside(world, 0));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::mark_offside1(World world) {
+	Tactic::Ptr p(new MarkOffside(world, 1));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::mark_offside2(World world) {
+	Tactic::Ptr p(new MarkOffside(world, 2));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::mark_offside3(World world) {
+	Tactic::Ptr p(new MarkOffside(world, 3));
 	return p;
 }
 

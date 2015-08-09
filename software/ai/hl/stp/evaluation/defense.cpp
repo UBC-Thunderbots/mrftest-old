@@ -11,6 +11,7 @@
 #include "util/dprint.h"
 #include "util/param.h"
 #include "geom/angle.h"
+#include "ai/hl/stp/predicates.h"
 
 #include <vector>
 
@@ -184,32 +185,38 @@ namespace {
 			/**
 			 * block the passing lanes with the next few robots
 			 */
-			bool blowup = false;
-			Point D = closest_lineseg_point(world.field().friendly_goal(), world.ball().position(), threat[i].position());
-			if (D.x < Robot::MAX_RADIUS - field.length() / 2 + field.defense_area_stretch()) {
-				blowup = true;
+			Point D(0,0);
+			if (world.ball().position().x < 0)
+			{
+				bool blowup = false;
+				D = closest_lineseg_point(world.field().friendly_goal(), world.ball().position(), threat[i].position());
+				if (D.x < Robot::MAX_RADIUS - field.length() / 2 + field.defense_area_stretch()) {
+					blowup = true;
+					}
+				if (std::fabs(D.y) > field.width() / 4) {
+					blowup = true;
 				}
-			if (std::fabs(D.y) > field.width() / 4) {
-				blowup = true;
+				if (blowup) {
+					D = (field.friendly_goal() + threat[i].position()) / 2;
+				}
 			}
-			if (blowup) {
-				D = (field.friendly_goal() + threat[i].position()) / 2;
+			else {
+				/*
+				 * The following block of code calculates the the best place to put extra defenders to block the robots
+				 * from shooting the ball from one touch passes. instead, we try to block passing lanes
+				 */
+				bool blowup = false;
+				D = calc_block_cone(world.ball().position(), world.ball().position(), threat[i].position(), radius);
+				if (D.x < Robot::MAX_RADIUS - field.length() / 2 + field.defense_area_stretch()) {
+					blowup = true;
+				}
+				if (std::fabs(D.y) > field.width() / 4) {
+					blowup = true;
+				}
+				if (blowup) {
+					D = (field.friendly_goal() + threat[i].position()) / 2;
+				}
 			}
-			/*
-			 * The following block of code calculates the the best place to put extra defenders to block the robots
-			 * from shooting the ball from one touch passes. instead, we try to block passing lanes
-
-			bool blowup = false;
-			Point D = calc_block_cone(world.ball().positon(), world.ball().position(), threat[i].position(), radius);
-			if (D.x < Robot::MAX_RADIUS - field.length() / 2 + field.defense_area_stretch()) {
-				blowup = true;
-			}
-			if (std::fabs(D.y) > field.width() / 4) {
-				blowup = true;
-			}
-			if (blowup) {
-				D = (field.friendly_goal() + threat[i].position()) / 2;
-			} */
 			waypoint_defenders.push_back(D);
 		}
 

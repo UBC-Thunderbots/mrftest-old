@@ -12,7 +12,7 @@
 namespace {
 	const uint32_t MAGIC = UINT32_C(0x4B045549);
 	const uint32_t VERSION = UINT32_C(0x00000001);
-	Glib::ustring AI::Setup::*const STRINGS[] = { &AI::Setup::high_level_name, &AI::Setup::navigator_name, &AI::Setup::robot_controller_name };
+	Glib::ustring AI::Setup::*const STRINGS[] = { &AI::Setup::high_level_name, &AI::Setup::navigator_name };
 
 	std::string get_cache_filename() {
 		const std::string &cache_dir = Glib::get_user_cache_dir();

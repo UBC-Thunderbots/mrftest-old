@@ -79,7 +79,7 @@ typedef enum {
 #define SD_DMA_CHANNEL 4U
 
 static SemaphoreHandle_t sd_mutex;
-static SemaphoreHandle_t int_semaphore = NULL, d0_exti_int_semaphore = NULL;
+static SemaphoreHandle_t int_semaphore = 0, d0_exti_int_semaphore = 0;
 
 typedef struct {
 	bool initialized;

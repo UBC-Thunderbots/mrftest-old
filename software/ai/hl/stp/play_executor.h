@@ -77,7 +77,7 @@ namespace AI {
 					 */
 					Tactic::Tactic *curr_active;
 
-					// current player assignment
+					// current player assignment (move to team????)
 					AI::HL::W::Player curr_assignment[TEAM_MAX_SIZE];
 
 					// previous player assignment

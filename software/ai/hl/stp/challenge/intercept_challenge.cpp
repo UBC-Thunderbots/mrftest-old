@@ -62,7 +62,7 @@ namespace {
 					return;
 				}
 				for (AI::HL::W::Player i : players) {
-					i.autokick(AI::HL::STP::BALL_MAX_SPEED);
+#warning This does not work with movement primitives. It used to call autokick.
 					i.flags(AI::Flags::FLAG_STAY_OWN_HALF);
 				}
 

@@ -25,6 +25,7 @@
 #include "util/param.h"
 #include "util/dprint.h"
 #include "ai/hl/stp/predicates.h"
+#include "ai/hl/stp/action/chip.h"
 
 #include <cmath>
 
@@ -217,7 +218,7 @@ namespace {
 				}
 
 				Action::intercept(players[1], location);
-				players[1].autochip(1);
+				Action::chip_target(world, players[1], world.field().enemy_goal());
 			}
 
 			if (players.size() > 2) {

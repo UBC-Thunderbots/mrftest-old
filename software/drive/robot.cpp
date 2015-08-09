@@ -3,16 +3,21 @@
 
 Drive::Robot::~Robot() = default;
 
-Drive::Robot::Robot(unsigned int index, unsigned int dribble_max_power) :
+Drive::Robot::Robot(unsigned int index, double break_beam_scale, double kick_speed_max, double chip_distance_max, unsigned int direct_dribbler_max) :
 		index(index),
-		dribble_max_power(dribble_max_power),
+		break_beam_scale(break_beam_scale),
+		kick_speed_max(kick_speed_max),
+		kick_speed_resolution(1.0),
+		chip_distance_max(chip_distance_max),
+		chip_distance_resolution(1.0),
+		direct_dribbler_max(direct_dribbler_max),
 		alive(false),
+		direct_control(false),
 		ball_in_beam(false),
 		capacitor_charged(false),
 		battery_voltage(0),
 		capacitor_voltage(0),
 		break_beam_reading(0),
-		break_beam_scale(1),
 		dribbler_temperature(0),
 		dribbler_speed(0),
 		board_temperature(0),
@@ -21,6 +26,7 @@ Drive::Robot::Robot(unsigned int index, unsigned int dribble_max_power) :
 		build_ids_valid(false),
 		fw_build_id(0),
 		fpga_build_id(0),
+		primitive(Primitive::STOP),
 		low_battery_message(Glib::ustring::compose(u8"Bot %1 low battery", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
 		high_board_temperature_message(Glib::ustring::compose(u8"Bot %1 board hot", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH) {
 	alive.signal_changed().connect(sigc::mem_fun(this, &Robot::handle_alive_changed));
@@ -50,4 +56,3 @@ void Drive::Robot::handle_board_temperature_changed() {
 		high_board_temperature_message.active(false);
 	}
 }
-

@@ -2,10 +2,13 @@
 #define TEST_COMMON_DRIVE_H
 
 #include "drive/robot.h"
+#include "util/property.h"
 #include <gtkmm/box.h>
+#include <gtkmm/button.h>
 #include <gtkmm/checkbutton.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/scale.h>
+#include <gtkmm/table.h>
 #include <gtkmm/togglebutton.h>
 #include <gtkmm/window.h>
 
@@ -36,25 +39,27 @@ class DrivePanel final : public Gtk::VBox {
 		 *
 		 * \param[in] values the values to set, in the range ±1
 		 */
-		void set_values(const double(&values)[4]);
+		void set_values(const double values[4]);
 
 		/**
 		 * \brief Retrieves the scale factors to apply to the four axes when operating with a joystick in low-sensitivity mode
 		 *
 		 * \param[out] scale the scale factors
 		 */
-		void get_low_sensitivity_scale_factors(double (&scale)[4]);
+		void get_low_sensitivity_scale_factors(double scale[4]);
 
 	private:
 		Drive::Robot &robot;
 		Gtk::ComboBoxText mode_chooser;
-		Gtk::HScale controls[4];
-		Gtk::CheckButton controllers_checkbox;
-		Gtk::ToggleButton manual_commutation_button;
+		Gtk::Table scales_table;
+		Gtk::Label scales_labels[4];
+		Gtk::HScale scales[4];
+		Gtk::CheckButton misc_checkbox;
+		Gtk::Button execute_button;
 
 		void on_mode_changed();
 		void on_update();
+		void on_execute();
 };
 
 #endif
-

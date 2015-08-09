@@ -1,8 +1,9 @@
 #include "ai/backend/player.h"
-#include "ai/robot_controller/robot_controller.h"
 #include "util/algorithm.h"
 #include "util/dprint.h"
 #include "util/param.h"
+#include "geom/point.h"
+#include "geom/angle.h"
 #include <cmath>
 #include <glibmm/ustring.h>
 
@@ -47,70 +48,33 @@ std::pair<Point, Angle> Player::destination() const {
 	return destination_;
 }
 
-void Player::kick(double speed) {
-	if (!std::isfinite(speed)) {
-		LOG_ERROR(u8"NaN or ±∞ speed");
-		return;
+void Player::destination(std::pair<Point,Angle> dest){
+	if (!std::isfinite(dest.first.x) || !std::isfinite(dest.first.y)) {
+		LOG_ERROR(u8"NaN or ±∞ destination");
+		dest.first = Point();
 	}
-	if (speed < 0) {
-		LOG_ERROR(u8"Out-of-range speed");
-		speed = 0;
+	if (!dest.second.isfinite()) {
+		LOG_ERROR(u8"NaN or ±∞ orientation");
+		dest.second = Angle();
 	}
-	kick_impl(speed);
-}
-
-void Player::autokick(double speed) {
-	if (!std::isfinite(speed)) {
-		LOG_ERROR(u8"NaN or ±∞ speed");
-		return;
-	}
-	if (speed < 0) {
-		LOG_ERROR(u8"Out-of-range speed");
-		speed = 0;
-	}
-	autokick_impl(speed);
-}
-
-void Player::chip(double power) {
-	if (!(0 <= power && power <= 1)) {
-		LOG_ERROR(u8"Out-of-range power");
-		power = clamp(power, 0.0, 1.0);
-	}
-	chip_impl(power);
-}
-
-void Player::autochip(double power) {
-	if (!(0 <= power && power <= 1)) {
-		LOG_ERROR(u8"Out-of-range power");
-		power = clamp(power, 0.0, 1.0);
-	}
-	autochip_impl(power);
+	destination_ = dest;
+	return;
 }
 
 Point AI::BE::Player::target_velocity() const {
 	return target_velocity_;
 }
 
-bool Player::has_path() const {
+bool Player::has_display_path() const {
 	return true;
 }
 
-const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &Player::path() const {
-	return path_;
+const std::vector<Point> &Player::display_path() const {
+	return display_path_;
 }
 
-void Player::path(const std::vector<std::pair<std::pair<Point, Angle>, AI::Timestamp>> &p) {
-	for (const std::pair<std::pair<Point, Angle>, AI::Timestamp> &i : p) {
-		if (!std::isfinite(i.first.first.x) || !std::isfinite(i.first.first.y)) {
-			LOG_ERROR(u8"NaN or ±∞ position in path element");
-			return;
-		}
-		if (!i.first.second.isfinite()) {
-			LOG_ERROR(u8"NaN or ±∞ orientation in path element");
-			return;
-		}
-	}
-	path_ = p;
+void Player::display_path(const std::vector<Point> &p) {
+	display_path_ = p;
 }
 
 void Player::pre_tick() {
@@ -123,13 +87,7 @@ void Player::pre_tick() {
 
 void Player::update_predictor(AI::Timestamp ts) {
 	if (kalman_control_inputs) {
-		double prediction_vector[3] = { 0, 0, 0 };
-		for (unsigned int row = 0; row < 3; ++row) {
-			for (unsigned int col = 0; col < 4; ++col) {
-				prediction_vector[row] += AI::RC::RobotController::WHEEL_MATRIX_PINV[row][col] * wheel_speeds_[col];
-			}
-		}
-		add_control(Point(prediction_vector[0], prediction_vector[1]), Angle::of_radians(prediction_vector[2]), ts);
+#warning This needs writing for movement primitives.
 	}
 }
 
@@ -150,6 +108,5 @@ Visualizable::Colour Player::highlight_colour() const {
 }
 
 Player::Player(unsigned int pattern) : AI::BE::Robot(pattern), moved(false), destination_(Point(), Angle::zero()), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
-	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 }
 

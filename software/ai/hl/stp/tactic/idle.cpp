@@ -25,7 +25,6 @@ namespace {
 
 	void Idle::execute() {
 		Action::stop(world, player);
-		player.dribble(AI::BE::Player::DribbleMode::STOP);
 	}
 }
 

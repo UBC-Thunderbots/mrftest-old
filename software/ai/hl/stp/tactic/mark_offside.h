@@ -17,6 +17,9 @@ namespace AI {
 				 * \input[in] target - the enemy player to target
 				 */
 				Tactic::Ptr mark_offside(World world);
+				Tactic::Ptr mark_offside1(World world);
+				Tactic::Ptr mark_offside2(World world);
+				Tactic::Ptr mark_offside3(World world);
 
 			}
 		}

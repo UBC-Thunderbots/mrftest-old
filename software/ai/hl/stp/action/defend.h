@@ -8,6 +8,10 @@ namespace AI {
 		namespace STP {
 			namespace Action {
 				/**
+				 * Defender Move
+				 *
+				 * Not intended for goalie use
+				 *
 				 * Move the defender to this location.
 				 */
 				void defender_move(World world, Player player, Point dest);

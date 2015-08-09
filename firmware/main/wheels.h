@@ -2,10 +2,20 @@
 #define WHEELS_H
 
 #include "log.h"
-#include <stdint.h>
+#include "physics.h"
 
-typedef struct drive_struct drive_t;
+#include <math.h>
 
+/**
+ * \ingroup WHEELS
+ *
+ * \brief The number of wheels.
+ */
+#define WHEELS_NUM_WHEELS 4U
+
+#define WHEELS_RADIUS 0.0254f
+#define WHEELS_CIRCUM (2.0f*(float)M_PI*WHEELS_RADIUS)
+#define WHEELS_GEAR_RATIO 0.5f // not the correct value but sufficient
 #define WHEELS_ENCODER_COUNTS_PER_REV 1440U
 #define WHEELS_POLE_PAIRS 8U
 #define WHEELS_HALL_COUNTS_PER_REV (WHEELS_POLE_PAIRS * 6U)
@@ -14,20 +24,12 @@ typedef struct drive_struct drive_t;
 #define WHEELS_VOLTS_PER_RPM (1.0f / WHEELS_SPEED_CONSTANT) // volts per rpm
 #define WHEELS_VOLTS_PER_RPT (WHEELS_VOLTS_PER_RPM / 60.0f / CONTROL_LOOP_HZ) // volts per rpt, rpt=revolutions per tick
 #define WHEELS_VOLTS_PER_ENCODER_COUNT (WHEELS_VOLTS_PER_RPT / (float) WHEELS_ENCODER_COUNTS_PER_REV) // volts per encoder count
+#define WHEELS_HALL_TO_MS (WHEELS_CIRCUM*WHEELS_GEAR_RATIO/((float)WHEELS_ENCODER_COUNTS_PER_REV)*CONTROL_LOOP_HZ)
 
-/**
- * \ingroup WHEELS
- *
- * \brief The modes the wheels can be in.
- */
-typedef enum {
-	WHEELS_MODE_COAST, ///< The commutation pattern is controlled by the user.
-	WHEELS_MODE_BRAKE, ///< All low-side drivers are on while all high-side drivers are off, thus regeneratively braking.
-	WHEELS_MODE_OPEN_LOOP, ///< Motor commutation is controlled by Hall sensors, with the user providing PWM values.
-	WHEELS_MODE_CLOSED_LOOP, ///< Motor commutation is controlled by Hall sensors, and PWM values are provided by the control loop.
-} wheels_mode_t;
-
-void wheels_tick(const drive_t *drive, log_record_t *record);
+void wheels_init(void);
+void wheels_coast(unsigned int index);
+void wheels_brake(unsigned int index);
+void wheels_drive(unsigned int index, int power);
+void wheels_tick(log_record_t *record);
 
 #endif
-

@@ -497,7 +497,22 @@ namespace {
 		std::ofstream ofs;
 		ofs.exceptions(std::ios_base::badbit | std::ios_base::failbit);
 		ofs.open(args[1], std::ios_base::out | std::ios_base::trunc);
-		ofs << "Epoch\tUNIX Time\tBreakbeam\tBattery (V)\tCapacitor (V)\tSetpoint 0\tSetpoint 1\tSetpoint 2\tSetpoint 3\tEncoder 0 (¼°/t)\tEncoder 1 (¼°/t)\tEncoder 2 (¼°/t)\tEncoder 3 (¼°/t)\tMotor 0 (/255)\tMotor 1 (/255)\tMotor 2 (/255)\tMotor 3 (/255)\tMotor 0 (°C)\tMotor 1 (°C)\tMotor 2 (°C)\tMotor 3 (°C)\tDribbler Ticked?\tDribbler (/255)\tDribbler (rpm)\tDribbler (°C)\tIdle Cycles";
+		ofs << "Epoch\tUNIX Time\tBreakbeam\tBattery (V)\tCapacitor (V)\t";
+		ofs << "DR X (m)\tDR Y (m)\tDR θ (r)\tDR VX (m/s)\tDR VY (m/s)\tDR Vθ (r/s)\t";
+		ofs << "Drive Serial\tPrimitive\t";
+		for (unsigned int i = 0; i != 10; ++i) {
+			ofs << "Primitive Data " << i << '\t';
+		}
+		for (unsigned int i = 0; i != 4; ++i) {
+			ofs << "Encoder " << i << " (¼°/t)\t";
+		}
+		for (unsigned int i = 0; i != 4; ++i) {
+			ofs << "Motor " << i << " PWM (/255)\t";
+		}
+		for (unsigned int i = 0; i != 4; ++i) {
+			ofs << "Motor " << i << " Temp (°C)\t";
+		}
+		ofs << "Dribbler Ticked?\tDribbler PWM (/255)\tDribbler Speed (rpm)\tDribbler Temp (°C)\tIdle Cycles";
 		for (unsigned int i = 0; i != MRF::ERROR_LT_COUNT; ++i) {
 			ofs << '\t' << MRF::ERROR_LT_MESSAGES[i];
 		}
@@ -520,9 +535,17 @@ namespace {
 					float battery_voltage = decode_float_le(ptr); ptr += 4;
 					float capacitor_voltage = decode_float_le(ptr); ptr += 4;
 
-					int16_t wheels_setpoints[4];
-					for (int16_t &value : wheels_setpoints) {
-						value = static_cast<int16_t>(decode_u16_le(ptr)); ptr += 2;
+					float dr_data[6];
+					for (float &value : dr_data) {
+						value = decode_float_le(ptr); ptr += 4;
+					}
+
+					unsigned int drive_serial = decode_u8_le(ptr); ptr += 1;
+					unsigned int primitive = decode_u8_le(ptr); ptr += 1;
+
+					float primitive_data[10];
+					for (float &value : primitive_data) {
+						value = decode_float_le(ptr); ptr += 4;
 					}
 					int16_t wheels_encoder_counts[4];
 					for (int16_t &value : wheels_encoder_counts) {
@@ -550,8 +573,12 @@ namespace {
 					}
 
 					ofs << epoch_index << '\t' << (stamp / 1000000) << '.' << todecu(stamp % 1000000, 6) << '\t' << breakbeam_diff << '\t' << battery_voltage << '\t' << capacitor_voltage;
-					for (int16_t sp : wheels_setpoints) {
-						ofs << '\t' << sp;
+					for (float dd : dr_data) {
+						ofs << '\t' << dd;
+					}
+					ofs << '\t' << drive_serial << '\t' << primitive;
+					for (float pd : primitive_data) {
+						ofs << '\t' << pd;
 					}
 					for (unsigned int i = 0; i < 4; ++i) {
 						ofs << '\t' << wheels_encoder_counts[i];

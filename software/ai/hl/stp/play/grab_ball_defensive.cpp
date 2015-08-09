@@ -1,6 +1,8 @@
 #include "ai/hl/stp/tactic/intercept.h"
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/block.h"
+#include "ai/hl/stp/tactic/mark_offside.h"
+#include "ai/hl/stp/tactic/shadow_enemy.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::Enemy;
@@ -39,7 +41,7 @@ roles[2].push_back(defend_duo_extra1(world));
 
 // ROLE 4 (optional)
 // block 2
-roles[3].push_back(block_ball(world, Enemy::closest_ball(world, 0)));
+roles[3].push_back(shadow_enemy(world, 1));
 
 // ROLE 5 (optional)
 // offend

@@ -26,6 +26,15 @@ namespace AI {
 				 */
 				bool ball_in_pivot_thresh(World world, Player player);
 
+
+				/**
+				 * robot is behind the ball within threshold
+				 */
+
+				bool behind_ball_within_dist(World world, Player player, Point target, double dist, Angle angle_thresh);
+	
+//bool Evaluation::behind_ball_within_dist(World world, Player player, Point target, double dist, Angle angle_thresh) {
+
 				/**
 				 * The ball is right in front of the player.
 				 */
