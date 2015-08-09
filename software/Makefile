@@ -134,13 +134,6 @@ uncrustify :
 	patch --no-backup-if-mismatch -i uncrustify-exceptions.patch -p0 -R -u
 
 #
-# Rule to do static analysis on the source with CPPCheck.
-#
-.PHONY : cppcheck
-cppcheck :
-	cppcheck --enable=all --suppressions-list=cppcheck.suppress --verbose .
-
-#
 # Rule to clean generated files.
 #
 .PHONY : clean
