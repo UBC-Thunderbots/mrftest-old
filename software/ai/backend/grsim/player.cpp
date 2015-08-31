@@ -121,8 +121,8 @@ void Player::tick(bool halt, bool stop) {
 
 			if (lhas_ball && _move_ori.to_degrees() < 5) { // within 5 deg
 				if (_prim_extra) { // chip
-					_drive_kickspeedx = static_cast<float>(MAX_CHIP_SPEED * COSINE_CHIP_ANGLE * _shoot_power);
-					_drive_kickspeedz = static_cast<float>(MAX_CHIP_SPEED * SINE_CHIP_ANGLE * _shoot_power);
+					_drive_kickspeedx = static_cast<float>(COSINE_CHIP_ANGLE * _shoot_power);
+					_drive_kickspeedz = static_cast<float>(SINE_CHIP_ANGLE * _shoot_power);
 				}
 				else {
 					_drive_kickspeedx = static_cast<float>(_shoot_power);
@@ -149,7 +149,8 @@ void Player::tick(bool halt, bool stop) {
 				_drive_angular = _move_ori * CONTROLLER_PROPORTIONAL_GAIN;
 			}
 			else {
-				_drive_linear = _move_dest.rotate(_pivot_swing.to_radians() > 0 ? Angle::three_quarter() : Angle::quarter());
+				_drive_linear = _move_dest.rotate(_pivot_swing.to_radians() > 0 ? Angle::three_quarter() : Angle::quarter()).norm()
+					* MAX_SPEED;
 			}
 			
 			break;
