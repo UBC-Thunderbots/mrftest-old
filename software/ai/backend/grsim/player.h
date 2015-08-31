@@ -8,9 +8,7 @@
 namespace AI {
 	namespace BE {
 		class Ball;
-
-		namespace GRSim {
-			class Player final : public AI::BE::Player {
+namespace GRSim { class Player final : public AI::BE::Player {
 				public:
 					typedef BoxPtr<Player> Ptr;
 
@@ -37,79 +35,118 @@ namespace AI {
 					void encode_orders(grSim_Robot_Command &packet);
 
 				private:
-					enum class ChickMode {
-						IDLE,
-						KICK,
-						CHIP,
-						AUTOKICK,
-						AUTOCHIP,
-					};
+					Point _drive_linear;
+					Angle _drive_angular;
+					double _drive_kickspeedx;
+					double _drive_kickspeedz;
+					bool _drive_spinner;
 
-					const AI::BE::Ball &ball;
-					bool dribble_requested, dribble_active;
-					bool autokick_fired_;
-					bool had_ball;
-					ChickMode chick_mode;
-					double chick_power;
-					std::chrono::steady_clock::time_point last_chick_time;
+					Point _move_dest;
+					Angle _move_ori;
+					Angle _pivot_swing;
+					double _move_time_delta;
+					double _shoot_power;
+					double _catch_displacement;
+					double _catch_speed;
+
+					Property<Drive::Primitive> _prim;
+					int _prim_extra;
+
+					const AI::BE::Ball &_ball;
+					bool _autokick_fired;
+					bool _had_ball;
+					std::chrono::steady_clock::time_point _last_chick_time;
 			};
 		}
 	}
 }
 
-#warning movement primitives arent yet implemented in grsim wrapper
 inline const Property<Drive::Primitive> &AI::BE::GRSim::Player::primitive() const {
-	static Property<Drive::Primitive> prim(Drive::Primitive::STOP);
-	return prim;
+	return _prim;
 }
 
-#warning movement primitives arent yet implemented in grsim wrapper
 inline void AI::BE::GRSim::Player::move_coast() {	
+	_prim = Drive::Primitive::STOP;
+	_prim_extra = 0;
 }
 
-#warning movement primitives arent yet implemented in grsim wrapper
 inline void AI::BE::GRSim::Player::move_brake() {
+	_prim = Drive::Primitive::STOP;
+	_prim_extra = 1;
 }
 
-#warning movement primitives arent yet implemented in grsim wrapper
 inline void AI::BE::GRSim::Player::move_move(Point dest) {
+	_prim = Drive::Primitive::MOVE;
+	_prim_extra = 0;
+	_move_time_delta = 0;
+	_move_dest = dest;
 }
 
-#warning movement primitives arent yet implemented in grsim wrapper
 inline void AI::BE::GRSim::Player::move_move(Point dest, Angle orientation) {
+	_prim = Drive::Primitive::MOVE;
+	_prim_extra = 1;
+	_move_time_delta = 0;
+	_move_dest = dest;
+	_move_ori = orientation;
 }
 
-#warning movement primitives arent yet implemented in grsim wrapper
 inline void AI::BE::GRSim::Player::move_move(Point dest, double time_delta) {
+	_prim = Drive::Primitive::MOVE;
+	_prim_extra = 0;
+	_move_time_delta = time_delta;
+	_move_dest = dest;
 }
 
-#warning movement primitives arent yet implemented in grsim wrapper
 inline void AI::BE::GRSim::Player::move_move(Point dest, Angle orientation, double time_delta) {
+	_prim = Drive::Primitive::MOVE;
+	_prim_extra = 1;
+	_move_time_delta = time_delta;
+	_move_dest = dest;
+	_move_ori = orientation;
 }
 
-#warning movement primitives arent yet implemented in grsim wrapper
 inline void AI::BE::GRSim::Player::move_dribble(Point dest, Angle orientation, bool small_kick_allowed) {
+	_prim = Drive::Primitive::DRIBBLE;
+	_prim_extra = small_kick_allowed;
+	_move_dest = dest;
+	_move_ori = orientation;
 }
 
-#warning movement primitives arent yet implemented in grsim wrapper
 inline void AI::BE::GRSim::Player::move_shoot(Point dest, double power, bool chip) {
+	_prim = Drive::Primitive::SHOOT;
+	_prim_extra = static_cast<int>(chip);
+	_move_dest = dest;
+	_shoot_power = power;
 }
 
-#warning movement primitives arent yet implemented in grsim wrapper
 inline void AI::BE::GRSim::Player::move_shoot(Point dest, Angle orientation, double power, bool chip) {
+	_prim = Drive::Primitive::SHOOT;
+	_prim_extra = static_cast<int>(chip) | (1 << 1);
+	_move_dest = dest;
+	_move_ori = orientation;
+	_shoot_power = power;
 }
 
-#warning movement primitives arent yet implemented in grsim wrapper
 inline void AI::BE::GRSim::Player::move_catch(Angle angle_diff, double displacement, double speed) {
+	_prim = Drive::Primitive::CATCH;
+	_prim_extra = 0;
+	_catch_displacement = displacement;
+	_catch_speed = speed;
+	_move_ori = angle_diff;
 }
 
-#warning movement primitives arent yet implemented in grsim wrapper
 inline void AI::BE::GRSim::Player::move_pivot(Point centre, Angle swing, Angle orientation) {
+	_prim = Drive::Primitive::PIVOT;
+	_prim_extra = 0;
+	_pivot_swing = swing;
+	_move_dest = centre;
+	_move_ori = orientation;
 }
 
-#warning movement primitives arent yet implemented in grsim wrapper
 inline void AI::BE::GRSim::Player::move_spin(Point dest, Angle speed) {
+	_prim = Drive::Primitive::SPIN;
+	_move_dest = dest;
+	_move_ori = speed;
 }
 
 #endif
-
