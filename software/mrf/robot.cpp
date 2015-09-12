@@ -234,7 +234,7 @@ void MRFRobot::move_shoot(Point dest, double power, bool chip) {
 	params[0] = dest.x * 1000.0;
 	params[1] = dest.y * 1000.0;
 	params[2] = 0.0;
-	uint16_t chick_power = chicker_power_to_pulse_width(power,chip);
+	uint16_t chick_power = static_cast<uint16_t>(chicker_power_to_pulse_width(power,chip));
 	params[3] = chick_power;
 	extra = chip;
 	dirty_drive();
@@ -248,7 +248,7 @@ void MRFRobot::move_shoot(Point dest, Angle orientation, double power, bool chip
 	params[0] = dest.x * 1000.0;
 	params[1] = dest.y * 1000.0;
 	params[2] = orientation.angle_mod().to_radians() * 100.0;
-	uint16_t chick_power = chicker_power_to_pulse_width(power,chip);
+	uint16_t chick_power = static_cast<uint16_t>(chicker_power_to_pulse_width(power,chip));
 	params[3] = chick_power;
 	extra = static_cast<uint8_t>(2 | chip);
 	dirty_drive();

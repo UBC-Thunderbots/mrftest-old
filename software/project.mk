@@ -51,7 +51,7 @@ PROJECT_CXXFLAGS += -Wformat=2
 # Warn when C-style cast is used in C++ code.
 PROJECT_CXXFLAGS += -Wold-style-cast
 # Warn when possibly erroneous value-altering implicit conversions are used.
-PROJECT_CXXFLAGS += -Wconversion
+PROJECT_CXXFLAGS += -Werror=conversion
 # Warn when an undefined macro name is referenced.
 PROJECT_CXXFLAGS += -Wundef
 # Warn when a global function has no previous declaration (i.e. missing from the header file or should be file-scope).
