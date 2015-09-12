@@ -52,6 +52,8 @@ PROJECT_CXXFLAGS += -Wformat=2
 PROJECT_CXXFLAGS += -Wold-style-cast
 # Warn when possibly erroneous value-altering implicit conversions are used.
 PROJECT_CXXFLAGS += -Werror=conversion
+# Warn when attemping to compare between signed and unsigned integers
+PROJECT_CXXFLAGS += -Werror=sign-compare
 # Warn when an undefined macro name is referenced.
 PROJECT_CXXFLAGS += -Wundef
 # Warn when a global function has no previous declaration (i.e. missing from the header file or should be file-scope).

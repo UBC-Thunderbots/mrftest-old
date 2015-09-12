@@ -26,9 +26,9 @@ namespace AI {
 		namespace STP {
 			namespace GradientApproach {
 
-			std::vector<double> optimizePass(PassInfo::worldSnapshot snapshot, Point start_target, double start_t_delay, double start_shoot_vel,int max_func_evals);
+			std::vector<double> optimizePass(PassInfo::worldSnapshot snapshot, Point start_target, double start_t_delay, double start_shoot_vel, unsigned int max_func_evals);
 
-			std::vector<double> testOptimizePass(PassInfo::worldSnapshot snapshot, Point start_target, double start_t_delay, double start_shoot_vel,int max_func_evals);
+			std::vector<double> testOptimizePass(PassInfo::worldSnapshot snapshot, Point start_target, double start_t_delay, double start_shoot_vel, unsigned int max_func_evals);
 
 			std::vector<double> approximateGradient(PassInfo::worldSnapshot snapshot, std::vector<double> params,
 													double step_size, double current_func_val, int num_params, std::vector<double> weights);

@@ -22,11 +22,11 @@ namespace AI {
 namespace HL {
 namespace STP {
 namespace GradientApproach {
-	std::vector<double> optimizePass(PassInfo::worldSnapshot snapshot, Point start_target, double start_t_delay,double start_shoot_vel, int max_func_evals)
+	std::vector<double> optimizePass(PassInfo::worldSnapshot snapshot, Point start_target, double start_t_delay,double start_shoot_vel, unsigned int max_func_evals)
 		{
 		double alpha = 0.5;
 
-		int num_params = 4;
+		unsigned int num_params = 4;
 		double tiny_step = 0.0000000001;
 		std::vector<double> current_params(num_params,0);
 		std::vector<double> test_params(num_params,0);
@@ -42,7 +42,6 @@ namespace GradientApproach {
 		current_params[2] = start_t_delay;
 		current_params[3] = start_shoot_vel;
 
-
 		std::vector<double> grad;
 		double norm_grad;
 		double norm_grad_times_weights;
@@ -51,13 +50,7 @@ namespace GradientApproach {
 		//evaluate current quality
 		double current_func_val = ratePass(snapshot,Point(current_params[0],current_params[1]),current_params[2],current_params[3]);
 
-
-
-
-
-
-		int func_evals = 1;
-
+		unsigned int func_evals = 1;
 
 		while(func_evals <= (max_func_evals - num_params -1)){
 
@@ -95,7 +88,7 @@ namespace GradientApproach {
 					alpha = 0.5*alpha;
 					//std::cout << "failed point: " << test_func_val << "   alpha: " << alpha << "   norm grad: " << norm_grad << std::endl;
 					test_params = current_params;
-					for(int i = 0; i < num_params; i++){
+					for(unsigned int i = 0; i < num_params; i++){
 						test_params[i] = test_params[i] + alpha*weights[i]*grad[i]/norm_grad;
 					}
 					test_func_val = ratePass(snapshot,Point(test_params[0],test_params[1]),test_params[2],test_params[3]);
@@ -111,15 +104,14 @@ namespace GradientApproach {
 
 		}
 
-
 	std::vector<double> return_vals(2*num_params+2,0);
 	return_vals[0] = current_func_val;
-	for(int i = 0; i < num_params; i++){
+	for(unsigned int i = 0; i < num_params; i++){
 		return_vals[i+1] = current_params[i];
 	}
 	return_vals[num_params +1] = alpha;
 
-	for(int i = 0; i < grad.size(); i++){
+	for(unsigned int i = 0; i < grad.size(); i++){
 			return_vals[i+6] = grad[i];
 	}
 
@@ -130,11 +122,11 @@ namespace GradientApproach {
 
 
 
-std::vector<double> testOptimizePass(PassInfo::worldSnapshot snapshot, Point start_target, double start_t_delay,double start_shoot_vel, int max_func_evals){
+std::vector<double> testOptimizePass(PassInfo::worldSnapshot snapshot, Point start_target, double start_t_delay,double start_shoot_vel, unsigned int max_func_evals){
 		
 		double alpha = 0.5;
 		double beta = 0.001;
-		int num_params = 4;
+		unsigned int num_params = 4;
 		double tiny_step = 0.0000000001;
 		std::vector<double> current_params(num_params,0);
 		std::vector<double> test_params(num_params,0);
@@ -158,7 +150,7 @@ std::vector<double> testOptimizePass(PassInfo::worldSnapshot snapshot, Point sta
 
 		//evaluate current quality
 		double current_func_val = ratePass(snapshot,Point(current_params[0],current_params[1]),current_params[2],current_params[3]);
-		int func_evals = 1;
+		unsigned int func_evals = 1;
 
 
 		while(func_evals <= (max_func_evals - num_params -1)){
@@ -182,7 +174,7 @@ std::vector<double> testOptimizePass(PassInfo::worldSnapshot snapshot, Point sta
 				func_evals ++;
 
 					norm_grad_times_weights = 0;
-				for(int i = 0; i < num_params; i++){
+				for(unsigned int i = 0; i < num_params; i++){
 					norm_grad_times_weights += grad[i]*grad[i]*weights[i]*weights[i];
 				}
 				norm_grad_times_weights = std::pow(norm_grad_times_weights, 0.5);
@@ -216,7 +208,7 @@ std::vector<double> testOptimizePass(PassInfo::worldSnapshot snapshot, Point sta
 
 				//weighted gradient lengths
 				norm_grad_times_weights = 0;
-				for(int i = 0; i < num_params; i++){
+				for(unsigned int i = 0; i < num_params; i++){
 					norm_grad_times_weights += grad[i]*grad[i]*weights[i]*weights[i];
 				}
 				norm_grad_times_weights = std::pow(norm_grad_times_weights, 0.5);
@@ -235,7 +227,7 @@ std::vector<double> testOptimizePass(PassInfo::worldSnapshot snapshot, Point sta
 						alpha = 0.5*alpha;
 						
 						test_params = current_params;
-						for(int i = 0; i < num_params; i++){
+						for(unsigned int i = 0; i < num_params; i++){
 							test_params[i] = test_params[i] + alpha*weights[i]*grad[i]/norm_grad;
 						}
 						test_func_val = ratePass(snapshot,Point(test_params[0],test_params[1]),test_params[2],test_params[3]);
@@ -259,12 +251,12 @@ std::vector<double> testOptimizePass(PassInfo::worldSnapshot snapshot, Point sta
 
 	std::vector<double> return_vals(2*num_params+2,0);
 	return_vals[0] = current_func_val;
-	for(int i = 0; i < num_params; i++){
+	for(unsigned int i = 0; i < num_params; i++){
 		return_vals[i+1] = current_params[i];
 	}
 	return_vals[num_params +1] = alpha;
 
-	for(int i = 0; i < grad.size(); i++){
+	for(unsigned int i = 0; i < grad.size(); i++){
 			return_vals[i+6] = grad[i];
 	}
 
