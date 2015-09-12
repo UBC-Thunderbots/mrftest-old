@@ -5,7 +5,7 @@
 #include "../physics.h"
 #include "../bangbang.h"
 
-#define DRIBBLE_TIME_HORIZON 0.05 //s
+#define DRIBBLE_TIME_HORIZON 0.05f //s
 
 static primitive_params_t dribble_param;
 static float destination[3];
@@ -68,8 +68,6 @@ static void dribble_tick(log_record_t *logajectory) {
 	float max_accel[3] = {MAX_X_A, MAX_Y_A, MAX_T_A};
 
 	float accel[3];
-
-	uint8_t i;
 
 	BBProfile Xprofile;
 	PrepareBBTrajectory(&Xprofile, destination[0]-pos[0], vel[0], max_accel[0]);

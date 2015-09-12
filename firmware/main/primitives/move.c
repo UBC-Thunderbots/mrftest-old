@@ -86,8 +86,6 @@ static void move_tick(log_record_t *logajectory) {
 
 	float accel[3];
 
-	uint8_t i;
-
 	BBProfile Xprofile;
 	PrepareBBTrajectory(&Xprofile, destination[0]-pos[0], vel[0], max_accel[0]);
 	PlanBBTrajectory(&Xprofile);

@@ -3,6 +3,7 @@
 #include "../dr.h"
 #include "../physics.h"
 #include <math.h>
+#include <unused.h>
 
 #define CATCH_MAX_X_V (MAX_X_V/2)
 #define CATCH_MAX_Y_V (MAX_Y_V/2)
@@ -57,13 +58,12 @@ static void catch_end(void) {
  * \param[out] log the log record to fill with information about the tick, or
  * \c NULL if no record is to be filled
  */
-static void catch_tick(log_record_t *log) {
+static void catch_tick(log_record_t *UNUSED(log)) {
 	dr_data_t data;
 	float acc_target[3];
 	float vx_target = catch_param.params[2]/1000.0f;
 	float vx_target_abs;
 	float vx_diff;
-        static unsigned int frame = 0;
 
         // grab position, velocity measurement
         dr_get(&data);
