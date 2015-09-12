@@ -1,5 +1,6 @@
 #include "direct_velocity.h"
 #include "../control.h"
+#include "../dribbler.h"
 #include <unused.h>
 
 static float direct_target_velocity[3];
@@ -25,6 +26,7 @@ static void direct_velocity_start(const primitive_params_t *params) {
 	direct_target_velocity[0] = params->params[0] / 1000.0f;
 	direct_target_velocity[1] = params->params[1] / 1000.0f;
 	direct_target_velocity[2] = params->params[2] / 100.0f;
+	dribbler_set_power(params->extra << 1);
 }
 
 /**
