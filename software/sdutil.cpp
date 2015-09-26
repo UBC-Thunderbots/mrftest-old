@@ -452,7 +452,7 @@ namespace {
 		}
 		std::size_t original_size = data.size();
 		if(data.size() % SECTOR_SIZE) {
-			data.append(SECTOR_SIZE - (data.size() % SECTOR_SIZE), 0);
+			data.append(static_cast<size_t>(SECTOR_SIZE) - (data.size() % static_cast<size_t>(SECTOR_SIZE)), 0);
 		}
 
 		// Wipe the header.
@@ -460,7 +460,7 @@ namespace {
 
 		// Copy the data.
 		for (std::size_t i = 0; i != data.size() / SECTOR_SIZE; ++i) {
-			sdcard.put(area * UPGRADE_AREA_SECTORS + 1 + i, &data[i * SECTOR_SIZE]);
+			sdcard.put(area * UPGRADE_AREA_SECTORS + 1 + i, &data[i * static_cast<size_t>(SECTOR_SIZE)]);
 		}
 
 		// CRC the data.
@@ -470,7 +470,7 @@ namespace {
 		std::array<uint8_t, SECTOR_SIZE> header{0};
 		encode_u32_le(&header[0], UPGRADE_AREA_MAGICS[area]);
 		encode_u32_le(&header[4], flags);
-		encode_u32_le(&header[8], static_cast<uint32_t>(original_size));
+		encode_u32_le(&header[8], original_size);
 		encode_u32_le(&header[12], crc);
 		sdcard.put(area * UPGRADE_AREA_SECTORS, &header[0]);
 
@@ -523,8 +523,8 @@ namespace {
 		for (off_t sector = epoch.first_sector; sector <= epoch.last_sector; ++sector) {
 			std::array<uint8_t, SECTOR_SIZE> buffer;
 			sdcard.get(sector, &buffer[0]);
-			for (std::size_t record = 0; record < static_cast<std::size_t>(RECORDS_PER_SECTOR); ++record) {
-				const uint8_t *ptr = &buffer[record * LOG_RECORD_SIZE];
+			for (std::size_t record = 0; record < static_cast<size_t>(RECORDS_PER_SECTOR); ++record) {
+				const uint8_t *ptr = &buffer[record * static_cast<size_t>(LOG_RECORD_SIZE)];
 
 				// Decode the record.
 				uint32_t magic = decode_u32_le(ptr); ptr += 4;
