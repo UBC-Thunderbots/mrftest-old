@@ -470,7 +470,7 @@ namespace {
 		std::array<uint8_t, SECTOR_SIZE> header{0};
 		encode_u32_le(&header[0], UPGRADE_AREA_MAGICS[area]);
 		encode_u32_le(&header[4], flags);
-		encode_u32_le(&header[8], original_size);
+		encode_u32_le(&header[8], static_cast<uint32_t>(original_size));
 		encode_u32_le(&header[12], crc);
 		sdcard.put(area * UPGRADE_AREA_SECTORS, &header[0]);
 
