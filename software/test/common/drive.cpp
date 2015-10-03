@@ -26,8 +26,8 @@ namespace {
 	}
 
 	void get_low_sensitivity_scale_factors_matrix(double scale[4]) {
-		scale[0] = 0.05;
-		scale[1] = 0.05;
+		scale[0] = 0.15;
+		scale[1] = 0.30;
 		scale[2] = 0.15;
 		scale[3] = 0;
 	}
