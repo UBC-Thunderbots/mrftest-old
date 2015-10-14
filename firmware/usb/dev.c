@@ -267,7 +267,7 @@ static void udev_task(void *UNUSED(param)) {
 			.CTXPKT = 0, // This bit should never be set.
 			.FDMOD = 1, // Force to device mode (no cable ID used).
 			.FHMOD = 0, // Do not force to host mode.
-			.TRDT = 5, // Turnaround time 5 PHY clocks to synchronize (there is a formula in the datasheet, but the STM32 library ignores it and just uses 5).
+			.TRDT = 6, // Turnaround time 6 PHY clocks.
 			.HNPCAP = 0, // Not host-negotiation-protocol capable.
 			.SRPCAP = 0, // Not session-request-protocol capable.
 			.PHYSEL = 1, // This bit is always set.
