@@ -689,7 +689,7 @@ static sd_status_t sd_read_impl(uint32_t sector, void *buffer) {
 	};
 	DMA2.streams[SD_DMA_STREAM].FCR = temp_FCR;
 	DMA_SxCR_t temp_CR = {
-		.EN = 1,
+		.EN = 0,
 		.DMEIE = 1,
 		.TEIE = 1,
 		.TCIE = 0,
@@ -709,6 +709,8 @@ static sd_status_t sd_read_impl(uint32_t sector, void *buffer) {
 		.CHSEL = SD_DMA_CHANNEL,
 	};
 	DMA2.streams[SD_DMA_STREAM].CR = temp_CR;
+	temp_CR.EN = 1;
+	DMA2.streams[SD_DMA_STREAM].CR = temp_CR;
 
 	// Clear old DPSM interrupts.
 	sd_clear_dpsm_interrupts();
@@ -722,7 +724,8 @@ static sd_status_t sd_read_impl(uint32_t sector, void *buffer) {
 	sd_status_t ret = sd_send_command_r1(READ_SINGLE_BLOCK, card_state.sdhc ? sector : (sector * SD_SECTOR_SIZE), STATE_TRAN, false);
 	if (ret != SD_STATUS_OK) {
 		// Disable the DMA stream.
-		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
+		temp_CR.EN = 0;
+		DMA2.streams[SD_DMA_STREAM].CR = temp_CR;
 		while (DMA2.streams[SD_DMA_STREAM].CR.EN);
 		SDIO_DCTRL_t dctrl_temp = { .DTEN = 0 };
 		SDIO.DCTRL = dctrl_temp;
@@ -757,7 +760,8 @@ static sd_status_t sd_read_impl(uint32_t sector, void *buffer) {
 
 	// Abort the DMA transfer if an error occurred.
 	if (ret != SD_STATUS_OK) {
-		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
+		temp_CR.EN = 0;
+		DMA2.streams[SD_DMA_STREAM].CR = temp_CR;
 	}
 
 	// Wait for the DMA controller to shut down.
@@ -818,7 +822,7 @@ static sd_status_t sd_write_impl(uint32_t sector, const void *data) {
 	};
 	DMA2.streams[SD_DMA_STREAM].FCR = temp_FCR;
 	DMA_SxCR_t temp_CR = {
-		.EN = 1,
+		.EN = 0,
 		.DMEIE = 1,
 		.TEIE = 1,
 		.TCIE = 0,
@@ -838,6 +842,8 @@ static sd_status_t sd_write_impl(uint32_t sector, const void *data) {
 		.CHSEL = SD_DMA_CHANNEL,
 	};
 	DMA2.streams[SD_DMA_STREAM].CR = temp_CR;
+	temp_CR.EN = 1;
+	DMA2.streams[SD_DMA_STREAM].CR = temp_CR;
 
 	// Clear old DPSM interrupts.
 	sd_clear_dpsm_interrupts();
@@ -846,7 +852,8 @@ static sd_status_t sd_write_impl(uint32_t sector, const void *data) {
 	sd_status_t ret = sd_send_command_r1(WRITE_BLOCK, card_state.sdhc ? sector : (sector * SD_SECTOR_SIZE), STATE_TRAN, false);
 	if (ret != SD_STATUS_OK) {
 		// Disable the DMA stream.
-		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
+		temp_CR.EN = 0;
+		DMA2.streams[SD_DMA_STREAM].CR = temp_CR;
 		while (DMA2.streams[SD_DMA_STREAM].CR.EN);
 		return ret;
 	}
@@ -884,7 +891,8 @@ static sd_status_t sd_write_impl(uint32_t sector, const void *data) {
 
 	// Abort the DMA transfer if an error occurred.
 	if (ret != SD_STATUS_OK) {
-		DMA2.streams[SD_DMA_STREAM].CR.EN = 0;
+		temp_CR.EN = 0;
+		DMA2.streams[SD_DMA_STREAM].CR = temp_CR;
 	}
 
 	// Wait for the DMA controller to shut down.

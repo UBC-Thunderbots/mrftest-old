@@ -127,7 +127,7 @@ void adc_init(void) {
 		DMA_SxFCR_t fcr = { .DMDIS = 0 }; // Direct mode, not using FIFO
 		DMA2.streams[2U].FCR = fcr;
 		DMA_SxCR_t scr = {
-			.EN = 1, // Stream enabled
+			.EN = 0, // Stream not enabled yet
 			.PFCTRL = 0, // Flow control by DMA controller
 			.DIR = DMA_DIR_P2M, // Data moved from peripheral to memory
 			.CIRC = 1, // Circular buffer mode
@@ -135,13 +135,15 @@ void adc_init(void) {
 			.MINC = 1, // Increment memory address
 			.PSIZE = DMA_DSIZE_WORD, // Read 32-bit words from peripheral
 			.MSIZE = DMA_DSIZE_WORD, // Write 32-bit words to memory
-			.PL = 1, // Medium priority
+			.PL = 2, // Priority 2 (high)
 			.DBM = 0, // No double-buffer mode
 			.CT = 0, // Using M0AR
 			.PBURST = DMA_BURST_SINGLE, // No burst cycles reading peripheral
 			.MBURST = DMA_BURST_SINGLE, // No burst cycles writing memory
 			.CHSEL = 1U, // Channel 1
 		};
+		DMA2.streams[2U].CR = scr;
+		scr.EN = 1; // Stream enabled now
 		DMA2.streams[2U].CR = scr;
 	}
 
@@ -153,7 +155,7 @@ void adc_init(void) {
 		DMA_SxFCR_t fcr = { .DMDIS = 0 }; // Direct mode, not using FIFO
 		DMA2.streams[4U].FCR = fcr;
 		DMA_SxCR_t scr = {
-			.EN = 1, // Stream enabled
+			.EN = 0, // Stream not enabled yet
 			.PFCTRL = 0, // Flow control by DMA controller
 			.DIR = DMA_DIR_P2M, // Data moved from peripheral to memory
 			.CIRC = 1, // Circular buffer mode
@@ -161,13 +163,15 @@ void adc_init(void) {
 			.MINC = 1, // Increment memory address
 			.PSIZE = DMA_DSIZE_WORD, // Read 32-bit words from peripheral
 			.MSIZE = DMA_DSIZE_WORD, // Write 32-bit words to memory
-			.PL = 1, // Medium priority
+			.PL = 2, // Priority 2 (high)
 			.DBM = 0, // No double-buffer mode
 			.CT = 0, // Using M0AR
 			.PBURST = DMA_BURST_SINGLE, // No burst cycles reading peripheral
 			.MBURST = DMA_BURST_SINGLE, // No burst cycles writing memory
 			.CHSEL = 0U, // Channel 0
 		};
+		DMA2.streams[4U].CR = scr;
+		scr.EN = 1; // Stream enabled now
 		DMA2.streams[4U].CR = scr;
 	}
 

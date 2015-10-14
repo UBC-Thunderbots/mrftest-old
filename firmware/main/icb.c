@@ -290,9 +290,9 @@ void config_tx_dma(const void *data, size_t length, bool unmask_tcie, bool minc)
 	DMA2.streams[DMA_STREAM_TX].M0AR = (void*) data; // Casting away constness is safe because this DMA stream will operate in memory-to-peripheral mode.
 	DMA2.streams[DMA_STREAM_TX].NDTR = length;
 
-	// Enable the channel.
+	// Configure the channel.
 	DMA_SxCR_t scr = {
-		.EN = 1, // Enable DMA engine.
+		.EN = 0, // Disable DMA engine for now.
 		.DMEIE = 1, // Enable direct mode error interrupt.
 		.TEIE = 1, // Enable transfer error interrupt.
 		.TCIE = unmask_tcie, // Enable or dissable transfer complete interrupt.
@@ -311,6 +311,10 @@ void config_tx_dma(const void *data, size_t length, bool unmask_tcie, bool minc)
 		.MBURST = DMA_BURST_SINGLE,
 		.CHSEL = DMA_CHANNEL,
 	};
+	DMA2.streams[DMA_STREAM_TX].CR = scr;
+
+	// Enable the channel.
+	scr.EN = 1;
 	DMA2.streams[DMA_STREAM_TX].CR = scr;
 }
 
@@ -344,9 +348,9 @@ void config_rx_dma(void *buffer, size_t length) {
 	DMA2.streams[DMA_STREAM_RX].M0AR = buffer;
 	DMA2.streams[DMA_STREAM_RX].NDTR = length;
 
-	// Enable the channel.
+	// Configure the channel.
 	DMA_SxCR_t scr = {
-		.EN = 1, // Enable DMA engine.
+		.EN = 0, // Disable DMA engine for now.
 		.DMEIE = 1, // Enable direct mode error interrupt.
 		.TEIE = 1, // Enable transfer error interrupt.
 		.TCIE = 1, // Enable transfer complete interrupt.
@@ -358,13 +362,17 @@ void config_rx_dma(void *buffer, size_t length) {
 		.PSIZE = DMA_DSIZE_BYTE,
 		.MSIZE = DMA_DSIZE_BYTE,
 		.PINCOS = 0, // No special peripheral address increment mode.
-		.PL = 1, // Priority 1 (medium).
+		.PL = 3, // Priority 3 (very high).
 		.DBM = 0, // No double-buffer mode.
 		.CT = 0, // Use memory pointer zero.
 		.PBURST = DMA_BURST_SINGLE,
 		.MBURST = DMA_BURST_SINGLE,
 		.CHSEL = DMA_CHANNEL,
 	};
+	DMA2.streams[DMA_STREAM_RX].CR = scr;
+
+	// Enable the channel.
+	scr.EN = 1;
 	DMA2.streams[DMA_STREAM_RX].CR = scr;
 }
 
