@@ -50,13 +50,19 @@
  */
 #define rcc_enable_reset(bus, module) \
 	do { \
-		RCC. bus ## ENR . module ## EN = 1; \
+		RCC. bus ## ENR . module ## EN = 0; \
 		asm volatile("dsb"); \
 		asm volatile("nop"); \
 		RCC. bus ## RSTR . module ## RST = 1; \
 		asm volatile("dsb"); \
 		asm volatile("nop"); \
+		asm volatile("nop"); \
+		asm volatile("nop"); \
+		asm volatile("nop"); \
 		RCC. bus ## RSTR . module ## RST = 0; \
+		asm volatile("dsb"); \
+		asm volatile("nop"); \
+		RCC. bus ## ENR . module ## EN = 1; \
 		asm volatile("dsb"); \
 		asm volatile("nop"); \
 	} while (0)
