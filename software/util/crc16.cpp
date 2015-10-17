@@ -7,7 +7,7 @@ uint16_t CRC16::calculate(uint16_t crc, uint8_t data) {
 	crc = static_cast<uint16_t>(crc >> 8);
 	crc |= static_cast<uint16_t>(data << 8);
 	crc ^= static_cast<uint16_t>(data << 3);
-	crc ^= static_cast<uint16_t>(data >> 4);
+	crc = static_cast<uint16_t>(crc ^ static_cast<uint16_t>(data >> 4));
 	return crc;
 }
 

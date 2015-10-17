@@ -442,8 +442,8 @@ void MRFRobot::encode_drive_packet(void *out) {
 	assert(extra <= 127);
 	uint8_t extra_encoded = static_cast<uint8_t>(extra | (slow ? 0x80 : 0x00));
 
-	words[2] |= static_cast<uint16_t>((extra_encoded & 0xF) << 12);
-	words[3] |= static_cast<uint16_t>((extra_encoded >> 4) << 12);
+	words[2] = static_cast<uint16_t>(words[2] | static_cast<uint16_t>((extra_encoded & 0xF) << 12));
+	words[3] = static_cast<uint16_t>(words[2] | static_cast<uint16_t>((extra_encoded >> 4) << 12));
 
 	// Convert the words to bytes.
 	uint8_t *wptr = static_cast<uint8_t *>(out);
