@@ -44,15 +44,6 @@ namespace {
 					target = world.field().friendly_goal();
 				}
 
-				const Angle diff_ori = player.orientation().angle_diff((target - player.position()).orientation());
-				/*if (diff_ori < Angle::of_radians(0.1)) {
-					// angle completed, switch goals.
-					target_enemy = !target_enemy;
-					LOG_INFO(Glib::ustring::compose(u8"time steps taken: %1", time));
-					time = 0;
-				}
-				time++;*/
-
 				Action::pivot(world, player, target, 0.15);
 			}
 	};

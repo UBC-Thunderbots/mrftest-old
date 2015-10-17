@@ -22,7 +22,6 @@ using namespace AI::HL::STP::GradientApproach;
 
 			double A_MAX = 3;
 			double V_MAX = 2;
-			double ADDITIONAL_STABILIZATION=0.5;
 			double SCALING_CONST = 4;
 			double friendlyCapability = 1;
 			double shortest_dist = 1000; //Start with a large number

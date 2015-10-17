@@ -52,7 +52,6 @@ namespace {
 
 		std::vector<AI::HL::W::Robot> open_robots;
 
-		 AI::HL::W::Robot most_open_robot = Evaluation::calc_enemy_baller(world);
 		for (std::size_t j = 0; j < enemies.size(); j++)
 		{
 			// find the enemy robot with the biggest open space

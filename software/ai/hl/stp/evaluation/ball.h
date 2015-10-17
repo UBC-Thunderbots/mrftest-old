@@ -33,7 +33,6 @@ namespace AI {
 
 				bool behind_ball_within_dist(World world, Player player, Point target, double dist, Angle angle_thresh);
 	
-//bool Evaluation::behind_ball_within_dist(World world, Player player, Point target, double dist, Angle angle_thresh) {
 
 				/**
 				 * The ball is right in front of the player.
