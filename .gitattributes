@@ -48,7 +48,6 @@ firmware/dongle/radio_config.h -text
 firmware/dongle/timers.txt -text
 firmware/freertos/include/FreeRTOS.h -text
 firmware/freertos/include/StackMacros.h -text
-firmware/freertos/include/croutine.h -text
 firmware/freertos/include/deprecated_definitions.h -text
 firmware/freertos/include/event_groups.h -text
 firmware/freertos/include/list.h -text
@@ -60,7 +59,6 @@ firmware/freertos/include/queue.h -text
 firmware/freertos/include/semphr.h -text
 firmware/freertos/include/task.h -text
 firmware/freertos/include/timers.h -text
-firmware/freertos/source/croutine.c -text
 firmware/freertos/source/event_groups.c -text
 firmware/freertos/source/list.c -text
 firmware/freertos/source/port.c -text
