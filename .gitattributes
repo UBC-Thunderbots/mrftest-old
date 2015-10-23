@@ -1,4 +1,5 @@
 * text=auto !eol
+firmware/2015-10-24[!!-~]Demystifying[!!-~]the[!!-~]Thunderbots[!!-~]Firmware.odp -text svneol=unset#application/vnd.oasis.opendocument.presentation
 firmware/OvenController/temp_controlf_ver1_ino_closed_loop/temp_controlf_ver1_ino.ino -text
 firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/logs/CAPTURE1.csv -text
 firmware/OvenController/temp_controlf_ver2_ino_wPMW_ino/logs/CAPTURE2.csv -text
