@@ -603,6 +603,10 @@ software/cppunit/util/bitcodec_primitives/encode.cpp -text
 software/cppunit/util/codec.cpp -text
 software/drive/dongle.cpp -text
 software/drive/dongle.h -text
+software/drive/null/dongle.cpp -text
+software/drive/null/dongle.h -text
+software/drive/null/robot.cpp -text
+software/drive/null/robot.h -text
 software/drive/robot.cpp -text
 software/drive/robot.h -text
 software/geom/angle.h -text
@@ -678,6 +682,11 @@ software/test/mrf/power.cpp -text
 software/test/mrf/power.h -text
 software/test/mrf/window.cpp -text
 software/test/mrf/window.h -text
+software/test/null/launcher.cpp -text
+software/test/null/launcher.h -text
+software/test/null/main.cpp -text
+software/test/null/window.cpp -text
+software/test/null/window.h -text
 software/uicomponents/abstract_list_model.cpp -text
 software/uicomponents/abstract_list_model.h -text
 software/uicomponents/annunciator.cpp -text

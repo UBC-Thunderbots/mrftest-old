@@ -1,7 +1,7 @@
 #
 # The executables to compile.
 #
-EXECUTABLES := ai buildid cppunit getcore hall2phase log mrfcap mrftest sdutil
+EXECUTABLES := ai buildid cppunit getcore hall2phase log mrfcap mrftest nulltest sdutil
 
 #
 # The subset of the above that should not be built by the world target.
@@ -20,6 +20,7 @@ SOURCES_hall2phase := hall2phase
 SOURCES_log := ai/common/enums geom log main.cpp proto uicomponents util
 SOURCES_mrfcap := main.cpp mrfcap.cpp util
 SOURCES_mrftest := drive main.cpp mrf test/common test/mrf uicomponents util
+SOURCES_nulltest := drive main.cpp test/common test/null uicomponents util
 SOURCES_sdutil := main.cpp sdutil.cpp mrf/constants.cpp util
 
 #
