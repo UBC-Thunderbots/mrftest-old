@@ -158,7 +158,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 		field_.update(length, total_length, width, total_width, goal_width, centre_circle_radius, defense_area_radius, defense_area_stretch);
 	}
 
-	if (pFilter_ == NULL && field_.valid())
+	if (!pFilter_ && field_.valid())
 	{
 		pFilter_ = new AI::BE::Vision::Particle::ParticleFilter(field_.length(),
 				field_.width());
