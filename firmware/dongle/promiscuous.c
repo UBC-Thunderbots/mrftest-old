@@ -30,8 +30,7 @@ static uint16_t promisc_flags;
 static bool shutting_down;
 
 static void mrf_int_isr(void) {
-	// Clear the interrupt and give the semaphore.
-	EXTI.PR = 1U << 12U; // PR12 = 1; clear pending EXTI12 interrupt
+	// Give the semaphore.
 	BaseType_t yield = pdFALSE;
 	xSemaphoreGiveFromISR(event_sem, &yield);
 	if (yield) {
