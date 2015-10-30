@@ -38,6 +38,27 @@
 #define NUM_PACKETS 256U
 
 /**
+ * \brief The possible task notification bits understood by the radio receive
+ * task.
+ */
+enum rdrx_event_t {
+	/**
+	 * \brief The task should start doing work.
+	 */
+	RDRX_EVENT_START = 0x01,
+
+	/**
+	 * \brief The task should stop doing work.
+	 */
+	RDRX_EVENT_STOP = 0x02,
+
+	/**
+	 * \brief A rising edge was detected on the MRF24J40 interrupt pin.
+	 */
+	RDRX_EVENT_INTERRUPT = 0x04,
+};
+
+/**
  * \brief A packet buffer.
  */
 typedef struct {
@@ -93,11 +114,6 @@ static uint8_t mrf_tx_seqnum;
 static unsigned int poll_index;
 
 /**
- * \brief Whether or not the radio receive task is shutting down.
- */
-static bool rdrx_shutting_down;
-
-/**
  * \brief Whether a corrupt packet has been received.
  */
 static bool rx_fcs_error;
@@ -134,11 +150,6 @@ static QueueHandle_t mdr_queue;
 static SemaphoreHandle_t dongle_status_sem;
 
 /**
- * \brief A semaphore given whenever EXTI12 fires.
- */
-static SemaphoreHandle_t mrf_int_sem;
-
-/**
  * \brief A mutex that must be held whenever a task is using the radio to transmit a frame.
  */
 static SemaphoreHandle_t transmit_mutex;
@@ -147,12 +158,6 @@ static SemaphoreHandle_t transmit_mutex;
  * \brief A semaphore given whenever the current transmit operation completes.
  */
 static SemaphoreHandle_t transmit_complete_sem;
-
-/**
- * \brief A semaphore that is given every 20 ms, when a drive packet should be
- * transmitted, and when a USB transfer on the drive packet endpoint completes.
- */
-static SemaphoreHandle_t drive_sem;
 
 /**
  * \brief Whether a drive packet should be transmitted due to 20 ms passing
@@ -216,7 +221,7 @@ static TaskHandle_t rdrx_task_handle;
 static void mrf_int_isr(void) {
 	// Notify the task.
 	BaseType_t yield = pdFALSE;
-	xSemaphoreGiveFromISR(mrf_int_sem, &yield);
+	xTaskNotifyFromISR(rdrx_task_handle, RDRX_EVENT_INTERRUPT, eSetBits, &yield);
 	if (yield) {
 		portYIELD_FROM_ISR();
 	}
@@ -235,7 +240,7 @@ void timer6_isr(void) {
 	// Notify task.
 	__atomic_store_n(&drive_tick_pending, true, __ATOMIC_RELAXED);
 	BaseType_t yield = pdFALSE;
-	xSemaphoreGiveFromISR(drive_sem, &yield);
+	vTaskNotifyGiveFromISR(drive_task_handle, &yield);
 	if (yield) {
 		portYIELD_FROM_ISR();
 	}
@@ -254,9 +259,9 @@ void timer6_isr(void) {
 static void handle_drive_endpoint_done(unsigned int UNUSED(ep), BaseType_t *from_isr_yield) {
 	__atomic_store_n(&drive_transfer_complete, true, __ATOMIC_RELAXED);
 	if (from_isr_yield) {
-		xSemaphoreGiveFromISR(drive_sem, from_isr_yield);
+		vTaskNotifyGiveFromISR(drive_task_handle, from_isr_yield);
 	} else {
-		xSemaphoreGive(drive_sem);
+		xTaskNotifyGive(drive_task_handle);
 	}
 }
 
@@ -392,7 +397,7 @@ static void drive_task(void *UNUSED(param)) {
 			}
 
 			// Wait for activity.
-			xSemaphoreTake(drive_sem, portMAX_DELAY);
+			ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
 			if (__atomic_exchange_n(&drive_transfer_complete, false, __ATOMIC_RELAXED)) {
 				// Endpoint finished.
@@ -762,23 +767,25 @@ static void rdtx_task(void *UNUSED(param)) {
  * This task handles both transmission-complete interrupts (by notifying the transmitting task) and reception-complete interrupts (by reading out the packet and placing it in the receive queue).
  */
 static void rdrx_task(void *UNUSED(param)) {
+	uint32_t pending_events = 0;
 	for (;;) {
 		// Wait to be instructed to start doing work.
-		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+		while (!(pending_events & RDRX_EVENT_START)) {
+			uint32_t new_events;
+			xTaskNotifyWait(0, UINT32_MAX, &new_events, portMAX_DELAY);
+			pending_events |= new_events;
+		}
+		pending_events &= ~RDRX_EVENT_START;
 
-		// Run.
+		// Prepare packet sequence numbers.
 		uint16_t seqnum[8U];
 		for (size_t i = 0U; i < sizeof(seqnum) / sizeof(*seqnum); ++i) {
 			seqnum[i] = 0xFFFFU;
 		}
 
-		for (;;) {
-			// Wait for an interrupt to occur.
-			xSemaphoreTake(mrf_int_sem, portMAX_DELAY);
-			if (__atomic_load_n(&rdrx_shutting_down, __ATOMIC_RELAXED)) {
-				break;
-			}
-
+		// Run until told to shut down.
+		while (!(pending_events & RDRX_EVENT_STOP)) {
+			// Process interrupts until the interrupt pin goes low.
 			while (mrf_get_interrupt()) {
 				// Check outstanding interrupts.
 				uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
@@ -888,7 +895,14 @@ static void rdrx_task(void *UNUSED(param)) {
 					xSemaphoreGive(transmit_complete_sem);
 				}
 			}
+			pending_events &= ~RDRX_EVENT_INTERRUPT;
+
+			// Wait for an event to occur.
+			uint32_t new_events;
+			xTaskNotifyWait(0, UINT32_MAX, &new_events, portMAX_DELAY);
+			pending_events |= new_events;
 		}
+		pending_events &= ~RDRX_EVENT_STOP;
 
 		// Done.
 		xSemaphoreGive(shutdown_sem);
@@ -902,12 +916,10 @@ void normal_init(void) {
 	receive_queue = xQueueCreate(NUM_PACKETS + 1U, sizeof(packet_t *));
 	mdr_queue = xQueueCreate(NUM_PACKETS + 1U, sizeof(mdr_t));
 	dongle_status_sem = xSemaphoreCreateBinary();
-	mrf_int_sem = xSemaphoreCreateBinary();
 	transmit_mutex = xSemaphoreCreateMutex();
 	transmit_complete_sem = xSemaphoreCreateBinary();
-	drive_sem = xSemaphoreCreateBinary();
 	shutdown_sem = xSemaphoreCreateCounting(8U /* Eight tasks */, 0U);
-	assert(free_queue && transmit_queue && receive_queue && mdr_queue && dongle_status_sem && mrf_int_sem && transmit_mutex && transmit_complete_sem && drive_sem && shutdown_sem);
+	assert(free_queue && transmit_queue && receive_queue && mdr_queue && dongle_status_sem && transmit_mutex && transmit_complete_sem && shutdown_sem);
 
 	// Allocate packet buffers.
 	static packet_t packets[NUM_PACKETS];
@@ -941,7 +953,6 @@ bool normal_can_enter(void) {
 
 void normal_on_enter(void) {
 	// Initialize flags.
-	rdrx_shutting_down = false;
 	rx_fcs_error = false;
 	drive_tick_pending = false;
 	drive_transfer_complete = false;
@@ -973,7 +984,7 @@ void normal_on_enter(void) {
 	xTaskNotifyGive(usbrx_task_handle);
 	xTaskNotifyGive(dongle_status_task_handle);
 	xTaskNotifyGive(rdtx_task_handle);
-	xTaskNotifyGive(rdrx_task_handle);
+	xTaskNotify(rdrx_task_handle, RDRX_EVENT_START, eSetBits);
 }
 
 void normal_on_exit(void) {
@@ -994,8 +1005,7 @@ void normal_on_exit(void) {
 	}
 
 	// Signal the rdrx task to shut down.
-	__atomic_store_n(&rdrx_shutting_down, true, __ATOMIC_RELAXED);
-	xSemaphoreGive(mrf_int_sem);
+	xTaskNotify(rdrx_task_handle, RDRX_EVENT_STOP, eSetBits);
 
 	// Wait for it to quiesce.
 	xSemaphoreTake(shutdown_sem, portMAX_DELAY);

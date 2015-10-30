@@ -21,27 +21,52 @@ typedef struct {
 	uint8_t data[1U + 1U + 127U]; // Flags + channel + data (RX FIFO is 128 bytes long, of which 1 is used for frame length)
 } packet_t;
 
+/**
+ * \brief The possible task notification bits understood by the radio task.
+ */
+enum radio_event_t {
+	/**
+	 * \brief The task should start doing work.
+	 */
+	RADIO_EVENT_START = 0x01,
+
+	/**
+	 * \brief The task should stop doing work.
+	 */
+	RADIO_EVENT_STOP = 0x02,
+
+	/**
+	 * \brief A rising edge was detected on the MRF24J40 interrupt pin.
+	 */
+	RADIO_EVENT_INTERRUPT = 0x04,
+};
+
 #define NUM_PACKETS 256U
 
 static QueueHandle_t free_queue, receive_queue;
-static SemaphoreHandle_t event_sem, init_shutdown_sem;
+static SemaphoreHandle_t init_shutdown_sem;
 static TaskHandle_t radio_task_handle, usb_task_handle;
 static uint16_t promisc_flags;
-static bool shutting_down;
 
 static void mrf_int_isr(void) {
 	// Give the semaphore.
 	BaseType_t yield = pdFALSE;
-	xSemaphoreGiveFromISR(event_sem, &yield);
+	xTaskNotifyFromISR(radio_task_handle, RADIO_EVENT_INTERRUPT, eSetBits, &yield);
 	if (yield) {
 		portYIELD_FROM_ISR();
 	}
 }
 
 static void radio_task(void *UNUSED(param)) {
+	uint32_t pending_events = 0;
 	for (;;) {
 		// Wait to be instructed to start doing work.
-		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+		while (!(pending_events & RADIO_EVENT_START)) {
+			uint32_t new_events;
+			xTaskNotifyWait(0, UINT32_MAX, &new_events, portMAX_DELAY);
+			pending_events |= new_events;
+		}
+		pending_events &= ~RADIO_EVENT_START;
 
 		// Initialize the radio.
 		mrf_init();
@@ -59,7 +84,8 @@ static void radio_task(void *UNUSED(param)) {
 
 		// Run the main operation.
 		bool packet_dropped = false;
-		while (!__atomic_load_n(&shutting_down, __ATOMIC_RELAXED)) {
+		while (!(pending_events & RADIO_EVENT_STOP)) {
+			// Process interrupts until the interrupt pin goes low.
 			while (mrf_get_interrupt()) {
 				// Check outstanding interrupts.
 				uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
@@ -93,9 +119,14 @@ static void radio_task(void *UNUSED(param)) {
 					led_blink(LED_RX);
 				}
 			}
+			pending_events &= ~RADIO_EVENT_INTERRUPT;
 
-			xSemaphoreTake(event_sem, portMAX_DELAY);
+			// Wait for an event to occur.
+			uint32_t new_events;
+			xTaskNotifyWait(0, UINT32_MAX, &new_events, portMAX_DELAY);
+			pending_events |= new_events;
 		}
+		pending_events &= ~RADIO_EVENT_STOP;
 
 		// Disable the external interrupt on MRF INT.
 		mrf_disable_interrupt();
@@ -142,9 +173,8 @@ void promiscuous_init(void) {
 	// Create IPC objects.
 	free_queue = xQueueCreate(NUM_PACKETS, sizeof(packet_t *));
 	receive_queue = xQueueCreate(NUM_PACKETS + 1U /* Signalling NULL */, sizeof(packet_t *));
-	event_sem = xSemaphoreCreateBinary();
 	init_shutdown_sem = xSemaphoreCreateCounting(2U /* Two tasks */, 0U);
-	assert(free_queue && receive_queue && event_sem && init_shutdown_sem);
+	assert(free_queue && receive_queue && init_shutdown_sem);
 
 	// Allocate packet buffers.
 	static packet_t packets[NUM_PACKETS];
@@ -163,7 +193,6 @@ void promiscuous_init(void) {
 void promiscuous_on_enter(void) {
 	// Clear flags.
 	promisc_flags = 0U;
-	shutting_down = false;
 
 	// Tell the tasks to start doing work.
 	xTaskNotifyGive(radio_task_handle);
@@ -186,9 +215,7 @@ void promiscuous_on_enter(void) {
 
 void promiscuous_on_exit(void) {
 	// Shut down tasks.
-	__atomic_store_n(&shutting_down, true, __ATOMIC_RELAXED);
-	__atomic_signal_fence(__ATOMIC_RELEASE);
-	xSemaphoreGive(event_sem);
+	xTaskNotify(radio_task_handle, RADIO_EVENT_STOP, eSetBits);
 	static packet_t * const null_packet = 0;
 	xQueueSend(receive_queue, &null_packet, portMAX_DELAY);
 	xSemaphoreTake(init_shutdown_sem, portMAX_DELAY);
