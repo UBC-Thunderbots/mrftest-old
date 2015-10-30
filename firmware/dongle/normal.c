@@ -37,18 +37,6 @@
  */
 #define NUM_PACKETS 256U
 
-enum {
-	/**
-	 * \brief The event bit asserted for the drive packet task when a timer interval expires.
-	 */
-	DRIVE_EVENT_TICK = 0x01,
-
-	/**
-	 * \brief The event bit asserted for the drive packet task when a transfer completes on the USB endpoint.
-	 */
-	DRIVE_EVENT_ENDPOINT = 0x02,
-};
-
 /**
  * \brief A packet buffer.
  */
