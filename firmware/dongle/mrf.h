@@ -135,9 +135,12 @@ typedef enum {
 } mrf_reg_long_t;
 
 /**
+ * \brief Early-initializes the IPC objects needed by the MRF subsystem.
+ */
+void mrf_init_once(void);
+
+/**
  * \brief Initializes the interface to the radio and places the radio in reset.
- *
- * \param[in] isr the function to call on rising edge of MRF interrupt line
  */
 void mrf_init(void);
 

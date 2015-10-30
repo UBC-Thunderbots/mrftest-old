@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+void normal_init(void);
 bool normal_can_enter(void);
 void normal_on_enter(void);
 void normal_on_exit(void);

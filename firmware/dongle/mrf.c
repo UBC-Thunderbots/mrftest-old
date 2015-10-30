@@ -32,12 +32,14 @@ static inline void sleep_50ns(void) {
 	asm volatile("nop");
 }
 
-void mrf_init(void) {
+void mrf_init_once(void) {
 	// Create semaphore and mutex.
 	dma_int_sem = xSemaphoreCreateBinary();
 	bus_mutex = xSemaphoreCreateMutex();
 	assert(dma_int_sem && bus_mutex);
+}
 
+void mrf_init(void) {
 	// Set bus to reset state.
 	gpio_set(PIN_MRF_CS);
 	gpio_reset(PIN_MRF_WAKE);
@@ -132,10 +134,6 @@ void mrf_deinit(void) {
 	gpio_set(PIN_MRF_CS);
 	gpio_reset(PIN_MRF_WAKE);
 	gpio_reset(PIN_MRF_NRESET);
-
-	// Destroy semaphore and mutex.
-	vSemaphoreDelete(bus_mutex);
-	vSemaphoreDelete(dma_int_sem);
 }
 
 void mrf_enable_interrupt(void (*isr)(void)) {

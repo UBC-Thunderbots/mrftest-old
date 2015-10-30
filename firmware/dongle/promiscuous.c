@@ -25,6 +25,7 @@ typedef struct {
 
 static QueueHandle_t free_queue, receive_queue;
 static SemaphoreHandle_t event_sem, init_shutdown_sem;
+static TaskHandle_t radio_task_handle, usb_task_handle;
 static uint16_t promisc_flags;
 static bool shutting_down;
 
@@ -39,118 +40,135 @@ static void mrf_int_isr(void) {
 }
 
 static void radio_task(void *UNUSED(param)) {
-	// Initialize the radio.
-	mrf_init();
-	vTaskDelay(1U);
-	mrf_release_reset();
-	vTaskDelay(1U);
-	mrf_common_init();
-	while (mrf_get_interrupt());
+	for (;;) {
+		// Wait to be instructed to start doing work.
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-	// Enable external interrupt on MRF INT rising edge.
-	mrf_enable_interrupt(&mrf_int_isr);
+		// Initialize the radio.
+		mrf_init();
+		vTaskDelay(1U);
+		mrf_release_reset();
+		vTaskDelay(1U);
+		mrf_common_init();
+		while (mrf_get_interrupt());
 
-	// Notify on_enter that initialization is finished.
-	xSemaphoreGive(init_shutdown_sem);
+		// Enable external interrupt on MRF INT rising edge.
+		mrf_enable_interrupt(&mrf_int_isr);
 
-	// Run the main operation.
-	bool packet_dropped = false;
-	while (!__atomic_load_n(&shutting_down, __ATOMIC_RELAXED)) {
-		while (mrf_get_interrupt()) {
-			// Check outstanding interrupts.
-			uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
-			if (intstat & (1U << 3U)) {
-				// RXIF = 1; packet received.
-				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04U); // RXDECINV = 1; invert receiver symbol sign to prevent further packet reception.
-				uint8_t rxfifo_frame_length = mrf_read_long(MRF_REG_LONG_RXFIFO); // Need to read this here even if no packet buffer because this read also re-enables the receiver.
+		// Notify on_enter that initialization is finished.
+		xSemaphoreGive(init_shutdown_sem);
 
-				// Sanitize the frame length to avoid buffer overruns.
-				rxfifo_frame_length = MIN(rxfifo_frame_length, 128U /* RX FIFO size */ - 1U /* Length */ - 1U /* LQI */ - 1U /* RSSI */);
+		// Run the main operation.
+		bool packet_dropped = false;
+		while (!__atomic_load_n(&shutting_down, __ATOMIC_RELAXED)) {
+			while (mrf_get_interrupt()) {
+				// Check outstanding interrupts.
+				uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
+				if (intstat & (1U << 3U)) {
+					// RXIF = 1; packet received.
+					mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04U); // RXDECINV = 1; invert receiver symbol sign to prevent further packet reception.
+					uint8_t rxfifo_frame_length = mrf_read_long(MRF_REG_LONG_RXFIFO); // Need to read this here even if no packet buffer because this read also re-enables the receiver.
+
+					// Sanitize the frame length to avoid buffer overruns.
+					rxfifo_frame_length = MIN(rxfifo_frame_length, 128U /* RX FIFO size */ - 1U /* Length */ - 1U /* LQI */ - 1U /* RSSI */);
 
 #warning proper packet filtering when radio filters do not match capture flags exactly
 
-				// Allocate a packet.
-				packet_t *packet;
-				if (xQueueReceive(free_queue, &packet, 0U)) {
-					packet->length = 1U /* Flags */ + 1U /* Channel */ + rxfifo_frame_length /* MAC header + data + FCS */ + 1U /* LQI */ + 1U /* RSSI */;
-					packet->data[0U] = packet_dropped ? 0x01U : 0x00U;
-					packet_dropped = false;
-					packet->data[1U] = radio_config.channel;
-					for (size_t i = 0U; i < rxfifo_frame_length + 2U /* LQI + RSSI */; ++i) {
-						packet->data[2U + i] = mrf_read_long(MRF_REG_LONG_RXFIFO + i + 1U);
+					// Allocate a packet.
+					packet_t *packet;
+					if (xQueueReceive(free_queue, &packet, 0U)) {
+						packet->length = 1U /* Flags */ + 1U /* Channel */ + rxfifo_frame_length /* MAC header + data + FCS */ + 1U /* LQI */ + 1U /* RSSI */;
+						packet->data[0U] = packet_dropped ? 0x01U : 0x00U;
+						packet_dropped = false;
+						packet->data[1U] = radio_config.channel;
+						for (size_t i = 0U; i < rxfifo_frame_length + 2U /* LQI + RSSI */; ++i) {
+							packet->data[2U + i] = mrf_read_long(MRF_REG_LONG_RXFIFO + i + 1U);
+						}
+						xQueueSend(receive_queue, &packet, portMAX_DELAY);
+					} else {
+						packet_dropped = true;
 					}
-					xQueueSend(receive_queue, &packet, portMAX_DELAY);
-				} else {
-					packet_dropped = true;
-				}
-				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00U); // RXDECINV = 0; stop inverting receiver and allow further reception
+					mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00U); // RXDECINV = 0; stop inverting receiver and allow further reception
 
-				// Blink receive LED.
-				led_blink(LED_RX);
+					// Blink receive LED.
+					led_blink(LED_RX);
+				}
 			}
+
+			xSemaphoreTake(event_sem, portMAX_DELAY);
 		}
 
-		xSemaphoreTake(event_sem, portMAX_DELAY);
+		// Disable the external interrupt on MRF INT.
+		mrf_disable_interrupt();
+
+		// Reset the radio.
+		mrf_deinit();
+
+		// Done.
+		xSemaphoreGive(init_shutdown_sem);
 	}
-
-	// Disable the external interrupt on MRF INT.
-	mrf_disable_interrupt();
-
-	// Reset the radio.
-	mrf_deinit();
-
-	// Done.
-	xSemaphoreGive(init_shutdown_sem);
-	vTaskDelete(0);
 }
 
 static void usb_task(void *UNUSED(param)) {
 	for (;;) {
-		// Get a received packet.
-		packet_t *packet;
-		xQueueReceive(receive_queue, &packet, portMAX_DELAY);
-		if (packet) {
-			// Send the packet over USB.
-			bool ok = uep_write(0x81U, packet->data, packet->length, true);
-			int error_code = errno;
-			xQueueSend(free_queue, &packet, portMAX_DELAY);
-			if (!ok && error_code == ECONNRESET) {
-				// Shutdown signal.
+		// Wait to be instructed to start doing work.
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+		// Run.
+		for (;;) {
+			// Get a received packet.
+			packet_t *packet;
+			xQueueReceive(receive_queue, &packet, portMAX_DELAY);
+			if (packet) {
+				// Send the packet over USB.
+				bool ok = uep_write(0x81U, packet->data, packet->length, true);
+				int error_code = errno;
+				xQueueSend(free_queue, &packet, portMAX_DELAY);
+				if (!ok && error_code == ECONNRESET) {
+					// Shutdown signal.
+					break;
+				}
+				// In case of EPIPE (endpoint halt status), drop packets on the floor until the host changes its mind.
+			} else {
+				// Pushing a null pointer into the queue signals shutdown.
 				break;
 			}
-			// In case of EPIPE (endpoint halt status), drop packets on the floor until the host changes its mind.
-		} else {
-			// Pushing a null pointer into the queue signals shutdown.
-			break;
 		}
-	}
 
-	xSemaphoreGive(init_shutdown_sem);
-	vTaskDelete(0);
+		xSemaphoreGive(init_shutdown_sem);
+	}
 }
 
-void promiscuous_on_enter(void) {
-	// Initialize data structures and clear flags.
+void promiscuous_init(void) {
+	// Create IPC objects.
 	free_queue = xQueueCreate(NUM_PACKETS, sizeof(packet_t *));
 	receive_queue = xQueueCreate(NUM_PACKETS + 1U /* Signalling NULL */, sizeof(packet_t *));
 	event_sem = xSemaphoreCreateBinary();
 	init_shutdown_sem = xSemaphoreCreateCounting(2U /* Two tasks */, 0U);
 	assert(free_queue && receive_queue && event_sem && init_shutdown_sem);
-	promisc_flags = 0U;
-	shutting_down = false;
 
 	// Allocate packet buffers.
+	static packet_t packets[NUM_PACKETS];
 	for (unsigned int i = 0U; i < NUM_PACKETS; ++i) {
-		packet_t *packet = malloc(sizeof(packet_t));
-		assert(packet);
+		packet_t *packet = &packets[i];
 		xQueueSend(free_queue, &packet, portMAX_DELAY);
 	}
 
-	// Start tasks.
-	BaseType_t ret = xTaskCreate(&radio_task, "prom_radio", 1024U, 0, 6U, 0);
+	// Create tasks.
+	BaseType_t ret = xTaskCreate(&radio_task, "prom_radio", 1024U, 0, 6U, &radio_task_handle);
 	assert(ret == pdPASS);
-	ret = xTaskCreate(&usb_task, "prom_usb", 1024U, 0, 5U, 0);
+	ret = xTaskCreate(&usb_task, "prom_usb", 1024U, 0, 5U, &usb_task_handle);
 	assert(ret == pdPASS);
+}
+
+void promiscuous_on_enter(void) {
+	// Clear flags.
+	promisc_flags = 0U;
+	shutting_down = false;
+
+	// Tell the tasks to start doing work.
+	xTaskNotifyGive(radio_task_handle);
+	xTaskNotifyGive(usb_task_handle);
 
 	// Wait until the task has finished initializing the radio.
 	// We must do this because we need to prevent SET PROMISCUOUS FLAGS from arriving and poking things during initialization.
@@ -177,30 +195,14 @@ void promiscuous_on_exit(void) {
 	xSemaphoreTake(init_shutdown_sem, portMAX_DELAY);
 	xSemaphoreTake(init_shutdown_sem, portMAX_DELAY);
 
-	// Free packet buffers.
+	// Flush receive queue.
 	packet_t *packet;
-	while (xQueueReceive(free_queue, &packet, 0U)) {
-		free(packet);
+	while (xQueueReceive(receive_queue, &packet, 0)) {
+		xQueueSend(free_queue, &packet, 0);
 	}
-	while (xQueueReceive(receive_queue, &packet, 0U)) {
-		free(packet);
-	}
-
-	// Destroy data structures.
-	vQueueDelete(free_queue);
-	vQueueDelete(receive_queue);
-	vSemaphoreDelete(event_sem);
-	vSemaphoreDelete(init_shutdown_sem);
-	free_queue = 0;
-	receive_queue = 0;
-	event_sem = 0;
-	init_shutdown_sem = 0;
 
 	// Turn off receive LED.
 	led_off(LED_RX);
-
-	// Give the idle task some time to free task stacks.
-	vTaskDelay(1U);
 }
 
 bool promiscuous_control_handler(const usb_setup_packet_t *pkt) {

@@ -183,6 +183,46 @@ static bool drive_transfer_complete;
 static SemaphoreHandle_t shutdown_sem;
 
 /**
+ * \brief The handle of the drive task.
+ */
+static TaskHandle_t drive_task_handle;
+
+/**
+ * \brief The handle of the reliable message transmission task.
+ */
+static TaskHandle_t reliable_task_handle;
+
+/**
+ * \brief The handle of the unreliable message transmission task.
+ */
+static TaskHandle_t unreliable_task_handle;
+
+/**
+ * \brief The handle of the message delivery report task.
+ */
+static TaskHandle_t mdr_task_handle;
+
+/**
+ * \brief The handle of the received-packet USB task.
+ */
+static TaskHandle_t usbrx_task_handle;
+
+/**
+ * \brief The handle of the dongle-status-reporting USB task.
+ */
+static TaskHandle_t dongle_status_task_handle;
+
+/**
+ * \brief The handle of the radio transmit task.
+ */
+static TaskHandle_t rdtx_task_handle;
+
+/**
+ * \brief The handle of the radio receive task.
+ */
+static TaskHandle_t rdrx_task_handle;
+
+/**
  * \brief Handles rising edge interrupts on the MRF interrupt line.
  */
 static void mrf_int_isr(void) {
@@ -305,302 +345,319 @@ static void send_drive_packet(const void *packet, const uint8_t *serials) {
  * On receiving a packet over USB, the new packet is used on the next scheduled transmission and thereafter.
  */
 static void drive_task(void *UNUSED(param)) {
-	uint8_t *packet_buffer, *usb_buffer;
-	uint8_t serials[DRIVE_NUM_ROBOTS] = {};
-
-	// Allocate packet buffers.
-	packet_buffer = malloc(DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT);
-	usb_buffer = malloc(DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT);
-	assert(packet_buffer && usb_buffer);
-
-	// Fill the packet buffer with a safe default.
-	memset(packet_buffer, 0, DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT);
-
-	// Set up timer 6 to overflow every 20 milliseconds for the drive packet.
-	// Timer 6 input is 72 MHz from the APB.
-	// Need to count to 1,440,000 for each overflow.
-	// Set prescaler to 1,000, auto-reload to 1,440.
-	rcc_enable_reset(APB1, TIM6);
-	{
-		TIM_basic_CR1_t tmp = {
-			.ARPE = 0, // ARR is not buffered.
-			.OPM = 0, // Counter counters forever.
-			.URS = 1, // Update interrupts and DMA requests generated only at counter overflow.
-			.UDIS = 0, // Updates not inhibited.
-			.CEN = 0, // Timer not currently enabled.
-		};
-		TIM6.CR1 = tmp;
-	}
-	{
-		TIM_basic_DIER_t tmp = {
-			.UDE = 0, // DMA disabled.
-			.UIE = 1, // Interrupt enabled.
-		};
-		TIM6.DIER = tmp;
-	}
-	TIM6.PSC = 999U;
-	TIM6.ARR = 1439U;
-	TIM6.CNT = 0U;
-	TIM6.CR1.CEN = 1; // Enable timer
-	portENABLE_HW_INTERRUPT(NVIC_IRQ_TIM6_DAC);
-
-	// Run!
-	bool ep_running = false;
 	for (;;) {
-		// Start the endpoint if possible.
-		if (!ep_running) {
-			if (uep_async_read_start(0x01U, usb_buffer, DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT, &handle_drive_endpoint_done)) {
-				ep_running = true;
-			} else {
-				if (errno == EPIPE) {
-					// Endpoint halted.
-					uep_halt_wait(0x01U);
+		// Wait to be instructed to start doing work.
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+		// Allocate space to store packet serial numbers and packet buffers.
+		uint8_t serials[DRIVE_NUM_ROBOTS] = {};
+		static uint8_t packet_buffer[DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT];
+		static uint8_t usb_buffer[DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT];
+
+		// Fill the packet buffer with a safe default.
+		memset(packet_buffer, 0, DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT);
+
+		// Set up timer 6 to overflow every 20 milliseconds for the drive packet.
+		// Timer 6 input is 72 MHz from the APB.
+		// Need to count to 1,440,000 for each overflow.
+		// Set prescaler to 1,000, auto-reload to 1,440.
+		rcc_enable_reset(APB1, TIM6);
+		{
+			TIM_basic_CR1_t tmp = {
+				.ARPE = 0, // ARR is not buffered.
+				.OPM = 0, // Counter counters forever.
+				.URS = 1, // Update interrupts and DMA requests generated only at counter overflow.
+				.UDIS = 0, // Updates not inhibited.
+				.CEN = 0, // Timer not currently enabled.
+			};
+			TIM6.CR1 = tmp;
+		}
+		{
+			TIM_basic_DIER_t tmp = {
+				.UDE = 0, // DMA disabled.
+				.UIE = 1, // Interrupt enabled.
+			};
+			TIM6.DIER = tmp;
+		}
+		TIM6.PSC = 999U;
+		TIM6.ARR = 1439U;
+		TIM6.CNT = 0U;
+		TIM6.CR1.CEN = 1; // Enable timer
+		portENABLE_HW_INTERRUPT(NVIC_IRQ_TIM6_DAC);
+
+		// Run!
+		bool ep_running = false;
+		for (;;) {
+			// Start the endpoint if possible.
+			if (!ep_running) {
+				if (uep_async_read_start(0x01U, usb_buffer, DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT, &handle_drive_endpoint_done)) {
+					ep_running = true;
 				} else {
+					if (errno == EPIPE) {
+						// Endpoint halted.
+						uep_halt_wait(0x01U);
+					} else {
+						// Shutting down.
+						break;
+					}
+				}
+			}
+
+			// Wait for activity.
+			xSemaphoreTake(drive_sem, portMAX_DELAY);
+
+			if (__atomic_exchange_n(&drive_transfer_complete, false, __ATOMIC_RELAXED)) {
+				// Endpoint finished.
+				size_t transfer_length;
+				if (uep_async_read_finish(0x01U, &transfer_length)) {
+					ep_running = false;
+					if (transfer_length == DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT) {
+						// This transfer contains new data for every robot.
+						memcpy(packet_buffer, usb_buffer, DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT);
+						for (unsigned int i = 0; i != DRIVE_NUM_ROBOTS; ++i) {
+							++serials[i];
+						}
+					} else if (transfer_length && !(transfer_length % (DRIVE_BYTES_PER_ROBOT + 1))) {
+						// This transfer contains a list of new drive data blocks
+						// prefixed with robot indices.
+						const uint8_t *rptr = usb_buffer;
+						while (rptr != usb_buffer + transfer_length) {
+							unsigned int index = *rptr++;
+							memcpy(packet_buffer + index * DRIVE_BYTES_PER_ROBOT, rptr, DRIVE_BYTES_PER_ROBOT);
+							rptr += DRIVE_BYTES_PER_ROBOT;
+							++serials[index];
+						}
+					} else {
+						// Transfer is wrong length; reject.
+						uep_halt(0x01U);
+					}
+				} else if (errno == ECONNRESET) {
 					// Shutting down.
+					ep_running = false;
 					break;
-				}
-			}
-		}
-
-		// Wait for activity.
-		xSemaphoreTake(drive_sem, portMAX_DELAY);
-
-		if (__atomic_exchange_n(&drive_transfer_complete, false, __ATOMIC_RELAXED)) {
-			// Endpoint finished.
-			size_t transfer_length;
-			if (uep_async_read_finish(0x01U, &transfer_length)) {
-				ep_running = false;
-				if (transfer_length == DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT) {
-					// This transfer contains new data for every robot.
-					memcpy(packet_buffer, usb_buffer, DRIVE_NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT);
-					for (unsigned int i = 0; i != DRIVE_NUM_ROBOTS; ++i) {
-						++serials[i];
-					}
-				} else if (transfer_length && !(transfer_length % (DRIVE_BYTES_PER_ROBOT + 1))) {
-					// This transfer contains a list of new drive data blocks
-					// prefixed with robot indices.
-					const uint8_t *rptr = usb_buffer;
-					while (rptr != usb_buffer + transfer_length) {
-						unsigned int index = *rptr++;
-						memcpy(packet_buffer + index * DRIVE_BYTES_PER_ROBOT, rptr, DRIVE_BYTES_PER_ROBOT);
-						rptr += DRIVE_BYTES_PER_ROBOT;
-						++serials[index];
-					}
-				} else {
-					// Transfer is wrong length; reject.
+				} else if (errno == EOVERFLOW) {
+					// Halt endpoint due to application being dumb.
+					ep_running = false;
 					uep_halt(0x01U);
+				} else if (errno != EINPROGRESS) {
+					ep_running = false;
 				}
-			} else if (errno == ECONNRESET) {
-				// Shutting down.
-				ep_running = false;
-				break;
-			} else if (errno == EOVERFLOW) {
-				// Halt endpoint due to application being dumb.
-				ep_running = false;
-				uep_halt(0x01U);
-			} else if (errno != EINPROGRESS) {
-				ep_running = false;
+			}
+
+			if (__atomic_exchange_n(&drive_tick_pending, false, __ATOMIC_RELAXED)) {
+				// Send a packet.
+				xSemaphoreTake(transmit_mutex, portMAX_DELAY);
+				send_drive_packet(packet_buffer, serials);
+				xSemaphoreTake(transmit_complete_sem, portMAX_DELAY);
+				xSemaphoreGive(transmit_mutex);
 			}
 		}
 
-		if (__atomic_exchange_n(&drive_tick_pending, false, __ATOMIC_RELAXED)) {
-			// Send a packet.
-			xSemaphoreTake(transmit_mutex, portMAX_DELAY);
-			send_drive_packet(packet_buffer, serials);
-			xSemaphoreTake(transmit_complete_sem, portMAX_DELAY);
-			xSemaphoreGive(transmit_mutex);
+		// Turn off timer 6.
+		{
+			TIM_basic_CR1_t tmp = { 0 };
+			TIM6.CR1 = tmp; // Disable counter
 		}
+		portDISABLE_HW_INTERRUPT(NVIC_IRQ_TIM6_DAC);
+		rcc_disable(APB1, TIM6);
+
+		// Done.
+		xSemaphoreGive(shutdown_sem);
 	}
-
-	// Turn off timer 6.
-	{
-		TIM_basic_CR1_t tmp = { 0 };
-		TIM6.CR1 = tmp; // Disable counter
-	}
-	portDISABLE_HW_INTERRUPT(NVIC_IRQ_TIM6_DAC);
-	rcc_disable(APB1, TIM6);
-
-	// Free packet buffers.
-	free(packet_buffer);
-	free(usb_buffer);
-
-	// Done.
-	xSemaphoreGive(shutdown_sem);
-	vTaskDelete(0);
 }
 
 /**
  * \brief Receives reliable message packets from OUT endpoint 2 and queues them for transmission.
  */
 static void reliable_task(void *UNUSED(param)) {
-	// Run.
-	packet_t *buf = 0;
 	for (;;) {
-		if (!buf) {
-			xQueueReceive(free_queue, &buf, portMAX_DELAY);
-		}
-		size_t length;
-		if (uep_read(0x02U, buf->data, sizeof(buf->data), &length)) {
-			if (length >= 2U && ((buf->data[0U] & 0x0FU) < 8U)) {
-				buf->message_id = buf->data[1U];
-				buf->reliable = true;
-				buf->data_offset = 2U;
-				buf->length = length - 2U;
-				xQueueSend(transmit_queue, &buf, portMAX_DELAY);
-				buf = 0;
-			} else {
+		// Wait to be instructed to start doing work.
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+		// Run.
+		packet_t *buf = 0;
+		for (;;) {
+			if (!buf) {
+				xQueueReceive(free_queue, &buf, portMAX_DELAY);
+			}
+			size_t length;
+			if (uep_read(0x02U, buf->data, sizeof(buf->data), &length)) {
+				if (length >= 2U && ((buf->data[0U] & 0x0FU) < 8U)) {
+					buf->message_id = buf->data[1U];
+					buf->reliable = true;
+					buf->data_offset = 2U;
+					buf->length = length - 2U;
+					xQueueSend(transmit_queue, &buf, portMAX_DELAY);
+					buf = 0;
+				} else {
+					// Halt endpoint due to application being dumb.
+					uep_halt(0x02U);
+				}
+			} else if (errno == EPIPE) {
+				// Halted.
+				if (!uep_halt_wait(0x02U)) {
+					// Shutting down.
+					break;
+				}
+			} else if (errno == ECONNRESET) {
+				// Shutting down.
+				break;
+			} else { // EOVERFLOW
 				// Halt endpoint due to application being dumb.
 				uep_halt(0x02U);
 			}
-		} else if (errno == EPIPE) {
-			// Halted.
-			if (!uep_halt_wait(0x02U)) {
-				// Shutting down.
-				break;
-			}
-		} else if (errno == ECONNRESET) {
-			// Shutting down.
-			break;
-		} else { // EOVERFLOW
-			// Halt endpoint due to application being dumb.
-			uep_halt(0x02U);
 		}
+
+		// Free packet if we are holding onto one.
+		xQueueSend(free_queue, &buf, portMAX_DELAY);
+
+		// Done.
+		xSemaphoreGive(shutdown_sem);
 	}
-
-	// Free packet if we are holding onto one.
-	xQueueSend(free_queue, &buf, portMAX_DELAY);
-
-	// Done.
-	xSemaphoreGive(shutdown_sem);
-	vTaskDelete(0);
 }
 
 /**
  * \brief Receives unreliable message packets from OUT endpoint 3 and queues them for transmission.
  */
 static void unreliable_task(void *UNUSED(param)) {
-	// Run.
-	packet_t *buf = 0;
 	for (;;) {
-		if (!buf) {
-			xQueueReceive(free_queue, &buf, portMAX_DELAY);
-		}
-		size_t length;
-		if (uep_read(0x03U, buf->data, sizeof(buf->data), &length)) {
-			if (length >= 1U && buf->data[0U] < 8U) {
-				buf->message_id = 0U;
-				buf->reliable = false;
-				buf->data_offset = 1U;
-				buf->length = length - 1U;
-				xQueueSend(transmit_queue, &buf, portMAX_DELAY);
-				buf = 0;
-			} else {
+		// Wait to be instructed to start doing work.
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+		// Run.
+		packet_t *buf = 0;
+		for (;;) {
+			if (!buf) {
+				xQueueReceive(free_queue, &buf, portMAX_DELAY);
+			}
+			size_t length;
+			if (uep_read(0x03U, buf->data, sizeof(buf->data), &length)) {
+				if (length >= 1U && buf->data[0U] < 8U) {
+					buf->message_id = 0U;
+					buf->reliable = false;
+					buf->data_offset = 1U;
+					buf->length = length - 1U;
+					xQueueSend(transmit_queue, &buf, portMAX_DELAY);
+					buf = 0;
+				} else {
+					// Halt endpoint due to application being dumb.
+					uep_halt(0x03U);
+				}
+			} else if (errno == EPIPE) {
+				// Halted.
+				if (!uep_halt_wait(0x03U)) {
+					// Shutting down.
+					break;
+				}
+			} else if (errno == ECONNRESET) {
+				// Shutting down.
+				break;
+			} else { // EOVERFLOW
 				// Halt endpoint due to application being dumb.
 				uep_halt(0x03U);
 			}
-		} else if (errno == EPIPE) {
-			// Halted.
-			if (!uep_halt_wait(0x03U)) {
-				// Shutting down.
-				break;
-			}
-		} else if (errno == ECONNRESET) {
-			// Shutting down.
-			break;
-		} else { // EOVERFLOW
-			// Halt endpoint due to application being dumb.
-			uep_halt(0x03U);
 		}
+
+		// Free packet if we are holding onto one.
+		xQueueSend(free_queue, &buf, portMAX_DELAY);
+
+		// Done.
+		xSemaphoreGive(shutdown_sem);
 	}
-
-	// Free packet if we are holding onto one.
-	xQueueSend(free_queue, &buf, portMAX_DELAY);
-
-	// Done.
-	xSemaphoreGive(shutdown_sem);
-	vTaskDelete(0);
 }
 
 /**
  * \brief Sends queued message delivery reports to IN endpoint 1.
  */
 static void mdr_task(void *UNUSED(param)) {
-	bool shutting_down = false;
+	for (;;) {
+		// Wait to be instructed to start doing work.
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-	// Run.
-	while (!shutting_down) {
-		mdr_t mdrs[4U];
+		bool shutting_down = false;
 
-		// Receive the first MDR.
-		xQueueReceive(mdr_queue, &mdrs[0U], portMAX_DELAY);
-		unsigned int count = 1U;
+		// Run.
+		while (!shutting_down) {
+			mdr_t mdrs[4U];
 
-		// Receive up to three more MDRs to fill the array.
-		// Do not wait for them to be ready, though.
-		while (count < 4U && xQueueReceive(mdr_queue, &mdrs[count], 0U));
+			// Receive the first MDR.
+			xQueueReceive(mdr_queue, &mdrs[0U], portMAX_DELAY);
+			unsigned int count = 1U;
 
-		// Check if any of the MDRs indicates shutdown.
-		for (unsigned int i = 0U; i < count; ++i) {
-			if (mdrs[i].message_id == 0xFFU && mdrs[i].status == 0xFFU) {
-				count = i;
-				shutting_down = true;
-				break;
-			}
-		}
+			// Receive up to three more MDRs to fill the array.
+			// Do not wait for them to be ready, though.
+			while (count < 4U && xQueueReceive(mdr_queue, &mdrs[count], 0U));
 
-		// Run the MDRs.
-		if (count) {
-			if (!uep_write(0x81U, mdrs, sizeof(mdr_t) * count, false)) {
-				if (errno == EPIPE) {
-					// Endpoint halted.
-					// Drop MDRs on the floor.
-					if (!uep_halt_wait(0x81U)) {
-						shutting_down = true;
-					}
-					while (xQueueReceive(mdr_queue, &mdrs[0U], 0U));
-				} else { // ECONNRESET
+			// Check if any of the MDRs indicates shutdown.
+			for (unsigned int i = 0U; i < count; ++i) {
+				if (mdrs[i].message_id == 0xFFU && mdrs[i].status == 0xFFU) {
+					count = i;
 					shutting_down = true;
+					break;
+				}
+			}
+
+			// Run the MDRs.
+			if (count) {
+				if (!uep_write(0x81U, mdrs, sizeof(mdr_t) * count, false)) {
+					if (errno == EPIPE) {
+						// Endpoint halted.
+						// Drop MDRs on the floor.
+						if (!uep_halt_wait(0x81U)) {
+							shutting_down = true;
+						}
+						while (xQueueReceive(mdr_queue, &mdrs[0U], 0U));
+					} else { // ECONNRESET
+						// Shutting down. Drop MDRs on the floor. Do not
+						// actually exit the inner loop right now, though;
+						// instead, wait for shutting_down to be set to true by
+						// popping a shutdown-signal MDR.
+					}
 				}
 			}
 		}
-	}
 
-	// Done.
-	xSemaphoreGive(shutdown_sem);
-	vTaskDelete(0);
+		// Done.
+		xSemaphoreGive(shutdown_sem);
+	}
 }
 
 /**
  * \brief Sends packets received from robots to IN endpoint 2.
  */
 static void usbrx_task(void *UNUSED(param)) {
-	// Run.
-	bool shutting_down = false;
-	while (!shutting_down) {
-		packet_t *packet;
-		xQueueReceive(receive_queue, &packet, portMAX_DELAY);
-		if (packet) {
-			assert(packet->data_offset == 1U);
-			bool ok;
-			// Keep trying until not stopped by endpoint halt.
-			while (!shutting_down && !(ok = uep_write(0x82U, packet->data, packet->length, true)) && errno == EPIPE) {
-				if (!uep_halt_wait(0x82U)) {
-					shutting_down = true;
+	for (;;) {
+		// Wait to be instructed to start doing work.
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+		// Run.
+		bool shutting_down = false;
+		while (!shutting_down) {
+			packet_t *packet;
+			xQueueReceive(receive_queue, &packet, portMAX_DELAY);
+			if (packet) {
+				assert(packet->data_offset == 1U);
+				bool ok;
+				// Keep trying until not stopped by endpoint halt.
+				while (!shutting_down && !(ok = uep_write(0x82U, packet->data, packet->length, true)) && errno == EPIPE) {
+					if (!uep_halt_wait(0x82U)) {
+						shutting_down = true;
+					}
 				}
-			}
-			if (!ok && errno == ECONNRESET) {
+				if (!ok && errno == ECONNRESET) {
+					// Shutting down; drop packets on the floor until we get to
+					// the special NULL marker packet.
+				}
+				xQueueSend(free_queue, &packet, portMAX_DELAY);
+			} else {
+				// Marker NULL packet pointer.
 				shutting_down = true;
 			}
-			xQueueSend(free_queue, &packet, portMAX_DELAY);
-		} else {
-			// Marker NULL packet pointer.
-			shutting_down = true;
 		}
-	}
 
-	// Done.
-	xSemaphoreGive(shutdown_sem);
-	vTaskDelete(0);
+		// Done.
+		xSemaphoreGive(shutdown_sem);
+	}
 }
 
 /**
@@ -610,33 +667,34 @@ static void dongle_status_task(void *UNUSED(param)) {
 	// Set the emergency stop update semaphore.
 	estop_set_sem(dongle_status_sem);
 
-	// Run.
-	bool shutting_down = false;
-	while (!shutting_down) {
-		// Send the state first.
-		uint8_t state = estop_read() | (__atomic_exchange_n(&rx_fcs_error, false, __ATOMIC_RELAXED) ? 0x04U : 0x00U);
-		bool ok;
-		while (!(ok = uep_write(0x83U, &state, sizeof(state), false)) && errno == EPIPE) {
-			if (!uep_halt_wait(0x83U)) {
+	for (;;) {
+		// Wait to be instructed to start doing work.
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+		// Run.
+		bool shutting_down = false;
+		while (!shutting_down) {
+			// Send the state first.
+			uint8_t state = estop_read() | (__atomic_exchange_n(&rx_fcs_error, false, __ATOMIC_RELAXED) ? 0x04U : 0x00U);
+			bool ok;
+			while (!(ok = uep_write(0x83U, &state, sizeof(state), false)) && errno == EPIPE) {
+				if (!uep_halt_wait(0x83U)) {
+					shutting_down = true;
+				}
+			}
+			if (!ok && errno == ECONNRESET) {
 				shutting_down = true;
 			}
-		}
-		if (!ok && errno == ECONNRESET) {
-			shutting_down = true;
+
+			// Wait for the next change of state.
+			if (!shutting_down) {
+				xSemaphoreTake(dongle_status_sem, portMAX_DELAY);
+			}
 		}
 
-		// Wait for the next change of state.
-		if (!shutting_down) {
-			xSemaphoreTake(dongle_status_sem, portMAX_DELAY);
-		}
+		// Done.
+		xSemaphoreGive(shutdown_sem);
 	}
-
-	// Remove the notification semaphore.
-	estop_set_sem(0);
-
-	// Done.
-	xSemaphoreGive(shutdown_sem);
-	vTaskDelete(0);
 }
 
 /**
@@ -667,9 +725,12 @@ static void prep_send_message_packet(const packet_t *packet) {
  */
 static void rdtx_task(void *UNUSED(param)) {
 	for (;;) {
+		// Wait to be instructed to start doing work.
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+		// Run.
 		packet_t *packet;
-		xQueueReceive(transmit_queue, &packet, portMAX_DELAY);
-		if (packet) {
+		while (xQueueReceive(transmit_queue, &packet, portMAX_DELAY), packet) {
 			xSemaphoreTake(transmit_mutex, portMAX_DELAY);
 			prep_send_message_packet(packet);
 			bool reliable = packet->reliable;
@@ -700,15 +761,11 @@ static void rdtx_task(void *UNUSED(param)) {
 				xQueueSend(mdr_queue, &mdr, portMAX_DELAY);
 			}
 			xSemaphoreGive(transmit_mutex);
-		} else {
-			// Shutting down.
-			break;
 		}
-	}
 
-	// Done.
-	xSemaphoreGive(shutdown_sem);
-	vTaskDelete(0);
+		// Done.
+		xSemaphoreGive(shutdown_sem);
+	}
 }
 
 /**
@@ -717,142 +774,141 @@ static void rdtx_task(void *UNUSED(param)) {
  * This task handles both transmission-complete interrupts (by notifying the transmitting task) and reception-complete interrupts (by reading out the packet and placing it in the receive queue).
  */
 static void rdrx_task(void *UNUSED(param)) {
-	uint16_t seqnum[8U];
-	for (size_t i = 0U; i < sizeof(seqnum) / sizeof(*seqnum); ++i) {
-		seqnum[i] = 0xFFFFU;
-	}
-
 	for (;;) {
-		// Wait for an interrupt to occur.
-		xSemaphoreTake(mrf_int_sem, portMAX_DELAY);
-		if (__atomic_load_n(&rdrx_shutting_down, __ATOMIC_RELAXED)) {
-			break;
+		// Wait to be instructed to start doing work.
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+		// Run.
+		uint16_t seqnum[8U];
+		for (size_t i = 0U; i < sizeof(seqnum) / sizeof(*seqnum); ++i) {
+			seqnum[i] = 0xFFFFU;
 		}
 
-		while (mrf_get_interrupt()) {
-			// Check outstanding interrupts.
-			uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
-			if (intstat & (1U << 3U)) {
-				// RXIF = 1; packet received.
-				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04U); // RXDECINV = 1; invert receiver symbol sign to prevent further packet reception
+		for (;;) {
+			// Wait for an interrupt to occur.
+			xSemaphoreTake(mrf_int_sem, portMAX_DELAY);
+			if (__atomic_load_n(&rdrx_shutting_down, __ATOMIC_RELAXED)) {
+				break;
+			}
 
-				// See ticket #1338, the radio does not always return intact data when reading the receive buffer.
-				// We will detect this by checking FCS and, on failure, starting the read over from the top.
-				unsigned int tries = 8U;
-				uint16_t crc;
+			while (mrf_get_interrupt()) {
+				// Check outstanding interrupts.
+				uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
+				if (intstat & (1U << 3U)) {
+					// RXIF = 1; packet received.
+					mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04U); // RXDECINV = 1; invert receiver symbol sign to prevent further packet reception
 
-				do {
-					// Initialize CRC.
-					crc = 0U;
+					// See ticket #1338, the radio does not always return intact data when reading the receive buffer.
+					// We will detect this by checking FCS and, on failure, starting the read over from the top.
+					unsigned int tries = 8U;
+					uint16_t crc;
 
-					// Read out the frame length byte and frame control word.
-					unsigned int rxfifo_frame_length = mrf_read_long(MRF_REG_LONG_RXFIFO);
-					uint8_t frame_control_lsb = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U);
-					crc = crc_update(crc, frame_control_lsb);
-					uint8_t frame_control_msb = mrf_read_long(MRF_REG_LONG_RXFIFO + 2U);
-					crc = crc_update(crc, frame_control_msb);
-					uint16_t frame_control = frame_control_lsb | (frame_control_msb << 8U);
+					do {
+						// Initialize CRC.
+						crc = 0U;
 
-					// Sanity-check the frame control word.
-					if (((frame_control >> 0U) & 7U) == 1U /* Data packet */ && ((frame_control >> 3U) & 1U) == 0U /* No security */ && ((frame_control >> 6U) & 1U) == 1U /* Intra-PAN */ && ((frame_control >> 10U) & 3U) == 2U /* 16-bit destination address */ && ((frame_control >> 14U) & 3U) == 2U /* 16-bit source address */) {
-						static const unsigned int HEADER_LENGTH = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
-						static const unsigned int FOOTER_LENGTH = 2U /* Frame check sequence */;
+						// Read out the frame length byte and frame control word.
+						unsigned int rxfifo_frame_length = mrf_read_long(MRF_REG_LONG_RXFIFO);
+						uint8_t frame_control_lsb = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U);
+						crc = crc_update(crc, frame_control_lsb);
+						uint8_t frame_control_msb = mrf_read_long(MRF_REG_LONG_RXFIFO + 2U);
+						crc = crc_update(crc, frame_control_msb);
+						uint16_t frame_control = frame_control_lsb | (frame_control_msb << 8U);
 
-						// Sanity-check the total frame length.
-						packet_t *buffer;
-						if (HEADER_LENGTH + FOOTER_LENGTH <= rxfifo_frame_length && rxfifo_frame_length <= HEADER_LENGTH + sizeof(buffer->data) - 1U /* Robot index */ - 1U /* LQI */ - 1U /* RSSI */ + FOOTER_LENGTH) {
-							// Read the sequence number.
-							uint8_t sequence_number = mrf_read_long(MRF_REG_LONG_RXFIFO + 3U);
-							crc = crc_update(crc, sequence_number);
+						// Sanity-check the frame control word.
+						if (((frame_control >> 0U) & 7U) == 1U /* Data packet */ && ((frame_control >> 3U) & 1U) == 0U /* No security */ && ((frame_control >> 6U) & 1U) == 1U /* Intra-PAN */ && ((frame_control >> 10U) & 3U) == 2U /* 16-bit destination address */ && ((frame_control >> 14U) & 3U) == 2U /* 16-bit source address */) {
+							static const unsigned int HEADER_LENGTH = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
+							static const unsigned int FOOTER_LENGTH = 2U /* Frame check sequence */;
 
-							// Read out and ignore, but CRC, the rest of the header excluding the source address.
-							for (unsigned int i = 4U; i != 8U; ++i) {
-								crc = crc_update(crc, mrf_read_long(MRF_REG_LONG_RXFIFO + i));
-							}
+							// Sanity-check the total frame length.
+							packet_t *buffer;
+							if (HEADER_LENGTH + FOOTER_LENGTH <= rxfifo_frame_length && rxfifo_frame_length <= HEADER_LENGTH + sizeof(buffer->data) - 1U /* Robot index */ - 1U /* LQI */ - 1U /* RSSI */ + FOOTER_LENGTH) {
+								// Read the sequence number.
+								uint8_t sequence_number = mrf_read_long(MRF_REG_LONG_RXFIFO + 3U);
+								crc = crc_update(crc, sequence_number);
 
-							// Read out and check the source address and sequence number.
-							uint8_t source_address_lsb = mrf_read_long(MRF_REG_LONG_RXFIFO + 8U);
-							crc = crc_update(crc, source_address_lsb);
-							uint8_t source_address_msb = mrf_read_long(MRF_REG_LONG_RXFIFO + 9U);
-							crc = crc_update(crc, source_address_msb);
-							uint16_t source_address = source_address_lsb | (source_address_msb << 8U);
-							if (source_address < 8U && sequence_number != seqnum[source_address]) {
-								// Blink the receive light.
-								led_blink(LED_RX);
+								// Read out and ignore, but CRC, the rest of the header excluding the source address.
+								for (unsigned int i = 4U; i != 8U; ++i) {
+									crc = crc_update(crc, mrf_read_long(MRF_REG_LONG_RXFIFO + i));
+								}
 
-								// Update sequence number.
-								seqnum[source_address] = sequence_number;
+								// Read out and check the source address and sequence number.
+								uint8_t source_address_lsb = mrf_read_long(MRF_REG_LONG_RXFIFO + 8U);
+								crc = crc_update(crc, source_address_lsb);
+								uint8_t source_address_msb = mrf_read_long(MRF_REG_LONG_RXFIFO + 9U);
+								crc = crc_update(crc, source_address_msb);
+								uint16_t source_address = source_address_lsb | (source_address_msb << 8U);
+								if (source_address < 8U && sequence_number != seqnum[source_address]) {
+									// Blink the receive light.
+									led_blink(LED_RX);
 
-								// Allocate a packet buffer.
-								xQueueReceive(free_queue, &buffer, portMAX_DELAY);
+									// Update sequence number.
+									seqnum[source_address] = sequence_number;
 
-								// Fill in the packet buffer.
-								buffer->message_id = 0U;
-								buffer->reliable = false;
-								buffer->data_offset = 1U;
-								buffer->length = 1U /* Robot index */ + (rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH) /* 802.15.4 packet payload */ + 1U /* LQI */ + 1U /* RSSI */;
-								buffer->data[0U] = source_address;
-								for (unsigned int i = 0U; i < rxfifo_frame_length - HEADER_LENGTH; ++i) {
-									uint8_t byte = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + HEADER_LENGTH + i);
-									crc = crc_update(crc, byte);
-									if (i < rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH) {
-										buffer->data[1U + i] = byte;
+									// Allocate a packet buffer.
+									xQueueReceive(free_queue, &buffer, portMAX_DELAY);
+
+									// Fill in the packet buffer.
+									buffer->message_id = 0U;
+									buffer->reliable = false;
+									buffer->data_offset = 1U;
+									buffer->length = 1U /* Robot index */ + (rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH) /* 802.15.4 packet payload */ + 1U /* LQI */ + 1U /* RSSI */;
+									buffer->data[0U] = source_address;
+									for (unsigned int i = 0U; i < rxfifo_frame_length - HEADER_LENGTH; ++i) {
+										uint8_t byte = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + HEADER_LENGTH + i);
+										crc = crc_update(crc, byte);
+										if (i < rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH) {
+											buffer->data[1U + i] = byte;
+										}
 									}
-								}
 
-								if (crc == 0U) {
-									// Read LQI and RSSI.
-									buffer->data[1U + rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH] = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + rxfifo_frame_length); // LQI
-									buffer->data[1U + rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH + 1U] = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + rxfifo_frame_length + 1U); // RSSI
+									if (crc == 0U) {
+										// Read LQI and RSSI.
+										buffer->data[1U + rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH] = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + rxfifo_frame_length); // LQI
+										buffer->data[1U + rxfifo_frame_length - HEADER_LENGTH - FOOTER_LENGTH + 1U] = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + rxfifo_frame_length + 1U); // RSSI
 
-									// Push the packet on the receive queue.
-									xQueueSend(receive_queue, &buffer, portMAX_DELAY);
+										// Push the packet on the receive queue.
+										xQueueSend(receive_queue, &buffer, portMAX_DELAY);
+									} else {
+										// Packet is broken; give up.
+										xQueueSend(free_queue, &buffer, portMAX_DELAY);
+									}
 								} else {
-									// Packet is broken; give up.
-									xQueueSend(free_queue, &buffer, portMAX_DELAY);
-								}
-							} else {
-								// Duplicate sequence number or wrong source address.
-								// Read in the packet to make sure it is indeed true, and not corrupt, and to zero out CRC.
-								for (unsigned int i = 0U; i < rxfifo_frame_length - HEADER_LENGTH; ++i) {
-									uint8_t byte = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + HEADER_LENGTH + i);
-									crc = crc_update(crc, byte);
+									// Duplicate sequence number or wrong source address.
+									// Read in the packet to make sure it is indeed true, and not corrupt, and to zero out CRC.
+									for (unsigned int i = 0U; i < rxfifo_frame_length - HEADER_LENGTH; ++i) {
+										uint8_t byte = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + HEADER_LENGTH + i);
+										crc = crc_update(crc, byte);
+									}
 								}
 							}
 						}
+					} while (crc != 0U && --tries);
+
+					mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00U); // RXDECINV = 0; stop inverting receiver and allow further reception
+
+					if (crc != 0U) {
+						__atomic_store_n(&rx_fcs_error, true, __ATOMIC_RELAXED);
+						// No need to check return value.
+						// If semaphore was already given, an update will happen in due time.
+						// Resulting report will be eventually consistent.
+						xSemaphoreGive(dongle_status_sem);
 					}
-				} while (crc != 0U && --tries);
-
-				mrf_write_short(MRF_REG_SHORT_BBREG1, 0x00U); // RXDECINV = 0; stop inverting receiver and allow further reception
-
-				if (crc != 0U) {
-					__atomic_store_n(&rx_fcs_error, true, __ATOMIC_RELAXED);
-					// No need to check return value.
-					// If semaphore was already given, an update will happen in due time.
-					// Resulting report will be eventually consistent.
-					xSemaphoreGive(dongle_status_sem);
+				}
+				if (intstat & (1 << 0)) {
+					// TXIF = 1; transmission complete (successful or failed).
+					xSemaphoreGive(transmit_complete_sem);
 				}
 			}
-			if (intstat & (1 << 0)) {
-				// TXIF = 1; transmission complete (successful or failed).
-				xSemaphoreGive(transmit_complete_sem);
-			}
 		}
+
+		// Done.
+		xSemaphoreGive(shutdown_sem);
 	}
-
-	// Done.
-	xSemaphoreGive(shutdown_sem);
-	vTaskDelete(0);
 }
 
-bool normal_can_enter(void) {
-	return radio_config.pan_id != 0xFFFFU;
-}
-
-void normal_on_enter(void) {
-	// Initialize data structures.
-	rdrx_shutting_down = false;
-	rx_fcs_error = false;
+void normal_init(void) {
+	// Create IPC objects.
 	free_queue = xQueueCreate(NUM_PACKETS, sizeof(packet_t *));
 	transmit_queue = xQueueCreate(NUM_PACKETS + 1U, sizeof(packet_t *));
 	receive_queue = xQueueCreate(NUM_PACKETS + 1U, sizeof(packet_t *));
@@ -862,16 +918,45 @@ void normal_on_enter(void) {
 	transmit_mutex = xSemaphoreCreateMutex();
 	transmit_complete_sem = xSemaphoreCreateBinary();
 	drive_sem = xSemaphoreCreateBinary();
-	drive_tick_pending = false;
-	drive_transfer_complete = false;
 	shutdown_sem = xSemaphoreCreateCounting(8U /* Eight tasks */, 0U);
 	assert(free_queue && transmit_queue && receive_queue && mdr_queue && dongle_status_sem && mrf_int_sem && transmit_mutex && transmit_complete_sem && drive_sem && shutdown_sem);
 
 	// Allocate packet buffers.
+	static packet_t packets[NUM_PACKETS];
 	for (unsigned int i = 0U; i < NUM_PACKETS; ++i) {
-		packet_t *packet = malloc(sizeof(packet_t));
+		packet_t *packet = &packets[i];
 		xQueueSend(free_queue, &packet, portMAX_DELAY);
 	}
+
+	// Start tasks.
+	BaseType_t ret = xTaskCreate(&drive_task, "norm_drive", 1024U, 0, 7U, &drive_task_handle);
+	assert(ret == pdPASS);
+	ret = xTaskCreate(&reliable_task, "norm_reliable", 1024U, 0, 6U, &reliable_task_handle);
+	assert(ret == pdPASS);
+	ret = xTaskCreate(&unreliable_task, "norm_unreliable", 1024U, 0, 6U, &unreliable_task_handle);
+	assert(ret == pdPASS);
+	ret = xTaskCreate(&mdr_task, "norm_mdr", 1024U, 0, 5U, &mdr_task_handle);
+	assert(ret == pdPASS);
+	ret = xTaskCreate(&usbrx_task, "norm_usbrx", 1024U, 0, 6U, &usbrx_task_handle);
+	assert(ret == pdPASS);
+	ret = xTaskCreate(&dongle_status_task, "norm_dstatus", 1024U, 0, 5U, &dongle_status_task_handle);
+	assert(ret == pdPASS);
+	ret = xTaskCreate(&rdtx_task, "norm_rdtx", 1024U, 0, 7U, &rdtx_task_handle);
+	assert(ret == pdPASS);
+	ret = xTaskCreate(&rdrx_task, "norm_rdrx", 1024U, 0, 7U, &rdrx_task_handle);
+	assert(ret == pdPASS);
+}
+
+bool normal_can_enter(void) {
+	return radio_config.pan_id != 0xFFFFU;
+}
+
+void normal_on_enter(void) {
+	// Initialize flags.
+	rdrx_shutting_down = false;
+	rx_fcs_error = false;
+	drive_tick_pending = false;
+	drive_transfer_complete = false;
 
 	// Initialize the radio.
 	mrf_init();
@@ -892,23 +977,15 @@ void normal_on_enter(void) {
 	led_on(LED_TX);
 	led_on(LED_RX);
 
-	// Start tasks.
-	BaseType_t ret = xTaskCreate(&drive_task, "norm_drive", 1024U, 0, 7U, 0);
-	assert(ret == pdPASS);
-	ret = xTaskCreate(&reliable_task, "norm_reliable", 1024U, 0, 6U, 0);
-	assert(ret == pdPASS);
-	ret = xTaskCreate(&unreliable_task, "norm_unreliable", 1024U, 0, 6U, 0);
-	assert(ret == pdPASS);
-	ret = xTaskCreate(&mdr_task, "norm_mdr", 1024U, 0, 5U, 0);
-	assert(ret == pdPASS);
-	ret = xTaskCreate(&usbrx_task, "norm_usbrx", 1024U, 0, 6U, 0);
-	assert(ret == pdPASS);
-	ret = xTaskCreate(&dongle_status_task, "norm_dstatus", 1024U, 0, 5U, 0);
-	assert(ret == pdPASS);
-	ret = xTaskCreate(&rdtx_task, "norm_rdtx", 1024U, 0, 7U, 0);
-	assert(ret == pdPASS);
-	ret = xTaskCreate(&rdrx_task, "norm_rdrx", 1024U, 0, 7U, 0);
-	assert(ret == pdPASS);
+	// Notify tasks to start doing work.
+	xTaskNotifyGive(drive_task_handle);
+	xTaskNotifyGive(reliable_task_handle);
+	xTaskNotifyGive(unreliable_task_handle);
+	xTaskNotifyGive(mdr_task_handle);
+	xTaskNotifyGive(usbrx_task_handle);
+	xTaskNotifyGive(dongle_status_task_handle);
+	xTaskNotifyGive(rdtx_task_handle);
+	xTaskNotifyGive(rdrx_task_handle);
 }
 
 void normal_on_exit(void) {
@@ -923,16 +1000,16 @@ void normal_on_exit(void) {
 	xQueueSend(mdr_queue, &null_mdr, portMAX_DELAY);
 	xSemaphoreGive(dongle_status_sem);
 
-	// Wait for the tasks to terminate.
+	// Wait for the tasks to quiesce.
 	for (unsigned int i = 0U; i != 7U; ++i) {
 		xSemaphoreTake(shutdown_sem, portMAX_DELAY);
 	}
 
-	// Signal the rdrx task to terminate.
+	// Signal the rdrx task to shut down.
 	__atomic_store_n(&rdrx_shutting_down, true, __ATOMIC_RELAXED);
 	xSemaphoreGive(mrf_int_sem);
 
-	// Wait for it to terminate.
+	// Wait for it to quiesce.
 	xSemaphoreTake(shutdown_sem, portMAX_DELAY);
 
 	// Disable the external interrupt on MRF INT.
@@ -945,33 +1022,20 @@ void normal_on_exit(void) {
 	// Reset the radio.
 	mrf_deinit();
 
-	// Free packet buffers.
+	// Flush transmit and receive queues.
 	{
 		packet_t *packet;
-		while (xQueueReceive(free_queue, &packet, 0U)) {
-			free(packet);
+		while (xQueueReceive(transmit_queue, &packet, 0)) {
+			xQueueSend(free_queue, &packet, 0);
 		}
-		while (xQueueReceive(transmit_queue, &packet, 0U)) {
-			free(packet);
-		}
-		while (xQueueReceive(receive_queue, &packet, 0U)) {
-			free(packet);
+		while (xQueueReceive(receive_queue, &packet, 0)) {
+			xQueueSend(free_queue, &packet, 0);
 		}
 	}
 
-	// Destroy data structures.
-	vSemaphoreDelete(shutdown_sem);
-	vSemaphoreDelete(drive_sem);
-	vSemaphoreDelete(transmit_complete_sem);
-	vSemaphoreDelete(mrf_int_sem);
-	vSemaphoreDelete(transmit_mutex);
-	vSemaphoreDelete(dongle_status_sem);
-	vQueueDelete(mdr_queue);
-	vQueueDelete(receive_queue);
-	vQueueDelete(transmit_queue);
-	vQueueDelete(free_queue);
-
-	// Give the timer task some time to free task stacks.
-	vTaskDelay(1U);
+	// Flush MDR queue.
+	{
+		mdr_t mdr;
+		while (xQueueReceive(mdr_queue, &mdr, 0));
+	}
 }
-

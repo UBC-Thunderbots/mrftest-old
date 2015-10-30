@@ -6,6 +6,7 @@
 #include "mrf.h"
 #include "normal.h"
 #include "pins.h"
+#include "promiscuous.h"
 #include <FreeRTOS.h>
 #include <build_id.h>
 #include <core_progmem.h>
@@ -224,11 +225,14 @@ static void stm32_main(void) {
 
 static void main_task(void *UNUSED(param)) {
 	// Initialize subsystems.
+	mrf_init_once();
 	led_init();
 	crc32_init();
 	build_id_init();
 	buzzer_init();
 	estop_init();
+	normal_init();
+	promiscuous_init();
 
 	// Fill in the device serial number.
 	{
@@ -246,7 +250,6 @@ static void main_task(void *UNUSED(param)) {
 	udev_attach();
 
 	// Done setting up.
-	vTaskDelete(0);
+	vTaskSuspend(0);
 	__builtin_unreachable();
 }
-
