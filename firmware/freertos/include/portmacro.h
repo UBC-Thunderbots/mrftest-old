@@ -73,7 +73,11 @@ inline void portYIELD_FROM_ISR(void) {
 	// the InstructionSynchronizationBarrier executed as part of the exception
 	// return procedure. However, exception return does not imply a
 	// DataSynchronizationBarrier, so the explicit DSB is still needed.
-	asm volatile("dsb");
+	//
+	// That having been said, every ISR must have a DSB immediately before the
+	// exception return due to Cortex-M4 erratum 838869. Thus, we can assume
+	// the presence of a DSB before the exception return, and need not insert
+	// one here.
 }
 
 // Functions related to allocating and freeing task stacks.
