@@ -35,7 +35,7 @@
 /**
  * \brief The number of packet buffers to allocate at system startup.
  */
-#define NUM_PACKETS 256U
+#define NUM_PACKETS 64U
 
 /**
  * \brief The possible task notification bits understood by the radio receive

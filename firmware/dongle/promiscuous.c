@@ -41,7 +41,7 @@ enum radio_event_t {
 	RADIO_EVENT_INTERRUPT = 0x04,
 };
 
-#define NUM_PACKETS 256U
+#define NUM_PACKETS 64U
 
 static QueueHandle_t free_queue, receive_queue;
 static SemaphoreHandle_t init_shutdown_sem;
