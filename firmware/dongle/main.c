@@ -19,6 +19,7 @@
 #include <rcc.h>
 #include <rtc.h>
 #include <sleep.h>
+#include <stack.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -30,7 +31,7 @@
 
 static void stm32_main(void) __attribute__((noreturn));
 
-static unsigned long mstack[1024U] __attribute__((section(".mstack")));
+STACK_ALLOCATE(mstack, 4096);
 
 typedef void (*fptr)(void);
 static const fptr exception_vectors[16U] __attribute__((used, section(".exception_vectors"))) = {
@@ -207,7 +208,9 @@ void vApplicationIdleHook(void) {
 	asm volatile("wfi");
 }
 
+STACK_ALLOCATE(main_task_stack, 4096);
 static void main_task(void *param) __attribute__((noreturn));
+TaskHandle_t main_task_handle;
 
 static void stm32_main(void) {
 	// Initialize the basic chip hardware.
@@ -217,7 +220,7 @@ static void stm32_main(void) {
 	gpio_init(PINS_INIT, sizeof(PINS_INIT) / sizeof(*PINS_INIT));
 
 	// Get into FreeRTOS.
-	BaseType_t ok = xTaskCreate(&main_task, "main", 512U, 0, 1U, 0);
+	BaseType_t ok = xTaskGenericCreate(&main_task, "main", sizeof(main_task_stack) / sizeof(*main_task_stack), 0, 1U, &main_task_handle, main_task_stack, 0);
 	assert(ok == pdPASS);
 	vTaskStartScheduler();
 	__builtin_unreachable();

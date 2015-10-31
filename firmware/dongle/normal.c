@@ -13,6 +13,7 @@
 #include <rcc.h>
 #include <rtc.h>
 #include <semphr.h>
+#include <stack.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -214,6 +215,15 @@ static TaskHandle_t rdtx_task_handle;
  * \brief The handle of the radio receive task.
  */
 static TaskHandle_t rdrx_task_handle;
+
+STACK_ALLOCATE(drive_task_stack, 4096);
+STACK_ALLOCATE(reliable_task_stack, 4096);
+STACK_ALLOCATE(unreliable_task_stack, 4096);
+STACK_ALLOCATE(mdr_task_stack, 4096);
+STACK_ALLOCATE(usbrx_task_stack, 4096);
+STACK_ALLOCATE(dongle_status_task_stack, 4096);
+STACK_ALLOCATE(rdtx_task_stack, 4096);
+STACK_ALLOCATE(rdrx_task_stack, 4096);
 
 /**
  * \brief Handles rising edge interrupts on the MRF interrupt line.
@@ -929,21 +939,21 @@ void normal_init(void) {
 	}
 
 	// Start tasks.
-	BaseType_t ret = xTaskCreate(&drive_task, "norm_drive", 1024U, 0, 7U, &drive_task_handle);
+	BaseType_t ret = xTaskGenericCreate(drive_task, "norm_drive", sizeof(drive_task_stack) / sizeof(*drive_task_stack), 0, 7, &drive_task_handle, drive_task_stack, 0);
 	assert(ret == pdPASS);
-	ret = xTaskCreate(&reliable_task, "norm_reliable", 1024U, 0, 6U, &reliable_task_handle);
+	ret = xTaskGenericCreate(reliable_task, "norm_reliable", sizeof(reliable_task_stack) / sizeof(*reliable_task_stack), 0, 6, &reliable_task_handle, reliable_task_stack, 0);
 	assert(ret == pdPASS);
-	ret = xTaskCreate(&unreliable_task, "norm_unreliable", 1024U, 0, 6U, &unreliable_task_handle);
+	ret = xTaskGenericCreate(unreliable_task, "norm_unreliable", sizeof(unreliable_task_stack) / sizeof(*unreliable_task_stack), 0, 6, &unreliable_task_handle, unreliable_task_stack, 0);
 	assert(ret == pdPASS);
-	ret = xTaskCreate(&mdr_task, "norm_mdr", 1024U, 0, 5U, &mdr_task_handle);
+	ret = xTaskGenericCreate(mdr_task, "norm_mdr", sizeof(mdr_task_stack) / sizeof(*mdr_task_stack), 0, 5, &mdr_task_handle, mdr_task_stack, 0);
 	assert(ret == pdPASS);
-	ret = xTaskCreate(&usbrx_task, "norm_usbrx", 1024U, 0, 6U, &usbrx_task_handle);
+	ret = xTaskGenericCreate(usbrx_task, "norm_usbrx", sizeof(usbrx_task_stack) / sizeof(*usbrx_task_stack), 0, 6, &usbrx_task_handle, usbrx_task_stack, 0);
 	assert(ret == pdPASS);
-	ret = xTaskCreate(&dongle_status_task, "norm_dstatus", 1024U, 0, 5U, &dongle_status_task_handle);
+	ret = xTaskGenericCreate(dongle_status_task, "norm_dstatus", sizeof(dongle_status_task_stack) / sizeof(*dongle_status_task_stack), 0, 5, &dongle_status_task_handle, dongle_status_task_stack, 0);
 	assert(ret == pdPASS);
-	ret = xTaskCreate(&rdtx_task, "norm_rdtx", 1024U, 0, 7U, &rdtx_task_handle);
+	ret = xTaskGenericCreate(rdtx_task, "norm_rdtx", sizeof(rdtx_task_stack) / sizeof(*rdtx_task_stack), 0, 7, &rdtx_task_handle, rdtx_task_stack, 0);
 	assert(ret == pdPASS);
-	ret = xTaskCreate(&rdrx_task, "norm_rdrx", 1024U, 0, 7U, &rdrx_task_handle);
+	ret = xTaskGenericCreate(rdrx_task, "norm_rdrx", sizeof(rdrx_task_stack) / sizeof(*rdrx_task_stack), 0, 7, &rdrx_task_handle, rdrx_task_stack, 0);
 	assert(ret == pdPASS);
 }
 

@@ -58,6 +58,11 @@ SECTIONS {
 	.mstack (NOLOAD) : {
 		*(.mstack)
 	} >ccm_region AT>ccm_region
+
+	/* Stacks will go in CCM. */
+	stacks (NOLOAD) : {
+		*(stacks)
+	} >ccm_region AT>ccm_region
 }
 
 /* Provide symbols that the startup code uses to find the various sections in memory to initialize the data and wipe the bss */
