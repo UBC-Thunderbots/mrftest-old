@@ -20,7 +20,6 @@
 #include <FreeRTOS.h>
 #include <assert.h>
 #include <errno.h>
-#include <event_groups.h>
 #include <minmax.h>
 #include <semphr.h>
 #include <stdbool.h>
@@ -39,18 +38,24 @@
 #define CDCACM_BUFFER_SIZE 4096U
 
 /**
- * \brief The bitmasks used in \ref cdcacm_event_group.
+ * \brief The possible task notification bits understood by the CDC ACM task.
  */
-typedef enum {
-	CDCACM_EVENT_NEW_DATA = 0x01U, ///< Set by \ref cdcacm_write to tell the CDC ACM task there is new data
-	CDCACM_EVENT_SHUTTING_DOWN = 0x02U, ///< Set by \ref cdcacm_stop to tell the CDC ACM task to shut down
-	CDCACM_EVENT_SHUTDOWN_DONE = 0x04U, ///< Set by the CDC ACM task to notify \ref cdcacm_stop that it has finished shutting down
-} cdcacm_event_bits_t;
+enum cdcacm_event_t {
+	/**
+	 * \brief The task should start doing work.
+	 */
+	CDCACM_EVENT_START = 0x01,
 
-/**
- * \brief Whether the module is currently active.
- */
-static bool cdcacm_enabled = false;
+	/**
+	 * \brief The task should stop doing work.
+	 */
+	CDCACM_EVENT_STOP = 0x02,
+
+	/**
+	 * \brief New data is available in the buffer.
+	 */
+	CDCACM_EVENT_NEW_DATA = 0x04,
+};
 
 /**
  * \brief The buffer that holds data before it travels over USB.
@@ -68,24 +73,19 @@ static size_t cdcacm_rptr = 0;
 static size_t cdcacm_wptr = 0;
 
 /**
- * \brief The endpoint address of the IN data endpoint.
- */
-static unsigned int cdcacm_in_data_ep;
-
-/**
- * \brief The priority of the CDC ACM task.
- */
-static unsigned int cdcacm_task_priority;
-
-/**
  * \brief A mutex protecting the module from multiple simultaneous writers.
  */
 static SemaphoreHandle_t cdcacm_writer_mutex;
 
 /**
- * \brief An event group used by tasks to notify each other of events.
+ * \brief A semaphore used to notify that the task has quiesced.
  */
-static EventGroupHandle_t cdcacm_event_group;
+static SemaphoreHandle_t cdcacm_shutdown_sem;
+
+/**
+ * \brief The handle of the task operating on the USB endpoint.
+ */
+static TaskHandle_t cdcacm_task_handle;
 
 _Static_assert(INCLUDE_vTaskSuspend == 1, "vTaskSuspend must be included, because otherwise mutex taking can time out!");
 
@@ -99,70 +99,80 @@ _Static_assert(INCLUDE_vTaskSuspend == 1, "vTaskSuspend must be included, becaus
  * \cond INTERNAL
  * \brief The CDC ACM task.
  */
-static void cdcacm_task(void *UNUSED(param)) {
+static void cdcacm_task(void *param) {
+	unsigned int endpoint = (unsigned int) param;
+	uint32_t pending_events = 0;
 	for (;;) {
-		// Wait for something to happen.
-		EventBits_t events = xEventGroupWaitBits(cdcacm_event_group, CDCACM_EVENT_NEW_DATA | CDCACM_EVENT_SHUTTING_DOWN, pdTRUE, pdFALSE, portMAX_DELAY);
-
-		// If we are shutting down, return now.
-		if (events & CDCACM_EVENT_SHUTTING_DOWN) {
-			break;
+		// Wait to be instructed to start doing work.
+		while (!(pending_events & CDCACM_EVENT_START)) {
+			uint32_t new_events;
+			xTaskNotifyWait(0, UINT32_MAX, &new_events, portMAX_DELAY);
+			pending_events |= new_events;
 		}
+		pending_events &= ~CDCACM_EVENT_START;
 
-		// If we have data to send, send it.
-		if (events & CDCACM_EVENT_NEW_DATA) {
-			// Keep going until we have no more data.
-			for (;;) {
-				// Copy the read and write pointers to locals.
-				size_t rptr = cdcacm_rptr; // Non-atomic because only modified by cdcacm_task.
-				size_t wptr = __atomic_load_n(&cdcacm_wptr, __ATOMIC_RELAXED); // Atomic because modified by cdcacm_write.
-				if (wptr == rptr) {
-					break;
-				}
-				__atomic_signal_fence(__ATOMIC_ACQUIRE);
-
-				// Send as much as we can in one contiguous block.
-				size_t to_send;
-				if (rptr < wptr) {
-					to_send = wptr - rptr;
-				} else {
-					to_send = CDCACM_BUFFER_SIZE - rptr;
-				}
-				if (uep_write(cdcacm_in_data_ep, &cdcacm_buffer[rptr], to_send, true)) {
-					// Data sent successfully; consume from buffer.
-					rptr += to_send;
-					if (rptr == CDCACM_BUFFER_SIZE) {
-						rptr = 0U;
-					}
-				} else {
-					// Data transmission failed; check why.
-					if (errno == EPIPE) {
-						// Endpoint halted; wait for halt status to end.
-						if (uep_halt_wait(cdcacm_in_data_ep)) {
-							// Endpoint no longer halted; discard any data written while halted.
-							__atomic_signal_fence(__ATOMIC_RELEASE);
-							__atomic_store_n(&cdcacm_rptr, __atomic_load_n(&cdcacm_wptr, __ATOMIC_RELAXED), __ATOMIC_RELAXED);
-						} else {
-							// Endpoint deactivated while waiting for halt status; fall out and observe shutdown event on next outer-loop iteration.
-							break;
-						}
-					} else if (errno == ECONNRESET) {
-						// Endpoint deactivated while writing; fall out and observe shutdown event on next outer-loop iteration.
+		// Run until stopped.
+		while (!(pending_events & CDCACM_EVENT_STOP)) {
+			// If we have data to send, send it.
+			if (pending_events & CDCACM_EVENT_NEW_DATA) {
+				// Keep going until we have no more data.
+				for (;;) {
+					// Copy the read and write pointers to locals.
+					size_t rptr = cdcacm_rptr; // Non-atomic because only modified by cdcacm_task.
+					size_t wptr = __atomic_load_n(&cdcacm_wptr, __ATOMIC_RELAXED); // Atomic because modified by cdcacm_write.
+					if (wptr == rptr) {
 						break;
-					} else {
-						// Unknown reason.
-						abort();
 					}
-				}
-				__atomic_store_n(&cdcacm_rptr, rptr, __ATOMIC_RELAXED);
-			}
-		}
-	}
+					__atomic_signal_fence(__ATOMIC_ACQUIRE);
 
-	// Clean the event group, notify the other task, and die.
-	xEventGroupClearBits(cdcacm_event_group, CDCACM_EVENT_NEW_DATA | CDCACM_EVENT_SHUTTING_DOWN);
-	xEventGroupSetBits(cdcacm_event_group, CDCACM_EVENT_SHUTDOWN_DONE);
-	vTaskDelete(0);
+					// Send as much as we can in one contiguous block.
+					size_t to_send;
+					if (rptr < wptr) {
+						to_send = wptr - rptr;
+					} else {
+						to_send = CDCACM_BUFFER_SIZE - rptr;
+					}
+					if (uep_write(endpoint, &cdcacm_buffer[rptr], to_send, true)) {
+						// Data sent successfully; consume from buffer.
+						rptr += to_send;
+						if (rptr == CDCACM_BUFFER_SIZE) {
+							rptr = 0U;
+						}
+					} else {
+						// Data transmission failed; check why.
+						if (errno == EPIPE) {
+							// Endpoint halted; wait for halt status to end.
+							if (uep_halt_wait(endpoint)) {
+								// Endpoint no longer halted; discard any data written while halted.
+								__atomic_signal_fence(__ATOMIC_RELEASE);
+								__atomic_store_n(&cdcacm_rptr, __atomic_load_n(&cdcacm_wptr, __ATOMIC_RELAXED), __ATOMIC_RELAXED);
+							} else {
+								// Endpoint deactivated while waiting for halt status; fall out and observe shutdown event on next outer-loop iteration.
+								break;
+							}
+						} else if (errno == ECONNRESET) {
+							// Endpoint deactivated while writing; fall out and observe shutdown event on next outer-loop iteration.
+							break;
+						} else {
+							// Unknown reason.
+							abort();
+						}
+					}
+					__atomic_store_n(&cdcacm_rptr, rptr, __ATOMIC_RELAXED);
+				}
+			}
+			pending_events &= ~CDCACM_EVENT_NEW_DATA;
+
+			// Wait for something to happen.
+			uint32_t new_events;
+			xTaskNotifyWait(0, UINT32_MAX, &new_events, portMAX_DELAY);
+			pending_events |= new_events;
+		}
+		pending_events &= ~CDCACM_EVENT_STOP;
+
+		// Notify the other task.
+		xSemaphoreGive(cdcacm_shutdown_sem);
+	}
 }
 /**
  * \endcond
@@ -178,11 +188,10 @@ static void cdcacm_task(void *UNUSED(param)) {
  * \param[in] task_priority the priority of the CDC ACM task
  */
 void cdcacm_init(unsigned int in_data_ep_num, unsigned int task_priority) {
-	cdcacm_in_data_ep = 0x80U | in_data_ep_num;
-	cdcacm_task_priority = task_priority;
 	cdcacm_writer_mutex = xSemaphoreCreateMutex();
-	cdcacm_event_group = xEventGroupCreate();
-	assert(cdcacm_writer_mutex && cdcacm_event_group);
+	cdcacm_shutdown_sem = xSemaphoreCreateBinary();
+	BaseType_t ret = xTaskCreate(&cdcacm_task, "cdcacm", 512, (void *) (in_data_ep_num | 0x80), task_priority, &cdcacm_task_handle);
+	assert(cdcacm_writer_mutex && cdcacm_shutdown_sem && ret);
 }
 
 /**
@@ -192,12 +201,7 @@ void cdcacm_init(unsigned int in_data_ep_num, unsigned int task_priority) {
  * A suitable way to do this might be to use this function as the \c on_enter callback of a \c udev_alternate_setting_info_t structure.
  */
 void cdcacm_start(void) {
-	xSemaphoreTake(cdcacm_writer_mutex, portMAX_DELAY);
-	assert(!cdcacm_enabled);
-	cdcacm_enabled = true;
-	BaseType_t ok = xTaskCreate(&cdcacm_task, "cdcacm", 512U, 0, cdcacm_task_priority, 0);
-	assert(ok == pdPASS);
-	xSemaphoreGive(cdcacm_writer_mutex);
+	xTaskNotify(cdcacm_task_handle, CDCACM_EVENT_START, eSetBits);
 }
 
 /**
@@ -207,13 +211,8 @@ void cdcacm_start(void) {
  * A suitable way to do this might be to use this function as the \c on_exit callback of a \c udev_alternate_setting_info_t structure.
  */
 void cdcacm_stop(void) {
-	xSemaphoreTake(cdcacm_writer_mutex, portMAX_DELAY);
-	assert(cdcacm_enabled);
-	cdcacm_enabled = false;
-	xEventGroupSetBits(cdcacm_event_group, CDCACM_EVENT_SHUTTING_DOWN);
-	EventBits_t events = xEventGroupWaitBits(cdcacm_event_group, CDCACM_EVENT_SHUTDOWN_DONE, pdTRUE, pdFALSE, portMAX_DELAY);
-	assert(events & CDCACM_EVENT_SHUTDOWN_DONE);
-	xSemaphoreGive(cdcacm_writer_mutex);
+	xTaskNotify(cdcacm_task_handle, CDCACM_EVENT_STOP, eSetBits);
+	xSemaphoreTake(cdcacm_shutdown_sem, portMAX_DELAY);
 }
 
 /**
@@ -270,7 +269,7 @@ void cdcacm_write(const void *data, size_t length) {
 	}
 
 	// Notify the task.
-	xEventGroupSetBits(cdcacm_event_group, CDCACM_EVENT_NEW_DATA);
+	xTaskNotify(cdcacm_task_handle, CDCACM_EVENT_NEW_DATA, eSetBits);
 
 	xSemaphoreGive(cdcacm_writer_mutex);
 }
