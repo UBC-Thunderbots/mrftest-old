@@ -66,7 +66,7 @@ static void feedback_task(void *UNUSED(param)) {
 
 		if (bits & EVENT_SHUTDOWN) {
 			xEventGroupSetBits(event_group, EVENT_SHUTDOWN_COMPLETE);
-			vTaskDelete(0);
+			vTaskSuspend(0);
 		}
 		if (bits & EVENT_SEND_NORMAL) {
 #define PREFIX_LENGTH 2

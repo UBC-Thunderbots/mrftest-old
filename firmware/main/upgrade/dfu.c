@@ -501,7 +501,7 @@ static void upgrade_dfu_writeout_task(void *UNUSED(param)) {
 
 	dma_free(buffer_handle);
 
-	vTaskDelete(0);
+	vTaskSuspend(0);
 }
 
 /**

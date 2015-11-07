@@ -25,7 +25,7 @@
  * \li Functions using analogue inputs must be sure that their inputs have updated between ticks. The ADC has a sample period of less than 4 µs, so this is true.
  * \li External hardware must have had time to settle between ticks. The break beam’s receiver has a rise and fall time of 10 µs, so this is true.
  * \li The interrupt must be fast enough. At 8 m/s, the ball will travel 1 mm in 125 µs, which is acceptable auto-chick latency.
- * @{
+ * \{
  */
 
 #include "tick.h"
@@ -61,7 +61,7 @@
 _Static_assert(portTICK_PERIOD_MS * CONTROL_LOOP_HZ == 1000U, "Tick rate is not equal to control loop period.");
 
 static bool shutdown = false;
-static SemaphoreHandle_t shutdown_sem;
+static SemaphoreHandle_t normal_shutdown_sem;
 
 static void normal_task(void *UNUSED(param)) {
 	TickType_t last_wake = xTaskGetTickCount();
@@ -111,8 +111,8 @@ static void normal_task(void *UNUSED(param)) {
 	}
 
 	__atomic_signal_fence(__ATOMIC_ACQUIRE);
-	xSemaphoreGive(shutdown_sem);
-	vTaskDelete(0);
+	xSemaphoreGive(normal_shutdown_sem);
+	vTaskSuspend(0);
 }
 
 /**
@@ -142,7 +142,10 @@ void tick_init(void) {
 	TIM6.DIER = dier;
 	portENABLE_HW_INTERRUPT(NVIC_IRQ_TIM6_DAC);
 
-	// Fork a task to run the normal ticks.
+	// Fork a task to run the normal ticks, and a semaphore to check when it
+	// has terminated.
+	normal_shutdown_sem = xSemaphoreCreateBinary();
+	assert(normal_shutdown_sem);
 	BaseType_t ok = xTaskCreate(&normal_task, "tick-normal", 1024U, 0, PRIO_TASK_NORMAL_TICK, 0);
 	assert(ok == pdPASS);
 }
@@ -152,11 +155,8 @@ void tick_init(void) {
  */
 void tick_shutdown(void) {
 	// Instruct the normal tick task to shut down and wait for it to do so.
-	shutdown_sem = xSemaphoreCreateBinary();
-	__atomic_signal_fence(__ATOMIC_RELEASE);
 	__atomic_store_n(&shutdown, true, __ATOMIC_RELAXED);
-	xSemaphoreTake(shutdown_sem, portMAX_DELAY);
-	vSemaphoreDelete(shutdown_sem);
+	xSemaphoreTake(normal_shutdown_sem, portMAX_DELAY);
 
 	// Disable timer 6 interrupts.
 	portDISABLE_HW_INTERRUPT(NVIC_IRQ_TIM6_DAC);
@@ -186,5 +186,5 @@ void timer6_isr(void) {
 }
 
 /**
- * @}
+ * \}
  */

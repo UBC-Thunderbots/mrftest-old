@@ -238,7 +238,7 @@ static void receive_task(void *UNUSED(param)) {
 	// mrf_receive returned zero, which means a cancellation has been requested.
 	// This means we are shutting down.
 	xSemaphoreGive(shutdown_sem);
-	vTaskDelete(0);
+	vTaskSuspend(0);
 }
 
 /**

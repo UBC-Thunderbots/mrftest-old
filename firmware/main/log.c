@@ -77,7 +77,7 @@ static void log_writeout_task(void *param) {
 
 	// We have been asked to shut down, by means of a null pointer being sent over the write queue.
 	// We have already replied by putting the null pointer back on the free queue, so just die.
-	vTaskDelete(0);
+	vTaskSuspend(0);
 }
 
 /**
