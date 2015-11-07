@@ -14,7 +14,6 @@
 #include <utility>
 #include <glibmm/main.h>
 #include <sigc++/functors/mem_fun.h>
-#include <iostream>
 
 namespace {
 	/**
@@ -238,7 +237,6 @@ void MRFRobot::move_shoot(Point dest, double power, bool chip) {
 	params[3] = chick_power;
 	extra = chip;
 	dirty_drive();
-	std::cout << "move_shoot(" << dest << ',' << power << ',' << chip << ")\n";
 }
 
 void MRFRobot::move_shoot(Point dest, Angle orientation, double power, bool chip) {
@@ -252,7 +250,6 @@ void MRFRobot::move_shoot(Point dest, Angle orientation, double power, bool chip
 	params[3] = chick_power;
 	extra = static_cast<uint8_t>(2 | chip);
 	dirty_drive();
-	std::cout << "move_shoot(" << dest << ',' << orientation << ',' << power << ',' << chip << ")\n";
 }
 
 void MRFRobot::move_catch(Angle angle_diff, double displacement, double speed) {
