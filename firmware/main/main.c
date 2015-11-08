@@ -47,6 +47,7 @@
 #include <rcc.h>
 #include <semphr.h>
 #include <sleep.h>
+#include <stack.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -61,7 +62,7 @@
 
 static void stm32_main(void) __attribute__((noreturn));
 
-static unsigned long mstack[1024U] __attribute__((section(".mstack")));
+STACK_ALLOCATE(mstack, 4096);
 
 typedef void (*fptr)(void);
 static const fptr exception_vectors[16U] __attribute__((used, section(".exception_vectors"))) = {

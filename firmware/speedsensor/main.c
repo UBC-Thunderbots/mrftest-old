@@ -5,6 +5,7 @@
 #include <nvic.h>
 #include <rcc.h>
 #include <sleep.h>
+#include <stack.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -38,8 +39,7 @@ static void LCD_write( char a );
 static void tic(void);
 static void toc(void);
 
-
-static char mstack[65536] __attribute__((section(".mstack")));
+STACK_ALLOCATE(mstack, 65536);
 
 typedef void (*fptr)(void);
 static const fptr exception_vectors[16] __attribute__((used, section(".exception_vectors"))) = {

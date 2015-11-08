@@ -9,6 +9,7 @@
 #include <queue.h>
 #include <rcc.h>
 #include <semphr.h>
+#include <stack.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -47,6 +48,9 @@ static QueueHandle_t free_queue, receive_queue;
 static SemaphoreHandle_t init_shutdown_sem;
 static TaskHandle_t radio_task_handle, usb_task_handle;
 static uint16_t promisc_flags;
+
+STACK_ALLOCATE(radio_task_stack, 4096);
+STACK_ALLOCATE(usb_task_stack, 4096);
 
 static void mrf_int_isr(void) {
 	// Give the semaphore.
@@ -184,9 +188,9 @@ void promiscuous_init(void) {
 	}
 
 	// Create tasks.
-	BaseType_t ret = xTaskCreate(&radio_task, "prom_radio", 1024U, 0, 6U, &radio_task_handle);
+	BaseType_t ret = xTaskGenericCreate(&radio_task, "prom_radio", sizeof(radio_task_stack) / sizeof(*radio_task_stack), 0, 6, &radio_task_handle, radio_task_stack, 0);
 	assert(ret == pdPASS);
-	ret = xTaskCreate(&usb_task, "prom_usb", 1024U, 0, 5U, &usb_task_handle);
+	ret = xTaskGenericCreate(&usb_task, "prom_usb", sizeof(usb_task_stack) / sizeof(*usb_task_stack), 0, 5, &usb_task_handle, usb_task_stack, 0);
 	assert(ret == pdPASS);
 }
 
