@@ -88,6 +88,7 @@ static void normal_task(void *UNUSED(param)) {
 		leds_tick();
 		breakbeam_tick();
 		lps_tick();
+		
 		if (chicker_auto_fired_test_clear()) {
 			feedback_pend_autokick();
 		}
