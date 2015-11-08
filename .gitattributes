@@ -149,6 +149,8 @@ firmware/main/tbuf.h -text
 firmware/main/tick.c -text
 firmware/main/tick.h -text
 firmware/main/timers.dox -text
+firmware/main/upgrade/common.c -text
+firmware/main/upgrade/common.h -text
 firmware/main/upgrade/constants.h -text
 firmware/main/upgrade/dfu.c -text
 firmware/main/upgrade/dfu.h -text

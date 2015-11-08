@@ -4,6 +4,7 @@
  * \{
  */
 #include "fw.h"
+#include "common.h"
 #include "internal.h"
 #include "../constants.h"
 #include "../dma.h"
@@ -286,12 +287,10 @@ void upgrade_fw_check_install(void) {
 			gpio_reset(PIN_LED_STATUS);
 			gpio_reset(PIN_LED_LINK);
 			gpio_reset(PIN_LED_CHARGED);
-			// Allocate a DMA buffer for the stub.
-			dma_memory_handle_t handle = dma_alloc(SD_SECTOR_SIZE);
 			// The MPU needs to be turned off in order to allow execution of
 			// code in RAM. Also, turn off all LEDs before
 			MPU.CTRL.ENABLE = 0;
-			upgrade_fw_erase_and_copy(length, sd_is_hc(), dma_get_buffer(handle));
+			upgrade_fw_erase_and_copy(length, sd_is_hc(), upgrade_common_get_sector_dma_buffer());
 		}
 	}
 }

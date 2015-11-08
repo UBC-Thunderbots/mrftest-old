@@ -1,4 +1,5 @@
 #include "fpga.h"
+#include "common.h"
 #include "internal.h"
 #include "../dma.h"
 #include "../icb.h"
@@ -22,8 +23,7 @@ bool upgrade_fpga_check(void) {
 }
 
 bool upgrade_fpga_send(void) {
-	dma_memory_handle_t block_buffer_handle = dma_alloc(SD_SECTOR_SIZE);
-	void *block_buffer = dma_get_buffer(block_buffer_handle);
+	void *block_buffer = upgrade_common_get_sector_dma_buffer();
 	bool ok = true;
 	uint32_t next_sector = UPGRADE_FPGA_FIRST_SECTOR + 1;
 	size_t length_left = upgrade_fpga_length;
@@ -34,7 +34,6 @@ bool upgrade_fpga_send(void) {
 			length_left -= MIN(SD_SECTOR_SIZE, length_left);
 		}
 	}
-	dma_free(block_buffer_handle);
 	return ok;
 }
 

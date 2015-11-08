@@ -223,6 +223,7 @@
  * \{
  */
 #include "dfu.h"
+#include "common.h"
 #include "internal.h"
 #include "../constants.h"
 #include "../dma.h"
@@ -349,13 +350,9 @@ static struct {
  */
 static void upgrade_dfu_writeout_task(void *UNUSED(param)) {
 	bool prepared = false, running = true, erased = false;
-	dma_memory_handle_t buffer_handle;
-	uint8_t *buffer;
 	size_t buffer_used = 0;
 	uint32_t byte_count, crc, start_sector = 0, next_sector = 0, header_magic, header_flags;
-
-	buffer_handle = dma_alloc(SD_SECTOR_SIZE);
-	buffer = dma_get_buffer(buffer_handle);
+	char *buffer = upgrade_common_get_sector_dma_buffer();
 
 	while (running) {
 		upgrade_dfu_writeout_job_t job;
@@ -498,8 +495,6 @@ static void upgrade_dfu_writeout_task(void *UNUSED(param)) {
 			xQueueSend(upgrade_dfu_writeout_iface.response_queue, &job, portMAX_DELAY);
 		}
 	}
-
-	dma_free(buffer_handle);
 
 	vTaskSuspend(0);
 }
