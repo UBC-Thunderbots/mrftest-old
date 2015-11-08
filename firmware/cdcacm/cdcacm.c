@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <minmax.h>
 #include <semphr.h>
+#include <stack.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -86,6 +87,8 @@ static SemaphoreHandle_t cdcacm_shutdown_sem;
  * \brief The handle of the task operating on the USB endpoint.
  */
 static TaskHandle_t cdcacm_task_handle;
+
+STACK_ALLOCATE(cdcacm_task_stack, 4096);
 
 _Static_assert(INCLUDE_vTaskSuspend == 1, "vTaskSuspend must be included, because otherwise mutex taking can time out!");
 
@@ -190,7 +193,7 @@ static void cdcacm_task(void *param) {
 void cdcacm_init(unsigned int in_data_ep_num, unsigned int task_priority) {
 	cdcacm_writer_mutex = xSemaphoreCreateMutex();
 	cdcacm_shutdown_sem = xSemaphoreCreateBinary();
-	BaseType_t ret = xTaskCreate(&cdcacm_task, "cdcacm", 512, (void *) (in_data_ep_num | 0x80), task_priority, &cdcacm_task_handle);
+	BaseType_t ret = xTaskGenericCreate(&cdcacm_task, "cdcacm", sizeof(cdcacm_task_stack) / sizeof(*cdcacm_task_stack), (void *) (in_data_ep_num | 0x80), task_priority, &cdcacm_task_handle, cdcacm_task_stack, 0);
 	assert(cdcacm_writer_mutex && cdcacm_shutdown_sem && ret);
 }
 

@@ -170,6 +170,8 @@ static bool usb_control_handler(const usb_setup_packet_t *pkt) {
 	return false;
 }
 
+STACK_ALLOCATE(usb_task_stack, 4096);
+
 static const udev_info_t USB_INFO = {
 	.flags = {
 		.vbus_sensing = 0,
@@ -177,7 +179,8 @@ static const udev_info_t USB_INFO = {
 		.self_powered = 0,
 	},
 	.internal_task_priority = 4U,
-	.internal_task_stack_size = 1024U,
+	.internal_task_stack = usb_task_stack,
+	.internal_task_stack_size = sizeof(usb_task_stack),
 	.receive_fifo_words = 10U /* SETUP packets */ + 1U /* Global OUT NAK status */ + ((64U / 4U) + 1U) * 2U /* Packets */ + 4U /* Transfer complete status */,
 	.device_descriptor = {
 		.bLength = sizeof(usb_device_descriptor_t),

@@ -19,6 +19,7 @@
 #include <FreeRTOS.h>
 #include <assert.h>
 #include <queue.h>
+#include <stack.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <task.h>
@@ -44,6 +45,7 @@ static log_sector_t *filling_sector;
 static unsigned int next_fill_record;
 static unsigned int total_records;
 static sd_status_t last_error = SD_STATUS_OK;
+STACK_ALLOCATE(log_writeout_task_stack, 4096);
 
 static void log_writeout_task(void *param) {
 	// Shovel records.
@@ -191,7 +193,7 @@ bool log_init(void) {
 
 	// Launch the writeout task.
 	{
-		BaseType_t rc = xTaskCreate(&log_writeout_task, "log-writeout", 512U, (void *) next_write_sector, PRIO_TASK_LOG_WRITEOUT, 0);
+		BaseType_t rc = xTaskGenericCreate(&log_writeout_task, "log-writeout", sizeof(log_writeout_task_stack) / sizeof(*log_writeout_task_stack), (void *) next_write_sector, PRIO_TASK_LOG_WRITEOUT, 0, log_writeout_task_stack, 0);
 		assert(rc == pdPASS);
 	}
 

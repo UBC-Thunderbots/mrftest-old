@@ -26,6 +26,7 @@
 #include <FreeRTOS.h>
 #include <assert.h>
 #include <semphr.h>
+#include <stack.h>
 #include <task.h>
 #include <unused.h>
 
@@ -44,6 +45,7 @@ static uint8_t *dma_buffer;
 static SemaphoreHandle_t shutdown_sem, drive_mtx;
 static unsigned int timeout_ticks;
 static uint8_t last_serial = 0xFF;
+STACK_ALLOCATE(receive_task_stack, 4096);
 
 static void receive_task(void *UNUSED(param)) {
 	uint16_t last_sequence_number = 0xFFFFU;
@@ -256,7 +258,7 @@ void receive_init(unsigned int index) {
 	assert(dma_buffer_handle);
 	dma_buffer = dma_get_buffer(dma_buffer_handle);
 
-	BaseType_t ok = xTaskCreate(&receive_task, "rx", 512U, 0, PRIO_TASK_RX, 0);
+	BaseType_t ok = xTaskGenericCreate(&receive_task, "rx", sizeof(receive_task_stack) / sizeof(*receive_task_stack), 0, PRIO_TASK_RX, 0, receive_task_stack, 0);
 	assert(ok == pdPASS);
 }
 

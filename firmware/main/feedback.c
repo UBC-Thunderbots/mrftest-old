@@ -28,6 +28,7 @@
 #include <event_groups.h>
 #include <math.h>
 #include <minmax.h>
+#include <stack.h>
 #include <string.h>
 #include <unused.h>
 
@@ -45,6 +46,7 @@ static EventGroupHandle_t event_group;
 static unsigned int has_ball_antispam_ticks = 0U;
 static bool has_ball_after_antispam = false;
 static bool build_ids_pending = false;
+STACK_ALLOCATE(feedback_task_stack, 4096);
 
 static void feedback_task(void *UNUSED(param)) {
 	static uint8_t nullary_frame[] = {
@@ -204,7 +206,7 @@ static void feedback_task(void *UNUSED(param)) {
 void feedback_init(void) {
 	event_group = xEventGroupCreate();
 	assert(event_group);
-	BaseType_t ok = xTaskCreate(&feedback_task, "feedback", 512U, 0, PRIO_TASK_FEEDBACK, 0);
+	BaseType_t ok = xTaskGenericCreate(&feedback_task, "feedback", sizeof(feedback_task_stack) / sizeof(*feedback_task_stack), 0, PRIO_TASK_FEEDBACK, 0, feedback_task_stack, 0);
 	assert(ok == pdPASS);
 }
 

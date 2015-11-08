@@ -804,7 +804,7 @@ void udev_init(const udev_info_t *info) {
 				uep_eps[i].bytes_left = 0U;
 				uep_eps[i].async_cb = 0;
 			}
-			if (!xTaskCreate(&udev_task, "usb", info->internal_task_stack_size, 0, info->internal_task_priority, &udev_task_handle)) {
+			if (!xTaskGenericCreate(&udev_task, "usb", info->internal_task_stack_size / sizeof(unsigned long), 0, info->internal_task_priority, &udev_task_handle, info->internal_task_stack, 0)) {
 				abort();
 			}
 			break;

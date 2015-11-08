@@ -715,9 +715,14 @@ typedef struct {
 	unsigned long internal_task_priority;
 
 	/**
-	 * \brief The size of the stack for the internal task, in words.
+	 * \brief The stack for the internal task.
 	 */
-	unsigned short internal_task_stack_size;
+	void *internal_task_stack;
+
+	/**
+	 * \brief The size of the stack for the internal task, in bytes.
+	 */
+	size_t internal_task_stack_size;
 
 	/**
 	 * \brief The size of the receive FIFO, in words.

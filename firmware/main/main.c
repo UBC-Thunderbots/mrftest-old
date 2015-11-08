@@ -63,6 +63,7 @@
 static void stm32_main(void) __attribute__((noreturn));
 
 STACK_ALLOCATE(mstack, 4096);
+STACK_ALLOCATE(main_task_stack, 4096);
 
 typedef void (*fptr)(void);
 static const fptr exception_vectors[16U] __attribute__((used, section(".exception_vectors"))) = {
@@ -205,6 +206,8 @@ static bool usb_control_handler(const usb_setup_packet_t *pkt) {
 	return false;
 }
 
+STACK_ALLOCATE(usb_task_stack, 4096);
+
 static const udev_info_t USB_INFO = {
 	.flags = {
 		.vbus_sensing = 1,
@@ -212,7 +215,8 @@ static const udev_info_t USB_INFO = {
 		.self_powered = 1,
 	},
 	.internal_task_priority = PRIO_TASK_USB,
-	.internal_task_stack_size = 1024U,
+	.internal_task_stack = usb_task_stack,
+	.internal_task_stack_size = sizeof(usb_task_stack),
 	.receive_fifo_words = 10U /* SETUP packets */ + 1U /* Global OUT NAK status */ + ((64U / 4U) + 1U) * 2U /* Packets */ + 4U /* Transfer complete status */,
 	.device_descriptor = {
 		.bLength = sizeof(usb_device_descriptor_t),
@@ -307,7 +311,7 @@ static void stm32_main(void) {
 	gpio_init(PINS_INIT, sizeof(PINS_INIT) / sizeof(*PINS_INIT));
 
 	// Get into FreeRTOS.
-	BaseType_t ok = xTaskCreate(&main_task, "main", 512U, 0, PRIO_TASK_SUPERVISOR, 0);
+	BaseType_t ok = xTaskGenericCreate(&main_task, "main", sizeof(main_task_stack) / sizeof(*main_task_stack), 0, PRIO_TASK_SUPERVISOR, 0, main_task_stack, 0);
 	assert(ok == pdPASS);
 	vTaskStartScheduler();
 	__builtin_unreachable();

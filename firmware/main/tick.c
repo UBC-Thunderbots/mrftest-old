@@ -53,6 +53,7 @@
 #include <nvic.h>
 #include <rcc.h>
 #include <semphr.h>
+#include <stack.h>
 #include <task.h>
 #include <unused.h>
 #include <registers/timer.h>
@@ -62,6 +63,7 @@ _Static_assert(portTICK_PERIOD_MS * CONTROL_LOOP_HZ == 1000U, "Tick rate is not 
 
 static bool shutdown = false;
 static SemaphoreHandle_t normal_shutdown_sem;
+STACK_ALLOCATE(normal_task_stack, 4096);
 
 static void normal_task(void *UNUSED(param)) {
 	TickType_t last_wake = xTaskGetTickCount();
@@ -147,7 +149,7 @@ void tick_init(void) {
 	// has terminated.
 	normal_shutdown_sem = xSemaphoreCreateBinary();
 	assert(normal_shutdown_sem);
-	BaseType_t ok = xTaskCreate(&normal_task, "tick-normal", 1024U, 0, PRIO_TASK_NORMAL_TICK, 0);
+	BaseType_t ok = xTaskGenericCreate(&normal_task, "tick-normal", sizeof(normal_task_stack) / sizeof(*normal_task_stack), 0, PRIO_TASK_NORMAL_TICK, 0, normal_task_stack, 0);
 	assert(ok == pdPASS);
 }
 

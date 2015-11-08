@@ -31,6 +31,7 @@
 #include <portmacro.h>
 #include <rcc.h>
 #include <semphr.h>
+#include <stack.h>
 #include <string.h>
 #include <task.h>
 #include <unused.h>
@@ -155,6 +156,8 @@ static void (*irq_handlers[ICB_IRQ_COUNT])(void);
 
 volatile TickType_t start_data_time, last_tx_isr_time, last_rx_isr_time;
 volatile unsigned int start_data_count, end_data_count, start_data_tx_isr_count, start_data_rx_isr_count, tx_isr_count, rx_isr_count;
+
+STACK_ALLOCATE(irq_task_stack, 4096);
 
 /**
  * \brief Takes the simultaneous-access mutex.
@@ -729,7 +732,7 @@ void icb_irq_init(void) {
 	icb_irq_set_vector(ICB_IRQ_ICB_CRC, &icb_crc_error_isr);
 
 	// Start the IRQ dispatching task.
-	BaseType_t ok = xTaskCreate(&irq_task, "icb-irq", 512U, 0, PRIO_TASK_ICB_IRQ, 0);
+	BaseType_t ok = xTaskGenericCreate(&irq_task, "icb-irq", sizeof(irq_task_stack) / sizeof(*irq_task_stack), 0, PRIO_TASK_ICB_IRQ, 0, irq_task_stack, 0);
 	assert(ok == pdPASS);
 }
 
