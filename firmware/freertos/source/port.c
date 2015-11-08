@@ -1,3 +1,86 @@
+// Stack frame format, FPU not in use:
+//
+// Hardware:
+// xPSR
+// Return address
+// LR
+// R12
+// R3
+// R2
+// R1
+// R0
+//
+// Software:
+// R11
+// R10
+// R9 ← Here and below may be covered by stack guard.
+// R8
+// R7
+// R6
+// R5
+// R4
+// Exception return code
+// Stack guard RBAR
+//
+//
+//
+// Stack frame format, FPU in use:
+//
+// Hardware:
+// FPSCR
+// S15
+// S14
+// S13
+// S12
+// S11
+// S10
+// S9
+// S8
+// S7
+// S6
+// S5
+// S4
+// S3
+// S2
+// S1
+// S0
+// xPSR
+// Return address
+// LR
+// R12
+// R3
+// R2
+// R1
+// R0
+//
+// Software:
+// S31
+// S30
+// S29
+// S28
+// S27
+// S26
+// S25
+// S24
+// S23
+// S22
+// S21
+// S20
+// S19
+// S18
+// S17
+// S16
+// R11
+// R10
+// R9 ← Here and below may be covered by stack guard.
+// R8
+// R7
+// R6
+// R5
+// R4
+// Exception return code
+// Stack guard RBAR
+
 #include <assert.h>
 #include <FreeRTOS.h>
 #include <exception.h>
@@ -11,62 +94,9 @@
 #include <registers/nvic.h>
 #include <registers/systick.h>
 
-typedef struct {
-	unsigned long r0;
-	unsigned long r1;
-	unsigned long r2;
-	unsigned long r3;
-	unsigned long r12;
-	unsigned long lr;
-	unsigned long return_address;
-	unsigned long xpsr;
-} basic_hw_frame_t;
-
-typedef struct {
-	void *stack_guard_rbar;
-	MPU_RASR_t stack_guard_rasr;
-	unsigned long r4;
-	unsigned long r5;
-	unsigned long r6;
-	unsigned long r7;
-	unsigned long r8;
-	unsigned long r9;
-	unsigned long r10;
-	unsigned long r11;
-	unsigned long lr;
-} basic_sw_frame_t;
-
-
-
-extern char linker_mstack_vma, linker_mstack_vma_end;
-
 // Layout of the CCM itself.
 #define CCM_BASE 0x10000000U
 #define CCM_SIZE 65536U
-
-// Size of a CCM block header, which also defines the minimum alignment requirements.
-#define CCM_BLOCK_HEADER_SIZE 32U
-
-// Layout of a CCM block header.
-typedef struct {
-	// Size of this block, including header.
-	size_t size;
-	// Size of the preceding block, including header (zero if no preceding block).
-	size_t prev_size;
-	// Whether this block is allocated or not.
-	bool allocated;
-} ccm_block_header_t;
-
-// Accessors to visit CCM headers and move between header and data areas.
-#define CCM_FIRST_HEADER() ((ccm_block_header_t *) &linker_mstack_vma_end)
-#define CCM_NEXT_HEADER(h) (((unsigned int) h) + h->size >= (CCM_BASE + CCM_SIZE) ? (ccm_block_header_t *) 0 : (ccm_block_header_t *) (((char *) h) + h->size))
-#define CCM_PREV_HEADER(h) (h->prev_size ? (ccm_block_header_t *) (((char *) h) - h->prev_size) : (ccm_block_header_t *) 0)
-#define CCM_HEADER_GET_DATA(h) (((char *) h) + CCM_BLOCK_HEADER_SIZE)
-#define CCM_DATA_IS_CCM(d) (((unsigned int) d) >= CCM_BASE && ((unsigned int) d) < CCM_BASE + CCM_SIZE)
-#define CCM_DATA_GET_HEADER(d) (CCM_DATA_IS_CCM(d) ? (ccm_block_header_t *) (((char *) d) - CCM_BLOCK_HEADER_SIZE) : (ccm_block_header_t *) 0)
-
-// Whether or not the CCM arena has been initialized.
-static volatile bool ccm_arena_initialized = false;
 
 // Nesting level of critical sections.
 static unsigned int critical_section_nesting = 0xAAAAAAAAU;
@@ -125,226 +155,70 @@ static const MPU_RASR_t ZERO_RASR = { .ENABLE = 0 };
 
 
 
-static MPU_RASR_t disable_guard_region(void) {
-	// Save the old value of the RASR.
-	MPU_RASR_t old_rasr = MPU.RASR;
-	// Disable the MPU region that traps accesses to the guard region. In the
-	// normal case, we are executing in the context of a task that has a stack
-	// in the CCM, in which case RNR points at the stack guard MPU region and
-	// RASR is enabled. In case we are executing in the context of a task that
-	// has a stack outside the CCM, there is no guard region, and RNR points at
-	// the MPU region with RASR disabled. In the obscure case of creating the
-	// first task before starting the scheduler, the entire MPU is disabled, we
-	// don’t know what value is in RNR, and we don’t care because we will
-	// simply save a disabled RASR, re-disable it, and then restore it to its
-	// original disabled state later.
-	MPU.RASR = ZERO_RASR;
-	// ARMv7-M Architecture Reference Manual A3.7.3 (Memory barriers),
-	// Synchronization requirements for System Control Space updates, states
-	// that a DSB followed by an ISB is necessary to ensure subsequent
-	// instructions are executed in a manner that reflects the effect an access
-	// to the system control space that performs a context-altering operation.
-	// Cortex-M4 Devices Generic User Guide 2.2.4 (Software ordering of memory
-	// access), MPU programming, confirms that this requirement extends to
-	// programming the MPU.
-	asm volatile("dsb\n\tisb");
-	// Do not allow the compiler to hoist subsequent accesses to normal,
-	// non-volatile-qualified memory (such as that in the guard region) above
-	// this point, where it would fault.
-	__atomic_signal_fence(__ATOMIC_ACQUIRE);
-	return old_rasr;
-}
-
-static void enable_guard_region(MPU_RASR_t old_rasr) {
-	// Do not allow the compiler to sink prior accesses to normal,
-	// non-volatile-qualified memory (such as that in the guard region) below
-	// this point, where it would fault.
-	__atomic_signal_fence(__ATOMIC_RELEASE);
-	// Restore the old value of the RASR.
-	MPU.RASR = old_rasr;
-	// ARMv7-M Architecture Reference Manual A3.7.3 (Memory barriers),
-	// Synchronization requirements for System Control Space updates, states
-	// that a DSB followed by an ISB is necessary to ensure subsequent
-	// instructions are executed in a manner that reflects the effect an access
-	// to the system control space that performs a context-altering operation.
-	// Cortex-M4 Devices Generic User Guide 2.2.4 (Software ordering of memory
-	// access), MPU programming, confirms that this requirement extends to
-	// programming the MPU.
-	asm volatile("dsb\n\tisb");
-}
-
-
-
 void *pvPortMallocAligned(size_t size, void *buffer) {
-	// If memory has already been allocated, there is no point doing more allocation.
 	if (buffer) {
 		return buffer;
 	}
 
-	// Initialize CCM arena if not done yet.
-	if (!ccm_arena_initialized) {
-		ccm_block_header_t *h = CCM_FIRST_HEADER();
-		h->size = ((char *) (CCM_BASE + CCM_SIZE)) - (char *) h;
-		h->prev_size = 0U;
-		h->allocated = false;
-		ccm_arena_initialized = true;
+	size = (size + 31) / 32 * 32;
+
+	extern char linker_dynstack_vma;
+	static char * volatile next = &linker_dynstack_vma;
+	vTaskSuspendAll();
+	char *old_next = next;
+	char *ret = old_next;
+	char *new_next = old_next + size;
+	if ((unsigned long) new_next > (CCM_BASE + CCM_SIZE)) {
+		ret = 0;
+		new_next = old_next;
 	}
-
-	// Round up to nearest multiple of block header size (to keep all block headers aligned), then add block header size to have space for this block’s header.
-	size_t needed_size = (size + CCM_BLOCK_HEADER_SIZE - 1U) / CCM_BLOCK_HEADER_SIZE * CCM_BLOCK_HEADER_SIZE + CCM_BLOCK_HEADER_SIZE;
-
-	// Disable interrupts and enable access to guard region while manipulating data structures.
-	unsigned long old_imask = portSET_INTERRUPT_MASK_FROM_ISR();
-	MPU_RASR_t old_rasr = disable_guard_region();
-
-	// Find best fit.
-	ccm_block_header_t *best = 0;
-	for (ccm_block_header_t *i = CCM_FIRST_HEADER(); i; i = CCM_NEXT_HEADER(i)) {
-		if (!i->allocated && i->size >= needed_size) {
-			if (!best || i->size < best->size) {
-				best = i;
-			}
-		}
-	}
-	if (best) {
-		// Split this block if it’s larger than we need.
-		if (best->size > needed_size) {
-			ccm_block_header_t *following = CCM_NEXT_HEADER(best);
-			if (following) {
-				assert(following->allocated); // If this fails, the adjacent-block coalescing algorithm is broken!
-			}
-			ccm_block_header_t *new = (ccm_block_header_t *) (((char *) best) + needed_size);
-			new->size = best->size - needed_size;
-			if (following) {
-				following->prev_size = new->size;
-			}
-			new->prev_size = best->size = needed_size;
-			new->allocated = false;
-		}
-
-		// Mark this block as allocated.
-		best->allocated = true;
-
-		buffer = CCM_HEADER_GET_DATA(best);
-	}
-
-	// Restore the guard region and interrupts.
-	enable_guard_region(old_rasr);
-	portCLEAR_INTERRUPT_MASK_FROM_ISR(old_imask);
-
-	// Defer to the main allocator if we are out of CCM.
-	if (!buffer) {
-		buffer = pvPortMalloc(size);
-	}
-
-	return buffer;
+	next = new_next;
+	xTaskResumeAll();
+	return ret;
 }
 
 void vPortFreeAligned(void *buffer) {
-	if (CCM_DATA_IS_CCM(buffer)) {
-		// Disable interrupts and enable access to guard region while manipulating data structures.
-		unsigned long old_imask = portSET_INTERRUPT_MASK_FROM_ISR();
-		MPU_RASR_t old_rasr = disable_guard_region();
-
-		// Convert the data pointer into a header pointer.
-		ccm_block_header_t *h = CCM_DATA_GET_HEADER(buffer);
-
-		// Mark this region as free.
-		h->allocated = false;
-
-		// Consider coalescing the region.
-		ccm_block_header_t *prev = CCM_PREV_HEADER(h);
-		ccm_block_header_t *next = CCM_NEXT_HEADER(h);
-		if (prev && !prev->allocated) {
-			if (next) {
-				next->prev_size += prev->size;
-			}
-			prev->size += h->size;
-			h = prev;
-		}
-		if (next && !next->allocated) {
-			ccm_block_header_t *next_next = CCM_NEXT_HEADER(next);
-			if (next_next) {
-				next_next->prev_size += h->size;
-			}
-			h->size += next->size;
-		}
-
-		// Restore the guard region and interrupts.
-		enable_guard_region(old_rasr);
-		portCLEAR_INTERRUPT_MASK_FROM_ISR(old_imask);
-	} else {
-		vPortFree(buffer);
-	}
+	assert(!buffer);
 }
 
-static ccm_block_header_t *ccm_find_header(void *data) {
-	// Disable interrupts and enable access to guard region while manipulating data structures.
-	unsigned long old_imask = portSET_INTERRUPT_MASK_FROM_ISR();
-	MPU_RASR_t old_rasr = disable_guard_region();
+void *pvPortMalloc(size_t size) {
+	return malloc(size);
+}
 
-	// Scan the headers until finding the right one.
-	ccm_block_header_t *best = 0;
-	for (ccm_block_header_t *i = CCM_FIRST_HEADER(); i; i = CCM_NEXT_HEADER(i)) {
-		if (((char *) i) < (char *) data) {
-			best = i;
-		} else {
-			break;
-		}
-	}
-
-	// Restore the guard region and interrupts.
-	MPU.RASR = old_rasr;
-	portCLEAR_INTERRUPT_MASK_FROM_ISR(old_imask);
-
-	return best;
+void vPortFree(void *buffer) {
+	free(buffer);
 }
 
 
 
 unsigned long *pxPortInitialiseStack(unsigned long *tos, TaskFunction_t code, void *params) {
-	// xTaskGenericCreate subtracts one word from TOS, then rounds down to alignment.
-	// In our case, this means it subtracts two words (eight bytes).
-	// ARM CPUs in particular have predecrement stack pointers, so that’s pointless.
-	// Fix it, to avoid wasting space!
-	tos += 2;
+	// xTaskGenericCreate subtracts one word from TOS, then rounds down to
+	// alignment. In our case, this means it subtracts 32 bytes. ARM CPUs in
+	// particular have predecrement stack pointers, so that’s pointless. Fix
+	// it, to avoid wasting space!
+	tos += portBYTE_ALIGNMENT / sizeof(unsigned long);
 
-	// Allocate a hardware and software frame on the stack.
-	tos -= sizeof(basic_hw_frame_t) / sizeof(*tos);
-	basic_hw_frame_t *hwf = (basic_hw_frame_t *) tos;
-	tos -= sizeof(basic_sw_frame_t) / sizeof(*tos);
-	basic_sw_frame_t *swf = (basic_sw_frame_t *) tos;
+	// Push a hardware frame.
+	*--tos = 0x01000000UL; // xPSR
+	*--tos = (unsigned long) code; // Return address
+	*--tos = 0; // LR
+	*--tos = 0; // R12
+	*--tos = 0; // R3
+	*--tos = 0; // R2
+	*--tos = 0; // R1
+	*--tos = (unsigned long) params; // R0
 
-	// Fill the basic parts of the frames.
-	hwf->r0 = (unsigned long) params;
-	hwf->r1 = hwf->r2 = hwf->r3 = hwf->r12 = 0UL;
-	hwf->lr = 0xFFFFFFFFUL;
-	hwf->return_address = (unsigned long) code;
-	hwf->xpsr = 0x01000000UL;
-	swf->r4 = swf->r5 = swf->r6 = swf->r7 = swf->r8 = swf->r9 = swf->r10 = swf->r11 = 0UL;
-	swf->lr = 0xFFFFFFFDUL; // Return to thread mode, process stack, basic frame
-
-	// Compute where the stack overflow guard region should be.
-	// This will be the bottom bytes of the stack region.
-	if (CCM_DATA_IS_CCM(tos)) {
-		// Find out the address of the block header and place the guard region over it.
-		ccm_block_header_t *header = ccm_find_header(tos);
-		swf->stack_guard_rbar = header;
-		{
-#define MPU_REGION_SIZE 4U
-			_Static_assert(1U << (MPU_REGION_SIZE + 1U) == CCM_BLOCK_HEADER_SIZE, "MPU guard region size does not match CCM block header size!");
-			MPU_RASR_t rasr = { .XN = 1, .AP = 0b000, .SRD = 0, .SIZE = MPU_REGION_SIZE, .ENABLE = 1 };
-#undef MPU_REGION_SIZE
-			swf->stack_guard_rasr = rasr;
-		}
-	} else {
-		// Stack isn’t in CCM, so there will be no guard region.
-		swf->stack_guard_rbar = 0;
-		{
-			MPU_RASR_t rasr = { .ENABLE = 0 };
-			swf->stack_guard_rasr = rasr;
-		}
-	}
+	// Push a software frame.
+	*--tos = 0; // R11
+	*--tos = 0; // R10
+	*--tos = 0; // R9
+	*--tos = 0; // R8
+	*--tos = 0; // R7
+	*--tos = 0; // R6
+	*--tos = 0; // R5
+	*--tos = 0; // R4
+	*--tos = 0xFFFFFFFDUL; // Exception return code
+	*--tos = 0; // Stack guard RBAR (filled in portSETUP_TCB)
 
 	return tos;
 }
@@ -357,18 +231,6 @@ void __malloc_lock(void) {
 
 void __malloc_unlock(void) {
 	xTaskResumeAll();
-}
-
-
-
-void *pvPortMalloc(size_t size) {
-	// Defer to newlib.
-	return malloc(size);
-}
-
-void vPortFree(void *pv) {
-	// Defer to newlib.
-	free(pv);
 }
 
 
@@ -497,7 +359,7 @@ void vPortSVCHandler(void) {
 		CPACR = cpacr;
 	}
 
-	// Enable MPU and drop in the common regions.
+	// Configure common MPU regions.
 	for (size_t i = 0; i < sizeof(COMMON_MPU_REGIONS) / sizeof(*COMMON_MPU_REGIONS); ++i) {
 		MPU_RNR_t rnr = { .REGION = i };
 		MPU.RNR = rnr;
@@ -505,6 +367,20 @@ void vPortSVCHandler(void) {
 		MPU.RBAR = rbar;
 		MPU.RASR = COMMON_MPU_REGIONS[i].rasr;
 	}
+
+	// Leave MPU_RNR set to the CCM stack guard region number. Set up the RASR.
+	// Point RBAR at zero for now, until we can load a proper value from a task
+	// stack.
+	{
+		MPU_RNR_t rnr = { .REGION = STACK_GUARD_MPU_REGION };
+		MPU.RNR = rnr;
+		MPU_RBAR_t rbar = { .ADDR = 0, .VALID = 0, .REGION = 0 };
+		MPU.RBAR = rbar;
+		MPU_RASR_t rasr = { .XN = 1, .AP = 0, .SRD = 0, .SIZE = 4, .ENABLE = 1 };
+		MPU.RASR = rasr;
+	}
+
+	// Enable the MPU.
 	{
 		MPU_CTRL_t ctrl = {
 			.PRIVDEFENA = 0,
@@ -512,13 +388,6 @@ void vPortSVCHandler(void) {
 			.ENABLE = 1,
 		};
 		MPU.CTRL = ctrl;
-	}
-
-	// Leave MPU_RNR set to the CCM stack guard region number.
-	// This will be used by the task switcher.
-	{
-		MPU_RNR_t rnr = { .REGION = STACK_GUARD_MPU_REGION };
-		MPU.RNR = rnr;
 	}
 
 	// Ensure the compiler cannot sink any non-volatile-qualified memory writes
@@ -544,9 +413,10 @@ void vPortSVCHandler(void) {
 			// PSP is guaranteed to be visible by the time the exception return
 			// procedure begins.
 			// Restore software frame from process stack.
-			"ldmia r0!, {r2-r11, lr}\n\t"
-			"ldr r1, =0xE000ED9C\n\t" // MPU_RBAR
-			"stm r1, {r2-r3}\n\t"
+			"ldr r1, =0xE000ED9C\n\t" // R1 = &MPU_RBAR
+			"ldmia r0!, {r2, lr}\n\t"
+			"ldmia r0!, {r4-r11}\n\t"
+			"str r2, [r1]\n\t"
 			// Cortex-M4 Devices Generic User Guide 2.2.4 (Software ordering of
 			// memory accesses), MPU programming, states that one must “use a
 			// DSB followed by an ISB instruction or exception return to ensure
@@ -583,13 +453,24 @@ void vPortPendSVHandler(void) {
 	asm volatile(
 			// Make software frame on process stack.
 			// See the explanation in vPortSVCHandlerImpl for how we deal with floating point registers.
-			"ldr r0, =0xE000ED9C\n\t" // MPU_RBAR
-			"ldm r0, {r1-r2}\n\t"
 			"mrs r0, psp\n\t"
+			"ldr r1, =0xE000ED9C\n\t" // R1 = &MPU_RBAR
 			"tst lr, #16\n\t"
 			"it eq\n\t"
 			"vstmdbeq r0!, {s16-s31}\n\t"
-			"stmdb r0!, {r1-r2,r4-r11, lr}\n\t"
+			"stmdb r0!, {r10-r11}\n\t"
+			"ldr r2, [r1]\n\t" // Stack guard RBAR → R2
+			"mov r3, #0\n\t"
+			"str r3, [r1]\n\t" // Disable stack guard
+			// Cortex-M4 Devices Generic User Guide 2.2.4 (Software ordering of
+			// memory accesses), MPU programming, states that one must “use a
+			// DSB followed by an ISB instruction or exception return to ensure
+			// that the new MPU configuration is used by subsequent
+			// instructions.”
+			"dsb\n\t"
+			"isb\n\t"
+			"stmdb r0!, {r4-r9}\n\t"
+			"stmdb r0!, {r2, lr}\n\t"
 			// Write new top of stack pointer into TCB.
 			"ldr r1, =pxCurrentTCB\n\t"
 			"ldr r1, [r1]\n\t"
@@ -614,16 +495,17 @@ void vPortPendSVHandler(void) {
 			// visible before that or not, so no ISB is needed here.
 			// Read the new top of stack pointer from TCB.
 			"ldr r0, =pxCurrentTCB\n\t"
+			"ldr r1, =0xE000ED9C\n\t" // R1 = &MPU_RBAR
 			"ldr r0, [r0]\n\t"
 			"ldr r0, [r0]\n\t"
 			// Restore software frame from process stack.
-			// See the explanation in vPortSVCHandlerImpl for how we deal with floating point registers.
-			"ldmia r0!, {r2-r11, lr}\n\t"
+			"ldmia r0!, {r2, lr}\n\t" // R2 = Stack guard RBAR
+			"ldmia r0!, {r4-r11}\n\t"
 			"tst lr, #16\n\t"
 			"it eq\n\t"
 			"vldmiaeq r0!, {s16-s31}\n\t"
-			"ldr r1, =0xE000ED9C\n\t" // MPU_RBAR
-			"stm r1, {r2-r3}\n\t"
+			// Enable stack guard.
+			"str r2, [r1]\n\t"
 			// Cortex-M4 Devices Generic User Guide 2.2.4 (Software ordering of
 			// memory accesses), MPU programming, states that one must “use a
 			// DSB followed by an ISB instruction or exception return to ensure

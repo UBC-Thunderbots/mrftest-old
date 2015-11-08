@@ -60,9 +60,11 @@ SECTIONS {
 	} >ccm_region AT>ccm_region
 
 	/* Stacks will go in CCM. */
-	stacks (NOLOAD) : {
+	stacks (NOLOAD) : ALIGN(32) {
 		*(stacks)
 	} >ccm_region AT>ccm_region
+	. = ALIGN(32);
+	linker_dynstack_vma = .;
 }
 
 /* Provide symbols that the startup code uses to find the various sections in memory to initialize the data and wipe the bss */
@@ -79,9 +81,6 @@ linker_bss_size = SIZEOF(.bss);
 
 linker_heap_vma = ADDR(.heap);
 linker_heap_vma_end = ADDR(.heap) + SIZEOF(.heap);
-
-linker_mstack_vma = ADDR(.mstack);
-linker_mstack_vma_end = ADDR(.mstack) + SIZEOF(.mstack);
 
 /* Provide symbols for CPU registers */
 ADC = 0x40012000;

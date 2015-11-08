@@ -30,8 +30,8 @@ typedef unsigned long TickType_t;
 // The tick interval, in milliseconds.
 #define portTICK_PERIOD_MS (1000UL / configTICK_RATE_HZ)
 
-// Stacks will be eight-byte aligned.
-#define portBYTE_ALIGNMENT 8U
+// Stacks will be 32-byte aligned.
+#define portBYTE_ALIGNMENT 32
 
 // The type of a task function.
 #define portTASK_FUNCTION_PROTO(fn, params) void fn(void *params)
@@ -168,6 +168,12 @@ void vPortSVCHandler(void);
 void vPortPendSVHandler(void);
 void vPortSysTickHandler(void);
 
+// Initializes the stack guard based on the bottom of the task stack.
+#define portSETUP_TCB(tcb) \
+do { \
+	*tcb->pxTopOfStack = (unsigned long) tcb->pxStack; \
+} while (0)
+
 // Functionality used by tasks.c to optimize task selection if requested.
 // If not otherwise specified, we will enable optimized task selection.
 #ifndef configUSE_PORT_OPTIMISED_TASK_SELECTION
@@ -189,4 +195,3 @@ void vPortAssertIfInterruptPriorityInvalid(void);
 #endif
 
 #endif
-
