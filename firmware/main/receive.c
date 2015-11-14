@@ -251,6 +251,8 @@ static void receive_task(void *UNUSED(param)) {
 void receive_init(unsigned int index) {
 	drive_mtx = xSemaphoreCreateMutex();
 	assert(drive_mtx);
+	shutdown_sem = xSemaphoreCreateBinary();
+	assert(shutdown_sem);
 
 	robot_index = index;
 
@@ -266,12 +268,8 @@ void receive_init(unsigned int index) {
  * \brief Stops the receive task.
  */
 void receive_shutdown(void) {
-	shutdown_sem = xSemaphoreCreateBinary();
-	assert(shutdown_sem);
 	mrf_receive_cancel();
 	xSemaphoreTake(shutdown_sem, portMAX_DELAY);
-	vSemaphoreDelete(shutdown_sem);
-	vSemaphoreDelete(drive_mtx);
 }
 
 /**
