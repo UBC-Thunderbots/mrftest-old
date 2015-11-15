@@ -236,6 +236,7 @@
 #include <gpio.h>
 #include <minmax.h>
 #include <semphr.h>
+#include <stack.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -344,6 +345,8 @@ static struct {
 	 */
 	QueueHandle_t response_queue;
 } upgrade_dfu_writeout_iface;
+
+STACK_ALLOCATE(upgrade_dfu_writeout_task_stack, 4096);
 
 /**
  * \brief The writeout task.
@@ -508,7 +511,7 @@ static void upgrade_dfu_writeout_init(void) {
 	upgrade_dfu_writeout_iface.request_queue = xQueueCreate(4U, sizeof(upgrade_dfu_writeout_job_t));
 	upgrade_dfu_writeout_iface.response_queue = xQueueCreate(4U, sizeof(upgrade_dfu_writeout_job_t));
 	assert(upgrade_dfu_writeout_iface.request_queue && upgrade_dfu_writeout_iface.response_queue);
-	BaseType_t ok = xTaskCreate(&upgrade_dfu_writeout_task, "upg-writeout", 1024U, 0, PRIO_TASK_UPGRADE_WRITEOUT, 0);
+	BaseType_t ok = xTaskGenericCreate(&upgrade_dfu_writeout_task, "upg-writeout", sizeof(upgrade_dfu_writeout_task_stack) / sizeof(*upgrade_dfu_writeout_task_stack), 0, PRIO_TASK_UPGRADE_WRITEOUT, 0, upgrade_dfu_writeout_task_stack, 0);
 	assert(ok == pdPASS);
 }
 
@@ -523,8 +526,6 @@ static void upgrade_dfu_writeout_deinit(void) {
 	do {
 		xQueueReceive(upgrade_dfu_writeout_iface.response_queue, &job, portMAX_DELAY);
 	} while (job.type != UPGRADE_WRITEOUT_JOB_TYPE_EXIT);
-	vQueueDelete(upgrade_dfu_writeout_iface.request_queue);
-	vQueueDelete(upgrade_dfu_writeout_iface.response_queue);
 }
 
 /**
@@ -987,7 +988,6 @@ static void upgrade_dfu_init(void) {
  * \brief Shuts down the DFU layer.
  */
 static void upgrade_dfu_deinit(void) {
-	vSemaphoreDelete(upgrade_dfu_state.done_sem);
 }
 
 
