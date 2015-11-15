@@ -155,42 +155,6 @@ static const MPU_RASR_t ZERO_RASR = { .ENABLE = 0 };
 
 
 
-void *pvPortMallocAligned(size_t size, void *buffer) {
-	if (buffer) {
-		return buffer;
-	}
-
-	size = (size + 31) / 32 * 32;
-
-	extern char linker_dynstack_vma;
-	static char * volatile next = &linker_dynstack_vma;
-	vTaskSuspendAll();
-	char *old_next = next;
-	char *ret = old_next;
-	char *new_next = old_next + size;
-	if ((unsigned long) new_next > (CCM_BASE + CCM_SIZE)) {
-		ret = 0;
-		new_next = old_next;
-	}
-	next = new_next;
-	xTaskResumeAll();
-	return ret;
-}
-
-void vPortFreeAligned(void *buffer) {
-	assert(!buffer);
-}
-
-void *pvPortMalloc(size_t size) {
-	return malloc(size);
-}
-
-void vPortFree(void *buffer) {
-	free(buffer);
-}
-
-
-
 unsigned long *pxPortInitialiseStack(unsigned long *tos, TaskFunction_t code, void *params) {
 	// xTaskGenericCreate subtracts one word from TOS, then rounds down to
 	// alignment. In our case, this means it subtracts 32 bytes. ARM CPUs in

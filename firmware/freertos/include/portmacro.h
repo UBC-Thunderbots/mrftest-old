@@ -80,12 +80,6 @@ inline void portYIELD_FROM_ISR(void) {
 	// one here.
 }
 
-// Functions related to allocating and freeing task stacks.
-void *pvPortMallocAligned(size_t size, void *buffer);
-void vPortFreeAligned(void *buffer);
-#define pvPortMallocAligned pvPortMallocAligned
-#define vPortFreeAligned vPortFreeAligned
-
 // These functions enable and disable interrupts from ISR or non-ISR code.
 inline void portENABLE_INTERRUPTS(void) {
 	// Do not allow the compiler to sink non-volatile-qualified memory accesses

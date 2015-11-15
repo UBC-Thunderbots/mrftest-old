@@ -278,8 +278,6 @@ typedef struct __attribute__((packed)) {
 
 #if STM32LIB_USE_FREERTOS && configUSE_TRACE_FACILITY
 typedef struct __attribute__((packed)) {
-	void *stack_guard_rbar;
-	MPU_RASR_t stack_guard_rasr;
 	unsigned long r4;
 	unsigned long r5;
 	unsigned long r6;
@@ -289,6 +287,7 @@ typedef struct __attribute__((packed)) {
 	unsigned long r10;
 	unsigned long r11;
 	unsigned long lr;
+	unsigned long stack_guard_rbar;
 } exception_rtos_basic_frame_t;
 
 typedef struct __attribute__((packed)) {

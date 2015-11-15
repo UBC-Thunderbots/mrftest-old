@@ -54,17 +54,11 @@ SECTIONS {
 		. = linker_heap_size;
 	} >sram_region AT>sram_region
 
-	/* The initial stack will go in core-coupled memory and will later turn into an interrupt stack, while the rest of CCM will be used for task stacks */
-	.mstack (NOLOAD) : {
-		*(.mstack)
-	} >ccm_region AT>ccm_region
-
 	/* Stacks will go in CCM. */
 	stacks (NOLOAD) : ALIGN(32) {
 		*(stacks)
 	} >ccm_region AT>ccm_region
 	. = ALIGN(32);
-	linker_dynstack_vma = .;
 }
 
 /* Provide symbols that the startup code uses to find the various sections in memory to initialize the data and wipe the bss */

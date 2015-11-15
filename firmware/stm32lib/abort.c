@@ -6,3 +6,6 @@ void abort(void) {
 	__builtin_unreachable();
 }
 
+void vApplicationMallocFailedHook(void) {
+	abort();
+}

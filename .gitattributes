@@ -61,6 +61,7 @@ firmware/freertos/include/semphr.h -text
 firmware/freertos/include/task.h -text
 firmware/freertos/include/timers.h -text
 firmware/freertos/source/event_groups.c -text
+firmware/freertos/source/heap_1.c -text
 firmware/freertos/source/list.c -text
 firmware/freertos/source/port.c -text
 firmware/freertos/source/queue.c -text
