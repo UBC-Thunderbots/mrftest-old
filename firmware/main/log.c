@@ -8,7 +8,7 @@
  * The log buffers are written to the SD card in order of submission.
  * Neither \ref log_alloc nor \ref log_queue will ever block.
  *
- * @{
+ * \{
  */
 
 #include "log.h"
@@ -247,10 +247,6 @@ void log_shutdown(void) {
 		assert(!ptr);
 	}
 
-	// Destroy the FreeRTOS IPC objects.
-	vQueueDelete(free_queue);
-	vQueueDelete(write_queue);
-
 	// Update state.
 	state = LOG_STATE_UNINITIALIZED;
 }
@@ -307,5 +303,5 @@ void log_queue(log_record_t *record) {
 }
 
 /**
- * @}
+ * \}
  */
