@@ -249,6 +249,13 @@ static main_shut_mode_t shutdown_mode;
 static SemaphoreHandle_t supervisor_sem;
 static unsigned int wdt_sources = 0U;
 
+/**
+ * \brief A semaphore that modules can use to sequence shutdown operations
+ * (i.e. for \c _shutdown functions to to wait until the worker tasks have
+ * quiesced).
+ */
+SemaphoreHandle_t main_shutdown_sem;
+
 void vApplicationIdleHook(void) {
 	// We will do a WFI to put the chip to sleep until some activity happens.
 	// WFI will finish when an enabled interrupt (or some other
@@ -311,6 +318,7 @@ static void stm32_main(void) {
 	gpio_init(PINS_INIT, sizeof(PINS_INIT) / sizeof(*PINS_INIT));
 
 	// Get into FreeRTOS.
+	main_shutdown_sem = xSemaphoreCreateCounting((UBaseType_t) -1, 0);
 	BaseType_t ok = xTaskGenericCreate(&main_task, "main", sizeof(main_task_stack) / sizeof(*main_task_stack), 0, PRIO_TASK_SUPERVISOR, 0, main_task_stack, 0);
 	assert(ok == pdPASS);
 	vTaskStartScheduler();

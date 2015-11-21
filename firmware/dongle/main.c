@@ -237,6 +237,7 @@ static void main_task(void *UNUSED(param)) {
 	build_id_init();
 	buzzer_init();
 	estop_init();
+	enabled_init();
 	normal_init();
 	promiscuous_init();
 

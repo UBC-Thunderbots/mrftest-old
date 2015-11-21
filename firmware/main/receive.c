@@ -42,7 +42,7 @@
 
 static unsigned int robot_index;
 static uint8_t *dma_buffer;
-static SemaphoreHandle_t shutdown_sem, drive_mtx;
+static SemaphoreHandle_t drive_mtx;
 static unsigned int timeout_ticks;
 static uint8_t last_serial = 0xFF;
 STACK_ALLOCATE(receive_task_stack, 4096);
@@ -239,7 +239,7 @@ static void receive_task(void *UNUSED(param)) {
 
 	// mrf_receive returned zero, which means a cancellation has been requested.
 	// This means we are shutting down.
-	xSemaphoreGive(shutdown_sem);
+	xSemaphoreGive(main_shutdown_sem);
 	vTaskSuspend(0);
 }
 
@@ -251,8 +251,6 @@ static void receive_task(void *UNUSED(param)) {
 void receive_init(unsigned int index) {
 	drive_mtx = xSemaphoreCreateMutex();
 	assert(drive_mtx);
-	shutdown_sem = xSemaphoreCreateBinary();
-	assert(shutdown_sem);
 
 	robot_index = index;
 
@@ -269,7 +267,7 @@ void receive_init(unsigned int index) {
  */
 void receive_shutdown(void) {
 	mrf_receive_cancel();
-	xSemaphoreTake(shutdown_sem, portMAX_DELAY);
+	xSemaphoreTake(main_shutdown_sem, portMAX_DELAY);
 }
 
 /**

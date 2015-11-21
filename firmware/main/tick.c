@@ -62,7 +62,6 @@
 _Static_assert(portTICK_PERIOD_MS * CONTROL_LOOP_HZ == 1000U, "Tick rate is not equal to control loop period.");
 
 static bool shutdown = false;
-static SemaphoreHandle_t normal_shutdown_sem;
 STACK_ALLOCATE(normal_task_stack, 4096);
 
 static void normal_task(void *UNUSED(param)) {
@@ -114,7 +113,7 @@ static void normal_task(void *UNUSED(param)) {
 	}
 
 	__atomic_signal_fence(__ATOMIC_ACQUIRE);
-	xSemaphoreGive(normal_shutdown_sem);
+	xSemaphoreGive(main_shutdown_sem);
 	vTaskSuspend(0);
 }
 
@@ -147,8 +146,6 @@ void tick_init(void) {
 
 	// Fork a task to run the normal ticks, and a semaphore to check when it
 	// has terminated.
-	normal_shutdown_sem = xSemaphoreCreateBinary();
-	assert(normal_shutdown_sem);
 	BaseType_t ok = xTaskGenericCreate(&normal_task, "tick-normal", sizeof(normal_task_stack) / sizeof(*normal_task_stack), 0, PRIO_TASK_NORMAL_TICK, 0, normal_task_stack, 0);
 	assert(ok == pdPASS);
 }
@@ -159,7 +156,7 @@ void tick_init(void) {
 void tick_shutdown(void) {
 	// Instruct the normal tick task to shut down and wait for it to do so.
 	__atomic_store_n(&shutdown, true, __ATOMIC_RELAXED);
-	xSemaphoreTake(normal_shutdown_sem, portMAX_DELAY);
+	xSemaphoreTake(main_shutdown_sem, portMAX_DELAY);
 
 	// Disable timer 6 interrupts.
 	portDISABLE_HW_INTERRUPT(NVIC_IRQ_TIM6_DAC);

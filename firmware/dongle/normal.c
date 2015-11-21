@@ -1,6 +1,7 @@
 #include "normal.h"
 #include "constants.h"
 #include "crc.h"
+#include "enabled.h"
 #include "estop.h"
 #include "led.h"
 #include "mrf.h"
@@ -170,11 +171,6 @@ static bool drive_tick_pending;
  * \brief Whether a drive packet USB transfer has completed.
  */
 static bool drive_transfer_complete;
-
-/**
- * \brief A semaphore used to signal task shutdown.
- */
-static SemaphoreHandle_t shutdown_sem;
 
 /**
  * \brief The handle of the drive task.
@@ -465,7 +461,7 @@ static void drive_task(void *UNUSED(param)) {
 		rcc_disable(APB1, TIM6);
 
 		// Done.
-		xSemaphoreGive(shutdown_sem);
+		xSemaphoreGive(enabled_mode_change_sem);
 	}
 }
 
@@ -515,7 +511,7 @@ static void reliable_task(void *UNUSED(param)) {
 		xQueueSend(free_queue, &buf, portMAX_DELAY);
 
 		// Done.
-		xSemaphoreGive(shutdown_sem);
+		xSemaphoreGive(enabled_mode_change_sem);
 	}
 }
 
@@ -565,7 +561,7 @@ static void unreliable_task(void *UNUSED(param)) {
 		xQueueSend(free_queue, &buf, portMAX_DELAY);
 
 		// Done.
-		xSemaphoreGive(shutdown_sem);
+		xSemaphoreGive(enabled_mode_change_sem);
 	}
 }
 
@@ -621,7 +617,7 @@ static void mdr_task(void *UNUSED(param)) {
 		}
 
 		// Done.
-		xSemaphoreGive(shutdown_sem);
+		xSemaphoreGive(enabled_mode_change_sem);
 	}
 }
 
@@ -659,7 +655,7 @@ static void usbrx_task(void *UNUSED(param)) {
 		}
 
 		// Done.
-		xSemaphoreGive(shutdown_sem);
+		xSemaphoreGive(enabled_mode_change_sem);
 	}
 }
 
@@ -696,7 +692,7 @@ static void dongle_status_task(void *UNUSED(param)) {
 		}
 
 		// Done.
-		xSemaphoreGive(shutdown_sem);
+		xSemaphoreGive(enabled_mode_change_sem);
 	}
 }
 
@@ -767,7 +763,7 @@ static void rdtx_task(void *UNUSED(param)) {
 		}
 
 		// Done.
-		xSemaphoreGive(shutdown_sem);
+		xSemaphoreGive(enabled_mode_change_sem);
 	}
 }
 
@@ -915,7 +911,7 @@ static void rdrx_task(void *UNUSED(param)) {
 		pending_events &= ~RDRX_EVENT_STOP;
 
 		// Done.
-		xSemaphoreGive(shutdown_sem);
+		xSemaphoreGive(enabled_mode_change_sem);
 	}
 }
 
@@ -928,8 +924,7 @@ void normal_init(void) {
 	dongle_status_sem = xSemaphoreCreateBinary();
 	transmit_mutex = xSemaphoreCreateMutex();
 	transmit_complete_sem = xSemaphoreCreateBinary();
-	shutdown_sem = xSemaphoreCreateCounting(8U /* Eight tasks */, 0U);
-	assert(free_queue && transmit_queue && receive_queue && mdr_queue && dongle_status_sem && transmit_mutex && transmit_complete_sem && shutdown_sem);
+	assert(free_queue && transmit_queue && receive_queue && mdr_queue && dongle_status_sem && transmit_mutex && transmit_complete_sem);
 
 	// Allocate packet buffers.
 	static packet_t packets[NUM_PACKETS];
@@ -1011,14 +1006,14 @@ void normal_on_exit(void) {
 
 	// Wait for the tasks to quiesce.
 	for (unsigned int i = 0U; i != 7U; ++i) {
-		xSemaphoreTake(shutdown_sem, portMAX_DELAY);
+		xSemaphoreTake(enabled_mode_change_sem, portMAX_DELAY);
 	}
 
 	// Signal the rdrx task to shut down.
 	xTaskNotify(rdrx_task_handle, RDRX_EVENT_STOP, eSetBits);
 
 	// Wait for it to quiesce.
-	xSemaphoreTake(shutdown_sem, portMAX_DELAY);
+	xSemaphoreTake(enabled_mode_change_sem, portMAX_DELAY);
 
 	// Disable the external interrupt on MRF INT.
 	mrf_disable_interrupt();

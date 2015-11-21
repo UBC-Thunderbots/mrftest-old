@@ -1,6 +1,8 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include <FreeRTOS.h>
+#include <semphr.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <usb.h>
@@ -29,6 +31,7 @@ typedef enum {
 
 extern const udev_language_info_t MAIN_LANGUAGE_TABLE[];
 extern const usb_string_zero_descriptor_t MAIN_STRING_ZERO;
+extern SemaphoreHandle_t main_shutdown_sem;
 
 void main_kick_wdt(main_wdt_source_t source);
 void main_shutdown(main_shut_mode_t mode);

@@ -1,5 +1,6 @@
 #include "promiscuous.h"
 #include "constants.h"
+#include "enabled.h"
 #include "led.h"
 #include "mrf.h"
 #include "radio_config.h"
@@ -45,7 +46,6 @@ enum radio_event_t {
 #define NUM_PACKETS 64U
 
 static QueueHandle_t free_queue, receive_queue;
-static SemaphoreHandle_t init_shutdown_sem;
 static TaskHandle_t radio_task_handle, usb_task_handle;
 static uint16_t promisc_flags;
 
@@ -84,7 +84,7 @@ static void radio_task(void *UNUSED(param)) {
 		mrf_enable_interrupt(&mrf_int_isr);
 
 		// Notify on_enter that initialization is finished.
-		xSemaphoreGive(init_shutdown_sem);
+		xSemaphoreGive(enabled_mode_change_sem);
 
 		// Run the main operation.
 		bool packet_dropped = false;
@@ -139,7 +139,7 @@ static void radio_task(void *UNUSED(param)) {
 		mrf_deinit();
 
 		// Done.
-		xSemaphoreGive(init_shutdown_sem);
+		xSemaphoreGive(enabled_mode_change_sem);
 	}
 }
 
@@ -169,7 +169,7 @@ static void usb_task(void *UNUSED(param)) {
 			}
 		}
 
-		xSemaphoreGive(init_shutdown_sem);
+		xSemaphoreGive(enabled_mode_change_sem);
 	}
 }
 
@@ -177,8 +177,7 @@ void promiscuous_init(void) {
 	// Create IPC objects.
 	free_queue = xQueueCreate(NUM_PACKETS, sizeof(packet_t *));
 	receive_queue = xQueueCreate(NUM_PACKETS + 1U /* Signalling NULL */, sizeof(packet_t *));
-	init_shutdown_sem = xSemaphoreCreateCounting(2U /* Two tasks */, 0U);
-	assert(free_queue && receive_queue && init_shutdown_sem);
+	assert(free_queue && receive_queue);
 
 	// Allocate packet buffers.
 	static packet_t packets[NUM_PACKETS];
@@ -214,7 +213,7 @@ void promiscuous_on_enter(void) {
 	// A mutex must always be given by the same task that takes it.
 	// So, we can’t do that.
 	// Instead, we implement this initialization-waiter mechanism.
-	xSemaphoreTake(init_shutdown_sem, portMAX_DELAY);
+	xSemaphoreTake(enabled_mode_change_sem, portMAX_DELAY);
 }
 
 void promiscuous_on_exit(void) {
@@ -222,8 +221,8 @@ void promiscuous_on_exit(void) {
 	xTaskNotify(radio_task_handle, RADIO_EVENT_STOP, eSetBits);
 	static packet_t * const null_packet = 0;
 	xQueueSend(receive_queue, &null_packet, portMAX_DELAY);
-	xSemaphoreTake(init_shutdown_sem, portMAX_DELAY);
-	xSemaphoreTake(init_shutdown_sem, portMAX_DELAY);
+	xSemaphoreTake(enabled_mode_change_sem, portMAX_DELAY);
+	xSemaphoreTake(enabled_mode_change_sem, portMAX_DELAY);
 
 	// Flush receive queue.
 	packet_t *packet;
