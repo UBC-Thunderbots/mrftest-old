@@ -154,9 +154,6 @@ static SemaphoreHandle_t irq_sem;
  */
 static void (*irq_handlers[ICB_IRQ_COUNT])(void);
 
-volatile TickType_t start_data_time, last_tx_isr_time, last_rx_isr_time;
-volatile unsigned int start_data_count, end_data_count, start_data_tx_isr_count, start_data_rx_isr_count, tx_isr_count, rx_isr_count;
-
 STACK_ALLOCATE(irq_task_stack, 4096);
 
 /**
@@ -623,10 +620,6 @@ bool icb_receive(icb_command_t command, void *buffer, size_t length) {
 	// Only receive has transfer complete unmasked.
 	// So, any error on either channel will be detected.
 	// However, only receive complete will finish the transfer.
-	start_data_time = xTaskGetTickCount();
-	++start_data_count;
-	start_data_tx_isr_count = tx_isr_count;
-	start_data_rx_isr_count = rx_isr_count;
 	portENABLE_HW_INTERRUPT(IRQ_TX_DMA);
 	portENABLE_HW_INTERRUPT(IRQ_RX_DMA);
 
@@ -636,7 +629,6 @@ bool icb_receive(icb_command_t command, void *buffer, size_t length) {
 	// Disable the interrupts.
 	portDISABLE_HW_INTERRUPT(IRQ_TX_DMA);
 	portDISABLE_HW_INTERRUPT(IRQ_RX_DMA);
-	++end_data_count;
 
 	// Sanity check.
 	assert(state == ICB_STATE_IDLE);
@@ -925,8 +917,6 @@ icb_conf_result_t icb_conf_end(void) {
  * This function should be registered in the interrupt vector table at position 56.
  */
 void dma2_stream0_isr(void) {
-	++rx_isr_count;
-	last_rx_isr_time = xTaskGetTickCountFromISR();
 	_Static_assert(DMA_STREAM_RX == 0U, "Function needs rewriting to the proper stream number!");
 	DMA_LISR_t lisr = DMA2.LISR;
 	DMA_LIFCR_t lifcr = {
@@ -975,8 +965,6 @@ void dma2_stream0_isr(void) {
  * This function should be registered in the interrupt vector table at position 59.
  */
 void dma2_stream3_isr(void) {
-	++tx_isr_count;
-	last_tx_isr_time = xTaskGetTickCountFromISR();
 	_Static_assert(DMA_STREAM_TX == 3U, "Function needs rewriting to the proper stream number!");
 	DMA_LISR_t lisr = DMA2.LISR;
 	DMA_LIFCR_t lifcr = {
