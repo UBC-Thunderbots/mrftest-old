@@ -166,12 +166,16 @@ firmware/main/usb_config.h -text
 firmware/main/wheels.c -text
 firmware/main/wheels.h -text
 firmware/openocd.cfg -text
+firmware/speedsensor/FreeRTOSConfig.h -text
 firmware/speedsensor/Makefile -text
 firmware/speedsensor/format.c -text
 firmware/speedsensor/format.h -text
 firmware/speedsensor/main.c -text
 firmware/speedsensor/pins.c -text
 firmware/speedsensor/pins.h -text
+firmware/speedsensor/syscalls.c -text
+firmware/speedsensor/usb_config.c -text
+firmware/speedsensor/usb_config.h -text
 firmware/stm32lib/Doxyfile.common -text
 firmware/stm32lib/Doxyfile.internal -text
 firmware/stm32lib/Doxyfile.public -text
