@@ -168,6 +168,7 @@ firmware/main/wheels.h -text
 firmware/openocd.cfg -text
 firmware/speedsensor/FreeRTOSConfig.h -text
 firmware/speedsensor/Makefile -text
+firmware/speedsensor/constants.h -text
 firmware/speedsensor/format.c -text
 firmware/speedsensor/format.h -text
 firmware/speedsensor/main.c -text
