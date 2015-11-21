@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <limits.h>
+#include <math.h>
 #include "tbuf.h"
 //LPS0 = PC0
 //LPS1 = PC1
@@ -22,9 +23,34 @@ typedef float lps_values[LPS_ARRAY_SIZE];
 typedef float lps_adc[16];
 
 static lps_values lps_raw;
+static lps_values lps_offset = {
+	0.197665f, 0.346932f, 0.345231f, 0.408780f
+	//0.0f, 0.0f, 0.0f, 0.0f
+};
+static lps_values lps_gain = {
+	0.129270f, 0.226474f, 0.205278f, 0.202057f
+};
+static lps_values lps_moment_x = {
+	5.0251f,   11.6463f,    6.5249f,    1.5986f
+};
+static lps_values lps_moment_y = {
+	3.5995f,    0.8201f,   -1.8590f,   -3.0401f
+};
+static lps_values lps_abs_x = {
+	-3.9487f,   -9.9363f,   -5.6353f,   -0.1425f
+};
+static lps_values lps_abs_y = {
+	-2.7011f,    0.1604f,    0.7427f,    1.5515f
+};
+static lps_values lps_variance_x = {
+	-0.1220f,   -0.4426f,   -0.1617f,   -0.1937f
+};
+static lps_values lps_variance_y = {
+	-0.1098f,   -0.2124f,    0.2245f,    0.2258f
+};
 static lps_values lps_norm;
-static float lps_mean;
-static float lps_var;
+static float lps_sum;
+static float x, y;
 
 // buffer to be accessed by isr and normal task
 static unsigned int current_lps_buffer;
@@ -86,11 +112,11 @@ void lps_tick (void){
 	// when the calculation is complete 
 	float* updating_lps;
 	unsigned int index;
-	float lps_sum = 0.0;
 
 	index = tbuf_read_get(&lps_buffer_ctl);
 	updating_lps = lps_buf[index];
-
+	lps_sum = 0.0f;
+	
 	for(unsigned int i = 0; i<LPS_ARRAY_SIZE; i++){
 		if(updating_lps[i] < LPS_THRESH){
 			lps_raw[i] = -updating_lps[i];
@@ -99,25 +125,24 @@ void lps_tick (void){
 		}
 		updating_lps[i]=0;
 	}
-	lps_mean = 0.0;
-	lps_var = 0.0;
+	x = 0.0f;
+	y = 0.0f;
 	for(unsigned int i = 0; i<LPS_ARRAY_SIZE; i++){
-		lps_sum += lps_raw[i];
+		lps_norm[i] = (lps_raw[i]-lps_offset[i])/lps_gain[i];
+		//lps_mean += lps_norm[i] * (i-1.5f) * LPS_SENSOR_SPACING;	
+		//lps_var += lps_norm[i] * (i-1.5f)*(i-1.5f) * LPS_SENSOR_SPACING * LPS_SENSOR_SPACING;
+		x += lps_norm[i]*lps_moment_x[i] + (float)fabs(lps_norm[i])*lps_abs_x[i] + lps_norm[i]*lps_norm[i]*lps_variance_x[i];
+		y += lps_norm[i]*lps_moment_y[i] + (float)fabs(lps_norm[i])*lps_abs_y[i] + lps_norm[i]*lps_norm[i]*lps_variance_y[i];
+		lps_sum += lps_norm[i];
 	}
-	for(unsigned int i = 0; i<LPS_ARRAY_SIZE; i++){
-		lps_norm[i] = lps_raw[i]/lps_sum;
-		lps_mean += lps_norm[i] * (i-1.5f) * LPS_SENSOR_SPACING;	
-		lps_var += lps_norm[i] * (i-1.5f)*(i-1.5f) * LPS_SENSOR_SPACING * LPS_SENSOR_SPACING;
-	}
-	lps_var = lps_var - lps_mean*lps_mean;
 	tbuf_read_put(&lps_buffer_ctl, index);
 
 }
 
 void lps_print(void){
-	unsigned int i=0;
+	/*unsigned int i=0;
 	unsigned int j=0;
-	/*printf("adc[");
+	printf("adc[");
 	for(j=0; j< 4; j++){
 		for(i=0; i< 4; i++){
 			printf("%f ", adc_values[j*4+i]);
@@ -125,8 +150,11 @@ void lps_print(void){
 		printf("\r\n");
 	}
 	printf("]\r\n");*/
-	printf("lps_raw(%f, %f, %f, %f) \r\n", lps_raw[0], lps_raw[1], lps_raw[2], lps_raw[3]);
-	printf("lps_norm(%f, %f, %f, %f) mean=%f, var=%f\r\n", lps_norm[0], lps_norm[1], lps_norm[2], lps_norm[3], lps_mean, lps_var);
+	//printf("lps_raw(%f, %f, %f, %f) \r\n", lps_raw[0], lps_raw[1], lps_raw[2], lps_raw[3]);
+	//printf("lps_raw subtract offset(%f, %f, %f, %f) \r\n", lps_raw[0]-lps_offset[0], lps_raw[1]-lps_offset[1], lps_raw[2]-lps_offset[2], lps_raw[3]-lps_offset[3]);
+	//printf("lps_raw offset and gain(%f, %f, %f, %f) \r\n", (lps_raw[0]-lps_offset[0])/lps_gain[0], (lps_raw[1]-lps_offset[1])/lps_gain[1], (lps_raw[2]-lps_offset[2])/lps_gain[2], (lps_raw[3]-lps_offset[3])/lps_gain[3]);
+	printf("lps_norm(%f, %f, %f, %f) x=%f, y=%f, sum=%f\r\n", (double)lps_norm[0], (double)lps_norm[1], (double)lps_norm[2], (double)lps_norm[3],(double) x, (double)y, (double)lps_sum);
+
 
 }
 
