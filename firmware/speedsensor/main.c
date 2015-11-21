@@ -19,104 +19,92 @@
 #include <registers/syscfg.h>
 #include <registers/systick.h>
 
+#include <usb.h>
+#include <registers/otg_fs.h>
+#include <cdcacm.h>
+#include "usb_config.h"
+#include <stack.h>
+#include <stdio.h>
+#include <FreeRTOS.h>
+#include "constants.h"
+
 volatile uint8_t G_status = 0; // 1 for first triggered, 2 for second triggered, 0 for last wrap_count is output to screen
 
 static void stm32_main(void) __attribute__((noreturn));
-static void nmi_vector(void);
-static void hard_fault_vector(void);
-static void memory_manage_vector(void);
-static void bus_fault_vector(void);
-static void usage_fault_vector(void);
-static void service_call_vector(void);
-static void pending_service_vector(void);
-static void system_tick_vector(void);
 static void external_interrupt_15_10_vector(void);
 static void timer2_wrap_interrupt(void);
 
-static void display( float );
+//static void display( float );
 static void LCD_write( char a );
 
 static void tic(void);
 static void toc(void);
 
-STACK_ALLOCATE(mstack, 65536);
-
 typedef void (*fptr)(void);
+
+STACK_ALLOCATE(mstack, 4096);
+
 static const fptr exception_vectors[16] __attribute__((used, section(".exception_vectors"))) = {
 	// Vector 0 contains the reset stack pointer
-	[0] = (fptr) (mstack + sizeof(mstack)),
+	[0] = (fptr) (mstack + sizeof(mstack) / sizeof(*mstack)),
 	// Vector 1 contains the reset vector
 	[1] = &stm32_main,
 	// Vector 2 contains the NMI vector
-	[2] = &nmi_vector,
+	//[2] = &nmi_vector,
 	// Vector 3 contains the HardFault vector
-	[3] = &hard_fault_vector,
+	[3] = &exception_hard_fault_isr,
 	// Vector 4 contains the MemManage vector
-	[4] = &memory_manage_vector,
+  [4] = &exception_memory_manage_fault_isr,
 	// Vector 5 contains the BusFault vector
-	[5] = &bus_fault_vector,
+	[5] = &exception_bus_fault_isr,
 	// Vector 6 contains the UsageFault vector
-	[6] = &usage_fault_vector,
+	[6] = &exception_usage_fault_isr,
 	// Vector 11 contains the SVCall vector
-	[11] = &service_call_vector,
+	[11] = &vPortSVCHandler,
+  // Vector 12 contains debug fault vector? 
+  [12] = &exception_debug_fault_isr,
 	// Vector 14 contains the PendSV vector
-	[14] = &pending_service_vector,
+	[14] = &vPortPendSVHandler,
 	// Vector 15 contains the SysTick vector
-	[15] = &system_tick_vector,
+	[15] = &vPortSysTickHandler,
 };
 
-static const fptr interrupt_vectors[82] __attribute__((used, section(".interrupt_vectors"))) = {
+static const fptr interrupt_vectors[82U] __attribute__((used, section(".interrupt_vectors"))) = {
 	[NVIC_IRQ_TIM2] = &timer2_wrap_interrupt,
 	[NVIC_IRQ_EXTI15_10] = &external_interrupt_15_10_vector,
+  [NVIC_IRQ_OTG_FS] = &udev_isr,
 };
 
-static void nmi_vector(void) {
-	for (;;);
+/* This runs before core is dumped. No core dump for now. */
+/* TODO Add core dump functionality */
+/*
+static void app_exception_early(void) {
+  // Power down the USB engine to disconnect from the host.
+  OTG_FS.GCCFG.PWRDWN = 0;
+
+  // Turn on the LEDs.
+  gpio_set(PIN_LED_LEFT);
+  gpio_set(PIN_LED_RIGHT);
 }
 
-static void hard_fault_vector(void) {
-	for (;;);
+static void app_exception_late(bool core_written) {
 }
-
-static void memory_manage_vector(void) {
-	for (;;);
-}
-
-static void bus_fault_vector(void) {
-	for (;;);
-}
-
-static void usage_fault_vector(void) {
-	for (;;);
-}
-
-static void service_call_vector(void) {
-	for (;;);
-}
-
-static void pending_service_vector(void) {
-	for (;;);
-}
-
-static void system_tick_vector(void) {
-	for (;;);
-}
-
+*/
 
 // This function is where the state machine goes
 static void external_interrupt_15_10_vector(void){
-	// TODO
-	// Take one of the interrupt to clear every thing and start the timer, set status_timer_on to on.
-	// Take the other interrupt to stop the timer and update display
 
-	if( EXTI.PR & (1<<12)){
+    /* EXTI.PR are pending bits, bit is set to 1 when interrupt occurs.
+       12th bit is set to 1 to clear the trigger event.
+	   This external interrupt is connected to the first breakbeam sensor.
+    */
+    if( EXTI.PR & (1<<12)){
 		EXTI.PR = 1<<12;
 		gpio_toggle(PIN_LED_LEFT);
 		if( G_status == 0 ){
 			G_status = 1;
 			tic();
 		}
-		//tic();
 	}
 
 	if( EXTI.PR & (1<<13)){
@@ -126,7 +114,6 @@ static void external_interrupt_15_10_vector(void){
 			G_status = 2;
 			toc();
 		}
-		//toc();
 	}
 
 	EXCEPTION_RETURN_BARRIER();
@@ -135,7 +122,7 @@ static void external_interrupt_15_10_vector(void){
 static const init_specs_t INIT_SPECS = {
 	.flags = {
 		.hse_crystal = true,
-		.freertos = false,
+		.freertos = true,
 		.io_compensation_cell = false,
 	},
 	.hse_frequency = 8,
@@ -152,14 +139,85 @@ static const init_specs_t INIT_SPECS = {
 	.exception_prios = {
 		[NVIC_IRQ_TIM2] = EXCEPTION_MKPRIO(6, 0),
 		[NVIC_IRQ_EXTI15_10] = EXCEPTION_MKPRIO(6, 0),
+    [NVIC_IRQ_OTG_FS] = EXCEPTION_MKPRIO(5, 0),
 	},
 };
+
+static const usb_string_descriptor_t STRING_EN_CA_MANUFACTURER = USB_STRING_DESCRIPTOR_INITIALIZER(u"UBC Thunderbots Football Club");
+static const usb_string_descriptor_t STRING_EN_CA_PRODUCT = USB_STRING_DESCRIPTOR_INITIALIZER(u"Ball Speed Sensor");
+static const usb_string_descriptor_t STRING_SERIAL = USB_STRING_DESCRIPTOR_INITIALIZER(u"                        ");
+static const usb_string_descriptor_t * const STRINGS_EN_CA[] = {
+  [STRING_INDEX_MANUFACTURER - 1U] = &STRING_EN_CA_MANUFACTURER,
+  [STRING_INDEX_PRODUCT - 1U] = &STRING_EN_CA_PRODUCT,
+  [STRING_INDEX_SERIAL - 1U] = &STRING_SERIAL,
+};
+
+/* Only one language at the moment. */
+static const udev_language_info_t LANGUAGE_TABLE[] = {
+  { .id = 0x1009U /* en_CA */, .strings = STRINGS_EN_CA },
+  { .id = 0, .strings = 0 },
+}; 
+
+static const usb_string_zero_descriptor_t STRING_ZERO = {
+  .bLength = sizeof(usb_string_zero_descriptor_t) + sizeof(uint16_t),
+  .bDescriptorType = USB_DTYPE_STRING,
+  .wLANGID = { 0x1009U /* en_CA */, },
+};
+
+static bool usb_control_handler(const usb_setup_packet_t *UNUSED(pkt)) {
+  return false;
+}
+
+STACK_ALLOCATE(usb_task_stack, 4096);
+
+static const udev_info_t USB_INFO = {
+  .flags = {
+    .vbus_sensing = 0,
+    .minimize_interrupts = 0,
+    .self_powered = 0,
+  },
+  .internal_task_priority = 4U,
+  .internal_task_stack = usb_task_stack,
+  .internal_task_stack_size = sizeof(usb_task_stack),
+  .receive_fifo_words = 10U /* SETUP packets */ + 1U /* Global OUT NAK status */ + ((64U / 4U) + 1U) * 2U /* Packets */ + 4U /* Transfer complete status */,
+  .device_descriptor = {
+    .bLength = sizeof(usb_device_descriptor_t),
+    .bDescriptorType = USB_DTYPE_DEVICE,
+    .bcdUSB = 0x0200U,
+    .bDeviceClass = 0x00U,
+    .bDeviceSubClass = 0x00U,
+    .bDeviceProtocol = 0x00U,
+    .bMaxPacketSize0= 64U,
+    .idVendor = VENDOR_ID,
+    .idProduct = PRODUCT_ID,
+    .bcdDevice = 0x0101U,
+    .iManufacturer = STRING_INDEX_MANUFACTURER,
+    .iProduct = STRING_INDEX_PRODUCT,
+    .iSerialNumber = STRING_INDEX_SERIAL,
+    .bNumConfigurations = 1U,
+  },
+  .string_count = STRING_INDEX_COUNT - 1U /* exclude zero */,
+  .string_zero_descriptor = &STRING_ZERO,
+  .language_table = LANGUAGE_TABLE,
+  .control_handler = &usb_control_handler,
+  .configurations = {
+    &USB_CONFIGURATION,
+  },
+};
+
+void vApplicationIdleHook(void) {
+  asm volatile("wfi");
+}
+
+STACK_ALLOCATE(main_task_stack, 4096);
+static void main_task(void *param) __attribute__((noreturn));
+TaskHandle_t main_task_handle;
+
+
 
 /***********************************************************
  *    		 	Timing Functions		   *
  ***********************************************************/
-
-
 volatile uint32_t wrap_count;
 
 static void tic_toc_setup(void){
@@ -226,7 +284,7 @@ static void tic(void){
 }
 
 static void toc(void){
-	// stop clock
+	// stop clock, clearing all bits
 	TIM2_5_CR1_t tmp = { 0 };
 	TIM2.CR1 = tmp;
 }
@@ -256,62 +314,48 @@ static void LCD_switch_mode( bool signal_rs, bool signal_rw ){
 	gpio_set_output(PIN_LCD_RW, signal_rw);
 }
 
+/***************************************************
+ *		Print functions			   *
+ ***************************************************/
 // write 
 static void LCD_write( char a ){
 	gpio_set_reset_mask(GPIOC, a, 0xFF);
 	LCD_switch_mode( LCD_DATA, LCD_WRITE );
 	gpio_set(PIN_LCD_E);
-	sleep_us(1);
+	vTaskDelay(1);
 	gpio_reset(PIN_LCD_E);
-	sleep_us(50);
+	vTaskDelay(1);
 }
 
 static void LCD_command( char a ){
 	gpio_set_reset_mask(GPIOC, a, 0xFF);
 	LCD_switch_mode( LCD_COMMAND, LCD_WRITE );
 	gpio_set(PIN_LCD_E);
-	sleep_us(1);
+	vTaskDelay(1);
 	gpio_reset(PIN_LCD_E);
-	sleep_us(1);
+	vTaskDelay(1);
 	
 }
 
 // initialize screen
 static void LCD_init_routine(){
-	sleep_ms(500); // recommanded waiting time is 40ms
+  vTaskDelay(500U / portTICK_PERIOD_MS); // recommended waiting time is 40ms
+  LCD_command( 0x30 );
+	vTaskDelay(1);
+  LCD_command( 0x30 );
+	vTaskDelay(1);
 	LCD_command( 0x30 );
-	sleep_us(30);
-	LCD_command( 0x30 );
-	sleep_us(10);
-	LCD_command( 0x30 );
-	sleep_us(10);
+	vTaskDelay(1);
 	LCD_command( 0x38 ); // function set
-	sleep_us(50);
+	vTaskDelay(1);
 	LCD_command( 0x1c ); // set cursor
-	sleep_us(50);
+  vTaskDelay(1);
 	LCD_command( 0x0c ); // display on, cursor on
-	sleep_us(50);
+  vTaskDelay(1);
 	LCD_command( 0x06 ); // entry mode set
-	sleep_us(50);
+  vTaskDelay(1);
 	LCD_command( 0x02 ); // return home
-	sleep_ms(2);
-/*	sleep_us(50);
-	LCD_command( LCD_ON_CONTROL_P );
-	sleep_us(50);
-	LCD_command( LCD_CLEAR_SCREEN );
-	sleep_ms(2);
-	LCD_command( LCD_ENTRY_MODE_P );
-*/	sleep_us(50);
-}
-
-// write something to the screen, this writes all ones
-static void LCD_write_something(){
-	LCD_write( '1' );
-	LCD_write( '2' );
-	LCD_write( '3' );
-	LCD_write( 'A' );
-	LCD_write( 'B' );
-	LCD_write( 'C' );
+  vTaskDelay(1);
 }
 
 static void LCD_print( char* a, unsigned int size ){
@@ -322,25 +366,9 @@ static void LCD_print( char* a, unsigned int size ){
 }
 
 /***************************************************
- *		Print functions			   *
- ***************************************************/
-
-
-// print to lcd screen, starting from the firstline
-/*static void LCD_print( char* a, int size ){
-	int i=0;
-	LCD_clear_screen();
-	for( i = 0; i<size; i++ ){
-		LCD_write_char(a[i]);
-	}
-}*/
-
-/***************************************************
  *	Math: turning float to char		   *
  ***************************************************/
-
-
-
+#if 0
 static int ftoi_single ( float fl ){
 	static int i = 0;
 	for( i = 1; i < 10; i++ ){
@@ -350,46 +378,23 @@ static int ftoi_single ( float fl ){
 	}
 	return 0;
 }
-
+#endif
 // turn to scientific notation, with 10 significant figures
+#if 0
 static void ftoa_sci ( float fl, char* a, int* dec ) {
-	//static const int SIGFIG = 5;
 	static unsigned int decimal_marker = 0;
 	static int digit = 0;
-	//int digits[4]={-1,-1,-1,-1};
 	static unsigned int i = 0, j = 0;
-	/*while (fl > 10){
-		fl=fl/10;
-		decimal_marker++;
-	}*/
-
-	/*for( i = 0; i< 5; i++ ){
-		if( fl > 1){
-			break;
-		}
-		fl=fl*0.1;
-		decimal_marker++;
-	}*/
-	
-	/*if( dec != 0 ){
-		*dec = decimal_marker;
-	}*/
-	
-
-	/*if( i == decimal_marker ){
-		a[i] = ',';
-		i++;
-	}*/
 
 	a[0] = (char)ftoi_single(fl);
 	a[0] += 48;
 	fl = (fl-ftoi_single(fl))*10;
 	
-	//a[0]='i';
-
 	return;
 }
+#endif
 
+#if 0
 // output float to char array with dynamic scaling. The output is in the form of xx.xxxk, x.xxxx or xxx.xm
 static void ftoa_tho (float fl, char* a, int size){
 	char sci_a[10];
@@ -426,115 +431,93 @@ static void ftoa_tho (float fl, char* a, int size){
 	}
 	return;
 }
-
+#endif
 
 /***************************************************
  *			Main			   *
  ***************************************************/
 
-/*char buffer[10];
-char test_c[]={'1','2','3','4','a'};
-char* char_ptr = &buffer[0];
-float test_num = 1.234;
-int* ptr = 0;*/
-
 static void stm32_main(void) {
-	int counter_i = 0;
-	char buffer[10];
-	char test_c[]={'1','2','3','4','a'};
-	char* char_ptr = &buffer[0];
-	//float test_num = 1.234;
-	int* ptr = 0;	
-	uint32_t test_num = 123456;
-
 	// Initialize chip
 	init_chip(&INIT_SPECS);
 
 	// Set up pins
 	gpio_init(PINS_INIT, sizeof(PINS_INIT) / sizeof(*PINS_INIT));
 
+  // Start FreeRTOS
+  BaseType_t pl = xTaskGenericCreate(&main_task, "main", sizeof(main_task_stack) / sizeof(*main_task_stack), 0, 1U, &main_task_handle, main_task_stack, 0);
+  assert(pl == pdPASS);
+  vTaskStartScheduler();
+  __builtin_unreachable();
+}
+
+static void main_task(void *UNUSED(param)) {
+	//int counter_i = 0;
+	char buffer[10];
+  int temp;
+
+  gpio_set(PIN_LED_RIGHT);
+  gpio_set(PIN_LED_LEFT);
+  vTaskDelay(1000U / portTICK_PERIOD_MS);
+  gpio_reset(PIN_LED_RIGHT);
+  gpio_reset(PIN_LED_LEFT);
+  vTaskDelay(1000U / portTICK_PERIOD_MS);
+
 	// setup interrupt
 	rcc_enable_reset(APB2, SYSCFG);
 	SYSCFG.EXTICR[3] = 0b0001000100010001;
 	rcc_disable(APB2, SYSCFG);
-	//           ooo|ooo|ooo|ooo|
-	EXTI.IMR = 0b0011000000000000;
-	EXTI.FTSR= 0b0011000000000000;
+  // Unmasking interrupts 13 and 12.
+  EXTI.IMR = 0b0011000000000000;
+  // Falling trigger enabled for interrupts 13 and 12.	
+  EXTI.FTSR= 0b0011000000000000;
 	NVIC.ISER[NVIC_IRQ_EXTI15_10 / 32] = 1 << (NVIC_IRQ_EXTI15_10 % 32); 
 
-// SETENA67 = 1; enable USB FS interrupt
-
 	gpio_reset(PIN_LCD_E);
+ 
+//  Initialize CDC ACM.
+  cdcacm_init(2U, PRIO_TASK_CDC_ACM);
 
-
-	// Wait a bit
-	sleep_ms(100);
-
-	// Turn on LED
-	//GPIOB_BSRR = 3;
-	//sleep_ms(1000);
-	//GPIOB_BSRR = (3<< 16);
-	//sleep_ms(10);
-	// Initialize USB
-	//usb_ep0_set_global_callbacks(&DEVICE_CBS);
-	//usb_ep0_set_configuration_callbacks(CONFIG_CBS);
-	//usb_attach(&DEVICE_INFO);
-	//NVIC_ISER[NVIC_IRQ_OTG_FS / 32] = 1 << (NVIC_IRQ_OTG_FS % 32); // SETENA67 = 1; enable USB FS interrupt
+//  Initialize USB.
+  udev_init(&USB_INFO);
+  udev_attach();
 
 	// Handle activity
 	tic_toc_setup();
-	/*tic();
-	sleep_ms(3000);
-	toc();*/
 
-	// turn off portC pin 13, turn on pin 14, 15
-	//GPIOC_BSRR = 3 << 13;
-	//GPIOC_BSRR = 1 << (13+16);
-	//GPIOC_BSRR = 1 << (14+16);
+  // Initialize LCD
 	LCD_init_routine();
-	//LCD_write_something();
 	formatuint8( buffer, wrap_count );
-	LCD_print( buffer, 8 );
-	//LCD_print( test_c, 5 );
-	//LCD_write( ftoi_single(1.234)+48 );
+	LCD_command(0x02);
+  LCD_print( buffer, 8 );
 
 	// Turn on LED
 	gpio_set(PIN_LED_RIGHT);
-	//sleep_ms(1000);
 	gpio_reset(PIN_LED_LEFT);
-	//sleep_ms(10);
+  // TODO print a setup message
+  // check syscalls.c under firmware main to see the connection
+  // between cdcacm and printing out
+  iprintf("Test\r\n");
+
+	// Wait a bit
+  vTaskDelay(100U / portTICK_PERIOD_MS);
+
 	for (;;) {
-		/*for( counter_i = 0; counter_i < 10; counter_i++){
-			GPIOC_BSRR = digits[counter_i];
-			sleep_ms(1000);
-		}*/
-		/*for( counter_i = 0; counter_i < 8; counter_i++ ){
-			GPIOC_BSRR = 1 << counter_i;
-			sleep_ms(1000);
-			GPIOC_BSRR = 1 << (counter_i+16);
-			sleep_ms(1000);
-			
-		}*/
-		/*if( TIM2_CNT > 0xF0 ){
-			GPIOB_BSRR = (3<<16);
-			toc();
-		}*/
-		/*if(GPIOB_IDR & (1<<12)) {
-			GPIOB_BSRR = (3);
-		} else {
-			GPIOB_BSRR = (3 << 16);
-		}*/
 		if( G_status == 2 ){
 			if( wrap_count != 0 ){
-				formatuint8( buffer, 1716000/wrap_count );
+        temp = 1716000/wrap_count;
+				formatuint8( buffer, temp);
+        // TODO Send buffer over USB here.
+        iprintf("%i mm/s\r\n", temp);
 				LCD_command( 0x02 ); // return home
-				sleep_ms(2) ;
+        vTaskDelay(1);
 				LCD_print( buffer, 8 );
 			}
 			G_status = 0;
 
 		}
-		sleep_ms(1);
+    vTaskDelay(1);
 	}
+  __builtin_unreachable();
 }
 
