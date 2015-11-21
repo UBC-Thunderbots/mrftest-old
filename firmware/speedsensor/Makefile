@@ -1,5 +1,5 @@
 PROJECT := speedsensor
-LIBRARIES := stm32lib
+LIBRARIES := cdcacm freertos stm32lib usb
 
 include ../stm32lib/Makefile.common
 
