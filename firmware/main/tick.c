@@ -66,7 +66,6 @@ STACK_ALLOCATE(normal_task_stack, 4096);
 
 static void normal_task(void *UNUSED(param)) {
 	TickType_t last_wake = xTaskGetTickCount();
-	static int count = 0;
 
 	while (!__atomic_load_n(&shutdown, __ATOMIC_RELAXED)) {
 		// Wait one system tick.
@@ -90,11 +89,6 @@ static void normal_task(void *UNUSED(param)) {
 		leds_tick();
 		breakbeam_tick();
 		lps_tick();
-		if(count >= 200){
-			lps_print();
-			count = 0;
-		}
-		count++;
 		
 		if (chicker_auto_fired_test_clear()) {
 			feedback_pend_autokick();
