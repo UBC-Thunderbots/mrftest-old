@@ -29,6 +29,7 @@ namespace {
 			typedef BoxPtr<ROPlayer> Ptr;
 			explicit ROPlayer(unsigned int pattern);
 			bool has_ball() const override;
+			double get_lps(unsigned int index) const override;
 			bool chicker_ready() const override;
 			bool autokick_fired() const override;
 			void tick(bool, bool);
@@ -113,6 +114,10 @@ ROPlayer::ROPlayer(unsigned int pattern) : Player(pattern) {
 
 bool ROPlayer::has_ball() const {
 	return false;
+}
+
+double ROPlayer::get_lps(unsigned int index) const{
+	return 0.0;
 }
 
 bool ROPlayer::chicker_ready() const {

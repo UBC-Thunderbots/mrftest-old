@@ -19,6 +19,7 @@
 #include "main.h"
 #include "motor.h"
 #include "mrf.h"
+#include "lps.h"
 #include "priority.h"
 #include "sdcard.h"
 #include "wheels.h"
@@ -93,6 +94,14 @@ static void feedback_task(void *UNUSED(param)) {
 				0x01U, // Destination address MSB
 				0U, // [9] Source address LSB
 				0U, // [10] Source address MSB
+				0U, // [28] LPS value 1
+				0U, // [29] LPS value 2
+				0U, // [30] LPS value 3
+				0U, // [31] LPS value 4
+				//0U, // [32] LPS value 1
+				//0U, // [33] LPS value 2
+				//0U, // [34] LPS value 3
+				//0U, // [35] LPS value 4
 			};
 
 			// Fill header.
@@ -157,6 +166,17 @@ static void feedback_task(void *UNUSED(param)) {
 				wptr += sizeof(bid);
 			}
 
+			// Fill LPS data extension.
+			{
+				*wptr++ = 0x02; // LPS data extension code.
+				lps_values val;
+				lps_get_pos(val);
+				*wptr++ = (int8_t)(val[0] * 10.0f);
+				*wptr++ = (int8_t)(val[1] * 10.0f);
+				*wptr++ = (uint8_t)(val[2] * 10.0f);
+				*wptr++ = 0;
+			}
+
 			// Fill length prefix and transmit.
 			frame[1] = wptr - frame - PREFIX_LENGTH;
 			mrf_tx_result_t result = mrf_transmit(frame);
@@ -164,12 +184,6 @@ static void feedback_task(void *UNUSED(param)) {
 				// We no longer need to send a has-ball update, because the
 				// information it would convey is in the feedback packet.
 				pending_events &= ~EVENT_SEND_HAS_BALL;
-			}
-			if (do_errors) {
-				error_post_report(ERROR_CONSUMER_MRF, result == MRF_TX_OK);
-			}
-			if (do_build_ids && result == MRF_TX_OK) {
-				__atomic_store_n(&build_ids_pending, false, __ATOMIC_RELAXED);
 			}
 		}
 		if (pending_events & EVENT_SEND_HAS_BALL) {

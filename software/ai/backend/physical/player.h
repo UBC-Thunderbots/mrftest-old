@@ -68,6 +68,7 @@ namespace AI {
 				
 					bool autokick_fired() const override { return autokick_fired_; }
 					unsigned int num_bar_graphs() const override;
+					double get_lps(unsigned int index) const override;
 					double bar_graph_value(unsigned int) const override;
 					Visualizable::Colour bar_graph_colour(unsigned int) const override;
 

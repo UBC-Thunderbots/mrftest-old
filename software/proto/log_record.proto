@@ -147,6 +147,7 @@ message Tick {
 		}
 		repeated PathElement path = 8;
 
+
 		// There must be exactly four of these, measured in quarters of a degree per five milliseconds.
 		repeated sint32 wheel_setpoints = 9;
 
@@ -168,6 +169,8 @@ message Tick {
 		optional HLPrimitive hl_primitive = 10;
 
 		repeated Vector2 display_path = 11;
+
+		repeated double lps = 12;
 	}
 	repeated FriendlyRobot friendly_robots = 6;
 

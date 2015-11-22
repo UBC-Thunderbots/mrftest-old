@@ -561,6 +561,23 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 								}
 								break;
 
+							case 0x02: // LPS data.
+								++bptr;
+								--len;
+								if (len >= 4) {
+									for (unsigned int i = 0; i < 2; ++i) {
+										lps_values[i] = static_cast<int8_t>(*bptr++) / 10.0;
+									}
+									lps_values[2] = static_cast<int8_t>(*bptr++) / 10.0;
+									lps_values[3] = static_cast<int8_t>(*bptr++) / 10.0;
+									LOG_INFO(Glib::ustring::compose(u8"LPS value %1 %2 %3 %4", lps_values[0], lps_values[1], lps_values[2], lps_values[3]));
+									len-=4;
+
+								} else {
+									LOG_ERROR(Glib::ustring::compose(u8"Received general robot status update with truncated LPS data extension of length %1", len));
+								}
+								break;
+
 							default:
 								LOG_ERROR(Glib::ustring::compose(u8"Received general status packet from robot with unknown extension code %1", static_cast<unsigned int>(*bptr)));
 								len = 0;

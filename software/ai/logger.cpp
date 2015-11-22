@@ -141,6 +141,7 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), fos(fd.
 		on_field_changed();
 	}
 
+	
 	instance = this;
 }
 
@@ -360,7 +361,7 @@ void AI::Logger::on_ai_notes_changed(const Glib::ustring &notes) {
 }
 
 void AI::Logger::on_tick(AI::Timediff compute_time) {
-	Log::Record record;
+	{Log::Record record;
 	Log::Tick &tick = *record.mutable_tick();
 	tick.set_play_type(Log::Util::PlayType::to_protobuf(ai.backend.playtype()));
 	timestamp_to_log(ai.backend.monotonic_time(), ai.backend.monotonic_start_time(), *tick.mutable_start_time());
@@ -387,6 +388,9 @@ void AI::Logger::on_tick(AI::Timediff compute_time) {
 		for (Point j : p->display_path()) {
 			Log::Vector2 &path_element = *player.add_display_path();
 			encode_vec2(j, path_element);
+		}
+		for (unsigned int i = 0; i != 4; ++i) {
+			player.add_lps(p->get_lps(i));
 		}
 
 		static const std::unordered_map<Drive::Primitive, Log::Tick::FriendlyRobot::HLPrimitive::Primitive> MAPPING = {
@@ -420,6 +424,24 @@ void AI::Logger::on_tick(AI::Timediff compute_time) {
 	}
 
 	write_record(record);
+	}
+
+	// lps
+	/*{
+		Log::Record record;
+		for (std::size_t i = 0; i < ai.backend.friendly_team().size(); ++i) {
+			AI::BE::Player::Ptr p = ai.backend.friendly_team().get(i);
+				record.mutable_lps()->set_val1(p->get_lps(1));
+				record.mutable_lps()->set_val2(p->get_lps(2));
+				record.mutable_lps()->set_val3(p->get_lps(3));
+				record.mutable_lps()->set_val4(p->get_lps(4));
+				break;
+
+		}
+
+		write_record(record);
+		
+	}*/
 }
 
 void AI::Logger::encode_hlp_vec23(const AI::PrimitiveInfo &hl_request, Log::Tick::FriendlyRobot::HLPrimitive &log) {

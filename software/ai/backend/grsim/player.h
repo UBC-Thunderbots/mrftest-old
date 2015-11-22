@@ -14,6 +14,7 @@ namespace GRSim { class Player final : public AI::BE::Player {
 
 					explicit Player(unsigned int pattern, const AI::BE::Ball &ball);
 					bool has_ball() const override;
+					double get_lps(unsigned int index) const override;
 					bool chicker_ready() const override;
 					bool autokick_fired() const override;
 					const Property<Drive::Primitive> &primitive() const override;

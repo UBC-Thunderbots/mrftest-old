@@ -21,6 +21,7 @@ Drive::Robot::Robot(unsigned int index, double break_beam_scale, double kick_spe
 		dribbler_temperature(0),
 		dribbler_speed(0),
 		board_temperature(0),
+		lps_values{Property<double>(0.0), Property<double>(0.0), Property<double>(0.0), Property<double>(0.0)},
 		link_quality(0),
 		received_signal_strength(-90),
 		build_ids_valid(false),

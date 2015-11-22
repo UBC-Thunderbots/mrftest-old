@@ -17,11 +17,16 @@
 //#define LPS_OFFSET 0.03f
 #define LPS_MIN 0.001f
 #define LPS_THRESH -0.15f
-#define LPS_ARRAY_SIZE 4
+//#define LPS_ARRAY_SIZE 4
+#define LPS_AVE_SAMPLE 20
 
-typedef float lps_values[LPS_ARRAY_SIZE];
+//typedef float lps_values[LPS_ARRAY_SIZE];
 typedef float lps_adc[16];
 
+// calibration for offset and channel cross talks
+static lps_values lps_offset;
+
+// information for printing
 static lps_values lps_raw;
 static lps_values lps_offset = {
 	0.197665f, 0.346932f, 0.345231f, 0.408780f
@@ -110,8 +115,9 @@ void lps_incr(void){
 
 void lps_tick (void){
 	// when the calculation is complete 
-	float* updating_lps;
+	const float *updating_lps;
 	unsigned int index;
+	static unsigned int count_print = 0;
 
 	index = tbuf_read_get(&lps_buffer_ctl);
 	updating_lps = lps_buf[index];
@@ -123,7 +129,6 @@ void lps_tick (void){
 		} else {
 			lps_raw[i] = LPS_MIN;
 		}
-		updating_lps[i]=0;
 	}
 	x = 0.0f;
 	y = 0.0f;
@@ -136,6 +141,27 @@ void lps_tick (void){
 		lps_sum += lps_norm[i];
 	}
 	tbuf_read_put(&lps_buffer_ctl, index);
+
+	//printing stuff
+	if(count_print == 30){
+		lps_print();
+		count_print = 0;
+	}
+	count_print++;
+
+}
+
+void lps_get_raw(lps_values lps_output){
+	for(unsigned int i = 0; i<LPS_ARRAY_SIZE; i++){
+		lps_output[i] = lps_raw[i];
+	}
+
+}
+
+void lps_get_pos(lps_values lps_output){
+	lps_output[0] = x;
+	lps_output[1] = y;
+	lps_output[2] = lps_sum;
 
 }
 

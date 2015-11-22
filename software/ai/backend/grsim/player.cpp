@@ -55,6 +55,9 @@ bool Player::has_ball() const {
 	double projected_distance_to_centre_of_dribbler = distance_to_ball_contact_point * contact_point_offset_angle.cos();
 	return projected_distance_to_centre_of_dribbler <= ROBOT_DISTANCE_TO_FRONT + HAS_BALL_THRESHOLD;
 }
+double Player::get_lps(unsigned int index) const {
+	return 0.0;
+}
 
 bool Player::chicker_ready() const {
 	return steady_clock::now() - _last_chick_time >= CHICKER_CHARGE_TIME;

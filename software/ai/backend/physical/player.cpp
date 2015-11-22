@@ -63,6 +63,11 @@ bool Player::has_ball() const {
 	return bot.ball_in_beam;
 }
 
+double Player::get_lps(unsigned int index) const {
+	assert(index < bot.lps_values.size());
+	return bot.lps_values[index];
+}
+
 bool Player::chicker_ready() const {
 	return bot.alive && bot.capacitor_charged;
 }

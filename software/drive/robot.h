@@ -216,6 +216,11 @@ namespace Drive {
 			Property<double> board_temperature;
 
 			/**
+			 * \brief The LPS reflectance values.
+			 */
+			std::array<Property<double>, 4> lps_values;
+
+			/**
 			 * \brief The link quality of the last received packet, from 0 to
 			 * 1.
 			 */

@@ -97,6 +97,7 @@ namespace AI {
 				Visualizable::Colour highlight_colour() const final override;
 
 				virtual bool has_ball() const = 0;
+				virtual double get_lps(unsigned int index) const = 0;
 				virtual bool chicker_ready() const = 0;
 				virtual bool autokick_fired() const = 0;
 
