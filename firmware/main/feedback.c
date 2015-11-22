@@ -16,6 +16,7 @@
 #include "hall.h"
 #include "icb.h"
 #include "log.h"
+#include "main.h"
 #include "motor.h"
 #include "mrf.h"
 #include "priority.h"
@@ -25,7 +26,6 @@
 #include <FreeRTOS.h>
 #include <assert.h>
 #include <build_id.h>
-#include <event_groups.h>
 #include <math.h>
 #include <minmax.h>
 #include <stack.h>
@@ -39,13 +39,12 @@ typedef enum {
 	EVENT_SEND_HAS_BALL = 0x02,
 	EVENT_SEND_AUTOKICK = 0x04,
 	EVENT_SHUTDOWN = 0x08,
-	EVENT_SHUTDOWN_COMPLETE = 0x10,
 } event_t;
 
-static EventGroupHandle_t event_group;
 static unsigned int has_ball_antispam_ticks = 0U;
 static bool has_ball_after_antispam = false;
 static bool build_ids_pending = false;
+static TaskHandle_t feedback_task_handle;
 STACK_ALLOCATE(feedback_task_stack, 4096);
 
 static void feedback_task(void *UNUSED(param)) {
@@ -63,14 +62,20 @@ static void feedback_task(void *UNUSED(param)) {
 		0U, // [10] Source address MSB
 		0U, // [11] Packet purpose
 	};
+	uint32_t pending_events = 0;
 	for (;;) {
-		EventBits_t bits = xEventGroupWaitBits(event_group, EVENT_SEND_NORMAL | EVENT_SEND_HAS_BALL | EVENT_SEND_AUTOKICK | EVENT_SHUTDOWN, pdTRUE, pdFALSE, portMAX_DELAY);
-
-		if (bits & EVENT_SHUTDOWN) {
-			xEventGroupSetBits(event_group, EVENT_SHUTDOWN_COMPLETE);
-			vTaskSuspend(0);
+		{
+			uint32_t new_events;
+			xTaskNotifyWait(0, UINT32_MAX, &new_events, portMAX_DELAY);
+			pending_events |= new_events;
 		}
-		if (bits & EVENT_SEND_NORMAL) {
+
+		if (pending_events & EVENT_SHUTDOWN) {
+			pending_events &= ~EVENT_SHUTDOWN;
+			break;
+		}
+		if (pending_events & EVENT_SEND_NORMAL) {
+			pending_events &= ~EVENT_SEND_NORMAL;
 #define PREFIX_LENGTH 2
 #define HEADER_LENGTH 9
 #define PURPOSE_LENGTH 1
@@ -158,7 +163,7 @@ static void feedback_task(void *UNUSED(param)) {
 			if (result == MRF_TX_OK) {
 				// We no longer need to send a has-ball update, because the
 				// information it would convey is in the feedback packet.
-				bits &= ~EVENT_SEND_HAS_BALL;
+				pending_events &= ~EVENT_SEND_HAS_BALL;
 			}
 			if (do_errors) {
 				error_post_report(ERROR_CONSUMER_MRF, result == MRF_TX_OK);
@@ -167,7 +172,8 @@ static void feedback_task(void *UNUSED(param)) {
 				__atomic_store_n(&build_ids_pending, false, __ATOMIC_RELAXED);
 			}
 		}
-		if (bits & EVENT_SEND_HAS_BALL) {
+		if (pending_events & EVENT_SEND_HAS_BALL) {
+			pending_events &= ~EVENT_SEND_HAS_BALL;
 			nullary_frame[4U] = mrf_alloc_seqnum();
 			uint16_t u16 = mrf_pan_id();
 			nullary_frame[5U] = u16;
@@ -180,7 +186,8 @@ static void feedback_task(void *UNUSED(param)) {
 			// If the frame is not delivered, the next feedback packet will give the host fully up-to-date information.
 			mrf_transmit(nullary_frame);
 		}
-		if (bits & EVENT_SEND_AUTOKICK) {
+		if (pending_events & EVENT_SEND_AUTOKICK) {
+			pending_events &= ~EVENT_SEND_AUTOKICK;
 			nullary_frame[4U] = mrf_alloc_seqnum();
 			uint16_t u16 = mrf_pan_id();
 			nullary_frame[5U] = u16;
@@ -194,19 +201,20 @@ static void feedback_task(void *UNUSED(param)) {
 				// This message absolutely must go through.
 				// If not, the host may believe autokick is still armed even though it isn’t!
 				// So, try delivering the message again later.
-				xEventGroupSetBits(event_group, EVENT_SEND_AUTOKICK);
+				xTaskNotify(feedback_task_handle, EVENT_SEND_AUTOKICK, eSetBits);
 			}
 		}
 	}
+
+	xSemaphoreGive(main_shutdown_sem);
+	vTaskSuspend(0);
 }
 
 /**
  * \brief Initializes the feedback system.
  */
 void feedback_init(void) {
-	event_group = xEventGroupCreate();
-	assert(event_group);
-	BaseType_t ok = xTaskGenericCreate(&feedback_task, "feedback", sizeof(feedback_task_stack) / sizeof(*feedback_task_stack), 0, PRIO_TASK_FEEDBACK, 0, feedback_task_stack, 0);
+	BaseType_t ok = xTaskGenericCreate(&feedback_task, "feedback", sizeof(feedback_task_stack) / sizeof(*feedback_task_stack), 0, PRIO_TASK_FEEDBACK, &feedback_task_handle, feedback_task_stack, 0);
 	assert(ok == pdPASS);
 }
 
@@ -214,8 +222,8 @@ void feedback_init(void) {
  * \brief Shuts down the feedback system.
  */
 void feedback_shutdown(void) {
-	xEventGroupSetBits(event_group, EVENT_SHUTDOWN);
-	xEventGroupWaitBits(event_group, EVENT_SHUTDOWN_COMPLETE, pdFALSE, pdFALSE, portMAX_DELAY);
+	xTaskNotify(feedback_task_handle, EVENT_SHUTDOWN, eSetBits);
+	xSemaphoreTake(main_shutdown_sem, portMAX_DELAY);
 }
 
 /**
@@ -224,7 +232,7 @@ void feedback_shutdown(void) {
  * The feedback task will send feedback as soon as possible after this function is called.
  */
 void feedback_pend_normal(void) {
-	xEventGroupSetBits(event_group, EVENT_SEND_NORMAL);
+	xTaskNotify(feedback_task_handle, EVENT_SEND_NORMAL, eSetBits);
 }
 
 /**
@@ -237,7 +245,7 @@ void feedback_pend_has_ball(void) {
 	if (has_ball_antispam_ticks) {
 		has_ball_after_antispam = true;
 	} else {
-		xEventGroupSetBits(event_group, EVENT_SEND_HAS_BALL);
+		xTaskNotify(feedback_task_handle, EVENT_SEND_HAS_BALL, eSetBits);
 		has_ball_antispam_ticks = HAS_BALL_MIN_PERIOD;
 	}
 	taskEXIT_CRITICAL();
@@ -249,7 +257,7 @@ void feedback_pend_has_ball(void) {
  * The feedback task will send an autokick fired message as soon as possible after this function is called.
  */
 void feedback_pend_autokick(void) {
-	xEventGroupSetBits(event_group, EVENT_SEND_AUTOKICK);
+	xTaskNotify(feedback_task_handle, EVENT_SEND_AUTOKICK, eSetBits);
 }
 
 /**
@@ -271,7 +279,7 @@ void feedback_tick(void) {
 		--has_ball_antispam_ticks;
 	}
 	if (!has_ball_antispam_ticks && has_ball_after_antispam) {
-		xEventGroupSetBits(event_group, EVENT_SEND_HAS_BALL);
+		xTaskNotify(feedback_task_handle, EVENT_SEND_HAS_BALL, eSetBits);
 		has_ball_after_antispam = false;
 	}
 	taskEXIT_CRITICAL();

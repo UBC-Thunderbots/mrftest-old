@@ -227,7 +227,7 @@ bool uep0_data_read(void *buffer) {
 				// Report to the caller.
 				return false;
 			}
-			xSemaphoreTake(udev_event_sem, portMAX_DELAY);
+			ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 		}
 
 		// Sanity check: only OUT endpoint zero is being activated, so IN
@@ -417,7 +417,7 @@ bool uep0_data_write(const void *data, size_t length) {
 				// Report to the caller.
 				return false;
 			}
-			xSemaphoreTake(udev_event_sem, portMAX_DELAY);
+			ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 		}
 
 		if (xfrc & 1) {
@@ -505,7 +505,7 @@ static void uep0_status_stage(void) {
 				__atomic_store_n(&uep0_xfrc, 0, __ATOMIC_RELAXED);
 				break;
 			}
-			xSemaphoreTake(udev_event_sem, portMAX_DELAY);
+			ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 		}
 
 		// Sanity check.
@@ -539,7 +539,7 @@ static void uep0_status_stage(void) {
 				__atomic_store_n(&uep0_xfrc, 0, __ATOMIC_RELAXED);
 				break;
 			}
-			xSemaphoreTake(udev_event_sem, portMAX_DELAY);
+			ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 		}
 
 		// Sanity check.

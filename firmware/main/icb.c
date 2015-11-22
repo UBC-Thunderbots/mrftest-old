@@ -13,9 +13,8 @@
  * Additionally, whenever the pending interrupt set is nonempty, the separate interrupt wire is driven high.
  * An internal task in this module is notified when this happens, issues the read-and-clear command, and distributes the resulting interrupt sources to their individual handlers.
  *
- * @{
+ * \{
  */
-
 #include "icb.h"
 #include "dma.h"
 #include "error.h"
@@ -145,14 +144,14 @@ static uint8_t temp_buffer[6U];
 static SemaphoreHandle_t transaction_complete_sem;
 
 /**
- * \brief A semaphore handle used by the EXTI ISR to notify the interrupt dispatcher task.
- */
-static SemaphoreHandle_t irq_sem;
-
-/**
  * \brief The semaphores to notify when ICB IRQs are asserted.
  */
 static void (*irq_handlers[ICB_IRQ_COUNT])(void);
+
+/**
+ * \brief The ICB IRQ dispatching task.
+ */
+static TaskHandle_t irq_task_handle;
 
 STACK_ALLOCATE(irq_task_stack, 4096);
 
@@ -404,9 +403,8 @@ void stop_dma(void) {
 /**
  * \name Module initialization
  *
- * @{
+ * \{
  */
-
 /**
  * \brief Initializes the ICB.
  */
@@ -414,8 +412,7 @@ void icb_init(void) {
 	// Create the FreeRTOS objects.
 	bus_mutex = xSemaphoreCreateMutex();
 	transaction_complete_sem = xSemaphoreCreateBinary();
-	irq_sem = xSemaphoreCreateBinary();
-	assert(bus_mutex && transaction_complete_sem && irq_sem);
+	assert(bus_mutex && transaction_complete_sem);
 
 	// Enable clock and reset module.
 	rcc_enable_reset(APB2, SPI1);
@@ -424,9 +421,8 @@ void icb_init(void) {
 	// Other interrupts will be enabled as needed.
 	portENABLE_HW_INTERRUPT(NVIC_IRQ_EXTI0);
 }
-
 /**
- * @}
+ * \}
  */
 
 /**
@@ -434,9 +430,8 @@ void icb_init(void) {
  *
  * These functions are used to communicate with logic in a fully configured FPGA.
  *
- * @{
+ * \{
  */
-
 /**
  * \internal
  *
@@ -658,9 +653,8 @@ bool icb_receive(icb_command_t command, void *buffer, size_t length) {
 		return false;
 	}
 }
-
 /**
- * @}
+ * \}
  */
 
 /**
@@ -668,9 +662,8 @@ bool icb_receive(icb_command_t command, void *buffer, size_t length) {
  *
  * These functions handle checking and dispatching interrupts reported from the FPGA.
  *
- * @{
+ * \{
  */
-
 /**
  * \brief The ICB interrupt dispatching task.
  */
@@ -678,7 +671,7 @@ static void irq_task(void *UNUSED(param)) {
 	for (;;) {
 		// If the IRQ pin is low, we have nothing to do.
 		while (!gpio_get_input(PIN_ICB_IRQ)) {
-			xSemaphoreTake(irq_sem, portMAX_DELAY);
+			ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 		}
 
 		// Read in the IRQ line state.
@@ -711,6 +704,13 @@ static void icb_crc_error_isr(void) {
  * \pre The FPGA must already be configured.
  */
 void icb_irq_init(void) {
+	// Set up a handler for the ICB CRC error IRQ.
+	icb_irq_set_vector(ICB_IRQ_ICB_CRC, &icb_crc_error_isr);
+
+	// Start the IRQ dispatching task.
+	BaseType_t ok = xTaskGenericCreate(&irq_task, "icb-irq", sizeof(irq_task_stack) / sizeof(*irq_task_stack), 0, PRIO_TASK_ICB_IRQ, &irq_task_handle, irq_task_stack, 0);
+	assert(ok == pdPASS);
+
 	// Map EXTI0 to PB0.
 	rcc_enable(APB2, SYSCFG);
 	SYSCFG.EXTICR[0U] = (SYSCFG.EXTICR[0U] & ~(0xFU << 0U)) | (0b0001 << 0U);
@@ -719,13 +719,6 @@ void icb_irq_init(void) {
 	// Enable rising edge interrupts on EXTI0.
 	EXTI.IMR |= 1U;
 	EXTI.RTSR |= 1U;
-
-	// Set up a handler for the ICB CRC error IRQ.
-	icb_irq_set_vector(ICB_IRQ_ICB_CRC, &icb_crc_error_isr);
-
-	// Start the IRQ dispatching task.
-	BaseType_t ok = xTaskGenericCreate(&irq_task, "icb-irq", sizeof(irq_task_stack) / sizeof(*irq_task_stack), 0, PRIO_TASK_ICB_IRQ, 0, irq_task_stack, 0);
-	assert(ok == pdPASS);
 }
 
 /**
@@ -748,9 +741,8 @@ void icb_irq_set_vector(icb_irq_t irq, void (*isr)(void)) {
 	__atomic_store_n(&irq_handlers[irq], isr, __ATOMIC_RELAXED);
 	__atomic_signal_fence(__ATOMIC_RELEASE);
 }
-
 /**
- * @}
+ * \}
  */
 
 /**
@@ -758,9 +750,8 @@ void icb_irq_set_vector(icb_irq_t irq, void (*isr)(void)) {
  *
  * These functions are used to configure the FPGA.
  *
- * @{
+ * \{
  */
-
 /**
  * \brief Starts the configuration process.
  *
@@ -898,9 +889,8 @@ icb_conf_result_t icb_conf_end(void) {
 	// DONE never went high!
 	return ICB_CONF_DONE_STUCK_LOW;
 }
-
 /**
- * @}
+ * \}
  */
 
 /**
@@ -908,9 +898,8 @@ icb_conf_result_t icb_conf_end(void) {
  *
  * These interrupt service routines are registered in the interrupt vector table.
  *
- * @{
+ * \{
  */
-
 /**
  * \brief Handles DMA controller 2 stream 0 interrupts.
  *
@@ -1024,18 +1013,16 @@ void exti0_isr(void) {
 
 	// Give semaphore.
 	BaseType_t yield = pdFALSE;
-	xSemaphoreGiveFromISR(irq_sem, &yield);
+	vTaskNotifyGiveFromISR(irq_task_handle, &yield);
 	if (yield) {
 		portYIELD_FROM_ISR();
 	}
 
 	EXCEPTION_RETURN_BARRIER();
 }
-
 /**
- * @}
+ * \}
  */
-
 /**
- * @}
+ * \}
  */

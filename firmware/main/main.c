@@ -246,7 +246,7 @@ static const udev_info_t USB_INFO = {
 static uint32_t idle_cycles = 0;
 static bool shutting_down = false;
 static main_shut_mode_t shutdown_mode;
-static SemaphoreHandle_t supervisor_sem;
+static TaskHandle_t main_task_handle;
 static unsigned int wdt_sources = 0U;
 
 /**
@@ -319,7 +319,7 @@ static void stm32_main(void) {
 
 	// Get into FreeRTOS.
 	main_shutdown_sem = xSemaphoreCreateCounting((UBaseType_t) -1, 0);
-	BaseType_t ok = xTaskGenericCreate(&main_task, "main", sizeof(main_task_stack) / sizeof(*main_task_stack), 0, PRIO_TASK_SUPERVISOR, 0, main_task_stack, 0);
+	BaseType_t ok = xTaskGenericCreate(&main_task, "main", sizeof(main_task_stack) / sizeof(*main_task_stack), 0, PRIO_TASK_SUPERVISOR, &main_task_handle, main_task_stack, 0);
 	assert(ok == pdPASS);
 	vTaskStartScheduler();
 	__builtin_unreachable();
@@ -398,8 +398,7 @@ static void run_normal(void) {
 
 	// Supervise.
 	while (!__atomic_load_n(&shutting_down, __ATOMIC_RELAXED)) {
-		BaseType_t ret = xSemaphoreTake(supervisor_sem, 100U / portTICK_PERIOD_MS);
-		if (ret == pdFALSE) {
+		if (!ulTaskNotifyTake(pdTRUE, 100 / portTICK_PERIOD_MS)) {
 			// Timeout occurred, so check for task liveness.
 			assert(__atomic_load_n(&wdt_sources, __ATOMIC_RELAXED) == (1U << MAIN_WDT_SOURCE_COUNT) - 1U);
 			__atomic_store_n(&wdt_sources, 0U, __ATOMIC_RELAXED);
@@ -480,10 +479,6 @@ static void run_safe_mode(void) {
 }
 
 static void main_task(void *UNUSED(param)) {
-	// Create a semaphore which other tasks will use to ping the supervisor.
-	supervisor_sem = xSemaphoreCreateBinary();
-	assert(supervisor_sem);
-
 	// Initialize DMA engines.
 	// These are needed for a lot of other things so must come first.
 	dma_init();
@@ -669,7 +664,7 @@ void main_shutdown(main_shut_mode_t mode) {
 	shutdown_mode = mode;
 	__atomic_signal_fence(__ATOMIC_RELEASE);
 	__atomic_store_n(&shutting_down, true, __ATOMIC_RELAXED);
-	xSemaphoreGive(supervisor_sem);
+	xTaskNotifyGive(main_task_handle);
 }
 
 /**

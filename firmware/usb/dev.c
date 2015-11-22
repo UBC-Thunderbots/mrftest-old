@@ -55,17 +55,6 @@ static udev_state_t udev_state = UDEV_STATE_UNINITIALIZED;
 udev_state_change_t udev_state_change = UDEV_STATE_CHANGE_NONE;
 
 /**
- * \brief The stack internal task’s event semaphore.
- *
- * This semaphore is given whenever:
- * \li a transfer on endpoint zero completes
- * \li \ref udev_state_change is changed to something other than \ref UDEV_STATE_CHANGE_NONE
- *
- * This wakes up the stack internal task to handle the activity.
- */
-SemaphoreHandle_t udev_event_sem;
-
-/**
  * \brief The semaphore used to notify an application task that a requested
  * attach or detach operation is complete.
  */
@@ -114,7 +103,7 @@ static void udev_task_detached(void) {
 	while (udev_state == UDEV_STATE_DETACHED) {
 		switch (__atomic_exchange_n(&udev_state_change, UDEV_STATE_CHANGE_NONE, __ATOMIC_RELAXED)) {
 			case UDEV_STATE_CHANGE_NONE:
-				xSemaphoreTake(udev_event_sem, portMAX_DELAY);
+				ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 				break;
 
 			case UDEV_STATE_CHANGE_ATTACH:
@@ -176,7 +165,7 @@ static void udev_task_attached(void) {
 			case UDEV_STATE_CHANGE_NONE:
 				switch (__atomic_exchange_n(&uep0_setup_event, UEP0_SETUP_EVENT_NONE, __ATOMIC_RELAXED)) {
 					case UEP0_SETUP_EVENT_NONE:
-						xSemaphoreTake(udev_event_sem, portMAX_DELAY);
+						ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 						break;
 
 					case UEP0_SETUP_EVENT_STARTED:
@@ -490,7 +479,7 @@ void udev_isr(void) {
 	OTG_FS_GINTMSK_t msk = OTG_FS.GINTMSK;
 	OTG_FS_GINTSTS_t sts = OTG_FS.GINTSTS;
 	OTG_FS_GOTGINT_t otg = OTG_FS.GOTGINT;
-	bool give_udev_sem = false;
+	bool give_udev_notify = false;
 	BaseType_t yield = pdFALSE;
 
 	// Handle OUT endpoints.
@@ -563,14 +552,14 @@ void udev_isr(void) {
 						uep_queue_event_from_isr(0x00 | elt.EPNUM, UEP_EVENT_XFRC, &yield);
 					} else {
 						uep0_xfrc |= 1;
-						give_udev_sem = true;
+						give_udev_notify = true;
 					}
 					break;
 
 				case 0b0100:
 					// SETUP transaction completed.
 					uep0_setup_event = UEP0_SETUP_EVENT_FINISHED;
-					give_udev_sem = true;
+					give_udev_notify = true;
 					break;
 
 				case 0b0110:
@@ -580,7 +569,7 @@ void udev_isr(void) {
 					assert(elt.BCNT == sizeof(usb_setup_packet_t));
 					udev_rx_copy_out(uep0_writable_setup_packet(), sizeof(usb_setup_packet_t), 0);
 					uep0_setup_event = UEP0_SETUP_EVENT_STARTED;
-					give_udev_sem = true;
+					give_udev_notify = true;
 					break;
 
 				default:
@@ -619,7 +608,7 @@ void udev_isr(void) {
 			OTG_FS.DIEPINT0 = diepint;
 			if (diepint.XFRC) {
 				uep0_xfrc |= 2;
-				give_udev_sem = true;
+				give_udev_notify = true;
 			}
 		}
 		uint32_t empmsk = OTG_FS.DIEPEMPMSK;
@@ -713,7 +702,7 @@ void udev_isr(void) {
 			// event is uninteresting.
 			if (udev_state_change == UDEV_STATE_CHANGE_NONE) {
 				udev_state_change = UDEV_STATE_CHANGE_SEDET;
-				give_udev_sem = true;
+				give_udev_notify = true;
 			}
 			// Ensure a SETUP packet received before the reset won’t get
 			// handled after it.
@@ -732,7 +721,7 @@ void udev_isr(void) {
 		// is uninteresting.
 		if (udev_state_change == UDEV_STATE_CHANGE_NONE) {
 			udev_state_change = UDEV_STATE_CHANGE_RESET;
-			give_udev_sem = true;
+			give_udev_notify = true;
 		}
 		// Reset signalling requires the device to respond to address zero.
 		OTG_FS_DCFG_t dcfg = { .DAD = 0, .NZLSOHSK = 1, .DSPD = 3 };
@@ -742,8 +731,8 @@ void udev_isr(void) {
 		uep0_setup_event = UEP0_SETUP_EVENT_NONE;
 	}
 
-	if (give_udev_sem) {
-		xSemaphoreGiveFromISR(udev_event_sem, &yield);
+	if (give_udev_notify) {
+		vTaskNotifyGiveFromISR(udev_task_handle, &yield);
 	}
 
 	if (yield) {
@@ -774,10 +763,9 @@ void udev_init(const udev_info_t *info) {
 			// Initialize the stack.
 			udev_info = info;
 			udev_state = UDEV_STATE_DETACHED;
-			udev_event_sem = xSemaphoreCreateBinary();
 			udev_attach_detach_sem = xSemaphoreCreateBinary();
 			udev_gonak_mutex = xSemaphoreCreateMutex();
-			if (!udev_event_sem || !udev_attach_detach_sem || !udev_gonak_mutex) {
+			if (!udev_attach_detach_sem || !udev_gonak_mutex) {
 				abort();
 			}
 			for (unsigned int i = 0; i < UEP_MAX_ENDPOINT * 2U; ++i) {
@@ -850,7 +838,7 @@ void udev_attach(void) {
 
 	// Issue the state change.
 	__atomic_store_n(&udev_state_change, UDEV_STATE_CHANGE_ATTACH, __ATOMIC_RELAXED);
-	xSemaphoreGive(udev_event_sem);
+	xTaskNotifyGive(udev_task_handle);
 
 	// Wait until the stack internal task acknowledges the state change.
 	BaseType_t ok = xSemaphoreTake(udev_attach_detach_sem, portMAX_DELAY);
@@ -909,7 +897,7 @@ void udev_detach(void) {
 
 	// Issue the state change.
 	__atomic_store_n(&udev_state_change, UDEV_STATE_CHANGE_DETACH, __ATOMIC_RELAXED);
-	xSemaphoreGive(udev_event_sem);
+	xTaskNotifyGive(udev_task_handle);
 
 	if (udev_attach_detach_sem_needed) {
 		// Wait until the stack internal task acknowledges the state change.
