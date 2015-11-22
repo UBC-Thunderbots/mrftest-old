@@ -16,6 +16,7 @@ TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &ro
 		rssi_label(u8"RSSI:"),
 		fw_build_id_label(u8"FW:"),
 		fpga_build_id_label(u8"FPGA:"),
+		lps_val_label(u8"LPS value:"),
 		alive(u8"Alive"),
 		estop(u8"EStop Run"),
 		ball_in_beam(u8"Ball in Beam"),
@@ -39,6 +40,8 @@ TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &ro
 	attach(fw_build_id, 1, 2, 8, 9, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(fpga_build_id_label, 0, 1, 9, 10, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(fpga_build_id, 1, 2, 9, 10, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(lps_val_label, 0, 1, 10, 11, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(lps_val, 1, 2, 10, 11, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	alive.set_sensitive(false);
 	estop.set_sensitive(false);
@@ -46,12 +49,13 @@ TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &ro
 	capacitor_charged.set_sensitive(false);
 	fw_build_id.set_editable(false);
 	fpga_build_id.set_editable(false);
+	lps_val.set_editable(false);
 	cb_hbox1.pack_start(alive, Gtk::PACK_EXPAND_WIDGET);
 	cb_hbox1.pack_start(estop, Gtk::PACK_EXPAND_WIDGET);
-	attach(cb_hbox1, 0, 2, 10, 11, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(cb_hbox1, 0, 2, 11, 12, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	cb_hbox2.pack_start(ball_in_beam, Gtk::PACK_EXPAND_WIDGET);
 	cb_hbox2.pack_start(capacitor_charged, Gtk::PACK_EXPAND_WIDGET);
-	attach(cb_hbox2, 0, 2, 11, 12, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(cb_hbox2, 0, 2, 12, 13, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	robot.battery_voltage.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_battery_voltage_changed));
 	robot.capacitor_voltage.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_capacitor_voltage_changed));
@@ -64,6 +68,7 @@ TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &ro
 	robot.build_ids_valid.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_fw_build_id_changed));
 	robot.build_ids_valid.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_fpga_build_id_changed));
 	robot.fw_build_id.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_fw_build_id_changed));
+	robot.lps_values[0].signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_lps_val_changed));
 	robot.fpga_build_id.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_fpga_build_id_changed));
 	robot.alive.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_alive_changed));
 	dongle.estop_state.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_estop_changed));
@@ -80,6 +85,7 @@ TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &ro
 	on_rssi_changed();
 	on_fw_build_id_changed();
 	on_fpga_build_id_changed();
+	on_lps_val_changed();
 	on_alive_changed();
 	on_estop_changed();
 	on_ball_in_beam_changed();
@@ -179,6 +185,14 @@ void TesterFeedbackPanel::on_fpga_build_id_changed() {
 		fpga_build_id.set_text(Glib::ustring::compose(u8"0x%1", tohex(robot.fpga_build_id, 8)));
 	} else {
 		fpga_build_id.set_text(u8"No data");
+	}
+}
+
+void TesterFeedbackPanel::on_lps_val_changed() {
+	if (robot.build_ids_valid) {
+		lps_val.set_text(Glib::ustring::compose(u8"(%1,%2) %3", robot.lps_values[0], robot.lps_values[1], robot.lps_values[2]));
+	} else {
+		lps_val.set_text(u8"No data");
 	}
 }
 
