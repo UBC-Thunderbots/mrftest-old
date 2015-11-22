@@ -570,7 +570,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 									}
 									lps_values[2] = static_cast<int8_t>(*bptr++) / 10.0;
 									lps_values[3] = static_cast<int8_t>(*bptr++) / 10.0;
-									//LOG_INFO(Glib::ustring::compose(u8"LPS value %1 %2 %3 %4", lps_values[0], lps_values[1], lps_values[2], lps_values[3]));
+									LOG_INFO(Glib::ustring::compose(u8"LPS value %1 %2 %3 %4", lps_values[0], lps_values[1], lps_values[2], lps_values[3]));
 									len-=4;
 
 								} else {
