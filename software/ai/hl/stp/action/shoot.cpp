@@ -149,7 +149,7 @@ bool AI::HL::STP::Action::shoot_pass(World world, Player player, const Point tar
 	}
 
 	if (ok) {
-		player.mp_shoot(player.position(), player.orientation(), false, BALL_MAX_SPEED);
+		player.mp_shoot(player.position(), player.orientation(), false, BALL_MAX_SPEED); //shooting at max speed?
 		return true;
 	}
 

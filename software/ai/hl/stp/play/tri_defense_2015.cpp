@@ -13,21 +13,24 @@ namespace Predicates = AI::HL::STP::Predicates;
  * Pass, defenders have higher priority than passers
  */
 BEGIN_PLAY(TriDefense2015)
-INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY)
-	&& Predicates::our_team_size_at_least(world, 4)
-	&& Predicates::their_team_size_at_least(world, 3))
-APPLICABLE(Predicates::their_ball(world)
+INVARIANT(true)/*
+		Predicates::playtype(world, AI::Common::PlayType::PLAY)
+	&& Predicates::our_team_size_at_least(world, 2))*/
+	//&& Predicates::their_team_size_at_least(world, 3))
+
+APPLICABLE(true)/*Predicates::their_ball(world)
 	&& (Predicates::ball_midfield(world)
-	|| Predicates::ball_on_our_side(world)))
-DONE(Predicates::our_ball(world))
-FAIL(Predicates::their_ball(world))
+	|| Predicates::ball_on_our_side(world)))*/
+//DONE(Predicates::our_ball(world))
+DONE(false)
+FAIL(false)
 BEGIN_ASSIGN()
 
 // STEP 1
 goalie_role.push_back(defend_duo_goalie(world));
 roles[0].push_back(defend_duo_defender(world));
 roles[1].push_back(defend_duo_extra1(world));
-roles[2].push_back(spin_steal(world));
+roles[2].push_back(back_up_steal(world));
 roles[3].push_back(defend_duo_extra2(world));
 roles[4].push_back(shadow_enemy(world,1));
 

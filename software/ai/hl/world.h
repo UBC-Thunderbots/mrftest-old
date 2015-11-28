@@ -465,7 +465,7 @@ inline void AI::HL::W::Player::mp_shoot(Point dest, Angle ori, bool chip, double
 inline void AI::HL::W::Player::mp_shoot(Point dest, bool chip, double power){
 	AI::Common::Player::impl->hl_request.type = Drive::Primitive::SHOOT;
 	AI::Common::Player::impl->hl_request.field_point = dest;
-	AI::Common::Player::impl->hl_request.care_angle = false; 
+	AI::Common::Player::impl->hl_request.care_angle = false;
 	AI::Common::Player::impl->hl_request.field_bool = chip;
 	AI::Common::Player::impl->hl_request.field_double = power;
 	AI::Common::Player::impl->move(dest, Angle(), Point());
