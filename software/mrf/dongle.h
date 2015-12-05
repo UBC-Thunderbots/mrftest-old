@@ -104,11 +104,11 @@ class MRFDongle final : public Drive::Dongle {
 		uint8_t channel_;
 		uint16_t pan_;
 		std::array<std::unique_ptr<USB::BulkInTransfer>, 32> mdr_transfers;
-		std::array<std::unique_ptr<USB::InterruptInTransfer>, 32> message_transfers;
+		std::array<std::unique_ptr<USB::BulkInTransfer>, 32> message_transfers;
 		USB::InterruptInTransfer status_transfer;
 		Annunciator::Message rx_fcs_fail_message;
-		std::unique_ptr<USB::InterruptOutTransfer> drive_transfer;
-		std::list<std::unique_ptr<USB::InterruptOutTransfer>> unreliable_messages;
+		std::unique_ptr<USB::BulkOutTransfer> drive_transfer;
+		std::list<std::unique_ptr<USB::BulkOutTransfer>> unreliable_messages;
 		std::unique_ptr<MRFRobot> robots[8];
 		uint8_t drive_packet[64];
 		sigc::connection drive_submit_connection;
@@ -121,13 +121,13 @@ class MRFDongle final : public Drive::Dongle {
 		uint8_t alloc_message_id();
 		void free_message_id(uint8_t id);
 		void handle_mdrs(AsyncOperation<void> &);
-		void handle_message(AsyncOperation<void> &, USB::InterruptInTransfer &transfer);
+		void handle_message(AsyncOperation<void> &, USB::BulkInTransfer &transfer);
 		void handle_status(AsyncOperation<void> &);
 		void dirty_drive();
 		bool submit_drive_transfer();
 		void handle_drive_transfer_done(AsyncOperation<void> &);
 		void send_unreliable(unsigned int robot, unsigned int tries, const void *data, std::size_t len);
-		void check_unreliable_transfer(AsyncOperation<void> &, std::list<std::unique_ptr<USB::InterruptOutTransfer>>::iterator iter);
+		void check_unreliable_transfer(AsyncOperation<void> &, std::list<std::unique_ptr<USB::BulkOutTransfer>>::iterator iter);
 		void submit_beep();
 		void handle_beep_done(AsyncOperation<void> &);
 		void handle_annunciator_message_activated();
@@ -174,7 +174,7 @@ class MRFDongle::SendReliableMessageOperation final : public AsyncOperation<void
 	private:
 		MRFDongle &dongle;
 		uint8_t message_id, delivery_status;
-		std::unique_ptr<USB::InterruptOutTransfer> transfer;
+		std::unique_ptr<USB::BulkOutTransfer> transfer;
 		sigc::connection mdr_connection;
 
 		void out_transfer_done(AsyncOperation<void> &);

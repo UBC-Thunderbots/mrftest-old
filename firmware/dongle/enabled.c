@@ -72,7 +72,7 @@ static const struct __attribute__((packed)) {
 		.bDescriptorType = USB_DTYPE_ENDPOINT,
 		.bEndpointAddress = 0x01U,
 		.bmAttributes = {
-			.type = USB_EPTYPE_INTERRUPT,
+			.type = USB_EPTYPE_BULK,
 			.syncType = 0U,
 			.usageType = 0U,
 		},
@@ -85,7 +85,7 @@ static const struct __attribute__((packed)) {
 		.bDescriptorType = USB_DTYPE_ENDPOINT,
 		.bEndpointAddress = 0x02U,
 		.bmAttributes = {
-			.type = USB_EPTYPE_INTERRUPT,
+			.type = USB_EPTYPE_BULK,
 			.syncType = 0U,
 			.usageType = 0U,
 		},
@@ -98,7 +98,7 @@ static const struct __attribute__((packed)) {
 		.bDescriptorType = USB_DTYPE_ENDPOINT,
 		.bEndpointAddress = 0x03U,
 		.bmAttributes = {
-			.type = USB_EPTYPE_INTERRUPT,
+			.type = USB_EPTYPE_BULK,
 			.syncType = 0U,
 			.usageType = 0U,
 		},
@@ -124,7 +124,7 @@ static const struct __attribute__((packed)) {
 		.bDescriptorType = USB_DTYPE_ENDPOINT,
 		.bEndpointAddress = 0x82U,
 		.bmAttributes = {
-			.type = USB_EPTYPE_INTERRUPT,
+			.type = USB_EPTYPE_BULK,
 			.syncType = 0U,
 			.usageType = 0U,
 		},

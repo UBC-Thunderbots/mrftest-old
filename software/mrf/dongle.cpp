@@ -36,7 +36,7 @@ namespace {
 
 	const unsigned int ANNUNCIATOR_BEEP_LENGTH = 750;
 
-	std::unique_ptr<USB::InterruptOutTransfer> create_reliable_message_transfer(USB::DeviceHandle &device, unsigned int robot, uint8_t message_id, unsigned int tries, const void *data, std::size_t length) {
+	std::unique_ptr<USB::BulkOutTransfer> create_reliable_message_transfer(USB::DeviceHandle &device, unsigned int robot, uint8_t message_id, unsigned int tries, const void *data, std::size_t length) {
 		assert(robot < 8);
 		assert((1 <= tries) && (tries <= 256));
 		uint8_t buffer[3 + length];
@@ -44,7 +44,7 @@ namespace {
 		buffer[1] = message_id;
 		buffer[2] = static_cast<uint8_t>(tries & 0xFF);
 		std::memcpy(buffer + 3, data, length);
-		std::unique_ptr<USB::InterruptOutTransfer> ptr(new USB::InterruptOutTransfer(device, 2, buffer, sizeof(buffer), 64, 0));
+		std::unique_ptr<USB::BulkOutTransfer> ptr(new USB::BulkOutTransfer(device, 2, buffer, sizeof(buffer), 64, 0));
 		return ptr;
 	}
 }
@@ -234,7 +234,7 @@ MRFDongle::MRFDongle() :
 
 	// Submit the received message transfers.
 	for (auto &i : message_transfers) {
-		i.reset(new USB::InterruptInTransfer(device, 2, 105, false, 0));
+		i.reset(new USB::BulkInTransfer(device, 2, 105, false, 0));
 		i->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::handle_message), sigc::ref(*i.get())));
 		i->submit();
 	}
@@ -300,7 +300,7 @@ void MRFDongle::handle_mdrs(AsyncOperation<void> &op) {
 	mdr_transfer.submit();
 }
 
-void MRFDongle::handle_message(AsyncOperation<void> &, USB::InterruptInTransfer &transfer) {
+void MRFDongle::handle_message(AsyncOperation<void> &, USB::BulkInTransfer &transfer) {
 	transfer.result();
 	if (transfer.size() > 2) {
 		unsigned int robot = transfer.data()[0];
@@ -356,7 +356,7 @@ bool MRFDongle::submit_drive_transfer() {
 					length += 8;
 				}
 			}
-			drive_transfer.reset(new USB::InterruptOutTransfer(device, 1, drive_packet, length, 64, 0));
+			drive_transfer.reset(new USB::BulkOutTransfer(device, 1, drive_packet, length, 64, 0));
 			drive_transfer->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_drive_transfer_done));
 			drive_transfer->submit();
 			if (logger) {
@@ -385,13 +385,13 @@ void MRFDongle::send_unreliable(unsigned int robot, unsigned int tries, const vo
 	buffer[0] = static_cast<uint8_t>(robot);
 	buffer[1] = static_cast<uint8_t>(tries & 0xFF);
 	std::memcpy(buffer + 2, data, len);
-	std::unique_ptr<USB::InterruptOutTransfer> elt(new USB::InterruptOutTransfer(device, 3, buffer, sizeof(buffer), 64, 0));
+	std::unique_ptr<USB::BulkOutTransfer> elt(new USB::BulkOutTransfer(device, 3, buffer, sizeof(buffer), 64, 0));
 	auto i = unreliable_messages.insert(unreliable_messages.end(), std::move(elt));
 	(*i)->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::check_unreliable_transfer), i));
 	(*i)->submit();
 }
 
-void MRFDongle::check_unreliable_transfer(AsyncOperation<void> &, std::list<std::unique_ptr<USB::InterruptOutTransfer>>::iterator iter) {
+void MRFDongle::check_unreliable_transfer(AsyncOperation<void> &, std::list<std::unique_ptr<USB::BulkOutTransfer>>::iterator iter) {
 	(*iter)->result();
 	unreliable_messages.erase(iter);
 }

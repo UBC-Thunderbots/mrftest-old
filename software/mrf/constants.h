@@ -29,7 +29,7 @@ namespace MRF {
 	/**
 	 * \brief The interface protocol number used by the dongle in normal mode.
 	 */
-	constexpr uint8_t PROTOCOL_NORMAL = 0x44;
+	constexpr uint8_t PROTOCOL_NORMAL = 0x45;
 
 	/**
 	 * \brief The interface protocol number used by the dongle in promiscuous
