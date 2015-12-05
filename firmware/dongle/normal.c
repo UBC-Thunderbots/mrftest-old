@@ -75,6 +75,11 @@ typedef struct {
 	bool reliable;
 
 	/**
+	 * \brief For outbound packets, the number of times to try sending the message.
+	 */
+	uint8_t tries;
+
+	/**
 	 * \brief The position of the data within the data array.
 	 */
 	uint8_t data_offset;
@@ -481,11 +486,12 @@ static void reliable_task(void *UNUSED(param)) {
 			}
 			size_t length;
 			if (uep_read(0x02U, buf->data, sizeof(buf->data), &length)) {
-				if (length >= 2U && ((buf->data[0U] & 0x0FU) < 8U)) {
+				if (length >= 3U && ((buf->data[0U] & 0x0FU) < 8U)) {
 					buf->message_id = buf->data[1U];
 					buf->reliable = true;
-					buf->data_offset = 2U;
-					buf->length = length - 2U;
+					buf->tries = buf->data[2U];
+					buf->data_offset = 3U;
+					buf->length = length - 3U;
 					xQueueSend(transmit_queue, &buf, portMAX_DELAY);
 					buf = 0;
 				} else {
@@ -531,11 +537,12 @@ static void unreliable_task(void *UNUSED(param)) {
 			}
 			size_t length;
 			if (uep_read(0x03U, buf->data, sizeof(buf->data), &length)) {
-				if (length >= 1U && buf->data[0U] < 8U) {
+				if (length >= 2U && buf->data[0U] < 8U) {
 					buf->message_id = 0U;
 					buf->reliable = false;
-					buf->data_offset = 1U;
-					buf->length = length - 1U;
+					buf->tries = buf->data[1U];
+					buf->data_offset = 2U;
+					buf->length = length - 2U;
 					xQueueSend(transmit_queue, &buf, portMAX_DELAY);
 					buf = 0;
 				} else {
@@ -733,8 +740,8 @@ static void rdtx_task(void *UNUSED(param)) {
 			xSemaphoreTake(transmit_mutex, portMAX_DELAY);
 			prep_send_message_packet(packet);
 			bool reliable = packet->reliable;
-			unsigned int tries = 20U;
 			mdr_t mdr = { .message_id = packet->message_id, .status = 0U };
+			unsigned int tries = packet->tries;
 			xQueueSend(free_queue, &packet, portMAX_DELAY);
 			packet = 0;
 			do {

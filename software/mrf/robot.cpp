@@ -321,7 +321,7 @@ void MRFRobot::direct_chicker(double power, bool chip) {
 	buffer[2] = static_cast<uint8_t>(width);
 	buffer[3] = static_cast<uint8_t>(width >> 8);
 
-	dongle_.send_unreliable(index, buffer, sizeof(buffer));
+	dongle_.send_unreliable(index, 20, buffer, sizeof(buffer));
 }
 
 void MRFRobot::direct_chicker_auto(double power, bool chip) {
@@ -334,12 +334,12 @@ void MRFRobot::direct_chicker_auto(double power, bool chip) {
 		buffer[2] = static_cast<uint8_t>(width);
 		buffer[3] = static_cast<uint8_t>(width >> 8);
 
-		dongle_.send_unreliable(index, buffer, sizeof(buffer));
+		dongle_.send_unreliable(index, 20, buffer, sizeof(buffer));
 	} else {
 		uint8_t buffer[1];
 		buffer[0] = 0x02;
 
-		dongle_.send_unreliable(index, buffer, sizeof(buffer));
+		dongle_.send_unreliable(index, 20, buffer, sizeof(buffer));
 	}
 }
 
@@ -606,7 +606,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 					if (request_build_ids_counter) {
 						--request_build_ids_counter;
 						static const uint8_t REQUEST = 0x0D;
-						dongle_.send_unreliable(index, &REQUEST, 1);
+						dongle_.send_unreliable(index, 20, &REQUEST, 1);
 					} else {
 						build_id_fetch_error_message.active(true);
 					}

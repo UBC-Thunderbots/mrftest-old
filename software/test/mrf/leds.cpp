@@ -44,7 +44,7 @@ void LEDsPanel::set_mode() {
 		uint8_t data[2];
 		data[0] = 0x03;
 		data[1] = MODES[mode_chooser.get_active_row_number()].value;
-		message.reset(new MRFDongle::SendReliableMessageOperation(dongle, index, data, sizeof(data)));
+		message.reset(new MRFDongle::SendReliableMessageOperation(dongle, index, 20, data, sizeof(data)));
 		message->signal_done.connect(sigc::mem_fun(this, &LEDsPanel::check_result));
 	}
 }

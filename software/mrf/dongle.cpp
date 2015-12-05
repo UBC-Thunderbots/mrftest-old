@@ -36,18 +36,24 @@ namespace {
 
 	const unsigned int ANNUNCIATOR_BEEP_LENGTH = 750;
 
-	std::unique_ptr<USB::InterruptOutTransfer> create_reliable_message_transfer(USB::DeviceHandle &device, unsigned int robot, uint8_t message_id, const void *data, std::size_t length) {
+	std::unique_ptr<USB::InterruptOutTransfer> create_reliable_message_transfer(USB::DeviceHandle &device, unsigned int robot, uint8_t message_id, unsigned int tries, const void *data, std::size_t length) {
 		assert(robot < 8);
-		uint8_t buffer[2 + length];
+		assert((1 <= tries) && (tries <= 256));
+		uint8_t buffer[3 + length];
 		buffer[0] = static_cast<uint8_t>(robot);
 		buffer[1] = message_id;
-		std::memcpy(buffer + 2, data, length);
+		buffer[2] = static_cast<uint8_t>(tries & 0xFF);
+		std::memcpy(buffer + 3, data, length);
 		std::unique_ptr<USB::InterruptOutTransfer> ptr(new USB::InterruptOutTransfer(device, 2, buffer, sizeof(buffer), 64, 0));
 		return ptr;
 	}
 }
 
-MRFDongle::SendReliableMessageOperation::SendReliableMessageOperation(MRFDongle &dongle, unsigned int robot, const void *data, std::size_t length) : dongle(dongle), message_id(dongle.alloc_message_id()), delivery_status(0xFF), transfer(create_reliable_message_transfer(dongle.device, robot, message_id, data, length)) {
+MRFDongle::SendReliableMessageOperation::SendReliableMessageOperation(MRFDongle &dongle, unsigned int robot, unsigned int tries, const void *data, std::size_t length) :
+		dongle(dongle),
+		message_id(dongle.alloc_message_id()),
+		delivery_status(0xFF),
+		transfer(create_reliable_message_transfer(dongle.device, robot, message_id, tries, data, length)) {
 	if (dongle.logger) {
 		dongle.logger->log_mrf_message_out(robot, true, message_id, data, length);
 	}
@@ -369,13 +375,16 @@ void MRFDongle::handle_drive_transfer_done(AsyncOperation<void> &op) {
 	}
 }
 
-void MRFDongle::send_unreliable(unsigned int robot, const void *data, std::size_t len) {
+void MRFDongle::send_unreliable(unsigned int robot, unsigned int tries, const void *data, std::size_t len) {
+	assert(robot < 8);
+	assert((1 <= tries) && (tries <= 256));
 	if (logger) {
 		logger->log_mrf_message_out(robot, false, 0, data, len);
 	}
-	uint8_t buffer[len + 1];
+	uint8_t buffer[len + 2];
 	buffer[0] = static_cast<uint8_t>(robot);
-	std::memcpy(buffer + 1, data, len);
+	buffer[1] = static_cast<uint8_t>(tries & 0xFF);
+	std::memcpy(buffer + 2, data, len);
 	std::unique_ptr<USB::InterruptOutTransfer> elt(new USB::InterruptOutTransfer(device, 3, buffer, sizeof(buffer), 64, 0));
 	auto i = unreliable_messages.insert(unreliable_messages.end(), std::move(elt));
 	(*i)->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::check_unreliable_transfer), i));

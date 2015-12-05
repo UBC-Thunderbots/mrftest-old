@@ -126,7 +126,7 @@ class MRFDongle final : public Drive::Dongle {
 		void dirty_drive();
 		bool submit_drive_transfer();
 		void handle_drive_transfer_done(AsyncOperation<void> &);
-		void send_unreliable(unsigned int robot, const void *data, std::size_t len);
+		void send_unreliable(unsigned int robot, unsigned int tries, const void *data, std::size_t len);
 		void check_unreliable_transfer(AsyncOperation<void> &, std::list<std::unique_ptr<USB::InterruptOutTransfer>>::iterator iter);
 		void submit_beep();
 		void handle_beep_done(AsyncOperation<void> &);
@@ -157,14 +157,12 @@ class MRFDongle::SendReliableMessageOperation final : public AsyncOperation<void
 		 * \brief Queues a message for transmission.
 		 *
 		 * \param[in] dongle the dongle on which to send the message
-		 *
 		 * \param[in] robot the robot index to which to send the message
-		 *
+		 * \param[in] tries the number of times to try sending the message
 		 * \param[in] data the data to send (the data is copied into an internal buffer)
-		 *
 		 * \param[in] len the length of the data, including the header
 		 */
-		explicit SendReliableMessageOperation(MRFDongle &dongle, unsigned int robot, const void *data, std::size_t len);
+		explicit SendReliableMessageOperation(MRFDongle &dongle, unsigned int robot, unsigned int tries, const void *data, std::size_t len);
 
 		/**
 		 * \brief Checks for the success of the operation.
