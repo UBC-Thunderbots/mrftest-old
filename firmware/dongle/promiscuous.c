@@ -17,10 +17,11 @@
 #include <unused.h>
 #include <usb.h>
 #include <registers/exti.h>
+#include <registers/timer.h>
 
 typedef struct {
 	uint8_t length;
-	uint8_t data[1U + 1U + 127U]; // Flags + channel + data (RX FIFO is 128 bytes long, of which 1 is used for frame length)
+	uint8_t data[1U + 1U + 6U + 127U]; // Flags + channel + timestamp + data (RX FIFO is 128 bytes long, of which 1 is used for frame length)
 } packet_t;
 
 /**
@@ -61,6 +62,19 @@ static void mrf_int_isr(void) {
 	}
 }
 
+static uint64_t promiscuous_get_timestamp(void) {
+	uint32_t high1, high2;
+	uint16_t low;
+
+	do {
+		high1 = TIM5.CNT;
+		low = TIM4.CNT;
+		high2 = TIM5.CNT;
+	} while (high1 != high2);
+
+	return (((uint64_t)high1) << 16) | low;
+}
+
 static void radio_task(void *UNUSED(param)) {
 	uint32_t pending_events = 0;
 	for (;;) {
@@ -95,6 +109,8 @@ static void radio_task(void *UNUSED(param)) {
 				uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
 				if (intstat & (1U << 3U)) {
 					// RXIF = 1; packet received.
+					// Take a timestamp before doing anything else.
+					uint64_t stamp = promiscuous_get_timestamp();
 					mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04U); // RXDECINV = 1; invert receiver symbol sign to prevent further packet reception.
 					uint8_t rxfifo_frame_length = mrf_read_long(MRF_REG_LONG_RXFIFO); // Need to read this here even if no packet buffer because this read also re-enables the receiver.
 
@@ -106,13 +122,18 @@ static void radio_task(void *UNUSED(param)) {
 					// Allocate a packet.
 					packet_t *packet;
 					if (xQueueReceive(free_queue, &packet, 0U)) {
-						packet->length = 1U /* Flags */ + 1U /* Channel */ + rxfifo_frame_length /* MAC header + data + FCS */ + 1U /* LQI */ + 1U /* RSSI */;
-						packet->data[0U] = packet_dropped ? 0x01U : 0x00U;
+						uint8_t *wptr = packet->data;
+						*wptr++ = packet_dropped ? 0x01U : 0x00U;
 						packet_dropped = false;
-						packet->data[1U] = radio_config.channel;
-						for (size_t i = 0U; i < rxfifo_frame_length + 2U /* LQI + RSSI */; ++i) {
-							packet->data[2U + i] = mrf_read_long(MRF_REG_LONG_RXFIFO + i + 1U);
+						*wptr++ = radio_config.channel;
+						for (unsigned int i = 0; i != 6; ++i) {
+							*wptr++ = (uint8_t)(stamp & 0xFF);
+							stamp >>= 8;
 						}
+						for (size_t i = 0U; i < rxfifo_frame_length + 2U /* LQI + RSSI */; ++i) {
+							*wptr++ = mrf_read_long(MRF_REG_LONG_RXFIFO + i + 1U);
+						}
+						packet->length = wptr - packet->data;
 						xQueueSend(receive_queue, &packet, portMAX_DELAY);
 					} else {
 						packet_dropped = true;
@@ -194,6 +215,37 @@ void promiscuous_init(void) {
 }
 
 void promiscuous_on_enter(void) {
+	// Enable timer 4 as a 16-bit upcounter with update events causing trigger
+	// outputs, which will serve as the low ⅓ of a 48-bit timestamp counter,
+	// and timer 5 as a 32-bit upcounter clocked by its trigger, which will
+	// serve as the high ⅔ of the 48-bit counter.
+	rcc_enable_reset(APB1, TIM4);
+	rcc_enable_reset(APB1, TIM5);
+	{
+		TIM2_5_CR1_t cr1 = { .URS = 1 };
+		TIM2_5_EGR_t egr = { .UG = 1 };
+		TIM2_5_CR2_t t4_cr2 = { .MMS = 2 };
+		TIM2_5_SMCR_t t5_smcr = { .TS = 2, .SMS = 7 };
+
+		TIM4.CR1 = cr1;
+		TIM4.CR2 = t4_cr2;
+		TIM4.CNT = 0;
+		TIM4.PSC = 71;
+		TIM4.ARR = 0xFFFF;
+		TIM4.EGR = egr;
+
+		TIM5.CR1 = cr1;
+		TIM5.SMCR = t5_smcr;
+		TIM5.CNT = 0;
+		TIM5.PSC = 0;
+		TIM5.ARR = 0xFFFFFFFF;
+		TIM5.EGR = egr;
+
+		cr1.CEN = 1;
+		TIM5.CR1 = cr1;
+		TIM4.CR1 = cr1;
+	}
+
 	// Clear flags.
 	promisc_flags = 0U;
 
@@ -232,6 +284,10 @@ void promiscuous_on_exit(void) {
 
 	// Turn off receive LED.
 	led_off(LED_RX);
+
+	// Stop the timestamp counter.
+	rcc_disable(APB1, TIM4);
+	rcc_disable(APB1, TIM5);
 }
 
 bool promiscuous_control_handler(const usb_setup_packet_t *pkt) {
@@ -306,4 +362,3 @@ bool promiscuous_control_handler(const usb_setup_packet_t *pkt) {
 
 	return false;
 }
-

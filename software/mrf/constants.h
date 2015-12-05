@@ -35,7 +35,7 @@ namespace MRF {
 	 * \brief The interface protocol number used by the dongle in promiscuous
 	 * mode.
 	 */
-	constexpr uint8_t PROTOCOL_PROMISCUOUS = 0x81;
+	constexpr uint8_t PROTOCOL_PROMISCUOUS = 0x82;
 
 	/**
 	 * \brief The vendor-specific control requests understood by the radio

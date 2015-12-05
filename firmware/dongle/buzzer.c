@@ -1,23 +1,31 @@
 #include "buzzer.h"
 #include <FreeRTOS.h>
-#include <nvic.h>
 #include <rcc.h>
+#include <timers.h>
+#include <unused.h>
 #include <registers/timer.h>
 
-void timer5_isr(void) {
-	// The interrupt occurs when the buzzer should turn off.
-	buzzer_stop();
-	{
-		TIM2_5_SR_t tmp = { 0 };
-		TIM5.SR = tmp; // Clear interrupt flag
-	}
-	EXCEPTION_RETURN_BARRIER();
+/**
+ * \brief The number of 100-millisecond periods left before the buzzer should
+ * stop sounding.
+ */
+static unsigned int buzzer_time_left = 0;
+
+/**
+ * \brief The buzzer timer task, which disables the buzzer once its time
+ * expires.
+ */
+static void buzzer_timer(TimerHandle_t UNUSED(handle)) {
+	unsigned int old_time = buzzer_time_left;
+	while (old_time && !__atomic_compare_exchange_n(&buzzer_time_left, &old_time, old_time - 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
+	TIM2_5_CCMR2_t tmp = TIM2.CCMR2;
+	tmp.O.OC3M = old_time ? 6 : 4; // Compare output 3 PWM active when count < duty cycle, if active, else forced low.
+	TIM2.CCMR2 = tmp;
 }
 
 void buzzer_init(void) {
 	// Power up the modules
 	rcc_enable_reset(APB1, TIM2);
-	rcc_enable_reset(APB1, TIM5);
 
 	// Configure timer 2 to drive the buzzer itself in PWM mode
 	{
@@ -61,58 +69,18 @@ void buzzer_init(void) {
 	TIM2.CCR3 = 36000000 * 2 / 2048 / 2; // Set duty cycle
 	TIM2.CR1.CEN = 1; // Counter enabled
 
-	// Configure timer 5 to count down half-milliseconds remaining on the current buzzer sounding
-	{
-		TIM2_5_CR1_t tmp = {
-			.CKD = 0, // Timer runs at full clock frequency.
-			.ARPE = 0, // Auto-reload register is not buffered.
-			.CMS = 0, // Counter counts in one direction.
-			.DIR = 1, // Counter counts down.
-			.OPM = 1, // Counter counts once and then stops.
-			.URS = 1, // Counter overflow generates an interrupt; other activities do not.
-			.UDIS = 0, // Updates to control registers are allowed.
-			.CEN = 0, // Counter is not counting right now.
-		};
-		TIM5.CR1 = tmp;
-	}
-	{
-		TIM2_5_SMCR_t tmp = { 0 }; // No external triggers or slave synchronization.
-		TIM5.SMCR = tmp;
-	}
-	{
-		TIM2_5_DIER_t tmp = {
-			.UIE = 1, // Enable interrupt on timer update
-		};
-		TIM5.DIER = tmp; // Enable interrupt on timer update
-	}
-	TIM5.CNT = 0; // Clear timer
-	TIM5.PSC = 35999; // Set prescale 1:36,000, yielding two ticks per millisecond
-	TIM5.ARR = 1; // An auto-reload value of zero does not work; a value of 1, however, makes sure TIM5_CNT is very small when the counter stops, so it is less than future requests
-	TIM5.CR1.CEN = 1; // Enable counter for one tick after which an interrupt will be delivered (not doing this appears to break the first enablement of the timer by instantly delivering an interrupt for no apparent reason)
-	portENABLE_HW_INTERRUPT(NVIC_IRQ_TIM5);
+	// Start a FreeRTOS timer to count down how long is left before the buzzer
+	// turns off.
+	TimerHandle_t timer = xTimerCreate("buzzer", 100 / portTICK_PERIOD_MS, pdTRUE, 0, &buzzer_timer);
+	xTimerStart(timer, portMAX_DELAY);
 }
 
 void buzzer_start(unsigned long millis) {
-	if (TIM5.CNT < millis * 2UL) {
-		TIM5.CNT = millis * 2UL;
-		TIM5.CR1.CEN = 1; // Enable counter, in case it was disabled
-	}
-	{
-		TIM2_5_CCMR2_t tmp = TIM2.CCMR2;
-		tmp.O.OC3M = 6; // Compare output 3 PWM active when count < duty cycle.
-		TIM2.CCMR2 = tmp;
-	}
+	unsigned int ticks = (unsigned int)((millis + 99) / 100);
+	unsigned int old_time = buzzer_time_left;
+	while ((ticks > old_time) && !__atomic_compare_exchange_n(&buzzer_time_left, &old_time, ticks, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
 }
 
 void buzzer_stop(void) {
-	{
-		TIM2_5_CCMR2_t tmp = TIM2.CCMR2;
-		tmp.O.OC3M = 4; // Compare output 3 forced low.
-		TIM2.CCMR2 = tmp;
-	}
-	{
-		TIM2_5_SR_t tmp = { 0 }; // Clear interrupt flag.
-		TIM5.SR = tmp;
-	}
+	__atomic_store_n(&buzzer_time_left, 0, __ATOMIC_RELAXED);
 }
-

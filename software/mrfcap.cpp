@@ -21,6 +21,7 @@
 
 namespace {
 	unsigned int packets_captured = 0;
+	uint64_t base_timestamp;
 
 	unsigned long long convert_number(const std::string &str) {
 		std::size_t end_pos = 0;
@@ -31,27 +32,38 @@ namespace {
 		return ull;
 	}
 
+	uint64_t get_best_system_timestamp() {
+		auto stamp = std::chrono::system_clock::now();
+		std::time_t converted = std::chrono::system_clock::to_time_t(stamp);
+		std::chrono::duration<uint64_t, std::micro> micros = std::chrono::duration_cast<std::chrono::duration<uint64_t, std::micro>>(stamp.time_since_epoch());
+		if (static_cast<uint64_t>(converted) == micros.count() / UINT64_C(1000000)) {
+			// std::chrono::system_clock and time_t use the same units on this
+			// platform, so we can get a fractional part.
+			return micros.count();
+		} else {
+			// std::chrono::system_clock and time_t use different units on this
+			// platform, so we can only achieve second resolution.
+			return static_cast<uint64_t>(converted);
+		}
+	}
+
 	void handle_transfer_done(AsyncOperation<void> &asyncOp, std::ostream &ofs) {
 		USB::BulkInTransfer &transfer = static_cast<USB::BulkInTransfer &>(asyncOp);
 		transfer.result();
-		if (transfer.size() >= 4) {
+		if (transfer.size() >= 10) {
 			if (transfer.data()[0] & 0x01) {
 				std::cout << "Warning, dropped packet!\n";
 			}
 			uint32_t seconds, microseconds;
 			{
-				auto stamp = std::chrono::system_clock::now();
-				std::time_t converted = std::chrono::system_clock::to_time_t(stamp);
-				std::chrono::duration<uint64_t, std::micro> micros = std::chrono::duration_cast<std::chrono::duration<uint64_t, std::micro>>(stamp.time_since_epoch());
-				if (static_cast<uint64_t>(converted) == micros.count() / UINT64_C(1000000)) {
-					// std::chrono::system_clock and time_t use the same units on this platform, so we can get a fractional part.
-					seconds = static_cast<uint32_t>(micros.count() / UINT64_C(1000000));
-					microseconds = static_cast<uint32_t>(micros.count() % UINT64_C(1000000));
-				} else {
-					// std::chrono::system_clock and time_t use different units on this platform, so we can only achieve second resolution.
-					seconds = static_cast<uint32_t>(converted);
-					microseconds = 0;
+				uint64_t stamp = 0;
+				for (unsigned int i = 5; i <= 5; --i) {
+					stamp <<= 8;
+					stamp |= transfer.data()[2 + i];
 				}
+				stamp += base_timestamp;
+				seconds = static_cast<uint32_t>(stamp / UINT64_C(1000000));
+				microseconds = static_cast<uint32_t>(stamp % UINT64_C(1000000));
 			}
 
 			{
@@ -60,16 +72,16 @@ namespace {
 				ofs.write(reinterpret_cast<const char *>(&u32), 4);
 				u32 = microseconds;
 				ofs.write(reinterpret_cast<const char *>(&u32), 4);
-				u32 = static_cast<uint32_t>(transfer.size() - 4);
+				u32 = static_cast<uint32_t>(transfer.size() - 10);
 				ofs.write(reinterpret_cast<const char *>(&u32), 4);
 				ofs.write(reinterpret_cast<const char *>(&u32), 4);
 			}
-			ofs.write(reinterpret_cast<const char *>(transfer.data() + 2), static_cast<std::streamsize>(transfer.size() - 4));
+			ofs.write(reinterpret_cast<const char *>(transfer.data() + 8), static_cast<std::streamsize>(transfer.size() - 10));
 			ofs.flush();
 			std::cout << "Captured packet of length " << transfer.size() << '\n';
 			++packets_captured;
 		} else {
-			std::cout << "Bad capture size " << transfer.size() << " (must be ≥4):";
+			std::cout << "Bad capture size " << transfer.size() << " (must be ≥10):";
 			for (std::size_t i = 0U; i < transfer.size(); ++i) {
 				std::cout << ' ' << static_cast<unsigned int>(transfer.data()[i]);
 			}
@@ -187,8 +199,10 @@ int app_main(int argc, char **argv) {
 		std::cout << "OK\n";
 	}
 
-	// Switch to promiscuous mode.
+	// Switch to promiscuous mode. Take a base timestamp, as this event is what
+	// causes the dongle to start its internal timestamp counter from zero.
 	devh.set_interface_alt_setting(radio_interface, promiscuous_altsetting);
+	base_timestamp = get_best_system_timestamp();
 
 	// Set capture flags
 	std::cout << "Setting capture flags… ";

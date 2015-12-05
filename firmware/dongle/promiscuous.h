@@ -10,4 +10,3 @@ void promiscuous_on_exit(void);
 bool promiscuous_control_handler(const usb_setup_packet_t *pkt);
 
 #endif
-
