@@ -131,7 +131,7 @@ MRFDongle::MRFDongle() :
 			}
 		}
 		if (radio_interface < 0 || configuration_altsetting < 0 || normal_altsetting < 0) {
-			throw std::runtime_error("Wrong USB descriptors (protocol mismatch between dongle and software?).");
+			throw std::runtime_error("Wrong USB descriptors (is your dongle firmware or your software out of date or mismatched across branches?).");
 		}
 	}
 
