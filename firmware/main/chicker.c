@@ -63,6 +63,41 @@ static bool chicker_discharge_requested = false;
 static bool chicker_discharge_active = false;
 
 /**
+ * \brief robot index
+ * 
+ */
+static int index = 0;
+
+/**
+ * \brief Major scale duty cycle 
+ *
+ */
+static int CCR_val[8] = {
+	91U	,
+	81U	,
+	73U	,
+	68U	,
+	61U	,
+	55U	,
+	48U	,
+	45U	};
+	
+
+/**
+ * \brief Major scale freqency 
+ *
+ */
+static int ARR_val[8] = {
+	2273U	,
+	2020U	,
+	1818U	,
+	1705U	,
+	1515U	,
+	1364U	,
+	1212U	,
+	1136U	};
+
+/**
  * \brief Configures the kicker pulse generator to idle.
  *
  * \pre This function must be called with appropriate protection against
@@ -205,8 +240,13 @@ static void chicker_hw_kicker_discharge(void) {
 
 	// Reconfigure timing parameters.
 	TIM11.CNT = 0U;
-	TIM11.ARR = 1000U * 4U;
-	TIM11.CCR1 = 25U * 4U;
+	if( index > 0 && index < 8){
+		TIM11.ARR = ARR_val[index] * 4U;
+		TIM11.CCR1 = CCR_val[index] * 4U;
+	} else {
+		TIM11.ARR = 1000U * 4U;
+		TIM11.CCR1 = 25U * 4U;
+	}
 
 	// Enable the timer.
 	cr1.CEN = 1;
@@ -243,8 +283,13 @@ static void chicker_hw_chipper_discharge(void) {
 
 	// Reconfigure timing parameters.
 	TIM9.CNT = 0U;
-	TIM9.ARR = 1000U * 4U;
-	TIM9.CCR1 = 25U * 4U;
+	if( index > 0 && index < 8){
+		TIM9.ARR = ARR_val[index] * 4U;
+		TIM9.CCR1 = CCR_val[index] * 4U;
+	} else {
+		TIM9.ARR = 1000U * 4U;
+		TIM9.CCR1 = 25U * 4U;
+	}
 
 	// Enable the timer.
 	cr1.CEN = 1;
@@ -265,7 +310,7 @@ static void chicker_hw_chipper_discharge(void) {
 /**
  * \brief Initializes the chicker subsystem.
  */
-void chicker_init(void) {
+void chicker_init(unsigned int robot_index) {
 	// Configure timers 9 and 11 with a prescaler suitable to count microseconds.
 	// The ideal way to handle these timers would be to enable one-pulse PWM mode.
 	// Each firing could then set CCR to 1, set ARR to pulse width plus one, and enable the counter.
@@ -300,6 +345,8 @@ void chicker_init(void) {
 		.CC1NP = 0, // Must be cleared for output mode
 	};
 	TIM11.CCER = ccer11;
+
+	index = robot_index;
 }
 
 /**

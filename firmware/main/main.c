@@ -342,7 +342,7 @@ static void run_normal(void) {
 
 	// Bring up lots of stuff.
 	icb_irq_init();
-	chicker_init();
+	chicker_init(switches[0U]);
 	charger_init();
 	static const struct {
 		uint8_t channel;
