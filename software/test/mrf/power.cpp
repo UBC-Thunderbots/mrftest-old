@@ -34,7 +34,7 @@ void PowerPanel::send_message(uint8_t code, Gtk::Button &button) {
 	set_buttons_sensitive(false);
 	current_action_button = &button;
 	button.set_label(u8"Sending…");
-	message.reset(new MRFDongle::SendReliableMessageOperation(dongle, index, 20, &code, sizeof(code)));
+	message.reset(new MRFDongle::SendReliableMessageOperation(dongle, index, 3, &code, sizeof(code)));
 	message->signal_done.connect(sigc::mem_fun(this, &PowerPanel::check_result));
 }
 
