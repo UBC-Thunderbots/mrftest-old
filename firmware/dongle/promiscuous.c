@@ -1,5 +1,6 @@
 #include "promiscuous.h"
 #include "constants.h"
+#include "crc.h"
 #include "enabled.h"
 #include "led.h"
 #include "mrf.h"
@@ -130,8 +131,23 @@ static void radio_task(void *UNUSED(param)) {
 							*wptr++ = (uint8_t)(stamp & 0xFF);
 							stamp >>= 8;
 						}
-						for (size_t i = 0U; i < rxfifo_frame_length + 2U /* LQI + RSSI */; ++i) {
-							*wptr++ = mrf_read_long(MRF_REG_LONG_RXFIFO + i + 1U);
+						{
+							uint8_t *base = wptr;
+							for (unsigned int tries = 0; tries != 4; ++tries) {
+								wptr = base;
+								uint16_t crc = 0;
+								for (size_t i = 0U; i < rxfifo_frame_length; ++i) {
+									uint8_t byte = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + i);
+									*wptr++ = byte;
+									crc = crc_update(crc, byte);
+								}
+								for (size_t i = 0; i < 2U /* LQI + RSSI */; ++i) {
+									*wptr++ = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + rxfifo_frame_length + i);
+								}
+								if (crc == 0) {
+									break;
+								}
+							}
 						}
 						packet->length = wptr - packet->data;
 						xQueueSend(receive_queue, &packet, portMAX_DELAY);
