@@ -5,6 +5,7 @@
 #include "util/noncopyable.h"
 #include <cassert>
 #include <cstring>
+#include <utility>
 
 /**
  * \brief A container which can hold either one or zero instances of an object.
@@ -76,7 +77,7 @@ template<typename T> class Box final : public NonCopyable {
 		 *
 		 * \param[in] args the parameters to pass to the object's constructor.
 		 */
-		template<typename ... Args> void create(Args ... args);
+		template<typename ... Args> void create(Args&& ... args);
 
 		/**
 		 * \brief Empties the box.
@@ -124,9 +125,9 @@ template<typename T> BoxPtr<const T> Box<T>::ptr() const {
 	return BoxPtr<const T>(&data, &valid);
 }
 
-template<typename T> template<typename ... Args> void Box<T>::create(Args ... args) {
+template<typename T> template<typename ... Args> void Box<T>::create(Args&& ... args) {
 	destroy();
-	new(&data) T(args...);
+	new(&data) T(std::forward<Args>(args)...);
 	valid = true;
 }
 
