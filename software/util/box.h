@@ -86,15 +86,11 @@ template<typename T> class Box final : public NonCopyable {
 		void destroy();
 
 	private:
-		union Union {
-			Value value;
-
-			explicit Union();
-			~Union();
+		union {
+			Value data;
 		};
 
 		bool valid;
-		Union data;
 };
 
 
@@ -112,45 +108,35 @@ template<typename T> Box<T>::operator bool() const {
 
 template<typename T> T &Box<T>::value() {
 	assert(valid);
-	return data.value;
+	return data;
 }
 
 template<typename T> const T &Box<T>::value() const {
 	assert(valid);
-	return data.value;
+	return data;
 }
 
 template<typename T> BoxPtr<T> Box<T>::ptr() {
-	return BoxPtr<T>(&data.value, &valid);
+	return BoxPtr<T>(&data, &valid);
 }
 
 template<typename T> BoxPtr<const T> Box<T>::ptr() const {
-	return BoxPtr<const T>(&data.value, &valid);
+	return BoxPtr<const T>(&data, &valid);
 }
 
 template<typename T> template<typename ... Args> void Box<T>::create(Args ... args) {
 	destroy();
-	new(&data.value) T(args...);
+	new(&data) T(args...);
 	valid = true;
 }
 
 template<typename T> void Box<T>::destroy() {
 	if (valid) {
-		data.value.~T();
+		data.~T();
 		valid = false;
 		// By zeroing memory, we assure that future attempts to invoke virtual functions on the object will segfault when dereferencing the vtable pointer.
-		std::memset(static_cast<void *>(&data.value), 0, sizeof(data.value));
+		std::memset(static_cast<void *>(&data), 0, sizeof(data));
 	}
 }
 
-
-
-template<typename T> Box<T>::Union::Union() {
-	std::memset(static_cast<void *>(&value), 0, sizeof(value));
-}
-
-template<typename T> Box<T>::Union::~Union() {
-}
-
 #endif
-
