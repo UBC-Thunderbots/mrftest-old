@@ -3,7 +3,6 @@
 
 #include "util/box_ptr.h"
 #include "util/noncopyable.h"
-#include <cassert>
 #include <cstring>
 #include <utility>
 
@@ -108,12 +107,10 @@ template<typename T> Box<T>::operator bool() const {
 }
 
 template<typename T> T &Box<T>::value() {
-	assert(valid);
 	return data;
 }
 
 template<typename T> const T &Box<T>::value() const {
-	assert(valid);
 	return data;
 }
 

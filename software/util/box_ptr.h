@@ -1,7 +1,6 @@
 #ifndef UTIL_BOX_PTR_H
 #define UTIL_BOX_PTR_H
 
-#include <cassert>
 #include <cstddef>
 #include <functional>
 
