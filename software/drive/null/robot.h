@@ -20,7 +20,7 @@ namespace Drive {
 				void move_move(Point dest, Angle orientation) override;
 				void move_move(Point dest, double time_delta) override;
 				void move_move(Point dest, Angle orientation, double time_delta) override;
-				void move_dribble(Point dest, Angle orientation, bool small_kick_allowed) override;
+				void move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed) override;
 				void move_shoot(Point dest, double power, bool chip) override;
 				void move_shoot(Point dest, Angle orientation, double power, bool chip) override;
 				void move_catch(Angle angle_diff, double displacement, double speed) override;

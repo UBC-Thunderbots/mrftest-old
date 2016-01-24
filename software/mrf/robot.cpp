@@ -215,13 +215,13 @@ void MRFRobot::move_move(Point dest, Angle orientation, double time_delta) {
 	dirty_drive();
 }
 
-void MRFRobot::move_dribble(Point dest, Angle orientation, bool small_kick_allowed) {
+void MRFRobot::move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed) {
 	assert(!direct_control);
 	primitive = Drive::Primitive::DRIBBLE;
 	params[0] = dest.x * 1000.0;
 	params[1] = dest.y * 1000.0;
 	params[2] = orientation.angle_mod().to_radians() * 100.0;
-	params[3] = 0.0;
+	params[3] = desired_rpm;
 	extra = small_kick_allowed;
 	dirty_drive();
 }

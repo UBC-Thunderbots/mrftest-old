@@ -38,7 +38,7 @@ void Drive::Null::Robot::move_move(Point, double) {
 void Drive::Null::Robot::move_move(Point, Angle, double) {
 }
 
-void Drive::Null::Robot::move_dribble(Point, Angle, bool) {
+void Drive::Null::Robot::move_dribble(Point, Angle, double, bool) {
 }
 
 void Drive::Null::Robot::move_shoot(Point, double, bool) {

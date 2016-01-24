@@ -66,7 +66,7 @@ namespace {
 	}
 
 	void on_execute_dribble(Drive::Robot &bot, const double sliders[4], bool small_kick_allowed) {
-		bot.move_dribble({sliders[0], sliders[1]}, Angle::of_degrees(sliders[2]), small_kick_allowed);
+		bot.move_dribble({sliders[0], sliders[1]}, Angle::of_degrees(sliders[2]), sliders[3], small_kick_allowed);
 	}
 
 	void on_execute_shoot_kick(Drive::Robot &bot, const double sliders[4], bool exact_angle) {
@@ -210,7 +210,7 @@ namespace {
 				{ u8"X (m)", 0.0, -10.0, 10.0, 0.001, 0.1, 3 },
 				{ u8"Y (m)", 0.0, -10.0, 10.0, 0.001, 0.1, 3 },
 				{ u8"θ (°)", 0.0, -360.0, 360.0, 0.5, 50, 1 },
-				{ nullptr, 0, 0, 0, 0, 0, 0 },
+				{ u8"Speed (RPM)", 0, 0, 40000, 10, 1000, 1 },
 			},
 			false,
 			u8"Small Kick Allowed",
