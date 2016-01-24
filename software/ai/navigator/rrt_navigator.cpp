@@ -28,6 +28,7 @@ namespace AI {
 			DoubleParam shoot_update_count(u8"Tick before update shoot primitive", u8"AI/Movement/Primitives", 15, 0, 100.0);
 			DoubleParam pivot_update_count(u8"Tick before update pivot primitive", u8"AI/Movement/Primitives", 15, 0, 100.0);
 			DoubleParam move_update_count(u8"Tick before update move primitive", u8"AI/Movement/Primitives", 15, 0, 100.0);
+			DoubleParam default_desired_rpm(u8"The default desired rpm for dribbling", u8"AI/Movement/Primitives", 15, 0, 100.0);
 
 
 
@@ -309,7 +310,7 @@ void RRTNavigator::tick() {
 
 					local_coord = move_in_local_coord( player, nav_request );
 					LOG_INFO(Glib::ustring::compose("Time for new dribble point %1, angl %2",  local_coord.field_point, local_coord.field_angle));
-					player.move_dribble(local_coord.field_point, local_coord.field_angle, false);
+					player.move_dribble(local_coord.field_point, local_coord.field_angle, default_desired_rpm, false);
 					break;
 				case Drive::Primitive::SHOOT:	
 					if( nav_request.care_angle ){

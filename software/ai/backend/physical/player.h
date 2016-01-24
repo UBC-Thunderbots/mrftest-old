@@ -59,7 +59,7 @@ namespace AI {
 					void move_move(Point dest, Angle orientation) override;
 					void move_move(Point dest, double time_delta) override;
 					void move_move(Point dest, Angle orientation, double time_delta) override;
-					void move_dribble(Point dest, Angle orientation, bool small_kick_allowed) override;
+					void move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed) override;
 					void move_shoot(Point dest, double power, bool chip) override;
 					void move_shoot(Point dest, Angle orientation, double power, bool chip) override;
 					void move_catch(Angle angle_diff, double displacement, double speed) override;
@@ -114,8 +114,8 @@ inline void AI::BE::Physical::Player::move_move(Point dest, Angle orientation, d
 	bot.move_move(dest, orientation, time_delta);
 }
 
-inline void AI::BE::Physical::Player::move_dribble(Point dest, Angle orientation, bool small_kick_allowed) {
-	bot.move_dribble(dest, orientation, small_kick_allowed);
+inline void AI::BE::Physical::Player::move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed) {
+	bot.move_dribble(dest, orientation, desired_rpm, small_kick_allowed);
 }
 
 inline void AI::BE::Physical::Player::move_shoot(Point dest, double power, bool chip) {

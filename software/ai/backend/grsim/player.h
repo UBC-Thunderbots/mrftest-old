@@ -25,7 +25,7 @@ namespace GRSim { class Player final : public AI::BE::Player {
 					void move_move(Point dest, Angle orientation) override;
 					void move_move(Point dest, double time_delta) override;
 					void move_move(Point dest, Angle orientation, double time_delta) override;
-					void move_dribble(Point dest, Angle orientation, bool small_kick_allowed) override;
+					void move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed) override;
 					void move_shoot(Point dest, double power, bool chip) override;
 					void move_shoot(Point dest, Angle orientation, double power, bool chip) override;
 					void move_catch(Angle angle_diff, double displacement, double speed) override;
@@ -106,7 +106,7 @@ inline void AI::BE::GRSim::Player::move_move(Point dest, Angle orientation, doub
 	_move_ori = orientation;
 }
 
-inline void AI::BE::GRSim::Player::move_dribble(Point dest, Angle orientation, bool small_kick_allowed) {
+inline void AI::BE::GRSim::Player::move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed) {
 	_prim = Drive::Primitive::DRIBBLE;
 	_prim_extra = small_kick_allowed;
 	_move_dest = dest;

@@ -384,7 +384,7 @@ namespace Drive {
 			 * \param[in] small_kick_allowed whether or not the robot is
 			 * allowed to kick the ball ahead of itself while moving
 			 */
-			virtual void move_dribble(Point dest, Angle orientation, double desired_pwm, bool small_kick_allowed) = 0;
+			virtual void move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed) = 0;
 
 			/**
 			 * \brief Kicks the ball.

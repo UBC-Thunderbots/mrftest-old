@@ -246,7 +246,7 @@ namespace AI {
 					 * \param[in] small_kick_allowed whether or not the robot is
 					 * allowed to kick the ball ahead of itself while moving
 					 */
-					void move_dribble(Point dest, Angle orientation, bool small_kick_allowed);
+					void move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed);
 
 					/**
 					 * \brief Kicks the ball.
@@ -538,8 +538,8 @@ inline void AI::Nav::W::Player::move_move(Point dest, Angle orientation, double 
 	AI::Common::Player::impl->move_move(dest, orientation, time_delta);
 }
 
-inline void AI::Nav::W::Player::move_dribble(Point dest, Angle orientation, bool small_kick_allowed){
-	AI::Common::Player::impl->move_dribble(dest, orientation, small_kick_allowed);
+inline void AI::Nav::W::Player::move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed){
+	AI::Common::Player::impl->move_dribble(dest, orientation, desired_rpm, small_kick_allowed);
 }
 
 inline void AI::Nav::W::Player::move_shoot(Point dest, double power, bool chip){
