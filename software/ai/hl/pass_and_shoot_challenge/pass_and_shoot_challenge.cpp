@@ -27,7 +27,6 @@ namespace {
   Point bot1_secondary(1.5, bot_y_top_position);
   Point bot2_secondary(2.25, bot_y_bottom_position);
   Point bot3_secondary(2.75, bot_y_top_position);  
-  double kick_speed = 0.05;
   double epsilon = 0.1;
   
 

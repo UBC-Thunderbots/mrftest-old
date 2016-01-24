@@ -85,7 +85,7 @@ namespace {
 					(enemy_goal - world.ball().position() -
 					Point(Robot::MAX_RADIUS, Robot::MAX_RADIUS)).orientation(),
 					world.ball().position() -
-					Point(Robot::MAX_RADIUS, Robot::MAX_RADIUS), Point(0, 0));
+					Point(Robot::MAX_RADIUS, Robot::MAX_RADIUS));
 
 				AI::HL::STP::Action::pivot(world, player, world.ball().position(), 0.05);
 				target = enemy_goal;

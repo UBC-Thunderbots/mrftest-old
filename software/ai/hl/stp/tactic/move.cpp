@@ -30,7 +30,7 @@ namespace {
 	}
 
 	void Move::execute() {
-		Action::move(world, player, dest.position(), dest.velocity());
+		Action::move(world, player, dest.position());
 	}
 
 	class GoalieMove final : public Tactic {

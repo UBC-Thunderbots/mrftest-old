@@ -22,30 +22,10 @@ namespace AI {
 				 *
 				 * Not intended for goalie use
 				 *
-				 * Move to a particular location, orient towards the ball, ending
-				 * in desired velocity.
-				 */
-				void move(World world, Player player, const Point dest, const Point vel);
-
-				/**
-				 * Move
-				 *
-				 * Not intended for goalie use
-				 *
 				 * Move to a particular location and stop. Orient the player
 				 * towards a particular direction.
 				 */
 				void move(Player player, const Angle orientation, const Point dest);
-
-				/**
-				 * Move
-				 *
-				 * Not intended for goalie use
-				 *
-				 * Move to a particular location, orient the player towards a
-				 * particular direction, and ending in desired velocity.
-				 */
-				void move(Player player, const Angle orientation, const Point dest, const Point vel);
 
 				/**
 				 * Move

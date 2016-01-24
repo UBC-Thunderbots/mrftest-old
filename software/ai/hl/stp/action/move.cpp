@@ -12,27 +12,7 @@ void AI::HL::STP::Action::move(World world, Player player, const Point dest) {
 	player.type(AI::Flags::MoveType::NORMAL);
 }
 
-void AI::HL::STP::Action::move(World world, Player player, const Point dest, const Point vel) {
-	// Avoid defense areas
-	player.flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE ||
-		AI::Flags::FLAG_AVOID_ENEMY_DEFENSE);
-
-	player.mp_move(dest, (world.ball().position() - player.position()).orientation());
-	player.type(AI::Flags::MoveType::NORMAL);
-}
-
 void AI::HL::STP::Action::move(Player player, const Angle orientation, const Point dest) {
-	// Avoid defense areas
-	player.flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE ||
-		AI::Flags::FLAG_AVOID_ENEMY_DEFENSE);
-
-	player.mp_move(dest, orientation);
-	player.type(AI::Flags::MoveType::NORMAL);
-}
-
-void AI::HL::STP::Action::move(Player player, const Angle orientation,
-	const Point dest, const Point vel)
-{
 	// Avoid defense areas
 	player.flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE ||
 		AI::Flags::FLAG_AVOID_ENEMY_DEFENSE);

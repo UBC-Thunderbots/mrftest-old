@@ -51,7 +51,7 @@ namespace {
 						dest = world.ball().position() - Point(DISTANCE_FROM_BALL, 0);
 						player.flags(AI::Flags::FLAG_AVOID_BALL_TINY);
 
-						move(world, player, dest, Point(0, 0));
+						move(world, player, dest);
 
 						if (player_to_ball.len() - DISTANCE_FROM_BALL < TOLERANCE && player.velocity().len() < TOLERANCE) {
 							// skip to shooting right away
@@ -81,7 +81,7 @@ namespace {
 						break;
 					case SHOOT:
 						dest = world.ball().position();
-						move(world, player, dest, Point(0, 0));
+						move(world, player, dest);
 						//checks to see if there is any enemy/friendly robot in path to target.
 						if (obstacle(player, target)) {
 							AI::HL::STP::Action::chip_target(world, player, target);
