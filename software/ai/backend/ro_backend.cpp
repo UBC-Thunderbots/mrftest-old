@@ -116,7 +116,7 @@ bool ROPlayer::has_ball() const {
 	return false;
 }
 
-double ROPlayer::get_lps(unsigned int index) const{
+double ROPlayer::get_lps(unsigned int) const {
 	return 0.0;
 }
 
