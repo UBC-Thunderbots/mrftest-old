@@ -7,10 +7,10 @@
 
 #include "ai/hl/stp/gradient_approach/PassInfo.h"
 #include "ai/hl/stp/gradient_approach/ratepass.h"
-#include "ai/hl/stp/evaluation/staticPositionQuality.h"
-#include "ai/hl/stp/evaluation/enemyRisk.h"
+#include "ai/hl/stp/evaluation/static_position_quality.h"
+#include "ai/hl/stp/evaluation/enemy_risk.h"
 #include "ai/hl/stp/evaluation/shoot.h"
-#include "ai/hl/stp/evaluation/friendlyCapability.h"
+#include "ai/hl/stp/evaluation/friendly_capability.h"
 #include <iostream>
 
 using namespace AI::HL::W;
