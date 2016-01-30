@@ -305,10 +305,10 @@ void MRFRobot::direct_velocity(Point vel, Angle avel) {
 	dirty_drive();
 }
 
-void MRFRobot::direct_dribbler(unsigned int power) {
+void MRFRobot::direct_dribbler(unsigned int rpm) {
 	assert(direct_control);
-	assert(power <= 127);
-	extra = static_cast<uint8_t>(power);
+	assert(rpm <= MAX_DRIBBLER_RPM);
+	extra = static_cast<uint8_t>(rpm/300);
 	dirty_drive();
 }
 
@@ -347,7 +347,7 @@ constexpr unsigned int MRFRobot::SD_MESSAGE_COUNT;
 constexpr unsigned int MRFRobot::LOGGER_MESSAGE_COUNT;
 
 MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) :
-		Drive::Robot(index, 0.3, 10.0, 2.0, 127),
+		Drive::Robot(index, 0.3, 10.0, 2.0, MAX_DRIBBLER_RPM),
 		dongle_(dongle),
 		low_capacitor_message(Glib::ustring::compose(u8"Bot %1 low caps (fuse blown?)", index), Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
 		fw_build_id_mismatch_message(u8"", Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::LOW),

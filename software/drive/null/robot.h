@@ -28,7 +28,7 @@ namespace Drive {
 				void move_spin(Point dest, Angle speed) override;
 				void direct_wheels(const int (&wheels)[4]) override;
 				void direct_velocity(Point vel, Angle avel) override;
-				void direct_dribbler(unsigned int power) override;
+				void direct_dribbler(unsigned int rpm) override;
 				void direct_chicker(double power, bool chip) override;
 				void direct_chicker_auto(double power, bool chip) override;
 

@@ -84,7 +84,7 @@ void primitive_start(unsigned int primitive, const primitive_params_t *params) {
 		primitive_current->end();
 	}
 	chicker_auto_disarm();
-	dribbler_set_power(0);
+	dribbler_set_speed(0);
 	dr_reset();
 	primitive_current = PRIMITIVES[primitive];
 	primitive_current_index = primitive;

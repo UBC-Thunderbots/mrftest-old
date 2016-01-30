@@ -9,7 +9,7 @@ DribblePanel::DribblePanel(Drive::Robot &robot) :
 	robot.direct_control.signal_changed().connect(sigc::mem_fun(this, &DribblePanel::on_direct_changed));
 	dribble_button.signal_toggled().connect(sigc::mem_fun(this, &DribblePanel::on_update));
 	pack_start(dribble_button, Gtk::PACK_SHRINK);
-	level.get_adjustment()->configure(0.0, 0.0, robot.direct_dribbler_max, 1.0, 4.0, 0.0);
+	level.get_adjustment()->configure(0.0, 0.0, robot.direct_dribbler_max, 300, 900, 0.0);
 	level.set_digits(0);
 	level.get_adjustment()->signal_value_changed().connect(sigc::mem_fun(this, &DribblePanel::on_update));
 	pack_start(level, Gtk::PACK_SHRINK);

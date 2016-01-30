@@ -34,7 +34,7 @@ static void direct_wheels_start(const primitive_params_t *params) {
 	for (unsigned int i = 0; i != WHEELS_NUM_WHEELS; ++i) {
 		wheels_drive(i, params->params[i]);
 	}
-	dribbler_set_power(params->extra << 1);
+	dribbler_set_speed((params->extra) * 300);
 }
 
 /**

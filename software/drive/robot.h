@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <functional>
 
+#define MAX_DRIBBLER_RPM 38100
+
 namespace Drive {
 	class Dongle;
 
@@ -501,7 +503,7 @@ namespace Drive {
 			 * \param[in] power the power level to use, with 0 meaning stop and
 			 * a maximum value given by \ref direct_dribbler_max
 			 */
-			virtual void direct_dribbler(unsigned int power) = 0;
+			virtual void direct_dribbler(unsigned int rpm) = 0;
 
 			/**
 			 * \brief Fires the chicker.

@@ -2,7 +2,7 @@
 #include "drive/null/dongle.h"
 
 Drive::Null::Robot::Robot(Drive::Null::Dongle &dongle) :
-		Drive::Robot(0, 1.0, 8.0, 3.0, 31),
+		Drive::Robot(0, 1.0, 8.0, 3.0, MAX_DRIBBLER_RPM),
 		the_dongle(dongle) {
 }
 

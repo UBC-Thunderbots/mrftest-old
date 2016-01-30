@@ -12,6 +12,7 @@
 #include "motor.h"
 #include "receive.h"
 #include "physics.h"
+#include <stdio.h>
 
 #define SPEED_CONSTANT 3760.0f // rpm per volt—EC16 datasheet
 #define VOLTS_PER_RPM (1.0f / SPEED_CONSTANT) // volts per rpm
@@ -36,10 +37,13 @@
 #define THERMAL_WARNING_STOP_TEMPERATURE_WINDING (THERMAL_WARNING_START_TEMPERATURE_WINDING - 15.0f) // °C—chead
 #define THERMAL_WARNING_STOP_ENERGY_WINDING ((THERMAL_WARNING_STOP_TEMPERATURE_WINDING - THERMAL_AMBIENT) * THERMAL_CAPACITANCE_WINDING) // joules
 
+#define DRIBBLER_SPEED_BUFFER_ZONE 200 // RPM
+
 // Verify that all the timing requirements are set up properly.
 _Static_assert(!(CONTROL_LOOP_HZ % DRIBBLER_TICK_HZ), "Dribbler period is not a multiple of control loop period.");
 
 static uint8_t dribbler_pwm = 0;
+static int32_t desired_speed = 0;
 static unsigned int dribbler_tick_counter = 0;
 static float winding_energy = 0.0f, housing_energy = 0.0f;
 static bool hot = false;
@@ -66,12 +70,17 @@ void dribbler_set_power(uint8_t pwm) {
 	dribbler_pwm = pwm;
 }
 
+void dribbler_set_speed(uint32_t desired_rpm) {
+	desired_speed = desired_rpm;
+}
+
 /**
  * \brief Updates the dribbler.
  *
  * \param[out] record the log record whose dribbler-related fields will be updated
  */
 void dribbler_tick(log_record_t *record) {
+	int32_t dribbler_speed_rpm = 0; 
 	// Decide whether this is a dribbler tick time.
 	if (dribbler_tick_counter == 0) {
 		// Reset counter.
@@ -80,13 +89,17 @@ void dribbler_tick(log_record_t *record) {
 		// Measure the dribbler speed.
 		hall_lock_dribbler();
 		int16_t dribbler_speed = hall_speed(4U);
+		dribbler_speed_rpm = hall_speed_to_rpm(dribbler_speed);
+
+		// Calculate the new dribbler pwm from current dribbler pwm, current and desired dribbler speed (in rpm).
+		dribbler_pwm = dribbler_calc_new_pwm(dribbler_speed_rpm, desired_speed, dribbler_pwm);
 
 		// Do some log record filling.
 		if (record) {
 			record->tick.dribbler_ticked = 1U;
 			record->tick.dribbler_speed = dribbler_speed;
 		}
-
+		
 		// Decide whether to run or not.
 		if (winding_energy < THERMAL_MAX_ENERGY_WINDING) {
 			motor_set(4U, MOTOR_MODE_FORWARD, dribbler_pwm);
@@ -144,6 +157,37 @@ bool dribbler_hot(void) {
  */
 unsigned int dribbler_temperature(void) {
 	return __atomic_load_n(&temperature, __ATOMIC_RELAXED);
+}
+
+uint8_t dribbler_calc_new_pwm(int32_t current_speed, int32_t desired_speed, uint8_t old_dribbler_pwm)
+{
+	int32_t pwm_change = 0;
+	if (current_speed < desired_speed - DRIBBLER_SPEED_BUFFER_ZONE)
+	{
+		pwm_change = 5;	
+	}
+	else if (current_speed > desired_speed + DRIBBLER_SPEED_BUFFER_ZONE)
+	{
+		pwm_change = -5;
+	}
+
+	if (pwm_change + old_dribbler_pwm > 255)
+	{
+		return 255;
+	}
+	else if (pwm_change + old_dribbler_pwm < 0)
+	{
+		return 0;
+	}
+	else
+	{
+		return old_dribbler_pwm + pwm_change;
+	}
+}
+
+int32_t hall_speed_to_rpm (int32_t hall_speed)
+{
+	return (int32_t)(hall_speed / 6.0 * DRIBBLER_TICK_HZ * 60);
 }
 
 /**

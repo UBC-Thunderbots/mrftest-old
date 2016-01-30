@@ -9,6 +9,7 @@
 
 static primitive_params_t dribble_param;
 static float destination[3];
+static unsigned int desired_dribbler_speed;
 
 /**
  * \brief Initializes the dribble primitive.
@@ -16,6 +17,8 @@ static float destination[3];
  * This function runs once at system startup.
  */
 static void dribble_init(void) {
+	dribbler_set_speed(0);
+	dribbler_set_power(0);
 }
 
 /**
@@ -37,7 +40,8 @@ static void dribble_start(const primitive_params_t *params) {
 	destination[0] = ((float)(params->params[0])/1000.0f);
 	destination[1] = ((float)(params->params[1])/1000.0f);
 	destination[2] = ((float)(params->params[2])/100.0f);
-	
+	desired_dribbler_speed = ((unsigned int)(params->params[3]));
+
 }
 
 /**
@@ -47,6 +51,7 @@ static void dribble_start(const primitive_params_t *params) {
  * dribble movement is already in progress.
  */
 static void dribble_end(void) {
+	dribbler_set_speed(0);
 }
 
 /**
@@ -105,7 +110,7 @@ static void dribble_tick(log_record_t *logajectory) {
 	rotate(accel, -current_states.angle);
 	apply_accel(accel, accel[2]);
 
-	dribbler_set_power(50);
+	dribbler_set_speed(desired_dribbler_speed);
 }
 
 /**
