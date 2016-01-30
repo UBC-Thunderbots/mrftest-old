@@ -1,11 +1,9 @@
 /*
- * staticPositionQuality.cpp
- *
  *  Created on: 2015-01-10
  *      Author: cheng
  */
 
-#include "ai/hl/stp/evaluation/staticPositionQuality.h"
+#include "ai/hl/stp/evaluation/static_position_quality.h"
 #include "ai/hl/world.h"
 #include "geom/point.h"
 #include <math.h>

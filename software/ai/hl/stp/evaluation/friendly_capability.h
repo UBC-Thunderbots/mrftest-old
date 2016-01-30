@@ -1,6 +1,4 @@
 /*
- * friendlyCapability.h
- *
  *  Created on: 2015-01-10
  *      Author: cheng
  */

@@ -1,6 +1,4 @@
 /*
- * enemyRisk.h
- *
  *  Created on: 2015-01-24
  *      Author: cheng
  */

@@ -1,5 +1,5 @@
 #include "ai/hl/stp/gradient_approach/PassInfo.h"
-#include "ai/hl/stp/evaluation/friendlyCapability.h"
+#include "ai/hl/stp/evaluation/friendly_capability.h"
 #include "ai/hl/world.h"
 #include "ai/hl/util.h"
 #include "geom/point.h"

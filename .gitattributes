@@ -355,12 +355,12 @@ software/ai/hl/stp/evaluation/defense.cpp -text
 software/ai/hl/stp/evaluation/defense.h -text
 software/ai/hl/stp/evaluation/enemy.cpp -text
 software/ai/hl/stp/evaluation/enemy.h -text
-software/ai/hl/stp/evaluation/enemyRisk.cpp -text
-software/ai/hl/stp/evaluation/enemyRisk.h -text
+software/ai/hl/stp/evaluation/enemy_risk.cpp -text
+software/ai/hl/stp/evaluation/enemy_risk.h -text
 software/ai/hl/stp/evaluation/evaluation.cpp -text
 software/ai/hl/stp/evaluation/evaluation.h -text
-software/ai/hl/stp/evaluation/friendlyCapability.cpp -text
-software/ai/hl/stp/evaluation/friendlyCapability.h -text
+software/ai/hl/stp/evaluation/friendly_capability.cpp -text
+software/ai/hl/stp/evaluation/friendly_capability.h -text
 software/ai/hl/stp/evaluation/indirect_cherry.cpp -text
 software/ai/hl/stp/evaluation/indirect_cherry.h -text
 software/ai/hl/stp/evaluation/offense.cpp -text
@@ -371,8 +371,8 @@ software/ai/hl/stp/evaluation/player.cpp -text
 software/ai/hl/stp/evaluation/player.h -text
 software/ai/hl/stp/evaluation/shoot.cpp -text
 software/ai/hl/stp/evaluation/shoot.h -text
-software/ai/hl/stp/evaluation/staticPositionQuality.cpp -text
-software/ai/hl/stp/evaluation/staticPositionQuality.h -text
+software/ai/hl/stp/evaluation/static_position_quality.cpp -text
+software/ai/hl/stp/evaluation/static_position_quality.h -text
 software/ai/hl/stp/evaluation/team.cpp -text
 software/ai/hl/stp/evaluation/team.h -text
 software/ai/hl/stp/evaluation/tri_attack.cpp -text

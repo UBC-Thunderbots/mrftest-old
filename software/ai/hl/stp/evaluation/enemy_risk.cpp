@@ -4,7 +4,7 @@
 #include "ai/hl/world.h"
 #include "geom/point.h"
 #include "ai/hl/util.h"
-#include "ai/hl/stp/evaluation/enemyRisk.h"
+#include "ai/hl/stp/evaluation/enemy_risk.h"
 #include <math.h>
 #include <vector>
 #include <stdio.h>
