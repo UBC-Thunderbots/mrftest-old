@@ -159,16 +159,14 @@ unsigned int dribbler_temperature(void) {
 	return __atomic_load_n(&temperature, __ATOMIC_RELAXED);
 }
 
+#define PWM_SCALE_CONSTANT 20
+
 uint8_t dribbler_calc_new_pwm(int32_t current_speed, int32_t desired_speed, uint8_t old_dribbler_pwm)
 {
 	int32_t pwm_change = 0;
-	if (current_speed < desired_speed - DRIBBLER_SPEED_BUFFER_ZONE)
+	if (current_speed < desired_speed - DRIBBLER_SPEED_BUFFER_ZONE || current_speed > desired_speed + DRIBBLER_SPEED_BUFFER_ZONE)
 	{
-		pwm_change = 5;	
-	}
-	else if (current_speed > desired_speed + DRIBBLER_SPEED_BUFFER_ZONE)
-	{
-		pwm_change = -5;
+		pwm_change = (desired_speed - current_speed) / 100;
 	}
 
 	if (pwm_change + old_dribbler_pwm > 255)
