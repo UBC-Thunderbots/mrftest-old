@@ -1,4 +1,5 @@
 #include "catch.h"
+#include "../bangbang.h"
 #include "../control.h"
 #include "../dr.h"
 #include "../physics.h"
@@ -13,9 +14,34 @@
 #define CATCH_MAX_Y_A (2.0f)
 #define CATCH_MAX_T_A (20.0f)
 
+#define X_SPACE_FACTOR (0.002f)
+
+#define TIME_HORIZON (0.5f)
+
 static primitive_params_t catch_param;
 
+/**
+  * \brief projects onto x axis angle radians CCW (dot product), note that
+  * CCW projection is CW rotation
+  *
+  * \param[in] vector to project
+  * \param[in] angle to rotate
+ */
+static float project_x_axis(float vector[2], float angle) {
+  return cosf(angle)*vector[0] + sinf(angle)*vector[1];
+}
         
+/**
+  * \brief projects onto y axis angle radians CCW (dot product), note that
+  * CCW projection is CW rotation
+  *
+  * \param[in] vector to project
+  * \param[in] angle to rotate
+ */
+static float project_y_axis(float vector[2], float angle) {
+  return -sinf(angle)*vector[0] + cosf(angle)*vector[1];
+}
+
 /**
  * \brief Initializes the catch primitive.
  *
@@ -60,37 +86,80 @@ static void catch_end(void) {
  */
 static void catch_tick(log_record_t *UNUSED(log)) {
 	dr_data_t data;
-	float acc_target[3];
-	float vx_target = catch_param.params[2]/1000.0f;
-	float vx_target_abs;
-	float vx_diff;
+  // The values on the dead reckoning axis
+  float position[3];
+  float velocity[3];
 
-        // grab position, velocity measurement
-        dr_get(&data);
+  // The values on the final axis
+  float position_f[3];
+  float velocity_f[3];
+  float accel_f[3];
 
-	vx_target_abs = fabsf(vx_target);
-	// simple velocity control
-	// a PI controller would probably reduce the amount of oscillation
-	vx_diff = vx_target-data.vx;
-	if( vx_diff > vx_target_abs/2 ){
-		acc_target[0] = CATCH_MAX_X_A;
-	} else if( vx_diff > 0.02f ){
-		acc_target[0] = CATCH_MAX_X_A/10;
-	} else if( vx_diff < -vx_target_abs/2 ){
-		acc_target[0] = -CATCH_MAX_X_A;
-	} else if( vx_diff < -0.02f ){
-		acc_target[0] = -CATCH_MAX_X_A/10;
-	} else {
-		acc_target[0] = 0.0f;
-	}
+  // The variables for velocity control
+  float x_vel_diff;
+  float x_vel_abs;
 
-        acc_target[1] = compute_accel_track_pos_1D(catch_param.params[1]/1000.0f, data.y, data.vy, CATCH_MAX_Y_V, CATCH_MAX_Y_A);
-        acc_target[2] = compute_accel_track_pos_1D(catch_param.params[0]/100.0f, data.angle, data.avel, CATCH_MAX_T_V, CATCH_MAX_T_A);
+  // Trajectory planning variables
+  BBProfile y_trajectory;
+  BBProfile t_trajectory;
 
-        apply_accel(acc_target, acc_target[2]);
+  // The angle difference between final axis and dr axis
+  float angle_final = (float)catch_param.params[0]/100.0f;
+  // the vertical y displacement, after rotation (along final axis)
+  float y_final = (float)catch_param.params[1]/1000.0f;
+  // the horizontal velocity, after rotation (along final axis)
+	float vx_final = (float)catch_param.params[2]/1000.0f;
 
+  // grab position, velocity measurement
+  dr_get(&data);
+  position[0] = data.x;
+  position[1] = data.y;
+  position[2] = data.angle;
+  velocity[0] = data.vx;
+  velocity[1] = data.vy;
+  velocity[2] = data.avel;
+
+  // Calculate x-acceleration component along final axes
+  // in order to reach final required speed.
+  velocity_f[0] = project_x_axis(velocity, angle_final);
+  x_vel_diff = vx_final - velocity_f[0];
+  x_vel_abs = fabsf(x_vel_diff);
+  if (x_vel_diff > x_vel_abs/2) {
+    accel_f[0] = CATCH_MAX_X_A;
+  }
+  else if (x_vel_diff > X_SPACE_FACTOR) {
+    accel_f[0] = CATCH_MAX_X_A/10;
+  }
+  else if (x_vel_diff < -x_vel_abs/2) {
+    accel_f[0] = -CATCH_MAX_X_A;
+  }
+  else if (x_vel_diff < -X_SPACE_FACTOR) {
+    accel_f[0] = -CATCH_MAX_X_A/10;
+  }
+  else {
+    accel_f[0] = 0;
+  }
+
+  // Calculate y-acceleration component along final axes
+  // in order to reach final required position. 
+  position_f[1] = project_y_axis(position, angle_final);
+  velocity_f[1] = project_y_axis(velocity, angle_final);
+
+  PrepareBBTrajectory(&y_trajectory, y_final-position_f[1], velocity_f[1], CATCH_MAX_Y_A);
+  PlanBBTrajectory(&y_trajectory);
+  accel_f[1] = BBComputeAccel(&y_trajectory, TIME_HORIZON);
+
+  // Calculate angular acceleration in order to reach final required angle.
+  PrepareBBTrajectory(&t_trajectory, angle_final-position[2], velocity[2], CATCH_MAX_T_A);
+  PlanBBTrajectory(&t_trajectory);
+  accel_f[2] = BBComputeAccel(&t_trajectory, TIME_HORIZON);
+  
+  // Rotate final acceleration onto local coordinate axis
+  rotate(accel_f, (angle_final-position[2]));
+  apply_accel(accel_f, accel_f[2]);
 
 }
+
 
 /**
  * \brief The catch movement primitive.
