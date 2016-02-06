@@ -84,33 +84,34 @@ static void catch_end(void) {
  * \param[out] log the log record to fill with information about the tick, or
  * \c NULL if no record is to be filled
  */
-static void catch_tick(log_record_t *UNUSED(log)) {
+static void catch_tick(log_record_t *log) {
 	dr_data_t data;
-  // The values on the dead reckoning axis
+  
+  // The values on the dead reckoning axis.
   float position[3];
   float velocity[3];
 
-  // The values on the final axis
+  // The values on the final axis.
   float position_f[3];
   float velocity_f[3];
   float accel_f[3];
 
-  // The variables for velocity control
+  // The variables for velocity control.
   float x_vel_diff;
   float x_vel_abs;
 
-  // Trajectory planning variables
+  // The trajectory planning variables.
   BBProfile y_trajectory;
   BBProfile t_trajectory;
 
-  // The angle difference between final axis and dr axis
+  // The angle difference between final axis and DR axis.
   float angle_final = (float)catch_param.params[0]/100.0f;
-  // the vertical y displacement, after rotation (along final axis)
+  // The vertical y displacement, after rotation (along final axis).
   float y_final = (float)catch_param.params[1]/1000.0f;
-  // the horizontal velocity, after rotation (along final axis)
+  // The horizontal velocity, after rotation (along final axis).
 	float vx_final = (float)catch_param.params[2]/1000.0f;
 
-  // grab position, velocity measurement
+  // Get DR position and velocity measurement.
   dr_get(&data);
   position[0] = data.x;
   position[1] = data.y;
@@ -119,9 +120,25 @@ static void catch_tick(log_record_t *UNUSED(log)) {
   velocity[1] = data.vy;
   velocity[2] = data.avel;
 
+  // Project DR axis values onto final axis.
+  position_f[0] = project_x_axis(position, angle_final);
+  position_f[1] = project_y_axis(position, angle_final);
+  position_f[2] = position[2];
+  velocity_f[0] = project_x_axis(velocity, angle_final);
+  velocity_f[1] = project_y_axis(velocity, angle_final);
+  velocity_f[2] = velocity[2];
+
+  // Log these values.
+  log->tick.primitive_data[0] = position_f[0];
+  log->tick.primitive_data[1] = position_f[1];
+  log->tick.primitive_data[2] = position_f[2];
+
+  log->tick.primitive_data[3] = velocity_f[0];
+  log->tick.primitive_data[4] = velocity_f[1];
+  log->tick.primitive_data[5] = velocity_f[2];
+
   // Calculate x-acceleration component along final axes
   // in order to reach final required speed.
-  velocity_f[0] = project_x_axis(velocity, angle_final);
   x_vel_diff = vx_final - velocity_f[0];
   x_vel_abs = fabsf(x_vel_diff);
   if (x_vel_diff > x_vel_abs/2) {
@@ -154,7 +171,11 @@ static void catch_tick(log_record_t *UNUSED(log)) {
   PlanBBTrajectory(&t_trajectory);
   accel_f[2] = BBComputeAccel(&t_trajectory, TIME_HORIZON);
   
-  // Rotate final acceleration onto local coordinate axis
+  log->tick.primitive_data[6] = accel_f[0];
+  log->tick.primitive_data[7] = accel_f[1];
+  log->tick.primitive_data[8] = accel_f[2];
+  
+  // Rotate and apply final acceleration onto local coordinate axis.
   rotate(accel_f, (angle_final-position[2]));
   apply_accel(accel_f, accel_f[2]);
 
