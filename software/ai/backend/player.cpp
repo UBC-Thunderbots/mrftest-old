@@ -108,5 +108,12 @@ Visualizable::Colour Player::highlight_colour() const {
 }
 
 Player::Player(unsigned int pattern) : AI::BE::Robot(pattern), moved(false), destination_(Point(), Angle::zero()), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
+	hl_request.type = Drive::Primitive::STOP;
+	hl_request.field_bool = true;
+	hl_request.field_point = Point(0, 0);
+	hl_request.field_angle = Angle::zero();
+	hl_request.field_angle2 = Angle::zero();
+	hl_request.field_double = 0;
+	hl_request.care_angle = false;
 }
 

@@ -16,7 +16,6 @@
 namespace AI {
 	struct PrimitiveInfo {
 		Drive::Primitive type;
-		//int type;
 		Point field_point;
 		Angle field_angle;
 		Angle field_angle2;
@@ -101,15 +100,6 @@ namespace AI {
 				virtual bool chicker_ready() const = 0;
 				virtual bool autokick_fired() const = 0;
 
-				/*struct PrimitiveInfo {
-					Drive::Primitive type;
-					//int type;
-					Point field_point;
-					Angle field_angle;
-					double field_double;
-					bool field_bool;
-					bool care_angle;
-				};*/
 				AI::PrimitiveInfo hl_request;
 
 			protected:
