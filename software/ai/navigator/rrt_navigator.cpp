@@ -127,7 +127,7 @@ RRTNavigator::shoot_action_type RRTNavigator::shoot_movement_zoning (Player play
 	} else if (swing_diff.abs() <= Angle::of_degrees(90) && ball2player.len()
 		<= Robot::MAX_RADIUS )
 	{
-		if( std::fabs(ball2player.dot(ball2target) <= 0.3*Robot::MAX_RADIUS )){	
+		if (std::fabs(ball2player.dot(ball2target)) <= 0.3 * Robot::MAX_RADIUS) {	
 			// within distance tolerance to shoot ball, but geometry is really off
 			return SHOOT_FAILED;
 		} else {
