@@ -313,6 +313,7 @@ void RRTNavigator::tick() {
 					player.move_dribble(local_coord.field_point, local_coord.field_angle, default_desired_rpm, false);
 					break;
 				case Drive::Primitive::SHOOT:	
+					/*
 					if( nav_request.care_angle ){
 						// evaluate if we need to do a maneuver
 						player_data->fancy_shoot_maneuver = true;
@@ -361,6 +362,12 @@ void RRTNavigator::tick() {
 					} else { 
 						player.move_shoot(robot_local_dest, nav_request.field_double, nav_request.field_bool);
 					}
+					*/
+					/*
+					local_coord = move_in_local_coord( player, hl_request );
+					player.move_shoot(local_coord.field_point, local_coord.field_angle, nav_request.field_double, nav_request.field_bool);
+					*/
+					player.move_shoot(robot_local_dest, nav_request.field_double, nav_request.field_bool);
 					break;
 				case Drive::Primitive::CATCH:	
 					//player.move_catch(nav_request.field_point-player.position(), nav_request.field_angle-player.orientation(), 0.0, false);
