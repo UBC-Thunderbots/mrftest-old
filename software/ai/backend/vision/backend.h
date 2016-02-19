@@ -19,92 +19,102 @@
 #include <iostream>
 
 namespace AI {
-	namespace BE {
-		namespace Vision {
-			extern BoolParam USE_PARTICLE_FILTER;
+namespace BE {
+namespace Vision {
+extern BoolParam USE_PARTICLE_FILTER;
 
-			/**
-			 * \brief The minimum probability above which the best ball detection will be accepted.
-			 */
-			extern DoubleParam BALL_FILTER_THRESHOLD;
+/**
+ * \brief The minimum probability above which the best ball detection will be accepted.
+ */
+extern DoubleParam BALL_FILTER_THRESHOLD;
 
-			/**
-			 * \brief The distance from the centre of the robot to the centre of the ball when touching the dribbler.
-			 */
-			constexpr double ROBOT_CENTRE_TO_FRONT_DISTANCE = 0.087;
+/**
+ * \brief The distance from the centre of the robot to the centre of the ball when touching the dribbler.
+ */
+constexpr double ROBOT_CENTRE_TO_FRONT_DISTANCE = 0.087;
 
-			/**
-			 * \brief A backend whose input comes from SSL-Vision and the Referee Box (or another tool that uses the same protocol).
-			 *
-			 * \tparam FriendlyTeam the type of the friendly team.
-			 *
-			 * \tparam EnemyTeam the type of the enemy team.
-			 */
-			template<typename FriendlyTeam, typename EnemyTeam> class Backend : public AI::BE::Backend {
-				public:
-					/**
-					 * \brief The number of metres the ball must move from a kickoff or similar until we consider that the ball is free to be approached by either team.
-					 */
-					static constexpr double BALL_FREE_DISTANCE = 0.09;
+/**
+ * \brief A backend whose input comes from SSL-Vision and the Referee Box (or another tool that uses the same protocol).
+ *
+ * \tparam FriendlyTeam the type of the friendly team.
+ *
+ * \tparam EnemyTeam the type of the enemy team.
+ */
+template<typename FriendlyTeam, typename EnemyTeam> class Backend: public AI::BE::Backend {
+public:
+	/**
+	 * \brief The number of metres the ball must move from a kickoff or similar until we consider that the ball is free to be approached by either team.
+	 */
+	static constexpr double BALL_FREE_DISTANCE = 0.09;
 
-					/**
-					 * \brief Constructs a new SSL-Vision-based backend.
-					 *
-					 * \param[in] disable_cameras a bitmask indicating which cameras should be ignored
-					 *
-					 * \param[in] multicast_interface the index of the network interface on which to join multicast groups.
-					 *
-					 * \param[in] vision_port the port on which SSL-Vision data is delivered.
-					 */
-					explicit Backend(const std::vector<bool> &disable_cameras, int multicast_interface, const std::string &vision_port);
+	/**
+	 * \brief Constructs a new SSL-Vision-based backend.
+	 *
+	 * \param[in] disable_cameras a bitmask indicating which cameras should be ignored
+	 *
+	 * \param[in] multicast_interface the index of the network interface on which to join multicast groups.
+	 *
+	 * \param[in] vision_port the port on which SSL-Vision data is delivered.
+	 */
+	explicit Backend(const std::vector<bool> &disable_cameras,
+			int multicast_interface, const std::string &vision_port);
 
-					virtual FriendlyTeam &friendly_team() = 0;
-					const FriendlyTeam &friendly_team() const override = 0;
-					virtual EnemyTeam &enemy_team() = 0;
-					const EnemyTeam &enemy_team() const override = 0;
+	virtual FriendlyTeam &friendly_team() = 0;
+	const FriendlyTeam &friendly_team() const override = 0;
+	virtual EnemyTeam &enemy_team() = 0;
+	const EnemyTeam &enemy_team() const override = 0;
 
-				private:
-					const std::vector<bool> &disable_cameras;
-					AI::BE::RefBox refbox;
-					AI::BE::Clock::Monotonic clock;
-					AI::BE::Vision::VisionSocket vision_rx;
-					AI::Timestamp playtype_time;
-					Point playtype_arm_ball_position;
-					std::vector<std::pair<SSL_DetectionFrame, AI::Timestamp>> detections;
-					AI::BE::Vision::Particle::ParticleFilter *pFilter_;
+private:
+	const std::vector<bool> &disable_cameras;
+	AI::BE::RefBox refbox;
+	AI::BE::Clock::Monotonic clock;
+	AI::BE::Vision::VisionSocket vision_rx;
+	AI::Timestamp playtype_time;
+	Point playtype_arm_ball_position;
+	std::vector<std::pair<SSL_DetectionFrame, AI::Timestamp>> detections;
+	AI::BE::Vision::Particle::ParticleFilter *pFilter_;
 
-					void tick();
-					void handle_vision_packet(const SSL_WrapperPacket &packet);
-					void on_refbox_packet();
-					void update_playtype();
-					void update_goalies();
-					void update_scores();
-					void on_friendly_colour_changed();
-					AI::Common::PlayType compute_playtype(AI::Common::PlayType old_pt);
-			};
-		}
-	}
+	void tick();
+	void handle_vision_packet(const SSL_WrapperPacket &packet);
+	void on_refbox_packet();
+	void update_playtype();
+	void update_goalies();
+	void update_scores();
+	void on_friendly_colour_changed();
+	AI::Common::PlayType compute_playtype(AI::Common::PlayType old_pt);
+};
+}
+}
 }
 
+template<typename FriendlyTeam, typename EnemyTeam> constexpr double AI::BE::Vision::Backend<
+		FriendlyTeam, EnemyTeam>::BALL_FREE_DISTANCE;
 
-
-template<typename FriendlyTeam, typename EnemyTeam> constexpr double AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::BALL_FREE_DISTANCE;
-
-template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::Backend(const std::vector<bool> &disable_cameras, int multicast_interface, const std::string &vision_port) : disable_cameras(disable_cameras), refbox(multicast_interface), vision_rx(multicast_interface, vision_port) {
-	friendly_colour().signal_changed().connect(sigc::mem_fun(this, &Backend::on_friendly_colour_changed));
-	playtype_override().signal_changed().connect(sigc::mem_fun(this, &Backend::update_playtype));
-	refbox.signal_packet.connect(sigc::mem_fun(this, &Backend::on_refbox_packet));
+template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::Vision::Backend<
+		FriendlyTeam, EnemyTeam>::Backend(
+		const std::vector<bool> &disable_cameras, int multicast_interface,
+		const std::string &vision_port) :
+		disable_cameras(disable_cameras), refbox(multicast_interface), vision_rx(
+				multicast_interface, vision_port) {
+	friendly_colour().signal_changed().connect(
+			sigc::mem_fun(this, &Backend::on_friendly_colour_changed));
+	playtype_override().signal_changed().connect(
+			sigc::mem_fun(this, &Backend::update_playtype));
+	refbox.signal_packet.connect(
+			sigc::mem_fun(this, &Backend::on_refbox_packet));
 
 	clock.signal_tick.connect(sigc::mem_fun(this, &Backend::tick));
 
-	vision_rx.signal_vision_data.connect(sigc::mem_fun(this, &Backend::handle_vision_packet));
+	vision_rx.signal_vision_data.connect(
+			sigc::mem_fun(this, &Backend::handle_vision_packet));
 
 	playtype_time = std::chrono::steady_clock::now();
 
 	pFilter_ = nullptr;
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::tick() {
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
+		FriendlyTeam, EnemyTeam>::tick() {
 	// If the field geometry is not yet valid, do nothing.
 	if (!field_.valid()) {
 		return;
@@ -127,7 +137,9 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 
 	// Do post-AI stuff (pushing data to the radios and updating predictors).
 	for (std::size_t i = 0; i < friendly_team().size(); ++i) {
-		friendly_team().get_backend_robot(i)->tick(playtype() == AI::Common::PlayType::HALT, playtype() == AI::Common::PlayType::STOP);
+		friendly_team().get_backend_robot(i)->tick(
+				playtype() == AI::Common::PlayType::HALT,
+				playtype() == AI::Common::PlayType::STOP);
 		friendly_team().get_backend_robot(i)->update_predictor(monotonic_time_);
 	}
 
@@ -137,7 +149,9 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 	signal_post_tick().emit(after - monotonic_time_);
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::handle_vision_packet(const SSL_WrapperPacket &packet) {
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
+		FriendlyTeam, EnemyTeam>::handle_vision_packet(
+		const SSL_WrapperPacket &packet) {
 	// Pass it to any attached listeners.
 	AI::Timestamp now;
 	now = std::chrono::steady_clock::now();
@@ -148,18 +162,23 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 		const SSL_GeometryData &geom(packet.geometry());
 		const SSL_GeometryFieldSize &fsize(geom.field());
 		double length = fsize.field_length() / 1000.0;
-		double total_length = length + (2.0 * fsize.boundary_width() + 2.0 * fsize.referee_width()) / 1000.0;
+		double total_length = length
+				+ (2.0 * fsize.boundary_width() + 2.0 * fsize.referee_width())
+						/ 1000.0;
 		double width = fsize.field_width() / 1000.0;
-		double total_width = width + (2.0 * fsize.boundary_width() + 2.0 * fsize.referee_width()) / 1000.0;
+		double total_width = width
+				+ (2.0 * fsize.boundary_width() + 2.0 * fsize.referee_width())
+						/ 1000.0;
 		double goal_width = fsize.goal_width() / 1000.0;
 		double centre_circle_radius = fsize.center_circle_radius() / 1000.0;
 		double defense_area_radius = fsize.defense_radius() / 1000.0;
 		double defense_area_stretch = fsize.defense_stretch() / 1000.0;
-		field_.update(length, total_length, width, total_width, goal_width, centre_circle_radius, defense_area_radius, defense_area_stretch);
+		field_.update(length, total_length, width, total_width, goal_width,
+				centre_circle_radius, defense_area_radius,
+				defense_area_stretch);
 	}
 
-	if (!pFilter_ && field_.valid())
-	{
+	if (!pFilter_ && field_.valid()) {
 		pFilter_ = new AI::BE::Vision::Particle::ParticleFilter(field_.length(),
 				field_.width());
 	}
@@ -169,9 +188,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 		const SSL_DetectionFrame &det(packet.detection());
 
 		// Drop packets we are ignoring.
-		if (disable_cameras.size() > det.camera_id() &&
-			disable_cameras[det.camera_id()])
-		{
+		if (disable_cameras.size() > det.camera_id()
+				&& disable_cameras[det.camera_id()]) {
 			return;
 		}
 
@@ -191,8 +209,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 
 			// Estimate the ball’s position at the camera frame’s timestamp.
 			double time_delta =
-				std::chrono::duration_cast<std::chrono::duration<double>>(now -
-				ball_.lock_time()).count();
+					std::chrono::duration_cast<std::chrono::duration<double>>(
+							now - ball_.lock_time()).count();
 
 			/* KALMAN VARIABLE DECLARATIONS */
 			Point estimated_position = ball_.position(time_delta);
@@ -208,13 +226,10 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 						detection_position = -detection_position;
 					}
 
-					if (AI::BE::Vision::USE_PARTICLE_FILTER)
-					{
+					if (AI::BE::Vision::USE_PARTICLE_FILTER) {
 						/* PARTICLE FILTER */
 						pFilter_->add(detection_position);
-					}
-					else
-					{
+					} else {
 						/* KALMAN FORMULAS */
 
 						/* old Kalman formulae
@@ -225,10 +240,10 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 
 						/* new Kalman formulae */
 						double a = (detection_position.x - estimated_position.x)
-							/ estimated_stdev.x;
+								/ estimated_stdev.x;
 						x_prob = std::exp(-0.5 * a * a);
 						a = (detection_position.y - estimated_position.y)
-							/ estimated_stdev.y;
+								/ estimated_stdev.y;
 						y_prob = std::exp(-0.5 * a * a);
 
 						double prob = x_prob * y_prob * b.confidence();
@@ -248,11 +263,32 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 			if (AI::BE::Vision::USE_PARTICLE_FILTER) {
 				if (det.balls().size() > 0) {
 					ball_.add_field_data(pFilter_->getEstimate(), best_time);
+				} else {
+					// No useful detection from camera; instead, see if a robot has the ball.
+					std::vector<Point> has_ball_inputs;
+					for (std::size_t i = 0; i < friendly_team().size(); ++i) {
+						Player::Ptr player = friendly_team().get(i);
+						if (player->has_ball()) {
+							player->lock_time(now);
+							Point pos = player->position(0);
+							pos += Point::of_angle(player->orientation(0))
+									* ROBOT_CENTRE_TO_FRONT_DISTANCE;
+							has_ball_inputs.push_back(pos);
+						}
+					}
+
+					if (!has_ball_inputs.empty()) {
+						Point avg;
+						for (auto i : has_ball_inputs) {
+							avg += i;
+						}
+						avg /= static_cast<double>(has_ball_inputs.size());
+						ball_.add_field_data(avg, now);
+					}
 				}
 
 				pFilter_->update(time_delta);
-			}
-			else {
+			} else {
 				/* KALMAN - UPDATE BALL */
 				if (best_prob >= BALL_FILTER_THRESHOLD) {
 					ball_.add_field_data(best_pos, best_time);
@@ -264,8 +300,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 						if (player->has_ball()) {
 							player->lock_time(now);
 							Point pos = player->position(0);
-							pos += Point::of_angle(player->orientation(0)) *
-									ROBOT_CENTRE_TO_FRONT_DISTANCE;
+							pos += Point::of_angle(player->orientation(0))
+									* ROBOT_CENTRE_TO_FRONT_DISTANCE;
 							has_ball_inputs.push_back(pos);
 						}
 					}
@@ -285,8 +321,12 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 		}
 
 		// Update the robots.
-		std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> yellow_packets(detections.size());
-		std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> blue_packets(detections.size());
+		std::vector<
+				const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> yellow_packets(
+				detections.size());
+		std::vector<
+				const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> blue_packets(
+				detections.size());
 		std::vector<AI::Timestamp> packet_timestamps;
 		for (std::size_t i = 0; i < detections.size(); i++) {
 			yellow_packets[i] = &detections[i].first.robots_yellow();
@@ -309,7 +349,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 	return;
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::on_refbox_packet() {
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
+		FriendlyTeam, EnemyTeam>::on_refbox_packet() {
 	update_goalies();
 	update_scores();
 	update_playtype();
@@ -318,7 +359,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 	signal_refbox().emit(now, refbox.packet);
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_playtype() {
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
+		FriendlyTeam, EnemyTeam>::update_playtype() {
 	AI::Common::PlayType new_pt;
 	AI::Common::PlayType old_pt = playtype();
 	if (playtype_override() != AI::Common::PlayType::NONE) {
@@ -338,7 +380,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 	}
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_goalies() {
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
+		FriendlyTeam, EnemyTeam>::update_goalies() {
 	if (friendly_colour() == AI::Common::Colour::YELLOW) {
 		friendly_team().goalie = refbox.packet.yellow().goalie();
 		enemy_team().goalie = refbox.packet.blue().goalie();
@@ -348,7 +391,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 	}
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_scores() {
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
+		FriendlyTeam, EnemyTeam>::update_scores() {
 	if (friendly_colour() == AI::Common::Colour::YELLOW) {
 		friendly_team().score = refbox.packet.yellow().score();
 		enemy_team().score = refbox.packet.blue().score();
@@ -358,127 +402,139 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 	}
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::on_friendly_colour_changed() {
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
+		FriendlyTeam, EnemyTeam>::on_friendly_colour_changed() {
 	update_playtype();
 	update_scores();
 	friendly_team().clear();
 	enemy_team().clear();
 }
 
-template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::compute_playtype(AI::Common::PlayType old_pt) {
+template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType AI::BE::Vision::Backend<
+		FriendlyTeam, EnemyTeam>::compute_playtype(
+		AI::Common::PlayType old_pt) {
 	switch (refbox.packet.command()) {
-		case SSL_Referee::HALT:
-		case SSL_Referee::TIMEOUT_YELLOW:
-		case SSL_Referee::TIMEOUT_BLUE:
-			return AI::Common::PlayType::HALT;
+	case SSL_Referee::HALT:
+	case SSL_Referee::TIMEOUT_YELLOW:
+	case SSL_Referee::TIMEOUT_BLUE:
+		return AI::Common::PlayType::HALT;
 
-		case SSL_Referee::STOP:
-		case SSL_Referee::GOAL_YELLOW:
-		case SSL_Referee::GOAL_BLUE:
-			return AI::Common::PlayType::STOP;
+	case SSL_Referee::STOP:
+	case SSL_Referee::GOAL_YELLOW:
+	case SSL_Referee::GOAL_BLUE:
+		return AI::Common::PlayType::STOP;
 
-		case SSL_Referee::NORMAL_START:
-			switch (old_pt) {
-				case AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY:
-					playtype_arm_ball_position = ball_.position();
-					return AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY;
+	case SSL_Referee::NORMAL_START:
+		switch (old_pt) {
+		case AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY:
+			playtype_arm_ball_position = ball_.position();
+			return AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY;
 
-				case AI::Common::PlayType::PREPARE_KICKOFF_ENEMY:
-					playtype_arm_ball_position = ball_.position();
-					return AI::Common::PlayType::EXECUTE_KICKOFF_ENEMY;
+		case AI::Common::PlayType::PREPARE_KICKOFF_ENEMY:
+			playtype_arm_ball_position = ball_.position();
+			return AI::Common::PlayType::EXECUTE_KICKOFF_ENEMY;
 
-				case AI::Common::PlayType::PREPARE_PENALTY_FRIENDLY:
-					playtype_arm_ball_position = ball_.position();
-					return AI::Common::PlayType::EXECUTE_PENALTY_FRIENDLY;
+		case AI::Common::PlayType::PREPARE_PENALTY_FRIENDLY:
+			playtype_arm_ball_position = ball_.position();
+			return AI::Common::PlayType::EXECUTE_PENALTY_FRIENDLY;
 
-				case AI::Common::PlayType::PREPARE_PENALTY_ENEMY:
-					playtype_arm_ball_position = ball_.position();
-					return AI::Common::PlayType::EXECUTE_PENALTY_ENEMY;
+		case AI::Common::PlayType::PREPARE_PENALTY_ENEMY:
+			playtype_arm_ball_position = ball_.position();
+			return AI::Common::PlayType::EXECUTE_PENALTY_ENEMY;
 
-				case AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY:
-				case AI::Common::PlayType::EXECUTE_KICKOFF_ENEMY:
-				case AI::Common::PlayType::EXECUTE_PENALTY_FRIENDLY:
-				case AI::Common::PlayType::EXECUTE_PENALTY_ENEMY:
-					if ((ball_.position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
-						return AI::Common::PlayType::PLAY;
-					} else {
-						return old_pt;
-					}
-
-				default:
-					return AI::Common::PlayType::PLAY;
+		case AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY:
+		case AI::Common::PlayType::EXECUTE_KICKOFF_ENEMY:
+		case AI::Common::PlayType::EXECUTE_PENALTY_FRIENDLY:
+		case AI::Common::PlayType::EXECUTE_PENALTY_ENEMY:
+			if ((ball_.position() - playtype_arm_ball_position).len()
+					> BALL_FREE_DISTANCE) {
+				return AI::Common::PlayType::PLAY;
+			} else {
+				return old_pt;
 			}
 
-		case SSL_Referee::DIRECT_FREE_YELLOW:
-			if (old_pt == AI::Common::PlayType::PLAY) {
+		default:
+			return AI::Common::PlayType::PLAY;
+		}
+
+	case SSL_Referee::DIRECT_FREE_YELLOW:
+		if (old_pt == AI::Common::PlayType::PLAY) {
+			return AI::Common::PlayType::PLAY;
+		} else if (old_pt
+				== AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) {
+			if ((ball_.position() - playtype_arm_ball_position).len()
+					> BALL_FREE_DISTANCE) {
 				return AI::Common::PlayType::PLAY;
-			} else if (old_pt == AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) {
-				if ((ball_.position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
-					return AI::Common::PlayType::PLAY;
-				} else {
-					return AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY;
-				}
 			} else {
-				playtype_arm_ball_position = ball_.position();
 				return AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY;
 			}
+		} else {
+			playtype_arm_ball_position = ball_.position();
+			return AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY;
+		}
 
-		case SSL_Referee::DIRECT_FREE_BLUE:
-			if (old_pt == AI::Common::PlayType::PLAY) {
+	case SSL_Referee::DIRECT_FREE_BLUE:
+		if (old_pt == AI::Common::PlayType::PLAY) {
+			return AI::Common::PlayType::PLAY;
+		} else if (old_pt
+				== AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) {
+			if ((ball_.position() - playtype_arm_ball_position).len()
+					> BALL_FREE_DISTANCE) {
 				return AI::Common::PlayType::PLAY;
-			} else if (old_pt == AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) {
-				if ((ball_.position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
-					return AI::Common::PlayType::PLAY;
-				} else {
-					return AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY;
-				}
 			} else {
-				playtype_arm_ball_position = ball_.position();
 				return AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY;
 			}
+		} else {
+			playtype_arm_ball_position = ball_.position();
+			return AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY;
+		}
 
-		case SSL_Referee::INDIRECT_FREE_YELLOW:
-			if (old_pt == AI::Common::PlayType::PLAY) {
+	case SSL_Referee::INDIRECT_FREE_YELLOW:
+		if (old_pt == AI::Common::PlayType::PLAY) {
+			return AI::Common::PlayType::PLAY;
+		} else if (old_pt
+				== AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY) {
+			if ((ball_.position() - playtype_arm_ball_position).len()
+					> BALL_FREE_DISTANCE) {
 				return AI::Common::PlayType::PLAY;
-			} else if (old_pt == AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY) {
-				if ((ball_.position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
-					return AI::Common::PlayType::PLAY;
-				} else {
-					return AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY;
-				}
 			} else {
-				playtype_arm_ball_position = ball_.position();
 				return AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY;
 			}
+		} else {
+			playtype_arm_ball_position = ball_.position();
+			return AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY;
+		}
 
-		case SSL_Referee::INDIRECT_FREE_BLUE:
-			if (old_pt == AI::Common::PlayType::PLAY) {
+	case SSL_Referee::INDIRECT_FREE_BLUE:
+		if (old_pt == AI::Common::PlayType::PLAY) {
+			return AI::Common::PlayType::PLAY;
+		} else if (old_pt
+				== AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY) {
+			if ((ball_.position() - playtype_arm_ball_position).len()
+					> BALL_FREE_DISTANCE) {
 				return AI::Common::PlayType::PLAY;
-			} else if (old_pt == AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY) {
-				if ((ball_.position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
-					return AI::Common::PlayType::PLAY;
-				} else {
-					return AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY;
-				}
 			} else {
-				playtype_arm_ball_position = ball_.position();
 				return AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY;
 			}
+		} else {
+			playtype_arm_ball_position = ball_.position();
+			return AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY;
+		}
 
-		case SSL_Referee::FORCE_START:
-			return AI::Common::PlayType::PLAY;
+	case SSL_Referee::FORCE_START:
+		return AI::Common::PlayType::PLAY;
 
-		case SSL_Referee::PREPARE_KICKOFF_YELLOW:
-			return AI::Common::PlayType::PREPARE_KICKOFF_ENEMY;
+	case SSL_Referee::PREPARE_KICKOFF_YELLOW:
+		return AI::Common::PlayType::PREPARE_KICKOFF_ENEMY;
 
-		case SSL_Referee::PREPARE_KICKOFF_BLUE:
-			return AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY;
+	case SSL_Referee::PREPARE_KICKOFF_BLUE:
+		return AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY;
 
-		case SSL_Referee::PREPARE_PENALTY_YELLOW:
-			return AI::Common::PlayType::PREPARE_PENALTY_ENEMY;
+	case SSL_Referee::PREPARE_PENALTY_YELLOW:
+		return AI::Common::PlayType::PREPARE_PENALTY_ENEMY;
 
-		case SSL_Referee::PREPARE_PENALTY_BLUE:
-			return AI::Common::PlayType::PREPARE_PENALTY_FRIENDLY;
+	case SSL_Referee::PREPARE_PENALTY_BLUE:
+		return AI::Common::PlayType::PREPARE_PENALTY_FRIENDLY;
 	}
 
 	return old_pt;
