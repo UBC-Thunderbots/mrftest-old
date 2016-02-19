@@ -36,7 +36,7 @@ PROJECT_LDFLAGS := -pthread -Wl,--as-needed -Wl,-O1 -ggdb3
 #
 # The library flags to pass to the linker after all object files.
 #
-PROJECT_LIBS := -lbz2 # -lboost_coroutine -lboost_context
+PROJECT_LIBS := -lbz2 -lboost_coroutine -lboost_context
 
 #
 # The flags to pass to the C++ compiler.
