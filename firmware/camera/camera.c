@@ -1,12 +1,17 @@
 #include "i2c.h"
 #include "camera.h"
+#include <gpio.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "pins.h"
 
 #define CAM_IP 0x21
 
+#define CODE_FLASHED 	GPIOD,13U
+
 bool camera_init (cam_setting_t* setting_list, unsigned int list_size)
 {
+
 	if (!i2c_init())
 	{
 		//ERROR: Failure to initialize I2C interface

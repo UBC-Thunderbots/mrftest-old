@@ -46,17 +46,20 @@ static const fptr exception_vectors[16U] __attribute__((used, section(".exceptio
 
 static const init_specs_t INIT_SPECS = {
 	.flags = {
-		.hse_crystal = false,
-		.freertos = true,
+		.hse_crystal = true,
+		.freertos = false,
 		.io_compensation_cell = false,	//I don't think any signals will be running at >50MHz?
 	},
 
 	.hse_frequency = 8,
-	.pll_frequency = 336,
-	.sys_frequency = 168,
-	.cpu_frequency = 168,
-	.apb1_frequency = 42,
-	.apb2_frequency = 84,
+	.pll_frequency = 320,
+	.sys_frequency = 160,
+	.cpu_frequency = 160,
+	.apb1_frequency = 40,
+	.apb2_frequency = 80,
+	.mco2_cfg = {
+		.source = MCO2_SRC_SYSCLK,
+		.prescalar = 4},
 	.exception_core_writer = NULL,	//Don't have any
 	.exception_app_cbs = {
 		.early = NULL,
@@ -143,8 +146,9 @@ void algorithm (uint8_t* ptr, unsigned int rows, unsigned int cols)
 }
 */
 
-#define SUCCESS_LED GPIOD,12U
-#define FAIL_LED GPIOD,14U
+#define SUCCESS_LED 	GPIOD,12U
+#define FAIL_LED 		GPIOD,14U
+#define CODE_FLASHED 	GPIOD,13U
 
 static void stm32_main(void)
 {
@@ -152,19 +156,34 @@ static void stm32_main(void)
 
 	gpio_init(PINS_INIT,sizeof(PINS_INIT)/sizeof(*PINS_INIT));
 
-	gpio_set(SUCCESS_LED);
+	gpio_reset(CODE_FLASHED);
+	gpio_set(CODE_FLASHED);
+
+	gpio_reset(SUCCESS_LED);
 	gpio_set(FAIL_LED);
 
 	cam_setting_t camera_settings[] = {{0x0C,0b00001000},{0x12,0b00001000}};
+
+	rcc_enable_reset(APB1, I2C1);
+
+
+	if (RCC.APB1ENR.I2C1EN == 1)
+	{
+		gpio_set(SUCCESS_LED);
+	}
+
+	
+	/*
 	if (camera_init(camera_settings, 2U))
 	{
 		gpio_reset(FAIL_LED);
+		gpio_set(CODE_FLASHED);
 	}
 	else
 	{
-		gpio_reset(SUCCESS_LED);
-	}
-
+		gpio_set(CODE_FLASHED);
+	}*/
+	while (1);
 
 }
 
