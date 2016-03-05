@@ -230,7 +230,11 @@ void init_chip(const init_specs_t *specs) {
 		}
 
 		// Divide PLL output to get 48 MHz USB/SDIO/RNG clock.
-		assert(!(specs->pll_frequency % 48));
+		if ((specs->flags).uses_usb)
+		{
+			assert(!(specs->pll_frequency % 48));
+		}
+
 		tmp.PLLQ = specs->pll_frequency / 48;
 		
 		RCC.PLLCFGR = tmp;
@@ -250,6 +254,18 @@ void init_chip(const init_specs_t *specs) {
 			.RTCPRE = 0, // RTC clock disabled
 			.SW = 0, // Use HSI for SYSCLK for now, until everything else is ready
 		};
+
+		// Configure MCO if necessary
+		if (specs->mco1_cfg.enable)
+		{
+			tmp.MCO1 = specs->mco1_cfg.source;
+			tmp.MCO1PRE = specs->mco1_cfg.prescalar;
+		}
+		if (specs->mco2_cfg.enable)
+		{
+			tmp.MCO2 = specs->mco2_cfg.source;
+			tmp.MCO2PRE = specs->mco2_cfg.prescalar;
+		}
 
 		// Divide system clock frequency to get CPU frequency.
 		assert(specs->cpu_frequency <= 168);

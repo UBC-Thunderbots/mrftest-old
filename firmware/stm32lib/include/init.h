@@ -36,7 +36,72 @@ typedef struct {
 	 * than 50 MHz.
 	 */
 	bool io_compensation_cell : 1;
+	
+	/**
+	 * \brief \c true if intending to use USB
+	 *
+	 * Enables the clock assertions which are necessary for correct USB operation
+	 */
+	bool uses_usb : 1;
 } init_specs_flags_t;
+
+
+/**
+ * \brief Prescaler of MCO
+ */
+typedef enum {
+	MCO_PRESCALER_DIV2 = 4,	//Don't know why it's 4 but it's 4
+	MCO_PRESCALER_DIV3,
+	MCO_PRESCALER_DIV4,
+	MCO_PRESCALER_DIV5,
+} MCO_PRESCALER_t; 
+
+
+/**
+ * \brief Specifies the clock source of MCO1.
+ */
+typedef enum {
+	MCO1_SRC_HSI,
+	MCO1_SRC_LSE,
+	MCO1_SRC_HSE,
+	MCO1_SRC_PLL,
+} MCO1_SRC_t;
+
+
+/**
+ * \brief Provides details on the configuration of MCO1.
+ *
+ * The prescalar is 1-5.  
+ */
+typedef struct {
+	bool enable;
+	MCO1_SRC_t source;
+	MCO_PRESCALER_t prescalar;		
+} MCO1_CFG_t;
+
+
+/**
+ * \brief Specifies the clock source of MCO2.
+ */
+typedef enum {
+	MCO2_SRC_SYSCLK,
+	MCO2_SRC_PLLI2S,
+	MCO2_SRC_HSE,
+	MCO2_SRC_PLL,
+} MCO2_SRC_t;
+
+
+/**
+ * \brief Provides details on the configuration of MCO2.
+ *
+ * The prescalar is 1-5.  
+ */
+typedef struct {
+	bool enable;
+	MCO2_SRC_t source;
+	MCO_PRESCALER_t prescalar;		
+} MCO2_CFG_t;
+	
 
 /**
  * \brief Provides details on what configuration the application wants.
@@ -91,6 +156,12 @@ typedef struct {
 	 * 84.
 	 */
 	unsigned int apb2_frequency;
+
+	/**
+	 * \brief Configurations for MCO if applicable
+	 */
+	MCO1_CFG_t mco1_cfg;
+	MCO2_CFG_t mco2_cfg;
 
 	/**
 	 * \brief The core dump writer to be invoked when a fatal exception occurs.

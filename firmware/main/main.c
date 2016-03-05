@@ -147,6 +147,7 @@ static const init_specs_t INIT_SPECS = {
 		.hse_crystal = false,
 		.freertos = true,
 		.io_compensation_cell = true,
+		.uses_usb = true,
 	},
 	.hse_frequency = 8,
 	.pll_frequency = 336,
