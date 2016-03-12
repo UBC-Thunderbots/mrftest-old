@@ -6,7 +6,7 @@ include ../stm32lib/Makefile.common
 $(PROJECT).dfu : $(PROJECT).bin
 	@echo "DFU-SUFFIX $@"
 	@cp $< $@
-	@dfu-suffix -v 0483 -p 497f -a $@
+	@dfu-suffix -v 0483 -p 497e -a $@
 
 .PHONY : dfu
 dfu : $(PROJECT).dfu
