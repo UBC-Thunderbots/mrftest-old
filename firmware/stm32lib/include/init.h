@@ -50,6 +50,7 @@ typedef struct {
  * \brief Prescaler of MCO
  */
 typedef enum {
+	MCO_PRESCALER_DIV1 = 0,	// 0xx means no division
 	MCO_PRESCALER_DIV2 = 4,	//Don't know why it's 4 but it's 4
 	MCO_PRESCALER_DIV3,
 	MCO_PRESCALER_DIV4,

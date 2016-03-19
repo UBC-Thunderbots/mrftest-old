@@ -115,8 +115,8 @@ typedef struct {
 	DCMI_ICR_t ICR;
 	DCMI_ESCR_t ESCR;
 	DCMI_ESUR_t ESUR;
-	DCMI_DWSTRT_t DWSTRT;
-	DCMI_DWSIZE_t DWSIZE;
+	DCMI_CWSTRT_t CWSTRT;
+	DCMI_CWSIZE_t CWSIZE;
 	uint32_t DR;
 } DCMI_t;
 _Static_assert(sizeof(DCMI_t) == 44U, "DCMI_t is wrong size");

@@ -6,7 +6,6 @@
 #include <gpio.h>
 #include <init.h>
 #include <inttypes.h>
-#include <rcc.h>
 #include <stack.h>
 #include <stddef.h>
 #include <registers/id.h>
@@ -48,7 +47,8 @@ static const init_specs_t INIT_SPECS = {
 	.flags = {
 		.hse_crystal = true,
 		.freertos = false,
-		.io_compensation_cell = false,	//I don't think any signals will be running at >50MHz?
+		.io_compensation_cell = true,	//I don't think any signals will be running at >50MHz?
+		.uses_usb = false, 
 	},
 
 	.hse_frequency = 8,
@@ -57,9 +57,11 @@ static const init_specs_t INIT_SPECS = {
 	.cpu_frequency = 160,
 	.apb1_frequency = 40,
 	.apb2_frequency = 80,
-	.mco2_cfg = {
-		.source = MCO2_SRC_SYSCLK,
-		.prescalar = 4},
+	.mco1_cfg = {
+		.enable = true,
+		.source = MCO1_SRC_PLL,			// Should be 160MHz?
+		.prescalar = MCO_PRESCALER_DIV5,// MCO2 output at 32MHz
+	},
 	.exception_core_writer = NULL,	//Don't have any
 	.exception_app_cbs = {
 		.early = NULL,
@@ -146,43 +148,33 @@ void algorithm (uint8_t* ptr, unsigned int rows, unsigned int cols)
 }
 */
 
-#define SUCCESS_LED 	GPIOD,12U
-#define FAIL_LED 		GPIOD,14U
-#define CODE_FLASHED 	GPIOD,13U
+#define SUCCESS_INDICATOR GPIOA,2U
+#define FAIL_INDICATOR    GPIOA,3U
 
 static void stm32_main(void)
 {
 	init_chip(&INIT_SPECS);
 
-	gpio_init(PINS_INIT,sizeof(PINS_INIT)/sizeof(*PINS_INIT));
+	gpio_init(PINS_INIT_64,sizeof(PINS_INIT_64)/sizeof(*PINS_INIT_64));
 
-	gpio_reset(CODE_FLASHED);
-	gpio_set(CODE_FLASHED);
+	gpio_reset(SUCCESS_INDICATOR);
+	gpio_reset(FAIL_INDICATOR);
 
-	gpio_reset(SUCCESS_LED);
-	gpio_set(FAIL_LED);
+	cam_setting_t camera_settings[] = {
+							{0x0C, 0b00001000},		// COM3 : Scale-enabled
+							{0x12, 0b00001000},		// COM7 : QCIF format
+							{0x15, 0b01000001},  	// COM10: HREF changed to HSYNC
+							};	
 
-	cam_setting_t camera_settings[] = {{0x0C,0b00001000},{0x12,0b00001000}};
 
-	rcc_enable_reset(APB1, I2C1);
-
-
-	if (RCC.APB1ENR.I2C1EN == 1)
+	if (camera_init(camera_settings, 3U))
 	{
-		gpio_set(SUCCESS_LED);
-	}
-
-	
-	/*
-	if (camera_init(camera_settings, 2U))
-	{
-		gpio_reset(FAIL_LED);
-		gpio_set(CODE_FLASHED);
+		gpio_set(SUCCESS_INDICATOR);
 	}
 	else
 	{
-		gpio_set(CODE_FLASHED);
-	}*/
+		gpio_set(FAIL_INDICATOR);
+	}
 	while (1);
 
 }

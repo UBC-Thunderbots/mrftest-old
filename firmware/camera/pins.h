@@ -3,7 +3,13 @@
 
 #include <gpio.h>
 
-extern const gpio_init_pin_t PINS_INIT[5U][16U];
+extern const gpio_init_pin_t PINS_INIT_64[5U][16U];
+extern const gpio_init_pin_t PINS_INIT_100[5U][16U];
+
+#define PIN_FPGA_PROGRAM_B GPIOB, 11U
+#define PIN_FPGA_INIT_B GPIOB, 1U
+#define PIN_FPGA_DONE GPIOA, 3U
+
 
 #define PIN_FPGA_PROGRAM_B GPIOB, 11U
 #define PIN_FPGA_INIT_B GPIOB, 1U

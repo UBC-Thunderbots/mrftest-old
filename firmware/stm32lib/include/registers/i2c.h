@@ -141,6 +141,7 @@ typedef struct {
 _Static_assert(sizeof(I2C_t) == 36U, "I2C_t is wrong size");
 
 extern volatile I2C_t I2C1;
+extern volatile I2C_t I2C2;
 
 #endif;
 

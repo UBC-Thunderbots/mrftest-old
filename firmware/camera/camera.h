@@ -14,7 +14,7 @@ typedef struct
 
 
 bool camera_init(cam_setting_t*, unsigned int);
-void camera_write2register(cam_setting_t);
+bool camera_write2register(cam_setting_t);
 uint8_t camera_read_reg(uint8_t);
 
 #endif
