@@ -22,16 +22,16 @@ namespace {
 	constexpr double CHIP_ANGLE = 51.483f;
 	const double SINE_CHIP_ANGLE = std::sin(CHIP_ANGLE);
 	const double COSINE_CHIP_ANGLE = std::cos(CHIP_ANGLE);
-	const double CONTROLLER_PROPORTIONAL_GAIN = 3;
+	const double CONTROLLER_PROPORTIONAL_GAIN = 9;
 	constexpr double RADIANS_PER_SECOND__PER__QUARTER_DEGREES_PER_FIVE_MILLISECONDS = 200 /* 5ms / s */ * 0.25 /* degrees per quarter thereof */ * M_PI / 180.0 /* radians per degree */;
 	const double MAX_SPEED = 2.0;
 
 	Point linear_controller(Point dest) {
-		if (dest.lensq() > 0.2 * 0.2) {
+		if (dest.lensq() > 0.4 * 0.4) {
 			return dest.norm() * MAX_SPEED;
 		}
 		else {
-			return dest * CONTROLLER_PROPORTIONAL_GAIN;
+			return dest * dest.len() * CONTROLLER_PROPORTIONAL_GAIN;
 		}
 	}
 }
