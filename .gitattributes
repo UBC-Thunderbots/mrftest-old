@@ -12,6 +12,8 @@ firmware/camera/Makefile -text
 firmware/camera/bit_bang_i2c.c -text
 firmware/camera/camera.c -text
 firmware/camera/camera.h -text
+firmware/camera/dcmi.c -text
+firmware/camera/dcmi.h -text
 firmware/camera/i2c.c -text
 firmware/camera/i2c.h -text
 firmware/camera/main.c -text
