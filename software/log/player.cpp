@@ -27,7 +27,7 @@
 #include <gtkmm/toolbutton.h>
 #include <sigc++/bind.h>
 #include <sigc++/bind_return.h>
-#include <sigc++/hide.h>
+#include <sigc++/adaptors/hide.h>
 #include <sigc++/functors/mem_fun.h>
 
 namespace {
