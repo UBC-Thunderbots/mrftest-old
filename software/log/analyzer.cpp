@@ -312,6 +312,248 @@ namespace {
 			}
 		}
 	}
+
+	void tsv_writer_friendly_players(std::ostream &os, const std::vector<Log::Record> &records, Gtk::Window &parent) {
+			{
+				Gtk::Dialog dlg(u8"Save to TSV", parent, true);
+				dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
+				dlg.set_default_response(Gtk::RESPONSE_OK);
+				Gtk::HBox hb;
+				Gtk::Label label(u8"Generating logs for friendly players. Please have patience...");
+				hb.pack_start(label, Gtk::PACK_SHRINK);
+				hb.show_all();
+				dlg.get_vbox()->pack_start(hb, Gtk::PACK_SHRINK);
+				dlg.run();
+			}
+			if (records.size() < 2 || !records[1].has_config()) {
+				throw std::runtime_error("No config record where it ought to be.");
+			}
+			Log::Colour friendly_colour = records[1].config().friendly_colour();
+			for (const Log::Record &record : records) {
+				if (record.has_config()) {
+					friendly_colour = record.config().friendly_colour();
+				} else if (record.has_tick()) {
+					const Log::Tick &tick = record.tick();
+					for (int j = 0; j < tick.friendly_robots_size(); ++j) {
+						const Log::Tick::FriendlyRobot &bot = tick.friendly_robots(j);
+						os << "Tick";
+						os << '\t' << bot.pattern();
+						os << '\t' << timespec_to_string_machine(tick.start_time());
+						os << '\t' << (bot.position().x() / 1000000.0);
+						os << '\t' << (bot.position().y() / 1000000.0);
+						os << '\t' << (bot.position().t() / 1000000.0);
+						os << '\t' << (bot.velocity().x() / 1000000.0);
+						os << '\t' << (bot.velocity().y() / 1000000.0);
+						os << '\t' << (bot.velocity().t() / 1000000.0);
+						os << '\t' << (bot.target().x() / 1000000.0);
+						os << '\t' << (bot.target().y() / 1000000.0);
+						os << '\t' << (bot.target().t() / 1000000.0);
+						os << '\n';
+					}
+				} else if (record.has_vision()) {
+					const Log::Vision &vision = record.vision();
+					const SSL_WrapperPacket &wrapper = vision.data();
+					if (wrapper.has_detection()) {
+						const SSL_DetectionFrame &frame = wrapper.detection();
+						int count;
+						const SSL_DetectionRobot & (SSL_DetectionFrame::*fp)(int) const;
+						if (friendly_colour == Log::COLOUR_YELLOW) {
+							count = frame.robots_yellow_size();
+							fp = &SSL_DetectionFrame::robots_yellow;
+						} else {
+							count = frame.robots_blue_size();
+							fp = &SSL_DetectionFrame::robots_blue;
+						}
+						for (int j = 0; j < count; ++j) {
+							const SSL_DetectionRobot &bot = (frame.*fp)(j);
+							if (bot.has_robot_id() && bot.has_orientation()) {
+								os << "Vision";
+								os << '\t' << bot.robot_id();
+								os << '\t' << timespec_to_string_machine(vision.timestamp());
+								os << '\t' << (bot.x() / 1000.0);
+								os << '\t' << (bot.y() / 1000.0);
+								os << '\t' << (bot.orientation() / 1000.0);
+								os << "\tX";
+								os << "\tX";
+								os << "\tX";
+								os << "\tX";
+								os << "\tX";
+								os << "\tX";
+								os << '\n';
+							}
+						}
+					}
+				}
+			}
+		}
+
+	void tsv_writer_enemy_player(std::ostream &os, const std::vector<Log::Record> &records, Gtk::Window &parent) {
+		unsigned int pattern;
+		{
+			Gtk::Dialog dlg(u8"Save to TSV", parent, true);
+			dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
+			dlg.set_default_response(Gtk::RESPONSE_OK);
+			Gtk::HBox hb;
+			Gtk::Label label(u8"index:");
+			hb.pack_start(label, Gtk::PACK_SHRINK);
+			Gtk::SpinButton spin;
+			spin.get_adjustment()->configure(0, 0, 15, 1, 5, 0);
+			spin.set_digits(0);
+			spin.set_numeric();
+			hb.pack_start(spin, Gtk::PACK_EXPAND_WIDGET);
+			hb.show_all();
+			dlg.get_vbox()->pack_start(hb, Gtk::PACK_SHRINK);
+			dlg.run();
+			pattern = static_cast<unsigned int>(spin.get_value_as_int());
+		}
+		if (records.size() < 2 || !records[1].has_config()) {
+			throw std::runtime_error("No config record where it ought to be.");
+		}
+		Log::Colour enemy_colour;
+		if(records[1].config().friendly_colour() == Log::COLOUR_YELLOW)
+			enemy_colour = Log::COLOUR_BLUE;
+		else
+			enemy_colour = Log::COLOUR_YELLOW;
+
+		for (const Log::Record &record : records) {
+			if (record.has_config()) {
+				if(record.config().friendly_colour() == Log::COLOUR_YELLOW)
+					enemy_colour = Log::COLOUR_BLUE;
+				else
+					enemy_colour = Log::COLOUR_YELLOW;
+
+			} else if (record.has_tick()) {
+				const Log::Tick &tick = record.tick();
+				for (int j = 0; j < tick.enemy_robots_size(); ++j) {
+					const Log::Tick::EnemyRobot &bot = tick.enemy_robots(j);
+					if (bot.pattern() == pattern) {
+						os << "Tick";
+						os << '\t' << timespec_to_string_machine(tick.start_time());
+						os << '\t' << (bot.position().x() / 1000000.0);
+						os << '\t' << (bot.position().y() / 1000000.0);
+						os << '\t' << (bot.position().t() / 1000000.0);
+						os << '\t' << (bot.velocity().x() / 1000000.0);
+						os << '\t' << (bot.velocity().y() / 1000000.0);
+						os << '\t' << (bot.velocity().t() / 1000000.0);
+						os << '\n';
+					}
+				}
+			} else if (record.has_vision()) {
+				const Log::Vision &vision = record.vision();
+				const SSL_WrapperPacket &wrapper = vision.data();
+				if (wrapper.has_detection()) {
+					const SSL_DetectionFrame &frame = wrapper.detection();
+					int count;
+					const SSL_DetectionRobot & (SSL_DetectionFrame::*fp)(int) const;
+					if (enemy_colour == Log::COLOUR_YELLOW) {
+						count = frame.robots_yellow_size();
+						fp = &SSL_DetectionFrame::robots_yellow;
+					} else {
+						count = frame.robots_blue_size();
+						fp = &SSL_DetectionFrame::robots_blue;
+					}
+					for (int j = 0; j < count; ++j) {
+						const SSL_DetectionRobot &bot = (frame.*fp)(j);
+						if (bot.has_robot_id() && bot.has_orientation() && bot.robot_id() == pattern) {
+							os << "Vision";
+							os << '\t' << timespec_to_string_machine(vision.timestamp());
+							os << '\t' << (bot.x() / 1000.0);
+							os << '\t' << (bot.y() / 1000.0);
+							os << '\t' << (bot.orientation() / 1000.0);
+							os << "\tX";
+							os << "\tX";
+							os << "\tX";
+							os << "\tX";
+							os << "\tX";
+							os << "\tX";
+							os << '\n';
+						}
+					}
+				}
+			}
+		}
+	}
+
+	void tsv_writer_enemy_players(std::ostream &os, const std::vector<Log::Record> &records, Gtk::Window &parent) {
+		{
+			Gtk::Dialog dlg(u8"Save to TSV", parent, true);
+			dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
+			dlg.set_default_response(Gtk::RESPONSE_OK);
+			Gtk::HBox hb;
+			Gtk::Label label(u8"Generating logs for enemy players. Please have patience...");
+			hb.pack_start(label, Gtk::PACK_SHRINK);
+			hb.show_all();
+			dlg.get_vbox()->pack_start(hb, Gtk::PACK_SHRINK);
+			dlg.run();
+		}
+		if (records.size() < 2 || !records[1].has_config()) {
+			throw std::runtime_error("No config record where it ought to be.");
+		}
+		Log::Colour enemy_colour;
+		if(records[1].config().friendly_colour() == Log::COLOUR_YELLOW)
+			enemy_colour = Log::COLOUR_BLUE;
+		else
+			enemy_colour = Log::COLOUR_YELLOW;
+
+		for (const Log::Record &record : records) {
+			if (record.has_config()) {
+				if(record.config().friendly_colour() == Log::COLOUR_YELLOW)
+					enemy_colour = Log::COLOUR_BLUE;
+				else
+					enemy_colour = Log::COLOUR_YELLOW;
+
+			} else if (record.has_tick()) {
+				const Log::Tick &tick = record.tick();
+				for (int j = 0; j < tick.enemy_robots_size(); ++j) {
+					const Log::Tick::EnemyRobot &bot = tick.enemy_robots(j);
+					os << "Tick";
+					os << '\t' << bot.pattern();
+					os << '\t' << timespec_to_string_machine(tick.start_time());
+					os << '\t' << (bot.position().x() / 1000000.0);
+					os << '\t' << (bot.position().y() / 1000000.0);
+					os << '\t' << (bot.position().t() / 1000000.0);
+					os << '\t' << (bot.velocity().x() / 1000000.0);
+					os << '\t' << (bot.velocity().y() / 1000000.0);
+					os << '\t' << (bot.velocity().t() / 1000000.0);
+					os << '\n';
+				}
+			} else if (record.has_vision()) {
+				const Log::Vision &vision = record.vision();
+				const SSL_WrapperPacket &wrapper = vision.data();
+				if (wrapper.has_detection()) {
+					const SSL_DetectionFrame &frame = wrapper.detection();
+					int count;
+					const SSL_DetectionRobot & (SSL_DetectionFrame::*fp)(int) const;
+					if (enemy_colour == Log::COLOUR_YELLOW) {
+						count = frame.robots_yellow_size();
+						fp = &SSL_DetectionFrame::robots_yellow;
+					} else {
+						count = frame.robots_blue_size();
+						fp = &SSL_DetectionFrame::robots_blue;
+					}
+					for (int j = 0; j < count; ++j) {
+						const SSL_DetectionRobot &bot = (frame.*fp)(j);
+						if (bot.has_robot_id() && bot.has_orientation()) {
+							os << "Vision";
+							os << '\t' << bot.robot_id();
+							os << '\t' << timespec_to_string_machine(vision.timestamp());
+							os << '\t' << (bot.x() / 1000.0);
+							os << '\t' << (bot.y() / 1000.0);
+							os << '\t' << (bot.orientation() / 1000.0);
+							os << "\tX";
+							os << "\tX";
+							os << "\tX";
+							os << "\tX";
+							os << "\tX";
+							os << "\tX";
+							os << '\n';
+						}
+					}
+				}
+			}
+		}
+	}
+
 	void tsv_writer_stamps(std::ostream &os, const std::vector<Log::Record> &records, Gtk::Window &) {
 		for (const Log::Record &record : records) {
 			if (record.has_tick()) {
@@ -341,7 +583,10 @@ namespace {
 	} TSV_WRITERS[] = {
 		{ &tsv_writer_ball, u8"Ball position/velocity (predicted and vision)" },
 		{ &tsv_writer_friendly_player, u8"Friendly player position/velocity (predicted and vision)" },
+		{ &tsv_writer_friendly_players, u8"Friendly players position/velocity (predicted and vision)" },
 		{ &tsv_writer_friendly_player_lps, u8"Friendly player position, lps value" },
+		{ &tsv_writer_enemy_player, u8"Enemy player position/velocity (predicted and vision)" },
+		{ &tsv_writer_enemy_players, u8"Enemy players position/velocity (predicted and vision)" },
 		{ &tsv_writer_stamps, u8"Tick/vision/refbox timestamps" },
 		{ &tsv_writer_compute_times, u8"Tick computation times" },
 	};

@@ -570,6 +570,7 @@ software/ai/hl/world.h -text
 software/ai/logger.cpp -text
 software/ai/logger.h -text
 software/ai/main.cpp -text
+software/ai/navigator/drive_tests/simple_test_navigator.cpp -text
 software/ai/navigator/follow_ball_navigator.cpp -text
 software/ai/navigator/navigator.cpp -text
 software/ai/navigator/navigator.h -text
