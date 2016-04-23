@@ -2,7 +2,7 @@
 #define GEOM_PARTICLE_PARTICLE_FILTER_H
 
 #include <cstdlib>
-#include <math.h>
+#include <cmath>
 #include <random>
 #include <iostream>
 #include <utility>

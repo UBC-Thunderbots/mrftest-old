@@ -82,7 +82,7 @@ void ParticleFilter::update(double timeDelta) {
 }
 
 void ParticleFilter::add(Point ballLocation) {
-	if (!isnan(ballLocation.x + ballLocation.y))
+	if (!std::isnan(ballLocation.x + ballLocation.y))
 	{
 		particles_.push_back(Particle(ballLocation, velocity_[1], acceleration_));
 		estimateValid_ = false;
