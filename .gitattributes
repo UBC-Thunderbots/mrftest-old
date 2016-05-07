@@ -104,6 +104,8 @@ firmware/main/hall.c -text
 firmware/main/hall.h -text
 firmware/main/icb.c -text
 firmware/main/icb.h -text
+firmware/main/kalman.c -text
+firmware/main/kalman.h -text
 firmware/main/leds.c -text
 firmware/main/leds.h -text
 firmware/main/log.c -text

@@ -60,6 +60,78 @@ void matrix_mult(float* lhs, int lhs_len, const float* rhs,int rhs_len, const fl
 }
 
 /**
+ * \brief Multiples a matrix by another matrix
+ */
+void matrix_mult_matrix(float* lhs, int lhs_cols, int lhs_rows, int A_cols, const float A[lhs_rows][A_cols], const float B[A_cols][lhs_cols]){
+	for(int i=0;i<lhs_rows;i++) {
+		for(int j=0;j<lhs_cols;j++){
+			lhs[i][j] = 0.0f;
+			for(int k=0;k<A_cols;k++){
+				lhs[i][j] += A[i][k]*B[k][j];
+			}
+		}
+	}
+}
+
+/**
+ * \brief Multiples a matrix by the transpose of another matrix
+ */
+void matrix_mult_matrix_t(float* lhs, int lhs_cols, int lhs_rows, int A_cols, const float A[lhs_rows][A_cols], const float B[A_cols][lhs_cols]){
+	for(int i=0;i<lhs_rows;i++) {
+		for(int j=0;j<lhs_cols;j++){
+			lhs[i][j] = 0.0f;
+			for(int k=0;k<A_cols;k++){
+				lhs[i][j] += A[i][k]*B[j][k];
+			}
+		}
+	}
+}
+
+/**
+ * \brief Computes inverse of nxn matrix
+ * param[in] A the matrix to invert
+ * matrix is a n by 2n matrix initially with A on the left side and identity on the right
+ */
+void matrix_inv(float* A, int n) {
+	float matrix[n][2*n], ratio, a;
+	int i, j, k;
+	for (i=0;i<n;i++) {
+		for (j=0;j<n;j++) {
+			matrix[i][j] = A[i][j];
+		}
+	}
+	for (i=0;i<n;i++) {
+		for (j=n;j<2*n;j++) {
+			if (i==(j-n))
+				matrix[i][j] = 1.0;
+			else
+				matrix[i][j] = 0.0;
+		}
+	}
+	for (i=0;i<n;i++) {
+		for (j=0;j<n;j++) {
+			if (i!=j) {
+				ratio = matrix[j][i]/matrix[i][i];
+				for (k=0;k<2*n;k++) {
+					matrix[j][k] -= ratio*matrix[i][k];
+				}
+			}
+		}
+	}
+	for (i=0;i<n;i++) {
+		a = matrix[i][i];
+		for (j=0;j<2*n;j++) {
+			matrix[i][j] /= a;
+		}
+	}
+	for (i=0;i<n;i++) {
+		for (j=0;j<n;j++) {
+			A[i][j] = matrix[i][j+n];
+		}
+	}
+}
+
+/**
  * \brief Multiplies a matrix's transpose by a vector.
  *
  * \param[out] lhs the result, \p matrixT * \p rhs
@@ -115,6 +187,44 @@ void speed3_to_speed4(const float speed3[3], float speed4[4]) {
 void vectorSub(float *a,const float *b, int len) {
 	for(int i=0;i<len;i++) {
 		a[i] = a[i]-b[i];
+	}
+}
+
+/**
+ * \ingroup Physics
+ *
+ * \brief implements the vector transfrom of A=A+B
+ *
+ * \param[in,out] the A vector
+ * \param[in] the B vector
+ * \param[in] the length of the vectors
+ *
+ */
+void vectorAdd(float *a,const float *b, int len) {
+	for(int i=0;i<len;i++) {
+		a[i] = a[i]+b[i];
+	}
+}
+
+/**
+ * \brief A=A-B
+ */
+void matrixSub(int rows, int cols, float* lhs[rows][cols], float *A[rows][cols], const float *B[rows][cols]) {
+	for(int i=0;i<rows;i++) {
+		for(int j=0;j<cols;j++) {
+			lhs = A[i][j] - B[i][j];
+		}
+	}
+}
+
+/**
+ * \brief A=A+B
+ */
+void matrixAdd(int rows, int cols, float *A[rows][cols], const float *B[rows][cols]) {
+	for(int i=0;i<rows;i++) {
+		for(int j=0;j<cols;j++) {
+			A[i][j] += B[i][j];
+		}
 	}
 }
 
