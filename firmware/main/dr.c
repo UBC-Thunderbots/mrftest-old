@@ -63,18 +63,15 @@ void dr_tick(log_record_t *log) {
 	//}
 
 	float robot_speeds[3];
-	float current_state_v = {current_state -> x, current_state -> y, current_state -> angle,
-							current_state -> vx, current_state -> vy, current_state -> avel};
+
 	speed4_to_speed3(encoder_speeds, robot_speeds);
 	rotate(robot_speeds, current_state.angle);
-	kalman_step(current_state_v);
-	/*current_state.avel = robot_speeds[2]/ROBOT_RADIUS;
+	current_state.avel = robot_speeds[2]/ROBOT_RADIUS;
 	current_state.vx = robot_speeds[0];
 	current_state.vy = robot_speeds[1];
 	current_state.x += current_state.vx*TICK_TIME;
 	current_state.y += current_state.vy*TICK_TIME;
 	current_state.angle += current_state.avel*TICK_TIME;
-	*/
 
 	if (log) {
 		log->tick.dr_x = current_state.x;
