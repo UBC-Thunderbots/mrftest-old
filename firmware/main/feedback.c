@@ -237,6 +237,7 @@ void feedback_init(void) {
  */
 void feedback_shutdown(void) {
 	xTaskNotify(feedback_task_handle, EVENT_SHUTDOWN, eSetBits);
+	mrf_transmit_cancel();
 	xSemaphoreTake(main_shutdown_sem, portMAX_DELAY);
 }
 

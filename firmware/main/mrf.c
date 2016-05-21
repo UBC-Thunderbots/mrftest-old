@@ -179,6 +179,7 @@ typedef enum {
 static SemaphoreHandle_t da_irq_sem, tx_irq_sem, tx_mutex;
 static EventGroupHandle_t rx_event_group;
 static uint16_t saved_pan_id, saved_short_address;
+static volatile bool tx_cancelled;
 
 static void da_isr(void) {
 	xSemaphoreGive(da_irq_sem);
@@ -403,10 +404,16 @@ uint8_t mrf_alloc_seqnum(void) {
  * \retval MRF_TX_OK if the frame was sent and acknowledged
  * \retval MRF_TX_NO_ACK if the frame was sent but not acknowledged
  * \retval MRF_TX_CCA_FAIL if the frame was not sent because the channel was too busy
+ * \retval MRF_TX_CANCELLED if \ref mrf_transmit_cancel was called
  *
  * \pre The radio must have been initialized.
  */
 mrf_tx_result_t mrf_transmit(const void *frame) {
+	// Do not proceed if cancelled.
+	if (tx_cancelled) {
+		return MRF_TX_CANCELLED;
+	}
+
 	// Only one task can transmit at a time.
 	xSemaphoreTake(tx_mutex, portMAX_DELAY);
 
@@ -416,6 +423,11 @@ mrf_tx_result_t mrf_transmit(const void *frame) {
 
 	// Wait until transmit complete.
 	xSemaphoreTake(tx_irq_sem, portMAX_DELAY);
+
+	// Check for cancellation.
+	if (tx_cancelled) {
+		return MRF_TX_CANCELLED;
+	}
 
 	// Get transmit status.
 	static uint8_t txstat_icb;
@@ -434,6 +446,19 @@ mrf_tx_result_t mrf_transmit(const void *frame) {
 	} else {
 		return MRF_TX_NO_ACK;
 	}
+}
+
+/**
+ * \brief Cancels an in-progress or future transmit.
+ *
+ * \pre This function can only be used once. Once a transmit is cancelled, the radio is unusable.
+ *
+ * \post Any current, and all subsequent, calls to \ref mrf_transmit will return \ref MRF_TX_CANCELLED.
+ * \post No invocation of \ref mrf_transmit will block.
+ */
+void mrf_transmit_cancel(void) {
+	tx_cancelled = true;
+	xSemaphoreGive(tx_irq_sem);
 }
 
 /**
