@@ -67,7 +67,7 @@ static void feedback_task(void *UNUSED(param)) {
 	for (;;) {
 		{
 			uint32_t new_events;
-			xTaskNotifyWait(0, UINT32_MAX, &new_events, portMAX_DELAY);
+			xTaskNotifyWait(0, UINT32_MAX, &new_events, pending_events ? 0 : portMAX_DELAY);
 			pending_events |= new_events;
 		}
 
@@ -215,7 +215,7 @@ static void feedback_task(void *UNUSED(param)) {
 				// This message absolutely must go through.
 				// If not, the host may believe autokick is still armed even though it isn’t!
 				// So, try delivering the message again later.
-				xTaskNotify(feedback_task_handle, EVENT_SEND_AUTOKICK, eSetBits);
+				pending_events |= EVENT_SEND_AUTOKICK;
 			}
 		}
 	}
