@@ -11,7 +11,7 @@ $(PROJECT).dfu : $(PROJECT).bin
 .PHONY : dfu
 dfu : $(PROJECT).dfu
 	@echo " DFU-UTIL  $<"
-	@dfu-util -d 0483 -c 1 -i 0 -a 0 -D $<
+	@dfu-util -a Firmware -D $<
 
 .PHONY : dfuse
 dfuse : $(PROJECT).bin
