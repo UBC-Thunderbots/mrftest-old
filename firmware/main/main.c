@@ -441,6 +441,11 @@ static void run_normal(void) {
 	charger_shutdown();
 	motor_shutdown();
 
+	// Kick the hardware watchdog to avoid timeouts. Chicker shutdown sometimes
+	// takes up to three seconds, particularly if the board is not plugged in,
+	// so that eats most of the timeout period.
+	IWDG.KR = 0xAAAAU;
+
 	chicker_shutdown();
 
 	// Kick the hardware watchdog to avoid timeouts. Chicker shutdown sometimes
