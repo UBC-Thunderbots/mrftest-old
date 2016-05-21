@@ -52,6 +52,7 @@
 #include <event_groups.h>
 #include <inttypes.h>
 #include <semphr.h>
+#include <stdio.h>
 #include <task.h>
 
 typedef enum {
@@ -259,6 +260,8 @@ static void write_long(uint16_t reg, uint8_t value) {
  * \param[in] mac_address the node’s MAC address
  */
 void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short_address, uint64_t mac_address) {
+	static uint8_t int_pin;
+
 	// Save parameters.
 	saved_pan_id = pan_id;
 	saved_short_address = short_address;
@@ -279,6 +282,19 @@ void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short
 	vTaskDelay(1U);
 	release_reset();
 	vTaskDelay(1U);
+
+	// Check the bus by setting a register and reading it back.
+	write_short(MRF_REG_SHORT_EADR0, 0x5A);
+	if (read_short(MRF_REG_SHORT_EADR0) != 0x5A) {
+		fputs("Bus readback test failed.\r\n", stdout);
+	}
+
+	// Check that the interrupt pin is not stuck or disconnected.
+	vTaskDelay(pdMS_TO_TICKS(10U));
+	icb_receive(ICB_COMMAND_MRF_DA_GET_INT, &int_pin, sizeof(int_pin));
+	if (!int_pin) {
+		fputs("INT pin stuck low.\r\n", stdout);
+	}
 
 	// Write a pile of fixed register values.
 	static const struct init_elt_long {
@@ -315,12 +331,11 @@ void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short
 		}
 	}
 
-	// Wait for interrupt line to be low, as we have just switched its active polarity.
-	{
-		static uint8_t status;
-		do {
-			icb_receive(ICB_COMMAND_MRF_DA_GET_INT, &status, sizeof(status));
-		} while (status);
+	// Re-check interrupt pin after polarity change.
+	vTaskDelay(pdMS_TO_TICKS(10U));
+	icb_receive(ICB_COMMAND_MRF_DA_GET_INT, &int_pin, sizeof(int_pin));
+	if (int_pin) {
+		fputs("INT pin stuck high.\r\n", stdout);
 	}
 
 	// Initialize per-configuration stuff.
