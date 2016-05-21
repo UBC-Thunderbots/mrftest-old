@@ -345,6 +345,7 @@ void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short
 
 	// Enable the external amplifiers.
 	// For MRF24J40MB, no separate power regulator control is needed, but GPIO2:1 need to be configured to control the amplifiers and RF switches.
+	// For MRF24J40MD, GPIO2:0 are needed for the same purpose.
 	write_short(MRF_REG_SHORT_GPIO, 0x00);
 	write_long(MRF_REG_LONG_TESTMODE, 0x0F);
 	write_short(MRF_REG_SHORT_TRISGPIO, 0x3F);
