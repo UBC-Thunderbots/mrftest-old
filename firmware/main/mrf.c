@@ -300,10 +300,11 @@ void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short
 		{ MRF_REG_LONG_SLPCON1, 0x21 },
 		{ MRF_REG_SHORT_RXFLUSH, 0x61 },
 		{ MRF_REG_SHORT_BBREG2, 0xB8 },
-		// Default threshold for bare chip is 0x60 = -69dB
-		// MRF24J40MB LNA has 20dB gain
-		// 0xC6 = -49 dB at the chip, corresponding to -69 on the air
-		{ MRF_REG_SHORT_CCAEDTH, 0xC6 },
+		// Default threshold for bare chip is 0x60 = -69dB.
+		// MRF24J40MB LNA has 20 dB gain → −49 dB at the chip.
+		// MRF24J40MD LNA has 13.5 dB gain → −55.5 dB at the chip.
+		// Geometric average is -52 dB, or 0xB7.
+		{ MRF_REG_SHORT_CCAEDTH, 0xB7 },
 		{ MRF_REG_SHORT_BBREG6, 0x40 },
 	};
 	for (size_t i = 0; i < sizeof(INIT_ELTS) / sizeof(*INIT_ELTS); ++i) {
