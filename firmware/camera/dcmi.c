@@ -30,10 +30,6 @@ void dma2_stream1_isr(void)
 		lifcr.CDMEIF1 = 1;
 	}
 	DMA2.LIFCR = lifcr;
-
-	// Do not allow the compiler to hoist non-volatile-qualified memory
-	// accesses above this point.
-	__atomic_signal_fence(__ATOMIC_ACQUIRE);
 }
 
 void dcmi_isr(void)
@@ -46,8 +42,27 @@ void dcmi_isr(void)
 		gpio_toggle(RAW_FRAME_DONE);
 		icr.FRAME_ISC = 1;
 	}
+	
+	if (ris.LINE_RIS == 1)
+	{
+//		gpio_toggle(
+		icr.LINE_ISC = 1;
+	}
+
+	if (ris.OVR_RIS == 1)
+	{
+		gpio_set(DIRECT_MODE_ERR);
+		icr.OVR_ISC = 1;
+	}
+		
 	DCMI.ICR = icr;
 }
+/*
+void dcmi_line_isr(void)
+{
+	DCMI_RIS
+}
+*/
 
 // DCMI NVIC = 0x00000178
 // DMA2 NVIC = 0x00000124
@@ -55,13 +70,20 @@ bool dcmi_init(void)
 {
 	rcc_enable_reset(AHB2, DCMI);
 	
-	DCMI_CR_t cr = { .HSPOL = 1,    // HSYNC active high
+	DCMI_CR_t cr = { .HSPOL = 0,    // HSYNC active low 
 				     .VSPOL = 1,	// VSYNC active high
-					 .PCKPOL = 1 }; // Capture on rising edge of PCLK
+					 .PCKPOL = 1, 	// Capture on rising edge of PCLK
+					 .CM = 1 };
 	DCMI.CR = cr;
-	DCMI_IER_t ier = { .FRAME_IE = 1};
+	DCMI_IER_t ier = { .FRAME_IE = 1,
+					   .OVR_IE = 1,
+						};
+					   //.LINE_IE = 1};
 	DCMI.IER = ier;
-	DCMI_MIS_t mis = { .FRAME_MIS = 1};
+	DCMI_MIS_t mis = { .FRAME_MIS = 1,
+					   .OVR_MIS = 1,
+						};
+					   //.LINE_MIS = 1};
 	DCMI.MIS = mis;
 	DCMI.CR.ENABLE = 1;
 
@@ -77,23 +99,24 @@ bool dcmi_dma_init(void)
 	rcc_enable_reset(AHB1, DMA2);
 
 	DMA_SxCR_t cr = { .CHSEL = 1, 
-					  .DBM = 1, 	// Double buffer
+//					  .DBM = 1, 	// Double buffer
 					  .PL = 0b11,   // Very high priority
 					  .MSIZE = 0b10,// 32bit
 					  .PSIZE = 0b10,// 32bit
 					  .MINC = 1,	// Memory increments automatically
-					  .CIRC = 1, 	// Double buffer iff circular mode enabled
+//					  .CIRC = 1, 	// Double buffer iff circular mode enabled
 					  .DIR  = 0b00, // Peripheral to memory
 					  .TCIE = 1, 	// Transfer complete interrupt enabled
 					  .DMEIE = 1 	// Direct mode error interrupt enabled
 					  };
-	uint32_t ndtr = 12672;   		// 50688 / 4 = # of items for transfer
+//	uint32_t ndtr = 12672;   		// 50688 / 4 = # of items for transfer
+	uint32_t ndtr = 25344;   		// 50688 / 4 = # of items for transfer
 
 	dma_stream_t stream_cfg = { .CR = cr,
 								.NDTR = ndtr,
 								.PAR = &(DCMI.DR),
 								.M0AR = &(img_buffer1[0]),
-								.M1AR = &(img_buffer2[0])
+//								.M1AR = &(img_buffer2[0])
 								};
 
 	DMA2.streams[1] = stream_cfg;

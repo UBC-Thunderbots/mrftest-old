@@ -156,6 +156,7 @@ void i2c_write_data(uint8_t data)
 uint8_t i2c_read_data( void )
 {
 	I2C_SR1_t sr1;
+	I2C1.DR.DR = 0;
 	while(1)
 	{
 		sr1 = I2C1.SR1;

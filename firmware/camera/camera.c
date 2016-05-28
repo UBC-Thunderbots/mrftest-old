@@ -11,12 +11,13 @@
 bool camera_init (cam_setting_t* setting_list, unsigned int list_size)
 {
 
+	uint16_t delay = 100;
+	volatile uint16_t j;
 	if (!i2c_init())
 	{
 		//ERROR: Failure to initialize I2C interface
 		return false;
 	}
-
 
 	// send all the settings
 	volatile unsigned int i = 0;
@@ -26,6 +27,7 @@ bool camera_init (cam_setting_t* setting_list, unsigned int list_size)
 		{
 			return false;
 		}
+		for( j = 0; j < delay; j++) {asm volatile("nop");};
 	}
 
 	// Check if all the commands went through
@@ -35,6 +37,7 @@ bool camera_init (cam_setting_t* setting_list, unsigned int list_size)
 		{
 			return false;
 		}
+		for( j = 0; j < delay; j++) {asm volatile("nop");};
 	}
 	return true;
 }

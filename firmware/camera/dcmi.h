@@ -2,8 +2,8 @@
 #include <stdbool.h>
 
 
-extern uint8_t img_buffer1[50688];
-extern uint8_t img_buffer2[50688];
+extern uint8_t img_buffer1[101376];
+//extern uint8_t img_buffer2[50688];
 
 bool dcmi_init(void);
 bool dcmi_dma_init(void);
