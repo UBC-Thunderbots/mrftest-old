@@ -70,7 +70,7 @@ bool dcmi_init(void)
 {
 	rcc_enable_reset(AHB2, DCMI);
 	
-	DCMI_CR_t cr = { .HSPOL = 1,    // HSYNC active low 
+	DCMI_CR_t cr = { .HSPOL = 0,    // HSYNC active low 
 				     .VSPOL = 1,	// VSYNC active high
 					 .PCKPOL = 1, 	// Capture on rising edge of PCLK
 					 .CM = 1 };
@@ -80,15 +80,11 @@ bool dcmi_init(void)
 						};
 					   //.LINE_IE = 1};
 	DCMI.IER = ier;
-	DCMI_MIS_t mis = { .FRAME_MIS = 1,
-					   .OVR_MIS = 1,
-						};
-					   //.LINE_MIS = 1};
-	DCMI.MIS = mis;
+
 	DCMI.CR.ENABLE = 1;
 
-	// Enable the hardware interrupt
-	__atomic_signal_fence(__ATOMIC_RELEASE);
+	DCMI_CR_t dummy_read = DCMI.CR; // Flush APB buffer to ensure order
+
 	NVIC.ISER[NVIC_IRQ_DCMI/32U] = 1U << (NVIC_IRQ_DCMI % 32U);
 	
 	return true;
@@ -119,10 +115,14 @@ bool dcmi_dma_init(void)
 //								.M1AR = &(img_buffer2[0])
 								};
 
-	DMA2.streams[1] = stream_cfg;
+	DMA2.streams[1].CR = cr;
+	DMA2.streams[1].NDTR = ndtr;
+	DMA2.streams[1].PAR = &(DCMI.DR);
+	DMA2.streams[1].M0AR = &(img_buffer1[0]);
+	//DMA2.streams[1].M1AR = &(img_buffer2[0]);
+
+	DCMI_CR_t dummy_read = DCMI.CR; // Flush APB buffer to ensure order
 	
-	// Enable the hardware interrupt
-	__atomic_signal_fence(__ATOMIC_RELEASE);
 	NVIC.ISER[NVIC_IRQ_DMA2_STREAM1/32U] = 1U << (NVIC_IRQ_DMA2_STREAM1 % 32U);
 
 	return true;

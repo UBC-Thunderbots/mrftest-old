@@ -185,7 +185,7 @@ static void stm32_main(void)
 							//{0x3A, 0x1C},		// CLKRC : ???
 							//{0x67, 0xFF},		// CLKRC : ???
 							//{0x68, 0x00},		// CLKRC : ???
-							//*{0x15, 0b00000000}  	// COM10: No PCLK when HREF low (invalid data period)
+							{0x15, 1, 5}  	// COM10: No PCLK when HREF low (invalid data period)
 							//{0x0F, 0b11000011},  	// COM14: Manual scaling
 							//{0x3E, 0b00011011},		// COM14: Manual scaling, scaling PCLK, Div by 4
 							//{0x73, 0b00000011},   	// SCALING_PCLK_DIV: Divide by 4

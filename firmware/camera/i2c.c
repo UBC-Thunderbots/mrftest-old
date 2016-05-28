@@ -118,6 +118,7 @@ void i2c_stop_tx(void)
 	cr1.STOP = 1;
 
 	I2C1.CR1 = cr1;
+	while (I2C1.CR1.STOP == 1);
 }
 
 // Send stop condition for receiving
@@ -127,6 +128,8 @@ void i2c_stop_rx(void)
 	cr1.STOP = 1;
 
 	I2C1.CR1 = cr1;
+
+	while (I2C1.CR1.STOP == 1);
 }
 
 // Procedure for sending one byte over I2C

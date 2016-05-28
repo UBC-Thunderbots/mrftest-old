@@ -32,8 +32,7 @@ bool camera_init (cam_setting_t* setting_list, unsigned int list_size)
 		}
 		else
 		{
-			uint8_t all_1 = 0xFF;
-			reg_val = reg_val & (all_1 & ~(1 << setting_list[i].position));
+			reg_val = reg_val & ~(1 << setting_list[i].position);
 		}
 		camera_write2register(setting_list[i].reg, reg_val);
 		setting_list[i].final_reg_val = reg_val;
