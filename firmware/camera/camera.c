@@ -11,7 +11,7 @@
 bool camera_init (cam_setting_t* setting_list, unsigned int list_size)
 {
 
-	uint16_t delay = 100;
+	uint16_t delay = 250;
 	volatile uint16_t j;
 	if (!i2c_init())
 	{
@@ -21,22 +21,34 @@ bool camera_init (cam_setting_t* setting_list, unsigned int list_size)
 
 	// send all the settings
 	volatile unsigned int i = 0;
+
 	for (i = 0; i < list_size; i++)
 	{
-		if (!camera_write2register(setting_list[i]))
+		uint8_t reg_val = camera_read_reg(setting_list[i].reg);
+		
+		if (setting_list[i].val == 1)
 		{
-			return false;
+			reg_val = reg_val | (1 << setting_list[i].position);
 		}
+		else
+		{
+			uint8_t all_1 = 0xFF;
+			reg_val = reg_val & (all_1 & ~(1 << setting_list[i].position));
+		}
+		camera_write2register(setting_list[i].reg, reg_val);
+		setting_list[i].final_reg_val = reg_val;
+
 		for( j = 0; j < delay; j++) {asm volatile("nop");};
 	}
 
 	// Check if all the commands went through
 	for (i = 0; i < list_size; i++)
 	{
-		if (camera_read_reg(setting_list[i].reg) != setting_list[i].value)
+		if (camera_read_reg(setting_list[i].reg) != setting_list[i].final_reg_val)
 		{
 			return false;
 		}
+
 		for( j = 0; j < delay; j++) {asm volatile("nop");};
 	}
 	return true;
@@ -44,7 +56,7 @@ bool camera_init (cam_setting_t* setting_list, unsigned int list_size)
 
 
 //NOTE: this function will never fail because NACK is assumed to represent success
-bool camera_write2register(cam_setting_t setting)
+bool camera_write2register(uint8_t addr, uint8_t setting)
 {
 	// Start write 
 	if (!i2c_start_com(CAM_IP, 0x0))
@@ -52,8 +64,8 @@ bool camera_write2register(cam_setting_t setting)
 		//ERROR: Failure to start I2C transmission to camera
 		return false;
 	}	
-	i2c_write_data(setting.reg);
-	i2c_write_data(setting.value);
+	i2c_write_data(addr);
+	i2c_write_data(setting);
 	i2c_stop_tx();
 	return true;
 }

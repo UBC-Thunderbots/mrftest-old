@@ -70,7 +70,7 @@ bool dcmi_init(void)
 {
 	rcc_enable_reset(AHB2, DCMI);
 	
-	DCMI_CR_t cr = { .HSPOL = 0,    // HSYNC active low 
+	DCMI_CR_t cr = { .HSPOL = 1,    // HSYNC active low 
 				     .VSPOL = 1,	// VSYNC active high
 					 .PCKPOL = 1, 	// Capture on rising edge of PCLK
 					 .CM = 1 };

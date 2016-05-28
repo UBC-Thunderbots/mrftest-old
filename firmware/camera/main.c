@@ -175,16 +175,17 @@ static void stm32_main(void)
 	gpio_reset(FAIL_INDICATOR);
 
 	cam_setting_t camera_settings[] = {
-							{0x12, 0b00001000},		// COM7 : QCIF format
-							{0x11, 0b01000000},		// CLKRC : ???
-							{0x0C, 0b00000000},		// COM3 : Scale-enabled
+							{0x12, 1, 3}, // COM7 : QCIF format
+							{0x11, 1, 6}, // CLKRC : ???
+							//{0x0C, 0b00000000},		// COM3 : Scale-enabled
 							//{0x3E, 0b00001000},		// COM14: Manual scaling enabled
-							{0x04, 0b00000100},     // COM1: Skip every other row (for QCIF)
+							{0x04, 0, 3},
+							{0x04, 1, 2}, //0b00000100},     // COM1: Skip every other row (for QCIF)
 							//{0x04, 0x28},		// CLKRC : ???
 							//{0x3A, 0x1C},		// CLKRC : ???
 							//{0x67, 0xFF},		// CLKRC : ???
 							//{0x68, 0x00},		// CLKRC : ???
-							{0x15, 0b00000000}  	// COM10: No PCLK when HREF low (invalid data period)
+							//*{0x15, 0b00000000}  	// COM10: No PCLK when HREF low (invalid data period)
 							//{0x0F, 0b11000011},  	// COM14: Manual scaling
 							//{0x3E, 0b00011011},		// COM14: Manual scaling, scaling PCLK, Div by 4
 							//{0x73, 0b00000011},   	// SCALING_PCLK_DIV: Divide by 4
