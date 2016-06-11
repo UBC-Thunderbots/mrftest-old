@@ -359,5 +359,6 @@ SemaphoreHandle_t enabled_mode_change_sem;
 void enabled_init(void) {
 	// Give the largest possible count. Mostly gives and takes will be aligned
 	// 1:1, but sometimes multiple tasks might shut down simultaneously.
-	enabled_mode_change_sem = xSemaphoreCreateCounting((UBaseType_t) -1, 0);
+	static StaticSemaphore_t sem_storage;
+	enabled_mode_change_sem = xSemaphoreCreateCountingStatic((UBaseType_t) -1, 0, &sem_storage);
 }

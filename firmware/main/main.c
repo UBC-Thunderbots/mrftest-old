@@ -63,7 +63,6 @@
 static void stm32_main(void) __attribute__((noreturn));
 
 STACK_ALLOCATE(mstack, 4096);
-STACK_ALLOCATE(main_task_stack, 4096);
 
 typedef void (*fptr)(void);
 static const fptr exception_vectors[16U] __attribute__((used, section(".exception_vectors"))) = {
@@ -319,9 +318,11 @@ static void stm32_main(void) {
 	gpio_init(PINS_INIT, sizeof(PINS_INIT) / sizeof(*PINS_INIT));
 
 	// Get into FreeRTOS.
-	main_shutdown_sem = xSemaphoreCreateCounting((UBaseType_t) -1, 0);
-	BaseType_t ok = xTaskGenericCreate(&main_task, "main", sizeof(main_task_stack) / sizeof(*main_task_stack), 0, PRIO_TASK_SUPERVISOR, &main_task_handle, main_task_stack, 0);
-	assert(ok == pdPASS);
+	static StaticSemaphore_t main_shutdown_sem_storage;
+	main_shutdown_sem = xSemaphoreCreateCountingStatic((UBaseType_t) -1, 0, &main_shutdown_sem_storage);
+	static StaticTask_t main_task_tcb;
+	STACK_ALLOCATE(main_task_stack, 4096);
+	main_task_handle = xTaskCreateStatic(&main_task, "main", sizeof(main_task_stack) / sizeof(*main_task_stack), 0, PRIO_TASK_SUPERVISOR, main_task_stack, &main_task_tcb);
 	vTaskStartScheduler();
 	__builtin_unreachable();
 }
@@ -681,6 +682,14 @@ void main_shutdown(main_shut_mode_t mode) {
  */
 uint32_t main_read_clear_idle_cycles(void) {
 	return __atomic_exchange_n(&idle_cycles, 0, __ATOMIC_RELAXED);
+}
+
+void vApplicationGetIdleTaskMemory(StaticTask_t **tcb, StackType_t **stack, uint32_t *stack_size) {
+	static StaticTask_t tcb_storage;
+	*tcb = &tcb_storage;
+	STACK_ALLOCATE(stack_storage, configMINIMAL_STACK_SIZE * sizeof(StackType_t));
+	*stack = stack_storage;
+	*stack_size = sizeof(stack_storage) / sizeof(StackType_t);
 }
 
 /**

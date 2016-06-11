@@ -34,9 +34,9 @@ static inline void sleep_50ns(void) {
 
 void mrf_init_once(void) {
 	// Create semaphore and mutex.
-	dma_int_sem = xSemaphoreCreateBinary();
-	bus_mutex = xSemaphoreCreateMutex();
-	assert(dma_int_sem && bus_mutex);
+	static StaticSemaphore_t dma_int_sem_storage, bus_mutex_storage;
+	dma_int_sem = xSemaphoreCreateBinaryStatic(&dma_int_sem_storage);
+	bus_mutex = xSemaphoreCreateMutexStatic(&bus_mutex_storage);
 }
 
 void mrf_init(void) {

@@ -107,10 +107,8 @@ void estop_init(void) {
 	portENABLE_HW_INTERRUPT(NVIC_IRQ_ADC);
 
 	// Set up a 50 ms timer to run the ADC.
-	TimerHandle_t timer = xTimerCreate("estop", 50U / portTICK_PERIOD_MS, pdTRUE, 0, &tick);
-	if (!timer) {
-		abort();
-	}
+	static StaticTimer_t timer_storage;
+	TimerHandle_t timer = xTimerCreateStatic("estop", 50U / portTICK_PERIOD_MS, pdTRUE, 0, &tick, &timer_storage);
 	if (!xTimerStart(timer, portMAX_DELAY)) {
 		abort();
 	}

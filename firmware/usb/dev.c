@@ -761,24 +761,19 @@ void udev_init(const udev_info_t *info) {
 	switch (__atomic_load_n(&udev_state, __ATOMIC_RELAXED)) {
 		case UDEV_STATE_UNINITIALIZED:
 			// Initialize the stack.
+			;
+			static uint8_t ep_event_queue_buffer[UEP_MAX_ENDPOINT * 2];
+			static StaticSemaphore_t attach_detach_sem_storage, gonak_mutex_storage, ep_mutex_storage[UEP_MAX_ENDPOINT * 2], ep_disabled_sem_storage[UEP_MAX_ENDPOINT * 2];
+			static StaticQueue_t ep_event_queue_storage[UEP_MAX_ENDPOINT * 2];
 			udev_info = info;
 			udev_state = UDEV_STATE_DETACHED;
-			udev_attach_detach_sem = xSemaphoreCreateBinary();
-			udev_gonak_mutex = xSemaphoreCreateMutex();
-			if (!udev_attach_detach_sem || !udev_gonak_mutex) {
-				abort();
-			}
+			udev_attach_detach_sem = xSemaphoreCreateBinaryStatic(&attach_detach_sem_storage);
+			udev_gonak_mutex = xSemaphoreCreateMutexStatic(&gonak_mutex_storage);
 			for (unsigned int i = 0; i < UEP_MAX_ENDPOINT * 2U; ++i) {
-				if (!(uep_eps[i].mutex = xSemaphoreCreateMutex())) {
-					abort();
-				}
+				uep_eps[i].mutex = xSemaphoreCreateMutexStatic(&ep_mutex_storage[i]);
 				uep_eps[i].state = UEP_STATE_INACTIVE;
-				if (!(uep_eps[i].event_queue = xQueueCreate(1U, 1U))) {
-					abort();
-				}
-				if (!(uep_eps[i].disabled_sem = xSemaphoreCreateBinary())) {
-					abort();
-				}
+				uep_eps[i].event_queue = xQueueCreateStatic(1U, 1U, &ep_event_queue_buffer[i], &ep_event_queue_storage[i]);
+				uep_eps[i].disabled_sem = xSemaphoreCreateBinaryStatic(&ep_disabled_sem_storage[i]);
 				uep_eps[i].flags.zlp = false;
 				uep_eps[i].flags.overflow = false;
 				uep_eps[i].interface = UINT_MAX;
@@ -792,9 +787,8 @@ void udev_init(const udev_info_t *info) {
 				uep_eps[i].bytes_left = 0U;
 				uep_eps[i].async_cb = 0;
 			}
-			if (!xTaskGenericCreate(&udev_task, "usb", info->internal_task_stack_size / sizeof(unsigned long), 0, info->internal_task_priority, &udev_task_handle, info->internal_task_stack, 0)) {
-				abort();
-			}
+			static StaticTask_t task_storage;
+			udev_task_handle = xTaskCreateStatic(&udev_task, "usb", info->internal_task_stack_size / sizeof(unsigned long), 0, info->internal_task_priority, info->internal_task_stack, &task_storage);
 			break;
 
 		case UDEV_STATE_DETACHED:

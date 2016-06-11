@@ -267,11 +267,12 @@ void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short
 	saved_short_address = short_address;
 
 	// Create semaphores.
-	da_irq_sem = xSemaphoreCreateBinary();
-	tx_irq_sem = xSemaphoreCreateBinary();
-	rx_event_group = xEventGroupCreate();
-	tx_mutex = xSemaphoreCreateMutex();
-	assert(da_irq_sem && tx_irq_sem && rx_event_group && tx_mutex);
+	static StaticSemaphore_t da_irq_sem_storage, tx_irq_sem_storage, tx_mutex_storage;
+	static StaticEventGroup_t rx_event_group_storage;
+	da_irq_sem = xSemaphoreCreateBinaryStatic(&da_irq_sem_storage);
+	tx_irq_sem = xSemaphoreCreateBinaryStatic(&tx_irq_sem_storage);
+	rx_event_group = xEventGroupCreateStatic(&rx_event_group_storage);
+	tx_mutex = xSemaphoreCreateMutexStatic(&tx_mutex_storage);
 	icb_irq_set_vector(ICB_IRQ_MRF_DA, &da_isr);
 	icb_irq_set_vector(ICB_IRQ_MRF_TX, &tx_isr);
 	icb_irq_set_vector(ICB_IRQ_MRF_RX, &rx_isr);

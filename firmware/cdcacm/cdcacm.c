@@ -18,7 +18,6 @@
 
 #include <cdcacm.h>
 #include <FreeRTOS.h>
-#include <assert.h>
 #include <errno.h>
 #include <minmax.h>
 #include <semphr.h>
@@ -87,8 +86,6 @@ static SemaphoreHandle_t cdcacm_shutdown_sem;
  * \brief The handle of the task operating on the USB endpoint.
  */
 static TaskHandle_t cdcacm_task_handle;
-
-STACK_ALLOCATE(cdcacm_task_stack, 4096);
 
 _Static_assert(INCLUDE_vTaskSuspend == 1, "vTaskSuspend must be included, because otherwise mutex taking can time out!");
 
@@ -191,10 +188,12 @@ static void cdcacm_task(void *param) {
  * \param[in] task_priority the priority of the CDC ACM task
  */
 void cdcacm_init(unsigned int in_data_ep_num, unsigned int task_priority) {
-	cdcacm_writer_mutex = xSemaphoreCreateMutex();
-	cdcacm_shutdown_sem = xSemaphoreCreateBinary();
-	BaseType_t ret = xTaskGenericCreate(&cdcacm_task, "cdcacm", sizeof(cdcacm_task_stack) / sizeof(*cdcacm_task_stack), (void *) (in_data_ep_num | 0x80), task_priority, &cdcacm_task_handle, cdcacm_task_stack, 0);
-	assert(cdcacm_writer_mutex && cdcacm_shutdown_sem && ret);
+	static StaticSemaphore_t writer_mutex_storage, shutdown_sem_storage;
+	cdcacm_writer_mutex = xSemaphoreCreateMutexStatic(&writer_mutex_storage);
+	cdcacm_shutdown_sem = xSemaphoreCreateBinaryStatic(&shutdown_sem_storage);
+	static StaticTask_t cdcacm_task_tcb;
+	STACK_ALLOCATE(cdcacm_task_stack, 4096);
+	cdcacm_task_handle = xTaskCreateStatic(&cdcacm_task, "cdcacm", sizeof(cdcacm_task_stack) / sizeof(*cdcacm_task_stack), (void *) (in_data_ep_num | 0x80), task_priority, cdcacm_task_stack, &cdcacm_task_tcb);
 }
 
 /**

@@ -64,8 +64,8 @@ static unsigned int primitive_current_index;
  * \brief Initializes the movement primitive manager and all the primitives.
  */
 void primitive_init(void) {
-	primitive_mutex = xSemaphoreCreateMutex();
-	assert(primitive_mutex);
+	static StaticSemaphore_t primitive_mutex_storage;
+	primitive_mutex = xSemaphoreCreateMutexStatic(&primitive_mutex_storage);
 	for (size_t i = 0; i != PRIMITIVE_COUNT; ++i) {
 		PRIMITIVES[i]->init();
 	}

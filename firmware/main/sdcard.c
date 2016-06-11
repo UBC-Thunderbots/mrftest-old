@@ -420,7 +420,8 @@ static void sd_wait_d0_high(void) {
  */
 sd_status_t sd_init(void) {
 	// Create the card access mutex.
-	sd_mutex = xSemaphoreCreateMutex();
+	static StaticSemaphore_t sd_mutex_storage;
+	sd_mutex = xSemaphoreCreateMutexStatic(&sd_mutex_storage);
 
 	// Check for card.
 	if (!sd_card_present()) {
@@ -447,8 +448,9 @@ sd_status_t sd_init(void) {
 	}
 
 	// Setting up interrupts and related things.
-	int_semaphore = xSemaphoreCreateBinary();
-	d0_exti_int_semaphore = xSemaphoreCreateBinary();
+	static StaticSemaphore_t int_semaphore_storage, d0_exti_int_semaphore_storage;
+	int_semaphore = xSemaphoreCreateBinaryStatic(&int_semaphore_storage);
+	d0_exti_int_semaphore = xSemaphoreCreateBinaryStatic(&d0_exti_int_semaphore_storage);
 
 	// Unmask SD card interrupts.
 	portENABLE_HW_INTERRUPT(NVIC_IRQ_SDIO);

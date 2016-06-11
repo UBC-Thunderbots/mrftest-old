@@ -46,7 +46,6 @@ static unsigned int has_ball_antispam_ticks = 0U;
 static bool has_ball_after_antispam = false;
 static bool build_ids_pending = false;
 static TaskHandle_t feedback_task_handle;
-STACK_ALLOCATE(feedback_task_stack, 4096);
 
 static void feedback_task(void *UNUSED(param)) {
 	static uint8_t nullary_frame[] = {
@@ -228,8 +227,9 @@ static void feedback_task(void *UNUSED(param)) {
  * \brief Initializes the feedback system.
  */
 void feedback_init(void) {
-	BaseType_t ok = xTaskGenericCreate(&feedback_task, "feedback", sizeof(feedback_task_stack) / sizeof(*feedback_task_stack), 0, PRIO_TASK_FEEDBACK, &feedback_task_handle, feedback_task_stack, 0);
-	assert(ok == pdPASS);
+	static StaticTask_t feedback_task_tcb;
+	STACK_ALLOCATE(feedback_task_stack, 4096);
+	feedback_task_handle = xTaskCreateStatic(&feedback_task, "feedback", sizeof(feedback_task_stack) / sizeof(*feedback_task_stack), 0, PRIO_TASK_FEEDBACK, feedback_task_stack, &feedback_task_tcb);
 }
 
 /**

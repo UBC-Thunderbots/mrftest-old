@@ -9,7 +9,7 @@
 #define configCPU_CLOCK_HZ				168000000
 #define configTICK_RATE_HZ				200
 #define configMAX_PRIORITIES			(PRIO_TASK_MAX + 1U)
-#define configMINIMAL_STACK_SIZE		( ( unsigned short ) 130 )
+#define configMINIMAL_STACK_SIZE		( ( unsigned short ) 136 )
 #define configMAX_TASK_NAME_LEN			( 10 )
 #define configUSE_TRACE_FACILITY		1
 #define configUSE_16_BIT_TICKS			0
@@ -24,7 +24,8 @@
 #define configGENERATE_RUN_TIME_STATS	0
 #define configENABLE_BACKWARD_COMPATIBILITY 0
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
-#define configTOTAL_HEAP_SIZE			8192
+#define configSUPPORT_DYNAMIC_ALLOCATION 0
+#define configSUPPORT_STATIC_ALLOCATION	1
 
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES 		0
@@ -42,6 +43,7 @@ to exclude the API function. */
 #define INCLUDE_vTaskSuspend			1
 #define INCLUDE_vTaskDelayUntil			1
 #define INCLUDE_vTaskDelay				1
+#define INCLUDE_xTaskAbortDelay			0
 #define INCLUDE_xTimerPendFunctionCall	0
 
 #define configKERNEL_INTERRUPT_PRIORITY EXCEPTION_MKPRIO(7U, 1U)

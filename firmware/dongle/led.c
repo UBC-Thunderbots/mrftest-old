@@ -86,10 +86,8 @@ static void led_tick(TimerHandle_t UNUSED(timer)) {
  * \brief Initializes the LED subsystem.
  */
 void led_init(void) {
-	TimerHandle_t timer = xTimerCreate("led", LED_BLINK_TIME_MS / portTICK_PERIOD_MS, pdTRUE, 0, &led_tick);
-	if (!timer) {
-		abort();
-	}
+	static StaticTimer_t timer_storage;
+	TimerHandle_t timer = xTimerCreateStatic("led", LED_BLINK_TIME_MS / portTICK_PERIOD_MS, pdTRUE, 0, &led_tick, &timer_storage);
 	if (!xTimerStart(timer, portMAX_DELAY)) {
 		abort();
 	}

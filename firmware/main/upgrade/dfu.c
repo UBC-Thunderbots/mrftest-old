@@ -346,8 +346,6 @@ static struct {
 	QueueHandle_t response_queue;
 } upgrade_dfu_writeout_iface;
 
-STACK_ALLOCATE(upgrade_dfu_writeout_task_stack, 4096);
-
 /**
  * \brief The writeout task.
  */
@@ -508,11 +506,13 @@ static void upgrade_dfu_writeout_task(void *UNUSED(param)) {
  * This function is called by the supervisor as part of bringing up DFU mode.
  */
 static void upgrade_dfu_writeout_init(void) {
-	upgrade_dfu_writeout_iface.request_queue = xQueueCreate(4U, sizeof(upgrade_dfu_writeout_job_t));
-	upgrade_dfu_writeout_iface.response_queue = xQueueCreate(4U, sizeof(upgrade_dfu_writeout_job_t));
-	assert(upgrade_dfu_writeout_iface.request_queue && upgrade_dfu_writeout_iface.response_queue);
-	BaseType_t ok = xTaskGenericCreate(&upgrade_dfu_writeout_task, "upg-writeout", sizeof(upgrade_dfu_writeout_task_stack) / sizeof(*upgrade_dfu_writeout_task_stack), 0, PRIO_TASK_UPGRADE_WRITEOUT, 0, upgrade_dfu_writeout_task_stack, 0);
-	assert(ok == pdPASS);
+	static StaticQueue_t request_queue_storage, response_queue_storage;
+	static uint8_t request_queue_buffer[4 * sizeof(upgrade_dfu_writeout_job_t)], response_queue_buffer[4 * sizeof(upgrade_dfu_writeout_job_t)];
+	upgrade_dfu_writeout_iface.request_queue = xQueueCreateStatic(4U, sizeof(upgrade_dfu_writeout_job_t), request_queue_buffer, &request_queue_storage);
+	upgrade_dfu_writeout_iface.response_queue = xQueueCreateStatic(4U, sizeof(upgrade_dfu_writeout_job_t), response_queue_buffer, &response_queue_storage);
+	static StaticTask_t upgrade_dfu_writeout_task_tcb;
+	STACK_ALLOCATE(upgrade_dfu_writeout_task_stack, 4096);
+	xTaskCreateStatic(&upgrade_dfu_writeout_task, "upg-writeout", sizeof(upgrade_dfu_writeout_task_stack) / sizeof(*upgrade_dfu_writeout_task_stack), 0, PRIO_TASK_UPGRADE_WRITEOUT, upgrade_dfu_writeout_task_stack, &upgrade_dfu_writeout_task_tcb);
 }
 
 /**
@@ -979,8 +979,8 @@ static void upgrade_dfu_on_enter_fpga(void) {
  * \brief Initializes the DFU layer.
  */
 static void upgrade_dfu_init(void) {
-	upgrade_dfu_state.done_sem = xSemaphoreCreateBinary();
-	assert(upgrade_dfu_state.done_sem);
+	static StaticSemaphore_t done_sem_storage;
+	upgrade_dfu_state.done_sem = xSemaphoreCreateBinaryStatic(&done_sem_storage);
 	upgrade_dfu_state.job_response_pending = false;
 }
 

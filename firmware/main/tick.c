@@ -62,7 +62,6 @@
 _Static_assert(portTICK_PERIOD_MS * CONTROL_LOOP_HZ == 1000U, "Tick rate is not equal to control loop period.");
 
 static bool shutdown = false;
-STACK_ALLOCATE(normal_task_stack, 4096);
 
 static void normal_task(void *UNUSED(param)) {
 	TickType_t last_wake = xTaskGetTickCount();
@@ -146,8 +145,9 @@ void tick_init(void) {
 
 	// Fork a task to run the normal ticks, and a semaphore to check when it
 	// has terminated.
-	BaseType_t ok = xTaskGenericCreate(&normal_task, "tick-normal", sizeof(normal_task_stack) / sizeof(*normal_task_stack), 0, PRIO_TASK_NORMAL_TICK, 0, normal_task_stack, 0);
-	assert(ok == pdPASS);
+	static StaticTask_t normal_task_tcb;
+	STACK_ALLOCATE(normal_task_stack, 4096);
+	xTaskCreateStatic(&normal_task, "tick-normal", sizeof(normal_task_stack) / sizeof(*normal_task_stack), 0, PRIO_TASK_NORMAL_TICK, normal_task_stack, &normal_task_tcb);
 }
 
 /**

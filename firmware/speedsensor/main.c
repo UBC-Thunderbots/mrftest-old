@@ -210,7 +210,6 @@ void vApplicationIdleHook(void) {
   asm volatile("wfi");
 }
 
-STACK_ALLOCATE(main_task_stack, 4096);
 static void main_task(void *param) __attribute__((noreturn));
 TaskHandle_t main_task_handle;
 
@@ -446,8 +445,9 @@ static void stm32_main(void) {
 	gpio_init(PINS_INIT, sizeof(PINS_INIT) / sizeof(*PINS_INIT));
 
   // Start FreeRTOS
-  BaseType_t pl = xTaskGenericCreate(&main_task, "main", sizeof(main_task_stack) / sizeof(*main_task_stack), 0, 1U, &main_task_handle, main_task_stack, 0);
-  assert(pl == pdPASS);
+	static StaticTask_t main_task_tcb;
+	STACK_ALLOCATE(main_task_stack, 4096);
+  main_task_handle = xTaskCreateStatic(&main_task, "main", sizeof(main_task_stack) / sizeof(*main_task_stack), 0, 1U, main_task_stack, &main_task_tcb);
   vTaskStartScheduler();
   __builtin_unreachable();
 }
@@ -522,3 +522,18 @@ static void main_task(void *UNUSED(param)) {
   __builtin_unreachable();
 }
 
+void vApplicationGetIdleTaskMemory(StaticTask_t **tcb, StackType_t **stack, uint32_t *stack_size) {
+	static StaticTask_t tcb_storage;
+	*tcb = &tcb_storage;
+	STACK_ALLOCATE(stack_storage, configMINIMAL_STACK_SIZE * sizeof(StackType_t));
+	*stack = stack_storage;
+	*stack_size = sizeof(stack_storage) / sizeof(StackType_t);
+}
+
+void vApplicationGetTimerTaskMemory(StaticTask_t **tcb, StackType_t **stack, uint32_t *stack_size) {
+	static StaticTask_t tcb_storage;
+	*tcb = &tcb_storage;
+	STACK_ALLOCATE(stack_storage, configTIMER_TASK_STACK_DEPTH * sizeof(StackType_t));
+	*stack = stack_storage;
+	*stack_size = sizeof(stack_storage) / sizeof(StackType_t);
+}

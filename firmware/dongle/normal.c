@@ -217,15 +217,6 @@ static TaskHandle_t rdtx_task_handle;
  */
 static TaskHandle_t rdrx_task_handle;
 
-STACK_ALLOCATE(drive_task_stack, 4096);
-STACK_ALLOCATE(reliable_task_stack, 4096);
-STACK_ALLOCATE(unreliable_task_stack, 4096);
-STACK_ALLOCATE(mdr_task_stack, 4096);
-STACK_ALLOCATE(usbrx_task_stack, 4096);
-STACK_ALLOCATE(dongle_status_task_stack, 4096);
-STACK_ALLOCATE(rdtx_task_stack, 4096);
-STACK_ALLOCATE(rdrx_task_stack, 4096);
-
 /**
  * \brief Handles rising edge interrupts on the MRF interrupt line.
  */
@@ -923,15 +914,19 @@ static void rdrx_task(void *UNUSED(param)) {
 }
 
 void normal_init(void) {
-	// Create IPC objects.
-	free_queue = xQueueCreate(NUM_PACKETS, sizeof(packet_t *));
-	transmit_queue = xQueueCreate(NUM_PACKETS + 1U, sizeof(packet_t *));
-	receive_queue = xQueueCreate(NUM_PACKETS + 1U, sizeof(packet_t *));
-	mdr_queue = xQueueCreate(NUM_PACKETS + 1U, sizeof(mdr_t));
-	dongle_status_sem = xSemaphoreCreateBinary();
-	transmit_mutex = xSemaphoreCreateMutex();
-	transmit_complete_sem = xSemaphoreCreateBinary();
-	assert(free_queue && transmit_queue && receive_queue && mdr_queue && dongle_status_sem && transmit_mutex && transmit_complete_sem);
+	// Create queues.
+	static StaticQueue_t free_queue_storage, transmit_queue_storage, receive_queue_storage, mdr_queue_storage;
+	static uint8_t free_queue_buffer[NUM_PACKETS * sizeof(packet_t *)], transmit_queue_buffer[(NUM_PACKETS + 1) * sizeof(packet_t *)], receive_queue_buffer[(NUM_PACKETS + 1) * sizeof(packet_t *)], mdr_queue_buffer[(NUM_PACKETS + 1) * sizeof(mdr_t)];
+	free_queue = xQueueCreateStatic(NUM_PACKETS, sizeof(packet_t *), free_queue_buffer, &free_queue_storage);
+	transmit_queue = xQueueCreateStatic(NUM_PACKETS + 1U, sizeof(packet_t *), transmit_queue_buffer, &transmit_queue_storage);
+	receive_queue = xQueueCreateStatic(NUM_PACKETS + 1U, sizeof(packet_t *), receive_queue_buffer, &receive_queue_storage);
+	mdr_queue = xQueueCreateStatic(NUM_PACKETS + 1U, sizeof(mdr_t), mdr_queue_buffer, &mdr_queue_storage);
+
+	// Create semaphores and mutexes.
+	static StaticSemaphore_t dongle_status_sem_storage, transmit_mutex_storage, transmit_complete_sem_storage;
+	dongle_status_sem = xSemaphoreCreateBinaryStatic(&dongle_status_sem_storage);
+	transmit_mutex = xSemaphoreCreateMutexStatic(&transmit_mutex_storage);
+	transmit_complete_sem = xSemaphoreCreateBinaryStatic(&transmit_complete_sem_storage);
 
 	// Allocate packet buffers.
 	static packet_t packets[NUM_PACKETS];
@@ -941,22 +936,23 @@ void normal_init(void) {
 	}
 
 	// Start tasks.
-	BaseType_t ret = xTaskGenericCreate(drive_task, "norm_drive", sizeof(drive_task_stack) / sizeof(*drive_task_stack), 0, 7, &drive_task_handle, drive_task_stack, 0);
-	assert(ret == pdPASS);
-	ret = xTaskGenericCreate(reliable_task, "norm_reliable", sizeof(reliable_task_stack) / sizeof(*reliable_task_stack), 0, 6, &reliable_task_handle, reliable_task_stack, 0);
-	assert(ret == pdPASS);
-	ret = xTaskGenericCreate(unreliable_task, "norm_unreliable", sizeof(unreliable_task_stack) / sizeof(*unreliable_task_stack), 0, 6, &unreliable_task_handle, unreliable_task_stack, 0);
-	assert(ret == pdPASS);
-	ret = xTaskGenericCreate(mdr_task, "norm_mdr", sizeof(mdr_task_stack) / sizeof(*mdr_task_stack), 0, 5, &mdr_task_handle, mdr_task_stack, 0);
-	assert(ret == pdPASS);
-	ret = xTaskGenericCreate(usbrx_task, "norm_usbrx", sizeof(usbrx_task_stack) / sizeof(*usbrx_task_stack), 0, 6, &usbrx_task_handle, usbrx_task_stack, 0);
-	assert(ret == pdPASS);
-	ret = xTaskGenericCreate(dongle_status_task, "norm_dstatus", sizeof(dongle_status_task_stack) / sizeof(*dongle_status_task_stack), 0, 5, &dongle_status_task_handle, dongle_status_task_stack, 0);
-	assert(ret == pdPASS);
-	ret = xTaskGenericCreate(rdtx_task, "norm_rdtx", sizeof(rdtx_task_stack) / sizeof(*rdtx_task_stack), 0, 7, &rdtx_task_handle, rdtx_task_stack, 0);
-	assert(ret == pdPASS);
-	ret = xTaskGenericCreate(rdrx_task, "norm_rdrx", sizeof(rdrx_task_stack) / sizeof(*rdrx_task_stack), 0, 7, &rdrx_task_handle, rdrx_task_stack, 0);
-	assert(ret == pdPASS);
+	static StaticTask_t drive_task_storage, reliable_task_storage, unreliable_task_storage, mdr_task_storage, usbrx_task_storage, dongle_status_task_storage, rdtx_task_storage, rdrx_task_storage;
+	STACK_ALLOCATE(drive_task_stack, 4096);
+	STACK_ALLOCATE(reliable_task_stack, 4096);
+	STACK_ALLOCATE(unreliable_task_stack, 4096);
+	STACK_ALLOCATE(mdr_task_stack, 4096);
+	STACK_ALLOCATE(usbrx_task_stack, 4096);
+	STACK_ALLOCATE(dongle_status_task_stack, 4096);
+	STACK_ALLOCATE(rdtx_task_stack, 4096);
+	STACK_ALLOCATE(rdrx_task_stack, 4096);
+	drive_task_handle = xTaskCreateStatic(&drive_task, "norm_drive", sizeof(drive_task_stack) / sizeof(*drive_task_stack), 0, 7, drive_task_stack, &drive_task_storage);
+	reliable_task_handle = xTaskCreateStatic(&reliable_task, "norm_reliable", sizeof(reliable_task_stack) / sizeof(*reliable_task_stack), 0, 6, reliable_task_stack, &reliable_task_storage);
+	unreliable_task_handle = xTaskCreateStatic(&unreliable_task, "norm_unreliable", sizeof(unreliable_task_stack) / sizeof(*unreliable_task_stack), 0, 6, unreliable_task_stack, &unreliable_task_storage);
+	mdr_task_handle = xTaskCreateStatic(&mdr_task, "norm_mdr", sizeof(mdr_task_stack) / sizeof(*mdr_task_stack), 0, 5, mdr_task_stack, &mdr_task_storage);
+	usbrx_task_handle = xTaskCreateStatic(&usbrx_task, "norm_usbrx", sizeof(usbrx_task_stack) / sizeof(*usbrx_task_stack), 0, 6, usbrx_task_stack, &usbrx_task_storage);
+	dongle_status_task_handle = xTaskCreateStatic(&dongle_status_task, "norm_dstatus", sizeof(dongle_status_task_stack) / sizeof(*dongle_status_task_stack), 0, 5, dongle_status_task_stack, &dongle_status_task_storage);
+	rdtx_task_handle = xTaskCreateStatic(&rdtx_task, "norm_rdtx", sizeof(rdtx_task_stack) / sizeof(*rdtx_task_stack), 0, 7, rdtx_task_stack, &rdtx_task_storage);
+	rdrx_task_handle = xTaskCreateStatic(&rdrx_task, "norm_rdrx", sizeof(rdrx_task_stack) / sizeof(*rdrx_task_stack), 0, 7, rdrx_task_stack, &rdrx_task_storage);
 }
 
 bool normal_can_enter(void) {

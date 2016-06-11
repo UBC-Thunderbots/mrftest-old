@@ -45,7 +45,6 @@ static uint8_t *dma_buffer;
 static SemaphoreHandle_t drive_mtx;
 static unsigned int timeout_ticks;
 static uint8_t last_serial = 0xFF;
-STACK_ALLOCATE(receive_task_stack, 4096);
 
 static void receive_task(void *UNUSED(param)) {
 	uint16_t last_sequence_number = 0xFFFFU;
@@ -244,8 +243,8 @@ static void receive_task(void *UNUSED(param)) {
  * \param[in] index the robot index
  */
 void receive_init(unsigned int index) {
-	drive_mtx = xSemaphoreCreateMutex();
-	assert(drive_mtx);
+	static StaticSemaphore_t drive_mtx_storage;
+	drive_mtx = xSemaphoreCreateMutexStatic(&drive_mtx_storage);
 
 	robot_index = index;
 
@@ -253,8 +252,9 @@ void receive_init(unsigned int index) {
 	assert(dma_buffer_handle);
 	dma_buffer = dma_get_buffer(dma_buffer_handle);
 
-	BaseType_t ok = xTaskGenericCreate(&receive_task, "rx", sizeof(receive_task_stack) / sizeof(*receive_task_stack), 0, PRIO_TASK_RX, 0, receive_task_stack, 0);
-	assert(ok == pdPASS);
+	static StaticTask_t receive_task_tcb;
+	STACK_ALLOCATE(receive_task_stack, 4096);
+	xTaskCreateStatic(&receive_task, "rx", sizeof(receive_task_stack) / sizeof(*receive_task_stack), 0, PRIO_TASK_RX, receive_task_stack, &receive_task_tcb);
 }
 
 /**

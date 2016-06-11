@@ -45,7 +45,6 @@ static log_sector_t *filling_sector;
 static unsigned int next_fill_record;
 static unsigned int total_records;
 static sd_status_t last_error = SD_STATUS_OK;
-STACK_ALLOCATE(log_writeout_task_stack, 4096);
 
 static void log_writeout_task(void *param) {
 	// Shovel records.
@@ -176,9 +175,10 @@ bool log_init(void) {
 	}
 
 	// Create all the FreeRTOS IPC objects.
-	free_queue = xQueueCreate(NUM_BUFFERS, sizeof(log_sector_t *));
-	write_queue = xQueueCreate(NUM_BUFFERS, sizeof(log_sector_t *));
-	assert(free_queue && write_queue);
+	static StaticQueue_t free_queue_storage, write_queue_storage;
+	static uint8_t free_queue_buffer[NUM_BUFFERS * sizeof(log_sector_t *)], write_queue_buffer[NUM_BUFFERS * sizeof(log_sector_t *)];
+	free_queue = xQueueCreateStatic(NUM_BUFFERS, sizeof(log_sector_t *), free_queue_buffer, &free_queue_storage);
+	write_queue = xQueueCreateStatic(NUM_BUFFERS, sizeof(log_sector_t *), write_queue_buffer, &write_queue_storage);
 
 	// Push all the buffers into the free queue.
 	for (size_t i = 0U; i != NUM_BUFFERS; ++i) {
@@ -192,10 +192,9 @@ bool log_init(void) {
 	state = LOG_STATE_OK;
 
 	// Launch the writeout task.
-	{
-		BaseType_t rc = xTaskGenericCreate(&log_writeout_task, "log-writeout", sizeof(log_writeout_task_stack) / sizeof(*log_writeout_task_stack), (void *) next_write_sector, PRIO_TASK_LOG_WRITEOUT, 0, log_writeout_task_stack, 0);
-		assert(rc == pdPASS);
-	}
+	static StaticTask_t log_writeout_task_tcb;
+	STACK_ALLOCATE(log_writeout_task_stack, 4096);
+	xTaskCreateStatic(&log_writeout_task, "log-writeout", sizeof(log_writeout_task_stack) / sizeof(*log_writeout_task_stack), (void *) next_write_sector, PRIO_TASK_LOG_WRITEOUT, log_writeout_task_stack, &log_writeout_task_tcb);
 
 	return true;
 }

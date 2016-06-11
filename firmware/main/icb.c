@@ -153,8 +153,6 @@ static void (*irq_handlers[ICB_IRQ_COUNT])(void);
  */
 static TaskHandle_t irq_task_handle;
 
-STACK_ALLOCATE(irq_task_stack, 4096);
-
 /**
  * \brief Takes the simultaneous-access mutex.
  */
@@ -410,9 +408,9 @@ void stop_dma(void) {
  */
 void icb_init(void) {
 	// Create the FreeRTOS objects.
-	bus_mutex = xSemaphoreCreateMutex();
-	transaction_complete_sem = xSemaphoreCreateBinary();
-	assert(bus_mutex && transaction_complete_sem);
+	static StaticSemaphore_t bus_mutex_storage, transaction_complete_sem_storage;
+	bus_mutex = xSemaphoreCreateMutexStatic(&bus_mutex_storage);
+	transaction_complete_sem = xSemaphoreCreateBinaryStatic(&transaction_complete_sem_storage);
 
 	// Enable clock and reset module.
 	rcc_enable_reset(APB2, SPI1);
@@ -708,8 +706,9 @@ void icb_irq_init(void) {
 	icb_irq_set_vector(ICB_IRQ_ICB_CRC, &icb_crc_error_isr);
 
 	// Start the IRQ dispatching task.
-	BaseType_t ok = xTaskGenericCreate(&irq_task, "icb-irq", sizeof(irq_task_stack) / sizeof(*irq_task_stack), 0, PRIO_TASK_ICB_IRQ, &irq_task_handle, irq_task_stack, 0);
-	assert(ok == pdPASS);
+	static StaticTask_t irq_task_tcb;
+	STACK_ALLOCATE(irq_task_stack, 4096);
+	irq_task_handle = xTaskCreateStatic(&irq_task, "icb-irq", sizeof(irq_task_stack) / sizeof(*irq_task_stack), 0, PRIO_TASK_ICB_IRQ, irq_task_stack, &irq_task_tcb);
 
 	// Map EXTI0 to PB0.
 	rcc_enable(APB2, SYSCFG);

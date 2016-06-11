@@ -51,9 +51,6 @@ static QueueHandle_t free_queue, receive_queue;
 static TaskHandle_t radio_task_handle, usb_task_handle;
 static uint16_t promisc_flags;
 
-STACK_ALLOCATE(radio_task_stack, 4096);
-STACK_ALLOCATE(usb_task_stack, 4096);
-
 static void mrf_int_isr(void) {
 	// Give the semaphore.
 	BaseType_t yield = pdFALSE;
@@ -212,9 +209,10 @@ static void usb_task(void *UNUSED(param)) {
 
 void promiscuous_init(void) {
 	// Create IPC objects.
-	free_queue = xQueueCreate(NUM_PACKETS, sizeof(packet_t *));
-	receive_queue = xQueueCreate(NUM_PACKETS + 1U /* Signalling NULL */, sizeof(packet_t *));
-	assert(free_queue && receive_queue);
+	static StaticQueue_t free_queue_storage, receive_queue_storage;
+	static uint8_t free_queue_buffer[NUM_PACKETS * sizeof(packet_t *)], receive_queue_buffer[(NUM_PACKETS + 1) * sizeof(packet_t *)];
+	free_queue = xQueueCreateStatic(NUM_PACKETS, sizeof(packet_t *), free_queue_buffer, &free_queue_storage);
+	receive_queue = xQueueCreateStatic(NUM_PACKETS + 1U /* Signalling NULL */, sizeof(packet_t *), receive_queue_buffer, &receive_queue_storage);
 
 	// Allocate packet buffers.
 	static packet_t packets[NUM_PACKETS];
@@ -224,10 +222,11 @@ void promiscuous_init(void) {
 	}
 
 	// Create tasks.
-	BaseType_t ret = xTaskGenericCreate(&radio_task, "prom_radio", sizeof(radio_task_stack) / sizeof(*radio_task_stack), 0, 6, &radio_task_handle, radio_task_stack, 0);
-	assert(ret == pdPASS);
-	ret = xTaskGenericCreate(&usb_task, "prom_usb", sizeof(usb_task_stack) / sizeof(*usb_task_stack), 0, 5, &usb_task_handle, usb_task_stack, 0);
-	assert(ret == pdPASS);
+	static StaticTask_t radio_task_storage, usb_task_storage;
+	STACK_ALLOCATE(radio_task_stack, 4096);
+	STACK_ALLOCATE(usb_task_stack, 4096);
+	radio_task_handle = xTaskCreateStatic(&radio_task, "prom_radio", sizeof(radio_task_stack) / sizeof(*radio_task_stack), 0, 6, radio_task_stack, &radio_task_storage);
+	usb_task_handle = xTaskCreateStatic(&usb_task, "prom_usb", sizeof(usb_task_stack) / sizeof(*usb_task_stack), 0, 5, usb_task_stack, &usb_task_storage);
 }
 
 void promiscuous_on_enter(void) {

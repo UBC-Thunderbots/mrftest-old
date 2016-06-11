@@ -71,7 +71,8 @@ void buzzer_init(void) {
 
 	// Start a FreeRTOS timer to count down how long is left before the buzzer
 	// turns off.
-	TimerHandle_t timer = xTimerCreate("buzzer", 100 / portTICK_PERIOD_MS, pdTRUE, 0, &buzzer_timer);
+	static StaticTimer_t timer_storage;
+	TimerHandle_t timer = xTimerCreateStatic("buzzer", 100 / portTICK_PERIOD_MS, pdTRUE, 0, &buzzer_timer, &timer_storage);
 	xTimerStart(timer, portMAX_DELAY);
 }
 
