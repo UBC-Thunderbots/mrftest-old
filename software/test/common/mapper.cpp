@@ -245,6 +245,7 @@ MapperWindow::MapperWindow() : mappings(MappingsListModel::create()), preview_de
 		conns.push_back(axis_spinners[i].get_adjustment()->signal_value_changed().connect(sigc::bind(sigc::mem_fun(this, &MapperWindow::on_axis_changed), i)));
 		axis_spinners[i].set_update_policy(Gtk::UPDATE_IF_VALID);
 		axis_spinners[i].set_width_chars(10);
+		axis_indicators[i].set_mode(Gtk::LEVEL_BAR_MODE_CONTINUOUS);
 		axes_table.attach(axis_spinners[i], 1, 2, i, i + 1, Gtk::FILL | Gtk::SHRINK, Gtk::FILL | Gtk::SHRINK);
 		axes_table.attach(axis_indicators[i], 2, 3, i, i + 1, Gtk::FILL | Gtk::EXPAND, Gtk::FILL | Gtk::SHRINK);
 	}
@@ -397,10 +398,9 @@ void MapperWindow::update_preview() {
 		const JoystickMapping &m = mappings->mappings[get_selected_row(name_chooser)];
 		for (unsigned int i = 0; i < JoystickMapping::N_AXES; ++i) {
 			if (m.has_axis(i) && m.axis(i) < device->axes().size()) {
-				double phys = device->axes()[m.axis(i)];
-				axis_indicators[i].set_fraction((phys + 1) / 2);
+				axis_indicators[i].set_value((device->axes()[m.axis(i)] + 1.0) / 2.0);
 			} else {
-				axis_indicators[i].set_fraction(0);
+				axis_indicators[i].set_value(0.0);
 			}
 		}
 		for (unsigned int i = 0; i < JoystickMapping::N_BUTTONS; ++i) {
@@ -408,7 +408,7 @@ void MapperWindow::update_preview() {
 		}
 	} else {
 		for (unsigned int i = 0; i < JoystickMapping::N_AXES; ++i) {
-			axis_indicators[i].set_fraction(0);
+			axis_indicators[i].set_value(0.0);
 		}
 		for (unsigned int i = 0; i < JoystickMapping::N_BUTTONS; ++i) {
 			button_indicators[i].set_active(false);

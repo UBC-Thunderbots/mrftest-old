@@ -12,8 +12,8 @@
 #include <gtkmm/combobox.h>
 #include <gtkmm/frame.h>
 #include <gtkmm/label.h>
+#include <gtkmm/levelbar.h>
 #include <gtkmm/paned.h>
-#include <gtkmm/progressbar.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/table.h>
@@ -55,7 +55,7 @@ class MapperWindow final : public Gtk::Window {
 		Gtk::Table axes_table;
 		Gtk::Label axis_labels[JoystickMapping::N_AXES];
 		Gtk::SpinButton axis_spinners[JoystickMapping::N_AXES];
-		Gtk::ProgressBar axis_indicators[JoystickMapping::N_AXES];
+		Gtk::LevelBar axis_indicators[JoystickMapping::N_AXES];
 		Gtk::Frame buttons_frame;
 		Gtk::Table buttons_table;
 		Gtk::Label button_labels[JoystickMapping::N_BUTTONS];

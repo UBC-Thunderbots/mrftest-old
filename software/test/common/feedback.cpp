@@ -4,14 +4,14 @@
 #include <iomanip>
 
 TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &robot) :
-		Gtk::Table(12, 2),
+		Gtk::Table(12, 3),
 		dongle(dongle),
 		robot(robot),
 		battery_voltage_label(u8"Battery:"),
 		capacitor_voltage_label(u8"Capacitor:"),
 		dribbler_temperature_label(u8"Dribbler:"),
 		board_temperature_label(u8"Board:"),
-		break_beam_reading_label(u8"Break Beam:"),
+		break_beam_label(u8"Break Beam:"),
 		lqi_label(u8"LQI:"),
 		rssi_label(u8"RSSI:"),
 		fw_build_id_label(u8"FW:"),
@@ -21,27 +21,51 @@ TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &ro
 		estop(u8"EStop Run"),
 		ball_in_beam(u8"Ball in Beam"),
 		capacitor_charged(u8"Capacitor Charged") {
+	battery_voltage_bar.set_max_value(18.0);
+	capacitor_voltage_bar.set_max_value(250.0);
+	dribbler_temperature_bar.set_max_value(125.0);
+	dribbler_speed_bar.set_max_value(50000.0);
+	board_temperature_bar.set_max_value(125.0);
+	break_beam_bar.set_max_value(robot.break_beam_scale);
+
+	battery_voltage_bar.set_mode(Gtk::LEVEL_BAR_MODE_CONTINUOUS);
+	capacitor_voltage_bar.set_mode(Gtk::LEVEL_BAR_MODE_CONTINUOUS);
+	dribbler_temperature_bar.set_mode(Gtk::LEVEL_BAR_MODE_CONTINUOUS);
+	dribbler_speed_bar.set_mode(Gtk::LEVEL_BAR_MODE_CONTINUOUS);
+	board_temperature_bar.set_mode(Gtk::LEVEL_BAR_MODE_CONTINUOUS);
+	break_beam_bar.set_mode(Gtk::LEVEL_BAR_MODE_CONTINUOUS);
+	lqi_bar.set_mode(Gtk::LEVEL_BAR_MODE_CONTINUOUS);
+	rssi_bar.set_mode(Gtk::LEVEL_BAR_MODE_CONTINUOUS);
+
 	attach(battery_voltage_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(battery_voltage, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(battery_voltage_bar, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(battery_voltage_value_label, 2, 3, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(capacitor_voltage_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(capacitor_voltage, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(capacitor_voltage_bar, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(capacitor_voltage_value_label, 2, 3, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(dribbler_temperature_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(dribbler_temperature, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(dribbler_speed, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(dribbler_temperature_bar, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(dribbler_temperature_value_label, 2, 3, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(dribbler_speed_bar, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(dribbler_speed_value_label, 2, 3, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(board_temperature_label, 0, 1, 4, 5, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(board_temperature, 1, 2, 4, 5, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(break_beam_reading_label, 0, 1, 5, 6, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(break_beam_reading, 1, 2, 5, 6, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(board_temperature_bar, 1, 2, 4, 5, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(board_temperature_value_label, 2, 3, 4, 5, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(break_beam_label, 0, 1, 5, 6, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(break_beam_bar, 1, 2, 5, 6, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(break_beam_value_label, 2, 3, 5, 6, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(lqi_label, 0, 1, 6, 7, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(lqi_reading, 1, 2, 6, 7, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(lqi_bar, 1, 2, 6, 7, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(lqi_value_label, 2, 3, 6, 7, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(rssi_label, 0, 1, 7, 8, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(rssi_reading, 1, 2, 7, 8, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(rssi_bar, 1, 2, 7, 8, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(rssi_value_label, 2, 3, 7, 8, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(fw_build_id_label, 0, 1, 8, 9, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(fw_build_id, 1, 2, 8, 9, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(fw_build_id, 1, 3, 8, 9, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(fpga_build_id_label, 0, 1, 9, 10, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(fpga_build_id, 1, 2, 9, 10, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(fpga_build_id, 1, 3, 9, 10, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(lps_val_label, 0, 1, 10, 11, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(lps_val, 1, 2, 10, 11, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(lps_val, 1, 3, 10, 11, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	alive.set_sensitive(false);
 	estop.set_sensitive(false);
@@ -90,86 +114,76 @@ TesterFeedbackPanel::TesterFeedbackPanel(Drive::Dongle &dongle, Drive::Robot &ro
 	on_estop_changed();
 	on_ball_in_beam_changed();
 	on_capacitor_charged_changed();
-
-	battery_voltage.set_show_text(true);
-	capacitor_voltage.set_show_text(true);
-	dribbler_temperature.set_show_text(true);
-	dribbler_speed.set_show_text(true);
-	board_temperature.set_show_text(true);
-	break_beam_reading.set_show_text(true);
-	lqi_reading.set_show_text(true);
-	rssi_reading.set_show_text(true);
-
 }
 
 void TesterFeedbackPanel::on_battery_voltage_changed() {
 	if (robot.alive) {
-		battery_voltage.set_fraction(clamp(robot.battery_voltage / 18.0, 0.0, 1.0));
-		battery_voltage.set_text(Glib::ustring::compose(u8"%1V", Glib::ustring::format(std::fixed, std::setprecision(2), robot.battery_voltage)));
+		battery_voltage_bar.set_value(clamp(robot.battery_voltage.get(), 0.0, 18.0));
+		battery_voltage_value_label.set_text(Glib::ustring::compose(u8"%1 V", Glib::ustring::format(std::fixed, std::setprecision(2), robot.battery_voltage)));
 	} else {
-		battery_voltage.set_fraction(0);
-		battery_voltage.set_text(u8"No Data");
+		battery_voltage_bar.set_value(0.0);
+		battery_voltage_value_label.set_text(u8"N/A");
 	}
 }
 
 void TesterFeedbackPanel::on_capacitor_voltage_changed() {
 	if (robot.alive) {
-		capacitor_voltage.set_fraction(clamp(robot.capacitor_voltage / 250.0, 0.0, 1.0));
-		capacitor_voltage.set_text(Glib::ustring::compose(u8"%1V", Glib::ustring::format(std::fixed, std::setprecision(0), robot.capacitor_voltage)));
+		capacitor_voltage_bar.set_value(clamp(robot.capacitor_voltage.get(), 0.0, 250.0));
+		capacitor_voltage_value_label.set_text(Glib::ustring::compose(u8"%1 V", Glib::ustring::format(std::fixed, std::setprecision(0), robot.capacitor_voltage)));
 	} else {
-		capacitor_voltage.set_fraction(0);
-		capacitor_voltage.set_text(u8"No Data");
+		capacitor_voltage_bar.set_value(0);
+		capacitor_voltage_value_label.set_text(u8"N/A");
 	}
 }
 
 void TesterFeedbackPanel::on_dribbler_temperature_changed() {
 	if (robot.alive && 0 < robot.dribbler_temperature && robot.dribbler_temperature < 200) {
-		dribbler_temperature.set_fraction(clamp(robot.dribbler_temperature / 125.0, 0.0, 1.0));
-		dribbler_temperature.set_text(Glib::ustring::compose(u8"%1°C", Glib::ustring::format(std::fixed, std::setprecision(1), robot.dribbler_temperature)));
+		dribbler_temperature_bar.set_value(clamp(robot.dribbler_temperature.get(), 0.0, 125.0));
+		dribbler_temperature_value_label.set_text(Glib::ustring::compose(u8"%1°C", Glib::ustring::format(std::fixed, std::setprecision(1), robot.dribbler_temperature)));
 	} else {
-		dribbler_temperature.set_fraction(0);
-		dribbler_temperature.set_text(u8"No Data");
+		dribbler_temperature_bar.set_value(0);
+		dribbler_temperature_value_label.set_text(u8"N/A");
 	}
 }
 
 void TesterFeedbackPanel::on_dribbler_speed_changed() {
 	if (robot.alive) {
-		dribbler_speed.set_fraction(clamp(robot.dribbler_speed / 50000.0, 0.0, 1.0));
-		dribbler_speed.set_text(Glib::ustring::compose(u8"%1 rpm", Glib::ustring::format(robot.dribbler_speed)));
+		dribbler_speed_bar.set_value(clamp(robot.dribbler_speed.get(), 0, 50000));
+		dribbler_speed_value_label.set_text(Glib::ustring::compose(u8"%1 rpm", Glib::ustring::format(robot.dribbler_speed)));
 	} else {
-		dribbler_speed.set_fraction(0);
-		dribbler_speed.set_text(u8"No Data");
+		dribbler_speed_bar.set_value(0);
+		dribbler_speed_value_label.set_text(u8"N/A");
 	}
 }
 
 void TesterFeedbackPanel::on_board_temperature_changed() {
 	if (robot.alive && 0 < robot.board_temperature && robot.board_temperature < 200) {
-		board_temperature.set_fraction(clamp(robot.board_temperature / 125.0, 0.0, 1.0));
-		board_temperature.set_text(Glib::ustring::compose(u8"%1°C", Glib::ustring::format(std::fixed, std::setprecision(1), robot.board_temperature)));
+		board_temperature_bar.set_value(clamp(robot.board_temperature.get(), 0.0, 125.0));
+		board_temperature_value_label.set_text(Glib::ustring::compose(u8"%1°C", Glib::ustring::format(std::fixed, std::setprecision(1), robot.board_temperature)));
 	} else {
-		board_temperature.set_fraction(0);
-		board_temperature.set_text(u8"No Data");
+		board_temperature_bar.set_value(0);
+		board_temperature_value_label.set_text(u8"N/A");
 	}
 }
 
 void TesterFeedbackPanel::on_break_beam_reading_changed() {
 	if (robot.alive) {
-		break_beam_reading.set_fraction(clamp(robot.break_beam_reading / robot.break_beam_scale, 0.0, 1.0));
-		break_beam_reading.set_text(Glib::ustring::format(robot.break_beam_reading));
+		break_beam_bar.set_value(clamp(robot.break_beam_reading.get(), 0.0, robot.break_beam_scale));
+		break_beam_value_label.set_text(Glib::ustring::format(robot.break_beam_reading));
 	} else {
-		break_beam_reading.set_fraction(0);
-		break_beam_reading.set_text(u8"No Data");
+		break_beam_bar.set_value(0);
+		break_beam_value_label.set_text(u8"N/A");
 	}
 }
 
 void TesterFeedbackPanel::on_lqi_changed() {
-	lqi_reading.set_fraction(robot.link_quality);
-	lqi_reading.set_text(Glib::ustring::format(robot.link_quality));
+	lqi_bar.set_value(robot.link_quality);
+	lqi_value_label.set_text(Glib::ustring::format(robot.link_quality));
 }
 
 void TesterFeedbackPanel::on_rssi_changed() {
-	rssi_reading.set_fraction((robot.received_signal_strength + 90) / (90.0 - 35.0));
-	rssi_reading.set_text(Glib::ustring::compose(u8"%1 dB", robot.received_signal_strength));
+	rssi_bar.set_value(clamp((robot.received_signal_strength.get() + 90.0) / (90.0 - 35.0), 0.0, 1.0));
+	rssi_value_label.set_text(Glib::ustring::compose(u8"%1 dB", robot.received_signal_strength));
 }
 
 void TesterFeedbackPanel::on_fw_build_id_changed() {

@@ -7,7 +7,7 @@
 #include <gtkmm/checkbutton.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/label.h>
-#include <gtkmm/progressbar.h>
+#include <gtkmm/levelbar.h>
 #include <gtkmm/table.h>
 
 /**
@@ -27,8 +27,9 @@ class TesterFeedbackPanel final : public Gtk::Table {
 	private:
 		Drive::Dongle &dongle;
 		Drive::Robot &robot;
-		Gtk::Label battery_voltage_label, capacitor_voltage_label, dribbler_temperature_label, board_temperature_label, break_beam_reading_label, lqi_label, rssi_label, fw_build_id_label, fpga_build_id_label, lps_val_label;
-		Gtk::ProgressBar battery_voltage, capacitor_voltage, dribbler_temperature, dribbler_speed, board_temperature, break_beam_reading, lqi_reading, rssi_reading;
+		Gtk::Label battery_voltage_label, capacitor_voltage_label, dribbler_temperature_label, board_temperature_label, break_beam_label, lqi_label, rssi_label, fw_build_id_label, fpga_build_id_label, lps_val_label;
+		Gtk::LevelBar battery_voltage_bar, capacitor_voltage_bar, dribbler_temperature_bar, dribbler_speed_bar, board_temperature_bar, break_beam_bar, lqi_bar, rssi_bar;
+		Gtk::Label battery_voltage_value_label, capacitor_voltage_value_label, dribbler_temperature_value_label, dribbler_speed_value_label, board_temperature_value_label, break_beam_value_label, lqi_value_label, rssi_value_label;
 		Gtk::Entry fw_build_id, fpga_build_id, lps_val;
 		Gtk::HBox cb_hbox1, cb_hbox2;
 		Gtk::CheckButton alive, estop, ball_in_beam, capacitor_charged;
