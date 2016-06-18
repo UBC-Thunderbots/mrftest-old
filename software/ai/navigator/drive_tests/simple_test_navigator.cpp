@@ -81,8 +81,8 @@ namespace AI {
 
 				}
 				Prim_Test() {
-					currTestFunc = static_cast<test_function>(&Prim_Test::doNothing);
-					testsMap[CHOOSE_TEST_TEXT] = static_cast<test_function>(&Prim_Test::doNothing);
+					currTestFunc = &Prim_Test::doNothing;
+					testsMap[CHOOSE_TEST_TEXT] = &Prim_Test::doNothing;
 					activate.set_label("Run");
 					box.pack_end(activate);
 					activate.signal_clicked().connect(sigc::mem_fun(this,&Prim_Test::callTestFunction));
@@ -357,7 +357,7 @@ namespace AI {
 				}
 
 				Move_Dribble_Test( Point d, Angle a, double r, bool s) :
-						dest(d), orient(a), rpm(r), small_kick_allowed(s) {
+						dest(d), orient(a), small_kick_allowed(s), rpm(r) {
 					testsMap["Dribble"] = static_cast<test_function>(&Move_Dribble_Test::testDribble);
 				}
 
