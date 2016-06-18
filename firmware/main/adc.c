@@ -7,7 +7,7 @@
  * Some channels are available to only one or two ADCs, while other channels are attached to all three.
  * Our board has the following external analogue inputs from I/O pins on the microcontroller package:
  * \li battery voltage, into a 20 kΩ || 2.2 kΩ divider, on pin 10 (PC2 / ADC123_IN12)
- * \li capacitor voltage, into a 200 kΩ || 2.2 kΩ divider, on pin 11 (PC3 / ADC123_IN13)
+ * \li capacitor voltage, into a 2 MΩ || 22 kΩ divider, on pin 11 (PC3 / ADC123_IN13)
  * \li break beam sensor voltage, from a divider with phototransistor to ground and 200 Ω to +3.3 V, on pin 24 (PC4 / ADC123_IN14)
  * \li LPS sensor voltage sum, from a MIC7300, on pin 25 (PC5 / ADC123_IN15)
  *
@@ -221,7 +221,7 @@ void adc_init(void) {
 		ADC1.SMPR1 = adc1_smpr1;
 		ADC_SMPR1_t adc2_smpr1 = {
 			.SMP12 = 0b001, // Battery has effective impedance of 1982 Ω, requires 7 cycles
-			.SMP13 = 0b001, // Capacitor has effective impedance of 2176 Ω, requires 7 cycles
+			.SMP13 = 0b010, // Capacitor has effective impedance of 21760 Ω, requires 24 cycles
 			.SMP14 = 0b001, // Break beam has effective impedance of ≤ 200 Ω, requires 6 cycles
 			.SMP15 = 0b001, // LPS has effective impedance of roughly 0 Ω, requires 6 cycles
 		};
