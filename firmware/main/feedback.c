@@ -184,6 +184,9 @@ static void feedback_task(void *UNUSED(param)) {
 				// information it would convey is in the feedback packet.
 				pending_events &= ~EVENT_SEND_HAS_BALL;
 			}
+
+			// Clean up errors if this report was delivered intact.
+			error_post_report(ERROR_CONSUMER_MRF, result == MRF_TX_OK);
 		}
 		if (pending_events & EVENT_SEND_HAS_BALL) {
 			pending_events &= ~EVENT_SEND_HAS_BALL;
