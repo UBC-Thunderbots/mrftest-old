@@ -343,9 +343,9 @@ float adc_battery_unfiltered(void) {
  */
 float adc_capacitor(void) {
 	float vdd = adc_vdd();
-#define DIVIDER_UPPER_CAP 200000.0f
+#define DIVIDER_UPPER_CAP 2000000.0f
 #define DIVIDER_UPPER_VDD 100000.0f
-#define DIVIDER_LOWER 2200.0f
+#define DIVIDER_LOWER 22000.0f
 #define PARALLEL(x, y) (((x) * (y)) / ((x) + (y)))
 	float pin_voltage = __atomic_load_n(&adc2_raw[1U], __ATOMIC_RELAXED) / 4096.0f * vdd;
 	float vdd_part = vdd / (DIVIDER_UPPER_VDD + PARALLEL(DIVIDER_LOWER, DIVIDER_UPPER_CAP)) * PARALLEL(DIVIDER_LOWER, DIVIDER_UPPER_CAP);
