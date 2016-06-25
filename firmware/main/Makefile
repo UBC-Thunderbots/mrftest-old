@@ -16,4 +16,4 @@ dfu : $(PROJECT).dfu
 .PHONY : dfuse
 dfuse : $(PROJECT).bin
 	@echo " DFU-UTIL  $<"
-	@dfu-util -d 0483 -c 1 -i 0 -a 0 -D $< -s 0x08000000:leave
+	@dfu-util -d 0483 -a "@Internal Flash  /0x08000000/04*016Kg,01*064Kg,07*128Kg" -D $< -s 0x08000000:leave
