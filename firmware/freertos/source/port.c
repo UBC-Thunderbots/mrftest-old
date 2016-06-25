@@ -470,6 +470,9 @@ void vPortPendSVHandler(void) {
 			"vldmiaeq r0!, {s16-s31}\n\t"
 			// Enable stack guard.
 			"str r2, [r1]\n\t"
+			// Clear exclusive monitor to avoid LDREX in one thread matching
+			// STREX in another and erroneously succeeding.
+			"clrex\n\t"
 			// Cortex-M4 Devices Generic User Guide 2.2.4 (Software ordering of
 			// memory accesses), MPU programming, states that one must “use a
 			// DSB followed by an ISB instruction or exception return to ensure
