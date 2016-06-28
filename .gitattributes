@@ -365,6 +365,8 @@ software/ai/hl/stp/evaluation/friendly_capability.cpp -text
 software/ai/hl/stp/evaluation/friendly_capability.h -text
 software/ai/hl/stp/evaluation/indirect_cherry.cpp -text
 software/ai/hl/stp/evaluation/indirect_cherry.h -text
+software/ai/hl/stp/evaluation/intercept.cpp -text
+software/ai/hl/stp/evaluation/intercept.h -text
 software/ai/hl/stp/evaluation/offense.cpp -text
 software/ai/hl/stp/evaluation/offense.h -text
 software/ai/hl/stp/evaluation/pass.cpp -text
@@ -419,6 +421,7 @@ software/ai/hl/stp/play/goal_kick_friendly.cpp -text
 software/ai/hl/stp/play/grab_ball_defensive.cpp -text
 software/ai/hl/stp/play/grab_ball_offensive.cpp -text
 software/ai/hl/stp/play/indirect_kick_friendly_pivot.cpp -text
+software/ai/hl/stp/play/intercept_V2_test.cpp -text
 software/ai/hl/stp/play/just_chip.cpp -text
 software/ai/hl/stp/play/just_goalie.cpp -text
 software/ai/hl/stp/play/just_repel.cpp -text
@@ -490,6 +493,8 @@ software/ai/hl/stp/tactic/indirect_chip_to_cherry.cpp -text
 software/ai/hl/stp/tactic/indirect_chip_to_cherry.h -text
 software/ai/hl/stp/tactic/intercept.cpp -text
 software/ai/hl/stp/tactic/intercept.h -text
+software/ai/hl/stp/tactic/intercept_v2.cpp -text
+software/ai/hl/stp/tactic/intercept_v2.h -text
 software/ai/hl/stp/tactic/mark_offside.cpp -text
 software/ai/hl/stp/tactic/mark_offside.h -text
 software/ai/hl/stp/tactic/move.cpp -text
