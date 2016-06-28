@@ -200,6 +200,10 @@
             <category name="Enable">
               <boolean name="BackUpSteal">false</boolean>
               <boolean name="BallTowardsEnemy">false</boolean>
+              <boolean name="ChallengeBallShape">true</boolean>
+              <boolean name="ChallengeBlock">true</boolean>
+              <boolean name="ChallengeCenterShape">true</boolean>
+              <boolean name="ChallengeAroundBall">true</boolean>
               <boolean name="CircularShoot">true</boolean>
               <boolean name="CornerChip">true</boolean>
               <boolean name="CornerKickFriendly">false</boolean>
@@ -223,6 +227,7 @@
               <boolean name="GrabBallDefensive">true</boolean>
               <boolean name="GrabBallOffensive">true</boolean>
               <boolean name="IndirectKickFriendlyPivot">false</boolean>
+              <boolean name="Intercept_v2_test">true</boolean>
               <boolean name="JustChip">false</boolean>
               <boolean name="JustGoalie">true</boolean>
               <boolean name="JustRepel">false</boolean>
@@ -263,6 +268,10 @@
             <category name="Playbook">
               <integer name="BackUpSteal">1023</integer>
               <integer name="BallTowardsEnemy">1023</integer>
+              <integer name="ChallengeBallShape">1023</integer>
+              <integer name="ChallengeBlock">1023</integer>
+              <integer name="ChallengeCenterShape">1023</integer>
+              <integer name="ChallengeAroundBall">1023</integer>
               <integer name="CircularShoot">1023</integer>
               <integer name="CornerChip">1023</integer>
               <integer name="CornerKickFriendly">1023</integer>
@@ -286,6 +295,7 @@
               <integer name="GrabBallDefensive">1023</integer>
               <integer name="GrabBallOffensive">1023</integer>
               <integer name="IndirectKickFriendlyPivot">1023</integer>
+              <integer name="Intercept_v2_test">1023</integer>
               <integer name="JustChip">1023</integer>
               <integer name="JustGoalie">1023</integer>
               <integer name="JustRepel">1023</integer>
@@ -326,6 +336,10 @@
             <category name="Priority 0=low, 10=hi, 5=default">
               <integer name="BackUpSteal">5</integer>
               <integer name="BallTowardsEnemy">5</integer>
+              <integer name="ChallengeBallShape">5</integer>
+              <integer name="ChallengeBlock">5</integer>
+              <integer name="ChallengeCenterShape">5</integer>
+              <integer name="ChallengeAroundBall">5</integer>
               <integer name="CircularShoot">5</integer>
               <integer name="CornerChip">5</integer>
               <integer name="CornerKickFriendly">5</integer>
@@ -349,6 +363,7 @@
               <integer name="GrabBallDefensive">5</integer>
               <integer name="GrabBallOffensive">5</integer>
               <integer name="IndirectKickFriendlyPivot">5</integer>
+              <integer name="Intercept_v2_test">5</integer>
               <integer name="JustChip">5</integer>
               <integer name="JustGoalie">5</integer>
               <integer name="JustRepel">0</integer>
@@ -389,6 +404,10 @@
             <category name="StaticRoleAssignment">
               <boolean name="BackUpSteal">false</boolean>
               <boolean name="BallTowardsEnemy">false</boolean>
+              <boolean name="ChallengeBallShape">false</boolean>
+              <boolean name="ChallengeBlock">false</boolean>
+              <boolean name="ChallengeCenterShape">false</boolean>
+              <boolean name="ChallengeAroundBall">false</boolean>
               <boolean name="CircularShoot">false</boolean>
               <boolean name="CornerChip">false</boolean>
               <boolean name="CornerKickFriendly">false</boolean>
@@ -412,6 +431,7 @@
               <boolean name="GrabBallDefensive">false</boolean>
               <boolean name="GrabBallOffensive">false</boolean>
               <boolean name="IndirectKickFriendlyPivot">false</boolean>
+              <boolean name="Intercept_v2_test">false</boolean>
               <boolean name="JustChip">false</boolean>
               <boolean name="JustGoalie">false</boolean>
               <boolean name="JustRepel">false</boolean>
