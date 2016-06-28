@@ -224,7 +224,7 @@ void RRTNavigator::tick() {
 
 		// starting a primitive
 		if( hl_request.type != last_primitive.type ||  player_data->counter_since_last_primitive >= primitive_update_count || primitive_diff(last_primitive, hl_request) ){
-			LOG_INFO(Glib::ustring::compose("Time for new primitive (type=%1, hlr.fp=%2, hlr.fa=%3)", static_cast<unsigned int>(hl_request.type), hl_request.field_point, hl_request.field_angle));
+			LOG_DEBUG(Glib::ustring::compose("Time for new primitive (type=%1, hlr.fp=%2, hlr.fa=%3)", static_cast<unsigned int>(hl_request.type), hl_request.field_point, hl_request.field_angle));
 			#warning they should be conditional upon different primitive type instead
 
 			// plan
@@ -297,19 +297,19 @@ void RRTNavigator::tick() {
 					if( nav_request.care_angle ){
 						
 						local_coord = move_in_local_coord( player, nav_request );
-						LOG_INFO(Glib::ustring::compose("Time for new move, point %1, angl %2",  local_coord.field_point, local_coord.field_angle));
+						LOG_DEBUG(Glib::ustring::compose("Time for new move, point %1, angl %2",  local_coord.field_point, local_coord.field_angle));
 						player.move_move(local_coord.field_point, local_coord.field_angle);
 					} else {
 						nav_request.field_angle = Angle(); // fill in angle so the function doesn't crash
 						local_coord = move_in_local_coord( player, nav_request );
-						LOG_INFO(Glib::ustring::compose("Time for new move, point %1",  local_coord.field_point));
+						LOG_DEBUG(Glib::ustring::compose("Time for new move, point %1",  local_coord.field_point));
 						player.move_move(local_coord.field_point);
 					}
 					break;
 				case Drive::Primitive::DRIBBLE:	
 
 					local_coord = move_in_local_coord( player, nav_request );
-					LOG_INFO(Glib::ustring::compose("Time for new dribble point %1, angl %2",  local_coord.field_point, local_coord.field_angle));
+					LOG_DEBUG(Glib::ustring::compose("Time for new dribble point %1, angl %2",  local_coord.field_point, local_coord.field_angle));
 					player.move_dribble(local_coord.field_point, local_coord.field_angle, default_desired_rpm, false);
 					break;
 				case Drive::Primitive::SHOOT:	
@@ -323,22 +323,22 @@ void RRTNavigator::tick() {
 						//	break;
 						case SHOULD_SHOOT: // shooting
 
-							LOG_INFO(Glib::ustring::compose("new shoot starting first time (pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
+							LOG_DEBUG(Glib::ustring::compose("new shoot starting first time (pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
 	
 							local_coord = move_in_local_coord( player, hl_request );
 							shoot_request = hl_request;
 							player.move_shoot(local_coord.field_point, local_coord.field_angle, hl_request.field_double, hl_request.field_bool);
-							LOG_INFO(Glib::ustring::compose("local parameter for shoot, angle %1, point %2", local_coord.field_point, local_coord.field_angle));
+							LOG_DEBUG(Glib::ustring::compose("local parameter for shoot, angle %1, point %2", local_coord.field_point, local_coord.field_angle));
 							player_data->last_shoot_primitive = shoot_request;
 							player_data->counter_since_last_shoot_primitive = 0;
 							
 							break;
 						case SHOULD_MOVE: // moves a little closer to pivot center
 						case NO_ACTION_OR_MOVE:
-							LOG_INFO(Glib::ustring::compose("new move starting first time (pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
+							LOG_DEBUG(Glib::ustring::compose("new move starting first time (pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
 							local_coord = move_in_local_coord( player, hl_request );
 							player.move_move(local_coord.field_point, local_coord.field_angle);
-							LOG_INFO(Glib::ustring::compose("local parameter for move, angle %1, point %2", local_coord.field_point, local_coord.field_angle));
+							LOG_DEBUG(Glib::ustring::compose("local parameter for move, angle %1, point %2", local_coord.field_point, local_coord.field_angle));
 							shoot_request = hl_request;
 							shoot_request.type = Drive::Primitive::MOVE;
 							player_data->last_shoot_primitive = shoot_request;
@@ -346,12 +346,12 @@ void RRTNavigator::tick() {
 							break;
 						case NO_ACTION_OR_PIVOT: // when in doubt, do pivot
 						case SHOULD_PIVOT: // pivot around ball
-							LOG_INFO(Glib::ustring::compose("new pivot starting first time (pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
+							LOG_DEBUG(Glib::ustring::compose("new pivot starting first time (pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
 							pivot_request = hl_request;
 							pivot_request.type = Drive::Primitive::PIVOT;
 							pivot_local = pivot_in_local_coord( player, pivot_request );
 							player.move_pivot(pivot_local.field_point, pivot_local.field_angle, pivot_local.field_angle2);
-							LOG_INFO(Glib::ustring::compose("local parameter for pivot, center %1, swing %2, rotation %3", pivot_local.field_point, pivot_local.field_angle, pivot_local.field_angle2));
+							LOG_DEBUG(Glib::ustring::compose("local parameter for pivot, center %1, swing %2, rotation %3", pivot_local.field_point, pivot_local.field_angle, pivot_local.field_angle2));
 							player_data->last_shoot_primitive = pivot_request;
 							player_data->counter_since_last_shoot_primitive = 0;
 							break;
@@ -366,13 +366,13 @@ void RRTNavigator::tick() {
 					//player.move_catch(nav_request.field_point-player.position(), nav_request.field_angle-player.orientation(), 0.0, false);
 					break;
 				case Drive::Primitive::PIVOT:	
-					LOG_INFO(Glib::ustring::compose("time for new pivot (pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
+					LOG_DEBUG(Glib::ustring::compose("time for new pivot (pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
 					pivot_local = pivot_in_local_coord( player, hl_request );
 					player.move_pivot(pivot_local.field_point, pivot_local.field_angle, pivot_local.field_angle2);
 					break;
 				case Drive::Primitive::SPIN:	
 					local_coord = move_in_local_coord( player, nav_request );
-					LOG_INFO(Glib::ustring::compose("Time for new spin, point %1, angle speed %2",  local_coord.field_point, hl_request.field_angle));
+					LOG_DEBUG(Glib::ustring::compose("Time for new spin, point %1, angle speed %2",  local_coord.field_point, hl_request.field_angle));
 					player.move_move(local_coord.field_point, hl_request.field_angle);
 					break;
 				default:
@@ -404,29 +404,29 @@ void RRTNavigator::tick() {
 				
 				if(  player_data->counter_since_last_shoot_primitive >= shoot_update_count || primitive_diff(player_data->last_shoot_primitive, shoot_request) ){ // need to check counter
 					if( shoot_request.type == Drive::Primitive::MOVE ) {
-						LOG_INFO(Glib::ustring::compose("new move atarting(pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
+						LOG_DEBUG(Glib::ustring::compose("new move atarting(pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
 
 						local_coord = move_in_local_coord( player, shoot_request );
 						player.move_move(local_coord.field_point, local_coord.field_angle);
-						LOG_INFO(Glib::ustring::compose("local parameter for move, angle %1, point %2", local_coord.field_point, local_coord.field_angle));
+						LOG_DEBUG(Glib::ustring::compose("local parameter for move, angle %1, point %2", local_coord.field_point, local_coord.field_angle));
 					} else if ( shoot_request.type == Drive::Primitive::SHOOT ) {
 						if( !defense_area_violation ){
-							LOG_INFO(Glib::ustring::compose("new shoot atarting(pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
+							LOG_DEBUG(Glib::ustring::compose("new shoot atarting(pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
 
 							local_coord = move_in_local_coord( player, shoot_request );
 							player.move_shoot(local_coord.field_point, local_coord.field_angle, hl_request.field_double, hl_request.field_bool);
-							LOG_INFO(Glib::ustring::compose("local parameter for shoot, angle %1, point %2", local_coord.field_point, local_coord.field_angle));
+							LOG_DEBUG(Glib::ustring::compose("local parameter for shoot, angle %1, point %2", local_coord.field_point, local_coord.field_angle));
 						} else {
-							LOG_INFO(Glib::ustring::compose("defense violation dest %1", hl_request.field_point));
+							LOG_DEBUG(Glib::ustring::compose("defense violation dest %1", hl_request.field_point));
 							player.move_move(Point(0,0));
 							
 						}
 					} else if ( shoot_request.type == Drive::Primitive::PIVOT ) {
-						LOG_INFO(Glib::ustring::compose("new pivot atarting(pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
+						LOG_DEBUG(Glib::ustring::compose("new pivot atarting(pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
 
 						pivot_local = pivot_in_local_coord( player, shoot_request );
 						player.move_pivot(pivot_local.field_point, pivot_local.field_angle, pivot_local.field_angle2);
-						LOG_INFO(Glib::ustring::compose("local parameter, angle %1, point %2", pivot_local.field_point, pivot_local.field_angle));
+						LOG_DEBUG(Glib::ustring::compose("local parameter, angle %1, point %2", pivot_local.field_point, pivot_local.field_angle));
 					}
 
 				//player_data->last_shoot_primitive = shoot_request;
@@ -438,15 +438,15 @@ void RRTNavigator::tick() {
 				shoot_request = hl_request;
 				if(  player_data->counter_since_last_shoot_primitive >= shoot_update_count || primitive_diff(player_data->last_shoot_primitive, shoot_request) ){ // need to check counter
 					if( !defense_area_violation ){
-						LOG_INFO(Glib::ustring::compose("new shoot starting(pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
+						LOG_DEBUG(Glib::ustring::compose("new shoot starting(pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
 
 						local_coord = move_in_local_coord( player, shoot_request );
 						player.move_shoot(local_coord.field_point, local_coord.field_angle, hl_request.field_double, hl_request.field_bool);
-						LOG_INFO(Glib::ustring::compose("local parameter for shoot, angle %1, point %2", local_coord.field_point, local_coord.field_angle));
+						LOG_DEBUG(Glib::ustring::compose("local parameter for shoot, angle %1, point %2", local_coord.field_point, local_coord.field_angle));
 						player_data->last_shoot_primitive = shoot_request;
 						player_data->counter_since_last_shoot_primitive = 0;
 					}  else {
-						LOG_INFO(Glib::ustring::compose("defense violation, dest %1", hl_request.field_point));
+						LOG_DEBUG(Glib::ustring::compose("defense violation, dest %1", hl_request.field_point));
 						player.move_move(Point(0,0));
 							
 					}
@@ -456,10 +456,10 @@ void RRTNavigator::tick() {
 				shoot_request = hl_request;
 				shoot_request.type = Drive::Primitive::MOVE;
 				if(   player_data->counter_since_last_shoot_primitive >= move_update_count || primitive_diff(player_data->last_shoot_primitive, shoot_request) ){ // need to check counter
-					LOG_INFO(Glib::ustring::compose("new move starting first time (pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
+					LOG_DEBUG(Glib::ustring::compose("new move starting first time (pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
 					local_coord = move_in_local_coord( player, shoot_request );
 					player.move_move(local_coord.field_point, local_coord.field_angle);
-					LOG_INFO(Glib::ustring::compose("local parameter for move, angle %1, point %2", local_coord.field_point, local_coord.field_angle));
+					LOG_DEBUG(Glib::ustring::compose("local parameter for move, angle %1, point %2", local_coord.field_point, local_coord.field_angle));
 					player_data->last_shoot_primitive = shoot_request;
 					player_data->counter_since_last_shoot_primitive = 0;
 				}
@@ -469,12 +469,12 @@ void RRTNavigator::tick() {
 				shoot_request.field_point = hl_request.field_point;
 				shoot_request.field_angle = hl_request.field_angle;
 				if(    player_data->counter_since_last_shoot_primitive >= pivot_update_count || primitive_diff(player_data->last_shoot_primitive, shoot_request) ){ // need to check counter			
-					LOG_INFO(Glib::ustring::compose("new pivot starting (pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
+					LOG_DEBUG(Glib::ustring::compose("new pivot starting (pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
 					pivot_local = pivot_in_local_coord( player, shoot_request );
 					player.move_pivot(pivot_local.field_point, pivot_local.field_angle, pivot_local.field_angle2);
 					player_data->last_shoot_primitive = shoot_request;
 					player_data->counter_since_last_shoot_primitive = 0;
-					LOG_INFO(Glib::ustring::compose("local parameter, angle %1, point %2", pivot_local.field_point, pivot_local.field_angle));
+					LOG_DEBUG(Glib::ustring::compose("local parameter, angle %1, point %2", pivot_local.field_point, pivot_local.field_angle));
 				}
 				break;
 			default:

@@ -42,7 +42,14 @@ bool AI::HL::STP::Action::shoot_goal(World world, Player player, bool use_reduce
 	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player, use_reduced_radius);
 
 	const Angle orient = (shoot_data.target - player.position()).orientation();
+
+	Point behind_ball = world.ball().position() - (shoot_data.target - world.ball().position()).norm() * (Robot::MAX_RADIUS + 0.16);
+	player.mp_move(behind_ball, (shoot_data.target - behind_ball).orientation());
+
+	if ((world.ball().position() - player.position()).x < 0 || (Geom::dist(Geom::Line(behind_ball, world.ball().position()), player.position()) > 0.1)) return false;
+
 	player.mp_shoot(world.ball().position(), orient, false, BALL_MAX_SPEED);
+	
 	return true;
 
 	if (AUTO_ORIENT) {
