@@ -227,7 +227,6 @@ void MRFRobot::move_dribble(Point dest, Angle orientation, double desired_rpm, b
 }
 
 void MRFRobot::move_shoot(Point dest, double power, bool chip) {
-	chip=false;
 	assert(!direct_control);
 	primitive = Drive::Primitive::SHOOT;
 	params[0] = dest.x * 1000.0;
