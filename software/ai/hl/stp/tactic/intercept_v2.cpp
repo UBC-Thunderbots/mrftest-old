@@ -60,8 +60,8 @@ namespace {
 
 
 	Player Intercept_v2::select(const std::set<Player> &players) const {
-		//return select_baller(world, players, player);
-		return *(players.begin());
+		return select_baller(world, players, player);
+		//return *(players.begin());
 	}
 
 
@@ -81,13 +81,13 @@ namespace {
 		}
 
 
-
+/*
 		//FOR TESTING. DO NOT MOVE UNLESS THE BALL DOES
 		if(world.ball().velocity().len() < ballVelThreshold) {
 			Action::stop(world, player);
 			return;
 		}
-
+*/
 
 
 		//If the ball is barely moving, go directly to it
