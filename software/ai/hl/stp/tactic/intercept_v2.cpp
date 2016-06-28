@@ -48,7 +48,7 @@ namespace {
 			double A_MAX = 3.0;
 			double V_MAX = 2.0;
 			double PI = 3.141592653589793238462;
-			int testvalue = 1;
+			//int testvalue = 1;
 			double ballVelThreshold = 0.001;
 			Rect fieldBounds = Rect(world.field().friendly_corner_pos(), world.field().enemy_corner_neg());
 
@@ -68,10 +68,11 @@ namespace {
 
 	void Intercept_v2::execute() {
 
+		/*
 		if(testvalue > 20) {
 			//return;
 		}
-
+		*/
 
 		// if the interceptor already has the ball, stay there
 		if (player.has_ball()) {
@@ -88,13 +89,13 @@ namespace {
 		}
 
 
-/*
+
 		//If the ball is barely moving, go directly to it
 		if(world.ball().velocity().len() < ballVelThreshold) {
-			Action::move_careful(world, player, (world.ball().position() + (player.position() - world.ball().position())).norm(R_Radius));
+			Action::move(world, player, (world.ball().position() + (player.position() - world.ball().position()).norm(R_Radius)));
 			return;
 		}
-*/
+
 
 
 		//IF THE ROBOT IS IN THE BALLS PATH, AND THE BALL IS CLOSE, STOP
@@ -156,6 +157,9 @@ namespace {
 		}while(time <= 5 && fieldBounds.point_inside(predicted_ball_pos) == true);
 
 
+
+
+
 		//Check that the new best intercept point is sufficiently far from the old one
 		if((new_best_point - best_point).len() > R_Radius/2.0) {
 			best_point = new_best_point;
@@ -163,7 +167,7 @@ namespace {
 
 		Action::move(world, player, best_point);
 
-		testvalue++;
+		//testvalue++;
 	}//end of execute
 
 
@@ -173,9 +177,8 @@ namespace {
 		double dist = target_dir.len();
 		Angle theta = Angle::acos(initial_velocity.dot(target_dir) / (initial_velocity.len() * target_dir.len()));//angle between robots velocity and direction it needs to go (rad)
 
-
-		double time = dist / V_MAX + 1.1 * initial_velocity.len() * (theta/Angle::half()) + 0.5;//assuming theta in rad
-		return dist / V_MAX * 0.95 + 0.2;
+		//double time = dist / V_MAX + 1.1 * initial_velocity.len() * (theta/Angle::half()) + 0.5;//assuming theta in rad - not as accurate do to theta changing
+		return dist / (V_MAX * 0.95) + 0.2;
 	}
 
 

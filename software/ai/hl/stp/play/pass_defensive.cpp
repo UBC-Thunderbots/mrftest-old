@@ -1,7 +1,7 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/pass.h"
-#include "ai/hl/stp/tactic/intercept.h"
+#include "ai/hl/stp/tactic/intercept_v2.h"
 #include "ai/hl/stp/tactic/offend.h"
 
 using AI::HL::STP::Enemy;
@@ -30,7 +30,7 @@ roles[3].push_back(passee_move_dynamic(world));
 roles[4].push_back(block_goal(world, Enemy::closest_friendly_goal(world, 0)));
 
 // STEP 2
-roles[2].push_back(intercept(world));
+roles[2].push_back(intercept_v2(world));
 roles[3].push_back(block_goal(world, Enemy::closest_friendly_goal(world, 0)));
 roles[4].push_back(offend(world));
 

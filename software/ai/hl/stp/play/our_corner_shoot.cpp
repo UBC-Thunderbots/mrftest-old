@@ -4,7 +4,7 @@
 #include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/stp/tactic/pass.h"
 #include "ai/hl/stp/tactic/move.h"
-#include "ai/hl/stp/tactic/intercept.h"
+#include "ai/hl/stp/tactic/intercept_v2.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
 
@@ -60,7 +60,7 @@ goalie_role.push_back(defend_duo_goalie(world));
 roles[0].push_back(defend_duo_defender(world));
 
 // Recieve Pass
-roles[1].push_back(intercept(world));
+roles[1].push_back(intercept_v2(world));
 
 // ROLE 4 (optional)
 // block
