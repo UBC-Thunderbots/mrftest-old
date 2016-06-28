@@ -295,6 +295,10 @@ namespace AI {
 					 */
 					const Property<AI::Common::PlayType> &playtype() const;
 
+					/**
+					 * \brief returns the ball placement position
+					 */
+					const Property<Point> &ball_placement_position() const;
 				private:
 					AI::BE::Backend &impl;
 			};
@@ -419,6 +423,10 @@ inline bool AI::HL::W::World::operator==(const World &w) const {
 
 inline const Property<AI::Common::PlayType> &AI::HL::W::World::playtype() const {
 	return impl.playtype();
+}
+
+inline const Property<Point> &AI::HL::W::World::ball_placement_position() const {
+	return impl.ball_placement_position();
 }
 
 inline bool std::less<AI::HL::W::Robot>::operator()(const AI::HL::W::Robot &x, const AI::HL::W::Robot &y) const {

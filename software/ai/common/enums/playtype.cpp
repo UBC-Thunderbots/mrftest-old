@@ -57,6 +57,12 @@ Glib::ustring AI::Common::PlayTypeInfo::to_string(PlayType pt) {
 		case PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
 			return u8"Indirect Free Enemy";
 
+		case PlayType::BALL_PLACEMENT_ENEMY:
+			return u8"Ball Placement Enemy";
+			
+		case PlayType::BALL_PLACEMENT_FRIENDLY:
+			return u8"Ball Placement Friendly";
+
 		case PlayType::NONE:
 			return u8"None";
 	}
@@ -107,6 +113,12 @@ AI::Common::PlayType AI::Common::PlayTypeInfo::invert(PlayType pt) {
 
 		case PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
 			return PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY;
+
+		case PlayType::BALL_PLACEMENT_ENEMY:
+			return PlayType::BALL_PLACEMENT_FRIENDLY;
+
+		case PlayType::BALL_PLACEMENT_FRIENDLY:
+			return PlayType::BALL_PLACEMENT_ENEMY;
 	}
 
 	std::abort();

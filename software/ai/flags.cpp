@@ -12,6 +12,8 @@ unsigned int AI::Flags::calc_flags(AI::Common::PlayType pt) {
 		case AI::Common::PlayType::STOP:
 		case AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY:
 		case AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
+		case AI::Common::PlayType::BALL_PLACEMENT_ENEMY:
+		case AI::Common::PlayType::BALL_PLACEMENT_FRIENDLY:
 			flags |= FLAG_AVOID_BALL_STOP;
 			flags |= FLAG_AVOID_ENEMY_DEFENSE;
 			return flags;

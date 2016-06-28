@@ -199,6 +199,13 @@ namespace AI {
 				const Property<AI::Common::PlayType> &playtype() const;
 
 				/**
+				 * \brief Returns the current play type.
+				 *
+				 * \return the current play type.
+				 */
+				const Property<Point> &ball_placement_position() const;
+
+				/**
 				 * \brief Returns or allows setting the play type override.
 				 *
 				 * \return the play type override.
@@ -313,10 +320,15 @@ namespace AI {
 					return playtype_;
 				}
 
+				Property<Point> &ball_placement_position_rw() {
+					return ball_placement_position_;
+				}
+
 			private:
 				Property<FieldEnd> defending_end_;
 				Property<AI::Common::Colour> friendly_colour_;
 				Property<AI::Common::PlayType> playtype_, playtype_override_;
+				Property<Point> ball_placement_position_;
 				mutable sigc::signal<void> signal_tick_;
 				mutable sigc::signal<void, AI::Timediff> signal_post_tick_;
 				mutable sigc::signal<void, AI::Timestamp, const SSL_WrapperPacket &> signal_vision_;

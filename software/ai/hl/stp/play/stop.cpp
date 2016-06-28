@@ -20,7 +20,7 @@ namespace {
  * - Handle the stop play
  */
 BEGIN_PLAY(Stop)
-INVARIANT(Predicates::playtype(world, AI::Common::PlayType::STOP))
+INVARIANT(Predicates::playtype(world, AI::Common::PlayType::STOP) || Predicates::playtype(world, AI::Common::PlayType::BALL_PLACEMENT_ENEMY))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)

@@ -80,6 +80,7 @@ private:
 	void update_playtype();
 	void update_goalies();
 	void update_scores();
+	void update_ball_placement();
 	void on_friendly_colour_changed();
 	AI::Common::PlayType compute_playtype(AI::Common::PlayType old_pt);
 };
@@ -354,6 +355,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 	update_goalies();
 	update_scores();
 	update_playtype();
+	update_ball_placement();
 	AI::Timestamp now;
 	now = std::chrono::steady_clock::now();
 	signal_refbox().emit(now, refbox.packet);
@@ -388,6 +390,13 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 	} else {
 		friendly_team().goalie = refbox.packet.blue().goalie();
 		enemy_team().goalie = refbox.packet.yellow().goalie();
+	}
+}
+
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
+		FriendlyTeam, EnemyTeam>::update_ball_placement() {
+	if (refbox.packet.has_designated_position()) {
+		ball_placement_position_rw() = Point(refbox.packet.designated_position().x(), refbox.packet.designated_position().y());
 	}
 }
 
@@ -535,6 +544,12 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType 
 
 	case SSL_Referee::PREPARE_PENALTY_BLUE:
 		return AI::Common::PlayType::PREPARE_PENALTY_FRIENDLY;
+
+	case SSL_Referee::BALL_PLACEMENT_YELLOW:
+		return AI::Common::PlayType::BALL_PLACEMENT_FRIENDLY;
+
+	case SSL_Referee::BALL_PLACEMENT_BLUE:
+		return AI::Common::PlayType::BALL_PLACEMENT_ENEMY;
 	}
 
 	return old_pt;

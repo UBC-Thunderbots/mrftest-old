@@ -86,6 +86,16 @@ namespace AI {
 			EXECUTE_INDIRECT_FREE_KICK_ENEMY,
 
 			/**
+			 * \brief Friendly ball placement.
+			 */
+			BALL_PLACEMENT_FRIENDLY,
+
+			/**
+			 * \brief Enemy ball placement.
+			 */
+			BALL_PLACEMENT_ENEMY,
+
+			/**
 			 * \brief There is no play type.
 			 *
 			 * This should be the last play type in the list.

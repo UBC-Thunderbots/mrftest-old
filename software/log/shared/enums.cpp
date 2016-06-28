@@ -49,6 +49,12 @@ Log::PlayType Log::Util::PlayType::to_protobuf(AI::Common::PlayType pt) {
 		case AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
 			return Log::PLAY_TYPE_EXECUTE_INDIRECT_FREE_KICK_ENEMY;
 
+		case AI::Common::PlayType::BALL_PLACEMENT_FRIENDLY:
+			return Log::PLAY_TYPE_BALL_PLACEMENT_FRIENDLY;
+
+		case AI::Common::PlayType::BALL_PLACEMENT_ENEMY:
+			return Log::PLAY_TYPE_BALL_PLACEMENT_ENEMY;
+
 		case AI::Common::PlayType::NONE:
 			return Log::PLAY_TYPE_NONE;
 	}
@@ -104,6 +110,12 @@ AI::Common::PlayType Log::Util::PlayType::of_protobuf(Log::PlayType pt) {
 
 		case Log::PLAY_TYPE_NONE:
 			return AI::Common::PlayType::NONE;
+
+		case Log::PLAY_TYPE_BALL_PLACEMENT_ENEMY:
+			return AI::Common::PlayType::BALL_PLACEMENT_ENEMY;
+
+		case Log::PLAY_TYPE_BALL_PLACEMENT_FRIENDLY:
+			return AI::Common::PlayType::BALL_PLACEMENT_FRIENDLY;
 	}
 	throw std::invalid_argument("Invalid enumeration element.");
 }
