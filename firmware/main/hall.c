@@ -9,6 +9,7 @@
 #include "hall.h"
 #include "icb.h"
 #include <assert.h>
+#include <string.h>
 
 /**
  * \brief The number of Hall-sensor-equipped motors in the robot.
@@ -45,12 +46,19 @@ static int16_t hall_new[NUM_HALL_SENSORS];
 static int16_t hall_diff[NUM_HALL_SENSORS];
 
 /**
+ * \brief Whether a noise squelch was in force when \ref hall_new was updated.
+ */
+static bool hall_squelched;
+
+/**
  * \brief Locks the speed of an individual motor.
  *
  * \param[in] i the index of the motor to lock
  */
 static void hall_lock_motor(unsigned int i) {
-	hall_diff[i] = hall_new[i] - hall_last[i];
+	if (!hall_squelched) {
+		hall_diff[i] = hall_new[i] - hall_last[i];
+	}
 	hall_last[i] = hall_new[i];
 }
 
@@ -67,7 +75,10 @@ void hall_init(void) {
  * \brief Obtains new count values over the ICB.
  */
 void hall_tick(void) {
-	icb_receive(ICB_COMMAND_MOTORS_GET_HALL_COUNT, hall_new, sizeof(hall_new));
+	static uint8_t buffer[NUM_HALL_SENSORS * 2 + 1];
+	icb_receive(ICB_COMMAND_MOTORS_GET_HALL_COUNT, buffer, sizeof(buffer));
+	memcpy(hall_new, buffer, sizeof(hall_new));
+	hall_squelched = buffer[NUM_HALL_SENSORS * 2];
 }
 
 /**

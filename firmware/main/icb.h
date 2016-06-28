@@ -227,7 +227,9 @@ typedef enum {
 	/**
 	 * \brief Reads the Hall-sensor-computed accumulated positions of the motors.
 	 *
-	 * \return 10 bytes, 5 16-bit integer accumulated counts of Hall sensor edges
+	 * \return 11 bytes, 5 16-bit integer accumulated counts of Hall sensor
+	 * edges plus one byte which is 0 if the data is OK or 1 if a noise squelch
+	 * period is in progress
 	 */
 	ICB_COMMAND_MOTORS_GET_HALL_COUNT = ICB_IN(0x31),
 
@@ -239,6 +241,17 @@ typedef enum {
 	 * \return 2 bytes, the first of which is which motors have sensors stuck low, the second of which is the same for stuck high
 	 */
 	ICB_COMMAND_MOTORS_GET_CLEAR_STUCK_HALLS = ICB_IN(0x32),
+
+	/**
+	 * \brief Starts a noise-squelching period on the Hall sensors.
+	 *
+	 * Noise squelching is intended to be initiated when chipping, and possibly
+	 * also when kicking. While noise squelching is active, stuck Hall sensors
+	 * are not detected and a flag is reported in the Hall sensor position
+	 * count values which allows the readings to be kept but the calculated
+	 * speeds to be ignored.
+	 */
+	ICB_COMMAND_MOTORS_SQUELCH_NOISE = ICB_OUT(0x33),
 
 	/**
 	 * \brief Read the Accelerometer data
