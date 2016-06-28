@@ -157,7 +157,7 @@ namespace AI {
 					/**
 					 * \brief Request the player to execute the catch primitive. Interface is not yet set
 					 */
-					void mp_catch(Point target);// not sure what the best interface is
+					void mp_catch(Angle angle, double displacement, double speed);
 
 					/**
 					 * \brief Request the player to execute the pivot primitive and set the geometery of the pivot action
@@ -472,9 +472,11 @@ inline void AI::HL::W::Player::mp_shoot(Point dest, bool chip, double power){
 }
 
 
-inline void AI::HL::W::Player::mp_catch(Point target){
+inline void AI::HL::W::Player::mp_catch(Angle target, double displacement, double speed) {
 	AI::Common::Player::impl->hl_request.type = Drive::Primitive::CATCH;
-	AI::Common::Player::impl->hl_request.field_point = target;
+	AI::Common::Player::impl->hl_request.field_angle = target;
+	AI::Common::Player::impl->hl_request.field_double = displacement;
+	AI::Common::Player::impl->hl_request.field_double2 = speed;
 }
 
 inline void AI::HL::W::Player::mp_pivot(Point centre, Angle ori){

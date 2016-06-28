@@ -20,6 +20,7 @@ namespace AI {
 		Angle field_angle;
 		Angle field_angle2;
 		double field_double;
+		double field_double2;
 		bool field_bool;
 		bool care_angle;
 	};

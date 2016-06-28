@@ -229,6 +229,10 @@ void RRTNavigator::tick() {
 
 			// plan
 			AI::PrimitiveInfo nav_request = hl_request;
+
+			Point catch_location = player.position() + Point(hl_request.field_double, 0).rotate(player.orientation() - Angle::quarter() + hl_request.field_angle);
+			bool valid_catch_dest = valid_dst(catch_location, world, player);
+
 			switch (hl_request.type) {
 				case Drive::Primitive::STOP:
 					// No planning.
@@ -253,6 +257,7 @@ void RRTNavigator::tick() {
 					break;
 
 				case Drive::Primitive::CATCH:
+					// no planning for now
 #warning Check how to do clear path checking and RRT planning during catch.
 					break;
 
@@ -288,7 +293,7 @@ void RRTNavigator::tick() {
 			AI::PrimitiveInfo local_coord;
 			Point target_position = Point::of_angle(hl_request.field_angle)+hl_request.field_point;
 
-			if( hl_request.type != Drive::Primitive::SHOOT ){
+			if (hl_request.type != Drive::Primitive::SHOOT) {
 				player_data->last_shoot_primitive.type = Drive::Primitive::MOVE;
 			}
 
@@ -363,7 +368,9 @@ void RRTNavigator::tick() {
 					}
 					break;
 				case Drive::Primitive::CATCH:	
-					//player.move_catch(nav_request.field_point-player.position(), nav_request.field_angle-player.orientation(), 0.0, false);
+					if (valid_catch_dest) {
+						player.move_catch(hl_request.field_angle, hl_request.field_double, hl_request.field_double2);
+					}
 					break;
 				case Drive::Primitive::PIVOT:	
 					LOG_DEBUG(Glib::ustring::compose("time for new pivot (pos%1, angle%2)", hl_request.field_point, hl_request.field_angle ));
