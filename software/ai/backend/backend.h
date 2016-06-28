@@ -388,6 +388,10 @@ inline const Property<AI::Common::PlayType> &AI::BE::Backend::playtype() const {
 	return playtype_;
 }
 
+inline const Property<Point> &AI::BE::Backend::ball_placement_position() const {
+	return ball_placement_position_;
+}
+
 inline Property<AI::Common::PlayType> &AI::BE::Backend::playtype_override() {
 	return playtype_override_;
 }

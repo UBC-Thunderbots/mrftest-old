@@ -397,6 +397,7 @@ software/ai/hl/stp/play/2_mixed_team_defense/mtd_defensive.cpp -text
 software/ai/hl/stp/play/2_mixed_team_defense/mtd_defensive_block.cpp -text
 software/ai/hl/stp/play/3_mixed_team_offense/mto_just_shoot.cpp -text
 software/ai/hl/stp/play/backup_steal.cpp -text
+software/ai/hl/stp/play/ball_placement.cpp -text
 software/ai/hl/stp/play/ball_towards_enemy.cpp -text
 software/ai/hl/stp/play/circular_shoot.cpp -text
 software/ai/hl/stp/play/corner_kick_friendly.cpp -text
@@ -473,6 +474,8 @@ software/ai/hl/stp/stp_hl.cpp -text
 software/ai/hl/stp/stp_hl_choosable.cpp -text
 software/ai/hl/stp/tactic/ball.cpp -text
 software/ai/hl/stp/tactic/ball.h -text
+software/ai/hl/stp/tactic/ball_placement.cpp -text
+software/ai/hl/stp/tactic/ball_placement.h -text
 software/ai/hl/stp/tactic/block.cpp -text
 software/ai/hl/stp/tactic/block.h -text
 software/ai/hl/stp/tactic/chip.cpp -text

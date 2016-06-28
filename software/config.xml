@@ -199,6 +199,7 @@
           <category name="Play">
             <category name="Enable">
               <boolean name="BackUpSteal">false</boolean>
+              <boolean name="BallPlacement">true</boolean>
               <boolean name="BallTowardsEnemy">false</boolean>
               <boolean name="ChallengeBallShape">true</boolean>
               <boolean name="ChallengeBlock">true</boolean>
@@ -267,6 +268,7 @@
             </category>
             <category name="Playbook">
               <integer name="BackUpSteal">1023</integer>
+              <integer name="BallPlacement">1023</integer>
               <integer name="BallTowardsEnemy">1023</integer>
               <integer name="ChallengeBallShape">1023</integer>
               <integer name="ChallengeBlock">1023</integer>
@@ -335,6 +337,7 @@
             </category>
             <category name="Priority 0=low, 10=hi, 5=default">
               <integer name="BackUpSteal">5</integer>
+              <integer name="BallPlacement">5</integer>
               <integer name="BallTowardsEnemy">5</integer>
               <integer name="ChallengeBallShape">5</integer>
               <integer name="ChallengeBlock">5</integer>
@@ -403,6 +406,7 @@
             </category>
             <category name="StaticRoleAssignment">
               <boolean name="BackUpSteal">false</boolean>
+              <boolean name="BallPlacement">false</boolean>
               <boolean name="BallTowardsEnemy">false</boolean>
               <boolean name="ChallengeBallShape">false</boolean>
               <boolean name="ChallengeBlock">false</boolean>
@@ -566,6 +570,7 @@
       <category name="Movement">
         <category name="Primitives">
           <double name="Distance before we update the movement primitives">10</double>
+          <double name="The default desired rpm for dribbling">15.0</double>
           <double name="Tick before update move primitive">1.0</double>
           <double name="Tick before update pivot primitive">1.0</double>
           <double name="Tick before update primitive">1.0</double>
@@ -619,7 +624,7 @@
           <boolean name="Robots must stay in own half">false</boolean>
           <double name="Short enemy avoidance dist">-0.050</double>
           <double name="Short friendly avoidance dist">0.100</double>
-          <double name="Small ball avoidance dist">-0.050</double>
+          <double name="Small ball avoidance dist">0.050</double>
         </category>
       </category>
       <category name="STP">

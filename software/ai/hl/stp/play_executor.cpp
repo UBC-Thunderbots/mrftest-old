@@ -293,13 +293,14 @@ void PlayExecutor::execute_tactics() {
 	}
 
 	// set flags, do it before any execution
-	if (AI::HL::STP::_goalie){
+	if (AI::HL::STP::_goalie) {
 		curr_assignment[0].flags(0);
 	}
 	for (std::size_t i = 1; i < TEAM_MAX_SIZE; ++i) {
 		if (!curr_assignment[i]) {
 			continue;
 		}
+
 		unsigned int default_flags = Flags::FLAG_AVOID_FRIENDLY_DEFENSE;
 		switch (world.playtype()) {
 			case AI::Common::PlayType::STOP:
@@ -327,6 +328,7 @@ void PlayExecutor::execute_tactics() {
 			default_flags |= Flags::FLAG_CAREFUL;
 		}
 		curr_assignment[i].flags(default_flags);
+		curr_assignment[i].avoid_distance(AI::Flags::AvoidDistance::MEDIUM);
 	}
 
 	// execute!
