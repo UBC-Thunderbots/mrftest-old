@@ -351,10 +351,10 @@ static void run_normal(void) {
 		bool symbol_rate;
 		uint16_t pan;
 	} mrf_profiles[4] = {
-		{ 16, false, 0x1846U },
-		{ 17, false, 0x1847U },
-		{ 17, false, 0x1848U },
-		{ 17, false, 0x1849U },
+		{ 23, false, 0x1846U },
+		{ 23, false, 0x1847U },
+		{ 23, false, 0x1848U },
+		{ 23, false, 0x1849U },
 	};
 	
 	// Assign a mrf profile.
