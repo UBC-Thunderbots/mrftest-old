@@ -23,7 +23,7 @@ double AI::HL::STP::Evaluation::getBestIntercept(World world, Player interceptor
 /* Notes:
  * -Consider time to reach point - less is better
  * -Consider how close enemy is - farther away is better
- * 		-if enemy can intercept, no point after that point should be considered - handled in tactic!
+ * 		-if enemy can intercept, no point after that point should be considered - should be handled in tactic
  *  -Consider shooting and passing opportunities at that point - more is better
  *
  * Weights:

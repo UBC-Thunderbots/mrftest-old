@@ -34,8 +34,8 @@ BEGIN_ASSIGN()
 
 
 // GOALIE
-goalie_role.push_back(penalty_goalie_new(world)); //(penalty_goalie_new(world));
-//goalie_role.push_back(move(world, Point(-3, 5)));
+//goalie_role.push_back(penalty_goalie_new(world)); //(penalty_goalie_new(world));
+goalie_role.push_back(move(world, Point(-3, 5)));
 
 //roles[0].push_back(move(world, Point(world.ball().position())));
 roles[0].push_back(intercept_v2(world));

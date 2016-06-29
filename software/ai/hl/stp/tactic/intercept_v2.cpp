@@ -34,10 +34,11 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace {
 	class Intercept_v2 final : public Tactic {
 		public:
-			explicit Intercept_v2(World world) : Tactic(world) {
+			explicit Intercept_v2(World world) : Tactic(world, true) {
 			}
 
 		private:
+			bool done() const override;
 			Player select(const std::set<Player> &players) const override;
 			void execute() override;
 			Robot get_closest_enemy(World world, Point target);
@@ -48,7 +49,6 @@ namespace {
 			double A_MAX = 3.0;
 			double V_MAX = 2.0;
 			double PI = 3.141592653589793238462;
-			//int testvalue = 1;
 			double ballVelThreshold = 0.001;
 			Rect fieldBounds = Rect(world.field().friendly_corner_pos(), world.field().enemy_corner_neg());
 
@@ -57,6 +57,10 @@ namespace {
 			}
 	};
 
+
+	bool Intercept_v2::done() const {
+		return player.has_ball();
+	}
 
 
 	Player Intercept_v2::select(const std::set<Player> &players) const {
@@ -67,12 +71,6 @@ namespace {
 
 
 	void Intercept_v2::execute() {
-
-		/*
-		if(testvalue > 20) {
-			//return;
-		}
-		*/
 
 		// if the interceptor already has the ball, stay there
 		if (player.has_ball()) {
@@ -90,9 +88,9 @@ namespace {
 */
 
 
-		//If the ball is barely moving, go directly to it
+		//If the ball is barely moving, get behind it in a position to shoot
 		if(world.ball().velocity().len() < ballVelThreshold) {
-			Action::move(world, player, (world.ball().position() + (player.position() - world.ball().position()).norm(R_Radius)));
+			Action::move_careful(world, player, (world.ball().position() + (world.ball().position() - world.field().enemy_goal()).norm(R_Radius)));
 			return;
 		}
 
@@ -158,16 +156,13 @@ namespace {
 
 
 
-
-
 		//Check that the new best intercept point is sufficiently far from the old one
 		if((new_best_point - best_point).len() > R_Radius/2.0) {
 			best_point = new_best_point;
 		}
 
-		Action::move(world, player, best_point);
+		Action::move_careful(world, player, best_point);
 
-		//testvalue++;
 	}//end of execute
 
 

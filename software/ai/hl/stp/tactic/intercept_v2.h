@@ -16,13 +16,10 @@ namespace AI {
 			namespace Tactic {
 				/**
 				 * Intercept_v2
-				 * Not active tactic
+				 * Active tactic
 				 * intercepts the ball
 				 */
-
-
 				Tactic::Ptr intercept_v2(World world);
-
 			}
 		}
 	}
