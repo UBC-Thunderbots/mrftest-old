@@ -128,14 +128,16 @@ static void catch_tick(log_record_t *log) {
   velocity_f[1] = project_y_axis(velocity, angle_final);
   velocity_f[2] = velocity[2];
 
-  // Log these values.
-  log->tick.primitive_data[0] = position_f[0];
-  log->tick.primitive_data[1] = position_f[1];
-  log->tick.primitive_data[2] = position_f[2];
+  if (log) {
+	  // Log these values.
+	  log->tick.primitive_data[0] = position_f[0];
+	  log->tick.primitive_data[1] = position_f[1];
+	  log->tick.primitive_data[2] = position_f[2];
 
-  log->tick.primitive_data[3] = velocity_f[0];
-  log->tick.primitive_data[4] = velocity_f[1];
-  log->tick.primitive_data[5] = velocity_f[2];
+	  log->tick.primitive_data[3] = velocity_f[0];
+	  log->tick.primitive_data[4] = velocity_f[1];
+	  log->tick.primitive_data[5] = velocity_f[2];
+  }
 
   // Calculate x-acceleration component along final axes
   // in order to reach final required speed.
@@ -171,9 +173,11 @@ static void catch_tick(log_record_t *log) {
   PlanBBTrajectory(&t_trajectory);
   accel_f[2] = BBComputeAccel(&t_trajectory, TIME_HORIZON);
   
-  log->tick.primitive_data[6] = accel_f[0];
-  log->tick.primitive_data[7] = accel_f[1];
-  log->tick.primitive_data[8] = accel_f[2];
+  if (log) {
+	  log->tick.primitive_data[6] = accel_f[0];
+	  log->tick.primitive_data[7] = accel_f[1];
+	  log->tick.primitive_data[8] = accel_f[2];
+  }
   
   // Rotate and apply final acceleration onto local coordinate axis.
   rotate(accel_f, (angle_final-position[2]));

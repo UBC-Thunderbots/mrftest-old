@@ -94,13 +94,15 @@ static void spin_tick(log_record_t *log) {
 	a_max[0] = MAX_X_A;
 	a_max[1] = MAX_Y_A;
 
-	log->tick.primitive_data[0] = coords[0];
-	log->tick.primitive_data[1] = coords[1];
-	log->tick.primitive_data[2] = coords[2];
-	
-	log->tick.primitive_data[3] = velocities[0];
-	log->tick.primitive_data[4] = velocities[1];
-	log->tick.primitive_data[5] = velocities[2];
+	if (log) {
+		log->tick.primitive_data[0] = coords[0];
+		log->tick.primitive_data[1] = coords[1];
+		log->tick.primitive_data[2] = coords[2];
+		
+		log->tick.primitive_data[3] = velocities[0];
+		log->tick.primitive_data[4] = velocities[1];
+		log->tick.primitive_data[5] = velocities[2];
+	}
 
 	PrepareBBTrajectory(&x_trajectory, x_dest-coords[0], velocities[0], a_max[0]);
 	PrepareBBTrajectory(&y_trajectory, y_dest-coords[1], velocities[1], a_max[1]);
@@ -112,9 +114,11 @@ static void spin_tick(log_record_t *log) {
 	accel[1] = BBComputeAccel(&y_trajectory, TIME_HORIZON);
 	accel[2] = (avel_final-velocities[2])/0.05f;
 	
-	log->tick.primitive_data[6] = accel[0];
-	log->tick.primitive_data[7] = accel[1];
-	log->tick.primitive_data[8] = accel[2];
+	if (log) {
+		log->tick.primitive_data[6] = accel[0];
+		log->tick.primitive_data[7] = accel[1];
+		log->tick.primitive_data[8] = accel[2];
+	}
 
 
 	if(accel[2] >  MAX_T_A) {

@@ -74,7 +74,7 @@ static void move_end(void)
  * \param[out] log the log record to fill with information about the tick, or
  * \c NULL if no record is to be filled
  */
-static void move_tick(log_record_t *logajectory) {
+static void move_tick(log_record_t *log) {
 	//TODO: what would you like to log?
 
 	dr_data_t current_states;
@@ -108,15 +108,15 @@ static void move_tick(log_record_t *logajectory) {
 	accel[2] = (targetVel - vel[2])/TIME_HORIZON;
 	Clamp(&accel[2], MAX_T_A);
 
-	if (logajectory) {
-		logajectory->tick.primitive_data[0] = accel[0];
-		logajectory->tick.primitive_data[1] = accel[1];
-		logajectory->tick.primitive_data[2] = accel[2];
-		logajectory->tick.primitive_data[3] = timeX;
-		logajectory->tick.primitive_data[4] = timeY;
-		logajectory->tick.primitive_data[5] = timeTarget;
-		logajectory->tick.primitive_data[6] = deltaD;
-		logajectory->tick.primitive_data[7] = targetVel;
+	if (log) {
+		log->tick.primitive_data[0] = accel[0];
+		log->tick.primitive_data[1] = accel[1];
+		log->tick.primitive_data[2] = accel[2];
+		log->tick.primitive_data[3] = timeX;
+		log->tick.primitive_data[4] = timeY;
+		log->tick.primitive_data[5] = timeTarget;
+		log->tick.primitive_data[6] = deltaD;
+		log->tick.primitive_data[7] = targetVel;
 	}
 
 	rotate(accel, -current_states.angle);
