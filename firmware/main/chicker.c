@@ -9,7 +9,6 @@
 #include "charger.h"
 #include "adc.h"
 #include "breakbeam.h"
-#include "icb.h"
 #include <FreeRTOS.h>
 #include <minmax.h>
 #include <rcc.h>
@@ -423,7 +422,6 @@ static void chicker_fire_impl(chicker_device_t device, unsigned int width) {
  * \param[in] width the width of the pulse, in kicking units
  */
 void chicker_fire(chicker_device_t device, unsigned int width) {
-	icb_send(ICB_COMMAND_MOTORS_SQUELCH_NOISE, 0, 0);
 	taskENTER_CRITICAL();
 	chicker_fire_impl(device, width);
 	taskEXIT_CRITICAL();
