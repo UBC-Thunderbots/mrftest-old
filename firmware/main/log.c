@@ -146,7 +146,6 @@ bool log_init(void) {
 	// Check if the card is completely full.
 	if (next_write_sector == sd_sector_count()) {
 		state = LOG_STATE_CARD_FULL;
-		return false;
 	}
 
 	// Compute the epoch: previous sector’s epoch + 1 (if first empty sector is not first sector), or 1 (if first empty sector is first sector).
@@ -165,7 +164,7 @@ bool log_init(void) {
 
 	// Erase the card from the start sector to the end of the card.
 	// Do this ahead of time so we won’t get stuck doing a long erase as part of the first write when time actually matters.
-	{
+	if (state != LOG_STATE_CARD_FULL) {
 		sd_status_t ret = sd_erase(next_write_sector, sd_sector_count() - next_write_sector);
 		if (ret != SD_STATUS_OK) {
 			last_error = ret;
