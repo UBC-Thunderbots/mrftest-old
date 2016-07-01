@@ -62,14 +62,10 @@ static void update_thermal_model(float added_winding_energy) {
 }
 
 /**
- * \brief Sets the power level of the dribbler.
+ * \brief Sets the speed of the dribbler.
  *
- * \param[in] pwm the power level of the dribbler
+ * \param[in] desired_rpm The speed of the dribbler, in RPM.
  */
-void dribbler_set_power(uint8_t pwm) {
-	dribbler_pwm = pwm;
-}
-
 void dribbler_set_speed(uint32_t desired_rpm) {
 	desired_speed = desired_rpm;
 }

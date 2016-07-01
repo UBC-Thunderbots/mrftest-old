@@ -11,7 +11,6 @@
  */
 #define DRIBBLER_TICK_HZ 25U
 
-void dribbler_set_power(uint8_t power);
 void dribbler_set_speed(uint32_t desired_rpm);
 void dribbler_tick(log_record_t *record);
 bool dribbler_hot(void);

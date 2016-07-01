@@ -69,7 +69,7 @@ static void shoot_start(const primitive_params_t *params) {
 	
 	chicker_auto_arm((params->extra & 1) ? CHICKER_CHIP : CHICKER_KICK, params->params[3]);
 	if (!(params->extra & 1)) {
-		dribbler_set_power(50);
+		dribbler_set_speed(8000);
 	}
 	//printf("\r\n====leaving shoot start=====\r\n");
 	
