@@ -253,6 +253,13 @@ typedef enum {
 	 * \return 7 bytes, 1 byte status (00 = no data yet, 01 = data available) plus 3 16-bit integer values one for each axis
 	 */
 	ICB_COMMAND_SENSORS_GET_GYRO = ICB_IN(0x41),
+
+	/**
+	 * \brief Read the magic number
+	 *
+	 * \return 4 bytes, 55, AA, CC, 11
+	 */
+	ICB_COMMAND_GET_MAGIC = ICB_IN(0x50),
 } icb_command_t;
 
 /**

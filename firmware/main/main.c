@@ -406,6 +406,17 @@ static void run_normal(void) {
 			// Check for FPGA reset or readback failure.
 			assert(gpio_get_input(PIN_FPGA_DONE));
 			assert(gpio_get_input(PIN_FPGA_INIT_B));
+			// Check for responsive FPGA.
+			{
+				static uint32_t magic;
+				if (icb_receive(ICB_COMMAND_GET_MAGIC, &magic, sizeof(magic))) {
+					if (magic != 0x11CCAA55) {
+						abort();
+					}
+				} else {
+					abort();
+				}
+			}
 		}
 	}
 
