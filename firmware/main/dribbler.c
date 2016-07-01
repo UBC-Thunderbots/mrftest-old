@@ -48,6 +48,7 @@
 _Static_assert(!(CONTROL_LOOP_HZ % DRIBBLER_TICK_HZ), "Dribbler period is not a multiple of control loop period.");
 
 static uint8_t dribbler_pwm = 0;
+static bool coasting = true;
 static int32_t desired_speed = 0;
 static unsigned int dribbler_tick_counter = 0;
 static float winding_energy = 0.0f, housing_energy = 0.0f;
@@ -67,11 +68,19 @@ static void update_thermal_model(float added_winding_energy) {
 }
 
 /**
+ * \brief Sets the dribbler to coast.
+ */
+void dribbler_coast(void) {
+	coasting = true;
+}
+
+/**
  * \brief Sets the speed of the dribbler.
  *
  * \param[in] desired_rpm The speed of the dribbler, in RPM.
  */
 void dribbler_set_speed(uint32_t desired_rpm) {
+	coasting = false;
 	desired_speed = desired_rpm;
 }
 
@@ -93,7 +102,11 @@ void dribbler_tick(log_record_t *record) {
 		dribbler_speed_rpm = hall_speed_to_rpm(dribbler_speed);
 
 		// Calculate the new dribbler pwm from current dribbler pwm, current and desired dribbler speed (in rpm).
-		dribbler_pwm = dribbler_calc_new_pwm(dribbler_speed_rpm, desired_speed, dribbler_pwm);
+		if (coasting) {
+			dribbler_pwm = 0;
+		} else {
+			dribbler_pwm = dribbler_calc_new_pwm(dribbler_speed_rpm, desired_speed, dribbler_pwm);
+		}
 
 		// Do some log record filling.
 		if (record) {
@@ -102,7 +115,7 @@ void dribbler_tick(log_record_t *record) {
 		}
 		
 		// Decide whether to run or not.
-		if (winding_energy < THERMAL_MAX_ENERGY_WINDING) {
+		if (winding_energy < THERMAL_MAX_ENERGY_WINDING && !coasting) {
 			float battery = adc_battery();
 			float back_emf = dribbler_speed * VOLTS_PER_SPEED_UNIT;
 			float applied_voltage = battery * dribbler_pwm / 255.0f;

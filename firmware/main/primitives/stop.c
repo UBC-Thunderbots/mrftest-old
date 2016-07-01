@@ -36,6 +36,9 @@ static void stop_start(const primitive_params_t *params) {
 			wheels_coast(i);
 		}
 	}
+	if (!params->extra) {
+		dribbler_coast();
+	}
 }
 
 /**
