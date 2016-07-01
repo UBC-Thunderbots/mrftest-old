@@ -4,7 +4,6 @@
 #include <gpio.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <limits.h>
 #include <math.h>
 #include "tbuf.h"
@@ -117,7 +116,6 @@ void lps_tick (void){
 	// when the calculation is complete 
 	const float *updating_lps;
 	unsigned int index;
-	static unsigned int count_print = 0;
 
 	index = tbuf_read_get(&lps_buffer_ctl);
 	updating_lps = lps_buf[index];
@@ -141,14 +139,6 @@ void lps_tick (void){
 		lps_sum += lps_norm[i];
 	}
 	tbuf_read_put(&lps_buffer_ctl, index);
-
-	//printing stuff
-	if(count_print == 30){
-		lps_print();
-		count_print = 0;
-	}
-	count_print++;
-
 }
 
 void lps_get_raw(lps_values lps_output){
@@ -164,24 +154,3 @@ void lps_get_pos(lps_values lps_output){
 	lps_output[2] = lps_sum;
 
 }
-
-void lps_print(void){
-	/*unsigned int i=0;
-	unsigned int j=0;
-	printf("adc[");
-	for(j=0; j< 4; j++){
-		for(i=0; i< 4; i++){
-			printf("%f ", adc_values[j*4+i]);
-		}
-		printf("\r\n");
-	}
-	printf("]\r\n");*/
-	//printf("lps_raw(%f, %f, %f, %f) \r\n", lps_raw[0], lps_raw[1], lps_raw[2], lps_raw[3]);
-	//printf("lps_raw subtract offset(%f, %f, %f, %f) \r\n", lps_raw[0]-lps_offset[0], lps_raw[1]-lps_offset[1], lps_raw[2]-lps_offset[2], lps_raw[3]-lps_offset[3]);
-	//printf("lps_raw offset and gain(%f, %f, %f, %f) \r\n", (lps_raw[0]-lps_offset[0])/lps_gain[0], (lps_raw[1]-lps_offset[1])/lps_gain[1], (lps_raw[2]-lps_offset[2])/lps_gain[2], (lps_raw[3]-lps_offset[3])/lps_gain[3]);
-	printf("lps_norm(%f, %f, %f, %f) x=%f, y=%f, sum=%f\r\n", (double)lps_norm[0], (double)lps_norm[1], (double)lps_norm[2], (double)lps_norm[3],(double) x, (double)y, (double)lps_sum);
-
-
-}
-
-

@@ -11,6 +11,5 @@ void lps_incr(void);
 void lps_tick(void);
 void lps_get_raw(lps_values lps_val);
 void lps_get_pos(lps_values lps_val);
-void lps_print(void);
 
 #endif
