@@ -69,11 +69,14 @@
 #include <registers/adc.h>
 #include <registers/dma.h>
 
+#define ADC2_CHANNEL_COUNT 4
+#define ADC2_SAMPLE_COUNT 25
+
 #define VREF_CAL_33 (*(const uint16_t *) 0x1FFF7A2AU)
 #define TEMP_CAL_30 (*(const uint16_t *) 0x1FFF7A2CU)
 #define TEMP_CAL_110 (*(const uint16_t *) 0x1FFF7A2EU)
 
-static uint32_t adc1_raw[2U], adc2_raw[4U];
+static uint32_t adc1_raw[2U], adc2_raw[ADC2_SAMPLE_COUNT][ADC2_CHANNEL_COUNT];
 static float vdd_from_vref_num;
 static float temp_cal_scale, temp_cal_offset;
 static float battery_filtered;
@@ -121,7 +124,7 @@ void adc_init(void) {
 
 	// Configure DMA 2 stream 2 channel 1 to read ADC 2.
 	{
-		DMA2.streams[2U].NDTR = sizeof(adc2_raw) / sizeof(*adc2_raw);
+		DMA2.streams[2U].NDTR = sizeof(adc2_raw) / sizeof(uint32_t);
 		DMA2.streams[2U].PAR = &ADC2.DR;
 		DMA2.streams[2U].M0AR = adc2_raw;
 		DMA_SxFCR_t fcr = { .DMDIS = 0 }; // Direct mode, not using FIFO
@@ -331,7 +334,7 @@ float adc_battery_unfiltered(void) {
 	float vdd = adc_vdd();
 #define DIVIDER_UPPER 20000.0f
 #define DIVIDER_LOWER 2200.0f
-	return __atomic_load_n(&adc2_raw[0U], __ATOMIC_RELAXED) / 4096.0f * vdd / DIVIDER_LOWER * (DIVIDER_UPPER + DIVIDER_LOWER);
+	return __atomic_load_n(&adc2_raw[0][0U], __ATOMIC_RELAXED) / 4096.0f * vdd / DIVIDER_LOWER * (DIVIDER_UPPER + DIVIDER_LOWER);
 #undef DIVIDER_UPPER
 #undef DIVIDER_LOWER
 }
@@ -347,7 +350,7 @@ float adc_capacitor(void) {
 #define DIVIDER_UPPER_VDD 100000.0f
 #define DIVIDER_LOWER 22000.0f
 #define PARALLEL(x, y) (((x) * (y)) / ((x) + (y)))
-	float pin_voltage = __atomic_load_n(&adc2_raw[1U], __ATOMIC_RELAXED) / 4096.0f * vdd;
+	float pin_voltage = __atomic_load_n(&adc2_raw[0][1U], __ATOMIC_RELAXED) / 4096.0f * vdd;
 	float vdd_part = vdd / (DIVIDER_UPPER_VDD + PARALLEL(DIVIDER_LOWER, DIVIDER_UPPER_CAP)) * PARALLEL(DIVIDER_LOWER, DIVIDER_UPPER_CAP);
 	float cap_part = pin_voltage - vdd_part;
 	return cap_part / PARALLEL(DIVIDER_LOWER, DIVIDER_UPPER_VDD) * (DIVIDER_UPPER_CAP + PARALLEL(DIVIDER_LOWER, DIVIDER_UPPER_VDD));
@@ -363,8 +366,13 @@ float adc_capacitor(void) {
  * \return the break beam voltage, in volts
  */
 float adc_breakbeam(void) {
+	uint32_t sum = 0;
+	for(unsigned int i = 0; i != ADC2_SAMPLE_COUNT; ++i) {
+		sum += __atomic_load_n(&adc2_raw[i][2], __ATOMIC_RELAXED);
+	}
+
 	float vdd = adc_vdd();
-	return __atomic_load_n(&adc2_raw[2U], __ATOMIC_RELAXED) / 4096.0f * vdd;
+	return sum / 4096.0f * vdd / ADC2_SAMPLE_COUNT;
 }
 
 /**
@@ -373,8 +381,13 @@ float adc_breakbeam(void) {
  * \return the LPS voltage, in volts
  */
 float adc_lps(void) {
+	uint32_t sum = 0;
+	for(unsigned int i = 0; i != ADC2_SAMPLE_COUNT; ++i) {
+		sum += __atomic_load_n(&adc2_raw[i][3], __ATOMIC_RELAXED);
+	}
+
 	float vdd = adc_vdd();
-	return __atomic_load_n(&adc2_raw[3U], __ATOMIC_RELAXED) / 4096.0f * vdd;
+	return sum / 4096.0f * vdd / ADC2_SAMPLE_COUNT;
 }
 
 /**
