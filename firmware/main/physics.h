@@ -46,9 +46,9 @@ extern const float MAX_VEL[3];
 #define MAX_Y_A 3.0f
 #define MAX_T_A 30.0f
 
-#define SLOW_MAX_X_A 1.2f
-#define SLOW_MAX_Y_A 1.2f
-#define SLOW_MAX_T_A 10.0f
+//#define SLOW_MAX_X_A 1.2f
+//#define SLOW_MAX_Y_A 1.2f
+//#define SLOW_MAX_T_A 10.0f
 
 extern const float MAX_ACC[3];
 
