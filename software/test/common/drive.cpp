@@ -349,6 +349,7 @@ void DrivePanel::get_low_sensitivity_scale_factors(double scale[4]) {
 void DrivePanel::on_mode_changed() {
 	int row = mode_chooser.get_active_row_number();
 	if (row >= 0) {
+		robot.direct_control = MODES[row].direct;
 		for (unsigned int i = 0; i < G_N_ELEMENTS(scales); ++i) {
 			const SliderInfo &info = MODES[row].sliders[i];
 			scales_labels[i].set_text(info.label ? info.label : u8"N/A");
@@ -359,7 +360,6 @@ void DrivePanel::on_mode_changed() {
 		misc_checkbox.set_sensitive(!!MODES[row].checkbox_label);
 		misc_checkbox.set_label(MODES[row].checkbox_label ? MODES[row].checkbox_label : u8"N/A");
 		execute_button.set_sensitive(!MODES[row].direct);
-		robot.direct_control = MODES[row].direct;
 		on_update();
 	}
 }
