@@ -174,6 +174,16 @@ typedef enum {
 	ERROR_ET_MRF_FCS,
 
 	/**
+	 * \brief The robot crashed. A core dump is available.
+	 */
+	ERROR_ET_CRASH_CORE,
+
+	/**
+	 * \brief The robot crashed. No core dump is available.
+	 */
+	ERROR_ET_CRASH_NO_CORE,
+
+	/**
 	 * \brief The number of edge-triggered errors.
 	 *
 	 * This must be the last enumerator.

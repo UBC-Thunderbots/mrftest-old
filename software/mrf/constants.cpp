@@ -27,5 +27,7 @@ static_assert(sizeof(MRF::ERROR_LT_MESSAGES) / sizeof(*MRF::ERROR_LT_MESSAGES) =
 const char * const MRF::ERROR_ET_MESSAGES[] = {
 	u8"ICB CRC error",
 	u8"receive frame check sequence failure",
+	u8"crashed (core dumped)",
+	u8"crashed (no core dump)",
 };
 static_assert(sizeof(MRF::ERROR_ET_MESSAGES) / sizeof(*MRF::ERROR_ET_MESSAGES) == MRF::ERROR_ET_COUNT, "Wrong number of edge-triggered error messages.");

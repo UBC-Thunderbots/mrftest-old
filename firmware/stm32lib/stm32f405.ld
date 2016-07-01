@@ -27,6 +27,11 @@ SECTIONS {
 		*(.rodata .rodata.*)
 	} >flash_region
 
+	/* Read-write data that is given its initial value normally but is not modified on a soft reset */
+	.pdata : {
+		*(.pdata .pdata.*)
+	} >sram_region AT>flash_region
+
 	/* Read-write non-zero-initialized data must live in RAM but a copy be stored in Flash for initialization */
 	.data : {
 		*(.data .data.*)
@@ -65,6 +70,10 @@ SECTIONS {
 linker_data_vma = ADDR(.data);
 linker_data_lma = LOADADDR(.data);
 linker_data_size = SIZEOF(.data);
+
+linker_pdata_vma = ADDR(.pdata);
+linker_pdata_lma = LOADADDR(.pdata);
+linker_pdata_size = SIZEOF(.pdata);
 
 linker_ramtext_vma = ADDR(.ramtext);
 linker_ramtext_lma = LOADADDR(.ramtext);

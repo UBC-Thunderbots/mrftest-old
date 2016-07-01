@@ -76,7 +76,7 @@ namespace MRF {
 	/**
 	 * \brief The number of edge-triggered errors.
 	 */
-	constexpr unsigned int ERROR_ET_COUNT = 2;
+	constexpr unsigned int ERROR_ET_COUNT = 4;
 
 	/**
 	 * \brief The total number of errors.

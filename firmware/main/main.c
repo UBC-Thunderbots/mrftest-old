@@ -88,6 +88,8 @@ static const fptr interrupt_vectors[82U] __attribute__((used, section(".interrup
 	[NVIC_IRQ_OTG_FS] = &udev_isr,
 };
 
+__attribute__((section(".pdata"))) static bool exception_reboot_with_core = false, exception_reboot_without_core = false;
+
 static void app_exception_early(void) {
 	// Kick the hardware watchdog.
 	IWDG.KR = 0xAAAAU;
@@ -108,37 +110,20 @@ static void app_exception_early(void) {
 }
 
 static void app_exception_late(bool core_written) {
-	// Disable SYSTICK while changing frequency.
+	if (core_written) {
+		exception_reboot_with_core = true;
+	} else {
+		exception_reboot_without_core = true;
+	}
+	asm volatile("dsb");
 	{
-		SYST_CSR_t tmp = { 0 };
-		SYSTICK.CSR = tmp;
+		AIRCR_t tmp = SCB.AIRCR;
+		tmp.VECTKEY = 0x05FA;
+		tmp.SYSRESETREQ = 1;
+		SCB.AIRCR = tmp;
 	}
-	// Set SYSTICK to divide by 168 so it overflows every microsecond.
-	SYSTICK.RVR = 168U - 1U;
-	// Reset the counter.
-	SYSTICK.CVR = 0U;
-	// Set SYSTICK to run with the core AHB clock.
-	{
-		SYST_CSR_t tmp = {
-			.CLKSOURCE = 1, // Use core clock
-			.ENABLE = 1, // Counter is running
-		};
-		SYSTICK.CSR = tmp;
-	}
-
-	// Show flashing lights.
-	for (;;) {
-		IWDG.KR = 0xAAAAU;
-		gpio_reset(PIN_LED_STATUS);
-		gpio_reset(PIN_LED_LINK);
-		sleep_ms(500U);
-		IWDG.KR = 0xAAAAU;
-		gpio_set(PIN_LED_STATUS);
-		if (core_written) {
-			gpio_set(PIN_LED_LINK);
-		}
-		sleep_ms(500U);
-	}
+	__sync_synchronize();
+	for (;;);
 }
 
 static const init_specs_t INIT_SPECS = {
@@ -384,6 +369,16 @@ static void run_normal(void) {
 			case LOG_STATE_SD_ERROR: fputs("SD card error\r\n", stdout); break;
 			case LOG_STATE_CARD_FULL: fputs("SD card full\r\n", stdout); break;
 		}
+	}
+
+	// Check and report exceptions causing reboot.
+	if (exception_reboot_with_core) {
+		error_et_fire(ERROR_ET_CRASH_CORE);
+		exception_reboot_with_core = false;
+	}
+	if (exception_reboot_without_core) {
+		error_et_fire(ERROR_ET_CRASH_NO_CORE);
+		exception_reboot_without_core = false;
 	}
 
 	// Receive must be the second-last module initialized, because received
