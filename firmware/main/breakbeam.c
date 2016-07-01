@@ -42,13 +42,18 @@ bool breakbeam_interrupted(void) {
 
 /**
  * \brief Checks whether to pend a has-ball notification message.
+ *
+ * \param[out] log The log record to fill, or NULL if none.
  */
-void breakbeam_tick(void) {
+void breakbeam_tick(log_record_t *log) {
 	static bool old = false;
 	bool new = breakbeam_interrupted();
 	if (new != old) {
 		old = new;
 		feedback_pend_has_ball();
+	}
+	if (log) {
+		log->tick.breakbeam_diff = breakbeam_difference();
 	}
 }
 

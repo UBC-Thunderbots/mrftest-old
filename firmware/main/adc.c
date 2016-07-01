@@ -272,7 +272,6 @@ void adc_tick(log_record_t *record) {
 	}
 
 	if (record) {
-		record->tick.breakbeam_diff = adc_breakbeam();
 		record->tick.battery_voltage = adc_battery();
 		record->tick.capacitor_voltage = adc_capacitor();
 	}
