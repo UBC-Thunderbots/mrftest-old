@@ -41,7 +41,9 @@ typedef unsigned long TickType_t;
 inline void portYIELD(void) {
 	// Do not allow the compiler to sink any prior non-volatile-qualified
 	// memory writes below the yield, as code should reasonably be able to
-	// expect that an explicit yield happens in program order.
+	// expect that an explicit yield happens in program order. Furthermore, the
+	// yield might be due to a semaphore give releasing a higher-priority task
+	// which must have release semantics.
 	__atomic_signal_fence(__ATOMIC_RELEASE);
 
 	// In a task, yielding is done by pending the PendSV interrupt, which will
@@ -54,7 +56,13 @@ inline void portYIELD(void) {
 	// that a DSB followed by an ISB is necessary to ensure subsequent
 	// instructions are executed in a manner that reflects the effect an access
 	// to the system control space that performs a context-altering operation.
-	asm volatile("dsb\n\tisb");
+	asm volatile("dsb\n\tisb" ::: "memory");
+
+	// Do not allow the compiler to hoist any subsequent non-volatile-qualified
+	// memory reads or writes above the yield. The yield could be due to a
+	// semaphore take, and neither reads not writes should be hoisted above
+	// such an action.
+	__atomic_signal_fence(__ATOMIC_SEQ_CST);
 }
 #define portYIELD_WITHIN_API portYIELD
 inline void portYIELD_FROM_ISR(void) {
@@ -78,6 +86,12 @@ inline void portYIELD_FROM_ISR(void) {
 	// exception return due to Cortex-M4 erratum 838869. Thus, we can assume
 	// the presence of a DSB before the exception return, and need not insert
 	// one here.
+	//
+	// There is no need for a compiler barrier here because this is an ISR. Any
+	// memory reads or writes will definitely be complete by the time the ISR
+	// returns (and hence before any newly unblocked task starts running),
+	// while any preempting ISR cannot assume anything about the state of the
+	// system anyway.
 }
 
 // These functions enable and disable interrupts from ISR or non-ISR code.
