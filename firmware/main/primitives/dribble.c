@@ -4,6 +4,7 @@
 #include "../dribbler.h"
 #include "../physics.h"
 #include "../bangbang.h"
+#include <stdio.h>
 
 #define DRIBBLE_TIME_HORIZON 0.05f //s
 
@@ -68,7 +69,7 @@ static void dribble_tick(log_record_t *logajectory) {
 	float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
 	float pos[3] = {current_states.x, current_states.y, current_states.angle};
 	float max_accel[3] = {SLOW_MAX_X_A, SLOW_MAX_Y_A, SLOW_MAX_T_A};
-	printf("x=%f\ty=%f\tt=%f\n",current_states.vx,current_states.vy,current_states.angle);
+	printf("x=%f\ty=%f\tt=%f\n", (double)current_states.vx, (double)current_states.vy, (double)current_states.angle);
 
 	float accel[3];
 
