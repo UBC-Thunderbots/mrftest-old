@@ -39,6 +39,11 @@
 
 #define DRIBBLER_SPEED_BUFFER_ZONE 200 // RPM
 
+#define MAX_DRIBBLER_CURRENT 5 // Limit the max current the dribbler can draw when stalled
+#define MAX_DELTA_VOLTAGE (MAX_DRIBBLER_CURRENT * (PHASE_RESISTANCE + SWITCH_RESISTANCE + MIN_RESISTANCE_UNDER_PWM70)) // Limit the current by limiting the max delta voltage we can apply
+#define MIN_RESISTANCE_UNDER_PWM70 1.5
+
+
 // Verify that all the timing requirements are set up properly.
 _Static_assert(!(CONTROL_LOOP_HZ % DRIBBLER_TICK_HZ), "Dribbler period is not a multiple of control loop period.");
 
@@ -98,14 +103,23 @@ void dribbler_tick(log_record_t *record) {
 		
 		// Decide whether to run or not.
 		if (winding_energy < THERMAL_MAX_ENERGY_WINDING) {
-			motor_set(4U, MOTOR_MODE_FORWARD, dribbler_pwm);
 			float battery = adc_battery();
 			float back_emf = dribbler_speed * VOLTS_PER_SPEED_UNIT;
 			float applied_voltage = battery * dribbler_pwm / 255.0f;
 			float delta_voltage = applied_voltage - back_emf;
-			float current = delta_voltage / (PHASE_RESISTANCE + SWITCH_RESISTANCE);
-			float power = current * current * PHASE_RESISTANCE;
+		
+			if (applied_voltage - back_emf > MAX_DELTA_VOLTAGE)
+			{
+				// Too much voltage difference 
+				dribbler_pwm = (MAX_DELTA_VOLTAGE + back_emf)/battery * 255.0f;
+				applied_voltage = battery * dribbler_pwm / 255.0f;
+			}
+			delta_voltage = applied_voltage - back_emf;
+			float current = delta_voltage / (PHASE_RESISTANCE + SWITCH_RESISTANCE + 1);
+			printf("Current PWM = %d AppliedV = %f CurrentPumped = %f\r\n", dribbler_pwm, (double)applied_voltage, (double)current);
+			float power = current * current * (PHASE_RESISTANCE+2);
 			float energy = power / DRIBBLER_TICK_HZ;
+			motor_set(4U, MOTOR_MODE_FORWARD, dribbler_pwm);
 			update_thermal_model(energy);
 
 			if (record) {
@@ -165,9 +179,9 @@ uint8_t dribbler_calc_new_pwm(int32_t current_speed, int32_t desired_speed, uint
 		pwm_change = (desired_speed - current_speed) / 100;
 	}
 
-	if (pwm_change + old_dribbler_pwm > 255)
+	if (pwm_change + old_dribbler_pwm > 70)
 	{
-		return 255;
+		return 70;
 	}
 	else if (pwm_change + old_dribbler_pwm < 0)
 	{

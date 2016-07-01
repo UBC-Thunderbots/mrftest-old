@@ -67,7 +67,8 @@ static void dribble_tick(log_record_t *logajectory) {
 
 	float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
 	float pos[3] = {current_states.x, current_states.y, current_states.angle};
-	float max_accel[3] = {MAX_X_A, MAX_Y_A, MAX_T_A};
+	float max_accel[3] = {SLOW_MAX_X_A, SLOW_MAX_Y_A, SLOW_MAX_T_A};
+	printf("x=%f\ty=%f\tt=%f\n",current_states.vx,current_states.vy,current_states.angle);
 
 	float accel[3];
 
@@ -91,7 +92,7 @@ static void dribble_tick(log_record_t *logajectory) {
 	
 	float targetVel = deltaD/timeTarget; 
 	accel[2] = (targetVel - vel[2])/DRIBBLE_TIME_HORIZON;
-	Clamp(&accel[2], MAX_T_A);
+	Clamp(&accel[2], SLOW_MAX_T_A);
 
 	if (logajectory) {
 		logajectory->tick.primitive_data[0] = accel[0];
