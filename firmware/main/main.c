@@ -403,6 +403,9 @@ static void run_normal(void) {
 			__atomic_store_n(&wdt_sources, 0U, __ATOMIC_RELAXED);
 			// Kick the hardware watchdog.
 			IWDG.KR = 0xAAAAU;
+			// Check for FPGA reset or readback failure.
+			assert(gpio_get_input(PIN_FPGA_DONE));
+			assert(gpio_get_input(PIN_FPGA_INIT_B));
 		}
 	}
 
