@@ -292,6 +292,7 @@ void icb_irq_set_vector(icb_irq_t irq, void (*isr)(void));
 icb_conf_result_t icb_conf_start(void);
 void icb_conf_block(const void *data, size_t length);
 icb_conf_result_t icb_conf_end(void);
+void spi1_isr(void);
 void dma2_stream0_isr(void);
 void dma2_stream3_isr(void);
 void exti0_isr(void);
