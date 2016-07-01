@@ -94,17 +94,6 @@ typedef enum {
 	ICB_STATE_DMA,
 } icb_state_t;
 
-typedef enum {
-	ICB_EVENT_NONE,
-	ICB_EVENT_START_BLOCK_PIO,
-	ICB_EVENT_START_BLOCK_DMA,
-	ICB_EVENT_SPI_ISR,
-	ICB_EVENT_SPI_ISR_RXNE,
-	ICB_EVENT_SPI_ISR_TX_NEXT,
-	ICB_EVENT_RX_DMA_ISR,
-	ICB_EVENT_TX_DMA_ISR,
-} icb_event_t;
-
 /**
  * \brief A block of SPI transfer.
  */
@@ -175,14 +164,6 @@ static icb_block_t pio_block;
  */
 static icb_state_t icb_state;
 
-volatile icb_event_t icb_events[64];
-size_t icb_events_count = 0;
-static void icb_event(icb_event_t evt) {
-	if(icb_events_count < sizeof(icb_events) / sizeof(*icb_events)) {
-		icb_events[icb_events_count++] = evt;
-	}
-}
-
 /**
  * \brief Takes the simultaneous-access mutex.
  */
@@ -223,8 +204,6 @@ static void start_next_block(void) {
 
 		// Decide on PIO vs DMA.
 		if(next_block->length == 1 || !(!next_block->tx || dma_check(next_block->tx, next_block->length)) || !(!next_block->rx || dma_check(next_block->rx, next_block->length))) {
-			icb_event(ICB_EVENT_START_BLOCK_PIO);
-
 			// Block is 1 byte long or refers to non-DMA-capable memory. Do
 			// PIO.
 			icb_state = ICB_STATE_PIO;
@@ -269,8 +248,6 @@ static void start_next_block(void) {
 			cr2.RXNEIE = 1;
 			SPI1.CR2 = cr2;
 		} else {
-			icb_event(ICB_EVENT_START_BLOCK_DMA);
-
 			// Do DMA.
 			icb_state = ICB_STATE_DMA;
 
@@ -866,13 +843,11 @@ icb_conf_result_t icb_conf_end(void) {
  */
 volatile SPI_SR_t checked_sr;
 void spi1_isr(void) {
-	icb_event(ICB_EVENT_SPI_ISR);
 	SPI_SR_t sr = SPI1.SR;
 	checked_sr = sr;
 	assert(!sr.OVR);
 	assert(!sr.MODF);
 	if (sr.RXNE) {
-		icb_event(ICB_EVENT_SPI_ISR_RXNE);
 		assert(icb_state == ICB_STATE_PIO);
 		uint8_t ch = SPI1.DR;
 		uint8_t *rx_ptr = pio_block.rx;
@@ -882,7 +857,6 @@ void spi1_isr(void) {
 			pio_block.rx = rx_ptr;
 		}
 		if (pio_block.length) {
-			icb_event(ICB_EVENT_SPI_ISR_TX_NEXT);
 			assert(sr.TXE);
 			const uint8_t *tx_ptr = pio_block.tx;
 			if (tx_ptr) {
@@ -907,7 +881,6 @@ void spi1_isr(void) {
  * 56.
  */
 void dma2_stream0_isr(void) {
-	icb_event(ICB_EVENT_RX_DMA_ISR);
 	_Static_assert(DMA_STREAM_RX == 0U, "Function needs rewriting to the proper stream number!");
 	DMA_LISR_t lisr = DMA2.LISR;
 	DMA_LIFCR_t lifcr = {
@@ -935,7 +908,6 @@ void dma2_stream0_isr(void) {
  * This function should be registered in the interrupt vector table at position 59.
  */
 void dma2_stream3_isr(void) {
-	icb_event(ICB_EVENT_TX_DMA_ISR);
 	_Static_assert(DMA_STREAM_TX == 3U, "Function needs rewriting to the proper stream number!");
 	abort();
 }
