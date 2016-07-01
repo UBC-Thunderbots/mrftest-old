@@ -30,6 +30,8 @@ KickerPanel::KickerPanel(Drive::Robot &robot) :
 	attach(charge_box, 0, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	kicker_button.set_active();
+	kicker_button.signal_toggled().connect(sigc::mem_fun(this, &KickerPanel::update_sensitive));
+	chipper_button.signal_toggled().connect(sigc::mem_fun(this, &KickerPanel::update_sensitive));
 	solenoid_box.pack_start(kicker_button, Gtk::PACK_EXPAND_WIDGET);
 	solenoid_box.pack_start(chipper_button, Gtk::PACK_EXPAND_WIDGET);
 	attach(solenoid_box, 0, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -125,8 +127,8 @@ void KickerPanel::update_sensitive() {
 	} else {
 		pulse_ok = chip_distance.get_value() > 0.0;
 	}
-	kicker_button.set_sensitive(robot.direct_control);
-	chipper_button.set_sensitive(robot.direct_control);
+	kicker_button.set_sensitive(!autokick.get_active() && robot.direct_control);
+	chipper_button.set_sensitive(!autokick.get_active() && robot.direct_control);
 	pulse_width.set_sensitive(!autokick.get_active() && robot.direct_control);
 	chip_distance.set_sensitive(!autokick.get_active() && robot.direct_control);
 	kick.set_sensitive(robot.alive && pulse_ok && robot.direct_control);
