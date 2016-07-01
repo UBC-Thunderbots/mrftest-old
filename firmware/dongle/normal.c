@@ -40,6 +40,12 @@
 #define NUM_PACKETS 64U
 
 /**
+ * \brief The number of ticks during which to not see a drive packet from a
+ * second dongle before stopping reporting a second dongle as present.
+ */
+#define SECOND_DONGLE_TIMEOUT pdMS_TO_TICKS(1000)
+
+/**
  * \brief The possible task notification bits understood by the radio receive
  * task.
  */
@@ -216,6 +222,12 @@ static TaskHandle_t rdtx_task_handle;
  * \brief The handle of the radio receive task.
  */
 static TaskHandle_t rdrx_task_handle;
+
+/**
+ * \brief The timestamp at which the most recent packet from a second dongle
+ * was received.
+ */
+static TickType_t second_dongle_last;
 
 /**
  * \brief Handles rising edge interrupts on the MRF interrupt line.
@@ -672,7 +684,10 @@ static void dongle_status_task(void *UNUSED(param)) {
 		bool shutting_down = false;
 		while (!shutting_down) {
 			// Send the state first.
-			uint8_t state = estop_read() | (__atomic_exchange_n(&rx_fcs_error, false, __ATOMIC_RELAXED) ? 0x04U : 0x00U);
+			unsigned int second_dongle_last_local = __atomic_load_n(&second_dongle_last, __ATOMIC_RELAXED);
+			unsigned int now = xTaskGetTickCount();
+			bool second_dongle = now - second_dongle_last_local < SECOND_DONGLE_TIMEOUT;
+			uint8_t state = estop_read() | (__atomic_exchange_n(&rx_fcs_error, false, __ATOMIC_RELAXED) ? 0x04U : 0x00U) | (second_dongle ? 0x08U : 0x00U);
 			bool ok;
 			while (!(ok = uep_write(0x83U, &state, sizeof(state), false)) && errno == EPIPE) {
 				if (!uep_halt_wait(0x83U)) {
@@ -685,7 +700,7 @@ static void dongle_status_task(void *UNUSED(param)) {
 
 			// Wait for the next change of state.
 			if (!shutting_down) {
-				xSemaphoreTake(dongle_status_sem, portMAX_DELAY);
+				xSemaphoreTake(dongle_status_sem, second_dongle ? SECOND_DONGLE_TIMEOUT : portMAX_DELAY);
 			}
 		}
 
@@ -879,6 +894,12 @@ static void rdrx_task(void *UNUSED(param)) {
 										uint8_t byte = mrf_read_long(MRF_REG_LONG_RXFIFO + 1U /* Frame length */ + HEADER_LENGTH + i);
 										crc = crc_update(crc, byte);
 									}
+
+									if (source_address == 0x0100U) {
+										// This is from another dongle!
+										__atomic_store_n(&second_dongle_last, xTaskGetTickCount(), __ATOMIC_RELAXED);
+										xSemaphoreGive(dongle_status_sem);
+									}
 								}
 							}
 						}
@@ -964,6 +985,7 @@ void normal_on_enter(void) {
 	rx_fcs_error = false;
 	drive_tick_pending = false;
 	drive_transfer_complete = false;
+	second_dongle_last = xTaskGetTickCount() - SECOND_DONGLE_TIMEOUT;
 
 	// Initialize the radio.
 	mrf_init();

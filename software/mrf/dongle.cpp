@@ -114,6 +114,7 @@ MRFDongle::MRFDongle() :
 		normal_altsetting(-1),
 		status_transfer(device, 3, 1, true, 0),
 		rx_fcs_fail_message(u8"Dongle receive FCS fail", Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::HIGH),
+		second_dongle_message(u8"Second dongle on this channel+PAN", Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
 		pending_beep_length(0) {
 	// Sanity-check the dongle by looking for an interface with the appropriate subclass and alternate settings with the appropriate protocols.
 	// While doing so, discover which interface number is used for the radio and which alternate settings are for configuration-setting and normal operation.
@@ -318,6 +319,7 @@ void MRFDongle::handle_status(AsyncOperation<void> &) {
 	if (status_transfer.data()[0U] & 4U) {
 		rx_fcs_fail_message.fire();
 	}
+	second_dongle_message.active(status_transfer.data()[0] & 8U);
 	status_transfer.submit();
 }
 

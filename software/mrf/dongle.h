@@ -106,7 +106,7 @@ class MRFDongle final : public Drive::Dongle {
 		std::array<std::unique_ptr<USB::BulkInTransfer>, 32> mdr_transfers;
 		std::array<std::unique_ptr<USB::BulkInTransfer>, 32> message_transfers;
 		USB::InterruptInTransfer status_transfer;
-		Annunciator::Message rx_fcs_fail_message;
+		Annunciator::Message rx_fcs_fail_message, second_dongle_message;
 		std::unique_ptr<USB::BulkOutTransfer> drive_transfer;
 		std::list<std::unique_ptr<USB::BulkOutTransfer>> unreliable_messages;
 		std::unique_ptr<MRFRobot> robots[8];
