@@ -65,6 +65,7 @@
 #include <nvic.h>
 #include <rcc.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <task.h>
 #include <registers/adc.h>
 #include <registers/dma.h>
@@ -268,6 +269,7 @@ void adc_tick(log_record_t *record) {
 	battery_filtered = filtered;
 	portENABLE_INTERRUPTS();
 	if (filtered < 12.5f) {
+		printf("Battery critical (%f volts).\r\n", (double) filtered);
 		main_shutdown(MAIN_SHUT_MODE_POWER);
 	}
 
