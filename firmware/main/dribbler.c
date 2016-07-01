@@ -41,7 +41,7 @@
 
 #define MAX_DRIBBLER_CURRENT 5 // Limit the max current the dribbler can draw when stalled
 #define MAX_DELTA_VOLTAGE (MAX_DRIBBLER_CURRENT * (PHASE_RESISTANCE + SWITCH_RESISTANCE + MIN_RESISTANCE_UNDER_PWM70)) // Limit the current by limiting the max delta voltage we can apply
-#define MIN_RESISTANCE_UNDER_PWM70 1.5
+#define MIN_RESISTANCE_UNDER_PWM70 1.5f
 
 
 // Verify that all the timing requirements are set up properly.
