@@ -55,6 +55,11 @@
 #include <stdio.h>
 #include <task.h>
 
+/**
+ * \brief How long to wait for a received packet before resetting the radio.
+ */
+#define RECEIVE_TIMEOUT pdMS_TO_TICKS(1000)
+
 typedef enum {
 	MRF_REG_SHORT_RXMCR,
 	MRF_REG_SHORT_PANIDL,
@@ -177,9 +182,9 @@ typedef enum {
 	RX_EVENT_CANCEL = 0x02,
 } rx_event_t;
 
+static mrf_settings_t current_settings;
 static SemaphoreHandle_t da_irq_sem, tx_irq_sem, tx_mutex;
 static EventGroupHandle_t rx_event_group;
-static uint16_t saved_pan_id, saved_short_address;
 static volatile bool tx_cancelled;
 
 static void da_isr(void) {
@@ -246,37 +251,8 @@ static void write_long(uint16_t reg, uint8_t value) {
 	xSemaphoreTake(da_irq_sem, portMAX_DELAY);
 }
 
-/**
- * \brief Initializes the radio.
- *
- * \param[in] channel the channel to operate on, from 11 to 26 inclusive
- *
- * \param[in] symbol_rate \c true to run at 625 kb/s, or \c false to run at 250 kb/s
- *
- * \param[in] short_address the 16-bit address to use
- *
- * \param[in] pan_id the PAN ID to communicate on, from 0 to 0xFFFE
- *
- * \param[in] mac_address the node’s MAC address
- */
-void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short_address, uint64_t mac_address) {
+static void init_radio(void) {
 	static uint8_t int_pin;
-
-	// Save parameters.
-	saved_pan_id = pan_id;
-	saved_short_address = short_address;
-
-	// Create semaphores.
-	static StaticSemaphore_t da_irq_sem_storage, tx_irq_sem_storage, tx_mutex_storage;
-	static StaticEventGroup_t rx_event_group_storage;
-	da_irq_sem = xSemaphoreCreateBinaryStatic(&da_irq_sem_storage);
-	tx_irq_sem = xSemaphoreCreateBinaryStatic(&tx_irq_sem_storage);
-	rx_event_group = xEventGroupCreateStatic(&rx_event_group_storage);
-	tx_mutex = xSemaphoreCreateMutexStatic(&tx_mutex_storage);
-	icb_irq_set_vector(ICB_IRQ_MRF_DA, &da_isr);
-	icb_irq_set_vector(ICB_IRQ_MRF_TX, &tx_isr);
-	icb_irq_set_vector(ICB_IRQ_MRF_RX, &rx_isr);
-	icb_irq_set_vector(ICB_IRQ_MRF_RX_FCS_FAIL, &rx_fcs_fail_isr);
 
 	// Reset the chip.
 	reset();
@@ -288,6 +264,7 @@ void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short
 	write_short(MRF_REG_SHORT_EADR0, 0x5A);
 	if (read_short(MRF_REG_SHORT_EADR0) != 0x5A) {
 		fputs("Bus readback test failed.\r\n", stdout);
+		return;
 	}
 
 	// Check that the interrupt pin is not stuck or disconnected.
@@ -295,6 +272,7 @@ void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short
 	icb_receive(ICB_COMMAND_MRF_DA_GET_INT, &int_pin, sizeof(int_pin));
 	if (!int_pin) {
 		fputs("INT pin stuck low.\r\n", stdout);
+		return;
 	}
 
 	// Write a pile of fixed register values.
@@ -337,28 +315,30 @@ void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short
 	icb_receive(ICB_COMMAND_MRF_DA_GET_INT, &int_pin, sizeof(int_pin));
 	if (int_pin) {
 		fputs("INT pin stuck high.\r\n", stdout);
+		return;
 	}
 
 	// Initialize per-configuration stuff.
-	write_long(MRF_REG_LONG_RFCON0, ((channel - 0x0B) << 4) | 0x03);
+	write_long(MRF_REG_LONG_RFCON0, ((current_settings.channel - 0x0B) << 4) | 0x03);
 	write_long(MRF_REG_LONG_RFCON3, 0x18);
 	write_short(MRF_REG_SHORT_RFCTL, 0x04);
 	write_short(MRF_REG_SHORT_RFCTL, 0x00);
 	vTaskDelay(1U);
-	if (symbol_rate) {
+	if (current_settings.symbol_rate) {
 		write_short(MRF_REG_SHORT_BBREG0, 0x01);
 		write_short(MRF_REG_SHORT_BBREG3, 0x34);
 		write_short(MRF_REG_SHORT_BBREG4, 0x5C);
 		write_short(MRF_REG_SHORT_SOFTRST, 0x02);
 	}
-	write_short(MRF_REG_SHORT_PANIDL, pan_id);
-	write_short(MRF_REG_SHORT_PANIDH, pan_id >> 8);
+	write_short(MRF_REG_SHORT_PANIDL, current_settings.pan_id);
+	write_short(MRF_REG_SHORT_PANIDH, current_settings.pan_id >> 8);
+	uint64_t mac_address = current_settings.mac_address;
 	for (uint8_t i = 0; i < 8; ++i) {
 		write_short(MRF_REG_SHORT_EADR0 + i, mac_address);
 		mac_address >>= 8;
 	}
-	write_short(MRF_REG_SHORT_SADRH, short_address >> 8);
-	write_short(MRF_REG_SHORT_SADRL, short_address);
+	write_short(MRF_REG_SHORT_SADRH, current_settings.short_address >> 8);
+	write_short(MRF_REG_SHORT_SADRL, current_settings.short_address);
 
 	// Enable the external amplifiers.
 	// For MRF24J40MB, no separate power regulator control is needed, but GPIO2:1 need to be configured to control the amplifiers and RF switches.
@@ -372,6 +352,31 @@ void mrf_init(uint8_t channel, bool symbol_rate, uint16_t pan_id, uint16_t short
 
 	// Enable the offload engines.
 	icb_send(ICB_COMMAND_MRF_OFFLOAD, 0, 0U);
+}
+
+/**
+ * \brief Initializes the radio.
+ *
+ * \param[in] settings The settings to use.
+ */
+void mrf_init(const mrf_settings_t *settings) {
+	// Save parameters.
+	current_settings = *settings;
+
+	// Create semaphores.
+	static StaticSemaphore_t da_irq_sem_storage, tx_irq_sem_storage, tx_mutex_storage;
+	static StaticEventGroup_t rx_event_group_storage;
+	da_irq_sem = xSemaphoreCreateBinaryStatic(&da_irq_sem_storage);
+	tx_irq_sem = xSemaphoreCreateBinaryStatic(&tx_irq_sem_storage);
+	rx_event_group = xEventGroupCreateStatic(&rx_event_group_storage);
+	tx_mutex = xSemaphoreCreateMutexStatic(&tx_mutex_storage);
+	icb_irq_set_vector(ICB_IRQ_MRF_DA, &da_isr);
+	icb_irq_set_vector(ICB_IRQ_MRF_TX, &tx_isr);
+	icb_irq_set_vector(ICB_IRQ_MRF_RX, &rx_isr);
+	icb_irq_set_vector(ICB_IRQ_MRF_RX_FCS_FAIL, &rx_fcs_fail_isr);
+
+	// Initialize the radio.
+	init_radio();
 }
 
 /**
@@ -392,7 +397,7 @@ void mrf_shutdown(void) {
  * \return the PAN ID
  */
 uint16_t mrf_pan_id(void) {
-	return saved_pan_id;
+	return current_settings.pan_id;
 }
 
 /**
@@ -401,7 +406,7 @@ uint16_t mrf_pan_id(void) {
  * \return the short address
  */
 uint16_t mrf_short_address(void) {
-	return saved_short_address;
+	return current_settings.short_address;
 }
 
 /**
@@ -494,30 +499,39 @@ void mrf_transmit_cancel(void) {
  * It does not make sense to try to use it from multiple threads; there is no control over which frame went to which caller.
  */
 size_t mrf_receive(void *buffer) {
-	// Wait until receive complete or cancelled.
-	EventBits_t bits = xEventGroupWaitBits(rx_event_group, RX_EVENT_IRQ | RX_EVENT_CANCEL, pdTRUE, pdFALSE, portMAX_DELAY);
-	if (bits & RX_EVENT_IRQ) {
-		// No mutex is needed because only one task will take the receive IRQ event bit.
-		// A second ICB IRQ is not issued until after ICB_COMMAND_MRF_RX_READ is roughly complete.
-		// Therefore, the second task cannot see RX_EVENT_IRQ until the first task has finished receiving and everything is stable again.
+	for (;;) {
+		// Wait until receive complete or cancelled.
+		EventBits_t bits = xEventGroupWaitBits(rx_event_group, RX_EVENT_IRQ | RX_EVENT_CANCEL, pdTRUE, pdFALSE, RECEIVE_TIMEOUT);
+		if (bits & RX_EVENT_IRQ) {
+			// No mutex is needed because only one task will take the receive IRQ event bit.
+			// A second ICB IRQ is not issued until after ICB_COMMAND_MRF_RX_READ is roughly complete.
+			// Therefore, the second task cannot see RX_EVENT_IRQ until the first task has finished receiving and everything is stable again.
 
-		// If a cancellation and a receive IRQ occurred simultaneously, stash the cancellation to take next time.
-		if (bits & RX_EVENT_CANCEL) {
-			xEventGroupSetBits(rx_event_group, RX_EVENT_CANCEL);
+			// If a cancellation and a receive IRQ occurred simultaneously, stash the cancellation to take next time.
+			if (bits & RX_EVENT_CANCEL) {
+				xEventGroupSetBits(rx_event_group, RX_EVENT_CANCEL);
+			}
+
+			// Get frame length.
+			static uint8_t length;
+			icb_receive(ICB_COMMAND_MRF_RX_GET_SIZE, &length, sizeof(length));
+			assert(length);
+
+			// Copy out the frame.
+			icb_receive(ICB_COMMAND_MRF_RX_READ, buffer, length);
+
+			return length;
+		} else if (bits & RX_EVENT_CANCEL) {
+			// Cancellation event.
+			return 0U;
+		} else {
+			// Timeout; reset radio.
+			fputs("Receive timeout; reset radio.\r\n", stdout);
+			xSemaphoreTake(tx_mutex, portMAX_DELAY);
+			mrf_shutdown();
+			init_radio();
+			xSemaphoreGive(tx_mutex);
 		}
-
-		// Get frame length.
-		static uint8_t length;
-		icb_receive(ICB_COMMAND_MRF_RX_GET_SIZE, &length, sizeof(length));
-		assert(length);
-
-		// Copy out the frame.
-		icb_receive(ICB_COMMAND_MRF_RX_READ, buffer, length);
-
-		return length;
-	} else {
-		// Cancellation event.
-		return 0U;
 	}
 }
 

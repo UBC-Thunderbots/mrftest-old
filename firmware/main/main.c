@@ -350,7 +350,16 @@ static void run_normal(void) {
 
 	fputs("MRF init: ", stdout);
 	fflush(stdout);
-	mrf_init(mrf_profiles[profile].channel, mrf_profiles[profile].symbol_rate, mrf_profiles[profile].pan, switches[0U], UINT64_C(0xec89d61e8ffd409b));
+	{
+		const mrf_settings_t settings = {
+			.channel = mrf_profiles[profile].channel,
+			.symbol_rate = mrf_profiles[profile].symbol_rate,
+			.pan_id = mrf_profiles[profile].pan,
+			.short_address = switches[0],
+			.mac_address = UINT64_C(0xec89d61e8ffd409b),
+		};
+		mrf_init(&settings);
+	}
 	fputs("OK\r\n", stdout);
 	feedback_init();
 	motor_init();
