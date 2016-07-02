@@ -418,7 +418,7 @@ namespace {
 #pragma GCC diagnostic pop
 			char stamp_formatted[4096];
 			std::strftime(stamp_formatted, sizeof(stamp_formatted), "%c", std::localtime(&t));
-			std::cout << (i + 1) << '@' << stamp_formatted << " + 0." << todecu(epoch.stamp % 1000000, 6) << " s: " << '[' << epoch.first_sector << ',' << epoch.last_sector << "]\n";
+			std::cout << (i + 1) << '@' << stamp_formatted << " + 0." << todecu(epoch.stamp % 1000000, 6) << " s: " << '[' << epoch.first_sector << ',' << epoch.last_sector << "] length " << (epoch.last_sector - epoch.first_sector + 1) << '\n';
 		}
 		return 1;
 	}
