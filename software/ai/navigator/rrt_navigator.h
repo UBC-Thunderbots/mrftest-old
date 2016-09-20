@@ -1,7 +1,6 @@
-#ifndef AI_NAVIGATOR_RRT_NAVIGATOR_H
-#define AI_NAVIGATOR_RRT_NAVIGATOR_H
+#pragma once
 
-#include "ai/param.h"
+#include "ai/backend/primitives/primitive.h"
 #include "ai/util.h"
 #include "util/object_store.h"
 #include "ai/backend/player.h"
@@ -11,27 +10,21 @@
 namespace AI {
 	namespace Nav {
 		namespace RRT {
-
 			class PlayerData final : public ObjectStore::Element {
 				public:
-					typedef std::shared_ptr<PlayerData> Ptr;
-					unsigned int added_flags;
-					Point previous_point;
+					inline PlayerData() { }
 
-					AI::Flags::MoveType prev_move_type;
+					typedef std::shared_ptr<PlayerData> Ptr;
 					AI::Flags::MovePrio prev_move_prio;
 					AI::Flags::AvoidDistance prev_avoid_distance;
 					Point previous_dest;
 					Angle previous_orient;
-					AI::PrimitiveInfo last_primitive;
-					AI::PrimitiveInfo last_shoot_primitive;
-					unsigned int counter_since_last_primitive;
-					unsigned int counter_since_last_shoot_primitive;
+
+					AI::BE::Primitives::PrimitiveDescriptor last_shoot_primitive;
+					AI::BE::Primitives::PrimitiveDescriptor hl_request;
+					AI::BE::Primitives::PrimitiveDescriptor nav_request;
 					bool fancy_shoot_maneuver;
-									
 			};
 		}
 	}
 }
-
-#endif

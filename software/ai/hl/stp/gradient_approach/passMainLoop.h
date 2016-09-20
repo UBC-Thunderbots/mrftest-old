@@ -13,12 +13,13 @@
 #include "geom/angle.h"
 
 
+#include <atomic>
+
 namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace GradientApproach {
-	
-				void superLoop(PassInfo::worldSnapshot );
+				void superLoop(PassInfo::worldSnapshot, std::atomic_bool* stop_token);
 
 				void testLoop(PassInfo::worldSnapshot);
 				bool comparePassQuality(PassInfo::passDataStruct a, PassInfo::passDataStruct b);

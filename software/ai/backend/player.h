@@ -1,9 +1,8 @@
-#ifndef AI_BACKEND_PLAYER_H
-#define AI_BACKEND_PLAYER_H
+#pragma once
 
 #include "ai/flags.h"
 #include "ai/backend/robot.h"
-#include "ai/common/objects/time.h"
+#include "ai/common/time.h"
 #include "drive/robot.h"
 #include "geom/angle.h"
 #include "geom/point.h"
@@ -14,18 +13,11 @@
 #include <vector>
 
 namespace AI {
-	struct PrimitiveInfo {
-		Drive::Primitive type;
-		Point field_point;
-		Angle field_angle;
-		Angle field_angle2;
-		double field_double;
-		double field_double2;
-		bool field_bool;
-		bool care_angle;
-	};
-
 	namespace BE {
+		namespace Primitives {
+			class Primitive;
+		}
+
 		/**
 		 * \brief A player, as exposed by the backend
 		 */
@@ -61,17 +53,14 @@ namespace AI {
 					CARRY,
 				};
 
-				void move(Point dest, Angle ori, Point vel);
-				unsigned int flags() const;
-				void flags(unsigned int flags);
-				AI::Flags::MoveType type() const;
-				void type(AI::Flags::MoveType type);
+				AI::Flags::MoveFlags flags() const;
+				void flags(AI::Flags::MoveFlags flags);
+				void set_flags(AI::Flags::MoveFlags flags);
+				void unset_flags(AI::Flags::MoveFlags flags);
+
 				AI::Flags::MovePrio prio() const;
 				void prio(AI::Flags::MovePrio prio);
-				bool has_destination() const final override;
-				std::pair<Point, Angle> destination() const final override;
 
-				void destination(std::pair<Point, Angle> dest);
 				virtual const Property<Drive::Primitive> &primitive() const = 0;
 				virtual void move_coast() = 0;
 				virtual void move_brake() = 0;
@@ -85,12 +74,18 @@ namespace AI {
 				virtual void move_catch(Angle angle_diff, double displacement, double speed) = 0;
 				virtual void move_pivot(Point centre, Angle swing, Angle orientation) = 0;
 				virtual void move_spin(Point dest, Angle speed) = 0;
-				Point target_velocity() const;
 				bool has_display_path() const final override;
 				const std::vector<Point> &display_path() const final override;
 				void display_path(const std::vector<Point> &p);
 				void pre_tick();
 				void update_predictor(AI::Timestamp ts);	
+
+				void push_prim(Primitives::Primitive* prim);
+				void erase_prim(Primitives::Primitive* prim);
+				void pop_prim();
+				void clear_prims();
+				bool has_prim() const;
+				Primitives::Primitive* top_prim() const;
 
 				Visualizable::Colour visualizer_colour() const final override;
 				bool highlight() const final override;
@@ -101,36 +96,20 @@ namespace AI {
 				virtual bool chicker_ready() const = 0;
 				virtual bool autokick_fired() const = 0;
 
-				AI::PrimitiveInfo hl_request;
-
 			protected:
-				bool moved;
-
 				explicit Player(unsigned int pattern);
 
 			private:
-				std::pair<Point, Angle> destination_;
-				Point target_velocity_;
-				unsigned int flags_;
-				AI::Flags::MoveType move_type_;
+				std::deque<Primitives::Primitive*> prims_;
+				AI::Flags::MoveFlags flags_;
 				AI::Flags::MovePrio move_prio_;
 				std::vector<Point> display_path_;
 		};
 	}
 }
 
-
-
-inline unsigned int AI::BE::Player::flags() const {
+inline AI::Flags::MoveFlags AI::BE::Player::flags() const {
 	return flags_;
-}
-
-inline AI::Flags::MoveType AI::BE::Player::type() const {
-	return move_type_;
-}
-
-inline void AI::BE::Player::type(AI::Flags::MoveType type) {
-	move_type_ = type;
 }
 
 inline AI::Flags::MovePrio AI::BE::Player::prio() const {
@@ -140,6 +119,3 @@ inline AI::Flags::MovePrio AI::BE::Player::prio() const {
 inline void AI::BE::Player::prio(AI::Flags::MovePrio prio) {
 	move_prio_ = prio;
 }
-
-#endif
-

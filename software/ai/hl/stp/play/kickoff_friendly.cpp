@@ -1,7 +1,9 @@
-#include "ai/hl/stp/tactic/move.h"
-#include "ai/hl/stp/tactic/wait_playtype.h"
-#include "ai/hl/stp/tactic/free_kick_pass.h"
 #include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/stp/tactic/legacy_offend.h"
+#include "ai/hl/stp/tactic/legacy_defend.h"
+#include "ai/hl/stp/tactic/move.h"
+#include "ai/hl/stp/tactic/shoot.h"
+#include "ai/hl/stp/tactic/free_kick_to_goal.h"
 
 using namespace AI::HL::W;
 namespace Predicates = AI::HL::STP::Predicates;
@@ -18,39 +20,24 @@ namespace {
 	constexpr Point ready_positions[2] = { Point(-AVOIDANCE_DIST, -SEPARATION_DIST), Point(-AVOIDANCE_DIST, SEPARATION_DIST) };
 }
 
-/**
- * Condition:
- * - It is the execute friendly kickoff play
- *
- * Objective:
- * - Pass the ball to a friendly player without double touching the ball
- */
-BEGIN_PLAY(KickoffFriendly)
-INVARIANT(Predicates::our_team_size_at_least(world, 2) && Predicates::their_team_size_at_least(world, 3) && (Predicates::playtype(world, AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY)))
+BEGIN_DEC(KickoffFriendly)
+INVARIANT((playtype(world, PlayType::PREPARE_KICKOFF_FRIENDLY) || playtype(world, PlayType::EXECUTE_KICKOFF_FRIENDLY)) && our_team_size_at_least(world, 2))
 APPLICABLE(true)
+END_DEC(KickoffFriendly)
+
+BEGIN_DEF(KickoffFriendly)
 DONE(false)
 FAIL(false)
-BEGIN_ASSIGN()
+EXECUTE()
+tactics[0] = Tactic::goalie_dynamic(world, 1);
+tactics[1] = Tactic::move(world, kicker_position);
+tactics[2] = Tactic::defend_duo_defender(world, true);
+tactics[3] = Tactic::move(world, ready_positions[0]);
+tactics[4] = Tactic::move(world, ready_positions[1]);
+tactics[5] = Tactic::defend_duo_extra1(world, true);
 
-// GOALIE
-goalie_role.push_back(goalie_dynamic(world, 1));
+while (!playtype(world, PlayType::EXECUTE_KICKOFF_FRIENDLY)) yield(caller);
+tactics[1] = Tactic::free_kick_to_goal(world);
 
-// ROLE 1
-roles[0].push_back(wait_playtype(world, move(world, kicker_position), AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY));
-roles[0].push_back(free_kick_pass(world, world.field().enemy_goal()));
-
-// ROLE 2
-roles[1].push_back(defend_duo_defender(world));
-
-// ROLE 3
-roles[2].push_back(move(world, ready_positions[0]));
-
-// ROLE 4
-roles[3].push_back(move(world, ready_positions[1]));
-
-// ROLE 5
-roles[4].push_back(defend_duo_extra1(world));
-
-END_ASSIGN()
-END_PLAY()
-
+while (1) yield(caller);
+END_DEF(KickoffFriendly)

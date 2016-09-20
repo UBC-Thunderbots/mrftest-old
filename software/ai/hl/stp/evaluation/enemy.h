@@ -93,6 +93,10 @@ namespace AI {
 				std::vector<int> calc_min_enemy_pass(const std::vector<Point> obstacles, const std::vector<Point> enemies);
 
 				extern DegreeParam enemy_shoot_accuracy;
+
+				double enemy_passee_risk(World, std::vector<Point>, Robot, Robot, double);
+
+				std::vector<Robot> rank_enemy_passee_risk(World, std::vector<Point>, double);
 			}
 		}
 	}

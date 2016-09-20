@@ -1,5 +1,5 @@
 #include "ai/backend/backend.h"
-#include "ai/common/enums/colour.h"
+#include "ai/common/colour.h"
 #include <glibmm/ustring.h>
 
 namespace AI {

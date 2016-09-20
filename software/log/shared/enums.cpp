@@ -120,70 +120,6 @@ AI::Common::PlayType Log::Util::PlayType::of_protobuf(Log::PlayType pt) {
 	throw std::invalid_argument("Invalid enumeration element.");
 }
 
-Log::MoveType Log::Util::MoveType::to_protobuf(AI::Flags::MoveType mt) {
-	switch (mt) {
-		case AI::Flags::MoveType::NORMAL:
-			return Log::MOVE_TYPE_NORMAL;
-
-		case AI::Flags::MoveType::DRIBBLE:
-			return Log::MOVE_TYPE_DRIBBLE;
-
-		case AI::Flags::MoveType::CATCH:
-			return Log::MOVE_TYPE_CATCH;
-
-		case AI::Flags::MoveType::CATCH_PIVOT:
-			return Log::MOVE_TYPE_CATCH_PIVOT;
-
-		case AI::Flags::MoveType::INTERCEPT:
-			return Log::MOVE_TYPE_INTERCEPT;
-
-		case AI::Flags::MoveType::INTERCEPT_PIVOT:
-			return Log::MOVE_TYPE_INTERCEPT_PIVOT;
-
-		case AI::Flags::MoveType::RAM_BALL:
-			return Log::MOVE_TYPE_RAM_BALL;
-
-		case AI::Flags::MoveType::HALT:
-			return Log::MOVE_TYPE_HALT;
-
-		case AI::Flags::MoveType::PIVOT:
-			return Log::MOVE_TYPE_PIVOT;
-	}
-	throw std::invalid_argument("Invalid enumeration element.");
-}
-
-AI::Flags::MoveType Log::Util::MoveType::of_protobuf(Log::MoveType mt) {
-	switch (mt) {
-		case Log::MOVE_TYPE_NORMAL:
-			return AI::Flags::MoveType::NORMAL;
-
-		case Log::MOVE_TYPE_DRIBBLE:
-			return AI::Flags::MoveType::DRIBBLE;
-
-		case Log::MOVE_TYPE_CATCH:
-			return AI::Flags::MoveType::CATCH;
-
-		case Log::MOVE_TYPE_CATCH_PIVOT:
-			return AI::Flags::MoveType::CATCH_PIVOT;
-
-		case Log::MOVE_TYPE_INTERCEPT:
-			return AI::Flags::MoveType::INTERCEPT;
-
-		case Log::MOVE_TYPE_INTERCEPT_PIVOT:
-			return AI::Flags::MoveType::INTERCEPT_PIVOT;
-
-		case Log::MOVE_TYPE_RAM_BALL:
-			return AI::Flags::MoveType::RAM_BALL;
-
-		case Log::MOVE_TYPE_HALT:
-			return AI::Flags::MoveType::HALT;
-
-		case Log::MOVE_TYPE_PIVOT:
-			return AI::Flags::MoveType::PIVOT;
-	}
-	throw std::invalid_argument("Invalid enumeration element.");
-}
-
 Log::MovePrio Log::Util::MovePrio::to_protobuf(AI::Flags::MovePrio mp) {
 	switch (mp) {
 		case AI::Flags::MovePrio::HIGH:
@@ -212,3 +148,29 @@ AI::Flags::MovePrio Log::Util::MovePrio::of_protobuf(Log::MovePrio mp) {
 	throw std::invalid_argument("Invalid enumeration element.");
 }
 
+
+Log::Tick::FriendlyRobot::HLPrimitive::Primitive Log::Util::Primitive::to_protobuf(Drive::Primitive mp) {
+	switch (mp) {
+		case Drive::Primitive::STOP:
+			return Log::Tick::FriendlyRobot::HLPrimitive::STOP;
+
+		case Drive::Primitive::MOVE:
+			return Log::Tick::FriendlyRobot::HLPrimitive::MOVE;
+
+		case Drive::Primitive::DRIBBLE:
+			return Log::Tick::FriendlyRobot::HLPrimitive::DRIBBLE;
+
+		case Drive::Primitive::SHOOT:
+			return Log::Tick::FriendlyRobot::HLPrimitive::SHOOT;
+
+		case Drive::Primitive::CATCH:
+			return Log::Tick::FriendlyRobot::HLPrimitive::CATCH;
+
+		case Drive::Primitive::PIVOT:
+			return Log::Tick::FriendlyRobot::HLPrimitive::PIVOT;
+
+		case Drive::Primitive::SPIN:
+			return Log::Tick::FriendlyRobot::HLPrimitive::SPIN;
+	}
+	throw std::invalid_argument("Invalid enumeration element.");
+}

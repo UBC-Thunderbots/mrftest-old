@@ -11,7 +11,7 @@
 #include "geom/point.h"
 #include "geom/util.h"
 #include "ai/hl/util.h"
-#include "ai/common/objects/field.h"
+#include "ai/common/field.h"
 #include <math.h>
 
 using namespace AI::HL::W;
@@ -19,11 +19,65 @@ using namespace AI::HL::STP;
 using namespace AI::HL::Util;
 
 
+Point AI::HL::STP::Evaluation::quickest_intercept_position(World world, Player player) {
+/* Returns the Point at which the player should move to, to intercept the ball as fast as possible
+ * Will move to the shooting side of the ball if it is not moving, otherwise will move in its path
+ *
+ */
+
+	Point target = world.ball().position();//defaults to ball position
+	double ball_vel_threshold = 0.001;
+
+	double time = 0.0;
+	double delta_t = 0.005;
+	Point predicted_ball_pos = world.ball().position();
+	Point predicted_intercept_pos = predicted_ball_pos;
+	double intercept_time;
+	Rect fieldBounds = Rect(world.field().friendly_corner_pos(), world.field().enemy_corner_neg());
+
+
+	//ball slow/stopped
+	if(world.ball().velocity().len() < ball_vel_threshold) {
+		target = world.ball().position() + (world.ball().position() - world.field().enemy_goal()).norm(Robot::MAX_RADIUS);
+	}
+	//ball moving
+	else {
+		do {
+			predicted_ball_pos = world.ball().position(time);
+			predicted_intercept_pos = predicted_ball_pos + world.ball().velocity().norm(Robot::MAX_RADIUS);
+			intercept_time = time_to_intercept(player, predicted_intercept_pos);
+
+			//We can intercept
+			if(intercept_time < time) {
+				target = predicted_intercept_pos;
+				return target;
+			}
+			//default to where the ball would leave the field
+			else {
+				target = line_rect_intersect(fieldBounds, world.ball().position(), world.ball().position() + world.ball().velocity().norm(10)).front();
+			}
+
+			time += delta_t;
+		}while(time < 5 && fieldBounds.point_inside(predicted_ball_pos) == true);
+	}
+
+	return target;
+}
+
+
+
+double AI::HL::STP::Evaluation::time_to_intercept(Player player, Point target) {
+	return (target - player.position()).len() / (2.0 * 0.95) + 0.2;
+}
+
+
+
+
 double AI::HL::STP::Evaluation::getBestIntercept(World world, Player interceptor, Point predicted_intercept_pos, double time) {
 /* Notes:
  * -Consider time to reach point - less is better
  * -Consider how close enemy is - farther away is better
- * 		-if enemy can intercept, no point after that point should be considered - should be handled in tactic
+ * 		-if enemy can intercept, no point after that point should be considered - handled in tactic!
  *  -Consider shooting and passing opportunities at that point - more is better
  *
  * Weights:
@@ -37,9 +91,6 @@ double AI::HL::STP::Evaluation::getBestIntercept(World world, Player interceptor
  *
  *
  */
-
-	double R_Radius = Robot::MAX_RADIUS;
-	//double e = 2.71828182845904523536028747135266249775724709369995;
 
 	double score = 0.0;
 	double time_score = 1.0;
@@ -63,12 +114,16 @@ double AI::HL::STP::Evaluation::getBestIntercept(World world, Player interceptor
 	for(unsigned int i=0; i < enemies.size(); i++) {//++i?
 		enemy = enemies[i];
 		e_pos = enemy.position();
-		e_dist = (predicted_intercept_pos - e_pos).len() - R_Radius;//dist from closest edge of robot
+		e_dist = (predicted_intercept_pos - e_pos).len() - Robot::MAX_RADIUS;//dist from closest edge of robot
 
 		enemy_score += pow(((threat_dist - e_dist) / (e_dist / (enemy_weight / 500))),3.0);
 
 		if(enemy_score > 500) {
 			enemy_score = 500;
+		}
+
+		if(enemy_score < 0) {
+			enemy_score = 0;
 		}
 	}
 

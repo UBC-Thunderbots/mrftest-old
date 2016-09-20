@@ -1,7 +1,7 @@
 #ifndef AI_BACKEND_FIELD_H
 #define AI_BACKEND_FIELD_H
 
-#include "ai/common/objects/field.h"
+#include "ai/common/field.h"
 #include "uicomponents/visualizer.h"
 
 namespace AI {

@@ -2,23 +2,18 @@
 #include "ai/hl/stp/action/intercept.h"
 
 BoolParam INTERCEPT_MP_MOVE(u8"Use mp_move or MP_intercept", u8"AI/HL/STP/Action/Shoot", true);
-void AI::HL::STP::Action::intercept(AI::HL::STP::Player player, const Point target) {
-	// Avoid defense areas
-	player.flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE ||
-		AI::Flags::FLAG_AVOID_ENEMY_DEFENSE);
 
-	player.type(AI::Flags::MoveType::INTERCEPT);
-	//slow down the dribbler to make it easier to catch the ball
-	//mp_catch(world.ball().position());
-	if(INTERCEPT_MP_MOVE)
+void AI::HL::STP::Action::intercept(caller_t& ca, World, Player player, const Point target) {
+	// mp_catch(world.ball().position());
+	//
+	if (INTERCEPT_MP_MOVE)
 	{
-		player.mp_move(target, (target - player.position()).orientation());
+		const Primitive& prim = Primitives::Move(player, target, (target - player.position()).orientation());
+		Action::wait(ca, prim);
 	}
 	else
 	{
-		player.mp_dribble(target, (target - player.position()).orientation());
+		const Primitive& prim = Primitives::Dribble(player, target, (target - player.position()).orientation(), false);
+		Action::wait(ca, prim);
 	}
 }
-
-
-

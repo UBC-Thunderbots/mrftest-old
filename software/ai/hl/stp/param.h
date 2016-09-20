@@ -1,8 +1,6 @@
-#ifndef AI_HL_STP_PARAM_H
-#define AI_HL_STP_PARAM_H
-
-// #include "util/param.h"
-#include "ai/param.h"
+#pragma once
+#include "util/param.h"
+#include "geom/param.h"
 
 namespace AI {
 	namespace HL {
@@ -39,6 +37,3 @@ namespace AI {
 		}
 	}
 }
-
-#endif
-

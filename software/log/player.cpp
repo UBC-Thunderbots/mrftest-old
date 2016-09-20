@@ -1,5 +1,5 @@
 #include "log/player.h"
-#include "ai/common/enums/playtype.h"
+#include "ai/common/playtype.h"
 #include "log/loader.h"
 #include "log/shared/enums.h"
 #include "proto/log_record.pb.h"
@@ -178,14 +178,6 @@ namespace {
 				std::abort();
 			}
 
-			bool has_destination() const override {
-				return false;
-			}
-
-			std::pair<Point, Angle> destination() const override {
-				std::abort();
-			}
-
 			bool has_display_path() const override {
 				return false;
 			}
@@ -218,9 +210,6 @@ namespace {
 
 			void update(const Log::Tick::FriendlyRobot &bot) {
 				Robot::update(bot.pattern(), bot.position(), bot.velocity());
-				destination_.first.x = decode_micros(bot.target().x());
-				destination_.first.y = decode_micros(bot.target().y());
-				destination_.second = Angle::of_radians(decode_micros(bot.target().t()));
 				display_path_.clear();
 				if (bot.path_size() > 0) {
 					for (const Log::Tick::FriendlyRobot::PathElement &i : bot.path()) {
@@ -241,14 +230,6 @@ namespace {
 				return Visualizable::Colour(0, 1, 0);
 			}
 
-			bool has_destination() const override {
-				return true;
-			}
-
-			std::pair<Point, Angle> destination() const override {
-				return destination_;
-			}
-
 			bool has_display_path() const override {
 				return true;
 			}
@@ -258,7 +239,6 @@ namespace {
 			}
 
 		private:
-			std::pair<Point, Angle> destination_;
 			std::vector<Point> display_path_;
 	};
 }

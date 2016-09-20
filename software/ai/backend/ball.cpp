@@ -8,7 +8,7 @@ namespace {
 	DoubleParam BALL_DECAY_CONSTANT(u8"Ball Decay Constant", u8"AI/Backend", 99.0, 0.0, 100.0);
 }
 
-Ball::Ball() : should_highlight(false), pred(1.3e-3, 2, std::chrono::duration_cast<Predictor<double>::Timediff>(std::chrono::duration<double>(BALL_DECAY_CONSTANT))) {
+Ball::Ball() : should_highlight(false), pred(1.3e-3, 4, std::chrono::duration_cast<Predictor<double>::Timediff>(std::chrono::duration<double>(BALL_DECAY_CONSTANT))) {
 }
 
 void Ball::add_field_data(Point pos, AI::Timestamp ts) {

@@ -1,24 +1,31 @@
 #include "ai/hl/stp/tactic/ball_placement.h"
 #include "ai/hl/stp/tactic/move_stop.h"
-#include "ai/hl/stp/action/shoot.h"
-#include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/action/legacy_shoot.h"
+#include "ai/hl/stp/action/legacy_catch.h"
+#include "ai/hl/stp/action/legacy_move.h"
+#include "ai/hl/stp/action/legacy_dribble.h"
+#include "ai/hl/stp/action/legacy_action.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
 
+#include "util/dprint.h"
+
+#include "ai/hl/stp/tactic/legacy_tactic.h"
+
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
+namespace Action = AI::HL::STP::Action;
+namespace LegacyAction = AI::HL::STP::LegacyAction;
 
 namespace {
-	class BallPlacement final : public Tactic
+	class BallPlacement final : public LegacyTactic
 	{
 		public:
-			explicit BallPlacement(World world) : Tactic(world, true), move_stop(AI::HL::STP::Tactic::move_stop(world, 0))
+			explicit BallPlacement(World world) : LegacyTactic(world, true)
 			{
 			}
 
 		private:
-			Tactic::Ptr move_stop;
-
 			bool done() const override;
 			Player select(const std::set<Player> &players) const override;
 			void execute() override;
@@ -28,45 +35,31 @@ namespace {
 			}
 	};
 
-	bool BallPlacement::done() const { return false; }
+	bool BallPlacement::done() const {
+		return player && (world.ball().position() - world.ball_placement_position()).lensq() < 0.1 * 0.1 && world.ball().velocity().lensq() < 0.1 * 0.1 && (player.position() - world.ball().position()).len() > 0.5;
+	}
 
 	Player BallPlacement::select(const std::set<Player> &players) const
 	{
-		if ((world.ball().position() - world.ball_placement_position()).lensq() < 0.1 * 0.1 && world.ball().velocity().lensq() < 0.1 * 0.1) {
-			return move_stop->select(players);
-		}
-		else {
-			return *std::min_element(players.begin(), players.end(),
-					AI::HL::Util::CmpDist<Player>(world.ball().position()));
-		}
+		return *std::min_element(players.begin(), players.end(),
+				AI::HL::Util::CmpDist<Player>(world.ball().position()));
 	}
 
 	void BallPlacement::execute()
 	{
-		player.flags(0);
-		player.avoid_distance(AI::Flags::AvoidDistance::MEDIUM);
-
-		if ((world.ball().position() - world.ball_placement_position()).lensq() < 0.1 * 0.1 && world.ball().velocity().lensq() < 0.1 * 0.1) {
-			player.flags(AI::Flags::FLAG_AVOID_BALL_TINY);
-			move_stop->set_player(player);
-			move_stop->execute();
-		}
-		else {
-			if (player.has_ball()) {
-				player.mp_dribble(world.ball_placement_position(), (world.ball_placement_position() - player.position()).orientation());
+		if ((world.ball().position() - world.ball_placement_position()).len() > 0.08) {
+			if (!player.has_ball()) {
+				Action::legacy_catch_ball(world, player, world.ball_placement_position());
 			}
 			else {
-				Point behind_ball = world.ball().position() - (world.ball_placement_position() - world.ball().position()).norm() * (Robot::MAX_RADIUS + 0.10);
-
-				if (Geom::dist(Geom::Line(behind_ball, world.ball().position()), player.position()) > 0.03 ||
-						(world.ball_placement_position() - world.ball().position()).dot(player.position() - world.ball().position()) > 0) {
-					player.flags(AI::Flags::FLAG_AVOID_BALL_TINY);
-					player.mp_move(behind_ball, (world.ball_placement_position() - world.ball().position()).orientation());
-				}
-				else {
-					player.mp_move(world.ball().position(), (world.ball_placement_position() - world.ball().position()).orientation());
-				}
+				Action::dribble(world, player, world.ball().position(), (world.ball_placement_position() - world.ball().position()).orientation());
 			}
+		}
+		else if ((player.position() - world.ball().position()).len() < 0.5) {
+			Action::move(world, player, world.ball().position() + (player.position() - world.ball().position()).norm() * 0.6);
+		}
+		else {
+			LegacyAction::clear_legacy_prim(player);
 		}
 	}
 }

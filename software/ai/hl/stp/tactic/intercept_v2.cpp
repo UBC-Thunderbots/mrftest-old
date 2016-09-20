@@ -1,48 +1,38 @@
-/*
- * optimalintercept.cpp
- *
- *  Created on: Nov 14, 2015
- *      Author: mathew
- */
+#include <algorithm>
 
-#include "ai/hl/stp/tactic/intercept_v2.h"
 #include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
 #include "geom/point.h"
-#include "ai/hl/stp/action/move.h"
-#include "ai/hl/stp/action/dribble.h"
-#include "ai/hl/stp/action/stop.h"
-#include "ai/hl/stp/action/intercept.h"
-#include "ai/hl/stp/evaluation/intercept.h"
-#include "intercept_v2.h"
-#include "ai/hl/stp/gradient_approach/PassInfo.h"
-#include "ai/hl/stp/evaluation/enemy.h"
 #include "geom/angle.h"
+#include "ai/hl/stp/evaluation/intercept.h"
+#include "ai/hl/stp/evaluation/enemy.h"
+#include "ai/hl/stp/action/stop.h"
+#include "ai/hl/stp/action/catch.h"
+#include "ai/hl/stp/action/intercept.h"
+#include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/tactic/tactic.h"
+#include "ai/hl/stp/tactic/intercept_v2.h"
 
 using namespace std;
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 using namespace Geom;
-using namespace AI::HL::STP::GradientApproach;
 using namespace AI::HL::Util;
-//using AI::HL::STP::Enemy;
 namespace Action = AI::HL::STP::Action;
 namespace Evaluation = AI::HL::STP::Evaluation;
-
 
 namespace {
 	class Intercept_v2 final : public Tactic {
 		public:
-			explicit Intercept_v2(World world) : Tactic(world, true) {
+			explicit Intercept_v2(World world) : Tactic(world) {
 			}
 
 		private:
-			bool done() const override;
+			void execute(caller_t& ca) override;
 			Player select(const std::set<Player> &players) const override;
-			void execute() override;
 			Robot get_closest_enemy(World world, Point target);
-			double get_intercept_time(Point initial_pos, Point target, Point initial_velocity);
+			double get_intercept_time(Point initial_pos, Point target);
 
 			double R_Radius = Robot::MAX_RADIUS;
 			double delta_t = 0.01;
@@ -53,55 +43,50 @@ namespace {
 			Rect fieldBounds = Rect(world.field().friendly_corner_pos(), world.field().enemy_corner_neg());
 
 			Glib::ustring description() const override {
-				return u8"intercept_v2";
+				return u8"Intercept ball";
 			}
 	};
 
 
-	bool Intercept_v2::done() const {
-		return player.has_ball();
-	}
-
-
 	Player Intercept_v2::select(const std::set<Player> &players) const {
-		return select_baller(world, players, player);
-		//return *(players.begin());
+		//return select_baller(world, players, player());
+		return *(players.begin());
 	}
 
 
-
-	void Intercept_v2::execute() {
+	void Intercept_v2::execute(caller_t& ca) {
 
 		// if the interceptor already has the ball, stay there
-		if (player.has_ball()) {
-			Action::dribble(player);
+		if (player().has_ball()) {
+			Action::stop(ca, world, player());
 			return;
 		}
 
 
-/*
+
 		//FOR TESTING. DO NOT MOVE UNLESS THE BALL DOES
 		if(world.ball().velocity().len() < ballVelThreshold) {
-			Action::stop(world, player);
+			Action::stop(ca, world, player());
 			return;
 		}
-*/
+
 
 
 		//If the ball is barely moving, get behind it in a position to shoot
 		if(world.ball().velocity().len() < ballVelThreshold) {
-			Action::move_careful(world, player, (world.ball().position() + (world.ball().position() - world.field().enemy_goal()).norm(R_Radius)));
+			//USE CATCH HERE
+			//Action::move(world, player, world.ball().position() + (world.ball().position() - world.field().enemy_goal()).norm(R_Radius));
+			Action::catch_ball(ca, world, player(), world.ball().position());
 			return;
 		}
 
 
-
 		//IF THE ROBOT IS IN THE BALLS PATH, AND THE BALL IS CLOSE, STOP
-		if((player.position() - closest_lineseg_point(player.position(), world.ball().position(),
-				world.ball().position() + world.ball().velocity().norm(10.0))).len() < R_Radius / 5.0
-					&& (world.ball().position() - player.position()).len() < R_Radius*4) {
-			Action::dribble(player);
-			Action::stop(world, player);
+		if((player().position() - closest_lineseg_point(player().position(), world.ball().position(),
+			world.ball().position() + world.ball().velocity().norm(10.0))).len() < R_Radius / 5.0
+				&& (world.ball().position() - player().position()).len() < R_Radius*4) {
+
+			Action::stop(ca, world, player());
 			return;
 		}
 
@@ -110,8 +95,8 @@ namespace {
 		double time = 0.0;
 		double best_score = -1000.0;
 		double score = 0.0;
-		Point best_point = world.ball().position() + (player.position() - world.ball().position()).norm(R_Radius);//defaults to the balls current position
-		Point new_best_point = world.ball().position() + (player.position() - world.ball().position()).norm(R_Radius);//defaults to the balls current position
+		Point best_point = world.ball().position() + (player().position() - world.ball().position()).norm(R_Radius);//defaults to the balls current position
+		Point new_best_point = world.ball().position() + (player().position() - world.ball().position()).norm(R_Radius);//defaults to the balls current position
 
 		Point predicted_ball_pos = world.ball().position();
 		Point predicted_intercept_pos;//the location the robot should be at to intercept. 1 radius in front of the ball
@@ -119,15 +104,12 @@ namespace {
 		Robot closest_enemy;
 		double enemy_time_to_intercept;//how long it will take for closest enemy to reach intercept position
 
-
-
 		do {
 			predicted_ball_pos = world.ball().position(time);
 			predicted_intercept_pos = predicted_ball_pos + world.ball().velocity().norm(R_Radius*1.25);
-			time_to_intercept = get_intercept_time(player.position(), predicted_intercept_pos, player.velocity());
+			time_to_intercept = get_intercept_time(player().position(), predicted_intercept_pos);
 			closest_enemy = get_closest_enemy(world, predicted_intercept_pos);
-			enemy_time_to_intercept = get_intercept_time(closest_enemy.position(), predicted_intercept_pos, closest_enemy.velocity());
-
+			enemy_time_to_intercept = get_intercept_time(closest_enemy.position(), predicted_intercept_pos);
 
 			//if the interceptor can intercept in time, evaluate the point. Otherwise, skip to the next point.
 			if(time_to_intercept < time) {
@@ -138,7 +120,7 @@ namespace {
 				}
 				else {
 					//Evaluate the point, return score
-					score = Evaluation::getBestIntercept(world, player, predicted_intercept_pos, time);
+					score = Evaluation::getBestIntercept(world, player(), predicted_intercept_pos, time);
 
 					//Keep the highest-scoring point
 					if(score > best_score) {
@@ -155,27 +137,21 @@ namespace {
 		}while(time <= 5 && fieldBounds.point_inside(predicted_ball_pos) == true);
 
 
-
 		//Check that the new best intercept point is sufficiently far from the old one
 		if((new_best_point - best_point).len() > R_Radius/2.0) {
 			best_point = new_best_point;
 		}
 
-		Action::move_careful(world, player, best_point);
-
-	}//end of execute
-
-
-
-	double Intercept_v2::get_intercept_time(Point initial_pos, Point target, Point initial_velocity) {
-		Point target_dir = target - initial_pos;//direction interceptor must go to reach target point
-		double dist = target_dir.len();
-		Angle theta = Angle::acos(initial_velocity.dot(target_dir) / (initial_velocity.len() * target_dir.len()));//angle between robots velocity and direction it needs to go (rad)
-
-		//double time = dist / V_MAX + 1.1 * initial_velocity.len() * (theta/Angle::half()) + 0.5;//assuming theta in rad - not as accurate do to theta changing
-		return dist / (V_MAX * 0.95) + 0.2;
+		Action::move_careful(ca, world, player(), best_point);
 	}
 
+
+
+	double Intercept_v2::get_intercept_time(Point initial_pos, Point target) {
+		Point target_dir = target - initial_pos;//direction interceptor must go to reach target point
+		double dist = target_dir.len();
+		return dist / (V_MAX * 0.95) + 0.2;
+	}
 
 
 	//Returns the robot object of the closest enemy to the given target
@@ -201,9 +177,8 @@ namespace {
 }
 
 
-
-
 Tactic::Ptr AI::HL::STP::Tactic::intercept_v2(World world) {
 	Tactic::Ptr p(new Intercept_v2(world));
 	return p;
 }
+

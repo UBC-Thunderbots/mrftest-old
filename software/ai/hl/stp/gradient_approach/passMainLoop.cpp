@@ -13,28 +13,18 @@
 #include "geom/point.h"
 #include "geom/angle.h"
 
-#include <unistd.h>
-#include <cstdio>
-#include <cstdlib>
 #include <iostream>
-
-
 
 namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace GradientApproach {
-
-				void superLoop(PassInfo::worldSnapshot snapshot ){
-					//BoolParam use_gradient_pass(u8"Run pass calculation on seperate thread", u8"AI/HL/STP/PlayExecutor", true);
-			
+				void superLoop(PassInfo::worldSnapshot snapshot, std::atomic_bool* stop_token) {
 					std::vector<PassInfo::passDataStruct> passPointsLog;
-					passPointsLog = (newPositions(snapshot,  30));
-					passPointsLog = (stepForward(snapshot, passPointsLog));
+					passPointsLog = newPositions(snapshot, 30);
+					passPointsLog = stepForward(snapshot, passPointsLog);
 
-					std::cout << "In the thread" << std::endl;
-					while(true){
-						 
+					while (!(*stop_token)) {
 						std::vector<PassInfo::passDataStruct> newStartingPos = newPositions(snapshot, 4);
 						passPointsLog.insert(passPointsLog.end(), newStartingPos.begin(), newStartingPos.end());
 						passPointsLog = merge(passPointsLog);
@@ -43,30 +33,21 @@ namespace AI {
 						passPointsLog = merge(passPointsLog);
 
 						
-						if(passPointsLog.size() > 50){
+						if (passPointsLog.size() > 50) {
 							std::sort(passPointsLog.begin(), passPointsLog.end(), comparePassQuality);
 							passPointsLog.erase(passPointsLog.begin() + 40 , passPointsLog.end());
 						}
-
-							
 						
 						PassInfo::Instance().updateCurrentPoints(bestPassPositions(snapshot, passPointsLog, 2));
 						//std::cout << "started get snapshot in super loop" << std::endl;
 
-
 						snapshot = PassInfo::Instance().getWorldSnapshot();
-						
-
 					}
 				}
 
-				void testLoop(PassInfo::worldSnapshot snapshot){
+				void testLoop(PassInfo::worldSnapshot snapshot) {
 					std::vector<std::vector<PassInfo::passDataStruct> > passPointsLog;
-
-					std::cout << "start" << std::endl;
-
 					std::vector<PassInfo::passDataStruct> newStartingPos = newPositions(snapshot, 100);
-					std::cout << "finished new positions" << newStartingPos.size() << std::endl;
 
 					if(passPointsLog.size() == 0){
 						passPointsLog.push_back(newStartingPos);
@@ -75,18 +56,11 @@ namespace AI {
 						passPointsLog.back().insert(passPointsLog.back().end(), newStartingPos.begin(), newStartingPos.end());
 					}
 
-					//
-					std::cout << "finished insert" << passPointsLog.back().size() << std::endl;
 					passPointsLog.push_back(merge(passPointsLog.back()));
-					std::cout << "finished merge" << passPointsLog.back().size() << std::endl;
 					std::vector<PassInfo::passDataStruct> steppedData = stepForward(snapshot, passPointsLog.back());
-					std::cout << "finished step" << std::endl;
 					passPointsLog.back() = steppedData;
-					std::cout << "finished steppedForward" << std::endl;
 					passPointsLog.back() = merge(passPointsLog.back());
 					PassInfo::Instance().updateCurrentPoints(passPointsLog.back());
-					std::cout << "set points" << std::endl;
-
 				}
 
 
@@ -130,9 +104,7 @@ namespace AI {
 
 					friendlyRadii.push_back((snapshot.passee_positions.at(0)-snapshot.passer_position).len());
 
-
-
-					for(unsigned int i = 1; i < snapshot.passee_positions.size(); i++){
+					for (unsigned int i = 1; i < snapshot.passee_positions.size(); i++){
 						foundCloseCopy = false;
 						double potential_radius = (snapshot.passee_positions.at(i)-snapshot.passer_position).len();
 						for(unsigned int j = 0; j < friendlyRadii.size(); j++){
@@ -148,11 +120,7 @@ namespace AI {
 						}
 					}
 
-
-
-
-	
-					for(unsigned int i = 0; i < snapshot.passee_positions.size(); i++){
+					for (unsigned int i = 0; i < snapshot.passee_positions.size(); i++){
 						/*
 						PassInfo::passDataStruct lDataStruct;
 						lDataStruct.params.push_back(snapshot.passee_positions.at(i).x);
@@ -296,9 +264,6 @@ namespace AI {
 						//check if current pass object is contained in remove-vector (if it is it should be ignored)
 						
 						if(std::find(removed_objects.begin(), removed_objects.end(), i) == removed_objects.end()) {
-						
-						
-
 							x1 = potential_passes.at(i).params.at(1);
 							y1 = potential_passes.at(i).params.at(2);
 

@@ -1,5 +1,4 @@
-#ifndef DRIVE_ROBOT_H
-#define DRIVE_ROBOT_H
+#pragma once
 
 #include "geom/point.h"
 #include "util/annunciator.h"
@@ -565,5 +564,3 @@ namespace std {
 		}
 	};
 }
-
-#endif

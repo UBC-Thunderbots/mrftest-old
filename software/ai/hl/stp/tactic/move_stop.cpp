@@ -1,10 +1,12 @@
 #include "ai/hl/stp/param.h"
 #include "ai/hl/stp/tactic/move_stop.h"
-#include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/action/legacy_move.h"
 #include "ai/hl/util.h"
 #include "ai/util.h"
 #include "ai/hl/stp/world.h"
 #include <algorithm>
+
+#include "ai/hl/stp/tactic/legacy_tactic.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -16,16 +18,16 @@ StopLocations AI::HL::STP::Tactic::stop_locations;
 namespace {
 	// The closest distance players allowed to the ball
 	// DO NOT make this EXACT, instead, add a little tolerance!
-	const double AVOIDANCE_DIST = AI::Util::BALL_STOP_DIST + Robot::MAX_RADIUS + Ball::RADIUS + 0.005;
+	const double AVOIDANCE_DIST = AI::Util::BALL_STOP_DIST + Robot::MAX_RADIUS + Ball::RADIUS + 0.05;
 
 	// in ball avoidance, angle between center of 2 robots, as seen from the ball
 	const Angle AVOIDANCE_ANGLE = 2.0 * Angle::of_radians(std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST));
 	
 	const unsigned int NUM_PLAYERS = AI::HL::STP::TEAM_MAX_SIZE -1;
 
-	class MoveStop final : public Tactic {
+	class MoveStop final : public LegacyTactic {
 		public:
-			explicit MoveStop(World world, std::size_t playerIndex) : Tactic(world), player_index(playerIndex) {
+			explicit MoveStop(World world, std::size_t playerIndex) : LegacyTactic(world), player_index(playerIndex) {
 			}
 
 		private:
@@ -45,13 +47,14 @@ namespace {
 	}
 
 	void MoveStop::execute() {
+		player.flags(player.flags() | AI::Flags::MoveFlags::AVOID_BALL_MEDIUM);
 		std::vector<Point> positions = stop_locations(world);
 		Action::move(world, player, positions[player_index]);
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::move_stop(World world, std::size_t player_index) {
-	Tactic::Ptr p(new MoveStop(world, player_index));
+LegacyTactic::Ptr AI::HL::STP::Tactic::move_stop(World world, std::size_t player_index) {
+	LegacyTactic::Ptr p(new MoveStop(world, player_index));
 	return p;
 }
 

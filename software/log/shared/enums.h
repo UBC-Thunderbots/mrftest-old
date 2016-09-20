@@ -1,8 +1,7 @@
-#ifndef LOG_SHARED_ENUMS_H
-#define LOG_SHARED_ENUMS_H
-
+#pragma once
 #include "ai/flags.h"
-#include "ai/common/enums/playtype.h"
+#include "drive/robot.h"
+#include "ai/common/playtype.h"
 #include "proto/log_record.pb.h"
 
 namespace Log {
@@ -27,26 +26,6 @@ namespace Log {
 			AI::Common::PlayType of_protobuf(Log::PlayType pt);
 		}
 
-		namespace MoveType {
-			/**
-			 * \brief Converts an AI movement type to a Protobuf movement type.
-			 *
-			 * \param[in] mt the AI movement type to convert.
-			 *
-			 * \return the Protobuf movement type.
-			 */
-			Log::MoveType to_protobuf(AI::Flags::MoveType mt);
-
-			/**
-			 * \brief Converts a Protobuf movement type to an AI movement type.
-			 *
-			 * \param[in] mt the Protobuf movement type to convert.
-			 *
-			 * \return the AI movement type.
-			 */
-			AI::Flags::MoveType of_protobuf(Log::MoveType mt);
-		}
-
 		namespace MovePrio {
 			/**
 			 * \brief Converts an AI movement priority to a Protobuf movement priority.
@@ -66,8 +45,12 @@ namespace Log {
 			 */
 			AI::Flags::MovePrio of_protobuf(Log::MovePrio mp);
 		}
+
+		namespace Primitive {
+			/**
+			 * \brief Converts an AI primitive to a log primitive.
+			 */
+			Log::Tick::FriendlyRobot::HLPrimitive::Primitive to_protobuf(Drive::Primitive mp);
+		}
 	}
 }
-
-#endif
-

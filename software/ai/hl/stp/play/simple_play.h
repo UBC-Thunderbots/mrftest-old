@@ -1,68 +1,69 @@
-#ifndef AI_HL_STP_PLAY_SIMPLE_PLAY_H
-#define AI_HL_STP_PLAY_SIMPLE_PLAY_H
+#pragma once
 
 #include "ai/hl/util.h"
 #include "ai/hl/world.h"
 #include "ai/hl/stp/predicates.h"
-#include "ai/hl/stp/play/play.h"
-#include "ai/hl/stp/tactic/defend.h"
-#include "ai/hl/stp/tactic/offend.h"
-#include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/coordinate.h"
+#include "ai/hl/stp/play/play.h"
 #include "ai/hl/stp/region.h"
 #include "ai/hl/stp/world.h"
 
 using AI::Common::PlayType;
 using namespace AI::HL::STP::Predicates;
-using namespace AI::HL::STP::Tactic;
+using namespace AI::HL::STP;
 
 using AI::HL::STP::TEAM_MAX_SIZE;
 using AI::HL::STP::DIST_FROM_PENALTY_MARK;
 
-#define BEGIN_PLAY(cls) \
-	namespace { \
-		class cls ## STPPlay; \
-	} \
-	AI::HL::STP::Play::PlayFactoryImpl<cls ## STPPlay> cls ## STPPlayFactory_instance(u8 ## # cls); \
-	namespace { \
-		class cls ## STPPlay final : public AI::HL::STP::Play::Play { \
-			public: \
-				explicit cls ## STPPlay(AI::HL::W::World world) : AI::HL::STP::Play::Play(world) { \
-				} \
- \
-				AI::HL::STP::Play::PlayFactory &factory() const override { \
-					return cls ## STPPlayFactory_instance; \
-				}
+#define BEGIN_DEC(cls) \
+namespace { \
+	class cls ## Play; \
+	class cls ## PlayFactory; \
+\
+	class cls ## PlayFactory : public AI::HL::STP::Play::PlayFactoryImpl<cls ## Play> { \
+		public: \
+			explicit cls ## PlayFactory(const char *name) : AI::HL::STP::Play::PlayFactoryImpl<cls ## Play>(name) { }
 
 #define INVARIANT(expr) \
-	bool invariant() const override { \
-		return expr; \
-	}
+			inline bool invariant(World world) const override {  \
+				return expr; \
+			}
 
 #define APPLICABLE(expr) \
-	bool applicable() const override { \
-		return expr; \
-	}
+			inline bool applicable(World world) const override { \
+				return expr; \
+			}
+
+#define END_DEC(cls) \
+	}; \
+} \
+::cls ## PlayFactory cls ## PlayFactory_instance(u8 ## # cls);
+
+
+#define BEGIN_DEF(cls) \
+namespace { \
+	class cls ## Play final : public AI::HL::STP::Play::Play { \
+		public: \
+			explicit cls ## Play(AI::HL::W::World world) : AI::HL::STP::Play::Play(world) { } \
+\
+			AI::HL::STP::Play::PlayFactory &factory() const override { \
+				return cls ## PlayFactory_instance; \
+			}
 
 #define DONE(expr) \
-	bool done() const override { \
-		return expr; \
-	}
+			bool done() const override { \
+				return expr; \
+			}
 
 #define FAIL(expr) \
-	bool fail() const override { \
-		return expr; \
-	}
+			bool fail() const override { \
+				return expr; \
+			}
 
-#define BEGIN_ASSIGN() \
-	void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[TEAM_MAX_SIZE-1]) override {
+#define EXECUTE() \
+			void execute(caller_t& caller) override {
 
-#define END_ASSIGN() \
-	}
-
-#define END_PLAY() \
+#define END_DEF(cls) \
+			} \
 	}; \
-	}
-
-#endif
-
+}

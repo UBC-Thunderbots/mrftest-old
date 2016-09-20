@@ -1,45 +1,27 @@
 #include "ai/hl/stp/play/simple_play.h"
-#include "ai/hl/stp/predicates.h"
+#include "ai/hl/stp/tactic/legacy_offend.h"
+#include "ai/hl/stp/tactic/legacy_defend.h"
+#include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/move_stop.h"
 #include "ai/hl/stp/tactic/move.h"
-#include "ai/hl/stp/tactic/wait_playtype.h"
+#include "ai/hl/stp/tactic/block_shot_path.h"
 
-using namespace AI::HL::STP::Play;
-using namespace AI::HL::W;
-namespace Predicates = AI::HL::STP::Predicates;
 
-namespace {
-	DoubleParam goalie_stop_dist(u8"goalie stop dist", u8"AI/HL/STP/Stop", 0.09, 0.0, 1.0);
-}
-
-/**
- * Condition:
- * - It is the stop play
- *
- * Objective:
- * - Handle the stop play
- */
-BEGIN_PLAY(Stop)
-INVARIANT(Predicates::playtype(world, AI::Common::PlayType::STOP) || Predicates::playtype(world, AI::Common::PlayType::BALL_PLACEMENT_ENEMY))
+BEGIN_DEC(Stop)
+INVARIANT(playtype(world, PlayType::STOP) || playtype(world, PlayType::BALL_PLACEMENT_ENEMY))
 APPLICABLE(true)
+END_DEC(Stop)
+
+BEGIN_DEF(Stop)
 DONE(false)
 FAIL(false)
-BEGIN_ASSIGN()
+EXECUTE()
+tactics[0] = Tactic::move(world, Point(world.field().friendly_goal().x + 0.1, 0));
+tactics[1] = Tactic::move_stop(world, 0);
+tactics[2] = Tactic::move_stop(world, 1);
+tactics[3] = Tactic::move_stop(world, 2);
+tactics[4] = Tactic::block_shot_path(world, 0);
+tactics[5] = Tactic::block_shot_path(world, 1);
 
-goalie_role.push_back(goalie_move(world,
-	Point(world.field().friendly_goal().x + goalie_stop_dist, 0.0)));
-
-// doesn't matter what the playtype we are waiting for is here, we just need an active tactic
-roles[0].push_back(wait_playtype(world, move_stop(world, 0), AI::Common::PlayType::PLAY));
-
-roles[1].push_back(move_stop(world, 1));
-
-roles[2].push_back(move_stop(world, 2));
-
-roles[3].push_back(move_stop(world, 3));
-
-roles[4].push_back(move_stop(world, 4));
-
-END_ASSIGN()
-END_PLAY()
-
+while (1) yield(caller);
+END_DEF(Stop)

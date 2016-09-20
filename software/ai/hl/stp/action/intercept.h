@@ -1,7 +1,6 @@
-#ifndef AI_HL_STP_ACTION_INTERCEPT_H
-#define AI_HL_STP_ACTION_INTERCEPT_H
+#pragma once
 
-#include "ai/hl/stp/world.h"
+#include "ai/hl/stp/action/action.h"
 
 namespace AI {
 	namespace HL {
@@ -16,10 +15,8 @@ namespace AI {
 				 *
 				 *  \param[in] target Used to determine the direction the player should be facing when player intercepts the ball.
 				 */
-				void intercept(Player player, const Point target);
+				void intercept(caller_t& ca, World world, Player player, const Point target);
 			}
 		}
 	}
 }
-
-#endif

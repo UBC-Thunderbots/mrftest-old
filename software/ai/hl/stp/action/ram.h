@@ -1,7 +1,5 @@
-#ifndef AI_HL_STP_ACTION_RAM_H
-#define AI_HL_STP_ACTION_RAM_H
-
-#include "ai/hl/stp/world.h"
+#pragma once
+#include "ai/hl/stp/action/action.h"
 
 namespace AI {
 	namespace HL {
@@ -15,7 +13,7 @@ namespace AI {
 				 * Move to a particular location and stop. Orient the player
 				 * towards the ball.
 				 */
-				void ram(World world, Player player, const Point dest);
+				void ram(caller_t& ca, World world, Player player, Point dest);
 
 				/**
 				 * Ram
@@ -24,7 +22,7 @@ namespace AI {
 				 *
 				 * Ram defaulting to ram the ball
 				 */
-				void ram(World world, Player player);
+				void ram(caller_t& ca, World world, Player player);
 
 				/**
 				 * Ram
@@ -34,11 +32,8 @@ namespace AI {
 				 * Move to a particular location and stop. Orient the player
 				 * towards the ball.
 				 */
-				void goalie_ram(World world, Player player, const Point dest);
+				void goalie_ram(caller_t& ca, World world, Player player, Point dest);
 			}
 		}
 	}
 }
-
-#endif
-

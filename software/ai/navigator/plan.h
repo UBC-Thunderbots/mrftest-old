@@ -9,7 +9,7 @@ namespace AI {
 
 			public:
 				explicit Plan(AI::Nav::W::World world);
-				virtual std::vector<Point> plan(AI::Nav::W::Player player, Point goal, unsigned int added_flags = 0) = 0;
+				virtual std::vector<Point> plan(AI::Nav::W::Player player, Point goal, AI::Flags::MoveFlags added_flags = AI::Flags::MoveFlags::NONE) = 0;
 		};
 	}
 }

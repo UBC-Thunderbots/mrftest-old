@@ -139,22 +139,6 @@ bool Visualizer::on_draw(const Cairo::RefPtr<Cairo::Context> &ctx) {
 					ctx->stroke();
 				}
 
-				if (show_robots_dest && bot->has_destination()) {
-					ctx->set_source_rgb(clr.red, clr.green, clr.blue);
-					ctx->begin_new_path();
-					ctx->arc(bot->destination().first.x, bot->destination().first.y, 0.09, bot->destination().second.to_radians() + M_PI_4, bot->destination().second.to_radians() - M_PI_4);
-					ctx->stroke();
-
-					ctx->set_source_rgb(0.0, 0.0, 0.0);
-					const double x = bot->destination().first.x - extents.x_bearing - extents.width / 2.0;
-					const double y = bot->destination().first.y + extents.y_bearing + extents.height / 2.0;
-					ctx->move_to(x, y);
-					ctx->save();
-					ctx->scale(1, -1);
-					ctx->show_text(str);
-					ctx->restore();
-				}
-
 				if (show_robots_path && bot->has_display_path()) {
 					ctx->set_source_rgb(1.0, 0.0, 1.0);
 					ctx->begin_new_path();

@@ -6,6 +6,7 @@
 #include <cassert>
 #include <cmath>
 #include <limits>
+#include <iostream>
 
 namespace Geom {
 	double proj_len(const Seg& first, const Vector2& second) {

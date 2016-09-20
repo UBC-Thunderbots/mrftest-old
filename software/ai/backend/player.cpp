@@ -6,6 +6,7 @@
 #include "geom/angle.h"
 #include <cmath>
 #include <glibmm/ustring.h>
+#include <iostream>
 
 namespace {
 	BoolParam kalman_control_inputs(u8"Enable Kalman control inputs", u8"AI/Backend", false);
@@ -13,56 +14,12 @@ namespace {
 
 using AI::BE::Player;
 
-void Player::move(Point dest, Angle ori, Point vel) {
-	if (!std::isfinite(dest.x) || !std::isfinite(dest.y)) {
-		LOG_ERROR(u8"NaN or ±∞ destination");
-		dest = position(0);
-	}
-	if (!ori.isfinite()) {
-		LOG_ERROR(u8"NaN or ±∞ orientation");
-		ori = orientation(0);
-	}
-	if (!std::isfinite(vel.x) || !std::isfinite(vel.y)) {
-		LOG_ERROR(u8"NaN or ±∞ velocity");
-		vel.x = vel.y = 0;
-	}
-	moved = true;
-	destination_.first = dest;
-	destination_.second = ori;
-	target_velocity_ = vel;
-}
-
-void Player::flags(unsigned int flags) {
-	if (flags & ~AI::Flags::FLAGS_VALID) {
-		LOG_ERROR(Glib::ustring::compose(u8"Invalid flag(s) 0x%08X", flags & ~AI::Flags::FLAGS_VALID));
+void Player::flags(AI::Flags::MoveFlags flags) {
+	if ((flags & ~AI::Flags::FLAGS_VALID) != AI::Flags::MoveFlags::NONE) {
+		LOG_ERROR(Glib::ustring::compose(u8"Invalid flag(s) 0x%1", Glib::ustring::format(std::hex, static_cast<uint64_t>(flags & ~AI::Flags::FLAGS_VALID))));
 		flags &= AI::Flags::FLAGS_VALID;
 	}
 	flags_ = flags;
-}
-
-bool Player::has_destination() const {
-	return true;
-}
-
-std::pair<Point, Angle> Player::destination() const {
-	return destination_;
-}
-
-void Player::destination(std::pair<Point,Angle> dest){
-	if (!std::isfinite(dest.first.x) || !std::isfinite(dest.first.y)) {
-		LOG_ERROR(u8"NaN or ±∞ destination");
-		dest.first = Point();
-	}
-	if (!dest.second.isfinite()) {
-		LOG_ERROR(u8"NaN or ±∞ orientation");
-		dest.second = Angle();
-	}
-	destination_ = dest;
-	return;
-}
-
-Point AI::BE::Player::target_velocity() const {
-	return target_velocity_;
 }
 
 bool Player::has_display_path() const {
@@ -79,9 +36,7 @@ void Player::display_path(const std::vector<Point> &p) {
 
 void Player::pre_tick() {
 	AI::BE::Robot::pre_tick();
-	moved = false;
-	flags_ = 0;
-	move_type_ = AI::Flags::MoveType::NORMAL;
+	flags_ = AI::Flags::MoveFlags::NONE;
 	move_prio_ = AI::Flags::MovePrio::MEDIUM;
 }
 
@@ -99,6 +54,52 @@ bool Player::highlight() const {
 	return has_ball();
 }
 
+void Player::push_prim(AI::BE::Primitives::Primitive* prim) {
+	prims_.push_back(prim);
+}
+
+void Player::clear_prims() {
+	prims_.clear();
+}
+
+void Player::erase_prim(AI::BE::Primitives::Primitive* prim) {
+	if (prims_.size() <= 0) {
+		return;
+	}
+
+	if (prims_.back() == prim) {
+		prims_.pop_back();
+	}
+	else if (std::find(prims_.begin(), prims_.end(), prim) == prims_.end()) {
+		// primitive is already done, do nothing
+		return;
+	}
+	else {
+		// Control has entered an illegal state - the primitive erased must be at the back of the queue, or it must be already out of the queue!
+		std::abort();
+	}
+}
+
+void Player::pop_prim() {
+	if (has_prim()) {
+		prims_.pop_front();
+	}
+	else {
+		std::abort();
+	}
+}
+
+AI::BE::Primitives::Primitive* Player::top_prim() const {
+	if (prims_.size() > 0) {
+		return prims_.front();
+	}
+	return nullptr;
+}
+
+bool Player::has_prim() const {
+	return prims_.size() > 0;
+}
+
 Visualizable::Colour Player::highlight_colour() const {
 	if (has_ball()) {
 		return Visualizable::Colour(1.0, 0.5, 0.0);
@@ -107,13 +108,6 @@ Visualizable::Colour Player::highlight_colour() const {
 	}
 }
 
-Player::Player(unsigned int pattern) : AI::BE::Robot(pattern), moved(false), destination_(Point(), Angle::zero()), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
-	hl_request.type = Drive::Primitive::STOP;
-	hl_request.field_bool = true;
-	hl_request.field_point = Point(0, 0);
-	hl_request.field_angle = Angle::zero();
-	hl_request.field_angle2 = Angle::zero();
-	hl_request.field_double = 0;
-	hl_request.care_angle = false;
+Player::Player(unsigned int pattern) : AI::BE::Robot(pattern), flags_(AI::Flags::MoveFlags::NONE), move_prio_(AI::Flags::MovePrio::MEDIUM) {
 }
 

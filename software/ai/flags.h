@@ -1,7 +1,7 @@
-#ifndef AI_FLAGS_H
-#define AI_FLAGS_H
+#pragma once
 
-#include "ai/common/enums/playtype.h"
+#include "util/flags.h"
+#include "ai/common/playtype.h"
 
 namespace AI {
 	namespace Flags {
@@ -17,66 +17,78 @@ namespace AI {
 		 * Flags indicating how robots comply with game rules.
 		 * Flags are set by the Strategy and examined by the Navigator to determine which potential paths are legal.
 		 */
-		enum {
+		enum class MoveFlags : uint64_t {
+			/**
+			 * No flags.
+			 */
+			NONE = 0x0000,
+
 			/**
 			 * Do not exit the play area of the field.
 			 */
-			FLAG_CLIP_PLAY_AREA = 0x0001,
+			CLIP_PLAY_AREA = 0x0001,
 
 			/**
 			 * Avoid the ball by 50cm as required by ball-out-of-play rules.
 			 */
-			FLAG_AVOID_BALL_STOP = 0x0002,
+			AVOID_BALL_STOP = 0x0002,
 
 			/**
 			 * Avoid the ball very slightly, e.g. to orbit before touching the ball at a kickoff or free kick.
 			 */
-			FLAG_AVOID_BALL_TINY = 0x0004,
+			AVOID_BALL_TINY = 0x0004,
 
 			/**
 			 * Do not enter the friendly defence area.
 			 */
-			FLAG_AVOID_FRIENDLY_DEFENSE = 0x0008,
+			AVOID_FRIENDLY_DEFENSE = 0x0008,
 
 			/**
 			 * Stay at least 20cm outside the enemy defense area as required by ball-entering-play rules.
 			 */
-			FLAG_AVOID_ENEMY_DEFENSE = 0x0010,
+			AVOID_ENEMY_DEFENSE = 0x0010,
 
 			/**
 			 * Do not enter the enemy's field half.
 			 */
-			FLAG_STAY_OWN_HALF = 0x0020,
+			STAY_OWN_HALF = 0x0020,
 
 			/**
 			 * Stay more than 40cm outside the penalty mark line as required for non-kickers in penalty kick rules.
 			 */
-			FLAG_PENALTY_KICK_FRIENDLY = 0x0040,
+			PENALTY_KICK_FRIENDLY = 0x0040,
 
 			/**
 			 * Stay more than 40cm outside the penalty mark line as required for non-goalies in penalty kick rules.
 			 */
-			FLAG_PENALTY_KICK_ENEMY = 0x0080,
+			PENALTY_KICK_ENEMY = 0x0080,
 
 			/**
 			 * \brief Drive carefully instead of quickly.
 			 */
-			FLAG_CAREFUL = 0x0100,
+			CAREFUL = 0x0100,
+
+			/**
+			 * Avoid the ball by a medium amount, for use in regular navigation.
+			 */
+			AVOID_BALL_MEDIUM = 0x0200,
 		};
 
+		GEN_BITWISE(MoveFlags, uint64_t)
 		/**
 		 * The union of all existent flags.
 		 */
-		constexpr unsigned int FLAGS_VALID =
-			FLAG_CLIP_PLAY_AREA |
-			FLAG_AVOID_BALL_STOP |
-			FLAG_AVOID_BALL_TINY |
-			FLAG_AVOID_FRIENDLY_DEFENSE |
-			FLAG_AVOID_ENEMY_DEFENSE |
-			FLAG_STAY_OWN_HALF |
-			FLAG_PENALTY_KICK_FRIENDLY |
-			FLAG_PENALTY_KICK_ENEMY |
-			FLAG_CAREFUL;
+		constexpr MoveFlags FLAGS_VALID =
+			MoveFlags::CLIP_PLAY_AREA |
+			MoveFlags::AVOID_BALL_STOP |
+			MoveFlags::AVOID_BALL_TINY |
+			MoveFlags::AVOID_BALL_MEDIUM |
+			MoveFlags::AVOID_FRIENDLY_DEFENSE |
+			MoveFlags::AVOID_ENEMY_DEFENSE |
+			MoveFlags::STAY_OWN_HALF |
+			MoveFlags::PENALTY_KICK_FRIENDLY |
+			MoveFlags::PENALTY_KICK_ENEMY |
+			MoveFlags::CAREFUL;
 
 		/**
 		 * Returns the correct flags for a common player,
@@ -87,64 +99,7 @@ namespace AI {
 		 *
 		 * \return the appropriate flags.
 		 */
-		unsigned int calc_flags(AI::Common::PlayType pt);
-
-		/**
-		 * Movement types indicating styles of movement for robots to take.
-		 */
-		enum class MoveType {
-			/**
-			 * Move to the target location and orientation as quickly as possible.
-			 */
-			NORMAL,
-
-			/**
-			 * Move to the target location and orientation slowly so as not to drop the ball.
-			 */
-			DRIBBLE,
-
-			/**
-			 * Move to intercept the ball as soon as possible, ignoring target location and requested orientation.
-			 * Ignores the target velocity.
-			 */
-			CATCH,
-
-			/**
-			 * Move to intercept the ball as soon as possible, ignoring requested orientation but intercepting pointing towards the target location.
-			 * Ignores the target velocity.
-			 */
-			CATCH_PIVOT,
-
-			/**
-			 * Move to intercept the ball while minimizing robot travel distance, ignoring target location and requested orientation.
-			 * Ignores the target velocity.
-			 */
-			INTERCEPT,
-
-			/**
-			 * Move to intercept the ball while minimizing robot travel distance, ignoring requested orientation but intercepting pointing towards the target location.
-			 * Ignores the target velocity.
-			 */
-			INTERCEPT_PIVOT,
-
-			/**
-			 * Move to the target location and orientation at the same time the ball will get there, but don't worry about stopping at the target after.
-			 * Ignores the target velocity.
-			 */
-			RAM_BALL,
-
-			/**
-			 * Stop moving (not intended for use by high-levels, only for things like emergency stop).
-			 * Ignores the target velocity.
-			 */
-			HALT,
-
-			/**
-			 * Pivot around the ball.
-			 * Orients towards the target, but ignores target velocity.
-			 */
-			PIVOT,
-		};			
+		MoveFlags calc_flags(AI::Common::PlayType pt);
 
 		/**
 		 * Movement priorities indicating which robots should give way so other robots can drive in a straight line.
@@ -249,6 +204,3 @@ inline bool operator<=(AI::Flags::MovePrio a, AI::Flags::MovePrio b) {
 inline bool operator>=(AI::Flags::MovePrio a, AI::Flags::MovePrio b) {
 	return a > b || a == b;
 }
-
-#endif
-

@@ -27,6 +27,7 @@ void log_impl(const char *file, unsigned int line, const char *function, const G
  * \param msg the message.
  */
 #define LOG_INFO(msg) log_impl(__FILE__, __LINE__, __func__, msg, Log::DEBUG_MESSAGE_LEVEL_INFO)
+#define LOGF_INFO(msg, ...) LOG_INFO(Glib::ustring::compose(msg, __VA_ARGS__))
 
 /**
  * Outputs a message at the warning log level.

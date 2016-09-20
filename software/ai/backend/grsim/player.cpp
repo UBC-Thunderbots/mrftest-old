@@ -2,6 +2,7 @@
 #include "ai/backend/ball.h"
 #include "geom/point.h"
 #include "util/algorithm.h"
+#include "util/dprint.h"
 #include <cmath>
 #include <iostream>
 
@@ -23,12 +24,13 @@ namespace {
 	const double SINE_CHIP_ANGLE = std::sin(CHIP_ANGLE);
 	const double COSINE_CHIP_ANGLE = std::cos(CHIP_ANGLE);
 	const double CONTROLLER_PROPORTIONAL_GAIN = 3;
+	const double ORI_GAIN = 4;
 	constexpr double RADIANS_PER_SECOND__PER__QUARTER_DEGREES_PER_FIVE_MILLISECONDS = 200 /* 5ms / s */ * 0.25 /* degrees per quarter thereof */ * M_PI / 180.0 /* radians per degree */;
 	const double MAX_SPEED = 2.0;
 
 	Point linear_controller(Point dest) {
 		if (dest.lensq() > 0.4 * 0.4) {
-			return dest.norm() * MAX_SPEED / 2;
+			return dest.norm() * MAX_SPEED / 2.5;
 		}
 		else {
 			return dest * CONTROLLER_PROPORTIONAL_GAIN;
@@ -55,7 +57,7 @@ bool Player::has_ball() const {
 	double projected_distance_to_centre_of_dribbler = distance_to_ball_contact_point * contact_point_offset_angle.cos();
 	return projected_distance_to_centre_of_dribbler <= ROBOT_DISTANCE_TO_FRONT + HAS_BALL_THRESHOLD;
 }
-double Player::get_lps(unsigned int index) const {
+double Player::get_lps(unsigned int) const {
 	return 0.0;
 }
 
@@ -91,7 +93,7 @@ void Player::tick(bool halt, bool stop) {
 			else {
 #warning does grsim give velocity data?
 				_drive_linear = velocity() * -CONTROLLER_PROPORTIONAL_GAIN;
-				_drive_angular = avelocity() * -CONTROLLER_PROPORTIONAL_GAIN;
+				_drive_angular = avelocity() * -ORI_GAIN;
 			}
 
 			break;
@@ -101,7 +103,7 @@ void Player::tick(bool halt, bool stop) {
 			_drive_linear = linear_controller(_move_dest);
 
 			if (_prim_extra) {
-				_drive_angular = _move_ori * CONTROLLER_PROPORTIONAL_GAIN;
+				_drive_angular = _move_ori * ORI_GAIN;
 			}
 			else {
 				_drive_angular = Angle::zero();
@@ -111,7 +113,7 @@ void Player::tick(bool halt, bool stop) {
 		}
 		case Drive::Primitive::DRIBBLE: {
 			_drive_linear = linear_controller(_move_dest);
-			_drive_angular = _move_ori * CONTROLLER_PROPORTIONAL_GAIN;
+			_drive_angular = _move_ori * ORI_GAIN;
 #warning small kick is ignored
 
 			_drive_spinner = true;
@@ -120,10 +122,10 @@ void Player::tick(bool halt, bool stop) {
 		}
 		case Drive::Primitive::SHOOT: {
 			_drive_linear = linear_controller(_move_dest);
-			_drive_angular = _move_ori * CONTROLLER_PROPORTIONAL_GAIN;
+			_drive_angular = _move_ori * ORI_GAIN;
 
 			if (lhas_ball && _move_ori.to_degrees() < 5) { // within 5 deg
-				if (_prim_extra) { // chip
+				if (_prim_extra & 1) { // chip
 					_drive_kickspeedx = static_cast<float>(COSINE_CHIP_ANGLE * _shoot_power);
 					_drive_kickspeedz = static_cast<float>(SINE_CHIP_ANGLE * _shoot_power);
 				}
@@ -141,7 +143,7 @@ void Player::tick(bool halt, bool stop) {
 		case Drive::Primitive::CATCH: {
 			Point linear_transformed = Point(_catch_speed, _catch_displacement * CONTROLLER_PROPORTIONAL_GAIN);
 			_drive_linear = linear_transformed.rotate(-_move_ori);
-			_drive_angular = _move_ori * CONTROLLER_PROPORTIONAL_GAIN;
+			_drive_angular = _move_ori * ORI_GAIN;
 			_drive_spinner = true;
 
 			break;
@@ -149,7 +151,7 @@ void Player::tick(bool halt, bool stop) {
 		case Drive::Primitive::PIVOT: {
 #warning this is totally wrong
 			if (_pivot_swing.abs().to_degrees() < 10) {
-				_drive_angular = _move_ori * CONTROLLER_PROPORTIONAL_GAIN;
+				_drive_angular = _move_ori * ORI_GAIN;
 			}
 			else {
 				_drive_linear = _move_dest.rotate(_pivot_swing.to_radians() > 0 ? Angle::three_quarter() : Angle::quarter()).norm()

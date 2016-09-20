@@ -12,6 +12,7 @@
 #include <gtkmm/textview.h>
 #include <iostream>
 #include <chrono>  
+#include <atomic>
 
 using namespace AI::HL;
 using namespace AI::HL::STP;
@@ -36,6 +37,7 @@ namespace {
 				for (const auto &i : Play::PlayFactory::all()) {
 					combo.append(i.second->name());
 				}
+
 				combo.set_active_text(CHOOSE_PLAY_TEXT);
 				vbox.add(combo);
 				vbox.add(start_button);
@@ -75,63 +77,20 @@ namespace {
 			void calc_play() override {
 				curr_play = nullptr;
 				for (const auto &i : plays) {
-					if (i->factory().name() == combo.get_active_text()) {
-						curr_play = i.get();
+					if (i->name() == combo.get_active_text()) {
+						curr_play = i->create(world);
 					}
 				}
 				assert(curr_play);
 
-				if (!curr_play->invariant() || curr_play->done() || curr_play->fail()) {
+				if (!curr_play->factory().invariant(world) || curr_play->done() || curr_play->fail()) {
 					// only warn but still execute
-					LOG_WARN(u8"play not valid");
+					LOG_WARN(u8"Play not valid!");
 				}
-
-				// assign the players
-				curr_role_step = 0;
-				for (std::size_t j = 0; j < TEAM_MAX_SIZE; ++j) {
-					// default to idle tactic
-					curr_tactic[j] = idle_tactics[j].get();
-					curr_roles[j].clear();
-				}
-				{
-					std::vector<Tactic::Tactic::Ptr> goalie_role;
-					std::vector<Tactic::Tactic::Ptr> normal_roles[TEAM_MAX_SIZE-1];
-					curr_play->assign(goalie_role, normal_roles);
-					swap(goalie_role, curr_roles[0]);
-					for (std::size_t j = 1; j < TEAM_MAX_SIZE; ++j) {
-						swap(normal_roles[j - 1], curr_roles[j]);
-					}
-				}
-				LOG_INFO(u8"reassigned");
 			}
 
 			void tick() override {
 				tick_eval(world);
-
-				//Update version of world used in pass calculation thread
-
-				if( world.friendly_team().size() > 1 && world.enemy_team().size() >0){
-					GradientApproach::PassInfo::Instance().updateWorldSnapshot(world);
-				
-					if(!GradientApproach::PassInfo::Instance().threadRunning()){
-					    std::cout << "no thread running" << std::endl;
-					    GradientApproach::PassInfo::worldSnapshot snapshot = GradientApproach::PassInfo::Instance().getWorldSnapshot();
-					    std::cout << "got snapshot" << std::endl;
-
-					    GradientApproach::PassInfo::Instance().setThreadRunning(true);
-					    std::cout << "recorded start of thread" << std::endl; 
-					    std::thread pass_thread(GradientApproach::superLoop, snapshot);
-					    std::cout << "started thread" << std::endl;
-					    pass_thread.detach();
-					    std::cout << "detached thread" << std::endl;
-					    
-					    
-					    
-					}
-			
-				}
-				
-	
 
 				enable_players();
 
@@ -160,7 +119,7 @@ namespace {
 
 				if (curr_play) {
 					text = u8"Running";
-					execute_tactics();
+					curr_play->tick(players_enabled);
 				} else {
 					text = u8"Stop";
 				}
@@ -183,18 +142,8 @@ namespace {
 					ctx->arc(world.ball().position().x, world.ball().position().y, 0.5, 0.0, 2 * M_PI);
 					ctx->stroke();
 				}
-				if(!curr_play)
-					return;
+				if(!curr_play) return;
 				curr_play->draw_overlay(ctx);
-				for (std::size_t i = 0; i < TEAM_MAX_SIZE; ++i) {
-					if (!curr_assignment[i]) {
-						continue;
-					}
-					const std::vector<Tactic::Tactic::Ptr> &role = curr_roles[i];
-					for (std::size_t t = 0; t < role.size(); ++t) {
-						role[t]->draw_overlay(ctx);
-					}
-				}
 			}
 	};
 }

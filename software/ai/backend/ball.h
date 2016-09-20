@@ -1,7 +1,7 @@
 #ifndef AI_BACKEND_BALL_H
 #define AI_BACKEND_BALL_H
 
-#include "ai/common/objects/time.h"
+#include "ai/common/time.h"
 #include "geom/predictor.h"
 #include "geom/point.h"
 #include "uicomponents/visualizer.h"

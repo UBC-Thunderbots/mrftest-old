@@ -1,7 +1,5 @@
-#ifndef AI_HL_STP_ACTION_MOVE_SPIN_H
-#define AI_HL_STP_ACTION_MOVE_SPIN_H
-
-#include "ai/hl/stp/world.h"
+#pragma once
+#include "ai/hl/stp/action/action.h"
 
 namespace AI {
 	namespace HL {
@@ -10,16 +8,11 @@ namespace AI {
 				/**
 				 * Move Spin
 				 *
-				 * Not intended for goalie use
-				 *
 				 * Move to a particular location and stop. Spin while moving and
 				 * continue spinning at the point.
 				 */
-				void move_spin(Player player, const Point dest);
+				void move_spin(caller_t&, Player player, Point dest, Angle speed);
 			}
 		}
 	}
 }
-
-#endif
-

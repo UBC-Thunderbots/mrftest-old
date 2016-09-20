@@ -8,12 +8,13 @@ namespace Action = AI::HL::STP::Action;
 namespace {
 	class Idle final : public Tactic {
 		public:
-			explicit Idle(World world) : Tactic(world) {
-			}
+			explicit Idle(World world) : Tactic(world) { }
 
 		private:
 			Player select(const std::set<Player> &players) const override;
-			void execute() override;
+
+			void execute(caller_t& caller) override;
+
 			Glib::ustring description() const override {
 				return u8"idle";
 			}
@@ -23,13 +24,13 @@ namespace {
 		return *players.begin();
 	}
 
-	void Idle::execute() {
-		Action::stop(world, player);
+	void Idle::execute(caller_t& caller) {
+		while (true) {
+			caller();
+		}
 	}
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::idle(World world) {
-	Tactic::Ptr p(new Idle(world));
-	return p;
+	return Tactic::Ptr(new Idle(world));
 }
-

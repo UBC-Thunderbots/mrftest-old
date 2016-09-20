@@ -1,40 +1,28 @@
 #include "ai/hl/stp/play/simple_play.h"
-#include "ai/hl/stp/tactic/ball.h"
-#include "ai/hl/stp/tactic/defend_solo.h"
-#include "ai/hl/stp/tactic/tdefend.h"
+#include "ai/hl/stp/tactic/legacy_ball.h"
+#include "ai/hl/stp/tactic/legacy_defend.h"
+#include "ai/hl/stp/tactic/legacy_defend_solo.h"
+#include "ai/hl/stp/tactic/legacy_tdefend.h"
+#include "ai/hl/stp/tactic/block_shot_path.h"
 
-using AI::HL::STP::Coordinate;
-
-BEGIN_PLAY(TriAttackDef)
-INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3) && num_of_enemies_on_our_side_at_least(world, 1))
+BEGIN_DEC(TriAttackDef)
+INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3) &&
+		num_of_enemies_on_our_side_at_least(world, 1))
 APPLICABLE(defensive(world) && !ball_in_our_corner(world))
+END_DEC(TriAttackDef)
+
+BEGIN_DEF(TriAttackDef)
 DONE(offensive(world))
 FAIL(ball_in_our_corner(world))
-BEGIN_ASSIGN()
+EXECUTE()
+tactics[0] = Tactic::defend_duo_goalie(world);
+tactics[1] = Tactic::tactive_def(world);
+tactics[2] = Tactic::defend_duo_defender(world);
+tactics[3] = Tactic::tdefend_line(world, Coordinate(world, Point(-1.1, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-0.7, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 1.5);
 
-// GOALIE
-goalie_role.push_back(defend_duo_goalie(world));
+tactics[4] = Tactic::tdefend_line(world, Coordinate(world, Point(-1.1, 0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-0.7, -0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 1.5);
 
-// ROLE 1
-// active def
-roles[0].push_back(tactive_def(world));
+tactics[5] = Tactic::block_shot_path(world,0);
 
-// ROLE 2
-// duo defender
-roles[1].push_back(defend_duo_defender(world));
-
-// ROLE 3 (optional)
-// defend line 1
-roles[2].push_back(tdefend_line(world, Coordinate(world, Point(-1.1, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-0.7, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 1.5));
-
-// ROLE 4 (optional)
-// defend line 2
-roles[3].push_back(tdefend_line(world, Coordinate(world, Point(-1.1, 0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-0.7, -0.35), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 1.5));
-
-// ROLE 5 (optional)
-// offend
-roles[4].push_back(defend_duo_extra1(world));
-
-END_ASSIGN()
-END_PLAY()
-
+wait(caller, tactics[1].get());
+END_DEF(TriAttackDef)

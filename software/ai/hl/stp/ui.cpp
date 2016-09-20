@@ -254,7 +254,7 @@ void AI::HL::STP::draw_baller(World world, Cairo::RefPtr<Cairo::Context> ctx) {
 	if (robot && !Evaluation::possess_ball(world, robot)) {
 		// black line
 		Point dest;
-		AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), robot.position(), dest);
+		Evaluation::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), robot.position(), dest);
 		ctx->set_source_rgba(0.0, 0.0, 0.0, 0.2);
 		ctx->set_line_width(0.01);
 		ctx->move_to(robot.position().x, robot.position().y);

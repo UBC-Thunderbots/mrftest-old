@@ -9,8 +9,6 @@
 #define RATEPASS_H_
 
 #include "ai/hl/stp/tactic/util.h"
-#include "ai/hl/stp/action/shoot.h"
-#include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/pass.h"

@@ -77,6 +77,33 @@ namespace AI {
 					Point dest;
 			};
 
+			template<typename T, typename R> class CmpScalar final {
+				public:
+					/**
+					 * Constructs a new CmpDist.
+					 *
+					 * \param[in] dest the target point the distance to which to sort by.
+					 */
+					explicit constexpr CmpScalar(std::function<R(T)> fun) : fun(fun) {
+					}
+
+					/**
+					 * Compares two objects.
+					 *
+					 * \param[in] x the first object to compare.
+					 *
+					 * \param[in] y the second object to compare.
+					 *
+					 * \return \c true if \p x precedes \p y, or \c false if not.
+					 */
+					constexpr bool operator()(const T &x, const T &y) const {
+						return fun(x) < fun(y);
+					}
+
+				private:
+					std::function<R(T)> fun;
+			};
+
 			/**
 			 * Checks if a point lies inside the friendly defense area.
 			 * Useful for defenders.

@@ -1,15 +1,6 @@
-/*
- * PassInfo.cpp
- *
- *  Created on: 2015-03-07
- *      Author: cheng
- */
-
 #include "ai/hl/stp/gradient_approach/PassInfo.h"
 #include "ai/hl/stp/gradient_approach/optimizepass.h"
 #include "ai/hl/stp/tactic/util.h"
-#include "ai/hl/stp/action/shoot.h"
-#include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/stp/evaluation/team.h"
@@ -30,11 +21,7 @@
 using namespace AI::HL::W;
 using namespace AI::HL::STP::GradientApproach;
 
-//namespace{
-
-
-
-PassInfo::PassInfo(){
+PassInfo::PassInfo() {
 	// This constructor is only ever called once.
 	// PassLoop thread initiated when singleton created.
 
@@ -99,7 +86,7 @@ void PassInfo::updateWorldSnapshot(World world){
 	}
 
 	// otherwise determine through clac_fastest_grab_ball_destt
-	else{
+	else {
 		Player passer;
 		double min_dist = 1e99;
 		for (Player player : world.friendly_team()) {
@@ -135,23 +122,15 @@ void PassInfo::updateWorldSnapshot(World world){
 	new_snapshot.enemy_goal = world.field().enemy_goal();
 	new_snapshot.friendly_goal = world.field().friendly_goal();
 	
-
 	{
 		std::lock_guard<std::mutex> lock(world_mutex);
 		snapshot = new_snapshot;
 	}
 }
 
-PassInfo::worldSnapshot PassInfo::getWorldSnapshot(){
+PassInfo::worldSnapshot PassInfo::getWorldSnapshot() {
 	world_mutex.lock();
 	PassInfo::worldSnapshot return_val = snapshot;
 	world_mutex.unlock();
 	return return_val;
 }
-    
-
-
-
-
-
-//} /* namespace gradientApproach */

@@ -1,7 +1,6 @@
-#ifndef AI_HL_STP_ACTION_MOVE_H
-#define AI_HL_STP_ACTION_MOVE_H
+#pragma once
 
-#include "ai/hl/stp/world.h"
+#include "ai/hl/stp/action/action.h"
 
 namespace AI {
 	namespace HL {
@@ -10,36 +9,29 @@ namespace AI {
 				/**
 				 * Move
 				 *
-				 * Not intended for goalie use
-				 *
 				 * Move to a particular location and stop. Orient the player
 				 * towards the ball.
 				 */
-				void move(World world, Player player, const Point dest);
+				void move(caller_t& ca, World world, Player player, Point dest);
 
 				/**
 				 * Move
-				 *
-				 * Not intended for goalie use
 				 *
 				 * Move to a particular location and stop. Orient the player
 				 * towards a particular direction.
 				 */
-				void move(Player player, const Angle orientation, const Point dest);
+				void move(caller_t& ca, World world, Player player, Angle orientation, Point dest);
+
+				void move_dribble(caller_t& ca, World world, Player player, Angle orientation, Point dest);
 
 				/**
 				 * Move
 				 *
-				 * Not intended for goalie use
-				 *
 				 * Move to a particular location with a low velocity and stop.
 				 * Orient the player towards the ball. MOVE_CAREFUL flag is set.
 				 */
-				void move_careful(World world, Player player, const Point dest);
+				void move_careful(caller_t& ca, World world, Player player, Point dest);
 			}
 		}
 	}
 }
-
-#endif
-

@@ -23,6 +23,9 @@ namespace AI {
 
 				ShootData evaluate_shoot(World world, Player player, bool use_reduced_radius = true);
 
+				Point get_best_shot(World world, Robot robot);
+				std::pair<Point, Angle> get_best_shot_pair(World world, Robot robot);
+
 				double get_passee_shoot_score(const PassInfo::worldSnapshot& snap, Point position);
 
 				/**

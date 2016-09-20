@@ -1,5 +1,4 @@
-#ifndef AI_HL_STP_H
-#define AI_HL_STP_H
+#pragma once
 
 #include "ai/hl/stp/world.h"
 #include <cairomm/context.h>
@@ -12,6 +11,7 @@ namespace AI {
 			 * Run all evaluations.
 			 */
 			void tick_eval(World world);
+			void stop_threads();
 
 			void draw_ui(World world, Cairo::RefPtr<Cairo::Context> ctx);
 
@@ -19,6 +19,3 @@ namespace AI {
 		}
 	}
 }
-
-#endif
-

@@ -15,7 +15,7 @@ using namespace Glib;
 namespace {
 	constexpr double MAX_SPEED = 2.0;
 	constexpr double THRESHOLD = 0.07;
-// const double STEP_DISTANCE = 0.3;
+	// const double STEP_DISTANCE = 0.3;
 	constexpr double TIMESTEP = 1.0 / TIMESTEPS_PER_SECOND;
 	constexpr double VALID_REGION = 0.3 * (9 / 8) * TIMESTEP * TIMESTEP;
 	// probability that we will take a step towards the goal
@@ -39,6 +39,8 @@ RRTPhysicsNavigator::RRTPhysicsNavigator(World world) : Navigator(world), planne
 }
 
 void RRTPhysicsNavigator::tick() {
+	LOG_ERROR("RRT physics doesn't work with MPs!");
+	/*
 	const AI::Timestamp currentTime = world.monotonic_time();
 	for (Player player : world.friendly_team()) {
 		const double dist = (player.position() - player.destination().first).len();
@@ -65,6 +67,7 @@ void RRTPhysicsNavigator::tick() {
 
 		player.path(path);
 	}
+	*/
 }
 
 NAVIGATOR_REGISTER(RRTPhysicsNavigator)

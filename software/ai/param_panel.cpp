@@ -250,6 +250,7 @@ namespace {
 				value_column.add_attribute(value_spin_renderer, u8"text", model->numeric_value_column);
 				value_column.add_attribute(value_spin_renderer, u8"digits", model->numeric_digits_column);
 				append_column(value_column);
+				expand_all();
 			}
 
 		private:

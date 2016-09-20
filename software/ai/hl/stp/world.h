@@ -1,6 +1,4 @@
-#ifndef AI_HL_STP_WORLD_H
-#define AI_HL_STP_WORLD_H
-
+#pragma once
 #include "ai/hl/world.h"
 
 namespace AI {
@@ -25,6 +23,3 @@ namespace AI {
 		}
 	}
 }
-
-#endif
-

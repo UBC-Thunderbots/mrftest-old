@@ -1,50 +1,26 @@
-#include "ai/hl/stp/tactic/intercept.h"
+#include "ai/hl/stp/tactic/legacy_intercept.h"
 #include "ai/hl/stp/play/simple_play.h"
-#include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/shoot.h"
+#include "ai/hl/stp/tactic/legacy_defend.h"
+#include "ai/hl/stp/tactic/legacy_offend.h"
+#include "ai/hl/stp/tactic/legacy_block.h"
+#include "ai/hl/stp/tactic/legacy_shadow_enemy.h"
 
-namespace Predicates = AI::HL::STP::Predicates;
-using AI::HL::STP::Enemy;
+BEGIN_DEC(GrabBallOffensive)
+INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2))
+APPLICABLE(none_ball(world))
+END_DEC(GrabBallOffensive)
 
-/**
- * Condition:
- * - Ball not under team possession
- *
- * Objective:
- * - Grab the ball, offensively
- */
-BEGIN_PLAY(GrabBallOffensive)
-INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY)
-	&& Predicates::our_team_size_at_least(world, 2))
-APPLICABLE(Predicates::none_ball(world))
-DONE(Predicates::our_ball(world))
-FAIL(Predicates::their_ball(world))
+BEGIN_DEF(GrabBallOffensive)
+DONE(our_ball(world))
+FAIL(their_ball(world))
+EXECUTE()
+tactics[0] = Tactic::goalie_dynamic(world, 1);
+tactics[1] = Tactic::shoot_goal(world);
+tactics[2] = Tactic::defend_duo_defender(world);
+tactics[3] = Tactic::defend_duo_extra1(world);
+tactics[4] = Tactic::offend_secondary(world);
+tactics[5] = Tactic::defend_duo_extra2(world);
 
-BEGIN_ASSIGN()
-// GOALIE
-// defend the goal
-goalie_role.push_back(goalie_dynamic(world, 1));
-
-// ROLE 1
-// chase the ball!
-roles[0].push_back(shoot_goal(world));
-
-// ROLE 2
-// defend
-roles[1].push_back(defend_duo_defender(world));
-
-// ROLE 3 (optional)
-// block 1
-roles[2].push_back(defend_duo_extra2(world));
-
-// ROLE 4 (optional)
-// block 2
-roles[3].push_back(defend_duo_extra1(world));
-
-// ROLE 5 (optional)
-// offend 2
-roles[4].push_back(offend_secondary(world));
-
-END_ASSIGN()
-END_PLAY()
-
+wait(caller, tactics[1].get());
+END_DEF(GrabBallOffensive)

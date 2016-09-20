@@ -1,46 +1,28 @@
-#include "ai/hl/stp/tactic/move.h"
-#include "ai/hl/stp/tactic/penalty_goalie_new.h"
 #include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/stp/tactic/move.h"
+#include "ai/hl/stp/tactic/legacy_penalty_goalie_new.h"
 
-using namespace AI::HL::W;
-namespace Predicates = AI::HL::STP::Predicates;
-
-/**
- * Condition:
- * - Playtype Prepare Penalty Enemy
- *
- * Objective:
- * - move to Penalty positions and shoot the ball to enemy goal
- */
-BEGIN_PLAY(PenaltyEnemy)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::PREPARE_PENALTY_ENEMY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_PENALTY_ENEMY)))
+BEGIN_DEC(PenaltyEnemy)
+INVARIANT(playtype(world, PlayType::PREPARE_PENALTY_ENEMY) ||
+		playtype(world, PlayType::EXECUTE_PENALTY_ENEMY))
 APPLICABLE(true)
+END_DEC(PenaltyEnemy)
+
+BEGIN_DEF(PenaltyEnemy)
 DONE(false)
 FAIL(false)
-BEGIN_ASSIGN()
-// GOALIE
-goalie_role.push_back(penalty_goalie_new(world));
+EXECUTE()
+tactics[0] = Tactic::penalty_goalie_new(world);
 
-// ROLE 1
-// move to penalty position 1
-roles[0].push_back(move(world, Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 7 * Robot::MAX_RADIUS)));
+tactics[1] = Tactic::move(world, Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 7 * Robot::MAX_RADIUS));
 
-// ROLE 2
-// move to penalty position 2
-roles[1].push_back(move(world, Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 3.5 * Robot::MAX_RADIUS)));
+tactics[2] = Tactic::move(world, Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 3.5 * Robot::MAX_RADIUS));
 
-// ROLE 3
-// move to penalty position 3
-roles[2].push_back(move(world, Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, -3.5 * Robot::MAX_RADIUS)));
+tactics[3] = Tactic::move(world, Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, -3.5 * Robot::MAX_RADIUS));
 
-// ROLE 4
-// move to penalty position 4
-roles[3].push_back(move(world, Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, -7 * Robot::MAX_RADIUS)));
+tactics[4] = Tactic::move(world, Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, -7 * Robot::MAX_RADIUS));
 
-// ROLE 5
-// move to penalty position 5
-roles[4].push_back(move(world, Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 0)));
+tactics[5] = Tactic::move(world, Point(world.field().penalty_friendly().x + DIST_FROM_PENALTY_MARK + Robot::MAX_RADIUS, 0));
 
-END_ASSIGN()
-END_PLAY()
-
+while (1) yield(caller);
+END_DEF(PenaltyEnemy)

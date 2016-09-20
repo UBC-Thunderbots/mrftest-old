@@ -59,14 +59,6 @@ Angle Robot::avelocity_stdev(double delta) const {
 	return pred.value(delta, 1).second.second;
 }
 
-bool Robot::has_destination() const {
-	return false;
-}
-
-std::pair<Point, Angle> Robot::destination() const {
-	throw std::logic_error("This robot has no destination");
-}
-
 bool Robot::has_display_path() const {
 	return false;
 }

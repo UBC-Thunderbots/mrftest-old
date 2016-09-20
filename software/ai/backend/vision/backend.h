@@ -5,7 +5,7 @@
 #include "ai/backend/refbox.h"
 #include "ai/backend/clock/monotonic.h"
 #include "ai/backend/vision/vision_socket.h"
-#include "ai/common/enums/playtype.h"
+#include "ai/common/playtype.h"
 #include "geom/point.h"
 #include "geom/particle/particle_filter.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
@@ -21,6 +21,11 @@
 namespace AI {
 namespace BE {
 namespace Vision {
+/**
+ *
+ */
+extern BoolParam DISABLE_VISION_FILTER;
+
 extern BoolParam USE_PARTICLE_FILTER;
 
 /**
@@ -46,6 +51,11 @@ public:
 	 * \brief The number of metres the ball must move from a kickoff or similar until we consider that the ball is free to be approached by either team.
 	 */
 	static constexpr double BALL_FREE_DISTANCE = 0.09;
+
+	/**
+	 * \brief The maximum speed that a ball can be to consider kickoff ending.
+	 */
+	static constexpr double BALL_FREE_MAXSPEED = 8;
 
 	/**
 	 * \brief Constructs a new SSL-Vision-based backend.
@@ -202,7 +212,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 		detections[det.camera_id()].second = now;
 
 		// Update the ball.
-		{
+		if (!DISABLE_VISION_FILTER) {
 			// Compute the best ball position from the list of detections.
 			Point best_pos;
 			double best_conf = 0;
@@ -215,12 +225,26 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 
 			/* KALMAN VARIABLE DECLARATIONS */
 			Point estimated_position = ball_.position(time_delta);
+			Point estimated_velocity = ball_.velocity(time_delta);
 			Point estimated_stdev = ball_.position_stdev(time_delta);
 			double x_prob = 0, y_prob = 0;
 			double best_prob = 0;
 
 			if (time_delta >= 0) {
+				bool any_ball_inside = false;
 				for (const SSL_DetectionBall &b : det.balls()) {
+					if (fabs(b.x()) < field_.length() * 500 && fabs(b.y()) < field_.width() * 500) {
+						any_ball_inside = true;
+						break;
+					}
+				}
+
+				for (const SSL_DetectionBall &b : det.balls()) {
+					if ((fabs(b.x()) > field_.length() * 500 || fabs(b.y()) > field_.width() * 500)
+							&& any_ball_inside) {
+						continue;
+					}
+
 					// Compute the probability of this ball being the wanted one.
 					Point detection_position(b.x() / 1000.0, b.y() / 1000.0);
 					if (defending_end() == FieldEnd::EAST) {
@@ -294,6 +318,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 				if (best_prob >= BALL_FILTER_THRESHOLD) {
 					ball_.add_field_data(best_pos, best_time);
 				} else {
+					/*
 					// No useful detection from camera; instead, see if a robot has the ball.
 					std::vector<Point> has_ball_inputs;
 					for (std::size_t i = 0; i < friendly_team().size(); ++i) {
@@ -315,9 +340,43 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 						avg /= static_cast<double>(has_ball_inputs.size());
 						ball_.add_field_data(avg, now);
 					}
+					*/
 				}
 
-				ball_.add_field_data(best_pos, best_time);
+				// ball_.add_field_data(best_pos, best_time);
+			}
+		}
+		else {
+			bool any_ball_inside = false;
+			for (const SSL_DetectionBall &b : det.balls()) {
+				if (fabs(b.x()) < field_.length() * 500 && fabs(b.y()) < field_.width() * 500) {
+					any_ball_inside = true;
+					break;
+				}
+			}
+
+			Point best_pos = Point();
+			double best_conf = 0;
+			for (const SSL_DetectionBall &b : det.balls()) {
+				if ((fabs(b.x()) > field_.length() * 500 || fabs(b.y()) > field_.width() * 500)
+						&& any_ball_inside) {
+					continue;
+				}
+
+				Point detection_position = Point(b.x() / 1000.0, b.y() / 1000.0);
+
+				if (defending_end() == FieldEnd::EAST) {
+					detection_position = -detection_position;
+				}
+
+				if (b.confidence() > best_conf) {
+					best_pos = detection_position;
+					best_conf = b.confidence();
+				}
+			}
+
+			if (best_conf > 0) {
+				ball_.add_field_data(best_pos, now);
 			}
 		}
 
@@ -396,7 +455,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
 		FriendlyTeam, EnemyTeam>::update_ball_placement() {
 	if (refbox.packet.has_designated_position()) {
-		ball_placement_position_rw() = Point(refbox.packet.designated_position().x(), refbox.packet.designated_position().y());
+		ball_placement_position_rw() = Point(refbox.packet.designated_position().x() / 1000.0, refbox.packet.designated_position().y() / 1000.0);
 	}
 }
 
@@ -472,7 +531,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType 
 		} else if (old_pt
 				== AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) {
 			if ((ball_.position() - playtype_arm_ball_position).len()
-					> BALL_FREE_DISTANCE) {
+					> BALL_FREE_DISTANCE && ball_.velocity().len() < BALL_FREE_MAXSPEED) {
 				return AI::Common::PlayType::PLAY;
 			} else {
 				return AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY;
@@ -488,7 +547,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType 
 		} else if (old_pt
 				== AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) {
 			if ((ball_.position() - playtype_arm_ball_position).len()
-					> BALL_FREE_DISTANCE) {
+					> BALL_FREE_DISTANCE && ball_.velocity().len() < BALL_FREE_MAXSPEED) {
 				return AI::Common::PlayType::PLAY;
 			} else {
 				return AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY;
@@ -504,7 +563,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType 
 		} else if (old_pt
 				== AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY) {
 			if ((ball_.position() - playtype_arm_ball_position).len()
-					> BALL_FREE_DISTANCE) {
+					> BALL_FREE_DISTANCE && ball_.velocity().len() < BALL_FREE_MAXSPEED) {
 				return AI::Common::PlayType::PLAY;
 			} else {
 				return AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY;
@@ -520,7 +579,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType 
 		} else if (old_pt
 				== AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY) {
 			if ((ball_.position() - playtype_arm_ball_position).len()
-					> BALL_FREE_DISTANCE) {
+					> BALL_FREE_DISTANCE && ball_.velocity().len() < BALL_FREE_MAXSPEED) {
 				return AI::Common::PlayType::PLAY;
 			} else {
 				return AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY;
@@ -546,10 +605,10 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::Common::PlayType 
 		return AI::Common::PlayType::PREPARE_PENALTY_FRIENDLY;
 
 	case SSL_Referee::BALL_PLACEMENT_YELLOW:
-		return AI::Common::PlayType::BALL_PLACEMENT_FRIENDLY;
+		return AI::Common::PlayType::BALL_PLACEMENT_ENEMY;
 
 	case SSL_Referee::BALL_PLACEMENT_BLUE:
-		return AI::Common::PlayType::BALL_PLACEMENT_ENEMY;
+		return AI::Common::PlayType::BALL_PLACEMENT_FRIENDLY;
 	}
 
 	return old_pt;

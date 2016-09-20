@@ -7,4 +7,3 @@
 constexpr unsigned int TIMESTEPS_PER_SECOND = 30;
 
 #endif
-

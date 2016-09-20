@@ -1,5 +1,4 @@
-#ifndef AI_HL_STP_TACTIC_MOVE_H
-#define AI_HL_STP_TACTIC_MOVE_H
+#pragma once
 
 #include "ai/hl/stp/coordinate.h"
 #include "ai/hl/stp/tactic/tactic.h"
@@ -9,26 +8,20 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
-				 * Move
-				 * Not Active Tactic
 				 * Move to a location specified by dest.
 				 *
 				 * \param[in] dest the location to move to.
 				 */
-				Tactic::Ptr move(World world, const Coordinate dest);
+				Tactic::Ptr move_once(World world, Point dest);
 
 				/**
-				 * Move
-				 * Not Active Tactic
-				 * Move to a location specified by dest.
+				 * Move, and follow, a location specified by dest.
 				 *
 				 * \param[in] dest the location to move to.
 				 */
-				Tactic::Ptr goalie_move(World world, const Coordinate dest);
+				Tactic::Ptr move(World world, Coordinate dest);
 			}
 		}
 	}
 }
-
-#endif
 

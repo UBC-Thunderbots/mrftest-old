@@ -1,7 +1,5 @@
-#ifndef AI_HL_STP_ACTION_STOP_H
-#define AI_HL_STP_ACTION_STOP_H
-
-#include "ai/hl/stp/world.h"
+#pragma once
+#include "ai/hl/stp/action/action.h"
 
 namespace AI {
 	namespace HL {
@@ -10,15 +8,10 @@ namespace AI {
 				/**
 				 * Stop
 				 *
-				 * Intended for goalie use
-				 *
 				 * Stop at the current location.
 				 */
-				void stop(World world, Player player);
+				void stop(caller_t& ca, World world, Player player);
 			}
 		}
 	}
 }
-
-#endif
-

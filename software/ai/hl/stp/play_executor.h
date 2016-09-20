@@ -9,14 +9,6 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
-			
-			/**
-			 * These values should purely be used to record the active tactics used. 
-			 */
-			namespace Active {
-				extern Player active_player;
-				extern Player last_kicked;
-			}
 			/**
 			 * A play executor.
 			 * See STP paper section 5.3.
@@ -25,6 +17,7 @@ namespace AI {
 			class PlayExecutor : public sigc::trackable {
 				public:
 					explicit PlayExecutor(World w);
+					~PlayExecutor();
 
 					/**
 					 * Runs every time step.
@@ -47,71 +40,24 @@ namespace AI {
 					std::vector<bool> players_enabled;
 
 					/**
-					 * \brief Idle tactics to use when other tactics have not yet been selected.
-					 */
-					Tactic::Tactic::Ptr idle_tactics[TEAM_MAX_SIZE];
-
-					/**
 					 * The play in use currently.
 					 */
-					Play::Play *curr_play;
-					
-					/**
-					 * indicates which step in the role we are using.
-					 */
-					unsigned int curr_role_step;
-
-					/**
-					 * A role is a sequence of tactics.
-					 * The first role is for goalie.
-					 */
-					std::vector<Tactic::Tactic::Ptr> curr_roles[TEAM_MAX_SIZE];
-
-					/**
-					 * The tactic in use
-					 */
-					Tactic::Tactic *curr_tactic[TEAM_MAX_SIZE];
-
-					/**
-					 * Active tactic in use.
-					 */
-					Tactic::Tactic *curr_active;
-
-					// current player assignment (move to team????)
-					AI::HL::W::Player curr_assignment[TEAM_MAX_SIZE];
-
-					// previous player assignment
-					AI::HL::W::Player prev_assignment[TEAM_MAX_SIZE];
+					std::unique_ptr<Play::Play> curr_play;
 
 					/**
 					 * List of all the available plays
 					 */
-					std::vector<std::unique_ptr<Play::Play>> plays;
+					std::vector<Play::PlayFactory*> plays;
 
 					/**
 					 * Calculates a NEW play to be used.
 					 */
 					virtual void calc_play();
 
-					/**
-					 * Condition: a play is in use.
-					 * Calculates and executes tactics.
-					 */
-					void execute_tactics();
-
-					/**
-					 * Condition: a valid list of tactics.
-					 * Dynamically run tactic to play assignment.
-					 */
-					void role_assignment();
-
 					void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
 
 					void clear_assignments();
-					
-					/**
-					 * used to init players_enabled
-					 */
+
 					void enable_players();
 			};
 		};

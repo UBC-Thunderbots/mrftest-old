@@ -5,7 +5,7 @@ namespace AI {
 		class PhysicsPlanner final : public RRTPlanner {
 			public:
 				explicit PhysicsPlanner(AI::Nav::W::World world);
-				std::vector<Point> plan(AI::Nav::W::Player player, Point goal, unsigned int added_flags = 0) override;
+				std::vector<Point> plan(AI::Nav::W::Player player, Point goal, AI::Flags::MoveFlags added_flags = AI::Flags::MoveFlags::NONE) override;
 
 			protected:
 				/**

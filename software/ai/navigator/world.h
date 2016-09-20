@@ -1,8 +1,8 @@
-#ifndef AI_NAVIGATOR_WORLD_H
-#define AI_NAVIGATOR_WORLD_H
+#pragma once
 
 #include "ai/backend/backend.h"
-#include "ai/common/objects/world.h"
+#include "ai/backend/primitives/primitive.h"
+#include "ai/common/world.h"
 #include "ai/flags.h"
 #include <functional>
 #include <utility>
@@ -112,39 +112,11 @@ namespace AI {
 					using AI::Common::Player::operator bool;
 
 					/**
-					 * \brief Returns the destination position and orientation requested by the HighLevel
-					 *
-					 * \return the destination position and orientation
-					 */
-					std::pair<Point, Angle> destination() const;
-
-					/**
-					 * \brief Returns the destination position and orientation requested by the HighLevel
-					 *
-					 * \dest set the destination position and orientation for gui to show
-					 */
-					void destination(std::pair<Point, Angle> dest);
-
-					/**
-					 * \brief Returns the target velocity requested by the HighLevel
-					 *
-					 * \return the target velocity
-					 */
-					Point target_velocity() const;
-
-					/**
 					 * \brief Returns the movement flags requested by the HighLevel
 					 *
 					 * \return the flags
 					 */
-					unsigned int flags() const;
-
-					/**
-					 * \brief Returns the movement type requested by the HighLevel
-					 *
-					 * \return the type
-					 */
-					AI::Flags::MoveType type() const;
+					AI::Flags::MoveFlags flags() const;
 
 					/**
 					 * \brief Returns the movement priority requested by the HighLevel
@@ -174,6 +146,12 @@ namespace AI {
 					 * \param[in] p the path
 					 */
 					void display_path(const std::vector<Point> &p);
+
+					void push_prim(AI::BE::Primitives::Primitive* prim);
+					void erase_prim(AI::BE::Primitives::Primitive* prim);
+					void pop_prim();
+					bool has_prim() const;
+					AI::BE::Primitives::Primitive* top_prim() const;
 	
 					/**
 					 * \brief Coasts the robot’s wheels.
@@ -261,7 +239,7 @@ namespace AI {
 					 * (for chipping) to kick the ball
 					 * \param[in] chip \c true to chip the ball or \c false to kick it
 					 */
-					void move_shoot(Point dest, double power, bool chip);
+					void __attribute__((optimize("O0"))) move_shoot(Point dest, double power, bool chip);
 
 					/**
 					 * \brief Kicks the ball.
@@ -322,22 +300,6 @@ namespace AI {
 					 * \param[in] speed the speed to spin at, in units per second
 					 */
 					void move_spin(Point dest, Angle speed);
-
-					AI::PrimitiveInfo primitive_info();
-	
-					/*void move_coast();
-					void move_brake();
-					void move_move(Point dest);
-					void move_move(Point dest, Angle orientation);
-					void move_move(Point dest, double time_delta);
-					void move_move(Point dest, Angle orientation, double time_delta);
-					void move_dribble(Point dest, Angle orientation, bool small_kick_allowed);
-					void move_shoot(Point dest, double power, bool chip);
-					void move_shoot(Point dest, Angle orientation, double power, bool chip);
-					void move_catch(Angle angle_diff, double displacement, double speed);
-					void move_pivot(Point centre, Angle swing, Angle orientation);
-					void move_spin(Point dest, Angle speed);				*/
-
 			};
 
 			/**
@@ -478,25 +440,8 @@ inline AI::Nav::W::Player::Player(AI::BE::Player::Ptr impl) : AI::Common::Player
 
 inline AI::Nav::W::Player::Player(const Player &) = default;
 
-inline std::pair<Point, Angle> AI::Nav::W::Player::destination() const {
-	return AI::Common::Player::impl->destination();
-}
-
-inline void AI::Nav::W::Player::destination(std::pair<Point, Angle> dest){
-	AI::Common::Player::impl->destination(dest);
-	return;
-}
-
-inline Point AI::Nav::W::Player::target_velocity() const {
-	return AI::Common::Player::impl->target_velocity();
-}
-
-inline unsigned int AI::Nav::W::Player::flags() const {
+inline AI::Flags::MoveFlags AI::Nav::W::Player::flags() const {
 	return AI::Common::Player::impl->flags();
-}
-
-inline AI::Flags::MoveType AI::Nav::W::Player::type() const {
-	return AI::Common::Player::impl->type();
 }
 
 inline AI::Flags::MovePrio AI::Nav::W::Player::prio() const {
@@ -512,6 +457,22 @@ inline void AI::Nav::W::Player::path(const std::vector<std::pair<std::pair<Point
 
 inline void AI::Nav::W::Player::display_path(const std::vector<Point> &p) {
 	AI::Common::Player::impl->display_path(p);
+}
+
+inline void AI::Nav::W::Player::push_prim(AI::BE::Primitives::Primitive* prim) {
+	AI::Common::Player::impl->push_prim(prim);
+}
+inline void AI::Nav::W::Player::erase_prim(AI::BE::Primitives::Primitive* prim) {
+	AI::Common::Player::impl->erase_prim(prim);
+}
+inline void AI::Nav::W::Player::pop_prim() {
+	AI::Common::Player::impl->pop_prim();
+}
+inline bool AI::Nav::W::Player::has_prim() const {
+	return AI::Common::Player::impl->has_prim();
+}
+inline AI::BE::Primitives::Primitive* AI::Nav::W::Player::top_prim() const {
+	return AI::Common::Player::impl->top_prim();
 }
 
 inline void AI::Nav::W::Player::move_coast(){
@@ -595,9 +556,3 @@ inline bool std::less<AI::Nav::W::Robot>::operator()(const AI::Nav::W::Robot &x,
 inline bool std::less<AI::Nav::W::Player>::operator()(const AI::Nav::W::Player &x, const AI::Nav::W::Player &y) const {
 	return cmp(x, y);
 }
-
-inline AI::PrimitiveInfo AI::Nav::W::Player::primitive_info(){
-	return AI::Common::Player::impl->hl_request;
-}
-#endif
-

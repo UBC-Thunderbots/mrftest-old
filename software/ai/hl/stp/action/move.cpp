@@ -3,30 +3,25 @@
 
 using namespace AI::HL::STP;
 
-void AI::HL::STP::Action::move(World world, Player player, const Point dest) {
-	// Avoid defense areas
-	player.flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE ||
-		AI::Flags::FLAG_AVOID_ENEMY_DEFENSE);
-
-	player.mp_move(dest, (world.ball().position() - player.position()).orientation());
-	player.type(AI::Flags::MoveType::NORMAL);
+void AI::HL::STP::Action::move(caller_t& ca, World world, Player player, Point dest) {
+	Primitive prim = Primitives::Move(player, dest, (world.ball().position() - player.position()).orientation());
+	Action::wait(ca, prim);
 }
 
-void AI::HL::STP::Action::move(Player player, const Angle orientation, const Point dest) {
-	// Avoid defense areas
-	player.flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE ||
-		AI::Flags::FLAG_AVOID_ENEMY_DEFENSE);
-
-	player.mp_move(dest, orientation);
-	player.type(AI::Flags::MoveType::NORMAL);
+void AI::HL::STP::Action::move(caller_t& ca, World, Player player, Angle orientation, Point dest) {
+	Primitive prim = Primitives::Move(player, dest, orientation);
+	Action::wait(ca, prim);
 }
 
-void AI::HL::STP::Action::move_careful(World world, Player player, const Point dest) {
-	// Avoid defense areas
-	player.flags(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE ||
-		AI::Flags::FLAG_AVOID_ENEMY_DEFENSE);
+void AI::HL::STP::Action::move_dribble(caller_t& ca, World, Player player, Angle orientation, Point dest) {
+	Primitive prim = Primitives::Dribble(player, dest, orientation, false);
+	Action::wait(ca, prim);
+}
 
-	player.mp_move(dest, (world.ball().position() - player.position()).orientation());
-	player.flags(AI::Flags::FLAG_CAREFUL);
+void AI::HL::STP::Action::move_careful(caller_t& ca, World world, Player player, Point dest) {
+	player.flags(player.flags() | AI::Flags::MoveFlags::CAREFUL);
+
+	Primitive prim = Primitives::Move(player, dest, (world.ball().position() - player.position()).orientation());
+	Action::wait(ca, prim);
 }
 

@@ -17,7 +17,7 @@ SOURCES_buildid := build_id.cpp main.cpp util
 SOURCES_cppunit := cppunit geom util
 SOURCES_getcore := getcore.cpp main.cpp util
 SOURCES_hall2phase := hall2phase
-SOURCES_log := ai/common/enums geom log main.cpp proto uicomponents util
+SOURCES_log := ai/common/playtype.* ai/common/colour.h log main.cpp proto uicomponents util
 SOURCES_mrfcap := main.cpp mrfcap.cpp util
 SOURCES_mrftest := drive main.cpp mrf test/common test/mrf uicomponents util
 SOURCES_nulltest := drive main.cpp test/common test/null uicomponents util
@@ -31,12 +31,12 @@ PACKAGES := glibmm-2.4 gtkmm-3.0 cairomm-1.0 ode protobuf libxml++-2.6 gsl libus
 #
 # The flags to pass to the linker ahead of any object files.
 #
-PROJECT_LDFLAGS := -pthread -Wl,--as-needed -Wl,-O1 -ggdb3
+PROJECT_LDFLAGS := -pthread -Wl,--as-needed -Wl,-O2 -ggdb3
 
 #
 # The library flags to pass to the linker after all object files.
 #
-PROJECT_LIBS := -lbz2 #-lboost_coroutine -lboost_context
+PROJECT_LIBS := -lbz2 -lboost_coroutine -lboost_context
 
 #
 # The flags to pass to the C++ compiler.

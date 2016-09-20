@@ -1,8 +1,8 @@
 #include "log/analyzer.h"
 #include "log/loader.h"
 #include "ai/flags.h"
-#include "ai/common/enums/colour.h"
-#include "ai/common/enums/playtype.h"
+#include "ai/common/colour.h"
+#include "ai/common/playtype.h"
 #include "proto/log_record.pb.h"
 #include "uicomponents/abstract_list_model.h"
 #include "util/codec.h"
@@ -74,18 +74,19 @@ namespace {
 	 * \brief A mapping from movement flag to descriptive text.
 	 */
 	const struct {
-		uint64_t mask;
+		AI::Flags::MoveFlags mask;
 		const char *description;
 	} MOVE_FLAG_MAPPING[] = {
-		{ AI::Flags::FLAG_CLIP_PLAY_AREA, u8"Clip play area" },
-		{ AI::Flags::FLAG_AVOID_BALL_STOP, u8"Avoid ball (stop)" },
-		{ AI::Flags::FLAG_AVOID_BALL_TINY, u8"Avoid ball (tiny)" },
-		{ AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE, u8"Avoid friendly defense area" },
-		{ AI::Flags::FLAG_AVOID_ENEMY_DEFENSE, u8"Avoid enemy defense area" },
-		{ AI::Flags::FLAG_STAY_OWN_HALF, u8"Stay on own half" },
-		{ AI::Flags::FLAG_PENALTY_KICK_FRIENDLY, u8"Non-kicker in friendly penalty kick" },
-		{ AI::Flags::FLAG_PENALTY_KICK_ENEMY, u8"Non-kicker in enemy penalty kick" },
-		{ AI::Flags::FLAG_CAREFUL, u8"Careful" },
+		{ AI::Flags::MoveFlags::CLIP_PLAY_AREA, u8"Clip play area" },
+		{ AI::Flags::MoveFlags::AVOID_BALL_STOP, u8"Avoid ball (stop)" },
+		{ AI::Flags::MoveFlags::AVOID_BALL_TINY, u8"Avoid ball (tiny)" },
+		{ AI::Flags::MoveFlags::AVOID_FRIENDLY_DEFENSE, u8"Avoid friendly defense area" },
+		{ AI::Flags::MoveFlags::AVOID_ENEMY_DEFENSE, u8"Avoid enemy defense area" },
+		{ AI::Flags::MoveFlags::STAY_OWN_HALF, u8"Stay on own half" },
+		{ AI::Flags::MoveFlags::PENALTY_KICK_FRIENDLY, u8"Non-kicker in friendly penalty kick" },
+		{ AI::Flags::MoveFlags::PENALTY_KICK_ENEMY, u8"Non-kicker in enemy penalty kick" },
+		{ AI::Flags::MoveFlags::CAREFUL, u8"Careful" },
+		{ AI::Flags::MoveFlags::AVOID_BALL_MEDIUM, u8"Avoid ball (medium)" },
 	};
 
 	/**
@@ -271,9 +272,6 @@ namespace {
 						os << '\t' << (bot.velocity().x() / 1000000.0);
 						os << '\t' << (bot.velocity().y() / 1000000.0);
 						os << '\t' << (bot.velocity().t() / 1000000.0);
-						os << '\t' << (bot.target().x() / 1000000.0);
-						os << '\t' << (bot.target().y() / 1000000.0);
-						os << '\t' << (bot.target().t() / 1000000.0);
 						os << '\n';
 					}
 				}
@@ -345,9 +343,11 @@ namespace {
 						os << '\t' << (bot.velocity().x() / 1000000.0);
 						os << '\t' << (bot.velocity().y() / 1000000.0);
 						os << '\t' << (bot.velocity().t() / 1000000.0);
+						/* TODO
 						os << '\t' << (bot.target().x() / 1000000.0);
 						os << '\t' << (bot.target().y() / 1000000.0);
 						os << '\t' << (bot.target().t() / 1000000.0);
+						*/
 						os << '\n';
 					}
 				} else if (record.has_vision()) {
@@ -788,9 +788,9 @@ namespace {
 			uint64_t flags = refl.GetUInt64(message, &fd);
 			row[cols.value] = tohex(flags, 16);
 			for (const auto &i : MOVE_FLAG_MAPPING) {
-				if (flags & i.mask) {
-					flags &= ~i.mask;
-					cols.append_kv(ts, row, i.description, tohex(i.mask, 16));
+				if (flags & static_cast<uint64_t>(i.mask)) {
+					flags &= ~static_cast<uint64_t>(i.mask);
+					cols.append_kv(ts, row, i.description, tohex(static_cast<uint64_t>(i.mask), 16));
 				}
 			}
 			if (flags) {

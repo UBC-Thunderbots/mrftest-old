@@ -1,4 +1,5 @@
 #include "ai/logger.h"
+#include "ai/backend/primitives/primitive.h"
 #include "log/shared/enums.h"
 #include "log/shared/magic.h"
 #include "util/algorithm.h"
@@ -76,6 +77,8 @@ namespace {
 
 	AI::Logger *instance = nullptr;
 }
+
+namespace Primitives = AI::BE::Primitives;
 
 
 void ai_logger_signal_handler_thunk(int sig) {
@@ -361,73 +364,71 @@ void AI::Logger::on_ai_notes_changed(const Glib::ustring &notes) {
 }
 
 void AI::Logger::on_tick(AI::Timediff compute_time) {
-	{Log::Record record;
-	Log::Tick &tick = *record.mutable_tick();
-	tick.set_play_type(Log::Util::PlayType::to_protobuf(ai.backend.playtype()));
-	timestamp_to_log(ai.backend.monotonic_time(), ai.backend.monotonic_start_time(), *tick.mutable_start_time());
-	tick.set_compute_time(std::chrono::duration_cast<std::chrono::duration<unsigned int, std::nano>>(compute_time).count());
 	{
-		Log::Tick::Ball &ball = *tick.mutable_ball();
-		const AI::BE::Ball &b = ai.backend.ball();
-		encode_vec2(b.position(), *ball.mutable_position());
-		encode_vec2(b.velocity(), *ball.mutable_velocity());
-		encode_vec2(b.position_stdev(0), *ball.mutable_position_stdev());
-		encode_vec2(b.velocity_stdev(0), *ball.mutable_velocity_stdev());
-	}
-
-	for (std::size_t i = 0; i < ai.backend.friendly_team().size(); ++i) {
-		Log::Tick::FriendlyRobot &player = *tick.add_friendly_robots();
-		AI::BE::Player::Ptr p = ai.backend.friendly_team().get(i);
-		player.set_pattern(p->pattern());
-		encode_vec3(p->position(), p->orientation(), *player.mutable_position());
-		encode_vec3(p->velocity(), p->avelocity(), *player.mutable_velocity());
-		encode_vec3(p->destination().first, p->destination().second, *player.mutable_target());
-		player.set_movement_flags(p->flags());
-		player.set_movement_type(Log::Util::MoveType::to_protobuf(p->type()));
-		player.set_movement_priority(Log::Util::MovePrio::to_protobuf(p->prio()));
-		for (Point j : p->display_path()) {
-			Log::Vector2 &path_element = *player.add_display_path();
-			encode_vec2(j, path_element);
-		}
-		for (unsigned int i = 0; i != 4; ++i) {
-			player.add_lps(p->get_lps(i));
+		Log::Record record;
+		Log::Tick &tick = *record.mutable_tick();
+		tick.set_play_type(Log::Util::PlayType::to_protobuf(ai.backend.playtype()));
+		timestamp_to_log(ai.backend.monotonic_time(), ai.backend.monotonic_start_time(), *tick.mutable_start_time());
+		tick.set_compute_time(std::chrono::duration_cast<std::chrono::duration<unsigned int, std::nano>>(compute_time).count());
+		{
+			Log::Tick::Ball &ball = *tick.mutable_ball();
+			const AI::BE::Ball &b = ai.backend.ball();
+			encode_vec2(b.position(), *ball.mutable_position());
+			encode_vec2(b.velocity(), *ball.mutable_velocity());
+			encode_vec2(b.position_stdev(0), *ball.mutable_position_stdev());
+			encode_vec2(b.velocity_stdev(0), *ball.mutable_velocity_stdev());
 		}
 
-		static const std::unordered_map<Drive::Primitive, Log::Tick::FriendlyRobot::HLPrimitive::Primitive> MAPPING = {
-			{ Drive::Primitive::MOVE, Log::Tick::FriendlyRobot::HLPrimitive::MOVE },
-			{ Drive::Primitive::DRIBBLE, Log::Tick::FriendlyRobot::HLPrimitive::DRIBBLE },
-			{ Drive::Primitive::SHOOT, Log::Tick::FriendlyRobot::HLPrimitive::SHOOT },
-			{ Drive::Primitive::CATCH, Log::Tick::FriendlyRobot::HLPrimitive::CATCH },
-			{ Drive::Primitive::PIVOT, Log::Tick::FriendlyRobot::HLPrimitive::PIVOT },
-			{ Drive::Primitive::SPIN, Log::Tick::FriendlyRobot::HLPrimitive::SPIN },
-		};
+		for (std::size_t i = 0; i < ai.backend.friendly_team().size(); ++i) {
+			Log::Tick::FriendlyRobot &player = *tick.add_friendly_robots();
+			AI::BE::Player::Ptr p = ai.backend.friendly_team().get(i);
+			player.set_pattern(p->pattern());
+			encode_vec3(p->position(), p->orientation(), *player.mutable_position());
+			encode_vec3(p->velocity(), p->avelocity(), *player.mutable_velocity());
+			player.set_movement_flags(static_cast<uint64_t>(p->flags()));
 
-		auto iter = MAPPING.find(p->hl_request.type);
-		if (iter != MAPPING.end()) {
-			Log::Tick::FriendlyRobot::HLPrimitive &hlp = *player.mutable_hl_primitive();
-			hlp.set_primitive(iter->second);
-			encode_hlp_vec23(p->hl_request, hlp);
-			if(p->hl_request.type == Drive::Primitive::SHOOT) {
-				hlp.set_chip(p->hl_request.field_bool);
-				hlp.set_power(encode_micros(p->hl_request.field_double));
+			// Deprecated
+			player.set_movement_type(Log::MoveType::MOVE_TYPE_NORMAL);
+			player.set_movement_priority(Log::Util::MovePrio::to_protobuf(p->prio()));
+
+			if (p->has_prim()) {
+				Log::Tick::FriendlyRobot::HLPrimitive& prim = *player.mutable_hl_primitive();
+				Primitives::PrimitiveDescriptor desc = p->top_prim()->desc();
+				prim.set_primitive(Log::Util::Primitive::to_protobuf(desc.prim));
+				prim.set_extra(desc.extra);
+
+				for (int i = 0; i < 4; i++) {
+					prim.add_params(desc.params[i]);
+				}
 			}
+
+			
+			for (Point j : p->display_path()) {
+				Log::Vector2 &path_element = *player.add_display_path();
+				encode_vec2(j, path_element);
+			}
+
+			for (unsigned int i = 0; i != 4; ++i) {
+				player.add_lps(p->get_lps(i));
+			}
+
+#warning Log some more information related to navigator-output movement primitives!
 		}
-#warning Log some information related to navigator-output movement primitives.
-	}
 
-	for (std::size_t i = 0; i < ai.backend.enemy_team().size(); ++i) {
-		Log::Tick::EnemyRobot &robot = *tick.add_enemy_robots();
-		AI::BE::Robot::Ptr r = ai.backend.enemy_team().get(i);
-		robot.set_pattern(r->pattern());
-		encode_vec3(r->position(), r->orientation(), *robot.mutable_position());
-		encode_vec3(r->velocity(), r->avelocity(), *robot.mutable_velocity());
-	}
+		for (std::size_t i = 0; i < ai.backend.enemy_team().size(); ++i) {
+			Log::Tick::EnemyRobot &robot = *tick.add_enemy_robots();
+			AI::BE::Robot::Ptr r = ai.backend.enemy_team().get(i);
+			robot.set_pattern(r->pattern());
+			encode_vec3(r->position(), r->orientation(), *robot.mutable_position());
+			encode_vec3(r->velocity(), r->avelocity(), *robot.mutable_velocity());
+		}
 
-	write_record(record);
+		write_record(record);
 	}
 
 	// lps
-	/*{
+	/*
+	{
 		Log::Record record;
 		for (std::size_t i = 0; i < ai.backend.friendly_team().size(); ++i) {
 			AI::BE::Player::Ptr p = ai.backend.friendly_team().get(i);
@@ -438,18 +439,9 @@ void AI::Logger::on_tick(AI::Timediff compute_time) {
 				break;
 
 		}
-
 		write_record(record);
-		
-	}*/
-}
-
-void AI::Logger::encode_hlp_vec23(const AI::PrimitiveInfo &hl_request, Log::Tick::FriendlyRobot::HLPrimitive &log) {
-	if (hl_request.care_angle) {
-		encode_vec3(hl_request.field_point, hl_request.field_angle, *log.mutable_vector3());
-	} else {
-		encode_vec2(hl_request.field_point, *log.mutable_vector2());
 	}
+	*/
 }
 
 void AI::Logger::encode_vec2(Point p, Log::Vector2 &log) {

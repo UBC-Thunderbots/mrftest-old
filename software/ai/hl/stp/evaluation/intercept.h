@@ -15,9 +15,9 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-
-			double getBestIntercept(World world, Player interceptor, Point predicted_ball_pos, double time);
-
+				double getBestIntercept(World world, Player interceptor, Point predicted_ball_pos, double time);
+				Point quickest_intercept_position(World world, Player player);
+				double time_to_intercept(Player player, Point target);
 			}
 		}
 	}

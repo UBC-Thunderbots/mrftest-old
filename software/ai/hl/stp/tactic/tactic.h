@@ -2,6 +2,7 @@
 #define AI_HL_STP_TACTIC_TACTIC_H
 
 #include "ai/hl/stp/world.h"
+#include "ai/backend/primitives/all.h"
 #include "util/noncopyable.h"
 #include "util/registerable.h"
 #include <memory>
@@ -9,6 +10,7 @@
 #include <cairomm/context.h>
 #include <cairomm/refptr.h>
 #include <glibmm/ustring.h>
+#include <boost/coroutine/coroutine.hpp>
 
 namespace AI {
 	namespace HL {
@@ -31,6 +33,9 @@ namespace AI {
 				 */
 				class Tactic : public NonCopyable {
 					public:
+						using coroutine_t = boost::coroutines::coroutine<void()>;
+						using caller_t = coroutine_t::caller_type;
+
 						/**
 						 * \brief A pointer to a Tactic.
 						 */
@@ -42,23 +47,10 @@ namespace AI {
 						virtual ~Tactic();
 
 						/**
-						 * \brief An active tactic must override this and provide a condition when this tactic is completed.
+						 * \brief Returns whether the Tactic is done. By default, this returns 
+						 * whether the coroutine has finished execution.
 						 */
 						virtual bool done() const;
-
-						/**
-						 * \brief A tactic can fail if something really bad happens.
-						 *
-						 * Only usable by active tactic.
-						 */
-						virtual bool fail() const;
-
-						/**
-						 * \brief Checks if the current tactic is an active tactic.
-						 */
-						bool active() const {
-							return active_;
-						}
 
 						/**
 						 * \brief Selects a player from the set.
@@ -76,20 +68,17 @@ namespace AI {
 						 *
 						 * \return the player
 						 */
-						Player get_player() const;
+						Player player() const;
 
 						/**
 						 * \brief Changes the player associated with this tactic.
 						 */
-						void set_player(Player p);
+						void player(Player p);
 
 						/**
-						 * \brief The main execution of this tactic.
-						 *
-						 * This function runs every tick.
-						 * A subclass must implement this function.
+						 * \brief Transfers control to the tactic coroutine.
 						 */
-						virtual void execute() = 0;
+						void tick();
 
 						/**
 						 * \brief Returns a string description of this tactic.
@@ -105,22 +94,38 @@ namespace AI {
 
 					protected:
 						World world;
-						Player player;
+
+						/**
+						 * \brief The main execution of this tactic.
+						 *
+						 * This function runs every tick.
+						 * A subclass must implement this function.
+						 */
+						virtual void execute(caller_t& caller) = 0;
 
 						/**
 						 * \brief Constructor for tactic.
-						 *
-						 * \param [in] active indicates if this is an active tactic.
 						 */
-						explicit Tactic(World world, bool active = false);
+						explicit Tactic(World world);
 
 						/**
 						 * \brief Triggerred when the player associated changes.
 						 */
 						virtual void player_changed();
 
+						/**
+						 * \brief Yields and waits for the primitive to complete.
+						 */
+						static void wait(caller_t& ca, const AI::BE::Primitives::Primitive& prim);
+
+						/**
+						 * \brief Yields for one tick.
+						 */
+						static void yield(caller_t& ca);
+
 					private:
-						const bool active_;
+						Player player_;
+						coroutine_t coroutine_;
 				};
 			}
 		}
@@ -128,4 +133,3 @@ namespace AI {
 }
 
 #endif
-

@@ -106,7 +106,7 @@ inline void AI::BE::GRSim::Player::move_move(Point dest, Angle orientation, doub
 	_move_ori = orientation;
 }
 
-inline void AI::BE::GRSim::Player::move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed) {
+inline void AI::BE::GRSim::Player::move_dribble(Point dest, Angle orientation, double, bool small_kick_allowed) {
 	_prim = Drive::Primitive::DRIBBLE;
 	_prim_extra = small_kick_allowed;
 	_move_dest = dest;
@@ -122,7 +122,7 @@ inline void AI::BE::GRSim::Player::move_shoot(Point dest, double power, bool chi
 
 inline void AI::BE::GRSim::Player::move_shoot(Point dest, Angle orientation, double power, bool chip) {
 	_prim = Drive::Primitive::SHOOT;
-	_prim_extra = static_cast<int>(chip) | (1 << 1);
+	_prim_extra = static_cast<int>(chip) | 2;
 	_move_dest = dest;
 	_move_ori = orientation;
 	_shoot_power = power;

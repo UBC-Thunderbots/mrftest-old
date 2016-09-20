@@ -137,13 +137,14 @@ namespace {
 	//however, 8 meters is a fine chip to so this may stand
 #warning hack for kicking when chipping
 	const double MAX_KICK_VALUE = 8.0f;
-
+	const double MAX_CHIP_VALUE = 2.0f;
 	unsigned int chicker_power_to_pulse_width(double power, bool chip) {
 		unsigned int width;
-		power = clamp_symmetric(power, MAX_KICK_VALUE);
 		if (!chip) {
+			power = clamp_symmetric(power, MAX_KICK_VALUE);
 			width = static_cast<unsigned>(power * 332.7 + 219.8);
 		} else {
+			power = clamp_symmetric(power, MAX_CHIP_VALUE);
 			width = static_cast<unsigned>(835 * power * power + 469.2 * power + 1118.5);
 		}
 		return clamp(width, 0U, static_cast<unsigned int>(UINT16_MAX));
@@ -239,7 +240,6 @@ void MRFRobot::move_shoot(Point dest, double power, bool chip) {
 }
 
 void MRFRobot::move_shoot(Point dest, Angle orientation, double power, bool chip) {
-	chip=false;
 	assert(!direct_control);
 	primitive = Drive::Primitive::SHOOT;
 	params[0] = dest.x * 1000.0;

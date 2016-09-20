@@ -33,6 +33,38 @@ Angle Evaluation::get_shoot_score(World world, Player player, bool use_reduced_r
 	return Angle::zero();
 }
 
+Point Evaluation::get_best_shot(World world, Robot robot) {
+	return Evaluation::get_best_shot_pair(world, robot).first;
+}
+
+std::pair<Point, Angle> Evaluation::get_best_shot_pair(World world, Robot robot) {
+	Point enemy_goal_positive = world.field().enemy_goal_boundary().first.x > 0.0 ?
+		world.field().enemy_goal_boundary().first : world.field().enemy_goal_boundary().second;
+	Point enemy_goal_negative = world.field().enemy_goal_boundary().first.x < 0.0 ?
+		world.field().enemy_goal_boundary().first : world.field().enemy_goal_boundary().second;
+
+	std::vector<Point> obstacles;
+
+	for (auto i : world.enemy_team()) {
+		if ((i.position() - robot.position()).len() > 0.01) {
+			obstacles.push_back(i.position());
+		}
+	}
+	for (auto i : world.friendly_team()) {
+		if ((i.position() - robot.position()).len() > 0.01) {
+			obstacles.push_back(i.position());
+		}
+	}
+
+	return angle_sweep_circles(
+		world.ball().position(),
+		enemy_goal_positive,
+		enemy_goal_negative,
+		obstacles,
+		Robot::MAX_RADIUS
+	);
+}
+
 double Evaluation::get_passee_shoot_score(const PassInfo::worldSnapshot& snap, Point position) {
 	std::vector<Point> obstacles;
 	Point enemy_goal_positive = snap.enemy_goal_boundary.first.x > 0.0 ? 

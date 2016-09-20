@@ -2,7 +2,7 @@
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/player.h"
 #include "ai/hl/util.h"
-#include "ai/util.h"
+#include "ai/navigator/util.h"
 #include "ai/hl/stp/param.h"
 #include "geom/angle.h"
 #include "geom/util.h"
@@ -91,7 +91,7 @@ bool Evaluation::can_shoot_ray(World world, Player player, Angle orientation) {
 
 		if (pass_ray_use_calc_fastest) {
 			Point dest;
-			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, fptr.position(), dest);
+			Evaluation::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, fptr.position(), dest);
 			dist = (dest - fptr.position()).len();
 		} else {
 			dist = Geom::dist(Geom::Seg(p1, p2), fptr.position());
@@ -104,7 +104,7 @@ bool Evaluation::can_shoot_ray(World world, Player player, Angle orientation) {
 		double dist;
 		if (pass_ray_use_calc_fastest) {
 			Point dest;
-			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, robot.position(), dest);
+			Evaluation::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, robot.position(), dest);
 			dist = (dest - robot.position()).len();
 		} else {
 			dist = Geom::dist(Geom::Seg(p1, p2), robot.position());
@@ -264,6 +264,46 @@ Player Evaluation::select_passee(World world) {
 	return candidates.front();
 }
 
+bool Evaluation::calc_fastest_grab_ball_dest(Point ball_pos, Point ball_vel, Point player_pos, Point &dest) {
+	const double ux = ball_vel.len(); // velocity of ball
+
+	const double v = AI::Nav::PLAYER_AVERAGE_VELOCITY;
+
+	const Point p1 = ball_pos;
+
+	const Point p2 = player_pos;
+	const Point u = ball_vel.norm();
+
+	const double x = (p2 - p1).dot(u);
+	const double y = std::fabs((p2 - p1).cross(u));
+
+	double a = 1 + (y * y) / (x * x);
+	double b = (2 * y * y * ux) / (x * x);
+	double c = (y * y * ux * ux) / (x * x) - v;
+
+	double vx1 = (-b + std::sqrt(b * b - (4 * a * c))) / (2 * a);
+	double vx2 = (-b - std::sqrt(b * b - (4 * a * c))) / (2 * a);
+
+	double t1 = x / (vx1 + ux);
+	double t2 = x / (vx2 + ux);
+
+	double t = std::min(t1, t2);
+	if (t < 0) {
+		t = std::max(t1, t2);
+	}
+
+	dest = ball_pos;
+
+	if (std::isnan(t) || std::isinf(t) || t < 0) {
+		return false;
+	}
+
+	dest = p1 + ball_vel * 2 * t;
+
+	return true;
+}
+
+
 Point Evaluation::calc_fastest_grab_ball_dest_if_baller_shoots(World world, const Point player_pos) {
 	Player baller = Evaluation::calc_friendly_baller();
 	if (!baller) {
@@ -272,7 +312,7 @@ Point Evaluation::calc_fastest_grab_ball_dest_if_baller_shoots(World world, cons
 
 	Point ball_vel = ball_pass_velocity * Point::of_angle(baller.orientation());
 	Point dest;
-	AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, player_pos, dest);
+	Evaluation::calc_fastest_grab_ball_dest(world.ball().position(), ball_vel, player_pos, dest);
 	return dest;
 }
 

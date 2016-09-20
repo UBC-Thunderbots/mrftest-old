@@ -18,16 +18,15 @@ namespace AI {
 				typedef std::shared_ptr<Waypoints> Ptr;
 				static constexpr std::size_t NUM_WAYPOINTS = 50;
 				Point points[NUM_WAYPOINTS];
-				unsigned int added_flags;
+				AI::Flags::MoveFlags added_flags;
 				Timestamp lastSentTime;
 				Point move_dest;
-				AI::MovementPrimitives::MovePrimType currentMoveType;
 		};
 
 		class RRTPlanner : public Plan {
 			public:
 				explicit RRTPlanner(AI::Nav::W::World world);
-				virtual std::vector<Point> plan(AI::Nav::W::Player player, Point goal, unsigned int added_flags = 0);
+				virtual std::vector<Point> plan(AI::Nav::W::Player player, Point goal, AI::Flags::MoveFlags added_flags = AI::Flags::MoveFlags::NONE);
 
 				static constexpr Point empty_state();
 
@@ -53,7 +52,7 @@ namespace AI {
 				 * This is the useful method in this class it generates a path for a player given the goal
 				 * optional parameter post_process sets whether to try and smooth out the final path
 				 */
-				std::vector<Point> rrt_plan(AI::Nav::W::Player player, Point goal, bool post_process = true, unsigned int added_flags = 0);
+				std::vector<Point> rrt_plan(AI::Nav::W::Player player, Point goal, bool post_process = true, AI::Flags::MoveFlags added_flags = AI::Flags::MoveFlags::NONE);
 		};
 	}
 }

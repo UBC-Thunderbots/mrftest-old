@@ -1,5 +1,4 @@
-#ifndef AI_HL_STP_COORDINATE_H
-#define AI_HL_STP_COORDINATE_H
+#pragma once
 
 #include "geom/point.h"
 #include "ai/hl/stp/world.h"
@@ -116,6 +115,3 @@ namespace std {
 		}
 	};
 }
-
-#endif
-

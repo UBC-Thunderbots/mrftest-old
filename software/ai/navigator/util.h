@@ -1,5 +1,4 @@
-#ifndef AI_NAVIGATOR_UTIL_H
-#define AI_NAVIGATOR_UTIL_H
+#pragma once
 
 #include "ai/navigator/world.h"
 #include "geom/point.h"
@@ -10,10 +9,16 @@
 #include <cairomm/context.h>
 #include <cairomm/refptr.h>
 
-
 namespace AI {
 	namespace Nav {
+		extern DoubleParam PLAYER_AVERAGE_VELOCITY;
+
 		namespace Util {
+			/**
+			 * The absolute maximum value that a primitive parameter can take.
+			 */
+			const double MAX_PRIM_PARAM = 10;
+
 			/**
 			 * Estimates the time taken by a robot moving through each point in sequence.
 			 */
@@ -25,7 +30,16 @@ namespace AI {
 			std::pair<Point, AI::Timestamp> get_ramball_location(Point dst, AI::Nav::W::World world, AI::Nav::W::Player player);
 
 			// bool has_ramball_location(Point dst, AI::Nav::W::World world, AI::Nav::W::Player player);
-
+			
+			/**
+			 * whether the primitive has a destination
+			 */
+			bool has_destination(const AI::BE::Primitives::PrimitiveDescriptor& prim);
+			
+			/**
+			 * whether the primitive is done
+			 */
+			bool is_done(AI::Nav::W::Player player, const AI::BE::Primitives::PrimitiveDescriptor& prim);
 
 			/**
 			 * returns true if the destination is valid
@@ -43,7 +57,7 @@ namespace AI {
 			 * exactly equal to the violation level of cur. This method allows for extra rules to be imposed via the "extra_flags"
 			 * parameter
 			 */
-			bool valid_path(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player, unsigned int extra_flags);
+			bool valid_path(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player, AI::Flags::MoveFlags extra_flags);
 
 			/**
 			 * returns a list of legal points circling the destination. These set of points may be valuable as a search space for a navigator
@@ -76,7 +90,7 @@ namespace AI {
 			 *
 			 * \param[in] player the player thats being checked
 			 */
-			std::vector<Point> get_obstacle_boundaries(AI::Nav::W::World world, AI::Nav::W::Player player, unsigned int added_flags);
+			std::vector<Point> get_obstacle_boundaries(AI::Nav::W::World world, AI::Nav::W::Player player, AI::Flags::MoveFlags added_flags);
 
 			/**
 			 * returns the next timespec
@@ -105,17 +119,6 @@ namespace AI {
 			 * \param[in] player the robot that performing the intersection
 			 */
 			bool intercept_flag_handler(AI::Nav::W::World world, AI::Nav::W::Player player, AI::Nav::RRT::PlayerData::Ptr player_data);
-
-			
-			/**
-			 * assign the player to go to its current position, robot may still move depend on how the robot controller deal with it
-			 *
-			 * \param[in] player in interest
-			 */
-			//void make_stationary( AI::Nav::W::World world, AI::Nav::W::Player player );
 		}
 	}
 }
-
-#endif
-

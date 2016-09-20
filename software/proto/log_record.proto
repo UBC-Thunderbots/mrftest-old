@@ -136,7 +136,6 @@ message Tick {
 		required Vector3 position = 2;
 		required Vector3 velocity = 3;
 
-		required Vector3 target = 4;
 		required fixed64 movement_flags = 5;
 		required MoveType movement_type = 6;
 		required MovePrio movement_priority = 7;
@@ -153,24 +152,27 @@ message Tick {
 
 		message HLPrimitive {
 			enum Primitive {
-				MOVE = 0;
-				DRIBBLE = 1;
-				SHOOT = 2;
-				CATCH = 3;
-				PIVOT = 4;
-				SPIN = 5;
+				STOP = 0;
+				MOVE = 1;
+				DRIBBLE = 2;
+				SHOOT = 3;
+				CATCH = 4;
+				PIVOT = 5;
+				SPIN = 6;
 			}
 			required Primitive primitive = 1;
-			optional Vector2 vector2 = 2;
-			optional Vector3 vector3 = 3;
-			optional bool chip = 4;
-			optional uint32 power = 5; // Measured in µm or µm/s
+			// There should be 4 params
+			repeated double params = 2;
+			// The extra parameter field
+			required uint32 extra = 3; // Measured in µm or µm/s
 		}
 		optional HLPrimitive hl_primitive = 10;
 
 		repeated Vector2 display_path = 11;
 
 		repeated double lps = 12;
+
+		optional HLPrimitive drive_primitive = 13;
 	}
 	repeated FriendlyRobot friendly_robots = 6;
 
@@ -256,7 +258,7 @@ enum PlayType {
 	PLAY_TYPE_BALL_PLACEMENT_ENEMY = 17;
 }
 
-// Identifies a particular type of movement.
+// Identifies a particular type of movement. (Deprecated)
 enum MoveType {
 	MOVE_TYPE_NORMAL = 0;
 	MOVE_TYPE_DRIBBLE = 1;

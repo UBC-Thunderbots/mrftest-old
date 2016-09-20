@@ -210,20 +210,6 @@ namespace Visualizable {
 			virtual Colour highlight_colour() const = 0;
 
 			/**
-			 * Returns whether or not the robot has a destination.
-			 *
-			 * \return \c true if the robot has a destination, or \c false if not.
-			 */
-			virtual bool has_destination() const = 0;
-
-			/**
-			 * Returns the robot's destination.
-			 *
-			 * \return the destination position and orientation.
-			 */
-			virtual std::pair<Point, Angle> destination() const = 0;
-
-			/**
 			 * Returns whether or not the robot has a path.
 			 *
 			 * \return \c true if the robot has a path, or \c false if not.

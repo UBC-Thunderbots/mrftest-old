@@ -1,8 +1,8 @@
-#ifndef AI_HL_STP_EVALUATION_BALL_H
-#define AI_HL_STP_EVALUATION_BALL_H
+#pragma once
 
 #include "ai/hl/stp/world.h"
 #include "util/param.h"
+#include "ai/hl/stp/evaluation/pass.h"
 
 namespace AI {
 	namespace HL {
@@ -44,6 +44,8 @@ namespace AI {
 				 */
 				bool possess_ball(World world, Robot robot);
 
+				Point baller_catch_position(World world, Robot robot);
+
 				/**
 				 * Computes the best location to grab the ball,
 				 * minimizing the time required.
@@ -61,6 +63,3 @@ namespace AI {
 		}
 	}
 }
-
-#endif
-

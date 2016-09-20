@@ -61,6 +61,21 @@ namespace AI {
 
 				Point calc_fastest_grab_ball_dest_if_baller_shoots(World world, const Point player_pos);
 
+				/**
+				 * Computes the best location to grab the ball,
+				 * minimizing the time required.
+				 *
+				 * \param[in] ball_pos ball position
+				 *
+				 * \param[in] ball_vel ball velocity
+				 *
+				 * \param[in] player_pos player position
+				 *
+				 * \param[out] dest the location to chase the ball.
+				 *
+				 * \return true if the output is valid.
+				 */
+				bool calc_fastest_grab_ball_dest(Point ball_pos, Point ball_vel, Point player_pos, Point &dest);
 
 				extern IntParam ray_intervals;
 

@@ -3,32 +3,22 @@
 #include "ai/hl/stp/tactic/move_stop.h"
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/tactic/ball_placement.h"
-#include "ai/hl/stp/tactic/wait_playtype.h"
 
-using namespace AI::HL::STP::Play;
-using namespace AI::HL::W;
-namespace Predicates = AI::HL::STP::Predicates;
-
-BEGIN_PLAY(BallPlacement)
+BEGIN_DEC(BallPlacement)
 INVARIANT(Predicates::playtype(world, AI::Common::PlayType::BALL_PLACEMENT_FRIENDLY))
 APPLICABLE(true)
+END_DEC(BallPlacement)
+
+BEGIN_DEF(BallPlacement)
 DONE(false)
 FAIL(false)
-BEGIN_ASSIGN()
+EXECUTE()
+tactics[0] = Tactic::move(world, Point(world.field().friendly_goal().x + 0.1, 0));
+tactics[1] = Tactic::ball_placement(world);
+tactics[2] = Tactic::move_stop(world, 1);
+tactics[3] = Tactic::move_stop(world, 2);
+tactics[4] = Tactic::move_stop(world, 3);
+tactics[5] = Tactic::move_stop(world, 4);
 
-goalie_role.push_back(goalie_move(world, Point(world.field().friendly_goal().x + 0.1, 0.0)));
-
-// doesn't matter what the playtype we are waiting for is here, we just need an active tactic
-roles[0].push_back(ball_placement(world));
-
-roles[1].push_back(move_stop(world, 1));
-
-roles[2].push_back(move_stop(world, 2));
-
-roles[3].push_back(move_stop(world, 3));
-
-roles[4].push_back(move_stop(world, 4));
-
-END_ASSIGN()
-END_PLAY()
-
+while (1) yield(caller);
+END_DEF(BallPlacement)

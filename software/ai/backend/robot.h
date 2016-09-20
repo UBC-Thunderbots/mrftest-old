@@ -2,7 +2,7 @@
 #define AI_BACKEND_ROBOT_H
 
 #include "ai/flags.h"
-#include "ai/common/objects/time.h"
+#include "ai/common/time.h"
 #include "geom/angle.h"
 #include "geom/predictor.h"
 #include "geom/point.h"
@@ -50,8 +50,6 @@ namespace AI {
 				Angle avelocity() const;
 				Angle avelocity(double delta) const;
 				Angle avelocity_stdev(double delta) const;
-				bool has_destination() const override;
-				std::pair<Point, Angle> destination() const override;
 				bool has_display_path() const override;
 				const std::vector<Point> &display_path() const override;
 				void avoid_distance(AI::Flags::AvoidDistance dist) const;

@@ -25,7 +25,7 @@ namespace {
 
 		for (Robot i : enemies) {
 			Point dest;
-			AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), i.position(), dest);
+			Evaluation::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), i.position(), dest);
 			double dist = (i.position() - dest).len();
 			score.push_back(dist);
 		}
@@ -136,7 +136,7 @@ Robot Evaluation::calc_enemy_baller(World world) {
 			return i;
 		}
 		Point dest;
-		AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), i.position(), dest);
+		Evaluation::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), i.position(), dest);
 		double dist = (i.position() - dest).len();
 		if (!robot || dist < best_dist) {
 			best_dist = dist;
@@ -148,8 +148,12 @@ Robot Evaluation::calc_enemy_baller(World world) {
 
 Point Evaluation::calc_fastest_grab_ball_dest(World world, Player player) {
 	Point dest;
-	AI::Util::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), player.position(), dest);
+	Evaluation::calc_fastest_grab_ball_dest(world.ball().position(), world.ball().velocity(), player.position(), dest);
 	return dest;
+}
+
+Point Evaluation::baller_catch_position(World world, Robot robot) {
+	return world.ball().position() + 0.03 * world.ball().velocity() * (world.ball().position() - robot.position()).len();
 }
 
 std::vector<Robot> Evaluation::enemies_by_grab_ball_dist() {
@@ -160,4 +164,3 @@ void AI::HL::STP::Evaluation::tick_ball(World world) {
 	update_baller(world);
 	update_enemies_by_grab_ball_dist(world);
 }
-

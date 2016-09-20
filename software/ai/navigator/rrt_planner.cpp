@@ -91,11 +91,11 @@ Point RRTPlanner::extend(Player player, Glib::NodeTree<Point> *start, Point targ
 	return extend_point;
 }
 
-std::vector<Point> RRTPlanner::plan(Player player, Point goal, unsigned int added_flags) {
+std::vector<Point> RRTPlanner::plan(Player player, Point goal, MoveFlags added_flags) {
 	return rrt_plan(player, goal, POST_PROCESS, added_flags);
 }
 
-std::vector<Point> RRTPlanner::rrt_plan(Player player, Point goal, bool post_process, unsigned int added_flags) {
+std::vector<Point> RRTPlanner::rrt_plan(Player player, Point goal, bool post_process, MoveFlags added_flags) {
 	Point initial = player.position();
 
 	if (!std::dynamic_pointer_cast<Waypoints>(player.object_store()[typeid(*this)])) {
@@ -179,7 +179,7 @@ std::vector<Point> RRTPlanner::rrt_plan(Player player, Point goal, bool post_pro
 	// just use the current player position as the destination if we are within the threshold already
 	if (final_points.empty()) {
 		final_points.push_back(player.position());
-	} else if (valid_path(final_points[final_points.size() - 1], player.destination().first, world, player)) {
+	} else if (valid_path(final_points[final_points.size() - 1], goal, world, player)) {
 		// go exactly to the goal if we're able
 		final_points.push_back(goal);
 	}

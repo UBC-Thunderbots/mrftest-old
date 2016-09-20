@@ -29,7 +29,7 @@ namespace {
 	constexpr bool POST_PROCESS = false;
 }
 
-std::vector<Point> AI::Nav::PhysicsPlanner::plan(Player player, Point goal, unsigned int added_flags) {
+std::vector<Point> AI::Nav::PhysicsPlanner::plan(Player player, Point goal, AI::Flags::MoveFlags added_flags) {
 	curr_player = player;
 	return rrt_plan(player, goal, POST_PROCESS, added_flags);
 }
