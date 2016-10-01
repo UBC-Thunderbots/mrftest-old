@@ -26,8 +26,8 @@ using namespace Geom;
 
 namespace {
 
-DoubleParam CHIP_POWER_EXP(u8"controls exponential change in chipping power as a function of distance", u8"AI/HL/STP/Tactic/prepare_kick", 1.0, 0.0, 100.0);
-DoubleParam CHIP_POWER_SCALING(u8"controls scaling factor of chip power as function of distance", u8"AI/HL/STP/Tactic/prepare_kick", 0.4, 0.0, 100.0);
+DoubleParam CHIP_POWER_EXP(u8"test controls exponential change in chipping power as a function of distance", u8"AI/HL/STP/Tactic/prepare_kick", 1.0, 0.0, 100.0);
+DoubleParam CHIP_POWER_SCALING(u8"test controls scaling factor of chip power as function of distance", u8"AI/HL/STP/Tactic/prepare_kick", 0.4, 0.0, 100.0);
 
 	class PrepareKick final : public Tactic {
 		public:
