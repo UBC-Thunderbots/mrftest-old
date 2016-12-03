@@ -32,7 +32,6 @@ namespace {
 		public:
 			explicit FriendlyTeam(Backend &backend);
 			void log_to(MRFPacketLogger &logger);
-			void transmit_positions();
 			void update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<AI::Timestamp> &ts);
 
 		protected:
@@ -145,15 +144,16 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 		populate_pointers();
 		AI::BE::Team<AI::BE::Player>::signal_membership_changed().emit();
 	}
-}
 
 
-void FriendlyTeam::transmit_positions(){
 	std::vector<std::tuple<uint8_t,Point>> detbots;
 	detbots.push_back(std::make_tuple(0, Point(9,9)));
 
-	//dongle.send_camera_packet(detbots, Point(-7,-7), 12345);
+	dongle.send_camera_packet(detbots, Point(-7,-7), 12345);
 }
+
+
+
 
 void FriendlyTeam::create_member(unsigned int pattern) {
 	if (pattern < 8) {
