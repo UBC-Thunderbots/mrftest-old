@@ -128,6 +128,8 @@ template<typename T, typename TSuper> void AI::BE::Vision::Team<T, TSuper>::clea
 	AI::BE::Team<TSuper>::signal_membership_changed().emit();
 }
 
+
+
 template<typename T, typename TSuper> void AI::BE::Vision::Team<T, TSuper>::update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<AI::Timestamp> &ts) {
 	bool membership_changed = false;
 
@@ -190,6 +192,7 @@ template<typename T, typename TSuper> void AI::BE::Vision::Team<T, TSuper>::upda
 template<typename T, typename TSuper> void AI::BE::Vision::Team<T, TSuper>::lock_time(const AI::Timestamp &now) {
 	std::for_each(member_ptrs.begin(), member_ptrs.end(), std::bind(std::mem_fn(&T::lock_time), std::placeholders::_1, now));
 }
+
 
 template<typename T, typename TSuper> void AI::BE::Vision::Team<T, TSuper>::populate_pointers() {
 	member_ptrs.clear();

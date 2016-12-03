@@ -85,7 +85,7 @@ private:
 	AI::BE::Vision::Particle::ParticleFilter *pFilter_;
 
 	void tick();
-	void handle_vision_packet(const SSL_WrapperPacket &packet);
+	void handle_vision_packet(const SSL_WrapperPacket &packet, AI::Timestamp time_rec);
 	void on_refbox_packet();
 	void update_playtype();
 	void update_goalies();
@@ -107,6 +107,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::Vision::Backe
 		const std::string &vision_port) :
 		disable_cameras(disable_cameras), refbox(multicast_interface), vision_rx(
 				multicast_interface, vision_port) {
+	std::cout << "In backend constr\n" << std::endl;
 	friendly_colour().signal_changed().connect(
 			sigc::mem_fun(this, &Backend::on_friendly_colour_changed));
 	playtype_override().signal_changed().connect(
@@ -116,8 +117,8 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::Vision::Backe
 
 	clock.signal_tick.connect(sigc::mem_fun(this, &Backend::tick));
 
-	vision_rx.signal_vision_data.connect(
-			sigc::mem_fun(this, &Backend::handle_vision_packet));
+	//vision_rx.signal_vision_data.connect(
+	//		sigc::mem_fun(this, &Backend::handle_vision_packet));
 
 	playtype_time = std::chrono::steady_clock::now();
 
@@ -126,6 +127,17 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::Vision::Backe
 
 template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
 		FriendlyTeam, EnemyTeam>::tick() {
+	vision_rx.packets_mutex.lock();
+	std::pair<SSL_WrapperPacket, AI::Timestamp> packet;
+	while(!vision_rx.vision_packets.empty()){
+		packet = vision_rx.vision_packets.front();
+		this->handle_vision_packet(packet.first, packet.second);
+		vision_rx.vision_packets.pop();
+	}
+	vision_rx.packets_mutex.unlock();
+
+	//friendly_team().transmit_positions();
+
 	// If the field geometry is not yet valid, do nothing.
 	if (!field_.valid()) {
 		return;
@@ -162,11 +174,9 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 
 template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
 		FriendlyTeam, EnemyTeam>::handle_vision_packet(
-		const SSL_WrapperPacket &packet) {
+		const SSL_WrapperPacket &packet, AI::Timestamp time_rec) {
 	// Pass it to any attached listeners.
-	AI::Timestamp now;
-	now = std::chrono::steady_clock::now();
-	signal_vision().emit(now, packet);
+	signal_vision().emit(time_rec, packet);
 
 	// If it contains geometry data, update the field shape.
 	if (packet.has_geometry()) {
@@ -209,19 +219,19 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 			detections.resize(det.camera_id() + 1);
 		}
 		detections[det.camera_id()].first.CopyFrom(det);
-		detections[det.camera_id()].second = now;
+		detections[det.camera_id()].second = time_rec;
 
 		// Update the ball.
 		if (!DISABLE_VISION_FILTER) {
 			// Compute the best ball position from the list of detections.
 			Point best_pos;
 			double best_conf = 0;
-			AI::Timestamp best_time = now;
+			AI::Timestamp best_time = time_rec;
 
 			// Estimate the ball’s position at the camera frame’s timestamp.
 			double time_delta =
 					std::chrono::duration_cast<std::chrono::duration<double>>(
-							now - ball_.lock_time()).count();
+							time_rec - ball_.lock_time()).count();
 
 			/* KALMAN VARIABLE DECLARATIONS */
 			Point estimated_position = ball_.position(time_delta);
@@ -294,7 +304,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 					for (std::size_t i = 0; i < friendly_team().size(); ++i) {
 						Player::Ptr player = friendly_team().get(i);
 						if (player->has_ball()) {
-							player->lock_time(now);
+							player->lock_time(time_rec);
 							Point pos = player->position(0);
 							pos += Point::of_angle(player->orientation(0))
 									* ROBOT_CENTRE_TO_FRONT_DISTANCE;
@@ -308,7 +318,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 							avg += i;
 						}
 						avg /= static_cast<double>(has_ball_inputs.size());
-						ball_.add_field_data(avg, now);
+						ball_.add_field_data(avg, time_rec);
 					}
 				}
 
@@ -324,7 +334,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 					for (std::size_t i = 0; i < friendly_team().size(); ++i) {
 						Player::Ptr player = friendly_team().get(i);
 						if (player->has_ball()) {
-							player->lock_time(now);
+							player->lock_time(time_rec);
 							Point pos = player->position(0);
 							pos += Point::of_angle(player->orientation(0))
 									* ROBOT_CENTRE_TO_FRONT_DISTANCE;
@@ -338,7 +348,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 							avg += i;
 						}
 						avg /= static_cast<double>(has_ball_inputs.size());
-						ball_.add_field_data(avg, now);
+						ball_.add_field_data(avg, time_rec);
 					}
 					*/
 				}
@@ -376,7 +386,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 			}
 
 			if (best_conf > 0) {
-				ball_.add_field_data(best_pos, now);
+				ball_.add_field_data(best_pos, time_rec);
 			}
 		}
 

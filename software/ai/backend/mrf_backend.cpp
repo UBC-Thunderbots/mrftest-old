@@ -5,6 +5,8 @@
 #include "mrf/dongle.h"
 #include "mrf/robot.h"
 #include <cstdlib>
+#include <tuple>
+#include <vector>
 
 using namespace AI::BE;
 
@@ -30,6 +32,8 @@ namespace {
 		public:
 			explicit FriendlyTeam(Backend &backend);
 			void log_to(MRFPacketLogger &logger);
+			void transmit_positions();
+			void update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<AI::Timestamp> &ts);
 
 		protected:
 			void create_member(unsigned int pattern) override;
@@ -81,6 +85,74 @@ FriendlyTeam::FriendlyTeam(Backend &backend) : AI::BE::Vision::Team<AI::BE::Phys
 
 void FriendlyTeam::log_to(MRFPacketLogger &logger) {
 	dongle.log_to(logger);
+}
+
+
+void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<AI::Timestamp> &ts) {
+	bool membership_changed = false;
+
+	// Update existing robots and create new robots.
+	bool seen_this_frame[NUM_PATTERNS];
+	std::fill_n(seen_this_frame, NUM_PATTERNS, false);
+	for (std::size_t i = 0; i < packets.size(); ++i) {
+		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> &rep(*packets[i]);
+		for (std::size_t j = 0; j < static_cast<std::size_t>(rep.size()); ++j) {
+			const SSL_DetectionRobot &detbot = rep.Get(static_cast<int>(j));
+			if (detbot.has_robot_id()) {
+				unsigned int pattern = detbot.robot_id();
+				if (pattern < NUM_PATTERNS) {
+					const AI::BE::Physical::Player::Ptr &bot = members[pattern].ptr();
+					if (!bot) {
+						create_member(pattern);
+						membership_changed = true;
+					}
+					if (bot && !seen_this_frame[bot->pattern()]) {
+						seen_this_frame[bot->pattern()] = true;
+						if (detbot.has_orientation()) {
+							bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
+							Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
+							Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::half() : Angle::zero())).angle_mod();
+							bot->add_field_data(pos, ori, ts[i]);
+						} else {
+							LOG_WARN(u8"Vision packet has robot with no orientation.");
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Count failures.
+	for (Box<AI::BE::Physical::Player> &i : members) {
+		if (i) {
+			const AI::BE::Physical::Player::Ptr &bot = i.ptr();
+			assert(bot->pattern() < NUM_PATTERNS);
+			if (!seen_this_frame[bot->pattern()]) {
+				++vision_failures[bot->pattern()];
+			} else {
+				vision_failures[bot->pattern()] = 0;
+			}
+			seen_this_frame[bot->pattern()] = false;
+			if (vision_failures[bot->pattern()] >= Vision::MAX_VISION_FAILURES) {
+				i.destroy();
+				membership_changed = true;
+			}
+		}
+	}
+
+	// If membership changed, rebuild the pointer array and emit the signal.
+	if (membership_changed) {
+		populate_pointers();
+		AI::BE::Team<AI::BE::Player>::signal_membership_changed().emit();
+	}
+}
+
+
+void FriendlyTeam::transmit_positions(){
+	std::vector<std::tuple<uint8_t,Point>> detbots;
+	detbots.push_back(std::make_tuple(0, Point(9,9)));
+
+	//dongle.send_camera_packet(detbots, Point(-7,-7), 12345);
 }
 
 void FriendlyTeam::create_member(unsigned int pattern) {
