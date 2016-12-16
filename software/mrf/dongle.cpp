@@ -329,6 +329,69 @@ void MRFDongle::dirty_drive() {
 	}
 }
 
+void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>> detbots, Point ball, uint64_t* timestamp)
+{
+	int8_t camera_packet[55] = {0};
+	int8_t mask_vec = 0; // Assume all robots don't have valid position at the start
+	int8_t flag_vec = 0; // Assume n
+	uint8_t numbots = static_cast<uint8_t>(detbots.size());
+	uint8_t ball_maxRange = 100;
+
+	// Initialize pointer to start at location of storing ball data. First 2 bytes are for mask and flag vector
+	int8_t *rptr = &camera_packet[2];
+
+	if(ball.len() < ball_maxRange) // Some sort of check to see if we have valid ball positions
+	{
+		flag_vec |= 0x02;
+		
+		int16_t ballX= static_cast<int16_t>(ball.x);
+		int16_t ballY = static_cast<int16_t>(ball.y);
+
+		*rptr++ = static_cast<int8_t>(ballX); // Add Ball x position
+		*rptr++ = static_cast<int8_t>(ballX / 256);
+		//rptr += 2; // Increment Pointer by 2 bytes
+
+		*rptr++ = static_cast<int8_t>(ballY); // Add Ball Y position
+		*rptr++ = static_cast<int8_t>(ballY / 256);
+		//rptr += 2; // Increment Pointer by 2 bytes
+	}
+
+	// For the number of robot for which data was passed in, assign robot ids to mask vector and position/angle data to camera packet
+	for(std::size_t i = 0; i < numbots; i++)
+	{
+		uint8_t robotID = std::get<0>(detbots[i]);
+		int16_t robotX  = static_cast<int16_t>((std::get<1>(detbots[i])).x);
+		int16_t robotY  = static_cast<int16_t>((std::get<1>(detbots[i])).y);
+		int16_t robotT  = static_cast<int16_t>((std::get<2>(detbots[i])).to_radians() * 1000);
+
+		mask_vec |=  int8_t(0x01 << (robotID % 8));
+
+		*rptr++ = static_cast<int8_t>(robotX);
+		*rptr++ = static_cast<int8_t>(robotX / 256);
+		*rptr++ = static_cast<int8_t>(robotY);
+		*rptr++ = static_cast<int8_t>(robotY / 256);
+		*rptr++ = static_cast<int8_t>(robotT);
+		*rptr++ = static_cast<int8_t>(robotT / 256);
+
+		//*rptr = ((int16_t)(std::get<1>(detbots[i])).x) + ((int16_t)((std::get<1>(detbots[i])).y) << 16) + ((int16_t)((std::get<2>(detbots[i])).to_radians() * 1000) << 32);
+		//rptr += 6;
+	}
+
+	// Mask and Flag Vectors should be fully initialized by now. Assign them to the packet
+	camera_packet[0] = mask_vec;
+	camera_packet[1] = flag_vec;
+
+	// Calculate total length of camera packet
+	//int8_t length;
+	//length = rptr - camera_packet;
+
+	// Submit camera packet for transfer over USB to the dongle firmware
+	camera_transfer.reset(new USB::BulkOutTransfer(device, 1, camera_packet, 55, 55, 0));
+	camera_transfer->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_camera_transfer_done));
+	camera_transfer->submit();
+
+}
+
 bool MRFDongle::submit_drive_transfer() {
 	if (!drive_transfer) {
 		std::size_t dirty_indices[sizeof(robots) / sizeof(*robots)];
@@ -375,6 +438,11 @@ void MRFDongle::handle_drive_transfer_done(AsyncOperation<void> &op) {
 	if(std::find_if(robots, robots + sizeof(robots) / sizeof(*robots), [](const std::unique_ptr<MRFRobot> &bot) { return bot->drive_dirty; }) != robots + sizeof(robots) / sizeof(*robots)) {
 		submit_drive_transfer();
 	}
+}
+
+void MRFDongle::handle_camera_transfer_done(AsyncOperation<void> &op) {
+	op.result();
+	camera_transfer.reset();
 }
 
 void MRFDongle::send_unreliable(unsigned int robot, unsigned int tries, const void *data, std::size_t len) {

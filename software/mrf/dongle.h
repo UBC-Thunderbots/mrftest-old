@@ -14,6 +14,8 @@
 #include "util/libusb.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
+#include "geom/point.h"
+#include "geom/angle.h"
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -21,6 +23,7 @@
 #include <queue>
 #include <utility>
 #include <vector>
+#include <tuple>
 #include <sigc++/connection.h>
 #include <sigc++/signal.h>
 #include <sigc++/trackable.h>
@@ -92,6 +95,8 @@ class MRFDongle final : public Drive::Dongle {
 		 */
 		void log_to(MRFPacketLogger &logger);
 
+		void send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>> robots, Point ball, uint64_t* timestamp);
+
 	private:
 		friend class MRFRobot;
 		friend class SendReliableMessageOperation;
@@ -108,6 +113,7 @@ class MRFDongle final : public Drive::Dongle {
 		USB::InterruptInTransfer status_transfer;
 		Annunciator::Message rx_fcs_fail_message, second_dongle_message;
 		std::unique_ptr<USB::BulkOutTransfer> drive_transfer;
+		std::unique_ptr<USB::BulkOutTransfer> camera_transfer;
 		std::list<std::unique_ptr<USB::BulkOutTransfer>> unreliable_messages;
 		std::unique_ptr<MRFRobot> robots[8];
 		uint8_t drive_packet[64];
@@ -126,6 +132,7 @@ class MRFDongle final : public Drive::Dongle {
 		void dirty_drive();
 		bool submit_drive_transfer();
 		void handle_drive_transfer_done(AsyncOperation<void> &);
+		void handle_camera_transfer_done(AsyncOperation<void> &);
 		void send_unreliable(unsigned int robot, unsigned int tries, const void *data, std::size_t len);
 		void check_unreliable_transfer(AsyncOperation<void> &, std::list<std::unique_ptr<USB::BulkOutTransfer>>::iterator iter);
 		void submit_beep();

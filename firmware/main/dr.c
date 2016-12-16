@@ -27,9 +27,24 @@ static float runEncoderFilter(float input,float* filter_states) {
 static dr_data_t current_state;
 
 /**
+ * \brief The most recent ball and camera data frames.
+ */
+static robot_camera_data_t robot_camera_data;
+static ball_camera_data_t ball_camera_data;
+
+/**
  * \brief called a system boot to configure deadreckoning system
  */
-void dr_init(void) {}
+void dr_init(void) {
+  robot_camera_data.x = 0;
+  robot_camera_data.y = 0;
+  robot_camera_data.angle = 0;
+  robot_camera_data.timestamp = 0;
+  
+  ball_camera_data.x = 0;
+  ball_camera_data.y = 0;
+  ball_camera_data.timestamp = 0;  
+}
 
 /**
  * \brief resets the position to origin but preserves additional state
@@ -88,4 +103,35 @@ void dr_tick(log_record_t *log) {
  */
 void dr_get(dr_data_t *ret) {
 	*ret = current_state;
+}
+
+/**
+ * \brief Sets the ball's camera frame.
+ */
+void dr_set_ball_frame(int16_t x, int16_t y) {
+  ball_camera_data.x = x;
+  ball_camera_data.y = y;
+}
+
+/**
+ * \brief Sets the robot's camera frame.
+ */
+void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle) {
+  robot_camera_data.x = x;
+  robot_camera_data.y = y;
+  robot_camera_data.angle = angle;
+}
+
+/**
+ * \brief Sets the ball's camera frame timestamp.
+ */
+void dr_set_ball_timestamp(uint64_t timestamp) {
+   ball_camera_data.timestamp = timestamp;
+}
+
+/**
+ * \brief Sets the robot's camera frame timestamp.
+ */
+void dr_set_robot_timestamp(uint64_t timestamp) {
+  robot_camera_data.timestamp = timestamp;
 }

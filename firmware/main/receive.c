@@ -3,8 +3,8 @@
  *
  * \brief These functions handle receiving radio packets and acting on them.
  *
- * For drive packets, each received packet is decoded, and the most recent data is made available for the tick functions elsewhere to act on.
- * Also, a drive packet that requests feedback immediately notifies the feedback module.
+ * For camera packets, each received packet is decoded, and the most recent data is made available for the tick functions elsewhere to act on.
+ * Also, a camera packet that requests feedback immediately (i.e. a status update request) notifies the feedback module.
  *
  * For message packets, the action required by the packet is taken immediately.
  *
@@ -15,6 +15,7 @@
 #include "charger.h"
 #include "chicker.h"
 #include "dma.h"
+#include "dr.h"            
 #include "feedback.h"
 #include "leds.h"
 #include "main.h"
@@ -38,7 +39,17 @@
 /**
  * \brief The number of bytes of drive packet data per robot.
  */
-#define RECEIVE_DRIVE_BYTES_PER_ROBOT 9
+//#define RECEIVE_DRIVE_BYTES_PER_ROBOT 9
+
+/**
+ * \brief The number of bytes of camera data per robot.
+ */
+#define CAMERA_BYTES_PER_ROBOT 6
+
+/**
+ * \brief The minimum number of bytes in a camera frame.
+ */
+#define CAMERA_MIN_BYTES 1 /*Mask*/ + 1 /*Flag*/ + 0 /*Ball Data*/ + 0 /*Robot Data*/ + 8 /*Timestamp*/ + 1 /*Status*/
 
 static unsigned int robot_index;
 static uint8_t *dma_buffer;
@@ -49,7 +60,9 @@ static uint8_t last_serial = 0xFF;
 static void receive_task(void *UNUSED(param)) {
 	uint16_t last_sequence_number = 0xFFFFU;
 	bool last_estop_run = false;
+  bool estop_run = false;
 	size_t frame_length;
+  uint32_t i;
 
 	while ((frame_length = mrf_receive(dma_buffer))) {
 		uint16_t frame_control = dma_buffer[0U] | (dma_buffer[1U] << 8U);
@@ -62,108 +75,117 @@ static void receive_task(void *UNUSED(param)) {
 				// Update sequence number
 				last_sequence_number = sequence_number;
 
-				// Handle packet
-				uint16_t dest_address = dma_buffer[5U] | (dma_buffer[6U] << 8U);
+        // Handle packet
+        uint16_t dest_address = dma_buffer[5U] | (dma_buffer[6U] << 8U);
 				static const size_t HEADER_LENGTH = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
 				static const size_t FOOTER_LENGTH = 2U /* FCS */ + 1U /* RSSI */ + 1U /* LQI */;
 				if (dest_address == 0xFFFFU) {
-					// Broadcast frame must contain a drive packet.
-					static const size_t BODY_LENGTH = RECEIVE_DRIVE_NUM_ROBOTS * RECEIVE_DRIVE_BYTES_PER_ROBOT + 1 + 8;
-					if (frame_length == HEADER_LENGTH + BODY_LENGTH + FOOTER_LENGTH) {
-						// Grab emergency stop status and timestamp from the
-						// end of the frame.
-						bool estop_run = !!dma_buffer[HEADER_LENGTH + RECEIVE_DRIVE_NUM_ROBOTS * RECEIVE_DRIVE_BYTES_PER_ROBOT];
-						uint64_t timestamp = 0;
-						for (unsigned int i = 7; i < 8; --i) {
-							timestamp <<= 8;
-							timestamp |= dma_buffer[HEADER_LENGTH + RECEIVE_DRIVE_NUM_ROBOTS * RECEIVE_DRIVE_BYTES_PER_ROBOT + 1 + i];
-						}
-						rtc_set(timestamp);
+					// Broadcast frame must contain a camera packet.
+          // Note that camera packets have a variable length.          
+          uint32_t buffer_position = HEADER_LENGTH;
+          
+          // The first step is to get the mask vector, which contains
+          // which robots have valid camera data.
+          uint8_t mask_vector = dma_buffer[buffer_position++];
+          
+          // The next byte contains the flag information.
+          uint8_t flag_vector = dma_buffer[buffer_position++];
+          bool contains_ball = !!(flag_vector & 0x04);
+          bool contains_timestamp = !!(flag_vector & 0x02);
+          last_estop_run = estop_run;
+          estop_run = !(flag_vector & 0x01); 
+          bool contains_robot = false;
 
-						// Grab a pointer to the robot’s own data block.
-						const uint8_t *robot_data = dma_buffer + HEADER_LENGTH + RECEIVE_DRIVE_BYTES_PER_ROBOT * robot_index;
+          // If the contains_ball flag was set, the next four bytes
+          // contain the ball position.
+          if (contains_ball) {
+            uint16_t ball_x = 0;
+            uint16_t ball_y = 0;
 
-						// Check if feedback should be sent.
-						if (robot_data[0] & 0x80) {
-							feedback_pend_normal();
-						}
+            ball_x |= dma_buffer[buffer_position++];
+            ball_x |= (dma_buffer[buffer_position++] << 8);
+            ball_y |= dma_buffer[buffer_position++];
+            ball_y |= (dma_buffer[buffer_position++] << 8);
+          
+            dr_set_ball_frame(ball_x, ball_y);
+          }
+          
+          // The next bytes contain the robot camera information, if any.
+          for (i = 0; i < RECEIVE_DRIVE_NUM_ROBOTS; i++) {
+            if ((0x01 << i) & mask_vector) {
+              // Valid camera data for robot i, if i matches this robot's 
+              // index, update camera data.
+              if (i == robot_index) {
+                uint16_t robot_x = 0;
+                uint16_t robot_y = 0;
+                uint16_t robot_angle = 0;
+                contains_robot = true;
+                     
+                robot_x |= dma_buffer[buffer_position++];
+                robot_x |= (dma_buffer[buffer_position++] << 8);
+                robot_y |= dma_buffer[buffer_position++];
+                robot_y |= (dma_buffer[buffer_position++] << 8);
+                robot_angle |= dma_buffer[buffer_position++];
+                robot_angle |= (dma_buffer[buffer_position++] << 8);
+              
+                dr_set_robot_frame(robot_x, robot_y, robot_angle);
+              }
+              else {
+                buffer_position += 6;
+              }
+            }
+          } 
 
-						// Extract the serial number.
-						uint8_t serial = *robot_data++ & 0x0F;
+          // If the packet contains a timestamp, it will be in the next 
+          // 8 bytes.
+          if (contains_timestamp) {
+            uint64_t timestamp = 0;
+            for (i = 0; i < 8; i++) {
+               timestamp |= ((uint64_t)dma_buffer[buffer_position++] << 8*i);
+            }
+            rtc_set(timestamp);
 
-						// Construct the individual 16-bit words sent from the host.
-						uint16_t words[4U];
-						for (unsigned int i = 0U; i < 4U; ++i) {
-							words[i] = *robot_data++;
-							words[i] |= (uint16_t)*robot_data++ << 8;
-						}
-
-						// In case of emergency stop, treat everything as zero
-						// except the chicker discharge bit (that can keep its
-						// status).
-						if (!estop_run) {
-							static const uint16_t MASK[4] = { 0x0000, 0x4000, 0x0000, 0x0000 };
-							for (unsigned int i = 0; i != 4; ++i) {
-								words[i] &= MASK[i];
-							}
-						}
-
+            // If this packet contained robot or ball information, update
+            // the timestamp for the camera data.
+            if (contains_robot) {
+              dr_set_robot_timestamp(timestamp);
+            }
+            if (contains_ball) {
+              dr_set_ball_timestamp(timestamp);
+            }
+          }
+            
+          // The final byte is the status byte.
+          uint8_t status = dma_buffer[buffer_position++];
+          if ((status & 0x07) == robot_index) {
+            feedback_pend_normal();   
+          }
+         
+          // If the estop has been switched off, execute the stop primitive. 
+          if (!estop_run && last_estop_run) {
+						primitive_params_t pparams;
+            for (i = 0; i < 4; i++) {
+               pparams.params[i] = 0;
+            }
+            pparams.slow = false;
+            pparams.extra = 0;
 						// Take the drive mutex.
 						xSemaphoreTake(drive_mtx, portMAX_DELAY);
-
 						// Reset timeout.
 						timeout_ticks = 1000U / portTICK_PERIOD_MS;
-
-						// Apply the charge and discharge mode.
-						charger_enable(words[1] & 0x8000);
-						chicker_discharge(words[1] & 0x4000);
-
-						// If the serial number, the emergency stop has just
-						// been switched to stop, or the current primitive is
-						// direct, a new movement primitive needs to start. Do
-						// not start a movement primitive if the emergency stop
-						// has just been switched to run and the current
-						// primitive is not direct, because we can’t usefully
-						// restart the stopped prior primitive—instead, wait
-						// for the host to send new data. Strictly speaking, we
-						// only need to start direct primitives when the estop
-						// is switched from stop to run, but this is
-						// unnecessary as direct primitives shouldn’t care
-						// about being started more often than necessary.
-						unsigned int primitive;
-						primitive_params_t pparams;
-						for (unsigned int i = 0; i != 4; ++i) {
-							int16_t value = words[i] & 0x3FF;
-							if (words[i] & 0x400) {
-								value = -value;
-							}
-							if (words[i] & 0x800) {
-								value *= 10;
-							}
-							pparams.params[i] = value;
-						}
-						primitive = words[0] >> 12;
-						pparams.extra = (words[2] >> 12) | ((words[3] >> 12) << 4);
-						pparams.slow = !!(pparams.extra & 0x80);
-						pparams.extra &= 0x7F;
-						if ((serial != last_serial /* Non-atomic because we are only writer */) || (!estop_run && last_estop_run) || primitive_is_direct(primitive)) {
-							// Apply the movement primitive.
-							primitive_start(primitive, &pparams);
-						}
-
-						// Release the drive mutex.
+            primitive_start(0, &pparams);
+            // Return the drive mutex.
 						xSemaphoreGive(drive_mtx);
-
-						// Update the last values.
-						__atomic_store_n(&last_serial, serial, __ATOMIC_RELAXED);
-						last_estop_run = estop_run;
-					}
-				} else if (frame_length >= HEADER_LENGTH + 1U + FOOTER_LENGTH) {
-					// Non-broadcast frame contains a message specifically for this robot
+          }
+        } 
+        
+        // Otherwise, it is a message packet specific to this robot.
+        else if (frame_length >= HEADER_LENGTH + 1U + FOOTER_LENGTH) {
 					static const uint16_t MESSAGE_PURPOSE_ADDR = HEADER_LENGTH;
 					static const uint16_t MESSAGE_PAYLOAD_ADDR = MESSAGE_PURPOSE_ADDR + 1U;
-					switch (dma_buffer[MESSAGE_PURPOSE_ADDR]) {
-						case 0x00U: // Fire kicker immediately
+					primitive_params_t pparams;
+          switch (dma_buffer[MESSAGE_PURPOSE_ADDR]) {
+            case 0x00:
 							if (frame_length == HEADER_LENGTH + 4U + FOOTER_LENGTH) {
 								uint8_t which = dma_buffer[MESSAGE_PAYLOAD_ADDR];
 								uint16_t width = dma_buffer[MESSAGE_PAYLOAD_ADDR + 2U];
@@ -172,7 +194,7 @@ static void receive_task(void *UNUSED(param)) {
 								chicker_fire(which ? CHICKER_CHIP : CHICKER_KICK, width);
 							}
 							break;
-
+          
 						case 0x01U: // Arm autokick
 							if (frame_length == HEADER_LENGTH + 4U + FOOTER_LENGTH) {
 								uint8_t which = dma_buffer[MESSAGE_PAYLOAD_ADDR];
@@ -225,8 +247,43 @@ static void receive_task(void *UNUSED(param)) {
 						case 0x0DU: // Request build IDs
 							feedback_pend_build_ids();
 							break;
-					}
-				}
+
+            case 0x0EU: // Set capacitor bits.
+              xSemaphoreTake(drive_mtx, portMAX_DELAY);
+              char capacitor_flag = dma_buffer[MESSAGE_PAYLOAD_ADDR];
+              charger_enable(capacitor_flag & 0x02);
+              chicker_discharge(capacitor_flag & 0x01);
+              xSemaphoreGive(drive_mtx);
+              break;
+
+            case 0x0FU: // Stop Primitive
+            case 0x10U: // Move Primitive
+            case 0x11U: // Dribble Primitive
+            case 0x12U: // Shoot Primitive
+            case 0x13U: // Catch Primitive
+            case 0x14U: // Pivot Primitive
+            case 0x15U: // Spin Primitive
+            case 0x16U: // Direct Wheels Primitive
+            case 0x17U: // Direct Velocity Primitive
+              if (estop_run) {
+                // Take the drive mutex.
+                xSemaphoreTake(drive_mtx, portMAX_DELAY);
+                // Reset timeout.
+                timeout_ticks = 1000U / portTICK_PERIOD_MS;
+                for (i = 0; i < 4; i++) {
+                  pparams.params[i] = dma_buffer[MESSAGE_PAYLOAD_ADDR+ 2*i + 1] << 8;
+                  pparams.params[i] |= dma_buffer[MESSAGE_PAYLOAD_ADDR + 2*i];
+                }
+                pparams.slow = !!(dma_buffer[MESSAGE_PAYLOAD_ADDR + 9] & 0x01);
+                pparams.extra = dma_buffer[MESSAGE_PAYLOAD_ADDR + 8];
+                primitive_start(dma_buffer[MESSAGE_PURPOSE_ADDR] - 0x0F, &pparams);                  
+                // Return the drive mutex.
+                xSemaphoreGive(drive_mtx);
+              }
+            default:
+              break; 
+          }
+        }
 			}
 		}
 	}

@@ -146,10 +146,13 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 	}
 
 
-	std::vector<std::tuple<uint8_t,Point>> detbots;
-	detbots.push_back(std::make_tuple(0, Point(9,9)));
+	std::vector<std::tuple<uint8_t,Point, Angle>> detbots;
+	detbots.push_back(std::make_tuple(0, Point(9,9), Angle::of_degrees(12.34)));
 
-	dongle.send_camera_packet(detbots, Point(-7,-7), 12345);
+	uint64_t * fake_timestamp;
+	* fake_timestamp = 12345;
+
+	dongle.send_camera_packet(detbots, Point(-7,-7), fake_timestamp);
 }
 
 

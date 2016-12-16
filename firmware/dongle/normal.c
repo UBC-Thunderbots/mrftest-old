@@ -27,12 +27,17 @@
 /**
  * \brief The number of robots.
  */
-#define DRIVE_NUM_ROBOTS 8
+#define CAMERA_NUM_ROBOTS 8
 
 /**
  * \brief The number of bytes in the drive data block for each robot.
  */
-#define DRIVE_BYTES_PER_ROBOT 8
+//#define DRIVE_BYTES_PER_ROBOT 8
+
+/**
+ * \brief The number of bytes in the camera data block for each robot.
+ */
+#define CAMERA_BYTES_PER_ROBOT 6
 
 /**
  * \brief The number of packet buffers to allocate at system startup.
@@ -176,17 +181,33 @@ static SemaphoreHandle_t transmit_complete_sem;
  * \brief Whether a drive packet should be transmitted due to 20 ms passing
  * since the last transmission.
  */
-static bool drive_tick_pending;
+//static bool drive_tick_pending;
+
+/**
+ * \brief Whether a drive packet should be transmitted due to 20 ms passing
+ * since the last transmission.
+ */
+static bool camera_tick_pending;
 
 /**
  * \brief Whether a drive packet USB transfer has completed.
  */
-static bool drive_transfer_complete;
+//static bool drive_transfer_complete;
+
+/**
+ * \brief Whether a drive packet USB transfer has completed.
+ */
+static bool camera_transfer_complete;
 
 /**
  * \brief The handle of the drive task.
  */
-static TaskHandle_t drive_task_handle;
+//static TaskHandle_t drive_task_handle;
+
+/**
+ * \brief The handle of the camera task.
+ */
+static TaskHandle_t camera_task_handle;
 
 /**
  * \brief The handle of the reliable message transmission task.
@@ -252,9 +273,16 @@ void timer6_isr(void) {
 	}
 
 	// Notify task.
-	__atomic_store_n(&drive_tick_pending, true, __ATOMIC_RELAXED);
+	/*__atomic_store_n(&drive_tick_pending, true, __ATOMIC_RELAXED);
 	BaseType_t yield = pdFALSE;
 	vTaskNotifyGiveFromISR(drive_task_handle, &yield);
+	if (yield) {
+		portYIELD_FROM_ISR();
+	}*/
+
+	__atomic_store_n(&camera_tick_pending, true, __ATOMIC_RELAXED);
+	BaseType_t yield = pdFALSE;
+	vTaskNotifyGiveFromISR(camera_task_handle, &yield);
 	if (yield) {
 		portYIELD_FROM_ISR();
 	}
@@ -270,28 +298,44 @@ void timer6_isr(void) {
  * \param[in, out] from_isr_yield the yield pointer (if invoked from an ISR),
  * or \c null (if invoked from mainline code)
  */
-static void handle_drive_endpoint_done(unsigned int UNUSED(ep), BaseType_t *from_isr_yield) {
+/*static void handle_drive_endpoint_done(unsigned int UNUSED(ep), BaseType_t *from_isr_yield) {
 	__atomic_store_n(&drive_transfer_complete, true, __ATOMIC_RELAXED);
 	if (from_isr_yield) {
 		vTaskNotifyGiveFromISR(drive_task_handle, from_isr_yield);
 	} else {
 		xTaskNotifyGive(drive_task_handle);
 	}
+}*/
+
+/**
+ * \brief Handles notifications from the USB layer that an asynchronous
+ * operation on the camera packet endpoint is complete.
+ *
+ * \param[in] ep the endpoint address
+ * \param[in, out] from_isr_yield the yield pointer (if invoked from an ISR),
+ * or \c null (if invoked from mainline code)
+ */
+static void handle_camera_endpoint_done(unsigned int UNUSED(ep), BaseType_t *from_isr_yield) {
+	__atomic_store_n(&camera_transfer_complete, true, __ATOMIC_RELAXED);
+	if (from_isr_yield) {
+		vTaskNotifyGiveFromISR(camera_task_handle, from_isr_yield);
+	} else {
+		xTaskNotifyGive(camera_task_handle);
+	}
 }
 
 /**
- * \brief Writes a drive packet into the radio transmit buffer and begins
+ * \brief Writes a camera packet into the radio transmit buffer and begins
  * sending it.
  *
  * This function also blinks the transmit LED.
  *
- * \param[in] packet the 64-byte drive packet
- * \param[in] serials the 1-byte data serial number for each robot, incremented
- * when new data arrives
+ * \param[in] packet the variable size camera packet (max. 55 bytes) (8 byte timestamp to be added in the function)
  *
  * \pre The transmit mutex must be held by the caller.
- */
-static void send_drive_packet(const void *packet, const uint8_t *serials) {
+*/
+static void send_camera_packet(const void *packet, const uint8_t *serials)
+{
 	unsigned int address = MRF_REG_LONG_TXNFIFO;
 
 	// Write out the MRF24J40 and 802.15.4 headers.
@@ -311,29 +355,66 @@ static void send_drive_packet(const void *packet, const uint8_t *serials) {
 	// Record the header length, now that the header is finished.
 	mrf_write_long(header_length_address, address - header_start_address);
 
-	// Write out the payload sent from the host, interleaved with the prefix
-	// byte for each robot.
+	// Camera packet. 1 = mask, 2  = flags, 3-4 = Ball x, 5-6 = Ball y, 7-54 = Robots, 55 = status
 	const uint8_t *rptr = packet;
-	for (size_t i = 0; i != DRIVE_NUM_ROBOTS; ++i) {
-		mrf_write_long(address++, (serials[i] & 0x0F) | ((poll_index == i) ? 0x80 : 0x00));
-		for (size_t j = 0; j != DRIVE_BYTES_PER_ROBOT; ++j) {
+
+	// Write the mask vector (all values should already be defined). Byte 1
+	uint8_t mask = *rptr++
+	mrf_write_long(address++, *rptr++);
+
+	// Write flags (including estop). Bit 2 should already be assigned. Byte 2
+	uint8_t flags = *rptr++;
+	if(estop_read() != ESTOP_RUN) // If estop is broken or switched on. Set the first (Bit 0) bit of flags
+		flags |= 0x01;
+	else
+		flags |= 0x02; // If estop is not triggered, we will have a valid timestamp (generated below)
+
+	mrf_write_long(address++, flags);
+
+	// Write Ball-x and Ball-y positions. First 2 bytes are x-pos, and the next 2 are y-pos. Bytes 3-6
+	// Only write if we have valid ball positions
+	if( (flags >> 2) & 1)
+	{
+		for (unsigned int i=0; i < 4; ++i)
+		{
 			mrf_write_long(address++, *rptr++);
 		}
 	}
 
-	// Write out the footer, which comprises the emergency stop status and
-	// timestamp.
-	mrf_write_long(address++, estop_read() == ESTOP_RUN);
-	uint64_t stamp = rtc_get();
-	for (unsigned int i = 0; i < 8; ++i) {
-		mrf_write_long(address++, (uint8_t)(stamp >> (8 * i)));
+	// Write out the payload sent from the host. Only write data for robots with valid positions (look at mask vector)
+	// Each robot has 6 bytes of data (2b - xpos, 2b - ypos, 2b - thetapos). Bytes 7 to [(6*valid_robots) + 6] bytes
+	uint8_t num_valid_robots = 0;
+	for(size_t i = 0, i < 8; ++i)
+	{
+		if( (mask >> i) & 1) num_valid_robots++;
 	}
+
+	for (size_t i = 0; i != num_valid_robots; ++i) 
+	{
+		for (size_t j = 0; j != CAMERA_BYTES_PER_ROBOT; ++j)
+		{
+			mrf_write_long(address++, *rptr++);
+		}
+	}
+
+	// Write out the timestamp if estop not set
+	if((flags & 1) == 0)
+	{
+		uint64_t stamp = rtc_get();
+		for (unsigned int i = 0; i < 8; ++i) {
+			mrf_write_long(address++, (uint8_t)(stamp >> (8 * i)));
+		}
+	}
+
+	// Write the status vector. Last byte in camera packet
+	mrf_write_long(address++, (serials[i] & 0x0F) | ((poll_index == i) ? 0x80 : 0x00));
+	//mrf_write_long(address++, *rptr++);
 
 	// Record the frame length, now that the frame is finished.
 	mrf_write_long(frame_length_address, address - header_start_address);
 
 	// Advance the feedback polling index.
-	poll_index = (poll_index + 1U) % DRIVE_NUM_ROBOTS;
+	poll_index = (poll_index + 1U) % CAMERA_NUM_ROBOTS;
 
 	// Initiate transmission with no acknowledgement.
 	mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000001U);
@@ -341,6 +422,88 @@ static void send_drive_packet(const void *packet, const uint8_t *serials) {
 	// Blink the transmit light.
 	led_blink(LED_TX);
 }
+
+/**
+ * \brief Writes a camera packet into the radio transmit buffer and begins
+ * sending it.
+ *
+ * This function also blinks the transmit LED.
+ *
+ * \param[in] packet the camera packet
+ *
+ * \pre The transmit mutex must be held by the caller.
+ */
+/*static void send_drive_packet(const void *packet, const uint8_t *serials) {
+	unsigned int address = MRF_REG_LONG_TXNFIFO;
+
+	// Write out the MRF24J40 and 802.15.4 headers.
+	unsigned int header_length_address = address++;
+	unsigned int frame_length_address = address++;
+	unsigned int header_start_address = address;
+	mrf_write_long(address++, 0b01000001U); // Frame control LSB
+	mrf_write_long(address++, 0b10001000U); // Frame control MSB
+	mrf_write_long(address++, ++mrf_tx_seqnum); // Sequence number
+	mrf_write_long(address++, radio_config.pan_id); // Destination PAN ID LSB
+	mrf_write_long(address++, radio_config.pan_id >> 8U); // Destination PAN ID MSB
+	mrf_write_long(address++, 0xFFU); // Destination address LSB
+	mrf_write_long(address++, 0xFFU); // Destination address MSB
+	mrf_write_long(address++, 0x00U); // Source address LSB
+	mrf_write_long(address++, 0x01U); // Source address MSB
+
+	// Record the header length, now that the header is finished.
+	mrf_write_long(header_length_address, address - header_start_address);
+
+	const uint8_t *rptr = packet;
+
+	// 1. Write the the mask vector byte
+	uint8_t mask_vector = *rptr++;
+	mrf_write_long(address++, mask_vector);
+
+	// 2. Write the the flag byte
+	uint8_t flag = *rptr++;
+	mrf_write_long(address++, flag);
+
+	// 3. Write the ball position byte(s) - 4 bytes if bit 2 of flag byte is 1, 
+	// 0 bytes otherwise
+	if (flag & 0x02) {
+		for (unsigned int i = 0; i < 4; ++i) {
+			mrf_write_long(address++, *rptr++);
+		}
+	}	
+
+	// 4. Write the robot position byte(s)
+	// This part depends on the mask vector byte
+	// Zero to eight subpackets of 6 bytes each, one per robot that has valid 
+	// vision data, in ascending order of robot number
+	for (size_t i = 0; i != CAMERA_NUM_ROBOTS; ++i) {
+		if (mask_vector & (0x01 << i)) {
+			for (size_t j = 0; j != CAMERA_BYTES_PER_ROBOT; ++j) {
+				mrf_write_long(address++, *rptr++);
+			}
+		}
+	}
+
+	// 5. Write the packet timestamp bytes
+	for (unsigned int i = 0; i < 8; ++i) {
+		mrf_write_long(address++, *rptr++);
+	}
+
+	// 6. Write the status byte
+	mrf_write_long(address++, *rptr++);
+
+	// Record the frame length, now that the frame is finished.
+	mrf_write_long(frame_length_address, address - header_start_address);
+
+	// Advance the feedback polling index.
+	// Remove this for 2016 radio protocol?
+	poll_index = (poll_index + 1U) % CAMERA_NUM_ROBOTS;
+
+	// Initiate transmission with no acknowledgement.
+	mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000001U);
+
+	// Blink the transmit light.
+	led_blink(LED_TX);
+}*/
 
 /**
  * \brief Handles all work associated with drive packets.
@@ -351,7 +514,7 @@ static void send_drive_packet(const void *packet, const uint8_t *serials) {
  * The drive packet is sent over the radio every time timer 6 expires, as long as the packet is valid.
  * On receiving a packet over USB, the new packet is used on the next scheduled transmission and thereafter.
  */
-static void drive_task(void *UNUSED(param)) {
+/*static void drive_task(void *UNUSED(param)) {
 	for (;;) {
 		// Wait to be instructed to start doing work.
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
@@ -455,6 +618,127 @@ static void drive_task(void *UNUSED(param)) {
 				// Send a packet.
 				xSemaphoreTake(transmit_mutex, portMAX_DELAY);
 				send_drive_packet(packet_buffer, serials);
+				xSemaphoreTake(transmit_complete_sem, portMAX_DELAY);
+				xSemaphoreGive(transmit_mutex);
+			}
+		}
+
+		// Turn off timer 6.
+		{
+			TIM_basic_CR1_t tmp = { 0 };
+			TIM6.CR1 = tmp; // Disable counter
+		}
+		portDISABLE_HW_INTERRUPT(NVIC_IRQ_TIM6_DAC);
+		rcc_disable(APB1, TIM6);
+
+		// Done.
+		xSemaphoreGive(enabled_mode_change_sem);
+	}
+}*/
+
+/**
+ * \brief Handles all work associated with camera packets.
+ *
+ * This task both runs OUT endpoint 1 (in asynchronous mode) and also runs the radio while transmitting camera packets.
+ * Double-buffering is used so that the USB endpoint can be enabled without inhibiting radio operation.
+ *
+ * The camera packet is sent over the radio every time timer 6 expires, as long as the packet is valid.
+ * On receiving a packet over USB, the new packet is used on the next scheduled transmission and thereafter.
+ */
+static void camera_task(void *UNUSED(param)) {
+	for (;;) {
+		// Wait to be instructed to start doing work.
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+		// Allocate space to store the camera packet
+		uint8_t serials[DRIVE_NUM_ROBOTS] = {};
+		static uint8_t packet_buffer[55]; // The max bytes possible in a camera packet
+		static uint8_t usb_buffer[55];
+
+		// Fill the packet buffer with a safe default.
+		memset(packet_buffer, 0, 55);
+
+		// Set up timer 6 to overflow every 20 milliseconds for the camera packet.
+		// Timer 6 input is 72 MHz from the APB.
+		// Need to count to 1,440,000 for each overflow.
+		// Set prescaler to 1,000, auto-reload to 1,440.
+		rcc_enable_reset(APB1, TIM6);
+		{
+			TIM_basic_CR1_t tmp = {
+				.ARPE = 0, // ARR is not buffered.
+				.OPM = 0, // Counter counters forever.
+				.URS = 1, // Update interrupts and DMA requests generated only at counter overflow.
+				.UDIS = 0, // Updates not inhibited.
+				.CEN = 0, // Timer not currently enabled.
+			};
+			TIM6.CR1 = tmp;
+		}
+		{
+			TIM_basic_DIER_t tmp = {
+				.UDE = 0, // DMA disabled.
+				.UIE = 1, // Interrupt enabled.
+			};
+			TIM6.DIER = tmp;
+		}
+		TIM6.PSC = 999U;
+		TIM6.ARR = 1439U;
+		TIM6.CNT = 0U;
+		TIM6.CR1.CEN = 1; // Enable timer
+		portENABLE_HW_INTERRUPT(NVIC_IRQ_TIM6_DAC);
+
+		// Run!
+		bool ep_running = false;
+		for (;;) {
+			// Start the endpoint if possible.
+			if (!ep_running) {
+				if (uep_async_read_start(0x01U, usb_buffer, 55, &handle_camera_endpoint_done)) {
+					ep_running = true;
+				} else {
+					if (errno == EPIPE) {
+						// Endpoint halted.
+						uep_halt_wait(0x01U);
+					} else {
+						// Shutting down.
+						break;
+					}
+				}
+			}
+
+			// Wait for activity.
+			ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+			if (__atomic_exchange_n(&camera_transfer_complete, false, __ATOMIC_RELAXED)) {
+				// Endpoint finished.
+				size_t transfer_length;
+				if (uep_async_read_finish(0x01U, &transfer_length)) {
+					ep_running = false;
+					if (transfer_length == 55) {
+						// This transfer contains new data for every robot.
+						memcpy(packet_buffer, usb_buffer, 55);
+						for (unsigned int i = 0; i != DRIVE_NUM_ROBOTS; ++i) {
+							++serials[i];
+						}
+					} else {
+						// Transfer is wrong length; reject.
+						uep_halt(0x01U);
+					}
+				} else if (errno == ECONNRESET) {
+					// Shutting down.
+					ep_running = false;
+					break;
+				} else if (errno == EOVERFLOW) {
+					// Halt endpoint due to application being dumb.
+					ep_running = false;
+					uep_halt(0x01U);
+				} else if (errno != EINPROGRESS) {
+					ep_running = false;
+				}
+			}
+
+			if (__atomic_exchange_n(&camera_tick_pending, false, __ATOMIC_RELAXED)) {
+				// Send a packet.
+				xSemaphoreTake(transmit_mutex, portMAX_DELAY);
+				send_camera_packet(packet_buffer, serials);
 				xSemaphoreTake(transmit_complete_sem, portMAX_DELAY);
 				xSemaphoreGive(transmit_mutex);
 			}
@@ -957,8 +1241,9 @@ void normal_init(void) {
 	}
 
 	// Start tasks.
-	static StaticTask_t drive_task_storage, reliable_task_storage, unreliable_task_storage, mdr_task_storage, usbrx_task_storage, dongle_status_task_storage, rdtx_task_storage, rdrx_task_storage;
-	STACK_ALLOCATE(drive_task_stack, 4096);
+	static StaticTask_t camera_task_storage, reliable_task_storage, unreliable_task_storage, mdr_task_storage, usbrx_task_storage, dongle_status_task_storage, rdtx_task_storage, rdrx_task_storage;
+	//STACK_ALLOCATE(drive_task_stack, 4096);
+	STACK_ALLOCATE(camera_task_stack, 4096);
 	STACK_ALLOCATE(reliable_task_stack, 4096);
 	STACK_ALLOCATE(unreliable_task_stack, 4096);
 	STACK_ALLOCATE(mdr_task_stack, 4096);
@@ -966,7 +1251,8 @@ void normal_init(void) {
 	STACK_ALLOCATE(dongle_status_task_stack, 4096);
 	STACK_ALLOCATE(rdtx_task_stack, 4096);
 	STACK_ALLOCATE(rdrx_task_stack, 4096);
-	drive_task_handle = xTaskCreateStatic(&drive_task, "norm_drive", sizeof(drive_task_stack) / sizeof(*drive_task_stack), 0, 7, drive_task_stack, &drive_task_storage);
+	//drive_task_handle = xTaskCreateStatic(&drive_task, "norm_drive", sizeof(drive_task_stack) / sizeof(*drive_task_stack), 0, 7, drive_task_stack, &drive_task_storage);
+	camera_task_handle = xTaskCreateStatic(&camera_task, "norm_camera", sizeof(camera_task_stack) / sizeof(*camera_task_stack), 0, 7, camera_task_stack, &camera_task_storage);
 	reliable_task_handle = xTaskCreateStatic(&reliable_task, "norm_reliable", sizeof(reliable_task_stack) / sizeof(*reliable_task_stack), 0, 6, reliable_task_stack, &reliable_task_storage);
 	unreliable_task_handle = xTaskCreateStatic(&unreliable_task, "norm_unreliable", sizeof(unreliable_task_stack) / sizeof(*unreliable_task_stack), 0, 6, unreliable_task_stack, &unreliable_task_storage);
 	mdr_task_handle = xTaskCreateStatic(&mdr_task, "norm_mdr", sizeof(mdr_task_stack) / sizeof(*mdr_task_stack), 0, 5, mdr_task_stack, &mdr_task_storage);
@@ -983,8 +1269,10 @@ bool normal_can_enter(void) {
 void normal_on_enter(void) {
 	// Initialize flags.
 	rx_fcs_error = false;
-	drive_tick_pending = false;
-	drive_transfer_complete = false;
+	camera_tick_pending = false;
+	camera_transfer_complete = false;
+	//drive_tick_pending = false;
+	//drive_transfer_complete = false;
 	second_dongle_last = xTaskGetTickCount() - SECOND_DONGLE_TIMEOUT;
 
 	// Initialize the radio.
@@ -1007,7 +1295,8 @@ void normal_on_enter(void) {
 	led_on(LED_RX);
 
 	// Notify tasks to start doing work.
-	xTaskNotifyGive(drive_task_handle);
+	//xTaskNotifyGive(drive_task_handle);
+	xTaskNotify(camera_task_handle);
 	xTaskNotifyGive(reliable_task_handle);
 	xTaskNotifyGive(unreliable_task_handle);
 	xTaskNotifyGive(mdr_task_handle);

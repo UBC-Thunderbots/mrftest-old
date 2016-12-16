@@ -53,9 +53,55 @@ typedef struct {
 	float avel;
 } dr_data_t;
 
+typedef struct {
+  /**
+  * \brief The x component of the robot's global position in mm.
+  */
+  int16_t x;
+
+  /**
+  * \brief The y component of the robot's global position in mm.
+  */
+  int16_t y;
+
+  /**
+  * \brief The theta component of the robot's pose in the global frame in mrad.
+  */
+  int16_t angle;
+  
+  /**
+  * \brief The timestamp associated with this camera frame.
+  */
+  uint64_t timestamp;
+  
+} robot_camera_data_t;
+
+typedef struct {
+  /**
+  * \brief The x component of the ball's global position in mm.
+  */
+  int16_t x;
+
+  /**
+  * \brief The y component of the ball's global position in mm.
+  */
+  int16_t y;
+
+  /**
+  * \brief The timestamp associated with this camera frame.
+  */
+  uint64_t timestamp;
+
+} ball_camera_data_t;
+
 void dr_init(void);
 void dr_reset(void);
 void dr_tick(log_record_t *log);
 void dr_get(dr_data_t *ret);
+
+void dr_set_ball_frame(int16_t x, int16_t y);
+void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle);
+void dr_set_ball_timestamp(uint64_t timestamp);
+void dr_set_robot_timestamp(uint64_t timestamp);
 
 #endif
