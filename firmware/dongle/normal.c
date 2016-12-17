@@ -407,7 +407,8 @@ static void send_camera_packet(const void *packet, const uint8_t *serials)
 	}
 
 	// Write the status vector. Last byte in camera packet
-	mrf_write_long(address++, (serials[i] & 0x0F) | ((poll_index == i) ? 0x80 : 0x00));
+	//mrf_write_long(address++, (serials[i] & 0x0F) | ((poll_index == i) ? 0x80 : 0x00));
+	mrf_write_long(address++, 0x0F); //Warning: need to use real status info
 	//mrf_write_long(address++, *rptr++);
 
 	// Record the frame length, now that the frame is finished.

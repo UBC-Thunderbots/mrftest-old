@@ -58,10 +58,7 @@ VisionSocket::VisionSocket(int multicast_interface, const std::string &port) : s
 	}
 	//conn = Glib::signal_io().connect(sigc::mem_fun(this, &VisionSocket::receive_packet), sock.fd(), Glib::IO_IN);
 
-
-	std::cout << "Making Thread" << std::endl;
 	vision_thread = std::thread(&VisionSocket::vision_loop, this);
-	std::cout << "Made Thread" << std::endl;
 }
 
 
@@ -98,15 +95,9 @@ bool VisionSocket::receive_packet(Glib::IOCondition) {
 
 
 void VisionSocket::vision_loop(){
-	std::cout << "In thread\n" << std::endl;
-
-	static constexpr std::size_t NUM_PATTERNS = 16; //TODO: Get this number better way
-
 
 	sock.set_blocking(true);
 	while(true){
-
-
 		uint8_t buffer[65536];
 		ssize_t len = recv(sock.fd(), buffer, sizeof(buffer), 0); //Blocks until packet received
 
@@ -120,44 +111,6 @@ void VisionSocket::vision_loop(){
 			LOG_WARN(u8"Received malformed SSL-Vision packet.");
 			continue;
 		}
-
-		/*
-		const SSL_DetectionFrame &det(packet.detection());
-
-		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> yellow_packet = det.robots_yellow();
-
-
-		bool seen_this_frame[NUM_PATTERNS];
-		std::fill_n(seen_this_frame, NUM_PATTERNS, false);
-		const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> &rep(yellow_packet); // might need to be *packet instead
-		for (std::size_t j = 0; j < static_cast<std::size_t>(rep.size()); ++j) {
-			const SSL_DetectionRobot &detbot = rep.Get(static_cast<int>(j));
-			if (detbot.has_robot_id()) {
-				unsigned int pattern = detbot.robot_id();
-				if (pattern < NUM_PATTERNS && !seen_this_frame[pattern]) {
-					seen_this_frame[pattern] = true;
-					if (detbot.has_orientation()) {
-						bool neg = false;
-						//TODO: Make friendly side negative
-						Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
-						Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::half() : Angle::zero())).angle_mod();
-						if(counter > 15){
-							counter = 0;
-							std::cout << "ID = " << pattern << " x= " << pos.x << " y= " << pos.y << "\n" << std::endl;
-						}
-					} else {
-						LOG_WARN(u8"Vision packet has robot with no orientation.");
-					}
-
-
-				}
-			}
-		}
-
-
-		 */
-		//TODO: call mrfdongle encode camera packet
-
 
 		packets_mutex.lock();
 		vision_packets.push(std::make_pair(packet, time_rec));

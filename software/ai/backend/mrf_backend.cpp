@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <tuple>
 #include <vector>
+#include <algorithm>
+#include <iostream>
 
 using namespace AI::BE;
 
@@ -88,7 +90,21 @@ void FriendlyTeam::log_to(MRFPacketLogger &logger) {
 
 
 void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<AI::Timestamp> &ts) {
+
+	if(packets.empty()) return;
+
 	bool membership_changed = false;
+
+	std::size_t newest_index = 0;
+	AI::Timestamp max_time = ts[0];
+	for(std::size_t i = 1; i < packets.size(); i++){
+		if(ts[i] >= max_time){
+			max_time = ts[i];
+			newest_index = i;
+		}
+	}
+
+	std::vector<std::tuple<uint8_t,Point, Angle>> newdetbots;
 
 	// Update existing robots and create new robots.
 	bool seen_this_frame[NUM_PATTERNS];
@@ -112,6 +128,10 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 							Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
 							Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::half() : Angle::zero())).angle_mod();
 							bot->add_field_data(pos, ori, ts[i]);
+							if(i == newest_index){
+								newdetbots.push_back(std::make_tuple(pattern, pos, ori));
+							}
+
 						} else {
 							LOG_WARN(u8"Vision packet has robot with no orientation.");
 						}
@@ -145,14 +165,11 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 		AI::BE::Team<AI::BE::Player>::signal_membership_changed().emit();
 	}
 
+	uint64_t int_time = max_time.time_since_epoch().count();
 
-	std::vector<std::tuple<uint8_t,Point, Angle>> detbots;
-	detbots.push_back(std::make_tuple(0, Point(9,9), Angle::of_degrees(12.34)));
-
-	uint64_t * fake_timestamp;
-	* fake_timestamp = 12345;
-
-	dongle.send_camera_packet(detbots, Point(-7,-7), fake_timestamp);
+	std::cout << "Max Time " << max_time << std::endl;
+	std::cout << "Int Time " << int_time << std::endl;
+	//dongle.send_camera_packet(newdetbots, Point(-7,-7), &int_time);
 }
 
 
