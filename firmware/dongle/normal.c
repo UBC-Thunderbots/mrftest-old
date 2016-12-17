@@ -359,7 +359,7 @@ static void send_camera_packet(const void *packet, const uint8_t *serials)
 	const uint8_t *rptr = packet;
 
 	// Write the mask vector (all values should already be defined). Byte 1
-	uint8_t mask = *rptr++
+	uint8_t mask = *rptr++;
 	mrf_write_long(address++, *rptr++);
 
 	// Write flags (including estop). Bit 2 should already be assigned. Byte 2
@@ -384,7 +384,7 @@ static void send_camera_packet(const void *packet, const uint8_t *serials)
 	// Write out the payload sent from the host. Only write data for robots with valid positions (look at mask vector)
 	// Each robot has 6 bytes of data (2b - xpos, 2b - ypos, 2b - thetapos). Bytes 7 to [(6*valid_robots) + 6] bytes
 	uint8_t num_valid_robots = 0;
-	for(size_t i = 0, i < 8; ++i)
+	for(size_t i = 0; i < 8; ++i)
 	{
 		if( (mask >> i) & 1) num_valid_robots++;
 	}
@@ -651,7 +651,7 @@ static void camera_task(void *UNUSED(param)) {
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
 		// Allocate space to store the camera packet
-		uint8_t serials[DRIVE_NUM_ROBOTS] = {};
+		uint8_t serials[CAMERA_NUM_ROBOTS] = {};
 		static uint8_t packet_buffer[55]; // The max bytes possible in a camera packet
 		static uint8_t usb_buffer[55];
 
@@ -715,7 +715,7 @@ static void camera_task(void *UNUSED(param)) {
 					if (transfer_length == 55) {
 						// This transfer contains new data for every robot.
 						memcpy(packet_buffer, usb_buffer, 55);
-						for (unsigned int i = 0; i != DRIVE_NUM_ROBOTS; ++i) {
+						for (unsigned int i = 0; i != CAMERA_NUM_ROBOTS; ++i) {
 							++serials[i];
 						}
 					} else {
@@ -1296,7 +1296,7 @@ void normal_on_enter(void) {
 
 	// Notify tasks to start doing work.
 	//xTaskNotifyGive(drive_task_handle);
-	xTaskNotify(camera_task_handle);
+	xTaskNotifyGive(camera_task_handle);
 	xTaskNotifyGive(reliable_task_handle);
 	xTaskNotifyGive(unreliable_task_handle);
 	xTaskNotifyGive(mdr_task_handle);
