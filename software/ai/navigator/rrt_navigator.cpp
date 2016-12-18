@@ -277,6 +277,7 @@ void RRTNavigator::plan(Player player) {
 		player_data->last_shoot_primitive.prim = Drive::Primitive::MOVE;
 	}
 
+/*
 	switch (nav_request.prim) {
 		case Drive::Primitive::STOP:
 			if (nav_request.extra & 1) {
@@ -366,10 +367,12 @@ void RRTNavigator::plan(Player player) {
 			LOG_ERROR(Glib::ustring::compose("Unhandled primitive! (%1)", static_cast<int>(nav_request.prim)));
 			break;
 	}
-
+*/
 	// then there are movement types that has zoning logic, new primitive may be created even when highlevel request has not changed
-	if (hl_request.prim == Drive::Primitive::SHOOT && (hl_request.extra & 2) /* care angle */ && player_data->fancy_shoot_maneuver) {
+
+	//if (hl_request.prim == Drive::Primitive::SHOOT && (hl_request.extra & 2) /* care angle */ && player_data->fancy_shoot_maneuver) {
 		// evaluate whether we are facing the right way to kick on target
+	/*
 		Point target_position = Point::of_angle(hl_request.field_angle()) + hl_request.field_point();
 		ShootActionType zone = shoot_movement_sequence(player, hl_request.field_point(), target_position, player_data->last_shoot_primitive);
 
@@ -446,6 +449,7 @@ void RRTNavigator::plan(Player player) {
 		}
 	}
 
+*/
 	// TODO test if primitive is done
 }
 

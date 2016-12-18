@@ -19,6 +19,7 @@
 #include <sigc++/bind.h>
 #include <sigc++/reference_wrapper.h>
 #include <sigc++/functors/mem_fun.h>
+#include <iostream>
 
 namespace {
 	struct RadioConfig {
@@ -389,6 +390,7 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 	camera_transfer.reset(new USB::BulkOutTransfer(device, 1, camera_packet, 55, 55, 0));
 	camera_transfer->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_camera_transfer_done));
 	camera_transfer->submit();
+	std::cout << "Submitted camera transfer" << std::endl;
 
 }
 
@@ -433,6 +435,7 @@ bool MRFDongle::submit_drive_transfer() {
 }
 
 void MRFDongle::handle_drive_transfer_done(AsyncOperation<void> &op) {
+	std::cout << "Drive Transfer done" << std::endl;
 	op.result();
 	drive_transfer.reset();
 	if(std::find_if(robots, robots + sizeof(robots) / sizeof(*robots), [](const std::unique_ptr<MRFRobot> &bot) { return bot->drive_dirty; }) != robots + sizeof(robots) / sizeof(*robots)) {
@@ -441,6 +444,7 @@ void MRFDongle::handle_drive_transfer_done(AsyncOperation<void> &op) {
 }
 
 void MRFDongle::handle_camera_transfer_done(AsyncOperation<void> &op) {
+	std::cout << "Camera Transfer done" << std::endl;
 	op.result();
 	camera_transfer.reset();
 }

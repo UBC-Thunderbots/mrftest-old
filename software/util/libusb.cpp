@@ -13,6 +13,7 @@
 #include <glibmm/convert.h>
 #include <glibmm/main.h>
 #include <glibmm/ustring.h>
+#include <iostream>
 
 #define STALL_RETRIES 3
 
@@ -485,6 +486,7 @@ USB::InterfaceClaimer::~InterfaceClaimer() {
 
 
 USB::Transfer::~Transfer() {
+	std::cout << "Destroying transfer" << std::endl;
 	try {
 		if (submitted_) {
 			// The transfer is submitted.

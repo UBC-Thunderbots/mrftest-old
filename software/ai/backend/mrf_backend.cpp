@@ -166,10 +166,7 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 	}
 
 	uint64_t int_time = max_time.time_since_epoch().count();
-
-	std::cout << "Max Time " << max_time << std::endl;
-	std::cout << "Int Time " << int_time << std::endl;
-	//dongle.send_camera_packet(newdetbots, Point(-7,-7), &int_time);
+	dongle.send_camera_packet(newdetbots, Point(-7,-7), &int_time);
 }
 
 
