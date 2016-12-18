@@ -671,7 +671,7 @@ void MRFRobot::handle_direct_control_changed() {
 
 void MRFRobot::dirty_drive() {
 	drive_dirty = true;
-	dongle_.dirty_drive();
+	//dongle_.dirty_drive();
 }
 
 void MRFRobot::check_build_id_mismatch() {
