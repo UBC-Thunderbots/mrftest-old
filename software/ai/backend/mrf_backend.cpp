@@ -91,10 +91,10 @@ void FriendlyTeam::log_to(MRFPacketLogger &logger) {
 
 void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<AI::Timestamp> &ts) {
 
-	//if(packets.empty()) return;
+	if(packets.empty()) return;
 
 	bool membership_changed = false;
-	/*
+
 	std::size_t newest_index = 0;
 	AI::Timestamp max_time = ts[0];
 	for(std::size_t i = 1; i < packets.size(); i++){
@@ -103,8 +103,8 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 			newest_index = i;
 		}
 	}
-*/
-	//std::vector<std::tuple<uint8_t,Point, Angle>> newdetbots;
+
+	std::vector<std::tuple<uint8_t,Point, Angle>> newdetbots;
 
 	// Update existing robots and create new robots.
 	bool seen_this_frame[NUM_PATTERNS];
@@ -128,10 +128,9 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 							Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
 							Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::half() : Angle::zero())).angle_mod();
 							bot->add_field_data(pos, ori, ts[i]);
-							//if(i == newest_index){
-								//Todo: uncomment this
-								//newdetbots.push_back(std::make_tuple(pattern, pos, ori));
-							//}
+							if(i == newest_index){
+								newdetbots.push_back(std::make_tuple(pattern, pos, ori));
+							}
 
 						} else {
 							LOG_WARN(u8"Vision packet has robot with no orientation.");
@@ -166,8 +165,8 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 		AI::BE::Team<AI::BE::Player>::signal_membership_changed().emit();
 	}
 
-	std::vector<std::tuple<uint8_t,Point, Angle>> newdetbots;
-	newdetbots.push_back(std::make_tuple(7, Point(2,1), Angle::half()));
+	//std::vector<std::tuple<uint8_t,Point, Angle>> newdetbots;
+	//newdetbots.push_back(std::make_tuple(7, Point(2,1), Angle::half()));
 	if(newdetbots.empty()) return;
 	else{
 		uint64_t int_time = 450;//max_time.time_since_epoch().count();
