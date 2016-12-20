@@ -360,7 +360,7 @@ static void send_camera_packet(const void *packet, const uint8_t *serials)
 
 	// Write the mask vector (all values should already be defined). Byte 1
 	uint8_t mask = *rptr++;
-	mrf_write_long(address++, *rptr++);
+	mrf_write_long(address++, mask);
 
 	// Write flags (including estop). Bit 2 should already be assigned. Byte 2
 	uint8_t flags = *rptr++;
