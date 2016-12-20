@@ -343,7 +343,7 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 
 	if(ball.len() < ball_maxRange) // Some sort of check to see if we have valid ball positions
 	{
-		flag_vec |= 0x02;
+		flag_vec |= 0x04;
 		
 		int16_t ballX = static_cast<int16_t>(ball.x * 1000.0);
 		int16_t ballY = static_cast<int16_t>(ball.y * 1000.0);
