@@ -334,11 +334,10 @@ void receive_tick(log_record_t *record) {
 
 	static const size_t HEADER_LENGTH = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
     uint32_t buffer_position = HEADER_LENGTH;
+    buffer_position += 4;
 
-    uint8_t mask_vector = dma_buffer[buffer_position++];
-	record->tick.dribbler_ticked = mask_vector;
-    uint8_t flag_vector = dma_buffer[buffer_position++];
-	record->tick.dribbler_pwm = flag_vector;
+	record->tick.dribbler_ticked = dma_buffer[buffer_position++];
+	record->tick.dribbler_pwm = dma_buffer[buffer_position++];
 	record->tick.dribbler_speed = dma_buffer[buffer_position++];
 	record->tick.dribbler_temperature = dma_buffer[buffer_position++];
 

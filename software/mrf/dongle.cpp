@@ -345,8 +345,8 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 	{
 		flag_vec |= 0x02;
 		
-		int16_t ballX= static_cast<int16_t>(ball.x * 1000);
-		int16_t ballY = static_cast<int16_t>(ball.y * 1000);
+		int16_t ballX = static_cast<int16_t>(ball.x * 1000.0);
+		int16_t ballY = static_cast<int16_t>(ball.y * 1000.0);
 
 		*rptr++ = static_cast<int8_t>(ballX); // Add Ball x position
 		*rptr++ = static_cast<int8_t>(ballX / 256);
@@ -365,8 +365,8 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 		int16_t robotY  = static_cast<int16_t>((std::get<1>(detbots[i])).y * 1000);
 		int16_t robotT  = static_cast<int16_t>((std::get<2>(detbots[i])).to_radians() * 1000);
 
-		mask_vec |=  int8_t(0x01 << (robotID % 8));
-
+		mask_vec |=  int8_t(0x01 << (robotID));
+		std::cout << "Mask Vec: " << unsigned(mask_vec) << std::endl;
 		*rptr++ = static_cast<int8_t>(robotX);
 		*rptr++ = static_cast<int8_t>(robotX / 256);
 		*rptr++ = static_cast<int8_t>(robotY);

@@ -560,7 +560,7 @@ namespace {
 						value = decode_u8_le(ptr); ptr += 1;
 					}
 
-					bool dribbler_ticked = decode_u8_le(ptr) != 0; ptr += 1;
+					uint8_t dribbler_ticked = decode_u8_le(ptr); ptr += 1;
 					uint8_t dribbler_pwm = decode_u8_le(ptr); ptr += 1;
 					uint8_t dribbler_speed = decode_u8_le(ptr); ptr += 1;
 					uint8_t dribbler_temperature = decode_u8_le(ptr); ptr += 1;
@@ -589,7 +589,7 @@ namespace {
 					for (unsigned int temp : wheels_temperatures) {
 						ofs << '\t' << temp;
 					}
-					ofs << '\t' << (dribbler_ticked ? '1' : '0');
+					ofs << '\t' << static_cast<unsigned int>(dribbler_ticked);
 					ofs << '\t' << static_cast<unsigned int>(dribbler_pwm) << '\t' << static_cast<unsigned int>(dribbler_speed);
 					ofs << '\t' << static_cast<unsigned int>(dribbler_temperature);
 					ofs << '\t' << idle_cycles;

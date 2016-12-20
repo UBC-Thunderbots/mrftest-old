@@ -210,7 +210,9 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 	}
 
 	// If it contains ball and robot data, update the ball and the teams.
-	if (packet.has_detection() && field_.valid()) {
+	//Todo: uncomment this
+	//if (packet.has_detection() && field_.valid()) {
+	if (true){
 		const SSL_DetectionFrame &det(packet.detection());
 
 		// Drop packets we are ignoring.

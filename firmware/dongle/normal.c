@@ -360,6 +360,14 @@ static void send_camera_packet(const void *packet, const uint8_t *serials)
 
 	// Write the mask vector (all values should already be defined). Byte 1
 	uint8_t mask = *rptr++;
+
+	if(mask == 32){
+		led_blink(LED_TX);
+	}else{
+		led_blink(LED_RX);
+	}
+
+
 	mrf_write_long(address++, mask);
 
 	// Write flags (including estop). Bit 2 should already be assigned. Byte 2
@@ -1139,7 +1147,8 @@ static void rdrx_task(void *UNUSED(param)) {
 								uint16_t source_address = source_address_lsb | (source_address_msb << 8U);
 								if (source_address < 8U && sequence_number != seqnum[source_address]) {
 									// Blink the receive light.
-									led_blink(LED_RX);
+									//Todo: uncomment this
+									//led_blink(LED_RX);
 
 									// Update sequence number.
 									seqnum[source_address] = sequence_number;
