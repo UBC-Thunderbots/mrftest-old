@@ -110,8 +110,10 @@ void dribbler_tick(log_record_t *record) {
 
 		// Do some log record filling.
 		if (record) {
-			record->tick.dribbler_ticked = 1U;
+			//Todo: uncomment these
+			/*record->tick.dribbler_ticked = 1U;
 			record->tick.dribbler_speed = dribbler_speed;
+			*/
 		}
 		
 		// Decide whether to run or not.
@@ -136,18 +138,21 @@ void dribbler_tick(log_record_t *record) {
 			update_thermal_model(energy);
 
 			if (record) {
-				record->tick.dribbler_pwm = dribbler_pwm;
+				//Todo: uncomment this
+				//record->tick.dribbler_pwm = dribbler_pwm;
 			}
 		} else {
 			motor_set(4U, MOTOR_MODE_COAST, 0U);
 			update_thermal_model(0.0f);
 			if (record) {
-				record->tick.dribbler_pwm = 0U;
+				//Todo: uncomment this
+				//record->tick.dribbler_pwm = 0U;
 			}
 		}
 
 		if (record) {
-			record->tick.dribbler_temperature = (uint8_t) (winding_energy / THERMAL_CAPACITANCE_WINDING + THERMAL_AMBIENT);
+			//Todo: uncomment this
+			//record->tick.dribbler_temperature = (uint8_t) (winding_energy / THERMAL_CAPACITANCE_WINDING + THERMAL_AMBIENT);
 		}
 	} else {
 		// Decrement counter.
@@ -155,10 +160,13 @@ void dribbler_tick(log_record_t *record) {
 
 		// Leave the record cleanly empty.
 		if (record) {
+			//Todo:uncomment these
+			/*
 			record->tick.dribbler_ticked = 0U;
 			record->tick.dribbler_pwm = 0U;
 			record->tick.dribbler_speed = 0U;
 			record->tick.dribbler_temperature = 0U;
+			*/
 		}
 	}
 }

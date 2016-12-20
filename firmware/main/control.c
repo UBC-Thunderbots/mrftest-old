@@ -136,7 +136,7 @@ void track_vel_target(const float linear_vel[2], float angular_vel) {
 	dr_get(&current_state);
 	
 
-	//get the desired accleration by assuming we need to acheive the 
+	//get the desired acceleration by assuming we need to achieve the
 	//velocity delta in a single tick
 	float cur_acc[2];
 	cur_acc[0] = (linear_vel[0] - current_state.vx)/TRACK_TIME;

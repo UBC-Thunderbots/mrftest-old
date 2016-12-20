@@ -84,9 +84,15 @@ void dr_tick(log_record_t *log) {
 	current_state.avel = robot_speeds[2]/ROBOT_RADIUS;
 	current_state.vx = robot_speeds[0];
 	current_state.vy = robot_speeds[1];
-	current_state.x += current_state.vx*TICK_TIME;
-	current_state.y += current_state.vy*TICK_TIME;
-	current_state.angle += current_state.avel*TICK_TIME;
+	//Temporarily trusting camera data for current state
+	//Adding in time adjustment and kalman code in future
+	//current_state.x += current_state.vx*TICK_TIME;
+	//current_state.y += current_state.vy*TICK_TIME;
+	//current_state.angle += current_state.avel*TICK_TIME;
+
+	current_state.x = robot_camera_data.x;
+	current_state.y = robot_camera_data.y;
+	current_state.angle = robot_camera_data.angle;
 
 	if (log) {
 		log->tick.dr_x = current_state.x;

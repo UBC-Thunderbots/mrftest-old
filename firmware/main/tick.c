@@ -83,7 +83,7 @@ static void normal_task(void *UNUSED(param)) {
 
 		// Run the stuff.
 		feedback_tick();
-		receive_tick();
+		receive_tick(record);
 		adc_tick(record);
 		leds_tick();
 		breakbeam_tick(record);
@@ -94,6 +94,7 @@ static void normal_task(void *UNUSED(param)) {
 		}
 		hall_tick();
 		encoder_tick();
+
 		primitive_tick(record);
 		wheels_tick(record);
 		dribbler_tick(record);

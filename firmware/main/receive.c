@@ -58,6 +58,7 @@ static unsigned int timeout_ticks;
 static uint8_t last_serial = 0xFF;
 
 static void receive_task(void *UNUSED(param)) {
+
 	uint16_t last_sequence_number = 0xFFFFU;
 	bool last_estop_run = false;
   bool estop_run = false;
@@ -65,6 +66,8 @@ static void receive_task(void *UNUSED(param)) {
   uint32_t i;
 
 	while ((frame_length = mrf_receive(dma_buffer))) {
+
+
 		uint16_t frame_control = dma_buffer[0U] | (dma_buffer[1U] << 8U);
 		// Sanity-check the frame control word
 		if (((frame_control >> 0U) & 7U) == 1U /* Data packet */ && ((frame_control >> 3U) & 1U) == 0U /* No security */ && ((frame_control >> 6U) & 1U) == 1U /* Intra-PAN */ && ((frame_control >> 10U) & 3U) == 2U /* 16-bit destination address */ && ((frame_control >> 14U) & 3U) == 2U /* 16-bit source address */) {
@@ -72,6 +75,7 @@ static void receive_task(void *UNUSED(param)) {
 			uint16_t source_address = dma_buffer[7U] | (dma_buffer[8U] << 8U);
 			uint8_t sequence_number = dma_buffer[2U];
 			if (source_address == 0x0100U && sequence_number != last_sequence_number) {
+
 				// Update sequence number
 				last_sequence_number = sequence_number;
 
@@ -113,6 +117,7 @@ static void receive_task(void *UNUSED(param)) {
           // The next bytes contain the robot camera information, if any.
           for (i = 0; i < RECEIVE_DRIVE_NUM_ROBOTS; i++) {
             if ((0x01 << i) & mask_vector) {
+            	timeout_ticks = 1000U / portTICK_PERIOD_MS;
               // Valid camera data for robot i, if i matches this robot's 
               // index, update camera data.
               if (i == robot_index) {
@@ -127,7 +132,7 @@ static void receive_task(void *UNUSED(param)) {
                 robot_y |= (dma_buffer[buffer_position++] << 8);
                 robot_angle |= dma_buffer[buffer_position++];
                 robot_angle |= (dma_buffer[buffer_position++] << 8);
-              
+
                 dr_set_robot_frame(robot_x, robot_y, robot_angle);
               }
               else {
@@ -173,7 +178,7 @@ static void receive_task(void *UNUSED(param)) {
 						xSemaphoreTake(drive_mtx, portMAX_DELAY);
 						// Reset timeout.
 						timeout_ticks = 1000U / portTICK_PERIOD_MS;
-            primitive_start(0, &pparams);
+            //primitive_start(0, &pparams);
             // Return the drive mutex.
 						xSemaphoreGive(drive_mtx);
           }
@@ -276,7 +281,7 @@ static void receive_task(void *UNUSED(param)) {
                 }
                 pparams.slow = !!(dma_buffer[MESSAGE_PAYLOAD_ADDR + 9] & 0x01);
                 pparams.extra = dma_buffer[MESSAGE_PAYLOAD_ADDR + 8];
-                primitive_start(dma_buffer[MESSAGE_PURPOSE_ADDR] - 0x0F, &pparams);                  
+                //primitive_start(dma_buffer[MESSAGE_PURPOSE_ADDR] - 0x0F, &pparams);
                 // Return the drive mutex.
                 xSemaphoreGive(drive_mtx);
               }
@@ -325,20 +330,46 @@ void receive_shutdown(void) {
 /**
  * \brief Ticks the receiver.
  */
-void receive_tick(void) {
+void receive_tick(log_record_t *record) {
+
+	static const size_t HEADER_LENGTH = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
+    uint32_t buffer_position = HEADER_LENGTH;
+
+    uint8_t mask_vector = dma_buffer[buffer_position++];
+	record->tick.dribbler_ticked = mask_vector;
+    uint8_t flag_vector = dma_buffer[buffer_position++];
+	record->tick.dribbler_pwm = flag_vector;
+	record->tick.dribbler_speed = dma_buffer[buffer_position++];
+	record->tick.dribbler_temperature = dma_buffer[buffer_position++];
+
+
 	// Decrement timeout tick counter if nonzero.
 	xSemaphoreTake(drive_mtx, portMAX_DELAY);
 	if (timeout_ticks == 1) {
 		timeout_ticks = 0;
 		charger_enable(false);
 		chicker_discharge(true);
-		static const primitive_params_t ZERO_PARAMS;
-		primitive_start(0, &ZERO_PARAMS);
+		////////Just for testing: starting one move primitive here (not from radio command)
+
+		primitive_params_t stop_params;
+		primitive_start(0, &stop_params);
+
+		////////////////
 	} else if (timeout_ticks > 1) {
 		--timeout_ticks;
+
+		////////Just for testing: starting one move primitive here (not from radio command)
+		primitive_params_t move_params;
+		move_params.params[0] = 0;
+		move_params.params[1] = 0;
+		move_params.params[2] = 0;
+		primitive_start(1, &move_params);
+		////////////////
+
 	}
 	xSemaphoreGive(drive_mtx);
 }
+
 
 /**
  * \brief Returns the serial number of the most recent drive packet.

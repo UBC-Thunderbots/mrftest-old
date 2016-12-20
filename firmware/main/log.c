@@ -260,9 +260,9 @@ void log_shutdown(void) {
 log_record_t *log_alloc(void) {
 	uint64_t stamp = rtc_get();
 
-	if (stamp == 0) {
-		return 0;
-	}
+	//if (stamp == 0) {
+	//	return 0;
+	//}
 
 	if (log_state() != LOG_STATE_OK) {
 		return 0;

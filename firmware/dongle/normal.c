@@ -421,7 +421,7 @@ static void send_camera_packet(const void *packet, const uint8_t *serials)
 	mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000001U);
 
 	// Blink the transmit light.
-	led_blink(LED_TX);
+	//led_blink(LED_TX);
 }
 
 /**

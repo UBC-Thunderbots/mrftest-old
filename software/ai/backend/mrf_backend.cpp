@@ -165,8 +165,20 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 		AI::BE::Team<AI::BE::Player>::signal_membership_changed().emit();
 	}
 
-	uint64_t int_time = max_time.time_since_epoch().count();
-	dongle.send_camera_packet(newdetbots, Point(-7,-7), &int_time);
+	if(newdetbots.empty()) return;
+	else{
+		uint64_t int_time = max_time.time_since_epoch().count();
+
+		std::cout << "Calling dongle.send_camera_packet with: ";
+		for (std::size_t i = 0; i < newdetbots.size(); ++i) {
+			std::cout << "bot number = " << unsigned(std::get<0>(newdetbots[i])) << ", ";
+			std::cout << "x = " << (std::get<1>(newdetbots[i])).x << ", ";
+			std::cout << "y = " << (std::get<1>(newdetbots[i])).y << ", ";
+			std::cout << "theta = " << (std::get<2>(newdetbots[i])).to_degrees() << std::endl;
+		}
+
+		dongle.send_camera_packet(newdetbots, Point(-7,-7), &int_time);
+	}
 }
 
 
