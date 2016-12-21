@@ -4,6 +4,9 @@
 #include "dr.h"
 #include "sensors.h"
 
+#define VAR_CAM_X   9.0e-6f
+#define VAR_CAM_Y   9.0e-6f
+#define VAR_CAM_T   9.0e-6f
 #define VAR_ACC_X   0.0047f
 #define VAR_ACC_Y   0.0135f
 #define VAR_GYRO    1.0034e-4f

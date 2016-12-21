@@ -60,6 +60,9 @@ typedef struct {
  *  \brief The required sensor and acceleration data for the kalman filter.
  */
 typedef struct {
+  float cam_x;
+  float cam_y;
+  float cam_t;
   float x_accel;
   float y_accel;
   float t_accel;
@@ -70,6 +73,7 @@ typedef struct {
   float wheels_x;
   float wheels_y;
   float wheels_t;
+  bool new_camera_data;
 } kalman_data_t;
 
 

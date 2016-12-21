@@ -61,6 +61,9 @@ void dr_reset(void) {
   current_state.vy = 0.0f;
   current_state.avel = 0.0f;
 
+  kalman_data.cam_x = 0.0f;
+  kalman_data.cam_y = 0.0f;
+  kalman_data.cam_t = 0.0f;
   kalman_data.x_accel = 0.0f;
   kalman_data.y_accel = 0.0f;
   kalman_data.t_accel = 0.0f;
@@ -71,6 +74,7 @@ void dr_reset(void) {
   kalman_data.wheels_x = 0.0f;
   kalman_data.wheels_y = 0.0f;
   kalman_data.wheels_t = 0.0f;
+  kalman_data.new_camera_data = false;
 }
 
 /**
@@ -160,7 +164,7 @@ void dr_tick(log_record_t *log) {
     // Bring the gyro output into the dr domain.
     kalman_data.gyro = gyro_speed/ROBOT_RADIUS;
 
-    kalman_step(&current_state, &kalman_data);
+    //kalman_step(&current_state, &kalman_data);
   }
   else {
     current_state.x = 0;
@@ -243,6 +247,11 @@ void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle) {
   robot_camera_data.x = x;
   robot_camera_data.y = y;
   robot_camera_data.angle = angle;
+
+  kalman_data.cam_x = (float)(x/1000.0);
+  kalman_data.cam_y = (float)(y/1000.0);
+  kalman_data.cam_t = (float)(angle/1000.0);
+  kalman_data.new_camera_data = true;
 }
 
 /**
