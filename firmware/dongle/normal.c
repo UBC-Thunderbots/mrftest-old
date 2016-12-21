@@ -414,16 +414,18 @@ static void send_camera_packet(const void *packet, const uint8_t *serials)
 		}
 	}
 
+	uint8_t status = 0;
+	// Advance the feedback polling index.
+	poll_index = (poll_index + 1U) % CAMERA_NUM_ROBOTS;
+
 	// Write the status vector. Last byte in camera packet
+	status |= poll_index;
 	//mrf_write_long(address++, (serials[i] & 0x0F) | ((poll_index == i) ? 0x80 : 0x00));
-	mrf_write_long(address++, 0x0F); //Warning: need to use real status info
+	mrf_write_long(address++, status); //Warning: need to use real status info
 	//mrf_write_long(address++, *rptr++);
 
 	// Record the frame length, now that the frame is finished.
 	mrf_write_long(frame_length_address, address - header_start_address);
-
-	// Advance the feedback polling index.
-	poll_index = (poll_index + 1U) % CAMERA_NUM_ROBOTS;
 
 	// Initiate transmission with no acknowledgement.
 	mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000001U);
