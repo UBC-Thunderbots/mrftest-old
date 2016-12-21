@@ -117,10 +117,11 @@ static void receive_task(void *UNUSED(param)) {
           // The next bytes contain the robot camera information, if any.
           for (i = 0; i < RECEIVE_DRIVE_NUM_ROBOTS; i++) {
             if ((0x01 << i) & mask_vector) {
-            	timeout_ticks = 1000U / portTICK_PERIOD_MS;
               // Valid camera data for robot i, if i matches this robot's 
               // index, update camera data.
               if (i == robot_index) {
+            	timeout_ticks = 1000U / portTICK_PERIOD_MS;
+
                 int16_t robot_x = 0;
                 int16_t robot_y = 0;
                 int16_t robot_angle = 0;
@@ -167,7 +168,7 @@ static void receive_task(void *UNUSED(param)) {
           }
          
           // If the estop has been switched off, execute the stop primitive. 
-          if (!estop_run && last_estop_run) {
+          if (!estop_run) {
 						primitive_params_t pparams;
             for (i = 0; i < 4; i++) {
                pparams.params[i] = 0;
@@ -178,9 +179,20 @@ static void receive_task(void *UNUSED(param)) {
 						xSemaphoreTake(drive_mtx, portMAX_DELAY);
 						// Reset timeout.
 						timeout_ticks = 1000U / portTICK_PERIOD_MS;
-            //primitive_start(0, &pparams);
+            primitive_start(0, &pparams);
             // Return the drive mutex.
 						xSemaphoreGive(drive_mtx);
+          }else if(get_primitive_index() != 1){
+
+        	xSemaphoreTake(drive_mtx, portMAX_DELAY);
+      		////////Just for testing: starting one move primitive here (not from radio command)
+      		primitive_params_t move_params;
+      		move_params.params[0] = 1000;
+      		move_params.params[1] = 1000;
+      		move_params.params[2] = 0;
+      		primitive_start(1, &move_params);
+      		xSemaphoreGive(drive_mtx);
+      		////////////////
           }
         } 
         
@@ -348,7 +360,6 @@ void receive_tick(log_record_t *record) {
 		timeout_ticks = 0;
 		charger_enable(false);
 		chicker_discharge(true);
-		////////Just for testing: starting one move primitive here (not from radio command)
 
 		primitive_params_t stop_params;
 		primitive_start(0, &stop_params);
@@ -356,14 +367,6 @@ void receive_tick(log_record_t *record) {
 		////////////////
 	} else if (timeout_ticks > 1) {
 		--timeout_ticks;
-
-		////////Just for testing: starting one move primitive here (not from radio command)
-		primitive_params_t move_params;
-		move_params.params[0] = 0;
-		move_params.params[1] = 0;
-		move_params.params[2] = 0;
-		primitive_start(1, &move_params);
-		////////////////
 
 	}
 	xSemaphoreGive(drive_mtx);

@@ -121,3 +121,7 @@ void primitive_tick(log_record_t *log) {
 bool primitive_is_direct(unsigned int primitive) {
 	return PRIMITIVES[primitive]->direct;
 }
+
+unsigned int get_primitive_index(){
+	return primitive_current_index;
+}

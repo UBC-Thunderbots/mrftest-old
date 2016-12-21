@@ -90,9 +90,9 @@ void dr_tick(log_record_t *log) {
 	//current_state.y += current_state.vy*TICK_TIME;
 	//current_state.angle += current_state.avel*TICK_TIME;
 
-	current_state.x = robot_camera_data.x;
-	current_state.y = robot_camera_data.y;
-	current_state.angle = robot_camera_data.angle;
+	current_state.x = robot_camera_data.x/1000.0;
+	current_state.y = robot_camera_data.y/1000.0;
+	current_state.angle = robot_camera_data.angle/1000.0;
 
 	if (log) {
 		log->tick.dr_x = current_state.x;
