@@ -133,8 +133,8 @@ static void receive_task(void *UNUSED(param)) {
                 robot_y |= (dma_buffer[buffer_position++] << 8);
                 robot_angle |= dma_buffer[buffer_position++];
                 robot_angle |= (dma_buffer[buffer_position++] << 8);
-
-                dr_set_robot_frame(robot_x, robot_y, robot_angle);
+                //Todo: uncomment this
+                //dr_set_robot_frame(robot_x, robot_y, robot_angle);
               }
               else {
                 buffer_position += 6;
@@ -344,15 +344,16 @@ void receive_shutdown(void) {
  */
 void receive_tick(log_record_t *record) {
 
-	static const size_t HEADER_LENGTH = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
-    uint32_t buffer_position = HEADER_LENGTH;
+	//static const size_t HEADER_LENGTH = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
+	/*
+	uint32_t buffer_position = HEADER_LENGTH;
     buffer_position += 4;
 
 	record->tick.dribbler_ticked = dma_buffer[buffer_position++];
 	record->tick.dribbler_pwm = dma_buffer[buffer_position++];
 	record->tick.dribbler_speed = dma_buffer[buffer_position++];
 	record->tick.dribbler_temperature = dma_buffer[buffer_position++];
-
+*/
 
 	// Decrement timeout tick counter if nonzero.
 	xSemaphoreTake(drive_mtx, portMAX_DELAY);

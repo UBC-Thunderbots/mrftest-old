@@ -43,9 +43,9 @@
 extern const float MAX_VEL[3];
 
 // WRONG NUMBERS, POKE JON TO GET ACTUAL NUMBERS
-#define MAX_X_A 3.0f
-#define MAX_Y_A 3.0f
-#define MAX_T_A 30.0f
+#define MAX_X_A 0.5f //3.0f
+#define MAX_Y_A 0.5f //3.0f
+#define MAX_T_A 5.0f //30.0f
 
 //#define SLOW_MAX_X_A 1.2f
 //#define SLOW_MAX_Y_A 1.2f

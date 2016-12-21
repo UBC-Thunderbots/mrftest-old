@@ -38,7 +38,8 @@ void dr_init(void) {
   
   ball_camera_data.x = 0;
   ball_camera_data.y = 0;
-  ball_camera_data.timestamp = 0;  
+  ball_camera_data.timestamp = 0;
+
 }
 
 
@@ -83,6 +84,8 @@ void dr_reset(void) {
  * \param[out] log the log record to fill, if any
  */
 void dr_tick(log_record_t *log) {
+	/*
+
   sensors_gyro_data_t gyrodata;
   sensors_accel_data_t acceldata;
   float robot_accels[3];
@@ -96,13 +99,6 @@ void dr_tick(log_record_t *log) {
 
   gyrodata = sensors_get_gyro();
   acceldata = sensors_get_accel();
-
-  //Todo: if new camera data, update kalman with these values
-  /*
-  robot_camera_data.x/1000.0;
-  robot_camera_data.y/1000.0;
-  robot_camera_data.angle/1000.0;
-  */
 
   if(gyrodata.status) {
 	  gyro_speed = MS_PER_GYRO*gyrodata.data.reading.z;
@@ -207,6 +203,7 @@ void dr_tick(log_record_t *log) {
 
   //printf("%i\t%i\t%f\n", is_calibrated, gyrodata.status, current_state.avel);
 
+*/
 }
 
 /**
@@ -229,6 +226,8 @@ void kalman_get(kalman_data_t *ret) {
  * \brief sets the applied accels for use by the kalman filter
  */
 void dr_setaccel(float linear_accel[2], float angular_accel) {
+	//Todo: uncomment this
+	/*
   float dr_linear_accel[2];
   dr_linear_accel[0] = linear_accel[0];
   dr_linear_accel[1] = linear_accel[1];
@@ -237,6 +236,7 @@ void dr_setaccel(float linear_accel[2], float angular_accel) {
   kalman_data.x_accel = dr_linear_accel[0];
   kalman_data.y_accel = dr_linear_accel[1];
   kalman_data.t_accel = angular_accel;
+  */
 }
 
 
@@ -244,6 +244,8 @@ void dr_setaccel(float linear_accel[2], float angular_accel) {
  * \brief Sets the robot's camera frame.
  */
 void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle) {
+	//Todo: uncomment this
+	/*
   robot_camera_data.x = x;
   robot_camera_data.y = y;
   robot_camera_data.angle = angle;
@@ -252,6 +254,7 @@ void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle) {
   kalman_data.cam_y = (float)(y/1000.0);
   kalman_data.cam_t = (float)(angle/1000.0);
   kalman_data.new_camera_data = true;
+  */
 }
 
 /**

@@ -158,9 +158,11 @@ void kalman_step(dr_data_t *state, kalman_data_t *kalman_state) {
   mm_mult_t(3, 3, 3, (const float (*)[3])temp_P, F_t, P_t);
   mm_add(3, 3, P_t, Q_t); 
   
-   
+  /*
   if(kalman_state->new_camera_data){
+
 	  kalman_state->new_camera_data = false;
+
 	  // TODO Perform correction step.
 	  	  // Calculate Kalman gain for x.
 	  	  mm_mult(3, 3, 3,  H_x_cam, (const float (*)[3])P_x, temp_P);
@@ -198,12 +200,16 @@ void kalman_step(dr_data_t *state, kalman_data_t *kalman_state) {
 	  	  temp_z[0] = kalman_state->cam_y;
 	  	  temp_z[1] = kalman_state->wheels_y;
 	  	  temp_z[2] = kalman_state->accelerometer_y;
+
+
 	  	  vectorSub(temp_z, y_y, 3);
 	  	  vectorCopy(y_y, temp_z, 3);
 	  	  matrix_mult(temp_x, 3, y_y, 3, (const float (*)[3])K_y);
 	  	  vectorAdd(x_y, temp_x, 3);
 	  	  // Add sensor residual to t.
 	  	  matrix_mult(y_t, 2, x_t, 3, H_t_cam);
+
+
           float cam_t = kalman_state->cam_t;
 	  	  if(cam_t >= y_t[0] ){
 	  		float cam_sub = cam_t - 2*M_PI;
@@ -220,6 +226,8 @@ void kalman_step(dr_data_t *state, kalman_data_t *kalman_state) {
 				temp_z[0] = cam_plus;
 			}
 	  	  }
+
+
 
 	  	  temp_z[1] = (kalman_state->gyro + kalman_state->wheels_t) / 2;
 	  	  vectorSub(temp_z, y_t, 2);
@@ -244,7 +252,7 @@ void kalman_step(dr_data_t *state, kalman_data_t *kalman_state) {
 	  	  mm_sub(3, 3, eye_3, (const float (*)[3])temp_P, P_t);
 
   }else{
-
+*/
 	  // TODO Perform correction step.
 	  // Calculate Kalman gain for x.
 	  mm_mult(2, 3, 3,  H_x, (const float (*)[3])P_x, temp_P);
@@ -307,7 +315,8 @@ void kalman_step(dr_data_t *state, kalman_data_t *kalman_state) {
 	  // Update the t covariance.
 	  mm_mult(3, 1, 3, (const float (*)[3])K_t, H_t, temp_P);
 	  mm_sub(3, 3, eye_3, (const float (*)[3])temp_P, P_t);
-  }
+
+  //}
 
   // Update the dead reckoning state.
   state->x = x_x[0];
