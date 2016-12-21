@@ -103,8 +103,8 @@ static void receive_task(void *UNUSED(param)) {
           // If the contains_ball flag was set, the next four bytes
           // contain the ball position.
           if (contains_ball) {
-            uint16_t ball_x = 0;
-            uint16_t ball_y = 0;
+            int16_t ball_x = 0;
+            int16_t ball_y = 0;
 
             ball_x |= dma_buffer[buffer_position++];
             ball_x |= (dma_buffer[buffer_position++] << 8);
@@ -121,9 +121,9 @@ static void receive_task(void *UNUSED(param)) {
               // Valid camera data for robot i, if i matches this robot's 
               // index, update camera data.
               if (i == robot_index) {
-                uint16_t robot_x = 0;
-                uint16_t robot_y = 0;
-                uint16_t robot_angle = 0;
+                int16_t robot_x = 0;
+                int16_t robot_y = 0;
+                int16_t robot_angle = 0;
                 contains_robot = true;
                      
                 robot_x |= dma_buffer[buffer_position++];
