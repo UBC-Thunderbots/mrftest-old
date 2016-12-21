@@ -11,6 +11,7 @@
 #include <rcc.h>
 #include <stdbool.h>
 #include <registers/timer.h>
+#include <stdio.h>
 
 #define INDUCTANCE 22e-6f
 #define IMAX 10.0f
@@ -169,6 +170,8 @@ void charger_enable(bool enabled) {
 void charger_tick(void) {
 	float vcap = adc_capacitor();
 	float vbat = adc_battery_unfiltered();
+
+  printf("Cap Voltage: %f\n", vcap);  
 
 	bool charge = __atomic_load_n(&charger_enabled, __ATOMIC_RELAXED);
 

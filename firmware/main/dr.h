@@ -3,6 +3,9 @@
 
 #include "log.h"
 
+// 1 second worth of samples.
+#define CALIBRATION_LENGTH 200
+
 /**
  * \brief The type of data returned by the dead reckoning module.
  *
@@ -53,6 +56,24 @@ typedef struct {
 	float avel;
 } dr_data_t;
 
+/**
+ *  \brief The required sensor and acceleration data for the kalman filter.
+ */
+typedef struct {
+  float x_accel;
+  float y_accel;
+  float t_accel;
+  float accelerometer_x;
+  float accelerometer_y;
+  float accelerometer_z;
+  float gyro;
+  float wheels_x;
+  float wheels_y;
+  float wheels_t;
+} kalman_data_t;
+
+
+
 typedef struct {
   /**
   * \brief The x component of the robot's global position in mm.
@@ -94,14 +115,17 @@ typedef struct {
 
 } ball_camera_data_t;
 
+
 void dr_init(void);
+bool dr_calibrated(void);
 void dr_reset(void);
 void dr_tick(log_record_t *log);
 void dr_get(dr_data_t *ret);
-
-void dr_set_ball_frame(int16_t x, int16_t y);
+void kalman_get(kalman_data_t *ret);
+void dr_setaccel(float linear_accel[2], float angular_accel);
 void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle);
-void dr_set_ball_timestamp(uint64_t timestamp);
+void dr_set_ball_frame(int16_t x, int16_t y);
 void dr_set_robot_timestamp(uint64_t timestamp);
+void dr_set_ball_timestamp(uint64_t timestamp);
 
 #endif

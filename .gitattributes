@@ -103,6 +103,8 @@ firmware/main/hall.c -text
 firmware/main/hall.h -text
 firmware/main/icb.c -text
 firmware/main/icb.h -text
+firmware/main/kalman.c -text
+firmware/main/kalman.h -text
 firmware/main/leds.c -text
 firmware/main/leds.h -text
 firmware/main/log.c -text
@@ -127,6 +129,8 @@ firmware/main/primitives/direct_wheels.c -text
 firmware/main/primitives/direct_wheels.h -text
 firmware/main/primitives/dribble.c -text
 firmware/main/primitives/dribble.h -text
+firmware/main/primitives/imu_test.c -text
+firmware/main/primitives/imu_test.h -text
 firmware/main/primitives/move.c -text
 firmware/main/primitives/move.h -text
 firmware/main/primitives/pivot.c -text

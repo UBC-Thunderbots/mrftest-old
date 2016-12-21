@@ -6,6 +6,7 @@
  * @{
  */
 #include "stop.h"
+#include "../dr.h"
 #include "../dribbler.h"
 #include "../wheels.h"
 #include <unused.h>
@@ -59,8 +60,22 @@ static void stop_end(void) {
  * \param[out] log the log record to fill with information about the tick, or
  * \c NULL if no record is to be filled
  */
-static void stop_tick(log_record_t *UNUSED(log)) {
-	// Nothing to do here.
+static void stop_tick(log_record_t *log) {
+  kalman_data_t sensor_states;
+  kalman_get(&sensor_states);
+
+  if (log) {
+		log->tick.primitive_data[0] = sensor_states.x_accel;
+		log->tick.primitive_data[1] = sensor_states.y_accel;
+		log->tick.primitive_data[2] = sensor_states.t_accel;
+		log->tick.primitive_data[3] = sensor_states.accelerometer_x;
+		log->tick.primitive_data[4] = sensor_states.accelerometer_y;
+		log->tick.primitive_data[5] = sensor_states.accelerometer_z;
+		log->tick.primitive_data[6] = sensor_states.gyro;
+		log->tick.primitive_data[7] = sensor_states.wheels_x;
+    log->tick.primitive_data[8] = sensor_states.wheels_y;
+    log->tick.primitive_data[9] = sensor_states.wheels_t;
+  }
 }
 
 /**

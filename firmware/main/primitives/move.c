@@ -2,8 +2,10 @@
 #include "../bangbang.h"
 #include "../control.h"
 #include "../dr.h"
+#include "../kalman.h"
 #include <math.h>
 #include <stdio.h>
+
 
 #define TIME_HORIZON 0.05f //s
 
@@ -78,7 +80,9 @@ static void move_tick(log_record_t *log) {
 	//TODO: what would you like to log?
 
 	dr_data_t current_states;
+  kalman_data_t sensor_states;
 	dr_get(&current_states);
+  kalman_get(&sensor_states);
 
 	float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
 	float pos[3] = {current_states.x, current_states.y, current_states.angle};

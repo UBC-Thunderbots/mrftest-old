@@ -81,7 +81,10 @@ void apply_accel(float linear_accel[2], float angular_accel) {
 	//check for max acceleration scaling in direction of the vel difference
 	float scaling = get_maximal_accel_scaling(linear_accel, angular_accel);
 	
-	//if the naive 1 tick acceleration violates the limits of the robot
+	// Give the applied accels (in robot coordinates) to dead reckoning.
+  dr_setaccel(linear_accel, angular_accel);
+  
+  //if the naive 1 tick acceleration violates the limits of the robot
 	//scale it to maximum
 	//if the 1 tick acceleration is below the limit, then leave it
 	if(scaling < 1.0f) {

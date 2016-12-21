@@ -58,6 +58,8 @@
 #include <unused.h>
 #include <registers/timer.h>
 
+#include <stdio.h>
+
 // Verify that all the timing requirements are set up properly.
 _Static_assert(portTICK_PERIOD_MS * CONTROL_LOOP_HZ == 1000U, "Tick rate is not equal to control loop period.");
 

@@ -8,6 +8,7 @@
 #include "shoot.h"
 #include "spin.h"
 #include "stop.h"
+#include "imu_test.h"
 #include "../chicker.h"
 #include "../dr.h"
 #include "../dribbler.h"
@@ -37,6 +38,7 @@ static const primitive_t * const PRIMITIVES[] = {
 	&SPIN_PRIMITIVE,
 	&DIRECT_WHEELS_PRIMITIVE,
 	&DIRECT_VELOCITY_PRIMITIVE,
+  &IMU_TEST_PRIMITIVE,
 };
 
 /**
@@ -100,14 +102,14 @@ void primitive_start(unsigned int primitive, const primitive_params_t *params) {
  */
 void primitive_tick(log_record_t *log) {
 	xSemaphoreTake(primitive_mutex, portMAX_DELAY);
-	dr_tick(log);
 	if (log) {
 		log->tick.drive_serial = receive_last_serial();
 		log->tick.primitive = (uint8_t)primitive_current_index;
 	}
-	if (primitive_current) {
+	if (primitive_current && dr_calibrated()) {
 		primitive_current->tick(log);
 	}
+	dr_tick(log);
 	xSemaphoreGive(primitive_mutex);
 }
 

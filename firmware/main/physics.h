@@ -1,6 +1,7 @@
 #ifndef PHYSICS_H
 #define PHYSICS_H
 
+#define M_PI 3.14159265f
 
 //This file contains all the physical constants of the robot
 //Dimensions and the like as well as 
@@ -58,6 +59,14 @@ extern const float MAX_ACC[3];
 #define MS_PER_DEGREE (2.0f*(float)M_PI*ROBOT_RADIUS/360.0f)
 #define MS_PER_GYRO MS_PER_DEGREE*DEGREES_PER_GYRO
 
+// Accelerometer is running at +/- 2G's, 32767 is 2G's
+// ~61.0 uG per accelerometer LSB
+#define GRAVITY 9.807f
+#define ACCEL_RANGE 2.0f
+#define NUM_DIVISIONS 32767
+#define G_PER_ACCEL ACCEL_RANGE/NUM_DIVISIONS
+#define M_S_2_PER_ACCEL (GRAVITY*G_PER_ACCEL)
+
 extern const float ROBOT_MASS[3];
 extern const float MAX_VEL[3];
 
@@ -72,7 +81,6 @@ void speed3_to_speed4(const float speed3[3], float speed4[4]);
 //rotate a velocity vector through angle
 void rotate(float speed3[2], float angle);
 
-
 //returns the amount to scale accel by to hit
 //the acceleraton limits for the robot
 //acceleration should be in robot local coordinates
@@ -84,8 +92,12 @@ float get_maximal_accel_scaling(const float linear_accel[2], float angular_accel
 //takes a vector of motor torques in (Nm)
 float get_maximal_torque_scaling(const float torque[4]);
 
-//vector subtraction
+// Vector addition 
 void vectorSub(float *a,const float *b, int len);
+// Vector addition
+void vectorAdd(float *a,const float *b, int len);
+// Vector copy
+void vectorCopy(float *a, const float *b, int len);
 
 //polar cartesian transforms
 void Cart2Pol(float vec[2]);
@@ -94,6 +106,16 @@ void CartVel2Pol(float const loc[2], float vel[2]);
 void PolVel2Cart(float const loc[2], float vel[2]);
 void PolAcc2Cart(float const loc[2], float const vel[2], float const Pacc[2], float Cacc[2]);
 
-void matrix_mult(float* lhs, int lhs_len, const float* rhs,int rhs_len, const float matrix[lhs_len][rhs_len]);
+void matrix_mult(float* lhs, int lhs_len, const float* rhs, int rhs_len, const float matrix[lhs_len][rhs_len]);
+void matrix_mult_t(float* lhs, int lhs_len, const float* rhs, int rhs_len, const float matrix[lhs_len][rhs_len]);
 
+void mm_mult(int lm_rows, int rm_rows, int rm_cols, const float lmatrix[lm_rows][rm_rows], const float rmatrix[rm_rows][rm_cols], float matrix_out[lm_rows][rm_cols]);
+
+void mm_mult_t(int lm_rows, int rm_rows, int rm_cols, const float lmatrix[lm_rows][rm_rows], const float rmatrix[rm_rows][rm_cols], float matrix_out[lm_rows][rm_cols]);
+
+void mm_add(int nrows, int ncols, float a[nrows][ncols], const float b[nrows][ncols]);
+
+void mm_sub(int nrows, int ncols, const float a[nrows][ncols], const float b[nrows][ncols], float c[nrows][ncols]); 
+
+void mm_inv(int n, float a[n][n]);
 #endif

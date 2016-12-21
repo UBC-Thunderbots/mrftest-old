@@ -22,8 +22,8 @@ static const float force4_to_force3_mat[3][4]=
 		{ 1.0000,  1.0000, 1.0000, 1.0000} 
 };
 
-// Transformation matricies to convert a 3 velocity to
-// a 4 velocity (derived as pinv(force4_to_force3^t)
+// Transformation matricies to convert a 4 velocity to
+// a 3 velocity (derived as pinv(force4_to_force3^t)
 // this is also the transpose of force3_to_force4 mat
 static const float speed4_to_speed3_mat[3][4]=
 {
@@ -68,13 +68,132 @@ void matrix_mult(float* lhs, int lhs_len, const float* rhs,int rhs_len, const fl
  * \param[in] rhs_len the size of the input vector
  * \param[in] matrix the matrix to multiply
  */
-void matrix_mult_t(float* lhs, int lhs_len,const float* rhs, int rhs_len, const float matrix[rhs_len][lhs_len]) {
+void matrix_mult_t(float* lhs, int lhs_len, const float* rhs, int rhs_len, const float matrix[rhs_len][lhs_len]) {
 	for(int j=0;j<lhs_len;++j) {
 		lhs[j]=0.0f;
 		for(int i=0;i<rhs_len;++i) {
 			lhs[j] += matrix[i][j]*rhs[i];
 		}
 	}
+}
+
+/**
+ * \brief Multiplies two matrices.
+ *
+ * \param[out] matrix_out the result 
+ * \param[in] lm_rows number of rows of left matrix
+ * \param[in] lm_cols number of cols of right matrix
+ * \param[in] rm_rows number of rows of right matrix
+ * \param[in] rm_cols number of cols of right matrix
+ * \param[in] lmatrix left matrix to multiply
+ * \param[in] rmatrix right matrix to multiply 
+ */
+void mm_mult(int lm_rows, int rm_rows, int rm_cols, const float lmatrix[lm_rows][rm_rows], const float rmatrix[rm_rows][rm_cols], float matrix_out[lm_rows][rm_cols]) {
+  int i;
+  int j;
+  int k;
+  // NOTE rm_rows and lm_cols must be equal!
+  float temp;
+  for(i = 0; i < rm_cols; i++) {
+    for(j = 0; j < lm_rows; j++) {
+      temp = 0;
+      for(k = 0; k < rm_rows; k++) {
+        temp += lmatrix[j][k]*rmatrix[k][i];
+      }
+      matrix_out[j][i] = temp;     
+    }
+  }
+}
+
+/**
+ * \brief Multiplies one matrix by another's transpose.
+ *
+ * \param[out] matrix_out the result 
+ * \param[in] lm_rows number of rows of left matrix
+ * \param[in] lm_cols number of cols of left matrix
+ * \param[in] rm_rows number of rows of right matrix
+ * \param[in] rm_cols number of cols of right matrix
+ * \param[in] lmatrix left matrix to multiply
+ * \param[in] rmatrix right matrix to transpose multiply 
+ */
+void mm_mult_t(int lm_rows, int rm_rows, int rm_cols, const float lmatrix[lm_rows][rm_rows], const float rmatrix[rm_rows][rm_cols], float matrix_out[lm_rows][rm_rows]) {
+  int i;
+  int j;
+  int k;
+  // NOTE rm_rows and lm_cols must be equal!
+  float temp;
+  for(i = 0; i < rm_rows; i++) {
+    for(j = 0; j < lm_rows; j++) {
+      temp = 0;
+      for(k = 0; k < rm_cols; k++) {
+        temp += lmatrix[j][k]*rmatrix[i][k];
+      }
+      matrix_out[j][i] = temp;     
+    }
+  }
+}
+
+/**
+ * \brief Adds matrix B to A, and stores in A. 
+ *
+ * \param[in] nrows number of rows
+ * \param[in] ncols number of cols
+ * \param[in, out] a destination matrix 
+ * \param[in] b source matrix 
+ */
+
+void mm_add(int nrows, int ncols, float a[nrows][ncols], const float b[nrows][ncols]) {
+  int i, j;
+  for (i = 0; i < nrows; i++) {
+    for (j = 0; j < ncols; j++) {
+      a[i][j] = a[i][j] + b[i][j];
+    }
+  }
+}
+/**
+ * \brief Subtracts matrix B from A, and stores in C. 
+ *
+ * \param[out] c the result 
+ * \param[in] nrows number of rows
+ * \param[in] ncols number of cols
+ * \param[in] a source matrix 1
+ * \param[in] b source matrix 2 
+ */
+
+void mm_sub(int nrows, int ncols, const float a[nrows][ncols], const float b[nrows][ncols], float c[nrows][ncols]) {
+  int i, j;
+  for (i = 0; i < nrows; i++) {
+    for (j = 0; j < ncols; j++) {
+      c[i][j] = a[i][j] - b[i][j];
+    }
+  }
+}
+
+/**
+ * \brief Inverts a 2x2 or a 1x1 matrix. 
+ *
+ * \param[in, out] a the result 
+ * \param[in] n number of rows and columns
+ */
+
+void mm_inv(int n, float a[n][n]) {
+  float det, temp;
+  
+  switch(n) {
+    case (1):
+      a[0][0] = 1 / a[0][0];
+      break;
+    case (2):
+      det = 1 / (a[0][0]*a[1][1] - a[0][1]*a[1][0]);
+      temp = a[0][0];
+      a[0][0] = a[1][1] / det;
+      a[1][1] = temp / det;
+      a[0][1] = -a[0][1] / det;
+      a[1][0] = -a[1][0] / det;
+      break;
+    default:
+      break;
+  }
 }
 
 /**
@@ -118,6 +237,38 @@ void vectorSub(float *a,const float *b, int len) {
 	}
 }
 
+/**
+ * \ingroup Physics
+ *
+ * \brief implements the vector transform of A=A+B
+ *
+ * \param[in,out] the A vector
+ * \param[in] the B vector
+ * \param[in] the length of the vectors
+ *
+ */
+void vectorAdd(float *a,const float *b, int len) {
+	for(int i = 0; i < len; i++) {
+		a[i] = a[i] + b[i];
+	}
+}
+
+/**
+ * \ingroup Physics
+ *
+ * \brief copies source b into destination a. 
+ *
+ * \param[in,out] the destination vector
+ * \param[in] the source vector
+ * \param[in] the length of the vectors
+ *
+ */
+void vectorCopy(float *a, const float *b, int len) {
+  int i;
+  for(i = 0; i < len; i++) {
+    a[i] = b[i]; 
+  }
+}
 
 /**
  * \ingroup Physics

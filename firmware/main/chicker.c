@@ -18,7 +18,7 @@
 /**
  * \brief This is a hard cap on the pulse_width to prevent the fuse from blowing.
  */
-#define KICKER_MAX_PULSE 5000U
+#define KICKER_MAX_PULSE 10000U
 
 /**
  * \brief The amount of time (in ticks) to delay after firing a device before allowing another fire, to avoid physical collisions.
