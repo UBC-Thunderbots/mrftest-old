@@ -2,7 +2,6 @@
 #define KALMAN_H
 #include "physics.h"
 #include "dr.h"
-#include "sensors.h"
 
 #define VAR_CAM_X   9.0e-6f
 #define VAR_CAM_Y   9.0e-6f
@@ -41,5 +40,6 @@ extern const float R_y[2][2];
 extern const float R_t[1][1];
 
 void kalman_step(dr_data_t *state, kalman_data_t *kalman_state);
+void kalman_step_x(dr_data_t *state, kalman_data_t *kalman_state);
 
 #endif

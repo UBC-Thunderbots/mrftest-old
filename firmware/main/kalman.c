@@ -1,9 +1,21 @@
 #include "kalman.h"
+#include <stdio.h>
+
+
+void print_mat(unsigned int rows, unsigned int cols, float X[rows][cols]){
+  for(unsigned int i = 0; i < rows; i++){
+    for(unsigned int j = 0; j < cols; j++){
+      printf("%9.6f    ", X[i][j]);
+    }
+    printf("\n");
+  }
+}
+
 
 const float eye_3[3][3] = 
-{{1.0, 1.0, 1.0},
- {1.0, 1.0, 1.0},
- {1.0, 1.0, 1.0}};
+{{1.0, 0.0, 0.0},
+ {0.0, 1.0, 0.0},
+ {0.0, 0.0, 1.0}};
 
 const float F_x[3][3] =
 {{1.0, DEL_T, 0.0},
@@ -83,7 +95,7 @@ const float R_x[2][2] =
  {0.0, VAR_ACC_X}};
 const float R_y[2][2] =
 {{VAR_SPEED_Y, 0.0},
- {0.0, VAR_ACC_X}};
+ {0.0, VAR_ACC_Y}};
 const float R_t[1][1] = {{(VAR_SPEED_T + VAR_GYRO) / 4}};
 
 const float R_x_cam[3][3] =
@@ -93,7 +105,7 @@ const float R_x_cam[3][3] =
 const float R_y_cam[3][3] =
   {{VAR_CAM_Y, 0.0, 0.0},
   {0.0, VAR_SPEED_Y, 0.0},
-  {0.0, 0.0, VAR_ACC_X}};
+  {0.0, 0.0, VAR_ACC_Y}};
 const float R_t_cam[2][2] =
   {{VAR_CAM_T, 0.0},
   {0.0, (VAR_SPEED_T + VAR_GYRO) / 4}};
@@ -102,9 +114,11 @@ static float S_x[2][2] = {{0}};
 static float S_y[2][2] = {{0}};
 static float S_t[1][1] = {{0}};
 
+
 static float S_x_cam[3][3] = {{0}};
 static float S_y_cam[3][3] = {{0}};
 static float S_t_cam[2][2] = {{0}};
+
 
 static float K_x[3][3] = {{0}};
 static float K_y[3][3] = {{0}};
@@ -123,6 +137,7 @@ void kalman_step(dr_data_t *state, kalman_data_t *kalman_state) {
 
   // Temp values for the prediction step.
   float temp_P[3][3]; 
+  float temp_P2[3][3]; 
   float y_x[3];
   float y_y[3];
   float y_t[2];
@@ -158,8 +173,9 @@ void kalman_step(dr_data_t *state, kalman_data_t *kalman_state) {
   mm_mult_t(3, 3, 3, (const float (*)[3])temp_P, F_t, P_t);
   mm_add(3, 3, P_t, Q_t); 
   
-  /*
-  if(kalman_state->new_camera_data){
+
+
+    if(kalman_state->new_camera_data){
 
 	  kalman_state->new_camera_data = false;
 
@@ -241,18 +257,31 @@ void kalman_step(dr_data_t *state, kalman_data_t *kalman_state) {
 	  		x_t[0] -= 2*M_PI;
 	  	  }
 
-	  	  // Update the x covariance.
-	  	  mm_mult(3, 3, 3, (const float (*)[3])K_x, H_x_cam, temp_P);
-	  	  mm_sub(3, 3, eye_3, (const float (*)[3])temp_P, P_x);
-	  	  // Update the y covariance.
-	  	  mm_mult(3, 3, 3, (const float (*)[3])K_y, H_y_cam, temp_P);
-	  	  mm_sub(3, 3, eye_3, (const float (*)[3])temp_P, P_y);
-	  	  // Update the t covariance.
-	  	  mm_mult(3, 2, 3, (const float (*)[3])K_t, H_t_cam, temp_P);
-	  	  mm_sub(3, 3, eye_3, (const float (*)[3])temp_P, P_t);
+	  // Update the x covariance.
+	  mm_mult(3, 3, 3, (const float (*)[3])K_x, H_x_cam, temp_P);
+	  mm_sub(3, 3, eye_3, (const float (*)[3])temp_P, temp_P2);
+
+	  mm_mult(3,3,3,(const float (*)[3])temp_P2,(const float (*)[3])P_x, temp_P);
+
+	  mm_copy(3,3,P_x,temp_P);
+	  // Update the y covariance.
+	  mm_mult(3, 3, 3, (const float (*)[3])K_y, H_y_cam, temp_P);
+	  mm_sub(3, 3, eye_3, (const float (*)[3])temp_P, temp_P2);
+
+	  mm_mult(3,3,3,(const float (*)[3])temp_P2,(const float (*)[3])P_y, temp_P);
+
+	  mm_copy(3,3,P_y,temp_P);
+	  // Update the t covariance.
+	  mm_mult(3, 2, 3, (const float (*)[3])K_t, H_t_cam, temp_P);
+	  mm_sub(3, 3, eye_3, (const float (*)[3])temp_P, temp_P2);
+
+	  mm_mult(3,3,3,(const float (*)[3])temp_P2,(const float (*)[3])P_t, temp_P);
+
+	  mm_copy(3,3,P_t,temp_P);
 
   }else{
-*/
+
+
 	  // TODO Perform correction step.
 	  // Calculate Kalman gain for x.
 	  mm_mult(2, 3, 3,  H_x, (const float (*)[3])P_x, temp_P);
@@ -260,7 +289,9 @@ void kalman_step(dr_data_t *state, kalman_data_t *kalman_state) {
 	  mm_add(2, 2, S_x, R_x);
 	  mm_inv(2, S_x);
 	  mm_mult_t(3, 2, 3, (const float (*)[3])P_x, H_x, temp_P);
-	  mm_mult(3, 2, 2, (const float (*)[3])temp_P, (const float (*)[3])S_x, K_x); // K_x[3][2]
+	  mm_mult(3, 2, 2, (const float (*)[3])temp_P, (const float (*)[3])S_x, K_x); 
+	  
+	  // K_x[3][2]
 	  // Calculate Kalman gain for y.
 	  mm_mult(2, 3, 3,  H_y, (const float (*)[3])P_y, temp_P);
 	  mm_mult_t(2, 2, 3, (const float (*)[3])temp_P, H_y, S_y);
@@ -308,15 +339,26 @@ void kalman_step(dr_data_t *state, kalman_data_t *kalman_state) {
 
 	  // Update the x covariance.
 	  mm_mult(3, 2, 3, (const float (*)[3])K_x, H_x, temp_P);
-	  mm_sub(3, 3, eye_3, (const float (*)[3])temp_P, P_x);
+	  mm_sub(3, 3, eye_3, (const float (*)[3])temp_P, temp_P2);
+
+	  mm_mult(3,3,3,(const float (*)[3])temp_P2,(const float (*)[3])P_x, temp_P);
+
+	  mm_copy(3,3,P_x,temp_P);
 	  // Update the y covariance.
 	  mm_mult(3, 2, 3, (const float (*)[3])K_y, H_y, temp_P);
-	  mm_sub(3, 3, eye_3, (const float (*)[3])temp_P, P_y);
+	  mm_sub(3, 3, eye_3, (const float (*)[3])temp_P, temp_P2);
+
+	  mm_mult(3,3,3,(const float (*)[3])temp_P2,(const float (*)[3])P_y, temp_P);
+
+	  mm_copy(3,3,P_y,temp_P);
 	  // Update the t covariance.
 	  mm_mult(3, 1, 3, (const float (*)[3])K_t, H_t, temp_P);
-	  mm_sub(3, 3, eye_3, (const float (*)[3])temp_P, P_t);
+	  mm_sub(3, 3, eye_3, (const float (*)[3])temp_P, temp_P2);
 
-  //}
+	  mm_mult(3,3,3,(const float (*)[3])temp_P2,(const float (*)[3])P_t, temp_P);
+
+	  mm_copy(3,3,P_t,temp_P);
+  }
 
   // Update the dead reckoning state.
   state->x = x_x[0];
@@ -326,4 +368,63 @@ void kalman_step(dr_data_t *state, kalman_data_t *kalman_state) {
   state->vy = x_y[1];
   state->avel = x_t[1];
 
+}
+
+void kalman_step_x(dr_data_t *state, kalman_data_t *kalman_state) {
+  // Temp values for the x and u contributions during the predict step.
+  float temp_x[3] = {0};
+  float temp_u[3] = {0};
+
+  // Temp values for the prediction step.
+  float temp_P[3][3];
+  float temp_P2[3][3]; 
+  float y_x[3];
+  float temp_z[3];
+
+  // Prediction step.
+  // Predict x.
+  matrix_mult(temp_x, 3, x_x, 3, F_x);
+  matrix_mult(temp_u, 3, &(kalman_state->x_accel), 1, B_x); 
+  vectorAdd(temp_x, temp_u, 3);  
+  vectorCopy(x_x, temp_x, 3);
+ 
+  // Predict x covariance. 
+  mm_mult(3, 3, 3, F_x, (const float (*)[3])P_x, temp_P);
+  mm_mult_t(3, 3, 3, (const float (*)[3])temp_P, F_x, P_x);
+  mm_add(3, 3, P_x, Q_x);
+
+          // TODO Perform correction step.
+	  // Calculate Kalman gain for x.
+	  mm_mult(2, 3, 3,  H_x, (const float (*)[3])P_x, temp_P);
+	  mm_mult_t(2, 2, 3, (const float (*)[3])temp_P, H_x, S_x);
+	  mm_add(2, 2, S_x, R_x);
+
+	  mm_inv(2, S_x);
+	  mm_mult_t(3, 2, 3, (const float (*)[3])P_x, H_x, temp_P);
+	  mm_mult(3, 2, 2, (const float (*)[3])temp_P, (const float (*)[3])S_x, K_x); 
+
+	  // Add sensor residual to x.
+	  matrix_mult(y_x, 2, x_x, 3, H_x);
+
+
+	  temp_z[0] = kalman_state->wheels_x;
+	  temp_z[1] = kalman_state->accelerometer_x;
+
+	  vectorSub(temp_z, y_x, 2);
+
+	  vectorCopy(y_x, temp_z, 2);
+	  matrix_mult(temp_x, 3, y_x, 2, (const float (*)[3])K_x);
+	  vectorAdd(x_x, temp_x, 3);
+
+	
+	  // Update the x covariance.
+	  mm_mult(3, 2, 3, (const float (*)[3])K_x, H_x, temp_P);
+	  mm_sub(3, 3, eye_3, (const float (*)[3])temp_P, temp_P2);
+
+	  mm_mult(3,3,3,(const float (*)[3])temp_P2,(const float (*)[3])P_x, temp_P);
+
+	  mm_copy(3,3,P_x,temp_P);
+  // Update the dead reckoning state.
+  state->x = x_x[0];
+  state->vx = x_x[1];
 }

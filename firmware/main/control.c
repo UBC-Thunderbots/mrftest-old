@@ -78,7 +78,7 @@ void Clamp(float *input, float limit) {
  * \param[in] angular acceleration to apply (rad/s^2)
  */
 void apply_accel(float linear_accel[2], float angular_accel) {
-	//check for max acceleration scaling in direction of the vel difference
+	//check for max acceleration in direction of the vel difference
 	float scaling = get_maximal_accel_scaling(linear_accel, angular_accel);
 	
 	// Give the applied accels (in robot coordinates) to dead reckoning.

@@ -133,8 +133,8 @@ static void receive_task(void *UNUSED(param)) {
                 robot_y |= (dma_buffer[buffer_position++] << 8);
                 robot_angle |= dma_buffer[buffer_position++];
                 robot_angle |= (dma_buffer[buffer_position++] << 8);
-                //Todo: uncomment this
-                //dr_set_robot_frame(robot_x, robot_y, robot_angle);
+
+                dr_set_robot_frame(robot_x, robot_y, robot_angle);
               }
               else {
                 buffer_position += 6;
@@ -190,7 +190,7 @@ static void receive_task(void *UNUSED(param)) {
       		move_params.params[0] = 1000;
       		move_params.params[1] = 1000;
       		move_params.params[2] = 0;
-      		primitive_start(1, &move_params);
+            primitive_start(1, &move_params);
       		xSemaphoreGive(drive_mtx);
       		////////////////
           }

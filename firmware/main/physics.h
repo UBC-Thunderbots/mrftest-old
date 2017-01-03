@@ -86,11 +86,14 @@ void rotate(float speed3[2], float angle);
 //acceleration should be in robot local coordinates
 // vector is accelerations in 
 // {m/s^2 m/s^2 rad/s^2}
+//Todo: uncomment this
 float get_maximal_accel_scaling(const float linear_accel[2], float angular_accel);
 
 //returns the amount to scale wheel torque by to hit the voltage limits
 //takes a vector of motor torques in (Nm)
-float get_maximal_torque_scaling(const float torque[4]);
+
+//Todo: uncomment this
+//float get_maximal_torque_scaling(const float torque[4]);
 
 // Vector addition 
 void vectorSub(float *a,const float *b, int len);
@@ -112,6 +115,8 @@ void matrix_mult_t(float* lhs, int lhs_len, const float* rhs, int rhs_len, const
 void mm_mult(int lm_rows, int rm_rows, int rm_cols, const float lmatrix[lm_rows][rm_rows], const float rmatrix[rm_rows][rm_cols], float matrix_out[lm_rows][rm_cols]);
 
 void mm_mult_t(int lm_rows, int rm_rows, int rm_cols, const float lmatrix[lm_rows][rm_rows], const float rmatrix[rm_rows][rm_cols], float matrix_out[lm_rows][rm_cols]);
+
+void mm_copy(int nrows, int ncols, float A[nrows][ncols], float B[nrows][ncols]);
 
 void mm_add(int nrows, int ncols, float a[nrows][ncols], const float b[nrows][ncols]);
 

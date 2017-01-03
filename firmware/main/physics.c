@@ -116,7 +116,7 @@ void mm_mult(int lm_rows, int rm_rows, int rm_cols, const float lmatrix[lm_rows]
  * \param[in] lmatrix left matrix to multiply
  * \param[in] rmatrix right matrix to transpose multiply 
  */
-void mm_mult_t(int lm_rows, int rm_rows, int rm_cols, const float lmatrix[lm_rows][rm_rows], const float rmatrix[rm_rows][rm_cols], float matrix_out[lm_rows][rm_rows]) {
+void mm_mult_t(int lm_rows, int rm_rows, int rm_cols, const float lmatrix[lm_rows][rm_cols], const float rmatrix[rm_rows][rm_cols], float matrix_out[lm_rows][rm_rows]) {
   int i;
   int j;
   int k;
@@ -132,6 +132,28 @@ void mm_mult_t(int lm_rows, int rm_rows, int rm_cols, const float lmatrix[lm_row
     }
   }
 }
+
+/**
+ * \ingroup Physics
+ *
+ * \brief copies source B into destination A. 
+ *
+ * \param[in] nrows number of rows
+ * \param[in] ncols number of cols
+ * \param[in, out] A destination matrix 
+ * \param[in] B source matrix 
+ *
+ */
+void mm_copy(int nrows, int ncols, float A[nrows][ncols], float B[nrows][ncols]) {
+  int i;
+  int j;
+  for(i = 0; i < nrows; i++) {
+    for(j = 0; j < ncols; j++){
+      A[i][j] = B[i][j];
+    } 
+  }
+}
+
 
 /**
  * \brief Adds matrix B to A, and stores in A. 
@@ -178,23 +200,37 @@ void mm_sub(int nrows, int ncols, const float a[nrows][ncols], const float b[nro
 
 void mm_inv(int n, float a[n][n]) {
   float det, temp;
-  
+  float temp_m[n][n];
   switch(n) {
     case (1):
       a[0][0] = 1 / a[0][0];
       break;
     case (2):
-      det = 1 / (a[0][0]*a[1][1] - a[0][1]*a[1][0]);
+      det = (a[0][0]*a[1][1] - a[0][1]*a[1][0]);
       temp = a[0][0];
       a[0][0] = a[1][1] / det;
       a[1][1] = temp / det;
       a[0][1] = -a[0][1] / det;
       a[1][0] = -a[1][0] / det;
       break;
+    case (3):
+		  for(int i=0;i<3;i++)
+		      det = det + (a[0][i]*(a[1][(i+1)%3]*a[2][(i+2)%3] - a[1][(i+2)%3]*a[2][(i+1)%3]));
+		   for(int i=0;i<3;i++){
+		      for(int j=0;j<3;j++)
+		           temp_m[i][j] = ((a[(i+1)%3][(j+1)%3] * a[(i+2)%3][(j+2)%3]) - (a[(i+1)%3][(j+2)%3]*a[(i+2)%3][(j+1)%3]))/ det;
+		   }
+		   for(int i=0;i<3;i++){
+		      for(int j=0;j<3;j++)
+		           a[i][j] = temp_m[i][j];
+		   }
+		   break;
     default:
-      break;
+	  break;
+	}
+
   }
-}
+
 
 /**
  * \ingroup Physics
@@ -386,6 +422,8 @@ void force3_to_force4(float force3[3], float force4[4]) {
  *
  * \return the amount by which to scale the torque vector to max it out
  */
+//Todo: uncomment this
+/*
 float get_maximal_torque_scaling(const float torque[4]) {
 	float acc_max = -INFINITY;
 	float vapp_max = -INFINITY;
@@ -407,7 +445,7 @@ float get_maximal_torque_scaling(const float torque[4]) {
 
 	return (emf_ratio > slip_ratio)?slip_ratio:emf_ratio; 
 }
-
+*/
 
 /**
  * \ingroup Physics
@@ -419,6 +457,8 @@ float get_maximal_torque_scaling(const float torque[4]) {
  *
  * \return amount by which to scale acceleration
  */
+//Todo: uncomment this
+/*
 float get_maximal_accel_scaling(const float linear_accel[2], float angular_accel) {
 	//first convert accelerations into consistent units
 	//choose units of Force (N)
@@ -434,3 +474,4 @@ float get_maximal_accel_scaling(const float linear_accel[2], float angular_accel
 	}
 	return get_maximal_torque_scaling(wheel_force);
 }
+*/
