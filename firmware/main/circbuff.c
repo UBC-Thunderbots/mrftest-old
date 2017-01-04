@@ -1,11 +1,11 @@
 #include "circbuff.h"
 
-void init(speed* queue, unsigned int queueSize)
+void init(speed_t* queue, unsigned int queueSize)
 {
-	speed zero;
+	speed_t zero;
 	zero.speed_x = 0.0;
 	zero.speed_y = 0.0;
-	zero.speed_t = 0.0;
+	zero.speed_angle = 0.0;
 
 	for(int i=0; i < queueSize; i++)
 	{
@@ -13,7 +13,7 @@ void init(speed* queue, unsigned int queueSize)
 	}
 }
 
-void addToQueue(speed* queue, unsigned int queueSize, speed value)
+void addToQueue(speed_t* queue, unsigned int queueSize, speed_t value)
 {
 	// If the stop pointer has made it all the way to the start pointer, we have added elements equal to the buffer size but haven't read anything
 	// So the start element is going to be overwritten and so we should move its pointer ahead by one
@@ -41,7 +41,7 @@ void addToQueue(speed* queue, unsigned int queueSize, speed value)
 
 }
 
-speed* getFromQueue(speed* queue, unsigned int queueSize, unsigned int index)
+speed_t* getFromQueue(speed_t* queue, unsigned int queueSize, unsigned int index)
 {
 	// Check if queue is empty or not. If it is return -1 instead
 	//if(!queueEmpty)
@@ -55,7 +55,7 @@ speed* getFromQueue(speed* queue, unsigned int queueSize, unsigned int index)
 	}
 
 		// Return element at start pointer
-	speed returnVal = buffer[idx];
+	speed_t returnVal = buffer[idx];
 
 		// If the start and stop pointer are at the same position, means we have read the last value in the queue.
 		/*if (start == stop)
