@@ -1,6 +1,6 @@
 #include "circbuff.h"
 
-void init(speed_t* queue, unsigned int queueSize)
+void circbuff_init(speed_t* queue, unsigned int queueSize)
 {
 	speed_t zero;
 	zero.speed_x = 0.0;

@@ -14,6 +14,7 @@ unsigned int start = 0; // Keeps track of the top most element in queue (the old
 unsigned int stop = 0; // Keeps track of the latest element in the queue (the last one that will be read from all element currently in the queue)
 bool queueEmpty = TRUE;
 
+void circbuff_init(speed_t* queue, unsigned int queueSize);
 void addToQueue(speed_t* queue, unsigned int index, speed_t value);
 speed_t* getFromQueue(speed_t* queue, unsigned int queueSize, unsigned int index);
 
