@@ -15,7 +15,7 @@ unsigned int stop = 0; // Keeps track of the latest element in the queue (the la
 bool queueEmpty = TRUE;
 
 void circbuff_init(speed_t* queue, unsigned int queueSize);
-void addToQueue(speed_t* queue, unsigned int index, speed_t value);
+void addToQueue(speed_t* queue, unsigned int queueSize, speed_t value);
 speed_t* getFromQueue(speed_t* queue, unsigned int queueSize, unsigned int index);
 
 #endif // CIRCBUFF_H
