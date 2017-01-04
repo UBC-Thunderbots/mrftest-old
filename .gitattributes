@@ -82,6 +82,8 @@ firmware/main/charger.c -text
 firmware/main/charger.h -text
 firmware/main/chicker.c -text
 firmware/main/chicker.h -text
+firmware/main/circbuff.c -text
+firmware/main/circbuff.h -text
 firmware/main/constants.h -text
 firmware/main/control.c -text
 firmware/main/control.h -text
