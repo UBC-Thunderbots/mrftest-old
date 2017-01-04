@@ -130,7 +130,7 @@ static float x_t[3] = {0};
 
 void kalman_step(dr_data_t *state, kalman_data_t *kalman_state) {
 
-
+  
   // Temp values for the x and u contributions during the predict step.
   float temp_x[3] = {0};
   float temp_u[3] = {0};
@@ -367,6 +367,11 @@ void kalman_step(dr_data_t *state, kalman_data_t *kalman_state) {
   state->vx = x_x[1];
   state->vy = x_y[1];
   state->avel = x_t[1];
+  /*
+  state->x = kalman_state->cam_x;
+  state->y = kalman_state->cam_y;
+  state->angle = kalman_state->cam_t;
+  */
 
 }
 

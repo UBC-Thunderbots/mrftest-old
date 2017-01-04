@@ -4,9 +4,11 @@
 #include "kalman.h"
 #include "physics.h"
 #include "sensors.h"
+#include "circbuff.h"
 
 #include <stdio.h>
 #include <stdint.h>
+#include <math.h>
 
 static dr_data_t current_state;
 static kalman_data_t kalman_data;
@@ -23,6 +25,7 @@ static int32_t offset[3] = {0};
  */
 static robot_camera_data_t robot_camera_data;
 static ball_camera_data_t ball_camera_data;
+static speed_t speed[SPEED_SIZE]; 
 
 /**
  * \brief called a system boot to configure deadreckoning system
@@ -40,6 +43,7 @@ void dr_init(void) {
   ball_camera_data.y = 0;
   ball_camera_data.timestamp = 0;
 
+  circbuff_init(speed, SPEED_SIZE);
 }
 
 
@@ -116,7 +120,31 @@ void dr_tick(log_record_t *log) {
     drop_flag = 1;
   }
 
+  for(i = 0; i < 4; i++) {
+      encoder_speeds[i] = (float)encoder_speed(i)*QUARTERDEGREE_TO_MS;
+  }
+  speed4_to_speed3(encoder_speeds, wheel_speeds);
+  speed_t wheel_speed;
+  wheel_speed.speed_x = wheel_speeds[0];
+  wheel_speed.speed_y = wheel_speeds[1];
+  wheel_speed.speed_angle = wheel_speeds[2];
+  addToQueue(speed, SPEED_SIZE, wheel_speed)
+
+  rotate(wheel_speeds, current_state.angle);
+    
+  current_state.x += wheel_speeds[0]*TICK_TIME;
+  current_state.y += wheel_speeds[1]*TICK_TIME;
+  current_state.angle += wheel_speeds[2]*TICK_TIME;
+  current_state.vx = wheel_speeds[0];
+  current_state.vy = wheel_speeds[1];
+  current_state.avel = wheel_speeds[2];
+
+  
+  if(angle > M_PI) angle -= 2*M_PI;
+  else if(angle < -M_PI) angle += 2*M_PI;
+
   // Begin calibration until complete.
+  /*
   if (!is_calibrated) {
     calibration_vals[0][calibration_count] = accel_out[0];
     calibration_vals[1][calibration_count] = accel_out[1];
@@ -169,6 +197,7 @@ void dr_tick(log_record_t *log) {
     current_state.vy = 0;
     current_state.avel = 0;
   }
+  */
 
   // Coordinates must be transformed to correct for accelerometer orientation
   // on board.
@@ -248,6 +277,35 @@ void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle) {
   kalman_data.cam_y = (float)(y/1000.0);
   kalman_data.cam_t = (float)(angle/1000.0);
   kalman_data.new_camera_data = true;
+}
+
+
+void dr_apply_cam(int16_t x_cam, int16_t y_cam, int16_t angle_cam) {
+  float x = (float)(x_cam/1000.0);
+  float y = (float)(y_cam/1000.0);
+  float angle = (float)(angle_cam/1000.0);
+
+  speed_t * wheel_speed;
+  float wheel_speeds[3];
+  for(i = CAMERA_DELAY; i >= 0; i--){
+    wheel_speed = getFromQueue(speed, SPEED_SIZE, i);
+
+    wheel_speeds[0] = wheel_speed->speed_x;
+    wheel_speeds[1] = wheel_speed->speed_y;
+    wheel_speeds[2] = wheel_speed->speed_angle;
+
+    rotate(wheel_speeds, angle);
+    x += wheel_speeds[0]*TICK_TIME;
+    y += wheel_speeds[1]*TICK_TIME;
+    angle += wheel_speeds[2]*TICK_TIME;
+  }
+
+  angle = fmod(angle, 2*M_PI);
+  if(angle > M_PI) angle -= 2*M_PI;
+
+  current_state.x = x;
+  current_state.y = y;
+  current_state.angle = angle;
 }
 
 /**

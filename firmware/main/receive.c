@@ -356,21 +356,22 @@ void receive_tick(log_record_t *record) {
 */
 
 	// Decrement timeout tick counter if nonzero.
-	xSemaphoreTake(drive_mtx, portMAX_DELAY);
+	
 	if (timeout_ticks == 1) {
 		timeout_ticks = 0;
 		charger_enable(false);
 		chicker_discharge(true);
 
 		primitive_params_t stop_params;
+		xSemaphoreTake(drive_mtx, portMAX_DELAY);
 		primitive_start(0, &stop_params);
-
+		xSemaphoreGive(drive_mtx);
 		////////////////
 	} else if (timeout_ticks > 1) {
 		--timeout_ticks;
 
 	}
-	xSemaphoreGive(drive_mtx);
+
 }
 
 

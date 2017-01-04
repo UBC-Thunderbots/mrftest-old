@@ -422,8 +422,7 @@ void force3_to_force4(float force3[3], float force4[4]) {
  *
  * \return the amount by which to scale the torque vector to max it out
  */
-//Todo: uncomment this
-/*
+
 float get_maximal_torque_scaling(const float torque[4]) {
 	float acc_max = -INFINITY;
 	float vapp_max = -INFINITY;
@@ -445,7 +444,7 @@ float get_maximal_torque_scaling(const float torque[4]) {
 
 	return (emf_ratio > slip_ratio)?slip_ratio:emf_ratio; 
 }
-*/
+
 
 /**
  * \ingroup Physics
@@ -457,8 +456,7 @@ float get_maximal_torque_scaling(const float torque[4]) {
  *
  * \return amount by which to scale acceleration
  */
-//Todo: uncomment this
-/*
+
 float get_maximal_accel_scaling(const float linear_accel[2], float angular_accel) {
 	//first convert accelerations into consistent units
 	//choose units of Force (N)
@@ -474,4 +472,4 @@ float get_maximal_accel_scaling(const float linear_accel[2], float angular_accel
 	}
 	return get_maximal_torque_scaling(wheel_force);
 }
-*/
+

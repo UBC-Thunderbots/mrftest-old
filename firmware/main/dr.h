@@ -3,6 +3,10 @@
 
 #include "log.h"
 
+// 250ms delay time
+#define CAMERA_DELAY 50
+#define SPEED_SIZE CAMERA_DELAY
+
 // 1 second worth of samples.
 #define CALIBRATION_LENGTH 200
 
@@ -128,6 +132,7 @@ void dr_get(dr_data_t *ret);
 void kalman_get(kalman_data_t *ret);
 void dr_setaccel(float linear_accel[2], float angular_accel);
 void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle);
+void dr_apply_cam(int16_t x_cam, int16_t y_cam, int16_t angle_cam)
 void dr_set_ball_frame(int16_t x, int16_t y);
 void dr_set_robot_timestamp(uint64_t timestamp);
 void dr_set_ball_timestamp(uint64_t timestamp);

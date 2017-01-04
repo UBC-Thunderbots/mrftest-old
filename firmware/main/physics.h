@@ -43,9 +43,9 @@
 extern const float MAX_VEL[3];
 
 // WRONG NUMBERS, POKE JON TO GET ACTUAL NUMBERS
-#define MAX_X_A 0.5f //3.0f
-#define MAX_Y_A 0.5f //3.0f
-#define MAX_T_A 5.0f //30.0f
+#define MAX_X_A 2.0f//3.0f
+#define MAX_Y_A 2.0f//3.0f
+#define MAX_T_A 20.0f//30.0f
 
 //#define SLOW_MAX_X_A 1.2f
 //#define SLOW_MAX_Y_A 1.2f
@@ -86,14 +86,12 @@ void rotate(float speed3[2], float angle);
 //acceleration should be in robot local coordinates
 // vector is accelerations in 
 // {m/s^2 m/s^2 rad/s^2}
-//Todo: uncomment this
 float get_maximal_accel_scaling(const float linear_accel[2], float angular_accel);
 
 //returns the amount to scale wheel torque by to hit the voltage limits
 //takes a vector of motor torques in (Nm)
 
-//Todo: uncomment this
-//float get_maximal_torque_scaling(const float torque[4]);
+float get_maximal_torque_scaling(const float torque[4]);
 
 // Vector addition 
 void vectorSub(float *a,const float *b, int len);
