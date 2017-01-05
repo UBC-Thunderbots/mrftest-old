@@ -189,7 +189,7 @@ static void receive_task(void *UNUSED(param)) {
       		////////Just for testing: starting one move primitive here (not from radio command)
       		primitive_params_t move_params;
       		move_params.params[0] = 1000;
-      		move_params.params[1] = 1000;
+      		move_params.params[1] = -1500;
       		move_params.params[2] = 0;
             primitive_start(1, &move_params);
       		xSemaphoreGive(drive_mtx);

@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define LOG_RECORD_SIZE 128U
+#define LOG_RECORD_SIZE 256U //128U
 #define LOG_MAGIC_TICK UINT32_C(0xE2468845)
 
 /**
@@ -26,6 +26,20 @@ typedef struct __attribute__((packed)) {
 	float dr_vx;
 	float dr_vy;
 	float dr_avel;
+
+	float enc_vx;
+	float enc_vy;
+	float enc_avel;
+
+	float accelerometer_x;
+	float accelerometer_y;
+	float accelerometer_z;
+
+	float gyro_avel;
+
+	float cam_x;
+	float cam_y;
+	float cam_angle;
 
 	uint8_t drive_serial;
 	uint8_t primitive;

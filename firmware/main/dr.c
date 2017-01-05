@@ -122,7 +122,7 @@ void dr_tick(log_record_t *log) {
   else {
     drop_flag = 1;
   }
-
+  
   for(i = 0; i < 4; i++) {
       encoder_speeds[i] = (float)encoder_speed(i)*QUARTERDEGREE_TO_MS;
   }
@@ -145,7 +145,7 @@ void dr_tick(log_record_t *log) {
   
   if(current_state.angle > M_PI) current_state.angle -= 2*M_PI;
   else if(current_state.angle < -M_PI) current_state.angle += 2*M_PI;
-
+  
   // Begin calibration until complete.
   if (!is_calibrated) {
     calibration_vals[0][calibration_count] = accel_out[0];
@@ -164,7 +164,7 @@ void dr_tick(log_record_t *log) {
       is_calibrated = true;
     }
   }
-  /*
+  
   // Run Kalman filter.
   if (is_calibrated) {
     // Bring the wheel encoder outputs into the dr domain
@@ -175,7 +175,7 @@ void dr_tick(log_record_t *log) {
     rotate(wheel_speeds, current_state.angle);
     kalman_data.wheels_x = wheel_speeds[0];
     kalman_data.wheels_y = wheel_speeds[1];
-    kalman_data.wheels_t = wheel_speeds[2];
+    kalman_data.wheels_t = wheel_speeds[2]/ROBOT_RADIUS; //Convert to rad/s (from m/s)
 
     // Bring the accelerometer outputs into the dr domain.
     robot_accels[0] = -M_S_2_PER_ACCEL*(accel_out[1] - offset[1]);
@@ -189,7 +189,7 @@ void dr_tick(log_record_t *log) {
     // Bring the gyro output into the dr domain.
     kalman_data.gyro = gyro_speed/ROBOT_RADIUS;
 
-    kalman_step(&current_state, &kalman_data);
+    //kalman_step(&current_state, &kalman_data);
   }
   else {
     current_state.x = 0;
@@ -199,7 +199,7 @@ void dr_tick(log_record_t *log) {
     current_state.vy = 0;
     current_state.avel = 0;
   }
-  */
+  
 
   // Coordinates must be transformed to correct for accelerometer orientation
   // on board.
@@ -229,6 +229,10 @@ void dr_tick(log_record_t *log) {
 		log->tick.dr_vx = current_state.vx;
 		log->tick.dr_vy = current_state.vy;
 		log->tick.dr_avel = current_state.avel;
+
+		log->tick.enc_vx = kalman_data.wheels_x;
+		log->tick.enc_vy = kalman_data.wheels_y;
+		log->tick.enc_avel = kalman_data.wheels_t;
 	}
 
   //printf("%i\t%i\t%f\n", is_calibrated, gyrodata.status, current_state.avel);
@@ -306,7 +310,11 @@ void dr_apply_cam(int16_t x_cam, int16_t y_cam, int16_t angle_cam) {
   //wheel_speed.speed_angle = 1.0;
     
   float wheel_speeds[3];
-  for(int i = 5; i >= 0; i--){
+
+  int additional_delay = (int)(robot_camera_data.timestamp)/((int)(1000*TICK_TIME)); //In number of robot ticks
+  //Todo: make sure delay is less than size of circ buffer
+  int total_delay = BASE_CAMERA_DELAY + additional_delay;
+  for(int i = total_delay; i >= 0; i--){
     
     wheel_speed = getFromQueue(speed, SPEED_SIZE, i);
 

@@ -4,7 +4,7 @@
 #include "log.h"
 
 // 250ms delay time
-#define CAMERA_DELAY 20
+#define BASE_CAMERA_DELAY 3
 #define SPEED_SIZE 121
 
 // 1 second worth of samples.
