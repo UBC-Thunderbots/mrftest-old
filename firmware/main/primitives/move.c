@@ -130,7 +130,7 @@ static void move_tick(log_record_t *log) {
 		log->tick.primitive_data[7] = targetVel;
 	}
 
-	rotate(accel, -angle);//-current_states.angle);
+	//rotate(accel, -angle);//-current_states.angle);
 	apply_accel(accel, accel[2]);
 	
 }
