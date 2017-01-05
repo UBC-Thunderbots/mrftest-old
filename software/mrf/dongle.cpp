@@ -378,6 +378,12 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 		//rptr += 6;
 	}
 
+	// Write out the timestamp
+	for(std::size_t i = 0; i < 8; i++)
+	{
+		*rptr++ = static_cast<int8_t>(*timestamp >> 8*i)
+	}
+
 	// Mask and Flag Vectors should be fully initialized by now. Assign them to the packet
 	camera_packet[0] = mask_vec;
 	camera_packet[1] = flag_vec;
