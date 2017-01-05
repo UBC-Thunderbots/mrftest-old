@@ -368,11 +368,11 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 		mask_vec |=  int8_t(0x01 << (robotID));
 		std::cout << "Mask Vec: " << unsigned(mask_vec) << std::endl;
 		*rptr++ = static_cast<int8_t>(robotX);
-		*rptr++ = static_cast<int8_t>(robotX / 256);
+		*rptr++ = static_cast<int8_t>(robotX >> 8);
 		*rptr++ = static_cast<int8_t>(robotY);
-		*rptr++ = static_cast<int8_t>(robotY / 256);
+		*rptr++ = static_cast<int8_t>(robotY >> 8);
 		*rptr++ = static_cast<int8_t>(robotT);
-		*rptr++ = static_cast<int8_t>(robotT / 256);
+		*rptr++ = static_cast<int8_t>(robotT >> 8);
 
 		//*rptr = ((int16_t)(std::get<1>(detbots[i])).x) + ((int16_t)((std::get<1>(detbots[i])).y) << 16) + ((int16_t)((std::get<2>(detbots[i])).to_radians() * 1000) << 32);
 		//rptr += 6;
@@ -381,7 +381,7 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 	// Write out the timestamp
 	for(std::size_t i = 0; i < 8; i++)
 	{
-		*rptr++ = static_cast<int8_t>(*timestamp >> 8*i)
+		*rptr++ = static_cast<int8_t>(*timestamp >> 8*i);
 	}
 
 	// Mask and Flag Vectors should be fully initialized by now. Assign them to the packet
