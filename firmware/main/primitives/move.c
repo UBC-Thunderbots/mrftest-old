@@ -3,6 +3,7 @@
 #include "../control.h"
 #include "../dr.h"
 #include "../kalman.h"
+#include "../physics.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -84,8 +85,13 @@ static void move_tick(log_record_t *log) {
 	dr_get(&current_states);
   kalman_get(&sensor_states);
 
+  	float angle = destination[2] - current_states.angle;
+  	if(angle > M_PI) angle -= 2*M_PI;
+
 	float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
-	float pos[3] = {current_states.x, current_states.y, current_states.angle};
+	rotate(vel, -angle);
+	
+	float pos[3] = {current_states.x, current_states.y, angle};// current_states.angle};
 	float max_accel[3] = {MAX_X_A, MAX_Y_A, MAX_T_A};
 
 	float accel[3];
@@ -102,7 +108,7 @@ static void move_tick(log_record_t *log) {
 	accel[1] = BBComputeAvgAccel(&Yprofile, TIME_HORIZON);
 	float timeY = GetBBTime(&Yprofile);
 
-	float deltaD = destination[2] - pos[2];
+	float deltaD = angle;//destination[2] - pos[2];
 	float timeTarget = (timeY > timeX)?timeY:timeX;
 	if (timeX < TIME_HORIZON && timeY < TIME_HORIZON) {
 		timeTarget = TIME_HORIZON;	
@@ -123,7 +129,7 @@ static void move_tick(log_record_t *log) {
 		log->tick.primitive_data[7] = targetVel;
 	}
 
-	rotate(accel, -current_states.angle);
+	rotate(accel, -angle);//-current_states.angle);
 	apply_accel(accel, accel[2]);
 	
 }
