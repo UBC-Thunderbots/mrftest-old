@@ -25,7 +25,8 @@ static int32_t offset[3] = {0};
  */
 static robot_camera_data_t robot_camera_data;
 static ball_camera_data_t ball_camera_data;
-static speed_t speed[SPEED_SIZE]; 
+static speed_t speed[SPEED_SIZE];
+static int tick_count = 0; 
 
 /**
  * \brief called a system boot to configure deadreckoning system
@@ -89,6 +90,8 @@ void dr_reset(void) {
  */
 void dr_tick(log_record_t *log) {
 
+  if(tick_count != 0) tick_count++;
+
   sensors_gyro_data_t gyrodata;
   sensors_accel_data_t acceldata;
   float robot_accels[3];
@@ -127,24 +130,23 @@ void dr_tick(log_record_t *log) {
   speed_t wheel_speed;
   wheel_speed.speed_x = wheel_speeds[0];
   wheel_speed.speed_y = wheel_speeds[1];
-  wheel_speed.speed_angle = wheel_speeds[2];
-  addToQueue(speed, SPEED_SIZE, wheel_speed)
+  wheel_speed.speed_angle = wheel_speeds[2]/ROBOT_RADIUS;
+  addToQueue(speed, SPEED_SIZE, wheel_speed);
 
   rotate(wheel_speeds, current_state.angle);
     
   current_state.x += wheel_speeds[0]*TICK_TIME;
   current_state.y += wheel_speeds[1]*TICK_TIME;
-  current_state.angle += wheel_speeds[2]*TICK_TIME;
+  current_state.angle += wheel_speeds[2]/ROBOT_RADIUS*TICK_TIME;
   current_state.vx = wheel_speeds[0];
   current_state.vy = wheel_speeds[1];
   current_state.avel = wheel_speeds[2];
 
   
-  if(angle > M_PI) angle -= 2*M_PI;
-  else if(angle < -M_PI) angle += 2*M_PI;
+  if(current_state.angle > M_PI) current_state.angle -= 2*M_PI;
+  else if(current_state.angle < -M_PI) current_state.angle += 2*M_PI;
 
   // Begin calibration until complete.
-  /*
   if (!is_calibrated) {
     calibration_vals[0][calibration_count] = accel_out[0];
     calibration_vals[1][calibration_count] = accel_out[1];
@@ -162,7 +164,7 @@ void dr_tick(log_record_t *log) {
       is_calibrated = true;
     }
   }
-
+  /*
   // Run Kalman filter.
   if (is_calibrated) {
     // Bring the wheel encoder outputs into the dr domain
@@ -281,32 +283,55 @@ void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle) {
 
 
 void dr_apply_cam(int16_t x_cam, int16_t y_cam, int16_t angle_cam) {
+  //current_state.x = (float)(x_cam/1000.0);
+  //current_state.y = (float)(y_cam/1000.0);
+  //current_state.angle = (float)(angle_cam/1000.0);
+  
+  if(tick_count == 0){
+    tick_count = 1;
+  }else if(tick_count >= 8000){
+    tick_count = 1;
+  }
+
+  int delay_trial = tick_count/1000;
+
+
   float x = (float)(x_cam/1000.0);
   float y = (float)(y_cam/1000.0);
   float angle = (float)(angle_cam/1000.0);
-
-  speed_t * wheel_speed;
+  
+  speed_t wheel_speed;
+  //wheel_speed.speed_x = 1.0;
+  //wheel_speed.speed_y = 1.0;
+  //wheel_speed.speed_angle = 1.0;
+    
   float wheel_speeds[3];
-  for(i = CAMERA_DELAY; i >= 0; i--){
+  for(int i = 5; i >= 0; i--){
+    
     wheel_speed = getFromQueue(speed, SPEED_SIZE, i);
 
-    wheel_speeds[0] = wheel_speed->speed_x;
-    wheel_speeds[1] = wheel_speed->speed_y;
-    wheel_speeds[2] = wheel_speed->speed_angle;
-
+    wheel_speeds[0] = wheel_speed.speed_x;
+    wheel_speeds[1] = wheel_speed.speed_y;
+    wheel_speeds[2] = wheel_speed.speed_angle;
+    
     rotate(wheel_speeds, angle);
     x += wheel_speeds[0]*TICK_TIME;
     y += wheel_speeds[1]*TICK_TIME;
     angle += wheel_speeds[2]*TICK_TIME;
-  }
-
+    }
+  
+  
   angle = fmod(angle, 2*M_PI);
   if(angle > M_PI) angle -= 2*M_PI;
 
-  current_state.x = x;
-  current_state.y = y;
-  current_state.angle = angle;
+  current_state.x = x;//(29.0*current_state.x + x)/30.0;
+  current_state.y = y;//(29.0*current_state.y + y)/30.0;
+  current_state.angle = angle;//(29.0*current_state.angle + angle)/30.0;
+  //current_state.angle = fmod(current_state.angle, 2*M_PI);
+  //if(current_state.angle > M_PI) current_state.angle -= 2*M_PI;  
+  
 }
+
 
 /**
  * \brief Sets the ball's camera frame.

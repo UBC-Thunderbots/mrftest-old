@@ -134,7 +134,8 @@ static void receive_task(void *UNUSED(param)) {
                 robot_angle |= dma_buffer[buffer_position++];
                 robot_angle |= (dma_buffer[buffer_position++] << 8);
 
-                dr_set_robot_frame(robot_x, robot_y, robot_angle);
+                //dr_set_robot_frame(robot_x, robot_y, robot_angle);
+		dr_apply_cam(robot_x, robot_y, robot_angle);
               }
               else {
                 buffer_position += 6;
