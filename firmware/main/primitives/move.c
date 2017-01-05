@@ -87,10 +87,11 @@ static void move_tick(log_record_t *log) {
 
   	float angle = destination[2] - current_states.angle;
   	if(angle > M_PI) angle -= 2*M_PI;
+  	else if(angle < -M_PI) angle += 2*M_PI;
 
 	float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
 	rotate(vel, -angle);
-	
+
 	float pos[3] = {current_states.x, current_states.y, angle};// current_states.angle};
 	float max_accel[3] = {MAX_X_A, MAX_Y_A, MAX_T_A};
 
