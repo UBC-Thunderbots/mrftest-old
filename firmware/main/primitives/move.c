@@ -90,21 +90,30 @@ static void move_tick(log_record_t *log) {
   	else if(angle < -M_PI) angle += 2*M_PI;
 
 	float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
-	rotate(vel, current_states.angle);
+	rotate(vel, -current_states.angle);
 
 	float pos[3] = {current_states.x, current_states.y, angle};// current_states.angle};
+	rotate(pos, -current_states.angle);
+
+	float relative_destination[3];
+	relative_destination[0] = destination[0];
+	relative_destination[1] = destination[1];
+	relative_destination[2] = destination[2];
+
+	rotate(relative_destination, -current_states.angle);
+
 	float max_accel[3] = {MAX_X_A, MAX_Y_A, MAX_T_A};
 
 	float accel[3];
 
 	BBProfile Xprofile;
-	PrepareBBTrajectory(&Xprofile, destination[0]-pos[0], vel[0], max_accel[0]);
+	PrepareBBTrajectory(&Xprofile, relative_destination[0]-pos[0], vel[0], max_accel[0]);
 	PlanBBTrajectory(&Xprofile);
 	accel[0] = BBComputeAvgAccel(&Xprofile, TIME_HORIZON);
 	float timeX = GetBBTime(&Xprofile);
 
 	BBProfile Yprofile;
-	PrepareBBTrajectory(&Yprofile, destination[1]-pos[1], vel[1], max_accel[1]);
+	PrepareBBTrajectory(&Yprofile, relative_destination[1]-pos[1], vel[1], max_accel[1]);
 	PlanBBTrajectory(&Yprofile);
 	accel[1] = BBComputeAvgAccel(&Yprofile, TIME_HORIZON);
 	float timeY = GetBBTime(&Yprofile);
