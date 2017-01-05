@@ -408,9 +408,10 @@ static void send_camera_packet(const void *packet, const uint8_t *serials)
 	// Write out the timestamp if estop not set
 	if((flags & 1) == 0)
 	{
-		uint64_t stamp = rtc_get();
+		//uint64_t stamp = rtc_get();
 		for (unsigned int i = 0; i < 8; ++i) {
-			mrf_write_long(address++, (uint8_t)(stamp >> (8 * i)));
+			//mrf_write_long(address++, (uint8_t)(stamp >> (8 * i)));
+			mrf_write_long(address++, (uint8_t)(*rptr++));
 		}
 	}
 
