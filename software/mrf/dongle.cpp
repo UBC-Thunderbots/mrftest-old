@@ -349,11 +349,11 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 		int16_t ballY = static_cast<int16_t>(ball.y * 1000.0);
 
 		*rptr++ = static_cast<int8_t>(ballX); // Add Ball x position
-		*rptr++ = static_cast<int8_t>(ballX / 256);
+		*rptr++ = static_cast<int8_t>(ballX >> 8);
 		//rptr += 2; // Increment Pointer by 2 bytes
 
 		*rptr++ = static_cast<int8_t>(ballY); // Add Ball Y position
-		*rptr++ = static_cast<int8_t>(ballY / 256);
+		*rptr++ = static_cast<int8_t>(ballY >> 8);
 		//rptr += 2; // Increment Pointer by 2 bytes
 	}
 

@@ -3,7 +3,7 @@
 
 #include "log.h"
 
-// 250ms delay time
+// In ticks
 #define BASE_CAMERA_DELAY 3
 #define SPEED_SIZE 121
 
@@ -22,7 +22,7 @@
  * The following coordinate system is used:
  * \li Positive X is in the direction the robot was facing at the last call to
  * \ref dr_reset.
- * \li Positive Y is 90° to the left of positive Y.
+ * \li Positive Y is 90° to the left of positive X.
  * \li Positive angles are leftward rotation.
  *
  * The origin is the position and orientation of the robot at the last call to
@@ -136,5 +136,6 @@ void dr_apply_cam(int16_t x_cam, int16_t y_cam, int16_t angle_cam);
 void dr_set_ball_frame(int16_t x, int16_t y);
 void dr_set_robot_timestamp(uint64_t timestamp);
 void dr_set_ball_timestamp(uint64_t timestamp);
-
+void dr_do_maneuver();
+void dr_follow_ball();
 #endif

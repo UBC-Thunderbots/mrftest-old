@@ -85,40 +85,49 @@ static void move_tick(log_record_t *log) {
 	dr_get(&current_states);
   kalman_get(&sensor_states);
 
-  	float angle = destination[2] - current_states.angle;
-  	if(angle > M_PI) angle -= 2*M_PI;
-  	else if(angle < -M_PI) angle += 2*M_PI;
-
 	float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
 	rotate(vel, -current_states.angle);
 
-	float pos[3] = {current_states.x, current_states.y, angle};// current_states.angle};
-	rotate(pos, -current_states.angle);
-
 	float relative_destination[3];
-	relative_destination[0] = destination[0];
-	relative_destination[1] = destination[1];
-	relative_destination[2] = destination[2];
-
+	relative_destination[0] = destination[0] - current_states.x;
+	relative_destination[1] = destination[1] - current_states.y;
 	rotate(relative_destination, -current_states.angle);
 
-	float max_accel[3] = {MAX_X_A, MAX_Y_A, MAX_T_A};
+	float dest_angle = destination[2];
+	float cur_angle = current_states.angle;
 
+	if(dest_angle >= cur_angle ){                                                                                                        
+	  float dest_sub = dest_angle - 2*M_PI;                                                                                        
+	  if((dest_sub - cur_angle)*(dest_sub - cur_angle) <= (dest_angle - cur_angle)*(dest_angle - cur_angle)){                             
+	    relative_destination[2] = dest_sub - cur_angle;                                                              
+	  }else{                                                                                                                 
+	    relative_destination[2] = dest_angle - cur_angle;                                                                                 
+	  }                                                                                                                      
+	}else{                                                                                                                       
+	  float dest_plus = dest_angle + 2*M_PI;                                                                                       
+	  if((dest_plus - cur_angle)*(dest_plus - cur_angle) <= (dest_angle - cur_angle)*(dest_angle - cur_angle)){                           
+	    relative_destination[2] = dest_plus - cur_angle;                                                              
+	  }else{                                                                                                                 
+	    relative_destination[2] = dest_angle - cur_angle;                                                                                 
+	  }                                                                                                                      
+	}                                                                                                                       
+
+	float max_accel[3] = {MAX_X_A, MAX_Y_A, MAX_T_A};
 	float accel[3];
 
 	BBProfile Xprofile;
-	PrepareBBTrajectory(&Xprofile, relative_destination[0]-pos[0], vel[0], max_accel[0]);
+	PrepareBBTrajectory(&Xprofile, relative_destination[0], vel[0], max_accel[0]);
 	PlanBBTrajectory(&Xprofile);
 	accel[0] = BBComputeAvgAccel(&Xprofile, TIME_HORIZON);
 	float timeX = GetBBTime(&Xprofile);
 
 	BBProfile Yprofile;
-	PrepareBBTrajectory(&Yprofile, relative_destination[1]-pos[1], vel[1], max_accel[1]);
+	PrepareBBTrajectory(&Yprofile, relative_destination[1], vel[1], max_accel[1]);
 	PlanBBTrajectory(&Yprofile);
 	accel[1] = BBComputeAvgAccel(&Yprofile, TIME_HORIZON);
 	float timeY = GetBBTime(&Yprofile);
 
-	float deltaD = angle;//destination[2] - pos[2];
+	float deltaD = relative_destination[2];
 	float timeTarget = (timeY > timeX)?timeY:timeX;
 	if (timeX < TIME_HORIZON && timeY < TIME_HORIZON) {
 		timeTarget = TIME_HORIZON;	
@@ -141,7 +150,6 @@ static void move_tick(log_record_t *log) {
 
 	//rotate(accel, -angle);//-current_states.angle);
 	apply_accel(accel, accel[2]);
-	
 }
 
 /**

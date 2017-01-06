@@ -8,6 +8,7 @@
 #include <tuple>
 #include <vector>
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 
 using namespace AI::BE;
@@ -169,17 +170,23 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 	//newdetbots.push_back(std::make_tuple(7, Point(2,1), Angle::half()));
 	if(newdetbots.empty()) return;
 	else{
-		uint64_t int_time = 450;//max_time.time_since_epoch().count();
+		AI::Timestamp current_time = std::chrono::steady_clock::now();
+
+		auto time_delta = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - max_time);
+
+		uint64_t int_time = (uint64_t)time_delta.count();//max_time.time_since_epoch().count();
 
 		std::cout << "Calling dongle.send_camera_packet with: ";
 		for (std::size_t i = 0; i < newdetbots.size(); ++i) {
 			std::cout << "bot number = " << unsigned(std::get<0>(newdetbots[i])) << ", ";
 			std::cout << "x = " << (std::get<1>(newdetbots[i])).x << ", ";
 			std::cout << "y = " << (std::get<1>(newdetbots[i])).y << ", ";
+			std::cout << "time delay (ms) = " << int_time << ", ";
 			std::cout << "theta = " << (std::get<2>(newdetbots[i])).to_degrees() << std::endl;
+
 		}
 
-		dongle.send_camera_packet(newdetbots, Point(0.2,0.5), &int_time);
+		dongle.send_camera_packet(newdetbots, backend.ball().position(), &int_time);
 	}
 }
 

@@ -5,6 +5,7 @@
 #include "physics.h"
 #include "sensors.h"
 #include "circbuff.h"
+#include "primitives/primitive.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -26,7 +27,13 @@ static int32_t offset[3] = {0};
 static robot_camera_data_t robot_camera_data;
 static ball_camera_data_t ball_camera_data;
 static speed_t speed[SPEED_SIZE];
-static int tick_count = 0; 
+
+static uint16_t tick_count = 0; 
+static int maneuver_stage = 0;
+static int base_delay = 0;
+static int16_t dests[3][3] = {{1000,1000,0},
+			     {3000,-1500,30},
+			     {0,0,-(int16_t)(M_PI/2.0)}};
 
 /**
  * \brief called a system boot to configure deadreckoning system
@@ -90,7 +97,7 @@ void dr_reset(void) {
  */
 void dr_tick(log_record_t *log) {
 
-  if(tick_count != 0) tick_count++;
+  tick_count++;
 
   sensors_gyro_data_t gyrodata;
   sensors_accel_data_t acceldata;
@@ -233,6 +240,21 @@ void dr_tick(log_record_t *log) {
 		log->tick.enc_vx = kalman_data.wheels_x;
 		log->tick.enc_vy = kalman_data.wheels_y;
 		log->tick.enc_avel = kalman_data.wheels_t;
+
+		log->tick.accelerometer_x = kalman_data.accelerometer_x;
+		log->tick.accelerometer_y = kalman_data.accelerometer_y;
+		log->tick.accelerometer_z = kalman_data.accelerometer_z;
+
+		log->tick.gyro_avel = gyro_speed;
+
+		log->tick.cam_x = (float)(robot_camera_data.x/1000.0);
+		log->tick.cam_y = (float)(robot_camera_data.y/1000.0);
+		log->tick.cam_angle = (float)(robot_camera_data.angle/1000.0);
+
+		log->tick.cam_ball_x = (float)(ball_camera_data.x)/1000.0;
+		log->tick.cam_ball_y = (float)(ball_camera_data.y)/1000.0;
+				
+		log->tick.cam_delay = (uint16_t)robot_camera_data.timestamp;
 	}
 
   //printf("%i\t%i\t%f\n", is_calibrated, gyrodata.status, current_state.avel);
@@ -287,18 +309,6 @@ void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle) {
 
 
 void dr_apply_cam(int16_t x_cam, int16_t y_cam, int16_t angle_cam) {
-  //current_state.x = (float)(x_cam/1000.0);
-  //current_state.y = (float)(y_cam/1000.0);
-  //current_state.angle = (float)(angle_cam/1000.0);
-  
-  if(tick_count == 0){
-    tick_count = 1;
-  }else if(tick_count >= 8000){
-    tick_count = 1;
-  }
-
-  int delay_trial = tick_count/1000;
-
 
   float x = (float)(x_cam/1000.0);
   float y = (float)(y_cam/1000.0);
@@ -332,12 +342,9 @@ void dr_apply_cam(int16_t x_cam, int16_t y_cam, int16_t angle_cam) {
   angle = fmod(angle, 2*M_PI);
   if(angle > M_PI) angle -= 2*M_PI;
 
-  current_state.x = x;//(29.0*current_state.x + x)/30.0;
-  current_state.y = y;//(29.0*current_state.y + y)/30.0;
-  current_state.angle = angle;//(29.0*current_state.angle + angle)/30.0;
-  //current_state.angle = fmod(current_state.angle, 2*M_PI);
-  //if(current_state.angle > M_PI) current_state.angle -= 2*M_PI;  
-  
+  current_state.x = x;
+  current_state.y = y;
+  current_state.angle = angle;  
 }
 
 
@@ -364,4 +371,39 @@ void dr_set_ball_timestamp(uint64_t timestamp) {
 }
 
 
+void dr_do_maneuver(){
+  
+  if(tick_count > 1000 || (get_primitive_index() != 1)){
 
+    tick_count = 0;
+    maneuver_stage++;
+    if(maneuver_stage >= 3) {
+      maneuver_stage = 0;
+
+      base_delay++;
+      if(base_delay > 8){
+	base_delay = 0;
+      }
+
+    }
+    
+    primitive_params_t move_params;                                                                                                
+    move_params.params[0] = dests[maneuver_stage][0];                                                                                         
+    move_params.params[1] = dests[maneuver_stage][1];                                                                                        
+    move_params.params[2] = dests[maneuver_stage][2];
+    primitive_start(1, &move_params);
+  } 
+}
+
+dr_follow_ball(){
+
+  if(tick_count > 10 || (get_primitive_index() != 1)){
+    tick_count = 0;
+
+    primitive_params_t move_params;                                                                                                
+    move_params.params[0] = ball_camera_data.x;
+    move_params.params[1] = ball_camera_data.y;                                                                                        
+    move_params.params[2] = 0 ;
+    primitive_start(1, &move_params);
+  }
+}

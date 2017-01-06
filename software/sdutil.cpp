@@ -30,7 +30,7 @@
 
 namespace {
 	constexpr off_t SECTOR_SIZE = 512;
-	constexpr off_t LOG_RECORD_SIZE = 128;
+        constexpr off_t LOG_RECORD_SIZE = 256;//128;
 	constexpr off_t RECORDS_PER_SECTOR = SECTOR_SIZE / LOG_RECORD_SIZE;
 	constexpr uint32_t LOG_MAGIC_TICK = UINT32_C(0xE2468845);
 	constexpr off_t UPGRADE_AREA_SECTORS = 1024 * 4096 / SECTOR_SIZE;
@@ -499,6 +499,12 @@ namespace {
 		ofs.open(args[1], std::ios_base::out | std::ios_base::trunc);
 		ofs << "Epoch\tUNIX Time\tBreakbeam\tBattery (V)\tCapacitor (V)\t";
 		ofs << "DR X (m)\tDR Y (m)\tDR θ (r)\tDR VX (m/s)\tDR VY (m/s)\tDR Vθ (r/s)\t";
+		ofs << "ENC VX (m/s)\t ENC VY (m/s)\t ENC AVEL (rad/s)\t";
+		ofs << "Acceler x (m/s^2)\t Acceler y (m/s^2)\t Acceler z (m/s^2)\t";
+		ofs << "Gyro vel (rad/s)\t";
+		ofs << "Cam X (m)\tCam Y (m)\tCam θ (r)\t";
+		ofs << "Cam Ball X (m)\tCam Ball Y (m)\t";
+		ofs << "Variable Cam Latency\t";
 		ofs << "Drive Serial\tPrimitive\t";
 		for (unsigned int i = 0; i != 10; ++i) {
 			ofs << "Primitive Data " << i << '\t';
@@ -540,6 +546,30 @@ namespace {
 						value = decode_float_le(ptr); ptr += 4;
 					}
 
+					float encoder_data[3];
+					for (float &value : encoder_data) {
+						value = decode_float_le(ptr); ptr += 4;
+					}
+
+					float accelerometer_data[3];
+					for (float &value : accelerometer_data) {
+						value = decode_float_le(ptr); ptr += 4;
+					}
+					
+					float gyro_avel = decode_float_le(ptr); ptr += 4;
+
+					float cam_data[3];
+					for (float &value : cam_data) {
+						value = decode_float_le(ptr); ptr += 4;
+					}
+
+					float cam_ball_data[2];
+					for (float &value : cam_ball_data) {
+						value = decode_float_le(ptr); ptr += 4;
+					}
+
+					uint16_t cam_latency = decode_u16_le(ptr); ptr += 2;
+
 					unsigned int drive_serial = decode_u8_le(ptr); ptr += 1;
 					unsigned int primitive = decode_u8_le(ptr); ptr += 1;
 
@@ -576,6 +606,28 @@ namespace {
 					for (float dd : dr_data) {
 						ofs << '\t' << dd;
 					}
+
+					for(float enc: encoder_data){
+					        ofs << '\t' << enc;
+					}
+					
+					
+					for(float acc: accelerometer_data){
+					        ofs << '\t' << acc;
+					}
+
+					ofs << '\t' << gyro_avel;
+					
+					for(float cam: cam_data){
+					        ofs << '\t' << cam;
+					}
+
+					for(float cam_ball: cam_ball_data){
+					        ofs << '\t' << cam_ball;
+					}
+
+					ofs << '\t' << cam_latency;
+					
 					ofs << '\t' << drive_serial << '\t' << primitive;
 					for (float pd : primitive_data) {
 						ofs << '\t' << pd;

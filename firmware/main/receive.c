@@ -1,4 +1,4 @@
-/**
+/*
  * \defgroup RECEIVE Receive Functions
  *
  * \brief These functions handle receiving radio packets and acting on them.
@@ -24,6 +24,7 @@
 #include "priority.h"
 #include "rtc.h"
 #include "primitives/primitive.h"
+#include "physics.h"
 #include <FreeRTOS.h>
 #include <assert.h>
 #include <semphr.h>
@@ -134,7 +135,7 @@ static void receive_task(void *UNUSED(param)) {
                 robot_angle |= dma_buffer[buffer_position++];
                 robot_angle |= (dma_buffer[buffer_position++] << 8);
 
-                //dr_set_robot_frame(robot_x, robot_y, robot_angle);
+                dr_set_robot_frame(robot_x, robot_y, robot_angle);
 		dr_apply_cam(robot_x, robot_y, robot_angle);
               }
               else {
@@ -183,18 +184,26 @@ static void receive_task(void *UNUSED(param)) {
             primitive_start(0, &pparams);
             // Return the drive mutex.
 						xSemaphoreGive(drive_mtx);
-          }else if(get_primitive_index() != 1){
+          }else{
+	    xSemaphoreTake(drive_mtx, portMAX_DELAY);
+	    //dr_do_maneuver();
+	    dr_follow_ball();
+	    xSemaphoreGive(drive_mtx);
+	  } 
+	  /*
+	  if(get_primitive_index() != 1){
 
         	xSemaphoreTake(drive_mtx, portMAX_DELAY);
       		////////Just for testing: starting one move primitive here (not from radio command)
       		primitive_params_t move_params;
-      		move_params.params[0] = 1000;
-      		move_params.params[1] = -1500;
-      		move_params.params[2] = 0;
+      		move_params.params[0] = 0000;
+      		move_params.params[1] = 0000;
+      		move_params.params[2] = (int16_t)(M_PI/2.0*100);
             primitive_start(1, &move_params);
       		xSemaphoreGive(drive_mtx);
       		////////////////
           }
+	  */
         } 
         
         // Otherwise, it is a message packet specific to this robot.
