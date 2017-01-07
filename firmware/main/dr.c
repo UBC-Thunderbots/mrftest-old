@@ -67,13 +67,6 @@ bool dr_calibrated(void) {
  * \brief resets the position to origin but preserves additional state
  */
 void dr_reset(void) {
-	current_state.x = 0.0f;
-	current_state.y = 0.0f;
-	current_state.angle = 0.0f;
-  current_state.vx = 0.0f;
-  current_state.vy = 0.0f;
-  current_state.avel = 0.0f;
-
   kalman_data.cam_x = 0.0f;
   kalman_data.cam_y = 0.0f;
   kalman_data.cam_t = 0.0f;
@@ -129,7 +122,9 @@ void dr_tick(log_record_t *log) {
   else {
     drop_flag = 1;
   }
-  
+
+
+  /*  
   for(i = 0; i < 4; i++) {
       encoder_speeds[i] = (float)encoder_speed(i)*QUARTERDEGREE_TO_MS;
   }
@@ -152,7 +147,7 @@ void dr_tick(log_record_t *log) {
   
   if(current_state.angle > M_PI) current_state.angle -= 2*M_PI;
   else if(current_state.angle < -M_PI) current_state.angle += 2*M_PI;
-  
+  */
   // Begin calibration until complete.
   if (!is_calibrated) {
     calibration_vals[0][calibration_count] = accel_out[0];
@@ -309,6 +304,9 @@ void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle) {
 
 
 void dr_apply_cam(int16_t x_cam, int16_t y_cam, int16_t angle_cam) {
+  //if(x_cam == robot_camera_data.x && y_cam == robot_camera_data.y && angle_cam == robot_camera_data.angle){
+    //return;
+    //  }
 
   float x = (float)(x_cam/1000.0);
   float y = (float)(y_cam/1000.0);
@@ -379,12 +377,6 @@ void dr_do_maneuver(){
     maneuver_stage++;
     if(maneuver_stage >= 3) {
       maneuver_stage = 0;
-
-      base_delay++;
-      if(base_delay > 8){
-	base_delay = 0;
-      }
-
     }
     
     primitive_params_t move_params;                                                                                                
@@ -397,13 +389,13 @@ void dr_do_maneuver(){
 
 dr_follow_ball(){
 
-  if(tick_count > 10 || (get_primitive_index() != 1)){
-    tick_count = 0;
+  //if(tick_count > 10 || (get_primitive_index() != 1)){
+  //tick_count = 0;
 
     primitive_params_t move_params;                                                                                                
     move_params.params[0] = ball_camera_data.x;
     move_params.params[1] = ball_camera_data.y;                                                                                        
     move_params.params[2] = 0 ;
     primitive_start(1, &move_params);
-  }
+    //}
 }

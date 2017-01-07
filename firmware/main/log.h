@@ -45,6 +45,7 @@ typedef struct __attribute__((packed)) {
 	float cam_ball_y;
 
 	uint16_t cam_delay;
+	uint8_t new_cam_data;
 
 	uint8_t drive_serial;
 	uint8_t primitive;

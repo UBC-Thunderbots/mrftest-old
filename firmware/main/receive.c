@@ -135,8 +135,9 @@ static void receive_task(void *UNUSED(param)) {
                 robot_angle |= dma_buffer[buffer_position++];
                 robot_angle |= (dma_buffer[buffer_position++] << 8);
 
-                dr_set_robot_frame(robot_x, robot_y, robot_angle);
+		dr_set_robot_frame(robot_x, robot_y, robot_angle);
 		dr_apply_cam(robot_x, robot_y, robot_angle);
+               
               }
               else {
                 buffer_position += 6;
@@ -184,14 +185,14 @@ static void receive_task(void *UNUSED(param)) {
             primitive_start(0, &pparams);
             // Return the drive mutex.
 						xSemaphoreGive(drive_mtx);
-          }else{
+          } else{
 	    xSemaphoreTake(drive_mtx, portMAX_DELAY);
-	    //dr_do_maneuver();
-	    dr_follow_ball();
+	    dr_do_maneuver();
+	    //dr_follow_ball();
 	    xSemaphoreGive(drive_mtx);
 	  } 
-	  /*
-	  if(get_primitive_index() != 1){
+	  
+	  /*else if(get_primitive_index() != 1){
 
         	xSemaphoreTake(drive_mtx, portMAX_DELAY);
       		////////Just for testing: starting one move primitive here (not from radio command)

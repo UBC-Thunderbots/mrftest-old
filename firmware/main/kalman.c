@@ -179,7 +179,7 @@ void kalman_step(dr_data_t *state, kalman_data_t *kalman_state) {
 
 	  kalman_state->new_camera_data = false;
 
-	  // TODO Perform correction step.
+	  
 	  	  // Calculate Kalman gain for x.
 	  	  mm_mult(3, 3, 3,  H_x_cam, (const float (*)[3])P_x, temp_P);
 	  	  mm_mult_t(3, 3, 3, (const float (*)[3])temp_P, H_x_cam, S_x_cam);
