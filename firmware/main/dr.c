@@ -31,10 +31,15 @@ static speed_t speed[SPEED_SIZE];
 static uint16_t tick_count = 0; 
 static int maneuver_stage = 0;
 static int base_delay = 0;
-static int16_t dests[3][3] = {{1000,1000,0},
-			     {3000,-1500,30},
-			     {0,0,-(int16_t)(M_PI/2.0)}};
+static int16_t dests[3][3] = {{700,-700,0},
+			     {2000,1000,30},
+			     {0,0,(int16_t)(M_PI/2.0)}};
 
+
+/*static int16_t dests[3][3] = {{0,0,0},
+			     {0,0,(int16_t)(M_PI*100.0 )},
+			     {0,0,(int16_t)(M_PI/2.0*100.0)}};
+*/
 /**
  * \brief called a system boot to configure deadreckoning system
  */
@@ -123,8 +128,7 @@ void dr_tick(log_record_t *log) {
     drop_flag = 1;
   }
 
-
-  /*  
+ 
   for(i = 0; i < 4; i++) {
       encoder_speeds[i] = (float)encoder_speed(i)*QUARTERDEGREE_TO_MS;
   }
@@ -147,7 +151,7 @@ void dr_tick(log_record_t *log) {
   
   if(current_state.angle > M_PI) current_state.angle -= 2*M_PI;
   else if(current_state.angle < -M_PI) current_state.angle += 2*M_PI;
-  */
+
   // Begin calibration until complete.
   if (!is_calibrated) {
     calibration_vals[0][calibration_count] = accel_out[0];
@@ -291,7 +295,6 @@ void dr_setaccel(float linear_accel[2], float angular_accel) {
  * \brief Sets the robot's camera frame.
  */
 void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle) {
-
   robot_camera_data.x = x;
   robot_camera_data.y = y;
   robot_camera_data.angle = angle;
@@ -304,26 +307,19 @@ void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle) {
 
 
 void dr_apply_cam(int16_t x_cam, int16_t y_cam, int16_t angle_cam) {
-  //if(x_cam == robot_camera_data.x && y_cam == robot_camera_data.y && angle_cam == robot_camera_data.angle){
-    //return;
-    //  }
 
   float x = (float)(x_cam/1000.0);
   float y = (float)(y_cam/1000.0);
   float angle = (float)(angle_cam/1000.0);
   
   speed_t wheel_speed;
-  //wheel_speed.speed_x = 1.0;
-  //wheel_speed.speed_y = 1.0;
-  //wheel_speed.speed_angle = 1.0;
     
   float wheel_speeds[3];
 
-  int additional_delay = (int)(robot_camera_data.timestamp)/((int)(1000*TICK_TIME)); //In number of robot ticks
+  //int additional_delay = (int)(robot_camera_data.timestamp)/((int)(1000*TICK_TIME)); //In number of robot ticks
   //Todo: make sure delay is less than size of circ buffer
-  int total_delay = BASE_CAMERA_DELAY + additional_delay;
-  for(int i = total_delay; i >= 0; i--){
-    
+  //int total_delay = BASE_CAMERA_DELAY + additional_delay;
+  for(int i = BASE_CAMERA_DELAY; i >= 0; i--){
     wheel_speed = getFromQueue(speed, SPEED_SIZE, i);
 
     wheel_speeds[0] = wheel_speed.speed_x;
@@ -334,8 +330,7 @@ void dr_apply_cam(int16_t x_cam, int16_t y_cam, int16_t angle_cam) {
     x += wheel_speeds[0]*TICK_TIME;
     y += wheel_speeds[1]*TICK_TIME;
     angle += wheel_speeds[2]*TICK_TIME;
-    }
-  
+  }
   
   angle = fmod(angle, 2*M_PI);
   if(angle > M_PI) angle -= 2*M_PI;
@@ -371,7 +366,7 @@ void dr_set_ball_timestamp(uint64_t timestamp) {
 
 void dr_do_maneuver(){
   
-  if(tick_count > 1000 || (get_primitive_index() != 1)){
+ if(tick_count > 400 || (get_primitive_index() != 1)){
 
     tick_count = 0;
     maneuver_stage++;
@@ -387,7 +382,7 @@ void dr_do_maneuver(){
   } 
 }
 
-dr_follow_ball(){
+void dr_follow_ball(){
 
   //if(tick_count > 10 || (get_primitive_index() != 1)){
   //tick_count = 0;
