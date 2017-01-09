@@ -4,7 +4,7 @@
 #include "log.h"
 
 // In ticks
-#define BASE_CAMERA_DELAY 15
+#define BASE_CAMERA_DELAY 7
 #define SPEED_SIZE 121
 
 // 1 second worth of samples.
@@ -132,7 +132,7 @@ void dr_get(dr_data_t *ret);
 void kalman_get(kalman_data_t *ret);
 void dr_setaccel(float linear_accel[2], float angular_accel);
 void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle);
-void dr_apply_cam(int16_t x_cam, int16_t y_cam, int16_t angle_cam);
+void dr_apply_cam();
 void dr_set_ball_frame(int16_t x, int16_t y);
 void dr_set_robot_timestamp(uint64_t timestamp);
 void dr_set_ball_timestamp(uint64_t timestamp);

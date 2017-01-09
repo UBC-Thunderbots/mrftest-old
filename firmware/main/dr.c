@@ -306,20 +306,20 @@ void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle) {
 }
 
 
-void dr_apply_cam(int16_t x_cam, int16_t y_cam, int16_t angle_cam) {
+void dr_apply_cam() {
 
-  float x = (float)(x_cam/1000.0);
-  float y = (float)(y_cam/1000.0);
-  float angle = (float)(angle_cam/1000.0);
+  float x = (float)(robot_camera_data.x/1000.0);
+  float y = (float)(robot_camera_data.y/1000.0);
+  float angle = (float)(robot_camera_data.angle/1000.0);
   
   speed_t wheel_speed;
     
   float wheel_speeds[3];
 
-  //int additional_delay = (int)(robot_camera_data.timestamp)/((int)(1000*TICK_TIME)); //In number of robot ticks
+  int additional_delay = (int)(robot_camera_data.timestamp)/((int)(1000*TICK_TIME)); //In number of robot ticks
   //Todo: make sure delay is less than size of circ buffer
-  //int total_delay = BASE_CAMERA_DELAY + additional_delay;
-  for(int i = BASE_CAMERA_DELAY; i >= 0; i--){
+  int total_delay = BASE_CAMERA_DELAY + additional_delay;
+  for(int i = total_delay; i >= 0; i--){
     wheel_speed = getFromQueue(speed, SPEED_SIZE, i);
 
     wheel_speeds[0] = wheel_speed.speed_x;
@@ -366,7 +366,7 @@ void dr_set_ball_timestamp(uint64_t timestamp) {
 
 void dr_do_maneuver(){
   
- if(tick_count > 400 || (get_primitive_index() != 1)){
+ if(tick_count > 800 || (get_primitive_index() != 1)){
 
     tick_count = 0;
     maneuver_stage++;
@@ -384,13 +384,13 @@ void dr_do_maneuver(){
 
 void dr_follow_ball(){
 
-  //if(tick_count > 10 || (get_primitive_index() != 1)){
-  //tick_count = 0;
+  if(tick_count > 10 || (get_primitive_index() != 1)){
+  tick_count = 0;
 
     primitive_params_t move_params;                                                                                                
     move_params.params[0] = ball_camera_data.x;
     move_params.params[1] = ball_camera_data.y;                                                                                        
     move_params.params[2] = 0 ;
     primitive_start(1, &move_params);
-    //}
+  }
 }

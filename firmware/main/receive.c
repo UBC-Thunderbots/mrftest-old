@@ -135,7 +135,6 @@ static void receive_task(void *UNUSED(param)) {
                 robot_angle |= dma_buffer[buffer_position++];
                 robot_angle |= (dma_buffer[buffer_position++] << 8);
 
-		dr_apply_cam(robot_x, robot_y, robot_angle);
 		dr_set_robot_frame(robot_x, robot_y, robot_angle);
               }
               else {
@@ -157,6 +156,7 @@ static void receive_task(void *UNUSED(param)) {
             // the timestamp for the camera data.
             if (contains_robot) {
               dr_set_robot_timestamp(timestamp);
+	      dr_apply_cam();
             }
             if (contains_ball) {
               dr_set_ball_timestamp(timestamp);
@@ -186,8 +186,8 @@ static void receive_task(void *UNUSED(param)) {
 						xSemaphoreGive(drive_mtx);
           } else{
 	    xSemaphoreTake(drive_mtx, portMAX_DELAY);
-	    dr_do_maneuver();
-	    //dr_follow_ball();
+	    //dr_do_maneuver();
+	    dr_follow_ball();
 	    xSemaphoreGive(drive_mtx);
 	   } 
 	  
