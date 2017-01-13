@@ -62,9 +62,9 @@ static void receive_task(void *UNUSED(param)) {
 
 	uint16_t last_sequence_number = 0xFFFFU;
 	bool last_estop_run = false;
-  bool estop_run = false;
+	bool estop_run = false;
 	size_t frame_length;
-  uint32_t i;
+	uint32_t i;
 
 	while ((frame_length = mrf_receive(dma_buffer))) {
 
@@ -171,7 +171,7 @@ static void receive_task(void *UNUSED(param)) {
          
           // If the estop has been switched off, execute the stop primitive. 
           if (!estop_run) {
-						primitive_params_t pparams;
+	    primitive_params_t pparams;
             for (i = 0; i < 4; i++) {
                pparams.params[i] = 0;
             }
@@ -189,21 +189,7 @@ static void receive_task(void *UNUSED(param)) {
 	    //dr_do_maneuver();
 	    dr_follow_ball();
 	    xSemaphoreGive(drive_mtx);
-	   } 
-	  
-	  /*else if(get_primitive_index() != 1){
-
-        	xSemaphoreTake(drive_mtx, portMAX_DELAY);
-      		////////Just for testing: starting one move primitive here (not from radio command)
-      		primitive_params_t move_params;
-      		move_params.params[0] = 0000;
-      		move_params.params[1] = 0000;
-      		move_params.params[2] = (int16_t)(M_PI/2.0*100);
-            primitive_start(1, &move_params);
-      		xSemaphoreGive(drive_mtx);
-      		////////////////
-	  }
-	 */
+	   }        
 	  
         } 
         
@@ -354,20 +340,7 @@ void receive_shutdown(void) {
  * \brief Ticks the receiver.
  */
 void receive_tick(log_record_t *record) {
-
-	//static const size_t HEADER_LENGTH = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
-	/*
-	uint32_t buffer_position = HEADER_LENGTH;
-    buffer_position += 4;
-
-	record->tick.dribbler_ticked = dma_buffer[buffer_position++];
-	record->tick.dribbler_pwm = dma_buffer[buffer_position++];
-	record->tick.dribbler_speed = dma_buffer[buffer_position++];
-	record->tick.dribbler_temperature = dma_buffer[buffer_position++];
-*/
-
-	// Decrement timeout tick counter if nonzero.
-	
+	// Decrement timeout tick counter if nonzero.      
 	if (timeout_ticks == 1) {
 		timeout_ticks = 0;
 		charger_enable(false);
@@ -377,12 +350,9 @@ void receive_tick(log_record_t *record) {
 		xSemaphoreTake(drive_mtx, portMAX_DELAY);
 		primitive_start(0, &stop_params);
 		xSemaphoreGive(drive_mtx);
-		////////////////
 	} else if (timeout_ticks > 1) {
 		--timeout_ticks;
-
 	}
-
 }
 
 
@@ -393,6 +363,4 @@ uint8_t receive_last_serial(void) {
 	return __atomic_load_n(&last_serial, __ATOMIC_RELAXED);
 }
 
-/**
- * \}
- */
+

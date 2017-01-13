@@ -8,7 +8,7 @@ typedef struct
 	float speed_x;
 	float speed_y;
 	float speed_angle;
-} speed_t;
+} wheel_speeds_t;
 
 //const int queueSize = 50;
 //volatile unsigned char buffer[queueSize];

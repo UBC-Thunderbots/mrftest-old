@@ -5,10 +5,7 @@
 
 // In ticks
 #define BASE_CAMERA_DELAY 7
-#define SPEED_SIZE 121
-
-// 1 second worth of samples.
-#define CALIBRATION_LENGTH 200
+#define SPEED_SIZE 100
 
 /**
  * \brief The type of data returned by the dead reckoning module.
@@ -60,61 +57,48 @@ typedef struct {
 	float avel;
 } dr_data_t;
 
-/**
- *  \brief The required sensor and acceleration data for the kalman filter.
- */
-typedef struct {
-  float cam_x;
-  float cam_y;
-  float cam_t;
-  float x_accel;
-  float y_accel;
-  float t_accel;
-  float accelerometer_x;
-  float accelerometer_y;
-  float accelerometer_z;
-  float gyro;
-  float wheels_x;
-  float wheels_y;
-  float wheels_t;
-  bool new_camera_data;
-} kalman_data_t;
-
 
 
 typedef struct {
   /**
-  * \brief The x component of the robot's global position in mm.
+  * \brief The x component of the robot's global position in metres.
   */
-  int16_t x;
+  float x;
 
   /**
-  * \brief The y component of the robot's global position in mm.
+  * \brief The y component of the robot's global position in metres.
   */
-  int16_t y;
+  float y;
 
   /**
-  * \brief The theta component of the robot's pose in the global frame in mrad.
+  * \brief The theta component of the robot's position in the global frame in rad.
   */
-  int16_t angle;
+  float angle;
   
   /**
   * \brief The timestamp associated with this camera frame.
   */
   uint64_t timestamp;
+
+  /**
+  * \brief Whether the camera data has been updated since last tick
+  */
+  bool new_data;
+
+  
   
 } robot_camera_data_t;
 
 typedef struct {
   /**
-  * \brief The x component of the ball's global position in mm.
+  * \brief The x component of the ball's global position in metres.
   */
-  int16_t x;
+  float x;
 
   /**
-  * \brief The y component of the ball's global position in mm.
+  * \brief The y component of the ball's global position in metres.
   */
-  int16_t y;
+  float y;
 
   /**
   * \brief The timestamp associated with this camera frame.
@@ -129,7 +113,6 @@ bool dr_calibrated(void);
 void dr_reset(void);
 void dr_tick(log_record_t *log);
 void dr_get(dr_data_t *ret);
-void kalman_get(kalman_data_t *ret);
 void dr_setaccel(float linear_accel[2], float angular_accel);
 void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle);
 void dr_apply_cam();
