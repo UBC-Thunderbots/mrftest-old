@@ -50,6 +50,7 @@ void dr_tick(log_record_t *log) {
   //New camera data- update dead reckoning
   if(robot_camera_data.new_data){
     dr_apply_cam();
+    robot_camera_data.new_data = false;
   }
 
   float encoder_speeds[4];
@@ -58,21 +59,32 @@ void dr_tick(log_record_t *log) {
   for(unsigned int i = 0; i < 4; i++) {
       encoder_speeds[i] = (float)encoder_speed(i)*QUARTERDEGREE_TO_MS;
   }
+  //Todo: Check for wheel slippage
+
   speed4_to_speed3(encoder_speeds, wheel_speeds);
+  wheel_speeds[2] = wheel_speeds[2]/ROBOT_RADIUS; // Convert to angular velocity (rad/s)
+
   wheel_speeds_t wheel_speed_object;
   wheel_speed_object.speed_x = wheel_speeds[0];
   wheel_speed_object.speed_y = wheel_speeds[1];
-  wheel_speed_object.speed_angle = wheel_speeds[2]/ROBOT_RADIUS;
-  addToQueue(past_wheel_speeds, SPEED_SIZE, wheel_speed_object);
+  wheel_speed_object.speed_angle = wheel_speeds[2];
 
+  //Store speeds for use when new camera data arrives
+  //Speeds are stored in local reference frame- they are converted to global in integration process
+  add_to_circ_buff(past_wheel_speeds, SPEED_SIZE, wheel_speed_object);
+  
+  //Convert to global reference frame for state update
   rotate(wheel_speeds, current_state.angle);
 
-  current_state.x += wheel_speed.speed_x*TICK_TIME;
-  current_state.y += wheel_speed.speed_y*TICK_TIME;
-  current_state.angle += wheel_speed.speed_angle*TICK_TIME;
-  current_state.vx = wheel_speed.speed_x;
-  current_state.vy = wheel_speed.speed_y;
-  current_state.avel = wheel_speed.speed_angle;
+  //Update the current velocity to match wheel velocities
+  current_state.vx = wheel_speeds[0];
+  current_state.vy = wheel_speeds[1];
+  current_state.avel = wheel_speeds[2];
+
+  //Update position by integrating velocities
+  current_state.x += current_state.vx*TICK_TIME;
+  current_state.y += current_state.vy*TICK_TIME;
+  current_state.angle += current_state.avel*TICK_TIME;
 
   if(current_state.angle > M_PI) current_state.angle -= 2*M_PI;
   else if(current_state.angle < -M_PI) current_state.angle += 2*M_PI;  
@@ -115,7 +127,7 @@ void dr_apply_cam() {
   float y = robot_camera_data.y;
   float angle = robot_camera_data.angle;
   
-  speed_t wheel_speed;
+  wheel_speeds_t wheel_speed;
     
   float wheel_speeds[3];
 
@@ -123,7 +135,7 @@ void dr_apply_cam() {
   //Todo: make sure delay is less than size of circ buffer
   int total_delay = BASE_CAMERA_DELAY + additional_delay;
   for(int i = total_delay; i >= 0; i--){
-    wheel_speed = getFromQueue(speed, SPEED_SIZE, i);
+    wheel_speed = get_from_circ_buff(past_wheel_speeds, SPEED_SIZE, i);
 
     wheel_speeds[0] = wheel_speed.speed_x;
     wheel_speeds[1] = wheel_speed.speed_y;
@@ -203,7 +215,7 @@ void dr_follow_ball(){
 }
 
 
-dr_log(){
+void dr_log(log_record_t *log){
   sensors_gyro_data_t gyrodata;
   sensors_accel_data_t acceldata;
   float gyro_speed;

@@ -40,7 +40,7 @@
 /**
  * \brief The number of bytes of drive packet data per robot.
  */
-//#define RECEIVE_DRIVE_BYTES_PER_ROBOT 9
+#define RECEIVE_DRIVE_BYTES_PER_ROBOT 9
 
 /**
  * \brief The number of bytes of camera data per robot.
@@ -60,32 +60,32 @@ static uint8_t last_serial = 0xFF;
 
 static void receive_task(void *UNUSED(param)) {
 
-	uint16_t last_sequence_number = 0xFFFFU;
-	bool last_estop_run = false;
-	bool estop_run = false;
-	size_t frame_length;
-	uint32_t i;
+  uint16_t last_sequence_number = 0xFFFFU;
+  bool last_estop_run = false;
+  bool estop_run = false;
+  size_t frame_length;
+  uint32_t i;
 
-	while ((frame_length = mrf_receive(dma_buffer))) {
+  while ((frame_length = mrf_receive(dma_buffer))) {
 
 
-		uint16_t frame_control = dma_buffer[0U] | (dma_buffer[1U] << 8U);
-		// Sanity-check the frame control word
-		if (((frame_control >> 0U) & 7U) == 1U /* Data packet */ && ((frame_control >> 3U) & 1U) == 0U /* No security */ && ((frame_control >> 6U) & 1U) == 1U /* Intra-PAN */ && ((frame_control >> 10U) & 3U) == 2U /* 16-bit destination address */ && ((frame_control >> 14U) & 3U) == 2U /* 16-bit source address */) {
-			// Read out and check the source address and sequence number
-			uint16_t source_address = dma_buffer[7U] | (dma_buffer[8U] << 8U);
-			uint8_t sequence_number = dma_buffer[2U];
-			if (source_address == 0x0100U && sequence_number != last_sequence_number) {
+    uint16_t frame_control = dma_buffer[0U] | (dma_buffer[1U] << 8U);
+    // Sanity-check the frame control word
+    if (((frame_control >> 0U) & 7U) == 1U /* Data packet */ && ((frame_control >> 3U) & 1U) == 0U /* No security */ && ((frame_control >> 6U) & 1U) == 1U /* Intra-PAN */ && ((frame_control >> 10U) & 3U) == 2U /* 16-bit destination address */ && ((frame_control >> 14U) & 3U) == 2U /* 16-bit source address */) {
+      // Read out and check the source address and sequence number
+      uint16_t source_address = dma_buffer[7U] | (dma_buffer[8U] << 8U);
+      uint8_t sequence_number = dma_buffer[2U];
+      if (source_address == 0x0100U && sequence_number != last_sequence_number) {
 
-				// Update sequence number
-				last_sequence_number = sequence_number;
+        // Update sequence number
+        last_sequence_number = sequence_number;
 
         // Handle packet
         uint16_t dest_address = dma_buffer[5U] | (dma_buffer[6U] << 8U);
-				static const size_t HEADER_LENGTH = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
-				static const size_t FOOTER_LENGTH = 2U /* FCS */ + 1U /* RSSI */ + 1U /* LQI */;
-				if (dest_address == 0xFFFFU) {
-					// Broadcast frame must contain a camera packet.
+	static const size_t HEADER_LENGTH = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
+	static const size_t FOOTER_LENGTH = 2U /* FCS */ + 1U /* RSSI */ + 1U /* LQI */;
+	if (dest_address == 0xFFFFU) {
+	  // Broadcast frame must contain a camera packet.
           // Note that camera packets have a variable length.          
           uint32_t buffer_position = HEADER_LENGTH;
           
@@ -177,72 +177,69 @@ static void receive_task(void *UNUSED(param)) {
             }
             pparams.slow = false;
             pparams.extra = 0;
-						// Take the drive mutex.
-						xSemaphoreTake(drive_mtx, portMAX_DELAY);
-						// Reset timeout.
-						timeout_ticks = 1000U / portTICK_PERIOD_MS;
+	    // Take the drive mutex.
+	    xSemaphoreTake(drive_mtx, portMAX_DELAY);
+	    // Reset timeout.
+	    timeout_ticks = 1000U / portTICK_PERIOD_MS;
             primitive_start(0, &pparams);
             // Return the drive mutex.
-						xSemaphoreGive(drive_mtx);
+	    xSemaphoreGive(drive_mtx);
           } else{
 	    xSemaphoreTake(drive_mtx, portMAX_DELAY);
 	    //dr_do_maneuver();
 	    dr_follow_ball();
 	    xSemaphoreGive(drive_mtx);
 	   }        
-	  
         } 
         
         // Otherwise, it is a message packet specific to this robot.
         else if (frame_length >= HEADER_LENGTH + 1U + FOOTER_LENGTH) {
-					static const uint16_t MESSAGE_PURPOSE_ADDR = HEADER_LENGTH;
-					static const uint16_t MESSAGE_PAYLOAD_ADDR = MESSAGE_PURPOSE_ADDR + 1U;
-					primitive_params_t pparams;
+          static const uint16_t MESSAGE_PURPOSE_ADDR = HEADER_LENGTH;
+	  static const uint16_t MESSAGE_PAYLOAD_ADDR = MESSAGE_PURPOSE_ADDR + 1U;
+	  primitive_params_t pparams;
           switch (dma_buffer[MESSAGE_PURPOSE_ADDR]) {
             case 0x00:
-							if (frame_length == HEADER_LENGTH + 4U + FOOTER_LENGTH) {
-								uint8_t which = dma_buffer[MESSAGE_PAYLOAD_ADDR];
-								uint16_t width = dma_buffer[MESSAGE_PAYLOAD_ADDR + 2U];
-								width <<= 8U;
-								width |= dma_buffer[MESSAGE_PAYLOAD_ADDR + 1U];
-								chicker_fire(which ? CHICKER_CHIP : CHICKER_KICK, width);
-							}
-							break;
-          
-						case 0x01U: // Arm autokick
-							if (frame_length == HEADER_LENGTH + 4U + FOOTER_LENGTH) {
-								uint8_t which = dma_buffer[MESSAGE_PAYLOAD_ADDR];
-								uint16_t width = dma_buffer[MESSAGE_PAYLOAD_ADDR + 2U];
-								width <<= 8U;
-								width |= dma_buffer[MESSAGE_PAYLOAD_ADDR + 1U];
-								chicker_auto_arm(which ? CHICKER_CHIP : CHICKER_KICK, width);
-							}
-							break;
+	      if (frame_length == HEADER_LENGTH + 4U + FOOTER_LENGTH) {
+	        uint8_t which = dma_buffer[MESSAGE_PAYLOAD_ADDR];
+		uint16_t width = dma_buffer[MESSAGE_PAYLOAD_ADDR + 2U];
+		width <<= 8U;
+		width |= dma_buffer[MESSAGE_PAYLOAD_ADDR + 1U];
+		chicker_fire(which ? CHICKER_CHIP : CHICKER_KICK, width);
+	      }
+	    break;
+	    case 0x01U: // Arm autokick
+	      if (frame_length == HEADER_LENGTH + 4U + FOOTER_LENGTH) {
+	        uint8_t which = dma_buffer[MESSAGE_PAYLOAD_ADDR];
+		uint16_t width = dma_buffer[MESSAGE_PAYLOAD_ADDR + 2U];
+		width <<= 8U;
+		width |= dma_buffer[MESSAGE_PAYLOAD_ADDR + 1U];
+		chicker_auto_arm(which ? CHICKER_CHIP : CHICKER_KICK, width);
+	      }
+	    break;
 
-						case 0x02U: // Disarm autokick
-							if (frame_length == HEADER_LENGTH + 1U + FOOTER_LENGTH) {
-								chicker_auto_disarm();
-							}
-							break;
+	    case 0x02U: // Disarm autokick
+	      if (frame_length == HEADER_LENGTH + 1U + FOOTER_LENGTH) {
+	        chicker_auto_disarm();
+	      }
+	    break;
 
-						case 0x03U: // Set LED mode
-							if (frame_length == HEADER_LENGTH + 2U + FOOTER_LENGTH) {
-								uint8_t mode = dma_buffer[MESSAGE_PAYLOAD_ADDR];
-								if (mode <= 4U) {
-									leds_test_set_mode(LEDS_TEST_MODE_HALL, mode);
-								} else if (5U <= mode && mode <= 8U) {
-									leds_test_set_mode(LEDS_TEST_MODE_ENCODER, mode - 5U);
-								} else if (mode == 0x21U) {
-									leds_test_set_mode(LEDS_TEST_MODE_CONSTANT, 0x7U);
-								} else {
-									leds_test_set_mode(LEDS_TEST_MODE_NORMAL, 0U);
-								}
-							}
-							break;
-
-						case 0x08U: // Reboot
-							if (frame_length == HEADER_LENGTH + 1U + FOOTER_LENGTH) {
-								main_shutdown(MAIN_SHUT_MODE_REBOOT);
+	    case 0x03U: // Set LED mode
+	      if (frame_length == HEADER_LENGTH + 2U + FOOTER_LENGTH) {
+	        uint8_t mode = dma_buffer[MESSAGE_PAYLOAD_ADDR];
+		if (mode <= 4U) {
+		  leds_test_set_mode(LEDS_TEST_MODE_HALL, mode);
+		}else if (5U <= mode && mode <= 8U) {
+		  leds_test_set_mode(LEDS_TEST_MODE_ENCODER, mode - 5U);
+		}else if (mode == 0x21U) {
+		  leds_test_set_mode(LEDS_TEST_MODE_CONSTANT, 0x7U);
+		}else {
+		  leds_test_set_mode(LEDS_TEST_MODE_NORMAL, 0U);
+		}
+	      }
+	    break;
+	    case 0x08U: // Reboot
+	    if (frame_length == HEADER_LENGTH + 1U + FOOTER_LENGTH) {
+	      main_shutdown(MAIN_SHUT_MODE_REBOOT);
 							}
 							break;
 

@@ -10,11 +10,8 @@ typedef struct
 	float speed_angle;
 } wheel_speeds_t;
 
-//const int queueSize = 50;
-//volatile unsigned char buffer[queueSize];
-
-void circbuff_init(speed_t queue[], unsigned int queueSize);
-void addToQueue(speed_t queue[], unsigned int queueSize, speed_t value);
-speed_t getFromQueue(speed_t queue[], unsigned int queueSize, unsigned int index);
+void circbuff_init(wheel_speeds_t queue[], unsigned int queueSize);
+void add_to_circ_buff(wheel_speeds_t queue[], unsigned int queueSize, wheel_speeds_t value);
+wheel_speeds_t get_from_circ_buff(wheel_speeds_t queue[], unsigned int queueSize, unsigned int index);
 
 #endif // CIRCBUFF_H
