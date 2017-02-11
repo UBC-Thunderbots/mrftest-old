@@ -134,14 +134,12 @@ static void receive_task(void *UNUSED(param)) {
                 robot_y |= (dma_buffer[buffer_position++] << 8);
                 robot_angle |= dma_buffer[buffer_position++];
                 robot_angle |= (dma_buffer[buffer_position++] << 8);
-
-		dr_set_robot_frame(robot_x, robot_y, robot_angle);
               }
               else {
                 buffer_position += 6;
               }
             }
-          } 
+          }
 
           // If the packet contains a timestamp, it will be in the next 
           // 8 bytes.
@@ -156,7 +154,6 @@ static void receive_task(void *UNUSED(param)) {
             // the timestamp for the camera data.
             if (contains_robot) {
               dr_set_robot_timestamp(timestamp);
-	      dr_apply_cam();
             }
             if (contains_ball) {
               dr_set_ball_timestamp(timestamp);
@@ -206,7 +203,7 @@ static void receive_task(void *UNUSED(param)) {
 		width |= dma_buffer[MESSAGE_PAYLOAD_ADDR + 1U];
 		chicker_fire(which ? CHICKER_CHIP : CHICKER_KICK, width);
 	      }
-	    break;
+	      break;
 	    case 0x01U: // Arm autokick
 	      if (frame_length == HEADER_LENGTH + 4U + FOOTER_LENGTH) {
 	        uint8_t which = dma_buffer[MESSAGE_PAYLOAD_ADDR];
@@ -215,13 +212,13 @@ static void receive_task(void *UNUSED(param)) {
 		width |= dma_buffer[MESSAGE_PAYLOAD_ADDR + 1U];
 		chicker_auto_arm(which ? CHICKER_CHIP : CHICKER_KICK, width);
 	      }
-	    break;
+	      break;
 
 	    case 0x02U: // Disarm autokick
 	      if (frame_length == HEADER_LENGTH + 1U + FOOTER_LENGTH) {
 	        chicker_auto_disarm();
 	      }
-	    break;
+	      break;
 
 	    case 0x03U: // Set LED mode
 	      if (frame_length == HEADER_LENGTH + 2U + FOOTER_LENGTH) {
@@ -236,28 +233,27 @@ static void receive_task(void *UNUSED(param)) {
 		  leds_test_set_mode(LEDS_TEST_MODE_NORMAL, 0U);
 		}
 	      }
-	    break;
+	      break;
 	    case 0x08U: // Reboot
-	    if (frame_length == HEADER_LENGTH + 1U + FOOTER_LENGTH) {
-	      main_shutdown(MAIN_SHUT_MODE_REBOOT);
-							}
-							break;
+	      if (frame_length == HEADER_LENGTH + 1U + FOOTER_LENGTH) {
+	        main_shutdown(MAIN_SHUT_MODE_REBOOT);
+	      }
+	      break;
+	    case 0x09U: // Force on motor power
+	      if (frame_length == HEADER_LENGTH + 1U + FOOTER_LENGTH) {
+	        motor_force_power();
+	      }
+	      break;
+ 
+	    case 0x0CU: // Shut down
+	      if (frame_length == HEADER_LENGTH + 1U + FOOTER_LENGTH) {
+	        main_shutdown(MAIN_SHUT_MODE_POWER);
+	      }
+	      break;
 
-						case 0x09U: // Force on motor power
-							if (frame_length == HEADER_LENGTH + 1U + FOOTER_LENGTH) {
-								motor_force_power();
-							}
-							break;
-
-						case 0x0CU: // Shut down
-							if (frame_length == HEADER_LENGTH + 1U + FOOTER_LENGTH) {
-								main_shutdown(MAIN_SHUT_MODE_POWER);
-							}
-							break;
-
-						case 0x0DU: // Request build IDs
-							feedback_pend_build_ids();
-							break;
+	    case 0x0DU: // Request build IDs
+	      feedback_pend_build_ids();
+	      break;
 
             case 0x0EU: // Set capacitor bits.
               xSemaphoreTake(drive_mtx, portMAX_DELAY);
@@ -267,8 +263,15 @@ static void receive_task(void *UNUSED(param)) {
               xSemaphoreGive(drive_mtx);
               break;
 
+	    primitive_params_t prim_params;
             case 0x0FU: // Stop Primitive
+		xSemaphoreTake(drive_mtx, portMAX_DELAY);
+		primitive_start(0, &prim_params);
+		xSemaphoreGive(drive_mtx);
             case 0x10U: // Move Primitive
+		xSemaphoreTake(drive_mtx, portMAX_DELAY);
+		primitive_start(1, &prim_params);
+		xSemaphoreGive(drive_mtx);
             case 0x11U: // Dribble Primitive
             case 0x12U: // Shoot Primitive
             case 0x13U: // Catch Primitive
@@ -295,14 +298,13 @@ static void receive_task(void *UNUSED(param)) {
               break; 
           }
         }
-			}
-		}
-	}
-
-	// mrf_receive returned zero, which means a cancellation has been requested.
-	// This means we are shutting down.
-	xSemaphoreGive(main_shutdown_sem);
-	vTaskSuspend(0);
+      }
+    }
+  }
+  // mrf_receive returned zero, which means a cancellation has been requested.
+  // This means we are shutting down.
+  xSemaphoreGive(main_shutdown_sem);
+  vTaskSuspend(0);
 }
 
 /**
