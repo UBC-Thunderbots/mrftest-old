@@ -75,6 +75,7 @@ class MRFRobot final : public Drive::Robot {
 		~MRFRobot(); // Public only for std::unique_ptr.
 	private:
 		void encode_drive_packet(void *out);
+		void send_primitive(uint16_t primitive);
 		void handle_message(const void *data, std::size_t len, uint8_t lqi, uint8_t rssi);
 		bool handle_feedback_timeout();
 		void handle_direct_control_changed();
