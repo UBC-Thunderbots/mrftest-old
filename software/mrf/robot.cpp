@@ -404,8 +404,6 @@ void MRFRobot::send_primitive(uint16_t primitive)
 	// 1st word = Primitive, 2nd to 5th words = Parameters, 6th word = Flag (extra/slow) 
 	uint16_t words[6];
 
-	// 
-	uint8_t* primitive_packet[12];
 	// Encode the movement primitive byte
 	words[0] = primitive;
 
@@ -441,7 +439,8 @@ void MRFRobot::send_primitive(uint16_t primitive)
 
 	assert(extra <= 127);
 	uint8_t extra_encoded = static_cast<uint8_t>(extra | (slow ? 0x08 : 0x00));
-	words[6] |= extra_encoded;
+
+	words[6] |= static_cast<uint16_t>(extra_encoded);
 
 	// Convert the words to bytes.
 	uint8_t *data = new uint8_t;
