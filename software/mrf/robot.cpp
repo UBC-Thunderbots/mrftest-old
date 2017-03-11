@@ -438,9 +438,9 @@ void MRFRobot::send_primitive(uint16_t primitive)
 	}
 
 	assert(extra <= 127);
-	uint8_t extra_encoded = static_cast<uint8_t>(extra | (slow ? 0x08 : 0x00));
+	uint16_t extra_encoded = static_cast<uint8_t>(extra | (slow ? 0x0100 : 0x0000));
 
-	words[6] |= static_cast<uint16_t>(extra_encoded);
+	words[6] = extra_encoded;
 
 	// Convert the words to bytes.
 	uint8_t *data = new uint8_t;
