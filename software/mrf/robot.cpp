@@ -169,139 +169,152 @@ void MRFRobot::set_charger_state(ChargerState state) {
 void MRFRobot::move_slow(bool slow) {
 	assert(!direct_control);
 	this->slow = slow;
-	dirty_drive();
+	uint16_t primitive = 0x0F;
+	send_primitive(primitive);
 }
 
 void MRFRobot::move_coast() {
 	assert(!direct_control);
-	primitive = Drive::Primitive::STOP;
+	uint16_t primitive = 0x0F;
+
+	//primitive = Drive::Primitive::STOP;
 	params[0] = 0.0;
 	params[1] = 0.0;
 	params[2] = 0.0;
 	params[3] = 0.0;
-	extra = 0;
-	dirty_drive();
+
+	send_primitive(primitive);
+	//dongle_.SendReliableMessageOperation();
+	//dirty_drive();
 }
 
 void MRFRobot::move_brake() {
 	assert(!direct_control);
-	primitive = Drive::Primitive::STOP;
+	uint16_t primitive = 0x0F;
+	//primitive = Drive::Primitive::STOP;
 	params[0] = 0.0;
 	params[1] = 0.0;
 	params[2] = 0.0;
 	params[3] = 0.0;
+
 	extra = 1;
-	dirty_drive();
+	send_primitive(primitive);
+	//dirty_drive();
 }
 
 void MRFRobot::move_move(Point dest, double time_delta) {
 	assert(!direct_control);
-	primitive = Drive::Primitive::MOVE;
+	uint16_t primitive = 0x10;
+	//primitive = Drive::Primitive::MOVE;
 	params[0] = dest.x * 1000.0;
 	params[1] = dest.y * 1000.0;
 	params[2] = 0.0;
 	params[3] = time_delta * 1000.0;
+
 	extra = 0;
-	dirty_drive();
+	send_primitive(primitive);
+	//dirty_drive();
 }
 
 void MRFRobot::move_move(Point dest, Angle orientation, double time_delta) {
 	assert(!direct_control);
-	primitive = Drive::Primitive::MOVE;
+	uint16_t primitive = 0x10;
 	params[0] = dest.x * 1000.0;
 	params[1] = dest.y * 1000.0;
 	params[2] = orientation.angle_mod().to_radians() * 100.0;
 	params[3] = time_delta * 1000.0;
 	extra = 1;
-	dirty_drive();
+
+	send_primitive(primitive);
+	//dirty_drive();
 }
 
 void MRFRobot::move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed) {
 	assert(!direct_control);
-	primitive = Drive::Primitive::DRIBBLE;
+	uint16_t primitive = 0x11;
 	params[0] = dest.x * 1000.0;
 	params[1] = dest.y * 1000.0;
 	params[2] = orientation.angle_mod().to_radians() * 100.0;
 	params[3] = desired_rpm;
 	extra = small_kick_allowed;
-	dirty_drive();
+	send_primitive(primitive);
 }
 
 void MRFRobot::move_shoot(Point dest, double power, bool chip) {
 	assert(!direct_control);
-	primitive = Drive::Primitive::SHOOT;
+	uint16_t primitive = 0x12;
 	params[0] = dest.x * 1000.0;
 	params[1] = dest.y * 1000.0;
 	params[2] = 0.0;
 	uint16_t chick_power = static_cast<uint16_t>(chicker_power_to_pulse_width(power,chip));
 	params[3] = chick_power;
 	extra = chip;
-	dirty_drive();
+	send_primitive(primitive);
 }
 
 void MRFRobot::move_shoot(Point dest, Angle orientation, double power, bool chip) {
 	assert(!direct_control);
-	primitive = Drive::Primitive::SHOOT;
+	uint16_t primitive = 0x12;
 	params[0] = dest.x * 1000.0;
 	params[1] = dest.y * 1000.0;
 	params[2] = orientation.angle_mod().to_radians() * 100.0;
 	uint16_t chick_power = static_cast<uint16_t>(chicker_power_to_pulse_width(power,chip));
 	params[3] = chick_power;
 	extra = static_cast<uint8_t>(2 | chip);
-	dirty_drive();
+	send_primitive(primitive);
 }
 
 void MRFRobot::move_catch(Angle angle_diff, double displacement, double speed) {
 	assert(!direct_control);
-	primitive = Drive::Primitive::CATCH;
+	uint16_t primitive = 0x13;
 	params[0] = angle_diff.angle_mod().to_radians() * 100.0;
 	params[1] = displacement * 1000.0;
 	params[2] = speed * 1000.0;
 	params[3] = 0.0;
 	extra = 0;
-	dirty_drive();
+	send_primitive(primitive);
 }
 
 void MRFRobot::move_pivot(Point centre, Angle swing, Angle orientation) {
 	assert(!direct_control);
-	primitive = Drive::Primitive::PIVOT;
+	uint16_t primitive = 0x14;
 	params[0] = centre.x * 1000.0;
 	params[1] = centre.y * 1000.0;
 	params[2] = swing.angle_mod().to_radians() * 100.0;
 	params[3] = orientation.angle_mod().to_radians() * 100.0;
 	extra = 0;
-	dirty_drive();
+	send_primitive(primitive);
 }
 
 void MRFRobot::move_spin(Point dest, Angle speed) {
 	assert(!direct_control);
-	primitive = Drive::Primitive::SPIN;
+	uint16_t primitive = 0x15;
 	params[0] = dest.x * 1000.0;
 	params[1] = dest.y * 1000.0;
 	params[2] = speed.to_radians() * 100.0;
 	params[3] = 0.0;
 	extra = 0;
-	dirty_drive();
+	send_primitive(primitive);
 }
 
 void MRFRobot::direct_wheels(const int (&wheels)[4]) {
 	assert(direct_control);
-	primitive = Drive::Primitive::DIRECT_WHEELS;
+	uint16_t primitive = 0x16;
 	params[0] = wheels[0];
 	params[1] = wheels[1];
 	params[2] = wheels[2];
 	params[3] = wheels[3];
-	dirty_drive();
+	send_primitive(primitive);
 }
 
 void MRFRobot::direct_velocity(Point vel, Angle avel) {
 	assert(direct_control);
-	primitive = Drive::Primitive::DIRECT_VELOCITY;
+	uint16_t primitive = 0x17;
 	params[0] = vel.x * 1000.0;
 	params[1] = vel.y * 1000.0;
 	params[2] = avel.to_radians() * 100.0;
 	params[3] = 0.0;
-	dirty_drive();
+	send_primitive(primitive);
 }
 
 void MRFRobot::direct_dribbler(unsigned int rpm) {
@@ -384,6 +397,63 @@ MRFRobot::MRFRobot(MRFDongle &dongle, unsigned int index) :
 
 MRFRobot::~MRFRobot() {
 	feedback_timeout_connection.disconnect();
+}
+
+void MRFRobot::send_primitive(uint16_t primitive)
+{
+	// 1st word = Primitive, 2nd to 5th words = Parameters, 6th word = Flag (extra/slow) 
+	uint16_t words[6];
+
+	// 
+	uint8_t* primitive_packet[12];
+	// Encode the movement primitive byte
+	words[0] = primitive;
+
+	// Encode the parameter words
+	for(std::size_t i = 0; i != sizeof(params) / sizeof(*params); ++i) {
+		double value = params[i];
+		switch (std::fpclassify(value)) {
+			case FP_NAN:
+				value = 0.0;
+				break;
+			case FP_INFINITE:
+				if (value > 0.0) {
+					value = 10000.0;
+				} else {
+					value = -10000.0;
+				}
+				break;
+		}
+		words[i] = 0;
+		if (value < 0.0) {
+			words[i] |= 1 << 10;
+			value = -value;
+		}
+		if (value > 1000.0) {
+			words[i] |= 1 << 11;
+			value *= 0.1;
+		}
+		if (value > 1000.0) {
+			value = 1000.0;
+		}
+		words[i] |= static_cast<uint16_t>(value);
+	}
+
+	assert(extra <= 127);
+	uint8_t extra_encoded = static_cast<uint8_t>(extra | (slow ? 0x08 : 0x00));
+	words[6] |= extra_encoded;
+
+	// Convert the words to bytes.
+	uint8_t *data = new uint8_t;
+	for (std::size_t i = 0; i != 4; ++i) {
+		*data++ = static_cast<uint8_t>(words[i]);
+		*data++ = static_cast<uint8_t>(words[i] / 256);
+	}
+
+	// Send the data
+	dongle_.send_unreliable(index, 0xF, data, 12);
+	//MRFDongle::SendReliableMessageOperation::SendReliableMessageOperation(dongle_, index, 0xF, data, 12);
+
 }
 
 void MRFRobot::encode_drive_packet(void *out) {
