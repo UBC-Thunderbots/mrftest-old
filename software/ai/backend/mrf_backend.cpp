@@ -170,12 +170,12 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 	//newdetbots.push_back(std::make_tuple(7, Point(2,1), Angle::half()));
 	if(newdetbots.empty()) return;
 	else{
-		AI::Timestamp current_time = std::chrono::steady_clock::now();
+	  //AI::Timestamp current_time = std::chrono::steady_clock::now();
 
-		auto time_delta = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - max_time);
+	  //auto time_delta = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - max_time);
 
-		//uint64_t int_time = (uint64_t)max_time.time_since_epoch().count();
-		uint64_t int_time = (uint64_t)time_delta.count();
+		uint64_t int_time = (uint64_t)max_time.time_since_epoch().count();
+		//uint64_t int_time = (uint64_t)time_delta.count();
 		std::cout << "Calling dongle.send_camera_packet with: ";
 		for (std::size_t i = 0; i < newdetbots.size(); ++i) {
 			std::cout << "bot number = " << unsigned(std::get<0>(newdetbots[i])) << ", ";
@@ -186,8 +186,8 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 
 		}
 		Point ball_pos = backend.ball().position();
-		ball_pos.x = ball_pos.x*0.666666;
-		ball_pos.y = ball_pos.y*0.666666;
+		ball_pos.x = ball_pos.x;
+		ball_pos.y = ball_pos.y;
 		dongle.send_camera_packet(newdetbots,ball_pos , &int_time);
 	}
 }

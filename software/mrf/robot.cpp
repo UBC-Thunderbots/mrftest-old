@@ -14,12 +14,15 @@
 #include <utility>
 #include <glibmm/main.h>
 #include <sigc++/functors/mem_fun.h>
+#include <iostream>
+#include <bitset>
 
 namespace {
 	/**
 	 * \brief The number of attempts to request the build IDs before giving up.
 	 */
 	const unsigned int REQUEST_BUILD_IDS_COUNT = 7;
+
 
 	/**
 	 * \brief The number of seconds to wait between consecutive requests for
@@ -167,13 +170,15 @@ void MRFRobot::set_charger_state(ChargerState state) {
 }
 
 void MRFRobot::move_slow(bool slow) {
-	assert(!direct_control);
+  assert(!direct_control);
 	this->slow = slow;
 	uint16_t primitive = 0x0F;
 	send_primitive(primitive);
+  
 }
 
 void MRFRobot::move_coast() {
+/*  
 	assert(!direct_control);
 	uint16_t primitive = 0x0F;
 
@@ -186,10 +191,11 @@ void MRFRobot::move_coast() {
 	send_primitive(primitive);
 	//dongle_.SendReliableMessageOperation();
 	//dirty_drive();
+*/	
 }
 
 void MRFRobot::move_brake() {
-	assert(!direct_control);
+  /*assert(!direct_control);
 	uint16_t primitive = 0x0F;
 	//primitive = Drive::Primitive::STOP;
 	params[0] = 0.0;
@@ -200,6 +206,7 @@ void MRFRobot::move_brake() {
 	extra = 1;
 	send_primitive(primitive);
 	//dirty_drive();
+*/	
 }
 
 void MRFRobot::move_move(Point dest, double time_delta) {
@@ -401,8 +408,16 @@ MRFRobot::~MRFRobot() {
 
 void MRFRobot::send_primitive(uint16_t primitive)
 {
+ 
 	// 1st word = Primitive, 2nd to 5th words = Parameters, 6th word = Flag (extra/slow) 
 	uint16_t words[6];
+
+	//Todo:remove this
+	primitive = 1;
+	params[0] = 0.0;
+	params[1] = 0.0;
+	params[2] = 0.0;
+	params[3] = 0.0;
 
 	// Encode the movement primitive byte
 	words[0] = primitive;
@@ -440,21 +455,32 @@ void MRFRobot::send_primitive(uint16_t primitive)
 	assert(extra <= 127);
 	uint16_t extra_encoded = static_cast<uint8_t>(extra | (slow ? 0x0100 : 0x0000));
 
-	words[6] = extra_encoded;
+	words[6] = static_cast<uint16_t>(extra_encoded);
 
 	// Convert the words to bytes.
-	uint8_t *data = new uint8_t;
-	for (std::size_t i = 0; i != 4; ++i) {
-		*data++ = static_cast<uint8_t>(words[i]);
-		*data++ = static_cast<uint8_t>(words[i] / 256);
+	uint8_t data[12];
+	for (std::size_t i = 0; i != 6; ++i) {
+		data[2*i] = static_cast<uint8_t>(words[i]);
+		data[2*i +1] = static_cast<uint8_t>(words[i] / 256);
 	}
+	std::cout << "\n";
+
+	std::cout << "Index: " << int(index) << ", Primitive: " << primitive;
+	std::cout << "\n, P0: " << params[0] << ", P1: " << params[1] << ", P2: " << params[2] << ", P3: " << params[3] << "\n";
+	
+	std::cout << "\n";
+	for(unsigned int i =0; i<12;i++){
+	  std::bitset<8> x(data[i]);
+	  std::cout << x << "   ";
+	}
+	std::cout << "\n" << std::endl;
 
 	// Send the data
-	dongle_.send_unreliable(index, 0xF, data, 12);
+	dongle_.send_unreliable(index, 1, &data, 12);
 	//MRFDongle::SendReliableMessageOperation::SendReliableMessageOperation(dongle_, index, 0xF, data, 12);
-
+	
 }
-
+/*
 void MRFRobot::encode_drive_packet(void *out) {
 	uint16_t words[4];
 
@@ -517,7 +543,7 @@ void MRFRobot::encode_drive_packet(void *out) {
 		*wptr++ = static_cast<uint8_t>(words[i] / 256);
 	}
 }
-
+*/
 void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, uint8_t rssi) {
 	link_quality = lqi / 255.0;
 	{

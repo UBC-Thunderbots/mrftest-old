@@ -401,6 +401,7 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 }
 
 bool MRFDongle::submit_drive_transfer() {
+  /*
 	if (!drive_transfer) {
 		std::size_t dirty_indices[sizeof(robots) / sizeof(*robots)];
 		std::size_t dirty_indices_count = 0;
@@ -436,10 +437,12 @@ bool MRFDongle::submit_drive_transfer() {
 				logger->log_mrf_drive(drive_packet, length);
 			}
 		}
-	}
+		}
+*/
 	return false;
 }
 
+/*
 void MRFDongle::handle_drive_transfer_done(AsyncOperation<void> &op) {
 	std::cout << "Drive Transfer done" << std::endl;
 	op.result();
@@ -448,7 +451,7 @@ void MRFDongle::handle_drive_transfer_done(AsyncOperation<void> &op) {
 		submit_drive_transfer();
 	}
 }
-
+*/
 void MRFDongle::handle_camera_transfer_done(AsyncOperation<void> &op) {
 	std::cout << "Camera Transfer done" << std::endl;
 	op.result();

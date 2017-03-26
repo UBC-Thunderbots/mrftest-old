@@ -570,6 +570,7 @@ namespace {
 
 					uint16_t cam_latency = decode_u16_le(ptr); ptr += 2;
 
+					unsigned int new_cam_data = decode_u8_le(ptr); ptr += 1;
 					unsigned int drive_serial = decode_u8_le(ptr); ptr += 1;
 					unsigned int primitive = decode_u8_le(ptr); ptr += 1;
 
