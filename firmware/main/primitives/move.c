@@ -135,9 +135,9 @@ static void move_tick(log_record_t *log) {
 	Clamp(&accel[2], MAX_T_A);
 
 	if (log) {
-		log->tick.primitive_data[0] = accel[0];
-		log->tick.primitive_data[1] = accel[1];
-		log->tick.primitive_data[2] = accel[2];
+	        log->tick.primitive_data[0] = destination[0];//accel[0];
+	        log->tick.primitive_data[1] = destination[1];//accel[1];
+	        log->tick.primitive_data[2] = destination[2];//accel[2];
 		log->tick.primitive_data[3] = timeX;
 		log->tick.primitive_data[4] = timeY;
 		log->tick.primitive_data[5] = timeTarget;

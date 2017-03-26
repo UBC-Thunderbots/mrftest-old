@@ -131,9 +131,9 @@ void dr_apply_cam() {
     
   float wheel_speeds[3];
 
-  int additional_delay = (int)(robot_camera_data.timestamp)/((int)(1000*TICK_TIME)); //In number of robot ticks
+  //int additional_delay = (int)(robot_camera_data.timestamp)/((int)(1000*TICK_TIME)); //In number of robot ticks
   //Todo: make sure delay is less than size of circ buffer
-  int total_delay = BASE_CAMERA_DELAY + additional_delay;
+  int total_delay = BASE_CAMERA_DELAY + 5;// + additional_delay;
   for(int i = total_delay; i >= 0; i--){
     wheel_speed = get_from_circ_buff(past_wheel_speeds, SPEED_SIZE, i);
 

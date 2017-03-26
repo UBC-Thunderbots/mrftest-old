@@ -68,7 +68,6 @@ static void receive_task(void *UNUSED(param)) {
 
   while ((frame_length = mrf_receive(dma_buffer))) {
 
-
     uint16_t frame_control = dma_buffer[0U] | (dma_buffer[1U] << 8U);
     // Sanity-check the frame control word
     if (((frame_control >> 0U) & 7U) == 1U /* Data packet */ && ((frame_control >> 3U) & 1U) == 0U /* No security */ && ((frame_control >> 6U) & 1U) == 1U /* Intra-PAN */ && ((frame_control >> 10U) & 3U) == 2U /* 16-bit destination address */ && ((frame_control >> 14U) & 3U) == 2U /* 16-bit source address */) {
@@ -165,9 +164,8 @@ static void receive_task(void *UNUSED(param)) {
           if ((status & 0x07) == robot_index) {
             feedback_pend_normal();   
           }
-         
           // If the estop has been switched off, execute the stop primitive. 
-          if (!estop_run) {
+          if (!estop_run){
 	    primitive_params_t pparams;
             for (i = 0; i < 4; i++) {
                pparams.params[i] = 0;
@@ -180,20 +178,13 @@ static void receive_task(void *UNUSED(param)) {
 	    timeout_ticks = 1000U / portTICK_PERIOD_MS;
             primitive_start(0, &pparams);
             // Return the drive mutex.
-	    xSemaphoreGive(drive_mtx);
-          } else{
-	    xSemaphoreTake(drive_mtx, portMAX_DELAY);
-	    //dr_do_maneuver();
-	    dr_follow_ball();
-	    xSemaphoreGive(drive_mtx);
-	   }        
-        } 
-        
+	    xSemaphoreGive(drive_mtx); 
+          }
+        }  
         // Otherwise, it is a message packet specific to this robot.
         else if (frame_length >= HEADER_LENGTH + 1U + FOOTER_LENGTH) {
           static const uint16_t MESSAGE_PURPOSE_ADDR = HEADER_LENGTH;
 	  static const uint16_t MESSAGE_PAYLOAD_ADDR = MESSAGE_PURPOSE_ADDR + 1U;
-	  primitive_params_t pparams;
           switch (dma_buffer[MESSAGE_PURPOSE_ADDR]) {
             case 0x00:
 	      if (frame_length == HEADER_LENGTH + 4U + FOOTER_LENGTH) {
@@ -262,16 +253,9 @@ static void receive_task(void *UNUSED(param)) {
               chicker_discharge(capacitor_flag & 0x01);
               xSemaphoreGive(drive_mtx);
               break;
-
-	    primitive_params_t prim_params;
-            case 0x0FU: // Stop Primitive
-		xSemaphoreTake(drive_mtx, portMAX_DELAY);
-		primitive_start(0, &prim_params);
-		xSemaphoreGive(drive_mtx);
+	      
+	    case 0x0FU: // Stop Primitive
             case 0x10U: // Move Primitive
-		xSemaphoreTake(drive_mtx, portMAX_DELAY);
-		primitive_start(1, &prim_params);
-		xSemaphoreGive(drive_mtx);
             case 0x11U: // Dribble Primitive
             case 0x12U: // Shoot Primitive
             case 0x13U: // Catch Primitive
@@ -279,23 +263,23 @@ static void receive_task(void *UNUSED(param)) {
             case 0x15U: // Spin Primitive
             case 0x16U: // Direct Wheels Primitive
             case 0x17U: // Direct Velocity Primitive
-              if (estop_run) {
-                // Take the drive mutex.
+	      if (estop_run) {
+                primitive_params_t pparams;
+		// Take the drive mutex.
                 xSemaphoreTake(drive_mtx, portMAX_DELAY);
                 // Reset timeout.
                 timeout_ticks = 1000U / portTICK_PERIOD_MS;
                 for (i = 0; i < 4; i++) {
-                  pparams.params[i] = dma_buffer[MESSAGE_PAYLOAD_ADDR+ 2*i + 1] << 8;
-                  pparams.params[i] |= dma_buffer[MESSAGE_PAYLOAD_ADDR + 2*i];
+                  pparams.params[i] = 0;//(dma_buffer[MESSAGE_PAYLOAD_ADDR+ 2*i + 1] << 8);
+                  //pparams.params[i] |= dma_buffer[MESSAGE_PAYLOAD_ADDR + 2*i];
                 }
-                pparams.slow = !!(dma_buffer[MESSAGE_PAYLOAD_ADDR + 9] & 0x01);
-                pparams.extra = dma_buffer[MESSAGE_PAYLOAD_ADDR + 8];
+                //pparams.slow = !!(dma_buffer[MESSAGE_PAYLOAD_ADDR + 9] & 0x01);
+                //pparams.extra = dma_buffer[MESSAGE_PAYLOAD_ADDR + 8];
                 //primitive_start(dma_buffer[MESSAGE_PURPOSE_ADDR] - 0x0F, &pparams);
-                // Return the drive mutex.
+                primitive_start(1,&pparams);
+		// Return the drive mutex.
                 xSemaphoreGive(drive_mtx);
               }
-            default:
-              break; 
           }
         }
       }

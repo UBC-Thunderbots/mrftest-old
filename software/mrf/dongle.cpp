@@ -20,6 +20,7 @@
 #include <sigc++/reference_wrapper.h>
 #include <sigc++/functors/mem_fun.h>
 #include <iostream>
+#include <bitset>
 
 namespace {
 	struct RadioConfig {
@@ -459,6 +460,14 @@ void MRFDongle::handle_camera_transfer_done(AsyncOperation<void> &op) {
 }
 
 void MRFDongle::send_unreliable(unsigned int robot, unsigned int tries, const void *data, std::size_t len) {
+	uint8_t *p = (uint8_t *)(data);
+	std::cout << "\n";
+	for(unsigned int i =0; i<9;i++){
+	  std::bitset<8> x(p[i]);
+	  std::cout << x << "   ";
+	}
+	std::cout << "\n" << std::endl;
+	
 	assert(robot < 8);
 	assert((1 <= tries) && (tries <= 256));
 	if (logger) {
