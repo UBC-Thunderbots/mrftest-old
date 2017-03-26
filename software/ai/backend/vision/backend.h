@@ -129,16 +129,13 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 		FriendlyTeam, EnemyTeam>::tick() {
 	vision_rx.packets_mutex.lock();
 	std::pair<SSL_WrapperPacket, AI::Timestamp> packet;
-	int count = 1;
 	while(!vision_rx.vision_packets.empty()){
-		std::cout << "processsing packet " << count << std::endl;
 		packet = vision_rx.vision_packets.front();
-		if(count <= 2){
-			this->handle_vision_packet(packet.first, packet.second);
-		}
+		this->handle_vision_packet(packet.first, packet.second);
 		vision_rx.vision_packets.pop();
-		count ++;
 	}
+	//Todo: call function that sends camera data
+
 	vision_rx.packets_mutex.unlock();
 
 	//friendly_team().transmit_positions();

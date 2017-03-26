@@ -470,7 +470,7 @@ void MRFRobot::send_primitive(uint16_t primitive)
 	std::cout << "\n, P0: " << params[0] << ", P1: " << params[1] << ", P2: " << params[2] << ", P3: " << params[3] << "\n";
 	
 */
-	uint8_t data[11] = {16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	uint8_t data[11] = {16, 0, 1, 0, 2, 0, 3, 0, 4, 0, 0};
 	// Send the data
 	dongle_.send_unreliable(index, 2, data, 11);
 	//MRFDongle::SendReliableMessageOperation::SendReliableMessageOperation(dongle_, index, 0xF, data, 12);
