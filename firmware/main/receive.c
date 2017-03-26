@@ -133,7 +133,8 @@ static void receive_task(void *UNUSED(param)) {
                 robot_y |= (dma_buffer[buffer_position++] << 8);
                 robot_angle |= dma_buffer[buffer_position++];
                 robot_angle |= (dma_buffer[buffer_position++] << 8);
-              }
+		dr_set_robot_frame(robot_x, robot_y, robot_angle);
+	      }
               else {
                 buffer_position += 6;
               }
@@ -167,11 +168,6 @@ static void receive_task(void *UNUSED(param)) {
           // If the estop has been switched off, execute the stop primitive. 
           if (!estop_run){
 	    primitive_params_t pparams;
-            for (i = 0; i < 4; i++) {
-               pparams.params[i] = 0;
-            }
-            pparams.slow = false;
-            pparams.extra = 0;
 	    // Take the drive mutex.
 	    xSemaphoreTake(drive_mtx, portMAX_DELAY);
 	    // Reset timeout.
@@ -270,10 +266,10 @@ static void receive_task(void *UNUSED(param)) {
                 // Reset timeout.
                 timeout_ticks = 1000U / portTICK_PERIOD_MS;
                 for (i = 0; i < 4; i++) {
-                  pparams.params[i] = 0;//(dma_buffer[MESSAGE_PAYLOAD_ADDR+ 2*i + 1] << 8);
-                  //pparams.params[i] |= dma_buffer[MESSAGE_PAYLOAD_ADDR + 2*i];
+                  pparams.params[i] = (dma_buffer[MESSAGE_PAYLOAD_ADDR+ 2*i + 1] << 8);
+                  pparams.params[i] |= dma_buffer[MESSAGE_PAYLOAD_ADDR + 2*i];
                 }
-                //pparams.slow = !!(dma_buffer[MESSAGE_PAYLOAD_ADDR + 9] & 0x01);
+                pparams.slow = !!(dma_buffer[MESSAGE_PAYLOAD_ADDR + 9] & 0x01);
                 //pparams.extra = dma_buffer[MESSAGE_PAYLOAD_ADDR + 8];
                 //primitive_start(dma_buffer[MESSAGE_PURPOSE_ADDR] - 0x0F, &pparams);
                 primitive_start(1,&pparams);

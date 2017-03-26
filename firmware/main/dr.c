@@ -115,10 +115,15 @@ void dr_setaccel(float linear_accel[2], float angular_accel) {
  * \brief Sets the robot's camera frame.
  */
 void dr_set_robot_frame(int16_t x, int16_t y, int16_t angle) {
-  robot_camera_data.x = (float)(x/1000.0);
-  robot_camera_data.y = (float)(y/1000.0);
-  robot_camera_data.angle = (float)(angle/1000.0);
-  robot_camera_data.new_data = true;
+  // Check that the old data has been processed first 
+  // before overwriting with new camera data.
+  // Provides some thread safety
+  if(robot_camera_data.new_data == false){  
+    robot_camera_data.x = (float)(x/1000.0);
+    robot_camera_data.y = (float)(y/1000.0);
+    robot_camera_data.angle = (float)(angle/1000.0);
+    robot_camera_data.new_data = true;
+  }
 }
 
 
