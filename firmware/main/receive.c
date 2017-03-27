@@ -271,8 +271,8 @@ static void receive_task(void *UNUSED(param)) {
                 }
                 pparams.slow = !!(dma_buffer[MESSAGE_PAYLOAD_ADDR + 9] & 0x01);
                 //pparams.extra = dma_buffer[MESSAGE_PAYLOAD_ADDR + 8];
-                //primitive_start(dma_buffer[MESSAGE_PURPOSE_ADDR] - 0x0F, &pparams);
-                primitive_start(1,&pparams);
+                primitive_start(dma_buffer[MESSAGE_PURPOSE_ADDR] - 0x0F, &pparams);
+                //primitive_start(1,&pparams);
 		// Return the drive mutex.
                 xSemaphoreGive(drive_mtx);
               }

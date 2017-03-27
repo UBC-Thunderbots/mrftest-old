@@ -448,7 +448,7 @@ void MRFRobot::send_primitive(uint16_t primitive)
 		if (value > 1000.0) {
 			value = 1000.0;
 		}*/
-		words[i] |= static_cast<int16_t>(params[i]);
+		words[i] = static_cast<int16_t>(params[i]);
 	
 	}
 
