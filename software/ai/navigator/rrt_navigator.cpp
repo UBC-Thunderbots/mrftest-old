@@ -43,11 +43,6 @@ namespace AI {
 						NO_ACTION_OR_MOVE,
 						SHOOT_FAILED
 					};
-
-					ShootActionType shoot_movement_zoning(Player player, Point ball_pos, Point target_pos);
-					ShootActionType shoot_movement_sequence(Player player, Point ball_pos, Point target_pos, PrimitiveDescriptor last_primitive);
-					PrimitiveDescriptor move_in_local_coord(Player player, PrimitiveDescriptor global);
-					PrimitiveDescriptor pivot_in_local_coord(Player player, PrimitiveDescriptor shoot_pivot_request);
 					RRTPlanner planner;
 			};
 		}
@@ -57,101 +52,6 @@ namespace AI {
 using AI::Nav::RRT::RRTNavigator;
 
 RRTNavigator::RRTNavigator(AI::Nav::W::World world) : Navigator(world), planner(world) {
-}
-
-RRTNavigator::ShootActionType RRTNavigator::shoot_movement_sequence(Player player, Point ball_pos, Point target_pos, PrimitiveDescriptor last_primitive) {
-	ShootActionType zone = shoot_movement_zoning(player, ball_pos, target_pos);
-	if (last_primitive.prim == Drive::Primitive::SHOOT) {
-		if (zone != SHOOT_FAILED ){
-			return SHOULD_SHOOT;
-		}
-		else {
-			return SHOULD_PIVOT;
-		}
-	}
-	else if (last_primitive.prim == Drive::Primitive::PIVOT) {
-		if (zone != SHOULD_SHOOT) {
-			return SHOULD_PIVOT;
-		}
-		else {
-			return SHOULD_SHOOT;
-		}
-	}
-	else {
-		return zone;
-	}
-}
-
-RRTNavigator::ShootActionType RRTNavigator::shoot_movement_zoning(Player player, Point ball_pos, Point target_pos) {
-	Point ball2target = target_pos - ball_pos;
-	Point ball2player = player.position() - ball_pos;
-	Angle swing_diff = (ball2target.orientation() - ball2player.orientation() + Angle::half()).angle_mod();
-
-	if (swing_diff.abs() <= Angle::of_degrees(5)) {
-		// within angle tolerance of pivot
-		return SHOULD_SHOOT;
-	} else if (swing_diff.abs() <= Angle::of_degrees(90) && ball2player.len()
-		<= Robot::MAX_RADIUS)
-	{
-		if (std::fabs(ball2player.dot(ball2target)) <= 0.3 * Robot::MAX_RADIUS) {	
-			// within distance tolerance to shoot ball, but geometry is really off
-			return SHOOT_FAILED;
-		}
-		else {
-			// within distance tolerance to shoot ball
-			return SHOULD_SHOOT;
-		}
-	}
-	else if (swing_diff.abs() > Angle::of_degrees(5) && swing_diff.abs() <= Angle::of_degrees(50)) {
-		// boundary between pivot, shoot and move
-		return NO_ACTION_OR_PIVOT;
-	}
-	else if (ball2player.len() < 1.0) {
-		// close to ball but angle is too off
-		return SHOULD_PIVOT;
-	}
-	else if (ball2player.len() < 1.4) {
-		// Boundary between pivot and move
-		return NO_ACTION_OR_MOVE;
-	}
-	else {
-		// Get further away so we can pivot safely.
-		return SHOULD_MOVE;
-	}
-}
-
-
-PrimitiveDescriptor RRTNavigator::pivot_in_local_coord(Player player, PrimitiveDescriptor global) {
-	Point player2centre = global.field_point() - player.position();
-	Angle pivot_swing = (global.field_angle() - player2centre.orientation() );
-	Point pivot_dest_local = player2centre.rotate(-player.orientation());
-	Angle rotate_angle_local = global.field_angle() - player.orientation();
-
-	PrimitiveDescriptor local(global.prim, pivot_dest_local.x, pivot_dest_local.y, pivot_swing.to_radians(), rotate_angle_local.to_radians(), 0);
-	return local;
-}
-
-PrimitiveDescriptor RRTNavigator::move_in_local_coord(Player player, PrimitiveDescriptor global) {
-	Point pos_diff = global.field_point() - player.position();
-	Point robot_local_dest = pos_diff.rotate(-player.orientation());
-	Angle robot_local_angle = (global.field_angle() - player.orientation());
-
-	if ((player.flags() & AI::Flags::MoveFlags::CAREFUL) != AI::Flags::MoveFlags::NONE) {
-#warning Robocup 2016 this is a hack to limit velocity on the controller side! but it seems to work well...
-		Angle sign = robot_local_angle.to_degrees() > 0 ? Angle::of_degrees(angle_increment) : Angle::of_degrees(-angle_increment);
-
-		if (sign.abs() < (global.field_angle() - player.orientation()).abs()) {
-			robot_local_angle = sign;
-		}
-
-		if (robot_local_dest.len() > linear_increment) {
-			robot_local_dest = robot_local_dest.norm() * linear_increment;
-		}
-	}
-
-	PrimitiveDescriptor local(global.prim, robot_local_dest.x, robot_local_dest.y, robot_local_angle.to_radians(), 0, 0);
-
-	return local;
 }
 
 void RRTNavigator::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
@@ -262,22 +162,12 @@ void RRTNavigator::plan(Player player) {
 	// execute the plan
 	// some calculation that are generally useful
 	Point pos_diff = nav_request.field_point() - player.position();
-	Point robot_local_dest = pos_diff.rotate(-player.orientation());
-
-	// some shoot related stuff
-	ShootActionType zone;
 
 	PrimitiveDescriptor pivot_request;
 	PrimitiveDescriptor pivot_local;
 	PrimitiveDescriptor shoot_request;
-	PrimitiveDescriptor local_coord;
 	Point target_position = Point::of_angle(hl_request.field_angle()) + hl_request.field_point();
-
-	if (hl_request.prim != Drive::Primitive::SHOOT) {
-		player_data->last_shoot_primitive.prim = Drive::Primitive::MOVE;
-	}
-
-
+	
 	switch (nav_request.prim) {
 		case Drive::Primitive::STOP:
 			if (nav_request.extra & 1) {
@@ -289,167 +179,39 @@ void RRTNavigator::plan(Player player) {
 			break;
 		case Drive::Primitive::MOVE:
 			if (nav_request.extra & 1) { // care angle
-				local_coord = move_in_local_coord(player, nav_request);
-				LOG_DEBUG(Glib::ustring::compose("Time for new move robot %3, point %1, angle %2", local_coord.field_point(), local_coord.field_angle(), player.pattern()));
-
-				player.move_move(local_coord.field_point(), local_coord.field_angle(), hl_request.params[3] * nav_request_len / hl_request_len);
+				LOG_DEBUG(Glib::ustring::compose("Time for new move robot %3, point %1, angle %2", nav_request.field_point(), nav_request.field_angle(), player.pattern()));
+				player.move_move(nav_request.field_point(), nav_request.field_angle(), hl_request.params[3] * nav_request_len / hl_request_len);
 			}
 			else {
 				nav_request.field_angle() = Angle(); // fill in angle so the function doesn't crash
-				local_coord = move_in_local_coord(player, nav_request);
-				LOG_DEBUG(Glib::ustring::compose("Time for new move, point %1", local_coord.field_point()));
-				player.move_move(local_coord.field_point(), local_coord.field_angle(), hl_request.params[3] * nav_request_len / hl_request_len);
+				LOG_DEBUG(Glib::ustring::compose("Time for new move, point %1", nav_request.field_point()));
+				player.move_move(nav_request.field_point(), nav_request.field_angle(), hl_request.params[3] * nav_request_len / hl_request_len);
 			}
 			break;
 		case Drive::Primitive::DRIBBLE:
-			local_coord = move_in_local_coord(player, nav_request);
-			LOG_DEBUG(Glib::ustring::compose("Time for new dribble point %1, angle %2", local_coord.field_point(), local_coord.field_angle()));
-			player.move_dribble(local_coord.field_point(), local_coord.field_angle(), default_desired_rpm, false);
+			LOG_DEBUG(Glib::ustring::compose("Time for new dribble point %1, angle %2", nav_request.field_point(), nav_request.field_angle()));
+			player.move_dribble(nav_request.field_point(), nav_request.field_angle(), default_desired_rpm, false);
 			break;
 		case Drive::Primitive::SHOOT:
-			if (nav_request.extra & 2) { // care angle
-				// evaluate if we need to do a maneuver
-				player_data->fancy_shoot_maneuver = false;
-				// evaluate whether we are facing the right way to kick on target
-				zone = shoot_movement_sequence(player, nav_request.field_point(), target_position, player_data->last_shoot_primitive);
-				switch (zone) {
-					case SHOULD_SHOOT: // shooting
-						LOG_DEBUG(Glib::ustring::compose("new shoot first time (pos %1, angle %2)", hl_request.field_point(), hl_request.field_angle()));
-						local_coord = move_in_local_coord(player, hl_request);
-						shoot_request = hl_request;
-						player.move_shoot(local_coord.field_point(), local_coord.field_angle(), hl_request.params[3], hl_request.extra & 1);
-						LOG_DEBUG(Glib::ustring::compose("local params for shoot (pos %1, angle %2)", local_coord.field_point(), local_coord.field_angle()));
-						player_data->last_shoot_primitive = shoot_request;
-						break;
-					case SHOULD_MOVE: // moves a little closer to pivot center
-					case NO_ACTION_OR_MOVE:
-						LOG_DEBUG(Glib::ustring::compose("new move first time (pos %1, angle %2)", hl_request.field_point(), hl_request.field_angle()));
-						local_coord = move_in_local_coord(player, hl_request);
-						player.move_move(local_coord.field_point(), local_coord.field_angle(), hl_request.params[3] * nav_request_len / hl_request_len);
-						LOG_DEBUG(Glib::ustring::compose("local params for move, (pos %1, angle %2)", local_coord.field_point(), local_coord.field_angle()));
-						shoot_request = hl_request;
-						shoot_request.prim = Drive::Primitive::MOVE;
-						player_data->last_shoot_primitive = shoot_request;
-						break;
-					case NO_ACTION_OR_PIVOT: // when in doubt, do pivot
-					case SHOULD_PIVOT: // pivot around ball
-						LOG_DEBUG(Glib::ustring::compose("new pivot first time (pos %1, angle %2)", hl_request.field_point(), hl_request.field_angle()));
-						pivot_request = hl_request;
-						pivot_request.prim = Drive::Primitive::PIVOT;
-						pivot_local = pivot_in_local_coord( player, pivot_request );
-						player.move_pivot(pivot_local.field_point(), pivot_local.field_angle(), pivot_local.field_angle());
-						LOG_DEBUG(Glib::ustring::compose("local params for pivot, center %1, swing %2, rotation %3",
-									pivot_local.field_point(), pivot_local.field_angle(), pivot_local.field_angle_2()));
-						player_data->last_shoot_primitive = pivot_request;
-						break;
-					default:
-						break;
-				}
-			}
-			else {
-				player.move_shoot(robot_local_dest, nav_request.params[3], nav_request.extra & 1);
-			}
+			// deleted all of the old conditional code- too hacky, need to rewrite
+			// this probably doesn't currently work
+			player.move_shoot(nav_request.field_point(), nav_request.params[3], nav_request.extra & 1);
 			break;
 		case Drive::Primitive::CATCH:
 			player.move_catch(Angle::of_radians(nav_request.params[0]), nav_request.params[1], nav_request.params[2]);
 			break;
 		case Drive::Primitive::PIVOT:
 			LOG_DEBUG(Glib::ustring::compose("time for new pivot (pos %1, angle %2)", hl_request.field_point(), hl_request.field_angle()));
-			pivot_local = pivot_in_local_coord(player, hl_request);
-			player.move_pivot(pivot_local.field_point(), pivot_local.field_angle(), pivot_local.field_angle_2());
+			player.move_pivot(hl_request.field_point(), hl_request.field_angle(), hl_request.field_angle_2());
 			break;
 		case Drive::Primitive::SPIN:
-			local_coord = move_in_local_coord(player, nav_request);
-			LOG_DEBUG(Glib::ustring::compose("Time for new spin, point %1, angle speed %2", local_coord.field_point(), hl_request.field_angle()));
-			player.move_spin(local_coord.field_point(), hl_request.field_angle());
+			LOG_DEBUG(Glib::ustring::compose("Time for new spin, point %1, angle speed %2", nav_request.field_point(), hl_request.field_angle()));
+			player.move_spin(nav_request.field_point(), hl_request.field_angle());
 			break;
 		default:
 			LOG_ERROR(Glib::ustring::compose("Unhandled primitive! (%1)", static_cast<int>(nav_request.prim)));
 			break;
 	}
-
-	// then there are movement types that has zoning logic, new primitive may be created even when highlevel request has not changed
-
-	if (hl_request.prim == Drive::Primitive::SHOOT && (hl_request.extra & 2) /* care angle */ && player_data->fancy_shoot_maneuver) {
-		// evaluate whether we are facing the right way to kick on target
-
-		Point target_position = Point::of_angle(hl_request.field_angle()) + hl_request.field_point();
-		ShootActionType zone = shoot_movement_sequence(player, hl_request.field_point(), target_position, player_data->last_shoot_primitive);
-
-		PrimitiveDescriptor shoot_request, pivot_local, local_coord;
-
-		switch (zone) {
-			case NO_ACTION_OR_PIVOT:
-				// do nothing because player is close to a zone boundary
-			case NO_ACTION_OR_MOVE:
-				// do the last thing it did
-				shoot_request = player_data->last_shoot_primitive;
-
-				if (shoot_request.prim == Drive::Primitive::MOVE) {
-					LOG_DEBUG(Glib::ustring::compose("new move (pos %1, angle %2)", hl_request.field_point(), hl_request.field_angle() ));
-					local_coord = move_in_local_coord(player, shoot_request);
-					player.move_move(local_coord.field_point(), local_coord.field_angle(), hl_request.params[3] * nav_request_len / hl_request_len);
-					LOG_DEBUG(Glib::ustring::compose("local parameter for move, angle %1, point %2", local_coord.field_point(), local_coord.field_angle()));
-				}
-				else if (shoot_request.prim == Drive::Primitive::SHOOT) {
-					if (!defense_area_violation) {
-						LOG_DEBUG(Glib::ustring::compose("new shoot starting (pos %1, angle%2)", hl_request.field_point(), hl_request.field_angle() ));
-						local_coord = move_in_local_coord(player, shoot_request);
-						player.move_shoot(local_coord.field_point(), local_coord.field_angle(), hl_request.params[3], hl_request.extra & 1);
-						LOG_DEBUG(Glib::ustring::compose("local params for shoot, angle %1, point %2", local_coord.field_point(), local_coord.field_angle()));
-					} else {
-						LOG_DEBUG(Glib::ustring::compose("defense violation dest %1", hl_request.field_point()));
-						player.move_move(Point(0, 0));
-					}
-				} else if (shoot_request.prim == Drive::Primitive::PIVOT) {
-					LOG_DEBUG(Glib::ustring::compose("new pivot starting(pos%1, angle%2)", hl_request.field_point(), hl_request.field_angle()));
-					pivot_local = pivot_in_local_coord(player, shoot_request);
-					player.move_pivot(pivot_local.field_point(), pivot_local.field_angle(), pivot_local.field_angle());
-					LOG_DEBUG(Glib::ustring::compose("local parameter, angle %1, point %2", pivot_local.field_point(), pivot_local.field_angle_2()));
-				}
-
-				break;
-			case SHOULD_SHOOT: // shooting
-				shoot_request = hl_request;
-
-				if (!defense_area_violation) {
-					LOG_DEBUG(Glib::ustring::compose("new shoot starting(pos%1, angle%2)", hl_request.field_point(), hl_request.field_angle() ));
-
-					local_coord = move_in_local_coord(player, shoot_request);
-					player.move_shoot(local_coord.field_point(), local_coord.field_angle(), hl_request.params[3], hl_request.extra & 1);
-					LOG_DEBUG(Glib::ustring::compose("local parameter for shoot, angle %1, point %2", local_coord.field_point(), local_coord.field_angle()));
-					player_data->last_shoot_primitive = shoot_request;
-				} else {
-					LOG_DEBUG(Glib::ustring::compose("defense violation, dest %1", hl_request.field_point()));
-					player.move_move(Point(0, 0));
-				}
-				break;
-			case SHOULD_MOVE: // moves a little closer to pivot center
-				shoot_request = hl_request;
-				shoot_request.prim = Drive::Primitive::MOVE;
-				LOG_DEBUG(Glib::ustring::compose("new move starting first time (pos%1, angle%2)", hl_request.field_point(), hl_request.field_angle()));
-				local_coord = move_in_local_coord(player, shoot_request);
-				player.move_move(local_coord.field_point(), local_coord.field_angle());
-				LOG_DEBUG(Glib::ustring::compose("local parameter for move, angle %1, point %2", local_coord.field_point(), local_coord.field_angle()));
-				player_data->last_shoot_primitive = shoot_request;
-				break;
-			case SHOULD_PIVOT: // pivot around ball
-				shoot_request.prim = Drive::Primitive::PIVOT;
-				shoot_request.params[0] = hl_request.field_point().x;
-				shoot_request.params[1] = hl_request.field_point().y;
-				shoot_request.params[2] = hl_request.field_angle().to_radians();
-				LOG_DEBUG(Glib::ustring::compose("new pivot starting (pos%1, angle%2)", hl_request.field_point(), hl_request.field_angle()));
-				pivot_local = pivot_in_local_coord(player, shoot_request);
-				player.move_pivot(pivot_local.field_point(), pivot_local.field_angle(), pivot_local.field_angle_2());
-				player_data->last_shoot_primitive = shoot_request;
-				LOG_DEBUG(Glib::ustring::compose("local parameter, angle %1, point %2", pivot_local.field_point(), pivot_local.field_angle()));
-				break;
-			default:
-				break;
-		}
-	}
-
-
 	// TODO test if primitive is done
 }
 
