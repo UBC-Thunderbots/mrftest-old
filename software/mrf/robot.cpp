@@ -215,12 +215,11 @@ void MRFRobot::move_move(Point dest, double time_delta) {
 	//primitive = Drive::Primitive::MOVE;
 	params[0] = dest.x * 1000.0;
 	params[1] = dest.y * 1000.0;
-	params[2] = 0.0;
+	params[2] = 0.0; // should probably change this to point at net, or in current direction
 	params[3] = time_delta * 1000.0;
 
 	extra = 0;
 	send_primitive(primitive);
-	//dirty_drive();
 }
 
 void MRFRobot::move_move(Point dest, Angle orientation, double time_delta) {
@@ -233,7 +232,6 @@ void MRFRobot::move_move(Point dest, Angle orientation, double time_delta) {
 	extra = 1;
 
 	send_primitive(primitive);
-	//dirty_drive();
 }
 
 void MRFRobot::move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed) {
@@ -410,15 +408,6 @@ void MRFRobot::send_primitive(uint16_t primitive)
 {
 	// 1st word = Primitive, 2nd to 5th words = Parameters, 6th word = Flag (extra/slow) 
 	int16_t words[5];
-
-	//Todo:remove this
-	primitive = 16;
-
-	params[0] = 1.23*1000;
-	params[1] = 0.24*1000;
-	params[2] = 0.0;
-	params[3] = 0.0;
-
 
 	// Encode the parameter words
 	for(int i = 0; i != 4; ++i) {
