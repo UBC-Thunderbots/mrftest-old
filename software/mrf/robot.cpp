@@ -81,7 +81,7 @@ namespace {
 		{ 48, -78 },
 		{ 43, -79 },
 		{ 37, -80 },
-		{ 32, -81 },
+  		{ 32, -81 },
 		{ 27, -82 },
 		{ 23, -83 },
 		{ 18, -84 },
@@ -408,22 +408,21 @@ MRFRobot::~MRFRobot() {
 
 void MRFRobot::send_primitive(uint16_t primitive)
 {
- /*
 	// 1st word = Primitive, 2nd to 5th words = Parameters, 6th word = Flag (extra/slow) 
-	uint16_t words[5];
+	int16_t words[5];
 
 	//Todo:remove this
-	primitive = 0xF;
-	params[0] = 0.0;
-	params[1] = 0.0;
+	primitive = 16;
+
+	params[0] = 1.23*1000;
+	params[1] = 0.24*1000;
 	params[2] = 0.0;
 	params[3] = 0.0;
 
-	// Encode the movement primitive byte
-	words[0] = primitive;
 
 	// Encode the parameter words
-	for(int i = 0; i != 5; ++i) {
+	for(int i = 0; i != 4; ++i) {
+		/*
 		double value = params[i];
 		switch (std::fpclassify(value)) {
 			case FP_NAN:
@@ -448,29 +447,29 @@ void MRFRobot::send_primitive(uint16_t primitive)
 		}
 		if (value > 1000.0) {
 			value = 1000.0;
-		}
-		words[i] |= static_cast<uint16_t>(value);
+		}*/
+		words[i] |= static_cast<int16_t>(params[i]);
+	
 	}
 
 	assert(extra <= 127);
 
-	uint16_t extra_encoded = 0;//static_cast<uint8_t>(extra | (slow ? 0x0100 : 0x0000));
+	uint16_t extra_encoded = static_cast<uint8_t>(extra | (slow ? 0x0100 : 0x0000));
 
-	words[5] = static_cast<uint16_t>(extra_encoded);
+	words[4] = extra_encoded;
 
 	// Convert the words to bytes.
-	uint8_t data[12];
-	for (std::size_t i = 0; i != 6; ++i) {
-		data[2*i] = static_cast<uint8_t>(words[i]);
-		data[2*i +1] = static_cast<uint8_t>(words[i] / 256);
+	uint8_t data[11];
+	data[0] = (uint8_t)primitive;
+	for (std::size_t i = 0; i != 5; ++i) {
+		data[2*i + 1] = static_cast<uint8_t>(words[i]);
+		data[2*i + 2] = static_cast<uint8_t>(words[i] >> 8);
 	}
 	std::cout << "\n";
 
 	std::cout << "Index: " << int(index) << ", Primitive: " << primitive;
 	std::cout << "\n, P0: " << params[0] << ", P1: " << params[1] << ", P2: " << params[2] << ", P3: " << params[3] << "\n";
 	
-*/
-	uint8_t data[11] = {16, 0, 1, 0, 2, 0, 3, 0, 4, 0, 0};
 	// Send the data
 	dongle_.send_unreliable(index, 2, data, 11);
 	//MRFDongle::SendReliableMessageOperation::SendReliableMessageOperation(dongle_, index, 0xF, data, 12);

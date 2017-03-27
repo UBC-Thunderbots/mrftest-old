@@ -126,7 +126,8 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 						seen_this_frame[bot->pattern()] = true;
 						if (detbot.has_orientation()) {
 							bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
-							Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
+							//Todo: Remove the 0.66666 scaling- can't seem to get vision to send the right field size
+							Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0*0.6666666, (neg ? -detbot.y() : detbot.y()) / 1000.0*0.6666666);
 							Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::half() : Angle::zero())).angle_mod();
 							bot->add_field_data(pos, ori, ts[i]);
 							if(i == newest_index){

@@ -107,7 +107,6 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::Vision::Backe
 		const std::string &vision_port) :
 		disable_cameras(disable_cameras), refbox(multicast_interface), vision_rx(
 				multicast_interface, vision_port) {
-	std::cout << "In backend constr\n" << std::endl;
 	friendly_colour().signal_changed().connect(
 			sigc::mem_fun(this, &Backend::on_friendly_colour_changed));
 	playtype_override().signal_changed().connect(
@@ -129,11 +128,19 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 		FriendlyTeam, EnemyTeam>::tick() {
 	vision_rx.packets_mutex.lock();
 	std::pair<SSL_WrapperPacket, AI::Timestamp> packet;
-	while(!vision_rx.vision_packets.empty()){
+	/*while(!vision_rx.vision_packets.empty()){
 		packet = vision_rx.vision_packets.front();
-		this->handle_vision_packet(packet.first, packet.second);
 		vision_rx.vision_packets.pop();
+		this->handle_vision_packet(packet.first, packet.second);
+	}*/
+	if(!vision_rx.vision_packets.empty()){
+		while(!vision_rx.vision_packets.empty()){
+			packet = vision_rx.vision_packets.front();
+			vision_rx.vision_packets.pop();
+			this->handle_vision_packet(packet.first, packet.second);	
+		}
 	}
+	
 	//Todo: call function that sends camera data
 
 	vision_rx.packets_mutex.unlock();
