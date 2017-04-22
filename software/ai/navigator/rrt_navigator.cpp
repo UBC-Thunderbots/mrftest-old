@@ -171,10 +171,10 @@ void RRTNavigator::plan(Player player) {
 	switch (nav_request.prim) {
 		case Drive::Primitive::STOP:
 			if (nav_request.extra & 1) {
-				player.move_brake();
+				//player.move_brake();
 			}
 			else {
-				player.move_coast();
+				//player.move_coast();
 			}
 			break;
 		case Drive::Primitive::MOVE:

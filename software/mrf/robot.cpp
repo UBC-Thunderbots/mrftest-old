@@ -170,7 +170,8 @@ void MRFRobot::set_charger_state(ChargerState state) {
 }
 
 void MRFRobot::move_slow(bool slow) {
-  assert(!direct_control);
+	std::cout << "Move Slow" << std::endl;  
+  	assert(!direct_control);
 	this->slow = slow;
 	uint16_t primitive = 0x0F;
 	send_primitive(primitive);
@@ -178,7 +179,7 @@ void MRFRobot::move_slow(bool slow) {
 }
 
 void MRFRobot::move_coast() {
-/*  
+	std::cout << "Move Coast" << std::endl;  
 	assert(!direct_control);
 	uint16_t primitive = 0x0F;
 
@@ -191,11 +192,12 @@ void MRFRobot::move_coast() {
 	send_primitive(primitive);
 	//dongle_.SendReliableMessageOperation();
 	//dirty_drive();
-*/	
+	
 }
 
 void MRFRobot::move_brake() {
-  /*assert(!direct_control);
+	std::cout << "Move Brake" << std::endl;  
+	assert(!direct_control);
 	uint16_t primitive = 0x0F;
 	//primitive = Drive::Primitive::STOP;
 	params[0] = 0.0;
@@ -206,7 +208,7 @@ void MRFRobot::move_brake() {
 	extra = 1;
 	send_primitive(primitive);
 	//dirty_drive();
-*/	
+
 }
 
 void MRFRobot::move_move(Point dest, double time_delta) {
