@@ -87,6 +87,8 @@ private:
 	void tick();
 	void handle_vision_packet(const SSL_WrapperPacket &packet, AI::Timestamp time_rec);
 	void on_refbox_packet();
+	void update_geometry(const SSL_GeometryData &geom);
+	void update_ball(const SSL_DetectionFrame &det, AI::Timestamp time_rec);
 	void update_playtype();
 	void update_goalies();
 	void update_scores();
@@ -116,9 +118,6 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::Vision::Backe
 
 	clock.signal_tick.connect(sigc::mem_fun(this, &Backend::tick));
 
-	//vision_rx.signal_vision_data.connect(
-	//		sigc::mem_fun(this, &Backend::handle_vision_packet));
-
 	playtype_time = std::chrono::steady_clock::now();
 
 	pFilter_ = nullptr;
@@ -128,24 +127,14 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 		FriendlyTeam, EnemyTeam>::tick() {
 	vision_rx.packets_mutex.lock();
 	std::pair<SSL_WrapperPacket, AI::Timestamp> packet;
-	/*while(!vision_rx.vision_packets.empty()){
+
+	while(!vision_rx.vision_packets.empty()){
 		packet = vision_rx.vision_packets.front();
 		vision_rx.vision_packets.pop();
 		this->handle_vision_packet(packet.first, packet.second);
-	}*/
-	if(!vision_rx.vision_packets.empty()){
-		while(!vision_rx.vision_packets.empty()){
-			packet = vision_rx.vision_packets.front();
-			vision_rx.vision_packets.pop();
-			this->handle_vision_packet(packet.first, packet.second);	
-		}
 	}
-	
-	//Todo: call function that sends camera data
 
 	vision_rx.packets_mutex.unlock();
-
-	//friendly_team().transmit_positions();
 
 	// If the field geometry is not yet valid, do nothing.
 	if (!field_.valid()) {
@@ -169,9 +158,11 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 
 	// Do post-AI stuff (pushing data to the radios and updating predictors).
 	for (std::size_t i = 0; i < friendly_team().size(); ++i) {
-		friendly_team().get_backend_robot(i)->tick(
-				playtype() == AI::Common::PlayType::HALT,
-				playtype() == AI::Common::PlayType::STOP);
+		//test to see if this fixes halt spamming over radio
+		friendly_team().get_backend_robot(i)->tick(false,false);
+		//friendly_team().get_backend_robot(i)->tick(
+				//playtype() == AI::Common::PlayType::HALT,
+				//playtype() == AI::Common::PlayType::STOP);
 		friendly_team().get_backend_robot(i)->update_predictor(monotonic_time_);
 	}
 
@@ -190,22 +181,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 	// If it contains geometry data, update the field shape.
 	if (packet.has_geometry()) {
 		const SSL_GeometryData &geom(packet.geometry());
-		const SSL_GeometryFieldSize &fsize(geom.field());
-		double length = fsize.field_length() / 1000.0;
-		double total_length = length
-				+ (2.0 * fsize.boundary_width() + 2.0 * fsize.referee_width())
-						/ 1000.0;
-		double width = fsize.field_width() / 1000.0;
-		double total_width = width
-				+ (2.0 * fsize.boundary_width() + 2.0 * fsize.referee_width())
-						/ 1000.0;
-		double goal_width = fsize.goal_width() / 1000.0;
-		double centre_circle_radius = fsize.center_circle_radius() / 1000.0;
-		double defense_area_radius = fsize.defense_radius() / 1000.0;
-		double defense_area_stretch = fsize.defense_stretch() / 1000.0;
-		field_.update(length, total_length, width, total_width, goal_width,
-				centre_circle_radius, defense_area_radius,
-				defense_area_stretch);
+		update_geometry(geom);
 	}
 
 	if (!pFilter_ && field_.valid()) {
@@ -232,173 +208,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 		detections[det.camera_id()].second = time_rec;
 
 		// Update the ball.
-		if (!DISABLE_VISION_FILTER) {
-			// Compute the best ball position from the list of detections.
-			Point best_pos;
-			double best_conf = 0;
-			AI::Timestamp best_time = time_rec;
-
-			// Estimate the ball’s position at the camera frame’s timestamp.
-			double time_delta =
-					std::chrono::duration_cast<std::chrono::duration<double>>(
-							time_rec - ball_.lock_time()).count();
-
-			/* KALMAN VARIABLE DECLARATIONS */
-			Point estimated_position = ball_.position(time_delta);
-			Point estimated_velocity = ball_.velocity(time_delta);
-			Point estimated_stdev = ball_.position_stdev(time_delta);
-			double x_prob = 0, y_prob = 0;
-			double best_prob = 0;
-
-			if (time_delta >= 0) {
-				bool any_ball_inside = false;
-				for (const SSL_DetectionBall &b : det.balls()) {
-					if (fabs(b.x()) < field_.length() * 500 && fabs(b.y()) < field_.width() * 500) {
-						any_ball_inside = true;
-						break;
-					}
-				}
-
-				for (const SSL_DetectionBall &b : det.balls()) {
-					if ((fabs(b.x()) > field_.length() * 500 || fabs(b.y()) > field_.width() * 500)
-							&& any_ball_inside) {
-						continue;
-					}
-
-					// Compute the probability of this ball being the wanted one.
-					Point detection_position(b.x() / 1000.0, b.y() / 1000.0);
-					if (defending_end() == FieldEnd::EAST) {
-						detection_position = -detection_position;
-					}
-
-					if (AI::BE::Vision::USE_PARTICLE_FILTER) {
-						/* PARTICLE FILTER */
-						pFilter_->add(detection_position);
-					} else {
-						/* KALMAN FORMULAS */
-
-						/* old Kalman formulae
-						 * Point distance_from_estimate = detection_position - estimated_position;
-						 * x_prob = 1.0f / (std::pow(distance_from_estimate.x / estimated_stdev.x, 2.0) + 1.0f);
-						 * y_prob = 1.0f / (std::pow(distance_from_estimate.y / estimated_stdev.y, 2.0) + 1.0f);
-						 */
-
-						/* new Kalman formulae */
-						double a = (detection_position.x - estimated_position.x)
-								/ estimated_stdev.x;
-						x_prob = std::exp(-0.5 * a * a);
-						a = (detection_position.y - estimated_position.y)
-								/ estimated_stdev.y;
-						y_prob = std::exp(-0.5 * a * a);
-
-						double prob = x_prob * y_prob * b.confidence();
-						if (prob > best_prob) {
-							best_prob = prob;
-							best_pos = detection_position;
-						}
-
-						if (b.confidence() > best_conf) {
-							best_conf = b.confidence();
-							best_pos = detection_position;
-						}
-					}
-				}
-			}
-
-			if (AI::BE::Vision::USE_PARTICLE_FILTER) {
-				if (det.balls().size() > 0) {
-					ball_.add_field_data(pFilter_->getEstimate(), best_time);
-				} else {
-					// No useful detection from camera; instead, see if a robot has the ball.
-					std::vector<Point> has_ball_inputs;
-					for (std::size_t i = 0; i < friendly_team().size(); ++i) {
-						Player::Ptr player = friendly_team().get(i);
-						if (player->has_ball()) {
-							player->lock_time(time_rec);
-							Point pos = player->position(0);
-							pos += Point::of_angle(player->orientation(0))
-									* ROBOT_CENTRE_TO_FRONT_DISTANCE;
-							has_ball_inputs.push_back(pos);
-						}
-					}
-
-					if (!has_ball_inputs.empty()) {
-						Point avg;
-						for (auto i : has_ball_inputs) {
-							avg += i;
-						}
-						avg /= static_cast<double>(has_ball_inputs.size());
-						ball_.add_field_data(avg, time_rec);
-					}
-				}
-
-				pFilter_->update(time_delta);
-			} else {
-				/* KALMAN - UPDATE BALL */
-				if (best_prob >= BALL_FILTER_THRESHOLD) {
-					ball_.add_field_data(best_pos, best_time);
-				} else {
-					/*
-					// No useful detection from camera; instead, see if a robot has the ball.
-					std::vector<Point> has_ball_inputs;
-					for (std::size_t i = 0; i < friendly_team().size(); ++i) {
-						Player::Ptr player = friendly_team().get(i);
-						if (player->has_ball()) {
-							player->lock_time(time_rec);
-							Point pos = player->position(0);
-							pos += Point::of_angle(player->orientation(0))
-									* ROBOT_CENTRE_TO_FRONT_DISTANCE;
-							has_ball_inputs.push_back(pos);
-						}
-					}
-
-					if (!has_ball_inputs.empty()) {
-						Point avg;
-						for (auto i : has_ball_inputs) {
-							avg += i;
-						}
-						avg /= static_cast<double>(has_ball_inputs.size());
-						ball_.add_field_data(avg, time_rec);
-					}
-					*/
-				}
-
-				// ball_.add_field_data(best_pos, best_time);
-			}
-		}
-		else {
-			bool any_ball_inside = false;
-			for (const SSL_DetectionBall &b : det.balls()) {
-				if (fabs(b.x()) < field_.length() * 500 && fabs(b.y()) < field_.width() * 500) {
-					any_ball_inside = true;
-					break;
-				}
-			}
-
-			Point best_pos = Point();
-			double best_conf = 0;
-			for (const SSL_DetectionBall &b : det.balls()) {
-				if ((fabs(b.x()) > field_.length() * 500 || fabs(b.y()) > field_.width() * 500)
-						&& any_ball_inside) {
-					continue;
-				}
-
-				Point detection_position = Point(b.x() / 1000.0, b.y() / 1000.0);
-
-				if (defending_end() == FieldEnd::EAST) {
-					detection_position = -detection_position;
-				}
-
-				if (b.confidence() > best_conf) {
-					best_pos = detection_position;
-					best_conf = b.confidence();
-				}
-			}
-
-			if (best_conf > 0) {
-				ball_.add_field_data(best_pos, time_rec);
-			}
-		}
+		update_ball(det, time_rec);
 
 		// Update the robots.
 		std::vector<
@@ -429,6 +239,198 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 	return;
 }
 
+
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
+		FriendlyTeam, EnemyTeam>::update_geometry(const SSL_GeometryData &geom) {
+	const SSL_GeometryFieldSize &fsize(geom.field());
+	double length = fsize.field_length() / 1000.0;
+	double total_length = length
+			+ (2.0 * fsize.boundary_width() + 2.0 * fsize.referee_width())
+					/ 1000.0;
+	double width = fsize.field_width() / 1000.0;
+	double total_width = width
+			+ (2.0 * fsize.boundary_width() + 2.0 * fsize.referee_width())
+					/ 1000.0;
+	double goal_width = fsize.goal_width() / 1000.0;
+	double centre_circle_radius = fsize.center_circle_radius() / 1000.0;
+	double defense_area_radius = fsize.defense_radius() / 1000.0;
+	double defense_area_stretch = fsize.defense_stretch() / 1000.0;
+	field_.update(length, total_length, width, total_width, goal_width,
+			centre_circle_radius, defense_area_radius,
+			defense_area_stretch);
+}
+
+template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
+		FriendlyTeam, EnemyTeam>::update_ball(const SSL_DetectionFrame &det, AI::Timestamp time_rec) {
+
+	if (!DISABLE_VISION_FILTER) {
+		// Compute the best ball position from the list of detections.
+		Point best_pos;
+		double best_conf = 0;
+		AI::Timestamp best_time = time_rec;
+
+		// Estimate the ball’s position at the camera frame’s timestamp.
+		double time_delta =
+				std::chrono::duration_cast<std::chrono::duration<double>>(
+						time_rec - ball_.lock_time()).count();
+
+		/* KALMAN VARIABLE DECLARATIONS */
+		Point estimated_position = ball_.position(time_delta);
+		Point estimated_velocity = ball_.velocity(time_delta);
+		Point estimated_stdev = ball_.position_stdev(time_delta);
+		double x_prob = 0, y_prob = 0;
+		double best_prob = 0;
+
+		if (time_delta >= 0) {
+			bool any_ball_inside = false;
+			for (const SSL_DetectionBall &b : det.balls()) {
+				if (fabs(b.x()) < field_.length() * 500 && fabs(b.y()) < field_.width() * 500) {
+					any_ball_inside = true;
+					break;
+				}
+			}
+
+			for (const SSL_DetectionBall &b : det.balls()) {
+				if ((fabs(b.x()) > field_.length() * 500 || fabs(b.y()) > field_.width() * 500)
+						&& any_ball_inside) {
+					continue;
+				}
+
+				// Compute the probability of this ball being the wanted one.
+				Point detection_position(b.x() / 1000.0, b.y() / 1000.0);
+				if (defending_end() == FieldEnd::EAST) {
+					detection_position = -detection_position;
+				}
+
+				if (AI::BE::Vision::USE_PARTICLE_FILTER) {
+					/* PARTICLE FILTER */
+					pFilter_->add(detection_position);
+				} else {
+					/* KALMAN FORMULAS */
+
+					/* old Kalman formulae
+					 * Point distance_from_estimate = detection_position - estimated_position;
+					 * x_prob = 1.0f / (std::pow(distance_from_estimate.x / estimated_stdev.x, 2.0) + 1.0f);
+					 * y_prob = 1.0f / (std::pow(distance_from_estimate.y / estimated_stdev.y, 2.0) + 1.0f);
+					 */
+
+					/* new Kalman formulae */
+					double a = (detection_position.x - estimated_position.x)
+							/ estimated_stdev.x;
+					x_prob = std::exp(-0.5 * a * a);
+					a = (detection_position.y - estimated_position.y)
+							/ estimated_stdev.y;
+					y_prob = std::exp(-0.5 * a * a);
+
+					double prob = x_prob * y_prob * b.confidence();
+					if (prob > best_prob) {
+						best_prob = prob;
+						best_pos = detection_position;
+					}
+
+					if (b.confidence() > best_conf) {
+						best_conf = b.confidence();
+						best_pos = detection_position;
+					}
+				}
+			}
+		}
+
+		if (AI::BE::Vision::USE_PARTICLE_FILTER) {
+			if (det.balls().size() > 0) {
+				ball_.add_field_data(pFilter_->getEstimate(), best_time);
+			} else {
+				// No useful detection from camera; instead, see if a robot has the ball.
+				std::vector<Point> has_ball_inputs;
+				for (std::size_t i = 0; i < friendly_team().size(); ++i) {
+					Player::Ptr player = friendly_team().get(i);
+					if (player->has_ball()) {
+						player->lock_time(time_rec);
+						Point pos = player->position(0);
+						pos += Point::of_angle(player->orientation(0))
+								* ROBOT_CENTRE_TO_FRONT_DISTANCE;
+						has_ball_inputs.push_back(pos);
+					}
+				}
+
+				if (!has_ball_inputs.empty()) {
+					Point avg;
+					for (auto i : has_ball_inputs) {
+						avg += i;
+					}
+					avg /= static_cast<double>(has_ball_inputs.size());
+					ball_.add_field_data(avg, time_rec);
+				}
+			}
+
+			pFilter_->update(time_delta);
+		} else {
+			/* KALMAN - UPDATE BALL */
+			if (best_prob >= BALL_FILTER_THRESHOLD) {
+				ball_.add_field_data(best_pos, best_time);
+			} else {
+				/*
+				// No useful detection from camera; instead, see if a robot has the ball.
+				std::vector<Point> has_ball_inputs;
+				for (std::size_t i = 0; i < friendly_team().size(); ++i) {
+					Player::Ptr player = friendly_team().get(i);
+					if (player->has_ball()) {
+						player->lock_time(time_rec);
+						Point pos = player->position(0);
+						pos += Point::of_angle(player->orientation(0))
+								* ROBOT_CENTRE_TO_FRONT_DISTANCE;
+						has_ball_inputs.push_back(pos);
+					}
+				}
+
+				if (!has_ball_inputs.empty()) {
+					Point avg;
+					for (auto i : has_ball_inputs) {
+						avg += i;
+					}
+					avg /= static_cast<double>(has_ball_inputs.size());
+					ball_.add_field_data(avg, time_rec);
+				}
+				*/
+			}
+
+			// ball_.add_field_data(best_pos, best_time);
+		}
+	}
+	else {
+		bool any_ball_inside = false;
+		for (const SSL_DetectionBall &b : det.balls()) {
+			if (fabs(b.x()) < field_.length() * 500 && fabs(b.y()) < field_.width() * 500) {
+				any_ball_inside = true;
+				break;
+			}
+		}
+
+		Point best_pos = Point();
+		double best_conf = 0;
+		for (const SSL_DetectionBall &b : det.balls()) {
+			if ((fabs(b.x()) > field_.length() * 500 || fabs(b.y()) > field_.width() * 500)
+					&& any_ball_inside) {
+				continue;
+			}
+
+			Point detection_position = Point(b.x() / 1000.0, b.y() / 1000.0);
+
+			if (defending_end() == FieldEnd::EAST) {
+				detection_position = -detection_position;
+			}
+
+			if (b.confidence() > best_conf) {
+				best_pos = detection_position;
+				best_conf = b.confidence();
+			}
+		}
+
+		if (best_conf > 0) {
+			ball_.add_field_data(best_pos, time_rec);
+		}
+	}
+}
 template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
 		FriendlyTeam, EnemyTeam>::on_refbox_packet() {
 	update_goalies();

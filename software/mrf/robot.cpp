@@ -170,12 +170,14 @@ void MRFRobot::set_charger_state(ChargerState state) {
 }
 
 void MRFRobot::move_slow(bool slow) {
+	// Not yet implemented with primitives
+	/*
 	std::cout << "Move Slow" << std::endl;  
   	assert(!direct_control);
 	this->slow = slow;
 	uint16_t primitive = 0x0F;
 	send_primitive(primitive);
-  
+	*/
 }
 
 void MRFRobot::move_coast() {

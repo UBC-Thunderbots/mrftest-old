@@ -90,9 +90,9 @@ void Player::tick(bool halt, bool stop) {
 
 	// Apply driving safety rules.
 	if (halt) {
-		//bot.move_brake();
+		bot.move_brake();
 	} else {
-		//bot.move_slow(stop);
+		bot.move_slow(stop);
 	}
 
 	// Kicker should always charge except in halt.

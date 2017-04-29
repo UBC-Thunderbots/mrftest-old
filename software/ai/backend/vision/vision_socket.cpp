@@ -24,7 +24,6 @@
 using AI::BE::Vision::VisionSocket;
 
 VisionSocket::VisionSocket(int multicast_interface, const std::string &port) : sock(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
-	std::cout << "In vision constr\n" << std::endl;
 	addrinfo hints;
 	std::memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
