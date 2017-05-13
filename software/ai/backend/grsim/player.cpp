@@ -86,7 +86,7 @@ void Player::tick(bool halt, bool stop) {
 	
 
 	Point local_dest = _move_dest - this->position();
-	local_dest.rotate(-this->orientation());
+	local_dest = local_dest.rotate(-this->orientation());
 	switch (_prim.get()) {
 		case Drive::Primitive::STOP: {
 			if (_prim_extra) {
