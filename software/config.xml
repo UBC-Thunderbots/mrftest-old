@@ -35,7 +35,7 @@
         <boolean name="Enable Kalman control inputs">false</boolean>
         <double name="Loop Delay">0.000</double>
         <category name="Vision">
-          <double name="Ball detection probability threshold">0.000</double>
+          <double name="Ball detection probability threshold">0.002</double>
           <boolean name="Disable Vision Filter">false</boolean>
           <boolean name="Enable Particle Filter">false</boolean>
           <category name="Particle">
@@ -152,7 +152,6 @@
               <boolean name="BallPlacement">true</boolean>
               <boolean name="BlockShotPath">true</boolean>
               <boolean name="CornerKickEnemy">true</boolean>
-              <boolean name="FormHexagon">false</boolean>
               <boolean name="FranticDefense">true</boolean>
               <boolean name="FreeKickEnemy">true</boolean>
               <boolean name="FreeKickFriendly">true</boolean>
@@ -175,7 +174,6 @@
               <integer name="BallPlacement">1023</integer>
               <integer name="BlockShotPath">1023</integer>
               <integer name="CornerKickEnemy">1023</integer>
-              <integer name="FormHexagon">1023</integer>
               <integer name="FranticDefense">1023</integer>
               <integer name="FreeKickEnemy">1023</integer>
               <integer name="FreeKickFriendly">1023</integer>
@@ -198,7 +196,6 @@
               <integer name="BallPlacement">5</integer>
               <integer name="BlockShotPath">5</integer>
               <integer name="CornerKickEnemy">5</integer>
-              <integer name="FormHexagon">5</integer>
               <integer name="FranticDefense">5</integer>
               <integer name="FreeKickEnemy">5</integer>
               <integer name="FreeKickFriendly">5</integer>
@@ -221,7 +218,6 @@
               <boolean name="BallPlacement">false</boolean>
               <boolean name="BlockShotPath">false</boolean>
               <boolean name="CornerKickEnemy">false</boolean>
-              <boolean name="FormHexagon">false</boolean>
               <boolean name="FranticDefense">false</boolean>
               <boolean name="FreeKickEnemy">false</boolean>
               <boolean name="FreeKickFriendly">false</boolean>
@@ -294,6 +290,12 @@
             </category>
             <category name="penalty_goalie">
               <boolean name="Whether the penalty goalie should choose random points">true</boolean>
+            </category>
+            <category name="prepare_kick">
+              <double name="controls exponential change in chipping power as a function of distance">1.0</double>
+              <double name="controls scaling factor of chip power as function of distance">0.4</double>
+              <double name="test controls exponential change in chipping power as a function of distance">1.0</double>
+              <double name="test controls scaling factor of chip power as function of distance">0.4</double>
             </category>
           </category>
           <category name="tdefend">

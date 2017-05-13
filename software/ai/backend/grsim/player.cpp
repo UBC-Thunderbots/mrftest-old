@@ -83,7 +83,10 @@ void Player::tick(bool halt, bool stop) {
 	if (halt) {
 		return;
 	}
+	
+
 	Point local_dest = _move_dest - this->position();
+	local_dest.rotate(-this->orientation());
 	switch (_prim.get()) {
 		case Drive::Primitive::STOP: {
 			if (_prim_extra) {
@@ -149,6 +152,7 @@ void Player::tick(bool halt, bool stop) {
 			break;
 		}
 		case Drive::Primitive::PIVOT: {
+#warning not implemented
 #warning this is totally wrong
 			if (_pivot_swing.abs().to_degrees() < 10) {
 				_drive_angular = _move_ori * ORI_GAIN;
