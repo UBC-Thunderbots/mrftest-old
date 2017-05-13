@@ -84,7 +84,7 @@ void Player::tick(bool halt, bool stop) {
 		return;
 	}
 	
-
+	Angle local_move_ori = _move_ori - this->orientation();
 	Point local_dest = _move_dest - this->position();
 	local_dest = local_dest.rotate(-this->orientation());
 	switch (_prim.get()) {
@@ -106,7 +106,7 @@ void Player::tick(bool halt, bool stop) {
 			_drive_linear = linear_controller(local_dest);
 
 			if (_prim_extra) {
-				_drive_angular = _move_ori * ORI_GAIN;
+				_drive_angular = local_move_ori * ORI_GAIN;
 			}
 			else {
 				_drive_angular = Angle::zero();
@@ -116,7 +116,7 @@ void Player::tick(bool halt, bool stop) {
 		}
 		case Drive::Primitive::DRIBBLE: {
 			_drive_linear = linear_controller(local_dest);
-			_drive_angular = _move_ori * ORI_GAIN;
+			_drive_angular = local_move_ori * ORI_GAIN;
 #warning small kick is ignored
 
 			_drive_spinner = true;
@@ -125,9 +125,9 @@ void Player::tick(bool halt, bool stop) {
 		}
 		case Drive::Primitive::SHOOT: {
 			_drive_linear = linear_controller(local_dest);
-			_drive_angular = _move_ori * ORI_GAIN;
+			_drive_angular = local_move_ori * ORI_GAIN;
 
-			if (lhas_ball && _move_ori.to_degrees() < 5) { // within 5 deg
+			if (lhas_ball && local_move_ori.to_degrees() < 5) { // within 5 deg
 				if (_prim_extra & 1) { // chip
 					_drive_kickspeedx = static_cast<float>(COSINE_CHIP_ANGLE * _shoot_power);
 					_drive_kickspeedz = static_cast<float>(SINE_CHIP_ANGLE * _shoot_power);
@@ -145,8 +145,8 @@ void Player::tick(bool halt, bool stop) {
 		}
 		case Drive::Primitive::CATCH: {
 			Point linear_transformed = Point(_catch_speed, _catch_displacement * CONTROLLER_PROPORTIONAL_GAIN);
-			_drive_linear = linear_transformed.rotate(-_move_ori);
-			_drive_angular = _move_ori * ORI_GAIN;
+			_drive_linear = linear_transformed.rotate(-local_move_ori);
+			_drive_angular = local_move_ori * ORI_GAIN;
 			_drive_spinner = true;
 
 			break;
@@ -155,7 +155,7 @@ void Player::tick(bool halt, bool stop) {
 #warning not implemented
 #warning this is totally wrong
 			if (_pivot_swing.abs().to_degrees() < 10) {
-				_drive_angular = _move_ori * ORI_GAIN;
+				_drive_angular = local_move_ori * ORI_GAIN;
 			}
 			else {
 				_drive_linear = _move_dest.rotate(_pivot_swing.to_radians() > 0 ? Angle::three_quarter() : Angle::quarter()).norm()
