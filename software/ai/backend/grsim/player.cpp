@@ -29,6 +29,7 @@ namespace {
 	const double MAX_SPEED = 2.0;
 
 	Point linear_controller(Point dest) {
+        dest = dest - this.position();
 		if (dest.lensq() > 0.4 * 0.4) {
 			return dest.norm() * MAX_SPEED / 2.5;
 		}
