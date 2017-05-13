@@ -168,7 +168,6 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 	}
 
 	//std::vector<std::tuple<uint8_t,Point, Angle>> newdetbots;
-	//newdetbots.push_back(std::make_tuple(7, Point(2,1), Angle::half()));
 	if(newdetbots.empty()) return;
 	else{
 	  //AI::Timestamp current_time = std::chrono::steady_clock::now();

@@ -29,7 +29,6 @@ namespace {
 	const double MAX_SPEED = 2.0;
 
 	Point linear_controller(Point dest) {
-        dest = dest - this.position();
 		if (dest.lensq() > 0.4 * 0.4) {
 			return dest.norm() * MAX_SPEED / 2.5;
 		}
@@ -84,7 +83,7 @@ void Player::tick(bool halt, bool stop) {
 	if (halt) {
 		return;
 	}
-
+	Point local_dest = _move_dest - this->position();
 	switch (_prim.get()) {
 		case Drive::Primitive::STOP: {
 			if (_prim_extra) {
@@ -101,7 +100,7 @@ void Player::tick(bool halt, bool stop) {
 		}
 		case Drive::Primitive::MOVE: {
 #warning time delta is ignored
-			_drive_linear = linear_controller(_move_dest);
+			_drive_linear = linear_controller(local_dest);
 
 			if (_prim_extra) {
 				_drive_angular = _move_ori * ORI_GAIN;
@@ -113,7 +112,7 @@ void Player::tick(bool halt, bool stop) {
 			break;
 		}
 		case Drive::Primitive::DRIBBLE: {
-			_drive_linear = linear_controller(_move_dest);
+			_drive_linear = linear_controller(local_dest);
 			_drive_angular = _move_ori * ORI_GAIN;
 #warning small kick is ignored
 
@@ -122,7 +121,7 @@ void Player::tick(bool halt, bool stop) {
 			break;
 		}
 		case Drive::Primitive::SHOOT: {
-			_drive_linear = linear_controller(_move_dest);
+			_drive_linear = linear_controller(local_dest);
 			_drive_angular = _move_ori * ORI_GAIN;
 
 			if (lhas_ball && _move_ori.to_degrees() < 5) { // within 5 deg
