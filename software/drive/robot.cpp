@@ -6,7 +6,7 @@ Drive::Robot::~Robot() = default;
 Drive::Robot::Robot(unsigned int index, double break_beam_scale, double kick_speed_max, double chip_distance_max, unsigned int direct_dribbler_max) :
 		index(index),
 		break_beam_scale(break_beam_scale),
-		kick_speed_max(kick_speed_max),
+		kick_speed_max(20),//kick_speed_max),
 		kick_speed_resolution(1.0),
 		chip_distance_max(chip_distance_max),
 		chip_distance_resolution(1.0),

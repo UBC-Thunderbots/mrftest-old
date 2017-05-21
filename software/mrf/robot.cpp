@@ -139,13 +139,13 @@ namespace {
 	//this is a hard limit because we are kicking instead of chipping
 	//however, 8 meters is a fine chip to so this may stand
 #warning hack for kicking when chipping
-	const double MAX_KICK_VALUE = 8.0f;
+	const double MAX_KICK_VALUE = 20.0f;
 	const double MAX_CHIP_VALUE = 2.0f;
 	unsigned int chicker_power_to_pulse_width(double power, bool chip) {
 		unsigned int width;
 		if (!chip) {
 			power = clamp_symmetric(power, MAX_KICK_VALUE);
-			width = static_cast<unsigned>(power * 332.7 + 219.8);
+			width = static_cast<unsigned>(power*power*power*12.656 - power*power*139.06 + power*791.99 - 19.96);
 		} else {
 			power = clamp_symmetric(power, MAX_CHIP_VALUE);
 			width = static_cast<unsigned>(835 * power * power + 469.2 * power + 1118.5);

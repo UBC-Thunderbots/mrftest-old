@@ -1,12 +1,13 @@
 #pragma once
 
-#include "ai/hl/util.h"
 #include "ai/hl/world.h"
+#include "ai/hl/util.h"
+#include "ai/hl/stp/world.h"
+#include "ai/hl/stp/play/play.h"
 #include "ai/hl/stp/predicates.h"
 #include "ai/hl/stp/coordinate.h"
-#include "ai/hl/stp/play/play.h"
 #include "ai/hl/stp/region.h"
-#include "ai/hl/stp/world.h"
+
 
 using AI::Common::PlayType;
 using namespace AI::HL::STP::Predicates;

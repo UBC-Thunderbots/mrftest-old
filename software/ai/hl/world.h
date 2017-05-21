@@ -4,6 +4,7 @@
 #include "ai/flags.h"
 #include "ai/backend/backend.h"
 #include "ai/common/world.h"
+#include "ai/navigator/util.h"
 #include "util/property.h"
 #include <functional>
 
@@ -56,11 +57,15 @@ namespace AI {
 					void avoid_distance(AI::Flags::AvoidDistance dist);
 			};
 
+			class World;
+
 			/**
 			 * \brief A player
 			 */
 			class Player final : public Robot, public AI::Common::Player {
 				public:
+					friend class AI::HL::W::World;
+
 					/**
 					 * \brief Constructs a nonexistent Player
 					 */
@@ -131,6 +136,8 @@ namespace AI {
 					 * \param[in] prio the priority of the movement
 					 */
 					void prio(AI::Flags::MovePrio prio);
+				private:
+					AI::BE::Player::Ptr get_impl() const;
 			};
 
 			/**
@@ -210,8 +217,15 @@ namespace AI {
 					 * \brief returns the ball placement position
 					 */
 					const Property<Point> &ball_placement_position() const;
+
+					/**	
+					 * return true if the point is a possible point for the player to get to
+					 * will be true if the point is with a goal, or another robot is sitting on top
+					 */
+					bool valid_dest(Player player, Point& point) const;
+					
 				private:
-					AI::BE::Backend &impl;
+					AI::BE::Backend& impl;
 			};
 		}
 	}
@@ -307,10 +321,19 @@ inline void AI::HL::W::Player::prio(AI::Flags::MovePrio prio) {
 	AI::Common::Player::impl->prio(prio);
 }
 
+inline AI::BE::Player::Ptr AI::HL::W::Player::get_impl() const {
+	return AI::Common::Player::impl;
+}
+
 inline AI::HL::W::World::World(AI::BE::Backend &impl) : impl(impl) {
 }
 
 inline AI::HL::W::World::World(const World &) = default;
+
+inline bool AI::HL::W::World::valid_dest(Player player, Point& point) const {
+	return AI::Nav::Util::valid_dst(point, AI::Nav::W::World(impl),
+		AI::Nav::W::Player(player.get_impl()));
+}
 
 inline const AI::HL::W::Field &AI::HL::W::World::field() const {
 	return impl.field();

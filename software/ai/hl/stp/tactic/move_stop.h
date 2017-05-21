@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ai/hl/stp/tactic/legacy_tactic.h"
-#include "ai/hl/stp/coordinate.h"
+#include "ai/hl/stp/tactic/tactic.h"
 #include "util/cacheable.h"
+#include "ai/hl/stp/coordinate.h"
 
 namespace AI {
 	namespace HL {
@@ -16,7 +16,7 @@ namespace AI {
 				 * \param[in] player_index goes from 0 to 3 and is used for calculating a robot's relative
 				 * position around the ball.
 				 */
-				LegacyTactic::Ptr move_stop(World world, std::size_t player_index);
+				Tactic::Ptr move_stop(World world, std::size_t player_index);
 
 				class StopLocations final : public Cacheable<std::vector<Point>, CacheableNonKeyArgs<AI::HL::W::World>, CacheableKeyArgs<>> {
 					protected:

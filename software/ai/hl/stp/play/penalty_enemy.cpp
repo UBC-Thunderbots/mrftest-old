@@ -1,6 +1,6 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/move.h"
-#include "ai/hl/stp/tactic/legacy_penalty_goalie_new.h"
+#include "ai/hl/stp/tactic/penalty_goalie_new.h"
 
 BEGIN_DEC(PenaltyEnemy)
 INVARIANT(playtype(world, PlayType::PREPARE_PENALTY_ENEMY) ||

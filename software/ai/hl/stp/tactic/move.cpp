@@ -1,11 +1,13 @@
 #include <algorithm>
 
 #include "ai/hl/stp/tactic/move.h"
+#include "ai/hl/stp/action/move.h"
 #include "util/dprint.h"
 #include "ai/hl/util.h"
 
 namespace Primitives = AI::BE::Primitives;
 using namespace AI::HL::STP::Tactic;
+namespace Action = AI::HL::STP::Action;
 using namespace AI::HL::W;
 using AI::HL::STP::Coordinate;
 
@@ -30,8 +32,7 @@ namespace {
 	}
 
 	void MoveOnce::execute(caller_t& caller) {
-		Primitives::Move move(player(), dest);
-		wait(caller, move);
+		Action::move(caller, world, player(), dest);
 	}
 
 	class Move final : public Tactic {
@@ -55,9 +56,9 @@ namespace {
 
 	void Move::execute(caller_t& caller) {
 		while (true) {
-			Primitives::Move move(player(), dest.position());
+			Action::move(caller, world, player(), dest.position());
 			yield(caller);
-			if (move.done()) break;
+			player().clear_prims();
 		}
 	}
 }

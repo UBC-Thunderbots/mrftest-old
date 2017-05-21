@@ -1,8 +1,8 @@
+#include "../tactic/ball.h"
+#include "../tactic/defend.h"
 #include "ai/hl/stp/play/simple_play.h"
-#include "ai/hl/stp/tactic/legacy_ball.h"
-#include "ai/hl/stp/tactic/legacy_offend.h"
-#include "ai/hl/stp/tactic/legacy_defend.h"
-#include "ai/hl/stp/tactic/legacy_shadow_enemy.h"
+#include "ai/hl/stp/tactic/offend.h"
+#include "ai/hl/stp/tactic/shadow_enemy.h"
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/block_shot_path.h"
 

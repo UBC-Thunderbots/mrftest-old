@@ -1,10 +1,10 @@
-#include "ai/hl/stp/tactic/legacy_intercept.h"
+#include "../tactic/defend.h"
+#include "ai/hl/stp/tactic/intercept.h"
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/shoot.h"
-#include "ai/hl/stp/tactic/legacy_defend.h"
-#include "ai/hl/stp/tactic/legacy_offend.h"
-#include "ai/hl/stp/tactic/legacy_block.h"
-#include "ai/hl/stp/tactic/legacy_shadow_enemy.h"
+#include "ai/hl/stp/tactic/offend.h"
+#include "ai/hl/stp/tactic/block.h"
+#include "ai/hl/stp/tactic/shadow_enemy.h"
 
 BEGIN_DEC(GrabBallOffensive)
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2))

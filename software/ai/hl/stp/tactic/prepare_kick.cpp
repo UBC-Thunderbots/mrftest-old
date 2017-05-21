@@ -7,7 +7,7 @@
 #include "ai/hl/stp/tactic/prepare_kick.h"
 #include "ai/hl/stp/action/action.h"
 #include "ai/hl/stp/action/catch.h"
-#include "ai/hl/stp/action/legacy_shoot.h"
+#include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
 #include "util/param.h"
@@ -59,7 +59,7 @@ DoubleParam CHIP_POWER_SCALING(u8"test controls scaling factor of chip power as 
 		shot_angle = shot_angle.abs();
 
 		if(shot_angle / total_angle > 0.2){//robot has space to shoot
-			Action::shoot_target(world, player(), Evaluation::get_best_shot(world, player()));
+			Action::shoot_target(ca, world, player(), Evaluation::get_best_shot(world, player()));
 		}else{//robot will try chip instead, should be given new target
 			Point target;
 			double chip_power;
@@ -67,7 +67,7 @@ DoubleParam CHIP_POWER_SCALING(u8"test controls scaling factor of chip power as 
 				target = world.field().enemy_goal();
 			}
 			else {//in enemy's end. Will aim for best shot at enemy net. Should not consider first blocking player
-				target = Evaluation::indirect_chip_target(world, player());
+				target = Evaluation::indirect_chip_target(world, player()).first;
 			}
 
 			//second formula is a temporary modifier, since chipping is not currently accurately calibrated
@@ -77,7 +77,7 @@ DoubleParam CHIP_POWER_SCALING(u8"test controls scaling factor of chip power as 
 
 
 			//overrideing targeting for now, due to chipping/evaluation not being accurate
-			Action::shoot_target(world, player(), world.field().enemy_goal(), chip_power, true);
+			Action::shoot_target(ca, world, player(), world.field().enemy_goal(), chip_power, true);
 		}
 
 	}

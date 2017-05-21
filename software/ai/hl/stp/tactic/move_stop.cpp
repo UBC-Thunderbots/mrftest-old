@@ -1,23 +1,19 @@
 #include "ai/hl/stp/param.h"
-#include "ai/hl/stp/tactic/move_stop.h"
-#include "ai/hl/stp/action/legacy_move.h"
+#include "ai/hl/stp/action/move.h"
 #include "ai/hl/util.h"
 #include "ai/util.h"
 #include "ai/hl/stp/world.h"
 #include <algorithm>
-
-#include "ai/hl/stp/tactic/legacy_tactic.h"
+#include "ai/hl/stp/tactic/move_stop.h"
+#include "ai/hl/stp/action/stop.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
-using AI::HL::STP::Coordinate;
 namespace Action = AI::HL::STP::Action;
 
-StopLocations AI::HL::STP::Tactic::stop_locations;
 
 namespace {
-	// The closest distance players allowed to the ball
-	// DO NOT make this EXACT, instead, add a little tolerance!
+	StopLocations stop_locations;
 	const double AVOIDANCE_DIST = AI::Util::BALL_STOP_DIST + Robot::MAX_RADIUS + Ball::RADIUS + 0.05;
 
 	// in ball avoidance, angle between center of 2 robots, as seen from the ball
@@ -25,36 +21,37 @@ namespace {
 	
 	const unsigned int NUM_PLAYERS = AI::HL::STP::TEAM_MAX_SIZE -1;
 
-	class MoveStop final : public LegacyTactic {
+	class MoveStop final : public Tactic {
+		
 		public:
-			explicit MoveStop(World world, std::size_t playerIndex) : LegacyTactic(world), player_index(playerIndex) {
-			}
+			explicit MoveStop(World world, std::size_t player_index) : Tactic(world), player_index(player_index) { }
 
 		private:
-			const std::size_t player_index;
-			Player selected_player;
 			Player select(const std::set<Player> &players) const override;
-			void execute() override;
+
+			void execute(caller_t& caller) override;
+
+			std::size_t player_index;
+
 			Glib::ustring description() const override {
-				return u8"move-stop";
+				return u8"move_stop";
 			}
 	};
 
 	Player MoveStop::select(const std::set<Player> &players) const {
 		std::vector<Point> positions = stop_locations(world);
-
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(positions[player_index]));
 	}
 
-	void MoveStop::execute() {
-		player.flags(player.flags() | AI::Flags::MoveFlags::AVOID_BALL_MEDIUM);
+	void MoveStop::execute(caller_t& caller) {
+		player().flags(player().flags() | AI::Flags::MoveFlags::AVOID_BALL_MEDIUM);
 		std::vector<Point> positions = stop_locations(world);
-		Action::move(world, player, positions[player_index]);
+		AI::HL::STP::Action::move(caller, world, player(), positions[player_index]);
 	}
 }
 
-LegacyTactic::Ptr AI::HL::STP::Tactic::move_stop(World world, std::size_t player_index) {
-	LegacyTactic::Ptr p(new MoveStop(world, player_index));
+Tactic::Ptr AI::HL::STP::Tactic::move_stop(World world, std::size_t player_index) {
+	Tactic::Ptr p(new MoveStop(world, player_index));
 	return p;
 }
 
@@ -121,4 +118,3 @@ std::vector<Point> StopLocations::compute(World world) {
 
 	return positions;
 }
-

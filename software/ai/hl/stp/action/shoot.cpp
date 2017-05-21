@@ -7,8 +7,9 @@
 #include "ai/hl/stp/evaluation/team.h"
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/action/catch.h"
-#include "ai/hl/stp/action/legacy_catch.h"
-#include "ai/hl/stp/action/legacy_action.h"
+#include "ai/hl/stp/action/catch.h"
+#include "ai/hl/stp/action/action.h"
+#include "ai/hl/stp/action/intercept.h"
 
 using namespace AI::HL::STP;
 
@@ -27,17 +28,21 @@ void AI::HL::STP::Action::shoot_target(caller_t& ca, World world, Player player,
 	// ram the ball
 	Primitives::Shoot shoot(player, world.ball().position() + (world.ball().position() - player.position()).norm(0.05), orient, velocity, chip);
 
-	for (int i = 0; i < 10; i++) Action::yield(ca);
-	// Action::wait(ca, shoot);
+
+	for (int i = 0; i < 10; i++) Action::yield(ca);		//this is a hack from RoboCup used for stabilization ( DO NOT CHANGE )
+
+	player.clear_prims();
 }
 
 void AI::HL::STP::Action::catch_and_shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip) {
-	if (!player.has_ball()) {
-#warning TODO this doesn't actually look at the target
-#warning TODO this only works for stopped balls
-		catch_stopped_ball(ca, world, player);
+	while(!player.has_ball()) {
+		#warning TODO this doesn't actually look at the target
+		#warning TODO this only works for stopped balls
+		#warning TODO change this while loop after action rewrite
+
+		catch_ball(ca, world, player, target);
 	}
-	AI::HL::STP::LegacyAction::clear_legacy_prim(player);
+
 	shoot_target(ca, world, player, target, velocity, chip);
 }
 

@@ -19,19 +19,19 @@ Point Field::penalty_friendly() const {
 }
 
 Point Field::friendly_corner_pos() const {
-	return Point(friendly_goal().x, length() / 2);
+	return Point(friendly_goal().x, width() / 2);
 }
 
 Point Field::friendly_corner_neg() const {
-	return Point(friendly_goal().x, - length() / 2);
+	return Point(friendly_goal().x, - width() / 2);
 }
 
 Point Field::enemy_corner_pos() const {
-	return Point(enemy_goal().x, length() / 2);
+	return Point(enemy_goal().x, width() / 2);
 }
 
 Point Field::enemy_corner_neg() const {
-	return Point(enemy_goal().x, - length() / 2);
+	return Point(enemy_goal().x, - width() / 2);
 }
 
 std::pair<Point, Point> Field::friendly_goal_boundary() const {

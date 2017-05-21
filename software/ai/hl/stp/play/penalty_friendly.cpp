@@ -1,7 +1,7 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/idle.h"
 #include "ai/hl/stp/tactic/move.h"
-#include "ai/hl/stp/tactic/legacy_penalty_shoot.h"
+#include "ai/hl/stp/tactic/penalty_shoot.h"
 
 BEGIN_DEC(PenaltyFriendly)
 INVARIANT(playtype(world, PlayType::PREPARE_PENALTY_FRIENDLY) ||

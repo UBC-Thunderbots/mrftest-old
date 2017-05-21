@@ -1,8 +1,8 @@
-#include "ai/hl/stp/tactic/legacy_intercept.h"
 #include "ai/hl/stp/play/simple_play.h"
-#include "ai/hl/stp/tactic/legacy_defend.h"
-#include "ai/hl/stp/tactic/legacy_block.h"
-#include "ai/hl/stp/tactic/legacy_shadow_enemy.h"
+#include "ai/hl/stp/tactic/defend.h"
+#include "ai/hl/stp/tactic/intercept.h"
+#include "ai/hl/stp/tactic/block.h"
+#include "ai/hl/stp/tactic/shadow_enemy.h"
 #include "ai/hl/stp/tactic/block_shot_path.h"
 
 BEGIN_DEC(GrabBallDefensive)

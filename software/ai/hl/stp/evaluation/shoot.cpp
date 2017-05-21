@@ -139,7 +139,7 @@ Evaluation::ShootData Evaluation::evaluate_shoot(World world, Player player, boo
 
 	auto shot = AI::HL::Util::calc_best_shot(world, player, radius);
 
-	data.reduced_radius = true;
+	data.reduced_radius = use_reduced_radius;
 
 	Angle ori = (shot.first - player.position()).orientation();
 	Angle ori_diff = ori.angle_diff(player.orientation());
@@ -147,6 +147,7 @@ Evaluation::ShootData Evaluation::evaluate_shoot(World world, Player player, boo
 
 	data.target = shot.first;
 	data.angle = shot.second;
+	#warning where does this variable come from?
 	data.can_shoot = data.accuracy_diff < -shoot_accuracy;
 	data.blocked = shot.second == Angle::zero();
 

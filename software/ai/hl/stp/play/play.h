@@ -5,9 +5,10 @@
 #include "util/noncopyable.h"
 #include "util/registerable.h"
 #include "util/param.h"
+
 #include <memory>
 #include <glibmm/ustring.h>
-#include "ai/hl/stp/tactic/tactic.h"
+
 
 namespace AI {
 	namespace HL {

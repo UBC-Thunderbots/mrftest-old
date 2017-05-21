@@ -15,6 +15,8 @@ void AI::HL::STP::Action::goalie_ram(caller_t& ca, World world, Player player, P
 	player.prio(AI::Flags::MovePrio::HIGH);
 
 	const Primitive& prim = Primitives::Move(player, dest, (world.ball().position() - player.position()).orientation());
-	Action::wait(ca, prim);
+	
+	Action::wait(ca, prim);						//NOTE: This action does not have a end condition and will keep going until the play is changed. ( Cannot be used in a 2 tactic play )
+	player.clear_prims();
 }
 

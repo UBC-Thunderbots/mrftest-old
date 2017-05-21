@@ -1,4 +1,6 @@
 #pragma once
+
+#include "ai/hl/stp/action/action.h"
 #include "ai/hl/stp/action/action.h"
 
 namespace AI {

@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <iostream>
 #include "ai/hl/world.h"
+#include "ai/hl/stp/action/pivot.h"
 
 using namespace AI::HL::STP;
 using namespace AI::HL::W;
@@ -18,8 +19,9 @@ using namespace AI::HL::W;
 void AI::HL::STP::Action::pivot(caller_t& ca, World world, Player player, Point target, Angle swing, double radius) {
 	// set the destination point to be just behind the ball in the correct direction at the offset distance
 	Point dest = -(target - world.ball().position()).norm() * radius + world.ball().position();
-	player.prio(AI::Flags::MovePrio::HIGH);
+	//player.prio(AI::Flags::MovePrio::HIGH);
 
-	const Primitive& prim = Primitives::Pivot(player, dest, swing, (world.ball().position() - dest).orientation());
-	Action::wait(ca, prim);
+	Primitive prim = Primitives::Pivot(player, dest, swing, (world.ball().position() - dest).orientation());
+	waitForPivot(ca, dest, player, 0.02);
 }
+

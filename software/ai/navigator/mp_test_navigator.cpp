@@ -18,7 +18,6 @@ using namespace AI::Flags;
 
 namespace {
 	static const std::string CHOOSE_TEST_TEXT = "<CHOOSE_TEST>";
-
 	Angle get_relative_angle(Point robotPos, Angle robotOri, Point dest) {
 		Point pos_diff = dest-robotPos;
 		Angle robot_local_angle = pos_diff.orientation()-robotOri;
@@ -42,7 +41,8 @@ namespace {
 			Gtk::VBox box;
 			Gtk::Button activate;
 			Player player;
-
+                        bool looping_test_fun = false;
+                        
 			PrimTest() {
 				current_test_fun = &PrimTest::do_nothing;
 				tests[CHOOSE_TEST_TEXT] = &PrimTest::do_nothing;
@@ -63,7 +63,110 @@ namespace {
 
 			void do_nothing(Player) { }
 	};
+/*
+	class CatchTest : public PrimTest {
+		public:
+			Point dest;
+			double power;
+			bool chip;
+			Angle orient;
 
+			World world;
+			bool has_shot = false;
+
+			//Gtk::VBox box;
+			Gtk::HScale point_x_slider;
+			Gtk::HScale point_y_slider;
+			Gtk::SpinButton power_entry;
+			Gtk::SpinButton angle_entry;
+			Gtk::CheckButton to_chip;
+
+			Gtk::Label x_label;
+			Gtk::Label y_label;
+			Gtk::Label powerLbl;
+			Gtk::Label angle_label;
+
+			CatchTest(World w): PrimTest(), dest(Point()), power(0), chip(false), orient(Angle::zero()), world(w) {
+				tests["Catch"] = static_cast<testfun_t>(&CatchTest::test_shoot);
+				tests["CatchOrient"] = static_cast<testfun_t>(&CatchTest::test_shoot_ori);
+				build_widget();
+			}
+
+			void test_shoot(Player player) {
+				player.move_shoot(dest, power, chip);
+			}
+
+			void test_shoot_ori(Player player) {
+				player.move_shoot(dest,orient,power,chip);
+
+			}
+
+			void build_widget() {
+				point_x_slider.set_range(-world.field().length()/2,world.field().length()/2);
+				point_y_slider.set_range(-world.field().width()/2,world.field().width()/2);
+
+				angle_entry.set_range(-360,360);
+				power_entry.set_range(0,50000);
+
+				//point_x_slider.set_name("Field X",false);
+				//point_y_slider.set_name("Field Y",false);
+
+				to_chip.set_label("Chip");
+
+				x_label.set_label("X Coordinate");
+				y_label.set_label("Y Coordinate");
+				angle_label.set_label("Angle (degrees)");
+				powerLbl.set_label("Power");
+
+				//add widgets to vbox
+				box.add(x_label);
+				box.add(point_x_slider); //x for dest
+
+				box.add(y_label);
+				box.add(point_y_slider); //y for dest
+
+				box.add(to_chip); //chip
+
+				box.add(angle_label);
+				box.add(angle_entry); //orient
+
+				box.add(powerLbl);
+				box.add(power_entry); //power
+
+				box.show_all();
+
+				//link signals
+				point_x_slider.signal_value_changed().connect(sigc::mem_fun(this,&CatchTest::on_point_x_changed));
+				point_y_slider.signal_value_changed().connect(sigc::mem_fun(this,&CatchTest::on_point_y_changed));
+				to_chip.signal_clicked().connect(sigc::mem_fun(this,&CatchTest::on_chip_changed));
+				angle_entry.signal_value_changed().connect(sigc::mem_fun(this,&CatchTest::on_angle_changed));
+				power_entry.signal_value_changed().connect(sigc::mem_fun(this,&CatchTest::on_power_changed));
+			}
+
+			void on_point_x_changed() {
+				dest = Point(point_x_slider.get_value(),dest.y);
+
+			}
+			void on_point_y_changed() {
+				dest = Point(dest.x,point_y_slider.get_value());
+			}
+
+			void on_chip_changed() {
+				chip = to_chip.get_active();
+			}
+
+			void on_angle_changed() {
+				orient = Angle::of_degrees(angle_entry.get_value());
+			}
+			void on_power_changed() {
+				power = power_entry.get_value();
+			}
+
+			Gtk::Widget &get_widget() override {
+				return box;
+			}
+	};
+*/
 	class ShootTest : public PrimTest {
 		public:
 			Point dest;
@@ -168,6 +271,7 @@ namespace {
 			}
 	};
 
+
 	class MoveTest : public PrimTest {
 		public:
 			Point dest;
@@ -197,6 +301,7 @@ namespace {
 			}
 
 			void test_move_dest(Player player) {
+				LOG_INFO(u8"Called");
 				player.move_move(dest);
 			}
 
@@ -213,6 +318,7 @@ namespace {
 			}
 
 			void test_move_to_ball(Player player) {
+                                looping_test_fun = true;
 				Point robot_local_dest = get_relative_velocity(player.position(), player.orientation(), world.ball().position());
 				Angle robot_local_angle = get_relative_angle(player.position(), player.orientation(), world.ball().position());
 				player.move_move(robot_local_dest, robot_local_angle);
@@ -409,9 +515,12 @@ void MPTest::build_gui() {
 }
 
 void MPTest::tick() {
-	if (world.friendly_team().size() > 0) {
-		current_test->player = world.friendly_team()[0];
-	}
+    if (world.friendly_team().size() > 0) {
+        current_test->player = world.friendly_team()[0];
+        if(current_test->looping_test_fun){
+            current_test->call_test_fun(); 
+        }
+    }
 }
 
 Gtk::Widget *MPTest::ui_controls() {
@@ -430,6 +539,7 @@ void MPTest::on_combo_changed() {
 	test_combo.set_active_text(CHOOSE_TEST_TEXT);
 
 	vbox.add(current_test->get_widget());
+        current_test->looping_test_fun = false;
 }
 
 void MPTest::on_test_combo_changed() {
@@ -439,6 +549,7 @@ void MPTest::on_test_combo_changed() {
 	else {
 		current_test->current_test_fun = current_test->tests[test_combo.get_active_text()];
 	}
+        current_test->looping_test_fun = false;
 }
 
 NAVIGATOR_REGISTER(MPTest)

@@ -1,8 +1,8 @@
 #include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/free_kick_to_goal.h"
 #include "ai/hl/stp/tactic/shoot.h"
-#include "ai/hl/stp/tactic/legacy_offend.h"
-#include "ai/hl/stp/tactic/legacy_defend.h"
+#include "ai/hl/stp/tactic/offend.h"
 
 BEGIN_DEC(FreeKickFriendly)
 INVARIANT(playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY))

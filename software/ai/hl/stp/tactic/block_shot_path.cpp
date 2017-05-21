@@ -1,12 +1,13 @@
 #include "ai/hl/stp/tactic/block_shot_path.h"
-#include "ai/hl/stp/tactic/legacy_tactic.h"
+#include "ai/hl/stp/tactic/tactic.h"
 #include "ai/hl/util.h"
 #include "ai/util.h"
-#include "ai/hl/stp/action/legacy_move.h"
+#include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/evaluation/defense.h"
 #include "geom/util.h"
 #include "ai/hl/stp/evaluation/enemy.h"
 #include "ai/hl/stp/play/play.h"
+#include "util/dprint.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -18,22 +19,33 @@ namespace Action = AI::HL::STP::Action;
 
 
 namespace {
-	class BlockShotPath final : public LegacyTactic {
+	class BlockShotPath final : public Tactic {
 		public:
-	  explicit BlockShotPath(World world, unsigned int index, double max_dist) : LegacyTactic(world), index(index), max_dist_from_net(max_dist) {
+	  explicit BlockShotPath(World world, unsigned int index, double max_dist) : Tactic(world), index(index), max_dist_from_net(max_dist) {
 			}
 
 		private:
 			std::vector<Point> destinations;
 			Player select(const std::set<Player> &players) const override;
 			unsigned int index;
+	   	//Seung-new define variable
+			Point original_pos;
+			//Point test;
 			double max_dist_from_net;
-			void execute() override;
+			void execute(caller_t& ca) override;
 			Glib::ustring description() const override {
 				return u8"block secondary shot";
 			}
 	};
+ 
+ //Seung-testing
+//	Player MoveTestOrientation::select(const std::set<Player> &players) const {
+//		Player p = *(players.begin());
+//		return p;
 
+
+//Define Class player
+//Compare the distance from the 'dest' and return the the player who has the shortest distance
 	Player BlockShotPath::select(const std::set<Player> &players) const {
 	  Point dest;
 	  if(destinations.size() > index){
@@ -44,8 +56,11 @@ namespace {
 	       return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest));
 	}
 
-	void BlockShotPath::execute() {
-	        double future_block_time = 0.7;
+	void BlockShotPath::execute(caller_t& ca) {
+//seung
+//	original_pos = player().position();
+
+	  double future_block_time = 0.7;
 		std::vector<Point> obstacles;
 		std::vector<std::pair<Player, const AI::HL::STP::Tactic::Tactic*>> tactic_assignments = get_tactic_assignment();
 		for (auto i : tactic_assignments) {
@@ -56,18 +71,22 @@ namespace {
 			    obstacles.push_back(i.first.position());
 			}
 		}
-	   
+	  
+		//Enemy_threats ranks the enemy robots that are closer to the enemy baller.
 		std::vector<Robot> enemy_threats = AI::HL::STP::Evaluation::rank_enemy_passee_risk(world, obstacles, future_block_time);
 
+		//Enemy_theats.size() is always 5. 
+		//Since enemy_threats.size is always smaller than index. all enemy_to_ is just becomeing the point (0.0)  
 		Point enemy_to_block;
 		if (enemy_threats.size() > index) {
 			enemy_to_block = enemy_threats[index] ? enemy_threats[index].position(future_block_time) : Point();
 		}
 
-		bool goalie_top = true;
+		
 		const Field &field = world.field();
-		const Point goal_side = goalie_top ? Point(-field.length() / 2, field.goal_width() / 2) : Point(-field.length() / 2, -field.goal_width() / 2);
-		const Point goal_opp = goalie_top ? Point(-field.length() / 2, -field.goal_width() / 2) : Point(-field.length() / 2, field.goal_width() / 2);
+		//negative field represents ourside of the field. 
+		const Point goal_side = Point(-field.length() / 2, -field.goal_width() / 2);
+		const Point goal_opp  = Point(field.length() / 2, field.goal_width() / 2);
 
 	      
 
@@ -77,6 +96,7 @@ namespace {
 		
 		//Point c1 = (risk_zone.first - enemy_to_block).rotate(ang/2) + enemy_to_block;
 		//Point c2 = (risk_zone.first - enemy_to_block).rotate(-ang/2) + enemy_to_block;
+		//point destination is 
 		Point destination = enemy_to_block + 0.35*(risk_zone.first - enemy_to_block).norm();
 
 		Point goal_intersect = line_intersect(enemy_to_block, risk_zone.first, goal_opp, goal_side);
@@ -90,10 +110,16 @@ namespace {
 		//Point destination = calc_block_cone(c1, c2, enemy_to_block, Robot::MAX_RADIUS);
 		if (destinations.size() > index){
 		  destinations[index] = destination;
-		}else{
+		}
+		else{
 		  destinations.push_back(destination);
 		}
-		Action::move(world, player, destination);
+		//original_pos = player().position();
+		Action::move(ca, world, player(), destination);
+
+		//this is new-seung : checking if it excute the second action command without move wait
+  	//original_pos = player().position();
+    //Action::move(ca, world, player(), original_pos, true);
 	}
 }
 

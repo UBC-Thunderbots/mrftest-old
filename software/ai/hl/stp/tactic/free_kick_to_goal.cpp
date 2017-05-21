@@ -5,14 +5,14 @@
 #include "ai/hl/stp/tactic/free_kick_to_goal.h"
 #include "ai/hl/stp/action/action.h"
 #include "ai/hl/stp/action/catch.h"
-#include "ai/hl/stp/action/legacy_shoot.h"
+#include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
 #include "util/param.h"
 #include "geom/util.h"
 #include "geom/angle.h"
-using namespace std;
 
+using namespace std;
 namespace Primitives = AI::BE::Primitives;
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -23,10 +23,6 @@ using namespace Geom;
 
 
 namespace {
-
-DoubleParam CHIP_POWER_EXP(u8"controls exponential change in chipping power as a function of distance", u8"AI/HL/STP/Tactic/prepare_kick", 1.0, 0.0, 100.0);
-DoubleParam CHIP_POWER_SCALING(u8"controls scaling factor of chip power as function of distance", u8"AI/HL/STP/Tactic/prepare_kick", 0.4, 0.0, 100.0);
-
 	class FreeKickToGoal final : public Tactic {
 		public:
 			explicit FreeKickToGoal(World world) : Tactic(world) {
@@ -46,35 +42,37 @@ DoubleParam CHIP_POWER_SCALING(u8"controls scaling factor of chip power as funct
 	}
 
 	void FreeKickToGoal::execute(caller_t& ca) {
-		Action::catch_stopped_ball(ca, world, player());
+		Action::catch_ball(ca, world, player());
 
 		Point gp1 = world.field().enemy_goal_boundary().first;
 		Point gp2 = world.field().enemy_goal_boundary().second;
-		Angle total_angle = vertex_angle(gp1 , world.ball().position(), gp2);
-		total_angle = total_angle.angle_mod().abs();
-		Angle shot_angle = Evaluation::get_best_shot_pair(world, player()).second;
-		shot_angle = shot_angle.abs();
 
-		if(shot_angle / total_angle > 0.2){//robot has space to shoot
-			Action::shoot_target(world, player(), Evaluation::get_best_shot(world, player()));
-		}else{//robot will try chip instead, should be given new target
-			Point target;
-			double chip_power;
-			if(player().position().x < 0.0) {//in our end. Will aim for centre of enemy net
-				target = world.field().enemy_goal();
-			}
-			else {//in enemy's end. Will aim for best shot at enemy net. Should not consider first blocking player
-				target = Evaluation::indirect_chip_target(world, player());
-			}
+		Angle total_angle = vertex_angle(gp1 , world.ball().position(), gp2).angle_mod().abs();
 
-			//second formula is a temporary modifier, since chipping is not currently accurately calibrated
-			chip_power = (target - world.ball().position()).len() * (CHIP_POWER_SCALING * pow((world.field().enemy_goal() - world.ball().position()).len(), CHIP_POWER_EXP));
-
-			LOGF_INFO(u8"TARGET: %1, POWER: %2", target, chip_power);
-
-
-			//overrideing targeting for now, due to chipping/evaluation not being accurate
-			Action::shoot_target(world, player(), world.field().enemy_goal(), chip_power, true);
+		//player can see 15% of the net. Will shoot on goal
+		if(Evaluation::get_best_shot_pair(world, player()).second / total_angle > 0.15){
+			Action::shoot_target(ca, world, player(), Evaluation::get_best_shot(world, player()));
+			//LOGF_INFO(u8"TARGET: %1, POWER: %2, TYPE: %3", "net", "max", "shot on goal");
+		}
+		//player can see at least 15% of the net (not including close enemies). Will chip at net
+		else if(Evaluation::indirect_chip_target(world, player()).second / total_angle > 0.15) {
+			Point target = Evaluation::indirect_chip_target(world, player()).first;
+			double chip_power = (target - world.ball().position()).len();
+			Action::shoot_target(ca, world, player(), target, chip_power, true);
+			//LOGF_INFO(u8"TARGET: %1, POWER: %2, TYPE: %3", target, chip_power, "chip at net");
+		}
+		// If there is enough space to chip and chase, try chip and chase
+		else if(Evaluation::indirect_chipandchase_target(world).second == true) {
+			Point target = Evaluation::indirect_chipandchase_target(world).first;
+			double chip_power = (target - world.ball().position()).len();
+			Action::shoot_target(ca, world, player(), target, chip_power, true);
+			//LOGF_INFO(u8"TARGET: %1, POWER: %2, TYPE: %3", target, chip_power, "chip and chase");
+		}
+		// Try to ricochet the ball off an enemy to get another kick
+		else {
+			Point target = Evaluation::deflect_off_enemy_target(world);
+			Action::shoot_target(ca, world, player(), target);
+			//LOGF_INFO(u8"TARGET: %1, POWER: %2, TYPE: %3", target, "MAX", "shank shot");
 		}
 	}
 }

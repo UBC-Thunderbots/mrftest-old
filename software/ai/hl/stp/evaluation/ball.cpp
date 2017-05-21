@@ -153,6 +153,7 @@ Point Evaluation::calc_fastest_grab_ball_dest(World world, Player player) {
 }
 
 Point Evaluation::baller_catch_position(World world, Robot robot) {
+	#warning TODO this seems to return values way to small to actually get robots in front of a moving ball. It seems to still approximate a stopped one
 	return world.ball().position() + 0.03 * world.ball().velocity() * (world.ball().position() - robot.position()).len();
 }
 

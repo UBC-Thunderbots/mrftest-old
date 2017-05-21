@@ -1,8 +1,9 @@
+#include "ai/hl/stp/tactic/ball.h"
+#include "ai/hl/stp/tactic/tactic.h"
+#include "ai/hl/stp/tactic/defend.h"
+#include "ai/hl/stp/tactic/defend_solo.h"
+#include "ai/hl/stp/tactic/tdefend.h"
 #include "ai/hl/stp/play/simple_play.h"
-#include "ai/hl/stp/tactic/legacy_ball.h"
-#include "ai/hl/stp/tactic/legacy_defend.h"
-#include "ai/hl/stp/tactic/legacy_defend_solo.h"
-#include "ai/hl/stp/tactic/legacy_tdefend.h"
 #include "ai/hl/stp/tactic/block_shot_path.h"
 
 BEGIN_DEC(TriAttackDef)
