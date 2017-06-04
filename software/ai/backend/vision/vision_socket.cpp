@@ -80,8 +80,8 @@ bool VisionSocket::receive_packet(Glib::IOCondition) {
     // Decode it.
     SSL_WrapperPacket packet;
     if (!packet.ParseFromArray(buffer, static_cast<int>(len))) {
-            LOG_WARN(u8"Received malformed SSL-Vision packet.");
-            return true;
+	    LOG_WARN(u8"Received malformed SSL-Vision packet.");
+	    return true;
     }
 
     // Pass it to any attached listeners.
@@ -100,9 +100,7 @@ void VisionSocket::vision_loop(){
 		uint8_t buffer[65536];
 		ssize_t len = recv(sock.fd(), buffer, sizeof(buffer), 0); //Blocks until packet received
 
-
 		AI::Timestamp time_rec = std::chrono::steady_clock::now(); //Time packet was received at
-
 
 		// Decode it.
 		SSL_WrapperPacket packet;

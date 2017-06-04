@@ -36,7 +36,7 @@ namespace {
 			explicit FriendlyTeam(Backend &backend);
 			void log_to(MRFPacketLogger &logger);
 			void update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<AI::Timestamp> &ts);
-
+			void send_locations(std::vector<std::tuple<uint8_t,Point, Angle>>, Point, uint64_t);
 		protected:
 			void create_member(unsigned int pattern) override;
 
@@ -193,7 +193,9 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 }
 
 
-
+void FriendlyTeam::send_locations(std::vector<std::tuple<uint8_t,Point, Angle>> detbots, Point ball_pos, uint64_t tcapture){	
+	dongle.send_camera_packet(detbots, ball_pos, &tcapture);
+}
 
 void FriendlyTeam::create_member(unsigned int pattern) {
 	if (pattern < 8) {
