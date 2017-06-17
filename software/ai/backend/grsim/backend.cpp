@@ -58,7 +58,7 @@ namespace {
 			FriendlyTeam friendly;
 			EnemyTeam enemy;
 			FileDescriptor grsim_socket;
-
+			AI::BE::Vision::VisionSocket vision_rx;
 			void send_packet(AI::Timediff);
 	};
 }
@@ -87,7 +87,9 @@ void EnemyTeam::create_member(unsigned int pattern) {
 	members[pattern].create(pattern);
 }
 
-Backend::Backend(const std::vector<bool> &disable_cameras, int multicast_interface) : AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>(disable_cameras, multicast_interface, "10020"), friendly(*this), enemy(*this), grsim_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
+Backend::Backend(const std::vector<bool> &disable_cameras, int multicast_interface) : AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>(disable_cameras, multicast_interface), friendly(*this), enemy(*this), grsim_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)), vision_rx(multicast_interface, "10020"){
+	// This is the socket that waits for vision packets. Whenever it gets something it passes it to handle_vision_packet
+	vision_rx.signal_vision_data.connect(sigc::mem_fun(this, &Backend::handle_vision_packet));
 	addrinfo hints;
 	std::memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;

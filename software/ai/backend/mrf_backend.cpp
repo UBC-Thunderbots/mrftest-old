@@ -1,6 +1,7 @@
 #include "ai/backend/physical/player.h"
 #include "ai/backend/vision/backend.h"
 #include "ai/backend/vision/team.h"
+#include "ai/backend/vision/vision_thread.h"
 #include "ai/logger.h"
 #include "mrf/dongle.h"
 #include "mrf/robot.h"
@@ -33,7 +34,7 @@ namespace {
 	 */
 	class FriendlyTeam final : public AI::BE::Vision::Team<AI::BE::Physical::Player, AI::BE::Player> {
 		public:
-			explicit FriendlyTeam(Backend &backend);
+			explicit FriendlyTeam(Backend &backend, MRFDongle &dongle);
 			void log_to(MRFPacketLogger &logger);
 			void update(const std::vector<const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *> &packets, const std::vector<AI::Timestamp> &ts);
 			void send_locations(std::vector<std::tuple<uint8_t,Point, Angle>>, Point, uint64_t);
@@ -41,7 +42,7 @@ namespace {
 			void create_member(unsigned int pattern) override;
 
 		private:
-			MRFDongle dongle;
+			MRFDongle& dongle;
 	};
 
 	/**
@@ -67,10 +68,12 @@ namespace {
 			EnemyTeam &enemy_team() override;
 			const EnemyTeam &enemy_team() const override;
 			void log_to(AI::Logger &logger) override;
-
+			void tick();
 		private:
 			FriendlyTeam friendly;
 			EnemyTeam enemy;
+			MRFDongle dongle;
+			Vision::VisionThread vision_thread;
 	};
 
 	class MRFBackendFactory final : public BackendFactory {
@@ -82,7 +85,7 @@ namespace {
 
 MRFBackendFactory mrf_backend_factory_instance;
 
-FriendlyTeam::FriendlyTeam(Backend &backend) : AI::BE::Vision::Team<AI::BE::Physical::Player, AI::BE::Player>(backend) {
+FriendlyTeam::FriendlyTeam(Backend &backend, MRFDongle &dongle_) : AI::BE::Vision::Team<AI::BE::Physical::Player, AI::BE::Player>(backend), dongle(dongle_) {
 }
 
 void FriendlyTeam::log_to(MRFPacketLogger &logger) {
@@ -193,10 +196,6 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 }
 
 
-void FriendlyTeam::send_locations(std::vector<std::tuple<uint8_t,Point, Angle>> detbots, Point ball_pos, uint64_t tcapture){	
-	dongle.send_camera_packet(detbots, ball_pos, &tcapture);
-}
-
 void FriendlyTeam::create_member(unsigned int pattern) {
 	if (pattern < 8) {
 		members[pattern].create(pattern, std::ref(dongle.robot(pattern)));
@@ -210,7 +209,60 @@ void EnemyTeam::create_member(unsigned int pattern) {
 	members[pattern].create(pattern);
 }
 
-MRFBackend::MRFBackend(const std::vector<bool> &disable_cameras, int multicast_interface) : Backend(disable_cameras, multicast_interface, vision_port()), friendly(*this), enemy(*this) {
+MRFBackend::MRFBackend(const std::vector<bool> &disable_cameras, int multicast_interface) : Backend(disable_cameras, multicast_interface), friendly(*this, dongle), enemy(*this), vision_thread(dongle, multicast_interface, vision_port()) {
+}
+
+void MRFBackend::tick(){
+//TODO: replace the commented out code with something that handles queued packets
+//TODO: update the vision_thread (with friendly side, ball pos, etc.)
+/*
+	vision_rx.packets_mutex.lock();
+        std::pair<SSL_WrapperPacket, AI::Timestamp> packet;
+
+        while(!vision_rx.vision_packets.empty()){
+                packet = vision_rx.vision_packets.front();
+                vision_rx.vision_packets.pop();
+                this->handle_vision_packet(packet.first, packet.second);
+        }
+
+        vision_rx.packets_mutex.unlock();
+*/
+
+// If the field geometry is not yet valid, do nothing.
+        if (!field_.valid()) {
+                return;
+        }
+
+        // Do pre-AI stuff (locking predictors).
+        monotonic_time_ = std::chrono::steady_clock::now();
+        ball_.lock_time(monotonic_time_);
+        friendly_team().lock_time(monotonic_time_);
+        enemy_team().lock_time(monotonic_time_);
+        for (std::size_t i = 0; i < friendly_team().size(); ++i) {
+                friendly_team().get_backend_robot(i)->pre_tick();
+        }
+        for (std::size_t i = 0; i < enemy_team().size(); ++i) {
+                enemy_team().get_backend_robot(i)->pre_tick();
+        }
+
+        // Run the AI.
+        signal_tick().emit();
+
+        // Do post-AI stuff (pushing data to the radios and updating predictors).
+        for (std::size_t i = 0; i < friendly_team().size(); ++i) {
+                //test to see if this fixes halt spamming over radio
+                friendly_team().get_backend_robot(i)->tick(false,false);
+                //friendly_team().get_backend_robot(i)->tick(
+                                //playtype() == AI::Common::PlayType::HALT,
+                                //playtype() == AI::Common::PlayType::STOP);
+                friendly_team().get_backend_robot(i)->update_predictor(monotonic_time_);
+        }
+
+        // Notify anyone interested in the finish of a tick.
+        AI::Timestamp after;
+        after = std::chrono::steady_clock::now();
+        signal_post_tick().emit(after - monotonic_time_);
+
 }
 
 BackendFactory &MRFBackend::factory() const {

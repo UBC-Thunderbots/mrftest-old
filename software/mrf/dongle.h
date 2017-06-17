@@ -27,6 +27,7 @@
 #include <sigc++/connection.h>
 #include <sigc++/signal.h>
 #include <sigc++/trackable.h>
+#include <mutex>
 
 /**
  * \brief The dongle.
@@ -101,6 +102,7 @@ class MRFDongle final : public Drive::Dongle {
 		friend class MRFRobot;
 		friend class SendReliableMessageOperation;
 
+		std::mutex mtx;
 		MRFPacketLogger *logger;
 		USB::Context context;
 		USB::DeviceHandle device;

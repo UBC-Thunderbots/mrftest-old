@@ -67,25 +67,24 @@ public:
 	 * \param[in] vision_port the port on which SSL-Vision data is delivered.
 	 */
 	explicit Backend(const std::vector<bool> &disable_cameras,
-			int multicast_interface, const std::string &vision_port);
+			int multicast_interface);
 
 	virtual FriendlyTeam &friendly_team() = 0;
 	const FriendlyTeam &friendly_team() const override = 0;
 	virtual EnemyTeam &enemy_team() = 0;
 	const EnemyTeam &enemy_team() const override = 0;
+	void handle_vision_packet(const SSL_WrapperPacket &packet);
 
 private:
 	const std::vector<bool> &disable_cameras;
 	AI::BE::RefBox refbox;
 	AI::BE::Clock::Monotonic clock;
-	AI::BE::Vision::VisionSocket vision_rx;
 	AI::Timestamp playtype_time;
 	Point playtype_arm_ball_position;
 	std::vector<std::pair<SSL_DetectionFrame, AI::Timestamp>> detections;
 	AI::BE::Vision::Particle::ParticleFilter *pFilter_;
 
 	void tick();
-	void handle_vision_packet(const SSL_WrapperPacket &packet, AI::Timestamp time_rec);
 	void on_refbox_packet();
 	void update_geometry(const SSL_GeometryData &geom);
 	void update_ball(const SSL_DetectionFrame &det, AI::Timestamp time_rec);
@@ -105,10 +104,8 @@ template<typename FriendlyTeam, typename EnemyTeam> constexpr double AI::BE::Vis
 
 template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::Vision::Backend<
 		FriendlyTeam, EnemyTeam>::Backend(
-		const std::vector<bool> &disable_cameras, int multicast_interface,
-		const std::string &vision_port) :
-		disable_cameras(disable_cameras), refbox(multicast_interface), vision_rx(
-				multicast_interface, vision_port) {
+		const std::vector<bool> &disable_cameras, int multicast_interface):
+		disable_cameras(disable_cameras), refbox(multicast_interface){
 	friendly_colour().signal_changed().connect(
 			sigc::mem_fun(this, &Backend::on_friendly_colour_changed));
 	playtype_override().signal_changed().connect(
@@ -125,16 +122,6 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::Vision::Backe
 
 template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
 		FriendlyTeam, EnemyTeam>::tick() {
-	vision_rx.packets_mutex.lock();
-	std::pair<SSL_WrapperPacket, AI::Timestamp> packet;
-
-	while(!vision_rx.vision_packets.empty()){
-		packet = vision_rx.vision_packets.front();
-		vision_rx.vision_packets.pop();
-		this->handle_vision_packet(packet.first, packet.second);
-	}
-
-	vision_rx.packets_mutex.unlock();
 
 	// If the field geometry is not yet valid, do nothing.
 	if (!field_.valid()) {
@@ -174,7 +161,9 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 
 template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
 		FriendlyTeam, EnemyTeam>::handle_vision_packet(
-		const SSL_WrapperPacket &packet, AI::Timestamp time_rec) {
+		const SSL_WrapperPacket &packet) {
+	AI::Timestamp time_rec;
+	time_rec = std::chrono::steady_clock::now();
 	// Pass it to any attached listeners.
 	signal_vision().emit(time_rec, packet);
 

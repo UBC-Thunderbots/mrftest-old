@@ -87,6 +87,7 @@ namespace {
 		private:
 			FriendlyTeam friendly;
 			EnemyTeam enemy;
+			AI::BE::Vision::VisionSocket vision_rx;
 	};
 
 	/**
@@ -201,7 +202,8 @@ void EnemyTeam::create_member(unsigned int pattern) {
 	members[pattern].create(pattern);
 }
 
-ROBackend::ROBackend(const std::vector<bool> &disable_cameras, int multicast_interface) : Backend(disable_cameras, multicast_interface, vision_port()), friendly(*this), enemy(*this) {
+ROBackend::ROBackend(const std::vector<bool> &disable_cameras, int multicast_interface) : Backend(disable_cameras, multicast_interface), friendly(*this), enemy(*this), vision_rx(multicast_interface, vision_port()) {
+	vision_rx.signal_vision_data.connect(sigc::mem_fun(this, &Backend::handle_vision_packet));
 }
 
 BackendFactory &ROBackend::factory() const {
