@@ -372,8 +372,12 @@ software/ai/hl/stp/evaluation/offense.cpp -text
 software/ai/hl/stp/evaluation/offense.h -text
 software/ai/hl/stp/evaluation/pass.cpp -text
 software/ai/hl/stp/evaluation/pass.h -text
+software/ai/hl/stp/evaluation/plan_util.cpp -text
+software/ai/hl/stp/evaluation/plan_util.h -text
 software/ai/hl/stp/evaluation/player.cpp -text
 software/ai/hl/stp/evaluation/player.h -text
+software/ai/hl/stp/evaluation/rrt_planner.cpp -text
+software/ai/hl/stp/evaluation/rrt_planner.h -text
 software/ai/hl/stp/evaluation/shoot.cpp -text
 software/ai/hl/stp/evaluation/shoot.h -text
 software/ai/hl/stp/evaluation/static_position_quality.cpp -text

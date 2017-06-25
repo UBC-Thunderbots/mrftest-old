@@ -2,7 +2,7 @@
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/player.h"
 #include "ai/hl/util.h"
-#include "ai/navigator/util.h"
+#include "ai/hl/stp/evaluation/plan_util.h"
 #include "ai/hl/stp/param.h"
 #include "geom/angle.h"
 #include "geom/util.h"
@@ -267,7 +267,7 @@ Player Evaluation::select_passee(World world) {
 bool Evaluation::calc_fastest_grab_ball_dest(Point ball_pos, Point ball_vel, Point player_pos, Point &dest) {
 	const double ux = ball_vel.len(); // velocity of ball
 
-	const double v = AI::Nav::PLAYER_AVERAGE_VELOCITY;
+	const double v = 1.5;
 
 	const Point p1 = ball_pos;
 

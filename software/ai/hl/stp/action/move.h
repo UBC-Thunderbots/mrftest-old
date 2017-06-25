@@ -28,7 +28,11 @@ namespace AI {
 				 * should_wait == true, to initiate default wait condition (player gets within a radius around the ball)
 				 */
 				void move(caller_t& ca, World world, Player player, Point dest, Angle orientation, bool should_wait = true);
-				
+
+                void move_rrt(caller_t& ca, World world, Player player, Point dest, bool should_wait = true);
+
+                void move_rrt(caller_t& ca, World world, Player player, Point dest,  Angle orientation, bool should_wait = true);
+
 				/**
 				 * Move
 				 *
@@ -54,7 +58,7 @@ namespace AI {
 				 */
 				inline void wait_move(caller_t& ca, Player player, Point dest) {
 					//double tolerance = Robot::MAX_RADIUS + 0.005;
-					double tolerance = Robot::MAX_RADIUS + 0.005;
+					double tolerance = Robot::MAX_RADIUS + 0.015;
 					while((player.position() - dest).len() > tolerance) {
 						Action::yield(ca);
 					}
@@ -66,7 +70,7 @@ namespace AI {
 				 *
 				 */
 				inline void wait_move(caller_t& ca, Player player, Point dest, Angle final_orient) {
-					double tolerance = Robot::MAX_RADIUS + 0.005;
+					double tolerance = Robot::MAX_RADIUS + 0.015;
 					double angle_tolerance = 0.5; // in degrees
 
 					while((player.position() - dest).len() > tolerance 

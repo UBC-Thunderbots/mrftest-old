@@ -20,6 +20,12 @@ namespace AI {
 						yield(ca);
 					}
 				}
+
+                inline Point local_dest(Player player, Point dest) {
+                    Point pos_diff = dest - player.position();
+                    Point robot_local_dest = pos_diff.rotate(-player.orientation());
+                    return robot_local_dest;
+                }
 			}
 		}
 	}

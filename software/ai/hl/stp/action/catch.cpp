@@ -7,7 +7,7 @@
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/evaluation/intercept.h"
-#include "ai/navigator/util.h"
+#include "ai/hl/stp/evaluation/plan_util.h"
 #include "geom/util.h"
 #include "geom/point.h"
 #include "util/dprint.h"
