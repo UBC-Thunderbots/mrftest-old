@@ -68,8 +68,8 @@ namespace {
 			EnemyTeam &enemy_team() override;
 			const EnemyTeam &enemy_team() const override;
 			void log_to(AI::Logger &logger) override;
-			void tick();
 		private:
+			void tick() override;
 			FriendlyTeam friendly;
 			EnemyTeam enemy;
 			MRFDongle dongle;
@@ -99,17 +99,6 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 
 	bool membership_changed = false;
 
-	std::size_t newest_index = 0;
-	AI::Timestamp max_time = ts[0];
-	for(std::size_t i = 1; i < packets.size(); i++){
-		if(ts[i] >= max_time){
-			max_time = ts[i];
-			newest_index = i;
-		}
-	}
-
-	std::vector<std::tuple<uint8_t,Point, Angle>> newdetbots;
-
 	// Update existing robots and create new robots.
 	bool seen_this_frame[NUM_PATTERNS];
 	std::fill_n(seen_this_frame, NUM_PATTERNS, false);
@@ -130,13 +119,9 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 						if (detbot.has_orientation()) {
 							bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
 							//Todo: Remove the 0.66666 scaling- can't seem to get vision to send the right field size
-							Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0*0.6666666, (neg ? -detbot.y() : detbot.y()) / 1000.0*0.6666666);
+							Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
 							Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::half() : Angle::zero())).angle_mod();
 							bot->add_field_data(pos, ori, ts[i]);
-							if(i == newest_index){
-								newdetbots.push_back(std::make_tuple(pattern, pos, ori));
-							}
-
 						} else {
 							LOG_WARN(u8"Vision packet has robot with no orientation.");
 						}
@@ -169,30 +154,6 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 		populate_pointers();
 		AI::BE::Team<AI::BE::Player>::signal_membership_changed().emit();
 	}
-
-	//std::vector<std::tuple<uint8_t,Point, Angle>> newdetbots;
-	if(newdetbots.empty()) return;
-	else{
-	  //AI::Timestamp current_time = std::chrono::steady_clock::now();
-
-	  //auto time_delta = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - max_time);
-
-		uint64_t int_time = (uint64_t)max_time.time_since_epoch().count();
-		//uint64_t int_time = (uint64_t)time_delta.count();
-		std::cout << "Calling dongle.send_camera_packet with: ";
-		for (std::size_t i = 0; i < newdetbots.size(); ++i) {
-			std::cout << "bot number = " << unsigned(std::get<0>(newdetbots[i])) << ", ";
-			std::cout << "x = " << (std::get<1>(newdetbots[i])).x << ", ";
-			std::cout << "y = " << (std::get<1>(newdetbots[i])).y << ", ";
-			std::cout << "time delay (ms) = " << int_time << ", ";
-			std::cout << "theta = " << (std::get<2>(newdetbots[i])).to_degrees() << std::endl;
-
-		}
-		Point ball_pos = backend.ball().position();
-		ball_pos.x = ball_pos.x;
-		ball_pos.y = ball_pos.y;
-		dongle.send_camera_packet(newdetbots,ball_pos , &int_time);
-	}
 }
 
 
@@ -209,24 +170,29 @@ void EnemyTeam::create_member(unsigned int pattern) {
 	members[pattern].create(pattern);
 }
 
-MRFBackend::MRFBackend(const std::vector<bool> &disable_cameras, int multicast_interface) : Backend(disable_cameras, multicast_interface), friendly(*this, dongle), enemy(*this), vision_thread(dongle, multicast_interface, vision_port()) {
+MRFBackend::MRFBackend(const std::vector<bool> &disable_cameras, int multicast_interface) : Backend(disable_cameras, multicast_interface), friendly(*this, dongle), enemy(*this), vision_thread(dongle, multicast_interface, vision_port(), disable_cameras) {
+	std::cout << "MRF backend has been constructed";
 }
 
 void MRFBackend::tick(){
-//TODO: replace the commented out code with something that handles queued packets
-//TODO: update the vision_thread (with friendly side, ball pos, etc.)
-/*
-	vision_rx.packets_mutex.lock();
-        std::pair<SSL_WrapperPacket, AI::Timestamp> packet;
-
-        while(!vision_rx.vision_packets.empty()){
-                packet = vision_rx.vision_packets.front();
-                vision_rx.vision_packets.pop();
-                this->handle_vision_packet(packet.first, packet.second);
+	//update the vision_thread (with friendly side, ball pos, etc.)
+	vision_thread.vis_inf.setDefendingEast(defending_end() == FieldEnd::EAST);
+	vision_thread.vis_inf.setFriendlyIsYellow(friendly_colour() == AI::Common::Colour::YELLOW);
+	vision_thread.vis_inf.setBallPos(ball_.position());
+	vision_thread.vis_inf.setDataValid(true);
+	
+        while(true){
+		vision_thread.packets_mutex.lock();
+		if(vision_thread.vision_packets.empty()){
+			vision_thread.packets_mutex.unlock();
+			break;
+		}else{
+			SSL_WrapperPacket packet = vision_thread.vision_packets.front();
+			vision_thread.vision_packets.pop();
+			vision_thread.packets_mutex.unlock();
+			this->handle_vision_packet(packet);
+		}
         }
-
-        vision_rx.packets_mutex.unlock();
-*/
 
 // If the field geometry is not yet valid, do nothing.
         if (!field_.valid()) {

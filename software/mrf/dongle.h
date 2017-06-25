@@ -27,7 +27,6 @@
 #include <sigc++/connection.h>
 #include <sigc++/signal.h>
 #include <sigc++/trackable.h>
-#include <mutex>
 
 /**
  * \brief The dongle.
@@ -96,13 +95,12 @@ class MRFDongle final : public Drive::Dongle {
 		 */
 		void log_to(MRFPacketLogger &logger);
 
-		void send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>> robots, Point ball, uint64_t* timestamp);
+		void send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>> robots, Point ball, uint64_t timestamp);
 
 	private:
 		friend class MRFRobot;
 		friend class SendReliableMessageOperation;
 
-		std::mutex mtx;
 		MRFPacketLogger *logger;
 		USB::Context context;
 		USB::DeviceHandle device;

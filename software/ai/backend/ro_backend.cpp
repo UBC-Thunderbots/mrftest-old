@@ -85,6 +85,7 @@ namespace {
 			void log_to(AI::Logger &) override;
 
 		private:
+			void tick() override;
 			FriendlyTeam friendly;
 			EnemyTeam enemy;
 			AI::BE::Vision::VisionSocket vision_rx;
@@ -227,6 +228,45 @@ const EnemyTeam &ROBackend::enemy_team() const {
 }
 
 void ROBackend::log_to(AI::Logger &) {
+}
+
+
+inline void ROBackend::tick() {
+
+	// If the field geometry is not yet valid, do nothing.
+	if (!field_.valid()) {
+		return;
+	}
+
+	// Do pre-AI stuff (locking predictors).
+	monotonic_time_ = std::chrono::steady_clock::now();
+	ball_.lock_time(monotonic_time_);
+	friendly_team().lock_time(monotonic_time_);
+	enemy_team().lock_time(monotonic_time_);
+	for (std::size_t i = 0; i < friendly_team().size(); ++i) {
+		friendly_team().get_backend_robot(i)->pre_tick();
+	}
+	for (std::size_t i = 0; i < enemy_team().size(); ++i) {
+		enemy_team().get_backend_robot(i)->pre_tick();
+	}
+
+	// Run the AI.
+	signal_tick().emit();
+
+	// Do post-AI stuff (pushing data to the radios and updating predictors).
+	for (std::size_t i = 0; i < friendly_team().size(); ++i) {
+		//test to see if this fixes halt spamming over radio
+		friendly_team().get_backend_robot(i)->tick(false,false);
+		//friendly_team().get_backend_robot(i)->tick(
+				//playtype() == AI::Common::PlayType::HALT,
+				//playtype() == AI::Common::PlayType::STOP);
+		friendly_team().get_backend_robot(i)->update_predictor(monotonic_time_);
+	}
+
+	// Notify anyone interested in the finish of a tick.
+	AI::Timestamp after;
+	after = std::chrono::steady_clock::now();
+	signal_post_tick().emit(after - monotonic_time_);
 }
 
 ROBackendFactory::ROBackendFactory() : BackendFactory(u8"ro") {

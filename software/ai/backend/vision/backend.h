@@ -84,7 +84,7 @@ private:
 	std::vector<std::pair<SSL_DetectionFrame, AI::Timestamp>> detections;
 	AI::BE::Vision::Particle::ParticleFilter *pFilter_;
 
-	void tick();
+	virtual void tick() = 0;
 	void on_refbox_packet();
 	void update_geometry(const SSL_GeometryData &geom);
 	void update_ball(const SSL_DetectionFrame &det, AI::Timestamp time_rec);
@@ -119,7 +119,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline AI::BE::Vision::Backe
 
 	pFilter_ = nullptr;
 }
-
+/*
 template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
 		FriendlyTeam, EnemyTeam>::tick() {
 
@@ -158,7 +158,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 	after = std::chrono::steady_clock::now();
 	signal_post_tick().emit(after - monotonic_time_);
 }
-
+*/
 template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
 		FriendlyTeam, EnemyTeam>::handle_vision_packet(
 		const SSL_WrapperPacket &packet) {

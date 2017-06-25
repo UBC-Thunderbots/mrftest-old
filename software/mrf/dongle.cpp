@@ -331,7 +331,7 @@ void MRFDongle::dirty_drive() {
 	}
 }
 
-void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>> detbots, Point ball, uint64_t* timestamp)
+void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>> detbots, Point ball, uint64_t timestamp)
 {
 	int8_t camera_packet[55] = {0};
 	int8_t mask_vec = 0; // Assume all robots don't have valid position at the start
@@ -382,7 +382,7 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 	// Write out the timestamp
 	for(std::size_t i = 0; i < 8; i++)
 	{
-		*rptr++ = static_cast<int8_t>(*timestamp >> 8*i);
+		*rptr++ = static_cast<int8_t>(timestamp >> 8*i);
 	}
 
 	// Mask and Flag Vectors should be fully initialized by now. Assign them to the packet
@@ -394,11 +394,12 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 	//length = rptr - camera_packet;
 
 	// Submit camera packet for transfer over USB to the dongle firmware
+	
 	camera_transfer.reset(new USB::BulkOutTransfer(device, 1, camera_packet, 55, 55, 0));
 	camera_transfer->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_camera_transfer_done));
 	camera_transfer->submit();
+	USB::BulkOutTransfer transfer(device, 1, camera_packet, 55, 55, 0);
 	std::cout << "Submitted camera transfer" << std::endl;
-
 }
 
 bool MRFDongle::submit_drive_transfer() {
