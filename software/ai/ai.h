@@ -3,7 +3,6 @@
 
 #include "ai/backend/backend.h"
 #include "ai/hl/hl.h"
-#include "ai/navigator/navigator.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
 #include <glibmm/ustring.h>
@@ -26,11 +25,6 @@ namespace AI {
 			Property<std::unique_ptr<AI::HL::HighLevel>> high_level;
 
 			/**
-			 * The Navigator navigating the robots.
-			 */
-			Property<AI::Nav::Navigator::Ptr> navigator;
-
-			/**
 			 * \brief Fired whenever the AI notes change.
 			 */
 			mutable sigc::signal<void, Glib::ustring> signal_ai_notes_changed;
@@ -39,11 +33,6 @@ namespace AI {
 			 * \brief Whether or not the overlay mechanism should render the high-level overlay.
 			 */
 			bool show_hl_overlay;
-
-			/**
-			 * \brief Whether or not the overlay mechanism should render the navigator overlay.
-			 */
-			bool show_nav_overlay;
 
 			/**
 			 * Constructs a new AIPackage.

@@ -37,6 +37,9 @@ namespace AI {
 				void add_field_data(Point pos, Angle ori, AI::Timestamp ts);
 
 				ObjectStore &object_store() const;
+                static constexpr std::size_t NUM_WAYPOINTS = 50;
+                Point way_points[NUM_WAYPOINTS];
+                
 				unsigned int pattern() const;
 				Point position() const final override;
 				Point position(double delta) const;
