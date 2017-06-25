@@ -27,6 +27,7 @@
 #include <sigc++/connection.h>
 #include <sigc++/signal.h>
 #include <sigc++/trackable.h>
+#include <mutex>
 
 /**
  * \brief The dongle.
@@ -101,6 +102,7 @@ class MRFDongle final : public Drive::Dongle {
 		friend class MRFRobot;
 		friend class SendReliableMessageOperation;
 
+		std::mutex cam_mtx;
 		MRFPacketLogger *logger;
 		USB::Context context;
 		USB::DeviceHandle device;
@@ -115,6 +117,7 @@ class MRFDongle final : public Drive::Dongle {
 		std::unique_ptr<USB::BulkOutTransfer> drive_transfer;
 		std::unique_ptr<USB::BulkOutTransfer> camera_transfer;
 		std::list<std::unique_ptr<USB::BulkOutTransfer>> unreliable_messages;
+		std::list<std::unique_ptr<USB::BulkOutTransfer>> camera_transfers;
 		std::unique_ptr<MRFRobot> robots[8];
 		uint8_t drive_packet[64];
 		sigc::connection drive_submit_connection;
@@ -132,7 +135,7 @@ class MRFDongle final : public Drive::Dongle {
 		void dirty_drive();
 		bool submit_drive_transfer();
 		void handle_drive_transfer_done(AsyncOperation<void> &);
-		void handle_camera_transfer_done(AsyncOperation<void> &);
+		void handle_camera_transfer_done(AsyncOperation<void> &, std::list<std::unique_ptr<USB::BulkOutTransfer>>::iterator iter);
 		void send_unreliable(unsigned int robot, unsigned int tries, const void *data, std::size_t len);
 		void check_unreliable_transfer(AsyncOperation<void> &, std::list<std::unique_ptr<USB::BulkOutTransfer>>::iterator iter);
 		void submit_beep();

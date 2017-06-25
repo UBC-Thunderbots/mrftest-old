@@ -394,16 +394,24 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 	//length = rptr - camera_packet;
 
 	// Submit camera packet for transfer over USB to the dongle firmware
-	
+/*	
 	camera_transfer.reset(new USB::BulkOutTransfer(device, 1, camera_packet, 55, 55, 0));
 	camera_transfer->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_camera_transfer_done));
 	camera_transfer->submit();
-	USB::BulkOutTransfer transfer(device, 1, camera_packet, 55, 55, 0);
-	std::cout << "Submitted camera transfer" << std::endl;
-}
+*/
+	std::lock_guard<std::mutex> lock(cam_mtx);
+	if(camera_transfers.size() < 10000){
+		// Try a 10ms timeout
+		std::unique_ptr<USB::BulkOutTransfer> elt(new USB::BulkOutTransfer(device, 1, camera_packet, 55, 55, 0));
+		auto i = camera_transfers.insert(camera_transfers.end(), std::move(elt));
+		(*i)->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::handle_camera_transfer_done), i));
+		(*i)->submit();
+		std::cout << "Submitted camera transfer in position:"<< camera_transfers.size() << std::endl;
+	}
 
+}
 bool MRFDongle::submit_drive_transfer() {
-  /*
+/*
 	if (!drive_transfer) {
 		std::size_t dirty_indices[sizeof(robots) / sizeof(*robots)];
 		std::size_t dirty_indices_count = 0;
@@ -454,16 +462,25 @@ void MRFDongle::handle_drive_transfer_done(AsyncOperation<void> &op) {
 	}
 }
 */
+/*
 void MRFDongle::handle_camera_transfer_done(AsyncOperation<void> &op) {
 	std::cout << "Camera Transfer done" << std::endl;
 	op.result();
 	camera_transfer.reset();
 }
+*/
+void MRFDongle::handle_camera_transfer_done(AsyncOperation<void> &, std::list<std::unique_ptr<USB::BulkOutTransfer>>::iterator iter) {
+	std::lock_guard<std::mutex> lock(cam_mtx);
+	std::cout << "Camera Transfer done" << std::endl;
+	(*iter)->result();
+	camera_transfers.erase(iter);
+}
 
 void MRFDongle::send_unreliable(unsigned int robot, unsigned int tries, const void *data, std::size_t len) {
+
 	uint8_t *p = (uint8_t *)(data);
 	std::cout << "\n";
-	for(unsigned int i =0; i<9;i++){
+	for(unsigned int i =0; i<11;i++){
 	  std::bitset<8> x(p[i]);
 	  std::cout << x << "   ";
 	}
@@ -478,15 +495,23 @@ void MRFDongle::send_unreliable(unsigned int robot, unsigned int tries, const vo
 	buffer[0] = static_cast<uint8_t>(robot);
 	buffer[1] = static_cast<uint8_t>(tries & 0xFF);
 	std::memcpy(buffer + 2, data, len);
-	std::unique_ptr<USB::BulkOutTransfer> elt(new USB::BulkOutTransfer(device, 3, buffer, sizeof(buffer), 64, 0));
-	auto i = unreliable_messages.insert(unreliable_messages.end(), std::move(elt));
-	(*i)->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::check_unreliable_transfer), i));
-	(*i)->submit();
+
+	if(unreliable_messages.size() < 30){
+		std::unique_ptr<USB::BulkOutTransfer> elt(new USB::BulkOutTransfer(device, 3, buffer, sizeof(buffer), 64, 0));
+		auto i = unreliable_messages.insert(unreliable_messages.end(), std::move(elt));
+		(*i)->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::check_unreliable_transfer), i));
+		(*i)->submit();
+		std::cout << "Submitted drive transfer in position:"<< unreliable_messages.size() << std::endl;
+	}
+
 }
 
+
 void MRFDongle::check_unreliable_transfer(AsyncOperation<void> &, std::list<std::unique_ptr<USB::BulkOutTransfer>>::iterator iter) {
+	std::lock_guard<std::mutex> lock(cam_mtx);
 	(*iter)->result();
 	unreliable_messages.erase(iter);
+	std::cout << "transfer complete" << std::endl;
 }
 
 void MRFDongle::handle_beep_done(AsyncOperation<void> &) {
