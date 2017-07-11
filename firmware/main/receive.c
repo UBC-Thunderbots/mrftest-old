@@ -31,6 +31,7 @@
 #include <stack.h>
 #include <task.h>
 #include <unused.h>
+#include <stdio.h>
 
 /**
  * \brief The number of robots in the drive packet.
@@ -257,8 +258,8 @@ static void receive_task(void *UNUSED(param)) {
             case 0x13U: // Catch Primitive
             case 0x14U: // Pivot Primitive
             case 0x15U: // Spin Primitive
-            case 0x16U: // Direct Wheels Primitive
-            case 0x17U: // Direct Velocity Primitive
+            case 0x16U: // Direct Wheels Primitive 
+            case 0x17U: // Direct Velocity Primitive  
 	      if (estop_run) {
                 primitive_params_t pparams;
 		// Take the drive mutex.

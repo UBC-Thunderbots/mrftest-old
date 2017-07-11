@@ -42,7 +42,7 @@
 /**
  * \brief The number of packet buffers to allocate at system startup.
  */
-#define NUM_PACKETS 64U
+#define NUM_PACKETS 4U
 
 /**
  * \brief The number of ticks during which to not see a drive packet from a
@@ -746,14 +746,11 @@ static void camera_task(void *UNUSED(param)) {
 					ep_running = false;
 				}
 			}
-
-			if (__atomic_exchange_n(&camera_tick_pending, false, __ATOMIC_RELAXED)) {
-				// Send a packet.
-				xSemaphoreTake(transmit_mutex, portMAX_DELAY);
-				send_camera_packet(packet_buffer, serials);
-				xSemaphoreTake(transmit_complete_sem, portMAX_DELAY);
-				xSemaphoreGive(transmit_mutex);
-			}
+			// Send a packet.
+			xSemaphoreTake(transmit_mutex, portMAX_DELAY);
+			send_camera_packet(packet_buffer, serials);
+			xSemaphoreTake(transmit_complete_sem, portMAX_DELAY);
+			xSemaphoreGive(transmit_mutex);
 		}
 
 		// Turn off timer 6.
@@ -891,7 +888,10 @@ static void mdr_task(void *UNUSED(param)) {
 
 			// Receive up to three more MDRs to fill the array.
 			// Do not wait for them to be ready, though.
-			while (count < 4U && xQueueReceive(mdr_queue, &mdrs[count], 0U));
+			// TODO: find out what if this is what was originally intended for this line
+			while (count < 4U && xQueueReceive(mdr_queue, &mdrs[count], 0U)){
+				count ++;
+			}
 
 			// Check if any of the MDRs indicates shutdown.
 			for (unsigned int i = 0U; i < count; ++i) {
@@ -983,7 +983,11 @@ static void dongle_status_task(void *UNUSED(param)) {
 			unsigned int second_dongle_last_local = __atomic_load_n(&second_dongle_last, __ATOMIC_RELAXED);
 			unsigned int now = xTaskGetTickCount();
 			bool second_dongle = now - second_dongle_last_local < SECOND_DONGLE_TIMEOUT;
+			//TODO: change these back
+			bool transmit_queue_full = (uxQueueSpacesAvailable(transmit_queue) != NUM_PACKETS + 1);
+			bool receive_queue_full = (uxQueueSpacesAvailable(free_queue) != NUM_PACKETS);
 			uint8_t state = estop_read() | (__atomic_exchange_n(&rx_fcs_error, false, __ATOMIC_RELAXED) ? 0x04U : 0x00U) | (second_dongle ? 0x08U : 0x00U);
+      state |= ((transmit_queue_full ? 0x10U : 0x00U) | (receive_queue_full ? 0x20U : 0x00U));
 			bool ok;
 			while (!(ok = uep_write(0x83U, &state, sizeof(state), false)) && errno == EPIPE) {
 				if (!uep_halt_wait(0x83U)) {

@@ -4,7 +4,7 @@
 #include "log.h"
 
 // In ticks
-#define BASE_CAMERA_DELAY 7
+#define BASE_CAMERA_DELAY 3
 #define SPEED_SIZE 100
 
 /**
