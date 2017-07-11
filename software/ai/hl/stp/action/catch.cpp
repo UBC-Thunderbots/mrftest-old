@@ -16,7 +16,6 @@ using namespace AI::HL::STP;
 
 void AI::HL::STP::Action::catch_ball(caller_t& ca, World world, Player player, Point target) {
 	Point target_line; // the line between the ball and target
-	Primitives::Primitive::Ptr move;
 	Point catch_pos; // prediction of where the robot should be behind the ball to catch it
 	Angle catch_orientation; // The orientation the catcher should have when catching
 
@@ -54,8 +53,8 @@ void AI::HL::STP::Action::catch_ball(caller_t& ca, World world, Player player, P
 			//catch_pos = Evaluation::quickest_intercept_position(world, player);
 		}
 
-		move.reset();
-		move = Primitives::Primitive::Ptr(new Primitives::Move(player, catch_pos, catch_orientation));
+        LOGF_INFO(u8"%1", catch_pos);
+		player.move_move(catch_pos, catch_orientation);
 		Action::yield(ca);
 	} while ((player.position() - catch_pos).lensq() > 0.08 * 0.08 || player.velocity().lensq() > 0.07 * 0.07 ||
 				player.orientation().angle_diff(catch_orientation).abs() > Angle::of_degrees(5));
@@ -65,19 +64,7 @@ void AI::HL::STP::Action::catch_ball(caller_t& ca, World world, Player player, P
 
 	player.flags(AI::Flags::calc_flags(world.playtype()) | AI::Flags::MoveFlags::AVOID_FRIENDLY_DEFENSE
 			| AI::Flags::MoveFlags::AVOID_ENEMY_DEFENSE | AI::Flags::MoveFlags::CAREFUL);
-	do {
-		// Make sure the player has had the ball for more than 1 tick to make sure we
-		// really do have it and it's not just bouncing off quickly or something
-		if (player.has_ball()) {
-			had_ball_for++;
-		}
-		else {
-			had_ball_for = 0;
-		}
 
-		move.reset();
-		catch_pos = Evaluation::baller_catch_position(world, player);
-		Action::dribble(ca, world, player, catch_pos, (world.ball().position() - player.position()).orientation());
-		Action::yield(ca);
-	} while (had_ball_for < 3);
+    catch_pos = Evaluation::baller_catch_position(world, player);
+    Action::dribble(ca, world, player, catch_pos, (world.ball().position() - player.position()).orientation());
 }

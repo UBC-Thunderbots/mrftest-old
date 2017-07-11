@@ -113,11 +113,12 @@ class MRFDongle final : public Drive::Dongle {
 		std::array<std::unique_ptr<USB::BulkInTransfer>, 32> mdr_transfers;
 		std::array<std::unique_ptr<USB::BulkInTransfer>, 32> message_transfers;
 		USB::InterruptInTransfer status_transfer;
-		Annunciator::Message rx_fcs_fail_message, second_dongle_message;
+		Annunciator::Message rx_fcs_fail_message, second_dongle_message,
+                         transmit_queue_full_message, receive_queue_full_message;
 		std::unique_ptr<USB::BulkOutTransfer> drive_transfer;
 		std::unique_ptr<USB::BulkOutTransfer> camera_transfer;
-		std::list<std::unique_ptr<USB::BulkOutTransfer>> unreliable_messages;
-		std::list<std::unique_ptr<USB::BulkOutTransfer>> camera_transfers;
+		std::list<std::pair<std::unique_ptr<USB::BulkOutTransfer>, uint64_t>> unreliable_messages;
+		std::list<std::pair<std::unique_ptr<USB::BulkOutTransfer>, uint64_t>> camera_transfers;
 		std::unique_ptr<MRFRobot> robots[8];
 		uint8_t drive_packet[64];
 		sigc::connection drive_submit_connection;
@@ -135,9 +136,9 @@ class MRFDongle final : public Drive::Dongle {
 		void dirty_drive();
 		bool submit_drive_transfer();
 		void handle_drive_transfer_done(AsyncOperation<void> &);
-		void handle_camera_transfer_done(AsyncOperation<void> &, std::list<std::unique_ptr<USB::BulkOutTransfer>>::iterator iter);
+		void handle_camera_transfer_done(AsyncOperation<void> &, std::list<std::pair<std::unique_ptr<USB::BulkOutTransfer>, uint64_t>>::iterator iter);
 		void send_unreliable(unsigned int robot, unsigned int tries, const void *data, std::size_t len);
-		void check_unreliable_transfer(AsyncOperation<void> &, std::list<std::unique_ptr<USB::BulkOutTransfer>>::iterator iter);
+		void check_unreliable_transfer(AsyncOperation<void> &, std::list<std::pair<std::unique_ptr<USB::BulkOutTransfer>, uint64_t>>::iterator iter);
 		void submit_beep();
 		void handle_beep_done(AsyncOperation<void> &);
 		void handle_annunciator_message_activated();

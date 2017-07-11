@@ -65,6 +65,7 @@ namespace AI {
 					std::queue<SSL_WrapperPacket> vision_packets;
 					std::mutex packets_mutex;
 				private:
+					int cam_count = 0;
 					std::atomic<bool> stop_thread;
 					FileDescriptor sock;	
 					MRFDongle& dongle;

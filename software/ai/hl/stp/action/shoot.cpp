@@ -13,28 +13,26 @@
 
 using namespace AI::HL::STP;
 
-void AI::HL::STP::Action::shoot_goal(caller_t& ca, World world, Player player, bool chip) {
+void AI::HL::STP::Action::shoot_goal(caller_t& ca, World world, Player player, bool chip, bool should_wait) {
 	Point shot = Evaluation::get_best_shot(world, player);
 
-	shoot_target(ca, world, player, shot, BALL_MAX_SPEED, chip);
+	shoot_target(ca, world, player, shot, BALL_MAX_SPEED, chip, should_wait);
 }
 
-void AI::HL::STP::Action::shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip) {
+void AI::HL::STP::Action::shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip, bool should_wait) {
 	const Angle orient = (target - player.position()).orientation();
 
 	// wait for chicker to be ready
 	while (!player.chicker_ready()) Action::yield(ca);
 
 	// ram the ball
-	Primitives::Shoot shoot(player, world.ball().position() + (world.ball().position() - player.position()).norm(0.05), orient, velocity, chip);
 
-
-	for (int i = 0; i < 10; i++) Action::yield(ca);		//this is a hack from RoboCup used for stabilization ( DO NOT CHANGE )
-
-	player.clear_prims();
+    player.move_shoot(world.ball().position() + (world.ball().position() - player.position()).norm(0.05), orient, velocity, chip);
+    LOGF_INFO(u8"%1", world.ball().position() + (world.ball().position() - player.position()).norm(0.05));
+    if(should_wait) Action::wait_shoot(ca, player);
 }
 
-void AI::HL::STP::Action::catch_and_shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip) {
+void AI::HL::STP::Action::catch_and_shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip, bool should_wait) {
 	while(!player.has_ball()) {
 		#warning TODO this doesn't actually look at the target
 		#warning TODO this only works for stopped balls
@@ -43,11 +41,11 @@ void AI::HL::STP::Action::catch_and_shoot_target(caller_t& ca, World world, Play
 		catch_ball(ca, world, player, target);
 	}
 
-	shoot_target(ca, world, player, target, velocity, chip);
+	shoot_target(ca, world, player, target, velocity, chip, should_wait);
 }
 
-void AI::HL::STP::Action::catch_and_shoot_goal(caller_t& ca, World world, Player player, bool chip) {
+void AI::HL::STP::Action::catch_and_shoot_goal(caller_t& ca, World world, Player player, bool chip, bool should_wait) {
 	Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
 
-	catch_and_shoot_target(ca, world, player, shoot_data.target, BALL_MAX_SPEED, chip);
+	catch_and_shoot_target(ca, world, player, shoot_data.target, BALL_MAX_SPEED, chip, should_wait);
 }

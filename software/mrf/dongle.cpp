@@ -117,6 +117,8 @@ MRFDongle::MRFDongle() :
 		status_transfer(device, 3, 1, true, 0),
 		rx_fcs_fail_message(u8"Dongle receive FCS fail", Annunciator::Message::TriggerMode::EDGE, Annunciator::Message::Severity::HIGH),
 		second_dongle_message(u8"Second dongle on this channel+PAN", Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
+		transmit_queue_full_message(u8"Transmit Queue Full", Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
+		receive_queue_full_message(u8"Receive Queue Full", Annunciator::Message::TriggerMode::LEVEL, Annunciator::Message::Severity::HIGH),
 		pending_beep_length(0) {
 	// Sanity-check the dongle by looking for an interface with the appropriate subclass and alternate settings with the appropriate protocols.
 	// While doing so, discover which interface number is used for the radio and which alternate settings are for configuration-setting and normal operation.
@@ -322,6 +324,9 @@ void MRFDongle::handle_status(AsyncOperation<void> &) {
 		rx_fcs_fail_message.fire();
 	}
 	second_dongle_message.active(status_transfer.data()[0] & 8U);
+	transmit_queue_full_message.active(status_transfer.data()[0] & 16U);
+	receive_queue_full_message.active(status_transfer.data()[0] & 32U);
+   
 	status_transfer.submit();
 }
 
@@ -400,18 +405,25 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 	camera_transfer->submit();
 */
 	std::lock_guard<std::mutex> lock(cam_mtx);
-	if(camera_transfers.size() < 10000){
-		// Try a 10ms timeout
-		std::unique_ptr<USB::BulkOutTransfer> elt(new USB::BulkOutTransfer(device, 1, camera_packet, 55, 55, 0));
-		auto i = camera_transfers.insert(camera_transfers.end(), std::move(elt));
-		(*i)->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::handle_camera_transfer_done), i));
-		(*i)->submit();
-		std::cout << "Submitted camera transfer in position:"<< camera_transfers.size() << std::endl;
+
+	if (camera_transfers.size() >= 16){
+		std::cout << "Camera transfer queue is full, ignoring camera packet" << std::endl;	
+		return;
 	}
 
+	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+	std::chrono::system_clock::time_point epoch = std::chrono::system_clock::from_time_t(0);
+	std::chrono::system_clock::duration diff = now - epoch;
+	std::chrono::microseconds micros = std::chrono::duration_cast<std::chrono::microseconds>(diff);
+	uint64_t stamp = static_cast<uint64_t>(micros.count());
+	std::unique_ptr<USB::BulkOutTransfer> elt(new USB::BulkOutTransfer(device, 1, camera_packet, 55, 55, 0));
+
+	auto i = camera_transfers.insert(camera_transfers.end(), std::pair<std::unique_ptr<USB::BulkOutTransfer>, uint64_t>(std::move(elt), stamp));
+	(*i).first->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::handle_camera_transfer_done), i));
+	(*i).first->submit();
+	std::cout << "Submitted camera transfer in position:"<< camera_transfers.size() << std::endl;
 }
 bool MRFDongle::submit_drive_transfer() {
-/*
 	if (!drive_transfer) {
 		std::size_t dirty_indices[sizeof(robots) / sizeof(*robots)];
 		std::size_t dirty_indices_count = 0;
@@ -448,11 +460,9 @@ bool MRFDongle::submit_drive_transfer() {
 			}
 		}
 		}
-*/
 	return false;
 }
 
-/*
 void MRFDongle::handle_drive_transfer_done(AsyncOperation<void> &op) {
 	std::cout << "Drive Transfer done" << std::endl;
 	op.result();
@@ -461,23 +471,21 @@ void MRFDongle::handle_drive_transfer_done(AsyncOperation<void> &op) {
 		submit_drive_transfer();
 	}
 }
-*/
-/*
-void MRFDongle::handle_camera_transfer_done(AsyncOperation<void> &op) {
-	std::cout << "Camera Transfer done" << std::endl;
-	op.result();
-	camera_transfer.reset();
-}
-*/
-void MRFDongle::handle_camera_transfer_done(AsyncOperation<void> &, std::list<std::unique_ptr<USB::BulkOutTransfer>>::iterator iter) {
+
+void MRFDongle::handle_camera_transfer_done(AsyncOperation<void> &, std::list<std::pair<std::unique_ptr<USB::BulkOutTransfer>, uint64_t>>::iterator iter) {
+	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+	std::chrono::system_clock::time_point epoch = std::chrono::system_clock::from_time_t(0);
+	std::chrono::system_clock::duration diff = now - epoch;
+	std::chrono::microseconds micros = std::chrono::duration_cast<std::chrono::microseconds>(diff);
+	uint64_t stamp  = static_cast<uint64_t>(micros.count());
+
 	std::lock_guard<std::mutex> lock(cam_mtx);
-	std::cout << "Camera Transfer done" << std::endl;
-	(*iter)->result();
+	std::cout << "Camera transfer done, took: " << stamp - (*iter).second << " microseconds" << std::endl;
+	(*iter).first->result();
 	camera_transfers.erase(iter);
 }
 
 void MRFDongle::send_unreliable(unsigned int robot, unsigned int tries, const void *data, std::size_t len) {
-
 	uint8_t *p = (uint8_t *)(data);
 	std::cout << "\n";
 	for(unsigned int i =0; i<11;i++){
@@ -497,21 +505,35 @@ void MRFDongle::send_unreliable(unsigned int robot, unsigned int tries, const vo
 	std::memcpy(buffer + 2, data, len);
 
 	if(unreliable_messages.size() < 30){
+		std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+		std::chrono::system_clock::time_point epoch = std::chrono::system_clock::from_time_t(0);
+		std::chrono::system_clock::duration diff = now - epoch;
+		std::chrono::microseconds micros = std::chrono::duration_cast<std::chrono::microseconds>(diff);
+		uint64_t stamp = static_cast<uint64_t>(micros.count());
+
 		std::unique_ptr<USB::BulkOutTransfer> elt(new USB::BulkOutTransfer(device, 3, buffer, sizeof(buffer), 64, 0));
-		auto i = unreliable_messages.insert(unreliable_messages.end(), std::move(elt));
-		(*i)->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::check_unreliable_transfer), i));
-		(*i)->submit();
+		auto i = unreliable_messages.insert(unreliable_messages.end(), std::pair<std::unique_ptr<USB::BulkOutTransfer>, uint64_t>(std::move(elt), stamp));
+		(*i).first->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::check_unreliable_transfer), i));
+		(*i).first->submit();
 		std::cout << "Submitted drive transfer in position:"<< unreliable_messages.size() << std::endl;
+	}else{
+		std::cout << "drive transfer queue full, did not send move packet" << std::endl;
 	}
 
 }
 
 
-void MRFDongle::check_unreliable_transfer(AsyncOperation<void> &, std::list<std::unique_ptr<USB::BulkOutTransfer>>::iterator iter) {
+void MRFDongle::check_unreliable_transfer(AsyncOperation<void> &, std::list<std::pair<std::unique_ptr<USB::BulkOutTransfer>, uint64_t>>::iterator iter) {
+	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+	std::chrono::system_clock::time_point epoch = std::chrono::system_clock::from_time_t(0);
+	std::chrono::system_clock::duration diff = now - epoch;
+	std::chrono::microseconds micros = std::chrono::duration_cast<std::chrono::microseconds>(diff);
+	uint64_t stamp = static_cast<uint64_t>(micros.count());
+
 	std::lock_guard<std::mutex> lock(cam_mtx);
-	(*iter)->result();
+	(*iter).first->result();
 	unreliable_messages.erase(iter);
-	std::cout << "transfer complete" << std::endl;
+	std::cout << "move transfer complete, took: " << stamp - (*iter).second << " microseconds" << std::endl;
 }
 
 void MRFDongle::handle_beep_done(AsyncOperation<void> &) {

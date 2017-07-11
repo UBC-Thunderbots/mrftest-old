@@ -10,16 +10,6 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Action {
-
-				/**
-				 * Move
-				 *
-				 * Move to a particular location and stop. Orient the player
-				 * towards the ball.
-				 * should_wait == true, to initiate default wait condition (player gets within a radius around the ball)
-				 */
-				void move(caller_t& ca, World world, Player player, Point dest, bool should_wait = true);
-
 				/**
 				 * Move
 				 *
@@ -27,7 +17,14 @@ namespace AI {
 				 * towards a particular direction.
 				 * should_wait == true, to initiate default wait condition (player gets within a radius around the ball)
 				 */
+				void move(caller_t& ca, World world, Player player, Point dest, bool should_wait = true);
+
 				void move(caller_t& ca, World world, Player player, Point dest, Angle orientation, bool should_wait = true);
+                void move_straight(caller_t& ca, World world, Player player, Point dest, bool should_wait = true);
+
+				void move_straight(caller_t& ca, World world, Player player, Point dest, Angle orientation, bool should_wait = true);
+
+
 
                 void move_rrt(caller_t& ca, World world, Player player, Point dest, bool should_wait = true);
 
@@ -39,7 +36,6 @@ namespace AI {
 				 * 
 				 * Move to a particular location and stop. Orient the player
 				 * towards a particular direction.
-				 * all while having the dribbler on
 				 * should_wait == true, to initiate default wait condition (player gets within a radius around the ball)
 				 */
 				void move_dribble(caller_t& ca, World world, Player player, Angle orientation, Point dest, bool should_wait = true);
@@ -59,11 +55,14 @@ namespace AI {
 				inline void wait_move(caller_t& ca, Player player, Point dest) {
 					//double tolerance = Robot::MAX_RADIUS + 0.005;
 					double tolerance = Robot::MAX_RADIUS + 0.015;
+					
+					//LOG_INFO(u8"in wait move before yield");
 					while((player.position() - dest).len() > tolerance) {
+						LOGF_INFO(u8"in wait move: Current position:%1, Dest:%2", player.position(), dest);
+						LOGF_INFO(u8"in wait move: dist to dest: %1, tol: %2", (player.position() - dest).len(), tolerance);
 						Action::yield(ca);
 					}
-
-					player.clear_prims();
+					LOG_INFO(u8"in wait move after done");
 				}
 
 				/**
@@ -78,8 +77,6 @@ namespace AI {
 						|| player.orientation().to_degrees() < final_orient.to_degrees() - angle_tolerance) {
 							Action::yield(ca);
 					}
-					
-					player.clear_prims();
 				}
 
 			

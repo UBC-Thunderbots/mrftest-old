@@ -62,7 +62,6 @@ VisionThread::VisionThread(MRFDongle &dongle_,int multicast_interface, const std
 
 VisionThread::~VisionThread() {
 	//might need to do something here to make sure the thread dies before the dongle does
-	//TODO: deal with the thread	
 }
 
 
@@ -85,7 +84,6 @@ void VisionThread::vision_loop(int multicast_interface, std::string port){
 			transmit_bots(packet);
 		}	
  		
-		// TODO: thread safe the dongle
 		packets_mutex.lock();
 		if(vision_packets.size() > 16){
 			vision_packets.pop(); // Too many packets, get rid of the oldest
@@ -153,7 +151,7 @@ void VisionThread::transmit_bots(SSL_WrapperPacket packet){
 		bool neg = vis_inf.defendingEast();	
 		Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
 		//TODO: fix vision scaling
-		pos = pos*0.66666666;
+		//pos = pos*0.66666666;
 		Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::half() : Angle::zero())).angle_mod();
 		detbots.push_back(std::make_tuple(pattern, pos, ori));
 	}
@@ -175,13 +173,17 @@ void VisionThread::transmit_bots(SSL_WrapperPacket packet){
 	}
 */
 	Point ball_pos = vis_inf.ballPos();
- 
-	// TODO: thread safe the handling of transmission done
-	for(auto i=0;i < 1;i++){
+ 	
+	//only send every fourth packet
+	//TODO: make this for each camera
+	if(cam_count == 0){
 		dongle.send_camera_packet(detbots, ball_pos, t_capture);
+		cam_count = 4;
+	}else{
+		cam_count --;
 	}
-	//TODO: dont actually send it twice
 }
+
 
 
 
