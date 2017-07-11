@@ -332,6 +332,8 @@ void MRFDongle::handle_status(AsyncOperation<void> &) {
 
 void MRFDongle::dirty_drive() {
 	if (!drive_submit_connection.connected()) {
+		// Tells the Glib control loop to send a drive transfer when it has nothing else to do.
+		// This should ensure the AI tick function completes before it sends a drive packet
 		drive_submit_connection = Glib::signal_idle().connect(sigc::mem_fun(this, &MRFDongle::submit_drive_transfer));
 	}
 }
@@ -459,7 +461,7 @@ bool MRFDongle::submit_drive_transfer() {
 				logger->log_mrf_drive(drive_packet, length);
 			}
 		}
-		}
+	}
 	return false;
 }
 
@@ -486,14 +488,6 @@ void MRFDongle::handle_camera_transfer_done(AsyncOperation<void> &, std::list<st
 }
 
 void MRFDongle::send_unreliable(unsigned int robot, unsigned int tries, const void *data, std::size_t len) {
-	uint8_t *p = (uint8_t *)(data);
-	std::cout << "\n";
-	for(unsigned int i =0; i<11;i++){
-	  std::bitset<8> x(p[i]);
-	  std::cout << x << "   ";
-	}
-	std::cout << "\n" << std::endl;
-	
 	assert(robot < 8);
 	assert((1 <= tries) && (tries <= 256));
 	if (logger) {
@@ -503,37 +497,15 @@ void MRFDongle::send_unreliable(unsigned int robot, unsigned int tries, const vo
 	buffer[0] = static_cast<uint8_t>(robot);
 	buffer[1] = static_cast<uint8_t>(tries & 0xFF);
 	std::memcpy(buffer + 2, data, len);
-
-	if(unreliable_messages.size() < 30){
-		std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-		std::chrono::system_clock::time_point epoch = std::chrono::system_clock::from_time_t(0);
-		std::chrono::system_clock::duration diff = now - epoch;
-		std::chrono::microseconds micros = std::chrono::duration_cast<std::chrono::microseconds>(diff);
-		uint64_t stamp = static_cast<uint64_t>(micros.count());
-
-		std::unique_ptr<USB::BulkOutTransfer> elt(new USB::BulkOutTransfer(device, 3, buffer, sizeof(buffer), 64, 0));
-		auto i = unreliable_messages.insert(unreliable_messages.end(), std::pair<std::unique_ptr<USB::BulkOutTransfer>, uint64_t>(std::move(elt), stamp));
-		(*i).first->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::check_unreliable_transfer), i));
-		(*i).first->submit();
-		std::cout << "Submitted drive transfer in position:"<< unreliable_messages.size() << std::endl;
-	}else{
-		std::cout << "drive transfer queue full, did not send move packet" << std::endl;
-	}
-
+	std::unique_ptr<USB::BulkOutTransfer> elt(new USB::BulkOutTransfer(device, 3, buffer, sizeof(buffer), 64, 0));
+	auto i = unreliable_messages.insert(unreliable_messages.end(), std::move(elt));
+	(*i)->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::check_unreliable_transfer), i));
+	(*i)->submit();
 }
 
-
-void MRFDongle::check_unreliable_transfer(AsyncOperation<void> &, std::list<std::pair<std::unique_ptr<USB::BulkOutTransfer>, uint64_t>>::iterator iter) {
-	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-	std::chrono::system_clock::time_point epoch = std::chrono::system_clock::from_time_t(0);
-	std::chrono::system_clock::duration diff = now - epoch;
-	std::chrono::microseconds micros = std::chrono::duration_cast<std::chrono::microseconds>(diff);
-	uint64_t stamp = static_cast<uint64_t>(micros.count());
-
-	std::lock_guard<std::mutex> lock(cam_mtx);
-	(*iter).first->result();
+void MRFDongle::check_unreliable_transfer(AsyncOperation<void> &, std::list<std::unique_ptr<USB::BulkOutTransfer>>::iterator iter) {
+	(*iter)->result();
 	unreliable_messages.erase(iter);
-	std::cout << "move transfer complete, took: " << stamp - (*iter).second << " microseconds" << std::endl;
 }
 
 void MRFDongle::handle_beep_done(AsyncOperation<void> &) {
