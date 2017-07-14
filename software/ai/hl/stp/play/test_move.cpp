@@ -12,9 +12,9 @@ FAIL(false)
 EXECUTE()
 
 tactics[0] = Tactic::move_test_orientation(world, Point(1, -1));
-tactics[1] = Tactic::move_test_orientation(world, Point(2, -1));
+//tactics[1] = Tactic::move_test_orientation(world, Point(2, -1));
 
 wait(caller, tactics[0].get());
-wait(caller, tactics[1].get());
+//wait(caller, tactics[1].get());
 
 END_DEF(TESTMOVE)
