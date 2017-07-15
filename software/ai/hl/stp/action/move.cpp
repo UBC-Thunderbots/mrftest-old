@@ -51,41 +51,68 @@ void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Poi
 //		}
 //    }
 
+	/*It seems like when "spamming" even a little bit, the robot doesn't get within
+	 * more than 0.035m of the destination
+	 *
+	 */
     std::vector<Point> way_points;
     std::vector<Point> newPlan = Evaluation::RRT::rrt_plan(world, player, dest, way_points, true, player.flags());
 	std::vector<Point> plan = newPlan;
-	bool replan = false;
 	bool loopBroken = false;
 	int count = 0;
 
-	while((player.position() - dest).len() > 0.05) {
-		plan = Evaluation::RRT::rrt_plan(world, player, dest, way_points, true, player.flags());
+	while((player.position() - dest).len() > Robot::MAX_RADIUS/2) {
+		if(Evaluation::Plan::valid_path(player.position(), dest, world, player)) {
+			LOG_INFO("CAN GO STRAIGHT TO DEST");
+			player.move_move(dest);
+			plan.clear();
+			plan.push_back(dest);
+		}else {
+			plan = newPlan;
+		}
 
+		if((plan.back() - dest).len() > 1e-6) {
+			plan = Evaluation::RRT::rrt_plan(world, player, dest, way_points, true, player.flags());
+		}
+
+		plan = newPlan;
 		loopBroken = false;
 		count = 0;
 		for(unsigned int i = 0; i < plan.size(); i++) {
 			player.display_path(std::vector<Point>(plan.begin() + i, plan.end()));
 			player.move_move(plan[i], orientation, 0);
 
-			while((player.position() - plan[i]).len() > 0.04) {
+			Action::yield(ca);
+			while((player.position() - plan[i]).len() > Robot::MAX_RADIUS) {
 				Action::yield(ca);
 				player.display_path(std::vector<Point>(plan.begin() + i, plan.end()));
-				if(count >= 5 && (plan[i] - Evaluation::RRT::rrt_plan(world, player, dest, way_points, true, player.flags())[0]).len() > 0.1) {
-					// if a new path is different enough from the old path, it's likely better so use it
-					LOG_INFO(u8"new plan diverged. getting new plan");
-					loopBroken = true;
-					break;
+
+				// (plan[i] - Evaluation::RRT::rrt_plan(world, player, dest, way_points, true, player.flags())[0]).len() > Robot::MAX_RADIUS * 2
+				if(count >= 5) {
+					newPlan = Evaluation::RRT::rrt_plan(world, player, dest, way_points, true, player.flags());
+					if(Evaluation::Plan::isNewPathBetter(plan, newPlan, dest) ||
+					   (plan.back() - dest).len() > 1e-6) {
+						// if a new path is different enough from the old path, it's likely better so use it
+						LOG_INFO(u8"new plan diverged. getting new plan");
+						loopBroken = true;
+						break;
+					}
 				}
 				if(!Evaluation::Plan::valid_path(player.position(), plan[i], world, player)) {
 					// break this path and replan
 					LOG_INFO(u8"path not valid. getting new plan");
+					newPlan = Evaluation::RRT::rrt_plan(world, player, dest, way_points, true, player.flags());
 					loopBroken = true;
 					break;
 				}
 				count++;
+				LOGF_INFO(u8"remaining points: %1", i < plan.size());
+				LOGF_INFO(u8"dist point, dest: %1, %2", (player.position() - plan[i]).len(), (player.position() - dest).len());
 			}
 			if(loopBroken) break;
+			LOG_INFO(u8"Stuck 1");
 		}
+		LOG_INFO(u8"Stuck 2");
 	}
 	LOG_INFO(u8"Done move_rrt");
 }
