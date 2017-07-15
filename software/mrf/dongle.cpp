@@ -64,6 +64,7 @@ MRFDongle::SendReliableMessageOperation::SendReliableMessageOperation(MRFDongle 
 	mdr_connection = dongle.signal_message_delivery_report.connect(sigc::mem_fun(this, &SendReliableMessageOperation::message_delivery_report));
 }
 
+
 void MRFDongle::SendReliableMessageOperation::result() const {
 	transfer->result();
 	switch (delivery_status) {
@@ -486,7 +487,6 @@ void MRFDongle::handle_camera_transfer_done(AsyncOperation<void> &, std::list<st
 	(*iter).first->result();
 	camera_transfers.erase(iter);
 }
-
 void MRFDongle::send_unreliable(unsigned int robot, unsigned int tries, const void *data, std::size_t len) {
 	assert(robot < 8);
 	assert((1 <= tries) && (tries <= 256));
@@ -507,7 +507,6 @@ void MRFDongle::check_unreliable_transfer(AsyncOperation<void> &, std::list<std:
 	(*iter)->result();
 	unreliable_messages.erase(iter);
 }
-
 void MRFDongle::handle_beep_done(AsyncOperation<void> &) {
 	beep_transfer->result();
 	beep_transfer.reset();

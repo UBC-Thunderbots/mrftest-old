@@ -50,7 +50,7 @@ static const fptr exception_vectors[16U] __attribute__((used, section(".exceptio
 static const fptr interrupt_vectors[82U] __attribute__((used, section(".interrupt_vectors"))) = {
 	[NVIC_IRQ_ADC] = &adc_isr,
 	[NVIC_IRQ_EXTI15_10] = &exti10_15_isr,
-//	[NVIC_IRQ_TIM6_DAC] = &timer6_isr,
+	[NVIC_IRQ_TIM6_DAC] = &timer6_isr,
 	[NVIC_IRQ_DMA2_STREAM0] = &dma2_stream0_isr,
 	[NVIC_IRQ_OTG_FS] = &udev_isr,
 };

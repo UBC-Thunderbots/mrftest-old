@@ -195,7 +195,7 @@ static bool camera_transfer_complete;
 /**
  * \brief The handle of the drive task.
  */
-//static TaskHandle_t drive_task_handle;
+static TaskHandle_t drive_task_handle;
 
 /**
  * \brief The handle of the camera task.
@@ -205,7 +205,7 @@ static TaskHandle_t camera_task_handle;
 /**
  * \brief The handle of the reliable message transmission task.
  */
-static TaskHandle_t reliable_task_handle;
+//static TaskHandle_t reliable_task_handle;
 
 /**
  * \brief The handle of the unreliable message transmission task.
@@ -258,7 +258,6 @@ static void mrf_int_isr(void) {
 /**
  * \brief Handles timer 6 interrupts.
  */
-/*
 void timer6_isr(void) {
 	// Clear interrupt flag.
 	{
@@ -276,7 +275,6 @@ void timer6_isr(void) {
 
 	EXCEPTION_RETURN_BARRIER();
 }
-*/
 /**
  * \brief Handles notifications from the USB layer that an asynchronous
  * operation on the drive packet endpoint is complete.
@@ -285,7 +283,7 @@ void timer6_isr(void) {
  * \param[in, out] from_isr_yield the yield pointer (if invoked from an ISR),
  * or \c null (if invoked from mainline code)
  */
-/*static void handle_drive_endpoint_done(unsigned int UNUSED(ep), BaseType_t *from_isr_yield) {
+static void handle_drive_endpoint_done(unsigned int UNUSED(ep), BaseType_t *from_isr_yield) {
 	__atomic_store_n(&drive_transfer_complete, true, __ATOMIC_RELAXED);
 	if (from_isr_yield) {
 		vTaskNotifyGiveFromISR(drive_task_handle, from_isr_yield);
@@ -293,7 +291,6 @@ void timer6_isr(void) {
 		xTaskNotifyGive(drive_task_handle);
 	}
 }
-*/
 /**
  * \brief Handles notifications from the USB layer that an asynchronous
  * operation on the camera packet endpoint is complete.
@@ -429,7 +426,7 @@ static void send_camera_packet(const void *packet)
  *
  * \pre The transmit mutex must be held by the caller.
  */
-/*static void send_drive_packet(const void *packet, const uint8_t *serials) {
+static void send_drive_packet(const void *packet, const uint8_t *serials) {
 	unsigned int address = MRF_REG_LONG_TXNFIFO;
 
 	// Write out the MRF24J40 and 802.15.4 headers.
@@ -479,7 +476,7 @@ static void send_camera_packet(const void *packet)
 	// Blink the transmit light.
 	led_blink(LED_TX);
 }
-*/
+
 /**
  * \brief Handles all work associated with drive packets.
  *
@@ -489,11 +486,10 @@ static void send_camera_packet(const void *packet)
  * The drive packet is sent over the radio every time timer 6 expires, as long as the packet is valid.
  * On receiving a packet over USB, the new packet is used on the next scheduled transmission and thereafter.
  */
-/*static void drive_task(void *UNUSED(param)) {
+static void drive_task(void *UNUSED(param)) {
 	for (;;) {
 		// Wait to be instructed to start doing work.
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
 		// Allocate space to store packet serial numbers and packet buffers.
 		uint8_t serials[NUM_ROBOTS] = {};
 		static uint8_t packet_buffer[NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT];
@@ -529,19 +525,18 @@ static void send_camera_packet(const void *packet)
 		TIM6.CNT = 0U;
 		TIM6.CR1.CEN = 1; // Enable timer
 		portENABLE_HW_INTERRUPT(NVIC_IRQ_TIM6_DAC);
-
 		// Run!
 		bool ep_running = false;
 		for (;;) {
 			// Start the endpoint if possible.
 			if (!ep_running) {
 				// TODO: check that setting the usb endpoint to 0x04U is ok
-				if (uep_async_read_start(0x04U, usb_buffer, NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT, &handle_drive_endpoint_done)) {
+				if (uep_async_read_start(0x01U, usb_buffer, NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT, &handle_drive_endpoint_done)) {
 					ep_running = true;
 				} else {
 					if (errno == EPIPE) {
 						// Endpoint halted.
-						uep_halt_wait(0x04U);
+						uep_halt_wait(0x01U);
 					} else {
 						// Shutting down.
 						break;
@@ -555,7 +550,7 @@ static void send_camera_packet(const void *packet)
 			if (__atomic_exchange_n(&drive_transfer_complete, false, __ATOMIC_RELAXED)) {
 				// Endpoint finished.
 				size_t transfer_length;
-				if (uep_async_read_finish(0x04U, &transfer_length)) {
+				if (uep_async_read_finish(0x01U, &transfer_length)) {
 					ep_running = false;
 					if (transfer_length == NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT) {
 						// This transfer contains new data for every robot.
@@ -575,7 +570,7 @@ static void send_camera_packet(const void *packet)
 						}
 					} else {
 						// Transfer is wrong length; reject.
-						uep_halt(0x05U);
+						uep_halt(0x01U);
 					}
 				} else if (errno == ECONNRESET) {
 					// Shutting down.
@@ -584,7 +579,7 @@ static void send_camera_packet(const void *packet)
 				} else if (errno == EOVERFLOW) {
 					// Halt endpoint due to application being dumb.
 					ep_running = false;
-					uep_halt(0x04U);
+					uep_halt(0x01U);
 				} else if (errno != EINPROGRESS) {
 					ep_running = false;
 				}
@@ -598,7 +593,6 @@ static void send_camera_packet(const void *packet)
 				xSemaphoreGive(transmit_mutex);
 			}
 		}
-
 		// Turn off timer 6.
 		{
 			TIM_basic_CR1_t tmp = { 0 };
@@ -611,7 +605,7 @@ static void send_camera_packet(const void *packet)
 		xSemaphoreGive(enabled_mode_change_sem);
 	}
 }
-*/
+
 /**
  * \brief Handles all work associated with camera packets.
  *
@@ -638,12 +632,12 @@ static void camera_task(void *UNUSED(param)) {
 		for (;;) {
 			// Start the endpoint if possible.
 			if (!ep_running) {
-				if (uep_async_read_start(0x01U, usb_buffer, 55, &handle_camera_endpoint_done)) {
+				if (uep_async_read_start(0x02U, usb_buffer, 55, &handle_camera_endpoint_done)) {
 					ep_running = true;
 				} else {
 					if (errno == EPIPE) {
 						// Endpoint halted.
-						uep_halt_wait(0x01U);
+						uep_halt_wait(0x02U);
 					} else {
 						// Shutting down.
 						break;
@@ -657,14 +651,14 @@ static void camera_task(void *UNUSED(param)) {
 			if (__atomic_exchange_n(&camera_transfer_complete, false, __ATOMIC_RELAXED)) {
 				// Endpoint finished.
 				size_t transfer_length;
-				if (uep_async_read_finish(0x01U, &transfer_length)) {
+				if (uep_async_read_finish(0x02U, &transfer_length)) {
 					ep_running = false;
 					if (transfer_length == 55) {
 						// This transfer contains new data for every robot.
 						memcpy(packet_buffer, usb_buffer, 55);
 					} else {
 						// Transfer is wrong length; reject.
-						uep_halt(0x01U);
+						uep_halt(0x02U);
 					}
 				} else if (errno == ECONNRESET) {
 					// Shutting down.
@@ -673,7 +667,7 @@ static void camera_task(void *UNUSED(param)) {
 				} else if (errno == EOVERFLOW) {
 					// Halt endpoint due to application being dumb.
 					ep_running = false;
-					uep_halt(0x01U);
+					uep_halt(0x02U);
 				} else if (errno != EINPROGRESS) {
 					ep_running = false;
 				}
@@ -701,7 +695,7 @@ static void camera_task(void *UNUSED(param)) {
 /**
  * \brief Receives reliable message packets from OUT endpoint 2 and queues them for transmission.
  */
-static void reliable_task(void *UNUSED(param)) {
+/*static void reliable_task(void *UNUSED(param)) {
 	for (;;) {
 		// Wait to be instructed to start doing work.
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
@@ -748,7 +742,7 @@ static void reliable_task(void *UNUSED(param)) {
 		xSemaphoreGive(enabled_mode_change_sem);
 	}
 }
-
+*/
 /**
  * \brief Receives unreliable message packets from OUT endpoint 3 and queues them for transmission.
  */
@@ -1190,20 +1184,20 @@ void normal_init(void) {
 	}
 
 	// Start tasks.
-	//TODO: put drive back in here
-	static StaticTask_t camera_task_storage, reliable_task_storage, unreliable_task_storage, mdr_task_storage, usbrx_task_storage, dongle_status_task_storage, rdtx_task_storage, rdrx_task_storage;
-	//STACK_ALLOCATE(drive_task_stack, 4096);
+	static StaticTask_t camera_task_storage, drive_task_storage, unreliable_task_storage, mdr_task_storage, usbrx_task_storage, dongle_status_task_storage, rdtx_task_storage, rdrx_task_storage;
+	//static StaticTask_t reliable_task_storage;
+	STACK_ALLOCATE(drive_task_stack, 4096);
 	STACK_ALLOCATE(camera_task_stack, 4096);
-	STACK_ALLOCATE(reliable_task_stack, 4096);
+	//STACK_ALLOCATE(reliable_task_stack, 4096);
 	STACK_ALLOCATE(unreliable_task_stack, 4096);
 	STACK_ALLOCATE(mdr_task_stack, 4096);
 	STACK_ALLOCATE(usbrx_task_stack, 4096);
 	STACK_ALLOCATE(dongle_status_task_stack, 4096);
 	STACK_ALLOCATE(rdtx_task_stack, 4096);
 	STACK_ALLOCATE(rdrx_task_stack, 4096);
-	//drive_task_handle = xTaskCreateStatic(&drive_task, "norm_drive", sizeof(drive_task_stack) / sizeof(*drive_task_stack), 0, 7, drive_task_stack, &drive_task_storage);
+	drive_task_handle = xTaskCreateStatic(&drive_task, "norm_drive", sizeof(drive_task_stack) / sizeof(*drive_task_stack), 0, 7, drive_task_stack, &drive_task_storage);
 	camera_task_handle = xTaskCreateStatic(&camera_task, "norm_camera", sizeof(camera_task_stack) / sizeof(*camera_task_stack), 0, 7, camera_task_stack, &camera_task_storage);
-	reliable_task_handle = xTaskCreateStatic(&reliable_task, "norm_reliable", sizeof(reliable_task_stack) / sizeof(*reliable_task_stack), 0, 6, reliable_task_stack, &reliable_task_storage);
+	//reliable_task_handle = xTaskCreateStatic(&reliable_task, "norm_reliable", sizeof(reliable_task_stack) / sizeof(*reliable_task_stack), 0, 6, reliable_task_stack, &reliable_task_storage);
 	unreliable_task_handle = xTaskCreateStatic(&unreliable_task, "norm_unreliable", sizeof(unreliable_task_stack) / sizeof(*unreliable_task_stack), 0, 6, unreliable_task_stack, &unreliable_task_storage);
 	mdr_task_handle = xTaskCreateStatic(&mdr_task, "norm_mdr", sizeof(mdr_task_stack) / sizeof(*mdr_task_stack), 0, 5, mdr_task_stack, &mdr_task_storage);
 	usbrx_task_handle = xTaskCreateStatic(&usbrx_task, "norm_usbrx", sizeof(usbrx_task_stack) / sizeof(*usbrx_task_stack), 0, 6, usbrx_task_stack, &usbrx_task_storage);
@@ -1243,9 +1237,9 @@ void normal_on_enter(void) {
 	led_on(LED_RX);
 
 	// Notify tasks to start doing work.
-	//xTaskNotifyGive(drive_task_handle);
+	xTaskNotifyGive(drive_task_handle);
 	xTaskNotifyGive(camera_task_handle);
-	xTaskNotifyGive(reliable_task_handle);
+//	xTaskNotifyGive(reliable_task_handle);
 	xTaskNotifyGive(unreliable_task_handle);
 	xTaskNotifyGive(mdr_task_handle);
 	xTaskNotifyGive(usbrx_task_handle);

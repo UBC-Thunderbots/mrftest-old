@@ -118,7 +118,6 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 						seen_this_frame[bot->pattern()] = true;
 						if (detbot.has_orientation()) {
 							bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
-							//Todo: Remove the 0.66666 scaling- can't seem to get vision to send the right field size
 							Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
 							Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::half() : Angle::zero())).angle_mod();
 							bot->add_field_data(pos, ori, ts[i]);
@@ -216,6 +215,7 @@ void MRFBackend::tick(){
 
         // Do post-AI stuff (pushing data to the radios and updating predictors).
         for (std::size_t i = 0; i < friendly_team().size(); ++i) {
+				//TODO: uncomment this
                 //test to see if this fixes halt spamming over radio
                 friendly_team().get_backend_robot(i)->tick(false,false);
                 //friendly_team().get_backend_robot(i)->tick(

@@ -213,7 +213,6 @@ class MRFDongle::SendReliableMessageOperation::NotAcknowledgedError final : publ
 };
 
 
-
 class MRFDongle::SendReliableMessageOperation::ClearChannelError final : public std::runtime_error {
 	public:
 		/**
