@@ -793,3 +793,10 @@ bool point_in_front_vector(Vector2 offset, Vector2 dir, Vector2 p) {
 	return diff < Angle::quarter() && diff > -Angle::quarter();
 }
 
+bool is_clockwise(Vector2 v1, Vector2 v2) {
+	if(v1.y * v2.x > v1.x * v2.y) {
+		return true;
+	}
+	return false;
+}
+

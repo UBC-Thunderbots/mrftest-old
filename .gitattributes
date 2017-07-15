@@ -382,6 +382,8 @@ software/ai/hl/stp/evaluation/shoot.cpp -text
 software/ai/hl/stp/evaluation/shoot.h -text
 software/ai/hl/stp/evaluation/static_position_quality.cpp -text
 software/ai/hl/stp/evaluation/static_position_quality.h -text
+software/ai/hl/stp/evaluation/straight_line_planner.cpp -text
+software/ai/hl/stp/evaluation/straight_line_planner.h -text
 software/ai/hl/stp/evaluation/team.cpp -text
 software/ai/hl/stp/evaluation/team.h -text
 software/ai/hl/stp/evaluation/tri_attack.cpp -text

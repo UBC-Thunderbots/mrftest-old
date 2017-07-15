@@ -2,6 +2,7 @@
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/action/action.h"
 #include "ai/hl/stp/evaluation/rrt_planner.h"
+#include "ai/hl/stp/evaluation/straight_line_planner.h"
 #include "ai/hl/stp/evaluation/plan_util.h"
 #include "util/dprint.h"
 
@@ -116,6 +117,22 @@ void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Poi
 	}
 	LOG_INFO(u8"Done move_rrt");
 }
+
+void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Point dest, bool should_wait) {
+	move_slp(ca, world, player, dest, Angle(), should_wait);
+}
+
+void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Point dest, Angle orientation, bool should_wait) {
+	std::vector<Point> plan;
+	while((player.position() - dest).len() > 0.05) {
+		plan = Evaluation::SLP::straight_line_plan(world, player, dest);
+		player.display_path(plan);
+		player.move_move(plan[0], orientation, 0);
+		yield(ca);
+		LOG_INFO(u8"move slp");
+	}
+}
+
 
 void AI::HL::STP::Action::move_dribble(caller_t& ca, World world, Player player, Angle orientation, Point dest, bool should_wait) {
     std::vector<Point> way_points;

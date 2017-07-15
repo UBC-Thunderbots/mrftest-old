@@ -49,6 +49,16 @@ namespace AI {
                     bool valid_path(Point cur, Point dst, World world, Player player, AI::Flags::MoveFlags extra_flags);
 
                     /**
+                     * Returns true if the new path is significantly better than the old path
+                     * If one path has more points than the other, they are only evaluated up
+                     * to the length of the shorter path.
+                     *
+                     * Paths are considered better if they are shorter and their endpoint is closer
+                     * to the given destination
+                     */
+                    bool isNewPathBetter(const std::vector<Point> &oldPath, const std::vector<Point> &newPath, const Point &target);
+
+                    /**
                      * returns a list of legal points circling the destination. These set of points may be valuable as a search space for a navigator
                      * it is not garuenteed that the returned vector is non-empty
                      *

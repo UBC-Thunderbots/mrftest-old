@@ -448,6 +448,19 @@ bool Plan::valid_path(Point cur, Point dst, World world, Player player) {
 	return Violation::get_violation_amount(cur, dst, world, player).no_more_violating_than(Violation::get_violation_amount(cur, cur, world, player));
 }
 
+bool Plan::isNewPathBetter(const std::vector<Point> &oldPath, const std::vector<Point> &newPath, const Point &target) {
+	double oldPathLength = 0;
+	double newPathLength = 0;
+	for(unsigned int i = 0; i < std::min(oldPath.size(), newPath.size()) - 1; i++) {
+		oldPathLength += (oldPath[i] - oldPath[i+1]).len();
+		newPathLength += (newPath[i] - newPath[i+1]).len();
+	}
+
+	bool better = newPathLength / oldPathLength < 0.8 && (newPath.back() - target).len() < (oldPath.back() - target).len();
+	LOGF_INFO(u8"new path better: %1", better);
+	return better;
+}
+
 bool Plan::valid_path(Point cur, Point dst, World world, Player player, MoveFlags extra_flags) {
 	return Violation::get_violation_amount(cur, dst, world, player, extra_flags).no_more_violating_than(Violation::get_violation_amount(cur, cur, world, player, extra_flags));
 }

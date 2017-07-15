@@ -451,3 +451,9 @@ double closest_point_time(Point x1, Point v1, Point x2, Point v2);
  * param[in] p is the point is question
  */
 bool point_in_front_vector( Point offset, Point dir, Point p );
+
+/**
+ * Returns true if v2 is clockwise relative to v1
+ */
+#warning this should work but hasn't been properly tested
+bool is_clockwise(Point v1, Point v2);

@@ -54,7 +54,8 @@ void AI::HL::STP::Action::catch_ball(caller_t& ca, World world, Player player, P
 		}
 
         LOGF_INFO(u8"%1", catch_pos);
-		player.move_move(catch_pos, catch_orientation);
+        Action::move_rrt(ca, world, player, catch_pos, catch_orientation);
+//		player.move_move(catch_pos, catch_orientation);
 		Action::yield(ca);
 	} while ((player.position() - catch_pos).lensq() > 0.08 * 0.08 || player.velocity().lensq() > 0.07 * 0.07 ||
 				player.orientation().angle_diff(catch_orientation).abs() > Angle::of_degrees(5));
